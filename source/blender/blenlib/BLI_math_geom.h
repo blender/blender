@@ -102,6 +102,12 @@ float        dist_squared_to_plane_v3(const float p[3], const float plane[4]);
 float dist_signed_to_plane_v3(const float p[3], const float plane[4]);
 float        dist_to_plane_v3(const float p[3], const float plane[4]);
 
+/* plane3 versions */
+float dist_signed_squared_to_plane3_v3(const float p[3], const float plane[4]);
+float        dist_squared_to_plane3_v3(const float p[3], const float plane[4]);
+float dist_signed_to_plane3_v3(const float p[3], const float plane[4]);
+float        dist_to_plane3_v3(const float p[3], const float plane[4]);
+
 float dist_squared_to_line_segment_v3(const float p[3], const float l1[3], const float l2[3]);
 float         dist_to_line_segment_v3(const float p[3], const float l1[3], const float l2[3]);
 float dist_squared_to_line_v3(const float p[3], const float l1[3], const float l2[3]);

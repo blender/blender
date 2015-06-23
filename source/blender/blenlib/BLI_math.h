@@ -43,6 +43,8 @@
  *  - ``m4`` = mat4 = matrix 4x4
  *  - ``eul`` = euler rotation
  *  - ``eulO`` = euler with order
+ *  - ``plane`` = plane 4, (vec3, distance)
+ *  - ``plane3`` = plane 3 (same as a ``plane`` with a zero 4th component)
  *
  * \subsection mathabbrev_all Function Type Abbreviations
  *

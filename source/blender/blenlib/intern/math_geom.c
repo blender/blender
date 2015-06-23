@@ -442,6 +442,22 @@ float dist_squared_to_plane_v3(const float pt[3], const float plane[4])
 	return len_sq * (fac * fac);
 }
 
+float dist_signed_squared_to_plane3_v3(const float pt[3], const float plane[3])
+{
+	const float len_sq = len_squared_v3(plane);
+	const float side = dot_v3v3(plane, pt);  /* only difference with 'plane[4]' version */
+	const float fac = side / len_sq;
+	return copysignf(len_sq * (fac * fac), side);
+}
+float dist_squared_to_plane3_v3(const float pt[3], const float plane[3])
+{
+	const float len_sq = len_squared_v3(plane);
+	const float side = dot_v3v3(plane, pt);  /* only difference with 'plane[4]' version */
+	const float fac = side / len_sq;
+	/* only difference to code above - no 'copysignf' */
+	return len_sq * (fac * fac);
+}
+
 /**
  * Return the signed distance from the point to the plane.
  */
@@ -455,6 +471,18 @@ float dist_signed_to_plane_v3(const float pt[3], const float plane[4])
 float dist_to_plane_v3(const float pt[3], const float plane[4])
 {
 	return fabsf(dist_signed_to_plane_v3(pt, plane));
+}
+
+float dist_signed_to_plane3_v3(const float pt[3], const float plane[3])
+{
+	const float len_sq = len_squared_v3(plane);
+	const float side = dot_v3v3(plane, pt);  /* only difference with 'plane[4]' version */
+	const float fac = side / len_sq;
+	return sqrtf(len_sq) * fac;
+}
+float dist_to_plane3_v3(const float pt[3], const float plane[3])
+{
+	return fabsf(dist_signed_to_plane3_v3(pt, plane));
 }
 
 /* distance v1 to line-piece l1-l2 in 3D */
@@ -517,6 +545,7 @@ float dist_signed_squared_to_corner_v3v3v3(
 	float plane_a[4], plane_b[4];
 	float dist_a, dist_b;
 	float axis[3];
+	float s_p_v2[3];
 	bool flip = false;
 
 	sub_v3_v3v3(dir_a, v1, v2);
@@ -537,16 +566,20 @@ float dist_signed_squared_to_corner_v3v3v3(
 	cross_v3_v3v3(plane_b, axis, dir_b);
 
 #if 0
-	plane_from_point_normal_v3(plane_a, center, l1);
-	plane_from_point_normal_v3(plane_b, center, l2);
-#else
-	/* do inline */
-	plane_a[3] = -dot_v3v3(plane_a, v2);
-	plane_b[3] = -dot_v3v3(plane_b, v2);
-#endif
+	plane_from_point_normal_v3(plane_a, v2, plane_a);
+	plane_from_point_normal_v3(plane_b, v2, plane_b);
 
 	dist_a = dist_signed_squared_to_plane_v3(p, plane_a);
 	dist_b = dist_signed_squared_to_plane_v3(p, plane_b);
+#else
+	/* calculate without he planes 4th component to avoid float precision issues */
+	sub_v3_v3v3(s_p_v2, p, v2);
+
+	dist_a = dist_signed_squared_to_plane3_v3(s_p_v2, plane_a);
+	dist_b = dist_signed_squared_to_plane3_v3(s_p_v2, plane_b);
+#endif
+
+
 
 	if (flip) {
 		return min_ff(dist_a, dist_b);
