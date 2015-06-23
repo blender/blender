@@ -4638,8 +4638,8 @@ static EnumPropertyItem redraw_timer_type_items[] = {
 	{eRTDrawWindowSwap, "DRAW_WIN_SWAP", 0, "Draw Window + Swap", "Draw Window and Swap"},
 	{eRTAnimationStep, "ANIM_STEP", 0, "Anim Step", "Animation Steps"},
 	{eRTAnimationPlay, "ANIM_PLAY", 0, "Anim Play", "Animation Playback"},
-	{6, "UNDO", 0, "Undo/Redo", "Undo/Redo"},
-	{eRTUndo, NULL, 0, NULL, NULL}
+	{eRTUndo, "UNDO", 0, "Undo/Redo", "Undo/Redo"},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int redraw_timer_exec(bContext *C, wmOperator *op)
