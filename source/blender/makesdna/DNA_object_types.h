@@ -378,8 +378,8 @@ enum {
 enum {
 	PARTYPE       = (1 << 4) - 1,
 	PAROBJECT     = 0,
-	PARCURVE      = 1,
-	PARKEY        = 2,
+	PARCURVE      = 1,  /* Deprecated. */
+	PARKEY        = 2,  /* XXX Unused, deprecated? */
 
 	PARSKEL       = 4,
 	PARVERT1      = 5,
