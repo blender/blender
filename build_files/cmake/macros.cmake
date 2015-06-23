@@ -950,8 +950,10 @@ macro(remove_strict_flags)
 		remove_cc_flag(
 			"-Wstrict-prototypes"
 			"-Wmissing-prototypes"
-			"-Wunused-parameter"
+			"-Wmissing-format-attribute"
+			"-Wunused-local-typedefs"
 			"-Wunused-macros"
+			"-Wunused-parameter"
 			"-Wwrite-strings"
 			"-Wredundant-decls"
 			"-Wundef"

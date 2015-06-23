@@ -21,6 +21,13 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+# avoid noisy warnings
+if(CMAKE_COMPILER_IS_GNUCC)
+	remove_cc_flag(
+		"-Wmissing-declarations"
+	)
+endif()
+
 set(INC
 	.
 	include
