@@ -266,7 +266,7 @@ Constants
 Debug Mode Constants
 ^^^^^^^^^^^^^^^^^^^^
 
-Debug mode to be used with :func:`setDebugMode`
+Debug mode to be used with :func:`setDebugMode`.
 
 
 .. data:: DBG_NODEBUG
@@ -329,7 +329,7 @@ Debug mode to be used with :func:`setDebugMode`
 Create Constraint Constants
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Constraint type to be used with :func:`createConstraint`
+Constraint type to be used with :func:`createConstraint`.
 
 
 .. data:: POINTTOPOINT_CONSTRAINT
