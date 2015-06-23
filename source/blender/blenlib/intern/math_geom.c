@@ -697,37 +697,55 @@ int isect_line_line_v2(const float v1[2], const float v2[2], const float v3[2], 
  *  -1: collinear
  *   1: intersection
  */
-int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[2], const float v4[2], float vi[2])
+int isect_seg_seg_v2_point(const float v0[2], const float v1[2], const float v2[2], const float v3[2], float r_vi[2])
 {
-	float a1, a2, b1, b2, c1, c2, d;
-	float u, v;
+	float s10[2], s32[2], s30[2], d;
 	const float eps = 1e-6f;
 	const float eps_sq = eps * eps;
 
-	a1 = v2[0] - v1[0];
-	b1 = v4[0] - v3[0];
-	c1 = v1[0] - v4[0];
+	sub_v2_v2v2(s10, v1, v0);
+	sub_v2_v2v2(s32, v3, v2);
+	sub_v2_v2v2(s30, v3, v0);
 
-	a2 = v2[1] - v1[1];
-	b2 = v4[1] - v3[1];
-	c2 = v1[1] - v4[1];
+	d = cross_v2v2(s10, s32);
 
-	d = a1 * b2 - a2 * b1;
+	if (d != 0) {
+		float u, v;
 
-	if (d == 0) {
-		if (a1 * c2 - a2 * c1 == 0.0f && b1 * c2 - b2 * c1 == 0.0f) { /* equal lines */
-			float a[2], b[2], c[2];
-			float u2;
+		u = cross_v2v2(s30, s32) / d;
+		v = cross_v2v2(s10, s30) / d;
 
-			if (equals_v2v2(v1, v2)) {
-				if (len_squared_v2v2(v3, v4) > eps_sq) {
+		if ((u >= -eps && u <= 1.0f + eps) &&
+		    (v >= -eps && v <= 1.0f + eps))
+		{
+			/* intersection */
+			madd_v2_v2v2fl(r_vi, v0, s10, u);
+			return 1;
+		}
+
+		/* out of segment intersection */
+		return -1;
+	}
+	else {
+		if ((cross_v2v2(s10, s30) == 0.0f) &&
+		    (cross_v2v2(s32, s30) == 0.0f))
+		{
+			/* equal lines */
+			float s20[2];
+			float u_a, u_b;
+
+			if (equals_v2v2(v0, v1)) {
+				if (len_squared_v2v2(v2, v3) > eps_sq) {
 					/* use non-point segment as basis */
+					SWAP(const float *, v0, v2);
 					SWAP(const float *, v1, v3);
-					SWAP(const float *, v2, v4);
+
+					sub_v2_v2v2(s10, v1, v0);
+					sub_v2_v2v2(s30, v3, v0);
 				}
 				else { /* both of segments are points */
-					if (equals_v2v2(v1, v3)) { /* points are equal */
-						copy_v2_v2(vi, v1);
+					if (equals_v2v2(v0, v2)) { /* points are equal */
+						copy_v2_v2(r_vi, v0);
 						return 1;
 					}
 
@@ -736,19 +754,21 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
 				}
 			}
 
-			sub_v2_v2v2(a, v3, v1);
-			sub_v2_v2v2(b, v2, v1);
-			sub_v2_v2v2(c, v2, v1);
-			u = dot_v2v2(a, b) / dot_v2v2(c, c);
+			sub_v2_v2v2(s20, v2, v0);
 
-			sub_v2_v2v2(a, v4, v1);
-			u2 = dot_v2v2(a, b) / dot_v2v2(c, c);
+			u_a = dot_v2v2(s20, s10) / dot_v2v2(s10, s10);
+			u_b = dot_v2v2(s30, s10) / dot_v2v2(s10, s10);
 
-			if (u > u2) SWAP(float, u, u2);
+			if (u_a > u_b)
+				SWAP(float, u_a, u_b);
 
-			if (u > 1.0f + eps || u2 < -eps) return -1;  /* non-ovlerlapping segments */
-			else if (max_ff(0.0f, u) == min_ff(1.0f, u2)) { /* one common point: can return result */
-				interp_v2_v2v2(vi, v1, v2, max_ff(0, u));
+			if (u_a > 1.0f + eps || u_b < -eps) {
+				/* non-overlapping segments */
+				return -1;
+			}
+			else if (max_ff(0.0f, u_a) == min_ff(1.0f, u_b)) {
+				/* one common point: can return result */
+				madd_v2_v2v2fl(r_vi, v0, s10, max_ff(0, u_a));
 				return 1;
 			}
 		}
@@ -756,17 +776,6 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
 		/* lines are collinear */
 		return -1;
 	}
-
-	u = (c2 * b1 - b2 * c1) / d;
-	v = (c1 * a2 - a1 * c2) / d;
-
-	if (u >= -eps && u <= 1.0f + eps && v >= -eps && v <= 1.0f + eps) { /* intersection */
-		interp_v2_v2v2(vi, v1, v2, u);
-		return 1;
-	}
-
-	/* out of segment intersection */
-	return -1;
 }
 
 bool isect_seg_seg_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
