@@ -228,7 +228,7 @@ static void rna_SmokeModifier_velocity_grid_get(PointerRNA *ptr, float *values)
 	vy = smoke_get_velocity_y(sds->fluid);
 	vz = smoke_get_velocity_z(sds->fluid);
 
-	for (i=0; i<size; i+=3) {
+	for (i = 0; i < size; i += 3) {
 		*(values++) = *(vx++);
 		*(values++) = *(vy++);
 		*(values++) = *(vz++);

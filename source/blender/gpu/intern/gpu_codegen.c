@@ -184,8 +184,8 @@ static void gpu_parse_functions_string(GHash *hash, char *code)
 				/* add parameter */
 				code = gpu_str_skip_token(code, NULL, 0);
 				code = gpu_str_skip_token(code, NULL, 0);
-				function->paramqual[function->totparam]= qual;
-				function->paramtype[function->totparam]= type;
+				function->paramqual[function->totparam] = qual;
+				function->paramtype[function->totparam] = type;
 				function->totparam++;
 			}
 			else {

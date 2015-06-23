@@ -1082,7 +1082,7 @@ void IMB_exr_write_channels(void *handle)
 
 		/* We allocate teporary storage for half pixels for all the channels at once. */
 		if (data->num_half_channels != 0) {
-			rect_half = (half*)MEM_mallocN(sizeof(half) * data->num_half_channels * num_pixels, __func__);
+			rect_half = (half *)MEM_mallocN(sizeof(half) * data->num_half_channels * num_pixels, __func__);
 			current_rect_half = rect_half;
 		}
 
