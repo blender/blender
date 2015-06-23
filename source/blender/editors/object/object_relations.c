@@ -571,6 +571,9 @@ void ED_object_parent(Object *ob, Object *par, const int type, const char *subst
 		return;
 	}
 
+	/* Other partypes are deprecated, do not use here! */
+	BLI_assert(ELEM(type & PARTYPE, PAROBJECT, PARSKEL, PARVERT1, PARVERT3, PARBONE));
+
 	/* this could use some more checks */
 
 	ob->parent = par;
