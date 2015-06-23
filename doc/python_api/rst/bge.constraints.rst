@@ -4,12 +4,20 @@ Physics Constraints (bge.constraints)
 
 .. module:: bge.constraints
 
+
+Examples
+--------
+
 .. include:: ../examples/bge.constraints.py
    :start-line: 1
    :end-line: 4
 
 .. literalinclude:: ../examples/bge.constraints.py
    :lines: 6-
+
+
+Functions
+---------
 
 .. function:: createConstraint( \
       physicsid_1, physicsid_2, constraint_type, \
@@ -65,7 +73,7 @@ Physics Constraints (bge.constraints)
 
    See `Bullet binary serialization <http://bulletphysics.org/mediawiki-1.5.8/index.php/Bullet_binary_serialization>`__.
 
-   :arg filename: Absolute filepath.
+   :arg filename: File path.
    :type filename: str
 
 .. function:: getAppliedImpulse(constraintId)
