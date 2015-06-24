@@ -5434,7 +5434,7 @@ static void slide_origdata_interp_data_vert(
 
 		/* weight the loop */
 		if (do_loop_weight) {
-			const float eps = 0.00001f;
+			const float eps = 1.0e-8f;
 			const BMLoop *l_prev = l->prev;
 			const BMLoop *l_next = l->next;
 			const float *co_prev = slide_origdata_orig_vert_co(sod, l_prev->v);
