@@ -542,7 +542,7 @@ float dist_signed_squared_to_corner_v3v3v3(
         const float axis_ref[3])
 {
 	float dir_a[3], dir_b[3];
-	float plane_a[4], plane_b[4];
+	float plane_a[3], plane_b[3];
 	float dist_a, dist_b;
 	float axis[3];
 	float s_p_v2[3];
