@@ -2318,16 +2318,43 @@ static int UNUSED_FUNCTION(vertex_group_poll_edit) (bContext *C)
 }
 
 /* editmode _or_ weight paint vertex sel */
-static int vertex_group_vert_select_poll(bContext *C)
+static int vertex_group_vert_select_poll_ex(bContext *C, const short ob_type_flag)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
 
 	if (!(ob && !ob->id.lib && data && !data->lib))
-		return 0;
+		return false;
 
-	return (BKE_object_is_in_editmode_vgroup(ob) ||
-	        BKE_object_is_in_wpaint_select_vert(ob));
+	if (ob_type_flag && (((1 << ob->type) & ob_type_flag)) == 0) {
+		return false;
+	}
+
+	if (BKE_object_is_in_editmode_vgroup(ob)) {
+		return true;
+	}
+	else if (ob->mode & OB_MODE_WEIGHT_PAINT) {
+		if (BKE_object_is_in_wpaint_select_vert(ob)) {
+			return true;
+		}
+		else {
+			CTX_wm_operator_poll_msg_set(C, "Vertex select needs to be enabled in weight paint mode");
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+static int vertex_group_vert_select_poll(bContext *C)
+{
+	return vertex_group_vert_select_poll_ex(C, 0);
+}
+
+static int vertex_group_mesh_vert_select_poll(bContext *C)
+{
+	return vertex_group_vert_select_poll_ex(C, (1 << OB_MESH));
 }
 
 /* editmode _or_ weight paint vertex sel and active group unlocked */
@@ -2874,37 +2901,6 @@ static int vertex_group_blend_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-/* check we have a vertex selection, either in weight paint or editmode */
-static int vertex_group_blend_poll(bContext *C)
-{
-	Object *ob = ED_object_context(C);
-	ID *data = (ob) ? ob->data : NULL;
-
-	if (!(ob && !ob->id.lib && data && !data->lib))
-		return false;
-
-	if (ob->type != OB_MESH) {
-		return false;
-	}
-
-	if (BKE_object_is_in_editmode_vgroup(ob)) {
-		return true;
-	}
-	else if (ob->mode & OB_MODE_WEIGHT_PAINT) {
-		if (ME_EDIT_PAINT_SEL_MODE(((Mesh *)data)) == SCE_SELECT_VERTEX) {
-			return true;
-		}
-		else {
-			CTX_wm_operator_poll_msg_set(C, "Vertex select needs to be enabled in weight paint mode");
-			return false;
-		}
-
-	}
-	else {
-		return false;
-	}
-}
-
 void OBJECT_OT_vertex_group_blend(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
@@ -2915,7 +2911,7 @@ void OBJECT_OT_vertex_group_blend(wmOperatorType *ot)
 	ot->description = "Blend selected vertex weights with unselected for the active group";
 
 	/* api callbacks */
-	ot->poll = vertex_group_blend_poll;
+	ot->poll = vertex_group_mesh_vert_select_poll;
 	ot->exec = vertex_group_blend_exec;
 
 	/* flags */
