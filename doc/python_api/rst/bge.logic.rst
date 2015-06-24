@@ -894,6 +894,8 @@ Various
 2D Filter
 ---------
 
+.. _Two-D-FilterActuator-mode:
+
 .. data:: RAS_2DFILTER_BLUR
 
    :value: 2
@@ -1288,5 +1290,3 @@ See :class:`bge.types.KX_StateActuator.operation`
    Add bits to state mask
 
    :value: 3
-
-.. _Two-D-FilterActuator-mode:
