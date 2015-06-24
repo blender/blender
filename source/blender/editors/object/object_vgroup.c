@@ -1649,7 +1649,7 @@ static void vgroup_blend_subset(Object *ob, const bool *vgroup_validmap, const i
 	MeshElemMap *emap;
 	int *emap_mem;
 
-	BLI_SMALLSTACK_DECLARE(dv_stack, MDeformVert *);
+	BLI_LINKSTACK_DECLARE(dv_stack, MDeformVert *);
 
 	BKE_object_defgroup_subset_to_index_array(vgroup_validmap, vgroup_tot, vgroup_subset_map);
 	ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, false);
@@ -1666,6 +1666,7 @@ static void vgroup_blend_subset(Object *ob, const bool *vgroup_validmap, const i
 		                              me->medge, me->totvert, me->totedge);
 	}
 
+	BLI_LINKSTACK_INIT(dv_stack);
 
 	for (i = 0; i < dvert_tot; i++) {
 		MDeformVert *dv;
@@ -1684,7 +1685,7 @@ static void vgroup_blend_subset(Object *ob, const bool *vgroup_validmap, const i
 
 					if (BM_elem_flag_test(v_other, BM_ELEM_SELECT) == 0) {
 						dv = dvert_array[i_other];
-						BLI_SMALLSTACK_PUSH(dv_stack, dv);
+						BLI_LINKSTACK_PUSH(dv_stack, dv);
 						dv_stack_tot++;
 					}
 				}
@@ -1700,7 +1701,7 @@ static void vgroup_blend_subset(Object *ob, const bool *vgroup_validmap, const i
 
 					if ((v_other->flag & SELECT) == 0) {
 						dv = dvert_array[i_other];
-						BLI_SMALLSTACK_PUSH(dv_stack, dv);
+						BLI_LINKSTACK_PUSH(dv_stack, dv);
 						dv_stack_tot++;
 					}
 				}
@@ -1711,7 +1712,7 @@ static void vgroup_blend_subset(Object *ob, const bool *vgroup_validmap, const i
 			const float dv_mul = 1.0f / (float)dv_stack_tot;
 
 			/* vgroup_subset_weights is zero'd at this point */
-			while ((dv = BLI_SMALLSTACK_POP(dv_stack))) {
+			while ((dv = BLI_LINKSTACK_POP(dv_stack))) {
 				for (j = 0; j < subset_count; j++) {
 					vgroup_subset_weights[j] += dv_mul * defvert_find_weight(dv, vgroup_subset_map[j]);
 				}
@@ -1737,6 +1738,8 @@ static void vgroup_blend_subset(Object *ob, const bool *vgroup_validmap, const i
 			}
 		}
 	}
+
+	BLI_LINKSTACK_FREE(dv_stack);
 
 	if (bm) {
 		/* pass */
