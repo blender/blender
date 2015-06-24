@@ -3493,7 +3493,7 @@ string device_opencl_capabilities(void)
 	if(num_platforms == 0) {
 		return "No OpenCL platforms found\n";
 	}
-	result += string_printf("Number of platforms: %d\n", num_platforms);
+	result += string_printf("Number of platforms: %u\n", num_platforms);
 
 	vector<cl_platform_id> platform_ids;
 	platform_ids.resize(num_platforms);
@@ -3514,7 +3514,7 @@ string device_opencl_capabilities(void)
 	for (cl_uint platform = 0; platform < num_platforms; ++platform) {
 		cl_platform_id platform_id = platform_ids[platform];
 
-		result += string_printf("Platform #%d\n", platform);
+		result += string_printf("Platform #%u\n", platform);
 
 		APPEND_PLATFORM_STRING_INFO(platform_id, "Name", CL_PLATFORM_NAME);
 		APPEND_PLATFORM_STRING_INFO(platform_id, "Vendor", CL_PLATFORM_VENDOR);
@@ -3528,7 +3528,7 @@ string device_opencl_capabilities(void)
 		                             0,
 		                             NULL,
 		                             &num_devices));
-		result += string_printf("\tNumber of devices: %d\n", num_devices);
+		result += string_printf("\tNumber of devices: %u\n", num_devices);
 
 		device_ids.resize(num_devices);
 		opencl_assert(clGetDeviceIDs(platform_ids[platform],
@@ -3539,7 +3539,7 @@ string device_opencl_capabilities(void)
 		for (cl_uint device = 0; device < num_devices; ++device) {
 			cl_device_id device_id = device_ids[device];
 
-			result += string_printf("\t\tDevice: #%d\n", device);
+			result += string_printf("\t\tDevice: #%u\n", device);
 
 			APPEND_DEVICE_STRING_INFO(device_id, "Name", CL_DEVICE_NAME);
 			APPEND_DEVICE_STRING_INFO(device_id, "Vendor", CL_DEVICE_VENDOR);
