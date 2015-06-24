@@ -109,7 +109,7 @@ void ImageRender::setBackground (float red, float green, float blue, float alpha
 void ImageRender::setBackgroundFromScene (KX_Scene *scene)
 {
 	if (scene) {
-		const float *background_color = scene->GetWorldInfo()->getBackColor();
+		const float *background_color = scene->GetWorldInfo()->getBackColorConverted();
 		copy_v3_v3(m_background, background_color);
 		m_background[3] = 1.0f;
 	}

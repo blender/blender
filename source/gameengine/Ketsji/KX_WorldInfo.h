@@ -88,7 +88,7 @@ public:
 	void setMistIntensity(float intensity);
 	void setMistColor(float r, float g, float b);
 	void setBackColor(float r, float g, float b);
-	const float *getBackColor() const;
+	const float *getBackColorConverted() const;
 	void setAmbientColor(float r, float g, float b);
 	void UpdateBackGround();
 	void UpdateWorldSettings();
