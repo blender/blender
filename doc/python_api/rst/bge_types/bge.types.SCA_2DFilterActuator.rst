@@ -7,7 +7,7 @@ base class --- :class:`SCA_IActuator`
 
 .. class:: SCA_2DFilterActuator(SCA_IActuator)
 
-   Create, enable and disable 2D filters
+   Create, enable and disable 2D filters.
 
    The following properties don't have an immediate effect.
    You must active the actuator to get the result.
@@ -29,7 +29,7 @@ base class --- :class:`SCA_IActuator`
 
    .. attribute:: mode
 
-      Type of 2D filter, use one of :ref:`these constants <Two-D-FilterActuator-mode>`
+      Type of 2D filter, use one of :ref:`these constants <Two-D-FilterActuator-mode>`.
 
       :type: integer
 
