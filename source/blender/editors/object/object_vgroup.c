@@ -427,6 +427,48 @@ bool ED_vgroup_array_copy(Object *ob, Object *ob_from)
 	return true;
 }
 
+void ED_vgroup_parray_to_weight_array(
+        const MDeformVert **dvert_array, const int dvert_tot,
+        float *dvert_weights, const int def_nr)
+{
+	int i;
+
+	for (i = 0; i < dvert_tot; i++) {
+		const MDeformVert *dv = dvert_array[i];
+		dvert_weights[i] = dv ? defvert_find_weight(dv, def_nr) : 0.0f;
+	}
+}
+
+void ED_vgroup_parray_from_weight_array(
+        MDeformVert **dvert_array, const int dvert_tot,
+        const float *dvert_weights, const int def_nr, const bool remove_zero)
+{
+	int i;
+
+	for (i = 0; i < dvert_tot; i++) {
+		MDeformVert *dv = dvert_array[i];
+		if (dv) {
+			if (dvert_weights[i] > 0.0f) {
+				MDeformWeight *dw = defvert_verify_index(dv, def_nr);
+				BLI_assert(IN_RANGE_INCL(dvert_weights[i], 0.0f, 1.0f));
+				dw->weight = dvert_weights[i];
+			}
+			else {
+				MDeformWeight *dw = defvert_find_index(dv, def_nr);
+				if (dw) {
+					if (remove_zero) {
+						defvert_remove_group(dv, dw);
+					}
+					else {
+						dw->weight = 0.0f;
+					}
+				}
+			}
+		}
+	}
+}
+
+
 /* TODO, cache flip data to speedup calls within a loop. */
 static void mesh_defvert_mirror_update_internal(Object *ob,
                                                 MDeformVert *dvert_dst, MDeformVert *dvert_src,
