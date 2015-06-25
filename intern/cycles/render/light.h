@@ -63,6 +63,9 @@ public:
 	int max_bounces;
 
 	void tag_update(Scene *scene);
+
+	/* Check whether the light has contribution the the scene. */
+	bool has_contribution(Scene *scene);
 };
 
 class LightManager {

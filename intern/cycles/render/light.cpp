@@ -138,6 +138,14 @@ void Light::tag_update(Scene *scene)
 	scene->light_manager->need_update = true;
 }
 
+bool Light::has_contribution(Scene *scene)
+{
+	if(is_portal) {
+		return false;
+	}
+	return scene->shaders[shader]->has_surface_emission;
+}
+
 /* Light Manager */
 
 LightManager::LightManager()
@@ -162,7 +170,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 	bool background_mis = false;
 
 	foreach(Light *light, scene->lights) {
-		if(!light->is_portal)
+		if(light->has_contribution(scene))
 			num_lights++;
 	}
 
@@ -301,7 +309,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 
 	int light_index = 0;
 	foreach(Light *light, scene->lights) {
-		if(light->is_portal)
+		if(!light->has_contribution(scene))
 			continue;
 
 		distribution[offset].x = totarea;
@@ -559,8 +567,9 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 	int light_index = 0;
 
 	foreach(Light *light, scene->lights) {
-		if(light->is_portal)
+		if(!light->has_contribution(scene)) {
 			continue;
+		}
 
 		float3 co = light->co;
 		int shader_id = scene->shader_manager->get_shader_id(light->shader);
@@ -720,7 +729,8 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 		light_index++;
 	}
 
-	assert(light_index == scene->lights.size());
+	VLOG(1) << "Number of lights without contribution: "
+	        << scene->lights.size() - light_index;
 
 	device->tex_alloc("__light_data", dscene->light_data);
 }
