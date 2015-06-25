@@ -186,7 +186,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_group_fix);
 	WM_operatortype_append(OBJECT_OT_vertex_group_invert);
 	WM_operatortype_append(OBJECT_OT_vertex_group_levels);
-	WM_operatortype_append(OBJECT_OT_vertex_group_blend);
+	WM_operatortype_append(OBJECT_OT_vertex_group_smooth);
 	WM_operatortype_append(OBJECT_OT_vertex_group_clean);
 	WM_operatortype_append(OBJECT_OT_vertex_group_quantize);
 	WM_operatortype_append(OBJECT_OT_vertex_group_limit_total);

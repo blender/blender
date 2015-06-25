@@ -1667,7 +1667,7 @@ class VIEW3D_MT_paint_weight(Menu):
         layout.operator("object.vertex_group_clean", text="Clean")
         layout.operator("object.vertex_group_quantize", text="Quantize")
         layout.operator("object.vertex_group_levels", text="Levels")
-        layout.operator("object.vertex_group_blend", text="Blend")
+        layout.operator("object.vertex_group_smooth", text="Smooth")
         props = layout.operator("object.data_transfer", text="Transfer Weights")
         props.use_reverse_transfer = True
         props.data_type = 'VGROUP_WEIGHTS'
@@ -2293,7 +2293,7 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
 
         layout.operator("mesh.blend_from_shape")
 
-        layout.operator("object.vertex_group_blend")
+        layout.operator("object.vertex_group_smooth")
         layout.operator("mesh.shape_propagate_to_all")
 
         layout.separator()

@@ -230,7 +230,7 @@ void OBJECT_OT_vertex_group_levels(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_lock(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_fix(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_invert(struct wmOperatorType *ot);
-void OBJECT_OT_vertex_group_blend(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_smooth(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_clean(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_quantize(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_limit_total(struct wmOperatorType *ot);

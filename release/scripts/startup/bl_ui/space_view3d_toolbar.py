@@ -367,7 +367,7 @@ class VIEW3D_PT_tools_meshweight(View3DPanel, Panel):
         col.operator("object.vertex_group_clean", text="Clean")
         col.operator("object.vertex_group_quantize", text="Quantize")
         col.operator("object.vertex_group_levels", text="Levels")
-        col.operator("object.vertex_group_blend", text="Blend")
+        col.operator("object.vertex_group_smooth", text="Smooth")
         col.operator("object.vertex_group_limit_total", text="Limit Total")
         col.operator("object.vertex_group_fix", text="Fix Deforms")
 
