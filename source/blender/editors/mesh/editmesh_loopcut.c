@@ -237,10 +237,13 @@ static void edgering_preview_calc_edges(RingSelOpData *lcd, DerivedMesh *dm, con
 	edge_stack = BLI_stack_new(sizeof(BMEdge *), __func__);
 
 	eed_last = NULL;
-	for (eed = eed_start = BMW_begin(&walker, eed_start); eed; eed = BMW_step(&walker)) {
+	for (eed = eed_last = BMW_begin(&walker, lcd->eed); eed; eed = BMW_step(&walker)) {
 		BLI_stack_push(edge_stack, &eed);
-		eed_last = eed;
 	}
+	BMW_end(&walker);
+
+
+	eed_start = *(BMEdge **)BLI_stack_peek(edge_stack);
 
 	edges = MEM_mallocN(
 	        (sizeof(*edges) * (BLI_stack_count(edge_stack) + (eed_last != eed_start))) * previewlines, __func__);
@@ -310,7 +313,6 @@ static void edgering_preview_calc_edges(RingSelOpData *lcd, DerivedMesh *dm, con
 
 	BLI_stack_free(edge_stack);
 
-	BMW_end(&walker);
 	lcd->edges = edges;
 	lcd->totedge = tot;
 }
