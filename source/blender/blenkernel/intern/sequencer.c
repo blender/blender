@@ -1261,7 +1261,7 @@ static int evaluate_seq_frame_gen(Sequence **seq_arr, ListBase *seqbase, int cfr
 	seq = seqbase->first;
 	while (seq) {
 		if (seq->startdisp <= cfra && seq->enddisp > cfra) {
-			if ((seq->type & SEQ_TYPE_EFFECT)) {
+			if ((seq->type & SEQ_TYPE_EFFECT) && !(seq->flag & SEQ_MUTE)) {
 				if (seq->seq1) {
 					effect_inputs[num_effect_inputs++] = seq->seq1;
 				}
