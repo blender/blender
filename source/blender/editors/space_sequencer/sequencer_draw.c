@@ -1521,7 +1521,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 {
 	const Editing *ed = BKE_sequencer_editing_get(scene, false);
 	const int frame_sta = PSFRA;
-	const int frame_end = PEFRA;
+	const int frame_end = PEFRA + 1;
 
 	glEnable(GL_BLEND);
 	
@@ -1529,7 +1529,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 	 * frame range used is preview range or scene range */
 	UI_ThemeColorShadeAlpha(TH_BACK, -25, -100);
 
-	if (frame_sta < frame_end + 1) {
+	if (frame_sta < frame_end) {
 		glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)frame_sta, v2d->cur.ymax);
 		glRectf((float)frame_end, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 	}
