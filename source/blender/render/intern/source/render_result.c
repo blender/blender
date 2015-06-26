@@ -459,9 +459,10 @@ static int passtype_from_name(const char *str)
 
 static void set_pass_name(char *passname, int passtype, int channel, const char *view)
 {
-	const char *end;
-	const char *token;
-	int len;
+	const char delims[] = {'.', '\0'};
+	char *sep;
+	char *token;
+	size_t len;
 
 	const char *passtype_name = name_from_passtype(passtype, channel);
 
@@ -470,13 +471,14 @@ static void set_pass_name(char *passname, int passtype, int channel, const char 
 		return;
 	}
 
-	end = passtype_name + strlen(passtype_name);
-	len = IMB_exr_split_token(passtype_name, end, &token);
+	len = BLI_str_rpartition(passtype_name, delims, &sep, &token);
 
-	if (len == strlen(passtype_name))
-		sprintf(passname, "%s.%s", passtype_name, view);
-	else
-		sprintf(passname, "%.*s%s.%s", (int)(end-passtype_name) - len, passtype_name, view, token);
+	if (sep) {
+		BLI_snprintf(passname, EXR_PASS_MAXNAME, "%.*s.%s.%s", (int)len, passtype_name, view, token);
+	}
+	else {
+		BLI_snprintf(passname, EXR_PASS_MAXNAME, "%s.%s", passtype_name, view);
+	}
 }
 
 /********************************** New **************************************/
