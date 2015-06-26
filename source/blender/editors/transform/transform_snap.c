@@ -1045,14 +1045,13 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 	else if (t->spacetype == SPACE_IMAGE && t->obedit != NULL && t->obedit->type == OB_MESH) {
 		/* same as above but for UV's */
 		Image *ima = ED_space_image(t->sa->spacedata.first);
-		float aspx, aspy, co[2];
+		float co[2];
 		
 		UI_view2d_region_to_view(&t->ar->v2d, t->mval[0], t->mval[1], &co[0], &co[1]);
 
 		if (ED_uvedit_nearest_uv(t->scene, t->obedit, ima, co, t->tsnap.snapPoint)) {
-			ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
-			t->tsnap.snapPoint[0] *= aspx;
-			t->tsnap.snapPoint[1] *= aspy;
+			t->tsnap.snapPoint[0] *= t->aspect[0];
+			t->tsnap.snapPoint[1] *= t->aspect[1];
 
 			t->tsnap.status |=  POINT_INIT;
 		}
@@ -2449,42 +2448,35 @@ void snapSequenceBounds(TransInfo *t, const int mval[2])
 
 static void applyGridIncrement(TransInfo *t, float *val, int max_index, const float fac[3], GearsType action)
 {
+	float asp_local[3] = {1, 1, 1};
+	const bool use_aspect = ELEM(t->mode, TFM_TRANSLATION);
+	const float *asp = use_aspect ? t->aspect : asp_local;
 	int i;
-	float asp[3] = {1.0f, 1.0f, 1.0f}; // TODO: Remove hard coded limit here (3)
 
-	if (max_index > 2) {
-		printf("applyGridIncrement: invalid index %d, clamping\n", max_index);
-		max_index = 2;
-	}
+	BLI_assert(max_index <= 2);
 
-	// Early bailing out if no need to snap
-	if (fac[action] == 0.0f)
+	/* Early bailing out if no need to snap */
+	if (fac[action] == 0.0f) {
 		return;
-	
-	/* evil hack - snapping needs to be adapted for image aspect ratio */
-	if ((t->spacetype == SPACE_IMAGE) && (t->mode == TFM_TRANSLATION)) {
-		if (t->options & CTX_MASK) {
-			ED_space_image_get_aspect(t->sa->spacedata.first, asp, asp + 1);
-		}
-		else if (t->options & CTX_PAINT_CURVE) {
-			asp[0] = asp[1] = 1.0;
-		}
-		else {
-			ED_space_image_get_uv_aspect(t->sa->spacedata.first, asp, asp + 1);
-		}
 	}
-	else if ((t->spacetype == SPACE_IPO) && (t->mode == TFM_TRANSLATION)) {
-		View2D *v2d = &t->ar->v2d;
-		View2DGrid *grid;
-		SpaceIpo *sipo = t->sa->spacedata.first;
-		int unity = V2D_UNIT_VALUES;
-		int unitx = (sipo->flag & SIPO_DRAWTIME) ? V2D_UNIT_SECONDS : V2D_UNIT_FRAMESCALE;
 
-		/* grid */
-		grid = UI_view2d_grid_calc(t->scene, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP, t->ar->winx, t->ar->winy);
+	if (use_aspect) {
+		/* custom aspect for fcurve */
+		if (t->spacetype == SPACE_IPO) {
+			View2D *v2d = &t->ar->v2d;
+			View2DGrid *grid;
+			SpaceIpo *sipo = t->sa->spacedata.first;
+			int unity = V2D_UNIT_VALUES;
+			int unitx = (sipo->flag & SIPO_DRAWTIME) ? V2D_UNIT_SECONDS : V2D_UNIT_FRAMESCALE;
 
-		UI_view2d_grid_size(grid, &asp[0], &asp[1]);
-		UI_view2d_grid_free(grid);
+			/* grid */
+			grid = UI_view2d_grid_calc(t->scene, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP, t->ar->winx, t->ar->winy);
+
+			UI_view2d_grid_size(grid, &asp_local[0], &asp_local[1]);
+			UI_view2d_grid_free(grid);
+
+			asp = asp_local;
+		}
 	}
 
 	for (i = 0; i <= max_index; i++) {

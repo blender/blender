@@ -357,6 +357,8 @@ typedef struct TransInfo {
 	eRedrawFlag redraw;         /* redraw flag                          */
 	float		prop_size;		/* proportional circle radius           */
 	char		proptext[20];	/* proportional falloff text			*/
+	float       aspect[3];      /* spaces using non 1:1 aspect, (uv's, f-curve, movie-clip... etc)
+	                             * use for conversion and snapping. */
 	float       center[3];      /* center of transformation             */
 	float       center2d[2];    /* center in screen coordinates         */
 	int         imval[2];       /* initial mouse position               */
@@ -542,6 +544,7 @@ void transformApply(struct bContext *C, TransInfo *t);
 int  transformEnd(struct bContext *C, TransInfo *t);
 
 void setTransformViewMatrices(TransInfo *t);
+void setTransformViewAspect(TransInfo *t, float r_aspect[3]);
 void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy);
 void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DProjTest flag);
 void projectIntView(TransInfo *t, const float vec[3], int adr[2]);

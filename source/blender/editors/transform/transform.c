@@ -239,6 +239,38 @@ void setTransformViewMatrices(TransInfo *t)
 	calculateCenter2D(t);
 }
 
+void setTransformViewAspect(TransInfo *t, float r_aspect[3])
+{
+	copy_v3_fl(r_aspect, 1.0f);
+
+	if (t->spacetype == SPACE_IMAGE) {
+		SpaceImage *sima = t->sa->spacedata.first;
+
+		if (t->options & CTX_MASK) {
+			ED_space_image_get_aspect(sima, &r_aspect[0], &r_aspect[1]);
+		}
+		else if (t->options & CTX_PAINT_CURVE) {
+			/* pass */
+		}
+		else {
+			ED_space_image_get_uv_aspect(sima, &r_aspect[0], &r_aspect[1]);
+		}
+	}
+	else if (t->spacetype == SPACE_CLIP) {
+		SpaceClip *sclip = t->sa->spacedata.first;
+
+		if (t->options & CTX_MOVIECLIP) {
+			ED_space_clip_get_aspect_dimension_aware(sclip, &r_aspect[0], &r_aspect[1]);
+		}
+		else {
+			ED_space_clip_get_aspect(sclip, &r_aspect[0], &r_aspect[1]);
+		}
+	}
+	else if (t->spacetype == SPACE_IPO) {
+		/* depemds on context of usage */
+	}
+}
+
 static void convertViewVec2D(View2D *v2d, float r_vec[3], int dx, int dy)
 {
 	float divx, divy;
@@ -292,25 +324,19 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 		}
 	}
 	else if (t->spacetype == SPACE_IMAGE) {
-		float aspx, aspy;
-
 		if (t->options & CTX_MASK) {
 			convertViewVec2D_mask(t->view, r_vec, dx, dy);
-			ED_space_image_get_aspect(t->sa->spacedata.first, &aspx, &aspy);
 		}
 		else if (t->options & CTX_PAINT_CURVE) {
 			r_vec[0] = dx;
 			r_vec[1] = dy;
-
-			aspx = aspy = 1.0;
 		}
 		else {
 			convertViewVec2D(t->view, r_vec, dx, dy);
-			ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
 		}
 
-		r_vec[0] *= aspx;
-		r_vec[1] *= aspy;
+		r_vec[0] *= t->aspect[0];
+		r_vec[1] *= t->aspect[1];
 	}
 	else if (ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
 		convertViewVec2D(t->view, r_vec, dx, dy);
@@ -319,8 +345,6 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 		convertViewVec2D(&t->ar->v2d, r_vec, dx, dy);
 	}
 	else if (t->spacetype == SPACE_CLIP) {
-		float aspx, aspy;
-
 		if (t->options & CTX_MASK) {
 			convertViewVec2D_mask(t->view, r_vec, dx, dy);
 		}
@@ -328,21 +352,8 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 			convertViewVec2D(t->view, r_vec, dx, dy);
 		}
 
-		if (t->options & CTX_MOVIECLIP) {
-			ED_space_clip_get_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);
-		}
-		else if (t->options & CTX_MASK) {
-			/* TODO - NOT WORKING, this isnt so bad since its only display aspect */
-			ED_space_clip_get_aspect(t->sa->spacedata.first, &aspx, &aspy);
-		}
-		else {
-			/* should never happen, quiet warnings */
-			BLI_assert(0);
-			aspx = aspy = 1.0f;
-		}
-
-		r_vec[0] *= aspx;
-		r_vec[1] *= aspy;
+		r_vec[0] *= t->aspect[0];
+		r_vec[1] *= t->aspect[1];
 	}
 	else {
 		printf("%s: called in an invalid context\n", __func__);
@@ -364,15 +375,10 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
 		SpaceImage *sima = t->sa->spacedata.first;
 
 		if (t->options & CTX_MASK) {
-			float aspx, aspy;
 			float v[2];
 
-			ED_space_image_get_aspect(sima, &aspx, &aspy);
-
-			copy_v2_v2(v, vec);
-
-			v[0] = v[0] / aspx;
-			v[1] = v[1] / aspy;
+			v[0] = vec[0] / t->aspect[0];
+			v[1] = vec[1] / t->aspect[1];
 
 			BKE_mask_coord_to_image(sima->image, &sima->iuser, v, v);
 
@@ -386,11 +392,10 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
 			adr[1] = vec[1];
 		}
 		else {
-			float aspx, aspy, v[2];
+			float v[2];
 
-			ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
-			v[0] = vec[0] / aspx;
-			v[1] = vec[1] / aspy;
+			v[0] = vec[0] / t->aspect[0];
+			v[1] = vec[1] / t->aspect[1];
 
 			UI_view2d_view_to_region(t->view, v[0], v[1], &adr[0], &adr[1]);
 		}
@@ -435,15 +440,10 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
 			MovieClip *clip = ED_space_clip_get_clip(sc);
 
 			if (clip) {
-				float aspx, aspy;
 				float v[2];
 
-				ED_space_clip_get_aspect(sc, &aspx, &aspy);
-
-				copy_v2_v2(v, vec);
-
-				v[0] = v[0] / aspx;
-				v[1] = v[1] / aspy;
+				v[0] = vec[0] / t->aspect[0];
+				v[1] = vec[1] / t->aspect[1];
 
 				BKE_mask_coord_to_movieclip(sc->clip, &sc->user, v, v);
 
@@ -458,13 +458,10 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
 			}
 		}
 		else if (t->options & CTX_MOVIECLIP) {
-			float v[2], aspx, aspy;
+			float v[2];
 
-			copy_v2_v2(v, vec);
-			ED_space_clip_get_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);
-
-			v[0] /= aspx;
-			v[1] /= aspy;
+			v[0] = vec[0] / t->aspect[0];
+			v[1] = vec[1] / t->aspect[1];
 
 			UI_view2d_view_to_region(t->view, v[0], v[1], &adr[0], &adr[1]);
 		}
@@ -520,7 +517,6 @@ void applyAspectRatio(TransInfo *t, float vec[2])
 {
 	if ((t->spacetype == SPACE_IMAGE) && (t->mode == TFM_TRANSLATION) && !(t->options & CTX_PAINT_CURVE)) {
 		SpaceImage *sima = t->sa->spacedata.first;
-		float aspx, aspy;
 
 		if ((sima->flag & SI_COORDFLOATS) == 0) {
 			int width, height;
@@ -530,28 +526,13 @@ void applyAspectRatio(TransInfo *t, float vec[2])
 			vec[1] *= height;
 		}
 
-		ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
-		vec[0] /= aspx;
-		vec[1] /= aspy;
+		vec[0] /= t->aspect[0];
+		vec[1] /= t->aspect[1];
 	}
 	else if ((t->spacetype == SPACE_CLIP) && (t->mode == TFM_TRANSLATION)) {
 		if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
-			SpaceClip *sc = t->sa->spacedata.first;
-			float aspx, aspy;
-
-
-			if (t->options & CTX_MOVIECLIP) {
-				ED_space_clip_get_aspect_dimension_aware(sc, &aspx, &aspy);
-
-				vec[0] /= aspx;
-				vec[1] /= aspy;
-			}
-			else if (t->options & CTX_MASK) {
-				ED_space_clip_get_aspect(sc, &aspx, &aspy);
-
-				vec[0] /= aspx;
-				vec[1] /= aspy;
-			}
+			vec[0] /= t->aspect[0];
+			vec[1] /= t->aspect[1];
 		}
 	}
 }
@@ -560,7 +541,6 @@ void removeAspectRatio(TransInfo *t, float vec[2])
 {
 	if ((t->spacetype == SPACE_IMAGE) && (t->mode == TFM_TRANSLATION)) {
 		SpaceImage *sima = t->sa->spacedata.first;
-		float aspx, aspy;
 
 		if ((sima->flag & SI_COORDFLOATS) == 0) {
 			int width, height;
@@ -570,24 +550,13 @@ void removeAspectRatio(TransInfo *t, float vec[2])
 			vec[1] /= height;
 		}
 
-		ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
-		vec[0] *= aspx;
-		vec[1] *= aspy;
+		vec[0] *= t->aspect[0];
+		vec[1] *= t->aspect[1];
 	}
 	else if ((t->spacetype == SPACE_CLIP) && (t->mode == TFM_TRANSLATION)) {
 		if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
-			SpaceClip *sc = t->sa->spacedata.first;
-			float aspx = 1.0f, aspy = 1.0f;
-
-			if (t->options & CTX_MOVIECLIP) {
-				ED_space_clip_get_aspect_dimension_aware(sc, &aspx, &aspy);
-			}
-			else if (t->options & CTX_MASK) {
-				ED_space_clip_get_aspect(sc, &aspx, &aspy);
-			}
-
-			vec[0] *= aspx;
-			vec[1] *= aspy;
+			vec[0] *= t->aspect[0];
+			vec[1] *= t->aspect[1];
 		}
 	}
 }

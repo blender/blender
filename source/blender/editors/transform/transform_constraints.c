@@ -751,19 +751,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 			mul_m4_v3(t->obedit->obmat, center); /* because t->center is in local space */
 		}
 		else if (t->spacetype == SPACE_IMAGE) {
-			float aspx, aspy;
-
-			if (t->options & CTX_MASK) {
-				/* untested - mask aspect is TODO */
-				ED_space_image_get_aspect(t->sa->spacedata.first, &aspx, &aspy);
-			}
-			else if (t->options & CTX_PAINT_CURVE) {
-				aspx = aspy = 1.0f;
-			}
-			else {
-				ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
-			}
-			glScalef(1.0f / aspx, 1.0f / aspy, 1.0f);
+			glScalef(1.0f / t->aspect[0], 1.0f / t->aspect[1], 1.0f);
 		}
 		else if (ELEM(t->spacetype, SPACE_IPO, SPACE_ACTION)) {
 			/* only scale y */

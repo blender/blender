@@ -1401,6 +1401,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 #endif
 
 	setTransformViewMatrices(t);
+	setTransformViewAspect(t, t->aspect);
 	initNumInput(&t->num);
 }
 
@@ -1595,30 +1596,17 @@ void calculateCenterCursor(TransInfo *t, float r_center[3])
 
 void calculateCenterCursor2D(TransInfo *t, float r_center[2])
 {
-	float aspx = 1.0, aspy = 1.0;
 	const float *cursor = NULL;
 	
 	if (t->spacetype == SPACE_IMAGE) {
 		SpaceImage *sima = (SpaceImage *)t->sa->spacedata.first;
-		if (t->options & CTX_MASK) {
-			ED_space_image_get_aspect(sima, &aspx, &aspy);
-		}
-		else {
-			ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
-		}
 		cursor = sima->cursor;
 	}
 	else if (t->spacetype == SPACE_CLIP) {
 		SpaceClip *space_clip = (SpaceClip *) t->sa->spacedata.first;
-		if (t->options & CTX_MOVIECLIP) {
-			ED_space_clip_get_aspect_dimension_aware(space_clip, &aspx, &aspy);
-		}
-		else {
-			ED_space_clip_get_aspect(space_clip, &aspx, &aspy);
-		}
 		cursor = space_clip->cursor;
 	}
-	
+
 	if (cursor) {
 		if (t->options & CTX_MASK) {
 			float co[2];
@@ -1635,8 +1623,8 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
 				BLI_assert(!"Shall not happen");
 			}
 
-			r_center[0] = co[0] * aspx;
-			r_center[1] = co[1] * aspy;
+			r_center[0] = co[0] * t->aspect[0];
+			r_center[1] = co[1] * t->aspect[1];
 		}
 		else if (t->options & CTX_PAINT_CURVE) {
 			if (t->spacetype == SPACE_IMAGE) {
@@ -1645,8 +1633,8 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
 			}
 		}
 		else {
-			r_center[0] = cursor[0] * aspx;
-			r_center[1] = cursor[1] * aspy;
+			r_center[0] = cursor[0] * t->aspect[0];
+			r_center[1] = cursor[1] * t->aspect[1];
 		}
 	}
 }
