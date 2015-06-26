@@ -1128,6 +1128,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
 	zero_v3(t->vec);
 	zero_v3(t->center);
+	zero_v3(t->center_global);
 
 	unit_m3(t->mat);
 	
@@ -1568,6 +1569,19 @@ void calculateCenter2D(TransInfo *t)
 	}
 }
 
+void calculateCenterGlobal(TransInfo *t)
+{
+	/* setting constraint center */
+	/* note, init functions may over-ride t->center */
+	if (t->flag & (T_EDIT | T_POSE)) {
+		Object *ob = t->obedit ? t->obedit : t->poseobj;
+		mul_v3_m4v3(t->center_global, ob->obmat, t->center);
+	}
+	else {
+		copy_v3_v3(t->center_global, t->center);
+	}
+}
+
 void calculateCenterCursor(TransInfo *t, float r_center[3])
 {
 	const float *cursor;
@@ -1769,14 +1783,8 @@ void calculateCenter(TransInfo *t)
 	}
 
 	calculateCenter2D(t);
+	calculateCenterGlobal(t);
 
-	/* setting constraint center */
-	copy_v3_v3(t->con.center, t->center);
-	if (t->flag & (T_EDIT | T_POSE)) {
-		Object *ob = t->obedit ? t->obedit : t->poseobj;
-		mul_m4_v3(ob->obmat, t->con.center);
-	}
-	
 	/* for panning from cameraview */
 	if (t->flag & T_OBJECT) {
 		if (t->spacetype == SPACE_VIEW3D && t->ar && t->ar->regiontype == RGN_TYPE_WINDOW) {
@@ -1797,7 +1805,7 @@ void calculateCenter(TransInfo *t)
 				/* rotate only needs correct 2d center, grab needs ED_view3d_calc_zfac() value */
 				if (t->mode == TFM_TRANSLATION) {
 					copy_v3_v3(t->center, axis);
-					copy_v3_v3(t->con.center, t->center);
+					copy_v3_v3(t->center_global, t->center);
 				}
 			}
 		}

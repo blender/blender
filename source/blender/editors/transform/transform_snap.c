@@ -841,16 +841,10 @@ static float TranslationBetween(TransInfo *UNUSED(t), const float p1[3], const f
 
 static float RotationBetween(TransInfo *t, const float p1[3], const float p2[3])
 {
-	float angle, start[3], end[3], center[3];
-	
-	copy_v3_v3(center, t->center);
-	if (t->flag & (T_EDIT | T_POSE)) {
-		Object *ob = t->obedit ? t->obedit : t->poseobj;
-		mul_m4_v3(ob->obmat, center);
-	}
+	float angle, start[3], end[3];
 
-	sub_v3_v3v3(start, p1, center);
-	sub_v3_v3v3(end, p2, center);
+	sub_v3_v3v3(start, p1, t->center_global);
+	sub_v3_v3v3(end,   p2, t->center_global);
 		
 	// Angle around a constraint axis (error prone, will need debug)
 	if (t->con.applyRot != NULL && (t->con.mode & CON_APPLY)) {
@@ -897,16 +891,10 @@ static float RotationBetween(TransInfo *t, const float p1[3], const float p2[3])
 
 static float ResizeBetween(TransInfo *t, const float p1[3], const float p2[3])
 {
-	float d1[3], d2[3], center[3], len_d1;
-	
-	copy_v3_v3(center, t->center);
-	if (t->flag & (T_EDIT | T_POSE)) {
-		Object *ob = t->obedit ? t->obedit : t->poseobj;
-		mul_m4_v3(ob->obmat, center);
-	}
+	float d1[3], d2[3], len_d1;
 
-	sub_v3_v3v3(d1, p1, center);
-	sub_v3_v3v3(d2, p2, center);
+	sub_v3_v3v3(d1, p1, t->center_global);
+	sub_v3_v3v3(d2, p2, t->center_global);
 	
 	if (t->con.applyRot != NULL && (t->con.mode & CON_APPLY)) {
 		mul_m3_v3(t->con.pmtx, d1);
@@ -1112,13 +1100,7 @@ static void TargetSnapCenter(TransInfo *t)
 {
 	/* Only need to calculate once */
 	if ((t->tsnap.status & TARGET_INIT) == 0) {
-		copy_v3_v3(t->tsnap.snapTarget, t->center);
-		
-		if (t->flag & (T_EDIT | T_POSE)) {
-			Object *ob = t->obedit ? t->obedit : t->poseobj;
-			mul_m4_v3(ob->obmat, t->tsnap.snapTarget);
-		}
-		
+		copy_v3_v3(t->tsnap.snapTarget, t->center_global);
 		TargetSnapOffset(t, NULL);
 		
 		t->tsnap.status |= TARGET_INIT;

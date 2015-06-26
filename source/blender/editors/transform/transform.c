@@ -1548,7 +1548,7 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
 
 		if (cent3d) {
 			// Copy center from constraint center. Transform center can be local
-			copy_v3_v3(cent3d, t->con.center);
+			copy_v3_v3(cent3d, t->center_global);
 		}
 	}
 
@@ -2269,7 +2269,6 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		return 0;
 	}
 
-
 	/* overwrite initial values if operator supplied a non-null vector */
 	if ((prop = RNA_struct_find_property(op->ptr, "value")) && RNA_property_is_set(op->ptr, prop)) {
 		float values[4] = {0}; /* in case value isn't length 4, avoid uninitialized memory  */
@@ -2825,6 +2824,7 @@ static void initBend(TransInfo *t)
 
 	//copy_v3_v3(t->center, ED_view3d_cursor3d_get(t->scene, t->view));
 	calculateCenterCursor(t, t->center);
+	calculateCenterGlobal(t);
 
 	t->val = 0.0f;
 

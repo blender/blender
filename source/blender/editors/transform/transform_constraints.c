@@ -203,7 +203,7 @@ static void axisProjection(TransInfo *t, const float axis[3], const float in[3],
 		return;
 	}
 
-	copy_v3_v3(t_con_center, t->con.center);
+	copy_v3_v3(t_con_center, t->center_global);
 
 	/* checks for center being too close to the view center */
 	viewAxisCorrectCenter(t, t_con_center);
@@ -277,7 +277,7 @@ static void planeProjection(TransInfo *t, const float in[3], float out[3])
 {
 	float vec[3], factor, norm[3];
 
-	add_v3_v3v3(vec, in, t->con.center);
+	add_v3_v3v3(vec, in, t->center_global);
 	getViewVector(t, vec, norm);
 
 	sub_v3_v3v3(vec, out, in);
@@ -688,11 +688,11 @@ void drawConstraint(TransInfo *t)
 			int depth_test_enabled;
 
 			convertViewVec(t, vec, (t->mval[0] - t->con.imval[0]), (t->mval[1] - t->con.imval[1]));
-			add_v3_v3(vec, tc->center);
+			add_v3_v3(vec, t->center_global);
 
-			drawLine(t, tc->center, tc->mtx[0], 'X', 0);
-			drawLine(t, tc->center, tc->mtx[1], 'Y', 0);
-			drawLine(t, tc->center, tc->mtx[2], 'Z', 0);
+			drawLine(t, t->center_global, tc->mtx[0], 'X', 0);
+			drawLine(t, t->center_global, tc->mtx[1], 'Y', 0);
+			drawLine(t, t->center_global, tc->mtx[2], 'Z', 0);
 
 			glColor3ubv((GLubyte *)col2);
 
@@ -702,7 +702,7 @@ void drawConstraint(TransInfo *t)
 
 			setlinestyle(1);
 			glBegin(GL_LINE_STRIP);
-			glVertex3fv(tc->center);
+			glVertex3fv(t->center_global);
 			glVertex3fv(vec);
 			glEnd();
 			setlinestyle(0);
@@ -712,13 +712,13 @@ void drawConstraint(TransInfo *t)
 		}
 
 		if (tc->mode & CON_AXIS0) {
-			drawLine(t, tc->center, tc->mtx[0], 'X', DRAWLIGHT);
+			drawLine(t, t->center_global, tc->mtx[0], 'X', DRAWLIGHT);
 		}
 		if (tc->mode & CON_AXIS1) {
-			drawLine(t, tc->center, tc->mtx[1], 'Y', DRAWLIGHT);
+			drawLine(t, t->center_global, tc->mtx[1], 'Y', DRAWLIGHT);
 		}
 		if (tc->mode & CON_AXIS2) {
-			drawLine(t, tc->center, tc->mtx[2], 'Z', DRAWLIGHT);
+			drawLine(t, t->center_global, tc->mtx[2], 'Z', DRAWLIGHT);
 		}
 	}
 }
@@ -729,7 +729,6 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 	if (t->flag & T_PROP_EDIT) {
 		RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		float tmat[4][4], imat[4][4];
-		float center[3];
 		int depth_test_enabled;
 
 		UI_ThemeColor(TH_GRID);
@@ -745,10 +744,8 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 
 		glPushMatrix();
 
-		copy_v3_v3(center, t->center);
-
-		if ((t->spacetype == SPACE_VIEW3D) && t->obedit) {
-			mul_m4_v3(t->obedit->obmat, center); /* because t->center is in local space */
+		if (t->spacetype == SPACE_VIEW3D) {
+			/* pass */
 		}
 		else if (t->spacetype == SPACE_IMAGE) {
 			glScalef(1.0f / t->aspect[0], 1.0f / t->aspect[1], 1.0f);
@@ -769,7 +766,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 			glDisable(GL_DEPTH_TEST);
 
 		set_inverted_drawing(1);
-		drawcircball(GL_LINE_LOOP, center, t->prop_size, imat);
+		drawcircball(GL_LINE_LOOP, t->center_global, t->prop_size, imat);
 		set_inverted_drawing(0);
 
 		if (depth_test_enabled)
@@ -960,7 +957,7 @@ static void setNearestAxis3d(TransInfo *t)
 
 		mul_v3_fl(axis, zfac);
 		/* now we can project to get window coordinate */
-		add_v3_v3(axis, t->con.center);
+		add_v3_v3(axis, t->center_global);
 		projectFloatView(t, axis, axis_2d);
 
 		sub_v2_v2v2(axis, axis_2d, t->center2d);
