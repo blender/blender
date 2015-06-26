@@ -40,20 +40,16 @@ CCL_NAMESPACE_BEGIN
  *
  * - Have method to ensure capacity is re-set to 0.
  */
-template<typename value_type>
-class vector : public std::vector<value_type
+template<typename value_type,
 #ifdef WITH_CYCLES_DEBUG
-                                  , GuardedAllocator<value_type>
+         typename allocator_type = GuardedAllocator<value_type>
+#else
+         typename allocator_type = std::allocator<value_type>
 #endif
-                                  >
+        >
+class vector : public std::vector<value_type, allocator_type>
 {
 public:
-#ifdef WITH_CYCLES_DEBUG
-	typedef GuardedAllocator<value_type> allocator_type;
-#else
-	typedef std::allocator<value_type> allocator_type;
-#endif
-
 	/* Default constructor. */
 	explicit vector() : std::vector<value_type, allocator_type>() {  }
 
@@ -78,7 +74,8 @@ public:
 #endif
 	}
 
-	void free_memory(void) {
+	void free_memory(void)
+	{
 		std::vector<value_type, allocator_type>::resize(0);
 		shrink_to_fit();
 	}
