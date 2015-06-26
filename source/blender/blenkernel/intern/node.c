@@ -62,6 +62,7 @@
 #include "BKE_node.h"
 
 #include "BLI_ghash.h"
+#include "BLI_threads.h"
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -287,6 +288,7 @@ void ntreeSetTypes(const struct bContext *C, bNodeTree *ntree)
 static GHash *nodetreetypes_hash = NULL;
 static GHash *nodetypes_hash = NULL;
 static GHash *nodesockettypes_hash = NULL;
+static SpinLock spin;
 
 bNodeTreeType *ntreeTypeFind(const char *idname)
 {
@@ -1131,6 +1133,8 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, Main *bmain, bool ski
 
 	/* in case a running nodetree is copied */
 	newtree->execdata = NULL;
+
+	newtree->duplilock = NULL;
 	
 	BLI_listbase_clear(&newtree->nodes);
 	BLI_listbase_clear(&newtree->links);
@@ -1775,6 +1779,9 @@ void ntreeFreeTree_ex(bNodeTree *ntree, const bool do_id_user)
 	if (ntree->previews) {
 		BKE_node_instance_hash_free(ntree->previews, (bNodeInstanceValueFP)BKE_node_preview_free);
 	}
+
+	if (ntree->duplilock)
+		BLI_mutex_free(ntree->duplilock);
 	
 	/* if ntree is not part of library, free the libblock data explicitly */
 	for (tntree = G.main->nodetree.first; tntree; tntree = tntree->id.next)
@@ -1962,56 +1969,67 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 	if (ntree) {
 		bNodeTree *ltree;
 		bNode *node;
-		
+		AnimData *adt;
+
 		bAction *action_backup = NULL, *tmpact_backup = NULL;
-		
+
+		BLI_spin_lock(&spin);
+		if (!ntree->duplilock) {
+			ntree->duplilock = BLI_mutex_alloc();
+		}
+		BLI_spin_unlock(&spin);
+
+		BLI_mutex_lock(ntree->duplilock);
+
 		/* Workaround for copying an action on each render!
 		 * set action to NULL so animdata actions don't get copied */
-		AnimData *adt = BKE_animdata_from_id(&ntree->id);
-	
+		adt = BKE_animdata_from_id(&ntree->id);
+
 		if (adt) {
 			action_backup = adt->action;
 			tmpact_backup = adt->tmpact;
-	
+
 			adt->action = NULL;
 			adt->tmpact = NULL;
 		}
-	
+
 		/* Make full copy.
 		 * Note: previews are not copied here.
 		 */
 		ltree = ntreeCopyTree_internal(ntree, G.main, true, false, false, false);
 		ltree->flag |= NTREE_IS_LOCALIZED;
-		
+
 		for (node = ltree->nodes.first; node; node = node->next) {
 			if (node->type == NODE_GROUP && node->id) {
 				node->id = (ID *)ntreeLocalize((bNodeTree *)node->id);
 			}
 		}
-		
+
 		if (adt) {
 			AnimData *ladt = BKE_animdata_from_id(&ltree->id);
-	
+
 			adt->action = ladt->action = action_backup;
 			adt->tmpact = ladt->tmpact = tmpact_backup;
-	
+
 			if (action_backup) action_backup->id.us++;
 			if (tmpact_backup) tmpact_backup->id.us++;
-			
+
 		}
 		/* end animdata uglyness */
-	
+
 		/* ensures only a single output node is enabled */
 		ntreeSetOutput(ntree);
-	
+
 		for (node = ntree->nodes.first; node; node = node->next) {
 			/* store new_node pointer to original */
 			node->new_node->new_node = node;
 		}
-	
+
 		if (ntree->typeinfo->localize)
 			ntree->typeinfo->localize(ltree, ntree);
-	
+
+		BLI_mutex_unlock(ntree->duplilock);
+
 		return ltree;
 	}
 	else
@@ -3630,6 +3648,7 @@ void init_nodesystem(void)
 	nodetreetypes_hash = BLI_ghash_str_new("nodetreetypes_hash gh");
 	nodetypes_hash = BLI_ghash_str_new("nodetypes_hash gh");
 	nodesockettypes_hash = BLI_ghash_str_new("nodesockettypes_hash gh");
+	BLI_spin_init(&spin);
 
 	register_undefined_types();
 

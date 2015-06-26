@@ -386,6 +386,8 @@ typedef struct bNodeTree {
 	int (*test_break)(void *);
 	void (*update_draw)(void *);
 	void *tbh, *prh, *sdh, *udh;
+
+	void *duplilock;
 	
 } bNodeTree;
 
