@@ -199,23 +199,11 @@ void gpu_debug_init(void)
 #endif
 
 	if (GLEW_KHR_debug) {
-#ifndef GLEW_NO_ES
-		if (MX_profile_es20)
-		{
-			glDebugMessageCallbackKHR(gpu_debug_proc, mxGetCurrentContext());
-			glDebugMessageControlKHR(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
-			GPU_STRING_MARKER(sizeof(success), success);
-		}
-		else
-#endif
-		{
 #ifndef GLEW_ES_ONLY
 			glDebugMessageCallback(gpu_debug_proc, mxGetCurrentContext());
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 			GPU_STRING_MARKER(sizeof(success), success);
 #endif
-		}
-
 		return;
 	}
 
@@ -256,19 +244,9 @@ void gpu_debug_exit(void)
 #endif
 
 	if (GLEW_KHR_debug) {
-#ifndef GLEW_NO_ES
-		if (MX_profile_es20)
-		{
-			glDebugMessageCallbackKHR(NULL, NULL);
-		}
-		else
-#endif
-		{
 #ifndef GLEW_ES_ONLY
-			glDebugMessageCallback(NULL, NULL);
+		glDebugMessageCallback(NULL, NULL);
 #endif
-		}
-
 		return;
 	}
 
@@ -302,19 +280,9 @@ void gpu_string_marker(size_t length, const char *buf)
 #endif
 
 	if (GLEW_KHR_debug) {
-#ifndef GLEW_NO_ES
-		if (MX_profile_es20)
-		{
-			glDebugMessageInsertKHR(GL_DEBUG_SOURCE_APPLICATION_KHR, GL_DEBUG_TYPE_MARKER_KHR, 0, GL_DEBUG_SEVERITY_NOTIFICATION_KHR, length, buf);
-		}
-		else
-#endif
-		{
 #ifndef GLEW_ES_ONLY
-			glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, length, buf);
+		glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, length, buf);
 #endif
-		}
-
 		return;
 	}
 
