@@ -310,7 +310,7 @@ static void applyAxisConstraintVec(TransInfo *t, TransData *td, const float in[3
 		mul_m3_v3(t->con.pmtx, out);
 
 		// With snap, a projection is alright, no need to correct for view alignment
-		if (!(t->tsnap.mode != SCE_SNAP_MODE_INCREMENT && activeSnap(t))) {
+		if (ELEM(t->tsnap.mode, SCE_SNAP_MODE_INCREMENT, SCE_SNAP_MODE_GRID) || activeSnap(t)) {
 			if (getConstraintSpaceDimension(t) == 2) {
 				if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
 					planeProjection(t, in, out);

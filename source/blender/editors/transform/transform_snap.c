@@ -454,7 +454,7 @@ void applySnapping(TransInfo *t, float *vec)
 	
 		t->tsnap.applySnap(t, vec);
 	}
-	else if ((t->tsnap.mode != SCE_SNAP_MODE_INCREMENT) && activeSnap(t)) {
+	else if (!ELEM(t->tsnap.mode, SCE_SNAP_MODE_INCREMENT, SCE_SNAP_MODE_GRID) && activeSnap(t)) {
 		double current = PIL_check_seconds_timer();
 		
 		// Time base quirky code to go around findnearest slowness
@@ -2393,8 +2393,8 @@ void snapGridIncrement(TransInfo *t, float *val)
 {
 	GearsType action;
 
-	// Only do something if using Snap to Grid
-	if (t->tsnap.mode != SCE_SNAP_MODE_INCREMENT)
+	/* only do something if using absolute or incremental grid snapping */
+	if (!ELEM(t->tsnap.mode, SCE_SNAP_MODE_INCREMENT, SCE_SNAP_MODE_GRID))
 		return;
 
 	action = activeSnap(t) ? BIG_GEARS : NO_GEARS;
@@ -2435,6 +2435,7 @@ static void applyGridIncrement(TransInfo *t, float *val, int max_index, const fl
 	const float *asp = use_aspect ? t->aspect : asp_local;
 	int i;
 
+	BLI_assert(ELEM(t->tsnap.mode, SCE_SNAP_MODE_INCREMENT, SCE_SNAP_MODE_GRID));
 	BLI_assert(max_index <= 2);
 
 	/* Early bailing out if no need to snap */
@@ -2461,7 +2462,21 @@ static void applyGridIncrement(TransInfo *t, float *val, int max_index, const fl
 		}
 	}
 
-	for (i = 0; i <= max_index; i++) {
-		val[i] = fac[action] * asp[i] * floorf(val[i] / (fac[action] * asp[i]) + 0.5f);
+	/* absolute snapping on grid based on global center */
+	if ((t->tsnap.mode == SCE_SNAP_MODE_GRID) && (t->mode == TFM_TRANSLATION)) {
+		for (i = 0; i <= max_index; i++) {
+			/* do not let unconstrained axis jump to absolute grid increments */
+			if (!(t->con.mode & CON_APPLY) || t->con.mode & (CON_AXIS0 << i)) {
+				const float iter_fac = fac[action] * asp[i];
+				val[i] = iter_fac * roundf((val[i] + t->center_global[i]) / iter_fac) - t->center_global[i];
+			}
+		}
+	}
+	else {
+		/* relative snapping in fixed increments */
+		for (i = 0; i <= max_index; i++) {
+			const float iter_fac = fac[action] * asp[i];
+			val[i] = iter_fac * roundf(val[i] / iter_fac);
+		}
 	}
 }

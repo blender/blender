@@ -86,7 +86,7 @@ class VIEW3D_HT_header(Header):
             row = layout.row(align=True)
             row.prop(toolsettings, "use_snap", text="")
             row.prop(toolsettings, "snap_element", icon_only=True)
-            if snap_element != 'INCREMENT':
+            if snap_element not in {'INCREMENT', 'GRID'}:
                 row.prop(toolsettings, "snap_target", text="")
                 if obj:
                     if mode in {'OBJECT', 'POSE'} and snap_element != 'VOLUME':
