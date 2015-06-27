@@ -410,16 +410,16 @@ bool WFace::getOppositeEdge(const WVertex *v, WOEdge *&e)
 		return true;
 }
 
-real WFace::getArea ()
+float WFace::getArea()
 {
 	vector<WOEdge *>::iterator it;
-	Vec3r origin = (*(_OEdgeList.begin()))->GetaVertex()->GetVertex();
+	Vec3f origin = (*(_OEdgeList.begin()))->GetaVertex()->GetVertex();
 	it = _OEdgeList.begin();
-	real a = 0;
+	float a = 0;
 	for (it = it++; it != _OEdgeList.end(); it++) {
-		Vec3r v1 = Vec3r((*it)->GetaVertex()->GetVertex() - origin);
-		Vec3r v2 = Vec3r((*it)->GetbVertex()->GetVertex() - origin);
-		a += (v1 ^ v2).norm() / 2.0;
+		Vec3f v1 = Vec3f((*it)->GetaVertex()->GetVertex() - origin);
+		Vec3f v2 = Vec3f((*it)->GetbVertex()->GetVertex() - origin);
+		a += (v1 ^ v2).norm() / 2.0f;
 	}
 	return a;
 }
@@ -599,7 +599,7 @@ WFace *WShape::MakeFace(vector<WVertex *>& iVertexList, vector<bool>& iFaceEdgeM
 	return result;
 }
 
-WFace *WShape::MakeFace(vector<WVertex *>& iVertexList, vector<Vec3r>& iNormalsList, vector<Vec2r>& iTexCoordsList,
+WFace *WShape::MakeFace(vector<WVertex *>& iVertexList, vector<Vec3f>& iNormalsList, vector<Vec2f>& iTexCoordsList,
                         vector<bool>& iFaceEdgeMarksList, unsigned iMaterial)
 {
 	// allocate the new face
@@ -648,10 +648,10 @@ WFace *WShape::MakeFace(vector<WVertex *>& iVertexList, vector<bool>& iFaceEdgeM
 	it++;
 	v3 = *it;
 
-	Vec3r vector1(v2->GetVertex() - v1->GetVertex());
-	Vec3r vector2(v3->GetVertex() - v1->GetVertex());
+	Vec3f vector1(v2->GetVertex() - v1->GetVertex());
+	Vec3f vector2(v3->GetVertex() - v1->GetVertex());
 
-	Vec3r normal(vector1 ^ vector2);
+	Vec3f normal(vector1 ^ vector2);
 	normal.normalize();
 	face->setNormal(normal);
 
@@ -709,7 +709,7 @@ real WShape::ComputeMeanEdgeSize() const
 	{
 		meanEdgeSize += (*it)->GetaOEdge()->GetVec().norm();
 	}
-	return meanEdgeSize / _EdgeList.size();
+	return meanEdgeSize / (real)_EdgeList.size();
 }
 
 } /* namespace Freestyle */

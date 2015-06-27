@@ -114,8 +114,8 @@ public:
 	 *          arrays desallocation in charge.
 	 *      1 : the arrays are copied. The caller is in charge of the arrays, passed as arguments desallocation.
 	*/
-	IndexedFaceSet(real *iVertices, unsigned iVSize, real *iNormals, unsigned iNSize, FrsMaterial **iMaterials,
-	               unsigned iMSize, real *iTexCoords, unsigned iTSize, unsigned iNumFaces, unsigned *iNumVertexPerFace,
+	IndexedFaceSet(float *iVertices, unsigned iVSize, float *iNormals, unsigned iNSize, FrsMaterial **iMaterials,
+	               unsigned iMSize, float *iTexCoords, unsigned iTSize, unsigned iNumFaces, unsigned *iNumVertexPerFace,
 	               TRIANGLES_STYLE *iFaceStyle, FaceEdgeMark *iFaceEdgeMarks, unsigned *iVIndices, unsigned iVISize,
 	               unsigned *iNIndices, unsigned iNISize, unsigned *iMIndices, unsigned iMISize, unsigned *iTIndices,
 	               unsigned iTISize, unsigned iCopy = 1);
@@ -180,12 +180,12 @@ public:
 	}
 
 	/*! Accessors */
-	virtual const real *vertices() const
+	virtual const float *vertices() const
 	{
 		return _Vertices;
 	}
 
-	virtual const real *normals() const
+	virtual const float *normals() const
 	{
 		return _Normals;
 	}
@@ -195,7 +195,7 @@ public:
 		return _FrsMaterials;
 	}
 
-	virtual const real *texCoords() const
+	virtual const float *texCoords() const
 	{
 		return _TexCoords;
 	}
@@ -286,10 +286,10 @@ public:
 	}
 
 protected:
-	real *_Vertices;
-	real *_Normals;
+	float *_Vertices;
+	float *_Normals;
 	FrsMaterial **_FrsMaterials;
-	real *_TexCoords;
+	float *_TexCoords;
 
 	unsigned _VSize;
 	unsigned _NSize;
@@ -316,7 +316,6 @@ protected:
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:IndexedFaceSet")
 #endif
-
 };
 
 } /* namespace Freestyle */

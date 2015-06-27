@@ -118,29 +118,29 @@ public:
 
 protected:
 	virtual bool buildWShape(WShape& shape, IndexedFaceSet& ifs);
-	virtual void buildWVertices(WShape& shape, const real *vertices, unsigned vsize);
+	virtual void buildWVertices(WShape& shape, const float *vertices, unsigned vsize);
 
 	RenderMonitor *_pRenderMonitor;
 
 private:
-	void buildTriangleStrip(const real *vertices, const real *normals, vector<FrsMaterial>&  iMaterials,
-	                        const real *texCoords, const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
+	void buildTriangleStrip(const float *vertices, const float *normals, vector<FrsMaterial>&  iMaterials,
+	                        const float *texCoords, const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
 	                        const unsigned *vindices, const unsigned *nindices, const unsigned *mindices,
 	                        const unsigned *tindices, const unsigned nvertices);
 
-	void buildTriangleFan(const real *vertices, const real *normals, vector<FrsMaterial>&  iMaterials,
-	                      const real *texCoords, const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
+	void buildTriangleFan(const float *vertices, const float *normals, vector<FrsMaterial>&  iMaterials,
+	                      const float *texCoords, const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
 	                      const unsigned *vindices, const unsigned *nindices, const unsigned *mindices,
 	                      const unsigned *tindices, const unsigned nvertices);
 
-	void buildTriangles(const real *vertices, const real *normals, vector<FrsMaterial>& iMaterials,
-	                    const real *texCoords, const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
+	void buildTriangles(const float *vertices, const float *normals, vector<FrsMaterial>& iMaterials,
+	                    const float *texCoords, const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
 	                    const unsigned *vindices, const unsigned *nindices, const unsigned *mindices,
 	                    const unsigned *tindices, const unsigned nvertices);
 
-	void transformVertices(const real *vertices, unsigned vsize, const Matrix44r& transform, real *res);
+	void transformVertices(const float *vertices, unsigned vsize, const Matrix44r& transform, float *res);
 
-	void transformNormals(const real *normals, unsigned nsize, const Matrix44r& transform, real *res);
+	void transformNormals(const float *normals, unsigned nsize, const Matrix44r& transform, float *res);
 
 	WShape *_current_wshape;
 	FrsMaterial *_current_frs_material;
@@ -151,7 +151,6 @@ private:
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WingedEdgeBuilder")
 #endif
-
 };
 
 } /* namespace Freestyle */

@@ -54,8 +54,8 @@ IndexedFaceSet::IndexedFaceSet() : Rep()
 	_displayList = 0;
 }
 
-IndexedFaceSet::IndexedFaceSet(real *iVertices, unsigned iVSize, real *iNormals, unsigned iNSize,
-                               FrsMaterial **iMaterials, unsigned iMSize, real *iTexCoords, unsigned iTSize,
+IndexedFaceSet::IndexedFaceSet(float *iVertices, unsigned iVSize, float *iNormals, unsigned iNSize,
+                               FrsMaterial **iMaterials, unsigned iMSize, float *iTexCoords, unsigned iTSize,
                                unsigned iNumFaces, unsigned *iNumVertexPerFace, TRIANGLES_STYLE *iFaceStyle,
                                FaceEdgeMark *iFaceEdgeMarks, unsigned *iVIndices, unsigned iVISize,
                                unsigned *iNIndices, unsigned iNISize, unsigned *iMIndices, unsigned iMISize,
@@ -64,12 +64,12 @@ IndexedFaceSet::IndexedFaceSet(real *iVertices, unsigned iVSize, real *iNormals,
 {
 	if (1 == iCopy) {
 		_VSize = iVSize;
-		_Vertices = new real[_VSize];
-		memcpy(_Vertices, iVertices, iVSize * sizeof(real));
+		_Vertices = new float[_VSize];
+		memcpy(_Vertices, iVertices, iVSize * sizeof(float));
 
 		_NSize = iNSize;
-		_Normals = new real[_NSize];
-		memcpy(_Normals, iNormals, iNSize * sizeof(real));
+		_Normals = new float[_NSize];
+		memcpy(_Normals, iNormals, iNSize * sizeof(float));
 
 		_MSize = iMSize;
 		_FrsMaterials = 0;
@@ -81,8 +81,8 @@ IndexedFaceSet::IndexedFaceSet(real *iVertices, unsigned iVSize, real *iNormals,
 		_TSize = iTSize;
 		_TexCoords = 0;
 		if (_TSize) {
-			_TexCoords = new real[_TSize];
-			memcpy(_TexCoords, iTexCoords, iTSize * sizeof(real));
+			_TexCoords = new float[_TSize];
+			memcpy(_TexCoords, iTexCoords, iTSize * sizeof(float));
 		}
 
 		_NumFaces = iNumFaces;
@@ -157,12 +157,12 @@ IndexedFaceSet::IndexedFaceSet(real *iVertices, unsigned iVSize, real *iNormals,
 IndexedFaceSet::IndexedFaceSet(const IndexedFaceSet& iBrother) : Rep(iBrother)
 {
 	_VSize = iBrother.vsize();
-	_Vertices = new real[_VSize];
-	memcpy(_Vertices, iBrother.vertices(), _VSize * sizeof(real));
+	_Vertices = new float[_VSize];
+	memcpy(_Vertices, iBrother.vertices(), _VSize * sizeof(float));
 
 	_NSize = iBrother.nsize();
-	_Normals = new real[_NSize];
-	memcpy(_Normals, iBrother.normals(), _NSize * sizeof(real));
+	_Normals = new float[_NSize];
+	memcpy(_Normals, iBrother.normals(), _NSize * sizeof(float));
 
 	_MSize = iBrother.msize();
 	if (_MSize) {
@@ -178,8 +178,8 @@ IndexedFaceSet::IndexedFaceSet(const IndexedFaceSet& iBrother) : Rep(iBrother)
 	_TSize = iBrother.tsize();
 	_TexCoords = 0;
 	if (_TSize) {
-		_TexCoords = new real[_TSize];
-		memcpy(_TexCoords, iBrother.texCoords(), _TSize * sizeof(real));
+		_TexCoords = new float[_TSize];
+		memcpy(_TexCoords, iBrother.texCoords(), _TSize * sizeof(float));
 	}
 
 	_NumFaces = iBrother.numFaces();
@@ -290,16 +290,16 @@ void IndexedFaceSet::accept(SceneVisitor& v)
 
 void IndexedFaceSet::ComputeBBox()
 {
-	real XMax = _Vertices[0];
-	real YMax = _Vertices[1];
-	real ZMax = _Vertices[2];
+	float XMax = _Vertices[0];
+	float YMax = _Vertices[1];
+	float ZMax = _Vertices[2];
 
-	real XMin = _Vertices[0];
-	real YMin = _Vertices[1];
-	real ZMin = _Vertices[2];
+	float XMin = _Vertices[0];
+	float YMin = _Vertices[1];
+	float ZMin = _Vertices[2];
 
 	// parse all the coordinates to find the Xmax, YMax, ZMax
-	real *v = _Vertices;
+	float *v = _Vertices;
 
 	for (unsigned int i = 0; i < (_VSize / 3); ++i) {
 		if (*v > XMax)
@@ -321,7 +321,7 @@ void IndexedFaceSet::ComputeBBox()
 		++v;
 	}
 
-	setBBox(BBox<Vec3r>(Vec3r(XMin, YMin, ZMin), Vec3r(XMax, YMax, ZMax)));
+	setBBox(BBox<Vec3f>(Vec3f(XMin, YMin, ZMin), Vec3f(XMax, YMax, ZMax)));
 }
 
 } /* namespace Freestyle */

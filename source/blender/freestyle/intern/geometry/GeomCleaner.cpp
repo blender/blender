@@ -50,13 +50,13 @@ using namespace std;
 namespace Freestyle {
 
 void GeomCleaner::SortIndexedVertexArray(const float *iVertices, unsigned iVSize, const unsigned *iIndices,
-                                         unsigned iISize, real **oVertices, unsigned **oIndices)
+                                         unsigned iISize, float **oVertices, unsigned **oIndices)
 {
 	// First, we build a list of IndexVertex:
 	list<IndexedVertex> indexedVertices;
 	unsigned i;
 	for (i = 0; i < iVSize; i += 3) {
-		indexedVertices.push_back(IndexedVertex(Vec3r(iVertices[i], iVertices[i + 1], iVertices[i + 2]), i / 3));
+		indexedVertices.push_back(IndexedVertex(Vec3f(iVertices[i], iVertices[i + 1], iVertices[i + 2]), i / 3));
 	}
 
 	// q-sort
@@ -64,7 +64,7 @@ void GeomCleaner::SortIndexedVertexArray(const float *iVertices, unsigned iVSize
 
 	// build the indices mapping array:
 	unsigned *mapIndices = new unsigned[iVSize / 3];
-	*oVertices = new real[iVSize];
+	*oVertices = new float[iVSize];
 	list<IndexedVertex>::iterator iv;
 	unsigned newIndex = 0;
 	unsigned vIndex = 0;
@@ -88,26 +88,26 @@ void GeomCleaner::SortIndexedVertexArray(const float *iVertices, unsigned iVSize
 	delete [] mapIndices;
 }
 
-void GeomCleaner::CompressIndexedVertexArray(const real *iVertices, unsigned iVSize, const unsigned *iIndices,
-                                             unsigned iISize, real **oVertices, unsigned *oVSize, unsigned **oIndices)
+void GeomCleaner::CompressIndexedVertexArray(const float *iVertices, unsigned iVSize, const unsigned *iIndices,
+                                             unsigned iISize, float **oVertices, unsigned *oVSize, unsigned **oIndices)
 {
 	// First, we build a list of IndexVertex:
-	vector<Vec3r> vertices;
+	vector<Vec3f> vertices;
 	unsigned i;
 	for (i = 0; i < iVSize; i += 3) {
-		vertices.push_back(Vec3r(iVertices[i], iVertices[i + 1], iVertices[i + 2]));
+		vertices.push_back(Vec3f(iVertices[i], iVertices[i + 1], iVertices[i + 2]));
 	}
 
 	unsigned *mapVertex = new unsigned[iVSize];
-	vector<Vec3r>::iterator v = vertices.begin();
+	vector<Vec3f>::iterator v = vertices.begin();
 
-	vector<Vec3r> compressedVertices;
-	Vec3r previous = *v;
+	vector<Vec3f> compressedVertices;
+	Vec3f previous = *v;
 	mapVertex[0] = 0;
 	compressedVertices.push_back(vertices.front());
 
 	v++;
-	Vec3r current;
+	Vec3f current;
 	i = 1;
 	for (; v != vertices.end(); v++) {
 		current = *v;
@@ -123,7 +123,7 @@ void GeomCleaner::CompressIndexedVertexArray(const real *iVertices, unsigned iVS
 
 	// Builds the resulting vertex array:
 	*oVSize = 3 * compressedVertices.size();
-	*oVertices = new real[*oVSize];
+	*oVertices = new float[*oVSize];
 	i = 0;
 	for (v = compressedVertices.begin(); v != compressedVertices.end(); v++) {
 		(*oVertices)[i] = (*v)[0];
@@ -142,11 +142,11 @@ void GeomCleaner::CompressIndexedVertexArray(const real *iVertices, unsigned iVS
 }
 
 void GeomCleaner::SortAndCompressIndexedVertexArray(const float *iVertices, unsigned iVSize, const unsigned *iIndices,
-                                                    unsigned iISize, real **oVertices, unsigned *oVSize,
+                                                    unsigned iISize, float **oVertices, unsigned *oVSize,
                                                     unsigned **oIndices)
 {
 	// tmp arrays used to store the sorted data:
-	real *tmpVertices;
+	float *tmpVertices;
 	unsigned *tmpIndices;
 
 	Chronometer chrono;
@@ -154,7 +154,7 @@ void GeomCleaner::SortAndCompressIndexedVertexArray(const float *iVertices, unsi
 	chrono.start();
 	GeomCleaner::SortIndexedVertexArray(iVertices, iVSize, iIndices, iISize, &tmpVertices, &tmpIndices);
 	if (G.debug & G_DEBUG_FREESTYLE) {
-		printf("Sorting: %lf\n", chrono.stop());
+		printf("Sorting: %lf sec.\n", chrono.stop());
 	}
 
 	// compress data
@@ -162,7 +162,7 @@ void GeomCleaner::SortAndCompressIndexedVertexArray(const float *iVertices, unsi
 	GeomCleaner::CompressIndexedVertexArray(tmpVertices, iVSize, tmpIndices, iISize, oVertices, oVSize, oIndices);
 	real duration = chrono.stop();
 	if (G.debug & G_DEBUG_FREESTYLE) {
-		printf("Merging: %lf\n", duration);
+		printf("Merging: %lf sec.\n", duration);
 	}
 
 	// deallocates memory:
@@ -185,22 +185,22 @@ struct GeomCleanerHasher {
 };
 
 void GeomCleaner::CleanIndexedVertexArray(const float *iVertices, unsigned iVSize, const unsigned *iIndices,
-                                          unsigned iISize, real **oVertices, unsigned *oVSize, unsigned **oIndices)
+                                          unsigned iISize, float **oVertices, unsigned *oVSize, unsigned **oIndices)
 {
-	typedef map<Vec3r, unsigned> cleanHashTable;
-	vector<Vec3r> vertices;
+	typedef map<Vec3f, unsigned> cleanHashTable;
+	vector<Vec3f> vertices;
 	unsigned i;
 	for (i = 0; i < iVSize; i += 3)
-		vertices.push_back(Vec3r(iVertices[i], iVertices[i + 1], iVertices[i + 2]));
+		vertices.push_back(Vec3f(iVertices[i], iVertices[i + 1], iVertices[i + 2]));
 
 	cleanHashTable ht;
 	vector<unsigned> newIndices;
-	vector<Vec3r> newVertices;
+	vector<Vec3f> newVertices;
 
 	// elimination of needless points
 	unsigned currentIndex = 0;
-	vector<Vec3r>::const_iterator v = vertices.begin();
-	vector<Vec3r>::const_iterator end = vertices.end();
+	vector<Vec3f>::const_iterator v = vertices.begin();
+	vector<Vec3f>::const_iterator end = vertices.end();
 	cleanHashTable::const_iterator found;
 	for (; v != end; v++) {
 		found = ht.find(*v);
@@ -218,7 +218,7 @@ void GeomCleaner::CleanIndexedVertexArray(const float *iVertices, unsigned iVSiz
 
 	// creation of oVertices array:
 	*oVSize = 3 * newVertices.size();
-	*oVertices = new real[*oVSize];
+	*oVertices = new float[*oVSize];
 	currentIndex = 0;
 	end = newVertices.end();
 	for (v = newVertices.begin(); v != end ; v++) {

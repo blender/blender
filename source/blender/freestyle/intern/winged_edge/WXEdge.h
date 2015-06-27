@@ -55,7 +55,7 @@ private:
 	CurvatureInfo *_curvatures;
 
 public:
-	inline WXVertex(const Vec3r &v) : WVertex(v)
+	inline WXVertex(const Vec3f &v) : WVertex(v)
 	{
 		_curvatures = NULL;
 	}
@@ -226,8 +226,8 @@ public:
 
 	WOEdge *_woea; // Oriented edge from which the silhouette edge starts
 	WOEdge *_woeb; // Oriented edge where the silhouette edge ends
-	real _ta;      // The silhouette starting point's coordinates are : _woea[0]+ta*(_woea[1]-_woea[0])
-	real _tb;      // The silhouette ending point's coordinates are : _woeb[0]+ta*(_woeb[1]-_woeb[0])
+	float _ta;     // The silhouette starting point's coordinates are : _woea[0]+ta*(_woea[1]-_woea[0])
+	float _tb;     // The silhouette ending point's coordinates are : _woeb[0]+ta*(_woeb[1]-_woeb[0])
 	bool _front;
 	Configuration _config;
 
@@ -235,8 +235,8 @@ public:
 	{
 		_woea = NULL;
 		_woeb = NULL;
-		_ta = 0;
-		_tb = 0;
+		_ta = 0.0f;
+		_tb = 0.0f;
 		_front = false;
 		_config = EDGE_EDGE;
 	}
@@ -263,12 +263,12 @@ public:
 		return _woeb;
 	}
 
-	inline real ta() const
+	inline float ta() const
 	{
 		return _ta;
 	}
 
-	inline real tb() const
+	inline float tb() const
 	{
 		return _tb;
 	}
@@ -294,12 +294,12 @@ public:
 		_woeb = iwoeb;
 	}
 
-	inline void setTa(real ta)
+	inline void setTa(float ta)
 	{
 		_ta = ta;
 	}
 
-	inline void setTb(real tb)
+	inline void setTb(float tb)
 	{
 		_tb = tb;
 	}
@@ -331,7 +331,7 @@ public:
 	WXFace *_pWXFace;
 	// in case of silhouette: the values obtained when computing the normal-view direction dot product. _DotP[i] is
 	// this value for the vertex i for that face.
-	vector<real> _DotP;
+	vector<float> _DotP;
 	WXSmoothEdge *_pSmoothEdge;
 	WXNature _Nature;
 
@@ -380,7 +380,7 @@ public:
 		}
 	}
 
-	inline const real dotP(int i) const
+	inline const float dotP(int i) const
 	{
 		return _DotP[i];
 	}
@@ -455,21 +455,21 @@ public:
 
 	WXSmoothEdge *BuildSmoothEdge();
 
-	inline void setDotP(const vector<real>& iDotP)
+	inline void setDotP(const vector<float>& iDotP)
 	{
 		_DotP = iDotP;
 	}
 
-	inline void PushDotP(real iDotP)
+	inline void PushDotP(float iDotP)
 	{
 		_DotP.push_back(iDotP);
-		if (iDotP > 0)
+		if (iDotP > 0.0f)
 			++_nPosDotP;
-		if (iDotP == 0)
+		if (iDotP == 0.0f) // TODO this comparison is weak, check if it actually works
 			++_nNullDotP;
 	}
 
-	inline void ReplaceDotP(unsigned int index, real newDotP)
+	inline void ReplaceDotP(unsigned int index, float newDotP)
 	{
 		_DotP[index] = newDotP;
 		updateDotPInfos();
@@ -479,10 +479,10 @@ public:
 	{
 		_nPosDotP = 0;
 		_nNullDotP = 0;
-		for (vector<real>::iterator d = _DotP.begin(), dend = _DotP.end(); d != dend; ++d) {
-			if ((*d) > 0)
+		for (vector<float>::iterator d = _DotP.begin(), dend = _DotP.end(); d != dend; ++d) {
+			if ((*d) > 0.0f)
 				++_nPosDotP;
-			if ((*d) == 0)
+			if ((*d) == 0.0f) // TODO ditto
 				++_nNullDotP;
 		}
 	}
@@ -495,17 +495,17 @@ public:
 class WXFace : public WFace
 {
 protected:
-	Vec3r _center; // center of the face
-	real _Z; // distance from viewpoint to the center of the face
+	Vec3f _center; // center of the face
+	float _Z; // distance from viewpoint to the center of the face
 	bool _front; // flag to tell whether the face is front facing or back facing
-	real _dotp;  // value obtained when computing the normal-viewpoint dot product
+	float _dotp;  // value obtained when computing the normal-viewpoint dot product
 
 	vector<WXFaceLayer *> _SmoothLayers; // The data needed to store one or several smooth edges that traverse the face
 
 public:
 	inline WXFace() : WFace()
 	{
-		_Z = 0.0;
+		_Z = 0.0f;
 		_front = false;
 	}
 
@@ -549,12 +549,12 @@ public:
 	}
 
 	/*! accessors */
-	inline Vec3r& center()
+	inline Vec3f& center()
 	{
 		return _center;
 	}
 
-	inline real Z()
+	inline float Z()
 	{
 		return _Z;
 	}
@@ -564,7 +564,7 @@ public:
 		return _front;
 	}
 
-	inline real dotp()
+	inline float dotp()
 	{
 		return _dotp;
 	}
@@ -625,14 +625,14 @@ public:
 	}
 
 	/*! modifiers */
-	inline void setCenter(const Vec3r& iCenter)
+	inline void setCenter(const Vec3f& iCenter)
 	{
 		_center = iCenter;
 	}
 
 	void ComputeCenter();
 
-	inline void setZ(real z)
+	inline void setZ(float z)
 	{
 		_Z = z;
 	}
@@ -642,10 +642,10 @@ public:
 		_front = iFront;
 	}
 
-	inline void setDotP(real iDotP)
+	inline void setDotP(float iDotP)
 	{
 		_dotp = iDotP;
-		if (_dotp > 0)
+		if (_dotp > 0.0f)
 			_front = true;
 		else
 			_front = false;
@@ -710,8 +710,10 @@ public:
 
 class WXShape : public WShape
 {
+#if 0
 public:
 	typedef WXShape type_name;
+#endif
 
 protected:
 	bool _computeViewIndependent; // flag to indicate whether the view independent stuff must be computed or not
@@ -774,7 +776,7 @@ public:
 	 *     The list of tex coords, iTexCoordsList[i] corresponding to the normal of the vertex iVertexList[i] for
 	 *     that face.
 	 */
-	virtual WFace *MakeFace(vector<WVertex *>& iVertexList, vector<Vec3r>& iNormalsList, vector<Vec2r>& iTexCoordsList,
+	virtual WFace *MakeFace(vector<WVertex *>& iVertexList, vector<Vec3f>& iNormalsList, vector<Vec2f>& iTexCoordsList,
 	                        vector<bool>& iFaceEdgeMarksList, unsigned iMaterialIndex);
 
 	/*! Reset all edges and vertices flags (which might have been set up on a previous pass) */

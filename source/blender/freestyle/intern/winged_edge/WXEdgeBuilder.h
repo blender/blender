@@ -43,7 +43,7 @@ public:
 	VISIT_DECL(IndexedFaceSet)
 
 protected:
-	virtual void buildWVertices(WShape& shape, const real *vertices, unsigned vsize);
+	virtual void buildWVertices(WShape& shape, const float *vertices, unsigned vsize);
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WXEdgeBuilder")

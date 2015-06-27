@@ -117,7 +117,7 @@ public:
 	virtual void ComputeBBox() = 0;
 
 	/*! Returns the rep bounding box */
-	virtual const BBox<Vec3r>& bbox() const
+	virtual const BBox<Vec3f>& bbox() const
 	{
 		return _BBox;
 	}
@@ -138,7 +138,7 @@ public:
 	}
 
 	/*! Sets the Rep bounding box */
-	virtual void setBBox(const BBox<Vec3r>& iBox)
+	virtual void setBBox(const BBox<Vec3f>& iBox)
 	{
 		_BBox = iBox;
 	}
@@ -159,7 +159,7 @@ public:
 	}
 
 private:
-	BBox<Vec3r> _BBox;
+	BBox<Vec3f> _BBox;
 	Id _Id;
 	const char *_Name;
 	FrsMaterial *_FrsMaterial;

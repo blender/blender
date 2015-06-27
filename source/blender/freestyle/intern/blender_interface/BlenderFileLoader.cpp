@@ -663,13 +663,13 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 
 	// We might have several times the same vertex. We want a clean 
 	// shape with no real-vertex. Here, we are making a cleaning pass.
-	real *cleanVertices = NULL;
+	float *cleanVertices = NULL;
 	unsigned int cvSize;
 	unsigned int *cleanVIndices = NULL;
 
 	GeomCleaner::CleanIndexedVertexArray(vertices, vSize, VIndices, viSize, &cleanVertices, &cvSize, &cleanVIndices);
 
-	real *cleanNormals = NULL;
+	float *cleanNormals = NULL;
 	unsigned int cnSize;
 	unsigned int *cleanNIndices = NULL;
 

@@ -43,7 +43,7 @@ unsigned int WXFaceLayer::Get0VertexIndex() const
 	int i = 0;
 	int nEdges = _pWXFace->numberOfEdges();
 	for (i = 0; i < nEdges; ++i) {
-		if (_DotP[i] == 0) {
+		if (_DotP[i] == 0.0f) { // TODO this comparison is weak, check if it actually works
 			return i;
 		}
 	}
@@ -54,7 +54,7 @@ unsigned int WXFaceLayer::GetSmoothEdgeIndex() const
 	int i = 0;
 	int nEdges = _pWXFace->numberOfEdges();
 	for (i = 0; i < nEdges; ++i) {
-		if ((_DotP[i] == 0) && (_DotP[(i + 1) % nEdges] == 0)) {
+		if ((_DotP[i] == 0.0f) && (_DotP[(i + 1) % nEdges] == 0.0f)) { // TODO ditto
 			return i;
 		}
 	}
@@ -66,7 +66,7 @@ void WXFaceLayer::RetrieveCuspEdgesIndices(vector<int>& oCuspEdges)
 	int i = 0;
 	int nEdges = _pWXFace->numberOfEdges();
 	for (i = 0; i < nEdges; ++i) {
-		if (_DotP[i] * _DotP[(i + 1) % nEdges] < 0) {
+		if (_DotP[i] * _DotP[(i + 1) % nEdges] < 0.0f) {
 			// we got one
 			oCuspEdges.push_back(i);
 		}
@@ -78,7 +78,7 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
 	// if the smooth edge has already been built: exit
 	if (_pSmoothEdge)
 		return _pSmoothEdge;
-	real ta, tb;
+	float ta, tb;
 	WOEdge *woea(0), *woeb(0);
 	bool ok = false;
 	vector<int> cuspEdgesIndices;
@@ -101,7 +101,7 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
 		// So if the WOEdge woea is such that woea[0].dotp > 0 and woea[1].dotp < 0, it is the starting edge.
 		//-------------------------------------------
 
-		if (_DotP[cuspEdgesIndices[0]] > 0) {
+		if (_DotP[cuspEdgesIndices[0]] > 0.0f) {
 			woea = _pWXFace->GetOEdge(cuspEdgesIndices[0]);
 			woeb = _pWXFace->GetOEdge(cuspEdgesIndices[1]);
 			indexStart = cuspEdgesIndices[0];
@@ -136,18 +136,18 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
 		}
 		unsigned index0 = Get0VertexIndex(); // retrieve the 0 vertex index
 		unsigned nedges = _pWXFace->numberOfEdges();
-		if (_DotP[cuspEdgesIndices[0]] > 0) {
+		if (_DotP[cuspEdgesIndices[0]] > 0.0f) {
 			woea = _pWXFace->GetOEdge(cuspEdgesIndices[0]);
 			woeb = _pWXFace->GetOEdge(index0);
 			indexStart = cuspEdgesIndices[0];
 			ta = _DotP[indexStart] / (_DotP[indexStart] - _DotP[(indexStart + 1) % nedges]);
-			tb = 0.0;
+			tb = 0.0f;
 		}
 		else {
 			woea = _pWXFace->GetOEdge(index0);
 			woeb = _pWXFace->GetOEdge(cuspEdgesIndices[0]);
 			indexEnd = cuspEdgesIndices[0];
-			ta = 0.0;
+			ta = 0.0f;
 			tb = _DotP[indexEnd] / (_DotP[indexEnd] - _DotP[(indexEnd + 1) % nedges]);
 		}
 		ok = true;
@@ -159,8 +159,8 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
 			// the order of the WOEdge index is wrong
 			woea = _pWXFace->GetOEdge((index + 1) % nedges);
 			woeb = _pWXFace->GetOEdge((index - 1) % nedges);
-			ta = 0;
-			tb = 1;
+			ta = 0.0f;
+			tb = 1.0f;
 			ok = true;
 		}
 		else {
@@ -170,8 +170,8 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
 			// the order of the WOEdge index is good
 			woea = _pWXFace->GetOEdge((index - 1) % nedges);
 			woeb = _pWXFace->GetOEdge((index + 1) % nedges);
-			ta = 1;
-			tb = 0;
+			ta = 1.0f;
+			tb = 0.0f;
 #endif
 		}
 	}
@@ -183,7 +183,7 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
 		_pSmoothEdge->setTb(tb);
 		if (_Nature & Nature::SILHOUETTE) {
 			if (_nNullDotP != 2) {
-				if (_DotP[_ClosestPointIndex] + 0.01 > 0)
+				if (_DotP[_ClosestPointIndex] + 0.01f > 0.0f)
 					_pSmoothEdge->setFront(true);
 				else
 					_pSmoothEdge->setFront(false);
@@ -205,7 +205,7 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
 				}
 				// Else we must build it
 				WOEdge *woea, *woeb;
-				real ta, tb;
+				float ta, tb;
 				if (!front()) { // is it in the right order ?
 					// the order of the WOEdge index is wrong
 					woea = _OEdgeList[(i + 1) % numberOfEdges()];
@@ -213,8 +213,8 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
 						woeb = _OEdgeList[numberOfEdges() - 1];
 					else
 						woeb = _OEdgeList[(i - 1)];
-					ta = 0;
-					tb = 1;
+					ta = 0.0f;
+					tb = 1.0f;
 				}
 				else {
 					// the order of the WOEdge index is good
@@ -223,8 +223,8 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
 					else
 						woea = _OEdgeList[(i - 1)];
 					woeb = _OEdgeList[(i + 1) % numberOfEdges()];
-					ta = 1;
-					tb = 0;
+					ta = 1.0f;
+					tb = 0.0f;
 				}
 
 				_pSmoothEdge = new ExactSilhouetteEdge(ExactSilhouetteEdge::VERTEX_VERTEX);
@@ -246,11 +246,11 @@ void WXFace::ComputeCenter()
 {
 	vector<WVertex *> iVertexList;
 	RetrieveVertexList(iVertexList);
-	Vec3r center;
+	Vec3f center;
 	for (vector<WVertex *>::iterator wv = iVertexList.begin(), wvend = iVertexList.end(); wv != wvend; ++wv) {
 		center += (*wv)->GetVertex();
 	}
-	center /= (real)iVertexList.size();
+	center /= (float)iVertexList.size();
 	setCenter(center);
 }
 
@@ -268,28 +268,28 @@ WFace *WXShape::MakeFace(vector<WVertex *>& iVertexList, vector<bool>& iFaceEdge
 	if (!face)
 		return NULL;
 
-	Vec3r center;
+	Vec3f center;
 	for (vector<WVertex *>::iterator wv = iVertexList.begin(), wvend = iVertexList.end(); wv != wvend; ++wv) {
 		center += (*wv)->GetVertex();
 	}
-	center /= (real)iVertexList.size();
+	center /= (float)iVertexList.size();
 	((WXFace *)face)->setCenter(center);
 
 	return face;
 }
 
-WFace *WXShape::MakeFace(vector<WVertex *>& iVertexList, vector<Vec3r>& iNormalsList, vector<Vec2r>& iTexCoordsList,
+WFace *WXShape::MakeFace(vector<WVertex *>& iVertexList, vector<Vec3f>& iNormalsList, vector<Vec2f>& iTexCoordsList,
                          vector<bool>& iFaceEdgeMarksList, unsigned iMaterialIndex)
 {
 	WFace *face = WShape::MakeFace(iVertexList, iNormalsList, iTexCoordsList, iFaceEdgeMarksList, iMaterialIndex);
 
 #if 0
-	Vec3r center;
+	Vec3f center;
 	for (vector<WVertex *>::iterator wv = iVertexList.begin(), wvend = iVertexList.end(); wv != wvend; ++wv) {
 		center += (*wv)->GetVertex();
 	}
-	center /= (real)iVertexList.size();
-	((WSFace *)face)->setCenter(center);
+	center /= (float)iVertexList.size();
+	((WXFace *)face)->setCenter(center);
 #endif
 
 	return face;

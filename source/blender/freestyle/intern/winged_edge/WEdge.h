@@ -68,7 +68,7 @@ class WVertex
 {
 protected:
 	int _Id; // an identificator
-	Vec3r _Vertex;
+	Vec3f _Vertex;
 	vector<WEdge*> _EdgeList;
 	WShape *_Shape; // the shape to which the vertex belongs
 	bool _Smooth; // flag to indicate whether the Vertex belongs to a smooth edge or not
@@ -76,7 +76,7 @@ protected:
 
 public:
 	void *userdata; // designed to store specific user data
-	inline WVertex(const Vec3r &v)
+	inline WVertex(const Vec3f &v)
 	{
 		_Id = 0;
 		_Vertex = v;
@@ -92,7 +92,7 @@ public:
 	virtual ~WVertex() {}
 
 	/*! accessors */
-	inline Vec3r& GetVertex()
+	inline Vec3f& GetVertex()
 	{
 		return _Vertex;
 	}
@@ -120,7 +120,7 @@ public:
 	bool isBoundary();
 
 	/*! modifiers */
-	inline void setVertex(const Vec3r& v)
+	inline void setVertex(const Vec3f& v)
 	{
 		_Vertex = v;
 	}
@@ -381,8 +381,8 @@ protected:
 	WFace *_pbFace;        // when following the edge, face on the left
 	WEdge *_pOwner;        // Edge
 
-	Vec3r _vec;
-	real _angle;
+	Vec3f _vec;
+	float _angle;
 
 public:
 	void *userdata;
@@ -457,12 +457,12 @@ public:
 		return _pOwner;
 	}
 
-	inline const Vec3r& GetVec()
+	inline const Vec3f& GetVec()
 	{
 		return _vec;
 	}
 
-	inline const real GetAngle()
+	inline const float GetAngle()
 	{
 		return _angle;
 	}
@@ -738,11 +738,11 @@ class WFace
 {
 protected:
 	vector<WOEdge *> _OEdgeList; // list of oriented edges of bording the face
-	Vec3r _Normal;               // normal to the face
+	Vec3f _Normal;               // normal to the face
 	// in case there is a normal per vertex.
 	// The normal number i corresponds to the aVertex of the oedge number i, for that face
-	vector<Vec3r> _VerticesNormals;
-	vector<Vec2r> _VerticesTexCoords;
+	vector<Vec3f> _VerticesNormals;
+	vector<Vec2f> _VerticesTexCoords;
 
 	int _Id;
 	unsigned _FrsMaterialIndex;
@@ -772,7 +772,7 @@ public:
 		return _OEdgeList[i];
 	}
 
-	inline Vec3r& GetNormal()
+	inline Vec3f& GetNormal()
 	{
 		return _Normal;
 	}
@@ -848,30 +848,30 @@ public:
 		return iOEdge->GetaFace();
 	}
 
-	inline vector<Vec3r>& GetPerVertexNormals()
+	inline vector<Vec3f>& GetPerVertexNormals()
 	{
 		return _VerticesNormals;
 	}
 
-	inline vector<Vec2r>& GetPerVertexTexCoords()
+	inline vector<Vec2f>& GetPerVertexTexCoords()
 	{
 		return _VerticesTexCoords;
 	}
 
 	/*! Returns the normal of the vertex of index index */
-	inline Vec3r& GetVertexNormal(int index)
+	inline Vec3f& GetVertexNormal(int index)
 	{
 		return _VerticesNormals[index];
 	}
 
 	/*! Returns the tex coords of the vertex of index index */
-	inline Vec2r& GetVertexTexCoords(int index)
+	inline Vec2f& GetVertexTexCoords(int index)
 	{
 		return _VerticesTexCoords[index];
 	}
 
 	/*! Returns the normal of the vertex iVertex for that face */
-	inline Vec3r& GetVertexNormal(WVertex *iVertex)
+	inline Vec3f& GetVertexNormal(WVertex *iVertex)
 	{
 		int i = 0;
 		int index = 0;
@@ -938,17 +938,17 @@ public:
 		_OEdgeList = iEdgeList;
 	}
 
-	inline void setNormal(const Vec3r& iNormal)
+	inline void setNormal(const Vec3f& iNormal)
 	{
 		_Normal = iNormal;
 	}
 
-	inline void setNormalList(const vector<Vec3r>& iNormalsList)
+	inline void setNormalList(const vector<Vec3f>& iNormalsList)
 	{
 		_VerticesNormals = iNormalsList;
 	}
 
-	inline void setTexCoordsList(const vector<Vec2r>& iTexCoordsList)
+	inline void setTexCoordsList(const vector<Vec2f>& iTexCoordsList)
 	{
 		_VerticesTexCoords = iTexCoordsList;
 	}
@@ -994,7 +994,7 @@ public:
 	bool getOppositeEdge (const WVertex *v, WOEdge *&e);
 
 	/*! compute the area of the face */
-	real getArea ();
+	float getArea ();
 
 	WShape *getShape();
 	virtual void ResetUserData()
@@ -1027,12 +1027,12 @@ protected:
 	const char *_Name;
 	static unsigned _SceneCurrentId;
 #if 0
-	Vec3r _min;
-	Vec3r _max;
+	Vec3f _min;
+	Vec3f _max;
 #endif
 	vector<FrsMaterial> _FrsMaterials;
 #if 0
-	real _meanEdgeSize;
+	float _meanEdgeSize;
 #endif
 
 public:
@@ -1098,7 +1098,7 @@ public:
 	}
 
 #if 0
-	inline void bbox(Vec3r& min, Vec3r& max)
+	inline void bbox(Vec3f& min, Vec3f& max)
 	{
 		min = _min;
 		max = _max;
@@ -1116,7 +1116,7 @@ public:
 	}
 
 #if 0
-	inline const real getMeanEdgeSize() const
+	inline const float getMeanEdgeSize() const
 	{
 		return _meanEdgeSize;
 	}
@@ -1154,7 +1154,7 @@ public:
 	}
 
 #if 0
-	inline void setBBox(const Vec3r& min, const Vec3r& max)
+	inline void setBBox(const Vec3f& min, const Vec3f& max)
 	{
 		_min = min;
 		_max = max;
@@ -1210,7 +1210,7 @@ public:
 	 *     The list of tex coords, iTexCoordsList[i] corresponding to the normal of the vertex iVertexList[i] for
 	 *     that face.
 	 */
-	virtual WFace *MakeFace(vector<WVertex *>& iVertexList, vector<Vec3r>& iNormalsList, vector<Vec2r>& iTexCoordsList,
+	virtual WFace *MakeFace(vector<WVertex *>& iVertexList, vector<Vec3f>& iNormalsList, vector<Vec2f>& iTexCoordsList,
 	                        vector<bool>& iFaceEdgeMarksList, unsigned iMaterialIndex);
 
 	inline void AddEdge(WEdge *iEdge)
@@ -1257,7 +1257,7 @@ public:
 		_min = _VertexList[0]->GetVertex();
 		_max = _VertexList[0]->GetVertex();
 
-		Vec3r v;
+		Vec3f v;
 		for (vector<WVertex *>::iterator wv = _VertexList.begin(), wvend = _VertexList.end(); wv != wvend; wv++) {
 			for (unsigned int i = 0; i < 3; i++) {
 				v = (*wv)->GetVertex();
@@ -1271,7 +1271,7 @@ public:
 #endif
 
 #if 0
-	inline real ComputeMeanEdgeSize()
+	inline float ComputeMeanEdgeSize()
 	{
 		_meanEdgeSize = _meanEdgeSize / _EdgeList.size();
 		return _meanEdgeSize;
@@ -1385,7 +1385,7 @@ inline void WOEdge::setVecAndAngle()
 	if (_paVertex && _pbVertex) {
 		_vec = _pbVertex->GetVertex() - _paVertex->GetVertex();
 		if (_paFace && _pbFace) {
-			real sine = (_pbFace->GetNormal() ^ _paFace->GetNormal()) * _vec / _vec.norm();
+			float sine = (_pbFace->GetNormal() ^ _paFace->GetNormal()) * _vec / _vec.norm();
 			if (sine >= 1.0) {
 				_angle = M_PI / 2.0;
 				return;

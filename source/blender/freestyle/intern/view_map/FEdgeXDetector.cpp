@@ -39,7 +39,9 @@ namespace Freestyle {
 void FEdgeXDetector::processShapes(WingedEdge& we)
 {
 	bool progressBarDisplay = false;
+#if 0
 	Vec3r Min, Max;
+#endif
 	vector<WShape*> wshapes = we.getWShapes();
 	WXShape *wxs;
 

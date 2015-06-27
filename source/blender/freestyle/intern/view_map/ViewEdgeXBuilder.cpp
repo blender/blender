@@ -632,18 +632,18 @@ FEdge *ViewEdgeXBuilder::BuildSharpFEdge(FEdge *feprevious, const OWXEdge& iwe)
 {
 	SVertex *va, *vb;
 	FEdgeSharp *fe;
-	WXVertex *wxVA, *wxVB;
+	Vec3r vA, vB;
 	if (iwe.order) {
-		wxVA = (WXVertex *)iwe.e->GetaVertex();
-		wxVB = (WXVertex *)iwe.e->GetbVertex();
+		vA = iwe.e->GetaVertex()->GetVertex();
+		vB = iwe.e->GetbVertex()->GetVertex();
 	}
 	else {
-		wxVA = (WXVertex *)iwe.e->GetbVertex();
-		wxVB = (WXVertex *)iwe.e->GetaVertex();
+		vA = iwe.e->GetbVertex()->GetVertex();
+		vB = iwe.e->GetaVertex()->GetVertex();
 	}
 	// Make the 2 SVertex
-	va = MakeSVertex(wxVA->GetVertex(), true);
-	vb = MakeSVertex(wxVB->GetVertex(), true);
+	va = MakeSVertex(vA, true);
+	vb = MakeSVertex(vB, true);
 
 	// get the faces normals and the material indices
 	Vec3r normalA, normalB;

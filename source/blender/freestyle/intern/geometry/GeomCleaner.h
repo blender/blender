@@ -64,7 +64,7 @@ public:
 	 *      Output corresponding to the iIndices array but reorganized in order to match the sorted vertex array.
 	 */
 	static void SortIndexedVertexArray(const float *iVertices, unsigned iVSize, const unsigned *iIndices,
-	                                   unsigned iISize, real **oVertices, unsigned **oIndices);
+	                                   unsigned iISize, float **oVertices, unsigned **oIndices);
 
 	/*! Compress a SORTED indexed vertex array by eliminating multiple appearing occurences of a single vertex.
 	 *    iVertices
@@ -84,8 +84,8 @@ public:
 	 *    oIndices
 	 *      The indices array, reorganized to match the compressed oVertices array.
 	 */
-	static void CompressIndexedVertexArray(const real *iVertices, unsigned iVSize, const unsigned *iIndices,
-	                                       unsigned iISize, real **oVertices, unsigned *oVSize, unsigned **oIndices);
+	static void CompressIndexedVertexArray(const float *iVertices, unsigned iVSize, const unsigned *iIndices,
+	                                       unsigned iISize, float **oVertices, unsigned *oVSize, unsigned **oIndices);
 
 	/*! Sorts and compress an array of indexed vertices.
 	 *    iVertices
@@ -107,7 +107,7 @@ public:
 	 *      The indices array, reorganized to match the sorted and compressed oVertices array.
 	 */
 	static void SortAndCompressIndexedVertexArray(const float *iVertices, unsigned iVSize, const unsigned *iIndices,
-	                                              unsigned iISize, real **oVertices, unsigned *oVSize,
+	                                              unsigned iISize, float **oVertices, unsigned *oVSize,
 	                                              unsigned **oIndices);
 
 	/*! Cleans an indexed vertex array. (Identical to SortAndCompress except that we use here a hash table
@@ -131,7 +131,7 @@ public:
 	 *      The indices array, reorganized to match the sorted and compressed oVertices array.
 	 */
 	static void CleanIndexedVertexArray(const float *iVertices, unsigned iVSize, const unsigned *iIndices,
-	                                    unsigned iISize, real **oVertices, unsigned *oVSize, unsigned **oIndices);
+	                                    unsigned iISize, float **oVertices, unsigned *oVSize, unsigned **oIndices);
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:GeomCleaner")
@@ -146,20 +146,20 @@ public:
 class IndexedVertex
 {
 private:
-	Vec3r _Vector;
+	Vec3f _Vector;
 	unsigned _index;
 
 public:
 	inline IndexedVertex() {}
 
-	inline IndexedVertex(Vec3r iVector, unsigned iIndex)
+	inline IndexedVertex(Vec3f iVector, unsigned iIndex)
 	{
 		_Vector = iVector;
 		_index = iIndex;
 	}
 
 	/*! accessors */
-	inline const Vec3r& vector() const
+	inline const Vec3f& vector() const
 	{
 		return _Vector;
 	}
@@ -169,23 +169,23 @@ public:
 		return _index;
 	}
 
-	inline real x()
+	inline float x()
 	{
 		return _Vector[0];
 	}
 
-	inline real y()
+	inline float y()
 	{
 		return _Vector[1];
 	}
 
-	inline real z()
+	inline float z()
 	{
 		return _Vector[2];
 	}
 
 	/*! modifiers */
-	inline void setVector(const Vec3r& iVector)
+	inline void setVector(const Vec3f& iVector)
 	{
 		_Vector = iVector;
 	}
@@ -203,7 +203,7 @@ public:
 		return *this;
 	}
 
-	inline real operator[](const unsigned i)
+	inline float operator[](const unsigned i)
 	{
 		return _Vector[i];
 	}
