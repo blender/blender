@@ -1123,7 +1123,6 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 	
 	vector<DeviceInfo> display_devices;
 
-	int num_devices = 0;
 	for(int num = 0; num < count; num++) {
 		char name[256];
 		int attr;
@@ -1142,7 +1141,7 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		info.type = DEVICE_CUDA;
 		info.description = string(name);
 		info.id = string_printf("CUDA_%d", num);
-		info.num = num_devices;
+		info.num = num;
 
 		info.advanced_shading = (major >= 2);
 		info.extended_images = (major >= 3);
@@ -1155,8 +1154,6 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		}
 		else
 			devices.push_back(info);
-
-		++num_devices;
 	}
 
 	if(!display_devices.empty())
