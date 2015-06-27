@@ -906,6 +906,7 @@ static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
 
 	/* read vertices and polygons, RIB style */
 	vector<float3> P;
+	vector<float> UV;
 	vector<int> verts, nverts;
 
 	xml_read_float3_array(P, node, "P");
@@ -976,6 +977,31 @@ static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
 			}
 
 			index_offset += nverts[i];
+		}
+
+		if(xml_read_float_array(UV, node, "UV")) {
+			ustring name = ustring("UVMap");
+			Attribute *attr = mesh->attributes.add(ATTR_STD_UV, name);
+			float3 *fdata = attr->data_float3();
+
+			/* loop over the triangles */
+			index_offset = 0;
+			for(size_t i = 0; i < nverts.size(); i++) {
+				for(int j = 0; j < nverts[i]-2; j++) {
+					int v0 = verts[index_offset];
+					int v1 = verts[index_offset + j + 1];
+					int v2 = verts[index_offset + j + 2];
+
+					assert(v0*2+1 < (int)UV.size());
+					assert(v1*2+1 < (int)UV.size());
+					assert(v2*2+1 < (int)UV.size());
+
+					fdata[0] = make_float3(UV[v0*2], UV[v0*2+1], 0.0);
+					fdata[1] = make_float3(UV[v1*2], UV[v1*2+1], 0.0);
+					fdata[2] = make_float3(UV[v2*2], UV[v2*2+1], 0.0);
+					fdata += 3;
+				}
+			}
 		}
 	}
 
