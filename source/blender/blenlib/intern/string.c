@@ -854,7 +854,7 @@ bool BLI_str_endswith(const char *__restrict str, const char *end)
  * \param suf Return value, set to next char after the first delimiter found (or NULL if none found).
  * \return The length of the prefix (i.e. *sep - str).
  */
-size_t BLI_str_partition(const char *str, const char delim[], char **sep, char **suf)
+size_t BLI_str_partition(const char *str, const char delim[], const char **sep, const char **suf)
 {
 	return BLI_str_partition_ex(str, NULL, delim, sep, suf, false);
 }
@@ -868,7 +868,7 @@ size_t BLI_str_partition(const char *str, const char delim[], char **sep, char *
  * \param suf Return value, set to next char after the first delimiter found (or NULL if none found).
  * \return The length of the prefix (i.e. *sep - str).
  */
-size_t BLI_str_rpartition(const char *str, const char delim[], char **sep, char **suf)
+size_t BLI_str_rpartition(const char *str, const char delim[], const char **sep, const char **suf)
 {
 	return BLI_str_partition_ex(str, NULL, delim, sep, suf, true);
 }
@@ -885,7 +885,7 @@ size_t BLI_str_rpartition(const char *str, const char delim[], char **sep, char 
  * \return The length of the prefix (i.e. *sep - str).
  */
 size_t BLI_str_partition_ex(
-        const char *str, const char *end, const char delim[], char **sep, char **suf, const bool from_right)
+        const char *str, const char *end, const char delim[], const char **sep, const char **suf, const bool from_right)
 {
 	const char *d;
 	char *(*func)(const char *str, int c) = from_right ? strrchr : strchr;
@@ -916,7 +916,7 @@ size_t BLI_str_partition_ex(
 		}
 
 		if (tmp && (from_right ? (*sep < tmp) : (!*sep || *sep > tmp))) {
-			*sep = (char *)tmp;
+			*sep = tmp;
 		}
 	}
 

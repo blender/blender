@@ -160,7 +160,7 @@ void        BKE_scene_multiview_filepath_get(struct SceneRenderView *srv, const 
 void        BKE_scene_multiview_view_filepath_get(const struct RenderData *rd, const char *filepath, const char *view, char *r_filepath);
 const char *BKE_scene_multiview_view_suffix_get(const struct RenderData *rd, const char *viewname);
 const char *BKE_scene_multiview_view_id_suffix_get(const struct RenderData *rd, const size_t view_id);
-void        BKE_scene_multiview_view_prefix_get(struct Scene *scene, const char *name, char *rprefix, char **rext);
+void        BKE_scene_multiview_view_prefix_get(struct Scene *scene, const char *name, char *rprefix, const char **rext);
 void        BKE_scene_multiview_videos_dimensions_get(const struct RenderData *rd, const size_t width, const size_t height, size_t *r_width, size_t *r_height);
 size_t      BKE_scene_multiview_num_videos_get(const struct RenderData *rd);
 

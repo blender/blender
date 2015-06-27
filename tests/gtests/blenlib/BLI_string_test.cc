@@ -36,7 +36,7 @@ int mk_wcswidth(const wchar_t *pwcs, size_t n)
 TEST(string, StrPartition)
 {
 	const char delim[] = {'-', '.', '_', '~', '\\', '\0'};
-	char *sep, *suf;
+	const char *sep, *suf;
 	size_t pre_ln;
 
 	{
@@ -95,7 +95,7 @@ TEST(string, StrPartition)
 TEST(string, StrRPartition)
 {
 	const char delim[] = {'-', '.', '_', '~', '\\', '\0'};
-	char *sep, *suf;
+	const char *sep, *suf;
 	size_t pre_ln;
 
 	{
@@ -154,7 +154,7 @@ TEST(string, StrRPartition)
 TEST(string, StrPartitionEx)
 {
 	const char delim[] = {'-', '.', '_', '~', '\\', '\0'};
-	char *sep, *suf;
+	const char *sep, *suf;
 	size_t pre_ln;
 
 	/* Only considering 'from_right' cases here. */
@@ -185,7 +185,7 @@ TEST(string, StrPartitionEx)
 TEST(string, StrPartitionUtf8)
 {
 	const unsigned int delim[] = {'-', '.', '_', 0x00F1 /* n tilde */, 0x262F /* ying-yang */, '\0'};
-	char *sep, *suf;
+	const char *sep, *suf;
 	size_t pre_ln;
 
 	{
@@ -244,7 +244,7 @@ TEST(string, StrPartitionUtf8)
 TEST(string, StrRPartitionUtf8)
 {
 	const unsigned int delim[] = {'-', '.', '_', 0x00F1 /* n tilde */, 0x262F /* ying-yang */, '\0'};
-	char *sep, *suf;
+	const char *sep, *suf;
 	size_t pre_ln;
 
 	{
@@ -303,7 +303,7 @@ TEST(string, StrRPartitionUtf8)
 TEST(string, StrPartitionExUtf8)
 {
 	const unsigned int delim[] = {'-', '.', '_', 0x00F1 /* n tilde */, 0x262F /* ying-yang */, '\0'};
-	char *sep, *suf;
+	const char *sep, *suf;
 	size_t pre_ln;
 
 	/* Only considering 'from_right' cases here. */

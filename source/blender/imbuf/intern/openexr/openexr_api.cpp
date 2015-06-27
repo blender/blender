@@ -770,8 +770,8 @@ static const char *imb_exr_insert_view_name(const char *passname, const char *vi
 
 	static char retstr[EXR_PASS_MAXNAME];
 	const char delims[] = {'.', '\0'};
-	char *sep;
-	char *token;
+	const char *sep;
+	const char *token;
 	size_t len;
 
 	len = BLI_str_rpartition(passname, delims, &sep, &token);
@@ -1419,9 +1419,9 @@ void IMB_exr_close(void *handle)
 static int imb_exr_split_token(const char *str, const char *end, const char **token)
 {
 	const char delims[] = {'.', '\0'};
-	char *sep;
+	const char *sep;
 
-	BLI_str_partition_ex(str, end, delims, &sep, (char **)token, true);
+	BLI_str_partition_ex(str, end, delims, &sep, token, true);
 
 	if (!sep) {
 		*token = str;

@@ -4595,7 +4595,7 @@ static void image_update_views_format(Image *ima, ImageUser *iuser)
 		/* R_IMF_VIEWS_INDIVIDUAL */
 		char prefix[FILE_MAX] = {'\0'};
 		char *name = ima->name;
-		char *ext = NULL;
+		const char *ext = NULL;
 
 		BKE_scene_multiview_view_prefix_get(scene, name, prefix, &ext);
 

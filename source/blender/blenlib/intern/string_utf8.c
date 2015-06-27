@@ -734,18 +734,18 @@ char *BLI_str_prev_char_utf8(const char *p)
 }
 /* end glib copy */
 
-size_t BLI_str_partition_utf8(const char *str, const unsigned int delim[], char **sep, char **suf)
+size_t BLI_str_partition_utf8(const char *str, const unsigned int delim[], const char **sep, const char **suf)
 {
 	return BLI_str_partition_ex_utf8(str, NULL, delim, sep, suf, false);
 }
 
-size_t BLI_str_rpartition_utf8(const char *str, const unsigned int delim[], char **sep, char **suf)
+size_t BLI_str_rpartition_utf8(const char *str, const unsigned int delim[], const char **sep, const char **suf)
 {
 	return BLI_str_partition_ex_utf8(str, NULL, delim, sep, suf, true);
 }
 
 size_t BLI_str_partition_ex_utf8(
-        const char *str, const char *end, const unsigned int delim[], char **sep, char **suf, const bool from_right)
+        const char *str, const char *end, const unsigned int delim[], const char **sep, const char **suf, const bool from_right)
 {
 	const unsigned int *d;
 	const size_t str_len = end ? (size_t)(end - str) : strlen(str);

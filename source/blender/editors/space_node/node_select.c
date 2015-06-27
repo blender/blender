@@ -249,7 +249,7 @@ static bool node_select_grouped_name(SpaceNode *snode, bNode *node_act, const bo
 	bool changed = false;
 	const unsigned int delims[] = {'.', '-', '_', '\0'};
 	size_t pref_len_act, pref_len_curr;
-	char *sep, *suf_act, *suf_curr;
+	const char *sep, *suf_act, *suf_curr;
 
 	pref_len_act = BLI_str_partition_ex_utf8(node_act->name, NULL, delims, &sep, &suf_act, from_right);
 

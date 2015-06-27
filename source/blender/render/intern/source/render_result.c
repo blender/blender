@@ -460,8 +460,8 @@ static int passtype_from_name(const char *str)
 static void set_pass_name(char *passname, int passtype, int channel, const char *view)
 {
 	const char delims[] = {'.', '\0'};
-	char *sep;
-	char *token;
+	const char *sep;
+	const char *token;
 	size_t len;
 
 	const char *passtype_name = name_from_passtype(passtype, channel);
