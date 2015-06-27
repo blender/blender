@@ -92,7 +92,9 @@ bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, s
 
 size_t BLI_str_partition(const char *str, const char delim[], char **sep, char **suf) ATTR_NONNULL();
 size_t BLI_str_rpartition(const char *str, const char delim[], char **sep, char **suf) ATTR_NONNULL();
-size_t BLI_str_partition_ex(const char *str, const char delim[], char **sep, char **suf, const bool from_right) ATTR_NONNULL();
+size_t BLI_str_partition_ex(
+        const char *str, const char *end, const char delim[], char **sep, char **suf, const bool from_right)
+        ATTR_NONNULL(1, 3, 4, 5);
 
 #ifdef __cplusplus
 }

@@ -736,26 +736,29 @@ char *BLI_str_prev_char_utf8(const char *p)
 
 size_t BLI_str_partition_utf8(const char *str, const unsigned int delim[], char **sep, char **suf)
 {
-	return BLI_str_partition_ex_utf8(str, delim, sep, suf, false);
+	return BLI_str_partition_ex_utf8(str, NULL, delim, sep, suf, false);
 }
 
 size_t BLI_str_rpartition_utf8(const char *str, const unsigned int delim[], char **sep, char **suf)
 {
-	return BLI_str_partition_ex_utf8(str, delim, sep, suf, true);
+	return BLI_str_partition_ex_utf8(str, NULL, delim, sep, suf, true);
 }
 
-size_t BLI_str_partition_ex_utf8(const char *str, const unsigned int delim[], char **sep, char **suf,
-                                 const bool from_right)
+size_t BLI_str_partition_ex_utf8(
+        const char *str, const char *end, const unsigned int delim[], char **sep, char **suf, const bool from_right)
 {
 	const unsigned int *d;
-	const size_t str_len = strlen(str);
+	const size_t str_len = end ? (size_t)(end - str) : strlen(str);
 	size_t index;
+
+	/* Note that here, we assume end points to a valid utf8 char! */
+	BLI_assert(end == NULL || (end >= str && (BLI_str_utf8_as_unicode(end) != BLI_UTF8_ERR)));
 
 	*suf = (char *)(str + str_len);
 
 	for (*sep = (char *)(from_right ? BLI_str_find_prev_char_utf8(str, str + str_len) : str), index = 0;
-	     *sep != NULL && **sep != '\0';
-	     *sep = (char *)(from_right ? (char *)BLI_str_find_prev_char_utf8(str, *sep) : str + index))
+	     *sep >= str && (!end || *sep < end) && **sep != '\0';
+	     *sep = (char *)(from_right ? BLI_str_find_prev_char_utf8(str, *sep) : str + index))
 	{
 		const unsigned int c = BLI_str_utf8_as_unicode_and_size(*sep, &index);
 

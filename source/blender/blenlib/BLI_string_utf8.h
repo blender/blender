@@ -69,7 +69,9 @@ int          BLI_str_utf8_char_width_safe(const char *p) ATTR_NONNULL();
 
 size_t       BLI_str_partition_utf8(const char *str, const unsigned int delim[], char **sep, char **suf) ATTR_NONNULL();
 size_t       BLI_str_rpartition_utf8(const char *str, const unsigned int delim[], char **sep, char **suf) ATTR_NONNULL();
-size_t       BLI_str_partition_ex_utf8(const char *str, const unsigned int delim[], char **sep, char **suf, const bool from_right) ATTR_NONNULL();
+size_t       BLI_str_partition_ex_utf8(
+        const char *str, const char *end, const unsigned int delim[], char **sep, char **suf, const bool from_right)
+        ATTR_NONNULL(1, 3, 4, 5);
 
 #define      BLI_UTF8_MAX 6        /* mem */
 #define      BLI_UTF8_WIDTH_MAX 2  /* columns */

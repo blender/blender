@@ -251,7 +251,7 @@ static bool node_select_grouped_name(SpaceNode *snode, bNode *node_act, const bo
 	size_t pref_len_act, pref_len_curr;
 	char *sep, *suf_act, *suf_curr;
 
-	pref_len_act = BLI_str_partition_ex_utf8(node_act->name, delims, &sep, &suf_act, from_right);
+	pref_len_act = BLI_str_partition_ex_utf8(node_act->name, NULL, delims, &sep, &suf_act, from_right);
 
 	/* Note: in case we are searching for suffix, and found none, use whole name as suffix. */
 	if (from_right && !(sep && suf_act)) {
@@ -263,7 +263,7 @@ static bool node_select_grouped_name(SpaceNode *snode, bNode *node_act, const bo
 		if (node->flag & SELECT) {
 			continue;
 		}
-		pref_len_curr = BLI_str_partition_ex_utf8(node->name, delims, &sep, &suf_curr, from_right);
+		pref_len_curr = BLI_str_partition_ex_utf8(node->name, NULL, delims, &sep, &suf_curr, from_right);
 
 		/* Same as with active node name! */
 		if (from_right && !(sep && suf_curr)) {
