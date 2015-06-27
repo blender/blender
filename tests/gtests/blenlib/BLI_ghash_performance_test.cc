@@ -26,7 +26,7 @@ extern "C" {
 	double q, lf, var, pempty, poverloaded; \
 	int bigb; \
 	q = BLI_ghash_calc_quality_ex((_gh), &lf, &var, &pempty, &poverloaded, &bigb); \
-	printf("GHash stats (%d entries):\n\t" \
+	printf("GHash stats (%u entries):\n\t" \
 	       "Quality (the lower the better): %f\n\tVariance (the lower the better): %f\n\tLoad: %f\n\t" \
 	       "Empty buckets: %.2f%%\n\tOverloaded buckets: %.2f%% (biggest bucket: %d)\n", \
 	       BLI_ghash_size(_gh), q, var, lf, pempty * 100.0, poverloaded * 100.0, bigb); \
