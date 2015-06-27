@@ -769,16 +769,19 @@ static const char *imb_exr_insert_view_name(const char *passname, const char *vi
 		return passname;
 
 	static char retstr[EXR_PASS_MAXNAME];
-	const char *end = passname + strlen(passname);
-	const char *token;
+	const char delims[] = {'.', '\0'};
+	char *sep;
+	char *token;
+	size_t len;
 
-	int len = IMB_exr_split_token(passname, end, &token);
+	len = BLI_str_rpartition(passname, delims, &sep, &token);
 
-	if (len == 0)
+	if (sep) {
+		BLI_snprintf(retstr, sizeof(retstr), "%.*s.%s.%s", (int)len, passname, viewname, token);
+	}
+	else {
 		BLI_snprintf(retstr, sizeof(retstr), "%s.%s", passname, viewname);
-	else
-		BLI_snprintf(retstr, sizeof(retstr),  "%.*s%s.%s",
-		             (int)(end - passname) - len, passname, viewname, token);
+	}
 
 	return retstr;
 }
@@ -1413,16 +1416,18 @@ void IMB_exr_close(void *handle)
 /* ********* */
 
 /* get a substring from the end of the name, separated by '.' */
-int IMB_exr_split_token(const char *str, const char *end, const char **token)
+static int imb_exr_split_token(const char *str, const char *end, const char **token)
 {
-	ptrdiff_t maxlen = end - str;
-	int len = 0;
-	while (len < maxlen && *(end - len - 1) != '.') {
-		len++;
+	const char delims[] = {'.', '\0'};
+	char *sep;
+
+	BLI_str_partition_ex(str, end, delims, &sep, (char **)token, true);
+
+	if (!sep) {
+		*token = str;
 	}
 
-	*token = end - len;
-	return len;
+	return (int)(end - *token);
 }
 
 static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *passname)
@@ -1449,7 +1454,7 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
 	}
 
 	/* last token is single character channel identifier */
-	len = IMB_exr_split_token(name, end, &token);
+	len = imb_exr_split_token(name, end, &token);
 	if (len == 0) {
 		printf("multilayer read: bad channel name: %s\n", name);
 		return 0;
@@ -1487,7 +1492,7 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
 	end -= len + 1; /* +1 to skip '.' separator */
 
 	/* second token is pass name */
-	len = IMB_exr_split_token(name, end, &token);
+	len = imb_exr_split_token(name, end, &token);
 	if (len == 0) {
 		printf("multilayer read: bad channel name: %s\n", name);
 		return 0;

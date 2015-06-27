@@ -93,8 +93,6 @@ void    IMB_exr_close(void *handle);
 
 void    IMB_exr_add_view(void *handle, const char *name);
 
-int IMB_exr_split_token(const char *str, const char *end, const char **token);
-
 bool IMB_exr_has_multilayer(void *handle);
 bool IMB_exr_has_singlelayer_multiview(void *handle);
 
