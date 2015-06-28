@@ -59,7 +59,7 @@ public:
 
 	/* Range constructor. */
 	template <class InputIterator>
-	vector (InputIterator first, InputIterator last)
+	vector(InputIterator first, InputIterator last)
 		: std::vector<value_type, allocator_type>(first, last) {  }
 
 	/* Copy constructor. */
