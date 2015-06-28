@@ -494,7 +494,7 @@ ccl_device_inline void _shader_bsdf_multi_eval(KernelGlobals *kg, const ShaderDa
 {
 	/* this is the veach one-sample model with balance heuristic, some pdf
 	 * factors drop out when using balance heuristic weighting */
-	for(int i = 0; i< ccl_fetch(sd, num_closure); i++) {
+	for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
 		if(i == skip_bsdf)
 			continue;
 
@@ -599,7 +599,7 @@ ccl_device int shader_bsdf_sample_closure(KernelGlobals *kg, const ShaderData *s
 
 ccl_device void shader_bsdf_blur(KernelGlobals *kg, ShaderData *sd, float roughness)
 {
-	for(int i = 0; i< ccl_fetch(sd, num_closure); i++) {
+	for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
 		ShaderClosure *sc = ccl_fetch_array(sd, closure, i);
 
 		if(CLOSURE_IS_BSDF(sc->type))
@@ -614,7 +614,7 @@ ccl_device float3 shader_bsdf_transparency(KernelGlobals *kg, ShaderData *sd)
 
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
 
-	for(int i = 0; i< ccl_fetch(sd, num_closure); i++) {
+	for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
 		ShaderClosure *sc = ccl_fetch_array(sd, closure, i);
 
 		if(sc->type == CLOSURE_BSDF_TRANSPARENT_ID) // todo: make this work for osl
@@ -638,7 +638,7 @@ ccl_device float3 shader_bsdf_diffuse(KernelGlobals *kg, ShaderData *sd)
 {
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
 
-	for(int i = 0; i< ccl_fetch(sd, num_closure); i++) {
+	for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
 		ShaderClosure *sc = ccl_fetch_array(sd, closure, i);
 
 		if(CLOSURE_IS_BSDF_DIFFUSE(sc->type))
@@ -652,7 +652,7 @@ ccl_device float3 shader_bsdf_glossy(KernelGlobals *kg, ShaderData *sd)
 {
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
 
-	for(int i = 0; i< ccl_fetch(sd, num_closure); i++) {
+	for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
 		ShaderClosure *sc = ccl_fetch_array(sd, closure, i);
 
 		if(CLOSURE_IS_BSDF_GLOSSY(sc->type))
@@ -666,7 +666,7 @@ ccl_device float3 shader_bsdf_transmission(KernelGlobals *kg, ShaderData *sd)
 {
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
 
-	for(int i = 0; i< ccl_fetch(sd, num_closure); i++) {
+	for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
 		ShaderClosure *sc = ccl_fetch_array(sd, closure, i);
 
 		if(CLOSURE_IS_BSDF_TRANSMISSION(sc->type))
@@ -680,7 +680,7 @@ ccl_device float3 shader_bsdf_subsurface(KernelGlobals *kg, ShaderData *sd)
 {
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
 
-	for(int i = 0; i< ccl_fetch(sd, num_closure); i++) {
+	for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
 		ShaderClosure *sc = ccl_fetch_array(sd, closure, i);
 
 		if(CLOSURE_IS_BSSRDF(sc->type) || CLOSURE_IS_BSDF_BSSRDF(sc->type))
@@ -695,7 +695,7 @@ ccl_device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd, float ao_fac
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
 	float3 N = make_float3(0.0f, 0.0f, 0.0f);
 
-	for(int i = 0; i< ccl_fetch(sd, num_closure); i++) {
+	for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
 		ShaderClosure *sc = ccl_fetch_array(sd, closure, i);
 
 		if(CLOSURE_IS_BSDF_DIFFUSE(sc->type)) {
@@ -723,7 +723,7 @@ ccl_device float3 shader_bssrdf_sum(ShaderData *sd, float3 *N_, float *texture_b
 	float3 N = make_float3(0.0f, 0.0f, 0.0f);
 	float texture_blur = 0.0f, weight_sum = 0.0f;
 
-	for(int i = 0; i< ccl_fetch(sd, num_closure); i++) {
+	for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
 		ShaderClosure *sc = ccl_fetch_array(sd, closure, i);
 
 		if(CLOSURE_IS_BSSRDF(sc->type)) {
@@ -829,7 +829,7 @@ ccl_device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd, int 
 
 		float3 eval = make_float3(0.0f, 0.0f, 0.0f);
 
-		for(int i = 0; i< ccl_fetch(sd, num_closure); i++) {
+		for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
 			const ShaderClosure *sc = ccl_fetch_array(sd, closure, i);
 
 			if(CLOSURE_IS_BACKGROUND(sc->type))
@@ -850,7 +850,7 @@ ccl_device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd, int 
 ccl_device_inline void _shader_volume_phase_multi_eval(const ShaderData *sd, const float3 omega_in, float *pdf,
 	int skip_phase, BsdfEval *result_eval, float sum_pdf, float sum_sample_weight)
 {
-	for(int i = 0; i< sd->num_closure; i++) {
+	for(int i = 0; i < sd->num_closure; i++) {
 		if(i == skip_phase)
 			continue;
 

@@ -61,7 +61,7 @@ ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGloba
 	RNG *rng, ShaderData *sd, float3 throughput, float num_samples_adjust,
 	PathState *state, PathRadiance *L)
 {
-	for(int i = 0; i< ccl_fetch(sd, num_closure); i++) {
+	for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
 		const ShaderClosure *sc = &ccl_fetch(sd, closure)[i];
 
 		if(!CLOSURE_IS_BSDF(sc->type))
@@ -113,7 +113,7 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
                                                         Ray *ray,
                                                         float3 throughput)
 {
-	for(int i = 0; i< ccl_fetch(sd, num_closure); i++) {
+	for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
 		ShaderClosure *sc = &ccl_fetch(sd, closure)[i];
 
 		if(!CLOSURE_IS_BSSRDF(sc->type))
