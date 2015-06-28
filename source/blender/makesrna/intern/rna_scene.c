@@ -159,7 +159,9 @@ EnumPropertyItem mesh_select_mode_items[] = {
 
 EnumPropertyItem snap_element_items[] = {
 	{SCE_SNAP_MODE_INCREMENT, "INCREMENT", ICON_ALIGN, "Grid (increment)", "Snap to increments of grid"},
+#if 0
 	{SCE_SNAP_MODE_GRID, "GRID", ICON_SNAP_INCREMENT, "Grid (absolute)", "Snap to grid"},
+#endif
 	{SCE_SNAP_MODE_VERTEX, "VERTEX", ICON_SNAP_VERTEX, "Vertex", "Snap to vertices"},
 	{SCE_SNAP_MODE_EDGE, "EDGE", ICON_SNAP_EDGE, "Edge", "Snap to edges"},
 	{SCE_SNAP_MODE_FACE, "FACE", ICON_SNAP_FACE, "Face", "Snap to faces"},
