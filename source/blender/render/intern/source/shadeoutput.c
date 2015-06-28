@@ -1475,6 +1475,9 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 					i*= shadfac[3];
 					shr->shad[3] = shadfac[3]; /* store this for possible check in troublesome cases */
 				}
+				else {
+					shr->shad[3] = 1.0f;  /* No shadow at all! */
+				}
 			}
 		}
 		
