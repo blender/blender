@@ -190,25 +190,18 @@ void BVH::build(Progress& progress)
 	}
 
 	/* build nodes */
-	vector<int> prim_type;
-	vector<int> prim_index;
-	vector<int> prim_object;
-
-	BVHBuild bvh_build(objects, prim_type, prim_index, prim_object, params, progress);
+	BVHBuild bvh_build(objects,
+	                   pack.prim_type,
+	                   pack.prim_index,
+	                   pack.prim_object,
+	                   params,
+	                   progress);
 	BVHNode *root = bvh_build.run();
 
 	if(progress.get_cancel()) {
 		if(root) root->deleteSubtree();
 		return;
 	}
-
-	/* todo: get rid of this copy */
-	pack.prim_type = prim_type;
-	pack.prim_index = prim_index;
-	pack.prim_object = prim_object;
-	prim_type.free_memory();
-	prim_index.free_memory();
-	prim_object.free_memory();
 
 	/* compute SAH */
 	if(!params.top_level)

@@ -42,13 +42,12 @@ class BVHBuild
 {
 public:
 	/* Constructor/Destructor */
-	BVHBuild(
-		const vector<Object*>& objects,
-		vector<int>& prim_type,
-		vector<int>& prim_index,
-		vector<int>& prim_object,
-		const BVHParams& params,
-		Progress& progress);
+	BVHBuild(const vector<Object*>& objects,
+	         array<int>& prim_type,
+	         array<int>& prim_index,
+	         array<int>& prim_object,
+	         const BVHParams& params,
+	         Progress& progress);
 	~BVHBuild();
 
 	BVHNode *run();
@@ -99,9 +98,9 @@ protected:
 	int num_original_references;
 
 	/* output primitive indexes and objects */
-	vector<int>& prim_type;
-	vector<int>& prim_index;
-	vector<int>& prim_object;
+	array<int>& prim_type;
+	array<int>& prim_index;
+	array<int>& prim_object;
 
 	/* build parameters */
 	BVHParams params;
