@@ -19,7 +19,8 @@
 
 /* Vector */
 
-#include <string.h>
+#include <cassert>
+#include <cstring>
 #include <vector>
 
 #include "util_aligned_malloc.h"
@@ -187,6 +188,7 @@ public:
 
 	T& operator[](size_t i) const
 	{
+		assert(i < datasize);
 		return data[i];
 	}
 
