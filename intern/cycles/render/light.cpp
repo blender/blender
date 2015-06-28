@@ -143,6 +143,9 @@ bool Light::has_contribution(Scene *scene)
 	if(is_portal) {
 		return false;
 	}
+	if(type == LIGHT_BACKGROUND) {
+		return true;
+	}
 	return scene->shaders[shader]->has_surface_emission;
 }
 
