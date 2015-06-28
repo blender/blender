@@ -511,7 +511,7 @@ const char *BKE_appdir_folder_id_version(const int folder_id, const int ver, con
  * (must be FILE_MAX minimum)
  * \param name The name of the executable (usually argv[0]) to be checked
  */
-static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name)
+static void where_am_i(char *fullname, const size_t maxlen, const char *name)
 {
 #ifdef WITH_BINRELOC
 	/* linux uses binreloc since argv[0] is not reliable, call br_init( NULL ) first */
@@ -581,7 +581,7 @@ static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name
 
 void BKE_appdir_program_path_init(const char *argv0)
 {
-	bli_where_am_i(bprogname, sizeof(bprogname), argv0);
+	where_am_i(bprogname, sizeof(bprogname), argv0);
 	BLI_split_dir_part(bprogname, bprogdir, sizeof(bprogdir));
 }
 
@@ -664,7 +664,7 @@ bool BKE_appdir_program_python_search(
  * \param maxlen The size of the fullname buffer
  * \param userdir Directory specified in user preferences 
  */
-static void BLI_where_is_temp(char *fullname, char *basename, const size_t maxlen, char *userdir)
+static void where_is_temp(char *fullname, char *basename, const size_t maxlen, char *userdir)
 {
 	/* Clear existing temp dir, if needed. */
 	BKE_tempdir_session_purge();
@@ -752,7 +752,7 @@ static void BLI_where_is_temp(char *fullname, char *basename, const size_t maxle
  */
 void BKE_tempdir_init(char *userdir)
 {
-	BLI_where_is_temp(btempdir_session, btempdir_base, FILE_MAX, userdir);
+	where_is_temp(btempdir_session, btempdir_base, FILE_MAX, userdir);
 ;
 }
 
@@ -777,7 +777,7 @@ const char *BKE_tempdir_base(void)
  */
 void BKE_tempdir_system_init(char *dir)
 {
-	BLI_where_is_temp(dir, NULL, FILE_MAX, NULL);
+	where_is_temp(dir, NULL, FILE_MAX, NULL);
 }
 
 /**
