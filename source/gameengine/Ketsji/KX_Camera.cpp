@@ -224,6 +224,22 @@ short KX_Camera::GetSensorFit() const
 	return m_camdata.m_sensor_fit;
 }
 
+/**
+ * Gets the horizontal shift of the sensor - for camera matching.
+ */
+float KX_Camera::GetShiftHorizontal() const
+{
+	return m_camdata.m_shift_x;
+}
+
+/**
+ * Gets the vertical shift of the sensor - for camera matching.
+ */
+float KX_Camera::GetShiftVertical() const
+{
+	return m_camdata.m_shift_y;
+}
+
 float KX_Camera::GetCameraNear() const
 {
 	return m_camdata.m_clipstart;

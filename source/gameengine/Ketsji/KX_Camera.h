@@ -206,6 +206,10 @@ public:
 	float				GetSensorHeight() const;
 	/** Gets the mode FOV is calculating from sensor dimensions */
 	short				GetSensorFit() const;
+	/** Gets the horizontal shift of the sensor - for camera matching */
+	float				GetShiftHorizontal() const;
+	/** Gets the vertical shift of the sensor - for camera matching */
+	float				GetShiftVertical() const;
 	/** Gets the near clip distance. */
 	float				GetCameraNear() const;
 	/** Gets the far clip distance. */

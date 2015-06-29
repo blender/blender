@@ -41,15 +41,21 @@ ComputeDefaultFrustum(
 	const float lens,
 	const float sensor_x, const float sensor_y,
 	const short sensor_fit,
+	const float shift_x,
+	const float shift_y,
 	const float design_aspect_ratio,
 	RAS_FrameFrustum & frustum
 ) {
+	float size;
 	float halfSize;
 	float sizeX;
 	float sizeY;
+	float offsetX;
+	float offsetY;
 
 	if (sensor_fit==RAS_SENSORFIT_AUTO) {
-		halfSize = (sensor_x / 2.f) * camnear / lens;
+		size = sensor_x * camnear / lens;
+		halfSize = size * 0.5f;
 
 		if (design_aspect_ratio > 1.f) {
 			// halfsize defines the width
@@ -62,20 +68,25 @@ ComputeDefaultFrustum(
 		}
 	}
 	else if (sensor_fit==RAS_SENSORFIT_HOR) {
-		halfSize = (sensor_x / 2.f) * camnear / lens;
+		size = sensor_x * camnear / lens;
+		halfSize = size * 0.5f;
 		sizeX = halfSize;
 		sizeY = halfSize/design_aspect_ratio;
 	}
 	else {
-		halfSize = (sensor_y / 2.f) * camnear / lens;
+		size = sensor_y * camnear / lens;
+		halfSize = size * 0.5f;
 		sizeX = halfSize * design_aspect_ratio;
 		sizeY = halfSize;
 	}
-		
-	frustum.x2 = sizeX;
-	frustum.x1 = -frustum.x2;
-	frustum.y2 = sizeY;
-	frustum.y1 = -frustum.y2;
+
+	offsetX = size * shift_x;
+	offsetY = size * shift_y;
+
+	frustum.x2 = sizeX + offsetX;
+	frustum.x1 = -sizeX + offsetX;
+	frustum.y2 = sizeY + offsetY;
+	frustum.y1 = -sizeY + offsetY;
 	frustum.camnear = camnear;
 	frustum.camfar = camfar;
 }
@@ -88,12 +99,16 @@ ComputeDefaultOrtho(
 	const float scale,
 	const float design_aspect_ratio,
 	const short sensor_fit,
+	const float shift_x,
+	const float shift_y,
 	RAS_FrameFrustum & frustum
 )
 {
 	float halfSize = scale*0.5f;
 	float sizeX;
 	float sizeY;
+	float offsetX;
+	float offsetY;
 
 	if (sensor_fit==RAS_SENSORFIT_AUTO) {
 		if (design_aspect_ratio > 1.f) {
@@ -114,11 +129,14 @@ ComputeDefaultOrtho(
 		sizeX = halfSize * design_aspect_ratio;
 		sizeY = halfSize;
 	}
-		
-	frustum.x2 = sizeX;
-	frustum.x1 = -frustum.x2;
-	frustum.y2 = sizeY;
-	frustum.y1 = -frustum.y2;
+
+	offsetX = scale * shift_x;
+	offsetY = scale * shift_y;
+
+	frustum.x2 = sizeX + offsetX;
+	frustum.x1 = -sizeX + offsetX;
+	frustum.y2 = sizeY + offsetY;
+	frustum.y1 = -sizeY + offsetY;
 	frustum.camnear = camnear;
 	frustum.camfar = camfar;
 }
@@ -221,6 +239,8 @@ ComputeFrustum(
 	const RAS_Rect &viewport,
 	const float lens,
 	const float sensor_x, const float sensor_y, const short sensor_fit,
+	const float shift_x,
+	const float shift_y,
 	const float camnear,
 	const float camfar,
 	RAS_FrameFrustum &frustum
@@ -249,6 +269,8 @@ ComputeFrustum(
 		sensor_x,
 		sensor_y,
 		sensor_fit,
+		shift_x,
+		shift_y,
 		design_aspect_ratio,
 		frustum
 	);
@@ -315,6 +337,8 @@ RAS_FramingManager::
 		const float camnear,
 		const float camfar,
 		const short sensor_fit,
+		const float shift_x,
+		const float shift_y,
 		RAS_FrameFrustum &frustum
 	)
 {
@@ -340,6 +364,8 @@ RAS_FramingManager::
 		scale,
 		design_aspect_ratio,
 		sensor_fit,
+		shift_x,
+		shift_y,
 		frustum
 	);
 

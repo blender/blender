@@ -236,6 +236,8 @@ public :
 		const float camnear,
 		const float camfar,
 		const short sensor_fit,
+		const float shift_x,
+		const float shift_y,
 		RAS_FrameFrustum &frustum
 	);
 
@@ -247,6 +249,8 @@ public :
 		const RAS_Rect &viewport,
 		const float lens,
 		const float sensor_x, const float sensor_y, const short sensor_fit,
+		const float shift_x,
+		const float shift_y,
 		const float camnear,
 		const float camfar,
 		RAS_FrameFrustum &frustum
@@ -260,6 +264,8 @@ public :
 		const float lens,
 		const float sensor_x, const float sensor_y,
 		const short sensor_fit,
+		const float shift_x,
+		const float shift_y,
 		const float design_aspect_ratio,
 		RAS_FrameFrustum & frustum
 	);
@@ -272,6 +278,8 @@ public :
 		const float scale,
 		const float design_aspect_ratio,
 		const short sensor_fit,
+		const float shift_x,
+		const float shift_y,
 		RAS_FrameFrustum & frustum
 	);
 
