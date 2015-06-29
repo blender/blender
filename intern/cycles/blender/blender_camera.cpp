@@ -36,6 +36,7 @@ struct BlenderCamera {
 
 	float lens;
 	float shuttertime;
+	Camera::MotionPosition motion_position;
 
 	float aperturesize;
 	uint apertureblades;
@@ -83,6 +84,7 @@ static void blender_camera_init(BlenderCamera *bcam, BL::RenderSettings b_render
 	bcam->sensor_height = 18.0f;
 	bcam->sensor_fit = BlenderCamera::AUTO;
 	bcam->shuttertime = 1.0f;
+	bcam->motion_position = Camera::MOTION_POSITION_CENTER;
 	bcam->border.right = 1.0f;
 	bcam->border.top = 1.0f;
 	bcam->pano_viewplane.right = 1.0f;
@@ -409,6 +411,7 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	cam->shuttertime = bcam->shuttertime;
 	cam->fov_pre = cam->fov;
 	cam->fov_post = cam->fov;
+	cam->motion_position = bcam->motion_position;
 
 	/* border */
 	cam->border = bcam->border;
@@ -430,6 +433,22 @@ void BlenderSync::sync_camera(BL::RenderSettings b_render, BL::Object b_override
 	bcam.pixelaspect.x = b_render.pixel_aspect_x();
 	bcam.pixelaspect.y = b_render.pixel_aspect_y();
 	bcam.shuttertime = b_render.motion_blur_shutter();
+
+	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+	switch(RNA_enum_get(&cscene, "motion_blur_position")) {
+		case 0:
+			bcam.motion_position = Camera::MOTION_POSITION_START;
+			break;
+		case 1:
+			bcam.motion_position = Camera::MOTION_POSITION_CENTER;
+			break;
+		case 2:
+			bcam.motion_position = Camera::MOTION_POSITION_END;
+			break;
+		default:
+			bcam.motion_position = Camera::MOTION_POSITION_CENTER;
+			break;
+	}
 
 	/* border */
 	if(b_render.use_border()) {

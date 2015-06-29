@@ -29,6 +29,7 @@ CCL_NAMESPACE_BEGIN
 Camera::Camera()
 {
 	shuttertime = 1.0f;
+	motion_position = MOTION_POSITION_CENTER;
 
 	aperturesize = 0.0f;
 	focaldistance = 10.0f;

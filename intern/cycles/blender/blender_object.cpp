@@ -685,6 +685,28 @@ void BlenderSync::sync_motion(BL::RenderSettings b_render,
 	Camera prevcam = *(scene->camera);
 
 	int frame_center = b_scene.frame_current();
+	float frame_center_delta = 0.0f;
+
+	if(scene->need_motion() != Scene::MOTION_PASS &&
+	   scene->camera->motion_position != Camera::MOTION_POSITION_CENTER)
+	{
+		float shuttertime = scene->camera->shuttertime;
+		if(scene->camera->motion_position == Camera::MOTION_POSITION_END) {
+			frame_center_delta = -shuttertime * 0.5f;
+		}
+		else {
+			assert(scene->camera->motion_position == Camera::MOTION_POSITION_START);
+			frame_center_delta = shuttertime * 0.5f;
+		}
+		float time = frame_center + frame_center_delta;
+		int frame = (int)floorf(time);
+		float subframe = time - frame;
+		python_thread_state_restore(python_thread_state);
+		b_engine.frame_set(frame, subframe);
+		python_thread_state_save(python_thread_state);
+		sync_camera_motion(b_render, b_cam, width, height, 0.0f);
+		sync_objects(b_v3d, 0.0f);
+	}
 
 	/* always sample these times for camera motion */
 	motion_times.insert(-1.0f);
@@ -704,7 +726,7 @@ void BlenderSync::sync_motion(BL::RenderSettings b_render,
 			shuttertime = scene->camera->shuttertime;
 
 		/* compute frame and subframe time */
-		float time = frame_center + relative_time * shuttertime * 0.5f;
+		float time = frame_center + frame_center_delta + relative_time * shuttertime * 0.5f;
 		int frame = (int)floorf(time);
 		float subframe = time - frame;
 

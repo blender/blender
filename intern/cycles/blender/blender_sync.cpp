@@ -161,7 +161,12 @@ void BlenderSync::sync_data(BL::RenderSettings b_render,
 
 	mesh_synced.clear(); /* use for objects and motion sync */
 
-	sync_objects(b_v3d);
+	if(scene->need_motion() == Scene::MOTION_PASS ||
+	   scene->need_motion() == Scene::MOTION_NONE ||
+	   scene->camera->motion_position == Camera::MOTION_POSITION_CENTER)
+	{
+		sync_objects(b_v3d);
+	}
 	sync_motion(b_render,
 	            b_v3d,
 	            b_override,

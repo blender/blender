@@ -259,11 +259,14 @@ class CyclesRender_PT_motion_blur(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render
+        scene = context.scene
+        cscene = scene.cycles
+        rd = scene.render
         layout.active = rd.use_motion_blur
 
-        row = layout.row()
-        row.prop(rd, "motion_blur_shutter")
+        col = layout.column()
+        col.prop(cscene, "motion_blur_position", text="Position")
+        col.prop(rd, "motion_blur_shutter")
 
 
 class CyclesRender_PT_film(CyclesButtonsPanel, Panel):
