@@ -46,5 +46,5 @@ BLENDER_TEST(BLI_hash_mm2a "bf_blenlib")
 BLENDER_TEST(BLI_ghash "bf_blenlib")
 
 if(WITH_TESTS_PERFORMANCE)
-	BLENDER_TEST(BLI_ghash_performance "bf_blenlib")
+	BLENDER_TEST_PERFORMANCE(BLI_ghash_performance "bf_blenlib")
 endif()
