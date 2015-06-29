@@ -908,6 +908,9 @@ static float camera_stereo3d_shift_x(Object *camera, const char *viewname)
 	convergence_mode = data->stereo.convergence_mode;
 	pivot = data->stereo.pivot;
 
+	if (convergence_mode != CAM_S3D_OFFAXIS)
+		return shift;
+
 	if (((pivot == CAM_S3D_PIVOT_LEFT) && is_left) ||
 	    ((pivot == CAM_S3D_PIVOT_RIGHT) && !is_left))
 	{
@@ -918,11 +921,7 @@ static float camera_stereo3d_shift_x(Object *camera, const char *viewname)
 		fac = 0.5f;
 
 	fac_signed = is_left ? fac : -fac;
-
-	/* Note: in viewport, parallel renders as offaxis, but in render it does parallel */
-	if (ELEM(convergence_mode, CAM_S3D_OFFAXIS, CAM_S3D_PARALLEL)) {
-		shift += ((interocular_distance / data->sensor_x) * (data->lens / convergence_distance)) * fac_signed;
-	}
+	shift += ((interocular_distance / data->sensor_x) * (data->lens / convergence_distance)) * fac_signed;
 
 	return shift;
 }

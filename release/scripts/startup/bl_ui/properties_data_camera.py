@@ -153,10 +153,9 @@ class DATA_PT_camera_stereoscopy(CameraButtonsPanel, Panel):
         col = layout.column()
         col.row().prop(st, "convergence_mode", expand=True)
 
-        if st.convergence_mode == 'PARALLEL':
-            col.prop(st, "viewport_convergence")
-        else:
-            col.prop(st, "convergence_distance")
+        sub = col.column()
+        sub.active = st.convergence_mode == 'OFFAXIS'
+        sub.prop(st, "convergence_distance")
 
         col.prop(st, "interocular_distance")
 
