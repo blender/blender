@@ -395,7 +395,6 @@ option(WITH_BOOST					"Enable features depending on boost" ON)
 
 # Unit testsing
 option(WITH_GTESTS "Enable GTest unit testing" OFF)
-option(WITH_TESTS_PERFORMANCE "Enable performance tests" OFF)
 
 
 # Documentation
