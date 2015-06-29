@@ -144,15 +144,6 @@ static void rna_def_camera_stereo_data(BlenderRNA *brna)
 	                         "The converge point for the stereo cameras "
 	                         "(often the distance between a projector and the projection screen)");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
-
-	prop = RNA_def_property(srna, "viewport_convergence", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_float_sdna(prop, NULL, "convergence_distance");
-	RNA_def_property_range(prop, 0.00001f, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.0f, 15.f, 1, 2);
-	RNA_def_property_ui_text(prop, "Viewport Convergence",
-	                         "Preview convergence distance for the stereo effect in the viewport "
-	                         "(it does not affect the render!)");
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 }
 
 void RNA_def_camera(BlenderRNA *brna)
