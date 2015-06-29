@@ -81,6 +81,7 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "screen_intern.h"  /* own module include */
 
@@ -1929,6 +1930,12 @@ static void region_scale_validate_size(RegionMoveData *rmd)
 
 static void region_scale_toggle_hidden(bContext *C, RegionMoveData *rmd)
 {
+	/* hidden areas may have bad 'View2D.cur' value,
+	 * correct before displaying. see T45156 */
+	if (rmd->ar->flag & RGN_FLAG_HIDDEN) {
+		UI_view2d_curRect_validate(&rmd->ar->v2d);
+	}
+
 	region_toggle_hidden(C, rmd->ar, 0);
 	region_scale_validate_size(rmd);
 }
