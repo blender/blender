@@ -4118,7 +4118,7 @@ static void initTranslation(TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_NODE) {
 		t->snap[0] = 0.0f;
-		t->snap[1] = ED_node_grid_size() * NODE_GRID_STEPS;
+		t->snap[1] = ED_node_grid_size();
 		t->snap[2] = ED_node_grid_size();
 	}
 	else if (t->spacetype == SPACE_IPO) {
