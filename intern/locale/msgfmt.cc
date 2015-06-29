@@ -228,7 +228,7 @@ void make(const char *input_file_name,
     }
     // Record a fuzzy mark.
     if (starts_with(l, "#,") && l.find("fuzzy") != std::string::npos) {
-      fuzzy = 1;
+      fuzzy = true;
     }
     // Skip comments
     if (l[0] == '#') {
@@ -317,8 +317,10 @@ void make(const char *input_file_name,
     l = trim(l);
     if (l.empty()) {
       if (section == SECTION_STR) {
+        add(msgctxt, msgid, msgstr, fuzzy);
         msgctxt = msgid = msgstr = "";
         section = SECTION_NONE;
+        fuzzy = false;
       }
       continue;
     }
