@@ -110,13 +110,15 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 static void updateDepsgraph(ModifierData *md,
                             struct Main *UNUSED(bmain),
                             struct Scene *UNUSED(scene),
-                            Object *UNUSED(ob),
+                            Object *object,
                             struct DepsNodeHandle *node)
 {
 	LatticeModifierData *lmd = (LatticeModifierData *)md;
 	if (lmd->object != NULL) {
 		DEG_add_object_relation(node, lmd->object, DEG_OB_COMP_GEOMETRY, "Lattice Modifier");
+		DEG_add_object_relation(node, lmd->object, DEG_OB_COMP_TRANSFORM, "Lattice Modifier");
 	}
+	DEG_add_object_relation(node, object, DEG_OB_COMP_TRANSFORM, "Lattice Modifier");
 }
 
 static void deformVerts(ModifierData *md, Object *ob,
