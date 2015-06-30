@@ -621,7 +621,7 @@ void RNA_api_object(StructRNA *srna)
 
 	/* Nearest Point */
 	func = RNA_def_function(srna, "closest_point_on_mesh", "rna_Object_closest_point_on_mesh");
-	RNA_def_function_ui_description(func, "Find the nearest point on the object");
+	RNA_def_function_ui_description(func, "Find the nearest point in object space");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
 	/* location of point for test and max distance */
