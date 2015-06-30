@@ -388,7 +388,7 @@ void applyGridAbsolute(TransInfo *t)
 	bool use_obmat = false;
 	int i;
 	
-	if (!(activeSnap(t) && (t->tsnap.mode == SCE_SNAP_MODE_GRID)))
+	if (!(activeSnap(t) && (ELEM(t->tsnap.mode, SCE_SNAP_MODE_INCREMENT, SCE_SNAP_MODE_GRID))))
 		return;
 	
 	grid_action = BIG_GEARS;
@@ -396,9 +396,9 @@ void applyGridAbsolute(TransInfo *t)
 		grid_action = SMALL_GEARS;
 	
 	switch (grid_action) {
-		case NO_GEARS: grid_size = t->snap[0]; break;
-		case BIG_GEARS: grid_size = t->snap[1]; break;
-		case SMALL_GEARS: grid_size = t->snap[2]; break;
+		case NO_GEARS: grid_size = t->snap_spatial[0]; break;
+		case BIG_GEARS: grid_size = t->snap_spatial[1]; break;
+		case SMALL_GEARS: grid_size = t->snap_spatial[2]; break;
 	}
 	/* early exit on unusable grid size */
 	if (grid_size == 0.0f)
@@ -636,6 +636,11 @@ void initSnapping(TransInfo *t, wmOperator *op)
 			t->tsnap.project = ((t->settings->snap_flag & SCE_SNAP_PROJECT) != 0);
 			t->tsnap.snap_self = !((t->settings->snap_flag & SCE_SNAP_NO_SELF) != 0);
 			t->tsnap.peel = ((t->settings->snap_flag & SCE_SNAP_PROJECT) != 0);
+		}
+
+		/* for now only 3d view (others can be added if we want) */
+		if (t->spacetype == SPACE_VIEW3D) {
+			t->tsnap.snap_spatial_grid = ((t->settings->snap_flag & SCE_SNAP_ABS_GRID) != 0);
 		}
 	}
 	

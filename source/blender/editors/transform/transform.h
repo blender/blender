@@ -81,6 +81,7 @@ typedef struct TransSnap {
 	bool	project;
 	bool	snap_self;
 	bool	peel;
+	bool	snap_spatial_grid;
 	short  	status;
 	float	snapPoint[3]; /* snapping from this point */
 	float	snapTarget[3]; /* to this point */
@@ -364,6 +365,7 @@ typedef struct TransInfo {
 	short		event_type;		/* event->type used to invoke transform */
 	short       idx_max;		/* maximum index on the input vector	*/
 	float		snap[3];		/* Snapping Gears						*/
+	float		snap_spatial[3]; /* Spatial snapping gears(even when rotating, scaling... etc) */
 	char		frame_side;		/* Mouse side of the cfra, 'L', 'R' or 'B' */
 
 	float		viewmat[4][4];	/* copy from G.vd, prevents feedback,   */
