@@ -1690,6 +1690,10 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 		ComponentKey parameters_key(obdata, DEPSNODE_TYPE_PARAMETERS);
 		add_relation(animation_key, parameters_key,
 		             DEPSREL_TYPE_COMPONENT_ORDER, "Geom Parameters");
+		/* Evaluation usually depends on animation.
+		 * TODO(sergey): Need to re-hook it after granular update is implemented..
+		 */
+		add_relation(animation_key, obdata_geom_eval_key, DEPSREL_TYPE_GEOMETRY_EVAL, "Animation");
 	}
 }
 
