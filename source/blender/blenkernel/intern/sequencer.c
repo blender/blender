@@ -1608,7 +1608,10 @@ static bool seq_proxy_get_fname(Editing *ed, Sequence *seq, int cfra, int render
 		BLI_path_append(dir, sizeof(dir), fname);
 	}
 	else if (seq->type == SEQ_TYPE_IMAGE) {
-		BLI_snprintf(dir, PROXY_MAXFILE, "%s/BL_proxy", seq->strip->dir);
+		if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR)
+			BLI_strncpy(dir, seq->strip->proxy->dir, sizeof(dir));
+		else
+			BLI_snprintf(dir, PROXY_MAXFILE, "%s/BL_proxy", seq->strip->dir);
 	}
 	else {
 		return false;
