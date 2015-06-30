@@ -48,7 +48,7 @@ macro(list_insert_before
 	unset(_index)
 endmacro()
 
-function (list_assert_duplicates
+function(list_assert_duplicates
 	list_id
 	)
 	
