@@ -157,8 +157,6 @@ bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char
 #  define BLI_path_ncmp strncmp
 #endif
 
-void BLI_char_switch(char *string, char from, char to) ATTR_NONNULL();
-
 #ifdef WITH_ICONV
 void BLI_string_to_utf8(char *original, char *utf_8, const char *code);
 #endif

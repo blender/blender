@@ -623,8 +623,8 @@ void BLI_path_rel(char *file, const char *relfile)
 	BLI_strncpy(temp, relfile, FILE_MAX);
 #endif
 
-	BLI_char_switch(temp + BLI_path_unc_prefix_len(temp), '\\', '/');
-	BLI_char_switch(file + BLI_path_unc_prefix_len(file), '\\', '/');
+	BLI_str_replace_char(temp + BLI_path_unc_prefix_len(temp), '\\', '/');
+	BLI_str_replace_char(file + BLI_path_unc_prefix_len(file), '\\', '/');
 	
 	/* remove /./ which confuse the following slash counting... */
 	BLI_cleanup_path(NULL, file);
@@ -685,7 +685,7 @@ void BLI_path_rel(char *file, const char *relfile)
 		r += BLI_strcpy_rlen(r, q + 1);
 		
 #ifdef  WIN32
-		BLI_char_switch(res + 2, '/', '\\');
+		BLI_str_replace_char(res + 2, '/', '\\');
 #endif
 		strcpy(file, res);
 	}
@@ -1032,7 +1032,7 @@ bool BLI_path_abs(char *path, const char *basepath)
 	 * For UNC paths the first characters containing the UNC prefix
 	 * shouldn't be switched as we need to distinguish them from
 	 * paths relative to the .blend file -elubie */
-	BLI_char_switch(tmp + BLI_path_unc_prefix_len(tmp), '\\', '/');
+	BLI_str_replace_char(tmp + BLI_path_unc_prefix_len(tmp), '\\', '/');
 
 	/* Paths starting with // will get the blend file as their base,
 	 * this isn't standard in any os but is used in blender all over the place */
@@ -1043,7 +1043,7 @@ bool BLI_path_abs(char *path, const char *basepath)
 		/* file component is ignored, so don't bother with the trailing slash */
 		BLI_cleanup_path(NULL, base);
 		lslash = BLI_last_slash(base);
-		BLI_char_switch(base + BLI_path_unc_prefix_len(base), '\\', '/');
+		BLI_str_replace_char(base + BLI_path_unc_prefix_len(base), '\\', '/');
 
 		if (lslash) {
 			const int baselen = (int) (lslash - base) + 1;  /* length up to and including last "/" */
@@ -1071,7 +1071,7 @@ bool BLI_path_abs(char *path, const char *basepath)
 	 * // will be retained, rest will be nice and
 	 * shiny win32 backward slashes :) -jesterKing
 	 */
-	BLI_char_switch(path + 2, '/', '\\');
+	BLI_str_replace_char(path + 2, '/', '\\');
 #endif
 
 	/* ensure this is after correcting for path switch */
@@ -1304,22 +1304,6 @@ void BLI_setenv_if_new(const char *env, const char *val)
 }
 
 /**
- * Change every \a from in \a string into \a to. The
- * result will be in \a string
- *
- * \param string The string to work on
- * \param from The character to replace
- * \param to The character to replace with
- */
-void BLI_char_switch(char *string, char from, char to) 
-{
-	while (*string != 0) {
-		if (*string == from) *string = to;
-		string++;
-	}
-}
-
-/**
  * Strips off nonexistent (or non-accessible) subdirectories from the end of *dir, leaving the path of
  * the lowest-level directory that does exist and we can read.
  */
@@ -1382,9 +1366,9 @@ void BLI_make_file_string(const char *relabase, char *string, const char *dir, c
 	 * any mess with slashes later on. -jesterKing */
 	/* constant strings can be passed for those parameters - don't change them - elubie */
 #if 0
-	BLI_char_switch(relabase, '\\', '/');
-	BLI_char_switch(dir, '\\', '/');
-	BLI_char_switch(file, '\\', '/');
+	BLI_str_replace_char(relabase, '\\', '/');
+	BLI_str_replace_char(dir, '\\', '/');
+	BLI_str_replace_char(file, '\\', '/');
 #endif
 
 	/* Resolve relative references */
@@ -1911,10 +1895,10 @@ void BLI_path_native_slash(char *path)
 {
 #ifdef WIN32
 	if (path && BLI_strnlen(path, 3) > 2) {
-		BLI_char_switch(path + 2, '/', '\\');
+		BLI_str_replace_char(path + 2, '/', '\\');
 	}
 #else
-	BLI_char_switch(path + BLI_path_unc_prefix_len(path), '\\', '/');
+	BLI_str_replace_char(path + BLI_path_unc_prefix_len(path), '\\', '/');
 #endif
 }
 

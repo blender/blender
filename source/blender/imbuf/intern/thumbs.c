@@ -233,7 +233,7 @@ static int uri_from_filename(const char *path, char *uri)
 		dirstart += 2;
 	}
 	strcat(orig_uri, dirstart);
-	BLI_char_switch(orig_uri, '\\', '/');
+	BLI_str_replace_char(orig_uri, '\\', '/');
 #else
 	BLI_snprintf(orig_uri, URI_MAX, "file://%s", dirstart);
 #endif

@@ -477,6 +477,23 @@ char *BLI_str_replaceN(const char *__restrict str, const char *__restrict substr
 } 
 
 /**
+ * In-place replace every \a src to \a dst in \a str.
+ *
+ * \param str: The string to operate on.
+ * \param src: The character to replace.
+ * \param dst: The character to replace with.
+ */
+void BLI_str_replace_char(char *str, char src, char dst)
+{
+	while (*str) {
+		if (*str == src) {
+			*str = dst;
+		}
+		str++;
+	}
+}
+
+/**
  * Compare two strings without regard to case.
  *
  * \retval True if the strings are equal, false otherwise.

@@ -58,6 +58,8 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
 
 char *BLI_str_replaceN(const char *__restrict str, const char *__restrict substr_old, const char *__restrict substr_new) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL() ATTR_MALLOC;
 
+void BLI_str_replace_char(char *string, char src, char dst) ATTR_NONNULL();
+
 size_t BLI_snprintf(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...) ATTR_NONNULL(1, 3) ATTR_PRINTF_FORMAT(3, 4);
 size_t BLI_snprintf_rlen(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...) ATTR_NONNULL(1, 3) ATTR_PRINTF_FORMAT(3, 4);
 
