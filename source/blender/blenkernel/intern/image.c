@@ -1839,7 +1839,7 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 		RenderStats *stats = re ? RE_GetStats(re) : NULL;
 
 		if (stats && (scene->r.stamp & R_STAMP_RENDERTIME)) {
-			BLI_timestr(stats->lastframetime, text, sizeof(text));
+			BLI_timecode_string_from_time_simple(text, sizeof(text), stats->lastframetime);
 
 			BLI_snprintf(stamp_data->rendertime, sizeof(stamp_data->rendertime), do_prefix ? "RenderTime %s" : "%s", text);
 		}

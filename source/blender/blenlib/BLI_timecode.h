@@ -31,11 +31,19 @@
  *  \ingroup BLI
  */
 
+#include "BLI_compiler_attrs.h"
+
 size_t BLI_timecode_string_from_time(
         char *str, const size_t len, const int power, const float time_seconds,
-        const double scene_fps, const short timecode_style);
+        const double scene_fps, const short timecode_style)
+        ATTR_NONNULL();
 
 size_t BLI_timecode_string_from_time_simple(
-        char *str, const size_t len, const int power, const float time_seconds);
+        char *str, size_t maxlen, double time_seconds)
+        ATTR_NONNULL();
+
+size_t BLI_timecode_string_from_time_seconds(
+        char *str, const size_t len, const int power, const float time_seconds)
+        ATTR_NONNULL();
 
 #endif  /* __BLI_TIMECODE_H__ */

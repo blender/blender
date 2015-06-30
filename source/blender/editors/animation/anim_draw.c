@@ -86,7 +86,7 @@ static void draw_cfra_number(Scene *scene, View2D *v2d, const float cfra, const 
 		BLI_timecode_string_from_time(&numstr[4], sizeof(numstr) - 4, 0, FRA2TIME(cfra), FPS, U.timecode_style);
 	}
 	else {
-		BLI_timecode_string_from_time_simple(&numstr[4], sizeof(numstr) - 4, 1, cfra);
+		BLI_timecode_string_from_time_seconds(&numstr[4], sizeof(numstr) - 4, 1, cfra);
 	}
 
 	slen = UI_fontstyle_string_width(fstyle, numstr) - 1;

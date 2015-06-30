@@ -1663,7 +1663,7 @@ static void scroll_printstr(Scene *scene, float x, float y, float val, int power
 		BLI_timecode_string_from_time(timecode_str, sizeof(timecode_str), power, val, FPS, U.timecode_style);
 	}
 	else {
-		BLI_timecode_string_from_time_simple(timecode_str, sizeof(timecode_str), power, val);
+		BLI_timecode_string_from_time_seconds(timecode_str, sizeof(timecode_str), power, val);
 	}
 	
 	/* get length of string, and adjust printing location to fit it into the horizontal scrollbar */

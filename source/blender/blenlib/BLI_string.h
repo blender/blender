@@ -78,7 +78,6 @@ int BLI_natstrcmp(const char *s1, const char *s2) ATTR_WARN_UNUSED_RESULT ATTR_N
 int BLI_strcmp_ignore_pad(const char *str1, const char *str2, const char pad) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 size_t BLI_strnlen(const char *str, const size_t maxlen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-void BLI_timestr(double _time, char *str, size_t maxlen) ATTR_NONNULL();
 
 void BLI_ascii_strtolower(char *str, const size_t len) ATTR_NONNULL();
 void BLI_ascii_strtoupper(char *str, const size_t len) ATTR_NONNULL();

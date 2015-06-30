@@ -49,6 +49,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_path_util.h"
+#include "BLI_timecode.h"
 #include "BLI_fileops.h"
 #include "BLI_threads.h"
 #include "BLI_rand.h"
@@ -172,7 +173,7 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
 	if (rs->curblur)
 		fprintf(stdout, IFACE_("Blur %d "), rs->curblur);
 
-	BLI_timestr(PIL_check_seconds_timer() - rs->starttime, info_time_str, sizeof(info_time_str));
+	BLI_timecode_string_from_time_simple(info_time_str, sizeof(info_time_str), PIL_check_seconds_timer() - rs->starttime);
 	fprintf(stdout, IFACE_("| Time:%s | "), info_time_str);
 
 	if (rs->infostr) {
@@ -3416,7 +3417,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 	render_time = re->i.lastframetime;
 	re->i.lastframetime = PIL_check_seconds_timer() - re->i.starttime;
 	
-	BLI_timestr(re->i.lastframetime, name, sizeof(name));
+	BLI_timecode_string_from_time_simple(name, sizeof(name), re->i.lastframetime);
 	printf(" Time: %s", name);
 
 	/* Flush stdout to be sure python callbacks are printing stuff after blender. */
@@ -3424,7 +3425,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 
 	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
 
-	BLI_timestr(re->i.lastframetime - render_time, name, sizeof(name));
+	BLI_timecode_string_from_time_simple(name, sizeof(name), re->i.lastframetime - render_time);
 	printf(" (Saving: %s)\n", name);
 	
 	fputc('\n', stdout);

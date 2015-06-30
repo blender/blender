@@ -874,12 +874,12 @@ void BlenderSession::update_status_progress()
 			scene += ", " + b_rview_name;
 	}
 	else {
-		BLI_timestr(total_time, time_str, sizeof(time_str));
+		BLI_timecode_string_from_time_simple(time_str, sizeof(time_str), total_time);
 		timestatus = "Time:" + string(time_str) + " | ";
 	}
 
 	if(remaining_time > 0) {
-		BLI_timestr(remaining_time, time_str, sizeof(time_str));
+		BLI_timecode_string_from_time_simple(time_str, sizeof(time_str), remaining_time);
 		timestatus += "Remaining:" + string(time_str) + " | ";
 	}
 
