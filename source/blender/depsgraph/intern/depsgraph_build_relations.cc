@@ -1182,7 +1182,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *ob,
 	/* Pole Target */
 	// XXX: this should get handled as part of the constraint code
 	if (data->poletar != NULL) {
-		if ((data->tar->type == OB_ARMATURE) && (data->subtarget[0])) {
+		if ((data->poletar->type == OB_ARMATURE) && (data->polesubtarget[0])) {
 			// XXX: same armature issues - ready vs done?
 			ComponentKey target_key(&data->poletar->id, DEPSNODE_TYPE_BONE, data->subtarget);
 			add_relation(target_key, solver_key, DEPSREL_TYPE_TRANSFORM, con->name);
