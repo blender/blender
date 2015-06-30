@@ -93,13 +93,14 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 static void updateDepsgraph(ModifierData *md,
                             struct Main *UNUSED(bmain),
                             struct Scene *UNUSED(scene),
-                            Object *UNUSED(ob),
+                            Object *ob,
                             struct DepsNodeHandle *node)
 {
 	MirrorModifierData *mmd = (MirrorModifierData *)md;
 	if (mmd->mirror_ob != NULL) {
 		DEG_add_object_relation(node, mmd->mirror_ob, DEG_OB_COMP_TRANSFORM, "Mirror Modifier");
 	}
+	DEG_add_object_relation(node, ob, DEG_OB_COMP_TRANSFORM, "Mirror Modifier");
 }
 
 static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,

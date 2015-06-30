@@ -892,6 +892,15 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		}
 		DRIVER_TARGETS_LOOPER_END
 	}
+
+	/* It's quite tricky to detect if the driver actually depends on time or not,
+	 * so for now we'll be quite conservative here about optimization and consider
+	 * all python drivers to be depending on time.
+	 */
+	if (driver->type == DRIVER_TYPE_PYTHON) {
+		TimeSourceKey time_src_key;
+		add_relation(time_src_key, driver_key, DEPSREL_TYPE_TIME, "[TimeSrc -> Driver]");
+	}
 }
 
 void DepsgraphRelationBuilder::build_world(World *world)
