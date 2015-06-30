@@ -384,7 +384,8 @@ void applyGridAbsolute(TransInfo *t)
 	float grid_size = 0.0f;
 	GearsType grid_action;
 	TransData *td;
-	float imat[4][4];
+	float (*obmat)[4] = NULL;
+	bool use_obmat = false;
 	int i;
 	
 	if (!(activeSnap(t) && (t->tsnap.mode == SCE_SNAP_MODE_GRID)))
@@ -405,7 +406,8 @@ void applyGridAbsolute(TransInfo *t)
 	
 	if (t->flag & (T_EDIT | T_POSE)) {
 		Object *ob = t->obedit ? t->obedit : t->poseobj;
-		invert_m4_m4(imat, ob->obmat);
+		obmat = ob->obmat;
+		use_obmat = true;
 	}
 	
 	for (i = 0, td = t->data; i < t->total; i++, td++) {
@@ -421,9 +423,8 @@ void applyGridAbsolute(TransInfo *t)
 			continue;
 		
 		copy_v3_v3(iloc, td->loc);
-		if (t->flag & (T_EDIT | T_POSE)) {
-			Object *ob = t->obedit ? t->obedit : t->poseobj;
-			mul_m4_v3(ob->obmat, iloc);
+		if (use_obmat) {
+			mul_m4_v3(obmat, iloc);
 		}
 		else if (t->flag & T_OBJECT) {
 			td->ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
@@ -432,11 +433,11 @@ void applyGridAbsolute(TransInfo *t)
 		}
 		
 		mul_v3_v3fl(loc, iloc, 1.0f / grid_size);
-		loc[0] = floorf(loc[0]);
-		loc[1] = floorf(loc[1]);
-		loc[2] = floorf(loc[2]);
+		loc[0] = roundf(loc[0]);
+		loc[1] = roundf(loc[1]);
+		loc[2] = roundf(loc[2]);
 		mul_v3_fl(loc, grid_size);
-		
+
 		sub_v3_v3v3(tvec, loc, iloc);
 		mul_m3_v3(td->smtx, tvec);
 		add_v3_v3(td->loc, tvec);
