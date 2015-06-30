@@ -418,7 +418,7 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
  * \param substr_new The text in the string to find and replace
  * \retval Returns the duplicated string
  */
-char *BLI_replacestrN(const char *__restrict str, const char *__restrict substr_old, const char *__restrict substr_new)
+char *BLI_str_replaceN(const char *__restrict str, const char *__restrict substr_old, const char *__restrict substr_new)
 {
 	DynStr *ds = NULL;
 	size_t len_old = strlen(substr_old);
