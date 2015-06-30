@@ -1928,7 +1928,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		UI_view2d_view_restore(C);
 		glEnable(GL_BLEND);
 		UI_ThemeColor4((ar->type->regionid == RGN_TYPE_PREVIEW) ? TH_PREVIEW_BACK : TH_BACK);
-		glRecti(0, 0, BLI_rcti_size_x(&ar->winrct), BLI_rcti_size_y(&ar->winrct));
+		glRecti(0, 0, BLI_rcti_size_x(&ar->winrct), BLI_rcti_size_y(&ar->winrct) + 1);
 		glDisable(GL_BLEND);
 	}
 	else {
