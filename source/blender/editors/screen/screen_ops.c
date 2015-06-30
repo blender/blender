@@ -728,7 +728,8 @@ static void actionzone_apply(bContext *C, wmOperator *op, int type)
 
 static int actionzone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	AZone *az = is_in_area_actionzone(CTX_wm_area(C), &event->x);
+	ScrArea *sa = CTX_wm_area(C);
+	AZone *az = is_in_area_actionzone(sa, &event->x);
 	sActionzoneData *sad;
 	
 	/* quick escape */
@@ -737,7 +738,7 @@ static int actionzone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	
 	/* ok we do the actionzone */
 	sad = op->customdata = MEM_callocN(sizeof(sActionzoneData), "sActionzoneData");
-	sad->sa1 = CTX_wm_area(C);
+	sad->sa1 = sa;
 	sad->az = az;
 	sad->x = event->x; sad->y = event->y;
 	
