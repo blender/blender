@@ -469,6 +469,11 @@ void KX_GameObject::StopAction(short layer)
 	GetActionManager()->StopAction(layer);
 }
 
+void KX_GameObject::RemoveTaggedActions()
+{
+	GetActionManager()->RemoveTaggedActions();
+}
+
 bool KX_GameObject::IsActionDone(short layer)
 {
 	return GetActionManager()->IsActionDone(layer);

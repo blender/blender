@@ -110,6 +110,11 @@ public:
 	void StopAction(short layer);
 
 	/**
+	 * Remove playing tagged actions.
+	 */
+	void RemoveTaggedActions();
+
+	/**
 	 * Check if an action has finished playing
 	 */
 	bool IsActionDone(short layer);

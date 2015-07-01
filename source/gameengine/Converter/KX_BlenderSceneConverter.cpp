@@ -1082,6 +1082,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(Main *maggie)
 					if (IS_TAGGED(action)) {
 						STR_HashedString an = action->name + 2;
 						mapStringToActions.remove(an);
+						m_map_blender_to_gameAdtList.remove(CHashedPtr(action));
 						i--;
 					}
 				}
@@ -1110,6 +1111,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(Main *maggie)
 						}
 					}
 					else {
+						gameobj->RemoveTaggedActions();
 						/* free the mesh, we could be referecing a linked one! */
 						int mesh_index = gameobj->GetMeshCount();
 						while (mesh_index--) {
