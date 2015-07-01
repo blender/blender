@@ -38,6 +38,7 @@
 
 #include "BLI_math.h" /* windows needs for M_PI */
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
@@ -53,6 +54,8 @@
 #include "RNA_access.h"
 
 #include "RE_pipeline.h"
+
+#include "BLF_api.h"
 
 static void slice_get_byte_buffers(const SeqRenderData *context, const ImBuf *ibuf1, const ImBuf *ibuf2,
                                    const ImBuf *ibuf3, const ImBuf *out, int start_line, unsigned char **rect1,
@@ -2876,6 +2879,82 @@ static void do_gaussian_blur_effect(const SeqRenderData *context,
 	}
 }
 
+/*********************** text *************************/
+static void init_text_effect(Sequence *seq)
+{
+	TextVars *data;
+
+	if (seq->effectdata)
+		MEM_freeN(seq->effectdata);
+
+	data = seq->effectdata = MEM_callocN(sizeof(TextVars), "textvars");
+	data->text_size = U.pixelsize * 30;
+	BLI_strncpy(data->text, "Text", sizeof(data->text));
+}
+
+static int num_inputs_text(void)
+{
+	return 0;
+}
+
+static int early_out_text(Sequence *seq, float UNUSED(facf0), float UNUSED(facf1))
+{
+	TextVars *data = seq->effectdata;
+	if (data->text[0] == 0 || data->text_size < 1) {
+		return EARLY_USE_INPUT_1;
+	}
+	return EARLY_NO_INPUT;
+}
+
+static ImBuf *do_text_effect(const SeqRenderData *context, Sequence *seq, float UNUSED(cfra), float UNUSED(facf0), float UNUSED(facf1),
+                          ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *ibuf3)
+{
+	ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
+	TextVars *data = seq->effectdata;
+	int width = out->x;
+	int height = out->y;
+	struct ColorManagedDisplay *display;
+	const char *display_device;
+	const int mono = blf_mono_font_render; // XXX
+	int y_ofs, x, y, w;
+
+	display_device = context->scene->display_settings.display_device;
+	display = IMB_colormanagement_display_get_named(display_device);
+
+	/* set before return */
+	BLF_size(mono, (context->scene->r.size / 100.0f) * data->text_size, 72);
+
+	BLF_buffer(mono, out->rect_float, (unsigned char *)out->rect, width, height, out->channels, display);
+
+	y_ofs = -BLF_descender(mono);
+
+	w = BLF_width(mono, data->text, sizeof(data->text));
+
+	if (data->flags & TEXT_SEQ_AUTO_CENTER)
+		x = width / 2 - w / 2;
+	else
+		x = (context->scene->r.size / 100.0f) * data->xpos;
+
+	y = y_ofs + (context->scene->r.size / 100.0f) * data->ypos;
+
+	/* BLF_SHADOW won't work with buffers, instead use cheap shadow trick */
+	if (data->flags & TEXT_SEQ_SHADOW) {
+		int fontx, fonty;
+		fontx = BLF_width_max(mono);
+		fonty = BLF_height_max(mono);
+		BLF_position(mono, x + max_ii(fontx / 25, 1), y + max_ii(fonty / 25, 1), 0.0);
+		BLF_buffer_col(mono, 0.0f, 0.0f, 0.0f, 1.0);
+		BLF_draw_buffer(mono, data->text);
+	}
+	BLF_position(mono, x, y, 0.0);
+	BLF_buffer_col(mono, 1.0f, 1.0f, 1.0f, 1.0);
+	BLF_draw_buffer(mono, data->text);
+
+	BLF_buffer(mono, NULL, NULL, 0, 0, 0, NULL);
+
+	return out;
+}
+
 /*********************** sequence effect factory *************************/
 
 static void init_noop(Sequence *UNUSED(seq))
@@ -2896,6 +2975,19 @@ static void free_noop(Sequence *UNUSED(seq))
 static int num_inputs_default(void)
 {
 	return 2;
+}
+
+static void copy_effect_default(Sequence *dst, Sequence *src)
+{
+	dst->effectdata = MEM_dupallocN(src->effectdata);
+}
+
+static void free_effect_default(Sequence *seq)
+{
+	if (seq->effectdata)
+		MEM_freeN(seq->effectdata);
+
+	seq->effectdata = NULL;
 }
 
 static int early_out_noop(Sequence *UNUSED(seq), float UNUSED(facf0), float UNUSED(facf1))
@@ -3072,6 +3164,14 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 			rval.copy = copy_gaussian_blur_effect;
 			rval.early_out = early_out_gaussian_blur;
 			rval.execute_slice = do_gaussian_blur_effect;
+			break;
+		case SEQ_TYPE_TEXT:
+			rval.num_inputs = num_inputs_text;
+			rval.init = init_text_effect;
+			rval.free = free_effect_default;
+			rval.copy = copy_effect_default;
+			rval.early_out = early_out_text;
+			rval.execute = do_text_effect;
 			break;
 	}
 

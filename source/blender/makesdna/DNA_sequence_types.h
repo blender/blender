@@ -271,6 +271,17 @@ typedef struct GaussianBlurVars {
 	float size_y;
 } GaussianBlurVars;
 
+typedef struct TextVars {
+	char text[512];
+	int text_size;
+	int xpos, ypos;
+	int flags;
+} TextVars;
+
+enum {
+	TEXT_SEQ_SHADOW =      (1 << 0),
+	TEXT_SEQ_AUTO_CENTER = (1 << 1),
+};
 /* ***************** Sequence modifiers ****************** */
 
 typedef struct SequenceModifierData {
@@ -463,7 +474,9 @@ enum {
 	SEQ_TYPE_MULTICAM    = 30,
 	SEQ_TYPE_ADJUSTMENT  = 31,
 	SEQ_TYPE_GAUSSIAN_BLUR = 40,
-	SEQ_TYPE_MAX  = 40
+	SEQ_TYPE_TEXT = 41,
+
+	SEQ_TYPE_MAX  = 41
 };
 
 #define SEQ_MOVIECLIP_RENDER_UNDISTORTED (1 << 0)

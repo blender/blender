@@ -499,6 +499,11 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 		str_len = BLI_snprintf(str, sizeof(str), "%s: %s%s | %d",
 		                       name, seq->strip->dir, seq->strip->stripdata->name, seq->len);
 	}
+	else if (seq->type == SEQ_TYPE_TEXT) {
+		TextVars *textdata = seq->effectdata;
+		str_len = BLI_snprintf(str, sizeof(str), "%s | %d",
+		                       textdata->text, seq->startdisp);
+	}
 	else if (seq->type & SEQ_TYPE_EFFECT) {
 		str_len = BLI_snprintf(str, sizeof(str), "%s | %d",
 		                       name, seq->len);

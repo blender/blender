@@ -191,7 +191,7 @@ void gpu_debug_init(void)
 
 #if !defined(WITH_GLEW_ES) && !defined(GLEW_ES_ONLY)
 	if (GLEW_VERSION_4_3) {
-		glEnable(GL_DEBUG_OUTPUT);
+		//glEnable(GL_DEBUG_OUTPUT);
 		glDebugMessageCallback(gpu_debug_proc, mxGetCurrentContext());
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 		GPU_STRING_MARKER(sizeof(success), success);

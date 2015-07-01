@@ -1010,6 +1010,9 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 	else if (seq->type == SEQ_TYPE_ADJUSTMENT) {
 		seq->blend_mode = SEQ_TYPE_CROSS;
 	}
+	else if (seq->type == SEQ_TYPE_TEXT) {
+		seq->blend_mode = SEQ_TYPE_ALPHAOVER;
+	}
 
 	/* an unset channel is a special case where we automatically go above
 	 * the other strips. */

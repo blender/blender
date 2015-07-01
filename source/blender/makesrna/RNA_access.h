@@ -625,6 +625,7 @@ extern StructRNA RNA_ThemeNodeEditor;
 extern StructRNA RNA_ThemeOutliner;
 extern StructRNA RNA_ThemeProperties;
 extern StructRNA RNA_ThemeSequenceEditor;
+extern StructRNA RNA_TextSequence;
 extern StructRNA RNA_ThemeSpaceGeneric;
 extern StructRNA RNA_ThemeSpaceGradient;
 extern StructRNA RNA_ThemeSpaceListGeneric;

@@ -333,6 +333,7 @@ class SEQUENCER_MT_add_effect(Menu):
         layout.operator("sequencer.effect_strip_add", text="Over Drop").type = 'OVER_DROP'
         layout.operator("sequencer.effect_strip_add", text="Wipe").type = 'WIPE'
         layout.operator("sequencer.effect_strip_add", text="Glow").type = 'GLOW'
+        layout.operator("sequencer.effect_strip_add", text="Text").type = 'TEXT'
         layout.operator("sequencer.effect_strip_add", text="Transform").type = 'TRANSFORM'
         layout.operator("sequencer.effect_strip_add", text="Color").type = 'COLOR'
         layout.operator("sequencer.effect_strip_add", text="Speed Control").type = 'SPEED'
@@ -537,7 +538,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         return strip.type in {'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED',
-                              'MULTICAM', 'GAUSSIAN_BLUR'}
+                              'MULTICAM', 'GAUSSIAN_BLUR', 'TEXT'}
 
     def draw(self, context):
         layout = self.layout
@@ -628,6 +629,17 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             for i in range(1, strip.channel):
                 row.operator("sequencer.cut_multicam", text="%d" % i).camera = i
 
+        elif strip.type == 'TEXT':
+            col = layout.column()
+            col.prop(strip, "text")
+            col.prop(strip, "text_size")
+            col.prop(strip, "use_shadow")
+            col.prop(strip, "use_autocenter")
+            row = layout.row(align=True)
+            if not strip.use_autocenter:
+                row.prop(strip, "xpos")
+            row.prop(strip, "ypos")
+
         col = layout.column(align=True)
         if strip.type == 'SPEED':
             col.prop(strip, "multiply_speed")
@@ -638,7 +650,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         elif strip.type == 'GAUSSIAN_BLUR':
             col.prop(strip, "size_x")
             col.prop(strip, "size_y")
-
+ 
 
 class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
     bl_label = "Strip Input"

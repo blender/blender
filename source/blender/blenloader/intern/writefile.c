@@ -2468,6 +2468,9 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 						case SEQ_TYPE_GAUSSIAN_BLUR:
 							writestruct(wd, DATA, "GaussianBlurVars", 1, seq->effectdata);
 							break;
+						case SEQ_TYPE_TEXT:
+							writestruct(wd, DATA, "TextVars", 1, seq->effectdata);
+							break;
 						}
 					}
 
