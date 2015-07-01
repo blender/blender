@@ -407,7 +407,7 @@ static float bm_loop_flip_equotion(
 	b[0] = coord[i];
 	b[1] = coord[j];
 
-	return mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0];
+	return cross_v2v2(mat[0], mat[1]);
 }
 
 static void bm_loop_flip_disp(

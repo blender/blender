@@ -2875,7 +2875,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 						while (is_degenerate == 0 && i < 4) {
 							float cur_edge[2], signed_area;
 							sub_v2_v2v2(cur_edge, tex_coords[(i + 1) & 0x3], tex_coords[i]);
-							signed_area = prev_edge[0] * cur_edge[1] - prev_edge[1] * cur_edge[0];
+							signed_area = cross_v2v2(prev_edge, cur_edge);
 
 							if (i == 0) {
 								is_signed = (signed_area < 0.0f) ? 1 : 0;
@@ -2931,7 +2931,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 							sub_v2_v2v2(edge_t0, tex_coords[indices[t * 3 + 1]], tex_coords[indices[t * 3 + 0]]);
 							sub_v2_v2v2(edge_t1, tex_coords[indices[t * 3 + 2]], tex_coords[indices[t * 3 + 0]]);
 
-							f2x_area_uv = fabsf(edge_t0[0] * edge_t1[1] - edge_t0[1] * edge_t1[0]);
+							f2x_area_uv = fabsf(cross_v2v2(edge_t0, edge_t1));
 							if (f2x_area_uv > FLT_EPSILON) {
 								float norm[3], v0[3], v1[3], f2x_surf_area, fsurf_ratio;
 								sub_v3_v3v3(v0, p1, p0);
