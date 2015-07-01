@@ -2058,11 +2058,11 @@ void BKE_image_stamp_buf(
 #undef BUFF_MARGIN_Y
 }
 
-void BKE_render_result_stamp_info(Scene *scene, Object *camera, struct RenderResult *rr)
+void BKE_render_result_stamp_info(Scene *scene, Object *camera, struct RenderResult *rr, bool allocate_only)
 {
 	struct StampData *stamp_data;
 
-	if (!(scene && scene->r.stamp & R_STAMP_ALL))
+	if (!(scene && (scene->r.stamp & R_STAMP_ALL)) && !allocate_only)
 		return;
 
 	if (!rr->stamp_data) {
@@ -2072,22 +2072,23 @@ void BKE_render_result_stamp_info(Scene *scene, Object *camera, struct RenderRes
 		stamp_data = rr->stamp_data;
 	}
 
-	stampdata(scene, camera, stamp_data, 0);
+	if (!allocate_only)
+		stampdata(scene, camera, stamp_data, 0);
 
 	if (!rr->stamp_data) {
 		rr->stamp_data = stamp_data;
 	}
 }
 
-void BKE_stamp_info_callback(void *data, const struct StampData *stamp_data, StampCallback callback)
+void BKE_stamp_info_callback(void *data, struct StampData *stamp_data, StampCallback callback, bool noskip)
 {
 	if (!callback || !stamp_data) {
 		return;
 	}
 
 #define CALL(member, value_str) \
-	if (stamp_data->member[0]) { \
-		callback(data, value_str, stamp_data->member); \
+	if (noskip || stamp_data->member[0]) { \
+		callback(data, value_str, stamp_data->member, sizeof(stamp_data->member)); \
 	} ((void)0)
 
 	CALL(file, "File");
@@ -2106,18 +2107,29 @@ void BKE_stamp_info_callback(void *data, const struct StampData *stamp_data, Sta
 }
 
 /* wrap for callback only */
-static void metadata_change_field(void *data, const char *propname, const char *propvalue)
+static void metadata_change_field(void *data, const char *propname, char *propvalue, int UNUSED(len))
 {
 	IMB_metadata_change_field(data, propname, propvalue);
+}
+
+static void metadata_get_field(void *data, const char *propname, char *propvalue, int len)
+{
+	IMB_metadata_get_field(data, propname, propvalue, len);
 }
 
 void BKE_imbuf_stamp_info(RenderResult *rr, struct ImBuf *ibuf)
 {
 	struct StampData *stamp_data = rr->stamp_data;
 
-	BKE_stamp_info_callback(ibuf, stamp_data, metadata_change_field);
+	BKE_stamp_info_callback(ibuf, stamp_data, metadata_change_field, false);
 }
 
+void BKE_stamp_info_from_imbuf(RenderResult *rr, struct ImBuf *ibuf)
+{
+	struct StampData *stamp_data = rr->stamp_data;
+
+	BKE_stamp_info_callback(ibuf, stamp_data, metadata_get_field, true);
+}
 
 bool BKE_imbuf_alpha_test(ImBuf *ibuf)
 {

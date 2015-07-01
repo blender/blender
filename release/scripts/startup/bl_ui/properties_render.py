@@ -343,7 +343,7 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
 
         rd = context.scene.render
 
-        layout.prop(rd, "use_stamp", text="Stamp Output")
+        layout.prop(rd, "use_stamp")
         col = layout.column()
         col.active = rd.use_stamp
         col.prop(rd, "stamp_font_size", text="Font Size")
@@ -374,6 +374,9 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
         sub = row.row()
         sub.active = rd.use_stamp_note
         sub.prop(rd, "stamp_note_text", text="")
+        if rd.use_sequencer:
+            layout.label("Sequencer")
+            layout.prop(rd, "use_stamp_strip_meta")
 
 
 class RENDER_PT_output(RenderButtonsPanel, Panel):

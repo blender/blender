@@ -2617,6 +2617,7 @@ static void do_render_seq(Render *re)
 
 		if (out) {
 			ibuf_arr[view_id] = IMB_dupImBuf(out);
+			IMB_metadata_copy(ibuf_arr[view_id], out);
 			IMB_freeImBuf(out);
 			BKE_sequencer_imbuf_from_sequencer_space(re->scene, ibuf_arr[view_id]);
 		}
@@ -2638,6 +2639,12 @@ static void do_render_seq(Render *re)
 		if (ibuf_arr[view_id]) {
 			/* copy ibuf into combined pixel rect */
 			render_result_rect_from_ibuf(rr, &re->r, ibuf_arr[view_id], view_id);
+
+			if (ibuf_arr[view_id]->metadata && (re->r.stamp & R_STAMP_STRIPMETA)) {
+				/* ensure render stamp info first */
+				BKE_render_result_stamp_info(NULL, NULL, rr, true);
+				BKE_stamp_info_from_imbuf(rr, ibuf_arr[view_id]);
+			}
 
 			if (recurs_depth == 0) { /* with nested scenes, only free on toplevel... */
 				Editing *ed = re->scene->ed;
@@ -2678,6 +2685,7 @@ static void do_render_seq(Render *re)
 static void do_render_all_options(Render *re)
 {
 	Object *camera;
+	bool render_seq = false;
 
 	re->current_scene_update(re->suh, re->scene);
 
@@ -2693,8 +2701,10 @@ static void do_render_all_options(Render *re)
 	}
 	else if (RE_seq_render_active(re->scene, &re->r)) {
 		/* note: do_render_seq() frees rect32 when sequencer returns float images */
-		if (!re->test_break(re->tbh))
+		if (!re->test_break(re->tbh)) {
 			do_render_seq(re);
+			render_seq = true;
+		}
 		
 		re->stats_draw(re->sdh, &re->i);
 		re->display_update(re->duh, re->result, NULL);
@@ -2714,7 +2724,9 @@ static void do_render_all_options(Render *re)
 	
 	/* save render result stamp if needed */
 	camera = RE_GetCamera(re);
-	BKE_render_result_stamp_info(re->scene, camera, re->result);
+	/* sequence rendering should have taken care of that already */
+	if (!(render_seq && (re->r.stamp & R_STAMP_STRIPMETA)))
+		BKE_render_result_stamp_info(re->scene, camera, re->result, false);
 
 	/* stamp image info here */
 	if ((re->r.stamp & R_STAMP_ALL) && (re->r.stamp & R_STAMP_DRAW)) {

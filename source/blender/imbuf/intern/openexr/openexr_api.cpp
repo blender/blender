@@ -364,7 +364,7 @@ static void openexr_header_metadata(Header *header, struct ImBuf *ibuf)
 		addXDensity(*header, ibuf->ppm[0] / 39.3700787); /* 1 meter = 39.3700787 inches */
 }
 
-static void openexr_header_metadata_callback(void *data, const char *propname, const char *prop)
+static void openexr_header_metadata_callback(void *data, const char *propname, char *prop, int UNUSED(len))
 {
 	Header *header = (Header *)data;
 	header->insert(propname, StringAttribute(prop));
@@ -860,7 +860,7 @@ int IMB_exr_begin_write(void *handle, const char *filename, int width, int heigh
 	}
 
 	openexr_header_compression(&header, compress);
-	BKE_stamp_info_callback(&header, stamp, openexr_header_metadata_callback);
+	BKE_stamp_info_callback(&header, const_cast<StampData *>(stamp), openexr_header_metadata_callback, false);
 	/* header.lineOrder() = DECREASING_Y; this crashes in windows for file read! */
 
 	imb_exr_type_by_channels(header.channels(), *data->multiView, &is_singlelayer, &is_multilayer, &is_multiview);
