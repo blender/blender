@@ -80,7 +80,7 @@ public:
 	
 	/**
 	 * Changes the time user data.
-	 * \param data The timer user data.
+	 * \param userData: The timer user data.
 	 */
 	virtual void setUserData(const GHOST_TUserDataPtr userData) = 0;
 

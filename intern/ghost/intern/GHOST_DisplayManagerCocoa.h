@@ -63,7 +63,7 @@ public:
 	/**
 	 * Returns the number of display settings for this display device.
 	 * \param display The index of the display to query with 0 <= display < getNumDisplays().
-	 * \param setting The number of settings of the display device with this index.
+	 * \param numSetting: The number of settings of the display device with this index.
 	 * \return Indication of success.
 	 */
 	GHOST_TSuccess getNumDisplaySettings(GHOST_TUns8 display, GHOST_TInt32& numSettings) const;

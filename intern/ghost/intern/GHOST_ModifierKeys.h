@@ -59,15 +59,15 @@ struct GHOST_ModifierKeys {
 
 	/**
 	 * Returns the state of a single modifier key.
-	 * \param mask. Key state to return.
+	 * \param mask: Key state to return.
 	 * \return The state of the key (pressed == true).
 	 */
 	bool get(GHOST_TModifierKeyMask mask) const;
 
 	/**
 	 * Updates the state of a single modifier key.
-	 * \param mask. Key state to update.
-	 * \param down. The new state of the key.
+	 * \param mask: Key state to update.
+	 * \param down: The new state of the key.
 	 */
 	void set(GHOST_TModifierKeyMask mask, bool down);
 
@@ -78,7 +78,7 @@ struct GHOST_ModifierKeys {
 
 	/**
 	 * Determines whether to modifier key states are equal.
-	 * \param keys. The modifier key state to compare to.
+	 * \param keys: The modifier key state to compare to.
 	 * \return Indication of equality.
 	 */
 	bool equals(const GHOST_ModifierKeys& keys) const;

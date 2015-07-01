@@ -45,7 +45,7 @@ public:
 	/**
 	 * Constructor.
 	 * \param msec		The time this event was generated.
-	 * \param type		The type of this event.
+	 * \param window: The window of this event.
 	 * \param subtype	The subtype of the event.
 	 * \param x			The x-delta of the pan event.
 	 * \param y			The y-delta of the pan event.

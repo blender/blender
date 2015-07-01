@@ -40,7 +40,7 @@ extern "C" {
 #endif
 
 /**
- * Creates a &quot;handle&quot; for a C++ GHOST object.
+ * Creates a "handle" for a C++ GHOST object.
  * A handle is just an opaque pointer to an empty struct.
  * In the API the pointer is casted to the actual C++ class.
  * \param name Name of the handle to create.
@@ -174,19 +174,19 @@ extern void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
  * \param height The height the window.
  * \param state The state of the window when opened.
  * \param type The type of drawing context installed in this window.
- * \param stereoVisual Stereo visual for quad buffered stereo.
- * \param numOfAASamples Number of samples used for AA (zero if no AA)
+ * \param glSettings: Misc OpenGL options.
  * \return A handle to the new window ( == NULL if creation failed).
  */
-extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
-                                             const char *title,
-                                             GHOST_TInt32 left,
-                                             GHOST_TInt32 top,
-                                             GHOST_TUns32 width,
-                                             GHOST_TUns32 height,
-                                             GHOST_TWindowState state,
-                                             GHOST_TDrawingContextType type,
-                                             GHOST_GLSettings glSettings);
+extern GHOST_WindowHandle GHOST_CreateWindow(
+        GHOST_SystemHandle systemhandle,
+        const char *title,
+        GHOST_TInt32 left,
+        GHOST_TInt32 top,
+        GHOST_TUns32 width,
+        GHOST_TUns32 height,
+        GHOST_TWindowState state,
+        GHOST_TDrawingContextType type,
+        GHOST_GLSettings glSettings);
 
 /**
  * Returns the window user data.

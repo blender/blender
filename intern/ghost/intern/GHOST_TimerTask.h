@@ -49,7 +49,7 @@ public:
 	 * \param start		The timer start time.
 	 * \param interval	The interval between calls to the timerProc
 	 * \param timerProc	The callback invoked when the interval expires.
-	 * \param data		The timer user data.
+	 * \param userData: The timer user data.
 	 */
 	GHOST_TimerTask(GHOST_TUns64 start,
 	                GHOST_TUns64 interval,
@@ -129,7 +129,7 @@ public:
 
 	/**
 	 * Changes the timer callback.
-	 * \param The timer callback.
+	 * \param timerProc: The timer callback.
 	 */
 	inline void setTimerProc(const GHOST_TimerProcPtr timerProc)
 	{
@@ -147,7 +147,7 @@ public:
 	
 	/**
 	 * Changes the time user data.
-	 * \param data The timer user data.
+	 * \param userData: The timer user data.
 	 */
 	void setUserData(const GHOST_TUserDataPtr userData)
 	{

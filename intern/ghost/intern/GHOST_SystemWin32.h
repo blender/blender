@@ -118,8 +118,8 @@ public:
 	 * \param	height	The height the window.
 	 * \param	state	The state of the window when opened.
 	 * \param	type	The type of drawing context installed in this window.
-	 * \param	stereoVisual	Stereo visual for quad buffered stereo.
-	 * \param	numOfAASamples	Number of samples used for AA (zero if no AA)
+	 * \param glSettings: Misc OpenGL settings.
+	 * \param exclusive: Use to show the window ontop and ignore others (used fullscreen).
 	 * \param	parentWindow    Parent (embedder) window
 	 * \return	The new window (or 0 if creation failed).
 	 */
@@ -283,7 +283,7 @@ protected:
 	 * Process special keys (VK_OEM_*), to see if current key layout
 	 * gives us anything special, like ! on french AZERTY.
 	 * \param vKey		The virtual key from hardKey
-	 * \param ScanCode	The ScanCode of pressed key (simular to PS/2 Set 1)
+	 * \param scanCode	The ScanCode of pressed key (simular to PS/2 Set 1)
 	 */
 	GHOST_TKey processSpecialKey(short vKey, short scanCode) const;
 

@@ -123,7 +123,7 @@ public:
 
 	/**
 	 * Set the shape of the cursor.
-	 * \param	cursor	The new cursor shape type id.
+	 * \param	cursorShape: The new cursor shape type id.
 	 * \return	Indication of success.
 	 */
 	GHOST_TSuccess setCursorShape(GHOST_TStandardCursor cursorShape);
@@ -281,7 +281,7 @@ public:
 	
 	/**
 	 * Changes the window user data.
-	 * \param data The window user data.
+	 * \param userData: The window user data.
 	 */
 	void setUserData(const GHOST_TUserDataPtr userData)
 	{
