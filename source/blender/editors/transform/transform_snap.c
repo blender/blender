@@ -2469,7 +2469,7 @@ static void applyGridIncrement(TransInfo *t, float *val, int max_index, const fl
 	}
 
 	/* absolute snapping on grid based on global center */
-	if ((t->tsnap.mode == SCE_SNAP_MODE_GRID) && (t->mode == TFM_TRANSLATION)) {
+	if ((t->tsnap.snap_spatial_grid) && (t->mode == TFM_TRANSLATION)) {
 		for (i = 0; i <= max_index; i++) {
 			/* do not let unconstrained axis jump to absolute grid increments */
 			if (!(t->con.mode & CON_APPLY) || t->con.mode & (CON_AXIS0 << i)) {

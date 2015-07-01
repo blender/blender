@@ -2217,7 +2217,8 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 
 	prop = RNA_def_property(srna, "use_snap_grid_absolute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_ABS_GRID);
-	RNA_def_property_ui_text(prop, "Absolute Grid Snap", "Grid align vertices during transform");
+	RNA_def_property_ui_text(prop, "Absolute Grid Snap",
+	                         "Absolute grid alignment while translating (based on the pivot center)");
 	RNA_def_property_ui_icon(prop, ICON_SNAP_INCREMENT, 0);
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 

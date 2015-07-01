@@ -709,12 +709,6 @@ static void recalcData_objects(TransInfo *t)
 {
 	Base *base = t->scene->basact;
 
-	if (t->state != TRANS_CANCEL) {
-		if (ELEM(t->tsnap.mode, SCE_SNAP_MODE_INCREMENT, SCE_SNAP_MODE_GRID) && t->tsnap.snap_spatial_grid) {
-			applyGridAbsolute(t);
-		}
-	}
-
 	if (t->obedit) {
 		if (ELEM(t->obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu = t->obedit->data;
