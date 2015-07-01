@@ -555,6 +555,7 @@ void initialize_particle(ParticleSimulationData *sim, ParticleData *pa)
 	/* usage other than straight after distribute has to handle this index by itself - jahka*/
 	//pa->num_dmcache = DMCACHE_NOTFOUND; /* assume we don't have a derived mesh face */
 }
+
 static void initialize_all_particles(ParticleSimulationData *sim)
 {
 	ParticleSystem *psys = sim->psys;
@@ -609,8 +610,9 @@ static void free_unexisting_particles(ParticleSimulationData *sim)
 		if (psys->particles->boid) {
 			BoidParticle *newboids = MEM_callocN(psys->totpart * sizeof(BoidParticle), "boid particles");
 
-			LOOP_PARTICLES
+			LOOP_PARTICLES {
 				pa->boid = newboids++;
+			}
 
 		}
 	}
