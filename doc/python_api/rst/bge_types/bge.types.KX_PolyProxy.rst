@@ -23,7 +23,7 @@ base class --- :class:`SCA_IObject`
 
       The material of the polygon.
 
-      :type: :class:`KX_PolygonMaterial` or :class:`KX_BlenderMaterial`
+      :type: :class:`KX_BlenderMaterial`
 
    .. attribute:: texture_name
 
@@ -84,7 +84,7 @@ base class --- :class:`SCA_IObject`
    .. method:: getMaterial()
 
       :return: The polygon material
-      :rtype: :class:`KX_PolygonMaterial` or :class:`KX_BlenderMaterial`
+      :rtype: :class:`KX_BlenderMaterial`
 
    .. method:: getTextureName()
 

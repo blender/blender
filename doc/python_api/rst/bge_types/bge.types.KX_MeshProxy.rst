@@ -51,7 +51,7 @@ base class --- :class:`SCA_IObject`
 
    .. attribute:: materials
 
-      :type: list of :class:`KX_BlenderMaterial` or :class:`KX_PolygonMaterial` types
+      :type: list of :class:`KX_BlenderMaterial` type
 
    .. attribute:: numPolygons
 
