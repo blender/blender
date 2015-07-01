@@ -30,7 +30,7 @@
 GHOST_NDOFManagerWin32::GHOST_NDOFManagerWin32(GHOST_System& sys)
     : GHOST_NDOFManager(sys)
 {
-	setDeadZone(0.1f);
+	/* pass */
 }
 
 // whether multi-axis functionality is available (via the OS or driver)

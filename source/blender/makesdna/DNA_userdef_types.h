@@ -491,7 +491,6 @@ typedef struct UserDef {
 	int memcachelimit;
 	int prefetchframes;
 	float pad_rot_angle; /* control the rotation step of the view when PAD2, PAD4, PAD6&PAD8 is use */
-	float pad3;
 	short frameserverport;
 	short pad4;
 	short obcenter_dia;
@@ -519,6 +518,7 @@ typedef struct UserDef {
 
 	float ndof_sensitivity;	/* overall sensitivity of 3D mouse */
 	float ndof_orbit_sensitivity;
+	float ndof_deadzone; /* deadzone of 3D mouse */
 	int ndof_flag;			/* flags for 3D mouse */
 
 	short ogl_multisamples;	/* amount of samples for OpenGL FSA, if zero no FSA */

@@ -267,6 +267,12 @@ static void rna_userdef_autokeymode_set(PointerRNA *ptr, int value)
 	}
 }
 
+static void rna_userdef_ndof_deadzone_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	UserDef *userdef = ptr->data;
+	WM_ndof_deadzone_set(userdef->ndof_deadzone);
+}
+
 static void rna_userdef_timecode_style_set(PointerRNA *ptr, int value)
 {
 	UserDef *userdef = (UserDef *)ptr->data;
@@ -4302,6 +4308,11 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "ndof_orbit_sensitivity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.01f, 40.0f);
 	RNA_def_property_ui_text(prop, "Orbit Sensitivity", "Overall sensitivity of the 3D Mouse for orbiting");
+
+	prop = RNA_def_property(srna, "ndof_deadzone", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Deadzone", "Deadzone of the 3D Mouse");
+	RNA_def_property_update(prop, 0, "rna_userdef_ndof_deadzone_update");
 
 	prop = RNA_def_property(srna, "ndof_pan_yz_swap_axis", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_PAN_YZ_SWAP_AXIS);

@@ -295,6 +295,15 @@ GHOST_TSuccess GHOST_System::getButtonState(GHOST_TButtonMask mask, bool& isDown
 	return success;
 }
 
+void GHOST_System::setNDOFDeadZone(float deadzone)
+{
+#ifdef WITH_INPUT_NDOF
+	this->m_ndofManager->setDeadZone(deadzone);
+#else
+	(void)deadzone;
+#endif
+}
+
 GHOST_TSuccess GHOST_System::init()
 {
 	m_timerManager = new GHOST_TimerManager();

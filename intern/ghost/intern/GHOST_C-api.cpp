@@ -413,6 +413,13 @@ GHOST_TSuccess GHOST_GetButtonState(GHOST_SystemHandle systemhandle,
 }
 
 
+void GHOST_setNDOFDeadZone(float deadzone)
+{
+	GHOST_ISystem *system = GHOST_ISystem::getSystem();
+	system->setNDOFDeadZone(deadzone);
+}
+
+
 void GHOST_setAcceptDragOperation(GHOST_WindowHandle windowhandle, GHOST_TInt8 canAccept)
 {
 	GHOST_IWindow *window = (GHOST_IWindow *) windowhandle;

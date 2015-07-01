@@ -623,6 +623,11 @@ bool WM_event_is_absolute(const wmEvent *event)
 	return (event->tablet_data != NULL);
 }
 
+void WM_ndof_deadzone_set(float deadzone)
+{
+	GHOST_setNDOFDeadZone(deadzone);
+}
+
 static void wm_add_reports(const bContext *C, ReportList *reports)
 {
 	/* if the caller owns them, handle this */

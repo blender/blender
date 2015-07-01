@@ -434,6 +434,16 @@ extern GHOST_TSuccess GHOST_GetButtonState(GHOST_SystemHandle systemhandle,
                                            GHOST_TButtonMask mask,
                                            int *isDown);
 
+/***************************************************************************************
+ * Access to 3D mouse.
+ ***************************************************************************************/
+
+/**
+ * Sets 3D mouse deadzone
+ * \param deadzone Deadzone of the 3D mouse (both for rotation and pan) relative to full range
+ */
+extern void GHOST_setNDOFDeadZone(float deadzone);
+
 
 /***************************************************************************************
  * Drag'n'drop operations

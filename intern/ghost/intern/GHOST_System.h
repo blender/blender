@@ -238,6 +238,16 @@ public:
 	GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const;
 	
 	/***************************************************************************************
+	 * Access to 3D mouse.
+	 ***************************************************************************************/
+
+	/**
+	 * Sets 3D mouse deadzone
+	 * \param deadzone: Deadzone of the 3D mouse (both for rotation and pan) relative to full range
+	 */
+	void setNDOFDeadZone(float deadzone);
+
+	/***************************************************************************************
 	 * Other (internal) functionality.
 	 ***************************************************************************************/
 

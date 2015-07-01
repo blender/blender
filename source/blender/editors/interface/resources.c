@@ -2631,6 +2631,10 @@ void init_userdef_do_versions(void)
 		}
 	}
 
+	if (!USER_VERSION_ATLEAST(275, 2)) {
+		U.ndof_deadzone = 0.1;
+	}
+
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
 	
