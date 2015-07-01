@@ -1044,15 +1044,15 @@ static bool select_grouped_effect(Editing *ed, Sequence *actseq)
 {
 	Sequence *seq;
 	bool changed = false;
-	bool effects[SEQ_TYPE_EFFECT_MAX + 1];
+	bool effects[SEQ_TYPE_MAX + 1];
 	int i;
 
-	for (i = 0; i <= SEQ_TYPE_EFFECT_MAX; i++)
+	for (i = 0; i <= SEQ_TYPE_MAX; i++)
 		effects[i] = false;
 
 	SEQP_BEGIN (ed, seq)
 	{
-		if (ELEM(actseq, seq->seq1, seq->seq2, seq->seq3)) {
+		if ((seq->type & SEQ_TYPE_EFFECT) && ELEM(actseq, seq->seq1, seq->seq2, seq->seq3)) {
 			effects[seq->type] = true;
 		}
 	}
