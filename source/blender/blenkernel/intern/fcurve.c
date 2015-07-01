@@ -986,15 +986,12 @@ void sort_time_fcurve(FCurve *fcu)
 					/* if either one of both of the points exceeds crosses over the keyframe time... */
 					if ( (bezt->vec[0][0] > bezt->vec[1][0]) && (bezt->vec[2][0] < bezt->vec[1][0]) ) {
 						/* swap handles if they have switched sides for some reason */
-						SWAP(float, bezt->vec[0][0], bezt->vec[2][0]);
-						SWAP(float, bezt->vec[0][1], bezt->vec[2][1]);
+						swap_v2_v2(bezt->vec[0], bezt->vec[2]);
 					}
 					else {
 						/* clamp handles */
-						if (bezt->vec[0][0] > bezt->vec[1][0]) 
-							bezt->vec[0][0] = bezt->vec[1][0];
-						if (bezt->vec[2][0] < bezt->vec[1][0]) 
-							bezt->vec[2][0] = bezt->vec[1][0];
+						CLAMP_MAX(bezt->vec[0][0], bezt->vec[1][0]);
+						CLAMP_MIN(bezt->vec[2][0], bezt->vec[1][0]);
 					}
 				}
 			}

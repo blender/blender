@@ -988,9 +988,7 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 				/* only if selected and editable */
 				if (EBONE_VISIBLE(arm, ebo) && EBONE_EDITABLE(ebo)) {
 					/* swap head and tail coordinates */
-					SWAP(float, ebo->head[0], ebo->tail[0]);
-					SWAP(float, ebo->head[1], ebo->tail[1]);
-					SWAP(float, ebo->head[2], ebo->tail[2]);
+					swap_v3_v3(ebo->head, ebo->tail);
 					
 					/* do parent swapping:
 					 *	- use 'child' as new parent
