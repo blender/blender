@@ -318,9 +318,9 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, Object *obedit, const
 
 		for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
 			if (ebo->layer & arm->layer) {
-				short tipsel = (ebo->flag & BONE_TIPSEL);
-				short rootsel = (ebo->flag & BONE_ROOTSEL);
-				short rootok = (!(ebo->parent && (ebo->flag & BONE_CONNECTED) && (ebo->parent->flag & BONE_TIPSEL)));
+				const bool tipsel = (ebo->flag & BONE_TIPSEL) != 0;
+				const bool rootsel = (ebo->flag & BONE_ROOTSEL) != 0;
+				const bool rootok = (!(ebo->parent && (ebo->flag & BONE_CONNECTED) && (ebo->parent->flag & BONE_TIPSEL)));
 
 				if ((tipsel && rootsel) || (rootsel)) {
 					/* Don't add the tip (unless mode & TM_ALL_JOINTS, for getting all joints),

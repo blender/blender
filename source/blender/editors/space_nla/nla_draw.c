@@ -273,7 +273,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc)
 /* main call for drawing a single NLA-strip */
 static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
 {
-	short nonSolo = ((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) && (nlt->flag & NLATRACK_SOLO) == 0);
+	const bool non_solo = ((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) && (nlt->flag & NLATRACK_SOLO) == 0);
 	float color[3];
 	
 	/* get color of strip */
@@ -282,7 +282,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	/* draw extrapolation info first (as backdrop)
 	 *	- but this should only be drawn if track has some contribution
 	 */
-	if ((strip->extendmode != NLASTRIP_EXTEND_NOTHING) && (nonSolo == 0)) {
+	if ((strip->extendmode != NLASTRIP_EXTEND_NOTHING) && (non_solo == 0)) {
 		/* enable transparency... */
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
@@ -337,7 +337,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	
 	
 	/* draw 'inside' of strip itself */
-	if (nonSolo == 0) {
+	if (non_solo == 0) {
 		/* strip is in normal track */
 		glColor3fv(color);
 		UI_draw_roundbox_corner_set(UI_CNR_ALL); /* all corners rounded */
@@ -424,7 +424,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 /* add the relevant text to the cache of text-strings to draw in pixelspace */
 static void nla_draw_strip_text(AnimData *adt, NlaTrack *nlt, NlaStrip *strip, int index, View2D *v2d, float yminc, float ymaxc)
 {
-	short notSolo = ((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) && (nlt->flag & NLATRACK_SOLO) == 0);
+	const bool non_solo = ((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) && (nlt->flag & NLATRACK_SOLO) == 0);
 	char str[256];
 	size_t str_len;
 	char col[4];
@@ -448,7 +448,7 @@ static void nla_draw_strip_text(AnimData *adt, NlaTrack *nlt, NlaStrip *strip, i
 	}
 	
 	/* text opacity depends on whether if there's a solo'd track, this isn't it */
-	if (notSolo == 0)
+	if (non_solo == 0)
 		col[3] = 255;
 	else
 		col[3] = 128;

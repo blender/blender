@@ -3290,7 +3290,7 @@ static void posttrans_mask_clean(Mask *mask)
 /* Called during special_aftertrans_update to make sure selected keyframes replace
  * any other keyframes which may reside on that frame (that is not selected).
  */
-static void posttrans_fcurve_clean(FCurve *fcu, const short use_handle)
+static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 {
 	float *selcache;    /* cache for frame numbers of selected frames (fcu->totvert*sizeof(float)) */
 	int len, index, i;  /* number of frames in cache, item index */
@@ -4498,7 +4498,7 @@ void remake_graph_transdata(TransInfo *t, ListBase *anim_data)
 {
 	SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
 	bAnimListElem *ale;
-	const short use_handle = !(sipo->flag & SIPO_NOHANDLES);
+	const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
 	
 	/* sort and reassign verts */
 	for (ale = anim_data->first; ale; ale = ale->next) {
@@ -6151,7 +6151,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	else if (t->spacetype == SPACE_IPO) {
 		SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
 		bAnimContext ac;
-		const short use_handle = !(sipo->flag & SIPO_NOHANDLES);
+		const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
 		
 		/* initialize relevant anim-context 'context' data */
 		if (ANIM_animdata_get_context(C, &ac) == 0)
