@@ -900,6 +900,7 @@ static bool sequence_offset_after_frame(Scene *scene, const int delta, const int
 	Sequence *seq;
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	bool done = false;
+	TimeMarker *marker;
 
 	/* all strips >= cfra are shifted */
 	
@@ -910,6 +911,14 @@ static bool sequence_offset_after_frame(Scene *scene, const int delta, const int
 			BKE_sequence_translate(scene, seq, delta);
 			BKE_sequence_calc(scene, seq);
 			done = true;
+		}
+	}
+
+	if (!scene->toolsettings->lock_markers) {
+		for (marker = scene->markers.first; marker; marker = marker->next) {
+			if (marker->frame >= cfra) {
+				marker->frame += delta;
+			}
 		}
 	}
 
@@ -1035,7 +1044,7 @@ static int sequencer_gap_remove_exec(bContext *C, wmOperator *op)
 			break;
 		}
 	}
-	
+
 	for ( ; cfra < efra; cfra++) {
 		/* first == 0 means there's still no strip to remove a gap for */
 		if (first == false) {
