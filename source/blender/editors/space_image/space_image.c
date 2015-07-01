@@ -835,7 +835,7 @@ static void image_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void image_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL, -1);
+	ED_region_panels(C, ar, NULL, -1, true);
 }
 
 static void image_buttons_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
@@ -908,7 +908,7 @@ static void image_tools_area_draw(const bContext *C, ARegion *ar)
 	}
 	ED_space_image_release_buffer(sima, ibuf, lock);
 	
-	ED_region_panels(C, ar, 1, NULL, -1);
+	ED_region_panels(C, ar, NULL, -1, true);
 }
 
 static void image_tools_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)

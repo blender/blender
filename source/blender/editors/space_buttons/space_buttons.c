@@ -137,38 +137,38 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceButs *sbuts = CTX_wm_space_buts(C);
-	int vertical = (sbuts->align == BUT_VERTICAL);
+	const bool vertical = (sbuts->align == BUT_VERTICAL);
 
 	buttons_context_compute(C, sbuts);
 
 	if (sbuts->mainb == BCONTEXT_SCENE)
-		ED_region_panels(C, ar, vertical, "scene", sbuts->mainb);
+		ED_region_panels(C, ar, "scene", sbuts->mainb, vertical);
 	else if (sbuts->mainb == BCONTEXT_RENDER)
-		ED_region_panels(C, ar, vertical, "render", sbuts->mainb);
+		ED_region_panels(C, ar, "render", sbuts->mainb, vertical);
 	else if (sbuts->mainb == BCONTEXT_RENDER_LAYER)
-		ED_region_panels(C, ar, vertical, "render_layer", sbuts->mainb);
+		ED_region_panels(C, ar, "render_layer", sbuts->mainb, vertical);
 	else if (sbuts->mainb == BCONTEXT_WORLD)
-		ED_region_panels(C, ar, vertical, "world", sbuts->mainb);
+		ED_region_panels(C, ar, "world", sbuts->mainb, vertical);
 	else if (sbuts->mainb == BCONTEXT_OBJECT)
-		ED_region_panels(C, ar, vertical, "object", sbuts->mainb);
+		ED_region_panels(C, ar, "object", sbuts->mainb, vertical);
 	else if (sbuts->mainb == BCONTEXT_DATA)
-		ED_region_panels(C, ar, vertical, "data", sbuts->mainb);
+		ED_region_panels(C, ar, "data", sbuts->mainb, vertical);
 	else if (sbuts->mainb == BCONTEXT_MATERIAL)
-		ED_region_panels(C, ar, vertical, "material", sbuts->mainb);
+		ED_region_panels(C, ar, "material", sbuts->mainb, vertical);
 	else if (sbuts->mainb == BCONTEXT_TEXTURE)
-		ED_region_panels(C, ar, vertical, "texture", sbuts->mainb);
+		ED_region_panels(C, ar, "texture", sbuts->mainb, vertical);
 	else if (sbuts->mainb == BCONTEXT_PARTICLE)
-		ED_region_panels(C, ar, vertical, "particle", sbuts->mainb);
+		ED_region_panels(C, ar, "particle", sbuts->mainb, vertical);
 	else if (sbuts->mainb == BCONTEXT_PHYSICS)
-		ED_region_panels(C, ar, vertical, "physics", sbuts->mainb);
+		ED_region_panels(C, ar, "physics", sbuts->mainb, vertical);
 	else if (sbuts->mainb == BCONTEXT_BONE)
-		ED_region_panels(C, ar, vertical, "bone", sbuts->mainb);
+		ED_region_panels(C, ar, "bone", sbuts->mainb, vertical);
 	else if (sbuts->mainb == BCONTEXT_MODIFIER)
-		ED_region_panels(C, ar, vertical, "modifier", sbuts->mainb);
+		ED_region_panels(C, ar, "modifier", sbuts->mainb, vertical);
 	else if (sbuts->mainb == BCONTEXT_CONSTRAINT)
-		ED_region_panels(C, ar, vertical, "constraint", sbuts->mainb);
+		ED_region_panels(C, ar, "constraint", sbuts->mainb, vertical);
 	else if (sbuts->mainb == BCONTEXT_BONE_CONSTRAINT)
-		ED_region_panels(C, ar, vertical, "bone_constraint", sbuts->mainb);
+		ED_region_panels(C, ar, "bone_constraint", sbuts->mainb, vertical);
 
 	sbuts->re_align = 0;
 	sbuts->mainbo = sbuts->mainb;

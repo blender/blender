@@ -61,11 +61,14 @@ void    ED_region_tag_redraw_partial(struct ARegion *ar, const struct rcti *rct)
 void    ED_region_tag_redraw_overlay(struct ARegion *ar);
 void    ED_region_tag_refresh_ui(struct ARegion *ar);
 void    ED_region_panels_init(struct wmWindowManager *wm, struct ARegion *ar);
-void    ED_region_panels(const struct bContext *C, struct ARegion *ar, int vertical, const char *context, int contextnr);
+void    ED_region_panels(
+            const struct bContext *C, struct ARegion *ar,
+            const char *context, int contextnr,
+            const bool vertical);
 void    ED_region_header_init(struct ARegion *ar);
 void    ED_region_header(const struct bContext *C, struct ARegion *ar);
 void    ED_region_toggle_hidden(struct bContext *C, struct ARegion *ar);
-void    ED_region_info_draw(struct ARegion *ar, const char *text, int block, float fill_color[4]);
+void    ED_region_info_draw(struct ARegion *ar, const char *text, float fill_color[4], const bool full_redraw);
 void    ED_region_image_metadata_draw(int x, int y, struct ImBuf *ibuf, rctf frame, float zoomx, float zoomy);
 void    ED_region_grid_draw(struct ARegion *ar, float zoomx, float zoomy);
 float	ED_region_blend_factor(struct ARegion *ar);

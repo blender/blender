@@ -561,7 +561,7 @@ static void file_tools_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void file_tools_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL, -1);
+	ED_region_panels(C, ar, NULL, -1, true);
 }
 
 static void file_tools_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))

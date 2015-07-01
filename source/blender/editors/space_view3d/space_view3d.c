@@ -1093,7 +1093,7 @@ static void view3d_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void view3d_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL, -1);
+	ED_region_panels(C, ar, NULL, -1, true);
 }
 
 static void view3d_buttons_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
@@ -1199,7 +1199,7 @@ static void view3d_tools_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void view3d_tools_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, CTX_data_mode_string(C), -1);
+	ED_region_panels(C, ar, CTX_data_mode_string(C), -1, true);
 }
 
 static void view3d_props_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)

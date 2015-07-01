@@ -384,7 +384,7 @@ static void graph_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void graph_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL, -1);
+	ED_region_panels(C, ar, NULL, -1, true);
 }
 
 static void graph_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)

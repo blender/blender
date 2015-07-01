@@ -99,7 +99,7 @@ static void draw_render_info(const bContext *C,
 
 	if (rr && rr->text) {
 		float fill_color[4] = {0.0f, 0.0f, 0.0f, 0.25f};
-		ED_region_info_draw(ar, rr->text, 1, fill_color);
+		ED_region_info_draw(ar, rr->text, fill_color, true);
 	}
 
 	BKE_image_release_renderresult(stats_scene, ima);

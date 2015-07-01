@@ -252,11 +252,11 @@ static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	char str[256] = {0};
-	bool block = false;
+	bool full_redraw = false;
 
 	if (tracking->stats) {
 		BLI_strncpy(str, tracking->stats->message, sizeof(str));
-		block = true;
+		full_redraw = true;
 	}
 	else {
 		if (sc->flag & SC_LOCK_SELECTION)
@@ -265,7 +265,7 @@ static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)
 
 	if (str[0]) {
 		float fill_color[4] = {0.0f, 0.0f, 0.0f, 0.6f};
-		ED_region_info_draw(ar, str, block, fill_color);
+		ED_region_info_draw(ar, str, fill_color, full_redraw);
 	}
 }
 

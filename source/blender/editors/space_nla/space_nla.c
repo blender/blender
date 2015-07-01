@@ -349,7 +349,7 @@ static void nla_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void nla_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL, -1);
+	ED_region_panels(C, ar, NULL, -1, true);
 }
 
 static void nla_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)

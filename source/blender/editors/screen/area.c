@@ -1716,7 +1716,7 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 
 /************************ standard UI regions ************************/
 
-void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *context, int contextnr)
+void ED_region_panels(const bContext *C, ARegion *ar, const char *context, int contextnr, const bool vertical)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	uiStyle *style = UI_style_get_dpi();
@@ -2030,7 +2030,7 @@ int ED_area_headersize(void)
 	return (int)(HEADERY * UI_DPI_FAC);
 }
 
-void ED_region_info_draw(ARegion *ar, const char *text, int block, float fill_color[4])
+void ED_region_info_draw(ARegion *ar, const char *text, float fill_color[4], const bool full_redraw)
 {
 	const int header_height = UI_UNIT_Y;
 	uiStyle *style = UI_style_get_dpi();
@@ -2043,7 +2043,7 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float fill_co
 	rect.ymin = BLI_rcti_size_y(&ar->winrct) - header_height;
 
 	/* box fill entire width or just around text */
-	if (!block)
+	if (!full_redraw)
 		rect.xmax = min_ii(rect.xmax, rect.xmin + BLF_width(fontid, text, BLF_DRAW_STR_DUMMY_MAX) + 1.2f * U.widget_unit);
 
 	rect.ymax = BLI_rcti_size_y(&ar->winrct);

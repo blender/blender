@@ -598,7 +598,7 @@ static void node_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void node_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL, -1);
+	ED_region_panels(C, ar, NULL, -1, true);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -614,7 +614,7 @@ static void node_toolbar_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void node_toolbar_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL, -1);
+	ED_region_panels(C, ar, NULL, -1, true);
 }
 
 static void node_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)

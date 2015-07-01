@@ -3581,7 +3581,7 @@ static void view3d_main_area_draw_engine_info(View3D *v3d, RegionView3D *rv3d, A
 		fill_color[3] = 1.0f;
 	}
 
-	ED_region_info_draw(ar, rv3d->render_engine->text, 1, fill_color);
+	ED_region_info_draw(ar, rv3d->render_engine->text, fill_color, true);
 }
 
 static bool view3d_stereo3d_active(const bContext *C, Scene *scene, View3D *v3d, RegionView3D *rv3d)

@@ -282,7 +282,7 @@ static void logic_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void logic_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL, -1);
+	ED_region_panels(C, ar, NULL, -1, true);
 }
 
 /************************* header region **************************/
