@@ -941,9 +941,22 @@ public:
 		else
 			mem_flag = CL_MEM_READ_WRITE;
 
-		mem.device_pointer = (device_ptr)clCreateBuffer(cxContext, mem_flag, size, mem_ptr, &ciErr);
-
-		opencl_assert_err(ciErr, "clCreateBuffer");
+		/* Zero-size allocation might be invoked by render, but not really
+		 * supported by OpenCL. Using NULL as device pointer also doesn't really
+		 * work for some reason, so for the time being we'll use special case
+		 * will null_mem buffer.
+		 */
+		if(size != 0) {
+			mem.device_pointer = (device_ptr)clCreateBuffer(cxContext,
+			                                                mem_flag,
+			                                                size,
+			                                                mem_ptr,
+			                                                &ciErr);
+			opencl_assert_err(ciErr, "clCreateBuffer");
+		}
+		else {
+			mem.device_pointer = null_mem;
+		}
 
 		stats.mem_alloc(size);
 		mem.device_size = size;
@@ -953,15 +966,31 @@ public:
 	{
 		/* this is blocking */
 		size_t size = mem.memory_size();
-		opencl_assert(clEnqueueWriteBuffer(cqCommandQueue, CL_MEM_PTR(mem.device_pointer), CL_TRUE, 0, size, (void*)mem.data_pointer, 0, NULL, NULL));
+		if(size != 0){
+			opencl_assert(clEnqueueWriteBuffer(cqCommandQueue,
+			                                   CL_MEM_PTR(mem.device_pointer),
+			                                   CL_TRUE,
+			                                   0,
+			                                   size,
+			                                   (void*)mem.data_pointer,
+			                                   0,
+			                                   NULL, NULL));
+		}
 	}
 
 	void mem_copy_from(device_memory& mem, int y, int w, int h, int elem)
 	{
 		size_t offset = elem*y*w;
 		size_t size = elem*w*h;
-
-		opencl_assert(clEnqueueReadBuffer(cqCommandQueue, CL_MEM_PTR(mem.device_pointer), CL_TRUE, offset, size, (uchar*)mem.data_pointer + offset, 0, NULL, NULL));
+		assert(size != 0);
+		opencl_assert(clEnqueueReadBuffer(cqCommandQueue,
+		                                  CL_MEM_PTR(mem.device_pointer),
+		                                  CL_TRUE,
+		                                  offset,
+		                                  size,
+		                                  (uchar*)mem.data_pointer + offset,
+		                                  0,
+		                                  NULL, NULL));
 	}
 
 	void mem_zero(device_memory& mem)
@@ -975,7 +1004,9 @@ public:
 	void mem_free(device_memory& mem)
 	{
 		if(mem.device_pointer) {
-			opencl_assert(clReleaseMemObject(CL_MEM_PTR(mem.device_pointer)));
+			if(mem.device_pointer != null_mem) {
+				opencl_assert(clReleaseMemObject(CL_MEM_PTR(mem.device_pointer)));
+			}
 			mem.device_pointer = 0;
 
 			stats.mem_free(mem.device_size);
@@ -3325,10 +3356,9 @@ protected:
 	cl_mem mem_alloc(size_t bufsize, cl_mem_flags mem_flag = CL_MEM_READ_WRITE)
 	{
 		cl_mem ptr;
+		assert(bufsize != 0);
 		ptr = clCreateBuffer(cxContext, mem_flag, bufsize, NULL, &ciErr);
-		if(opencl_error(ciErr)) {
-			assert(0);
-		}
+		opencl_assert_err(ciErr, "clCreateBuffer");
 		return ptr;
 	}
 };
