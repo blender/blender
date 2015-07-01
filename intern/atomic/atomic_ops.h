@@ -215,7 +215,7 @@ atomic_sub_uint64(uint64_t *p, uint64_t x)
 }
 
 ATOMIC_INLINE uint64_t
-atomic_cas_uint32(uint64_t *v, uint64_t old, uint64_t _new)
+atomic_cas_uint64(uint64_t *v, uint64_t old, uint64_t _new)
 {
 	assert(sizeof(uint64_t) == sizeof(unsigned long));
 
@@ -235,7 +235,7 @@ atomic_sub_uint64(uint64_t *p, uint64_t x)
 }
 
 ATOMIC_INLINE uint64_t
-atomic_cas_uint32(uint64_t *v, uint64_t old, uint64_t _new)
+atomic_cas_uint64(uint64_t *v, uint64_t old, uint64_t _new)
 {
 	return __sync_val_compare_and_swap(v, old, _new);
 }
