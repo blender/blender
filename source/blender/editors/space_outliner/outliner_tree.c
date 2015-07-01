@@ -988,7 +988,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		te->directdata = seq;
 		te->name = seq->name + 2;
 
-		if (seq->type < SEQ_TYPE_EFFECT) {
+		if (!(seq->type & SEQ_TYPE_EFFECT)) {
 			/*
 			 * This work like the sequence.
 			 * If the sequence have a name (not default name)

@@ -395,7 +395,7 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, const float handsize_cla
 	}
 	
 	/* draw! */
-	if (seq->type < SEQ_TYPE_EFFECT || 
+	if (!(seq->type & SEQ_TYPE_EFFECT) ||
 	    BKE_sequence_effect_get_num_inputs(seq->type) == 0)
 	{
 		glEnable(GL_BLEND);
