@@ -49,6 +49,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -1568,7 +1569,6 @@ static int game_engine_poll(bContext *C)
 
 	if (CTX_wm_window(C) == NULL) return 0;
 	if ((screen = CTX_wm_screen(C)) == NULL) return 0;
-	if (CTX_wm_area(C) == NULL) return 0;
 
 	if (CTX_data_mode_enum(C) != CTX_MODE_OBJECT)
 		return 0;
@@ -1586,20 +1586,18 @@ bool ED_view3d_context_activate(bContext *C)
 	ARegion *ar;
 
 	/* sa can be NULL when called from python */
-	if (sa == NULL || sa->spacetype != SPACE_VIEW3D)
-		for (sa = sc->areabase.first; sa; sa = sa->next)
-			if (sa->spacetype == SPACE_VIEW3D)
-				break;
+	if (sa == NULL || sa->spacetype != SPACE_VIEW3D) {
+		sa = BKE_screen_find_big_area(sc, SPACE_VIEW3D, 0);
+	}
 
-	if (!sa)
+	if (sa == NULL) {
 		return false;
+	}
 	
-	for (ar = sa->regionbase.first; ar; ar = ar->next)
-		if (ar->regiontype == RGN_TYPE_WINDOW)
-			break;
-	
-	if (!ar)
+	ar = BKE_area_find_region_active_win(sa);
+	if (ar == NULL) {
 		return false;
+	}
 	
 	/* bad context switch .. */
 	CTX_wm_area_set(C, sa);
