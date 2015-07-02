@@ -234,11 +234,11 @@ void   BLI_gset_clear_ex(GSet *gs, GSetKeyFreeFP keyfreefp,
                          const unsigned int nentries_reserve);
 void   BLI_gset_clear(GSet *gs, GSetKeyFreeFP keyfreefp);
 
-GSet *BLI_gset_ptr_new_ex(const char *info,
-                          const unsigned int nentries_reserve) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
+GSet *BLI_gset_ptr_new_ex(const char *info, const unsigned int nentries_reserve) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 GSet *BLI_gset_ptr_new(const char *info);
-GSet *BLI_gset_pair_new_ex(const char *info,
-                            const unsigned int nentries_reserve) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
+GSet *BLI_gset_str_new_ex(const char *info, const unsigned int nentries_reserve) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
+GSet *BLI_gset_str_new(const char *info);
+GSet *BLI_gset_pair_new_ex(const char *info, const unsigned int nentries_reserve) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 GSet *BLI_gset_pair_new(const char *info) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 
 /* rely on inline api for now */
