@@ -700,7 +700,7 @@ CcdPhysicsController::~CcdPhysicsController()
 void CcdPhysicsController::SimulationTick(float timestep)
 {
 	btRigidBody *body = GetRigidBody();
-	if (!body && body->isStaticObject())
+	if (!body || body->isStaticObject())
 		return;
 
 	// Clamp linear velocity
