@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Blender
-GenericName=3D modeller
+GenericName=3D modeler
 GenericName[de]=3D-Modellierer
 GenericName[es]=Modelador 3D
 GenericName[fr]=Modeleur 3D
@@ -9,6 +9,7 @@ Comment=3D modeling, animation, rendering and post-production
 Comment[de]=3D-Modellierung, Animation, Rendering und Nachbearbeitung
 Comment[es]=Modelado 3D, animación, renderizado y post-producción
 Comment[fr]=Modelage 3D, animation, rendu et post-production
+Keywords=3d;cg;modeling;animation;painting;sculpting;texturing;video editing;video tracking;rendering;render engine;cycles;game engine;python;
 Exec=blender %f
 Icon=blender
 Terminal=false
