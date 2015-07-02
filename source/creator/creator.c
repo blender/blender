@@ -366,21 +366,22 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	BLI_argsPrintArgDoc(ba, "--enable-new-depsgraph");
 
 	printf("Argument Parsing:\n");
-	printf("\targuments must be separated by white space. eg\n");
-	printf("\t\t\"blender -ba test.blend\"\n");
+	printf("\tArguments must be separated by white space, eg:\n");
+	printf("\t# blender -ba test.blend\n");
 	printf("\t...will ignore the 'a'\n");
-	printf("\t\t\"blender -b test.blend -f8\"\n");
-	printf("\t...will ignore 8 because there is no space between the -f and the frame value\n\n");
+	printf("\t# blender -b test.blend -f8\n");
+	printf("\t...will ignore '8' because there is no space between the '-f' and the frame value\n\n");
 
 	printf("Argument Order:\n");
-	printf("\targuments are executed in the order they are given. eg\n");
-	printf("\t\t\"blender --background test.blend --render-frame 1 --render-output /tmp\"\n");
-	printf("\t...will not render to /tmp because '--render-frame 1' renders before the output path is set\n");
-	printf("\t\t\"blender --background --render-output /tmp test.blend --render-frame 1\"\n");
-	printf("\t...will not render to /tmp because loading the blend file overwrites the render output that was set\n");
-	printf("\t\t\"blender --background test.blend --render-output /tmp --render-frame 1\" works as expected.\n\n");
+	printf("\tArguments are executed in the order they are given. eg:\n");
+	printf("\t# blender --background test.blend --render-frame 1 --render-output '/tmp'\n");
+	printf("\t...will not render to '/tmp' because '--render-frame 1' renders before the output path is set\n");
+	printf("\t# blender --background --render-output /tmp test.blend --render-frame 1\n");
+	printf("\t...will not render to '/tmp' because loading the blend file overwrites the render output that was set\n");
+	printf("\t# blender --background test.blend --render-output /tmp --render-frame 1\n");
+	printf("\t...works as expected.\n\n");
 
-	printf("\nEnvironment Variables:\n");
+	printf("Environment Variables:\n");
 	printf("  $BLENDER_USER_CONFIG      Directory for user configuration files.\n");
 	printf("  $BLENDER_USER_SCRIPTS     Directory for user scripts.\n");
 	printf("  $BLENDER_SYSTEM_SCRIPTS   Directory for system wide scripts.\n");
@@ -1447,15 +1448,17 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 {
 	static char output_doc[] = "<path>"
 		"\n\tSet the render path and file name."
-		"\n\tUse // at the start of the path to"
-		"\n\t\trender relative to the blend file."
-		"\n\tThe # characters are replaced by the frame number, and used to define zero padding."
-		"\n\t\tani_##_test.png becomes ani_01_test.png"
-		"\n\t\ttest-######.png becomes test-000001.png"
-		"\n\t\tWhen the filename does not contain #, The suffix #### is added to the filename"
-		"\n\tThe frame number will be added at the end of the filename."
-		"\n\t\teg: blender -b foobar.blend -o //render_ -F PNG -x 1 -a"
-		"\n\t\t//render_ becomes //render_####, writing frames as //render_0001.png//";
+		"\n\tUse '//' at the start of the path to render relative to the blend file."
+		"\n"
+		"\n\tThe '#' characters are replaced by the frame number, and used to define zero padding."
+		"\n\t* 'ani_##_test.png' becomes 'ani_01_test.png'"
+		"\n\t* 'test-######.png' becomes 'test-000001.png'"
+		"\n"
+		"\n\tWhen the filename does not contain '#', The suffix '####' is added to the filename."
+		"\n"
+		"\n\tThe frame number will be added at the end of the filename, eg:"
+		"\n\t# blender -b foobar.blend -o //render_ -F PNG -x 1 -a"
+		"\n\t'//render_' becomes '//render_####', writing frames as '//render_0001.png'";
 
 	static char format_doc[] = "<format>"
 		"\n\tSet the render format, Valid options are..."
@@ -1482,12 +1485,12 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	static char debug_doc[] = "\n\tTurn debugging on\n"
 		"\n\t* Prints every operator call and their arguments"
 		"\n\t* Disables mouse grab (to interact with a debugger in some cases)"
-		"\n\t* Keeps python sys.stdin rather than setting it to None";
+		"\n\t* Keeps Python's 'sys.stdin' rather than setting it to None";
 
 	//BLI_argsAdd(ba, pass, short_arg, long_arg, doc, cb, C);
 
 	/* end argument processing after -- */
-	BLI_argsAdd(ba, -1, "--", NULL, "\n\tEnds option processing, following arguments passed unchanged. Access via python's sys.argv", end_arguments, NULL);
+	BLI_argsAdd(ba, -1, "--", NULL, "\n\tEnds option processing, following arguments passed unchanged. Access via Python's 'sys.argv'", end_arguments, NULL);
 
 	/* first pass: background mode, disable python and commands that exit after usage */
 	BLI_argsAdd(ba, 1, "-h", "--help", "\n\tPrint this help text and exit", print_help, ba);
@@ -1505,8 +1508,8 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 #  define   PY_DISABLE_AUTO ", (compiled as non-standard default)"
 #endif
 
-	BLI_argsAdd(ba, 1, "-y", "--enable-autoexec", "\n\tEnable automatic python script execution" PY_ENABLE_AUTO, enable_python, NULL);
-	BLI_argsAdd(ba, 1, "-Y", "--disable-autoexec", "\n\tDisable automatic python script execution (pydrivers & startup scripts)" PY_DISABLE_AUTO, disable_python, NULL);
+	BLI_argsAdd(ba, 1, "-y", "--enable-autoexec", "\n\tEnable automatic Python script execution" PY_ENABLE_AUTO, enable_python, NULL);
+	BLI_argsAdd(ba, 1, "-Y", "--disable-autoexec", "\n\tDisable automatic Python script execution (pydrivers & startup scripts)" PY_DISABLE_AUTO, disable_python, NULL);
 
 	BLI_argsAdd(ba, 1, NULL, "--disable-crash-handler", "\n\tDisable the crash handler", disable_crash_handler, NULL);
 	BLI_argsAdd(ba, 1, NULL, "--disable-abort-handler", "\n\tDisable the abort handler", disable_abort_handler, NULL);
@@ -1528,7 +1531,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, NULL, "--debug-freestyle", "\n\tEnable debug/profiling messages from Freestyle rendering", debug_mode_generic, (void *)G_DEBUG_FREESTYLE);
 #endif
 
-	BLI_argsAdd(ba, 1, NULL, "--debug-python", "\n\tEnable debug messages for python", debug_mode_generic, (void *)G_DEBUG_PYTHON);
+	BLI_argsAdd(ba, 1, NULL, "--debug-python", "\n\tEnable debug messages for Python", debug_mode_generic, (void *)G_DEBUG_PYTHON);
 	BLI_argsAdd(ba, 1, NULL, "--debug-events", "\n\tEnable debug messages for the event system", debug_mode_generic, (void *)G_DEBUG_EVENTS);
 	BLI_argsAdd(ba, 1, NULL, "--debug-handlers", "\n\tEnable debug messages for event handling", debug_mode_generic, (void *)G_DEBUG_HANDLERS);
 	BLI_argsAdd(ba, 1, NULL, "--debug-wm",     "\n\tEnable debug messages for the window manager", debug_mode_generic, (void *)G_DEBUG_WM);
