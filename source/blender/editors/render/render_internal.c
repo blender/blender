@@ -792,13 +792,13 @@ static void clean_viewport_memory(Main *bmain, Scene *scene, int renderlay)
 		if ((base->lay & renderlay) == 0) {
 			continue;
 		}
-
 		if (RE_allow_render_generic_object(base->object)) {
 			base->object->id.flag &= ~LIB_DOIT;
 		}
 	}
 
-	for (object = bmain->object.first; object; object = object->id.next) {
+	for (SETLOOPER(scene, sce_iter, base)) {
+		object = base->object;
 		if ((object->id.flag & LIB_DOIT) == 0) {
 			continue;
 		}
