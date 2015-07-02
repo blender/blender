@@ -318,7 +318,7 @@ static void meshdeformModifier_do(
 	 */
 	if (mmd->object == md->scene->obedit) {
 		BMEditMesh *em = BKE_editmesh_from_object(mmd->object);
-		tmpdm = editbmesh_get_derived_cage_and_final(md->scene, mmd->object, em, &cagedm, 0);
+		tmpdm = editbmesh_get_derived_cage_and_final(md->scene, mmd->object, em, 0, &cagedm);
 		if (tmpdm)
 			tmpdm->release(tmpdm);
 	}

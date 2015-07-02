@@ -2371,7 +2371,7 @@ static void createTransEditVerts(TransInfo *t)
 		if (modifiers_isCorrectableDeformed(t->scene, t->obedit)) {
 			/* check if we can use deform matrices for modifier from the
 			 * start up to stack, they are more accurate than quats */
-			totleft = editbmesh_get_first_deform_matrices(t->scene, t->obedit, em, &defmats, &defcos);
+			totleft = BKE_crazyspace_get_first_deform_matrices_editbmesh(t->scene, t->obedit, em, &defmats, &defcos);
 		}
 
 		/* if we still have more modifiers, also do crazyspace

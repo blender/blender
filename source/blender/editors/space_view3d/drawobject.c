@@ -4310,8 +4310,9 @@ static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3
 		if (obedit != ob)
 			finalDM = cageDM = editbmesh_get_derived_base(ob, em);
 		else
-			cageDM = editbmesh_get_derived_cage_and_final(scene, ob, em, &finalDM,
-			                                              scene->customdata_mask);
+			cageDM = editbmesh_get_derived_cage_and_final(
+			        scene, ob, em, scene->customdata_mask,
+			        &finalDM);
 
 		DM_update_materials(finalDM, ob);
 		if (cageDM != finalDM) {

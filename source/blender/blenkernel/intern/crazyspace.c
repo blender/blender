@@ -108,7 +108,7 @@ float (*BKE_crazyspace_get_mapped_editverts(Scene *scene, Object *obedit))[3]
 	/* disable subsurf temporal, get mapped cos, and enable it */
 	if (modifiers_disable_subsurf_temporary(obedit)) {
 		/* need to make new derivemesh */
-		makeDerivedMesh(scene, obedit, me->edit_btmesh, CD_MASK_BAREMESH, 0);
+		makeDerivedMesh(scene, obedit, me->edit_btmesh, CD_MASK_BAREMESH, false);
 	}
 
 	/* now get the cage */
@@ -247,7 +247,9 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me, float (*origcos)[3], float (*mapped
 	}
 }
 
-int editbmesh_get_first_deform_matrices(Scene *scene, Object *ob, BMEditMesh *em, 
+/** returns an array of deform matrices for crazyspace correction, and the
+ * number of modifiers left */
+int BKE_crazyspace_get_first_deform_matrices_editbmesh(Scene *scene, Object *ob, BMEditMesh *em,
                                         float (**deformmats)[3][3], float (**deformcos)[3])
 {
 	ModifierData *md;

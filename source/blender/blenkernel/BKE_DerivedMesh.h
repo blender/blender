@@ -96,7 +96,6 @@ struct MCol;
 struct ColorBand;
 struct GPUVertexAttribs;
 struct GPUDrawObject;
-struct BMEditMesh;
 struct PBVH;
 
 /* number of sub-elements each mesh element has (for interpolation) */
@@ -469,25 +468,17 @@ struct DerivedMesh {
 	void (*release)(DerivedMesh *dm);
 };
 
-/** utility function to initialize a DerivedMesh's function pointers to
- * the default implementation (for those functions which have a default)
- */
 void DM_init_funcs(DerivedMesh *dm);
 
-/** utility function to initialize a DerivedMesh for the desired number
- * of vertices, edges and faces (doesn't allocate memory for them, just
- * sets up the custom data layers)
- */
-void DM_init(DerivedMesh *dm, DerivedMeshType type, int numVerts, int numEdges, 
-             int numFaces, int numLoops, int numPolys);
+void DM_init(
+        DerivedMesh *dm, DerivedMeshType type, int numVerts, int numEdges,
+        int numFaces, int numLoops, int numPolys);
 
-/** utility function to initialize a DerivedMesh for the desired number
- * of vertices, edges and faces, with a layer setup copied from source
- */
-void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
-                      DerivedMeshType type,
-                      int numVerts, int numEdges, int numFaces,
-                      int numLoops, int numPolys);
+void DM_from_template(
+        DerivedMesh *dm, DerivedMesh *source,
+        DerivedMeshType type,
+        int numVerts, int numEdges, int numFaces,
+        int numLoops, int numPolys);
 
 /** utility function to release a DerivedMesh's layers
  * returns 1 if DerivedMesh has to be released by the backend, 0 otherwise
@@ -498,8 +489,9 @@ int DM_release(DerivedMesh *dm);
  */
 void DM_to_mesh(DerivedMesh *dm, struct Mesh *me, struct Object *ob, CustomDataMask mask, bool take_ownership);
 
-struct BMEditMesh *DM_to_editbmesh(struct DerivedMesh *dm,
-                                   struct BMEditMesh *existing, const bool do_tessellate);
+struct BMEditMesh *DM_to_editbmesh(
+        struct DerivedMesh *dm,
+        struct BMEditMesh *existing, const bool do_tessellate);
 
 /* conversion to bmesh only */
 void          DM_to_bmesh_ex(struct DerivedMesh *dm, struct BMesh *bm, const bool calc_face_normal);
@@ -509,10 +501,6 @@ struct BMesh *DM_to_bmesh(struct DerivedMesh *dm, const bool calc_face_normal);
 /** Utility function to convert a DerivedMesh to a shape key block */
 void DM_to_meshkey(DerivedMesh *dm, struct Mesh *me, struct KeyBlock *kb);
 
-/** set the CD_FLAG_NOCOPY flag in custom data layers where the mask is
- * zero for the layer type, so only layer types specified by the mask
- * will be copied
- */
 void DM_set_only_copy(DerivedMesh *dm, CustomDataMask mask);
 
 /* adds a vertex/edge/face custom data layer to a DerivedMesh, optionally
@@ -520,16 +508,21 @@ void DM_set_only_copy(DerivedMesh *dm, CustomDataMask mask);
  * alloctype defines how the layer is allocated or copied, and how it is
  * freed, see BKE_customdata.h for the different options
  */
-void DM_add_vert_layer(struct DerivedMesh *dm, int type, int alloctype,
-                       void *layer);
-void DM_add_edge_layer(struct DerivedMesh *dm, int type, int alloctype,
-                       void *layer);
-void DM_add_tessface_layer(struct DerivedMesh *dm, int type, int alloctype,
-                           void *layer);
-void DM_add_loop_layer(DerivedMesh *dm, int type, int alloctype,
-                       void *layer);
-void DM_add_poly_layer(struct DerivedMesh *dm, int type, int alloctype,
-                       void *layer);
+void DM_add_vert_layer(
+        struct DerivedMesh *dm, int type, int alloctype,
+        void *layer);
+void DM_add_edge_layer(
+        struct DerivedMesh *dm, int type, int alloctype,
+        void *layer);
+void DM_add_tessface_layer(
+        struct DerivedMesh *dm, int type, int alloctype,
+        void *layer);
+void DM_add_loop_layer(
+        DerivedMesh *dm, int type, int alloctype,
+        void *layer);
+void DM_add_poly_layer(
+        struct DerivedMesh *dm, int type, int alloctype,
+        void *layer);
 
 /* custom data access functions
  * return pointer to data from first layer which matches type
@@ -564,16 +557,21 @@ void DM_set_tessface_data(struct DerivedMesh *dm, int index, int type, void *dat
  * copy count elements from source_index in source to dest_index in dest
  * these copy all layers for which the CD_FLAG_NOCOPY flag is not set
  */
-void DM_copy_vert_data(struct DerivedMesh *source, struct DerivedMesh *dest,
-                       int source_index, int dest_index, int count);
-void DM_copy_edge_data(struct DerivedMesh *source, struct DerivedMesh *dest,
-                       int source_index, int dest_index, int count);
-void DM_copy_tessface_data(struct DerivedMesh *source, struct DerivedMesh *dest,
-                           int source_index, int dest_index, int count);
-void DM_copy_loop_data(struct DerivedMesh *source, struct DerivedMesh *dest,
-                       int source_index, int dest_index, int count);
-void DM_copy_poly_data(struct DerivedMesh *source, struct DerivedMesh *dest,
-                       int source_index, int dest_index, int count);
+void DM_copy_vert_data(
+        struct DerivedMesh *source, struct DerivedMesh *dest,
+        int source_index, int dest_index, int count);
+void DM_copy_edge_data(
+        struct DerivedMesh *source, struct DerivedMesh *dest,
+        int source_index, int dest_index, int count);
+void DM_copy_tessface_data(
+        struct DerivedMesh *source, struct DerivedMesh *dest,
+        int source_index, int dest_index, int count);
+void DM_copy_loop_data(
+        struct DerivedMesh *source, struct DerivedMesh *dest,
+        int source_index, int dest_index, int count);
+void DM_copy_poly_data(
+        struct DerivedMesh *source, struct DerivedMesh *dest,
+        int source_index, int dest_index, int count);
 
 /* custom data free functions
  * free count elements, starting at index
@@ -596,49 +594,36 @@ void DM_update_tessface_data(DerivedMesh *dm);
 void DM_update_materials(DerivedMesh *dm, struct Object *ob);
 struct MTFace *DM_paint_uvlayer_active_get(DerivedMesh *dm, int mat_nr);
 
-/** interpolates vertex data from the vertices indexed by src_indices in the
- * source mesh using the given weights and stores the result in the vertex
- * indexed by dest_index in the dest mesh
- */
-void DM_interp_vert_data(struct DerivedMesh *source, struct DerivedMesh *dest,
-                         int *src_indices, float *weights,
-                         int count, int dest_index);
+void DM_interp_vert_data(
+        struct DerivedMesh *source, struct DerivedMesh *dest,
+        int *src_indices, float *weights,
+        int count, int dest_index);
 
-/** interpolates edge data from the edges indexed by src_indices in the
- * source mesh using the given weights and stores the result in the edge indexed
- * by dest_index in the dest mesh.
- * if weights is NULL, all weights default to 1.
- * if vert_weights is non-NULL, any per-vertex edge data is interpolated using
- * vert_weights[i] multiplied by weights[i].
- */
 typedef float EdgeVertWeight[SUB_ELEMS_EDGE][SUB_ELEMS_EDGE];
-void DM_interp_edge_data(struct DerivedMesh *source, struct DerivedMesh *dest,
-                         int *src_indices,
-                         float *weights, EdgeVertWeight *vert_weights,
-                         int count, int dest_index);
+void DM_interp_edge_data(
+        struct DerivedMesh *source, struct DerivedMesh *dest,
+        int *src_indices,
+        float *weights, EdgeVertWeight *vert_weights,
+        int count, int dest_index);
 
-/** interpolates face data from the faces indexed by src_indices in the
- * source mesh using the given weights and stores the result in the face indexed
- * by dest_index in the dest mesh.
- * if weights is NULL, all weights default to 1.
- * if vert_weights is non-NULL, any per-vertex face data is interpolated using
- * vert_weights[i] multiplied by weights[i].
- */
 typedef float FaceVertWeight[SUB_ELEMS_FACE][SUB_ELEMS_FACE];
-void DM_interp_tessface_data(struct DerivedMesh *source, struct DerivedMesh *dest,
-                             int *src_indices,
-                             float *weights, FaceVertWeight *vert_weights,
-                             int count, int dest_index);
+void DM_interp_tessface_data(
+        struct DerivedMesh *source, struct DerivedMesh *dest,
+        int *src_indices,
+        float *weights, FaceVertWeight *vert_weights,
+        int count, int dest_index);
 
 void DM_swap_tessface_data(struct DerivedMesh *dm, int index, const int *corner_indices);
 
-void DM_interp_loop_data(struct DerivedMesh *source, struct DerivedMesh *dest,
-                         int *src_indices,
-                         float *weights, int count, int dest_index);
+void DM_interp_loop_data(
+        struct DerivedMesh *source, struct DerivedMesh *dest,
+        int *src_indices,
+        float *weights, int count, int dest_index);
 
-void DM_interp_poly_data(struct DerivedMesh *source, struct DerivedMesh *dest,
-                         int *src_indices,
-                         float *weights, int count, int dest_index);
+void DM_interp_poly_data(
+        struct DerivedMesh *source, struct DerivedMesh *dest,
+        int *src_indices,
+        float *weights, int count, int dest_index);
 
 /* Temporary? A function to give a colorband to derivedmesh for vertexcolor ranges */
 void vDM_ColorBand_store(const struct ColorBand *coba, const char alert_color[4]);
@@ -653,56 +638,67 @@ DMCoNo *mesh_get_mapped_verts_nors(struct Scene *scene, struct Object *ob);
 void mesh_get_mapped_verts_coords(DerivedMesh *dm, float (*r_cos)[3], const int totcos);
 
 /* */
-DerivedMesh *mesh_get_derived_final(struct Scene *scene, struct Object *ob,
-                                    CustomDataMask dataMask);
-DerivedMesh *mesh_get_derived_deform(struct Scene *scene, struct Object *ob,
-                                     CustomDataMask dataMask);
+DerivedMesh *mesh_get_derived_final(
+        struct Scene *scene, struct Object *ob,
+        CustomDataMask dataMask);
+DerivedMesh *mesh_get_derived_deform(
+        struct Scene *scene, struct Object *ob,
+        CustomDataMask dataMask);
 
-DerivedMesh *mesh_create_derived_for_modifier(struct Scene *scene, struct Object *ob,
-                                              struct ModifierData *md, int build_shapekey_layers);
+DerivedMesh *mesh_create_derived_for_modifier(
+        struct Scene *scene, struct Object *ob,
+        struct ModifierData *md, int build_shapekey_layers);
 
-DerivedMesh *mesh_create_derived_render(struct Scene *scene, struct Object *ob,
-                                        CustomDataMask dataMask);
+DerivedMesh *mesh_create_derived_render(
+        struct Scene *scene, struct Object *ob,
+        CustomDataMask dataMask);
 
-DerivedMesh *getEditDerivedBMesh(struct BMEditMesh *em, struct Object *ob,
-                                 float (*vertexCos)[3]);
+DerivedMesh *getEditDerivedBMesh(
+        struct BMEditMesh *em, struct Object *ob,
+        float (*vertexCos)[3]);
 
-DerivedMesh *mesh_create_derived_index_render(struct Scene *scene, struct Object *ob, CustomDataMask dataMask, int index);
+DerivedMesh *mesh_create_derived_index_render(
+        struct Scene *scene, struct Object *ob,
+        CustomDataMask dataMask, int index);
 
 /* same as above but wont use render settings */
 DerivedMesh *mesh_create_derived(struct Mesh *me, float (*vertCos)[3]);
-DerivedMesh *mesh_create_derived_view(struct Scene *scene, struct Object *ob,
-                                      CustomDataMask dataMask);
-DerivedMesh *mesh_create_derived_no_deform(struct Scene *scene, struct Object *ob,
-                                           float (*vertCos)[3],
-                                           CustomDataMask dataMask);
-DerivedMesh *mesh_create_derived_no_deform_render(struct Scene *scene, struct Object *ob,
-                                                  float (*vertCos)[3],
-                                                  CustomDataMask dataMask);
+DerivedMesh *mesh_create_derived_view(
+        struct Scene *scene, struct Object *ob,
+        CustomDataMask dataMask);
+DerivedMesh *mesh_create_derived_no_deform(
+        struct Scene *scene, struct Object *ob,
+        float (*vertCos)[3],
+        CustomDataMask dataMask);
+DerivedMesh *mesh_create_derived_no_deform_render(
+        struct Scene *scene, struct Object *ob,
+        float (*vertCos)[3],
+        CustomDataMask dataMask);
 /* for gameengine */
-DerivedMesh *mesh_create_derived_no_virtual(struct Scene *scene, struct Object *ob, float (*vertCos)[3],
-                                            CustomDataMask dataMask);
-DerivedMesh *mesh_create_derived_physics(struct Scene *scene, struct Object *ob, float (*vertCos)[3],
-                                         CustomDataMask dataMask);
+DerivedMesh *mesh_create_derived_no_virtual(
+        struct Scene *scene, struct Object *ob, float (*vertCos)[3],
+        CustomDataMask dataMask);
+DerivedMesh *mesh_create_derived_physics(
+        struct Scene *scene, struct Object *ob, float (*vertCos)[3],
+        CustomDataMask dataMask);
 
-DerivedMesh *editbmesh_get_derived_base(struct Object *, struct BMEditMesh *em);
-DerivedMesh *editbmesh_get_derived_cage(struct Scene *scene, struct Object *, 
-                                        struct BMEditMesh *em, CustomDataMask dataMask);
-DerivedMesh *editbmesh_get_derived_cage_and_final(struct Scene *scene, struct Object *, 
-                                                  struct BMEditMesh *em, DerivedMesh **r_final,
-                                                  CustomDataMask dataMask);
+DerivedMesh *editbmesh_get_derived_base(
+        struct Object *, struct BMEditMesh *em);
+DerivedMesh *editbmesh_get_derived_cage(
+        struct Scene *scene, struct Object *,
+        struct BMEditMesh *em, CustomDataMask dataMask);
+DerivedMesh *editbmesh_get_derived_cage_and_final(
+        struct Scene *scene, struct Object *,
+        struct BMEditMesh *em, CustomDataMask dataMask,
+        DerivedMesh **r_final);
 
 DerivedMesh *object_get_derived_final(struct Object *ob, const bool for_render);
 
 float (*editbmesh_get_vertex_cos(struct BMEditMesh *em, int *r_numVerts))[3];
 bool editbmesh_modifier_is_enabled(struct Scene *scene, struct ModifierData *md, DerivedMesh *dm);
-void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct BMEditMesh *em, 
-                     CustomDataMask dataMask, int build_shapekey_layers);
-
-/** returns an array of deform matrices for crazyspace correction, and the
- * number of modifiers left */
-int editbmesh_get_first_deform_matrices(struct Scene *, struct Object *, struct BMEditMesh *em,
-                                        float (**deformmats)[3][3], float (**deformcos)[3]);
+void makeDerivedMesh(
+        struct Scene *scene, struct Object *ob, struct BMEditMesh *em,
+        CustomDataMask dataMask, const bool build_shapekey_layers);
 
 void weight_to_rgb(float r_rgb[3], const float weight);
 /** Update the weight MCOL preview layer.
@@ -712,8 +708,9 @@ void weight_to_rgb(float r_rgb[3], const float weight);
  *     Else, it must be of num length, as indices, which contains vertices' idx to apply weights to.
  *         (other vertices are assumed zero weight).
  */
-void DM_update_weight_mcol(struct Object *ob, struct DerivedMesh *dm, int const draw_flag,
-                           float *weights, int num, const int *indices);
+void DM_update_weight_mcol(
+        struct Object *ob, struct DerivedMesh *dm, int const draw_flag,
+        float *weights, int num, const int *indices);
 
 /** convert layers requested by a GLSL material to actually available layers in
  * the DerivedMesh, with both a pointer for arrays and an offset for editmesh */
@@ -741,8 +738,9 @@ typedef struct DMVertexAttribs {
 	int tottface, totmcol, tottang, totorco;
 } DMVertexAttribs;
 
-void DM_vertex_attributes_from_gpu(DerivedMesh *dm,
-                                   struct GPUVertexAttribs *gattribs, DMVertexAttribs *attribs);
+void DM_vertex_attributes_from_gpu(
+        DerivedMesh *dm,
+        struct GPUVertexAttribs *gattribs, DMVertexAttribs *attribs);
 
 void DM_draw_attrib_vertex(DMVertexAttribs *attribs, int a, int index, int vert);
 
@@ -763,9 +761,11 @@ void DM_debug_print_cdlayers(CustomData *cdata);
 bool DM_is_valid(DerivedMesh *dm);
 #endif
 
-BLI_INLINE int DM_origindex_mface_mpoly(const int *index_mf_to_mpoly, const int *index_mp_to_orig, const int i) ATTR_NONNULL(1);
+BLI_INLINE int DM_origindex_mface_mpoly(
+        const int *index_mf_to_mpoly, const int *index_mp_to_orig, const int i) ATTR_NONNULL(1);
 
-BLI_INLINE int DM_origindex_mface_mpoly(const int *index_mf_to_mpoly, const int *index_mp_to_orig, const int i)
+BLI_INLINE int DM_origindex_mface_mpoly(
+        const int *index_mf_to_mpoly, const int *index_mp_to_orig, const int i)
 {
 	const int j = index_mf_to_mpoly[i];
 	return (j != ORIGINDEX_NONE) ? (index_mp_to_orig ? index_mp_to_orig[j] : j) : ORIGINDEX_NONE;

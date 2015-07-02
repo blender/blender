@@ -2359,7 +2359,7 @@ float (*BKE_editmesh_vertexCos_get(BMEditMesh *em, Scene *scene, int *r_numVerts
 	struct CageUserData data;
 	float (*cos_cage)[3];
 
-	cage = editbmesh_get_derived_cage_and_final(scene, em->ob, em, &final, CD_MASK_BAREMESH);
+	cage = editbmesh_get_derived_cage_and_final(scene, em->ob, em, CD_MASK_BAREMESH, &final);
 	cos_cage = MEM_callocN(sizeof(*cos_cage) * em->bm->totvert, "bmbvh cos_cage");
 
 	/* when initializing cage verts, we only want the first cage coordinate for each vertex,
