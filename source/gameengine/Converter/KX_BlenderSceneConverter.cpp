@@ -1359,14 +1359,18 @@ bool KX_BlenderSceneConverter::MergeScene(KX_Scene *to, KX_Scene *from)
 	}
 
 	MaterialCache::iterator matcacheit = m_mat_cache.find(from);
-	// Merge cached BL_Material map.
-	m_mat_cache[to].insert(matcacheit->second.begin(), matcacheit->second.end());
-	m_mat_cache.erase(matcacheit);
+	if (matcacheit != m_mat_cache.end()) {
+		// Merge cached BL_Material map.
+		m_mat_cache[to].insert(matcacheit->second.begin(), matcacheit->second.end());
+		m_mat_cache.erase(matcacheit);
+	}
 
 	PolyMaterialCache::iterator polymatcacheit = m_polymat_cache.find(from);
-	// Merge cached RAS_IPolyMaterial map.
-	m_polymat_cache[to].insert(polymatcacheit->second.begin(), polymatcacheit->second.end());
-	m_polymat_cache.erase(polymatcacheit);
+	if (polymatcacheit != m_polymat_cache.end()) {
+		// Merge cached RAS_IPolyMaterial map.
+		m_polymat_cache[to].insert(polymatcacheit->second.begin(), polymatcacheit->second.end());
+		m_polymat_cache.erase(polymatcacheit);
+	}
 
 	return true;
 }
