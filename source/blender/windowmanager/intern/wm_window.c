@@ -400,6 +400,10 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, const char *title, wm
 	if (win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP)
 		glSettings.flags |= GHOST_glStereoVisual;
 
+	if (G.debug & G_DEBUG_GPU) {
+		glSettings.flags |= GHOST_glDebugContext;
+	}
+
 	if (!(U.uiflag2 & USER_OPENGL_NO_WARN_SUPPORT))
 		glSettings.flags |= GHOST_glWarnSupport;
 

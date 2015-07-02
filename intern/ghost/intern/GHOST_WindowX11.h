@@ -88,7 +88,8 @@ public:
 	    GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
 	    const bool stereoVisual = false,
 	    const bool exclusive = false,
-	    const GHOST_TUns16 numOfAASamples = 0
+	    const GHOST_TUns16 numOfAASamples = 0,
+	    const bool is_debug = false
 	    );
 
 	bool
@@ -354,6 +355,7 @@ private:
 #endif
 
 	bool m_valid_setup;
+	bool m_is_debug_context;
 
 	void icccmSetState(int state);
 	int icccmGetState() const;

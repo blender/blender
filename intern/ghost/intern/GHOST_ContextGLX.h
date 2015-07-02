@@ -46,11 +46,8 @@ extern "C" GLXEWContext *glxewContext;
 
 
 #ifndef GHOST_OPENGL_GLX_CONTEXT_FLAGS
-#  ifdef WITH_GPU_DEBUG
-#    define GHOST_OPENGL_GLX_CONTEXT_FLAGS GLX_CONTEXT_DEBUG_BIT_ARB
-#  else
-#    define GHOST_OPENGL_GLX_CONTEXT_FLAGS 0
-#  endif
+/* leave as convenience define for the future */
+#define GHOST_OPENGL_GLX_CONTEXT_FLAGS 0
 #endif
 
 #ifndef GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY

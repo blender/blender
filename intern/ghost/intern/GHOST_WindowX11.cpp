@@ -272,8 +272,7 @@ static XVisualInfo *x11_visualinfo_from_glx(
 }
 
 GHOST_WindowX11::
-GHOST_WindowX11(
-        GHOST_SystemX11 *system,
+GHOST_WindowX11(GHOST_SystemX11 *system,
         Display *display,
         const STR_String &title,
         GHOST_TInt32 left,
@@ -285,7 +284,7 @@ GHOST_WindowX11(
         GHOST_TDrawingContextType type,
         const bool stereoVisual,
         const bool exclusive,
-        const GHOST_TUns16 numOfAASamples)
+        const GHOST_TUns16 numOfAASamples, const bool is_debug)
     : GHOST_Window(width, height, state, stereoVisual, exclusive, numOfAASamples),
       m_display(display),
       m_visualInfo(NULL),
@@ -301,7 +300,8 @@ GHOST_WindowX11(
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
       m_xic(NULL),
 #endif
-      m_valid_setup(false)
+      m_valid_setup(false),
+      m_is_debug_context(is_debug)
 {
 	if (type == GHOST_kDrawingContextTypeOpenGL) {
 		m_visualInfo = x11_visualinfo_from_glx(m_display, stereoVisual, &m_wantNumOfAASamples);
@@ -1284,7 +1284,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
 		        m_visualInfo,
 		        GLX_CONTEXT_OPENGL_CORE_PROFILE_BIT,
 		        3, 2,
-		        GHOST_OPENGL_GLX_CONTEXT_FLAGS,
+		        GHOST_OPENGL_GLX_CONTEXT_FLAGS | (m_is_debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
 		        GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
 #elif defined(WITH_GL_PROFILE_ES20)
 		GHOST_Context *context = new GHOST_ContextGLX(
@@ -1295,7 +1295,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
 		        m_visualInfo,
 		        GLX_CONTEXT_ES2_PROFILE_BIT_EXT,
 		        2, 0,
-		        GHOST_OPENGL_GLX_CONTEXT_FLAGS,
+		        GHOST_OPENGL_GLX_CONTEXT_FLAGS | (m_is_debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
 		        GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
 #elif defined(WITH_GL_PROFILE_COMPAT)
 		GHOST_Context *context = new GHOST_ContextGLX(
@@ -1306,7 +1306,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
 		        m_visualInfo,
 		        0, // profile bit
 		        0, 0,
-		        GHOST_OPENGL_GLX_CONTEXT_FLAGS,
+		        GHOST_OPENGL_GLX_CONTEXT_FLAGS | (m_is_debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
 		        GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
 #else
 #  error
