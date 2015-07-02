@@ -335,6 +335,7 @@ FCurve *rna_get_fcurve_context_ui(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 	/* there must be some RNA-pointer + property combon */
 	if (prop && tptr.id.data && RNA_property_animateable(&tptr, prop)) {
 		AnimData *adt = BKE_animdata_from_id(tptr.id.data);
+		AnimData *adt_initial = adt;
 		int step = C ? 2 : 1;  /* Always 1 in case we have no context (can't check in 'ancestors' of given RNA ptr). */
 		char *path = NULL;
 		
@@ -391,11 +392,15 @@ FCurve *rna_get_fcurve_context_ui(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 			}
 			
 			/* if we still haven't found anything, check whether it's a "special" property */
-			if ((fcu == NULL) && (adt && adt->nla_tracks.first)) {
+			/* NOTE: Need to go back to the original AnimData (vs one further up the chain,
+			 *       that we'd get after the loop above failed), or else this check will not 
+			 *       work for Materials
+			 */
+			if ((fcu == NULL) && (adt_initial && adt_initial->nla_tracks.first)) {
 				NlaTrack *nlt;
 				const char *propname = RNA_property_identifier(prop);
 				
-				for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
+				for (nlt = adt_initial->nla_tracks.first; nlt; nlt = nlt->next) {
 					NlaStrip *strip;
 					
 					if (fcu)
