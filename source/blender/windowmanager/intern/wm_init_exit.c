@@ -171,12 +171,13 @@ void WM_init(bContext *C, int argc, const char **argv)
 	/* get the default database, plus a wm */
 	wm_homefile_read(C, NULL, G.factory_startup, NULL);
 	
-	/* sets 3D mouse deadzone */
-	WM_ndof_deadzone_set(U.ndof_deadzone);
 
 	BLF_lang_set(NULL);
 
 	if (!G.background) {
+		/* sets 3D mouse deadzone */
+		WM_ndof_deadzone_set(U.ndof_deadzone);
+
 		GPU_init();
 
 		GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
