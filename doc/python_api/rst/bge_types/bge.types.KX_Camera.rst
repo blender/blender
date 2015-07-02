@@ -51,6 +51,18 @@ base class --- :class:`KX_GameObject`
 
       :type: float
 
+   .. attribute:: shift_x
+
+      The camera's horizontal shift.
+
+      :type: float
+
+   .. attribute:: shift_y
+
+      The camera's vertical shift.
+
+      :type: float
+
    .. attribute:: perspective
 
       True if this camera has a perspective transform, False for an orthographic projection.

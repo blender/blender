@@ -545,7 +545,9 @@ PyAttributeDef KX_Camera::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("ortho_scale",	KX_Camera,	pyattr_get_ortho_scale, pyattr_set_ortho_scale),
 	KX_PYATTRIBUTE_RW_FUNCTION("near",	KX_Camera,	pyattr_get_near, pyattr_set_near),
 	KX_PYATTRIBUTE_RW_FUNCTION("far",	KX_Camera,	pyattr_get_far,  pyattr_set_far),
-	
+	KX_PYATTRIBUTE_RW_FUNCTION("shift_x",	KX_Camera,	pyattr_get_shift_x, pyattr_set_shift_x),
+	KX_PYATTRIBUTE_RW_FUNCTION("shift_y",	KX_Camera,	pyattr_get_shift_y,  pyattr_set_shift_y),
+
 	KX_PYATTRIBUTE_RW_FUNCTION("useViewport",	KX_Camera,	pyattr_get_use_viewport,  pyattr_set_use_viewport),
 	
 	KX_PYATTRIBUTE_RW_FUNCTION("projection_matrix",	KX_Camera,	pyattr_get_projection_matrix, pyattr_set_projection_matrix),
@@ -862,6 +864,45 @@ int KX_Camera::pyattr_set_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, P
 	return PY_SET_ATTR_SUCCESS;
 }
 
+PyObject *KX_Camera::pyattr_get_shift_x(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
+	return PyFloat_FromDouble(self->m_camdata.m_shift_x);
+}
+
+int KX_Camera::pyattr_set_shift_x(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
+	float param = PyFloat_AsDouble(value);
+	if (param == -1) {
+		PyErr_SetString(PyExc_AttributeError, "camera.shift_x = float: KX_Camera, expected a float greater than zero");
+		return PY_SET_ATTR_FAIL;
+	}
+
+	self->m_camdata.m_shift_x = param;
+	self->m_set_projection_matrix = false;
+	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject *KX_Camera::pyattr_get_shift_y(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
+	return PyFloat_FromDouble(self->m_camdata.m_shift_y);
+}
+
+int KX_Camera::pyattr_set_shift_y(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
+	float param = PyFloat_AsDouble(value);
+	if (param == -1) {
+		PyErr_SetString(PyExc_AttributeError, "camera.shift_y = float: KX_Camera, expected a float greater than zero");
+		return PY_SET_ATTR_FAIL;
+	}
+
+	self->m_camdata.m_shift_y = param;
+	self->m_set_projection_matrix = false;
+	return PY_SET_ATTR_SUCCESS;
+}
 
 PyObject *KX_Camera::pyattr_get_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
