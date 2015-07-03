@@ -960,9 +960,7 @@ static bool ui_but_event_operator_string(const bContext *C, uiBut *but, char *bu
 	if (but->optype) {
 		IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
 
-		if (WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, true,
-		                                 buf, buf_len))
-		{
+		if (WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, true, buf_len, buf)) {
 			found = true;
 		}
 	}
@@ -977,8 +975,7 @@ static bool ui_but_event_operator_string(const bContext *C, uiBut *but, char *bu
 
 		IDP_AssignString(prop_menu_name, mt->idname, sizeof(mt->idname));
 
-		if (WM_key_event_operator_string(C, "WM_OT_call_menu", WM_OP_INVOKE_REGION_WIN, prop_menu, true,
-		                                 buf, buf_len))
+		if (WM_key_event_operator_string(C, "WM_OT_call_menu", WM_OP_INVOKE_REGION_WIN, prop_menu, true, buf_len, buf))
 		{
 			found = true;
 		}
@@ -1083,7 +1080,7 @@ static bool ui_but_event_property_operator_string(const bContext *C, uiBut *but,
 			for (i = 0; (i < num_ops) && (ctx_toggle_opnames[i]); i++) {
 				//printf("\t%s\n", ctx_toggle_opnames[i]);
 				if (WM_key_event_operator_string(C, ctx_toggle_opnames[i], WM_OP_INVOKE_REGION_WIN, prop_path, false,
-				                                 buf, buf_len))
+				                                 buf_len, buf))
 				{
 					found = true;
 					break;

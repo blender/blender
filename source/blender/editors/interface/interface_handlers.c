@@ -6287,7 +6287,7 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
 		
 		/* complex code to change name of button */
 		if (WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, true,
-		                                 shortcut_str, sizeof(shortcut_str)))
+		                                 sizeof(shortcut_str), shortcut_str))
 		{
 			ui_but_add_shortcut(but, shortcut_str, true);
 		}
