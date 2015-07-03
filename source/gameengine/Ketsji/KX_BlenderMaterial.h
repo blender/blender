@@ -30,6 +30,11 @@
 struct MTFace;
 class KX_Scene;
 
+
+#ifdef USE_MATHUTILS
+void KX_BlenderMaterial_Mathutils_Callback_Init(void);
+#endif
+
 class KX_BlenderMaterial :  public PyObjectPlus, public RAS_IPolyMaterial
 {
 	Py_Header
@@ -99,6 +104,8 @@ public:
 	
 	virtual void Replace_IScene(SCA_IScene *val);
 
+	BL_Material *GetBLMaterial();
+
 #ifdef WITH_PYTHON
 	// --------------------------------
 	virtual PyObject *py_repr(void) { return PyUnicode_From_STR_String(mMaterial->matname); }
@@ -107,6 +114,20 @@ public:
 	static PyObject *pyattr_get_materialIndex(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject *pyattr_get_blending(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int       pyattr_set_blending(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject *pyattr_get_alpha(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int       pyattr_set_alpha(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject *pyattr_get_hardness(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int       pyattr_set_hardness(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject *pyattr_get_specular_intensity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int       pyattr_set_specular_intensity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject *pyattr_get_specular_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int       pyattr_set_specular_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject *pyattr_get_diffuse_intensity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int       pyattr_set_diffuse_intensity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject *pyattr_get_diffuse_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int       pyattr_set_diffuse_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject *pyattr_get_emit(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int       pyattr_set_emit(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 	KX_PYMETHOD_DOC(KX_BlenderMaterial, getShader);
 	KX_PYMETHOD_DOC(KX_BlenderMaterial, getMaterialIndex);

@@ -89,6 +89,48 @@ base class --- :class:`PyObjectPlus`
       :return: the material's shader
       :rtype: :class:`BL_Shader`
 
+   .. attribute:: alpha
+
+      The material's alpha transparency.
+
+      :type: float between 0.0 and 1.0 inclusive
+
+   .. attribute:: hardness
+
+      How hard (sharp) the material's specular reflection is.
+
+      :type: integer between 1 and 511 inclusive
+
+   .. attribute:: emit
+
+      Amount of light to emit.
+
+      :type: float between 0.0 and 2.0 inclusive
+
+   .. attribute:: specularIntensity
+
+      How intense (bright) the material's specular reflection is.
+
+      :type: float between 0.0 and 1.0 inclusive
+
+   .. attribute:: diffuseIntensity
+
+      The material's amount of diffuse reflection.
+
+      :type: float between 0.0 and 1.0 inclusive
+
+   .. attribute:: specularColor
+
+      The material's specular color.
+
+      :type: :class:`mathutils.Color`
+
+   .. attribute:: diffuseColor
+
+      The material's diffuse color.
+
+      :type: :class:`mathutils.Color`
+
    .. method:: setBlending(src, dest)
 
       Set the pixel color arithmetic functions.

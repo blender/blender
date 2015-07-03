@@ -273,4 +273,9 @@ PyObject *PyObjectFrom(const MT_Tuple4 &pos);
 
 #endif
 
+/**
+ * Converts an MT_Vector3 to a python color object.
+ */
+PyObject *PyColorFromVector(const MT_Vector3 &vec);
+
 #endif  /* WITH_PYTHON */

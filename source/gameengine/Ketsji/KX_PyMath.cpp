@@ -197,4 +197,19 @@ PyObject *PyObjectFrom(const MT_Tuple2 &vec)
 #endif
 }
 
+PyObject *PyColorFromVector(const MT_Vector3 &vec)
+{
+#ifdef USE_MATHUTILS
+	float fvec[3];
+	vec.getValue(fvec);
+	return Color_CreatePyObject(fvec, NULL);
+#else
+	PyObject *list = PyList_New(3);
+	PyList_SET_ITEM(list, 0, PyFloat_FromDouble(vec[0]));
+	PyList_SET_ITEM(list, 1, PyFloat_FromDouble(vec[1]));
+	PyList_SET_ITEM(list, 2, PyFloat_FromDouble(vec[2]));
+	return list;
+#endif
+}
+
 #endif // WITH_PYTHON
