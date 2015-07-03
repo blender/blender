@@ -1015,16 +1015,19 @@ typedef ccl_addr_space struct DebugData {
 
 /* Queue names */
 enum QueueNumber {
-	QUEUE_ACTIVE_AND_REGENERATED_RAYS,         /* All active rays and regenerated rays are enqueued here */
-	QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS,      /* All
-	                                            * 1.Background-hit rays,
-	                                            * 2.Rays that has exited path-iteration but needs to update output buffer
-	                                            * 3.Rays to be regenerated
-	                                            * are enqueued here */
-	QUEUE_SHADOW_RAY_CAST_AO_RAYS,             /* All rays for which a shadow ray should be cast to determine radiance
-	                                              contribution for AO are enqueued here */
-	QUEUE_SHADOW_RAY_CAST_DL_RAYS,             /* All rays for which a shadow ray should be cast to determine radiance
-	                                              contributuin for direct lighting are enqueued here */
+	QUEUE_ACTIVE_AND_REGENERATED_RAYS = 0,     /* All active rays and regenerated rays are enqueued here. */
+	QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS = 1,  /* All
+	                                            * 1. Background-hit rays,
+	                                            * 2. Rays that has exited path-iteration but needs to update output buffer
+	                                            * 3. Rays to be regenerated
+	                                            * are enqueued here.
+	                                            */
+	QUEUE_SHADOW_RAY_CAST_AO_RAYS = 2,         /* All rays for which a shadow ray should be cast to determine radiance
+	                                            * contribution for AO are enqueued here.
+	                                            */
+	QUEUE_SHADOW_RAY_CAST_DL_RAYS = 3,         /* All rays for which a shadow ray should be cast to determine radiance
+	                                            * contributuin for direct lighting are enqueued here.
+	                                            */
 };
 
 /* We use RAY_STATE_MASK to get ray_state (enums 0 to 5) */
