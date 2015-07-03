@@ -88,6 +88,11 @@ protected:
 	int	m_profileTimings;
 	bool m_enableSatCollisionDetection;
 
+	float m_deactivationTime;
+	float m_linearDeactivationThreshold;
+	float m_angularDeactivationThreshold;
+	float m_contactBreakingThreshold;
+
 	void	ProcessFhSprings(double curTime,float timeStep);
 
 	public:
