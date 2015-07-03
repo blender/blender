@@ -2825,7 +2825,7 @@ void ui_but_update(uiBut *but)
 			}
 			else {
 				UI_GET_BUT_VALUE_INIT(but, value);
-				str = WM_key_event_string((short)value);
+				str = WM_key_event_string((short)value, false);
 			}
 			BLI_snprintf(but->drawstr, UI_MAX_DRAW_STR, "%s%s", but->str, str);
 			break;

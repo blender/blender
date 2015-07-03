@@ -1196,7 +1196,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
 	
 	/* only accept 'press' event, and ignore 'release', so that we don't get double actions */
 	if (ELEM(event->val, KM_PRESS, KM_NOTHING) == 0) {
-		//printf("PoseLib: skipping event with type '%s' and val %d\n", WM_key_event_string(event->type), event->val);
+		//printf("PoseLib: skipping event with type '%s' and val %d\n", WM_key_event_string(event->type, false), event->val);
 		return ret; 
 	}
 	

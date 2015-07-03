@@ -68,7 +68,7 @@ wmKeyMapItem *WM_keymap_add_menu_pie(struct wmKeyMap *keymap, const char *idname
                                      int val, int modifier, int keymodifier);
 
 bool        WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
-int         WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, const int len);
+int         WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, const int len, const bool compact);
 
 wmKeyMap	*WM_keymap_list_find(ListBase *lb, const char *idname, int spaceid, int regionid);
 wmKeyMap	*WM_keymap_find(struct wmKeyConfig *keyconf, const char *idname, int spaceid, int regionid);
@@ -81,6 +81,12 @@ wmKeyMapItem *WM_keymap_item_find_id(struct wmKeyMap *keymap, int id);
 int			WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2);
 
 /* Modal Keymap */
+
+int WM_modalkeymap_operator_items_to_string(struct wmOperatorType *ot, const int propvalue,
+                                            char *str, const int len, const bool compact);
+char *WM_modalkeymap_operator_items_to_string_buf(
+        struct wmOperatorType *ot, const int propvalue,
+        char **str, int *available_len, const int max_len, const bool compact);
 
 wmKeyMap	*WM_modalkeymap_add(struct wmKeyConfig *keyconf, const char *idname, struct EnumPropertyItem *items);
 wmKeyMap	*WM_modalkeymap_get(struct wmKeyConfig *keyconf, const char *idname);
@@ -98,7 +104,10 @@ int			WM_keymap_map_type_get(struct wmKeyMapItem *kmi);
 
 /* Key Event */
 
-const char *WM_key_event_string(short type);
+const char *WM_key_event_string(const short type, const bool compact);
+int WM_keymap_item_raw_to_string(
+        const short shift, const short ctrl, const short alt, const short oskey, const short keymodifier,
+        const short type, char *str, const int len, const bool compact);
 int         WM_key_event_operator_id(
         const struct bContext *C, const char *opname, int opcontext,
         struct IDProperty *properties, const bool is_hotkey,

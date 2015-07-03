@@ -3651,7 +3651,7 @@ static int ui_do_but_HOTKEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data
 		if (event->val == KM_PRESS) {
 			if (ISHOTKEY(event->type)) {
 				
-				if (WM_key_event_string(event->type)[0])
+				if (WM_key_event_string(event->type, false)[0])
 					ui_but_value_set(but, event->type);
 				else
 					data->cancel = true;
@@ -3687,7 +3687,7 @@ static int ui_do_but_KEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data, c
 		}
 
 		if (event->val == KM_PRESS) {
-			if (WM_key_event_string(event->type)[0])
+			if (WM_key_event_string(event->type, false)[0])
 				ui_but_value_set(but, event->type);
 			else
 				data->cancel = true;

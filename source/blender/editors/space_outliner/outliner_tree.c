@@ -1139,7 +1139,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			int a = 0;
 			
 			for (kmi = km->items.first; kmi; kmi = kmi->next, a++) {
-				const char *key = WM_key_event_string(kmi->type);
+				const char *key = WM_key_event_string(kmi->type, false);
 				
 				if (key[0]) {
 					wmOperatorType *ot = NULL;
