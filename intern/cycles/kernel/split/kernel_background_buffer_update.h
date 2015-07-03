@@ -161,15 +161,14 @@ ccl_device char kernel_background_buffer_update(
 				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
 		}
 
-		if(IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND))
-			{
+		if(IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND)) {
 #ifdef __BACKGROUND__
-				/* sample background shader */
-				float3 L_background = indirect_background(kg, state, ray, sd);
-				path_radiance_accum_background(L, (*throughput), L_background, state->bounce);
+			/* sample background shader */
+			float3 L_background = indirect_background(kg, state, ray, sd);
+			path_radiance_accum_background(L, (*throughput), L_background, state->bounce);
 #endif
-				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
-			}
+			ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
+		}
 	}
 
 	if(IS_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER)) {

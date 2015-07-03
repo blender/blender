@@ -127,14 +127,13 @@ ccl_device char kernel_next_iteration_setup(
 	}
 
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
-
 		ccl_global float3 *throughput = &throughput_coop[ray_index];
 		ccl_global Ray *ray = &Ray_coop[ray_index];
 		ccl_global RNG* rng = &rng_coop[ray_index];
 		state = &PathState_coop[ray_index];
 		L = &PathRadiance_coop[ray_index];
 
-		/* compute direct lighting and next bounce */
+		/* Compute direct lighting and next bounce. */
 		if(!kernel_path_surface_bounce(kg, rng, sd, throughput, state, L, ray)) {
 			ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);
 			enqueue_flag = 1;

@@ -65,7 +65,7 @@ ccl_device void kernel_shadow_blocked(
 	if(IS_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL) ||
 	   IS_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_AO))
 	{
-		/* Load kernel global structure */
+		/* Load kernel global structure. */
 		KernelGlobals *kg = (KernelGlobals *)globals;
 		ShaderData *sd_shadow  = (ShaderData *)shader_shadow;
 

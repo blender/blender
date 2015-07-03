@@ -131,7 +131,8 @@ ccl_device void kernel_scene_intersect(
 	if(!hit) {
 		/* Change the state of rays that hit the background;
 		 * These rays undergo special processing in the
-		 * background_bufferUpdate kernel*/
+		 * background_bufferUpdate kernel.
+		 */
 		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND);
 	}
 }
