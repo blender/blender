@@ -257,10 +257,24 @@ void RAS_2DFilterManager::StartShaderProgram(int passindex)
 	for (i=0; i<objProperties; i++)
 	{
 		uniformLoc = glGetUniformLocationARB(m_filters[passindex], m_properties[passindex][i]);
-		if (uniformLoc != -1)
-		{
-			float value = ((CValue*)m_gameObjects[passindex])->GetPropertyNumber(m_properties[passindex][i], 0.0);
-			glUniform1fARB(uniformLoc,value);
+
+		if (uniformLoc == -1)
+			continue;
+
+		CValue *property = ((CValue *)m_gameObjects[passindex])->GetProperty(m_properties[passindex][i]);
+
+		if (!property)
+			continue;
+
+		switch (property->GetValueType()) {
+			case VALUE_INT_TYPE:
+				glUniform1iARB(uniformLoc, property->GetNumber());
+				break;
+			case VALUE_FLOAT_TYPE:
+				glUniform1fARB(uniformLoc, property->GetNumber());
+				break;
+			default:
+				break;
 		}
 	}
 }
