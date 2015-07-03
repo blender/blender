@@ -141,7 +141,7 @@ bool opencl_device_supported(const string& platform_name,
 	if(platform_name == "AMD Accelerated Parallel Processing" &&
 	   device_type == CL_DEVICE_TYPE_GPU)
 	{
-		return true;;
+		return true;
 	}
 	return false;
 }
