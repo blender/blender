@@ -77,6 +77,8 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_swap_data);
 	WM_operatortype_append(SEQUENCER_OT_rendersize);
 
+	WM_operatortype_append(SEQUENCER_OT_export_subtitles);
+
 	WM_operatortype_append(SEQUENCER_OT_copy);
 	WM_operatortype_append(SEQUENCER_OT_paste);
 

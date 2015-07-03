@@ -639,6 +639,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             if not strip.use_autocenter:
                 row.prop(strip, "xpos")
             row.prop(strip, "ypos")
+            layout.operator("sequencer.export_subtitles")
 
         col = layout.column(align=True)
         if strip.type == 'SPEED':
