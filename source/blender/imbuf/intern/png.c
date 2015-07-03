@@ -584,6 +584,10 @@ ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags, char colorspace[I
 			if (bit_depth < 8) {
 				png_set_expand(png_ptr);
 				bit_depth = 8;
+				if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) {
+					/* PNG_COLOR_TYPE_GRAY may also have alpha 'values', like with palette. */
+					bytesperpixel = 2;
+				}
 			}
 			break;
 		default:
