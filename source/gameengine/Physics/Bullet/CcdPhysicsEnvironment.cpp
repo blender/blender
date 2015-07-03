@@ -2242,7 +2242,7 @@ void CcdPhysicsEnvironment::AddTouchCallback(int response_class, PHY_ResponseCal
 bool CcdPhysicsEnvironment::RequestCollisionCallback(PHY_IPhysicsController* ctrl)
 {
 	CcdPhysicsController* ccdCtrl = static_cast<CcdPhysicsController*>(ctrl);
-	return !ccdCtrl->Register();
+	return ccdCtrl->Register();
 }
 
 void	CcdPhysicsEnvironment::CallbackTriggers()
