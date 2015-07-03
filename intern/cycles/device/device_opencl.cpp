@@ -2849,16 +2849,25 @@ public:
 		/* Macro for Enqueuing split kernels. */
 #define GLUE(a, b) a ## b
 #define ENQUEUE_SPLIT_KERNEL(kernelName, globalSize, localSize) \
-		opencl_assert(clEnqueueNDRangeKernel(cqCommandQueue, \
-		                                     GLUE(ckPathTraceKernel_, \
-		                                          kernelName), \
-		                                     2, \
-		                                     NULL, \
-		                                     globalSize, \
-		                                     localSize, \
-		                                     0, \
-		                                     NULL, \
-		                                     NULL))
+		{ \
+			ciErr = clEnqueueNDRangeKernel(cqCommandQueue, \
+			                               GLUE(ckPathTraceKernel_, \
+			                                    kernelName), \
+			                               2, \
+			                               NULL, \
+			                               globalSize, \
+			                               localSize, \
+			                               0, \
+			                               NULL, \
+			                               NULL); \
+			opencl_assert_err(ciErr, "clEnqueueNDRangeKernel"); \
+			if(ciErr != CL_SUCCESS) { \
+				string message = string_printf("OpenCL error: %s in clEnqueueNDRangeKernel()", \
+				                               clewErrorString(ciErr)); \
+				opencl_error(message); \
+				return; \
+			} \
+		} (void) 0
 
 		/* Enqueue ckPathTraceKernel_data_init kernel. */
 		ENQUEUE_SPLIT_KERNEL(data_init, global_size, local_size);
