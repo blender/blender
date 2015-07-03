@@ -210,6 +210,7 @@ typedef struct Material {
 #define	GEMAT_ALPHA		2 /* GPU_BLEND_ALPHA */
 #define GEMAT_CLIP		4 /* GPU_BLEND_CLIP */
 #define	GEMAT_ALPHA_SORT	8 /* GPU_BLEND_ALPHA_SORT */
+#define	GEMAT_ALPHA_TO_COVERAGE	16 /* GPU_BLEND_ALPHA_TO_COVERAGE */
 
 // Game Options - flag
 #define GEMAT_BACKCULL 		16 /* KX_BACKCULL */

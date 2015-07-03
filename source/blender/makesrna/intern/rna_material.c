@@ -837,6 +837,8 @@ static void rna_def_material_gamesettings(BlenderRNA *brna)
 		              "Render polygon transparent, depending on alpha channel of the texture"},
 		{GEMAT_ALPHA_SORT, "ALPHA_SORT", 0, "Alpha Sort",
 		                   "Sort faces for correct alpha drawing (slow, use Alpha Clip instead when possible)"},
+		{GEMAT_ALPHA_TO_COVERAGE, "ALPHA_TO_COVERAGE", 0, "Alpha Antialiasing",
+				"Use textures alpha as anti-aliasing mask, requires multi-sample OpenGL display"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

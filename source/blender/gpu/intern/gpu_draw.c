@@ -409,15 +409,18 @@ static void gpu_set_alpha_blend(GPUBlendMode alphablend)
 	if (alphablend == GPU_BLEND_SOLID) {
 		glDisable(GL_BLEND);
 		glDisable(GL_ALPHA_TEST);
+		glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 	else if (alphablend == GPU_BLEND_ADD) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE, GL_ONE);
 		glDisable(GL_ALPHA_TEST);
+		glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 	}
 	else if (ELEM(alphablend, GPU_BLEND_ALPHA, GPU_BLEND_ALPHA_SORT)) {
 		glEnable(GL_BLEND);
+		glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 
 		/* for OpenGL render we use the alpha channel, this makes alpha blend correct */
 		if (GLEW_VERSION_1_4)
@@ -438,9 +441,15 @@ static void gpu_set_alpha_blend(GPUBlendMode alphablend)
 		}
 	}
 	else if (alphablend == GPU_BLEND_CLIP) {
-		glDisable(GL_BLEND); 
+		glDisable(GL_BLEND);
+		glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 		glEnable(GL_ALPHA_TEST);
 		glAlphaFunc(GL_GREATER, 0.5f);
+	}
+	else if (alphablend == GPU_BLEND_ALPHA_TO_COVERAGE) {
+		glEnable(GL_ALPHA_TEST);
+		glAlphaFunc(GL_GREATER, U.glalphaclip);
+		glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 	}
 }
 
