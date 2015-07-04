@@ -76,7 +76,7 @@ typedef struct {
 static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 {
 	const char *str = IFACE_("Confirm: (Enter/LMB), Cancel: (Esc/RMB), Mode: %s (M), Clamp Overlap: %s (C), "
-	                         "Offset: %s, Segments: %d");
+	                         "Vertex Only: %s (V), Offset: %s, Segments: %d");
 
 	char msg[HEADER_LENGTH];
 	ScrArea *sa = CTX_wm_area(C);
@@ -99,6 +99,7 @@ static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 
 		BLI_snprintf(msg, HEADER_LENGTH, str, type_str,
 		             WM_bool_as_string(RNA_boolean_get(op->ptr, "clamp_overlap")),
+			     WM_bool_as_string(RNA_boolean_get(op->ptr, "vertex_only")),
 		             offset_str, RNA_int_get(op->ptr, "segments"));
 
 		ED_area_headerprint(sa, msg);
@@ -425,6 +426,19 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				edbm_bevel_update_header(C, op);
 				handled = true;
 				break;
+			case VKEY:
+				if (event->val == KM_RELEASE)
+					break;
+				
+				{
+					PropertyRNA *prop = RNA_struct_find_property(op->ptr, "vertex_only");
+					RNA_property_enum_set(op->ptr, prop, !RNA_property_boolean_get(op->ptr, prop));
+				}
+				edbm_bevel_calc(op);
+				edbm_bevel_update_header(C, op);
+				handled = true;
+				break;
+				
 		}
 
 		/* Modal numinput inactive, try to handle numeric inputs last... */
