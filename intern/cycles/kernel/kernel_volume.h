@@ -578,7 +578,7 @@ ccl_device_noinline VolumeIntegrateResult kernel_volume_integrate(KernelGlobals 
 /* Decoupled Volume Sampling
  *
  * VolumeSegment is list of coefficients and transmittance stored at all steps
- * through a volume. This can then latter be used for decoupled sampling as in:
+ * through a volume. This can then later be used for decoupled sampling as in:
  * "Importance Sampling Techniques for Path Tracing in Participating Media"
  *
  * On the GPU this is only supported (but currently not enabled)
