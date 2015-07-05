@@ -186,7 +186,7 @@ typedef struct BevelParams {
 	float pro_super_r;      /* superellipse parameter for edge profile */
 	bool vertex_only;       /* bevel vertices only */
 	bool use_weights;       /* bevel amount affected by weights on edges or verts */
-	bool preserve_widths;	/* should bevel prefer widths over angles, if forced to choose? */
+	bool loop_slide;	    /* should bevel prefer to slide along edges rather than keep widths spec? */
 	bool limit_offset;      /* should offsets be limited by collisions? */
 	const struct MDeformVert *dvert; /* vertex group array, maybe set if vertex_only */
 	int vertex_group;       /* vertex group index, maybe set if vertex_only */
@@ -1787,7 +1787,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 			offset_meet(e, e2, bv->v, e->fnext, false, co);
 		}
 		else if (nnip > 0) {
-			if (nnip == 1 && good_offset_on_edge_between(e, e2, enip, bv->v)) {
+			if (bp->loop_slide && nnip == 1 && good_offset_on_edge_between(e, e2, enip, bv->v)) {
 				offset_on_edge_between(bp, e, e2, enip, bv->v, co);
 			}
 			else {
@@ -1796,7 +1796,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 		}
 		else {
 			/* nip > 0 and nnip == 0 */
-			if (nip == 1 && good_offset_on_edge_between(e, e2, eip, bv->v)) {
+			if (bp->loop_slide && nip == 1 && good_offset_on_edge_between(e, e2, eip, bv->v)) {
 				offset_on_edge_between(bp, e, e2, eip, bv->v, co);
 			}
 			else {
@@ -1954,7 +1954,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 				if (e->prev->prev->is_bev) {
 					BLI_assert(e->prev->prev != e); /* see: edgecount 2, selcount 1 case */
 					/* find meet point between e->prev->prev and e and attach e->prev there */
-					if (bp->preserve_widths)
+					if (!bp->loop_slide)
 						offset_in_two_planes(bp, e->prev->prev, e, e->prev, bv->v, co);
 					else
 						offset_on_edge_between(bp, e->prev->prev, e, e->prev, bv->v, co);
@@ -4193,7 +4193,8 @@ void BM_mesh_bevel(
         BMesh *bm, const float offset, const int offset_type,
         const float segments, const float profile,
         const bool vertex_only, const bool use_weights, const bool limit_offset,
-        const struct MDeformVert *dvert, const int vertex_group, const int mat)
+        const struct MDeformVert *dvert, const int vertex_group, const int mat,
+        const bool loop_slide)
 {
 	BMIter iter;
 	BMVert *v, *v_next;
@@ -4207,7 +4208,7 @@ void BM_mesh_bevel(
 	bp.pro_super_r = 4.0f * profile;  /* convert to superellipse exponent */
 	bp.vertex_only = vertex_only;
 	bp.use_weights = use_weights;
-	bp.preserve_widths = false;
+	bp.loop_slide = loop_slide;
 	bp.limit_offset = limit_offset;
 	bp.dvert = dvert;
 	bp.vertex_group = vertex_group;

@@ -112,6 +112,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 	const bool do_clamp = !(bmd->flags & MOD_BEVEL_OVERLAP_OK);
 	const int offset_type = bmd->val_flags;
 	const int mat = CLAMPIS(bmd->mat, -1, ob->totcol - 1);
+	const bool loop_slide = (bmd->flags & MOD_BEVEL_LOOP_SLIDE) != 0;
 
 	bm = DM_to_bmesh(dm, true);
 	if ((bmd->lim_flags & MOD_BEVEL_VGROUP) && bmd->defgrp_name[0])
@@ -173,7 +174,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *ob,
 
 	BM_mesh_bevel(bm, bmd->value, offset_type, bmd->res, bmd->profile,
 	              vertex_only, bmd->lim_flags & MOD_BEVEL_WEIGHT, do_clamp,
-	              dvert, vgroup, mat);
+	              dvert, vgroup, mat, loop_slide);
 
 	result = CDDM_from_bmesh(bm, true);
 

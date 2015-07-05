@@ -33,6 +33,6 @@ void BM_mesh_bevel(
         BMesh *bm, const float offset, const int offset_type, const float segments,
         const float profile, const bool vertex_only, const bool use_weights,
         const bool limit_offset, const struct MDeformVert *dvert, const int vertex_group,
-        const int mat);
+        const int mat, const bool loop_slide);
 
 #endif /* __BMESH_BEVEL_H__ */

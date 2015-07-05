@@ -42,6 +42,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 	const float profile       = BMO_slot_float_get(op->slots_in, "profile");
 	const bool  clamp_overlap = BMO_slot_bool_get(op->slots_in,  "clamp_overlap");
 	const int   material      = BMO_slot_int_get(op->slots_in,   "material");
+	const bool  loop_slide    = BMO_slot_bool_get(op->slots_in,  "loop_slide");
 
 	if (offset > 0) {
 		BMOIter siter;
@@ -62,7 +63,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 
-		BM_mesh_bevel(bm, offset, offset_type, seg, profile, vonly, false, clamp_overlap, NULL, -1, material);
+		BM_mesh_bevel(bm, offset, offset_type, seg, profile, vonly, false, clamp_overlap, NULL, -1, material, loop_slide);
 
 		BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
 	}

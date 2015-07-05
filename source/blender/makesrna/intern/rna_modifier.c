@@ -2824,7 +2824,11 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	RNA_def_property_range(prop, -1, SHRT_MAX);
 	RNA_def_property_ui_text(prop, "Material", "Material index of generated faces, -1 for automatic");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
+
+	prop = RNA_def_property(srna, "loop_slide", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_BEVEL_LOOP_SLIDE);
+	RNA_def_property_ui_text(prop, "Loop Slide", "Prefer sliding along edges to having even widths");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)

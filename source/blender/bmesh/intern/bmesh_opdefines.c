@@ -1727,6 +1727,7 @@ static BMOpDefine bmo_bevel_def = {
 	 {"vertex_only", BMO_OP_SLOT_BOOL},     /* only bevel vertices, not edges */
 	 {"clamp_overlap", BMO_OP_SLOT_BOOL},   /* do not allow beveled edges/vertices to overlap each other */
 	 {"material", BMO_OP_SLOT_INT},         /* material for bevel faces, -1 means get from adjacent faces */
+	 {"loop_slide", BMO_OP_SLOT_BOOL},      /* prefer to slide along edges to having even widths */
 	 {{'\0'}},
 	},
 	/* slots_out */
