@@ -338,7 +338,7 @@ enum {
 /*	MOD_BEVEL_EVEN          = (1 << 11), */
 /*	MOD_BEVEL_DIST          = (1 << 12), */  /* same as above */
 	MOD_BEVEL_OVERLAP_OK    = (1 << 13),
-	MOD_BEVEL_LOOP_SLIDE    = (1 << 14),
+	MOD_BEVEL_EVEN_WIDTHS   = (1 << 14),
 };
 
 /* BevelModifierData->val_flags (not used as flags any more) */

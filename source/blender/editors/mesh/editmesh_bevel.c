@@ -502,6 +502,6 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "vertex_only", false, "Vertex Only", "Bevel only vertices");
 	RNA_def_boolean(ot->srna, "clamp_overlap", false, "Clamp Overlap",
 	                "Do not allow beveled edges/vertices to overlap each other");
-	RNA_def_boolean(ot->srna, "loop_slide", false, "Loop Slide", "Prefer slide along edge to even widths");
+	RNA_def_boolean(ot->srna, "loop_slide", true, "Loop Slide", "Prefer slide along edge to even widths");
 	RNA_def_int(ot->srna, "material", -1, -1, INT_MAX, "Material", "Material for bevel faces (-1 means use adjacent faces)", -1, 100);
 }
