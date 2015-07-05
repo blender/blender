@@ -1,5 +1,4 @@
-# turn everything OFF except for python which defaults to ON
-# and is needed for the UI
+# Turn everything ON thats expected for an official release builds.
 #
 # Example usage:
 #   cmake -C../blender/build_files/cmake/config/blender_full.cmake  ../blender
