@@ -7273,12 +7273,16 @@ static void drawVertSlide(TransInfo *t)
 			if ((t->mval[0] != t->imval[0]) ||
 			    (t->mval[1] != t->imval[1]))
 			{
-				float zfac = ED_view3d_calc_zfac(t->ar->regiondata, curr_sv->co_orig_3d, NULL);
+				float zfac;
 				float mval_ofs[2];
+				float co_orig_3d[3];
 				float co_dest_3d[3];
 
 				mval_ofs[0] = t->mval[0] - t->imval[0];
 				mval_ofs[1] = t->mval[1] - t->imval[1];
+
+				mul_v3_m4v3(co_orig_3d, t->obedit->obmat, curr_sv->co_orig_3d);
+				zfac = ED_view3d_calc_zfac(t->ar->regiondata, co_orig_3d, NULL);
 
 				ED_view3d_win_to_delta(t->ar, mval_ofs, co_dest_3d, zfac);
 
