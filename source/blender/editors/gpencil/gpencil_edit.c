@@ -495,8 +495,6 @@ typedef enum eGP_DeleteMode {
 	GP_DELETEOP_STROKES         = 1,
 	/* delete active frame */
 	GP_DELETEOP_FRAME           = 2,
-	/* delete selected stroke points (without splitting stroke) */
-	GP_DELETEOP_POINTS_DISSOLVE = 3,
 } eGP_DeleteMode;
 
 
@@ -759,11 +757,7 @@ static int gp_delete_exec(bContext *C, wmOperator *op)
 		case GP_DELETEOP_POINTS:	/* selected points (breaks the stroke into segments) */
 			result = gp_delete_selected_points(C);
 			break;
-		
-		case GP_DELETEOP_POINTS_DISSOLVE: /* selected points (without splitting the stroke) */
-			result = gp_dissolve_selected_points(C);
-			break;
-		
+
 		case GP_DELETEOP_FRAME:		/* active frame */
 			result = gp_actframe_delete_exec(C, op);
 			break;
@@ -778,9 +772,6 @@ void GPENCIL_OT_delete(wmOperatorType *ot)
 		{GP_DELETEOP_POINTS, "POINTS", 0, "Points", "Delete selected points and split strokes into segments"},
 		{GP_DELETEOP_STROKES, "STROKES", 0, "Strokes", "Delete selected strokes"},
 		{GP_DELETEOP_FRAME, "FRAME", 0, "Frame", "Delete active frame"},
-		{0, "", 0, NULL, NULL},
-		{GP_DELETEOP_POINTS_DISSOLVE, "DISSOLVE_POINTS", 0, "Dissolve Points",
-		                              "Delete selected points without splitting strokes"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
@@ -799,6 +790,26 @@ void GPENCIL_OT_delete(wmOperatorType *ot)
 	
 	/* props */
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_gpencil_delete_types, 0, "Type", "Method used for deleting Grease Pencil data");
+}
+
+static int gp_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	return gp_dissolve_selected_points(C);
+}
+
+void GPENCIL_OT_dissolve(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Dissolve";
+	ot->idname = "GPENCIL_OT_dissolve";
+	ot->description = "Delete selected points without splitting strokes";
+
+	/* callbacks */
+	ot->exec = gp_dissolve_exec;
+	ot->poll = gp_stroke_edit_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
 }
 
 /* ************************************************ */
