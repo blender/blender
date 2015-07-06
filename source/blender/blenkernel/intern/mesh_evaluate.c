@@ -2426,11 +2426,6 @@ int BKE_mesh_recalc_tessellation(
 				l2 = mp_loopstart + tri[1];
 				l3 = mp_loopstart + tri[2];
 
-				/* sort loop indices to ensure winding is correct */
-				if (l1 > l2) SWAP(unsigned int, l1, l2);
-				if (l2 > l3) SWAP(unsigned int, l2, l3);
-				if (l1 > l2) SWAP(unsigned int, l1, l2);
-
 				mf->v1 = mloop[l1].v;
 				mf->v2 = mloop[l2].v;
 				mf->v3 = mloop[l3].v;
