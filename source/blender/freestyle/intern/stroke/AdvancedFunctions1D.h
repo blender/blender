@@ -168,7 +168,7 @@ private:
 
 // GetDirectionalViewMapDensity
 /*! Returns the density evaluated for an Interface1D in of the steerable viewmaps image.
- *  The direction telling which Directional map to choose is explicitely specified by the user.
+ *  The direction telling which Directional map to choose is explicitly specified by the user.
  *  The density is evaluated for a set of points along the Interface1D (using the ReadSteerableViewMapPixelF0D functor)
  *  and then integrated into a single value using a user-defined integration method.
  */

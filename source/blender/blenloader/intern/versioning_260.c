@@ -275,7 +275,7 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
 
 				BLI_snprintf(sockpath, sizeof(sockpath), "%s_Image", filename);
 				sock = ntreeCompositOutputFileAddSocket(ntree, node, sockpath, &nimf->format);
-				/* XXX later do_versions copies path from socket name, need to set this explicitely */
+				/* XXX later do_versions copies path from socket name, need to set this explicitly */
 				BLI_strncpy(sock->name, sockpath, sizeof(sock->name));
 				if (old_image->link) {
 					old_image->link->tosock = sock;
@@ -284,7 +284,7 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
 
 				BLI_snprintf(sockpath, sizeof(sockpath), "%s_Z", filename);
 				sock = ntreeCompositOutputFileAddSocket(ntree, node, sockpath, &nimf->format);
-				/* XXX later do_versions copies path from socket name, need to set this explicitely */
+				/* XXX later do_versions copies path from socket name, need to set this explicitly */
 				BLI_strncpy(sock->name, sockpath, sizeof(sock->name));
 				if (old_z->link) {
 					old_z->link->tosock = sock;
@@ -293,7 +293,7 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
 			}
 			else {
 				sock = ntreeCompositOutputFileAddSocket(ntree, node, filename, &nimf->format);
-				/* XXX later do_versions copies path from socket name, need to set this explicitely */
+				/* XXX later do_versions copies path from socket name, need to set this explicitly */
 				BLI_strncpy(sock->name, filename, sizeof(sock->name));
 				if (old_image->link) {
 					old_image->link->tosock = sock;

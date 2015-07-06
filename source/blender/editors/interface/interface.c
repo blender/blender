@@ -975,7 +975,8 @@ static bool ui_but_event_operator_string(const bContext *C, uiBut *but, char *bu
 
 		IDP_AssignString(prop_menu_name, mt->idname, sizeof(mt->idname));
 
-		if (WM_key_event_operator_string(C, "WM_OT_call_menu", WM_OP_INVOKE_REGION_WIN, prop_menu, true, buf_len, buf))
+		if (WM_key_event_operator_string(C, "WM_OT_call_menu", WM_OP_INVOKE_REGION_WIN, prop_menu,
+		                                 true, buf_len, buf))
 		{
 			found = true;
 		}

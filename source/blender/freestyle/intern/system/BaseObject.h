@@ -46,7 +46,7 @@ public:
 	virtual ~BaseObject() {}
 
 	/*! At least makes a release on this.
-	 *  The BaseObject::destroy method must be explicitely called at the end of any overloaded destroy
+	 *  The BaseObject::destroy method must be explicitly called at the end of any overloaded destroy
 	 */
 	virtual int destroy()
 	{

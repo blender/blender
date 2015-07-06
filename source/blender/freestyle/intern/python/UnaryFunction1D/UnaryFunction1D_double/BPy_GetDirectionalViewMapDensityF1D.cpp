@@ -63,7 +63,7 @@ static char GetDirectionalViewMapDensityF1D___doc__[] =
 "\n"
 "   Returns the density evaluated for an Interface1D in of the steerable\n"
 "   viewmaps image.  The direction telling which Directional map to choose\n"
-"   is explicitely specified by the user.  The density is evaluated for a\n"
+"   is explicitly specified by the user.  The density is evaluated for a\n"
 "   set of points along the Interface1D (using the\n"
 "   :class:`freestyle.functions.ReadSteerableViewMapPixelF0D` functor) and\n"
 "   then integrated into a single value using a user-defined integration\n"

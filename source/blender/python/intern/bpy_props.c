@@ -2696,7 +2696,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		}
 
 		if (def == Py_None) {
-			/* This allows to get same behavior when explicitely passing None as default value,
+			/* This allows to get same behavior when explicitly passing None as default value,
 			 * and not defining a default value at all! */
 			def = NULL;
 		}

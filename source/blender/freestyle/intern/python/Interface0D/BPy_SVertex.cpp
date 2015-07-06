@@ -387,7 +387,7 @@ PyDoc_STRVAR(SVertex_curvatures_doc,
 "directions, i.e. the directions of the normal plane where the\n"
 "curvature takes its maximum and minimum values, respectively; and Kr,\n"
 "er and dKr are the radial curvature, radial direction, and the\n"
-"derivative of the radial curvature at this SVertex, repectively.\n"
+"derivative of the radial curvature at this SVertex, respectively.\n"
 "\n"
 ":type: tuple");
 

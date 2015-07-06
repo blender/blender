@@ -1844,7 +1844,7 @@ static void vgroup_smooth_subset(
 						MVert *v_other = &me->mvert[i_other];
 
 						if ((source == WEIGHT_SMOOTH_ALL) ||
-							(source == ((v_other->flag & SELECT) != 0)))
+						    (source == ((v_other->flag & SELECT) != 0)))
 						{
 							WEIGHT_ACCUMULATE;
 						}

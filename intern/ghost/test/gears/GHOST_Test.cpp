@@ -698,19 +698,19 @@ int main(int /*argc*/, char ** /*argv*/)
 		                      KEY_ALL_ACCESS);
 
 		if (lresult == ERROR_SUCCESS)
-			printf("Succesfully opened key\n");
+			printf("Successfully opened key\n");
 #if 0
 		lresult = regkey.QueryValue(&keyValue, "StereoEnable");
 		if (lresult == ERROR_SUCCESS)
-			printf("Succesfully queried key\n");
+			printf("Successfully queried key\n");
 #endif
 		lresult = regkey.SetValue(HKEY_LOCAL_MACHINE, "SOFTWARE\\NVIDIA Corporation\\Global\\Stereo3D\\StereoEnable",
 		                          "1");
 		if (lresult == ERROR_SUCCESS)
-			printf("Succesfully set value for key\n");
+			printf("Successfully set value for key\n");
 		regkey.Close();
 		if (lresult == ERROR_SUCCESS)
-			printf("Succesfully closed key\n");
+			printf("Successfully closed key\n");
 //		regkey.Write("2");
 	}
 #endif  // WIN32
