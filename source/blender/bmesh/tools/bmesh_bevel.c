@@ -1800,7 +1800,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 				offset_on_edge_between(bp, e, e2, eip, bv->v, co);
 			}
 			else {
-				offset_meet(e, e2, bv->v, NULL, true, co);
+				offset_meet(e, e2, bv->v, e->fnext, true, co);
 			}
 		}
 		if (construct) {
