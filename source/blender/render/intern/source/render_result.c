@@ -1040,7 +1040,7 @@ bool RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *fil
 	size_t width, height;
 
 	const bool is_mono = view && !multiview;
-	const bool use_half_float = (imf->depth == R_IMF_CHAN_DEPTH_16);
+	const bool use_half_float = (imf != NULL) ? (imf->depth == R_IMF_CHAN_DEPTH_16) : false;
 
 	width = rr->rectx;
 	height = rr->recty;
