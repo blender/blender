@@ -50,6 +50,12 @@
 
 #include "Exception.h"
 
+// access to IMB_BLEND_* constants
+extern "C"
+{
+#include "IMB_imbuf.h"
+};
+
 
 // get material id
 static PyObject *getMaterialID (PyObject *self, PyObject *args)
@@ -208,7 +214,36 @@ PyMODINIT_FUNC initVideoTexturePythonBinding(void)
 	PyModule_AddIntConstant(m, "SOURCE_READY", SourceReady);
 	PyModule_AddIntConstant(m, "SOURCE_PLAYING", SourcePlaying);
 	PyModule_AddIntConstant(m, "SOURCE_STOPPED", SourceStopped);
-	
+
+	PyModule_AddIntConstant(m, "IMB_BLEND_MIX", IMB_BLEND_MIX);
+	PyModule_AddIntConstant(m, "IMB_BLEND_ADD", IMB_BLEND_ADD);
+	PyModule_AddIntConstant(m, "IMB_BLEND_SUB", IMB_BLEND_SUB);
+	PyModule_AddIntConstant(m, "IMB_BLEND_MUL", IMB_BLEND_MUL);
+	PyModule_AddIntConstant(m, "IMB_BLEND_LIGHTEN", IMB_BLEND_LIGHTEN);
+	PyModule_AddIntConstant(m, "IMB_BLEND_DARKEN", IMB_BLEND_DARKEN);
+	PyModule_AddIntConstant(m, "IMB_BLEND_ERASE_ALPHA", IMB_BLEND_ERASE_ALPHA);
+	PyModule_AddIntConstant(m, "IMB_BLEND_ADD_ALPHA", IMB_BLEND_ADD_ALPHA);
+	PyModule_AddIntConstant(m, "IMB_BLEND_OVERLAY", IMB_BLEND_OVERLAY);
+	PyModule_AddIntConstant(m, "IMB_BLEND_HARDLIGHT", IMB_BLEND_HARDLIGHT);
+	PyModule_AddIntConstant(m, "IMB_BLEND_COLORBURN", IMB_BLEND_COLORBURN);
+	PyModule_AddIntConstant(m, "IMB_BLEND_LINEARBURN", IMB_BLEND_LINEARBURN);
+	PyModule_AddIntConstant(m, "IMB_BLEND_COLORDODGE", IMB_BLEND_COLORDODGE);
+	PyModule_AddIntConstant(m, "IMB_BLEND_SCREEN", IMB_BLEND_SCREEN);
+	PyModule_AddIntConstant(m, "IMB_BLEND_SOFTLIGHT", IMB_BLEND_SOFTLIGHT);
+	PyModule_AddIntConstant(m, "IMB_BLEND_PINLIGHT", IMB_BLEND_PINLIGHT);
+	PyModule_AddIntConstant(m, "IMB_BLEND_VIVIDLIGHT", IMB_BLEND_VIVIDLIGHT);
+	PyModule_AddIntConstant(m, "IMB_BLEND_LINEARLIGHT", IMB_BLEND_LINEARLIGHT);
+	PyModule_AddIntConstant(m, "IMB_BLEND_DIFFERENCE", IMB_BLEND_DIFFERENCE);
+	PyModule_AddIntConstant(m, "IMB_BLEND_EXCLUSION", IMB_BLEND_EXCLUSION);
+	PyModule_AddIntConstant(m, "IMB_BLEND_HUE", IMB_BLEND_HUE);
+	PyModule_AddIntConstant(m, "IMB_BLEND_SATURATION", IMB_BLEND_SATURATION);
+	PyModule_AddIntConstant(m, "IMB_BLEND_LUMINOSITY", IMB_BLEND_LUMINOSITY);
+	PyModule_AddIntConstant(m, "IMB_BLEND_COLOR", IMB_BLEND_COLOR);
+
+	PyModule_AddIntConstant(m, "IMB_BLEND_COPY", IMB_BLEND_COPY);
+	PyModule_AddIntConstant(m, "IMB_BLEND_COPY_RGB", IMB_BLEND_COPY_RGB);
+	PyModule_AddIntConstant(m, "IMB_BLEND_COPY_ALPHA", IMB_BLEND_COPY_ALPHA);
+
 	// init last error description
 	Exception::m_lastError = "";
 	
