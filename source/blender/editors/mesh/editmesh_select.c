@@ -1173,7 +1173,7 @@ static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUS
 		return item;
 	}
 
-	return NULL;
+	return prop_similar_types;
 }
 
 void MESH_OT_select_similar(wmOperatorType *ot)
