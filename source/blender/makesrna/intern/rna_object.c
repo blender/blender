@@ -1727,26 +1727,30 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_float_default(prop, 0.1f);
 	RNA_def_property_ui_text(prop, "Rotation Damping", "General rotation damping");
 
-	prop = RNA_def_property(srna, "velocity_min", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "velocity_min", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "min_vel");
 	RNA_def_property_range(prop, 0.0, 1000.0);
-	RNA_def_property_ui_text(prop, "Velocity Min", "Clamp velocity to this minimum speed (except when totally still)");
+	RNA_def_property_ui_text(prop, "Velocity Min", "Clamp velocity to this minimum speed (except when totally still), "
+	                         "in distance per second");
 
-	prop = RNA_def_property(srna, "velocity_max", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "velocity_max", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "max_vel");
 	RNA_def_property_range(prop, 0.0, 1000.0);
-	RNA_def_property_ui_text(prop, "Velocity Max", "Clamp velocity to this maximum speed");
+	RNA_def_property_ui_text(prop, "Velocity Max", "Clamp velocity to this maximum speed, "
+	                         "in distance per second");
 	
-	prop = RNA_def_property(srna, "angular_velocity_min", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "angular_velocity_min", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "min_angvel");
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Angular Velocity Min",
-	                         "Clamp angular velocity to this minimum speed (except when totally still)");
+	                         "Clamp angular velocity to this minimum speed (except when totally still), "
+	                         "in angle per second");
 
-	prop = RNA_def_property(srna, "angular_velocity_max", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "angular_velocity_max", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "max_angvel");
 	RNA_def_property_range(prop, 0.0, 1000.0);
-	RNA_def_property_ui_text(prop, "Angular Velocity Max", "Clamp angular velocity to this maximum speed");
+	RNA_def_property_ui_text(prop, "Angular Velocity Max", "Clamp angular velocity to this maximum speed, "
+	                         "in angle per second");
 
 	/* Character physics */
 	prop = RNA_def_property(srna, "step_height", PROP_FLOAT, PROP_NONE);
