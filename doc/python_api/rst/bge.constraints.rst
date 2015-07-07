@@ -32,14 +32,7 @@ Functions
    :arg physicsid_2: The physics id of the second object in constraint.
    :type physicsid_2: int
 
-   :arg constraint_type: The type of the constraint, one of...
-
-      - :class:`POINTTOPOINT_CONSTRAINT`
-      - :class:`LINEHINGE_CONSTRAINT`
-      - :class:`ANGULAR_CONSTRAINT`
-      - :class:`CONETWIST_CONSTRAINT`
-      - :class:`VEHICLE_CONSTRAINT`
-      - :class:`GENERIC_6DOF_CONSTRAINT`
+   :arg constraint_type: The type of the constraint, see `Create Constraint Constants`_.
 
    :type constraint_type: int
 
@@ -152,22 +145,7 @@ Functions
 
    Sets the debug mode.
 
-   :arg mode: The new debug mode.
-
-      - :class:`DBG_NODEBUG`
-      - :class:`DBG_DRAWWIREFRAME`
-      - :class:`DBG_DRAWAABB`
-      - :class:`DBG_DRAWFREATURESTEXT`
-      - :class:`DBG_DRAWCONTACTPOINTS`
-      - :class:`DBG_NOHELPTEXT`
-      - :class:`DBG_DRAWTEXT`
-      - :class:`DBG_PROFILETIMINGS`
-      - :class:`DBG_ENABLESATCOMPARISION`
-      - :class:`DBG_DISABLEBULLETLCP`
-      - :class:`DBG_ENABLECCD`
-      - :class:`DBG_DRAWCONSTRAINTS`
-      - :class:`DBG_DRAWCONSTRAINTLIMITS`
-      - :class:`DBG_FASTWIREFRAME`
+   :arg mode: The new debug mode, see `Debug Mode Constants`_.
 
    :type mode: int
 
