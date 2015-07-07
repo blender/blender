@@ -1583,6 +1583,14 @@ void KX_GameObject::RunCollisionCallbacks(KX_GameObject *collider, const MT_Vect
 	if (!m_collisionCallbacks || PyList_GET_SIZE(m_collisionCallbacks) == 0)
 		return;
 
+	/** Current logic controller is set by each python logic bricks before run,
+	 * but if no python logic brick ran the logic manager can be wrong 
+	 * (if the user use muti scenes) and it will cause problems with function
+	 * ConvertPythonToGameObject which use the current logic manager for object's name.
+	 * Note: the scene is already set in logic frame loop.
+	 */
+	SCA_ILogicBrick::m_sCurrentLogicManager = GetScene()->GetLogicManager();
+
 	PyObject *args[] = {collider->GetProxy(), PyObjectFrom(point), PyObjectFrom(normal)};
 	RunPythonCallBackList(m_collisionCallbacks, args, 1, ARRAY_SIZE(args));
 
