@@ -3424,7 +3424,17 @@ bool device_opencl_init(void)
 
 	initialized = true;
 
-	result = clewInit() == CLEW_SUCCESS;
+	int clew_result = clewInit();
+	if(clew_result == CLEW_SUCCESS) {
+		VLOG(1) << "CLEW initialization succeeded.";
+		result = true;
+	}
+	else {
+		VLOG(1) << "CLEW initialization failed: "
+		        << ((clew_result == CLEW_ERROR_ATEXIT_FAILED)
+		            ? "Error setting up atexit() handler"
+		            : "Error opening the library");
+	}
 
 	return result;
 }
