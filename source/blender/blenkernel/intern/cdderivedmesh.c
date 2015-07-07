@@ -356,20 +356,15 @@ static void cdDM_drawUVEdges(DerivedMesh *dm)
 
 	if (mf) {
 		int prevstart = 0;
-		int prevdraw = 1;
-		int draw = 1;
+		bool prevdraw = true;
 		int curpos = 0;
 		
 		GPU_uvedge_setup(dm);
 		for (i = 0; i < dm->numTessFaceData; i++, mf++) {
-			if (!(mf->flag & ME_HIDE)) {
-				draw = 1;
-			}
-			else {
-				draw = 0;
-			}
+			const bool draw = (mf->flag & ME_HIDE) == 0;
+
 			if (prevdraw != draw) {
-				if (prevdraw > 0 && (curpos - prevstart) > 0) {
+				if (prevdraw && (curpos != prevstart)) {
 					glDrawArrays(GL_LINES, prevstart, curpos - prevstart);
 				}
 				prevstart = curpos;
@@ -382,7 +377,7 @@ static void cdDM_drawUVEdges(DerivedMesh *dm)
 			}
 			prevdraw = draw;
 		}
-		if (prevdraw > 0 && (curpos - prevstart) > 0) {
+		if (prevdraw && (curpos != prevstart)) {
 			glDrawArrays(GL_LINES, prevstart, curpos - prevstart);
 		}
 		GPU_buffer_unbind();
