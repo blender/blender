@@ -1106,23 +1106,13 @@ FFmpeg video and image statuses
 
 .. data:: SOURCE_ERROR
 
-   :type: int
-
 .. data:: SOURCE_EMPTY
-
-   :type: int
 
 .. data:: SOURCE_READY
 
-   :type: int
-
 .. data:: SOURCE_PLAYING
 
-   :type: int
-
 .. data:: SOURCE_STOPPED
-
-   :type: int
 
 
 Image blending modes
@@ -1132,108 +1122,55 @@ See Wikipedia's `Blend Modes <https://en.wikipedia.org/wiki/Blend_modes>`_ for r
 
 .. data:: IMB_BLEND_MIX
 
-   :type: int
-
 .. data:: IMB_BLEND_ADD
-
-   :type: int
 
 .. data:: IMB_BLEND_SUB
 
-   :type: int
-
 .. data:: IMB_BLEND_MUL
-
-   :type: int
 
 .. data:: IMB_BLEND_LIGHTEN
 
-   :type: int
-
 .. data:: IMB_BLEND_DARKEN
-
-   :type: int
 
 .. data:: IMB_BLEND_ERASE_ALPHA
 
-   :type: int
-
 .. data:: IMB_BLEND_ADD_ALPHA
-
-   :type: int
 
 .. data:: IMB_BLEND_OVERLAY
 
-   :type: int
-
 .. data:: IMB_BLEND_HARDLIGHT
-
-   :type: int
 
 .. data:: IMB_BLEND_COLORBURN
 
-   :type: int
-
 .. data:: IMB_BLEND_LINEARBURN
-
-   :type: int
 
 .. data:: IMB_BLEND_COLORDODGE
 
-   :type: int
-
 .. data:: IMB_BLEND_SCREEN
-
-   :type: int
 
 .. data:: IMB_BLEND_SOFTLIGHT
 
-   :type: int
-
 .. data:: IMB_BLEND_PINLIGHT
-
-   :type: int
 
 .. data:: IMB_BLEND_VIVIDLIGHT
 
-   :type: int
-
 .. data:: IMB_BLEND_LINEARLIGHT
-
-   :type: int
 
 .. data:: IMB_BLEND_DIFFERENCE
 
-   :type: int
-
 .. data:: IMB_BLEND_EXCLUSION
-
-   :type: int
 
 .. data:: IMB_BLEND_HUE
 
-   :type: int
-
 .. data:: IMB_BLEND_SATURATION
-
-   :type: int
 
 .. data:: IMB_BLEND_LUMINOSITY
 
-   :type: int
-
 .. data:: IMB_BLEND_COLOR
-
-   :type: int
 
 .. data:: IMB_BLEND_COPY
 
-   :type: int
-
 .. data:: IMB_BLEND_COPY_RGB
-
-   :type: int
 
 .. data:: IMB_BLEND_COPY_ALPHA
 
-   :type: int
