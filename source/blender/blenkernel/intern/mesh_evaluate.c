@@ -2391,12 +2391,12 @@ int BKE_mesh_recalc_tessellation(
 
 			zero_v3(normal);
 
-			/* calc normal */
+			/* calc normal, flipped: to get a positive 2d cross product */
 			ml = mloop + mp_loopstart;
 			co_prev = mvert[ml[mp_totloop - 1].v].co;
 			for (j = 0; j < mp_totloop; j++, ml++) {
 				co_curr = mvert[ml->v].co;
-				add_newell_cross_v3_v3v3(normal, co_prev, co_curr);
+				add_newell_cross_v3_v3v3(normal, co_curr, co_prev);
 				co_prev = co_curr;
 			}
 			if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
@@ -2411,7 +2411,7 @@ int BKE_mesh_recalc_tessellation(
 				mul_v2_m3v3(projverts[j], axis_mat, mvert[ml->v].co);
 			}
 
-			BLI_polyfill_calc_arena((const float (*)[2])projverts, mp_totloop, -1, tris, arena);
+			BLI_polyfill_calc_arena((const float (*)[2])projverts, mp_totloop, 1, tris, arena);
 
 			/* apply fill */
 			for (j = 0; j < totfilltri; j++) {
