@@ -77,6 +77,8 @@ cl_device_type opencl_device_type()
 	char *device = getenv("CYCLES_OPENCL_TEST");
 
 	if(device) {
+		if(strcmp(device, "NONE") == 0)
+			return 0;
 		if(strcmp(device, "ALL") == 0)
 			return CL_DEVICE_TYPE_ALL;
 		else if(strcmp(device, "DEFAULT") == 0)
@@ -210,6 +212,10 @@ void opencl_get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices)
 	        (getenv("CYCLES_OPENCL_TEST") != NULL) ||
 	        (getenv("CYCLES_OPENCL_SPLIT_KERNEL_TEST")) != NULL;
 	const cl_device_type device_type = opencl_device_type();
+
+	if(device_type == 0) {
+		return;
+	}
 
 	vector<cl_device_id> device_ids;
 	cl_uint num_devices = 0;
@@ -3480,6 +3486,9 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 
 string device_opencl_capabilities(void)
 {
+	if(opencl_device_type() == 0) {
+		return "All OpenCL devices are forced to be OFF";
+	}
 	string result = "";
 	string error_msg = "";  /* Only used by opencl_assert(), but in the future
 	                         * it could also be nicely reported to the console.
