@@ -37,12 +37,32 @@ struct ListBase;
 struct EditNurb;
 struct Object;
 struct wmOperatorType;
+struct ViewContext;
 
 /* editfont.c */
 enum { DEL_ALL, DEL_NEXT_CHAR, DEL_PREV_CHAR, DEL_SELECTION, DEL_NEXT_SEL, DEL_PREV_SEL };
 enum { CASE_LOWER, CASE_UPPER };
 enum { LINE_BEGIN, LINE_END, PREV_CHAR, NEXT_CHAR, PREV_WORD, NEXT_WORD,
        PREV_LINE, NEXT_LINE, PREV_PAGE, NEXT_PAGE };
+
+typedef enum eVisible_Types {
+	HIDDEN = true,
+	VISIBLE = false,
+} eVisible_Types;
+
+typedef enum eEndPoint_Types {
+	FIRST = true,
+	LAST = false,
+} eEndPoint_Types;
+
+typedef enum eCurveElem_Types {
+	CURVE_VERTEX = 0,
+	CURVE_SEGMENT,
+} eCurveElem_Types;
+
+/* internal select utils */
+bool select_beztriple(BezTriple *bezt, bool selstatus, short flag, eVisible_Types hidden);
+bool select_bpoint(BPoint *bp, bool selstatus, short flag, bool hidden);
 
 void FONT_OT_text_insert(struct wmOperatorType *ot);
 void FONT_OT_line_break(struct wmOperatorType *ot);
@@ -98,6 +118,26 @@ void CURVE_OT_smooth_weight(struct wmOperatorType *ot);
 void CURVE_OT_smooth_radius(struct wmOperatorType *ot);
 void CURVE_OT_smooth_tilt(struct wmOperatorType *ot);
 
+void CURVE_OT_switch_direction(struct wmOperatorType *ot);
+void CURVE_OT_subdivide(struct wmOperatorType *ot);
+void CURVE_OT_make_segment(struct wmOperatorType *ot);
+void CURVE_OT_spin(struct wmOperatorType *ot);
+void CURVE_OT_vertex_add(struct wmOperatorType *ot);
+void CURVE_OT_extrude(struct wmOperatorType *ot);
+void CURVE_OT_cyclic_toggle(struct wmOperatorType *ot);
+
+void CURVE_OT_match_texture_space(struct wmOperatorType *ot);
+
+bool ED_curve_pick_vert(
+        struct ViewContext *vc, short sel, const int mval[2],
+        struct Nurb **r_nurb, struct BezTriple **r_bezt, struct BPoint **r_bp, short *r_handle);
+
+/* helper functions */
+void ed_editnurb_translate_flag(struct ListBase *editnurb, short flag, const float vec[3]);
+bool ed_editnurb_extrude_flag(struct EditNurb *editnurb, short flag);
+bool ed_editnurb_spin(float viewmat[4][4], struct Object *obedit, const float axis[3], const float cent[3]);
+
+/* editcurve_select.c */
 void CURVE_OT_de_select_first(struct wmOperatorType *ot);
 void CURVE_OT_de_select_last(struct wmOperatorType *ot);
 void CURVE_OT_select_all(struct wmOperatorType *ot);
@@ -110,22 +150,6 @@ void CURVE_OT_select_more(struct wmOperatorType *ot);
 void CURVE_OT_select_less(struct wmOperatorType *ot);
 void CURVE_OT_select_random(struct wmOperatorType *ot);
 void CURVE_OT_select_nth(struct wmOperatorType *ot);
-
-void CURVE_OT_switch_direction(struct wmOperatorType *ot);
-void CURVE_OT_subdivide(struct wmOperatorType *ot);
-void CURVE_OT_make_segment(struct wmOperatorType *ot);
-void CURVE_OT_spin(struct wmOperatorType *ot);
-void CURVE_OT_vertex_add(struct wmOperatorType *ot);
-void CURVE_OT_extrude(struct wmOperatorType *ot);
-void CURVE_OT_cyclic_toggle(struct wmOperatorType *ot);
-
-void CURVE_OT_match_texture_space(struct wmOperatorType *ot);
-
-/* helper functions */
-void ed_editnurb_translate_flag(struct ListBase *editnurb, short flag, const float vec[3]);
-bool ed_editnurb_extrude_flag(struct EditNurb *editnurb, short flag);
-bool ed_editnurb_spin(float viewmat[4][4], struct Object *obedit, const float axis[3], const float cent[3]);
-
 
 /* editcurve_add.c */
 void CURVE_OT_primitive_bezier_curve_add(struct wmOperatorType *ot);

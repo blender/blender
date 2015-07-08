@@ -37,6 +37,7 @@ set(SRC
 	curve_ops.c
 	editcurve.c
 	editcurve_add.c
+	editcurve_select.c
 	editfont.c
 
 	curve_intern.h
