@@ -873,6 +873,29 @@ void BKE_nurb_bezt_calc_plane(struct Nurb *nu, struct BezTriple *bezt, float r_p
 	normalize_v3(r_plane);
 }
 
+void BKE_nurb_bpoint_calc_normal(struct Nurb *nu, struct BPoint *bp, float r_normal[3])
+{
+	BPoint *bp_prev = BKE_nurb_bpoint_get_prev(nu, bp);
+	BPoint *bp_next = BKE_nurb_bpoint_get_next(nu, bp);
+
+	zero_v3(r_normal);
+
+	if (bp_prev) {
+		float dir_prev[3];
+		sub_v3_v3v3(dir_prev, bp_prev->vec, bp->vec);
+		normalize_v3(dir_prev);
+		add_v3_v3(r_normal, dir_prev);
+	}
+	if (bp_next) {
+		float dir_next[3];
+		sub_v3_v3v3(dir_next, bp->vec, bp_next->vec);
+		normalize_v3(dir_next);
+		add_v3_v3(r_normal, dir_next);
+	}
+
+	normalize_v3(r_normal);
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~Non Uniform Rational B Spline calculations ~~~~~~~~~~~ */
 
 
