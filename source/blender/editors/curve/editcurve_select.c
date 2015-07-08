@@ -20,7 +20,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): John Roper
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -1154,3 +1154,347 @@ void CURVE_OT_select_nth(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "skip", 1, 1, INT_MAX, "Skip", "", 1, 100);
 	RNA_def_int(ot->srna, "offset", 0, INT_MIN, INT_MAX, "Offset", "", -100, 100);
 }
+
+
+/* -------------------------------------------------------------------- */
+/* Select Similar */
+
+/** \name Select Similar
+ * \{ */
+
+enum {
+	SIM_CMP_EQ = 0,
+	SIM_CMP_GT,
+	SIM_CMP_LT,
+};
+
+static EnumPropertyItem curve_prop_similar_compare_types[] = {
+	{SIM_CMP_EQ, "EQUAL", 0, "Equal", ""},
+	{SIM_CMP_GT, "GREATER", 0, "Greater", ""},
+	{SIM_CMP_LT, "LESS", 0, "Less", ""},
+
+	{0, NULL, 0, NULL, NULL}
+};
+
+enum {
+	SIMCURHAND_TYPE = 0,
+	SIMCURHAND_RADIUS,
+	SIMCURHAND_WEIGHT,
+	SIMCURHAND_DIRECTION,
+};
+
+static EnumPropertyItem curve_prop_similar_types[] = {
+	{SIMCURHAND_TYPE, "TYPE", 0, "Type", ""},
+	{SIMCURHAND_RADIUS, "RADIUS", 0, "Radius", ""},
+	{SIMCURHAND_WEIGHT, "WEIGHT", 0, "Weight", ""},
+	{SIMCURHAND_DIRECTION, "DIRECTION", 0, "Direction", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static int curve_select_similar_cmp_fl(const float delta, const float thresh, const int compare)
+{
+	switch (compare) {
+		case SIM_CMP_EQ:
+			return (fabsf(delta) <= thresh);
+		case SIM_CMP_GT:
+			return ((delta + thresh) >= 0.0f);
+		case SIM_CMP_LT:
+			return ((delta - thresh) <= 0.0f);
+		default:
+			BLI_assert(0);
+			return 0;
+	}
+}
+
+
+static void curve_select_similar_direction__bezt(Nurb *nu, const float dir_ref[3], float angle_cos)
+{
+	BezTriple *bezt;
+	int i;
+
+	for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
+		if (!bezt->hide) {
+			float dir[3];
+			BKE_nurb_bezt_calc_normal(nu, bezt, dir);
+			if (fabsf(dot_v3v3(dir_ref, dir)) >= angle_cos) {
+				select_beztriple(bezt, SELECT, SELECT, VISIBLE);
+			}
+		}
+	}
+}
+
+static void curve_select_similar_direction__bp(Nurb *nu, const float dir_ref[3], float angle_cos)
+{
+	BPoint *bp;
+	int i;
+
+	for (i = nu->pntsu, bp = nu->bp; i--; bp++) {
+		if (!bp->hide) {
+			float dir[3];
+			BKE_nurb_bpoint_calc_normal(nu, bp, dir);
+			if (fabsf(dot_v3v3(dir_ref, dir)) >= angle_cos) {
+				select_bpoint(bp, SELECT, SELECT, VISIBLE);
+			}
+		}
+	}
+}
+
+static bool curve_select_similar_direction(ListBase *editnurb, Curve *cu, float thresh)
+{
+	Nurb *nu, *act_nu;
+	void *act_vert;
+	float dir[3];
+	float angle_cos;
+
+	if (!BKE_curve_nurb_vert_active_get(cu, &act_nu, &act_vert)) {
+		return false;
+	}
+
+	if (act_nu->type == CU_BEZIER) {
+		BKE_nurb_bezt_calc_normal(act_nu, act_vert, dir);
+	}
+	else {
+		BKE_nurb_bpoint_calc_normal(act_nu, act_vert, dir);
+	}
+
+	/* map 0-1 to radians, 'cos' for comparison */
+	angle_cos = cosf(thresh * M_PI_2);
+
+	for (nu = editnurb->first; nu; nu = nu->next) {
+		if (nu->type == CU_BEZIER) {
+			curve_select_similar_direction__bezt(nu, dir, angle_cos);
+		}
+		else {
+			curve_select_similar_direction__bp(nu, dir, angle_cos);
+		}
+	}
+
+	return true;
+}
+
+static void curve_select_similar_radius__bezt(Nurb *nu, float radius_ref, int compare, float thresh)
+{
+	BezTriple *bezt;
+	int i;
+
+	for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
+		if (!bezt->hide) {
+			if (curve_select_similar_cmp_fl(bezt->radius - radius_ref, thresh, compare)) {
+				select_beztriple(bezt, SELECT, SELECT, VISIBLE);
+			}
+		}
+	}
+}
+
+static void curve_select_similar_radius__bp(Nurb *nu, float radius_ref, int compare, float thresh)
+{
+	BPoint *bp;
+	int i;
+
+	for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
+		if (!bp->hide) {
+			if (curve_select_similar_cmp_fl(bp->radius - radius_ref, thresh, compare)) {
+				select_bpoint(bp, SELECT, SELECT, VISIBLE);
+			}
+		}
+	}
+}
+
+static bool curve_select_similar_radius(ListBase *editnurb, Curve *cu, float compare, float thresh)
+{
+	Nurb *nu, *act_nu;
+	void *act_vert;
+	float radius_ref;
+
+	if (!BKE_curve_nurb_vert_active_get(cu, &act_nu, &act_vert)) {
+		return false;
+	}
+
+	if (act_nu->type == CU_BEZIER) {
+		radius_ref = ((BezTriple *)act_vert)->radius;
+	}
+	else {
+		radius_ref = ((BPoint *)act_vert)->radius;
+	}
+
+	/* make relative */
+	thresh *= radius_ref;
+
+	for (nu = editnurb->first; nu; nu = nu->next) {
+		if (nu->type == CU_BEZIER) {
+			curve_select_similar_radius__bezt(nu, radius_ref, compare, thresh);
+		}
+		else {
+			curve_select_similar_radius__bp(nu, radius_ref, compare, thresh);
+		}
+	}
+
+	return true;
+}
+
+static void curve_select_similar_weight__bezt(Nurb *nu, float weight_ref, int compare, float thresh)
+{
+	BezTriple *bezt;
+	int i;
+
+	for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
+		if (!bezt->hide) {
+			if (curve_select_similar_cmp_fl(bezt->weight - weight_ref, thresh, compare)) {
+				select_beztriple(bezt, SELECT, SELECT, VISIBLE);
+			}
+		}
+	}
+}
+
+static void curve_select_similar_weight__bp(Nurb *nu, float weight_ref, int compare, float thresh)
+{
+	BPoint *bp;
+	int i;
+
+	for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
+		if (!bp->hide) {
+			if (curve_select_similar_cmp_fl(bp->weight - weight_ref, thresh, compare)) {
+				select_bpoint(bp, SELECT, SELECT, VISIBLE);
+			}
+		}
+	}
+}
+
+static bool curve_select_similar_weight(ListBase *editnurb, Curve *cu, float compare, float thresh)
+{
+	Nurb *nu, *act_nu;
+	void *act_vert;
+	float weight_ref;
+
+	if (!BKE_curve_nurb_vert_active_get(cu, &act_nu, &act_vert))
+		return false;
+
+	if (act_nu->type == CU_BEZIER) {
+		weight_ref = ((BezTriple *)act_vert)->weight;
+	}
+	else {
+		weight_ref = ((BPoint *)act_vert)->weight;
+	}
+
+	for (nu = editnurb->first; nu; nu = nu->next) {
+		if (nu->type == CU_BEZIER) {
+			curve_select_similar_weight__bezt(nu, weight_ref, compare, thresh);
+		}
+		else {
+			curve_select_similar_weight__bp(nu, weight_ref, compare, thresh);
+		}
+	}
+
+	return true;
+}
+
+static void curve_select_all__bezt(Nurb *nu)
+{
+	BezTriple *bezt;
+	int i;
+
+	for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
+		if (!bezt->hide) {
+			select_beztriple(bezt, SELECT, SELECT, VISIBLE);
+		}
+	}
+}
+
+static void curve_select_all__bp(Nurb *nu)
+{
+	BPoint *bp;
+	int i;
+
+	for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
+		if (!bp->hide) {
+			select_bpoint(bp, SELECT, SELECT, VISIBLE);
+		}
+	}
+}
+
+static bool curve_select_similar_type(ListBase *editnurb, Curve *cu)
+{
+	Nurb *nu, *act_nu;
+	int type_ref;
+
+	/* Get active nurb type */
+	act_nu = BKE_curve_nurb_active_get(cu);
+
+	if (!act_nu)
+		return false;
+
+	/* Get the active nurb type */
+	type_ref = act_nu->type;
+
+	for (nu = editnurb->first; nu; nu = nu->next) {
+		if (nu->type == type_ref) {
+			if (type_ref == CU_BEZIER) {
+				curve_select_all__bezt(nu);
+			}
+			else {
+				curve_select_all__bp(nu);
+			}
+		}
+	}
+
+	return true;
+}
+
+static int curve_select_similar_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	Curve *cu = obedit->data;
+	ListBase *editnurb = object_editcurve_get(obedit);
+	bool changed = false;
+
+	/* Get props */
+	const int type = RNA_enum_get(op->ptr, "type");
+	const float thresh = RNA_float_get(op->ptr, "threshold");
+	const int compare = RNA_enum_get(op->ptr, "compare");
+
+	switch (type) {
+		case SIMCURHAND_TYPE:
+			changed = curve_select_similar_type(editnurb, cu);
+			break;
+		case SIMCURHAND_RADIUS:
+			changed = curve_select_similar_radius(editnurb, cu, compare, thresh);
+			break;
+		case SIMCURHAND_WEIGHT:
+			changed = curve_select_similar_weight(editnurb, cu, compare, thresh);
+			break;
+		case SIMCURHAND_DIRECTION:
+			changed = curve_select_similar_direction(editnurb, cu, thresh);
+			break;
+	}
+
+	if (changed) {
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void CURVE_OT_select_similar(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Similar";
+	ot->idname = "CURVE_OT_select_similar";
+	ot->description = "Select similar curve points by property type";
+
+	/* api callbacks */
+	ot->invoke = WM_menu_invoke;
+	ot->exec = curve_select_similar_exec;
+	ot->poll = ED_operator_editsurfcurve;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	ot->prop = RNA_def_enum(ot->srna, "type", curve_prop_similar_types, SIMCURHAND_WEIGHT, "Type", "");
+	RNA_def_enum(ot->srna, "compare", curve_prop_similar_compare_types, SIM_CMP_EQ, "Compare", "");
+	RNA_def_float(ot->srna, "threshold", 0.1, 0.0, FLT_MAX, "Threshold", "", 0.0, 100.0);
+}
+
+/** \} */

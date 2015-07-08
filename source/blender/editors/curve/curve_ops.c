@@ -128,6 +128,7 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_select_less);
 	WM_operatortype_append(CURVE_OT_select_random);
 	WM_operatortype_append(CURVE_OT_select_nth);
+	WM_operatortype_append(CURVE_OT_select_similar);
 
 	WM_operatortype_append(CURVE_OT_switch_direction);
 	WM_operatortype_append(CURVE_OT_subdivide);
@@ -241,6 +242,7 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CURVE_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "CURVE_OT_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
 
 	kmi = WM_keymap_add_item(keymap, "CURVE_OT_select_linked_pick", LKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "deselect", false);

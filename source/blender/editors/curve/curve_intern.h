@@ -150,6 +150,7 @@ void CURVE_OT_select_more(struct wmOperatorType *ot);
 void CURVE_OT_select_less(struct wmOperatorType *ot);
 void CURVE_OT_select_random(struct wmOperatorType *ot);
 void CURVE_OT_select_nth(struct wmOperatorType *ot);
+void CURVE_OT_select_similar(struct wmOperatorType *ot);
 
 /* editcurve_add.c */
 void CURVE_OT_primitive_bezier_curve_add(struct wmOperatorType *ot);
