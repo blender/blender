@@ -37,7 +37,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
-
+#include "BLI_heap.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -1493,6 +1493,236 @@ void CURVE_OT_select_similar(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "type", curve_prop_similar_types, SIMCURHAND_WEIGHT, "Type", "");
 	RNA_def_enum(ot->srna, "compare", curve_prop_similar_compare_types, SIM_CMP_EQ, "Compare", "");
 	RNA_def_float(ot->srna, "threshold", 0.1, 0.0, FLT_MAX, "Threshold", "", 0.0, 100.0);
+}
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+/* Select Shortest Path */
+
+/** \name Select Path
+ * \{ */
+
+static float curve_calc_dist_pair(const Nurb *nu, int a, int b)
+{
+	const float *a_fl, *b_fl;
+
+	if (nu->type == CU_BEZIER) {
+		a_fl = nu->bezt[a].vec[1];
+		b_fl = nu->bezt[b].vec[1];
+	}
+	else {
+		a_fl = nu->bp[a].vec;
+		b_fl = nu->bp[b].vec;
+	}
+
+	return len_v3v3(a_fl, b_fl);
+}
+
+static float curve_calc_dist_span(Nurb *nu, int vert_src, int vert_dst)
+{
+	const int u = nu->pntsu;
+	int i_prev, i;
+	float dist = 0.0f;
+
+	BLI_assert(nu->pntsv == 1);
+
+	i_prev = vert_src;
+	i = (i_prev + 1) % u;
+
+	while (true) {
+		dist += curve_calc_dist_pair(nu, i_prev, i);
+
+		if (i == vert_dst) {
+			break;
+		}
+		i = (i + 1) % u;
+	}
+	return dist;
+}
+
+static void curve_select_shortest_path_curve(Nurb *nu, int vert_src, int vert_dst)
+{
+	const int u = nu->pntsu;
+	int i;
+
+	if (vert_src > vert_dst) {
+		SWAP(int, vert_src, vert_dst);
+	}
+
+	if (nu->flagu & CU_NURB_CYCLIC) {
+		if (curve_calc_dist_span(nu, vert_src, vert_dst) >
+		    curve_calc_dist_span(nu, vert_dst, vert_src))
+		{
+			SWAP(int, vert_src, vert_dst);
+		}
+	}
+
+	i = vert_src;
+	while (true) {
+		if (nu->type & CU_BEZIER) {
+			select_beztriple(&nu->bezt[i], SELECT, SELECT, HIDDEN);
+		}
+		else {
+			select_bpoint(&nu->bp[i], SELECT, SELECT, HIDDEN);
+		}
+
+		if (i == vert_dst) {
+			break;
+		}
+		i = (i + 1) % u;
+	}
+}
+
+static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst)
+{
+	Heap *heap;
+
+	int i, vert_curr;
+
+	int totu = nu->pntsu;
+	int totv = nu->pntsv;
+	int vert_num = totu * totv;
+
+	/* custom data */
+	struct PointAdj {
+		int vert, vert_prev;
+		float cost;
+	} *data;
+
+	/* init connectivity data */
+	data = MEM_mallocN(sizeof(*data) * vert_num, __func__);
+	for (i = 0; i < vert_num; i++) {
+		data[i].vert = i;
+		data[i].vert_prev  = -1;
+		data[i].cost  = FLT_MAX;
+	}
+
+	/* init heap */
+	heap = BLI_heap_new();
+
+	BLI_heap_insert(heap, 0.0f, &data[vert_src].vert);
+	data[vert_src].cost = 0.0f;
+	data[vert_src].vert_prev = vert_src;  /* nop */
+
+	while (!BLI_heap_is_empty(heap)) {
+		int axis, sign;
+		int u, v;
+
+		vert_curr = *((int *)BLI_heap_popmin(heap));
+		if (vert_curr == vert_dst) {
+			break;
+		}
+
+		BKE_nurb_index_to_uv(nu, vert_curr, &u, &v);
+
+		/* loop over 4 adjacent verts */
+		for (sign = -1; sign != 3; sign += 2) {
+			for (axis = 0; axis != 2; axis += 1) {
+				int uv_other[2] = {u, v};
+				int vert_other;
+
+				uv_other[axis] += sign;
+
+				vert_other = BKE_nurb_index_from_uv(nu, uv_other[0], uv_other[1]);
+				if (vert_other != -1) {
+					const float dist = data[vert_curr].cost + curve_calc_dist_pair(nu, vert_curr, vert_other);
+
+					if (data[vert_other].cost > dist) {
+						data[vert_other].cost = dist;
+						if (data[vert_other].vert_prev == -1) {
+							BLI_heap_insert(heap, data[vert_other].cost, &data[vert_other].vert);
+						}
+						data[vert_other].vert_prev = vert_curr;
+					}
+				}
+
+			}
+		}
+
+	}
+
+	BLI_heap_free(heap, NULL);
+
+	if (vert_curr == vert_dst) {
+		i = 0;
+		while (vert_curr != vert_src && i++ < vert_num) {
+			if (nu->type == CU_BEZIER) {
+				select_beztriple(&nu->bezt[vert_curr], SELECT, SELECT, HIDDEN);
+			}
+			else {
+				select_bpoint(&nu->bp[vert_curr], SELECT, SELECT, HIDDEN);
+			}
+			vert_curr = data[vert_curr].vert_prev;
+		}
+	}
+
+	MEM_freeN(data);
+}
+
+static int edcu_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	Curve *cu = obedit->data;
+	Nurb *nu_src = BKE_curve_nurb_active_get(cu);
+	int vert_src = cu->actvert;
+
+	ViewContext vc;
+	Nurb *nu_dst;
+	BezTriple *bezt_dst;
+	BPoint *bp_dst;
+	int vert_dst;
+	void *vert_dst_p;
+
+	if (vert_src == CU_ACT_NONE) {
+		return OPERATOR_PASS_THROUGH;
+	}
+
+	view3d_operator_needs_opengl(C);
+	view3d_set_viewcontext(C, &vc);
+
+	if (!ED_curve_pick_vert(&vc, 1, event->mval, &nu_dst, &bezt_dst, &bp_dst, NULL)) {
+		return OPERATOR_PASS_THROUGH;
+	}
+
+	if (nu_src != nu_dst) {
+		BKE_report(op->reports, RPT_ERROR, "Control point belongs to another spline");
+		return OPERATOR_CANCELLED;
+	}
+
+	vert_dst_p = bezt_dst ? (void *)bezt_dst : (void *)bp_dst;
+	vert_dst = BKE_curve_nurb_vert_index_get(nu_dst, vert_dst_p);
+	if (vert_src == vert_dst) {
+		return OPERATOR_CANCELLED;
+	}
+
+	if ((obedit->type == OB_SURF) && (nu_src->pntsv > 1)) {
+		curve_select_shortest_path_surf(nu_src, vert_src, vert_dst);
+	}
+	else {
+		curve_select_shortest_path_curve(nu_src, vert_src, vert_dst);
+	}
+
+	BKE_curve_nurb_vert_active_set(cu, nu_dst, vert_dst_p);
+
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	return OPERATOR_FINISHED;
+}
+
+void CURVE_OT_shortest_path_pick(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Pick Shortest Path";
+	ot->idname = "CURVE_OT_shortest_path_pick";
+	ot->description = "Select shortest path between two selections";
+
+	/* api callbacks */
+	ot->invoke = edcu_shortest_path_pick_invoke;
+	ot->poll = ED_operator_editsurfcurve_region_view3d;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /** \} */

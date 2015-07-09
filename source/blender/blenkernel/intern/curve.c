@@ -737,6 +737,41 @@ void BKE_nurb_bezierPoints_add(Nurb *nu, int number)
 }
 
 
+int BKE_nurb_index_from_uv(
+        Nurb *nu,
+        int u, int v)
+{
+	const int totu = nu->pntsu;
+	const int totv = nu->pntsv;
+
+	if (nu->flagu & CU_NURB_CYCLIC) {
+		u = mod_i(u, totu);
+	}
+	else if (u < 0 || u >= totu) {
+		return -1;
+	}
+
+	if (nu->flagv & CU_NURB_CYCLIC) {
+		v = mod_i(v, totv);
+	}
+	else if (v < 0 || v >= totv) {
+		return -1;
+	}
+
+	return (v * totu) + u;
+}
+
+void BKE_nurb_index_to_uv(
+        Nurb *nu, int index,
+        int *r_u, int *r_v)
+{
+	const int totu = nu->pntsu;
+	const int totv = nu->pntsv;
+	BLI_assert(index >= 0 && index < (nu->pntsu * nu->pntsv));
+	*r_u = (index % totu);
+	*r_v = (index / totu) % totv;
+}
+
 BezTriple *BKE_nurb_bezt_get_next(Nurb *nu, BezTriple *bezt)
 {
 	BezTriple *bezt_next;
@@ -4204,7 +4239,7 @@ ListBase *BKE_curve_nurbs_get(Curve *cu)
 	return &cu->nurb;
 }
 
-void BKE_curve_nurb_active_set(Curve *cu, Nurb *nu)
+void BKE_curve_nurb_active_set(Curve *cu, const Nurb *nu)
 {
 	if (nu == NULL) {
 		cu->actnu = CU_ACT_NONE;
@@ -4231,21 +4266,26 @@ void *BKE_curve_vert_active_get(Curve *cu)
 	return vert;
 }
 
+int BKE_curve_nurb_vert_index_get(const Nurb *nu, const void *vert)
+{
+	if (nu->type == CU_BEZIER) {
+		BLI_assert(ARRAY_HAS_ITEM((BezTriple *)vert, nu->bezt, nu->pntsu));
+		return (BezTriple *)vert - nu->bezt;
+	}
+	else {
+		BLI_assert(ARRAY_HAS_ITEM((BPoint *)vert, nu->bp, nu->pntsu * nu->pntsv));
+		return (BPoint *)vert - nu->bp;
+	}
+}
+
 /* Set active nurb and active vert for curve */
-void BKE_curve_nurb_vert_active_set(Curve *cu, Nurb *nu, void *vert)
+void BKE_curve_nurb_vert_active_set(Curve *cu, const Nurb *nu, const void *vert)
 {
 	if (nu) {
 		BKE_curve_nurb_active_set(cu, nu);
 
 		if (vert) {
-			if (nu->type == CU_BEZIER) {
-				BLI_assert(ARRAY_HAS_ITEM((BezTriple *)vert, nu->bezt, nu->pntsu));
-				cu->actvert = (BezTriple *)vert - nu->bezt;
-			}
-			else {
-				BLI_assert(ARRAY_HAS_ITEM((BPoint *)vert, nu->bp, nu->pntsu * nu->pntsv));
-				cu->actvert = (BPoint *)vert - nu->bp;
-			}
+			cu->actvert = BKE_curve_nurb_vert_index_get(nu, vert);
 		}
 		else {
 			cu->actvert = CU_ACT_NONE;
