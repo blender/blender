@@ -4297,12 +4297,14 @@ void BKE_curve_nurb_vert_active_validate(Curve *cu)
 
 	if (BKE_curve_nurb_vert_active_get(cu, &nu, &vert)) {
 		if (nu->type == CU_BEZIER) {
-			if ((((BezTriple *)vert)->f1 & SELECT) == 0) {
+			BezTriple *bezt = vert;
+			if (BEZT_ISSEL_ANY(bezt) == 0) {
 				cu->actvert = CU_ACT_NONE;
 			}
 		}
 		else {
-			if ((((BPoint *)vert)->f1 & SELECT) == 0) {
+			BPoint *bp = vert;
+			if ((bp->f1 & SELECT) == 0) {
 				cu->actvert = CU_ACT_NONE;
 			}
 		}

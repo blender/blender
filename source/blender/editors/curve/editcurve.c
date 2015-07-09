@@ -4185,18 +4185,16 @@ bool mouse_nurb(bContext *C, const int mval[2], bool extend, bool deselect, bool
 			if (bezt) {
 				if (hand == 1) {
 					select_beztriple(bezt, SELECT, SELECT, HIDDEN);
-					BKE_curve_nurb_vert_active_set(cu, nu, bezt);
 				}
 				else {
 					if (hand == 0) bezt->f1 |= SELECT;
 					else bezt->f3 |= SELECT;
-
-					cu->actvert = CU_ACT_NONE;
 				}
+				BKE_curve_nurb_vert_active_set(cu, nu, bezt);
 			}
 			else {
-				BKE_curve_nurb_vert_active_set(cu, nu, bp);
 				select_bpoint(bp, SELECT, SELECT, HIDDEN);
+				BKE_curve_nurb_vert_active_set(cu, nu, bp);
 			}
 		}
 		else if (deselect) {
@@ -4254,18 +4252,16 @@ bool mouse_nurb(bContext *C, const int mval[2], bool extend, bool deselect, bool
 
 				if (hand == 1) {
 					select_beztriple(bezt, SELECT, SELECT, HIDDEN);
-					BKE_curve_nurb_vert_active_set(cu, nu, bezt);
 				}
 				else {
 					if (hand == 0) bezt->f1 |= SELECT;
 					else bezt->f3 |= SELECT;
-
-					cu->actvert = CU_ACT_NONE;
 				}
+				BKE_curve_nurb_vert_active_set(cu, nu, bezt);
 			}
 			else {
-				BKE_curve_nurb_vert_active_set(cu, nu, bp);
 				select_bpoint(bp, SELECT, SELECT, HIDDEN);
+				BKE_curve_nurb_vert_active_set(cu, nu, bp);
 			}
 		}
 

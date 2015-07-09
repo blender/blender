@@ -6253,8 +6253,8 @@ static void drawvertsN(Nurb *nu, const char sel, const bool hide_handles, const 
 			if (bezt->hide == 0) {
 				if (sel == 1 && bezt == vert) {
 					UI_ThemeColor(TH_ACTIVE_VERT);
-					bglVertex3fv(bezt->vec[1]);
 
+					if (bezt->f2 & SELECT) bglVertex3fv(bezt->vec[1]);
 					if (!hide_handles) {
 						if (bezt->f1 & SELECT) bglVertex3fv(bezt->vec[0]);
 						if (bezt->f3 & SELECT) bglVertex3fv(bezt->vec[2]);
