@@ -1265,13 +1265,10 @@ int file_exec(bContext *C, wmOperator *exec_op)
 	const struct direntry *file = filelist_file(sfile->files, sfile->params->active_file);
 	char filepath[FILE_MAX];
 
-	if (!file)
-		return OPERATOR_CANCELLED;
-
-	BLI_assert(STREQ(file->relname, "..") || STREQ(file->relname, sfile->params->file));
+	BLI_assert(!file || STREQ(file->relname, "..") || STREQ(file->relname, sfile->params->file));
 
 	/* directory change */
-	if (S_ISDIR(file->type)) {
+	if (file && S_ISDIR(file->type)) {
 		if (FILENAME_IS_PARENT(file->relname)) {
 			BLI_parent_dir(sfile->params->dir);
 		}
