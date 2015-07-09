@@ -318,10 +318,10 @@ static int file_border_select_modal(bContext *C, wmOperator *op, const wmEvent *
 			filelist_select(sfile->files, &sel, FILE_SEL_ADD, FILE_SEL_HIGHLIGHTED, CHECK_ALL);
 			WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
-			/* dont highlight readonly file (".." or ".") on border select */
 			for (idx = sel.last; idx >= 0; idx--) {
 				struct direntry *file = filelist_file(sfile->files, idx);
 
+				/* dont highlight readonly file (".." or ".") on border select */
 				if (FILENAME_IS_CURRPAR(file->relname)) {
 					file->selflag &= ~FILE_SEL_HIGHLIGHTED;
 				}
@@ -349,6 +349,7 @@ static int file_border_select_modal(bContext *C, wmOperator *op, const wmEvent *
 static int file_border_select_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar = CTX_wm_region(C);
+	SpaceFile *sfile = CTX_wm_space_file(C);
 	rcti rect;
 	FileSelect ret;
 	const bool select = (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
@@ -357,14 +358,16 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 	WM_operator_properties_border_to_rcti(op, &rect);
 
 	if (!extend) {
-		SpaceFile *sfile = CTX_wm_space_file(C);
-
 		file_deselect_all(sfile, FILE_SEL_SELECTED);
 	}
 
 	BLI_rcti_isect(&(ar->v2d.mask), &rect, &rect);
 
 	ret = file_select(C, &rect, select ? FILE_SEL_ADD : FILE_SEL_REMOVE, false, false);
+
+	/* unselect '..' parent entry - it's not supposed to be selected if more than one file is selected */
+	filelist_select_file(sfile->files, 0, FILE_SEL_REMOVE, FILE_SEL_SELECTED, CHECK_ALL);
+
 	if (FILE_SELECT_DIR == ret) {
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 	}
@@ -415,18 +418,20 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		int idx = sfile->params->highlight_file;
 
 		if (idx >= 0) {
-			struct direntry *file = filelist_file(sfile->files, idx);
-			if (FILENAME_IS_CURRPAR(file->relname)) {
-				/* skip - If a readonly file (".." or ".") is selected, skip deselect all! */
-			}
-			else {
-				/* single select, deselect all selected first */
-				if (!extend) file_deselect_all(sfile, FILE_SEL_SELECTED);
+			/* single select, deselect all selected first */
+			if (!extend) {
+				file_deselect_all(sfile, FILE_SEL_SELECTED);
 			}
 		}
 	}
 
 	ret = file_select(C, &rect, extend ? FILE_SEL_TOGGLE : FILE_SEL_ADD, fill, do_diropen);
+
+	if (extend) {
+		/* unselect '..' parent entry - it's not supposed to be selected if more than one file is selected */
+		filelist_select_file(sfile->files, 0, FILE_SEL_REMOVE, FILE_SEL_SELECTED, CHECK_ALL);
+	}
+
 	if (FILE_SELECT_DIR == ret)
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 	else if (FILE_SELECT_FILE == ret)
@@ -506,7 +511,7 @@ static bool file_walk_select_selection_set(
 		}
 		/* select first file */
 		else if (ELEM(direction, FILE_SELECT_WALK_DOWN, FILE_SELECT_WALK_RIGHT)) {
-			params->active_file = active = 1;
+			params->active_file = active = extend ? 1 : 0;
 		}
 		else {
 			BLI_assert(0);
@@ -517,9 +522,12 @@ static bool file_walk_select_selection_set(
 		return false;
 	}
 
-	/* highlight the active walker file for extended selection for better visual feedback */
 	if (extend) {
+		/* highlight the active walker file for extended selection for better visual feedback */
 		params->highlight_file = params->active_file;
+
+		/* unselect '..' parent entry - it's not supposed to be selected if more than one file is selected */
+		filelist_select_file(files, 0, FILE_SEL_REMOVE, FILE_SEL_SELECTED, CHECK_ALL);
 	}
 	else {
 		/* deselect all first */
@@ -534,6 +542,11 @@ static bool file_walk_select_selection_set(
 	if (fill) {
 		FileSelection sel = { MIN2(active, last_sel), MAX2(active, last_sel) };
 
+		/* clamping selection to not include '..' parent entry */
+		if (sel.first == 0) {
+			sel.first = 1;
+		}
+
 		/* fill selection between last and first selected file */
 		filelist_select(
 		            files, &sel, deselect ? FILE_SEL_REMOVE : FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
@@ -547,7 +560,7 @@ static bool file_walk_select_selection_set(
 		            files, active, deselect ? FILE_SEL_REMOVE : FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
 	}
 
-	BLI_assert(IN_RANGE(active, 0, numfiles));
+	BLI_assert(IN_RANGE(active, -1, numfiles));
 	fileselect_file_set(sfile, params->active_file);
 
 	/* selection changed */
@@ -611,7 +624,9 @@ static bool file_walk_select_do(
 				/* extend to invalid file -> abort */
 				return false;
 			}
-			else {
+			/* if we don't extend, selecting '..' (index == 0) is allowed so
+			 * using key selection to go to parent directory is possible */
+			else if (active_new != 0) {
 				/* select initial file */
 				active_new = active_old;
 			}
@@ -1250,16 +1265,21 @@ int file_exec(bContext *C, wmOperator *exec_op)
 	const struct direntry *file = filelist_file(sfile->files, sfile->params->active_file);
 	char filepath[FILE_MAX];
 
-	if (!file || !sfile->params->file[0])
+	if (!file)
 		return OPERATOR_CANCELLED;
 
-	BLI_assert(STREQ(file->relname, sfile->params->file));
+	BLI_assert(STREQ(file->relname, "..") || STREQ(file->relname, sfile->params->file));
 
 	/* directory change */
 	if (S_ISDIR(file->type)) {
-		BLI_cleanup_dir(G.main->name, sfile->params->dir);
-		strcat(sfile->params->dir, sfile->params->file);
-		BLI_add_slash(sfile->params->dir);
+		if (FILENAME_IS_PARENT(file->relname)) {
+			BLI_parent_dir(sfile->params->dir);
+		}
+		else if (sfile->params->file[0]) {
+			BLI_cleanup_dir(G.main->name, sfile->params->dir);
+			strcat(sfile->params->dir, sfile->params->file);
+			BLI_add_slash(sfile->params->dir);
+		}
 
 		ED_file_change_dir(C, false);
 	}
