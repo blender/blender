@@ -206,11 +206,9 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
 			}
 		}
 		else {
-			if (file->relname) {
-				BLI_strncpy(params->file, file->relname, FILE_MAXFILE);
-			}
 			retval = FILE_SELECT_FILE;
 		}
+		fileselect_file_set(sfile, selected_idx);
 	}
 	return retval;
 }
@@ -340,6 +338,7 @@ static int file_border_select_modal(bContext *C, wmOperator *op, const wmEvent *
 	else {
 		params->highlight_file = -1;
 		params->sel_first = params->sel_last = -1;
+		fileselect_file_set(sfile, params->active_file);
 		file_deselect_all(sfile, FILE_SEL_HIGHLIGHTED);
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 	}
@@ -487,7 +486,7 @@ static bool file_walk_select_selection_set(
 			 * selected and either other_side isn't selected/found or we use fill */
 			deselect = (fill || other_site == -1 || !filelist_is_selected(files, other_site, FILE_SEL_SELECTED));
 
-			/* don't change active here since we either want to deselect active or we want to
+			/* don't change highlight_file here since we either want to deselect active or we want to
 			 * walk through a block of selected files without selecting/deselecting anything */
 			params->active_file = active_new;
 			/* but we want to change active if we use fill (needed to get correct selection bounds) */
@@ -549,6 +548,7 @@ static bool file_walk_select_selection_set(
 	}
 
 	BLI_assert(IN_RANGE(active, 0, numfiles));
+	fileselect_file_set(sfile, params->active_file);
 
 	/* selection changed */
 	return true;
@@ -1243,14 +1243,28 @@ bool file_draw_check_exists(SpaceFile *sfile)
 	return false;
 }
 
-/* sends events now, so things get handled on windowqueue level */
 int file_exec(bContext *C, wmOperator *exec_op)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
+	const struct direntry *file = filelist_file(sfile->files, sfile->params->active_file);
 	char filepath[FILE_MAX];
-	
-	if (sfile->op) {
+
+	if (!file || !sfile->params->file[0])
+		return OPERATOR_CANCELLED;
+
+	BLI_assert(STREQ(file->relname, sfile->params->file));
+
+	/* directory change */
+	if (S_ISDIR(file->type)) {
+		BLI_cleanup_dir(G.main->name, sfile->params->dir);
+		strcat(sfile->params->dir, sfile->params->file);
+		BLI_add_slash(sfile->params->dir);
+
+		ED_file_change_dir(C, false);
+	}
+	/* opening file - sends events now, so things get handled on windowqueue level */
+	else if (sfile->op) {
 		wmOperator *op = sfile->op;
 	
 		/* when used as a macro, for doubleclick, 
@@ -1283,7 +1297,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 		WM_event_fileselect_event(wm, op, EVT_FILESELECT_EXEC);
 
 	}
-				
+
 	return OPERATOR_FINISHED;
 }
 

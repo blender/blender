@@ -110,6 +110,7 @@ void file_operator_to_sfile(struct SpaceFile *sfile, struct wmOperator *op);
 
 
 /* filesel.c */
+void fileselect_file_set(SpaceFile *sfile, const int index);
 float file_string_width(const char *str);
 
 float file_font_pointsize(void);
