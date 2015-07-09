@@ -348,7 +348,9 @@ static OSStatus AudioConverterInputCallback(AudioConverterRef inAudioConverter,
 
 #pragma mark export functions
 
-int start_qt(void *context_v, struct Scene *scene, struct RenderData *rd, int rectx, int recty, ReportList *reports, bool preview, const char *UNUSED(suffix))
+int start_qt(
+        void *context_v, struct Scene *scene, struct RenderData *rd, int UNUSED(rectx), int UNUSED(recty),
+        ReportList *reports, bool preview, const char *UNUSED(suffix))
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSError *error;
@@ -652,7 +654,9 @@ int start_qt(void *context_v, struct Scene *scene, struct RenderData *rd, int re
 	return success;
 }
 
-int append_qt(void *context_v, struct RenderData *rd, int start_frame, int frame, int *pixels, int rectx, int recty, const char *UNUSED(suffix), ReportList *reports)
+int append_qt(
+        void *context_v, struct RenderData *rd, int start_frame, int frame, int *pixels, int rectx, int recty,
+        const char *UNUSED(suffix), ReportList *reports)
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSBitmapImageRep *blBitmapFormatImage;
