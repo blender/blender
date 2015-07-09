@@ -599,7 +599,7 @@ int main(int argc, char** argv)
 				i++;
 				G.debug |= G_DEBUG;
 				MEM_set_memory_debug();
-#ifdef DEBUG
+#ifndef NDEBUG
 				BLI_mempool_set_memory_debug();
 #endif
 				break;

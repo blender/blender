@@ -67,7 +67,7 @@ void      **BLI_mempool_as_tableN(BLI_mempool *pool, const char *allocstr) ATTR_
 void        BLI_mempool_as_array(BLI_mempool *pool, void *data) ATTR_NONNULL(1, 2);
 void       *BLI_mempool_as_arrayN(BLI_mempool *pool, const char *allocstr) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 
-#ifdef DEBUG
+#ifndef NDEBUG
 void        BLI_mempool_set_memory_debug(void);
 #endif
 
