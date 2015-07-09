@@ -157,14 +157,14 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 
 	vector<pair<KX_Scene *, KX_WorldInfo *> >::iterator itw = m_worldinfos.begin();
 	while (itw != m_worldinfos.end()) {
-		delete (*itw).second;
+		delete itw->second;
 		itw++;
 	}
 	m_worldinfos.clear();
 
 	vector<pair<KX_Scene *,RAS_IPolyMaterial *> >::iterator itp = m_polymaterials.begin();
 	while (itp != m_polymaterials.end()) {
-		delete (*itp).second;
+		delete itp->second;
 		itp++;
 	}
 	m_polymaterials.clear();
@@ -172,14 +172,14 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 	// delete after RAS_IPolyMaterial
 	vector<pair<KX_Scene *,BL_Material *> >::iterator itmat = m_materials.begin();
 	while (itmat != m_materials.end()) {
-		delete (*itmat).second;
+		delete itmat->second;
 		itmat++;
 	}
 	m_materials.clear();
 
 	vector<pair<KX_Scene *,RAS_MeshObject *> >::iterator itm = m_meshobjects.begin();
 	while (itm != m_meshobjects.end()) {
-		delete (*itm).second;
+		delete itm->second;
 		itm++;
 	}
 	m_meshobjects.clear();
@@ -303,8 +303,8 @@ void KX_BlenderSceneConverter::RemoveScene(KX_Scene *scene)
 	vector<pair<KX_Scene *, KX_WorldInfo *> >::iterator worldit;
 	size = m_worldinfos.size();
 	for (i = 0, worldit = m_worldinfos.begin(); i < size; ) {
-		if ((*worldit).first == scene) {
-			delete (*worldit).second;
+		if (worldit->first == scene) {
+			delete worldit->second;
 			*worldit = m_worldinfos.back();
 			m_worldinfos.pop_back();
 			size--;
@@ -318,9 +318,9 @@ void KX_BlenderSceneConverter::RemoveScene(KX_Scene *scene)
 	vector<pair<KX_Scene *, RAS_IPolyMaterial *> >::iterator polymit;
 	size = m_polymaterials.size();
 	for (i = 0, polymit = m_polymaterials.begin(); i < size; ) {
-		if ((*polymit).first == scene) {
-			m_polymat_cache[scene].erase((*polymit).second->GetBlenderMaterial());
-			delete (*polymit).second;
+		if (polymit->first == scene) {
+			m_polymat_cache[scene].erase(polymit->second->GetBlenderMaterial());
+			delete polymit->second;
 			*polymit = m_polymaterials.back();
 			m_polymaterials.pop_back();
 			size--;
@@ -336,9 +336,9 @@ void KX_BlenderSceneConverter::RemoveScene(KX_Scene *scene)
 	vector<pair<KX_Scene *, BL_Material *> >::iterator matit;
 	size = m_materials.size();
 	for (i = 0, matit = m_materials.begin(); i < size; ) {
-		if ((*matit).first == scene) {
-			m_mat_cache[scene].erase((*matit).second->material);
-			delete (*matit).second;
+		if (matit->first == scene) {
+			m_mat_cache[scene].erase(matit->second->material);
+			delete matit->second;
 			*matit = m_materials.back();
 			m_materials.pop_back();
 			size--;
@@ -354,8 +354,8 @@ void KX_BlenderSceneConverter::RemoveScene(KX_Scene *scene)
 	vector<pair<KX_Scene *, RAS_MeshObject *> >::iterator meshit;
 	size = m_meshobjects.size();
 	for (i = 0, meshit = m_meshobjects.begin(); i < size; ) {
-		if ((*meshit).first == scene) {
-			delete (*meshit).second;
+		if (meshit->first == scene) {
+			delete meshit->second;
 			*meshit = m_meshobjects.back();
 			m_meshobjects.pop_back();
 			size--;
@@ -1179,8 +1179,8 @@ bool KX_BlenderSceneConverter::FreeBlendFile(Main *maggie)
 	vector<pair<KX_Scene *, KX_WorldInfo *> >::iterator worldit;
 	size = m_worldinfos.size();
 	for (i = 0, worldit = m_worldinfos.begin(); i < size;) {
-		if ((*worldit).second && (worldset.count((*worldit).second)) == 0) {
-			delete (*worldit).second;
+		if (worldit->second && (worldset.count(worldit->second)) == 0) {
+			delete worldit->second;
 			*worldit = m_worldinfos.back();
 			m_worldinfos.pop_back();
 			size--;
@@ -1197,7 +1197,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(Main *maggie)
 	size = m_polymaterials.size();
 
 	for (i = 0, polymit = m_polymaterials.begin(); i < size; ) {
-		RAS_IPolyMaterial *mat = (*polymit).second;
+		RAS_IPolyMaterial *mat = polymit->second;
 		Material *bmat = NULL;
 
 		KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial *>(mat);
@@ -1205,7 +1205,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(Main *maggie)
 
 		if (IS_TAGGED(bmat)) {
 			/* only remove from bucket */
-			((*polymit).first)->GetBucketManager()->RemoveMaterial(mat);
+			polymit->first->GetBucketManager()->RemoveMaterial(mat);
 		}
 
 		i++;
@@ -1213,7 +1213,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(Main *maggie)
 	}
 
 	for (i = 0, polymit = m_polymaterials.begin(); i < size; ) {
-		RAS_IPolyMaterial *mat = (*polymit).second;
+		RAS_IPolyMaterial *mat = polymit->second;
 		Material *bmat = NULL;
 
 		KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(mat);
@@ -1222,7 +1222,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(Main *maggie)
 		if (IS_TAGGED(bmat)) {
 			// Remove the poly material coresponding to this Blender Material.
 			m_polymat_cache[polymit->first].erase(bmat);
-			delete (*polymit).second;
+			delete polymit->second;
 			*polymit = m_polymaterials.back();
 			m_polymaterials.pop_back();
 			size--;
@@ -1235,11 +1235,11 @@ bool KX_BlenderSceneConverter::FreeBlendFile(Main *maggie)
 	vector<pair<KX_Scene *, BL_Material *> >::iterator matit;
 	size = m_materials.size();
 	for (i = 0, matit = m_materials.begin(); i < size; ) {
-		BL_Material *mat = (*matit).second;
+		BL_Material *mat = matit->second;
 		if (IS_TAGGED(mat->material)) {
 			// Remove the bl material coresponding to this Blender Material.
 			m_mat_cache[matit->first].erase(mat->material);
-			delete (*matit).second;
+			delete matit->second;
 			*matit = m_materials.back();
 			m_materials.pop_back();
 			size--;
@@ -1257,7 +1257,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(Main *maggie)
 
 	size = m_meshobjects.size();
 	for (i = 0, meshit = m_meshobjects.begin(); i < size;) {
-		RAS_MeshObject *me = (*meshit).second;
+		RAS_MeshObject *me = meshit->second;
 		if (IS_TAGGED(me->GetMesh())) {
 			// Before deleting the mesh object, make sure the rasterizer is
 			// no longer referencing it.
@@ -1287,7 +1287,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(Main *maggie)
 			}
 
 			// Now it should be safe to delete
-			delete (*meshit).second;
+			delete meshit->second;
 			*meshit = m_meshobjects.back();
 			m_meshobjects.pop_back();
 			size--;
@@ -1322,8 +1322,8 @@ bool KX_BlenderSceneConverter::MergeScene(KX_Scene *to, KX_Scene *from)
 	{
 		vector<pair<KX_Scene *, KX_WorldInfo *> >::iterator itp = m_worldinfos.begin();
 		while (itp != m_worldinfos.end()) {
-			if ((*itp).first == from)
-				(*itp).first = to;
+			if (itp->first == from)
+				itp->first = to;
 			itp++;
 		}
 	}
@@ -1331,11 +1331,11 @@ bool KX_BlenderSceneConverter::MergeScene(KX_Scene *to, KX_Scene *from)
 	{
 		vector<pair<KX_Scene *, RAS_IPolyMaterial *> >::iterator itp = m_polymaterials.begin();
 		while (itp != m_polymaterials.end()) {
-			if ((*itp).first == from) {
-				(*itp).first = to;
+			if (itp->first == from) {
+				itp->first = to;
 
 				/* also switch internal data */
-				RAS_IPolyMaterial *mat = (*itp).second;
+				RAS_IPolyMaterial *mat = itp->second;
 				mat->Replace_IScene(to);
 			}
 			itp++;
@@ -1345,8 +1345,8 @@ bool KX_BlenderSceneConverter::MergeScene(KX_Scene *to, KX_Scene *from)
 	{
 		vector<pair<KX_Scene *, RAS_MeshObject *> >::iterator itp = m_meshobjects.begin();
 		while (itp != m_meshobjects.end()) {
-			if ((*itp).first == from)
-				(*itp).first = to;
+			if (itp->first == from)
+				itp->first = to;
 			itp++;
 		}
 	}
@@ -1354,8 +1354,8 @@ bool KX_BlenderSceneConverter::MergeScene(KX_Scene *to, KX_Scene *from)
 	{
 		vector<pair<KX_Scene *, BL_Material *> >::iterator itp = m_materials.begin();
 		while (itp != m_materials.end()) {
-			if ((*itp).first == from)
-				(*itp).first = to;
+			if (itp->first == from)
+				itp->first = to;
 			itp++;
 		}
 	}
