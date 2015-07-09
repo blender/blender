@@ -229,7 +229,7 @@ static short get_active_fcurve_keyframe_edit(FCurve *fcu, BezTriple **bezt, BezT
 	 *	  wants to edit numerically, there is likely to only be 1 vert selected
 	 */
 	for (i = 0, b = fcu->bezt; i < fcu->totvert; i++, b++) {
-		if (BEZSELECTED(b)) {
+		if (BEZT_ISSEL_ANY(b)) {
 			/* found 
 			 *	- 'previous' is either the one before, of the keyframe itself (which is still fine)
 			 *		XXX: we can just make this null instead if needed

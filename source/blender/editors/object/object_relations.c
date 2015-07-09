@@ -169,7 +169,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 				bezt = nu->bezt;
 				a = nu->pntsu;
 				while (a--) {
-					if (BEZSELECTED_HIDDENHANDLES(cu, bezt)) {
+					if (BEZT_ISSEL_ANY_HIDDENHANDLES(cu, bezt)) {
 						if (v1 == 0) v1 = nr;
 						else if (v2 == 0) v2 = nr;
 						else if (v3 == 0) v3 = nr;

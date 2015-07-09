@@ -304,7 +304,7 @@ static bool fcu_test_selected(FCurve *fcu)
 		return 0;
 
 	for (i = 0; i < fcu->totvert; i++, bezt++) {
-		if (BEZSELECTED(bezt)) return 1;
+		if (BEZT_ISSEL_ANY(bezt)) return 1;
 	}
 
 	return 0;

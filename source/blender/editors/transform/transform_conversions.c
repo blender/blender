@@ -3312,7 +3312,7 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 	for (i = 0; i < fcu->totvert; i++) {
 		BezTriple *bezt = &fcu->bezt[i];
 		
-		if (BEZSELECTED(bezt)) {
+		if (BEZT_ISSEL_ANY(bezt)) {
 			selcache[index] = bezt->vec[1][0];
 			index++;
 			len++;
@@ -3326,7 +3326,7 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 		for (i = fcu->totvert - 1; i >= 0; i--) {
 			BezTriple *bezt = &fcu->bezt[i];
 			
-			if (BEZSELECTED(bezt) == 0) {
+			if (BEZT_ISSEL_ANY(bezt) == 0) {
 				/* check beztriple should be removed according to cache */
 				for (index = 0; index < len; index++) {
 					if (IS_EQF(bezt->vec[1][0], selcache[index])) {
@@ -3492,7 +3492,7 @@ static TransData *ActionFCurveToTransData(TransData *td, TransData2D **td2dv, FC
 
 	for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
 		/* only add selected keyframes (for now, proportional edit is not enabled) */
-		if (is_prop_edit || (bezt->f2 & SELECT)) { /* note this MUST match count_fcurve_keys(), so can't use BEZSELECTED() macro */
+		if (is_prop_edit || (bezt->f2 & SELECT)) { /* note this MUST match count_fcurve_keys(), so can't use BEZT_ISSEL_ANY() macro */
 			/* only add if on the right 'side' of the current frame */
 			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
 				TimeToTransData(td, bezt->vec[1], adt, ypos);

@@ -59,11 +59,15 @@ bool    mouse_nurb(struct bContext *C, const int mval[2], bool extend, bool dese
 
 struct Nurb *add_nurbs_primitive(struct bContext *C, struct Object *obedit, float mat[4][4], int type, int newob);
 
-int     isNurbsel(struct Nurb *nu);
+bool    ED_curve_nurb_select_check(struct Curve *cu, struct Nurb *nu);
+int     ED_curve_nurb_select_count(struct Curve *cu, struct Nurb *nu);
+void    ED_curve_nurb_select_all(struct Nurb *nu);
+void    ED_curve_nurb_deselect_all(struct Nurb *nu);
 
 int     join_curve_exec(struct bContext *C, struct wmOperator *op);
 
 /* editcurve_select.c */
+bool ED_curve_select_check(struct Curve *cu, struct EditNurb *editnurb);
 void ED_curve_deselect_all(struct EditNurb *editnurb);
 void ED_curve_select_all(struct EditNurb *editnurb);
 void ED_curve_select_swap(struct EditNurb *editnurb, bool hide_handles);

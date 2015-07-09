@@ -254,7 +254,7 @@ static int return_editcurve_indexar(
 	}
 	if (totvert == 0) return 0;
 	
-	*r_indexar = index = MEM_mallocN(4 * totvert, "hook indexar");
+	*r_indexar = index = MEM_mallocN(sizeof(*index) * totvert, "hook indexar");
 	*r_tot = totvert;
 	nr = 0;
 	zero_v3(r_cent);

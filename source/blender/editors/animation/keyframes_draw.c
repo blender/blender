@@ -105,7 +105,7 @@ static DLRBT_Node *nalloc_ak_bezt(void *data)
 	
 	/* store settings based on state of BezTriple */
 	ak->cfra = bezt->vec[1][0];
-	ak->sel = BEZSELECTED(bezt) ? SELECT : 0;
+	ak->sel = BEZT_ISSEL_ANY(bezt) ? SELECT : 0;
 	ak->key_type = BEZKEYTYPE(bezt);
 	
 	/* set 'modified', since this is used to identify long keyframes */
@@ -121,7 +121,7 @@ static void nupdate_ak_bezt(void *node, void *data)
 	BezTriple *bezt = (BezTriple *)data;
 	
 	/* set selection status and 'touched' status */
-	if (BEZSELECTED(bezt)) ak->sel = SELECT;
+	if (BEZT_ISSEL_ANY(bezt)) ak->sel = SELECT;
 	ak->modified += 1;
 	
 	/* for keyframe type, 'proper' keyframes have priority over breakdowns (and other types for now) */
@@ -279,7 +279,7 @@ static ActKeyBlock *bezts_to_new_actkeyblock(BezTriple *prev, BezTriple *beztn)
 	ab->end = beztn->vec[1][0];
 	ab->val = beztn->vec[1][1];
 	
-	ab->sel = (BEZSELECTED(prev) || BEZSELECTED(beztn)) ? SELECT : 0;
+	ab->sel = (BEZT_ISSEL_ANY(prev) || BEZT_ISSEL_ANY(beztn)) ? SELECT : 0;
 	ab->modified = 1;
 	
 	return ab;
@@ -340,7 +340,7 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *blocks, BezTriple *first_bezt
 			 */
 			if (IS_EQT(ab->start, prev->vec[1][0], BEZT_BINARYSEARCH_THRESH)) {
 				/* set selection status and 'touched' status */
-				if (BEZSELECTED(beztn)) ab->sel = SELECT;
+				if (BEZT_ISSEL_ANY(beztn)) ab->sel = SELECT;
 				ab->modified++;
 				
 				/* done... no need to insert */

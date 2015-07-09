@@ -455,7 +455,7 @@ static short ok_bezier_selected(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 	/* this macro checks all beztriple handles for selection... 
 	 * only one of the verts has to be selected for this to be ok...
 	 */
-	if (BEZSELECTED(bezt))
+	if (BEZT_ISSEL_ANY(bezt))
 		return KEYFRAME_OK_ALL;
 	else
 		return 0;
@@ -1181,7 +1181,7 @@ static short select_bezier_add(KeyframeEditData *ked, BezTriple *bezt)
 			bezt->f3 |= SELECT;
 	}
 	else {
-		BEZ_SEL(bezt);
+		BEZT_SEL_ALL(bezt);
 	}
 	
 	return 0;
@@ -1199,7 +1199,7 @@ static short select_bezier_subtract(KeyframeEditData *ked, BezTriple *bezt)
 			bezt->f3 &= ~SELECT;
 	}
 	else {
-		BEZ_DESEL(bezt);
+		BEZT_DESEL_ALL(bezt);
 	}
 	
 	return 0;
@@ -1252,7 +1252,7 @@ static short selmap_build_bezier_more(KeyframeEditData *ked, BezTriple *bezt)
 	int i = ked->curIndex;
 	
 	/* if current is selected, just make sure it stays this way */
-	if (BEZSELECTED(bezt)) {
+	if (BEZT_ISSEL_ANY(bezt)) {
 		map[i] = 1;
 		return 0;
 	}
@@ -1261,7 +1261,7 @@ static short selmap_build_bezier_more(KeyframeEditData *ked, BezTriple *bezt)
 	if (i > 0) {
 		BezTriple *prev = bezt - 1;
 		
-		if (BEZSELECTED(prev)) {
+		if (BEZT_ISSEL_ANY(prev)) {
 			map[i] = 1;
 			return 0;
 		}
@@ -1271,7 +1271,7 @@ static short selmap_build_bezier_more(KeyframeEditData *ked, BezTriple *bezt)
 	if (i < (fcu->totvert - 1)) {
 		BezTriple *next = bezt + 1;
 		
-		if (BEZSELECTED(next)) {
+		if (BEZT_ISSEL_ANY(next)) {
 			map[i] = 1;
 			return 0;
 		}
@@ -1289,12 +1289,12 @@ static short selmap_build_bezier_less(KeyframeEditData *ked, BezTriple *bezt)
 	/* if current is selected, check the left/right keyframes
 	 * since it might need to be deselected (but otherwise no)
 	 */
-	if (BEZSELECTED(bezt)) {
+	if (BEZT_ISSEL_ANY(bezt)) {
 		/* if previous is not selected, we're on the tip of an iceberg */
 		if (i > 0) {
 			BezTriple *prev = bezt - 1;
 			
-			if (BEZSELECTED(prev) == 0)
+			if (BEZT_ISSEL_ANY(prev) == 0)
 				return 0;
 		}
 		else if (i == 0) {
@@ -1306,7 +1306,7 @@ static short selmap_build_bezier_less(KeyframeEditData *ked, BezTriple *bezt)
 		if (i < (fcu->totvert - 1)) {
 			BezTriple *next = bezt + 1;
 			
-			if (BEZSELECTED(next) == 0)
+			if (BEZT_ISSEL_ANY(next) == 0)
 				return 0;
 		}
 		else if (i == (fcu->totvert - 1)) {
@@ -1344,10 +1344,10 @@ short bezt_selmap_flush(KeyframeEditData *ked, BezTriple *bezt)
 	
 	/* select or deselect based on whether the map allows it or not */
 	if (on) {
-		BEZ_SEL(bezt);
+		BEZT_SEL_ALL(bezt);
 	}
 	else {
-		BEZ_DESEL(bezt);
+		BEZT_DESEL_ALL(bezt);
 	}
 	
 	return 0;

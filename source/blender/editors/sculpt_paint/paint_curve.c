@@ -225,7 +225,7 @@ static int paintcurve_point_co_index(char sel)
 static char paintcurve_point_side_index(const BezTriple *bezt, const bool is_first, const char fallback)
 {
 	/* when matching, guess based on endpoint side */
-	if (BEZSELECTED(bezt)) {
+	if (BEZT_ISSEL_ANY(bezt)) {
 		if ((bezt->f1 & SELECT) == (bezt->f3 & SELECT)) {
 			return is_first ? SEL_F1 : SEL_F3;
 		}
@@ -395,7 +395,7 @@ static int paintcurve_delete_point_exec(bContext *C, wmOperator *op)
 #define DELETE_TAG 2
 
 	for (i = 0, pcp = pc->points; i < pc->tot_points; i++, pcp++) {
-		if ((pcp->bez.f1 & SELECT) || (pcp->bez.f2 & SELECT) || (pcp->bez.f3 & SELECT)) {
+		if (BEZT_ISSEL_ANY(&pcp->bez)) {
 			pcp->bez.f2 |= DELETE_TAG;
 			tot_del++;
 		}

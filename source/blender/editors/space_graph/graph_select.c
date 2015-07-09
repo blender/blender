@@ -1112,7 +1112,7 @@ typedef enum eGraphVertIndex {
 static bool fcurve_handle_sel_check(SpaceIpo *sipo, BezTriple *bezt)
 {
 	if (sipo->flag & SIPO_NOHANDLES) return 0;
-	if ((sipo->flag & SIPO_SELVHANDLESONLY) && BEZSELECTED(bezt) == 0) return 0;
+	if ((sipo->flag & SIPO_SELVHANDLESONLY) && BEZT_ISSEL_ANY(bezt) == 0) return 0;
 	return 1;
 }
 
@@ -1143,7 +1143,7 @@ static void nearest_fcurve_vert_store(
 			/* if there is already a point for the F-Curve, check if this point is closer than that was */
 			if ((nvi) && (nvi->fcu == fcu)) {
 				/* replace if we are closer, or if equal and that one wasn't selected but we are... */
-				if ((nvi->dist > dist) || ((nvi->sel == 0) && BEZSELECTED(bezt)))
+				if ((nvi->dist > dist) || ((nvi->sel == 0) && BEZT_ISSEL_ANY(bezt)))
 					replace = 1;
 			}
 			/* add new if not replacing... */
@@ -1158,7 +1158,7 @@ static void nearest_fcurve_vert_store(
 			nvi->hpoint = hpoint;
 			nvi->dist = dist;
 			
-			nvi->sel = BEZSELECTED(bezt); // XXX... should this use the individual verts instead?
+			nvi->sel = BEZT_ISSEL_ANY(bezt); // XXX... should this use the individual verts instead?
 			
 			/* add to list of matches if appropriate... */
 			if (replace == 0)
@@ -1338,11 +1338,11 @@ static void mouse_graph_keys(bAnimContext *ac, const int mval[2], short select_m
 			if (select_mode == SELECT_INVERT) {
 				/* keyframe - invert select of all */
 				if (nvi->hpoint == NEAREST_HANDLE_KEY) {
-					if (BEZSELECTED(bezt)) {
-						BEZ_DESEL(bezt);
+					if (BEZT_ISSEL_ANY(bezt)) {
+						BEZT_DESEL_ALL(bezt);
 					}
 					else {
-						BEZ_SEL(bezt);
+						BEZT_SEL_ALL(bezt);
 					}
 				}
 				
@@ -1359,7 +1359,7 @@ static void mouse_graph_keys(bAnimContext *ac, const int mval[2], short select_m
 			else {
 				/* if the keyframe was clicked on, select all verts of given beztriple */
 				if (nvi->hpoint == NEAREST_HANDLE_KEY) {
-					BEZ_SEL(bezt);
+					BEZT_SEL_ALL(bezt);
 				}
 				/* otherwise, select the handle that applied */
 				else if (nvi->hpoint == NEAREST_HANDLE_LEFT) 
@@ -1393,7 +1393,7 @@ static void mouse_graph_keys(bAnimContext *ac, const int mval[2], short select_m
 			/* take selection status from item that got hit, to prevent flip/flop on channel 
 			 * selection status when shift-selecting (i.e. "SELECT_INVERT") points
 			 */
-			if (BEZSELECTED(bezt))
+			if (BEZT_ISSEL_ANY(bezt))
 				nvi->fcu->flag |= FCURVE_SELECTED;
 			else
 				nvi->fcu->flag &= ~FCURVE_SELECTED;

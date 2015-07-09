@@ -1221,7 +1221,7 @@ static void pose_propagate_fcurve(wmOperator *op, Object *ob, FCurve *fcu,
 		}
 		else if (mode == POSE_PROPAGATE_SELECTED_KEYS) {
 			/* only allow if this keyframe is already selected - skip otherwise */
-			if (BEZSELECTED(bezt) == 0)
+			if (BEZT_ISSEL_ANY(bezt) == 0)
 				continue;
 		}
 		

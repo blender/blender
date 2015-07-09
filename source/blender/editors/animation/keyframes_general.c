@@ -167,11 +167,11 @@ void duplicate_fcurve_keys(FCurve *fcu)
 			fcu->bezt = newbezt;
 			
 			/* Unselect the current key */
-			BEZ_DESEL(&fcu->bezt[i]);
+			BEZT_DESEL_ALL(&fcu->bezt[i]);
 			i++;
 			
 			/* Select the copied key */
-			BEZ_SEL(&fcu->bezt[i]);
+			BEZT_SEL_ALL(&fcu->bezt[i]);
 		}
 	}
 }
@@ -308,7 +308,7 @@ void smooth_fcurve(FCurve *fcu)
 	/* first loop through - count how many verts are selected */
 	bezt = fcu->bezt;
 	for (i = 0; i < fcu->totvert; i++, bezt++) {
-		if (BEZSELECTED(bezt))
+		if (BEZT_ISSEL_ANY(bezt))
 			totSel++;
 	}
 	
@@ -322,7 +322,7 @@ void smooth_fcurve(FCurve *fcu)
 		/* populate tarray with data of selected points */
 		bezt = fcu->bezt;
 		for (i = 0, x = 0; (i < fcu->totvert) && (x < totSel); i++, bezt++) {
-			if (BEZSELECTED(bezt)) {
+			if (BEZT_ISSEL_ANY(bezt)) {
 				/* tsb simply needs pointer to vec, and index */
 				tsb->h1 = &bezt->vec[0][1];
 				tsb->h2 = &bezt->vec[1][1];
@@ -411,7 +411,7 @@ void sample_fcurve(FCurve *fcu)
 	/* find selected keyframes... once pair has been found, add keyframes  */
 	for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
 		/* check if selected, and which end this is */
-		if (BEZSELECTED(bezt)) {
+		if (BEZT_ISSEL_ANY(bezt)) {
 			if (start) {
 				/* set end */
 				end = bezt;
@@ -576,7 +576,7 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
 		/* TODO: currently, we resize array every time we add a new vert -
 		 * this works ok as long as it is assumed only a few keys are copied */
 		for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
-			if (BEZSELECTED(bezt)) {
+			if (BEZT_ISSEL_ANY(bezt)) {
 				/* add to buffer */
 				newbuf = MEM_callocN(sizeof(BezTriple) * (aci->totvert + 1), "copybuf beztriple");
 				
@@ -589,7 +589,7 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
 				*nbezt = *bezt;
 				
 				/* ensure copy buffer is selected so pasted keys are selected */
-				BEZ_SEL(nbezt);
+				BEZT_SEL_ALL(nbezt);
 				
 				/* free old array and set the new */
 				if (aci->bezt) MEM_freeN(aci->bezt);
@@ -776,7 +776,7 @@ static void paste_animedit_keys_fcurve(FCurve *fcu, tAnimCopybufItem *aci, float
 
 	/* First de-select existing FCurve's keyframes */
 	for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
-		BEZ_DESEL(bezt);
+		BEZT_DESEL_ALL(bezt);
 	}
 
 	/* mix mode with existing data */

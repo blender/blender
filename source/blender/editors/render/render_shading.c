@@ -201,9 +201,11 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 			ListBase *nurbs = BKE_curve_editNurbs_get((Curve *)ob->data);
 
 			if (nurbs) {
-				for (nu = nurbs->first; nu; nu = nu->next)
-					if (isNurbsel(nu))
+				for (nu = nurbs->first; nu; nu = nu->next) {
+					if (ED_curve_nurb_select_check(ob->data, nu)) {
 						nu->mat_nr = ob->actcol - 1;
+					}
+				}
 			}
 		}
 		else if (ob->type == OB_FONT) {

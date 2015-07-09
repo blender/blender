@@ -113,29 +113,126 @@ static bool swap_selection_bpoint(BPoint *bp)
 		return select_bpoint(bp, SELECT, SELECT, VISIBLE);
 }
 
+bool ED_curve_nurb_select_check(Curve *cu, Nurb *nu)
+{
+	if (nu->type == CU_BEZIER) {
+		BezTriple *bezt;
+		int i;
+
+		for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
+			if (BEZT_ISSEL_ANY_HIDDENHANDLES(cu, bezt)) {
+				return true;
+			}
+		}
+	}
+	else {
+		BPoint *bp;
+		int i;
+
+		for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
+			if (bp->f1 & SELECT) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+int ED_curve_nurb_select_count(Curve *cu, Nurb *nu)
+{
+	int sel = 0;
+
+	if (nu->type == CU_BEZIER) {
+		BezTriple *bezt;
+		int i;
+
+		for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
+			if (BEZT_ISSEL_ANY_HIDDENHANDLES(cu, bezt)) {
+				return sel++;
+			}
+		}
+	}
+	else {
+		BPoint *bp;
+		int i;
+
+		for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
+			if (bp->f1 & SELECT) {
+				return sel++;
+			}
+		}
+	}
+
+	return sel;
+}
+
+void ED_curve_nurb_select_all(Nurb *nu)
+{
+	int i;
+
+	if (nu->bezt) {
+		BezTriple *bezt;
+		for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
+			if (bezt->hide == 0) {
+				BEZT_SEL_ALL(bezt);
+			}
+		}
+	}
+	else if (nu->bp) {
+		BPoint *bp;
+		for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
+			if (bp->hide == 0) {
+				bp->f1 |= SELECT;
+			}
+		}
+	}
+}
 
 void ED_curve_select_all(EditNurb *editnurb)
 {
 	Nurb *nu;
-	int a;
 	for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
-		if (nu->bezt) {
-			BezTriple *bezt;
-			for (bezt = nu->bezt, a = 0; a < nu->pntsu; a++, bezt++) {
-				if (bezt->hide == 0) {
-					bezt->f1 |= SELECT;
-					bezt->f2 |= SELECT;
-					bezt->f3 |= SELECT;
-				}
-			}
+		ED_curve_nurb_select_all(nu);
+	}
+}
+
+void ED_curve_nurb_deselect_all(Nurb *nu)
+{
+	int i;
+
+	if (nu->bezt) {
+		BezTriple *bezt;
+		for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
+			BEZT_DESEL_ALL(bezt);
 		}
-		else if (nu->bp) {
-			BPoint *bp;
-			for (bp = nu->bp, a = 0; a < nu->pntsu * nu->pntsv; a++, bp++) {
-				if (bp->hide == 0)
-					bp->f1 |= SELECT;
-			}
+	}
+	else if (nu->bp) {
+		BPoint *bp;
+		for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
+			bp->f1 &= ~SELECT;
 		}
+	}
+}
+
+bool ED_curve_select_check(Curve *cu, struct EditNurb *editnurb)
+{
+	Nurb *nu;
+
+	for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
+		if (ED_curve_nurb_select_check(cu, nu)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void ED_curve_deselect_all(EditNurb *editnurb)
+{
+	Nurb *nu;
+
+	for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
+		ED_curve_nurb_deselect_all(nu);
 	}
 }
 
@@ -353,55 +450,17 @@ void CURVE_OT_de_select_last(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/******************* de select all operator ***************/
-
-static bool nurb_has_selected_cps(ListBase *editnurb)
-{
-	Nurb *nu;
-	BezTriple *bezt;
-	BPoint *bp;
-	int a;
-
-	for (nu = editnurb->first; nu; nu = nu->next) {
-		if (nu->type == CU_BEZIER) {
-			a = nu->pntsu;
-			bezt = nu->bezt;
-			while (a--) {
-				if (bezt->hide == 0) {
-					if ((bezt->f1 & SELECT) ||
-					    (bezt->f2 & SELECT) ||
-					    (bezt->f3 & SELECT))
-					{
-						return 1;
-					}
-				}
-				bezt++;
-			}
-		}
-		else {
-			a = nu->pntsu * nu->pntsv;
-			bp = nu->bp;
-			while (a--) {
-				if ((bp->hide == 0) && (bp->f1 & SELECT)) return 1;
-				bp++;
-			}
-		}
-	}
-
-	return 0;
-}
-
 static int de_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Curve *cu = obedit->data;
-	ListBase *editnurb = object_editcurve_get(obedit);
 	int action = RNA_enum_get(op->ptr, "action");
 
 	if (action == SEL_TOGGLE) {
 		action = SEL_SELECT;
-		if (nurb_has_selected_cps(editnurb))
+		if (ED_curve_select_check(cu, cu->editnurb)) {
 			action = SEL_DESELECT;
+		}
 	}
 
 	switch (action) {
@@ -451,42 +510,10 @@ static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 	EditNurb *editnurb = cu->editnurb;
 	ListBase *nurbs = &editnurb->nurbs;
 	Nurb *nu;
-	BezTriple *bezt;
-	BPoint *bp;
-	int a;
 
 	for (nu = nurbs->first; nu; nu = nu->next) {
-		if (nu->type == CU_BEZIER) {
-			bezt = nu->bezt;
-			a = nu->pntsu;
-			while (a--) {
-				if ((bezt->f1 & SELECT) || (bezt->f2 & SELECT) || (bezt->f3 & SELECT)) {
-					a = nu->pntsu;
-					bezt = nu->bezt;
-					while (a--) {
-						select_beztriple(bezt, SELECT, SELECT, VISIBLE);
-						bezt++;
-					}
-					break;
-				}
-				bezt++;
-			}
-		}
-		else {
-			bp = nu->bp;
-			a = nu->pntsu * nu->pntsv;
-			while (a--) {
-				if (bp->f1 & SELECT) {
-					a = nu->pntsu * nu->pntsv;
-					bp = nu->bp;
-					while (a--) {
-						select_bpoint(bp, SELECT, SELECT, VISIBLE);
-						bp++;
-					}
-					break;
-				}
-				bp++;
-			}
+		if (ED_curve_nurb_select_check(cu, nu)) {
+			ED_curve_nurb_select_all(nu);
 		}
 	}
 
@@ -1228,7 +1255,7 @@ static void curve_select_similar_direction__bp(Nurb *nu, const float dir_ref[3],
 	BPoint *bp;
 	int i;
 
-	for (i = nu->pntsu, bp = nu->bp; i--; bp++) {
+	for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
 		if (!bp->hide) {
 			float dir[3];
 			BKE_nurb_bpoint_calc_normal(nu, bp, dir);
@@ -1388,30 +1415,6 @@ static bool curve_select_similar_weight(ListBase *editnurb, Curve *cu, float com
 	return true;
 }
 
-static void curve_select_all__bezt(Nurb *nu)
-{
-	BezTriple *bezt;
-	int i;
-
-	for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
-		if (!bezt->hide) {
-			select_beztriple(bezt, SELECT, SELECT, VISIBLE);
-		}
-	}
-}
-
-static void curve_select_all__bp(Nurb *nu)
-{
-	BPoint *bp;
-	int i;
-
-	for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
-		if (!bp->hide) {
-			select_bpoint(bp, SELECT, SELECT, VISIBLE);
-		}
-	}
-}
-
 static bool curve_select_similar_type(ListBase *editnurb, Curve *cu)
 {
 	Nurb *nu, *act_nu;
@@ -1428,12 +1431,7 @@ static bool curve_select_similar_type(ListBase *editnurb, Curve *cu)
 
 	for (nu = editnurb->first; nu; nu = nu->next) {
 		if (nu->type == type_ref) {
-			if (type_ref == CU_BEZIER) {
-				curve_select_all__bezt(nu);
-			}
-			else {
-				curve_select_all__bp(nu);
-			}
+			ED_curve_nurb_select_all(nu);
 		}
 	}
 
