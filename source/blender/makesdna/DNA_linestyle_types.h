@@ -79,7 +79,12 @@ typedef struct LineStyleModifier {
 #define LS_MODIFIER_BLUEPRINT              16
 #define LS_MODIFIER_2D_OFFSET              17
 #define LS_MODIFIER_2D_TRANSFORM           18
-#define LS_MODIFIER_NUM                    19
+#define LS_MODIFIER_TANGENT                19
+#define LS_MODIFIER_NOISE                  20
+#define LS_MODIFIER_CREASE_ANGLE           21
+#define LS_MODIFIER_SIMPLIFICATION         22
+#define LS_MODIFIER_CURVATURE_3D           23
+#define LS_MODIFIER_NUM                    24
 
 /* LineStyleModifier::flags */
 #define LS_MODIFIER_ENABLED     1
@@ -91,6 +96,9 @@ typedef struct LineStyleModifier {
 /* flags (for alpha & thickness) */
 #define LS_MODIFIER_USE_CURVE    1
 #define LS_MODIFIER_INVERT       2
+
+/* flags (for asymmetric thickness application) */
+#define LS_THICKNESS_ASYMMETRIC   1
 
 /* blend (for alpha & thickness) */
 #define LS_VALUE_BLEND  0
@@ -185,6 +193,117 @@ typedef struct LineStyleThicknessModifier_DistanceFromObject {
 	float value_min, value_max;
 	int pad;
 } LineStyleThicknessModifier_DistanceFromObject;
+
+/* 3D curvature modifiers */
+
+typedef struct LineStyleColorModifier_Curvature_3D {
+	struct LineStyleModifier modifier;
+
+	float min_curvature, max_curvature;
+
+	struct ColorBand *color_ramp;
+	float range_min, range_max;
+}LineStyleColorModifier_Curvature_3D;
+
+typedef struct LineStyleAlphaModifier_Curvature_3D {
+	struct LineStyleModifier modifier;
+
+	struct CurveMapping	*curve;
+	int flags;
+	float min_curvature, max_curvature;
+	int pad;
+}LineStyleAlphaModifier_Curvature_3D;
+
+typedef struct LineStyleThicknessModifier_Curvature_3D {
+	struct LineStyleModifier modifier;
+
+	struct CurveMapping *curve;
+	int flags, pad;
+
+	float min_curvature, max_curvature;
+	float min_thickness, max_thickness;
+}LineStyleThicknessModifier_Curvature_3D;
+
+/* Noise modifiers (for color, alpha and thickness) */
+
+typedef struct LineStyleColorModifier_Noise {
+	struct LineStyleModifier modifier;
+
+	struct ColorBand *color_ramp;
+	float period, amplitude;
+	int seed, pad;
+} LineStyleColorModifier_Noise;
+
+typedef struct LineStyleAlphaModifier_Noise {
+	struct LineStyleModifier modifier;
+
+	struct CurveMapping	*curve;
+	int flags;
+	float period, amplitude;
+	int seed;
+} LineStyleAlphaModifier_Noise;
+
+typedef struct LineStyleThicknessModifier_Noise {
+	struct LineStyleModifier modifier;
+
+	float period, amplitude;
+	int flags;
+	int seed;
+
+} LineStyleThicknessModifier_Noise;
+
+/* Crease Angle modifiers */
+
+typedef struct LineStyleColorModifier_CreaseAngle {
+	struct LineStyleModifier modifier;
+
+	struct ColorBand *color_ramp;
+	float min_angle, max_angle;
+} LineStyleColorModifier_CreaseAngle;
+
+typedef struct LineStyleAlphaModifier_CreaseAngle {
+	struct LineStyleModifier modifier;
+
+	struct CurveMapping	*curve;
+	int flags;
+	float min_angle, max_angle;
+	int pad;
+} LineStyleAlphaModifier_CreaseAngle;
+
+typedef struct LineStyleThicknessModifier_CreaseAngle {
+	struct LineStyleModifier modifier;
+
+	struct CurveMapping *curve;
+	int flags, pad;
+
+	float min_angle, max_angle;
+	float min_thickness, max_thickness;
+} LineStyleThicknessModifier_CreaseAngle;
+
+/* Tangent modifiers */
+
+typedef struct LineStyleColorModifier_Tangent {
+	struct LineStyleModifier modifier;
+
+	struct ColorBand *color_ramp;
+} LineStyleColorModifier_Tangent;
+
+typedef struct LineStyleAlphaModifier_Tangent {
+	struct LineStyleModifier modifier;
+
+	struct CurveMapping	*curve;
+	int flags;
+	int pad;
+} LineStyleAlphaModifier_Tangent;
+
+typedef struct LineStyleThicknessModifier_Tangent {
+	struct LineStyleModifier modifier;
+
+	struct CurveMapping	*curve;
+	int flags;
+	float min_thickness, max_thickness;
+	int pad;
+} LineStyleThicknessModifier_Tangent;
 
 /* Material modifiers */
 
@@ -353,6 +472,13 @@ typedef struct LineStyleGeometryModifier_2DTransform {
 	float pivot_x, pivot_y;
 	int pad;
 } LineStyleGeometryModifier_2DTransform;
+
+typedef struct LineStyleGeometryModifier_Simplification {
+	struct LineStyleModifier modifier;
+
+	float tolerance;
+	int pad;
+}LineStyleGeometryModifier_Simplification;
 
 /* Calligraphic thickness modifier */
 

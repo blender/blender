@@ -30,6 +30,7 @@ extern "C" {
 }
 
 #include "../geometry/Noise.h"
+#include "../system/PseudoNoise.h"
 
 using namespace Freestyle;
 
@@ -47,6 +48,7 @@ extern PyTypeObject FrsNoise_Type;
 typedef struct {
 	PyObject_HEAD
 	Noise *n;
+	PseudoNoise *pn;
 } BPy_FrsNoise;
 
 /*---------------------------Python BPy_FrsNoise visible prototypes-----------*/

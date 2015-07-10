@@ -25,6 +25,8 @@
 #include "BPy_FrsNoise.h"
 #include "BPy_Convert.h"
 
+#include "../system/RandGen.h"
+
 #include <sstream>
 
 #ifdef __cplusplus
@@ -69,12 +71,14 @@ static int FrsNoise_init(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|l", (char **)kwlist, &seed))
 		return -1;
 	self->n = new Noise(seed);
+	self->pn = new PseudoNoise();
 	return 0;
 }
 
 static void FrsNoise_dealloc(BPy_FrsNoise *self)
 {
 	delete self->n;
+	delete self->pn;
 	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -98,6 +102,32 @@ PyDoc_STRVAR(FrsNoise_turbulence1_doc,
 "   :type oct: int\n"
 "   :return: A noise value.\n"
 "   :rtype: float");
+
+static PyObject *FrsNoise_drand(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist[] = {"seed", NULL};
+	long seed = 0;
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|I", (char **)kwlist, &seed)) {
+		PyErr_SetString(PyExc_TypeError, "optional argument 1 must be of type int");
+		return NULL;
+	}
+	if (seed){
+		RandGen::srand48(seed);
+	}
+	return PyFloat_FromDouble(RandGen::drand48());
+}
+
+static PyObject *FrsNoise_turbulence_smooth(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist[] = {"v", "oct", NULL};
+
+	double x;  // note: this has to be a double (not float)
+	unsigned nbOctaves = 8;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|I", (char **)kwlist, &x, &nbOctaves))
+		return NULL;
+	return PyFloat_FromDouble(self->pn->turbulenceSmooth(x, nbOctaves));
+}
 
 static PyObject *FrsNoise_turbulence1(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
@@ -257,6 +287,8 @@ static PyMethodDef BPy_FrsNoise_methods[] = {
 	{"smoothNoise1", (PyCFunction)FrsNoise_smoothNoise1, METH_VARARGS | METH_KEYWORDS, FrsNoise_smoothNoise1_doc},
 	{"smoothNoise2", (PyCFunction)FrsNoise_smoothNoise2, METH_VARARGS | METH_KEYWORDS, FrsNoise_smoothNoise2_doc},
 	{"smoothNoise3", (PyCFunction)FrsNoise_smoothNoise3, METH_VARARGS | METH_KEYWORDS, FrsNoise_smoothNoise3_doc},
+	{"rand", (PyCFunction)FrsNoise_drand, METH_VARARGS | METH_KEYWORDS, NULL},
+	{"turbulence_smooth", (PyCFunction)FrsNoise_turbulence_smooth, METH_VARARGS | METH_KEYWORDS, NULL},
 	{NULL, NULL, 0, NULL}
 };
 

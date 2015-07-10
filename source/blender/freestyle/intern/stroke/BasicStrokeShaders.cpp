@@ -185,7 +185,7 @@ int ThicknessNoiseShader::shade(Stroke& stroke) const
 	real bruit, bruit2;
 	PseudoNoise mynoise, mynoise2;
 	for (vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
-		bruit = mynoise.turbulenceSmooth(_scale * v->curvilinearAbscissa() + initU1, 2); // 2 : nbOctaves
+		bruit =   mynoise.turbulenceSmooth(_scale * v->curvilinearAbscissa() + initU1, 2); // 2 : nbOctaves
 		bruit2 = mynoise2.turbulenceSmooth(_scale * v->curvilinearAbscissa() + initU2, 2); // 2 : nbOctaves
 		const float *originalThickness = v->attribute().getThickness();
 		float r = bruit * _amplitude + originalThickness[0];
