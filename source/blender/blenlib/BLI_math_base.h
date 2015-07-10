@@ -196,6 +196,9 @@ MINLINE int max_iii(int a, int b, int c);
 MINLINE int min_iiii(int a, int b, int c, int d);
 MINLINE int max_iiii(int a, int b, int c, int d);
 
+MINLINE int compare_ff(float a, float b, const float max_diff);
+MINLINE int compare_ff_relative(float a, float b, const float max_diff, const int max_ulps);
+
 MINLINE float signf(float f);
 MINLINE int signum_i_ex(float a, float eps);
 MINLINE int signum_i(float a);

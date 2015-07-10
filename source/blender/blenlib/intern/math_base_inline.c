@@ -252,6 +252,46 @@ MINLINE int max_iiii(int a, int b, int c, int d)
 	return max_ii(max_iii(a, b, c), d);
 }
 
+/**
+ * Almost-equal for IEEE floats, using absolute difference method.
+ *
+ * \param max_diff the maximum absolute difference.
+ */
+MINLINE int compare_ff(float a, float b, const float max_diff)
+{
+	return fabsf(a - b) <= max_diff;
+}
+
+/**
+ * Almost-equal for IEEE floats, using their integer representation (mixing ULP and absolute difference methods).
+ *
+ * \param max_diff is the maximum absolute difference (allows to take care of the near-zero area,
+ *                 where relative difference methods cannot really work).
+ * \param max_ulps is the 'maximum number of floats + 1' allowed between \a a and \a b to consider them equal.
+ *
+ * \see https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
+ */
+MINLINE int compare_ff_relative(float a, float b, const float max_diff, const int max_ulps)
+{
+	union {float f; int i;} ua, ub;
+
+#if 0  /* No BLI_assert in INLINE :/ */
+	BLI_assert(sizeof(float) == sizeof(int));
+	BLI_assert(max_ulps < (1 << 22));
+#endif
+
+	if (fabsf(a - b) <= max_diff) {
+		return 1;
+	}
+
+	ua.f = a;
+	ub.f = b;
+
+	/* Important to compare sign from integers, since (-0.0f < 0) is false
+	 * (though this shall not be an issue in common cases)... */
+	return ((ua.i < 0) != (ub.i < 0)) ? 0 : (abs(ua.i - ub.i) <= max_ulps) ? 1 : 0;
+}
+
 MINLINE float signf(float f)
 {
 	return (f < 0.f) ? -1.f : 1.f;
