@@ -241,6 +241,7 @@ typedef struct SpaceTransform {
 } SpaceTransform;
 
 void BLI_space_transform_from_matrices(struct SpaceTransform *data, float local[4][4], float target[4][4]);
+void BLI_space_transform_global_from_matrices(struct SpaceTransform *data, float local[4][4], float target[4][4]);
 void BLI_space_transform_apply(const struct SpaceTransform *data, float co[3]);
 void BLI_space_transform_invert(const struct SpaceTransform *data, float co[3]);
 void BLI_space_transform_apply_normal(const struct SpaceTransform *data, float no[3]);

@@ -2312,11 +2312,39 @@ void invert_m4_m4_safe(float Ainv[4][4], float A[4][4])
  *
  */
 
+/**
+ * Global-invariant transform.
+ *
+ * This defines a matrix transforming a point in local space to a point in target space such that its global
+ * coordinates remain unchanged.
+ *
+ * In other words, if we have a global point P with local coordinates (x, y, z) and global coordinates (X, Y, Z),
+ * this defines a transform matrix TM such that (x', y', z') = TM * (x, y, z)
+ * where (x', y', z') are the coordinates of P' in target space such that it keeps (X, Y, Z) coordinates in global space.
+ */
 void BLI_space_transform_from_matrices(SpaceTransform *data, float local[4][4], float target[4][4])
 {
 	float itarget[4][4];
 	invert_m4_m4(itarget, target);
 	mul_m4_m4m4(data->local2target, itarget, local);
+	invert_m4_m4(data->target2local, data->local2target);
+}
+
+/**
+ * Local-invariant transform.
+ *
+ * This defines a matrix transforming a point in global space such that its local coordinates
+ * (from local space to target space) remain unchanged.
+ *
+ * In other words, if we have a local point p with local coordinates (x, y, z) and global coordinates (X, Y, Z),
+ * this defines a transform matrix TM such that (X', Y', Z') = TM * (X, Y, Z)
+ * where (X', Y', Z') are the coordinates of p' in global space such that it keeps (x, y, z) coordinates in target space.
+ */
+void BLI_space_transform_global_from_matrices(SpaceTransform *data, float local[4][4], float target[4][4])
+{
+	float ilocal[4][4];
+	invert_m4_m4(ilocal, local);
+	mul_m4_m4m4(data->local2target, target, ilocal);
 	invert_m4_m4(data->target2local, data->local2target);
 }
 
