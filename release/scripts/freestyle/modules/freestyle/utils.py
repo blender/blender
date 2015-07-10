@@ -50,7 +50,6 @@ __all__ = (
     "tripplewise",
     )
 
-
 # module members
 from _freestyle import (
     ContextFunctions,
@@ -70,6 +69,7 @@ from mathutils import Vector
 from functools import lru_cache, namedtuple
 from math import cos, sin, pi, atan2
 from itertools import tee, compress
+
 
 # -- types -- #
 
@@ -92,12 +92,14 @@ def rgb_to_bw(r, g, b):
     """Method to convert rgb to a bw intensity value."""
     return 0.35 * r + 0.45 * g + 0.2 * b
 
+
 def bound(lower, x, higher):
     """Returns x bounded by a maximum and minimum value. Equivalent to:
     return min(max(x, lower), higher)
     """
     # this is about 50% quicker than min(max(x, lower), higher)
     return (lower if x <= lower else higher if x >= higher else x)
+
 
 def get_strokes():
     """Get all strokes that are currently available"""
@@ -132,6 +134,7 @@ def material_from_fedge(fe):
         material = right if (right.priority > left.priority) else left
     return material
 
+
 def bounding_box(stroke):
     """
     Returns the maximum and minimum coordinates (the bounding box) of the stroke's vertices
@@ -139,9 +142,10 @@ def bounding_box(stroke):
     x, y = zip(*(svert.point for svert in stroke))
     return (Vector((min(x), min(y))), Vector((max(x), max(y))))
 
+
 def normal_at_I0D(it: Interface0DIterator) -> Vector:
-    """Normal at an Interface0D object. In contrast to Normal2DF0D this 
-       function uses the actual data instead of underlying Fedge objects. 
+    """Normal at an Interface0D object. In contrast to Normal2DF0D this
+       function uses the actual data instead of underlying Fedge objects.
     """
     if it.at_last and it.is_begin:
         # corner-case
@@ -165,10 +169,12 @@ def normal_at_I0D(it: Interface0DIterator) -> Vector:
         it.decrement()
     return (b.point - a.point).orthogonal().normalized()
 
+
 def angle_x_normal(it: Interface0DIterator):
     """unsigned angle between a Point's normal and the X axis, in radians"""
     normal = normal_at_I0D(it)
     return abs(atan2(normal[1], normal[0]))
+
 
 def curvature_from_stroke_vertex(svert):
     """The 3D curvature of an stroke vertex' underlying geometry
@@ -176,7 +182,7 @@ def curvature_from_stroke_vertex(svert):
     c1 = svert.first_svertex.curvatures
     c2 = svert.second_svertex.curvatures
     if c1 is None and c2 is None:
-        Kr = None 
+        Kr = None
     elif c1 is None:
         Kr = c2[4]
     elif c2 is None:
@@ -184,6 +190,7 @@ def curvature_from_stroke_vertex(svert):
     else:
         Kr = c1[4] + svert.t2d * (c2[4] - c1[4])
     return Kr
+
 
 # -- General helper functions -- #
 
@@ -201,9 +208,8 @@ def phase_to_direction(length):
     return results
 
 
-
-# -- simplification of a set of points; based on simplify.js by Vladimir Agafonkin -- 
-#    https://mourner.github.io/simplify-js/ 
+# -- simplification of a set of points; based on simplify.js by Vladimir Agafonkin --
+#    https://mourner.github.io/simplify-js/
 
 def getSquareSegmentDistance(p, p1, p2):
     """
@@ -260,10 +266,11 @@ def simplifyDouglasPeucker(points, tolerance):
             first_stack.append(index)
             last_stack.append(last)
 
-        first = first_stack.pop() if first_stack else None 
-        last = last_stack.pop() if last_stack else None 
+        first = first_stack.pop() if first_stack else None
+        last = last_stack.pop() if last_stack else None
 
     return tuple(compress(points, markers))
+
 
 def simplify(points, tolerance):
     """Simplifies a set of points"""
@@ -475,6 +482,7 @@ def iter_distance_along_stroke(stroke):
         distance += (prev - curr).length
         yield distance
 
+
 # -- mathematical operations -- #
 
 def stroke_curvature(it):
@@ -520,23 +528,8 @@ def stroke_normal(stroke):
     for use in geometry modifiers it is advised to
     cast this generator function to a tuple or list
     """
-    # n = len(stroke) - 1
     it = iter(stroke)
     yield from (normal_at_I0D(it) for _ in it)
-
-    #for i, svert in enumerate(stroke):
-    #    if i == 0:
-    #        e = stroke[i + 1].point - svert.point
-    #        yield Vector((e[1], -e[0])).normalized()
-    #    elif i == n:
-    #        e = svert.point - stroke[i - 1].point
-    #        yield Vector((e[1], -e[0])).normalized()
-    #    else:
-    #        e1 = stroke[i + 1].point - svert.point
-    #        e2 = svert.point - stroke[i - 1].point
-    #        n1 = Vector((e1[1], -e1[0])).normalized()
-    #        n2 = Vector((e2[1], -e2[0])).normalized()
-    #        yield (n1 + n2).normalized()
 
 
 def get_test_stroke():

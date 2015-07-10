@@ -190,7 +190,7 @@ class CurveMappingModifier(ScalarBlendModifier):
         curve.initialize()
         result = curve.curves[0].evaluate(t)
         # float precision errors in t can give a very weird result for evaluate.
-        # therefore, bound the result by the curve's min and max values 
+        # therefore, bound the result by the curve's min and max values
         return bound(curve.clip_min_y, result, curve.clip_max_y)
 
 
@@ -233,7 +233,6 @@ class ThicknessBlenderMixIn(ThicknessModifierMixIn):
             if type(thickness) not in {int, float}:
                 thickness = sum(thickness)
             self.blend_thickness_symmetric(svert, thickness)
-
 
     def blend_thickness_symmetric(self, svert, v):
         """Blends and sets the thickness. Thickness is equal on each side of the backbone"""
@@ -443,6 +442,7 @@ class ThicknessDistanceFromObjectShader(ThicknessBlenderMixIn, CurveMappingModif
             b = self.value.min + self.evaluate(t) * self.value.delta
             self.blend_thickness(svert, b)
 
+
 # Material modifiers
 class ColorMaterialShader(ColorRampModifier):
     """Assigns a color to the vertices based on their underlying material."""
@@ -458,7 +458,7 @@ class ColorMaterialShader(ColorRampModifier):
             for svert in it:
                 material = self.func(it)
                 if self.attribute == 'LINE':
-                    b = material.line[0:3] 
+                    b = material.line[0:3]
                 elif self.attribute == 'DIFF':
                     b = material.diffuse[0:3]
                 else:
@@ -470,6 +470,7 @@ class ColorMaterialShader(ColorRampModifier):
                 a = svert.attribute.color
                 b = self.evaluate(value)
                 svert.attribute.color = self.blend_ramp(a, b)
+
 
 class AlphaMaterialShader(CurveMappingModifier):
     """Assigns an alpha value to the vertices based on their underlying material."""
@@ -503,7 +504,6 @@ class ThicknessMaterialShader(ThicknessBlenderMixIn, CurveMappingModifier):
 
 # Calligraphic thickness modifier
 
-
 class CalligraphicThicknessShader(ThicknessBlenderMixIn, ScalarBlendModifier):
     """Thickness modifier for achieving a calligraphy-like effect."""
     def __init__(self, thickness_position, thickness_ratio,
@@ -526,6 +526,7 @@ class CalligraphicThicknessShader(ThicknessBlenderMixIn, ScalarBlendModifier):
                 b = self.thickness.min
             self.blend_thickness(svert, b)
 
+
 # - Tangent Modifiers - #
 
 class TangentColorShader(ColorRampModifier):
@@ -535,7 +536,6 @@ class TangentColorShader(ColorRampModifier):
         for svert in it:
             angle = angle_x_normal(it)
             fac = self.evaluate(angle / pi)
-
             a = svert.attribute.color
             svert.attribute.color = self.blend_ramp(a, fac)
 
@@ -547,14 +547,13 @@ class TangentAlphaShader(CurveMappingModifier):
         for svert in it:
             angle = angle_x_normal(it)
             fac = self.evaluate(angle / pi)
-
             a = svert.attribute.alpha
             svert.attribute.alpha = self.blend(a, fac)
 
 
 class TangentThicknessShader(ThicknessBlenderMixIn, CurveMappingModifier):
     """Thickness based on the direction of the stroke"""
-    def __init__(self, thickness_position, thickness_ratio, blend, influence, mapping, invert, curve, 
+    def __init__(self, thickness_position, thickness_ratio, blend, influence, mapping, invert, curve,
                  thickness_min, thickness_max):
         ThicknessBlenderMixIn.__init__(self, thickness_position, thickness_ratio)
         CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
@@ -567,13 +566,15 @@ class TangentThicknessShader(ThicknessBlenderMixIn, CurveMappingModifier):
             thickness = self.thickness.min + self.evaluate(angle / pi) * self.thickness.delta
             self.blend_thickness(svert, thickness)
 
+
 # - Noise Modifiers - #
+
 class NoiseShader:
     """Base class for noise shaders"""
     def __init__(self, amplitude, period, seed=512):
         self.amplitude = amplitude
         self.scale = 1 / period / seed
-        self.seed = seed 
+        self.seed = seed
 
     def noisegen(self, stroke, n1=Noise(), n2=Noise()):
         """Produces two noise values per StrokeVertex for every vertex in the stroke"""
@@ -584,7 +585,7 @@ class NoiseShader:
             a = n1.turbulence_smooth(self.scale * svert.curvilinear_abscissa + initU1, 2)
             b = n2.turbulence_smooth(self.scale * svert.curvilinear_abscissa + initU2, 2)
             yield (svert, a, b)
- 
+
 
 class ThicknessNoiseShader(ThicknessBlenderMixIn, ScalarBlendModifier, NoiseShader):
     """Thickness based on pseudo-noise"""
@@ -608,7 +609,7 @@ class ColorNoiseShader(ColorRampModifier, NoiseShader):
         ColorRampModifier.__init__(self, blend, influence, ramp)
         NoiseShader.__init__(self, amplitude, period, seed)
 
-    def shade(self, stroke): 
+    def shade(self, stroke):
         for svert, noiseval1, noiseval2 in self.noisegen(stroke):
             position = abs(noiseval1 + noiseval2)
             svert.attribute.color = self.blend_ramp(svert.attribute.color, self.evaluate(position))
@@ -624,6 +625,7 @@ class AlphaNoiseShader(CurveMappingModifier, NoiseShader):
         for svert, noiseval1, noiseval2 in self.noisegen(stroke):
             position = abs(noiseval1 + noiseval2)
             svert.attribute.alpha = self.blend(svert.attribute.alpha, self.evaluate(position))
+
 
 # - Crease Angle Modifiers - #
 
@@ -678,7 +680,6 @@ class CreaseAngleThicknessShader(ThicknessBlenderMixIn, CurveMappingModifier):
         # angles are (already) in radians
         self.angle = BoundedProperty(angle_min, angle_max)
         self.thickness = BoundedProperty(thickness_min, thickness_max)
- 
 
     def shade(self, stroke):
         for svert in stroke:
@@ -689,20 +690,22 @@ class CreaseAngleThicknessShader(ThicknessBlenderMixIn, CurveMappingModifier):
             thickness = self.thickness.min + self.evaluate(t) * self.thickness.delta
             self.blend_thickness(svert, thickness)
 
+
 # - Curvature3D Modifiers - #
 
 def normalized_absolute_curvature(svert, bounded_curvature):
     """
     Gives the absolute curvature in range [0, 1].
-    
+
     The actual curvature (Kr) value can be anywhere in the range [-inf, inf], where convex curvature
-    yields a positive value, and concave a negative one. These shaders only look for the magnitude 
+    yields a positive value, and concave a negative one. These shaders only look for the magnitude
     of the 3D curvature, hence the abs()
     """
     curvature = curvature_from_stroke_vertex(svert)
     if curvature is None:
         return 0.0
     return bounded_curvature.interpolate(abs(curvature))
+
 
 class Curvature3DColorShader(ColorRampModifier):
     """Color based on the 3D curvature of the underlying geometry"""
@@ -713,7 +716,6 @@ class Curvature3DColorShader(ColorRampModifier):
     def shade(self, stroke):
         for svert in stroke:
             t = normalized_absolute_curvature(svert, self.curvature)
-            
             a = svert.attribute.color
             b = self.evaluate(t)
             svert.attribute.color = self.blend_ramp(a, b)
@@ -1041,8 +1043,8 @@ class AngleLargerThanBP1D(BinaryPredicate1D):
         x = (dir1 * dir2) / denom
         return acos(bound(-1.0, x, 1.0)) > self.angle
 
-# predicates for selection
 
+# predicates for selection
 
 class LengthThresholdUP1D(UnaryPredicate1D):
     def __init__(self, length_min=None, length_max=None):
@@ -1490,13 +1492,13 @@ def process(layer_name, lineset_name):
                 m.orientation, m.thickness_min, m.thickness_max))
         elif m.type == 'TANGENT':
             shaders_list.append(TangentThicknessShader(
-                thickness_position, linestyle.thickness_ratio, 
+                thickness_position, linestyle.thickness_ratio,
                 m.blend, m.influence, m.mapping, m.invert, m.curve,
                 m.thickness_min, m.thickness_max))
         elif m.type == 'NOISE':
             shaders_list.append(ThicknessNoiseShader(
                 thickness_position, linestyle.thickness_ratio,
-                m.blend, m.influence, 
+                m.blend, m.influence,
                 m.amplitude, m.period, m.seed, m.use_asymmetric))
         elif m.type == 'CREASE_ANGLE':
             shaders_list.append(CreaseAngleThicknessShader(

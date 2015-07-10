@@ -57,7 +57,6 @@ typedef struct LineStyleModifier {
 	float influence;
 	int flags;
 	int blend;
-
 } LineStyleModifier;
 
 /* LineStyleModifier::type */
@@ -200,10 +199,9 @@ typedef struct LineStyleColorModifier_Curvature_3D {
 	struct LineStyleModifier modifier;
 
 	float min_curvature, max_curvature;
-
 	struct ColorBand *color_ramp;
 	float range_min, range_max;
-}LineStyleColorModifier_Curvature_3D;
+} LineStyleColorModifier_Curvature_3D;
 
 typedef struct LineStyleAlphaModifier_Curvature_3D {
 	struct LineStyleModifier modifier;
@@ -212,17 +210,16 @@ typedef struct LineStyleAlphaModifier_Curvature_3D {
 	int flags;
 	float min_curvature, max_curvature;
 	int pad;
-}LineStyleAlphaModifier_Curvature_3D;
+} LineStyleAlphaModifier_Curvature_3D;
 
 typedef struct LineStyleThicknessModifier_Curvature_3D {
 	struct LineStyleModifier modifier;
 
 	struct CurveMapping *curve;
 	int flags, pad;
-
 	float min_curvature, max_curvature;
 	float min_thickness, max_thickness;
-}LineStyleThicknessModifier_Curvature_3D;
+} LineStyleThicknessModifier_Curvature_3D;
 
 /* Noise modifiers (for color, alpha and thickness) */
 
@@ -249,7 +246,6 @@ typedef struct LineStyleThicknessModifier_Noise {
 	float period, amplitude;
 	int flags;
 	int seed;
-
 } LineStyleThicknessModifier_Noise;
 
 /* Crease Angle modifiers */
@@ -275,7 +271,6 @@ typedef struct LineStyleThicknessModifier_CreaseAngle {
 
 	struct CurveMapping *curve;
 	int flags, pad;
-
 	float min_angle, max_angle;
 	float min_thickness, max_thickness;
 } LineStyleThicknessModifier_CreaseAngle;
@@ -568,8 +563,7 @@ typedef struct FreestyleLineStyle {
 	short use_nodes, pad[3];
 	unsigned short dash1, gap1, dash2, gap2, dash3, gap3;
 	int panel; /* for UI */
-
-	struct MTex *mtex[18];		/* MAX_MTEX */
+	struct MTex *mtex[18]; /* MAX_MTEX */
 	/* nodes */
 	struct bNodeTree *nodetree;
 
