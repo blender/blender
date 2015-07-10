@@ -22,9 +22,12 @@ writing.
 """
 
 __all__ = (
+    "angle_x_normal",
     "bound",
+    "bounding_box",
     "BoundingBox",
     "ContextFunctions",
+    "curvature_from_stroke_vertex",
     "find_matching_vertex",
     "get_chain_length",
     "get_object_name",
