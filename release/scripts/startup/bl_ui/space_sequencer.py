@@ -632,13 +632,10 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         elif strip.type == 'TEXT':
             col = layout.column()
             col.prop(strip, "text")
-            col.prop(strip, "text_size")
+            col.prop(strip, "font_size")
             col.prop(strip, "use_shadow")
-            col.prop(strip, "use_autocenter")
-            row = layout.row(align=True)
-            if not strip.use_autocenter:
-                row.prop(strip, "xpos")
-            row.prop(strip, "ypos")
+            col.prop(strip, "align")
+            col.prop(strip, "location")
             layout.operator("sequencer.export_subtitles")
 
         col = layout.column(align=True)

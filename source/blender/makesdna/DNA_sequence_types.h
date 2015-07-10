@@ -274,14 +274,24 @@ typedef struct GaussianBlurVars {
 typedef struct TextVars {
 	char text[512];
 	int text_size;
-	int xpos, ypos;
-	int flags;
+	float loc[2];
+	short flag;
+	char align;
+	char pad;
 } TextVars;
 
+/* TextVars.flag */
 enum {
-	TEXT_SEQ_SHADOW =      (1 << 0),
-	TEXT_SEQ_AUTO_CENTER = (1 << 1),
+	SEQ_TEXT_SHADOW =       (1 << 0),
 };
+
+/* TextVars.align */
+enum {
+	SEQ_TEXT_ALIGN_LEFT = 0,
+	SEQ_TEXT_ALIGN_CENTER = 1,
+	SEQ_TEXT_ALIGN_RIGHT = 2,
+};
+
 /* ***************** Sequence modifiers ****************** */
 
 typedef struct SequenceModifierData {

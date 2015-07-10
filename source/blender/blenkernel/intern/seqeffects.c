@@ -2888,8 +2888,11 @@ static void init_text_effect(Sequence *seq)
 		MEM_freeN(seq->effectdata);
 
 	data = seq->effectdata = MEM_callocN(sizeof(TextVars), "textvars");
-	data->text_size = U.pixelsize * 30;
+	data->text_size = 30;
 	BLI_strncpy(data->text, "Text", sizeof(data->text));
+
+	data->loc[0] = 0.5f;
+	data->align = SEQ_TEXT_ALIGN_CENTER;
 }
 
 static int num_inputs_text(void)
@@ -2916,7 +2919,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context, Sequence *seq, float 
 	struct ColorManagedDisplay *display;
 	const char *display_device;
 	const int mono = blf_mono_font_render; // XXX
-	int y_ofs, x, y, w;
+	int y_ofs, x, y;
 
 	display_device = context->scene->display_settings.display_device;
 	display = IMB_colormanagement_display_get_named(display_device);
@@ -2928,17 +2931,25 @@ static ImBuf *do_text_effect(const SeqRenderData *context, Sequence *seq, float 
 
 	y_ofs = -BLF_descender(mono);
 
-	w = BLF_width(mono, data->text, sizeof(data->text));
+	x = (data->loc[0] * width);
+	y = (data->loc[1] * height) + y_ofs;
 
-	if (data->flags & TEXT_SEQ_AUTO_CENTER)
-		x = width / 2 - w / 2;
-	else
-		x = (context->scene->r.size / 100.0f) * data->xpos;
+	if (data->align == SEQ_TEXT_ALIGN_LEFT) {
+		/* pass */
+	}
+	else {
+		const int w = BLF_width(mono, data->text, sizeof(data->text));
 
-	y = y_ofs + (context->scene->r.size / 100.0f) * data->ypos;
+		if (data->align == SEQ_TEXT_ALIGN_RIGHT) {
+			x -= w;
+		}
+		else {  /* SEQ_TEXT_ALIGN_CENTER */
+			x -= w / 2;
+		}
+	}
 
 	/* BLF_SHADOW won't work with buffers, instead use cheap shadow trick */
-	if (data->flags & TEXT_SEQ_SHADOW) {
+	if (data->flag & SEQ_TEXT_SHADOW) {
 		int fontx, fonty;
 		fontx = BLF_width_max(mono);
 		fonty = BLF_height_max(mono);
