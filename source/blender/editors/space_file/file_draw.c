@@ -157,7 +157,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 
 	/* Text input fields for directory and file. */
 	if (available_w > 0) {
-		const struct direntry *file = filelist_file(sfile->files, params->active_file);
+		const struct direntry *file = sfile->files ? filelist_file(sfile->files, params->active_file) : NULL;
 		int overwrite_alert = file_draw_check_exists(sfile);
 		const bool is_active_dir = file && file->path && BLI_is_dir(file->path);
 		char *dir_path = (is_active_dir && params->active_file > 0) ? file->path : params->dir;
