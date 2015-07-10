@@ -623,8 +623,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 		index_mp_to_orig = NULL;
 	}
 
-
-	colType = CD_ID_MCOL;
+	colType = CD_TEXTURE_MCOL;
 	mcol = DM_get_tessface_data_layer(dm, colType);
 	if (!mcol) {
 		colType = CD_PREVIEW_MCOL;

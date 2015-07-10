@@ -76,7 +76,9 @@ typedef struct CustomData {
 /* CustomData.type */
 typedef enum CustomDataType {
 	CD_MVERT            = 0,
+#ifdef DNA_DEPRECATED
 	CD_MSTICKY          = 1,  /* DEPRECATED */
+#endif
 	CD_MDEFORMVERT      = 2,
 	CD_MEDGE            = 3,
 	CD_MFACE            = 4,
@@ -96,7 +98,7 @@ typedef enum CustomDataType {
 	CD_TANGENT          = 18,
 	CD_MDISPS           = 19,
 	CD_PREVIEW_MCOL     = 20,  /* for displaying weightpaint colors */
-	CD_ID_MCOL          = 21,
+/*	CD_ID_MCOL          = 21, */
 	CD_TEXTURE_MCOL     = 22,
 	CD_CLOTH_ORCO       = 23,
 	CD_RECAST           = 24,
@@ -127,7 +129,7 @@ typedef enum CustomDataType {
 
 /* Bits for CustomDataMask */
 #define CD_MASK_MVERT		(1 << CD_MVERT)
-#define CD_MASK_MSTICKY		(1 << CD_MSTICKY)  /* DEPRECATED */
+// #define CD_MASK_MSTICKY		(1 << CD_MSTICKY)  /* DEPRECATED */
 #define CD_MASK_MDEFORMVERT	(1 << CD_MDEFORMVERT)
 #define CD_MASK_MEDGE		(1 << CD_MEDGE)
 #define CD_MASK_MFACE		(1 << CD_MFACE)
