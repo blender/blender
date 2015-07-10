@@ -503,7 +503,7 @@ static void rna_float_print(FILE *f, float num)
 {
 	if (num == -FLT_MAX) fprintf(f, "-FLT_MAX");
 	else if (num == FLT_MAX) fprintf(f, "FLT_MAX");
-	else if ((int)num == num) fprintf(f, "%.1ff", num);
+	else if ((int64_t)num == num) fprintf(f, "%.1ff", num);
 	else fprintf(f, "%.10ff", num);
 }
 
