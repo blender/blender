@@ -30,7 +30,6 @@
 #include "BLI_path_util.h"
 
 #include "DNA_color_types.h"
-#include "DNA_userdef_types.h"
 
 #include "intern/openexr/openexr_multi.h"
 

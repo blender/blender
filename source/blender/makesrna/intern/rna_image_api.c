@@ -35,7 +35,6 @@
 #include <time.h>
 
 #include "DNA_packedFile_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"

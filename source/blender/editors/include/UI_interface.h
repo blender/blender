@@ -35,7 +35,6 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h" /* size_t */
 #include "RNA_types.h"
-#include "DNA_userdef_types.h"
 
 /* Struct Declarations */
 
@@ -908,7 +907,7 @@ void uiTemplateImageStereo3d(uiLayout *layout, struct PointerRNA *stereo3d_forma
 void uiTemplateImageViews(uiLayout *layout, struct PointerRNA *imaptr);
 void uiTemplateImageFormatViews(uiLayout *layout, PointerRNA *imfptr, PointerRNA *ptr);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
-void uiTemplateImageInfo(uiLayout *layout, struct bContext *C, Image *ima, ImageUser *iuser);
+void uiTemplateImageInfo(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
 void UI_but_func_operator_search(uiBut *but);
 void uiTemplateOperatorSearch(uiLayout *layout);
@@ -1004,7 +1003,7 @@ void UI_fontstyle_draw(const struct uiFontStyle *fs, const struct rcti *rect, co
 void UI_fontstyle_draw_rotated(const struct uiFontStyle *fs, const struct rcti *rect, const char *str);
 void UI_fontstyle_draw_simple(const struct uiFontStyle *fs, float x, float y, const char *str);
 void UI_fontstyle_draw_simple_backdrop(
-        const uiFontStyle *fs, float x, float y, const char *str,
+        const struct uiFontStyle *fs, float x, float y, const char *str,
         const unsigned char fg[4], const unsigned char bg[4]);
 
 int UI_fontstyle_string_width(const struct uiFontStyle *fs, const char *str);
@@ -1012,8 +1011,8 @@ int UI_fontstyle_height_max(const struct uiFontStyle *fs);
 
 void UI_draw_icon_tri(float x, float y, char dir);
 
-uiStyle *UI_style_get(void);		/* use for fonts etc */
-uiStyle *UI_style_get_dpi(void);	/* DPI scaled settings for drawing */
+struct uiStyle *UI_style_get(void);		/* use for fonts etc */
+struct uiStyle *UI_style_get_dpi(void);	/* DPI scaled settings for drawing */
 
 /* linker workaround ack! */
 void UI_template_fix_linking(void);
