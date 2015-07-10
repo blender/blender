@@ -59,8 +59,9 @@ typedef void (*BKE_pbvh_HitOccludedCallback)(PBVHNode *node, void *data, float *
 /* Building */
 
 PBVH *BKE_pbvh_new(void);
-void BKE_pbvh_build_mesh(PBVH *bvh, struct MFace *faces, struct MVert *verts,
-                         int totface, int totvert, struct CustomData *vdata);
+void BKE_pbvh_build_mesh(
+        PBVH *bvh, const struct MFace *faces, struct MVert *verts,
+        int totface, int totvert, struct CustomData *vdata);
 void BKE_pbvh_build_grids(PBVH *bvh, struct CCGElem **grid_elems,
                           int totgrid,
                           struct CCGKey *key, void **gridfaces, struct DMFlagMat *flagmats,

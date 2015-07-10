@@ -89,26 +89,28 @@ static void mesh_calc_normals_vert_fallback(MVert *mverts, int numVerts)
 /* Calculate vertex and face normals, face normals are returned in *r_faceNors if non-NULL
  * and vertex normals are stored in actual mverts.
  */
-void BKE_mesh_calc_normals_mapping(MVert *mverts, int numVerts,
-                                   MLoop *mloop, MPoly *mpolys, int numLoops, int numPolys, float (*r_polyNors)[3],
-                                   MFace *mfaces, int numFaces, const int *origIndexFace, float (*r_faceNors)[3])
+void BKE_mesh_calc_normals_mapping(
+        MVert *mverts, int numVerts,
+        const MLoop *mloop, const MPoly *mpolys, int numLoops, int numPolys, float (*r_polyNors)[3],
+        const MFace *mfaces, int numFaces, const int *origIndexFace, float (*r_faceNors)[3])
 {
-	BKE_mesh_calc_normals_mapping_ex(mverts, numVerts, mloop, mpolys,
-	                                 numLoops, numPolys, r_polyNors, mfaces, numFaces,
-	                                 origIndexFace, r_faceNors, false);
+	BKE_mesh_calc_normals_mapping_ex(
+	        mverts, numVerts, mloop, mpolys,
+	        numLoops, numPolys, r_polyNors, mfaces, numFaces,
+	        origIndexFace, r_faceNors, false);
 }
 /* extended version of 'BKE_mesh_calc_normals_poly' with option not to calc vertex normals */
 void BKE_mesh_calc_normals_mapping_ex(
         MVert *mverts, int numVerts,
-        MLoop *mloop, MPoly *mpolys,
+        const MLoop *mloop, const MPoly *mpolys,
         int numLoops, int numPolys, float (*r_polyNors)[3],
-        MFace *mfaces, int numFaces, const int *origIndexFace, float (*r_faceNors)[3],
+        const MFace *mfaces, int numFaces, const int *origIndexFace, float (*r_faceNors)[3],
         const bool only_face_normals)
 {
 	float (*pnors)[3] = r_polyNors, (*fnors)[3] = r_faceNors;
 	int i;
-	MFace *mf;
-	MPoly *mp;
+	const MFace *mf;
+	const MPoly *mp;
 
 	if (numPolys == 0) {
 		if (only_face_normals == false) {
@@ -164,8 +166,10 @@ void BKE_mesh_calc_normals_mapping_ex(
 	
 }
 
-static void mesh_calc_normals_poly_accum(MPoly *mp, MLoop *ml,
-                                         MVert *mvert, float polyno[3], float (*tnorms)[3])
+static void mesh_calc_normals_poly_accum(
+        const MPoly *mp, const MLoop *ml,
+        const MVert *mvert,
+        float r_polyno[3], float (*r_tnorms)[3])
 {
 	const int nverts = mp->totloop;
 	float (*edgevecbuf)[3] = BLI_array_alloca(edgevecbuf, (size_t)nverts);
@@ -178,11 +182,11 @@ static void mesh_calc_normals_poly_accum(MPoly *mp, MLoop *ml,
 		const float *v_prev = mvert[ml[i_prev].v].co;
 		const float *v_curr;
 
-		zero_v3(polyno);
+		zero_v3(r_polyno);
 		/* Newell's Method */
 		for (i = 0; i < nverts; i++) {
 			v_curr = mvert[ml[i].v].co;
-			add_newell_cross_v3_v3v3(polyno, v_prev, v_curr);
+			add_newell_cross_v3_v3v3(r_polyno, v_prev, v_curr);
 
 			/* Unrelated to normalize, calculate edge-vector */
 			sub_v3_v3v3(edgevecbuf[i_prev], v_prev, v_curr);
@@ -191,8 +195,8 @@ static void mesh_calc_normals_poly_accum(MPoly *mp, MLoop *ml,
 
 			v_prev = v_curr;
 		}
-		if (UNLIKELY(normalize_v3(polyno) == 0.0f)) {
-			polyno[2] = 1.0f; /* other axis set to 0.0 */
+		if (UNLIKELY(normalize_v3(r_polyno) == 0.0f)) {
+			r_polyno[2] = 1.0f; /* other axis set to 0.0 */
 		}
 	}
 
@@ -209,21 +213,23 @@ static void mesh_calc_normals_poly_accum(MPoly *mp, MLoop *ml,
 			const float fac = saacos(-dot_v3v3(cur_edge, prev_edge));
 
 			/* accumulate */
-			madd_v3_v3fl(tnorms[ml[i].v], polyno, fac);
+			madd_v3_v3fl(r_tnorms[ml[i].v], r_polyno, fac);
 			prev_edge = cur_edge;
 		}
 	}
 
 }
 
-void BKE_mesh_calc_normals_poly(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
-                                int UNUSED(numLoops), int numPolys, float (*r_polynors)[3],
-                                const bool only_face_normals)
+void BKE_mesh_calc_normals_poly(
+        MVert *mverts, int numVerts,
+        const MLoop *mloop, const MPoly *mpolys,
+        int UNUSED(numLoops), int numPolys, float (*r_polynors)[3],
+        const bool only_face_normals)
 {
 	float (*pnors)[3] = r_polynors;
 	float (*tnorms)[3];
 	int i;
-	MPoly *mp;
+	const MPoly *mp;
 
 	if (only_face_normals) {
 		BLI_assert((pnors != NULL) || (numPolys == 0));
@@ -280,14 +286,17 @@ void BKE_mesh_calc_normals(Mesh *mesh)
 #endif
 }
 
-void BKE_mesh_calc_normals_tessface(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float (*r_faceNors)[3])
+void BKE_mesh_calc_normals_tessface(
+        MVert *mverts, int numVerts,
+        const MFace *mfaces, int numFaces,
+        float (*r_faceNors)[3])
 {
 	float (*tnorms)[3] = MEM_callocN(sizeof(*tnorms) * (size_t)numVerts, "tnorms");
 	float (*fnors)[3] = (r_faceNors) ? r_faceNors : MEM_callocN(sizeof(*fnors) * (size_t)numFaces, "meshnormals");
 	int i;
 
 	for (i = 0; i < numFaces; i++) {
-		MFace *mf = &mfaces[i];
+		const MFace *mf = &mfaces[i];
 		float *f_no = fnors[i];
 		float *n4 = (mf->v4) ? tnorms[mf->v4] : NULL;
 		const float *c4 = (mf->v4) ? mverts[mf->v4].co : NULL;
@@ -1061,7 +1070,7 @@ static void loop_split_generator(TaskPool *UNUSED(pool), void *taskdata, int UNU
  * Useful to materialize sharp edges (or non-smooth faces) without actually modifying the geometry (splitting edges).
  */
 void BKE_mesh_normals_loop_split(
-        MVert *mverts, const int numVerts, MEdge *medges, const int numEdges,
+        const MVert *mverts, const int numVerts, MEdge *medges, const int numEdges,
         MLoop *mloops, float (*r_loopnors)[3], const int numLoops,
         MPoly *mpolys, const float (*polynors)[3], const int numPolys,
         const bool use_split_normals, float split_angle,
@@ -1287,7 +1296,7 @@ void BKE_mesh_normals_loop_split(
  * (this allows to set whole vert's normals at once, useful in some cases).
  */
 static void mesh_normals_loop_custom_set(
-        MVert *mverts, const int numVerts, MEdge *medges, const int numEdges,
+        const MVert *mverts, const int numVerts, MEdge *medges, const int numEdges,
         MLoop *mloops, float (*custom_loopnors)[3], const int numLoops,
         MPoly *mpolys, const float (*polynors)[3], const int numPolys,
         short (*r_clnors_data)[2], const bool use_vertices)
@@ -1453,7 +1462,7 @@ static void mesh_normals_loop_custom_set(
 }
 
 void BKE_mesh_normals_loop_custom_set(
-        MVert *mverts, const int numVerts, MEdge *medges, const int numEdges,
+        const MVert *mverts, const int numVerts, MEdge *medges, const int numEdges,
         MLoop *mloops, float (*custom_loopnors)[3], const int numLoops,
         MPoly *mpolys, const float (*polynors)[3], const int numPolys,
         short (*r_clnors_data)[2])
@@ -1463,7 +1472,7 @@ void BKE_mesh_normals_loop_custom_set(
 }
 
 void BKE_mesh_normals_loop_custom_from_vertices_set(
-        MVert *mverts, float (*custom_vertnors)[3], const int numVerts,
+        const MVert *mverts, float (*custom_vertnors)[3], const int numVerts,
         MEdge *medges, const int numEdges, MLoop *mloops, const int numLoops,
         MPoly *mpolys, const float (*polynors)[3], const int numPolys,
         short (*r_clnors_data)[2])
@@ -1486,10 +1495,10 @@ void BKE_mesh_normals_loop_custom_from_vertices_set(
 
 /* User data. */
 typedef struct {
-	MPoly *mpolys;         /* faces */
-	MLoop *mloops;         /* faces's vertices */
-	MVert *mverts;         /* vertices */
-	MLoopUV *luvs;         /* texture coordinates */
+	const MPoly *mpolys;   /* faces */
+	const MLoop *mloops;   /* faces's vertices */
+	const MVert *mverts;   /* vertices */
+	const MLoopUV *luvs;   /* texture coordinates */
 	float (*lnors)[3];     /* loops' normals */
 	float (*tangents)[4];  /* output tangents */
 	int num_polys;         /* number of polygons */
@@ -1542,15 +1551,17 @@ static void set_tspace(const SMikkTSpaceContext *pContext, const float fv_tangen
  * split normals can be used to recreate the full tangent space.
  * Note: * The mesh should be made of only tris and quads!
  */
-void BKE_mesh_loop_tangents_ex(MVert *mverts, const int UNUSED(numVerts), MLoop *mloops,
-                               float (*r_looptangent)[4], float (*loopnors)[3], MLoopUV *loopuvs,
-                               const int UNUSED(numLoops), MPoly *mpolys, const int numPolys, ReportList *reports)
+void BKE_mesh_loop_tangents_ex(
+        const MVert *mverts, const int UNUSED(numVerts), const MLoop *mloops,
+        float (*r_looptangent)[4], float (*loopnors)[3], const MLoopUV *loopuvs,
+        const int UNUSED(numLoops), const MPoly *mpolys, const int numPolys,
+        ReportList *reports)
 {
 	BKEMeshToTangent mesh_to_tangent = {NULL};
 	SMikkTSpaceContext s_context = {NULL};
 	SMikkTSpaceInterface s_interface = {NULL};
 
-	MPoly *mp;
+	const MPoly *mp;
 	int mp_index;
 
 	/* First check we do have a tris/quads only mesh. */
@@ -1587,8 +1598,9 @@ void BKE_mesh_loop_tangents_ex(MVert *mverts, const int UNUSED(numVerts), MLoop 
 
 /**
  * Wrapper around BKE_mesh_loop_tangents_ex, which takes care of most boiling code.
- * Note: * There must be a valid loop's CD_NORMALS available.
- *       * The mesh should be made of only tris and quads!
+ * \note
+ * - There must be a valid loop's CD_NORMALS available.
+ * - The mesh should be made of only tris and quads!
  */
 void BKE_mesh_loop_tangents(Mesh *mesh, const char *uvmap, float (*r_looptangents)[4], ReportList *reports)
 {
@@ -1633,8 +1645,9 @@ void BKE_mesh_loop_tangents(Mesh *mesh, const char *uvmap, float (*r_looptangent
  * computing newell normal.
  *
  */
-static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart,
-                                  MVert *mvert, float normal[3])
+static void mesh_calc_ngon_normal(
+        const MPoly *mpoly, const MLoop *loopstart,
+        const MVert *mvert, float normal[3])
 {
 	const int nverts = mpoly->totloop;
 	const float *v_prev = mvert[loopstart[nverts - 1].v].co;
@@ -1655,21 +1668,22 @@ static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart,
 	}
 }
 
-void BKE_mesh_calc_poly_normal(MPoly *mpoly, MLoop *loopstart,
-                               MVert *mvarray, float no[3])
+void BKE_mesh_calc_poly_normal(
+        const MPoly *mpoly, const MLoop *loopstart,
+        const MVert *mvarray, float r_no[3])
 {
 	if (mpoly->totloop > 4) {
-		mesh_calc_ngon_normal(mpoly, loopstart, mvarray, no);
+		mesh_calc_ngon_normal(mpoly, loopstart, mvarray, r_no);
 	}
 	else if (mpoly->totloop == 3) {
-		normal_tri_v3(no,
+		normal_tri_v3(r_no,
 		              mvarray[loopstart[0].v].co,
 		              mvarray[loopstart[1].v].co,
 		              mvarray[loopstart[2].v].co
 		              );
 	}
 	else if (mpoly->totloop == 4) {
-		normal_quad_v3(no,
+		normal_quad_v3(r_no,
 		               mvarray[loopstart[0].v].co,
 		               mvarray[loopstart[1].v].co,
 		               mvarray[loopstart[2].v].co,
@@ -1677,49 +1691,51 @@ void BKE_mesh_calc_poly_normal(MPoly *mpoly, MLoop *loopstart,
 		               );
 	}
 	else { /* horrible, two sided face! */
-		no[0] = 0.0;
-		no[1] = 0.0;
-		no[2] = 1.0;
+		r_no[0] = 0.0;
+		r_no[1] = 0.0;
+		r_no[2] = 1.0;
 	}
 }
 /* duplicate of function above _but_ takes coords rather then mverts */
-static void mesh_calc_ngon_normal_coords(MPoly *mpoly, MLoop *loopstart,
-                                         const float (*vertex_coords)[3], float normal[3])
+static void mesh_calc_ngon_normal_coords(
+        const MPoly *mpoly, const MLoop *loopstart,
+        const float (*vertex_coords)[3], float r_normal[3])
 {
 	const int nverts = mpoly->totloop;
 	const float *v_prev = vertex_coords[loopstart[nverts - 1].v];
 	const float *v_curr;
 	int i;
 
-	zero_v3(normal);
+	zero_v3(r_normal);
 
 	/* Newell's Method */
 	for (i = 0; i < nverts; i++) {
 		v_curr = vertex_coords[loopstart[i].v];
-		add_newell_cross_v3_v3v3(normal, v_prev, v_curr);
+		add_newell_cross_v3_v3v3(r_normal, v_prev, v_curr);
 		v_prev = v_curr;
 	}
 
-	if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
-		normal[2] = 1.0f; /* other axis set to 0.0 */
+	if (UNLIKELY(normalize_v3(r_normal) == 0.0f)) {
+		r_normal[2] = 1.0f; /* other axis set to 0.0 */
 	}
 }
 
-void BKE_mesh_calc_poly_normal_coords(MPoly *mpoly, MLoop *loopstart,
-                                      const float (*vertex_coords)[3], float no[3])
+void BKE_mesh_calc_poly_normal_coords(
+        const MPoly *mpoly, const MLoop *loopstart,
+        const float (*vertex_coords)[3], float r_no[3])
 {
 	if (mpoly->totloop > 4) {
-		mesh_calc_ngon_normal_coords(mpoly, loopstart, vertex_coords, no);
+		mesh_calc_ngon_normal_coords(mpoly, loopstart, vertex_coords, r_no);
 	}
 	else if (mpoly->totloop == 3) {
-		normal_tri_v3(no,
+		normal_tri_v3(r_no,
 		              vertex_coords[loopstart[0].v],
 		              vertex_coords[loopstart[1].v],
 		              vertex_coords[loopstart[2].v]
 		              );
 	}
 	else if (mpoly->totloop == 4) {
-		normal_quad_v3(no,
+		normal_quad_v3(r_no,
 		               vertex_coords[loopstart[0].v],
 		               vertex_coords[loopstart[1].v],
 		               vertex_coords[loopstart[2].v],
@@ -1727,14 +1743,15 @@ void BKE_mesh_calc_poly_normal_coords(MPoly *mpoly, MLoop *loopstart,
 		               );
 	}
 	else { /* horrible, two sided face! */
-		no[0] = 0.0;
-		no[1] = 0.0;
-		no[2] = 1.0;
+		r_no[0] = 0.0;
+		r_no[1] = 0.0;
+		r_no[2] = 1.0;
 	}
 }
 
-static void mesh_calc_ngon_center(MPoly *mpoly, MLoop *loopstart,
-                                  MVert *mvert, float cent[3])
+static void mesh_calc_ngon_center(
+        const MPoly *mpoly, const MLoop *loopstart,
+        const MVert *mvert, float cent[3])
 {
 	const float w = 1.0f / (float)mpoly->totloop;
 	int i;
@@ -1746,18 +1763,19 @@ static void mesh_calc_ngon_center(MPoly *mpoly, MLoop *loopstart,
 	}
 }
 
-void BKE_mesh_calc_poly_center(MPoly *mpoly, MLoop *loopstart,
-                               MVert *mvarray, float cent[3])
+void BKE_mesh_calc_poly_center(
+        const MPoly *mpoly, const MLoop *loopstart,
+        const MVert *mvarray, float r_cent[3])
 {
 	if (mpoly->totloop == 3) {
-		cent_tri_v3(cent,
+		cent_tri_v3(r_cent,
 		            mvarray[loopstart[0].v].co,
 		            mvarray[loopstart[1].v].co,
 		            mvarray[loopstart[2].v].co
 		            );
 	}
 	else if (mpoly->totloop == 4) {
-		cent_quad_v3(cent,
+		cent_quad_v3(r_cent,
 		             mvarray[loopstart[0].v].co,
 		             mvarray[loopstart[1].v].co,
 		             mvarray[loopstart[2].v].co,
@@ -1765,13 +1783,14 @@ void BKE_mesh_calc_poly_center(MPoly *mpoly, MLoop *loopstart,
 		             );
 	}
 	else {
-		mesh_calc_ngon_center(mpoly, loopstart, mvarray, cent);
+		mesh_calc_ngon_center(mpoly, loopstart, mvarray, r_cent);
 	}
 }
 
 /* note, passing polynormal is only a speedup so we can skip calculating it */
-float BKE_mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
-                              MVert *mvarray)
+float BKE_mesh_calc_poly_area(
+        const MPoly *mpoly, const MLoop *loopstart,
+        const MVert *mvarray)
 {
 	if (mpoly->totloop == 3) {
 		return area_tri_v3(mvarray[loopstart[0].v].co,
@@ -1781,7 +1800,7 @@ float BKE_mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 	}
 	else {
 		int i;
-		MLoop *l_iter = loopstart;
+		const MLoop *l_iter = loopstart;
 		float area;
 		float (*vertexcos)[3] = BLI_array_alloca(vertexcos, (size_t)mpoly->totloop);
 
@@ -1798,7 +1817,9 @@ float BKE_mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 }
 
 /* note, results won't be correct if polygon is non-planar */
-static float mesh_calc_poly_planar_area_centroid(MPoly *mpoly, MLoop *loopstart, MVert *mvarray, float cent[3])
+static float mesh_calc_poly_planar_area_centroid(
+        const MPoly *mpoly, const MLoop *loopstart, const MVert *mvarray,
+        float r_cent[3])
 {
 	int i;
 	float tri_area;
@@ -1808,7 +1829,7 @@ static float mesh_calc_poly_planar_area_centroid(MPoly *mpoly, MLoop *loopstart,
 	BKE_mesh_calc_poly_normal(mpoly, loopstart, mvarray, normal);
 	copy_v3_v3(v1, mvarray[loopstart[0].v].co);
 	copy_v3_v3(v2, mvarray[loopstart[1].v].co);
-	zero_v3(cent);
+	zero_v3(r_cent);
 
 	for (i = 2; i < mpoly->totloop; i++) {
 		copy_v3_v3(v3, mvarray[loopstart[i].v].co);
@@ -1817,12 +1838,12 @@ static float mesh_calc_poly_planar_area_centroid(MPoly *mpoly, MLoop *loopstart,
 		total_area += tri_area;
 
 		cent_tri_v3(tri_cent, v1, v2, v3);
-		madd_v3_v3fl(cent, tri_cent, tri_area);
+		madd_v3_v3fl(r_cent, tri_cent, tri_area);
 
 		copy_v3_v3(v2, v3);
 	}
 
-	mul_v3_fl(cent, 1.0f / total_area);
+	mul_v3_fl(r_cent, 1.0f / total_area);
 
 	return total_area;
 }
@@ -1850,8 +1871,9 @@ void BKE_mesh_calc_poly_angles(MPoly *mpoly, MLoop *loopstart,
 
 #else /* equivalent the function above but avoid multiple subtractions + normalize */
 
-void BKE_mesh_calc_poly_angles(MPoly *mpoly, MLoop *loopstart,
-                               MVert *mvarray, float angles[])
+void BKE_mesh_calc_poly_angles(
+        const MPoly *mpoly, const MLoop *loopstart,
+        const MVert *mvarray, float angles[])
 {
 	float nor_prev[3];
 	float nor_next[3];
@@ -1912,35 +1934,35 @@ void BKE_mesh_poly_edgebitmap_insert(unsigned int *edge_bitmap, const MPoly *mp,
 /** \name Mesh Center Calculation
  * \{ */
 
-bool BKE_mesh_center_median(Mesh *me, float cent[3])
+bool BKE_mesh_center_median(const Mesh *me, float r_cent[3])
 {
 	int i = me->totvert;
-	MVert *mvert;
-	zero_v3(cent);
+	const MVert *mvert;
+	zero_v3(r_cent);
 	for (mvert = me->mvert; i--; mvert++) {
-		add_v3_v3(cent, mvert->co);
+		add_v3_v3(r_cent, mvert->co);
 	}
 	/* otherwise we get NAN for 0 verts */
 	if (me->totvert) {
-		mul_v3_fl(cent, 1.0f / (float)me->totvert);
+		mul_v3_fl(r_cent, 1.0f / (float)me->totvert);
 	}
 
 	return (me->totvert != 0);
 }
 
-bool BKE_mesh_center_bounds(Mesh *me, float cent[3])
+bool BKE_mesh_center_bounds(const Mesh *me, float r_cent[3])
 {
 	float min[3], max[3];
 	INIT_MINMAX(min, max);
 	if (BKE_mesh_minmax(me, min, max)) {
-		mid_v3_v3v3(cent, min, max);
+		mid_v3_v3v3(r_cent, min, max);
 		return true;
 	}
 
 	return false;
 }
 
-bool BKE_mesh_center_centroid(Mesh *me, float cent[3])
+bool BKE_mesh_center_centroid(const Mesh *me, float r_cent[3])
 {
 	int i = me->totpoly;
 	MPoly *mpoly;
@@ -1948,23 +1970,23 @@ bool BKE_mesh_center_centroid(Mesh *me, float cent[3])
 	float total_area = 0.0f;
 	float poly_cent[3];
 
-	zero_v3(cent);
+	zero_v3(r_cent);
 
 	/* calculate a weighted average of polygon centroids */
 	for (mpoly = me->mpoly; i--; mpoly++) {
 		poly_area = mesh_calc_poly_planar_area_centroid(mpoly, me->mloop + mpoly->loopstart, me->mvert, poly_cent);
 
-		madd_v3_v3fl(cent, poly_cent, poly_area);
+		madd_v3_v3fl(r_cent, poly_cent, poly_area);
 		total_area += poly_area;
 	}
 	/* otherwise we get NAN for 0 polys */
 	if (me->totpoly) {
-		mul_v3_fl(cent, 1.0f / total_area);
+		mul_v3_fl(r_cent, 1.0f / total_area);
 	}
 
 	/* zero area faces cause this, fallback to median */
-	if (UNLIKELY(!is_finite_v3(cent))) {
-		return BKE_mesh_center_median(me, cent);
+	if (UNLIKELY(!is_finite_v3(r_cent))) {
+		return BKE_mesh_center_median(me, r_cent);
 	}
 
 	return (me->totpoly != 0);
@@ -1977,52 +1999,54 @@ bool BKE_mesh_center_centroid(Mesh *me, float cent[3])
 /** \name Mesh Volume Calculation
  * \{ */
 
-static bool mesh_calc_center_centroid_ex(MVert *mverts, int UNUSED(numVerts),
-                                         MFace *mfaces, int numFaces,
-                                         float center[3])
+static bool mesh_calc_center_centroid_ex(
+        const MVert *mverts, int UNUSED(numVerts),
+        const MFace *mfaces, int numFaces,
+        float r_center[3])
 {
 	float totweight;
 	int f;
 	
-	zero_v3(center);
+	zero_v3(r_center);
 	
 	if (numFaces == 0)
 		return false;
 	
 	totweight = 0.0f;
 	for (f = 0; f < numFaces; ++f) {
-		MFace *face = &mfaces[f];
-		MVert *v1 = &mverts[face->v1];
-		MVert *v2 = &mverts[face->v2];
-		MVert *v3 = &mverts[face->v3];
-		MVert *v4 = &mverts[face->v4];
+		const MFace *face = &mfaces[f];
+		const MVert *v1 = &mverts[face->v1];
+		const MVert *v2 = &mverts[face->v2];
+		const MVert *v3 = &mverts[face->v3];
+		const MVert *v4 = &mverts[face->v4];
 		float area;
 		
 		area = area_tri_v3(v1->co, v2->co, v3->co);
-		madd_v3_v3fl(center, v1->co, area);
-		madd_v3_v3fl(center, v2->co, area);
-		madd_v3_v3fl(center, v3->co, area);
+		madd_v3_v3fl(r_center, v1->co, area);
+		madd_v3_v3fl(r_center, v2->co, area);
+		madd_v3_v3fl(r_center, v3->co, area);
 		totweight += area;
 		
 		if (face->v4) {
 			area = area_tri_v3(v3->co, v4->co, v1->co);
-			madd_v3_v3fl(center, v3->co, area);
-			madd_v3_v3fl(center, v4->co, area);
-			madd_v3_v3fl(center, v1->co, area);
+			madd_v3_v3fl(r_center, v3->co, area);
+			madd_v3_v3fl(r_center, v4->co, area);
+			madd_v3_v3fl(r_center, v1->co, area);
 			totweight += area;
 		}
 	}
 	if (totweight == 0.0f)
 		return false;
 	
-	mul_v3_fl(center, 1.0f / (3.0f * totweight));
+	mul_v3_fl(r_center, 1.0f / (3.0f * totweight));
 	
 	return true;
 }
 
-void BKE_mesh_calc_volume(MVert *mverts, int numVerts,
-                          MFace *mfaces, int numFaces,
-                          float *r_vol, float *r_com)
+void BKE_mesh_calc_volume(
+        const MVert *mverts, const int numVerts,
+        const MFace *mfaces, const int numFaces,
+        float *r_vol, float *r_com)
 {
 	float center[3];
 	float totvol;
@@ -2039,11 +2063,11 @@ void BKE_mesh_calc_volume(MVert *mverts, int numVerts,
 	
 	totvol = 0.0f;
 	for (f = 0; f < numFaces; ++f) {
-		MFace *face = &mfaces[f];
-		MVert *v1 = &mverts[face->v1];
-		MVert *v2 = &mverts[face->v2];
-		MVert *v3 = &mverts[face->v3];
-		MVert *v4 = &mverts[face->v4];
+		const MFace *face = &mfaces[f];
+		const MVert *v1 = &mverts[face->v1];
+		const MVert *v2 = &mverts[face->v2];
+		const MVert *v3 = &mverts[face->v3];
+		const MVert *v4 = &mverts[face->v4];
 		float vol;
 		
 		vol = volume_tetrahedron_signed_v3(center, v1->co, v2->co, v3->co);

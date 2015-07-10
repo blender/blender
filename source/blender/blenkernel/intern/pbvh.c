@@ -291,7 +291,7 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 	                                      "bvh node face vert indices");
 
 	for (i = 0; i < totface; ++i) {
-		MFace *f = bvh->faces + node->prim_indices[i];
+		const MFace *f = &bvh->faces[node->prim_indices[i]];
 		int sides = f->v4 ? 4 : 3;
 
 		for (j = 0; j < sides; ++j) {
@@ -321,7 +321,7 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 	}
 
 	for (i = 0; i < totface; ++i) {
-		MFace *f = bvh->faces + node->prim_indices[i];
+		const MFace *f = &bvh->faces[node->prim_indices[i]];
 		int sides = f->v4 ? 4 : 3;
 		
 		for (j = 0; j < sides; ++j) {
@@ -528,7 +528,9 @@ static void pbvh_build(PBVH *bvh, BB *cb, BBC *prim_bbc, int totprim)
 }
 
 /* Do a full rebuild with on Mesh data structure */
-void BKE_pbvh_build_mesh(PBVH *bvh, MFace *faces, MVert *verts, int totface, int totvert, struct CustomData *vdata)
+void BKE_pbvh_build_mesh(
+        PBVH *bvh, const MFace *faces, MVert *verts,
+        int totface, int totvert, struct CustomData *vdata)
 {
 	BBC *prim_bbc = NULL;
 	BB cb;
@@ -548,7 +550,7 @@ void BKE_pbvh_build_mesh(PBVH *bvh, MFace *faces, MVert *verts, int totface, int
 	prim_bbc = MEM_mallocN(sizeof(BBC) * totface, "prim_bbc");
 
 	for (i = 0; i < totface; ++i) {
-		MFace *f = faces + i;
+		const MFace *f = &faces[i];
 		const int sides = f->v4 ? 4 : 3;
 		BBC *bbc = prim_bbc + i;
 
@@ -649,9 +651,10 @@ void BKE_pbvh_free(PBVH *bvh)
 		if (bvh->verts) {
 			/* if pbvh was deformed, new memory was allocated for verts/faces -- free it */
 
-			MEM_freeN(bvh->verts);
-			if (bvh->faces)
-				MEM_freeN(bvh->faces);
+			MEM_freeN((void *)bvh->verts);
+			if (bvh->faces) {
+				MEM_freeN((void *)bvh->faces);
+			}
 		}
 	}
 
@@ -975,9 +978,9 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 			totface = node->totprim;
 
 			for (i = 0; i < totface; ++i) {
-				MFace *f = bvh->faces + faces[i];
+				const MFace *f = &bvh->faces[faces[i]];
 				float fn[3];
-				unsigned int *fv = &f->v1;
+				const unsigned int *fv = &f->v1;
 				int sides = (f->v4) ? 4 : 3;
 
 				if (f->v4)

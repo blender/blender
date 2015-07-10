@@ -133,7 +133,7 @@ struct PBVH {
 
 	/* Mesh data */
 	MVert *verts;
-	MFace *faces;
+	const MFace *faces;
 	CustomData *vdata;
 
 	/* Grid Data */
