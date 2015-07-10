@@ -114,14 +114,12 @@ enum {
 	CAM_SHOWNAME            = (1 << 4),
 	CAM_ANGLETOGGLE         = (1 << 5),
 	CAM_DS_EXPAND           = (1 << 6),
+#ifdef DNA_DEPRECATED
 	CAM_PANORAMA            = (1 << 7), /* deprecated */
+#endif
 	CAM_SHOWSENSOR          = (1 << 8),
 	CAM_SHOW_SAFE_CENTER    = (1 << 9),
 };
-
-#if (DNA_DEPRECATED_GCC_POISON == 1)
-#pragma GCC poison CAM_PANORAMA
-#endif
 
 /* yafray: dof sampling switch */
 /* #define CAM_YF_NO_QMC	512 */ /* deprecated */

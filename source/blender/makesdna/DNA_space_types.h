@@ -1204,10 +1204,13 @@ typedef enum eSpace_Type {
 	SPACE_INFO     = 7,
 	SPACE_SEQ      = 8,
 	SPACE_TEXT     = 9,
+#ifdef DNA_DEPRECATED
 	SPACE_IMASEL   = 10, /* deprecated */
 	SPACE_SOUND    = 11, /* Deprecated */
+#endif
 	SPACE_ACTION   = 12,
 	SPACE_NLA      = 13,
+	/* TODO: fully deprecate */
 	SPACE_SCRIPT   = 14, /* Deprecated */
 	SPACE_TIME     = 15,
 	SPACE_NODE     = 16,
@@ -1222,10 +1225,6 @@ typedef enum eSpace_Type {
 /* use for function args */
 #define SPACE_TYPE_ANY -1
 
-// TODO: SPACE_SCRIPT
-#if (DNA_DEPRECATED_GCC_POISON == 1)
-#pragma GCC poison SPACE_IMASEL SPACE_SOUND
-#endif
 
 #define IMG_SIZE_FALLBACK 256
 

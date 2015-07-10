@@ -38,14 +38,12 @@ enum {
 	MOD_SMOKE_DISSOLVE = (1 << 2),  /* let smoke dissolve */
 	MOD_SMOKE_DISSOLVE_LOG = (1 << 3),  /* using 1/x for dissolve */
 
+#ifdef DNA_DEPRECATED
 	MOD_SMOKE_HIGH_SMOOTH = (1 << 5),  /* -- Deprecated -- */
+#endif
 	MOD_SMOKE_FILE_LOAD = (1 << 6),  /* flag for file load */
 	MOD_SMOKE_ADAPTIVE_DOMAIN = (1 << 7),
 };
-
-#if (DNA_DEPRECATED_GCC_POISON == 1)
-#pragma GCC poison MOD_SMOKE_HIGH_SMOOTH
-#endif
 
 /* noise */
 #define MOD_SMOKE_NOISEWAVE (1<<0)

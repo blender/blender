@@ -368,7 +368,9 @@ enum {
 	SEQ_OVERLAP                 = (1 << 3),
 	SEQ_FILTERY                 = (1 << 4),
 	SEQ_MUTE                    = (1 << 5),
+#ifdef DNA_DEPRECATED
 	SEQ_MAKE_PREMUL             = (1 << 6), /* deprecated, used for compatibility code only */
+#endif
 	SEQ_REVERSE_FRAMES          = (1 << 7),
 	SEQ_IPO_FRAME_LOCKED        = (1 << 8),
 	SEQ_EFFECT_NOT_LOADED       = (1 << 9),
@@ -405,10 +407,6 @@ enum {
 	SEQ_STORAGE_PROXY_CUSTOM_FILE   = (1 << 1), /* store proxy in custom directory */
 	SEQ_STORAGE_PROXY_CUSTOM_DIR    = (1 << 2), /* store proxy in custom file */
 };
-
-#if (DNA_DEPRECATED_GCC_POISON == 1)
-#pragma GCC poison SEQ_MAKE_PREMUL
-#endif
 
 /* convenience define for all selection flags */
 #define SEQ_ALLSEL  (SELECT + SEQ_LEFTSEL + SEQ_RIGHTSEL)

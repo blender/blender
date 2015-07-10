@@ -154,14 +154,12 @@ typedef struct World {
 /* aomix */
 enum {
 	WO_AOADD    = 0,
+#ifdef DNA_DEPRECATED
 	WO_AOSUB    = 1,  /* deprecated */
 	WO_AOADDSUB = 2,  /* deprecated */
+#endif
 	WO_AOMUL    = 3,
 };
-
-#if (DNA_DEPRECATED_GCC_POISON == 1)
-#pragma GCC poison WO_AOSUB WO_AOADDSUB
-#endif
 
 /* ao_samp_method - methods for sampling the AO hemi */
 #define WO_AOSAMP_CONSTANT			0

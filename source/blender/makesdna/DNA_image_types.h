@@ -157,7 +157,9 @@ typedef struct Image {
 enum {
 	IMA_FIELDS              = (1 << 0),
 	IMA_STD_FIELD           = (1 << 1),
+#ifdef DNA_DEPRECATED
 	IMA_DO_PREMUL           = (1 << 2),  /* deprecated, should not be used */
+#endif
 	IMA_REFLECT             = (1 << 4),
 	IMA_NOCOLLECT           = (1 << 5),
 	//IMA_DONE_TAG          = (1 << 6),  // UNUSED
@@ -172,10 +174,6 @@ enum {
 	IMA_IS_STEREO           = (1 << 15),
 	IMA_IS_MULTIVIEW        = (1 << 16), /* similar to stereo, but a more general case */
 };
-
-#if (DNA_DEPRECATED_GCC_POISON == 1)
-#pragma GCC poison IMA_DO_PREMUL
-#endif
 
 /* Image.tpageflag */
 #define IMA_TILES			1

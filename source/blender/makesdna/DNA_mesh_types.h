@@ -130,6 +130,7 @@ typedef struct Mesh {
 } Mesh;
 
 /* deprecated by MTFace, only here for file reading */
+#ifdef DNA_DEPRECATED
 typedef struct TFace {
 	void *tpage;	/* the faces image for the active UVLayer */
 	float uv[4][2];
@@ -137,9 +138,6 @@ typedef struct TFace {
 	char flag, transp;
 	short mode, tile, unwrap;
 } TFace;
-
-#if (DNA_DEPRECATED_GCC_POISON == 1)
-#pragma GCC poison TFace
 #endif
 
 /* **************** MESH ********************* */

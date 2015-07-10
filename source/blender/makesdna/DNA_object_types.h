@@ -381,8 +381,10 @@ enum {
 enum {
 	PARTYPE       = (1 << 4) - 1,
 	PAROBJECT     = 0,
-	PARCURVE      = 1,  /* Deprecated. */
-	PARKEY        = 2,  /* XXX Unused, deprecated? */
+#ifdef DNA_DEPRECATED
+	PARCURVE      = 1,
+#endif
+	// PARKEY        = 2,  /* UNUSED */
 
 	PARSKEL       = 4,
 	PARVERT1      = 5,

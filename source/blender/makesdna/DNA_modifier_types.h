@@ -875,14 +875,12 @@ enum {
 	MOD_SOLIDIFY_EVEN           = (1 << 1),
 	MOD_SOLIDIFY_NORMAL_CALC    = (1 << 2),
 	MOD_SOLIDIFY_VGROUP_INV     = (1 << 3),
+#ifdef DNA_DEPRECATED
 	MOD_SOLIDIFY_RIM_MATERIAL   = (1 << 4),  /* deprecated, used in do_versions */
+#endif
 	MOD_SOLIDIFY_FLIP           = (1 << 5),
 	MOD_SOLIDIFY_NOSHELL        = (1 << 6),
 };
-
-#if (DNA_DEPRECATED_GCC_POISON == 1)
-#pragma GCC poison MOD_SOLIDIFY_RIM_MATERIAL
-#endif
 
 typedef struct ScrewModifierData {
 	ModifierData modifier;
@@ -1252,12 +1250,10 @@ typedef struct TriangulateModifierData {
 	int pad;
 } TriangulateModifierData;
 
+#ifdef DNA_DEPRECATED
 enum {
 	MOD_TRIANGULATE_BEAUTY = (1 << 0), /* deprecated */
 };
-
-#if (DNA_DEPRECATED_GCC_POISON == 1)
-#pragma GCC poison MOD_TRIANGULATE_BEAUTY
 #endif
 
 /* Triangulate methods - NGons */
