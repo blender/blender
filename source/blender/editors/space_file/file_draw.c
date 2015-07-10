@@ -159,7 +159,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	if (available_w > 0) {
 		const struct direntry *file = filelist_file(sfile->files, params->active_file);
 		int overwrite_alert = file_draw_check_exists(sfile);
-		const bool is_active_dir = file && BLI_is_dir(file->path);
+		const bool is_active_dir = file && file->path && BLI_is_dir(file->path);
 		char *dir_path = (is_active_dir && params->active_file > 0) ? file->path : params->dir;
 
 		BLI_add_slash(dir_path);
@@ -224,9 +224,10 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	/* Execute / cancel buttons. */
 	if (loadbutton) {
 		const struct direntry *file = filelist_file(sfile->files, params->active_file);
-		const char *str_exec = (file && BLI_is_dir(file->path)) ? IFACE_("Open Directory") : params->title;
+		const char *str_exec = (file && file->path && BLI_is_dir(file->path)) ?
+		                        /* params->title is already translated! */
+		                        IFACE_("Open Directory") : params->title;
 
-		/* params->title is already translated! */
 		uiDefButO(block, UI_BTYPE_BUT, "FILE_OT_execute", WM_OP_EXEC_REGION_WIN, str_exec,
 		          max_x - loadbutton, line1_y, loadbutton, btn_h, "");
 		uiDefButO(block, UI_BTYPE_BUT, "FILE_OT_cancel", WM_OP_EXEC_REGION_WIN, IFACE_("Cancel"),
