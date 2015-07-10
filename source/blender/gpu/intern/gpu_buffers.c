@@ -447,7 +447,7 @@ static void gpu_drawobject_add_triangle(GPUDrawObject *gdo,
 
 /* for each vertex, build a list of points related to it; these lists
  * are stored in an array sized to the number of vertices */
-static void gpu_drawobject_init_vert_points(GPUDrawObject *gdo, MFace *f, int totface, int totmat)
+static void gpu_drawobject_init_vert_points(GPUDrawObject *gdo, const MFace *f, int totface, int totmat)
 {
 	GPUBufferMaterial *mat;
 	int i, *mat_orig_to_new;
@@ -508,7 +508,7 @@ static void gpu_drawobject_init_vert_points(GPUDrawObject *gdo, MFace *f, int to
 GPUDrawObject *GPU_drawobject_new(DerivedMesh *dm)
 {
 	GPUDrawObject *gdo;
-	MFace *mface;
+	const MFace *mface;
 	int totmat = dm->totmat;
 	int *points_per_mat;
 	int i, curmat, curpoint, totface;
@@ -605,8 +605,9 @@ static GPUBuffer *gpu_try_realloc(GPUBufferPool *pool, GPUBuffer *buffer, int si
 	return buffer;
 }
 
-typedef void (*GPUBufferCopyFunc)(DerivedMesh *dm, float *varray, int *index,
-                                  int *mat_orig_to_new, void *user_data);
+typedef void (*GPUBufferCopyFunc)(
+        DerivedMesh *dm, float *varray, int *index,
+        const int *mat_orig_to_new, const void *user_data);
 
 static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
                                    int vector_size, int size, GLenum target,
@@ -703,10 +704,12 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 	return buffer;
 }
 
-static void GPU_buffer_copy_vertex(DerivedMesh *dm, float *varray, int *index, int *mat_orig_to_new, void *UNUSED(user))
+static void GPU_buffer_copy_vertex(
+        DerivedMesh *dm, float *varray,
+        int *index, const int *mat_orig_to_new, const void *UNUSED(user))
 {
-	MVert *mvert;
-	MFace *f;
+	const MVert *mvert;
+	const MFace *f;
 	int i, j, start, totface;
 
 	mvert = dm->getVertArray(dm);
@@ -741,7 +744,9 @@ static void GPU_buffer_copy_vertex(DerivedMesh *dm, float *varray, int *index, i
 	}
 }
 
-static void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, int *mat_orig_to_new, void *UNUSED(user))
+static void GPU_buffer_copy_normal(
+        DerivedMesh *dm, float *varray, int *index,
+        const int *mat_orig_to_new, const void *UNUSED(user))
 {
 	int i, totface;
 	int start;
@@ -749,8 +754,8 @@ static void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, i
 
 	const float *nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
 	short (*tlnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
-	MVert *mvert = dm->getVertArray(dm);
-	MFace *f = dm->getTessFaceArray(dm);
+	const MVert *mvert = dm->getVertArray(dm);
+	const MFace *f = dm->getTessFaceArray(dm);
 
 	totface = dm->getNumTessFaces(dm);
 	for (i = 0; i < totface; i++, f++) {
@@ -816,13 +821,15 @@ static void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, i
 	}
 }
 
-static void GPU_buffer_copy_uv(DerivedMesh *dm, float *varray, int *index, int *mat_orig_to_new, void *UNUSED(user))
+static void GPU_buffer_copy_uv(
+        DerivedMesh *dm, float *varray, int *index,
+        const int *mat_orig_to_new, const void *UNUSED(user))
 {
 	int start;
 	int i, totface;
 
-	MTFace *mtface;
-	MFace *f;
+	const MTFace *mtface;
+	const MFace *f;
 
 	if (!(mtface = DM_get_tessface_data_layer(dm, CD_MTFACE)))
 		return;
@@ -849,16 +856,18 @@ static void GPU_buffer_copy_uv(DerivedMesh *dm, float *varray, int *index, int *
 }
 
 
-static void GPU_buffer_copy_uv_texpaint(DerivedMesh *dm, float *varray, int *index, int *mat_orig_to_new, void *UNUSED(user))
+static void GPU_buffer_copy_uv_texpaint(
+        DerivedMesh *dm, float *varray, int *index,
+        const int *mat_orig_to_new, const void *UNUSED(user))
 {
 	int start;
 	int i, totface;
 
 	int totmaterial = dm->totmat;
-	MTFace **mtface_base;
-	MTFace *stencil_base;
+	const MTFace **mtface_base;
+	const MTFace *stencil_base;
 	int stencil;
-	MFace *mf;
+	const MFace *mf;
 
 	/* should have been checked for before, reassert */
 	BLI_assert(DM_get_tessface_data_layer(dm, CD_MTFACE));
@@ -911,12 +920,14 @@ static void copy_mcol_uc3(unsigned char *v, unsigned char *col)
 }
 
 /* treat varray_ as an array of MCol, four MCol's per face */
-static void GPU_buffer_copy_mcol(DerivedMesh *dm, float *varray_, int *index, int *mat_orig_to_new, void *user)
+static void GPU_buffer_copy_mcol(
+        DerivedMesh *dm, float *varray_, int *index,
+        const int *mat_orig_to_new, const void *user)
 {
 	int i, totface;
 	unsigned char *varray = (unsigned char *)varray_;
 	unsigned char *mcol = (unsigned char *)user;
-	MFace *f = dm->getTessFaceArray(dm);
+	const MFace *f = dm->getTessFaceArray(dm);
 
 	totface = dm->getNumTessFaces(dm);
 	for (i = 0; i < totface; i++, f++) {
@@ -938,9 +949,11 @@ static void GPU_buffer_copy_mcol(DerivedMesh *dm, float *varray_, int *index, in
 	}
 }
 
-static void GPU_buffer_copy_edge(DerivedMesh *dm, float *varray_, int *UNUSED(index), int *UNUSED(mat_orig_to_new), void *UNUSED(user))
+static void GPU_buffer_copy_edge(
+        DerivedMesh *dm, float *varray_, int *UNUSED(index),
+        const int *UNUSED(mat_orig_to_new), const void *UNUSED(user))
 {
-	MEdge *medge, *medge_base;
+	const MEdge *medge, *medge_base;
 	unsigned int *varray = (unsigned int *)varray_;
 	int i, totedge, iloose, inorm, iloosehidden, inormhidden;
 	int tot_loose_hidden = 0, tot_loose = 0;
@@ -998,9 +1011,11 @@ static void GPU_buffer_copy_edge(DerivedMesh *dm, float *varray_, int *UNUSED(in
 	dm->drawObject->tot_edge_drawn = tot;
 }
 
-static void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(index), int *UNUSED(mat_orig_to_new), void *UNUSED(user))
+static void GPU_buffer_copy_uvedge(
+        DerivedMesh *dm, float *varray, int *UNUSED(index),
+        const int *UNUSED(mat_orig_to_new), const void *UNUSED(user))
 {
-	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
+	const MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
 	int i, j = 0;
 
 	if (!tf)
@@ -1517,8 +1532,8 @@ struct GPU_PBVH_Buffers {
 	GLenum index_type;
 
 	/* mesh pointers in case buffer allocation fails */
-	MFace *mface;
-	MVert *mvert;
+	const MFace *mface;
+	const MVert *mvert;
 	const int *face_indices;
 	int totface;
 	const float *vmask;
@@ -1623,9 +1638,10 @@ static void gpu_color_from_mask_quad_set(const CCGKey *key,
 	glColor3f(diffuse_color[0] * color, diffuse_color[1] * color, diffuse_color[2] * color);
 }
 
-void GPU_update_mesh_pbvh_buffers(GPU_PBVH_Buffers *buffers, MVert *mvert,
-                                  int *vert_indices, int totvert, const float *vmask,
-                                  int (*face_vert_indices)[4], bool show_diffuse_color)
+void GPU_update_mesh_pbvh_buffers(
+        GPU_PBVH_Buffers *buffers, const MVert *mvert,
+        const int *vert_indices, int totvert, const float *vmask,
+        const int (*face_vert_indices)[4], bool show_diffuse_color)
 {
 	VertexBufferFormat *vert_data;
 	int i, j, k;
@@ -1641,7 +1657,7 @@ void GPU_update_mesh_pbvh_buffers(GPU_PBVH_Buffers *buffers, MVert *mvert,
 		if (buffers->use_matcaps)
 			diffuse_color[0] = diffuse_color[1] = diffuse_color[2] = 1.0;
 		else if (show_diffuse_color) {
-			MFace *f = buffers->mface + buffers->face_indices[0];
+			const MFace *f = buffers->mface + buffers->face_indices[0];
 
 			GPU_material_diffuse_get(f->mat_nr + 1, diffuse_color);
 		}
@@ -1662,7 +1678,7 @@ void GPU_update_mesh_pbvh_buffers(GPU_PBVH_Buffers *buffers, MVert *mvert,
 			 * shouldn't be shared. */
 			if (buffers->smooth) {
 				for (i = 0; i < totvert; ++i) {
-					MVert *v = mvert + vert_indices[i];
+					const MVert *v = &mvert[vert_indices[i]];
 					VertexBufferFormat *out = vert_data + i;
 
 					copy_v3_v3(out->co, v->co);
@@ -1679,7 +1695,7 @@ void GPU_update_mesh_pbvh_buffers(GPU_PBVH_Buffers *buffers, MVert *mvert,
 				} (void)0
 
 				for (i = 0; i < buffers->totface; i++) {
-					MFace *f = buffers->mface + buffers->face_indices[i];
+					const MFace *f = buffers->mface + buffers->face_indices[i];
 
 					UPDATE_VERTEX(i, f->v1, 0, diffuse_color);
 					UPDATE_VERTEX(i, f->v2, 1, diffuse_color);
@@ -1761,10 +1777,11 @@ void GPU_update_mesh_pbvh_buffers(GPU_PBVH_Buffers *buffers, MVert *mvert,
 	buffers->mvert = mvert;
 }
 
-GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(int (*face_vert_indices)[4],
-                                              MFace *mface, MVert *mvert,
-                                              int *face_indices,
-                                              int totface)
+GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(
+        const int (*face_vert_indices)[4],
+        const MFace *mface, const MVert *mvert,
+        const int *face_indices,
+        int totface)
 {
 	GPU_PBVH_Buffers *buffers;
 	unsigned short *tri_data;
@@ -2417,9 +2434,9 @@ static void gpu_draw_buffers_legacy_mesh(GPU_PBVH_Buffers *buffers)
 	}
 
 	for (i = 0; i < buffers->totface; ++i) {
-		MFace *f = buffers->mface + buffers->face_indices[i];
+		const MFace *f = &buffers->mface[buffers->face_indices[i]];
 		int S = f->v4 ? 4 : 3;
-		unsigned int *fv = &f->v1;
+		const unsigned int *fv = &f->v1;
 
 		if (paint_is_face_hidden(f, buffers->mvert))
 			continue;
@@ -2709,7 +2726,7 @@ bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, GSet *bm_faces,
 		return false;
 
 	if (buffers->mface) {
-		MFace *f = buffers->mface + buffers->face_indices[0];
+		const MFace *f = &buffers->mface[buffers->face_indices[0]];
 
 		GPU_material_diffuse_get(f->mat_nr + 1, diffuse_color);
 	}

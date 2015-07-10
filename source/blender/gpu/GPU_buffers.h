@@ -165,9 +165,10 @@ void GPU_buffer_unbind(void);
 typedef struct GPU_PBVH_Buffers GPU_PBVH_Buffers;
 
 /* build */
-GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(int (*face_vert_indices)[4],
-                                    struct MFace *mface, struct MVert *mvert,
-                                    int *face_indices, int totface);
+GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(
+        const int (*face_vert_indices)[4],
+        const struct MFace *mface, const struct MVert *mvert,
+        const int *face_indices, int totface);
 
 GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
                                     unsigned int **grid_hidden, int gridsize);
@@ -176,9 +177,10 @@ GPU_PBVH_Buffers *GPU_build_bmesh_pbvh_buffers(int smooth_shading);
 
 /* update */
 
-void GPU_update_mesh_pbvh_buffers(GPU_PBVH_Buffers *buffers, MVert *mvert,
-							 int *vert_indices, int totvert, const float *vmask,
-							 int (*face_vert_indices)[4], bool show_diffuse_color);
+void GPU_update_mesh_pbvh_buffers(
+        GPU_PBVH_Buffers *buffers, const MVert *mvert,
+        const int *vert_indices, int totvert, const float *vmask,
+        const int (*face_vert_indices)[4], bool show_diffuse_color);
 
 void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
                               struct BMesh *bm,
