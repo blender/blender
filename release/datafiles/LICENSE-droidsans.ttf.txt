@@ -6,6 +6,8 @@ Blender Main I18n font ("droidsans.ttf") includes glyphs imported from the follo
 4. Droid Sans Hebrew Regular
 5. Droid Sans Ethiopic Regular
 6. Samyak-tamil
+7. KhmerOSsys
+8. tlwg' Loma (Thaï)
 
 These were merged using FontForge in (approximately) the above order. For each glyph,
 a license of the font from which it was imported is applied.
@@ -39,6 +41,19 @@ Copyright: 2005-2006, Rahul Bhalerao <b.rahul.pm@gmail.com>
 
 License: GPL-3 with font embedding exception
  See Appendices B.
+
+(7) KhmerOSsys
+Copyright: 2005, 2006 Danh Hong
+           2005, 2006 Open Forum of Cambodia
+
+License: GPL-2.1+
+ See Appendices C.
+
+(8) tlwg Loma (Thaï)
+Copyright: 2003 National Electronics and Computer Technology Center
+
+License: GPL-2+ with Font exception
+ See Appendices C.
 
 ----------------------------------------------------------------------
 Appendix A. Apache License Version 2.0
@@ -82,3 +97,20 @@ Font embedding exception:
  modify this font, you may extend this exception to your version of
  the font, but you are not obligated to do so. If you do not wish to
  do so, delete this exception statement from your version.
+
+----------------------------------------------------------------------
+Appendix C. GNU GPL Version 2.1
+
+This font is free software; you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published
+by the Free Software Foundation; either version 2.1 of the License, or
+(at your option) any later version.
+
+This library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+License for more details.
+
+On Debian systems, the complete text of the GNU Lesser General Public
+License can be found in the file /usr/share/common-licenses/LGPL-2.
+
