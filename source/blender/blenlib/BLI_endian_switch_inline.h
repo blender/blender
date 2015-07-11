@@ -83,7 +83,7 @@ BLI_INLINE void BLI_endian_switch_int64(int64_t *val)
 BLI_INLINE void BLI_endian_switch_uint64(uint64_t *val)
 {
 #ifdef __GNUC__
-	*val = __builtin_bswap16(*val);
+	*val = __builtin_bswap64(*val);
 #else
 	uint64_t tval = *val;
 	*val = ((tval >> 56)) |
