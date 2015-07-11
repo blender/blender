@@ -282,7 +282,7 @@ static int get_file_icon(struct direntry *file)
 		return ICON_FILE_BLANK;
 }
 
-static void file_draw_icon(uiBlock *block, char *path, int sx, int sy, int icon, int width, int height, bool drag)
+static void file_draw_icon(uiBlock *block, const char *path, int sx, int sy, int icon, int width, int height, bool drag)
 {
 	uiBut *but;
 	int x, y;

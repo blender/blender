@@ -43,8 +43,8 @@ struct ImBuf;
 
 struct direntry {
 	mode_t  type;
-	char   *relname;
-	char   *path;
+	const char   *relname;
+	const char   *path;
 #ifdef WIN32 /* keep in sync with the definition of BLI_stat_t in BLI_fileops.h */
 #  if defined(_MSC_VER) || defined(__MINGW64__)
 	struct _stat64 s;

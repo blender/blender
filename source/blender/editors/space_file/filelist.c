@@ -1252,8 +1252,9 @@ static void filelist_from_main(struct FileList *filelist)
 						files->relname = BLI_strdup(id->name + 2);
 					}
 					else {
-						files->relname = MEM_mallocN(sizeof(*files->relname) * (FILE_MAX + (MAX_ID_NAME - 2)), __func__);
-						BLI_snprintf(files->relname, FILE_MAX + (MAX_ID_NAME - 2) + 3, "%s | %s", id->lib->name, id->name + 2);
+						char relname[FILE_MAX + (MAX_ID_NAME - 2) + 3];
+						BLI_snprintf(relname, sizeof(relname), "%s | %s", id->lib->name, id->name + 2);
+						files->relname = BLI_strdup(relname);
 					}
 					files->type |= S_IFREG;
 #if 0               /* XXXXX TODO show the selection status of the objects */

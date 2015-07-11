@@ -379,9 +379,9 @@ void BLI_filelist_free(struct direntry *filelist, unsigned int nrentries, void (
 			IMB_freeImBuf(entry->image);
 		}
 		if (entry->relname)
-			MEM_freeN(entry->relname);
+			MEM_freeN((void *)entry->relname);
 		if (entry->path)
-			MEM_freeN(entry->path);
+			MEM_freeN((void *)entry->path);
 		if (entry->poin && free_poin)
 			free_poin(entry->poin);
 	}
