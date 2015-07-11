@@ -255,8 +255,7 @@ static void memory_source(j_decompress_ptr cinfo, const unsigned char *buffer, s
 	      V += GETJOCTET(*next_input_byte++); )
 
 
-static boolean
-handle_app1(j_decompress_ptr cinfo)
+static boolean handle_app1(j_decompress_ptr cinfo)
 {
 	INT32 length; /* initialized by the macro */
 	INT32 i;
