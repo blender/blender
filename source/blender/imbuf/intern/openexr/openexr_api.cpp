@@ -766,8 +766,10 @@ static void imb_exr_get_views(MultiPartInputFile& file, StringVector& views)
 static void imb_exr_insert_view_name(char *name_full, const char *passname, const char *viewname)
 {
 	BLI_assert(!ELEM(name_full, passname, viewname));
+
 	if (viewname == NULL || viewname[0] == '\0') {
 		BLI_strncpy(name_full, passname, sizeof(((ExrChannel *)NULL)->name));
+		return;
 	}
 
 	const char delims[] = {'.', '\0'};
