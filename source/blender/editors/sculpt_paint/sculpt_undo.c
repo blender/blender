@@ -695,7 +695,8 @@ static void sculpt_undo_store_hidden(Object *ob, SculptUndoNode *unode)
 	}
 	else {
 		MVert *mvert;
-		int *vert_indices, allvert;
+		const int *vert_indices;
+		int allvert;
 		int i;
 		
 		BKE_pbvh_node_num_verts(pbvh, node, NULL, &allvert);
@@ -846,7 +847,8 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node,
 		memcpy(unode->grids, grids, sizeof(int) * totgrid);
 	}
 	else {
-		int *vert_indices, allvert;
+		const int *vert_indices;
+		int allvert;
 		BKE_pbvh_node_num_verts(ss->pbvh, node, NULL, &allvert);
 		BKE_pbvh_node_get_verts(ss->pbvh, node, &vert_indices, NULL);
 		memcpy(unode->index, vert_indices, sizeof(int) * unode->totvert);

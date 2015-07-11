@@ -98,7 +98,7 @@ static void partialvis_update_mesh(Object *ob,
 	Mesh *me = ob->data;
 	MVert *mvert;
 	const float *paint_mask;
-	int *vert_indices;
+	const int *vert_indices;
 	int totvert, i;
 	bool any_changed = false, any_visible = false;
 			

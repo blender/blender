@@ -76,7 +76,7 @@ struct PBVHNode {
 	 *
 	 * Used for leaf nodes in a mesh-based PBVH (not multires.)
 	 */
-	int *vert_indices;
+	const int *vert_indices;
 	unsigned int uniq_verts, face_verts;
 
 	/* An array mapping face corners into the vert_indices
@@ -88,7 +88,7 @@ struct PBVHNode {
 	 *
 	 * Used for leaf nodes in a mesh-based PBVH (not multires.)
 	 */
-	int (*face_vert_indices)[4];
+	const int (*face_vert_indices)[4];
 
 	/* Indicates whether this node is a leaf or not; also used for
 	 * marking various updates that need to be applied. */
