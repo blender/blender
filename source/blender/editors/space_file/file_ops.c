@@ -1265,15 +1265,10 @@ int file_exec(bContext *C, wmOperator *exec_op)
 	const struct direntry *file = filelist_file(sfile->files, sfile->params->active_file);
 	char filepath[FILE_MAX];
 
-	/* if file is a directory it should be in sync with params->dir, otherwise
-	 * with params->file; file->path might be NULL on link/append */
-	BLI_assert((file == NULL) ||
-	           (file->path == NULL) ||
-	           (STREQ(file->relname, sfile->params->file)) ||
-	           (BLI_is_dir(file->path) && STRPREFIX(file->path, sfile->params->dir)));
-
 	/* directory change */
 	if (file && S_ISDIR(file->type)) {
+		BLI_assert(file->path == NULL || STRPREFIX(file->path, sfile->params->dir));
+
 		if (FILENAME_IS_PARENT(file->relname)) {
 			BLI_parent_dir(sfile->params->dir);
 		}
