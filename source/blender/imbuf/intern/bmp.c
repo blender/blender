@@ -81,7 +81,7 @@ typedef struct BMPHEADER {
 	 CHECK_HEADER_FIELD(_mem, "IC") ||  \
 	 CHECK_HEADER_FIELD(_mem, "PT"))
 
-static int checkbmp(unsigned char *mem)
+static int checkbmp(const unsigned char *mem)
 {
 
 	int ret_val = 0;
@@ -115,17 +115,18 @@ static int checkbmp(unsigned char *mem)
 	return(ret_val);
 }
 
-int imb_is_a_bmp(unsigned char *buf)
+int imb_is_a_bmp(const unsigned char *buf)
 {
 	return checkbmp(buf);
 }
 
-struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+struct ImBuf *imb_bmp_decode(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct ImBuf *ibuf = NULL;
 	BMPINFOHEADER bmi;
 	int x, y, depth, ibuf_depth, skip, i, j;
-	unsigned char *bmp, *rect;
+	const unsigned char *bmp;
+	unsigned char *rect;
 	unsigned short col;
 	double xppm, yppm;
 	bool top_to_bottom = false;

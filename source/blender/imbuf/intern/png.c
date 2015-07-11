@@ -53,7 +53,7 @@
 #include "IMB_colormanagement_intern.h"
 
 typedef struct PNGReadStruct {
-	unsigned char *data;
+	const unsigned char *data;
 	unsigned int size;
 	unsigned int seek;
 } PNGReadStruct;
@@ -67,7 +67,7 @@ BLI_INLINE unsigned short UPSAMPLE_8_TO_16(const unsigned char _val)
 	return (_val << 8) + _val;
 }
 
-int imb_is_a_png(unsigned char *mem)
+int imb_is_a_png(const unsigned char *mem)
 {
 	int ret_val = 0;
 
@@ -504,7 +504,7 @@ static void imb_png_error(png_structp UNUSED(png_ptr), png_const_charp message)
 	fprintf(stderr, "libpng error: %s\n", message);
 }
 
-ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct ImBuf *ibuf = NULL;
 	png_structp png_ptr;

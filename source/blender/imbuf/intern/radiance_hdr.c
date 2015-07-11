@@ -72,7 +72,7 @@ typedef float fCOLOR[3];
 #define COPY_RGBE(c1, c2) (c2[RED] = c1[RED], c2[GRN] = c1[GRN], c2[BLU] = c1[BLU], c2[EXP] = c1[EXP])
 
 /* read routines */
-static unsigned char *oldreadcolrs(RGBE *scan, unsigned char *mem, int xmax, unsigned char *mem_eof)
+static const unsigned char *oldreadcolrs(RGBE *scan, const unsigned char *mem, int xmax, const unsigned char *mem_eof)
 {
 	int i, rshift = 0, len = xmax;
 	while (len > 0) {
@@ -100,7 +100,7 @@ static unsigned char *oldreadcolrs(RGBE *scan, unsigned char *mem, int xmax, uns
 	return mem;
 }
 
-static unsigned char *freadcolrs(RGBE *scan, unsigned char *mem, int xmax, unsigned char *mem_eof)
+static const unsigned char *freadcolrs(RGBE *scan, const unsigned char *mem, int xmax, const unsigned char *mem_eof)
 {
 	int i, j, code, val;
 
@@ -194,7 +194,7 @@ static void FLOAT2RGBE(fCOLOR fcol, RGBE rgbe)
 
 /* ImBuf read */
 
-int imb_is_a_hdr(unsigned char *buf)
+int imb_is_a_hdr(const unsigned char *buf)
 {
 	/* For recognition, Blender only loads first 32 bytes, so use #?RADIANCE id instead */
 	/* update: actually, the 'RADIANCE' part is just an optional program name, the magic word is really only the '#?' part */
@@ -204,7 +204,7 @@ int imb_is_a_hdr(unsigned char *buf)
 	return 0;
 }
 
-struct ImBuf *imb_loadhdr(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+struct ImBuf *imb_loadhdr(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct ImBuf *ibuf;
 	RGBE *sline;
@@ -213,7 +213,7 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, size_t size, int flags, char color
 	int found = 0;
 	int width = 0, height = 0;
 	int x, y;
-	unsigned char *ptr, *mem_eof = mem + size;
+	const unsigned char *ptr, *mem_eof = mem + size;
 	char oriY[80], oriX[80];
 
 	if (imb_is_a_hdr((void *)mem)) {

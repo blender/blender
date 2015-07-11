@@ -34,9 +34,9 @@ extern "C" {
 
 #include "../../IMB_imbuf.h"
 
+int           imb_is_a_dds(const unsigned char *mem); /* use only first 32 bytes of mem */
 int  	      imb_save_dds(struct ImBuf *ibuf, const char *name, int flags);
-int           imb_is_a_dds(unsigned char *mem); /* use only first 32 bytes of mem */
-struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE]);
+struct ImBuf *imb_load_dds(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE]);
 
 #ifdef __cplusplus
 }

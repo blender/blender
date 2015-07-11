@@ -66,7 +66,7 @@ static void init_source(j_decompress_ptr cinfo);
 static boolean fill_input_buffer(j_decompress_ptr cinfo);
 static void skip_input_data(j_decompress_ptr cinfo, long num_bytes);
 static void term_source(j_decompress_ptr cinfo);
-static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t size);
+static void memory_source(j_decompress_ptr cinfo, const unsigned char *buffer, size_t size);
 static boolean handle_app1(j_decompress_ptr cinfo);
 static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int flags);
 
@@ -87,7 +87,7 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int fla
 static int jpeg_default_quality;
 static int ibuf_ftype;
 
-int imb_is_a_jpeg(unsigned char *mem)
+int imb_is_a_jpeg(const unsigned char *mem)
 {
 	if ((mem[0] == 0xFF) && (mem[1] == 0xD8)) return 1;
 	return 0;
@@ -133,7 +133,7 @@ typedef struct {
 typedef struct {
 	struct jpeg_source_mgr pub; /* public fields */
 
-	unsigned char  *buffer;
+	const unsigned char  *buffer;
 	int             size;
 	JOCTET          terminal[2];
 } my_source_mgr;
@@ -182,7 +182,7 @@ static void term_source(j_decompress_ptr cinfo)
 	(void)cinfo; /* unused */
 }
 
-static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t size)
+static void memory_source(j_decompress_ptr cinfo, const unsigned char *buffer, size_t size)
 {
 	my_src_ptr src;
 
@@ -443,7 +443,7 @@ next_stamp_marker:
 	return(ibuf);
 }
 
-ImBuf *imb_load_jpeg(unsigned char *buffer, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+ImBuf *imb_load_jpeg(const unsigned char *buffer, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
 	struct my_error_mgr jerr;

@@ -110,10 +110,10 @@ static int putlong(FILE *outf, unsigned int val);
 static int writetab(FILE *outf, unsigned int *tab, int len);
 static void readtab(FILE *inf, unsigned int *tab, int len);
 
-static void expandrow(unsigned char *optr, unsigned char *iptr, int z);
-static void expandrow2(float *optr, unsigned char *iptr, int z);
-static void interleaverow(unsigned char *lptr, unsigned char *cptr, int z, int n);
-static void interleaverow2(float *lptr, unsigned char *cptr, int z, int n);
+static void expandrow(unsigned char *optr, const unsigned char *iptr, int z);
+static void expandrow2(float *optr, const unsigned char *iptr, int z);
+static void interleaverow(unsigned char *lptr, const unsigned char *cptr, int z, int n);
+static void interleaverow2(float *lptr, const unsigned char *cptr, int z, int n);
 static int compressrow(unsigned char *lbuf, unsigned char *rlebuf, int z, int cnt);
 static void lumrow(unsigned char *rgbptr, unsigned char *lumptr, int n);
 
@@ -122,12 +122,12 @@ static void lumrow(unsigned char *rgbptr, unsigned char *lumptr, int n);
  *
  */
 
-static uchar *file_data;
+static const uchar *file_data;
 static int file_offset;
 
 static unsigned short getshort(FILE *inf)
 {
-	unsigned char *buf;
+	const unsigned char *buf;
 	(void)inf; /* unused */
 
 	buf = file_data + file_offset;
@@ -138,7 +138,7 @@ static unsigned short getshort(FILE *inf)
 
 static unsigned int getlong(FILE *inf)
 {
-	unsigned char *buf;
+	const unsigned char *buf;
 	(void)inf; /* unused */
 	
 	buf = file_data + file_offset;
@@ -238,7 +238,7 @@ static void test_endian_zbuf(struct ImBuf *ibuf)
 /* this one is only def-ed once, strangely... */
 #define GSS(x) (((uchar *)(x))[1] << 8 | ((uchar *)(x))[0])
 
-int imb_is_a_iris(unsigned char *mem)
+int imb_is_a_iris(const unsigned char *mem)
 {
 	return ((GS(mem) == IMAGIC) || (GSS(mem) == IMAGIC));
 }
@@ -250,12 +250,12 @@ int imb_is_a_iris(unsigned char *mem)
  *
  */
 
-struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	unsigned int *base, *lptr = NULL;
 	float *fbase, *fptr = NULL;
 	unsigned int *zbase, *zptr;
-	unsigned char *rledat;
+	const unsigned char *rledat;
 	unsigned int *starttab, *lengthtab;
 	FILE *inf = NULL;
 	IMAGE image;
@@ -541,7 +541,7 @@ struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags, char colo
 
 /* static utility functions for longimagedata */
 
-static void interleaverow(unsigned char *lptr, unsigned char *cptr, int z, int n)
+static void interleaverow(unsigned char *lptr, const unsigned char *cptr, int z, int n)
 {
 	lptr += z;
 	while (n--) {
@@ -550,7 +550,7 @@ static void interleaverow(unsigned char *lptr, unsigned char *cptr, int z, int n
 	}
 }
 
-static void interleaverow2(float *lptr, unsigned char *cptr, int z, int n)
+static void interleaverow2(float *lptr, const unsigned char *cptr, int z, int n)
 {
 	lptr += z;
 	while (n--) {
@@ -560,7 +560,7 @@ static void interleaverow2(float *lptr, unsigned char *cptr, int z, int n)
 	}
 }
 
-static void expandrow2(float *optr, unsigned char *iptr, int z)
+static void expandrow2(float *optr, const unsigned char *iptr, int z)
 {
 	unsigned short pixel, count;
 	float pixel_f;
@@ -616,7 +616,7 @@ static void expandrow2(float *optr, unsigned char *iptr, int z)
 	}
 }
 
-static void expandrow(unsigned char *optr, unsigned char *iptr, int z)
+static void expandrow(unsigned char *optr, const unsigned char *iptr, int z)
 {
 	unsigned char pixel, count;
 

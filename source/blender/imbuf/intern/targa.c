@@ -314,7 +314,7 @@ int imb_savetarga(struct ImBuf *ibuf, const char *name, int flags)
 }
 
 
-static int checktarga(TARGA *tga, unsigned char *mem)
+static int checktarga(TARGA *tga, const unsigned char *mem)
 {
 	tga->numid = mem[0];
 	tga->maptyp = mem[1];
@@ -350,7 +350,7 @@ static int checktarga(TARGA *tga, unsigned char *mem)
 	return 1;
 }
 
-int imb_is_a_targa(unsigned char *buf)
+int imb_is_a_targa(const unsigned char *buf)
 {
 	TARGA tga;
 	
@@ -372,9 +372,9 @@ static void complete_partial_load(struct ImBuf *ibuf, unsigned int *rect)
 	}
 }
 
-static void decodetarga(struct ImBuf *ibuf, unsigned char *mem, size_t mem_size, int psize)
+static void decodetarga(struct ImBuf *ibuf, const unsigned char *mem, size_t mem_size, int psize)
 {
-	unsigned char *mem_end = mem + mem_size;
+	const unsigned char *mem_end = mem + mem_size;
 	int count, col, size;
 	unsigned int *rect;
 	uchar *cp = (uchar *) &col;
@@ -490,9 +490,9 @@ partial_load:
 	complete_partial_load(ibuf, rect);
 }
 
-static void ldtarga(struct ImBuf *ibuf, unsigned char *mem, size_t mem_size, int psize)
+static void ldtarga(struct ImBuf *ibuf, const unsigned char *mem, size_t mem_size, int psize)
 {
-	unsigned char *mem_end = mem + mem_size;
+	const unsigned char *mem_end = mem + mem_size;
 	int col, size;
 	unsigned int *rect;
 	uchar *cp = (uchar *) &col;
@@ -550,7 +550,7 @@ partial_load:
 }
 
 
-ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags, char colorspace[IM_MAX_SPACE])
+ImBuf *imb_loadtarga(const unsigned char *mem, size_t mem_size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	TARGA tga;
 	struct ImBuf *ibuf;

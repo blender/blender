@@ -79,9 +79,9 @@ static void    imb_tiff_DummyUnmapProc(thandle_t fd, tdata_t base, toff_t size);
 
 /* Structure for in-memory TIFF file. */
 typedef struct ImbTIFFMemFile {
-	unsigned char *mem; /* Location of first byte of TIFF file. */
-	toff_t offset;      /* Current offset within the file.      */
-	tsize_t size;       /* Size of the TIFF file.               */
+	const unsigned char *mem;   /* Location of first byte of TIFF file. */
+	toff_t offset;              /* Current offset within the file.      */
+	tsize_t size;               /* Size of the TIFF file.               */
 } ImbTIFFMemFile;
 #define IMB_TIFF_GET_MEMFILE(x) ((ImbTIFFMemFile *)(x))
 
@@ -274,7 +274,7 @@ static toff_t imb_tiff_SizeProc(thandle_t handle)
 	return (toff_t)(mfile->size);
 }
 
-static TIFF *imb_tiff_client_open(ImbTIFFMemFile *memFile, unsigned char *mem, size_t size)
+static TIFF *imb_tiff_client_open(ImbTIFFMemFile *memFile, const unsigned char *mem, size_t size)
 {
 	/* open the TIFF client layer interface to the in-memory file */
 	memFile->mem = mem;
@@ -304,7 +304,7 @@ static TIFF *imb_tiff_client_open(ImbTIFFMemFile *memFile, unsigned char *mem, s
  * hence my manual comparison. - Jonathan Merritt (lancelet) 4th Sept 2005.
  */
 #define IMB_TIFF_NCB 4      /* number of comparison bytes used */
-int imb_is_a_tiff(unsigned char *mem)
+int imb_is_a_tiff(const unsigned char *mem)
 {
 	char big_endian[IMB_TIFF_NCB] = { 0x4d, 0x4d, 0x00, 0x2a };
 	char lil_endian[IMB_TIFF_NCB] = { 0x49, 0x49, 0x2a, 0x00 };
@@ -520,7 +520,7 @@ void imb_inittiff(void)
  *
  * \return: A newly allocated ImBuf structure if successful, otherwise NULL.
  */
-ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+ImBuf *imb_loadtiff(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	TIFF *image = NULL;
 	ImBuf *ibuf = NULL, *hbuf;
@@ -643,7 +643,7 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags, char colorspace[
 	return ibuf;
 }
 
-void imb_loadtiletiff(ImBuf *ibuf, unsigned char *mem, size_t size, int tx, int ty, unsigned int *rect)
+void imb_loadtiletiff(ImBuf *ibuf, const unsigned char *mem, size_t size, int tx, int ty, unsigned int *rect)
 {
 	TIFF *image = NULL;
 	uint32 width, height;

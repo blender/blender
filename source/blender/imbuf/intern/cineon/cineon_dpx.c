@@ -49,8 +49,9 @@
 
 #include "MEM_guardedalloc.h"
 
-static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, size_t size, int use_cineon, int flags,
-                                         char colorspace[IM_MAX_SPACE])
+static struct ImBuf *imb_load_dpx_cineon(
+        const unsigned char *mem, size_t size, int use_cineon, int flags,
+        char colorspace[IM_MAX_SPACE])
 {
 	ImBuf *ibuf;
 	LogImageFile *image;
@@ -181,12 +182,12 @@ int imb_save_cineon(struct ImBuf *buf, const char *myfile, int flags)
 	return imb_save_dpx_cineon(buf, myfile, 1, flags);
 }
 
-int imb_is_cineon(unsigned char *buf)
+int imb_is_cineon(const unsigned char *buf)
 {
 	return logImageIsCineon(buf);
 }
 
-ImBuf *imb_load_cineon(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+ImBuf *imb_load_cineon(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	if (imb_is_cineon(mem))
 		return imb_load_dpx_cineon(mem, size, 1, flags, colorspace);
@@ -198,12 +199,12 @@ int imb_save_dpx(struct ImBuf *buf, const char *myfile, int flags)
 	return imb_save_dpx_cineon(buf, myfile, 0, flags);
 }
 
-int imb_is_dpx(unsigned char *buf)
+int imb_is_dpx(const unsigned char *buf)
 {
 	return logImageIsDpx(buf);
 }
 
-ImBuf *imb_load_dpx(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+ImBuf *imb_load_dpx(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	if (imb_is_dpx(mem))
 		return imb_load_dpx_cineon(mem, size, 0, flags, colorspace);

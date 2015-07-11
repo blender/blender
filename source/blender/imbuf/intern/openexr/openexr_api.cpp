@@ -302,7 +302,7 @@ extern "C"
  * Test presence of OpenEXR file.
  * \param mem pointer to loaded OpenEXR bitstream
  */
-int imb_is_a_openexr(unsigned char *mem)
+int imb_is_a_openexr(const unsigned char *mem)
 {
 	return Imf::isImfMagic((const char *)mem);
 }
@@ -1900,7 +1900,7 @@ static bool imb_exr_is_multi(MultiPartInputFile& file)
 	return false;
 }
 
-struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+struct ImBuf *imb_load_openexr(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct ImBuf *ibuf = NULL;
 	Mem_IStream *membuf = NULL;
@@ -1914,7 +1914,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags, char 
 	{
 		bool is_multi;
 
-		membuf = new Mem_IStream(mem, size);
+		membuf = new Mem_IStream((unsigned char *)mem, size);
 		file = new MultiPartInputFile(*membuf);
 
 		Box2i dw = file->header(0).dataWindow();
