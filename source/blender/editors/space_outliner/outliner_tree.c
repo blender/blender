@@ -1255,7 +1255,7 @@ static void outliner_add_library_contents(Main *mainvar, SpaceOops *soops, TreeE
 					break;
 			
 			if (id) {
-				ten = outliner_add_element(soops, &te->subtree, (void *)lbarray[a], NULL, TSE_ID_BASE, 0);
+				ten = outliner_add_element(soops, &te->subtree, lbarray[a], NULL, TSE_ID_BASE, 0);
 				ten->directdata = lbarray[a];
 				
 				ten->name = (char *)BKE_idcode_to_name_plural(GS(id->name));
@@ -1295,7 +1295,7 @@ static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOops *soops)
 				 *   - Add a parameter to BKE_idcode_to_name_plural to get a sane "user-visible" name instead?
 				 *   - Ensure that this uses nice icons for the datablock type involved instead of the dot?
 				 */
-				ten = outliner_add_element(soops, &soops->tree, (void *)lbarray[a], NULL, TSE_ID_BASE, 0);
+				ten = outliner_add_element(soops, &soops->tree, lbarray[a], NULL, TSE_ID_BASE, 0);
 				ten->directdata = lbarray[a];
 				
 				ten->name = (char *)BKE_idcode_to_name_plural(GS(id->name));

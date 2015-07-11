@@ -2987,8 +2987,8 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	if ((me->editflag & ME_EDIT_PAINT_FACE_SEL) && me->mpoly) {
 		for (index = 0; index < totindex; index++) {
 			if (indexar[index] && indexar[index] <= me->totpoly) {
-				MPoly *mpoly = ((MPoly *)me->mpoly) + (indexar[index] - 1);
-						
+				const MPoly *mpoly = &me->mpoly[indexar[index] - 1];
+
 				if ((mpoly->flag & ME_FACE_SEL) == 0)
 					indexar[index] = 0;
 			}

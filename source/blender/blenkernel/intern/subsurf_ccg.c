@@ -338,7 +338,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	eset = BLI_edgeset_new_ex(__func__, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(totface));
 
 	for (i = 0; i < totface; i++) {
-		MPoly *mp = &((MPoly *) mpoly)[i];
+		MPoly *mp = &mpoly[i];
 		int nverts = mp->totloop;
 		int j, j_next;
 		CCGFace *origf = ccgSubSurf_getFace(origss, SET_INT_IN_POINTER(i));

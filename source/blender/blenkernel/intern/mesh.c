@@ -1813,7 +1813,7 @@ void BKE_mesh_smooth_flag_set(Object *meshOb, int enableSmooth)
 	int i;
 
 	for (i = 0; i < me->totpoly; i++) {
-		MPoly *mp = &((MPoly *) me->mpoly)[i];
+		MPoly *mp = &me->mpoly[i];
 
 		if (enableSmooth) {
 			mp->flag |= ME_SMOOTH;
@@ -1824,7 +1824,7 @@ void BKE_mesh_smooth_flag_set(Object *meshOb, int enableSmooth)
 	}
 	
 	for (i = 0; i < me->totface; i++) {
-		MFace *mf = &((MFace *) me->mface)[i];
+		MFace *mf = &me->mface[i];
 
 		if (enableSmooth) {
 			mf->flag |= ME_SMOOTH;
