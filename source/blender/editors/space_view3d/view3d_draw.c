@@ -1492,62 +1492,61 @@ unsigned int ED_view3d_backbuf_sample(ViewContext *vc, int x, int y)
 }
 
 /* reads full rect, converts indices */
-ImBuf *ED_view3d_backbuf_read(ViewContext *vc, short xmin, short ymin, short xmax, short ymax)
+ImBuf *ED_view3d_backbuf_read(ViewContext *vc, int xmin, int ymin, int xmax, int ymax)
 {
-	unsigned int *dr, *rd;
-	struct ImBuf *ibuf, *ibuf1;
-	int a;
-	short xminc, yminc, xmaxc, ymaxc, xs, ys;
-	
+	struct ImBuf *ibuf_clip;
 	/* clip */
-	xminc = max_ii(xmin, 0);
-	yminc = max_ii(ymin, 0);
-	xmaxc = min_ii(xmax, vc->ar->winx - 1);
-	ymaxc = min_ii(ymax, vc->ar->winy - 1);
+	const rcti clip = {
+	    max_ii(xmin, 0), min_ii(xmax, vc->ar->winx - 1),
+	    max_ii(ymin, 0), min_ii(ymax, vc->ar->winy - 1)};
+	const int size_clip[2] = {
+	    BLI_rcti_size_x(&clip) + 1,
+	    BLI_rcti_size_y(&clip) + 1};
 
-	if (UNLIKELY((xminc > xmaxc) || (yminc > ymaxc))) {
+	if (UNLIKELY((clip.xmin > clip.xmax) ||
+	             (clip.ymin > clip.ymax)))
+	{
 		return NULL;
 	}
 
-	ibuf = IMB_allocImBuf((xmaxc - xminc + 1), (ymaxc - yminc + 1), 32, IB_rect);
+	ibuf_clip = IMB_allocImBuf(size_clip[0], size_clip[1], 32, IB_rect);
 
 	ED_view3d_backbuf_validate(vc);
 
-	view3d_opengl_read_pixels(vc->ar,
-	             xminc, yminc,
-	             (xmaxc - xminc + 1),
-	             (ymaxc - yminc + 1),
-	             GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+	view3d_opengl_read_pixels(vc->ar, clip.xmin, clip.ymin, size_clip[0], size_clip[1], GL_RGBA, GL_UNSIGNED_BYTE, ibuf_clip->rect);
 
 	glReadBuffer(GL_BACK);
 
-	if (ENDIAN_ORDER == B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
-
-	a = (xmaxc - xminc + 1) * (ymaxc - yminc + 1);
-	dr = ibuf->rect;
-	while (a--) {
-		if (*dr) *dr = WM_framebuffer_to_index(*dr);
-		dr++;
+	if (ENDIAN_ORDER == B_ENDIAN) {
+		IMB_convert_rgba_to_abgr(ibuf_clip);
 	}
-	
-	/* put clipped result back, if needed */
-	if (xminc == xmin && xmaxc == xmax && yminc == ymin && ymaxc == ymax)
-		return ibuf;
-	
-	ibuf1 = IMB_allocImBuf( (xmax - xmin + 1), (ymax - ymin + 1), 32, IB_rect);
-	rd = ibuf->rect;
-	dr = ibuf1->rect;
 
-	for (ys = ymin; ys <= ymax; ys++) {
-		for (xs = xmin; xs <= xmax; xs++, dr++) {
-			if (xs >= xminc && xs <= xmaxc && ys >= yminc && ys <= ymaxc) {
-				*dr = *rd;
-				rd++;
-			}
-		}
+	WM_framebuffer_to_index_array(ibuf_clip->rect, size_clip[0] * size_clip[1]);
+	
+	if ((clip.xmin == xmin) &&
+	    (clip.xmax == xmax) &&
+	    (clip.ymin == ymin) &&
+	    (clip.ymax == ymax))
+	{
+		return ibuf_clip;
 	}
-	IMB_freeImBuf(ibuf);
-	return ibuf1;
+	else {
+		/* put clipped result into a non-clipped buffer */
+		struct ImBuf *ibuf_full;
+		const int size[2] = {
+		    (xmax - xmin + 1),
+		    (ymax - ymin + 1)};
+
+		ibuf_full = IMB_allocImBuf(size[0], size[1], 32, IB_rect);
+
+		IMB_rectcpy(
+		        ibuf_full, ibuf_clip,
+		        clip.xmin - xmin, clip.ymin - ymin,
+		        0, 0,
+		        size_clip[0], size_clip[1]);
+		IMB_freeImBuf(ibuf_clip);
+		return ibuf_full;
+	}
 }
 
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */

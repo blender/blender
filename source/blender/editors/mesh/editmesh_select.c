@@ -203,8 +203,9 @@ bool EDBM_backbuf_border_init(ViewContext *vc, short xmin, short ymin, short xma
 	}
 	
 	buf = ED_view3d_backbuf_read(vc, xmin, ymin, xmax, ymax);
-	if (buf == NULL) return false;
-	if (bm_vertoffs == 0) return false;
+	if ((buf == NULL) || (bm_vertoffs == 0)) {
+		return false;
+	}
 
 	dr = buf->rect;
 	
@@ -278,8 +279,9 @@ bool EDBM_backbuf_border_mask_init(ViewContext *vc, const int mcords[][2], short
 	}
 
 	buf = ED_view3d_backbuf_read(vc, xmin, ymin, xmax, ymax);
-	if (buf == NULL) return false;
-	if (bm_vertoffs == 0) return false;
+	if ((buf == NULL) || (bm_vertoffs == 0)) {
+		return false;
+	}
 
 	dr = buf->rect;
 
@@ -329,8 +331,9 @@ bool EDBM_backbuf_circle_init(ViewContext *vc, short xs, short ys, short rads)
 	xmin = xs - rads; xmax = xs + rads;
 	ymin = ys - rads; ymax = ys + rads;
 	buf = ED_view3d_backbuf_read(vc, xmin, ymin, xmax, ymax);
-	if (bm_vertoffs == 0) return false;
-	if (buf == NULL) return false;
+	if ((buf == NULL) || (bm_vertoffs == 0)) {
+		return false;
+	}
 
 	dr = buf->rect;
 	

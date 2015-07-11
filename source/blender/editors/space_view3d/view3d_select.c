@@ -1648,14 +1648,15 @@ static int do_paintvert_box_select(ViewContext *vc, rcti *rect, bool select, boo
 	unsigned int *rt;
 	int a, index;
 	char *selar;
-	int sx = BLI_rcti_size_x(rect) + 1;
-	int sy = BLI_rcti_size_y(rect) + 1;
+	const int size[2] = {
+	    BLI_rcti_size_x(rect) + 1,
+	    BLI_rcti_size_y(rect) + 1};
 
 	me = vc->obact->data;
 
-	if (me == NULL || me->totvert == 0 || sx * sy <= 0)
+	if ((me == NULL) || (me->totvert == 0) || (size[0] * size[1] <= 0)) {
 		return OPERATOR_CANCELLED;
-
+	}
 
 	if (extend == false && select)
 		paintvert_deselect_all_visible(vc->obact, SEL_DESELECT, false);
@@ -1664,16 +1665,24 @@ static int do_paintvert_box_select(ViewContext *vc, rcti *rect, bool select, boo
 		selar = MEM_callocN(me->totvert + 1, "selar");
 		ED_view3d_backbuf_validate(vc);
 
-		ibuf = IMB_allocImBuf(sx, sy, 32, IB_rect);
+		ibuf = IMB_allocImBuf(size[0], size[1], 32, IB_rect);
 		rt = ibuf->rect;
-		glReadPixels(rect->xmin + vc->ar->winrct.xmin,  rect->ymin + vc->ar->winrct.ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
-		if (ENDIAN_ORDER == B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
+		glReadPixels(
+		        rect->xmin + vc->ar->winrct.xmin,
+		        rect->ymin + vc->ar->winrct.ymin,
+		        size[0], size[1], GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
+		if (ENDIAN_ORDER == B_ENDIAN) {
+			IMB_convert_rgba_to_abgr(ibuf);
+		}
+		WM_framebuffer_to_index_array(ibuf->rect, size[0] * size[1]);
 
-		a = sx * sy;
+		a = size[0] * size[1];
 		while (a--) {
 			if (*rt) {
-				index = WM_framebuffer_to_index(*rt);
-				if (index <= me->totvert) selar[index] = 1;
+				index = *rt;
+				if (index <= me->totvert) {
+					selar[index] = 1;
+				}
 			}
 			rt++;
 		}

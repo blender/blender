@@ -869,7 +869,7 @@ static unsigned int vpaint_blend(VPaint *vp, unsigned int col, unsigned int colo
 }
 
 
-static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x, int y, float size)
+static int sample_backbuf_area(ViewContext *vc, int *indexar, int totpoly, int x, int y, float size)
 {
 	struct ImBuf *ibuf;
 	int a, tot = 0, index;
@@ -882,22 +882,25 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 	if (ibuf) {
 		unsigned int *rt = ibuf->rect;
 
-		memset(indexar, 0, sizeof(int) * (totface + 1));
+		memset(indexar, 0, sizeof(int) * (totpoly + 1));
 		
 		size = ibuf->x * ibuf->y;
 		while (size--) {
 				
 			if (*rt) {
-				index = WM_framebuffer_to_index(*rt);
-				if (index > 0 && index <= totface)
+				index = *rt;
+				if (index > 0 && index <= totpoly) {
 					indexar[index] = 1;
+				}
 			}
 		
 			rt++;
 		}
 		
-		for (a = 1; a <= totface; a++) {
-			if (indexar[a]) indexar[tot++] = a;
+		for (a = 1; a <= totpoly; a++) {
+			if (indexar[a]) {
+				indexar[tot++] = a;
+			}
 		}
 
 		IMB_freeImBuf(ibuf);
