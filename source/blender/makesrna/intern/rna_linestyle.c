@@ -866,7 +866,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "LineStyleColorModifier_Curvature_3D", "LineStyleColorModifier");
 	RNA_def_struct_ui_text(srna, "Curvature 3D",
-						   "Change line color based on the radial curvature of 3D mesh surfaces");
+	                       "Change line color based on the radial curvature of 3D mesh surfaces");
 	rna_def_color_modifier(srna);
 	rna_def_modifier_color_ramp_common(srna, false);
 
@@ -945,7 +945,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "LineStyleAlphaModifier_CreaseAngle", "LineStyleAlphaModifier");
 	RNA_def_struct_ui_text(srna, "Crease Angle",
-						   "Alpha transparency based on the angle between two adjacent faces");
+	                       "Alpha transparency based on the angle between two adjacent faces");
 	rna_def_alpha_modifier(srna);
 	rna_def_modifier_curve_common(srna, false, false);
 
@@ -1079,7 +1079,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "LineStyleThicknessModifier_Curvature_3D", "LineStyleThicknessModifier");
 	RNA_def_struct_ui_text(srna, "Curvature 3D",
-						   "Line thickness based on the radial curvature of 3D mesh surfaces");
+	                       "Line thickness based on the radial curvature of 3D mesh surfaces");
 	rna_def_thickness_modifier(srna);
 	rna_def_modifier_curve_common(srna, false, false);
 

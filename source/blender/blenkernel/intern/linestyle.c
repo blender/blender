@@ -1174,12 +1174,12 @@ LineStyleModifier *BKE_linestyle_geometry_modifier_add(FreestyleLineStyle *lines
 			p->pivot_y = 0.0f;
 			break;
 		}
-	case LS_MODIFIER_SIMPLIFICATION:
-	{
-		LineStyleGeometryModifier_Simplification *p = (LineStyleGeometryModifier_Simplification *)m;
-		p->tolerance = 0.1f;
-		break;
-	}
+		case LS_MODIFIER_SIMPLIFICATION:
+		{
+			LineStyleGeometryModifier_Simplification *p = (LineStyleGeometryModifier_Simplification *)m;
+			p->tolerance = 0.1f;
+			break;
+		}
 		default:
 			return NULL; /* unknown modifier type */
 	}
@@ -1429,7 +1429,7 @@ char *BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand 
 					found = true;
 				break;
 			case LS_MODIFIER_CREASE_ANGLE:
-				if (color_ramp == ((LineStyleColorModifier_CreaseAngle*)m)->color_ramp)
+				if (color_ramp == ((LineStyleColorModifier_CreaseAngle *)m)->color_ramp)
 					found = true;
 				break;
 			case LS_MODIFIER_CURVATURE_3D:
