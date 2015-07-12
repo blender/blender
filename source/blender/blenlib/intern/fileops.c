@@ -314,9 +314,7 @@ static bool delete_recursive(const char *dir)
 	i = nbr = BLI_filelist_dir_contents(dir, &filelist);
 	fl = filelist;
 	while (i--) {
-		char file[FILE_MAXFILE];
-
-		BLI_split_file_part(fl->path, file, sizeof(file));
+		const char *file = BLI_path_basename(fl->path);
 
 		if (FILENAME_IS_CURRPAR(file)) {
 			/* Skip! */
