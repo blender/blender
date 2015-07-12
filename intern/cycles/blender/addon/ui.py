@@ -1040,6 +1040,7 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
         sub.prop(cworld, "sample_map_resolution")
         if use_branched_path(context):
             sub.prop(cworld, "samples")
+        sub.prop(cworld, "max_bounces")
 
         col = split.column()
         col.label(text="Volume:")

@@ -215,6 +215,7 @@ void BlenderSync::sync_background_light(bool use_portal)
 				light->map_resolution  = get_int(cworld, "sample_map_resolution");
 				light->shader = scene->default_background;
 				light->use_mis = sample_as_light;
+				light->max_bounces = get_int(cworld, "max_bounces");
 
 				int samples = get_int(cworld, "samples");
 				if(get_boolean(cscene, "use_square_samples"))

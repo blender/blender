@@ -739,6 +739,12 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
                 min=1, max=10000,
                 default=4,
                 )
+        cls.max_bounces = IntProperty(
+                name="Max Bounces",
+                description="Maximum number of bounces the background light will contribute to the render",
+                min=0, max=1024,
+                default=1024,
+                )
         cls.homogeneous_volume = BoolProperty(
                 name="Homogeneous Volume",
                 description="When using volume rendering, assume volume has the same density everywhere"
