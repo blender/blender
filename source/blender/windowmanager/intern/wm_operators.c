@@ -4644,7 +4644,8 @@ static EnumPropertyItem redraw_timer_type_items[] = {
 
 
 static void redraw_timer_step(
-        bContext *C, Main *bmain, Scene *scene, wmWindow *win, ARegion *ar,
+        bContext *C, Main *bmain, Scene *scene,
+        wmWindow *win, ScrArea *sa, ARegion *ar,
         const int type, const int cfra)
 {
 	if (type == eRTDrawRegion) {
@@ -4662,30 +4663,27 @@ static void redraw_timer_step(
 		CTX_wm_window_set(C, win);  /* XXX context manipulation warning! */
 	}
 	else if (type == eRTDrawWindow) {
-		ScrArea *sa;
-
-		ScrArea *sa_back = CTX_wm_area(C);
-		ARegion *ar_back = CTX_wm_region(C);
+		ScrArea *sa_iter;
 
 		CTX_wm_menu_set(C, NULL);
 
-		for (sa = CTX_wm_screen(C)->areabase.first; sa; sa = sa->next) {
+		for (sa_iter = win->screen->areabase.first; sa_iter; sa_iter = sa_iter->next) {
 			ARegion *ar_iter;
-			CTX_wm_area_set(C, sa);
+			CTX_wm_area_set(C, sa_iter);
 
-			for (ar_iter = sa->regionbase.first; ar_iter; ar_iter = ar_iter->next) {
+			for (ar_iter = sa_iter->regionbase.first; ar_iter; ar_iter = ar_iter->next) {
 				if (ar_iter->swinid) {
 					CTX_wm_region_set(C, ar_iter);
 					ED_region_do_draw(C, ar_iter);
-					ar->do_draw = false;
+					ar_iter->do_draw = false;
 				}
 			}
 		}
 
 		CTX_wm_window_set(C, win);  /* XXX context manipulation warning! */
 
-		CTX_wm_area_set(C, sa_back);
-		CTX_wm_region_set(C, ar_back);
+		CTX_wm_area_set(C, sa);
+		CTX_wm_region_set(C, ar);
 	}
 	else if (type == eRTDrawWindowSwap) {
 		redraw_timer_window_swap(C);
@@ -4719,6 +4717,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	wmWindow *win = CTX_wm_window(C);
+	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	double time_start, time_delta;
 	const int type = RNA_enum_get(op->ptr, "type");
@@ -4733,7 +4732,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 	time_start = PIL_check_seconds_timer();
 
 	for (a = 0; a < iter; a++) {
-		redraw_timer_step(C, bmain, scene, win, ar, type, cfra);
+		redraw_timer_step(C, bmain, scene, win, sa, ar, type, cfra);
 		iter_steps += 1;
 
 		if (time_limit != 0.0f) {
@@ -4744,14 +4743,14 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	time_delta = (float)((PIL_check_seconds_timer() - time_start) * 1000);
+	time_delta = (PIL_check_seconds_timer() - time_start) * 1000;
 
 	RNA_enum_description(redraw_timer_type_items, type, &infostr);
 
 	WM_cursor_wait(0);
 
 	BKE_reportf(op->reports, RPT_WARNING,
-	            "%d x %s: %.4f ms, average: %.8f",
+	            "%d x %s: %.4f ms, average: %.8f ms",
 	            iter_steps, infostr, time_delta, time_delta / iter_steps);
 	
 	return OPERATOR_FINISHED;
