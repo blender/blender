@@ -274,14 +274,13 @@ static void knife_update_header(bContext *C, wmOperator *op, KnifeTool_OpData *k
 #define WM_MODALKEY(_id) \
 	WM_modalkeymap_operator_items_to_string_buf(op->type, (_id), true, UI_MAX_SHORTCUT_STR, &available_len, &p)
 
-	BLI_snprintf(header, sizeof(header), IFACE_("%s: start/define cut lines, %s: close cut line, "
-	                                            "%s: confirm, %s: cancel, "
-	                                            "%s: new cut, %s: midpoint snap (%s), %s: ignore snap (%s), "
+	BLI_snprintf(header, sizeof(header), IFACE_("%s: confirm, %s: cancel, "
+	                                            "%s: start/define cut, %s: close cut, %s: new cut, "
+	                                            "%s: midpoint snap (%s), %s: ignore snap (%s), "
 	                                            "%s: angle constraint (%s), %s: cut through (%s), "
 	                                            "%s: panning"),
-	             WM_MODALKEY(KNF_MODAL_ADD_CUT), WM_MODALKEY(KNF_MODAL_ADD_CUT_CLOSED),
 	             WM_MODALKEY(KNF_MODAL_CONFIRM), WM_MODALKEY(KNF_MODAL_CANCEL),
-	             WM_MODALKEY(KNF_MODAL_NEW_CUT),
+	             WM_MODALKEY(KNF_MODAL_ADD_CUT), WM_MODALKEY(KNF_MODAL_ADD_CUT_CLOSED), WM_MODALKEY(KNF_MODAL_NEW_CUT),
 	             WM_MODALKEY(KNF_MODAL_MIDPOINT_ON), WM_bool_as_string(kcd->snap_midpoints),
 	             WM_MODALKEY(KNF_MODEL_IGNORE_SNAP_ON), WM_bool_as_string(kcd->ignore_edge_snapping),
 	             WM_MODALKEY(KNF_MODAL_ANGLE_SNAP_TOGGLE), WM_bool_as_string(kcd->angle_snapping),
