@@ -66,6 +66,8 @@
 #include "WM_types.h"
 
 #include "DNA_object_types.h"
+
+#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "RNA_access.h"
@@ -236,6 +238,22 @@ typedef struct KnifeTool_OpData {
 	const float (*cagecos)[3];
 } KnifeTool_OpData;
 
+enum {
+	KNF_MODAL_CANCEL = 1,
+	KNF_MODAL_CONFIRM,
+	KNF_MODAL_MIDPOINT_ON,
+	KNF_MODAL_MIDPOINT_OFF,
+	KNF_MODAL_NEW_CUT,
+	KNF_MODEL_IGNORE_SNAP_ON,
+	KNF_MODEL_IGNORE_SNAP_OFF,
+	KNF_MODAL_ADD_CUT,
+	KNF_MODAL_ANGLE_SNAP_TOGGLE,
+	KNF_MODAL_CUT_THROUGH_TOGGLE,
+	KNF_MODAL_PANNING,
+	KNF_MODAL_ADD_CUT_CLOSED,
+};
+
+
 static ListBase *knife_get_face_kedges(KnifeTool_OpData *kcd, BMFace *f);
 
 static void knife_input_ray_segment(KnifeTool_OpData *kcd, const float mval[2], const float ofs,
@@ -245,20 +263,34 @@ static bool knife_verts_edge_in_face(KnifeVert *v1, KnifeVert *v2, BMFace *f);
 
 static void knifetool_free_bmbvh(KnifeTool_OpData *kcd);
 
-static void knife_update_header(bContext *C, KnifeTool_OpData *kcd)
+static void knife_update_header(bContext *C, wmOperator *op, KnifeTool_OpData *kcd)
 {
-#define HEADER_LENGTH 256
-	char header[HEADER_LENGTH];
+	char header[UI_MAX_DRAW_STR];
+	char buf[UI_MAX_DRAW_STR];
 
-	BLI_snprintf(header, HEADER_LENGTH, IFACE_("LMB: define cut lines, Return/Spacebar: confirm, Esc or RMB: cancel, "
-	                                           "E: new cut, Ctrl: midpoint snap (%s), Shift: ignore snap (%s), "
-	                                           "C: angle constrain (%s), Z: cut through (%s)"),
-	             WM_bool_as_string(kcd->snap_midpoints),
-	             WM_bool_as_string(kcd->ignore_edge_snapping),
-	             WM_bool_as_string(kcd->angle_snapping),
-	             WM_bool_as_string(kcd->cut_through));
+	char *p = buf;
+	int available_len = sizeof(buf);
+
+#define WM_MODALKEY(_id) \
+	WM_modalkeymap_operator_items_to_string_buf(op->type, (_id), true, UI_MAX_SHORTCUT_STR, &available_len, &p)
+
+	BLI_snprintf(header, sizeof(header), IFACE_("%s: start/define cut lines, %s: close cut line, "
+	                                            "%s: confirm, %s: cancel, "
+	                                            "%s: new cut, %s: midpoint snap (%s), %s: ignore snap (%s), "
+	                                            "%s: angle constraint (%s), %s: cut through (%s), "
+	                                            "%s: panning"),
+	             WM_MODALKEY(KNF_MODAL_ADD_CUT), WM_MODALKEY(KNF_MODAL_ADD_CUT_CLOSED),
+	             WM_MODALKEY(KNF_MODAL_CONFIRM), WM_MODALKEY(KNF_MODAL_CANCEL),
+	             WM_MODALKEY(KNF_MODAL_NEW_CUT),
+	             WM_MODALKEY(KNF_MODAL_MIDPOINT_ON), WM_bool_as_string(kcd->snap_midpoints),
+	             WM_MODALKEY(KNF_MODEL_IGNORE_SNAP_ON), WM_bool_as_string(kcd->ignore_edge_snapping),
+	             WM_MODALKEY(KNF_MODAL_ANGLE_SNAP_TOGGLE), WM_bool_as_string(kcd->angle_snapping),
+	             WM_MODALKEY(KNF_MODAL_CUT_THROUGH_TOGGLE),WM_bool_as_string(kcd->cut_through),
+	             WM_MODALKEY(KNF_MODAL_PANNING));
+
+#undef WM_MODALKEY
+
 	ED_area_headerprint(CTX_wm_area(C), header);
-#undef HEADER_LENGTH
 }
 
 static void knife_project_v2(const KnifeTool_OpData *kcd, const float co[3], float sco[2])
@@ -3058,25 +3090,10 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	knifetool_update_mval_i(kcd, event->mval);
 
-	knife_update_header(C, kcd);
+	knife_update_header(C, op, kcd);
 
 	return OPERATOR_RUNNING_MODAL;
 }
-
-enum {
-	KNF_MODAL_CANCEL = 1,
-	KNF_MODAL_CONFIRM,
-	KNF_MODAL_MIDPOINT_ON,
-	KNF_MODAL_MIDPOINT_OFF,
-	KNF_MODAL_NEW_CUT,
-	KNF_MODEL_IGNORE_SNAP_ON,
-	KNF_MODEL_IGNORE_SNAP_OFF,
-	KNF_MODAL_ADD_CUT,
-	KNF_MODAL_ANGLE_SNAP_TOGGLE,
-	KNF_MODAL_CUT_THROUGH_TOGGLE,
-	KNF_MODAL_PANNING,
-	KNF_MODAL_ADD_CUT_CLOSED,
-};
 
 wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 {
@@ -3178,7 +3195,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 				knife_recalc_projmat(kcd);
 				knife_update_active(kcd);
-				knife_update_header(C, kcd);
+				knife_update_header(C, op, kcd);
 				ED_region_tag_redraw(kcd->ar);
 				do_refresh = true;
 				break;
@@ -3187,30 +3204,30 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 				knife_recalc_projmat(kcd);
 				knife_update_active(kcd);
-				knife_update_header(C, kcd);
+				knife_update_header(C, op, kcd);
 				ED_region_tag_redraw(kcd->ar);
 				do_refresh = true;
 				break;
 			case KNF_MODEL_IGNORE_SNAP_ON:
 				ED_region_tag_redraw(kcd->ar);
 				kcd->ignore_vert_snapping = kcd->ignore_edge_snapping = true;
-				knife_update_header(C, kcd);
+				knife_update_header(C, op, kcd);
 				do_refresh = true;
 				break;
 			case KNF_MODEL_IGNORE_SNAP_OFF:
 				ED_region_tag_redraw(kcd->ar);
 				kcd->ignore_vert_snapping = kcd->ignore_edge_snapping = false;
-				knife_update_header(C, kcd);
+				knife_update_header(C, op, kcd);
 				do_refresh = true;
 				break;
 			case KNF_MODAL_ANGLE_SNAP_TOGGLE:
 				kcd->angle_snapping = !kcd->angle_snapping;
-				knife_update_header(C, kcd);
+				knife_update_header(C, op, kcd);
 				do_refresh = true;
 				break;
 			case KNF_MODAL_CUT_THROUGH_TOGGLE:
 				kcd->cut_through = !kcd->cut_through;
-				knife_update_header(C, kcd);
+				knife_update_header(C, op, kcd);
 				do_refresh = true;
 				break;
 			case KNF_MODAL_NEW_CUT:
