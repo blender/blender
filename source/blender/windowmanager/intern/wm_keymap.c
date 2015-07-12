@@ -902,7 +902,7 @@ const char *WM_key_event_string(const short type, const bool compact)
 /* TODO: also support (some) value, like e.g. double-click? */
 int WM_keymap_item_raw_to_string(
         const short shift, const short ctrl, const short alt, const short oskey,
-        const short keymodifier, const short type, const bool compact,
+        const short keymodifier, const short val, const short type, const bool compact,
         const int len, char *r_str)
 {
 #define ADD_SEP if (p != buf) *p++ = ' '; (void)0
@@ -953,6 +953,9 @@ int WM_keymap_item_raw_to_string(
 
 	if (type) {
 		ADD_SEP;
+		if (val == KM_DBL_CLICK) {
+			p += BLI_strcpy_rlen(p, IFACE_("dbl-"));
+		}
 		p += BLI_strcpy_rlen(p, WM_key_event_string(type, compact));
 	}
 
@@ -968,7 +971,8 @@ int WM_keymap_item_raw_to_string(
 int WM_keymap_item_to_string(wmKeyMapItem *kmi, const bool compact, const int len, char *r_str)
 {
 	return WM_keymap_item_raw_to_string(
-	            kmi->shift, kmi->ctrl, kmi->alt, kmi->oskey, kmi->keymodifier, kmi->type, compact, len, r_str);
+	            kmi->shift, kmi->ctrl, kmi->alt, kmi->oskey, kmi->keymodifier, kmi->val, kmi->type,
+	            compact, len, r_str);
 }
 
 int WM_modalkeymap_operator_items_to_string(
