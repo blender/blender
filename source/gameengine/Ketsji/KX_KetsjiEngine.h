@@ -38,7 +38,7 @@
 #include "STR_String.h"
 #include "KX_ISystem.h"
 #include "KX_Scene.h"
-#include "KX_Python.h"
+#include "EXP_Python.h"
 #include "KX_WorldInfo.h"
 #include <vector>
 

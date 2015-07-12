@@ -112,8 +112,8 @@ extern "C" {
 #include "RAS_2DFilterManager.h"
 #include "MT_Vector3.h"
 #include "MT_Point3.h"
-#include "ListValue.h"
-#include "InputParser.h"
+#include "EXP_ListValue.h"
+#include "EXP_InputParser.h"
 #include "KX_Scene.h"
 
 #include "NG_NetworkScene.h" //Needed for sendMessage()
@@ -123,7 +123,7 @@ extern "C" {
 
 #include "KX_PyMath.h"
 
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 
 #include "KX_PythonInitTypes.h" 
 
@@ -221,7 +221,7 @@ static void KX_MACRO_addTypesToDict_fn(PyObject *dict, const char *name, long va
 
 
 // temporarily python stuff, will be put in another place later !
-#include "KX_Python.h"
+#include "EXP_Python.h"
 #include "SCA_PythonController.h"
 // List of methods defined in the module
 

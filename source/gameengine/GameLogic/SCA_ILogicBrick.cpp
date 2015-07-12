@@ -33,7 +33,7 @@
 #include <stddef.h>
 
 #include "SCA_ILogicBrick.h"
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 
 SCA_LogicManager* SCA_ILogicBrick::m_sCurrentLogicManager = NULL;
 

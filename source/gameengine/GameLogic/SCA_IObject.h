@@ -34,7 +34,7 @@
 #ifndef __SCA_IOBJECT_H__
 #define __SCA_IOBJECT_H__
 
-#include "Value.h"
+#include "EXP_Value.h"
 #include <vector>
 
 class SCA_IObject;

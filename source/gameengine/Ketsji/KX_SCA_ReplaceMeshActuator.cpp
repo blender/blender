@@ -43,7 +43,7 @@
 #include "KX_SCA_ReplaceMeshActuator.h"
 #include "KX_MeshProxy.h"
 
-#include "PyObjectPlus.h" 
+#include "EXP_PyObjectPlus.h" 
 
 #ifdef WITH_PYTHON
 

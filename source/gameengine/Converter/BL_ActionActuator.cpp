@@ -49,8 +49,8 @@
 #include "MT_Matrix4x4.h"
 
 #include "BKE_action.h"
-#include "FloatValue.h"
-#include "PyObjectPlus.h"
+#include "EXP_FloatValue.h"
+#include "EXP_PyObjectPlus.h"
 #include "KX_PyMath.h"
 
 extern "C" {

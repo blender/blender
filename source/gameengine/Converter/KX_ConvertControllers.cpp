@@ -34,7 +34,7 @@
 
 #include "KX_BlenderSceneConverter.h"
 #include "KX_ConvertControllers.h"
-#include "KX_Python.h"
+#include "EXP_Python.h"
 
 // Controller
 #include "SCA_ANDController.h"
@@ -48,7 +48,7 @@
 
 #include "SCA_LogicManager.h"
 #include "KX_GameObject.h"
-#include "IntValue.h"
+#include "EXP_IntValue.h"
 
 /* This little block needed for linking to Blender... */
 #ifdef WIN32

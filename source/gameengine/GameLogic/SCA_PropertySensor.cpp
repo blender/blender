@@ -37,14 +37,14 @@
 
 #include <iostream>
 #include "SCA_PropertySensor.h"
-#include "Operator2Expr.h"
-#include "ConstExpr.h"
-#include "InputParser.h"
-#include "StringValue.h"
+#include "EXP_Operator2Expr.h"
+#include "EXP_ConstExpr.h"
+#include "EXP_InputParser.h"
+#include "EXP_StringValue.h"
 #include "SCA_EventManager.h"
 #include "SCA_LogicManager.h"
-#include "BoolValue.h"
-#include "FloatValue.h"
+#include "EXP_BoolValue.h"
+#include "EXP_FloatValue.h"
 #include <stdio.h>
 
 SCA_PropertySensor::SCA_PropertySensor(SCA_EventManager* eventmgr,

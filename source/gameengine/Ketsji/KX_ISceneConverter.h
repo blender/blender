@@ -33,7 +33,7 @@
 #define __KX_ISCENECONVERTER_H__
 
 #include "STR_String.h"
-#include "KX_Python.h"
+#include "EXP_Python.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"

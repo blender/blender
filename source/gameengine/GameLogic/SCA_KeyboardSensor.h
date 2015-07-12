@@ -34,7 +34,7 @@
 #define __SCA_KEYBOARDSENSOR_H__
 
 #include "SCA_ISensor.h"
-#include "BoolValue.h"
+#include "EXP_BoolValue.h"
 #include <list>
 
 /**

@@ -31,7 +31,7 @@
 
 // implementation
 
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 #include <structmember.h>
 
 #include "ImageMix.h"

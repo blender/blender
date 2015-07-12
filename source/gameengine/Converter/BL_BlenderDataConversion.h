@@ -34,7 +34,7 @@
 
 #include "CTR_HashedPtr.h"
 #include "STR_String.h"
-#include "KX_Python.h"
+#include "EXP_Python.h"
 #include "KX_PhysicsEngineEnums.h"
 #include "SCA_IInputDevice.h"
 

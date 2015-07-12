@@ -36,7 +36,7 @@
 #include <memory>
 #include <vector>
 
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 
 // forward declaration
 class PyTypeListItem;

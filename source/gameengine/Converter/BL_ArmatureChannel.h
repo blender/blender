@@ -35,7 +35,7 @@
 #include "DNA_action_types.h"
 #include "CTR_HashedPtr.h"
 #include "CTR_Map.h"
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 
 class SCA_IObject;
 class KX_GameObject;

@@ -6,7 +6,7 @@
 #ifndef __KX_CHARACTERWRAPPER_H__
 #define __KX_CHARACTERWRAPPER_H__
 
-#include "Value.h"
+#include "EXP_Value.h"
 #include "PHY_DynamicTypes.h"
 class PHY_ICharacter;
 

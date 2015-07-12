@@ -60,7 +60,7 @@ extern "C"{
 
 
 // XXX Clean these up <<<
-#include "Value.h"
+#include "EXP_Value.h"
 #include "KX_Scene.h"
 #include "KX_RayCast.h"
 #include "KX_GameObject.h"

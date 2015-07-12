@@ -35,7 +35,7 @@
 #include "SCA_EventManager.h"
 #include "SCA_LogicManager.h"
 
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 
 #include <stdio.h>
 #include <stddef.h>

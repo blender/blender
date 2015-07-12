@@ -34,7 +34,7 @@
 #define __SCA_MOUSESENSOR_H__
 
 #include "SCA_ISensor.h"
-#include "BoolValue.h"
+#include "EXP_BoolValue.h"
 #include "SCA_IInputDevice.h"
 
 class SCA_MouseSensor : public SCA_ISensor

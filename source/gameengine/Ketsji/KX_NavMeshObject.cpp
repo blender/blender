@@ -45,7 +45,7 @@ extern "C" {
 
 #include "KX_PythonInit.h"
 #include "KX_PyMath.h"
-#include "Value.h"
+#include "EXP_Value.h"
 #include "Recast.h"
 #include "DetourStatNavMeshBuilder.h"
 #include "KX_ObstacleSimulation.h"

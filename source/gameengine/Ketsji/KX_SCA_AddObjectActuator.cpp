@@ -38,7 +38,7 @@
 #include "KX_SCA_AddObjectActuator.h"
 #include "SCA_IScene.h"
 #include "KX_GameObject.h"
-#include "PyObjectPlus.h" 
+#include "EXP_PyObjectPlus.h" 
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */

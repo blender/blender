@@ -32,9 +32,9 @@
 #ifndef __SCA_ILOGICBRICK_H__
 #define __SCA_ILOGICBRICK_H__
 
-#include "Value.h"
+#include "EXP_Value.h"
 #include "SCA_IObject.h"
-#include "BoolValue.h"
+#include "EXP_BoolValue.h"
 #include "CTR_Map.h"
 #include "CTR_HashedPtr.h"
 

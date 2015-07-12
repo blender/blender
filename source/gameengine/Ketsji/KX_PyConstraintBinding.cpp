@@ -41,7 +41,7 @@
 
 #include "KX_GameObject.h" // ConvertPythonToGameObject()
 
-#include "PyObjectPlus.h" 
+#include "EXP_PyObjectPlus.h" 
 
 #ifdef WITH_BULLET
 #  include "LinearMath/btIDebugDraw.h"

@@ -42,9 +42,9 @@
 #include "MT_Matrix4x4.h"
 #include "MT_Point2.h"
 
-#include "ListValue.h"
+#include "EXP_ListValue.h"
 
-#include "KX_Python.h"
+#include "EXP_Python.h"
 #include "KX_PyMath.h"
 
 bool PyOrientationTo(PyObject *pyval, MT_Matrix3x3 &rot, const char *error_prefix)

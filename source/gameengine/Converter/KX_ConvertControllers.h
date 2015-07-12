@@ -32,7 +32,7 @@
 #ifndef __KX_CONVERTCONTROLLERS_H__
 #define __KX_CONVERTCONTROLLERS_H__
 
-#include "KX_Python.h"
+#include "EXP_Python.h"
 
 void BL_ConvertControllers(
 	struct Object* blenderobject,

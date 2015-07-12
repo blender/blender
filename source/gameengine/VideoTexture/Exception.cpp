@@ -31,7 +31,7 @@
 #include <sstream>
 #include <fstream>
 
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 
 #include "Exception.h"
 

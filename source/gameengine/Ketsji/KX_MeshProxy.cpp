@@ -43,7 +43,7 @@
 
 #include "KX_PyMath.h"
 
-#include "PyObjectPlus.h" 
+#include "EXP_PyObjectPlus.h" 
 
 PyTypeObject KX_MeshProxy::Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)

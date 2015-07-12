@@ -40,10 +40,10 @@
 #  pragma warning( disable:4786 )
 #endif
 
-#include "BoolValue.h"
+#include "EXP_BoolValue.h"
 #include "SCA_MouseManager.h"
 #include "SCA_MouseSensor.h"
-#include "IntValue.h"
+#include "EXP_IntValue.h"
 #include "RAS_ICanvas.h"
 
 

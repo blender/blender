@@ -34,7 +34,7 @@
 #include "Common.h"
 
 #include <vector>
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 
 #include "PyTypeList.h"
 

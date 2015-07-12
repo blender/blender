@@ -36,7 +36,7 @@
  
 #include "KX_IpoActuator.h"
 #include "KX_GameObject.h"
-#include "FloatValue.h"
+#include "EXP_FloatValue.h"
 
 #include "KX_KetsjiEngine.h"
 

@@ -28,7 +28,7 @@
  *  \ingroup bgevideotex
  */
 
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 
 #include "KX_PythonInit.h"
 

@@ -28,7 +28,7 @@
  *  \ingroup bgevideotex
  */
 
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 #include <structmember.h>
 
 #include "FilterColor.h"

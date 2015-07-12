@@ -27,7 +27,7 @@
 
 Import ('env')
 
-sources = env.Glob('*.cpp')
+sources = env.Glob('intern/*.cpp')
 
 incs = [
     '.',

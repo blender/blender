@@ -34,7 +34,7 @@
 
 #include "MT_Scalar.h"
 #include "KX_KetsjiEngine.h"
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"

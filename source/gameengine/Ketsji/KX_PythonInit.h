@@ -32,7 +32,7 @@
 #ifndef __KX_PYTHONINIT_H__
 #define __KX_PYTHONINIT_H__
 
-#include "KX_Python.h"
+#include "EXP_Python.h"
 #include "STR_String.h"
 #include "MT_Vector3.h"
 

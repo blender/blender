@@ -6,7 +6,7 @@
 #ifndef __KX_VEHICLEWRAPPER_H__
 #define __KX_VEHICLEWRAPPER_H__
 
-#include "Value.h"
+#include "EXP_Value.h"
 class PHY_IVehicle;
 class PHY_IMotionState;
 

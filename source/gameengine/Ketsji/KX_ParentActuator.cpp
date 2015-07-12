@@ -37,7 +37,7 @@
 #include "KX_GameObject.h"
 #include "KX_PythonInit.h"
 
-#include "PyObjectPlus.h" 
+#include "EXP_PyObjectPlus.h" 
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */

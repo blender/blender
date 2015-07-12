@@ -35,7 +35,7 @@
 #include "KX_Scene.h"
 #include "KX_PythonInit.h"
 #include "BLI_math.h"
-#include "StringValue.h"
+#include "EXP_StringValue.h"
 #include "RAS_IRasterizer.h"
 
 /* paths needed for font load */

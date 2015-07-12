@@ -38,13 +38,13 @@
 /* end of blender include block */
 
 
-#include "Value.h"
-#include "VectorValue.h"
-#include "BoolValue.h"
-#include "StringValue.h"
-#include "FloatValue.h"
+#include "EXP_Value.h"
+#include "EXP_VectorValue.h"
+#include "EXP_BoolValue.h"
+#include "EXP_StringValue.h"
+#include "EXP_FloatValue.h"
 #include "KX_GameObject.h"
-#include "IntValue.h"
+#include "EXP_IntValue.h"
 #include "SCA_TimeEventManager.h"
 #include "SCA_IScene.h"
 

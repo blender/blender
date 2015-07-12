@@ -27,7 +27,7 @@
 #ifndef __SCA_PYTHONMOUSE_H__
 #define __SCA_PYTHONMOUSE_H__
 
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 
 class SCA_PythonMouse : public PyObjectPlus
 {

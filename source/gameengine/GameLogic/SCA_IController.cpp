@@ -36,7 +36,7 @@
 #include "SCA_LogicManager.h"
 #include "SCA_IActuator.h"
 #include "SCA_ISensor.h"
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 #include "../Ketsji/KX_PythonSeq.h" /* not nice, only need for KX_PythonSeq_CreatePyObject */
 
 #include <stdio.h>

@@ -22,7 +22,7 @@
  *  \ingroup ketsji
  */
 
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 
 #include "KX_VehicleWrapper.h"
 #include "PHY_IPhysicsEnvironment.h"

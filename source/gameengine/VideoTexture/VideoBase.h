@@ -32,7 +32,7 @@
 #define __VIDEOBASE_H__
 
 
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 
 #include "ImageBase.h"
 

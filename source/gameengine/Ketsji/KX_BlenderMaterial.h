@@ -15,7 +15,7 @@
 #include "BL_Shader.h"
 #include "BL_BlenderShader.h"
 
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 
 #include "MT_Vector3.h"
 #include "MT_Vector4.h"

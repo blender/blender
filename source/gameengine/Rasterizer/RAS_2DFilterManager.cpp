@@ -47,7 +47,7 @@
 
 #include <stdio.h>
 
-#include "Value.h"
+#include "EXP_Value.h"
 
 RAS_2DFilterManager::RAS_2DFilterManager():
 texturewidth(-1), textureheight(-1),

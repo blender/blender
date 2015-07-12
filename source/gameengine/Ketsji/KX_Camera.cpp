@@ -35,7 +35,7 @@
 #include "KX_Camera.h"
 #include "KX_Scene.h"
 #include "KX_PythonInit.h"
-#include "KX_Python.h"
+#include "EXP_Python.h"
 #include "KX_PyMath.h"
 
 #include "RAS_ICanvas.h"

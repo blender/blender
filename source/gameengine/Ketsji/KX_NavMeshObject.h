@@ -28,7 +28,7 @@
 #define __KX_NAVMESHOBJECT_H__
 #include "DetourStatNavMesh.h"
 #include "KX_GameObject.h"
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 #include <vector>
 
 class RAS_MeshObject;

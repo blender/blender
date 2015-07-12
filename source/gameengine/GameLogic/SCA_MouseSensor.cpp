@@ -41,7 +41,7 @@
 #include "SCA_MouseManager.h"
 #include "SCA_LogicManager.h"
 #include "SCA_IInputDevice.h"
-#include "ConstExpr.h"
+#include "EXP_ConstExpr.h"
 #include <iostream>
 
 /* ------------------------------------------------------------------------- */

@@ -6,7 +6,7 @@
 #ifndef __BL_SHADER_H__
 #define __BL_SHADER_H__
 
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 #include "BL_Material.h"
 #include "BL_Texture.h"
 // --

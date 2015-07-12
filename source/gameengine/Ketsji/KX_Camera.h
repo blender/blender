@@ -40,7 +40,7 @@
 #include "MT_Vector3.h"
 #include "MT_Point3.h"
 #include "KX_GameObject.h"
-#include "IntValue.h"
+#include "EXP_IntValue.h"
 #include "RAS_CameraData.h"
 
 #ifdef WITH_PYTHON

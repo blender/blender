@@ -36,9 +36,9 @@
 #include <stddef.h>
 #include <math.h>
 
-#include "BoolValue.h"
-#include "IntValue.h"
-#include "FloatValue.h"
+#include "EXP_BoolValue.h"
+#include "EXP_IntValue.h"
+#include "EXP_FloatValue.h"
 #include "SCA_IActuator.h"
 #include "SCA_RandomActuator.h"
 #include "MT_Transform.h"

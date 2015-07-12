@@ -35,7 +35,7 @@
 
 #ifdef WITH_PYTHON
 
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 
 // -------------------------
 enum KX_PYGENSEQ_TYPE {

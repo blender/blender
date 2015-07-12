@@ -35,7 +35,7 @@
 
 #include "SCA_IController.h"
 #include "SCA_LogicManager.h"
-#include "BoolValue.h"
+#include "EXP_BoolValue.h"
 
 #include <vector>
 

@@ -36,7 +36,7 @@
 #include "SCA_KeyboardSensor.h"
 #include "SCA_KeyboardManager.h"
 #include "SCA_LogicManager.h"
-#include "StringValue.h"
+#include "EXP_StringValue.h"
 #include "SCA_IInputDevice.h"
 
 extern "C" {

@@ -34,7 +34,7 @@
 #define __KX_TOUCHSENSOR_H__
 
 #include "SCA_ISensor.h"
-#include "ListValue.h"
+#include "EXP_ListValue.h"
 
 struct PHY_CollData;
 

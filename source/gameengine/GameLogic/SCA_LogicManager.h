@@ -43,10 +43,10 @@
 
 #include "CTR_Map.h"
 #include "STR_HashedString.h"
-#include "Value.h"
+#include "EXP_Value.h"
 #include "SG_QList.h"
 
-#include "KX_HashedPtr.h"
+#include "EXP_HashedPtr.h"
 
 using namespace std;
 typedef std::list<class SCA_IController*> controllerlist;

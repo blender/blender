@@ -33,7 +33,7 @@
 #define __SCA_ICONTROLLER_H__
 
 #include "SCA_ILogicBrick.h"
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 
 /**
  * Use of SG_DList element: none

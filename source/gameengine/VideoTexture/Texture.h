@@ -31,7 +31,7 @@
 #ifndef __TEXTURE_H__
 #define __TEXTURE_H__
 
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 #include <structmember.h>
 
 #include "DNA_image_types.h"

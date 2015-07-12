@@ -39,7 +39,7 @@
 #include "SCA_LogicManager.h"
 #include "SCA_ISensor.h"
 #include "SCA_IActuator.h"
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 
 #ifdef WITH_PYTHON
 #include "compile.h"

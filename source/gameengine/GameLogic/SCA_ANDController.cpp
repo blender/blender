@@ -36,7 +36,7 @@
 #include "SCA_ANDController.h"
 #include "SCA_ISensor.h"
 #include "SCA_LogicManager.h"
-#include "BoolValue.h"
+#include "EXP_BoolValue.h"
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */

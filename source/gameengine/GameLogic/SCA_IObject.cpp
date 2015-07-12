@@ -37,7 +37,7 @@
 #include "SCA_IController.h"
 #include "SCA_IActuator.h"
 #include "MT_Point3.h"
-#include "ListValue.h"
+#include "EXP_ListValue.h"
 
 MT_Point3 SCA_IObject::m_sDummy=MT_Point3(0,0,0);
 SG_QList SCA_IObject::m_activeBookmarkedControllers;

@@ -39,7 +39,7 @@
 #include "SCA_EventManager.h"
 #include "SCA_RandomEventManager.h"
 #include "SCA_LogicManager.h"
-#include "ConstExpr.h"
+#include "EXP_ConstExpr.h"
 #include <iostream>
 
 /* ------------------------------------------------------------------------- */

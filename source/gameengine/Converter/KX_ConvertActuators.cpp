@@ -75,7 +75,7 @@
 #include "KX_Scene.h"
 #include "KX_KetsjiEngine.h"
 
-#include "IntValue.h"
+#include "EXP_IntValue.h"
 #include "KX_GameObject.h"
 
 /* This little block needed for linking to Blender... */

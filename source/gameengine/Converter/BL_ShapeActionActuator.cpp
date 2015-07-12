@@ -48,8 +48,8 @@
 #include "BLI_math.h"
 #include "MT_Matrix4x4.h"
 
-#include "FloatValue.h"
-#include "PyObjectPlus.h"
+#include "EXP_FloatValue.h"
+#include "EXP_PyObjectPlus.h"
 
 extern "C" {
 	#include "BKE_animsys.h"

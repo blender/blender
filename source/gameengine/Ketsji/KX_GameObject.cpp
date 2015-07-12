@@ -69,11 +69,11 @@
 #include "BL_ActionManager.h"
 #include "BL_Action.h"
 
-#include "PyObjectPlus.h" /* python stuff */
+#include "EXP_PyObjectPlus.h" /* python stuff */
 #include "BLI_utildefines.h"
 
 #ifdef WITH_PYTHON
-#  include "KX_PythonCallBack.h"
+#  include "EXP_PythonCallBack.h"
 #  include "python_utildefines.h"
 #endif
 

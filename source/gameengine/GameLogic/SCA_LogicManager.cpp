@@ -30,7 +30,7 @@
  *  \ingroup gamelogic
  */
 
-#include "Value.h"
+#include "EXP_Value.h"
 #include "SCA_LogicManager.h"
 #include "SCA_ISensor.h"
 #include "SCA_IController.h"

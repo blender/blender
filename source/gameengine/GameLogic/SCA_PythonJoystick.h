@@ -27,7 +27,7 @@
 #ifndef __SCA_PYTHONJOYSTICK_H__
 #define __SCA_PYTHONJOYSTICK_H__
 
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 
 class SCA_PythonJoystick : public PyObjectPlus
 {

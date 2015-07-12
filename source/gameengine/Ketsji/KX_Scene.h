@@ -49,7 +49,7 @@
 #include "RAS_Rect.h"
 
 
-#include "PyObjectPlus.h"
+#include "EXP_PyObjectPlus.h"
 #include "RAS_2DFilterManager.h"
 
 /**

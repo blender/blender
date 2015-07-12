@@ -44,7 +44,7 @@
 #include "KX_BlenderMaterial.h"
 #include "KX_FontObject.h"
 #include "RAS_IPolygonMaterial.h"
-#include "ListValue.h"
+#include "EXP_ListValue.h"
 #include "SCA_LogicManager.h"
 #include "SCA_TimeEventManager.h"
 //#include "SCA_AlwaysEventManager.h"
@@ -68,7 +68,7 @@
 #include "RAS_ICanvas.h"
 #include "RAS_BucketManager.h"
 
-#include "FloatValue.h"
+#include "EXP_FloatValue.h"
 #include "SCA_IController.h"
 #include "SCA_IActuator.h"
 #include "SG_Node.h"
@@ -100,7 +100,7 @@
 #endif
 
 #ifdef WITH_PYTHON
-#  include "KX_PythonCallBack.h"
+#  include "EXP_PythonCallBack.h"
 #endif
 
 #include "KX_Light.h"

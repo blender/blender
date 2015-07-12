@@ -39,9 +39,9 @@
 #include "NG_NetworkScene.h"
 #include "NG_NetworkObject.h"
 #include "SCA_IObject.h"
-#include "InputParser.h"
-#include "ListValue.h"
-#include "StringValue.h"
+#include "EXP_InputParser.h"
+#include "EXP_ListValue.h"
+#include "EXP_StringValue.h"
 
 #ifdef NAN_NET_DEBUG
   #include <iostream>
