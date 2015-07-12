@@ -314,12 +314,20 @@ static bool delete_recursive(const char *dir)
 	i = nbr = BLI_filelist_dir_contents(dir, &filelist);
 	fl = filelist;
 	while (i--) {
-		char file[8];
+		char file[FILE_MAXFILE];
+
 		BLI_split_file_part(fl->path, file, sizeof(file));
+
 		if (FILENAME_IS_CURRPAR(file)) {
 			/* Skip! */
 		}
 		else if (S_ISDIR(fl->type)) {
+			char path[FILE_MAXDIR];
+
+			/* dir listing produces dir path without trailing slash... */
+			BLI_strncpy(path, fl->path, sizeof(path));
+			BLI_add_slash(path);
+
 			if (delete_recursive(fl->path)) {
 				err = true;
 			}
