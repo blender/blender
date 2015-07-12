@@ -328,7 +328,7 @@ static bool delete_recursive(const char *dir)
 			BLI_strncpy(path, fl->path, sizeof(path));
 			BLI_add_slash(path);
 
-			if (delete_recursive(fl->path)) {
+			if (delete_recursive(path)) {
 				err = true;
 			}
 		}
