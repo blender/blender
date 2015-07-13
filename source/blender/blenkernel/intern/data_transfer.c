@@ -1064,8 +1064,8 @@ void BKE_object_data_transfer_layout(
 bool BKE_object_data_transfer_dm(
         Scene *scene, Object *ob_src, Object *ob_dst, DerivedMesh *dm_dst, const int data_types, bool use_create,
         const int map_vert_mode, const int map_edge_mode, const int map_loop_mode, const int map_poly_mode,
-        SpaceTransform *space_transform, const float max_distance, const float ray_radius,
-        const float islands_handling_precision,
+        SpaceTransform *space_transform, const bool auto_transform,
+        const float max_distance, const float ray_radius, const float islands_handling_precision,
         const int fromlayers_select[DT_MULTILAYER_INDEX_MAX], const int tolayers_select[DT_MULTILAYER_INDEX_MAX],
         const int mix_mode, const float mix_factor, const char *vgroup_name, const bool invert_vgroup,
         ReportList *reports)
@@ -1075,6 +1075,8 @@ bool BKE_object_data_transfer_dm(
 #define LDATA 2
 #define PDATA 3
 #define DATAMAX 4
+
+	SpaceTransform auto_space_transform;
 
 	DerivedMesh *dm_src;
 	Mesh *me_dst, *me_src;
@@ -1124,6 +1126,17 @@ bool BKE_object_data_transfer_dm(
 	dm_src = dm_dst ? ob_src->derivedFinal : mesh_get_derived_final(scene, ob_src, dm_src_mask);
 	if (!dm_src) {
 		return changed;
+	}
+
+	if (auto_transform) {
+		MVert *verts_dst = dm_dst ? dm_dst->getVertArray(dm_dst) : me_dst->mvert;
+		const int num_verts_dst = dm_dst ? dm_dst->getNumVerts(dm_dst) : me_dst->totvert;
+
+		if (space_transform == NULL) {
+			space_transform = &auto_space_transform;
+		}
+
+		BKE_mesh_remap_find_best_match_from_dm(verts_dst, num_verts_dst, dm_src, space_transform);
 	}
 
 	/* Check all possible data types.
@@ -1388,15 +1401,17 @@ bool BKE_object_data_transfer_dm(
 bool BKE_object_data_transfer_mesh(
         Scene *scene, Object *ob_src, Object *ob_dst, const int data_types, const bool use_create,
         const int map_vert_mode, const int map_edge_mode, const int map_loop_mode, const int map_poly_mode,
-        SpaceTransform *space_transform, const float max_distance, const float ray_radius,
-        const float islands_handling_precision,
+        SpaceTransform *space_transform, const bool auto_transform,
+        const float max_distance, const float ray_radius, const float islands_handling_precision,
         const int fromlayers_select[DT_MULTILAYER_INDEX_MAX], const int tolayers_select[DT_MULTILAYER_INDEX_MAX],
         const int mix_mode, const float mix_factor, const char *vgroup_name, const bool invert_vgroup,
         ReportList *reports)
 {
 	return BKE_object_data_transfer_dm(
 	        scene, ob_src, ob_dst, NULL, data_types, use_create,
-	        map_vert_mode, map_edge_mode, map_loop_mode, map_poly_mode, space_transform,
-	        max_distance, ray_radius, islands_handling_precision, fromlayers_select, tolayers_select,
+	        map_vert_mode, map_edge_mode, map_loop_mode, map_poly_mode,
+	        space_transform, auto_transform,
+	        max_distance, ray_radius, islands_handling_precision,
+	        fromlayers_select, tolayers_select,
 	        mix_mode, mix_factor, vgroup_name, invert_vgroup, reports);
 }

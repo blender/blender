@@ -140,6 +140,14 @@ enum {
 	MREMAP_MODE_TOPOLOGY                 = MREMAP_MODE_VERT | MREMAP_MODE_EDGE | MREMAP_MODE_LOOP | MREMAP_MODE_POLY,
 };
 
+float BKE_mesh_remap_calc_difference_from_dm(
+        const struct SpaceTransform *space_transform,
+        const struct MVert *verts_dst, const int numverts_dst, struct DerivedMesh *dm_src);
+
+void BKE_mesh_remap_find_best_match_from_dm(
+        const struct MVert *verts_dst, const int numverts_dst, struct DerivedMesh *dm_src,
+        struct SpaceTransform *r_space_transform);
+
 /* TODO add mesh2mesh versions (we'll need mesh versions of bvhtree funcs too, though!). */
 
 void BKE_mesh_remap_calc_verts_from_dm(
