@@ -1099,7 +1099,7 @@ static uintptr_t image_mem_size(Image *image)
 				size += MEM_allocN_len(ibuf->rect_float);
 			}
 
-			for (level = 0; level < IB_MIPMAP_LEVELS; level++) {
+			for (level = 0; level < IMB_MIPMAP_LEVELS; level++) {
 				ibufm = ibuf->mipmap[level];
 				if (ibufm) {
 					if (ibufm->rect) {

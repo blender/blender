@@ -192,22 +192,22 @@ static void imb_cache_filename(char *filename, const char *name, int flags)
 {
 	/* read .tx instead if it exists and is not older */
 	if (flags & IB_tilecache) {
-		BLI_strncpy(filename, name, IB_FILENAME_SIZE);
-		if (!BLI_replace_extension(filename, IB_FILENAME_SIZE, ".tx"))
+		BLI_strncpy(filename, name, IMB_FILENAME_SIZE);
+		if (!BLI_replace_extension(filename, IMB_FILENAME_SIZE, ".tx"))
 			return;
 
 		if (BLI_file_older(name, filename))
 			return;
 	}
 
-	BLI_strncpy(filename, name, IB_FILENAME_SIZE);
+	BLI_strncpy(filename, name, IMB_FILENAME_SIZE);
 }
 
 ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[IM_MAX_SPACE])
 {
 	ImBuf *ibuf;
 	int file, a;
-	char filepath_tx[IB_FILENAME_SIZE];
+	char filepath_tx[IMB_FILENAME_SIZE];
 
 	BLI_assert(!BLI_path_is_rel(filepath));
 
@@ -236,7 +236,7 @@ ImBuf *IMB_testiffname(const char *filepath, int flags)
 {
 	ImBuf *ibuf;
 	int file;
-	char filepath_tx[IB_FILENAME_SIZE];
+	char filepath_tx[IMB_FILENAME_SIZE];
 	char colorspace[IM_MAX_SPACE] = "\0";
 
 	BLI_assert(!BLI_path_is_rel(filepath));

@@ -92,7 +92,7 @@ typedef struct UndoImageTile {
 	struct UndoImageTile *next, *prev;
 
 	char idname[MAX_ID_NAME];  /* name instead of pointer*/
-	char ibufname[IB_FILENAME_SIZE];
+	char ibufname[IMB_FILENAME_SIZE];
 
 	union {
 		float        *fp;

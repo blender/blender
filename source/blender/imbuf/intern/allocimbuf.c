@@ -492,7 +492,7 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 	tbuf.encodedbuffer = ibuf2->encodedbuffer;
 	tbuf.zbuf          = NULL;
 	tbuf.zbuf_float    = NULL;
-	for (a = 0; a < IB_MIPMAP_LEVELS; a++)
+	for (a = 0; a < IMB_MIPMAP_LEVELS; a++)
 		tbuf.mipmap[a] = NULL;
 	tbuf.dds_data.data = NULL;
 	

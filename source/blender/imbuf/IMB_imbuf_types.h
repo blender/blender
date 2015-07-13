@@ -47,8 +47,8 @@
  * contains an Amiga-format file).
  */
 
-#define IB_MIPMAP_LEVELS	20
-#define IB_FILENAME_SIZE	1024
+#define IMB_MIPMAP_LEVELS	20
+#define IMB_FILENAME_SIZE	1024
 
 typedef struct DDSData {
 	unsigned int fourcc; /* DDS fourcc info */
@@ -177,7 +177,7 @@ typedef struct ImBuf {
 	float dither;				/* random dither value, for conversion from float -> byte rect */
 
 	/* mipmapping */
-	struct ImBuf *mipmap[IB_MIPMAP_LEVELS]; /* MipMap levels, a series of halved images */
+	struct ImBuf *mipmap[IMB_MIPMAP_LEVELS]; /* MipMap levels, a series of halved images */
 	int miptot, miplevel;
 
 	/* externally used data */
@@ -189,8 +189,8 @@ typedef struct ImBuf {
 	/* file information */
 	enum eImbTypes	ftype;				/* file type we are going to save as */
 	ImbFormatOptions foptions;			/* file format specific flags */
-	char name[IB_FILENAME_SIZE];		/* filename associated with this image */
-	char cachename[IB_FILENAME_SIZE];	/* full filename used for reading from cache */
+	char name[IMB_FILENAME_SIZE];		/* filename associated with this image */
+	char cachename[IMB_FILENAME_SIZE];	/* full filename used for reading from cache */
 
 	/* memory cache limiter */
 	struct MEM_CacheLimiterHandle_s *c_handle; /* handle for cache limiter */
