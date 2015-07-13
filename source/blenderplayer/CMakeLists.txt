@@ -170,6 +170,7 @@ endif()
 		extern_libmv
 		extern_glog
 		extern_sdlew
+		extern_eigen3
 	)
 
 	if(WITH_MOD_CLOTH_ELTOPO)

@@ -29,6 +29,7 @@ remove_strict_flags()
 add_subdirectory(rangetree)
 add_subdirectory(wcwidth)
 add_subdirectory(libmv)
+add_subdirectory(Eigen3)
 
 if(WITH_OPENNL)
 	add_subdirectory(colamd)
