@@ -212,7 +212,7 @@ int IMB_ispic_type(const char *name)
 
 	/* XXX move this exception */
 	if ((BIG_LONG(((int *)buf)[0]) & 0xfffffff0) == 0xffd8ffe0)
-		return JPG;
+		return IMB_FTYPE_JPG;
 
 	for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
 		if (type->is_a) {

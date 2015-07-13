@@ -425,7 +425,7 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, unsigned int i
 		stringstream filename;
 		filename << base;
 		filename << i << ".bmp";
-		qtmp->ftype = BMP;
+		qtmp->ftype = IMB_FTYPE_BMP;
 		IMB_saveiff(qtmp, const_cast<char *>(filename.str().c_str()), 0);
 	}
 

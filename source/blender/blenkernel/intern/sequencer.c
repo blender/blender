@@ -1752,7 +1752,8 @@ static void seq_proxy_build_frame(const SeqRenderData *context, Sequence *seq, i
 	/* depth = 32 is intentionally left in, otherwise ALPHA channels
 	 * won't work... */
 	quality = seq->strip->proxy->quality;
-	ibuf->ftype = JPG | quality;
+	ibuf->ftype = IMB_FTYPE_JPG;
+	ibuf->foptions.quality = quality;
 
 	/* unsupported feature only confuses other s/w */
 	if (ibuf->planes == 32)

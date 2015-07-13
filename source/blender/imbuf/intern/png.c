@@ -140,7 +140,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 	int i, bytesperpixel, color_type = PNG_COLOR_TYPE_GRAY;
 	FILE *fp = NULL;
 
-	bool is_16bit  = (ibuf->ftype & PNG_16BIT) != 0;
+	bool is_16bit  = (ibuf->foptions.flag & PNG_16BIT) != 0;
 	bool has_float = (ibuf->rect_float != NULL);
 	int channels_in_float = ibuf->channels ? ibuf->channels : 4;
 
@@ -149,7 +149,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 
 	/* use the jpeg quality setting for compression */
 	int compression;
-	compression = (int)(((float)(ibuf->ftype & 0xff) / 11.1111f));
+	compression = (int)(((float)(ibuf->foptions.quality) / 11.1111f));
 	compression = compression < 0 ? 0 : (compression > 9 ? 9 : compression);
 
 	if (ibuf->float_colorspace) {
@@ -606,9 +606,9 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 	ibuf = IMB_allocImBuf(width, height, 8 * bytesperpixel, 0);
 
 	if (ibuf) {
-		ibuf->ftype = PNG;
+		ibuf->ftype = IMB_FTYPE_PNG;
 		if (bit_depth == 16)
-			ibuf->ftype |= PNG_16BIT;
+			ibuf->foptions.flag |= PNG_16BIT;
 
 		if (png_get_valid(png_ptr, info_ptr, PNG_INFO_pHYs)) {
 			int unit_type;

@@ -45,6 +45,8 @@
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 
+#define IMAGIC 0732
+
 typedef struct {
 	unsigned short  imagic;      /* stuff saved on disk . . */
 	unsigned short  type;
@@ -299,7 +301,7 @@ struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, cha
 	
 	if (flags & IB_test) {
 		ibuf = IMB_allocImBuf(image.xsize, image.ysize, 8 * image.zsize, 0);
-		if (ibuf) ibuf->ftype = IMAGIC;
+		if (ibuf) ibuf->ftype = IMB_FTYPE_IMAGIC;
 		return(ibuf);
 	}
 	
@@ -526,7 +528,7 @@ struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, cha
 		
 	}
 
-	ibuf->ftype = IMAGIC;
+	ibuf->ftype = IMB_FTYPE_IMAGIC;
 
 	test_endian_zbuf(ibuf);
 
@@ -701,7 +703,7 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, cons
 	lumbuf = (unsigned int *)MEM_mallocN(xsize * sizeof(int), "iris lumbuf");
 
 	memset(image, 0, sizeof(IMAGE));
-	image->imagic = IMAGIC;
+	image->imagic = IMB_FTYPE_IMAGIC;
 	image->type = RLE(1);
 	if (zsize > 1)
 		image->dim = 3;

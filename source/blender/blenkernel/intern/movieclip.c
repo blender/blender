@@ -229,7 +229,7 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip, MovieClipUser *user,
 
 #ifdef WITH_OPENEXR
 	if (ibuf) {
-		if (ibuf->ftype == OPENEXR && ibuf->userdata) {
+		if (ibuf->ftype == IMB_FTYPE_OPENEXR && ibuf->userdata) {
 			IMB_exr_close(ibuf->userdata);
 			ibuf->userdata = NULL;
 		}
@@ -1322,8 +1322,8 @@ static void movieclip_build_proxy_ibuf(MovieClip *clip, ImBuf *ibuf, int cfra, i
 		IMB_scaleImBuf(scaleibuf, (short)rectx, (short)recty);
 
 	quality = clip->proxy.quality;
-	scaleibuf->ftype = JPG | quality;
-
+	scaleibuf->ftype = IMB_FTYPE_JPG;
+	scaleibuf->foptions.quality = quality;
 	/* unsupported feature only confuses other s/w */
 	if (scaleibuf->planes == 32)
 		scaleibuf->planes = 24;

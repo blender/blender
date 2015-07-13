@@ -559,7 +559,7 @@ ImBuf *imb_loadtiff(const unsigned char *mem, size_t size, int flags, char color
 	
 	ibuf = IMB_allocImBuf(width, height, ib_depth, 0);
 	if (ibuf) {
-		ibuf->ftype = TIF;
+		ibuf->ftype = IMB_FTYPE_TIF;
 	}
 	else {
 		fprintf(stderr, 
@@ -720,7 +720,7 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 		return (0);
 	}
 
-	if ((ibuf->ftype & TIF_16BIT) && ibuf->rect_float)
+	if ((ibuf->foptions.flag & TIF_16BIT) && ibuf->rect_float)
 		bitspersample = 16;
 	else
 		bitspersample = 8;

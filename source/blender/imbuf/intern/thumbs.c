@@ -439,7 +439,7 @@ static ImBuf *thumb_create_ex(
 			IMB_metadata_change_field(img, "Thumb::Image::Width", cwidth);
 			IMB_metadata_change_field(img, "Thumb::Image::Height", cheight);
 		}
-		img->ftype = PNG;
+		img->ftype = IMB_FTYPE_PNG;
 		img->planes = 32;
 
 		if (IMB_saveiff(img, temp, IB_rect | IB_metadata)) {

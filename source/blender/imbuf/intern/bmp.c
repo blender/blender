@@ -271,7 +271,7 @@ struct ImBuf *imb_bmp_decode(const unsigned char *mem, size_t size, int flags, c
 	if (ibuf) {
 		ibuf->ppm[0] = xppm;
 		ibuf->ppm[1] = yppm;
-		ibuf->ftype = BMP;
+		ibuf->ftype = IMB_FTYPE_BMP;
 	}
 	
 	return(ibuf);

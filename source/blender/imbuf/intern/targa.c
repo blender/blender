@@ -264,7 +264,7 @@ int imb_savetarga(struct ImBuf *ibuf, const char *name, int flags)
 		buf[2] = 11;
 	}
 
-	if (ibuf->ftype == RAWTGA) buf[2] &= ~8;
+	if (ibuf->foptions.flag & RAWTGA) buf[2] &= ~8;
 	
 	buf[8] = 0;
 	buf[9] = 0;
@@ -289,7 +289,7 @@ int imb_savetarga(struct ImBuf *ibuf, const char *name, int flags)
 		return 0;
 	}
 
-	if (ibuf->ftype == RAWTGA) {
+	if (ibuf->foptions.flag & RAWTGA) {
 		ok = dumptarga(ibuf, fildes);
 	}
 	else {
@@ -568,7 +568,9 @@ ImBuf *imb_loadtarga(const unsigned char *mem, size_t mem_size, int flags, char 
 	else ibuf = IMB_allocImBuf(tga.xsize, tga.ysize, (tga.pixsize + 0x7) & ~0x7, IB_rect);
 
 	if (ibuf == NULL) return NULL;
-	ibuf->ftype = (tga.imgtyp < 4) ? RAWTGA : TGA;
+	ibuf->ftype = IMB_FTYPE_TGA;
+	if (tga.imgtyp < 4)
+		ibuf->foptions.flag |= RAWTGA;
 	mem = mem + 18 + tga.numid;
 	
 	cp[0] = 0xff;

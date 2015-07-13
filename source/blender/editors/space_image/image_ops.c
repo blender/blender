@@ -1469,12 +1469,11 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 		else {
 			if (ima->source == IMA_SRC_GENERATED) {
 				simopts->im_format.imtype = R_IMF_IMTYPE_PNG;
+				simopts->im_format.compress = ibuf->foptions.quality;
 			}
 			else {
 				BKE_imbuf_to_image_format(&simopts->im_format, ibuf);
-				simopts->im_format.quality = ibuf->ftype & 0xff;
 			}
-			simopts->im_format.quality = ibuf->ftype & 0xff;
 		}
 
 		simopts->im_format.planes = ibuf->planes;
@@ -1619,6 +1618,7 @@ static void save_imbuf_post(ImBuf *ibuf, ImBuf *colormanaged_ibuf)
 		 * original one, so file type of image is being properly updated.
 		 */
 		ibuf->ftype = colormanaged_ibuf->ftype;
+		ibuf->foptions = colormanaged_ibuf->foptions;
 		ibuf->planes = colormanaged_ibuf->planes;
 
 		IMB_freeImBuf(colormanaged_ibuf);

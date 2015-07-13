@@ -39,6 +39,7 @@ extern "C" {
 
 struct Image;
 struct ImBuf;
+struct ImbFormatOptions;
 struct anim;
 struct Scene;
 struct Object;
@@ -80,8 +81,8 @@ void    BKE_image_path_from_imtype(
         const char imtype, const bool use_ext, const bool use_frames, const char *suffix);
 int     BKE_image_path_ensure_ext_from_imformat(char *string, const struct ImageFormatData *im_format);
 int     BKE_image_path_ensure_ext_from_imtype(char *string, const char imtype);
-char    BKE_image_ftype_to_imtype(const int ftype);
-int     BKE_image_imtype_to_ftype(const char imtype);
+char    BKE_image_ftype_to_imtype(const int ftype, const struct ImbFormatOptions *options);
+int     BKE_image_imtype_to_ftype(const char imtype, struct ImbFormatOptions *r_options);
 
 bool    BKE_imtype_is_movie(const char imtype);
 int     BKE_imtype_supports_zbuf(const char imtype);
@@ -270,7 +271,7 @@ bool BKE_image_has_anim(struct Image *image);
 bool BKE_image_has_packedfile(struct Image *image);
 bool BKE_image_is_animated(struct Image *image);
 bool BKE_image_is_dirty(struct Image *image);
-void BKE_image_file_format_set(struct Image *image, int ftype);
+void BKE_image_file_format_set(struct Image *image, int ftype, const struct ImbFormatOptions *options);
 bool BKE_image_has_loaded_ibuf(struct Image *image);
 struct ImBuf *BKE_image_get_ibuf_with_name(struct Image *image, const char *name);
 struct ImBuf *BKE_image_get_first_ibuf(struct Image *image);

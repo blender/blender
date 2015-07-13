@@ -916,7 +916,7 @@ static void image_memorypack_multiview(Image *ima)
 	for (i = 0, iv = ima->views.first; iv; iv = iv->next, i++) {
 		ImBuf *ibuf = image_get_cached_ibuf_for_index_frame(ima, i, 0);
 
-		ibuf->ftype = PNG;
+		ibuf->ftype = IMB_FTYPE_PNG;
 		ibuf->planes = R_IMF_PLANES_RGBA;
 
 		/* if the image was a R_IMF_VIEWS_STEREO_3D we force _L, _R suffices */
@@ -976,7 +976,7 @@ void BKE_image_memorypack(Image *ima)
 
 	image_free_packedfiles(ima);
 
-	ibuf->ftype = PNG;
+	ibuf->ftype = IMB_FTYPE_PNG;
 	ibuf->planes = R_IMF_PLANES_RGBA;
 
 	IMB_saveiff(ibuf, ibuf->name, IB_rect | IB_mem);
@@ -1208,82 +1208,92 @@ void BKE_image_all_free_anim_ibufs(int cfra)
 
 /* *********** READ AND WRITE ************** */
 
-int BKE_image_imtype_to_ftype(const char imtype)
+int BKE_image_imtype_to_ftype(const char imtype, ImbFormatOptions *r_options)
 {
+	memset(r_options, 0, sizeof(*r_options));
+
 	if (imtype == R_IMF_IMTYPE_TARGA)
-		return TGA;
-	else if (imtype == R_IMF_IMTYPE_RAWTGA)
-		return RAWTGA;
+		return IMB_FTYPE_TGA;
+	else if (imtype == R_IMF_IMTYPE_RAWTGA) {
+		r_options->flag = RAWTGA;
+		return IMB_FTYPE_TGA;
+	}
 	else if (imtype == R_IMF_IMTYPE_IRIS)
-		return IMAGIC;
+		return IMB_FTYPE_IMAGIC;
 #ifdef WITH_HDR
 	else if (imtype == R_IMF_IMTYPE_RADHDR)
-		return RADHDR;
+		return IMB_FTYPE_RADHDR;
 #endif
-	else if (imtype == R_IMF_IMTYPE_PNG)
-		return PNG | 15;
+	else if (imtype == R_IMF_IMTYPE_PNG) {
+		r_options->quality = 15;
+		return IMB_FTYPE_PNG;
+	}
 #ifdef WITH_DDS
 	else if (imtype == R_IMF_IMTYPE_DDS)
-		return DDS;
+		return IMB_FTYPE_DDS;
 #endif
 	else if (imtype == R_IMF_IMTYPE_BMP)
-		return BMP;
+		return IMB_FTYPE_BMP;
 #ifdef WITH_TIFF
 	else if (imtype == R_IMF_IMTYPE_TIFF)
-		return TIF;
+		return IMB_FTYPE_TIF;
 #endif
 	else if (imtype == R_IMF_IMTYPE_OPENEXR || imtype == R_IMF_IMTYPE_MULTILAYER)
-		return OPENEXR;
+		return IMB_FTYPE_OPENEXR;
 #ifdef WITH_CINEON
 	else if (imtype == R_IMF_IMTYPE_CINEON)
-		return CINEON;
+		return IMB_FTYPE_CINEON;
 	else if (imtype == R_IMF_IMTYPE_DPX)
-		return DPX;
+		return IMB_FTYPE_DPX;
 #endif
 #ifdef WITH_OPENJPEG
 	else if (imtype == R_IMF_IMTYPE_JP2)
-		return JP2;
+		return IMB_FTYPE_JP2;
 #endif
-	else
-		return JPG | 90;
+	else {
+		r_options->quality = 90;
+		return IMB_FTYPE_JPG;
+	}
 }
 
-char BKE_image_ftype_to_imtype(const int ftype)
+char BKE_image_ftype_to_imtype(const int ftype, const ImbFormatOptions *options)
 {
 	if (ftype == 0)
 		return R_IMF_IMTYPE_TARGA;
-	else if (ftype == IMAGIC)
+	else if (ftype == IMB_FTYPE_IMAGIC)
 		return R_IMF_IMTYPE_IRIS;
 #ifdef WITH_HDR
-	else if (ftype & RADHDR)
+	else if (ftype == IMB_FTYPE_RADHDR)
 		return R_IMF_IMTYPE_RADHDR;
 #endif
-	else if (ftype & PNG)
+	else if (ftype == IMB_FTYPE_PNG)
 		return R_IMF_IMTYPE_PNG;
 #ifdef WITH_DDS
-	else if (ftype & DDS)
+	else if (ftype == IMB_FTYPE_DDS)
 		return R_IMF_IMTYPE_DDS;
 #endif
-	else if (ftype & BMP)
+	else if (ftype == IMB_FTYPE_BMP)
 		return R_IMF_IMTYPE_BMP;
 #ifdef WITH_TIFF
-	else if (ftype & TIF)
+	else if (ftype == IMB_FTYPE_TIF)
 		return R_IMF_IMTYPE_TIFF;
 #endif
-	else if (ftype & OPENEXR)
+	else if (ftype == IMB_FTYPE_OPENEXR)
 		return R_IMF_IMTYPE_OPENEXR;
 #ifdef WITH_CINEON
-	else if (ftype & CINEON)
+	else if (ftype == IMB_FTYPE_CINEON)
 		return R_IMF_IMTYPE_CINEON;
-	else if (ftype & DPX)
+	else if (ftype == IMB_FTYPE_DPX)
 		return R_IMF_IMTYPE_DPX;
 #endif
-	else if (ftype & TGA)
-		return R_IMF_IMTYPE_TARGA;
-	else if (ftype & RAWTGA)
-		return R_IMF_IMTYPE_RAWTGA;
+	else if (ftype == IMB_FTYPE_TGA) {
+		if (options && (options->flag & RAWTGA))
+			return R_IMF_IMTYPE_RAWTGA;
+		else
+			return R_IMF_IMTYPE_TARGA;
+	}
 #ifdef WITH_OPENJPEG
-	else if (ftype & JP2)
+	else if (ftype == IMB_FTYPE_JP2)
 		return R_IMF_IMTYPE_JP2;
 #endif
 	else
@@ -1590,38 +1600,41 @@ void BKE_imformat_defaults(ImageFormatData *im_format)
 
 void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *imbuf)
 {
-	int ftype        = imbuf->ftype & ~IB_CUSTOM_FLAGS_MASK;
-	int custom_flags = imbuf->ftype & IB_CUSTOM_FLAGS_MASK;
+	int ftype        = imbuf->ftype;
+	int custom_flags = imbuf->foptions.flag;
+	char quality     = imbuf->foptions.quality;
 
 	BKE_imformat_defaults(im_format);
 
 	/* file type */
 
-	if (ftype == IMAGIC)
+	if (ftype == IMB_FTYPE_IMAGIC)
 		im_format->imtype = R_IMF_IMTYPE_IRIS;
 
 #ifdef WITH_HDR
-	else if (ftype == RADHDR)
+	else if (ftype == IMB_FTYPE_RADHDR)
 		im_format->imtype = R_IMF_IMTYPE_RADHDR;
 #endif
 
-	else if (ftype == PNG) {
+	else if (ftype == IMB_FTYPE_PNG) {
 		im_format->imtype = R_IMF_IMTYPE_PNG;
 
 		if (custom_flags & PNG_16BIT)
 			im_format->depth = R_IMF_CHAN_DEPTH_16;
+
+		im_format->compress = quality;
 	}
 
 #ifdef WITH_DDS
-	else if (ftype == DDS)
+	else if (ftype == IMB_FTYPE_DDS)
 		im_format->imtype = R_IMF_IMTYPE_DDS;
 #endif
 
-	else if (ftype == BMP)
+	else if (ftype == IMB_FTYPE_BMP)
 		im_format->imtype = R_IMF_IMTYPE_BMP;
 
 #ifdef WITH_TIFF
-	else if (ftype == TIF) {
+	else if (ftype == IMB_FTYPE_TIF) {
 		im_format->imtype = R_IMF_IMTYPE_TIFF;
 		if (custom_flags & TIF_16BIT)
 			im_format->depth = R_IMF_CHAN_DEPTH_16;
@@ -1629,7 +1642,7 @@ void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *i
 #endif
 
 #ifdef WITH_OPENEXR
-	else if (ftype == OPENEXR) {
+	else if (ftype == IMB_FTYPE_OPENEXR) {
 		im_format->imtype = R_IMF_IMTYPE_OPENEXR;
 		if (custom_flags & OPENEXR_HALF)
 			im_format->depth = R_IMF_CHAN_DEPTH_16;
@@ -1641,41 +1654,40 @@ void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *i
 #endif
 
 #ifdef WITH_CINEON
-	else if (ftype == CINEON)
+	else if (ftype == IMB_FTYPE_CINEON)
 		im_format->imtype = R_IMF_IMTYPE_CINEON;
-	else if (ftype == DPX)
+	else if (ftype == IMB_FTYPE_DPX)
 		im_format->imtype = R_IMF_IMTYPE_DPX;
 #endif
 
-	else if (ftype == TGA) {
-		im_format->imtype = R_IMF_IMTYPE_TARGA;
+	else if (ftype == IMB_FTYPE_TGA) {
+		if (custom_flags & RAWTGA)
+			im_format->imtype = R_IMF_IMTYPE_RAWTGA;
+		else
+			im_format->imtype = R_IMF_IMTYPE_TARGA;
 	}
-	else if (ftype == RAWTGA) {
-		im_format->imtype = R_IMF_IMTYPE_RAWTGA;
-	}
-
 #ifdef WITH_OPENJPEG
-	else if (ftype & JP2) {
+	else if (ftype == IMB_FTYPE_JP2) {
 		im_format->imtype = R_IMF_IMTYPE_JP2;
-		im_format->quality = custom_flags & ~JPG_MSK;
+		im_format->quality = quality;
 
-		if (ftype & JP2_16BIT)
+		if (custom_flags & JP2_16BIT)
 			im_format->depth = R_IMF_CHAN_DEPTH_16;
-		else if (ftype & JP2_12BIT)
+		else if (custom_flags & JP2_12BIT)
 			im_format->depth = R_IMF_CHAN_DEPTH_12;
 
-		if (ftype & JP2_YCC)
+		if (custom_flags & JP2_YCC)
 			im_format->jp2_flag |= R_IMF_JP2_FLAG_YCC;
 
-		if (ftype & JP2_CINE) {
+		if (custom_flags & JP2_CINE) {
 			im_format->jp2_flag |= R_IMF_JP2_FLAG_CINE_PRESET;
-			if (ftype & JP2_CINE_48FPS)
+			if (custom_flags & JP2_CINE_48FPS)
 				im_format->jp2_flag |= R_IMF_JP2_FLAG_CINE_48;
 		}
 
-		if (ftype & JP2_JP2)
+		if (custom_flags & JP2_JP2)
 			im_format->jp2_codec = R_IMF_JP2_CODEC_JP2;
-		else if (ftype & JP2_J2K)
+		else if (custom_flags & JP2_J2K)
 			im_format->jp2_codec = R_IMF_JP2_CODEC_J2K;
 		else
 			BLI_assert(!"Unsupported jp2 codec was specified in file type");
@@ -1684,7 +1696,7 @@ void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *i
 
 	else {
 		im_format->imtype = R_IMF_IMTYPE_JPEG90;
-		im_format->quality = custom_flags & ~JPG_MSK;
+		im_format->quality = quality;
 	}
 
 	/* planes */
@@ -2162,46 +2174,46 @@ void BKE_imbuf_write_prepare(ImBuf *ibuf, ImageFormatData *imf)
 	char quality = imf->quality;
 
 	if (imtype == R_IMF_IMTYPE_IRIS) {
-		ibuf->ftype = IMAGIC;
+		ibuf->ftype = IMB_FTYPE_IMAGIC;
 	}
 #ifdef WITH_HDR
 	else if (imtype == R_IMF_IMTYPE_RADHDR) {
-		ibuf->ftype = RADHDR;
+		ibuf->ftype = IMB_FTYPE_RADHDR;
 	}
 #endif
 	else if (ELEM(imtype, R_IMF_IMTYPE_PNG, R_IMF_IMTYPE_FFMPEG, R_IMF_IMTYPE_H264, R_IMF_IMTYPE_THEORA, R_IMF_IMTYPE_XVID)) {
-		ibuf->ftype = PNG;
+		ibuf->ftype = IMB_FTYPE_PNG;
 
 		if (imtype == R_IMF_IMTYPE_PNG) {
 			if (imf->depth == R_IMF_CHAN_DEPTH_16)
-				ibuf->ftype |= PNG_16BIT;
+				ibuf->foptions.flag |= PNG_16BIT;
 
-			ibuf->ftype |= compress;
+			ibuf->foptions.quality = compress;
 		}
 
 	}
 #ifdef WITH_DDS
 	else if (imtype == R_IMF_IMTYPE_DDS) {
-		ibuf->ftype = DDS;
+		ibuf->ftype = IMB_FTYPE_DDS;
 	}
 #endif
 	else if (imtype == R_IMF_IMTYPE_BMP) {
-		ibuf->ftype = BMP;
+		ibuf->ftype = IMB_FTYPE_BMP;
 	}
 #ifdef WITH_TIFF
 	else if (imtype == R_IMF_IMTYPE_TIFF) {
-		ibuf->ftype = TIF;
+		ibuf->ftype = IMB_FTYPE_TIF;
 
 		if (imf->depth == R_IMF_CHAN_DEPTH_16)
-			ibuf->ftype |= TIF_16BIT;
+			ibuf->foptions.flag |= TIF_16BIT;
 	}
 #endif
 #ifdef WITH_OPENEXR
 	else if (ELEM(imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
-		ibuf->ftype = OPENEXR;
+		ibuf->ftype = IMB_FTYPE_OPENEXR;
 		if (imf->depth == R_IMF_CHAN_DEPTH_16)
-			ibuf->ftype |= OPENEXR_HALF;
-		ibuf->ftype |= (imf->exr_codec & OPENEXR_COMPRESS);
+			ibuf->foptions.flag |= OPENEXR_HALF;
+		ibuf->foptions.flag |= (imf->exr_codec & OPENEXR_COMPRESS);
 
 		if (!(imf->flag & R_IMF_FLAG_ZBUF))
 			ibuf->zbuf_float = NULL;    /* signal for exr saving */
@@ -2210,68 +2222,70 @@ void BKE_imbuf_write_prepare(ImBuf *ibuf, ImageFormatData *imf)
 #endif
 #ifdef WITH_CINEON
 	else if (imtype == R_IMF_IMTYPE_CINEON) {
-		ibuf->ftype = CINEON;
+		ibuf->ftype = IMB_FTYPE_CINEON;
 		if (imf->cineon_flag & R_IMF_CINEON_FLAG_LOG) {
-			ibuf->ftype |= CINEON_LOG;
+			ibuf->foptions.flag |= CINEON_LOG;
 		}
 		if (imf->depth == R_IMF_CHAN_DEPTH_16) {
-			ibuf->ftype |= CINEON_16BIT;
+			ibuf->foptions.flag |= CINEON_16BIT;
 		}
 		else if (imf->depth == R_IMF_CHAN_DEPTH_12) {
-			ibuf->ftype |= CINEON_12BIT;
+			ibuf->foptions.flag |= CINEON_12BIT;
 		}
 		else if (imf->depth == R_IMF_CHAN_DEPTH_10) {
-			ibuf->ftype |= CINEON_10BIT;
+			ibuf->foptions.flag |= CINEON_10BIT;
 		}
 	}
 	else if (imtype == R_IMF_IMTYPE_DPX) {
-		ibuf->ftype = DPX;
+		ibuf->ftype = IMB_FTYPE_DPX;
 		if (imf->cineon_flag & R_IMF_CINEON_FLAG_LOG) {
-			ibuf->ftype |= CINEON_LOG;
+			ibuf->foptions.flag |= CINEON_LOG;
 		}
 		if (imf->depth == R_IMF_CHAN_DEPTH_16) {
-			ibuf->ftype |= CINEON_16BIT;
+			ibuf->foptions.flag |= CINEON_16BIT;
 		}
 		else if (imf->depth == R_IMF_CHAN_DEPTH_12) {
-			ibuf->ftype |= CINEON_12BIT;
+			ibuf->foptions.flag |= CINEON_12BIT;
 		}
 		else if (imf->depth == R_IMF_CHAN_DEPTH_10) {
-			ibuf->ftype |= CINEON_10BIT;
+			ibuf->foptions.flag |= CINEON_10BIT;
 		}
 	}
 #endif
 	else if (imtype == R_IMF_IMTYPE_TARGA) {
-		ibuf->ftype = TGA;
+		ibuf->ftype = IMB_FTYPE_TGA;
 	}
 	else if (imtype == R_IMF_IMTYPE_RAWTGA) {
-		ibuf->ftype = RAWTGA;
+		ibuf->ftype = IMB_FTYPE_TGA;
+		ibuf->foptions.flag = RAWTGA;
 	}
 #ifdef WITH_OPENJPEG
 	else if (imtype == R_IMF_IMTYPE_JP2) {
 		if (quality < 10) quality = 90;
-		ibuf->ftype = JP2 | quality;
+		ibuf->ftype = IMB_FTYPE_JP2;
+		ibuf->foptions.quality = quality;
 
 		if (imf->depth == R_IMF_CHAN_DEPTH_16) {
-			ibuf->ftype |= JP2_16BIT;
+			ibuf->foptions.flag |= JP2_16BIT;
 		}
 		else if (imf->depth == R_IMF_CHAN_DEPTH_12) {
-			ibuf->ftype |= JP2_12BIT;
+			ibuf->foptions.flag |= JP2_12BIT;
 		}
 
 		if (imf->jp2_flag & R_IMF_JP2_FLAG_YCC) {
-			ibuf->ftype |= JP2_YCC;
+			ibuf->foptions.flag |= JP2_YCC;
 		}
 
 		if (imf->jp2_flag & R_IMF_JP2_FLAG_CINE_PRESET) {
-			ibuf->ftype |= JP2_CINE;
+			ibuf->foptions.flag |= JP2_CINE;
 			if (imf->jp2_flag & R_IMF_JP2_FLAG_CINE_48)
-				ibuf->ftype |= JP2_CINE_48FPS;
+				ibuf->foptions.flag |= JP2_CINE_48FPS;
 		}
 
 		if (imf->jp2_codec == R_IMF_JP2_CODEC_JP2)
-			ibuf->ftype |= JP2_JP2;
+			ibuf->foptions.flag |= JP2_JP2;
 		else if (imf->jp2_codec == R_IMF_JP2_CODEC_J2K)
-			ibuf->ftype |= JP2_J2K;
+			ibuf->foptions.flag |= JP2_J2K;
 		else
 			BLI_assert(!"Unsupported jp2 codec was specified in im_format->jp2_codec");
 	}
@@ -2279,7 +2293,8 @@ void BKE_imbuf_write_prepare(ImBuf *ibuf, ImageFormatData *imf)
 	else {
 		/* R_IMF_IMTYPE_JPEG90, etc. default we save jpegs */
 		if (quality < 10) quality = 90;
-		ibuf->ftype = JPG | quality;
+		ibuf->ftype = IMB_FTYPE_JPG;
+		ibuf->foptions.quality = quality;
 	}
 }
 
@@ -3141,7 +3156,7 @@ static ImBuf *load_sequence_single(Image *ima, ImageUser *iuser, int frame, cons
 	if (ibuf) {
 #ifdef WITH_OPENEXR
 		/* handle multilayer case, don't assign ibuf. will be handled in BKE_image_acquire_ibuf */
-		if (ibuf->ftype == OPENEXR && ibuf->userdata) {
+		if (ibuf->ftype == IMB_FTYPE_OPENEXR && ibuf->userdata) {
 			/* handle singlelayer multiview case assign ibuf based on available views */
 			if (IMB_exr_has_singlelayer_multiview(ibuf->userdata)) {
 				image_create_multiview(ima, ibuf, frame);
@@ -3437,7 +3452,7 @@ static ImBuf *load_image_single(
 
 	if (ibuf) {
 #ifdef WITH_OPENEXR
-		if (ibuf->ftype == OPENEXR && ibuf->userdata) {
+		if (ibuf->ftype == IMB_FTYPE_OPENEXR && ibuf->userdata) {
 			if (IMB_exr_has_singlelayer_multiview(ibuf->userdata)) {
 				/* handle singlelayer multiview case assign ibuf based on available views */
 				image_create_multiview(ima, ibuf, cfra);
@@ -4480,12 +4495,13 @@ bool BKE_image_is_dirty(Image *image)
 	return is_dirty;
 }
 
-void BKE_image_file_format_set(Image *image, int ftype)
+void BKE_image_file_format_set(Image *image, int ftype, const ImbFormatOptions *options)
 {
 #if 0
 	ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
 	if (ibuf) {
 		ibuf->ftype = ftype;
+		ibuf->foptions = options;
 	}
 	BKE_image_release_ibuf(image, ibuf, NULL);
 #endif
@@ -4497,6 +4513,7 @@ void BKE_image_file_format_set(Image *image, int ftype)
 		while (!IMB_moviecacheIter_done(iter)) {
 			ImBuf *ibuf = IMB_moviecacheIter_getImBuf(iter);
 			ibuf->ftype = ftype;
+			ibuf->foptions = *options;
 			IMB_moviecacheIter_step(iter);
 		}
 		IMB_moviecacheIter_free(iter);

@@ -268,7 +268,7 @@ void SteerableViewMap::saveSteerableViewMap() const
 			//soc qtmp.save(base+QString::number(i)+"-"+QString::number(j)+".png", "PNG");
 			filename << base;
 			filename << i << "-" << j << ".png";
-			ibuf->ftype = PNG;
+			ibuf->ftype = IMB_FTYPE_PNG;
 			IMB_saveiff(ibuf, const_cast<char *>(filename.str().c_str()), 0);
 		}
 #if 0

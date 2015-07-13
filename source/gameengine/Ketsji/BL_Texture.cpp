@@ -170,7 +170,7 @@ bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 	glGenTextures(1, (GLuint*)&mTexture);
 
 #ifdef WITH_DDS
-	if (ibuf->ftype & DDS)
+	if (ibuf->ftype == IMB_FTYPE_DDS)
 		InitGLCompressedTex(ibuf, mipmap);
 	else
 		InitGLTex(ibuf->rect, ibuf->x, ibuf->y, mipmap);

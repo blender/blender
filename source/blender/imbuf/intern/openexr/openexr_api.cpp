@@ -391,7 +391,7 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *name, const int flags
 	{
 		Header header(width, height);
 
-		openexr_header_compression(&header, ibuf->ftype & OPENEXR_COMPRESS);
+		openexr_header_compression(&header, ibuf->foptions.flag & OPENEXR_COMPRESS);
 		openexr_header_metadata(&header, ibuf);
 
 		/* create views when possible */
@@ -508,7 +508,7 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *name, const int flag
 	{
 		Header header(width, height);
 
-		openexr_header_compression(&header, ibuf->ftype & OPENEXR_COMPRESS);
+		openexr_header_compression(&header, ibuf->foptions.flag & OPENEXR_COMPRESS);
 		openexr_header_metadata(&header, ibuf);
 
 		/* create views when possible */
@@ -580,7 +580,7 @@ int imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
 		return(0);
 	}
 
-	if (ibuf->ftype & OPENEXR_HALF)
+	if (ibuf->foptions.flag & OPENEXR_HALF)
 		return (int) imb_save_openexr_half(ibuf, name, flags, 1, NULL, NULL);
 	else {
 		/* when no float rect, we save as half (16 bits is sufficient) */
@@ -602,7 +602,7 @@ static bool imb_save_openexr_multiview(ImBuf *ibuf, const char *name, const int 
 		return false;
 	}
 
-	if (ibuf->ftype & OPENEXR_HALF)
+	if (ibuf->foptions.flag & OPENEXR_HALF)
 		return imb_save_openexr_half(ibuf, name, flags, totviews, getview, getbuffer);
 	else {
 		/* when no float rect, we save as half (16 bits is sufficient) */
@@ -1944,7 +1944,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem, size_t size, int flags,
 				ibuf->ppm[1] = ibuf->ppm[0] * (double)file->header(0).pixelAspectRatio();
 			}
 
-			ibuf->ftype = OPENEXR;
+			ibuf->ftype = IMB_FTYPE_OPENEXR;
 
 			if (!(flags & IB_test)) {
 

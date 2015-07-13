@@ -2785,10 +2785,13 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface, char *filenam
 	}
 
 	/* Set output format, png in case exr isn't supported */
-	ibuf->ftype = PNG | 95;
+	ibuf->ftype = IMB_FTYPE_PNG;
+	ibuf->foptions.quality = 15;
+
 #ifdef WITH_OPENEXR
 	if (format == R_IMF_IMTYPE_OPENEXR) {   /* OpenEXR 32-bit float */
-		ibuf->ftype = OPENEXR | OPENEXR_COMPRESS;
+		ibuf->ftype = IMB_FTYPE_OPENEXR;
+		ibuf->foptions.flag |= OPENEXR_COMPRESS;
 	}
 #endif
 

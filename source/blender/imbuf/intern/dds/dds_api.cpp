@@ -142,7 +142,7 @@ struct ImBuf *imb_load_dds(const unsigned char *mem, size_t size, int flags, cha
 	ibuf = IMB_allocImBuf(dds.width(), dds.height(), bits_per_pixel, 0); 
 	if (ibuf == 0) return(0); /* memory allocation failed */
 
-	ibuf->ftype = DDS;
+	ibuf->ftype = IMB_FTYPE_DDS;
 	ibuf->dds_data.fourcc = dds.fourCC();
 	ibuf->dds_data.nummipmaps = dds.mipmapCount();
 

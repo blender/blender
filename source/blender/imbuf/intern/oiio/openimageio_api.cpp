@@ -268,7 +268,7 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
 		return NULL;
 
 	/* ImBuf always needs 4 channels */
-	ibuf->ftype = PSD;
+	ibuf->ftype = IMB_FTYPE_PSD;
 	ibuf->channels = 4;
 	ibuf->planes = (3 + (is_alpha ? 1 : 0)) * 4 << basesize;
 

@@ -241,7 +241,7 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem, size_t size, int flags, char
 			else ibuf = IMB_allocImBuf(width, height, 32, (flags & IB_rect) | IB_rectfloat);
 
 			if (ibuf == NULL) return NULL;
-			ibuf->ftype = RADHDR;
+			ibuf->ftype = IMB_FTYPE_RADHDR;
 
 			if (flags & IB_alphamode_detect)
 				ibuf->flags |= IB_alphamode_premul;

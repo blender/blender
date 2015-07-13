@@ -86,7 +86,7 @@ static struct ImBuf *imb_load_dpx_cineon(
 	}
 
 	logImageClose(image);
-	ibuf->ftype = use_cineon ? CINEON : DPX;
+	ibuf->ftype = use_cineon ? IMB_FTYPE_CINEON : IMB_FTYPE_DPX;
 
 	if (flags & IB_alphamode_detect)
 		ibuf->flags |= IB_alphamode_premul;
@@ -115,17 +115,17 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
 		return 0;
 	}
 
-	if (ibuf->ftype & CINEON_10BIT)
+	if (ibuf->foptions.flag & CINEON_10BIT)
 		bitspersample = 10;
-	else if (ibuf->ftype & CINEON_12BIT)
+	else if (ibuf->foptions.flag & CINEON_12BIT)
 		bitspersample = 12;
-	else if (ibuf->ftype & CINEON_16BIT)
+	else if (ibuf->foptions.flag & CINEON_16BIT)
 		bitspersample = 16;
 	else
 		bitspersample = 8;
 
 	logImage = logImageCreate(filename, use_cineon, ibuf->x, ibuf->y, bitspersample, (depth == 4),
-	                          (ibuf->ftype & CINEON_LOG), -1, -1, -1, "Blender");
+	                          (ibuf->foptions.flag & CINEON_LOG), -1, -1, -1, "Blender");
 
 	if (logImage == NULL) {
 		printf("DPX/Cineon: error creating file.\n");
