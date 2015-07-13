@@ -103,7 +103,7 @@ PyDoc_STRVAR(FrsNoise_turbulence1_doc,
 "   :return: A noise value.\n"
 "   :rtype: float");
 
-static PyObject *FrsNoise_drand(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
+static PyObject *FrsNoise_drand(BPy_FrsNoise * /*self*/, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"seed", NULL};
 	long seed = 0;
