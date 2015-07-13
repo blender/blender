@@ -537,8 +537,12 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	
 	UI_blocklist_free_inactive(C, &ar->uiblocks);
 
-	if (sa && (win->screen->state != SCREENFULL)) {
-		region_draw_emboss(ar, &ar->winrct);
+	if (sa) {
+		/* disable emboss when the area is full,
+		 * unless we need to see division between regions (quad-split for eg) */
+		if (((win->screen->state == SCREENFULL) && (ar->alignment == RGN_ALIGN_NONE)) == 0) {
+			region_draw_emboss(ar, &ar->winrct);
+		}
 	}
 }
 
