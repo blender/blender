@@ -645,7 +645,7 @@ bool bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sc
 	}
 
 	/* make lowercase */
-	BLI_ascii_strtolower(str, len_max);
+	BLI_str_tolower_ascii(str, len_max);
 
 	/* Try to find a default unit from current or previous string. */
 	default_unit = unit_detect_from_str(usys, str, str_prev);

@@ -730,7 +730,7 @@ size_t BLI_strnlen(const char *s, const size_t maxlen)
 	return len;
 }
 
-void BLI_ascii_strtolower(char *str, const size_t len)
+void BLI_str_tolower_ascii(char *str, const size_t len)
 {
 	size_t i;
 
@@ -739,7 +739,7 @@ void BLI_ascii_strtolower(char *str, const size_t len)
 			str[i] += 'a' - 'A';
 }
 
-void BLI_ascii_strtoupper(char *str, const size_t len)
+void BLI_str_toupper_ascii(char *str, const size_t len)
 {
 	size_t i;
 
