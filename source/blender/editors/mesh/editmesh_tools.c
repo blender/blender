@@ -2204,6 +2204,11 @@ static int edbm_merge_exec(bContext *C, wmOperator *op)
 
 	EDBM_update_generic(em, true, true);
 
+	/* once collapsed, we can't have edge/face selection */
+	if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+	}
+
 	return OPERATOR_FINISHED;
 }
 
