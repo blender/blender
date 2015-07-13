@@ -76,6 +76,7 @@
 #include "BKE_idprop.h"
 #include "BKE_shrinkwrap.h"
 #include "BKE_editmesh.h"
+#include "BKE_scene.h"
 #include "BKE_tracking.h"
 #include "BKE_movieclip.h"
 
@@ -3923,7 +3924,8 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 	MovieTrackingTrack *track;
 	MovieTrackingObject *tracking_object;
 	Object *camob = data->camera ? data->camera : scene->camera;
-	int framenr;
+	float ctime = BKE_scene_frame_get(scene);
+	float framenr;
 
 	if (data->flag & FOLLOWTRACK_ACTIVECLIP)
 		clip = scene->clip;
@@ -3946,7 +3948,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 	if (!track)
 		return;
 
-	framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, scene->r.cfra);
+	framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, ctime);
 
 	if (data->flag & FOLLOWTRACK_USE_3D_POSITION) {
 		if (track->flag & TRACK_HAS_BUNDLE) {
@@ -3974,7 +3976,6 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 		}
 	}
 	else {
-		MovieTrackingMarker *marker;
 		float vec[3], disp[3], axis[3], mat[4][4];
 		float aspect = (scene->r.xsch * scene->r.xasp) / (scene->r.ysch * scene->r.yasp);
 		float len, d;
@@ -4000,10 +4001,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 			float pos[2], rmat[4][4];
 
 			BKE_movieclip_get_size(clip, NULL, &width, &height);
-
-			marker = BKE_tracking_marker_get(track, framenr);
-
-			add_v2_v2v2(pos, marker->pos, track->offset);
+			BKE_tracking_marker_get_subframe_position(track, framenr, pos);
 
 			if (data->flag & FOLLOWTRACK_USE_UNDISTORTION) {
 				/* Undistortion need to happen in pixel space. */
@@ -4173,7 +4171,8 @@ static void camerasolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
 		float mat[4][4], obmat[4][4];
 		MovieTracking *tracking = &clip->tracking;
 		MovieTrackingObject *object = BKE_tracking_object_get_camera(tracking);
-		int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, scene->r.cfra);
+		float ctime = BKE_scene_frame_get(scene);
+		float framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, ctime);
 
 		BKE_tracking_camera_get_reconstructed_interpolate(tracking, object, framenr, mat);
 
@@ -4238,7 +4237,8 @@ static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
 
 		if (object) {
 			float mat[4][4], obmat[4][4], imat[4][4], cammat[4][4], camimat[4][4], parmat[4][4];
-			int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, scene->r.cfra);
+			float ctime = BKE_scene_frame_get(scene);
+			float framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, ctime);
 
 			BKE_object_where_is_calc_mat4(scene, camob, cammat);
 

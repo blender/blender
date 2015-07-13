@@ -189,7 +189,7 @@ struct MovieReconstructedCamera *BKE_tracking_camera_get_reconstructed(struct Mo
                                                                        int framenr);
 void BKE_tracking_camera_get_reconstructed_interpolate(struct MovieTracking *tracking,
                                                        struct MovieTrackingObject *object,
-                                                       int framenr, float mat[4][4]);
+                                                       float framenr, float mat[4][4]);
 
 /* **** Distortion/Undistortion **** */
 struct MovieDistortion *BKE_tracking_distortion_new(struct MovieTracking *tracking,

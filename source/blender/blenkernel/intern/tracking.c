@@ -1822,7 +1822,7 @@ MovieReconstructedCamera *BKE_tracking_camera_get_reconstructed(MovieTracking *t
 }
 
 void BKE_tracking_camera_get_reconstructed_interpolate(MovieTracking *tracking, MovieTrackingObject *object,
-                                                       int framenr, float mat[4][4])
+                                                       float framenr, float mat[4][4])
 {
 	MovieTrackingReconstruction *reconstruction;
 	MovieReconstructedCamera *cameras;
@@ -1830,17 +1830,15 @@ void BKE_tracking_camera_get_reconstructed_interpolate(MovieTracking *tracking, 
 
 	reconstruction = BKE_tracking_object_get_reconstruction(tracking, object);
 	cameras = reconstruction->cameras;
-	a = reconstructed_camera_index_get(reconstruction, framenr, true);
+	a = reconstructed_camera_index_get(reconstruction, (int)framenr, true);
 
 	if (a == -1) {
 		unit_m4(mat);
-
 		return;
 	}
 
-	if (cameras[a].framenr != framenr && a > 0 && a < reconstruction->camnr - 1) {
+	if (cameras[a].framenr != framenr && a < reconstruction->camnr - 1) {
 		float t = ((float)framenr - cameras[a].framenr) / (cameras[a + 1].framenr - cameras[a].framenr);
-
 		blend_m4_m4m4(mat, cameras[a].mat, cameras[a + 1].mat, t);
 	}
 	else {
