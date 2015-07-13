@@ -1134,7 +1134,7 @@ static void rna_GameObjectSettings_state_get(PointerRNA *ptr, int *values)
 
 	memset(values, 0, sizeof(int) * OB_MAX_STATES);
 	for (i = 0; i < OB_MAX_STATES; i++) {
-		values[i] = (ob->state & (1 << i)) | all_states;
+		values[i] = (ob->state & (1 << i)) ? 1 : 0 | all_states;
 	}
 }
 
