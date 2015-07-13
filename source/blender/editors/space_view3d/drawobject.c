@@ -3578,7 +3578,12 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 				bool is_first = true;
 
 				BM_ITER_ELEM (loop, &liter, efa, BM_LOOPS_OF_FACE) {
-					if (is_face_sel || (do_moving && BM_elem_flag_test(loop->v, BM_ELEM_SELECT))) {
+					if (is_face_sel ||
+					    (do_moving &&
+					     (BM_elem_flag_test(loop->v, BM_ELEM_SELECT) ||
+					      BM_elem_flag_test(loop->prev->v, BM_ELEM_SELECT) ||
+					      BM_elem_flag_test(loop->next->v, BM_ELEM_SELECT))))
+					{
 						float angle;
 						float v2_local[3];
 
