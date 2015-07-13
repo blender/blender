@@ -59,14 +59,21 @@ def is_c_any(filename):
 CMAKE_DIR = "."
 
 
-def cmake_cache_var(var):
-    cache_file = open(join(CMAKE_DIR, "CMakeCache.txt"))
-    lines = [l_strip for l in cache_file for l_strip in (l.strip(),) if l_strip if not l_strip.startswith("//") if not l_strip.startswith("#")]
-    cache_file.close()
+def cmake_cache_var_iter():
+    import re
+    re_cache = re.compile(r'([A-Za-z0-9_\-]+)?:?([A-Za-z0-9_\-]+)?=(.*)$')
+    with open(join(CMAKE_DIR, "CMakeCache.txt"), 'r', encoding='utf-8') as cache_file:
+        for l in cache_file:
+            match = re_cache.match(l.strip())
+            if match is not None:
+                var, type_, val = match.groups()
+                yield (var, type_ or "", val)
 
-    for l in lines:
-        if l.split(":")[0] == var:
-            return l.split("=", 1)[-1]
+
+def cmake_cache_var(var):
+    for var_iter, type_iter, value_iter in cmake_cache_var_iter():
+        if var == var_iter:
+            return value_iter
     return None
 
 
