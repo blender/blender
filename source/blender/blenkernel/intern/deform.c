@@ -92,8 +92,10 @@ bDeformGroup *defgroup_duplicate(bDeformGroup *ingroup)
 {
 	bDeformGroup *outgroup;
 
-	if (!ingroup)
+	if (!ingroup) {
+		BLI_assert(0);
 		return NULL;
+	}
 
 	outgroup = MEM_callocN(sizeof(bDeformGroup), "copy deformGroup");
 
@@ -770,6 +772,9 @@ MDeformWeight *defvert_find_index(const MDeformVert *dvert, const int defgroup)
 			}
 		}
 	}
+	else {
+		BLI_assert(0);
+	}
 
 	return NULL;
 }
@@ -781,8 +786,10 @@ MDeformWeight *defvert_verify_index(MDeformVert *dvert, const int defgroup)
 	MDeformWeight *dw_new;
 
 	/* do this check always, this function is used to check for it */
-	if (!dvert || defgroup < 0)
+	if (!dvert || defgroup < 0) {
+		BLI_assert(0);
 		return NULL;
+	}
 
 	dw_new = defvert_find_index(dvert, defgroup);
 	if (dw_new)
@@ -813,8 +820,10 @@ void defvert_add_index_notest(MDeformVert *dvert, int defgroup, const float weig
 	MDeformWeight *dw_new;
 
 	/* do this check always, this function is used to check for it */
-	if (!dvert || defgroup < 0)
+	if (!dvert || defgroup < 0) {
+		BLI_assert(0);
 		return;
+	}
 
 	dw_new = MEM_callocN(sizeof(MDeformWeight) * (dvert->totweight + 1), "defvert_add_to group, new deformWeight");
 	if (dvert->dw) {
