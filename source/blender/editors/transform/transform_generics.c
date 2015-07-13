@@ -1956,3 +1956,110 @@ void calculatePropRatio(TransInfo *t)
 		}
 	}
 }
+
+/**
+ * Rotate an element, low level code, ignore protected channels.
+ * (use for objects or pose-bones)
+ * Similar to #ElementRotation.
+ */
+void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot)
+{
+	float totmat[3][3];
+	float smat[3][3];
+	float fmat[3][3];
+	float obmat[3][3];
+
+	float dmat[3][3];  /* delta rotation */
+	float dmat_inv[3][3];
+
+	mul_m3_m3m3(totmat, mat, td->mtx);
+	mul_m3_m3m3(smat, td->smtx, mat);
+
+	/* logic from BKE_object_rot_to_mat3 */
+	if (use_drot) {
+		if (td->ext->rotOrder > 0) {
+			eulO_to_mat3(dmat, td->ext->drot, td->ext->rotOrder);
+		}
+		else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
+#if 0
+			axis_angle_to_mat3(dmat, td->ext->drotAxis, td->ext->drotAngle);
+#else
+			unit_m3(dmat);
+#endif
+		}
+		else {
+			float tquat[4];
+			normalize_qt_qt(tquat, td->ext->dquat);
+			quat_to_mat3(dmat, tquat);
+		}
+
+		invert_m3_m3(dmat_inv, dmat);
+	}
+
+
+	if (td->ext->rotOrder == ROT_MODE_QUAT) {
+		float quat[4];
+
+		/* calculate the total rotatation */
+		quat_to_mat3(obmat, td->ext->iquat);
+		if (use_drot) {
+			mul_m3_m3m3(obmat, dmat, obmat);
+		}
+
+		/* mat = transform, obmat = object rotation */
+		mul_m3_m3m3(fmat, smat, obmat);
+
+		if (use_drot) {
+			mul_m3_m3m3(fmat, dmat_inv, fmat);
+		}
+
+		mat3_to_quat(quat, fmat);
+
+		/* apply */
+		copy_qt_qt(td->ext->quat, quat);
+	}
+	else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
+		float axis[3], angle;
+
+		/* calculate the total rotatation */
+		axis_angle_to_mat3(obmat, td->ext->irotAxis, td->ext->irotAngle);
+		if (use_drot) {
+			mul_m3_m3m3(obmat, dmat, obmat);
+		}
+
+		/* mat = transform, obmat = object rotation */
+		mul_m3_m3m3(fmat, smat, obmat);
+
+		if (use_drot) {
+			mul_m3_m3m3(fmat, dmat_inv, fmat);
+		}
+
+		mat3_to_axis_angle(axis, &angle, fmat);
+
+		/* apply */
+		copy_v3_v3(td->ext->rotAxis, axis);
+		*td->ext->rotAngle = angle;
+	}
+	else {
+		float eul[3];
+
+		/* calculate the total rotatation */
+		eulO_to_mat3(obmat, td->ext->irot, td->ext->rotOrder);
+		if (use_drot) {
+			mul_m3_m3m3(obmat, dmat, obmat);
+		}
+
+		/* mat = transform, obmat = object rotation */
+		mul_m3_m3m3(fmat, smat, obmat);
+
+		if (use_drot) {
+			mul_m3_m3m3(fmat, dmat_inv, fmat);
+		}
+
+		mat3_to_compatible_eulO(eul, td->ext->rot, td->ext->rotOrder, fmat);
+
+		/* apply */
+		copy_v3_v3(td->ext->rot, eul);
+	}
+}
+

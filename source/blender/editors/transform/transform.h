@@ -711,6 +711,8 @@ void calculatePropRatio(TransInfo *t);
 
 void getViewVector(TransInfo *t, float coord[3], float vec[3]);
 
+void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot);
+
 /*********************** Transform Orientations ******************************/
 
 void initTransformOrientation(struct bContext *C, TransInfo *t);
