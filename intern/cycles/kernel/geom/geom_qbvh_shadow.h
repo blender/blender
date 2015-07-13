@@ -58,6 +58,9 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 	Transform ob_tfm;
 #endif
 
+	*num_hits = 0;
+	isect_array->t = tmax;
+
 #ifndef __KERNEL_SSE41__
 	if(!isfinite(P.x)) {
 		return false;
@@ -67,9 +70,6 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 #if BVH_FEATURE(BVH_INSTANCING)
 	int num_hits_in_instance = 0;
 #endif
-
-	*num_hits = 0;
-	isect_array->t = tmax;
 
 	ssef tnear(0.0f), tfar(tmax);
 	sse3f idir4(ssef(idir.x), ssef(idir.y), ssef(idir.z));
