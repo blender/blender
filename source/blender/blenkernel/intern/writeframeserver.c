@@ -218,7 +218,7 @@ static int handle_request(FrameserverContext *context, RenderData *rd, char *req
 
 	*p = 0;
 
-	if (STREQ(path, "/index.html") || strcmp(path, "/")) {
+	if (STREQ(path, "/index.html") || STREQ(path, "/")) {
 		safe_puts(context->connsock, index_page);
 		return -1;
 	}
