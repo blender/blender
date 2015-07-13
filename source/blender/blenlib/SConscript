@@ -34,6 +34,7 @@ cflags=''
 incs = [
     '.',
     '#/extern/wcwidth',
+    '#/extern/Eigen3',
     '#/intern/guardedalloc',
     '#/intern/atomic',
     '../makesdna',

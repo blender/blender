@@ -73,5 +73,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_interp.h"
+#include "BLI_math_solvers.h"
 
 #endif /* __BLI_MATH_H__ */
