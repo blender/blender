@@ -3191,38 +3191,6 @@ static void interpolate_exciter(Object *ob, int timescale, int time)
 	- xxxx_to_softbody(Object *ob)      : a full (new) copy, creates SB geometry
 */
 
-static void get_scalar_from_vertexgroup(Object *ob, int vertID, int groupindex, float *target)
-/* result 0 on success, else indicates error number
--- kind of *inverse* result defintion,
--- but this way we can signal error condition to caller
--- and yes this function must not be here but in a *vertex group module*
-*/
-{
-	MDeformVert *dv= NULL;
-	int i;
-
-	/* spot the vert in deform vert list at mesh */
-	if (ob->type==OB_MESH) {
-		Mesh *me= ob->data;
-		if (me->dvert)
-			dv = me->dvert + vertID;
-	}
-	else if (ob->type==OB_LATTICE) {	/* not yet supported in softbody btw */
-		Lattice *lt= ob->data;
-		if (lt->dvert)
-			dv = lt->dvert + vertID;
-	}
-	if (dv) {
-		/* Lets see if this vert is in the weight group */
-		for (i=0; i<dv->totweight; i++) {
-			if (dv->dw[i].def_nr == groupindex) {
-				*target= dv->dw[i].weight; /* got it ! */
-				break;
-			}
-		}
-	}
-}
-
 /* Resetting a Mesh SB object's springs */
 /* Spring length are caculted from'raw' mesh vertices that are NOT altered by modifier stack. */
 static void springs_from_mesh(Object *ob)
@@ -3271,7 +3239,8 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 	BodyPoint *bp;
 	BodySpring *bs;
 	int a, totedge;
-	
+	int defgroup_index, defgroup_index_mass, defgroup_index_spring;
+
 	BKE_mesh_tessface_ensure(me);
 	
 	if (ob->softflag & OB_SB_EDGES) totedge= me->totedge;
@@ -3281,8 +3250,12 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 	renew_softbody(scene, ob, me->totvert, totedge);
 
 	/* we always make body points */
-	sb= ob->soft;
+	sb = ob->soft;
 	bp= sb->bpoint;
+
+	defgroup_index        = me->dvert ? (sb->vertgroup - 1) : -1;
+	defgroup_index_mass   = me->dvert ? defgroup_name_index(ob, sb->namedVG_Mass) : -1;
+	defgroup_index_spring = me->dvert ? defgroup_name_index(ob, sb->namedVG_Spring_K) : -1;
 
 	for (a=0; a<me->totvert; a++, bp++) {
 		/* get scalar values needed  *per vertex* from vertex group functions,
@@ -3291,51 +3264,24 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		 * which can be done by caller but still .. i'd like it to go this way
 		 */
 
-		if ((ob->softflag & OB_SB_GOAL) && sb->vertgroup) { /* even this is a deprecated evil hack */
-		   /* I'd like to have it  .. if (sb->namedVG_Goal[0]) */
-
-			get_scalar_from_vertexgroup(ob, a, sb->vertgroup - 1, &bp->goal);
-			/* do this always, regardless successful read from vertex group */
-			/* this is where '2.5 every thing is animatable' goes wrong in the first place jow_go_for2_5 */
-			/* 1st coding action to take : move this to frame level */
-			/* reads: leave the bp->goal as it was read from vertex group / or default .. we will need it at per frame call */
-			/* should be fixed for meshes */
-			// bp->goal= sb->mingoal + bp->goal*goalfac; /* do not do here jow_go_for2_5 */
+		if (ob->softflag & OB_SB_GOAL) {
+			BLI_assert(bp->goal == sb->defgoal);
 		}
-		else {
-			/* in consequence if no group was set .. but we want to animate it laters */
-			/* logically attach to goal with default first */
-			if (ob->softflag & OB_SB_GOAL) {bp->goal = sb->defgoal;}
+		if ((ob->softflag & OB_SB_GOAL) && (defgroup_index != -1)) {
+			bp->goal *= defvert_find_weight(&me->dvert[a], defgroup_index);
 		}
 
 		/* to proof the concept
 		 * this enables per vertex *mass painting*
 		 */
 
-		if (sb->namedVG_Mass[0]) {
-			int defgrp_index = defgroup_name_index(ob, sb->namedVG_Mass);
-			/* printf("VGN  %s %d\n", sb->namedVG_Mass, defgrp_index); */
-			if (defgrp_index != -1) {
-				get_scalar_from_vertexgroup(ob, a, defgrp_index, &bp->mass);
-				/* 2.5  bp->mass = bp->mass * sb->nodemass; */
-				/* printf("bp->mass  %f\n", bp->mass); */
-
-			}
-		}
-		/* first set the default */
-		bp->springweight = 1.0f;
-
-		if (sb->namedVG_Spring_K[0]) {
-			int defgrp_index = defgroup_name_index(ob, sb->namedVG_Spring_K);
-			//printf("VGN  %s %d\n", sb->namedVG_Spring_K, defgrp_index);
-			if (defgrp_index  != -1) {
-				get_scalar_from_vertexgroup(ob, a, defgrp_index , &bp->springweight);
-				//printf("bp->springweight  %f\n", bp->springweight);
-
-			}
+		if (defgroup_index_mass != -1) {
+			bp->mass *= defvert_find_weight(&me->dvert[a], defgroup_index_mass);
 		}
 
-
+		if (defgroup_index_spring != -1) {
+			bp->springweight *= defvert_find_weight(&me->dvert[a], defgroup_index_spring);
+		}
 	}
 
 	/* but we only optionally add body edge springs */
@@ -3515,6 +3461,7 @@ static void lattice_to_softbody(Scene *scene, Object *ob)
 	int totvert, totspring = 0, a;
 	BodyPoint *bp;
 	BPoint *bpnt = lt->def;
+	int defgroup_index, defgroup_index_mass, defgroup_index_spring;
 
 	totvert= lt->pntsu*lt->pntsv*lt->pntsw;
 
@@ -3533,17 +3480,30 @@ static void lattice_to_softbody(Scene *scene, Object *ob)
 	sb= ob->soft;	/* can be created in renew_softbody() */
 	bp = sb->bpoint;
 
+	defgroup_index        = lt->dvert ? (sb->vertgroup - 1) : -1;
+	defgroup_index_mass   = lt->dvert ? defgroup_name_index(ob, sb->namedVG_Mass) : -1;
+	defgroup_index_spring = lt->dvert ? defgroup_name_index(ob, sb->namedVG_Spring_K) : -1;
+
 	/* same code used as for mesh vertices */
 	for (a = 0; a < totvert; a++, bp++, bpnt++) {
-		if ((ob->softflag & OB_SB_GOAL) && sb->vertgroup) {
-			get_scalar_from_vertexgroup(ob, a, (short) (sb->vertgroup - 1), &bp->goal);
+
+		if (ob->softflag & OB_SB_GOAL) {
+			BLI_assert(bp->goal == sb->defgoal);
 		}
-		else {
-			if (ob->softflag & OB_SB_GOAL) {
-				bp->goal = sb->defgoal;
-			}
+
+		if ((ob->softflag & OB_SB_GOAL) && (defgroup_index != -1)) {
+			bp->goal *= defvert_find_weight(&lt->dvert[a], defgroup_index);
+		}
+
+		if (defgroup_index_mass != -1) {
+			bp->mass *= defvert_find_weight(&lt->dvert[a], defgroup_index_mass);
+		}
+
+		if (defgroup_index_spring != -1) {
+			bp->springweight *= defvert_find_weight(&lt->dvert[a], defgroup_index_spring);
 		}
 	}
+
 
 	/* create some helper edges to enable SB lattice to be useful at all */
 	if (ob->softflag & OB_SB_EDGES) {
