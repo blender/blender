@@ -3494,6 +3494,9 @@ static void lattice_to_softbody(Scene *scene, Object *ob)
 		if ((ob->softflag & OB_SB_GOAL) && (defgroup_index != -1)) {
 			bp->goal *= defvert_find_weight(&lt->dvert[a], defgroup_index);
 		}
+		else {
+			bp->goal *= bpnt->weight;
+		}
 
 		if (defgroup_index_mass != -1) {
 			bp->mass *= defvert_find_weight(&lt->dvert[a], defgroup_index_mass);
@@ -3555,7 +3558,7 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 			/* not too hard to do, but needs some more code to care for;  some one may want look at it  JOW 2010/06/12*/
 			for (bezt=nu->bezt, a=0; a<nu->pntsu; a++, bezt++, bp+=3, curindex+=3) {
 				if (setgoal) {
-					bp->goal= bezt->weight;
+					bp->goal *= bezt->weight;
 
 					/* all three triples */
 					(bp+1)->goal= bp->goal;
@@ -3590,7 +3593,7 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 		else {
 			for (bpnt=nu->bp, a=0; a<nu->pntsu*nu->pntsv; a++, bpnt++, bp++, curindex++) {
 				if (setgoal) {
-					bp->goal= bpnt->weight;
+					bp->goal *= bpnt->weight;
 				}
 				if (totspring && a>0) {
 					bs->v1= curindex-1;
