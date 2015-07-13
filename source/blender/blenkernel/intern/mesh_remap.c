@@ -175,7 +175,7 @@ static void mesh_calc_eigen_matrix(
 {
 	float center[3], covmat[3][3];
 	float eigen_val[3], eigen_vec[3][3];
-	float (*cos)[3] = (float (*)[3])vcos;
+	float (*cos)[3] = NULL;
 
 	bool eigen_success;
 	int i;
@@ -184,7 +184,7 @@ static void mesh_calc_eigen_matrix(
 		const MVert *mv;
 		float (*co)[3];
 
-		cos = MEM_mallocN(sizeof(*cos) * (size_t)numverts, __func__);
+		vcos = cos = MEM_mallocN(sizeof(*cos) * (size_t)numverts, __func__);
 		for (i = 0, co = cos, mv = verts; i < numverts; i++, co++, mv++) {
 			copy_v3_v3(*co, mv->co);
 		}
@@ -193,9 +193,13 @@ static void mesh_calc_eigen_matrix(
 
 	/* Note: here we apply sample correction to covariance matrix, since we consider the vertices as a sample
 	 *       of the whole 'surface' population of our mesh... */
-	BLI_covariance_m3_v3n(cos, numverts, true, covmat, center);
+	BLI_covariance_m3_v3n(vcos, numverts, true, covmat, center);
 
-	eigen_success = BLI_eigen_solve_selfadjoint_m3(covmat, eigen_val, eigen_vec);
+	if (cos) {
+		MEM_freeN(cos);
+	}
+
+	eigen_success = BLI_eigen_solve_selfadjoint_m3((const float (*)[3])covmat, eigen_val, eigen_vec);
 	BLI_assert(eigen_success);
 	UNUSED_VARS_NDEBUG(eigen_success);
 
@@ -236,10 +240,6 @@ static void mesh_calc_eigen_matrix(
 
 	copy_m4_m3(r_mat, eigen_vec);
 	copy_v3_v3(r_mat[3], center);
-
-	if (verts) {
-		MEM_freeN(cos);
-	}
 }
 
 /**
@@ -268,7 +268,7 @@ void BKE_mesh_remap_find_best_match_from_dm(
 	float (*vcos_src)[3] = MEM_mallocN(sizeof(*vcos_src) * (size_t)numverts_src, __func__);
 	dm_src->getVertCos(dm_src, vcos_src);
 
-	mesh_calc_eigen_matrix(NULL, vcos_src, numverts_src, mat_src);
+	mesh_calc_eigen_matrix(NULL, (const float (*)[3])vcos_src, numverts_src, mat_src);
 	mesh_calc_eigen_matrix(verts_dst, NULL, numverts_dst, mat_dst);
 
 	BLI_space_transform_global_from_matrices(r_space_transform, mat_dst, mat_src);
