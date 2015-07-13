@@ -1614,7 +1614,8 @@ void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, const char *propname
 typedef struct IconViewMenuArgs {
 	PointerRNA ptr;
 	PropertyRNA *prop;
-	int show_labels;
+	bool show_labels;
+	float icon_scale;
 } IconViewMenuArgs;
 
 /* ID Search browse menu, open */
@@ -1627,9 +1628,12 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 	EnumPropertyItem *item;
 	int a;
 	bool free;
+	int w, h;
 
 	/* arg_litem is malloced, can be freed by parent button */
 	args = *((IconViewMenuArgs *) arg_litem);
+	w = UI_UNIT_X * (args.icon_scale);
+	h = UI_UNIT_X * (args.icon_scale + args.show_labels);
 
 	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS_PULLDOWN);
 	UI_block_flag_enable(block, UI_BLOCK_LOOP);
@@ -1638,9 +1642,6 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 
 	for (a = 0; item[a].identifier; a++) {
 		int x, y;
-		/* XXX hardcoded size to 5 units */
-		const int w = UI_UNIT_X * 5;
-		const int h = args.show_labels ? 6 * UI_UNIT_Y : UI_UNIT_Y * 5;
 
 		x = (a % 8) * w;
 		y = (a / 8) * h;
@@ -1670,7 +1671,10 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 	return block;
 }
 
-void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname, int show_labels)
+/**
+ * \param icon_scale: Scale of the icon, 1x == button height.
+ */
+void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname, int show_labels, float icon_scale)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	IconViewMenuArgs *cb_args;
@@ -1695,6 +1699,7 @@ void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname,
 	cb_args->ptr = *ptr;
 	cb_args->prop = prop;
 	cb_args->show_labels = show_labels;
+	cb_args->icon_scale = icon_scale;
 
 	but = uiDefBlockButN(block, ui_icon_view_menu_cb, cb_args, "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6, "");
 
