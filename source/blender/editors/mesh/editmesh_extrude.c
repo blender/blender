@@ -701,6 +701,11 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 	angle = -angle;
 	dupli = RNA_boolean_get(op->ptr, "dupli");
 
+	if (is_zero_v3(axis)) {
+		BKE_report(op->reports, RPT_ERROR, "Invalid/unset axis");
+		return OPERATOR_CANCELLED;
+	}
+
 	/* keep the values in worldspace since we're passing the obmat */
 	if (!EDBM_op_init(em, &spinop, op,
 	                  "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i angle=%f space=%m4 use_duplicate=%b",
@@ -745,7 +750,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = edbm_spin_invoke;
 	ot->exec = edbm_spin_exec;
-	ot->poll = EDBM_view3d_poll;
+	ot->poll = ED_operator_editmesh;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -781,6 +786,11 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
 	steps = RNA_int_get(op->ptr, "steps");
 	RNA_float_get_array(op->ptr, "center", cent);
 	RNA_float_get_array(op->ptr, "axis", axis);
+
+	if (is_zero_v3(axis)) {
+		BKE_report(op->reports, RPT_ERROR, "Invalid/unset axis");
+		return OPERATOR_CANCELLED;
+	}
 
 	/* find two vertices with valence count == 1, more or less is wrong */
 	v1 = NULL;
@@ -865,7 +875,7 @@ void MESH_OT_screw(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = edbm_screw_invoke;
 	ot->exec = edbm_screw_exec;
-	ot->poll = EDBM_view3d_poll;
+	ot->poll = ED_operator_editmesh;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
