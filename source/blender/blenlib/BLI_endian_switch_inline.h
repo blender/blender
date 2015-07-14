@@ -42,7 +42,7 @@ BLI_INLINE void BLI_endian_switch_int16(short *val)
 }
 BLI_INLINE void BLI_endian_switch_uint16(unsigned short *val)
 {
-#ifdef __GNUC__
+#if (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 408))  /* gcc4.8+ only */
 	*val = __builtin_bswap16(*val);
 #else
 	unsigned short tval = *val;
