@@ -184,10 +184,15 @@ static void mesh_calc_eigen_matrix(
 		const MVert *mv;
 		float (*co)[3];
 
-		vcos = cos = MEM_mallocN(sizeof(*cos) * (size_t)numverts, __func__);
+		cos = MEM_mallocN(sizeof(*cos) * (size_t)numverts, __func__);
 		for (i = 0, co = cos, mv = verts; i < numverts; i++, co++, mv++) {
 			copy_v3_v3(*co, mv->co);
 		}
+		/* TODO(sergey): For until we officially drop all compilers which
+		 * doesn't handle casting correct we use workaround to avoid explicit
+		 * cast here.
+		 */
+		vcos = (void*)cos;
 	}
 	unit_m4(r_mat);
 
