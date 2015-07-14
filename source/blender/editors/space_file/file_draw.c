@@ -428,6 +428,7 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
 
 	BLI_make_file_string(G.main->name, orgname, sfile->params->dir, oldname);
 	BLI_strncpy(filename, sfile->params->renameedit, sizeof(filename));
+	BLI_filename_make_safe(filename);
 	BLI_make_file_string(G.main->name, newname, sfile->params->dir, filename);
 
 	if (!STREQ(orgname, newname)) {
