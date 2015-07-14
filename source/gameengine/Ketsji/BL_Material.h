@@ -84,7 +84,7 @@ public:
 
 
 	Material*			material;
-	MTFace				tface; /* copy of the derived meshes tface */
+	MTexPoly			mtexpoly; /* copy of the derived meshes tface */
 	Image*				img[MAXTEX];
 	EnvMap*				cubemap[MAXTEX];
 

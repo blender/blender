@@ -233,7 +233,7 @@ Image *RAS_IPolyMaterial::GetBlenderImage() const
 {
 	return NULL;
 }
-MTFace *RAS_IPolyMaterial::GetMTFace() const
+MTexPoly *RAS_IPolyMaterial::GetMTexPoly() const
 {
 	return NULL;
 }

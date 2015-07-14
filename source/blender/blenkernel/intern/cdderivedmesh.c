@@ -471,7 +471,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 	const MFace *mf = DM_get_tessface_data_layer(dm, CD_MFACE);
-	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
+	MTexPoly *mtexpoly = DM_get_poly_data_layer(dm, CD_MTEXPOLY);
 	MCol *mcol;
 	int i, orig;
 	int colType, startFace = 0;
@@ -539,12 +539,14 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 		if (i != tottri - 1)
 			next_actualFace = dm->drawObject->triangle_to_mface[i + 1];
 		
+		orig = index_mf_to_mpoly ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, actualFace) : ORIGINDEX_NONE;
+
 		if (drawParams) {
-			draw_option = drawParams(use_tface && tf ? &tf[actualFace] : NULL, (mcol != NULL), mf[actualFace].mat_nr);
+			MTexPoly *tp = (use_tface && mtexpoly && orig != ORIGINDEX_NONE) ? &mtexpoly[orig] : NULL;
+			draw_option = drawParams(tp, (mcol != NULL), mf[actualFace].mat_nr);
 		}
 		else {
 			if (index_mf_to_mpoly) {
-				orig = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, actualFace);
 				if (orig == ORIGINDEX_NONE) {
 					/* XXX, this is not really correct
 							 * it will draw the previous faces context for this one when we don't know its settings.

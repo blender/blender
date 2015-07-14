@@ -833,19 +833,15 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 		for (i = 0; i < em->tottri; i++) {
 			BMLoop **ltri = looptris[i];
 			MTexPoly *tp = (cd_poly_tex_offset != -1) ? BM_ELEM_CD_GET_VOID_P(ltri[0]->f, cd_poly_tex_offset) : NULL;
-			MTFace mtf = {{{0}}};
 			/*unsigned char *cp = NULL;*/ /*UNUSED*/
 			int drawSmooth = lnors || BM_elem_flag_test(ltri[0]->f, BM_ELEM_SMOOTH);
 			DMDrawOption draw_option;
 
 			efa = ltri[0]->f;
 
-			if (cd_poly_tex_offset != -1) {
-				ME_MTEXFACE_CPY(&mtf, tp);
+			if (drawParams) {
+				draw_option = drawParams(tp, has_vcol, efa->mat_nr);
 			}
-
-			if (drawParams)
-				draw_option = drawParams(&mtf, has_vcol, efa->mat_nr);
 			else if (drawParamsMapped)
 				draw_option = drawParamsMapped(userData, BM_elem_index_get(efa), efa->mat_nr);
 			else
@@ -902,19 +898,14 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 		for (i = 0; i < em->tottri; i++) {
 			BMLoop **ltri = looptris[i];
 			MTexPoly *tp = (cd_poly_tex_offset != -1) ? BM_ELEM_CD_GET_VOID_P(ltri[0]->f, cd_poly_tex_offset) : NULL;
-			MTFace mtf = {{{0}}};
 			/*unsigned char *cp = NULL;*/ /*UNUSED*/
 			int drawSmooth = lnors || BM_elem_flag_test(ltri[0]->f, BM_ELEM_SMOOTH);
 			DMDrawOption draw_option;
 
 			efa = ltri[0]->f;
 
-			if (cd_poly_tex_offset != -1) {
-				ME_MTEXFACE_CPY(&mtf, tp);
-			}
-
 			if (drawParams)
-				draw_option = drawParams(&mtf, has_vcol, efa->mat_nr);
+				draw_option = drawParams(tp, has_vcol, efa->mat_nr);
 			else if (drawParamsMapped)
 				draw_option = drawParamsMapped(userData, BM_elem_index_get(efa), efa->mat_nr);
 			else

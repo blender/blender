@@ -39,7 +39,7 @@ extern "C" {
 struct ImBuf;
 struct Image;
 struct ImageUser;
-struct MTFace;
+struct MTexPoly;
 struct Object;
 struct Scene;
 struct View3D;
@@ -83,7 +83,7 @@ int GPU_get_material_alpha_blend(void);
  *   be drawn using one or the other
  * - passing NULL clears the state again */
 
-int GPU_set_tpage(struct MTFace *tface, int mipmap, int transp);
+int GPU_set_tpage(struct MTexPoly *mtexpoly, int mipmap, int transp);
 void GPU_clear_tpage(bool force);
 
 /* Lights
@@ -97,9 +97,11 @@ int GPU_scene_object_lights(struct Scene *scene, struct Object *ob,
 /* Text render
  * - based on moving uv coordinates */
 
-void GPU_render_text(struct MTFace *tface, int mode,
-	const char *textstr, int textlen, unsigned int *col,
-	float *v1, float *v2, float *v3, float *v4, int glattrib);
+void GPU_render_text(
+        struct MTexPoly *mtexpoly, int mode,
+        const char *textstr, int textlen, unsigned int *col,
+        const float *v_quad[4], const float *uv_quad[4],
+        int glattrib);
 
 /* Mipmap settings
  * - these will free textures on changes */

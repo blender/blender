@@ -79,7 +79,7 @@ typedef struct drawMeshFaceSelect_userData {
 typedef struct drawEMTFMapped_userData {
 	BMEditMesh *em;
 	bool has_mcol;
-	bool has_mtface;
+	int cd_poly_tex_offset;
 	MFace *mf;
 	MTFace *tf;
 } drawEMTFMapped_userData;
@@ -236,11 +236,11 @@ static struct TextureDrawState {
 	bool texpaint_material; /* use material slots for texture painting */
 } Gtexdraw = {NULL, NULL, NULL, false, 0, 0, 0, false, {0, 0, 0, 0}, false, false};
 
-static bool set_draw_settings_cached(int clearcache, MTFace *texface, Material *ma, struct TextureDrawState gtexdraw)
+static bool set_draw_settings_cached(int clearcache, MTexPoly *texface, Material *ma, struct TextureDrawState gtexdraw)
 {
 	static Material *c_ma;
 	static int c_textured;
-	static MTFace c_texface;
+	static MTexPoly c_texface;
 	static int c_backculled;
 	static bool c_badtex;
 	static int c_lit;
@@ -264,7 +264,7 @@ static bool set_draw_settings_cached(int clearcache, MTFace *texface, Material *
 
 	if (clearcache) {
 		c_textured = c_lit = c_backculled = -1;
-		memset(&c_texface, 0, sizeof(MTFace));
+		memset(&c_texface, 0, sizeof(c_texface));
 		c_badtex = false;
 		c_has_texface = -1;
 		c_ma = NULL;
@@ -534,7 +534,7 @@ static void draw_textured_end(void)
 	glPopMatrix();
 }
 
-static DMDrawOption draw_tface__set_draw_legacy(MTFace *tface, const bool has_mcol, int matnr)
+static DMDrawOption draw_tface__set_draw_legacy(MTexPoly *mtexpoly, const bool has_mcol, int matnr)
 {
 	Material *ma = give_current_material(Gtexdraw.ob, matnr + 1);
 	bool invalidtexture = false;
@@ -542,9 +542,9 @@ static DMDrawOption draw_tface__set_draw_legacy(MTFace *tface, const bool has_mc
 	if (ma && (ma->game.flag & GEMAT_INVISIBLE))
 		return DM_DRAW_OPTION_SKIP;
 
-	invalidtexture = set_draw_settings_cached(0, tface, ma, Gtexdraw);
+	invalidtexture = set_draw_settings_cached(0, mtexpoly, ma, Gtexdraw);
 
-	if (tface && invalidtexture) {
+	if (mtexpoly && invalidtexture) {
 		glColor3ub(0xFF, 0x00, 0xFF);
 		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
 	}
@@ -553,7 +553,7 @@ static DMDrawOption draw_tface__set_draw_legacy(MTFace *tface, const bool has_mc
 		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
 	}
 	else if (!has_mcol) {
-		if (tface) {
+		if (mtexpoly) {
 			glColor3f(1.0, 1.0, 1.0);
 		}
 		else {
@@ -575,14 +575,14 @@ static DMDrawOption draw_tface__set_draw_legacy(MTFace *tface, const bool has_mc
 	}
 }
 
-static DMDrawOption draw_tface__set_draw(MTFace *tface, const bool UNUSED(has_mcol), int matnr)
+static DMDrawOption draw_tface__set_draw(MTexPoly *mtexpoly, const bool UNUSED(has_mcol), int matnr)
 {
 	Material *ma = give_current_material(Gtexdraw.ob, matnr + 1);
 
 	if (ma && (ma->game.flag & GEMAT_INVISIBLE)) return DM_DRAW_OPTION_SKIP;
 
-	if (tface || Gtexdraw.is_texpaint)
-		set_draw_settings_cached(0, tface, ma, Gtexdraw);
+	if (mtexpoly || Gtexdraw.is_texpaint)
+		set_draw_settings_cached(0, mtexpoly, ma, Gtexdraw);
 
 	/* always use color from mcol, as set in update_tface_color_layer */
 	return DM_DRAW_OPTION_NORMAL;
@@ -590,7 +590,7 @@ static DMDrawOption draw_tface__set_draw(MTFace *tface, const bool UNUSED(has_mc
 
 static void update_tface_color_layer(DerivedMesh *dm, bool use_mcol)
 {
-	MTFace *tface = DM_get_tessface_data_layer(dm, CD_MTFACE);
+	MTexPoly *mtexpoly = DM_get_poly_data_layer(dm, CD_MTEXPOLY);
 	MFace *mface = dm->getTessFaceArray(dm);
 	MCol *finalCol;
 	int i, j;
@@ -624,7 +624,7 @@ static void update_tface_color_layer(DerivedMesh *dm, bool use_mcol)
 					finalCol[i * 4 + j].r = 255;
 				}
 		}
-		else if (tface && set_draw_settings_cached(0, tface, ma, Gtexdraw)) {
+		else if (mtexpoly && set_draw_settings_cached(0, mtexpoly, ma, Gtexdraw)) {
 			for (j = 0; j < 4; j++) {
 				finalCol[i * 4 + j].b = 255;
 				finalCol[i * 4 + j].g = 0;
@@ -639,7 +639,7 @@ static void update_tface_color_layer(DerivedMesh *dm, bool use_mcol)
 			}
 		}
 		else if (!mcol) {
-			if (tface) {
+			if (mtexpoly) {
 				for (j = 0; j < 4; j++) {
 					finalCol[i * 4 + j].b = 255;
 					finalCol[i * 4 + j].g = 255;
@@ -691,14 +691,9 @@ static DMDrawOption draw_tface_mapped__set_draw(void *userData, int origindex, i
 	}
 	else {
 		MTexPoly *tpoly = (me->mtpoly) ? &me->mtpoly[origindex] : NULL;
-		MTFace mtf = {{{0}}};
 		int matnr = mpoly->mat_nr;
-
-		if (tpoly) {
-			ME_MTEXFACE_CPY(&mtf, tpoly);
-		}
 		
-		return draw_tface__set_draw(&mtf, (me->mloopcol != NULL), matnr);
+		return draw_tface__set_draw(tpoly, (me->mloopcol != NULL), matnr);
 	}
 }
 
@@ -717,16 +712,11 @@ static DMDrawOption draw_em_tf_mapped__set_draw(void *userData, int origindex, i
 		return DM_DRAW_OPTION_SKIP;
 	}
 	else {
-		MTFace mtf = {{{0}}};
+		MTexPoly *mtexpoly = (data->cd_poly_tex_offset != -1) ?
+		        BM_ELEM_CD_GET_VOID_P(efa, data->cd_poly_tex_offset) : NULL;
 		int matnr = (mat_nr != -1) ? mat_nr : efa->mat_nr;
 
-		if (data->has_mtface) {
-			MTexPoly *tpoly = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-			ME_MTEXFACE_CPY(&mtf, tpoly);
-		}
-
-		return draw_tface__set_draw_legacy(data->has_mtface ? &mtf : NULL,
-		                                   data->has_mcol, matnr);
+		return draw_tface__set_draw_legacy(mtexpoly, data->has_mcol, matnr);
 	}
 }
 
@@ -758,7 +748,6 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	/* fake values to pass to GPU_render_text() */
 	MCol  tmp_mcol[4]  = {{0}};
 	MCol *tmp_mcol_pt  = mloopcol ? tmp_mcol : NULL;
-	MTFace tmp_tf      = {{{0}}};
 
 	/* don't draw without tfaces */
 	if (!mtpoly || !mloopuv)
@@ -783,14 +772,14 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 		if (!(mode & GEMAT_INVISIBLE) && (mode & GEMAT_TEXT) && mp->totloop >= 3) {
 			/* get the polygon as a tri/quad */
 			int mp_vi[4];
-			float v1[3], v2[3], v3[3], v4[3];
+			float   v_quad_data[4][3];
+			const float  *v_quad[4];
+			const float *uv_quad[4];
 			char string[MAX_PROPSTRING];
 			int characters, i, glattrib = -1, badtex = 0;
 
 
 			/* TEXFACE */
-			ME_MTEXFACE_CPY(&tmp_tf, mtpoly);
-
 			if (glsl) {
 				GPU_enable_material(matnr + 1, &gattribs);
 
@@ -802,7 +791,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 				}
 			}
 			else {
-				badtex = set_draw_settings_cached(0, &tmp_tf, mat, Gtexdraw);
+				badtex = set_draw_settings_cached(0, mtpoly, mat, Gtexdraw);
 				if (badtex) {
 					continue;
 				}
@@ -815,12 +804,16 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 
 			/* UV */
 			luv = &mloopuv[mp->loopstart];
-			copy_v2_v2(tmp_tf.uv[0], luv->uv); luv++;
-			copy_v2_v2(tmp_tf.uv[1], luv->uv); luv++;
-			copy_v2_v2(tmp_tf.uv[2], luv->uv); luv++;
+			uv_quad[0] = luv->uv; luv++;
+			uv_quad[1] = luv->uv; luv++;
+			uv_quad[2] = luv->uv; luv++;
 			if (mp->totloop >= 4) {
-				copy_v2_v2(tmp_tf.uv[3], luv->uv);
+				uv_quad[3] = luv->uv;
 			}
+			else {
+				uv_quad[3] = NULL;
+			}
+
 
 			/* COLOR */
 			if (mloopcol) {
@@ -834,13 +827,22 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 			}
 
 			/* LOCATION */
-			ddm->getVertCo(ddm, mp_vi[0], v1);
-			ddm->getVertCo(ddm, mp_vi[1], v2);
-			ddm->getVertCo(ddm, mp_vi[2], v3);
+			ddm->getVertCo(ddm, mp_vi[0], v_quad_data[0]);
+			ddm->getVertCo(ddm, mp_vi[1], v_quad_data[1]);
+			ddm->getVertCo(ddm, mp_vi[2], v_quad_data[2]);
 			if (mp->totloop >= 4) {
-				ddm->getVertCo(ddm, mp_vi[3], v4);
+				ddm->getVertCo(ddm, mp_vi[3], v_quad_data[3]);
 			}
 
+			v_quad[0] = v_quad_data[0];
+			v_quad[1] = v_quad_data[1];
+			v_quad[2] = v_quad_data[2];
+			if (mp->totloop >= 4) {
+				v_quad[3] = v_quad_data[2];
+			}
+			else {
+				v_quad[3] = NULL;
+			}
 
 
 			/* The BM_FONT handling is in the gpu module, shared with the
@@ -855,13 +857,16 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 			if (!mf_smooth) {
 				float nor[3];
 
-				normal_tri_v3(nor, v1, v2, v3);
+				normal_tri_v3(nor, v_quad[0], v_quad[1], v_quad[2]);
 
 				glNormal3fv(nor);
 			}
 
-			GPU_render_text(&tmp_tf, mode, string, characters,
-			                (unsigned int *)tmp_mcol_pt, v1, v2, v3, (mp->totloop >= 4 ? v4 : NULL), glattrib);
+			GPU_render_text(
+			        mtpoly, mode, string, characters,
+			        (unsigned int *)tmp_mcol_pt,
+			        v_quad, uv_quad,
+			        glattrib);
 		}
 	}
 
@@ -919,7 +924,8 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 
 		data.em = me->edit_btmesh;
 		data.has_mcol = CustomData_has_layer(&me->edit_btmesh->bm->ldata, CD_MLOOPCOL);
-		data.has_mtface = CustomData_has_layer(&me->edit_btmesh->bm->pdata, CD_MTEXPOLY);
+		data.cd_poly_tex_offset = CustomData_get_offset(&me->edit_btmesh->bm->pdata, CD_MTEXPOLY);
+
 		data.mf = DM_get_tessface_data_layer(dm, CD_MFACE);
 		data.tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
 

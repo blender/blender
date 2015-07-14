@@ -142,7 +142,7 @@ typedef int (*DMCompareDrawOptions)(void *userData, int cur_index, int next_inde
 typedef void (*DMSetDrawInterpOptions)(void *userData, int index, float t);
 typedef DMDrawOption (*DMSetDrawOptions)(void *userData, int index);
 typedef DMDrawOption (*DMSetDrawOptionsMappedTex)(void *userData, int origindex, int mat_nr);
-typedef DMDrawOption (*DMSetDrawOptionsTex)(struct MTFace *tface, const bool has_vcol, int matnr);
+typedef DMDrawOption (*DMSetDrawOptionsTex)(struct MTexPoly *mtexpoly, const bool has_vcol, int matnr);
 
 typedef enum DMDrawFlag {
 	DM_DRAW_USE_COLORS          = (1 << 0),

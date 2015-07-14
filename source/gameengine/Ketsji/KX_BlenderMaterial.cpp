@@ -161,10 +161,10 @@ KX_BlenderMaterial::~KX_BlenderMaterial()
 		OnExit();
 }
 
-MTFace* KX_BlenderMaterial::GetMTFace() const
+MTexPoly *KX_BlenderMaterial::GetMTexPoly() const
 {
 	// fonts on polys
-	return &mMaterial->tface;
+	return &mMaterial->mtexpoly;
 }
 
 unsigned int* KX_BlenderMaterial::GetMCol() const
@@ -191,7 +191,7 @@ Material *KX_BlenderMaterial::GetBlenderMaterial() const
 
 Image *KX_BlenderMaterial::GetBlenderImage() const
 {
-	return mMaterial->tface.tpage;
+	return mMaterial->mtexpoly.tpage;
 }
 
 Scene* KX_BlenderMaterial::GetBlenderScene() const

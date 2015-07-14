@@ -670,7 +670,9 @@ void RAS_OpenGLRasterizer::IndexPrimitives_3DText(RAS_MeshSlot& ms,
 			// triangle and quad text drawing
 			for (i=0; i<it.totindex; i+=numvert)
 			{
-				float v[4][3];
+				float  v[4][3];
+				const float  *v_ptr[4] = {NULL};
+				const float *uv_ptr[4] = {NULL};
 				int glattrib, unit;
 
 				for (j=0; j<numvert; j++) {
@@ -679,6 +681,9 @@ void RAS_OpenGLRasterizer::IndexPrimitives_3DText(RAS_MeshSlot& ms,
 					v[j][0] = vertex->getXYZ()[0];
 					v[j][1] = vertex->getXYZ()[1];
 					v[j][2] = vertex->getXYZ()[2];
+					v_ptr[j] = v[j];
+
+					uv_ptr[j] = vertex->getUV(0);
 				}
 
 				// find the right opengl attribute
@@ -688,7 +693,9 @@ void RAS_OpenGLRasterizer::IndexPrimitives_3DText(RAS_MeshSlot& ms,
 						if (m_attrib[unit] == RAS_TEXCO_UV)
 							glattrib = unit;
 
-				GPU_render_text(polymat->GetMTFace(), polymat->GetDrawingMode(), mytext, mytext.Length(), polymat->GetMCol(), v[0], v[1], v[2], v[3], glattrib);
+				GPU_render_text(
+				        polymat->GetMTexPoly(), polymat->GetDrawingMode(), mytext, mytext.Length(), polymat->GetMCol(),
+				        v_ptr, uv_ptr, glattrib);
 
 				ClearCachingInfo();
 			}

@@ -92,12 +92,18 @@ static void gpu_mcol(unsigned int ucol)
 	glColor3ub(cp[3], cp[2], cp[1]);
 }
 
-void GPU_render_text(MTFace *tface, int mode,
-	const char *textstr, int textlen, unsigned int *col,
-	float *v1, float *v2, float *v3, float *v4, int glattrib)
+void GPU_render_text(
+        MTexPoly *mtexpoly, int mode,
+        const char *textstr, int textlen, unsigned int *col,
+        const float *v_quad[4], const float *uv_quad[4],
+        int glattrib)
 {
-	if ((mode & GEMAT_TEXT) && (textlen > 0) && tface->tpage) {
-		Image* ima = (Image *)tface->tpage;
+	if ((mode & GEMAT_TEXT) && (textlen > 0) && mtexpoly->tpage) {
+		const float *v1 = v_quad[0];
+		const float *v2 = v_quad[1];
+		const float *v3 = v_quad[2];
+		const float *v4 = v_quad[3];
+		Image *ima = (Image *)mtexpoly->tpage;
 		ImBuf *first_ibuf;
 		const size_t textlen_st = textlen;
 		size_t index;
@@ -116,7 +122,7 @@ void GPU_render_text(MTFace *tface, int mode,
 
 		
 		/* color has been set */
-		if (tface->mode & TF_OBCOL)
+		if (mtexpoly->mode & TF_OBCOL)
 			col = NULL;
 		else if (!col)
 			glColor3f(1.0f, 1.0f, 1.0f);
@@ -159,12 +165,12 @@ void GPU_render_text(MTFace *tface, int mode,
 			matrixGlyph(first_ibuf, character, & centerx, &centery,
 				&sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
 
-			uv[0][0] = (tface->uv[0][0] - centerx) * sizex + transx;
-			uv[0][1] = (tface->uv[0][1] - centery) * sizey + transy;
-			uv[1][0] = (tface->uv[1][0] - centerx) * sizex + transx;
-			uv[1][1] = (tface->uv[1][1] - centery) * sizey + transy;
-			uv[2][0] = (tface->uv[2][0] - centerx) * sizex + transx;
-			uv[2][1] = (tface->uv[2][1] - centery) * sizey + transy;
+			uv[0][0] = (uv_quad[0][0] - centerx) * sizex + transx;
+			uv[0][1] = (uv_quad[0][1] - centery) * sizey + transy;
+			uv[1][0] = (uv_quad[1][0] - centerx) * sizex + transx;
+			uv[1][1] = (uv_quad[1][1] - centery) * sizey + transy;
+			uv[2][0] = (uv_quad[2][0] - centerx) * sizex + transx;
+			uv[2][1] = (uv_quad[2][1] - centery) * sizey + transy;
 			
 			glBegin(GL_POLYGON);
 			if (glattrib >= 0) glVertexAttrib2fvARB(glattrib, uv[0]);
@@ -183,8 +189,8 @@ void GPU_render_text(MTFace *tface, int mode,
 			glVertex3f(sizex * v3[0] + movex, sizey * v3[1] + movey, v3[2]);
 
 			if (v4) {
-				uv[3][0] = (tface->uv[3][0] - centerx) * sizex + transx;
-				uv[3][1] = (tface->uv[3][1] - centery) * sizey + transy;
+				uv[3][0] = (uv_quad[3][0] - centerx) * sizex + transx;
+				uv[3][1] = (uv_quad[3][1] - centery) * sizey + transy;
 
 				if (glattrib >= 0) glVertexAttrib2fvARB(glattrib, uv[3]);
 				else glTexCoord2fv(uv[3]);
@@ -249,7 +255,7 @@ static struct GPUTextureState {
 	int alphablend;
 	float anisotropic;
 	int gpu_mipmap;
-	MTFace *lasttface;
+	MTexPoly *lasttface;
 } GTS = {0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, 0, 0, -1, 1.0f, 0, NULL};
 
 /* Mipmap settings */
@@ -899,23 +905,23 @@ static void gpu_verify_repeat(Image *ima)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
-int GPU_set_tpage(MTFace *tface, int mipmap, int alphablend)
+int GPU_set_tpage(MTexPoly *mtexpoly, int mipmap, int alphablend)
 {
 	Image *ima;
 	
 	/* check if we need to clear the state */
-	if (tface == NULL) {
+	if (mtexpoly == NULL) {
 		GPU_clear_tpage(false);
 		return 0;
 	}
 
-	ima = tface->tpage;
-	GTS.lasttface = tface;
+	ima = mtexpoly->tpage;
+	GTS.lasttface = mtexpoly;
 
 	gpu_verify_alpha_blend(alphablend);
 	gpu_verify_reflection(ima);
 
-	if (GPU_verify_image(ima, NULL, tface->tile, 1, mipmap, false)) {
+	if (GPU_verify_image(ima, NULL, mtexpoly->tile, 1, mipmap, false)) {
 		GTS.curtile = GTS.tile;
 		GTS.curima = GTS.ima;
 		GTS.curtilemode = GTS.tilemode;

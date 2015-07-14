@@ -179,12 +179,12 @@ static int CheckTexfaceDM(void *mcol, int index)
 }
 */
 
-static DMDrawOption CheckTexDM(MTFace *tface, const bool has_mcol, int matnr)
+static DMDrawOption CheckTexDM(MTexPoly *mtexpoly, const bool has_mcol, int matnr)
 {
 
 	// index is the original face index, retrieve the polygon
 	if (matnr == current_blmat_nr &&
-		(tface == NULL || tface->tpage == current_image)) {
+		(mtexpoly == NULL || mtexpoly->tpage == current_image)) {
 		// must handle color.
 		if (current_wireframe)
 			return DM_DRAW_OPTION_NO_MCOL;
