@@ -2420,7 +2420,7 @@ int BKE_mesh_recalc_tessellation(
 			co_prev = mvert[ml[mp_totloop - 1].v].co;
 			for (j = 0; j < mp_totloop; j++, ml++) {
 				co_curr = mvert[ml->v].co;
-				add_newell_cross_v3_v3v3(normal, co_curr, co_prev);
+				add_newell_cross_v3_v3v3(normal, co_prev, co_curr);
 				co_prev = co_curr;
 			}
 			if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
@@ -2428,7 +2428,7 @@ int BKE_mesh_recalc_tessellation(
 			}
 
 			/* project verts to 2d */
-			axis_dominant_v3_to_m3(axis_mat, normal);
+			axis_dominant_v3_to_m3_negate(axis_mat, normal);
 
 			ml = mloop + mp_loopstart;
 			for (j = 0; j < mp_totloop; j++, ml++) {

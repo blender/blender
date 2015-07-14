@@ -2402,6 +2402,25 @@ void axis_dominant_v3_to_m3(float r_mat[3][3], const float normal[3])
 	BLI_assert((fabsf(dot_m3_v3_row_z(r_mat, normal) - 1.0f) < BLI_ASSERT_UNIT_EPSILON) || is_zero_v3(normal));
 }
 
+/**
+ * Same as axis_dominant_v3_to_m3, but flips the normal
+ */
+void axis_dominant_v3_to_m3_negate(float r_mat[3][3], const float normal[3])
+{
+	BLI_ASSERT_UNIT_V3(normal);
+
+	negate_v3_v3(r_mat[2], normal);
+	ortho_basis_v3v3_v3(r_mat[0], r_mat[1], r_mat[2]);
+
+	BLI_ASSERT_UNIT_V3(r_mat[0]);
+	BLI_ASSERT_UNIT_V3(r_mat[1]);
+
+	transpose_m3(r_mat);
+
+	BLI_assert(!is_negative_m3(r_mat));
+	BLI_assert((dot_m3_v3_row_z(r_mat, normal) < BLI_ASSERT_UNIT_EPSILON) || is_zero_v3(normal));
+}
+
 /****************************** Interpolation ********************************/
 
 static float tri_signed_area(const float v1[3], const float v2[3], const float v3[3], const int i, const int j)
