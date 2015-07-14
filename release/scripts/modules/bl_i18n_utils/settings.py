@@ -285,6 +285,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "ascii",
     "author",                        # Addons' field. :/
     "bItasc",
+    "dbl-",                          # Compacted for 'double', for keymap items.
     "description",                   # Addons' field. :/
     "dx",
     "fBM",
@@ -352,12 +353,13 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
 WARN_MSGID_NOT_CAPITALIZED_ALLOWED |= set(lng[2] for lng in LANGUAGES)
 
 WARN_MSGID_END_POINT_ALLOWED = {
-    "Numpad .",
     "Circle|Alt .",
-    "Temp. Diff.",
     "Float Neg. Exp.",
-    "    RNA Path: bpy.types.",
     "Max Ext.",
+    "Numpad .",
+    "Pad.",
+    "    RNA Path: bpy.types.",
+    "Temp. Diff.",
 }
 
 PARSER_CACHE_HASH = 'sha1'

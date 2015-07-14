@@ -2343,7 +2343,7 @@ static void rna_def_text(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "use_shadow", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_TEXT_SHADOW);
-	RNA_def_property_ui_text(prop, "Shadow", "draw text with shadow");
+	RNA_def_property_ui_text(prop, "Shadow", "Draw text with shadow");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 }
 

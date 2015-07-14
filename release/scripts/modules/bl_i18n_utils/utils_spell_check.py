@@ -91,6 +91,7 @@ class SpellChecker:
         "customdata",
         "dataset", "datasets",
         "de",
+        "deadzone",
         "deconstruct",
         "defocus",
         "denoise",
@@ -262,6 +263,7 @@ class SpellChecker:
         "loc", "rot", "pos",
         "lorem",
         "luma",
+        "mbs",  # mouse button 'select'.
         "mem",
         "multicam",
         "num",
@@ -284,6 +286,7 @@ class SpellChecker:
         "struct", "structs",
         "sys",
         "tex",
+        "tmr",  # timer
         "tri", "tris",
         "uv", "uvs", "uvw", "uw", "uvmap",
         "ve",
