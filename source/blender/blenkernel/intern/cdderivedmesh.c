@@ -473,7 +473,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	const MFace *mf = DM_get_tessface_data_layer(dm, CD_MFACE);
 	MTexPoly *mtexpoly = DM_get_poly_data_layer(dm, CD_MTEXPOLY);
 	MCol *mcol;
-	int i, orig;
+	int i;
 	int colType, startFace = 0;
 	bool use_tface = (uvflag & DM_DRAW_USE_ACTIVE_UV) != 0;
 	int tottri;
@@ -538,15 +538,21 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 		
 		if (i != tottri - 1)
 			next_actualFace = dm->drawObject->triangle_to_mface[i + 1];
-		
-		orig = index_mf_to_mpoly ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, actualFace) : ORIGINDEX_NONE;
 
 		if (drawParams) {
-			MTexPoly *tp = (use_tface && mtexpoly && orig != ORIGINDEX_NONE) ? &mtexpoly[orig] : NULL;
+			MTexPoly *tp = NULL;
+			if (use_tface && mtexpoly && index_mf_to_mpoly) {
+				int actualFace_poly = index_mf_to_mpoly[actualFace];
+				if (actualFace_poly != ORIGINDEX_NONE) {
+					tp = &mtexpoly[actualFace_poly];
+				}
+			}
+
 			draw_option = drawParams(tp, (mcol != NULL), mf[actualFace].mat_nr);
 		}
 		else {
 			if (index_mf_to_mpoly) {
+				const int orig = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, actualFace);
 				if (orig == ORIGINDEX_NONE) {
 					/* XXX, this is not really correct
 							 * it will draw the previous faces context for this one when we don't know its settings.
