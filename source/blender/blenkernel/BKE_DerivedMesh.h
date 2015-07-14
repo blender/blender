@@ -463,6 +463,9 @@ struct DerivedMesh {
 	                           void (*setMaterial)(void *userData, int matnr, void *attribs),
 	                           bool (*setFace)(void *userData, int index), void *userData);
 
+	struct GPUDrawObject *(*gpuObjectNew)(DerivedMesh *dm);
+	void (*copy_gpu_data)(DerivedMesh *dm, int type, float *varray, int *mat_orig_to_new, void *user_data);
+
 	/** Release reference to the DerivedMesh. This function decides internally
 	 * if the DerivedMesh will be freed, or cached for later use. */
 	void (*release)(DerivedMesh *dm);

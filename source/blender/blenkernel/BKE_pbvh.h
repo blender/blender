@@ -112,7 +112,7 @@ void BKE_pbvh_raycast_project_ray_root(
 
 void BKE_pbvh_node_draw(PBVHNode *node, void *data);
 void BKE_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
-                   int (*setMaterial)(int matnr, void *attribs), bool wireframe);
+                   int (*setMaterial)(int matnr, void *attribs), bool wireframe, bool fast);
 
 /* PBVH Access */
 typedef enum {
