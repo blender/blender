@@ -474,7 +474,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	MTexPoly *mtexpoly = DM_get_poly_data_layer(dm, CD_MTEXPOLY);
 	MCol *mcol;
 	int i, orig;
-	int colType, start_element;
+	int colType, start_element, tot_drawn;
 	bool use_tface = (uvflag & DM_DRAW_USE_ACTIVE_UV) != 0;
 	int totpoly;
 	int next_actualFace;
@@ -536,7 +536,8 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 		totpoly = bufmat->totpolys;
 
 		tot_element = 0;
-		start_element = bufmat->start;
+		tot_drawn = 0;
+		start_element = 0;
 
 		for (i = 0; i < totpoly; i++) {
 			int actualFace = bufmat->polys[i];
@@ -584,23 +585,25 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				flush |= compareDrawOptions(userData, actualFace, next_actualFace) == 0;
 			}
 
+			tot_element += mf[actualFace].v4 ? 6 : 3;
+
 			if (flush) {
 				if (draw_option != DM_DRAW_OPTION_SKIP)
-					tot_element += mf[actualFace].v4 ? 6 : 3;
+					tot_drawn += mf[actualFace].v4 ? 6 : 3;
 
-				if (tot_element) {
+				if (tot_drawn) {
 					if (mcol && draw_option != DM_DRAW_OPTION_NO_MCOL)
 						GPU_color_switch(1);
 					else
 						GPU_color_switch(0);
 
-					GPU_buffer_draw_elements(dm->drawObject->triangles, GL_TRIANGLES, start_element, tot_element);
+					GPU_buffer_draw_elements(dm->drawObject->triangles, GL_TRIANGLES, bufmat->start + start_element, tot_drawn);
+					tot_drawn = 0;
 				}
-
 				start_element = tot_element;
 			}
 			else {
-				tot_element += mf[actualFace].v4 ? 6 : 3;
+				tot_drawn += mf[actualFace].v4 ? 6 : 3;
 			}
 		}
 	}
@@ -757,7 +760,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 		}
 	}
 	else { /* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
-		int start_element = 0, tot_element;
+		int start_element = 0, tot_element, tot_drawn;
 		int totpoly;
 		int tottri;
 		int mat_index;
@@ -770,14 +773,14 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 		}
 		glShadeModel(GL_SMOOTH);
 		
-		tottri = dm->drawObject->tot_triangle_point / 3;
+		tottri = dm->drawObject->tot_triangle_point;
 
 		if (tottri == 0) {
 			/* avoid buffer problems in following code */
 		}
 		else if (setDrawOptions == NULL) {
 			/* just draw the entire face array */
-			GPU_buffer_draw_elements(dm->drawObject->triangles, GL_TRIANGLES, 0, 3 * tottri);
+			GPU_buffer_draw_elements(dm->drawObject->triangles, GL_TRIANGLES, 0, tottri);
 		}
 		else {			
 			for (mat_index = 0; mat_index < dm->drawObject->totmaterial; mat_index++) {
@@ -787,7 +790,8 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 				totpoly = bufmat->totpolys;
 
 				tot_element = 0;
-				start_element = bufmat->start;
+				tot_drawn = 0;
+				start_element = 0;
 
 				if (setMaterial)
 					draw_option = setMaterial(bufmat->mat_nr + 1, NULL);
@@ -813,8 +817,8 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 						}
 
 						/* Goal is to draw as long of a contiguous triangle
-					 * array as possible, so draw when we hit either an
-					 * invisible triangle or at the end of the array */
+						 * array as possible, so draw when we hit either an
+						 * invisible triangle or at the end of the array */
 
 						/* flush buffer if current triangle isn't drawable or it's last triangle... */
 						flush = (ELEM(draw_option, DM_DRAW_OPTION_SKIP, DM_DRAW_OPTION_STIPPLE)) || (i == totpoly - 1);
@@ -823,12 +827,16 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 							flush |= compareDrawOptions(userData, actualFace, next_actualFace) == 0;
 						}
 
+						tot_element += mf[actualFace].v4 ? 6 : 3;
+
 						if (flush) {
 							if (!ELEM(draw_option, DM_DRAW_OPTION_SKIP, DM_DRAW_OPTION_STIPPLE))
-								tot_element += mf[actualFace].v4 ? 6 : 3;
+								tot_drawn += mf[actualFace].v4 ? 6 : 3;
 
-							if (tot_element)
-								GPU_buffer_draw_elements(dm->drawObject->triangles, GL_TRIANGLES, start_element, tot_element);
+							if (tot_drawn) {
+								GPU_buffer_draw_elements(dm->drawObject->triangles, GL_TRIANGLES, bufmat->start + start_element, tot_drawn);
+								tot_drawn = 0;
+							}
 
 							start_element = tot_element;
 
@@ -836,7 +844,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 								glDisable(GL_POLYGON_STIPPLE);
 						}
 						else {
-							tot_element += mf[actualFace].v4 ? 6 : 3;
+							tot_drawn += mf[actualFace].v4 ? 6 : 3;
 						}
 					}
 

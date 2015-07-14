@@ -2622,7 +2622,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 	unsigned int next_actualFace;
 	unsigned int gridFaces = ccgSubSurf_getGridSize(ss) - 1;
 	int mat_index;
-	int tot_element, start_element;
+	int tot_element, start_element, tot_drawn;
 
 	CCG_key_top_level(&key, ss);
 	ccgdm_pbvh_update(ccgdm);
@@ -2657,7 +2657,8 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 		totpoly = bufmat->totpolys;
 
 		tot_element = 0;
-		start_element = bufmat->start;
+		tot_drawn = 0;
+		start_element = 0;
 
 		for (i = 0; i < totpoly; i++) {
 			int polyindex = bufmat->polys[i];
@@ -2703,23 +2704,26 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 				flush |= compareDrawOptions(userData, actualFace, next_actualFace) == 0;
 			}
 
+			tot_element += facequads * 6;
+
 			if (flush) {
 				if (draw_option != DM_DRAW_OPTION_SKIP)
-					tot_element += facequads * 6;
+					tot_drawn += facequads * 6;
 
-				if (tot_element) {
+				if (tot_drawn) {
 					if (mcol && draw_option != DM_DRAW_OPTION_NO_MCOL)
 						GPU_color_switch(1);
 					else
 						GPU_color_switch(0);
 
-					GPU_buffer_draw_elements(dm->drawObject->triangles, GL_TRIANGLES, start_element, tot_element);
+					GPU_buffer_draw_elements(dm->drawObject->triangles, GL_TRIANGLES, bufmat->start + start_element, tot_drawn);
+					tot_drawn = 0;
 				}
 
 				start_element = tot_element;
 			}
 			else {
-				tot_element += facequads * 6;
+				tot_drawn += facequads * 6;
 			}
 		}
 	}

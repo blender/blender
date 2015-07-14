@@ -1634,13 +1634,13 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GPU_disable_material();
 }
 
-int GPU_get_particle_info(GPUParticleInfo *pi)
+static int GPU_get_particle_info(GPUParticleInfo *pi)
 {
 	ParticleData *p;
 	DupliObject *dob = GMS.dob;
 	int ind;
-	if(dob->particle_system) {
-		if(dob->persistent_id[0] < dob->particle_system->totpart)
+	if (dob->particle_system) {
+		if (dob->persistent_id[0] < dob->particle_system->totpart)
 			ind = dob->persistent_id[0];
 		else {
 			ind = dob->particle_system->child[dob->persistent_id[0] - dob->particle_system->totpart].parent;
