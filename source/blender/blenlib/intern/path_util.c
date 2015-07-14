@@ -56,14 +56,24 @@
 #  include <windows.h>
 #  include <shlobj.h>
 #  include "BLI_winstuff.h"
-#  include "MEM_guardedalloc.h"
 #  include "BLI_alloca.h"
 #else
 #  include "unistd.h"
 #endif /* WIN32 */
 
+#include "MEM_guardedalloc.h"
+
 /* local */
 #define UNIQUE_NAME_MAX 128
+
+/* Declarations */
+
+#ifdef WIN32
+
+/* return true if the path is absolute ie starts with a drive specifier (eg A:\) or is a UNC path */
+static bool BLI_path_is_abs(const char *name);
+
+#endif  /* WIN32 */
 
 /* implementation */
 
@@ -435,17 +445,121 @@ void BLI_cleanup_file(const char *relabase, char *path)
 /**
  * Make given name safe to be used in paths.
  *
+ * \return true if \a fname was changed, false otherwise.
+ *
  * For now, simply replaces reserved chars (as listed in
  * http://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words )
  * by underscores ('_').
+ *
+ * \note Space case ' ' is a bit of an edge case here - in theory it is allowed, but again can be an issue
+ *       in some cases, so we simply replace it by an underscore too (good practice anyway).
+ *
+ * \note On Windows, it also ensures there is no '.' (dot char) at the end of the file, this can lead to issues...
+ *
+ * \note On Windows, it also checks for forbidden names
+ *       (see https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx ).
  */
-void BLI_filename_make_safe(char *fname)
+bool BLI_filename_make_safe(char *fname)
 {
-	const char *invalid = "/\\?%*:|\"<>. ";
+	const char *invalid =     "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"
+	                      "\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f"
+	                      "/\\?%*:|\"<> ";
+	char *fn;
+	bool changed = false;
 
-	for (; *fname && (fname = strpbrk(fname, invalid)); fname++) {
-		*fname = '_';
+	if (*fname == '\0') {
+		return changed;
 	}
+
+	for (fn = fname; *fn && (fn = strpbrk(fn, invalid)); fn++) {
+		*fn = '_';
+		changed = true;
+	}
+
+	/* Forbid only dots. */
+	for (fn = fname; *fn == '.'; fn++);
+	if (*fn == '\0') {
+		*fname = '_';
+		changed = true;
+	}
+
+#ifdef WIN32
+	{
+		const size_t len = strlen(fname);
+		const char *invalid_names[] = {
+		    "con", "prn", "aux", "null",
+		    "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9",
+		    "lpt1", "lpt2", "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9",
+		    NULL
+		};
+		char *lower_fname = BLI_strdup(fname);
+		const char **iname;
+
+		/* Forbid trailing dot (trailing space has already been replaced above). */
+		if (fname[len - 1] == '.') {
+			fname[len - 1] = '_';
+			changed = true;
+		}
+
+		/* Check for forbidden names - not we have to check all combination of upper and lower cases, hence the usage
+		 * of lower_fname (more efficient than using BLI_strcasestr repeatedly). */
+		BLI_str_tolower_ascii(lower_fname, len);
+		for (iname = invalid_names; *iname; iname++) {
+			if (strstr(lower_fname, *iname) == lower_fname) {
+				const size_t iname_len = strlen(*iname);
+				/* Only invalid if the whole name is made of the invalid chunk, or it has an (assumed extension) dot
+				 * just after. This means it will also catch 'valid' names like 'aux.foo.bar', but should be
+				 * good enough for us! */
+				if ((iname_len == len) || (lower_fname[iname_len] == '.')) {
+					*fname = '_';
+					changed = true;
+					break;
+				}
+			}
+		}
+
+		MEM_freeN(lower_fname);
+	}
+#endif
+
+	return changed;
+}
+
+/**
+ * Make given path OS-safe.
+ *
+ * \return true if \a path was changed, false otherwise.
+ */
+bool BLI_path_make_safe(char *path)
+{
+	/* Simply apply BLI_filename_make_safe() over each component of the path.
+	 * Luckily enough, same 'sfae' rules applies to filenames and dirnames. */
+	char *curr_slash, *curr_path = path;
+	bool changed = false;
+	bool skip_first = false;
+
+#ifdef WIN32
+	if (BLI_path_is_abs(path)) {
+		/* Do not make safe 'C:' in 'C:\foo\bar'... */
+		skip_first = true;
+	}
+#endif
+
+	for (curr_slash = (char *)BLI_first_slash(curr_path); curr_slash; curr_slash = (char *)BLI_first_slash(curr_path)) {
+		const char backup = *curr_slash;
+		*curr_slash = '\0';
+		if (!skip_first && (*curr_path != '\0') && BLI_filename_make_safe(curr_path)) {
+			changed = true;
+		}
+		skip_first = false;
+		curr_path = curr_slash + 1;
+		*curr_slash = backup;
+	}
+	if (BLI_filename_make_safe(curr_path)) {
+		changed = true;
+	}
+
+	return changed;
 }
 
 /**
