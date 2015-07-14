@@ -89,7 +89,6 @@
 
 #include "BKE_idcode.h"
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */
 #include "BLF_api.h"
 

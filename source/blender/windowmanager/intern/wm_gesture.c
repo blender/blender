@@ -53,7 +53,6 @@
 #include "wm_draw.h"
 
 
-#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 

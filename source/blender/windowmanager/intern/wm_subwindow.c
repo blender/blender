@@ -45,8 +45,6 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_context.h"
-
 #include "BIF_gl.h"
 
 #include "GPU_extensions.h"

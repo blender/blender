@@ -32,7 +32,6 @@
  * Also some operator reports utility functions.
  */
 
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -63,14 +62,11 @@
 
 #include "ED_fileselect.h"
 #include "ED_info.h"
-#include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_util.h"
 
 #include "RNA_access.h"
-
-#include "BIF_gl.h"
 
 #include "GPU_debug.h"
 

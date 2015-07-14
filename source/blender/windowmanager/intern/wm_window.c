@@ -76,8 +76,6 @@
 #include "GPU_init_exit.h"
 #include "GPU_glew.h"
 
-#include "UI_interface.h"
-
 /* for assert */
 #ifndef NDEBUG
 #  include "BLI_threads.h"
