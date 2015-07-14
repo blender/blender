@@ -62,6 +62,7 @@ typedef struct GPUNode GPUNode;
 typedef struct GPUNodeLink GPUNodeLink;
 typedef struct GPUMaterial GPUMaterial;
 typedef struct GPULamp GPULamp;
+typedef struct GPUParticleInfo GPUParticleInfo;
 
 /* Functions to create GPU Materials nodes */
 
@@ -90,6 +91,10 @@ typedef enum GPUBuiltin {
 	GPU_OBCOLOR =               (1 << 6),
 	GPU_AUTO_BUMPSCALE =        (1 << 7),
 	GPU_CAMERA_TEXCO_FACTORS =  (1 << 8),
+	GPU_PARTICLE_SCALAR_PROPS = (1 << 9),
+	GPU_PARTICLE_LOCATION =	    (1 << 10),
+	GPU_PARTICLE_VELOCITY =     (1 << 11),
+	GPU_PARTICLE_ANG_VELOCITY = (1 << 12),
 } GPUBuiltin;
 
 typedef enum GPUOpenGLBuiltin {
@@ -189,6 +194,7 @@ GPUNodeLink *GPU_texture(int size, float *pixels);
 GPUNodeLink *GPU_dynamic_texture(struct GPUTexture *tex, GPUDynamicType dynamictype, void *data);
 GPUNodeLink *GPU_builtin(GPUBuiltin builtin);
 GPUNodeLink *GPU_opengl_builtin(GPUOpenGLBuiltin builtin);
+void GPU_node_link_set_type(GPUNodeLink *link, GPUType type);
 
 bool GPU_link(GPUMaterial *mat, const char *name, ...);
 bool GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNodeStack *out, ...);
@@ -208,7 +214,7 @@ void GPU_materials_free(void);
 
 bool GPU_lamp_override_visible(GPULamp *lamp, struct SceneRenderLayer *srl, struct Material *ma);
 void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double time, int mipmap, float viewmat[4][4], float viewinv[4][4], float cameraborder[4], bool scenelock);
-void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[4][4], float obcol[4], float autobumpscale);
+void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[4][4], float obcol[4], float autobumpscale, GPUParticleInfo *pi);
 void GPU_material_unbind(GPUMaterial *material);
 bool GPU_material_bound(GPUMaterial *material);
 struct Scene *GPU_material_scene(GPUMaterial *material);
@@ -307,6 +313,14 @@ void GPU_mist_update_enable(short enable);
 void GPU_mist_update_values(int type, float start, float dist, float inten, float color[3]);
 void GPU_horizon_update_color(float color[3]);
 void GPU_ambient_update_color(float color[3]);
+
+typedef struct GPUParticleInfo
+{
+	float scalprops[4];
+	float location[3];
+	float velocity[3];
+	float angular_velocity[3];
+} GPUParticleInfo;
 
 #ifdef __cplusplus
 }

@@ -2191,7 +2191,9 @@ static void draw_dupli_objects_color(
 			}	
 			else {
 				copy_m4_m4(dob->ob->obmat, dob->mat);
+				GPU_begin_dupli_object(dob);
 				draw_object(scene, ar, v3d, &tbase, dflag_dupli);
+				GPU_end_dupli_object();
 			}
 		}
 		

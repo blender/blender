@@ -39,6 +39,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_material_types.h"
+#include "DNA_particle_types.h"
 
 #include "BKE_scene.h"
 
@@ -155,9 +156,10 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	memset(&shi->raycounter, 0, sizeof(shi->raycounter));
 #endif
 	
-	if (shi->mat->nodetree && shi->mat->use_nodes)
+	if (shi->mat->nodetree && shi->mat->use_nodes) {
 		compat = ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
-	
+	}
+
 	/* also run this when node shaders fail, due to incompatible shader nodes */
 	if (compat == false) {
 		/* copy all relevant material vars, note, keep this synced with render_types.h */

@@ -153,6 +153,18 @@ void geom(vec3 co, vec3 nor, mat4 viewinvmat, vec3 attorco, vec2 attuv, vec4 att
 	frontback = (gl_FrontFacing)? 1.0: 0.0;
 }
 
+void particle_info(vec4 sprops, vec3 loc, vec3 vel, vec3 avel, out float index, out float age, out float life_time, out vec3 location, out float size, out vec3 velocity, out vec3 angular_velocity)
+{
+    index = sprops.x;
+    age = sprops.y;
+    life_time = sprops.z;
+    size = sprops.w;
+
+    location = loc;
+    velocity = vel;
+    angular_velocity = avel;
+}
+
 void mapping(vec3 vec, mat4 mat, vec3 minvec, vec3 maxvec, float domin, float domax, out vec3 outvec)
 {
 	outvec = (mat * vec4(vec, 1.0)).xyz;

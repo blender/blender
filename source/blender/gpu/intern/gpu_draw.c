@@ -56,6 +56,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_particle_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -1411,6 +1412,7 @@ static struct GPUMaterialState {
 	Material *gmatbuf_fixed[FIXEDMAT];
 	Material *gboundmat;
 	Object *gob;
+	DupliObject *dob;
 	Scene *gscene;
 	int glay;
 	bool gscenelock;
@@ -1493,11 +1495,22 @@ static Material *gpu_active_node_material(Material *ma)
 	return ma;
 }
 
+void GPU_begin_dupli_object(DupliObject *dob)
+{
+	GMS.dob = dob;
+}
+
+void GPU_end_dupli_object(void)
+{
+	GMS.dob = NULL;
+}
+
 void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, Object *ob, bool glsl, bool *do_alpha_after)
 {
 	Material *ma;
 	GPUMaterial *gpumat;
 	GPUBlendMode alphablend;
+	DupliObject *dob;
 	int a;
 	const bool gamma = BKE_scene_check_color_management_enabled(scene);
 	const bool new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
@@ -1510,7 +1523,10 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 #endif
 
 	/* initialize state */
+	/* DupliObject must be restored */
+	dob = GMS.dob;
 	memset(&GMS, 0, sizeof(GMS));
+	GMS.dob = dob;
 	GMS.lastmatnr = -1;
 	GMS.lastretval = -1;
 	GMS.lastalphablend = GPU_BLEND_SOLID;
@@ -1618,6 +1634,36 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GPU_disable_material();
 }
 
+int GPU_get_particle_info(GPUParticleInfo *pi)
+{
+	ParticleData *p;
+	DupliObject *dob = GMS.dob;
+	int ind;
+	if(dob->particle_system) {
+		if(dob->persistent_id[0] < dob->particle_system->totpart)
+			ind = dob->persistent_id[0];
+		else {
+			ind = dob->particle_system->child[dob->persistent_id[0] - dob->particle_system->totpart].parent;
+		}
+		if (ind >= 0) {
+			p = &dob->particle_system->particles[ind];
+
+			pi->scalprops[0] = ind;
+			pi->scalprops[1] = GMS.gscene->r.cfra - p->time;
+			pi->scalprops[2] = p->lifetime;
+			pi->scalprops[3] = p->size;
+
+			copy_v3_v3(pi->location, p->state.co);
+			copy_v3_v3(pi->velocity, p->state.vel);
+			copy_v3_v3(pi->angular_velocity, p->state.ave);
+			return 1;
+		}
+		else return 0;
+	}
+	else
+		return 0;
+}
+
 int GPU_enable_material(int nr, void *attribs)
 {
 	GPUVertexAttribs *gattribs = attribs;
@@ -1680,14 +1726,20 @@ int GPU_enable_material(int nr, void *attribs)
 		if (gattribs && GMS.gmatbuf[nr]) {
 			/* bind glsl material and get attributes */
 			Material *mat = GMS.gmatbuf[nr];
+			GPUParticleInfo partile_info;
+
 			float auto_bump_scale;
 
 			gpumat = GPU_material_from_blender(GMS.gscene, mat);
 			GPU_material_vertex_attributes(gpumat, gattribs);
+
+			if (GMS.dob)
+				GPU_get_particle_info(&partile_info);
+
 			GPU_material_bind(gpumat, GMS.gob->lay, GMS.glay, 1.0, !(GMS.gob->mode & OB_MODE_TEXTURE_PAINT), GMS.gviewmat, GMS.gviewinv, GMS.gviewcamtexcofac, GMS.gscenelock);
 
 			auto_bump_scale = GMS.gob->derivedFinal != NULL ? GMS.gob->derivedFinal->auto_bump_scale : 1.0f;
-			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, GMS.gob->col, auto_bump_scale);
+			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, GMS.gob->col, auto_bump_scale, &partile_info);
 			GMS.gboundmat = mat;
 
 			/* for glsl use alpha blend mode, unless it's set to solid and
