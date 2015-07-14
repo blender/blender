@@ -432,10 +432,12 @@ int BLI_create_symlink(const char *file, const char *to)
 	return 1;
 }
 
-void BLI_dir_create_recursive(const char *dirname)
+/** \return true on success (i.e. given path now exists on FS), false otherwise. */
+bool BLI_dir_create_recursive(const char *dirname)
 {
 	char *lslash;
 	char tmp[MAXPATHLEN];
+	bool ret = true;
 
 	/* First remove possible slash at the end of the dirname.
 	 * This routine otherwise tries to create
@@ -443,30 +445,35 @@ void BLI_dir_create_recursive(const char *dirname)
 	 * blah1/blah2 (without slash) */
 
 	BLI_strncpy(tmp, dirname, sizeof(tmp));
-	lslash = (char *)BLI_last_slash(tmp);
-
-	if (lslash && (*(lslash + 1) == '\0')) {
-		*lslash = '\0';
-	}
+	BLI_del_slash(tmp);
 
 	/* check special case "c:\foo", don't try create "c:", harmless but prints an error below */
 	if (isalpha(tmp[0]) && (tmp[1] == ':') && tmp[2] == '\0') return;
 
-	if (BLI_exists(tmp)) return;
+	if (BLI_is_dir(tmp)) {
+		return true;
+	}
+	else if (BLI_exists(tmp)) {
+		return false;
+	}
 
 	lslash = (char *)BLI_last_slash(tmp);
 
 	if (lslash) {
 		/* Split about the last slash and recurse */
 		*lslash = 0;
-		BLI_dir_create_recursive(tmp);
-	}
-
-	if (dirname[0]) {  /* patch, this recursive loop tries to create a nameless directory */
-		if (umkdir(dirname) == -1) {
-			printf("Unable to create directory %s\n", dirname);
+		if (!BLI_dir_create_recursive(tmp)) {
+			ret = false;
 		}
 	}
+
+	if (ret && dirname[0]) {  /* patch, this recursive loop tries to create a nameless directory */
+		if (umkdir(dirname) == -1) {
+			printf("Unable to create directory %s\n", dirname);
+			ret = false;
+		}
+	}
+	return ret;
 }
 
 int BLI_rename(const char *from, const char *to)
@@ -964,7 +971,8 @@ int BLI_create_symlink(const char *file, const char *to)
 	return symlink(to, file);
 }
 
-void BLI_dir_create_recursive(const char *dirname)
+/** \return true on success (i.e. given path now exists on FS), false otherwise. */
+bool BLI_dir_create_recursive(const char *dirname)
 {
 	char *lslash;
 	size_t size;
@@ -972,8 +980,14 @@ void BLI_dir_create_recursive(const char *dirname)
 	char static_buf[MAXPATHLEN];
 #endif
 	char *tmp;
+	bool ret = true;
 
-	if (BLI_exists(dirname)) return;
+	if (BLI_is_dir(dirname)) {
+		return true;
+	}
+	else if (BLI_exists(dirname)) {
+		return false;
+	}
 
 #ifdef MAXPATHLEN
 	size = MAXPATHLEN;
@@ -985,18 +999,26 @@ void BLI_dir_create_recursive(const char *dirname)
 
 	BLI_strncpy(tmp, dirname, size);
 		
+	/* Avoids one useless recursion in case of '/foo/bar/' path... */
+	BLI_del_slash(tmp);
+
 	lslash = (char *)BLI_last_slash(tmp);
 	if (lslash) {
 		/* Split about the last slash and recurse */
 		*lslash = 0;
-		BLI_dir_create_recursive(tmp);
+		if (!BLI_dir_create_recursive(tmp)) {
+			ret = false;
+		}
 	}
 
 #ifndef MAXPATHLEN
 	MEM_freeN(tmp);
 #endif
 
-	mkdir(dirname, 0777);
+	if (ret) {
+		ret = (mkdir(dirname, 0777) == 0);
+	}
+	return ret;
 }
 
 int BLI_rename(const char *from, const char *to)
