@@ -250,8 +250,8 @@ void IDDepsNode::tag_update(Depsgraph *graph)
 		bool do_component_tag = comp_node->type != DEPSNODE_TYPE_ANIMATION;
 		if (comp_node->type == DEPSNODE_TYPE_ANIMATION) {
 			AnimData *adt = BKE_animdata_from_id(id);
-			BLI_assert(adt != NULL);
-			if (adt->recalc & ADT_RECALC_ANIM) {
+			/* Animation data might be null if relations are tagged for update. */
+			if (adt != NULL && (adt->recalc & ADT_RECALC_ANIM)) {
 				do_component_tag = true;
 			}
 		}

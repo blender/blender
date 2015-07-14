@@ -85,6 +85,8 @@ EnumPropertyItem id_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include "DNA_anim_types.h"
+
 #include "BKE_font.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
@@ -329,6 +331,19 @@ static void rna_ID_user_clear(ID *id)
 {
 	id->us = 0; /* don't save */
 	id->flag &= ~LIB_FAKEUSER;
+}
+
+static AnimData * rna_ID_animation_data_create(ID *id, Main *bmain)
+{
+	AnimData *adt = BKE_animdata_add_id(id);
+	DAG_relations_tag_update(bmain);
+	return adt;
+}
+
+static void rna_ID_animation_data_free(ID *id, Main *bmain)
+{
+	BKE_animdata_free(id);
+	DAG_relations_tag_update(bmain);
 }
 
 static void rna_IDPArray_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -835,12 +850,14 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Clear the user count of a datablock so its not saved, "
 	                                "on reload the data will be removed");
 
-	func = RNA_def_function(srna, "animation_data_create", "BKE_animdata_add_id");
+	func = RNA_def_function(srna, "animation_data_create", "rna_ID_animation_data_create");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
 	RNA_def_function_ui_description(func, "Create animation data to this ID, note that not all ID types support this");
 	parm = RNA_def_pointer(func, "anim_data", "AnimData", "", "New animation data or NULL");
 	RNA_def_function_return(func, parm);
 
-	func = RNA_def_function(srna, "animation_data_clear", "BKE_animdata_free");
+	func = RNA_def_function(srna, "animation_data_clear", "rna_ID_animation_data_free");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
 	RNA_def_function_ui_description(func, "Clear animation on this this ID");
 
 	func = RNA_def_function(srna, "update_tag", "rna_ID_update_tag");
