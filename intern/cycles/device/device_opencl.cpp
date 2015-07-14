@@ -64,10 +64,20 @@ CCL_NAMESPACE_BEGIN
 
 struct OpenCLPlatformDevice {
 	OpenCLPlatformDevice(cl_platform_id platform_id,
-	                     cl_device_id device_id)
-	  : platform_id(platform_id), device_id(device_id) {}
+	                     const string& platform_name,
+	                     cl_device_id device_id,
+	                     cl_device_type device_type,
+	                     const string& device_name)
+	  : platform_id(platform_id),
+	    platform_name(platform_name),
+	    device_id(device_id),
+	    device_type(device_type),
+	    device_name(device_name) {}
 	cl_platform_id platform_id;
+	string platform_name;
 	cl_device_id device_id;
+	cl_device_type device_type;
+	string device_name;
 };
 
 namespace {
@@ -212,8 +222,14 @@ void opencl_get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices)
 	        (getenv("CYCLES_OPENCL_TEST") != NULL) ||
 	        (getenv("CYCLES_OPENCL_SPLIT_KERNEL_TEST")) != NULL;
 	const cl_device_type device_type = opencl_device_type();
+	static bool first_time = true;
+#define FIRST_VLOG(severity) if(first_time) VLOG(severity)
+
+	usable_devices->clear();
 
 	if(device_type == 0) {
+		FIRST_VLOG(2) << "OpenCL devices are forced to be disabled.";
+		first_time = false;
 		return;
 	}
 
@@ -222,33 +238,50 @@ void opencl_get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices)
 	vector<cl_platform_id> platform_ids;
 	cl_uint num_platforms = 0;
 
-	/* Number of the devices added to the device info list. */
-	cl_uint num_added_devices = 0;
-
 	/* Get devices. */
 	if(clGetPlatformIDs(0, NULL, &num_platforms) != CL_SUCCESS ||
 	   num_platforms == 0)
 	{
+		FIRST_VLOG(2) << "No OpenCL platforms were found.";
+		first_time = false;
 		return;
 	}
 	platform_ids.resize(num_platforms);
 	if(clGetPlatformIDs(num_platforms, &platform_ids[0], NULL) != CL_SUCCESS) {
+		FIRST_VLOG(2) << "Failed to fetch platform IDs from the driver..";
+		first_time = false;
 		return;
 	}
 	/* Devices are numbered consecutively across platforms. */
-	int num_base = 0;
-	for(int platform = 0;
-	    platform < num_platforms;
-	    platform++, num_base += num_added_devices)
-	{
+	for(int platform = 0; platform < num_platforms; platform++) {
 		cl_platform_id platform_id = platform_ids[platform];
-		num_devices = num_added_devices = 0;
+		char pname[256];
+		if(clGetPlatformInfo(platform_id,
+		                     CL_PLATFORM_NAME,
+		                     sizeof(pname),
+		                     &pname,
+		                     NULL) != CL_SUCCESS)
+		{
+			FIRST_VLOG(2) << "Failed to get platform name, ignoring.";
+			continue;
+		}
+		string platform_name = pname;
+		FIRST_VLOG(2) << "Enumerating devices for platform "
+		              << platform_name << ".";
+		if(!opencl_platform_version_check(platform_id)) {
+			FIRST_VLOG(2) << "Ignoring platform " << platform_name
+			              << " due to too old compiler version.";
+			continue;
+		}
+		num_devices = 0;
 		if(clGetDeviceIDs(platform_id,
 		                  device_type,
 		                  0,
 		                  NULL,
 		                  &num_devices) != CL_SUCCESS || num_devices == 0)
 		{
+			FIRST_VLOG(2) << "Ignoring platform " << platform_name
+			              << ", failed to fetch number of devices.";
 			continue;
 		}
 		device_ids.resize(num_devices);
@@ -258,31 +291,55 @@ void opencl_get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices)
 		                  &device_ids[0],
 		                  NULL) != CL_SUCCESS)
 		{
+			FIRST_VLOG(2) << "Ignoring platform " << platform_name
+			              << ", failed to fetch devices list.";
 			continue;
 		}
-		if(!opencl_platform_version_check(platform_ids[platform])) {
-			continue;
-		}
-		char pname[256];
-		clGetPlatformInfo(platform_id,
-		                  CL_PLATFORM_NAME,
-		                  sizeof(pname),
-		                  &pname,
-		                  NULL);
-		string platform_name = pname;
 		for(int num = 0; num < num_devices; num++) {
 			cl_device_id device_id = device_ids[num];
+			char device_name[1024] = "\0";
+			if(clGetDeviceInfo(device_id,
+			                   CL_DEVICE_NAME,
+			                   sizeof(device_name),
+			                   &device_name,
+			                   NULL) != CL_SUCCESS)
+			{
+				FIRST_VLOG(2) << "Failed to fetch device name, ignoring.";
+				continue;
+			}
 			if(!opencl_device_version_check(device_id)) {
+				FIRST_VLOG(2) << "Ignoting device " << device_name
+				              << " due to old compiler version.";
 				continue;
 			}
 			if(force_all_platforms ||
 			   opencl_device_supported(platform_name, device_id))
 			{
+				cl_device_type device_type;
+				if(clGetDeviceInfo(device_id,
+				                   CL_DEVICE_TYPE,
+				                   sizeof(cl_device_type),
+				                   &device_type,
+				                   NULL) != CL_SUCCESS)
+				{
+					FIRST_VLOG(2) << "Ignoting device " << device_name
+					              << ", faield to fetch device type.";
+					continue;
+				}
+				FIRST_VLOG(2) << "Adding new device " << device_name << ".";
 				usable_devices->push_back(OpenCLPlatformDevice(platform_id,
-				                                               device_id));
+				                                               platform_name,
+				                                               device_id,
+				                                               device_type,
+				                                               device_name));
+			}
+			else {
+				FIRST_VLOG(2) << "Ignoting device " << device_name
+				              << ", not officially supported yet.";
 			}
 		}
 	}
+	first_time = false;
 }
 
 }  /* namespace */
@@ -616,9 +673,10 @@ public:
 		OpenCLPlatformDevice& platform_device = usable_devices[info.num];
 		cpPlatform = platform_device.platform_id;
 		cdDevice = platform_device.device_id;
-		char name[256];
-		clGetPlatformInfo(cpPlatform, CL_PLATFORM_NAME, sizeof(name), &name, NULL);
-		platform_name = name;
+		platform_name = platform_device.platform_name;
+		VLOG(2) << "Creating new Cycles device for OpenCL platform "
+		        << platform_name << ", device "
+		        << platform_device.device_name << ".";
 
 		{
 			/* try to use cached context */
@@ -3383,28 +3441,9 @@ Device *device_opencl_create(DeviceInfo& info, Stats &stats, bool background)
 	vector<OpenCLPlatformDevice> usable_devices;
 	opencl_get_usable_devices(&usable_devices);
 	assert(info.num < usable_devices.size());
-	OpenCLPlatformDevice& platform_device = usable_devices[info.num];
-	char name[256];
-	if(clGetPlatformInfo(platform_device.platform_id,
-	                     CL_PLATFORM_NAME,
-	                     sizeof(name),
-	                     &name,
-	                     NULL) != CL_SUCCESS)
-	{
-		VLOG(1) << "Failed to retrieve platform name, using mega kernel.";
-		return new OpenCLDeviceMegaKernel(info, stats, background);
-	}
-	string platform_name = name;
-	cl_device_type device_type;
-	if(clGetDeviceInfo(platform_device.device_id,
-	                   CL_DEVICE_TYPE,
-	                   sizeof(cl_device_type),
-	                   &device_type,
-	                   NULL) != CL_SUCCESS)
-	{
-		VLOG(1) << "Failed to retrieve device type, using mega kernel,";
-		return new OpenCLDeviceMegaKernel(info, stats, background);
-	}
+	const OpenCLPlatformDevice& platform_device = usable_devices[info.num];
+	const string& platform_name = platform_device.platform_name;
+	const cl_device_type device_type = platform_device.device_type;
 	if(opencl_kernel_use_split(platform_name, device_type)) {
 		VLOG(1) << "Using split kernel.";
 		return new OpenCLDeviceSplitKernel(info, stats, background);
@@ -3446,43 +3485,13 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 	/* Devices are numbered consecutively across platforms. */
 	int num_devices = 0;
 	foreach(OpenCLPlatformDevice& platform_device, usable_devices) {
-		cl_platform_id platform_id = platform_device.platform_id;
-		cl_device_id device_id = platform_device.device_id;
-		/* We always increment the device number, so there;s 1:1 mapping from
-		 * info.num to indexinside usable_devices vector.
-		 */
-		++num_devices;
-		char platform_name[256];
-		if(clGetPlatformInfo(platform_id,
-		                     CL_PLATFORM_NAME,
-		                     sizeof(platform_name),
-		                     &platform_name,
-		                     NULL) != CL_SUCCESS)
-		{
-			continue;
-		}
-		char device_name[1024] = "\0";
-		if(clGetDeviceInfo(device_id,
-		                   CL_DEVICE_NAME,
-		                   sizeof(device_name),
-		                   &device_name,
-		                   NULL) != CL_SUCCESS)
-		{
-			continue;
-		}
-		cl_device_type device_type;
-		if(clGetDeviceInfo(device_id,
-		                   CL_DEVICE_TYPE,
-		                   sizeof(cl_device_type),
-		                   &device_type,
-		                   NULL) != CL_SUCCESS)
-		{
-			continue;
-		}
+		const string& platform_name = platform_device.platform_name;
+		const cl_device_type device_type = platform_device.device_type;
+		const string& device_name = platform_device.device_name;
 		DeviceInfo info;
 		info.type = DEVICE_OPENCL;
 		info.description = string_remove_trademark(string(device_name));
-		info.num = num_devices - 1;
+		info.num = num_devices;
 		info.id = string_printf("OPENCL_%d", info.num);
 		/* We don't know if it's used for display, but assume it is. */
 		info.display_device = true;
@@ -3491,6 +3500,7 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 		info.use_split_kernel = opencl_kernel_use_split(platform_name,
 		                                                device_type);
 		devices.push_back(info);
+		num_devices++;
 	}
 }
 
