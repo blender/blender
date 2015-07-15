@@ -105,7 +105,14 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_OPENCL_APPLE__
 #  define __KERNEL_SHADING__
-//#define __KERNEL_ADV_SHADING__
+#  define __KERNEL_ADV_SHADING__
+/* TODO(sergey): Currently experimental section is ignored here,
+ * this is because megakernel in device_opencl does not support
+ * custom cflags depending on the scene features.
+ */
+#  ifdef __KERNEL_EXPERIMENTAL__
+#    define __CMJ__
+#  endif
 #endif
 
 #ifdef __KERNEL_OPENCL_AMD__
