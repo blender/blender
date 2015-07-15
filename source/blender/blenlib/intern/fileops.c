@@ -448,7 +448,9 @@ bool BLI_dir_create_recursive(const char *dirname)
 	BLI_del_slash(tmp);
 
 	/* check special case "c:\foo", don't try create "c:", harmless but prints an error below */
-	if (isalpha(tmp[0]) && (tmp[1] == ':') && tmp[2] == '\0') return;
+	if (isalpha(tmp[0]) && (tmp[1] == ':') && tmp[2] == '\0') {
+		return true;
+	}
 
 	if (BLI_is_dir(tmp)) {
 		return true;
