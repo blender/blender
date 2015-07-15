@@ -1419,10 +1419,9 @@ static void cdDM_buffer_copy_normal(
 {
 	int i, totface;
 	int start;
-	float f_no[3];
 
 	const float *nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
-	short (*tlnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
+	const short (*tlnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	MVert *mvert = dm->getVertArray(dm);
 	MFace *f = dm->getTessFaceArray(dm);
 
@@ -1432,16 +1431,16 @@ static void cdDM_buffer_copy_normal(
 		const int smoothnormal = (f->flag & ME_SMOOTH);
 
 		if (tlnors) {
-			short (*tlnor)[3] = tlnors[i];
+			const short (*ln)[3] = tlnors[i];
 			/* Copy loop normals */
-			copy_v3_v3_short(&varray[start], tlnor[0]);
-			copy_v3_v3_short(&varray[start + 3], tlnor[1]);
-			copy_v3_v3_short(&varray[start + 6], tlnor[2]);
-			start += 9;
+			copy_v3_v3_short(&varray[start], ln[0]);
+			copy_v3_v3_short(&varray[start + 4], ln[1]);
+			copy_v3_v3_short(&varray[start + 8], ln[2]);
+			start += 12;
 
 			if (f->v4) {
-				copy_v3_v3_short(&varray[start], tlnor[3]);
-				start += 3;
+				copy_v3_v3_short(&varray[start], ln[3]);
+				start += 4;
 			}
 		}
 		else if (smoothnormal) {
@@ -1458,30 +1457,39 @@ static void cdDM_buffer_copy_normal(
 		}
 		else if (nors) {
 			/* copy cached face normal */
-			normal_float_to_short_v3(&varray[start], &nors[i * 3]);
-			normal_float_to_short_v3(&varray[start + 4], &nors[i * 3]);
-			normal_float_to_short_v3(&varray[start + 8], &nors[i * 3]);
+			short f_no_s[3];
+
+			normal_float_to_short_v3(f_no_s, &nors[i * 3]);
+
+			copy_v3_v3_short(&varray[start], f_no_s);
+			copy_v3_v3_short(&varray[start + 4], f_no_s);
+			copy_v3_v3_short(&varray[start + 8], f_no_s);
 			start += 12;
 
 			if (f->v4) {
-				normal_float_to_short_v3(&varray[start], &nors[i * 3]);
+				copy_v3_v3_short(&varray[start], f_no_s);
 				start += 4;
 			}
 		}
 		else {
 			/* calculate face normal */
+			float f_no[3];
+			short f_no_s[3];
+
 			if (f->v4)
 				normal_quad_v3(f_no, mvert[f->v1].co, mvert[f->v2].co, mvert[f->v3].co, mvert[f->v4].co);
 			else
 				normal_tri_v3(f_no, mvert[f->v1].co, mvert[f->v2].co, mvert[f->v3].co);
 
-			normal_float_to_short_v3(&varray[start], f_no);
-			normal_float_to_short_v3(&varray[start + 4], f_no);
-			normal_float_to_short_v3(&varray[start + 8], f_no);
+			normal_float_to_short_v3(f_no_s, f_no);
+
+			copy_v3_v3_short(&varray[start], f_no_s);
+			copy_v3_v3_short(&varray[start + 4], f_no_s);
+			copy_v3_v3_short(&varray[start + 8], f_no_s);
 			start += 12;
 
 			if (f->v4) {
-				normal_float_to_short_v3(&varray[start], f_no);
+				copy_v3_v3_short(&varray[start], f_no_s);
 				start += 4;
 			}
 		}

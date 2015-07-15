@@ -1769,7 +1769,7 @@ static void ccgDM_buffer_copy_normal(
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGKey key;
-	short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
+	const short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	int gridSize = ccgSubSurf_getGridSize(ss);
 	int gridFaces = gridSize - 1;
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
@@ -1784,7 +1784,7 @@ static void ccgDM_buffer_copy_normal(
 		CCGFace *f = ccgdm->faceMap[i].face;
 		int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(f);
 		int index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
-		short (*ln)[4][3] = NULL;
+		const short (*ln)[3] = NULL;
 
 		if (faceFlags) {
 			shademodel = (lnors || (faceFlags[index].flag & ME_SMOOTH)) ? GL_SMOOTH : GL_FLAT;
@@ -1794,7 +1794,7 @@ static void ccgDM_buffer_copy_normal(
 		}
 
 		if (lnors) {
-			ln = lnors;
+			ln = *lnors;
 			lnors += gridFaces * gridFaces * numVerts;
 		}
 
@@ -1805,13 +1805,13 @@ static void ccgDM_buffer_copy_normal(
 				/* Can't use quad strips here... */
 				for (y = 0; y < gridFaces; y ++) {
 					for (x = 0; x < gridFaces; x ++) {
-						copy_v3_v3_short(&varray[start], ln[0][0]);
-						copy_v3_v3_short(&varray[start + 4], ln[0][3]);
-						copy_v3_v3_short(&varray[start + 8], ln[0][2]);
-						copy_v3_v3_short(&varray[start + 12], ln[0][1]);
+						copy_v3_v3_short(&varray[start], ln[0]);
+						copy_v3_v3_short(&varray[start + 4], ln[3]);
+						copy_v3_v3_short(&varray[start + 8], ln[2]);
+						copy_v3_v3_short(&varray[start + 12], ln[1]);
 
 						start += 16;
-						ln ++;
+						ln += 4;
 					}
 				}
 			}
@@ -1835,18 +1835,21 @@ static void ccgDM_buffer_copy_normal(
 			else {
 				for (y = 0; y < gridFaces; y ++) {
 					for (x = 0; x < gridFaces; x ++) {
-						float no[3];
+						float f_no[3];
+						short f_no_s[3];
+
 						float *a = CCG_grid_elem_co(&key, faceGridData, x, y );
 						float *b = CCG_grid_elem_co(&key, faceGridData, x + 1, y );
 						float *c = CCG_grid_elem_co(&key, faceGridData, x + 1, y + 1);
 						float *d = CCG_grid_elem_co(&key, faceGridData, x, y + 1);
 
-						ccgDM_NormalFast(a, b, c, d, no);
+						ccgDM_NormalFast(a, b, c, d, f_no);
+						normal_float_to_short_v3(f_no_s, f_no);
 	
-						normal_float_to_short_v3(&varray[start], no);
-						normal_float_to_short_v3(&varray[start + 4], no);
-						normal_float_to_short_v3(&varray[start + 8], no);
-						normal_float_to_short_v3(&varray[start + 12], no);
+						copy_v3_v3_short(&varray[start], f_no_s);
+						copy_v3_v3_short(&varray[start + 4], f_no_s);
+						copy_v3_v3_short(&varray[start + 8], f_no_s);
+						copy_v3_v3_short(&varray[start + 12], f_no_s);
 
 						start += 16;
 					}
