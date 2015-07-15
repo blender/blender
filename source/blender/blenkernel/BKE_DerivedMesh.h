@@ -149,6 +149,7 @@ typedef enum DMDrawFlag {
 	DM_DRAW_ALWAYS_SMOOTH       = (1 << 1),
 	DM_DRAW_USE_ACTIVE_UV       = (1 << 2),
 	DM_DRAW_USE_TEXPAINT_UV     = (1 << 3),
+	DM_DRAW_SKIP_HIDDEN         = (1 << 4),
 } DMDrawFlag;
 
 typedef enum DMForeachFlag {

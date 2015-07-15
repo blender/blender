@@ -392,6 +392,7 @@ void		wmOrtho2_pixelspace(const float x, const float y);
 
 			/* utilities */
 void		WM_framebuffer_index_set(int index);
+void		WM_framebuffer_index_get(int index, int *r_col);
 int			WM_framebuffer_to_index(unsigned int col);
 void		WM_framebuffer_to_index_array(unsigned int *col, const unsigned int size);
 

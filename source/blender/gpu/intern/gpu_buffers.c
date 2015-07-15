@@ -764,6 +764,21 @@ void GPU_color_setup(DerivedMesh *dm, int colType)
 	GLStates |= GPU_BUFFER_COLOR_STATE;
 }
 
+void GPU_buffer_bind_as_color(GPUBuffer *buffer)
+{
+	glEnableClientState(GL_COLOR_ARRAY);
+	if (buffer->use_vbo) {
+		glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffer->id);
+		glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0);
+	}
+	else {
+		glColorPointer(4, GL_UNSIGNED_BYTE, 0, buffer->pointer);
+	}
+
+	GLStates |= GPU_BUFFER_COLOR_STATE;
+}
+
+
 void GPU_edge_setup(DerivedMesh *dm)
 {
 	if (!gpu_buffer_setup_common(dm, GPU_BUFFER_EDGE))

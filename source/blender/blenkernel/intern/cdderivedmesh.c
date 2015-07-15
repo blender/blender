@@ -60,6 +60,8 @@
 #include "GPU_extensions.h"
 #include "GPU_glew.h"
 
+#include "WM_api.h"
+
 #include <string.h>
 #include <limits.h>
 #include <math.h>
@@ -635,14 +637,15 @@ static void cdDM_drawMappedFaces(
         void *userData, DMDrawFlag flag)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
-	MVert *mv = cddm->mvert;
 	MFace *mf = cddm->mface;
 	MCol *mcol;
-	const float *nors = DM_get_tessface_data_layer(dm, CD_NORMAL);
-	const short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
-	int colType, useColors = flag & DM_DRAW_USE_COLORS;
+	int colType, useColors = flag & DM_DRAW_USE_COLORS, useHide = flag & DM_DRAW_SKIP_HIDDEN;
 	int i, orig;
-
+	int start_element = 0, tot_element, tot_drawn;
+	int totpoly;
+	int tottri;
+	int mat_index;
+	GPUBuffer *findex_buffer = NULL;
 
 	/* double lookup */
 	const int *index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
@@ -651,216 +654,153 @@ static void cdDM_drawMappedFaces(
 		index_mp_to_orig = NULL;
 	}
 
-	colType = CD_TEXTURE_MCOL;
-	mcol = DM_get_tessface_data_layer(dm, colType);
-	if (!mcol) {
-		colType = CD_PREVIEW_MCOL;
-		mcol = DM_get_tessface_data_layer(dm, colType);
-	}
-	if (!mcol) {
-		colType = CD_MCOL;
-		mcol = DM_get_tessface_data_layer(dm, colType);
-	}
-
 	cdDM_update_normals_from_pbvh(dm);
 
-	/* back-buffer always uses legacy since VBO's would need the
-	 * color array temporarily overwritten for drawing, then reset. */
-	if (G.f & G_BACKBUFSEL) {
-		DEBUG_VBO("Using legacy code. cdDM_drawMappedFaces\n");
-		for (i = 0; i < dm->numTessFaceData; i++, mf++) {
-			int drawSmooth = ((flag & DM_DRAW_ALWAYS_SMOOTH) || lnors) ? 1 : (mf->flag & ME_SMOOTH);
-			DMDrawOption draw_option = DM_DRAW_OPTION_NORMAL;
+	/* fist, setup common buffers */
+	GPU_vertex_setup(dm);
+	GPU_triangle_setup(dm);
 
-			orig = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, i) : i;
-			
-			if (orig == ORIGINDEX_NONE)
-				draw_option = setMaterial(mf->mat_nr + 1, NULL);
-			else if (setDrawOptions != NULL)
-				draw_option = setDrawOptions(userData, orig);
+	/* if we do selection, fill the selection buffer color */
+	if (G.f & G_BACKBUFSEL) {
+		Mesh *me = userData;
+		unsigned int *fi_map;
+
+		findex_buffer = GPU_buffer_alloc(dm->drawObject->tot_loop_verts * sizeof(int), false);
+		fi_map = GPU_buffer_lock(findex_buffer);
+
+		if (fi_map) {
+			for (i = 0; i < dm->numTessFaceData; i++, mf++) {
+				int selcol = 0xFFFFFFFF;
+				orig = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, i) : i;
+
+				if ((orig != ORIGINDEX_NONE) && (!useHide || !(me->mpoly[orig].flag & ME_HIDE))) {
+					WM_framebuffer_index_get(orig + 1, &selcol);
+				}
+
+				fi_map[start_element++] = selcol;
+				fi_map[start_element++] = selcol;
+				fi_map[start_element++] = selcol;
+
+				if (mf->v4) {
+					fi_map[start_element++] = selcol;
+				}
+			}
+
+			start_element = 0;
+			mf = cddm->mface;
+
+			GPU_buffer_unlock(findex_buffer);
+			GPU_buffer_bind_as_color(findex_buffer);
+		}
+	}
+	else {
+		GPU_normal_setup(dm);
+
+		if (useColors) {
+			colType = CD_TEXTURE_MCOL;
+			mcol = DM_get_tessface_data_layer(dm, colType);
+			if (!mcol) {
+				colType = CD_PREVIEW_MCOL;
+				mcol = DM_get_tessface_data_layer(dm, colType);
+			}
+			if (!mcol) {
+				colType = CD_MCOL;
+				mcol = DM_get_tessface_data_layer(dm, colType);
+			}
+
+			if (useColors && mcol) {
+				GPU_color_setup(dm, colType);
+			}
+		}
+	}
+		
+
+	glShadeModel(GL_SMOOTH);
+
+	tottri = dm->drawObject->tot_triangle_point;
+
+	if (tottri == 0) {
+		/* avoid buffer problems in following code */
+	}
+	else if (setDrawOptions == NULL) {
+		/* just draw the entire face array */
+		GPU_buffer_draw_elements(dm->drawObject->triangles, GL_TRIANGLES, 0, tottri);
+	}
+	else {
+		for (mat_index = 0; mat_index < dm->drawObject->totmaterial; mat_index++) {
+			GPUBufferMaterial *bufmat = dm->drawObject->materials + mat_index;
+			DMDrawOption draw_option = DM_DRAW_OPTION_NORMAL;
+			int next_actualFace = bufmat->polys[0];
+			totpoly = bufmat->totpolys;
+
+			tot_element = 0;
+			start_element = 0;
+			tot_drawn = 0;
+
+			if (setMaterial)
+				draw_option = setMaterial(bufmat->mat_nr + 1, NULL);
 
 			if (draw_option != DM_DRAW_OPTION_SKIP) {
-				unsigned char *cp = NULL;
+				for (i = 0; i < totpoly; i++) {
+					int actualFace = next_actualFace;
+					int flush = 0;
+					draw_option = DM_DRAW_OPTION_NORMAL;
 
-				if (draw_option == DM_DRAW_OPTION_STIPPLE) {
-					glEnable(GL_POLYGON_STIPPLE);
-					glPolygonStipple(stipple_quarttone);
-				}
+					if (i != totpoly - 1)
+						next_actualFace = bufmat->polys[i + 1];
 
-				if (useColors && mcol)
-					cp = (unsigned char *)&mcol[i * 4];
+					orig = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, actualFace) : actualFace;
 
-				/* no need to set shading mode to flat because
-				 *  normals are already used to change shading */
-				glShadeModel(GL_SMOOTH);
-				glBegin(mf->v4 ? GL_QUADS : GL_TRIANGLES);
+					if (setDrawOptions != NULL && (orig != ORIGINDEX_NONE))
+						draw_option = setDrawOptions(userData, orig);
 
-				if (lnors) {
-					if (cp) glColor3ub(cp[3], cp[2], cp[1]);
-					glNormal3sv((const GLshort *)lnors[0][0]);
-					glVertex3fv(mv[mf->v1].co);
-					if (cp) glColor3ub(cp[7], cp[6], cp[5]);
-					glNormal3sv((const GLshort *)lnors[0][1]);
-					glVertex3fv(mv[mf->v2].co);
-					if (cp) glColor3ub(cp[11], cp[10], cp[9]);
-					glNormal3sv((const GLshort *)lnors[0][2]);
-					glVertex3fv(mv[mf->v3].co);
-					if (mf->v4) {
-						if (cp) glColor3ub(cp[15], cp[14], cp[13]);
-						glNormal3sv((const GLshort *)lnors[0][3]);
-						glVertex3fv(mv[mf->v4].co);
+					if (draw_option == DM_DRAW_OPTION_STIPPLE) {
+						glEnable(GL_POLYGON_STIPPLE);
+						glPolygonStipple(stipple_quarttone);
 					}
-				}
-				else if (!drawSmooth) {
-					if (nors) {
-						glNormal3fv(nors);
+
+					/* Goal is to draw as long of a contiguous triangle
+					 * array as possible, so draw when we hit either an
+					 * invisible triangle or at the end of the array */
+
+					/* flush buffer if current triangle isn't drawable or it's last triangle... */
+					flush = (ELEM(draw_option, DM_DRAW_OPTION_SKIP, DM_DRAW_OPTION_STIPPLE)) || (i == totpoly - 1);
+
+					if (!flush && compareDrawOptions) {
+						flush |= compareDrawOptions(userData, actualFace, next_actualFace) == 0;
+					}
+
+					tot_element += mf[actualFace].v4 ? 6 : 3;
+
+					if (flush) {
+						if (!ELEM(draw_option, DM_DRAW_OPTION_SKIP, DM_DRAW_OPTION_STIPPLE))
+							tot_drawn += mf[actualFace].v4 ? 6 : 3;
+
+						if (tot_drawn) {
+							GPU_buffer_draw_elements(dm->drawObject->triangles, GL_TRIANGLES, bufmat->start + start_element, tot_drawn);
+							tot_drawn = 0;
+						}
+
+						start_element = tot_element;
+
+						if (draw_option == DM_DRAW_OPTION_STIPPLE)
+							glDisable(GL_POLYGON_STIPPLE);
 					}
 					else {
-						float nor[3];
-						if (mf->v4) {
-							normal_quad_v3(nor, mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co);
-						}
-						else {
-							normal_tri_v3(nor, mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co);
-						}
-						glNormal3fv(nor);
+						tot_drawn += mf[actualFace].v4 ? 6 : 3;
 					}
-
-					if (cp) glColor3ub(cp[3], cp[2], cp[1]);
-					glVertex3fv(mv[mf->v1].co);
-					if (cp) glColor3ub(cp[7], cp[6], cp[5]);
-					glVertex3fv(mv[mf->v2].co);
-					if (cp) glColor3ub(cp[11], cp[10], cp[9]);
-					glVertex3fv(mv[mf->v3].co);
-					if (mf->v4) {
-						if (cp) glColor3ub(cp[15], cp[14], cp[13]);
-						glVertex3fv(mv[mf->v4].co);
-					}
-				}
-				else {
-					if (cp) glColor3ub(cp[3], cp[2], cp[1]);
-					glNormal3sv(mv[mf->v1].no);
-					glVertex3fv(mv[mf->v1].co);
-					if (cp) glColor3ub(cp[7], cp[6], cp[5]);
-					glNormal3sv(mv[mf->v2].no);
-					glVertex3fv(mv[mf->v2].co);
-					if (cp) glColor3ub(cp[11], cp[10], cp[9]);
-					glNormal3sv(mv[mf->v3].no);
-					glVertex3fv(mv[mf->v3].co);
-					if (mf->v4) {
-						if (cp) glColor3ub(cp[15], cp[14], cp[13]);
-						glNormal3sv(mv[mf->v4].no);
-						glVertex3fv(mv[mf->v4].co);
-					}
-				}
-
-				glEnd();
-
-				if (draw_option == DM_DRAW_OPTION_STIPPLE)
-					glDisable(GL_POLYGON_STIPPLE);
-			}
-			
-			if (nors)
-				nors += 3;
-			if (lnors)
-				lnors++;
-		}
-	}
-	else { /* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
-		int start_element = 0, tot_element, tot_drawn;
-		int totpoly;
-		int tottri;
-		int mat_index;
-		
-		GPU_vertex_setup(dm);
-		GPU_normal_setup(dm);
-		GPU_triangle_setup(dm);
-		if (useColors && mcol) {
-			GPU_color_setup(dm, colType);
-		}
-		glShadeModel(GL_SMOOTH);
-		
-		tottri = dm->drawObject->tot_triangle_point;
-
-		if (tottri == 0) {
-			/* avoid buffer problems in following code */
-		}
-		else if (setDrawOptions == NULL) {
-			/* just draw the entire face array */
-			GPU_buffer_draw_elements(dm->drawObject->triangles, GL_TRIANGLES, 0, tottri);
-		}
-		else {
-			for (mat_index = 0; mat_index < dm->drawObject->totmaterial; mat_index++) {
-				GPUBufferMaterial *bufmat = dm->drawObject->materials + mat_index;
-				DMDrawOption draw_option = DM_DRAW_OPTION_NORMAL;
-				int next_actualFace = bufmat->polys[0];
-				totpoly = bufmat->totpolys;
-
-				tot_element = 0;
-				tot_drawn = 0;
-				start_element = 0;
-
-				if (setMaterial)
-					draw_option = setMaterial(bufmat->mat_nr + 1, NULL);
-
-				if (draw_option != DM_DRAW_OPTION_SKIP) {
-					for (i = 0; i < totpoly; i++) {
-						//int actualFace = dm->drawObject->triangle_to_mface[i];
-						int actualFace = next_actualFace;
-						int flush = 0;
-						draw_option = DM_DRAW_OPTION_NORMAL;
-
-						if (i != totpoly - 1)
-							next_actualFace = bufmat->polys[i + 1];
-
-						orig = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, actualFace) : actualFace;
-
-						if (setDrawOptions != NULL && (orig != ORIGINDEX_NONE))
-							draw_option = setDrawOptions(userData, orig);
-
-						if (draw_option == DM_DRAW_OPTION_STIPPLE) {
-							glEnable(GL_POLYGON_STIPPLE);
-							glPolygonStipple(stipple_quarttone);
-						}
-
-						/* Goal is to draw as long of a contiguous triangle
-						 * array as possible, so draw when we hit either an
-						 * invisible triangle or at the end of the array */
-
-						/* flush buffer if current triangle isn't drawable or it's last triangle... */
-						flush = (ELEM(draw_option, DM_DRAW_OPTION_SKIP, DM_DRAW_OPTION_STIPPLE)) || (i == totpoly - 1);
-
-						if (!flush && compareDrawOptions) {
-							flush |= compareDrawOptions(userData, actualFace, next_actualFace) == 0;
-						}
-
-						tot_element += mf[actualFace].v4 ? 6 : 3;
-
-						if (flush) {
-							if (!ELEM(draw_option, DM_DRAW_OPTION_SKIP, DM_DRAW_OPTION_STIPPLE))
-								tot_drawn += mf[actualFace].v4 ? 6 : 3;
-
-							if (tot_drawn) {
-								GPU_buffer_draw_elements(dm->drawObject->triangles, GL_TRIANGLES, bufmat->start + start_element, tot_drawn);
-								tot_drawn = 0;
-							}
-
-							start_element = tot_element;
-
-							if (draw_option == DM_DRAW_OPTION_STIPPLE)
-								glDisable(GL_POLYGON_STIPPLE);
-						}
-						else {
-							tot_drawn += mf[actualFace].v4 ? 6 : 3;
-						}
-					}
-
-					glShadeModel(GL_FLAT);
 				}
 			}
 		}
-		GPU_buffer_unbind();
 	}
+
+	glShadeModel(GL_FLAT);
+
+	GPU_buffer_unbind();
+
+	if (G.f & G_BACKBUFSEL)
+		GPU_buffer_free(findex_buffer);
+
 }
 
 static void cdDM_drawMappedFacesTex(

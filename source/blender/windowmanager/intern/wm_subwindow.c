@@ -459,6 +459,13 @@ void WM_framebuffer_index_set(int index)
 	cpack(col);
 }
 
+void WM_framebuffer_index_get(int index, int *r_col)
+{
+	*r_col = index_to_framebuffer(index);
+}
+
+
+
 #define INDEX_FROM_BUF_8(col)     (((col & 0xC00000) >> 18) + ((col & 0xC000) >> 12) + ((col & 0xC0) >> 6))
 #define INDEX_FROM_BUF_12(col)    (((col & 0xF00000) >> 12) + ((col & 0xF000) >> 8)  + ((col & 0xF0) >> 4))
 #define INDEX_FROM_BUF_15_16(col) (((col & 0xF80000) >> 9)  + ((col & 0xF800) >> 6)  + ((col & 0xF8) >> 3))
