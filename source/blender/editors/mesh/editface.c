@@ -632,7 +632,7 @@ void paintvert_select_ungrouped(Object *ob, bool extend, bool flush_flags)
 
 /* ********************* MESH VERTEX MIRR TOPO LOOKUP *************** */
 /* note, this is not the best place for the function to be but moved
- * here to for the purpose of syncing with bmesh */
+ * here for the purpose of syncing with bmesh */
 
 typedef unsigned int MirrTopoHash_t;
 
