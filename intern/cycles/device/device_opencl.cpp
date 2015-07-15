@@ -140,6 +140,9 @@ bool opencl_kernel_use_split(const string& platform_name,
 	{
 		return true;
 	}
+	if(platform_name == "Apple" && device_type == CL_DEVICE_TYPE_GPU) {
+		return true;
+	}
 	return false;
 }
 
