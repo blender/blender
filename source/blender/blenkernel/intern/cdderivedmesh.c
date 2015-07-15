@@ -1682,10 +1682,11 @@ static void cdDM_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(
 	}
 }
 
-static void cdDM_copy_gpu_data(DerivedMesh *dm, int type, float *varray,
-                        int *mat_orig_to_new, void *user_data)
+static void cdDM_copy_gpu_data(
+        DerivedMesh *dm, int type, float *varray,
+        int *mat_orig_to_new, void *user_data)
 {
-	switch(type) {
+	switch (type) {
 		case GPU_BUFFER_VERTEX:
 			cdDM_buffer_copy_vertex(dm, varray, mat_orig_to_new, user_data);
 			break;

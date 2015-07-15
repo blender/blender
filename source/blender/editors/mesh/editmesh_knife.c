@@ -284,7 +284,7 @@ static void knife_update_header(bContext *C, wmOperator *op, KnifeTool_OpData *k
 	             WM_MODALKEY(KNF_MODAL_MIDPOINT_ON), WM_bool_as_string(kcd->snap_midpoints),
 	             WM_MODALKEY(KNF_MODEL_IGNORE_SNAP_ON), WM_bool_as_string(kcd->ignore_edge_snapping),
 	             WM_MODALKEY(KNF_MODAL_ANGLE_SNAP_TOGGLE), WM_bool_as_string(kcd->angle_snapping),
-	             WM_MODALKEY(KNF_MODAL_CUT_THROUGH_TOGGLE),WM_bool_as_string(kcd->cut_through),
+	             WM_MODALKEY(KNF_MODAL_CUT_THROUGH_TOGGLE), WM_bool_as_string(kcd->cut_through),
 	             WM_MODALKEY(KNF_MODAL_PANNING));
 
 #undef WM_MODALKEY

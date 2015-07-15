@@ -2094,10 +2094,11 @@ static void ccgDM_buffer_copy_uv_texpaint(DerivedMesh *dm, float *varray, int *U
 	MEM_freeN(mtface_base);
 }
 
-static void ccgDM_copy_gpu_data(DerivedMesh *dm, int type, float *varray,
-                         int *mat_orig_to_new, void *user_data)
+static void ccgDM_copy_gpu_data(
+        DerivedMesh *dm, int type, float *varray,
+        int *mat_orig_to_new, void *user_data)
 {	
-	switch(type) {
+	switch (type) {
 		case GPU_BUFFER_VERTEX:
 			ccgDM_buffer_copy_vertex(dm, varray, mat_orig_to_new, NULL);
 			break;
@@ -2127,7 +2128,8 @@ typedef struct {
 	int polys;
 } GPUMaterialInfo;
 
-static GPUDrawObject *ccgDM_GPUObjectNew(DerivedMesh *dm) {
+static GPUDrawObject *ccgDM_GPUObjectNew(DerivedMesh *dm)
+{
 	GPUBufferMaterial *mat;
 	int *mat_orig_to_new;
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;

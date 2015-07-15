@@ -961,7 +961,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "LineStyleAlphaModifier_Curvature_3D", "LineStyleAlphaModifier");
 	RNA_def_struct_ui_text(srna, "Curvature 3D",
-						   "Alpha transparency based on the radial curvature of 3D mesh surfaces");
+	                       "Alpha transparency based on the radial curvature of 3D mesh surfaces");
 	rna_def_alpha_modifier(srna);
 	rna_def_modifier_curve_common(srna, false, false);
 

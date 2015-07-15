@@ -192,7 +192,7 @@ static void mesh_calc_eigen_matrix(
 		 * doesn't handle casting correct we use workaround to avoid explicit
 		 * cast here.
 		 */
-		vcos = (void*)cos;
+		vcos = (void *)cos;
 	}
 	unit_m4(r_mat);
 
@@ -210,16 +210,16 @@ static void mesh_calc_eigen_matrix(
 
 	/* Special handling of cases where some eigen values are (nearly) identical. */
 	if (compare_ff_relative(eigen_val[0], eigen_val[1], FLT_EPSILON, 64)) {
-	    if (compare_ff_relative(eigen_val[0], eigen_val[2], FLT_EPSILON, 64)) {
+		if (compare_ff_relative(eigen_val[0], eigen_val[2], FLT_EPSILON, 64)) {
 			/* No preferred direction, that set of vertices has a spherical average,
-             * so we simply returned scaled/translated identity matrix (with no rotation). */
+			 * so we simply returned scaled/translated identity matrix (with no rotation). */
 			unit_m3(eigen_vec);
 		}
 		else {
 			/* Ellipsoid defined by eigen values/vectors has a spherical section,
 			 * we can only define one axis from eigen_vec[2] (two others computed eigen vecs
 			 * are not so nice for us here, they tend to 'randomly' rotate around valid one).
-	         * Note that eigen vectors as returned by BLI_eigen_solve_selfadjoint_m3() are normalized. */
+			 * Note that eigen vectors as returned by BLI_eigen_solve_selfadjoint_m3() are normalized. */
 			ortho_basis_v3v3_v3(eigen_vec[0], eigen_vec[1], eigen_vec[2]);
 		}
 	}
