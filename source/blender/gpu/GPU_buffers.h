@@ -48,10 +48,6 @@ struct GSet;
 struct GPUVertPointLink;
 struct PBVH;
 
-typedef void (*GPUBufferCopyFunc)(DerivedMesh *dm, float *varray, int *index,
-                                  int *mat_orig_to_new, void *user_data);
-
-
 typedef struct GPUBuffer {
 	int size;        /* in bytes */
 	void *pointer;   /* used with vertex arrays */
