@@ -745,7 +745,8 @@ void wm_read_history(void)
 	/* read list of recent opened files from recent-files.txt to memory */
 	for (l = lines, num = 0; l && (num < U.recent_files); l = l->next) {
 		line = l->link;
-		if (line[0] && BLI_exists(line)) {
+		/* don't check if files exist, causes slow startup for remote/external drives */
+		if (line[0]) {
 			recent = (RecentFile *)MEM_mallocN(sizeof(RecentFile), "RecentFile");
 			BLI_addtail(&(G.recent_files), recent);
 			recent->filepath = BLI_strdup(line);
