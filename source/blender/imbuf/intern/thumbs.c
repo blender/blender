@@ -442,6 +442,10 @@ static ImBuf *thumb_create_ex(
 		img->ftype = IMB_FTYPE_PNG;
 		img->planes = 32;
 
+		/* If we generated from a 16bit PNG e.g., we have a float rect, not a byte one - fix this. */
+		IMB_rect_from_float(img);
+		imb_freerectfloatImBuf(img);
+
 		if (IMB_saveiff(img, temp, IB_rect | IB_metadata)) {
 #ifndef WIN32
 			chmod(temp, S_IRUSR | S_IWUSR);
@@ -603,6 +607,12 @@ ImBuf *IMB_thumb_manage(const char *org_path, ThumbSize size, ThumbSource source
 			}
 		}
 	}
+
+	/* Our imbuf **must** have a valid rect (i.e. 8-bits/channels) data, we rely on this in draw code.
+	 * However, in some cases we may end loading 16bits PNGs, which generated float buffers.
+	 * This should be taken care of in generation step, but add also a safeguard here! */
+	IMB_rect_from_float(img);
+	imb_freerectfloatImBuf(img);
 
 	return img;
 }
