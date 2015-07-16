@@ -2262,6 +2262,10 @@ void BKE_mesh_split_faces(Mesh *mesh)
 	                                   sizeof(MVert) * mesh->totvert);
 	medge = mesh->medge = MEM_reallocN(mesh->medge,
 	                                   sizeof(MEdge) * mesh->totedge);
+	if (mesh->dvert != NULL) {
+		mesh->dvert = MEM_reallocN(mesh->dvert, sizeof(MDeformVert) * mesh->totedge);
+		CustomData_set_layer(&mesh->vdata, CD_MDEFORMVERT, mesh->dvert);
+	}
 	CustomData_set_layer(&mesh->vdata, CD_MVERT, mesh->mvert);
 	CustomData_set_layer(&mesh->edata, CD_MEDGE, mesh->medge);
 	num_new_verts = 0;
