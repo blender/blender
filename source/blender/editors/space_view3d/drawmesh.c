@@ -596,6 +596,15 @@ static void update_tface_color_layer(DerivedMesh *dm, bool use_mcol)
 	int i, j;
 	MCol *mcol = NULL;
 
+	/* cache material values to avoid a lot of lookups */
+	Material *ma = NULL;
+	short mat_nr_prev = -1;
+	enum {
+		COPY_CALC,
+		COPY_ORIG,
+		COPY_PREV,
+	} copy_mode = COPY_CALC;
+
 	if (use_mcol) {
 		mcol = dm->getTessFaceDataArray(dm, CD_PREVIEW_MCOL);
 		if (!mcol)
@@ -612,17 +621,36 @@ static void update_tface_color_layer(DerivedMesh *dm, bool use_mcol)
 	}
 
 	for (i = 0; i < dm->getNumTessFaces(dm); i++) {
-		Material *ma = give_current_material(Gtexdraw.ob, mface[i].mat_nr + 1);
+		const short mat_nr = mface[i].mat_nr;
 
-		if (ma && (ma->game.flag & GEMAT_INVISIBLE)) {
-			if (mcol)
+		if (UNLIKELY(mat_nr_prev != mat_nr)) {
+			ma = give_current_material(Gtexdraw.ob, mface[i].mat_nr + 1);
+			copy_mode = COPY_CALC;
+			mat_nr_prev = mat_nr;
+		}
+
+		/* avoid lookups  */
+		if (copy_mode == COPY_ORIG) {
+			memcpy(&finalCol[i * 4], &mcol[i * 4], sizeof(MCol) * 4);
+		}
+		else if (copy_mode == COPY_PREV) {
+			memcpy(&finalCol[i * 4], &finalCol[(i - 1) * 4], sizeof(MCol) * 4);
+		}
+
+		/* (copy_mode == COPY_CALC) */
+		else if (ma && (ma->game.flag & GEMAT_INVISIBLE)) {
+			if (mcol) {
 				memcpy(&finalCol[i * 4], &mcol[i * 4], sizeof(MCol) * 4);
-			else
+				copy_mode = COPY_ORIG;
+			}
+			else {
 				for (j = 0; j < 4; j++) {
 					finalCol[i * 4 + j].b = 255;
 					finalCol[i * 4 + j].g = 255;
 					finalCol[i * 4 + j].r = 255;
 				}
+				copy_mode = COPY_PREV;
+			}
 		}
 		else if (mtexpoly && set_draw_settings_cached(0, mtexpoly, ma, Gtexdraw)) {
 			for (j = 0; j < 4; j++) {
@@ -630,6 +658,7 @@ static void update_tface_color_layer(DerivedMesh *dm, bool use_mcol)
 				finalCol[i * 4 + j].g = 0;
 				finalCol[i * 4 + j].r = 255;
 			}
+			copy_mode = COPY_PREV;
 		}
 		else if (ma && (ma->shade_flag & MA_OBCOLOR)) {
 			for (j = 0; j < 4; j++) {
@@ -637,41 +666,50 @@ static void update_tface_color_layer(DerivedMesh *dm, bool use_mcol)
 				finalCol[i * 4 + j].g = Gtexdraw.obcol[1];
 				finalCol[i * 4 + j].r = Gtexdraw.obcol[2];
 			}
+			copy_mode = COPY_PREV;
 		}
-		else if (!mcol) {
-			if (mtexpoly) {
+		else {
+			if (mcol) {
+				memcpy(&finalCol[i * 4], &mcol[i * 4], sizeof(MCol) * 4);
+				copy_mode = COPY_ORIG;
+			}
+			else if (mtexpoly) {
 				for (j = 0; j < 4; j++) {
 					finalCol[i * 4 + j].b = 255;
 					finalCol[i * 4 + j].g = 255;
 					finalCol[i * 4 + j].r = 255;
 				}
+				copy_mode = COPY_PREV;
 			}
 			else {
-				float col[3];
-
 				if (ma) {
-					if (Gtexdraw.color_profile) linearrgb_to_srgb_v3_v3(col, &ma->r);
-					else copy_v3_v3(col, &ma->r);
-					
+					float col[3];
+					MCol tcol;
+
+					if (Gtexdraw.color_profile) {
+						linearrgb_to_srgb_v3_v3(col, &ma->r);
+					}
+					else {
+						copy_v3_v3(col, &ma->r);
+					}
+
+					tcol.b = FTOCHAR(col[0]);
+					tcol.g = FTOCHAR(col[1]);
+					tcol.r = FTOCHAR(col[2]);
+					tcol.a = 255;
+
 					for (j = 0; j < 4; j++) {
-						finalCol[i * 4 + j].b = FTOCHAR(col[0]);
-						finalCol[i * 4 + j].g = FTOCHAR(col[1]);
-						finalCol[i * 4 + j].r = FTOCHAR(col[2]);
+						finalCol[i * 4 + j] = tcol;
 					}
 				}
-				else
+				else {
 					for (j = 0; j < 4; j++) {
 						finalCol[i * 4 + j].b = 255;
 						finalCol[i * 4 + j].g = 255;
 						finalCol[i * 4 + j].r = 255;
 					}
-			}
-		}
-		else {
-			for (j = 0; j < 4; j++) {
-				finalCol[i * 4 + j].r = mcol[i * 4 + j].r;
-				finalCol[i * 4 + j].g = mcol[i * 4 + j].g;
-				finalCol[i * 4 + j].b = mcol[i * 4 + j].b;
+				}
+				copy_mode = COPY_PREV;
 			}
 		}
 	}
