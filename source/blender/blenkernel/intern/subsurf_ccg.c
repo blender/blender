@@ -59,6 +59,7 @@
 #include "BKE_ccg.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_global.h"
+#include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
@@ -3568,6 +3569,12 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 		MLoopTri *looptri;
 
 		looptri = MEM_mallocN(sizeof(*looptri) * looptris_num, __func__);
+
+		BKE_mesh_recalc_looptri(
+		        me->mloop, me->mpoly,
+		        me->mvert,
+		        me->totloop, me->totpoly,
+		        looptri);
 
 		ob->sculpt->pbvh = ccgdm->pbvh = BKE_pbvh_new();
 		BLI_assert(!(me->mface == NULL && me->mpoly != NULL)); /* BMESH ONLY complain if mpoly is valid but not mface */
