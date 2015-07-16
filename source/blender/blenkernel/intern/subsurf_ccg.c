@@ -2050,7 +2050,7 @@ static void ccgDM_buffer_copy_uv_texpaint(
 	mloopuv_base = MEM_mallocN(totmaterial * sizeof(*mloopuv_base), "texslots");
 
 	for (i = 0; i < totmaterial; i++) {
-		mloopuv_base[i] = DM_paint_uvlayer_active_get_mloopuv(dm, i);
+		mloopuv_base[i] = DM_paint_uvlayer_active_get(dm, i);
 	}
 
 	stencil = CustomData_get_stencil_layer(&dm->loopData, CD_MLOOPUV);

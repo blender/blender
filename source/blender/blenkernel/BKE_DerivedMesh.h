@@ -615,8 +615,7 @@ void DM_ensure_looptri(DerivedMesh *dm);
 void DM_update_tessface_data(DerivedMesh *dm);
 
 void DM_update_materials(DerivedMesh *dm, struct Object *ob);
-struct MTFace *DM_paint_uvlayer_active_get(DerivedMesh *dm, int mat_nr);
-struct MLoopUV *DM_paint_uvlayer_active_get_mloopuv(DerivedMesh *dm, int mat_nr);
+struct MLoopUV *DM_paint_uvlayer_active_get(DerivedMesh *dm, int mat_nr);
 
 void DM_interp_vert_data(
         struct DerivedMesh *source, struct DerivedMesh *dest,
