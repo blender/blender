@@ -819,38 +819,47 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 	// the logic must be replicated first because we need
 	// the new logic bricks before relinking
 	vector<KX_GameObject*>::iterator git;
-	for (git = m_logicHierarchicalGameObjects.begin(); git != m_logicHierarchicalGameObjects.end(); ++git) {
-		KX_GameObject *gameobj = *git;
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		(*git)->ReParentLogic();
+	}
+	
+	//	relink any pointers as necessary, sort of a temporary solution
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		// this will also relink the actuator to objects within the hierarchy
+		(*git)->Relink(&m_map_gameobject_to_replica);
+		// add the object in the layer of the parent
+		(*git)->SetLayer(groupobj->GetLayer());
+	}
 
-		if (gameobj->GetBlenderGroupObject() == blgroupobj) {
+	// replicate crosslinks etc. between logic bricks
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		ReplicateLogic((*git));
+	}
+	
+	// now look if object in the hierarchy have dupli group and recurse
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		/* Replicate all constraints. */
+		if ((*git)->GetPhysicsController()) {
+			(*git)->GetPhysicsController()->ReplicateConstraints((*git), m_logicHierarchicalGameObjects);
+			(*git)->ClearConstraints();
+		}
+
+		if ((*git) != groupobj && (*git)->IsDupliGroup())
+			// can't instantiate group immediately as it destroys m_logicHierarchicalGameObjects
+			duplilist.push_back((*git));
+
+		if ((*git)->GetBlenderGroupObject() == blgroupobj) {
 			// set references for dupli-group
 			// groupobj holds a list of all objects, that belongs to this group
-			groupobj->AddInstanceObjects(gameobj);
+			groupobj->AddInstanceObjects((*git));
+
 			// every object gets the reference to its dupli-group object
-			gameobj->SetDupliGroupObject(groupobj);
+			(*git)->SetDupliGroupObject(groupobj);
 		}
-
-		gameobj->ReParentLogic();
-
-		//	relink any pointers as necessary, sort of a temporary solution
-		// this will also relink the actuator to objects within the hierarchy
-		gameobj->Relink(&m_map_gameobject_to_replica);
-		// add the object in the layer of the parent
-		gameobj->SetLayer(groupobj->GetLayer());
-
-		// replicate crosslinks etc. between logic bricks
-		ReplicateLogic(gameobj);
-	
-		// now look if object in the hierarchy have dupli group and recurse
-		/* Replicate all constraints. */
-		if (gameobj->GetPhysicsController()) {
-			gameobj->GetPhysicsController()->ReplicateConstraints(gameobj, m_logicHierarchicalGameObjects);
-			gameobj->ClearConstraints();
-		}
-
-		if (gameobj != groupobj && gameobj->IsDupliGroup())
-			// can't instantiate group immediately as it destroys m_logicHierarchicalGameObjects
-			duplilist.push_back(gameobj);
 	}
 
 	for (git = duplilist.begin(); !(git == duplilist.end()); ++git)
