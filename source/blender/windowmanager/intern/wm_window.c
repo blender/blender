@@ -516,6 +516,11 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 				wm_init_state.override_flag &= ~WIN_OVERRIDE_WINSTATE;
 			}
 
+			/* without this, cursor restore may fail, T45456 */
+			if (win->cursor == 0) {
+				win->cursor = CURSOR_STD;
+			}
+
 			wm_window_add_ghostwindow(wm, "Blender", win);
 		}
 		/* happens after fileread */
