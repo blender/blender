@@ -1358,11 +1358,12 @@ bool pbvh_bmesh_node_raycast(
 		int i;
 		for (i = 0; i < node->bm_tot_ortri; i++) {
 			const int *t = node->bm_ortri[i];
-			hit |= ray_face_intersection(ray_start, ray_normal,
-			                             node->bm_orco[t[0]],
-			                             node->bm_orco[t[1]],
-			                             node->bm_orco[t[2]],
-			                             NULL, dist);
+			hit |= ray_face_intersection_tri(
+			        ray_start, ray_normal,
+			        node->bm_orco[t[0]],
+			        node->bm_orco[t[1]],
+			        node->bm_orco[t[2]],
+			        dist);
 		}
 	}
 	else {
@@ -1376,11 +1377,12 @@ bool pbvh_bmesh_node_raycast(
 				BMVert *v_tri[3];
 
 				BM_face_as_array_vert_tri(f, v_tri);
-				hit |= ray_face_intersection(ray_start, ray_normal,
-				                             v_tri[0]->co,
-				                             v_tri[1]->co,
-				                             v_tri[2]->co,
-				                             NULL, dist);
+				hit |= ray_face_intersection_tri(
+				        ray_start, ray_normal,
+				        v_tri[0]->co,
+				        v_tri[1]->co,
+				        v_tri[2]->co,
+				        dist);
 			}
 		}
 	}
@@ -1391,7 +1393,7 @@ bool pbvh_bmesh_node_raycast(
 bool BKE_pbvh_bmesh_node_raycast_detail(
         PBVHNode *node,
         const float ray_start[3], const float ray_normal[3],
-        float *detail, float *dist)
+        float *dist, float *r_detail)
 {
 	GSetIterator gs_iter;
 	bool hit = false;
@@ -1408,12 +1410,12 @@ bool BKE_pbvh_bmesh_node_raycast_detail(
 			BMVert *v_tri[3];
 			bool hit_local;
 			BM_face_as_array_vert_tri(f, v_tri);
-			hit_local = ray_face_intersection(
+			hit_local = ray_face_intersection_tri(
 			        ray_start, ray_normal,
 			        v_tri[0]->co,
 			        v_tri[1]->co,
 			        v_tri[2]->co,
-			        NULL, dist);
+			        dist);
 
 			if (hit_local) {
 				f_hit = f;
@@ -1431,7 +1433,7 @@ bool BKE_pbvh_bmesh_node_raycast_detail(
 		len3 = len_squared_v3v3(v_tri[2]->co, v_tri[0]->co);
 
 		/* detail returned will be set to the maximum allowed size, so take max here */
-		*detail = sqrtf(max_fff(len1, len2, len3));
+		*r_detail = sqrtf(max_fff(len1, len2, len3));
 	}
 
 	return hit;
