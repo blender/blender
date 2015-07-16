@@ -48,7 +48,7 @@
 #define SEP_CHR		'#'
 #define SEP_STR		"#"
 
-#define EPS 0.00001
+#define EPS 0.001
 
 #define UN_SC_KM	1000.0f
 #define UN_SC_HM	100.0f
