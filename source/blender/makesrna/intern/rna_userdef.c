@@ -91,6 +91,8 @@ EnumPropertyItem navigation_mode_items[] = {
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_idprop.h"
+#include "BKE_pbvh.h"
+#include "BKE_paint.h"
 
 #include "GPU_draw.h"
 #include "GPU_select.h"
@@ -141,13 +143,23 @@ static void rna_userdef_language_update(Main *UNUSED(bmain), Scene *UNUSED(scene
 	UI_reinit_font();
 }
 
+static void update_cb(PBVHNode *node, void *UNUSED(rebuild))
+{
+	BKE_pbvh_node_mark_rebuild_draw(node);
+}
+
 static void rna_userdef_vbo_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	Object *ob;
 	
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		GPU_drawobject_free(ob->derivedFinal);
+
+		if (ob->sculpt && ob->sculpt->pbvh) {
+			BKE_pbvh_search_callback(ob->sculpt->pbvh, NULL, NULL, update_cb, NULL);
+		}
 	}
+	GPU_buffer_multires_free(false);
 }
 
 static void rna_userdef_show_manipulator_update(Main *bmain, Scene *scene, PointerRNA *ptr)

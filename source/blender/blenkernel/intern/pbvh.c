@@ -1087,7 +1087,8 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 						GPU_build_grid_pbvh_buffers(node->prim_indices,
 					                           node->totprim,
 					                           bvh->grid_hidden,
-					                           bvh->gridkey.grid_size);
+					                           bvh->gridkey.grid_size,
+					                           &bvh->gridkey);
 					break;
 				case PBVH_FACES:
 					node->draw_buffers =

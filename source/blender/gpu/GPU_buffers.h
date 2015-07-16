@@ -47,6 +47,7 @@ struct DerivedMesh;
 struct GSet;
 struct GPUVertPointLink;
 struct PBVH;
+struct MVert;
 
 typedef struct GPUBuffer {
 	int size;        /* in bytes */
@@ -152,6 +153,9 @@ void GPU_buffer_free(GPUBuffer *buffer);
 
 void GPU_drawobject_free(struct DerivedMesh *dm);
 
+/* free special global multires grid buffer */
+void GPU_buffer_multires_free(bool force);
+
 /* flag that controls data type to fill buffer with, a modifier will prepare. */
 typedef enum {
 	GPU_BUFFER_VERTEX = 0,
@@ -164,6 +168,10 @@ typedef enum {
 	GPU_BUFFER_TRIANGLES
 } GPUBufferType;
 
+typedef enum {
+	GPU_BINDING_ARRAY = 0,
+	GPU_BINDING_INDEX = 1,
+} GPUBindingType;
 
 /* called before drawing */
 void GPU_vertex_setup(struct DerivedMesh *dm);
@@ -181,10 +189,12 @@ void GPU_triangle_setup(struct DerivedMesh *dm);
 int GPU_attrib_element_size(GPUAttrib data[], int numdata);
 void GPU_interleaved_attrib_setup(GPUBuffer *buffer, GPUAttrib data[], int numdata, int element_size);
 
+void GPU_buffer_bind(GPUBuffer *buffer, GPUBindingType binding);
+
 /* can't lock more than one buffer at once */
-void *GPU_buffer_lock(GPUBuffer *buffer);
-void *GPU_buffer_lock_stream(GPUBuffer *buffer);
-void GPU_buffer_unlock(GPUBuffer *buffer);
+void *GPU_buffer_lock(GPUBuffer *buffer, GPUBindingType binding);
+void *GPU_buffer_lock_stream(GPUBuffer *buffer, GPUBindingType binding);
+void GPU_buffer_unlock(GPUBuffer *buffer, GPUBindingType binding);
 
 /* switch color rendering on=1/off=0 */
 void GPU_color_switch(int mode);
@@ -202,20 +212,19 @@ void GPU_interleaved_attrib_unbind(void);
 typedef struct GPU_PBVH_Buffers GPU_PBVH_Buffers;
 
 /* build */
-GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(
-        const int (*face_vert_indices)[4],
+GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(const int (*face_vert_indices)[4],
         const struct MFace *mface, const struct MVert *mvert,
         const int *face_indices, int totface);
 
 GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
-                                    unsigned int **grid_hidden, int gridsize);
+                                    unsigned int **grid_hidden, int gridsize, const struct CCGKey *key);
 
 GPU_PBVH_Buffers *GPU_build_bmesh_pbvh_buffers(int smooth_shading);
 
 /* update */
 
 void GPU_update_mesh_pbvh_buffers(
-        GPU_PBVH_Buffers *buffers, const MVert *mvert,
+        GPU_PBVH_Buffers *buffers, const struct MVert *mvert,
         const int *vert_indices, int totvert, const float *vmask,
         const int (*face_vert_indices)[4], bool show_diffuse_color);
 

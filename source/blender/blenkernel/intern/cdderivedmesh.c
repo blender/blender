@@ -666,7 +666,7 @@ static void cdDM_drawMappedFaces(
 		unsigned int *fi_map;
 
 		findex_buffer = GPU_buffer_alloc(dm->drawObject->tot_loop_verts * sizeof(int), false);
-		fi_map = GPU_buffer_lock(findex_buffer);
+		fi_map = GPU_buffer_lock(findex_buffer, GPU_BINDING_ARRAY);
 
 		if (fi_map) {
 			for (i = 0; i < dm->numTessFaceData; i++, mf++) {
@@ -689,7 +689,7 @@ static void cdDM_drawMappedFaces(
 			start_element = 0;
 			mf = cddm->mface;
 
-			GPU_buffer_unlock(findex_buffer);
+			GPU_buffer_unlock(findex_buffer, GPU_BINDING_ARRAY);
 			GPU_buffer_bind_as_color(findex_buffer);
 		}
 	}
@@ -1034,7 +1034,7 @@ static void cdDM_drawMappedFacesGLSL(
 			if (buffer == NULL) {
 				buffer = GPU_buffer_alloc(max_element_size * dm->drawObject->tot_loop_verts, true);
 			}
-			varray = GPU_buffer_lock_stream(buffer);
+			varray = GPU_buffer_lock_stream(buffer, GPU_BINDING_ARRAY);
 			if (varray == NULL) {
 				GPU_buffer_unbind();
 				GPU_buffer_free(buffer);
@@ -1114,7 +1114,7 @@ static void cdDM_drawMappedFacesGLSL(
 					tot_loops += 3;
 				}
 			}
-			GPU_buffer_unlock(buffer);
+			GPU_buffer_unlock(buffer, GPU_BINDING_ARRAY);
 		}
 
 		for (a = 0; a < tot_active_mat; a++) {

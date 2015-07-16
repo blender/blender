@@ -29,8 +29,11 @@
  *  \ingroup gpu
  */
 
+#include "BKE_DerivedMesh.h"
+
 #include "BLI_sys_types.h"
 #include "GPU_init_exit.h"  /* interface */
+#include "GPU_buffers.h"
 
 #include "BKE_global.h"
 
@@ -70,6 +73,7 @@ void GPU_exit(void)
 	gpu_codegen_exit();
 
 	gpu_extensions_exit(); /* must come last */
+	GPU_buffer_multires_free(true);
 
 	initialized = false;
 }
