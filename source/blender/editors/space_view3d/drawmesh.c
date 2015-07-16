@@ -80,14 +80,14 @@ typedef struct drawEMTFMapped_userData {
 	BMEditMesh *em;
 	bool has_mcol;
 	int cd_poly_tex_offset;
-	MFace *mf;
-	MTFace *tf;
+	const MPoly *mpoly;
+	const MTexPoly *mtexpoly;
 } drawEMTFMapped_userData;
 
 typedef struct drawTFace_userData {
-	Mesh *me;
-	MFace *mf;
-	MTFace *tf;
+	const Mesh *me;
+	const MPoly *mpoly;
+	const MTexPoly *mtexpoly;
 } drawTFace_userData;
 
 /**************************** Face Select Mode *******************************/
@@ -590,11 +590,12 @@ static DMDrawOption draw_tface__set_draw(MTexPoly *mtexpoly, const bool UNUSED(h
 
 static void update_tface_color_layer(DerivedMesh *dm, bool use_mcol)
 {
+	const MPoly *mp = dm->getPolyArray(dm);
+	const int mpoly_num = dm->getNumPolys(dm);
 	MTexPoly *mtexpoly = DM_get_poly_data_layer(dm, CD_MTEXPOLY);
-	MFace *mface = dm->getTessFaceArray(dm);
-	MCol *finalCol;
+	MLoopCol *finalCol;
 	int i, j;
-	MCol *mcol = NULL;
+	MLoopCol *mloopcol = NULL;
 
 	/* cache material values to avoid a lot of lookups */
 	Material *ma = NULL;
@@ -606,108 +607,94 @@ static void update_tface_color_layer(DerivedMesh *dm, bool use_mcol)
 	} copy_mode = COPY_CALC;
 
 	if (use_mcol) {
-		mcol = dm->getTessFaceDataArray(dm, CD_PREVIEW_MCOL);
-		if (!mcol)
-			mcol = dm->getTessFaceDataArray(dm, CD_MCOL);
+		mloopcol = dm->getLoopDataArray(dm, CD_PREVIEW_MLOOPCOL);
+		if (!mloopcol)
+			mloopcol = dm->getLoopDataArray(dm, CD_MLOOPCOL);
 	}
 
-	if (CustomData_has_layer(&dm->faceData, CD_TEXTURE_MCOL)) {
-		finalCol = CustomData_get_layer(&dm->faceData, CD_TEXTURE_MCOL);
+	if (CustomData_has_layer(&dm->loopData, CD_TEXTURE_MLOOPCOL)) {
+		finalCol = CustomData_get_layer(&dm->loopData, CD_TEXTURE_MLOOPCOL);
 	}
 	else {
-		finalCol = MEM_mallocN(sizeof(MCol) * 4 * dm->getNumTessFaces(dm), "add_tface_color_layer");
-
-		CustomData_add_layer(&dm->faceData, CD_TEXTURE_MCOL, CD_ASSIGN, finalCol, dm->numTessFaceData);
+		finalCol = MEM_mallocN(sizeof(MLoopCol) * dm->numLoopData, "add_tface_color_layer");
+		CustomData_add_layer(&dm->loopData, CD_TEXTURE_MLOOPCOL, CD_ASSIGN, finalCol, dm->numLoopData);
 	}
 
-	for (i = 0; i < dm->getNumTessFaces(dm); i++) {
-		const short mat_nr = mface[i].mat_nr;
+	for (i = mpoly_num; i--; mp++) {
+		const short mat_nr = mp->mat_nr;
 
 		if (UNLIKELY(mat_nr_prev != mat_nr)) {
-			ma = give_current_material(Gtexdraw.ob, mface[i].mat_nr + 1);
+			ma = give_current_material(Gtexdraw.ob, mat_nr + 1);
 			copy_mode = COPY_CALC;
 			mat_nr_prev = mat_nr;
 		}
 
 		/* avoid lookups  */
 		if (copy_mode == COPY_ORIG) {
-			memcpy(&finalCol[i * 4], &mcol[i * 4], sizeof(MCol) * 4);
+			memcpy(&finalCol[mp->loopstart], &mloopcol[mp->loopstart], sizeof(*finalCol) * mp->totloop);
 		}
 		else if (copy_mode == COPY_PREV) {
-			memcpy(&finalCol[i * 4], &finalCol[(i - 1) * 4], sizeof(MCol) * 4);
+			int loop_index = mp->loopstart;
+			const MLoopCol *lcol_prev = &finalCol[(mp - 1)->loopstart];
+			for (j = 0; j < mp->totloop; j++, loop_index++) {
+				finalCol[loop_index] = *lcol_prev;
+			}
 		}
 
 		/* (copy_mode == COPY_CALC) */
 		else if (ma && (ma->game.flag & GEMAT_INVISIBLE)) {
-			if (mcol) {
-				memcpy(&finalCol[i * 4], &mcol[i * 4], sizeof(MCol) * 4);
+			if (mloopcol) {
+				memcpy(&finalCol[mp->loopstart], &mloopcol[mp->loopstart], sizeof(*finalCol) * mp->totloop);
 				copy_mode = COPY_ORIG;
 			}
 			else {
-				for (j = 0; j < 4; j++) {
-					finalCol[i * 4 + j].b = 255;
-					finalCol[i * 4 + j].g = 255;
-					finalCol[i * 4 + j].r = 255;
-				}
+				memset(&finalCol[mp->loopstart], 0xff, sizeof(*finalCol) * mp->totloop);
 				copy_mode = COPY_PREV;
 			}
 		}
 		else if (mtexpoly && set_draw_settings_cached(0, mtexpoly, ma, Gtexdraw)) {
-			for (j = 0; j < 4; j++) {
-				finalCol[i * 4 + j].b = 255;
-				finalCol[i * 4 + j].g = 0;
-				finalCol[i * 4 + j].r = 255;
+			int loop_index = mp->loopstart;
+			for (j = 0; j < mp->totloop; j++, loop_index++) {
+				finalCol[loop_index].r = 255;
+				finalCol[loop_index].g = 0;
+				finalCol[loop_index].b = 255;
 			}
 			copy_mode = COPY_PREV;
 		}
 		else if (ma && (ma->shade_flag & MA_OBCOLOR)) {
-			for (j = 0; j < 4; j++) {
-				finalCol[i * 4 + j].b = Gtexdraw.obcol[0];
-				finalCol[i * 4 + j].g = Gtexdraw.obcol[1];
-				finalCol[i * 4 + j].r = Gtexdraw.obcol[2];
+			int loop_index = mp->loopstart;;
+			for (j = 0; j < mp->totloop; j++, loop_index++) {
+				copy_v3_v3_char(&finalCol[loop_index].r, (char *)Gtexdraw.obcol);
 			}
 			copy_mode = COPY_PREV;
 		}
 		else {
-			if (mcol) {
-				memcpy(&finalCol[i * 4], &mcol[i * 4], sizeof(MCol) * 4);
+			if (mloopcol) {
+				memcpy(&finalCol[mp->loopstart], &mloopcol[mp->loopstart], sizeof(*finalCol) * mp->totloop);
 				copy_mode = COPY_ORIG;
 			}
 			else if (mtexpoly) {
-				for (j = 0; j < 4; j++) {
-					finalCol[i * 4 + j].b = 255;
-					finalCol[i * 4 + j].g = 255;
-					finalCol[i * 4 + j].r = 255;
-				}
+				memset(&finalCol[mp->loopstart], 0xff, sizeof(*finalCol) * mp->totloop);
 				copy_mode = COPY_PREV;
 			}
 			else {
+				float col[3];
+
 				if (ma) {
-					float col[3];
-					MCol tcol;
+					int loop_index = mp->loopstart;
+					MLoopCol lcol;
 
-					if (Gtexdraw.color_profile) {
-						linearrgb_to_srgb_v3_v3(col, &ma->r);
-					}
-					else {
-						copy_v3_v3(col, &ma->r);
-					}
-
-					tcol.b = FTOCHAR(col[0]);
-					tcol.g = FTOCHAR(col[1]);
-					tcol.r = FTOCHAR(col[2]);
-					tcol.a = 255;
-
-					for (j = 0; j < 4; j++) {
-						finalCol[i * 4 + j] = tcol;
+					if (Gtexdraw.color_profile) linearrgb_to_srgb_v3_v3(col, &ma->r);
+					else copy_v3_v3(col, &ma->r);
+					rgb_float_to_uchar((unsigned char *)&lcol.r, col);
+					lcol.a = 255;
+					
+					for (j = 0; j < mp->totloop; j++, loop_index++) {
+						finalCol[loop_index] = lcol;
 					}
 				}
 				else {
-					for (j = 0; j < 4; j++) {
-						finalCol[i * 4 + j].b = 255;
-						finalCol[i * 4 + j].g = 255;
-						finalCol[i * 4 + j].r = 255;
-					}
+					memset(&finalCol[mp->loopstart], 0xff, sizeof(*finalCol) * mp->totloop);
 				}
 				copy_mode = COPY_PREV;
 			}
@@ -717,7 +704,7 @@ static void update_tface_color_layer(DerivedMesh *dm, bool use_mcol)
 
 static DMDrawOption draw_tface_mapped__set_draw(void *userData, int origindex, int UNUSED(mat_nr))
 {
-	Mesh *me = ((drawTFace_userData *)userData)->me;
+	const Mesh *me = ((drawTFace_userData *)userData)->me;
 
 	/* array checked for NULL before calling */
 	MPoly *mpoly = &me->mpoly[origindex];
@@ -915,10 +902,10 @@ static int compareDrawOptions(void *userData, int cur_index, int next_index)
 {
 	drawTFace_userData *data = userData;
 
-	if (data->mf && data->mf[cur_index].mat_nr != data->mf[next_index].mat_nr)
+	if (data->mpoly && data->mpoly[cur_index].mat_nr != data->mpoly[next_index].mat_nr)
 		return 0;
 
-	if (data->tf && data->tf[cur_index].tpage != data->tf[next_index].tpage)
+	if (data->mtexpoly && data->mtexpoly[cur_index].tpage != data->mtexpoly[next_index].tpage)
 		return 0;
 
 	return 1;
@@ -929,10 +916,10 @@ static int compareDrawOptionsEm(void *userData, int cur_index, int next_index)
 {
 	drawEMTFMapped_userData *data = userData;
 
-	if (data->mf && data->mf[cur_index].mat_nr != data->mf[next_index].mat_nr)
+	if (data->mpoly && data->mpoly[cur_index].mat_nr != data->mpoly[next_index].mat_nr)
 		return 0;
 
-	if (data->tf && data->tf[cur_index].tpage != data->tf[next_index].tpage)
+	if (data->mtexpoly && data->mtexpoly[cur_index].tpage != data->mtexpoly[next_index].tpage)
 		return 0;
 
 	return 1;
@@ -964,8 +951,8 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 		data.has_mcol = CustomData_has_layer(&me->edit_btmesh->bm->ldata, CD_MLOOPCOL);
 		data.cd_poly_tex_offset = CustomData_get_offset(&me->edit_btmesh->bm->pdata, CD_MTEXPOLY);
 
-		data.mf = DM_get_tessface_data_layer(dm, CD_MFACE);
-		data.tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
+		data.mpoly = DM_get_poly_data_layer(dm, CD_MPOLY);
+		data.mtexpoly = DM_get_poly_data_layer(dm, CD_MTEXPOLY);
 
 		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, compareDrawOptionsEm, &data, 0);
 	}
@@ -976,8 +963,8 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 		else {
 			drawTFace_userData userData;
 
-			userData.mf = DM_get_tessface_data_layer(dm, CD_MFACE);
-			userData.tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
+			userData.mpoly = DM_get_poly_data_layer(dm, CD_MPOLY);
+			userData.mtexpoly = DM_get_poly_data_layer(dm, CD_MTEXPOLY);
 			userData.me = me;
 			dm->drawMappedFacesTex(dm, me->mpoly ? draw_tface_mapped__set_draw : NULL, compareDrawOptions, &userData, uvflag);
 		}
@@ -987,8 +974,8 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 		
 		update_tface_color_layer(dm, !(ob->mode & OB_MODE_TEXTURE_PAINT));
 		
-		userData.mf = DM_get_tessface_data_layer(dm, CD_MFACE);
-		userData.tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
+		userData.mpoly = DM_get_poly_data_layer(dm, CD_MPOLY);
+		userData.mtexpoly = DM_get_poly_data_layer(dm, CD_MTEXPOLY);
 		userData.me = NULL;
 		
 		dm->drawFacesTex(dm, draw_tface__set_draw, compareDrawOptions, &userData, uvflag);

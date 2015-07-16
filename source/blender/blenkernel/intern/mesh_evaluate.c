@@ -328,6 +328,52 @@ void BKE_mesh_calc_normals_tessface(
 		MEM_freeN(fnors);
 }
 
+void BKE_mesh_calc_normals_looptri(
+        MVert *mverts, int numVerts,
+        const MLoop *mloop,
+        const MLoopTri *looptri, int looptri_num,
+        float (*r_tri_nors)[3])
+{
+	float (*tnorms)[3] = MEM_callocN(sizeof(*tnorms) * (size_t)numVerts, "tnorms");
+	float (*fnors)[3] = (r_tri_nors) ? r_tri_nors : MEM_callocN(sizeof(*fnors) * (size_t)looptri_num, "meshnormals");
+	int i;
+
+	for (i = 0; i < looptri_num; i++) {
+		const MLoopTri *lt = &looptri[i];
+		float *f_no = fnors[i];
+		const unsigned int vtri[3] = {
+		    mloop[lt->tri[0]].v,
+		    mloop[lt->tri[1]].v,
+		    mloop[lt->tri[2]].v,
+		};
+
+		normal_tri_v3(
+		        f_no,
+		        mverts[vtri[0]].co, mverts[vtri[1]].co, mverts[vtri[2]].co);
+
+		accumulate_vertex_normals_tri(
+		        tnorms[vtri[0]], tnorms[vtri[1]], tnorms[vtri[2]],
+		        f_no, mverts[vtri[0]].co, mverts[vtri[1]].co, mverts[vtri[2]].co);
+	}
+
+	/* following Mesh convention; we use vertex coordinate itself for normal in this case */
+	for (i = 0; i < numVerts; i++) {
+		MVert *mv = &mverts[i];
+		float *no = tnorms[i];
+
+		if (UNLIKELY(normalize_v3(no) == 0.0f)) {
+			normalize_v3_v3(no, mv->co);
+		}
+
+		normal_float_to_short_v3(mv->no, no);
+	}
+
+	MEM_freeN(tnorms);
+
+	if (fnors != r_tri_nors)
+		MEM_freeN(fnors);
+}
+
 void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr, const int numLoops)
 {
 	if (!(lnors_spacearr->lspacearr && lnors_spacearr->loops_pool)) {
@@ -2540,6 +2586,136 @@ int BKE_mesh_recalc_tessellation(
 #undef ML_TO_MF_QUAD
 
 }
+
+/**
+ * Calculate tessellation into #MLoopTri which exist only for this purpose.
+ */
+void BKE_mesh_recalc_looptri(
+        const MLoop *mloop, const MPoly *mpoly,
+        const MVert *mvert,
+        int totloop, int totpoly,
+        MLoopTri *mlooptri)
+{
+	/* use this to avoid locking pthread for _every_ polygon
+	 * and calling the fill function */
+
+#define USE_TESSFACE_SPEEDUP
+
+	const MPoly *mp;
+	const MLoop *ml;
+	MLoopTri *mlt;
+	MemArena *arena = NULL;
+	int poly_index, mlooptri_index;
+	unsigned int j;
+
+	mlooptri_index = 0;
+	mp = mpoly;
+	for (poly_index = 0; poly_index < totpoly; poly_index++, mp++) {
+		const unsigned int mp_loopstart = (unsigned int)mp->loopstart;
+		const unsigned int mp_totloop = (unsigned int)mp->totloop;
+		unsigned int l1, l2, l3;
+		if (mp_totloop < 3) {
+			/* do nothing */
+		}
+
+#ifdef USE_TESSFACE_SPEEDUP
+
+#define ML_TO_MLT(i1, i2, i3)  { \
+			mlt = &mlooptri[mlooptri_index]; \
+			l1 = mp_loopstart + i1; \
+			l2 = mp_loopstart + i2; \
+			l3 = mp_loopstart + i3; \
+			ARRAY_SET_ITEMS(mlt->tri, l1, l2, l3); \
+			mlt->poly = (unsigned int)poly_index; \
+		} ((void)0)
+
+		else if (mp_totloop == 3) {
+			ML_TO_MLT(0, 1, 2);
+			mlooptri_index++;
+		}
+		else if (mp_totloop == 4) {
+			ML_TO_MLT(0, 1, 2);
+			mlooptri_index++;
+			ML_TO_MLT(0, 2, 3);
+			mlooptri_index++;
+		}
+#endif /* USE_TESSFACE_SPEEDUP */
+		else {
+			const float *co_curr, *co_prev;
+
+			float normal[3];
+
+			float axis_mat[3][3];
+			float (*projverts)[2];
+			unsigned int (*tris)[3];
+
+			const unsigned int totfilltri = mp_totloop - 2;
+
+			if (UNLIKELY(arena == NULL)) {
+				arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+			}
+
+			tris = BLI_memarena_alloc(arena, sizeof(*tris) * (size_t)totfilltri);
+			projverts = BLI_memarena_alloc(arena, sizeof(*projverts) * (size_t)mp_totloop);
+
+			zero_v3(normal);
+
+			/* calc normal, flipped: to get a positive 2d cross product */
+			ml = mloop + mp_loopstart;
+			co_prev = mvert[ml[mp_totloop - 1].v].co;
+			for (j = 0; j < mp_totloop; j++, ml++) {
+				co_curr = mvert[ml->v].co;
+				add_newell_cross_v3_v3v3(normal, co_prev, co_curr);
+				co_prev = co_curr;
+			}
+			if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
+				normal[2] = 1.0f;
+			}
+
+			/* project verts to 2d */
+			axis_dominant_v3_to_m3_negate(axis_mat, normal);
+
+			ml = mloop + mp_loopstart;
+			for (j = 0; j < mp_totloop; j++, ml++) {
+				mul_v2_m3v3(projverts[j], axis_mat, mvert[ml->v].co);
+			}
+
+			BLI_polyfill_calc_arena((const float (*)[2])projverts, mp_totloop, 1, tris, arena);
+
+			/* apply fill */
+			for (j = 0; j < totfilltri; j++) {
+				unsigned int *tri = tris[j];
+
+				mlt = &mlooptri[mlooptri_index];
+
+				/* set loop indices, transformed to vert indices later */
+				l1 = mp_loopstart + tri[0];
+				l2 = mp_loopstart + tri[1];
+				l3 = mp_loopstart + tri[2];
+
+				ARRAY_SET_ITEMS(mlt->tri, l1, l2, l3);
+				mlt->poly = (unsigned int)poly_index;
+
+				mlooptri_index++;
+			}
+
+			BLI_memarena_clear(arena);
+		}
+	}
+
+	if (arena) {
+		BLI_memarena_free(arena);
+		arena = NULL;
+	}
+
+	BLI_assert(mlooptri_index == poly_to_tri_count(totpoly, totloop));
+
+#undef USE_TESSFACE_SPEEDUP
+#undef ML_TO_MLT
+}
+
+/* -------------------------------------------------------------------- */
+
 
 #ifdef USE_BMESH_SAVE_AS_COMPAT
 

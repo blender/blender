@@ -62,9 +62,8 @@ void paintface_flush_flags(Object *ob)
 	Mesh *me = BKE_mesh_from_object(ob);
 	DerivedMesh *dm = ob->derivedFinal;
 	MPoly *polys, *mp_orig;
-	MFace *faces;
 	const int *index_array = NULL;
-	int totface, totpoly;
+	int totpoly;
 	int i;
 	
 	if (me == NULL)
@@ -79,26 +78,7 @@ void paintface_flush_flags(Object *ob)
 	if (dm == NULL)
 		return;
 
-	/*
-	 * Try to push updated mesh poly flags to three other data sets:
-	 *  - Mesh polys => Mesh tess faces
-	 *  - Mesh polys => Final derived polys
-	 *  - Final derived polys => Final derived tessfaces
-	 */
-
-	if ((index_array = CustomData_get_layer(&me->fdata, CD_ORIGINDEX))) {
-		faces = me->mface;
-		totface = me->totface;
-		
-		/* loop over tessfaces */
-		for (i = 0; i < totface; i++) {
-			if (index_array[i] != ORIGINDEX_NONE) {
-				/* Copy flags onto the original tessface from its original poly */
-				mp_orig = me->mpoly + index_array[i];
-				faces[i].flag = mp_orig->flag;
-			}
-		}
-	}
+	/* Mesh polys => Final derived polys */
 
 	if ((index_array = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX))) {
 		polys = dm->getPolyArray(dm);
@@ -110,21 +90,6 @@ void paintface_flush_flags(Object *ob)
 				/* Copy flags onto the final derived poly from the original mesh poly */
 				mp_orig = me->mpoly + index_array[i];
 				polys[i].flag = mp_orig->flag;
-			}
-		}
-	}
-
-	if ((index_array = CustomData_get_layer(&dm->faceData, CD_ORIGINDEX))) {
-		polys = dm->getPolyArray(dm);
-		faces = dm->getTessFaceArray(dm);
-		totface = dm->getNumTessFaces(dm);
-
-		/* loop over tessfaces */
-		for (i = 0; i < totface; i++) {
-			if (index_array[i] != ORIGINDEX_NONE) {
-				/* Copy flags onto the final tessface from its final poly */
-				mp_orig = polys + index_array[i];
-				faces[i].flag = mp_orig->flag;
 			}
 		}
 	}

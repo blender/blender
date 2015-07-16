@@ -644,11 +644,11 @@ static GPUBuffer *gpu_buffer_setup_type(DerivedMesh *dm, GPUBufferType type)
 
 	/* special handling for MCol and UV buffers */
 	if (type == GPU_BUFFER_COLOR) {
-		if (!(user_data = DM_get_tessface_data_layer(dm, dm->drawObject->colType)))
+		if (!(user_data = DM_get_loop_data_layer(dm, dm->drawObject->colType)))
 			return NULL;
 	}
 	else if (ELEM(type, GPU_BUFFER_UV, GPU_BUFFER_UV_TEXPAINT)) {
-		if (!DM_get_tessface_data_layer(dm, CD_MTFACE))
+		if (!DM_get_loop_data_layer(dm, CD_MLOOPUV))
 			return NULL;
 	}
 
@@ -1090,10 +1090,13 @@ struct GPU_PBVH_Buffers {
 	GLenum index_type;
 
 	/* mesh pointers in case buffer allocation fails */
-	const MFace *mface;
+	const MPoly *mpoly;
+	const MLoop *mloop;
+	const MLoopTri *looptri;
 	const MVert *mvert;
+
 	const int *face_indices;
-	int totface;
+	int        face_indices_len;
 	const float *vmask;
 
 	/* grid pointers */
@@ -1177,7 +1180,7 @@ void GPU_update_mesh_pbvh_buffers(
         const int (*face_vert_indices)[4], bool show_diffuse_color)
 {
 	VertexBufferFormat *vert_data;
-	int i, j, k;
+	int i, j;
 
 	buffers->vmask = vmask;
 	buffers->show_diffuse_color = show_diffuse_color;
@@ -1190,9 +1193,10 @@ void GPU_update_mesh_pbvh_buffers(
 		if (buffers->use_matcaps)
 			diffuse_color[0] = diffuse_color[1] = diffuse_color[2] = 1.0;
 		else if (show_diffuse_color) {
-			const MFace *f = buffers->mface + buffers->face_indices[0];
+			const MLoopTri *lt = &buffers->looptri[buffers->face_indices[0]];
+			const MPoly *mp = &buffers->mpoly[lt->poly];
 
-			GPU_material_diffuse_get(f->mat_nr + 1, diffuse_color);
+			GPU_material_diffuse_get(mp->mat_nr + 1, diffuse_color);
 		}
 
 		copy_v4_v4(buffers->diffuse_color, diffuse_color);
@@ -1225,72 +1229,61 @@ void GPU_update_mesh_pbvh_buffers(
 						rgb_float_to_uchar(out->color, diffuse_color); \
 				} (void)0
 
-				for (i = 0; i < buffers->totface; i++) {
-					const MFace *f = buffers->mface + buffers->face_indices[i];
+				for (i = 0; i < buffers->face_indices_len; i++) {
+					const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
+					const unsigned int vtri[3] = {
+					    buffers->mloop[lt->tri[0]].v,
+					    buffers->mloop[lt->tri[1]].v,
+					    buffers->mloop[lt->tri[2]].v,
+					};
 
-					UPDATE_VERTEX(i, f->v1, 0, diffuse_color);
-					UPDATE_VERTEX(i, f->v2, 1, diffuse_color);
-					UPDATE_VERTEX(i, f->v3, 2, diffuse_color);
-					if (f->v4)
-						UPDATE_VERTEX(i, f->v4, 3, diffuse_color);
+					UPDATE_VERTEX(i, vtri[0], 0, diffuse_color);
+					UPDATE_VERTEX(i, vtri[1], 1, diffuse_color);
+					UPDATE_VERTEX(i, vtri[2], 2, diffuse_color);
 				}
 #undef UPDATE_VERTEX
 			}
 			else {
-				for (i = 0; i < buffers->totface; ++i) {
-					const MFace *f = &buffers->mface[buffers->face_indices[i]];
-					const unsigned int *fv = &f->v1;
-					const int vi[2][3] = {{0, 1, 2}, {3, 0, 2}};
+				for (i = 0; i < buffers->face_indices_len; ++i) {
+					const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
+					const unsigned int vtri[3] = {
+					    buffers->mloop[lt->tri[0]].v,
+					    buffers->mloop[lt->tri[1]].v,
+					    buffers->mloop[lt->tri[2]].v,
+					};
 					float fno[3];
 					short no[3];
 
 					float fmask;
 
-					if (paint_is_face_hidden(f, mvert))
+					if (paint_is_face_hidden(lt, mvert, buffers->mloop))
 						continue;
 
 					/* Face normal and mask */
-					if (f->v4) {
-						normal_quad_v3(fno,
-									   mvert[fv[0]].co,
-									   mvert[fv[1]].co,
-									   mvert[fv[2]].co,
-									   mvert[fv[3]].co);
-						if (vmask) {
-							fmask = (vmask[fv[0]] +
-									 vmask[fv[1]] +
-									 vmask[fv[2]] +
-									 vmask[fv[3]]) * 0.25f;
-						}
-					}
-					else {
-						normal_tri_v3(fno,
-									  mvert[fv[0]].co,
-									  mvert[fv[1]].co,
-									  mvert[fv[2]].co);
-						if (vmask) {
-							fmask = (vmask[fv[0]] +
-									 vmask[fv[1]] +
-									 vmask[fv[2]]) / 3.0f;
-						}
+					normal_tri_v3(fno,
+					              mvert[vtri[0]].co,
+					              mvert[vtri[1]].co,
+					              mvert[vtri[2]].co);
+					if (vmask) {
+						fmask = (vmask[vtri[0]] +
+						         vmask[vtri[1]] +
+						         vmask[vtri[2]]) / 3.0f;
 					}
 					normal_float_to_short_v3(no, fno);
 
-					for (j = 0; j < (f->v4 ? 2 : 1); j++) {
-						for (k = 0; k < 3; k++) {
-							const MVert *v = &mvert[fv[vi[j][k]]];
-							VertexBufferFormat *out = vert_data;
+					for (j = 0; j < 3; j++) {
+						const MVert *v = &mvert[vtri[j]];
+						VertexBufferFormat *out = vert_data;
 
-							copy_v3_v3(out->co, v->co);
-							memcpy(out->no, no, sizeof(short) * 3);
+						copy_v3_v3(out->co, v->co);
+						copy_v3_v3_short(out->no, no);
 
-							if (vmask)
-								gpu_color_from_mask_copy(fmask, diffuse_color, out->color);
-							else
-								rgb_float_to_uchar(out->color, diffuse_color);
+						if (vmask)
+							gpu_color_from_mask_copy(fmask, diffuse_color, out->color);
+						else
+							rgb_float_to_uchar(out->color, diffuse_color);
 
-							vert_data++;
-						}
+						vert_data++;
 					}
 				}
 			}
@@ -1308,35 +1301,39 @@ void GPU_update_mesh_pbvh_buffers(
 	buffers->mvert = mvert;
 }
 
-GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(const int (*face_vert_indices)[4],
-        const MFace *mface, const MVert *mvert,
+GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(
+        const int (*face_vert_indices)[4],
+        const MPoly *mpoly, const MLoop *mloop, const MLoopTri *looptri,
+        const MVert *mvert,
         const int *face_indices,
-        int totface)
+        const int  face_indices_len)
 {
 	GPU_PBVH_Buffers *buffers;
 	unsigned short *tri_data;
-	int i, j, k, tottri;
+	int i, j, tottri;
 
 	buffers = MEM_callocN(sizeof(GPU_PBVH_Buffers), "GPU_Buffers");
 	buffers->index_type = GL_UNSIGNED_SHORT;
-	buffers->smooth = mface[face_indices[0]].flag & ME_SMOOTH;
+	buffers->smooth = mpoly[face_indices[0]].flag & ME_SMOOTH;
 
 	buffers->show_diffuse_color = false;
 	buffers->use_matcaps = false;
 
 	/* Count the number of visible triangles */
-	for (i = 0, tottri = 0; i < totface; ++i) {
-		const MFace *f = &mface[face_indices[i]];
-		if (!paint_is_face_hidden(f, mvert))
-			tottri += f->v4 ? 2 : 1;
+	for (i = 0, tottri = 0; i < face_indices_len; ++i) {
+		const MLoopTri *lt = &looptri[face_indices[i]];
+		if (!paint_is_face_hidden(lt, mvert, mloop))
+			tottri++;
 	}
 
 	if (tottri == 0) {
 		buffers->tot_tri = 0;
 
-		buffers->mface = mface;
+		buffers->mpoly = mpoly;
+		buffers->mloop = mloop;
+		buffers->looptri = looptri;
 		buffers->face_indices = face_indices;
-		buffers->totface = 0;
+		buffers->face_indices_len = 0;
 
 		return buffers;
 	}
@@ -1351,26 +1348,16 @@ GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(const int (*face_vert_indices)[4],
 		/* Fill the triangle buffer */
 		tri_data = GPU_buffer_lock(buffers->index_buf, GPU_BINDING_INDEX);
 		if (tri_data) {
-			for (i = 0; i < totface; ++i) {
-				const MFace *f = mface + face_indices[i];
-				int v[3];
+			for (i = 0; i < face_indices_len; ++i) {
+				const MLoopTri *lt = &looptri[face_indices[i]];
 
 				/* Skip hidden faces */
-				if (paint_is_face_hidden(f, mvert))
+				if (paint_is_face_hidden(lt, mvert, mloop))
 					continue;
 
-				v[0] = 0;
-				v[1] = 1;
-				v[2] = 2;
-
-				for (j = 0; j < (f->v4 ? 2 : 1); ++j) {
-					for (k = 0; k < 3; ++k) {
-						*tri_data = face_vert_indices[i][v[k]];
-						tri_data++;
-					}
-					v[0] = 3;
-					v[1] = 0;
-					v[2] = 2;
+				for (j = 0; j < 3; ++j) {
+					*tri_data = face_vert_indices[i][j];
+					tri_data++;
 				}
 			}
 			GPU_buffer_unlock(buffers->index_buf, GPU_BINDING_INDEX);
@@ -1385,9 +1372,12 @@ GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(const int (*face_vert_indices)[4],
 
 	buffers->tot_tri = tottri;
 
-	buffers->mface = mface;
+	buffers->mpoly = mpoly;
+	buffers->mloop = mloop;
+	buffers->looptri = looptri;
+
 	buffers->face_indices = face_indices;
-	buffers->totface = totface;
+	buffers->face_indices_len = face_indices_len;
 
 	return buffers;
 }
@@ -1946,9 +1936,10 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 	/* sets material from the first face, to solve properly face would need to
 	 * be sorted in buckets by materials */
 	if (setMaterial) {
-		if (buffers->totface) {
-			const MFace *f = &buffers->mface[buffers->face_indices[0]];
-			if (!setMaterial(f->mat_nr + 1, NULL))
+		if (buffers->face_indices_len) {
+			const MLoopTri *lt = &buffers->looptri[buffers->face_indices[0]];
+			const MPoly *mp = &buffers->mpoly[lt->poly];
+			if (!setMaterial(mp->mat_nr + 1, NULL))
 				return;
 		}
 		else if (buffers->totgrid) {
@@ -1962,7 +1953,7 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 		}
 	}
 
-	glShadeModel((buffers->smooth || buffers->totface) ? GL_SMOOTH : GL_FLAT);
+	glShadeModel((buffers->smooth || buffers->face_indices_len) ? GL_SMOOTH : GL_FLAT);
 
 	if (buffers->vert_buf) {
 		char *base = NULL;
@@ -2056,10 +2047,11 @@ bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, GSet *bm_faces,
 	if ((buffers->show_diffuse_color == false) || use_matcaps)
 		return false;
 
-	if (buffers->mface) {
-		const MFace *f = &buffers->mface[buffers->face_indices[0]];
+	if (buffers->looptri) {
+		const MLoopTri *lt = &buffers->looptri[buffers->face_indices[0]];
+		const MPoly *mp = &buffers->mpoly[lt->poly];
 
-		GPU_material_diffuse_get(f->mat_nr + 1, diffuse_color);
+		GPU_material_diffuse_get(mp->mat_nr + 1, diffuse_color);
 	}
 	else if (buffers->use_bmesh) {
 		/* due to dynamic nature of dyntopo, only get first material */

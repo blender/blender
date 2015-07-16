@@ -91,45 +91,6 @@ static bool vertex_paint_use_fast_update_check(Object *ob)
 	return false;
 }
 
-/* if the polygons from the mesh and the 'derivedFinal' match
- * we can assume that no modifiers are applied and that its worth adding tessellated faces
- * so 'vertex_paint_use_fast_update_check()' returns true */
-static bool vertex_paint_use_tessface_check(Object *ob, Mesh *me)
-{
-	DerivedMesh *dm = ob->derivedFinal;
-
-	if (me && dm) {
-		return (me->mpoly == CustomData_get_layer(&dm->polyData, CD_MPOLY));
-	}
-
-	return false;
-}
-
-static void update_tessface_data(Object *ob, Mesh *me)
-{
-	if (vertex_paint_use_tessface_check(ob, me)) {
-		/* assume if these exist, that they are up to date & valid */
-		if (!me->mcol || !me->mface) {
-			/* should always be true */
-			/* XXX Why this clearing? tessface_calc will reset it anyway! */
-#if 0
-			if (me->mcol) {
-				memset(me->mcol, 255, 4 * sizeof(MCol) * me->totface);
-			}
-#endif
-
-			/* create tessfaces because they will be used for drawing & fast updates */
-			BKE_mesh_tessface_calc(me); /* does own call to update pointers */
-		}
-	}
-	else {
-		if (me->totface) {
-			/* this wont be used, theres no need to keep it */
-			BKE_mesh_tessface_clear(me);
-		}
-	}
-
-}
 /* polling - retrieve whether cursor should be set or operator should be done */
 
 /* Returns true if vertex paint mode is active */
@@ -205,80 +166,7 @@ unsigned int vpaint_get_current_col(Scene *scene, VPaint *vp)
 	return *(unsigned int *)col;
 }
 
-static void do_shared_vertex_tesscol(Mesh *me, bool *mfacetag)
-{
-	/* if no mcol: do not do */
-	/* if tface: only the involved faces, otherwise all */
-	const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-	MFace *mface;
-	int a;
-	short *scolmain, *scol;
-	char *mcol;
-	const bool *mftag;
-	
-	if (me->mcol == NULL || me->totvert == 0 || me->totface == 0) return;
-	
-	scolmain = MEM_callocN(4 * sizeof(short) * me->totvert, "colmain");
-	
-	mface = me->mface;
-	mcol = (char *)me->mcol;
-	for (a = me->totface; a > 0; a--, mface++, mcol += 16) {
-		if ((use_face_sel == false) || (mface->flag & ME_FACE_SEL)) {
-			scol = scolmain + 4 * mface->v1;
-			scol[0]++; scol[1] += mcol[1]; scol[2] += mcol[2]; scol[3] += mcol[3];
-			scol = scolmain + 4 * mface->v2;
-			scol[0]++; scol[1] += mcol[5]; scol[2] += mcol[6]; scol[3] += mcol[7];
-			scol = scolmain + 4 * mface->v3;
-			scol[0]++; scol[1] += mcol[9]; scol[2] += mcol[10]; scol[3] += mcol[11];
-			if (mface->v4) {
-				scol = scolmain + 4 * mface->v4;
-				scol[0]++; scol[1] += mcol[13]; scol[2] += mcol[14]; scol[3] += mcol[15];
-			}
-		}
-	}
-	
-	a = me->totvert;
-	scol = scolmain;
-	while (a--) {
-		if (scol[0] > 1) {
-			scol[1] = divide_round_i(scol[1], scol[0]);
-			scol[2] = divide_round_i(scol[2], scol[0]);
-			scol[3] = divide_round_i(scol[3], scol[0]);
-		}
-		scol += 4;
-	}
-
-	mface = me->mface;
-	mcol = (char *)me->mcol;
-	mftag = mfacetag;
-	for (a = me->totface; a > 0; a--, mface++, mcol += 16, mftag += 4) {
-		if ((use_face_sel == false) || (mface->flag & ME_FACE_SEL)) {
-			if (mftag[0]) {
-				scol = scolmain + 4 * mface->v1;
-				mcol[1] = scol[1]; mcol[2] = scol[2]; mcol[3] = scol[3];
-			}
-
-			if (mftag[1]) {
-				scol = scolmain + 4 * mface->v2;
-				mcol[5] = scol[1]; mcol[6] = scol[2]; mcol[7] = scol[3];
-			}
-
-			if (mftag[2]) {
-				scol = scolmain + 4 * mface->v3;
-				mcol[9] = scol[1]; mcol[10] = scol[2]; mcol[11] = scol[3];
-			}
-
-			if (mface->v4 && mftag[3]) {
-				scol = scolmain + 4 * mface->v4;
-				mcol[13] = scol[1]; mcol[14] = scol[2]; mcol[15] = scol[3];
-			}
-		}
-	}
-
-	MEM_freeN(scolmain);
-}
-
-static void do_shared_vertexcol(Mesh *me, bool *mlooptag, bool *mfacetag, const bool do_tessface)
+static void do_shared_vertexcol(Mesh *me, bool *mlooptag)
 {
 	const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 	MPoly *mp;
@@ -332,10 +220,6 @@ static void do_shared_vertexcol(Mesh *me, bool *mlooptag, bool *mfacetag, const 
 	}
 
 	MEM_freeN(scol);
-
-	if (has_shared && do_tessface) {
-		do_shared_vertex_tesscol(me, mfacetag);
-	}
 }
 
 static bool make_vertexcol(Object *ob)  /* single ob */
@@ -352,17 +236,12 @@ static bool make_vertexcol(Object *ob)  /* single ob */
 
 	/* copies from shadedisplist to mcol */
 	if (!me->mloopcol && me->totloop) {
-		if (!me->mcol) {
-			CustomData_add_layer(&me->fdata, CD_MCOL, CD_DEFAULT, NULL, me->totface);
-		}
 		if (!me->mloopcol) {
 			CustomData_add_layer(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop);
 		}
 		BKE_mesh_update_customdata_pointers(me, true);
 	}
 
-	update_tessface_data(ob, me);
-	
 	DAG_id_tag_update(&me->id, 0);
 	
 	return (me->mloopcol != NULL);
@@ -593,7 +472,7 @@ bool ED_vpaint_smooth(Object *ob)
 	/* remove stale me->mcol, will be added later */
 	BKE_mesh_tessface_clear(me);
 
-	do_shared_vertexcol(me, mlooptag, NULL, false);
+	do_shared_vertexcol(me, mlooptag);
 
 	MEM_freeN(mlooptag);
 
@@ -2753,34 +2632,12 @@ typedef struct VPaintData {
 	 * array, otherwise we need to refresh the modifier stack */
 	bool use_fast_update;
 
-	/* mpoly -> mface mapping */
-	MeshElemMap *polyfacemap;
-	void *polyfacemap_mem;
-
 	/* loops tagged as having been painted, to apply shared vertex color
 	 * blending only to modified loops */
 	bool *mlooptag;
-	bool *mfacetag;
 
 	bool is_texbrush;
 } VPaintData;
-
-static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me)
-{
-	const int *tessface_origindex;
-
-	vd->polyfacemap = NULL;
-	vd->polyfacemap_mem = NULL;
-
-	tessface_origindex = CustomData_get_layer(&me->fdata, CD_ORIGINDEX);
-
-	if (!tessface_origindex)
-		return;
-
-	BKE_mesh_origindex_map_create(&vd->polyfacemap, (int **)&vd->polyfacemap_mem,
-	                              me->totpoly,
-	                              tessface_origindex, me->totface);
-}
 
 static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const float UNUSED(mouse[2]))
 {
@@ -2804,11 +2661,6 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 	if (me->mloopcol == NULL)
 		return false;
 
-	/* Update tessface data if needed
-	 * Added here too because e.g. switching to/from edit mode would remove tessface data,
-	 * yet "fast_update" could still be used! */
-	update_tessface_data(ob, me);
-
 	/* make mode data storage */
 	vpd = MEM_callocN(sizeof(struct VPaintData), "VPaintData");
 	paint_stroke_set_mode_data(stroke, vpd);
@@ -2825,7 +2677,6 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 	/* are we painting onto a modified mesh?,
 	 * if not we can skip face map trickyness */
 	if (vertex_paint_use_fast_update_check(ob)) {
-		vpaint_build_poly_facemap(vpd, me);
 		vpd->use_fast_update = true;
 /*		printf("Fast update!\n");*/
 	}
@@ -2837,8 +2688,6 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 	/* to keep tracked of modified loops for shared vertex color blending */
 	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
 		vpd->mlooptag = MEM_mallocN(sizeof(bool) * me->totloop, "VPaintData mlooptag");
-		if (vpd->use_fast_update)
-			vpd->mfacetag = MEM_mallocN(sizeof(bool) * me->totface * 4, "VPaintData mfacetag");
 	}
 
 	/* for filtering */
@@ -2859,14 +2708,10 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 	ViewContext *vc = &vpd->vc;
 	Brush *brush = BKE_paint_brush(&vp->paint);
 	MPoly *mpoly = &me->mpoly[index];
-	MFace *mf;
-	MCol *mc;
 	MLoop *ml;
-	MLoopCol *mlc;
 	unsigned int *lcol = ((unsigned int *)me->mloopcol) + mpoly->loopstart;
 	unsigned int *lcolorig = ((unsigned int *)vp->vpaint_prev) + mpoly->loopstart;
 	bool *mlooptag = (vpd->mlooptag) ? vpd->mlooptag + mpoly->loopstart : NULL;
-	bool *mftag;
 	float alpha;
 	int i, j;
 	int totloop = mpoly->totloop;
@@ -2923,35 +2768,6 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 			if (mlooptag) mlooptag[i] = 1;
 		}
 	}
-
-	if (vpd->use_fast_update) {
-		const MeshElemMap *map = &vpd->polyfacemap[index];
-
-		/* update vertex colors for tessellations incrementally,
-		 * rather then regenerating the tessellation altogether */
-		for (i = 0; i < map->count; i++) {
-			const int index_tessface = map->indices[i];
-
-			mf = &me->mface[index_tessface];
-			mc = &me->mcol[index_tessface * 4];
-			mftag = &vpd->mfacetag[index_tessface * 4];
-
-			ml = me->mloop + mpoly->loopstart;
-			mlc = me->mloopcol + mpoly->loopstart;
-
-			for (j = 0; j < totloop; j++, ml++, mlc++) {
-				/* search for the loop vertex within the tessface */
-				const int fidx = BKE_MESH_TESSFACE_VINDEX_ORDER(mf, ml->v);
-				if (fidx != -1) {
-					MESH_MLOOPCOL_TO_MCOL(mlc, mc + fidx);
-					if (mlooptag) {
-						mftag[fidx] = mlooptag[j];
-					}
-				}
-			}
-		}
-	}
-
 }
 
 static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
@@ -3003,8 +2819,6 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	/* clear modified tag for blur tool */
 	if (vpd->mlooptag)
 		memset(vpd->mlooptag, 0, sizeof(bool) * me->totloop);
-	if (vpd->mfacetag)
-		memset(vpd->mfacetag, 0, sizeof(bool) * me->totface * 4);
 
 	for (index = 0; index < totindex; index++) {
 		if (indexar[index] && indexar[index] <= me->totpoly) {
@@ -3016,8 +2830,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	/* was disabled because it is slow, but necessary for blur */
 	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
-		int do_tessface = vpd->use_fast_update;
-		do_shared_vertexcol(me, vpd->mlooptag, vpd->mfacetag, do_tessface);
+		do_shared_vertexcol(me, vpd->mlooptag);
 	}
 
 	ED_region_tag_redraw(vc->ar);
@@ -3046,19 +2859,8 @@ static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 	/* frees prev buffer */
 	copy_vpaint_prev(ts->vpaint, NULL, 0);
 
-	if (vpd->polyfacemap) {
-		MEM_freeN(vpd->polyfacemap);
-	}
-
-	if (vpd->polyfacemap_mem) {
-		MEM_freeN(vpd->polyfacemap_mem);
-	}
-
 	if (vpd->mlooptag)
 		MEM_freeN(vpd->mlooptag);
-
-	if (vpd->mfacetag)
-		MEM_freeN(vpd->mfacetag);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 

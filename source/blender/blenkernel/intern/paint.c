@@ -470,12 +470,11 @@ void BKE_paint_stroke_get_average(Scene *scene, Object *ob, float stroke[3])
 
 /* returns non-zero if any of the face's vertices
  * are hidden, zero otherwise */
-bool paint_is_face_hidden(const MFace *f, const MVert *mvert)
+bool paint_is_face_hidden(const MLoopTri *lt, const MVert *mvert, const MLoop *mloop)
 {
-	return ((mvert[f->v1].flag & ME_HIDE) ||
-	        (mvert[f->v2].flag & ME_HIDE) ||
-	        (mvert[f->v3].flag & ME_HIDE) ||
-	        (f->v4 && (mvert[f->v4].flag & ME_HIDE)));
+	return ((mvert[mloop[lt->tri[0]].v].flag & ME_HIDE) ||
+	        (mvert[mloop[lt->tri[1]].v].flag & ME_HIDE) ||
+	        (mvert[mloop[lt->tri[2]].v].flag & ME_HIDE));
 }
 
 /* returns non-zero if any of the corners of the grid

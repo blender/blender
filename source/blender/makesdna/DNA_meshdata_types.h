@@ -89,6 +89,14 @@ typedef struct MLoop {
 	unsigned int e;  /* edge index */
 } MLoop;
 
+/* runtime only */
+#
+#
+typedef struct MLoopTri {
+	unsigned int tri[3];
+	unsigned int poly;
+} MLoopTri;
+
 typedef struct MTexPoly {
 	struct Image *tpage;
 	char flag, transp;
@@ -344,6 +352,9 @@ enum {
 
 #define ME_POLY_LOOP_PREV(mloop, mp, i)  (&(mloop)[(mp)->loopstart + (((i) + (mp)->totloop - 1) % (mp)->totloop)])
 #define ME_POLY_LOOP_NEXT(mloop, mp, i)  (&(mloop)[(mp)->loopstart + (((i) + 1) % (mp)->totloop)])
+
+/* number of tri's that make up this polygon once tessellated */
+#define ME_POLY_TRI_TOT(mp) ((mp)->totloop - 2)
 
 /* mselect->type */
 enum {

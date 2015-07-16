@@ -39,6 +39,7 @@ struct LinkNode;
 struct BLI_Stack;
 struct MemArena;
 struct BMesh;
+struct MLoopTri;
 struct Main;
 struct Mesh;
 struct MPoly;
@@ -178,6 +179,11 @@ void BKE_mesh_calc_normals_tessface(
         struct MVert *mverts, int numVerts,
         const struct MFace *mfaces, int numFaces,
         float (*r_faceNors)[3]);
+void BKE_mesh_calc_normals_looptri(
+        struct MVert *mverts, int numVerts,
+        const struct MLoop *mloop,
+        const struct MLoopTri *looptri, int looptri_num,
+        float (*r_tri_nors)[3]);
 void BKE_mesh_loop_tangents_ex(
         const struct MVert *mverts, const int numVerts, const struct MLoop *mloops,
         float (*r_looptangent)[4], float (*loopnors)[3], const struct MLoopUV *loopuv,
@@ -285,6 +291,11 @@ int BKE_mesh_recalc_tessellation(
         struct MVert *mvert,
         int totface, int totloop, int totpoly,
         const bool do_face_nor_copy);
+void BKE_mesh_recalc_looptri(
+        const struct MLoop *mloop, const struct MPoly *mpoly,
+        const struct MVert *mvert,
+        int totloop, int totpoly,
+        struct MLoopTri *mlooptri);
 int BKE_mesh_mpoly_to_mface(
         struct CustomData *fdata, struct CustomData *ldata,
         struct CustomData *pdata, int totface, int totloop, int totpoly);

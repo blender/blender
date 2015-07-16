@@ -1769,7 +1769,7 @@ static void ccgDM_buffer_copy_normal(
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGKey key;
-	const short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
+	const float (*lnors)[3] = dm->getLoopDataArray(dm, CD_NORMAL);
 	int gridSize = ccgSubSurf_getGridSize(ss);
 	int gridFaces = gridSize - 1;
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
@@ -1784,7 +1784,7 @@ static void ccgDM_buffer_copy_normal(
 		CCGFace *f = ccgdm->faceMap[i].face;
 		int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(f);
 		int index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
-		const short (*ln)[3] = NULL;
+		const float (*ln)[3] = NULL;
 
 		if (faceFlags) {
 			shademodel = (lnors || (faceFlags[index].flag & ME_SMOOTH)) ? GL_SMOOTH : GL_FLAT;
@@ -1794,8 +1794,8 @@ static void ccgDM_buffer_copy_normal(
 		}
 
 		if (lnors) {
-			ln = *lnors;
-			lnors += gridFaces * gridFaces * numVerts;
+			ln = lnors;
+			lnors += gridFaces * gridFaces * numVerts * 4;
 		}
 
 		for (S = 0; S < numVerts; S++) {
@@ -1805,10 +1805,10 @@ static void ccgDM_buffer_copy_normal(
 				/* Can't use quad strips here... */
 				for (y = 0; y < gridFaces; y ++) {
 					for (x = 0; x < gridFaces; x ++) {
-						copy_v3_v3_short(&varray[start], ln[0]);
-						copy_v3_v3_short(&varray[start + 4], ln[3]);
-						copy_v3_v3_short(&varray[start + 8], ln[2]);
-						copy_v3_v3_short(&varray[start + 12], ln[1]);
+						normal_float_to_short_v3(&varray[start + 0],  ln[0]);
+						normal_float_to_short_v3(&varray[start + 4],  ln[3]);
+						normal_float_to_short_v3(&varray[start + 8],  ln[2]);
+						normal_float_to_short_v3(&varray[start + 12], ln[1]);
 
 						start += 16;
 						ln += 4;
@@ -1953,13 +1953,6 @@ static void ccgDM_buffer_copy_vertex(
 	}
 }
 
-static void copy_mcol_uc3(unsigned char *v, const unsigned char *col)
-{
-	v[0] = col[3];
-	v[1] = col[2];
-	v[2] = col[1];
-}
-
 /* Only used by non-editmesh types */
 static void ccgDM_buffer_copy_color(
         DerivedMesh *dm, unsigned char *varray,
@@ -1968,7 +1961,7 @@ static void ccgDM_buffer_copy_color(
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGKey key;
-	const unsigned char *mcol = user_data;
+	const char *mloopcol = user_data;
 	int gridSize = ccgSubSurf_getGridSize(ss);
 	int gridFaces = gridSize - 1;
 	int i, totface = ccgSubSurf_getNumFaces(ss);
@@ -1985,10 +1978,10 @@ static void ccgDM_buffer_copy_color(
 		for (S = 0; S < numVerts; S++) {
 			for (y = 0; y < gridFaces; y++) {
 				for (x = 0; x < gridFaces; x++) {
-					copy_mcol_uc3(&varray[start], &mcol[iface * 16]);
-					copy_mcol_uc3(&varray[start + 3], &mcol[iface * 16 + 12]);
-					copy_mcol_uc3(&varray[start + 6], &mcol[iface * 16 + 8]);
-					copy_mcol_uc3(&varray[start + 9], &mcol[iface * 16 + 4]);
+					copy_v3_v3_char((char *)&varray[start + 0], &mloopcol[iface * 16 + 0]);
+					copy_v3_v3_char((char *)&varray[start + 3], &mloopcol[iface * 16 + 12]);
+					copy_v3_v3_char((char *)&varray[start + 6], &mloopcol[iface * 16 + 8]);
+					copy_v3_v3_char((char *)&varray[start + 9], &mloopcol[iface * 16 + 4]);
 
 					start += 12;
 					iface++;
@@ -2005,7 +1998,7 @@ static void ccgDM_buffer_copy_uv(
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGKey key;
-	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
+	MLoopUV *mloopuv = DM_get_loop_data_layer(dm, CD_MLOOPUV);
 	int gridSize = ccgSubSurf_getGridSize(ss);
 	int gridFaces = gridSize - 1;
 	int i, totface = ccgSubSurf_getNumFaces(ss);
@@ -2020,12 +2013,12 @@ static void ccgDM_buffer_copy_uv(
 		for (S = 0; S < numVerts; S++) {
 			for (y = 0; y < gridFaces; y++) {
 				for (x = 0; x < gridFaces; x++) {
-					copy_v2_v2(&varray[start], tf->uv[0]);
-					copy_v2_v2(&varray[start + 2], tf->uv[3]);
-					copy_v2_v2(&varray[start + 4], tf->uv[2]);
-					copy_v2_v2(&varray[start + 6], tf->uv[1]);
+					copy_v2_v2(&varray[start + 0], mloopuv[0].uv);
+					copy_v2_v2(&varray[start + 2], mloopuv[3].uv);
+					copy_v2_v2(&varray[start + 4], mloopuv[2].uv);
+					copy_v2_v2(&varray[start + 6], mloopuv[1].uv);
 
-					tf++;
+					mloopuv += 4;
 					start += 8;
 				}
 			}
@@ -2045,22 +2038,22 @@ static void ccgDM_buffer_copy_uv_texpaint(
 	int start = 0;
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
 	int totmaterial = dm->totmat;
-	MTFace **mtface_base;
-	MTFace *stencil_base;
+	MLoopUV **mloopuv_base;
+	MLoopUV  *stencil_base;
 	int stencil;
 
 	CCG_key_top_level(&key, ss);
 
 	/* should have been checked for before, reassert */
-	BLI_assert(DM_get_tessface_data_layer(dm, CD_MTFACE));
-	mtface_base = MEM_mallocN(totmaterial * sizeof(*mtface_base), "texslots");
+	BLI_assert(DM_get_loop_data_layer(dm, CD_MLOOPUV));
+	mloopuv_base = MEM_mallocN(totmaterial * sizeof(*mloopuv_base), "texslots");
 
 	for (i = 0; i < totmaterial; i++) {
-		mtface_base[i] = DM_paint_uvlayer_active_get(dm, i);
+		mloopuv_base[i] = DM_paint_uvlayer_active_get_mloopuv(dm, i);
 	}
 
-	stencil = CustomData_get_stencil_layer(&dm->faceData, CD_MTFACE);
-	stencil_base = CustomData_get_layer_n(&dm->faceData, CD_MTFACE, stencil);
+	stencil = CustomData_get_stencil_layer(&dm->loopData, CD_MLOOPUV);
+	stencil_base = CustomData_get_layer_n(&dm->loopData, CD_MLOOPUV, stencil);
 
 	start = 0;
 
@@ -2080,23 +2073,23 @@ static void ccgDM_buffer_copy_uv_texpaint(
 		for (S = 0; S < numVerts; S++) {
 			for (y = 0; y < gridFaces; y++) {
 				for (x = 0; x < gridFaces; x++) {
-					/* divide by 16, gives us current tface */
-					unsigned int i_tf = start / 16;
-					copy_v2_v2(&varray[start], mtface_base[matnr][i_tf].uv[0]);
-					copy_v2_v2(&varray[start + 2], stencil_base[i_tf].uv[0]);
-					copy_v2_v2(&varray[start + 4], mtface_base[matnr][i_tf].uv[3]);
-					copy_v2_v2(&varray[start + 6], stencil_base[i_tf].uv[3]);
-					copy_v2_v2(&varray[start + 8], mtface_base[matnr][i_tf].uv[2]);
-					copy_v2_v2(&varray[start + 10], stencil_base[i_tf].uv[2]);
-					copy_v2_v2(&varray[start + 12], mtface_base[matnr][i_tf].uv[1]);
-					copy_v2_v2(&varray[start + 14], stencil_base[i_tf].uv[1]);
+					/* divide by 4, gives us current loop-index */
+					unsigned int i_ml = start / 4;
+					copy_v2_v2(&varray[start + 0],  mloopuv_base[matnr][i_ml + 0].uv);
+					copy_v2_v2(&varray[start + 2],         stencil_base[i_ml + 0].uv);
+					copy_v2_v2(&varray[start + 4],  mloopuv_base[matnr][i_ml + 3].uv);
+					copy_v2_v2(&varray[start + 6],         stencil_base[i_ml + 3].uv);
+					copy_v2_v2(&varray[start + 8],  mloopuv_base[matnr][i_ml + 2].uv);
+					copy_v2_v2(&varray[start + 10],        stencil_base[i_ml + 2].uv);
+					copy_v2_v2(&varray[start + 12], mloopuv_base[matnr][i_ml + 1].uv);
+					copy_v2_v2(&varray[start + 14],        stencil_base[i_ml + 1].uv);
 					start += 16;
 				}
 			}
 		}
 	}
 
-	MEM_freeN(mtface_base);
+	MEM_freeN(mloopuv_base);
 }
 
 static void ccgDM_copy_gpu_data(
@@ -2301,7 +2294,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		index = getFaceIndex(ss, f, S, x + dx, y + dy, edgeSize, gridSize);   \
 	else                                                                      \
 		index = 0;                                                            \
-	DM_draw_attrib_vertex(&attribs, a, index, vert);                          \
+	DM_draw_attrib_vertex(&attribs, a, index, vert, ((a) * 4) + vert);          \
 } (void)0
 
 	totface = ccgSubSurf_getNumFaces(ss);
@@ -2472,7 +2465,7 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm,
 		index = getFaceIndex(ss, f, S, x + dx, y + dy, edgeSize, gridSize);   \
 	else                                                                      \
 		index = 0;                                                            \
-	DM_draw_attrib_vertex(&attribs, a, index, vert);                          \
+	DM_draw_attrib_vertex(&attribs, a, index, vert, ((a) * 4) + vert);          \
 } (void)0
 
 	totface = ccgSubSurf_getNumFaces(ss);
@@ -2621,8 +2614,8 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGKey key;
-	int colType = CD_TEXTURE_MCOL;
-	MCol *mcol = dm->getTessFaceDataArray(dm, colType);
+	int colType;
+	const  MLoopCol *mloopcol;
 	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
 	DMDrawOption draw_option;
@@ -2637,13 +2630,15 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 	CCG_key_top_level(&key, ss);
 	ccgdm_pbvh_update(ccgdm);
 
-	if (!mcol) {
+	colType = CD_TEXTURE_MLOOPCOL;
+	mloopcol = dm->getLoopDataArray(dm, colType);
+	if (!mloopcol) {
 		colType = CD_PREVIEW_MCOL;
-		mcol = dm->getTessFaceDataArray(dm, colType);
+		mloopcol = dm->getLoopDataArray(dm, colType);
 	}
-	if (!mcol) {
-		colType = CD_MCOL;
-		mcol = dm->getTessFaceDataArray(dm, colType);
+	if (!mloopcol) {
+		colType = CD_MLOOPCOL;
+		mloopcol = dm->getLoopDataArray(dm, colType);
 	}
 
 	GPU_vertex_setup(dm);
@@ -2653,7 +2648,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 		GPU_texpaint_uv_setup(dm);
 	else
 		GPU_uv_setup(dm);
-	if (mcol) {
+	if (mloopcol) {
 		GPU_color_setup(dm, colType);
 	}
 
@@ -2695,10 +2690,11 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 			if (drawParams) {
 				MTexPoly tpoly;
 				if (tf) {
+					memset(&tpoly, 0, sizeof(tpoly));
 					ME_MTEXFACE_CPY(&tpoly, tf + actualFace);
 				}
 
-				draw_option = drawParams((use_tface && tf) ? &tpoly : NULL, (mcol != NULL), mat_nr);
+				draw_option = drawParams((use_tface && tf) ? &tpoly : NULL, (mloopcol != NULL), mat_nr);
 			}
 			else if (index != ORIGINDEX_NONE)
 				draw_option = (drawParamsMapped) ? drawParamsMapped(userData, index, mat_nr) : DM_DRAW_OPTION_NORMAL;
@@ -2721,7 +2717,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 					tot_drawn += facequads * 6;
 
 				if (tot_drawn) {
-					if (mcol && draw_option != DM_DRAW_OPTION_NO_MCOL)
+					if (mloopcol && draw_option != DM_DRAW_OPTION_NO_MCOL)
 						GPU_color_switch(1);
 					else
 						GPU_color_switch(0);
@@ -2801,7 +2797,7 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGKey key;
-	MCol *mcol = NULL;
+	MLoopCol *mloopcol = NULL;
 	short (*lnors)[4][3] = dm->getTessFaceDataArray(dm, CD_TESSLOOPNORMAL);
 	int i, gridSize = ccgSubSurf_getGridSize(ss);
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
@@ -2815,9 +2811,9 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 	(void)compareDrawOptions;
 
 	if (useColors) {
-		mcol = dm->getTessFaceDataArray(dm, CD_PREVIEW_MCOL);
-		if (!mcol)
-			mcol = dm->getTessFaceDataArray(dm, CD_MCOL);
+		mloopcol = dm->getLoopDataArray(dm, CD_PREVIEW_MLOOPCOL);
+		if (!mloopcol)
+			mloopcol = dm->getLoopDataArray(dm, CD_MLOOPCOL);
 	}
 
 	totface = ccgSubSurf_getNumFaces(ss);
@@ -2835,9 +2831,9 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 		else if (faceFlags) drawSmooth = (lnors || (faceFlags[origIndex].flag & ME_SMOOTH));
 		else drawSmooth = 1;
 
-		if (mcol) {
-			cp = (unsigned char *)mcol;
-			mcol += gridFaces * gridFaces * numVerts * 4;
+		if (mloopcol) {
+			cp = (unsigned char *)mloopcol;
+			mloopcol += gridFaces * gridFaces * numVerts * 4;
 		}
 
 		if (lnors) {
@@ -2881,16 +2877,16 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 								float *c = CCG_grid_elem_co(&key, faceGridData, x + 1, y + 1);
 								float *d = CCG_grid_elem_co(&key, faceGridData, x, y + 1);
 
-								if (cp) glColor3ub(cp[7], cp[6], cp[5]);
+								if (cp) glColor3ubv(&cp[4]);
 								glNormal3sv(ln[0][1]);
 								glVertex3fv(d);
-								if (cp) glColor3ub(cp[11], cp[10], cp[9]);
+								if (cp) glColor3ubv(&cp[8]);
 								glNormal3sv(ln[0][2]);
 								glVertex3fv(c);
-								if (cp) glColor3ub(cp[15], cp[14], cp[13]);
+								if (cp) glColor3ubv(&cp[12]);
 								glNormal3sv(ln[0][3]);
 								glVertex3fv(b);
-								if (cp) glColor3ub(cp[3], cp[2], cp[1]);
+								if (cp) glColor3ubv(&cp[0]);
 								glNormal3sv(ln[0][0]);
 								glVertex3fv(a);
 
@@ -2908,10 +2904,10 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 								a = CCG_grid_elem(&key, faceGridData, x, y + 0);
 								b = CCG_grid_elem(&key, faceGridData, x, y + 1);
 	
-								if (cp) glColor3ub(cp[3], cp[2], cp[1]);
+								if (cp) glColor3ubv(&cp[0]);
 								glNormal3fv(CCG_elem_no(&key, a));
 								glVertex3fv(CCG_elem_co(&key, a));
-								if (cp) glColor3ub(cp[7], cp[6], cp[5]);
+								if (cp) glColor3ubv(&cp[4]);
 								glNormal3fv(CCG_elem_no(&key, b));
 								glVertex3fv(CCG_elem_co(&key, b));
 
@@ -2923,10 +2919,10 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 							a = CCG_grid_elem(&key, faceGridData, x, y + 0);
 							b = CCG_grid_elem(&key, faceGridData, x, y + 1);
 
-							if (cp) glColor3ub(cp[15], cp[14], cp[13]);
+							if (cp) glColor3ubv(&cp[12]);
 							glNormal3fv(CCG_elem_no(&key, a));
 							glVertex3fv(CCG_elem_co(&key, a));
-							if (cp) glColor3ub(cp[11], cp[10], cp[9]);
+							if (cp) glColor3ubv(&cp[8]);
 							glNormal3fv(CCG_elem_no(&key, b));
 							glVertex3fv(CCG_elem_co(&key, b));
 
@@ -2946,13 +2942,13 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 
 								ccgDM_glNormalFast(a, b, c, d);
 	
-								if (cp) glColor3ub(cp[7], cp[6], cp[5]);
+								if (cp) glColor3ubv(&cp[4]);
 								glVertex3fv(d);
-								if (cp) glColor3ub(cp[11], cp[10], cp[9]);
+								if (cp) glColor3ubv(&cp[8]);
 								glVertex3fv(c);
-								if (cp) glColor3ub(cp[15], cp[14], cp[13]);
+								if (cp) glColor3ubv(&cp[12]);
 								glVertex3fv(b);
-								if (cp) glColor3ub(cp[3], cp[2], cp[1]);
+								if (cp) glColor3ubv(&cp[0]);
 								glVertex3fv(a);
 
 								if (cp) cp += 16;
@@ -3568,10 +3564,15 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 	}
 	else if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
+		const int looptris_num = poly_to_tri_count(me->totpoly, me->totloop);
+		MLoopTri *looptri;
+
+		looptri = MEM_mallocN(sizeof(*looptri) * looptris_num, __func__);
+
 		ob->sculpt->pbvh = ccgdm->pbvh = BKE_pbvh_new();
 		BLI_assert(!(me->mface == NULL && me->mpoly != NULL)); /* BMESH ONLY complain if mpoly is valid but not mface */
-		BKE_pbvh_build_mesh(ccgdm->pbvh, me->mface, me->mvert,
-		                    me->totface, me->totvert, &me->vdata);
+		BKE_pbvh_build_mesh(ccgdm->pbvh, me->mpoly, me->mloop, me->mvert, me->totvert, &me->vdata,
+		                    looptri, looptris_num);
 	}
 
 	if (ccgdm->pbvh)
@@ -3583,6 +3584,47 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 static void ccgDM_recalcTessellation(DerivedMesh *UNUSED(dm))
 {
 	/* Nothing to do: CCG handles creating its own tessfaces */
+}
+
+static void ccgDM_recalcLoopTri(DerivedMesh *UNUSED(dm))
+{
+	/* Nothing to do: CCG tessellation is known,
+	 * allocate and fill in with ccgDM_getLoopTriArray */
+}
+
+static const MLoopTri *ccgDM_getLoopTriArray(DerivedMesh *dm)
+{
+	if (dm->looptris.array) {
+		BLI_assert(poly_to_tri_count(dm->numPolyData, dm->numLoopData) == dm->looptris.num);
+	}
+	else {
+		MLoopTri *mlooptri;
+		const int tottri = dm->numTessFaceData * 2;
+		int i, poly_index;
+
+		DM_ensure_looptri_data(dm);
+		mlooptri = dm->looptris.array;
+
+		BLI_assert(poly_to_tri_count(dm->numPolyData, dm->numLoopData) == dm->looptris.num);
+		BLI_assert(tottri == dm->looptris.num);
+
+		for (i = 0, poly_index = 0; i < tottri; i += 2, poly_index += 1) {
+			MLoopTri *lt;
+			lt = &mlooptri[i];
+			/* quad is (0, 3, 2, 1) */
+			lt->tri[0] = (poly_index * 4) + 0;
+			lt->tri[1] = (poly_index * 4) + 3;
+			lt->tri[2] = (poly_index * 4) + 2;
+			lt->poly = poly_index;
+
+			lt = &mlooptri[i + 1];
+			lt->tri[0] = (poly_index * 4) + 0;
+			lt->tri[1] = (poly_index * 4) + 2;
+			lt->tri[2] = (poly_index * 4) + 1;
+			lt->poly = poly_index;
+		}
+	}
+	return dm->looptris.array;
 }
 
 static void ccgDM_calcNormals(DerivedMesh *dm)
@@ -3667,6 +3709,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	/* reuse of ccgDM_getNumTessFaces is intentional here: subsurf polys are just created from tessfaces */
 	ccgdm->dm.getNumPolys = ccgDM_getNumTessFaces;
 
+	ccgdm->dm.getLoopTriArray = ccgDM_getLoopTriArray;
+
 	ccgdm->dm.getVert = ccgDM_getFinalVert;
 	ccgdm->dm.getEdge = ccgDM_getFinalEdge;
 	ccgdm->dm.getTessFace = ccgDM_getFinalFace;
@@ -3702,6 +3746,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.calcLoopNormals = CDDM_calc_loop_normals;
 	ccgdm->dm.calcLoopNormalsSpaceArray = CDDM_calc_loop_normals_spacearr;
 	ccgdm->dm.recalcTessellation = ccgDM_recalcTessellation;
+	ccgdm->dm.recalcLoopTri = ccgDM_recalcLoopTri;
 
 	ccgdm->dm.getVertCos = ccgdm_getVertCos;
 	ccgdm->dm.foreachMappedVert = ccgDM_foreachMappedVert;

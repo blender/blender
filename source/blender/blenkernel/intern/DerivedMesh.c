@@ -220,6 +220,11 @@ static MPoly *dm_dupPolyArray(DerivedMesh *dm)
 	return tmp;
 }
 
+static int dm_getNumLoopTri(DerivedMesh *dm)
+{
+	return dm->looptris.num;
+}
+
 static CustomData *dm_getVertCData(DerivedMesh *dm)
 {
 	return &dm->vertData;
@@ -262,6 +267,9 @@ void DM_init_funcs(DerivedMesh *dm)
 	dm->dupTessFaceArray = dm_dupFaceArray;
 	dm->dupLoopArray = dm_dupLoopArray;
 	dm->dupPolyArray = dm_dupPolyArray;
+
+	/* subtypes handle getting actual data */
+	dm->getNumLoopTri = dm_getNumLoopTri;
 
 	dm->getVertDataLayout = dm_getVertCData;
 	dm->getEdgeDataLayout = dm_getEdgeCData;
@@ -364,6 +372,10 @@ int DM_release(DerivedMesh *dm)
 			dm->totmat = 0;
 		}
 
+		MEM_SAFE_FREE(dm->looptris.array);
+		dm->looptris.num = 0;
+		dm->looptris.num_alloc = 0;
+
 		return 1;
 	}
 	else {
@@ -438,6 +450,47 @@ void DM_ensure_tessface(DerivedMesh *dm)
 	}
 
 	dm->dirty &= ~DM_DIRTY_TESS_CDLAYERS;
+}
+
+/**
+ * Ensure the array is large enough
+ */
+void DM_ensure_looptri_data(DerivedMesh *dm)
+{
+	const unsigned int totpoly = dm->numPolyData;
+	const unsigned int totloop = dm->numLoopData;
+	const int looptris_num = poly_to_tri_count(totpoly, totloop);
+
+	if ((looptris_num > dm->looptris.num_alloc) ||
+	    (looptris_num < dm->looptris.num_alloc * 2) ||
+	    (totpoly == 0))
+	{
+		MEM_SAFE_FREE(dm->looptris.array);
+		dm->looptris.num_alloc = 0;
+		dm->looptris.num = 0;
+	}
+
+	if (totpoly) {
+		if (dm->looptris.array == NULL) {
+			dm->looptris.array = MEM_mallocN(sizeof(*dm->looptris.array) * looptris_num, __func__);
+			dm->looptris.num_alloc = looptris_num;
+		}
+
+		dm->looptris.num = looptris_num;
+	}
+}
+
+/**
+ * The purpose of this function is that we can call:
+ * `dm->getLoopTriArray(dm)` and get the array returned.
+ */
+void DM_ensure_looptri(DerivedMesh *dm)
+{
+	const int numPolys =  dm->getNumPolys(dm);
+
+	if ((dm->looptris.num == 0) && (numPolys != 0)) {
+		dm->recalcLoopTri(dm);
+	}
 }
 
 /* Update tessface CD data from loop/poly ones. Needed when not retessellating after modstack evaluation. */
@@ -544,6 +597,29 @@ MTFace *DM_paint_uvlayer_active_get(DerivedMesh *dm, int mat_nr)
 	}
 
 	return tf_base;
+}
+
+MLoopUV *DM_paint_uvlayer_active_get_mloopuv(DerivedMesh *dm, int mat_nr)
+{
+	MLoopUV *uv_base;
+
+	BLI_assert(mat_nr < dm->totmat);
+
+	if (dm->mat[mat_nr] && dm->mat[mat_nr]->texpaintslot &&
+	    dm->mat[mat_nr]->texpaintslot[dm->mat[mat_nr]->paint_active_slot].uvname)
+	{
+		uv_base = CustomData_get_layer_named(&dm->loopData, CD_MLOOPUV,
+		                                     dm->mat[mat_nr]->texpaintslot[dm->mat[mat_nr]->paint_active_slot].uvname);
+		/* This can fail if we have changed the name in the UV layer list and have assigned the old name in the material
+		 * texture slot.*/
+		if (!uv_base)
+			uv_base = CustomData_get_layer(&dm->loopData, CD_MLOOPUV);
+	}
+	else {
+		uv_base = CustomData_get_layer(&dm->loopData, CD_MLOOPUV);
+	}
+
+	return uv_base;
 }
 
 void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask, bool take_ownership)
@@ -2031,7 +2107,12 @@ static void mesh_calc_modifiers(
 	}
 
 	if (sculpt_dyntopo == false) {
+		/* watch this! after 2.75a we move to from tessface to looptri (by default) */
+#if 0
 		DM_ensure_tessface(finaldm);
+#else
+		DM_ensure_looptri(finaldm);
+#endif
 
 		/* without this, drawing ngon tri's faces will show ugly tessellated face
 		 * normals and will also have to calculate normals on the fly, try avoid
@@ -3160,17 +3241,20 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 				attribs->tface[a].gl_texco = gattribs->layer[b].gltexco;
 			}
 			else {
+				/* exception .. */
+				CustomData *ldata = dm->getLoopDataLayout(dm);
+
 				if (gattribs->layer[b].name[0])
-					layer = CustomData_get_named_layer_index(tfdata, CD_MTFACE,
+					layer = CustomData_get_named_layer_index(ldata, CD_MLOOPUV,
 					                                         gattribs->layer[b].name);
 				else
-					layer = CustomData_get_active_layer_index(tfdata, CD_MTFACE);
+					layer = CustomData_get_active_layer_index(ldata, CD_MLOOPUV);
 
 				a = attribs->tottface++;
 
 				if (layer != -1) {
-					attribs->tface[a].array = tfdata->layers[layer].data;
-					attribs->tface[a].em_offset = tfdata->layers[layer].offset;
+					attribs->tface[a].array = ldata->layers[layer].data;
+					attribs->tface[a].em_offset = ldata->layers[layer].offset;
 				}
 				else {
 					attribs->tface[a].array = NULL;
@@ -3207,19 +3291,22 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 				attribs->mcol[a].gl_index = gattribs->layer[b].glindex;
 			}
 			else {
+				/* exception .. */
+				CustomData *ldata = dm->getLoopDataLayout(dm);
+
 				/* vertex colors */
 				if (gattribs->layer[b].name[0])
-					layer = CustomData_get_named_layer_index(tfdata, CD_MCOL,
+					layer = CustomData_get_named_layer_index(ldata, CD_MLOOPCOL,
 					                                         gattribs->layer[b].name);
 				else
-					layer = CustomData_get_active_layer_index(tfdata, CD_MCOL);
+					layer = CustomData_get_active_layer_index(ldata, CD_MLOOPCOL);
 
 				a = attribs->totmcol++;
 
 				if (layer != -1) {
-					attribs->mcol[a].array = tfdata->layers[layer].data;
+					attribs->mcol[a].array = ldata->layers[layer].data;
 					/* odd, store the offset for a different layer type here, but editmode draw code expects it */
-					attribs->mcol[a].em_offset = tfdata->layers[layer].offset;
+					attribs->mcol[a].em_offset = ldata->layers[layer].offset;
 				}
 				else {
 					attribs->mcol[a].array = NULL;
@@ -3266,13 +3353,15 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 	}
 }
 
-/* Set vertex shader attribute inputs for a particular tessface vert
+/**
+ * Set vertex shader attribute inputs for a particular tessface vert
  *
- * a: tessface index
- * index: vertex index
- * vert: corner index (0, 1, 2, 3)
+ * \param a: tessface index
+ * \param index: vertex index
+ * \param vert: corner index (0, 1, 2, 3)
+ * \param loop: absolute loop corner index
  */
-void DM_draw_attrib_vertex(DMVertexAttribs *attribs, int a, int index, int vert)
+void DM_draw_attrib_vertex(DMVertexAttribs *attribs, int a, int index, int vert, int loop)
 {
 	const float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	int b;
@@ -3293,8 +3382,8 @@ void DM_draw_attrib_vertex(DMVertexAttribs *attribs, int a, int index, int vert)
 		const float *uv;
 
 		if (attribs->tface[b].array) {
-			MTFace *tf = &attribs->tface[b].array[a];
-			uv = tf->uv[vert];
+			const MLoopUV *mloopuv = &attribs->tface[b].array[loop];
+			uv = mloopuv->uv;
 		}
 		else {
 			uv = zero;
@@ -3311,8 +3400,8 @@ void DM_draw_attrib_vertex(DMVertexAttribs *attribs, int a, int index, int vert)
 		GLubyte col[4];
 
 		if (attribs->mcol[b].array) {
-			MCol *cp = &attribs->mcol[b].array[a * 4 + vert];
-			col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
+			const MLoopCol *cp = &attribs->mcol[b].array[loop];
+			copy_v4_v4_char((char *)col, &cp->r);
 		}
 		else {
 			col[0] = 0; col[1] = 0; col[2] = 0; col[3] = 0;

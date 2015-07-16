@@ -212,9 +212,12 @@ void GPU_interleaved_attrib_unbind(void);
 typedef struct GPU_PBVH_Buffers GPU_PBVH_Buffers;
 
 /* build */
-GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(const int (*face_vert_indices)[4],
-        const struct MFace *mface, const struct MVert *mvert,
-        const int *face_indices, int totface);
+GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(
+        const int (*face_vert_indices)[4],
+        const struct MPoly *mpoly, const struct MLoop *mloop, const struct MLoopTri *looptri,
+        const struct MVert *verts,
+        const int *face_indices,
+        const int  face_indices_len);
 
 GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
                                     unsigned int **grid_hidden, int gridsize, const struct CCGKey *key);

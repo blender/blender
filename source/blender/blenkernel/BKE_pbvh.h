@@ -34,7 +34,9 @@ struct CCGElem;
 struct CCGKey;
 struct CustomData;
 struct DMFlagMat;
-struct MFace;
+struct MPoly;
+struct MLoop;
+struct MLoopTri;
 struct MVert;
 struct PBVH;
 struct PBVHNode;
@@ -60,8 +62,10 @@ typedef void (*BKE_pbvh_HitOccludedCallback)(PBVHNode *node, void *data, float *
 
 PBVH *BKE_pbvh_new(void);
 void BKE_pbvh_build_mesh(
-        PBVH *bvh, const struct MFace *faces, struct MVert *verts,
-        int totface, int totvert, struct CustomData *vdata);
+        PBVH *bvh,
+        const struct MPoly *mpoly, const struct MLoop *mloop,
+        struct MVert *verts, int totvert, struct CustomData *vdata,
+        const struct MLoopTri *looptri, int looptri_num);
 void BKE_pbvh_build_grids(PBVH *bvh, struct CCGElem **grid_elems,
                           int totgrid,
                           struct CCGKey *key, void **gridfaces, struct DMFlagMat *flagmats,

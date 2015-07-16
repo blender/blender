@@ -300,6 +300,11 @@ void map_to_sphere(float *r_u, float *r_v, const float x, const float y, const f
 
 /********************************** Normals **********************************/
 
+void accumulate_vertex_normals_tri(
+        float n1[3], float n2[3], float n3[3],
+        const float f_no[3],
+        const float co1[3], const float co2[3], const float co3[3]);
+
 void accumulate_vertex_normals(
         float n1[3], float n2[3], float n3[3], float n4[3],
         const float f_no[3],

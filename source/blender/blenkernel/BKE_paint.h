@@ -40,6 +40,8 @@ struct CurveMapping;
 struct MeshElemMap;
 struct GridPaintMask;
 struct Main;
+struct MLoop;
+struct MLoopTri;
 struct MFace;
 struct MVert;
 struct Object;
@@ -133,7 +135,7 @@ bool BKE_paint_select_vert_test(struct Object *ob);
 bool BKE_paint_select_elem_test(struct Object *ob);
 
 /* partial visibility */
-bool paint_is_face_hidden(const struct MFace *f, const struct MVert *mvert);
+bool paint_is_face_hidden(const struct MLoopTri *lt, const struct MVert *mvert, const struct MLoop *mloop);
 bool paint_is_grid_face_hidden(const unsigned int *grid_hidden,
                                int gridsize, int x, int y);
 bool paint_is_bmesh_face_hidden(struct BMFace *f);
