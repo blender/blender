@@ -1407,7 +1407,9 @@ static struct GPUMaterialState {
 	GPUMaterialFixed (*matbuf);
 	GPUMaterialFixed matbuf_fixed[FIXEDMAT];
 	int totmat;
-	/* set when called inside GPU_begin_object_materials / GPU_end_object_materials */
+
+	/* set when called inside GPU_begin_object_materials / GPU_end_object_materials
+	 * otherwise calling GPU_enable_material returns zero */
 	bool is_enabled;
 
 	Material **gmatbuf;
