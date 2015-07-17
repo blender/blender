@@ -319,9 +319,10 @@ static void emDM_foreachMappedVert(
 		}
 	}
 }
-static void emDM_foreachMappedEdge(DerivedMesh *dm,
-                                   void (*func)(void *userData, int index, const float v0co[3], const float v1co[3]),
-                                   void *userData)
+static void emDM_foreachMappedEdge(
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float v0co[3], const float v1co[3]),
+        void *userData)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMesh *bm = bmdm->em->bm;
@@ -346,9 +347,10 @@ static void emDM_foreachMappedEdge(DerivedMesh *dm,
 	}
 }
 
-static void emDM_drawMappedEdges(DerivedMesh *dm,
-                                 DMSetDrawOptions setDrawOptions,
-                                 void *userData)
+static void emDM_drawMappedEdges(
+        DerivedMesh *dm,
+        DMSetDrawOptions setDrawOptions,
+        void *userData)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMesh *bm = bmdm->em->bm;
@@ -380,17 +382,19 @@ static void emDM_drawMappedEdges(DerivedMesh *dm,
 		glEnd();
 	}
 }
-static void emDM_drawEdges(DerivedMesh *dm,
-                           bool UNUSED(drawLooseEdges),
-                           bool UNUSED(drawAllEdges))
+static void emDM_drawEdges(
+        DerivedMesh *dm,
+        bool UNUSED(drawLooseEdges),
+        bool UNUSED(drawAllEdges))
 {
 	emDM_drawMappedEdges(dm, NULL, NULL);
 }
 
-static void emDM_drawMappedEdgesInterp(DerivedMesh *dm,
-                                       DMSetDrawOptions setDrawOptions,
-                                       DMSetDrawInterpOptions setDrawInterpOptions,
-                                       void *userData)
+static void emDM_drawMappedEdgesInterp(
+        DerivedMesh *dm,
+        DMSetDrawOptions setDrawOptions,
+        DMSetDrawInterpOptions setDrawInterpOptions,
+        void *userData)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMesh *bm = bmdm->em->bm;
@@ -532,12 +536,14 @@ static void emDM_foreachMappedFaceCenter(
 	}
 }
 
-static void emDM_drawMappedFaces(DerivedMesh *dm,
-                                 DMSetDrawOptions setDrawOptions,
-                                 DMSetMaterial setMaterial,
-                                 DMCompareDrawOptions compareDrawOptions,
-                                 void *userData,
-                                 DMDrawFlag flag)
+static void emDM_drawMappedFaces(
+        DerivedMesh *dm,
+        DMSetDrawOptions setDrawOptions,
+        DMSetMaterial setMaterial,
+        /* currently unused -- each original face is handled separately */
+        DMCompareDrawOptions UNUSED(compareDrawOptions),
+        void *userData,
+        DMDrawFlag flag)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMEditMesh *em = bmdm->em;
@@ -561,9 +567,6 @@ static void emDM_drawMappedFaces(DerivedMesh *dm,
 	/* GL_ZERO is used to detect if drawing has started or not */
 	GLenum poly_prev = GL_ZERO;
 	GLenum shade_prev = GL_ZERO;
-
-	/* currently unused -- each original face is handled separately */
-	(void)compareDrawOptions;
 
 	/* call again below is ok */
 	if (has_vcol_preview) {
@@ -818,11 +821,12 @@ static void bmdm_get_tri_colpreview(BMLoop *ls[3], MLoopCol *lcol[3], unsigned c
 	lcol[2] = (MLoopCol *)color_vert_array[BM_elem_index_get(ls[2]->v)];
 }
 
-static void emDM_drawFacesTex_common(DerivedMesh *dm,
-                                     DMSetDrawOptionsTex drawParams,
-                                     DMSetDrawOptionsMappedTex drawParamsMapped,
-                                     DMCompareDrawOptions compareDrawOptions,
-                                     void *userData)
+static void emDM_drawFacesTex_common(
+        DerivedMesh *dm,
+        DMSetDrawOptionsTex drawParams,
+        DMSetDrawOptionsMappedTex drawParamsMapped,
+        DMCompareDrawOptions compareDrawOptions,
+        void *userData)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMEditMesh *em = bmdm->em;
@@ -1001,18 +1005,20 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 	glShadeModel(GL_FLAT);
 }
 
-static void emDM_drawFacesTex(DerivedMesh *dm,
-                              DMSetDrawOptionsTex setDrawOptions,
-                              DMCompareDrawOptions compareDrawOptions,
-                              void *userData, DMDrawFlag UNUSED(flag))
+static void emDM_drawFacesTex(
+        DerivedMesh *dm,
+        DMSetDrawOptionsTex setDrawOptions,
+        DMCompareDrawOptions compareDrawOptions,
+        void *userData, DMDrawFlag UNUSED(flag))
 {
 	emDM_drawFacesTex_common(dm, setDrawOptions, NULL, compareDrawOptions, userData);
 }
 
-static void emDM_drawMappedFacesTex(DerivedMesh *dm,
-                                    DMSetDrawOptionsMappedTex setDrawOptions,
-                                    DMCompareDrawOptions compareDrawOptions,
-                                    void *userData, DMDrawFlag UNUSED(flag))
+static void emDM_drawMappedFacesTex(
+        DerivedMesh *dm,
+        DMSetDrawOptionsMappedTex setDrawOptions,
+        DMCompareDrawOptions compareDrawOptions,
+        void *userData, DMDrawFlag UNUSED(flag))
 {
 	emDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData);
 }
@@ -1078,10 +1084,11 @@ static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const B
 	}
 }
 
-static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
-                                     DMSetMaterial setMaterial,
-                                     DMSetDrawOptions setDrawOptions,
-                                     void *userData)
+static void emDM_drawMappedFacesGLSL(
+        DerivedMesh *dm,
+        DMSetMaterial setMaterial,
+        DMSetDrawOptions setDrawOptions,
+        void *userData)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMEditMesh *em = bmdm->em;
@@ -1183,15 +1190,17 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	}
 }
 
-static void emDM_drawFacesGLSL(DerivedMesh *dm,
-                               int (*setMaterial)(int matnr, void *attribs))
+static void emDM_drawFacesGLSL(
+        DerivedMesh *dm,
+        int (*setMaterial)(int matnr, void *attribs))
 {
 	dm->drawMappedFacesGLSL(dm, setMaterial, NULL, NULL);
 }
 
-static void emDM_drawMappedFacesMat(DerivedMesh *dm,
-                                    void (*setMaterial)(void *userData, int matnr, void *attribs),
-                                    bool (*setFace)(void *userData, int index), void *userData)
+static void emDM_drawMappedFacesMat(
+        DerivedMesh *dm,
+        void (*setMaterial)(void *userData, int matnr, void *attribs),
+        bool (*setFace)(void *userData, int index), void *userData)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMEditMesh *em = bmdm->em;
@@ -1803,9 +1812,10 @@ static CustomData *bmDm_getPolyDataLayout(DerivedMesh *dm)
 }
 
 
-DerivedMesh *getEditDerivedBMesh(BMEditMesh *em,
-                                 Object *UNUSED(ob),
-                                 float (*vertexCos)[3])
+DerivedMesh *getEditDerivedBMesh(
+        BMEditMesh *em,
+        Object *UNUSED(ob),
+        float (*vertexCos)[3])
 {
 	EditDerivedBMesh *bmdm = MEM_callocN(sizeof(*bmdm), __func__);
 	BMesh *bm = em->bm;
@@ -2299,8 +2309,9 @@ static void statvis_calc_sharp(
 	}
 }
 
-void BKE_editmesh_statvis_calc(BMEditMesh *em, DerivedMesh *dm,
-                               const MeshStatVis *statvis)
+void BKE_editmesh_statvis_calc(
+        BMEditMesh *em, DerivedMesh *dm,
+        const MeshStatVis *statvis)
 {
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BLI_assert(dm == NULL || dm->type == DM_TYPE_EDITBMESH);
@@ -2376,8 +2387,9 @@ struct CageUserData {
 	BLI_bitmap *visit_bitmap;
 };
 
-static void cage_mapped_verts_callback(void *userData, int index, const float co[3],
-                                       const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
+static void cage_mapped_verts_callback(
+        void *userData, int index, const float co[3],
+        const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
 {
 	struct CageUserData *data = userData;
 

@@ -3490,24 +3490,21 @@ static void navmesh_drawColored(DerivedMesh *dm)
 	glEnable(GL_LIGHTING);
 }
 
-static void navmesh_DM_drawFacesTex(DerivedMesh *dm,
-                                    DMSetDrawOptionsTex setDrawOptions,
-                                    DMCompareDrawOptions compareDrawOptions,
-                                    void *userData, DMDrawFlag UNUSED(flag))
+static void navmesh_DM_drawFacesTex(
+        DerivedMesh *dm,
+        DMSetDrawOptionsTex UNUSED(setDrawOptions),
+        DMCompareDrawOptions UNUSED(compareDrawOptions),
+        void *UNUSED(userData), DMDrawFlag UNUSED(flag))
 {
-	(void) setDrawOptions;
-	(void) compareDrawOptions;
-	(void) userData;
-
 	navmesh_drawColored(dm);
 }
 
-static void navmesh_DM_drawFacesSolid(DerivedMesh *dm,
-                                      float (*partial_redraw_planes)[4],
-                                      bool UNUSED(fast), DMSetMaterial setMaterial)
+static void navmesh_DM_drawFacesSolid(
+        DerivedMesh *dm,
+        float (*partial_redraw_planes)[4],
+        bool UNUSED(fast), DMSetMaterial UNUSED(setMaterial))
 {
-	(void) partial_redraw_planes;
-	(void) setMaterial;
+	UNUSED_VARS(partial_redraw_planes);
 
 	//drawFacesSolid_original(dm, partial_redraw_planes, fast, setMaterial);
 	navmesh_drawColored(dm);
