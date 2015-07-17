@@ -739,7 +739,7 @@ static void cdDM_drawMappedFaces(
 					if (i != totpoly - 1)
 						next_actualFace = bufmat->polys[i + 1];
 
-					orig = (index_mp_to_orig) ? index_mp_to_orig[i] : i;
+					orig = (index_mp_to_orig) ? index_mp_to_orig[actualFace] : actualFace;
 
 					if (setDrawOptions != NULL && (orig != ORIGINDEX_NONE))
 						draw_option = setDrawOptions(userData, orig);
