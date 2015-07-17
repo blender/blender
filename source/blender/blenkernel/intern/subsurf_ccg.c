@@ -3620,14 +3620,14 @@ static const MLoopTri *ccgDM_getLoopTriArray(DerivedMesh *dm)
 			lt = &mlooptri[i];
 			/* quad is (0, 3, 2, 1) */
 			lt->tri[0] = (poly_index * 4) + 0;
-			lt->tri[1] = (poly_index * 4) + 3;
-			lt->tri[2] = (poly_index * 4) + 2;
+			lt->tri[1] = (poly_index * 4) + 2;
+			lt->tri[2] = (poly_index * 4) + 3;
 			lt->poly = poly_index;
 
 			lt = &mlooptri[i + 1];
 			lt->tri[0] = (poly_index * 4) + 0;
-			lt->tri[1] = (poly_index * 4) + 2;
-			lt->tri[2] = (poly_index * 4) + 1;
+			lt->tri[1] = (poly_index * 4) + 1;
+			lt->tri[2] = (poly_index * 4) + 2;
 			lt->poly = poly_index;
 		}
 	}
