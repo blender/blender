@@ -872,7 +872,8 @@ static void cdDM_drawMappedFacesGLSL(
 	glShadeModel(GL_SMOOTH);
 
 	/* workaround for NVIDIA GPUs on Mac not supporting vertex arrays + interleaved formats, see T43342 */
-	if ((GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_ANY) && (U.gameflags & USER_DISABLE_VBO)) ||
+	//GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_ANY) &&
+	if (((U.gameflags & USER_DISABLE_VBO)) ||
 	    setDrawOptions != NULL)
 	{
 		DMVertexAttribs attribs;
@@ -892,7 +893,8 @@ static void cdDM_drawMappedFacesGLSL(
 			if (new_matnr != matnr) {
 				glEnd();
 
-				do_draw = setMaterial(matnr = new_matnr, &gattribs);
+				matnr = new_matnr;
+				do_draw = setMaterial(matnr + 1, &gattribs);
 				if (do_draw)
 					DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
 
