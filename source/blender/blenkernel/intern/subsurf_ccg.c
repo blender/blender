@@ -2617,7 +2617,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 	CCGKey key;
 	int colType;
 	const  MLoopCol *mloopcol;
-	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
+	MTexPoly *mtexpoly = DM_get_poly_data_layer(dm, CD_MTEXPOLY);
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
 	DMDrawOption draw_option;
 	int i, totpoly;
@@ -2689,13 +2689,8 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 			}
 
 			if (drawParams) {
-				MTexPoly tpoly;
-				if (tf) {
-					memset(&tpoly, 0, sizeof(tpoly));
-					ME_MTEXFACE_CPY(&tpoly, tf + actualFace);
-				}
-
-				draw_option = drawParams((use_tface && tf) ? &tpoly : NULL, (mloopcol != NULL), mat_nr);
+				MTexPoly *tp = (use_tface && mtexpoly) ? &mtexpoly[actualFace] : NULL;
+				draw_option = drawParams(tp, (mloopcol != NULL), mat_nr);
 			}
 			else if (index != ORIGINDEX_NONE)
 				draw_option = (drawParamsMapped) ? drawParamsMapped(userData, index, mat_nr) : DM_DRAW_OPTION_NORMAL;
