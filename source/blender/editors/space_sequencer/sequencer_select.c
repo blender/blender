@@ -358,36 +358,32 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 				x = UI_view2d_region_to_view_x(v2d, event->mval[0]);
 				break;
 			case SEQ_SELECT_LR_LEFT:
+				x = CFRA - 1.0f;
+				break;
 			case SEQ_SELECT_LR_RIGHT:
+			default:
 				x = CFRA;
 				break;
 		}
 		
 		SEQP_BEGIN (ed, seq)
 		{
-			if (x < CFRA) {
-				if (seq->enddisp <= CFRA) {
-					seq->flag |= SELECT;
-					recurs_sel_seq(seq);
-				}
-			}
-			else {
-				if (seq->startdisp >= CFRA) {
-					seq->flag |= SELECT;
-					recurs_sel_seq(seq);
-				}
+			if (((x <  CFRA) && (seq->enddisp   <= CFRA)) ||
+			    ((x >= CFRA) && (seq->startdisp >= CFRA)))
+			{
+				seq->flag |= SELECT;
+				recurs_sel_seq(seq);
 			}
 		}
 		SEQ_END
-		
 		{
 			SpaceSeq *sseq = CTX_wm_space_seq(C);
 			if (sseq && sseq->flag & SEQ_MARKER_TRANS) {
 				TimeMarker *tmarker;
 
 				for (tmarker = scene->markers.first; tmarker; tmarker = tmarker->next) {
-					if (((x <  CFRA) && tmarker->frame <  CFRA) ||
-					    ((x >= CFRA) && tmarker->frame >= CFRA))
+					if (((x <  CFRA) && (tmarker->frame <= CFRA)) ||
+					    ((x >= CFRA) && (tmarker->frame >= CFRA)))
 					{
 						tmarker->flag |= SELECT;
 					}
