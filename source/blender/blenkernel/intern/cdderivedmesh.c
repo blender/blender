@@ -896,7 +896,7 @@ static void cdDM_drawMappedFacesGLSL(
 				if (do_draw)
 					DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
 
-				glBegin(GL_QUADS);
+				glBegin(GL_TRIANGLES);
 			}
 
 			if (!do_draw) {
@@ -917,7 +917,7 @@ static void cdDM_drawMappedFacesGLSL(
 
 			if (!smoothnormal) {
 				if (nors) {
-					glNormal3fv(nors[a]);
+					glNormal3fv(nors[lt->poly]);
 				}
 				else {
 					/* TODO ideally a normal layer should always be available */
