@@ -2709,7 +2709,7 @@ void BKE_mesh_recalc_looptri(
 	}
 
 	BLI_assert(mlooptri_index == poly_to_tri_count(totpoly, totloop));
-	(void)totloop;  /* Unused in release build. */
+	UNUSED_VARS_NDEBUG(totloop);
 
 #undef USE_TESSFACE_SPEEDUP
 #undef ML_TO_MLT
