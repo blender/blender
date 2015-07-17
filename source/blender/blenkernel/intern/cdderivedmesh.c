@@ -1126,6 +1126,9 @@ static void cdDM_drawMappedFacesMat(
 	 *       will skip using textures (dyntopo currently destroys UV anyway) and
 	 *       works fine for matcap
 	 */
+
+	cdDM_update_normals_from_pbvh(dm);
+
 	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
 		if (BKE_pbvh_has_faces(cddm->pbvh)) {
 			setMaterial(userData, 1, &gattribs);
@@ -1134,8 +1137,6 @@ static void cdDM_drawMappedFacesMat(
 
 		return;
 	}
-
-	cdDM_update_normals_from_pbvh(dm);
 
 	matnr = -1;
 
@@ -1166,7 +1167,7 @@ static void cdDM_drawMappedFacesMat(
 
 		/* skipping faces */
 		if (setFace) {
-			orig = (index_mp_to_orig) ? index_mp_to_orig[a] : lt->poly;
+			orig = (index_mp_to_orig) ? index_mp_to_orig[lt->poly] : lt->poly;
 
 			if (orig != ORIGINDEX_NONE && !setFace(userData, orig))
 				continue;
@@ -1175,7 +1176,7 @@ static void cdDM_drawMappedFacesMat(
 		/* smooth normal */
 		if (!smoothnormal) {
 			if (nors) {
-				glNormal3fv(nors[a]);
+				glNormal3fv(nors[lt->poly]);
 			}
 			else {
 				/* TODO ideally a normal layer should always be available */
