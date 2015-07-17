@@ -69,6 +69,7 @@ void GPU_state_init(void);
 void GPU_begin_object_materials(struct View3D *v3d, struct RegionView3D *rv3d, 
                                 struct Scene *scene, struct Object *ob, bool glsl, bool *do_alpha_after);
 void GPU_end_object_materials(void);
+bool GPU_object_materials_check(void);
 
 int GPU_enable_material(int nr, void *attribs);
 void GPU_disable_material(void);

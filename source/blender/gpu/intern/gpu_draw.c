@@ -1407,6 +1407,8 @@ static struct GPUMaterialState {
 	GPUMaterialFixed (*matbuf);
 	GPUMaterialFixed matbuf_fixed[FIXEDMAT];
 	int totmat;
+	/* set when called inside GPU_begin_object_materials / GPU_end_object_materials */
+	bool is_enabled;
 
 	Material **gmatbuf;
 	Material *gmatbuf_fixed[FIXEDMAT];
@@ -1526,6 +1528,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	/* DupliObject must be restored */
 	dob = GMS.dob;
 	memset(&GMS, 0, sizeof(GMS));
+	GMS.is_enabled = true;
 	GMS.dob = dob;
 	GMS.lastmatnr = -1;
 	GMS.lastretval = -1;
@@ -1824,10 +1827,16 @@ bool GPU_material_use_matcaps_get(void)
 	return GMS.use_matcaps;
 }
 
+bool GPU_object_materials_check(void)
+{
+	return GMS.is_enabled;
+}
 
 void GPU_end_object_materials(void)
 {
 	GPU_disable_material();
+
+	GMS.is_enabled = false;
 
 	if (GMS.matbuf && GMS.matbuf != GMS.matbuf_fixed) {
 		MEM_freeN(GMS.matbuf);
