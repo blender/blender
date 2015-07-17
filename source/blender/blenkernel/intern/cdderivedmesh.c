@@ -2495,7 +2495,7 @@ void CDDM_calc_normals_mapping_ex(DerivedMesh *dm, const bool only_face_normals)
 	cddm->mvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);
 #endif
 
-
+#if 0
 	if (dm->numTessFaceData == 0) {
 		/* No tessellation on this mesh yet, need to calculate one.
 		 *
@@ -2509,6 +2509,7 @@ void CDDM_calc_normals_mapping_ex(DerivedMesh *dm, const bool only_face_normals)
 		BLI_assert(CustomData_has_layer(&dm->faceData, CD_ORIGINDEX));
 		CustomData_free_layers(&dm->faceData, CD_NORMAL, dm->numTessFaceData);
 	}
+#endif
 
 	face_nors = MEM_mallocN(sizeof(*face_nors) * dm->numPolyData, "face_nors");
 

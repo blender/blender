@@ -2085,11 +2085,10 @@ static void mesh_calc_modifiers(
 
 	if (sculpt_dyntopo == false) {
 		/* watch this! after 2.75a we move to from tessface to looptri (by default) */
-#if 0
-		DM_ensure_tessface(finaldm);
-#else
+		if (dataMask & CD_MASK_MFACE) {
+			DM_ensure_tessface(finaldm);
+		}
 		DM_ensure_looptri(finaldm);
-#endif
 
 		/* without this, drawing ngon tri's faces will show ugly tessellated face
 		 * normals and will also have to calculate normals on the fly, try avoid
@@ -2416,18 +2415,19 @@ static void editbmesh_calc_modifiers(
 		}
 	}
 
-	/* --- */
 	/* BMESH_ONLY, ensure tessface's used for drawing,
 	 * but don't recalculate if the last modifier in the stack gives us tessfaces
 	 * check if the derived meshes are DM_TYPE_EDITBMESH before calling, this isn't essential
 	 * but quiets annoying error messages since tessfaces wont be created. */
-	if ((*r_final)->type != DM_TYPE_EDITBMESH) {
-		DM_ensure_tessface(*r_final);
-	}
-	if (r_cage && *r_cage) {
-		if ((*r_cage)->type != DM_TYPE_EDITBMESH) {
-			if (*r_cage != *r_final) {
-				DM_ensure_tessface(*r_cage);
+	if (dataMask & CD_MASK_MFACE) {
+		if ((*r_final)->type != DM_TYPE_EDITBMESH) {
+			DM_ensure_tessface(*r_final);
+		}
+		if (r_cage && *r_cage) {
+			if ((*r_cage)->type != DM_TYPE_EDITBMESH) {
+				if (*r_cage != *r_final) {
+					DM_ensure_tessface(*r_cage);
+				}
 			}
 		}
 	}
