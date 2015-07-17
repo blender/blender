@@ -176,7 +176,6 @@ typedef struct drawDMFacesSel_userData {
 	BMesh *bm;
 
 	BMFace *efa_act;
-	const int *orig_index_mf_to_mpoly;
 	const int *orig_index_mp_to_orig;
 } drawDMFacesSel_userData;
 
@@ -3014,12 +3013,9 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 
 	unsigned char *col, *next_col;
 
-	if (!data->orig_index_mf_to_mpoly)
-		return 0;
-
-	i = DM_origindex_mface_mpoly(data->orig_index_mf_to_mpoly, data->orig_index_mp_to_orig, index);
+	i = data->orig_index_mp_to_orig ? data->orig_index_mp_to_orig[index] : index;
 	efa = (i != ORIGINDEX_NONE) ? BM_face_at_index(data->bm, i) : NULL;
-	i = DM_origindex_mface_mpoly(data->orig_index_mf_to_mpoly, data->orig_index_mp_to_orig, next_index);
+	i = data->orig_index_mp_to_orig ? data->orig_index_mp_to_orig[next_index] : next_index;
 	next_efa = (i != ORIGINDEX_NONE) ? BM_face_at_index(data->bm, i) : NULL;
 
 	if (ELEM(NULL, efa, next_efa))
@@ -3065,11 +3061,7 @@ static void draw_dm_faces_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *ba
 #endif
 	data.efa_act = efa_act;
 	/* double lookup */
-	data.orig_index_mf_to_mpoly = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
 	data.orig_index_mp_to_orig  = DM_get_poly_data_layer(dm, CD_ORIGINDEX);
-	if ((data.orig_index_mf_to_mpoly && data.orig_index_mp_to_orig) == false) {
-		data.orig_index_mf_to_mpoly = data.orig_index_mp_to_orig = NULL;
-	}
 
 	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, NULL, draw_dm_faces_sel__compareDrawOptions, &data, 0);
 }
