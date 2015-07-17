@@ -945,7 +945,7 @@ static void cdDM_drawMappedFacesGLSL(
 		int tot_active_mat;
 		GPUBuffer *buffer = NULL;
 		char *varray;
-		int max_element_size = 0;
+		size_t max_element_size = 0;
 		int tot_loops = 0;
 
 		GPU_vertex_setup(dm);

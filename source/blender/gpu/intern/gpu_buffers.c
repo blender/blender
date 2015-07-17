@@ -75,7 +75,7 @@ typedef struct {
 } GPUBufferTypeSettings;
 
 
-static int gpu_buffer_size_from_type(DerivedMesh *dm, GPUBufferType type);
+static size_t gpu_buffer_size_from_type(DerivedMesh *dm, GPUBufferType type);
 
 const GPUBufferTypeSettings gpu_buffer_type_settings[] = {
     /* vertex */
@@ -471,7 +471,7 @@ void GPU_drawobject_free(DerivedMesh *dm)
 	dm->drawObject = NULL;
 }
 
-static GPUBuffer *gpu_try_realloc(GPUBufferPool *pool, GPUBuffer *buffer, int size, bool use_VBOs)
+static GPUBuffer *gpu_try_realloc(GPUBufferPool *pool, GPUBuffer *buffer, size_t size, bool use_VBOs)
 {
 	gpu_buffer_free_intern(buffer);
 	gpu_buffer_pool_delete_last(pool);
@@ -498,7 +498,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 	const GPUBufferTypeSettings *ts = &gpu_buffer_type_settings[type];
 	GLenum target = ts->gl_buffer_type;
 	int num_components = ts->num_components;
-	int size = gpu_buffer_size_from_type(dm, type);
+	size_t size = gpu_buffer_size_from_type(dm, type);
 	bool use_VBOs = (GLEW_ARB_vertex_buffer_object) && !(U.gameflags & USER_DISABLE_VBO);
 	GLboolean uploaded;
 
@@ -607,7 +607,7 @@ static GPUBuffer **gpu_drawobject_buffer_from_type(GPUDrawObject *gdo, GPUBuffer
 }
 
 /* get the amount of space to allocate for a buffer of a particular type */
-static int gpu_buffer_size_from_type(DerivedMesh *dm, GPUBufferType type)
+static size_t gpu_buffer_size_from_type(DerivedMesh *dm, GPUBufferType type)
 {
 	switch (type) {
 		case GPU_BUFFER_VERTEX:
