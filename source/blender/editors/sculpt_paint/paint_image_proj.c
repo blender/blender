@@ -360,7 +360,7 @@ typedef struct ProjPaintState {
 	const MLoopUV  *dm_mloopuv_stencil;
 
 	/**
-	 * \note These UV layers are aligned to \a dm_mlooptri
+	 * \note These UV layers are aligned to \a dm_mpoly
 	 * but each pointer references the start of the layer,
 	 * so a loop indirection is needed as well.
 	 */
@@ -1436,10 +1436,14 @@ static int project_paint_undo_subtiles(const TileInfo *tinf, int tx, int ty)
 	if (generate_tile) {
 		volatile void *undorect;
 		if (tinf->masked) {
-			undorect = image_undo_push_tile(pjIma->ima, pjIma->ibuf, tinf->tmpibuf, tx, ty, &pjIma->maskRect[tile_index], &pjIma->valid[tile_index], true, false);
+			undorect = image_undo_push_tile(
+			        pjIma->ima, pjIma->ibuf, tinf->tmpibuf,
+			        tx, ty, &pjIma->maskRect[tile_index], &pjIma->valid[tile_index], true, false);
 		}
 		else {
-			undorect = image_undo_push_tile(pjIma->ima, pjIma->ibuf, tinf->tmpibuf, tx, ty, NULL, &pjIma->valid[tile_index], true, false);
+			undorect = image_undo_push_tile(
+			        pjIma->ima, pjIma->ibuf, tinf->tmpibuf,
+			        tx, ty, NULL, &pjIma->valid[tile_index], true, false);
 		}
 
 		pjIma->ibuf->userflags |= IB_BITMAPDIRTY;
@@ -2143,8 +2147,12 @@ static void project_bucket_clip_face(
 	if (inside_face_flag == ISECT_ALL4) {
 		/* bucket is totally inside the screenspace face, we can safely use weights */
 
-		if (is_ortho) rect_to_uvspace_ortho(bucket_bounds, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, bucket_bounds_uv, flip);
-		else rect_to_uvspace_persp(bucket_bounds, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, bucket_bounds_uv, flip);
+		if (is_ortho) {
+			rect_to_uvspace_ortho(bucket_bounds, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, bucket_bounds_uv, flip);
+		}
+		else {
+			rect_to_uvspace_persp(bucket_bounds, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, bucket_bounds_uv, flip);
+		}
 
 		*tot = 4;
 		return;
@@ -2666,8 +2674,6 @@ static void project_paint_face_init(
 			}
 
 			for (fidx1 = 0; fidx1 < 3; fidx1++) {
-				// if (lt->v4) fidx2 = (fidx1 == 3) ? 0 : fidx1 + 1;  /* next fidx in the face (0,1,2,3) -> (1,2,3,0) */
-				// else
 				fidx2 = (fidx1 == 2) ? 0 : fidx1 + 1;  /* next fidx in the face (0,1,2) -> (1,2,0) */
 
 				if ((face_seam_flag & (1 << fidx1)) && /* 1<<fidx1 -> PROJ_FACE_SEAM# */
@@ -2827,7 +2833,9 @@ static void project_bucket_bounds(const ProjPaintState *ps, const int bucket_x, 
 /* Fill this bucket with pixels from the faces that intersect it.
  *
  * have bucket_bounds as an argument so we don't need to give bucket_x/y the rect function needs */
-static void project_bucket_init(const ProjPaintState *ps, const int thread_index, const int bucket_index, const rctf *clip_rect, const rctf *bucket_bounds)
+static void project_bucket_init(
+        const ProjPaintState *ps, const int thread_index, const int bucket_index,
+        const rctf *clip_rect, const rctf *bucket_bounds)
 {
 	LinkNode *node;
 	int tri_index, image_index = 0;
@@ -4258,7 +4266,9 @@ static void do_projectpaint_soften(ProjPaintState *ps, ProjPixel *projPixel, flo
 	}
 }
 
-static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, const float texrgb[3], float mask, float dither, float u, float v)
+static void do_projectpaint_draw(
+        ProjPaintState *ps, ProjPixel *projPixel, const float texrgb[3], float mask,
+        float dither, float u, float v)
 {
 	float rgb[3];
 	unsigned char rgba_ub[4];
