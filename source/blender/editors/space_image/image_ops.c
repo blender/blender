@@ -165,6 +165,17 @@ static int space_image_buffer_exists_poll(bContext *C)
 	return 0;
 }
 
+static int image_not_packed_poll(bContext *C)
+{
+	SpaceImage *sima = CTX_wm_space_image(C);
+
+	/* Do not run 'replace' on packed images, it does not give user expected results at all. */
+	if (sima && sima->image && BLI_listbase_is_empty(&sima->image->packedfiles)) {
+		return true;
+	}
+	return false;
+}
+
 static int space_image_file_exists_poll(bContext *C)
 {
 	if (space_image_buffer_exists_poll(C)) {
@@ -1405,7 +1416,7 @@ void IMAGE_OT_replace(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = image_replace_exec;
 	ot->invoke = image_replace_invoke;
-	ot->poll = space_image_poll;
+	ot->poll = image_not_packed_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
