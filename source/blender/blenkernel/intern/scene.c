@@ -564,6 +564,7 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 
 	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings), "Tool Settings Struct");
 	sce->toolsettings->doublimit = 0.001;
+	sce->toolsettings->vgroup_weight = 1.0f;
 	sce->toolsettings->uvcalc_margin = 0.001f;
 	sce->toolsettings->unwrapper = 1;
 	sce->toolsettings->select_thresh = 0.01f;
