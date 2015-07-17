@@ -3003,6 +3003,8 @@ static void proj_paint_state_non_cddm_init(ProjPaintState *ps)
 {
 	if (ps->dm->type != DM_TYPE_CDDM) {
 		ps->dm_mvert = MEM_dupallocN(ps->dm_mvert);
+		ps->dm_mpoly = MEM_dupallocN(ps->dm_mpoly);
+		ps->dm_mloop = MEM_dupallocN(ps->dm_mloop);
 		/* looks like these are ok for now.*/
 #if 0
 		ps->dm_mloopuv = MEM_dupallocN(ps->dm_mloopuv);
@@ -3890,6 +3892,8 @@ static void project_paint_end(ProjPaintState *ps)
 		/* copy for subsurf/multires, so throw away */
 		if (ps->dm->type != DM_TYPE_CDDM) {
 			if (ps->dm_mvert) MEM_freeN((void *)ps->dm_mvert);
+			if (ps->dm_mpoly) MEM_freeN((void *)ps->dm_mpoly);
+			if (ps->dm_mloop) MEM_freeN((void *)ps->dm_mloop);
 			/* looks like these don't need copying */
 #if 0
 			if (ps->dm_mloopuv) MEM_freeN(ps->dm_mloopuv);
