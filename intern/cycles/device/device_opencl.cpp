@@ -349,7 +349,11 @@ void opencl_get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices)
 
 }  /* namespace */
 
-/* thread safe cache for contexts and programs */
+/* Thread safe cache for contexts and programs.
+ *
+ * TODO(sergey): Make it more generous, so it can contain any type of program
+ * without hardcoding possible program types in the slot.
+ */
 class OpenCLCache
 {
 	struct Slot
@@ -361,13 +365,16 @@ class OpenCLCache
 		/* cl_program for megakernel (used in OpenCLDeviceMegaKernel) */
 		cl_program ocl_dev_megakernel_program;
 
-		Slot() : mutex(NULL), context(NULL), ocl_dev_base_program(NULL), ocl_dev_megakernel_program(NULL) {}
+		Slot() : mutex(NULL),
+		         context(NULL),
+		         ocl_dev_base_program(NULL),
+		         ocl_dev_megakernel_program(NULL) {}
 
-		Slot(const Slot &rhs)
-			: mutex(rhs.mutex)
-			, context(rhs.context)
-			, ocl_dev_base_program(rhs.ocl_dev_base_program)
-			, ocl_dev_megakernel_program(rhs.ocl_dev_megakernel_program)
+		Slot(const Slot& rhs)
+		    : mutex(rhs.mutex),
+		      context(rhs.context),
+		      ocl_dev_base_program(rhs.ocl_dev_base_program),
+		      ocl_dev_megakernel_program(rhs.ocl_dev_megakernel_program)
 		{
 			/* copy can only happen in map insert, assert that */
 			assert(mutex == NULL);
@@ -414,12 +421,14 @@ class OpenCLCache
 	 * will be holding a lock for the cache. slot_locker should refer to a
 	 * default constructed thread_scoped_lock */
 	template<typename T>
-	static T get_something(cl_platform_id platform, cl_device_id device,
-		T Slot::*member, thread_scoped_lock &slot_locker)
+	static T get_something(cl_platform_id platform,
+	                       cl_device_id device,
+	                       T Slot::*member,
+	                       thread_scoped_lock& slot_locker)
 	{
 		assert(platform != NULL);
 
-		OpenCLCache &self = global_instance();
+		OpenCLCache& self = global_instance();
 
 		thread_scoped_lock cache_lock(self.cache_lock);
 
@@ -452,8 +461,11 @@ class OpenCLCache
 
 	/* store something in the cache. you MUST have tried to get the item before storing to it */
 	template<typename T>
-	static void store_something(cl_platform_id platform, cl_device_id device, T thing,
-		T Slot::*member, thread_scoped_lock &slot_locker)
+	static void store_something(cl_platform_id platform,
+	                            cl_device_id device,
+	                            T thing,
+	                            T Slot::*member,
+	                            thread_scoped_lock& slot_locker)
 	{
 		assert(platform != NULL);
 		assert(device != NULL);
@@ -485,10 +497,14 @@ public:
 	};
 
 	/* see get_something comment */
-	static cl_context get_context(cl_platform_id platform, cl_device_id device,
-		thread_scoped_lock &slot_locker)
+	static cl_context get_context(cl_platform_id platform,
+	                              cl_device_id device,
+	                              thread_scoped_lock& slot_locker)
 	{
-		cl_context context = get_something<cl_context>(platform, device, &Slot::context, slot_locker);
+		cl_context context = get_something<cl_context>(platform,
+		                                               device,
+		                                               &Slot::context,
+		                                               slot_locker);
 
 		if(!context)
 			return NULL;
@@ -502,19 +518,29 @@ public:
 	}
 
 	/* see get_something comment */
-	static cl_program get_program(cl_platform_id platform, cl_device_id device, ProgramName program_name,
-		thread_scoped_lock &slot_locker)
+	static cl_program get_program(cl_platform_id platform,
+	                              cl_device_id device,
+	                              ProgramName program_name,
+	                              thread_scoped_lock& slot_locker)
 	{
 		cl_program program = NULL;
 
-		if(program_name == OCL_DEV_BASE_PROGRAM) {
-			/* Get program related to OpenCLDeviceBase */
-			program = get_something<cl_program>(platform, device, &Slot::ocl_dev_base_program, slot_locker);
-		}
-		else if(program_name == OCL_DEV_MEGAKERNEL_PROGRAM) {
-			/* Get program related to megakernel */
-			program = get_something<cl_program>(platform, device, &Slot::ocl_dev_megakernel_program, slot_locker);
-		} else {
+		switch(program_name) {
+			case OCL_DEV_BASE_PROGRAM:
+				/* Get program related to OpenCLDeviceBase */
+				program = get_something<cl_program>(platform,
+				                                    device,
+				                                    &Slot::ocl_dev_base_program,
+				                                    slot_locker);
+				break;
+			case OCL_DEV_MEGAKERNEL_PROGRAM:
+				/* Get program related to megakernel */
+				program = get_something<cl_program>(platform,
+				                                    device,
+				                                    &Slot::ocl_dev_megakernel_program,
+				                                    slot_locker);
+				break;
+		default:
 			assert(!"Invalid program name");
 		}
 
@@ -522,49 +548,62 @@ public:
 			return NULL;
 
 		/* caller is going to release it when done with it, so retain it */
-		cl_int ciErr = clRetainProgram(program);
-		assert(ciErr == CL_SUCCESS);
-		(void)ciErr;
+		assert(clRetainProgram(program) == CL_SUCCESS);
 
 		return program;
 	}
 
 	/* see store_something comment */
-	static void store_context(cl_platform_id platform, cl_device_id device, cl_context context,
-		thread_scoped_lock &slot_locker)
+	static void store_context(cl_platform_id platform,
+	                          cl_device_id device,
+	                          cl_context context,
+	                          thread_scoped_lock& slot_locker)
 	{
-		store_something<cl_context>(platform, device, context, &Slot::context, slot_locker);
+		store_something<cl_context>(platform,
+		                            device,
+		                            context,
+		                            &Slot::context,
+		                            slot_locker);
 
 		/* increment reference count in OpenCL.
 		 * The caller is going to release the object when done with it. */
-		cl_int ciErr = clRetainContext(context);
-		assert(ciErr == CL_SUCCESS);
-		(void)ciErr;
+		assert(clRetainContext(context) == CL_SUCCESS);
 	}
 
 	/* see store_something comment */
-	static void store_program(cl_platform_id platform, cl_device_id device, cl_program program, ProgramName program_name,
-		thread_scoped_lock &slot_locker)
+	static void store_program(cl_platform_id platform,
+	                          cl_device_id device,
+	                          cl_program program,
+	                          ProgramName program_name,
+	                          thread_scoped_lock& slot_locker)
 	{
-		if(program_name == OCL_DEV_BASE_PROGRAM) {
-			store_something<cl_program>(platform, device, program, &Slot::ocl_dev_base_program, slot_locker);
-		}
-		else if(program_name == OCL_DEV_MEGAKERNEL_PROGRAM) {
-			store_something<cl_program>(platform, device, program, &Slot::ocl_dev_megakernel_program, slot_locker);
-		} else {
-			assert(!"Invalid program name\n");
-			return;
+		switch (program_name) {
+			case OCL_DEV_BASE_PROGRAM:
+				store_something<cl_program>(platform,
+				                            device,
+				                            program,
+				                            &Slot::ocl_dev_base_program,
+				                            slot_locker);
+				break;
+			case OCL_DEV_MEGAKERNEL_PROGRAM:
+				store_something<cl_program>(platform,
+				                            device,
+				                            program,
+				                            &Slot::ocl_dev_megakernel_program,
+				                            slot_locker);
+				break;
+			default:
+				assert(!"Invalid program name\n");
+				return;
 		}
 
-		/* increment reference count in OpenCL.
-		 * The caller is going to release the object when done with it. */
-		cl_int ciErr = clRetainProgram(program);
-		assert(ciErr == CL_SUCCESS);
-		(void)ciErr;
+		/* Increment reference count in OpenCL.
+		 * The caller is going to release the object when done with it.
+		 */
+		assert(clRetainProgram(program) == CL_SUCCESS);
 	}
 
-	/* discard all cached contexts and programs
-	 * the parameter is a temporary workaround. See OpenCLCache::~OpenCLCache */
+	/* Discard all cached contexts and programs.  */
 	static void flush()
 	{
 		OpenCLCache &self = global_instance();
