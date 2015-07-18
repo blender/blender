@@ -124,7 +124,11 @@ public:
 		         use_camera_motion == requested_features.use_camera_motion &&
 		         use_baking == requested_features.use_baking);
 	}
+
 };
+
+std::ostream& operator <<(std::ostream &os,
+                          const DeviceRequestedFeatures& requested_features);
 
 /* Device */
 
