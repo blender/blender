@@ -548,7 +548,9 @@ public:
 			return NULL;
 
 		/* caller is going to release it when done with it, so retain it */
-		assert(clRetainProgram(program) == CL_SUCCESS);
+		cl_int ciErr = clRetainProgram(program);
+		assert(ciErr == CL_SUCCESS);
+		(void)ciErr;
 
 		return program;
 	}
@@ -567,7 +569,9 @@ public:
 
 		/* increment reference count in OpenCL.
 		 * The caller is going to release the object when done with it. */
-		assert(clRetainContext(context) == CL_SUCCESS);
+		cl_int ciErr = clRetainContext(context);
+		assert(ciErr == CL_SUCCESS);
+		(void)ciErr;
 	}
 
 	/* see store_something comment */
@@ -600,7 +604,9 @@ public:
 		/* Increment reference count in OpenCL.
 		 * The caller is going to release the object when done with it.
 		 */
-		assert(clRetainProgram(program) == CL_SUCCESS);
+		cl_int ciErr = clRetainProgram(program);
+		assert(ciErr == CL_SUCCESS);
+		(void)ciErr;
 	}
 
 	/* Discard all cached contexts and programs.  */
