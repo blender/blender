@@ -932,77 +932,89 @@ public:
 
 	bool load_kernels(const DeviceRequestedFeatures& /*requested_features*/)
 	{
-		/* verify if device was initialized */
+		/* Verify if device was initialized. */
 		if(!device_initialized) {
 			fprintf(stderr, "OpenCL: failed to initialize device.\n");
 			return false;
 		}
 
-		/* try to use cached kernel */
+		/* Try to use cached kernel. */
 		thread_scoped_lock cache_locker;
-		cpProgram = OpenCLCache::get_program(cpPlatform, cdDevice, OpenCLCache::OCL_DEV_BASE_PROGRAM, cache_locker);
+		cpProgram = OpenCLCache::get_program(cpPlatform,
+		                                     cdDevice,
+		                                     OpenCLCache::OCL_DEV_BASE_PROGRAM,
+		                                     cache_locker);
 
 		if(!cpProgram) {
-			/* verify we have right opencl version */
+			/* Verify we have right opencl version. */
 			if(!opencl_version_check())
 				return false;
 
-			/* md5 hash to detect changes */
+			/* Calculate md5 hashes to detect changes. */
 			string kernel_path = path_get("kernel");
 			string kernel_md5 = path_files_md5_hash(kernel_path);
 			string device_md5 = device_md5_hash();
 
-			/* path to cached binary */
-			string clbin = string_printf("cycles_kernel_%s_%s.clbin", device_md5.c_str(), kernel_md5.c_str());
+			/* Path to cached binary.
+			 *
+			 * TODO(sergey): Seems we could de-duplicate all this string_printf()
+			 * calls with some utility function which will give file name for a
+			 * given hashes..
+			 */
+			string clbin = string_printf("cycles_kernel_%s_%s.clbin",
+			                             device_md5.c_str(),
+			                             kernel_md5.c_str());
 			clbin = path_user_get(path_join("cache", clbin));
 
 			/* path to preprocessed source for debugging */
 			string clsrc, *debug_src = NULL;
 
 			if(opencl_kernel_use_debug()) {
-				clsrc = string_printf("cycles_kernel_%s_%s.cl", device_md5.c_str(), kernel_md5.c_str());
+				clsrc = string_printf("cycles_kernel_%s_%s.cl",
+				                      device_md5.c_str(),
+				                      kernel_md5.c_str());
 				clsrc = path_user_get(path_join("cache", clsrc));
 				debug_src = &clsrc;
 			}
 
-			/* if exists already, try use it */
+			/* If binary kernel exists already, try use it. */
 			if(path_exists(clbin) && load_binary(kernel_path, clbin, "", &cpProgram)) {
-				/* kernel loaded from binary */
+				/* Kernel loaded from binary, nothing to do. */
 			}
 			else {
-
 				string init_kernel_source = "#include \"kernels/opencl/kernel.cl\" // " + kernel_md5 + "\n";
 
-				/* if does not exist or loading binary failed, compile kernel */
+				/* If does not exist or loading binary failed, compile kernel. */
 				if(!compile_kernel(kernel_path, init_kernel_source, "", &cpProgram, debug_src))
 					return false;
 
-				/* save binary for reuse */
+				/* Save binary for reuse. */
 				if(!save_binary(&cpProgram, clbin))
 					return false;
 			}
 
-			/* cache the program */
-			OpenCLCache::store_program(cpPlatform, cdDevice, cpProgram, OpenCLCache::OCL_DEV_BASE_PROGRAM, cache_locker);
+			/* Cache the program. */
+			OpenCLCache::store_program(cpPlatform,
+			                           cdDevice,
+			                           cpProgram,
+			                           OpenCLCache::OCL_DEV_BASE_PROGRAM,
+			                           cache_locker);
 		}
 
-		/* find kernels */
-		ckFilmConvertByteKernel = clCreateKernel(cpProgram, "kernel_ocl_convert_to_byte", &ciErr);
-		if(opencl_error(ciErr))
-			return false;
+		/* Find kernels. */
+#define FIND_KERNEL(kernel_var, kernel_name) \
+		do { \
+			kernel_var = clCreateKernel(cpProgram, "kernel_ocl_" kernel_name, &ciErr); \
+			if(opencl_error(ciErr)) \
+				return false; \
+		} while(0)
 
-		ckFilmConvertHalfFloatKernel = clCreateKernel(cpProgram, "kernel_ocl_convert_to_half_float", &ciErr);
-		if(opencl_error(ciErr))
-			return false;
+		FIND_KERNEL(ckFilmConvertByteKernel, "convert_to_byte");
+		FIND_KERNEL(ckFilmConvertHalfFloatKernel, "convert_to_half_float");
+		FIND_KERNEL(ckShaderKernel, "shader");
+		FIND_KERNEL(ckBakeKernel, "bake");
 
-		ckShaderKernel = clCreateKernel(cpProgram, "kernel_ocl_shader", &ciErr);
-		if(opencl_error(ciErr))
-			return false;
-
-		ckBakeKernel = clCreateKernel(cpProgram, "kernel_ocl_bake", &ciErr);
-		if(opencl_error(ciErr))
-			return false;
-
+#undef FIND_KERNEL
 		return true;
 	}
 
