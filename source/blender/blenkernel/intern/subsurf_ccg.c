@@ -77,6 +77,9 @@
 
 #include "CCGSubSurf.h"
 
+/* assumes MLoop's are layed out 4 for each poly, in order */
+#define USE_LOOP_LAYOUT_FAST
+
 extern GLubyte stipple_quarttone[128]; /* glutil.c, bad level data */
 
 static ThreadRWMutex loops_cache_rwlock = BLI_RWLOCK_INITIALIZER;
@@ -2093,6 +2096,50 @@ static void ccgDM_buffer_copy_uv_texpaint(
 	MEM_freeN(mloopuv_base);
 }
 
+static void ccgDM_buffer_copy_uvedge(
+        DerivedMesh *dm, float *varray)
+{
+	int i, totpoly;
+	int start;
+	const MLoopUV *mloopuv;
+#ifndef USE_LOOP_LAYOUT_FAST
+	const MPoly *mpoly = dm->getPolyArray(dm);
+#endif
+
+	if ((mloopuv = DM_get_loop_data_layer(dm, CD_MLOOPUV)) == NULL) {
+		return;
+	}
+
+	totpoly = dm->getNumPolys(dm);
+	start = 0;
+
+#ifndef USE_LOOP_LAYOUT_FAST
+	for (i = 0; i < totpoly; i++, mpoly++) {
+		for (j = 0; j < mpoly->totloop; j++) {
+			copy_v2_v2(&varray[start], mloopuv[mpoly->loopstart + j].uv);
+			copy_v2_v2(&varray[start + 2], mloopuv[mpoly->loopstart + (j + 1) % mpoly->totloop].uv);
+			start += 4;
+		}
+	}
+#else
+	for (i = 0; i < totpoly; i++) {
+		copy_v2_v2(&varray[start +  0], mloopuv[(i * 4) + 0].uv);
+		copy_v2_v2(&varray[start +  2], mloopuv[(i * 4) + 1].uv);
+
+		copy_v2_v2(&varray[start +  4], mloopuv[(i * 4) + 1].uv);
+		copy_v2_v2(&varray[start +  6], mloopuv[(i * 4) + 2].uv);
+
+		copy_v2_v2(&varray[start +  8], mloopuv[(i * 4) + 2].uv);
+		copy_v2_v2(&varray[start + 10], mloopuv[(i * 4) + 3].uv);
+
+		copy_v2_v2(&varray[start + 12], mloopuv[(i * 4) + 3].uv);
+		copy_v2_v2(&varray[start + 14], mloopuv[(i * 4) + 0].uv);
+
+		start += 16;
+	}
+#endif
+}
+
 static void ccgDM_copy_gpu_data(
         DerivedMesh *dm, int type, void *varray_p,
         const int *mat_orig_to_new, const void *user_data)
@@ -2113,6 +2160,9 @@ static void ccgDM_copy_gpu_data(
 			break;
 		case GPU_BUFFER_COLOR:
 			ccgDM_buffer_copy_color(dm, (unsigned char *)varray_p, user_data);
+			break;
+		case GPU_BUFFER_UVEDGE:
+			ccgDM_buffer_copy_uvedge(dm, (float *)varray_p);
 			break;
 		case GPU_BUFFER_TRIANGLES:
 			ccgDM_buffer_copy_triangles(dm, (unsigned int *)varray_p, mat_orig_to_new);
@@ -2750,38 +2800,34 @@ static void ccgDM_drawMappedFacesTex(DerivedMesh *dm,
 	ccgDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData, flag);
 }
 
+/* same as cdDM_drawUVEdges */
 static void ccgDM_drawUVEdges(DerivedMesh *dm)
 {
-
-	MFace *mf = dm->getTessFaceArray(dm);
-	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
+	MPoly *mpoly = dm->getPolyArray(dm);
+	int totpoly = dm->getNumPolys(dm);
+	int prevstart = 0;
+	bool prevdraw = true;
+	int curpos = 0;
 	int i;
-	
-	if (tf) {
-		glBegin(GL_LINES);
-		for (i = 0; i < dm->numTessFaceData; i++, mf++, tf++) {
-			if (!(mf->flag & ME_HIDE)) {
-				glVertex2fv(tf->uv[0]);
-				glVertex2fv(tf->uv[1]);
-	
-				glVertex2fv(tf->uv[1]);
-				glVertex2fv(tf->uv[2]);
-	
-				if (!mf->v4) {
-					glVertex2fv(tf->uv[2]);
-					glVertex2fv(tf->uv[0]);
-				}
-				else {
-					glVertex2fv(tf->uv[2]);
-					glVertex2fv(tf->uv[3]);
-	
-					glVertex2fv(tf->uv[3]);
-					glVertex2fv(tf->uv[0]);
-				}
+
+	GPU_uvedge_setup(dm);
+	for (i = 0; i < totpoly; i++, mpoly++) {
+		const bool draw = (mpoly->flag & ME_HIDE) == 0;
+
+		if (prevdraw != draw) {
+			if (prevdraw && (curpos != prevstart)) {
+				glDrawArrays(GL_LINES, prevstart, curpos - prevstart);
 			}
+			prevstart = curpos;
 		}
-		glEnd();
+
+		curpos += 2 * mpoly->totloop;
+		prevdraw = draw;
 	}
+	if (prevdraw && (curpos != prevstart)) {
+		glDrawArrays(GL_LINES, prevstart, curpos - prevstart);
+	}
+	GPU_buffer_unbind();
 }
 
 static void ccgDM_drawMappedFaces(DerivedMesh *dm,
