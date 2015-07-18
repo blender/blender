@@ -97,6 +97,10 @@ if(EXISTS ${SOURCE_DIR}/.git)
 		                WORKING_DIRECTORY ${SOURCE_DIR}
 		                OUTPUT_VARIABLE MY_WC_COMMIT_TIMESTAMP
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
+		# May fail in rare cases
+		if(MY_WC_COMMIT_TIMESTAMP STREQUAL "")
+			set(MY_WC_COMMIT_TIMESTAMP 0)
+		endif()
 
 		# Update GIT index before getting dirty files
 		execute_process(COMMAND git update-index -q --refresh
