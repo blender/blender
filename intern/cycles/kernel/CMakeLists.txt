@@ -125,6 +125,7 @@ set(SRC_SVM_HEADERS
 	svm/svm_value.h
 	svm/svm_vector_transform.h
 	svm/svm_voronoi.h
+	svm/svm_voxel.h
 	svm/svm_wave.h
 )
 

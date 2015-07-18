@@ -74,6 +74,7 @@ set(SRC_OSL
 	node_vector_transform.osl
 	node_velvet_bsdf.osl
 	node_voronoi_texture.osl
+	node_voxel_texture.osl
 	node_wavelength.osl
 	node_blackbody.osl
 	node_wave_texture.osl

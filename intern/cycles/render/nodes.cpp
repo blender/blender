@@ -1297,6 +1297,158 @@ void BrickTextureNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_brick_texture");
 }
 
+/* Point Density Texture */
+
+static ShaderEnum point_density_space_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("Object", NODE_TEX_VOXEL_SPACE_OBJECT);
+	enm.insert("World", NODE_TEX_VOXEL_SPACE_WORLD);
+
+	return enm;
+}
+
+ShaderEnum PointDensityTextureNode::space_enum = point_density_space_init();
+
+PointDensityTextureNode::PointDensityTextureNode()
+: ShaderNode("point_density")
+{
+	image_manager = NULL;
+	slot = -1;
+	filename = "";
+	space = ustring("Object");
+	builtin_data = NULL;
+	interpolation = INTERPOLATION_LINEAR;
+
+	tfm = transform_identity();
+
+	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::POSITION);
+	add_output("Density", SHADER_SOCKET_FLOAT);
+	add_output("Color", SHADER_SOCKET_COLOR);
+}
+
+PointDensityTextureNode::~PointDensityTextureNode()
+{
+	if(image_manager)
+		image_manager->remove_image(filename, builtin_data, interpolation);
+}
+
+ShaderNode *PointDensityTextureNode::clone() const
+{
+	PointDensityTextureNode *node = new PointDensityTextureNode(*this);
+	node->image_manager = NULL;
+	node->slot = -1;
+	return node;
+}
+
+void PointDensityTextureNode::attributes(Shader *shader,
+                                         AttributeRequestSet *attributes)
+{
+	if(shader->has_volume)
+		attributes->add(ATTR_STD_GENERATED_TRANSFORM);
+
+	ShaderNode::attributes(shader, attributes);
+}
+
+void PointDensityTextureNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *vector_in = input("Vector");
+	ShaderOutput *density_out = output("Density");
+	ShaderOutput *color_out = output("Color");
+
+	const bool use_density = !density_out->links.empty();
+	const bool use_color = !color_out->links.empty();
+
+	image_manager = compiler.image_manager;
+
+	if (use_density || use_color) {
+		if (use_density)
+			compiler.stack_assign(density_out);
+		if (use_color)
+			compiler.stack_assign(color_out);
+
+		if(slot == -1) {
+			bool is_float, is_linear;
+			slot = image_manager->add_image(filename, builtin_data,
+			                                false, 0,
+			                                is_float, is_linear,
+			                                interpolation,
+			                                true);
+		}
+
+		if(slot != -1) {
+			compiler.stack_assign(vector_in);
+			compiler.add_node(NODE_TEX_VOXEL,
+			                  slot,
+			                  compiler.encode_uchar4(vector_in->stack_offset,
+			                                         density_out->stack_offset,
+			                                         color_out->stack_offset,
+			                                         space_enum[space]));
+			if(space == "World") {
+				compiler.add_node(tfm.x);
+				compiler.add_node(tfm.y);
+				compiler.add_node(tfm.z);
+				compiler.add_node(tfm.w);
+			}
+		}
+		else {
+			compiler.add_node(NODE_VALUE_F,
+			                  __float_as_int(0.0f),
+			                  density_out->stack_offset);
+			compiler.add_node(NODE_VALUE_V, color_out->stack_offset);
+			compiler.add_node(NODE_VALUE_V, make_float3(TEX_IMAGE_MISSING_R,
+			                                            TEX_IMAGE_MISSING_G,
+			                                            TEX_IMAGE_MISSING_B));
+		}
+	}
+}
+
+void PointDensityTextureNode::compile(OSLCompiler& compiler)
+{
+	ShaderInput *vector_in = input("Vector");
+	ShaderOutput *density_out = output("Density");
+	ShaderOutput *color_out = output("Color");
+
+	const bool use_density = !density_out->links.empty();
+	const bool use_color = !color_out->links.empty();
+
+	image_manager = compiler.image_manager;
+
+	if (use_density || use_color) {
+		if(slot == -1) {
+			bool is_float, is_linear;
+			slot = image_manager->add_image(filename, builtin_data,
+			                                false, 0,
+			                                is_float, is_linear,
+			                                interpolation,
+			                                true);
+		}
+
+		if(slot != -1) {
+			compiler.parameter("filename", string_printf("@%d", slot).c_str());
+		}
+		if(space == "World") {
+			compiler.parameter("mapping", transform_transpose(tfm));
+			compiler.parameter("use_mapping", 1);
+		}
+		switch (interpolation) {
+			case INTERPOLATION_CLOSEST:
+				compiler.parameter("interpolation", "closest");
+				break;
+			case INTERPOLATION_CUBIC:
+				compiler.parameter("interpolation", "cubic");
+				break;
+			case INTERPOLATION_LINEAR:
+			default:
+				compiler.parameter("interpolation", "linear");
+				break;
+		}
+
+		compiler.add(this, "node_voxel_texture");
+	}
+}
+
 /* Normal */
 
 NormalNode::NormalNode()

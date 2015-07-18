@@ -213,6 +213,29 @@ public:
 	virtual int get_group() { return NODE_GROUP_LEVEL_2; }
 };
 
+class PointDensityTextureNode : public ShaderNode {
+public:
+	SHADER_NODE_NO_CLONE_CLASS(PointDensityTextureNode)
+
+	~PointDensityTextureNode();
+	ShaderNode *clone() const;
+	void attributes(Shader *shader, AttributeRequestSet *attributes);
+
+	bool has_spatial_varying() { return true; }
+	bool has_object_dependency() { return true; }
+
+	ImageManager *image_manager;
+	int slot;
+	string filename;
+	ustring space;
+	void *builtin_data;
+	InterpolationType interpolation;
+
+	Transform tfm;
+
+	static ShaderEnum space_enum;
+};
+
 class MappingNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(MappingNode)

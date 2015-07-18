@@ -179,6 +179,7 @@ CCL_NAMESPACE_END
 #include "svm_checker.h"
 #include "svm_brick.h"
 #include "svm_vector_transform.h"
+#include "svm_voxel.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -446,6 +447,11 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 				svm_node_blackbody(kg, sd, stack, node.y, node.z);
 				break;
 #  endif  /* __EXTRA_NODES__ */
+#  if NODES_FEATURE(NODE_FEATURE_VOLUME)
+			case NODE_TEX_VOXEL:
+				svm_node_tex_voxel(kg, sd, stack, node, &offset);
+				break;
+#  endif  /* NODES_FEATURE(NODE_FEATURE_VOLUME) */
 #endif  /* NODES_GROUP(NODE_GROUP_LEVEL_3) */
 			case NODE_END:
 				return;
