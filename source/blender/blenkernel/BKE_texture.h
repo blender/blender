@@ -115,6 +115,7 @@ void           BKE_texture_envmap_free(struct EnvMap *env);
 struct EnvMap *BKE_texture_envmap_add(void);
 struct EnvMap *BKE_texture_envmap_copy(struct EnvMap *env);
 
+void                 BKE_texture_pointdensity_init_data(struct PointDensity *pd);
 void                 BKE_texture_pointdensity_free_data(struct PointDensity *pd);
 void                 BKE_texture_pointdensity_free(struct PointDensity *pd);
 struct PointDensity *BKE_texture_pointdensity_add(void);

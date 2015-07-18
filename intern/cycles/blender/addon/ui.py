@@ -1236,7 +1236,8 @@ class CyclesTexture_PT_mapping(CyclesButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         node = context.texture_node
-        return node and CyclesButtonsPanel.poll(context)
+        # TODO(sergey): perform a faster/nicer check?
+        return node and hasattr(node, 'texture_mapping') and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout

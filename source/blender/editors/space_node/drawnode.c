@@ -937,6 +937,29 @@ static void node_shader_buts_tex_voronoi(uiLayout *layout, bContext *UNUSED(C), 
 	uiItemR(layout, ptr, "coloring", 0, "", ICON_NONE);
 }
 
+static void node_shader_buts_tex_pointdensity(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	bNode *node = ptr->data;
+	NodeShaderTexPointDensity *shader_point_density = node->storage;
+
+	uiItemR(layout, ptr, "point_source", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
+
+	if (node->id && shader_point_density->point_source == SHD_POINTDENSITY_SOURCE_PSYS) {
+		PointerRNA dataptr;
+		RNA_id_pointer_create((ID *)node->id, &dataptr);
+		uiItemPointerR(layout, ptr, "particle_system", &dataptr, "particle_systems", NULL, ICON_NONE);
+	}
+
+	uiItemR(layout, ptr, "space", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "radius", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "interpolation", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "resolution", 0, NULL, ICON_NONE);
+	if (shader_point_density->point_source == SHD_POINTDENSITY_SOURCE_PSYS) {
+		uiItemR(layout, ptr, "color_source", 0, NULL, ICON_NONE);
+	}
+}
+
 static void node_shader_buts_tex_coord(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "object", 0, NULL, 0);
@@ -1169,6 +1192,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break;
 		case SH_NODE_TEX_VORONOI:
 			ntype->draw_buttons = node_shader_buts_tex_voronoi;
+			break;
+		case SH_NODE_TEX_POINTDENSITY:
+			ntype->draw_buttons = node_shader_buts_tex_pointdensity;
 			break;
 		case SH_NODE_TEX_COORD:
 			ntype->draw_buttons = node_shader_buts_tex_coord;

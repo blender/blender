@@ -75,6 +75,7 @@ void register_node_type_sh_sepxyz(void);
 void register_node_type_sh_combxyz(void);
 void register_node_type_sh_hue_sat(void);
 void register_node_type_sh_tex_brick(void);
+void register_node_type_sh_tex_pointdensity(void);
 
 void register_node_type_sh_attribute(void);
 void register_node_type_sh_geometry(void);

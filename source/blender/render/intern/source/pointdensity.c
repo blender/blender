@@ -152,6 +152,7 @@ static void pointdensity_cache_psys(Scene *scene,
 	sim.scene = scene;
 	sim.ob = ob;
 	sim.psys = psys;
+	sim.psmd = psys_get_modifier(ob, psys);
 
 	/* in case ob->imat isn't up-to-date */
 	invert_m4_m4(ob->imat, ob->obmat);
@@ -530,6 +531,7 @@ static int pointdensity(PointDensity *pd,
 		mul_v3_fl(vec, 1.0f / num);
 	}
 
+	texres->tin = density;
 	if (r_age != NULL) {
 		*r_age = age;
 	}
@@ -537,23 +539,13 @@ static int pointdensity(PointDensity *pd,
 		copy_v3_v3(r_vec, vec);
 	}
 
-	texres->tin = density;
-
 	return retval;
 }
 
-int pointdensitytex(Tex *tex, const float texvec[3], TexResult *texres)
+static int pointdensity_color(PointDensity *pd, TexResult *texres, float age, const float vec[3])
 {
-	PointDensity *pd = tex->pd;
-	float age = 0.0f;
-	float vec[3] = {0.0f, 0.0f, 0.0f};
-	int retval = pointdensity(pd, texvec, texres, &age, vec);
+	int retval = 0;
 	float col[4];
-
-	BRICONT;
-
-	if (pd->color_source == TEX_PD_COLOR_CONSTANT)
-		return retval;
 
 	retval |= TEX_RGB;
 
@@ -584,8 +576,7 @@ int pointdensitytex(Tex *tex, const float texvec[3], TexResult *texres)
 		}
 		case TEX_PD_COLOR_PARTVEL:
 			texres->talpha = true;
-			mul_v3_fl(vec, pd->speed_scale);
-			copy_v3_v3(&texres->tr, vec);
+			mul_v3_v3fl(&texres->tr, vec, pd->speed_scale);
 			texres->ta = texres->tin;
 			break;
 		case TEX_PD_COLOR_CONSTANT:
@@ -593,6 +584,20 @@ int pointdensitytex(Tex *tex, const float texvec[3], TexResult *texres)
 			texres->tr = texres->tg = texres->tb = texres->ta = 1.0f;
 			break;
 	}
+	
+	return retval;
+}
+
+int pointdensitytex(Tex *tex, const float texvec[3], TexResult *texres)
+{
+	PointDensity *pd = tex->pd;
+	float age = 0.0f;
+	float vec[3] = {0.0f, 0.0f, 0.0f};
+	int retval = pointdensity(pd, texvec, texres, &age, vec);
+
+	BRICONT;
+
+	retval |= pointdensity_color(pd, texres, age, vec);
 	BRICONTRGB;
 
 	return retval;
@@ -698,6 +703,7 @@ void RE_sample_point_density(Scene *scene, PointDensity *pd,
 				texvec[2] += dim[2] * (float)z / (float)resolution;
 
 				pointdensity(pd, texvec, &texres, &age, vec);
+				pointdensity_color(pd, &texres, age, vec);
 
 				copy_v3_v3(&values[index*4 + 0], &texres.tr);
 				values[index*4 + 3] = texres.tin;

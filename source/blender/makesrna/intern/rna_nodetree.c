@@ -38,6 +38,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_text_types.h"
 #include "DNA_texture_types.h"
 
@@ -60,6 +62,8 @@
 #include "WM_types.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "RE_render_ext.h"
 
 EnumPropertyItem node_socket_in_out_items[] = {
 	{ SOCK_IN, "IN", 0, "Input", "" },
@@ -2966,6 +2970,89 @@ static void rna_CompositorNodeScale_update(Main *bmain, Scene *scene, PointerRNA
 	rna_Node_update(bmain, scene, ptr);
 }
 
+static PointerRNA rna_ShaderNodePointDensity_psys_get(PointerRNA *ptr)
+{
+	bNode *node = ptr->data;
+	NodeShaderTexPointDensity *shader_point_density = node->storage;
+	Object *ob = (Object*)node->id;
+	ParticleSystem *psys = NULL;
+	PointerRNA value;
+
+	if (ob && shader_point_density->particle_system) {
+		psys = BLI_findlink(&ob->particlesystem, shader_point_density->particle_system - 1);
+	}
+
+	RNA_pointer_create(&ob->id, &RNA_ParticleSystem, psys, &value);
+	return value;
+}
+
+static void rna_ShaderNodePointDensity_psys_set(PointerRNA *ptr, PointerRNA value)
+{
+	bNode *node = ptr->data;
+	NodeShaderTexPointDensity *shader_point_density = node->storage;
+	Object *ob = (Object*)node->id;
+
+	if (ob && value.id.data == ob) {
+		shader_point_density->particle_system = BLI_findindex(&ob->particlesystem, value.data) + 1;
+	}
+	else {
+		shader_point_density->particle_system = 0;
+	}
+}
+
+static int point_density_color_source_from_shader(NodeShaderTexPointDensity *shader_point_density)
+{
+	switch (shader_point_density->color_source) {
+		case SHD_POINTDENSITY_COLOR_PARTAGE: return TEX_PD_COLOR_PARTAGE;
+		case SHD_POINTDENSITY_COLOR_PARTSPEED: return TEX_PD_COLOR_PARTSPEED;
+		case SHD_POINTDENSITY_COLOR_PARTVEL: return TEX_PD_COLOR_PARTVEL;
+		default:
+			BLI_assert(!"Unknown color source");
+			return TEX_PD_COLOR_CONSTANT;
+	}
+}
+
+/* TODO(sergey): This functio nassumes allocated array was passed,
+ * works fine with Cycles via C++ RNA, but fails with call from python.
+ */
+void rna_ShaderNodePointDensity_density_calc(bNode *self, Scene *scene, int *length, float **values)
+{
+	NodeShaderTexPointDensity *shader_point_density = self->storage;
+	PointDensity pd;
+
+	*length = 4 * shader_point_density->resolution *
+	              shader_point_density->resolution *
+	              shader_point_density->resolution;
+
+	if (*values == NULL) {
+		*values = MEM_mallocN(sizeof(float) * (*length), "point density dynamic array");
+	}
+
+	/* Create PointDensity structure from node for sampling. */
+	BKE_texture_pointdensity_init_data(&pd);
+	pd.object = (Object *)self->id;
+	pd.radius = shader_point_density->radius;
+	if (shader_point_density->point_source == SHD_POINTDENSITY_SOURCE_PSYS) {
+		pd.source = TEX_PD_PSYS;
+		pd.psys = shader_point_density->particle_system;
+		pd.psys_cache_space = TEX_PD_OBJECTSPACE;
+	}
+	else {
+		BLI_assert(shader_point_density->point_source == SHD_POINTDENSITY_SOURCE_OBJECT);
+		pd.source = TEX_PD_OBJECT;
+		pd.ob_cache_space = TEX_PD_OBJECTSPACE;
+	}
+	pd.color_source = point_density_color_source_from_shader(shader_point_density);
+
+	/* Single-threaded sampling of the voxel domain. */
+	RE_sample_point_density(scene, &pd,
+	                        shader_point_density->resolution,
+	                        *values);
+
+	/* We're done, time to clean up. */
+	BKE_texture_pointdensity_free_data(&pd);
+}
+
 #else
 
 static EnumPropertyItem prop_image_layer_items[] = {
@@ -3790,6 +3877,103 @@ static void def_sh_tex_wireframe(StructRNA *srna)
 	RNA_def_property_boolean_sdna(prop, NULL, "custom1", 1);
 	RNA_def_property_ui_text(prop, "Pixel Size", "Use screen pixel size instead of world units");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_sh_tex_pointdensity(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	FunctionRNA *func;
+
+	static EnumPropertyItem point_source_items[] = {
+		{SHD_POINTDENSITY_SOURCE_PSYS, "PARTICLE_SYSTEM", 0, "Particle System",
+		 "Generate point density from a particle system"},
+		{SHD_POINTDENSITY_SOURCE_OBJECT, "OBJECT", 0, "Object Vertices",
+		 "Generate point density from an object's vertices"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static const EnumPropertyItem prop_interpolation_items[] = {
+		{SHD_INTERP_CLOSEST, "Closest", 0, "Closest",
+		                     "No interpolation (sample closest texel)"},
+		{SHD_INTERP_LINEAR,  "Linear", 0, "Linear",
+		                     "Linear interpolation"},
+		{SHD_INTERP_CUBIC,   "Cubic", 0, "Cubic",
+		                     "Cubic interpolation (CPU only)"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem space_items[] = {
+		{SHD_POINTDENSITY_SPACE_OBJECT, "OBJECT", 0, "Object Space", ""},
+		{SHD_POINTDENSITY_SPACE_WORLD,   "WORLD", 0, "World Space", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem color_source_items[] = {
+		{SHD_POINTDENSITY_COLOR_PARTAGE, "PARTICLE_AGE", 0, "Particle Age",
+		                                 "Lifetime mapped as 0.0 - 1.0 intensity"},
+		{SHD_POINTDENSITY_COLOR_PARTSPEED, "PARTICLE_SPEED", 0, "Particle Speed",
+		                                   "Particle speed (absolute magnitude of velocity) mapped as 0.0-1.0 intensity"},
+		{SHD_POINTDENSITY_COLOR_PARTVEL, "PARTICLE_VELOCITY", 0, "Particle Velocity",
+		                                 "XYZ velocity mapped to RGB colors"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Object", "Object to take point data from)");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	RNA_def_struct_sdna_from(srna, "NodeShaderTexPointDensity", "storage");
+
+	prop = RNA_def_property(srna, "point_source", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, point_source_items);
+	RNA_def_property_ui_text(prop, "Point Source", "Point data to use as renderable point density");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Particle System", "Particle System to render as points");
+	RNA_def_property_struct_type(prop, "ParticleSystem");
+	RNA_def_property_pointer_funcs(prop, "rna_ShaderNodePointDensity_psys_get",
+	                               "rna_ShaderNodePointDensity_psys_set", NULL, NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "resolution", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 1, 32768);
+	RNA_def_property_ui_text(prop, "Resolution", "Resolution used by the texture holding the point density");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "radius");
+	RNA_def_property_range(prop, 0.001, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Radius", "Radius from the shaded sample to look for points within");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "space", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, space_items);
+	RNA_def_property_ui_text(prop, "Space", "Coordinate system to calculate voxels in");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_interpolation_items);
+	RNA_def_property_ui_text(prop, "Interpolation", "Texture interpolation");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "color_source", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "color_source");
+	RNA_def_property_enum_items(prop, color_source_items);
+	RNA_def_property_ui_text(prop, "Color Source", "Data to derive color results from");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	func = RNA_def_function(srna, "calc_point_density", "rna_ShaderNodePointDensity_density_calc");
+	RNA_def_function_ui_description(func, "Calculate point density");
+	RNA_def_pointer(func, "scene", "Scene", "", "");
+	/* TODO, See how array size of 0 works, this shouldnt be used. */
+	prop = RNA_def_float_array(func, "rgba_values", 1, NULL, 0, 0, "", "RGBA Values", 0, 0);
+	RNA_def_property_flag(prop, PROP_DYNAMIC);
+	RNA_def_function_output(func, prop);
 }
 
 static void def_glossy(StructRNA *srna)

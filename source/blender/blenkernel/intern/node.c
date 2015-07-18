@@ -3591,6 +3591,7 @@ static void registerShaderNodes(void)
 	register_node_type_sh_tex_magic();
 	register_node_type_sh_tex_checker();
 	register_node_type_sh_tex_brick();
+	register_node_type_sh_tex_pointdensity();
 }
 
 static void registerTextureNodes(void)

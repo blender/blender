@@ -22,6 +22,7 @@
 #include "scene.h"
 #include "shader.h"
 
+#include "blender_texture.h"
 #include "blender_sync.h"
 #include "blender_util.h"
 
@@ -735,6 +736,34 @@ static ShaderNode *add_node(Scene *scene,
 		uvm->attribute = b_uvmap_node.uv_map();
 		uvm->from_dupli = b_uvmap_node.from_dupli();
 		node = uvm;
+	}
+	else if(b_node.is_a(&RNA_ShaderNodeTexPointDensity)) {
+		BL::ShaderNodeTexPointDensity b_point_density_node(b_node);
+		PointDensityTextureNode *point_density = new PointDensityTextureNode();
+		point_density->filename = b_point_density_node.name();
+		point_density->space =
+		        PointDensityTextureNode::space_enum[(int)b_point_density_node.space()];
+		point_density->interpolation =
+		        (InterpolationType)b_point_density_node.interpolation();
+		point_density->builtin_data = b_point_density_node.ptr.data;
+
+		/* Transformation form world space to texture space. */
+		BL::Object b_ob(b_point_density_node.object());
+		if(b_ob) {
+			float3 loc, size;
+			point_density_texture_space(b_point_density_node, loc, size);
+			point_density->tfm =
+			        transform_translate(-loc) * transform_scale(size) *
+			        transform_inverse(get_transform(b_ob.matrix_world()));
+		}
+
+		/* TODO(sergey): Use more proper update flag. */
+		if(true) {
+			scene->image_manager->tag_reload_image(point_density->filename,
+			                                       point_density->builtin_data,
+			                                       point_density->interpolation);
+		}
+		node = point_density;
 	}
 
 	if(node)

@@ -1016,6 +1016,18 @@ void BlenderSession::builtin_image_info(const string &builtin_name, void *builti
 
 		is_float = true;
 	}
+	else {
+		/* TODO(sergey): Check we're indeed in shader node tree. */
+		PointerRNA ptr;
+		RNA_pointer_create(NULL, &RNA_Node, builtin_data, &ptr);
+		BL::Node b_node(ptr);
+		if(b_node.is_a(&RNA_ShaderNodeTexPointDensity)) {
+			BL::ShaderNodeTexPointDensity b_point_density_node(b_node);
+			channels = 4;
+			width = height = depth = b_point_density_node.resolution();
+			is_float = true;
+		}
+	}
 }
 
 bool BlenderSession::builtin_image_pixels(const string &builtin_name, void *builtin_data, unsigned char *pixels)
@@ -1157,6 +1169,17 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 		}
 
 		fprintf(stderr, "Cycles error: unexpected smoke volume resolution, skipping\n");
+	}
+	else {
+		/* TODO(sergey): Check we're indeed in shader node tree. */
+		PointerRNA ptr;
+		RNA_pointer_create(NULL, &RNA_Node, builtin_data, &ptr);
+		BL::Node b_node(ptr);
+		if(b_node.is_a(&RNA_ShaderNodeTexPointDensity)) {
+			BL::ShaderNodeTexPointDensity b_point_density_node(b_node);
+			int length;
+			b_point_density_node.calc_point_density(b_scene, &length, &pixels);
+		}
 	}
 
 	return false;
