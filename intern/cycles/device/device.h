@@ -97,6 +97,9 @@ public:
 	bool use_object_motion;
 	bool use_camera_motion;
 
+	/* Denotes whether baking functionality is needed. */
+	bool use_baking;
+
 	DeviceRequestedFeatures()
 	{
 		/* TODO(sergey): Find more meaningful defaults. */
@@ -107,6 +110,7 @@ public:
 		use_hair = false;
 		use_object_motion = false;
 		use_camera_motion = false;
+		use_baking = false;
 	}
 
 	bool modified(const DeviceRequestedFeatures& requested_features)
@@ -114,7 +118,11 @@ public:
 		return !(experimental == requested_features.experimental &&
 		         max_closure == requested_features.max_closure &&
 		         max_nodes_group == requested_features.max_nodes_group &&
-		         nodes_features == requested_features.nodes_features);
+		         nodes_features == requested_features.nodes_features &&
+		         use_hair == requested_features.use_hair &&
+		         use_object_motion == requested_features.use_object_motion &&
+		         use_camera_motion == requested_features.use_camera_motion &&
+		         use_baking == requested_features.use_baking);
 	}
 };
 

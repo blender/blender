@@ -543,6 +543,11 @@ void BlenderSession::bake(BL::Object b_object, const string& pass_type, const in
 	size_t object_index = OBJECT_NONE;
 	int tri_offset = 0;
 
+	/* Set baking flag in advance, so kernel loading can check if we need
+	 * any baking capabilities.
+	 */
+	scene->bake_manager->set_baking(true);
+
 	/* ensure kernels are loaded before we do any scene updates */
 	session->load_kernels();
 
@@ -572,7 +577,6 @@ void BlenderSession::bake(BL::Object b_object, const string& pass_type, const in
 	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_v3d, b_rv3d, scene->camera, width, height);
 
 	scene->bake_manager->set_shader_limit((size_t)b_engine.tile_x(), (size_t)b_engine.tile_y());
-	scene->bake_manager->set_baking(true);
 
 	/* set number of samples */
 	session->tile_manager.set_samples(session_params.samples);

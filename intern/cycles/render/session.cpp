@@ -637,6 +637,9 @@ DeviceRequestedFeatures Session::get_requested_device_features()
 		requested_features.use_camera_motion |= mesh->use_motion_blur;
 	}
 
+	BakeManager *bake_manager = scene->bake_manager;
+	requested_features.use_baking = bake_manager->get_baking();
+
 	return requested_features;
 }
 

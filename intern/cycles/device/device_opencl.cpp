@@ -1560,6 +1560,9 @@ protected:
 		if(!requested_features.use_camera_motion) {
 			build_options += " -D__NO_CAMERA_MOTION__";
 		}
+		if(!requested_features.use_baking) {
+			build_options += " -D__NO_BAKING__";
+		}
 		return build_options;
 	}
 
