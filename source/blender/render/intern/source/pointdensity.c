@@ -687,8 +687,6 @@ void RE_sample_point_density(Scene *scene, PointDensity *pd,
 
 	BLI_mutex_lock(&sample_mutex);
 	cache_pointdensity_ex(scene, pd, mat, mat, 1, 1);
-	BLI_mutex_unlock(&sample_mutex);
-
 	for (z = 0; z < resolution; ++z) {
 		for (y = 0; y < resolution; ++y) {
 			for (x = 0; x < resolution; ++x) {
@@ -711,4 +709,5 @@ void RE_sample_point_density(Scene *scene, PointDensity *pd,
 		}
 	}
 	free_pointdensity(pd);
+	BLI_mutex_unlock(&sample_mutex);
 }
