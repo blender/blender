@@ -59,6 +59,12 @@ void RE_free_sample_material(struct Material *mat);
 void RE_sample_material_color(struct Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3],
                               int face_index, short hit_quad, struct DerivedMesh *orcoDm, struct Object *ob);
 
+/* pointdensity.c */
+
+struct PointDensity;
+
+void RE_sample_point_density(struct Scene *scene, struct PointDensity *pd, int resolution, float *values);
+
 void RE_init_texture_rng(void);
 void RE_exit_texture_rng(void);
 #endif /* __RE_RENDER_EXT_H__ */
