@@ -104,13 +104,7 @@ __kernel void kernel_ocl_bake(
 	int x = sx + get_global_id(0);
 
 	if(x < sx + sw) {
-#if defined(__KERNEL_OPENCL_NVIDIA__) && __COMPUTE_CAPABILITY__ < 300
-		/* NVidia compiler is spending infinite amount of time trying
-		 * to deal with kernel_bake_evaluate() on architectures prior
-		 * to sm_30.
-		 * For now we disable baking kernel for those devices, so at
-		 * least rendering with split kernel could be compiled.
-		 */
+#ifdef __NO_BAKING__
 		output[x] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 #else
 		kernel_bake_evaluate(kg, input, output, (ShaderEvalType)type, x, offset, sample);
