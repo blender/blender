@@ -225,7 +225,7 @@ if(WITH_SDL_DYNLOAD)
 	list(APPEND INC
 		../../../../extern/sdlew/include
 	)
-    add_definitions(-DWITH_SDL_DYNLOAD)
+	add_definitions(-DWITH_SDL_DYNLOAD)
 endif()
 
 if(WITH_JACK)
