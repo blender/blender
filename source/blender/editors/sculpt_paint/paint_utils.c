@@ -277,25 +277,16 @@ static void imapaint_tri_weights(float matrix[4][4], GLint view[4],
 static void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const int xy[2], float uv[2])
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
-	MTFace *tf_base, *tf;
-	Material *ma;
-	TexPaintSlot *slot;
-	int numfaces = dm->getNumTessFaces(dm), a, findex;
+	const int tottri = dm->getNumLoopTri(dm);
+	int i, findex;
 	float p[2], w[3], absw, minabsw;
-	MFace mf;
-	MVert mv[4];
 	float matrix[4][4], proj[4][4];
 	GLint view[4];
-	ImagePaintMode mode = scene->toolsettings->imapaint.mode;
-
-	/* compute barycentric coordinates */
-
-	/* double lookup */
-	const int *index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+	const ImagePaintMode mode = scene->toolsettings->imapaint.mode;
+	const MLoopTri *lt = dm->getLoopTriArray(dm);
+	const MPoly *mpoly = dm->getPolyArray(dm);
+	const MLoop *mloop = dm->getLoopArray(dm);
 	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-	if (index_mf_to_mpoly == NULL) {
-		index_mp_to_orig = NULL;
-	}
 
 	/* get the needed opengl matrices */
 	glGetIntegerv(GL_VIEWPORT, view);
@@ -309,62 +300,50 @@ static void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, c
 	uv[0] = uv[1] = 0.0;
 
 	/* test all faces in the derivedmesh with the original index of the picked face */
-	for (a = 0; a < numfaces; a++) {
-		findex = index_mf_to_mpoly ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, a) : a;
+	/* face means poly here, not triangle, indeed */
+	for (i = 0; i < tottri; i++, lt++) {
+		findex = index_mp_to_orig ? index_mp_to_orig[lt->poly] : lt->poly;
 
 		if (findex == faceindex) {
-			dm->getTessFace(dm, a, &mf);
+			const MLoopUV *mloopuv;
+			const MPoly *mp = &mpoly[lt->poly];
+			const MLoopUV *tri_uv[3];
+			float  tri_co[3][3];
 
-			dm->getVert(dm, mf.v1, &mv[0]);
-			dm->getVert(dm, mf.v2, &mv[1]);
-			dm->getVert(dm, mf.v3, &mv[2]);
-			if (mf.v4)
-				dm->getVert(dm, mf.v4, &mv[3]);
+			dm->getVertCo(dm, mloop[lt->tri[0]].v, tri_co[0]);
+			dm->getVertCo(dm, mloop[lt->tri[1]].v, tri_co[1]);
+			dm->getVertCo(dm, mloop[lt->tri[2]].v, tri_co[2]);
 
 			if (mode == IMAGEPAINT_MODE_MATERIAL) {
-				ma = dm->mat[mf.mat_nr];
+				const Material *ma;
+				const TexPaintSlot *slot;
+
+				ma = dm->mat[mp->mat_nr];
 				slot = &ma->texpaintslot[ma->paint_active_slot];
 
-				if (!(slot && slot->uvname && (tf_base = CustomData_get_layer_named(&dm->faceData, CD_MTFACE, slot->uvname))))
-					tf_base = CustomData_get_layer(&dm->faceData, CD_MTFACE);
-
-				tf = &tf_base[a];
+				if (!(slot && slot->uvname &&
+				      (mloopuv = CustomData_get_layer_named(&dm->loopData, CD_MLOOPUV, slot->uvname))))
+				{
+					mloopuv = CustomData_get_layer(&dm->loopData, CD_MLOOPUV);
+				}
 			}
 			else {
-				tf_base = CustomData_get_layer(&dm->faceData, CD_MTFACE);
-				tf = &tf_base[a];
+				mloopuv = CustomData_get_layer(&dm->loopData, CD_MLOOPUV);
 			}
+
+			tri_uv[0] = &mloopuv[lt->tri[0]];
+			tri_uv[1] = &mloopuv[lt->tri[1]];
+			tri_uv[2] = &mloopuv[lt->tri[2]];
 
 			p[0] = xy[0];
 			p[1] = xy[1];
 
-			if (mf.v4) {
-				/* the triangle with the largest absolute values is the one
-				 * with the most negative weights */
-				imapaint_tri_weights(matrix, view, mv[0].co, mv[1].co, mv[3].co, p, w);
-				absw = fabsf(w[0]) + fabsf(w[1]) + fabsf(w[2]);
-				if (absw < minabsw) {
-					uv[0] = tf->uv[0][0] * w[0] + tf->uv[1][0] * w[1] + tf->uv[3][0] * w[2];
-					uv[1] = tf->uv[0][1] * w[0] + tf->uv[1][1] * w[1] + tf->uv[3][1] * w[2];
-					minabsw = absw;
-				}
-
-				imapaint_tri_weights(matrix, view, mv[1].co, mv[2].co, mv[3].co, p, w);
-				absw = fabsf(w[0]) + fabsf(w[1]) + fabsf(w[2]);
-				if (absw < minabsw) {
-					uv[0] = tf->uv[1][0] * w[0] + tf->uv[2][0] * w[1] + tf->uv[3][0] * w[2];
-					uv[1] = tf->uv[1][1] * w[0] + tf->uv[2][1] * w[1] + tf->uv[3][1] * w[2];
-					minabsw = absw;
-				}
-			}
-			else {
-				imapaint_tri_weights(matrix, view, mv[0].co, mv[1].co, mv[2].co, p, w);
-				absw = fabsf(w[0]) + fabsf(w[1]) + fabsf(w[2]);
-				if (absw < minabsw) {
-					uv[0] = tf->uv[0][0] * w[0] + tf->uv[1][0] * w[1] + tf->uv[2][0] * w[2];
-					uv[1] = tf->uv[0][1] * w[0] + tf->uv[1][1] * w[1] + tf->uv[2][1] * w[2];
-					minabsw = absw;
-				}
+			imapaint_tri_weights(matrix, view, UNPACK3(tri_co), p, w);
+			absw = fabsf(w[0]) + fabsf(w[1]) + fabsf(w[2]);
+			if (absw < minabsw) {
+				uv[0] = tri_uv[0]->uv[0] * w[0] + tri_uv[1]->uv[0] * w[1] + tri_uv[2]->uv[0] * w[2];
+				uv[1] = tri_uv[0]->uv[1] * w[0] + tri_uv[1]->uv[1] * w[1] + tri_uv[2]->uv[1] * w[2];
+				minabsw = absw;
 			}
 		}
 	}
@@ -458,9 +437,8 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 			const int mval[2] = {x, y};
 			unsigned int faceindex;
 			unsigned int totpoly = me->totpoly;
-			MTFace *dm_mtface = dm->getTessFaceDataArray(dm, CD_MTFACE);
 
-			if (dm_mtface) {
+			if (dm->getLoopDataArray(dm, CD_MLOOPUV)) {
 				view3d_set_viewcontext(C, &vc);
 
 				view3d_operator_needs_opengl(C);
