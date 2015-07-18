@@ -930,7 +930,7 @@ public:
 		return md5.get_hex();
 	}
 
-	bool load_kernels(const DeviceRequestedFeatures& /*requested_features*/)
+	bool load_kernels(const DeviceRequestedFeatures& requested_features)
 	{
 		/* Verify if device was initialized. */
 		if(!device_initialized) {
@@ -940,20 +940,23 @@ public:
 
 		/* Try to use cached kernel. */
 		thread_scoped_lock cache_locker;
-		cpProgram = OpenCLCache::get_program(cpPlatform,
-		                                     cdDevice,
-		                                     OpenCLCache::OCL_DEV_BASE_PROGRAM,
-		                                     cache_locker);
+		cpProgram = load_cached_kernel(requested_features,
+		                               OpenCLCache::OCL_DEV_BASE_PROGRAM,
+		                               cache_locker);
 
 		if(!cpProgram) {
+			VLOG(2) << "No cached OpenCL kernel.";
+
 			/* Verify we have right opencl version. */
 			if(!opencl_version_check())
 				return false;
 
+			string build_flags = build_options_for_base_program(requested_features);
+
 			/* Calculate md5 hashes to detect changes. */
 			string kernel_path = path_get("kernel");
 			string kernel_md5 = path_files_md5_hash(kernel_path);
-			string device_md5 = device_md5_hash();
+			string device_md5 = device_md5_hash(build_flags);
 
 			/* Path to cached binary.
 			 *
@@ -978,27 +981,41 @@ public:
 			}
 
 			/* If binary kernel exists already, try use it. */
-			if(path_exists(clbin) && load_binary(kernel_path, clbin, "", &cpProgram)) {
+			if(path_exists(clbin) && load_binary(kernel_path,
+			                                     clbin,
+			                                     build_flags,
+			                                     &cpProgram)) {
 				/* Kernel loaded from binary, nothing to do. */
+				VLOG(2) << "Loaded kernel from " << clbin << ".";
 			}
 			else {
 				string init_kernel_source = "#include \"kernels/opencl/kernel.cl\" // " + kernel_md5 + "\n";
 
 				/* If does not exist or loading binary failed, compile kernel. */
-				if(!compile_kernel(kernel_path, init_kernel_source, "", &cpProgram, debug_src))
+				if(!compile_kernel(kernel_path,
+				                   init_kernel_source,
+				                   build_flags,
+				                   &cpProgram,
+				                   debug_src))
+				{
 					return false;
+				}
 
 				/* Save binary for reuse. */
-				if(!save_binary(&cpProgram, clbin))
+				if(!save_binary(&cpProgram, clbin)) {
 					return false;
+				}
 			}
 
 			/* Cache the program. */
-			OpenCLCache::store_program(cpPlatform,
-			                           cdDevice,
-			                           cpProgram,
-			                           OpenCLCache::OCL_DEV_BASE_PROGRAM,
-			                           cache_locker);
+			store_cached_kernel(cpPlatform,
+			                    cdDevice,
+			                    cpProgram,
+			                    OpenCLCache::OCL_DEV_BASE_PROGRAM,
+			                    cache_locker);
+		}
+		else {
+			VLOG(2) << "Found cached OpenCL kernel.";
 		}
 
 		/* Find kernels. */
@@ -1032,9 +1049,9 @@ public:
 		}
 
 		if(ckFilmConvertByteKernel)
-			clReleaseKernel(ckFilmConvertByteKernel);  
+			clReleaseKernel(ckFilmConvertByteKernel);
 		if(ckFilmConvertHalfFloatKernel)
-			clReleaseKernel(ckFilmConvertHalfFloatKernel);  
+			clReleaseKernel(ckFilmConvertHalfFloatKernel);
 		if(ckShaderKernel)
 			clReleaseKernel(ckShaderKernel);
 		if(ckBakeKernel)
@@ -1354,7 +1371,6 @@ public:
 	virtual void thread_run(DeviceTask * /*task*/) = 0;
 
 protected:
-
 	string kernel_build_options(const string *debug_src = NULL)
 	{
 		string build_options = " -cl-fast-relaxed-math ";
@@ -1545,6 +1561,44 @@ protected:
 			build_options += " -D__NO_CAMERA_MOTION__";
 		}
 		return build_options;
+	}
+
+	/* ** Those guys are for workign around some compiler-specific bugs ** */
+
+	virtual cl_program load_cached_kernel(
+	        const DeviceRequestedFeatures& /*requested_features*/,
+	        OpenCLCache::ProgramName program_name,
+	        thread_scoped_lock& cache_locker)
+	{
+		return OpenCLCache::get_program(cpPlatform,
+		                                cdDevice,
+		                                program_name,
+		                                cache_locker);
+	}
+
+	virtual void store_cached_kernel(cl_platform_id platform,
+	                                 cl_device_id device,
+	                                 cl_program program,
+	                                 OpenCLCache::ProgramName program_name,
+	                                 thread_scoped_lock& cache_locker)
+	{
+		OpenCLCache::store_program(platform,
+		                           device,
+		                           program,
+		                           program_name,
+		                           cache_locker);
+	}
+
+	virtual string build_options_for_base_program(
+	        const DeviceRequestedFeatures& /*requested_features*/)
+	{
+		/* TODO(sergey): By default we compile all features, meaning
+		 * mega kernel is not getting feature-based optimizations.
+		 *
+		 * Ideally we need always compile kernel with as less features
+		 * enabed as possible to keep performance at it's max.
+		 */
+		return "";
 	}
 };
 
@@ -3489,6 +3543,34 @@ protected:
 		ptr = clCreateBuffer(cxContext, mem_flag, bufsize, NULL, &ciErr);
 		opencl_assert_err(ciErr, "clCreateBuffer");
 		return ptr;
+	}
+
+	/* ** Those guys are for workign around some compiler-specific bugs ** */
+
+	cl_program load_cached_kernel(
+	        const DeviceRequestedFeatures& /*requested_features*/,
+	        OpenCLCache::ProgramName /*program_name*/,
+	        thread_scoped_lock /*cache_locker*/)
+	{
+		VLOG(2) << "Skip loading kernel from cache, "
+		        << "not supported by split kernel.";
+		return NULL;
+	}
+
+	void store_cached_kernel(cl_platform_id /*platform*/,
+	                         cl_device_id /*device*/,
+	                         cl_program /*program*/,
+	                         OpenCLCache::ProgramName /*program_name*/,
+	                         thread_scoped_lock& /*slot_locker*/)
+	{
+		VLOG(2) << "Skip storing kernel in cache, "
+		        << "not supported by split kernel.";
+	}
+
+	string build_options_for_base_program(
+	        const DeviceRequestedFeatures& requested_features)
+	{
+		return build_options_from_requested_features(requested_features);
 	}
 };
 
