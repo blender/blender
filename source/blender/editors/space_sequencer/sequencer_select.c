@@ -584,21 +584,35 @@ static bool select_more_less_seq__internal(Scene *scene, bool sel, const bool li
 	}
 	
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-		if ((int)(seq->flag & SELECT) == sel) {
-			if ((linked == 0 && seq->tmp) == 0) {
-				/* only get unselected nabours */
+		if ((seq->flag & SELECT) == sel) {
+			if (linked || (seq->tmp == NULL)) {
+				/* only get unselected neighbors */
 				neighbor = find_neighboring_sequence(scene, seq, SEQ_SIDE_LEFT, isel);
 				if (neighbor) {
-					if (sel) { neighbor->flag |= SELECT; recurs_sel_seq(neighbor); }
-					else neighbor->flag &= ~SELECT;
-					if (linked == 0) neighbor->tmp = (Sequence *)1;
+					if (sel) {
+						neighbor->flag |= SELECT;
+						recurs_sel_seq(neighbor);
+					}
+					else {
+						neighbor->flag &= ~SELECT;
+					}
+					if (!linked) {
+						neighbor->tmp = (Sequence *)1;
+					}
 					changed = true;
 				}
 				neighbor = find_neighboring_sequence(scene, seq, SEQ_SIDE_RIGHT, isel);
 				if (neighbor) {
-					if (sel) { neighbor->flag |= SELECT; recurs_sel_seq(neighbor); }
-					else neighbor->flag &= ~SELECT;
-					if (linked == 0) neighbor->tmp = (void *)1;
+					if (sel) {
+						neighbor->flag |= SELECT;
+						recurs_sel_seq(neighbor);
+					}
+					else {
+						neighbor->flag &= ~SELECT;
+					}
+					if (!linked) {
+						neighbor->tmp = (Sequence *)1;
+					}
 					changed = true;
 				}
 			}
@@ -615,7 +629,7 @@ static int sequencer_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	
-	if (!select_more_less_seq__internal(scene, 0, 0))
+	if (!select_more_less_seq__internal(scene, true, false))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
@@ -646,7 +660,7 @@ static int sequencer_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	
-	if (!select_more_less_seq__internal(scene, 1, 0))
+	if (!select_more_less_seq__internal(scene, false, false))
 		return OPERATOR_CANCELLED;
  
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
