@@ -463,6 +463,20 @@ if(WITH_LIBMV)
 	add_definitions(-DWITH_LIBMV)
 endif()
 
+if(WITH_LIBMV_WERROR)
+	if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+		set_source_files_properties(intern/tracking.c
+		                            intern/tracking_auto.c
+		                            intern/tracking_detect.c
+		                            intern/tracking_plane_tracker.c
+		                            intern/tracking_region_tracker.c
+		                            intern/tracking_solver.c
+		                            intern/tracking_stabilize.c
+		                            intern/tracking_util.c
+		                            PROPERTIES COMPILE_FLAGS -Werror)
+	endif()
+endif()
+
 if(WITH_FFTW3)
 	list(APPEND INC_SYS
 		${FFTW3_INCLUDE_DIRS}
