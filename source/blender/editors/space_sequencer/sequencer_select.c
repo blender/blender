@@ -66,17 +66,23 @@ static void select_surrounding_handles(Scene *scene, Sequence *test) /* XXX BRIN
 	
 	neighbor = find_neighboring_sequence(scene, test, SEQ_SIDE_LEFT, -1);
 	if (neighbor) {
+		/* Only select neighbor handle if matching handle from test seq is also selected, or if neighbor
+		 * was not selected at all up till now.
+		 * Otherwise, we get odd mismatch when shift-alt-rmb selecting neighbor strips... */
+		if (!(neighbor->flag & SELECT) || (test->flag & SEQ_LEFTSEL)) {
+			neighbor->flag |= SEQ_RIGHTSEL;
+		}
 		neighbor->flag |= SELECT;
 		recurs_sel_seq(neighbor);
-		neighbor->flag |= SEQ_RIGHTSEL;
 	}
 	neighbor = find_neighboring_sequence(scene, test, SEQ_SIDE_RIGHT, -1);
 	if (neighbor) {
+		if (!(neighbor->flag & SELECT) || (test->flag & SEQ_RIGHTSEL)) {  /* See comment above. */
+			neighbor->flag |= SEQ_LEFTSEL;
+		}
 		neighbor->flag |= SELECT;
 		recurs_sel_seq(neighbor);
-		neighbor->flag |= SEQ_LEFTSEL;
 	}
-	test->flag |= SELECT;
 }
 
 /* used for mouse selection and for SEQUENCER_OT_select_active_side() */
@@ -416,83 +422,94 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 				}
 			}
 	
-			if (extend && (seq->flag & SELECT) && ed->act_seq == act_orig) {
-				switch (hand) {
-					case SEQ_SIDE_NONE:
-						if (linked_handle == 0)
-							seq->flag &= ~SEQ_ALLSEL;
-						break;
-					case SEQ_SIDE_LEFT:
-						seq->flag ^= SEQ_LEFTSEL;
-						break;
-					case SEQ_SIDE_RIGHT:
-						seq->flag ^= SEQ_RIGHTSEL;
-						break;
+			/* On Alt selection, select the strip and bordering handles */
+			if (linked_handle) {
+				if (!ELEM(hand, SEQ_SIDE_LEFT, SEQ_SIDE_RIGHT)) {
+					/* First click selects the strip and its adjacent handles (if valid).
+					 * Second click selects the strip, both of its handles and its adjacent handles (if valid).
+					 */
+					const bool is_striponly_selected = ((seq->flag & SEQ_ALLSEL) == SELECT);
+
+					if (!extend) {
+						ED_sequencer_deselect_all(scene);
+					}
+					seq->flag &= ~SEQ_ALLSEL;
+					seq->flag |= is_striponly_selected ? SEQ_ALLSEL : SELECT;
+					select_surrounding_handles(scene, seq);
+				}
+				else if (seq->flag & SELECT) {
+					/* First click selects adjacent handles on that side.
+					 * Second click selects all strips in that direction.
+					 * If there are no adjacent strips, it just selects all in that direction.
+					 */
+					sel_side = hand;
+					neighbor = find_neighboring_sequence(scene, seq, sel_side, -1);
+					if (neighbor) {
+						switch (sel_side) {
+							case SEQ_SIDE_LEFT:
+								if ((seq->flag & SEQ_LEFTSEL) && (neighbor->flag & SEQ_RIGHTSEL)) {
+									if (extend == 0) ED_sequencer_deselect_all(scene);
+									seq->flag |= SELECT;
+
+									select_active_side(ed->seqbasep, SEQ_SIDE_LEFT, seq->machine, seq->startdisp);
+								}
+								else {
+									if (extend == 0) ED_sequencer_deselect_all(scene);
+									seq->flag |= SELECT;
+
+									neighbor->flag |= SELECT;
+									recurs_sel_seq(neighbor);
+									neighbor->flag |= SEQ_RIGHTSEL;
+									seq->flag |= SEQ_LEFTSEL;
+								}
+								break;
+							case SEQ_SIDE_RIGHT:
+								if ((seq->flag & SEQ_RIGHTSEL) && (neighbor->flag & SEQ_LEFTSEL)) {
+									if (extend == 0) ED_sequencer_deselect_all(scene);
+									seq->flag |= SELECT;
+
+									select_active_side(ed->seqbasep, SEQ_SIDE_RIGHT, seq->machine, seq->startdisp);
+								}
+								else {
+									if (extend == 0) ED_sequencer_deselect_all(scene);
+									seq->flag |= SELECT;
+
+									neighbor->flag |= SELECT;
+									recurs_sel_seq(neighbor);
+									neighbor->flag |= SEQ_LEFTSEL;
+									seq->flag |= SEQ_RIGHTSEL;
+								}
+								break;
+						}
+					}
+					else {
+						if (extend == 0) ED_sequencer_deselect_all(scene);
+						select_active_side(ed->seqbasep, sel_side, seq->machine, seq->startdisp);
+					}
 				}
 			}
 			else {
-				seq->flag |= SELECT;
-				if (hand == SEQ_SIDE_LEFT) seq->flag |= SEQ_LEFTSEL;
-				if (hand == SEQ_SIDE_RIGHT) seq->flag |= SEQ_RIGHTSEL;
-			}
-			
-			/* On Alt selection, select the strip and bordering handles */
-			if (linked_handle && !ELEM(hand, SEQ_SIDE_LEFT, SEQ_SIDE_RIGHT)) {
-				if (extend == 0) ED_sequencer_deselect_all(scene);
-				seq->flag |= SELECT;
-				select_surrounding_handles(scene, seq);
-			}
-			else if (linked_handle && ELEM(hand, SEQ_SIDE_LEFT, SEQ_SIDE_RIGHT) && (seq->flag & SELECT)) {
-				/*
-				 * First click selects adjacent handles on that side.
-				 * Second click selects all strips in that direction.
-				 * If there are no adjacent strips, it just selects all in that direction.
-				 */
-				sel_side = hand;
-				neighbor = find_neighboring_sequence(scene, seq, sel_side, -1);
-				if (neighbor) {
-					switch (sel_side) {
+				if (extend && (seq->flag & SELECT) && ed->act_seq == act_orig) {
+					switch (hand) {
+						case SEQ_SIDE_NONE:
+							if (linked_handle == 0)
+								seq->flag &= ~SEQ_ALLSEL;
+							break;
 						case SEQ_SIDE_LEFT:
-							if ((seq->flag & SEQ_LEFTSEL) && (neighbor->flag & SEQ_RIGHTSEL)) {
-								if (extend == 0) ED_sequencer_deselect_all(scene);
-								seq->flag |= SELECT;
-
-								select_active_side(ed->seqbasep, SEQ_SIDE_LEFT, seq->machine, seq->startdisp);
-							}
-							else {
-								if (extend == 0) ED_sequencer_deselect_all(scene);
-								seq->flag |= SELECT;
-
-								neighbor->flag |= SELECT;
-								recurs_sel_seq(neighbor);
-								neighbor->flag |= SEQ_RIGHTSEL;
-								seq->flag |= SEQ_LEFTSEL;
-							}
+							seq->flag ^= SEQ_LEFTSEL;
 							break;
 						case SEQ_SIDE_RIGHT:
-							if ((seq->flag & SEQ_RIGHTSEL) && (neighbor->flag & SEQ_LEFTSEL)) {
-								if (extend == 0) ED_sequencer_deselect_all(scene);
-								seq->flag |= SELECT;
-
-								select_active_side(ed->seqbasep, SEQ_SIDE_RIGHT, seq->machine, seq->startdisp);
-							}
-							else {
-								if (extend == 0) ED_sequencer_deselect_all(scene);
-								seq->flag |= SELECT;
-
-								neighbor->flag |= SELECT;
-								recurs_sel_seq(neighbor);
-								neighbor->flag |= SEQ_LEFTSEL;
-								seq->flag |= SEQ_RIGHTSEL;
-							}
+							seq->flag ^= SEQ_RIGHTSEL;
 							break;
 					}
 				}
 				else {
-					if (extend == 0) ED_sequencer_deselect_all(scene);
-					select_active_side(ed->seqbasep, sel_side, seq->machine, seq->startdisp);
+					seq->flag |= SELECT;
+					if (hand == SEQ_SIDE_LEFT) seq->flag |= SEQ_LEFTSEL;
+					if (hand == SEQ_SIDE_RIGHT) seq->flag |= SEQ_RIGHTSEL;
 				}
 			}
+
 			recurs_sel_seq(seq);
 
 			if (linked_time) {
