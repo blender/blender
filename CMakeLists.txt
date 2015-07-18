@@ -1063,9 +1063,9 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_LLVM)
-        find_package_wrapper(LLVM)
+	find_package_wrapper(LLVM)
 
-        if(NOT LLVM_FOUND)
+	if(NOT LLVM_FOUND)
 			set(WITH_LLVM OFF)
 			message(STATUS "LLVM not found")
 		endif()
