@@ -796,58 +796,57 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 	if (!validWindow(window)) {
 		return GHOST_kFailure;
 	}
-		switch (eventType) {
-			case GHOST_kEventWindowClose:
-				// check for index of mainwindow as it would quit blender without dialog and discard
-				if ([windowsList count] > 1  && window->getCocoaWindow() != [windowsList objectAtIndex:[windowsList count] - 1]) {
-					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window) );
-				}
-				else {
-					handleQuitRequest(); // -> quit dialog
-				}
-				break;
-			case GHOST_kEventWindowActivate:
-				m_windowManager->setActiveWindow(window);
-				window->loadCursor(window->getCursorVisibility(), window->getCursorShape());
-				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowActivate, window) );
-				break;
-			case GHOST_kEventWindowDeactivate:
-				m_windowManager->setWindowInactive(window);
-				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowDeactivate, window) );
-				break;
-			case GHOST_kEventWindowUpdate:
-				if (m_nativePixel) {
-					window->setNativePixelSize();
-					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventNativeResolutionChange, window) );
-				}
-				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowUpdate, window) );
-				break;
-			case GHOST_kEventWindowMove:
-				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowMove, window) );
-				break;
-			case GHOST_kEventWindowSize:
-				if (!m_ignoreWindowSizedMessages)
-				{
-					//Enforce only one resize message per event loop (coalescing all the live resize messages)
-					window->updateDrawingContext();
-					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
-					//Mouse up event is trapped by the resizing event loop, so send it anyway to the window manager
-					pushEvent(new GHOST_EventButton(getMilliSeconds(), GHOST_kEventButtonUp, window, convertButton(0)));
-					//m_ignoreWindowSizedMessages = true;
-				}
-				break;
-			case GHOST_kEventNativeResolutionChange:
-				
-				if (m_nativePixel) {
-					window->setNativePixelSize();
-					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventNativeResolutionChange, window) );
-				}
+	switch (eventType) {
+		case GHOST_kEventWindowClose:
+			// check for index of mainwindow as it would quit blender without dialog and discard
+			if ([windowsList count] > 1  && window->getCocoaWindow() != [windowsList objectAtIndex:[windowsList count] - 1]) {
+				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window) );
+			}
+			else {
+				handleQuitRequest(); // -> quit dialog
+			}
+			break;
+		case GHOST_kEventWindowActivate:
+			m_windowManager->setActiveWindow(window);
+			window->loadCursor(window->getCursorVisibility(), window->getCursorShape());
+			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowActivate, window) );
+			break;
+		case GHOST_kEventWindowDeactivate:
+			m_windowManager->setWindowInactive(window);
+			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowDeactivate, window) );
+			break;
+		case GHOST_kEventWindowUpdate:
+			if (m_nativePixel) {
+				window->setNativePixelSize();
+				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventNativeResolutionChange, window) );
+			}
+			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowUpdate, window) );
+			break;
+		case GHOST_kEventWindowMove:
+			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowMove, window) );
+			break;
+		case GHOST_kEventWindowSize:
+			if (!m_ignoreWindowSizedMessages) {
+				//Enforce only one resize message per event loop (coalescing all the live resize messages)
+				window->updateDrawingContext();
+				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
+				//Mouse up event is trapped by the resizing event loop, so send it anyway to the window manager
+				pushEvent(new GHOST_EventButton(getMilliSeconds(), GHOST_kEventButtonUp, window, convertButton(0)));
+				//m_ignoreWindowSizedMessages = true;
+			}
+			break;
+		case GHOST_kEventNativeResolutionChange:
 
-			default:
-				return GHOST_kFailure;
-				break;
-		}
-	
+			if (m_nativePixel) {
+				window->setNativePixelSize();
+				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventNativeResolutionChange, window) );
+			}
+
+		default:
+			return GHOST_kFailure;
+			break;
+	}
+
 	m_outsideLoopEventProcessed = true;
 	return GHOST_kSuccess;
 }
@@ -1238,12 +1237,12 @@ bool GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED < 1070
 enum {
-    NSEventPhaseNone = 0,
-    NSEventPhaseBegan = 0x1 << 0,
-    NSEventPhaseStationary = 0x1 << 1,
-    NSEventPhaseChanged = 0x1 << 2,
-    NSEventPhaseEnded = 0x1 << 3,
-    NSEventPhaseCancelled = 0x1 << 4,
+	NSEventPhaseNone = 0,
+	NSEventPhaseBegan = 0x1 << 0,
+	NSEventPhaseStationary = 0x1 << 1,
+	NSEventPhaseChanged = 0x1 << 2,
+	NSEventPhaseEnded = 0x1 << 3,
+	NSEventPhaseCancelled = 0x1 << 4,
 };
 typedef NSUInteger NSEventPhase;
 
