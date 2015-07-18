@@ -1498,46 +1498,47 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, pchan_cb, NULL);
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 			ED_undo_push(C, "PoseChannel operation");
-		}
+
 			break;
-		
+		}
 		case TSE_BONE:
 		{
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, bone_cb, NULL);
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 			ED_undo_push(C, "Bone operation");
-		}
+
 			break;
-			
+		}
 		case TSE_EBONE:
 		{
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, ebone_cb, NULL);
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 			ED_undo_push(C, "EditBone operation");
-		}
+
 			break;
-			
+		}
 		case TSE_SEQUENCE:
 		{
 			Scene *scene = CTX_data_scene(C);
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, sequence_cb, scene);
-		}
+
 			break;
-			
+		}
 		case TSE_GP_LAYER:
 		{
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, gp_layer_cb, NULL);
 			WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, NULL);
 			ED_undo_push(C, "Grease Pencil Layer operation");
-		}
+
 			break;
-			
+		}
 		case TSE_RNA_STRUCT:
 			if (event == OL_DOP_SELECT_LINKED) {
 				outliner_do_data_operation(soops, datalevel, event, &soops->tree, data_select_linked_cb, C);
 			}
+
 			break;
-			
+
 		default:
 			BKE_report(op->reports, RPT_WARNING, "Not yet implemented");
 			break;

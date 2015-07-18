@@ -2401,8 +2401,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 								data->flag |= MINMAX_STICKY;
 							else
 								data->flag &= ~MINMAX_STICKY;
-						}
+
 							break;
+						}
 						case CONSTRAINT_TYPE_ROTLIKE:
 						{
 							bRotateLikeConstraint *data = curcon->data;
@@ -2410,8 +2411,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 							/* version patch from buttons_object.c */
 							if (data->flag == 0)
 								data->flag = ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z;
-						}
+
 							break;
+						}
 					}
 				}
 			}

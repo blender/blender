@@ -1396,9 +1396,9 @@ static int animchannels_grouping_poll(bContext *C)
 			/* dopesheet and action only - all others are for other datatypes or have no groups */
 			if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_DOPESHEET) == 0)
 				return 0;
-		}
+
 			break;
-			
+		}
 		case SPACE_IPO:
 		{
 			SpaceIpo *sipo = (SpaceIpo *)sl;
@@ -1406,9 +1406,9 @@ static int animchannels_grouping_poll(bContext *C)
 			/* drivers can't have groups... */
 			if (sipo->mode != SIPO_MODE_ANIMATION)
 				return 0;
-		}
+
 			break;
-			
+		}
 		/* unsupported... */
 		default:
 			return 0;

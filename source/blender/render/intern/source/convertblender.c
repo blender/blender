@@ -378,7 +378,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, bool do_verte
 {
 	int a;
 
-		/* clear all vertex normals */
+	/* clear all vertex normals */
 	if (do_vertex_normal) {
 		for (a=0; a<obr->totvert; a++) {
 			VertRen *ver= RE_findOrAddVert(obr, a);
@@ -386,8 +386,8 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, bool do_verte
 		}
 	}
 
-		/* calculate cos of angles and point-masses, use as weight factor to
-		 * add face normal to vertex */
+	/* calculate cos of angles and point-masses, use as weight factor to
+	 * add face normal to vertex */
 	for (a=0; a<obr->totvlak; a++) {
 		VlakRen *vlr= RE_findOrAddVlak(obr, a);
 		if (do_vertex_normal && vlr->flag & ME_SMOOTH) {
@@ -404,7 +404,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, bool do_verte
 		}
 	}
 
-		/* do solid faces */
+	/* do solid faces */
 	for (a=0; a<obr->totvlak; a++) {
 		VlakRen *vlr= RE_findOrAddVlak(obr, a);
 

@@ -548,9 +548,9 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 					fp[2]= shr->winspeed[2];
 					fp[3]= shr->winspeed[3];
 				}
-			}
-				break;
 
+				break;
+			}
 			case SCE_PASS_RAYHITS:
 				/*  */
 				col= shr->rayhits;

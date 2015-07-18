@@ -807,7 +807,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 					}
 #undef SEQ_USE_PROXY_CUSTOM_DIR
 #undef SEQ_USE_PROXY_CUSTOM_FILE
-			}
+				}
 				SEQ_END
 			}
 		}
@@ -1589,7 +1589,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 					bAnimVizSettings *avs = &ob->pose->avs;
 
 					/* ghosting settings ---------------- */
-						/* ranges */
+					/* ranges */
 					avs->ghost_bc = avs->ghost_ac = arm->ghostep;
 
 					avs->ghost_sf = arm->ghostsf;
@@ -1599,19 +1599,19 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 						avs->ghost_ef = 100;
 					}
 
-						/* type */
+					/* type */
 					if (arm->ghostep == 0)
 						avs->ghost_type = GHOST_TYPE_NONE;
 					else
 						avs->ghost_type = arm->ghosttype + 1;
 
-						/* stepsize */
+					/* stepsize */
 					avs->ghost_step = arm->ghostsize;
 					if (avs->ghost_step == 0)
 						avs->ghost_step = 1;
 
 					/* path settings --------------------- */
-						/* ranges */
+					/* ranges */
 					avs->path_bc = arm->pathbc;
 					avs->path_ac = arm->pathac;
 					if ((avs->path_bc == avs->path_ac) && (avs->path_bc == 0))
@@ -1624,7 +1624,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 						avs->path_ef = 250;
 					}
 
-						/* flags */
+					/* flags */
 					if (arm->pathflag & ARM_PATH_FNUMS)
 						avs->path_viewflag |= MOTIONPATH_VIEW_FNUMS;
 					if (arm->pathflag & ARM_PATH_KFRAS)
@@ -1632,15 +1632,15 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 					if (arm->pathflag & ARM_PATH_KFNOS)
 						avs->path_viewflag |= MOTIONPATH_VIEW_KFNOS;
 
-						/* bake flags */
+					/* bake flags */
 					if (arm->pathflag & ARM_PATH_HEADS)
 						avs->path_bakeflag |= MOTIONPATH_BAKE_HEADS;
 
-						/* type */
+					/* type */
 					if (arm->pathflag & ARM_PATH_ACFRA)
 						avs->path_type = MOTIONPATH_TYPE_ACFRA;
 
-						/* stepsize */
+					/* stepsize */
 					avs->path_step = arm->pathsize;
 					if (avs->path_step == 0)
 						avs->path_step = 1;

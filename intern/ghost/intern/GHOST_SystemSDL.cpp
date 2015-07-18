@@ -320,8 +320,9 @@ GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 					g_event = new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window);
 					break;
 			}
-		}
+
 			break;
+		}
 		case SDL_QUIT:
 			g_event = new GHOST_Event(getMilliSeconds(), GHOST_kEventQuit, NULL);
 			break;
@@ -417,8 +418,8 @@ GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 			GHOST_WindowSDL *window = findGhostWindow(SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
 			assert(window != NULL);
 			g_event = new GHOST_EventWheel(getMilliSeconds(), window, sdl_sub_evt.y);
-		}
 			break;
+		}
 		case SDL_KEYDOWN:
 		case SDL_KEYUP:
 		{
@@ -488,8 +489,8 @@ GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 			}
 
 			g_event = new GHOST_EventKey(getMilliSeconds(), type, window, gkey, sym, NULL);
-		}
 			break;
+		}
 	}
 
 	if (g_event) {

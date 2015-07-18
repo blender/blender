@@ -8106,7 +8106,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 				retval = WM_UI_HANDLER_CONTINUE;
 				break;
 			}
-				/* XXX hardcoded keymap check... but anyway, while view changes, tooltips should be removed */
+			/* XXX hardcoded keymap check... but anyway, while view changes, tooltips should be removed */
 			case WHEELUPMOUSE:
 			case WHEELDOWNMOUSE:
 			case MIDDLEMOUSE:

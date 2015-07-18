@@ -160,14 +160,16 @@ static bool acf_show_channel_colors(bAnimContext *ac)
 			{
 				SpaceAction *saction = (SpaceAction *)ac->sl;
 				showGroupColors = !(saction->flag & SACTION_NODRAWGCOLORS);
-			}
+
 				break;
+			}
 			case SPACE_IPO:
 			{
 				SpaceIpo *sipo = (SpaceIpo *)ac->sl;
 				showGroupColors = !(sipo->flag & SIPO_NODRAWGCOLORS);
-			}
+
 				break;
+			}
 		}
 	}
 	

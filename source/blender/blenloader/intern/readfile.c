@@ -2107,8 +2107,9 @@ static void lib_link_fmodifiers(FileData *fd, ID *id, ListBase *list)
 			{
 				FMod_Python *data = (FMod_Python *)fcm->data;
 				data->script = newlibadr(fd, id->lib, data->script);
-			}
+
 				break;
+			}
 		}
 	}
 }
@@ -2166,23 +2167,26 @@ static void direct_link_fmodifiers(FileData *fd, ListBase *list)
 				if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 					BLI_endian_switch_float_array(data->coefficients, data->arraysize);
 				}
-			}
+
 				break;
+			}
 			case FMODIFIER_TYPE_ENVELOPE:
 			{
 				FMod_Envelope *data=  (FMod_Envelope *)fcm->data;
 				
 				data->data= newdataadr(fd, data->data);
-			}
+
 				break;
+			}
 			case FMODIFIER_TYPE_PYTHON:
 			{
 				FMod_Python *data = (FMod_Python *)fcm->data;
 				
 				data->prop = newdataadr(fd, data->prop);
 				IDP_DirectLinkGroup_OrFree(&data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-			}
+
 				break;
+			}
 		}
 	}
 }
@@ -4554,7 +4558,7 @@ static void lib_link_object(FileData *fd, Main *main)
 					bCameraActuator *ca = act->data;
 					ca->ob= newlibadr(fd, ob->id.lib, ca->ob);
 				}
-					/* leave this one, it's obsolete but necessary to read for conversion */
+				/* leave this one, it's obsolete but necessary to read for conversion */
 				else if (act->type == ACT_ADD_OBJECT) {
 					bAddObjectActuator *eoa = act->data;
 					if (eoa) eoa->ob= newlibadr(fd, ob->id.lib, eoa->ob);
@@ -8375,8 +8379,9 @@ static void expand_fmodifiers(FileData *fd, Main *mainvar, ListBase *list)
 				FMod_Python *data = (FMod_Python *)fcm->data;
 				
 				expand_doit(fd, mainvar, data->script);
-			}
+
 				break;
+			}
 		}
 	}
 }

@@ -223,10 +223,10 @@ static int FrsMaterial_mathutils_get_index(BaseMathObject *bmo, int subtype, int
 	BPy_FrsMaterial *self = (BPy_FrsMaterial *)bmo->cb_user;
 	switch (subtype) {
 	case MATHUTILS_SUBTYPE_LINE:
-	{
-		const float *color = self->m->line();
-		bmo->data[index] = color[index];
-	}
+		{
+			const float *color = self->m->line();
+			bmo->data[index] = color[index];
+		}
 		break;
 	case MATHUTILS_SUBTYPE_DIFFUSE:
 		{

@@ -1045,16 +1045,17 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 					}
 					
 					eventData = (GHOST_TEventDataPtr) ibuf;
-				}
+
 					break;
-					
+				}
 				default:
 					return GHOST_kFailure;
 					break;
 			}
 			pushEvent(new GHOST_EventDragnDrop(getMilliSeconds(),eventType,draggedObjectType,window,mouseX,mouseY,eventData));
-		}
+
 			break;
+		}
 		default:
 			return GHOST_kFailure;
 	}

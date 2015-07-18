@@ -276,8 +276,8 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			view_pan_apply(C, op);
 			break;
 		}
-			/* XXX - Mode switching isn't implemented. See comments in 36818.
-			 * switch to zoom */
+		/* XXX - Mode switching isn't implemented. See comments in 36818.
+		 * switch to zoom */
 #if 0
 		case LEFTMOUSE:
 			if (event->val == KM_PRESS) {
