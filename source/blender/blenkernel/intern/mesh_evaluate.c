@@ -2047,24 +2047,22 @@ bool BKE_mesh_center_centroid(const Mesh *me, float r_cent[3])
 
 static bool mesh_calc_center_centroid_ex(
         const MVert *mverts, int UNUSED(numVerts),
-        const MFace *mfaces, int numFaces,
-        float r_center[3])
+        const MLoopTri *lt, int numTris,
+        const MLoop *mloop, float r_center[3])
 {
 	float totweight;
-	int f;
+	int t;
 	
 	zero_v3(r_center);
 	
-	if (numFaces == 0)
+	if (numTris == 0)
 		return false;
 	
 	totweight = 0.0f;
-	for (f = 0; f < numFaces; ++f) {
-		const MFace *face = &mfaces[f];
-		const MVert *v1 = &mverts[face->v1];
-		const MVert *v2 = &mverts[face->v2];
-		const MVert *v3 = &mverts[face->v3];
-		const MVert *v4 = &mverts[face->v4];
+	for (t = 0; t < numTris; t++, lt++) {
+		const MVert *v1 = &mverts[mloop[lt->tri[0]].v];
+		const MVert *v2 = &mverts[mloop[lt->tri[1]].v];
+		const MVert *v3 = &mverts[mloop[lt->tri[2]].v];
 		float area;
 		
 		area = area_tri_v3(v1->co, v2->co, v3->co);
@@ -2072,14 +2070,6 @@ static bool mesh_calc_center_centroid_ex(
 		madd_v3_v3fl(r_center, v2->co, area);
 		madd_v3_v3fl(r_center, v3->co, area);
 		totweight += area;
-		
-		if (face->v4) {
-			area = area_tri_v3(v3->co, v4->co, v1->co);
-			madd_v3_v3fl(r_center, v3->co, area);
-			madd_v3_v3fl(r_center, v4->co, area);
-			madd_v3_v3fl(r_center, v1->co, area);
-			totweight += area;
-		}
 	}
 	if (totweight == 0.0f)
 		return false;
@@ -2089,10 +2079,9 @@ static bool mesh_calc_center_centroid_ex(
 	return true;
 }
 
-void BKE_mesh_calc_volume(
-        const MVert *mverts, const int numVerts,
-        const MFace *mfaces, const int numFaces,
-        float *r_vol, float *r_com)
+void BKE_mesh_calc_volume(const MVert *mverts, const int numVerts,
+        const MLoopTri *lt, const int numTris,
+        const MLoop *mloop, float *r_vol, float *r_com)
 {
 	float center[3];
 	float totvol;
@@ -2101,19 +2090,17 @@ void BKE_mesh_calc_volume(
 	if (r_vol) *r_vol = 0.0f;
 	if (r_com) zero_v3(r_com);
 	
-	if (numFaces == 0)
+	if (numTris == 0)
 		return;
 	
-	if (!mesh_calc_center_centroid_ex(mverts, numVerts, mfaces, numFaces, center))
+	if (!mesh_calc_center_centroid_ex(mverts, numVerts, lt, numTris, mloop, center))
 		return;
 	
 	totvol = 0.0f;
-	for (f = 0; f < numFaces; ++f) {
-		const MFace *face = &mfaces[f];
-		const MVert *v1 = &mverts[face->v1];
-		const MVert *v2 = &mverts[face->v2];
-		const MVert *v3 = &mverts[face->v3];
-		const MVert *v4 = &mverts[face->v4];
+	for (f = 0; f < numTris; f++, lt++) {
+		const MVert *v1 = &mverts[mloop[lt->tri[0]].v];
+		const MVert *v2 = &mverts[mloop[lt->tri[1]].v];
+		const MVert *v3 = &mverts[mloop[lt->tri[2]].v];
 		float vol;
 		
 		vol = volume_tetrahedron_signed_v3(center, v1->co, v2->co, v3->co);
@@ -2126,21 +2113,6 @@ void BKE_mesh_calc_volume(
 			madd_v3_v3fl(r_com, v1->co, vol);
 			madd_v3_v3fl(r_com, v2->co, vol);
 			madd_v3_v3fl(r_com, v3->co, vol);
-		}
-		
-		if (face->v4) {
-			vol = volume_tetrahedron_signed_v3(center, v3->co, v4->co, v1->co);
-			
-			if (r_vol) {
-				totvol += vol;
-			}
-			if (r_com) {
-				/* averaging factor 1/4 is applied in the end */
-				madd_v3_v3fl(r_com, center, vol); // XXX could extract this
-				madd_v3_v3fl(r_com, v3->co, vol);
-				madd_v3_v3fl(r_com, v4->co, vol);
-				madd_v3_v3fl(r_com, v1->co, vol);
-			}
 		}
 	}
 	

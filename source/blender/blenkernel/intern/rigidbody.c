@@ -274,57 +274,55 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 	if (ob->type == OB_MESH) {
 		DerivedMesh *dm = NULL;
 		MVert *mvert;
-		MFace *mface;
+		const MLoopTri *lt = NULL;
 		int totvert;
-		int totface;
-		int tottris = 0;
-		int triangle_index = 0;
-
+		int tottri = 0;
+		const MLoop *mloop = NULL;
+		
 		dm = rigidbody_get_mesh(ob);
 
 		/* ensure mesh validity, then grab data */
 		if (dm == NULL)
 			return NULL;
 
-		DM_ensure_tessface(dm);
+		DM_ensure_looptri(dm);
 
 		mvert   = dm->getVertArray(dm);
 		totvert = dm->getNumVerts(dm);
-		mface   = dm->getTessFaceArray(dm);
-		totface = dm->getNumTessFaces(dm);
+		lt = dm->getLoopTriArray(dm);
+		tottri = dm->getNumLoopTri(dm);
+		mloop = dm->getLoopArray(dm);
 
 		/* sanity checking - potential case when no data will be present */
-		if ((totvert == 0) || (totface == 0)) {
+		if ((totvert == 0) || (tottri == 0)) {
 			printf("WARNING: no geometry data converted for Mesh Collision Shape (ob = %s)\n", ob->id.name + 2);
 		}
 		else {
 			rbMeshData *mdata;
 			int i;
-			
-			/* count triangles */
-			for (i = 0; i < totface; i++) {
-				(mface[i].v4) ? (tottris += 2) : (tottris += 1);
-			}
 
 			/* init mesh data for collision shape */
-			mdata = RB_trimesh_data_new(tottris, totvert);
+			mdata = RB_trimesh_data_new(tottri, totvert);
 			
 			RB_trimesh_add_vertices(mdata, (float *)mvert, totvert, sizeof(MVert));
 
 			/* loop over all faces, adding them as triangles to the collision shape
 			 * (so for some faces, more than triangle will get added)
 			 */
-			for (i = 0; (i < totface) && (mface) && (mvert); i++, mface++) {
-				/* add first triangle - verts 1,2,3 */
-				RB_trimesh_add_triangle_indices(mdata, triangle_index, mface->v1, mface->v2, mface->v3);
-				triangle_index++;
+			if (mvert && lt) {
+				for (i = 0; i < tottri; i++) {
+					/* add first triangle - verts 1,2,3 */
+					const MLoopTri *lt = &lt[i];
+					int index[3];
 
-				/* add second triangle if needed - verts 1,3,4 */
-				if (mface->v4) {
-					RB_trimesh_add_triangle_indices(mdata, triangle_index, mface->v1, mface->v3, mface->v4);
-					triangle_index++;
+					index[0] = (&mloop[lt->tri[0]])->v;
+					index[1] = (&mloop[lt->tri[1]])->v;
+					index[2] = (&mloop[lt->tri[2]])->v;
+
+					RB_trimesh_add_triangle_indices(mdata, i, UNPACK3(index));
 				}
 			}
+			
 			RB_trimesh_finish(mdata);
 
 			/* construct collision shape
@@ -512,22 +510,24 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
 			if (ob->type == OB_MESH) {
 				DerivedMesh *dm = rigidbody_get_mesh(ob);
 				MVert *mvert;
-				MFace *mface;
-				int totvert, totface;
+				const MLoopTri *lt = NULL;
+				int totvert, tottri = 0;
+				const MLoop *mloop = NULL;
 				
 				/* ensure mesh validity, then grab data */
 				if (dm == NULL)
 					return;
 			
-				DM_ensure_tessface(dm);
+				DM_ensure_looptri(dm);
 			
 				mvert   = dm->getVertArray(dm);
 				totvert = dm->getNumVerts(dm);
-				mface   = dm->getTessFaceArray(dm);
-				totface = dm->getNumTessFaces(dm);
+				lt = dm->getLoopTriArray(dm);
+				tottri = dm->getNumLoopTri(dm);
+				mloop = dm->getLoopArray(dm);
 				
-				if (totvert > 0 && totface > 0) {
-					BKE_mesh_calc_volume(mvert, totvert, mface, totface, &volume, NULL);
+				if (totvert > 0 && tottri > 0) {
+					BKE_mesh_calc_volume(mvert, totvert, lt, tottri, mloop, &volume, NULL);
 				}
 				
 				/* cleanup temp data */
@@ -595,22 +595,24 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_com[3])
 			if (ob->type == OB_MESH) {
 				DerivedMesh *dm = rigidbody_get_mesh(ob);
 				MVert *mvert;
-				MFace *mface;
-				int totvert, totface;
+				const MLoopTri* lt = NULL;
+				int totvert, tottri = 0;
+				const MLoop* mloop = NULL;
 				
 				/* ensure mesh validity, then grab data */
 				if (dm == NULL)
 					return;
 			
-				DM_ensure_tessface(dm);
+				DM_ensure_looptri(dm);
 			
 				mvert   = dm->getVertArray(dm);
 				totvert = dm->getNumVerts(dm);
-				mface   = dm->getTessFaceArray(dm);
-				totface = dm->getNumTessFaces(dm);
+				lt = dm->getLoopTriArray(dm);
+				tottri = dm->getNumLoopTri(dm);
+				mloop = dm->getLoopArray(dm);
 				
-				if (totvert > 0 && totface > 0) {
-					BKE_mesh_calc_volume(mvert, totvert, mface, totface, NULL, r_com);
+				if (totvert > 0 && tottri > 0) {
+					BKE_mesh_calc_volume(mvert, totvert, lt, tottri, mloop, NULL, r_com);
 				}
 				
 				/* cleanup temp data */

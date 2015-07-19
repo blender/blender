@@ -273,8 +273,8 @@ bool BKE_mesh_center_centroid(const struct Mesh *me, float r_cent[3]);
 
 void BKE_mesh_calc_volume(
         const struct MVert *mverts, const int numVerts,
-        const struct MFace *mfaces, const int numFaces,
-        float *r_vol, float *r_com);
+        const struct MLoopTri *mlooptri, const int numTris,
+        const struct MLoop *mloop, float *r_vol, float *r_com);
 
 /* tessface */
 void BKE_mesh_loops_to_mface_corners(
