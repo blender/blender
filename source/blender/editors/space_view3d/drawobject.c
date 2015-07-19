@@ -8462,7 +8462,7 @@ static void bbs_mesh_solid_EM(BMEditMesh *em, Scene *scene, View3D *v3d,
 
 	}
 	else {
-		dm->drawMappedFaces(dm, bbs_mesh_mask__setSolidDrawOptions, NULL, NULL, em->bm, 0);
+		dm->drawMappedFaces(dm, bbs_mesh_mask__setSolidDrawOptions, NULL, NULL, em->bm, DM_DRAW_SKIP_SELECT);
 	}
 }
 

@@ -652,7 +652,7 @@ static void cdDM_drawMappedFaces(
 	totpoly = dm->getNumPolys(dm);
 
 	/* if we do selection, fill the selection buffer color */
-	if (G.f & G_BACKBUFSEL) {
+	if ((G.f & G_BACKBUFSEL) && !(flag & DM_DRAW_SKIP_SELECT)) {
 		Mesh *me = userData;
 		unsigned int *fi_map;
 

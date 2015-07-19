@@ -462,10 +462,11 @@ void WM_framebuffer_index_set(int index)
 void WM_framebuffer_index_get(int index, int *r_col)
 {
 	const int col = index_to_framebuffer(index);
-	*r_col = ((col & 0xFF) << 24) | /* red */
-	         (((col >>  8) & 0xFF) << 16) | /* green */
-	         (((col >> 16) & 0xFF) << 8) | /* blue */
-	         0xFF; /* alpha */
+	char *c_col = (char *)r_col;
+	c_col[0] = (col & 0xFF); /* red */
+	c_col[1] = ((col >>  8) & 0xFF); /* green */
+	c_col[2] = ((col >> 16) & 0xFF); /* blue */
+	c_col[3] = 0xFF; /* alpha */
 }
 
 
