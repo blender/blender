@@ -72,7 +72,7 @@ class ConstraintButtonsPanel:
                 layout.prop_search(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
 
     @staticmethod
-    def ik_template(self, layout, con):
+    def ik_template(layout, con):
         # only used for iTaSC
         layout.prop(con, "pole_target")
 
