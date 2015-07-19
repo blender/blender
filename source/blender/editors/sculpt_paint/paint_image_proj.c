@@ -3524,8 +3524,8 @@ static bool project_paint_flt_max_cull(
 {
 	if (!ps->is_ortho) {
 		if (coSS->v1[0] == FLT_MAX ||
-			coSS->v2[0] == FLT_MAX ||
-			coSS->v3[0] == FLT_MAX)
+		    coSS->v2[0] == FLT_MAX ||
+		    coSS->v3[0] == FLT_MAX)
 		{
 			return true;
 		}
@@ -4350,8 +4350,9 @@ static void do_projectpaint_mask_f(ProjPaintState *ps, ProjPixel *projPixel, flo
 	}
 }
 
-static void image_paint_partial_redraw_expand(ImagePaintPartialRedraw *cell,
-											  const ProjPixel *projPixel)
+static void image_paint_partial_redraw_expand(
+        ImagePaintPartialRedraw *cell,
+        const ProjPixel *projPixel)
 {
 	cell->x1 = min_ii(cell->x1, (int)projPixel->x_px);
 	cell->y1 = min_ii(cell->y1, (int)projPixel->y_px);

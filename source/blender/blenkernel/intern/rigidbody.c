@@ -554,14 +554,14 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
 	if (r_vol) *r_vol = volume;
 }
 
-void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_com[3])
+void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
 {
 	RigidBodyOb *rbo = ob->rigidbody_object;
 
 	float size[3]  = {1.0f, 1.0f, 1.0f};
 	float height = 1.0f;
 
-	zero_v3(r_com);
+	zero_v3(r_center);
 
 	/* if automatically determining dimensions, use the Object's boundbox
 	 *	- assume that all quadrics are standing upright on local z-axis
@@ -586,7 +586,7 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_com[3])
 			/* cone is geometrically centered on the median,
 			 * center of mass is 1/4 up from the base
 			 */
-			r_com[2] = -0.25f * height;
+			r_center[2] = -0.25f * height;
 			break;
 
 		case RB_SHAPE_CONVEXH:
@@ -595,7 +595,7 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_com[3])
 			if (ob->type == OB_MESH) {
 				DerivedMesh *dm = rigidbody_get_mesh(ob);
 				MVert *mvert;
-				const MLoopTri* lt = NULL;
+				const MLoopTri *looptri = NULL;
 				int totvert, tottri = 0;
 				const MLoop* mloop = NULL;
 				
@@ -607,12 +607,12 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_com[3])
 			
 				mvert   = dm->getVertArray(dm);
 				totvert = dm->getNumVerts(dm);
-				lt = dm->getLoopTriArray(dm);
+				looptri = dm->getLoopTriArray(dm);
 				tottri = dm->getNumLoopTri(dm);
 				mloop = dm->getLoopArray(dm);
 				
 				if (totvert > 0 && tottri > 0) {
-					BKE_mesh_calc_volume(mvert, totvert, lt, tottri, mloop, NULL, r_com);
+					BKE_mesh_calc_volume(mvert, totvert, looptri, tottri, mloop, NULL, r_center);
 				}
 				
 				/* cleanup temp data */
@@ -1593,7 +1593,7 @@ struct RigidBodyCon *BKE_rigidbody_copy_constraint(Object *ob) { return NULL; }
 void BKE_rigidbody_relink_constraint(RigidBodyCon *rbc) {}
 void BKE_rigidbody_validate_sim_world(Scene *scene, RigidBodyWorld *rbw, bool rebuild) {}
 void BKE_rigidbody_calc_volume(Object *ob, float *r_vol) { if (r_vol) *r_vol = 0.0f; }
-void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_com[3]) { zero_v3(r_com); }
+void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3]) { zero_v3(r_center); }
 struct RigidBodyWorld *BKE_rigidbody_create_world(Scene *scene) { return NULL; }
 struct RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw) { return NULL; }
 void BKE_rigidbody_world_groups_relink(struct RigidBodyWorld *rbw) {}

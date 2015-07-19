@@ -2046,20 +2046,21 @@ bool BKE_mesh_center_centroid(const Mesh *me, float r_cent[3])
  * \{ */
 
 static bool mesh_calc_center_centroid_ex(
-        const MVert *mverts, int UNUSED(numVerts),
-        const MLoopTri *lt, int numTris,
+        const MVert *mverts, int UNUSED(mverts_num),
+        const MLoopTri *looptri, int looptri_num,
         const MLoop *mloop, float r_center[3])
 {
+	const MLoopTri *lt;
 	float totweight;
-	int t;
+	int i;
 	
 	zero_v3(r_center);
 	
-	if (numTris == 0)
+	if (looptri_num == 0)
 		return false;
 	
 	totweight = 0.0f;
-	for (t = 0; t < numTris; t++, lt++) {
+	for (i = 0, lt = looptri; i < looptri_num; i++, lt++) {
 		const MVert *v1 = &mverts[mloop[lt->tri[0]].v];
 		const MVert *v2 = &mverts[mloop[lt->tri[1]].v];
 		const MVert *v3 = &mverts[mloop[lt->tri[2]].v];
@@ -2079,40 +2080,52 @@ static bool mesh_calc_center_centroid_ex(
 	return true;
 }
 
-void BKE_mesh_calc_volume(const MVert *mverts, const int numVerts,
-        const MLoopTri *lt, const int numTris,
-        const MLoop *mloop, float *r_vol, float *r_com)
+/**
+ * Calculate the volume and center.
+ *
+ * \param r_volume: Volume (unsigned).
+ * \param r_center: Center of mass.
+ */
+void BKE_mesh_calc_volume(
+        const MVert *mverts, const int mverts_num,
+        const MLoopTri *looptri, const int looptri_num,
+        const MLoop *mloop,
+        float *r_volume, float r_center[3])
 {
+	const MLoopTri *lt;
 	float center[3];
 	float totvol;
-	int f;
+	int i;
 	
-	if (r_vol) *r_vol = 0.0f;
-	if (r_com) zero_v3(r_com);
+	if (r_volume)
+		*r_volume = 0.0f;
+	if (r_center)
+		zero_v3(r_center);
 	
-	if (numTris == 0)
+	if (looptri_num == 0)
 		return;
 	
-	if (!mesh_calc_center_centroid_ex(mverts, numVerts, lt, numTris, mloop, center))
+	if (!mesh_calc_center_centroid_ex(mverts, mverts_num, looptri, looptri_num, mloop, center))
 		return;
 	
 	totvol = 0.0f;
-	for (f = 0; f < numTris; f++, lt++) {
+
+	for (i = 0, lt = looptri; i < looptri_num; i++, lt++) {
 		const MVert *v1 = &mverts[mloop[lt->tri[0]].v];
 		const MVert *v2 = &mverts[mloop[lt->tri[1]].v];
 		const MVert *v3 = &mverts[mloop[lt->tri[2]].v];
 		float vol;
 		
 		vol = volume_tetrahedron_signed_v3(center, v1->co, v2->co, v3->co);
-		if (r_vol) {
+		if (r_volume) {
 			totvol += vol;
 		}
-		if (r_com) {
+		if (r_center) {
 			/* averaging factor 1/4 is applied in the end */
-			madd_v3_v3fl(r_com, center, vol); // XXX could extract this
-			madd_v3_v3fl(r_com, v1->co, vol);
-			madd_v3_v3fl(r_com, v2->co, vol);
-			madd_v3_v3fl(r_com, v3->co, vol);
+			madd_v3_v3fl(r_center, center, vol);  /* XXX could extract this */
+			madd_v3_v3fl(r_center, v1->co, vol);
+			madd_v3_v3fl(r_center, v2->co, vol);
+			madd_v3_v3fl(r_center, v3->co, vol);
 		}
 	}
 	
@@ -2120,15 +2133,15 @@ void BKE_mesh_calc_volume(const MVert *mverts, const int numVerts,
 	 * totvol can become negative even for a valid mesh.
 	 * The true value is always the positive value.
 	 */
-	if (r_vol) {
-		*r_vol = fabsf(totvol);
+	if (r_volume) {
+		*r_volume = fabsf(totvol);
 	}
-	if (r_com) {
+	if (r_center) {
 		/* Note: Factor 1/4 is applied once for all vertices here.
 		 * This also automatically negates the vector if totvol is negative.
 		 */
 		if (totvol != 0.0f)
-			mul_v3_fl(r_com, 0.25f / totvol);
+			mul_v3_fl(r_center, 0.25f / totvol);
 	}
 }
 
@@ -2318,7 +2331,7 @@ int BKE_mesh_recalc_tessellation(
 /* We abuse MFace->edcode to tag quad faces. See below for details. */
 #define TESSFACE_IS_QUAD 1
 
-	const int looptris_tot = poly_to_tri_count(totpoly, totloop);
+	const int looptri_num = poly_to_tri_count(totpoly, totloop);
 
 	MPoly *mp, *mpoly;
 	MLoop *ml, *mloop;
@@ -2335,9 +2348,9 @@ int BKE_mesh_recalc_tessellation(
 	/* allocate the length of totfaces, avoid many small reallocs,
 	 * if all faces are tri's it will be correct, quads == 2x allocs */
 	/* take care. we are _not_ calloc'ing so be sure to initialize each field */
-	mface_to_poly_map = MEM_mallocN(sizeof(*mface_to_poly_map) * (size_t)looptris_tot, __func__);
-	mface             = MEM_mallocN(sizeof(*mface) *             (size_t)looptris_tot, __func__);
-	lindices          = MEM_mallocN(sizeof(*lindices) *          (size_t)looptris_tot, __func__);
+	mface_to_poly_map = MEM_mallocN(sizeof(*mface_to_poly_map) * (size_t)looptri_num, __func__);
+	mface             = MEM_mallocN(sizeof(*mface) *             (size_t)looptri_num, __func__);
+	lindices          = MEM_mallocN(sizeof(*lindices) *          (size_t)looptri_num, __func__);
 
 	mface_index = 0;
 	mp = mpoly;
@@ -2497,10 +2510,10 @@ int BKE_mesh_recalc_tessellation(
 	CustomData_free(fdata, totface);
 	totface = mface_index;
 
-	BLI_assert(totface <= looptris_tot);
+	BLI_assert(totface <= looptri_num);
 
 	/* not essential but without this we store over-alloc'd memory in the CustomData layers */
-	if (LIKELY(looptris_tot != totface)) {
+	if (LIKELY(looptri_num != totface)) {
 		mface = MEM_reallocN(mface, sizeof(*mface) * (size_t)totface);
 		mface_to_poly_map = MEM_reallocN(mface_to_poly_map, sizeof(*mface_to_poly_map) * (size_t)totface);
 	}

@@ -160,7 +160,7 @@ static int space_image_buffer_exists_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	if (sima && ED_space_image_has_buffer(sima)) {
-			return true;
+		return true;
 	}
 	return false;
 }
