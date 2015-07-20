@@ -2312,7 +2312,7 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 			                         dm->drawObject->materials[a].totelements);
 		}
 	}
-	GPU_buffer_unbind();
+	GPU_buffers_unbind();
 }
 
 /* Only used by non-editmesh types */
@@ -2781,7 +2781,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 	}
 
 
-	GPU_buffer_unbind();
+	GPU_buffers_unbind();
 }
 
 static void ccgDM_drawFacesTex(DerivedMesh *dm,
@@ -2827,7 +2827,7 @@ static void ccgDM_drawUVEdges(DerivedMesh *dm)
 	if (prevdraw && (curpos != prevstart)) {
 		glDrawArrays(GL_LINES, prevstart, curpos - prevstart);
 	}
-	GPU_buffer_unbind();
+	GPU_buffers_unbind();
 }
 
 static void ccgDM_drawMappedFaces(DerivedMesh *dm,

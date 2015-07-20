@@ -191,6 +191,7 @@ int GPU_attrib_element_size(GPUAttrib data[], int numdata);
 void GPU_interleaved_attrib_setup(GPUBuffer *buffer, GPUAttrib data[], int numdata, int element_size);
 
 void GPU_buffer_bind(GPUBuffer *buffer, GPUBindingType binding);
+void GPU_buffer_unbind(GPUBuffer *buffer, GPUBindingType binding);
 
 /* can't lock more than one buffer at once */
 void *GPU_buffer_lock(GPUBuffer *buffer, GPUBindingType binding);
@@ -204,7 +205,7 @@ void GPU_color_switch(int mode);
 void GPU_buffer_draw_elements(GPUBuffer *elements, unsigned int mode, int start, int count);
 
 /* called after drawing */
-void GPU_buffer_unbind(void);
+void GPU_buffers_unbind(void);
 
 /* only unbind interleaved data */
 void GPU_interleaved_attrib_unbind(void);

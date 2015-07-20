@@ -940,7 +940,7 @@ void GPU_interleaved_attrib_unbind(void)
 	attribData[0].index = -1;
 }
 
-void GPU_buffer_unbind(void)
+void GPU_buffers_unbind(void)
 {
 	int i;
 
@@ -1055,6 +1055,14 @@ void GPU_buffer_bind(GPUBuffer *buffer, GPUBindingType binding)
 	if (buffer->use_vbo) {
 		int bindtypegl = gpu_binding_type_gl[binding];
 		glBindBufferARB(bindtypegl, buffer->id);
+	}
+}
+
+void GPU_buffer_unbind(GPUBuffer *buffer, GPUBindingType binding)
+{
+	if (buffer->use_vbo) {
+		int bindtypegl = gpu_binding_type_gl[binding];
+		glBindBufferARB(bindtypegl, 0);
 	}
 }
 
@@ -1294,8 +1302,6 @@ void GPU_update_mesh_pbvh_buffers(
 			GPU_buffer_free(buffers->vert_buf);
 			buffers->vert_buf = NULL;
 		}
-
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 	}
 
 	buffers->mvert = mvert;
@@ -1366,8 +1372,6 @@ GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(
 			GPU_buffer_free(buffers->index_buf);
 			buffers->index_buf = NULL;
 		}
-
-		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	}
 
 	buffers->tot_tri = tottri;
@@ -1476,7 +1480,6 @@ void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, CCGElem **grids,
 			GPU_buffer_free(buffers->vert_buf);
 			buffers->vert_buf = NULL;
 		}
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 	}
 
 	buffers->grids = grids;
@@ -1567,8 +1570,6 @@ static GPUBuffer *gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned
 		FILL_QUAD_BUFFER(unsigned int, *totquad, mres_glob_buffer);
 	}
 
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
-
 	mres_prev_gridsize = gridsize;
 	mres_prev_index_type = *index_type;
 	mres_prev_totquad = *totquad;
@@ -1628,8 +1629,6 @@ GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
 		FILL_FAST_BUFFER(unsigned int);
 	}
 
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
-
 	if (totquad == fully_visible_totquad) {
 		buffers->index_buf = gpu_get_grid_buffer(gridsize, &buffers->index_type, &buffers->tot_quad);
 		buffers->has_hidden = 0;
@@ -1646,7 +1645,6 @@ GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
 			FILL_QUAD_BUFFER(unsigned int, totquad, buffers->index_buf);
 		}
 
-		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 		buffers->has_hidden = 1;
 	}
 
@@ -2021,9 +2019,9 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 		if (wireframe)
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+		GPU_buffer_unbind(buffers->vert_buf, GPU_BINDING_ARRAY);
 		if (buffers->index_buf || do_fast)
-			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+			GPU_buffer_unbind(do_fast ? buffers->index_buf_fast : buffers->index_buf, GPU_BINDING_ARRAY);
 
 		glDisableClientState(GL_VERTEX_ARRAY);
 		if (!wireframe) {
@@ -2143,7 +2141,6 @@ void GPU_init_draw_pbvh_BB(void)
 	glDisable(GL_LIGHTING);
 	glDisable(GL_COLOR_MATERIAL);
 	glEnable(GL_BLEND);
-	glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 }
 
 void GPU_end_draw_pbvh_BB(void)

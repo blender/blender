@@ -359,7 +359,7 @@ static void cdDM_drawVerts(DerivedMesh *dm)
 		glDrawArrays(GL_POINTS, 0, dm->drawObject->tot_loop_verts);
 	else
 		glDrawArrays(GL_POINTS, 0, dm->drawObject->tot_loose_point);
-	GPU_buffer_unbind();
+	GPU_buffers_unbind();
 }
 
 static void cdDM_drawUVEdges(DerivedMesh *dm)
@@ -389,7 +389,7 @@ static void cdDM_drawUVEdges(DerivedMesh *dm)
 	if (prevdraw && (curpos != prevstart)) {
 		glDrawArrays(GL_LINES, prevstart, curpos - prevstart);
 	}
-	GPU_buffer_unbind();
+	GPU_buffers_unbind();
 }
 
 static void cdDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdges)
@@ -418,7 +418,7 @@ static void cdDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdg
 			GPU_buffer_draw_elements(gdo->edges, GL_LINES, gdo->loose_edge_offset * 2, dm->drawObject->tot_loose_edge_drawn * 2);
 		}
 	}
-	GPU_buffer_unbind();
+	GPU_buffers_unbind();
 }
 
 static void cdDM_drawLooseEdges(DerivedMesh *dm)
@@ -435,7 +435,7 @@ static void cdDM_drawLooseEdges(DerivedMesh *dm)
 		GPU_buffer_draw_elements(dm->drawObject->edges, GL_LINES, start, count);
 	}
 
-	GPU_buffer_unbind();
+	GPU_buffers_unbind();
 }
 
 static void cdDM_drawFacesSolid(
@@ -469,7 +469,7 @@ static void cdDM_drawFacesSolid(
 			            dm->drawObject->materials[a].start, dm->drawObject->materials[a].totelements);
 		}
 	}
-	GPU_buffer_unbind();
+	GPU_buffers_unbind();
 
 	glShadeModel(GL_FLAT);
 }
@@ -611,7 +611,7 @@ static void cdDM_drawFacesTex_common(
 		}
 	}
 
-	GPU_buffer_unbind();
+	GPU_buffers_unbind();
 	glShadeModel(GL_FLAT);
 	
 }
@@ -790,7 +790,7 @@ static void cdDM_drawMappedFaces(
 
 	glShadeModel(GL_FLAT);
 
-	GPU_buffer_unbind();
+	GPU_buffers_unbind();
 
 	if (G.f & G_BACKBUFSEL)
 		GPU_buffer_free(findex_buffer);
@@ -1020,7 +1020,7 @@ static void cdDM_drawMappedFacesGLSL(
 			}
 			varray = GPU_buffer_lock_stream(buffer, GPU_BINDING_ARRAY);
 			if (varray == NULL) {
-				GPU_buffer_unbind();
+				GPU_buffers_unbind();
 				GPU_buffer_free(buffer);
 				MEM_freeN(mat_orig_to_new);
 				MEM_freeN(matconv);
@@ -1090,7 +1090,7 @@ static void cdDM_drawMappedFacesGLSL(
 			}
 		}
 
-		GPU_buffer_unbind();
+		GPU_buffers_unbind();
 		if (buffer)
 			GPU_buffer_free(buffer);
 
