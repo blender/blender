@@ -39,17 +39,20 @@ static void veccopy(float dst[3], const float src[3])
 	dst[2] = src[2];
 }
 
-#define GET_FACE(_mesh, _n) \
-	(*(DualConFaces)(((char *)(_mesh)->faces) + ((_n) * (_mesh)->face_stride)))
+#define GET_TRI(_mesh, _n) \
+	(*(DualConTri)(((char *)(_mesh)->looptri) + ((_n) * (_mesh)->tri_stride)))
 
 #define GET_CO(_mesh, _n) \
 	(*(DualConCo)(((char *)(_mesh)->co) + ((_n) * (_mesh)->co_stride)))
+
+#define GET_LOOP(_mesh, _n) \
+	(*(DualConLoop)(((char *)(_mesh)->mloop) + ((_n) * (_mesh)->loop_stride)))
 
 class DualConInputReader : public ModelReader
 {
 private:
 const DualConInput *input_mesh;
-int tottri, curface, offset;
+int tottri, curtri;
 float min[3], max[3], maxsize;
 float scale;
 public:
@@ -61,14 +64,9 @@ DualConInputReader(const DualConInput *mesh, float _scale)
 
 void reset()
 {
-	tottri = 0;
-	curface = 0;
-	offset = 0;
+	curtri = 0;
 	maxsize = 0;
-
-	/* initialize tottri */
-	for (int i = 0; i < input_mesh->totface; i++)
-		tottri += GET_FACE(input_mesh, i)[3] ? 2 : 1;
+	tottri = input_mesh->tottri;
 
 	veccopy(min, input_mesh->min);
 	veccopy(max, input_mesh->max);
@@ -94,29 +92,17 @@ void reset()
 
 Triangle *getNextTriangle()
 {
-	if (curface == input_mesh->totface)
-		return 0;
+	if (curtri == input_mesh->tottri)
+		return NULL;
 
 	Triangle *t = new Triangle();
 
-	unsigned int *f = GET_FACE(input_mesh, curface);
-	if (offset == 0) {
-		veccopy(t->vt[0], GET_CO(input_mesh, f[0]));
-		veccopy(t->vt[1], GET_CO(input_mesh, f[1]));
-		veccopy(t->vt[2], GET_CO(input_mesh, f[2]));
-	}
-	else {
-		veccopy(t->vt[0], GET_CO(input_mesh, f[2]));
-		veccopy(t->vt[1], GET_CO(input_mesh, f[3]));
-		veccopy(t->vt[2], GET_CO(input_mesh, f[0]));
-	}
+	unsigned int *tr = GET_TRI(input_mesh, curtri);
+	veccopy(t->vt[0], GET_CO(input_mesh, GET_LOOP(input_mesh, tr[0])));
+	veccopy(t->vt[1], GET_CO(input_mesh, GET_LOOP(input_mesh, tr[1])));
+	veccopy(t->vt[2], GET_CO(input_mesh, GET_LOOP(input_mesh, tr[2])));
 
-	if (offset == 0 && f[3])
-		offset++;
-	else {
-		offset = 0;
-		curface++;
-	}
+	curtri++;
 
 	/* remove triangle if it contains invalid coords */
 	for (int i = 0; i < 3; i++) {
@@ -132,27 +118,15 @@ Triangle *getNextTriangle()
 
 int getNextTriangle(int t[3])
 {
-	if (curface == input_mesh->totface)
+	if (curtri == input_mesh->tottri)
 		return 0;
 
-	unsigned int *f = GET_FACE(input_mesh, curface);
-	if (offset == 0) {
-		t[0] = f[0];
-		t[1] = f[1];
-		t[2] = f[2];
-	}
-	else {
-		t[0] = f[2];
-		t[1] = f[3];
-		t[2] = f[0];
-	}
+	unsigned int *tr = GET_TRI(input_mesh, curtri);
+	t[0] = tr[0];
+	t[1] = tr[1];
+	t[2] = tr[2];
 
-	if (offset == 0 && f[3])
-		offset++;
-	else {
-		offset = 0;
-		curface++;
-	}
+	curtri++;
 
 	return 1;
 }

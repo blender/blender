@@ -32,17 +32,25 @@ extern "C" {
 #endif
 
 typedef float (*DualConCo)[3];
-typedef unsigned int (*DualConFaces)[4];
+
+typedef unsigned int (*DualConTri)[3];
+
+typedef unsigned int (*DualConLoop);
+
 struct DerivedMesh;
 
 typedef struct DualConInput {
+	DualConLoop mloop;
+
 	DualConCo co;
 	int co_stride;
 	int totco;
 
-	DualConFaces faces;
-	int face_stride;
-	int totface;
+	DualConTri looptri;
+	int tri_stride;
+	int tottri;
+
+	int loop_stride;
 
 	float min[3], max[3];
 } DualConInput;

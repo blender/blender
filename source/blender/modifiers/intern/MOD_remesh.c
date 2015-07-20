@@ -78,9 +78,11 @@ static void init_dualcon_mesh(DualConInput *mesh, DerivedMesh *dm)
 	mesh->co_stride = sizeof(MVert);
 	mesh->totco = dm->getNumVerts(dm);
 
-	mesh->faces = (void *)dm->getTessFaceArray(dm);
-	mesh->face_stride = sizeof(MFace);
-	mesh->totface = dm->getNumTessFaces(dm);
+	mesh->mloop = (void *)dm->getLoopArray(dm);
+	mesh->loop_stride = sizeof(MLoop);
+	mesh->looptri = (void *)dm->getLoopTriArray(dm);
+	mesh->tri_stride = sizeof(MLoopTri);
+	mesh->tottri = dm->getNumLoopTri(dm);
 
 	INIT_MINMAX(mesh->min, mesh->max);
 	dm->getMinMax(dm, mesh->min, mesh->max);
