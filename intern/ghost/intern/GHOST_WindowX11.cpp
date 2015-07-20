@@ -166,10 +166,6 @@ static XVisualInfo *x11_visualinfo_from_glx(
 	GHOST_TUns16 numOfAASamples = *r_numOfAASamples;
 	/* Set up the minimum attributes that we require and see if
 	 * X can find us a visual matching those requirements. */
-
-	std::vector<int> attribs;
-	attribs.reserve(40);
-
 	int glx_major, glx_minor; /* GLX version: major.minor */
 
 	if (!glXQueryVersion(display, &glx_major, &glx_minor)) {
@@ -196,49 +192,53 @@ static XVisualInfo *x11_visualinfo_from_glx(
 	/* Find the display with highest samples, starting at level requested */
 	GHOST_TUns16 actualSamples = numOfAASamples;
 	for (;;) {
-		attribs.clear();
+		int attribs[20];
+		int iattr = 0;
 
-		if (stereoVisual)
-			attribs.push_back(GLX_STEREO);
+		if (stereoVisual) {
+			attribs[iattr++] = GLX_STEREO;
+		}
 
-		attribs.push_back(GLX_RGBA);
+		attribs[iattr++] = GLX_RGBA;
 
-		attribs.push_back(GLX_DOUBLEBUFFER);
+		attribs[iattr++] = GLX_DOUBLEBUFFER;
 
-		attribs.push_back(GLX_RED_SIZE);
-		attribs.push_back(1);
+		attribs[iattr++] = GLX_RED_SIZE;
+		attribs[iattr++] = 1;
 
-		attribs.push_back(GLX_BLUE_SIZE);
-		attribs.push_back(1);
+		attribs[iattr++] = GLX_BLUE_SIZE;
+		attribs[iattr++] = 1;
 
-		attribs.push_back(GLX_GREEN_SIZE);
-		attribs.push_back(1);
+		attribs[iattr++] = GLX_GREEN_SIZE;
+		attribs[iattr++] = 1;
 
-		attribs.push_back(GLX_DEPTH_SIZE);
-		attribs.push_back(1);
+		attribs[iattr++] = GLX_DEPTH_SIZE;
+		attribs[iattr++] = 1;
 
 		if (needAlpha) {
-			attribs.push_back(GLX_ALPHA_SIZE);
-			attribs.push_back(1);
+			attribs[iattr++] = GLX_ALPHA_SIZE;
+			attribs[iattr++] = 1;
 		}
 
 		if (needStencil) {
-			attribs.push_back(GLX_STENCIL_SIZE);
-			attribs.push_back(1);
+			attribs[iattr++] = GLX_STENCIL_SIZE;
+			attribs[iattr++] = 1;
 		}
 
 		/* GLX >= 1.4 required for multi-sample */
 		if (actualSamples > 0 && ((glx_major > 1) || (glx_major == 1 && glx_minor >= 4))) {
-			attribs.push_back(GLX_SAMPLE_BUFFERS);
-			attribs.push_back(1);
+			attribs[iattr++] = GLX_SAMPLE_BUFFERS;
+			attribs[iattr++] = 1;
 
-			attribs.push_back(GLX_SAMPLES);
-			attribs.push_back(actualSamples);
+			attribs[iattr++] = GLX_SAMPLES;
+			attribs[iattr++] = actualSamples;
 		}
 
-		attribs.push_back(None);
+		attribs[iattr++] = None;
 
-		visualInfo = glXChooseVisual(display, DefaultScreen(display), &attribs[0]);
+		GHOST_ASSERT(iattr <= (sizeof(attribs) / sizeof(*attribs)), "Attribute size too small");
+
+		visualInfo = glXChooseVisual(display, DefaultScreen(display), attribs);
 
 		/* Any sample level or even zero, which means oversampling disabled, is good
 		 * but we need a valid visual to continue */
