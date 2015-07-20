@@ -274,7 +274,7 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 	if (ob->type == OB_MESH) {
 		DerivedMesh *dm = NULL;
 		MVert *mvert;
-		const MLoopTri *lt = NULL;
+		const MLoopTri *looptri = NULL;
 		int totvert;
 		int tottri = 0;
 		const MLoop *mloop = NULL;
@@ -289,7 +289,7 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 
 		mvert   = dm->getVertArray(dm);
 		totvert = dm->getNumVerts(dm);
-		lt = dm->getLoopTriArray(dm);
+		looptri = dm->getLoopTriArray(dm);
 		tottri = dm->getNumLoopTri(dm);
 		mloop = dm->getLoopArray(dm);
 
@@ -309,17 +309,17 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 			/* loop over all faces, adding them as triangles to the collision shape
 			 * (so for some faces, more than triangle will get added)
 			 */
-			if (mvert && lt) {
+			if (mvert && looptri) {
 				for (i = 0; i < tottri; i++) {
 					/* add first triangle - verts 1,2,3 */
-					const MLoopTri *lt = &lt[i];
-					int index[3];
+					const MLoopTri *lt = &looptri[i];
+					int vtri[3];
 
-					index[0] = (&mloop[lt->tri[0]])->v;
-					index[1] = (&mloop[lt->tri[1]])->v;
-					index[2] = (&mloop[lt->tri[2]])->v;
+					vtri[0] = mloop[lt->tri[0]].v;
+					vtri[1] = mloop[lt->tri[1]].v;
+					vtri[2] = mloop[lt->tri[2]].v;
 
-					RB_trimesh_add_triangle_indices(mdata, i, UNPACK3(index));
+					RB_trimesh_add_triangle_indices(mdata, i, UNPACK3(vtri));
 				}
 			}
 			
@@ -595,7 +595,7 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
 			if (ob->type == OB_MESH) {
 				DerivedMesh *dm = rigidbody_get_mesh(ob);
 				MVert *mvert;
-				const MLoopTri *looptri = NULL;
+				const MLoopTri *looptri;
 				int totvert, tottri = 0;
 				const MLoop* mloop = NULL;
 				
