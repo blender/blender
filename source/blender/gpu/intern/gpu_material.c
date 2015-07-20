@@ -119,6 +119,8 @@ struct GPUMaterial {
 
 	ListBase lamps;
 	bool bound;
+
+	bool is_opensubdiv;
 };
 
 struct GPULamp {
@@ -223,7 +225,8 @@ static int GPU_material_construct_end(GPUMaterial *material, const char *passnam
 
 		outlink = material->outlink;
 		material->pass = GPU_generate_pass(&material->nodes, outlink,
-			&material->attribs, &material->builtins, material->type, passname);
+			&material->attribs, &material->builtins, material->type,
+			passname, material->is_opensubdiv);
 
 		if (!material->pass)
 			return 0;
@@ -1673,21 +1676,27 @@ static GPUNodeLink *gpu_material_preview_matcap(GPUMaterial *mat, Material *ma)
 }
 
 /* new solid draw mode with glsl matcaps */
-GPUMaterial *GPU_material_matcap(Scene *scene, Material *ma)
+GPUMaterial *GPU_material_matcap(Scene *scene, Material *ma, bool use_opensubdiv)
 {
 	GPUMaterial *mat;
 	GPUNodeLink *outlink;
 	LinkData *link;
 	
-	for (link = ma->gpumaterial.first; link; link = link->next)
-		if (((GPUMaterial*)link->data)->scene == scene)
-			return link->data;
+	for (link = ma->gpumaterial.first; link; link = link->next) {
+		GPUMaterial *current_material = (GPUMaterial*)link->data;
+		if (current_material->scene == scene &&
+		    current_material->is_opensubdiv == use_opensubdiv)
+		{
+			return current_material;
+		}
+	}
 	
 	/* allocate material */
 	mat = GPU_material_construct_begin(ma);
 	mat->scene = scene;
 	mat->type = GPU_MATERIAL_TYPE_MESH;
-	
+	mat->is_opensubdiv = use_opensubdiv;
+
 	if (ma->preview && ma->preview->rect[0]) {
 		outlink = gpu_material_preview_matcap(mat, ma);
 	}
@@ -1749,20 +1758,26 @@ GPUMaterial *GPU_material_world(struct Scene *scene, struct World *wo)
 }
 
 
-GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
+GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma, bool use_opensubdiv)
 {
 	GPUMaterial *mat;
 	GPUNodeLink *outlink;
 	LinkData *link;
 
-	for (link = ma->gpumaterial.first; link; link = link->next)
-		if (((GPUMaterial*)link->data)->scene == scene)
-			return link->data;
+	for (link = ma->gpumaterial.first; link; link = link->next) {
+		GPUMaterial *current_material = (GPUMaterial*)link->data;
+		if (current_material->scene == scene &&
+		    current_material->is_opensubdiv == use_opensubdiv)
+		{
+			return current_material;
+		}
+	}
 
 	/* allocate material */
 	mat = GPU_material_construct_begin(ma);
 	mat->scene = scene;
 	mat->type = GPU_MATERIAL_TYPE_MESH;
+	mat->is_opensubdiv = use_opensubdiv;
 
 	/* render pipeline option */
 	if (ma->mode & MA_TRANSP)
@@ -2250,7 +2265,8 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 	if (!GPU_glsl_support())
 		return NULL;
 
-	mat = GPU_material_from_blender(scene, ma);
+	/* TODO(sergey): How to detemine whether we need OSD or not here? */
+	mat = GPU_material_from_blender(scene, ma, false);
 	pass = (mat)? mat->pass: NULL;
 
 	if (pass && pass->fragmentcode && pass->vertexcode) {
@@ -2421,3 +2437,54 @@ void GPU_free_shader_export(GPUShaderExport *shader)
 	MEM_freeN(shader);
 }
 
+#ifdef WITH_OPENSUBDIV
+void GPU_material_update_fvar_offset(GPUMaterial *gpu_material,
+                                     DerivedMesh *dm)
+{
+	GPUPass *pass = gpu_material->pass;
+	GPUShader *shader = (pass != NULL ? pass->shader : NULL);
+	ListBase *inputs = (pass != NULL ? &pass->inputs : NULL);
+	GPUInput *input;
+
+	if (shader == NULL) {
+		return;
+	}
+
+	GPU_shader_bind(shader);
+
+	for (input = inputs->first;
+	     input != NULL;
+	     input = input->next)
+	{
+		if (input->source == GPU_SOURCE_ATTRIB &&
+		    input->attribtype == CD_MTFACE)
+		{
+			char name[64];
+			/* TODO(sergey): This will work for until names are
+			 * consistent, we'll need to solve this somehow in the future.
+			 */
+			int layer_index;
+			int location;
+
+			if (input->attribname[0] != '\0') {
+				layer_index = CustomData_get_named_layer(&dm->loopData,
+				                                         CD_MLOOPUV,
+				                                         input->attribname);
+			}
+			else {
+				layer_index = CustomData_get_active_layer(&dm->loopData,
+				                                          CD_MLOOPUV);
+			}
+
+			BLI_snprintf(name, sizeof(name),
+			             "fvar%d_offset",
+			             input->attribid);
+			location = GPU_shader_get_uniform(shader, name);
+			/* Multiply by 2 because we're offseting U and V variables. */
+			GPU_shader_uniform_int(shader, location, layer_index * 2);
+		}
+	}
+
+	GPU_shader_unbind();
+}
+#endif

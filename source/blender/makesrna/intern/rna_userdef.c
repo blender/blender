@@ -61,6 +61,19 @@ static EnumPropertyItem compute_device_type_items[] = {
 };
 #endif
 
+#ifdef WITH_OPENSUBDIV
+static EnumPropertyItem opensubdiv_compute_type_items[] = {
+	{USER_OPENSUBDIV_COMPUTE_NONE, "NONE", 0, "None", ""},
+	{USER_OPENSUBDIV_COMPUTE_CPU, "CPU", 0, "CPU", ""},
+	{USER_OPENSUBDIV_COMPUTE_OPENMP, "OPENMP", 0, "OpenMP", ""},
+	{USER_OPENSUBDIV_COMPUTE_OPENCL, "OPENCL", 0, "OpenCL", ""},
+	{USER_OPENSUBDIV_COMPUTE_CUDA, "CUDA", 0, "CUDA", ""},
+	{USER_OPENSUBDIV_COMPUTE_GLSL_TRANSFORM_FEEDBACK, "GLSL_TRANSFORM_FEEDBACL", 0, "GLSL Transform Feedback", ""},
+	{USER_OPENSUBDIV_COMPUTE_GLSL_COMPUTE, "GLSL_COMPUTE", 0, "GLSL Compute", ""},
+	{ 0, NULL, 0, NULL, NULL}
+};
+#endif
+
 static EnumPropertyItem audio_device_items[] = {
 	{0, "NONE", 0, "None", "Null device - there will be no audio output"},
 #ifdef WITH_SDL
@@ -105,6 +118,10 @@ EnumPropertyItem navigation_mode_items[] = {
 #include "UI_interface.h"
 
 #include "CCL_api.h"
+
+#ifdef WITH_OPENSUBDIV
+#  include "opensubdiv_capi.h"
+#endif
 
 #ifdef WITH_SDL_DYNLOAD
 #  include "sdlew.h"
@@ -536,6 +553,54 @@ static EnumPropertyItem *rna_userdef_compute_device_itemf(bContext *UNUSED(C), P
 
 	return item;
 }
+#endif
+
+#ifdef WITH_OPENSUBDIV
+static EnumPropertyItem *rna_userdef_opensubdiv_compute_type_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
+                                                                   PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	EnumPropertyItem *item = NULL;
+	int totitem = 0;
+	int evaluators = openSubdiv_getAvailableEvaluators();
+
+	RNA_enum_items_add_value(&item, &totitem, opensubdiv_compute_type_items, USER_OPENSUBDIV_COMPUTE_NONE);
+
+#define APPEND_COMPUTE(compute) \
+	if (evaluators & OPENSUBDIV_EVALUATOR_## compute) { \
+		RNA_enum_items_add_value(&item, &totitem, opensubdiv_compute_type_items, USER_OPENSUBDIV_COMPUTE_ ## compute); \
+	} ((void)0)
+
+	APPEND_COMPUTE(CPU);
+	APPEND_COMPUTE(OPENMP);
+	APPEND_COMPUTE(OPENCL);
+	APPEND_COMPUTE(CUDA);
+	APPEND_COMPUTE(GLSL_TRANSFORM_FEEDBACK);
+	APPEND_COMPUTE(GLSL_COMPUTE);
+
+#undef APPEND_COMPUTE
+
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
+}
+
+static void rna_userdef_opensubdiv_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+{
+	Object *object;
+
+	for (object = bmain->object.first;
+	     object;
+	     object = object->id.next)
+	{
+		if (object->derivedFinal != NULL &&
+		    object->derivedFinal->type == DM_TYPE_CCGDM)
+		{
+			DAG_id_tag_update(&object->id, OB_RECALC_OB);
+		}
+	}
+}
+
 #endif
 
 static EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
@@ -4203,6 +4268,16 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, compute_device_items);
 	RNA_def_property_enum_funcs(prop, "rna_userdef_compute_device_get", NULL, "rna_userdef_compute_device_itemf");
 	RNA_def_property_ui_text(prop, "Compute Device", "Device to use for computation");
+#endif
+
+#ifdef WITH_OPENSUBDIV
+	prop = RNA_def_property(srna, "opensubdiv_compute_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
+	RNA_def_property_enum_sdna(prop, NULL, "opensubdiv_compute_type");
+	RNA_def_property_enum_items(prop, opensubdiv_compute_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_userdef_opensubdiv_compute_type_itemf");
+	RNA_def_property_ui_text(prop, "OpenSubdiv Compute Type", "Type of computer backend used with OpenSubdiv");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, "rna_userdef_opensubdiv_update");
 #endif
 }
 

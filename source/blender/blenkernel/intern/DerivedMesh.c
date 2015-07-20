@@ -1621,6 +1621,7 @@ static void mesh_calc_modifiers(
         const bool useRenderParams, int useDeform,
         const bool need_mapping, CustomDataMask dataMask,
         const int index, const bool useCache, const bool build_shapekey_layers,
+        const bool allow_gpu,
         /* return args */
         DerivedMesh **r_deform, DerivedMesh **r_final)
 {
@@ -1663,6 +1664,8 @@ static void mesh_calc_modifiers(
 
 	if (useCache)
 		app_flags |= MOD_APPLY_USECACHE;
+	if (allow_gpu)
+		app_flags |= MOD_APPLY_ALLOW_GPU;
 	if (useDeform)
 		deform_app_flags |= MOD_APPLY_USECACHE;
 
@@ -2327,9 +2330,9 @@ static void editbmesh_calc_modifiers(
 			}
 
 			if (mti->applyModifierEM)
-				ndm = modwrap_applyModifierEM(md, ob, em, dm, MOD_APPLY_USECACHE);
+				ndm = modwrap_applyModifierEM(md, ob, em, dm, MOD_APPLY_USECACHE | MOD_APPLY_ALLOW_GPU);
 			else
-				ndm = modwrap_applyModifier(md, ob, dm, MOD_APPLY_USECACHE);
+				ndm = modwrap_applyModifier(md, ob, dm, MOD_APPLY_USECACHE | MOD_APPLY_ALLOW_GPU);
 			ASSERT_IS_VALID_DM(ndm);
 
 			if (ndm) {
@@ -2449,6 +2452,23 @@ static void editbmesh_calc_modifiers(
 		MEM_freeN(deformedVerts);
 }
 
+#ifdef WITH_OPENSUBDIV
+/* The idea is to skip CPU-side ORCO calculation when
+ * we'll be using GPU backend of OpenSubdiv. This is so
+ * playback performance is kept as high as posssible.
+ */
+static bool calc_modifiers_skip_orco(const Object *ob)
+{
+	const ModifierData *last_md = ob->modifiers.last;
+	if (last_md != NULL &&
+	    last_md->type == eModifierType_Subsurf)
+	{
+		return true;
+	}
+	return false;
+}
+#endif
+
 static void mesh_build_data(
         Scene *scene, Object *ob, CustomDataMask dataMask,
         const bool build_shapekey_layers, const bool need_mapping)
@@ -2458,8 +2478,15 @@ static void mesh_build_data(
 	BKE_object_free_derived_caches(ob);
 	BKE_object_sculpt_modifiers_changed(ob);
 
+#ifdef WITH_OPENSUBDIV
+	if (calc_modifiers_skip_orco(ob)) {
+		dataMask &= ~CD_MASK_ORCO;
+	}
+#endif
+
 	mesh_calc_modifiers(
 	        scene, ob, NULL, false, 1, need_mapping, dataMask, -1, true, build_shapekey_layers,
+	        true,
 	        &ob->derivedDeform, &ob->derivedFinal);
 
 	DM_set_object_boundbox(ob, ob->derivedFinal);
@@ -2485,6 +2512,12 @@ static void editbmesh_build_data(Scene *scene, Object *obedit, BMEditMesh *em, C
 	BKE_object_sculpt_modifiers_changed(obedit);
 
 	BKE_editmesh_free_derivedmesh(em);
+
+#ifdef WITH_OPENSUBDIV
+	if (calc_modifiers_skip_orco(obedit)) {
+		dataMask &= ~CD_MASK_ORCO;
+	}
+#endif
 
 	editbmesh_calc_modifiers(
 	        scene, obedit, em, dataMask,
@@ -2597,7 +2630,7 @@ DerivedMesh *mesh_create_derived_render(Scene *scene, Object *ob, CustomDataMask
 	DerivedMesh *final;
 	
 	mesh_calc_modifiers(
-	        scene, ob, NULL, true, 1, false, dataMask, -1, false, false,
+	        scene, ob, NULL, true, 1, false, dataMask, -1, false, false, false,
 	        NULL, &final);
 
 	return final;
@@ -2608,7 +2641,7 @@ DerivedMesh *mesh_create_derived_index_render(Scene *scene, Object *ob, CustomDa
 	DerivedMesh *final;
 
 	mesh_calc_modifiers(
-	        scene, ob, NULL, true, 1, false, dataMask, index, false, false,
+	        scene, ob, NULL, true, 1, false, dataMask, index, false, false, false,
 	        NULL, &final);
 
 	return final;
@@ -2627,7 +2660,7 @@ DerivedMesh *mesh_create_derived_view(
 	ob->transflag |= OB_NO_PSYS_UPDATE;
 
 	mesh_calc_modifiers(
-	        scene, ob, NULL, false, 1, false, dataMask, -1, false, false,
+	        scene, ob, NULL, false, 1, false, dataMask, -1, false, false, false,
 	        NULL, &final);
 
 	ob->transflag &= ~OB_NO_PSYS_UPDATE;
@@ -2642,7 +2675,7 @@ DerivedMesh *mesh_create_derived_no_deform(
 	DerivedMesh *final;
 	
 	mesh_calc_modifiers(
-	        scene, ob, vertCos, false, 0, false, dataMask, -1, false, false,
+	        scene, ob, vertCos, false, 0, false, dataMask, -1, false, false, false,
 	        NULL, &final);
 
 	return final;
@@ -2655,7 +2688,7 @@ DerivedMesh *mesh_create_derived_no_virtual(
 	DerivedMesh *final;
 	
 	mesh_calc_modifiers(
-	        scene, ob, vertCos, false, -1, false, dataMask, -1, false, false,
+	        scene, ob, vertCos, false, -1, false, dataMask, -1, false, false, false,
 	        NULL, &final);
 
 	return final;
@@ -2668,7 +2701,7 @@ DerivedMesh *mesh_create_derived_physics(
 	DerivedMesh *final;
 	
 	mesh_calc_modifiers(
-	        scene, ob, vertCos, false, -1, true, dataMask, -1, false, false,
+	        scene, ob, vertCos, false, -1, true, dataMask, -1, false, false, false,
 	        NULL, &final);
 
 	return final;
@@ -2682,7 +2715,7 @@ DerivedMesh *mesh_create_derived_no_deform_render(
 	DerivedMesh *final;
 
 	mesh_calc_modifiers(
-	        scene, ob, vertCos, true, 0, false, dataMask, -1, false, false,
+	        scene, ob, vertCos, true, 0, false, dataMask, -1, false, false, false,
 	        NULL, &final);
 
 	return final;
@@ -3400,9 +3433,18 @@ void DM_set_object_boundbox(Object *ob, DerivedMesh *dm)
 {
 	float min[3], max[3];
 
-	INIT_MINMAX(min, max);
-
-	dm->getMinMax(dm, min, max);
+#ifdef WITH_OPENSUBDIV
+	/* TODO(sergey): Currently no way to access bounding box from hi-res mesh. */
+	if (dm->type == DM_TYPE_CCGDM) {
+		copy_v3_fl3(min, -1.0f, -1.0f, -1.0f);
+		copy_v3_fl3(max, 1.0f, 1.0f, 1.0f);
+	}
+	else
+#endif
+	{
+		INIT_MINMAX(min, max);
+		dm->getMinMax(dm, min, max);
+	}
 
 	if (!ob->bb)
 		ob->bb = MEM_callocN(sizeof(BoundBox), "DM-BoundBox");

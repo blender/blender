@@ -558,12 +558,12 @@ static void finish_patchDraw(bool fill_quads)
 	}
 }
 
+#if 0
 static void draw_partition_patches_range(PartitionedGLMeshInterface *mesh,
                                          GLuint program,
                                          int start_partition,
                                          int num_partitions)
 {
-#if 0
 	/* Glue patches from all partitions in the range together. */
 	int patch_index = -1, start_element = -1, num_elements = 0;
 	for (int partition = start_partition;
@@ -596,13 +596,8 @@ static void draw_partition_patches_range(PartitionedGLMeshInterface *mesh,
 	                     patch_index,
 	                     num_elements,
 	                     start_element);
-#else
-	(void)mesh;
-	(void)program;
-	(void)start_partition;
-	(void)num_partitions;
-#endif
 }
+#endif
 
 static void draw_all_patches(PartitionedGLMeshInterface *mesh,
                              GLuint program)

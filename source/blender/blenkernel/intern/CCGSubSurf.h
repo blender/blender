@@ -80,6 +80,9 @@ void		ccgSubSurf_free	(CCGSubSurf *ss);
 
 CCGError	ccgSubSurf_initFullSync		(CCGSubSurf *ss);
 CCGError	ccgSubSurf_initPartialSync	(CCGSubSurf *ss);
+#ifdef WITH_OPENSUBDIV
+CCGError	ccgSubSurf_initOpenSubdivSync	(CCGSubSurf *ss);
+#endif
 
 CCGError	ccgSubSurf_syncVert		(CCGSubSurf *ss, CCGVertHDL vHDL, const void *vertData, int seam, CCGVert **v_r);
 CCGError	ccgSubSurf_syncEdge		(CCGSubSurf *ss, CCGEdgeHDL eHDL, CCGVertHDL e_vHDL0, CCGVertHDL e_vHDL1, float crease, CCGEdge **e_r);
@@ -189,5 +192,48 @@ void				ccgEdgeIterator_next		(CCGEdgeIterator *ei);
 CCGFace*			ccgFaceIterator_getCurrent	(CCGFaceIterator *fi);
 int					ccgFaceIterator_isStopped	(CCGFaceIterator *fi);
 void				ccgFaceIterator_next		(CCGFaceIterator *fi);
+
+#ifdef WITH_OPENSUBDIV
+struct DerivedMesh;
+
+/* Check if topology changed and evaluators are to be re-created. */
+void ccgSubSurf_checkTopologyChanged(CCGSubSurf *ss, struct DerivedMesh *dm);
+
+/* Create topology refiner from give derived mesh which then later will be
+ * used for GL mesh creation.
+ */
+void ccgSubSurf_prepareTopologyRefiner(CCGSubSurf *ss, struct DerivedMesh *dm);
+
+/* Make sure GL mesh exists, up to date and ready to draw. */
+bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss, bool use_osd_glsl);
+
+/* Draw given partitions of the GL mesh.
+ *
+ * TODO(sergey): fill_quads is actually an invariant and should be part
+ * of the prepare routine.
+ */
+void ccgSubSurf_drawGLMesh(CCGSubSurf *ss, bool fill_quads,
+                           int start_partition, int num_partitions);
+
+/* Controls whether CCG are needed (Cmeaning CPU evaluation) or fully GPU compute
+ * and draw is allowed.
+ */
+void ccgSubSurf_setSkipGrids(CCGSubSurf *ss, bool skip_grids);
+bool ccgSubSurf_needGrids(CCGSubSurf *ss);
+
+/* Set evaluator's face varying data from UV coordinates.
+ * Used for CPU evaluation.
+ */
+void ccgSubSurf_evaluatorSetFVarUV(CCGSubSurf *ss,
+                                   struct DerivedMesh *dm,
+                                   int layer_index);
+
+/* TODO(sergey): Temporary call to test things. */
+void ccgSubSurf_evaluatorFVarUV(CCGSubSurf *ss,
+                                int face_index, int S,
+                                float grid_u, float grid_v,
+                                float uv[2]);
+
+#endif
 
 #endif  /* __CCGSUBSURF_H__ */

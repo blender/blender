@@ -227,6 +227,8 @@ option(WITH_COMPOSITOR         "Enable the tile based nodal compositor" ON)
 option(WITH_COMPOSITOR_WERROR  "Treat warnings as errors in compositor code" OFF)
 mark_as_advanced(WITH_COMPOSITOR_WERROR)
 
+option(WITH_OPENSUBDIV    "Enable OpenSubdiv for surface subdivision" OFF)
+
 # GHOST Windowing Library Options
 option(WITH_GHOST_DEBUG   "Enable debugging output for the GHOST library" OFF)
 mark_as_advanced(WITH_GHOST_DEBUG)
@@ -1084,6 +1086,18 @@ if(UNIX AND NOT APPLE)
 		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -Wl,--version-script='${CMAKE_SOURCE_DIR}/source/creator/blender.map'")
 	endif()
 
+	if(WITH_OPENSUBDIV)
+		find_package_wrapper(OpenSubdiv)
+
+		set(OPENSUBDIV_LIBRARIES ${OPENSUBDIV_LIBRARIES})
+		set(OPENSUBDIV_LIBPATH)  # TODO, remove and reference the absolute path everywhere
+
+		if(NOT OPENSUBDIV_FOUND)
+			set(WITH_OPENSUBDIV OFF)
+			message(STATUS "OpenSundiv not found")
+		endif()
+	endif()
+
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
 	list(APPEND PLATFORM_LINKLIBS -lutil -lc -lm)
 
@@ -1504,6 +1518,13 @@ elseif(WIN32)
 			)
 		endif()
 
+		if(WITH_OPENSUBDIV)
+			set(OPENSUBDIV_INCLUDE_DIR ${LIBDIR}/opensubdiv/include)
+			set(OPENSUBDIV_LIBPATH ${LIBDIR}/opensubdiv/lib)
+			set(OPENSUBDIV_LIBRARIES ${OPENSUBDIV_LIBPATH}/osdCPU.lib ${OPENSUBDIV_LIBPATH}/osdGPU.lib)
+			find_package(OpenSubdiv)
+		endif()
+
 		if(WITH_SDL)
 			set(SDL ${LIBDIR}/sdl)
 			set(SDL_INCLUDE_DIR ${SDL}/include)
@@ -1828,6 +1849,17 @@ elseif(APPLE)
 		else()
 			set(WITH_OPENAL OFF)
 		endif()
+	endif()
+
+	if(WITH_OPENSUBDIV)
+		set(OPENSUBDIV ${LIBDIR}/opensubdiv)
+		set(OPENSUBDIV_LIBPATH ${OPENSUBDIV}/lib)
+		find_library(OSL_LIB_UTIL NAMES osdutil PATHS ${OPENSUBDIV_LIBPATH})
+		find_library(OSL_LIB_CPU NAMES osdCPU PATHS ${OPENSUBDIV_LIBPATH})
+		find_library(OSL_LIB_GPU NAMES osdGPU PATHS ${OPENSUBDIV_LIBPATH})
+		set(OPENSUBDIV_INCLUDE_DIR ${OPENSUBDIV}/include)
+		set(OPENSUBDIV_INCLUDE_DIRS ${OPENSUBDIV_INCLUDE_DIR})
+		list(APPEND OPENSUBDIV_LIBRARIES ${OSL_LIB_UTIL} ${OSL_LIB_CPU} ${OSL_LIB_GPU})
 	endif()
 
 	if(WITH_JACK)

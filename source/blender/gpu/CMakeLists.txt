@@ -92,6 +92,7 @@ set(SRC
 	intern/gpu_private.h
 )
 
+data_to_c_simple(shaders/gpu_shader_geometry.glsl SRC)
 data_to_c_simple(shaders/gpu_program_smoke_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_program_smoke_color_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_material.glsl SRC)
@@ -127,6 +128,9 @@ if(WITH_IMAGE_DDS)
 	add_definitions(-DWITH_DDS)
 endif()
 
+if(WITH_OPENSUBDIV)
+	add_definitions(-DWITH_OPENSUBDIV)
+endif()
 
 blender_add_lib(bf_gpu "${SRC}" "${INC}" "${INC_SYS}")
 

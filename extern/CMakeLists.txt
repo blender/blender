@@ -78,7 +78,7 @@ if(WITH_LZMA)
 	add_subdirectory(lzma)
 endif()
 
-if(WITH_CYCLES OR WITH_COMPOSITOR)
+if(WITH_CYCLES OR WITH_COMPOSITOR OR WITH_OPENSUBDIV)
 	add_subdirectory(clew)
 	add_subdirectory(cuew)
 endif()

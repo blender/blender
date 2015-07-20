@@ -2593,6 +2593,7 @@ void material_preview_matcap(vec4 color, sampler2D ima, vec4 N, vec4 mask, out v
 	vec3 normal;
 	vec2 tex;
 	
+#ifndef USE_OPENSUBDIV
 	/* remap to 0.0 - 1.0 range. This is done because OpenGL 2.0 clamps colors 
 	 * between shader stages and we want the full range of the normal */
 	normal = vec3(2.0, 2.0, 2.0) * vec3(N.x, N.y, N.z) - vec3(1.0, 1.0, 1.0);
@@ -2600,6 +2601,10 @@ void material_preview_matcap(vec4 color, sampler2D ima, vec4 N, vec4 mask, out v
 		normal.z = 0.0;
 	}
 	normal = normalize(normal);
+#else
+	normal = inpt.v.normal;
+	mask = vec4(1.0, 1.0, 1.0, 1.0);
+#endif
 
 	tex.x = 0.5 + 0.49 * normal.x;
 	tex.y = 0.5 + 0.49 * normal.y;

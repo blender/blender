@@ -1,3 +1,11 @@
+#ifdef USE_OPENSUBDIV
+in vec3 normal;
+in vec4 position;
+
+out block {
+	VertexData v;
+} outpt;
+#endif
 
 varying vec3 varposition;
 varying vec3 varnormal;
@@ -8,10 +16,15 @@ varying float gl_ClipDistance[6];
 
 void main()
 {
-	vec4 co = gl_ModelViewMatrix * gl_Vertex;
+#ifndef USE_OPENSUBDIV
+	vec4 position = gl_Vertex;
+	vec3 normal = gl_Normal;
+#endif
+
+	vec4 co = gl_ModelViewMatrix * position;
 
 	varposition = co.xyz;
-	varnormal = normalize(gl_NormalMatrix * gl_Normal);
+	varnormal = normalize(gl_NormalMatrix * normal);
 	gl_Position = gl_ProjectionMatrix * co;
 
 #ifdef CLIP_WORKAROUND
@@ -24,3 +37,7 @@ void main()
 	gl_ClipVertex = co; 
 #endif 
 
+#ifdef USE_OPENSUBDIV
+	outpt.v.position = co;
+	outpt.v.normal = varnormal;
+#endif

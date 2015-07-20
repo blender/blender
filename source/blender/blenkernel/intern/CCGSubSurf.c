@@ -37,6 +37,11 @@
 #include "CCGSubSurf_intern.h"
 #include "BKE_subsurf.h"
 
+#ifdef WITH_OPENSUBDIV
+#  include "opensubdiv_capi.h"
+#  include "opensubdiv_converter_capi.h"
+#endif
+
 #include "GL/glew.h"
 
 /***/
@@ -299,6 +304,23 @@ CCGSubSurf *ccgSubSurf_new(CCGMeshIFC *ifc, int subdivLevels, CCGAllocatorIFC *a
 		ss->tempVerts = NULL;
 		ss->tempEdges = NULL;
 
+#ifdef WITH_OPENSUBDIV
+		ss->osd_evaluator = NULL;
+		ss->osd_mesh = NULL;
+		ss->osd_topology_refiner = NULL;
+		ss->osd_mesh_invalid = false;
+		ss->osd_coarse_coords_invalid = false;
+		ss->osd_vao = 0;
+		ss->skip_grids = false;
+		ss->osd_compute = 0;
+		ss->osd_uvs_invalid = true;
+		ss->osd_subsurf_uv = 0;
+		ss->osd_uv_index = -1;
+		ss->osd_next_face_ptex_index = 0;
+		ss->osd_coarse_coords = NULL;
+		ss->osd_num_coarse_coords = 0;
+#endif
+
 		return ss;
 	}
 }
@@ -307,6 +329,24 @@ void ccgSubSurf_free(CCGSubSurf *ss)
 {
 	CCGAllocatorIFC allocatorIFC = ss->allocatorIFC;
 	CCGAllocatorHDL allocator = ss->allocator;
+#ifdef WITH_OPENSUBDIV
+	if (ss->osd_evaluator != NULL) {
+		openSubdiv_deleteEvaluatorDescr(ss->osd_evaluator);
+	}
+	if (ss->osd_mesh != NULL) {
+		/* TODO(sergey): Make sure free happens form the main thread! */
+		openSubdiv_deleteOsdGLMesh(ss->osd_mesh);
+	}
+	if (ss->osd_vao != 0) {
+		glDeleteVertexArrays(1, &ss->osd_vao);
+	}
+	if (ss->osd_coarse_coords != NULL) {
+		MEM_freeN(ss->osd_coarse_coords);
+	}
+	if (ss->osd_topology_refiner != NULL) {
+		openSubdiv_deleteTopologyRefinerDescr(ss->osd_topology_refiner);
+	}
+#endif
 
 	if (ss->syncState) {
 		ccg_ehash_free(ss->oldFMap, (EHEntryFreeFP) _face_free, ss);
@@ -467,6 +507,9 @@ CCGError ccgSubSurf_initFullSync(CCGSubSurf *ss)
 	ss->tempEdges = MEM_mallocN(sizeof(*ss->tempEdges) * ss->lenTempArrays, "CCGSubsurf tempEdges");
 
 	ss->syncState = eSyncState_Vert;
+#ifdef WITH_OPENSUBDIV
+	ss->osd_next_face_ptex_index = 0;
+#endif
 
 	return eCCGError_None;
 }
@@ -607,6 +650,9 @@ CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, const void *vertDa
 			ccg_ehash_insert(ss->vMap, (EHEntry *) v);
 			v->flags = 0;
 		}
+#ifdef WITH_OPENSUBDIV
+		v->osd_index = ss->vMap->numEntries - 1;
+#endif
 	}
 
 	if (v_r) *v_r = v;
@@ -789,6 +835,15 @@ CCGError ccgSubSurf_syncFace(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGV
 				}
 			}
 		}
+#ifdef WITH_OPENSUBDIV
+		f->osd_index = ss->osd_next_face_ptex_index;
+		if (numVerts == 4) {
+			ss->osd_next_face_ptex_index++;
+		}
+		else {
+			ss->osd_next_face_ptex_index += numVerts;
+		}
+#endif
 	}
 
 	if (f_r) *f_r = f;
@@ -797,7 +852,18 @@ CCGError ccgSubSurf_syncFace(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGV
 
 static void ccgSubSurf__sync(CCGSubSurf *ss)
 {
-	ccgSubSurf__sync_legacy(ss);
+#ifdef WITH_OPENSUBDIV
+	/* TODO(sergey): This is because OSD evaluator does not support
+	 * bilinear subdivision scheme at this moment.
+	 */
+	if (ss->meshIFC.simpleSubdiv == false || ss->skip_grids == true) {
+		ccgSubSurf__sync_opensubdiv(ss);
+	}
+	else
+#endif
+	{
+		ccgSubSurf__sync_legacy(ss);
+	}
 }
 
 CCGError ccgSubSurf_processSync(CCGSubSurf *ss)
@@ -1128,15 +1194,39 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
 
 int ccgSubSurf_getNumVerts(const CCGSubSurf *ss)
 {
-	return ss->vMap->numEntries;
+#ifdef WITH_OPENSUBDIV
+	if (ss->skip_grids) {
+		return ccgSubSurf__getNumOsdBaseVerts(ss);
+	}
+	else
+#endif
+	{
+		return ss->vMap->numEntries;
+	}
 }
 int ccgSubSurf_getNumEdges(const CCGSubSurf *ss)
 {
-	return ss->eMap->numEntries;
+#ifdef WITH_OPENSUBDIV
+	if (ss->skip_grids) {
+		return ccgSubSurf__getNumOsdBaseEdges(ss);
+	}
+	else
+#endif
+	{
+		return ss->eMap->numEntries;
+	}
 }
 int ccgSubSurf_getNumFaces(const CCGSubSurf *ss)
 {
-	return ss->fMap->numEntries;
+#ifdef WITH_OPENSUBDIV
+	if (ss->skip_grids) {
+		return ccgSubSurf__getNumOsdBaseFaces(ss);
+	}
+	else
+#endif
+	{
+		return ss->fMap->numEntries;
+	}
 }
 
 CCGVert *ccgSubSurf_getVert(CCGSubSurf *ss, CCGVertHDL v)

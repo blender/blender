@@ -61,8 +61,9 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#define MAX_DEFINE_LENGTH 72
-#define MAX_EXT_DEFINE_LENGTH 280
+/* TODO(sergey): Find better default values for this constants. */
+#define MAX_DEFINE_LENGTH 1024
+#define MAX_EXT_DEFINE_LENGTH 1024
 
 /* Extensions support */
 
@@ -1528,8 +1529,14 @@ static void shader_print_errors(const char *task, const char *log, const char **
 	fprintf(stderr, "%s\n", log);
 }
 
-static const char *gpu_shader_version(void)
+static const char *gpu_shader_version(bool use_opensubdiv)
 {
+#ifdef WITH_OPENSUBDIV
+	if (use_opensubdiv) {
+		return "#version 150";
+	}
+#endif
+
 	/* turn on glsl 1.30 for bicubic bump mapping and ATI clipping support */
 	if (GLEW_VERSION_3_0 &&
 	    (GPU_bicubic_bump_support() || GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)))
@@ -1543,9 +1550,15 @@ static const char *gpu_shader_version(void)
 
 static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH])
 {
+#ifdef WITH_OPENSUBDIV
+	strcat(defines, "#extension GL_ARB_texture_query_lod: enable\n"
+	                "#extension GL_ARB_gpu_shader5 : enable\n"
+	                "#extension GL_ARB_explicit_attrib_location : require\n");
+#else
 	/* need this extension for high quality bump mapping */
 	if (GPU_bicubic_bump_support())
 		strcat(defines, "#extension GL_ARB_texture_query_lod: enable\n");
+#endif
 
 	if (GPU_geometry_shader_support())
 		strcat(defines, "#extension GL_EXT_geometry_shader4: enable\n");
@@ -1556,7 +1569,8 @@ static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH])
 	}
 }
 
-static void gpu_shader_standard_defines(char defines[MAX_DEFINE_LENGTH])
+static void gpu_shader_standard_defines(bool use_opensubdiv,
+                                        char defines[MAX_DEFINE_LENGTH])
 {
 	/* some useful defines to detect GPU type */
 	if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)) {
@@ -1571,6 +1585,28 @@ static void gpu_shader_standard_defines(char defines[MAX_DEFINE_LENGTH])
 
 	if (GPU_bicubic_bump_support())
 		strcat(defines, "#define BUMP_BICUBIC\n");
+
+#ifdef WITH_OPENSUBDIV
+	/* TODO(sergey): Check whether we actually compiling shader for
+	 * the OpenSubdiv mesh.
+	 */
+	if (use_opensubdiv) {
+		strcat(defines, "#define USE_OPENSUBDIV\n");
+
+		/* TODO(sergey): not strictly speaking a define, but this is
+		 * a global typedef which we don't have better place to define
+		 * in yet.
+		 */
+		strcat(defines, "struct VertexData {\n"
+		                "  vec4 position;\n"
+		                "  vec3 normal;\n"
+		                "  vec2 uv;"
+		                "};\n");
+	}
+#else
+	UNUSED_VARS(use_opensubdiv);
+#endif
+
 	return;
 }
 
@@ -1640,6 +1676,15 @@ void GPU_program_parameter_4f(GPUProgram *program, unsigned int location, float 
 
 GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const char *geocode, const char *libcode, const char *defines, int input, int output, int number)
 {
+#ifdef WITH_OPENSUBDIF
+	/* TODO(sergey): used to add #version 150 to the geometry shader.
+	 * Could safely be renamed to "use_geometry_code" since it's evry much
+	 * liely any of geometry code will want to use GLSL 1.5.
+	 */
+	bool use_opensubdiv = geocode != NULL;
+#else
+	bool use_opensubdiv = false;
+#endif
 	GLint status;
 	GLcharARB log[5000];
 	GLsizei length = 0;
@@ -1671,7 +1716,7 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 		return NULL;
 	}
 
-	gpu_shader_standard_defines(standard_defines);
+	gpu_shader_standard_defines(use_opensubdiv, standard_defines);
 	gpu_shader_standard_extensions(standard_extensions);
 
 	if (vertexcode) {
@@ -1679,7 +1724,7 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 		/* custom limit, may be too small, beware */
 		int num_source = 0;
 
-		source[num_source++] = gpu_shader_version();
+		source[num_source++] = gpu_shader_version(use_opensubdiv);
 		source[num_source++] = standard_extensions;
 		source[num_source++] = standard_defines;
 
@@ -1702,12 +1747,24 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 	}
 
 	if (fragcode) {
-		const char *source[6];
+		const char *source[7];
 		int num_source = 0;
 
-		source[num_source++] = gpu_shader_version();
+		source[num_source++] = gpu_shader_version(use_opensubdiv);
 		source[num_source++] = standard_extensions;
 		source[num_source++] = standard_defines;
+
+#ifdef WITH_OPENSUBDIV
+		/* TODO(sergey): Move to fragment shader source code generation. */
+		if (use_opensubdiv) {
+			source[num_source++] =
+			        "#ifdef USE_OPENSUBDIV\n"
+			        "in block {\n"
+			        "	VertexData v;\n"
+			        "} inpt;\n"
+			        "#endif\n";
+		}
+#endif
 
 		if (defines) source[num_source++] = defines;
 		if (libcode) source[num_source++] = libcode;
@@ -1732,7 +1789,7 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 		const char *source[6];
 		int num_source = 0;
 
-		source[num_source++] = gpu_shader_version();
+		source[num_source++] = gpu_shader_version(use_opensubdiv);
 		source[num_source++] = standard_extensions;
 		source[num_source++] = standard_defines;
 
@@ -1753,13 +1810,27 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 			return NULL;
 		}
 		
-		GPU_shader_geometry_stage_primitive_io(shader, input, output, number);
+		if (!use_opensubdiv) {
+			GPU_shader_geometry_stage_primitive_io(shader, input, output, number);
+		}
 	}
 
 
 #if 0
 	if (lib && lib->lib)
 		glAttachObjectARB(shader->object, lib->lib);
+#endif
+
+#ifdef WITH_OPENSUBDIV
+	if (use_opensubdiv) {
+		glBindAttribLocation(shader->object, 0, "position");
+		glBindAttribLocation(shader->object, 1, "normal");
+		GPU_shader_geometry_stage_primitive_io(shader,
+		                                       GL_LINES_ADJACENCY_EXT,
+		                                       GL_TRIANGLE_STRIP,
+		                                       4);
+
+	}
 #endif
 
 	glLinkProgramARB(shader->object);
@@ -1774,6 +1845,15 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 		GPU_shader_free(shader);
 		return NULL;
 	}
+
+#ifdef WITH_OPENSUBDIV
+	/* TODO(sergey): Find a better place for this. */
+	{
+		glProgramUniform1i(shader->object,
+		                   glGetUniformLocation(shader->object, "FVarDataBuffer"),
+		                   31);  /* GL_TEXTURE31 */
+	}
+#endif
 
 	return shader;
 }

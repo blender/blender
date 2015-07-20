@@ -151,4 +151,8 @@ if(WITH_OPENNL)
 	)
 endif()
 
+if(WITH_OPENSUBDIV)
+	add_definitions(-DWITH_OPENSUBDIV)
+endif()
+
 blender_add_lib(bf_modifiers "${SRC}" "${INC}" "${INC_SYS}")

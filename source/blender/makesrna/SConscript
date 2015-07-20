@@ -139,6 +139,10 @@ if env['WITH_BF_FREESTYLE']:
     defs.append('WITH_FREESTYLE')
     incs += ' ../freestyle'
 
+if env['WITH_BF_OPENSUBDIV']:
+    incs += ' #/intern/opensubdiv'
+    defs.append('WITH_OPENSUBDIV')
+
 if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
 

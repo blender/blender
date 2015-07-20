@@ -117,6 +117,10 @@
 #include "BKE_sound.h"
 #include "COM_compositor.h"
 
+#ifdef WITH_OPENSUBDIV
+#  include "opensubdiv_capi.h"
+#endif
+
 static void wm_init_reports(bContext *C)
 {
 	ReportList *reports = CTX_wm_reports(C);
@@ -523,6 +527,10 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	}
 #else
 	(void)do_python;
+#endif
+
+#ifdef WITH_OPENSUBDIV
+	openSubdiv_cleanup();
 #endif
 
 	if (!G.background) {

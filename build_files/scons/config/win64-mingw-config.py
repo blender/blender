@@ -165,6 +165,12 @@ BF_BOOST_LIB = 'boost_date_time-mgw47-mt-s-1_49 boost_date_time-mgw47-mt-sd-1_49
 BF_BOOST_LIB_INTERNATIONAL = ' boost_locale-mgw47-mt-s-1_49 boost_locale-mgw47-mt-sd-1_49'
 BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 
+WITH_BF_OPENSUBDIV = False
+BF_OPENSUBDIV = LIBDIR + '/opensubdiv'
+BF_OPENSUBDIV_INC = '${BF_OPENSUBDIV}/include'
+BF_OPENSUBDIV_LIB = 'osdCPU osdGPU'
+BF_OPENSUBDIV_LIBPATH = '${BF_OPENSUBDIV}/lib'
+
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['-mmmx', '-msse', '-msse2']

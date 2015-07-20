@@ -330,6 +330,10 @@ int openSubdiv_topologyRefnerCompareConverter(
 		}
 	}
 	/* Compare sharpness. */
+#if 0
+	/* TODO(sergey): For some reason shrapness is not being reported correctly
+	 * from the base level, which cuases false-positive topology change detection.
+	 */
 	for (int edge = 0; edge < num_edges; ++edge) {
 		float sharpness = base_level.GetEdgeSharpness(edge);
 		float conv_sharpness = converter->get_edge_sharpness(converter, edge);
@@ -337,5 +341,6 @@ int openSubdiv_topologyRefnerCompareConverter(
 			return false;
 		}
 	}
+#endif
 	return true;
 }

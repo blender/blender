@@ -101,17 +101,33 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	const bool useRenderParams = (flag & MOD_APPLY_RENDER) != 0;
 	const bool isFinalCalc = (flag & MOD_APPLY_USECACHE) != 0;
 
+#ifdef WITH_OPENSUBDIV
+	const bool allow_gpu = (flag & MOD_APPLY_ALLOW_GPU) != 0;
+	const bool do_cddm_convert = useRenderParams;
+#else
+	const bool do_cddm_convert = useRenderParams || !isFinalCalc;
+#endif
+
 	if (useRenderParams)
 		subsurf_flags |= SUBSURF_USE_RENDER_PARAMS;
 	if (isFinalCalc)
 		subsurf_flags |= SUBSURF_IS_FINAL_CALC;
 	if (ob->mode & OB_MODE_EDIT)
 		subsurf_flags |= SUBSURF_IN_EDIT_MODE;
-	
+
+#ifdef WITH_OPENSUBDIV
+	/* TODO(sergey): Not entirely correct, modifiers on top of subsurf
+	 * could be disabled.
+	 */
+	if (md->next == NULL && allow_gpu && do_cddm_convert == false) {
+		subsurf_flags |= SUBSURF_USE_GPU_BACKEND;
+	}
+#endif
+
 	result = subsurf_make_derived_from_derived(derivedData, smd, NULL, subsurf_flags);
 	result->cd_flag = derivedData->cd_flag;
-	
-	if (useRenderParams || !isFinalCalc) {
+
+	if (do_cddm_convert) {
 		DerivedMesh *cddm = CDDM_copy(result);
 		result->release(result);
 		result = cddm;
@@ -129,6 +145,15 @@ static DerivedMesh *applyModifierEM(ModifierData *md, Object *UNUSED(ob),
 	DerivedMesh *result;
 	/* 'orco' using editmode flags would cause cache to be used twice in editbmesh_calc_modifiers */
 	SubsurfFlags ss_flags = (flag & MOD_APPLY_ORCO) ? 0 : (SUBSURF_FOR_EDIT_MODE | SUBSURF_IN_EDIT_MODE);
+#ifdef WITH_OPENSUBDIV
+	const bool allow_gpu = (flag & MOD_APPLY_ALLOW_GPU) != 0;
+	/* TODO(sergey): Not entirely correct, modifiers on top of subsurf
+	 * could be disabled.
+	 */
+	if (md->next == NULL && allow_gpu) {
+		ss_flags |= SUBSURF_USE_GPU_BACKEND;
+	}
+#endif
 
 	result = subsurf_make_derived_from_derived(derivedData, smd, NULL, ss_flags);
 

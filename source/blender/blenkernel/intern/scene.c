@@ -89,6 +89,11 @@
 #include "BKE_unit.h"
 #include "BKE_world.h"
 
+#ifdef WITH_OPENSUBDIV
+#  include "BKE_modifier.h"
+#  include "CCGSubSurf.h"
+#endif
+
 #include "DEG_depsgraph.h"
 
 #include "RE_engine.h"
@@ -1345,6 +1350,11 @@ static void scene_do_rb_simulation_recursive(Scene *scene, float ctime)
  */
 #define MBALL_SINGLETHREAD_HACK
 
+/* Need this because CCFDM holds some OpenGL resources. */
+#ifdef WITH_OPENSUBDIV
+#  define OPENSUBDIV_GL_WORKAROUND
+#endif
+
 #ifdef WITH_LEGACY_DEPSGRAPH
 typedef struct StatisicsEntry {
 	struct StatisicsEntry *next, *prev;
@@ -1546,6 +1556,37 @@ static bool scene_need_update_objects(Main *bmain)
 		DAG_id_type_tagged(bmain, ID_AR);     /* Armature */
 }
 
+#ifdef OPENSUBDIV_GL_WORKAROUND
+/* CCG DrivedMesh currently hold some OpenGL handles, which could only be
+ * released from the main thread.
+ *
+ * Ideally we need to use gpu_buffer_free, but it's a bit tricky because
+ * some buffers are only accessible from OpenSubdiv side.
+ */
+static void scene_free_unused_opensubdiv_cache(Scene *scene)
+{
+	Base *base;
+	for (base = scene->base.first; base; base = base->next) {
+		Object *object = base->object;
+		if (object->type == OB_MESH && object->recalc & OB_RECALC_DATA) {
+			ModifierData *md = object->modifiers.last;
+			if (md != NULL && md->type == eModifierType_Subsurf) {
+				SubsurfModifierData *smd = (SubsurfModifierData *) md;
+				bool object_in_editmode = object->mode == OB_MODE_EDIT;
+				if (object_in_editmode && smd->mCache != NULL) {
+					ccgSubSurf_free(smd->mCache);
+					smd->mCache = NULL;
+				}
+				if (!object_in_editmode && smd->emCache != NULL) {
+					ccgSubSurf_free(smd->emCache);
+					smd->emCache = NULL;
+				}
+			}
+		}
+	}
+}
+#endif
+
 static void scene_update_objects(EvaluationContext *eval_ctx, Main *bmain, Scene *scene, Scene *scene_parent)
 {
 	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
@@ -1563,6 +1604,10 @@ static void scene_update_objects(EvaluationContext *eval_ctx, Main *bmain, Scene
 	if (!scene_need_update_objects(bmain)) {
 		return;
 	}
+
+#ifdef OPENSUBDIV_GL_WORKAROUND
+	scene_free_unused_opensubdiv_cache(scene);
+#endif
 
 	state.eval_ctx = eval_ctx;
 	state.scene = scene;

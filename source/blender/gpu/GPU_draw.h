@@ -148,6 +148,11 @@ void GPU_create_smoke(struct SmokeModifierData *smd, int highres);
 /* Delayed free of OpenGL buffers by main thread */
 void GPU_free_unused_buffers(void);
 
+#ifdef WITH_OPENSUBDIV
+struct DerivedMesh;
+void GPU_draw_update_fvar_offset(struct DerivedMesh *dm);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

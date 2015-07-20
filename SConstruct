@@ -766,6 +766,8 @@ if B.targets != ['cudakernels']:
     data_to_c_simple("release/datafiles/preview_cycles.blend")
 
     # --- glsl ---
+    data_to_c_simple("source/blender/gpu/shaders/gpu_shader_geometry.glsl")
+
     data_to_c_simple("source/blender/gpu/shaders/gpu_program_smoke_frag.glsl")
     data_to_c_simple("source/blender/gpu/shaders/gpu_program_smoke_color_frag.glsl")
 
@@ -789,6 +791,7 @@ if B.targets != ['cudakernels']:
     data_to_c_simple("source/blender/gpu/shaders/gpu_shader_fx_depth_resolve.glsl")
     data_to_c_simple("source/blender/gpu/shaders/gpu_shader_fx_vert.glsl")
     data_to_c_simple("intern/opencolorio/gpu_shader_display_transform.glsl")
+    data_to_c_simple("intern/opensubdiv/gpu_shader_opensubd_display.glsl")
 
     # --- blender ---
     data_to_c_simple("release/datafiles/bfont.pfb")

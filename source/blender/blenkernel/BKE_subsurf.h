@@ -57,7 +57,8 @@ typedef enum {
 	SUBSURF_IS_FINAL_CALC = 2,
 	SUBSURF_FOR_EDIT_MODE = 4,
 	SUBSURF_IN_EDIT_MODE = 8,
-	SUBSURF_ALLOC_PAINT_MASK = 16
+	SUBSURF_ALLOC_PAINT_MASK = 16,
+	SUBSURF_USE_GPU_BACKEND = 32,
 } SubsurfFlags;
 
 struct DerivedMesh *subsurf_make_derived_from_derived(
@@ -99,7 +100,7 @@ typedef struct CCGDerivedMesh {
 
 	struct CCGSubSurf *ss;
 	int freeSS;
-	int drawInteriorEdges, useSubsurfUv;
+	int drawInteriorEdges, useSubsurfUv, useGpuBackend;
 
 	struct {int startVert; struct CCGVert *vert; } *vertMap;
 	struct {int startVert; int startEdge; struct CCGEdge *edge; } *edgeMap;

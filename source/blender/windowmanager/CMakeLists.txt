@@ -138,6 +138,13 @@ if(WITH_BUILDINFO)
 	add_definitions(-DWITH_BUILDINFO)
 endif()
 
+if(WITH_OPENSUBDIV)
+	add_definitions(-DWITH_OPENSUBDIV)
+	list(APPEND INC
+		../../../intern/opensubdiv
+	)
+endif()
+
 if(WIN32)
 	if(WITH_INPUT_IME)
 		add_definitions(-DWITH_INPUT_IME)

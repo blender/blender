@@ -182,7 +182,8 @@ def validate_arguments(args, bc):
             'WITH_BF_BOOST', 'WITH_BF_STATICBOOST', 'BF_BOOST', 'BF_BOOST_INC', 'BF_BOOST_LIB', 'BF_BOOST_LIB_INTERNATIONAL', 'BF_BOOST_LIB_STATIC', 'BF_BOOST_LIBPATH',
             'WITH_BF_LIBMV', 'WITH_BF_LIBMV_SCHUR_SPECIALIZATIONS',
             'WITH_BF_CYCLES_OSL', 'WITH_BF_STATICOSL', 'BF_OSL', 'BF_OSL_INC', 'BF_OSL_LIB', 'BF_OSL_LIBPATH', 'BF_OSL_LIB_STATIC', 'BF_OSL_COMPILER',
-            'WITH_BF_LLVM', 'WITH_BF_STATICLLVM', 'BF_LLVM', 'BF_LLVM_LIB', 'BF_LLVM_LIBPATH', 'BF_LLVM_LIB_STATIC', 'BF_PROGRAM_LINKFLAGS'
+            'WITH_BF_LLVM', 'WITH_BF_STATICLLVM', 'BF_LLVM', 'BF_LLVM_LIB', 'BF_LLVM_LIBPATH', 'BF_LLVM_LIB_STATIC', 'BF_PROGRAM_LINKFLAGS',
+            'WITH_BF_OPENSUBDIV', 'WITH_BF_STATICOPENSUBDIV', 'BF_OPENSUBDIV', 'BF_OPENSUBDIV_INC', 'BF_OPENSUBDIV_LIB', 'BF_OPENSUBDIV_LIBPATH', 'BF_OPENSUBDIV_LIB_STATIC'
             ]
 
     # Have options here that scons expects to be lists
@@ -655,6 +656,14 @@ def read_opts(env, cfg, args):
         ('BF_LLVM_LIB_STATIC', 'LLVM static library', ''),
 
         ('BF_PROGRAM_LINKFLAGS', 'Link flags applied only to final binaries (blender and blenderplayer, not makesrna/makesdna)', ''),
+
+        (BoolVariable('WITH_BF_OPENSUBDIV', 'Build with OpenSubdiv library', False)),
+        (BoolVariable('WITH_BF_STATICOPENSUBDIV', 'Staticly link to OpenColorIO', False)),
+        ('BF_OPENSUBDIV', 'OpenSubdiv root path', ''),
+        ('BF_OPENSUBDIV_INC', 'OpenSubdiv include path', ''),
+        ('BF_OPENSUBDIV_LIB', 'OpenSubdiv library', ''),
+        ('BF_OPENSUBDIV_LIBPATH', 'OpenSubdiv library path', ''),
+        ('BF_OPENSUBDIV_LIB_STATIC', 'OpenSubdiv static library', '')
 
         (BoolVariable('WITH_BF_CPP11', '"Build with C++11 standard enabled, for development use only!', False)),
 

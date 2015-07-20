@@ -206,8 +206,8 @@ GPUBlendMode GPU_material_alpha_blend(GPUMaterial *material, float obcol[4]);
 /* High level functions to create and use GPU materials */
 GPUMaterial *GPU_material_world(struct Scene *scene, struct World *wo);
 
-GPUMaterial *GPU_material_from_blender(struct Scene *scene, struct Material *ma);
-GPUMaterial *GPU_material_matcap(struct Scene *scene, struct Material *ma);
+GPUMaterial *GPU_material_from_blender(struct Scene *scene, struct Material *ma, bool use_opensubdiv);
+GPUMaterial *GPU_material_matcap(struct Scene *scene, struct Material *ma, bool use_opensubdiv);
 void GPU_material_free(struct ListBase *gpumaterial);
 
 void GPU_materials_free(void);
@@ -321,6 +321,12 @@ typedef struct GPUParticleInfo
 	float velocity[3];
 	float angular_velocity[3];
 } GPUParticleInfo;
+
+#ifdef WITH_OPENSUBDIV
+struct DerivedMesh;
+void GPU_material_update_fvar_offset(GPUMaterial *gpu_material,
+                                     struct DerivedMesh *dm);
+#endif
 
 #ifdef __cplusplus
 }

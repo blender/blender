@@ -168,6 +168,11 @@ if env['WITH_BF_INTERNATIONAL']:
 if env['WITH_BF_FREESTYLE']:
     defs.append('WITH_FREESTYLE')
 
+if env['WITH_BF_OPENSUBDIV']:
+    defs.append('WITH_OPENSUBDIV')
+    incs += ' #intern/opensubdiv'
+    incs += ' ' + env['BF_OPENSUBDIV_INC']
+
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs += ' ' + env['BF_PTHREADS_INC']
     incs += ' ../../../intern/utfconv'
