@@ -1441,7 +1441,7 @@ bool CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 	/*const LayerTypeInfo *typeInfo;*/
 	CustomDataLayer *layer, *newlayer;
 	void *data;
-	int i, type, lasttype = -1, lastactive = 0, lastrender = 0, lastclone = 0, lastmask = 0, lastflag = 0;
+	int i, type, lasttype = -1, lastactive = 0, lastrender = 0, lastclone = 0, lastmask = 0, flag = 0;
 	int number = 0, maxnumber = -1;
 	bool changed = false;
 
@@ -1450,6 +1450,7 @@ bool CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 		/*typeInfo = layerType_getInfo(layer->type);*/ /*UNUSED*/
 
 		type = layer->type;
+		flag = layer->flag;
 
 		if (type != lasttype) {
 			number = 0;
@@ -1459,12 +1460,11 @@ bool CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 			lastclone = layer->active_clone;
 			lastmask = layer->active_mask;
 			lasttype = type;
-			lastflag = layer->flag;
 		}
 		else
 			number++;
 
-		if (lastflag & CD_FLAG_NOCOPY) continue;
+		if (flag & CD_FLAG_NOCOPY) continue;
 		else if (!(mask & CD_TYPE_AS_MASK(type))) continue;
 		else if ((maxnumber != -1) && (number >= maxnumber)) continue;
 		else if (CustomData_get_layer_named(dest, type, layer->name)) continue;
@@ -1480,12 +1480,12 @@ bool CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 				break;
 		}
 
-		if ((alloctype == CD_ASSIGN) && (lastflag & CD_FLAG_NOFREE))
-			newlayer = customData_add_layer__internal(dest, type, CD_REFERENCE,
-			                                          data, totelem, layer->name);
-		else
-			newlayer = customData_add_layer__internal(dest, type, alloctype,
-			                                          data, totelem, layer->name);
+		if ((alloctype == CD_ASSIGN) && (flag & CD_FLAG_NOFREE)) {
+			newlayer = customData_add_layer__internal(dest, type, CD_REFERENCE, data, totelem, layer->name);
+		}
+		else {
+			newlayer = customData_add_layer__internal(dest, type, alloctype, data, totelem, layer->name);
+		}
 		
 		if (newlayer) {
 			newlayer->uid = layer->uid;
@@ -1494,7 +1494,7 @@ bool CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 			newlayer->active_rnd = lastrender;
 			newlayer->active_clone = lastclone;
 			newlayer->active_mask = lastmask;
-			newlayer->flag |= lastflag & (CD_FLAG_EXTERNAL | CD_FLAG_IN_MEMORY);
+			newlayer->flag |= flag & (CD_FLAG_EXTERNAL | CD_FLAG_IN_MEMORY);
 			changed = true;
 		}
 	}
