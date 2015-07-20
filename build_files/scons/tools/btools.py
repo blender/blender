@@ -663,7 +663,7 @@ def read_opts(env, cfg, args):
         ('BF_OPENSUBDIV_INC', 'OpenSubdiv include path', ''),
         ('BF_OPENSUBDIV_LIB', 'OpenSubdiv library', ''),
         ('BF_OPENSUBDIV_LIBPATH', 'OpenSubdiv library path', ''),
-        ('BF_OPENSUBDIV_LIB_STATIC', 'OpenSubdiv static library', '')
+        ('BF_OPENSUBDIV_LIB_STATIC', 'OpenSubdiv static library', ''),
 
         (BoolVariable('WITH_BF_CPP11', '"Build with C++11 standard enabled, for development use only!', False)),
 
