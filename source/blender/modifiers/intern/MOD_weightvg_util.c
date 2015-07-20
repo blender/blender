@@ -247,7 +247,7 @@ void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, MDeformWeight **dws,
 	for (i = 0; i < num; i++) {
 		float w = weights[i];
 		MDeformVert *dv = &dvert[indices ? indices[i] : i];
-		MDeformWeight *dw = dws ? dws[i] : defvert_find_index(dv, defgrp_idx);
+		MDeformWeight *dw = dws ? dws[i] : ((defgrp_idx >= 0) ? defvert_find_index(dv, defgrp_idx) : NULL);
 
 		/* Never allow weights out of [0.0, 1.0] range. */
 		CLAMP(w, 0.0f, 1.0f);
