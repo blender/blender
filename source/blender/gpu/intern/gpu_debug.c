@@ -163,11 +163,16 @@ const char* gpuErrorString(GLenum err)
 #endif
 
 
-static void APIENTRY gpu_debug_proc(GLenum UNUSED(source), GLenum UNUSED(type), GLuint UNUSED(id),
+static void APIENTRY gpu_debug_proc(GLenum source, GLenum type, GLuint UNUSED(id),
                                GLenum UNUSED(severity), GLsizei UNUSED(length),
                                const GLchar *message, GLvoid *UNUSED(userParm))
 {
-	fprintf(stderr, "GL: %s\n", message);
+	if (source == GL_DEBUG_SOURCE_API && type == GL_DEBUG_TYPE_ERROR)
+		fprintf(stderr, "GL: %s\n", message);
+	else if (G.debug_value == 20) {
+		fprintf(stderr, "GL: %s\n", message);
+	}
+	fflush(stderr);
 }
 
 
