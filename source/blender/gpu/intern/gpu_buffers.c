@@ -2021,7 +2021,7 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 
 		GPU_buffer_unbind(buffers->vert_buf, GPU_BINDING_ARRAY);
 		if (buffers->index_buf || do_fast)
-			GPU_buffer_unbind(do_fast ? buffers->index_buf_fast : buffers->index_buf, GPU_BINDING_ARRAY);
+			GPU_buffer_unbind(do_fast ? buffers->index_buf_fast : buffers->index_buf, GPU_BINDING_INDEX);
 
 		glDisableClientState(GL_VERTEX_ARRAY);
 		if (!wireframe) {
