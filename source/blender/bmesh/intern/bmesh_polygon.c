@@ -876,9 +876,9 @@ void BM_face_triangulate(
 		for (i = 0; i < totfilltri; i++) {
 			/* the order is reverse, otherwise the normal is flipped */
 			BMLoop *l_tri[3] = {
-			    loops[tris[i][2]],
+			    loops[tris[i][0]],
 			    loops[tris[i][1]],
-			    loops[tris[i][0]]};
+			    loops[tris[i][2]]};
 
 			BMVert *v_tri[3] = {
 			    l_tri[0]->v,
