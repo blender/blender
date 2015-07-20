@@ -1418,10 +1418,11 @@ void CustomData_update_typemap(CustomData *data)
 	}
 
 	for (i = 0; i < data->totlayer; i++) {
-		if (data->layers[i].type != lasttype) {
-			data->typemap[data->layers[i].type] = i;
+		const int type = data->layers[i].type;
+		if (type != lasttype) {
+			data->typemap[type] = i;
+			lasttype = type;
 		}
-		lasttype = data->layers[i].type;
 	}
 }
 
