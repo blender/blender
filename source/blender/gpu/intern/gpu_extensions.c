@@ -1535,6 +1535,8 @@ static const char *gpu_shader_version(bool use_opensubdiv)
 	if (use_opensubdiv) {
 		return "#version 150";
 	}
+#else
+	UNUSED_VARS(use_opensubdiv);
 #endif
 
 	/* turn on glsl 1.30 for bicubic bump mapping and ATI clipping support */
