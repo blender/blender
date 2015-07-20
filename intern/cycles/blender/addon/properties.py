@@ -911,7 +911,7 @@ class CyclesObjectBlurSettings(bpy.types.PropertyGroup):
 
         cls.use_camera_cull = BoolProperty(
                 name="Use Camera Cull",
-                description="Allow this object and it's duplicators to be culled by camera space culling",
+                description="Allow this object and its duplicators to be culled by camera space culling",
                 default=False,
                 )
 

@@ -3922,7 +3922,7 @@ static void def_sh_tex_pointdensity(StructRNA *srna)
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Object", "Object to take point data from)");
+	RNA_def_property_ui_text(prop, "Object", "Object to take point data from");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	RNA_def_struct_sdna_from(srna, "NodeShaderTexPointDensity", "storage");
