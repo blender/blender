@@ -54,7 +54,6 @@ extern "C" GLXEWContext *glxewContext;
 #define GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY 0
 #endif
 
-
 class GHOST_ContextGLX : public GHOST_Context
 {
 public:
@@ -147,5 +146,11 @@ private:
 	static GLXContext s_sharedContext;
 	static int        s_sharedCount;
 };
+
+/* used to get GLX info */
+int GHOST_X11_GL_GetAttributes(
+        int *attribs, int attribs_max,
+        int samples, bool is_stereo_visual,
+        bool for_fb_config);
 
 #endif // __GHOST_CONTEXTGLX_H__

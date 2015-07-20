@@ -52,6 +52,7 @@
 int GHOST_X11_ApplicationErrorHandler(Display *display, XErrorEvent *theEvent);
 int GHOST_X11_ApplicationIOErrorHandler(Display *display);
 
+
 class GHOST_WindowX11;
 
 /**

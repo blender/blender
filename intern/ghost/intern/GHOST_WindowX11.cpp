@@ -164,6 +164,8 @@ static XVisualInfo *x11_visualinfo_from_glx(
 {
 	XVisualInfo *visualInfo = NULL;
 	GHOST_TUns16 numOfAASamples = *r_numOfAASamples;
+	GHOST_TUns16 actualSamples;
+
 	/* Set up the minimum attributes that we require and see if
 	 * X can find us a visual matching those requirements. */
 	int glx_major, glx_minor; /* GLX version: major.minor */
@@ -177,68 +179,22 @@ static XVisualInfo *x11_visualinfo_from_glx(
 		return NULL;
 	}
 
-#ifdef GHOST_OPENGL_ALPHA
-	const bool needAlpha = true;
-#else
-	const bool needAlpha = false;
-#endif
-
-#ifdef GHOST_OPENGL_STENCIL
-	const bool needStencil = true;
-#else
-	const bool needStencil = false;
-#endif
+	/* GLX >= 1.4 required for multi-sample */
+	if ((glx_major > 1) || (glx_major == 1 && glx_minor >= 4)) {
+		actualSamples = numOfAASamples;
+	}
+	else {
+		numOfAASamples = 0;
+		actualSamples = 0;
+	}
 
 	/* Find the display with highest samples, starting at level requested */
-	GHOST_TUns16 actualSamples = numOfAASamples;
 	for (;;) {
-		int attribs[20];
-		int iattr = 0;
+		int glx_attribs[64];
 
-		if (stereoVisual) {
-			attribs[iattr++] = GLX_STEREO;
-		}
+		GHOST_X11_GL_GetAttributes(glx_attribs, 64, actualSamples, stereoVisual, false);
 
-		attribs[iattr++] = GLX_RGBA;
-
-		attribs[iattr++] = GLX_DOUBLEBUFFER;
-
-		attribs[iattr++] = GLX_RED_SIZE;
-		attribs[iattr++] = 1;
-
-		attribs[iattr++] = GLX_BLUE_SIZE;
-		attribs[iattr++] = 1;
-
-		attribs[iattr++] = GLX_GREEN_SIZE;
-		attribs[iattr++] = 1;
-
-		attribs[iattr++] = GLX_DEPTH_SIZE;
-		attribs[iattr++] = 1;
-
-		if (needAlpha) {
-			attribs[iattr++] = GLX_ALPHA_SIZE;
-			attribs[iattr++] = 1;
-		}
-
-		if (needStencil) {
-			attribs[iattr++] = GLX_STENCIL_SIZE;
-			attribs[iattr++] = 1;
-		}
-
-		/* GLX >= 1.4 required for multi-sample */
-		if (actualSamples > 0 && ((glx_major > 1) || (glx_major == 1 && glx_minor >= 4))) {
-			attribs[iattr++] = GLX_SAMPLE_BUFFERS;
-			attribs[iattr++] = 1;
-
-			attribs[iattr++] = GLX_SAMPLES;
-			attribs[iattr++] = actualSamples;
-		}
-
-		attribs[iattr++] = None;
-
-		GHOST_ASSERT(iattr <= (sizeof(attribs) / sizeof(*attribs)), "Attribute size too small");
-
-		visualInfo = glXChooseVisual(display, DefaultScreen(display), attribs);
+		visualInfo = glXChooseVisual(display, DefaultScreen(display), glx_attribs);
 
 		/* Any sample level or even zero, which means oversampling disabled, is good
 		 * but we need a valid visual to continue */

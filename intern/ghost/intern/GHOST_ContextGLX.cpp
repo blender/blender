@@ -152,7 +152,102 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
 	XIOErrorHandler old_handler_io = XSetIOErrorHandler(GHOST_X11_ApplicationIOErrorHandler);
 #endif
 
-	m_context = glXCreateContext(m_display, m_visualInfo, s_sharedContext, True);
+	/* needed so 'GLXEW_ARB_create_context' is valid */
+	initContextGLXEW();
+
+	if (GLXEW_ARB_create_context) {
+		int profileBitCore   = m_contextProfileMask & GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+		int profileBitCompat = m_contextProfileMask & GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+
+#ifdef WITH_GLEW_ES
+		int profileBitES     = m_contextProfileMask & GLX_CONTEXT_ES_PROFILE_BIT_EXT;
+#endif
+
+		if (!GLXEW_ARB_create_context_profile && profileBitCore)
+			fprintf(stderr, "Warning! OpenGL core profile not available.\n");
+
+		if (!GLXEW_ARB_create_context_profile && profileBitCompat)
+			fprintf(stderr, "Warning! OpenGL compatibility profile not available.\n");
+
+#ifdef WITH_GLEW_ES
+		if (!GLXEW_EXT_create_context_es_profile && profileBitES && m_contextMajorVersion == 1)
+			fprintf(stderr, "Warning! OpenGL ES profile not available.\n");
+
+		if (!GLXEW_EXT_create_context_es2_profile && profileBitES && m_contextMajorVersion == 2)
+			fprintf(stderr, "Warning! OpenGL ES2 profile not available.\n");
+#endif
+
+		int profileMask = 0;
+
+		if (GLXEW_ARB_create_context_profile && profileBitCore)
+			profileMask |= profileBitCore;
+
+		if (GLXEW_ARB_create_context_profile && profileBitCompat)
+			profileMask |= profileBitCompat;
+
+#ifdef WITH_GLEW_ES
+		if (GLXEW_EXT_create_context_es_profile && profileBitES)
+			profileMask |= profileBitES;
+#endif
+
+		if (profileMask != m_contextProfileMask)
+			fprintf(stderr, "Warning! Ignoring untested OpenGL context profile mask bits.");
+
+
+		/* max 10 attributes plus terminator */
+		int attribs[11];
+		int i = 0;
+
+		if (profileMask) {
+			attribs[i++] = GLX_CONTEXT_PROFILE_MASK_ARB;
+			attribs[i++] = profileMask;
+		}
+
+		if (m_contextMajorVersion != 0) {
+			attribs[i++] = GLX_CONTEXT_MAJOR_VERSION_ARB;
+			attribs[i++] = m_contextMajorVersion;
+		}
+
+		if (m_contextMinorVersion != 0) {
+			attribs[i++] = GLX_CONTEXT_MINOR_VERSION_ARB;
+			attribs[i++] = m_contextMinorVersion;
+		}
+
+		if (m_contextFlags != 0) {
+			attribs[i++] = GLX_CONTEXT_FLAGS_ARB;
+			attribs[i++] = m_contextFlags;
+		}
+
+		if (m_contextResetNotificationStrategy != 0) {
+			if (GLXEW_ARB_create_context_robustness) {
+				attribs[i++] = GLX_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB;
+				attribs[i++] = m_contextResetNotificationStrategy;
+			}
+			else {
+				fprintf(stderr, "Warning! Cannot set the reset notification strategy.");
+			}
+		}
+		attribs[i++] = 0;
+
+		/* Create a GL 3.x context */
+		GLXFBConfig *framebuffer_config = NULL;
+		{
+			int glx_attribs[64];
+			int fbcount = 0;
+
+			GHOST_X11_GL_GetAttributes(glx_attribs, 64, m_numOfAASamples, m_stereoVisual, true);
+
+			framebuffer_config = glXChooseFBConfig(m_display, DefaultScreen(m_display), glx_attribs, &fbcount);
+		}
+
+		if (framebuffer_config) {
+			m_context = glXCreateContextAttribsARB(m_display, framebuffer_config[0], s_sharedContext, True, attribs);
+		}
+	}
+	else {
+		/* Create legacy context */
+		m_context = glXCreateContext(m_display, m_visualInfo, s_sharedContext, True);
+	}
 
 	GHOST_TSuccess success;
 
@@ -164,16 +259,13 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
 
 		glXMakeCurrent(m_display, m_window, m_context);
 
-		// Seems that this has to be called after MakeCurrent,
-		// which means we cannot use glX extensions until after we create a context
-		initContextGLXEW();
-
 		initClearGL();
 		::glXSwapBuffers(m_display, m_window);
 
 		success = GHOST_kSuccess;
 	}
 	else {
+		/* freeing well clean up the context initialized above */
 		success = GHOST_kFailure;
 	}
 
@@ -222,4 +314,88 @@ GHOST_TSuccess GHOST_ContextGLX::getSwapInterval(int &intervalOut)
 	else {
 		return GHOST_kFailure;
 	}
+}
+
+/**
+ * Utility function to get GLX attributes.
+ *
+ * \param for_fb_config: There are some small differences in
+ * #glXChooseVisual and #glXChooseFBConfig's attribute encoding.
+ *
+ * \note Similar to SDL's 'X11_GL_GetAttributes'
+ */
+int GHOST_X11_GL_GetAttributes(
+        int *attribs, int attribs_max,
+        int samples, bool is_stereo_visual,
+        bool for_fb_config)
+{
+	int i = 0;
+
+#ifdef GHOST_OPENGL_ALPHA
+	const bool need_alpha = true;
+#else
+	const bool need_alpha = false;
+#endif
+
+#ifdef GHOST_OPENGL_STENCIL
+	const bool need_stencil = true;
+#else
+	const bool need_stencil = false;
+#endif
+
+	if (is_stereo_visual) {
+		attribs[i++] = GLX_STEREO;
+		if (for_fb_config) {
+			attribs[i++] = True;
+		}
+	}
+
+	if (for_fb_config) {
+		attribs[i++] = GLX_RENDER_TYPE;
+		attribs[i++] = GLX_RGBA_BIT;
+	}
+	else {
+		attribs[i++] = GLX_RGBA;
+	}
+
+	attribs[i++] = GLX_DOUBLEBUFFER;
+	if (for_fb_config) {
+		attribs[i++] = True;
+	}
+
+	attribs[i++] = GLX_RED_SIZE;
+	attribs[i++] = True;
+
+	attribs[i++] = GLX_BLUE_SIZE;
+	attribs[i++] = True;
+
+	attribs[i++] = GLX_GREEN_SIZE;
+	attribs[i++] = True;
+
+	attribs[i++] = GLX_DEPTH_SIZE;
+	attribs[i++] = True;
+
+	if (need_alpha) {
+		attribs[i++] = GLX_ALPHA_SIZE;
+		attribs[i++] = True;
+	}
+
+	if (need_stencil) {
+		attribs[i++] = GLX_STENCIL_SIZE;
+		attribs[i++] = True;
+	}
+
+	if (samples) {
+		attribs[i++] = GLX_SAMPLE_BUFFERS_ARB;
+		attribs[i++] = True;
+
+		attribs[i++] = GLX_SAMPLES_ARB;
+		attribs[i++] = samples;
+	}
+
+	attribs[i++] = 0;
+
+	GHOST_ASSERT(i <= attribs_max, "attribute size too small");
+
+	return i;
 }
