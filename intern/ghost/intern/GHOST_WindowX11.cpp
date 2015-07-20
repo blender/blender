@@ -1282,7 +1282,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
 		        m_window,
 		        m_display,
 		        m_visualInfo,
-		        GLX_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+		        GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
 		        3, 2,
 		        GHOST_OPENGL_GLX_CONTEXT_FLAGS | (m_is_debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
 		        GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
