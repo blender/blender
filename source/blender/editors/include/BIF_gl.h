@@ -47,6 +47,7 @@
  * */
 void cpack(unsigned int x);
 
+#ifdef WITH_GL_PROFILE_COMPAT
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
 #  define glMultMatrixf(x)  \
 	glMultMatrixf(_Generic((x), \
@@ -66,15 +67,21 @@ void cpack(unsigned int x);
 	        float (*)[4]: (float *)(x), \
 	        float [4][4]: (float *)(x)) \
 )
-/* hacking pointsize and linewidth */
-#define glPointSize(f)  glPointSize(U.pixelsize * _Generic((f), double: (float)(f), default: (f)))
-#define glLineWidth(f)  glLineWidth(U.pixelsize * _Generic((f), double: (float)(f), default: (f)))
 #else
 #  define glMultMatrixf(x)  glMultMatrixf((float *)(x))
 #  define glLoadMatrixf(x)  glLoadMatrixf((float *)(x))
-#define glPointSize(f)  glPointSize(U.pixelsize * (f))
-#define glLineWidth(f)  glLineWidth(U.pixelsize * (f))
-#endif
+#endif  /* C11 */
+#endif  /* WITH_GL_PROFILE_COMPAT */
+
+
+/* hacking pointsize and linewidth */
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+#  define glPointSize(f)  glPointSize(U.pixelsize * _Generic((f), double: (float)(f), default: (f)))
+#  define glLineWidth(f)  glLineWidth(U.pixelsize * _Generic((f), double: (float)(f), default: (f)))
+#else
+#  define glPointSize(f)  glPointSize(U.pixelsize * (f))
+#  define glLineWidth(f)  glLineWidth(U.pixelsize * (f))
+#endif  /* C11 */
 
 #define GLA_PIXEL_OFS 0.375f
 
