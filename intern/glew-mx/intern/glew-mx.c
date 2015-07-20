@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static int ignore_version = 0;
 
 #define CASE_CODE_RETURN_STR(code) case code: return #code;
 
@@ -61,6 +62,9 @@ GLenum glew_chk(GLenum error, const char *file, int line, const char *text)
 	if (error != GLEW_OK) {
 		const char *code = get_glew_error_enum_string(error);
 		const char *msg  = (const char *)glewGetErrorString(error);
+
+		if (error == GLEW_ERROR_NO_GL_VERSION && ignore_version)
+			return GLEW_OK;
 
 #ifndef NDEBUG
 		fprintf(stderr,
@@ -139,4 +143,9 @@ void mxDestroyContext(MXContext *ctx)
 #else
 	(void)ctx;
 #endif
+}
+
+void mxIgnoreNoVersion(int ignore)
+{
+	ignore_version = ignore;
 }

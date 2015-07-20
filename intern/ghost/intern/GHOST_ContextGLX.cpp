@@ -155,7 +155,9 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
 #endif
 
 	/* needed so 'GLXEW_ARB_create_context' is valid */
+	mxIgnoreNoVersion(1);
 	initContextGLXEW();
+	mxIgnoreNoVersion(0);
 
 	if (GLXEW_ARB_create_context) {
 		int profileBitCore   = m_contextProfileMask & GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
