@@ -84,9 +84,10 @@ struct LaplacianSystem {
 	EdgeHash *edgehash;     /* edge hash for construction */
 
 	struct HeatWeighting {
-		MFace *mface;
+		const MLoopTri *mlooptri;
+		const MLoop *mloop;	/* needed to find vertices by index */
 		int totvert;
-		int totface;
+		int tottri;
 		float (*verts)[3];  /* vertex coordinates */
 		float (*vnors)[3];  /* vertex normals */
 
@@ -100,7 +101,7 @@ struct LaplacianSystem {
 		float *mindist;     /* minimum distance to a bone for all vertices */
 		
 		BVHTree   *bvhtree; /* ray tracing acceleration structure */
-		MFace     **vface;  /* a face that the vertex belongs to */
+		const MLoopTri **vltree;  /* a looptri that the vertex belongs to */
 	} heat;
 
 #ifdef RIGID_DEFORM
@@ -380,24 +381,19 @@ typedef struct BVHCallbackUserData {
 static void bvh_callback(void *userdata, int index, const BVHTreeRay *UNUSED(ray), BVHTreeRayHit *hit)
 {
 	BVHCallbackUserData *data = (struct BVHCallbackUserData *)userdata;
-	MFace *mf = data->sys->heat.mface + index;
+	const MLoopTri *lt = &data->sys->heat.mlooptri[index];
+	const MLoop *mloop = data->sys->heat.mloop;
 	float (*verts)[3] = data->sys->heat.verts;
+	const float *vtri_co[3];
 	float lambda, uv[2], n[3], dir[3];
 
 	mul_v3_v3fl(dir, data->vec, hit->dist);
+	vtri_co[0] = verts[mloop[lt->tri[0]].v];
+	vtri_co[1] = verts[mloop[lt->tri[1]].v];
+	vtri_co[2] = verts[mloop[lt->tri[2]].v];
 
-	if (isect_ray_tri_v3(data->start, dir, verts[mf->v1], verts[mf->v2], verts[mf->v3], &lambda, uv)) {
-		normal_tri_v3(n, verts[mf->v1], verts[mf->v2], verts[mf->v3]);
-		if (lambda < 1.0f && dot_v3v3(n, data->vec) < -1e-5f) {
-			hit->index = index;
-			hit->dist *= lambda;
-		}
-	}
-
-	mul_v3_v3fl(dir, data->vec, hit->dist);
-
-	if (isect_ray_tri_v3(data->start, dir, verts[mf->v1], verts[mf->v3], verts[mf->v4], &lambda, uv)) {
-		normal_tri_v3(n, verts[mf->v1], verts[mf->v3], verts[mf->v4]);
+	if (isect_ray_tri_v3(data->start, dir, UNPACK3(vtri_co), &lambda, uv)) {
+		normal_tri_v3(n, UNPACK3(vtri_co));
 		if (lambda < 1.0f && dot_v3v3(n, data->vec) < -1e-5f) {
 			hit->index = index;
 			hit->dist *= lambda;
@@ -408,34 +404,36 @@ static void bvh_callback(void *userdata, int index, const BVHTreeRay *UNUSED(ray
 /* Raytracing for vertex to bone/vertex visibility */
 static void heat_ray_tree_create(LaplacianSystem *sys)
 {
-	MFace *mface = sys->heat.mface;
+	const MLoopTri *looptri = sys->heat.mlooptri;
+	const MLoop *mloop = sys->heat.mloop;
 	float (*verts)[3] = sys->heat.verts;
-	int totface = sys->heat.totface;
+	int tottri = sys->heat.tottri;
 	int totvert = sys->heat.totvert;
 	int a;
 
-	sys->heat.bvhtree = BLI_bvhtree_new(totface, 0.0f, 4, 6);
-	sys->heat.vface = MEM_callocN(sizeof(MFace *) * totvert, "HeatVFaces");
+	sys->heat.bvhtree = BLI_bvhtree_new(tottri, 0.0f, 4, 6);
+	sys->heat.vltree = MEM_callocN(sizeof(MLoopTri *) * totvert, "HeatVFaces");
 
-	for (a = 0; a < totface; a++) {
-		MFace *mf = mface + a;
+	for (a = 0; a < tottri; a++) {
+		const MLoopTri *lt = &looptri[a];
 		float bb[6];
+		int vtri[3];
+		
+		vtri[0] = mloop[lt->tri[0]].v;
+		vtri[1] = mloop[lt->tri[1]].v;
+		vtri[2] = mloop[lt->tri[2]].v;
 
 		INIT_MINMAX(bb, bb + 3);
-		minmax_v3v3_v3(bb, bb + 3, verts[mf->v1]);
-		minmax_v3v3_v3(bb, bb + 3, verts[mf->v2]);
-		minmax_v3v3_v3(bb, bb + 3, verts[mf->v3]);
-		if (mf->v4) {
-			minmax_v3v3_v3(bb, bb + 3, verts[mf->v4]);
-		}
+		minmax_v3v3_v3(bb, bb + 3, verts[vtri[0]]);
+		minmax_v3v3_v3(bb, bb + 3, verts[vtri[1]]);
+		minmax_v3v3_v3(bb, bb + 3, verts[vtri[2]]);
 
 		BLI_bvhtree_insert(sys->heat.bvhtree, a, bb, 2);
 		
 		//Setup inverse pointers to use on isect.orig
-		sys->heat.vface[mf->v1] = mf;
-		sys->heat.vface[mf->v2] = mf;
-		sys->heat.vface[mf->v3] = mf;
-		if (mf->v4) sys->heat.vface[mf->v4] = mf;
+		sys->heat.vltree[vtri[0]] = lt;
+		sys->heat.vltree[vtri[1]] = lt;
+		sys->heat.vltree[vtri[2]] = lt;
 	}
 
 	BLI_bvhtree_balance(sys->heat.bvhtree); 
@@ -445,12 +443,12 @@ static int heat_ray_source_visible(LaplacianSystem *sys, int vertex, int source)
 {
 	BVHTreeRayHit hit;
 	BVHCallbackUserData data;
-	MFace *mface;
+	const MLoopTri *lt;
 	float end[3];
 	int visible;
 
-	mface = sys->heat.vface[vertex];
-	if (!mface)
+	lt = sys->heat.vltree[vertex];
+	if (lt == NULL)
 		return 1;
 
 	data.sys = sys;
@@ -568,8 +566,9 @@ static void heat_calc_vnormals(LaplacianSystem *sys)
 
 static void heat_laplacian_create(LaplacianSystem *sys)
 {
-	MFace *mface = sys->heat.mface, *mf;
-	int totface = sys->heat.totface;
+	const MLoopTri *mlooptri = sys->heat.mlooptri, *lt;
+	const MLoop *mloop = sys->heat.mloop;
+	int tottri = sys->heat.tottri;
 	int totvert = sys->heat.totvert;
 	int a;
 
@@ -582,10 +581,12 @@ static void heat_laplacian_create(LaplacianSystem *sys)
 	for (a = 0; a < totvert; a++)
 		laplacian_add_vertex(sys, sys->heat.verts[a], 0);
 
-	for (a = 0, mf = mface; a < totface; a++, mf++) {
-		laplacian_add_triangle(sys, mf->v1, mf->v2, mf->v3);
-		if (mf->v4)
-			laplacian_add_triangle(sys, mf->v1, mf->v3, mf->v4);
+	for (a = 0, lt = mlooptri; a < tottri; a++, lt++) {
+		int vtri[3];
+		vtri[0] = mloop[lt->tri[0]].v;
+		vtri[1] = mloop[lt->tri[1]].v;
+		vtri[2] = mloop[lt->tri[2]].v;
+		laplacian_add_triangle(sys, UNPACK3(vtri));
 	}
 
 	/* for distance computation in set_H */
@@ -598,7 +599,8 @@ static void heat_laplacian_create(LaplacianSystem *sys)
 static void heat_system_free(LaplacianSystem *sys)
 {
 	BLI_bvhtree_free(sys->heat.bvhtree);
-	MEM_freeN(sys->heat.vface);
+	MEM_freeN(sys->heat.vltree);
+	MEM_freeN((void *)sys->heat.mlooptri);
 
 	MEM_freeN(sys->heat.mindist);
 	MEM_freeN(sys->heat.H);
@@ -626,6 +628,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
                          float (*root)[3], float (*tip)[3], int *selected, const char **err_str)
 {
 	LaplacianSystem *sys;
+	MLoopTri *mlooptri;
 	MPoly *mp;
 	MLoop *ml;
 	MFace *mf;
@@ -679,8 +682,17 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 	/* create laplacian */
 	sys = laplacian_system_construct_begin(me->totvert, tottri, 1);
 
-	sys->heat.mface = me->mface;
-	sys->heat.totface = me->totface;
+	sys->heat.tottri = poly_to_tri_count(me->totpoly, me->totloop);
+	mlooptri = MEM_mallocN(sizeof(*sys->heat.mlooptri) * sys->heat.tottri, __func__);
+
+	BKE_mesh_recalc_looptri(
+	        me->mloop, me->mpoly,
+	        me->mvert,
+	        me->totloop, me->totpoly,
+	        mlooptri);
+
+	sys->heat.mlooptri = mlooptri;
+	sys->heat.mloop = me->mloop;
 	sys->heat.totvert = me->totvert;
 	sys->heat.verts = verts;
 	sys->heat.root = root;
