@@ -758,7 +758,14 @@ static void recalcData_objects(TransInfo *t)
 			}
 			if ((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
 				editbmesh_apply_to_mirror(t);
-				
+
+			if (t->mode == TFM_EDGE_SLIDE) {
+				projectEdgeSlideData(t, false);
+			}
+			else if (t->mode == TFM_VERT_SLIDE) {
+				projectVertSlideData(t, false);
+			}
+
 			DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
 			
 			EDBM_mesh_normals_update(em);

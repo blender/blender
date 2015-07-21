@@ -235,6 +235,10 @@ typedef struct SlideOrigData {
 	/* array size of 'layer_math_map_num'
 	 * maps TransDataVertSlideVert.cd_group index to absolute CustomData layer index */
 	int *layer_math_map;
+
+	/* array of slide vert data especially for mirror verts */
+	TransDataGenericSlideVert *sv_mirror;
+	int totsv_mirror;
 } SlideOrigData;
 
 typedef struct EdgeSlideData {
