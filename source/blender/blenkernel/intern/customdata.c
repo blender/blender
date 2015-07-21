@@ -3204,6 +3204,56 @@ void CustomData_file_write_info(int type, const char **structname, int *structnu
 	*structnum = typeInfo->structnum;
 }
 
+/**
+ * Prepare given custom data for file writing.
+ *
+ * \param data the customdata to tweak for .blend file writing (modified in place).
+ * \param r_write_layers contains a reduced set of layers to be written to file, use it with writestruct_at_address()
+ *                       (caller must free it if != \a write_layers_buff).
+ * \param write_layers_buff an optional buffer for r_write_layers (to avoid allocating it).
+ * \param write_layers_size the size of pre-allocated \a write_layer_buff.
+ *
+ * \warning After this func has ran, given custom data is no more valid from Blender PoV (its totlayer is invalid).
+ *          This func shall always be called with localized data (as it is in write_meshes()).
+ * \note data->typemap is not updated here, since it is always rebuilt on file read anyway. This means written
+ *       typemap does not match written layers (as returned by \a r_write_layers). Trivial to fix is ever needed.
+ */
+void CustomData_file_write_prepare(
+        CustomData *data,
+        CustomDataLayer **r_write_layers, CustomDataLayer *write_layers_buff, size_t write_layers_size)
+{
+	CustomDataLayer *write_layers = write_layers_buff;
+	const size_t chunk_size = (write_layers_size > 0) ? write_layers_size : CD_TEMP_CHUNK_SIZE;
+
+	const int totlayer = data->totlayer;
+	int i, j;
+
+	for (i = 0, j = 0; i < totlayer; i++) {
+		CustomDataLayer *layer = &data->layers[i];
+		if (layer->flag & CD_FLAG_NOCOPY) {  /* Layers with this flag set are not written to file. */
+			data->totlayer--;
+			/* printf("%s: skipping layer %p (%s)\n", __func__, layer, layer->name); */
+		}
+		else {
+			if (UNLIKELY((size_t)j >= write_layers_size)) {
+				if (write_layers == write_layers_buff) {
+					write_layers = MEM_mallocN(sizeof(*write_layers) * (write_layers_size + chunk_size), __func__);
+					if (write_layers_buff) {
+						memcpy(write_layers, write_layers_buff, sizeof(*write_layers) * write_layers_size);
+					}
+				}
+				else {
+					write_layers = MEM_reallocN(write_layers, sizeof(*write_layers) * (write_layers_size + chunk_size));
+				}
+				write_layers_size += chunk_size;
+			}
+			write_layers[j++] = *layer;
+		}
+	}
+	BLI_assert(j == data->totlayer);
+	*r_write_layers = write_layers;
+}
+
 int CustomData_sizeof(int type)
 {
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);

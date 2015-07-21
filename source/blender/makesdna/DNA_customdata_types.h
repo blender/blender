@@ -193,6 +193,8 @@ enum {
 
 #define DYNTOPO_NODE_NONE -1
 
+#define CD_TEMP_CHUNK_SIZE 128
+
 #ifdef __cplusplus
 }
 #endif
