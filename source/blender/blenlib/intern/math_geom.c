@@ -693,19 +693,28 @@ int isect_line_line_v2_int(const int v1[2], const int v2[2], const int v3[2], co
 }
 
 /* intersect Line-Line, floats - gives intersection point */
-int isect_line_line_v2_point(const float v1[2], const float v2[2], const float v3[2], const float v4[2], float vi[2])
+int isect_line_line_v2_point(const float v0[2], const float v1[2], const float v2[2], const float v3[2], float r_vi[2])
 {
+	float s10[2], s32[2];
 	float div;
 
-	div = (v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]);
-	if (div == 0.0f) return ISECT_LINE_LINE_COLINEAR;
+	sub_v2_v2v2(s10, v1, v0);
+	sub_v2_v2v2(s32, v3, v2);
 
-	vi[0] = ((v3[0] - v4[0]) * (v1[0] * v2[1] - v1[1] * v2[0]) - (v1[0] - v2[0]) * (v3[0] * v4[1] - v3[1] * v4[0])) / div;
-	vi[1] = ((v3[1] - v4[1]) * (v1[0] * v2[1] - v1[1] * v2[0]) - (v1[1] - v2[1]) * (v3[0] * v4[1] - v3[1] * v4[0])) / div;
+	div = cross_v2v2(s10, s32);
+	if (div != 0.0f) {
+		const float u = cross_v2v2(v1, v0);
+		const float v = cross_v2v2(v3, v2);
 
-	return ISECT_LINE_LINE_CROSS;
+		r_vi[0] = ((s32[0] * u) - (s10[0] * v)) / div;
+		r_vi[1] = ((s32[1] * u) - (s10[1] * v)) / div;
+
+		return ISECT_LINE_LINE_CROSS;
+	}
+	else {
+		return ISECT_LINE_LINE_COLINEAR;
+	}
 }
-
 
 /* intersect Line-Line, floats */
 int isect_line_line_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
