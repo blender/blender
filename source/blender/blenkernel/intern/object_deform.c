@@ -203,12 +203,10 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
 				dv = me->dvert;
 
 				for (i = 0; i < me->totvert; i++, mv++, dv++) {
-					if (mv->flag & SELECT) {
-						if (dv->dw && (!use_selection || (mv->flag & SELECT))) {
-							MDeformWeight *dw = defvert_find_index(dv, def_nr);
-							defvert_remove_group(dv, dw);  /* dw can be NULL */
-							changed = true;
-						}
+					if (dv->dw && (!use_selection || (mv->flag & SELECT))) {
+						MDeformWeight *dw = defvert_find_index(dv, def_nr);
+						defvert_remove_group(dv, dw);  /* dw can be NULL */
+						changed = true;
 					}
 				}
 			}
