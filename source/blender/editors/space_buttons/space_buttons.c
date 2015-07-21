@@ -371,9 +371,11 @@ static void buttons_area_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *
 			}
 			break;
 		/* Listener for preview render, when doing an global undo. */
-		case NC_WINDOW:
-			ED_area_tag_redraw(sa);
-			sbuts->preview = 1;
+		case NC_WM:
+			if (wmn->data == ND_UNDO) {
+				ED_area_tag_redraw(sa);
+				sbuts->preview = 1;
+			}
 			break;
 #ifdef WITH_FREESTYLE
 		case NC_LINESTYLE:

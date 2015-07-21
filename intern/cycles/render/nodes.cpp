@@ -1406,7 +1406,6 @@ void PointDensityTextureNode::compile(SVMCompiler& compiler)
 
 void PointDensityTextureNode::compile(OSLCompiler& compiler)
 {
-	ShaderInput *vector_in = input("Vector");
 	ShaderOutput *density_out = output("Density");
 	ShaderOutput *color_out = output("Color");
 
