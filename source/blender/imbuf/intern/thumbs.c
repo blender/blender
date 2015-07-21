@@ -611,8 +611,10 @@ ImBuf *IMB_thumb_manage(const char *org_path, ThumbSize size, ThumbSource source
 	/* Our imbuf **must** have a valid rect (i.e. 8-bits/channels) data, we rely on this in draw code.
 	 * However, in some cases we may end loading 16bits PNGs, which generated float buffers.
 	 * This should be taken care of in generation step, but add also a safeguard here! */
-	IMB_rect_from_float(img);
-	imb_freerectfloatImBuf(img);
+	if (img) {
+		IMB_rect_from_float(img);
+		imb_freerectfloatImBuf(img);
+	}
 
 	return img;
 }
