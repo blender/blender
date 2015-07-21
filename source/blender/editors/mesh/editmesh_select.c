@@ -569,7 +569,7 @@ static void find_nearest_edge__doClosest(
 	dist_test = dist_test_bias = len_manhattan_v2v2(data->mval_fl, screen_co);
 
 	if (data->use_select_bias && BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-		dist_test += FIND_NEAR_SELECT_BIAS;
+		dist_test_bias += FIND_NEAR_SELECT_BIAS;
 	}
 
 	if (data->vc.rv3d->rflag & RV3D_CLIPPING) {
@@ -703,7 +703,7 @@ BMEdge *EDBM_edge_find_nearest_ex(
 BMEdge *EDBM_edge_find_nearest(
         ViewContext *vc, float *r_dist)
 {
-	return EDBM_edge_find_nearest_ex(vc, r_dist, false, false, false, NULL);
+	return EDBM_edge_find_nearest_ex(vc, r_dist, NULL, false, false, NULL);
 }
 
 /* find the distance to the face we already have */
@@ -1567,7 +1567,7 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 	/* no afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad */
 	ED_view3d_backbuf_validate(&vc);
 
-	eed = EDBM_edge_find_nearest(&vc, &dist);
+	eed = EDBM_edge_find_nearest_ex(&vc, &dist, NULL, true, true, NULL);
 	if (eed == NULL) {
 		return false;
 	}
