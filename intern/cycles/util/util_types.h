@@ -470,6 +470,17 @@ enum InterpolationType {
 	INTERPOLATION_SMART = 3,
 };
 
+/* Extension types for textures.
+ *
+ * Defines how the image is extrapolated past its original bounds.
+ */
+enum ExtensionType {
+	/* Cause the image to repeat horizontally and vertically. */
+	EXTENSION_REPEAT = 0,
+	/* Clip to image size and set exterior pixels as transparent. */
+	EXTENSION_CLIP = 1,
+};
+
 /* macros */
 
 /* hints for branch prediction, only use in code that runs a _lot_ */

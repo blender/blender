@@ -92,6 +92,7 @@ public:
 	ustring color_space;
 	ustring projection;
 	InterpolationType interpolation;
+	ExtensionType extension;
 	float projection_blend;
 	bool animated;
 

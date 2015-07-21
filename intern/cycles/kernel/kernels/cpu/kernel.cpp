@@ -38,7 +38,14 @@ void kernel_const_copy(KernelGlobals *kg, const char *name, void *host, size_t s
 		assert(0);
 }
 
-void kernel_tex_copy(KernelGlobals *kg, const char *name, device_ptr mem, size_t width, size_t height, size_t depth, InterpolationType interpolation)
+void kernel_tex_copy(KernelGlobals *kg,
+                     const char *name,
+                     device_ptr mem,
+                     size_t width,
+                     size_t height,
+                     size_t depth,
+                     InterpolationType interpolation,
+                     bool periodic)
 {
 	if(0) {
 	}
@@ -64,6 +71,7 @@ void kernel_tex_copy(KernelGlobals *kg, const char *name, device_ptr mem, size_t
 			tex->data = (float4*)mem;
 			tex->dimensions_set(width, height, depth);
 			tex->interpolation = interpolation;
+			tex->periodic = periodic;
 		}
 	}
 	else if(strstr(name, "__tex_image")) {
@@ -79,6 +87,7 @@ void kernel_tex_copy(KernelGlobals *kg, const char *name, device_ptr mem, size_t
 			tex->data = (uchar4*)mem;
 			tex->dimensions_set(width, height, depth);
 			tex->interpolation = interpolation;
+			tex->periodic = periodic;
 		}
 	}
 	else

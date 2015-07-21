@@ -590,14 +590,17 @@ static ShaderNode *add_node(Scene *scene,
 
 			/* TODO(sergey): Does not work properly when we change builtin type. */
 			if(b_image.is_updated()) {
-				scene->image_manager->tag_reload_image(image->filename,
-				                                       image->builtin_data,
-				                                       (InterpolationType)b_image_node.interpolation());
+				scene->image_manager->tag_reload_image(
+				        image->filename,
+				        image->builtin_data,
+				        (InterpolationType)b_image_node.interpolation(),
+				        EXTENSION_REPEAT);
 			}
 		}
 		image->color_space = ImageTextureNode::color_space_enum[(int)b_image_node.color_space()];
 		image->projection = ImageTextureNode::projection_enum[(int)b_image_node.projection()];
 		image->interpolation = (InterpolationType)b_image_node.interpolation();
+		image->extension = EXTENSION_REPEAT;
 		image->projection_blend = b_image_node.projection_blend();
 		get_tex_mapping(&image->tex_mapping, b_image_node.texture_mapping());
 		node = image;
@@ -630,7 +633,8 @@ static ShaderNode *add_node(Scene *scene,
 			if(b_image.is_updated()) {
 				scene->image_manager->tag_reload_image(env->filename,
 				                                       env->builtin_data,
-				                                       INTERPOLATION_LINEAR);
+				                                       INTERPOLATION_LINEAR,
+				                                       EXTENSION_REPEAT);
 			}
 		}
 		env->color_space = EnvironmentTextureNode::color_space_enum[(int)b_env_node.color_space()];
@@ -759,9 +763,11 @@ static ShaderNode *add_node(Scene *scene,
 
 		/* TODO(sergey): Use more proper update flag. */
 		if(true) {
-			scene->image_manager->tag_reload_image(point_density->filename,
-			                                       point_density->builtin_data,
-			                                       point_density->interpolation);
+			scene->image_manager->tag_reload_image(
+			        point_density->filename,
+			        point_density->builtin_data,
+			        point_density->interpolation,
+			        EXTENSION_CLIP);
 		}
 		node = point_density;
 	}
