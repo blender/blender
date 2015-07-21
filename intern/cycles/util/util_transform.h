@@ -55,6 +55,11 @@ typedef struct DecompMotionTransform {
 	float4 post_x, post_y;
 } DecompMotionTransform;
 
+typedef struct PerspectiveMotionTransform {
+	Transform pre;
+	Transform post;
+} PerspectiveMotionTransform;
+
 /* Functions */
 
 ccl_device_inline float3 transform_perspective(const Transform *t, const float3 a)

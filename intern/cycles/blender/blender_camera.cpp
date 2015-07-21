@@ -244,8 +244,11 @@ static Transform blender_camera_matrix(const Transform& tfm,
 	return transform_clear_scale(result);
 }
 
-static void blender_camera_viewplane(BlenderCamera *bcam, int width, int height,
-	BoundBox2D *viewplane, float *aspectratio, float *sensor_size)
+static void blender_camera_viewplane(BlenderCamera *bcam,
+                                     int width, int height,
+                                     BoundBox2D *viewplane,
+                                     float *aspectratio,
+                                     float *sensor_size)
 {
 	/* dimensions */
 	float xratio = (float)width*bcam->pixelaspect.x;
@@ -258,24 +261,34 @@ static void blender_camera_viewplane(BlenderCamera *bcam, int width, int height,
 	/* sensor fitting */
 	if(bcam->sensor_fit == BlenderCamera::AUTO) {
 		horizontal_fit = (xratio > yratio);
-		*sensor_size = bcam->sensor_width;
+		if(sensor_size != NULL) {
+			*sensor_size = bcam->sensor_width;
+		}
 	}
 	else if(bcam->sensor_fit == BlenderCamera::HORIZONTAL) {
 		horizontal_fit = true;
-		*sensor_size = bcam->sensor_width;
+		if(sensor_size != NULL) {
+			*sensor_size = bcam->sensor_width;
+		}
 	}
 	else {
 		horizontal_fit = false;
-		*sensor_size = bcam->sensor_height;
+		if(sensor_size != NULL) {
+			*sensor_size = bcam->sensor_height;
+		}
 	}
 
 	if(horizontal_fit) {
-		*aspectratio = xratio/yratio;
+		if(aspectratio != NULL) {
+			*aspectratio = xratio/yratio;
+		}
 		xaspect = *aspectratio;
 		yaspect = 1.0f;
 	}
 	else {
-		*aspectratio = yratio/xratio;
+		if(aspectratio != NULL) {
+			*aspectratio = yratio/xratio;
+		}
 		xaspect = 1.0f;
 		yaspect = *aspectratio;
 	}
@@ -284,31 +297,37 @@ static void blender_camera_viewplane(BlenderCamera *bcam, int width, int height,
 	if(bcam->type == CAMERA_ORTHOGRAPHIC) {
 		xaspect = xaspect*bcam->ortho_scale/(*aspectratio*2.0f);
 		yaspect = yaspect*bcam->ortho_scale/(*aspectratio*2.0f);
-		*aspectratio = bcam->ortho_scale/2.0f;
+		if(aspectratio != NULL) {
+			*aspectratio = bcam->ortho_scale/2.0f;
+		}
 	}
 
 	if(bcam->type == CAMERA_PANORAMA) {
 		/* set viewplane */
-		*viewplane = bcam->pano_viewplane;
+		if(viewplane != NULL) {
+			*viewplane = bcam->pano_viewplane;
+		}
 	}
 	else {
 		/* set viewplane */
-		viewplane->left = -xaspect;
-		viewplane->right = xaspect;
-		viewplane->bottom = -yaspect;
-		viewplane->top = yaspect;
+		if(viewplane != NULL) {
+			viewplane->left = -xaspect;
+			viewplane->right = xaspect;
+			viewplane->bottom = -yaspect;
+			viewplane->top = yaspect;
 
-		/* zoom for 3d camera view */
-		*viewplane = (*viewplane) * bcam->zoom;
+			/* zoom for 3d camera view */
+			*viewplane = (*viewplane) * bcam->zoom;
 
-		/* modify viewplane with camera shift and 3d camera view offset */
-		float dx = 2.0f*(*aspectratio*bcam->shift.x + bcam->offset.x*xaspect*2.0f);
-		float dy = 2.0f*(*aspectratio*bcam->shift.y + bcam->offset.y*yaspect*2.0f);
+			/* modify viewplane with camera shift and 3d camera view offset */
+			float dx = 2.0f*(*aspectratio*bcam->shift.x + bcam->offset.x*xaspect*2.0f);
+			float dy = 2.0f*(*aspectratio*bcam->shift.y + bcam->offset.y*yaspect*2.0f);
 
-		viewplane->left += dx;
-		viewplane->right += dx;
-		viewplane->bottom += dy;
-		viewplane->top += dy;
+			viewplane->left += dx;
+			viewplane->right += dx;
+			viewplane->bottom += dy;
+			viewplane->top += dy;
+		}
 	}
 }
 
@@ -386,7 +405,10 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	cam->motion.pre = cam->matrix;
 	cam->motion.post = cam->matrix;
 	cam->use_motion = false;
+	cam->use_perspective_motion = false;
 	cam->shuttertime = bcam->shuttertime;
+	cam->fov_pre = cam->fov;
+	cam->fov_post = cam->fov;
 
 	/* border */
 	cam->border = bcam->border;
@@ -435,7 +457,10 @@ void BlenderSync::sync_camera(BL::RenderSettings b_render, BL::Object b_override
 	blender_camera_sync(cam, &bcam, width, height);
 }
 
-void BlenderSync::sync_camera_motion(BL::Object b_ob, float motion_time)
+void BlenderSync::sync_camera_motion(BL::RenderSettings b_render,
+                                     BL::Object b_ob,
+                                     int width, int height,
+                                     float motion_time)
 {
 	Camera *cam = scene->camera;
 	BL::Array<float, 16> b_ob_matrix;
@@ -452,6 +477,31 @@ void BlenderSync::sync_camera_motion(BL::Object b_ob, float motion_time)
 		else if(motion_time == 1.0f) {
 			cam->motion.post = tfm;
 			cam->use_motion = true;
+		}
+	}
+
+	if(cam->type == CAMERA_PERSPECTIVE) {
+		BlenderCamera bcam;
+		float aspectratio, sensor_size;
+		blender_camera_init(&bcam, b_render);
+		blender_camera_from_object(&bcam, b_engine, b_ob);
+		blender_camera_viewplane(&bcam,
+		                         width, height,
+		                         NULL,
+		                         &aspectratio,
+		                         &sensor_size);
+		/* TODO(sergey): De-duplicate calculation with camera sync. */
+		float fov = 2.0f * atanf((0.5f * sensor_size) / bcam.lens / aspectratio);
+		if(fov != cam->fov) {
+			VLOG(1) << "Camera " << b_ob.name() << " FOV change detected.";
+			if(motion_time == -1.0f) {
+				cam->fov_pre = fov;
+				cam->use_perspective_motion = true;
+			}
+			else if(motion_time == 1.0f) {
+				cam->fov_post = fov;
+				cam->use_perspective_motion = true;
+			}
 		}
 	}
 }

@@ -778,7 +778,7 @@ typedef struct KernelCamera {
 
 	/* motion blur */
 	float shuttertime;
-	int have_motion;
+	int have_motion, have_perspective_motion;
 
 	/* clipping */
 	float nearclip;
@@ -796,7 +796,6 @@ typedef struct KernelCamera {
 	float inv_aperture_ratio;
 
 	int is_inside_volume;
-	int pad2;
 
 	/* more matrices */
 	Transform screentoworld;
@@ -810,6 +809,11 @@ typedef struct KernelCamera {
 	Transform worldtocamera;
 
 	MotionTransform motion;
+
+	/* Denotes changes in the projective matrix, namely in rastertocamera.
+	 * Used for camera zoom motion blur,
+	 */
+	PerspectiveMotionTransform perspective_motion;
 } KernelCamera;
 
 typedef struct KernelFilm {

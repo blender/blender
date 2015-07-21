@@ -659,7 +659,11 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, float motion_time)
 		mesh_motion_synced.clear();
 }
 
-void BlenderSync::sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override, void **python_thread_state)
+void BlenderSync::sync_motion(BL::RenderSettings b_render,
+                              BL::SpaceView3D b_v3d,
+                              BL::Object b_override,
+                              int width, int height,
+                              void **python_thread_state)
 {
 	if(scene->need_motion() == Scene::MOTION_NONE)
 		return;
@@ -679,6 +683,9 @@ void BlenderSync::sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override, void
 
 	/* note iteration over motion_times set happens in sorted order */
 	foreach(float relative_time, motion_times) {
+		VLOG(1) << "Synchronizing motion for the relative time "
+		        << relative_time << ".";
+
 		/* fixed shutter time to get previous and next frame for motion pass */
 		float shuttertime;
 
@@ -698,8 +705,12 @@ void BlenderSync::sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override, void
 		python_thread_state_save(python_thread_state);
 
 		/* sync camera, only supports two times at the moment */
-		if(relative_time == -1.0f || relative_time == 1.0f)
-			sync_camera_motion(b_cam, relative_time);
+		if(relative_time == -1.0f || relative_time == 1.0f) {
+			sync_camera_motion(b_render,
+			                   b_cam,
+			                   width, height,
+			                   relative_time);
+		}
 
 		/* sync object */
 		sync_objects(b_v3d, relative_time);

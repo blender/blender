@@ -40,6 +40,7 @@ Camera::Camera()
 	motion.pre = transform_identity();
 	motion.post = transform_identity();
 	use_motion = false;
+	use_perspective_motion = false;
 
 	aperture_ratio = 1.0f;
 
@@ -170,6 +171,23 @@ void Camera::update()
 	dx = transform_direction(&cameratoworld, dx);
 	dy = transform_direction(&cameratoworld, dy);
 
+	/* TODO(sergey): Support other types of camera. */
+	if(type == CAMERA_PERSPECTIVE) {
+		/* TODO(sergey): Move to an utility function and de-duplicate with
+		 * calculation above.
+		 */
+		Transform screentocamera_pre =
+		        transform_inverse(transform_perspective(fov_pre,
+		                                                nearclip,
+		                                                farclip));
+		Transform screentocamera_post =
+		        transform_inverse(transform_perspective(fov_post,
+		                                                nearclip,
+		                                                farclip));
+		perspective_motion.pre = screentocamera_pre * rastertoscreen;
+		perspective_motion.post = screentocamera_post * rastertoscreen;
+	}
+
 	need_update = false;
 	need_device_update = true;
 	need_flags_update = true;
@@ -205,8 +223,10 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 
 	/* camera motion */
 	kcam->have_motion = 0;
+	kcam->have_perspective_motion = 0;
 
 	if(need_motion == Scene::MOTION_PASS) {
+		/* TODO(sergey): Support perspective (zoom, fov) motion. */
 		if(type == CAMERA_PANORAMA) {
 			if(use_motion) {
 				kcam->motion.pre = transform_inverse(motion.pre);
@@ -233,6 +253,10 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 		if(use_motion) {
 			transform_motion_decompose((DecompMotionTransform*)&kcam->motion, &motion, &matrix);
 			kcam->have_motion = 1;
+		}
+		if(use_perspective_motion) {
+			kcam->perspective_motion = perspective_motion;
+			kcam->have_perspective_motion = 1;
 		}
 	}
 #endif

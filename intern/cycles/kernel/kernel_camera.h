@@ -43,7 +43,30 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 {
 	/* create ray form raster position */
 	Transform rastertocamera = kernel_data.cam.rastertocamera;
-	float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
+	float3 raster = make_float3(raster_x, raster_y, 0.0f);
+	float3 Pcamera = transform_perspective(&rastertocamera, raster);
+
+#ifdef __CAMERA_MOTION__
+	if(kernel_data.cam.have_perspective_motion) {
+		/* TODO(sergey): Currently we interpolate projected coordinate which
+		 * gives nice looking result and which is simple, but is in fact a bit
+		 * different comparing to constructing projective matrix from an
+		 * interpolated field of view.
+		 */
+		if(ray->time < 0.5f) {
+			Transform rastertocamera_pre = kernel_data.cam.perspective_motion.pre;
+			float3 Pcamera_pre =
+			        transform_perspective(&rastertocamera_pre, raster);
+			Pcamera = interp(Pcamera_pre, Pcamera, ray->time * 2.0f);
+		}
+		else {
+			Transform rastertocamera_post = kernel_data.cam.perspective_motion.post;
+			float3 Pcamera_post =
+			        transform_perspective(&rastertocamera_post, raster);
+			Pcamera = interp(Pcamera, Pcamera_post, (ray->time - 0.5f) * 2.0f);
+		}
+	}
+#endif
 
 	ray->P = make_float3(0.0f, 0.0f, 0.0f);
 	ray->D = Pcamera;
