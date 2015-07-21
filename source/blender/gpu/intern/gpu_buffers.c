@@ -540,7 +540,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 
 				/* allocation still failed; fall back
 				 * to legacy mode */
-				if (!buffer) {
+				if (!(buffer && (varray = glMapBufferARB(target, GL_WRITE_ONLY_ARB)))) {
 					use_VBOs = false;
 					success = true;
 				}
