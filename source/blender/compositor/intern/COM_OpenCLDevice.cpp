@@ -84,7 +84,7 @@ cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel,
 	return COM_clAttachMemoryBufferToKernelParameter(kernel, parameterIndex, offsetIndex, cleanup, inputMemoryBuffers, (ReadBufferOperation *)reader);
 }
 
-const cl_image_format* OpenCLDevice::determineImageFormat(MemoryBuffer *memoryBuffer)
+const cl_image_format *OpenCLDevice::determineImageFormat(MemoryBuffer *memoryBuffer)
 {
 	const cl_image_format *imageFormat;
 	int num_channels = memoryBuffer->get_num_channels();

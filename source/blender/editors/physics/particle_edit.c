@@ -1685,10 +1685,10 @@ void PARTICLE_OT_select_random(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_float_percentage (ot->srna, "percent", 50.0f, 0.0f, 100.0f, "Percent",
-                           "Percentage (mean) of elements in randomly selected set",
-                           0.0f, 100.0f);
+	                          "Percentage (mean) of elements in randomly selected set",
+	                          0.0f, 100.0f);
 	ot->prop = RNA_def_enum (ot->srna, "type", select_random_type_items, RAN_HAIR,
-                           "Type", "Select either hair or points");
+	                         "Type", "Select either hair or points");
 }
 
 /************************ select linked operator ************************/

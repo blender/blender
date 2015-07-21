@@ -2974,7 +2974,7 @@ static PointerRNA rna_ShaderNodePointDensity_psys_get(PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
 	NodeShaderTexPointDensity *shader_point_density = node->storage;
-	Object *ob = (Object*)node->id;
+	Object *ob = (Object *)node->id;
 	ParticleSystem *psys = NULL;
 	PointerRNA value;
 
@@ -2990,7 +2990,7 @@ static void rna_ShaderNodePointDensity_psys_set(PointerRNA *ptr, PointerRNA valu
 {
 	bNode *node = ptr->data;
 	NodeShaderTexPointDensity *shader_point_density = node->storage;
-	Object *ob = (Object*)node->id;
+	Object *ob = (Object *)node->id;
 
 	if (ob && value.id.data == ob) {
 		shader_point_density->particle_system = BLI_findindex(&ob->particlesystem, value.data) + 1;

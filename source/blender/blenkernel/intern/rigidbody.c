@@ -274,10 +274,10 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 	if (ob->type == OB_MESH) {
 		DerivedMesh *dm = NULL;
 		MVert *mvert;
-		const MLoopTri *looptri = NULL;
+		const MLoopTri *looptri;
 		int totvert;
-		int tottri = 0;
-		const MLoop *mloop = NULL;
+		int tottri;
+		const MLoop *mloop;
 		
 		dm = rigidbody_get_mesh(ob);
 
@@ -596,8 +596,8 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
 				DerivedMesh *dm = rigidbody_get_mesh(ob);
 				MVert *mvert;
 				const MLoopTri *looptri;
-				int totvert, tottri = 0;
-				const MLoop* mloop = NULL;
+				int totvert, tottri;
+				const MLoop *mloop;
 				
 				/* ensure mesh validity, then grab data */
 				if (dm == NULL)
