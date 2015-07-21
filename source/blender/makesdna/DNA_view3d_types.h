@@ -268,6 +268,11 @@ typedef struct View3D {
 #define RV3D_NAVIGATING				8
 #define RV3D_GPULIGHT_UPDATE		16
 #define RV3D_IS_GAME_ENGINE			32  /* runtime flag, used to check if LoD's should be used */
+/**
+ * Disable zbuffer offset, skip calls to #ED_view3d_polygon_offset.
+ * Use when precise surface depth is needed and picking bias isn't, see T45434).
+ */
+#define RV3D_ZOFFSET_DISABLED		64
 
 /* RegionView3d->viewlock */
 #define RV3D_LOCKED			(1 << 0)
