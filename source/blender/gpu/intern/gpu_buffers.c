@@ -327,8 +327,10 @@ static GPUBuffer *gpu_buffer_alloc_intern(size_t size, bool use_VBO)
 			gpu_buffer_pool_delete_last(pool);
 			buf->pointer = MEM_mallocN(size, "GPUBuffer.pointer");
 		}
-		if (!buf->pointer)
+		if (!buf->pointer) {
+			MEM_freeN(buf);
 			return NULL;
+		}
 	}
 
 	return buf;
@@ -473,17 +475,17 @@ void GPU_drawobject_free(DerivedMesh *dm)
 
 static GPUBuffer *gpu_try_realloc(GPUBufferPool *pool, GPUBuffer *buffer, size_t size, bool use_VBOs)
 {
-	gpu_buffer_free_intern(buffer);
-	gpu_buffer_pool_delete_last(pool);
-	buffer = NULL;
-	
 	/* try freeing an entry from the pool
 	 * and reallocating the buffer */
-	if (pool->totbuf > 0) {
+	gpu_buffer_free_intern(buffer);
+
+	buffer = NULL;
+
+	while (pool->totbuf && !buffer) {
 		gpu_buffer_pool_delete_last(pool);
 		buffer = gpu_buffer_alloc_intern(size, use_VBOs);
 	}
-	
+
 	return buffer;
 }
 
