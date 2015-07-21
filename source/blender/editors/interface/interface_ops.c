@@ -276,6 +276,20 @@ bool UI_context_copy_to_selected_list(
 	else if (RNA_struct_is_a(ptr->type, &RNA_PoseBone)) {
 		*r_lb = CTX_data_collection_get(C, "selected_pose_bones");
 	}
+	else if (RNA_struct_is_a(ptr->type, &RNA_Bone)) {
+		ListBase lb;
+		lb = CTX_data_collection_get(C, "selected_pose_bones");
+
+		if (!BLI_listbase_is_empty(&lb)) {
+			CollectionPointerLink *link;
+			for (link = lb.first; link; link = link->next) {
+				bPoseChannel *pchan = link->ptr.data;
+				RNA_pointer_create(link->ptr.id.data, &RNA_Bone, pchan->bone, &link->ptr);
+			}
+		}
+
+		*r_lb = lb;
+	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {
 		*r_lb = CTX_data_collection_get(C, "selected_editable_sequences");
 	}
