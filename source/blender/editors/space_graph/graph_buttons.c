@@ -696,13 +696,13 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	col = uiLayoutColumn(pa->layout, false);
 	block = uiLayoutGetBlock(col);
 	but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_FILE_REFRESH, IFACE_("Update Dependencies"),
-	               0, 0, 10 * UI_UNIT_X, 22,
+	               0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
 	               NULL, 0.0, 0.0, 0, 0,
 	               TIP_("Force updates of dependencies"));
 	UI_but_func_set(but, driver_update_flags_cb, fcu, NULL);
 
 	but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_ZOOMOUT, IFACE_("Remove Driver"),
-	               0, 0, 10 * UI_UNIT_X, 18,
+	               0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
 	               NULL, 0.0, 0.0, 0, 0,
 	               TIP_("Remove this driver"));
 	UI_but_funcN_set(but, driver_remove_cb, MEM_dupallocN(ale), NULL);
