@@ -577,7 +577,7 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_ui_text(srna, "Action F-Curves", "Collection of action F-Curves");
 
 	func = RNA_def_function(srna, "new", "rna_Action_fcurve_new");
-	RNA_def_function_ui_description(func, "Add a keyframe to the F-Curve");
+	RNA_def_function_ui_description(func, "Add an F-Curve to the action");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_string(func, "data_path", NULL, 0, "Data Path", "F-Curve data path to use");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
