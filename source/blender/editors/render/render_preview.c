@@ -559,10 +559,16 @@ static bool ed_preview_draw_rect(ScrArea *sa, int split, int first, rcti *rect, 
 
 	RE_AcquireResultImageViews(re, &rres);
 
-	/* material preview only needs monoscopy (view 0) */
-	rv = RE_RenderViewGetById(&rres, 0);
+	if (!BLI_listbase_is_empty(&rres.views)) {
+		/* material preview only needs monoscopy (view 0) */
+		rv = RE_RenderViewGetById(&rres, 0);
+	}
+	else {
+		/* possible the job clears the views but we're still drawing T45496 */
+		rv = NULL;
+	}
 
-	if (rv->rectf) {
+	if (rv && rv->rectf) {
 		
 		if (ABS(rres.rectx - newx) < 2 && ABS(rres.recty - newy) < 2) {
 
