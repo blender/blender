@@ -822,6 +822,8 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
 		uiItemR(layout, ptr, "projection_blend", 0, "Blend", ICON_NONE);
 	}
 
+	uiItemR(layout, ptr, "extension", 0, "", ICON_NONE);
+
 	/* note: image user properties used directly here, unlike compositor image node,
 	 * which redefines them in the node struct RNA to get proper updates.
 	 */

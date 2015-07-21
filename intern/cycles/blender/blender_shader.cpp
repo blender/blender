@@ -594,13 +594,13 @@ static ShaderNode *add_node(Scene *scene,
 				        image->filename,
 				        image->builtin_data,
 				        (InterpolationType)b_image_node.interpolation(),
-				        EXTENSION_REPEAT);
+				        (ExtensionType)b_image_node.extension());
 			}
 		}
 		image->color_space = ImageTextureNode::color_space_enum[(int)b_image_node.color_space()];
 		image->projection = ImageTextureNode::projection_enum[(int)b_image_node.projection()];
 		image->interpolation = (InterpolationType)b_image_node.interpolation();
-		image->extension = EXTENSION_REPEAT;
+		image->extension = (ExtensionType)b_image_node.extension();
 		image->projection_blend = b_image_node.projection_blend();
 		get_tex_mapping(&image->tex_mapping, b_image_node.texture_mapping());
 		node = image;

@@ -727,6 +727,8 @@ typedef struct NodeTexImage {
 	int projection;
 	float projection_blend;
 	int interpolation;
+	int extension;
+	int pad;
 } NodeTexImage;
 
 typedef struct NodeTexChecker {
@@ -974,6 +976,9 @@ typedef struct NodeSunBeams {
 /* environment texture */
 #define SHD_PROJ_EQUIRECTANGULAR	0
 #define SHD_PROJ_MIRROR_BALL		1
+
+#define SHD_IMAGE_EXTENSION_REPEAT	0
+#define SHD_IMAGE_EXTENSION_CLIP	1
 
 /* image texture */
 #define SHD_PROJ_FLAT				0
