@@ -36,9 +36,15 @@
 #include "CCGSubSurf_intern.h"
 
 #include "BKE_DerivedMesh.h"
+#include "BKE_mesh_mapping.h"
 
 #include "opensubdiv_capi.h"
 #include "opensubdiv_converter_capi.h"
+
+/* Use mesh element mapping structures during conversion.
+ * Uses more memory but is much faster than naive algorithm.
+ */
+#define USE_MESH_ELEMENT_MAPPING
 
 /**
  * Converter from DerivedMesh.
@@ -47,11 +53,16 @@
 typedef struct ConvDMStorage {
 	CCGSubSurf *ss;
 	DerivedMesh *dm;
-} ConvDMStorage;
 
-/* TODO(sergey): Optimize this by using mesh_map, so we don't
- * do full mesh lookup for every geometry primitive.
- */
+#ifdef USE_MESH_ELEMENT_MAPPING
+	MeshElemMap *vert_edge_map,
+	            *vert_poly_map,
+	            *edge_poly_map;
+	int *vert_edge_mem,
+	    *vert_poly_mem,
+	    *edge_poly_mem;
+#endif
+} ConvDMStorage;
 
 static OpenSubdiv_SchemeType conv_dm_get_type(
         const OpenSubdiv_Converter *converter)
@@ -140,6 +151,7 @@ static int conv_dm_get_num_edge_faces(const OpenSubdiv_Converter *converter,
                                       int edge)
 {
 	ConvDMStorage *storage = converter->user_data;
+#ifndef USE_MESH_ELEMENT_MAPPING
 	DerivedMesh *dm = storage->dm;
 	const MLoop *ml = dm->getLoopArray(dm);
 	const MPoly *mp = dm->getPolyArray(dm);
@@ -156,6 +168,9 @@ static int conv_dm_get_num_edge_faces(const OpenSubdiv_Converter *converter,
 		}
 	}
 	return num;
+#else
+	return storage->edge_poly_map[edge].count;
+#endif
 }
 
 static void conv_dm_get_edge_faces(const OpenSubdiv_Converter *converter,
@@ -163,6 +178,7 @@ static void conv_dm_get_edge_faces(const OpenSubdiv_Converter *converter,
                                    int *edge_faces)
 {
 	ConvDMStorage *storage = converter->user_data;
+#ifndef USE_MESH_ELEMENT_MAPPING
 	DerivedMesh *dm = storage->dm;
 	const MLoop *ml = dm->getLoopArray(dm);
 	const MPoly *mp = dm->getPolyArray(dm);
@@ -178,6 +194,11 @@ static void conv_dm_get_edge_faces(const OpenSubdiv_Converter *converter,
 			}
 		}
 	}
+#else
+	memcpy(edge_faces,
+	       storage->edge_poly_map[edge].indices,
+	       sizeof(int) * storage->edge_poly_map[edge].count);
+#endif
 }
 
 static float conv_dm_get_edge_sharpness(const OpenSubdiv_Converter *converter,
@@ -194,6 +215,7 @@ static int conv_dm_get_num_vert_edges(const OpenSubdiv_Converter *converter,
                                       int vert)
 {
 	ConvDMStorage *storage = converter->user_data;
+#ifndef USE_MESH_ELEMENT_MAPPING
 	DerivedMesh *dm = storage->dm;
 	const MEdge *me = dm->getEdgeArray(dm);
 	int num = 0, edge;
@@ -204,6 +226,9 @@ static int conv_dm_get_num_vert_edges(const OpenSubdiv_Converter *converter,
 		}
 	}
 	return num;
+#else
+	return storage->vert_edge_map[vert].count;
+#endif
 }
 
 static void conv_dm_get_vert_edges(const OpenSubdiv_Converter *converter,
@@ -211,6 +236,7 @@ static void conv_dm_get_vert_edges(const OpenSubdiv_Converter *converter,
                                    int *vert_edges)
 {
 	ConvDMStorage *storage = converter->user_data;
+#ifndef USE_MESH_ELEMENT_MAPPING
 	DerivedMesh *dm = storage->dm;
 	const MEdge *me = dm->getEdgeArray(dm);
 	int num = 0, edge;
@@ -220,12 +246,18 @@ static void conv_dm_get_vert_edges(const OpenSubdiv_Converter *converter,
 			vert_edges[num++] = edge;
 		}
 	}
+#else
+	memcpy(vert_edges,
+	       storage->vert_edge_map[vert].indices,
+	       sizeof(int) * storage->vert_edge_map[vert].count);
+#endif
 }
 
 static int conv_dm_get_num_vert_faces(const OpenSubdiv_Converter *converter,
                                       int vert)
 {
 	ConvDMStorage *storage = converter->user_data;
+#ifndef USE_MESH_ELEMENT_MAPPING
 	DerivedMesh *dm = storage->dm;
 	const MLoop *ml = dm->getLoopArray(dm);
 	const MPoly *mp = dm->getPolyArray(dm);
@@ -242,6 +274,9 @@ static int conv_dm_get_num_vert_faces(const OpenSubdiv_Converter *converter,
 		}
 	}
 	return num;
+#else
+	return storage->vert_poly_map[vert].count;
+#endif
 }
 
 static void conv_dm_get_vert_faces(const OpenSubdiv_Converter *converter,
@@ -249,6 +284,7 @@ static void conv_dm_get_vert_faces(const OpenSubdiv_Converter *converter,
                                    int *vert_faces)
 {
 	ConvDMStorage *storage = converter->user_data;
+#ifndef USE_MESH_ELEMENT_MAPPING
 	DerivedMesh *dm = storage->dm;
 	const MLoop *ml = dm->getLoopArray(dm);
 	const MPoly *mp = dm->getPolyArray(dm);
@@ -264,11 +300,25 @@ static void conv_dm_get_vert_faces(const OpenSubdiv_Converter *converter,
 			}
 		}
 	}
+#else
+	memcpy(vert_faces,
+	       storage->vert_poly_map[vert].indices,
+	       sizeof(int) * storage->vert_poly_map[vert].count);
+#endif
 }
 
 static void conv_dm_free_user_data(const OpenSubdiv_Converter *converter)
 {
-	MEM_freeN(converter->user_data);
+	ConvDMStorage *user_data = converter->user_data;
+#ifdef USE_MESH_ELEMENT_MAPPING
+	MEM_freeN(user_data->vert_edge_map);
+	MEM_freeN(user_data->vert_edge_mem);
+	MEM_freeN(user_data->vert_poly_map);
+	MEM_freeN(user_data->vert_poly_mem);
+	MEM_freeN(user_data->edge_poly_map);
+	MEM_freeN(user_data->edge_poly_mem);
+#endif
+	MEM_freeN(user_data);
 }
 
 void ccgSubSurf_converter_setup_from_derivedmesh(
@@ -303,6 +353,40 @@ void ccgSubSurf_converter_setup_from_derivedmesh(
 	user_data->dm = dm;
 	converter->free_user_data = conv_dm_free_user_data;
 	converter->user_data = user_data;
+
+#ifdef USE_MESH_ELEMENT_MAPPING
+	{
+		const MEdge *medge = dm->getEdgeArray(dm);
+		const MLoop *mloop = dm->getLoopArray(dm);
+		const MPoly *mpoly = dm->getPolyArray(dm);
+		const int num_vert = dm->getNumVerts(dm),
+		          num_edge = dm->getNumEdges(dm),
+		          num_loop = dm->getNumLoops(dm),
+		          num_poly = dm->getNumPolys(dm);
+		BKE_mesh_vert_edge_map_create(&user_data->vert_edge_map,
+		                              &user_data->vert_edge_mem,
+		                              medge,
+		                              num_vert,
+		                              num_edge);
+
+		BKE_mesh_vert_poly_map_create(&user_data->vert_poly_map,
+		                              &user_data->vert_poly_mem,
+		                              mpoly,
+		                              mloop,
+		                              num_vert,
+		                              num_poly,
+		                              num_loop);
+
+		BKE_mesh_edge_poly_map_create(&user_data->edge_poly_map,
+		                              &user_data->edge_poly_mem,
+		                              medge,
+		                              num_edge,
+		                              mpoly,
+		                              num_poly,
+		                              mloop,
+		                              num_loop);
+	}
+#endif  /* USE_MESH_ELEMENT_MAPPING */
 }
 
 /**
