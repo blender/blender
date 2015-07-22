@@ -94,7 +94,10 @@
 #include "ED_datafiles.h"
 #include "ED_render.h"
 
-
+#ifndef NDEBUG
+/* Used for database init assert(). */
+#  include "BLI_threads.h"
+#endif
 
 ImBuf *get_brush_icon(Brush *brush)
 {
@@ -204,11 +207,16 @@ static Main *load_main_from_memory(const void *blend, int blend_size)
 }
 #endif
 
-void ED_preview_init_dbase(void)
+void ED_preview_ensure_dbase(void)
 {
 #ifndef WITH_HEADLESS
-	G_pr_main = load_main_from_memory(datatoc_preview_blend, datatoc_preview_blend_size);
-	G_pr_main_cycles = load_main_from_memory(datatoc_preview_cycles_blend, datatoc_preview_cycles_blend_size);
+	static bool base_initialized = false;
+	BLI_assert(BLI_thread_is_main());
+	if (!base_initialized) {
+		G_pr_main = load_main_from_memory(datatoc_preview_blend, datatoc_preview_blend_size);
+		G_pr_main_cycles = load_main_from_memory(datatoc_preview_cycles_blend, datatoc_preview_cycles_blend_size);
+		base_initialized = true;
+	}
 #endif
 }
 
@@ -1152,6 +1160,8 @@ void ED_preview_icon_render(Main *bmain, Scene *scene, ID *id, unsigned int *rec
 	short stop = false, update = false;
 	float progress = 0.0f;
 
+	ED_preview_ensure_dbase();
+
 	ip.bmain = bmain;
 	ip.scene = scene;
 	ip.owner = id;
@@ -1170,7 +1180,9 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 {
 	wmJob *wm_job;
 	IconPreview *ip, *old_ip;
-	
+
+	ED_preview_ensure_dbase();
+
 	/* suspended start means it starts after 1 timer step, see WM_jobs_timer below */
 	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner, "Icon Preview",
 	                     WM_JOB_EXCL_RENDER | WM_JOB_SUSPEND, WM_JOB_TYPE_RENDER_PREVIEW);
@@ -1211,6 +1223,8 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	if (use_new_shading && method == PR_NODE_RENDER && id_type != ID_TE) {
 		return;
 	}
+
+	ED_preview_ensure_dbase();
 
 	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner, "Shader Preview",
 	                    WM_JOB_EXCL_RENDER, WM_JOB_TYPE_RENDER_PREVIEW);

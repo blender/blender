@@ -229,9 +229,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	ED_render_clear_mtex_copybuf();
 
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		
-	ED_preview_init_dbase();
-	
+
 	wm_read_history();
 
 	/* allow a path of "", this is what happens when making a new file */

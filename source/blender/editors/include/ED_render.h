@@ -70,7 +70,7 @@ enum {
 	PR_ICON_DEFERRED = 3,
 };
 
-void ED_preview_init_dbase(void);
+void ED_preview_ensure_dbase(void);
 void ED_preview_free_dbase(void);
 
 void ED_preview_shader_job(const struct bContext *C, void *owner, struct ID *id, struct ID *parent, struct MTex *slot, int sizex, int sizey, int method);
