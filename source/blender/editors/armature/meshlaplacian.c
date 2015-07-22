@@ -1181,12 +1181,18 @@ static int meshdeform_tri_intersect(const float orig[3], const float end[3], con
 	return 1;
 }
 
+struct MeshRayCallbackData {
+	MFace *mface;
+	MeshDeformBind *mdb;
+	MeshDeformIsect *isec;
+};
+
 static void harmonic_ray_callback(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
-	void **data = userdata;
-	MeshDeformBind *mdb = data[1];
-	MFace *mface = data[0], *mf;
-	MeshDeformIsect *isec = data[2];
+	struct MeshRayCallbackData *data = userdata;
+	MeshDeformBind *mdb = data->mdb;
+	MFace *mface = data->mface, *mf;
+	MeshDeformIsect *isec = data->isec;
 	float no[3], co[3], end[3], uvw[3], dist, face[4][3];
 	
 	mf = mface + index;
@@ -1226,8 +1232,12 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, const 
 	BVHTreeRayHit hit;
 	MeshDeformIsect isect_mdef;
 	float (*cagecos)[3];
-	void *data[3] = {mdb->cagedm->getTessFaceArray(mdb->cagedm), mdb, &isect_mdef};
-	MFace *mface1 = data[0], *mface;
+	struct MeshRayCallbackData data = {
+		mdb->cagedm->getTessFaceArray(mdb->cagedm),
+		mdb,
+		&isect_mdef,
+	};
+	MFace *mface1 = data.mface, *mface;
 	float vert[4][3], len, end[3];
 	// static float epsilon[3] = {1e-4, 1e-4, 1e-4};
 
@@ -1251,7 +1261,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, const 
 	hit.index = -1;
 	hit.dist = FLT_MAX;
 	if (BLI_bvhtree_ray_cast(mdb->bvhtree, isect_mdef.start, isect_mdef.vec,
-	                         0.0, &hit, harmonic_ray_callback, data) != -1)
+	                         0.0, &hit, harmonic_ray_callback, &data) != -1)
 	{
 		len = isect_mdef.lambda;
 		isect_mdef.face = mface = mface1 + hit.index;
