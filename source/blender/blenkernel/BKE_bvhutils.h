@@ -56,9 +56,13 @@ typedef struct BVHTreeFromMesh {
 	const struct MVert *vert;
 	const struct MEdge *edge;     /* only used for BVHTreeFromMeshEdges */
 	const struct MFace *face;
+	const struct MLoop *loop;
+	const struct MLoopTri *looptri;
 	bool vert_allocated;
 	bool edge_allocated;
 	bool face_allocated;
+	bool loop_allocated;
+	bool looptri_allocated;
 
 	/* radius for raycast */
 	float sphere_radius;
@@ -100,6 +104,16 @@ BVHTree *bvhtree_from_mesh_faces_ex(
         BLI_bitmap *mask, int numFaces_active,
         float epsilon, int tree_type, int axis);
 
+BVHTree *bvhtree_from_mesh_looptri(
+        struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
+BVHTree *bvhtree_from_mesh_looptri_ex(
+        struct BVHTreeFromMesh *data,
+        const struct MVert *vert, const bool vert_allocated,
+        const struct MLoop *mloop, const bool loop_allocated,
+        const struct MLoopTri *looptri, const int numFaces, const bool face_allocated,
+        BLI_bitmap *mask, int numFaces_active,
+        float epsilon, int tree_type, int axis);
+
 /**
  * Frees data allocated by a call to bvhtree_from_mesh_*.
  */
@@ -125,6 +139,7 @@ enum {
 	BVHTREE_FROM_EDGES           = 1,
 	BVHTREE_FROM_FACES           = 2,
 	BVHTREE_FROM_FACES_EDITMESH  = 3,
+	BVHTREE_FROM_LOOPTRI         = 4,
 };
 
 typedef struct LinkNode *BVHCache;
