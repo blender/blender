@@ -631,7 +631,7 @@ def pyfunc2sphinx(ident, fw, module_name, type_name, identifier, py_func, is_cla
     if type(py_func) == MethodType:
         return
 
-    arg_str = inspect.formatargspec(*inspect.getargspec(py_func))
+    arg_str = inspect.formatargspec(*inspect.getfullargspec(py_func))
 
     if not is_class:
         func_type = "function"
