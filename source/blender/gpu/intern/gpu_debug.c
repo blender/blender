@@ -167,12 +167,14 @@ static void APIENTRY gpu_debug_proc(GLenum source, GLenum type, GLuint UNUSED(id
                                GLenum UNUSED(severity), GLsizei UNUSED(length),
                                const GLchar *message, GLvoid *UNUSED(userParm))
 {
-	if (source == GL_DEBUG_SOURCE_API && type == GL_DEBUG_TYPE_ERROR)
+	if (source == GL_DEBUG_SOURCE_API && type == GL_DEBUG_TYPE_ERROR) {
 		fprintf(stderr, "GL: %s\n", message);
+		fflush(stderr);
+	}
 	else if (G.debug_value == 20) {
 		fprintf(stderr, "GL: %s\n", message);
+		fflush(stderr);
 	}
-	fflush(stderr);
 }
 
 
