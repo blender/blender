@@ -3251,6 +3251,7 @@ void CustomData_file_write_prepare(
 		}
 	}
 	BLI_assert(j == data->totlayer);
+	data->maxlayer = data->totlayer;  /* We only write that much of data! */
 	*r_write_layers = write_layers;
 }
 
