@@ -7446,8 +7446,14 @@ static void bpy_class_free(void *pyob_ptr)
 	PyGILState_Release(gilstate);
 }
 
+/**
+ * \note This isn't essential to run on startup, since subtypes will lazy initialize.
+ * But keep running in debug mode so we get immediate notification of bad class hierarchy
+ * or any errors in "bpy_types.py" at load time, so errors don't go unnoticed.
+ */
 void pyrna_alloc_types(void)
 {
+#ifdef DEBUG
 	PyGILState_STATE gilstate;
 
 	PointerRNA ptr;
@@ -7475,6 +7481,7 @@ void pyrna_alloc_types(void)
 	RNA_PROP_END;
 
 	PyGILState_Release(gilstate);
+#endif  /* DEBUG */
 }
 
 
