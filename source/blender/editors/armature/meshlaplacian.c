@@ -631,7 +631,6 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 	MLoopTri *mlooptri;
 	MPoly *mp;
 	MLoop *ml;
-	MFace *mf;
 	float solution, weight;
 	int *vertsflipped = NULL, *mask = NULL;
 	int a, tottri, j, bbone, firstsegment, lastsegment;
@@ -644,15 +643,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 	*err_str = NULL;
 
 	/* bone heat needs triangulated faces */
-	BKE_mesh_tessface_ensure(me);
-
-	for (tottri = 0, a = 0, mf = me->mface; a < me->totface; mf++, a++) {
-		tottri++;
-		if (mf->v4) tottri++;
-	}
-
-	if (tottri == 0)
-		return;
+	tottri = poly_to_tri_count(me->totpoly, me->totloop);
 
 	/* count triangles and create mask */
 	if (ob->mode & OB_MODE_WEIGHT_PAINT &&
@@ -1062,8 +1053,8 @@ static int MESHDEFORM_OFFSET[7][3] = {
 };
 
 typedef struct MDefBoundIsect {
-	float co[3], uvw[4];
-	int nvert, v[4], facing;
+	float co[3], uvw[3];
+	int v[3], facing;
 	float len;
 } MDefBoundIsect;
 
@@ -1110,7 +1101,7 @@ typedef struct MeshDeformIsect {
 	float vec[3];
 	float lambda;
 
-	void *face;
+	const void *face;
 	int isect;
 	float u, v;
 	
@@ -1182,7 +1173,10 @@ static int meshdeform_tri_intersect(const float orig[3], const float end[3], con
 }
 
 struct MeshRayCallbackData {
-	MFace *mface;
+	const MPoly *mpoly;
+	const MLoop *mloop;
+	const MLoopTri *looptri;
+	const float (*poly_nors)[3];
 	MeshDeformBind *mdb;
 	MeshDeformIsect *isec;
 };
@@ -1191,29 +1185,31 @@ static void harmonic_ray_callback(void *userdata, int index, const BVHTreeRay *r
 {
 	struct MeshRayCallbackData *data = userdata;
 	MeshDeformBind *mdb = data->mdb;
-	MFace *mface = data->mface, *mf;
+	const MLoop *mloop = data->mloop;
+	const MLoopTri *looptri = data->looptri, *lt;
+	const float (*poly_nors)[3] = data->poly_nors;
 	MeshDeformIsect *isec = data->isec;
-	float no[3], co[3], end[3], uvw[3], dist, face[4][3];
+	float no[3], co[3], end[3], uvw[3], dist;
+	float *face[3];
 	
-	mf = mface + index;
+	lt = &looptri[index];
 	
-	copy_v3_v3(face[0], mdb->cagecos[mf->v1]);
-	copy_v3_v3(face[1], mdb->cagecos[mf->v2]);
-	copy_v3_v3(face[2], mdb->cagecos[mf->v3]);
-	if (mf->v4)
-		copy_v3_v3(face[3], mdb->cagecos[mf->v4]);
+	face[0] = mdb->cagecos[mloop[lt->tri[0]].v];
+	face[1] = mdb->cagecos[mloop[lt->tri[1]].v];
+	face[2] = mdb->cagecos[mloop[lt->tri[2]].v];
 	
 	add_v3_v3v3(end, isec->start, isec->vec);
 	
-	if (!meshdeform_tri_intersect(ray->origin, end, face[0], face[1], face[2], co, uvw)) 
-		if (!mf->v4 || !meshdeform_tri_intersect(ray->origin, end, face[0], face[2], face[3], co, uvw))
-			return;
-	
-	if (!mf->v4)
-		normal_tri_v3(no, face[0], face[1], face[2]);
-	else
-		normal_quad_v3(no, face[0], face[1], face[2], face[3]);
-	
+	if (!meshdeform_tri_intersect(ray->origin, end, UNPACK3(face), co, uvw))
+		return;
+
+	if (poly_nors) {
+		copy_v3_v3(no, poly_nors[lt->poly]);
+	}
+	else {
+		normal_tri_v3(no, UNPACK3(face));
+	}
+
 	dist = len_v3v3(ray->origin, co) / len_v3(isec->vec);
 	if (dist < hit->dist) {
 		hit->index = index;
@@ -1222,22 +1218,24 @@ static void harmonic_ray_callback(void *userdata, int index, const BVHTreeRay *r
 		
 		isec->isect = (dot_v3v3(no, ray->direction) <= 0.0f);
 		isec->lambda = dist;
-		isec->face = mf;
+		isec->face = lt;
 	}
 }
 
 static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, const float co1[3], const float co2[3])
 {
-	MDefBoundIsect *isect;
 	BVHTreeRayHit hit;
 	MeshDeformIsect isect_mdef;
 	float (*cagecos)[3];
 	struct MeshRayCallbackData data = {
-		mdb->cagedm->getTessFaceArray(mdb->cagedm),
+		mdb->cagedm->getPolyArray(mdb->cagedm),
+		mdb->cagedm->getLoopArray(mdb->cagedm),
+		mdb->cagedm->getLoopTriArray(mdb->cagedm),
+		mdb->cagedm->getPolyDataArray(mdb->cagedm, CD_NORMAL),  /* can be NULL */
 		mdb,
 		&isect_mdef,
 	};
-	MFace *mface1 = data.mface, *mface;
+	const MLoopTri *looptri = data.looptri, *lt;
 	float vert[4][3], len, end[3];
 	// static float epsilon[3] = {1e-4, 1e-4, 1e-4};
 
@@ -1263,8 +1261,9 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, const 
 	if (BLI_bvhtree_ray_cast(mdb->bvhtree, isect_mdef.start, isect_mdef.vec,
 	                         0.0, &hit, harmonic_ray_callback, &data) != -1)
 	{
+		MDefBoundIsect *isect;
 		len = isect_mdef.lambda;
-		isect_mdef.face = mface = mface1 + hit.index;
+		isect_mdef.face = lt = &looptri[hit.index];
 
 		/* create MDefBoundIsect */
 		isect = BLI_memarena_alloc(mdb->memarena, sizeof(*isect));
@@ -1278,21 +1277,18 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, const 
 		if (isect->len < MESHDEFORM_LEN_THRESHOLD)
 			isect->len = MESHDEFORM_LEN_THRESHOLD;
 
-		isect->v[0] = mface->v1;
-		isect->v[1] = mface->v2;
-		isect->v[2] = mface->v3;
-		isect->v[3] = mface->v4;
-		isect->nvert = (mface->v4) ? 4 : 3;
+		isect->v[0] = data.mloop[lt->tri[0]].v;
+		isect->v[1] = data.mloop[lt->tri[1]].v;
+		isect->v[2] = data.mloop[lt->tri[2]].v;
 
 		isect->facing = isect_mdef.isect;
 
 		/* compute mean value coordinates for interpolation */
 		cagecos = mdb->cagecos;
-		copy_v3_v3(vert[0], cagecos[mface->v1]);
-		copy_v3_v3(vert[1], cagecos[mface->v2]);
-		copy_v3_v3(vert[2], cagecos[mface->v3]);
-		if (mface->v4) copy_v3_v3(vert[3], cagecos[mface->v4]);
-		interp_weights_poly_v3(isect->uvw, vert, isect->nvert, isect->co);
+		copy_v3_v3(vert[0], cagecos[isect->v[0]]);
+		copy_v3_v3(vert[1], cagecos[isect->v[1]]);
+		copy_v3_v3(vert[2], cagecos[isect->v[2]]);
+		interp_weights_poly_v3(isect->uvw, vert, 3, isect->co);
 
 		return isect;
 	}
@@ -1444,7 +1440,7 @@ static float meshdeform_boundary_phi(MeshDeformBind *UNUSED(mdb), MDefBoundIsect
 {
 	int a;
 
-	for (a = 0; a < isect->nvert; a++)
+	for (a = 0; a < 3; a++)
 		if (isect->v[a] == cagevert)
 			return isect->uvw[a];
 	
@@ -1774,7 +1770,7 @@ static void harmonic_coordinates_bind(Scene *UNUSED(scene), MeshDeformModifierDa
 	mdb->totalphi = MEM_callocN(sizeof(float) * mdb->size3, "MeshDeformBindTotalPhi");
 	mdb->boundisect = MEM_callocN(sizeof(*mdb->boundisect) * mdb->size3, "MDefBoundIsect");
 	mdb->semibound = MEM_callocN(sizeof(int) * mdb->size3, "MDefSemiBound");
-	mdb->bvhtree = bvhtree_from_mesh_faces(&mdb->bvhdata, mdb->cagedm, FLT_EPSILON * 100, 4, 6);
+	mdb->bvhtree = bvhtree_from_mesh_looptri(&mdb->bvhdata, mdb->cagedm, FLT_EPSILON * 100, 4, 6);
 	mdb->inside = MEM_callocN(sizeof(int) * mdb->totvert, "MDefInside");
 
 	if (mmd->flag & MOD_MDEF_DYNAMIC_BIND)
