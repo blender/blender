@@ -34,7 +34,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_kdopbvh.h"
 
-/*
+/**
  * This header encapsulates necessary code to buld a BVH
  */
 
@@ -42,7 +42,7 @@ struct DerivedMesh;
 struct MVert;
 struct MFace;
 
-/*
+/**
  * struct that kepts basic information about a BVHTree build from a mesh
  */
 typedef struct BVHTreeFromMesh {
@@ -100,18 +100,22 @@ BVHTree *bvhtree_from_mesh_faces_ex(
         BLI_bitmap *mask, int numFaces_active,
         float epsilon, int tree_type, int axis);
 
-/*
+/**
  * Frees data allocated by a call to bvhtree_from_mesh_*.
  */
 void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data);
 
-/*
+/**
  * Math functions used by callbacks
  */
-float bvhtree_ray_tri_intersection(const BVHTreeRay *ray, const float m_dist, const float v0[3], const float v1[3], const float v2[3]);
-float nearest_point_in_tri_surface_squared(const float v0[3], const float v1[3], const float v2[3], const float p[3], int *v, int *e, float nearest[3]);
+float bvhtree_ray_tri_intersection(
+        const BVHTreeRay *ray, const float m_dist,
+        const float v0[3], const float v1[3], const float v2[3]);
+float nearest_point_in_tri_surface_squared(
+        const float v0[3], const float v1[3], const float v2[3],
+        const float p[3], int *v, int *e, float nearest[3]);
 
-/*
+/**
  * BVHCache
  */
 
@@ -126,12 +130,12 @@ enum {
 typedef struct LinkNode *BVHCache;
 
 
-/*
+/**
  * Queries a bvhcache for the cache bvhtree of the request type
  */
 BVHTree *bvhcache_find(BVHCache *cache, int type);
 
-/*
+/**
  * Inserts a BVHTree of the given type under the cache
  * After that the caller no longer needs to worry when to free the BVHTree
  * as that will be done when the cache is freed.
@@ -140,7 +144,7 @@ BVHTree *bvhcache_find(BVHCache *cache, int type);
  */
 void bvhcache_insert(BVHCache *cache, BVHTree *tree, int type);
 
-/*
+/**
  * inits and frees a bvhcache
  */
 void bvhcache_init(BVHCache *cache);

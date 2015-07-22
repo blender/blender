@@ -48,9 +48,15 @@
 
 static ThreadRWMutex cache_rwlock = BLI_RWLOCK_INITIALIZER;
 
+/* -------------------------------------------------------------------- */
+/** \name Local Callbacks
+ * \{ */
+
 /* Math stuff for ray casting on mesh faces and for nearest surface */
 
-float bvhtree_ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_dist), const float v0[3], const float v1[3], const float v2[3])
+float bvhtree_ray_tri_intersection(
+        const BVHTreeRay *ray, const float UNUSED(m_dist),
+        const float v0[3], const float v1[3], const float v2[3])
 {
 	float dist;
 
@@ -60,7 +66,9 @@ float bvhtree_ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_d
 	return FLT_MAX;
 }
 
-static float sphereray_tri_intersection(const BVHTreeRay *ray, float radius, const float m_dist, const float v0[3], const float v1[3], const float v2[3])
+static float sphereray_tri_intersection(
+        const BVHTreeRay *ray, float radius, const float m_dist,
+        const float v0[3], const float v1[3], const float v2[3])
 {
 	
 	float idist;
@@ -311,15 +319,22 @@ static void mesh_edges_spherecast(void *userdata, int index, const BVHTreeRay *r
 	}
 }
 
+/** \} */
+
 /*
  * BVH builders
  */
 
-/* ***** Vertex ***** */
 
-static BVHTree *bvhtree_from_mesh_verts_create_tree(float epsilon, int tree_type, int axis,
-                                                    MVert *vert, const int numVerts,
-                                                    BLI_bitmap *mask, int numVerts_active)
+/* -------------------------------------------------------------------- */
+
+/** \name Vertex Builder
+ * \{ */
+
+static BVHTree *bvhtree_from_mesh_verts_create_tree(
+        float epsilon, int tree_type, int axis,
+        MVert *vert, const int numVerts,
+        BLI_bitmap *mask, int numVerts_active)
 {
 	BVHTree *tree = NULL;
 	int i;
@@ -354,8 +369,9 @@ static BVHTree *bvhtree_from_mesh_verts_create_tree(float epsilon, int tree_type
 	return tree;
 }
 
-static void bvhtree_from_mesh_verts_setup_data(BVHTreeFromMesh *data, BVHTree *tree, const bool is_cached, float epsilon,
-                                               MVert *vert, const bool vert_allocated)
+static void bvhtree_from_mesh_verts_setup_data(
+        BVHTreeFromMesh *data, BVHTree *tree, const bool is_cached, float epsilon,
+        MVert *vert, const bool vert_allocated)
 {
 	memset(data, 0, sizeof(*data));
 
@@ -424,9 +440,10 @@ BVHTree *bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *dm, float e
  * \param mask if not null, true elements give which vert to add to BVH tree.
  * \param numVerts_active if >= 0, number of active verts to add to BVH tree (else will be computed from mask).
  */
-BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data, MVert *vert, const int numVerts, const bool vert_allocated,
-                                    BLI_bitmap *mask, int numVerts_active,
-                                    float epsilon, int tree_type, int axis)
+BVHTree *bvhtree_from_mesh_verts_ex(
+        BVHTreeFromMesh *data, MVert *vert, const int numVerts, const bool vert_allocated,
+        BLI_bitmap *mask, int numVerts_active,
+        float epsilon, int tree_type, int axis)
 {
 	BVHTree *tree = bvhtree_from_mesh_verts_create_tree(epsilon, tree_type, axis, vert, numVerts, mask, numVerts_active);
 
@@ -436,7 +453,13 @@ BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data, MVert *vert, const in
 	return data->tree;
 }
 
-/* ***** Edge ***** */
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Edge Builder
+ * \{ */
 
 /* Builds a bvh tree where nodes are the edges of the given dm */
 BVHTree *bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *dm, float epsilon, int tree_type, int axis)
@@ -515,11 +538,18 @@ BVHTree *bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *dm, float e
 	return data->tree;
 }
 
-/* ***** Tessellated face ***** */
+/** \} */
 
-static BVHTree *bvhtree_from_mesh_faces_create_tree(float epsilon, int tree_type, int axis,
-                                                    BMEditMesh *em, MVert *vert, MFace *face, const int numFaces,
-                                                    BLI_bitmap *mask, int numFaces_active)
+
+/* -------------------------------------------------------------------- */
+
+/** \name Tessellated Face Builder
+ * \{ */
+
+static BVHTree *bvhtree_from_mesh_faces_create_tree(
+        float epsilon, int tree_type, int axis,
+        BMEditMesh *em, MVert *vert, MFace *face, const int numFaces,
+        BLI_bitmap *mask, int numFaces_active)
 {
 	BVHTree *tree = NULL;
 	int i;
@@ -743,6 +773,9 @@ BVHTree *bvhtree_from_mesh_faces_ex(
 	return data->tree;
 }
 
+/** \} */
+
+
 /* Frees data allocated by a call to bvhtree_from_mesh_*. */
 void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data)
 {
@@ -766,9 +799,10 @@ void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data)
 }
 
 
-/*
- * BVHCache
- */
+/* -------------------------------------------------------------------- */
+
+/** \name BVHCache
+ * \{ */
 
 typedef struct BVHCacheItem {
 	int type;
@@ -833,4 +867,4 @@ void bvhcache_free(BVHCache *cache)
 	*cache = NULL;
 }
 
-
+/** \} */
