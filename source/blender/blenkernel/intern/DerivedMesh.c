@@ -3882,3 +3882,35 @@ MFace *DM_get_tessface_array(DerivedMesh *dm, bool *allocated)
 
 	return mface;
 }
+
+const MLoopTri *DM_get_looptri_array(
+        DerivedMesh *dm,
+        const MVert *mvert,
+        const MPoly *mpoly, int mpoly_len,
+        const MLoop *mloop, int mloop_len,
+        bool *allocated)
+{
+	const MLoopTri *looptri = dm->getLoopTriArray(dm);
+	*allocated = false;
+
+	if (looptri == NULL) {
+		if (mpoly_len > 0) {
+			const int looptris_num = poly_to_tri_count(mpoly_len, mloop_len);
+			MLoopTri *looptri_data;
+
+			looptri_data = MEM_mallocN(sizeof(MLoopTri) * looptris_num, __func__);
+
+			BKE_mesh_recalc_looptri(
+			        mloop, mpoly,
+			        mvert,
+			        mloop_len, mpoly_len,
+			        looptri_data);
+
+			looptri = looptri_data;
+
+			*allocated = true;
+		}
+	}
+
+	return looptri;
+}
