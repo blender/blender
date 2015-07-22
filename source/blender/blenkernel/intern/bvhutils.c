@@ -84,8 +84,8 @@ static float sphereray_tri_intersection(const BVHTreeRay *ray, float radius, con
 static void mesh_faces_nearest_point(void *userdata, int index, const float co[3], BVHTreeNearest *nearest)
 {
 	const BVHTreeFromMesh *data = (BVHTreeFromMesh *) userdata;
-	MVert *vert = data->vert;
-	MFace *face = data->face + index;
+	const MVert *vert = data->vert;
+	const MFace *face = data->face + index;
 
 	const float *t0, *t1, *t2, *t3;
 	t0 = vert[face->v1].co;
@@ -148,8 +148,8 @@ static void editmesh_faces_nearest_point(void *userdata, int index, const float 
 static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
 	const BVHTreeFromMesh *data = (BVHTreeFromMesh *) userdata;
-	MVert *vert = data->vert;
-	MFace *face = data->face + index;
+	const MVert *vert = data->vert;
+	const MFace *face = &data->face[index];
 
 	const float *t0, *t1, *t2, *t3;
 	t0 = vert[face->v1].co;
@@ -217,8 +217,8 @@ static void editmesh_faces_spherecast(void *userdata, int index, const BVHTreeRa
 static void mesh_edges_nearest_point(void *userdata, int index, const float co[3], BVHTreeNearest *nearest)
 {
 	const BVHTreeFromMesh *data = (BVHTreeFromMesh *) userdata;
-	MVert *vert = data->vert;
-	MEdge *edge = data->edge + index;
+	const MVert *vert = data->vert;
+	const MEdge *edge = data->edge + index;
 	float nearest_tmp[3], dist_sq;
 
 	const float *t0, *t1;
@@ -262,7 +262,7 @@ static void mesh_verts_spherecast_do(
 static void mesh_verts_spherecast(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
 	const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
-	float *v = data->vert[index].co;
+	const float *v = data->vert[index].co;
 
 	mesh_verts_spherecast_do(data, index, v, ray, hit);
 }
@@ -272,8 +272,8 @@ static void mesh_verts_spherecast(void *userdata, int index, const BVHTreeRay *r
 static void mesh_edges_spherecast(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
 	const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
-	MVert *vert = data->vert;
-	MEdge *edge = &data->edge[index];
+	const MVert *vert = data->vert;
+	const MEdge *edge = &data->edge[index];
 
 	const float radius_sq = SQUARE(data->sphere_radius);
 	float dist;
@@ -624,10 +624,11 @@ static BVHTree *bvhtree_from_mesh_faces_create_tree(float epsilon, int tree_type
 	return tree;
 }
 
-static void bvhtree_from_mesh_faces_setup_data(BVHTreeFromMesh *data, BVHTree *tree, const bool is_cached,
-                                               float epsilon, BMEditMesh *em,
-                                               MVert *vert, const bool vert_allocated,
-                                               MFace *face, const bool face_allocated)
+static void bvhtree_from_mesh_faces_setup_data(
+        BVHTreeFromMesh *data, BVHTree *tree, const bool is_cached,
+        float epsilon, BMEditMesh *em,
+        MVert *vert, const bool vert_allocated,
+        MFace *face, const bool face_allocated)
 {
 	memset(data, 0, sizeof(*data));
 	data->em_evil = em;
@@ -727,12 +728,14 @@ BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *dm, float e
  * \param mask if not null, true elements give which faces to add to BVH tree.
  * \param numFaces_active if >= 0, number of active faces to add to BVH tree (else will be computed from mask).
  */
-BVHTree *bvhtree_from_mesh_faces_ex(BVHTreeFromMesh *data, MVert *vert, const bool vert_allocated,
-                                    MFace *face, const int numFaces, const bool face_allocated,
-                                    BLI_bitmap *mask, int numFaces_active, float epsilon, int tree_type, int axis)
+BVHTree *bvhtree_from_mesh_faces_ex(
+        BVHTreeFromMesh *data, MVert *vert, const bool vert_allocated,
+        MFace *face, const int numFaces, const bool face_allocated,
+        BLI_bitmap *mask, int numFaces_active, float epsilon, int tree_type, int axis)
 {
-	BVHTree *tree = bvhtree_from_mesh_faces_create_tree(epsilon, tree_type, axis, NULL, vert, face, numFaces,
-	                                                    mask, numFaces_active);
+	BVHTree *tree = bvhtree_from_mesh_faces_create_tree(
+	        epsilon, tree_type, axis, NULL, vert, face, numFaces,
+	        mask, numFaces_active);
 
 	/* Setup BVHTreeFromMesh */
 	bvhtree_from_mesh_faces_setup_data(data, tree, false, epsilon, NULL, vert, vert_allocated, face, face_allocated);
@@ -749,13 +752,13 @@ void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data)
 		}
 
 		if (data->vert_allocated) {
-			MEM_freeN(data->vert);
+			MEM_freeN((void *)data->vert);
 		}
 		if (data->edge_allocated) {
-			MEM_freeN(data->edge);
+			MEM_freeN((void *)data->edge);
 		}
 		if (data->face_allocated) {
-			MEM_freeN(data->face);
+			MEM_freeN((void *)data->face);
 		}
 
 		memset(data, 0, sizeof(*data));

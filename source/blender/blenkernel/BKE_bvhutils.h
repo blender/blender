@@ -53,9 +53,9 @@ typedef struct BVHTreeFromMesh {
 	BVHTree_RayCastCallback raycast_callback;
 
 	/* Vertex array, so that callbacks have instante access to data */
-	struct MVert *vert;
-	struct MEdge *edge;     /* only used for BVHTreeFromMeshEdges */
-	struct MFace *face;
+	const struct MVert *vert;
+	const struct MEdge *edge;     /* only used for BVHTreeFromMeshEdges */
+	const struct MFace *face;
 	bool vert_allocated;
 	bool edge_allocated;
 	bool face_allocated;
@@ -69,7 +69,7 @@ typedef struct BVHTreeFromMesh {
 
 } BVHTreeFromMesh;
 
-/*
+/**
  * Builds a bvh tree where nodes are the relevant elements of the given mesh.
  * Configures BVHTreeFromMesh.
  *
@@ -79,18 +79,26 @@ typedef struct BVHTreeFromMesh {
  * 
  * free_bvhtree_from_mesh should be called when the tree is no longer needed.
  */
-BVHTree *bvhtree_from_mesh_verts(struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
-BVHTree *bvhtree_from_mesh_verts_ex(struct BVHTreeFromMesh *data, struct MVert *vert, const int numVerts,
-                                    const bool vert_allocated, BLI_bitmap *mask, int numVerts_active,
-                                    float epsilon, int tree_type, int axis);
+BVHTree *bvhtree_from_mesh_verts(
+        struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
+BVHTree *bvhtree_from_mesh_verts_ex(
+        struct BVHTreeFromMesh *data, struct MVert *vert, const int numVerts,
+        const bool vert_allocated, BLI_bitmap *mask, int numVerts_active,
+        float epsilon, int tree_type, int axis);
 
-BVHTree *bvhtree_from_mesh_edges(struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
+BVHTree *bvhtree_from_mesh_edges(
+        struct BVHTreeFromMesh *data, struct DerivedMesh *mesh,
+        float epsilon, int tree_type, int axis);
 
-BVHTree *bvhtree_from_mesh_faces(struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
-BVHTree *bvhtree_from_mesh_faces_ex(struct BVHTreeFromMesh *data, struct MVert *vert, const bool vert_allocated,
-                                    struct MFace *face, const int numFaces, const bool face_allocated,
-                                    BLI_bitmap *mask, int numFaces_active,
-                                    float epsilon, int tree_type, int axis);
+BVHTree *bvhtree_from_mesh_faces(
+        struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon,
+        int tree_type, int axis);
+BVHTree *bvhtree_from_mesh_faces_ex(
+        struct BVHTreeFromMesh *data,
+        struct MVert *vert, const bool vert_allocated,
+        struct MFace *face, const int numFaces, const bool face_allocated,
+        BLI_bitmap *mask, int numFaces_active,
+        float epsilon, int tree_type, int axis);
 
 /*
  * Frees data allocated by a call to bvhtree_from_mesh_*.

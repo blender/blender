@@ -2894,8 +2894,8 @@ static void dynamicPaint_doMaterialTex(BrushMaterials *bMats, float color[3], fl
 static void mesh_faces_spherecast_dp(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
 	const BVHTreeFromMesh *data = (BVHTreeFromMesh *) userdata;
-	MVert *vert = data->vert;
-	MFace *face = data->face + index;
+	const MVert *vert = data->vert;
+	const MFace *face = data->face + index;
 	short quad = 0;
 
 	const float *t0, *t1, *t2, *t3;
@@ -2930,8 +2930,8 @@ static void mesh_faces_spherecast_dp(void *userdata, int index, const BVHTreeRay
 static void mesh_faces_nearest_point_dp(void *userdata, int index, const float co[3], BVHTreeNearest *nearest)
 {
 	const BVHTreeFromMesh *data = (BVHTreeFromMesh *) userdata;
-	MVert *vert = data->vert;
-	MFace *face = data->face + index;
+	const MVert *vert = data->vert;
+	const MFace *face = data->face + index;
 	short quad = 0;
 
 	const float *t0, *t1, *t2, *t3;
