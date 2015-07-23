@@ -52,6 +52,7 @@
 #include "BKE_animsys.h"
 #include "BKE_nla.h"
 
+#include "BKE_fcurve.h"
 #include "ED_anim_api.h"
 
 /* temp constant defined for these funcs only... */
@@ -333,6 +334,18 @@ static void rna_NlaStrip_animated_time_set(PointerRNA *ptr, int value)
 		data->flag &= ~NLASTRIP_FLAG_USR_TIME;
 }
 
+static FCurve *rna_NlaStrip_fcurve_find(NlaStrip *strip, ReportList *reports, const char *data_path, int index)
+{
+	if (data_path[0] == '\0') {
+		BKE_report(reports, RPT_ERROR, "F-Curve data path empty, invalid argument");
+		return NULL;
+	}
+
+	/* Returns NULL if not found. */
+	return list_find_fcurve(&strip->fcurves, data_path, index);
+}
+
+
 static NlaStrip *rna_NlaStrip_new(NlaTrack *track, bContext *C, ReportList *reports, const char *UNUSED(name),
                                   int start, bAction *action)
 {
@@ -454,6 +467,31 @@ EnumPropertyItem nla_mode_extend_items[] = {
 	{NLASTRIP_EXTEND_HOLD_FORWARD, "HOLD_FORWARD", 0, "Hold Forward", "Only hold last frame"},
 	{0, NULL, 0, NULL, NULL}
 };
+
+static void rna_def_strip_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "NlaStripFCurves");
+	srna = RNA_def_struct(brna, "NlaStripFCurves", NULL);
+	RNA_def_struct_sdna(srna, "NlaStrip");
+	RNA_def_struct_ui_text(srna, "NLA-Strip F-Curves", "Collection of NLA strip F-Curves");
+
+	/* Strip.fcurves.find(...) */
+	func = RNA_def_function(srna, "find", "rna_NlaStrip_fcurve_find");
+	RNA_def_function_ui_description(func, "Find an F-Curve. Note that this function performs a linear scan "
+	                                "of all F-Curves in the NLA strip.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_string(func, "data_path", NULL, 0, "Data Path", "F-Curve data path");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);
+
+	parm = RNA_def_pointer(func, "fcurve", "FCurve", "", "The found F-Curve, or None if it doesn't exist");
+	RNA_def_function_return(func, parm);
+}
 
 static void rna_def_nlastrip(BlenderRNA *brna)
 {
@@ -579,9 +617,11 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	
 	/* Strip's F-Curves */
 	prop = RNA_def_property(srna, "fcurves", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "fcurves", NULL);
 	RNA_def_property_struct_type(prop, "FCurve");
 	RNA_def_property_ui_text(prop, "F-Curves", "F-Curves for controlling the strip's influence and timing");
-	
+	rna_def_strip_fcurves(brna, prop);
+
 	/* Strip's F-Modifiers */
 	prop = RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "FModifier");
