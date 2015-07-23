@@ -124,6 +124,10 @@ typedef struct GPUDrawObject {
 	unsigned int loose_edge_offset;
 	unsigned int tot_loose_edge_drawn;
 	unsigned int tot_edge_drawn;
+
+	/* for subsurf, offset where drawing of interior edges starts */
+	unsigned int interior_offset;
+	unsigned int totinterior;
 } GPUDrawObject;
 
 /* currently unused */

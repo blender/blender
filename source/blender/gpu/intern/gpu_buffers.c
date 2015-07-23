@@ -613,24 +613,19 @@ static size_t gpu_buffer_size_from_type(DerivedMesh *dm, GPUBufferType type)
 {
 	switch (type) {
 		case GPU_BUFFER_VERTEX:
-			return sizeof(float) * gpu_buffer_type_settings[type].num_components * (dm->drawObject->tot_triangle_point + dm->drawObject->tot_loose_point);
+			return sizeof(float) * gpu_buffer_type_settings[type].num_components * (dm->drawObject->tot_loop_verts + dm->drawObject->tot_loose_point);
 		case GPU_BUFFER_NORMAL:
-			return sizeof(short) * gpu_buffer_type_settings[type].num_components * dm->drawObject->tot_triangle_point;
+			return sizeof(short) * gpu_buffer_type_settings[type].num_components * dm->drawObject->tot_loop_verts;
 		case GPU_BUFFER_COLOR:
-			return sizeof(char) * gpu_buffer_type_settings[type].num_components * dm->drawObject->tot_triangle_point;
+			return sizeof(char) * gpu_buffer_type_settings[type].num_components * dm->drawObject->tot_loop_verts;
 		case GPU_BUFFER_UV:
-			return sizeof(float) * gpu_buffer_type_settings[type].num_components * dm->drawObject->tot_triangle_point;
+			return sizeof(float) * gpu_buffer_type_settings[type].num_components * dm->drawObject->tot_loop_verts;
 		case GPU_BUFFER_UV_TEXPAINT:
-			return sizeof(float) * gpu_buffer_type_settings[type].num_components * dm->drawObject->tot_triangle_point;
+			return sizeof(float) * gpu_buffer_type_settings[type].num_components * dm->drawObject->tot_loop_verts;
 		case GPU_BUFFER_EDGE:
 			return sizeof(int) * gpu_buffer_type_settings[type].num_components * dm->drawObject->totedge;
 		case GPU_BUFFER_UVEDGE:
-			/* each face gets 3 points, 3 edges per triangle, and
-			 * each edge has its own, non-shared coords, so each
-			 * tri corner needs minimum of 4 floats, quads used
-			 * less so here we can over allocate and assume all
-			 * tris. */
-			return sizeof(int) * gpu_buffer_type_settings[type].num_components * dm->drawObject->tot_triangle_point;
+			return sizeof(int) * gpu_buffer_type_settings[type].num_components * dm->drawObject->tot_loop_verts;
 		case GPU_BUFFER_TRIANGLES:
 			return sizeof(int) * gpu_buffer_type_settings[type].num_components * dm->drawObject->tot_triangle_point;
 		default:
