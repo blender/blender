@@ -1933,14 +1933,26 @@ void BKE_mesh_remap_calc_loops_from_dm(
 		if (looptri_allocated_src) {
 			MEM_freeN((void *)looptri_src);
 		}
+		if (vert_to_loop_map_src) {
+			MEM_freeN(vert_to_loop_map_src);
+		}
 		if (vert_to_loop_map_src_buff) {
 			MEM_freeN(vert_to_loop_map_src_buff);
+		}
+		if (vert_to_poly_map_src) {
+			MEM_freeN(vert_to_poly_map_src);
 		}
 		if (vert_to_poly_map_src_buff) {
 			MEM_freeN(vert_to_poly_map_src_buff);
 		}
+		if (edge_to_poly_map_src) {
+			MEM_freeN(edge_to_poly_map_src);
+		}
 		if (edge_to_poly_map_src_buff) {
 			MEM_freeN(edge_to_poly_map_src_buff);
+		}
+		if (poly_to_looptri_map_src) {
+			MEM_freeN(poly_to_looptri_map_src);
 		}
 		if (poly_to_looptri_map_src_buff) {
 			MEM_freeN(poly_to_looptri_map_src_buff);

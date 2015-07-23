@@ -797,8 +797,8 @@ bool BKE_mesh_calc_islands_loop_poly_uv(
 
 	/* Those are used to detect 'inner cuts', i.e. edges that are borders, and yet have two or more polys of
 	 * a same group using them (typical case: seam used to unwrap properly a cylinder). */
-	BLI_bitmap *edge_borders;
-	int num_edge_borders;
+	BLI_bitmap *edge_borders = NULL;
+	int num_edge_borders = 0;
 	char *edge_border_count = NULL;
 	int *edge_innercut_indices = NULL;
 	int num_einnercuts = 0;
@@ -817,6 +817,12 @@ bool BKE_mesh_calc_islands_loop_poly_uv(
 
 	if (!num_poly_groups) {
 		/* Should never happen... */
+		MEM_freeN(edge_poly_map);
+		MEM_freeN(edge_poly_mem);
+
+		if (edge_borders) {
+			MEM_freeN(edge_borders);
+		}
 		return false;
 	}
 
@@ -861,9 +867,17 @@ bool BKE_mesh_calc_islands_loop_poly_uv(
 		                          num_einnercuts, edge_innercut_indices);
 	}
 
+	MEM_freeN(edge_poly_map);
+	MEM_freeN(edge_poly_mem);
+
 	MEM_freeN(poly_indices);
 	MEM_freeN(loop_indices);
 	MEM_freeN(poly_groups);
+
+	if (edge_borders) {
+		MEM_freeN(edge_borders);
+	}
+
 	if (num_edge_borders) {
 		MEM_freeN(edge_border_count);
 		MEM_freeN(edge_innercut_indices);
