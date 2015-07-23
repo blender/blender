@@ -2048,15 +2048,13 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem, size_t size, int flags,
 						}
 					}
 
-					/* file is no longer needed */
-					delete membuf;
-					delete file;
 				}
 			}
-
 			if (flags & IB_alphamode_detect)
 				ibuf->flags |= IB_alphamode_premul;
 		}
+		delete file;
+		delete membuf;
 		return(ibuf);
 	}
 	catch (const std::exception& exc)
