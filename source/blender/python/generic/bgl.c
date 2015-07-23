@@ -1425,8 +1425,8 @@ BGLU_Wrap(UnProject,         GLint,      (GLdouble, GLdouble, GLdouble, GLdouble
 /** \name Module Definition
  * \{ */
 
-#define MethodDef(func) {"gl"#func, Method_##func, METH_VARARGS, "no string"}
-#define MethodDefu(func) {"glu"#func, Method_##func, METH_VARARGS, "no string"}
+#define MethodDef(func) {"gl"#func, Method_##func, METH_VARARGS, NULL}
+#define MethodDefu(func) {"glu"#func, Method_##func, METH_VARARGS, NULL}
 /* So that MethodDef(Accum) becomes:
  * {"glAccum", Method_Accumfunc, METH_VARARGS} */
 
