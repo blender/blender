@@ -1692,6 +1692,15 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 		 * not especially nice  */
 		DAG_id_tag_update(ptr->id.data, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 		WM_main_add_notifier(NC_WINDOW, NULL);
+		/* Not nice as well, but the only way to make sure material preview
+		 * is updated with custom nodes.
+		 */
+		if ((prop->flag & PROP_IDPROPERTY) != 0 &&
+		    (ptr->id.data != NULL) &&
+		    (GS(((ID *)ptr->id.data)->name) == ID_NT))
+		{
+			WM_main_add_notifier(NC_MATERIAL | ND_SHADING, NULL);
+		}
 	}
 }
 
