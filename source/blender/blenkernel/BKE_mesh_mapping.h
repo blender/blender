@@ -36,6 +36,7 @@ struct MEdge;
 struct MPoly;
 struct MLoop;
 struct MLoopUV;
+struct MLoopTri;
 
 /* map from uv vertex to face (for select linked, stitch, uv suburf) */
 
@@ -127,7 +128,10 @@ void BKE_mesh_origindex_map_create(
         MeshElemMap **r_map, int **r_mem,
         const int totorig,
         const int *final_origindex, const int totfinal);
-
+void BKE_mesh_origindex_map_create_looptri(
+        MeshElemMap **r_map, int **r_mem,
+        const struct MPoly *mpoly, const int mpoly_num,
+        const struct MLoopTri *looptri, const int looptri_num);
 
 /* islands */
 

@@ -406,6 +406,37 @@ void BKE_mesh_origindex_map_create(MeshElemMap **r_map, int **r_mem,
 	*r_mem = indices;
 }
 
+/**
+ * A version of #BKE_mesh_origindex_map_create that takes a looptri array.
+ * Making a poly -> looptri map.
+ */
+void BKE_mesh_origindex_map_create_looptri(
+        MeshElemMap **r_map, int **r_mem,
+        const MPoly *mpoly, const int mpoly_num,
+        const MLoopTri *looptri, const int looptri_num)
+{
+	MeshElemMap *map = MEM_callocN(sizeof(MeshElemMap) * (size_t)mpoly_num, "poly-tessface map");
+	int *indices = MEM_mallocN(sizeof(int) * (size_t)looptri_num, "poly-tessface map mem");
+	int *index_step;
+	int i;
+
+	/* create offsets */
+	index_step = indices;
+	for (i = 0; i < mpoly_num; i++) {
+		map[i].indices = index_step;
+		index_step += ME_POLY_TRI_TOT(&mpoly[i]);
+	}
+
+	/* assign poly-tessface users */
+	for (i = 0; i < looptri_num; i++) {
+		MeshElemMap *map_ele = &map[looptri[i].poly];
+		map_ele->indices[map_ele->count++] = i;
+	}
+
+	*r_map = map;
+	*r_mem = indices;
+}
+
 /** \} */
 
 
