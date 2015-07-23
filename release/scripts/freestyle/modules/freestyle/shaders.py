@@ -139,6 +139,7 @@ from freestyle.predicates import (
 from freestyle.utils import (
     bound,
     BoundingBox,
+    pairwise,
     phase_to_direction,
     )
 
@@ -1131,6 +1132,13 @@ class pyBluePrintDirectedSquaresShader(StrokeShader):
 # -- various (used in the parameter editor) -- #
 
 
+def iter_stroke_vertices(stroke, epsilon=1e-6):
+    yield stroke[0]
+    for prev, svert in pairwise(stroke):
+        if (prev.point - svert.point).length > epsilon:
+            yield svert
+
+
 class RoundCapShader(StrokeShader):
     def round_cap_thickness(self, x):
         x = max(0.0, min(x, 1.0))
@@ -1138,7 +1146,8 @@ class RoundCapShader(StrokeShader):
 
     def shade(self, stroke):
         # save the location and attribute of stroke vertices
-        buffer = tuple((Vector(sv.point), StrokeAttribute(sv.attribute)) for sv in stroke)
+        buffer = tuple((Vector(sv.point), StrokeAttribute(sv.attribute))
+                       for sv in iter_stroke_vertices(stroke))
         nverts = len(buffer)
         if nverts < 2:
             return
@@ -1186,7 +1195,8 @@ class RoundCapShader(StrokeShader):
 class SquareCapShader(StrokeShader):
     def shade(self, stroke):
         # save the location and attribute of stroke vertices
-        buffer = tuple((Vector(sv.point), StrokeAttribute(sv.attribute)) for sv in stroke)
+        buffer = tuple((Vector(sv.point), StrokeAttribute(sv.attribute))
+                       for sv in iter_stroke_vertices(stroke))
         nverts = len(buffer)
         if nverts < 2:
             return
