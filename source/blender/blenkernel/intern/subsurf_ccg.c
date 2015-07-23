@@ -2405,7 +2405,7 @@ static void ccgDM_buffer_copy_edge(
 				}
 			}
 
-			tot_interior += grid_face_side * (2.0 * grid_face_side - 1);
+			tot_interior += grid_face_side * (2 * grid_face_side - 1);
 			index_start += grid_tot_face;
 		}
 	}
@@ -2492,7 +2492,7 @@ static GPUDrawObject *ccgDM_GPUObjectNew(DerivedMesh *dm)
 			matinfo[new_matnr].elements += numVerts * gridFaces * gridFaces * 6;
 			matinfo[new_matnr].loops += numVerts * gridFaces * gridFaces * 4;
 			matinfo[new_matnr].polys++;
-			tot_internal_edges += numVerts * gridFaces * (2.0 * gridFaces - 1);
+			tot_internal_edges += numVerts * gridFaces * (2 * gridFaces - 1);
 		}
 	}
 	else {
@@ -2502,7 +2502,7 @@ static GPUDrawObject *ccgDM_GPUObjectNew(DerivedMesh *dm)
 			matinfo[0].elements += numVerts * gridFaces * gridFaces * 6;
 			matinfo[0].loops += numVerts * gridFaces * gridFaces * 4;
 			matinfo[0].polys++;
-			tot_internal_edges += numVerts * gridFaces * (2.0 * gridFaces - 1);
+			tot_internal_edges += numVerts * gridFaces * (2 * gridFaces - 1);
 		}
 	}
 	
