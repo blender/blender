@@ -32,11 +32,420 @@
 
 #include <Python.h>
 
-#include "bgl.h" /*This must come first */
+#include "BLI_utildefines.h"
+
 #include "GPU_glew.h"
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
+#include "bgl.h"
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Local utility defines for wrapping OpenGL
+ * \{ */
+
+/*@ By golly George! It looks like fancy pants macro time!!! */
+
+
+/* TYPE_str is the string to pass to Py_ArgParse (for the format) */
+/* TYPE_var is the name to pass to the GL function */
+/* TYPE_ref is the pointer to pass to Py_ArgParse (to store in) */
+/* TYPE_def is the C initialization of the variable */
+
+#define void_str      ""
+#define void_var(num)
+#define void_ref(num)   &bgl_var##num
+#define void_def(num)   char bgl_var##num
+
+#if 0
+#define buffer_str "O!"
+#define buffer_var(number)  (bgl_buffer##number)->buf.asvoid
+#define buffer_ref(number)  &BGL_bufferType, &bgl_buffer##number
+#define buffer_def(number)  Buffer *bgl_buffer##number
+#endif
+
+/* GL Pointer fields, handled by buffer type */
+/* GLdoubleP, GLfloatP, GLintP, GLuintP, GLshortP, GLsizeiP, GLcharP */
+
+#define GLbooleanP_str      "O!"
+#define GLbooleanP_var(number)  (bgl_buffer##number)->buf.asvoid
+#define GLbooleanP_ref(number)  &BGL_bufferType, &bgl_buffer##number
+#define GLbooleanP_def(number)  Buffer *bgl_buffer##number
+
+#define GLbyteP_str     "O!"
+#define GLbyteP_var(number) (bgl_buffer##number)->buf.asvoid
+#define GLbyteP_ref(number) &BGL_bufferType, &bgl_buffer##number
+#define GLbyteP_def(number) Buffer *bgl_buffer##number
+
+#define GLubyteP_str      "O!"
+#define GLubyteP_var(number)  (bgl_buffer##number)->buf.asvoid
+#define GLubyteP_ref(number)  &BGL_bufferType, &bgl_buffer##number
+#define GLubyteP_def(number)  Buffer *bgl_buffer##number
+
+#define GLintP_str      "O!"
+#define GLintP_var(number)  (bgl_buffer##number)->buf.asvoid
+#define GLintP_ref(number)  &BGL_bufferType, &bgl_buffer##number
+#define GLintP_def(number)  Buffer *bgl_buffer##number
+
+#if 0
+#define GLint64P_str      "O!"
+#define GLint64P_var(number)  (bgl_buffer##number)->buf.asvoid
+#define GLint64P_ref(number)  &BGL_bufferType, &bgl_buffer##number
+#define GLint64P_def(number)  Buffer *bgl_buffer##number
+#endif
+
+#if 0
+#define GLenumP_str      "O!"
+#define GLenumP_var(number)  (bgl_buffer##number)->buf.asvoid
+#define GLenumP_ref(number)  &BGL_bufferType, &bgl_buffer##number
+#define GLenumP_def(number)  Buffer *bgl_buffer##number
+#endif
+
+#define GLuintP_str     "O!"
+#define GLuintP_var(number) (bgl_buffer##number)->buf.asvoid
+#define GLuintP_ref(number) &BGL_bufferType, &bgl_buffer##number
+#define GLuintP_def(number) Buffer *bgl_buffer##number
+
+#if 0
+#define GLuint64P_str     "O!"
+#define GLuint64P_var(number) (bgl_buffer##number)->buf.asvoid
+#define GLuint64P_ref(number) &BGL_bufferType, &bgl_buffer##number
+#define GLuint64P_def(number) Buffer *bgl_buffer##number
+#endif
+
+#define GLshortP_str      "O!"
+#define GLshortP_var(number)  (bgl_buffer##number)->buf.asvoid
+#define GLshortP_ref(number)  &BGL_bufferType, &bgl_buffer##number
+#define GLshortP_def(number)  Buffer *bgl_buffer##number
+
+#define GLushortP_str     "O!"
+#define GLushortP_var(number) (bgl_buffer##number)->buf.asvoid
+#define GLushortP_ref(number) &BGL_bufferType, &bgl_buffer##number
+#define GLushortP_def(number) Buffer *bgl_buffer##number
+
+#define GLfloatP_str      "O!"
+#define GLfloatP_var(number)  (bgl_buffer##number)->buf.asvoid
+#define GLfloatP_ref(number)  &BGL_bufferType, &bgl_buffer##number
+#define GLfloatP_def(number)  Buffer *bgl_buffer##number
+
+#define GLdoubleP_str     "O!"
+#define GLdoubleP_var(number) (bgl_buffer##number)->buf.asvoid
+#define GLdoubleP_ref(number) &BGL_bufferType, &bgl_buffer##number
+#define GLdoubleP_def(number) Buffer *bgl_buffer##number
+
+#define GLclampfP_str     "O!"
+#define GLclampfP_var(number) (bgl_buffer##number)->buf.asvoid
+#define GLclampfP_ref(number) &BGL_bufferType, &bgl_buffer##number
+#define GLclampfP_def(number) Buffer *bgl_buffer##number
+
+#define GLvoidP_str     "O!"
+#define GLvoidP_var(number) (bgl_buffer##number)->buf.asvoid
+#define GLvoidP_ref(number) &BGL_bufferType, &bgl_buffer##number
+#define GLvoidP_def(number) Buffer *bgl_buffer##number
+
+#define GLsizeiP_str     "O!"
+#define GLsizeiP_var(number) (bgl_buffer##number)->buf.asvoid
+#define GLsizeiP_ref(number) &BGL_bufferType, &bgl_buffer##number
+#define GLsizeiP_def(number) Buffer *bgl_buffer##number
+
+#define GLcharP_str     "O!"
+#define GLcharP_var(number) (bgl_buffer##number)->buf.asvoid
+#define GLcharP_ref(number) &BGL_bufferType, &bgl_buffer##number
+#define GLcharP_def(number) Buffer *bgl_buffer##number
+
+#if 0
+#define buffer_str      "O!"
+#define buffer_var(number)  (bgl_buffer##number)->buf.asvoid
+#define buffer_ref(number)  &BGL_bufferType, &bgl_buffer##number
+#define buffer_def(number)  Buffer *bgl_buffer##number
+#endif
+
+/*@The standard GL typedefs are used as prototypes, we can't
+ * use the GL type directly because Py_ArgParse expects normal
+ * C types.
+ *
+ * Py_ArgParse doesn't grok writing into unsigned variables,
+ * so we use signed everything (even stuff that should be unsigned.
+ */
+
+/* typedef unsigned int GLenum; */
+#define GLenum_str      "i"
+#define GLenum_var(num)   bgl_var##num
+#define GLenum_ref(num)   &bgl_var##num
+#define GLenum_def(num)   /* unsigned */ int GLenum_var(num)
+
+/* typedef unsigned int GLboolean; */
+#define GLboolean_str     "b"
+#define GLboolean_var(num)    bgl_var##num
+#define GLboolean_ref(num)    &bgl_var##num
+#define GLboolean_def(num)    /* unsigned */ char GLboolean_var(num)
+
+/* typedef unsigned int GLbitfield; */
+#define GLbitfield_str      "i"
+#define GLbitfield_var(num)   bgl_var##num
+#define GLbitfield_ref(num)   &bgl_var##num
+#define GLbitfield_def(num)   /* unsigned */ int GLbitfield_var(num)
+
+/* typedef signed char GLbyte; */
+#define GLbyte_str        "b"
+#define GLbyte_var(num)     bgl_var##num
+#define GLbyte_ref(num)     &bgl_var##num
+#define GLbyte_def(num)     signed char GLbyte_var(num)
+
+/* typedef short GLshort; */
+#define GLshort_str       "h"
+#define GLshort_var(num)    bgl_var##num
+#define GLshort_ref(num)    &bgl_var##num
+#define GLshort_def(num)    short GLshort_var(num)
+
+/* typedef int GLint; */
+#define GLint_str       "i"
+#define GLint_var(num)      bgl_var##num
+#define GLint_ref(num)      &bgl_var##num
+#define GLint_def(num)      int GLint_var(num)
+
+/* typedef int GLsizei; */
+#define GLsizei_str       "n"
+#define GLsizei_var(num)    bgl_var##num
+#define GLsizei_ref(num)    &bgl_var##num
+#define GLsizei_def(num)    size_t GLsizei_var(num)
+
+/* typedef int GLsizeiptr; */
+#if 0
+#define GLsizeiptr_str       "n"
+#define GLsizeiptr_var(num)    bgl_var##num
+#define GLsizeiptr_ref(num)    &bgl_var##num
+#define GLsizeiptr_def(num)    size_t GLsizeiptr_var(num)
+#endif
+
+/* typedef int GLintptr; */
+#if 0
+#define GLintptr_str       "n"
+#define GLintptr_var(num)    bgl_var##num
+#define GLintptr_ref(num)    &bgl_var##num
+#define GLintptr_def(num)    size_t GLintptr_var(num)
+#endif
+
+/* typedef unsigned char GLubyte; */
+#define GLubyte_str       "B"
+#define GLubyte_var(num)    bgl_var##num
+#define GLubyte_ref(num)    &bgl_var##num
+#define GLubyte_def(num)    /* unsigned */ char GLubyte_var(num)
+
+/* typedef unsigned short GLushort; */
+#define GLushort_str      "H"
+#define GLushort_var(num)   bgl_var##num
+#define GLushort_ref(num)   &bgl_var##num
+#define GLushort_def(num)   /* unsigned */ short GLushort_var(num)
+
+/* typedef unsigned int GLuint; */
+#define GLuint_str        "I"
+#define GLuint_var(num)     bgl_var##num
+#define GLuint_ref(num)     &bgl_var##num
+#define GLuint_def(num)     /* unsigned */ int GLuint_var(num)
+
+/* typedef unsigned int GLuint64; */
+#if 0
+#define GLuint64_str        "Q"
+#define GLuint64_var(num)     bgl_var##num
+#define GLuint64_ref(num)     &bgl_var##num
+#define GLuint64_def(num)     /* unsigned */ int GLuint64_var(num)
+#endif
+
+/* typedef unsigned int GLsync; */
+#if 0
+#define GLsync_str        "I"
+#define GLsync_var(num)     bgl_var##num
+#define GLsync_ref(num)     &bgl_var##num
+#define GLsync_def(num)     /* unsigned */ int GLsync_var(num)
+#endif
+
+/* typedef float GLfloat; */
+#define GLfloat_str       "f"
+#define GLfloat_var(num)    bgl_var##num
+#define GLfloat_ref(num)    &bgl_var##num
+#define GLfloat_def(num)    float GLfloat_var(num)
+
+/* typedef char *GLstring; */
+#define GLstring_str     "s"
+#define GLstring_var(number) bgl_var##number
+#define GLstring_ref(number) &bgl_var##number
+#define GLstring_def(number) char *GLstring_var(number)
+
+/* typedef float GLclampf; */
+#define GLclampf_str      "f"
+#define GLclampf_var(num)   bgl_var##num
+#define GLclampf_ref(num)   &bgl_var##num
+#define GLclampf_def(num)   float GLclampf_var(num)
+
+/* typedef double GLdouble; */
+#define GLdouble_str      "d"
+#define GLdouble_var(num)   bgl_var##num
+#define GLdouble_ref(num)   &bgl_var##num
+#define GLdouble_def(num)   double GLdouble_var(num)
+
+/* typedef double GLclampd; */
+#define GLclampd_str      "d"
+#define GLclampd_var(num)   bgl_var##num
+#define GLclampd_ref(num)   &bgl_var##num
+#define GLclampd_def(num)   double GLclampd_var(num)
+
+#define _arg_def1(a1) \
+                   a1##_def(1)
+#define _arg_def2(a1, a2) \
+        _arg_def1(a1); a2##_def(2)
+#define _arg_def3(a1, a2, a3) \
+        _arg_def2(a1, a2); a3##_def(3)
+#define _arg_def4(a1, a2, a3, a4) \
+        _arg_def3(a1, a2, a3); a4##_def(4)
+#define _arg_def5(a1, a2, a3, a4, a5) \
+        _arg_def4(a1, a2, a3, a4); a5##_def(5)
+#define _arg_def6(a1, a2, a3, a4, a5, a6) \
+        _arg_def5(a1, a2, a3, a4, a5); a6##_def(6)
+#define _arg_def7(a1, a2, a3, a4, a5, a6, a7) \
+        _arg_def6(a1, a2, a3, a4, a5, a6); a7##_def(7)
+#define _arg_def8(a1, a2, a3, a4, a5, a6, a7, a8) \
+        _arg_def7(a1, a2, a3, a4, a5, a6, a7); a8##_def(8)
+#define _arg_def9(a1, a2, a3, a4, a5, a6, a7, a8, a9) \
+        _arg_def8(a1, a2, a3, a4, a5, a6, a7, a8); a9##_def(9)
+#define _arg_def10(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) \
+        _arg_def9(a1, a2, a3, a4, a5, a6, a7, a8, a9); a10##_def(10)
+#if 0
+#define _arg_def11(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) \
+        _arg_def10(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10); a11##_def(11)
+#endif
+#define  arg_def(...) VA_NARGS_CALL_OVERLOAD(_arg_def, __VA_ARGS__)
+
+#define _arg_var1(a1) \
+                a1##_var(1)
+#define _arg_var2(a1, a2) \
+        _arg_var1(a1), a2##_var(2)
+#define _arg_var3(a1, a2, a3) \
+        _arg_var2(a1, a2), a3##_var(3)
+#define _arg_var4(a1, a2, a3, a4) \
+        _arg_var3(a1, a2, a3), a4##_var(4)
+#define _arg_var5(a1, a2, a3, a4, a5) \
+        _arg_var4(a1, a2, a3, a4), a5##_var(5)
+#define _arg_var6(a1, a2, a3, a4, a5, a6) \
+        _arg_var5(a1, a2, a3, a4, a5), a6##_var(6)
+#define _arg_var7(a1, a2, a3, a4, a5, a6, a7) \
+        _arg_var6(a1, a2, a3, a4, a5, a6), a7##_var(7)
+#define _arg_var8(a1, a2, a3, a4, a5, a6, a7, a8) \
+        _arg_var7(a1, a2, a3, a4, a5, a6, a7), a8##_var(8)
+#define _arg_var9(a1, a2, a3, a4, a5, a6, a7, a8, a9) \
+        _arg_var8(a1, a2, a3, a4, a5, a6, a7, a8), a9##_var(9)
+#define _arg_var10(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) \
+        _arg_var9(a1, a2, a3, a4, a5, a6, a7, a8, a9), a10##_var(10)
+#if 0
+#define _arg_var11(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) \
+        _arg_var10(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10), a11##_var(11)
+#endif
+#define  arg_var(...) VA_NARGS_CALL_OVERLOAD(_arg_var, __VA_ARGS__)
+
+#define _arg_ref1(a1) \
+                   a1##_ref(1)
+#define _arg_ref2(a1, a2) \
+        _arg_ref1(a1), a2##_ref(2)
+#define _arg_ref3(a1, a2, a3) \
+        _arg_ref2(a1, a2), a3##_ref(3)
+#define _arg_ref4(a1, a2, a3, a4) \
+        _arg_ref3(a1, a2, a3), a4##_ref(4)
+#define _arg_ref5(a1, a2, a3, a4, a5) \
+        _arg_ref4(a1, a2, a3, a4), a5##_ref(5)
+#define _arg_ref6(a1, a2, a3, a4, a5, a6) \
+        _arg_ref5(a1, a2, a3, a4, a5), a6##_ref(6)
+#define _arg_ref7(a1, a2, a3, a4, a5, a6, a7) \
+        _arg_ref6(a1, a2, a3, a4, a5, a6), a7##_ref(7)
+#define _arg_ref8(a1, a2, a3, a4, a5, a6, a7, a8) \
+        _arg_ref7(a1, a2, a3, a4, a5, a6, a7), a8##_ref(8)
+#define _arg_ref9(a1, a2, a3, a4, a5, a6, a7, a8, a9) \
+        _arg_ref8(a1, a2, a3, a4, a5, a6, a7, a8), a9##_ref(9)
+#define _arg_ref10(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) \
+        _arg_ref9(a1, a2, a3, a4, a5, a6, a7, a8, a9), a10##_ref(10)
+#if 0
+#define _arg_ref11(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) \
+        _arg_ref10(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10), a11##_ref(11)
+#endif
+#define  arg_ref(...) VA_NARGS_CALL_OVERLOAD(_arg_ref, __VA_ARGS__)
+
+#define _arg_str1(a1) \
+                  a1##_str
+#define _arg_str2(a1, a2) \
+        _arg_str1(a1) a2##_str
+#define _arg_str3(a1, a2, a3) \
+        _arg_str2(a1, a2) a3##_str
+#define _arg_str4(a1, a2, a3, a4) \
+        _arg_str3(a1, a2, a3) a4##_str
+#define _arg_str5(a1, a2, a3, a4, a5) \
+        _arg_str4(a1, a2, a3, a4) a5##_str
+#define _arg_str6(a1, a2, a3, a4, a5, a6) \
+        _arg_str5(a1, a2, a3, a4, a5) a6##_str
+#define _arg_str7(a1, a2, a3, a4, a5, a6, a7) \
+        _arg_str6(a1, a2, a3, a4, a5, a6) a7##_str
+#define _arg_str8(a1, a2, a3, a4, a5, a6, a7, a8) \
+        _arg_str7(a1, a2, a3, a4, a5, a6, a7) a8##_str
+#define _arg_str9(a1, a2, a3, a4, a5, a6, a7, a8, a9) \
+        _arg_str8(a1, a2, a3, a4, a5, a6, a7, a8) a9##_str
+#define _arg_str10(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) \
+        _arg_str9(a1, a2, a3, a4, a5, a6, a7, a8, a9) a10##_str
+#if 0
+#define _arg_str11(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) \
+        _arg_str10(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) a11##_str
+#endif
+#define  arg_str(...) VA_NARGS_CALL_OVERLOAD(_arg_str, __VA_ARGS__)
+
+#define ret_def_void
+#define ret_set_void
+#define ret_ret_void    return Py_INCREF(Py_None), Py_None
+
+#define ret_def_GLint   int ret_int
+#define ret_set_GLint   ret_int =
+#define ret_ret_GLint   return PyLong_FromLong(ret_int)
+
+#define ret_def_GLuint    unsigned int ret_uint
+#define ret_set_GLuint    ret_uint =
+#define ret_ret_GLuint    return PyLong_FromLong((long) ret_uint)
+
+#if 0
+#define ret_def_GLsizei   size_t ret_size_t
+#define ret_set_GLsizei   ret_size_t =
+#define ret_ret_GLsizei   return PyLong_FromSsize_t(ret_size_t)
+#endif
+
+#if 0
+#define ret_def_GLsync    unsigned int ret_sync
+#define ret_set_GLsync    ret_sync =
+#define ret_ret_GLsync    return PyLong_FromLong((long) ret_sync)
+#endif
+
+#define ret_def_GLenum    unsigned int ret_uint
+#define ret_set_GLenum    ret_uint =
+#define ret_ret_GLenum    return PyLong_FromLong((long) ret_uint)
+
+#define ret_def_GLboolean unsigned char ret_bool
+#define ret_set_GLboolean ret_bool =
+#define ret_ret_GLboolean return PyLong_FromLong((long) ret_bool)
+
+#define ret_def_GLstring  const unsigned char *ret_str
+#define ret_set_GLstring  ret_str =
+
+#define ret_ret_GLstring                                                      \
+	if (ret_str) {                                                            \
+		return PyUnicode_FromString((const char *)ret_str);                   \
+	}                                                                         \
+	else {                                                                    \
+		PyErr_SetString(PyExc_AttributeError, "could not get opengl string"); \
+		return NULL;                                                          \
+	}                                                                         \
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Forward Declarations
+ * \{ */
 
 static PyObject *Buffer_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static PyObject *Method_ShaderSource(PyObject *self, PyObject *args);
@@ -50,6 +459,40 @@ static int Buffer_ass_item(Buffer *self, int i, PyObject *v);
 static int Buffer_ass_slice(Buffer *self, int begin, int end, PyObject *seq);
 static PyObject *Buffer_subscript(Buffer *self, PyObject *item);
 static int Buffer_ass_subscript(Buffer *self, PyObject *item, PyObject *value);
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Utility Functions
+ * \{ */
+
+
+int BGL_typeSize(int type)
+{
+	switch (type) {
+		case GL_BYTE:
+			return sizeof(char);
+		case GL_SHORT:
+			return sizeof(short);
+		case GL_INT:
+			return sizeof(int);
+		case GL_FLOAT:
+			return sizeof(float);
+		case GL_DOUBLE:
+			return sizeof(double);
+	}
+	return -1;
+}
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Buffer API
+ * \{ */
 
 static PySequenceMethods Buffer_SeqMethods = {
 	(lenfunc) Buffer_len,                       /*sq_length */
@@ -201,53 +644,6 @@ PyTypeObject BGL_bufferType = {
 	NULL                        /*tp_del*/
 };
 
-#define BGL_Wrap(nargs, funcname, ret, arg_list)                              \
-static PyObject *Method_##funcname (PyObject *UNUSED(self), PyObject *args)   \
-{                                                                             \
-	arg_def##nargs arg_list;                                                  \
-	ret_def_##ret;                                                            \
-	if (!PyArg_ParseTuple(args,                                               \
-	                      arg_str##nargs arg_list,                            \
-	                      arg_ref##nargs arg_list))                           \
-	{                                                                         \
-		return NULL;                                                          \
-	}                                                                         \
-	ret_set_##ret gl##funcname (arg_var##nargs arg_list);                     \
-	ret_ret_##ret;                                                            \
-}
-
-#define BGLU_Wrap(nargs, funcname, ret, arg_list)                             \
-static PyObject *Method_##funcname (PyObject *UNUSED(self), PyObject *args)   \
-{                                                                             \
-	arg_def##nargs arg_list;                                                  \
-	ret_def_##ret;                                                            \
-	if (!PyArg_ParseTuple(args,                                               \
-						  arg_str##nargs arg_list,                            \
-						  arg_ref##nargs arg_list))                           \
-	{                                                                         \
-		return NULL;                                                          \
-	}                                                                         \
-	ret_set_##ret glu##funcname (arg_var##nargs arg_list);                    \
-	ret_ret_##ret;                                                            \
-}
-
-/********/
-int BGL_typeSize(int type)
-{
-	switch (type) {
-		case GL_BYTE:
-			return sizeof(char);
-		case GL_SHORT:
-			return sizeof(short);
-		case GL_INT:
-			return sizeof(int);
-		case GL_FLOAT:
-			return sizeof(float);
-		case GL_DOUBLE:
-			return sizeof(double);
-	}
-	return -1;
-}
 
 Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuffer)
 {
@@ -607,396 +1003,434 @@ static PyObject *Buffer_repr(Buffer *self)
 	return repr;
 }
 
+/** \} */
 
-BGL_Wrap(2, Accum,          void,       (GLenum, GLfloat))
-BGL_Wrap(1, ActiveTexture,  void,       (GLenum))
-BGL_Wrap(2, AlphaFunc,      void,       (GLenum, GLclampf))
-BGL_Wrap(3, AreTexturesResident,  GLboolean,  (GLsizei, GLuintP, GLbooleanP))
-BGL_Wrap(2, AttachShader,   void,       (GLuint, GLuint))
-BGL_Wrap(1, Begin,          void,       (GLenum))
-BGL_Wrap(2, BindTexture,    void,       (GLenum, GLuint))
-BGL_Wrap(7, Bitmap,         void,       (GLsizei, GLsizei, GLfloat,
-                                         GLfloat, GLfloat, GLfloat, GLubyteP))
-BGL_Wrap(2, BlendFunc,        void,     (GLenum, GLenum))
-BGL_Wrap(1, CallList,         void,     (GLuint))
-BGL_Wrap(3, CallLists,        void,     (GLsizei, GLenum, GLvoidP))
-BGL_Wrap(1, Clear,            void,     (GLbitfield))
-BGL_Wrap(4, ClearAccum,       void,     (GLfloat, GLfloat, GLfloat, GLfloat))
-BGL_Wrap(4, ClearColor,       void,     (GLclampf, GLclampf, GLclampf, GLclampf))
-BGL_Wrap(1, ClearDepth,       void,     (GLclampd))
-BGL_Wrap(1, ClearIndex,       void,     (GLfloat))
-BGL_Wrap(1, ClearStencil,     void,     (GLint))
-BGL_Wrap(2, ClipPlane,        void,     (GLenum, GLdoubleP))
-BGL_Wrap(3, Color3b,          void,     (GLbyte, GLbyte, GLbyte))
-BGL_Wrap(1, Color3bv,         void,     (GLbyteP))
-BGL_Wrap(3, Color3d,          void,     (GLdouble, GLdouble, GLdouble))
-BGL_Wrap(1, Color3dv,         void,     (GLdoubleP))
-BGL_Wrap(3, Color3f,          void,     (GLfloat, GLfloat, GLfloat))
-BGL_Wrap(1, Color3fv,         void,     (GLfloatP))
-BGL_Wrap(3, Color3i,          void,     (GLint, GLint, GLint))
-BGL_Wrap(1, Color3iv,         void,     (GLintP))
-BGL_Wrap(3, Color3s,          void,     (GLshort, GLshort, GLshort))
-BGL_Wrap(1, Color3sv,         void,     (GLshortP))
-BGL_Wrap(3, Color3ub,         void,     (GLubyte, GLubyte, GLubyte))
-BGL_Wrap(1, Color3ubv,        void,     (GLubyteP))
-BGL_Wrap(3, Color3ui,         void,     (GLuint, GLuint, GLuint))
-BGL_Wrap(1, Color3uiv,        void,     (GLuintP))
-BGL_Wrap(3, Color3us,         void,     (GLushort, GLushort, GLushort))
-BGL_Wrap(1, Color3usv,        void,     (GLushortP))
-BGL_Wrap(4, Color4b,          void,     (GLbyte, GLbyte, GLbyte, GLbyte))
-BGL_Wrap(1, Color4bv,         void,     (GLbyteP))
-BGL_Wrap(4, Color4d,          void,     (GLdouble, GLdouble, GLdouble, GLdouble))
-BGL_Wrap(1, Color4dv,         void,     (GLdoubleP))
-BGL_Wrap(4, Color4f,          void,     (GLfloat, GLfloat, GLfloat, GLfloat))
-BGL_Wrap(1, Color4fv,         void,     (GLfloatP))
-BGL_Wrap(4, Color4i,          void,     (GLint, GLint, GLint, GLint))
-BGL_Wrap(1, Color4iv,         void,     (GLintP))
-BGL_Wrap(4, Color4s,          void,     (GLshort, GLshort, GLshort, GLshort))
-BGL_Wrap(1, Color4sv,         void,     (GLshortP))
-BGL_Wrap(4, Color4ub,         void,     (GLubyte, GLubyte, GLubyte, GLubyte))
-BGL_Wrap(1, Color4ubv,        void,     (GLubyteP))
-BGL_Wrap(4, Color4ui,         void,     (GLuint, GLuint, GLuint, GLuint))
-BGL_Wrap(1, Color4uiv,        void,     (GLuintP))
-BGL_Wrap(4, Color4us,         void,     (GLushort, GLushort, GLushort, GLushort))
-BGL_Wrap(1, Color4usv,        void,     (GLushortP))
-BGL_Wrap(4, ColorMask,        void,     (GLboolean, GLboolean, GLboolean, GLboolean))
-BGL_Wrap(2, ColorMaterial,    void,     (GLenum, GLenum))
-BGL_Wrap(1, CompileShader,    void,     (GLuint))
-BGL_Wrap(5, CopyPixels,       void,     (GLint, GLint, GLsizei, GLsizei, GLenum))
-BGL_Wrap(8, CopyTexImage2D,   void,     (GLenum, GLint, GLenum, GLint, GLint, GLsizei, GLsizei, GLint))
-BGL_Wrap(1, CreateProgram,    GLuint,   (void))
-BGL_Wrap(1, CreateShader,     GLuint,   (GLenum))
-BGL_Wrap(1, CullFace,         void,     (GLenum))
-BGL_Wrap(2, DeleteLists,      void,     (GLuint, GLsizei))
-BGL_Wrap(1, DeleteProgram,    void,     (GLuint))
-BGL_Wrap(1, DeleteShader,     void,     (GLuint))
-BGL_Wrap(2, DeleteTextures,   void,     (GLsizei, GLuintP))
-BGL_Wrap(1, DepthFunc,        void,     (GLenum))
-BGL_Wrap(1, DepthMask,        void,     (GLboolean))
-BGL_Wrap(2, DepthRange,       void,     (GLclampd, GLclampd))
-BGL_Wrap(2, DetachShader,     void,     (GLuint, GLuint))
-BGL_Wrap(1, Disable,          void,     (GLenum))
-BGL_Wrap(1, DrawBuffer,       void,     (GLenum))
-BGL_Wrap(5, DrawPixels,       void,     (GLsizei, GLsizei, GLenum, GLenum, GLvoidP))
-BGL_Wrap(1, EdgeFlag,         void,     (GLboolean))
-BGL_Wrap(1, EdgeFlagv,        void,     (GLbooleanP))
-BGL_Wrap(1, Enable,           void,     (GLenum))
-BGL_Wrap(1, End,              void,     (void))
-BGL_Wrap(1, EndList,          void,     (void))
-BGL_Wrap(1, EvalCoord1d,      void,     (GLdouble))
-BGL_Wrap(1, EvalCoord1dv,     void,     (GLdoubleP))
-BGL_Wrap(1, EvalCoord1f,      void,     (GLfloat))
-BGL_Wrap(1, EvalCoord1fv,     void,     (GLfloatP))
-BGL_Wrap(2, EvalCoord2d,      void,     (GLdouble, GLdouble))
-BGL_Wrap(1, EvalCoord2dv,     void,     (GLdoubleP))
-BGL_Wrap(2, EvalCoord2f,      void,     (GLfloat, GLfloat))
-BGL_Wrap(1, EvalCoord2fv,     void,     (GLfloatP))
-BGL_Wrap(3, EvalMesh1,        void,     (GLenum, GLint, GLint))
-BGL_Wrap(5, EvalMesh2,        void,     (GLenum, GLint, GLint, GLint, GLint))
-BGL_Wrap(1, EvalPoint1,       void,     (GLint))
-BGL_Wrap(2, EvalPoint2,       void,     (GLint, GLint))
-BGL_Wrap(3, FeedbackBuffer,   void,     (GLsizei, GLenum, GLfloatP))
-BGL_Wrap(1, Finish,           void,     (void))
-BGL_Wrap(1, Flush,            void,     (void))
-BGL_Wrap(2, Fogf,             void,     (GLenum, GLfloat))
-BGL_Wrap(2, Fogfv,            void,     (GLenum, GLfloatP))
-BGL_Wrap(2, Fogi,             void,     (GLenum, GLint))
-BGL_Wrap(2, Fogiv,            void,     (GLenum, GLintP))
-BGL_Wrap(1, FrontFace,        void,     (GLenum))
-BGL_Wrap(6, Frustum,          void,     (GLdouble, GLdouble,
-                                         GLdouble, GLdouble, GLdouble, GLdouble))
-BGL_Wrap(1, GenLists,         GLuint,   (GLsizei))
-BGL_Wrap(2, GenTextures,      void,   (GLsizei, GLuintP))
-BGL_Wrap(4, GetAttachedShaders, void,   (GLuint, GLsizei, GLsizeiP, GLuintP))
-BGL_Wrap(2, GetBooleanv,      void,     (GLenum, GLbooleanP))
-BGL_Wrap(2, GetClipPlane,     void,     (GLenum, GLdoubleP))
-BGL_Wrap(2, GetDoublev,       void,     (GLenum, GLdoubleP))
-BGL_Wrap(1, GetError,         GLenum,   (void))
-BGL_Wrap(2, GetFloatv,        void,     (GLenum, GLfloatP))
-BGL_Wrap(2, GetIntegerv,      void,     (GLenum, GLintP))
-BGL_Wrap(3, GetLightfv,       void,     (GLenum, GLenum, GLfloatP))
-BGL_Wrap(3, GetLightiv,       void,     (GLenum, GLenum, GLintP))
-BGL_Wrap(3, GetMapdv,         void,     (GLenum, GLenum, GLdoubleP))
-BGL_Wrap(3, GetMapfv,         void,     (GLenum, GLenum, GLfloatP))
-BGL_Wrap(3, GetMapiv,         void,     (GLenum, GLenum, GLintP))
-BGL_Wrap(3, GetMaterialfv,    void,     (GLenum, GLenum, GLfloatP))
-BGL_Wrap(3, GetMaterialiv,    void,     (GLenum, GLenum, GLintP))
-BGL_Wrap(2, GetPixelMapfv,    void,     (GLenum, GLfloatP))
-BGL_Wrap(2, GetPixelMapuiv,   void,     (GLenum, GLuintP))
-BGL_Wrap(2, GetPixelMapusv,   void,     (GLenum, GLushortP))
-BGL_Wrap(1, GetPolygonStipple, void,     (GLubyteP))
-BGL_Wrap(4, GetProgramInfoLog, void,    (GLuint, GLsizei, GLsizeiP, GLcharP))
-BGL_Wrap(3, GetProgramiv,     void,     (GLuint, GLenum, GLintP))
-BGL_Wrap(4, GetShaderInfoLog, void,     (GLuint, GLsizei, GLsizeiP, GLcharP))
-BGL_Wrap(3, GetShaderiv,      void,     (GLuint, GLenum, GLintP))
-BGL_Wrap(4, GetShaderSource,  void,     (GLuint, GLsizei, GLsizeiP, GLcharP))
-BGL_Wrap(1, GetString,        GLstring,   (GLenum))
-BGL_Wrap(3, GetTexEnvfv,      void,     (GLenum, GLenum, GLfloatP))
-BGL_Wrap(3, GetTexEnviv,      void,     (GLenum, GLenum, GLintP))
-BGL_Wrap(3, GetTexGendv,      void,     (GLenum, GLenum, GLdoubleP))
-BGL_Wrap(3, GetTexGenfv,      void,     (GLenum, GLenum, GLfloatP))
-BGL_Wrap(3, GetTexGeniv,      void,     (GLenum, GLenum, GLintP))
-BGL_Wrap(5, GetTexImage,      void,     (GLenum, GLint, GLenum, GLenum, GLvoidP))
-BGL_Wrap(4, GetTexLevelParameterfv, void,     (GLenum, GLint, GLenum, GLfloatP))
-BGL_Wrap(4, GetTexLevelParameteriv, void,     (GLenum, GLint, GLenum, GLintP))
-BGL_Wrap(3, GetTexParameterfv,    void,     (GLenum, GLenum, GLfloatP))
-BGL_Wrap(3, GetTexParameteriv,    void,     (GLenum, GLenum, GLintP))
-BGL_Wrap(2, GetUniformLocation, GLint, (GLuint, GLstring))
-BGL_Wrap(2, Hint,           void,     (GLenum, GLenum))
-BGL_Wrap(1, IndexMask,      void,     (GLuint))
-BGL_Wrap(1, Indexd,         void,     (GLdouble))
-BGL_Wrap(1, Indexdv,        void,     (GLdoubleP))
-BGL_Wrap(1, Indexf,         void,     (GLfloat))
-BGL_Wrap(1, Indexfv,        void,     (GLfloatP))
-BGL_Wrap(1, Indexi,         void,     (GLint))
-BGL_Wrap(1, Indexiv,        void,     (GLintP))
-BGL_Wrap(1, Indexs,         void,     (GLshort))
-BGL_Wrap(1, Indexsv,        void,     (GLshortP))
-BGL_Wrap(1, InitNames,      void,     (void))
-BGL_Wrap(1, IsEnabled,      GLboolean,  (GLenum))
-BGL_Wrap(1, IsList,         GLboolean,  (GLuint))
-BGL_Wrap(1, IsProgram,      GLboolean,  (GLuint))
-BGL_Wrap(1, IsShader,       GLboolean,  (GLuint))
-BGL_Wrap(1, IsTexture,      GLboolean,  (GLuint))
-BGL_Wrap(2, LightModelf,    void,     (GLenum, GLfloat))
-BGL_Wrap(2, LightModelfv,   void,     (GLenum, GLfloatP))
-BGL_Wrap(2, LightModeli,    void,     (GLenum, GLint))
-BGL_Wrap(2, LightModeliv,   void,     (GLenum, GLintP))
-BGL_Wrap(3, Lightf,         void,     (GLenum, GLenum, GLfloat))
-BGL_Wrap(3, Lightfv,        void,     (GLenum, GLenum, GLfloatP))
-BGL_Wrap(3, Lighti,         void,     (GLenum, GLenum, GLint))
-BGL_Wrap(3, Lightiv,        void,     (GLenum, GLenum, GLintP))
-BGL_Wrap(2, LineStipple,    void,     (GLint, GLushort))
-BGL_Wrap(1, LineWidth,      void,     (GLfloat))
-BGL_Wrap(1, LinkProgram,    void,     (GLuint))
-BGL_Wrap(1, ListBase,       void,     (GLuint))
-BGL_Wrap(1, LoadIdentity,   void,     (void))
-BGL_Wrap(1, LoadMatrixd,    void,     (GLdoubleP))
-BGL_Wrap(1, LoadMatrixf,    void,     (GLfloatP))
-BGL_Wrap(1, LoadName,       void,     (GLuint))
-BGL_Wrap(1, LogicOp,        void,     (GLenum))
-BGL_Wrap(6, Map1d,          void,     (GLenum, GLdouble, GLdouble,
-                                       GLint, GLint, GLdoubleP))
-BGL_Wrap(6, Map1f,          void,     (GLenum, GLfloat, GLfloat,
-                                       GLint, GLint, GLfloatP))
-BGL_Wrap(10, Map2d,         void,     (GLenum, GLdouble, GLdouble,
-                                       GLint, GLint, GLdouble, GLdouble, GLint, GLint, GLdoubleP))
-BGL_Wrap(10, Map2f,         void,     (GLenum, GLfloat, GLfloat,
-                                       GLint, GLint, GLfloat, GLfloat, GLint, GLint, GLfloatP))
-BGL_Wrap(3, MapGrid1d,        void,     (GLint, GLdouble, GLdouble))
-BGL_Wrap(3, MapGrid1f,        void,     (GLint, GLfloat, GLfloat))
-BGL_Wrap(6, MapGrid2d,        void,     (GLint, GLdouble, GLdouble,
-                                         GLint, GLdouble, GLdouble))
-BGL_Wrap(6, MapGrid2f,        void,     (GLint, GLfloat, GLfloat,
-                                         GLint, GLfloat, GLfloat))
-BGL_Wrap(3, Materialf,        void,     (GLenum, GLenum, GLfloat))
-BGL_Wrap(3, Materialfv,       void,     (GLenum, GLenum, GLfloatP))
-BGL_Wrap(3, Materiali,        void,     (GLenum, GLenum, GLint))
-BGL_Wrap(3, Materialiv,       void,     (GLenum, GLenum, GLintP))
-BGL_Wrap(1, MatrixMode,       void,     (GLenum))
-BGL_Wrap(1, MultMatrixd,      void,     (GLdoubleP))
-BGL_Wrap(1, MultMatrixf,      void,     (GLfloatP))
-BGL_Wrap(2, NewList,          void,     (GLuint, GLenum))
-BGL_Wrap(3, Normal3b,         void,     (GLbyte, GLbyte, GLbyte))
-BGL_Wrap(1, Normal3bv,        void,     (GLbyteP))
-BGL_Wrap(3, Normal3d,         void,     (GLdouble, GLdouble, GLdouble))
-BGL_Wrap(1, Normal3dv,        void,     (GLdoubleP))
-BGL_Wrap(3, Normal3f,         void,     (GLfloat, GLfloat, GLfloat))
-BGL_Wrap(1, Normal3fv,        void,     (GLfloatP))
-BGL_Wrap(3, Normal3i,         void,     (GLint, GLint, GLint))
-BGL_Wrap(1, Normal3iv,        void,     (GLintP))
-BGL_Wrap(3, Normal3s,         void,     (GLshort, GLshort, GLshort))
-BGL_Wrap(1, Normal3sv,        void,     (GLshortP))
-BGL_Wrap(6, Ortho,            void,     (GLdouble, GLdouble,
-                                         GLdouble, GLdouble, GLdouble, GLdouble))
-BGL_Wrap(1, PassThrough,      void,     (GLfloat))
-BGL_Wrap(3, PixelMapfv,       void,     (GLenum, GLint, GLfloatP))
-BGL_Wrap(3, PixelMapuiv,      void,     (GLenum, GLint, GLuintP))
-BGL_Wrap(3, PixelMapusv,      void,     (GLenum, GLint, GLushortP))
-BGL_Wrap(2, PixelStoref,      void,     (GLenum, GLfloat))
-BGL_Wrap(2, PixelStorei,      void,     (GLenum, GLint))
-BGL_Wrap(2, PixelTransferf,   void,     (GLenum, GLfloat))
-BGL_Wrap(2, PixelTransferi,   void,     (GLenum, GLint))
-BGL_Wrap(2, PixelZoom,        void,     (GLfloat, GLfloat))
-BGL_Wrap(1, PointSize,        void,     (GLfloat))
-BGL_Wrap(2, PolygonMode,      void,     (GLenum, GLenum))
-BGL_Wrap(2, PolygonOffset,    void,     (GLfloat, GLfloat))
-BGL_Wrap(1, PolygonStipple,   void,     (GLubyteP))
-BGL_Wrap(1, PopAttrib,        void,     (void))
-BGL_Wrap(1, PopClientAttrib,  void,     (void))
-BGL_Wrap(1, PopMatrix,        void,     (void))
-BGL_Wrap(1, PopName,          void,     (void))
-BGL_Wrap(3, PrioritizeTextures,   void,   (GLsizei, GLuintP, GLclampfP))
-BGL_Wrap(1, PushAttrib,       void,     (GLbitfield))
-BGL_Wrap(1, PushClientAttrib, void,     (GLbitfield))
-BGL_Wrap(1, PushMatrix,       void,     (void))
-BGL_Wrap(1, PushName,         void,     (GLuint))
-BGL_Wrap(2, RasterPos2d,      void,     (GLdouble, GLdouble))
-BGL_Wrap(1, RasterPos2dv,     void,     (GLdoubleP))
-BGL_Wrap(2, RasterPos2f,      void,     (GLfloat, GLfloat))
-BGL_Wrap(1, RasterPos2fv,     void,     (GLfloatP))
-BGL_Wrap(2, RasterPos2i,      void,     (GLint, GLint))
-BGL_Wrap(1, RasterPos2iv,     void,     (GLintP))
-BGL_Wrap(2, RasterPos2s,      void,     (GLshort, GLshort))
-BGL_Wrap(1, RasterPos2sv,     void,     (GLshortP))
-BGL_Wrap(3, RasterPos3d,      void,     (GLdouble, GLdouble, GLdouble))
-BGL_Wrap(1, RasterPos3dv,     void,     (GLdoubleP))
-BGL_Wrap(3, RasterPos3f,      void,     (GLfloat, GLfloat, GLfloat))
-BGL_Wrap(1, RasterPos3fv,     void,     (GLfloatP))
-BGL_Wrap(3, RasterPos3i,      void,     (GLint, GLint, GLint))
-BGL_Wrap(1, RasterPos3iv,     void,     (GLintP))
-BGL_Wrap(3, RasterPos3s,      void,     (GLshort, GLshort, GLshort))
-BGL_Wrap(1, RasterPos3sv,     void,     (GLshortP))
-BGL_Wrap(4, RasterPos4d,      void,     (GLdouble, GLdouble, GLdouble, GLdouble))
-BGL_Wrap(1, RasterPos4dv,     void,     (GLdoubleP))
-BGL_Wrap(4, RasterPos4f,      void,     (GLfloat, GLfloat, GLfloat, GLfloat))
-BGL_Wrap(1, RasterPos4fv,     void,     (GLfloatP))
-BGL_Wrap(4, RasterPos4i,      void,     (GLint, GLint, GLint, GLint))
-BGL_Wrap(1, RasterPos4iv,     void,     (GLintP))
-BGL_Wrap(4, RasterPos4s,      void,     (GLshort, GLshort, GLshort, GLshort))
-BGL_Wrap(1, RasterPos4sv,     void,     (GLshortP))
-BGL_Wrap(1, ReadBuffer,       void,     (GLenum))
-BGL_Wrap(7, ReadPixels,       void,     (GLint, GLint, GLsizei,
-                                         GLsizei, GLenum, GLenum, GLvoidP))
-BGL_Wrap(4, Rectd,          void,     (GLdouble, GLdouble, GLdouble, GLdouble))
-BGL_Wrap(2, Rectdv,         void,     (GLdoubleP, GLdoubleP))
-BGL_Wrap(4, Rectf,          void,     (GLfloat, GLfloat, GLfloat, GLfloat))
-BGL_Wrap(2, Rectfv,         void,     (GLfloatP, GLfloatP))
-BGL_Wrap(4, Recti,          void,     (GLint, GLint, GLint, GLint))
-BGL_Wrap(2, Rectiv,         void,     (GLintP, GLintP))
-BGL_Wrap(4, Rects,          void,     (GLshort, GLshort, GLshort, GLshort))
-BGL_Wrap(2, Rectsv,         void,     (GLshortP, GLshortP))
-BGL_Wrap(1, RenderMode,     GLint,    (GLenum))
-BGL_Wrap(4, Rotated,        void,     (GLdouble, GLdouble, GLdouble, GLdouble))
-BGL_Wrap(4, Rotatef,        void,     (GLfloat, GLfloat, GLfloat, GLfloat))
-BGL_Wrap(3, Scaled,         void,     (GLdouble, GLdouble, GLdouble))
-BGL_Wrap(3, Scalef,         void,     (GLfloat, GLfloat, GLfloat))
-BGL_Wrap(4, Scissor,        void,     (GLint, GLint, GLsizei, GLsizei))
-BGL_Wrap(2, SelectBuffer,   void,     (GLsizei, GLuintP))
-BGL_Wrap(1, ShadeModel,       void,     (GLenum))
-BGL_Wrap(3, StencilFunc,      void,     (GLenum, GLint, GLuint))
-BGL_Wrap(1, StencilMask,      void,     (GLuint))
-BGL_Wrap(3, StencilOp,        void,     (GLenum, GLenum, GLenum))
-BGL_Wrap(1, TexCoord1d,       void,     (GLdouble))
-BGL_Wrap(1, TexCoord1dv,      void,     (GLdoubleP))
-BGL_Wrap(1, TexCoord1f,       void,     (GLfloat))
-BGL_Wrap(1, TexCoord1fv,      void,     (GLfloatP))
-BGL_Wrap(1, TexCoord1i,       void,     (GLint))
-BGL_Wrap(1, TexCoord1iv,      void,     (GLintP))
-BGL_Wrap(1, TexCoord1s,       void,     (GLshort))
-BGL_Wrap(1, TexCoord1sv,      void,     (GLshortP))
-BGL_Wrap(2, TexCoord2d,       void,     (GLdouble, GLdouble))
-BGL_Wrap(1, TexCoord2dv,      void,     (GLdoubleP))
-BGL_Wrap(2, TexCoord2f,       void,     (GLfloat, GLfloat))
-BGL_Wrap(1, TexCoord2fv,      void,     (GLfloatP))
-BGL_Wrap(2, TexCoord2i,       void,     (GLint, GLint))
-BGL_Wrap(1, TexCoord2iv,      void,     (GLintP))
-BGL_Wrap(2, TexCoord2s,       void,     (GLshort, GLshort))
-BGL_Wrap(1, TexCoord2sv,      void,     (GLshortP))
-BGL_Wrap(3, TexCoord3d,       void,     (GLdouble, GLdouble, GLdouble))
-BGL_Wrap(1, TexCoord3dv,      void,     (GLdoubleP))
-BGL_Wrap(3, TexCoord3f,       void,     (GLfloat, GLfloat, GLfloat))
-BGL_Wrap(1, TexCoord3fv,      void,     (GLfloatP))
-BGL_Wrap(3, TexCoord3i,       void,     (GLint, GLint, GLint))
-BGL_Wrap(1, TexCoord3iv,      void,     (GLintP))
-BGL_Wrap(3, TexCoord3s,       void,     (GLshort, GLshort, GLshort))
-BGL_Wrap(1, TexCoord3sv,      void,     (GLshortP))
-BGL_Wrap(4, TexCoord4d,       void,     (GLdouble, GLdouble, GLdouble, GLdouble))
-BGL_Wrap(1, TexCoord4dv,      void,     (GLdoubleP))
-BGL_Wrap(4, TexCoord4f,       void,     (GLfloat, GLfloat, GLfloat, GLfloat))
-BGL_Wrap(1, TexCoord4fv,      void,     (GLfloatP))
-BGL_Wrap(4, TexCoord4i,       void,     (GLint, GLint, GLint, GLint))
-BGL_Wrap(1, TexCoord4iv,      void,     (GLintP))
-BGL_Wrap(4, TexCoord4s,       void,     (GLshort, GLshort, GLshort, GLshort))
-BGL_Wrap(1, TexCoord4sv,      void,     (GLshortP))
-BGL_Wrap(3, TexEnvf,        void,     (GLenum, GLenum, GLfloat))
-BGL_Wrap(3, TexEnvfv,       void,     (GLenum, GLenum, GLfloatP))
-BGL_Wrap(3, TexEnvi,        void,     (GLenum, GLenum, GLint))
-BGL_Wrap(3, TexEnviv,       void,     (GLenum, GLenum, GLintP))
-BGL_Wrap(3, TexGend,        void,     (GLenum, GLenum, GLdouble))
-BGL_Wrap(3, TexGendv,       void,     (GLenum, GLenum, GLdoubleP))
-BGL_Wrap(3, TexGenf,        void,     (GLenum, GLenum, GLfloat))
-BGL_Wrap(3, TexGenfv,       void,     (GLenum, GLenum, GLfloatP))
-BGL_Wrap(3, TexGeni,        void,     (GLenum, GLenum, GLint))
-BGL_Wrap(3, TexGeniv,       void,     (GLenum, GLenum, GLintP))
-BGL_Wrap(8, TexImage1D,     void,     (GLenum, GLint, GLint,
-                                       GLsizei, GLint, GLenum, GLenum, GLvoidP))
-BGL_Wrap(9, TexImage2D,     void,     (GLenum, GLint, GLint,
-                                       GLsizei, GLsizei, GLint, GLenum, GLenum, GLvoidP))
-BGL_Wrap(3, TexParameterf,      void,     (GLenum, GLenum, GLfloat))
-BGL_Wrap(3, TexParameterfv,     void,     (GLenum, GLenum, GLfloatP))
-BGL_Wrap(3, TexParameteri,      void,     (GLenum, GLenum, GLint))
-BGL_Wrap(3, TexParameteriv,     void,     (GLenum, GLenum, GLintP))
-BGL_Wrap(3, Translated,         void,     (GLdouble, GLdouble, GLdouble))
-BGL_Wrap(3, Translatef,         void,     (GLfloat, GLfloat, GLfloat))
-BGL_Wrap(2, Uniform1f,          void,     (GLint, GLfloat))
-BGL_Wrap(3, Uniform2f,          void,     (GLint, GLfloat, GLfloat))
-BGL_Wrap(4, Uniform3f,          void,     (GLint, GLfloat, GLfloat, GLfloat))
-BGL_Wrap(5, Uniform4f,          void,     (GLint, GLfloat, GLfloat, GLfloat, GLfloat))
-BGL_Wrap(3, Uniform1fv,         void,     (GLint, GLsizei, GLfloatP))
-BGL_Wrap(3, Uniform2fv,         void,     (GLint, GLsizei, GLfloatP))
-BGL_Wrap(3, Uniform3fv,         void,     (GLint, GLsizei, GLfloatP))
-BGL_Wrap(3, Uniform4fv,         void,     (GLint, GLsizei, GLfloatP))
-BGL_Wrap(2, Uniform1i,          void,     (GLint, GLint))
-BGL_Wrap(3, Uniform2i,          void,     (GLint, GLint, GLint))
-BGL_Wrap(4, Uniform3i,          void,     (GLint, GLint, GLint, GLint))
-BGL_Wrap(5, Uniform4i,          void,     (GLint, GLint, GLint, GLint, GLint))
-BGL_Wrap(3, Uniform1iv,         void,     (GLint, GLsizei, GLintP))
-BGL_Wrap(3, Uniform2iv,         void,     (GLint, GLsizei, GLintP))
-BGL_Wrap(3, Uniform3iv,         void,     (GLint, GLsizei, GLintP))
-BGL_Wrap(3, Uniform4iv,         void,     (GLint, GLsizei, GLintP))
-BGL_Wrap(4, UniformMatrix2fv,   void,     (GLint, GLsizei, GLboolean, GLfloatP))
-BGL_Wrap(4, UniformMatrix3fv,   void,     (GLint, GLsizei, GLboolean, GLfloatP))
-BGL_Wrap(4, UniformMatrix4fv,   void,     (GLint, GLsizei, GLboolean, GLfloatP))
-BGL_Wrap(4, UniformMatrix2x3fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
-BGL_Wrap(4, UniformMatrix3x2fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
-BGL_Wrap(4, UniformMatrix2x4fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
-BGL_Wrap(4, UniformMatrix4x2fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
-BGL_Wrap(4, UniformMatrix3x4fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
-BGL_Wrap(4, UniformMatrix4x3fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
-BGL_Wrap(1, UseProgram,         void,     (GLuint))
-BGL_Wrap(1, ValidateProgram,    void,     (GLuint))
-BGL_Wrap(2, Vertex2d,           void,     (GLdouble, GLdouble))
-BGL_Wrap(1, Vertex2dv,          void,     (GLdoubleP))
-BGL_Wrap(2, Vertex2f,           void,     (GLfloat, GLfloat))
-BGL_Wrap(1, Vertex2fv,          void,     (GLfloatP))
-BGL_Wrap(2, Vertex2i,           void,     (GLint, GLint))
-BGL_Wrap(1, Vertex2iv,          void,     (GLintP))
-BGL_Wrap(2, Vertex2s,           void,     (GLshort, GLshort))
-BGL_Wrap(1, Vertex2sv,          void,     (GLshortP))
-BGL_Wrap(3, Vertex3d,           void,     (GLdouble, GLdouble, GLdouble))
-BGL_Wrap(1, Vertex3dv,          void,     (GLdoubleP))
-BGL_Wrap(3, Vertex3f,           void,     (GLfloat, GLfloat, GLfloat))
-BGL_Wrap(1, Vertex3fv,          void,     (GLfloatP))
-BGL_Wrap(3, Vertex3i,           void,     (GLint, GLint, GLint))
-BGL_Wrap(1, Vertex3iv,          void,     (GLintP))
-BGL_Wrap(3, Vertex3s,           void,     (GLshort, GLshort, GLshort))
-BGL_Wrap(1, Vertex3sv,          void,     (GLshortP))
-BGL_Wrap(4, Vertex4d,           void,     (GLdouble, GLdouble, GLdouble, GLdouble))
-BGL_Wrap(1, Vertex4dv,          void,     (GLdoubleP))
-BGL_Wrap(4, Vertex4f,           void,     (GLfloat, GLfloat, GLfloat, GLfloat))
-BGL_Wrap(1, Vertex4fv,          void,     (GLfloatP))
-BGL_Wrap(4, Vertex4i,           void,     (GLint, GLint, GLint, GLint))
-BGL_Wrap(1, Vertex4iv,          void,     (GLintP))
-BGL_Wrap(4, Vertex4s,           void,     (GLshort, GLshort, GLshort, GLshort))
-BGL_Wrap(1, Vertex4sv,          void,     (GLshortP))
-BGL_Wrap(4, Viewport,           void,     (GLint, GLint, GLsizei, GLsizei))
-BGLU_Wrap(4, Perspective,       void,       (GLdouble, GLdouble, GLdouble, GLdouble))
-BGLU_Wrap(9, LookAt,            void,       (GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble))
-BGLU_Wrap(4, Ortho2D,           void,       (GLdouble, GLdouble, GLdouble, GLdouble))
-BGLU_Wrap(5, PickMatrix,        void,       (GLdouble, GLdouble, GLdouble, GLdouble, GLintP))
-BGLU_Wrap(9, Project,           GLint,      (GLdouble, GLdouble, GLdouble, GLdoubleP, GLdoubleP, GLintP, GLdoubleP, GLdoubleP, GLdoubleP))
-BGLU_Wrap(9, UnProject,         GLint,      (GLdouble, GLdouble, GLdouble, GLdoubleP, GLdoubleP, GLintP, GLdoubleP, GLdoubleP, GLdoubleP))
+
+/* -------------------------------------------------------------------- */
+
+/** \name OpenGL API Wrapping
+ * \{ */
+
+#define BGL_Wrap(funcname, ret, arg_list)                                     \
+static PyObject *Method_##funcname (PyObject *UNUSED(self), PyObject *args)   \
+{                                                                             \
+	arg_def arg_list;                                                         \
+	ret_def_##ret;                                                            \
+	if (!PyArg_ParseTuple(args, arg_str arg_list, arg_ref arg_list)) {        \
+		return NULL;                                                          \
+	}                                                                         \
+	ret_set_##ret gl##funcname (arg_var arg_list);                            \
+	ret_ret_##ret;                                                            \
+}
+
+#define BGLU_Wrap(funcname, ret, arg_list)                                    \
+static PyObject *Method_##funcname (PyObject *UNUSED(self), PyObject *args)   \
+{                                                                             \
+	arg_def arg_list;                                                         \
+	ret_def_##ret;                                                            \
+	if (!PyArg_ParseTuple(args, arg_str arg_list, arg_ref arg_list)) {        \
+		return NULL;                                                          \
+	}                                                                         \
+	ret_set_##ret glu##funcname (arg_var arg_list);                           \
+	ret_ret_##ret;                                                            \
+}
+
+BGL_Wrap(Accum,          void,       (GLenum, GLfloat))
+BGL_Wrap(ActiveTexture,  void,       (GLenum))
+BGL_Wrap(AlphaFunc,      void,       (GLenum, GLclampf))
+BGL_Wrap(AreTexturesResident,  GLboolean,  (GLsizei, GLuintP, GLbooleanP))
+BGL_Wrap(AttachShader,   void,       (GLuint, GLuint))
+BGL_Wrap(Begin,          void,       (GLenum))
+BGL_Wrap(BindTexture,    void,       (GLenum, GLuint))
+BGL_Wrap(Bitmap,         void,       (GLsizei, GLsizei, GLfloat,
+                                      GLfloat, GLfloat, GLfloat, GLubyteP))
+BGL_Wrap(BlendFunc,        void,     (GLenum, GLenum))
+BGL_Wrap(CallList,         void,     (GLuint))
+BGL_Wrap(CallLists,        void,     (GLsizei, GLenum, GLvoidP))
+BGL_Wrap(Clear,            void,     (GLbitfield))
+BGL_Wrap(ClearAccum,       void,     (GLfloat, GLfloat, GLfloat, GLfloat))
+BGL_Wrap(ClearColor,       void,     (GLclampf, GLclampf, GLclampf, GLclampf))
+BGL_Wrap(ClearDepth,       void,     (GLclampd))
+BGL_Wrap(ClearIndex,       void,     (GLfloat))
+BGL_Wrap(ClearStencil,     void,     (GLint))
+BGL_Wrap(ClipPlane,        void,     (GLenum, GLdoubleP))
+BGL_Wrap(Color3b,          void,     (GLbyte, GLbyte, GLbyte))
+BGL_Wrap(Color3bv,         void,     (GLbyteP))
+BGL_Wrap(Color3d,          void,     (GLdouble, GLdouble, GLdouble))
+BGL_Wrap(Color3dv,         void,     (GLdoubleP))
+BGL_Wrap(Color3f,          void,     (GLfloat, GLfloat, GLfloat))
+BGL_Wrap(Color3fv,         void,     (GLfloatP))
+BGL_Wrap(Color3i,          void,     (GLint, GLint, GLint))
+BGL_Wrap(Color3iv,         void,     (GLintP))
+BGL_Wrap(Color3s,          void,     (GLshort, GLshort, GLshort))
+BGL_Wrap(Color3sv,         void,     (GLshortP))
+BGL_Wrap(Color3ub,         void,     (GLubyte, GLubyte, GLubyte))
+BGL_Wrap(Color3ubv,        void,     (GLubyteP))
+BGL_Wrap(Color3ui,         void,     (GLuint, GLuint, GLuint))
+BGL_Wrap(Color3uiv,        void,     (GLuintP))
+BGL_Wrap(Color3us,         void,     (GLushort, GLushort, GLushort))
+BGL_Wrap(Color3usv,        void,     (GLushortP))
+BGL_Wrap(Color4b,          void,     (GLbyte, GLbyte, GLbyte, GLbyte))
+BGL_Wrap(Color4bv,         void,     (GLbyteP))
+BGL_Wrap(Color4d,          void,     (GLdouble, GLdouble, GLdouble, GLdouble))
+BGL_Wrap(Color4dv,         void,     (GLdoubleP))
+BGL_Wrap(Color4f,          void,     (GLfloat, GLfloat, GLfloat, GLfloat))
+BGL_Wrap(Color4fv,         void,     (GLfloatP))
+BGL_Wrap(Color4i,          void,     (GLint, GLint, GLint, GLint))
+BGL_Wrap(Color4iv,         void,     (GLintP))
+BGL_Wrap(Color4s,          void,     (GLshort, GLshort, GLshort, GLshort))
+BGL_Wrap(Color4sv,         void,     (GLshortP))
+BGL_Wrap(Color4ub,         void,     (GLubyte, GLubyte, GLubyte, GLubyte))
+BGL_Wrap(Color4ubv,        void,     (GLubyteP))
+BGL_Wrap(Color4ui,         void,     (GLuint, GLuint, GLuint, GLuint))
+BGL_Wrap(Color4uiv,        void,     (GLuintP))
+BGL_Wrap(Color4us,         void,     (GLushort, GLushort, GLushort, GLushort))
+BGL_Wrap(Color4usv,        void,     (GLushortP))
+BGL_Wrap(ColorMask,        void,     (GLboolean, GLboolean, GLboolean, GLboolean))
+BGL_Wrap(ColorMaterial,    void,     (GLenum, GLenum))
+BGL_Wrap(CompileShader,    void,     (GLuint))
+BGL_Wrap(CopyPixels,       void,     (GLint, GLint, GLsizei, GLsizei, GLenum))
+BGL_Wrap(CopyTexImage2D,   void,     (GLenum, GLint, GLenum, GLint, GLint, GLsizei, GLsizei, GLint))
+BGL_Wrap(CreateProgram,    GLuint,   (void))
+BGL_Wrap(CreateShader,     GLuint,   (GLenum))
+BGL_Wrap(CullFace,         void,     (GLenum))
+BGL_Wrap(DeleteLists,      void,     (GLuint, GLsizei))
+BGL_Wrap(DeleteProgram,    void,     (GLuint))
+BGL_Wrap(DeleteShader,     void,     (GLuint))
+BGL_Wrap(DeleteTextures,   void,     (GLsizei, GLuintP))
+BGL_Wrap(DepthFunc,        void,     (GLenum))
+BGL_Wrap(DepthMask,        void,     (GLboolean))
+BGL_Wrap(DepthRange,       void,     (GLclampd, GLclampd))
+BGL_Wrap(DetachShader,     void,     (GLuint, GLuint))
+BGL_Wrap(Disable,          void,     (GLenum))
+BGL_Wrap(DrawBuffer,       void,     (GLenum))
+BGL_Wrap(DrawPixels,       void,     (GLsizei, GLsizei, GLenum, GLenum, GLvoidP))
+BGL_Wrap(EdgeFlag,         void,     (GLboolean))
+BGL_Wrap(EdgeFlagv,        void,     (GLbooleanP))
+BGL_Wrap(Enable,           void,     (GLenum))
+BGL_Wrap(End,              void,     (void))
+BGL_Wrap(EndList,          void,     (void))
+BGL_Wrap(EvalCoord1d,      void,     (GLdouble))
+BGL_Wrap(EvalCoord1dv,     void,     (GLdoubleP))
+BGL_Wrap(EvalCoord1f,      void,     (GLfloat))
+BGL_Wrap(EvalCoord1fv,     void,     (GLfloatP))
+BGL_Wrap(EvalCoord2d,      void,     (GLdouble, GLdouble))
+BGL_Wrap(EvalCoord2dv,     void,     (GLdoubleP))
+BGL_Wrap(EvalCoord2f,      void,     (GLfloat, GLfloat))
+BGL_Wrap(EvalCoord2fv,     void,     (GLfloatP))
+BGL_Wrap(EvalMesh1,        void,     (GLenum, GLint, GLint))
+BGL_Wrap(EvalMesh2,        void,     (GLenum, GLint, GLint, GLint, GLint))
+BGL_Wrap(EvalPoint1,       void,     (GLint))
+BGL_Wrap(EvalPoint2,       void,     (GLint, GLint))
+BGL_Wrap(FeedbackBuffer,   void,     (GLsizei, GLenum, GLfloatP))
+BGL_Wrap(Finish,           void,     (void))
+BGL_Wrap(Flush,            void,     (void))
+BGL_Wrap(Fogf,             void,     (GLenum, GLfloat))
+BGL_Wrap(Fogfv,            void,     (GLenum, GLfloatP))
+BGL_Wrap(Fogi,             void,     (GLenum, GLint))
+BGL_Wrap(Fogiv,            void,     (GLenum, GLintP))
+BGL_Wrap(FrontFace,        void,     (GLenum))
+BGL_Wrap(Frustum,          void,     (GLdouble, GLdouble,
+                                      GLdouble, GLdouble, GLdouble, GLdouble))
+BGL_Wrap(GenLists,         GLuint,   (GLsizei))
+BGL_Wrap(GenTextures,      void,   (GLsizei, GLuintP))
+BGL_Wrap(GetAttachedShaders, void,   (GLuint, GLsizei, GLsizeiP, GLuintP))
+BGL_Wrap(GetBooleanv,      void,     (GLenum, GLbooleanP))
+BGL_Wrap(GetClipPlane,     void,     (GLenum, GLdoubleP))
+BGL_Wrap(GetDoublev,       void,     (GLenum, GLdoubleP))
+BGL_Wrap(GetError,         GLenum,   (void))
+BGL_Wrap(GetFloatv,        void,     (GLenum, GLfloatP))
+BGL_Wrap(GetIntegerv,      void,     (GLenum, GLintP))
+BGL_Wrap(GetLightfv,       void,     (GLenum, GLenum, GLfloatP))
+BGL_Wrap(GetLightiv,       void,     (GLenum, GLenum, GLintP))
+BGL_Wrap(GetMapdv,         void,     (GLenum, GLenum, GLdoubleP))
+BGL_Wrap(GetMapfv,         void,     (GLenum, GLenum, GLfloatP))
+BGL_Wrap(GetMapiv,         void,     (GLenum, GLenum, GLintP))
+BGL_Wrap(GetMaterialfv,    void,     (GLenum, GLenum, GLfloatP))
+BGL_Wrap(GetMaterialiv,    void,     (GLenum, GLenum, GLintP))
+BGL_Wrap(GetPixelMapfv,    void,     (GLenum, GLfloatP))
+BGL_Wrap(GetPixelMapuiv,   void,     (GLenum, GLuintP))
+BGL_Wrap(GetPixelMapusv,   void,     (GLenum, GLushortP))
+BGL_Wrap(GetPolygonStipple, void,     (GLubyteP))
+BGL_Wrap(GetProgramInfoLog, void,    (GLuint, GLsizei, GLsizeiP, GLcharP))
+BGL_Wrap(GetProgramiv,     void,     (GLuint, GLenum, GLintP))
+BGL_Wrap(GetShaderInfoLog, void,     (GLuint, GLsizei, GLsizeiP, GLcharP))
+BGL_Wrap(GetShaderiv,      void,     (GLuint, GLenum, GLintP))
+BGL_Wrap(GetShaderSource,  void,     (GLuint, GLsizei, GLsizeiP, GLcharP))
+BGL_Wrap(GetString,        GLstring, (GLenum))
+BGL_Wrap(GetTexEnvfv,      void,     (GLenum, GLenum, GLfloatP))
+BGL_Wrap(GetTexEnviv,      void,     (GLenum, GLenum, GLintP))
+BGL_Wrap(GetTexGendv,      void,     (GLenum, GLenum, GLdoubleP))
+BGL_Wrap(GetTexGenfv,      void,     (GLenum, GLenum, GLfloatP))
+BGL_Wrap(GetTexGeniv,      void,     (GLenum, GLenum, GLintP))
+BGL_Wrap(GetTexImage,      void,     (GLenum, GLint, GLenum, GLenum, GLvoidP))
+BGL_Wrap(GetTexLevelParameterfv, void,     (GLenum, GLint, GLenum, GLfloatP))
+BGL_Wrap(GetTexLevelParameteriv, void,     (GLenum, GLint, GLenum, GLintP))
+BGL_Wrap(GetTexParameterfv,    void,     (GLenum, GLenum, GLfloatP))
+BGL_Wrap(GetTexParameteriv,    void,     (GLenum, GLenum, GLintP))
+BGL_Wrap(GetUniformLocation, GLint, (GLuint, GLstring))
+BGL_Wrap(Hint,           void,     (GLenum, GLenum))
+BGL_Wrap(IndexMask,      void,     (GLuint))
+BGL_Wrap(Indexd,         void,     (GLdouble))
+BGL_Wrap(Indexdv,        void,     (GLdoubleP))
+BGL_Wrap(Indexf,         void,     (GLfloat))
+BGL_Wrap(Indexfv,        void,     (GLfloatP))
+BGL_Wrap(Indexi,         void,     (GLint))
+BGL_Wrap(Indexiv,        void,     (GLintP))
+BGL_Wrap(Indexs,         void,     (GLshort))
+BGL_Wrap(Indexsv,        void,     (GLshortP))
+BGL_Wrap(InitNames,      void,     (void))
+BGL_Wrap(IsEnabled,      GLboolean,  (GLenum))
+BGL_Wrap(IsList,         GLboolean,  (GLuint))
+BGL_Wrap(IsProgram,      GLboolean,  (GLuint))
+BGL_Wrap(IsShader,       GLboolean,  (GLuint))
+BGL_Wrap(IsTexture,      GLboolean,  (GLuint))
+BGL_Wrap(LightModelf,    void,     (GLenum, GLfloat))
+BGL_Wrap(LightModelfv,   void,     (GLenum, GLfloatP))
+BGL_Wrap(LightModeli,    void,     (GLenum, GLint))
+BGL_Wrap(LightModeliv,   void,     (GLenum, GLintP))
+BGL_Wrap(Lightf,         void,     (GLenum, GLenum, GLfloat))
+BGL_Wrap(Lightfv,        void,     (GLenum, GLenum, GLfloatP))
+BGL_Wrap(Lighti,         void,     (GLenum, GLenum, GLint))
+BGL_Wrap(Lightiv,        void,     (GLenum, GLenum, GLintP))
+BGL_Wrap(LineStipple,    void,     (GLint, GLushort))
+BGL_Wrap(LineWidth,      void,     (GLfloat))
+BGL_Wrap(LinkProgram,    void,     (GLuint))
+BGL_Wrap(ListBase,       void,     (GLuint))
+BGL_Wrap(LoadIdentity,   void,     (void))
+BGL_Wrap(LoadMatrixd,    void,     (GLdoubleP))
+BGL_Wrap(LoadMatrixf,    void,     (GLfloatP))
+BGL_Wrap(LoadName,       void,     (GLuint))
+BGL_Wrap(LogicOp,        void,     (GLenum))
+BGL_Wrap(Map1d,          void,     (GLenum, GLdouble, GLdouble,
+                                    GLint, GLint, GLdoubleP))
+BGL_Wrap(Map1f,          void,     (GLenum, GLfloat, GLfloat,
+                                    GLint, GLint, GLfloatP))
+BGL_Wrap(Map2d,          void,     (GLenum, GLdouble, GLdouble,
+                                    GLint, GLint, GLdouble, GLdouble, GLint, GLint, GLdoubleP))
+BGL_Wrap(Map2f,          void,     (GLenum, GLfloat, GLfloat,
+                                    GLint, GLint, GLfloat, GLfloat, GLint, GLint, GLfloatP))
+BGL_Wrap(MapGrid1d,        void,     (GLint, GLdouble, GLdouble))
+BGL_Wrap(MapGrid1f,        void,     (GLint, GLfloat, GLfloat))
+BGL_Wrap(MapGrid2d,        void,     (GLint, GLdouble, GLdouble,
+                                      GLint, GLdouble, GLdouble))
+BGL_Wrap(MapGrid2f,        void,     (GLint, GLfloat, GLfloat,
+                                      GLint, GLfloat, GLfloat))
+BGL_Wrap(Materialf,        void,     (GLenum, GLenum, GLfloat))
+BGL_Wrap(Materialfv,       void,     (GLenum, GLenum, GLfloatP))
+BGL_Wrap(Materiali,        void,     (GLenum, GLenum, GLint))
+BGL_Wrap(Materialiv,       void,     (GLenum, GLenum, GLintP))
+BGL_Wrap(MatrixMode,       void,     (GLenum))
+BGL_Wrap(MultMatrixd,      void,     (GLdoubleP))
+BGL_Wrap(MultMatrixf,      void,     (GLfloatP))
+BGL_Wrap(NewList,          void,     (GLuint, GLenum))
+BGL_Wrap(Normal3b,         void,     (GLbyte, GLbyte, GLbyte))
+BGL_Wrap(Normal3bv,        void,     (GLbyteP))
+BGL_Wrap(Normal3d,         void,     (GLdouble, GLdouble, GLdouble))
+BGL_Wrap(Normal3dv,        void,     (GLdoubleP))
+BGL_Wrap(Normal3f,         void,     (GLfloat, GLfloat, GLfloat))
+BGL_Wrap(Normal3fv,        void,     (GLfloatP))
+BGL_Wrap(Normal3i,         void,     (GLint, GLint, GLint))
+BGL_Wrap(Normal3iv,        void,     (GLintP))
+BGL_Wrap(Normal3s,         void,     (GLshort, GLshort, GLshort))
+BGL_Wrap(Normal3sv,        void,     (GLshortP))
+BGL_Wrap(Ortho,            void,     (GLdouble, GLdouble,
+                                      GLdouble, GLdouble, GLdouble, GLdouble))
+BGL_Wrap(PassThrough,      void,     (GLfloat))
+BGL_Wrap(PixelMapfv,       void,     (GLenum, GLint, GLfloatP))
+BGL_Wrap(PixelMapuiv,      void,     (GLenum, GLint, GLuintP))
+BGL_Wrap(PixelMapusv,      void,     (GLenum, GLint, GLushortP))
+BGL_Wrap(PixelStoref,      void,     (GLenum, GLfloat))
+BGL_Wrap(PixelStorei,      void,     (GLenum, GLint))
+BGL_Wrap(PixelTransferf,   void,     (GLenum, GLfloat))
+BGL_Wrap(PixelTransferi,   void,     (GLenum, GLint))
+BGL_Wrap(PixelZoom,        void,     (GLfloat, GLfloat))
+BGL_Wrap(PointSize,        void,     (GLfloat))
+BGL_Wrap(PolygonMode,      void,     (GLenum, GLenum))
+BGL_Wrap(PolygonOffset,    void,     (GLfloat, GLfloat))
+BGL_Wrap(PolygonStipple,   void,     (GLubyteP))
+BGL_Wrap(PopAttrib,        void,     (void))
+BGL_Wrap(PopClientAttrib,  void,     (void))
+BGL_Wrap(PopMatrix,        void,     (void))
+BGL_Wrap(PopName,          void,     (void))
+BGL_Wrap(PrioritizeTextures,   void,   (GLsizei, GLuintP, GLclampfP))
+BGL_Wrap(PushAttrib,       void,     (GLbitfield))
+BGL_Wrap(PushClientAttrib, void,     (GLbitfield))
+BGL_Wrap(PushMatrix,       void,     (void))
+BGL_Wrap(PushName,         void,     (GLuint))
+BGL_Wrap(RasterPos2d,      void,     (GLdouble, GLdouble))
+BGL_Wrap(RasterPos2dv,     void,     (GLdoubleP))
+BGL_Wrap(RasterPos2f,      void,     (GLfloat, GLfloat))
+BGL_Wrap(RasterPos2fv,     void,     (GLfloatP))
+BGL_Wrap(RasterPos2i,      void,     (GLint, GLint))
+BGL_Wrap(RasterPos2iv,     void,     (GLintP))
+BGL_Wrap(RasterPos2s,      void,     (GLshort, GLshort))
+BGL_Wrap(RasterPos2sv,     void,     (GLshortP))
+BGL_Wrap(RasterPos3d,      void,     (GLdouble, GLdouble, GLdouble))
+BGL_Wrap(RasterPos3dv,     void,     (GLdoubleP))
+BGL_Wrap(RasterPos3f,      void,     (GLfloat, GLfloat, GLfloat))
+BGL_Wrap(RasterPos3fv,     void,     (GLfloatP))
+BGL_Wrap(RasterPos3i,      void,     (GLint, GLint, GLint))
+BGL_Wrap(RasterPos3iv,     void,     (GLintP))
+BGL_Wrap(RasterPos3s,      void,     (GLshort, GLshort, GLshort))
+BGL_Wrap(RasterPos3sv,     void,     (GLshortP))
+BGL_Wrap(RasterPos4d,      void,     (GLdouble, GLdouble, GLdouble, GLdouble))
+BGL_Wrap(RasterPos4dv,     void,     (GLdoubleP))
+BGL_Wrap(RasterPos4f,      void,     (GLfloat, GLfloat, GLfloat, GLfloat))
+BGL_Wrap(RasterPos4fv,     void,     (GLfloatP))
+BGL_Wrap(RasterPos4i,      void,     (GLint, GLint, GLint, GLint))
+BGL_Wrap(RasterPos4iv,     void,     (GLintP))
+BGL_Wrap(RasterPos4s,      void,     (GLshort, GLshort, GLshort, GLshort))
+BGL_Wrap(RasterPos4sv,     void,     (GLshortP))
+BGL_Wrap(ReadBuffer,       void,     (GLenum))
+BGL_Wrap(ReadPixels,       void,     (GLint, GLint, GLsizei,
+                                      GLsizei, GLenum, GLenum, GLvoidP))
+BGL_Wrap(Rectd,          void,     (GLdouble, GLdouble, GLdouble, GLdouble))
+BGL_Wrap(Rectdv,         void,     (GLdoubleP, GLdoubleP))
+BGL_Wrap(Rectf,          void,     (GLfloat, GLfloat, GLfloat, GLfloat))
+BGL_Wrap(Rectfv,         void,     (GLfloatP, GLfloatP))
+BGL_Wrap(Recti,          void,     (GLint, GLint, GLint, GLint))
+BGL_Wrap(Rectiv,         void,     (GLintP, GLintP))
+BGL_Wrap(Rects,          void,     (GLshort, GLshort, GLshort, GLshort))
+BGL_Wrap(Rectsv,         void,     (GLshortP, GLshortP))
+BGL_Wrap(RenderMode,     GLint,    (GLenum))
+BGL_Wrap(Rotated,        void,     (GLdouble, GLdouble, GLdouble, GLdouble))
+BGL_Wrap(Rotatef,        void,     (GLfloat, GLfloat, GLfloat, GLfloat))
+BGL_Wrap(Scaled,         void,     (GLdouble, GLdouble, GLdouble))
+BGL_Wrap(Scalef,         void,     (GLfloat, GLfloat, GLfloat))
+BGL_Wrap(Scissor,        void,     (GLint, GLint, GLsizei, GLsizei))
+BGL_Wrap(SelectBuffer,   void,     (GLsizei, GLuintP))
+BGL_Wrap(ShadeModel,       void,     (GLenum))
+BGL_Wrap(StencilFunc,      void,     (GLenum, GLint, GLuint))
+BGL_Wrap(StencilMask,      void,     (GLuint))
+BGL_Wrap(StencilOp,        void,     (GLenum, GLenum, GLenum))
+BGL_Wrap(TexCoord1d,       void,     (GLdouble))
+BGL_Wrap(TexCoord1dv,      void,     (GLdoubleP))
+BGL_Wrap(TexCoord1f,       void,     (GLfloat))
+BGL_Wrap(TexCoord1fv,      void,     (GLfloatP))
+BGL_Wrap(TexCoord1i,       void,     (GLint))
+BGL_Wrap(TexCoord1iv,      void,     (GLintP))
+BGL_Wrap(TexCoord1s,       void,     (GLshort))
+BGL_Wrap(TexCoord1sv,      void,     (GLshortP))
+BGL_Wrap(TexCoord2d,       void,     (GLdouble, GLdouble))
+BGL_Wrap(TexCoord2dv,      void,     (GLdoubleP))
+BGL_Wrap(TexCoord2f,       void,     (GLfloat, GLfloat))
+BGL_Wrap(TexCoord2fv,      void,     (GLfloatP))
+BGL_Wrap(TexCoord2i,       void,     (GLint, GLint))
+BGL_Wrap(TexCoord2iv,      void,     (GLintP))
+BGL_Wrap(TexCoord2s,       void,     (GLshort, GLshort))
+BGL_Wrap(TexCoord2sv,      void,     (GLshortP))
+BGL_Wrap(TexCoord3d,       void,     (GLdouble, GLdouble, GLdouble))
+BGL_Wrap(TexCoord3dv,      void,     (GLdoubleP))
+BGL_Wrap(TexCoord3f,       void,     (GLfloat, GLfloat, GLfloat))
+BGL_Wrap(TexCoord3fv,      void,     (GLfloatP))
+BGL_Wrap(TexCoord3i,       void,     (GLint, GLint, GLint))
+BGL_Wrap(TexCoord3iv,      void,     (GLintP))
+BGL_Wrap(TexCoord3s,       void,     (GLshort, GLshort, GLshort))
+BGL_Wrap(TexCoord3sv,      void,     (GLshortP))
+BGL_Wrap(TexCoord4d,       void,     (GLdouble, GLdouble, GLdouble, GLdouble))
+BGL_Wrap(TexCoord4dv,      void,     (GLdoubleP))
+BGL_Wrap(TexCoord4f,       void,     (GLfloat, GLfloat, GLfloat, GLfloat))
+BGL_Wrap(TexCoord4fv,      void,     (GLfloatP))
+BGL_Wrap(TexCoord4i,       void,     (GLint, GLint, GLint, GLint))
+BGL_Wrap(TexCoord4iv,      void,     (GLintP))
+BGL_Wrap(TexCoord4s,       void,     (GLshort, GLshort, GLshort, GLshort))
+BGL_Wrap(TexCoord4sv,      void,     (GLshortP))
+BGL_Wrap(TexEnvf,        void,     (GLenum, GLenum, GLfloat))
+BGL_Wrap(TexEnvfv,       void,     (GLenum, GLenum, GLfloatP))
+BGL_Wrap(TexEnvi,        void,     (GLenum, GLenum, GLint))
+BGL_Wrap(TexEnviv,       void,     (GLenum, GLenum, GLintP))
+BGL_Wrap(TexGend,        void,     (GLenum, GLenum, GLdouble))
+BGL_Wrap(TexGendv,       void,     (GLenum, GLenum, GLdoubleP))
+BGL_Wrap(TexGenf,        void,     (GLenum, GLenum, GLfloat))
+BGL_Wrap(TexGenfv,       void,     (GLenum, GLenum, GLfloatP))
+BGL_Wrap(TexGeni,        void,     (GLenum, GLenum, GLint))
+BGL_Wrap(TexGeniv,       void,     (GLenum, GLenum, GLintP))
+BGL_Wrap(TexImage1D,     void,     (GLenum, GLint, GLint,
+                                    GLsizei, GLint, GLenum, GLenum, GLvoidP))
+BGL_Wrap(TexImage2D,     void,     (GLenum, GLint, GLint,
+                                    GLsizei, GLsizei, GLint, GLenum, GLenum, GLvoidP))
+BGL_Wrap(TexParameterf,      void,     (GLenum, GLenum, GLfloat))
+BGL_Wrap(TexParameterfv,     void,     (GLenum, GLenum, GLfloatP))
+BGL_Wrap(TexParameteri,      void,     (GLenum, GLenum, GLint))
+BGL_Wrap(TexParameteriv,     void,     (GLenum, GLenum, GLintP))
+BGL_Wrap(Translated,         void,     (GLdouble, GLdouble, GLdouble))
+BGL_Wrap(Translatef,         void,     (GLfloat, GLfloat, GLfloat))
+BGL_Wrap(Uniform1f,          void,     (GLint, GLfloat))
+BGL_Wrap(Uniform2f,          void,     (GLint, GLfloat, GLfloat))
+BGL_Wrap(Uniform3f,          void,     (GLint, GLfloat, GLfloat, GLfloat))
+BGL_Wrap(Uniform4f,          void,     (GLint, GLfloat, GLfloat, GLfloat, GLfloat))
+BGL_Wrap(Uniform1fv,         void,     (GLint, GLsizei, GLfloatP))
+BGL_Wrap(Uniform2fv,         void,     (GLint, GLsizei, GLfloatP))
+BGL_Wrap(Uniform3fv,         void,     (GLint, GLsizei, GLfloatP))
+BGL_Wrap(Uniform4fv,         void,     (GLint, GLsizei, GLfloatP))
+BGL_Wrap(Uniform1i,          void,     (GLint, GLint))
+BGL_Wrap(Uniform2i,          void,     (GLint, GLint, GLint))
+BGL_Wrap(Uniform3i,          void,     (GLint, GLint, GLint, GLint))
+BGL_Wrap(Uniform4i,          void,     (GLint, GLint, GLint, GLint, GLint))
+BGL_Wrap(Uniform1iv,         void,     (GLint, GLsizei, GLintP))
+BGL_Wrap(Uniform2iv,         void,     (GLint, GLsizei, GLintP))
+BGL_Wrap(Uniform3iv,         void,     (GLint, GLsizei, GLintP))
+BGL_Wrap(Uniform4iv,         void,     (GLint, GLsizei, GLintP))
+BGL_Wrap(UniformMatrix2fv,   void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(UniformMatrix3fv,   void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(UniformMatrix4fv,   void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(UniformMatrix2x3fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(UniformMatrix3x2fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(UniformMatrix2x4fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(UniformMatrix4x2fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(UniformMatrix3x4fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(UniformMatrix4x3fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(UseProgram,         void,     (GLuint))
+BGL_Wrap(ValidateProgram,    void,     (GLuint))
+BGL_Wrap(Vertex2d,           void,     (GLdouble, GLdouble))
+BGL_Wrap(Vertex2dv,          void,     (GLdoubleP))
+BGL_Wrap(Vertex2f,           void,     (GLfloat, GLfloat))
+BGL_Wrap(Vertex2fv,          void,     (GLfloatP))
+BGL_Wrap(Vertex2i,           void,     (GLint, GLint))
+BGL_Wrap(Vertex2iv,          void,     (GLintP))
+BGL_Wrap(Vertex2s,           void,     (GLshort, GLshort))
+BGL_Wrap(Vertex2sv,          void,     (GLshortP))
+BGL_Wrap(Vertex3d,           void,     (GLdouble, GLdouble, GLdouble))
+BGL_Wrap(Vertex3dv,          void,     (GLdoubleP))
+BGL_Wrap(Vertex3f,           void,     (GLfloat, GLfloat, GLfloat))
+BGL_Wrap(Vertex3fv,          void,     (GLfloatP))
+BGL_Wrap(Vertex3i,           void,     (GLint, GLint, GLint))
+BGL_Wrap(Vertex3iv,          void,     (GLintP))
+BGL_Wrap(Vertex3s,           void,     (GLshort, GLshort, GLshort))
+BGL_Wrap(Vertex3sv,          void,     (GLshortP))
+BGL_Wrap(Vertex4d,           void,     (GLdouble, GLdouble, GLdouble, GLdouble))
+BGL_Wrap(Vertex4dv,          void,     (GLdoubleP))
+BGL_Wrap(Vertex4f,           void,     (GLfloat, GLfloat, GLfloat, GLfloat))
+BGL_Wrap(Vertex4fv,          void,     (GLfloatP))
+BGL_Wrap(Vertex4i,           void,     (GLint, GLint, GLint, GLint))
+BGL_Wrap(Vertex4iv,          void,     (GLintP))
+BGL_Wrap(Vertex4s,           void,     (GLshort, GLshort, GLshort, GLshort))
+BGL_Wrap(Vertex4sv,          void,     (GLshortP))
+BGL_Wrap(Viewport,           void,     (GLint, GLint, GLsizei, GLsizei))
+BGLU_Wrap(Perspective,       void,       (GLdouble, GLdouble, GLdouble, GLdouble))
+BGLU_Wrap(LookAt,            void,       (GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble))
+BGLU_Wrap(Ortho2D,           void,       (GLdouble, GLdouble, GLdouble, GLdouble))
+BGLU_Wrap(PickMatrix,        void,       (GLdouble, GLdouble, GLdouble, GLdouble, GLintP))
+BGLU_Wrap(Project,           GLint,      (GLdouble, GLdouble, GLdouble, GLdoubleP, GLdoubleP, GLintP, GLdoubleP, GLdoubleP, GLdoubleP))
+BGLU_Wrap(UnProject,         GLint,      (GLdouble, GLdouble, GLdouble, GLdoubleP, GLdoubleP, GLintP, GLdoubleP, GLdoubleP, GLdoubleP))
 
 #undef MethodDef
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Module Definition
+ * \{ */
+
 #define MethodDef(func) {"gl"#func, Method_##func, METH_VARARGS, "no string"}
 #define MethodDefu(func) {"glu"#func, Method_##func, METH_VARARGS, "no string"}
 /* So that MethodDef(Accum) becomes:
  * {"glAccum", Method_Accumfunc, METH_VARARGS} */
 
 static struct PyMethodDef BGL_methods[] = {
-
-/* #ifndef __APPLE__ */
 	MethodDef(Accum),
 	MethodDef(ActiveTexture),
 	MethodDef(AlphaFunc),
@@ -1365,7 +1799,6 @@ static struct PyMethodDef BGL_methods[] = {
 	MethodDefu(PickMatrix),
 	MethodDefu(Project),
 	MethodDefu(UnProject),
-/* #endif */
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1928,3 +2361,5 @@ static PyObject *Method_ShaderSource(PyObject *UNUSED(self), PyObject *args)
 	return Py_INCREF(Py_None), Py_None;
 }
 
+
+/** \} */
