@@ -39,7 +39,6 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_text_types.h"
 #include "DNA_texture_types.h"
 
