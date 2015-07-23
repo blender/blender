@@ -1435,10 +1435,12 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 }
 
 static void sample_derivedmesh(
-        SmokeFlowSettings *sfs, MVert *mvert, MTFace *tface, MFace *mface,
+        SmokeFlowSettings *sfs,
+        const MVert *mvert, const MLoop *mloop, const MLoopTri *mlooptri, const MLoopUV *mloopuv,
         float *influence_map, float *velocity_map, int index, const int base_res[3], float flow_center[3],
         BVHTreeFromMesh *treeData, const float ray_start[3], const float *vert_vel,
-        bool has_velocity, int defgrp_index, MDeformVert *dvert, float x, float y, float z)
+        bool has_velocity, int defgrp_index, MDeformVert *dvert,
+        float x, float y, float z)
 {
 	float ray_dir[3] = {1.0f, 0.0f, 0.0f};
 	BVHTreeRayHit hit = {0};
@@ -1489,9 +1491,9 @@ static void sample_derivedmesh(
 			sample_str = 0.0f;
 
 		/* calculate barycentric weights for nearest point */
-		v1 = mface[f_index].v1;
-		v2 = (nearest.flags & BVH_ONQUAD) ? mface[f_index].v3 : mface[f_index].v2;
-		v3 = (nearest.flags & BVH_ONQUAD) ? mface[f_index].v4 : mface[f_index].v3;
+		v1 = mloop[mlooptri[f_index].tri[0]].v;
+		v2 = mloop[mlooptri[f_index].tri[1]].v;
+		v3 = mloop[mlooptri[f_index].tri[2]].v;
 		interp_weights_face_v3(weights, mvert[v1].co, mvert[v2].co, mvert[v3].co, NULL, nearest.co);
 
 		if (sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY && velocity_map) {
@@ -1539,9 +1541,14 @@ static void sample_derivedmesh(
 				tex_co[1] = ((y - flow_center[1]) / base_res[1]) / sfs->texture_size;
 				tex_co[2] = ((z - flow_center[2]) / base_res[2] - sfs->texture_offset) / sfs->texture_size;
 			}
-			else if (tface) {
-				interp_v2_v2v2v2(tex_co, tface[f_index].uv[0], tface[f_index].uv[(nearest.flags & BVH_ONQUAD) ? 2 : 1],
-				                 tface[f_index].uv[(nearest.flags & BVH_ONQUAD) ? 3 : 2], weights);
+			else if (mloopuv) {
+				const float *uv[3];
+				uv[0] = mloopuv[mlooptri[f_index].tri[0]].uv;
+				uv[1] = mloopuv[mlooptri[f_index].tri[1]].uv;
+				uv[2] = mloopuv[mlooptri[f_index].tri[2]].uv;
+
+				interp_v2_v2v2v2(tex_co, UNPACK3(uv), weights);
+
 				/* map between -1.0f and 1.0f */
 				tex_co[0] = tex_co[0] * 2.0f - 1.0f;
 				tex_co[1] = tex_co[1] * 2.0f - 1.0f;
@@ -1570,8 +1577,9 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 		MDeformVert *dvert = NULL;
 		MVert *mvert = NULL;
 		MVert *mvert_orig = NULL;
-		MFace *mface = NULL;
-		MTFace *tface = NULL;
+		const MLoopTri *mlooptri = NULL;
+		const MLoopUV *mloopuv = NULL;
+		const MLoop *mloop = NULL;
 		BVHTreeFromMesh treeData = {NULL};
 		int numOfVerts, i, z;
 		float flow_center[3] = {0};
@@ -1589,10 +1597,11 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 		CDDM_calc_normals(dm);
 		mvert = dm->getVertArray(dm);
 		mvert_orig = dm->dupVertArray(dm);  /* copy original mvert and restore when done */
-		mface = dm->getTessFaceArray(dm);
 		numOfVerts = dm->getNumVerts(dm);
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
-		tface = CustomData_get_layer_named(&dm->faceData, CD_MTFACE, sfs->uvlayer_name);
+		mloopuv = CustomData_get_layer_named(&dm->loopData, CD_MLOOPUV, sfs->uvlayer_name);
+		mloop = dm->getLoopArray(dm);
+		mlooptri = dm->getLoopTriArray(dm);
 
 		if (sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY) {
 			vert_vel = MEM_callocN(sizeof(float) * numOfVerts * 3, "smoke_flow_velocity");
@@ -1669,8 +1678,11 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 							int index = smoke_get_index(lx - em->min[0], em->res[0], ly - em->min[1], em->res[1], lz - em->min[2]);
 							float ray_start[3] = {((float)lx) + 0.5f, ((float)ly) + 0.5f, ((float)lz) + 0.5f};
 
-							sample_derivedmesh(sfs, mvert, tface, mface, em->influence, em->velocity, index, sds->base_res, flow_center, &treeData, ray_start,
-												vert_vel, has_velocity, defgrp_index, dvert, (float)lx, (float)ly, (float)lz);
+							sample_derivedmesh(
+							        sfs, mvert, mloop, mlooptri, mloopuv,
+							        em->influence, em->velocity, index, sds->base_res, flow_center,
+							        &treeData, ray_start,vert_vel, has_velocity, defgrp_index, dvert,
+							        (float)lx, (float)ly, (float)lz);
 						}
 
 						/* take high res samples if required */
@@ -1684,8 +1696,12 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 							int index = smoke_get_index(x - min[0], res[0], y - min[1], res[1], z - min[2]);
 							float ray_start[3] = {lx + 0.5f*hr, ly + 0.5f*hr, lz + 0.5f*hr};
 
-							sample_derivedmesh(sfs, mvert, tface, mface, em->influence_high, NULL, index, sds->base_res, flow_center, &treeData, ray_start,
-												vert_vel, has_velocity, defgrp_index, dvert, lx, ly, lz); /* x,y,z needs to be always lowres */
+							sample_derivedmesh(
+							        sfs, mvert, mloop, mlooptri, mloopuv,
+							        em->influence_high, NULL, index, sds->base_res, flow_center,
+							        &treeData, ray_start, vert_vel, has_velocity, defgrp_index, dvert,
+							        /* x,y,z needs to be always lowres */
+							        lx, ly, lz);
 						}
 
 					}
