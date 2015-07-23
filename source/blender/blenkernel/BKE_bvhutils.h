@@ -110,8 +110,8 @@ BVHTree *bvhtree_from_mesh_looptri_ex(
         struct BVHTreeFromMesh *data,
         const struct MVert *vert, const bool vert_allocated,
         const struct MLoop *mloop, const bool loop_allocated,
-        const struct MLoopTri *looptri, const int numFaces, const bool face_allocated,
-        BLI_bitmap *mask, int numFaces_active,
+        const struct MLoopTri *looptri, const int looptri_num, const bool face_allocated,
+        BLI_bitmap *mask, int looptri_num_active,
         float epsilon, int tree_type, int axis);
 
 /**

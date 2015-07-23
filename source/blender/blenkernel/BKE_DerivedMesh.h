@@ -795,16 +795,16 @@ BLI_INLINE int DM_origindex_mface_mpoly(
 	return (j != ORIGINDEX_NONE) ? (index_mp_to_orig ? index_mp_to_orig[j] : j) : ORIGINDEX_NONE;
 }
 
-struct MVert *DM_get_vert_array(struct DerivedMesh *dm, bool *allocated);
-struct MEdge *DM_get_edge_array(struct DerivedMesh *dm, bool *allocated);
-struct MLoop *DM_get_loop_array(struct DerivedMesh *dm, bool *allocated);
-struct MPoly *DM_get_poly_array(struct DerivedMesh *dm, bool *allocated);
-struct MFace *DM_get_tessface_array(struct DerivedMesh *dm, bool *allocated);
+struct MVert *DM_get_vert_array(struct DerivedMesh *dm, bool *r_allocated);
+struct MEdge *DM_get_edge_array(struct DerivedMesh *dm, bool *r_allocated);
+struct MLoop *DM_get_loop_array(struct DerivedMesh *dm, bool *r_allocated);
+struct MPoly *DM_get_poly_array(struct DerivedMesh *dm, bool *r_allocated);
+struct MFace *DM_get_tessface_array(struct DerivedMesh *dm, bool *r_allocated);
 const MLoopTri *DM_get_looptri_array(
         DerivedMesh *dm,
         const MVert *mvert,
         const MPoly *mpoly, int mpoly_len,
         const MLoop *mloop, int mloop_len,
-        bool *allocated);
+        bool *r_allocated);
 
 #endif  /* __BKE_DERIVEDMESH_H__ */

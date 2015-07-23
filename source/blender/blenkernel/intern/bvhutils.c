@@ -832,28 +832,28 @@ BVHTree *bvhtree_from_mesh_faces_ex(
 
 static BVHTree *bvhtree_from_mesh_looptri_create_tree(
         float epsilon, int tree_type, int axis,
-        BMEditMesh *em, const MVert *vert, const MLoop *mloop, const MLoopTri *looptri, const int numFaces,
-        BLI_bitmap *mask, int numFaces_active)
+        BMEditMesh *em, const MVert *vert, const MLoop *mloop, const MLoopTri *looptri, const int looptri_num,
+        BLI_bitmap *mask, int looptri_num_active)
 {
 	BVHTree *tree = NULL;
 	int i;
 
-	if (numFaces) {
-		if (mask && numFaces_active < 0) {
-			numFaces_active = 0;
-			for (i = 0; i < numFaces; i++) {
+	if (looptri_num) {
+		if (mask && looptri_num_active < 0) {
+			looptri_num_active = 0;
+			for (i = 0; i < looptri_num; i++) {
 				if (BLI_BITMAP_TEST_BOOL(mask, i)) {
-					numFaces_active++;
+					looptri_num_active++;
 				}
 			}
 		}
 		else if (!mask) {
-			numFaces_active = numFaces;
+			looptri_num_active = looptri_num;
 		}
 
 		/* Create a bvh-tree of the given target */
 		/* printf("%s: building BVH, total=%d\n", __func__, numFaces); */
-		tree = BLI_bvhtree_new(numFaces_active, epsilon, tree_type, axis);
+		tree = BLI_bvhtree_new(looptri_num_active, epsilon, tree_type, axis);
 		if (tree) {
 			if (em) {
 				const struct BMLoop *(*looptris)[3] = (void *)em->looptris;
@@ -871,7 +871,7 @@ static BVHTree *bvhtree_from_mesh_looptri_create_tree(
 				 * and/or selected. Even if the faces themselves are not selected for the snapped
 				 * transform, having a vertex selected means the face (and thus it's tessellated
 				 * triangles) will be moving and will not be a good snap targets. */
-				for (i = 0; i < numFaces; i++) {
+				for (i = 0; i < looptri_num; i++) {
 					const BMLoop **ltri = looptris[i];
 					BMFace *f = ltri[0]->f;
 					bool insert = mask ? BLI_BITMAP_TEST_BOOL(mask, i) : true;
@@ -915,7 +915,7 @@ static BVHTree *bvhtree_from_mesh_looptri_create_tree(
 			}
 			else {
 				if (vert && looptri) {
-					for (i = 0; i < numFaces; i++) {
+					for (i = 0; i < looptri_num; i++) {
 						float co[4][3];
 						if (mask && !BLI_BITMAP_TEST_BOOL(mask, i)) {
 							continue;
@@ -1070,12 +1070,12 @@ BVHTree *bvhtree_from_mesh_looptri_ex(
         const struct MVert *vert, const bool vert_allocated,
         const struct MLoop *mloop, const bool loop_allocated,
         const struct MLoopTri *looptri, const int looptri_num, const bool looptri_allocated,
-        BLI_bitmap *mask, int numFaces_active,
+        BLI_bitmap *mask, int looptri_num_active,
         float epsilon, int tree_type, int axis)
 {
 	BVHTree *tree = bvhtree_from_mesh_looptri_create_tree(
 	        epsilon, tree_type, axis, NULL, vert, mloop, looptri, looptri_num,
-	        mask, numFaces_active);
+	        mask, looptri_num_active);
 
 	/* Setup BVHTreeFromMesh */
 	bvhtree_from_mesh_looptri_setup_data(
