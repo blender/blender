@@ -537,7 +537,6 @@ void BKE_mesh_remap_calc_verts_from_dm(
 			MPoly *polys_src = dm_src->getPolyArray(dm_src);
 			MLoop *loops_src = dm_src->getLoopArray(dm_src);
 			float (*vcos_src)[3] = MEM_mallocN(sizeof(*vcos_src) * (size_t)dm_src->getNumVerts(dm_src), __func__);
-			int *tessface_to_poly_map_src;
 
 			size_t tmp_buff_size = MREMAP_DEFAULT_BUFSIZE;
 			float (*vcos)[3] = MEM_mallocN(sizeof(*vcos) * tmp_buff_size, __func__);
@@ -545,9 +544,7 @@ void BKE_mesh_remap_calc_verts_from_dm(
 			float *weights = MEM_mallocN(sizeof(*weights) * tmp_buff_size, __func__);
 
 			dm_src->getVertCos(dm_src, vcos_src);
-			bvhtree_from_mesh_faces(&treedata, dm_src, (mode & MREMAP_USE_NORPROJ) ? ray_radius : 0.0f, 2, 6);
-			/* bvhtree here uses tesselated faces... */
-			tessface_to_poly_map_src = dm_src->getTessFaceDataArray(dm_src, CD_ORIGINDEX);
+			bvhtree_from_mesh_looptri(&treedata, dm_src, (mode & MREMAP_USE_NORPROJ) ? ray_radius : 0.0f, 2, 6);
 
 			if (mode == MREMAP_MODE_VERT_POLYINTERP_VNORPROJ) {
 				for (i = 0; i < numverts_dst; i++) {
@@ -565,7 +562,8 @@ void BKE_mesh_remap_calc_verts_from_dm(
 					if (mesh_remap_bvhtree_query_raycast(
 					        &treedata, &rayhit, tmp_co, tmp_no, ray_radius, max_dist, &hit_dist))
 					{
-						MPoly *mp_src = &polys_src[tessface_to_poly_map_src[rayhit.index]];
+						const MLoopTri *lt = &treedata.looptri[rayhit.index];
+						MPoly *mp_src = &polys_src[lt->poly];
 						const int sources_num = mesh_remap_interp_poly_data_get(
 						        mp_src, loops_src, (const float (*)[3])vcos_src, rayhit.co,
 						        &tmp_buff_size, &vcos, false, &indices, &weights, true, NULL);
@@ -592,7 +590,8 @@ void BKE_mesh_remap_calc_verts_from_dm(
 					}
 
 					if (mesh_remap_bvhtree_query_nearest(&treedata, &nearest, tmp_co, max_dist_sq, &hit_dist)) {
-						MPoly *mp = &polys_src[tessface_to_poly_map_src[nearest.index]];
+						const MLoopTri *lt = &treedata.looptri[rayhit.index];
+						MPoly *mp = &polys_src[lt->poly];
 
 						if (mode == MREMAP_MODE_VERT_POLY_NEAREST) {
 							int index;
@@ -810,12 +809,9 @@ void BKE_mesh_remap_calc_edges_from_dm(
 			MPoly *polys_src = dm_src->getPolyArray(dm_src);
 			MLoop *loops_src = dm_src->getLoopArray(dm_src);
 			float (*vcos_src)[3] = MEM_mallocN(sizeof(*vcos_src) * (size_t)dm_src->getNumVerts(dm_src), __func__);
-			int *tessface_to_poly_map_src;
 
 			dm_src->getVertCos(dm_src, vcos_src);
-			bvhtree_from_mesh_faces(&treedata, dm_src, 0.0f, 2, 6);
-			/* bvhtree here uses tesselated faces... */
-			tessface_to_poly_map_src = dm_src->getTessFaceDataArray(dm_src, CD_ORIGINDEX);
+			bvhtree_from_mesh_looptri(&treedata, dm_src, 0.0f, 2, 6);
 
 			for (i = 0; i < numedges_dst; i++) {
 				float tmp_co[3];
@@ -828,7 +824,8 @@ void BKE_mesh_remap_calc_edges_from_dm(
 				}
 
 				if (mesh_remap_bvhtree_query_nearest(&treedata, &nearest, tmp_co, max_dist_sq, &hit_dist)) {
-					MPoly *mp_src = &polys_src[tessface_to_poly_map_src[nearest.index]];
+					const MLoopTri *lt = &treedata.looptri[rayhit.index];
+					MPoly *mp_src = &polys_src[lt->poly];
 					MLoop *ml_src = &loops_src[mp_src->loopstart];
 					int nloops = mp_src->totloop;
 					float best_dist_sq = FLT_MAX;
@@ -1177,12 +1174,11 @@ void BKE_mesh_remap_calc_loops_from_dm(
 		int *vert_to_poly_map_src_buff = NULL;
 		MeshElemMap *edge_to_poly_map_src = NULL;
 		int *edge_to_poly_map_src_buff = NULL;
-		MeshElemMap *poly_to_tessface_map_src = NULL;
-		int *poly_to_tessface_map_src_buff = NULL;
+		MeshElemMap *poly_to_looptri_map_src = NULL;
+		int *poly_to_looptri_map_src_buff = NULL;
 
 		/* Unlike above, those are one-to-one mappings, simpler! */
 		int *loop_to_poly_map_src = NULL;
-		int *tessface_to_poly_map_src = NULL;
 
 		bool verts_allocated_src;
 		MVert *verts_src = DM_get_vert_array(dm_src, &verts_allocated_src);
@@ -1197,9 +1193,9 @@ void BKE_mesh_remap_calc_loops_from_dm(
 		bool polys_allocated_src;
 		MPoly *polys_src = DM_get_poly_array(dm_src, &polys_allocated_src);
 		const int num_polys_src = dm_src->getNumPolys(dm_src);
-		bool faces_allocated_src = false;
-		MFace *faces_src = NULL;
-		int num_faces_src = 0;
+		bool looptri_allocated_src = false;
+		const MLoopTri *looptri_src = NULL;
+		int num_looptri_src = 0;
 
 		size_t buff_size_interp = MREMAP_DEFAULT_BUFSIZE;
 		float (*vcos_interp)[3] = NULL;
@@ -1379,52 +1375,58 @@ void BKE_mesh_remap_calc_loops_from_dm(
 		}
 		else {  /* We use polygons. */
 			if (use_islands) {
-				/* bvhtree here uses tesselated faces... */
+				/* bvhtree here uses looptri faces... */
 				const unsigned int dirty_tess_flag = dm_src->dirty & DM_DIRTY_TESS_CDLAYERS;
-				BLI_bitmap *faces_active;
+				BLI_bitmap *looptri_active;
 
 				/* We do not care about tessellated data here, only geometry itself is important. */
 				if (dirty_tess_flag) {
 					dm_src->dirty &= ~dirty_tess_flag;
 				}
-				DM_ensure_tessface(dm_src);
+				DM_ensure_looptri(dm_src);
 				if (dirty_tess_flag) {
 					dm_src->dirty |= dirty_tess_flag;
 				}
-				faces_src = DM_get_tessface_array(dm_src, &faces_allocated_src);
-				num_faces_src = dm_src->getNumTessFaces(dm_src);
-				tessface_to_poly_map_src = dm_src->getTessFaceDataArray(dm_src, CD_ORIGINDEX);
-				faces_active = BLI_BITMAP_NEW((size_t)num_faces_src, __func__);
+
+				looptri_src = DM_get_looptri_array(
+				        dm_src,
+				        verts_src,
+				        polys_src, num_polys_src,
+				        loops_src, num_loops_src,
+				        &looptri_allocated_src);
+				num_looptri_src = dm_src->getNumLoopTri(dm_src);
+				looptri_active = BLI_BITMAP_NEW((size_t)num_looptri_src, __func__);
 
 				for (tindex = 0; tindex < num_trees; tindex++) {
-					int num_faces_active = 0;
-					BLI_BITMAP_SET_ALL(faces_active, false, (size_t)num_faces_src);
-					for (i = 0; i < num_faces_src; i++) {
-						mp_src = &polys_src[tessface_to_poly_map_src[i]];
+					int num_looptri_active = 0;
+					BLI_BITMAP_SET_ALL(looptri_active, false, (size_t)num_looptri_src);
+					for (i = 0; i < num_looptri_src; i++) {
+						mp_src = &polys_src[looptri_src[i].poly];
 						if (island_store.items_to_islands[mp_src->loopstart] == tindex) {
-							BLI_BITMAP_ENABLE(faces_active, i);
-							num_faces_active++;
+							BLI_BITMAP_ENABLE(looptri_active, i);
+							num_looptri_active++;
 						}
 					}
 					/* verts and faces 'ownership' is transfered to treedata here, which will handle its freeing. */
-					bvhtree_from_mesh_faces_ex(
-					        &treedata[tindex], verts_src, verts_allocated_src,
-					        faces_src, num_faces_src, faces_allocated_src,
-					        faces_active, num_faces_active, bvh_epsilon, 2, 6);
+					bvhtree_from_mesh_looptri_ex(
+					        &treedata[tindex],
+					        verts_src, verts_allocated_src,
+					        loops_src, loops_allocated_src,
+					        looptri_src, num_looptri_src, looptri_allocated_src,
+					        looptri_active, num_looptri_active, bvh_epsilon, 2, 6);
 					if (verts_allocated_src) {
 						verts_allocated_src = false;  /* Only 'give' our verts once, to first tree! */
 					}
-					if (faces_allocated_src) {
-						faces_allocated_src = false;  /* Only 'give' our faces once, to first tree! */
+					if (looptri_allocated_src) {
+						looptri_allocated_src = false;  /* Only 'give' our looptri once, to first tree! */
 					}
 				}
 
-				MEM_freeN(faces_active);
+				MEM_freeN(looptri_active);
 			}
 			else {
 				BLI_assert(num_trees == 1);
-				bvhtree_from_mesh_faces(&treedata[0], dm_src, bvh_epsilon, 2, 6);
-				tessface_to_poly_map_src = dm_src->getTessFaceDataArray(dm_src, CD_ORIGINDEX);
+				bvhtree_from_mesh_looptri(&treedata[0], dm_src, bvh_epsilon, 2, 6);
 			}
 		}
 
@@ -1571,7 +1573,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 							{
 								islands_res[tindex][plidx_dst].factor = (hit_dist ? (1.0f / hit_dist) : 1e18f) * w;
 								islands_res[tindex][plidx_dst].hit_dist = hit_dist;
-								islands_res[tindex][plidx_dst].index_src = tessface_to_poly_map_src[rayhit.index];
+								islands_res[tindex][plidx_dst].index_src = (int)tdata->looptri[rayhit.index].poly;
 								copy_v3_v3(islands_res[tindex][plidx_dst].hit_point, rayhit.co);
 								break;
 							}
@@ -1599,7 +1601,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 
 							if (mesh_remap_bvhtree_query_nearest(tdata, &nearest, tmp_co, max_dist_sq, &hit_dist)) {
 								islands_res[tindex][plidx_dst].hit_dist = hit_dist;
-								islands_res[tindex][plidx_dst].index_src = tessface_to_poly_map_src[nearest.index];
+								islands_res[tindex][plidx_dst].index_src = (int)tdata->looptri[nearest.index].poly;
 								copy_v3_v3(islands_res[tindex][plidx_dst].hit_point, nearest.co);
 							}
 							else {
@@ -1623,7 +1625,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 						if (mesh_remap_bvhtree_query_nearest(tdata, &nearest, tmp_co, max_dist_sq, &hit_dist)) {
 							islands_res[tindex][plidx_dst].factor = hit_dist ? (1.0f / hit_dist) : 1e18f;
 							islands_res[tindex][plidx_dst].hit_dist = hit_dist;
-							islands_res[tindex][plidx_dst].index_src = tessface_to_poly_map_src[nearest.index];
+							islands_res[tindex][plidx_dst].index_src = (int)tdata->looptri[nearest.index].poly;
 							copy_v3_v3(islands_res[tindex][plidx_dst].hit_point, nearest.co);
 						}
 						else {
@@ -1835,34 +1837,27 @@ void BKE_mesh_remap_calc_loops_from_dm(
 										mp_src = &polys_src[pidx_src];
 
 										/* Create that one on demand. */
-										if (poly_to_tessface_map_src == NULL) {
-											BKE_mesh_origindex_map_create(
-											        &poly_to_tessface_map_src, &poly_to_tessface_map_src_buff,
-											        num_faces_src, tessface_to_poly_map_src, num_polys_src);
+										if (poly_to_looptri_map_src == NULL) {
+											BKE_mesh_origindex_map_create_looptri(
+											        &poly_to_looptri_map_src, &poly_to_looptri_map_src_buff,
+											        polys_src, num_polys_src,
+											        looptri_src, num_looptri_src);
 										}
 
-										for (j = poly_to_tessface_map_src[pidx_src].count; j--;) {
+										for (j = poly_to_looptri_map_src[pidx_src].count; j--;) {
 											float h[3];
-											MFace *mf = &faces_src[poly_to_tessface_map_src[pidx_src].indices[j]];
+											const MLoopTri *lt = &looptri_src[poly_to_looptri_map_src[pidx_src].indices[j]];
 											float dist_sq;
 
 											closest_on_tri_to_point_v3(
 											        h, tmp_co,
-											        vcos_src[mf->v1], vcos_src[mf->v2], vcos_src[mf->v3]);
+											        vcos_src[loops_src[lt->tri[0]].v],
+											        vcos_src[loops_src[lt->tri[1]].v],
+											        vcos_src[loops_src[lt->tri[2]].v]);
 											dist_sq = len_squared_v3v3(tmp_co, h);
 											if (dist_sq < best_dist_sq) {
 												copy_v3_v3(hit_co, h);
 												best_dist_sq = dist_sq;
-											}
-											if (mf->v4) {
-												closest_on_tri_to_point_v3(
-												        h, tmp_co,
-												        vcos_src[mf->v1], vcos_src[mf->v3], vcos_src[mf->v4]);
-												dist_sq = len_squared_v3v3(tmp_co, h);
-												if (dist_sq < best_dist_sq) {
-													copy_v3_v3(hit_co, h);
-													best_dist_sq = dist_sq;
-												}
 											}
 										}
 									}
@@ -1935,8 +1930,8 @@ void BKE_mesh_remap_calc_loops_from_dm(
 		if (polys_allocated_src) {
 			MEM_freeN(polys_src);
 		}
-		if (faces_allocated_src) {
-			MEM_freeN(faces_src);
+		if (looptri_allocated_src) {
+			MEM_freeN((void *)looptri_src);
 		}
 		if (vert_to_loop_map_src_buff) {
 			MEM_freeN(vert_to_loop_map_src_buff);
@@ -1947,8 +1942,8 @@ void BKE_mesh_remap_calc_loops_from_dm(
 		if (edge_to_poly_map_src_buff) {
 			MEM_freeN(edge_to_poly_map_src_buff);
 		}
-		if (poly_to_tessface_map_src_buff) {
-			MEM_freeN(poly_to_tessface_map_src_buff);
+		if (poly_to_looptri_map_src_buff) {
+			MEM_freeN(poly_to_looptri_map_src_buff);
 		}
 		if (loop_to_poly_map_src) {
 			MEM_freeN(loop_to_poly_map_src);
@@ -2008,14 +2003,10 @@ void BKE_mesh_remap_calc_polys_from_dm(
 		BVHTreeRayHit rayhit = {0};
 		float hit_dist;
 
-		int *tessface_to_poly_map_src;
-
-		bvhtree_from_mesh_faces(
+		bvhtree_from_mesh_looptri(
 		        &treedata, dm_src,
 		        (mode & MREMAP_USE_NORPROJ) ? MREMAP_RAYCAST_APPROXIMATE_BVHEPSILON(ray_radius) : 0.0f,
 		        2, 6);
-		/* bvhtree here uses tesselated faces... */
-		tessface_to_poly_map_src = dm_src->getTessFaceDataArray(dm_src, CD_ORIGINDEX);
 
 		if (mode == MREMAP_MODE_POLY_NEAREST) {
 			nearest.index = -1;
@@ -2032,9 +2023,11 @@ void BKE_mesh_remap_calc_polys_from_dm(
 				}
 
 				if (mesh_remap_bvhtree_query_nearest(&treedata, &nearest, tmp_co, max_dist_sq, &hit_dist)) {
+					const MLoopTri *lt = &treedata.looptri[nearest.index];
+					const int poly_index = (int)lt->poly;
 					mesh_remap_item_define(
 					        r_map, i, hit_dist, 0,
-					        1, &tessface_to_poly_map_src[nearest.index], &full_weight);
+					        1, &poly_index, &full_weight);
 				}
 				else {
 					/* No source for this dest poly! */
@@ -2061,9 +2054,12 @@ void BKE_mesh_remap_calc_polys_from_dm(
 				if (mesh_remap_bvhtree_query_raycast(
 				        &treedata, &rayhit, tmp_co, tmp_no, ray_radius, max_dist, &hit_dist))
 				{
+					const MLoopTri *lt = &treedata.looptri[rayhit.index];
+					const int poly_index = (int)lt->poly;
+
 					mesh_remap_item_define(
 					        r_map, i, hit_dist, 0,
-					        1, &tessface_to_poly_map_src[rayhit.index], &full_weight);
+					        1, &poly_index, &full_weight);
 				}
 				else {
 					/* No source for this dest poly! */
@@ -2207,7 +2203,9 @@ void BKE_mesh_remap_calc_polys_from_dm(
 							if (mesh_remap_bvhtree_query_raycast(
 							        &treedata, &rayhit, tmp_co, tmp_no, ray_radius / w, max_dist, &hit_dist))
 							{
-								weights[tessface_to_poly_map_src[rayhit.index]] += w;
+								const MLoopTri *lt = &treedata.looptri[rayhit.index];
+
+								weights[lt->poly] += w;
 								totweights += w;
 								hit_dist_accum += hit_dist;
 								break;
