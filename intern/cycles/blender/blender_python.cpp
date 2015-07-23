@@ -22,6 +22,7 @@
 #include "blender_session.h"
 
 #include "util_foreach.h"
+#include "util_logging.h"
 #include "util_md5.h"
 #include "util_opengl.h"
 #include "util_path.h"
@@ -486,6 +487,15 @@ static PyObject *system_info_func(PyObject * /*self*/, PyObject * /*value*/)
 	return PyUnicode_FromString(system_info.c_str());
 }
 
+#ifdef WITH_OPENCL
+static PyObject *opencl_disable_func(PyObject * /*self*/, PyObject * /*value*/)
+{
+	VLOG(2) << "Disabling OpenCL platform.";
+	setenv("CYCLES_OPENCL_TEST", "NONE", 1);
+	Py_RETURN_NONE;
+}
+#endif
+
 static PyMethodDef methods[] = {
 	{"init", init_func, METH_VARARGS, ""},
 	{"create", create_func, METH_VARARGS, ""},
@@ -501,6 +511,9 @@ static PyMethodDef methods[] = {
 #endif
 	{"available_devices", available_devices_func, METH_NOARGS, ""},
 	{"system_info", system_info_func, METH_NOARGS, ""},
+#ifdef WITH_OPENCL
+	{"opencl_disable", opencl_disable_func, METH_NOARGS, ""},
+#endif
 	{NULL, NULL, 0, NULL},
 };
 

@@ -3610,16 +3610,22 @@ bool device_opencl_init(void)
 
 	initialized = true;
 
-	int clew_result = clewInit();
-	if(clew_result == CLEW_SUCCESS) {
-		VLOG(1) << "CLEW initialization succeeded.";
-		result = true;
+	if(opencl_device_type() != 0) {
+		int clew_result = clewInit();
+		if(clew_result == CLEW_SUCCESS) {
+			VLOG(1) << "CLEW initialization succeeded.";
+			result = true;
+		}
+		else {
+			VLOG(1) << "CLEW initialization failed: "
+			        << ((clew_result == CLEW_ERROR_ATEXIT_FAILED)
+			            ? "Error setting up atexit() handler"
+			            : "Error opening the library");
+		}
 	}
 	else {
-		VLOG(1) << "CLEW initialization failed: "
-		        << ((clew_result == CLEW_ERROR_ATEXIT_FAILED)
-		            ? "Error setting up atexit() handler"
-		            : "Error opening the library");
+		VLOG(1) << "Skip initializing CLEW, platform is force disabled.";
+		result = false;
 	}
 
 	return result;
