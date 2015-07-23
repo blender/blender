@@ -1533,7 +1533,7 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 			len_diff = 0.0f;  /* In case BVHTree would fail for some reason... */
 
 			treeData.em_evil = em;
-			bvhtree_from_mesh_faces(&treeData, dm, 0.0f, 2, 6);
+			bvhtree_from_mesh_looptri(&treeData, dm, 0.0f, 2, 6);
 			if (treeData.tree != NULL) {
 				nearest.index = -1;
 				nearest.dist_sq = FLT_MAX;
@@ -1575,7 +1575,7 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 				}
 
 				treeData.em_evil = em;
-				bvhtree_from_mesh_faces(&treeData, dm, 0.0f, 4, 6);
+				bvhtree_from_mesh_looptri(&treeData, dm, 0.0f, 4, 6);
 
 				hit.index = -1;
 				hit.dist = *r_depth;

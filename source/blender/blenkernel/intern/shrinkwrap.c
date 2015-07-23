@@ -279,8 +279,8 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 	}
 
 	/* After sucessufuly build the trees, start projection vertexs */
-	if (bvhtree_from_mesh_faces(&treeData, calc->target, 0.0, 4, 6) &&
-	    (auxMesh == NULL || bvhtree_from_mesh_faces(&auxData, auxMesh, 0.0, 4, 6)))
+	if (bvhtree_from_mesh_looptri(&treeData, calc->target, 0.0, 4, 6) &&
+	    (auxMesh == NULL || bvhtree_from_mesh_looptri(&auxData, auxMesh, 0.0, 4, 6)))
 	{
 
 #ifndef __APPLE__
@@ -381,7 +381,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	BVHTreeNearest nearest  = NULL_BVHTreeNearest;
 
 	/* Create a bvh-tree of the given target */
-	bvhtree_from_mesh_faces(&treeData, calc->target, 0.0, 2, 6);
+	bvhtree_from_mesh_looptri(&treeData, calc->target, 0.0, 2, 6);
 	if (treeData.tree == NULL) {
 		OUT_OF_MEMORY();
 		return;
