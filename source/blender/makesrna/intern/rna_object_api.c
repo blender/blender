@@ -309,18 +309,10 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
 #endif
 
 /* don't call inside a loop */
-static int dm_tessface_to_poly_index(DerivedMesh *dm, int tessface_index)
+static int dm_looptri_to_poly_index(DerivedMesh *dm, const MLoopTri *lt)
 {
-	if (tessface_index != ORIGINDEX_NONE) {
-		/* double lookup */
-		const int *index_mf_to_mpoly;
-		if ((index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX))) {
-			const int *index_mp_to_orig = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-			return DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, tessface_index);
-		}
-	}
-
-	return ORIGINDEX_NONE;
+	const int *index_mp_to_orig = dm->getPolyDataArray(dm, CD_ORIGINDEX);
+	return index_mp_to_orig ? index_mp_to_orig[lt->poly] : lt->poly;
 }
 
 static void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], float ray_end[3],
@@ -334,7 +326,7 @@ static void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start
 	}
 
 	/* no need to managing allocation or freeing of the BVH data. this is generated and freed as needed */
-	bvhtree_from_mesh_faces(&treeData, ob->derivedFinal, 0.0f, 4, 6);
+	bvhtree_from_mesh_looptri(&treeData, ob->derivedFinal, 0.0f, 4, 6);
 
 	/* may fail if the mesh has no faces, in that case the ray-cast misses */
 	if (treeData.tree != NULL) {
@@ -351,7 +343,7 @@ static void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start
 			if (hit.dist <= dist) {
 				copy_v3_v3(r_location, hit.co);
 				copy_v3_v3(r_normal, hit.no);
-				*index = dm_tessface_to_poly_index(ob->derivedFinal, hit.index);
+				*index = dm_looptri_to_poly_index(ob->derivedFinal, &treeData.looptri[hit.index]);
 				free_bvhtree_from_mesh(&treeData);
 				return;
 			}
@@ -376,7 +368,7 @@ static void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, fl
 	}
 
 	/* no need to managing allocation or freeing of the BVH data. this is generated and freed as needed */
-	bvhtree_from_mesh_faces(&treeData, ob->derivedFinal, 0.0f, 4, 6);
+	bvhtree_from_mesh_looptri(&treeData, ob->derivedFinal, 0.0f, 4, 6);
 
 	if (treeData.tree == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Object '%s' could not create internal data for finding nearest point",
@@ -392,7 +384,7 @@ static void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, fl
 		if (BLI_bvhtree_find_nearest(treeData.tree, point_co, &nearest, treeData.nearest_callback, &treeData) != -1) {
 			copy_v3_v3(n_location, nearest.co);
 			copy_v3_v3(n_normal, nearest.no);
-			*index = dm_tessface_to_poly_index(ob->derivedFinal, nearest.index);
+			*index = dm_looptri_to_poly_index(ob->derivedFinal, &treeData.looptri[nearest.index]);
 			free_bvhtree_from_mesh(&treeData);
 			return;
 		}
