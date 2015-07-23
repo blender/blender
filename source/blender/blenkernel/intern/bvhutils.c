@@ -124,6 +124,29 @@ static void mesh_faces_nearest_point(void *userdata, int index, const float co[3
 
 	} while (t2);
 }
+/* copy of function above */
+static void mesh_looptri_nearest_point(void *userdata, int index, const float co[3], BVHTreeNearest *nearest)
+{
+	const BVHTreeFromMesh *data = (BVHTreeFromMesh *) userdata;
+	const MVert *vert = data->vert;
+	const MLoopTri *lt = &data->looptri[index];
+	const float *vtri_co[3] = {
+	    vert[data->loop[lt->tri[0]].v].co,
+	    vert[data->loop[lt->tri[1]].v].co,
+	    vert[data->loop[lt->tri[2]].v].co,
+	};
+	float nearest_tmp[3], dist_sq;
+
+	closest_on_tri_to_point_v3(nearest_tmp, co, UNPACK3(vtri_co));
+	dist_sq = len_squared_v3v3(co, nearest_tmp);
+
+	if (dist_sq < nearest->dist_sq) {
+		nearest->index = index;
+		nearest->dist_sq = dist_sq;
+		copy_v3_v3(nearest->co, nearest_tmp);
+		normal_tri_v3(nearest->no, UNPACK3(vtri_co));
+	}
+}
 /* copy of function above (warning, should de-duplicate with editmesh_bvh.c) */
 static void editmesh_faces_nearest_point(void *userdata, int index, const float co[3], BVHTreeNearest *nearest)
 {
@@ -189,6 +212,32 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 		t3 = NULL;
 
 	} while (t2);
+}
+/* copy of function above */
+static void mesh_looptri_spherecast(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
+{
+	const BVHTreeFromMesh *data = (BVHTreeFromMesh *) userdata;
+	const MVert *vert = data->vert;
+	const MLoopTri *lt = &data->looptri[index];
+	const float *vtri_co[3] = {
+	    vert[data->loop[lt->tri[0]].v].co,
+	    vert[data->loop[lt->tri[1]].v].co,
+	    vert[data->loop[lt->tri[2]].v].co,
+	};
+	float dist;
+
+	if (data->sphere_radius == 0.0f)
+		dist = bvhtree_ray_tri_intersection(ray, hit->dist, UNPACK3(vtri_co));
+	else
+		dist = sphereray_tri_intersection(ray, data->sphere_radius, hit->dist, UNPACK3(vtri_co));
+
+	if (dist >= 0 && dist < hit->dist) {
+		hit->index = index;
+		hit->dist = dist;
+		madd_v3_v3v3fl(hit->co, ray->origin, ray->direction, dist);
+
+		normal_tri_v3(hit->no, UNPACK3(vtri_co));
+	}
 }
 /* copy of function above (warning, should de-duplicate with editmesh_bvh.c) */
 static void editmesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
@@ -906,8 +955,8 @@ static void bvhtree_from_mesh_looptri_setup_data(
 			data->raycast_callback = editmesh_faces_spherecast;
 		}
 		else {
-			data->nearest_callback = mesh_faces_nearest_point;
-			data->raycast_callback = mesh_faces_spherecast;
+			data->nearest_callback = mesh_looptri_nearest_point;
+			data->raycast_callback = mesh_looptri_spherecast;
 
 			data->vert = vert;
 			data->vert_allocated = vert_allocated;
