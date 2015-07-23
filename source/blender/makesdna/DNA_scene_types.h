@@ -941,6 +941,9 @@ typedef struct Paint {
 	
 	/* flags used for symmetry */
 	int symmetry_flags;
+
+	float tile_offset[3];
+	int pad2;
 } Paint;
 
 /* ------------------------------------------- */
@@ -1029,7 +1032,6 @@ typedef struct Sculpt {
 	float pad;
 
 	struct Object *gravity_object;
-	void *pad2;
 } Sculpt;
 
 typedef struct UvSculpt {
@@ -1817,7 +1819,10 @@ typedef enum SymmetryFlags {
 	PAINT_SYMM_X = (1 << 0),
 	PAINT_SYMM_Y = (1 << 1),
 	PAINT_SYMM_Z = (1 << 2),
-	PAINT_SYMMETRY_FEATHER = (1 << 3)
+	PAINT_SYMMETRY_FEATHER = (1 << 3),
+	PAINT_TILE_X = (1 << 4),
+	PAINT_TILE_Y = (1 << 5),
+	PAINT_TILE_Z = (1 << 6),
 } SymmetryFlags;
 
 #define PAINT_SYMM_AXIS_ALL (PAINT_SYMM_X | PAINT_SYMM_Y | PAINT_SYMM_Z)

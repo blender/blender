@@ -3454,6 +3454,46 @@ static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
 
 typedef void (*BrushActionFunc)(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups);
 
+static void do_tiled(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups, BrushActionFunc action)
+{
+	SculptSession *ss = ob->sculpt;
+	StrokeCache *cache = ss->cache;
+	const float * bbMin = ob->bb->vec[0];
+	const float * bbMax = ob->bb->vec[6];
+
+	float start[3];
+	float end[3];
+	const float * step = sd->paint.tile_offset;
+	int dim;
+
+	for (dim = 0; dim < 3; ++dim) {
+		if ((sd->paint.symmetry_flags & (PAINT_TILE_X << dim)) && step[dim] > 0) {
+			int n = (cache->location[dim] - bbMin[dim]) / step[dim];
+			start[dim] = cache->location[dim] - n * step[dim];
+			end[dim] = bbMax[dim];
+		}
+		else
+			start[dim] = end[dim] = cache->location[dim];
+	}
+
+	copy_v3_v3(cache->location, start);
+	do {
+		do {
+			do {
+				action(sd, ob, brush, ups);
+				cache->location[2] += step[2];
+			} while (cache->location[2] < end[2]);
+			cache->location[2] = start[2];
+
+			cache->location[1] += step[1];
+		} while (cache->location[1] < end[1]);
+		cache->location[1] = start[1];
+
+		cache->location[0] += step[0];
+	} while (cache->location[0] < end[0]);
+}
+
+
 static void do_radial_symmetry(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups,
                                BrushActionFunc action,
                                const char symm, const int axis,
@@ -3466,7 +3506,7 @@ static void do_radial_symmetry(Sculpt *sd, Object *ob, Brush *brush, UnifiedPain
 		const float angle = 2 * M_PI * i / sd->radial_symm[axis - 'X'];
 		ss->cache->radial_symmetry_pass = i;
 		calc_brushdata_symm(sd, ss->cache, symm, axis, angle, feather);
-		action(sd, ob, brush, ups);
+		do_tiled(sd, ob, brush, ups, action);
 	}
 }
 
@@ -3504,7 +3544,7 @@ static void do_symmetrical_brush_actions(Sculpt *sd, Object *ob,
 			cache->radial_symmetry_pass = 0;
 
 			calc_brushdata_symm(sd, cache, i, 0, 0, feather);
-			action(sd, ob, brush, ups);
+			do_tiled(sd, ob, brush, ups, action);
 
 			do_radial_symmetry(sd, ob, brush, ups, action, i, 'X', feather);
 			do_radial_symmetry(sd, ob, brush, ups, action, i, 'Y', feather);
@@ -5052,6 +5092,12 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 			ts->sculpt->detail_percent = 25;
 		if (ts->sculpt->constant_detail == 0.0f)
 			ts->sculpt->constant_detail = 30.0f;
+
+		/* Set sane default tiling offsets */
+		if (!ts->sculpt->paint.tile_offset[0]) ts->sculpt->paint.tile_offset[0] = 1.0f;
+		if (!ts->sculpt->paint.tile_offset[1]) ts->sculpt->paint.tile_offset[1] = 1.0f;
+		if (!ts->sculpt->paint.tile_offset[2]) ts->sculpt->paint.tile_offset[2] = 1.0f;
+
 
 		/* Create sculpt mode session data */
 		if (ob->sculpt)
