@@ -35,6 +35,7 @@
 #include "BLI_edgehash.h"
 #include "BLI_memarena.h"
 #include "BLI_string.h"
+#include "BLI_alloca.h"
 
 #include "BLF_translation.h"
 
@@ -1044,18 +1045,26 @@ void rigid_deform_end(int cancel)
 #define MESHDEFORM_TAG_INTERIOR 2
 #define MESHDEFORM_TAG_EXTERIOR 3
 
+/** minimum length for #MDefBoundIsect.len */
 #define MESHDEFORM_LEN_THRESHOLD 1e-6f
 
 #define MESHDEFORM_MIN_INFLUENCE 0.0005f
 
-static int MESHDEFORM_OFFSET[7][3] = {
+static const int MESHDEFORM_OFFSET[7][3] = {
 	{0, 0, 0}, {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}
 };
 
 typedef struct MDefBoundIsect {
-	float co[3], uvw[3];
-	int v[3], facing;
+	/* intersection on the cage 'cagecos' */
+	float co[3];
+	/* non-facing intersections are considered interior */
+	bool facing;
+	/* ray-cast index aligned with MPoly (ray-hit-triangle isn't needed) */
+	int poly_index;
+	/* distance from 'co' to the ray-cast start (clamped to avoid zero division) */
 	float len;
+	/* weights aligned with the MPoly's loop indices */
+	float poly_weights[0];
 } MDefBoundIsect;
 
 typedef struct MDefBindInfluence {
@@ -1094,6 +1103,14 @@ typedef struct MeshDeformBind {
 	
 	BVHTree *bvhtree;
 	BVHTreeFromMesh bvhdata;
+
+	/* avoid DM function calls during intersections */
+	struct {
+		const MPoly *mpoly;
+		const MLoop *mloop;
+		const MLoopTri *looptri;
+		const float (*poly_nors)[3];
+	} cagedm_cache;
 } MeshDeformBind;
 
 typedef struct MeshDeformIsect {
@@ -1101,8 +1118,7 @@ typedef struct MeshDeformIsect {
 	float vec[3];
 	float lambda;
 
-	const void *face;
-	int isect;
+	bool isect;
 	float u, v;
 	
 } MeshDeformIsect;
@@ -1173,10 +1189,6 @@ static int meshdeform_tri_intersect(const float orig[3], const float end[3], con
 }
 
 struct MeshRayCallbackData {
-	const MPoly *mpoly;
-	const MLoop *mloop;
-	const MLoopTri *looptri;
-	const float (*poly_nors)[3];
 	MeshDeformBind *mdb;
 	MeshDeformIsect *isec;
 };
@@ -1185,9 +1197,9 @@ static void harmonic_ray_callback(void *userdata, int index, const BVHTreeRay *r
 {
 	struct MeshRayCallbackData *data = userdata;
 	MeshDeformBind *mdb = data->mdb;
-	const MLoop *mloop = data->mloop;
-	const MLoopTri *looptri = data->looptri, *lt;
-	const float (*poly_nors)[3] = data->poly_nors;
+	const MLoop *mloop = mdb->cagedm_cache.mloop;
+	const MLoopTri *looptri = mdb->cagedm_cache.looptri, *lt;
+	const float (*poly_nors)[3] = mdb->cagedm_cache.poly_nors;
 	MeshDeformIsect *isec = data->isec;
 	float no[3], co[3], end[3], uvw[3], dist;
 	float *face[3];
@@ -1218,7 +1230,6 @@ static void harmonic_ray_callback(void *userdata, int index, const BVHTreeRay *r
 		
 		isec->isect = (dot_v3v3(no, ray->direction) <= 0.0f);
 		isec->lambda = dist;
-		isec->face = lt;
 	}
 }
 
@@ -1226,17 +1237,11 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, const 
 {
 	BVHTreeRayHit hit;
 	MeshDeformIsect isect_mdef;
-	float (*cagecos)[3];
 	struct MeshRayCallbackData data = {
-		mdb->cagedm->getPolyArray(mdb->cagedm),
-		mdb->cagedm->getLoopArray(mdb->cagedm),
-		mdb->cagedm->getLoopTriArray(mdb->cagedm),
-		mdb->cagedm->getPolyDataArray(mdb->cagedm, CD_NORMAL),  /* can be NULL */
 		mdb,
 		&isect_mdef,
 	};
-	const MLoopTri *looptri = data.looptri, *lt;
-	float vert[4][3], len, end[3];
+	float end[3];
 	// static float epsilon[3] = {1e-4, 1e-4, 1e-4};
 
 	/* happens binding when a cage has no faces */
@@ -1261,34 +1266,34 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, const 
 	if (BLI_bvhtree_ray_cast(mdb->bvhtree, isect_mdef.start, isect_mdef.vec,
 	                         0.0, &hit, harmonic_ray_callback, &data) != -1)
 	{
+		const MLoop *mloop = mdb->cagedm_cache.mloop;
+		const MLoopTri *lt = &mdb->cagedm_cache.looptri[hit.index];
+		const MPoly *mp = &mdb->cagedm_cache.mpoly[lt->poly];
+		const float (*cagecos)[3] = mdb->cagecos;
+		const float len = isect_mdef.lambda;
 		MDefBoundIsect *isect;
-		len = isect_mdef.lambda;
-		isect_mdef.face = lt = &looptri[hit.index];
 
-		/* create MDefBoundIsect */
-		isect = BLI_memarena_alloc(mdb->memarena, sizeof(*isect));
+		float (*mp_cagecos)[3] = BLI_array_alloca(mp_cagecos, mp->totloop);
+		int i;
+
+		/* create MDefBoundIsect, and extra for 'poly_weights[]' */
+		isect = BLI_memarena_alloc(mdb->memarena, sizeof(*isect) + (sizeof(float) * mp->totloop));
 
 		/* compute intersection coordinate */
-		isect->co[0] = co1[0] + isect_mdef.vec[0] * len;
-		isect->co[1] = co1[1] + isect_mdef.vec[1] * len;
-		isect->co[2] = co1[2] + isect_mdef.vec[2] * len;
-
-		isect->len = len_v3v3(co1, isect->co);
-		if (isect->len < MESHDEFORM_LEN_THRESHOLD)
-			isect->len = MESHDEFORM_LEN_THRESHOLD;
-
-		isect->v[0] = data.mloop[lt->tri[0]].v;
-		isect->v[1] = data.mloop[lt->tri[1]].v;
-		isect->v[2] = data.mloop[lt->tri[2]].v;
+		madd_v3_v3v3fl(isect->co, co1, isect_mdef.vec, len);
 
 		isect->facing = isect_mdef.isect;
 
+		isect->poly_index = lt->poly;
+
+		isect->len = max_ff(len_v3v3(co1, isect->co), MESHDEFORM_LEN_THRESHOLD);
+
 		/* compute mean value coordinates for interpolation */
-		cagecos = mdb->cagecos;
-		copy_v3_v3(vert[0], cagecos[isect->v[0]]);
-		copy_v3_v3(vert[1], cagecos[isect->v[1]]);
-		copy_v3_v3(vert[2], cagecos[isect->v[2]]);
-		interp_weights_poly_v3(isect->uvw, vert, 3, isect->co);
+		for (i = 0; i < mp->totloop; i++) {
+			copy_v3_v3(mp_cagecos[i], cagecos[mloop[mp->loopstart + i].v]);
+		}
+
+		interp_weights_poly_v3(isect->poly_weights, mp_cagecos, mp->totloop, isect->co);
 
 		return isect;
 	}
@@ -1436,14 +1441,18 @@ static void meshdeform_bind_floodfill(MeshDeformBind *mdb)
 	MEM_freeN(stack);
 }
 
-static float meshdeform_boundary_phi(MeshDeformBind *UNUSED(mdb), MDefBoundIsect *isect, int cagevert)
+static float meshdeform_boundary_phi(const MeshDeformBind *mdb, const MDefBoundIsect *isect, int cagevert)
 {
-	int a;
+	const MLoop *mloop = mdb->cagedm_cache.mloop;
+	const MPoly *mp = &mdb->cagedm_cache.mpoly[isect->poly_index];
+	int i;
 
-	for (a = 0; a < 3; a++)
-		if (isect->v[a] == cagevert)
-			return isect->uvw[a];
-	
+	for (i = 0; i < mp->totloop; i++) {
+		if (mloop[mp->loopstart + i].v == cagevert) {
+			return isect->poly_weights[i];
+		}
+	}
+
 	return 0.0f;
 }
 
@@ -1780,6 +1789,15 @@ static void harmonic_coordinates_bind(Scene *UNUSED(scene), MeshDeformModifierDa
 
 	mdb->memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "harmonic coords arena");
 	BLI_memarena_use_calloc(mdb->memarena);
+
+	/* initialize data from 'cagedm' for reuse */
+	{
+		DerivedMesh *dm = mdb->cagedm;
+		mdb->cagedm_cache.mpoly = dm->getPolyArray(dm);
+		mdb->cagedm_cache.mloop = dm->getLoopArray(dm);
+		mdb->cagedm_cache.looptri = dm->getLoopTriArray(dm);
+		mdb->cagedm_cache.poly_nors = dm->getPolyDataArray(dm, CD_NORMAL);  /* can be NULL */
+	}
 
 	/* make bounding box equal size in all directions, add padding, and compute
 	 * width of the cells */
