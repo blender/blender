@@ -58,8 +58,12 @@ __forceinline operator          int      ( ) const { return std::numeric_limits<
 /* Intrinsics Functions */
 
 #if defined(__BMI__) && defined(__GNUC__)
-#define _tzcnt_u32 __tzcnt_u32
-#define _tzcnt_u64 __tzcnt_u64
+#  ifndef _tzcnt_u32
+#    define _tzcnt_u32 __tzcnt_u32
+#  endif
+#  ifndef _tzcnt_u64
+#    define _tzcnt_u64 __tzcnt_u64
+#  endif
 #endif
 
 #if defined(__LZCNT__)
