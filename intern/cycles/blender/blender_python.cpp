@@ -491,7 +491,11 @@ static PyObject *system_info_func(PyObject * /*self*/, PyObject * /*value*/)
 static PyObject *opencl_disable_func(PyObject * /*self*/, PyObject * /*value*/)
 {
 	VLOG(2) << "Disabling OpenCL platform.";
+#ifdef _MSC_VER
+	putenv("CYCLES_OPENCL_TEST=NONE");
+#else
 	setenv("CYCLES_OPENCL_TEST", "NONE", 1);
+#endif
 	Py_RETURN_NONE;
 }
 #endif
