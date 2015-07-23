@@ -3222,10 +3222,14 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 		DM_calc_auto_bump_scale(dm);
 
 	/* add a tangent layer if necessary */
-	for (b = 0; b < gattribs->totlayer; b++)
-		if (gattribs->layer[b].type == CD_TANGENT)
-			if (CustomData_get_layer_index(fdata, CD_TANGENT) == -1)
+	for (b = 0; b < gattribs->totlayer; b++) {
+		if (gattribs->layer[b].type == CD_TANGENT) {
+			if (CustomData_get_layer_index(fdata, CD_TANGENT) == -1) {
 				DM_add_tangent_layer(dm);
+				break;
+			}
+		}
+	}
 
 	for (b = 0; b < gattribs->totlayer; b++) {
 		if (gattribs->layer[b].type == CD_MTFACE) {
