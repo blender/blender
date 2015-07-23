@@ -727,7 +727,8 @@ static void obstacles_from_derivedmesh(Object *coll_ob, SmokeDomainSettings *sds
 	{
 		DerivedMesh *dm = NULL;
 		MVert *mvert = NULL;
-		MFace *mface = NULL;
+		const MLoopTri *looptri;
+		const MLoop *mloop;
 		BVHTreeFromMesh treeData = {NULL};
 		int numverts, i, z;
 
@@ -742,7 +743,8 @@ static void obstacles_from_derivedmesh(Object *coll_ob, SmokeDomainSettings *sds
 		dm = CDDM_copy(scs->dm);
 		CDDM_calc_normals(dm);
 		mvert = dm->getVertArray(dm);
-		mface = dm->getTessFaceArray(dm);
+		mloop = dm->getLoopArray(dm);
+		looptri = dm->getLoopTriArray(dm);
 		numverts = dm->getNumVerts(dm);
 
 		// DG TODO
@@ -790,7 +792,7 @@ static void obstacles_from_derivedmesh(Object *coll_ob, SmokeDomainSettings *sds
 			copy_v3_v3(&scs->verts_old[i * 3], co);
 		}
 
-		if (bvhtree_from_mesh_faces(&treeData, dm, 0.0f, 4, 6)) {
+		if (bvhtree_from_mesh_looptri(&treeData, dm, 0.0f, 4, 6)) {
 #pragma omp parallel for schedule(static)
 			for (z = sds->res_min[2]; z < sds->res_max[2]; z++) {
 				int x, y;
@@ -805,13 +807,14 @@ static void obstacles_from_derivedmesh(Object *coll_ob, SmokeDomainSettings *sds
 
 						/* find the nearest point on the mesh */
 						if (BLI_bvhtree_find_nearest(treeData.tree, ray_start, &nearest, treeData.nearest_callback, &treeData) != -1) {
+							const MLoopTri *lt = &looptri[nearest.index];
 							float weights[4];
-							int v1, v2, v3, f_index = nearest.index;
+							int v1, v2, v3;
 
 							/* calculate barycentric weights for nearest point */
-							v1 = mface[f_index].v1;
-							v2 = (nearest.flags & BVH_ONQUAD) ? mface[f_index].v3 : mface[f_index].v2;
-							v3 = (nearest.flags & BVH_ONQUAD) ? mface[f_index].v4 : mface[f_index].v3;
+							v1 = mloop[lt->tri[0]].v;
+							v2 = mloop[lt->tri[1]].v;
+							v3 = mloop[lt->tri[2]].v;
 							interp_weights_face_v3(weights, mvert[v1].co, mvert[v2].co, mvert[v3].co, NULL, nearest.co);
 
 							// DG TODO
