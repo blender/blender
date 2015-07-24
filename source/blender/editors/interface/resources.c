@@ -2641,6 +2641,12 @@ void init_userdef_do_versions(void)
 	if (U.image_draw_method == 0)
 		U.image_draw_method = IMAGE_DRAW_METHOD_2DTEXTURE;
 	
+	// keep the following until the new audaspace is default to be built with
+#ifdef WITH_SYSTEM_AUDASPACE
+	// we default to the first audio device
+	U.audiodevice = 0;
+#endif
+
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();
 	/* this timer uses U */

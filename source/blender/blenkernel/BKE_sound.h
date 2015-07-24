@@ -59,8 +59,7 @@ void BKE_sound_init_main(struct Main *bmain);
 
 void BKE_sound_exit(void);
 
-void BKE_sound_force_device(int device);
-int BKE_sound_define_from_str(const char *str);
+void BKE_sound_force_device(const char *device);
 
 struct bSound *BKE_sound_new_file(struct Main *main, const char *filename);
 
@@ -141,6 +140,8 @@ void BKE_sound_update_scene(struct Main *bmain, struct Scene *scene);
 void *BKE_sound_get_factory(void *sound);
 
 float BKE_sound_get_length(struct bSound *sound);
+
+char** BKE_sound_get_device_names(void);
 
 bool BKE_sound_is_jack_supported(void);
 

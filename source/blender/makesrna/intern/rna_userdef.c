@@ -127,6 +127,7 @@ EnumPropertyItem navigation_mode_items[] = {
 #  include "sdlew.h"
 #endif
 
+
 static void rna_userdef_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -610,6 +611,17 @@ static EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C), Poi
 	int totitem = 0;
 	EnumPropertyItem *item = NULL;
 
+#ifdef WITH_SYSTEM_AUDASPACE
+	int i;
+
+	char** names = BKE_sound_get_device_names();
+
+	for(i = 0; names[i]; i++)
+	{
+		EnumPropertyItem new_item = {i, names[i], 0, names[i], names[i]};
+		RNA_enum_item_add(&item, &totitem, &new_item);
+	}
+#else
 	/* NONE */
 	RNA_enum_item_add(&item, &totitem, &audio_device_items[index++]);
 
@@ -632,6 +644,7 @@ static EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C), Poi
 		RNA_enum_item_add(&item, &totitem, &audio_device_items[index]);
 	}
 	index++;
+#endif
 #endif
 
 	RNA_enum_item_end(&item, &totitem);

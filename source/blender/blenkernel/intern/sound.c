@@ -66,8 +66,9 @@
 #include "BKE_scene.h"
 
 #ifdef WITH_AUDASPACE
-/* evil global ;-) */
+/* evil globals ;-) */
 static int sound_cfra;
+static char** audio_device_names = NULL;
 #endif
 
 bSound *BKE_sound_new_file(struct Main *bmain, const char *filename)
@@ -130,7 +131,7 @@ void BKE_sound_free(bSound *sound)
 
 #ifdef WITH_AUDASPACE
 
-static int force_device = -1;
+static const char* force_device = NULL;
 
 #ifdef WITH_JACK
 static void sound_sync_callback(void *data, int mode, float time)
@@ -153,21 +154,7 @@ static void sound_sync_callback(void *data, int mode, float time)
 }
 #endif
 
-int BKE_sound_define_from_str(const char *str)
-{
-	if (BLI_strcaseeq(str, "NULL"))
-		return 0;
-	if (BLI_strcaseeq(str, "SDL"))
-		return 1;
-	if (BLI_strcaseeq(str, "OPENAL"))
-		return 2;
-	if (BLI_strcaseeq(str, "JACK"))
-		return 3;
-
-	return -1;
-}
-
-void BKE_sound_force_device(int device)
+void BKE_sound_force_device(const char *device)
 {
 	force_device = device;
 }
@@ -197,24 +184,19 @@ void BKE_sound_init(struct Main *bmain)
 	specs.format = U.audioformat;
 	specs.rate = U.audiorate;
 
-	if (force_device >= 0)
-		device = force_device;
-
-	switch(device)
+	if (force_device == NULL)
 	{
-	case 1:
-		device_name = "SDL";
-		break;
-	case 2:
-		device_name = "OpenAL";
-		break;
-	case 3:
-		device_name = "Jack";
-		break;
-	default:
-		device_name = "Null";
-		break;
+		int i;
+		char** names = BKE_sound_get_device_names();
+		device_name = names[0];
+
+		// make sure device is within the bounds of the array
+		for(i = 0; names[i]; i++)
+			if(i == device)
+				device_name = names[i];
 	}
+	else
+		device_name = force_device;
 
 	if (buffersize < 128)
 		buffersize = 1024;
@@ -254,6 +236,17 @@ void BKE_sound_exit_once(void)
 	AUD_exit(sound_device);
 	sound_device = NULL;
 	AUD_exitOnce();
+
+#ifdef WITH_SYSTEM_AUDASPACE
+	if(audio_device_names != NULL)
+	{
+		int i;
+		for(i = 0; audio_device_names[i]; i++)
+			free(audio_device_names[i]);
+		free(audio_device_names);
+		audio_device_names = NULL;
+	}
+#endif
 }
 
 /* XXX unused currently */
@@ -841,6 +834,23 @@ float BKE_sound_get_length(bSound *sound)
 	return info.length;
 }
 
+char** BKE_sound_get_device_names(void)
+{
+	if(audio_device_names == NULL)
+	{
+#ifdef WITH_SYSTEM_AUDASPACE
+		audio_device_names = AUD_getDeviceNames();
+#else
+		static const char* names[] = {
+			"Null", "SDL", "OpenAL", "Jack"
+		};
+		audio_device_names = (char**)names;
+#endif
+	}
+
+	return audio_device_names;
+}
+
 bool BKE_sound_is_jack_supported(void)
 {
 #ifdef WITH_SYSTEM_AUDASPACE
@@ -854,7 +864,6 @@ bool BKE_sound_is_jack_supported(void)
 
 #include "BLI_utildefines.h"
 
-int BKE_sound_define_from_str(const char *UNUSED(str)) { return -1; }
 void BKE_sound_force_device(int UNUSED(device)) {}
 void BKE_sound_init_once(void) {}
 void BKE_sound_init(struct Main *UNUSED(bmain)) {}
