@@ -402,15 +402,7 @@ RenderLayersCyclesDebugOperation::RenderLayersCyclesDebugOperation(int pass)
 void RenderLayersCyclesDebugOperation::setScene(Scene *scene)
 {
 	RenderLayersBaseProg::setScene(scene);
-	switch (m_scene->r.debug_pass_type) {
-		case RENDER_PASS_DEBUG_BVH_TRAVERSAL_STEPS:
-		case RENDER_PASS_DEBUG_BVH_TRAVERSED_INSTANCES:
-		case RENDER_PASS_DEBUG_RAY_BOUNCES:
-			this->m_elementsize = 1;
-		default:
-			fprintf(stderr, "Unknown element size for debug pass");
-			abort();
-	}
+	this->m_elementsize = RE_debug_pass_num_channels_get(m_scene->r.debug_pass_type);
 }
 
 #endif

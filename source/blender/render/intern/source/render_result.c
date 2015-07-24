@@ -528,7 +528,7 @@ static RenderPass *render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int 
 }
 
 #ifdef WITH_CYCLES_DEBUG
-static const char *debug_pass_type_name_get(int debug_type)
+const char *RE_debug_pass_name_get(int debug_type)
 {
 	switch (debug_type) {
 		case RENDER_PASS_DEBUG_BVH_TRAVERSAL_STEPS:
@@ -541,7 +541,7 @@ static const char *debug_pass_type_name_get(int debug_type)
 	return "Unknown";
 }
 
-static int debug_pass_channels_get(int UNUSED(debug_type))
+int RE_debug_pass_num_channels_get(int UNUSED(debug_type))
 {
 	/* Only single case currently, might be handy for further debug passes. */
 	return 1;
@@ -553,11 +553,12 @@ static RenderPass *render_layer_add_debug_pass(RenderResult *rr,
                                                int debug_type,
                                                const char *view)
 {
-	int channels = debug_pass_channels_get(debug_type);
+	const char *name = RE_debug_pass_name_get(debug_type);
+	int channels = RE_debug_pass_num_channels_get(debug_type);
 	RenderPass *rpass = render_layer_add_pass(rr, rl, channels, pass_type, view);
 	rpass->debug_type = debug_type;
 	BLI_strncpy(rpass->name,
-	            debug_pass_type_name_get(debug_type),
+	            name,
 	            sizeof(rpass->name));
 	BLI_strncpy(rpass->internal_name, rpass->name, sizeof(rpass->internal_name));
 	return rpass;
