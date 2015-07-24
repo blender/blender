@@ -406,7 +406,7 @@ extern "C" {
 	CHECK_TYPE_INLINE(a, float), CHECK_TYPE_INLINE(b, float), \
 	((fabsf((float)((a) - (b))) >= (float) FLT_EPSILON) ? false : true))
 
-#define IS_EQT(a, b, c) ((a > b) ? (((a - b) <= c) ? 1 : 0) : ((((b - a) <= c) ? 1 : 0)))
+#define IS_EQT(a, b, c) ((a > b) ? ((((a) - (b)) <= c) ? 1 : 0) : (((((b) - (a)) <= c) ? 1 : 0)))
 #define IN_RANGE(a, b, c) ((b < c) ? ((b < a && a < c) ? 1 : 0) : ((c < a && a < b) ? 1 : 0))
 #define IN_RANGE_INCL(a, b, c) ((b < c) ? ((b <= a && a <= c) ? 1 : 0) : ((c <= a && a <= b) ? 1 : 0))
 
@@ -421,7 +421,7 @@ extern "C" {
 
 /* array helpers */
 #define ARRAY_LAST_ITEM(arr_start, arr_dtype, tot) \
-	(arr_dtype *)((char *)arr_start + (sizeof(*((arr_dtype *)NULL)) * (size_t)(tot - 1)))
+	(arr_dtype *)((char *)(arr_start) + (sizeof(*((arr_dtype *)NULL)) * (size_t)(tot - 1)))
 
 #define ARRAY_HAS_ITEM(arr_item, arr_start, tot)  ( \
 	CHECK_TYPE_PAIR_INLINE(arr_start, arr_item), \
@@ -483,10 +483,10 @@ extern "C" {
 
 #if defined(__GNUC__) || defined(__clang__)
 #define POINTER_OFFSET(v, ofs) \
-	((typeof(v))((char *)(v) + ofs))
+	((typeof(v))((char *)(v) + (ofs)))
 #else
 #define POINTER_OFFSET(v, ofs) \
-	((void *)((char *)(v) + ofs))
+	((void *)((char *)(v) + (ofs)))
 #endif
 
 /* Like offsetof(typeof(), member), for non-gcc compilers */
