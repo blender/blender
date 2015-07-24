@@ -1281,7 +1281,7 @@ static void cdDM_buffer_copy_vertex(
 	}
 
 	/* copy loose points */
-	j = dm->drawObject->tot_loop_verts;
+	j = dm->drawObject->tot_loop_verts * 3;
 	for (i = 0; i < dm->drawObject->totvert; i++) {
 		if (dm->drawObject->vert_points[i].point_index >= dm->drawObject->tot_loop_verts) {
 			copy_v3_v3(&varray[j], mvert[i].co);
