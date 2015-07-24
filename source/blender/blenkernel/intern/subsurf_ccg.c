@@ -2279,10 +2279,10 @@ static void ccgDM_buffer_copy_edge(
 	unsigned int tot_interior = 0;
 	unsigned int grid_tot_face = grid_face_side * grid_face_side;
 
-	int iloose, inorm, iloosehidden, inormhidden;
-	int tot_loose_hidden = 0, tot_loose = 0;
-	int tot_hidden = 0, tot = 0;
-	unsigned int iloosevert = dm->drawObject->tot_loop_verts;
+	unsigned int iloose, inorm, iloosehidden, inormhidden;
+	unsigned int tot_loose_hidden = 0, tot_loose = 0;
+	unsigned int tot_hidden = 0, tot = 0;
+	unsigned int iloosevert;
 	/* int tot_interior = 0; */
 
 	/* first, handle hidden/loose existing edges, then interior edges */
@@ -2304,6 +2304,7 @@ static void ccgDM_buffer_copy_edge(
 	/* multiply by two for loose edges, the indices are copied in a different way */
 	iloose = (tot + tot_hidden) * grid_face_side * 2;
 	iloosehidden = (tot + tot_hidden + tot_loose) * grid_face_side * 2;
+	iloosevert = dm->drawObject->tot_loop_verts;
 
 	/* part one, handle all normal edges */
 	for (j = 0; j < totedge; j++) {
@@ -2343,6 +2344,8 @@ static void ccgDM_buffer_copy_edge(
 					iloosehidden++;
 					iloosevert++;
 				}
+				/* we are through with this loose edge and moving to the next, so increase by one */
+				iloosevert++;
 			}
 			else {
 				index_start = ccgdm->faceMap[fhandle].startFace;
@@ -2364,6 +2367,8 @@ static void ccgDM_buffer_copy_edge(
 					iloose++;
 					iloosevert++;
 				}
+				/* we are through with this loose edge and moving to the next, so increase by one */
+				iloosevert++;
 			}
 			else {
 				index_start = ccgdm->faceMap[fhandle].startFace;
