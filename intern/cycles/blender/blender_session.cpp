@@ -447,10 +447,6 @@ void BlenderSession::render()
 		/* add passes */
 		vector<Pass> passes;
 		Pass::add(PASS_COMBINED, passes);
-#ifdef WITH_CYCLES_DEBUG
-		Pass::add(PASS_BVH_TRAVERSAL_STEPS, passes);
-		/* Pass::add(PASS_RAY_BOUNCES, passes); */
-#endif
 
 		if(session_params.device.advanced_shading) {
 
