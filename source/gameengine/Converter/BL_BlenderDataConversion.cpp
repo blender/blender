@@ -1391,16 +1391,6 @@ static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	if ((blenderobject->gameflag & OB_RECORD_ANIMATION) != 0)
 		gameobj->SetRecordAnimation(true);
 
-	// store materialname in auxinfo, needed for touchsensors
-	if (meshobj)
-	{
-		const STR_String& matname=meshobj->GetMaterialName(0);
-		gameobj->getClientInfo()->m_auxilary_info = (matname.Length() ? (void*)(matname.ReadPtr()+2) : NULL);
-	} else
-	{
-		gameobj->getClientInfo()->m_auxilary_info = 0;
-	}
-
 	delete shapeprops;
 	delete smmaterial;
 	if (dm) {

@@ -46,6 +46,7 @@
 #include "PHY_IPhysicsEnvironment.h"
 #include "PHY_IPhysicsController.h"
 #include "DNA_sensor_types.h"
+#include "RAS_MeshObject.h"
 
 #include <stdio.h>
 
@@ -111,6 +112,7 @@ bool KX_RaySensor::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void 
 
 	KX_GameObject* hitKXObj = client->m_gameobject;
 	bool bFound = false;
+	bool hitMaterial = false;
 
 	if (m_propertyname.Length() == 0)
 	{
@@ -118,15 +120,19 @@ bool KX_RaySensor::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void 
 	}
 	else
 	{
-		if (m_bFindMaterial)
-		{
-			if (client->m_auxilary_info)
-			{
-				bFound = (m_propertyname== ((char*)client->m_auxilary_info));
+		if (m_bFindMaterial) {
+			for (unsigned int i = 0; i < hitKXObj->GetMeshCount(); ++i) {
+				RAS_MeshObject *meshObj = hitKXObj->GetMesh(i);
+				for (unsigned int j = 0; j < meshObj->NumMaterials(); ++j) {
+					bFound = strcmp(m_propertyname.ReadPtr(), meshObj->GetMaterialName(j).ReadPtr() + 2) == 0;
+					if (bFound) {
+						hitMaterial = true;
+						break;
+					}
+				}
 			}
 		}
-		else
-		{
+		else {
 			bFound = hitKXObj->GetProperty(m_propertyname) != NULL;
 		}
 	}
@@ -143,7 +149,7 @@ bool KX_RaySensor::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void 
 		m_hitNormal[1] = result->m_hitNormal[1];
 		m_hitNormal[2] = result->m_hitNormal[2];
 			
-		m_hitMaterial = (client->m_auxilary_info ? (char*)client->m_auxilary_info : "");
+		m_hitMaterial = hitMaterial;
 	}
 	// no multi-hit search yet
 	return true;
@@ -154,6 +160,8 @@ bool KX_RaySensor::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void 
  */
 bool KX_RaySensor::NeedRayCast(KX_ClientObjectInfo *client)
 {
+	KX_GameObject *hitKXObj = client->m_gameobject;
+
 	if (client->m_type > KX_ClientObjectInfo::ACTOR)
 	{
 		// Unknown type of object, skip it.
@@ -163,16 +171,21 @@ bool KX_RaySensor::NeedRayCast(KX_ClientObjectInfo *client)
 	}
 	if (m_bXRay && m_propertyname.Length() != 0)
 	{
-		if (m_bFindMaterial)
-		{
-			// not quite correct: an object may have multiple material
-			// should check all the material and not only the first one
-			if (!client->m_auxilary_info || (m_propertyname != ((char*)client->m_auxilary_info)))
+		if (m_bFindMaterial) {
+			bool found = false;
+			for (unsigned int i = 0; i < hitKXObj->GetMeshCount(); ++i) {
+				RAS_MeshObject *meshObj = hitKXObj->GetMesh(i);
+				for (unsigned int j = 0; j < meshObj->NumMaterials(); ++j) {
+					found = strcmp(m_propertyname.ReadPtr(), meshObj->GetMaterialName(j).ReadPtr() + 2) == 0;
+					if (found)
+						break;
+				}
+			}
+			if (!found)
 				return false;
 		}
-		else
-		{
-			if (client->m_gameobject->GetProperty(m_propertyname) == NULL)
+		else {
+			if (hitKXObj->GetProperty(m_propertyname) == NULL)
 				return false;
 		}
 	}

@@ -41,6 +41,7 @@
 #include "KX_GameObject.h"
 #include "KX_RayCast.h"
 #include "KX_PythonInit.h" // KX_GetActiveScene
+#include "RAS_MeshObject.h"
 
 #include <stdio.h>
 
@@ -129,15 +130,17 @@ bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo *client, KX_RayCast *resu
 	}
 	else
 	{
-		if (m_option & KX_ACT_CONSTRAINT_MATERIAL)
-		{
-			if (client->m_auxilary_info)
-			{
-				bFound = !strcmp(m_property.Ptr(), ((char*)client->m_auxilary_info));
+		if (m_option & KX_ACT_CONSTRAINT_MATERIAL) {
+			for (unsigned int i = 0; i < m_hitObject->GetMeshCount(); ++i) {
+				RAS_MeshObject *meshObj = m_hitObject->GetMesh(i);
+				for (unsigned int j = 0; j < meshObj->NumMaterials(); ++j) {
+					bFound = strcmp(m_property.ReadPtr(), meshObj->GetMaterialName(j).ReadPtr() + 2) == 0;
+					if (bFound)
+						break;
+				}
 			}
 		}
-		else
-		{
+		else {
 			bFound = m_hitObject->GetProperty(m_property) != NULL;
 		}
 	}

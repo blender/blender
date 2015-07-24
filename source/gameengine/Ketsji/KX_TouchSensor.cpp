@@ -41,6 +41,8 @@
 
 #include "PHY_IPhysicsController.h"
 
+#include "RAS_MeshObject.h"
+
 #include <iostream>
 #include "PHY_IPhysicsEnvironment.h"
 
@@ -219,14 +221,17 @@ bool	KX_TouchSensor::BroadPhaseSensorFilterCollision(void*obj1,void*obj2)
 	bool found = m_touchedpropname.IsEmpty();
 	if (!found)
 	{
-		if (m_bFindMaterial)
-		{
-			if (client_info->m_auxilary_info)
-			{
-				found = (!strcmp(m_touchedpropname.Ptr(), (char*)client_info->m_auxilary_info));
+		if (m_bFindMaterial) {
+			for (unsigned int i = 0; i < otherobj->GetMeshCount(); ++i) {
+				RAS_MeshObject *meshObj = otherobj->GetMesh(i);
+				for (unsigned int j = 0; j < meshObj->NumMaterials(); ++j) {
+					found = strcmp(m_touchedpropname.ReadPtr(), meshObj->GetMaterialName(j).ReadPtr() + 2) == 0;
+					if (found)
+						break;
+				}
 			}
-		} else
-		{
+		}
+		else {
 			found = (otherobj->GetProperty(m_touchedpropname) != NULL);
 		}
 	}
@@ -255,16 +260,22 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 	{
 		
 		bool found = m_touchedpropname.IsEmpty();
+		bool hitMaterial = false;
 		if (!found)
 		{
-			if (m_bFindMaterial)
-			{
-				if (client_info->m_auxilary_info)
-				{
-					found = (!strcmp(m_touchedpropname.Ptr(), (char*)client_info->m_auxilary_info));
+			if (m_bFindMaterial) {
+				for (unsigned int i = 0; i < gameobj->GetMeshCount(); ++i) {
+					RAS_MeshObject *meshObj = gameobj->GetMesh(i);
+					for (unsigned int j = 0; j < meshObj->NumMaterials(); ++j) {
+						found = strcmp(m_touchedpropname.ReadPtr(), meshObj->GetMaterialName(j).ReadPtr() + 2) == 0;
+						if (found) {
+							hitMaterial = true;
+							break;
+						}
+					}
 				}
-			} else
-			{
+			}
+			else {
 				found = (gameobj->GetProperty(m_touchedpropname) != NULL);
 			}
 		}
@@ -278,7 +289,7 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 			}
 			m_bTriggered = true;
 			m_hitObject = gameobj;
-			m_hitMaterial = (client_info->m_auxilary_info ? (char*)client_info->m_auxilary_info : "");
+			m_hitMaterial = hitMaterial;
 			//printf("KX_TouchSensor::HandleCollision\n");
 		}
 		

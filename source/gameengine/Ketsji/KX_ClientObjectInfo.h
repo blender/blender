@@ -52,19 +52,16 @@ struct KX_ClientObjectInfo
 		OBACTORSENSOR
 	}		m_type;
 	KX_GameObject*	m_gameobject;
-	void*		m_auxilary_info;
 	std::list<SCA_ISensor*>	m_sensors;
 public:
-	KX_ClientObjectInfo(KX_GameObject *gameobject, clienttype type = STATIC, void *auxilary_info = NULL) :
+	KX_ClientObjectInfo(KX_GameObject *gameobject, clienttype type = STATIC) :
 		m_type(type),
-		m_gameobject(gameobject),
-		m_auxilary_info(auxilary_info)
+		m_gameobject(gameobject)
 	{}
 	
 	KX_ClientObjectInfo(const KX_ClientObjectInfo &copy) :
 		  m_type(copy.m_type),
-		  m_gameobject(copy.m_gameobject),
-		  m_auxilary_info(copy.m_auxilary_info)
+		  m_gameobject(copy.m_gameobject)
 	{
 	}
 	

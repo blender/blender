@@ -42,6 +42,7 @@
 #include "RAS_FramingManager.h"
 #include "RAS_ICanvas.h"
 #include "RAS_IRasterizer.h"
+#include "RAS_MeshObject.h"
 #include "SCA_IScene.h"
 #include "KX_Scene.h"
 #include "KX_Camera.h"
@@ -165,15 +166,17 @@ bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo *client_info, KX_RayCast *r
 		}
 		else
 		{
-			if (m_bFindMaterial)
-			{
-				if (client_info->m_auxilary_info)
-				{
-					bFound = (m_propertyname== ((char*)client_info->m_auxilary_info));
+			if (m_bFindMaterial) {
+				for (unsigned int i = 0; i < hitKXObj->GetMeshCount(); ++i) {
+					RAS_MeshObject *meshObj = hitKXObj->GetMesh(i);
+					for (unsigned int j = 0; j < meshObj->NumMaterials(); ++j) {
+						bFound = strcmp(m_propertyname.ReadPtr(), meshObj->GetMaterialName(j).ReadPtr() + 2) == 0;
+						if (bFound)
+							break;
+					}
 				}
 			}
-			else
-			{
+			else {
 				bFound = hitKXObj->GetProperty(m_propertyname) != NULL;
 			}
 		}
@@ -197,6 +200,8 @@ bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo *client_info, KX_RayCast *r
  */
 bool KX_MouseFocusSensor::NeedRayCast(KX_ClientObjectInfo* client)
 {
+	KX_GameObject *hitKXObj = client->m_gameobject;
+
 	if (client->m_type > KX_ClientObjectInfo::ACTOR)
 	{
 		// Unknown type of object, skip it.
@@ -208,14 +213,21 @@ bool KX_MouseFocusSensor::NeedRayCast(KX_ClientObjectInfo* client)
 	{
 		if (m_bFindMaterial)
 		{
-			// not quite correct: an object may have multiple material
-			// should check all the material and not only the first one
-			if (!client->m_auxilary_info || (m_propertyname != ((char*)client->m_auxilary_info)))
+			bool found = false;
+			for (unsigned int i = 0; i < hitKXObj->GetMeshCount(); ++i) {
+				RAS_MeshObject *meshObj = hitKXObj->GetMesh(i);
+				for (unsigned int j = 0; j < meshObj->NumMaterials(); ++j) {
+					found = strcmp(m_propertyname.ReadPtr(), meshObj->GetMaterialName(j).ReadPtr() + 2) == 0;
+					if (found)
+						break;
+				}
+			}
+			if (!found)
 				return false;
 		}
 		else
 		{
-			if (client->m_gameobject->GetProperty(m_propertyname) == NULL)
+			if (hitKXObj->GetProperty(m_propertyname) == NULL)
 				return false;
 		}
 	}
