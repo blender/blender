@@ -213,4 +213,9 @@ public:
 	RenderLayersUVOperation();
 };
 
+class RenderLayersCyclesDebugOperation : public RenderLayersBaseProg {
+public:
+	RenderLayersCyclesDebugOperation(int pass);
+};
+
 #endif

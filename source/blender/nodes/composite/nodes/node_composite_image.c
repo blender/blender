@@ -73,6 +73,9 @@ static bNodeSocketTemplate cmp_node_rlayers_out[] = {
 	{	SOCK_RGBA, 0, N_("Subsurface Direct"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 0, N_("Subsurface Indirect"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 0, N_("Subsurface Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+#ifdef WITH_CYCLES_DEBUG
+	{	SOCK_FLOAT, 0, N_("Debug"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+#endif
 	{	-1, 0, ""	}
 };
 
@@ -160,6 +163,10 @@ static void cmp_node_image_add_render_pass_outputs(bNodeTree *ntree, bNode *node
 		cmp_node_image_add_render_pass_output(ntree, node, SCE_PASS_SUBSURFACE_INDIRECT, RRES_OUT_SUBSURFACE_INDIRECT);
 	if (passflag & SCE_PASS_SUBSURFACE_COLOR)
 		cmp_node_image_add_render_pass_output(ntree, node, SCE_PASS_SUBSURFACE_COLOR, RRES_OUT_SUBSURFACE_COLOR);
+
+#ifdef WITH_CYCLES_DEBUG
+	cmp_node_image_add_render_pass_output(ntree, node, SCE_PASS_DEBUG, RRES_OUT_DEBUG);
+#endif
 }
 
 static void cmp_node_image_add_multilayer_outputs(bNodeTree *ntree, bNode *node, RenderLayer *rl)
@@ -380,8 +387,12 @@ void register_node_type_cmp_image(void)
 static void set_output_visible(bNode *node, int passflag, int index, int pass)
 {
 	bNodeSocket *sock = BLI_findlink(&node->outputs, index);
+	bool pass_enabled = ((passflag & pass) != 0);
+#ifdef WITH_CYCLES_DEBUG
+	pass_enabled |= (pass == SCE_PASS_DEBUG);
+#endif
 	/* clear the SOCK_HIDDEN flag as well, in case a socket was hidden before */
-	if (passflag & pass)
+	if (pass_enabled)
 		sock->flag &= ~(SOCK_HIDDEN | SOCK_UNAVAIL);
 	else
 		sock->flag |= SOCK_UNAVAIL;
@@ -440,6 +451,10 @@ void node_cmp_rlayers_force_hidden_passes(bNode *node)
 	set_output_visible(node, passflag, RRES_OUT_SUBSURFACE_DIRECT,      SCE_PASS_SUBSURFACE_DIRECT);
 	set_output_visible(node, passflag, RRES_OUT_SUBSURFACE_INDIRECT,    SCE_PASS_SUBSURFACE_INDIRECT);
 	set_output_visible(node, passflag, RRES_OUT_SUBSURFACE_COLOR,       SCE_PASS_SUBSURFACE_COLOR);
+
+#ifdef WITH_CYCLES_DEBUG
+	set_output_visible(node, passflag, RRES_OUT_DEBUG,                  SCE_PASS_DEBUG);
+#endif
 }
 
 static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)

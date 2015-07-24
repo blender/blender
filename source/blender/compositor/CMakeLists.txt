@@ -551,4 +551,8 @@ data_to_c(${CMAKE_CURRENT_SOURCE_DIR}/operations/COM_OpenCLKernels.cl
 
 add_definitions(-DCL_USE_DEPRECATED_OPENCL_1_1_APIS)
 
+if(WITH_CYCLES AND WITH_CYCLES_DEBUG)
+	add_definitions(-DWITH_CYCLES_DEBUG)
+endif()
+
 blender_add_lib(bf_compositor "${SRC}" "${INC}" "${INC_SYS}")

@@ -86,4 +86,8 @@ void RenderLayersNode::convertToOperations(NodeConverter &converter, const Compo
 	testSocketLink(converter, context, 28, new RenderLayersCyclesOperation(SCE_PASS_SUBSURFACE_DIRECT));
 	testSocketLink(converter, context, 29, new RenderLayersCyclesOperation(SCE_PASS_SUBSURFACE_INDIRECT));
 	testSocketLink(converter, context, 30, new RenderLayersCyclesOperation(SCE_PASS_SUBSURFACE_COLOR));
+
+#ifdef WITH_CYCLES_DEBUG
+	testSocketLink(converter, context, 31, new RenderLayersCyclesDebugOperation(SCE_PASS_DEBUG));
+#endif
 }

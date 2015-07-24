@@ -388,3 +388,11 @@ RenderLayersUVOperation::RenderLayersUVOperation() : RenderLayersBaseProg(SCE_PA
 {
 	this->addOutputSocket(COM_DT_VECTOR);
 }
+
+/* ******** Debug Render Layers Cycles Operation ******** */
+
+RenderLayersCyclesDebugOperation::RenderLayersCyclesDebugOperation(int pass)
+    : RenderLayersBaseProg(pass, 1)
+{
+	this->addOutputSocket(COM_DT_VALUE);
+}
