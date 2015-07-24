@@ -24,28 +24,20 @@
  *  \ingroup pygen
  */
 
-
-/* This is the Blender.BGL part of opy_draw.c, from the old bpython/intern
- * dir, with minor changes to adapt it to the new Python implementation.
- * The BGL submodule "wraps" OpenGL functions and constants, allowing script
- * writers to make OpenGL calls in their Python scripts for Blender.  The
- * more important original comments are marked with an @ symbol. */
-
 #ifndef __BGL_H__
 #define __BGL_H__
 
 PyObject *BPyInit_bgl(void);
 
-/*@ Create a buffer object */
-/*@ dimensions is an array of ndimensions integers representing the size of each dimension */
-/*@ initbuffer if not NULL holds a contiguous buffer with the correct format from which the buffer will be initialized */
 struct _Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuffer);
-/*@ Return the size of buffer element, type must be one of GL_BYTE, GL_SHORT, GL_INT, GL_FLOAT or GL_DOUBLE */
-/*@ returns -1 otherwise */
+
 int BGL_typeSize(int type);
 
-/*@ Buffer Object */
-/*@ For Python access to OpenGL functions requiring a pointer. */
+/**
+ * Buffer Object
+ *
+ * For Python access to OpenGL functions requiring a pointer.
+ */
 typedef struct _Buffer {
 	PyObject_VAR_HEAD 
 	PyObject *parent;
@@ -65,7 +57,7 @@ typedef struct _Buffer {
 	} buf;
 } Buffer;
 
-/*@ The type object */
+/** The type object */
 extern PyTypeObject BGL_bufferType;
 
 #endif /* __BGL_H__ */
