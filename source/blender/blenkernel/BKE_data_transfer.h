@@ -134,7 +134,7 @@ void BKE_object_data_transfer_layout(
 
 bool BKE_object_data_transfer_mesh(
         struct Scene *scene,
-        struct Object *ob_src, struct Object *ob_dst, const int data_types, bool use_create,
+        struct Object *ob_src, struct Object *ob_dst, const int data_types, const bool use_create,
         const int map_vert_mode, const int map_edge_mode, const int map_loop_mode, const int map_poly_mode,
         struct SpaceTransform *space_transform, const bool auto_transform,
         const float max_distance, const float ray_radius, const float islands_handling_precision,

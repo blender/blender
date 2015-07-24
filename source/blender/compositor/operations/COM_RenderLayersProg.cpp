@@ -398,7 +398,7 @@ RenderLayersCyclesDebugOperation::RenderLayersCyclesDebugOperation(
         int debug_pass_type)
 	: RenderLayersBaseProg(pass, RE_debug_pass_num_channels_get(debug_pass_type))
 {
-	switch(m_elementsize) {
+	switch (m_elementsize) {
 		case 1:
 			this->addOutputSocket(COM_DT_VALUE);
 			break;
