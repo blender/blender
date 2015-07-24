@@ -541,13 +541,19 @@ static const char *debug_pass_type_name_get(int debug_type)
 	return "Unknown";
 }
 
+static int debug_pass_channels_get(int UNUSED(debug_type))
+{
+	/* Only single case currently, might be handy for further debug passes. */
+	return 1;
+}
+
 static RenderPass *render_layer_add_debug_pass(RenderResult *rr,
                                                RenderLayer *rl,
-                                               int channels,
                                                int pass_type,
                                                int debug_type,
                                                const char *view)
 {
+	int channels = debug_pass_channels_get(debug_type);
 	RenderPass *rpass = render_layer_add_pass(rr, rl, channels, pass_type, view);
 	rpass->debug_type = debug_type;
 	BLI_strncpy(rpass->name,
@@ -708,7 +714,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 
 #ifdef WITH_CYCLES_DEBUG
 			if (BKE_scene_use_new_shading_nodes(re->scene)) {
-				render_layer_add_debug_pass(rr, rl, 1, SCE_PASS_DEBUG,
+				render_layer_add_debug_pass(rr, rl, SCE_PASS_DEBUG,
 				        re->r.debug_pass_type, view);
 			}
 #endif
