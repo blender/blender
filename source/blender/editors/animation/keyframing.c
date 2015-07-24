@@ -1717,7 +1717,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 			 * not have any effect.
 			 */
 			NlaStrip *strip = (NlaStrip *)ptr.data;
-			FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), flag);
+			FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), index);
 			
 			success = insert_keyframe_direct(op->reports, ptr, prop, fcu, cfra, 0);
 		}
