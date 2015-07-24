@@ -223,8 +223,25 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 	bool special;
 
 	fcu = ui_but_get_fcurve(but, NULL, &action, &driven, &special);
-
-	if (fcu && !driven) {
+	
+	if (fcu == NULL)
+		return;
+	
+	if (special) {
+		/* NLA Strip property */
+		if (IS_AUTOKEY_ON(scene)) {
+			ReportList *reports = CTX_wm_reports(C);
+			PointerRNA ptr = {{NULL}};
+			PropertyRNA *prop = NULL;
+			int index;
+			
+			UI_context_active_but_prop_get(C, &ptr, &prop, &index);
+			
+			insert_keyframe_direct(reports, ptr, prop, fcu, cfra, 0);
+			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+		}
+	}
+	else if (!driven) {
 		id = but->rnapoin.id.data;
 
 		/* TODO: this should probably respect the keyingset only option for anim */
