@@ -391,8 +391,26 @@ RenderLayersUVOperation::RenderLayersUVOperation() : RenderLayersBaseProg(SCE_PA
 
 /* ******** Debug Render Layers Cycles Operation ******** */
 
+#ifdef WITH_CYCLES_DEBUG
+
 RenderLayersCyclesDebugOperation::RenderLayersCyclesDebugOperation(int pass)
     : RenderLayersBaseProg(pass, 1)
 {
 	this->addOutputSocket(COM_DT_VALUE);
 }
+
+void RenderLayersCyclesDebugOperation::setScene(Scene *scene)
+{
+	RenderLayersBaseProg::setScene(scene);
+	switch (m_scene->r.debug_pass_type) {
+		case RENDER_PASS_DEBUG_BVH_TRAVERSAL_STEPS:
+		case RENDER_PASS_DEBUG_BVH_TRAVERSED_INSTANCES:
+		case RENDER_PASS_DEBUG_RAY_BOUNCES:
+			this->m_elementsize = 1;
+		default:
+			fprintf(stderr, "Unknown element size for debug pass");
+			abort();
+	}
+}
+
+#endif

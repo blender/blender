@@ -41,7 +41,7 @@ extern "C" {
  * @todo: rename to operation.
  */
 class RenderLayersBaseProg : public NodeOperation {
-private:
+protected:
 	/**
 	 * Reference to the scene object.
 	 */
@@ -74,7 +74,6 @@ private:
 	 */
 	const RenderData *m_rd;
 
-protected:
 	/**
 	 * Constructor
 	 */
@@ -213,9 +212,12 @@ public:
 	RenderLayersUVOperation();
 };
 
+#ifdef WITH_CYCLES_DEBUG
 class RenderLayersCyclesDebugOperation : public RenderLayersBaseProg {
 public:
 	RenderLayersCyclesDebugOperation(int pass);
+	void setScene(Scene *scene);
 };
+#endif
 
 #endif

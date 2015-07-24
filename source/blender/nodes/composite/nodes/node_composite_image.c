@@ -74,7 +74,7 @@ static bNodeSocketTemplate cmp_node_rlayers_out[] = {
 	{	SOCK_RGBA, 0, N_("Subsurface Indirect"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 0, N_("Subsurface Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 #ifdef WITH_CYCLES_DEBUG
-	{	SOCK_FLOAT, 0, N_("Debug"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, N_("Debug"),					0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 #endif
 	{	-1, 0, ""	}
 };
