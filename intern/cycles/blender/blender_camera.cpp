@@ -462,6 +462,9 @@ void BlenderSync::sync_camera_motion(BL::RenderSettings b_render,
                                      int width, int height,
                                      float motion_time)
 {
+	if(!b_ob)
+		return;
+
 	Camera *cam = scene->camera;
 	BL::Array<float, 16> b_ob_matrix;
 	b_engine.camera_model_matrix(b_ob, b_ob_matrix);
