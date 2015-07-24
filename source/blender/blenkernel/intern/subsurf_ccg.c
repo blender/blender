@@ -2508,7 +2508,7 @@ static GPUDrawObject *ccgDM_GPUObjectNew(DerivedMesh *dm)
 	
 	/* create the GPUDrawObject */
 	gdo = MEM_callocN(sizeof(GPUDrawObject), "GPUDrawObject");
-	gdo->totvert = ccgSubSurf_getNumFinalFaces(ss) * 4; /* doesn't really matter since we don't use indices */
+	gdo->totvert = 0; /* used to count indices, doesn't really matter for ccgsubsurf */
 	gdo->totedge = (totedge * gridFaces * 2 + tot_internal_edges);
 
 	/* count the number of materials used by this DerivedMesh */
