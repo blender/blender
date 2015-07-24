@@ -1778,8 +1778,8 @@ static void ccgDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEd
 #ifdef WITH_OPENSUBDIV
 	if (ccgdm->useGpuBackend) {
 		/* TODO(sergey): We currently only support all edges drawing. */
-		if (ccgSubSurf_prepareGLMesh(ss, true)) {
-			ccgSubSurf_drawGLMesh(ss, false, -1, -1);
+		if (ccgSubSurf_prepareGLMesh(ccgdm->ss, true)) {
+			ccgSubSurf_drawGLMesh(ccgdm->ss, false, -1, -1);
 		}
 		return;
 	}
