@@ -1317,7 +1317,7 @@ GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(
 
 	buffers = MEM_callocN(sizeof(GPU_PBVH_Buffers), "GPU_Buffers");
 	buffers->index_type = GL_UNSIGNED_SHORT;
-	buffers->smooth = mpoly[face_indices[0]].flag & ME_SMOOTH;
+	buffers->smooth = mpoly[looptri[face_indices[0]].poly].flag & ME_SMOOTH;
 
 	buffers->show_diffuse_color = false;
 	buffers->use_matcaps = false;

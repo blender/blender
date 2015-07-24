@@ -209,7 +209,7 @@ static int partition_indices_material(PBVH *bvh, int lo, int hi)
 	int i = lo, j = hi;
 
 	if (bvh->looptri)
-		first = &looptri[bvh->prim_indices[lo]];
+		first = &mpoly[looptri[bvh->prim_indices[lo]].poly];
 	else
 		first = &flagmats[bvh->prim_indices[lo]];
 
