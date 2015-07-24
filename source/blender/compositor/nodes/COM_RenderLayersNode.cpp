@@ -27,6 +27,10 @@
 #include "COM_ScaleOperation.h"
 #include "COM_SetValueOperation.h"
 
+#ifdef WITH_CYCLES_DEBUG
+#  include "RE_pipeline.h"
+#endif
+
 RenderLayersNode::RenderLayersNode(bNode *editorNode) : Node(editorNode)
 {
 	/* pass */
@@ -88,6 +92,11 @@ void RenderLayersNode::convertToOperations(NodeConverter &converter, const Compo
 	testSocketLink(converter, context, 30, new RenderLayersCyclesOperation(SCE_PASS_SUBSURFACE_COLOR));
 
 #ifdef WITH_CYCLES_DEBUG
-	testSocketLink(converter, context, 31, new RenderLayersCyclesDebugOperation(SCE_PASS_DEBUG));
+	{
+		Scene *scene = (Scene *)this->getbNode()->id;
+		Render *re = RE_GetRender(scene->id.name);
+		int debug_pass_type = ((re != NULL) ? RE_debug_pass_type_get(re) : scene->r.debug_pass_type);
+		testSocketLink(converter, context, 31, new RenderLayersCyclesDebugOperation(SCE_PASS_DEBUG, debug_pass_type));
+	}
 #endif
 }

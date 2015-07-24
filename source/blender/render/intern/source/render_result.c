@@ -563,6 +563,11 @@ static RenderPass *render_layer_add_debug_pass(RenderResult *rr,
 	BLI_strncpy(rpass->internal_name, rpass->name, sizeof(rpass->internal_name));
 	return rpass;
 }
+
+int RE_debug_pass_type_get(Render *re)
+{
+	return re->r.debug_pass_type;
+}
 #endif
 
 /* called by main render as well for parts */

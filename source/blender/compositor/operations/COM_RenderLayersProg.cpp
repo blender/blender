@@ -393,16 +393,24 @@ RenderLayersUVOperation::RenderLayersUVOperation() : RenderLayersBaseProg(SCE_PA
 
 #ifdef WITH_CYCLES_DEBUG
 
-RenderLayersCyclesDebugOperation::RenderLayersCyclesDebugOperation(int pass)
-    : RenderLayersBaseProg(pass, 1)
+RenderLayersCyclesDebugOperation::RenderLayersCyclesDebugOperation(
+        int pass,
+        int debug_pass_type)
+	: RenderLayersBaseProg(pass, RE_debug_pass_num_channels_get(debug_pass_type))
 {
-	this->addOutputSocket(COM_DT_VALUE);
-}
-
-void RenderLayersCyclesDebugOperation::setScene(Scene *scene)
-{
-	RenderLayersBaseProg::setScene(scene);
-	this->m_elementsize = RE_debug_pass_num_channels_get(m_scene->r.debug_pass_type);
+	switch(m_elementsize) {
+		case 1:
+			this->addOutputSocket(COM_DT_VALUE);
+			break;
+		case 3:
+			this->addOutputSocket(COM_DT_VECTOR);
+			break;
+		case 4:
+			this->addOutputSocket(COM_DT_COLOR);
+			break;
+		default:
+			BLI_assert(!"Unkown debug pass type element size.");
+	}
 }
 
 #endif

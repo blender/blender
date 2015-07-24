@@ -366,6 +366,7 @@ struct RenderView *RE_RenderViewGetByName(struct RenderResult *res, const char *
 #ifdef WITH_CYCLES_DEBUG
 int RE_debug_pass_num_channels_get(int pass_type);
 const char *RE_debug_pass_name_get(int pass_type);
+int RE_debug_pass_type_get(struct Render *re);
 #endif
 
 #endif /* __RE_PIPELINE_H__ */

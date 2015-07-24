@@ -215,8 +215,8 @@ public:
 #ifdef WITH_CYCLES_DEBUG
 class RenderLayersCyclesDebugOperation : public RenderLayersBaseProg {
 public:
-	RenderLayersCyclesDebugOperation(int pass);
-	void setScene(Scene *scene);
+	RenderLayersCyclesDebugOperation(int pass,
+	                                 int debug_pass_type);
 };
 #endif
 
