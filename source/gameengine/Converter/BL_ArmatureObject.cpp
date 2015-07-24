@@ -230,6 +230,8 @@ BL_ArmatureObject::BL_ArmatureObject(
 	m_origObjArma = armature; // Keep a copy of the original armature so we can fix drivers later
 	m_objArma = BKE_object_copy(armature);
 	m_objArma->data = BKE_armature_copy((bArmature *)armature->data);
+	// During object replication ob->data is increase, we decrease it now because we get a copy.
+	id_us_min(&((bArmature *)m_origObjArma->data)->id);
 	m_pose = m_objArma->pose;
     // need this to get iTaSC working ok in the BGE
     m_pose->flag |= POSE_GAME_ENGINE;
@@ -250,8 +252,10 @@ BL_ArmatureObject::~BL_ArmatureObject()
 		delete channel;
 	}
 
-	if (m_objArma)
+	if (m_objArma) {
+		BKE_libblock_free(G.main, m_objArma->data);
 		BKE_libblock_free(G.main, m_objArma);
+	}
 }
 
 
