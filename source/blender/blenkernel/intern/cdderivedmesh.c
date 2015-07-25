@@ -1291,7 +1291,6 @@ static void cdDM_buffer_copy_triangles(
 		gpumaterials[i].totvisiblepolys = fc[i].i_visible;
 	}
 
-
 	MEM_freeN(fc);
 }
 

@@ -1973,12 +1973,21 @@ static void ccgDM_buffer_copy_normal(
 	}
 }
 
+typedef struct FaceCount {
+	unsigned int i_visible;
+	unsigned int i_hidden;
+	unsigned int i_tri_visible;
+	unsigned int i_tri_hidden;
+} FaceCount;
+
+
 /* Only used by non-editmesh types */
 static void ccgDM_buffer_copy_triangles(
         DerivedMesh *dm, unsigned int *varray,
         const int *mat_orig_to_new)
 {
-	GPUBufferMaterial *gpumat;
+	GPUBufferMaterial *gpumat, *gpumaterials = dm->drawObject->materials;
+	const int totmat = dm->drawObject->totmaterial;
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGKey key;
@@ -1988,41 +1997,87 @@ static void ccgDM_buffer_copy_triangles(
 	int i, totface = ccgSubSurf_getNumFaces(ss);
 	int matnr = -1, start;
 	int totloops = 0;
+	FaceCount *fc = MEM_mallocN(sizeof(*fc) * totmat, "gpumaterial.facecount");
 
 	CCG_key_top_level(&key, ss);
+
+	for (i = 0; i < totmat; i++) {
+		fc[i].i_visible = 0;
+		fc[i].i_tri_visible = 0;
+		fc[i].i_hidden = gpumaterials[i].totpolys - 1;
+		fc[i].i_tri_hidden = gpumaterials[i].totelements - 1;
+	}
 
 	for (i = 0; i < totface; i++) {
 		CCGFace *f = ccgdm->faceMap[i].face;
 		int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(f);
 		int index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
+		bool is_hidden;
+		int mati;
 
 		if (faceFlags) {
 			matnr = faceFlags[index].mat_nr;
+			is_hidden = (faceFlags[index].flag & ME_HIDE) != 0;
 		}
 		else {
 			matnr = 0;
+			is_hidden = false;
 		}
+		mati = mat_orig_to_new[matnr];
+		gpumat = dm->drawObject->materials + mati;
 
-		for (S = 0; S < numVerts; S++) {
-			for (y = 0; y < gridFaces; y++) {
-				for (x = 0; x < gridFaces; x++) {
-					gpumat = dm->drawObject->materials + mat_orig_to_new[matnr];
-					start = gpumat->counter;
+		if (is_hidden) {
+			for (S = 0; S < numVerts; S++) {
+				for (y = 0; y < gridFaces; y++) {
+					for (x = 0; x < gridFaces; x++) {
+						start = gpumat->start + fc[mati].i_tri_hidden;
 
-					varray[start] = totloops + 3;
-					varray[start + 1] = totloops + 2;
-					varray[start + 2] = totloops + 1;
+						varray[start--] = totloops + 1;
+						varray[start--] = totloops + 2;
+						varray[start--] = totloops + 3;
 
-					varray[start + 3] = totloops + 3;
-					varray[start + 4] = totloops + 1;
-					varray[start + 5] = totloops;
+						varray[start--] = totloops;
+						varray[start--] = totloops + 1;
+						varray[start--] = totloops + 3;
 
-					gpumat->counter += 6;
-					totloops += 4;
+						fc[mati].i_tri_hidden -= 6;
+
+						totloops += 4;
+					}
 				}
 			}
+			gpumat->polys[fc[mati].i_hidden--] = i;
+		}
+		else {
+			for (S = 0; S < numVerts; S++) {
+				for (y = 0; y < gridFaces; y++) {
+					for (x = 0; x < gridFaces; x++) {
+						start = gpumat->start + fc[mati].i_tri_visible;
+
+						varray[start++] = totloops + 3;
+						varray[start++] = totloops + 2;
+						varray[start++] = totloops + 1;
+
+						varray[start++] = totloops + 3;
+						varray[start++] = totloops + 1;
+						varray[start++] = totloops;
+
+						fc[mati].i_tri_visible += 6;
+
+						totloops += 4;
+					}
+				}
+			}
+			gpumat->polys[fc[mati].i_visible++] = i;
 		}
 	}
+
+	/* set the visible polygons */
+	for (i = 0; i < totmat; i++) {
+		gpumaterials[i].totvisiblepolys = fc[i].i_visible;
+	}
+
+	MEM_freeN(fc);
 }
 
 
@@ -2460,8 +2515,6 @@ static void ccgDM_copy_gpu_data(
 
 static GPUDrawObject *ccgDM_GPUObjectNew(DerivedMesh *dm)
 {
-	GPUBufferMaterial *mat;
-	int *mat_orig_to_new;
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	GPUDrawObject *gdo;
@@ -2514,35 +2567,7 @@ static GPUDrawObject *ccgDM_GPUObjectNew(DerivedMesh *dm)
 
 	/* store total number of points used for triangles */
 	gdo->tot_triangle_point = ccgSubSurf_getNumFinalFaces(ss) * 6;
-
 	gdo->tot_loop_verts = ccgSubSurf_getNumFinalFaces(ss) * 4;
-
-	mat_orig_to_new = MEM_callocN(sizeof(*mat_orig_to_new) * totmat,
-	                                             "GPUDrawObject.mat_orig_to_new");
-
-	/* build a map from the original material indices to the new
-	 * GPUBufferMaterial indices */
-	for (i = 0; i < gdo->totmaterial; i++) {
-		mat_orig_to_new[gdo->materials[i].mat_nr] = i;
-		gdo->materials[i].counter = 0;
-	}
-
-	if (faceFlags) {
-		for (i = 0; i < totface; i++) {
-			CCGFace *f = ccgdm->faceMap[i].face;
-			int index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
-			int new_matnr = faceFlags[index].mat_nr;
-
-			mat = &gdo->materials[mat_orig_to_new[new_matnr]];
-			mat->polys[mat->counter++] = i;
-		}
-	}
-	else {
-		mat = &gdo->materials[0];
-		for (i = 0; i < totface; i++) {
-			mat->polys[mat->counter++] = i;
-		}
-	}
 
 	/* finally, count loose points */
 	for (i = 0; i < totedge; i++) {
@@ -2551,8 +2576,6 @@ static GPUDrawObject *ccgDM_GPUObjectNew(DerivedMesh *dm)
 		if (!ccgSubSurf_getEdgeNumFaces(e))
 			gdo->tot_loose_point += edgeVerts;
 	}
-
-	MEM_freeN(mat_orig_to_new);
 
 	return gdo;
 }

@@ -529,7 +529,6 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 	int i;
 	const GPUBufferTypeSettings *ts = &gpu_buffer_type_settings[type];
 	GLenum target = ts->gl_buffer_type;
-	int num_components = ts->num_components;
 	size_t size = gpu_buffer_size_from_type(dm, type);
 	bool use_VBOs = (GLEW_ARB_vertex_buffer_object) && !(U.gameflags & USER_DISABLE_VBO);
 	GLboolean uploaded;
@@ -547,9 +546,6 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 	mat_orig_to_new = MEM_mallocN(sizeof(*mat_orig_to_new) * dm->totmat,
 	                              "GPU_buffer_setup.mat_orig_to_new");
 	for (i = 0; i < object->totmaterial; i++) {
-		/* for each material, the current index to copy data to */
-		object->materials[i].counter = object->materials[i].start * num_components;
-
 		/* map from original material index to new
 		 * GPUBufferMaterial index */
 		mat_orig_to_new[object->materials[i].mat_nr] = i;
