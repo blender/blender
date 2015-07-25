@@ -3458,19 +3458,20 @@ static void do_tiled(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
 {
 	SculptSession *ss = ob->sculpt;
 	StrokeCache *cache = ss->cache;
-	const float * bbMin = ob->bb->vec[0];
-	const float * bbMax = ob->bb->vec[6];
+	const float radius = cache->radius;
+	const float *bbMin = ob->bb->vec[0];
+	const float *bbMax = ob->bb->vec[6];
 
 	float start[3];
 	float end[3];
-	const float * step = sd->paint.tile_offset;
+	const float *step = sd->paint.tile_offset;
 	int dim;
 
 	for (dim = 0; dim < 3; ++dim) {
 		if ((sd->paint.symmetry_flags & (PAINT_TILE_X << dim)) && step[dim] > 0) {
-			int n = (cache->location[dim] - bbMin[dim] - cache->radius) / step[dim];
+			int n = (cache->location[dim] - bbMin[dim] + radius) / step[dim];
 			start[dim] = cache->location[dim] - n * step[dim];
-			end[dim] = bbMax[dim] + cache->radius;
+			end[dim] = bbMax[dim] + radius;
 		}
 		else
 			start[dim] = end[dim] = cache->location[dim];
