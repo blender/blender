@@ -38,6 +38,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_lasso.h"
 #include "BLI_utildefines.h"
+#include "BLI_math_vector.h"
 
 #include "DNA_gpencil_types.h"
 #include "DNA_screen_types.h"
@@ -768,8 +769,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 	bool toggle = RNA_boolean_get(op->ptr, "toggle");
 	bool whole = RNA_boolean_get(op->ptr, "entire_strokes");
 	
-	int location[2] = {0};
-	int mx, my;
+	int mval[2] = {0};
 	
 	GP_SpaceConversion gsc = {NULL};
 	
@@ -787,10 +787,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 	gp_point_conversion_init(C, &gsc);
 	
 	/* get mouse location */
-	RNA_int_get_array(op->ptr, "location", location);
-	
-	mx = location[0];
-	my = location[1];
+	RNA_int_get_array(op->ptr, "location", mval);
 	
 	/* First Pass: Find stroke point which gets hit */
 	/* XXX: maybe we should go from the top of the stack down instead... */
@@ -801,13 +798,13 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 		
 		/* firstly, check for hit-point */
 		for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-			int x0, y0;
+			int xy[2];
 			
-			gp_point_to_xy(&gsc, gps, pt, &x0, &y0);
+			gp_point_to_xy(&gsc, gps, pt, &xy[0], &xy[1]);
 		
 			/* do boundbox check first */
-			if (!ELEM(V2D_IS_CLIPPED, x0, x0)) {
-				const int pt_distance = ((x0 - mx) * (x0 - mx) + (y0 - my) * (y0 - my));
+			if (!ELEM(V2D_IS_CLIPPED, xy[0], xy[1])) {
+				const int pt_distance = len_manhattan_v2v2_int(mval, xy);
 				
 				/* check if point is inside */
 				if (pt_distance <= radius_squared) {
