@@ -3063,7 +3063,7 @@ static void draw_dm_faces_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *ba
 	/* double lookup */
 	data.orig_index_mp_to_orig  = DM_get_poly_data_layer(dm, CD_ORIGINDEX);
 
-	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, NULL, draw_dm_faces_sel__compareDrawOptions, &data, 0);
+	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, NULL, draw_dm_faces_sel__compareDrawOptions, &data, DM_DRAW_SKIP_HIDDEN);
 }
 
 static DMDrawOption draw_dm_creases__setDrawOptions(void *userData, int index)
@@ -3763,7 +3763,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 			/* use the cageDM since it always overlaps the editmesh faces */
 			glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 			cageDM->drawMappedFaces(cageDM, draw_em_fancy__setFaceOpts,
-			                        GPU_enable_material, NULL, me->edit_btmesh, 0);
+			                        GPU_enable_material, NULL, me->edit_btmesh, DM_DRAW_SKIP_HIDDEN);
 			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		}
 		else if (check_object_draw_texture(scene, v3d, dt)) {
@@ -3787,7 +3787,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 
 			glEnable(GL_LIGHTING);
 			glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
-			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, GPU_enable_material, NULL, me->edit_btmesh, 0);
+			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, GPU_enable_material, NULL, me->edit_btmesh, DM_DRAW_SKIP_HIDDEN);
 
 			glFrontFace(GL_CCW);
 			glDisable(GL_LIGHTING);
@@ -8445,7 +8445,7 @@ static void bbs_mesh_solid_EM(BMEditMesh *em, Scene *scene, View3D *v3d,
 	cpack(0);
 
 	if (use_faceselect) {
-		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, NULL, NULL, em->bm, 0);
+		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, NULL, NULL, em->bm, DM_DRAW_SKIP_HIDDEN);
 
 		if (check_ob_drawface_dot(scene, v3d, ob->dt)) {
 			glPointSize(UI_GetThemeValuef(TH_FACEDOT_SIZE));
@@ -8457,7 +8457,7 @@ static void bbs_mesh_solid_EM(BMEditMesh *em, Scene *scene, View3D *v3d,
 
 	}
 	else {
-		dm->drawMappedFaces(dm, bbs_mesh_mask__setSolidDrawOptions, NULL, NULL, em->bm, DM_DRAW_SKIP_SELECT);
+		dm->drawMappedFaces(dm, bbs_mesh_mask__setSolidDrawOptions, NULL, NULL, em->bm, DM_DRAW_SKIP_SELECT | DM_DRAW_SKIP_HIDDEN);
 	}
 }
 
@@ -8501,7 +8501,7 @@ static void bbs_mesh_solid_verts(Scene *scene, Object *ob)
 
 	DM_update_materials(dm, ob);
 
-	dm->drawMappedFaces(dm, bbs_mesh_solid_hide2__setDrawOpts, GPU_enable_material, NULL, me, 0);
+	dm->drawMappedFaces(dm, bbs_mesh_solid_hide2__setDrawOpts, GPU_enable_material, NULL, me, DM_DRAW_SKIP_HIDDEN);
 
 	bbs_obmode_mesh_verts(ob, dm, 1);
 	bm_vertoffs = me->totvert + 1;
