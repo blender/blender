@@ -3575,8 +3575,8 @@ void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, eAnimChannel
 #define ICON_WIDTH      (0.85f * U.widget_unit)
 // width of sliders
 #define SLIDER_WIDTH    (4 * U.widget_unit)
-// width of rename textboxes
-#define RENAME_TEXT_WIDTH (5 * U.widget_unit)
+// min-width of rename textboxes
+#define RENAME_TEXT_MIN_WIDTH (U.widget_unit)
 
 
 /* Helper - Check if a channel needs renaming */
@@ -4118,6 +4118,7 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 	View2D *v2d = &ac->ar->v2d;
 	float y, ymid /*, ytext*/;
 	short offset;
+	const bool is_being_renamed = achannel_is_being_renamed(ac, acf, channel_index);
 	
 	/* sanity checks - don't draw anything */
 	if (ELEM(NULL, acf, ale, block))
@@ -4193,7 +4194,7 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 	}
 	
 	/* step 4) draw text - check if renaming widget is in use... */
-	if (achannel_is_being_renamed(ac, acf, channel_index)) {
+	if (is_being_renamed) {
 		PointerRNA ptr = {{NULL}};
 		PropertyRNA *prop = NULL;
 		
@@ -4202,12 +4203,15 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 		 *       a callback available (e.g. broken F-Curve rename)
 		 */
 		if (acf->name_prop(ale, &ptr, &prop)) {
-			const float channel_height = ymaxc - yminc;
+			const short margin_x = 3 * iroundf(UI_DPI_FAC);
+			const short channel_height = iroundf(ymaxc - yminc);
+			const short width = ac->ar->winx - offset - (margin_x * 2);
 			uiBut *but;
 			
 			UI_block_emboss_set(block, UI_EMBOSS);
 			
-			but = uiDefButR(block, UI_BTYPE_TEXT, 1, "", offset + 3, yminc, RENAME_TEXT_WIDTH, channel_height,
+			but = uiDefButR(block, UI_BTYPE_TEXT, 1, "", offset + margin_x, yminc,
+			                MAX2(width, RENAME_TEXT_MIN_WIDTH), channel_height,
 			                &ptr, RNA_property_identifier(prop), -1, 0, 0, -1, -1, NULL);
 			
 			/* copy what outliner does here, see outliner_buttons */
@@ -4227,7 +4231,7 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 	offset = 0;
 	
 	// TODO: when drawing sliders, make those draw instead of these toggles if not enough space
-	if (v2d) {
+	if (v2d && !is_being_renamed) {
 		short draw_sliders = 0;
 		
 		/* check if we need to show the sliders */
