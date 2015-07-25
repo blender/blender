@@ -3156,11 +3156,6 @@ static void draw_dm_bweights(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 	}
 }
 
-static int draw_dm_override_material_color(int UNUSED(nr), void *UNUSED(attribs))
-{
-	return 1;
-}
-
 /* Second section of routines: Combine first sets to form fancy
  * drawing routines (for example rendering twice to get overlays).
  *
@@ -4148,7 +4143,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				glEnable(GL_LIGHTING);
 				glEnable(GL_COLOR_MATERIAL);
 
-				dm->drawMappedFaces(dm, NULL, draw_dm_override_material_color, NULL, NULL, DM_DRAW_USE_COLORS);
+				dm->drawMappedFaces(dm, NULL, NULL, NULL, NULL, DM_DRAW_USE_COLORS);
 				glDisable(GL_COLOR_MATERIAL);
 				glDisable(GL_LIGHTING);
 
