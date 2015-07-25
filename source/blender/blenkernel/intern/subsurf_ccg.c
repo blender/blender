@@ -2392,7 +2392,7 @@ static void ccgDM_buffer_copy_edge(
 		}
 
 		if (ccgdm->edgeFlags && !(ccgdm->edgeFlags[j] & ME_EDGEDRAW)) {
-			if (!ccgSubSurf_getEdgeNumFaces(e)) {
+			if (isloose) {
 				for (i = 0; i < edgeSize; i++) {
 					varray[iloosehidden * 2] = iloosevert;
 					varray[iloosehidden * 2 + 1] = iloosevert + 1;
@@ -2415,7 +2415,7 @@ static void ccgDM_buffer_copy_edge(
 			}
 		}
 		else {
-			if (!ccgSubSurf_getEdgeNumFaces(e)) {
+			if (isloose) {
 				for (i = 0; i < edgeSize; i++) {
 					varray[iloose * 2] = iloosevert;
 					varray[iloose * 2 + 1] = iloosevert + 1;
