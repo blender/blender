@@ -2989,7 +2989,7 @@ float		CcdPhysicsEnvironment::getAppliedImpulse(int	constraintid)
 {
 	// For soft body constraints
 	if (constraintid == 0)
-		return NULL;
+		return 0.0f;
 
 	int i;
 	int numConstraints = m_dynamicsWorld->getNumConstraints();
