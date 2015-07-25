@@ -6576,6 +6576,8 @@ void blo_do_versions_view3d_split_250(View3D *v3d, ListBase *regions)
 	/* this was not initialized correct always */
 	if (v3d->twtype == 0)
 		v3d->twtype = V3D_MANIP_TRANSLATE;
+	if (v3d->gridsubdiv == 0)
+		v3d->gridsubdiv = 10;
 }
 
 static bool direct_link_screen(FileData *fd, bScreen *sc)
