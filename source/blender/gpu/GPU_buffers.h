@@ -48,6 +48,7 @@ struct DMFlagMat;
 struct DerivedMesh;
 struct GSet;
 struct GPUVertPointLink;
+struct GPUDrawObject;
 struct PBVH;
 struct MVert;
 
@@ -70,6 +71,8 @@ typedef struct GPUBufferMaterial {
 	/* original material index */
 	short mat_nr;
 } GPUBufferMaterial;
+
+void GPU_buffer_material_finalize(struct GPUDrawObject *gdo, GPUBufferMaterial *matinfo, int totmat);
 
 /* meshes are split up by material since changing materials requires
  * GL state changes that can't occur in the middle of drawing an

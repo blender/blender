@@ -114,6 +114,36 @@ static int mres_prev_gridsize = -1;
 static GLenum mres_prev_index_type = 0;
 static unsigned mres_prev_totquad = 0;
 
+void GPU_buffer_material_finalize(GPUDrawObject *gdo, GPUBufferMaterial *matinfo, int totmat)
+{
+	int i, curmat, curelement;
+
+	/* count the number of materials used by this DerivedMesh */
+	for (i = 0; i < totmat; i++) {
+		if (matinfo[i].totelements > 0)
+			gdo->totmaterial++;
+	}
+
+	/* allocate an array of materials used by this DerivedMesh */
+	gdo->materials = MEM_mallocN(sizeof(GPUBufferMaterial) * gdo->totmaterial,
+	                             "GPUDrawObject.materials");
+
+	/* initialize the materials array */
+	for (i = 0, curmat = 0, curelement = 0; i < totmat; i++) {
+		if (matinfo[i].totelements > 0) {
+			gdo->materials[curmat] = matinfo[i];
+			gdo->materials[curmat].start = curelement;
+			gdo->materials[curmat].mat_nr = i;
+			gdo->materials[curmat].polys = MEM_mallocN(sizeof(int) * matinfo[i].totpolys, "GPUBufferMaterial.polys");
+
+			curelement += matinfo[i].totelements;
+			curmat++;
+		}
+	}
+
+	MEM_freeN(matinfo);
+}
+
 
 /* stores recently-deleted buffers so that new buffers won't have to
  * be recreated as often
