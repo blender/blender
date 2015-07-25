@@ -3468,9 +3468,9 @@ static void do_tiled(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
 
 	for (dim = 0; dim < 3; ++dim) {
 		if ((sd->paint.symmetry_flags & (PAINT_TILE_X << dim)) && step[dim] > 0) {
-			int n = (cache->location[dim] - bbMin[dim]) / step[dim];
+			int n = (cache->location[dim] - bbMin[dim] - cache->radius) / step[dim];
 			start[dim] = cache->location[dim] - n * step[dim];
-			end[dim] = bbMax[dim];
+			end[dim] = bbMax[dim] + cache->radius;
 		}
 		else
 			start[dim] = end[dim] = cache->location[dim];
