@@ -494,11 +494,14 @@ void ANIM_center_frame(struct bContext *C, int smooth_viewtx)
 
 	switch (U.view_frame_type) {
 		case ZOOM_FRAME_MODE_SECONDS:
-			newrct.xmax = scene->r.cfra + U.view_frame_seconds * FPS + 1;
-			newrct.xmin = scene->r.cfra - U.view_frame_seconds * FPS - 1;
+		{
+			const float fps = FPS;
+			newrct.xmax = scene->r.cfra + U.view_frame_seconds * fps + 1;
+			newrct.xmin = scene->r.cfra - U.view_frame_seconds * fps - 1;
 			newrct.ymax = ar->v2d.cur.ymax;
 			newrct.ymin = ar->v2d.cur.ymin;
 			break;
+		}
 
 		/* hardest case of all, look for all keyframes around frame and display those */
 		case ZOOM_FRAME_MODE_KEYFRAMES:

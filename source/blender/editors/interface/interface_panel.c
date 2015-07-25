@@ -1061,7 +1061,6 @@ void UI_panels_scale(ARegion *ar, float new_width)
 	for (block = ar->uiblocks.first; block; block = block->next) {
 		if (block->panel) {
 			float fac = new_width / (float)block->panel->sizex;
-			printf("scaled %f\n", fac);
 			block->panel->sizex = new_width;
 			
 			for (but = block->buttons.first; but; but = but->next) {

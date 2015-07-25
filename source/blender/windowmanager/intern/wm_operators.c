@@ -4486,7 +4486,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 							break;
 						case PROP_PERCENTAGE:
 							new_value = ((dist - WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE) / WM_RADIAL_CONTROL_DISPLAY_WIDTH) * 100.0f;
-							if (snap) new_value = ((int)(new_value + 2.5)) / 5 * 5;
+							if (snap) new_value = ((int)(new_value + 2.5f)) / 5 * 5;
 							break;
 						case PROP_FACTOR:
 							new_value = (WM_RADIAL_CONTROL_DISPLAY_SIZE - dist) / WM_RADIAL_CONTROL_DISPLAY_WIDTH;
@@ -4734,7 +4734,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 		redraw_timer_step(C, bmain, scene, win, sa, ar, type, cfra);
 		iter_steps += 1;
 
-		if (time_limit != 0.0f) {
+		if (time_limit != 0.0) {
 			if ((PIL_check_seconds_timer() - time_start) > time_limit) {
 				break;
 			}

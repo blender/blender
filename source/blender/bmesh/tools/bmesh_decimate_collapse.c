@@ -111,7 +111,7 @@ static void bm_decim_build_quadrics(BMesh *bm, Quadric *vquadrics)
 			cross_v3_v3v3(edge_plane, edge_vector, f->no);
 			copy_v3db_v3fl(edge_plane_db, edge_plane);
 
-			if (normalize_v3_d(edge_plane_db) > FLT_EPSILON) {
+			if (normalize_v3_d(edge_plane_db) > (double)FLT_EPSILON) {
 				Quadric q;
 				float center[3];
 

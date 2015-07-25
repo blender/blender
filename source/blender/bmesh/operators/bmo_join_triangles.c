@@ -105,7 +105,7 @@ static float quad_calc_error(
 		area_min = min_ff(area_a, area_b);
 		area_max = max_ff(area_a, area_b);
 
-		diff = area_max ? (1.0 - (area_min / area_max)) : 1.0f;
+		diff = area_max ? (1.0f - (area_min / area_max)) : 1.0f;
 
 		error += diff;
 	}

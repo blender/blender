@@ -758,7 +758,7 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, bool e
 				copy_v3_v3(meetco, closer_v->co);
 				e1->offset_r = len_v3v3(meetco, v->co);
 			}
-			if (edges_between && e1->offset_r > 0.0 && e2->offset_l > 0.0) {
+			if (edges_between && e1->offset_r > 0.0f && e2->offset_l > 0.0f) {
 				/* Try to drop meetco to a face between e1 and e2 */
 				if (isect_kind == 2) {
 					/* lines didn't meet in 3d: get average of meetco and isect2 */

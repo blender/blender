@@ -1285,7 +1285,7 @@ static bool curve_select_similar_direction(ListBase *editnurb, Curve *cu, float 
 	}
 
 	/* map 0-1 to radians, 'cos' for comparison */
-	angle_cos = cosf(thresh * M_PI_2);
+	angle_cos = cosf(thresh * (float)M_PI_2);
 
 	for (nu = editnurb->first; nu; nu = nu->next) {
 		if (nu->type == CU_BEZIER) {
