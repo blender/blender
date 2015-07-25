@@ -1814,7 +1814,7 @@ static void ccgDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEd
 		}
 		else {
 			GPU_buffer_draw_elements(gdo->edges, GL_LINES, 0, gdo->tot_edge_drawn * 2);
-			GPU_buffer_draw_elements(gdo->edges, GL_LINES, gdo->loose_edge_offset * 2, dm->drawObject->tot_loose_edge_drawn * 2);
+			GPU_buffer_draw_elements(gdo->edges, GL_LINES, gdo->loose_edge_offset * 2, gdo->tot_loose_edge_drawn * 2);
 		}
 	}
 
@@ -2271,7 +2271,8 @@ static void ccgDM_buffer_copy_edge(
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
-	int i, j, edgeSize = ccgSubSurf_getEdgeSize(ss);
+	/* getEdgeSuze returns num of verts, edges is one less */
+	int i, j, edgeSize = ccgSubSurf_getEdgeSize(ss) - 1;
 	int totedge = ccgSubSurf_getNumEdges(ss);
 	int grid_face_side = ccgSubSurf_getGridSize(ss) - 1;
 	int totface = ccgSubSurf_getNumFaces(ss);
@@ -2300,10 +2301,9 @@ static void ccgDM_buffer_copy_edge(
 	}
 
 	inorm = 0;
-	inormhidden = tot * grid_face_side;
-	/* multiply by two for loose edges, the indices are copied in a different way */
-	iloose = (tot + tot_hidden) * grid_face_side * 2;
-	iloosehidden = (tot + tot_hidden + tot_loose) * grid_face_side * 2;
+	inormhidden = tot * edgeSize;
+	iloose = (tot + tot_hidden) * edgeSize;
+	iloosehidden = (tot + tot_hidden + tot_loose) * edgeSize;
 	iloosevert = dm->drawObject->tot_loop_verts;
 
 	/* part one, handle all normal edges */
@@ -2338,7 +2338,7 @@ static void ccgDM_buffer_copy_edge(
 
 		if (ccgdm->edgeFlags && !(ccgdm->edgeFlags[j] & ME_EDGEDRAW)) {
 			if (!ccgSubSurf_getEdgeNumFaces(e)) {
-				for (i = 0; i < edgeSize - 1; i++) {
+				for (i = 0; i < edgeSize; i++) {
 					varray[iloosehidden * 2] = iloosevert;
 					varray[iloosehidden * 2 + 1] = iloosevert + 1;
 					iloosehidden++;
@@ -2351,17 +2351,17 @@ static void ccgDM_buffer_copy_edge(
 				index_start = ccgdm->faceMap[fhandle].startFace;
 
 				for (i = 0; i < grid_face_side; i++) {
-					varray[inormhidden * 4] = (index_start + S * grid_tot_face + i * grid_face_side + grid_face_side - 1) * 4 + 1;
-					varray[inormhidden * 4 + 1] = (index_start + S * grid_tot_face + i * grid_face_side + grid_face_side - 1) * 4 + 2;
-					varray[inormhidden * 4 + 2] = (index_start + ((S + 1) % totvert) * grid_tot_face + grid_face_side * (grid_face_side - 1) + i) * 4 + 2;
-					varray[inormhidden * 4 + 3] = (index_start + ((S + 1) % totvert) * grid_tot_face + grid_face_side * (grid_face_side - 1) + i) * 4 + 3;
-					inormhidden++;
+					varray[inormhidden * 2] = (index_start + S * grid_tot_face + i * grid_face_side + grid_face_side - 1) * 4 + 1;
+					varray[inormhidden * 2 + 1] = (index_start + S * grid_tot_face + i * grid_face_side + grid_face_side - 1) * 4 + 2;
+					varray[inormhidden * 2 + 2] = (index_start + ((S + 1) % totvert) * grid_tot_face + grid_face_side * (grid_face_side - 1) + i) * 4 + 2;
+					varray[inormhidden * 2 + 3] = (index_start + ((S + 1) % totvert) * grid_tot_face + grid_face_side * (grid_face_side - 1) + i) * 4 + 3;
+					inormhidden += 2;
 				}
 			}
 		}
 		else {
 			if (!ccgSubSurf_getEdgeNumFaces(e)) {
-				for (i = 0; i < edgeSize - 1; i++) {
+				for (i = 0; i < edgeSize; i++) {
 					varray[iloose * 2] = iloosevert;
 					varray[iloose * 2 + 1] = iloosevert + 1;
 					iloose++;
@@ -2374,11 +2374,11 @@ static void ccgDM_buffer_copy_edge(
 				index_start = ccgdm->faceMap[fhandle].startFace;
 
 				for (i = 0; i < grid_face_side; i++) {
-					varray[inorm * 4] = (index_start + S * grid_tot_face + i * grid_face_side + grid_face_side - 1) * 4 + 1;
-					varray[inorm * 4 + 1] = (index_start + S * grid_tot_face + i * grid_face_side + grid_face_side - 1) * 4 + 2;
-					varray[inorm * 4 + 2] = (index_start + ((S + 1) % totvert) * grid_tot_face + grid_face_side * (grid_face_side - 1) + i) * 4 + 2;
-					varray[inorm * 4 + 3] = (index_start + ((S + 1) % totvert) * grid_tot_face + grid_face_side * (grid_face_side - 1) + i) * 4 + 3;
-					inorm++;
+					varray[inorm * 2] = (index_start + S * grid_tot_face + i * grid_face_side + grid_face_side - 1) * 4 + 1;
+					varray[inorm * 2 + 1] = (index_start + S * grid_tot_face + i * grid_face_side + grid_face_side - 1) * 4 + 2;
+					varray[inorm * 2 + 2] = (index_start + ((S + 1) % totvert) * grid_tot_face + grid_face_side * (grid_face_side - 1) + i) * 4 + 2;
+					varray[inorm * 2 + 3] = (index_start + ((S + 1) % totvert) * grid_tot_face + grid_face_side * (grid_face_side - 1) + i) * 4 + 3;
+					inorm += 2;
 				}
 			}
 		}
@@ -2415,11 +2415,11 @@ static void ccgDM_buffer_copy_edge(
 		}
 	}
 
-	dm->drawObject->tot_loose_edge_drawn = tot_loose * (edgeSize - 1) * 2;
-	dm->drawObject->loose_edge_offset = (tot + tot_hidden) * grid_face_side * 2;
-	dm->drawObject->tot_edge_drawn = tot * grid_face_side * 2;
+	dm->drawObject->tot_loose_edge_drawn = tot_loose * edgeSize;
+	dm->drawObject->loose_edge_offset = (tot + tot_hidden) * edgeSize;
+	dm->drawObject->tot_edge_drawn = tot * edgeSize;
 
-	dm->drawObject->interior_offset = totedge * grid_face_side * 2;
+	dm->drawObject->interior_offset = totedge * edgeSize;
 	dm->drawObject->totinterior = tot_interior;
 }
 
@@ -2472,13 +2472,13 @@ static GPUDrawObject *ccgDM_GPUObjectNew(DerivedMesh *dm)
 	CCGSubSurf *ss = ccgdm->ss;
 	GPUDrawObject *gdo;
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
-	int gridSize = ccgSubSurf_getGridSize(ss);
-	int gridFaces = gridSize - 1;
+	int gridFaces = ccgSubSurf_getGridSize(ss) - 1;
 	int totmat = (faceFlags) ? dm->totmat : 1;
 	GPUMaterialInfo *matinfo;
 	int i, curmat, curelement;
 	unsigned int tot_internal_edges = 0;
-	int edgeSize = ccgSubSurf_getEdgeSize(ss);
+	int edgeVerts = ccgSubSurf_getEdgeSize(ss);
+	int edgeSize = edgeVerts - 1;
 
 	int totedge = ccgSubSurf_getNumEdges(ss);
 	int totface = ccgSubSurf_getNumFaces(ss);
@@ -2514,7 +2514,7 @@ static GPUDrawObject *ccgDM_GPUObjectNew(DerivedMesh *dm)
 	/* create the GPUDrawObject */
 	gdo = MEM_callocN(sizeof(GPUDrawObject), "GPUDrawObject");
 	gdo->totvert = 0; /* used to count indices, doesn't really matter for ccgsubsurf */
-	gdo->totedge = (totedge * gridFaces * 2 + tot_internal_edges);
+	gdo->totedge = (totedge * edgeSize + tot_internal_edges);
 
 	/* count the number of materials used by this DerivedMesh */
 	for (i = 0; i < totmat; i++) {
@@ -2578,7 +2578,7 @@ static GPUDrawObject *ccgDM_GPUObjectNew(DerivedMesh *dm)
 		CCGEdge *e = ccgdm->edgeMap[i].edge;
 
 		if (!ccgSubSurf_getEdgeNumFaces(e))
-			gdo->tot_loose_point += edgeSize;
+			gdo->tot_loose_point += edgeVerts;
 	}
 
 	MEM_freeN(mat_orig_to_new);
