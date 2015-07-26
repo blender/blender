@@ -279,7 +279,7 @@ static void sculpt_undo_bmesh_restore_generic(bContext *C,
 		unode->applied = true;
 	}
 
-	if (ELEM(unode->type, SCULPT_UNDO_MASK, SCULPT_UNDO_MASK)) {
+	if (unode->type == SCULPT_UNDO_MASK) {
 		int i, totnode;
 		PBVHNode **nodes;
 
