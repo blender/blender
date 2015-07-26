@@ -57,7 +57,10 @@ if 'cmake' in builder:
     retcode = subprocess.call(['cmake', blender_dir] + cmake_options)
     if retcode != 0:
         sys.exit(retcode)
-    if 'win' in builder:
+
+    if 'win32' in builder:
+        retcode = subprocess.call(['msbuild', 'INSTALL.vcxproj', '/Property:PlatformToolset=v120_xp', '/p:Configuration=Release'])
+    elif 'win64' in builder:
         retcode = subprocess.call(['msbuild', 'INSTALL.vcxproj', '/p:Configuration=Release'])
     else:
         retcode = subprocess.call(['make', '-s', '-j4', 'install'])
