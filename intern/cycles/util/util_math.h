@@ -1447,10 +1447,14 @@ ccl_device bool ray_triangle_intersect_uv(
 	return true;
 }
 
-ccl_device bool ray_quad_intersect(
-	float3 ray_P, float3 ray_D, float ray_t,
-	float3 quad_P, float3 quad_u, float3 quad_v,
-	float3 *isect_P, float *isect_t)
+#if defined(__KERNEL_CUDA__) && (defined(i386) || defined(_M_IX86))
+ccl_device_noinline
+#else
+ccl_device
+#endif
+bool ray_quad_intersect(float3 ray_P, float3 ray_D, float ray_t,
+                        float3 quad_P, float3 quad_u, float3 quad_v,
+                        float3 *isect_P, float *isect_t)
 {
 	float3 v0 = quad_P - quad_u*0.5f - quad_v*0.5f;
 	float3 v1 = quad_P + quad_u*0.5f - quad_v*0.5f;
