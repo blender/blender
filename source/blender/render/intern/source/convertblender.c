@@ -5005,7 +5005,9 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 				dupli_render_particle_set(re, ob, timeoffset, 0, 1);
 				duplilist = object_duplilist(re->eval_ctx, re->scene, ob);
 				duplilist_apply_data = duplilist_apply(ob, NULL, duplilist);
-				dupli_render_particle_set(re, ob, timeoffset, 0, 0);
+				/* postpone 'dupli_render_particle_set', since RE_addRenderInstance reads
+				 * index values from 'dob->persistent_id[0]', referencing 'psys->child' which
+				 * may be smaller once the particle system is restored, see: T45563. */
 
 				for (dob= duplilist->first, i = 0; dob; dob= dob->next, ++i) {
 					DupliExtraData *dob_extra = &duplilist_apply_data->extra[i];
@@ -5097,6 +5099,9 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 					
 					if (re->test_break(re->tbh)) break;
 				}
+
+				/* restore particle system */
+				dupli_render_particle_set(re, ob, timeoffset, 0, false);
 
 				if (duplilist_apply_data) {
 					duplilist_restore(duplilist, duplilist_apply_data);
