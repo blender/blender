@@ -65,6 +65,10 @@ void BilateralBlurOperation::executePixel(float output[4], int x, int y, void *d
 
 	zero_v4(blurColor);
 	blurDivider = 0.0f;
+	/* TODO(sergey): This isn't really good bilateral filter, it should be
+	 * using gaussian bell for weights. Also sigma_color doesn't seem to be
+	 * used correct at all.
+	 */
 	for (int yi = miny; yi < maxy; yi += QualityStepHelper::getStep()) {
 		for (int xi = minx; xi < maxx; xi += QualityStepHelper::getStep()) {
 			// read determinator
