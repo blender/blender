@@ -86,12 +86,12 @@ struct ShadeInputCopy {
 
 typedef struct ShadeInputUV {
 	float dxuv[3], dyuv[3], uv[3];
-	char *name;
+	const char *name;
 } ShadeInputUV;
 
 typedef struct ShadeInputCol {
 	float col[4];
-	char *name;
+	const char *name;
 } ShadeInputCol;
 
 /* localized renderloop data */

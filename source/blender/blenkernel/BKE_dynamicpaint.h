@@ -45,12 +45,10 @@ typedef struct PaintPoint {
 
 	/* Wet paint is handled at effect layer only
 	 * and mixed to surface when drying */
-	float e_color[3];
-	float e_alpha;
+	float e_color[4];
 	float wetness;
 	short state;
-	float color[3];
-	float alpha;
+	float color[4];
 } PaintPoint;
 
 /* heigh field waves	*/

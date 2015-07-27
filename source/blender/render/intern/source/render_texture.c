@@ -3526,7 +3526,9 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 
 /* A modified part of shadeinput.c -> shade_input_set_uv()
  *  Used for sampling UV mapped texture color */
-static void textured_face_generate_uv(float *uv, const float normal[3], float *hit, float *v1, float *v2, float *v3)
+static void textured_face_generate_uv(
+        float r_uv[2], const float normal[3], const float hit[3],
+        const float v1[3], const float v2[3], const float v3[3])
 {
 
 	float detsh, t00, t10, t01, t11;
@@ -3543,12 +3545,12 @@ static void textured_face_generate_uv(float *uv, const float normal[3], float *h
 	t00*= detsh; t01*=detsh; 
 	t10*=detsh; t11*=detsh;
 
-	uv[0] = (hit[axis1]-v3[axis1])*t11-(hit[axis2]-v3[axis2])*t10;
-	uv[1] = (hit[axis2]-v3[axis2])*t00-(hit[axis1]-v3[axis1])*t01;
+	r_uv[0] = (hit[axis1] - v3[axis1]) * t11 - (hit[axis2] - v3[axis2]) * t10;
+	r_uv[1] = (hit[axis2] - v3[axis2]) * t00 - (hit[axis1] - v3[axis1]) * t01;
 
 	/* u and v are in range -1 to 0, we allow a little bit extra but not too much, screws up speedvectors */
-	CLAMP(uv[0], -2.0f, 1.0f);
-	CLAMP(uv[1], -2.0f, 1.0f);
+	CLAMP(r_uv[0], -2.0f, 1.0f);
+	CLAMP(r_uv[1], -2.0f, 1.0f);
 }
 
 /* Generate an updated copy of material to use for color sampling. */
@@ -3664,34 +3666,37 @@ void RE_free_sample_material(Material *mat)
 	MEM_freeN(mat);
 }
 
-
-
 /*
  *	Get material diffuse color and alpha (including linked textures) in given coordinates
  *
  *	color,alpha : input/output color values
  *	volume_co : sample coordinate in global space. used by volumetric materials
  *	surface_co : sample surface coordinate in global space. used by "surface" materials
- *	face_index : surface face index
- *	hit_quad : whether point is on second "half" of a quad
+ *	tri_index : surface tri index
  *	orcoDm : orco state derived mesh
  */
-void RE_sample_material_color(Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3], int face_index, short hit_quad, DerivedMesh *orcoDm, Object *ob)
+void RE_sample_material_color(
+        Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3],
+        int tri_index, DerivedMesh *orcoDm, Object *ob)
 {
-	MFace *mface;
 	int v1, v2, v3;
 	MVert *mvert;
+	MLoop *mloop;
+	const MLoopTri *mlooptri;
 	float uv[3], normal[3];
 	ShadeInput shi = {NULL};
 	Render re = {NULL};
 
 	/* Get face data	*/
 	mvert = orcoDm->getVertArray(orcoDm);
-	mface = orcoDm->getTessFaceArray(orcoDm);
+	mloop = orcoDm->getLoopArray(orcoDm);
+	mlooptri = orcoDm->getLoopTriArray(orcoDm);
 
-	if (!mvert || !mface || !mat) return;
-	v1=mface[face_index].v1, v2=mface[face_index].v2, v3=mface[face_index].v3;
-	if (hit_quad) { v2 = mface[face_index].v3; v3 = mface[face_index].v4; }
+	if (!mvert || !mlooptri || !mat) {
+		return;
+	}
+
+	v1=mloop[mlooptri[tri_index].tri[0]].v, v2=mloop[mlooptri[tri_index].tri[1]].v, v3=mloop[mlooptri[tri_index].tri[2]].v;
 	normal_tri_v3(normal, mvert[v1].co, mvert[v2].co, mvert[v3].co);
 
 	/* generate shadeinput with data required */
@@ -3708,7 +3713,7 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 		{
 			float l;
 			/* Get generated UV */
-			textured_face_generate_uv(uv, normal, shi.co, mvert[v1].co, mvert[v2].co, mvert[v3].co);
+			textured_face_generate_uv(normal, shi.co, mvert[v1].co, mvert[v2].co, mvert[v3].co, uv);
 			l= 1.0f+uv[0]+uv[1];
 
 			/* calculate generated coordinate */
@@ -3718,35 +3723,37 @@ void RE_sample_material_color(Material *mat, float color[3], float *alpha, const
 		}
 		/* uv coordinates */
 		{
-			int i, layers = CustomData_number_of_layers(&orcoDm->faceData, CD_MTFACE);
-			int layer_index = CustomData_get_layer_index(&orcoDm->faceData, CD_MTFACE);
+			const int layers = CustomData_number_of_layers(&orcoDm->loopData, CD_MLOOPUV);
+			const int layer_index = CustomData_get_layer_index(&orcoDm->loopData, CD_MLOOPUV);
+			int i;
 
 			/* for every uv map set coords and name */
 			for (i=0; i<layers; i++) {
 				if (layer_index >= 0) {
 					const float *uv1, *uv2, *uv3;
+					const CustomData *data = &orcoDm->loopData;
+					const MLoopUV *mloopuv = data->layers[layer_index + i].data;
+					const float uv[2];
 					float l;
-					CustomData *data = &orcoDm->faceData;
-					MTFace *tface = (MTFace *) data->layers[layer_index+i].data;
-					float uv[3];
+
 					/* point layer name from actual layer data */
 					shi.uv[i].name = data->layers[i].name;
 					/* Get generated coordinates to calculate UV from */
-					textured_face_generate_uv(uv, normal, shi.co, mvert[v1].co, mvert[v2].co, mvert[v3].co);
+					textured_face_generate_uv(normal, shi.co, mvert[v1].co, mvert[v2].co, mvert[v3].co, uv);
 					/* Get UV mapping coordinate */
 					l= 1.0f+uv[0]+uv[1];
-						
-					uv1= tface[face_index].uv[0];
-					uv2= (hit_quad) ? tface[face_index].uv[2] : tface[face_index].uv[1];
-					uv3= (hit_quad) ? tface[face_index].uv[3] : tface[face_index].uv[2];
-								
+
+					uv1 = mloopuv[mlooptri[tri_index].tri[0]].uv;
+					uv2 = mloopuv[mlooptri[tri_index].tri[1]].uv;
+					uv3 = mloopuv[mlooptri[tri_index].tri[2]].uv;
+
 					shi.uv[i].uv[0]= -1.0f + 2.0f*(l*uv3[0]-uv[0]*uv1[0]-uv[1]*uv2[0]);
 					shi.uv[i].uv[1]= -1.0f + 2.0f*(l*uv3[1]-uv[0]*uv1[1]-uv[1]*uv2[1]);
 					shi.uv[i].uv[2]= 0.0f;	/* texture.c assumes there are 3 coords */
 				}
 			}
 			/* active uv map */
-			shi.actuv = CustomData_get_active_layer_index(&orcoDm->faceData, CD_MTFACE) - layer_index;
+			shi.actuv = CustomData_get_active_layer_index(&orcoDm->loopData, CD_MLOOPUV) - layer_index;
 			shi.totuv = layers;
 		}
 

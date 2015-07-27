@@ -255,9 +255,9 @@ int multitex_nodes(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3],
 
 struct Material *RE_init_sample_material(struct Material *orig_mat, struct Scene *scene) RET_NULL
 void RE_free_sample_material(struct Material *mat) RET_NONE
-void RE_sample_material_color(struct Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3],
-                              int face_index, short hit_quad, struct DerivedMesh *orcoDm, struct Object *ob) RET_NONE
-
+void RE_sample_material_color(
+        struct Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3],
+        int tri_index, struct DerivedMesh *orcoDm, struct Object *ob) RET_NONE
 /* nodes */
 struct Render *RE_GetRender(const char *name) RET_NULL
 struct Object *RE_GetCamera(struct Render *re) RET_NULL
