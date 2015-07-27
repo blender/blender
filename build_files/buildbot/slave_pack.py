@@ -132,6 +132,8 @@ else:
         git_hash = tokens[2].split('.')[1]
         platform = builder.split('_')[0]
         builderified_name = 'blender-{}-{}-{}'.format(blender_full_version, git_hash, platform)
+        if branch != '':
+            builderified_name = branch + "-" + builderified_name
 
         os.rename(result_file, "{}.zip".format(builderified_name))
         # create zip file
