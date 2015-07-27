@@ -139,6 +139,7 @@ typedef struct ImagePaintState {
 	int faceindex;
 	float uv[2];
 	int do_facesel;
+	int symmetry;
 
 	bool need_redraw;
 
@@ -770,15 +771,8 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s, BrushPainter *pai
 }
 
 /* keep these functions in sync */
-static void paint_2d_ibuf_rgb_get(ImBuf *ibuf, int x, int y, const bool is_torus, float r_rgb[4])
+static void paint_2d_ibuf_rgb_get(ImBuf *ibuf, int x, int y, float r_rgb[4])
 {
-	if (is_torus) {
-		x %= ibuf->x;
-		if (x < 0) x += ibuf->x;
-		y %= ibuf->y;
-		if (y < 0) y += ibuf->y;
-	}
-
 	if (ibuf->rect_float) {
 		const float *rrgbf = ibuf->rect_float + (ibuf->x * y + x) * 4;
 		copy_v4_v4(r_rgb, rrgbf);
@@ -814,18 +808,30 @@ static void paint_2d_ibuf_rgb_set(ImBuf *ibuf, int x, int y, const bool is_torus
 	}
 }
 
-static float paint_2d_ibuf_add_if(ImBuf *ibuf, unsigned int x, unsigned int y, float *outrgb, short torus, float w)
+static void paint_2d_ibuf_tile_convert(ImBuf *ibuf, int *x, int *y, short tile)
+{
+	if (tile & PAINT_TILE_X) {
+		*x %= ibuf->x;
+		if (*x < 0) *x += ibuf->x;
+	}
+	if (tile & PAINT_TILE_Y) {
+		*y %= ibuf->y;
+		if (*y < 0) *y += ibuf->y;
+	}
+}
+
+
+static float paint_2d_ibuf_add_if(ImBuf *ibuf, int x, int y, float *outrgb, short tile, float w)
 {
 	float inrgb[4];
 
-	// XXX: signed unsigned mismatch
-	if ((x >= (unsigned int)(ibuf->x)) || (y >= (unsigned int)(ibuf->y))) {
-		if (torus) paint_2d_ibuf_rgb_get(ibuf, x, y, 1, inrgb);
-		else return 0;
+	if (tile) paint_2d_ibuf_tile_convert(ibuf, &x, &y, tile);
+	/* need to also do clipping here always since tiled coordinates
+	 * are not always within bounds */
+	if (x < ibuf->x && x >= 0 && y < ibuf->y && y >= 0) {
+		paint_2d_ibuf_rgb_get(ibuf, x, y, inrgb);
 	}
-	else {
-		paint_2d_ibuf_rgb_get(ibuf, x, y, 0, inrgb);
-	}
+	else return 0;
 
 	mul_v4_fl(inrgb, w);
 	add_v4_v4(outrgb, inrgb);
@@ -833,7 +839,7 @@ static float paint_2d_ibuf_add_if(ImBuf *ibuf, unsigned int x, unsigned int y, f
 	return w;
 }
 
-static void paint_2d_lift_soften(ImagePaintState *s, ImBuf *ibuf, ImBuf *ibufb, int *pos, const short is_torus)
+static void paint_2d_lift_soften(ImagePaintState *s, ImBuf *ibuf, ImBuf *ibufb, int *pos, const short tile)
 {
 	bool sharpen = (s->painter->cache.invert ^ ((s->brush->flag & BRUSH_DIR_IN) != 0));
 	float threshold = s->brush->sharp_threshold;
@@ -851,7 +857,7 @@ static void paint_2d_lift_soften(ImagePaintState *s, ImBuf *ibuf, ImBuf *ibufb, 
 	in_off[1] = pos[1];
 	out_off[0] = out_off[1] = 0;
 
-	if (!is_torus) {
+	if (!tile) {
 		IMB_rectclip(ibuf, ibufb, &in_off[0], &in_off[1], &out_off[0],
 		             &out_off[1], &dim[0], &dim[1]);
 
@@ -869,13 +875,23 @@ static void paint_2d_lift_soften(ImagePaintState *s, ImBuf *ibuf, ImBuf *ibufb, 
 			yi = in_off[1] + y;
 
 			count = 0.0;
-			paint_2d_ibuf_rgb_get(ibuf, xi, yi, is_torus, rgba);
+			if (tile) {
+				paint_2d_ibuf_tile_convert(ibuf, &xi, &yi, tile);
+				if (xi < ibuf->x && xi >= 0 && yi < ibuf->y && yi >= 0)
+					paint_2d_ibuf_rgb_get(ibuf, xi, yi, rgba);
+				else
+					zero_v4(rgba);
+			}
+			else {
+				/* coordinates have been clipped properly here, it should be safe to do this */
+				paint_2d_ibuf_rgb_get(ibuf, xi, yi, rgba);
+			}
 			zero_v4(outrgb);
 
 			for (yk = 0; yk < kernel->side; yk++) {
 				for (xk = 0; xk < kernel->side; xk++) {
 					count += paint_2d_ibuf_add_if(ibuf, xi + xk - kernel->pixel_len,
-					                               yi + yk - kernel->pixel_len, outrgb, is_torus,
+					                               yi + yk - kernel->pixel_len, outrgb, tile,
 					                               kernel->wdata[xk + yk * kernel->side]);
 				}
 			}
@@ -923,7 +939,7 @@ static void paint_2d_set_region(ImagePaintRegion *region, int destx, int desty, 
 	region->height = height;
 }
 
-static int paint_2d_torus_split_region(ImagePaintRegion region[4], ImBuf *dbuf, ImBuf *sbuf)
+static int paint_2d_torus_split_region(ImagePaintRegion region[4], ImBuf *dbuf, ImBuf *sbuf, short tile)
 {
 	int destx = region->destx;
 	int desty = region->desty;
@@ -934,15 +950,18 @@ static int paint_2d_torus_split_region(ImagePaintRegion region[4], ImBuf *dbuf, 
 	int origw, origh, w, h, tot = 0;
 
 	/* convert destination and source coordinates to be within image */
-	destx = destx % dbuf->x;
-	if (destx < 0) destx += dbuf->x;
-	desty = desty % dbuf->y;
-	if (desty < 0) desty += dbuf->y;
-	srcx = srcx % sbuf->x;
-	if (srcx < 0) srcx += sbuf->x;
-	srcy = srcy % sbuf->y;
-	if (srcy < 0) srcy += sbuf->y;
-
+	if (tile & PAINT_TILE_X) {
+		destx = destx % dbuf->x;
+		if (destx < 0) destx += dbuf->x;
+		srcx = srcx % sbuf->x;
+		if (srcx < 0) srcx += sbuf->x;
+	}
+	if (tile & PAINT_TILE_Y) {
+		desty = desty % dbuf->y;
+		if (desty < 0) desty += dbuf->y;
+		srcy = srcy % sbuf->y;
+		if (srcy < 0) srcy += sbuf->y;
+	}
 	/* clip width of blending area to destination imbuf, to avoid writing the
 	 * same pixel twice */
 	origw = w = (width > dbuf->x) ? dbuf->x : width;
@@ -953,23 +972,23 @@ static int paint_2d_torus_split_region(ImagePaintRegion region[4], ImBuf *dbuf, 
 	paint_2d_set_region(&region[tot++], destx, desty, srcx, srcy, w, h);
 
 	/* do 3 other rects if needed */
-	if (w < origw)
+	if ((tile & PAINT_TILE_X) && w < origw)
 		paint_2d_set_region(&region[tot++], (destx + w) % dbuf->x, desty, (srcx + w) % sbuf->x, srcy, origw - w, h);
-	if (h < origh)
+	if ((tile & PAINT_TILE_Y) && h < origh)
 		paint_2d_set_region(&region[tot++], destx, (desty + h) % dbuf->y, srcx, (srcy + h) % sbuf->y, w, origh - h);
-	if ((w < origw) && (h < origh))
+	if ((tile & PAINT_TILE_X) && (tile & PAINT_TILE_Y) && (w < origw) && (h < origh))
 		paint_2d_set_region(&region[tot++], (destx + w) % dbuf->x, (desty + h) % dbuf->y, (srcx + w) % sbuf->x, (srcy + h) % sbuf->y, origw - w, origh - h);
 
 	return tot;
 }
 
-static void paint_2d_lift_smear(ImBuf *ibuf, ImBuf *ibufb, int *pos)
+static void paint_2d_lift_smear(ImBuf *ibuf, ImBuf *ibufb, int *pos, short tile)
 {
 	ImagePaintRegion region[4];
 	int a, tot;
 
 	paint_2d_set_region(region, 0, 0, pos[0], pos[1], ibufb->x, ibufb->y);
-	tot = paint_2d_torus_split_region(region, ibufb, ibuf);
+	tot = paint_2d_torus_split_region(region, ibufb, ibuf, tile);
 
 	for (a = 0; a < tot; a++)
 		IMB_rectblend(ibufb, ibufb, ibuf, NULL, NULL, NULL, 0, region[a].destx, region[a].desty,
@@ -1005,7 +1024,7 @@ static int paint_2d_op(void *state, ImBuf *ibufb, unsigned short *curveb, unsign
 	ImagePaintState *s = ((ImagePaintState *)state);
 	ImBuf *clonebuf = NULL, *frombuf;
 	ImagePaintRegion region[4];
-	short torus = s->brush->flag & BRUSH_TORUS;
+	short tile = s->symmetry & (PAINT_TILE_X | PAINT_TILE_Y);
 	short blend = s->blend;
 	const float *offset = s->brush->clone.offset;
 	float liftpos[2];
@@ -1017,14 +1036,14 @@ static int paint_2d_op(void *state, ImBuf *ibufb, unsigned short *curveb, unsign
 
 	/* lift from canvas */
 	if (s->tool == PAINT_TOOL_SOFTEN) {
-		paint_2d_lift_soften(s, s->canvas, ibufb, bpos, torus);
+		paint_2d_lift_soften(s, s->canvas, ibufb, bpos, tile);
 	}
 	else if (s->tool == PAINT_TOOL_SMEAR) {
 		if (lastpos[0] == pos[0] && lastpos[1] == pos[1])
 			return 0;
 
 		paint_2d_convert_brushco(ibufb, lastpos, blastpos);
-		paint_2d_lift_smear(s->canvas, ibufb, blastpos);
+		paint_2d_lift_smear(s->canvas, ibufb, blastpos, tile);
 	}
 	else if (s->tool == PAINT_TOOL_CLONE && s->clonecanvas) {
 		liftpos[0] = pos[0] - offset[0] * s->canvas->x;
@@ -1036,9 +1055,9 @@ static int paint_2d_op(void *state, ImBuf *ibufb, unsigned short *curveb, unsign
 
 	frombuf = (clonebuf) ? clonebuf : ibufb;
 
-	if (torus) {
+	if (tile) {
 		paint_2d_set_region(region, bpos[0], bpos[1], 0, 0, frombuf->x, frombuf->y);
-		tot = paint_2d_torus_split_region(region, s->canvas, frombuf);
+		tot = paint_2d_torus_split_region(region, s->canvas, frombuf, tile);
 	}
 	else {
 		paint_2d_set_region(region, bpos[0], bpos[1], 0, 0, frombuf->x, frombuf->y);
@@ -1234,6 +1253,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
 	s->blend = brush->blend;
 
 	s->image = s->sima->image;
+	s->symmetry = settings->imapaint.paint.symmetry_flags;
 
 	if (!paint_2d_canvas_set(s, s->image)) {
 		if (s->warnmultifile)

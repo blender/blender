@@ -181,7 +181,7 @@ typedef enum BrushGradientSourceFill {
 /* Brush.flag */
 typedef enum BrushFlags {
 	BRUSH_AIRBRUSH = (1 << 0),
-	BRUSH_TORUS = (1 << 1),
+//	BRUSH_TORUS = (1 << 1), deprecated, use paint->symmetry_flags & PAINT_TILE_*
 	BRUSH_ALPHA_PRESSURE = (1 << 2),
 	BRUSH_SIZE_PRESSURE = (1 << 3),
 	BRUSH_JITTER_PRESSURE = (1 << 4),
