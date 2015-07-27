@@ -140,14 +140,19 @@ enum {
 #define G_AUTOPACK               (1 << 0)
 #define G_FILE_COMPRESS          (1 << 1)
 #define G_FILE_AUTOPLAY          (1 << 2)
+
+#ifdef DNA_DEPRECATED_ALLOW
 #define G_FILE_ENABLE_ALL_FRAMES (1 << 3)               /* deprecated */
 #define G_FILE_SHOW_DEBUG_PROPS  (1 << 4)               /* deprecated */
 #define G_FILE_SHOW_FRAMERATE    (1 << 5)               /* deprecated */
 /* #define G_FILE_SHOW_PROFILE   (1 << 6) */            /* deprecated */
-#define G_FILE_LOCK              (1 << 7)
-#define G_FILE_SIGN              (1 << 8)
+/* #define G_FILE_LOCK           (1 << 7) */            /* deprecated */
+/* #define G_FILE_SIGN           (1 << 8) */            /* deprecated */
+#endif  /* DNA_DEPRECATED_ALLOW */
+
 #define G_FILE_USERPREFS         (1 << 9)
 #define G_FILE_NO_UI             (1 << 10)
+#ifdef DNA_DEPRECATED_ALLOW
 /* #define G_FILE_GAME_TO_IPO    (1 << 11) */           /* deprecated */
 #define G_FILE_GAME_MAT          (1 << 12)              /* deprecated */
 /* #define G_FILE_DISPLAY_LISTS  (1 << 13) */           /* deprecated */
@@ -160,11 +165,19 @@ enum {
 #define G_FILE_GLSL_NO_NODES     (1 << 20)              /* deprecated */
 #define G_FILE_GLSL_NO_EXTRA_TEX (1 << 21)              /* deprecated */
 #define G_FILE_IGNORE_DEPRECATION_WARNINGS  (1 << 22)   /* deprecated */
+#endif  /* DNA_DEPRECATED_ALLOW */
+
+/* On read, use #FileGlobal.filename instead of the real location on-disk,
+ * needed for recovering temp files so relative paths resolve */
 #define G_FILE_RECOVER           (1 << 23)
+/* On write, remap relative file paths to the new file location. */
 #define G_FILE_RELATIVE_REMAP    (1 << 24)
+/* On write, make backup `.blend1`, `.blend2` ... files, when the users preference is enabled */
 #define G_FILE_HISTORY           (1 << 25)
-#define G_FILE_MESH_COMPAT       (1 << 26)              /* BMesh option to save as older mesh format */
-#define G_FILE_SAVE_COPY         (1 << 27)              /* restore paths after editing them */
+/* BMesh option to save as older mesh format */
+#define G_FILE_MESH_COMPAT       (1 << 26)
+/* On wrote, restore paths after editing them (G_FILE_RELATIVE_REMAP) */
+#define G_FILE_SAVE_COPY         (1 << 27)
 
 #define G_FILE_FLAGS_RUNTIME (G_FILE_NO_UI | G_FILE_RELATIVE_REMAP | G_FILE_MESH_COMPAT | G_FILE_SAVE_COPY)
 
