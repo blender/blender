@@ -24,7 +24,7 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/.git/)
 	include(FindGit)
 	if(GIT_FOUND)
 		message(STATUS "-- Found Git: ${GIT_EXECUTABLE}")
-		execute_process(COMMAND git rev-parse --short @{u}
+		execute_process(COMMAND git rev-parse --short HEAD
 		                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		                OUTPUT_VARIABLE MY_WC_HASH
 		                OUTPUT_STRIP_TRAILING_WHITESPACE
