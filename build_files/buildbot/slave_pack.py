@@ -140,7 +140,7 @@ else:
             if os.path.exists(upload_zip):
                 os.remove(upload_zip)
             z = zipfile.ZipFile(upload_zip, "w", compression=zipfile.ZIP_STORED)
-            z.write("{}.zip".format(builder))
+            z.write("{}.zip".format(builderified_name))
             z.close()
             sys.exit(retcode)
         except Exception as ex:
