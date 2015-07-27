@@ -215,7 +215,7 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 		tmp_mmd.simple = true;
 	}
 
-	DM_set_only_copy(cddm, CD_MASK_BAREMESH | CD_MASK_MTFACE);
+	DM_set_only_copy(cddm, CD_MASK_BAREMESH | CD_MASK_MFACE | CD_MASK_MTFACE);
 
 	tmp_mmd.lvl = *lvl;
 	tmp_mmd.sculptlvl = *lvl;

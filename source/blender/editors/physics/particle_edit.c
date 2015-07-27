@@ -3485,7 +3485,7 @@ static int brush_add(PEData *data, short number)
 	if (psmd->dm->deformedOnly || psys->part->use_modifier_stack)
 		dm = psmd->dm;
 	else {
-		dm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
+		dm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH | CD_MASK_MFACE);
 		release_dm = true;
 	}
 

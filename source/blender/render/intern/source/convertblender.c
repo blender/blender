@@ -130,6 +130,9 @@
 
 /* ------------------------------------------------------------------------- */
 
+#define CD_MASK_RENDER_INTERNAL \
+    (CD_MASK_BAREMESH | CD_MASK_MFACE | CD_MASK_MTFACE | CD_MASK_MCOL)
+
 static void split_v_renderfaces(ObjectRen *obr, int startvlak, int UNUSED(startvert), int UNUSED(usize), int vsize, int uIndex, int UNUSED(cyclu), int cyclv)
 {
 	int vLen = vsize-1+(!!cyclv);
@@ -3175,7 +3178,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	/* origindex currently used when using autosmooth, or baking to vertex colors. */
 	need_origindex = (do_autosmooth || ((re->flag & R_BAKING) && (re->r.bake_flag & R_BAKE_VCOL)));
 
-	mask= CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL;
+	mask = CD_MASK_RENDER_INTERNAL;
 	if (!timeoffset)
 		if (need_orco)
 			mask |= CD_MASK_ORCO;
@@ -4581,10 +4584,12 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
 			/* the emitter mesh wasn't rendered so the modifier stack wasn't
 			 * evaluated with render settings */
 			DerivedMesh *dm;
+			const CustomDataMask mask = CD_MASK_RENDER_INTERNAL;
+
 			if (re->r.scemode & R_VIEWPORT_PREVIEW)
-				dm = mesh_create_derived_view(re->scene, ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+				dm = mesh_create_derived_view(re->scene, ob, mask);
 			else
-				dm = mesh_create_derived_render(re->scene, ob,	CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+				dm = mesh_create_derived_render(re->scene, ob, mask);
 			dm->release(dm);
 		}
 
@@ -4884,7 +4889,7 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 			/* this is to make sure we get render level duplis in groups:
 			 * the derivedmesh must be created before init_render_mesh,
 			 * since object_duplilist does dupliparticles before that */
-			dm = mesh_create_derived_render(re->scene, ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+			dm = mesh_create_derived_render(re->scene, ob, CD_MASK_RENDER_INTERNAL);
 			dm->release(dm);
 
 			for (psys=ob->particlesystem.first; psys; psys=psys->next)

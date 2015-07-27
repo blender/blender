@@ -696,7 +696,7 @@ static bool remap_hair_emitter(Scene *scene, Object *ob, ParticleSystem *psys,
 	}
 	else {
 		/* warning: this rebuilds target_psmd->dm! */
-		dm = mesh_get_derived_deform(scene, target_ob, CD_MASK_BAREMESH);
+		dm = mesh_get_derived_deform(scene, target_ob, CD_MASK_BAREMESH | CD_MASK_MFACE);
 	}
 	target_dm = target_psmd->dm;
 	/* don't modify the original vertices */
