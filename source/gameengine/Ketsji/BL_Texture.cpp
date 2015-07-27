@@ -420,13 +420,16 @@ unsigned int BL_Texture::GetTextureType() const
 int BL_Texture::GetMaxUnits()
 {
 	if (g_max_units < 0) {
-		GLint unit;
-		if (GLEW_ARB_multitexture) {
-			glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &unit);
-			g_max_units = (MAXTEX>=unit)?unit:MAXTEX;
-		} else {
-			g_max_units = 0;
+		GLint unit = 0;
+
+		if (GPU_glsl_support()) {
+			glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &unit);
 		}
+		else if (GLEW_ARB_multitexture) {
+			glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &unit);
+		}
+
+		g_max_units = (MAXTEX >= unit) ? unit : MAXTEX;
 	}
 
 	return g_max_units;
