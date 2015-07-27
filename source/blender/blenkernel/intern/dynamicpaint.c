@@ -1562,7 +1562,6 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
 			const MLoopTri *mlooptri = dm->getLoopTriArray(dm);
 			ImgSeqFormatData *f_data = (ImgSeqFormatData *)sData->format_data;
 			int samples = (surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;
-			// should this be replaced by CD_MLOOPCOL?
 			MLoopCol *col = CustomData_get_layer_named(&dm->loopData, CD_MLOOPCOL, surface->init_layername);
 			if (!col) return;
 

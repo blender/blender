@@ -1602,7 +1602,7 @@ static void dm_ensure_display_normals(DerivedMesh *dm)
 	/* BLI_assert((CustomData_has_layer(&dm->polyData, CD_NORMAL) == false)); */
 
 	if ((dm->type == DM_TYPE_CDDM) &&
-	    ((dm->dirty & DM_DIRTY_NORMALS) || CustomData_has_layer(&dm->faceData, CD_NORMAL) == false))
+	    ((dm->dirty & DM_DIRTY_NORMALS) || CustomData_has_layer(&dm->polyData, CD_NORMAL) == false))
 	{
 		/* if normals are dirty we want to calculate vertex normals too */
 		CDDM_calc_normals_mapping_ex(dm, (dm->dirty & DM_DIRTY_NORMALS) ? false : true);
