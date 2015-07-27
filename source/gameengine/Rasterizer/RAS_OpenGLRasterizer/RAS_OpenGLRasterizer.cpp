@@ -356,9 +356,10 @@ void RAS_OpenGLRasterizer::ClearCachingInfo(void)
 	m_materialCachingInfo = 0;
 }
 
-void RAS_OpenGLRasterizer::FlushDebugShapes()
+void RAS_OpenGLRasterizer::FlushDebugShapes(SCA_IScene *scene)
 {
-	if (m_debugShapes.empty())
+	std::vector<OglDebugShape> &debugShapes = m_debugShapes[scene];
+	if (debugShapes.empty())
 		return;
 
 	// DrawDebugLines
@@ -372,28 +373,26 @@ void RAS_OpenGLRasterizer::FlushDebugShapes()
 
 	//draw lines
 	glBegin(GL_LINES);
-	for (unsigned int i=0;i<m_debugShapes.size();i++)
-	{
-		if (m_debugShapes[i].m_type != OglDebugShape::LINE)
+	for (unsigned int i = 0; i < debugShapes.size(); i++) {
+		if (debugShapes[i].m_type != OglDebugShape::LINE)
 			continue;
-		glColor4f(m_debugShapes[i].m_color[0],m_debugShapes[i].m_color[1],m_debugShapes[i].m_color[2],1.f);
-		const MT_Scalar* fromPtr = &m_debugShapes[i].m_pos.x();
-		const MT_Scalar* toPtr= &m_debugShapes[i].m_param.x();
+		glColor4f(debugShapes[i].m_color[0], debugShapes[i].m_color[1], debugShapes[i].m_color[2], 1.0f);
+		const MT_Scalar *fromPtr = &debugShapes[i].m_pos.x();
+		const MT_Scalar *toPtr= &debugShapes[i].m_param.x();
 		glVertex3dv(fromPtr);
 		glVertex3dv(toPtr);
 	}
 	glEnd();
 
 	//draw circles
-	for (unsigned int i=0;i<m_debugShapes.size();i++)
-	{
-		if (m_debugShapes[i].m_type != OglDebugShape::CIRCLE)
+	for (unsigned int i = 0; i < debugShapes.size(); i++) {
+		if (debugShapes[i].m_type != OglDebugShape::CIRCLE)
 			continue;
 		glBegin(GL_LINE_LOOP);
-		glColor4f(m_debugShapes[i].m_color[0],m_debugShapes[i].m_color[1],m_debugShapes[i].m_color[2],1.f);
+		glColor4f(debugShapes[i].m_color[0], debugShapes[i].m_color[1], debugShapes[i].m_color[2], 1.0f);
 
 		static const MT_Vector3 worldUp(0.0, 0.0, 1.0);
-		MT_Vector3 norm = m_debugShapes[i].m_param;
+		MT_Vector3 norm = debugShapes[i].m_param;
 		MT_Matrix3x3 tr;
 		if (norm.fuzzyZero() || norm == worldUp)
 		{
@@ -408,14 +407,14 @@ void RAS_OpenGLRasterizer::FlushDebugShapes()
 				yaxis.x(), yaxis.y(), yaxis.z(),
 				norm.x(), norm.y(), norm.z());
 		}
-		MT_Scalar rad = m_debugShapes[i].m_param2.x();
-		int n = (int) m_debugShapes[i].m_param2.y();
+		MT_Scalar rad = debugShapes[i].m_param2.x();
+		int n = (int)debugShapes[i].m_param2.y();
 		for (int j = 0; j<n; j++)
 		{
 			MT_Scalar theta = j*M_PI*2/n;
 			MT_Vector3 pos(cos(theta) * rad, sin(theta) * rad, 0.0);
 			pos = pos*tr;
-			pos += m_debugShapes[i].m_pos;
+			pos += debugShapes[i].m_pos;
 			const MT_Scalar* posPtr = &pos.x();
 			glVertex3dv(posPtr);
 		}
@@ -425,13 +424,11 @@ void RAS_OpenGLRasterizer::FlushDebugShapes()
 	if (light) glEnable(GL_LIGHTING);
 	if (tex) glEnable(GL_TEXTURE_2D);
 
-	m_debugShapes.clear();
+	debugShapes.clear();
 }
 
 void RAS_OpenGLRasterizer::EndFrame()
 {
-	FlushDebugShapes();
-
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
 	glDisable(GL_MULTISAMPLE_ARB);

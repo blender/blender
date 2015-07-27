@@ -1252,12 +1252,15 @@ void KX_KetsjiEngine::PostRenderScene(KX_Scene* scene)
 	// We need to first make sure our viewport is correct (enabling multiple viewports can mess this up)
 	m_canvas->SetViewPort(0, 0, m_canvas->GetWidth(), m_canvas->GetHeight());
 	
-	m_rasterizer->FlushDebugShapes();
+	m_rasterizer->FlushDebugShapes(scene);
 	scene->Render2DFilters(m_canvas);
 
 #ifdef WITH_PYTHON
 	PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
 	scene->RunDrawingCallbacks(scene->GetPostDrawCB());
+
+	// Python draw callback can also call debug draw functions, so we have to clear debug shapes.
+	m_rasterizer->FlushDebugShapes(scene);
 #endif
 }
 

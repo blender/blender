@@ -38,6 +38,7 @@
 
 #include "MT_CmMatrix4x4.h"
 #include <vector>
+#include <map>
 using namespace std;
 
 #include "RAS_IRasterizer.h"
@@ -223,20 +224,20 @@ public:
 
 	virtual void SetPolygonOffset(float mult, float add);
 
-	virtual void FlushDebugShapes();
+	virtual void FlushDebugShapes(SCA_IScene *scene);
 
-	virtual void DrawDebugLine(const MT_Vector3 &from,const MT_Vector3 &to, const MT_Vector3 &color)
+	virtual void DrawDebugLine(SCA_IScene *scene, const MT_Vector3 &from,const MT_Vector3 &to, const MT_Vector3 &color)
 	{
 		OglDebugShape line;
 		line.m_type = OglDebugShape::LINE;
 		line.m_pos= from;
 		line.m_param = to;
 		line.m_color = color;
-		m_debugShapes.push_back(line);
+		m_debugShapes[scene].push_back(line);
 	}
 
-	virtual void DrawDebugCircle(const MT_Vector3 &center, const MT_Scalar radius, const MT_Vector3 &color,
-	                             const MT_Vector3 &normal, int nsector)
+	virtual void DrawDebugCircle(SCA_IScene *scene, const MT_Vector3 &center, const MT_Scalar radius,
+								 const MT_Vector3 &color, const MT_Vector3 &normal, int nsector)
 	{
 		OglDebugShape line;
 		line.m_type = OglDebugShape::CIRCLE;
@@ -245,10 +246,11 @@ public:
 		line.m_color = color;
 		line.m_param2.x() = radius;
 		line.m_param2.y() = (float) nsector;
-		m_debugShapes.push_back(line);
+		m_debugShapes[scene].push_back(line);
 	}
 
-	std::vector <OglDebugShape>	m_debugShapes;
+	// We store each debug shape by scene.
+	std::map<SCA_IScene *, std::vector<OglDebugShape> > m_debugShapes;
 
 	virtual void SetTexCoordNum(int num);
 	virtual void SetAttribNum(int num);
