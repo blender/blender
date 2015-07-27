@@ -58,6 +58,11 @@ typedef struct img_folder {
 	float *rates;
 } img_fol_t;
 
+enum {
+    DCP_CINEMA2K = 3,
+    DCP_CINEMA4K = 4,
+};
+
 static int check_jp2(const unsigned char *mem) /* J2K_CFMT */
 {
 	return memcmp(JP2_HEAD, mem, sizeof(JP2_HEAD)) ? 0 : 1;
@@ -459,7 +464,6 @@ static void cinema_parameters(opj_cparameters_t *parameters)
 
 	/* 9-7 transform */
 	parameters->irreversible = 1;
-
 }
 
 static void cinema_setup_encoder(opj_cparameters_t *parameters, opj_image_t *image, img_fol_t *img_fol)
@@ -479,6 +483,9 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters, opj_image_t *ima
 				        image->comps[0].w, image->comps[0].h);
 				parameters->cp_rsiz = STD_RSIZ;
 			}
+			else {
+				parameters->cp_rsiz = DCP_CINEMA2K;
+			}
 			break;
 	
 		case CINEMA4K_24:
@@ -493,6 +500,9 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters, opj_image_t *ima
 				        "(4K profile) compliance requires that at least one of coordinates match 4096 x 2160\n",
 				        image->comps[0].w, image->comps[0].h);
 				parameters->cp_rsiz = STD_RSIZ;
+			}
+			else {
+				parameters->cp_rsiz = DCP_CINEMA2K;
 			}
 			parameters->numpocs = initialise_4K_poc(parameters->POC, parameters->numresolution);
 			break;
@@ -607,7 +617,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 			cinema_parameters(parameters);
 		}
 		
-		color_space = CLRSPC_SYCC;
+		color_space = (ibuf->foptions.flag & JP2_YCC) ? CLRSPC_SYCC : CLRSPC_SRGB;
 		prec = 12;
 		numcomps = 3;
 	}
