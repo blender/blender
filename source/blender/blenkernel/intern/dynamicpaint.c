@@ -1997,9 +1997,8 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 /* Modifier call. Processes dynamic paint modifier step. */
 DerivedMesh *dynamicPaint_Modifier_do(DynamicPaintModifierData *pmd, Scene *scene, Object *ob, DerivedMesh *dm)
 {
-	/* For now generate tessfaces in every case
-	 *  XXX - move/remove when most of dpaint functions are converted to use bmesh types */
-	DM_ensure_tessface(dm);
+	/* For now generate looptris in every case */
+	DM_ensure_looptri(dm);
 
 	/* Update canvas data for a new frame */
 	dynamicPaint_frameUpdate(pmd, scene, ob, dm);
