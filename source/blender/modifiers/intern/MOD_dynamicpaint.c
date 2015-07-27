@@ -76,24 +76,24 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 			if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ || 
 			    surface->init_color_type == MOD_DPAINT_INITIAL_TEXTURE)
 			{
-				dataMask |= (1 << CD_MTFACE);
+				dataMask |= CD_MASK_MLOOPUV | CD_MASK_MTEXPOLY;
 			}
 			/* mcol */
 			if (surface->type == MOD_DPAINT_SURFACE_T_PAINT ||
 			    surface->init_color_type == MOD_DPAINT_INITIAL_VERTEXCOLOR)
 			{
-				dataMask |= (1 << CD_MCOL);
+				dataMask |= CD_MASK_MLOOPCOL;
 			}
 			/* CD_MDEFORMVERT */
 			if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
-				dataMask |= (1 << CD_MDEFORMVERT);
+				dataMask |= CD_MASK_MDEFORMVERT;
 			}
 		}
 	}
 
 	if (pmd->brush) {
 		if (pmd->brush->flags & MOD_DPAINT_USE_MATERIAL) {
-			dataMask |= (1 << CD_MTFACE);
+			dataMask |= CD_MASK_MLOOPUV | CD_MASK_MTEXPOLY;
 		}
 	}
 	return dataMask;

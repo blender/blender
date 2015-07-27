@@ -3048,7 +3048,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 	colType = CD_TEXTURE_MLOOPCOL;
 	mloopcol = dm->getLoopDataArray(dm, colType);
 	if (!mloopcol) {
-		colType = CD_PREVIEW_MCOL;
+		colType = CD_PREVIEW_MLOOPCOL;
 		mloopcol = dm->getLoopDataArray(dm, colType);
 	}
 	if (!mloopcol) {

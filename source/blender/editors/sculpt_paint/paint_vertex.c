@@ -83,8 +83,8 @@ static bool vertex_paint_use_fast_update_check(Object *ob)
 
 	if (dm) {
 		Mesh *me = BKE_mesh_from_object(ob);
-		if (me && me->mcol) {
-			return (me->mcol == CustomData_get_layer(&dm->faceData, CD_MCOL));
+		if (me && me->mloopcol) {
+			return (me->mloopcol == CustomData_get_layer(&dm->loopData, CD_MLOOPCOL));
 		}
 	}
 

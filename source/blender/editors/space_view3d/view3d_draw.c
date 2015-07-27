@@ -2619,7 +2619,7 @@ CustomDataMask ED_view3d_datamask(const Scene *scene, const View3D *v3d)
 	if (ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) ||
 	    ((v3d->drawtype == OB_SOLID) && (v3d->flag2 & V3D_SOLID_TEX)))
 	{
-		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
+		mask |= CD_MASK_MTEXPOLY | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL;
 
 		if (BKE_scene_use_new_shading_nodes(scene)) {
 			if (v3d->drawtype == OB_MATERIAL)

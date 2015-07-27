@@ -325,7 +325,7 @@ bool dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, Object 
 	if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
 		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
 			Mesh *me = ob->data;
-			return (CustomData_get_named_layer_index(&me->fdata, CD_MCOL, name) != -1);
+			return (CustomData_get_named_layer_index(&me->ldata, CD_MLOOPCOL, name) != -1);
 		}
 		else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT)
 			return (defgroup_name_index(ob, surface->output_name) != -1);
