@@ -1447,7 +1447,7 @@ ccl_device bool ray_triangle_intersect_uv(
 	return true;
 }
 
-#if defined(__KERNEL_CUDA__) && (defined(i386) || defined(_M_IX86))
+#if defined(__KERNEL_CUDA__) && (defined(i386) || defined(_M_IX86)) && (defined(__KERNEL_EXPERIMENTAL__) || __CUDA_ARCH__ == 500)
 ccl_device_noinline
 #else
 ccl_device
