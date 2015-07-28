@@ -2116,6 +2116,8 @@ static void mesh_calc_modifiers(
 			finaldm->release(finaldm);
 			finaldm = tdm;
 		}
+
+		DM_ensure_tessface(finaldm);
 	}
 #endif /* WITH_GAMEENGINE */
 

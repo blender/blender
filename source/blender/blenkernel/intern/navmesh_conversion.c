@@ -123,6 +123,11 @@ int buildRawVertIndicesData(DerivedMesh *dm, int *nverts_r, float **verts_r,
 		printf("Converting navmesh: Error! Too many vertices. Max number of vertices %d\n", 0xffff);
 		return 0;
 	}
+	if (nverts == 0) {
+		printf("Converting navmesh: Error! There are no vertices!\n");
+		return 0;
+	}
+
 	verts = MEM_mallocN(sizeof(float[3]) * nverts, "buildRawVertIndicesData verts");
 	dm->getVertCos(dm, (float(*)[3])verts);
 
@@ -132,7 +137,13 @@ int buildRawVertIndicesData(DerivedMesh *dm, int *nverts_r, float **verts_r,
 	}
 
 	/* calculate number of tris */
+	dm->recalcTessellation(dm);
 	nfaces = dm->getNumTessFaces(dm);
+	if (nfaces == 0) {
+		printf("Converting navmesh: Error! There are %i vertices, but no faces!\n", nverts);
+		return 0;
+	}
+
 	faces = dm->getTessFaceArray(dm);
 	ntris = nfaces;
 	for (fi = 0; fi < nfaces; fi++) {
@@ -387,7 +398,12 @@ int buildNavMeshData(const int nverts, const float *verts,
 
 
 	/* build adjacency info for detailed mesh triangles */
-	recast_buildMeshAdjacency(dtris, ndtris, nverts, 3);
+	if (!recast_buildMeshAdjacency(dtris, ndtris, nverts, 3)) {
+		printf("Converting navmesh: Error! Unable to build mesh adjacency information\n");
+		MEM_freeN(trisMapping);
+		MEM_freeN(dtrisToPolysMap);
+		return 0;
+	}
 
 	/* create detailed mesh description for each navigation polygon */
 	npolys = dtrisToPolysMap[ndtris - 1];
@@ -415,7 +431,10 @@ int buildNavMeshData(const int nverts, const float *verts,
 	polys = MEM_callocN(sizeof(unsigned short) * npolys * vertsPerPoly * 2, "buildNavMeshData polys");
 	memset(polys, 0xff, sizeof(unsigned short) * vertsPerPoly * 2 * npolys);
 
-	buildPolygonsByDetailedMeshes(vertsPerPoly, npolys, polys, dmeshes, verts, dtris, dtrisToPolysMap);
+	if (!buildPolygonsByDetailedMeshes(vertsPerPoly, npolys, polys, dmeshes, verts, dtris, dtrisToPolysMap)) {
+		printf("Converting navmesh: Error! Unable to build polygons from detailed mesh\n");
+		goto fail;
+	}
 
 	*ndtris_r = ndtris;
 	*npolys_r = npolys;
@@ -449,7 +468,7 @@ int buildNavMeshDataByDerivedMesh(DerivedMesh *dm, int *vertsPerPoly,
 
 	res = buildRawVertIndicesData(dm, nverts, verts, &ntris, &tris, trisToFacesMap, &recastData);
 	if (!res) {
-		printf("Converting navmesh: Error! Can't get vertices and indices from mesh\n");
+		printf("Converting navmesh: Error! Can't get raw vertices and indices from mesh\n");
 		goto exit;
 	}
 
@@ -457,7 +476,7 @@ int buildNavMeshDataByDerivedMesh(DerivedMesh *dm, int *vertsPerPoly,
 	                       ndtris, dtris, npolys, dmeshes, polys, vertsPerPoly,
 	                       dtrisToPolysMap, dtrisToTrisMap);
 	if (!res) {
-		printf("Converting navmesh: Error! Can't get vertices and indices from mesh\n");
+		printf("Converting navmesh: Error! Can't build navmesh data from mesh\n");
 		goto exit;
 	}
 
