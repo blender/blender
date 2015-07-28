@@ -652,31 +652,33 @@ static void cdDM_drawMappedFaces(
 	totpoly = dm->getNumPolys(dm);
 
 	/* if we do selection, fill the selection buffer color */
-	if ((G.f & G_BACKBUFSEL) && !(flag & DM_DRAW_SKIP_SELECT)) {
-		Mesh *me = userData;
-		unsigned int *fi_map;
+	if (G.f & G_BACKBUFSEL) {
+		if (!(flag & DM_DRAW_SKIP_SELECT)) {
+			Mesh *me = userData;
+			unsigned int *fi_map;
 
-		findex_buffer = GPU_buffer_alloc(dm->drawObject->tot_loop_verts * sizeof(int), false);
-		fi_map = GPU_buffer_lock(findex_buffer, GPU_BINDING_ARRAY);
+			findex_buffer = GPU_buffer_alloc(dm->drawObject->tot_loop_verts * sizeof(int), false);
+			fi_map = GPU_buffer_lock(findex_buffer, GPU_BINDING_ARRAY);
 
-		if (fi_map) {
-			for (i = 0; i < totpoly; i++, mpoly++) {
-				int selcol = 0xFFFFFFFF;
-				const int orig = (index_mp_to_orig) ? index_mp_to_orig[i] : i;
+			if (fi_map) {
+				for (i = 0; i < totpoly; i++, mpoly++) {
+					int selcol = 0xFFFFFFFF;
+					const int orig = (index_mp_to_orig) ? index_mp_to_orig[i] : i;
 
-				if ((orig != ORIGINDEX_NONE) && (!useHide || !(me->mpoly[orig].flag & ME_HIDE))) {
-					WM_framebuffer_index_get(orig + 1, &selcol);
+					if ((orig != ORIGINDEX_NONE) && (!useHide || !(me->mpoly[orig].flag & ME_HIDE))) {
+						WM_framebuffer_index_get(orig + 1, &selcol);
+					}
+
+					for (j = 0; j < mpoly->totloop; j++)
+						fi_map[start_element++] = selcol;
 				}
 
-				for (j = 0; j < mpoly->totloop; j++)
-					fi_map[start_element++] = selcol;
+				start_element = 0;
+				mpoly = cddm->mpoly;
+
+				GPU_buffer_unlock(findex_buffer, GPU_BINDING_ARRAY);
+				GPU_buffer_bind_as_color(findex_buffer);
 			}
-
-			start_element = 0;
-			mpoly = cddm->mpoly;
-
-			GPU_buffer_unlock(findex_buffer, GPU_BINDING_ARRAY);
-			GPU_buffer_bind_as_color(findex_buffer);
 		}
 	}
 	else {
@@ -792,7 +794,7 @@ static void cdDM_drawMappedFaces(
 
 	GPU_buffers_unbind();
 
-	if (G.f & G_BACKBUFSEL)
+	if (findex_buffer)
 		GPU_buffer_free(findex_buffer);
 
 }
