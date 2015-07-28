@@ -418,12 +418,14 @@ int checkPackedFile(const char *filename, PackedFile *pf)
 	return(ret_val);
 }
 
-/* unpackFile() looks at the existing files (abs_name, local_name) and a packed file.
+/**
+ * unpackFile() looks at the existing files (abs_name, local_name) and a packed file.
  *
  * It returns a char *to the existing file name / new file name or NULL when
  * there was an error or when the user decides to cancel the operation.
+ *
+ * \warning 'abs_name' may be relative still! (use a "//" prefix) be sure to run #BLI_path_abs on it first.
  */
-
 char *unpackFile(ReportList *reports, const char *abs_name, const char *local_name, PackedFile *pf, int how)
 {
 	char *newname = NULL;
@@ -438,27 +440,41 @@ char *unpackFile(ReportList *reports, const char *abs_name, const char *local_na
 				temp = abs_name;
 				break;
 			case PF_USE_LOCAL:
+			{
+				char temp_abs[FILE_MAX];
+
+				BLI_strncpy(temp_abs, local_name, sizeof(temp_abs));
+				BLI_path_abs(temp_abs, G.main->name);
+
 				/* if file exists use it */
-				if (BLI_exists(local_name)) {
+				if (BLI_exists(temp_abs)) {
 					temp = local_name;
 					break;
 				}
 				/* else create it */
 				/* fall-through */
+			}
 			case PF_WRITE_LOCAL:
 				if (writePackedFile(reports, local_name, pf, 1) == RET_OK) {
 					temp = local_name;
 				}
 				break;
 			case PF_USE_ORIGINAL:
+			{
+				char temp_abs[FILE_MAX];
+
+				BLI_strncpy(temp_abs, abs_name, sizeof(temp_abs));
+				BLI_path_abs(temp_abs, G.main->name);
+
 				/* if file exists use it */
-				if (BLI_exists(abs_name)) {
+				if (BLI_exists(temp_abs)) {
 					BKE_reportf(reports, RPT_INFO, "Use existing file (instead of packed): %s", abs_name);
 					temp = abs_name;
 					break;
 				}
 				/* else create it */
 				/* fall-through */
+			}
 			case PF_WRITE_ORIGINAL:
 				if (writePackedFile(reports, abs_name, pf, 1) == RET_OK) {
 					temp = abs_name;
