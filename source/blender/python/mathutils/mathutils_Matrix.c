@@ -2188,7 +2188,7 @@ static PyObject *Matrix_slice(MatrixObject *self, int begin, int end)
  * sequence slice (set)*/
 static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *value)
 {
-	PyObject *value_fast = NULL;
+	PyObject *value_fast;
 
 	if (BaseMath_ReadCallback_ForWrite(self) == -1)
 		return -1;
@@ -2203,6 +2203,7 @@ static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *va
 		return -1;
 	}
 	else {
+		PyObject **value_fast_items = PySequence_Fast_ITEMS(value_fast);
 		const int size = end - begin;
 		int row, col;
 		float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
@@ -2221,7 +2222,7 @@ static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *va
 		/* parse sub items */
 		for (row = begin; row < end; row++) {
 			/* parse each sub sequence */
-			PyObject *item = PySequence_Fast_GET_ITEM(value_fast, row - begin);
+			PyObject *item = value_fast_items[row - begin];
 
 			if (mathutils_array_parse(vec, self->num_col, self->num_col, item,
 			                          "matrix[begin:end] = value assignment") == -1)

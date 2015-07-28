@@ -53,6 +53,7 @@ int PyC_AsArray_FAST(
         const PyTypeObject *type, const bool is_double, const char *error_prefix)
 {
 	const Py_ssize_t value_len = PySequence_Fast_GET_SIZE(value_fast);
+	PyObject **value_fast_items = PySequence_Fast_ITEMS(value_fast);
 	Py_ssize_t i;
 
 	BLI_assert(PyList_Check(value_fast) || PyTuple_Check(value_fast));
@@ -69,13 +70,13 @@ int PyC_AsArray_FAST(
 		if (is_double) {
 			double *array_double = array;
 			for (i = 0; i < length; i++) {
-				array_double[i] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value_fast, i));
+				array_double[i] = PyFloat_AsDouble(value_fast_items[i]);
 			}
 		}
 		else {
 			float *array_float = array;
 			for (i = 0; i < length; i++) {
-				array_float[i] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value_fast, i));
+				array_float[i] = PyFloat_AsDouble(value_fast_items[i]);
 			}
 		}
 	}
@@ -83,13 +84,13 @@ int PyC_AsArray_FAST(
 		/* could use is_double for 'long int' but no use now */
 		int *array_int = array;
 		for (i = 0; i < length; i++) {
-			array_int[i] = PyLong_AsLong(PySequence_Fast_GET_ITEM(value_fast, i));
+			array_int[i] = PyLong_AsLong(value_fast_items[i]);
 		}
 	}
 	else if (type == &PyBool_Type) {
 		int *array_bool = array;
 		for (i = 0; i < length; i++) {
-			array_bool[i] = (PyLong_AsLong(PySequence_Fast_GET_ITEM(value_fast, i)) != 0);
+			array_bool[i] = (PyLong_AsLong(value_fast_items[i]) != 0);
 		}
 	}
 	else {

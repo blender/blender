@@ -2637,6 +2637,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop,
                                           int start, int stop, int length, PyObject *value_orig)
 {
 	PyObject *value;
+	PyObject **value_items;
 	int count;
 	void *values_alloc = NULL;
 	int ret = 0;
@@ -2658,6 +2659,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop,
 		return -1;
 	}
 
+	value_items = PySequence_Fast_ITEMS(value);
 	switch (RNA_property_type(prop)) {
 		case PROP_FLOAT:
 		{
@@ -2673,7 +2675,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop,
 				RNA_property_float_get_array(ptr, prop, values);
 
 			for (count = start; count < stop; count++) {
-				fval = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, count - start));
+				fval = PyFloat_AsDouble(value_items[count - start]);
 				CLAMP(fval, min, max);
 				values[count] = fval;
 			}
@@ -2693,7 +2695,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop,
 				RNA_property_boolean_get_array(ptr, prop, values);
 
 			for (count = start; count < stop; count++)
-				values[count] = PyLong_AsLong(PySequence_Fast_GET_ITEM(value, count - start));
+				values[count] = PyLong_AsLong(value_items[count - start]);
 
 			if (PyErr_Occurred()) ret = -1;
 			else                  RNA_property_boolean_set_array(ptr, prop, values);
@@ -2714,7 +2716,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop,
 				RNA_property_int_get_array(ptr, prop, values);
 
 			for (count = start; count < stop; count++) {
-				ival = PyLong_AsLong(PySequence_Fast_GET_ITEM(value, count - start));
+				ival = PyLong_AsLong(value_items[count - start]);
 				CLAMP(ival, min, max);
 				values[count] = ival;
 			}

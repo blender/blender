@@ -3766,6 +3766,7 @@ void *BPy_BMElem_PySeq_As_Array_FAST(
         const char *error_prefix)
 {
 	BMesh *bm = (r_bm && *r_bm) ? *r_bm : NULL;
+	PyObject **seq_fast_items = PySequence_Fast_ITEMS(seq_fast);
 	const Py_ssize_t seq_len = PySequence_Fast_GET_SIZE(seq_fast);
 	Py_ssize_t i;
 
@@ -3785,7 +3786,7 @@ void *BPy_BMElem_PySeq_As_Array_FAST(
 	alloc = PyMem_MALLOC(seq_len * sizeof(BPy_BMElem **));
 
 	for (i = 0; i < seq_len; i++) {
-		item = (BPy_BMElem *)PySequence_Fast_GET_ITEM(seq_fast, i);
+		item = (BPy_BMElem *)seq_fast_items[i];
 
 		if (!BPy_BMElem_CheckHType(Py_TYPE(item), htype)) {
 			PyErr_Format(PyExc_TypeError,

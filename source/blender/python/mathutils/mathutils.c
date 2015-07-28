@@ -57,20 +57,22 @@ static int mathutils_array_parse_fast(float *array,
                                       const char *error_prefix)
 {
 	PyObject *item;
+	PyObject **value_fast_items = PySequence_Fast_ITEMS(value_fast);
 
 	int i;
 
 	i = size;
 	do {
 		i--;
-		if (((array[i] = PyFloat_AsDouble((item = PySequence_Fast_GET_ITEM(value_fast, i)))) == -1.0f) &&
+		if (((array[i] = PyFloat_AsDouble((item = value_fast_items[i]))) == -1.0f) &&
 		    PyErr_Occurred())
 		{
 			PyErr_Format(PyExc_TypeError,
 			             "%.200s: sequence index %d expected a number, "
 			             "found '%.200s' type, ",
 			             error_prefix, i, Py_TYPE(item)->tp_name);
-			return -1;
+			size = -1;
+			break;
 		}
 	} while (i);
 
@@ -261,7 +263,7 @@ int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, c
 /* parse an array of vectors */
 int mathutils_array_parse_alloc_v(float **array, int array_dim, PyObject *value, const char *error_prefix)
 {
-	PyObject *value_fast = NULL;
+	PyObject *value_fast;
 	const int array_dim_flag = array_dim;
 	int i, size;
 
@@ -274,6 +276,7 @@ int mathutils_array_parse_alloc_v(float **array, int array_dim, PyObject *value,
 	size = PySequence_Fast_GET_SIZE(value_fast);
 
 	if (size != 0) {
+		PyObject **value_fast_items = PySequence_Fast_ITEMS(value_fast);
 		float *fp;
 
 		array_dim &= ~MU_ARRAY_FLAGS;
@@ -281,7 +284,7 @@ int mathutils_array_parse_alloc_v(float **array, int array_dim, PyObject *value,
 		fp = *array = PyMem_Malloc(size * array_dim * sizeof(float));
 
 		for (i = 0; i < size; i++, fp += array_dim) {
-			PyObject *item = PySequence_Fast_GET_ITEM(value, i);
+			PyObject *item = value_fast_items[i];
 
 			if (mathutils_array_parse(fp, array_dim, array_dim_flag, item, error_prefix) == -1) {
 				PyMem_Free(*array);

@@ -299,12 +299,14 @@ static PyObject *BPy_IDGroup_Map_GetItem(BPy_IDProperty *self, PyObject *item)
 /* returns NULL on success, error string on failure */
 static char idp_sequence_type(PyObject *seq_fast)
 {
+	PyObject **seq_fast_items = PySequence_Fast_ITEMS(seq_fast);
 	PyObject *item;
 	char type = IDP_INT;
 
 	Py_ssize_t i, len = PySequence_Fast_GET_SIZE(seq_fast);
+
 	for (i = 0; i < len; i++) {
-		item = PySequence_Fast_GET_ITEM(seq_fast, i);
+		item = seq_fast_items[i];
 		if (PyFloat_Check(item)) {
 			if (type == IDP_IDPARRAY) { /* mixed dict/int */
 				return -1;
@@ -396,13 +398,16 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
 		//prop->subtype = IDP_STRING_SUB_BYTE;
 	}
 	else if (PySequence_Check(ob)) {
-		PyObject *ob_seq_fast = PySequence_Fast(ob, "py -> idprop");
+		PyObject *ob_seq_fast;
+		PyObject **ob_seq_fast_items;
 		PyObject *item;
 		int i;
 
-		if (ob_seq_fast == NULL) {
+		if (!(ob_seq_fast = PySequence_Fast(ob, "py -> idprop"))) {
 			return false;
 		}
+
+		ob_seq_fast_items = PySequence_Fast_ITEMS(ob_seq_fast);
 
 		if ((val.array.type = idp_sequence_type(ob_seq_fast)) == (char)-1) {
 			Py_DECREF(ob_seq_fast);
@@ -424,7 +429,7 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
 				prop = IDP_New(IDP_ARRAY, &val, name);
 				prop_data = IDP_Array(prop);
 				for (i = 0; i < val.array.len; i++) {
-					item = PySequence_Fast_GET_ITEM(ob_seq_fast, i);
+					item = ob_seq_fast_items[i];
 					if (((prop_data[i] = PyFloat_AsDouble(item)) == -1.0) && PyErr_Occurred()) {
 						Py_DECREF(ob_seq_fast);
 						return false;
@@ -438,7 +443,7 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
 				prop = IDP_New(IDP_ARRAY, &val, name);
 				prop_data = IDP_Array(prop);
 				for (i = 0; i < val.array.len; i++) {
-					item = PySequence_Fast_GET_ITEM(ob_seq_fast, i);
+					item = ob_seq_fast_items[i];
 					if (((prop_data[i] = _PyLong_AsInt(item)) == -1) && PyErr_Occurred()) {
 						Py_DECREF(ob_seq_fast);
 						return false;
@@ -450,7 +455,7 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group,
 			{
 				prop = IDP_NewIDPArray(name);
 				for (i = 0; i < val.array.len; i++) {
-					item = PySequence_Fast_GET_ITEM(ob_seq_fast, i);
+					item = ob_seq_fast_items[i];
 
 					if (BPy_IDProperty_Map_ValidateAndCreate(NULL, prop, item) == false) {
 						Py_DECREF(ob_seq_fast);
