@@ -144,7 +144,7 @@ template<typename T> struct texture_image  {
 					iy = wrap_periodic(iy, height);
 					break;
 				case EXTENSION_CLIP:
-					if (ix < 0 || iy < 0 || ix >= width || iy >= height) {
+					if (x < 0.0f || y < 0.0f || x >= width || y >= height) {
 						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 					}
 					/* Fall through. */
@@ -168,7 +168,7 @@ template<typename T> struct texture_image  {
 					niy = wrap_periodic(iy+1, height);
 					break;
 				case EXTENSION_CLIP:
-					if (ix < 0 || iy < 0 || ix >= width || iy >= height) {
+					if (x < 0.0f || y < 0.0f || x >= width || y >= height) {
 						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 					}
 					/* Fall through. */
@@ -208,7 +208,7 @@ template<typename T> struct texture_image  {
 					nniy = wrap_periodic(iy+2, height);
 					break;
 				case EXTENSION_CLIP:
-					if (ix < 0 || iy < 0 || ix >= width || iy >= height) {
+					if (x < 0.0f || y < 0.0f || x >= width || y >= height) {
 						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 					}
 					/* Fall through. */
@@ -279,7 +279,7 @@ template<typename T> struct texture_image  {
 					iz = wrap_periodic(iz, depth);
 					break;
 				case EXTENSION_CLIP:
-					if (ix < 0 || iy < 0 || ix >= width || iy >= height) {
+					if (x < 0.0f || y < 0.0f || x >= width || y >= height) {
 						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 					}
 					/* Fall through. */
@@ -308,7 +308,7 @@ template<typename T> struct texture_image  {
 					niz = wrap_periodic(iz+1, depth);
 					break;
 				case EXTENSION_CLIP:
-					if (ix < 0 || iy < 0 || ix >= width || iy >= height) {
+					if (x < 0.0f || y < 0.0f || x >= width || y >= height) {
 						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 					}
 					/* Fall through. */
@@ -363,7 +363,7 @@ template<typename T> struct texture_image  {
 					nniz = wrap_periodic(iz+2, depth);
 					break;
 				case EXTENSION_CLIP:
-					if (ix < 0 || iy < 0 || ix >= width || iy >= height) {
+					if (x < 0.0f || y < 0.0f || x >= width || y >= height) {
 						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 					}
 					/* Fall through. */
