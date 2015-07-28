@@ -416,7 +416,10 @@ public:
 		cuda_pop_context();
 	}
 
-	void tex_alloc(const char *name, device_memory& mem, InterpolationType interpolation, bool periodic)
+	void tex_alloc(const char *name,
+	               device_memory& mem,
+	               InterpolationType interpolation,
+	               ExtensionType extension)
 	{
 		/* todo: support 3D textures, only CPU for now */
 		VLOG(1) << "Texture allocate: " << name << ", " << mem.memory_size() << " bytes.";
@@ -510,7 +513,7 @@ public:
 				cuda_assert(cuTexRefSetFlags(texref, CU_TRSF_READ_AS_INTEGER));
 			}
 
-			if(periodic) {
+			if(extension == EXTENSION_REPEAT) {
 				cuda_assert(cuTexRefSetAddressMode(texref, 0, CU_TR_ADDRESS_MODE_WRAP));
 				cuda_assert(cuTexRefSetAddressMode(texref, 1, CU_TR_ADDRESS_MODE_WRAP));
 			}

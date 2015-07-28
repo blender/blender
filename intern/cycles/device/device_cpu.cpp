@@ -126,7 +126,7 @@ public:
 	void tex_alloc(const char *name,
 	               device_memory& mem,
 	               InterpolationType interpolation,
-	               bool periodic)
+	               ExtensionType extension)
 	{
 		VLOG(1) << "Texture allocate: " << name << ", " << mem.memory_size() << " bytes.";
 		kernel_tex_copy(&kernel_globals,
@@ -136,7 +136,7 @@ public:
 		                mem.data_height,
 		                mem.data_depth,
 		                interpolation,
-		                periodic);
+		                extension);
 		mem.device_pointer = mem.data_pointer;
 		mem.device_size = mem.memory_size();
 		stats.mem_alloc(mem.device_size);

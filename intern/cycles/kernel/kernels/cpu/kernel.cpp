@@ -45,7 +45,7 @@ void kernel_tex_copy(KernelGlobals *kg,
                      size_t height,
                      size_t depth,
                      InterpolationType interpolation,
-                     bool periodic)
+                     ExtensionType extension)
 {
 	if(0) {
 	}
@@ -71,7 +71,7 @@ void kernel_tex_copy(KernelGlobals *kg,
 			tex->data = (float4*)mem;
 			tex->dimensions_set(width, height, depth);
 			tex->interpolation = interpolation;
-			tex->periodic = periodic;
+			tex->extension = extension;
 		}
 	}
 	else if(strstr(name, "__tex_image")) {
@@ -87,7 +87,7 @@ void kernel_tex_copy(KernelGlobals *kg,
 			tex->data = (uchar4*)mem;
 			tex->dimensions_set(width, height, depth);
 			tex->interpolation = interpolation;
-			tex->periodic = periodic;
+			tex->extension = extension;
 		}
 	}
 	else

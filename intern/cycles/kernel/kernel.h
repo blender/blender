@@ -39,7 +39,7 @@ void kernel_tex_copy(KernelGlobals *kg,
                      size_t height,
                      size_t depth,
                      InterpolationType interpolation=INTERPOLATION_LINEAR,
-                     bool periodic = true);
+                     ExtensionType extension = EXTENSION_REPEAT);
 
 void kernel_cpu_path_trace(KernelGlobals *kg, float *buffer, unsigned int *rng_state,
 	int sample, int x, int y, int offset, int stride);

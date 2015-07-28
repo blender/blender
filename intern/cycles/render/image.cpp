@@ -714,7 +714,7 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 			device->tex_alloc(name.c_str(),
 			                  tex_img,
 			                  img->interpolation,
-			                  img->extension == EXTENSION_REPEAT);
+			                  img->extension);
 		}
 	}
 	else {
@@ -749,7 +749,7 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 			device->tex_alloc(name.c_str(),
 			                  tex_img,
 			                  img->interpolation,
-			                  img->extension == EXTENSION_REPEAT);
+			                  img->extension);
 		}
 	}
 

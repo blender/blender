@@ -169,13 +169,17 @@ public:
 			sub.device->const_copy_to(name, host, size);
 	}
 
-	void tex_alloc(const char *name, device_memory& mem, InterpolationType interpolation, bool periodic)
+	void tex_alloc(const char *name,
+	               device_memory& mem,
+	               InterpolationType
+	               interpolation,
+	               ExtensionType extension)
 	{
 		VLOG(1) << "Texture allocate: " << name << ", " << mem.memory_size() << " bytes.";
 
 		foreach(SubDevice& sub, devices) {
 			mem.device_pointer = 0;
-			sub.device->tex_alloc(name, mem, interpolation, periodic);
+			sub.device->tex_alloc(name, mem, interpolation, extension);
 			sub.ptr_map[unique_ptr] = mem.device_pointer;
 		}
 

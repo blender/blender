@@ -173,10 +173,10 @@ public:
 	virtual void tex_alloc(const char * /*name*/,
 	                       device_memory& /*mem*/,
 	                       InterpolationType interpolation = INTERPOLATION_NONE,
-	                       bool periodic = false)
+	                       ExtensionType extension = EXTENSION_REPEAT)
 	{
 		(void)interpolation;  /* Ignored. */
-		(void)periodic;  /* Ignored. */
+		(void)extension;  /* Ignored. */
 	};
 	virtual void tex_free(device_memory& /*mem*/) {};
 

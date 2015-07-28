@@ -138,7 +138,7 @@ template<typename T> struct texture_image  {
 		if(interpolation == INTERPOLATION_CLOSEST) {
 			frac(x*(float)width, &ix);
 			frac(y*(float)height, &iy);
-			if(periodic) {
+			if(extension == EXTENSION_REPEAT) {
 				ix = wrap_periodic(ix, width);
 				iy = wrap_periodic(iy, height);
 
@@ -153,7 +153,7 @@ template<typename T> struct texture_image  {
 			float tx = frac(x*(float)width - 0.5f, &ix);
 			float ty = frac(y*(float)height - 0.5f, &iy);
 
-			if(periodic) {
+			if(extension == EXTENSION_REPEAT) {
 				ix = wrap_periodic(ix, width);
 				iy = wrap_periodic(iy, height);
 
@@ -180,7 +180,7 @@ template<typename T> struct texture_image  {
 			const float tx = frac(x*(float)width - 0.5f, &ix);
 			const float ty = frac(y*(float)height - 0.5f, &iy);
 			int pix, piy, nnix, nniy;
-			if(periodic) {
+			if(extension == EXTENSION_REPEAT) {
 				ix = wrap_periodic(ix, width);
 				iy = wrap_periodic(iy, height);
 
@@ -251,7 +251,7 @@ template<typename T> struct texture_image  {
 			frac(y*(float)height, &iy);
 			frac(z*(float)depth, &iz);
 
-			if(periodic) {
+			if(extension == EXTENSION_REPEAT) {
 				ix = wrap_periodic(ix, width);
 				iy = wrap_periodic(iy, height);
 				iz = wrap_periodic(iz, depth);
@@ -269,7 +269,7 @@ template<typename T> struct texture_image  {
 			float ty = frac(y*(float)height - 0.5f, &iy);
 			float tz = frac(z*(float)depth - 0.5f, &iz);
 
-			if(periodic) {
+			if(extension == EXTENSION_REPEAT) {
 				ix = wrap_periodic(ix, width);
 				iy = wrap_periodic(iy, height);
 				iz = wrap_periodic(iz, depth);
@@ -309,7 +309,7 @@ template<typename T> struct texture_image  {
 			const float tz = frac(z*(float)depth - 0.5f, &iz);
 			int pix, piy, piz, nnix, nniy, nniz;
 
-			if(periodic) {
+			if(extension == EXTENSION_REPEAT) {
 				ix = wrap_periodic(ix, width);
 				iy = wrap_periodic(iy, height);
 				iz = wrap_periodic(iz, depth);
@@ -392,7 +392,7 @@ template<typename T> struct texture_image  {
 
 	T *data;
 	int interpolation;
-	bool periodic;
+	ExtensionType extension;
 	int width, height, depth;
 #undef SET_CUBIC_SPLINE_WEIGHTS
 };
