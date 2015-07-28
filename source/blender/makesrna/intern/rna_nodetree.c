@@ -3626,6 +3626,7 @@ static void def_sh_tex_image(StructRNA *srna)
 	static EnumPropertyItem prop_image_extension[] = {
 		{SHD_IMAGE_EXTENSION_REPEAT, "REPEAT", 0, "Repeat", "Cause the image to repeat horizontally and vertically"},
 		{SHD_IMAGE_EXTENSION_EXTEND, "EXTEND", 0, "Extend", "Extend by repeating edge pixels of the image"},
+		{SHD_IMAGE_EXTENSION_CLIP, "CLIP", 0, "Clip", "Clip to image size and set exterior pixels as transparent"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

@@ -979,6 +979,7 @@ typedef struct NodeSunBeams {
 
 #define SHD_IMAGE_EXTENSION_REPEAT	0
 #define SHD_IMAGE_EXTENSION_EXTEND	1
+#define SHD_IMAGE_EXTENSION_CLIP	2
 
 /* image texture */
 #define SHD_PROJ_FLAT				0
