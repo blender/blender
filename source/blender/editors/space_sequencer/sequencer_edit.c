@@ -1927,6 +1927,14 @@ void SEQUENCER_OT_reload(struct wmOperatorType *ot)
 }
 
 /* reload operator */
+static int sequencer_refresh_all_poll(bContext *C)
+{
+	if (G.is_rendering) {
+		return 0;
+	}
+	return sequencer_edit_poll(C);
+}
+
 static int sequencer_refresh_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
@@ -1948,7 +1956,7 @@ void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = sequencer_refresh_all_exec;
-	ot->poll = sequencer_edit_poll;
+	ot->poll = sequencer_refresh_all_poll;
 }
 
 static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
