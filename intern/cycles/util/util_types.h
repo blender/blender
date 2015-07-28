@@ -479,6 +479,8 @@ enum ExtensionType {
 	EXTENSION_REPEAT = 0,
 	/* Extend by repeating edge pixels of the image. */
 	EXTENSION_EXTEND = 1,
+	/* Clip to image size and set exterior pixels as transparent. */
+	EXTENSION_CLIP = 2,
 };
 
 /* macros */

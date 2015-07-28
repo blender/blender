@@ -379,11 +379,17 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 			break;
 	}
 
-	if (extension == EXTENSION_REPEAT) {
-		compiler.parameter("wrap", "periodic");
-	}
-	else {
-		compiler.parameter("wrap", "clamp");
+	switch(extension) {
+		case EXTENSION_EXTEND:
+			compiler.parameter("wrap", "clamp");
+			break;
+		case EXTENSION_CLIP:
+			compiler.parameter("wrap", "black");
+			break;
+		case EXTENSION_REPEAT:
+		default:
+			compiler.parameter("wrap", "periodic");
+			break;
 	}
 
 	compiler.add(this, "node_image_texture");

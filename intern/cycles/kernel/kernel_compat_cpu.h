@@ -138,14 +138,20 @@ template<typename T> struct texture_image  {
 		if(interpolation == INTERPOLATION_CLOSEST) {
 			frac(x*(float)width, &ix);
 			frac(y*(float)height, &iy);
-			if(extension == EXTENSION_REPEAT) {
-				ix = wrap_periodic(ix, width);
-				iy = wrap_periodic(iy, height);
-
-			}
-			else {
-				ix = wrap_clamp(ix, width);
-				iy = wrap_clamp(iy, height);
+			switch(extension) {
+				case EXTENSION_REPEAT:
+					ix = wrap_periodic(ix, width);
+					iy = wrap_periodic(iy, height);
+					break;
+				case EXTENSION_CLIP:
+					if (ix < 0 || iy < 0 || ix >= width || iy >= height) {
+						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+					}
+					/* Fall through. */
+				case EXTENSION_EXTEND:
+					ix = wrap_clamp(ix, width);
+					iy = wrap_clamp(iy, height);
+					break;
 			}
 			return read(data[ix + iy*width]);
 		}
@@ -153,19 +159,26 @@ template<typename T> struct texture_image  {
 			float tx = frac(x*(float)width - 0.5f, &ix);
 			float ty = frac(y*(float)height - 0.5f, &iy);
 
-			if(extension == EXTENSION_REPEAT) {
-				ix = wrap_periodic(ix, width);
-				iy = wrap_periodic(iy, height);
+			switch(extension) {
+				case EXTENSION_REPEAT:
+					ix = wrap_periodic(ix, width);
+					iy = wrap_periodic(iy, height);
 
-				nix = wrap_periodic(ix+1, width);
-				niy = wrap_periodic(iy+1, height);
-			}
-			else {
-				ix = wrap_clamp(ix, width);
-				iy = wrap_clamp(iy, height);
+					nix = wrap_periodic(ix+1, width);
+					niy = wrap_periodic(iy+1, height);
+					break;
+				case EXTENSION_CLIP:
+					if (ix < 0 || iy < 0 || ix >= width || iy >= height) {
+						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+					}
+					/* Fall through. */
+				case EXTENSION_EXTEND:
+					ix = wrap_clamp(ix, width);
+					iy = wrap_clamp(iy, height);
 
-				nix = wrap_clamp(ix+1, width);
-				niy = wrap_clamp(iy+1, height);
+					nix = wrap_clamp(ix+1, width);
+					niy = wrap_clamp(iy+1, height);
+					break;
 			}
 
 			float4 r = (1.0f - ty)*(1.0f - tx)*read(data[ix + iy*width]);
@@ -176,36 +189,44 @@ template<typename T> struct texture_image  {
 			return r;
 		}
 		else {
-			/* Tricubic b-spline interpolation. */
+			/* Bicubic b-spline interpolation. */
 			const float tx = frac(x*(float)width - 0.5f, &ix);
 			const float ty = frac(y*(float)height - 0.5f, &iy);
 			int pix, piy, nnix, nniy;
-			if(extension == EXTENSION_REPEAT) {
-				ix = wrap_periodic(ix, width);
-				iy = wrap_periodic(iy, height);
+			switch(extension) {
+				case EXTENSION_REPEAT:
+					ix = wrap_periodic(ix, width);
+					iy = wrap_periodic(iy, height);
 
-				pix = wrap_periodic(ix-1, width);
-				piy = wrap_periodic(iy-1, height);
+					pix = wrap_periodic(ix-1, width);
+					piy = wrap_periodic(iy-1, height);
 
-				nix = wrap_periodic(ix+1, width);
-				niy = wrap_periodic(iy+1, height);
+					nix = wrap_periodic(ix+1, width);
+					niy = wrap_periodic(iy+1, height);
 
-				nnix = wrap_periodic(ix+2, width);
-				nniy = wrap_periodic(iy+2, height);
+					nnix = wrap_periodic(ix+2, width);
+					nniy = wrap_periodic(iy+2, height);
+					break;
+				case EXTENSION_CLIP:
+					if (ix < 0 || iy < 0 || ix >= width || iy >= height) {
+						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+					}
+					/* Fall through. */
+				case EXTENSION_EXTEND:
+					ix = wrap_clamp(ix, width);
+					iy = wrap_clamp(iy, height);
+
+					pix = wrap_clamp(ix-1, width);
+					piy = wrap_clamp(iy-1, height);
+
+					nix = wrap_clamp(ix+1, width);
+					niy = wrap_clamp(iy+1, height);
+
+					nnix = wrap_clamp(ix+2, width);
+					nniy = wrap_clamp(iy+2, height);
+					break;
 			}
-			else {
-				ix = wrap_clamp(ix, width);
-				iy = wrap_clamp(iy, height);
 
-				pix = wrap_clamp(ix-1, width);
-				piy = wrap_clamp(iy-1, height);
-
-				nix = wrap_clamp(ix+1, width);
-				niy = wrap_clamp(iy+1, height);
-
-				nnix = wrap_clamp(ix+2, width);
-				nniy = wrap_clamp(iy+2, height);
-			}
 			const int xc[4] = {pix, ix, nix, nnix};
 			const int yc[4] = {width * piy,
 			                   width * iy,
@@ -251,15 +272,22 @@ template<typename T> struct texture_image  {
 			frac(y*(float)height, &iy);
 			frac(z*(float)depth, &iz);
 
-			if(extension == EXTENSION_REPEAT) {
-				ix = wrap_periodic(ix, width);
-				iy = wrap_periodic(iy, height);
-				iz = wrap_periodic(iz, depth);
-			}
-			else {
-				ix = wrap_clamp(ix, width);
-				iy = wrap_clamp(iy, height);
-				iz = wrap_clamp(iz, depth);
+			switch(extension) {
+				case EXTENSION_REPEAT:
+					ix = wrap_periodic(ix, width);
+					iy = wrap_periodic(iy, height);
+					iz = wrap_periodic(iz, depth);
+					break;
+				case EXTENSION_CLIP:
+					if (ix < 0 || iy < 0 || ix >= width || iy >= height) {
+						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+					}
+					/* Fall through. */
+				case EXTENSION_EXTEND:
+					ix = wrap_clamp(ix, width);
+					iy = wrap_clamp(iy, height);
+					iz = wrap_clamp(iz, depth);
+					break;
 			}
 
 			return read(data[ix + iy*width + iz*width*height]);
@@ -269,23 +297,30 @@ template<typename T> struct texture_image  {
 			float ty = frac(y*(float)height - 0.5f, &iy);
 			float tz = frac(z*(float)depth - 0.5f, &iz);
 
-			if(extension == EXTENSION_REPEAT) {
-				ix = wrap_periodic(ix, width);
-				iy = wrap_periodic(iy, height);
-				iz = wrap_periodic(iz, depth);
+			switch(extension) {
+				case EXTENSION_REPEAT:
+					ix = wrap_periodic(ix, width);
+					iy = wrap_periodic(iy, height);
+					iz = wrap_periodic(iz, depth);
 
-				nix = wrap_periodic(ix+1, width);
-				niy = wrap_periodic(iy+1, height);
-				niz = wrap_periodic(iz+1, depth);
-			}
-			else {
-				ix = wrap_clamp(ix, width);
-				iy = wrap_clamp(iy, height);
-				iz = wrap_clamp(iz, depth);
+					nix = wrap_periodic(ix+1, width);
+					niy = wrap_periodic(iy+1, height);
+					niz = wrap_periodic(iz+1, depth);
+					break;
+				case EXTENSION_CLIP:
+					if (ix < 0 || iy < 0 || ix >= width || iy >= height) {
+						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+					}
+					/* Fall through. */
+				case EXTENSION_EXTEND:
+					ix = wrap_clamp(ix, width);
+					iy = wrap_clamp(iy, height);
+					iz = wrap_clamp(iz, depth);
 
-				nix = wrap_clamp(ix+1, width);
-				niy = wrap_clamp(iy+1, height);
-				niz = wrap_clamp(iz+1, depth);
+					nix = wrap_clamp(ix+1, width);
+					niy = wrap_clamp(iy+1, height);
+					niz = wrap_clamp(iz+1, depth);
+					break;
 			}
 
 			float4 r;
@@ -309,39 +344,46 @@ template<typename T> struct texture_image  {
 			const float tz = frac(z*(float)depth - 0.5f, &iz);
 			int pix, piy, piz, nnix, nniy, nniz;
 
-			if(extension == EXTENSION_REPEAT) {
-				ix = wrap_periodic(ix, width);
-				iy = wrap_periodic(iy, height);
-				iz = wrap_periodic(iz, depth);
+			switch(extension) {
+				case EXTENSION_REPEAT:
+					ix = wrap_periodic(ix, width);
+					iy = wrap_periodic(iy, height);
+					iz = wrap_periodic(iz, depth);
 
-				pix = wrap_periodic(ix-1, width);
-				piy = wrap_periodic(iy-1, height);
-				piz = wrap_periodic(iz-1, depth);
+					pix = wrap_periodic(ix-1, width);
+					piy = wrap_periodic(iy-1, height);
+					piz = wrap_periodic(iz-1, depth);
 
-				nix = wrap_periodic(ix+1, width);
-				niy = wrap_periodic(iy+1, height);
-				niz = wrap_periodic(iz+1, depth);
+					nix = wrap_periodic(ix+1, width);
+					niy = wrap_periodic(iy+1, height);
+					niz = wrap_periodic(iz+1, depth);
 
-				nnix = wrap_periodic(ix+2, width);
-				nniy = wrap_periodic(iy+2, height);
-				nniz = wrap_periodic(iz+2, depth);
-			}
-			else {
-				ix = wrap_clamp(ix, width);
-				iy = wrap_clamp(iy, height);
-				iz = wrap_clamp(iz, depth);
+					nnix = wrap_periodic(ix+2, width);
+					nniy = wrap_periodic(iy+2, height);
+					nniz = wrap_periodic(iz+2, depth);
+					break;
+				case EXTENSION_CLIP:
+					if (ix < 0 || iy < 0 || ix >= width || iy >= height) {
+						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+					}
+					/* Fall through. */
+				case EXTENSION_EXTEND:
+					ix = wrap_clamp(ix, width);
+					iy = wrap_clamp(iy, height);
+					iz = wrap_clamp(iz, depth);
 
-				pix = wrap_clamp(ix-1, width);
-				piy = wrap_clamp(iy-1, height);
-				piz = wrap_clamp(iz-1, depth);
+					pix = wrap_clamp(ix-1, width);
+					piy = wrap_clamp(iy-1, height);
+					piz = wrap_clamp(iz-1, depth);
 
-				nix = wrap_clamp(ix+1, width);
-				niy = wrap_clamp(iy+1, height);
-				niz = wrap_clamp(iz+1, depth);
+					nix = wrap_clamp(ix+1, width);
+					niy = wrap_clamp(iy+1, height);
+					niz = wrap_clamp(iz+1, depth);
 
-				nnix = wrap_clamp(ix+2, width);
-				nniy = wrap_clamp(iy+2, height);
-				nniz = wrap_clamp(iz+2, depth);
+					nnix = wrap_clamp(ix+2, width);
+					nniy = wrap_clamp(iy+2, height);
+					nniz = wrap_clamp(iz+2, depth);
+					break;
 			}
 
 			const int xc[4] = {pix, ix, nix, nnix};
