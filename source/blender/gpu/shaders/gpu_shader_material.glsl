@@ -2262,6 +2262,11 @@ void node_bsdf_hair(vec4 color, float offset, float roughnessu, float roughnessv
 	result = color;
 }
 
+void node_bsdf_refraction(vec4 color, float roughness, float ior, vec3 N, out vec4 result)
+{
+	node_bsdf_diffuse(color, 0.0, N, result);
+}
+
 /* emission */
 
 void node_emission(vec4 color, float strength, vec3 N, out vec4 result)
