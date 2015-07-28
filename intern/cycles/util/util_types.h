@@ -477,8 +477,8 @@ enum InterpolationType {
 enum ExtensionType {
 	/* Cause the image to repeat horizontally and vertically. */
 	EXTENSION_REPEAT = 0,
-	/* Clip to image size and set exterior pixels as transparent. */
-	EXTENSION_CLIP = 1,
+	/* Extend by repeating edge pixels of the image. */
+	EXTENSION_EXTEND = 1,
 };
 
 /* macros */

@@ -767,7 +767,7 @@ static ShaderNode *add_node(Scene *scene,
 			        point_density->filename,
 			        point_density->builtin_data,
 			        point_density->interpolation,
-			        EXTENSION_CLIP);
+			        EXTENSION_REPEAT);
 		}
 		node = point_density;
 	}
