@@ -48,21 +48,16 @@
 #endif
 
 /* array utility function */
-int PyC_AsArray(void *array, PyObject *value, const Py_ssize_t length,
-                const PyTypeObject *type, const bool is_double, const char *error_prefix)
+int PyC_AsArray_FAST(
+        void *array, PyObject *value_fast, const Py_ssize_t length,
+        const PyTypeObject *type, const bool is_double, const char *error_prefix)
 {
-	PyObject *value_fast;
-	Py_ssize_t value_len;
+	const Py_ssize_t value_len = PySequence_Fast_GET_SIZE(value_fast);
 	Py_ssize_t i;
 
-	if (!(value_fast = PySequence_Fast(value, error_prefix))) {
-		return -1;
-	}
-
-	value_len = PySequence_Fast_GET_SIZE(value_fast);
+	BLI_assert(PyList_Check(value_fast) || PyTuple_Check(value_fast));
 
 	if (value_len != length) {
-		Py_DECREF(value);
 		PyErr_Format(PyExc_TypeError,
 		             "%.200s: invalid sequence length. expected %d, got %d",
 		             error_prefix, length, value_len);
@@ -98,14 +93,11 @@ int PyC_AsArray(void *array, PyObject *value, const Py_ssize_t length,
 		}
 	}
 	else {
-		Py_DECREF(value_fast);
 		PyErr_Format(PyExc_TypeError,
 		             "%s: internal error %s is invalid",
 		             error_prefix, type->tp_name);
 		return -1;
 	}
-
-	Py_DECREF(value_fast);
 
 	if (PyErr_Occurred()) {
 		PyErr_Format(PyExc_TypeError,
@@ -115,6 +107,22 @@ int PyC_AsArray(void *array, PyObject *value, const Py_ssize_t length,
 	}
 
 	return 0;
+}
+
+int PyC_AsArray(
+        void *array, PyObject *value, const Py_ssize_t length,
+        const PyTypeObject *type, const bool is_double, const char *error_prefix)
+{
+	PyObject *value_fast;
+	int ret;
+
+	if (!(value_fast = PySequence_Fast(value, error_prefix))) {
+		return -1;
+	}
+
+	ret = PyC_AsArray_FAST(array, value_fast, length, type, is_double, error_prefix);
+	Py_DECREF(value_fast);
+	return ret;
 }
 
 /* array utility function */
