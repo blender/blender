@@ -23,7 +23,10 @@
 #include "COM_TextureOperation.h"
 
 #include "BLI_listbase.h"
+#include "BLI_threads.h"
 #include "BKE_image.h"
+
+static ThreadMutex mutex_lock = BLI_MUTEX_INITIALIZER;
 
 TextureBaseOperation::TextureBaseOperation() : SingleThreadedOperation()
 {
@@ -100,7 +103,12 @@ void TextureBaseOperation::executePixelSampled(float output[4], float x, float y
 	vec[1] = textureSize[1] * (v + textureOffset[1]);
 	vec[2] = textureSize[2] * textureOffset[2];
 
+	/* TODO(sergey): Need to pass thread ID to the multitex code,
+	 * then we can avoid having mutex here.
+	 */
+	BLI_mutex_lock(&mutex_lock);
 	retval = multitex_ext(this->m_texture, vec, NULL, NULL, 0, &texres, m_pool, m_sceneColorManage, false);
+	BLI_mutex_unlock(&mutex_lock);
 
 	if (texres.talpha)
 		output[3] = texres.ta;
