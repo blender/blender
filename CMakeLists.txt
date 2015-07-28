@@ -160,8 +160,11 @@ option_defaults_init(
 	_init_GAMEENGINE
 )
 
+# NOTE: for now use same defaults on all platforms...
+# in future we may want to tweak per-platform
+
 # customize...
-if(UNIX AND NOT APPLE)
+if (1)
 	# some of these libraries are problematic on Linux
 	# disable less important dependencies by default
 	set(_init_BUILDINFO                      OFF)
