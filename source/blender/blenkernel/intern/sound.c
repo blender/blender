@@ -864,7 +864,7 @@ bool BKE_sound_is_jack_supported(void)
 
 #include "BLI_utildefines.h"
 
-void BKE_sound_force_device(int UNUSED(device)) {}
+void BKE_sound_force_device(const char *UNUSED(device)) {}
 void BKE_sound_init_once(void) {}
 void BKE_sound_init(struct Main *UNUSED(bmain)) {}
 void BKE_sound_exit(void) {}

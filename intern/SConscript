@@ -27,8 +27,7 @@
 
 Import ('env')
 
-SConscript(['audaspace/SConscript',
-            'string/SConscript',
+SConscript(['string/SConscript',
             'ghost/SConscript',
             'glew-mx/SConscript',
             'guardedalloc/SConscript',
@@ -44,6 +43,9 @@ SConscript(['audaspace/SConscript',
 
 # currently only contains headers
 # SConscript('container/SConscript')
+
+if env['WITH_BF_AUDASPACE']:
+    SConscript(['audaspace/SConscript'])
 
 if env ['WITH_BF_REMESH']:
     SConscript(['dualcon/SConscript'])

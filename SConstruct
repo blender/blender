@@ -514,6 +514,10 @@ if env['WITH_BF_STATICCXX']:
     else:
         print '\tcould not remove stdc++ library from LLIBS, WITH_BF_STATICCXX may not work for your platform'
 
+# audaspace is needed for the game engine
+if not env['WITH_BF_AUDASPACE']:
+    env['WITH_BF_GAMEENGINE'] = False
+
 # check target for blenderplayer. Set WITH_BF_PLAYER if found on cmdline
 if 'blenderplayer' in B.targets:
     env['WITH_BF_PLAYER'] = True
