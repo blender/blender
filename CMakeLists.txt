@@ -160,26 +160,25 @@ option_defaults_init(
 	_init_GAMEENGINE
 )
 
-# NOTE: for now use same defaults on all platforms...
-# in future we may want to tweak per-platform
-
 # customize...
-if (1)
+if (UNIX AND NOT APPLE)
 	# some of these libraries are problematic on Linux
 	# disable less important dependencies by default
-	set(_init_BUILDINFO                      OFF)
 	set(_init_CODEC_FFMPEG                   OFF)
 	set(_init_CYCLES_OSL                     OFF)
 	set(_init_IMAGE_OPENEXR                  OFF)
 	set(_init_IMAGE_REDCODE                  OFF)
 	set(_init_INPUT_NDOF                     OFF)
 	set(_init_JACK                           OFF)
-	set(_init_LIBMV_SCHUR_SPECIALIZATION     OFF)
 	set(_init_OPENCOLLADA                    OFF)
 	set(_init_OPENCOLORIO                    OFF)
 	set(_init_SDL                            OFF)
 	set(_init_FFTW3                          OFF)
-	set(_init_GAMEENGINE                     OFF)
+elseif(WIN32)
+	set(_init_JACK                           OFF)
+elseif(APPLE)
+	set(_init_INPUT_NDOF                     OFF)
+	set(_init_JACK                           OFF)
 endif()
 
 
@@ -807,6 +806,14 @@ if(WITH_X11)
 	endif()
 
 endif()
+
+
+# ----------------------------------------------------------------------------
+# Main Platform Checks
+#
+# - UNIX
+# - WIN32
+# - APPLE
 
 if(UNIX AND NOT APPLE)
 	macro(find_package_wrapper)
