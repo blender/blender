@@ -2226,6 +2226,7 @@ static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *va
 			if (mathutils_array_parse(vec, self->num_col, self->num_col, item,
 			                          "matrix[begin:end] = value assignment") == -1)
 			{
+				Py_DECREF(value_fast);
 				return -1;
 			}
 

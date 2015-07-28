@@ -70,12 +70,10 @@ static int mathutils_array_parse_fast(float *array,
 			             "%.200s: sequence index %d expected a number, "
 			             "found '%.200s' type, ",
 			             error_prefix, i, Py_TYPE(item)->tp_name);
-			Py_DECREF(value_fast);
 			return -1;
 		}
 	} while (i);
 
-	Py_XDECREF(value_fast);
 	return size;
 }
 
@@ -182,6 +180,7 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 		}
 
 		size = mathutils_array_parse_fast(array, size, value_fast, error_prefix);
+		Py_DECREF(value_fast);
 	}
 
 	if (size != -1) {
@@ -239,6 +238,7 @@ int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, c
 		size = PySequence_Fast_GET_SIZE(value_fast);
 
 		if (size < array_min) {
+			Py_DECREF(value_fast);
 			PyErr_Format(PyExc_ValueError,
 			             "%.200s: sequence size is %d, expected > %d",
 			             error_prefix, size, array_min);
@@ -248,6 +248,7 @@ int mathutils_array_parse_alloc(float **array, int array_min, PyObject *value, c
 		*array = PyMem_Malloc(size * sizeof(float));
 
 		ret = mathutils_array_parse_fast(*array, size, value_fast, error_prefix);
+		Py_DECREF(value_fast);
 
 		if (ret == -1) {
 			PyMem_Free(*array);
