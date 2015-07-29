@@ -912,7 +912,6 @@ RenderResult *render_result_new_from_exr(void *exrhandle, const char *colorspace
 		BLI_listbase_sort(&rl->passes, order_render_passes);
 
 		for (rpass = rl->passes.first; rpass; rpass = rpass->next) {
-			printf("%d: %s\n", c++, rpass->name);
 			rpass->rectx = rectx;
 			rpass->recty = recty;
 
