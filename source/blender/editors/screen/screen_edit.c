@@ -1314,7 +1314,8 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	if (screen->animtimer)
 		WM_event_remove_timer(wm, window, screen->animtimer);
 	screen->animtimer = NULL;
-	
+	screen->scrubbing = false;
+
 	if (screen->mainwin)
 		wm_subwindow_close(window, screen->mainwin);
 	screen->mainwin = 0;

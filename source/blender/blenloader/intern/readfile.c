@@ -5948,6 +5948,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 				sc->scene = main->scene.first;
 
 			sc->animtimer = NULL; /* saved in rare cases */
+			sc->scrubbing = false;
 			
 			for (sa = sc->areabase.first; sa; sa = sa->next) {
 				SpaceLink *sl;

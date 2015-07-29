@@ -3626,7 +3626,7 @@ bScreen *ED_screen_animation_playing(const wmWindowManager *wm)
 	wmWindow *win;
 
 	for (win = wm->windows.first; win; win = win->next) {
-		if (win->screen->animtimer) {
+		if (win->screen->animtimer || win->screen->scrubbing) {
 			return win->screen;
 		}
 	}
