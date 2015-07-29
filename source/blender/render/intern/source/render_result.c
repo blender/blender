@@ -905,7 +905,6 @@ RenderResult *render_result_new_from_exr(void *exrhandle, const char *colorspace
 	IMB_exr_multilayer_convert(exrhandle, rr, ml_addview_cb, ml_addlayer_cb, ml_addpass_cb);
 
 	for (rl = rr->layers.first; rl; rl = rl->next) {
-		int c=0;
 		rl->rectx = rectx;
 		rl->recty = recty;
 
