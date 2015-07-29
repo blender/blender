@@ -243,6 +243,12 @@ bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss, bool use_osd_glsl)
 	}
 
 	if (ss->osd_mesh == NULL) {
+		if (ss->osd_topology_refiner == NULL) {
+			/* Happens with empty meshes. */
+			/* TODO(sergey): Add assert thet mesh is indeed empty. */
+			return false;
+		}
+
 		ss->osd_mesh = openSubdiv_createOsdGLMeshFromTopologyRefiner(
 		        ss->osd_topology_refiner,
 		        compute_type,
@@ -408,13 +414,21 @@ static bool opensubdiv_createEvaluator(CCGSubSurf *ss)
 {
 	OpenSubdiv_Converter converter;
 	OpenSubdiv_TopologyRefinerDescr *topology_refiner;
+	if (ss->fMap->numEntries == 0) {
+		/* OpenSubdiv doesn't support meshes withut faces. */
+		return false;
+	}
 	ccgSubSurf_converter_setup_from_ccg(ss, &converter);
 	topology_refiner = openSubdiv_createTopologyRefinerDescr(&converter);
 	ccgSubSurf_converter_free(&converter);
 	ss->osd_evaluator =
 	        openSubdiv_createEvaluatorDescr(topology_refiner,
 	                                        ss->subdivLevels);
-	return ss->osd_evaluator != NULL;
+	if (ss->osd_evaluator == NULL) {
+		BLI_assert(!"OpenSubdiv initializetion failed, should not happen.");
+		return false;
+	}
+	return true;
 }
 
 static bool opensubdiv_ensureEvaluator(CCGSubSurf *ss)
@@ -779,11 +793,13 @@ CCGError ccgSubSurf_initOpenSubdivSync(CCGSubSurf *ss)
 void ccgSubSurf_prepareTopologyRefiner(CCGSubSurf *ss, DerivedMesh *dm)
 {
 	if (ss->osd_mesh == NULL || ss->osd_mesh_invalid) {
-		OpenSubdiv_Converter converter;
-		ccgSubSurf_converter_setup_from_derivedmesh(ss, dm, &converter);
-		/* TODO(sergey): Remove possibly previously allocated refiner. */
-		ss->osd_topology_refiner = openSubdiv_createTopologyRefinerDescr(&converter);
-		ccgSubSurf_converter_free(&converter);
+		if (dm->getNumPolys(dm) != 0) {
+			OpenSubdiv_Converter converter;
+			ccgSubSurf_converter_setup_from_derivedmesh(ss, dm, &converter);
+			/* TODO(sergey): Remove possibly previously allocated refiner. */
+			ss->osd_topology_refiner = openSubdiv_createTopologyRefinerDescr(&converter);
+			ccgSubSurf_converter_free(&converter);
+		}
 	}
 
 	/* Update number of grids, needed for things like final faces
@@ -837,9 +853,6 @@ void ccgSubSurf__sync_opensubdiv(CCGSubSurf *ss)
 			/* Evaluate opensubdiv mesh into the CCG grids. */
 			opensubdiv_evaluateGrids(ss);
 		}
-		else {
-			BLI_assert(!"OpenSubdiv initializetion failed, should not happen.");
-		}
 	}
 	else {
 		BLI_assert(ss->meshIFC.numLayers == 3);
@@ -853,16 +866,22 @@ void ccgSubSurf__sync_opensubdiv(CCGSubSurf *ss)
 static const OpenSubdiv_TopologyRefinerDescr *get_effective_refiner(
         const CCGSubSurf *ss)
 {
-	if (ss->osd_topology_refiner) {
+	if (ss->osd_topology_refiner != NULL) {
 		return ss->osd_topology_refiner;
 	}
-	return openSubdiv_getGLMeshTopologyRefiner(ss->osd_mesh);
+	if (ss->osd_mesh != NULL) {
+		return openSubdiv_getGLMeshTopologyRefiner(ss->osd_mesh);
+	}
+	return 0;
 }
 
 int ccgSubSurf__getNumOsdBaseVerts(const CCGSubSurf *ss)
 {
 	const OpenSubdiv_TopologyRefinerDescr *topology_refiner =
 	        get_effective_refiner(ss);
+	if (topology_refiner == NULL) {
+		return 0;
+	}
 	return openSubdiv_topologyRefinerGetNumVerts(topology_refiner);
 }
 
@@ -870,6 +889,9 @@ int ccgSubSurf__getNumOsdBaseEdges(const CCGSubSurf *ss)
 {
 	const OpenSubdiv_TopologyRefinerDescr *topology_refiner =
 	        get_effective_refiner(ss);
+	if (topology_refiner == NULL) {
+		return 0;
+	}
 	return openSubdiv_topologyRefinerGetNumEdges(topology_refiner);
 }
 
@@ -877,6 +899,9 @@ int ccgSubSurf__getNumOsdBaseFaces(const CCGSubSurf *ss)
 {
 	const OpenSubdiv_TopologyRefinerDescr *topology_refiner =
 	        get_effective_refiner(ss);
+	if (topology_refiner == NULL) {
+		return 0;
+	}
 	return openSubdiv_topologyRefinerGetNumFaces(topology_refiner);
 }
 

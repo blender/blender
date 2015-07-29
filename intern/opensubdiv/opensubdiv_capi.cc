@@ -292,7 +292,7 @@ void openSubdiv_osdGLMeshBindVertexBuffer(OpenSubdiv_GLMesh *gl_mesh)
 const struct OpenSubdiv_TopologyRefinerDescr *openSubdiv_getGLMeshTopologyRefiner(
         OpenSubdiv_GLMesh *gl_mesh)
 {
-	return gl_mesh->topology_refiner;;
+	return gl_mesh->topology_refiner;
 }
 
 int openSubdiv_supportGPUDisplay(void)
