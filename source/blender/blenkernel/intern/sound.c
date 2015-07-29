@@ -68,7 +68,7 @@
 #ifdef WITH_AUDASPACE
 /* evil globals ;-) */
 static int sound_cfra;
-static char** audio_device_names = NULL;
+static char **audio_device_names = NULL;
 #endif
 
 bSound *BKE_sound_new_file(struct Main *bmain, const char *filename)
@@ -131,7 +131,7 @@ void BKE_sound_free(bSound *sound)
 
 #ifdef WITH_AUDASPACE
 
-static const char* force_device = NULL;
+static const char *force_device = NULL;
 
 #ifdef WITH_JACK
 static void sound_sync_callback(void *data, int mode, float time)
@@ -165,9 +165,9 @@ void BKE_sound_init_once(void)
 	atexit(BKE_sound_exit_once);
 }
 
-static AUD_Device* sound_device;
+static AUD_Device *sound_device;
 
-void* BKE_sound_get_device(void)
+void *BKE_sound_get_device(void)
 {
 	return sound_device;
 }
@@ -176,7 +176,7 @@ void BKE_sound_init(struct Main *bmain)
 {
 	AUD_DeviceSpecs specs;
 	int device, buffersize;
-	const char* device_name;
+	const char *device_name;
 
 	device = U.audiodevice;
 	buffersize = U.mixbufsize;
@@ -184,16 +184,17 @@ void BKE_sound_init(struct Main *bmain)
 	specs.format = U.audioformat;
 	specs.rate = U.audiorate;
 
-	if (force_device == NULL)
-	{
+	if (force_device == NULL) {
 		int i;
-		char** names = BKE_sound_get_device_names();
+		char **names = BKE_sound_get_device_names();
 		device_name = names[0];
 
-		// make sure device is within the bounds of the array
-		for(i = 0; names[i]; i++)
-			if(i == device)
+		/* make sure device is within the bounds of the array */
+		for (i = 0; names[i]; i++) {
+			if (i == device) {
 				device_name = names[i];
+			}
+		}
 	}
 	else
 		device_name = force_device;
@@ -238,11 +239,11 @@ void BKE_sound_exit_once(void)
 	AUD_exitOnce();
 
 #ifdef WITH_SYSTEM_AUDASPACE
-	if(audio_device_names != NULL)
-	{
+	if (audio_device_names != NULL) {
 		int i;
-		for(i = 0; audio_device_names[i]; i++)
+		for (i = 0; audio_device_names[i]; i++) {
 			free(audio_device_names[i]);
+		}
 		free(audio_device_names);
 		audio_device_names = NULL;
 	}
@@ -834,17 +835,16 @@ float BKE_sound_get_length(bSound *sound)
 	return info.length;
 }
 
-char** BKE_sound_get_device_names(void)
+char **BKE_sound_get_device_names(void)
 {
-	if(audio_device_names == NULL)
-	{
+	if (audio_device_names == NULL) {
 #ifdef WITH_SYSTEM_AUDASPACE
 		audio_device_names = AUD_getDeviceNames();
 #else
-		static const char* names[] = {
+		static const char *names[] = {
 			"Null", "SDL", "OpenAL", "Jack", NULL
 		};
-		audio_device_names = (char**)names;
+		audio_device_names = (char **)names;
 #endif
 	}
 

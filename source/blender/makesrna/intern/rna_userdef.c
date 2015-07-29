@@ -614,10 +614,9 @@ static EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C), Poi
 #ifdef WITH_SYSTEM_AUDASPACE
 	int i;
 
-	char** names = BKE_sound_get_device_names();
+	char **names = BKE_sound_get_device_names();
 
-	for(i = 0; names[i]; i++)
-	{
+	for (i = 0; names[i]; i++) {
 		EnumPropertyItem new_item = {i, names[i], 0, names[i], names[i]};
 		RNA_enum_item_add(&item, &totitem, &new_item);
 	}

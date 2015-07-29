@@ -51,7 +51,7 @@ typedef struct SoundWaveform {
 void BKE_sound_init_once(void);
 void BKE_sound_exit_once(void);
 
-void* BKE_sound_get_device(void);
+void *BKE_sound_get_device(void);
 
 void BKE_sound_init(struct Main *main);
 
@@ -141,7 +141,7 @@ void *BKE_sound_get_factory(void *sound);
 
 float BKE_sound_get_length(struct bSound *sound);
 
-char** BKE_sound_get_device_names(void);
+char **BKE_sound_get_device_names(void);
 
 bool BKE_sound_is_jack_supported(void);
 
