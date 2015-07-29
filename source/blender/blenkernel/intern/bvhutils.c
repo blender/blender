@@ -66,7 +66,7 @@ float bvhtree_ray_tri_intersection(
 	return FLT_MAX;
 }
 
-static float sphereray_tri_intersection(
+float bvhtree_sphereray_tri_intersection(
         const BVHTreeRay *ray, float radius, const float m_dist,
         const float v0[3], const float v1[3], const float v2[3])
 {
@@ -194,7 +194,7 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 		if (data->sphere_radius == 0.0f)
 			dist = bvhtree_ray_tri_intersection(ray, hit->dist, t0, t1, t2);
 		else
-			dist = sphereray_tri_intersection(ray, data->sphere_radius, hit->dist, t0, t1, t2);
+			dist = bvhtree_sphereray_tri_intersection(ray, data->sphere_radius, hit->dist, t0, t1, t2);
 
 		if (dist >= 0 && dist < hit->dist) {
 			hit->index = index;
@@ -229,7 +229,7 @@ static void mesh_looptri_spherecast(void *userdata, int index, const BVHTreeRay 
 	if (data->sphere_radius == 0.0f)
 		dist = bvhtree_ray_tri_intersection(ray, hit->dist, UNPACK3(vtri_co));
 	else
-		dist = sphereray_tri_intersection(ray, data->sphere_radius, hit->dist, UNPACK3(vtri_co));
+		dist = bvhtree_sphereray_tri_intersection(ray, data->sphere_radius, hit->dist, UNPACK3(vtri_co));
 
 	if (dist >= 0 && dist < hit->dist) {
 		hit->index = index;
@@ -257,7 +257,7 @@ static void editmesh_faces_spherecast(void *userdata, int index, const BVHTreeRa
 		if (data->sphere_radius == 0.0f)
 			dist = bvhtree_ray_tri_intersection(ray, hit->dist, t0, t1, t2);
 		else
-			dist = sphereray_tri_intersection(ray, data->sphere_radius, hit->dist, t0, t1, t2);
+			dist = bvhtree_sphereray_tri_intersection(ray, data->sphere_radius, hit->dist, t0, t1, t2);
 
 		if (dist >= 0 && dist < hit->dist) {
 			hit->index = index;

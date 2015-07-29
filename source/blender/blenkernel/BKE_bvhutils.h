@@ -125,6 +125,9 @@ void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data);
 float bvhtree_ray_tri_intersection(
         const BVHTreeRay *ray, const float m_dist,
         const float v0[3], const float v1[3], const float v2[3]);
+float bvhtree_sphereray_tri_intersection(
+        const BVHTreeRay *ray, float radius, const float m_dist,
+        const float v0[3], const float v1[3], const float v2[3]);
 float nearest_point_in_tri_surface_squared(
         const float v0[3], const float v1[3], const float v2[3],
         const float p[3], int *v, int *e, float nearest[3]);
