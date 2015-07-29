@@ -461,17 +461,19 @@ int openSubdiv_topologyRefnerCompareConverter(
 		}
 	}
 	/* Compare sharpness. */
-#if 0
-	/* TODO(sergey): For some reason shrapness is not being reported correctly
-	 * from the base level, which cuases false-positive topology change detection.
-	 */
 	for (int edge = 0; edge < num_edges; ++edge) {
+		ConstIndexArray edge_faces = base_level.GetEdgeFaces(edge);
 		float sharpness = base_level.GetEdgeSharpness(edge);
-		float conv_sharpness = converter->get_edge_sharpness(converter, edge);
+		float conv_sharpness;
+		if (edge_faces.size() == 2) {
+			conv_sharpness = converter->get_edge_sharpness(converter, edge);
+		}
+		else {
+			conv_sharpness = OpenSubdiv::Sdc::Crease::SHARPNESS_INFINITE;
+		}
 		if (sharpness != conv_sharpness) {
 			return false;
 		}
 	}
-#endif
 	return true;
 }
