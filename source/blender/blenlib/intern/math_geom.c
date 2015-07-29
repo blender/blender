@@ -1475,6 +1475,84 @@ bool isect_plane_plane_v3(float r_isect_co[3], float r_isect_no[3],
 	return isect_line_plane_v3(r_isect_co, plane_a_co, plane_a_co_other, plane_b_co, plane_b_no);
 }
 
+/**
+ * Intersect two triangles.
+ *
+ * \param r_i1, r_i2: Optional arguments to retrieve the overlapping edge between the 2 triangles.
+ * \return true when the triangles intersect.
+ *
+ * \note intersections between coplanar triangles are currently undetected.
+ */
+bool isect_tri_tri_epsilon_v3(
+        const float t_a0[3], const float t_a1[3], const float t_a2[3],
+        const float t_b0[3], const float t_b1[3], const float t_b2[3],
+        float r_i1[3], float r_i2[3],
+        const float epsilon)
+{
+	const float *tri_pair[2][3] = {{t_a0, t_a1, t_a2}, {t_b0, t_b1, t_b2}};
+	float no_a[3], no_b[3];
+	float isect_co[3], isect_no[3];
+
+	BLI_assert((r_i1 != NULL) == (r_i2 != NULL));
+
+	normal_tri_v3(no_a, UNPACK3(tri_pair[0]));
+	normal_tri_v3(no_b, UNPACK3(tri_pair[1]));
+
+	if (isect_plane_plane_v3(isect_co, isect_no, t_a0, no_a, t_b0, no_b)) {
+		float isect_co_other[3];
+		struct {
+			float min, max;
+		} range[2] = {{FLT_MAX, -FLT_MAX}, {FLT_MAX, -FLT_MAX}};
+		int t;
+
+		add_v3_v3v3(isect_co_other, isect_co, isect_no);
+
+		/* For both triangles, find the overlap with the line defined by (isect_co, isect_co_other).
+		 * When the ranges overlap we know the triangles do too. */
+		for (t = 0; t < 2; t++) {
+			int j, j_prev;
+
+			for (j = 0, j_prev = 2; j < 3; j_prev = j++) {
+				/* intersection point on the line intersecting both planes */
+				float ix_span[3];
+				/* intersection point on the triangles edge */
+				float ix_tri[3];
+
+				if (isect_line_line_epsilon_v3(
+				        isect_co, isect_co_other,
+				        tri_pair[t][j], tri_pair[t][j_prev],
+				        ix_span, ix_tri,
+				        epsilon) == 2)
+				{
+					const float edge_fac = line_point_factor_v3(ix_tri, tri_pair[t][j], tri_pair[t][j_prev]);
+					if (edge_fac >= -epsilon && edge_fac <= 1.0f + epsilon) {
+						const float span_fac = dist_signed_squared_to_plane3_v3(ix_tri, isect_no);
+						range[t].min = min_ff(range[t].min, span_fac);
+						range[t].max = max_ff(range[t].max, span_fac);
+					}
+				}
+			}
+
+			if (range[t].min == FLT_MAX) {
+				return false;
+			}
+		}
+
+		if (((range[0].min > range[1].max) ||
+		     (range[0].max < range[1].min)) == 0)
+		{
+			if (r_i1 && r_i2) {
+				project_plane_v3_v3v3(isect_co, isect_co, isect_no);
+				madd_v3_v3v3fl(r_i1, isect_co, isect_no, sqrtf_signed(max_ff(range[0].min, range[1].min)));
+				madd_v3_v3v3fl(r_i2, isect_co, isect_no, sqrtf_signed(min_ff(range[0].max, range[1].max)));
+			}
+
+			return true;
+		}
+	}
+
+	return false;
+}
 
 /* Adapted from the paper by Kasper Fauerby */
 

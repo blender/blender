@@ -187,6 +187,11 @@ bool isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
                                 const float v0[3], const float v1[3], const float v2[3], float *r_lambda, float r_uv[2], const float threshold);
 bool isect_ray_tri_epsilon_v3(const float p1[3], const float d[3],
                               const float v0[3], const float v1[3], const float v2[3], float *r_lambda, float r_uv[2], const float epsilon);
+bool isect_tri_tri_epsilon_v3(
+        const float t_a0[3], const float t_a1[3], const float t_a2[3],
+        const float t_b0[3], const float t_b1[3], const float t_b2[3],
+        float r_i1[3], float r_i2[3],
+        const float epsilon);
 
 /* point in polygon */
 bool isect_point_poly_v2(const float pt[2], const float verts[][2], const unsigned int nr, const bool use_holes);
