@@ -141,6 +141,7 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopolog
 		memset(face_used, 0, sizeof(bool) * num_faces);
 		std::stack<StackElem> stack;
 		int edge_count_ordered = 0, face_count_ordered = 0;
+		bool print = vert == 6;
 		if (num_vert_edges == num_vert_faces) {
 			/* Manifold vertex, start with any face and perform traversal. */
 			int face_start = vert_faces[0];
@@ -183,6 +184,7 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopolog
 			if (append_start_edge) {
 				dst_vert_edges[edge_count_ordered++] = edge_start;
 			}
+			face_used[face_start] = true;
 
 			while (edge_count_ordered < num_vert_edges) {
 				IndexArray face_verts = getBaseFaceVertices(refiner, face_start);
@@ -191,6 +193,24 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopolog
 				int face_edge_next = (face_edge_start > 0) ? (face_edge_start - 1) : (face_verts.size() - 1);
 				Index edge_next = face_edges[face_edge_next];
 				if (edge_next == edge_first) {
+					/* TODO(sergey): Find more generic solution so non-manifold
+					 * edges combined with some manifold adjacent geometry is
+					 * handled correct.
+					 */
+					if (num_vert_edges == num_vert_faces &&
+					    edge_count_ordered != num_vert_edges)
+					{
+						IndexArray edge_faces = getBaseEdgeFaces(refiner, edge_next);
+						for (int i = 0; i < num_vert_faces; ++i) {
+							int face_start = edge_faces[i];
+							if (!face_used[face_start]) {
+								int edge_start = edge_next;
+								int face_vert_start = findInArray(getBaseFaceVertices(refiner, face_start), vert);
+								stack.push(StackElem(face_start, edge_start, face_vert_start, false));
+								break;
+							}
+						}
+					}
 					break;
 				}
 				dst_vert_edges[edge_count_ordered++] = edge_next;
@@ -209,7 +229,6 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopolog
 									int edge_start = edge_next;
 									int face_vert_start = findInArray(getBaseFaceVertices(refiner, face_start), vert);
 									stack.push(StackElem(face_start, edge_start, face_vert_start, false));
-									face_used[face_start] = true;
 								}
 							}
 						}
@@ -219,6 +238,7 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopolog
 					face_start = edge_faces[(edge_faces[0] == face_start) ? 1 : 0];
 					face_vert_start = findInArray(getBaseFaceEdges(refiner, face_start), edge_next);
 					dst_vert_faces[face_count_ordered++] = face_start;
+					face_used[face_start] = true;
 				}
 				edge_start = edge_next;
 			}
