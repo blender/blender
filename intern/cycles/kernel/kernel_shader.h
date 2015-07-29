@@ -459,7 +459,7 @@ ccl_device void shader_merge_closures(ShaderData *sd)
 				continue;
 #endif
 
-			if(!(sci->type == scj->type && sci->data0 == scj->data0 && sci->data1 == scj->data1))
+			if(!(sci->type == scj->type && sci->data0 == scj->data0 && sci->data1 == scj->data1 && sci->data2 == scj->data2))
 				continue;
 
 			if(CLOSURE_IS_BSDF_OR_BSSRDF(sci->type)) {
