@@ -266,11 +266,39 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTags(
         TopologyRefiner& refiner,
         const OpenSubdiv_Converter& conv)
 {
+	typedef OpenSubdiv::Sdc::Crease Crease;
+
 	int num_edges = conv.get_num_edges(&conv);
 	for (int edge = 0; edge < num_edges; ++edge) {
-		float sharpness = conv.get_edge_sharpness(&conv, edge);
+		float sharpness;
+		ConstIndexArray edge_faces = getBaseEdgeFaces(refiner, edge);
+		if (edge_faces.size() == 2) {
+			sharpness = conv.get_edge_sharpness(&conv, edge);
+		}
+		else {
+			/* Non-manifold edges must be sharp. */
+			sharpness = Crease::SHARPNESS_INFINITE;
+		}
+		sharpness = Crease::SHARPNESS_INFINITE;
 		setBaseEdgeSharpness(refiner, edge, sharpness);
 	}
+
+#if 0
+	/* Non-manifold vertices can't be always smooth.
+	 * I.e. when there's loose edge adjacent to the vertex
+	 * opensubdiv expects vertices to be sharp. But this needs
+	 * some further investigation.
+	 */
+	int num_vert = conv.get_num_verts(&conv);
+	for (int vert = 0; vert < num_vert; ++vert) {
+		IndexArray vert_faces = getBaseVertexFaces(refiner, vert),
+		           vert_edges = getBaseVertexEdges(refiner, vert);
+		if (vert_faces.size() != vert_edges.size()) {
+			setBaseVertexSharpness(refiner, vert, Crease::SHARPNESS_INFINITE);
+		}
+	}
+#endif
+
 	return true;
 }
 
@@ -308,13 +336,15 @@ OpenSubdiv::Sdc::SchemeType get_capi_scheme_type(OpenSubdiv_SchemeType type)
 struct OpenSubdiv_TopologyRefinerDescr *openSubdiv_createTopologyRefinerDescr(
         OpenSubdiv_Converter *converter)
 {
+	typedef OpenSubdiv::Sdc::Options Options;
+
 	using OpenSubdiv::Far::TopologyRefinerFactory;
 	OpenSubdiv::Sdc::SchemeType scheme_type =
 	        get_capi_scheme_type(converter->get_type(converter));
-	OpenSubdiv::Sdc::Options options;
-	options.SetVtxBoundaryInterpolation(OpenSubdiv::Sdc::Options::VTX_BOUNDARY_EDGE_ONLY);
-	options.SetCreasingMethod(OpenSubdiv::Sdc::Options::CREASE_UNIFORM);
-	options.SetFVarLinearInterpolation(OpenSubdiv::Sdc::Options::FVAR_LINEAR_ALL);
+	Options options;
+	options.SetVtxBoundaryInterpolation(Options::VTX_BOUNDARY_EDGE_ONLY);
+	options.SetCreasingMethod(Options::CREASE_UNIFORM);
+	options.SetFVarLinearInterpolation(Options::FVAR_LINEAR_ALL);
 
 	TopologyRefinerFactory<OpenSubdiv_Converter>::Options
 	        topology_options(scheme_type, options);
