@@ -3527,8 +3527,9 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 /* A modified part of shadeinput.c -> shade_input_set_uv()
  *  Used for sampling UV mapped texture color */
 static void textured_face_generate_uv(
-        float r_uv[2], const float normal[3], const float hit[3],
-        const float v1[3], const float v2[3], const float v3[3])
+        const float normal[3], const float hit[3],
+        const float v1[3], const float v2[3], const float v3[3],
+        float r_uv[2])
 {
 
 	float detsh, t00, t10, t01, t11;
@@ -3733,7 +3734,7 @@ void RE_sample_material_color(
 					const float *uv1, *uv2, *uv3;
 					const CustomData *data = &orcoDm->loopData;
 					const MLoopUV *mloopuv = data->layers[layer_index + i].data;
-					const float uv[2];
+					float uv[2];
 					float l;
 
 					/* point layer name from actual layer data */
