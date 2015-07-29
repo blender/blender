@@ -600,6 +600,7 @@ static struct PyModuleDef M_Mathutils_module_def = {
 #include "mathutils_geometry.h"
 #include "mathutils_interpolate.h"
 #ifndef MATH_STANDALONE
+#  include "mathutils_bvhtree.h"
 #  include "mathutils_kdtree.h"
 #  include "mathutils_noise.h"
 #endif
@@ -650,6 +651,11 @@ PyMODINIT_FUNC PyInit_mathutils(void)
 #ifndef MATH_STANDALONE
 	/* Noise submodule */
 	PyModule_AddObject(mod, "noise", (submodule = PyInit_mathutils_noise()));
+	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	Py_INCREF(submodule);
+
+	/* BVHTree submodule */
+	PyModule_AddObject(mod, "bvhtree", (submodule = PyInit_mathutils_bvhtree()));
 	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
 	Py_INCREF(submodule);
 

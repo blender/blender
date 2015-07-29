@@ -263,6 +263,7 @@ else:
         "gpu",
         "mathutils",
         "mathutils.geometry",
+        "mathutils.bvhtree",
         "mathutils.kdtree",
         "mathutils.noise",
         "freestyle",
@@ -1644,7 +1645,7 @@ def write_rst_contents(basepath):
 
     standalone_modules = (
         # mathutils
-        "mathutils", "mathutils.geometry", "mathutils.kdtree", "mathutils.noise",
+        "mathutils", "mathutils.geometry", "mathutils.bvhtree", "mathutils.kdtree", "mathutils.noise",
         # misc
         "freestyle", "bgl", "blf", "gpu", "aud", "bpy_extras",
         # bmesh, submodules are in own page
@@ -1796,6 +1797,7 @@ def write_rst_importable_modules(basepath):
         "bpy.props"            : "Property Definitions",
         "mathutils"            : "Math Types & Utilities",
         "mathutils.geometry"   : "Geometry Utilities",
+        "mathutils.bvhtree"    : "BVHTree Utilities",
         "mathutils.kdtree"     : "KDTree Utilities",
         "mathutils.noise"      : "Noise Utilities",
         "freestyle"            : "Freestyle Module",

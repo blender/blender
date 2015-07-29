@@ -22,6 +22,7 @@ set(INC
 	.
 	../../blenlib
 	../../blenkernel
+	../../bmesh
 	../../makesdna
 	../../../../intern/guardedalloc
 )
@@ -37,6 +38,7 @@ set(SRC
 	mathutils_Matrix.c
 	mathutils_Quaternion.c
 	mathutils_Vector.c
+	mathutils_bvhtree.c
 	mathutils_geometry.c
 	mathutils_interpolate.c
 	mathutils_kdtree.c
@@ -48,6 +50,7 @@ set(SRC
 	mathutils_Matrix.h
 	mathutils_Quaternion.h
 	mathutils_Vector.h
+	mathutils_bvhtree.h
 	mathutils_geometry.h
 	mathutils_interpolate.h
 	mathutils_kdtree.h
