@@ -872,6 +872,8 @@ void BM_face_triangulate(
 			        pf_arena, pf_heap, pf_ehash);
 		}
 
+		BLI_memarena_clear(pf_arena);
+
 		/* loop over calculated triangles and create new geometry */
 		for (i = 0; i < totfilltri; i++) {
 			/* the order is reverse, otherwise the normal is flipped */
