@@ -284,7 +284,6 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTags(
 			/* Non-manifold edges must be sharp. */
 			sharpness = Crease::SHARPNESS_INFINITE;
 		}
-		sharpness = Crease::SHARPNESS_INFINITE;
 		setBaseEdgeSharpness(refiner, edge, sharpness);
 	}
 
