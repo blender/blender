@@ -335,8 +335,8 @@ static OSStatus AudioConverterInputCallback(AudioConverterRef inAudioConverter,
 	
 	qtexport->audioTotalExportedFrames += *ioNumberDataPackets;
 	
-	AUD_readDevice(qtexport->audioInputDevice, (UInt8 *)qtexport->audioInputBuffer,
-	               qtexport->audioInputFormat.mFramesPerPacket * *ioNumberDataPackets);
+	AUD_Device_read(qtexport->audioInputDevice, (UInt8 *)qtexport->audioInputBuffer,
+	                qtexport->audioInputFormat.mFramesPerPacket * *ioNumberDataPackets);
 	
 	ioData->mBuffers[0].mDataByteSize = qtexport->audioInputFormat.mBytesPerPacket * *ioNumberDataPackets;
 	ioData->mBuffers[0].mData = qtexport->audioInputBuffer;
@@ -792,7 +792,7 @@ void end_qt(void *context_v)
 			write_cookie(qtexport->audioConverter, qtexport->audioFile);
 			AudioConverterDispose(qtexport->audioConverter);
 			AudioFileClose(qtexport->audioFile);
-			AUD_closeReadDevice(qtexport->audioInputDevice);
+			AUD_Device_free(qtexport->audioInputDevice);
 			qtexport->audioFile = NULL;
 			qtexport->audioInputDevice = NULL;
 			MEM_freeN(qtexport->audioInputBuffer);
