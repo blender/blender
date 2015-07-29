@@ -99,6 +99,10 @@ if env['WITH_BF_FFMPEG']:
 if env['WITH_BF_QUICKTIME']:
     defs.append('WITH_QUICKTIME')
     incs += ' ../quicktime'
+    # Quicktime needs audaspace defines
+    if env['WITH_BF_AUDASPACE']:
+        defs += env['BF_AUDASPACE_DEF']
+        incs += ' ' + env['BF_AUDASPACE_C_INC']
 
 if env['WITH_BF_GAMEENGINE']:
     defs.append('WITH_GAMEENGINE')

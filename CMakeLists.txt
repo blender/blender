@@ -714,24 +714,29 @@ endif()
 
 if(WITH_AUDASPACE)
 	if(WITH_SYSTEM_AUDASPACE)
-		add_definitions("-DAUD_DEVICE_H=<AUD_Device.h>")
-		add_definitions("-DAUD_SPECIAL_H=<AUD_Special.h>")
-		add_definitions("-DAUD_SOUND_H=<AUD_Sound.h>")
-		add_definitions("-DAUD_HANDLE_H=<AUD_Handle.h>")
-		add_definitions("-DAUD_SEQUENCE_H=<AUD_Sequence.h>")
-		add_definitions("-DAUD_TYPES_H=<AUD_Types.h>")
-		add_definitions("-DAUD_PYTHON_H=<python/PyAPI.h>")
-		set(AUDASPACE_DEFINITIONS -DWITH_AUDASPACE -DWITH_SYSTEM_AUDASPACE)
+		set(AUDASPACE_DEFINITIONS
+			-DWITH_AUDASPACE
+			-DWITH_SYSTEM_AUDASPACE
+			"-DAUD_DEVICE_H=<AUD_Device.h>"
+			"-DAUD_SPECIAL_H=<AUD_Special.h>"
+			"-DAUD_SOUND_H=<AUD_Sound.h>"
+			"-DAUD_HANDLE_H=<AUD_Handle.h>"
+			"-DAUD_SEQUENCE_H=<AUD_Sequence.h>"
+			"-DAUD_TYPES_H=<AUD_Types.h>"
+			"-DAUD_PYTHON_H=<python/PyAPI.h>"
+		)
 	else()
-		add_definitions("-DAUD_DEVICE_H=<AUD_C-API.h>")
-		add_definitions("-DAUD_SPECIAL_H=<AUD_C-API.h>")
-		add_definitions("-DAUD_SOUND_H=<AUD_C-API.h>")
-		add_definitions("-DAUD_HANDLE_H=<AUD_C-API.h>")
-		add_definitions("-DAUD_SEQUENCE_H=<AUD_C-API.h>")
-		add_definitions("-DAUD_TYPES_H=<AUD_Space.h>")
 		set(AUDASPACE_C_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/intern/audaspace/intern")
 		set(AUDASPACE_PY_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/intern/audaspace/intern")
-		set(AUDASPACE_DEFINITIONS -DWITH_AUDASPACE)
+		set(AUDASPACE_DEFINITIONS
+			-DWITH_AUDASPACE
+			"-DAUD_DEVICE_H=<AUD_C-API.h>"
+			"-DAUD_SPECIAL_H=<AUD_C-API.h>"
+			"-DAUD_SOUND_H=<AUD_C-API.h>"
+			"-DAUD_HANDLE_H=<AUD_C-API.h>"
+			"-DAUD_SEQUENCE_H=<AUD_C-API.h>"
+			"-DAUD_TYPES_H=<AUD_Space.h>"
+		)
 	endif()
 endif()
 

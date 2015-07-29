@@ -44,8 +44,7 @@ incs  = ['.',
          '../imbuf',
          '../imbuf/intern',
          '../render/extern/include',
-         '../editors/include',
-         '#/intern/audaspace/intern']
+         '../editors/include']
 
 incs.append(env['BF_QUICKTIME_INC'])
 
@@ -53,6 +52,10 @@ types = ['core','player']
 priorities = [200,235]
 
 defs=['WITH_QUICKTIME']
+
+if env['WITH_BF_AUDASPACE']:
+    defs += env['BF_AUDASPACE_DEF']
+    incs.append(env['BF_AUDASPACE_C_INC'])
 
 if env['C_COMPILER_ID'] == 'gcc' and  env['CCVERSION'] >= '4.6': # always use default-Apple-gcc for objC language, gnu-compilers do not support it fully yet
     env.BlenderLib ('bf_quicktime', sources=source_files, includes=incs, defines=defs, libtype=types, priority=priorities, cc_compilerchange='/usr/bin/gcc', cxx_compilerchange='/usr/bin/g++')
