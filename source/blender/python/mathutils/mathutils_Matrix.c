@@ -843,7 +843,7 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 		/* 3 or 4, apply as 3x3, resize later if needed */
 		float factor[2];
 
-		if (mathutils_array_parse(factor, 2, 2, fac, "Matrix.Shear()") < 0) {
+		if (mathutils_array_parse(factor, 2, 2, fac, "Matrix.Shear()") == -1) {
 			return NULL;
 		}
 
@@ -2122,7 +2122,7 @@ static int Matrix_ass_item_row(MatrixObject *self, int row, PyObject *value)
 		return -1;
 	}
 
-	if (mathutils_array_parse(vec, self->num_col, self->num_col, value, "matrix[i] = value assignment") < 0) {
+	if (mathutils_array_parse(vec, self->num_col, self->num_col, value, "matrix[i] = value assignment") == -1) {
 		return -1;
 	}
 
@@ -2147,7 +2147,7 @@ static int Matrix_ass_item_col(MatrixObject *self, int col, PyObject *value)
 		return -1;
 	}
 
-	if (mathutils_array_parse(vec, self->num_row, self->num_row, value, "matrix[i] = value assignment") < 0) {
+	if (mathutils_array_parse(vec, self->num_row, self->num_row, value, "matrix[i] = value assignment") == -1) {
 		return -1;
 	}
 
@@ -2224,7 +2224,7 @@ static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *va
 			PyObject *item = PySequence_Fast_GET_ITEM(value_fast, row - begin);
 
 			if (mathutils_array_parse(vec, self->num_col, self->num_col, item,
-			                          "matrix[begin:end] = value assignment") < 0)
+			                          "matrix[begin:end] = value assignment") == -1)
 			{
 				return -1;
 			}
