@@ -35,6 +35,8 @@
 #include "opensubdiv_converter_capi.h"
 #include "opensubdiv_intern.h"
 
+#include <stack>
+
 namespace OpenSubdiv {
 namespace OPENSUBDIV_VERSION {
 namespace Far {
@@ -48,6 +50,21 @@ inline int findInArray(T array, int value)
 }
 
 }  /* namespace */
+
+struct StackElem {
+	StackElem(int face_start,
+	          int edge_start,
+	          int face_vert_start,
+	          bool append_start_edge = true)
+	        : face_start(face_start),
+	          edge_start(edge_start),
+	          face_vert_start(face_vert_start),
+	          append_start_edge(append_start_edge){}
+	int face_start;
+	int edge_start;
+	int face_vert_start;
+	bool append_start_edge;
+};
 
 template <>
 inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::resizeComponentTopology(
@@ -118,45 +135,124 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopolog
 		int *vert_edges = new int[num_vert_edges];
 		conv.get_vert_edges(&conv, vert, vert_edges);
 		/* Order vertex edges and faces in a CCW order. */
-		Index face_start = INDEX_INVALID;
-		Index edge_start = INDEX_INVALID;
-		int face_vert_start = 0;
+		/* TODO(sergey): Look into possible optimizations here. */
+		bool *face_used = new bool[num_faces];
+		memset(face_used, 0, sizeof(bool) * num_faces);
+		std::stack<StackElem> stack;
+		int edge_count_ordered = 0, face_count_ordered = 0;
 		if (num_vert_edges == num_vert_faces) {
-			face_start  = vert_faces[0];
-			face_vert_start = findInArray(getBaseFaceVertices(refiner, face_start), vert);
-			edge_start = getBaseFaceEdges(refiner, face_start)[face_vert_start];
-		} else {
+			/* Manifold vertex, start with any face and perform traversal. */
+			int face_start = vert_faces[0];
+			int face_vert_start = findInArray(getBaseFaceVertices(refiner, face_start), vert);
+			int edge_start = getBaseFaceEdges(refiner, face_start)[face_vert_start];
+			stack.push(StackElem(face_start, edge_start, face_vert_start));
+		}
+		else {
+			/* ** Non-manifold vertex. Special handle here. ** */
+			/* Add all loose edges adjacent to the vertex. */
 			for (int i = 0; i < num_vert_edges; ++i) {
 				IndexArray edge_faces = getBaseEdgeFaces(refiner, vert_edges[i]);
-				if (edge_faces.size() == 1) {
-					edge_start = vert_edges[i];
-					face_start = edge_faces[0];
-					face_vert_start = findInArray(getBaseFaceVertices(refiner, face_start), vert);
+				if (edge_faces.size() == 0) {
+					/* Can't really orient loose edges, just add then straight
+					 * to the vert-edges array.
+					 */
+					dst_vert_edges[edge_count_ordered++] = vert_edges[i];
+				}
+				else if (edge_faces.size() == 1) {
+					int edge_start = vert_edges[i];
+					int face_start = edge_faces[0];
+					int face_vert_start = findInArray(getBaseFaceVertices(refiner, face_start), vert);
 					if (edge_start == (getBaseFaceEdges(refiner, face_start)[face_vert_start])) {
-						break;
+						stack.push(StackElem(face_start, edge_start, face_vert_start));
+						face_used[face_start] = true;
 					}
 				}
 			}
 		}
-		int edge_count_ordered = 1;
-		int face_count_ordered = 1;
-		dst_vert_faces[0] = face_start;
-		dst_vert_edges[0] = edge_start;
-		while (edge_count_ordered < num_vert_edges) {
-			IndexArray fVerts = getBaseFaceVertices(refiner, face_start);
-			IndexArray fEdges = getBaseFaceEdges(refiner, face_start);
-			int feStart = face_vert_start;
-			int feNext = feStart ? (feStart - 1) : (fVerts.size() - 1);
-			Index eNext = fEdges[feNext];
-			dst_vert_edges[edge_count_ordered++] = eNext;
-			if (face_count_ordered < num_vert_faces) {
-				IndexArray edge_faces = getBaseEdgeFaces(refiner, eNext);
-				face_start = edge_faces[edge_faces[0] == face_start];
-				face_vert_start = findInArray(getBaseFaceEdges(refiner, face_start), eNext);
-				dst_vert_faces[face_count_ordered++] = face_start;
+		while (!stack.empty()) {
+			StackElem& top = stack.top();
+			int edge_start = top.edge_start;
+			int face_start = top.face_start;
+			int face_vert_start = top.face_vert_start;
+			bool append_start_edge = top.append_start_edge;
+			stack.pop();
+			Index edge_first = edge_start;
+
+			dst_vert_faces[face_count_ordered++] = face_start;
+			if (append_start_edge) {
+				dst_vert_edges[edge_count_ordered++] = edge_start;
 			}
-			edge_start = eNext;
+
+			while (edge_count_ordered < num_vert_edges) {
+				IndexArray face_verts = getBaseFaceVertices(refiner, face_start);
+				IndexArray face_edges = getBaseFaceEdges(refiner, face_start);
+				int face_edge_start = face_vert_start;
+				int face_edge_next = (face_edge_start > 0) ? (face_edge_start - 1) : (face_verts.size() - 1);
+				Index edge_next = face_edges[face_edge_next];
+				if (edge_next == edge_first) {
+					break;
+				}
+				dst_vert_edges[edge_count_ordered++] = edge_next;
+				if (face_count_ordered < num_vert_faces) {
+					IndexArray edge_faces = getBaseEdgeFaces(refiner, edge_next);
+					assert(edge_faces.size() != 0);
+					if (edge_faces.size() == 1) {
+						assert(edge_faces[0] == face_start);
+						break;
+					}
+					else if (edge_faces.size() != 2) {
+						for (int i = 0; i < edge_faces.size(); ++i) {
+							if (edge_faces[i] != face_start) {
+								int face_start = edge_faces[i];
+								if (!face_used[face_start]) {
+									int edge_start = edge_next;
+									int face_vert_start = findInArray(getBaseFaceVertices(refiner, face_start), vert);
+									stack.push(StackElem(face_start, edge_start, face_vert_start, false));
+									face_used[face_start] = true;
+								}
+							}
+						}
+						break;
+					}
+					assert(edge_faces.size() == 2);
+					face_start = edge_faces[(edge_faces[0] == face_start) ? 1 : 0];
+					face_vert_start = findInArray(getBaseFaceEdges(refiner, face_start), edge_next);
+					dst_vert_faces[face_count_ordered++] = face_start;
+				}
+				edge_start = edge_next;
+			}
 		}
+		delete [] face_used;
+
+		/* Verify ordering doesn't ruin connectivity information. */
+		assert(face_count_ordered == num_vert_faces);
+		assert(edge_count_ordered == num_vert_edges);
+#ifndef NDEBUG
+		for (int i = 0; i < num_vert_faces; ++i) {
+			bool found = false;
+			for (int j = 0; j < num_vert_faces; ++j) {
+				if (vert_faces[i] == dst_vert_faces[j]) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				assert(!"vert-faces connectivity ruined");
+			}
+		}
+		for (int i = 0; i < num_vert_edges; ++i) {
+			bool found = false;
+			for (int j = 0; j < num_vert_edges; ++j) {
+				if (vert_edges[i] == dst_vert_edges[j]) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				assert(!"vert-edges connectivity ruined");
+			}
+		}
+#endif
 
 		delete [] vert_edges;
 		delete [] vert_faces;
@@ -216,7 +312,8 @@ struct OpenSubdiv_TopologyRefinerDescr *openSubdiv_createTopologyRefinerDescr(
 	OpenSubdiv::Sdc::SchemeType scheme_type =
 	        get_capi_scheme_type(converter->get_type(converter));
 	OpenSubdiv::Sdc::Options options;
-	options.SetVtxBoundaryInterpolation(OpenSubdiv::Sdc::Options::VTX_BOUNDARY_EDGE_AND_CORNER);
+	options.SetVtxBoundaryInterpolation(OpenSubdiv::Sdc::Options::VTX_BOUNDARY_EDGE_ONLY);
+	options.SetCreasingMethod(OpenSubdiv::Sdc::Options::CREASE_UNIFORM);
 	options.SetFVarLinearInterpolation(OpenSubdiv::Sdc::Options::FVAR_LINEAR_ALL);
 
 	TopologyRefinerFactory<OpenSubdiv_Converter>::Options
