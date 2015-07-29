@@ -134,6 +134,7 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopolog
 		int num_vert_edges = conv.get_num_vert_edges(&conv, vert);
 		int *vert_edges = new int[num_vert_edges];
 		conv.get_vert_edges(&conv, vert, vert_edges);
+#ifdef OPENSUBDIV_ORIENT_TOPOLOGY
 		/* Order vertex edges and faces in a CCW order. */
 		/* TODO(sergey): Look into possible optimizations here. */
 		bool *face_used = new bool[num_faces];
@@ -253,6 +254,10 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopolog
 			}
 		}
 #endif
+#else  /* OPENSUBDIV_ORIENT_TOPOLOGY */
+		memcpy(&dst_vert_edges[0], vert_edges, sizeof(int) * num_vert_edges);
+		memcpy(&dst_vert_faces[0], vert_faces, sizeof(int) * num_vert_faces);
+#endif  /* OPENSUBDIV_ORIENT_TOPOLOGY */
 
 		delete [] vert_edges;
 		delete [] vert_faces;
