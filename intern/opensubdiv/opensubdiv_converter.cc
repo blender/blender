@@ -109,14 +109,14 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopolog
 	for (int vert = 0; vert < num_verts; ++vert) {
 		/* Vert-Faces */
 		IndexArray dst_vert_faces = getBaseVertexFaces(refiner, vert);
-		int num_vert_edges = conv.get_num_vert_edges(&conv, vert);
-		int *vert_edges = new int[num_vert_edges];
-		conv.get_vert_edges(&conv, vert, vert_edges);
-		/* Vert-Edges */
-		IndexArray dst_vert_edges = getBaseVertexEdges(refiner, vert);
 		int num_vert_faces = conv.get_num_vert_faces(&conv, vert);
 		int *vert_faces = new int[num_vert_faces];
 		conv.get_vert_faces(&conv, vert, vert_faces);
+		/* Vert-Edges */
+		IndexArray dst_vert_edges = getBaseVertexEdges(refiner, vert);
+		int num_vert_edges = conv.get_num_vert_edges(&conv, vert);
+		int *vert_edges = new int[num_vert_edges];
+		conv.get_vert_edges(&conv, vert, vert_edges);
 		/* Order vertex edges and faces in a CCW order. */
 		Index face_start = INDEX_INVALID;
 		Index edge_start = INDEX_INVALID;
