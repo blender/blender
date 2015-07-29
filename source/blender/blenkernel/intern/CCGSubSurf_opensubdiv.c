@@ -245,7 +245,7 @@ bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss, bool use_osd_glsl)
 	if (ss->osd_mesh == NULL) {
 		if (ss->osd_topology_refiner == NULL) {
 			/* Happens with empty meshes. */
-			/* TODO(sergey): Add assert thet mesh is indeed empty. */
+			/* TODO(sergey): Add assert that mesh is indeed empty. */
 			return false;
 		}
 
@@ -415,7 +415,7 @@ static bool opensubdiv_createEvaluator(CCGSubSurf *ss)
 	OpenSubdiv_Converter converter;
 	OpenSubdiv_TopologyRefinerDescr *topology_refiner;
 	if (ss->fMap->numEntries == 0) {
-		/* OpenSubdiv doesn't support meshes withut faces. */
+		/* OpenSubdiv doesn't support meshes without faces. */
 		return false;
 	}
 	ccgSubSurf_converter_setup_from_ccg(ss, &converter);
@@ -425,7 +425,7 @@ static bool opensubdiv_createEvaluator(CCGSubSurf *ss)
 	        openSubdiv_createEvaluatorDescr(topology_refiner,
 	                                        ss->subdivLevels);
 	if (ss->osd_evaluator == NULL) {
-		BLI_assert(!"OpenSubdiv initializetion failed, should not happen.");
+		BLI_assert(!"OpenSubdiv initialization failed, should not happen.");
 		return false;
 	}
 	return true;
