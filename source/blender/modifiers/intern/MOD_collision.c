@@ -67,30 +67,20 @@ static void freeData(ModifierData *md)
 	CollisionModifierData *collmd = (CollisionModifierData *) md;
 	
 	if (collmd) {
-		if (collmd->bvhtree)
+		if (collmd->bvhtree) {
 			BLI_bvhtree_free(collmd->bvhtree);
-		if (collmd->x)
-			MEM_freeN(collmd->x);
-		if (collmd->xnew)
-			MEM_freeN(collmd->xnew);
-		if (collmd->current_x)
-			MEM_freeN(collmd->current_x);
-		if (collmd->current_xnew)
-			MEM_freeN(collmd->current_xnew);
-		if (collmd->current_v)
-			MEM_freeN(collmd->current_v);
-		if (collmd->mfaces)
-			MEM_freeN(collmd->mfaces);
-		
-		collmd->x = NULL;
-		collmd->xnew = NULL;
-		collmd->current_x = NULL;
-		collmd->current_xnew = NULL;
-		collmd->current_v = NULL;
+			collmd->bvhtree = NULL;
+		}
+
+		MEM_SAFE_FREE(collmd->x);
+		MEM_SAFE_FREE(collmd->xnew);
+		MEM_SAFE_FREE(collmd->current_x);
+		MEM_SAFE_FREE(collmd->current_xnew);
+		MEM_SAFE_FREE(collmd->current_v);
+		MEM_SAFE_FREE(collmd->mfaces);
+
 		collmd->time_x = collmd->time_xnew = -1000;
 		collmd->numverts = 0;
-		collmd->bvhtree = NULL;
-		collmd->mfaces = NULL;
 	}
 }
 
