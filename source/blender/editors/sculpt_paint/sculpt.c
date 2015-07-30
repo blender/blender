@@ -2501,7 +2501,8 @@ static void calc_sculpt_plane(
 
 	if (ss->cache->mirror_symmetry_pass == 0 &&
 	    ss->cache->radial_symmetry_pass == 0 &&
-	    (ss->cache->first_time || !(brush->flag & BRUSH_ORIGINAL_NORMAL)))
+	    (ss->cache->first_time || !(brush->flag & BRUSH_ORIGINAL_NORMAL) ||
+	     (sd->paint.symmetry_flags & PAINT_TILE_AXIS_ALL)))
 	{
 		switch (brush->sculpt_plane) {
 			case SCULPT_DISP_DIR_VIEW:
