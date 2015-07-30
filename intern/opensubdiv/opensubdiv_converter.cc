@@ -141,7 +141,6 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopolog
 		memset(face_used, 0, sizeof(bool) * num_faces);
 		std::stack<StackElem> stack;
 		int edge_count_ordered = 0, face_count_ordered = 0;
-		bool print = vert == 6;
 		if (num_vert_edges == num_vert_faces) {
 			/* Manifold vertex, start with any face and perform traversal. */
 			int face_start = vert_faces[0];
