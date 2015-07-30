@@ -230,6 +230,8 @@ option(WITH_COMPOSITOR_WERROR  "Treat warnings as errors in compositor code" OFF
 mark_as_advanced(WITH_COMPOSITOR_WERROR)
 
 option(WITH_OPENSUBDIV    "Enable OpenSubdiv for surface subdivision" OFF)
+option(WITH_SUBSURF_WERROR  "Treat warnings as errors in subsurf code" OFF)
+mark_as_advanced(WITH_COMPOSITOR_WERROR)
 
 # GHOST Windowing Library Options
 option(WITH_GHOST_DEBUG   "Enable debugging output for the GHOST library" OFF)

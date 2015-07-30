@@ -505,6 +505,16 @@ if(WITH_OPENSUBDIV)
 		../../../intern/opensubdiv
 		${OPENSUBDIV_INCLUDE_DIRS}
 	)
+	if(WITH_SUBSURF_WERROR)
+		if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+			set_source_files_properties(intern/CCGSubSurf.c
+			                            intern/CCGSubSurf_legacy.c
+			                            intern/CCGSubSurf_opensubdiv.c
+			                            intern/CCGSubSurf_opensubdiv_converter.c
+			                            intern/CCGSubSurf_util.c
+			                            PROPERTIES COMPILE_FLAGS -Werror)
+		endif()
+	endif()
 endif()
 
 ## Warnings as errors, this is too strict!
