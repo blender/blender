@@ -2243,6 +2243,7 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData
 	const bool hasPCol = CustomData_has_layer(ldata, CD_PREVIEW_MLOOPCOL);
 	const bool hasOrigSpace = CustomData_has_layer(ldata, CD_ORIGSPACE_MLOOP);
 	const bool hasLoopNormal = CustomData_has_layer(ldata, CD_NORMAL);
+	const bool hasLoopTangent = CustomData_has_layer(ldata, CD_TANGENT);
 	int findex, i, j;
 	const int *pidx;
 	unsigned int (*lidx)[4];
@@ -2304,6 +2305,51 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData
 		for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, fnors++) {
 			for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
 				normal_float_to_short_v3((*fnors)[j], lnors[(*lidx)[j]]);
+			}
+		}
+	}
+
+	if (hasLoopTangent) {
+		/* need to do for all uv maps at some point */
+		float (*ftangents)[4] = CustomData_get_layer(fdata, CD_TANGENT);
+		float (*ltangents)[4] = CustomData_get_layer(ldata, CD_TANGENT);
+
+		for (findex = 0, pidx = polyindices, lidx = loopindices;
+		     findex < num_faces;
+		     pidx++, lidx++, findex++)
+		{
+			int nverts = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3;
+			for (j = nverts; j--;) {
+				copy_v4_v4(ftangents[findex * 4 + j], ltangents[(*lidx)[j]]);
+			}
+		}
+	}
+}
+
+void BKE_mesh_tangent_loops_to_tessdata(CustomData *fdata, CustomData *ldata, MFace *mface,
+                                        int *polyindices, unsigned int (*loopindices)[4], const int num_faces)
+{
+	/* Note: performances are sub-optimal when we get a NULL mface, we could be ~25% quicker with dedicated code...
+	 *       Issue is, unless having two different functions with nearly the same code, there's not much ways to solve
+	 *       this. Better imho to live with it for now. :/ --mont29
+	 */
+	const bool hasLoopTangent = CustomData_has_layer(ldata, CD_TANGENT);
+	int findex, j;
+	const int *pidx;
+	unsigned int (*lidx)[4];
+
+	if (hasLoopTangent) {
+		/* need to do for all uv maps at some point */
+		float (*ftangents)[4] = CustomData_get_layer(fdata, CD_TANGENT);
+		float (*ltangents)[4] = CustomData_get_layer(ldata, CD_TANGENT);
+
+		for (findex = 0, pidx = polyindices, lidx = loopindices;
+		     findex < num_faces;
+		     pidx++, lidx++, findex++)
+		{
+			int nverts = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3;
+			for (j = nverts; j--;) {
+				copy_v4_v4(ftangents[findex * 4 + j], ltangents[(*lidx)[j]]);
 			}
 		}
 	}

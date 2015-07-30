@@ -2338,12 +2338,12 @@ void multires_topology_changed(Mesh *me)
 /***************** Multires interpolation stuff *****************/
 
 /* Find per-corner coordinate with given per-face UV coord */
-int mdisp_rot_face_to_crn(const int corners, const int face_side, const float u, const float v, float *x, float *y)
+int mdisp_rot_face_to_crn(struct MVert *UNUSED(mvert), struct MPoly *mpoly, struct MLoop *UNUSED(mloop), const struct MLoopTri *UNUSED(lt), const int face_side, const float u, const float v, float *x, float *y)
 {
 	const float offset = face_side * 0.5f - 0.5f;
 	int S = 0;
 
-	if (corners == 4) {
+	if (mpoly->totloop == 4) {
 		if (u <= offset && v <= offset) S = 0;
 		else if (u > offset  && v <= offset) S = 1;
 		else if (u > offset  && v > offset) S = 2;
@@ -2366,7 +2366,7 @@ int mdisp_rot_face_to_crn(const int corners, const int face_side, const float u,
 			*y = v - offset;
 		}
 	}
-	else {
+	else if (mpoly->totloop == 3) {
 		int grid_size = offset;
 		float w = (face_side - 1) - u - v;
 		float W1, W2;
@@ -2380,6 +2380,30 @@ int mdisp_rot_face_to_crn(const int corners, const int face_side, const float u,
 
 		*x = (1 - (2 * W1) / (1 - W2)) * grid_size;
 		*y = (1 - (2 * W2) / (1 - W1)) * grid_size;
+	}
+	else {
+		/* the complicated ngon case: find the actual coordinate from
+		 * the barycentric coordinates and finally find the closest vertex
+		 * should work reliably for convex cases only but better than nothing */
+
+#if 0
+		int minS, i;
+		float mindist = FLT_MAX;
+
+		for (i = 0; i < mpoly->totloop; i++) {
+			float len = len_v3v3(NULL, mvert[mloop[mpoly->loopstart + i].v].co);
+			if (len < mindist) {
+				mindist = len;
+				minS = i;
+			}
+		}
+		S = minS;
+#endif
+		/* temp not implemented yet and also not working properly in current master.
+		 * (was worked around by subdividing once) */
+		S = 0;
+		*x = 0;
+		*y = 0;
 	}
 
 	return S;

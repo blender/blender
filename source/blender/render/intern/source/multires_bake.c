@@ -45,6 +45,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_modifier.h"
 #include "BKE_subsurf.h"
@@ -73,13 +74,15 @@ typedef struct MultiresBakeResult {
 
 typedef struct {
 	MVert *mvert;
-	MFace *mface;
-	MTFace *mtface;
+	MPoly *mpoly;
+	MLoop *mloop;
+	MLoopUV *mloopuv;
+	const MLoopTri *mlooptri;
+	MTexPoly *mtpoly;
 	float *pvtangent;
 	const float *precomputed_normals;
 	int w, h;
-	int face_index;
-	int i0, i1, i2;
+	int tri_index;
 	DerivedMesh *lores_dm, *hires_dm;
 	int lvl;
 	void *thread_data;
@@ -102,12 +105,10 @@ typedef struct {
 	float *heights;
 	Image *ima;
 	DerivedMesh *ssdm;
-	const int *orig_index_mf_to_mpoly;
 	const int *orig_index_mp_to_orig;
 } MHeightBakeData;
 
 typedef struct {
-	const int *orig_index_mf_to_mpoly;
 	const int *orig_index_mp_to_orig;
 } MNormalBakeData;
 
@@ -121,46 +122,26 @@ typedef struct {
 	RayObject *raytree;
 	RayFace *rayfaces;
 
-	const int *orig_index_mf_to_mpoly;
 	const int *orig_index_mp_to_orig;
 } MAOBakeData;
 
-static void multiresbake_get_normal(const MResolvePixelData *data, float norm[],const int face_num, const int vert_index)
+static void multiresbake_get_normal(const MResolvePixelData *data, float norm[],const int tri_num, const int vert_index)
 {
-	const unsigned int indices[] = {
-	    data->mface[face_num].v1,
-	    data->mface[face_num].v2,
-	    data->mface[face_num].v3,
-	    data->mface[face_num].v4,
-	};
-	const bool smoothnormal = (data->mface[face_num].flag & ME_SMOOTH) != 0;
+	const int poly_index = data->mlooptri[tri_num].poly;
+	const MPoly *mp = &data->mpoly[poly_index];
+	const bool smoothnormal = (mp->flag & ME_SMOOTH) != 0;
 
 	if (!smoothnormal) { /* flat */
 		if (data->precomputed_normals) {
-			copy_v3_v3(norm, &data->precomputed_normals[3 * face_num]);
+			copy_v3_v3(norm, &data->precomputed_normals[poly_index]);
 		}
 		else {
-			float nor[3];
-			const float *p0, *p1, *p2;
-			const int iGetNrVerts = data->mface[face_num].v4 != 0 ? 4 : 3;
-
-			p0 = data->mvert[indices[0]].co;
-			p1 = data->mvert[indices[1]].co;
-			p2 = data->mvert[indices[2]].co;
-
-			if (iGetNrVerts == 4) {
-				const float *p3 = data->mvert[indices[3]].co;
-				normal_quad_v3(nor, p0, p1, p2, p3);
-			}
-			else {
-				normal_tri_v3(nor, p0, p1, p2);
-			}
-
-			copy_v3_v3(norm, nor);
+			BKE_mesh_calc_poly_normal(mp, &data->mloop[mp->loopstart], data->mvert, norm);
 		}
 	}
 	else {
-		const short *no = data->mvert[indices[vert_index]].no;
+		const int vi = data->mloop[data->mlooptri[tri_num].tri[vert_index]].v;
+		const short *no = data->mvert[vi].no;
 
 		normal_short_to_float_v3(norm, no);
 		normalize_v3(norm);
@@ -192,17 +173,13 @@ static void flush_pixel(const MResolvePixelData *data, const int x, const int y)
 	float u, v, w, sign;
 	int r;
 
-	const int i0 = data->i0;
-	const int i1 = data->i1;
-	const int i2 = data->i2;
+	st0 = data->mloopuv[data->mlooptri[data->tri_index].tri[0]].uv;
+	st1 = data->mloopuv[data->mlooptri[data->tri_index].tri[1]].uv;
+	st2 = data->mloopuv[data->mlooptri[data->tri_index].tri[2]].uv;
 
-	st0 = data->mtface[data->face_index].uv[i0];
-	st1 = data->mtface[data->face_index].uv[i1];
-	st2 = data->mtface[data->face_index].uv[i2];
-
-	multiresbake_get_normal(data, no0, data->face_index, i0);   /* can optimize these 3 into one call */
-	multiresbake_get_normal(data, no1, data->face_index, i1);
-	multiresbake_get_normal(data, no2, data->face_index, i2);
+	multiresbake_get_normal(data, no0, data->tri_index, 0);   /* can optimize these 3 into one call */
+	multiresbake_get_normal(data, no1, data->tri_index, 1);
+	multiresbake_get_normal(data, no2, data->tri_index, 2);
 
 	resolve_tri_uv_v2(fUV, st, st0, st1, st2);
 
@@ -211,9 +188,9 @@ static void flush_pixel(const MResolvePixelData *data, const int x, const int y)
 	w = 1 - u - v;
 
 	if (data->pvtangent) {
-		tang0 = data->pvtangent + data->face_index * 16 + i0 * 4;
-		tang1 = data->pvtangent + data->face_index * 16 + i1 * 4;
-		tang2 = data->pvtangent + data->face_index * 16 + i2 * 4;
+		tang0 = data->pvtangent + data->mlooptri[data->tri_index].tri[0] * 4;
+		tang1 = data->pvtangent + data->mlooptri[data->tri_index].tri[1] * 4;
+		tang2 = data->pvtangent + data->mlooptri[data->tri_index].tri[2] * 4;
 
 		/* the sign is the same at all face vertices for any non degenerate face.
 		 * Just in case we clamp the interpolated value though. */
@@ -235,7 +212,7 @@ static void flush_pixel(const MResolvePixelData *data, const int x, const int y)
 	}
 
 	data->pass_data(data->lores_dm, data->hires_dm, data->thread_data, data->bake_data,
-	                data->ibuf, data->face_index, data->lvl, st, to_tang, x, y);
+	                data->ibuf, data->tri_index, data->lvl, st, to_tang, x, y);
 }
 
 static void set_rast_triangle(const MBakeRast *bake_rast, const int x, const int y)
@@ -348,8 +325,8 @@ static int multiresbake_test_break(MultiresBakeRender *bkr)
 /* **** Threading routines **** */
 
 typedef struct MultiresBakeQueue {
-	int cur_face;
-	int tot_face;
+	int cur_tri;
+	int tot_tri;
 	SpinLock spin;
 } MultiresBakeQueue;
 
@@ -368,7 +345,7 @@ typedef struct MultiresBakeThread {
 	float height_min, height_max;
 } MultiresBakeThread;
 
-static int multires_bake_queue_next_face(MultiresBakeQueue *queue)
+static int multires_bake_queue_next_tri(MultiresBakeQueue *queue)
 {
 	int face = -1;
 
@@ -377,9 +354,9 @@ static int multires_bake_queue_next_face(MultiresBakeQueue *queue)
 	 */
 
 	BLI_spin_lock(&queue->spin);
-	if (queue->cur_face < queue->tot_face) {
-		face = queue->cur_face;
-		queue->cur_face++;
+	if (queue->cur_tri < queue->tot_tri) {
+		face = queue->cur_tri;
+		queue->cur_tri++;
 	}
 	BLI_spin_unlock(&queue->spin);
 
@@ -392,44 +369,28 @@ static void *do_multires_bake_thread(void *data_v)
 	MResolvePixelData *data = &handle->data;
 	MBakeRast *bake_rast = &handle->bake_rast;
 	MultiresBakeRender *bkr = handle->bkr;
-	int f;
+	int tri_index;
 
-	while ((f = multires_bake_queue_next_face(handle->queue)) >= 0) {
-		MTFace *mtfate = &data->mtface[f];
-		int verts[3][2], nr_tris, t;
+	while ((tri_index = multires_bake_queue_next_tri(handle->queue)) >= 0) {
+		const MLoopTri *lt = &data->mlooptri[tri_index];
+		MTexPoly *mtpoly = &data->mtpoly[lt->poly];
+		MLoopUV *mloopuv = data->mloopuv;
 
 		if (multiresbake_test_break(bkr))
 			break;
 
-		if (mtfate->tpage != handle->image)
+		if (mtpoly->tpage != handle->image)
 			continue;
 
-		data->face_index = f;
+		data->tri_index = tri_index;
 
-		/* might support other forms of diagonal splits later on such as
-		 * split by shortest diagonal.*/
-		verts[0][0] = 0;
-		verts[1][0] = 1;
-		verts[2][0] = 2;
+		bake_rasterize(bake_rast, mloopuv[lt->tri[0]].uv, mloopuv[lt->tri[1]].uv, mloopuv[lt->tri[2]].uv);
 
-		verts[0][1] = 0;
-		verts[1][1] = 2;
-		verts[2][1] = 3;
+		/* tag image buffer for refresh */
+		if (data->ibuf->rect_float)
+			data->ibuf->userflags |= IB_RECT_INVALID;
 
-		nr_tris = data->mface[f].v4 != 0 ? 2 : 1;
-		for (t = 0; t < nr_tris; t++) {
-			data->i0 = verts[0][t];
-			data->i1 = verts[1][t];
-			data->i2 = verts[2][t];
-
-			bake_rasterize(bake_rast, mtfate->uv[data->i0], mtfate->uv[data->i1], mtfate->uv[data->i2]);
-
-			/* tag image buffer for refresh */
-			if (data->ibuf->rect_float)
-				data->ibuf->userflags |= IB_RECT_INVALID;
-
-			data->ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-		}
+		data->ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 
 		/* update progress */
 		BLI_spin_lock(&handle->queue->spin);
@@ -439,7 +400,7 @@ static void *do_multires_bake_thread(void *data_v)
 			*bkr->do_update = true;
 
 		if (bkr->progress)
-			*bkr->progress = ((float)bkr->baked_objects + (float)bkr->baked_faces / handle->queue->tot_face) / bkr->tot_obj;
+			*bkr->progress = ((float)bkr->baked_objects + (float)bkr->baked_faces / handle->queue->tot_tri) / bkr->tot_obj;
 		BLI_spin_unlock(&handle->queue->spin);
 	}
 
@@ -471,18 +432,21 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, bool require_t
                              MInitBakeData initBakeData, MFreeBakeData freeBakeData, MultiresBakeResult *result)
 {
 	DerivedMesh *dm = bkr->lores_dm;
+	const MLoopTri *mlooptri = dm->getLoopTriArray(dm);
 	const int lvl = bkr->lvl;
-	const int tot_face = dm->getNumTessFaces(dm);
+	int tot_tri = dm->getNumLoopTri(dm);
 
-	if (tot_face > 0) {
+	if (tot_tri > 0) {
 		MultiresBakeThread *handles;
 		MultiresBakeQueue queue;
 
 		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 		MVert *mvert = dm->getVertArray(dm);
-		MFace *mface = dm->getTessFaceArray(dm);
-		MTFace *mtface = dm->getTessFaceDataArray(dm, CD_MTFACE);
-		const float *precomputed_normals = dm->getTessFaceDataArray(dm, CD_NORMAL);
+		MPoly *mpoly = dm->getPolyArray(dm);
+		MLoop *mloop = dm->getLoopArray(dm);
+		MLoopUV *mloopuv = dm->getLoopDataArray(dm, CD_MLOOPUV);
+		MTexPoly *mtpoly = dm->getPolyDataArray(dm, CD_MTEXPOLY);
+		const float *precomputed_normals = dm->getPolyDataArray(dm, CD_NORMAL);
 		float *pvtangent = NULL;
 
 		ListBase threads;
@@ -491,10 +455,10 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, bool require_t
 		void *bake_data = NULL;
 
 		if (require_tangent) {
-			if (CustomData_get_layer_index(&dm->faceData, CD_TANGENT) == -1)
+			if (CustomData_get_layer_index(&dm->loopData, CD_TANGENT) == -1)
 				DM_add_tangent_layer(dm);
 
-			pvtangent = DM_get_tessface_data_layer(dm, CD_TANGENT);
+			pvtangent = DM_get_loop_data_layer(dm, CD_TANGENT);
 		}
 
 		/* all threads shares the same custom bake data */
@@ -509,8 +473,8 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, bool require_t
 		init_ccgdm_arrays(bkr->hires_dm);
 
 		/* faces queue */
-		queue.cur_face = 0;
-		queue.tot_face = tot_face;
+		queue.cur_tri = 0;
+		queue.tot_tri = tot_tri;
 		BLI_spin_init(&queue.spin);
 
 		/* fill in threads handles */
@@ -521,9 +485,12 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, bool require_t
 			handle->image = ima;
 			handle->queue = &queue;
 
-			handle->data.mface = mface;
+			handle->data.mpoly = mpoly;
 			handle->data.mvert = mvert;
-			handle->data.mtface = mtface;
+			handle->data.mloopuv = mloopuv;
+			handle->data.mlooptri = mlooptri;
+			handle->data.mtpoly = mtpoly;
+			handle->data.mloop = mloop;
 			handle->data.pvtangent = pvtangent;
 			handle->data.precomputed_normals = precomputed_normals;  /* don't strictly need this */
 			handle->data.w = ibuf->x;
@@ -606,40 +573,48 @@ static void interp_bilinear_grid(CCGKey *key, CCGElem *grid, float crn_x, float 
 }
 
 static void get_ccgdm_data(DerivedMesh *lodm, DerivedMesh *hidm,
-                           const int *index_mf_to_mpoly, const int *index_mp_to_orig,
-                           const int lvl, const int face_index, const float u, const float v, float co[3], float n[3])
+                           const int *index_mp_to_orig,
+                           const int lvl, const MLoopTri *lt, const float u, const float v, float co[3], float n[3])
 {
-	MFace mface;
 	CCGElem **grid_data;
 	CCGKey key;
 	float crn_x, crn_y;
 	int grid_size, S, face_side;
 	int *grid_offset, g_index;
-
-	lodm->getTessFace(lodm, face_index, &mface);
+	int poly_index = lt->poly;
 
 	grid_size = hidm->getGridSize(hidm);
 	grid_data = hidm->getGridData(hidm);
 	grid_offset = hidm->getGridOffset(hidm);
 	hidm->getGridKey(hidm, &key);
 
-	face_side = (grid_size << 1) - 1;
-
 	if (lvl == 0) {
-		g_index = grid_offset[face_index];
-		S = mdisp_rot_face_to_crn(mface.v4 ? 4 : 3, face_side, u * (face_side - 1), v * (face_side - 1), &crn_x, &crn_y);
+		MPoly *mpoly;
+		face_side = (grid_size << 1) - 1;
+
+		mpoly = lodm->getPolyArray(lodm) + poly_index;
+		g_index = grid_offset[poly_index];
+		S = mdisp_rot_face_to_crn(lodm->getVertArray(lodm), mpoly, lodm->getLoopArray(lodm), lt, face_side, u * (face_side - 1), v * (face_side - 1), &crn_x, &crn_y);
 	}
 	else {
-		int side = (1 << (lvl - 1)) + 1;
-		int grid_index = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, face_index);
-		int loc_offs = face_index % (1 << (2 * lvl));
-		int cell_index = loc_offs % ((side - 1) * (side - 1));
-		int cell_side = (grid_size - 1) / (side - 1);
-		int row = cell_index / (side - 1);
-		int col = cell_index % (side - 1);
+		/* number of faces per grid side */
+		int polys_per_grid_side = (1 << (lvl - 1));
+		/* get the original cage face index */
+		int cage_face_index = index_mp_to_orig ? index_mp_to_orig[poly_index] : poly_index;
+		/* local offset in total cage face grids
+		 * (1 << (2 * lvl)) is number of all polys for one cage face */
+		int loc_cage_poly_offs = poly_index % (1 << (2 * lvl));
+		/* local offset in the vertex grid itself */
+		int cell_index = loc_cage_poly_offs % (polys_per_grid_side * polys_per_grid_side);
+		int cell_side = (grid_size - 1) / polys_per_grid_side;
+		/* row and column based on grid side */
+		int row = cell_index / polys_per_grid_side;
+		int col = cell_index % polys_per_grid_side;
 
-		S = face_index / (1 << (2 * (lvl - 1))) - grid_offset[grid_index];
-		g_index = grid_offset[grid_index];
+		/* S is the vertex whose grid we are examining */
+		S = loc_cage_poly_offs / (polys_per_grid_side * polys_per_grid_side);
+		/* get offset of grid data for original cage face */
+		g_index = grid_offset[cage_face_index];
 
 		crn_y = (row * cell_side) + u * cell_side;
 		crn_x = (col * cell_side) + v * cell_side;
@@ -657,41 +632,40 @@ static void get_ccgdm_data(DerivedMesh *lodm, DerivedMesh *hidm,
 
 /* mode = 0: interpolate normals,
  * mode = 1: interpolate coord */
-static void interp_bilinear_mface(DerivedMesh *dm, MFace *mface, const float u, const float v, const int mode, float res[3])
+
+static void interp_bilinear_mpoly(DerivedMesh *dm, MLoop *mloop, MPoly *mpoly, const float u, const float v, const int mode, float res[3])
 {
 	float data[4][3];
 
 	if (mode == 0) {
-		dm->getVertNo(dm, mface->v1, data[0]);
-		dm->getVertNo(dm, mface->v2, data[1]);
-		dm->getVertNo(dm, mface->v3, data[2]);
-		dm->getVertNo(dm, mface->v4, data[3]);
+		dm->getVertNo(dm, mloop[mpoly->loopstart].v, data[0]);
+		dm->getVertNo(dm, mloop[mpoly->loopstart + 1].v, data[1]);
+		dm->getVertNo(dm, mloop[mpoly->loopstart + 2].v, data[2]);
+		dm->getVertNo(dm, mloop[mpoly->loopstart + 3].v, data[3]);
 	}
 	else {
-		dm->getVertCo(dm, mface->v1, data[0]);
-		dm->getVertCo(dm, mface->v2, data[1]);
-		dm->getVertCo(dm, mface->v3, data[2]);
-		dm->getVertCo(dm, mface->v4, data[3]);
+		dm->getVertCo(dm, mloop[mpoly->loopstart].v, data[0]);
+		dm->getVertCo(dm, mloop[mpoly->loopstart + 1].v, data[1]);
+		dm->getVertCo(dm, mloop[mpoly->loopstart + 2].v, data[2]);
+		dm->getVertCo(dm, mloop[mpoly->loopstart + 3].v, data[3]);
 	}
 
 	interp_bilinear_quad_v3(data, u, v, res);
 }
 
-/* mode = 0: interpolate normals,
- * mode = 1: interpolate coord */
-static void interp_barycentric_mface(DerivedMesh *dm, MFace *mface, const float u, const float v, const int mode, float res[3])
+static void interp_barycentric_mlooptri(DerivedMesh *dm, MLoop *mloop, const MLoopTri *lt, const float u, const float v, const int mode, float res[3])
 {
 	float data[3][3];
 
 	if (mode == 0) {
-		dm->getVertNo(dm, mface->v1, data[0]);
-		dm->getVertNo(dm, mface->v2, data[1]);
-		dm->getVertNo(dm, mface->v3, data[2]);
+		dm->getVertNo(dm, mloop[lt->tri[0]].v, data[0]);
+		dm->getVertNo(dm, mloop[lt->tri[1]].v, data[1]);
+		dm->getVertNo(dm, mloop[lt->tri[2]].v, data[2]);
 	}
 	else {
-		dm->getVertCo(dm, mface->v1, data[0]);
-		dm->getVertCo(dm, mface->v2, data[1]);
-		dm->getVertCo(dm, mface->v3, data[2]);
+		dm->getVertCo(dm, mloop[lt->tri[0]].v, data[0]);
+		dm->getVertCo(dm, mloop[lt->tri[1]].v, data[1]);
+		dm->getVertCo(dm, mloop[lt->tri[2]].v, data[2]);
 	}
 
 	interp_barycentric_tri_v3(data, u, v, res);
@@ -732,7 +706,6 @@ static void *init_heights_data(MultiresBakeRender *bkr, Image *ima)
 		}
 	}
 
-	height_data->orig_index_mf_to_mpoly = lodm->getTessFaceDataArray(lodm, CD_ORIGINDEX);
 	height_data->orig_index_mp_to_orig = lodm->getPolyDataArray(lodm, CD_ORIGINDEX);
 
 	BKE_image_release_ibuf(ima, ibuf, NULL);
@@ -757,52 +730,55 @@ static void free_heights_data(void *bake_data)
  *     mesh to make texture smoother) let's call this point p0 and n.
  *   - height wound be dot(n, p1-p0) */
 static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void *thread_data_v, void *bake_data,
-                                   ImBuf *ibuf, const int face_index, const int lvl, const float st[2],
+                                   ImBuf *ibuf, const int tri_index, const int lvl, const float st[2],
                                    float UNUSED(tangmat[3][3]), const int x, const int y)
 {
-	MTFace *mtface = CustomData_get_layer(&lores_dm->faceData, CD_MTFACE);
-	MFace mface;
+	const MLoopTri *lt = lores_dm->getLoopTriArray(lores_dm) + tri_index;
+	MLoop *mloop = lores_dm->getLoopArray(lores_dm);
+	MPoly *mpoly = lores_dm->getPolyArray(lores_dm) + lt->poly;
+	MLoopUV *mloopuv = lores_dm->getLoopDataArray(lores_dm, CD_MLOOPUV);
 	MHeightBakeData *height_data = (MHeightBakeData *)bake_data;
 	MultiresBakeThread *thread_data = (MultiresBakeThread *) thread_data_v;
 	float uv[2], *st0, *st1, *st2, *st3;
 	int pixel = ibuf->x * y + x;
 	float vec[3], p0[3], p1[3], n[3], len;
 
-	lores_dm->getTessFace(lores_dm, face_index, &mface);
-
-	st0 = mtface[face_index].uv[0];
-	st1 = mtface[face_index].uv[1];
-	st2 = mtface[face_index].uv[2];
-
-	if (mface.v4) {
-		st3 = mtface[face_index].uv[3];
+	/* ideally we would work on triangles only, however, we rely on quads to get orthogonal
+	 * coordinates for use in grid space (triangle barycentric is not orthogonal) */
+	if (mpoly->totloop == 4) {
+		st0 = mloopuv[mpoly->loopstart].uv;
+		st1 = mloopuv[mpoly->loopstart + 1].uv;
+		st2 = mloopuv[mpoly->loopstart + 2].uv;
+		st3 = mloopuv[mpoly->loopstart + 3].uv;
 		resolve_quad_uv_v2(uv, st, st0, st1, st2, st3);
 	}
-	else
+	else {
+		st0 = mloopuv[lt->tri[0]].uv;
+		st1 = mloopuv[lt->tri[1]].uv;
+		st2 = mloopuv[lt->tri[2]].uv;
 		resolve_tri_uv_v2(uv, st, st0, st1, st2);
+	}
 
 	CLAMP(uv[0], 0.0f, 1.0f);
 	CLAMP(uv[1], 0.0f, 1.0f);
 
 	get_ccgdm_data(lores_dm, hires_dm,
-	               height_data->orig_index_mf_to_mpoly, height_data->orig_index_mp_to_orig,
-	               lvl, face_index, uv[0], uv[1], p1, NULL);
+	               height_data->orig_index_mp_to_orig,
+	               lvl, lt, uv[0], uv[1], p1, NULL);
 
 	if (height_data->ssdm) {
 		get_ccgdm_data(lores_dm, height_data->ssdm,
-		               height_data->orig_index_mf_to_mpoly, height_data->orig_index_mp_to_orig,
-		               0, face_index, uv[0], uv[1], p0, n);
+		               height_data->orig_index_mp_to_orig,
+		               0, lt, uv[0], uv[1], p0, n);
 	}
 	else {
-		lores_dm->getTessFace(lores_dm, face_index, &mface);
-
-		if (mface.v4) {
-			interp_bilinear_mface(lores_dm, &mface, uv[0], uv[1], 1, p0);
-			interp_bilinear_mface(lores_dm, &mface, uv[0], uv[1], 0, n);
+		if (mpoly->totloop == 4) {
+			interp_bilinear_mpoly(lores_dm, mloop, mpoly, uv[0], uv[1], 1, p0);
+			interp_bilinear_mpoly(lores_dm, mloop, mpoly, uv[0], uv[1], 0, n);
 		}
 		else {
-			interp_barycentric_mface(lores_dm, &mface, uv[0], uv[1], 1, p0);
-			interp_barycentric_mface(lores_dm, &mface, uv[0], uv[1], 0, n);
+			interp_barycentric_mlooptri(lores_dm, mloop, lt, uv[0], uv[1], 1, p0);
+			interp_barycentric_mlooptri(lores_dm, mloop, lt, uv[0], uv[1], 0, n);
 		}
 	}
 
@@ -835,7 +811,6 @@ static void *init_normal_data(MultiresBakeRender *bkr, Image *UNUSED(ima))
 
 	normal_data = MEM_callocN(sizeof(MNormalBakeData), "MultiresBake normalData");
 
-	normal_data->orig_index_mf_to_mpoly = lodm->getTessFaceDataArray(lodm, CD_ORIGINDEX);
 	normal_data->orig_index_mp_to_orig = lodm->getPolyDataArray(lodm, CD_ORIGINDEX);
 
 	return (void *)normal_data;
@@ -854,35 +829,39 @@ static void free_normal_data(void *bake_data)
  *   - multiply it by tangmat
  *   - vector in color space would be norm(vec) /2 + (0.5, 0.5, 0.5) */
 static void apply_tangmat_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void *UNUSED(thread_data),
-                                   void *bake_data, ImBuf *ibuf, const int face_index, const int lvl,
+                                   void *bake_data, ImBuf *ibuf, const int tri_index, const int lvl,
                                    const float st[2], float tangmat[3][3], const int x, const int y)
 {
-	MTFace *mtface = CustomData_get_layer(&lores_dm->faceData, CD_MTFACE);
-	MFace mface;
+	const MLoopTri *lt = lores_dm->getLoopTriArray(lores_dm) + tri_index;
+	MPoly *mpoly = lores_dm->getPolyArray(lores_dm) + lt->poly;
+	MLoopUV *mloopuv = lores_dm->getLoopDataArray(lores_dm, CD_MLOOPUV);
 	MNormalBakeData *normal_data = (MNormalBakeData *)bake_data;
 	float uv[2], *st0, *st1, *st2, *st3;
 	int pixel = ibuf->x * y + x;
 	float n[3], vec[3], tmp[3] = {0.5, 0.5, 0.5};
 
-	lores_dm->getTessFace(lores_dm, face_index, &mface);
-
-	st0 = mtface[face_index].uv[0];
-	st1 = mtface[face_index].uv[1];
-	st2 = mtface[face_index].uv[2];
-
-	if (mface.v4) {
-		st3 = mtface[face_index].uv[3];
+	/* ideally we would work on triangles only, however, we rely on quads to get orthogonal
+	 * coordinates for use in grid space (triangle barycentric is not orthogonal) */
+	if (mpoly->totloop == 4) {
+		st0 = mloopuv[mpoly->loopstart].uv;
+		st1 = mloopuv[mpoly->loopstart + 1].uv;
+		st2 = mloopuv[mpoly->loopstart + 2].uv;
+		st3 = mloopuv[mpoly->loopstart + 3].uv;
 		resolve_quad_uv_v2(uv, st, st0, st1, st2, st3);
 	}
-	else
+	else {
+		st0 = mloopuv[lt->tri[0]].uv;
+		st1 = mloopuv[lt->tri[1]].uv;
+		st2 = mloopuv[lt->tri[2]].uv;
 		resolve_tri_uv_v2(uv, st, st0, st1, st2);
+	}
 
 	CLAMP(uv[0], 0.0f, 1.0f);
 	CLAMP(uv[1], 0.0f, 1.0f);
 
 	get_ccgdm_data(lores_dm, hires_dm,
-	               normal_data->orig_index_mf_to_mpoly, normal_data->orig_index_mp_to_orig,
-	               lvl, face_index, uv[0], uv[1], NULL, n);
+	               normal_data->orig_index_mp_to_orig,
+	               lvl, lt, uv[0], uv[1], NULL, n);
 
 	mul_v3_m3v3(vec, tangmat, n);
 	normalize_v3(vec);
@@ -1020,7 +999,6 @@ static void *init_ao_data(MultiresBakeRender *bkr, Image *UNUSED(ima))
 	ao_data->number_of_rays = bkr->number_of_rays;
 	ao_data->bias = bkr->bias;
 
-	ao_data->orig_index_mf_to_mpoly = lodm->getTessFaceDataArray(lodm, CD_ORIGINDEX);
 	ao_data->orig_index_mp_to_orig = lodm->getPolyDataArray(lodm, CD_ORIGINDEX);
 
 	create_ao_raytree(bkr, ao_data);
@@ -1092,12 +1070,13 @@ static int trace_ao_ray(MAOBakeData *ao_data, float ray_start[3], float ray_dire
 }
 
 static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void *UNUSED(thread_data),
-                              void *bake_data, ImBuf *ibuf, const int face_index, const int lvl,
+                              void *bake_data, ImBuf *ibuf, const int tri_index, const int lvl,
                               const float st[2], float UNUSED(tangmat[3][3]), const int x, const int y)
 {
+	const MLoopTri *lt = lores_dm->getLoopTriArray(lores_dm) + tri_index;
+	MPoly *mpoly = lores_dm->getPolyArray(lores_dm) + lt->poly;
+	MLoopUV *mloopuv = lores_dm->getLoopDataArray(lores_dm, CD_MLOOPUV);
 	MAOBakeData *ao_data = (MAOBakeData *) bake_data;
-	MTFace *mtface = CustomData_get_layer(&lores_dm->faceData, CD_MTFACE);
-	MFace mface;
 
 	int i, k, perm_offs;
 	float pos[3], nrm[3];
@@ -1108,25 +1087,28 @@ static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void
 	int pixel = ibuf->x * y + x;
 	float uv[2], *st0, *st1, *st2, *st3;
 
-	lores_dm->getTessFace(lores_dm, face_index, &mface);
-
-	st0 = mtface[face_index].uv[0];
-	st1 = mtface[face_index].uv[1];
-	st2 = mtface[face_index].uv[2];
-
-	if (mface.v4) {
-		st3 = mtface[face_index].uv[3];
+	/* ideally we would work on triangles only, however, we rely on quads to get orthogonal
+	 * coordinates for use in grid space (triangle barycentric is not orthogonal) */
+	if (mpoly->totloop == 4) {
+		st0 = mloopuv[mpoly->loopstart].uv;
+		st1 = mloopuv[mpoly->loopstart + 1].uv;
+		st2 = mloopuv[mpoly->loopstart + 2].uv;
+		st3 = mloopuv[mpoly->loopstart + 3].uv;
 		resolve_quad_uv_v2(uv, st, st0, st1, st2, st3);
 	}
-	else
+	else {
+		st0 = mloopuv[lt->tri[0]].uv;
+		st1 = mloopuv[lt->tri[1]].uv;
+		st2 = mloopuv[lt->tri[2]].uv;
 		resolve_tri_uv_v2(uv, st, st0, st1, st2);
+	}
 
 	CLAMP(uv[0], 0.0f, 1.0f);
 	CLAMP(uv[1], 0.0f, 1.0f);
 
 	get_ccgdm_data(lores_dm, hires_dm,
-	               ao_data->orig_index_mf_to_mpoly, ao_data->orig_index_mp_to_orig,
-	               lvl, face_index, uv[0], uv[1], pos, nrm);
+	               ao_data->orig_index_mp_to_orig,
+	               lvl, lt, uv[0], uv[1], pos, nrm);
 
 	/* offset ray origin by user bias along normal */
 	for (i = 0; i < 3; i++)

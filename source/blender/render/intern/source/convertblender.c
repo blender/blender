@@ -3272,8 +3272,14 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			RE_set_customdata_names(obr, &dm->faceData);
 
 			/* add tangent layer if we need one */
-			if (need_nmap_tangent!=0 && CustomData_get_layer_index(&dm->faceData, CD_TANGENT) == -1)
-				DM_add_tangent_layer(dm);
+			if (need_nmap_tangent!=0 && CustomData_get_layer_index(&dm->faceData, CD_TANGENT) == -1) {
+				bool generate_data = false;
+				if (CustomData_get_layer_index(&dm->loopData, CD_TANGENT) == -1) {
+					DM_add_tangent_layer(dm);
+					generate_data = true;
+				}
+				DM_generate_tangent_tessface_data(dm, generate_data);
+			}
 			
 			/* still to do for keys: the correct local texture coordinate */
 

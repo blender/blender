@@ -2489,6 +2489,9 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData 
 		else if (ldata->layers[i].type == CD_NORMAL) {
 			CustomData_add_layer_named(fdata, CD_TESSLOOPNORMAL, CD_CALLOC, NULL, total, ldata->layers[i].name);
 		}
+		else if (ldata->layers[i].type == CD_TANGENT) {
+			CustomData_add_layer_named(fdata, CD_TANGENT, CD_CALLOC, NULL, total, ldata->layers[i].name);
+		}
 	}
 
 	CustomData_bmesh_update_active_layers(fdata, pdata, ldata);

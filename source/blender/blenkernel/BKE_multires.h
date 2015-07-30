@@ -42,6 +42,11 @@ struct MultiresModifierData;
 struct Object;
 struct Scene;
 
+struct MLoop;
+struct MVert;
+struct MPoly;
+struct MLoopTri;
+
 /* Delete mesh mdisps and grid paint masks */
 void multires_customdata_delete(struct Mesh *me);
 
@@ -114,6 +119,6 @@ void multires_topology_changed(struct Mesh *me);
 
 /**** interpolation stuff ****/
 void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u, float v);
-int mdisp_rot_face_to_crn(const int corners, const int face_side, const float u, const float v, float *x, float *y);
+int mdisp_rot_face_to_crn(struct MVert *mvert, struct MPoly *mpoly, struct MLoop *mloops, const struct MLoopTri *lt, const int face_side, const float u, const float v, float *x, float *y);
 
 #endif  /* __BKE_MULTIRES_H__ */
