@@ -89,7 +89,91 @@ typedef struct MLoop {
 	unsigned int e;  /* edge index */
 } MLoop;
 
-/* runtime only */
+/**
+ * #MLoopTri's are lightweight triangulation data, for functionality that doesn't support ngons (#MPoly).
+ * This is cache data created from (#MPoly, #MLoop & #MVert arrays).
+ * There is no attempt to maintain this data's validity over time, any changes to the underlying mesh
+ * invalidate the #MLoopTri array, which will need to be re-calculated.
+ *
+ * Users normally access this via #DerivedMesh.getLoopTriArray.
+ * In rare cases its calculated directly, with #BKE_mesh_recalc_looptri.
+ *
+ * Typical usage includes:
+ * - OpenGL drawing.
+ * - #BVHTree creation.
+ * - Physics/collision detection.
+ *
+ * Storing loop indices (instead of vertex indices) allows us to
+ * directly access UV's, vertex-colors as well as vertices.
+ * The index of the source polygon is stored as well, giving access to materials and polygon normals.
+ *
+ * \note This data is runtime only, never written to disk.
+ *
+ * Usage examples:
+ * \code{.c}
+ * // access original material.
+ * short mat_nr = mpoly[lt->poly].mat_nr;
+ *
+ * // access vertex locations.
+ * float *vtri_co[3] = {
+ *     mvert[mloop[lt->tri[0]].v].co,
+ *     mvert[mloop[lt->tri[1]].v].co,
+ *     mvert[mloop[lt->tri[2]].v].co,
+ * };
+ *
+ * // access UV coordinates (works for all loop data, vertex colors... etc).
+ * float *uvtri_co[3] = {
+ *     mloopuv[lt->tri[0]].uv,
+ *     mloopuv[lt->tri[1]].uv,
+ *     mloopuv[lt->tri[2]].uv,
+ * };
+ * \endcode
+ *
+ * #MLoopTri's are allocated in an array, where each polygon's #MLoopTri's are stored contiguously,
+ * the number of triangles for each polygon is guaranteed to be (#MPoly.totloop - 2),
+ * even for degenerate geometry. See #ME_POLY_TRI_TOT macro.
+ *
+ * It's also possible to perform a reverse lookup (find all #MLoopTri's for any given #MPoly).
+ *
+ * \code{.c}
+ * // loop over all looptri's for a given polygon: i
+ * MPoly *mp = &mpoly[i];
+ * MLoopTri *lt = &looptri[poly_to_tri_count(i, mp->loopstart)];
+ * int j, lt_tot = ME_POLY_TRI_TOT(mp);
+ *
+ * for (j = 0; j < lt_tot; j++, lt++) {
+ *     unsigned int vtri[3] = {
+ *         mloop[lt->tri[0]].v,
+ *         mloop[lt->tri[1]].v,
+ *         mloop[lt->tri[2]].v,
+ *     };
+ *     printf("tri %u %u %u\n", vtri[0], vtri[1], vtri[2]);
+ * };
+ * \endcode
+ *
+ * It may also be useful to check whether or not two vertices of a triangle form an edge in the underlying mesh.
+ *
+ * This can be done by checking the edge of the referenced loop (#MLoop.e),
+ * the winding of the #MLoopTri and the #MLoop's will always match,
+ * however the order of vertices in the edge is undefined.
+ *
+ * \code{.c}
+ * // print real edges from an MLoopTri: lt
+ * int j, j_next;
+ * for (j = 2, j_next = 0; j_next < 3; j = j_next++) {
+ *     MEdge *ed = &medge[mloop[lt->tri[j]].e];
+ *     unsigned int tri_edge[2]  = {mloop[lt->tri[j]].v, mloop[lt->tri[j_next]].v};
+ *
+ *     if (ELEM(ed->v1, tri_edge[0], tri_edge[1]) &&
+ *         ELEM(ed->v2, tri_edge[0], tri_edge[1]))
+ *     {
+ *         printf("real edge found %u %u\n", tri_edge[0], tri_edge[1]);
+ *     }
+ * }
+ * \endcode
+ *
+ * \note A #MLoopTri may be in the middle of an ngon and not reference **any** edges.
+ */
 #
 #
 typedef struct MLoopTri {
