@@ -2034,7 +2034,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh)
 
 	/* this does a referenced copy, with an exception for fluidsim */
 
-	DM_init(dm, DM_TYPE_CDDM, mesh->totvert, mesh->totedge, mesh->totface,
+	DM_init(dm, DM_TYPE_CDDM, mesh->totvert, mesh->totedge, 0 /* mesh->totface */,
 	        mesh->totloop, mesh->totpoly);
 
 	dm->deformedOnly = 1;
@@ -2047,7 +2047,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh)
 	CustomData_merge(&mesh->edata, &dm->edgeData, mask, alloctype,
 	                 mesh->totedge);
 	CustomData_merge(&mesh->fdata, &dm->faceData, mask | CD_MASK_ORIGINDEX, alloctype,
-	                 mesh->totface);
+	                 0 /* mesh->totface */);
 	CustomData_merge(&mesh->ldata, &dm->loopData, mask, alloctype,
 	                 mesh->totloop);
 	CustomData_merge(&mesh->pdata, &dm->polyData, mask, alloctype,
@@ -2057,7 +2057,11 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh)
 	cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
 	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
 	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
+#if 0
 	cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
+#else
+	cddm->mface = NULL;
+#endif
 
 	/* commented since even when CD_ORIGINDEX was first added this line fails
 	 * on the default cube, (after editmode toggle too) - campbell */
