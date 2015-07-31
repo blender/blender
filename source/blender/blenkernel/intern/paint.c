@@ -763,18 +763,11 @@ void BKE_sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 		}
 	}
 
-	/* BMESH ONLY --- at some point we should move sculpt code to use polygons only - but for now it needs tessfaces */
-	if (ss->bm) {
-		BKE_mesh_tessface_clear(me);
-	}
-	else {
-		BKE_mesh_tessface_ensure(me);
-	}
+	/* tessfaces aren't used and will become invalid */
+	BKE_mesh_tessface_clear(me);
 
-	if (!mmd) ss->kb = BKE_keyblock_from_object(ob);
-	else ss->kb = NULL;
+	ss->kb = (mmd == NULL) ? BKE_keyblock_from_object(ob) : NULL;
 
-	/* needs to be called after we ensure tessface */
 	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 
 	if (mmd) {
