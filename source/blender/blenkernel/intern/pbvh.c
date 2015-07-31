@@ -44,6 +44,8 @@
 
 #include "pbvh_intern.h"
 
+#include <limits.h>
+
 #define LEAF_LIMIT 10000
 
 //#define PERFCNTRS
@@ -986,6 +988,8 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 
 		if ((node->flag & PBVH_UpdateNormals)) {
 			int i, j, totface, *faces;
+			unsigned int mpoly_prev = UINT_MAX;
+			float fn[3];
 
 			faces = node->prim_indices;
 			totface = node->totprim;
@@ -997,14 +1001,18 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 				    bvh->mloop[lt->tri[1]].v,
 				    bvh->mloop[lt->tri[2]].v,
 				};
-				float fn[3];
 				const int sides = 3;
 
-				normal_tri_v3(
-				        fn,
-				        bvh->verts[vtri[0]].co,
-				        bvh->verts[vtri[1]].co,
-				        bvh->verts[vtri[2]].co);
+				/* Face normal and mask */
+				if (lt->poly != mpoly_prev) {
+					const MPoly *mp = &bvh->mpoly[lt->poly];
+					BKE_mesh_calc_poly_normal(mp, &bvh->mloop[mp->loopstart], bvh->verts, fn);
+					mpoly_prev = lt->poly;
+
+					if (face_nors) {
+						copy_v3_v3(face_nors[lt->poly], fn);
+					}
+				}
 
 				for (j = 0; j < sides; ++j) {
 					int v = vtri[j];
@@ -1019,10 +1027,6 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 #pragma omp atomic
 						vnor[v][2] += fn[2];
 					}
-				}
-
-				if (face_nors) {
-					copy_v3_v3(face_nors[lt->poly], fn);
 				}
 			}
 		}

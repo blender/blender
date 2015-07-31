@@ -450,6 +450,8 @@ static void cdDM_drawFacesSolid(
 		if (BKE_pbvh_has_faces(cddm->pbvh)) {
 			float (*face_nors)[3] = CustomData_get_layer(&dm->faceData, CD_NORMAL);
 
+			cdDM_update_normals_from_pbvh(dm);
+
 			BKE_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors,
 			              setMaterial, false, false);
 			glShadeModel(GL_FLAT);
@@ -505,6 +507,7 @@ static void cdDM_drawFacesTex_common(
 	 */
 	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
 		if (BKE_pbvh_has_faces(cddm->pbvh)) {
+			cdDM_update_normals_from_pbvh(dm);
 			GPU_set_tpage(NULL, false, false);
 			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, false, false);
 		}
@@ -523,8 +526,6 @@ static void cdDM_drawFacesTex_common(
 		mloopcol = dm->getLoopDataArray(dm, colType);
 	}
 
-	cdDM_update_normals_from_pbvh(dm);
-	
 	GPU_vertex_setup(dm);
 	GPU_normal_setup(dm);
 	GPU_triangle_setup(dm);
@@ -700,8 +701,6 @@ static void cdDM_drawMappedFaces(
 		}
 	}
 	else {
-		cdDM_update_normals_from_pbvh(dm);
-
 		GPU_normal_setup(dm);
 
 		if (useColors) {
@@ -880,14 +879,13 @@ static void cdDM_drawMappedFacesGLSL(
 	 */
 	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
 		if (BKE_pbvh_has_faces(cddm->pbvh)) {
+			cdDM_update_normals_from_pbvh(dm);
 			setMaterial(1, &gattribs);
 			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, false, false);
 		}
 
 		return;
 	}
-
-	cdDM_update_normals_from_pbvh(dm);
 
 	matnr = -1;
 	do_draw = false;
@@ -1149,10 +1147,9 @@ static void cdDM_drawMappedFacesMat(
 	 *       works fine for matcap
 	 */
 
-	cdDM_update_normals_from_pbvh(dm);
-
 	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
 		if (BKE_pbvh_has_faces(cddm->pbvh)) {
+			cdDM_update_normals_from_pbvh(dm);
 			setMaterial(userData, 1, &gattribs);
 			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, false, false);
 		}
