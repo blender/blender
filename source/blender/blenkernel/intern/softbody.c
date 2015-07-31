@@ -100,7 +100,7 @@ typedef struct BodySpring {
 } BodySpring;
 
 typedef struct BodyFace {
-	int v1, v2, v3, v4;
+	int v1, v2, v3;
 	float ext_force[3]; /* faces colliding */
 	short flag;
 } BodyFace;
@@ -3095,24 +3095,32 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 static void mesh_faces_to_scratch(Object *ob)
 {
 	SoftBody *sb= ob->soft;
-	Mesh *me= ob->data;
-	MFace *mface;
+	const Mesh *me = ob->data;
+	MLoopTri *looptri, *lt;
 	BodyFace *bodyface;
 	int a;
 	/* alloc and copy faces*/
 
-	bodyface = sb->scratch->bodyface = MEM_mallocN(sizeof(BodyFace)*me->totface, "SB_body_Faces");
-	//memcpy(sb->scratch->mface, me->mface, sizeof(MFace)*me->totface);
-	mface = me->mface;
-	for (a=0; a<me->totface; a++, mface++, bodyface++) {
-		bodyface->v1 = mface->v1;
-		bodyface->v2 = mface->v2;
-		bodyface->v3 = mface->v3;
-		bodyface->v4 = mface->v4;
+	sb->scratch->totface = poly_to_tri_count(me->totpoly, me->totloop);
+	looptri = lt = MEM_mallocN(sizeof(*looptri) * sb->scratch->totface, __func__);
+	BKE_mesh_recalc_looptri(
+	        me->mloop, me->mpoly,
+	        me->mvert,
+	        me->totloop, me->totpoly,
+	        looptri);
+
+	bodyface = sb->scratch->bodyface = MEM_mallocN(sizeof(BodyFace) * sb->scratch->totface, "SB_body_Faces");
+
+	for (a = 0; a < sb->scratch->totface; a++, lt++, bodyface++) {
+		bodyface->v1 = me->mloop[lt->tri[0]].v;
+		bodyface->v2 = me->mloop[lt->tri[1]].v;
+		bodyface->v3 = me->mloop[lt->tri[2]].v;
+		zero_v3(bodyface->ext_force);
 		bodyface->ext_force[0] = bodyface->ext_force[1] = bodyface->ext_force[2] = 0.0f;
-		bodyface->flag =0;
+		bodyface->flag = 0;
 	}
-	sb->scratch->totface = me->totface;
+
+	MEM_freeN(looptri);
 }
 static void reference_to_scratch(Object *ob)
 {
