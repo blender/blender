@@ -107,7 +107,7 @@ void BPH_mass_spring_force_drag(struct Implicit_Data *data, float drag);
 /* Custom external force */
 void BPH_mass_spring_force_extern(struct Implicit_Data *data, int i, const float f[3], float dfdx[3][3], float dfdv[3][3]);
 /* Wind force, acting on a face */
-void BPH_mass_spring_force_face_wind(struct Implicit_Data *data, int v1, int v2, int v3, int v4, const float (*winvec)[3]);
+void BPH_mass_spring_force_face_wind(struct Implicit_Data *data, int v1, int v2, int v3, const float (*winvec)[3]);
 /* Wind force, acting on an edge */
 void BPH_mass_spring_force_edge_wind(struct Implicit_Data *data, int v1, int v2, float radius1, float radius2, const float (*winvec)[3]);
 /* Wind force, acting on a vertex */

@@ -613,6 +613,7 @@ void DM_ensure_tessface(DerivedMesh *dm);
 
 void DM_ensure_looptri_data(DerivedMesh *dm);
 void DM_ensure_looptri(DerivedMesh *dm);
+void DM_verttri_from_looptri(MVertTri *verttri, const MLoop *mloop, const MLoopTri *looptri, int looptri_num);
 
 void DM_update_tessface_data(DerivedMesh *dm);
 void DM_generate_tangent_tessface_data(DerivedMesh *dm, bool generate);

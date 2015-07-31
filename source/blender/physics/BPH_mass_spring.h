@@ -51,6 +51,7 @@ typedef enum eMassSpringSolverStatus {
 
 struct Implicit_Data *BPH_mass_spring_solver_create(int numverts, int numsprings);
 void BPH_mass_spring_solver_free(struct Implicit_Data *id);
+int BPH_mass_spring_solver_numvert(struct Implicit_Data *id);
 
 int BPH_cloth_solver_init(struct Object *ob, struct ClothModifierData *clmd);
 void BPH_cloth_solver_free(struct ClothModifierData *clmd);

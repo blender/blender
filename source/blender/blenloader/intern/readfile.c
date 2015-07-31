@@ -4894,9 +4894,10 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->current_xnew = NULL;
 			collmd->current_v = NULL;
 			collmd->time_x = collmd->time_xnew = -1000;
-			collmd->numverts = 0;
+			collmd->mvert_num = 0;
+			collmd->tri_num = 0;
 			collmd->bvhtree = NULL;
-			collmd->mfaces = NULL;
+			collmd->tri = NULL;
 			
 		}
 		else if (md->type == eModifierType_Surface) {

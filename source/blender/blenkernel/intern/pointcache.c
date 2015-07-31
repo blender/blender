@@ -543,7 +543,7 @@ static void ptcache_cloth_interpolate(int index, void *cloth_v, void **data, flo
 static int  ptcache_cloth_totpoint(void *cloth_v, int UNUSED(cfra))
 {
 	ClothModifierData *clmd= cloth_v;
-	return clmd->clothObject ? clmd->clothObject->numverts : 0;
+	return clmd->clothObject ? clmd->clothObject->mvert_num : 0;
 }
 
 static void ptcache_cloth_error(void *cloth_v, const char *message)

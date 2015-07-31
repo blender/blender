@@ -96,6 +96,12 @@ typedef struct MLoopTri {
 	unsigned int tri[3];
 	unsigned int poly;
 } MLoopTri;
+#
+#
+typedef struct MVertTri {
+	unsigned int tri[3];
+} MVertTri;
+
 
 typedef struct MTexPoly {
 	struct Image *tpage;

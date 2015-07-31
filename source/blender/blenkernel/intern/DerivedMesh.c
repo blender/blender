@@ -493,6 +493,16 @@ void DM_ensure_looptri(DerivedMesh *dm)
 	}
 }
 
+void DM_verttri_from_looptri(MVertTri *verttri, const MLoop *mloop, const MLoopTri *looptri, int looptri_num)
+{
+	int i;
+	for (i = 0; i < looptri_num; i++) {
+		verttri[i].tri[0] = mloop[looptri[i].tri[0]].v;
+		verttri[i].tri[1] = mloop[looptri[i].tri[1]].v;
+		verttri[i].tri[2] = mloop[looptri[i].tri[2]].v;
+	}
+}
+
 /* Update tessface CD data from loop/poly ones. Needed when not retessellating after modstack evaluation. */
 /* NOTE: Assumes dm has valid tessellated data! */
 void DM_update_tessface_data(DerivedMesh *dm)

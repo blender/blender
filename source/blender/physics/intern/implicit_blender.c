@@ -1424,33 +1424,16 @@ static float calc_nor_area_tri(float nor[3], const float v1[3], const float v2[3
 	return normalize_v3(nor);
 }
 
-static float calc_nor_area_quad(float nor[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3])
-{
-	float n1[3], n2[3];
-	
-	sub_v3_v3v3(n1, v1, v3);
-	sub_v3_v3v3(n2, v2, v4);
-	
-	cross_v3_v3v3(nor, n1, n2);
-	return normalize_v3(nor);
-}
-
 /* XXX does not support force jacobians yet, since the effector system does not provide them either */
-void BPH_mass_spring_force_face_wind(Implicit_Data *data, int v1, int v2, int v3, int v4, const float (*winvec)[3])
+void BPH_mass_spring_force_face_wind(Implicit_Data *data, int v1, int v2, int v3, const float (*winvec)[3])
 {
 	const float effector_scale = 0.02f;
 	float win[3], nor[3], area;
 	float factor;
 	
-	// calculate face normal and area
-	if (v4) {
-		area = calc_nor_area_quad(nor, data->X[v1], data->X[v2], data->X[v3], data->X[v4]);
-		factor = effector_scale * area * 0.25f;
-	}
-	else {
-		area = calc_nor_area_tri(nor, data->X[v1], data->X[v2], data->X[v3]);
-		factor = effector_scale * area / 3.0f;
-	}
+	/* calculate face normal and area */
+	area = calc_nor_area_tri(nor, data->X[v1], data->X[v2], data->X[v3]);
+	factor = effector_scale * area / 3.0f;
 	
 	world_to_root_v3(data, v1, win, winvec[v1]);
 	madd_v3_v3fl(data->F[v1], nor, factor * dot_v3v3(win, nor));
@@ -1460,11 +1443,6 @@ void BPH_mass_spring_force_face_wind(Implicit_Data *data, int v1, int v2, int v3
 	
 	world_to_root_v3(data, v3, win, winvec[v3]);
 	madd_v3_v3fl(data->F[v3], nor, factor * dot_v3v3(win, nor));
-	
-	if (v4) {
-		world_to_root_v3(data, v4, win, winvec[v4]);
-		madd_v3_v3fl(data->F[v4], nor, factor * dot_v3v3(win, nor));
-	}
 }
 
 static void edge_wind_vertex(const float dir[3], float length, float radius, const float wind[3], float f[3], float UNUSED(dfdx[3][3]), float UNUSED(dfdv[3][3]))

@@ -86,15 +86,15 @@ typedef struct ClothSolverResult {
 typedef struct Cloth {
 	struct ClothVertex	*verts;			/* The vertices that represent this cloth. */
 	struct	LinkNode	*springs;		/* The springs connecting the mesh. */
-	unsigned int		numverts;		/* The number of verts == m * n. */
 	unsigned int		numsprings;		/* The count of springs. */
-	unsigned int		numfaces;
+	unsigned int		mvert_num;		/* The number of verts == m * n. */
+	unsigned int		tri_num;
 	unsigned char 		old_solver_type;	/* unused, only 1 solver here */
 	unsigned char 		pad2;
 	short 			pad3;
 	struct BVHTree		*bvhtree;			/* collision tree for this cloth object */
 	struct BVHTree 		*bvhselftree;			/* collision tree for this cloth object */
-	struct MFace 		*mfaces;
+	struct MVertTri		*tri;
 	struct Implicit_Data	*implicit; 		/* our implicit solver connects to this pointer */
 	struct EdgeSet	 	*edgeset; 		/* used for selfcollisions */
 	int last_frame, pad4;
@@ -233,8 +233,8 @@ void clothModifier_do (struct ClothModifierData *clmd, struct Scene *scene, stru
 int cloth_uses_vgroup(struct ClothModifierData *clmd);
 
 // needed for collision.c
-void bvhtree_update_from_cloth (struct ClothModifierData *clmd, int moving );
-void bvhselftree_update_from_cloth (struct ClothModifierData *clmd, int moving );
+void bvhtree_update_from_cloth(struct ClothModifierData *clmd, bool moving);
+void bvhselftree_update_from_cloth(struct ClothModifierData *clmd, bool moving);
 
 // needed for button_object.c
 void cloth_clear_cache (struct Object *ob, struct ClothModifierData *clmd, float framenr );

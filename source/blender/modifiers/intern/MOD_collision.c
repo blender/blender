@@ -58,7 +58,8 @@ static void initData(ModifierData *md)
 	collmd->current_xnew = NULL;
 	collmd->current_v = NULL;
 	collmd->time_x = collmd->time_xnew = -1000;
-	collmd->numverts = 0;
+	collmd->mvert_num = 0;
+	collmd->tri_num = 0;
 	collmd->bvhtree = NULL;
 }
 
@@ -77,10 +78,15 @@ static void freeData(ModifierData *md)
 		MEM_SAFE_FREE(collmd->current_x);
 		MEM_SAFE_FREE(collmd->current_xnew);
 		MEM_SAFE_FREE(collmd->current_v);
-		MEM_SAFE_FREE(collmd->mfaces);
+
+		if (collmd->tri) {
+			MEM_freeN((void *)collmd->tri);
+			collmd->tri = NULL;
+		}
 
 		collmd->time_x = collmd->time_xnew = -1000;
-		collmd->numverts = 0;
+		collmd->mvert_num = 0;
+		collmd->tri_num = 0;
 	}
 }
 
@@ -110,7 +116,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	
 	if (dm) {
 		float current_time = 0;
-		unsigned int numverts = 0;
+		unsigned int mvert_num = 0;
 
 		CDDM_apply_vert_coords(dm, vertexCos);
 		CDDM_calc_normals(dm);
@@ -120,19 +126,20 @@ static void deformVerts(ModifierData *md, Object *ob,
 		if (G.debug_value > 0)
 			printf("current_time %f, collmd->time_xnew %f\n", current_time, collmd->time_xnew);
 		
-		numverts = dm->getNumVerts(dm);
+		mvert_num = dm->getNumVerts(dm);
 		
 		if (current_time > collmd->time_xnew) {
 			unsigned int i;
 
 			/* check if mesh has changed */
-			if (collmd->x && (numverts != collmd->numverts))
+			if (collmd->x && (mvert_num != collmd->mvert_num))
 				freeData((ModifierData *)collmd);
 
 			if (collmd->time_xnew == -1000) { /* first time */
+
 				collmd->x = dm->dupVertArray(dm); /* frame start position */
 
-				for (i = 0; i < numverts; i++) {
+				for (i = 0; i < mvert_num; i++) {
 					/* we save global positions */
 					mul_m4_v3(ob->obmat, collmd->x[i].co);
 				}
@@ -142,56 +149,75 @@ static void deformVerts(ModifierData *md, Object *ob,
 				collmd->current_xnew = MEM_dupallocN(collmd->x); // inter-frame
 				collmd->current_v = MEM_dupallocN(collmd->x); // inter-frame
 
-				collmd->numverts = numverts;
+				collmd->mvert_num = mvert_num;
 				
-				DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+				DM_ensure_looptri(dm);
 
-				collmd->mfaces = dm->dupTessFaceArray(dm);
-				collmd->numfaces = dm->getNumTessFaces(dm);
-				
+				collmd->tri_num = dm->getNumLoopTri(dm);
+				{
+					const MLoop *mloop = dm->getLoopArray(dm);
+					const MLoopTri *looptri = dm->getLoopTriArray(dm);
+					MVertTri *tri = MEM_mallocN(sizeof(*tri) * collmd->tri_num, __func__);
+					DM_verttri_from_looptri(tri, mloop, looptri, collmd->tri_num);
+					collmd->tri = tri;
+				}
+
 				/* create bounding box hierarchy */
-				collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sboft);
+				collmd->bvhtree = bvhtree_build_from_mvert(
+				        collmd->x,
+				        collmd->tri, collmd->tri_num,
+				        ob->pd->pdef_sboft);
 
 				collmd->time_x = collmd->time_xnew = current_time;
 			}
-			else if (numverts == collmd->numverts) {
+			else if (mvert_num == collmd->mvert_num) {
 				/* put positions to old positions */
 				tempVert = collmd->x;
 				collmd->x = collmd->xnew;
 				collmd->xnew = tempVert;
 				collmd->time_x = collmd->time_xnew;
 
-				memcpy(collmd->xnew, dm->getVertArray(dm), numverts * sizeof(MVert));
+				memcpy(collmd->xnew, dm->getVertArray(dm), mvert_num * sizeof(MVert));
 
-				for (i = 0; i < numverts; i++) {
+				for (i = 0; i < mvert_num; i++) {
 					/* we save global positions */
 					mul_m4_v3(ob->obmat, collmd->xnew[i].co);
 				}
 				
-				memcpy(collmd->current_xnew, collmd->x, numverts * sizeof(MVert));
-				memcpy(collmd->current_x, collmd->x, numverts * sizeof(MVert));
+				memcpy(collmd->current_xnew, collmd->x, mvert_num * sizeof(MVert));
+				memcpy(collmd->current_x, collmd->x, mvert_num * sizeof(MVert));
 				
 				/* check if GUI setting has changed for bvh */
 				if (collmd->bvhtree) {
 					if (ob->pd->pdef_sboft != BLI_bvhtree_getepsilon(collmd->bvhtree)) {
 						BLI_bvhtree_free(collmd->bvhtree);
-						collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
+						collmd->bvhtree = bvhtree_build_from_mvert(
+						        collmd->current_x,
+						        collmd->tri, collmd->tri_num,
+						        ob->pd->pdef_sboft);
 					}
 			
 				}
 				
 				/* happens on file load (ONLY when i decomment changes in readfile.c) */
 				if (!collmd->bvhtree) {
-					collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
+					collmd->bvhtree = bvhtree_build_from_mvert(
+					        collmd->current_x,
+					        collmd->tri, collmd->tri_num,
+					        ob->pd->pdef_sboft);
 				}
 				else {
 					/* recalc static bounding boxes */
-					bvhtree_update_from_mvert(collmd->bvhtree, collmd->mfaces, collmd->numfaces, collmd->current_x, collmd->current_xnew, collmd->numverts, 1);
+					bvhtree_update_from_mvert(
+					        collmd->bvhtree,
+					        collmd->current_x, collmd->current_xnew,
+					        collmd->tri, collmd->tri_num,
+					        true);
 				}
 				
 				collmd->time_xnew = current_time;
 			}
-			else if (numverts != collmd->numverts) {
+			else if (mvert_num != collmd->mvert_num) {
 				freeData((ModifierData *)collmd);
 			}
 			
@@ -200,7 +226,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 			freeData((ModifierData *)collmd);
 		}
 		else {
-			if (numverts != collmd->numverts) {
+			if (mvert_num != collmd->mvert_num) {
 				freeData((ModifierData *)collmd);
 			}
 		}

@@ -2477,10 +2477,6 @@ static int collision_sphere_to_edges(ParticleCollision *col, float radius, Parti
 	int i;
 
 	for (i=0; i<3; i++) {
-		/* in case of a quad, no need to check "edge" that goes through face twice */
-		if ((pce->x[3] && i==2))
-			continue;
-
 		cur = edge+i;
 		cur->x[0] = pce->x[i]; cur->x[1] = pce->x[(i+1)%3];
 		cur->v[0] = pce->v[i]; cur->v[1] = pce->v[(i+1)%3];
@@ -2524,10 +2520,6 @@ static int collision_sphere_to_verts(ParticleCollision *col, float radius, Parti
 	int i;
 
 	for (i=0; i<3; i++) {
-		/* in case of quad, only check one vert the first time */
-		if (pce->x[3] && i != 1)
-			continue;
-
 		cur = vert+i;
 		cur->x[0] = pce->x[i];
 		cur->v[0] = pce->v[i];
@@ -2555,21 +2547,19 @@ void BKE_psys_collision_neartest_cb(void *userdata, int index, const BVHTreeRay 
 {
 	ParticleCollision *col = (ParticleCollision *) userdata;
 	ParticleCollisionElement pce;
-	MFace *face = col->md->mfaces + index;
+	const MVertTri *vt = &col->md->tri[index];
 	MVert *x = col->md->x;
 	MVert *v = col->md->current_v;
 	float t = hit->dist/col->original_ray_length;
 	int collision = 0;
 
-	pce.x[0] = x[face->v1].co;
-	pce.x[1] = x[face->v2].co;
-	pce.x[2] = x[face->v3].co;
-	pce.x[3] = face->v4 ? x[face->v4].co : NULL;
+	pce.x[0] = x[vt->tri[0]].co;
+	pce.x[1] = x[vt->tri[1]].co;
+	pce.x[2] = x[vt->tri[2]].co;
 
-	pce.v[0] = v[face->v1].co;
-	pce.v[1] = v[face->v2].co;
-	pce.v[2] = v[face->v3].co;
-	pce.v[3] = face->v4 ? v[face->v4].co : NULL;
+	pce.v[0] = v[vt->tri[0]].co;
+	pce.v[1] = v[vt->tri[1]].co;
+	pce.v[2] = v[vt->tri[2]].co;
 
 	pce.tot = 3;
 	pce.inside = 0;
@@ -2579,31 +2569,20 @@ void BKE_psys_collision_neartest_cb(void *userdata, int index, const BVHTreeRay 
 	if (col->hit == col->current && col->pce.index == index && col->pce.tot == 3)
 		return;
 
-	do {
-		collision = collision_sphere_to_tri(col, ray->radius, &pce, &t);
-		if (col->pce.inside == 0) {
-			collision += collision_sphere_to_edges(col, ray->radius, &pce, &t);
-			collision += collision_sphere_to_verts(col, ray->radius, &pce, &t);
-		}
+	collision = collision_sphere_to_tri(col, ray->radius, &pce, &t);
+	if (col->pce.inside == 0) {
+		collision += collision_sphere_to_edges(col, ray->radius, &pce, &t);
+		collision += collision_sphere_to_verts(col, ray->radius, &pce, &t);
+	}
 
-		if (collision) {
-			hit->dist = col->original_ray_length * t;
-			hit->index = index;
-				
-			collision_point_velocity(&col->pce);
+	if (collision) {
+		hit->dist = col->original_ray_length * t;
+		hit->index = index;
 
-			col->hit = col->current;
-		}
+		collision_point_velocity(&col->pce);
 
-		pce.x[1] = pce.x[2];
-		pce.x[2] = pce.x[3];
-		pce.x[3] = NULL;
-
-		pce.v[1] = pce.v[2];
-		pce.v[2] = pce.v[3];
-		pce.v[3] = NULL;
-
-	} while (pce.x[2]);
+		col->hit = col->current;
+	}
 }
 static int collision_detect(ParticleData *pa, ParticleCollision *col, BVHTreeRayHit *hit, ListBase *colliders)
 {
