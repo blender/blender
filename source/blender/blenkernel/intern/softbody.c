@@ -569,11 +569,13 @@ static void ccd_update_deflector_hash(Scene *scene, Object *vertexowner, GHash *
 static int count_mesh_quads(Mesh *me)
 {
 	int a, result = 0;
-	MFace *mface= me->mface;
+	const MPoly *mp = me->mpoly;
 
-	if (mface) {
-		for (a=me->totface; a>0; a--, mface++) {
-			if (mface->v4) result++;
+	if (mp) {
+		for (a = me->totpoly; a > 0; a--, mp++) {
+			if (mp->totloop == 4) {
+				result++;
+			}
 		}
 	}
 	return result;
@@ -582,9 +584,7 @@ static int count_mesh_quads(Mesh *me)
 static void add_mesh_quad_diag_springs(Object *ob)
 {
 	Mesh *me= ob->data;
-	MFace *mface= me->mface;
 	/*BodyPoint *bp;*/ /*UNUSED*/
-	BodySpring *bs, *bs_new;
 	int a;
 
 	if (ob->soft) {
@@ -593,36 +593,32 @@ static void add_mesh_quad_diag_springs(Object *ob)
 
 		nofquads = count_mesh_quads(me);
 		if (nofquads) {
-			/* resize spring-array to hold additional quad springs */
-			bs_new= MEM_callocN((ob->soft->totspring + nofquads *2 )*sizeof(BodySpring), "bodyspring");
-			memcpy(bs_new, ob->soft->bspring, (ob->soft->totspring )*sizeof(BodySpring));
+			const MLoop *mloop = me->mloop;
+			const MPoly *mp = me->mpoly;
+			BodySpring *bs;
 
-			if (ob->soft->bspring)
-				MEM_freeN(ob->soft->bspring); /* do this before reassigning the pointer  or have a 1st class memory leak */
-			ob->soft->bspring = bs_new;
+			/* resize spring-array to hold additional quad springs */
+			ob->soft->bspring = MEM_recallocN(ob->soft->bspring, sizeof(BodySpring) * (ob->soft->totspring + nofquads * 2));
 
 			/* fill the tail */
 			a = 0;
-			bs = bs_new+ob->soft->totspring;
+			bs = &ob->soft->bspring[ob->soft->totspring];
 			/*bp= ob->soft->bpoint; */ /*UNUSED*/
-			if (mface ) {
-				for (a=me->totface; a>0; a--, mface++) {
-					if (mface->v4) {
-						bs->v1= mface->v1;
-						bs->v2= mface->v3;
-						bs->springtype   = SB_STIFFQUAD;
-						bs++;
-						bs->v1= mface->v2;
-						bs->v2= mface->v4;
-						bs->springtype   = SB_STIFFQUAD;
-						bs++;
-
-					}
+			for (a = me->totpoly; a > 0; a--, mp++) {
+				if (mp->totloop == 4) {
+					bs->v1 = mloop[mp->loopstart + 0].v;
+					bs->v2 = mloop[mp->loopstart + 2].v;
+					bs->springtype   = SB_STIFFQUAD;
+					bs++;
+					bs->v1 = mloop[mp->loopstart + 1].v;
+					bs->v2 = mloop[mp->loopstart + 3].v;
+					bs->springtype   = SB_STIFFQUAD;
+					bs++;
 				}
 			}
 
 			/* now we can announce new springs */
-			ob->soft->totspring += nofquads *2;
+			ob->soft->totspring += nofquads * 2;
 		}
 	}
 }
@@ -995,20 +991,7 @@ static int sb_detect_aabb_collisionCached(float UNUSED(force[3]), unsigned int U
 		{
 			/* only with deflecting set */
 			if (ob->pd && ob->pd->deflect) {
-#if 0			/* UNUSED */
-				MFace *mface= NULL;
-				MVert *mvert= NULL;
-				MVert *mprevvert= NULL;
-				ccdf_minmax *mima= NULL;
-#endif
 				if (ccdm) {
-#if 0				/* UNUSED */
-					mface= ccdm->mface;
-					mvert= ccdm->mvert;
-					mprevvert= ccdm->mprevvert;
-					mima= ccdm->mima;
-					a = ccdm->totface;
-#endif
 					if ((aabbmax[0] < ccdm->bbmin[0]) ||
 					    (aabbmax[1] < ccdm->bbmin[1]) ||
 					    (aabbmax[2] < ccdm->bbmin[2]) ||
@@ -3017,8 +3000,6 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 	BodySpring *bs;
 	int a, totedge;
 	int defgroup_index, defgroup_index_mass, defgroup_index_spring;
-
-	BKE_mesh_tessface_ensure(me);
 	
 	if (ob->softflag & OB_SB_EDGES) totedge= me->totedge;
 	else totedge= 0;
