@@ -51,6 +51,7 @@
 #include "BKE_ccg.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_paint.h"
+#include "BKE_mesh.h"
 #include "BKE_pbvh.h"
 
 #include "DNA_userdef_types.h"
@@ -1275,6 +1276,10 @@ void GPU_update_mesh_pbvh_buffers(
 #undef UPDATE_VERTEX
 			}
 			else {
+				/* calculate normal for each polygon only once */
+				unsigned int mpoly_prev = UINT_MAX;
+				short no[3];
+
 				for (i = 0; i < buffers->face_indices_len; ++i) {
 					const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
 					const unsigned int vtri[3] = {
@@ -1282,8 +1287,6 @@ void GPU_update_mesh_pbvh_buffers(
 					    buffers->mloop[lt->tri[1]].v,
 					    buffers->mloop[lt->tri[2]].v,
 					};
-					float fno[3];
-					short no[3];
 
 					float fmask;
 
@@ -1291,16 +1294,19 @@ void GPU_update_mesh_pbvh_buffers(
 						continue;
 
 					/* Face normal and mask */
-					normal_tri_v3(fno,
-					              mvert[vtri[0]].co,
-					              mvert[vtri[1]].co,
-					              mvert[vtri[2]].co);
+					if (lt->poly != mpoly_prev) {
+						const MPoly *mp = &buffers->mpoly[lt->poly];
+						float fno[3];
+						BKE_mesh_calc_poly_normal(mp, &buffers->mloop[mp->loopstart], mvert, fno);
+						normal_float_to_short_v3(no, fno);
+						mpoly_prev = lt->poly;
+					}
+
 					if (vmask) {
 						fmask = (vmask[vtri[0]] +
 						         vmask[vtri[1]] +
 						         vmask[vtri[2]]) / 3.0f;
 					}
-					normal_float_to_short_v3(no, fno);
 
 					for (j = 0; j < 3; j++) {
 						const MVert *v = &mvert[vtri[j]];
