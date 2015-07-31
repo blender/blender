@@ -134,7 +134,7 @@ void MEM_CacheLimiter_unref(MEM_CacheLimiterHandleC *handle);
 /**
  * Get reference counter.
  *
- * @param This "This" pointer, handle of object
+ * @param handle of object
  */
 
 int MEM_CacheLimiter_get_refcount(MEM_CacheLimiterHandleC *handle);

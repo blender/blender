@@ -435,9 +435,7 @@
 
 
 /* -------------------------------------------------------------------- */
-
-/** \name Forward Declarations
- * \{ */
+/* Forward Declarations */
 
 static PyObject *Buffer_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static PyObject *Method_ShaderSource(PyObject *self, PyObject *args);
@@ -451,8 +449,6 @@ static int Buffer_ass_item(Buffer *self, int i, PyObject *v);
 static int Buffer_ass_slice(Buffer *self, int begin, int end, PyObject *seq);
 static PyObject *Buffer_subscript(Buffer *self, PyObject *item);
 static int Buffer_ass_subscript(Buffer *self, PyObject *item, PyObject *value);
-
-/** \} */
 
 
 /* -------------------------------------------------------------------- */
@@ -756,7 +752,7 @@ static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
 	return (PyObject *)buffer;
 }
 
-/*@ Buffer sequence methods */
+/* Buffer sequence methods */
 
 static int Buffer_len(Buffer *self)
 {

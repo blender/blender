@@ -107,7 +107,8 @@
  * \subsection bm_iter_api Iterator API
  *
  * Most topological queries in BMesh go through an iterator API (see Queries above).
- * These are defined in bmesh_iterators.h.  If you can, please use the #BM_ITER macro in bmesh_iterators.h
+ * These are defined in bmesh_iterators.h.
+ * If you can, please use the #BM_ITER_MESH, #BM_ITER_ELEM macros in bmesh_iterators.h
  *
  *
  * \subsection bm_walker_api Walker API
@@ -161,7 +162,7 @@
  * - integer - #BMO_OP_SLOT_INT
  * - boolean - #BMO_OP_SLOT_BOOL
  * - float   - #BMO_OP_SLOT_FLT
- * - pointer - #BMO_OP_SLOT_PNT
+ * - pointer - #BMO_OP_SLOT_PTR
  * - matrix  - #BMO_OP_SLOT_MAT
  * - vector  - #BMO_OP_SLOT_VEC
  * - buffer  - #BMO_OP_SLOT_ELEMENT_BUF - a list of verts/edges/faces.

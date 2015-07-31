@@ -133,7 +133,7 @@ Object *ED_view3d_cameracontrol_object_get(View3DCameraControl *vctrl)
 
 
 /**
- * Creates a #View3DControl handle and sets up
+ * Creates a #View3DCameraControl handle and sets up
  * the view for first-person style navigation.
  */
 struct View3DCameraControl *ED_view3d_cameracontrol_acquire(

@@ -56,8 +56,7 @@ void threaded_makeshadowbufs(struct Render *re);
 float testshadowbuf(struct Render *re, struct ShadBuf *shb, const float rco[3], const float dxco[3], const float dyco[3], float inp, float mat_bias);
 
 /**
- * Determines the shadow factor for lamp <lar>, between <p1>
- * and <p2>. (Which CS?)
+ * Determines the shadow factor for lamp \a lar, between \a p1 and \a p2. (Which CS?)
  */
 float shadow_halo(LampRen *lar, const float p1[3], const float p2[3]);
 

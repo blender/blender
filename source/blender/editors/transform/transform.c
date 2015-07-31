@@ -6313,7 +6313,7 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t)
 }
 
 /**
- * A simple version of #createEdgeSlideVerts
+ * A simple version of #createEdgeSlideVerts_double_side
  * Which assumes the longest unselected.
  */
 static bool createEdgeSlideVerts_single_side(TransInfo *t)

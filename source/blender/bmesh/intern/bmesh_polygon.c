@@ -99,7 +99,7 @@ static float bm_face_calc_poly_normal(const BMFace *f, float n[3])
 /**
  * \brief COMPUTE POLY NORMAL (BMFace)
  *
- * Same as #calc_poly_normal and #bm_face_calc_poly_normal
+ * Same as #bm_face_calc_poly_normal
  * but takes an array of vertex locations.
  */
 static float bm_face_calc_poly_normal_vertex_cos(

@@ -64,7 +64,7 @@
  *
  * Create a structDNA: only needed when one of the input include (.h) files change.
  * File Syntax:
- * <pre>
+ * \code{.unparsed}
  *     SDNA (4 bytes) (magic number)
  *     NAME (4 bytes)
  *     <nr> (4 bytes) amount of names (int)
@@ -86,7 +86,7 @@
  *     STRC (4 bytes)
  *     <nr> amount of structs (int)
  *     <typenr><nr_of_elems> <typenr><namenr> <typenr><namenr> ...
- *</pre>
+ * \endcode
  *
  *  **Remember to read/write integer and short aligned!**
  *
