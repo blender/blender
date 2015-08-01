@@ -191,6 +191,7 @@ void ED_operatormacros_node(void)
 	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "NODE_OT_links_detach");
 	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+	WM_operatortype_macro_define(ot, "NODE_OT_insert_offset");
 
 	ot = WM_operatortype_append_macro("NODE_OT_move_detach_links_release", "Detach", "Move a node to detach links",
 	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
