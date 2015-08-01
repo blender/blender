@@ -28,8 +28,7 @@
  *
  * \addtogroup bmesh BMesh
  *
- * \brief BMesh is a non-manifold boundary representation designed to replace the current, limited EditMesh structure,
- * solving many of the design limitations and maintenance issues of EditMesh.
+ * \brief BMesh is a non-manifold boundary representation designed to support advanced editing operations.
  *
  *
  * \section bm_structure The Structure
@@ -78,11 +77,11 @@
  *
  * \subsection bm_edges_and_verts Edges and Vertices
  *
- * Edges and Vertices in BMesh are much like their counterparts in EditMesh,
- * except for some members private to the BMesh api.
+ * Edges and Vertices in BMesh are primitive structures.
  *
- * \note There can be more than one edge between two vertices in bmesh,
- * though the rest of blender (e.g. DerivedMesh, CDDM, CCGSubSurf, etc) does not support this.
+ * \note There can be more than one edge between two vertices in BMesh,
+ * though the rest of Blender (e.g. DerivedMesh, CDDM, CCGSubSurf, etc) does not support this.
+ * So it should only occur temporarily during editing operations.
  *
  *
  * \subsection bm_queries Queries

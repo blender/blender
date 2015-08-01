@@ -25,6 +25,10 @@
 
 /** \file BKE_editmesh.h
  *  \ingroup bke
+ *
+ * The \link edmesh EDBM module\endlink is for editmode bmesh stuff.
+ * In contrast, the this module is for code shared with blenkernel thats
+ * only concerned with low level operations on the #BMEditMesh structure.
  */
 
 #include "BKE_customdata.h"
@@ -37,14 +41,10 @@ struct Scene;
 struct DerivedMesh;
 struct MeshStatVis;
 
-/* ok: the EDBM module is for editmode bmesh stuff.  in contrast, the 
- *     BMEdit module is for code shared with blenkernel that concerns
- *     the BMEditMesh structure.
- */
-
-/* this structure replaces EditMesh.
+/**
+ * This structure is used for mesh edit-mode.
  *
- * through this, you get access to both the edit bmesh,
+ * through this, you get access to both the edit #BMesh,
  * it's tessellation, and various stuff that doesn't belong in the BMesh
  * struct itself.
  *

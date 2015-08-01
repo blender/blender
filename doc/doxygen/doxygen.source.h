@@ -11,7 +11,6 @@
 /** \defgroup bmesh BMesh
  *  \ingroup blender
  */
-/** \defgroup texture Texturing */
 /** \defgroup compositor Compositing */
 
 /** \defgroup python Python
@@ -322,7 +321,7 @@
  *  \ingroup gui
  */
 
-/** \defgroup externformats external formats */
+/** \defgroup externformats External Formats */
 
 /** \defgroup collada COLLADA
  *  \ingroup externformats

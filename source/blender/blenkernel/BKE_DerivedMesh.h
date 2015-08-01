@@ -228,7 +228,7 @@ struct DerivedMesh {
 	int (*getNumPolys)(DerivedMesh *dm);
 
 	/** Copy a single vert/edge/tessellated face from the derived mesh into
-	 * *{vert/edge/face}_r. note that the current implementation
+	 * ``*r_{vert/edge/face}``. note that the current implementation
 	 * of this function can be quite slow, iterating over all
 	 * elements (editmesh)
 	 */

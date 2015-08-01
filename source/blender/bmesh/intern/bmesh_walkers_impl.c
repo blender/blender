@@ -1232,7 +1232,7 @@ static void *bmw_FaceLoopWalker_step(BMWalker *walker)
  *
  * Starts at a tool-flagged edge and walks over the edge ring
  * Conditions for starting and stepping the edge ring have been
- * tuned in an attempt to match the edge rings built by EditMesh
+ * tuned to match behavior users expect (dating back to v2.4x).
  */
 static void bmw_EdgeringWalker_begin(BMWalker *walker, void *data)
 {

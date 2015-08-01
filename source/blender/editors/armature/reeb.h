@@ -140,6 +140,7 @@ typedef struct ReebArcIterator {
 	int stride;
 } ReebArcIterator;
 
+#if 0
 struct EditMesh;
 struct EdgeIndex;
 
@@ -152,6 +153,8 @@ void arcToVCol(struct ReebGraph *rg, struct EditMesh *em, int index);
 void renormalizeWeight(struct EditMesh *em, float newmax);
 
 ReebGraph *generateReebGraph(struct EditMesh *me, int subdivisions);
+#endif
+
 ReebGraph *newReebGraph(void);
 
 void initArcIterator(BArcIterator *iter, struct ReebArc *arc, struct ReebNode *head);
