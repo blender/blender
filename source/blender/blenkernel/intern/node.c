@@ -775,6 +775,78 @@ int nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **nodep, int *sockin
 	return 0;
 }
 
+/**
+ * \note Recursive
+ */
+bNode *nodeFindRootParent(bNode *node)
+{
+	if (node->parent) {
+		return nodeFindRootParent(node->parent);
+	}
+	else {
+		return node->type == NODE_FRAME ? node : NULL;
+	}
+}
+
+/**
+ * \returns true if \a child has \a parent as a parent/grandparent/...
+ * \note Recursive
+ */
+bool nodeIsChildOf(const bNode *parent, const bNode *child)
+{
+	if (parent == child) {
+		return true;
+	}
+	else if (child->parent) {
+		return nodeIsChildOf(parent, child->parent);
+	}
+	return false;
+}
+
+/**
+ * Iterate over a chain of nodes, starting with \a node_start, executing
+ * \a callback for each node (which can return false to end iterator).
+ * 
+ * \param reversed for backwards iteration
+ * \note Recursive
+ */
+void nodeChainIter(
+        const bNodeTree *ntree, const bNode *node_start,
+        bool (*callback)(bNode *, bNode *, void *, const bool), void *userdata,
+        const bool reversed)
+{
+	bNodeLink *link;
+
+	for (link = ntree->links.first; link; link = link->next) {
+		if (link->tonode && link->fromnode) {
+			/* is the link part of the chain meaning node_start == fromnode (or tonode for reversed case)? */
+			if ((reversed && (link->tonode == node_start)) ||
+			    (!reversed && link->fromnode == node_start))
+			{
+				if (!callback(link->fromnode, link->tonode, userdata, reversed)) {
+					return;
+				}
+				nodeChainIter(ntree, reversed ? link->fromnode : link->tonode, callback, userdata, reversed);
+			}
+		}
+	}
+}
+
+/**
+ * Iterate over all parents of \a node, executing \a callback for each parent (which can return false to end iterator)
+ * 
+ * \note Recursive
+ */
+void nodeParentsIter(bNode *node, bool (*callback)(bNode *, void *), void *userdata)
+{
+	if (node->parent) {
+		if (!callback(node->parent, userdata)) {
+			return;
+		}
+		nodeParentsIter(node->parent, callback, userdata);
+	}
+}
+
 /* ************** Add stuff ********** */
 
 /* Find the first available, non-duplicate name for a given node */
@@ -1961,6 +2033,20 @@ int ntreeOutputExists(bNode *node, bNodeSocket *testsock)
 		if (sock == testsock)
 			return 1;
 	return 0;
+}
+
+void ntreeNodeFlagSet(const bNodeTree *ntree, const int flag, const bool enable)
+{
+	bNode *node = ntree->nodes.first;
+
+	for (; node; node = node->next) {
+		if (enable) {
+			node->flag |= flag;
+		}
+		else {
+			node->flag &= ~flag;
+		}
+	}
 }
 
 /* returns localized tree for execution in threads */

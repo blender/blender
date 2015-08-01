@@ -308,6 +308,12 @@ void node_to_view(struct bNode *node, float x, float y, float *rx, float *ry)
 	*ry *= UI_DPI_FAC;
 }
 
+void node_to_updated_rect(struct bNode *node, rctf *r_rect)
+{
+	node_to_view(node, node->offsetx, node->offsety, &r_rect->xmin, &r_rect->ymax);
+	node_to_view(node, node->offsetx + node->width, node->offsety - node->height, &r_rect->xmax, &r_rect->ymin);
+}
+
 void node_from_view(struct bNode *node, float x, float y, float *rx, float *ry)
 {
 	x /= UI_DPI_FAC;

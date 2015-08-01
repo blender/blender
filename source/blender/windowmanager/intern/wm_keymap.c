@@ -1006,7 +1006,7 @@ int WM_modalkeymap_items_to_string(
 int WM_modalkeymap_operator_items_to_string(
         wmOperatorType *ot, const int propvalue, const bool compact, const int len, char *r_str)
 {
-    return WM_modalkeymap_items_to_string(ot->modalkeymap, propvalue, compact, len, r_str);
+	return WM_modalkeymap_items_to_string(ot->modalkeymap, propvalue, compact, len, r_str);
 }
 
 char *WM_modalkeymap_operator_items_to_string_buf(
