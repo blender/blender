@@ -542,15 +542,14 @@ int closest_point_on_surface(SurfaceModifierData *surmd, const float co[3], floa
 		}
 
 		if (surface_vel) {
-			MFace *mface = CDDM_get_tessface(surmd->dm, nearest.index);
+			const MLoop *mloop = surmd->bvhtree->loop;
+			const MLoopTri *lt = &surmd->bvhtree->looptri[nearest.index];
 			
-			copy_v3_v3(surface_vel, surmd->v[mface->v1].co);
-			add_v3_v3(surface_vel, surmd->v[mface->v2].co);
-			add_v3_v3(surface_vel, surmd->v[mface->v3].co);
-			if (mface->v4)
-				add_v3_v3(surface_vel, surmd->v[mface->v4].co);
+			copy_v3_v3(surface_vel, surmd->v[mloop[lt->tri[0]].v].co);
+			add_v3_v3(surface_vel, surmd->v[mloop[lt->tri[1]].v].co);
+			add_v3_v3(surface_vel, surmd->v[mloop[lt->tri[2]].v].co);
 
-			mul_v3_fl(surface_vel, mface->v4 ? 0.25f : (1.0f / 3.0f));
+			mul_v3_fl(surface_vel, (1.0f / 3.0f));
 		}
 		return 1;
 	}
