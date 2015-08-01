@@ -37,6 +37,7 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_easing.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -45,6 +46,7 @@
 #include "ED_node.h"  /* own include */
 #include "ED_screen.h"
 #include "ED_render.h"
+#include "ED_util.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -53,6 +55,7 @@
 #include "WM_types.h"
 
 #include "UI_view2d.h"
+#include "UI_resources.h"
 
 #include "BLF_translation.h"
 
@@ -65,6 +68,17 @@ typedef struct bNodeListItem {
 	struct bNodeListItem *next, *prev;
 	struct bNode *node;
 } bNodeListItem;
+
+typedef struct NodeInsertOfsData {
+	bNodeTree *ntree;
+	bNode *insert;        /* inserted node */
+	bNode *prev, *next;   /* prev/next node in the chain */
+	bNode *insert_parent;
+
+	wmTimer *anim_timer;
+
+	float offset_x;       /* offset to apply to node chain */
+} NodeInsertOfsData;
 
 static int sort_nodes_locx(const void *a, const void *b)
 {
@@ -1099,25 +1113,33 @@ void NODE_OT_join(wmOperatorType *ot)
 
 /* ****************** Attach ******************* */
 
-static int node_attach_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static bNode *node_find_frame_to_attach(ARegion *ar, const bNodeTree *ntree, const int mouse_xy[2])
 {
-	ARegion *ar = CTX_wm_region(C);
-	SpaceNode *snode = CTX_wm_space_node(C);
-	bNodeTree *ntree = snode->edittree;
 	bNode *frame;
 	float cursor[2];
-	
+
 	/* convert mouse coordinates to v2d space */
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
+	UI_view2d_region_to_view(&ar->v2d, UNPACK2(mouse_xy), &cursor[0], &cursor[1]);
 
 	/* check nodes front to back */
 	for (frame = ntree->nodes.last; frame; frame = frame->prev) {
 		/* skip selected, those are the nodes we want to attach */
 		if ((frame->type != NODE_FRAME) || (frame->flag & NODE_SELECT))
 			continue;
-		if (BLI_rctf_isect_pt(&frame->totr, cursor[0], cursor[1]))
-			break;
+		if (BLI_rctf_isect_pt_v(&frame->totr, cursor))
+			return frame;
 	}
+
+	return NULL;
+}
+
+static int node_attach_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+{
+	ARegion *ar = CTX_wm_region(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->edittree;
+	bNode *frame = node_find_frame_to_attach(ar, ntree, event->mval);
+
 	if (frame) {
 		bNode *node, *parent;
 		for (node = ntree->nodes.last; node; node = node->prev) {
@@ -1371,6 +1393,312 @@ static bNodeSocket *socket_best_match(ListBase *sockets)
 	return NULL;
 }
 
+static bool node_parents_offset_flag_enable_cb(bNode *parent, void *UNUSED(userdata))
+{
+	/* NODE_TEST is used to flag nodes that shouldn't be offset (again) */
+	parent->flag |= NODE_TEST;
+
+	return true;
+}
+
+static void node_offset_apply(bNode *node, const float offset_x)
+{
+	/* NODE_TEST is used to flag nodes that shouldn't be offset (again) */
+	if ((node->flag & NODE_TEST) == 0) {
+		node->anim_init_locx = node->locx;
+		node->anim_ofsx = (offset_x / UI_DPI_FAC);
+		node->flag |= NODE_TEST;
+	}
+}
+
+static void node_parent_offset_apply(NodeInsertOfsData *data, bNode *parent, const float offset_x)
+{
+	bNode *node;
+
+	node_offset_apply(parent, offset_x);
+
+	/* flag all childs as offset to prevent them from being offset
+	 * separately (they've already moved with the parent) */
+	for (node = data->ntree->nodes.first; node; node = node->next) {
+		if (nodeIsChildOf(parent, node)) {
+			/* NODE_TEST is used to flag nodes that shouldn't be offset (again) */
+			node->flag |= NODE_TEST;
+		}
+	}
+}
+
+#define NODE_INSOFS_ANIM_DURATION 0.25f
+
+/**
+ * Callback that applies NodeInsertOfsData.offset_x to a node or its parent, similiar
+ * to node_link_insert_offset_output_chain_cb below, but with slightly different logic
+ */
+static bool node_link_insert_offset_frame_chain_cb(
+        bNode *fromnode, bNode *tonode,
+        void *userdata,
+        const bool reversed)
+{
+	NodeInsertOfsData *data = userdata;
+	bNode *ofs_node = reversed ? fromnode : tonode;
+
+	if (ofs_node->parent && ofs_node->parent != data->insert_parent) {
+		node_offset_apply(ofs_node->parent, data->offset_x);
+	}
+	else {
+		node_offset_apply(ofs_node, data->offset_x);
+	}
+
+	return true;
+}
+
+/**
+ * Applies NodeInsertOfsData.offset_x to all childs of \a parent
+ */
+static void node_link_insert_offset_frame_chains(
+        const bNodeTree *ntree, const bNode *parent,
+        NodeInsertOfsData *data,
+        const bool reversed)
+{
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (nodeIsChildOf(parent, node)) {
+			nodeChainIter(ntree, node, node_link_insert_offset_frame_chain_cb, data, reversed);
+		}
+	}
+}
+
+/**
+ * Callback that applies NodeInsertOfsData.offset_x to a node or its parent,
+ * considering the logic needed for offseting nodes after link insert
+ */
+static bool node_link_insert_offset_chain_cb(
+        bNode *fromnode, bNode *tonode,
+        void *userdata,
+        const bool reversed)
+{
+	NodeInsertOfsData *data = userdata;
+	bNode *ofs_node = reversed ? fromnode : tonode;
+
+	if (data->insert_parent) {
+		if (ofs_node->parent && (ofs_node->parent->flag & NODE_TEST) == 0) {
+			node_parent_offset_apply(data, ofs_node->parent, data->offset_x);
+			node_link_insert_offset_frame_chains(data->ntree, ofs_node->parent, data, reversed);
+		}
+		else {
+			node_offset_apply(ofs_node, data->offset_x);
+		}
+
+		if (nodeIsChildOf(data->insert_parent, ofs_node) == false) {
+			data->insert_parent = NULL;
+		}
+	}
+	else if (ofs_node->parent) {
+		bNode *node = nodeFindRootParent(ofs_node);
+		node_offset_apply(node, data->offset_x);
+	}
+	else {
+		node_offset_apply(ofs_node, data->offset_x);
+	}
+
+	return true;
+}
+
+static void node_link_insert_offset_ntree(
+        NodeInsertOfsData *iofsd, ARegion *ar,
+        const int mouse_xy[2], const bool right_alignment)
+{
+	bNodeTree *ntree = iofsd->ntree;
+	bNode *insert = iofsd->insert;
+	bNode *prev = iofsd->prev, *next = iofsd->next;
+	bNode *init_parent = insert->parent; /* store old insert->parent for restoring later */
+	rctf totr_insert;
+
+	const float min_margin = U.node_margin * UI_DPI_FAC;
+	const float width = NODE_WIDTH(insert);
+	const bool needs_alignment = (next->totr.xmin - prev->totr.xmax) < (width + (min_margin * 2.0f));
+
+	float margin = width;
+	float dist, addval;
+
+
+	/* NODE_TEST will be used later, so disable for all nodes */
+	ntreeNodeFlagSet(ntree, NODE_TEST, false);
+
+	/* insert->totr isn't updated yet, so totr_insert is used to get the correct worldspace coords */
+	node_to_updated_rect(insert, &totr_insert);
+
+	/* frame attachement was't handled yet so we search the frame that the node will be attached to later */
+	insert->parent = node_find_frame_to_attach(ar, ntree, mouse_xy);
+
+	/* this makes sure nodes are also correctly offset when inserting a node on top of a frame
+	 * without actually making it a part of the frame (because mouse isn't intersecting it)
+	 * - logic here is similar to node_find_frame_to_attach */
+	if (!insert->parent ||
+	    (prev->parent && (prev->parent == next->parent) && (prev->parent != insert->parent)))
+	{
+		bNode *frame;
+		rctf totr_frame;
+
+		/* check nodes front to back */
+		for (frame = ntree->nodes.last; frame; frame = frame->prev) {
+			/* skip selected, those are the nodes we want to attach */
+			if ((frame->type != NODE_FRAME) || (frame->flag & NODE_SELECT))
+				continue;
+
+			/* for some reason frame y coords aren't correct yet */
+			node_to_updated_rect(frame, &totr_frame);
+
+			if (BLI_rctf_isect_x(&totr_frame, totr_insert.xmin) &&
+			    BLI_rctf_isect_x(&totr_frame, totr_insert.xmax))
+			{
+				if (BLI_rctf_isect_y(&totr_frame, totr_insert.ymin) ||
+				    BLI_rctf_isect_y(&totr_frame, totr_insert.ymax))
+				{
+					/* frame isn't insert->parent actually, but this is needed to make offsetting
+					 * nodes work correctly for above checked cases (it is restored later) */
+					insert->parent = frame;
+					break;
+				}
+			}
+		}
+	}
+
+
+	/* *** ensure offset at the left (or right for right_alignment case) of insert_node *** */
+
+	dist = right_alignment ? totr_insert.xmin - prev->totr.xmax : next->totr.xmin - totr_insert.xmax;
+	/* distance between insert_node and prev is smaller than min margin */
+	if (dist < min_margin) {
+		addval = (min_margin - dist) * (right_alignment ? 1.0f : -1.0f);
+
+		node_offset_apply(insert, addval);
+
+		totr_insert.xmin  += addval;
+		totr_insert.xmax  += addval;
+		margin            += min_margin;
+	}
+
+	/* *** ensure offset at the right (or left for right_alignment case) of insert_node *** */
+
+	dist = right_alignment ? next->totr.xmin - totr_insert.xmax : totr_insert.xmin - prev->totr.xmax;
+	/* distance between insert_node and next is smaller than min margin */
+	if (dist < min_margin) {
+		addval = (min_margin - dist) * (right_alignment ? 1.0f : -1.0f);
+		if (needs_alignment) {
+			bNode *offs_node = right_alignment ? next : prev;
+			if (!offs_node->parent ||
+			    offs_node->parent == insert->parent ||
+			    nodeIsChildOf(offs_node->parent, insert))
+			{
+				node_offset_apply(offs_node, addval);
+			}
+			else if (!insert->parent && offs_node->parent) {
+				node_offset_apply(offs_node->parent, addval);
+			}
+			margin = addval;
+		}
+		/* enough room is available, but we want to ensure the min margin at the right */
+		else {
+			/* offset inserted node so that min margin is kept at the right */
+			node_offset_apply(insert, -addval);
+		}
+	}
+
+
+	if (needs_alignment) {
+		iofsd->insert_parent = insert->parent;
+		iofsd->offset_x = margin;
+
+		/* flag all parents of insert as offset to prevent them from being offset */
+		nodeParentsIter(insert, node_parents_offset_flag_enable_cb, NULL);
+		/* iterate over entire chain and apply offsets */
+		nodeChainIter(ntree, right_alignment ? next : prev, node_link_insert_offset_chain_cb, iofsd, !right_alignment);
+	}
+
+	insert->parent = init_parent;
+}
+
+/**
+ * Modal handler for insert offset animation
+ */
+static int node_insert_offset_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	NodeInsertOfsData *iofsd = snode->iofsd;
+	bNode *node;
+	const float duration = (float)iofsd->anim_timer->duration;
+
+	if (!snode || event->type != TIMER || iofsd->anim_timer != event->customdata)
+		return OPERATOR_PASS_THROUGH;
+
+	/* end timer + free insert offset data */
+	if (duration > NODE_INSOFS_ANIM_DURATION) {
+		WM_event_remove_timer(CTX_wm_manager(C), NULL, iofsd->anim_timer);
+
+		for (node = snode->edittree->nodes.first; node; node = node->next) {
+			node->anim_init_locx = node->anim_ofsx = 0.0f;
+		}
+
+		snode->iofsd = NULL;
+		MEM_freeN(iofsd);
+
+		return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
+	}
+
+	/* handle animation */
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
+		if (node->anim_ofsx) {
+			node->locx = BLI_easing_cubic_ease_in_out(duration, node->anim_init_locx, node->anim_ofsx,
+			                                          NODE_INSOFS_ANIM_DURATION);
+		}
+	}
+	ED_region_tag_redraw(CTX_wm_region(C));
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+#undef NODE_INSOFS_ANIM_DURATION
+
+static int node_insert_offset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	const SpaceNode *snode = CTX_wm_space_node(C);
+	NodeInsertOfsData *iofsd = snode->iofsd;
+
+	if (!iofsd || !iofsd->insert)
+		return OPERATOR_CANCELLED;
+
+	BLI_assert((snode->flag & SNODE_SKIP_INSOFFSET) == 0);
+
+	iofsd->ntree = snode->edittree;
+	iofsd->anim_timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.02);
+
+	node_link_insert_offset_ntree(
+	            iofsd, CTX_wm_region(C),
+	            event->mval, (snode->insert_ofs_dir == SNODE_INSERTOFS_DIR_RIGHT));
+
+	/* add temp handler */
+	WM_event_add_modal_handler(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void NODE_OT_insert_offset(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Insert Offset";
+	ot->description = "Automatically offset nodes on insertion";
+	ot->idname = "NODE_OT_insert_offset";
+
+	/* callbacks */
+	ot->invoke = node_insert_offset_invoke;
+	ot->modal = node_insert_offset_modal;
+	ot->poll = ED_operator_node_editable;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+}
+
 /* assumes link with NODE_LINKFLAG_HILITE set */
 void ED_node_link_insert(ScrArea *sa)
 {
@@ -1401,6 +1729,17 @@ void ED_node_link_insert(ScrArea *sa)
 			
 			nodeAddLink(snode->edittree, select, best_output, node, sockto);
 			
+			/* set up insert offset data, it needs stuff from here */
+			if ((snode->flag & SNODE_SKIP_INSOFFSET) == 0) {
+				NodeInsertOfsData *iofsd = MEM_callocN(sizeof(NodeInsertOfsData), __func__);
+
+				iofsd->insert = select;
+				iofsd->prev = link->fromnode;
+				iofsd->next = node;
+
+				snode->iofsd = iofsd;
+			}
+
 			ntreeUpdateTree(G.main, snode->edittree);   /* needed for pointers */
 			snode_update(snode, select);
 			ED_node_tag_update_id(snode->id);

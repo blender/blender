@@ -2635,6 +2635,10 @@ void init_userdef_do_versions(void)
 		U.ndof_deadzone = 0.1;
 	}
 
+	if (!USER_VERSION_ATLEAST(275, 4)) {
+		U.node_margin = 80;
+	}
+
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
 	

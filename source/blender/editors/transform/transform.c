@@ -799,6 +799,8 @@ enum {
 
 /* for analog input, like trackpad */
 	TFM_MODAL_PROPSIZE       = 26,
+/* node editor insert offset (aka auto-offset) direction toggle */
+	TFM_MODAL_INSERTOFS_TOGGLE_DIR         = 27,
 };
 
 /* called in transform_ops.c, on each regeneration of keymaps */
@@ -831,6 +833,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 		{TFM_MODAL_EDGESLIDE_UP, "EDGESLIDE_EDGE_NEXT", 0, "Select next Edge Slide Edge", ""},
 		{TFM_MODAL_EDGESLIDE_DOWN, "EDGESLIDE_PREV_NEXT", 0, "Select previous Edge Slide Edge", ""},
 		{TFM_MODAL_PROPSIZE, "PROPORTIONAL_SIZE", 0, "Adjust Proportional Influence", ""},
+		{TFM_MODAL_INSERTOFS_TOGGLE_DIR, "INSERTOFS_TOGGLE_DIR", 0, "Toggle Direction for Node Auto-offset", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
@@ -879,7 +882,10 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, PAGEDOWNKEY, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_AUTOIK_LEN_DEC);
 	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_AUTOIK_LEN_INC);
 	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_AUTOIK_LEN_DEC);
-	
+
+	/* node editor only */
+	WM_modalkeymap_add_item(keymap, TKEY, KM_PRESS, 0, 0, TFM_MODAL_INSERTOFS_TOGGLE_DIR);
+
 	return keymap;
 }
 
@@ -1238,6 +1244,25 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 					transform_autoik_update(t, -1);
 					t->redraw |= TREDRAW_HARD;
 					handled = true;
+				}
+				break;
+			case TFM_MODAL_INSERTOFS_TOGGLE_DIR:
+				if (t->spacetype == SPACE_NODE) {
+					SpaceNode *snode = (SpaceNode *)t->sa->spacedata.first;
+
+					BLI_assert(t->sa->spacetype == t->spacetype);
+
+					if (snode->insert_ofs_dir == SNODE_INSERTOFS_DIR_RIGHT) {
+						snode->insert_ofs_dir = SNODE_INSERTOFS_DIR_LEFT;
+					}
+					else if (snode->insert_ofs_dir == SNODE_INSERTOFS_DIR_LEFT) {
+						snode->insert_ofs_dir = SNODE_INSERTOFS_DIR_RIGHT;
+					}
+					else {
+						BLI_assert(0);
+					}
+
+					t->redraw |= TREDRAW_SOFT;
 				}
 				break;
 			/* Those two are only handled in transform's own handler, see T44634! */
@@ -4245,6 +4270,23 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[MAX_INF
 
 	if (t->flag & T_PROP_EDIT_ALL) {
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
+	}
+
+	if (t->spacetype == SPACE_NODE) {
+		SpaceNode *snode = (SpaceNode *)t->sa->spacedata.first;
+
+		if ((snode->flag & SNODE_SKIP_INSOFFSET) == 0) {
+			const char *str_old = BLI_strdup(str);
+			const char *str_dir = (snode->insert_ofs_dir == SNODE_INSERTOFS_DIR_RIGHT) ? "right" : "left";
+			char str_km[MAX_INFO_LEN];
+
+			WM_modalkeymap_items_to_string(t->keymap, TFM_MODAL_INSERTOFS_TOGGLE_DIR, true, sizeof(str_km), str_km);
+
+			ofs += BLI_snprintf(str, MAX_INFO_LEN, "Auto-offset set to %s - press %s to toggle direction  |  %s",
+			                    str_dir, str_km, str_old);
+
+			MEM_freeN((void *)str_old);
+		}
 	}
 }
 

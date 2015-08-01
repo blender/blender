@@ -92,6 +92,8 @@ void node_operatortypes(void)
 	
 	WM_operatortype_append(NODE_OT_link_viewer);
 	
+	WM_operatortype_append(NODE_OT_insert_offset);
+	
 	WM_operatortype_append(NODE_OT_read_renderlayers);
 	WM_operatortype_append(NODE_OT_read_fullsamplelayers);
 	WM_operatortype_append(NODE_OT_render_changed);
@@ -147,6 +149,17 @@ void ED_operatormacros_node(void)
 	mot = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_boolean_set(mot->ptr, "release_confirm", true);
 	WM_operatortype_macro_define(ot, "NODE_OT_attach");
+	WM_operatortype_macro_define(ot, "NODE_OT_insert_offset");
+	
+	/* NODE_OT_translate_attach with remove_on_canel set to true */
+	ot = WM_operatortype_append_macro("NODE_OT_translate_attach_remove_on_cancel", "Move and Attach",
+	                                  "Move nodes and attach to frame",
+	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
+	mot = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+	RNA_boolean_set(mot->ptr, "release_confirm", true);
+	RNA_boolean_set(mot->ptr, "remove_on_cancel", true);
+	WM_operatortype_macro_define(ot, "NODE_OT_attach");
+	WM_operatortype_macro_define(ot, "NODE_OT_insert_offset");
 
 	/* Note: Currently not in a default keymap or menu due to messy keymaps
 	 * and tricky invoke functionality.

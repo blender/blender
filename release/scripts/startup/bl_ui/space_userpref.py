@@ -313,6 +313,8 @@ class USERPREF_PT_edit(Panel):
         col.separator()
         col.separator()
         col.separator()
+        col.label(text="Node Editor:")
+        col.prop(edit, "node_margin")
         col.label(text="Animation Editors:")
         col.prop(edit, "fcurve_unselected_alpha", text="F-Curve Visibility")
 

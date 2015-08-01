@@ -191,6 +191,8 @@ typedef struct bNode {
 	float width, height;	/* node custom width and height */
 	float miniwidth;		/* node width if hidden */
 	float offsetx, offsety;	/* additional offset from loc */
+	float anim_init_locx;	/* initial locx for insert offset animation */
+	float anim_ofsx;		/* offset that will be added to locx for insert offset animation */
 	
 	int update;				/* update flags */
 	

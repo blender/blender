@@ -167,6 +167,8 @@ void NODE_OT_detach(struct wmOperatorType *ot);
 
 void NODE_OT_link_viewer(struct wmOperatorType *ot);
 
+void NODE_OT_insert_offset(wmOperatorType *ot);
+
 /* node_edit.c */
 void snode_notify(struct bContext *C, struct SpaceNode *snode);
 void snode_dag_update(struct bContext *C, struct SpaceNode *snode);

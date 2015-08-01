@@ -6772,6 +6772,7 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 				
 				link_list(fd, &snode->treepath);
 				snode->edittree = NULL;
+				snode->iofsd = NULL;
 				BLI_listbase_clear(&snode->linkdrag);
 			}
 			else if (sl->spacetype == SPACE_TEXT) {

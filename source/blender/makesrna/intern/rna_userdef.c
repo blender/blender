@@ -3848,6 +3848,12 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_duplicate_particle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_PSYS);
 	RNA_def_property_ui_text(prop, "Duplicate Particle", "Causes particle systems to be duplicated with the object");
+
+	/* currently only used for insert offset (aka auto-offset), maybe also be useful for later stuff though */
+	prop = RNA_def_property(srna, "node_margin", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "node_margin");
+	RNA_def_property_ui_text(prop, "Auto-offset Margin", "Minimum distance between nodes for Auto-offsetting nodes");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
 static void rna_def_userdef_system(BlenderRNA *brna)

@@ -465,7 +465,8 @@ typedef struct UserDef {
 
 	int scrollback; /* console scrollback limit */
 	int dpi;		/* range 48-128? */
-	char pad2[2];
+	char node_margin; /* node insert offset (aka auto-offset) margin, but might be useful for later stuff as well */
+	char pad2;
 	short transopts;
 	short menuthreshold1, menuthreshold2;
 	
