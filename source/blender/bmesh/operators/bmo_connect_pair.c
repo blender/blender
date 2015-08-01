@@ -30,6 +30,7 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_heap.h"
 
 #include "bmesh.h"
 
@@ -42,8 +43,14 @@
  * Method for connecting across many faces.
  *
  * - use the line between both verts and their normal average to construct a matrix.
- * - using the matrix, we can find all intersecting verts/edges and build connection data.
- * - then walk the connected data and find the shortest path (as we do with other shortest-path functions).
+ * - using the matrix, we can find all intersecting verts/edges.
+ * - walk the connected data and find the shortest path.
+ *   - store a heap of paths which are being scanned (#PathContext.states).
+ *   - continuously search the shortest path in the heap.
+ *   - never step over the same element twice (tag elements as #ELE_TOUCHED).
+ *     this avoids going into an eternal loop of there are many possible branches (see T45582).
+ *   - when running into a branch, create a new #PathLinkState state and add to the heap.
+ *   - when the target is reached, finish - since none of the other paths can be shorter then the one just found.
  * - if the connection can't be found - fail.
  * - with the connection found, split all edges tagging verts (or tag verts that sit on the intersection).
  * - run the standard connect operator.
@@ -56,15 +63,26 @@
 /* typically hidden faces */
 #define FACE_EXCLUDE 2
 
+/* any element we've walked over (only do it once!) */
+#define ELE_TOUCHED 4
+
 #define FACE_WALK_TEST(f)  (CHECK_TYPE_INLINE(f, BMFace *), \
 	BMO_elem_flag_test(pc->bm_bmoflag, f, FACE_EXCLUDE) == 0)
 #define VERT_WALK_TEST(v)  (CHECK_TYPE_INLINE(v, BMVert *), \
 	BMO_elem_flag_test(pc->bm_bmoflag, v, VERT_EXCLUDE) == 0)
 
+#define ELE_TOUCH_TEST(e) \
+	(CHECK_TYPE_ANY(e, BMVert *, BMEdge *, BMElem *, BMElemF *), \
+	 BMO_elem_flag_test(pc->bm_bmoflag, (BMElemF *)e, ELE_TOUCHED))
+#define ELE_TOUCH_MARK(e) \
+	{ CHECK_TYPE_ANY(e, BMVert *, BMEdge *, BMElem *, BMElemF *); \
+	  BMO_elem_flag_enable(pc->bm_bmoflag, (BMElemF *)e, ELE_TOUCHED); } ((void)0)
+
+
 // #define DEBUG_PRINT
 
 typedef struct PathContext {
-	ListBase state_lb;
+	Heap *states;
 	float matrix[3][3];
 	float axis_sep;
 
@@ -86,8 +104,6 @@ typedef struct PathLink {
 } PathLink;
 
 typedef struct PathLinkState {
-	struct PathLinkState *next, *prev;
-
 	/* chain of links */
 	struct PathLink *link_last;
 
@@ -199,6 +215,7 @@ static void state_calc_co_pair(
 	interp_v3_v3v3(r_co, co_a, co_b, fac);
 }
 
+#ifdef DEBUG
 /**
  * Ideally we wouldn't need this and for most cases we don't.
  * But when a face has vertices that are on the boundary more than once this becomes tricky.
@@ -216,6 +233,7 @@ static bool state_link_find(const PathLinkState *state, BMElem *ele)
 	}
 	return false;
 }
+#endif
 
 static void state_link_add(
         PathContext *pc, PathLinkState *state,
@@ -225,8 +243,11 @@ static void state_link_add(
 	BLI_assert(ele != ele_from);
 	BLI_assert(state_link_find(state, ele) == false);
 
+	/* never walk onto this again */
+	ELE_TOUCH_MARK(ele);
+
 #ifdef DEBUG_PRINT
-	printf("%s: adding to state %p:%d, %.4f - ", __func__, state, BLI_findindex(&pc->state_lb, state), state->dist);
+	printf("%s: adding to state %p, %.4f - ", __func__, state, state->dist);
 	if (ele->head.htype == BM_VERT) {
 		printf("vert %d, ", BM_elem_index_get(ele));
 	}
@@ -278,12 +299,29 @@ static void state_link_add(
 }
 
 static PathLinkState *state_dupe_add(
-        PathContext *pc,
         PathLinkState *state, const PathLinkState *state_orig)
 {
 	state = MEM_mallocN(sizeof(*state), __func__);
 	*state = *state_orig;
-	BLI_addhead(&pc->state_lb, state);
+	return state;
+}
+
+static PathLinkState *state_link_add_test(
+        PathContext *pc, PathLinkState *state, const PathLinkState *state_orig,
+        BMElem *ele, BMElem *ele_from)
+{
+	const bool is_new = (state_orig->link_last != state->link_last);
+	if (is_new) {
+		state = state_dupe_add(state, state_orig);
+	}
+
+	state_link_add(pc, state, ele, ele_from);
+
+	/* after adding a link so we use the updated 'state->dist' */
+	if (is_new) {
+		BLI_heap_insert(pc->states, state->dist, state);
+	}
+
 	return state;
 }
 
@@ -314,7 +352,7 @@ static PathLinkState *state_step__face_edges(
 				BMElem *ele_next_from = (BMElem *)l_iter->f;
 
 				if (FACE_WALK_TEST((BMFace *)ele_next_from) &&
-				    (state_link_find(state_orig, ele_next) == false))
+				    (ELE_TOUCH_TEST(ele_next) == false))
 				{
 					min_dist_dir_update(mddir, dist_dir);
 					mddir->dist_min[index] = dist_test;
@@ -328,11 +366,7 @@ static PathLinkState *state_step__face_edges(
 		if ((l_iter = l_iter_best[i])) {
 			BMElem *ele_next      = (BMElem *)l_iter->e;
 			BMElem *ele_next_from = (BMElem *)l_iter->f;
-
-			if (state_orig->link_last != state->link_last) {
-				state = state_dupe_add(pc, state, state_orig);
-			}
-			state_link_add(pc, state, ele_next, ele_next_from);
+			state = state_link_add_test(pc, state, state_orig, ele_next, ele_next_from);
 		}
 	}
 
@@ -363,7 +397,7 @@ static PathLinkState *state_step__face_verts(
 				BMElem *ele_next_from = (BMElem *)l_iter->f;
 
 				if (FACE_WALK_TEST((BMFace *)ele_next_from) &&
-				    (state_link_find(state_orig, ele_next) == false))
+				    (ELE_TOUCH_TEST(ele_next) == false))
 				{
 					min_dist_dir_update(mddir, dist_dir);
 					mddir->dist_min[index] = dist_test;
@@ -377,11 +411,7 @@ static PathLinkState *state_step__face_verts(
 		if ((l_iter = l_iter_best[i])) {
 			BMElem *ele_next      = (BMElem *)l_iter->v;
 			BMElem *ele_next_from = (BMElem *)l_iter->f;
-
-			if (state_orig->link_last != state->link_last) {
-				state = state_dupe_add(pc, state, state_orig);
-			}
-			state_link_add(pc, state, ele_next, ele_next_from);
+			state = state_link_add_test(pc, state, state_orig, ele_next, ele_next_from);
 		}
 	}
 
@@ -450,11 +480,8 @@ static bool state_step(PathContext *pc, PathLinkState *state)
 					if (state_isect_co_exact(pc, v_other->co)) {
 						BMElem *ele_next      = (BMElem *)v_other;
 						BMElem *ele_next_from = (BMElem *)e;
-						if (state_link_find(state, ele_next) == false) {
-							if (state_orig.link_last != state->link_last) {
-								state = state_dupe_add(pc, state, &state_orig);
-							}
-							state_link_add(pc, state, ele_next, ele_next_from);
+						if (ELE_TOUCH_TEST(ele_next) == false) {
+							state = state_link_add_test(pc, state, &state_orig, ele_next, ele_next_from);
 						}
 					}
 				}
@@ -472,8 +499,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 	BMOpSlot *op_verts_slot = BMO_slot_get(op->slots_in, "verts");
 
 	PathContext pc;
-	bool found_all;
-	float found_dist_best = -1.0f;
+	PathLinkState state_best = {NULL};
 
 	if (op_verts_slot->len != 2) {
 		/* fail! */
@@ -500,7 +526,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 
 	/* setup context */
 	{
-		BLI_listbase_clear(&pc.state_lb);
+		pc.states = BLI_heap_new();
 		pc.link_pool = BLI_mempool_create(sizeof(PathLink), 0, 512, BLI_MEMPOOL_NOP);
 	}
 
@@ -567,35 +593,36 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 	{
 		PathLinkState *state;
 		state = MEM_callocN(sizeof(*state), __func__);
-		BLI_addtail(&pc.state_lb, state);
 		state_link_add(&pc, state, (BMElem *)pc.v_a, NULL);
+		BLI_heap_insert(pc.states, state->dist, state);
 	}
 
 
-	found_all = false;
-	while (pc.state_lb.first) {
-		PathLinkState *state, *state_next;
-		found_all = true;
+	while (!BLI_heap_is_empty(pc.states)) {
+
 #ifdef DEBUG_PRINT
-		printf("\n%s: stepping %d\n", __func__, BLI_listbase_count(&pc.state_lb));
+		printf("\n%s: stepping %d\n", __func__, BLI_heap_size(pc.states));
 #endif
-		for (state = pc.state_lb.first; state; state = state_next) {
-			state_next = state->next;
+
+		while (!BLI_heap_is_empty(pc.states)) {
+			PathLinkState *state = BLI_heap_popmin(pc.states);
+
+			/* either we insert this into 'pc.states' or its freed */
+			bool continue_search;
+
 			if (state->link_last->ele == (BMElem *)pc.v_b) {
 				/* pass, wait until all are found */
 #ifdef DEBUG_PRINT
 				printf("%s: state %p loop found %.4f\n", __func__, state, state->dist);
 #endif
-				if ((found_dist_best == -1.0f) || (found_dist_best > state->dist)) {
-					found_dist_best = state->dist;
-				}
+				state_best = *state;
+
+				/* we're done, exit all loops */
+				BLI_heap_clear(pc.states, MEM_freeN);
+				continue_search = false;
 			}
 			else if (state_step(&pc, state)) {
-				if ((found_dist_best != -1.0f) && (found_dist_best <= state->dist)) {
-					BLI_remlink(&pc.state_lb, state);
-					MEM_freeN(state);
-				}
-				found_all = false;
+				continue_search = true;
 			}
 			else {
 				/* didn't reach the end, remove it,
@@ -604,40 +631,23 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 #ifdef DEBUG_PRINT
 				printf("%s: state %p removed\n", __func__, state);
 #endif
+				continue_search = false;
+			}
 
-				BLI_remlink(&pc.state_lb, state);
+			if (continue_search) {
+				BLI_heap_insert(pc.states, state->dist, state);
+			}
+			else {
 				MEM_freeN(state);
 			}
 		}
-
-		if (found_all) {
-#ifdef DEBUG
-			for (state = pc.state_lb.first; state; state = state->next) {
-				BLI_assert(state->link_last->ele == (BMElem *)pc.v_b);
-			}
-#endif
-			break;
-		}
 	}
 
-	if (BLI_listbase_is_empty(&pc.state_lb)) {
-		found_all = false;
-	}
-
-	if (found_all) {
-		PathLinkState *state, *state_best = NULL;
+	if (state_best.link_last) {
 		PathLink *link;
-		float state_best_dist = FLT_MAX;
 
 		/* find the best state */
-		for (state = pc.state_lb.first; state; state = state->next) {
-			if ((state_best == NULL) || (state->dist < state_best_dist)) {
-				state_best = state;
-				state_best_dist = state_best->dist;
-			}
-		}
-
-		link = state_best->link_last;
+		link = state_best.link_last;
 		do {
 			if (link->ele->head.htype == BM_EDGE) {
 				BMEdge *e = (BMEdge *)link->ele;
@@ -660,10 +670,11 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 	BMO_elem_flag_enable(bm, pc.v_b, VERT_OUT);
 
 	BLI_mempool_destroy(pc.link_pool);
-	BLI_freelistN(&pc.state_lb);
+
+	BLI_heap_free(pc.states, MEM_freeN);
 
 #if 1
-	if (found_all) {
+	if (state_best.link_last) {
 		BMOperator op_sub;
 		BMO_op_initf(bm, &op_sub, 0,
 		             "connect_verts verts=%fv faces_exclude=%s check_degenerate=%b",
