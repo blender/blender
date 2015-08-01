@@ -4621,7 +4621,7 @@ static bool drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, 
 
 	glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
 
-	if (dt > OB_WIRE && dm->getNumTessFaces(dm)) {
+	if (dt > OB_WIRE && dm->getNumPolys(dm)) {
 		int glsl = draw_glsl_material(scene, ob, v3d, dt);
 		GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
 
@@ -7322,7 +7322,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 		}
 
 		if (dm) {
-			has_faces = dm->getNumTessFaces(dm) > 0;
+			has_faces = (dm->getNumPolys(dm) != 0);
 		}
 		else {
 			has_faces = BKE_displist_has_faces(&ob->curve_cache->disp);
