@@ -556,7 +556,9 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 		copy_v3_v3(pc.matrix[0], basis_tmp);
 		copy_v3_v3(pc.matrix[1], basis_dir);
 		copy_v3_v3(pc.matrix[2], basis_nor);
-		invert_m3(pc.matrix);
+		if (invert_m3(pc.matrix) == false) {
+			unit_m3(pc.matrix);
+		}
 
 		pc.axis_sep = dot_m3_v3_row_x(pc.matrix, pc.v_a->co);
 	}
@@ -598,6 +600,11 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 			else {
 				/* didn't reach the end, remove it,
 				 * links are shared between states so just free the link_pool at the end */
+
+#ifdef DEBUG_PRINT
+				printf("%s: state %p removed\n", __func__, state);
+#endif
+
 				BLI_remlink(&pc.state_lb, state);
 				MEM_freeN(state);
 			}
