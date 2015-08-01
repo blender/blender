@@ -975,10 +975,9 @@ int WM_keymap_item_to_string(wmKeyMapItem *kmi, const bool compact, const int le
 	            compact, len, r_str);
 }
 
-int WM_modalkeymap_operator_items_to_string(
-        wmOperatorType *ot, const int propvalue, const bool compact, const int len, char *r_str)
+int WM_modalkeymap_items_to_string(
+        wmKeyMap *km, const int propvalue, const bool compact, const int len, char *r_str)
 {
-	wmKeyMap *km = ot->modalkeymap;
 	int totlen = 0;
 	bool add_sep = false;
 
@@ -1002,6 +1001,12 @@ int WM_modalkeymap_operator_items_to_string(
 	}
 
 	return totlen;
+}
+
+int WM_modalkeymap_operator_items_to_string(
+        wmOperatorType *ot, const int propvalue, const bool compact, const int len, char *r_str)
+{
+    return WM_modalkeymap_items_to_string(ot->modalkeymap, propvalue, compact, len, r_str);
 }
 
 char *WM_modalkeymap_operator_items_to_string_buf(

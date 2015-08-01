@@ -82,6 +82,8 @@ int			WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2);
 
 /* Modal Keymap */
 
+int WM_modalkeymap_items_to_string(
+        struct wmKeyMap *km, const int propvalue, const bool compact, const int len, char *r_str);
 int WM_modalkeymap_operator_items_to_string(
         struct wmOperatorType *ot, const int propvalue, const bool compact, const int len, char *r_str);
 char *WM_modalkeymap_operator_items_to_string_buf(
