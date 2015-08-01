@@ -148,24 +148,34 @@ static void change_frame_seq_preview_begin(bContext *C, const wmEvent *event)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	if (sa && sa->spacetype == SPACE_SEQ) {
-		wmWindow *win = CTX_wm_window(C);
+		bScreen *screen = CTX_wm_screen(C);
 		SpaceSeq *sseq = sa->spacedata.first;
 		if (ED_space_sequencer_check_show_strip(sseq)) {
 			ED_sequencer_special_preview_set(C, event->mval);
 		}
-		if (win->screen)
-			win->screen->scrubbing = true;
+		if (screen)
+			screen->scrubbing = true;
 	}
 }
+
 static void change_frame_seq_preview_end(bContext *C)
 {
+	bScreen *screen = CTX_wm_screen(C);
+	bool notify = false;
+
+	if (screen->scrubbing) {
+		screen->scrubbing = false;
+		notify = true;
+	}
+
 	if (ED_sequencer_special_preview_get() != NULL) {
-		wmWindow *win = CTX_wm_window(C);
-		Scene *scene = CTX_data_scene(C);
 		ED_sequencer_special_preview_clear();
+		notify = true;
+	}
+
+	if (notify) {
+		Scene *scene = CTX_data_scene(C);
 		WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
-		if (win->screen)
-			win->screen->scrubbing = false;
 	}
 }
 
