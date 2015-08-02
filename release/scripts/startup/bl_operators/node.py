@@ -220,7 +220,7 @@ class NODE_OT_add_search(NodeAddOperator, Operator):
             self.create_node(context, item.nodetype)
 
             if self.use_transform:
-                bpy.ops.transform.translate('INVOKE_DEFAULT', remove_on_cancel=True)
+                bpy.ops.node.translate_attach_remove_on_cancel('INVOKE_DEFAULT')
 
             return {'FINISHED'}
         else:
