@@ -795,6 +795,7 @@ typedef struct NodeShaderVectTransform {
 } NodeShaderVectTransform;
 
 typedef struct NodeShaderTexPointDensity {
+	NodeTexBase base;
 	short point_source, pad;
 	int particle_system;
 	float radius;
