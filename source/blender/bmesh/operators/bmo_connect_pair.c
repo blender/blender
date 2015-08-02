@@ -215,7 +215,7 @@ static void state_calc_co_pair(
 	interp_v3_v3v3(r_co, co_a, co_b, fac);
 }
 
-#ifdef DEBUG
+#ifndef NDEBUG
 /**
  * Ideally we wouldn't need this and for most cases we don't.
  * But when a face has vertices that are on the boundary more than once this becomes tricky.
