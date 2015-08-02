@@ -147,10 +147,10 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
 Py_hash_t mathutils_array_hash(const float *float_array, size_t array_len);
 
 /* zero remaining unused elements of the array */
-#define MU_ARRAY_ZERO      (1 << 30)
+#define MU_ARRAY_ZERO      (1u << 30)
 /* ignore larger py sequences than requested (just use first elements),
  * handy when using 3d vectors as 2d */
-#define MU_ARRAY_SPILL     (1 << 31)
+#define MU_ARRAY_SPILL     (1u << 31)
 
 #define MU_ARRAY_FLAGS (MU_ARRAY_ZERO | MU_ARRAY_SPILL)
 

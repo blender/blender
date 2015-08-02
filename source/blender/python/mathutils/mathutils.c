@@ -113,7 +113,7 @@ Py_hash_t mathutils_array_hash(const float *array, size_t array_len)
 /* helper function returns length of the 'value', -1 on error */
 int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix)
 {
-	const int flag = array_max;
+	const unsigned int flag = array_max;
 	int size;
 
 	array_max &= ~MU_ARRAY_FLAGS;
