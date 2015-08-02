@@ -119,7 +119,8 @@ static RayObjectAPI octree_api =
 /* within one octree node, a set of 3x15 bits defines a 'boundbox' to OR with */
 
 #define OCVALRES    15
-#define BROW16(min, max)  (((max) >= OCVALRES ? 0xFFFF : (1 << (max + 1)) - 1) - ((min > 0) ? ((1 << (min)) - 1) : 0))
+#define BROW16(min, max) \
+	(((max) >= OCVALRES ? 0xFFFF : (1 << ((max) + 1)) - 1) - (((min) > 0) ? ((1 << (min)) - 1) : 0))
 
 static void calc_ocval_face(float *v1, float *v2, float *v3, float *v4, short x, short y, short z, OcVal *ov)
 {

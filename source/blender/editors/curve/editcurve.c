@@ -2494,7 +2494,7 @@ static void curve_smooth_value(ListBase *editnurb,
 
 	for (nu = editnurb->first; nu; nu = nu->next) {
 		if (nu->bezt) {
-#define BEZT_VALUE(bezt) (*((float *)((char *)bezt + bezt_offsetof)))
+#define BEZT_VALUE(bezt) (*((float *)((char *)(bezt) + bezt_offsetof)))
 
 			for (last_sel = 0; last_sel < nu->pntsu; last_sel++) {
 				/* loop over selection segments of a curve, smooth each */
@@ -2563,7 +2563,7 @@ static void curve_smooth_value(ListBase *editnurb,
 #undef BEZT_VALUE
 		}
 		else if (nu->bp) {
-#define BP_VALUE(bp) (*((float *)((char *)bp + bp_offset)))
+#define BP_VALUE(bp) (*((float *)((char *)(bp) + bp_offset)))
 
 			/* Same as above, keep these the same! */
 			for (last_sel = 0; last_sel < nu->pntsu; last_sel++) {

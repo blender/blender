@@ -221,7 +221,7 @@ PreviewImage *BKE_previewimg_copy(PreviewImage *prv)
 PreviewImage **BKE_previewimg_id_get_p(ID *id)
 {
 	switch (GS(id->name)) {
-#define ID_PRV_CASE(id_code, id_struct) case id_code: { return &((id_struct *)id)->preview; }
+#define ID_PRV_CASE(id_code, id_struct) case id_code: { return &((id_struct *)id)->preview; } ((void)0)
 		ID_PRV_CASE(ID_MA, Material);
 		ID_PRV_CASE(ID_TE, Tex);
 		ID_PRV_CASE(ID_WO, World);

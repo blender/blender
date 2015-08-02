@@ -164,7 +164,7 @@ extern const short ui_radial_dir_to_angle[8];
 #define UI_BITBUT_SET(a, b)     ( (a) | 1 << (b) )
 #define UI_BITBUT_CLR(a, b)     ( (a) & ~(1 << (b)) )
 /* bit-row */
-#define UI_BITBUT_ROW(min, max)  (((max) >= 31 ? 0xFFFFFFFF : (1 << (max + 1)) - 1) - ((min) ? ((1 << (min)) - 1) : 0) )
+#define UI_BITBUT_ROW(min, max)  (((max) >= 31 ? 0xFFFFFFFF : (1 << ((max) + 1)) - 1) - ((min) ? ((1 << (min)) - 1) : 0) )
 
 /* split numbuts by ':' and align l/r */
 #define USE_NUMBUTS_LR_ALIGN
