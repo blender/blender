@@ -122,7 +122,9 @@ void KX_SoundActuator::play()
 		break;
 	}
 
-	//m_handle = AUD_Device_play(BKE_sound_get_device(), sound, false);
+	AUD_Device* device = AUD_Device_getCurrent();
+	m_handle = AUD_Device_play(device, sound, false);
+	AUD_Device_free(device);
 
 	// in case of pingpong, we have to free the sound
 	if(sound != m_sound)

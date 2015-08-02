@@ -814,10 +814,9 @@ int AUD_Device_read(AUD_Device *device, data_t *buffer, int length)
 
 void AUD_Device_free(AUD_Device *device)
 {
-	assert(device);
-
 	try {
-		delete device;
+		if(device != &AUD_device)
+			delete device;
 	}
 	catch(AUD_Exception&)
 	{
@@ -1345,6 +1344,11 @@ AUD_Device *AUD_openMixdownDevice(AUD_DeviceSpecs specs, AUD_Sound *sequencer, f
 	{
 		return NULL;
 	}
+}
+
+AUD_Device *AUD_Device_getCurrent(void)
+{
+	return &AUD_device;
 }
 
 int AUD_isJackSupported(void)

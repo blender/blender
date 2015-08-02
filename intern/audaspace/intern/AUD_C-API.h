@@ -811,6 +811,8 @@ extern void *AUD_getPythonSound(AUD_Sound *sound);
 extern AUD_Sound *AUD_getSoundFromPython(void *sound);
 #endif
 
+extern AUD_Device *AUD_Device_getCurrent(void);
+
 extern int AUD_isJackSupported(void);
 
 #ifdef __cplusplus
