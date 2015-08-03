@@ -461,27 +461,35 @@ static void set_subsurf_ccg_uv(CCGSubSurf *ss,
 		for (S = 0; S < numVerts; S++) {
 			for (y = 0; y < gridFaces; y++) {
 				for (x = 0; x < gridFaces; x++) {
-					float grid_u = ((float)(x)) / (gridSize - 1),
-					      grid_v = ((float)(y)) / (gridSize - 1);
-					float uv[2];
-					/* TODO(sergey): Evaluator all 4 corners. */
-					ccgSubSurf_evaluatorFVarUV(ss,
-					                           index,
-					                           S,
-					                           grid_u, grid_v,
-					                           uv);
+					const int delta[4][2] = {{0, 0},
+					                         {0, 1},
+					                         {1, 1},
+					                         {1, 0}};
+					float uv[4][2];
+					int i;
+					for (i = 0; i < 4; i++) {
+						const int dx = delta[i][0],
+						          dy = delta[i][1];
+						const float grid_u = ((float)(x + dx)) / (gridSize - 1),
+						            grid_v = ((float)(y + dy)) / (gridSize - 1);
+						ccgSubSurf_evaluatorFVarUV(ss,
+						                           index,
+						                           S,
+						                           grid_u, grid_v,
+						                           uv[i]);
+					}
 					if (tf) {
-						copy_v2_v2(tf->uv[0], uv);
-						copy_v2_v2(tf->uv[1], uv);
-						copy_v2_v2(tf->uv[2], uv);
-						copy_v2_v2(tf->uv[3], uv);
+						copy_v2_v2(tf->uv[0], uv[0]);
+						copy_v2_v2(tf->uv[1], uv[1]);
+						copy_v2_v2(tf->uv[2], uv[2]);
+						copy_v2_v2(tf->uv[3], uv[3]);
 						tf++;
 					}
 					if (mluv) {
-						copy_v2_v2(mluv[0].uv, uv);
-						copy_v2_v2(mluv[1].uv, uv);
-						copy_v2_v2(mluv[2].uv, uv);
-						copy_v2_v2(mluv[3].uv, uv);
+						copy_v2_v2(mluv[0].uv, uv[0]);
+						copy_v2_v2(mluv[1].uv, uv[1]);
+						copy_v2_v2(mluv[2].uv, uv[2]);
+						copy_v2_v2(mluv[3].uv, uv[3]);
 						mluv += 4;
 					}
 				}
