@@ -102,7 +102,6 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 	float angle = 0.0f;
 	SimSel_FaceExt *f_ext = NULL;
 	int *indices = NULL;
-	float t_no[3];	/* temporary normal */
 	const int type = BMO_slot_int_get(op->slots_in, "type");
 	const float thresh = BMO_slot_float_get(op->slots_in, "thresh");
 	const float thresh_radians = thresh * (float)M_PI;
@@ -158,12 +157,8 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 					/* compute the center of the polygon */
 					BM_face_calc_center_mean(f_ext[i].f, f_ext[i].c);
 
-					/* normalize the polygon normal */
-					copy_v3_v3(t_no, f_ext[i].f->no);
-					normalize_v3(t_no);
-
 					/* compute the plane distance */
-					f_ext[i].d = dot_v3v3(t_no, f_ext[i].c);
+					f_ext[i].d = dot_v3v3(f_ext[i].f->no, f_ext[i].c);
 					break;
 
 				case SIMFACE_AREA:
