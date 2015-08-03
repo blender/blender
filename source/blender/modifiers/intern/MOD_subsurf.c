@@ -120,7 +120,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* TODO(sergey): Not entirely correct, modifiers on top of subsurf
 	 * could be disabled.
 	 */
-	if (md->next == NULL && allow_gpu && do_cddm_convert == false) {
+	if (md->next == NULL &&
+	    allow_gpu &&
+	    do_cddm_convert == false &&
+	    smd->use_opensubdiv)
+	{
 		if ((DAG_get_eval_flags_for_object(md->scene, ob) & DAG_EVAL_NEED_CPU) == 0) {
 			subsurf_flags |= SUBSURF_USE_GPU_BACKEND;
 		}

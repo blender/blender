@@ -874,6 +874,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Options:")
         col.prop(md, "use_subsurf_uv")
         col.prop(md, "show_only_control_edges")
+        if hasattr(md, "use_opensubdiv"):
+            col.prop(md, "use_opensubdiv")
 
     def SURFACE(self, layout, ob, md):
         layout.label(text="Settings are inside the Physics tab")

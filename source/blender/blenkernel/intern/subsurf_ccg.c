@@ -273,7 +273,6 @@ static int getFaceIndex(CCGSubSurf *ss, CCGFace *f, int S, int x, int y, int edg
 	}
 }
 
-#ifndef WITH_OPENSUBDIV
 static void get_face_uv_map_vert(UvVertMap *vmap, struct MPoly *mpoly, struct MLoop *ml, int fi, CCGVertHDL *fverts)
 {
 	UvMapVert *v, *nv;
@@ -415,13 +414,12 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 
 	return 1;
 }
-#endif  /* WITH_OPENSUBDIV */
 
 #ifdef WITH_OPENSUBDIV
-static void set_subsurf_ccg_uv(CCGSubSurf *ss,
-                               DerivedMesh *dm,
-                               DerivedMesh *result,
-                               int layer_index)
+static void UNUSED_FUNCTION(set_subsurf_osd_ccg_uv)(CCGSubSurf *ss,
+                                                    DerivedMesh *dm,
+                                                    DerivedMesh *result,
+                                                    int layer_index)
 {
 	CCGFace **faceMap;
 	MTFace *tf;
@@ -498,22 +496,9 @@ static void set_subsurf_ccg_uv(CCGSubSurf *ss,
 	}
 	MEM_freeN(faceMap);
 }
+#endif  /* WITH_OPENSUBDIV */
 
-static void set_subsurf_uv(CCGSubSurf *ss,
-                           DerivedMesh *dm,
-                           DerivedMesh *result,
-                           int layer_index)
-{
-	if (!ccgSubSurf_needGrids(ss)) {
-		/* GPU backend is used, no need to evaluate UVs on CPU. */
-		/* TODO(sergey): Think of how to support edit mode of UVs. */
-	}
-	else {
-		set_subsurf_ccg_uv(ss, dm, result, layer_index);
-	}
-}
-#else  /* WITH_OPENSUBDIV */
-static void set_subsurf_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *result, int n)
+static void set_subsurf_legacy_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *result, int n)
 {
 	CCGSubSurf *uvss;
 	CCGFace **faceMap;
@@ -593,7 +578,23 @@ static void set_subsurf_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *result,
 	ccgSubSurf_free(uvss);
 	MEM_freeN(faceMap);
 }
-#endif  /* WITH_OPENSUBDIV */
+
+static void set_subsurf_uv(CCGSubSurf *ss,
+                           DerivedMesh *dm,
+                           DerivedMesh *result,
+                           int layer_index)
+{
+#ifdef WITH_OPENSUBDIV
+	if (!ccgSubSurf_needGrids(ss)) {
+		/* GPU backend is used, no need to evaluate UVs on CPU. */
+		/* TODO(sergey): Think of how to support edit mode of UVs. */
+	}
+	else
+#endif
+	{
+		set_subsurf_legacy_uv(ss, dm, result, layer_index);
+	}
+}
 
 /* face weighting */
 typedef struct FaceVertWeightEntry {
@@ -797,9 +798,9 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss,
 	/* Reset all related descriptors if actual mesh topology changed or if
 	 * other evlauation-related settings changed.
 	 */
-	ccgSubSurf_checkTopologyChanged(ss, dm);
 	if (!ccgSubSurf_needGrids(ss)) {
 		/* TODO(sergey): Use vertex coordinates and flat subdiv flag. */
+		ccgSubSurf_checkTopologyChanged(ss, dm);
 		ss_sync_osd_from_derivedmesh(ss, dm);
 	}
 	else
