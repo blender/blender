@@ -44,6 +44,8 @@ extern "C" {
 #include "DNA_object_types.h"
 #include "DNA_sequence_types.h"
 
+#include "BKE_depsgraph.h"
+
 #include "RNA_access.h"
 }
 
@@ -351,6 +353,13 @@ DepsRelation *Depsgraph::add_new_relation(OperationDepsNode *from,
 {
 	/* Create new relation, and add it to the graph. */
 	DepsRelation *rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, type, description);
+	/* TODO(sergey): Find a better place for this. */
+#ifdef WITH_OPENSUBDIV
+	if (type == DEPSREL_TYPE_GEOMETRY_EVAL) {
+		IDDepsNode *id_to = to->owner->owner;
+		id_to->eval_flags |= DAG_EVAL_NEED_CPU;
+	}
+#endif
 	return rel;
 }
 

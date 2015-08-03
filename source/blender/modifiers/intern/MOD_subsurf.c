@@ -42,6 +42,7 @@
 
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_depsgraph.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 
@@ -120,7 +121,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	 * could be disabled.
 	 */
 	if (md->next == NULL && allow_gpu && do_cddm_convert == false) {
-		subsurf_flags |= SUBSURF_USE_GPU_BACKEND;
+		if ((DAG_get_eval_flags_for_object(md->scene, ob) & DAG_EVAL_NEED_CPU) == 0) {
+			subsurf_flags |= SUBSURF_USE_GPU_BACKEND;
+		}
 	}
 #endif
 

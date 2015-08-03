@@ -1138,6 +1138,13 @@ void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel
 	/* parent relation is for cycle checking */
 	dag_add_parent_relation(forest, fob1, fob2, rel, name);
 
+	/* TODO(sergey): Find a better place for this. */
+#ifdef WITH_OPENSUBDIV
+	if ((rel & DAG_RL_DATA_DATA) != 0) {
+		fob1->eval_flags |= DAG_EVAL_NEED_CPU;
+	}
+#endif
+
 	while (itA) { /* search if relation exist already */
 		if (itA->node == fob2) {
 			itA->type |= rel;
