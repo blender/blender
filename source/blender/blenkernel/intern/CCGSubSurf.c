@@ -1191,39 +1191,15 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
 
 int ccgSubSurf_getNumVerts(const CCGSubSurf *ss)
 {
-#ifdef WITH_OPENSUBDIV
-	if (ss->skip_grids) {
-		return ccgSubSurf__getNumOsdBaseVerts(ss);
-	}
-	else
-#endif
-	{
-		return ss->vMap->numEntries;
-	}
+	return ss->vMap->numEntries;
 }
 int ccgSubSurf_getNumEdges(const CCGSubSurf *ss)
 {
-#ifdef WITH_OPENSUBDIV
-	if (ss->skip_grids) {
-		return ccgSubSurf__getNumOsdBaseEdges(ss);
-	}
-	else
-#endif
-	{
-		return ss->eMap->numEntries;
-	}
+	return ss->eMap->numEntries;
 }
 int ccgSubSurf_getNumFaces(const CCGSubSurf *ss)
 {
-#ifdef WITH_OPENSUBDIV
-	if (ss->skip_grids) {
-		return ccgSubSurf__getNumOsdBaseFaces(ss);
-	}
-	else
-#endif
-	{
-		return ss->fMap->numEntries;
-	}
+	return ss->fMap->numEntries;
 }
 
 CCGVert *ccgSubSurf_getVert(CCGSubSurf *ss, CCGVertHDL v)

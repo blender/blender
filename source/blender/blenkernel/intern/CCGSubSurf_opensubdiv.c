@@ -863,46 +863,4 @@ void ccgSubSurf__sync_opensubdiv(CCGSubSurf *ss)
 #endif
 }
 
-static const OpenSubdiv_TopologyRefinerDescr *get_effective_refiner(
-        const CCGSubSurf *ss)
-{
-	if (ss->osd_topology_refiner != NULL) {
-		return ss->osd_topology_refiner;
-	}
-	if (ss->osd_mesh != NULL) {
-		return openSubdiv_getGLMeshTopologyRefiner(ss->osd_mesh);
-	}
-	return 0;
-}
-
-int ccgSubSurf__getNumOsdBaseVerts(const CCGSubSurf *ss)
-{
-	const OpenSubdiv_TopologyRefinerDescr *topology_refiner =
-	        get_effective_refiner(ss);
-	if (topology_refiner == NULL) {
-		return 0;
-	}
-	return openSubdiv_topologyRefinerGetNumVerts(topology_refiner);
-}
-
-int ccgSubSurf__getNumOsdBaseEdges(const CCGSubSurf *ss)
-{
-	const OpenSubdiv_TopologyRefinerDescr *topology_refiner =
-	        get_effective_refiner(ss);
-	if (topology_refiner == NULL) {
-		return 0;
-	}
-	return openSubdiv_topologyRefinerGetNumEdges(topology_refiner);
-}
-
-int ccgSubSurf__getNumOsdBaseFaces(const CCGSubSurf *ss)
-{
-	const OpenSubdiv_TopologyRefinerDescr *topology_refiner =
-	        get_effective_refiner(ss);
-	if (topology_refiner == NULL) {
-		return 0;
-	}
-	return openSubdiv_topologyRefinerGetNumFaces(topology_refiner);
-}
-
 #endif  /* WITH_OPENSUBDIV */

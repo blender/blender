@@ -303,10 +303,6 @@ void ccgSubSurf__sync_legacy(CCGSubSurf *ss);
 
 void ccgSubSurf__sync_opensubdiv(CCGSubSurf *ss);
 
-int ccgSubSurf__getNumOsdBaseVerts(const CCGSubSurf *ss);
-int ccgSubSurf__getNumOsdBaseEdges(const CCGSubSurf *ss);
-int ccgSubSurf__getNumOsdBaseFaces(const CCGSubSurf *ss);
-
 /* * CCGSubSurf_opensubdiv_converter.c * */
 
 struct OpenSubdiv_Converter;

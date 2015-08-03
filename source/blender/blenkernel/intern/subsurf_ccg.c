@@ -4551,13 +4551,20 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
                                          DerivedMesh *dm,
                                          bool use_gpu_backend)
 {
+#ifdef WITH_OPENSUBDIV
+	const int totedge = dm->getNumEdges(dm);
+	const int totface = dm->getNumPolys(dm);
+#else
 	const int totedge = ccgSubSurf_getNumEdges(ss);
 	const int totface = ccgSubSurf_getNumFaces(ss);
+#endif
 	CCGDerivedMesh *ccgdm = MEM_callocN(sizeof(*ccgdm), "ccgdm");
 	int numTex, numCol;
 	int hasPCol, hasOrigSpace;
 
 	if (use_gpu_backend == false) {
+		BLI_assert(totedge == ccgSubSurf_getNumEdges(ss));
+		BLI_assert(totface == ccgSubSurf_getNumFaces(ss));
 		DM_from_template(&ccgdm->dm, dm, DM_TYPE_CCGDM,
 		                 ccgSubSurf_getNumFinalVerts(ss),
 		                 ccgSubSurf_getNumFinalEdges(ss),
