@@ -4528,11 +4528,9 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
 }
 
 /* Fill in only geometry arrays needed for the GPU tessellation. */
-static void set_ccgdm_gpu_geometry(CCGDerivedMesh *ccgdm,
-                                   CCGSubSurf *ss,
-                                   DerivedMesh *dm)
+static void set_ccgdm_gpu_geometry(CCGDerivedMesh *ccgdm, DerivedMesh *dm)
 {
-	const int totface = ccgSubSurf_getNumFaces(ss);
+	const int totface = dm->getNumPolys(dm);
 	MPoly *mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
 	int index;
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
@@ -4630,7 +4628,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		set_ccgdm_all_geometry(ccgdm, ss, dm, useSubsurfUv != 0);
 	}
 	else {
-		set_ccgdm_gpu_geometry(ccgdm, ss, dm);
+		set_ccgdm_gpu_geometry(ccgdm, dm);
 	}
 
 	ccgdm->dm.numVertData = ccgSubSurf_getNumFinalVerts(ss);
