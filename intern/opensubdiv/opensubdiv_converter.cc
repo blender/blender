@@ -351,21 +351,23 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTags(
 		setBaseEdgeSharpness(refiner, edge, sharpness);
 	}
 
-#if 0
-	/* Non-manifold vertices can't be always smooth.
-	 * I.e. when there's loose edge adjacent to the vertex
-	 * opensubdiv expects vertices to be sharp. But this needs
-	 * some further investigation.
+	/* OpenSubdiv expects non-manifold vertices to be sharp but at the
+	 * time it handles correct cases when vertex is a corner of plane.
+	 * Currently mark verts which are adjacent to a loose edge as sharp,
+	 * but this decision needs some more investigation.
 	 */
 	int num_vert = conv.get_num_verts(&conv);
 	for (int vert = 0; vert < num_vert; ++vert) {
-		IndexArray vert_faces = getBaseVertexFaces(refiner, vert),
-		           vert_edges = getBaseVertexEdges(refiner, vert);
-		if (vert_faces.size() != vert_edges.size()) {
-			setBaseVertexSharpness(refiner, vert, Crease::SHARPNESS_INFINITE);
+		ConstIndexArray vert_edges = getBaseVertexEdges(refiner, vert);
+		for (int edge_index = 0; edge_index < vert_edges.size(); ++edge_index) {
+			int edge = vert_edges[edge_index];
+			ConstIndexArray edge_faces = getBaseEdgeFaces(refiner, edge);
+			if (edge_faces.size() == 0) {
+				setBaseVertexSharpness(refiner, vert, Crease::SHARPNESS_INFINITE);
+				break;
+			}
 		}
 	}
-#endif
 
 	return true;
 }
