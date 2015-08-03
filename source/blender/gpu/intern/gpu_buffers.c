@@ -2012,7 +2012,7 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 
 		if (buffers->tot_quad) {
 			const char *offset = base;
-			int i, last = buffers->has_hidden ? 1 : buffers->totgrid;
+			int i, last = (buffers->has_hidden || do_fast) ? 1 : buffers->totgrid;
 			for (i = 0; i < last; i++) {
 				glVertexPointer(3, GL_FLOAT, sizeof(VertexBufferFormat),
 				                offset + offsetof(VertexBufferFormat, co));
