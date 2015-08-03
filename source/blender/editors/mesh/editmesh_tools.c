@@ -3476,13 +3476,15 @@ static void edbm_fill_grid_prepare(BMesh *bm, int offset, int *r_span, bool span
 			v_act = v_act_link->data;
 		}
 
+		/* set this vertex first */
+		BLI_listbase_rotate_first(verts, v_act_link);
+
 		if (offset != 0) {
 			v_act_link = BLI_findlink(verts, offset);
 			v_act = v_act_link->data;
+			BLI_listbase_rotate_first(verts, v_act_link);
 		}
 
-		/* set this vertex first */
-		BLI_listbase_rotate_first(verts, v_act_link);
 		BM_edgeloop_edges_get(el_store, edges);
 
 
