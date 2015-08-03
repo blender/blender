@@ -207,16 +207,23 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 						break;
 
 					case SIMFACE_COPLANAR:
+					{
+						float sign = 1.0f;
 						angle = angle_normalized_v3v3(fs->no, fm->no); /* angle -> 0 */
+						/* allow for normal pointing in either direction (just check the plane) */
+						if (angle > (float)M_PI * 0.5f) {
+							angle = (float)M_PI - angle;
+							sign = -1.0f;
+						}
 						if (angle <= thresh_radians) { /* and dot product difference -> 0 */
-							delta_fl = f_ext[i].d - f_ext[indices[idx]].d;
+							delta_fl = f_ext[i].d - (f_ext[indices[idx]].d * sign);
 							if (bm_sel_similar_cmp_fl(delta_fl, thresh, compare)) {
 								BMO_elem_flag_enable(bm, fm, FACE_MARK);
 								cont = false;
 							}
 						}
 						break;
-
+					}
 					case SIMFACE_AREA:
 						delta_fl = f_ext[i].area - f_ext[indices[idx]].area;
 						if (bm_sel_similar_cmp_fl(delta_fl, thresh, compare)) {
