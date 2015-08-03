@@ -3431,6 +3431,9 @@ static float edbm_fill_grid_vert_tag_angle(BMVert *v)
  */
 static void edbm_fill_grid_prepare(BMesh *bm, int offset, int *r_span, bool span_calc)
 {
+	/* angle differences below this value are considered 'even'
+	 * in that they shouldn't be used to calculate corners used for the 'span' */
+	const float eps_even = 1e-3f;
 	BMEdge *e;
 	BMIter iter;
 	int count;
@@ -3509,18 +3512,23 @@ static void edbm_fill_grid_prepare(BMesh *bm, int offset, int *r_span, bool span
 
 			qsort(ele_sort, verts_len, sizeof(*ele_sort), BLI_sortutil_cmp_float_reverse);
 
-			for (i = 0; i < 4; i++) {
-				BMVert *v = ele_sort[i].data;
-				BM_elem_flag_enable(v, BM_ELEM_TAG);
-			}
+			/* check that we have at least 3 corners,
+			 * if the angle on the 3rd angle is roughly the same as the last,
+			 * then we can't calculate 3+ corners - fallback to the even span. */
+			if ((ele_sort[2].sort_value - ele_sort[verts_len - 1].sort_value) > eps_even) {
+				for (i = 0; i < 4; i++) {
+					BMVert *v = ele_sort[i].data;
+					BM_elem_flag_enable(v, BM_ELEM_TAG);
+				}
 
-			/* now find the first... */
-			for (v_link = verts->first, i = 0; i < verts_len / 2; v_link = v_link->next, i++) {
-				BMVert *v = v_link->data;
-				if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-					if (v != v_act) {
-						span = i;
-						break;
+				/* now find the first... */
+				for (v_link = verts->first, i = 0; i < verts_len / 2; v_link = v_link->next, i++) {
+					BMVert *v = v_link->data;
+					if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+						if (v != v_act) {
+							span = i;
+							break;
+						}
 					}
 				}
 			}
