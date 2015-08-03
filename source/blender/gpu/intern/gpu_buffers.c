@@ -1121,6 +1121,9 @@ struct GPU_PBVH_Buffers {
 	GPUBuffer *vert_buf, *index_buf, *index_buf_fast;
 	GLenum index_type;
 
+	int *baseelemarray;
+	void **baseindex;
+
 	/* mesh pointers in case buffer allocation fails */
 	const MPoly *mpoly;
 	const MLoop *mloop;
@@ -1681,6 +1684,18 @@ GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
 	if (buffers->index_buf)
 		buffers->vert_buf = GPU_buffer_alloc(sizeof(VertexBufferFormat) * totgrid * key->grid_area, false);
 
+	if (GLEW_ARB_draw_elements_base_vertex) {
+		int i;
+		buffers->baseelemarray = MEM_mallocN(sizeof(int) * totgrid * 2, "GPU_PBVH_Buffers.baseelemarray");
+		buffers->baseindex = MEM_mallocN(sizeof(void *) * totgrid, "GPU_PBVH_Buffers.baseindex");
+		for (i = 0; i < totgrid; i++) {
+			buffers->baseelemarray[i] = buffers->tot_quad * 6;
+			buffers->baseelemarray[i + totgrid] = i * key->grid_area;
+			buffers->baseindex[i] = buffers->index_buf && !buffers->index_buf->use_vbo ?
+			                                      buffers->index_buf->pointer : NULL;
+		}
+	}
+
 	return buffers;
 }
 
@@ -2012,21 +2027,40 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 
 		if (buffers->tot_quad) {
 			const char *offset = base;
-			int i, last = (buffers->has_hidden || do_fast) ? 1 : buffers->totgrid;
-			for (i = 0; i < last; i++) {
+			const bool drawall = !(buffers->has_hidden || do_fast);
+
+			if (GLEW_ARB_draw_elements_base_vertex && drawall) {
+
 				glVertexPointer(3, GL_FLOAT, sizeof(VertexBufferFormat),
 				                offset + offsetof(VertexBufferFormat, co));
 				glNormalPointer(GL_SHORT, sizeof(VertexBufferFormat),
 				                offset + offsetof(VertexBufferFormat, no));
 				glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(VertexBufferFormat),
 				               offset + offsetof(VertexBufferFormat, color));
-				
-				if (do_fast)
-					glDrawElements(GL_TRIANGLES, buffers->totgrid * 6, buffers->index_type, index_base);
-				else
-					glDrawElements(GL_TRIANGLES, buffers->tot_quad * 6, buffers->index_type, index_base);
 
-				offset += buffers->gridkey.grid_area * sizeof(VertexBufferFormat);
+				glMultiDrawElementsBaseVertex(GL_TRIANGLES, buffers->baseelemarray, buffers->index_type,
+				                              (const void * const *)buffers->baseindex,
+				                              buffers->totgrid, &buffers->baseelemarray[buffers->totgrid]);
+			}
+			else {
+				int i, last = drawall ? buffers->totgrid : 1;
+
+				/* we could optimize this to one draw call, but it would need more memory */
+				for (i = 0; i < last; i++) {
+					glVertexPointer(3, GL_FLOAT, sizeof(VertexBufferFormat),
+					                offset + offsetof(VertexBufferFormat, co));
+					glNormalPointer(GL_SHORT, sizeof(VertexBufferFormat),
+					                offset + offsetof(VertexBufferFormat, no));
+					glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(VertexBufferFormat),
+					               offset + offsetof(VertexBufferFormat, color));
+
+					if (do_fast)
+						glDrawElements(GL_TRIANGLES, buffers->totgrid * 6, buffers->index_type, index_base);
+					else
+						glDrawElements(GL_TRIANGLES, buffers->tot_quad * 6, buffers->index_type, index_base);
+
+					offset += buffers->gridkey.grid_area * sizeof(VertexBufferFormat);
+				}
 			}
 		}
 		else if (buffers->tot_tri) {
@@ -2112,6 +2146,10 @@ void GPU_free_pbvh_buffers(GPU_PBVH_Buffers *buffers)
 			GPU_buffer_free(buffers->index_buf);
 		if (buffers->index_buf_fast)
 			GPU_buffer_free(buffers->index_buf_fast);
+		if (buffers->baseelemarray)
+			MEM_freeN(buffers->baseelemarray);
+		if (buffers->baseindex)
+			MEM_freeN(buffers->baseindex);
 
 		MEM_freeN(buffers);
 	}
