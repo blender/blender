@@ -235,8 +235,8 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopolog
 					bool start_found = false;
 					edge_start = vert_edges[i];
 					IndexArray edge_faces = getBaseEdgeFaces(refiner, edge_start);
-					for (int j = 0; j < edge_faces.size(); ++j) {
-						face_start = edge_faces[j];
+					if (edge_faces.size() == 1) {
+						face_start = edge_faces[0];
 						if (!face_used[face_start]) {
 							ConstIndexArray
 							    face_verts = getBaseFaceVertices(refiner, face_start),
