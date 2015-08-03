@@ -246,6 +246,9 @@ typedef struct StrokeCache {
 	 * calc_brush_local_mat() and used in tex_strength(). */
 	float brush_local_mat[4][4];
 	
+	float plane_offset[3]; /* used to shift the plane around when doing tiled strokes */
+	int tile_pass;
+
 	float last_center[3];
 	int radial_symmetry_pass;
 	float symm_rot_mat[4][4];
@@ -2501,8 +2504,8 @@ static void calc_sculpt_plane(
 
 	if (ss->cache->mirror_symmetry_pass == 0 &&
 	    ss->cache->radial_symmetry_pass == 0 &&
-	    (ss->cache->first_time || !(brush->flag & BRUSH_ORIGINAL_NORMAL) ||
-	     (sd->paint.symmetry_flags & PAINT_TILE_AXIS_ALL)))
+	    ss->cache->tile_pass == 0 &&
+	    (ss->cache->first_time || !(brush->flag & BRUSH_ORIGINAL_NORMAL)))
 	{
 		switch (brush->sculpt_plane) {
 			case SCULPT_DISP_DIR_VIEW:
@@ -2558,6 +2561,9 @@ static void calc_sculpt_plane(
 
 		/* for flatten center */
 		mul_m4_v3(ss->cache->symm_rot_mat, r_area_co);
+
+		/* shift the plane for the current tile */
+		add_v3_v3(r_area_co, ss->cache->plane_offset);
 	}
 }
 
@@ -3438,6 +3444,7 @@ static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
 
 	unit_m4(cache->symm_rot_mat);
 	unit_m4(cache->symm_rot_mat_inv);
+	zero_v3(cache->plane_offset);
 
 	if (axis) { /* expects XYZ */
 		rotate_m4(cache->symm_rot_mat, axis, angle);
@@ -3462,37 +3469,48 @@ static void do_tiled(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
 	const float radius = cache->radius;
 	const float *bbMin = ob->bb->vec[0];
 	const float *bbMax = ob->bb->vec[6];
-
-	float start[3];
-	float end[3];
 	const float *step = sd->paint.tile_offset;
 	int dim;
 
+	/* These are integer locations, for real location: multiply with step and add orgLoc. So 0,0,0 is at orgLoc. */
+	int start[3];
+	int end[3];
+	int cur[3];
+
+	float orgLoc[3]; /* position of the "prototype" stroke for tiling */
+	copy_v3_v3(orgLoc, cache->location);
+
 	for (dim = 0; dim < 3; ++dim) {
 		if ((sd->paint.symmetry_flags & (PAINT_TILE_X << dim)) && step[dim] > 0) {
-			int n = (cache->location[dim] - bbMin[dim] + radius) / step[dim];
-			start[dim] = cache->location[dim] - n * step[dim];
-			end[dim] = bbMax[dim] + radius;
+			start[dim] = (bbMin[dim] - orgLoc[dim] - radius) / step[dim];
+			end[dim] = (bbMax[dim] - orgLoc[dim] + radius) / step[dim];
 		}
 		else
-			start[dim] = end[dim] = cache->location[dim];
+			start[dim] = end[dim] = 0;
 	}
 
-	copy_v3_v3(cache->location, start);
-	do {
-		do {
-			do {
+	/* first do the "untiled" position to initialize the stroke for this location */
+	cache->tile_pass = 0;
+	action(sd, ob, brush, ups);
+
+	/* now do it for all the tiles */
+	copy_v3_v3_int(cur, start);
+	for (cur[0] = start[0]; cur[0] <= end[0]; ++cur[0]) {
+		for (cur[1] = start[1]; cur[1] <= end[1]; ++cur[1]) {
+			for (cur[2] = start[2]; cur[2] <= end[2]; ++cur[2]) {
+				if (!cur[0] && !cur[1] && !cur[2])
+					continue; /* skip tile at orgLoc, this was already handled before all others */
+
+				++cache->tile_pass;
+
+				for (dim = 0; dim < 3; ++dim) {
+					cache->location[dim] = cur[dim] * step[dim] + orgLoc[dim];
+					cache->plane_offset[dim] = cur[dim] * step[dim];
+				}
 				action(sd, ob, brush, ups);
-				cache->location[2] += step[2];
-			} while (cache->location[2] < end[2]);
-			cache->location[2] = start[2];
-
-			cache->location[1] += step[1];
-		} while (cache->location[1] < end[1]);
-		cache->location[1] = start[1];
-
-		cache->location[0] += step[0];
-	} while (cache->location[0] < end[0]);
+			}
+		}
+	}
 }
 
 
