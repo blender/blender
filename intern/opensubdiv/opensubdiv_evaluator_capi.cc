@@ -351,15 +351,11 @@ OpenSubdiv_EvaluatorDescr *openSubdiv_createEvaluatorDescr(
 	const StencilTable *varying_stencils = NULL;
 	int num_total_verts = 0;
 
-	/* Apply adaptive refinement to the mesh so that we can use the
+	/* Apply uniform refinement to the mesh so that we can use the
 	 * limit evaluation API features.
-	 *
-	 * TODO(sergey): Once OpenSubdiv supports uniform meshes in limit
-	 * evlauation we need to switch to uniform here, which will match
-	 * original Blender subsurf.
 	 */
-	TopologyRefiner::AdaptiveOptions options(subsurf_level);
-	refiner->RefineAdaptive(options);
+	TopologyRefiner::UniformOptions options(subsurf_level);
+	refiner->RefineUniform(options);
 
 	/* Generate stencil table to update the bi-cubic patches control
 	 * vertices after they have been re-posed (both for vertex & varying
@@ -367,7 +363,7 @@ OpenSubdiv_EvaluatorDescr *openSubdiv_createEvaluatorDescr(
 	 */
 	StencilTableFactory::Options soptions;
 	soptions.generateOffsets = true;
-	soptions.generateIntermediateLevels = true;
+	soptions.generateIntermediateLevels = false;
 
 	vertex_stencils = StencilTableFactory::Create(*refiner, soptions);
 
