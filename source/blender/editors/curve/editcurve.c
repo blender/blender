@@ -3591,15 +3591,17 @@ static void switchdirection_knots(float *base, int tot)
 		fp1++; 
 		fp2--;
 	}
+
 	/* and make in increasing order again */
-	a = tot;
+	a = tot - 1;
 	fp1 = base;
-	fp2 = tempf = MEM_mallocN(sizeof(float) * a, "switchdirect");
+	fp2 = tempf = MEM_mallocN(sizeof(float) * tot, "switchdirect");
 	while (a--) {
 		fp2[0] = fabsf(fp1[1] - fp1[0]);
 		fp1++;
 		fp2++;
 	}
+	fp2[0] = 0.0f;
 
 	a = tot - 1;
 	fp1 = base;
