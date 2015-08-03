@@ -1024,3 +1024,21 @@ int PyC_RunString_AsNumber(const char *expr, double *value, const char *filename
 
 	return error_ret;
 }
+
+/**
+ * Use with PyArg_ParseTuple's "O&" formatting.
+ */
+int PyC_ParseBool(PyObject *o, void *p)
+{
+	bool *bool_p = p;
+	long value;
+	if (((value = PyLong_AsLong(o)) == -1) || !ELEM(value, 0, 1)) {
+		PyErr_Format(PyExc_ValueError,
+		             "expected a bool or int (0/1), got %s",
+		             Py_TYPE(o)->tp_name);
+		return 0;
+	}
+
+	*bool_p = value ? true : false;
+	return 1;
+}

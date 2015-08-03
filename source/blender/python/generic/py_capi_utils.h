@@ -81,4 +81,6 @@ PyObject *PyC_FlagSet_FromBitfield(PyC_FlagSet *items, int flag);
 
 int PyC_RunString_AsNumber(const char *expr, double *value, const char *filename);
 
+int PyC_ParseBool(PyObject *o, void *p);
+
 #endif  /* __PY_CAPI_UTILS_H__ */

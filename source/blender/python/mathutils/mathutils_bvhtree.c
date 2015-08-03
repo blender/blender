@@ -563,7 +563,7 @@ static PyObject *C_BVHTree_FromPolygons(PyObject *UNUSED(cls), PyObject *args, P
 	unsigned int (*tris)[3] = NULL;
 	unsigned int coords_len, tris_len;
 	float epsilon = 0.0f;
-	int all_triangles = 0;
+	bool all_triangles = false;
 
 	/* when all_triangles is False */
 	int *orig_index = NULL;
@@ -574,8 +574,10 @@ static PyObject *C_BVHTree_FromPolygons(PyObject *UNUSED(cls), PyObject *args, P
 
 
 	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwargs, (char *)"OO|$if:BVHTree.FromPolygons", (char **)keywords,
-	        &py_coords, &py_tris, &all_triangles, &epsilon))
+	        args, kwargs, (char *)"OO|$O&f:BVHTree.FromPolygons", (char **)keywords,
+	        &py_coords, &py_tris,
+	        PyC_ParseBool, &all_triangles,
+	        &epsilon))
 	{
 		return NULL;
 	}
@@ -996,9 +998,9 @@ static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyO
 	Object *ob;
 	struct Scene *scene;
 	DerivedMesh *dm;
-	int use_deform = true;
-	int use_render = false;
-	int use_cage = false;
+	bool use_deform = true;
+	bool use_render = false;
+	bool use_cage = false;
 
 	const MLoopTri *lt;
 	const MLoop *mloop;
@@ -1009,8 +1011,12 @@ static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyO
 	float epsilon = 0.0f;
 
 	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwargs, (char *)"OO|$iiif:BVHTree.FromObject", (char **)keywords,
-	        &py_ob, &py_scene, &use_deform, &use_render, &use_cage, &epsilon) ||
+	        args, kwargs, (char *)"OO|$O&O&O&f:BVHTree.FromObject", (char **)keywords,
+	        &py_ob, &py_scene,
+	        PyC_ParseBool, &use_deform,
+	        PyC_ParseBool, &use_render,
+	        PyC_ParseBool, &use_cage,
+	        &epsilon) ||
 	    ((ob = PyC_RNA_AsPointer(py_ob, "Object")) == NULL) ||
 	    ((scene = PyC_RNA_AsPointer(py_scene, "Scene")) == NULL))
 	{
