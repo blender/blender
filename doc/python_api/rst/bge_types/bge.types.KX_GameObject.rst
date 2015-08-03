@@ -972,6 +972,16 @@ base class --- :class:`SCA_IObject`
       :return: The current frame of the action
       :rtype: float
 
+   .. method:: getActionName(layer=0)
+
+      Gets the name of the current action playing in the supplied layer.
+
+      :arg layer: The layer that you want to get the action name from.
+      :type layer: integer
+
+      :return: The name of the current action
+      :rtype: string
+
    .. method:: setActionFrame(frame, layer=0)
 
       Set the current frame of the action playing in the supplied layer.

@@ -68,6 +68,12 @@ float BL_ActionManager::GetActionFrame(short layer)
 	return action ? action->GetFrame() : 0.f;
 }
 
+const char *BL_ActionManager::GetActionName(short layer)
+{
+	BL_Action *action = GetAction(layer);
+	return action ? action->GetName() : "";
+}
+
 void BL_ActionManager::SetActionFrame(short layer, float frame)
 {
 	BL_Action *action = GetAction(layer);

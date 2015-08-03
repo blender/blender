@@ -112,6 +112,8 @@ public:
 
 	// Accessors
 	float GetFrame();
+	const char *GetName();
+
 	struct bAction *GetAction();
 
 	// Mutators
