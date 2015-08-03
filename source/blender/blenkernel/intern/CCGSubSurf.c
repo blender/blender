@@ -853,10 +853,7 @@ CCGError ccgSubSurf_syncFace(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGV
 static void ccgSubSurf__sync(CCGSubSurf *ss)
 {
 #ifdef WITH_OPENSUBDIV
-	/* TODO(sergey): This is because OSD evaluator does not support
-	 * bilinear subdivision scheme at this moment.
-	 */
-	if (ss->meshIFC.simpleSubdiv == false || ss->skip_grids == true) {
+	if (true) {
 		ccgSubSurf__sync_opensubdiv(ss);
 	}
 	else
