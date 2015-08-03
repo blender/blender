@@ -246,15 +246,13 @@ void main()
 			float diffuse_bsdf = max(dot(N, light_direction), 0.0);
 			L_diffuse += light_diffuse * diffuse_bsdf;
 
+			/* Specular light. */
 			vec4 Plight = lightSource[i].position;
 			vec3 l = (Plight.w == 0.0)
 				? normalize(Plight.xyz) : normalize(Plight.xyz -
 				                                    inpt.v.position.xyz);
-
-			/* Specular light. */
 			vec3 light_specular = lightSource[i].specular.rgb;
 			vec3 H = normalize(l + vec3(0,0,1));
-
 			float specular_bsdf = pow(max(dot(N, H), 0.0),
 			                          shininess);
 			L_specular += light_specular * specular_bsdf;
@@ -325,7 +323,9 @@ void main()
 
 	/* Sum lighting. */
 	vec3 L = /*gl_FrontLightModelProduct.sceneColor.rgb +*/ L_diffuse;
-	L += L_specular * specular.rgb;
+	if (shininess != 0.0f) {
+		L += L_specular * specular.rgb;
+	}
 
 	/* Write out fragment color. */
 	gl_FragColor = vec4(L, alpha);
