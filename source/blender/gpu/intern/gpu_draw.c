@@ -1533,11 +1533,15 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 #ifdef WITH_OPENSUBDIV
 	{
 		DerivedMesh *derivedFinal = NULL;
-		Mesh *me = ob->data;
-		BMEditMesh *em = me->edit_btmesh;
-
-		if (em != NULL) {
-			derivedFinal = em->derivedFinal;
+		if (ob->type == OB_MESH) {
+			Mesh *me = ob->data;
+			BMEditMesh *em = me->edit_btmesh;
+			if (em != NULL) {
+				derivedFinal = em->derivedFinal;
+			}
+			else {
+				derivedFinal = ob->derivedFinal;
+			}
 		}
 		else {
 			derivedFinal = ob->derivedFinal;
