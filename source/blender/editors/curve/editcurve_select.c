@@ -148,7 +148,7 @@ int ED_curve_nurb_select_count(Curve *cu, Nurb *nu)
 
 		for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
 			if (BEZT_ISSEL_ANY_HIDDENHANDLES(cu, bezt)) {
-				return sel++;
+				sel++;
 			}
 		}
 	}
@@ -158,7 +158,7 @@ int ED_curve_nurb_select_count(Curve *cu, Nurb *nu)
 
 		for (i = nu->pntsu * nu->pntsv, bp = nu->bp; i--; bp++) {
 			if (bp->f1 & SELECT) {
-				return sel++;
+				sel++;
 			}
 		}
 	}
