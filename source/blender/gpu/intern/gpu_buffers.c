@@ -1617,8 +1617,8 @@ static GPUBuffer *gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned
         int i; \
         for (i = 0; i < totgrid; i++) { \
             int currentquad = i * 6; \
-            buffer[currentquad] = i * gridsize * gridsize; \
-            buffer[currentquad + 1] = i * gridsize * gridsize + gridsize - 1; \
+            buffer[currentquad]     = i * gridsize * gridsize + gridsize - 1; \
+            buffer[currentquad + 1] = i * gridsize * gridsize; \
             buffer[currentquad + 2] = (i + 1) * gridsize * gridsize - gridsize; \
             buffer[currentquad + 3] = (i + 1) * gridsize * gridsize - 1; \
             buffer[currentquad + 4] = i * gridsize * gridsize + gridsize - 1; \
