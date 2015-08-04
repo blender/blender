@@ -166,6 +166,15 @@ BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 # Ocean Simulation
 WITH_BF_OCEANSIM = True
 
+# OpenSubdiv
+WITH_BF_OPENSUBDIV = False
+WITH_BF_STATICOPENSUBDIV = True
+BF_OPENSUBDIV = '/opt/lib/opensubdiv'
+BF_OPENSUBDIV_INC = '${BF_OPENSUBDIV}/include'
+BF_OPENSUBDIV_LIB = 'osdCPU osdGPU'
+BF_OPENSUBDIV_LIBPATH = '${BF_OPENSUBDIV}/lib'
+BF_OPENSUBDIV_LIB_STATIC = '${BF_OPENSUBDIV}/lib/libosdCPU.a ${BF_OPENSUBDIV}/lib/libosdGPU.a'
+
 # Compilation and optimization
 BF_DEBUG = False
 REL_CCFLAGS = ['-DNDEBUG', '-O2', '-msse', '-msse2']  # C & C++
