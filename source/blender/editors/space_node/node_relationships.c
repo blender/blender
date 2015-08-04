@@ -1320,7 +1320,7 @@ void ED_node_link_intersect_test(ScrArea *sa, int test)
 	bNode *select;
 	SpaceNode *snode;
 	bNodeLink *link, *selink = NULL;
-	float mcoords[6][2];
+	float dist_best = FLT_MAX;
 
 	if (!ed_node_link_conditions(sa, test, &snode, &select)) return;
 
@@ -1330,34 +1330,40 @@ void ED_node_link_intersect_test(ScrArea *sa, int test)
 
 	if (test == 0) return;
 
-	/* okay, there's 1 node, without links, now intersect */
-	mcoords[0][0] = select->totr.xmin;
-	mcoords[0][1] = select->totr.ymin;
-	mcoords[1][0] = select->totr.xmax;
-	mcoords[1][1] = select->totr.ymin;
-	mcoords[2][0] = select->totr.xmax;
-	mcoords[2][1] = select->totr.ymax;
-	mcoords[3][0] = select->totr.xmin;
-	mcoords[3][1] = select->totr.ymax;
-	mcoords[4][0] = select->totr.xmin;
-	mcoords[4][1] = select->totr.ymin;
-	mcoords[5][0] = select->totr.xmax;
-	mcoords[5][1] = select->totr.ymax;
-
-	/* we only tag a single link for intersect now */
-	/* idea; use header dist when more? */
+	/* find link to select/highlight */
 	for (link = snode->edittree->links.first; link; link = link->next) {
+		float coord_array[NODE_LINK_RESOL + 1][2];
+
 		if (nodeLinkIsHidden(link))
 			continue;
-		
-		if (cut_links_intersect(link, mcoords, 5)) { /* intersect code wants edges */
-			if (selink)
-				break;
-			selink = link;
+
+		if (node_link_bezier_points(NULL, NULL, link, coord_array, NODE_LINK_RESOL)) {
+			float dist = FLT_MAX;
+			int i;
+
+			/* loop over link coords to find shortest dist to upper left node edge of a intersected line segment */
+			for (i = 0; i < NODE_LINK_RESOL; i++) {
+				/* check if the node rect intersetcts the line from this point to next one */
+				if (BLI_rctf_isect_segment(&select->totr, coord_array[i], coord_array[i + 1])) {
+					/* store the shortest distance to the upper left edge of all intersetctions found so far */
+					const float node_xy[] = {select->totr.xmin, select->totr.ymax};
+
+					/* to be precise coord_array should be clipped by select->totr,
+					 * but not done since there's no real noticeable difference */
+					dist = min_ff(dist_squared_to_line_segment_v2(node_xy, coord_array[i], coord_array[i + 1]),
+					                   dist);
+				}
+			}
+
+			/* we want the link with the shortest distance to node center */
+			if (dist < dist_best) {
+				dist_best = dist;
+				selink = link;
+			}
 		}
 	}
 
-	if (link == NULL && selink)
+	if (selink)
 		selink->flag |= NODE_LINKFLAG_HILITE;
 }
 
