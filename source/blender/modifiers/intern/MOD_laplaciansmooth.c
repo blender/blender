@@ -415,8 +415,6 @@ static void laplaciansmoothModifier_do(
 	int i, iter;
 	int defgrp_index;
 
-	DM_ensure_tessface(dm);
-
 	sys = init_laplacian_system(dm->getNumEdges(dm), dm->getNumPolys(dm), dm->getNumLoops(dm), numVerts);
 	if (!sys) {
 		return;
