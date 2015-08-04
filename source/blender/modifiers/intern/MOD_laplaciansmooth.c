@@ -85,7 +85,6 @@ static float compute_volume(const float center[3], float (*vertexCos)[3], const 
 static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numPolys, int a_numLoops, int a_numVerts);
 static void copy_data(ModifierData *md, ModifierData *target);
 static void delete_laplacian_system(LaplacianSystem *sys);
-static void delete_void_pointer(void *data);
 static void fill_laplacian_matrix(LaplacianSystem *sys);
 static void init_data(ModifierData *md);
 static void init_laplacian_matrix(LaplacianSystem *sys);
@@ -93,23 +92,17 @@ static void memset_laplacian_system(LaplacianSystem *sys, int val);
 static void volume_preservation(LaplacianSystem *sys, float vini, float vend, short flag);
 static void validate_solution(LaplacianSystem *sys, short flag, float lambda, float lambda_border);
 
-static void delete_void_pointer(void *data)
-{
-	if (data) {
-		MEM_freeN(data);
-	}
-}
-
 static void delete_laplacian_system(LaplacianSystem *sys)
 {
-	delete_void_pointer(sys->eweights);
-	delete_void_pointer(sys->fweights);
-	delete_void_pointer(sys->numNeEd);
-	delete_void_pointer(sys->numNeFa);
-	delete_void_pointer(sys->ring_areas);
-	delete_void_pointer(sys->vlengths);
-	delete_void_pointer(sys->vweights);
-	delete_void_pointer(sys->zerola);
+	MEM_SAFE_FREE(sys->eweights);
+	MEM_SAFE_FREE(sys->fweights);
+	MEM_SAFE_FREE(sys->numNeEd);
+	MEM_SAFE_FREE(sys->numNeFa);
+	MEM_SAFE_FREE(sys->ring_areas);
+	MEM_SAFE_FREE(sys->vlengths);
+	MEM_SAFE_FREE(sys->vweights);
+	MEM_SAFE_FREE(sys->zerola);
+
 	if (sys->context) {
 		nlDeleteContext(sys->context);
 	}
@@ -141,53 +134,14 @@ static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numPolys, in
 	sys->numLoops = a_numLoops;
 	sys->numVerts = a_numVerts;
 
-	sys->eweights =  MEM_callocN(sizeof(float) * sys->numEdges, "ModLaplSmoothEWeight");
-	if (!sys->eweights) {
-		delete_laplacian_system(sys);
-		return NULL;
-	}
-
-	sys->fweights =  MEM_callocN(sizeof(float[3]) * sys->numLoops, "ModLaplSmoothFWeight");
-	if (!sys->fweights) {
-		delete_laplacian_system(sys);
-		return NULL;
-	}
-
-	sys->numNeEd =  MEM_callocN(sizeof(short) * sys->numVerts, "ModLaplSmoothNumNeEd");
-	if (!sys->numNeEd) {
-		delete_laplacian_system(sys);
-		return NULL;
-	}
-
-	sys->numNeFa =  MEM_callocN(sizeof(short) * sys->numVerts, "ModLaplSmoothNumNeFa");
-	if (!sys->numNeFa) {
-		delete_laplacian_system(sys);
-		return NULL;
-	}
-
-	sys->ring_areas =  MEM_callocN(sizeof(float) * sys->numVerts, "ModLaplSmoothRingAreas");
-	if (!sys->ring_areas) {
-		delete_laplacian_system(sys);
-		return NULL;
-	}
-
-	sys->vlengths =  MEM_callocN(sizeof(float) * sys->numVerts, "ModLaplSmoothVlengths");
-	if (!sys->vlengths) {
-		delete_laplacian_system(sys);
-		return NULL;
-	}
-
-	sys->vweights =  MEM_callocN(sizeof(float) * sys->numVerts, "ModLaplSmoothVweights");
-	if (!sys->vweights) {
-		delete_laplacian_system(sys);
-		return NULL;
-	}
-
-	sys->zerola =  MEM_callocN(sizeof(short) * sys->numVerts, "ModLaplSmoothZeloa");
-	if (!sys->zerola) {
-		delete_laplacian_system(sys);
-		return NULL;
-	}
+	sys->eweights =  MEM_callocN(sizeof(float) * sys->numEdges, __func__);
+	sys->fweights =  MEM_callocN(sizeof(float[3]) * sys->numLoops, __func__);
+	sys->numNeEd =  MEM_callocN(sizeof(short) * sys->numVerts, __func__);
+	sys->numNeFa =  MEM_callocN(sizeof(short) * sys->numVerts, __func__);
+	sys->ring_areas =  MEM_callocN(sizeof(float) * sys->numVerts, __func__);
+	sys->vlengths =  MEM_callocN(sizeof(float) * sys->numVerts, __func__);
+	sys->vweights =  MEM_callocN(sizeof(float) * sys->numVerts, __func__);
+	sys->zerola =  MEM_callocN(sizeof(short) * sys->numVerts, __func__);
 
 	return sys;
 }
