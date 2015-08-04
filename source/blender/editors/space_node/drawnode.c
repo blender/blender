@@ -3411,7 +3411,7 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 
 #define LINK_RESOL  24
 #define LINK_ARROW  12  /* position of arrow on the link, LINK_RESOL/2 */
-#define ARROW_SIZE 7
+#define ARROW_SIZE (7 * UI_DPI_FAC)
 void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link,
                            int th_col1, bool do_shaded, int th_col2, bool do_triple, int th_col3)
 {
@@ -3424,6 +3424,7 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link,
 		/* store current linewidth */
 		float linew;
 		float arrow[2], arrow1[2], arrow2[2];
+		const float px_fac = UI_DPI_WINDOW_FAC;
 		glGetFloatv(GL_LINE_WIDTH, &linew);
 		
 		/* we can reuse the dist variable here to increment the GL curve eval amount*/
@@ -3450,7 +3451,7 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link,
 		}
 		if (do_triple) {
 			UI_ThemeColorShadeAlpha(th_col3, -80, -120);
-			glLineWidth(4.0f);
+			glLineWidth(4.0f * px_fac);
 			
 			glBegin(GL_LINE_STRIP);
 			for (i = 0; i <= LINK_RESOL; i++) {
@@ -3471,7 +3472,7 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link,
 		 * for Intel hardware, this breaks with GL_LINE_STRIP and
 		 * changing color in begin/end blocks.
 		 */
-		glLineWidth(1.5f);
+		glLineWidth(1.5f * px_fac);
 		if (do_shaded) {
 			glBegin(GL_LINES);
 			for (i = 0; i < LINK_RESOL; i++) {
