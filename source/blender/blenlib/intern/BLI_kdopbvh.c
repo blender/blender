@@ -27,6 +27,16 @@
 
 /** \file blender/blenlib/intern/BLI_kdopbvh.c
  *  \ingroup bli
+ *  \brief BVH-tree implementation.
+ *
+ * KD-Overlap-BVH, implements a bvh-tree structure with support for:
+ *
+ * - Ray-cast:
+ *   #BLI_bvhtree_ray_cast, #BVHRayCastData
+ * - Nearest point on surface:
+ *   #BLI_bvhtree_find_nearest, #BVHNearestData
+ * - Overlapping 2 trees:
+ *   #BLI_bvhtree_overlap, #BVHOverlapData
  */
 
 #include <assert.h>

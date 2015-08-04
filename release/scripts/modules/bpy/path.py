@@ -61,7 +61,7 @@ def abspath(path, start=None, library=None):
 
     :arg start: Relative to this path,
        when not set the current filename is used.
-    :type start: string
+    :type start: string or bytes
     :arg library: The library this path is from. This is only included for
        convenience, when the library is not None its path replaces *start*.
     :type library: :class:`bpy.types.Library`
@@ -90,9 +90,11 @@ def relpath(path, start=None):
     """
     Returns the path relative to the current blend file using the "//" prefix.
 
+    :arg path: An absolute path.
+    :type path: string or bytes
     :arg start: Relative to this path,
        when not set the current filename is used.
-    :type start: string
+    :type start: string or bytes
     """
     if isinstance(path, bytes):
         if not path.startswith(b"//"):
@@ -112,6 +114,9 @@ def is_subdir(path, directory):
     """
     Returns true if *path* in a subdirectory of *directory*.
     Both paths must be absolute.
+
+    :arg path: An absolute path.
+    :type path: string or bytes
     """
     from os.path import normpath, normcase
     path = normpath(normcase(path))
@@ -129,7 +134,7 @@ def clean_name(name, replace="_"):
     may cause problems under various circumstances,
     such as writing to a file.
     All characters besides A-Z/a-z, 0-9 are replaced with "_"
-    or the replace argument if defined.
+    or the *replace* argument if defined.
     """
 
     if replace != "_":

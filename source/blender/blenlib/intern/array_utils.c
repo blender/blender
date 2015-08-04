@@ -21,6 +21,10 @@
 /** \file blender/blenlib/intern/array_utils.c
  *  \ingroup bli
  *  \brief Generic array manipulation API.
+ *
+ * \warning Some array operations here are inherently inefficient,
+ * and only included for the cases where the performance is acceptable.
+ * Use with care.
  */
 #include <string.h>
 #include <stdlib.h>
@@ -35,7 +39,11 @@
 
 #include "BLI_strict_flags.h"
 
-
+/**
+ *In-place array reverse.
+ *
+ * Access via #BLI_array_reverse
+ */
 void _bli_array_reverse(void *arr_v, unsigned int arr_len, size_t arr_stride)
 {
 	const unsigned int arr_stride_uint = (unsigned int)arr_stride;
@@ -54,6 +62,12 @@ void _bli_array_reverse(void *arr_v, unsigned int arr_len, size_t arr_stride)
 	}
 }
 
+/**
+ * In-place array wrap.
+ * (rotate the array one step forward or backwards).
+ *
+ * Access via #BLI_array_wrap
+ */
 void _bli_array_wrap(void *arr_v, unsigned int arr_len, size_t arr_stride, int dir)
 {
 	char *arr = arr_v;
@@ -74,6 +88,12 @@ void _bli_array_wrap(void *arr_v, unsigned int arr_len, size_t arr_stride, int d
 	}
 }
 
+/**
+ *In-place array permute.
+ * (re-arrange elemrnts based on an array of indices).
+ *
+ * Access via #BLI_array_wrap
+ */
 void _bli_array_permute(
         void *arr_v, const unsigned int arr_len, const size_t arr_stride,
         const unsigned int *order, void *arr_temp)
@@ -105,6 +125,10 @@ void _bli_array_permute(
 }
 
 /**
+ * Find the first index of an item in an array.
+ *
+ * Access via #BLI_array_findindex
+ *
  * \note Not efficient, use for error checks/asserts.
  */
 int _bli_array_findindex(const void *arr, unsigned int arr_len, size_t arr_stride, const void *p)

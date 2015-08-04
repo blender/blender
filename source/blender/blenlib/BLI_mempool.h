@@ -30,8 +30,6 @@
 
 /** \file BLI_mempool.h
  *  \ingroup bli
- *  \author Geoffrey Bantle
- *  \brief Simple fast memory allocator for fixed size chunks.
  */
 
 #ifdef __cplusplus
@@ -45,10 +43,6 @@ struct BLI_mempool;
 struct BLI_mempool_chunk;
 
 typedef struct BLI_mempool BLI_mempool;
-
-/* allow_iter allows iteration on this mempool.  note: this requires that the
- * first four bytes of the elements never contain the character string
- * 'free'.  use with care.*/
 
 BLI_mempool *BLI_mempool_create(unsigned int esize, unsigned int totelem,
                                 unsigned int pchunk, unsigned int flag) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
@@ -82,6 +76,11 @@ typedef struct BLI_mempool_iter {
 /* flag */
 enum {
 	BLI_MEMPOOL_NOP = 0,
+	/** allow iterating on this mempool.
+	 *
+	 * \note this requires that the first four bytes of the elements never begin with 'free'
+ 	 * \note order of iteration is only assured to be the order of allocation when no chunks have been freed.
+	 */
 	BLI_MEMPOOL_ALLOW_ITER = (1 << 0),
 };
 
