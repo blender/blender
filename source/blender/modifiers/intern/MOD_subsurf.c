@@ -128,6 +128,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		if ((DAG_get_eval_flags_for_object(md->scene, ob) & DAG_EVAL_NEED_CPU) == 0) {
 			subsurf_flags |= SUBSURF_USE_GPU_BACKEND;
 		}
+		else {
+			modifier_setError(md, "OpenSubdiv is disabled due to dependencies");
+		}
 	}
 #endif
 
