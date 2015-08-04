@@ -1951,7 +1951,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		                               "options", "subtype", "update", "get", "set", NULL};
 		const char *id = NULL, *name = NULL, *description = "";
 		int id_len;
-		int def = 0;
+		bool def = false;
 		PropertyRNA *prop;
 		PyObject *pyopts = NULL;
 		int opts = 0;
@@ -1962,9 +1962,9 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		PyObject *set_cb = NULL;
 
 		if (!PyArg_ParseTupleAndKeywords(args, kw,
-		                                 "s#|ssiO!sOOO:BoolProperty",
+		                                 "s#|ssO&O!sOOO:BoolProperty",
 		                                 (char **)kwlist, &id, &id_len,
-		                                 &name, &description, &def,
+		                                 &name, &description, PyC_ParseBool, &def,
 		                                 &PySet_Type, &pyopts, &pysubtype,
 		                                 &update_cb, &get_cb, &set_cb))
 		{

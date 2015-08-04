@@ -943,16 +943,22 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args)
 	Object *ob;
 	struct Scene *scene;
 	BMesh *bm;
-	int use_deform = true;
-	int use_render = false;
-	int use_cage   = false;
-	int use_fnorm  = true;
+	bool use_deform = true;
+	bool use_render = false;
+	bool use_cage   = false;
+	bool use_fnorm  = true;
 	DerivedMesh *dm;
 	const int mask = CD_MASK_BMESH;
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTuple(args, "OO|iiii:from_object", &py_object, &py_scene, &use_render, &use_cage, &use_fnorm) ||
+	if (!PyArg_ParseTuple(
+	        args, "OO|O&O&O&O&:from_object",
+	        &py_object, &py_scene,
+	        PyC_ParseBool, &use_deform,
+	        PyC_ParseBool, &use_render,
+	        PyC_ParseBool, &use_cage,
+	        PyC_ParseBool, &use_fnorm) ||
 	    !(ob    = PyC_RNA_AsPointer(py_object, "Object")) ||
 	    !(scene = PyC_RNA_AsPointer(py_scene,  "Scene")))
 	{
@@ -1044,14 +1050,18 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
 	BMesh *bm;
 	PyObject *py_mesh;
 	Mesh *me;
-	int use_fnorm  = true;
-	int use_shape_key = false;
+	bool use_fnorm  = true;
+	bool use_shape_key = false;
 	int shape_key_index = 0;
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "O|iii:from_mesh", (char **)kwlist,
-	                                 &py_mesh, &use_fnorm, &use_shape_key, &shape_key_index) ||
+	if (!PyArg_ParseTupleAndKeywords(
+	        args, kw, "O|O&O&i:from_mesh", (char **)kwlist,
+	        &py_mesh,
+	        PyC_ParseBool, &use_fnorm,
+	        PyC_ParseBool, &use_shape_key,
+	        &shape_key_index) ||
 	    !(me = PyC_RNA_AsPointer(py_mesh, "Mesh")))
 	{
 		return NULL;
@@ -1686,12 +1696,14 @@ PyDoc_STRVAR(bpy_bmface_copy_from_face_interp_doc,
 static PyObject *bpy_bmface_copy_from_face_interp(BPy_BMFace *self, PyObject *args)
 {
 	BPy_BMFace *py_face = NULL;
-	int do_vertex   = true;
+	bool do_vertex   = true;
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTuple(args, "O!|i:BMFace.copy_from_face_interp",
-	                      &BPy_BMFace_Type, &py_face, &do_vertex))
+	if (!PyArg_ParseTuple(
+	        args, "O!|O&:BMFace.copy_from_face_interp",
+	        &BPy_BMFace_Type, &py_face,
+	        PyC_ParseBool, &do_vertex))
 	{
 		return NULL;
 	}
@@ -1724,16 +1736,17 @@ static PyObject *bpy_bmface_copy(BPy_BMFace *self, PyObject *args, PyObject *kw)
 	static const char *kwlist[] = {"verts", "edges", NULL};
 
 	BMesh *bm = self->bm;
-	int do_verts = true;
-	int do_edges = true;
+	bool do_verts = true;
+	bool do_edges = true;
 
 	BMFace *f_cpy;
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw,
-	                                 "|ii:BMFace.copy",
-	                                 (char **)kwlist,
-	                                 &do_verts, &do_edges))
+	if (!PyArg_ParseTupleAndKeywords(
+	        args, kw,
+	        "|O&O&:BMFace.copy", (char **)kwlist,
+	        PyC_ParseBool, &do_verts,
+	        PyC_ParseBool, &do_edges))
 	{
 		return NULL;
 	}
@@ -1881,14 +1894,16 @@ PyDoc_STRVAR(bpy_bmloop_copy_from_face_interp_doc,
 static PyObject *bpy_bmloop_copy_from_face_interp(BPy_BMLoop *self, PyObject *args)
 {
 	BPy_BMFace *py_face = NULL;
-	int do_vertex   = true;
-	int do_multires = true;
+	bool do_vertex   = true;
+	bool do_multires = true;
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTuple(args, "O!|ii:BMLoop.copy_from_face_interp",
-	                      &BPy_BMFace_Type, &py_face,
-	                      &do_vertex, &do_multires))
+	if (!PyArg_ParseTuple(
+	        args, "O!|O&O&:BMLoop.copy_from_face_interp",
+	        &BPy_BMFace_Type, &py_face,
+	        PyC_ParseBool, &do_vertex,
+	        PyC_ParseBool, &do_multires))
 	{
 		return NULL;
 	}
@@ -2461,7 +2476,7 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
 {
 	static const char *kwlist[] = {"key", "reverse", NULL};
 	PyObject *keyfunc = NULL; /* optional */
-	int do_reverse = false; /* optional */
+	bool do_reverse = false; /* optional */
 
 	const char htype = bm_iter_itype_htype_map[self->itype];
 	int n_elem;
@@ -2483,10 +2498,11 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
 	BPY_BM_CHECK_OBJ(self);
 
 	if (args != NULL) {
-		if (!PyArg_ParseTupleAndKeywords(args, kw,
-		                                 "|Oi:BMElemSeq.sort",
-		                                 (char **)kwlist,
-		                                 &keyfunc, &do_reverse))
+		if (!PyArg_ParseTupleAndKeywords(
+		        args, kw,
+		        "|OO&:BMElemSeq.sort", (char **)kwlist,
+		        &keyfunc,
+		        PyC_ParseBool, &do_reverse))
 		{
 			return NULL;
 		}

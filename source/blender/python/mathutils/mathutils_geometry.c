@@ -42,6 +42,8 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+
+#include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
 /*-------------------------DOC STRINGS ---------------------------*/
@@ -77,12 +79,14 @@ static PyObject *M_Geometry_intersect_ray_tri(PyObject *UNUSED(self), PyObject *
 	PyObject *py_ray, *py_ray_off, *py_tri[3];
 	float dir[3], orig[3], tri[3][3], e1[3], e2[3], pvec[3], tvec[3], qvec[3];
 	float det, inv_det, u, v, t;
-	int clip = 1;
+	bool clip = true;
 	int i;
 
 	if (!PyArg_ParseTuple(
-	        args, "OOOOO|i:intersect_ray_tri",
-	        UNPACK3_EX(&, py_tri, ), &py_ray, &py_ray_off, &clip))
+	        args, "OOOOO|O&:intersect_ray_tri",
+	        UNPACK3_EX(&, py_tri, ),
+	        &py_ray, &py_ray_off,
+	        PyC_ParseBool, &clip))
 	{
 		return NULL;
 	}
@@ -477,12 +481,12 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
 	PyObject *py_line_a, *py_line_b, *py_plane_co, *py_plane_no;
 	float line_a[3], line_b[3], plane_co[3], plane_no[3];
 	float isect[3];
-	int no_flip = false;
+	bool no_flip = false;
 
 	if (!PyArg_ParseTuple(
-	        args, "OOOO|i:intersect_line_plane",
+	        args, "OOOO|O&:intersect_line_plane",
 	        &py_line_a, &py_line_b, &py_plane_co, &py_plane_no,
-	        &no_flip))
+	        PyC_ParseBool, &no_flip))
 	{
 		return NULL;
 	}
@@ -589,14 +593,15 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject *UNUSED(self), PyObje
 	PyObject *py_line_a, *py_line_b, *py_sphere_co;
 	float line_a[3], line_b[3], sphere_co[3];
 	float sphere_radius;
-	int clip = true;
+	bool clip = true;
 
 	float isect_a[3];
 	float isect_b[3];
 
 	if (!PyArg_ParseTuple(
-	        args, "OOOf|i:intersect_line_sphere",
-	        &py_line_a, &py_line_b, &py_sphere_co, &sphere_radius, &clip))
+	        args, "OOOf|O&:intersect_line_sphere",
+	        &py_line_a, &py_line_b, &py_sphere_co, &sphere_radius,
+	        PyC_ParseBool, &clip))
 	{
 		return NULL;
 	}
@@ -661,14 +666,15 @@ static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject *UNUSED(self), PyO
 	PyObject *py_line_a, *py_line_b, *py_sphere_co;
 	float line_a[2], line_b[2], sphere_co[2];
 	float sphere_radius;
-	int clip = true;
+	bool clip = true;
 
 	float isect_a[2];
 	float isect_b[2];
 
 	if (!PyArg_ParseTuple(
-	        args, "OOOf|i:intersect_line_sphere_2d",
-	        &py_line_a, &py_line_b, &py_sphere_co, &sphere_radius, &clip))
+	        args, "OOOf|O&:intersect_line_sphere_2d",
+	        &py_line_a, &py_line_b, &py_sphere_co, &sphere_radius,
+	        PyC_ParseBool, &clip))
 	{
 		return NULL;
 	}

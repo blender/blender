@@ -249,12 +249,17 @@ static PyObject *bpyunits_to_string(PyObject *UNUSED(self), PyObject *args, PyOb
 
 	char *usys_str = NULL, *ucat_str = NULL;
 	double value = 0.0;
-	int precision = 3, split_unit = false, compatible_unit = false;
+	int precision = 3;
+	bool split_unit = false, compatible_unit = false;
 
 	int usys, ucat;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "ssd|ipp:bpy.utils.units.to_string", (char **)kwlist,
-	                                 &usys_str, &ucat_str, &value, &precision, &split_unit, &compatible_unit))
+	if (!PyArg_ParseTupleAndKeywords(
+	        args, kw,
+	        "ssd|iO&O&:bpy.utils.units.to_string", (char **)kwlist,
+	        &usys_str, &ucat_str, &value, &precision,
+	        PyC_ParseBool, &split_unit,
+	        PyC_ParseBool, &compatible_unit))
 	{
 		return NULL;
 	}

@@ -42,6 +42,7 @@
 #include "bmesh_py_types.h"
 #include "bmesh_py_utils.h" /* own include */
 
+#include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
 
@@ -397,14 +398,15 @@ PyDoc_STRVAR(bpy_bm_utils_edge_rotate_doc,
 static PyObject *bpy_bm_utils_edge_rotate(PyObject *UNUSED(self), PyObject *args)
 {
 	BPy_BMEdge *py_edge;
-	int do_ccw = false;
+	bool do_ccw = false;
 
 	BMesh *bm;
 	BMEdge *e_new = NULL;
 
-	if (!PyArg_ParseTuple(args, "O!|i:edge_rotate",
-	                      &BPy_BMEdge_Type, &py_edge,
-	                      &do_ccw))
+	if (!PyArg_ParseTuple(
+	        args, "O!|O&:edge_rotate",
+	        &BPy_BMEdge_Type, &py_edge,
+	        PyC_ParseBool, &do_ccw))
 	{
 		return NULL;
 	}
@@ -455,7 +457,7 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args,
 
 	/* optional */
 	PyObject *py_coords = NULL;
-	int edge_exists = true;
+	bool edge_exists = true;
 	BPy_BMEdge *py_edge_example = NULL;
 
 	float *coords;
@@ -466,13 +468,15 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args,
 	BMLoop *l_new = NULL;
 	BMLoop *l_a, *l_b;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "O!O!O!|OiO!:face_split", (char **)kwlist,
-	                                 &BPy_BMFace_Type, &py_face,
-	                                 &BPy_BMVert_Type, &py_vert_a,
-	                                 &BPy_BMVert_Type, &py_vert_b,
-	                                 &py_coords,
-	                                 &edge_exists,
-	                                 &BPy_BMEdge_Type, &py_edge_example))
+	if (!PyArg_ParseTupleAndKeywords(
+	        args, kw,
+	        "O!O!O!|OO&O!:face_split", (char **)kwlist,
+	        &BPy_BMFace_Type, &py_face,
+	        &BPy_BMVert_Type, &py_vert_a,
+	        &BPy_BMVert_Type, &py_vert_b,
+	        &py_coords,
+	        PyC_ParseBool, &edge_exists,
+	        &BPy_BMEdge_Type, &py_edge_example))
 	{
 		return NULL;
 	}
@@ -632,9 +636,13 @@ static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *args)
 	BMFace **face_array;
 	Py_ssize_t face_seq_len = 0;
 	BMFace *f_new;
-	int do_remove = true;
+	bool do_remove = true;
 
-	if (!PyArg_ParseTuple(args, "O|i:face_join", &py_face_array, &do_remove)) {
+	if (!PyArg_ParseTuple(
+	        args, "O|i:face_join",
+	        &py_face_array,
+	        PyC_ParseBool, &do_remove))
+	{
 		return NULL;
 	}
 

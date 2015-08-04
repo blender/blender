@@ -53,6 +53,7 @@
 #include "bpy_util.h"
 #include "bpy_library.h"
 
+#include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
 /* nifty feature. swap out strings for RNA data */
@@ -189,10 +190,17 @@ static PyObject *bpy_lib_load(PyObject *UNUSED(self), PyObject *args, PyObject *
 	static const char *kwlist[] = {"filepath", "link", "relative", NULL};
 	BPy_Library *ret;
 	const char *filename = NULL;
-	int is_rel = 0, is_link = 0;
+	bool is_rel = false, is_link = false;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|ii:load", (char **)kwlist, &filename, &is_link, &is_rel))
+	if (!PyArg_ParseTupleAndKeywords(
+	        args, kwds,
+	        "s|O&O&:load", (char **)kwlist,
+	        &filename,
+	        PyC_ParseBool, &is_link,
+	        PyC_ParseBool, &is_rel))
+	{
 		return NULL;
+	}
 
 	ret = PyObject_New(BPy_Library, &bpy_lib_Type);
 
