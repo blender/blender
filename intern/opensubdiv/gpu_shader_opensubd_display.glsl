@@ -248,7 +248,7 @@ void main()
 #endif  /* USE_DIRECTIONAL_LIGHT */
 		vec3 h = normalize(l + vec3(0, 0, 1));
 		float d = max(0.0, dot(N, l));
-		float s = pow(max(0.0, dot(N, h)), 500.0f);
+		float s = pow(max(0.0, dot(N, h)), shininess);
 		L_diffuse += d * lightSource[i].diffuse;
 		L_specular += s * lightSource[i].specular;
 	}
@@ -313,7 +313,10 @@ void main()
 #endif
 
 	/* Sum lighting. */
-	vec3 L = L_diffuse + L_specular * specular.rgb;
+	vec3 L = L_diffuse;
+	if (shininess != 0) {
+		L += L_specular * specular.rgb;
+	}
 
 	/* Write out fragment color. */
 	gl_FragColor = vec4(L, diffuse.a);
