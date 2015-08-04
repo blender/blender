@@ -58,6 +58,9 @@ checkOpenSubdivHeaderDefine("tbbEvaluator.h", 'OPENSUBDIV_HAS_TBB')
 checkOpenSubdivHeaderDefine("glXFBEvaluator.h", 'OPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK')
 checkOpenSubdivHeaderDefine("glComputeEvaluator.h", 'OPENSUBDIV_HAS_GLSL_COMPUTE')
 
+if env['WITH_BF_LIBMV']:
+    defs += ['OPENSUBDIV_HAS_OPENMP']
+
 # generated data files
 sources.extend((
     os.path.join(env['DATA_SOURCES'], "gpu_shader_opensubd_display.glsl.c"),
