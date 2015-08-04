@@ -72,7 +72,8 @@ incs = [
     ]
 incs = ' '.join(incs)
 
-defs = env['BF_GL_DEFINITIONS']
+defs = []
+defs += env['BF_GL_DEFINITIONS']
 
 if env['WITH_BF_SMOKE']:
     defs.append('WITH_SMOKE')

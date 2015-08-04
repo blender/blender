@@ -53,7 +53,8 @@ makesrna_tool = env.Clone()
 rna = env.Clone()
 makesrna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesrna/\\"" ')
 
-defs = env['BF_GL_DEFINITIONS']
+defs = []
+defs += env['BF_GL_DEFINITIONS']
 
 incs = [
     '#/intern/guardedalloc',

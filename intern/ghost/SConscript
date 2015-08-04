@@ -48,7 +48,8 @@ sources.remove('intern' + os.sep + 'GHOST_ContextWGL.cpp')
 
 pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_SystemPaths', 'GHOST_Window', 'GHOST_DropTarget', 'GHOST_NDOFManager', 'GHOST_Context']
 
-defs = env['BF_GL_DEFINITIONS']
+defs = []
+defs += env['BF_GL_DEFINITIONS']
 
 if env['WITH_BF_GL_EGL']:
     defs.append('WITH_EGL')

@@ -6,7 +6,9 @@ Import('env')
 
 sources = ['src/glew.c']
 
-defs = env['BF_GL_DEFINITIONS']
+defs = []
+defs += env['BF_GL_DEFINITIONS']
+
 if env['WITH_BF_GLEW_MX']:
     defs += ['GLEW_MX']
 incs = ['include']

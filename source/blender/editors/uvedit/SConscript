@@ -27,7 +27,8 @@
 
 Import ('env')
 
-defs = env['BF_GL_DEFINITIONS']
+defs = []
+defs += env['BF_GL_DEFINITIONS']
 
 sources = env.Glob('*.c')
 

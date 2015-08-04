@@ -48,7 +48,8 @@ incs = [
 
 incs.extend(Split(env['BF_FREETYPE_INC']))
 
-defs = env['BF_GL_DEFINITIONS']
+defs = []
+defs += env['BF_GL_DEFINITIONS']
 
 if sys.platform == 'win32' or env['OURPLATFORM'] == 'linuxcross':
     defs.append('_WIN32')

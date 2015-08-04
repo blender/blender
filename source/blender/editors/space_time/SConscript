@@ -42,6 +42,7 @@ incs = [
     '../../windowmanager',
     ]
 
-defs = env['BF_GL_DEFINITIONS']
+defs = []
+defs += env['BF_GL_DEFINITIONS']
 
 env.BlenderLib('bf_editors_space_time', sources, incs, defs, libtype=['core'], priority=[65])

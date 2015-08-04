@@ -30,7 +30,8 @@ import sys
 Import ('env')
 
 sources = env.Glob('*.cpp')
-defs = env['BF_GL_DEFINITIONS']
+defs = []
+defs += env['BF_GL_DEFINITIONS']
 
 incs = [
     '.',

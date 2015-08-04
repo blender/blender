@@ -5,9 +5,8 @@ import os
 Import('env')
 
 sources = ['intern/glew-mx.c']
-
-defs = env['BF_GL_DEFINITIONS']
-
+defs = []
+defs += env['BF_GL_DEFINITIONS']
 incs = [
     '.',
     env['BF_GLEW_INC'],
