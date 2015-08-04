@@ -215,8 +215,6 @@ uniform vec4 specular;
 uniform float shininess;
 
 uniform sampler2D texture_buffer;
-uniform bool use_color_material;
-uniform bool use_texture_2d;
 
 in block {
 	VertexData v;
@@ -236,99 +234,89 @@ void main()
 	vec3 L_diffuse = vec3(0.0);
 	vec3 L_specular = vec3(0.0);
 
-	if (use_color_material == false) {
-		/* Assume NUM_SOLID_LIGHTS directional lights. */
-		for (int i = 0; i < NUM_SOLID_LIGHTS; i++) {
-			vec3 light_direction = lightSource[i].position.xyz;
-
-			/* Diffuse light. */
-			vec3 light_diffuse = lightSource[i].diffuse.rgb;
-			float diffuse_bsdf = max(dot(N, light_direction), 0.0);
-			L_diffuse += light_diffuse * diffuse_bsdf;
-
-			/* Specular light. */
-			vec4 Plight = lightSource[i].position;
-			vec3 l = (Plight.w == 0.0)
-				? normalize(Plight.xyz) : normalize(Plight.xyz -
-				                                    inpt.v.position.xyz);
-			vec3 light_specular = lightSource[i].specular.rgb;
-			vec3 H = normalize(l + vec3(0,0,1));
-			float specular_bsdf = pow(max(dot(N, H), 0.0),
-			                          shininess);
-			L_specular += light_specular * specular_bsdf;
-		}
+#ifndef USE_COLOR_MATERIAL
+	/* Assume NUM_SOLID_LIGHTS directional lights. */
+	for (int i = 0; i < NUM_SOLID_LIGHTS; i++) {
+		vec4 Plight = lightSource[i].position;
+#ifdef USE_DIRECTIONAL_LIGHT
+		vec3 l = (Plight.w == 0.0)
+		            ? normalize(Plight.xyz)
+		            : normalize(inpt.v.position.xyz);
+#else  /* USE_DIRECTIONAL_LIGHT */
+		/* TODO(sergey): We can normalize it outside of the shader. */
+		vec3 l = normalize(Plight.xyz);
+#endif  /* USE_DIRECTIONAL_LIGHT */
+		vec3 h = normalize(l + vec3(0, 0, 1));
+		float d = max(0.0, dot(N, l));
+		float s = pow(max(0.0, dot(N, h)), 500.0f);
+		L_diffuse += d * lightSource[i].diffuse;
+		L_specular += s * lightSource[i].specular;
 	}
-	else {
-		vec3 varying_position = inpt.v.position.xyz;
-		vec3 V = (gl_ProjectionMatrix[3][3] == 0.0) ?
-			normalize(varying_position): vec3(0.0, 0.0, -1.0);
-		for (int i = 0; i < num_enabled_lights; i++) {
-			/* todo: this is a slow check for disabled lights */
-			if (lightSource[i].specular.a == 0.0)
-				continue;
+#else  /* USE_COLOR_MATERIAL */
+	vec3 varying_position = inpt.v.position.xyz;
+	vec3 V = (gl_ProjectionMatrix[3][3] == 0.0) ?
+		normalize(varying_position): vec3(0.0, 0.0, -1.0);
+	for (int i = 0; i < num_enabled_lights; i++) {
+		/* todo: this is a slow check for disabled lights */
+		if (lightSource[i].specular.a == 0.0)
+			continue;
 
-			float intensity = 1.0;
-			vec3 light_direction;
+		float intensity = 1.0;
+		vec3 light_direction;
 
-			if (lightSource[i].position.w == 0.0) {
-				/* directional light */
-				light_direction = lightSource[i].position.xyz;
-			}
-			else {
-				/* point light */
-				vec3 d = lightSource[i].position.xyz - varying_position;
-				light_direction = normalize(d);
+		if (lightSource[i].position.w == 0.0) {
+			/* directional light */
+			light_direction = lightSource[i].position.xyz;
+		}
+		else {
+			/* point light */
+			vec3 d = lightSource[i].position.xyz - varying_position;
+			light_direction = normalize(d);
 
-				/* spot light cone */
-				if (lightSource[i].spotCutoff < 90.0) {
-					float cosine = max(dot(light_direction,
-					                       -lightSource[i].spotDirection.xyz),
-					                   0.0);
-					intensity = pow(cosine, lightSource[i].spotExponent);
-					intensity *= step(lightSource[i].spotCosCutoff, cosine);
-				}
-
-				/* falloff */
-				float distance = length(d);
-
-				intensity /= lightSource[i].constantAttenuation +
-					lightSource[i].linearAttenuation * distance +
-					lightSource[i].quadraticAttenuation * distance * distance;
+			/* spot light cone */
+			if (lightSource[i].spotCutoff < 90.0) {
+				float cosine = max(dot(light_direction,
+				                       -lightSource[i].spotDirection.xyz),
+				                   0.0);
+				intensity = pow(cosine, lightSource[i].spotExponent);
+				intensity *= step(lightSource[i].spotCosCutoff, cosine);
 			}
 
-			/* diffuse light */
-			vec3 light_diffuse = lightSource[i].diffuse.rgb;
-			float diffuse_bsdf = max(dot(N, light_direction), 0.0);
-			L_diffuse += light_diffuse*diffuse_bsdf*intensity;
+			/* falloff */
+			float distance = length(d);
 
-			/* specular light */
-			vec3 light_specular = lightSource[i].specular.rgb;
-			vec3 H = normalize(light_direction - V);
-
-			float specular_bsdf = pow(max(dot(N, H), 0.0),
-			                          gl_FrontMaterial.shininess);
-			L_specular += light_specular*specular_bsdf * intensity;
+			intensity /= lightSource[i].constantAttenuation +
+				lightSource[i].linearAttenuation * distance +
+				lightSource[i].quadraticAttenuation * distance * distance;
 		}
+
+		/* diffuse light */
+		vec3 light_diffuse = lightSource[i].diffuse.rgb;
+		float diffuse_bsdf = max(dot(N, light_direction), 0.0);
+		L_diffuse += light_diffuse*diffuse_bsdf*intensity;
+
+		/* specular light */
+		vec3 light_specular = lightSource[i].specular.rgb;
+		vec3 H = normalize(light_direction - V);
+
+		float specular_bsdf = pow(max(dot(N, H), 0.0),
+		                          gl_FrontMaterial.shininess);
+		L_specular += light_specular*specular_bsdf * intensity;
 	}
+#endif  /* USE_COLOR_MATERIAL */
 
 	/* Compute diffuse color. */
-	float alpha;
-	if (use_texture_2d) {
-		L_diffuse *= texture2D(texture_buffer, inpt.v.uv).rgb;
-	}
-	else {
-		L_diffuse *= diffuse.rgb;
-	}
-	alpha = diffuse.a;
+#ifdef USE_TEXTURE_2D
+	L_diffuse *= texture2D(texture_buffer, inpt.v.uv).rgb;
+#else
+	L_diffuse *= diffuse.rgb;
+#endif
 
 	/* Sum lighting. */
-	vec3 L = /*gl_FrontLightModelProduct.sceneColor.rgb +*/ L_diffuse;
-	if (shininess != 0.0f) {
-		L += L_specular * specular.rgb;
-	}
+	vec3 L = L_diffuse + L_specular * specular.rgb;
 
 	/* Write out fragment color. */
-	gl_FragColor = vec4(L, alpha);
+	gl_FragColor = vec4(L, diffuse.a);
 #endif
 }
 

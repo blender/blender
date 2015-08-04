@@ -86,8 +86,10 @@ typedef struct Transform {
 static bool g_use_osd_glsl = false;
 static int g_active_uv_index = -1;
 
-static GLuint g_flat_fill_program = 0;
-static GLuint g_smooth_fill_program = 0;
+static GLuint g_flat_fill_solid_program = 0;
+static GLuint g_flat_fill_texture2d_program = 0;
+static GLuint g_smooth_fill_solid_program = 0;
+static GLuint g_smooth_fill_texture2d_program = 0;
 static GLuint g_wireframe_program = 0;
 
 static GLuint g_lighting_ub = 0;
@@ -324,15 +326,8 @@ void bindProgram(PartitionedGLMeshInterface * /*mesh*/,
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, g_lighting_ub);
 
 	/* Color */
-	GLboolean use_lighting, use_color_material, use_texture_2d;
+	GLboolean use_lighting;
 	glGetBooleanv(GL_LIGHTING, &use_lighting);
-	glGetBooleanv(GL_COLOR_MATERIAL, &use_color_material);
-	glGetBooleanv(GL_TEXTURE_2D, &use_texture_2d);
-
-	glUniform1i(glGetUniformLocation(program, "use_color_material"),
-	            use_color_material);
-	glUniform1i(glGetUniformLocation(program, "use_texture_2d"),
-	            use_texture_2d);
 
 	if (use_lighting) {
 		float color[4];
@@ -376,8 +371,10 @@ void openSubdiv_osdGLDisplayInit(void)
 {
 	static bool need_init = true;
 	if (need_init) {
-		g_flat_fill_program = linkProgram("#define FLAT_SHADING\n");
-		g_smooth_fill_program = linkProgram("#define SMOOTH_SHADING\n");
+		g_flat_fill_solid_program = linkProgram("#define FLAT_SHADING\n");
+		g_flat_fill_texture2d_program = linkProgram("#define USE_TEXTURE_2D\n#define FLAT_SHADING\n");
+		g_smooth_fill_solid_program = linkProgram("#define SMOOTH_SHADING\n");
+		g_smooth_fill_texture2d_program = linkProgram("#define USE_TEXTURE_2D\n#define SMOOTH_SHADING\n");
 		g_wireframe_program = linkProgram("#define WIREFRAME\n");
 
 		glGenBuffers(1, &g_lighting_ub);
@@ -394,11 +391,17 @@ void openSubdiv_osdGLDisplayDeinit(void)
 	if (g_lighting_ub != 0) {
 		glDeleteBuffers(1, &g_lighting_ub);
 	}
-	if (g_flat_fill_program) {
-		glDeleteProgram(g_flat_fill_program);
+	if (g_flat_fill_solid_program) {
+		glDeleteProgram(g_flat_fill_solid_program);
 	}
-	if (g_smooth_fill_program) {
-		glDeleteProgram(g_flat_fill_program);
+	if (g_flat_fill_texture2d_program) {
+		glDeleteProgram(g_flat_fill_texture2d_program);
+	}
+	if (g_smooth_fill_solid_program) {
+		glDeleteProgram(g_flat_fill_solid_program);
+	}
+	if (g_smooth_fill_texture2d_program) {
+		glDeleteProgram(g_smooth_fill_texture2d_program);
 	}
 	if (g_wireframe_program) {
 		glDeleteProgram(g_wireframe_program);
@@ -505,12 +508,26 @@ static GLuint preapre_patchDraw(PartitionedGLMeshInterface *mesh,
 		return program;
 	}
 
-	program = g_smooth_fill_program;
 	if (fill_quads) {
 		int model;
+		GLboolean use_texture_2d;
 		glGetIntegerv(GL_SHADE_MODEL, &model);
+		glGetBooleanv(GL_TEXTURE_2D, &use_texture_2d);
 		if (model == GL_FLAT) {
-			program = g_flat_fill_program;
+			if (use_texture_2d) {
+				program = g_flat_fill_texture2d_program;
+			}
+			else {
+				program = g_flat_fill_solid_program;
+			}
+		}
+		else {
+			if (use_texture_2d) {
+				program = g_smooth_fill_texture2d_program;
+			}
+			else {
+				program = g_smooth_fill_solid_program;
+			}
 		}
 	}
 	else {
