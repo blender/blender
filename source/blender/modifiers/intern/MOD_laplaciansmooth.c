@@ -59,7 +59,8 @@ struct BLaplacianSystem {
 	float *vlengths;        /* Total sum of lengths(edges) per vertice*/
 	float *vweights;        /* Total sum of weights per vertice*/
 	int numEdges;           /* Number of edges*/
-	int numFaces;           /* Number of faces*/
+	int numLoops;           /* Number of edges*/
+	int numPolys;           /* Number of faces*/
 	int numVerts;           /* Number of verts*/
 	short *numNeFa;         /* Number of neighboors faces around vertice*/
 	short *numNeEd;         /* Number of neighboors Edges around vertice*/
@@ -67,8 +68,9 @@ struct BLaplacianSystem {
 
 	/* Pointers to data*/
 	float (*vertexCos)[3];
-	MFace *mfaces;
-	MEdge *medges;
+	const MPoly *mpoly;
+	const MLoop *mloop;
+	const MEdge *medges;
 	NLContext *context;
 
 	/*Data*/
@@ -79,9 +81,8 @@ typedef struct BLaplacianSystem LaplacianSystem;
 
 static CustomDataMask required_data_mask(Object *ob, ModifierData *md);
 static bool is_disabled(ModifierData *md, int useRenderParams);
-static float average_area_quad_v3(float *v1, float *v2, float *v3, float *v4);
-static float compute_volume(float (*vertexCos)[3], MFace *mfaces, int numFaces);
-static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numFaces, int a_numVerts);
+static float compute_volume(const float center[3], float (*vertexCos)[3], const MPoly *mpoly, int numPolys, const MLoop *mloop);
+static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numPolys, int a_numLoops, int a_numVerts);
 static void copy_data(ModifierData *md, ModifierData *target);
 static void delete_laplacian_system(LaplacianSystem *sys);
 static void delete_void_pointer(void *data);
@@ -113,7 +114,8 @@ static void delete_laplacian_system(LaplacianSystem *sys)
 		nlDeleteContext(sys->context);
 	}
 	sys->vertexCos = NULL;
-	sys->mfaces = NULL;
+	sys->mpoly = NULL;
+	sys->mloop = NULL;
 	sys->medges = NULL;
 	MEM_freeN(sys);
 }
@@ -121,7 +123,7 @@ static void delete_laplacian_system(LaplacianSystem *sys)
 static void memset_laplacian_system(LaplacianSystem *sys, int val)
 {
 	memset(sys->eweights,     val, sizeof(float) * sys->numEdges);
-	memset(sys->fweights,     val, sizeof(float) * sys->numFaces * 3);
+	memset(sys->fweights,     val, sizeof(float[3]) * sys->numLoops);
 	memset(sys->numNeEd,      val, sizeof(short) * sys->numVerts);
 	memset(sys->numNeFa,      val, sizeof(short) * sys->numVerts);
 	memset(sys->ring_areas,   val, sizeof(float) * sys->numVerts);
@@ -130,12 +132,13 @@ static void memset_laplacian_system(LaplacianSystem *sys, int val)
 	memset(sys->zerola,       val, sizeof(short) * sys->numVerts);
 }
 
-static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numFaces, int a_numVerts)
+static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numPolys, int a_numLoops, int a_numVerts)
 {
 	LaplacianSystem *sys;
 	sys = MEM_callocN(sizeof(LaplacianSystem), "ModLaplSmoothSystem");
 	sys->numEdges = a_numEdges;
-	sys->numFaces = a_numFaces;
+	sys->numPolys = a_numPolys;
+	sys->numLoops = a_numLoops;
 	sys->numVerts = a_numVerts;
 
 	sys->eweights =  MEM_callocN(sizeof(float) * sys->numEdges, "ModLaplSmoothEWeight");
@@ -144,7 +147,7 @@ static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numFaces, in
 		return NULL;
 	}
 
-	sys->fweights =  MEM_callocN(sizeof(float) * 3 * sys->numFaces, "ModLaplSmoothFWeight");
+	sys->fweights =  MEM_callocN(sizeof(float[3]) * sys->numLoops, "ModLaplSmoothFWeight");
 	if (!sys->fweights) {
 		delete_laplacian_system(sys);
 		return NULL;
@@ -189,46 +192,33 @@ static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numFaces, in
 	return sys;
 }
 
-static float average_area_quad_v3(float *v1, float *v2, float *v3, float *v4)
+static float compute_volume(
+        const float center[3], float (*vertexCos)[3],
+        const MPoly *mpoly, int numPolys, const MLoop *mloop)
 {
-	float areaq;
-	areaq = area_tri_v3(v1, v2, v3) + area_tri_v3(v1, v2, v4) + area_tri_v3(v1, v3, v4);
-	return areaq / 2.0f;
-}
-
-static float compute_volume(float (*vertexCos)[3], MFace *mfaces, int numFaces)
-{
-	float vol = 0.0f;
-	float x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
 	int i;
-	float *vf[4];
-	for (i = 0; i < numFaces; i++) {
-		vf[0] = vertexCos[mfaces[i].v1];
-		vf[1] = vertexCos[mfaces[i].v2];
-		vf[2] = vertexCos[mfaces[i].v3];
+	float vol = 0.0f;
 
-		x1 = vf[0][0];
-		y1 = vf[0][1];
-		z1 = vf[0][2];
-
-		x2 = vf[1][0];
-		y2 = vf[1][1];
-		z2 = vf[1][2];
-
-		x3 = vf[2][0];
-		y3 = vf[2][1];
-		z3 = vf[2][2];
+	for (i = 0; i < numPolys; i++) {
+		const MPoly *mp = &mpoly[i];
+		const MLoop *l_first = &mloop[mp->loopstart];
+		const MLoop *l_prev = l_first + 1;
+		const MLoop *l_curr = l_first + 2;
+		const MLoop *l_term = l_first + mp->totloop;
 
 
-		vol +=  (1.0f / 6.0f) * (x2 * y3 * z1 + x3 * y1 * z2 - x1 * y3 * z2 - x2 * y1 * z3 + x1 * y2 * z3 - x3 * y2 * z1);
-		if ((&mfaces[i])->v4) {
-			vf[3] = vertexCos[mfaces[i].v4];
-			x4 = vf[3][0];
-			y4 = vf[3][1];
-			z4 = vf[3][2];
-			vol += (1.0f / 6.0f) * (x1 * y3 * z4 - x1 * y4 * z3 - x3 * y1 * z4 + x3 * z1 * y4 + y1 * x4 * z3 - x4 * y3 * z1);
+		for (;
+		     l_curr != l_term;
+		     l_prev = l_curr, l_curr++)
+		{
+			vol += volume_tetrahedron_signed_v3(
+			        center,
+			        vertexCos[l_first->v],
+			        vertexCos[l_prev->v],
+			        vertexCos[l_curr->v]);
 		}
 	}
+
 	return fabsf(vol);
 }
 
@@ -256,12 +246,12 @@ static void volume_preservation(LaplacianSystem *sys, float vini, float vend, sh
 
 static void init_laplacian_matrix(LaplacianSystem *sys)
 {
-	float *v1, *v2, *v3, *v4;
-	float w1, w2, w3, w4;
+	float *v1, *v2;
+	float w1, w2, w3;
 	float areaf;
-	int i, j;
-	unsigned int idv1, idv2, idv3, idv4, idv[4];
-	bool has_4_vert;
+	int i;
+	unsigned int idv1, idv2;
+
 	for (i = 0; i < sys->numEdges; i++) {
 		idv1 = sys->medges[i].v1;
 		idv2 = sys->medges[i].v2;
@@ -282,86 +272,46 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
 
 		sys->eweights[i] = w1;
 	}
-	for (i = 0; i < sys->numFaces; i++) {
-		has_4_vert = ((&sys->mfaces[i])->v4) ? 1 : 0;
 
-		idv1 = sys->mfaces[i].v1;
-		idv2 = sys->mfaces[i].v2;
-		idv3 = sys->mfaces[i].v3;
-		idv4 = has_4_vert ? sys->mfaces[i].v4 : 0;
+	for (i = 0; i < sys->numPolys; i++) {
+		const MPoly *mp = &sys->mpoly[i];
+		const MLoop *l_next = &sys->mloop[mp->loopstart];
+		const MLoop *l_term = l_next + mp->totloop;
+		const MLoop *l_prev = l_term - 2;
+		const MLoop *l_curr = l_term - 1;
 
-		sys->numNeFa[idv1] += 1;
-		sys->numNeFa[idv2] += 1;
-		sys->numNeFa[idv3] += 1;
-		if (has_4_vert) sys->numNeFa[idv4] += 1;
+		for (;
+		     l_next != l_term;
+		     l_prev = l_curr, l_curr = l_next, l_next++)
+		{
+			const float *v_prev = sys->vertexCos[l_prev->v];
+			const float *v_curr = sys->vertexCos[l_curr->v];
+			const float *v_next = sys->vertexCos[l_next->v];
+			const unsigned int l_curr_index = l_curr - sys->mloop;
 
-		v1 = sys->vertexCos[idv1];
-		v2 = sys->vertexCos[idv2];
-		v3 = sys->vertexCos[idv3];
-		v4 = has_4_vert ? sys->vertexCos[idv4] : NULL;
+			sys->numNeFa[l_curr->v] += 1;
 
-		if (has_4_vert) {
-			areaf = area_quad_v3(v1, v2, v3, sys->vertexCos[sys->mfaces[i].v4]);
-		}
-		else {
-			areaf = area_tri_v3(v1, v2, v3);
-		}
-		if (fabsf(areaf) < sys->min_area) {
-			sys->zerola[idv1] = 1;
-			sys->zerola[idv2] = 1;
-			sys->zerola[idv3] = 1;
-			if (has_4_vert) sys->zerola[idv4] = 1;
-		}
+			areaf = area_tri_v3(v_prev, v_curr, v_next);
 
-		if (has_4_vert) {
-			sys->ring_areas[idv1] += average_area_quad_v3(v1, v2, v3, v4);
-			sys->ring_areas[idv2] += average_area_quad_v3(v2, v3, v4, v1);
-			sys->ring_areas[idv3] += average_area_quad_v3(v3, v4, v1, v2);
-			sys->ring_areas[idv4] += average_area_quad_v3(v4, v1, v2, v3);
-		}
-		else {
-			sys->ring_areas[idv1] += areaf;
-			sys->ring_areas[idv2] += areaf;
-			sys->ring_areas[idv3] += areaf;
-		}
-
-		if (has_4_vert) {
-
-			idv[0] = idv1;
-			idv[1] = idv2;
-			idv[2] = idv3;
-			idv[3] = idv4;
-
-			for (j = 0; j < 4; j++) {
-				idv1 = idv[j];
-				idv2 = idv[(j + 1) % 4];
-				idv3 = idv[(j + 2) % 4];
-				idv4 = idv[(j + 3) % 4];
-
-				v1 = sys->vertexCos[idv1];
-				v2 = sys->vertexCos[idv2];
-				v3 = sys->vertexCos[idv3];
-				v4 = sys->vertexCos[idv4];
-
-				w2 = cotangent_tri_weight_v3(v4, v1, v2) + cotangent_tri_weight_v3(v3, v1, v2);
-				w3 = cotangent_tri_weight_v3(v2, v3, v1) + cotangent_tri_weight_v3(v4, v1, v3);
-				w4 = cotangent_tri_weight_v3(v2, v4, v1) + cotangent_tri_weight_v3(v3, v4, v1);
-
-				sys->vweights[idv1] += (w2 + w3 + w4) / 4.0f;
+			if (areaf < sys->min_area) {
+				sys->zerola[l_curr->v] = 1;
 			}
-		}
-		else {
-			w1 = cotangent_tri_weight_v3(v1, v2, v3) / 2.0f;
-			w2 = cotangent_tri_weight_v3(v2, v3, v1) / 2.0f;
-			w3 = cotangent_tri_weight_v3(v3, v1, v2) / 2.0f;
 
-			sys->fweights[i][0] = sys->fweights[i][0] + w1;
-			sys->fweights[i][1] = sys->fweights[i][1] + w2;
-			sys->fweights[i][2] = sys->fweights[i][2] + w3;
+			sys->ring_areas[l_prev->v] += areaf;
+			sys->ring_areas[l_curr->v] += areaf;
+			sys->ring_areas[l_next->v] += areaf;
 
-			sys->vweights[idv1] = sys->vweights[idv1] + w2 + w3;
-			sys->vweights[idv2] = sys->vweights[idv2] + w1 + w3;
-			sys->vweights[idv3] = sys->vweights[idv3] + w1 + w2;
+			w1 = cotangent_tri_weight_v3(v_curr, v_next, v_prev) / 2.0f;
+			w2 = cotangent_tri_weight_v3(v_next, v_prev, v_curr) / 2.0f;
+			w3 = cotangent_tri_weight_v3(v_prev, v_curr, v_next) / 2.0f;
+
+			sys->fweights[l_curr_index][0] += w1;
+			sys->fweights[l_curr_index][1] += w2;
+			sys->fweights[l_curr_index][2] += w3;
+
+			sys->vweights[l_curr->v] += w2 + w3;
+			sys->vweights[l_next->v] += w1 + w3;
+			sys->vweights[l_prev->v] += w1 + w2;
 		}
 	}
 	for (i = 0; i < sys->numEdges; i++) {
@@ -378,62 +328,34 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
 
 static void fill_laplacian_matrix(LaplacianSystem *sys)
 {
-	float *v1, *v2, *v3, *v4;
-	float w2, w3, w4;
-	int i, j;
-	bool has_4_vert;
-	unsigned int idv1, idv2, idv3, idv4, idv[4];
+	int i;
+	unsigned int idv1, idv2;
 
-	for (i = 0; i < sys->numFaces; i++) {
-		idv1 = sys->mfaces[i].v1;
-		idv2 = sys->mfaces[i].v2;
-		idv3 = sys->mfaces[i].v3;
-		has_4_vert = ((&sys->mfaces[i])->v4) ? 1 : 0;
+	for (i = 0; i < sys->numPolys; i++) {
+		const MPoly *mp = &sys->mpoly[i];
+		const MLoop *l_next = &sys->mloop[mp->loopstart];
+		const MLoop *l_term = l_next + mp->totloop;
+		const MLoop *l_prev = l_term - 2;
+		const MLoop *l_curr = l_term - 1;
 
-		if (has_4_vert) {
-			idv[0] = sys->mfaces[i].v1;
-			idv[1] = sys->mfaces[i].v2;
-			idv[2] = sys->mfaces[i].v3;
-			idv[3] = sys->mfaces[i].v4;
-			for (j = 0; j < 4; j++) {
-				idv1 = idv[j];
-				idv2 = idv[(j + 1) % 4];
-				idv3 = idv[(j + 2) % 4];
-				idv4 = idv[(j + 3) % 4];
+		for (;
+		     l_next != l_term;
+		     l_prev = l_curr, l_curr = l_next, l_next++)
+		{
+			const unsigned int l_curr_index = l_curr - sys->mloop;
 
-				v1 = sys->vertexCos[idv1];
-				v2 = sys->vertexCos[idv2];
-				v3 = sys->vertexCos[idv3];
-				v4 = sys->vertexCos[idv4];
-
-				w2 = cotangent_tri_weight_v3(v4, v1, v2) + cotangent_tri_weight_v3(v3, v1, v2);
-				w3 = cotangent_tri_weight_v3(v2, v3, v1) + cotangent_tri_weight_v3(v4, v1, v3);
-				w4 = cotangent_tri_weight_v3(v2, v4, v1) + cotangent_tri_weight_v3(v3, v4, v1);
-
-				w2 = w2 / 4.0f;
-				w3 = w3 / 4.0f;
-				w4 = w4 / 4.0f;
-
-				if (sys->numNeEd[idv1] == sys->numNeFa[idv1] && sys->zerola[idv1] == 0) {
-					nlMatrixAdd(idv1, idv2, w2 * sys->vweights[idv1]);
-					nlMatrixAdd(idv1, idv3, w3 * sys->vweights[idv1]);
-					nlMatrixAdd(idv1, idv4, w4 * sys->vweights[idv1]);
-				}
-			}
-		}
-		else {
 			/* Is ring if number of faces == number of edges around vertice*/
-			if (sys->numNeEd[idv1] == sys->numNeFa[idv1] && sys->zerola[idv1] == 0) {
-				nlMatrixAdd(idv1, idv2, sys->fweights[i][2] * sys->vweights[idv1]);
-				nlMatrixAdd(idv1, idv3, sys->fweights[i][1] * sys->vweights[idv1]);
+			if (sys->numNeEd[l_curr->v] == sys->numNeFa[l_curr->v] && sys->zerola[l_curr->v] == 0) {
+				nlMatrixAdd(l_curr->v, l_next->v, sys->fweights[l_curr_index][2] * sys->vweights[l_curr->v]);
+				nlMatrixAdd(l_curr->v, l_prev->v, sys->fweights[l_curr_index][1] * sys->vweights[l_curr->v]);
 			}
-			if (sys->numNeEd[idv2] == sys->numNeFa[idv2] && sys->zerola[idv2] == 0) {
-				nlMatrixAdd(idv2, idv1, sys->fweights[i][2] * sys->vweights[idv2]);
-				nlMatrixAdd(idv2, idv3, sys->fweights[i][0] * sys->vweights[idv2]);
+			if (sys->numNeEd[l_next->v] == sys->numNeFa[l_next->v] && sys->zerola[l_next->v] == 0) {
+				nlMatrixAdd(l_next->v, l_curr->v, sys->fweights[l_curr_index][2] * sys->vweights[l_next->v]);
+				nlMatrixAdd(l_next->v, l_prev->v, sys->fweights[l_curr_index][0] * sys->vweights[l_next->v]);
 			}
-			if (sys->numNeEd[idv3] == sys->numNeFa[idv3] && sys->zerola[idv3] == 0) {
-				nlMatrixAdd(idv3, idv1, sys->fweights[i][1] * sys->vweights[idv3]);
-				nlMatrixAdd(idv3, idv2, sys->fweights[i][0] * sys->vweights[idv3]);
+			if (sys->numNeEd[l_prev->v] == sys->numNeFa[l_prev->v] && sys->zerola[l_prev->v] == 0) {
+				nlMatrixAdd(l_prev->v, l_curr->v, sys->fweights[l_curr_index][1] * sys->vweights[l_prev->v]);
+				nlMatrixAdd(l_prev->v, l_next->v, sys->fweights[l_curr_index][0] * sys->vweights[l_prev->v]);
 			}
 		}
 	}
@@ -460,7 +382,7 @@ static void validate_solution(LaplacianSystem *sys, short flag, float lambda, fl
 	float vini, vend;
 
 	if (flag & MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME) {
-		vini = compute_volume(sys->vertexCos, sys->mfaces, sys->numFaces);
+		vini = compute_volume(sys->vert_centroid, sys->vertexCos, sys->mpoly, sys->numPolys, sys->mloop);
 	}
 	for (i = 0; i < sys->numVerts; i++) {
 		if (sys->zerola[i] == 0) {
@@ -477,7 +399,7 @@ static void validate_solution(LaplacianSystem *sys, short flag, float lambda, fl
 		}
 	}
 	if (flag & MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME) {
-		vend = compute_volume(sys->vertexCos, sys->mfaces, sys->numFaces);
+		vend = compute_volume(sys->vert_centroid, sys->vertexCos, sys->mpoly, sys->numPolys, sys->mloop);
 		volume_preservation(sys, vini, vend, flag);
 	}
 }
@@ -495,12 +417,13 @@ static void laplaciansmoothModifier_do(
 
 	DM_ensure_tessface(dm);
 
-	sys = init_laplacian_system(dm->getNumEdges(dm), dm->getNumTessFaces(dm), numVerts);
+	sys = init_laplacian_system(dm->getNumEdges(dm), dm->getNumPolys(dm), dm->getNumLoops(dm), numVerts);
 	if (!sys) {
 		return;
 	}
 
-	sys->mfaces = dm->getTessFaceArray(dm);
+	sys->mpoly = dm->getPolyArray(dm);
+	sys->mloop = dm->getLoopArray(dm);
 	sys->medges = dm->getEdgeArray(dm);
 	sys->vertexCos = vertexCos;
 	sys->min_area = 0.00001f;
