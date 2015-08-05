@@ -234,6 +234,8 @@ void ccgSubSurf_evaluatorFVarUV(CCGSubSurf *ss,
                                 float grid_u, float grid_v,
                                 float uv[2]);
 
+void ccgSubSurf_free_osd_mesh(CCGSubSurf *ss);
+
 #endif
 
 #endif  /* __CCGSUBSURF_H__ */

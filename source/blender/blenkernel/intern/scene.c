@@ -1573,6 +1573,14 @@ static void scene_free_unused_opensubdiv_cache(Scene *scene)
 			if (md != NULL && md->type == eModifierType_Subsurf) {
 				SubsurfModifierData *smd = (SubsurfModifierData *) md;
 				bool object_in_editmode = object->mode == OB_MODE_EDIT;
+				if (!smd->use_opensubdiv) {
+					if (smd->mCache != NULL) {
+						ccgSubSurf_free_osd_mesh(smd->mCache);
+					}
+					if (smd->emCache != NULL) {
+						ccgSubSurf_free_osd_mesh(smd->emCache);
+					}
+				}
 				if (object_in_editmode && smd->mCache != NULL) {
 					ccgSubSurf_free(smd->mCache);
 					smd->mCache = NULL;

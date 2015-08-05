@@ -863,4 +863,17 @@ void ccgSubSurf__sync_opensubdiv(CCGSubSurf *ss)
 #endif
 }
 
+void ccgSubSurf_free_osd_mesh(CCGSubSurf *ss)
+{
+	if (ss->osd_mesh != NULL) {
+		/* TODO(sergey): Make sure free happens form the main thread! */
+		openSubdiv_deleteOsdGLMesh(ss->osd_mesh);
+		ss->osd_mesh = NULL;
+	}
+	if (ss->osd_vao != 0) {
+		glDeleteVertexArrays(1, &ss->osd_vao);
+		ss->osd_vao = 0;
+	}
+}
+
 #endif  /* WITH_OPENSUBDIV */
