@@ -249,8 +249,8 @@ void main()
 		vec3 h = normalize(l + vec3(0, 0, 1));
 		float d = max(0.0, dot(N, l));
 		float s = pow(max(0.0, dot(N, h)), shininess);
-		L_diffuse += d * lightSource[i].diffuse;
-		L_specular += s * lightSource[i].specular;
+		L_diffuse += d * lightSource[i].diffuse.rgb;
+		L_specular += s * lightSource[i].specular.rgb;
 	}
 #else  /* USE_COLOR_MATERIAL */
 	vec3 varying_position = inpt.v.position.xyz;
