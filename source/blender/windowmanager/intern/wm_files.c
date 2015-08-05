@@ -398,6 +398,8 @@ void WM_file_autoexec_init(const char *filepath)
 
 bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 {
+	/* assume automated tasks with background, don't write recent file list */
+	const bool do_history = (G.background == false) && (CTX_wm_manager(C)->op_undo_depth == 0);
 	bool success = false;
 	int retval;
 
@@ -419,9 +421,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 	if (retval == BKE_READ_EXOTIC_OK_BLEND) {
 		int G_f = G.f;
 		ListBase wmbase;
-
-		/* assume automated tasks with background, don't write recent file list */
-		const bool do_history = (G.background == false) && (CTX_wm_manager(C)->op_undo_depth == 0);
 
 		/* put aside screens to match with persistent windows later */
 		/* also exit screens and editors */
@@ -526,6 +525,19 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 	else {
 		BKE_reportf(reports, RPT_ERROR, "Unknown error loading '%s'", filepath);
 		BLI_assert(!"invalid 'retval'");
+	}
+
+
+	if (success == false) {
+		/* remove from recent files list */
+		if (do_history) {
+			RecentFile *recent = BLI_findstring_ptr(&G.recent_files, filepath, offsetof(RecentFile, filepath));
+			if (recent) {
+				MEM_freeN(recent->filepath);
+				BLI_freelinkN(&G.recent_files, recent);
+				write_history();
+			}
+		}
 	}
 
 	WM_cursor_wait(0);
