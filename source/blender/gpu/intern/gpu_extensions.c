@@ -1850,7 +1850,7 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 
 #ifdef WITH_OPENSUBDIV
 	/* TODO(sergey): Find a better place for this. */
-	{
+	if (use_opensubdiv && GLEW_VERSION_4_1) {
 		glProgramUniform1i(shader->object,
 		                   glGetUniformLocation(shader->object, "FVarDataBuffer"),
 		                   31);  /* GL_TEXTURE31 */
