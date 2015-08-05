@@ -262,9 +262,9 @@ bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss, bool use_osd_glsl)
 		}
 
 		ccgSubSurf__updateGLMeshCoords(ss);
-
 		openSubdiv_osdGLMeshRefine(ss->osd_mesh);
 		openSubdiv_osdGLMeshSynchronize(ss->osd_mesh);
+		ss->osd_coarse_coords_invalid = false;
 
 		glBindVertexArray(ss->osd_vao);
 		glBindBuffer(GL_ARRAY_BUFFER,
