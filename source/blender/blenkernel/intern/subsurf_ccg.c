@@ -4758,11 +4758,15 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 				 * this is to be investiated still to be sure we don't have
 				 * regressions here.
 				 */
-				prevSS = smd->mCache;
-#else
-				ccgSubSurf_free(smd->mCache);
-				smd->mCache = NULL;
+				if (use_gpu_backend) {
+					prevSS = smd->mCache;
+				}
+				else
 #endif
+				{
+					ccgSubSurf_free(smd->mCache);
+					smd->mCache = NULL;
+				}
 			}
 
 

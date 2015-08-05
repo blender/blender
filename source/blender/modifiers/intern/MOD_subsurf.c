@@ -104,7 +104,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 #ifdef WITH_OPENSUBDIV
 	const bool allow_gpu = (flag & MOD_APPLY_ALLOW_GPU) != 0;
-	const bool do_cddm_convert = useRenderParams;
+	const bool do_cddm_convert = useRenderParams || (!isFinalCalc && !smd->use_opensubdiv);
 #else
 	const bool do_cddm_convert = useRenderParams || !isFinalCalc;
 #endif
