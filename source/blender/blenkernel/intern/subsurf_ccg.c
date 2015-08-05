@@ -4858,6 +4858,8 @@ bool subsurf_has_edges(DerivedMesh *dm)
 	if (ccgdm->useGpuBackend) {
 		return true;
 	}
+#else
+	(void)ccgdm;
 #endif
 	return dm->getNumEdges(dm) != 0;
 }
@@ -4869,6 +4871,8 @@ bool subsurf_has_faces(DerivedMesh *dm)
 	if (ccgdm->useGpuBackend) {
 		return true;
 	}
+#else
+	(void)ccgdm;
 #endif
 	return dm->getNumPolys(dm) != 0;
 }
