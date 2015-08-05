@@ -286,7 +286,7 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
                 sub.prop(act_spline, "order_v", text="V")
                 sub.prop(act_spline, "resolution_v", text="V")
 
-            if not is_surf:
+            if act_spline.type == 'BEZIER':
                 col = layout.column()
                 col.label(text="Interpolation:")
 
