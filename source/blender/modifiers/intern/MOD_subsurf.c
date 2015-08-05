@@ -170,6 +170,16 @@ static DerivedMesh *applyModifierEM(ModifierData *md, Object *UNUSED(ob),
 	return result;
 }
 
+static bool dependsOnNormals(ModifierData *md)
+{
+#ifdef WITH_OPENSUBDIV
+	SubsurfModifierData *smd = (SubsurfModifierData *) md;
+	if (smd->use_opensubdiv && md->next == NULL) {
+		return true;
+	}
+#endif
+	return false;
+}
 
 ModifierTypeInfo modifierType_Subsurf = {
 	/* name */              "Subsurf",
@@ -196,7 +206,7 @@ ModifierTypeInfo modifierType_Subsurf = {
 	/* updateDepgraph */    NULL,
 	/* updateDepsgraph */   NULL,
 	/* dependsOnTime */     NULL,
-	/* dependsOnNormals */	NULL,
+	/* dependsOnNormals */	dependsOnNormals,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
