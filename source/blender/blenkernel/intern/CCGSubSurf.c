@@ -1515,6 +1515,12 @@ int ccgSubSurf_getNumFinalVerts(const CCGSubSurf *ss)
 	                     ss->fMap->numEntries +
 	                     ss->numGrids * ((gridSize - 2) + ((gridSize - 2) * (gridSize - 2))));
 
+#ifdef WITH_OPENSUBDIV
+	if (ss->skip_grids) {
+		return 0;
+	}
+#endif
+
 	return numFinalVerts;
 }
 int ccgSubSurf_getNumFinalEdges(const CCGSubSurf *ss)
@@ -1523,13 +1529,22 @@ int ccgSubSurf_getNumFinalEdges(const CCGSubSurf *ss)
 	int gridSize = ccg_gridsize(ss->subdivLevels);
 	int numFinalEdges = (ss->eMap->numEntries * (edgeSize - 1) +
 	                     ss->numGrids * ((gridSize - 1) + 2 * ((gridSize - 2) * (gridSize - 1))));
-
+#ifdef WITH_OPENSUBDIV
+	if (ss->skip_grids) {
+		return 0;
+	}
+#endif
 	return numFinalEdges;
 }
 int ccgSubSurf_getNumFinalFaces(const CCGSubSurf *ss)
 {
 	int gridSize = ccg_gridsize(ss->subdivLevels);
 	int numFinalFaces = ss->numGrids * ((gridSize - 1) * (gridSize - 1));
+#ifdef WITH_OPENSUBDIV
+	if (ss->skip_grids) {
+		return 0;
+	}
+#endif
 	return numFinalFaces;
 }
 

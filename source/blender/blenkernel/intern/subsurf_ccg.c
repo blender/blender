@@ -4850,3 +4850,25 @@ void subsurf_calculate_limit_positions(Mesh *me, float (*r_positions)[3])
 
 	dm->release(dm);
 }
+
+bool subsurf_has_edges(DerivedMesh *dm)
+{
+	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
+#ifdef WITH_OPENSUBDIV
+	if (ccgdm->useGpuBackend) {
+		return true;
+	}
+#endif
+	return dm->getNumEdges(dm) != 0;
+}
+
+bool subsurf_has_faces(DerivedMesh *dm)
+{
+	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
+#ifdef WITH_OPENSUBDIV
+	if (ccgdm->useGpuBackend) {
+		return true;
+	}
+#endif
+	return dm->getNumPolys(dm) != 0;
+}

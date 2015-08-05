@@ -85,6 +85,9 @@ void subsurf_copy_grid_paint_mask(struct DerivedMesh *dm,
                                   const struct MPoly *mpoly, float *paint_mask,
                                   const struct GridPaintMask *grid_paint_mask);
 
+bool subsurf_has_edges(struct DerivedMesh *dm);
+bool subsurf_has_faces(struct DerivedMesh *dm);
+
 typedef enum MultiresModifiedFlags {
 	/* indicates the grids have been sculpted on, so MDisps
 	 * have to be updated */
