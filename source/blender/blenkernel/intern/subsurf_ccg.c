@@ -2632,11 +2632,10 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 			draw_smooth = true;
 			new_matnr = 1;
 		}
-		if (setMaterial) {
-			setMaterial(new_matnr, NULL);
+		if (setMaterial && setMaterial(new_matnr, NULL)) {
+			glShadeModel(draw_smooth ? GL_SMOOTH : GL_FLAT);
+			ccgSubSurf_drawGLMesh(ss, true, -1, -1);
 		}
-		glShadeModel(draw_smooth ? GL_SMOOTH : GL_FLAT);
-		ccgSubSurf_drawGLMesh(ss, true, -1, -1);
 		return;
 	}
 #endif
@@ -2691,8 +2690,9 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 			new_matnr = 1;
 		}
 		glShadeModel(draw_smooth ? GL_SMOOTH : GL_FLAT);
-		setMaterial(new_matnr, &gattribs);
-		ccgSubSurf_drawGLMesh(ss, true, -1, -1);
+		if (setMaterial(new_matnr, &gattribs)) {
+			ccgSubSurf_drawGLMesh(ss, true, -1, -1);
+		}
 		return;
 	}
 #endif
@@ -4544,7 +4544,8 @@ static void set_ccgdm_gpu_geometry(CCGDerivedMesh *ccgdm, DerivedMesh *dm)
 
 	for (index = 0; index < totface; index++) {
 		faceFlags->flag = mpoly ?  mpoly[index].flag : 0;
-		faceFlags->mat_nr = mpoly ? mpoly[index].mat_nr : 0;
+		/* faceFlags->mat_nr = mpoly ? mpoly[index].mat_nr : 0; */
+		faceFlags->mat_nr = 0;
 		faceFlags++;
 	}
 
