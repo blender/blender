@@ -1633,12 +1633,13 @@ static int node_insert_offset_modal(bContext *C, wmOperator *UNUSED(op), const w
 	SpaceNode *snode = CTX_wm_space_node(C);
 	NodeInsertOfsData *iofsd = snode->iofsd;
 	bNode *node;
-	const float duration = (float)iofsd->anim_timer->duration;
+	float duration;
 
 	if (!snode || event->type != TIMER || iofsd->anim_timer != event->customdata)
 		return OPERATOR_PASS_THROUGH;
 
 	/* end timer + free insert offset data */
+	duration = (float)iofsd->anim_timer->duration;
 	if (duration > NODE_INSOFS_ANIM_DURATION) {
 		WM_event_remove_timer(CTX_wm_manager(C), NULL, iofsd->anim_timer);
 
