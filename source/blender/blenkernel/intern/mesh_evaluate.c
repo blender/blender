@@ -2121,8 +2121,7 @@ void BKE_mesh_calc_volume(
 			totvol += vol;
 		}
 		if (r_center) {
-			/* averaging factor 1/4 is applied in the end */
-			madd_v3_v3fl(r_center, center, vol);  /* XXX could extract this */
+			/* averaging factor 1/3 is applied in the end */
 			madd_v3_v3fl(r_center, v1->co, vol);
 			madd_v3_v3fl(r_center, v2->co, vol);
 			madd_v3_v3fl(r_center, v3->co, vol);
@@ -2137,11 +2136,11 @@ void BKE_mesh_calc_volume(
 		*r_volume = fabsf(totvol);
 	}
 	if (r_center) {
-		/* Note: Factor 1/4 is applied once for all vertices here.
+		/* Note: Factor 1/3 is applied once for all vertices here.
 		 * This also automatically negates the vector if totvol is negative.
 		 */
 		if (totvol != 0.0f)
-			mul_v3_fl(r_center, 0.25f / totvol);
+			mul_v3_fl(r_center, (1.0f / 3.0f) / totvol);
 	}
 }
 
