@@ -5286,7 +5286,10 @@ static void seq_new_fix_links_recursive(Sequence *seq)
 
 Sequence *BKE_sequence_dupli_recursive(Scene *scene, Scene *scene_to, Sequence *seq, int dupe_flag)
 {
-	Sequence *seqn = seq_dupli(scene, scene_to, seq, dupe_flag);
+	Sequence *seqn;
+
+	seq->tmp = NULL;
+	seqn = seq_dupli(scene, scene_to, seq, dupe_flag);
 	if (seq->type == SEQ_TYPE_META) {
 		Sequence *s;
 		for (s = seq->seqbase.first; s; s = s->next) {
