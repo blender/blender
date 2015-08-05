@@ -4957,9 +4957,9 @@ static void def_cmp_color_spill(StructRNA *srna)
 	};
 
 	static EnumPropertyItem limit_channel_items[] = {
-		{1, "R", 0, "R", "Limit by Red"},
-		{2, "G", 0, "G", "Limit by Green"},
-		{3, "B", 0, "B", "Limit by Blue"},
+		{0, "R", 0, "R", "Limit by Red"},
+		{1, "G", 0, "G", "Limit by Green"},
+		{2, "B", 0, "B", "Limit by Blue"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
