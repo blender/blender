@@ -1,7 +1,7 @@
 """
 Note that when keying data paths which contain nested properties this must be
 done from the :class:`ID` subclass, in this case the :class:`Armature` rather
-then the bone.
+than the bone.
 """
 
 import bpy

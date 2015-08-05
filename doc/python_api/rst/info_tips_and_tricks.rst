@@ -81,7 +81,7 @@ Editing a text file externally and having the same text open in Blender does wor
 so here are 2 ways you can easily use an external file from Blender.
 
 Using the following examples you'll still need textblock in Blender to execute,
-but reference an external file rather then including it directly.
+but reference an external file rather than including it directly.
 
 
 Executing External Scripts
@@ -306,7 +306,7 @@ Python Safety (Build Option)
 Since it's possible to access data which has been removed (see Gotcha's),
 this can be hard to track down the cause of crashes.
 
-To raise Python exceptions on accessing freed data (rather then crashing),
+To raise Python exceptions on accessing freed data (rather than crashing),
 enable the CMake build option WITH_PYTHON_SAFETY.
 
 This enables data tracking which makes data access about 2x slower

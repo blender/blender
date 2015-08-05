@@ -137,7 +137,7 @@ base class --- :class:`SCA_IObject`
 
       .. note::
 
-         A value of 0.0 disables this option (rather then setting it stationary).
+         A value of 0.0 disables this option (rather than setting it stationary).
 
    .. attribute:: angularVelocityMin
 

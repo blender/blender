@@ -184,7 +184,7 @@ There are now 3 ways to access faces:
 
 - :class:`bpy.types.MeshPolygon` -
   this is the data structure which now stores faces in object mode
-  (access as ``mesh.polygons`` rather then ``mesh.faces``).
+  (access as ``mesh.polygons`` rather than ``mesh.faces``).
 - :class:`bpy.types.MeshTessFace` -
   the result of triangulating (tessellated) polygons,
   the main method of face access in 2.62 or older (access as ``mesh.tessfaces``).
@@ -444,7 +444,7 @@ this way you don't run this risk of referencing existing data from the blend fil
    
    # normally some code, or function calls...
    
-   # use own dictionary rather then bpy.data
+   # use own dictionary rather than bpy.data
    mesh = mesh_name_mapping[meshid]
 
 
@@ -494,7 +494,7 @@ A common case where you would run into this problem is when exporting a material
 
 
 When using blender data from linked libraries there is an unfortunate complication
-since the path will be relative to the library rather then the open blend file.
+since the path will be relative to the library rather than the open blend file.
 When the data block may be from an external blend file pass the library argument from the :class:`bpy.types.ID`.
 
    >>> bpy.path.abspath(image.filepath, library=image.library)
@@ -759,7 +759,7 @@ internally the array which stores this data is re-allocated.
    point.co = 1.0, 2.0, 3.0
 
 This can be avoided by re-assigning the point variables after adding the new one or by storing
-indices's to the points rather then the points themselves.
+indices's to the points rather than the points themselves.
 
 The best way is to sidestep the problem altogether add all the points to the curve at once.
 This means you don't have to worry about array re-allocation and its faster too
@@ -782,7 +782,7 @@ The following example shows how this precortion works.
    mesh = bpy.data.meshes.new(name="MyMesh")
    # normally the script would use the mesh here...
    bpy.data.meshes.remove(mesh)
-   print(mesh.name)  # <- give an exception rather then crashing:
+   print(mesh.name)  # <- give an exception rather than crashing:
 
    # ReferenceError: StructRNA of type Mesh has been removed
 

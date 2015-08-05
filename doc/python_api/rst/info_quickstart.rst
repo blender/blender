@@ -59,7 +59,7 @@ text editor or entering commands in the Python console.
 
 Both the *Text Editor* and *Python Console* are space types you can select from the view header.
 
-Rather then manually configuring your spaces for Python development,
+Rather than manually configuring your spaces for Python development,
 you may prefer to use the *Scripting* screen, included default with Blender,
 accessible from the top headers screen selector.
 
