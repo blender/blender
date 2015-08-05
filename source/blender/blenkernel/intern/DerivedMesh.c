@@ -78,8 +78,6 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm);
 
 #ifdef WITH_OPENSUBDIV
 #  include "DNA_userdef_types.h"
-#  include "BKE_subsurf.h"
-#  include "CCGSubSurf.h"
 #endif
 
 /* very slow! enable for testing only! */
@@ -3523,25 +3521,8 @@ void DM_set_object_boundbox(Object *ob, DerivedMesh *dm)
 {
 	float min[3], max[3];
 
-#ifdef WITH_OPENSUBDIV
-	/* TODO(sergey): Currently no way to access bounding box from hi-res mesh. */
-	if (dm->type == DM_TYPE_CCGDM) {
-		CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
-		if (!ccgSubSurf_needGrids(ccgdm->ss)) {
-			copy_v3_fl3(min, -1.0f, -1.0f, -1.0f);
-			copy_v3_fl3(max, 1.0f, 1.0f, 1.0f);
-		}
-		else {
-			INIT_MINMAX(min, max);
-			dm->getMinMax(dm, min, max);
-		}
-	}
-	else
-#endif
-	{
-		INIT_MINMAX(min, max);
-		dm->getMinMax(dm, min, max);
-	}
+	INIT_MINMAX(min, max);
+	dm->getMinMax(dm, min, max);
 
 	if (!ob->bb)
 		ob->bb = MEM_callocN(sizeof(BoundBox), "DM-BoundBox");

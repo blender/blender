@@ -848,6 +848,13 @@ static void ccgDM_getMinMax(DerivedMesh *dm, float r_min[3], float r_max[3])
 	int i, edgeSize = ccgSubSurf_getEdgeSize(ss);
 	int gridSize = ccgSubSurf_getGridSize(ss);
 
+#ifdef WITH_OPENSUBDIV
+	if (ccgdm->useGpuBackend) {
+		ccgSubSurf_getMinMax(ccgdm->ss, r_min, r_max);
+		return;
+	}
+#endif
+
 	CCG_key_top_level(&key, ss);
 
 	if (!ccgSubSurf_getNumVerts(ss))
