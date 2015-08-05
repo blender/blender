@@ -471,7 +471,19 @@ static void bmw_LoopShellWireWalker_begin(BMWalker *walker, void *data)
 		case BM_EDGE:
 		{
 			BMEdge *e = (BMEdge *)h;
-			bmw_LoopShellWalker_visitEdgeWire(walker, e);
+			if (bmw_mask_check_edge(walker, e)) {
+				bmw_LoopShellWireWalker_visitVert(walker, e->v1, NULL);
+				bmw_LoopShellWireWalker_visitVert(walker, e->v2, NULL);
+			}
+			else {
+				BMLoop *l_iter, *l_first;
+
+				l_iter = l_first = e->l;
+				do {
+					bmw_LoopShellWalker_visitLoop(walker, l_iter);
+					bmw_LoopShellWalker_visitLoop(walker, l_iter->next);
+				} while ((l_iter = l_iter->radial_next) != l_first);
+			}
 			break;
 		}
 		case BM_FACE:
