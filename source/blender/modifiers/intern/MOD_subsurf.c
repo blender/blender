@@ -160,7 +160,7 @@ static DerivedMesh *applyModifierEM(ModifierData *md, Object *UNUSED(ob),
 	/* TODO(sergey): Not entirely correct, modifiers on top of subsurf
 	 * could be disabled.
 	 */
-	if (md->next == NULL && allow_gpu) {
+	if (md->next == NULL && allow_gpu && smd->use_opensubdiv) {
 		ss_flags |= SUBSURF_USE_GPU_BACKEND;
 	}
 #endif
