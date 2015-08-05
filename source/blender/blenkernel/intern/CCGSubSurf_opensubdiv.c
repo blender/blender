@@ -879,7 +879,7 @@ void ccgSubSurf_free_osd_mesh(CCGSubSurf *ss)
 void ccgSubSurf_getMinMax(CCGSubSurf *ss, float r_min[3], float r_max[3])
 {
 	int i;
-	BLI_assert(ss->use_grids == false);
+	BLI_assert(ss->skip_grids == true);
 	for (i = 0; i < ss->osd_num_coarse_coords; i++) {
 		DO_MINMAX(ss->osd_coarse_coords[i], r_min, r_max);
 	}
