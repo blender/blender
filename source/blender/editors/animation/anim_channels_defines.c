@@ -952,6 +952,7 @@ static bool acf_fcurve_setting_valid(bAnimContext *ac, bAnimListElem *ale, eAnim
 		/* unsupported */
 		case ACHANNEL_SETTING_SOLO:   /* Solo Flag is only for NLA */
 		case ACHANNEL_SETTING_EXPAND: /* F-Curves are not containers */
+		case ACHANNEL_SETTING_PINNED: /* This is only for NLA Actions */
 			return false;
 		
 		/* conditionally available */
