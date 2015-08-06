@@ -843,7 +843,6 @@ void defvert_add_index_notest(MDeformVert *dvert, int defgroup, const float weig
 void defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
 {
 	if (dvert && dw) {
-		MDeformWeight *dw_new;
 		int i = dw - dvert->dw;
 
 		/* Security check! */
@@ -856,20 +855,13 @@ void defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
 		 * this deform weight, and reshuffle the others.
 		 */
 		if (dvert->totweight) {
-			dw_new = MEM_mallocN(sizeof(MDeformWeight) * (dvert->totweight), __func__);
-			if (dvert->dw) {
-#if 1           /* since we don't care about order, swap this with the last, save a memcpy */
-				if (i != dvert->totweight) {
-					dvert->dw[i] = dvert->dw[dvert->totweight];
-				}
-				memcpy(dw_new, dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
-#else
-				memcpy(dw_new, dvert->dw, sizeof(MDeformWeight) * i);
-				memcpy(dw_new + i, dvert->dw + i + 1, sizeof(MDeformWeight) * (dvert->totweight - i));
-#endif
-				MEM_freeN(dvert->dw);
+			BLI_assert(dvert->dw != NULL);
+
+			if (i != dvert->totweight) {
+				dvert->dw[i] = dvert->dw[dvert->totweight];
 			}
-			dvert->dw = dw_new;
+
+			dvert->dw = MEM_reallocN(dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
 		}
 		else {
 			/* If there are no other deform weights left then just remove this one. */
