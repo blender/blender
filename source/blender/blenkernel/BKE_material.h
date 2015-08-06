@@ -69,6 +69,8 @@ struct Material ***give_matarar_id(struct ID *id); /* same but for ID's */
 short *give_totcolp_id(struct ID *id);
 
 enum {
+	/* use existing link option */
+	BKE_MAT_ASSIGN_EXISTING,
 	BKE_MAT_ASSIGN_USERPREF,
 	BKE_MAT_ASSIGN_OBDATA,
 	BKE_MAT_ASSIGN_OBJECT
