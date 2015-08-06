@@ -295,8 +295,12 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel)
 	bDopeSheet ads = {NULL};
 	DLRBT_Tree keys;
 	ActKeyColumn *ak;
+	
+	float fac1 = (GS(id->name) == ID_GD) ? 0.8f : 0.6f; /* draw GPencil keys taller, to help distinguish them */
+	float fac2 = 1.0f - fac1;
+	
 	float ymin = v2d->tot.ymin;
-	float ymax = v2d->tot.ymax * 0.6f + ymin * 0.4f;
+	float ymax = v2d->tot.ymax * fac1 + ymin * fac2;
 	
 	/* init binarytree-list for getting keyframes */
 	BLI_dlrbTree_init(&keys);
