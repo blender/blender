@@ -227,7 +227,7 @@ typedef enum IMB_Timecode_Type {
 	                        * and is a sane default) */
 
 	IMB_TC_FREE_RUN   = 2, /* use global timestamp written by recording
-                            * device (prosumer camcorders e.g. can do that) */
+	                        * device (prosumer camcorders e.g. can do that) */
 	IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN = 4, /* interpolate a global timestamp using the
 	                                            * record date and time written by recording
 	                                            * device (*every* consumer camcorder can do

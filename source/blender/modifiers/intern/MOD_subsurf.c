@@ -177,6 +177,8 @@ static bool dependsOnNormals(ModifierData *md)
 	if (smd->use_opensubdiv && md->next == NULL) {
 		return true;
 	}
+#else
+	UNUSED_VARS(md);
 #endif
 	return false;
 }

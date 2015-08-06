@@ -1672,7 +1672,7 @@ static BMWalker bmw_ConnectedVertexWalker_Type = {
 BMWalker *bm_walker_types[] = {
 	&bmw_VertShellWalker_Type,          /* BMW_VERT_SHELL */
 	&bmw_LoopShellWalker_Type,          /* BMW_LOOP_SHELL */
-    &bmw_LoopShellWireWalker_Type,      /* BMW_LOOP_SHELL_WIRE */
+	&bmw_LoopShellWireWalker_Type,      /* BMW_LOOP_SHELL_WIRE */
 	&bmw_FaceShellWalker_Type,          /* BMW_FACE_SHELL */
 	&bmw_EdgeLoopWalker_Type,           /* BMW_EDGELOOP */
 	&bmw_FaceLoopWalker_Type,           /* BMW_FACELOOP */

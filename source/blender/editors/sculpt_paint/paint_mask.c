@@ -69,7 +69,7 @@
 
 static EnumPropertyItem mode_items[] = {
 	{PAINT_MASK_FLOOD_VALUE, "VALUE", 0, "Value", "Set mask to the level specified by the 'value' property"},
-    {PAINT_MASK_FLOOD_VALUE_INVERSE, "VALUE_INVERSE", 0, "Value Inverted", "Set mask to the level specified by the inverted 'value' property"},
+	{PAINT_MASK_FLOOD_VALUE_INVERSE, "VALUE_INVERSE", 0, "Value Inverted", "Set mask to the level specified by the inverted 'value' property"},
 	{PAINT_MASK_INVERT, "INVERT", 0, "Invert", "Invert the mask"},
 	{0}};
 

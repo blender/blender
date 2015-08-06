@@ -365,9 +365,10 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			ascii[0] = '.';
 			utf8_buf = ascii;
 			break;
-#if 0  /* Those keys are not directly accessible in all layouts, preventing to generate matching events.
-        * So we use a hack (ascii value) instead, see below.
-        */
+#if 0
+		/* Those keys are not directly accessible in all layouts, preventing to generate matching events.
+		 * So we use a hack (ascii value) instead, see below.
+		 */
 		case EQUALKEY:
 		case PADASTERKEY:
 			if (!(n->flag & NUM_EDIT_FULL)) {

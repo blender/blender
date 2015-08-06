@@ -366,12 +366,12 @@ EnumPropertyItem views_format_multiview_items[] = {
 
 EnumPropertyItem stereo3d_display_items[] = {
 	{S3D_DISPLAY_ANAGLYPH, "ANAGLYPH", 0, "Anaglyph",
-     "Render views for left and right eyes as two differently filtered colors in a single image "
-     "(anaglyph glasses are required)"},
+	 "Render views for left and right eyes as two differently filtered colors in a single image "
+	 "(anaglyph glasses are required)"},
 	{S3D_DISPLAY_INTERLACE, "INTERLACE", 0, "Interlace",
-     "Render views for left and right eyes interlaced in a single image (3D-ready monitor is required)"},
+	 "Render views for left and right eyes interlaced in a single image (3D-ready monitor is required)"},
 	{S3D_DISPLAY_PAGEFLIP, "TIMESEQUENTIAL", 0, "Time Sequential",
-     "Render alternate eyes (also known as page flip, quad buffer support in the graphic card is required)"},
+	 "Render alternate eyes (also known as page flip, quad buffer support in the graphic card is required)"},
 	{S3D_DISPLAY_SIDEBYSIDE, "SIDEBYSIDE", 0, "Side-by-Side", "Render views for left and right eyes side-by-side"},
 	{S3D_DISPLAY_TOPBOTTOM, "TOPBOTTOM", 0, "Top-Bottom", "Render views for left and right eyes one above another"},
 	{0, NULL, 0, NULL, NULL}

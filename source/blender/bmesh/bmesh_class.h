@@ -284,22 +284,26 @@ enum {
 	BM_ELEM_SELECT  = (1 << 0),
 	BM_ELEM_HIDDEN  = (1 << 1),
 	BM_ELEM_SEAM    = (1 << 2),
-	BM_ELEM_SMOOTH  = (1 << 3), /* used for faces and edges, note from the user POV,
-                                 * this is a sharp edge when disabled */
-
-	BM_ELEM_TAG     = (1 << 4), /* internal flag, used for ensuring correct normals
-                                 * during multires interpolation, and any other time
-                                 * when temp tagging is handy.
-                                 * always assume dirty & clear before use. */
+	/**
+	 * used for faces and edges, note from the user POV,
+	 * this is a sharp edge when disabled */
+	BM_ELEM_SMOOTH  = (1 << 3),
+	/**
+	 * internal flag, used for ensuring correct normals
+	 * during multires interpolation, and any other time
+	 * when temp tagging is handy.
+	 * always assume dirty & clear before use. */
+	BM_ELEM_TAG     = (1 << 4),
 
 	BM_ELEM_DRAW    = (1 << 5), /* edge display */
 
 	/* spare tag, assumed dirty, use define in each function to name based on use */
 	// _BM_ELEM_TAG_ALT = (1 << 6),  // UNUSED
-
-	BM_ELEM_INTERNAL_TAG = (1 << 7) /* for low level internal API tagging,
-                                     * since tools may want to tag verts and
-                                     * not have functions clobber them */
+	/**
+	 * for low level internal API tagging,
+	 * since tools may want to tag verts and
+	 * not have functions clobber them */
+	BM_ELEM_INTERNAL_TAG = (1 << 7),
 };
 
 struct BPy_BMGeneric;

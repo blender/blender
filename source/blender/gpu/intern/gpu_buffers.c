@@ -1610,26 +1610,26 @@ static GPUBuffer *gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned
 
 #define FILL_FAST_BUFFER(type_) \
 { \
-    type_ *buffer; \
-    buffers->index_buf_fast = GPU_buffer_alloc(sizeof(type_) * 6 * totgrid, false); \
-    buffer = GPU_buffer_lock(buffers->index_buf_fast, GPU_BINDING_INDEX); \
-    if (buffer) { \
-        int i; \
-        for (i = 0; i < totgrid; i++) { \
-            int currentquad = i * 6; \
-            buffer[currentquad]     = i * gridsize * gridsize + gridsize - 1; \
-            buffer[currentquad + 1] = i * gridsize * gridsize; \
-            buffer[currentquad + 2] = (i + 1) * gridsize * gridsize - gridsize; \
-            buffer[currentquad + 3] = (i + 1) * gridsize * gridsize - 1; \
-            buffer[currentquad + 4] = i * gridsize * gridsize + gridsize - 1; \
-            buffer[currentquad + 5] = (i + 1) * gridsize * gridsize - gridsize; \
-        } \
-        GPU_buffer_unlock(buffers->index_buf_fast, GPU_BINDING_INDEX); \
+	type_ *buffer; \
+	buffers->index_buf_fast = GPU_buffer_alloc(sizeof(type_) * 6 * totgrid, false); \
+	buffer = GPU_buffer_lock(buffers->index_buf_fast, GPU_BINDING_INDEX); \
+	if (buffer) { \
+		int i; \
+		for (i = 0; i < totgrid; i++) { \
+			int currentquad = i * 6; \
+			buffer[currentquad]     = i * gridsize * gridsize + gridsize - 1; \
+			buffer[currentquad + 1] = i * gridsize * gridsize; \
+			buffer[currentquad + 2] = (i + 1) * gridsize * gridsize - gridsize; \
+			buffer[currentquad + 3] = (i + 1) * gridsize * gridsize - 1; \
+			buffer[currentquad + 4] = i * gridsize * gridsize + gridsize - 1; \
+			buffer[currentquad + 5] = (i + 1) * gridsize * gridsize - gridsize; \
+		} \
+		GPU_buffer_unlock(buffers->index_buf_fast, GPU_BINDING_INDEX); \
 	} \
 	else { \
-        GPU_buffer_free(buffers->index_buf_fast); \
-        buffers->index_buf_fast = NULL; \
-    } \
+		GPU_buffer_free(buffers->index_buf_fast); \
+		buffers->index_buf_fast = NULL; \
+	} \
 } (void)0
 
 GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,

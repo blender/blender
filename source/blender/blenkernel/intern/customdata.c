@@ -2142,7 +2142,8 @@ void CustomData_copy_elements(int type, void *src_data_ofs, void *dst_data_ofs, 
 static void CustomData_copy_data_layer(
         const CustomData *source, CustomData *dest,
         int src_i, int dst_i,
-        int src_index, int dst_index, int count) {
+        int src_index, int dst_index, int count)
+{
 	const LayerTypeInfo *typeInfo;
 	int src_offset;
 	int dst_offset;

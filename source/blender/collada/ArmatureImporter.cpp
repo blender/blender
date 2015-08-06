@@ -65,7 +65,7 @@ static EditBone *get_edit_bone(bArmature * armature, char *name) {
 
 
 ArmatureImporter::ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, Scene *sce, const ImportSettings *import_settings) :
-    import_settings(import_settings),
+	import_settings(import_settings),
 	unit_converter(conv),
 	TransformReader(conv), 
 	scene(sce), 
