@@ -342,29 +342,25 @@ static short gp_stroke_addpoint(tGPsdata *p, const int mval[2], float pressure, 
 			
 			/* store settings */
 			copy_v2_v2_int(&pt->x, mval);
-			pt->pressure = pressure;
+			pt->pressure = 1.0f; /* T44932 - Pressure vals are unreliable, so ignore for now */
 			pt->time = (float)(curtime - p->inittime);
 			
 			/* increment buffer size */
 			gpd->sbuffer_size++;
 		}
 		else {
-			/* normally, we just reset the endpoint to the latest value
+			/* just reset the endpoint to the latest value
 			 *	- assume that pointers for this are always valid...
 			 */
 			pt = ((tGPspoint *)(gpd->sbuffer) + 1);
 			
 			/* store settings */
 			copy_v2_v2_int(&pt->x, mval);
-			pt->pressure = pressure;
+			pt->pressure = 1.0f; /* T44932 - Pressure vals are unreliable, so ignore for now */
 			pt->time = (float)(curtime - p->inittime);
 			
-			/* if this is just the second point we've added, increment the buffer size
-			 * so that it will be drawn properly...
-			 * otherwise, just leave it alone, otherwise we get problems
-			 */
-			if (gpd->sbuffer_size != 2)
-				gpd->sbuffer_size = 2;
+			/* now the buffer has 2 points (and shouldn't be allowed to get any larger) */
+			gpd->sbuffer_size = 2;
 		}
 		
 		/* can keep carrying on this way :) */
