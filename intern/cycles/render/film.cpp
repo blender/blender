@@ -209,8 +209,14 @@ static float filter_func_box(float /*v*/, float /*width*/)
 
 static float filter_func_gaussian(float v, float width)
 {
-	v *= 2.0f/width;
+	v *= 6.0f/width;
 	return expf(-2.0f*v*v);
+}
+
+static float filter_func_blackman_harris(float v, float width)
+{
+	v = M_2PI_F * (v / width + 0.5f);
+	return 0.35875f - 0.48829f*cosf(v) + 0.14128f*cosf(2.0f*v) - 0.01168f*cosf(3.0f*v);
 }
 
 static vector<float> filter_table(FilterType type, float width)
@@ -224,6 +230,11 @@ static vector<float> filter_table(FilterType type, float width)
 			break;
 		case FILTER_GAUSSIAN:
 			filter_func = filter_func_gaussian;
+			width *= 3.0f;
+			break;
+		case FILTER_BLACKMAN_HARRIS:
+			filter_func = filter_func_blackman_harris;
+			width *= 2.0f;
 			break;
 		default:
 			assert(0);

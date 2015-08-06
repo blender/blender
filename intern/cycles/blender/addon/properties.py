@@ -54,6 +54,7 @@ enum_bvh_types = (
 enum_filter_types = (
     ('BOX', "Box", "Box filter"),
     ('GAUSSIAN', "Gaussian", "Gaussian filter"),
+    ('BLACKMAN_HARRIS', "Blackman-Harris", "Blackman-Harris filter"),
     )
 
 enum_aperture_types = (
