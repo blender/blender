@@ -646,6 +646,9 @@ static EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C), Poi
 #endif
 #endif
 
+	/* may be unused */
+	UNUSED_VARS(index, audio_device_items);
+
 	RNA_enum_item_end(&item, &totitem);
 	*r_free = true;
 
