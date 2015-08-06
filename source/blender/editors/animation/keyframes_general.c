@@ -869,7 +869,7 @@ static void paste_animedit_keys_fcurve(FCurve *fcu, tAnimCopybufItem *aci, float
 		 */
 		
 		insert_bezt_fcurve(fcu, bezt, INSERTKEY_OVERWRITE_FULL);
-
+		
 		/* un-apply offset from src beztriple after copying */
 		bezt->vec[0][0] -= offset;
 		bezt->vec[1][0] -= offset;
@@ -971,6 +971,7 @@ short paste_animedit_keys(bAnimContext *ac, ListBase *anim_data,
 				 *	- if names do matter, only check if id-type is ok for now (group check is not that important)
 				 *	- most importantly, rna-paths should match (array indices are unimportant for now)
 				 */
+				AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 				FCurve *fcu = (FCurve *)ale->data;  /* destination F-Curve */
 				tAnimCopybufItem *aci = NULL;
 				
@@ -994,9 +995,17 @@ short paste_animedit_keys(bAnimContext *ac, ListBase *anim_data,
 				/* copy the relevant data from the matching buffer curve */
 				if (aci) {
 					totmatch++;
-					paste_animedit_keys_fcurve(fcu, aci, offset, merge_mode, flip);
+					
+					if (adt) {
+						ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
+						paste_animedit_keys_fcurve(fcu, aci, offset, merge_mode, flip);
+						ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
+					}
+					else {
+						paste_animedit_keys_fcurve(fcu, aci, offset, merge_mode, flip);
+					}
 				}
-
+				
 				ale->update |= ANIM_UPDATE_DEFAULT;
 			}
 			
