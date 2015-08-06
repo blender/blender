@@ -303,6 +303,8 @@ class GPENCIL_PIE_tools_more(Menu):
         pie.operator("wm.call_menu_pie", text="Back to Main Palette...").name = "GPENCIL_PIE_tool_palette"
 
 
+###############################
+
 class GPENCIL_UL_layer(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         # assert(isinstance(item, bpy.types.GPencilLayer)
@@ -354,7 +356,9 @@ class GreasePencilDataPanel:
         layout.template_ID(gpd_owner, "grease_pencil", new="gpencil.data_add", unlink="gpencil.data_unlink")
 
         # Grease Pencil data...
-        if gpd:
+        if (gpd is None) or len(gpd.layers) == 0:
+            layout.operator("gpencil.layer_add", text="New Layer")
+        else:
             self.draw_layers(context, layout, gpd)
 
     def draw_layers(self, context, layout, gpd):
