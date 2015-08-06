@@ -4287,13 +4287,13 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 				offset += ICON_WIDTH;
 				draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax - offset, ymid, ACHANNEL_SETTING_MUTE);
 			}
-
+			
 			/* modifiers disable */
 			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MOD_OFF)) {
-				offset += ICON_WIDTH;
+				offset += ICON_WIDTH * 1.2f; /* hack: extra spacing, to avoid touching the mute toggle */
 				draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax - offset, ymid, ACHANNEL_SETTING_MOD_OFF);
 			}
-
+			
 			/* ----------- */
 			
 			/* pinned... */
