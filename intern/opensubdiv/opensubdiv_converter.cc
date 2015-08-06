@@ -37,6 +37,21 @@
 
 #include <stack>
 
+#ifdef OPENSUBDIV_ORIENT_TOPOLOGY
+namespace {
+
+inline void reverse_face_verts(int *face_verts, int num_verts)
+{
+	int last_vert = face_verts[num_verts - 1];
+	for (int i = num_verts - 1; i > 0;  --i) {
+		face_verts[i] = face_verts[i - 1];
+	}
+	face_verts[0] = last_vert;
+}
+
+}  /* namespace */
+#endif /* OPENSUBDIV_ORIENT_TOPOLOGY */
+
 namespace OpenSubdiv {
 namespace OPENSUBDIV_VERSION {
 namespace Far {
@@ -50,6 +65,32 @@ inline int findInArray(T array, int value)
 }
 
 #ifdef OPENSUBDIV_ORIENT_TOPOLOGY
+inline int get_loop_winding(int vert0_of_face, int vert1_of_face)
+{
+	int delta_face = vert1_of_face - vert0_of_face;
+	if (abs(delta_face) != 1) {
+		if (delta_face > 0) {
+			delta_face = -1;
+		}
+		else {
+			delta_face = 1;
+		}
+	}
+	return delta_face;
+}
+
+inline void reverse_face_loops(IndexArray face_verts, IndexArray face_edges)
+{
+	for (int i = 0; i < face_verts.size() / 2; ++i) {
+		int j = face_verts.size() - i - 1;
+		if (i != j) {
+			std::swap(face_verts[i], face_verts[j]);
+			std::swap(face_edges[i], face_edges[j]);
+		}
+	}
+	reverse_face_verts(&face_verts[0], face_verts.size());
+}
+
 inline void check_oriented_vert_connectivity(const int num_vert_edges,
                                              const int num_vert_faces,
                                              const int *vert_edges,
@@ -150,12 +191,71 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTopolog
 		IndexArray dst_edge_faces = getBaseEdgeFaces(refiner, edge);
 		conv.get_edge_faces(&conv, edge, &dst_edge_faces[0]);
 	}
+#ifdef OPENSUBDIV_ORIENT_TOPOLOGY
+	/* Make face normals consistent. */
+	bool *face_used = new bool[num_faces];
+	memset(face_used, 0, sizeof(bool) * num_faces);
+	std::stack<int> traverse_stack;
+	int face_start = 0, num_traversed_faces = 0;
+	/* Traverse all islands. */
+	while (num_traversed_faces != num_faces) {
+		/* Find first face of any untraversed islands. */
+		while (face_used[face_start]) {
+			++face_start;
+		}
+		/* Add first face to the stack. */
+		traverse_stack.push(face_start);
+		face_used[face_start] = true;
+		/* Go over whole connected component. */
+		while (!traverse_stack.empty()) {
+			int face = traverse_stack.top();
+			traverse_stack.pop();
+			IndexArray face_edges = getBaseFaceEdges(refiner, face);
+			ConstIndexArray face_verts = getBaseFaceVertices(refiner, face);
+			for (int edge_index = 0; edge_index < face_edges.size(); ++edge_index) {
+				const int edge = face_edges[edge_index];
+				ConstIndexArray edge_faces = getBaseEdgeFaces(refiner, edge);
+				if (edge_faces.size() != 2) {
+					/* Can't make consistent normals for non-manifolds. */
+					continue;
+				}
+				ConstIndexArray edge_verts = getBaseEdgeVertices(refiner, edge);
+				/* Get winding of the reference face. */
+				int vert0_of_face = findInArray(face_verts, edge_verts[0]),
+				    vert1_of_face = findInArray(face_verts, edge_verts[1]);
+				int delta_face = get_loop_winding(vert0_of_face, vert1_of_face);
+				for (int edge_face = 0; edge_face < edge_faces.size(); ++edge_face) {
+					int other_face = edge_faces[edge_face];
+					/* Never re-traverse faces, only move forward. */
+					if (face_used[other_face]) {
+						continue;
+					}
+					IndexArray other_face_verts = getBaseFaceVertices(refiner,
+					                                                  other_face);
+					int vert0_of_other_face = findInArray(other_face_verts,
+					                                      edge_verts[0]),
+					    vert1_of_other_face = findInArray(other_face_verts,
+					                                      edge_verts[1]);
+					int delta_other_face = get_loop_winding(vert0_of_other_face,
+					                                        vert1_of_other_face);
+					if (delta_face * delta_other_face > 0) {
+						IndexArray other_face_verts = getBaseFaceVertices(refiner,
+						                                                  other_face),
+						           other_face_edges = getBaseFaceEdges(refiner,
+						                                               other_face);
+						reverse_face_loops(other_face_verts,
+						                   other_face_edges);
+					}
+					traverse_stack.push(other_face);
+					face_used[other_face] = true;
+				}
+			}
+			++num_traversed_faces;
+		}
+	}
+#endif  /* OPENSUBDIV_ORIENT_TOPOLOGY */
 	/* Vertex relations */
 	const int num_verts = conv.get_num_verts(&conv);
-#ifdef OPENSUBDIV_ORIENT_TOPOLOGY
-	/* Flags used to see if the face was traversed already or not. */
-	bool *face_used = new bool[num_faces];
-#endif
 	for (int vert = 0; vert < num_verts; ++vert) {
 
 		/* Vert-Faces */
@@ -520,10 +620,28 @@ int openSubdiv_topologyRefnerCompareConverter(
 		}
 		conv_face_verts.resize(face_verts.size());
 		converter->get_face_verts(converter, face, &conv_face_verts[0]);
+		bool direct_match = true;
 		for (int i = 0; i < face_verts.size(); ++i) {
 			if (conv_face_verts[i] != face_verts[i]) {
-				return false;
+				direct_match = false;
+				break;
 			}
+		}
+		if (!direct_match) {
+			/* If face didn't match in direct direction we also test if it
+			 * matches in reversed direction. This is because conversion might
+			 * reverse loops to make normals consistent.
+			 */
+#ifdef OPENSUBDIV_ORIENT_TOPOLOGY
+			reverse_face_verts(&conv_face_verts[0], conv_face_verts.size());
+			for (int i = 0; i < face_verts.size(); ++i) {
+				if (conv_face_verts[i] != face_verts[i]) {
+					return false;
+				}
+			}
+#else
+			return false;
+#endif
 		}
 	}
 	/* Compare sharpness. */
