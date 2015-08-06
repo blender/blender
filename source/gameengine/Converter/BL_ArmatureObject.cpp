@@ -233,8 +233,8 @@ BL_ArmatureObject::BL_ArmatureObject(
 	// During object replication ob->data is increase, we decrease it now because we get a copy.
 	id_us_min(&((bArmature *)m_origObjArma->data)->id);
 	m_pose = m_objArma->pose;
-    // need this to get iTaSC working ok in the BGE
-    m_pose->flag |= POSE_GAME_ENGINE;
+	// need this to get iTaSC working ok in the BGE
+	m_pose->flag |= POSE_GAME_ENGINE;
 	memcpy(m_obmat, m_objArma->obmat, sizeof(m_obmat));
 
 	// The side-effect of this method registers this object as "animatable" with the KX_Scene.

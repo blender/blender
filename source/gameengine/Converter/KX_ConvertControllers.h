@@ -41,7 +41,7 @@ void BL_ConvertControllers(
 	int activeLayerBitInfo,
 	bool isInActiveLayer, 
 	class KX_BlenderSceneConverter* converter,
-    bool libloading
+	bool libloading
 );
 
 #endif  /* __KX_CONVERTCONTROLLERS_H__ */
