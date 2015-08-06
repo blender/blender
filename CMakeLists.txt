@@ -1150,7 +1150,7 @@ if(UNIX AND NOT APPLE)
 
 		if(NOT OPENSUBDIV_FOUND)
 			set(WITH_OPENSUBDIV OFF)
-			message(STATUS "OpenSundiv not found")
+			message(STATUS "OpenSubdiv not found")
 		endif()
 	endif()
 
