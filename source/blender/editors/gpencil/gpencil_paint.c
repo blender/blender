@@ -394,7 +394,7 @@ static short gp_stroke_addpoint(tGPsdata *p, const int mval[2], float pressure, 
 		
 		/* store settings */
 		copy_v2_v2_int(&pt->x, mval);
-		pt->pressure = pressure;
+		pt->pressure = 1.0f; /* T44932 - Pressure vals are unreliable, so ignore for now */
 		pt->time = (float)(curtime - p->inittime);
 		
 		/* if there's stroke for this poly line session add (or replace last) point
