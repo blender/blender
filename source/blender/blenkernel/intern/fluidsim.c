@@ -70,54 +70,38 @@ void initElbeemMesh(struct Scene *scene, struct Object *ob,
                     int *numTriangles, int **triangles,
                     int useGlobalCoords, int modifierIndex)
 {
-	DerivedMesh *dm = NULL;
-	MVert *mvert;
-	MFace *mface;
-	int countTris = 0, i, totvert, totface;
+	DerivedMesh *dm;
+	const MVert *mvert;
+	const MLoop *mloop;
+	const MLoopTri *looptri, *lt;
+	int i, mvert_num, looptri_num;
 	float *verts;
 	int *tris;
 
 	dm = mesh_create_derived_index_render(scene, ob, CD_MASK_BAREMESH, modifierIndex);
 
-	DM_ensure_tessface(dm);
+	DM_ensure_looptri(dm);
 
 	mvert = dm->getVertArray(dm);
-	mface = dm->getTessFaceArray(dm);
-	totvert = dm->getNumVerts(dm);
-	totface = dm->getNumTessFaces(dm);
+	mloop = dm->getLoopArray(dm);
+	looptri = dm->getLoopTriArray(dm);
+	mvert_num = dm->getNumVerts(dm);
+	looptri_num = dm->getNumLoopTri(dm);
 
-	*numVertices = totvert;
-	verts = MEM_callocN(totvert * 3 * sizeof(float), "elbeemmesh_vertices");
-	for (i = 0; i < totvert; i++) {
+	*numVertices = mvert_num;
+	verts = MEM_mallocN(mvert_num * sizeof(float[3]), "elbeemmesh_vertices");
+	for (i = 0; i < mvert_num; i++) {
 		copy_v3_v3(&verts[i * 3], mvert[i].co);
 		if (useGlobalCoords) { mul_m4_v3(ob->obmat, &verts[i * 3]); }
 	}
 	*vertices = verts;
 
-	for (i = 0; i < totface; i++) {
-		countTris++;
-		if (mface[i].v4) { countTris++; }
-	}
-	*numTriangles = countTris;
-	tris = MEM_callocN(countTris * 3 * sizeof(int), "elbeemmesh_triangles");
-	countTris = 0;
-	for (i = 0; i < totface; i++) {
-		int face[4];
-		face[0] = mface[i].v1;
-		face[1] = mface[i].v2;
-		face[2] = mface[i].v3;
-		face[3] = mface[i].v4;
-
-		tris[countTris * 3 + 0] = face[0];
-		tris[countTris * 3 + 1] = face[1];
-		tris[countTris * 3 + 2] = face[2];
-		countTris++;
-		if (face[3]) {
-			tris[countTris * 3 + 0] = face[0];
-			tris[countTris * 3 + 1] = face[2];
-			tris[countTris * 3 + 2] = face[3];
-			countTris++;
-		}
+	*numTriangles = looptri_num;
+	tris = MEM_mallocN(looptri_num * sizeof(int[3]), "elbeemmesh_triangles");
+	for (i = 0, lt = looptri; i < looptri_num; i++, lt++) {
+		tris[(i * 3) + 0] = mloop[lt->tri[0]].v;
+		tris[(i * 3) + 1] = mloop[lt->tri[1]].v;
+		tris[(i * 3) + 2] = mloop[lt->tri[2]].v;
 	}
 	*triangles = tris;
 
