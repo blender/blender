@@ -1932,7 +1932,7 @@ int GPU_shader_get_uniform(GPUShader *shader, const char *name)
 
 void GPU_shader_uniform_vector(GPUShader *UNUSED(shader), int location, int length, int arraysize, const float *value)
 {
-	if (location == -1)
+	if (location == -1 || value == NULL)
 		return;
 
 	GPU_ASSERT_NO_GL_ERRORS("Pre Uniform Vector");
