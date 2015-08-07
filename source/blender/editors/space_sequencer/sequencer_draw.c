@@ -224,7 +224,13 @@ static void drawseqwave(const bContext *C, SpaceSeq *sseq, Scene *scene, Sequenc
 		BLI_spin_unlock(sound->spinlock);
 		
 		waveform = seq->sound->waveform;
-		
+
+		if (waveform->length == 0) {
+			/* BKE_sound_read_waveform() set an empty SoundWaveform data in case it cannot generate a valid one...
+			 * See T45726. */
+			return;
+		}
+
 		startsample = floor((seq->startofs + seq->anim_startofs) / FPS * SOUND_WAVE_SAMPLES_PER_SECOND);
 		endsample = ceil((seq->startofs + seq->anim_startofs + seq->enddisp - seq->startdisp) / FPS * SOUND_WAVE_SAMPLES_PER_SECOND);
 		samplestep = (endsample - startsample) * stepsize / (x2 - x1);
