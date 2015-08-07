@@ -1417,6 +1417,9 @@ void BKE_mesh_remap_calc_loops_from_dm(
 					if (verts_allocated_src) {
 						verts_allocated_src = false;  /* Only 'give' our verts once, to first tree! */
 					}
+					if (loops_allocated_src) {
+						loops_allocated_src = false;  /* Only 'give' our loops once, to first tree! */
+					}
 					if (looptri_allocated_src) {
 						looptri_allocated_src = false;  /* Only 'give' our looptri once, to first tree! */
 					}
