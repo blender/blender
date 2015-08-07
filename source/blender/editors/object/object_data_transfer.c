@@ -329,6 +329,8 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 
 	bool changed = false;
 
+	const bool is_frozen = RNA_boolean_get(op->ptr, "use_freeze");
+
 	const bool reverse_transfer = RNA_boolean_get(op->ptr, "use_reverse_transfer");
 
 	const int data_type = RNA_enum_get(op->ptr, "data_type");
@@ -357,6 +359,12 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 
 	SpaceTransform space_transform_data;
 	SpaceTransform *space_transform = (use_object_transform && !use_auto_transform) ? &space_transform_data : NULL;
+
+	if (is_frozen) {
+		BKE_report(op->reports, RPT_INFO,
+		           "Operator is frozen, changes to its settings won't take effect until you unfreeze it");
+		return OPERATOR_FINISHED;
+	}
 
 	if (reverse_transfer && ((ID *)(ob_src->data))->lib) {
 		/* Do not transfer to linked data, not supported. */
@@ -523,6 +531,10 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
 	prop = RNA_def_boolean(ot->srna, "use_reverse_transfer", false, "Reverse Transfer",
 	                       "Transfer from selected objects to active one");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
+
+	RNA_def_boolean(ot->srna, "use_freeze", false, "Freeze Operator",
+	                "Prevent changes to settings to re-run the operator, "
+	                "handy to change several things at once with heavy geometry");
 
 	/* Data type to transfer. */
 	ot->prop = RNA_def_enum(ot->srna, "data_type", DT_layer_items, 0, "Data Type", "Which data to transfer");
