@@ -147,15 +147,15 @@ static int frame_from_event(bContext *C, const wmEvent *event)
 static void change_frame_seq_preview_begin(bContext *C, const wmEvent *event)
 {
 	ScrArea *sa = CTX_wm_area(C);
+	bScreen *screen = CTX_wm_screen(C);
 	if (sa && sa->spacetype == SPACE_SEQ) {
-		bScreen *screen = CTX_wm_screen(C);
 		SpaceSeq *sseq = sa->spacedata.first;
 		if (ED_space_sequencer_check_show_strip(sseq)) {
 			ED_sequencer_special_preview_set(C, event->mval);
 		}
-		if (screen)
-			screen->scrubbing = true;
 	}
+	if (screen)
+		screen->scrubbing = true;
 }
 
 static void change_frame_seq_preview_end(bContext *C)

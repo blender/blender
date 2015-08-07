@@ -3877,7 +3877,7 @@ static void view3d_main_area_draw_info(const bContext *C, Scene *scene,
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 		wmWindowManager *wm = CTX_wm_manager(C);
 
-		if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_playing(wm)) {
+		if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
 			ED_scene_draw_fps(scene, &rect);
 		}
 		else if (U.uiflag & USER_SHOW_VIEWPORTNAME) {
