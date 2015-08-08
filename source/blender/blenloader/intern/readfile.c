@@ -1239,6 +1239,31 @@ static void *newdataadr(FileData *fd, void *adr)		/* only direct databocks */
 	return oldnewmap_lookup_and_inc(fd->datamap, adr, true);
 }
 
+/* This is a special version of newdataadr() which allows us to keep lasthit of
+ * map unchanged. In certain cases this makes file loading time significantly
+ * faster.
+ *
+ * Use this function in cases like restoring pointer from one list element to
+ * another list element, but keep lasthit value so we can continue restoring
+ * pointers efficiently.
+ *
+ * Example of this could be found in direct_link_fcurves() which restores the
+ * fcurve group pointer and keeps lasthit optimal for linking all further
+ * fcurves.
+ */
+static void *newdataadr_ex(FileData *fd, void *adr, bool increase_lasthit)		/* only direct databocks */
+{
+	if (increase_lasthit) {
+		return newdataadr(fd, adr);
+	}
+	else {
+		int lasthit = fd->datamap->lasthit;
+		void *newadr = newdataadr(fd, adr);
+		fd->datamap->lasthit = lasthit;
+		return newadr;
+	}
+}
+
 static void *newdataadr_no_us(FileData *fd, void *adr)		/* only direct databocks */
 {
 	return oldnewmap_lookup_and_inc(fd->datamap, adr, false);
@@ -2219,7 +2244,7 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		fcu->rna_path = newdataadr(fd, fcu->rna_path);
 		
 		/* group */
-		fcu->grp = newdataadr(fd, fcu->grp);
+		fcu->grp = newdataadr_ex(fd, fcu->grp, false);
 		
 		/* clear disabled flag - allows disabled drivers to be tried again ([#32155]),
 		 * but also means that another method for "reviving disabled F-Curves" exists
