@@ -473,6 +473,7 @@ bool RE_bake_pixels_populate_from_objects(
 		mesh_calc_tri_tessface(tris_high[i], highpoly[i].me, false, NULL);
 
 		dm_highpoly[i] = CDDM_from_mesh(highpoly[i].me);
+		DM_ensure_tessface(dm_highpoly[i]);
 
 		if (dm_highpoly[i]->getNumTessFaces(dm_highpoly[i]) != 0) {
 			/* Create a bvh-tree for each highpoly object */
