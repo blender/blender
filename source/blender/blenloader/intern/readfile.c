@@ -1655,22 +1655,35 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname)
 	return temp;
 }
 
-static void link_list(FileData *fd, ListBase *lb)		/* only direct data */
+typedef void (*link_list_cb)(FileData *fd, void *data);
+
+static void link_list_ex(FileData *fd, ListBase *lb, link_list_cb callback)		/* only direct data */
 {
 	Link *ln, *prev;
 	
 	if (BLI_listbase_is_empty(lb)) return;
 	
 	lb->first = newdataadr(fd, lb->first);
+	if (callback != NULL) {
+		callback(fd, lb->first);
+	}
 	ln = lb->first;
 	prev = NULL;
 	while (ln) {
 		ln->next = newdataadr(fd, ln->next);
+		if (ln->next != NULL && callback != NULL) {
+			callback(fd, ln->next);
+		}
 		ln->prev = prev;
 		prev = ln;
 		ln = ln->next;
 	}
 	lb->last = prev;
+}
+
+static void link_list(FileData *fd, ListBase *lb)		/* only direct data */
+{
+	link_list_ex(fd, lb, NULL);
 }
 
 static void link_glob_list(FileData *fd, ListBase *lb)		/* for glob data */
@@ -3706,35 +3719,34 @@ static const char *ptcache_data_struct[] = {
 	"", // BPHYS_DATA_TIMES:
 	"BoidData" // case BPHYS_DATA_BOIDS:
 };
+
+static void direct_link_pointcache_cb(FileData *fd, void *data)
+{
+	PTCacheMem *pm = data;
+	PTCacheExtra *extra;
+	int i;
+	for (i = 0; i < BPHYS_TOT_DATA; i++) {
+		pm->data[i] = newdataadr(fd, pm->data[i]);
+
+		/* the cache saves non-struct data without DNA */
+		if (pm->data[i] && ptcache_data_struct[i][0]=='\0' && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
+			int tot = (BKE_ptcache_data_size (i) * pm->totpoint) / sizeof(int); /* data_size returns bytes */
+			int *poin = pm->data[i];
+
+			BLI_endian_switch_int32_array(poin, tot);
+		}
+	}
+
+	link_list(fd, &pm->extradata);
+
+	for (extra=pm->extradata.first; extra; extra=extra->next)
+		extra->data = newdataadr(fd, extra->data);
+}
+
 static void direct_link_pointcache(FileData *fd, PointCache *cache)
 {
 	if ((cache->flag & PTCACHE_DISK_CACHE)==0) {
-		PTCacheMem *pm;
-		PTCacheExtra *extra;
-		int i;
-		
-		link_list(fd, &cache->mem_cache);
-		
-		pm = cache->mem_cache.first;
-		
-		for (; pm; pm=pm->next) {
-			for (i=0; i<BPHYS_TOT_DATA; i++) {
-				pm->data[i] = newdataadr(fd, pm->data[i]);
-				
-				/* the cache saves non-struct data without DNA */
-				if (pm->data[i] && ptcache_data_struct[i][0]=='\0' && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
-					int tot = (BKE_ptcache_data_size (i) * pm->totpoint) / sizeof(int); /* data_size returns bytes */
-					int *poin = pm->data[i];
-					
-					BLI_endian_switch_int32_array(poin, tot);
-				}
-			}
-			
-			link_list(fd, &pm->extradata);
-			
-			for (extra=pm->extradata.first; extra; extra=extra->next)
-				extra->data = newdataadr(fd, extra->data);
-		}
+		link_list_ex(fd, &cache->mem_cache, direct_link_pointcache_cb);
 	}
 	else
 		BLI_listbase_clear(&cache->mem_cache);
@@ -3944,7 +3956,7 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 			
 			if (psys->clmd) {
 				/* XXX - from reading existing code this seems correct but intended usage of
-				 * pointcache should /w cloth should be added in 'ParticleSystem' - campbell */
+				 * pointcache /w cloth should be added in 'ParticleSystem' - campbell */
 				psys->clmd->point_cache = psys->pointcache;
 				psys->clmd->ptcaches.first = psys->clmd->ptcaches.last= NULL;
 				psys->clmd->coll_parms->group = newlibadr(fd, id->lib, psys->clmd->coll_parms->group);
@@ -4012,8 +4024,6 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		psys->pdd = NULL;
 		psys->renderdata = NULL;
 		
-		direct_link_pointcache_list(fd, &psys->ptcaches, &psys->pointcache, 0);
-		
 		if (psys->clmd) {
 			psys->clmd = newdataadr(fd, psys->clmd);
 			psys->clmd->clothObject = NULL;
@@ -4030,10 +4040,13 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 			
 			psys->hair_in_dm = psys->hair_out_dm = NULL;
 			psys->clmd->solver_result = NULL;
-			
+		}
+
+		direct_link_pointcache_list(fd, &psys->ptcaches, &psys->pointcache, 0);
+		if (psys->clmd) {
 			psys->clmd->point_cache = psys->pointcache;
 		}
-		
+
 		psys->tree = NULL;
 		psys->bvhtree = NULL;
 	}
