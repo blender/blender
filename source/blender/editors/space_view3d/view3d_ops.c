@@ -236,7 +236,6 @@ void view3d_keymap(wmKeyConfig *keyconf)
 
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_navigate", FKEY, KM_PRESS, KM_SHIFT, 0);
 
-	/* value is set to KM_NOTHING to avoid conflicts with click type (see T44251) */
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_smoothview", TIMER1, KM_ANY, KM_ANY, 0);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_rotate", MOUSEPAN, 0, 0, 0);
