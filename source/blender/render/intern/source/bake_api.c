@@ -389,9 +389,9 @@ static void mesh_calc_tri_tessface(
 		MLoopTri *lt = &looptri[i];
 		MPoly *mp = &me->mpoly[lt->poly];
 
-		triangles[i].mverts[0] = &mvert[lt->tri[0]];
-		triangles[i].mverts[1] = &mvert[lt->tri[1]];
-		triangles[i].mverts[2] = &mvert[lt->tri[2]];
+		triangles[i].mverts[0] = &mvert[me->mloop[lt->tri[0]].v];
+		triangles[i].mverts[1] = &mvert[me->mloop[lt->tri[1]].v];
+		triangles[i].mverts[2] = &mvert[me->mloop[lt->tri[2]].v];
 		triangles[i].is_smooth = (mp->flag & ME_SMOOTH) != 0;
 
 		if (tangent) {
