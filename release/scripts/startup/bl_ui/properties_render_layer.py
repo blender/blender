@@ -187,6 +187,7 @@ class RENDERLAYER_UL_renderviews(UIList):
 class RENDERLAYER_PT_views(RenderLayerButtonsPanel, Panel):
     bl_label = "Views"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
         rd = context.scene.render
