@@ -230,7 +230,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	wm_read_history();
+	wm_history_file_read();
 
 	/* allow a path of "", this is what happens when making a new file */
 #if 0

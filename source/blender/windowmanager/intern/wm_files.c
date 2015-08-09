@@ -116,7 +116,11 @@
 #include "wm_window.h"
 #include "wm_event_system.h"
 
-static void write_history(void);
+static RecentFile *wm_file_history_find(const char *filepath);
+static void wm_history_file_free(RecentFile *recent);
+static void wm_history_file_update(void);
+static void wm_history_file_write(void);
+
 
 /* To be able to read files without windows closing, opening, moving
  * we try to prepare for worst case:
@@ -456,7 +460,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 		
 		if (retval != BKE_READ_FILE_FAIL) {
 			if (do_history) {
-				write_history();
+				wm_history_file_update();
 			}
 		}
 
@@ -531,11 +535,10 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 	if (success == false) {
 		/* remove from recent files list */
 		if (do_history) {
-			RecentFile *recent = BLI_findstring_ptr(&G.recent_files, filepath, offsetof(RecentFile, filepath));
+			RecentFile *recent = wm_file_history_find(filepath);
 			if (recent) {
-				MEM_freeN(recent->filepath);
-				BLI_freelinkN(&G.recent_files, recent);
-				write_history();
+				wm_history_file_free(recent);
+				wm_history_file_write();
 			}
 		}
 	}
@@ -703,10 +706,10 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 	return true;
 }
 
-int wm_history_read_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+int wm_history_file_read_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
 	ED_file_read_bookmarks();
-	wm_read_history();
+	wm_history_file_read();
 	return OPERATOR_FINISHED;
 }
 
@@ -737,7 +740,10 @@ int wm_homefile_read_exec(bContext *C, wmOperator *op)
 	return wm_homefile_read(C, op->reports, from_memory, filepath) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-void wm_read_history(void)
+/** \name WM History File API
+ * \{ */
+
+void wm_history_file_read(void)
 {
 	char name[FILE_MAX];
 	LinkNode *l, *lines;
@@ -769,18 +775,35 @@ void wm_read_history(void)
 	BLI_file_free_lines(lines);
 }
 
-static void write_history(void)
+static RecentFile *wm_history_file_new(const char *filepath)
 {
-	struct RecentFile *recent, *next_recent;
-	char name[FILE_MAX];
-	const char *user_config_dir;
-	FILE *fp;
-	int i;
+	RecentFile *recent = MEM_mallocN(sizeof(RecentFile), "RecentFile");
+	recent->filepath = BLI_strdup(filepath);
+	return recent;
+}
 
-	/* no write history for recovered startup files */
-	if (G.main->name[0] == 0)
-		return;
-	
+static void wm_history_file_free(RecentFile *recent)
+{
+	BLI_assert(BLI_findindex(&G.recent_files, recent) != -1);
+	MEM_freeN(recent->filepath);
+	BLI_freelinkN(&G.recent_files, recent);
+}
+
+static RecentFile *wm_file_history_find(const char *filepath)
+{
+	return BLI_findstring_ptr(&G.recent_files, filepath, offsetof(RecentFile, filepath));
+}
+
+/**
+ * Write #BLENDER_HISTORY_FILE as-is, without checking the environment
+ * (thats handled by #wm_history_file_update).
+ */
+static void wm_history_file_write(void)
+{
+	const char *user_config_dir;
+	char name[FILE_MAX];
+	FILE *fp;
+
 	/* will be NULL in background mode */
 	user_config_dir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL);
 	if (!user_config_dir)
@@ -788,41 +811,57 @@ static void write_history(void)
 
 	BLI_make_file_string("/", name, user_config_dir, BLENDER_HISTORY_FILE);
 
+	fp = BLI_fopen(name, "w");
+	if (fp) {
+		struct RecentFile *recent;
+		for (recent = G.recent_files.first; recent; recent = recent->next) {
+			fprintf(fp, "%s\n", recent->filepath);
+		}
+		fclose(fp);
+	}
+}
+
+/**
+ * Run after saving a file to refresh the #BLENDER_HISTORY_FILE list.
+ */
+static void wm_history_file_update(void)
+{
+	RecentFile *recent;
+
+	/* no write history for recovered startup files */
+	if (G.main->name[0] == 0)
+		return;
+
 	recent = G.recent_files.first;
 	/* refresh recent-files.txt of recent opened files, when current file was changed */
 	if (!(recent) || (BLI_path_cmp(recent->filepath, G.main->name) != 0)) {
-		fp = BLI_fopen(name, "w");
-		if (fp) {
-			/* add current file to the beginning of list */
-			recent = (RecentFile *)MEM_mallocN(sizeof(RecentFile), "RecentFile");
-			recent->filepath = BLI_strdup(G.main->name);
-			BLI_addhead(&(G.recent_files), recent);
-			/* write current file to recent-files.txt */
-			fprintf(fp, "%s\n", recent->filepath);
-			recent = recent->next;
-			i = 1;
-			/* write rest of recent opened files to recent-files.txt */
-			while ((i < U.recent_files) && (recent)) {
-				/* this prevents to have duplicities in list */
-				if (BLI_path_cmp(recent->filepath, G.main->name) != 0) {
-					fprintf(fp, "%s\n", recent->filepath);
-					recent = recent->next;
-				}
-				else {
-					next_recent = recent->next;
-					MEM_freeN(recent->filepath);
-					BLI_freelinkN(&(G.recent_files), recent);
-					recent = next_recent;
-				}
-				i++;
-			}
-			fclose(fp);
+
+		recent = wm_file_history_find(G.main->name);
+		if (recent) {
+			BLI_remlink(&G.recent_files, recent);
 		}
+		else {
+			RecentFile *recent_next;
+			for (recent = BLI_findlink(&G.recent_files, U.recent_files - 1); recent; recent = recent_next) {
+				recent_next = recent->next;
+				wm_history_file_free(recent);
+			}
+			recent = wm_history_file_new(G.main->name);
+		}
+
+		/* add current file to the beginning of list */
+		BLI_addhead(&(G.recent_files), recent);
+
+		/* write current file to recent-files.txt */
+		wm_history_file_write();
 
 		/* also update most recent files on System */
 		GHOST_addToSystemRecentFiles(G.main->name);
 	}
 }
+
+/** \} */
+
 
 /* screen can be NULL */
 static ImBuf *blend_file_thumb(Scene *scene, bScreen *screen, int **thumb_pt)
@@ -996,7 +1035,7 @@ int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *
 
 		/* prevent background mode scripts from clobbering history */
 		if (!G.background) {
-			write_history();
+			wm_history_file_update();
 		}
 
 		BLI_callback_exec(G.main, NULL, BLI_CB_EVT_SAVE_POST);

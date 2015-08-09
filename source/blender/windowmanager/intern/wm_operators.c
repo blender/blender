@@ -2298,7 +2298,7 @@ static void WM_OT_read_history(wmOperatorType *ot)
 	ot->description = "Reloads history and bookmarks";
 
 	ot->invoke = WM_operator_confirm;
-	ot->exec = wm_history_read_exec;
+	ot->exec = wm_history_file_read_exec;
 
 	/* this operator is only used for loading settings from a previous blender install */
 	ot->flag = OPTYPE_INTERNAL;
