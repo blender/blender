@@ -438,6 +438,7 @@ class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
 class CyclesRender_PT_views(CyclesButtonsPanel, Panel):
     bl_label = "Views"
     bl_context = "render_layer"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
         rd = context.scene.render
