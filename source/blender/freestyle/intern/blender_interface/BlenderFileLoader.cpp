@@ -38,7 +38,9 @@ BlenderFileLoader::BlenderFileLoader(Render *re, SceneRenderLayer *srl)
 	_srl = srl;
 	_Scene = NULL;
 	_numFacesRead = 0;
+#if 0
 	_minEdgeSize = DBL_MAX;
+#endif
 	_smooth = (srl->freestyleConfig.flags & FREESTYLE_FACE_SMOOTHNESS_FLAG) != 0;
 	_pRenderMonitor = NULL;
 }
@@ -262,7 +264,10 @@ void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v
                                     float n1[3], float n2[3], float n3[3],
                                     bool fm, bool em1, bool em2, bool em3)
 {
-	float *fv[3], *fn[3], len;
+	float *fv[3], *fn[3];
+#if 0
+	float len;
+#endif
 	unsigned int i, j;
 	IndexedFaceSet::FaceEdgeMark marks = 0;
 
@@ -289,9 +294,11 @@ void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v
 				ls->maxBBox[j] = ls->pv[j];
 		}
 
+#if 0
 		len = len_v3v3(fv[i], fv[(i + 1) % 3]);
 		if (_minEdgeSize > len)
 			_minEdgeSize = len;
+#endif
 
 		*ls->pvi = ls->currentIndex;
 		*ls->pni = ls->currentIndex;
