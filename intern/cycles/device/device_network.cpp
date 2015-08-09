@@ -580,7 +580,7 @@ protected:
 			rcv.read(name);
 			rcv.read(mem);
 			rcv.read(interpolation);
-			rcv.read(extension);
+			rcv.read(extension_typr);
 			lock.unlock();
 
 			client_pointer = mem.device_pointer;
@@ -596,7 +596,7 @@ protected:
 
 			rcv.read_buffer((uint8_t*)mem.data_pointer, data_size);
 
-			device->tex_alloc(name.c_str(), mem, interpolation, extension);
+			device->tex_alloc(name.c_str(), mem, interpolation, extension_typr);
 
 			pointer_mapping_insert(client_pointer, mem.device_pointer);
 		}
