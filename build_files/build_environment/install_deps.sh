@@ -1938,7 +1938,7 @@ install_DEB() {
   THEORA_DEV="libtheora-dev"
 
   _packages="gawk cmake cmake-curses-gui scons build-essential libjpeg-dev libpng-dev \
-             libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev \
+             libfreetype6-dev libx11-dev libxcursor-dev libxi-dev wget libsqlite3-dev libbz2-dev \
              libncurses5-dev libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV \
              libopenal-dev libglew-dev libglewmx-dev yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV \
              libsdl1.2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libxrandr-dev \
@@ -2428,7 +2428,7 @@ install_RPM() {
   THEORA_DEV="libtheora-devel"
 
   _packages="gcc gcc-c++ make scons libtiff-devel libjpeg-devel\
-             libpng-devel libX11-devel libXi-devel wget ncurses-devel \
+             libpng-devel libX11-devel libXi-devel libXcursor-devel wget ncurses-devel \
              readline-devel $OPENJPEG_DEV openal-soft-devel \
              glew-devel yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV patch \
              libxml2-devel yaml-cpp-devel tinyxml-devel"
@@ -2780,7 +2780,7 @@ install_ARCH() {
   OGG_DEV="libogg"
   THEORA_DEV="libtheora"
 
-  _packages="base-devel scons cmake libxi glew libpng libtiff wget openal \
+  _packages="base-devel scons cmake libxi libxcursor glew libpng libtiff wget openal \
              $OPENJPEG_DEV $VORBIS_DEV $OGG_DEV $THEORA_DEV yasm sdl fftw \
              libxml2 yaml-cpp tinyxml"
 
