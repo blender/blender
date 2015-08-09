@@ -106,7 +106,9 @@ Controller::Controller()
 
 	_ProgressBar = new ProgressBar;
 	_SceneNumFaces = 0;
+#if 0
 	_minEdgeSize = DBL_MAX;
+#endif
 	_EPSILON = 1.0e-6;
 	_bboxDiag = 0;
 
@@ -264,9 +266,11 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer *srl)
 	}
 	_SceneNumFaces += loader.numFacesRead();
 
+#if 0
 	if (loader.minEdgeSize() < _minEdgeSize) {
 		_minEdgeSize = loader.minEdgeSize();
 	}
+#endif
 
 #if 0  // DEBUG
 	ScenePrettyPrinter spp;
@@ -406,7 +410,9 @@ void Controller::DeleteWingedEdge()
 	_Grid.clear();
 	_Scene3dBBox.clear();
 	_SceneNumFaces = 0;
+#if 0
 	_minEdgeSize = DBL_MAX;
+#endif
 }
 
 void Controller::DeleteViewMap(bool freeCache)

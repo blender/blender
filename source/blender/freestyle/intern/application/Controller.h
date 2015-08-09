@@ -209,7 +209,9 @@ private:
 
 	BBox<Vec3r> _Scene3dBBox;
 	unsigned int _SceneNumFaces;
+#if 0
 	real _minEdgeSize;
+#endif
 	real _EPSILON;
 	real _bboxDiag;
 
