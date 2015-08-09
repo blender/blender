@@ -92,8 +92,8 @@ static unsigned int seq_hash_render_data(const SeqRenderData *a)
 	rval ^= ((intptr_t) a->bmain) << 6;
 	rval ^= ((intptr_t) a->scene) << 6;
 	rval ^= (int)(a->motion_blur_shutter * 100.0f) << 10;
-	rval ^= a->motion_blur_samples << 24;
-	rval ^= ((a->scene->r.views_format * 2) + a->view_id) << 32;
+	rval ^= a->motion_blur_samples << 16;
+	rval ^= ((a->scene->r.views_format * 2) + a->view_id) << 24;
 
 	return rval;
 }
