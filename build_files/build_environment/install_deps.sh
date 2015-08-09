@@ -1938,11 +1938,11 @@ install_DEB() {
   THEORA_DEV="libtheora-dev"
 
   _packages="gawk cmake cmake-curses-gui scons build-essential libjpeg-dev libpng-dev \
-             libfreetype6-dev libx11-dev libxcursor-dev libxi-dev wget libsqlite3-dev libbz2-dev \
-             libncurses5-dev libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV \
+             libfreetype6-dev libx11-dev \
+             libxcursor-dev libxi-dev wget libsqlite3-dev libxrandr-dev libxinerama-dev \
+             libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV \
              libopenal-dev libglew-dev libglewmx-dev yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV \
-             libsdl1.2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libxrandr-dev \
-             libxinerama-dev"
+             libsdl1.2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
@@ -2427,9 +2427,9 @@ install_RPM() {
   OGG_DEV="libogg-devel"
   THEORA_DEV="libtheora-devel"
 
-  _packages="gcc gcc-c++ make scons libtiff-devel libjpeg-devel\
-             libpng-devel libX11-devel libXi-devel libXcursor-devel wget ncurses-devel \
-             readline-devel $OPENJPEG_DEV openal-soft-devel \
+  _packages="gcc gcc-c++ git make cmake scons libtiff-devel libjpeg-devel\
+             libpng-devel libX11-devel libXi-devel libXcursor-devel libXrandr-devel libXinerama-devel \
+             wget ncurses-devel readline-devel $OPENJPEG_DEV openal-soft-devel \
              glew-devel yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV patch \
              libxml2-devel yaml-cpp-devel tinyxml-devel"
 
@@ -2656,7 +2656,7 @@ install_RPM() {
   else
     if $have_llvm; then
       # No package currently!
-      install_packages_RPM flex bison git
+      install_packages_RPM flex bison
       if [ $RPM = "FEDORA" -o $RPM = "RHEL" ]; then
         install_packages_RPM tbb-devel
       fi
@@ -2667,12 +2667,29 @@ install_RPM() {
     fi
   fi
 
+  PRINT ""
+  if $OSD_SKIP; then
+    WARNING "Skipping OpenSubdiv installation, as requested..."
+  else
+    if $have_llvm; then
+      # No package currently!
+      install_packages_RPM flex bison
+      if [ $RPM = "FEDORA" -o $RPM = "RHEL" ]; then
+        install_packages_RPM tbb-devel
+      fi
+      PRINT ""
+      compile_OSD
+    else
+      WARNING "No LLVM available, cannot build OSD!"
+    fi
+  fi
+
   if $WITH_OPENCOLLADA; then
     PRINT ""
     if $OPENCOLLADA_SKIP; then
       WARNING "Skipping OpenCOLLADA installation, as requested..."
     else
-      install_packages_RPM pcre-devel git
+      install_packages_RPM pcre-devel
       # Find path to libxml shared lib...
       _XML2_LIB=`rpm -ql libxml2-devel | grep -e ".*/libxml2.so"`
       # No package...
@@ -2780,7 +2797,8 @@ install_ARCH() {
   OGG_DEV="libogg"
   THEORA_DEV="libtheora"
 
-  _packages="base-devel scons cmake libxi libxcursor glew libpng libtiff wget openal \
+  _packages="base-devel git scons cmake \
+             libxi libxcursor libxrandr libxinerama glew libpng libtiff wget openal \
              $OPENJPEG_DEV $VORBIS_DEV $OGG_DEV $THEORA_DEV yasm sdl fftw \
              libxml2 yaml-cpp tinyxml"
 
@@ -2967,12 +2985,26 @@ install_ARCH() {
         clean_OSL
       else
         #XXX Note: will fail to build with LLVM 3.2! 
-        install_packages_ARCH git intel-tbb
+        install_packages_ARCH intel-tbb
         PRINT ""
         compile_OSL
       fi
     else
       WARNING "No LLVM available, cannot build OSL!"
+    fi
+  fi
+
+  PRINT ""
+  if $OSD_SKIP; then
+    WARNING "Skipping OpenSubdiv installation, as requested..."
+  else
+    if $have_llvm; then
+      # No package currently? Just build for now!
+      install_packages_ARCH intel-tbb
+      PRINT ""
+      compile_OSD
+    else
+      WARNING "No LLVM available, cannot build OSD!"
     fi
   fi
 
@@ -2986,7 +3018,7 @@ install_ARCH() {
         install_packages_ARCH opencollada
         clean_OpenCOLLADA
       else
-        install_packages_ARCH pcre git
+        install_packages_ARCH pcre
         PRINT ""
         compile_OpenCOLLADA
       fi
