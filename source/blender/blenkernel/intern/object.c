@@ -87,6 +87,7 @@
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_group.h"
+#include "BKE_icons.h"
 #include "BKE_key.h"
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
@@ -457,6 +458,8 @@ void BKE_object_free_ex(Object *ob, bool do_id_user)
 			free_path(ob->curve_cache->path);
 		MEM_freeN(ob->curve_cache);
 	}
+
+	BKE_previewimg_free(&ob->preview);
 }
 
 void BKE_object_free(Object *ob)
@@ -1040,6 +1043,7 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
 	ob->fall_speed = 55.0f;
 	ob->col_group = 0x01;
 	ob->col_mask = 0xffff;
+	ob->preview = NULL;
 
 	/* NT fluid sim defaults */
 	ob->fluidsimSettings = NULL;
@@ -1557,6 +1561,8 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 		BKE_id_lib_local_paths(bmain, ob->id.lib, &obn->id);
 	}
 
+	/* Do not copy object's preview (mostly due to the fact renderers create temp copy of objects). */
+
 	return obn;
 }
 
@@ -1593,6 +1599,8 @@ static void extern_local_object(Object *ob)
 		id_lib_extern((ID *)psys->part);
 
 	modifiers_foreachIDLink(ob, extern_local_object__modifiersForeachIDLink, NULL);
+
+	ob->preview = NULL;
 }
 
 void BKE_object_make_local(Object *ob)

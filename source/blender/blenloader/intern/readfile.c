@@ -1920,6 +1920,25 @@ static void IDP_LibLinkProperty(IDProperty *UNUSED(prop), int UNUSED(switch_endi
 {
 }
 
+/* ************ READ IMAGE PREVIEW *************** */
+
+static PreviewImage *direct_link_preview_image(FileData *fd, PreviewImage *old_prv)
+{
+	PreviewImage *prv = newdataadr(fd, old_prv);
+	
+	if (prv) {
+		int i;
+		for (i = 0; i < NUM_ICON_SIZES; ++i) {
+			if (prv->rect[i]) {
+				prv->rect[i] = newdataadr(fd, prv->rect[i]);
+			}
+			prv->gputexture[i] = NULL;
+		}
+	}
+	
+	return prv;
+}
+
 /* ************ READ ID *************** */
 
 static void direct_link_id(FileData *fd, ID *id)
@@ -2040,25 +2059,6 @@ static PackedFile *direct_link_packedfile(FileData *fd, PackedFile *oldpf)
 	}
 	
 	return pf;
-}
-
-/* ************ READ IMAGE PREVIEW *************** */
-
-static PreviewImage *direct_link_preview_image(FileData *fd, PreviewImage *old_prv)
-{
-	PreviewImage *prv = newdataadr(fd, old_prv);
-	
-	if (prv) {
-		int i;
-		for (i = 0; i < NUM_ICON_SIZES; ++i) {
-			if (prv->rect[i]) {
-				prv->rect[i] = newdataadr(fd, prv->rect[i]);
-			}
-			prv->gputexture[i] = NULL;
-		}
-	}
-	
-	return prv;
 }
 
 /* ************ READ ANIMATION STUFF ***************** */
@@ -5280,6 +5280,8 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 	link_list(fd, &ob->lodlevels);
 	ob->currentlod = ob->lodlevels.first;
+
+	ob->preview = direct_link_preview_image(fd, ob->preview);
 }
 
 /* ************ READ SCENE ***************** */
@@ -5837,6 +5839,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			rbw->ltime = (float)rbw->pointcache->startframe;
 		}
 	}
+
+	sce->preview = direct_link_preview_image(fd, sce->preview);
 }
 
 /* ************ READ WM ***************** */
@@ -7083,6 +7087,8 @@ static void lib_link_sound(FileData *fd, Main *main)
 static void direct_link_group(FileData *fd, Group *group)
 {
 	link_list(fd, &group->gobject);
+
+	group->preview = direct_link_preview_image(fd, group->preview);
 }
 
 static void lib_link_group(FileData *fd, Main *main)

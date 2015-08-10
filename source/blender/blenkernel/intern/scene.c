@@ -72,6 +72,7 @@
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_group.h"
+#include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -346,6 +347,10 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		}
 	}
 
+	if (sce->preview) {
+		scen->preview = BKE_previewimg_copy(sce->preview);
+	}
+
 	return scen;
 }
 
@@ -455,6 +460,8 @@ void BKE_scene_free(Scene *sce)
 	BKE_sound_destroy_scene(sce);
 
 	BKE_color_managed_view_settings_free(&sce->view_settings);
+
+	BKE_previewimg_free(&sce->preview);
 }
 
 Scene *BKE_scene_add(Main *bmain, const char *name)
@@ -734,6 +741,8 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	copy_v2_fl2(sce->safe_areas.action, 10.0f / 100.0f, 5.0f / 100.0f);
 	copy_v2_fl2(sce->safe_areas.title_center, 17.5f / 100.0f, 5.0f / 100.0f);
 	copy_v2_fl2(sce->safe_areas.action_center, 15.0f / 100.0f, 5.0f / 100.0f);
+
+	sce->preview = NULL;
 
 	return sce;
 }

@@ -52,7 +52,9 @@ typedef struct Group {
 	ID id;
 	
 	ListBase gobject;	/* GroupObject */
-	
+
+	struct PreviewImage *preview;
+
 	/* Bad design, since layers stored in the scenes 'Base'
 	 * the objects that show in the group can change depending
 	 * on the last used scene */

@@ -37,8 +37,11 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
@@ -228,6 +231,9 @@ PreviewImage **BKE_previewimg_id_get_p(ID *id)
 		ID_PRV_CASE(ID_LA, Lamp);
 		ID_PRV_CASE(ID_IM, Image);
 		ID_PRV_CASE(ID_BR, Brush);
+		ID_PRV_CASE(ID_OB, Object);
+		ID_PRV_CASE(ID_GR, Group);
+		ID_PRV_CASE(ID_SCE, Scene);
 #undef ID_PRV_CASE
 	}
 
