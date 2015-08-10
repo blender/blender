@@ -296,7 +296,7 @@ static void file_draw_icon(uiBlock *block, const char *path, int sx, int sy, int
 	but = uiDefIconBut(block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, NULL, 0.0f, 0.0f, 0.0f, 0.0f, "");
 
 	if (drag) {
-		UI_but_drag_set_path(but, path);
+		UI_but_drag_set_path(but, path, false);
 	}
 }
 
@@ -411,7 +411,7 @@ static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int
 	/* dragregion */
 	if (drag) {
 		but = uiDefBut(block, UI_BTYPE_LABEL, 0, "", xco, yco, ex, ey, NULL, 0.0, 0.0, 0, 0, "");
-		UI_but_drag_set_image(but, file->path, get_file_icon(file), imb, scale);
+		UI_but_drag_set_image(but, file->path, get_file_icon(file), imb, scale, false);
 	}
 
 	glDisable(GL_BLEND);

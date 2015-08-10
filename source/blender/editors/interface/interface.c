@@ -753,6 +753,10 @@ static bool ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBu
 			BLI_strncpy(oldbut->strdata, but->strdata, sizeof(oldbut->strdata));
 		}
 
+		if (but->dragpoin && (but->dragflag & UI_BUT_DRAGPOIN_FREE)) {
+			SWAP(void *, but->dragpoin, oldbut->dragpoin);
+		}
+
 		BLI_remlink(&block->buttons, but);
 		ui_but_free(C, but);
 
@@ -2520,6 +2524,10 @@ static void ui_but_free(const bContext *C, uiBut *but)
 		IMB_freeImBuf((struct ImBuf *)but->poin);
 	}
 
+	if (but->dragpoin && (but->dragflag & UI_BUT_DRAGPOIN_FREE)) {
+		MEM_freeN(but->dragpoin);
+	}
+
 	BLI_assert(UI_butstore_is_registered(but->block, but) == false);
 
 	MEM_freeN(but);
@@ -4046,24 +4054,43 @@ int UI_but_return_value_get(uiBut *but)
 void UI_but_drag_set_id(uiBut *but, ID *id)
 {
 	but->dragtype = WM_DRAG_ID;
+	if ((but->dragflag & UI_BUT_DRAGPOIN_FREE)) {
+		MEM_SAFE_FREE(but->dragpoin);
+		but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
+	}
 	but->dragpoin = (void *)id;
 }
 
 void UI_but_drag_set_rna(uiBut *but, PointerRNA *ptr)
 {
 	but->dragtype = WM_DRAG_RNA;
+	if ((but->dragflag & UI_BUT_DRAGPOIN_FREE)) {
+		MEM_SAFE_FREE(but->dragpoin);
+		but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
+	}
 	but->dragpoin = (void *)ptr;
 }
 
-void UI_but_drag_set_path(uiBut *but, const char *path)
+void UI_but_drag_set_path(uiBut *but, const char *path, const bool use_free)
 {
 	but->dragtype = WM_DRAG_PATH;
+	if ((but->dragflag & UI_BUT_DRAGPOIN_FREE)) {
+		MEM_SAFE_FREE(but->dragpoin);
+		but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
+	}
 	but->dragpoin = (void *)path;
+	if (use_free) {
+		but->dragflag |= UI_BUT_DRAGPOIN_FREE;
+	}
 }
 
 void UI_but_drag_set_name(uiBut *but, const char *name)
 {
 	but->dragtype = WM_DRAG_NAME;
+	if ((but->dragflag & UI_BUT_DRAGPOIN_FREE)) {
+		MEM_SAFE_FREE(but->dragpoin);
+		but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
+	}
 	but->dragpoin = (void *)name;
 }
 
@@ -4073,11 +4100,18 @@ void UI_but_drag_set_value(uiBut *but)
 	but->dragtype = WM_DRAG_VALUE;
 }
 
-void UI_but_drag_set_image(uiBut *but, const char *path, int icon, struct ImBuf *imb, float scale)
+void UI_but_drag_set_image(uiBut *but, const char *path, int icon, struct ImBuf *imb, float scale, const bool use_free)
 {
 	but->dragtype = WM_DRAG_PATH;
 	ui_def_but_icon(but, icon, 0);  /* no flag UI_HAS_ICON, so icon doesnt draw in button */
+	if ((but->dragflag & UI_BUT_DRAGPOIN_FREE)) {
+		MEM_SAFE_FREE(but->dragpoin);
+		but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
+	}
 	but->dragpoin = (void *)path;
+	if (use_free) {
+		but->dragflag |= UI_BUT_DRAGPOIN_FREE;
+	}
 	but->imb = imb;
 	but->imb_scale = scale;
 }
