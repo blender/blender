@@ -158,6 +158,7 @@ typedef pthread_cond_t ThreadCondition;
 
 void BLI_condition_init(ThreadCondition *cond);
 void BLI_condition_wait(ThreadCondition *cond, ThreadMutex *mutex);
+void BLI_condition_wait_global_mutex(ThreadCondition *cond, const int type);
 void BLI_condition_notify_one(ThreadCondition *cond);
 void BLI_condition_notify_all(ThreadCondition *cond);
 void BLI_condition_end(ThreadCondition *cond);

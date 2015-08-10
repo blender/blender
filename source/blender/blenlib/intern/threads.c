@@ -389,56 +389,45 @@ int BLI_system_num_threads_override_get(void)
 
 /* Global Mutex Locks */
 
+static ThreadMutex *global_mutex_from_type(const int type)
+{
+	switch (type) {
+		case LOCK_IMAGE:
+			return &_image_lock;
+		case LOCK_DRAW_IMAGE:
+			return &_image_draw_lock;
+		case LOCK_VIEWER:
+			return &_viewer_lock;
+		case LOCK_CUSTOM1:
+			return &_custom1_lock;
+		case LOCK_RCACHE:
+			return &_rcache_lock;
+		case LOCK_OPENGL:
+			return &_opengl_lock;
+		case LOCK_NODES:
+			return &_nodes_lock;
+		case LOCK_MOVIECLIP:
+			return &_movieclip_lock;
+		case LOCK_COLORMANAGE:
+			return &_colormanage_lock;
+		case LOCK_FFTW:
+			return &_fftw_lock;
+		case LOCK_VIEW3D:
+			return &_view3d_lock;
+		default:
+			BLI_assert(0);
+			return NULL;
+	}
+}
+
 void BLI_lock_thread(int type)
 {
-	if (type == LOCK_IMAGE)
-		pthread_mutex_lock(&_image_lock);
-	else if (type == LOCK_DRAW_IMAGE)
-		pthread_mutex_lock(&_image_draw_lock);
-	else if (type == LOCK_VIEWER)
-		pthread_mutex_lock(&_viewer_lock);
-	else if (type == LOCK_CUSTOM1)
-		pthread_mutex_lock(&_custom1_lock);
-	else if (type == LOCK_RCACHE)
-		pthread_mutex_lock(&_rcache_lock);
-	else if (type == LOCK_OPENGL)
-		pthread_mutex_lock(&_opengl_lock);
-	else if (type == LOCK_NODES)
-		pthread_mutex_lock(&_nodes_lock);
-	else if (type == LOCK_MOVIECLIP)
-		pthread_mutex_lock(&_movieclip_lock);
-	else if (type == LOCK_COLORMANAGE)
-		pthread_mutex_lock(&_colormanage_lock);
-	else if (type == LOCK_FFTW)
-		pthread_mutex_lock(&_fftw_lock);
-	else if (type == LOCK_VIEW3D)
-		pthread_mutex_lock(&_view3d_lock);
+	pthread_mutex_lock(global_mutex_from_type(type));
 }
 
 void BLI_unlock_thread(int type)
 {
-	if (type == LOCK_IMAGE)
-		pthread_mutex_unlock(&_image_lock);
-	else if (type == LOCK_DRAW_IMAGE)
-		pthread_mutex_unlock(&_image_draw_lock);
-	else if (type == LOCK_VIEWER)
-		pthread_mutex_unlock(&_viewer_lock);
-	else if (type == LOCK_CUSTOM1)
-		pthread_mutex_unlock(&_custom1_lock);
-	else if (type == LOCK_RCACHE)
-		pthread_mutex_unlock(&_rcache_lock);
-	else if (type == LOCK_OPENGL)
-		pthread_mutex_unlock(&_opengl_lock);
-	else if (type == LOCK_NODES)
-		pthread_mutex_unlock(&_nodes_lock);
-	else if (type == LOCK_MOVIECLIP)
-		pthread_mutex_unlock(&_movieclip_lock);
-	else if (type == LOCK_COLORMANAGE)
-		pthread_mutex_unlock(&_colormanage_lock);
-	else if (type == LOCK_FFTW)
-		pthread_mutex_unlock(&_fftw_lock);
-	else if (type == LOCK_VIEW3D)
-		pthread_mutex_unlock(&_view3d_lock);
+	pthread_mutex_unlock(global_mutex_from_type(type));
 }
 
 /* Mutex Locks */
@@ -617,6 +606,11 @@ void BLI_condition_init(ThreadCondition *cond)
 void BLI_condition_wait(ThreadCondition *cond, ThreadMutex *mutex)
 {
 	pthread_cond_wait(cond, mutex);
+}
+
+void BLI_condition_wait_global_mutex(ThreadCondition *cond, const int type)
+{
+	pthread_cond_wait(cond, global_mutex_from_type(type));
 }
 
 void BLI_condition_notify_one(ThreadCondition *cond)
