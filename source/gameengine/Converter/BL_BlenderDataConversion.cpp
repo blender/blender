@@ -2318,7 +2318,13 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 
 			/* Store constraints of grouped and instanced objects for all layers */
 			gameobj->AddConstraint(dat);
-						
+
+			/** if it's during libload we only add constraints in the object but
+			 * doesn't create it. Constraint will be replicated later in scene->MergeScene
+			 */
+			if (libloading)
+				continue;
+
 			/* Skipped already converted constraints. 
 			 * This will happen when a group instance is made from a linked group instance
 			 * and both are on the active layer. */

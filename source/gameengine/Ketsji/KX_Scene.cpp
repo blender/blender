@@ -2064,6 +2064,28 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 		MergeScene_GameObject(gameobj, this, other);
 	}
 
+	if (env) {
+		env->MergeEnvironment(env_other);
+		CListValue *otherObjects = other->GetObjectList();
+
+		// List of all physics objects to merge (needed by ReplicateConstraints).
+		std::vector<KX_GameObject *> physicsObjects;
+		for (unsigned int i = 0; i < otherObjects->GetCount(); ++i) {
+			KX_GameObject *gameobj = (KX_GameObject *)otherObjects->GetValue(i);
+			if (gameobj->GetPhysicsController()) {
+				physicsObjects.push_back(gameobj);
+			}
+		}
+
+		for (unsigned int i = 0; i < physicsObjects.size(); ++i) {
+			KX_GameObject *gameobj = physicsObjects[i];
+			// Replicate all constraints in the right physics environment.
+			gameobj->GetPhysicsController()->ReplicateConstraints(gameobj, physicsObjects);
+			gameobj->ClearConstraints();
+		}
+	}
+
+
 	GetTempObjectList()->MergeList(other->GetTempObjectList());
 	other->GetTempObjectList()->ReleaseAndRemoveAll();
 
@@ -2078,9 +2100,6 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 
 	GetLightList()->MergeList(other->GetLightList());
 	other->GetLightList()->ReleaseAndRemoveAll();
-
-	if (env)
-		env->MergeEnvironment(env_other);
 
 	/* move materials across, assume they both use the same scene-converters
 	 * Do this after lights are merged so materials can use the lights in shaders
