@@ -74,6 +74,7 @@
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -4897,6 +4898,72 @@ static void WM_OT_previews_ensure(wmOperatorType *ot)
 	ot->exec = previews_ensure_exec;
 }
 
+/* *************************** Datablocks previews clear ************* */
+
+/* Only types supporting previews currently. */
+static EnumPropertyItem preview_id_type_items[] = {
+    {FILTER_ID_SCE, "SCENE", 0, "Scenes", ""},
+    {FILTER_ID_GR, "GROUP", 0, "Groups", ""},
+	{FILTER_ID_OB, "OBJECT", 0, "Objects", ""},
+    {FILTER_ID_MA, "MATERIAL", 0, "Materials", ""},
+    {FILTER_ID_LA, "LAMP", 0, "Lamps", ""},
+    {FILTER_ID_WO, "WORLD", 0, "Worlds", ""},
+    {FILTER_ID_TE, "TEXTURE", 0, "Textures", ""},
+    {FILTER_ID_IM, "IMAGE", 0, "Images", ""},
+#if 0  /* XXX TODO */
+    {FILTER_ID_BR, "BRUSH", 0, "Brushes", ""},
+#endif
+    {0, NULL, 0, NULL, NULL}
+};
+
+static int previews_clear_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain = CTX_data_main(C);
+	ListBase *lb[] = {&bmain->object, &bmain->group,
+	                  &bmain->mat, &bmain->world, &bmain->lamp, &bmain->tex, &bmain->image, NULL};
+	int i;
+
+	const int id_filters = RNA_enum_get(op->ptr, "id_type");
+
+	for (i = 0; lb[i]; i++) {
+		ID *id = lb[i]->first;
+
+		if (!id) continue;
+
+//		printf("%s: %d, %d, %d -> %d\n", id->name, GS(id->name), BKE_idcode_to_idfilter(GS(id->name)),
+//		                                 id_filters, BKE_idcode_to_idfilter(GS(id->name)) & id_filters);
+
+		if (!id || !(BKE_idcode_to_idfilter(GS(id->name)) & id_filters)) {
+			continue;
+		}
+
+		for (; id; id = id->next) {
+			PreviewImage *prv_img = BKE_previewimg_id_ensure(id);
+
+			BKE_previewimg_clear(prv_img);
+		}
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_previews_clear(wmOperatorType *ot)
+{
+	ot->name = "Clear DataBlock Previews";
+	ot->idname = "WM_OT_previews_clear";
+	ot->description = "Clear datablock previews (only for some types like objects, materials, textures, etc.)";
+
+	ot->exec = previews_clear_exec;
+	ot->invoke = WM_menu_invoke;
+
+	ot->prop = RNA_def_enum_flag(ot->srna, "id_type", preview_id_type_items,
+	                             FILTER_ID_SCE | FILTER_ID_OB | FILTER_ID_GR |
+		                         FILTER_ID_MA | FILTER_ID_LA | FILTER_ID_WO | FILTER_ID_TE | FILTER_ID_IM,
+	                             "DataBlock Type", "Which datablock previews to clear");
+}
+
+/* *************************** Doc from UI ************* */
+
 static int doc_view_manual_ui_context_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr_props;
@@ -5025,6 +5092,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_console_toggle);
 #endif
 	WM_operatortype_append(WM_OT_previews_ensure);
+	WM_operatortype_append(WM_OT_previews_clear);
 	WM_operatortype_append(WM_OT_doc_view_manual_ui_context);
 }
 

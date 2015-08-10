@@ -34,8 +34,11 @@
 
 struct bContext;
 struct ID;
+struct Scene;
 struct PreviewImage;
 struct PointerRNA;
+
+enum eIconSizes;
 
 typedef struct IconFile {
 	struct IconFile *next, *prev;
@@ -60,6 +63,7 @@ int UI_icon_get_height(int icon_id);
 
 void UI_id_icon_render(
         const struct bContext *C, struct Scene *scene, struct ID *id, const bool big, const bool use_job);
+int UI_preview_render_size(enum eIconSizes size);
 
 void UI_icon_draw(float x, float y, int icon_id);
 void UI_icon_draw_preview(float x, float y, int icon_id);
@@ -78,5 +82,6 @@ int UI_iconfile_get_index(const char *filename);
 struct PreviewImage *UI_icon_to_preview(int icon_id);
 
 int UI_rnaptr_icon_get(struct bContext *C, struct PointerRNA *ptr, int rnaicon, const bool big);
+int UI_idcode_icon_get(const int idcode);
 
 #endif /*  __UI_INTERFACE_ICONS_H__ */

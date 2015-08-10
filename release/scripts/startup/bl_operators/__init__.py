@@ -28,6 +28,7 @@ _modules = [
     "anim",
     "clip",
     "console",
+    "file",
     "image",
     "mask",
     "mesh",

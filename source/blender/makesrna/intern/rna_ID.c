@@ -472,14 +472,14 @@ static void rna_ImagePreview_size_set(PointerRNA *ptr, const int *values, enum e
 		BLI_assert(prv_img == BKE_previewimg_id_ensure(id));
 	}
 
-	BKE_previewimg_ensure(prv_img, size);
+	BKE_previewimg_clear_single(prv_img, size);
 
 	if (values[0] && values[1]) {
 		prv_img->rect[size] = MEM_callocN(values[0] * values[1] * sizeof(unsigned int), "prv_rect");
-	}
 
-	prv_img->w[size] = values[0];
-	prv_img->h[size] = values[1];
+		prv_img->w[size] = values[0];
+		prv_img->h[size] = values[1];
+	}
 
 	prv_img->flag[size] |= (PRV_CHANGED | PRV_USER_EDITED);
 }
@@ -598,6 +598,14 @@ static void rna_ImagePreview_icon_reload(PreviewImage *prv)
 	if (!(prv->flag[ICON_SIZE_ICON] & PRV_USER_EDITED) && !(prv->flag[ICON_SIZE_PREVIEW] & PRV_USER_EDITED)) {
 		BKE_previewimg_clear(prv);
 	}
+}
+
+static PointerRNA rna_IDPreview_get(PointerRNA *ptr)
+{
+	ID *id = (ID *)ptr->data;
+	PreviewImage *prv_img = BKE_previewimg_id_ensure(id);
+
+	return rna_pointer_inherit_refine(ptr, &RNA_ImagePreview, prv_img);
 }
 
 #else
@@ -839,6 +847,11 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "lib");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Library", "Library file the datablock is linked from");
+
+	prop = RNA_def_pointer(srna, "preview", "ImagePreview", "Preview",
+	                       "Preview image and icon of this datablock (None if not supported for this type of data)");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, "rna_IDPreview_get", NULL, NULL, NULL);
 
 	/* functions */
 	func = RNA_def_function(srna, "copy", "rna_ID_copy");

@@ -39,6 +39,9 @@ int         BKE_idcode_from_name(const char *name);
 bool        BKE_idcode_is_linkable(int code);
 bool        BKE_idcode_is_valid(int code);
 
+int         BKE_idcode_to_idfilter(const int idcode);
+int         BKE_idcode_from_idfilter(const int idfilter);
+
 /**
  * Return an ID code and steps the index forward 1.
  *

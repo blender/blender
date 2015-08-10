@@ -900,7 +900,7 @@ void UI_icons_init(int first_dyn_id)
 
 /* Render size for preview images and icons
  */
-static int preview_render_size(enum eIconSizes size)
+int UI_preview_render_size(enum eIconSizes size)
 {
 	switch (size) {
 		case ICON_SIZE_ICON:
@@ -916,7 +916,7 @@ static int preview_render_size(enum eIconSizes size)
  */
 static void icon_create_rect(struct PreviewImage *prv_img, enum eIconSizes size)
 {
-	unsigned int render_size = preview_render_size(size);
+	unsigned int render_size = UI_preview_render_size(size);
 
 	if (!prv_img) {
 		if (G.debug & G_DEBUG)
@@ -1397,6 +1397,68 @@ int UI_rnaptr_icon_get(bContext *C, PointerRNA *ptr, int rnaicon, const bool big
 	}
 
 	return rnaicon;
+}
+
+int UI_idcode_icon_get(const int idcode)
+{
+	switch (idcode) {
+		case ID_AC:
+			return ICON_ANIM_DATA;
+		case ID_AR:
+			return ICON_ARMATURE_DATA;
+		case ID_BR:
+			return ICON_BRUSH_DATA;
+		case ID_CA:
+			return ICON_CAMERA_DATA;
+		case ID_CU:
+			return ICON_CURVE_DATA;
+		case ID_GD:
+			return ICON_GREASEPENCIL;
+		case ID_GR:
+			return ICON_GROUP;
+		case ID_IM:
+			return ICON_IMAGE_DATA;
+		case ID_LA:
+			return ICON_LAMP_DATA;
+		case ID_LS:
+			return ICON_LINE_DATA;
+		case ID_LT:
+			return ICON_LATTICE_DATA;
+		case ID_MA:
+			return ICON_MATERIAL_DATA;
+		case ID_MB:
+			return ICON_META_DATA;
+		case ID_MC:
+			return ICON_CLIP;
+		case ID_ME:
+			return ICON_MESH_DATA;
+		case ID_MSK:
+			return ICON_MOD_MASK;  /* TODO! this would need its own icon! */
+		case ID_NT:
+			return ICON_NODETREE;
+		case ID_OB:
+			return ICON_OBJECT_DATA;
+		case ID_PAL:
+			return ICON_COLOR;  /* TODO! this would need its own icon! */
+		case ID_PC:
+			return ICON_CURVE_BEZCURVE;  /* TODO! this would need its own icon! */
+		case ID_SCE:
+			return ICON_SCENE_DATA;
+		case ID_SPK:
+			return ICON_SPEAKER;
+		case ID_SO:
+			return ICON_SOUND;
+		case ID_TE:
+			return ICON_TEXTURE_DATA;
+		case ID_TXT:
+			return ICON_TEXT;
+		case ID_VF:
+			return ICON_FONT_DATA;
+		case ID_WO:
+			return ICON_WORLD_DATA;
+		default:
+			return ICON_NONE;
+	}
 }
 
 static void icon_draw_at_size(

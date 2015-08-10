@@ -166,6 +166,90 @@ int BKE_idcode_from_name(const char *name)
 }
 
 /**
+ * Convert an idcode into an idfilter (e.g. ID_OB -> FILTER_ID_OB).
+ */
+int BKE_idcode_to_idfilter(const int idcode)
+{
+#define CASE_IDFILTER(_id) case ID_##_id: return FILTER_ID_##_id
+
+	switch (idcode) {
+		CASE_IDFILTER(AC);
+		CASE_IDFILTER(AR);
+		CASE_IDFILTER(BR);
+		CASE_IDFILTER(CA);
+		CASE_IDFILTER(CU);
+		CASE_IDFILTER(GD);
+		CASE_IDFILTER(GR);
+		CASE_IDFILTER(IM);
+		CASE_IDFILTER(LA);
+		CASE_IDFILTER(LS);
+		CASE_IDFILTER(LT);
+		CASE_IDFILTER(MA);
+		CASE_IDFILTER(MB);
+		CASE_IDFILTER(MC);
+		CASE_IDFILTER(ME);
+		CASE_IDFILTER(MSK);
+		CASE_IDFILTER(NT);
+		CASE_IDFILTER(OB);
+		CASE_IDFILTER(PAL);
+		CASE_IDFILTER(PC);
+		CASE_IDFILTER(SCE);
+		CASE_IDFILTER(SPK);
+		CASE_IDFILTER(SO);
+		CASE_IDFILTER(TE);
+		CASE_IDFILTER(TXT);
+		CASE_IDFILTER(VF);
+		CASE_IDFILTER(WO);
+		default:
+			return 0;
+	}
+
+#undef CASE_IDFILTER
+}
+
+/**
+ * Convert an idfilter into an idcode (e.g. FILTER_ID_OB -> ID_OB).
+ */
+int BKE_idcode_from_idfilter(const int idfilter)
+{
+#define CASE_IDFILTER(_id) case FILTER_ID_##_id: return ID_##_id
+
+	switch (idfilter) {
+		CASE_IDFILTER(AC);
+		CASE_IDFILTER(AR);
+		CASE_IDFILTER(BR);
+		CASE_IDFILTER(CA);
+		CASE_IDFILTER(CU);
+		CASE_IDFILTER(GD);
+		CASE_IDFILTER(GR);
+		CASE_IDFILTER(IM);
+		CASE_IDFILTER(LA);
+		CASE_IDFILTER(LS);
+		CASE_IDFILTER(LT);
+		CASE_IDFILTER(MA);
+		CASE_IDFILTER(MB);
+		CASE_IDFILTER(MC);
+		CASE_IDFILTER(ME);
+		CASE_IDFILTER(MSK);
+		CASE_IDFILTER(NT);
+		CASE_IDFILTER(OB);
+		CASE_IDFILTER(PAL);
+		CASE_IDFILTER(PC);
+		CASE_IDFILTER(SCE);
+		CASE_IDFILTER(SPK);
+		CASE_IDFILTER(SO);
+		CASE_IDFILTER(TE);
+		CASE_IDFILTER(TXT);
+		CASE_IDFILTER(VF);
+		CASE_IDFILTER(WO);
+		default:
+			return 0;
+	}
+
+#undef CASE_IDFILTER
+}
+
+/**
  * Convert an idcode into a name (plural).
  *
  * \param code The code to convert.
