@@ -121,7 +121,9 @@ bool KX_SCA_DynamicActuator::Update()
 	switch (m_dyn_operation)
 	{
 		case 0:
-			controller->RestoreDynamics();
+			// Child objects must be static, so we block changing to dynamic
+			if (!obj->GetParent())
+				controller->RestoreDynamics();
 			break;
 		case 1:
 			controller->SuspendDynamics();

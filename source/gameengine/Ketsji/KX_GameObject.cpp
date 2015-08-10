@@ -1616,7 +1616,8 @@ void KX_GameObject::Resume(void)
 {
 	if (m_suspended) {
 		SCA_IObject::Resume();
-		if (GetPhysicsController())
+		// Child objects must be static, so we block changing to dynamic
+		if (GetPhysicsController() && !GetParent())
 			GetPhysicsController()->RestoreDynamics();
 
 		m_suspended = false;
@@ -3438,7 +3439,8 @@ PyObject *KX_GameObject::PySuspendDynamics(PyObject *args)
 
 PyObject *KX_GameObject::PyRestoreDynamics()
 {
-	if (GetPhysicsController())
+	// Child objects must be static, so we block changing to dynamic
+	if (GetPhysicsController() && !GetParent())
 		GetPhysicsController()->RestoreDynamics();
 	Py_RETURN_NONE;
 }

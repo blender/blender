@@ -584,6 +584,10 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 		newctrl->SetNewClientInfo(newobj->getClientInfo());
 		newobj->SetPhysicsController(newctrl, newobj->IsDynamic());
 		newctrl->PostProcessReplica(motionstate, parentctrl);
+
+		// Child objects must be static
+		if (parent)
+			newctrl->SuspendDynamics();
 	}
 
 	return newobj;
