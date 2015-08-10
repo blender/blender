@@ -3310,7 +3310,27 @@ elif [ -f /etc/redhat-release -o /etc/SuSE-release ]; then
   DISTRO="RPM"
   install_RPM
 else
-  ERROR "Failed to detect distribution type"
+  ERROR "Failed to detect distribution type."
+  PRINT ""
+  PRINT "Your distribution is not supported by this script, you'll have to install dependencies and"
+  PRINT "dev packages yourself (list non-exhaustive, but should cover most needs):"
+  PRINT "    * Basics of dev environment (cmake or scons, gcc, svn , git, ...)."
+  PRINT "    * Python$PYTHON_VERSION_MIN, numpy."
+  PRINT "    * libboost$BOOST_VERSION_MIN (locale, filesystem, regex, system, thread, wave)."
+  PRINT "    * libjpeg, libpng, libtiff, libopenjpeg, libopenal."
+  PRINT "    * ffmpeg (with libvorbis, libogg, libtheora, libx264, libmp3lame, libxvidcore, libvpx, ...)."
+  PRINT "    * libx11, libxcursor, libxi, libxrandr, libxinerama (and other libx... as needed)."
+  PRINT "    * libsqlite3, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp."
+  PRINT "    * libsdl1.2, libglew, libglewmx."
+  PRINT "    * libopencolorio$OCIO_VERSION_MIN, libopenexr$OPENEXR_VERSION_MIN, libopenimageio$OIIO_VERSION_MIN."
+  PRINT "    * llvm-$LLVM_VERSION (with clang)."
+  PRINT ""
+  PRINT "Most of up-listed packages are available in recent distributions. The following are likely not,"
+  PRINT "you'll have to build them (they are all optional, though):"
+  PRINT "    * OpenShadingLanguage (from https://github.com/Nazg-Gul/OpenShadingLanguage.git, branch blender-fixes, commit 22ee5ea298fd215430dfbd160b5aefd507f06db0)."
+  PRINT "    * OpenSubDiv (from https://github.com/PixarAnimationStudios/OpenSubdiv.git, branch dev, commit 404659fffa659da075d1c9416e4fc939139a84ee)."
+  PRINT "    * OpenCollada (from https://github.com/KhronosGroup/OpenCOLLADA.git, branch master, commit 3335ac164e68b2512a40914b14c74db260e6ff7d)."
+  PRINT ""
   exit 1
 fi
 
