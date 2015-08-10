@@ -574,13 +574,13 @@ protected:
 			network_device_memory mem;
 			string name;
 			InterpolationType interpolation;
-			ExtensionType extension_typr;
+			ExtensionType extension_type;
 			device_ptr client_pointer;
 
 			rcv.read(name);
 			rcv.read(mem);
 			rcv.read(interpolation);
-			rcv.read(extension_typr);
+			rcv.read(extension_type);
 			lock.unlock();
 
 			client_pointer = mem.device_pointer;
@@ -596,7 +596,7 @@ protected:
 
 			rcv.read_buffer((uint8_t*)mem.data_pointer, data_size);
 
-			device->tex_alloc(name.c_str(), mem, interpolation, extension_typr);
+			device->tex_alloc(name.c_str(), mem, interpolation, extension_type);
 
 			pointer_mapping_insert(client_pointer, mem.device_pointer);
 		}
