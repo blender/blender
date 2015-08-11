@@ -537,8 +537,18 @@ bool	CcdPhysicsEnvironment::RemoveCcdPhysicsController(CcdPhysicsController* ctr
 			con->getRigidBodyA().activate();
 			con->getRigidBodyB().activate();
 			m_dynamicsWorld->removeConstraint(con);
+
+			// The other physics controller in the constraint, can't be NULL.
+			CcdPhysicsController *otherCtrl = (body == &con->getRigidBodyA()) ? 
+			(CcdPhysicsController *)con->getRigidBodyB().getUserPointer() : 
+			(CcdPhysicsController *)con->getRigidBodyA().getUserPointer();
+
+			otherCtrl->removeCcdConstraintRef(con);
 			ctrl->removeCcdConstraintRef(con);
-			//delete con; //might be kept by python KX_ConstraintWrapper
+			/** Since we remove the constraint in the onwer and the target, we can delete it,
+			 * KX_ConstraintWrapper keep the constraint id not the pointer, so no problems.
+			 */
+			delete con;
 		}
 		m_dynamicsWorld->removeRigidBody(ctrl->GetRigidBody());
 
