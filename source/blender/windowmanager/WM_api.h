@@ -208,7 +208,9 @@ void wm_event_init_from_window(struct wmWindow *win, struct wmEvent *event);
 
 			/* at maximum, every timestep seconds it triggers event_type events */
 struct wmTimer *WM_event_add_timer(struct wmWindowManager *wm, struct wmWindow *win, int event_type, double timestep);
+struct wmTimer *WM_event_add_timer_notifier(struct wmWindowManager *wm, struct wmWindow *win, unsigned int type, double timestep);
 void		WM_event_remove_timer(struct wmWindowManager *wm, struct wmWindow *win, struct wmTimer *timer);
+void		WM_event_remove_timer_notifier(struct wmWindowManager *wm, struct wmWindow *win, struct wmTimer *timer);
 void        WM_event_timer_sleep(struct wmWindowManager *wm, struct wmWindow *win, struct wmTimer *timer, bool do_sleep);
 
 		/* operator api, default callbacks */

@@ -1166,6 +1166,8 @@ static int wm_window_timer(const bContext *C)
 					wm_jobs_timer(C, wm, wt);
 				else if (wt->event_type == TIMERAUTOSAVE)
 					wm_autosave_timer(C, wm, wt);
+				else if (wt->event_type == TIMERNOTIFIER)
+					WM_main_add_notifier(GET_UINT_FROM_POINTER(wt->customdata), NULL);
 				else if (win) {
 					wmEvent event;
 					wm_event_init_from_window(win, &event);
@@ -1285,6 +1287,23 @@ wmTimer *WM_event_add_timer(wmWindowManager *wm, wmWindow *win, int event_type, 
 	return wt;
 }
 
+wmTimer *WM_event_add_timer_notifier(wmWindowManager *wm, wmWindow *win, unsigned int type, double timestep)
+{
+	wmTimer *wt = MEM_callocN(sizeof(wmTimer), "window timer");
+
+	wt->event_type = TIMERNOTIFIER;
+	wt->ltime = PIL_check_seconds_timer();
+	wt->ntime = wt->ltime + timestep;
+	wt->stime = wt->ltime;
+	wt->timestep = timestep;
+	wt->win = win;
+	wt->customdata = SET_UINT_IN_POINTER(type);
+
+	BLI_addtail(&wm->timers, wt);
+
+	return wt;
+}
+
 void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *timer)
 {
 	wmTimer *wt;
@@ -1315,6 +1334,12 @@ void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *
 			}
 		}
 	}
+}
+
+void WM_event_remove_timer_notifier(wmWindowManager *wm, wmWindow *win, wmTimer *timer)
+{
+	timer->customdata = NULL;
+	WM_event_remove_timer(wm, win, timer);
 }
 
 /* ******************* clipboard **************** */
