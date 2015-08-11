@@ -820,6 +820,9 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 	m_registerCount = 0;
 	m_collisionShape = NULL;
 
+	// Clear all old constraints.
+	m_ccdConstraintRefs.clear();
+
 	// always create a new shape to avoid scaling bug
 	if (m_shapeInfo)
 	{
