@@ -1527,6 +1527,38 @@ void BKE_mesh_normals_loop_custom_from_vertices_set(
 	                             mpolys, polynors, numPolys, r_clnors_data, true);
 }
 
+/**
+ * Computes average per-vertex normals from given custom loop normals.
+ *
+ * @param clnors The computed custom loop normals.
+ * @param r_vert_clnors The (already allocated) array wher to store averaged per-vertex normals.
+ */
+void BKE_mesh_normals_loop_to_vertex(
+        const int numVerts, const MLoop *mloops, const int numLoops,
+        const float (*clnors)[3], float (*r_vert_clnors)[3])
+{
+	const MLoop *ml;
+	int i;
+
+	int *vert_loops_nbr = MEM_callocN(sizeof(*vert_loops_nbr) * (size_t)numVerts, __func__);
+
+	copy_vn_fl((float *)r_vert_clnors, 3 * numVerts, 0.0f);
+
+	for (i = 0, ml = mloops; i < numLoops; i++, ml++) {
+		const unsigned int v = ml->v;
+
+		add_v3_v3(r_vert_clnors[v], clnors[i]);
+		vert_loops_nbr[v]++;
+	}
+
+	for (i = 0; i < numVerts; i++) {
+		mul_v3_fl(r_vert_clnors[i], 1.0f / (float)vert_loops_nbr[i]);
+	}
+
+	MEM_freeN(vert_loops_nbr);
+}
+
+
 #undef LNOR_SPACE_TRIGO_THRESHOLD
 
 /** \} */

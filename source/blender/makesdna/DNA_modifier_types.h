@@ -392,6 +392,7 @@ enum {
 	MOD_DISP_DIR_Z       = 2,
 	MOD_DISP_DIR_NOR     = 3,
 	MOD_DISP_DIR_RGB_XYZ = 4,
+	MOD_DISP_DIR_CLNOR   = 5,
 };
 
 /* DisplaceModifierData->texmapping */

@@ -243,6 +243,10 @@ void BKE_mesh_normals_loop_custom_from_vertices_set(
         struct MPoly *mpolys, const float (*polynors)[3], const int numPolys,
         short (*r_clnors_data)[2]);
 
+void BKE_mesh_normals_loop_to_vertex(
+        const int numVerts, const struct MLoop *mloops, const int numLoops,
+        const float (*clnors)[3], float (*r_vert_clnors)[3]);
+
 void BKE_mesh_calc_poly_normal(
         const struct MPoly *mpoly, const struct MLoop *loopstart,
         const struct MVert *mvarray, float r_no[3]);

@@ -1989,9 +1989,11 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 		{MOD_DISP_DIR_Y, "Y", 0, "Y", "Use the texture's intensity value to displace in the Y direction"},
 		{MOD_DISP_DIR_Z, "Z", 0, "Z", "Use the texture's intensity value to displace in the Z direction"},
 		{MOD_DISP_DIR_NOR, "NORMAL", 0, "Normal",
-		                   "Use the texture's intensity value to displace in the normal direction"},
+		 "Use the texture's intensity value to displace along the vertex normal"},
+		{MOD_DISP_DIR_CLNOR, "CUSTOM_NORMAL", 0, "Custom Normal",
+		 "Use the texture's intensity value to displace along the (averaged) custom normal (falls back to vertex)"},
 		{MOD_DISP_DIR_RGB_XYZ, "RGB_TO_XYZ", 0, "RGB to XYZ",
-		                       "Use the texture's RGB values to displace the mesh in the XYZ direction"},
+		 "Use the texture's RGB values to displace the mesh in the XYZ direction"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

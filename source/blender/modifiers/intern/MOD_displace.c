@@ -37,10 +37,11 @@
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
-
+#include "BLI_math.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_library.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_texture.h"
 #include "BKE_deform.h"
@@ -98,6 +99,10 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	/* ask for UV coordinates if we need them */
 	if (dmd->texmapping == MOD_DISP_MAP_UV) dataMask |= CD_MASK_MTFACE;
 
+	if (dmd->direction == MOD_DISP_DIR_CLNOR) {
+		dataMask |= CD_MASK_CUSTOMLOOPNORMAL;
+	}
+
 	return dataMask;
 }
 
@@ -116,7 +121,7 @@ static bool dependsOnTime(ModifierData *md)
 static bool dependsOnNormals(ModifierData *md)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
-	return (dmd->direction == MOD_DISP_DIR_NOR);
+	return ELEM(dmd->direction, MOD_DISP_DIR_NOR, MOD_DISP_DIR_CLNOR);
 }
 
 static void foreachObjectLink(ModifierData *md, Object *ob,
@@ -194,10 +199,12 @@ static void displaceModifier_do(
 	int i;
 	MVert *mvert;
 	MDeformVert *dvert;
+	int direction = dmd->direction;
 	int defgrp_index;
 	float (*tex_co)[3];
 	float weight = 1.0f; /* init value unused but some compilers may complain */
 	const float delta_fixed = 1.0f - dmd->midlevel;  /* when no texture is used, we fallback to white */
+	float (*vert_clnors)[3] = NULL;
 
 	if (!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) return;
 	if (dmd->strength == 0.0f) return;
@@ -214,6 +221,25 @@ static void displaceModifier_do(
 	}
 	else {
 		tex_co = NULL;
+	}
+
+	if (direction == MOD_DISP_DIR_CLNOR) {
+		CustomData *ldata = dm->getLoopDataLayout(dm);
+
+		if (CustomData_has_layer(ldata, CD_CUSTOMLOOPNORMAL)) {
+			float (*clnors)[3] = NULL;
+
+			if ((dm->dirty & DM_DIRTY_NORMALS) || !CustomData_has_layer(ldata, CD_NORMAL)) {
+				dm->calcLoopNormals(dm, true, (float)M_PI);
+			}
+
+			clnors = CustomData_get_layer(ldata, CD_NORMAL);
+			vert_clnors = MEM_mallocN(sizeof(*vert_clnors) * (size_t)numVerts, __func__);
+			BKE_mesh_normals_loop_to_vertex(numVerts, dm->getLoopArray(dm), dm->getNumLoops(dm), clnors, vert_clnors);
+		}
+		else {
+			direction = MOD_DISP_DIR_NOR;
+		}
 	}
 
 	for (i = 0; i < numVerts; i++) {
@@ -240,7 +266,7 @@ static void displaceModifier_do(
 		delta *= strength;
 		CLAMP(delta, -10000, 10000);
 
-		switch (dmd->direction) {
+		switch (direction) {
 			case MOD_DISP_DIR_X:
 				vertexCos[i][0] += delta;
 				break;
@@ -260,11 +286,18 @@ static void displaceModifier_do(
 				vertexCos[i][1] += delta * (mvert[i].no[1] / 32767.0f);
 				vertexCos[i][2] += delta * (mvert[i].no[2] / 32767.0f);
 				break;
+			case MOD_DISP_DIR_CLNOR:
+				madd_v3_v3fl(vertexCos[i], vert_clnors[i], delta);
+				break;
 		}
 	}
 
 	if (tex_co) {
 		MEM_freeN(tex_co);
+	}
+
+	if (vert_clnors) {
+		MEM_freeN(vert_clnors);
 	}
 }
 
