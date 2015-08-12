@@ -1834,7 +1834,7 @@ static void ccgDM_drawEdges(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEd
 		}
 	}
 
-	if (ccgdm->drawInteriorEdges) {
+	if (gdo->edges && ccgdm->drawInteriorEdges) {
 		GPU_buffer_draw_elements(gdo->edges, GL_LINES, gdo->interior_offset * 2, gdo->totinterior * 2);
 	}
 	GPU_buffers_unbind();
