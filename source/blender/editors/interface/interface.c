@@ -2075,7 +2075,7 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
 	/* -1 is an error value */
 	if (step != -1.0) {
 		BLI_assert(step > 0.0);
-		return (float)(step / ui_get_but_scale_unit(but, 1.0)) * 100.0f;
+		return (float)(step / ui_get_but_scale_unit(but, 1.0));
 	}
 	else {
 		return step_default;
