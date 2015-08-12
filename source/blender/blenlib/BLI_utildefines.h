@@ -623,9 +623,9 @@ extern "C" {
 #else
 #  if (defined(__APPLE__) && defined(__ppc__))
 /* static inline __attribute__ here breaks osx ppc gcc42 build */
-#    define BLI_INLINE static __attribute__((always_inline))
+#    define BLI_INLINE static __attribute__((always_inline)) __attribute__((__unused__))
 #  else
-#    define BLI_INLINE static inline __attribute__((always_inline))
+#    define BLI_INLINE static inline __attribute__((always_inline)) __attribute__((__unused__))
 #  endif
 #endif
 

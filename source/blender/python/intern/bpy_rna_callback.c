@@ -174,7 +174,7 @@ static eSpace_Type rna_Space_refine_reverse(StructRNA *srna)
 	if (srna == &RNA_SpaceConsole)          return SPACE_CONSOLE;
 	if (srna == &RNA_SpaceUserPreferences)  return SPACE_USERPREF;
 	if (srna == &RNA_SpaceClipEditor)       return SPACE_CLIP;
-	return -1;
+	return SPACE_EMPTY;
 }
 
 PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
@@ -220,7 +220,7 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
 		}
 		else {
 			const eSpace_Type spaceid = rna_Space_refine_reverse(srna);
-			if (spaceid == -1) {
+			if (spaceid == SPACE_EMPTY) {
 				PyErr_Format(PyExc_TypeError, "unknown space type '%.200s'", RNA_struct_identifier(srna));
 				return NULL;
 			}
@@ -283,7 +283,7 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
 		}
 		else {
 			const eSpace_Type spaceid = rna_Space_refine_reverse(srna);
-			if (spaceid == -1) {
+			if (spaceid == SPACE_EMPTY) {
 				PyErr_Format(PyExc_TypeError, "unknown space type '%.200s'", RNA_struct_identifier(srna));
 				return NULL;
 			}

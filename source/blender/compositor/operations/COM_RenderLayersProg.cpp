@@ -150,6 +150,7 @@ void RenderLayersBaseProg::executePixelSampled(float output[4], float x, float y
 			expected_element_size = 4;
 		}
 		else {
+			expected_element_size = 0;
 			BLI_assert(!"Something horribly wrong just happened");
 		}
 		BLI_assert(expected_element_size == actual_element_size);

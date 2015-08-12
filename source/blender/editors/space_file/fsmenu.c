@@ -304,7 +304,7 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu, FSMenuCategory category, const c
 
 			for (; tfsm; tfsm = tfsm->next) {
 				if (STREQ(tfsm->path, fsm_iter->path)) {
-					if (tfsm->name && tfsm->name[0]) {
+					if (tfsm->name[0]) {
 						name = tfsm->name;
 					}
 					break;

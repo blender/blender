@@ -2781,7 +2781,7 @@ CLEW_FUN_EXPORT     PFNCLGETGLCONTEXTINFOKHR            __clewGetGLContextInfoKH
 #define CLEW_ERROR_ATEXIT_FAILED    -2      //!<    Error code for failing to queue the closing of the dynamic library to atexit()
 
 //! \brief Load OpenCL dynamic library and set function entry points
-int         clewInit        ();
+int         clewInit        (void);
 //! \brief Convert an OpenCL error code to its string equivalent
 const char* clewErrorString (cl_int error);
 

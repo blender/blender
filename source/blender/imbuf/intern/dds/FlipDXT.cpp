@@ -246,8 +246,8 @@ int FlipDXTCImage(unsigned int width, unsigned int height, unsigned int levels, 
 
 		// mip levels are contiguous.
 		data += block_bytes * blocks;
-		mip_width = max(1U, mip_width >> 1);
-		mip_height = max(1U, mip_height >> 1);
+		mip_width = MAX(1U, mip_width >> 1);
+		mip_height = MAX(1U, mip_height >> 1);
 	}
 
 	return 1;

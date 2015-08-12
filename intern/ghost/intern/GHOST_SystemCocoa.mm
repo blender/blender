@@ -284,7 +284,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
  * CocoaAppDelegate
  * ObjC object to capture applicationShouldTerminate, and send quit event
  **/
-@interface CocoaAppDelegate : NSObject {
+@interface CocoaAppDelegate : NSObject <NSFileManagerDelegate> {
 	GHOST_SystemCocoa *systemCocoa;
 }
 - (void)setSystemCocoa:(GHOST_SystemCocoa *)sysCocoa;

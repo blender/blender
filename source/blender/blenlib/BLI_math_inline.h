@@ -46,9 +46,9 @@ extern "C" {
 #    define MINLINE static inline
 #    if (defined(__APPLE__) && defined(__ppc__))
        /* static inline __attribute__ here breaks osx ppc gcc42 build */
-#      define MALWAYS_INLINE static __attribute__((always_inline))
+#      define MALWAYS_INLINE static __attribute__((always_inline)) __attribute__((unused))
 #    else
-#      define MALWAYS_INLINE static inline __attribute__((always_inline))
+#      define MALWAYS_INLINE static inline __attribute__((always_inline)) __attribute__((unused))
 #    endif
 #  endif
 #else

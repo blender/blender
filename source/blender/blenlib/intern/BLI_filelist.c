@@ -333,7 +333,8 @@ void BLI_filelist_entry_datetime_to_string(
         const struct stat *st, const int64_t ts, const bool compact,
         char r_time[FILELIST_DIRENTRY_TIME_LEN], char r_date[FILELIST_DIRENTRY_DATE_LEN])
 {
-	const struct tm *tm = localtime(st ? &st->st_mtime : &ts);
+	time_t ts_mtime = ts;
+	const struct tm *tm = localtime(st ? &st->st_mtime : &ts_mtime);
 	const time_t zero = 0;
 
 	/* Prevent impossible dates in windows. */

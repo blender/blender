@@ -46,7 +46,7 @@
 typedef struct QuicktimeCodecTypeDesc {
 	int codecType;
 	int rnatmpvalue;
-	char *codecName;
+	const char *codecName;
 } QuicktimeCodecTypeDesc;
 
 // quicktime movie output functions

@@ -314,13 +314,13 @@ void GPU_mist_update_values(int type, float start, float dist, float inten, floa
 void GPU_horizon_update_color(float color[3]);
 void GPU_ambient_update_color(float color[3]);
 
-typedef struct GPUParticleInfo
+struct GPUParticleInfo
 {
 	float scalprops[4];
 	float location[3];
 	float velocity[3];
 	float angular_velocity[3];
-} GPUParticleInfo;
+};
 
 #ifdef WITH_OPENSUBDIV
 struct DerivedMesh;

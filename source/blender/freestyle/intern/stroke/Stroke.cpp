@@ -419,12 +419,7 @@ Stroke::Stroke(const Stroke& iBrother)
 	_textureId = iBrother._textureId;
 	_textureStep = iBrother._textureStep;
 	for (int a = 0; a < MAX_MTEX; a++) {
-		if (iBrother._mtex) {
-			_mtex[a] = iBrother._mtex[a];
-		}
-		else {
-			_mtex[a] = NULL;
-		}
+		_mtex[a] = iBrother._mtex[a];
 	}
 	_nodeTree = iBrother._nodeTree;
 	_tips = iBrother._tips;

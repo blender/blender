@@ -172,7 +172,7 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	mpLbm->setParticleTracer( mpParts );
 	if(mpElbeemSettings) {
 		// set further settings from API struct init
-		if(mpElbeemSettings->outputPath) this->mOutFilename = string(mpElbeemSettings->outputPath);
+		this->mOutFilename = string(mpElbeemSettings->outputPath);
 		mpLbm->initDomainTrafo( mpElbeemSettings->surfaceTrafo );
 		mpLbm->setSmoothing(1.0 * mpElbeemSettings->surfaceSmoothing, 1.0 * mpElbeemSettings->surfaceSmoothing);
 		mpLbm->setIsoSubdivs(mpElbeemSettings->surfaceSubdivs);

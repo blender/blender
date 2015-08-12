@@ -58,16 +58,9 @@ GHOST_ContextCGL::GHOST_ContextCGL(
         int contextFlags,
         int contextResetNotificationStrategy)
     : GHOST_Context(stereoVisual, numOfAASamples),
-      m_window(window),
       m_openGLView(openGLView),
-      m_contextProfileMask(contextProfileMask),
-      m_contextMajorVersion(contextMajorVersion),
-      m_contextMinorVersion(contextMinorVersion),
-      m_contextFlags(contextFlags),
-      m_contextResetNotificationStrategy(contextResetNotificationStrategy),
       m_openGLContext(nil)
 {
-	assert(window != nil);
 	assert(openGLView != nil);
 }
 

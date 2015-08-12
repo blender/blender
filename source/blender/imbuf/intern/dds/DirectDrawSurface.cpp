@@ -83,7 +83,7 @@ static const uint FOURCC_RXGB = DDS_MAKEFOURCC('R', 'X', 'G', 'B');
 static const uint FOURCC_ATI1 = DDS_MAKEFOURCC('A', 'T', 'I', '1');
 static const uint FOURCC_ATI2 = DDS_MAKEFOURCC('A', 'T', 'I', '2');
 
-static const uint FOURCC_A2XY = DDS_MAKEFOURCC('A', '2', 'X', 'Y');
+//static const uint FOURCC_A2XY = DDS_MAKEFOURCC('A', '2', 'X', 'Y');
 	
 static const uint FOURCC_DX10 = DDS_MAKEFOURCC('D', 'X', '1', '0');
 
@@ -107,25 +107,25 @@ static const uint D3DFMT_X8B8G8R8 = 33;
 static const uint D3DFMT_G16R16 = 34;
 static const uint D3DFMT_A2R10G10B10 = 35;
 
-static const uint D3DFMT_A16B16G16R16 = 36;
+//static const uint D3DFMT_A16B16G16R16 = 36;
 
 // Palette formats.
-static const uint D3DFMT_A8P8 = 40;
-static const uint D3DFMT_P8 = 41;
+//static const uint D3DFMT_A8P8 = 40;
+//static const uint D3DFMT_P8 = 41;
 	
 // Luminance formats.
 static const uint D3DFMT_L8 = 50;
-static const uint D3DFMT_A8L8 = 51;
-static const uint D3DFMT_A4L4 = 52;
+//static const uint D3DFMT_A8L8 = 51;
+//static const uint D3DFMT_A4L4 = 52;
 static const uint D3DFMT_L16 = 81;
 
 // Floating point formats
-static const uint D3DFMT_R16F = 111;
-static const uint D3DFMT_G16R16F = 112;
-static const uint D3DFMT_A16B16G16R16F = 113;
-static const uint D3DFMT_R32F = 114;
-static const uint D3DFMT_G32R32F = 115;
-static const uint D3DFMT_A32B32G32R32F = 116;
+//static const uint D3DFMT_R16F = 111;
+//static const uint D3DFMT_G16R16F = 112;
+//static const uint D3DFMT_A16B16G16R16F = 113;
+//static const uint D3DFMT_R32F = 114;
+//static const uint D3DFMT_G32R32F = 115;
+//static const uint D3DFMT_A32B32G32R32F = 116;
 	
 static const uint DDSD_CAPS = 0x00000001U;
 static const uint DDSD_PIXELFORMAT = 0x00001000U;
@@ -1102,8 +1102,8 @@ void DirectDrawSurface::mipmap(Image *img, uint face, uint mipmap)
 	// Compute width and height.
 	for (uint m = 0; m < mipmap; m++)
 	{
-		w = max(1U, w / 2);
-		h = max(1U, h / 2);
+		w = MAX(1U, w / 2);
+		h = MAX(1U, h / 2);
 	}
 	
 	img->allocate(w, h);
@@ -1223,9 +1223,9 @@ void DirectDrawSurface::readBlockImage(Image *img)
 			readBlock(&block);
 			
 			// Write color block.
-			for (uint y = 0; y < min(4U, h-4*by); y++)
+			for (uint y = 0; y < MIN(4U, h-4*by); y++)
 			{
-				for (uint x = 0; x < min(4U, w-4*bx); x++)
+				for (uint x = 0; x < MIN(4U, w-4*bx); x++)
 				{
 					img->pixel(4*bx+x, 4*by+y) = block.color(x, y);
 				}
@@ -1240,7 +1240,7 @@ static Color32 buildNormal(uint8 x, uint8 y)
 	float ny = 2 * (y / 255.0f) - 1;
 	float nz = 0.0f;
 	if (1 - nx*nx - ny*ny > 0) nz = sqrt(1 - nx*nx - ny*ny);
-	uint8 z = clamp(int(255.0f * (nz + 1) / 2.0f), 0, 255);
+	uint8 z = CLAMP(int(255.0f * (nz + 1) / 2.0f), 0, 255);
 	
 	return Color32(x, y, z);
 }
@@ -1379,9 +1379,9 @@ uint DirectDrawSurface::mipmapSize(uint mipmap) const
 	
 	for (uint m = 0; m < mipmap; m++)
 	{
-		w = max(1U, w / 2);
-		h = max(1U, h / 2);
-		d = max(1U, d / 2);
+		w = MAX(1U, w / 2);
+		h = MAX(1U, h / 2);
+		d = MAX(1U, d / 2);
 	}
 
 	if (header.pf.flags & DDPF_FOURCC)

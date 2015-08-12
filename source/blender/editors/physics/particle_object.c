@@ -1095,6 +1095,7 @@ static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Parti
 				break;
 			default:
 				/* should not happen */
+				from_mat = to_mat = NULL;
 				BLI_assert(false);
 				break;
 		}

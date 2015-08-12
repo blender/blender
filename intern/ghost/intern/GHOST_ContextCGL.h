@@ -128,17 +128,8 @@ public:
 private:
 	//void initContextCGLEW()
 
-	/** The window containing the OpenGL view */
-	NSWindow *m_window;
-
 	/** The openGL view */
 	NSOpenGLView *m_openGLView;
-
-	const int m_contextProfileMask;
-	const int m_contextMajorVersion;
-	const int m_contextMinorVersion;
-	const int m_contextFlags;
-	const int m_contextResetNotificationStrategy;
 
 	/** The OpenGL drawing context */
 	NSOpenGLContext *m_openGLContext;

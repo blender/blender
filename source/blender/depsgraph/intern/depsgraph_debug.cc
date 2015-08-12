@@ -59,8 +59,6 @@ extern "C" {
 /* ****************** */
 /* Graphviz Debugging */
 
-static SpinLock lock;
-
 #define NL "\r\n"
 
 /* Only one should be enabled, defines whether graphviz nodes

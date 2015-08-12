@@ -49,8 +49,6 @@
 
 // default framerate
 const double defFrameRate = 25.0;
-// time scale constant
-const long timeScale = 1000;
 
 // macro for exception handling and logging
 #define CATCH_EXCP catch (Exception & exp) \

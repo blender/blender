@@ -38,6 +38,7 @@
 #include <Image.h>
 #include <Common.h>
 
+#if 0
 	// Get approximate luminance.
 	inline static uint colorLuminance(Color32 c)
 	{
@@ -49,6 +50,7 @@
 	{
 		return (c0.r - c1.r) * (c0.r - c1.r) + (c0.g - c1.g) * (c0.g - c1.g) + (c0.b - c1.b) * (c0.b - c1.b);
 	}
+#endif
 	
 
 /// Default constructor.
@@ -86,8 +88,8 @@ void ColorBlock::init(const Image *img, uint x, uint y)
 
 void ColorBlock::init(uint w, uint h, const uint *data, uint x, uint y)
 {
-	const uint bw = min(w - x, 4U);
-	const uint bh = min(h - y, 4U);
+	const uint bw = MIN(w - x, 4U);
+	const uint bh = MIN(h - y, 4U);
 
 	// Blocks that are smaller than 4x4 are handled by repeating the pixels.
 	// @@ Thats only correct when block size is 1, 2 or 4, but not with 3. :(
@@ -107,8 +109,8 @@ void ColorBlock::init(uint w, uint h, const uint *data, uint x, uint y)
 
 void ColorBlock::init(uint w, uint h, const float *data, uint x, uint y)
 {
-	const uint bw = min(w - x, 4U);
-	const uint bh = min(h - y, 4U);
+	const uint bw = MIN(w - x, 4U);
+	const uint bh = MIN(h - y, 4U);
 
 	// Blocks that are smaller than 4x4 are handled by repeating the pixels.
 	// @@ Thats only correct when block size is 1, 2 or 4, but not with 3. :(
@@ -124,10 +126,10 @@ void ColorBlock::init(uint w, uint h, const float *data, uint x, uint y)
 			const uint idx = ((y + by) * w + x + bx);
 			
 			Color32 & c = color(e, i);
-			c.r = uint8(255 * clamp(data[idx + 0 * srcPlane], 0.0f, 1.0f)); // @@ Is this the right way to quantize floats to bytes?
-			c.g = uint8(255 * clamp(data[idx + 1 * srcPlane], 0.0f, 1.0f));
-			c.b = uint8(255 * clamp(data[idx + 2 * srcPlane], 0.0f, 1.0f));
-			c.a = uint8(255 * clamp(data[idx + 3 * srcPlane], 0.0f, 1.0f));
+			c.r = uint8(255 * CLAMP(data[idx + 0 * srcPlane], 0.0f, 1.0f)); // @@ Is this the right way to quantize floats to bytes?
+			c.g = uint8(255 * CLAMP(data[idx + 1 * srcPlane], 0.0f, 1.0f));
+			c.b = uint8(255 * CLAMP(data[idx + 2 * srcPlane], 0.0f, 1.0f));
+			c.a = uint8(255 * CLAMP(data[idx + 3 * srcPlane], 0.0f, 1.0f));
 		}
 	}
 }

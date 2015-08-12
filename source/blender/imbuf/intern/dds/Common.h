@@ -28,14 +28,14 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
-#ifndef min
-#define min(a,b) ((a) <= (b) ? (a) : (b))
+#ifndef MIN
+#define MIN(a,b) ((a) <= (b) ? (a) : (b))
 #endif
-#ifndef max
-#define max(a,b) ((a) >= (b) ? (a) : (b))
+#ifndef MAX
+#define MAX(a,b) ((a) >= (b) ? (a) : (b))
 #endif
-#ifndef clamp
-#define clamp(x,a,b) min(max((x), (a)), (b))
+#ifndef CLAMP
+#define CLAMP(x,a,b) MIN(MAX((x), (a)), (b))
 #endif
 
 template<typename T>

@@ -273,7 +273,7 @@ void GaussianBlurReferenceOperation::executePixel(float output[4], int x, int y,
 	float *gausstaby, *gausstabcentx;
 	int i, j;
 	float *src;
-	register float sum, val;
+	float sum, val;
 	float rval, gval, bval, aval;
 	int imgx = getWidth();
 	int imgy = getHeight();
