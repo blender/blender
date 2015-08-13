@@ -929,11 +929,16 @@ void OBJECT_OT_select_grouped(wmOperatorType *ot)
 }
 
 /************************* Select by Layer **********************/
+enum {
+	OB_SEL_LAYERMATCH_EXACT = 1,
+	OB_SEL_LAYERMATCH_SHARED = 2,
+};
 
 static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 {
 	unsigned int layernum;
-	bool extend, match;
+	bool extend;
+	int match;
 	
 	extend = RNA_boolean_get(op->ptr, "extend");
 	layernum = RNA_int_get(op->ptr, "layers");
@@ -951,13 +956,20 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 	{
 		bool ok = false;
 
-		if (match == true) /* exact */
-			ok = (base->lay == (1 << (layernum - 1)));
-		else /* shared layers */
-			ok = (base->lay & (1 << (layernum - 1))) != 0;
+		switch (match) {
+			case OB_SEL_LAYERMATCH_EXACT:
+				ok = (base->lay == (1 << (layernum - 1)));
+				break;
+			case OB_SEL_LAYERMATCH_SHARED:
+				ok = (base->lay & (1 << (layernum - 1))) != 0;
+				break;
+			default:
+				break;
+		}
 
-		if (ok)
+		if (ok) {
 			ED_base_object_select(base, BA_SELECT);
+		}
 	}
 	CTX_DATA_END;
 	
@@ -970,8 +982,8 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 {
 	static EnumPropertyItem match_items[] = {
-		{1, "EXACT", 0, "Exact Match", ""},
-		{2, "SHARED", 0, "Shared Layers", ""},
+		{OB_SEL_LAYERMATCH_EXACT, "EXACT", 0, "Exact Match", ""},
+		{OB_SEL_LAYERMATCH_SHARED, "SHARED", 0, "Shared Layers", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -989,7 +1001,7 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "match", match_items, 0, "Match", "");
+	RNA_def_enum(ot->srna, "match", match_items, OB_SEL_LAYERMATCH_EXACT, "Match", "");
 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting everything first");
 	RNA_def_int(ot->srna, "layers", 1, 1, 20, "Layer", "", 1, 20);
 }
