@@ -114,6 +114,7 @@
 #include "BKE_material.h"
 #include "BKE_camera.h"
 #include "BKE_image.h"
+#include "BKE_lattice.h"
 
 #ifdef WITH_MOD_FLUID
 #include "LBM_fluidsim.h"
@@ -2651,6 +2652,12 @@ BoundBox *BKE_object_boundbox_get(Object *ob)
 	}
 	else if (ob->type == OB_MBALL) {
 		bb = ob->bb;
+	}
+	else if (ob->type == OB_LATTICE) {
+		bb = BKE_lattice_boundbox_get(ob);
+	}
+	else if (ob->type == OB_ARMATURE) {
+		bb = BKE_armature_boundbox_get(ob);
 	}
 	return bb;
 }

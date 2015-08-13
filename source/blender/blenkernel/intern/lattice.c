@@ -61,6 +61,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
 
 #include "BKE_deform.h"
 
@@ -1136,6 +1137,30 @@ void BKE_lattice_center_median(Lattice *lt, float cent[3])
 		add_v3_v3(cent, lt->def[i].vec);
 
 	mul_v3_fl(cent, 1.0f / (float)numVerts);
+}
+
+static void boundbox_lattice(Object *ob)
+{
+	BoundBox *bb;
+	Lattice *lt;
+	float min[3], max[3];
+
+	if (ob->bb == NULL)
+		ob->bb = MEM_mallocN(sizeof(BoundBox), "Lattice boundbox");
+
+	bb = ob->bb;
+	lt = ob->data;
+
+	INIT_MINMAX(min, max);
+	BKE_lattice_minmax(lt, min, max);
+	BKE_boundbox_init_from_minmax(bb, min, max);
+}
+
+BoundBox *BKE_lattice_boundbox_get(Object *ob)
+{
+	boundbox_lattice(ob);
+
+	return ob->bb;
 }
 
 void BKE_lattice_minmax(Lattice *lt, float min[3], float max[3])

@@ -2182,20 +2182,14 @@ static int minmax_armature(Object *ob, float r_min[3], float r_max[3])
 	return (BLI_listbase_is_empty(&ob->pose->chanbase) == false);
 }
 
-static void boundbox_armature(Object *ob, float loc[3], float size[3])
+static void boundbox_armature(Object *ob)
 {
 	BoundBox *bb;
 	float min[3], max[3];
-	float mloc[3], msize[3];
 
 	if (ob->bb == NULL)
-		ob->bb = MEM_callocN(sizeof(BoundBox), "Armature boundbox");
+		ob->bb = MEM_mallocN(sizeof(BoundBox), "Armature boundbox");
 	bb = ob->bb;
-
-	if (!loc)
-		loc = mloc;
-	if (!size)
-		size = msize;
 
 	INIT_MINMAX(min, max);
 	if (!minmax_armature(ob, min, max)) {
@@ -2203,18 +2197,12 @@ static void boundbox_armature(Object *ob, float loc[3], float size[3])
 		max[0] = max[1] = max[2] = 1.0f;
 	}
 
-	mid_v3_v3v3(loc, min, max);
-
-	size[0] = (max[0] - min[0]) / 2.0f;
-	size[1] = (max[1] - min[1]) / 2.0f;
-	size[2] = (max[2] - min[2]) / 2.0f;
-
 	BKE_boundbox_init_from_minmax(bb, min, max);
 }
 
 BoundBox *BKE_armature_boundbox_get(Object *ob)
 {
-	boundbox_armature(ob, NULL, NULL);
+	boundbox_armature(ob);
 
 	return ob->bb;
 }

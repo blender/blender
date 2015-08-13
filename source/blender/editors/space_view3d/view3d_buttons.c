@@ -992,9 +992,8 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 
 	if (ptr->type == &RNA_Object) {
 		Object *ob = ptr->data;
-		/* dimensions and material support just happen to be the same checks
-		 * later we may want to add dimensions for lattice, armature etc too */
-		if (OB_TYPE_SUPPORT_MATERIAL(ob->type)) {
+		/* dimensions and editmode just happen to be the same checks */
+		if (OB_TYPE_SUPPORT_EDITMODE(ob->type)) {
 			uiItemR(layout, ptr, "dimensions", 0, NULL, ICON_NONE);
 		}
 	}

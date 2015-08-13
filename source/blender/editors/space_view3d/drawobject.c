@@ -7233,6 +7233,9 @@ static void draw_bounding_volume(Object *ob, char type)
 	else if (ob->type == OB_ARMATURE) {
 		bb = BKE_armature_boundbox_get(ob);
 	}
+	else if (ob->type == OB_LATTICE) {
+		bb = BKE_lattice_boundbox_get(ob);
+	}
 	else {
 		const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
 		bb = &bb_local;
