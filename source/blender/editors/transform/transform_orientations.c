@@ -718,7 +718,6 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					/* should never fail */
 					if (LIKELY(v_pair[0] && v_pair[1])) {
 						bool v_pair_swap = false;
-						float tvec[3];
 						/**
 						 * Logic explained:
 						 *
@@ -749,11 +748,6 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 						sub_v3_v3v3(plane, v_pair[0]->co, v_pair[1]->co);
 						/* flip the plane normal so we point outwards */
 						negate_v3(plane);
-
-						/* align normal to edge direction (so normal is perpendicular to the plane).
-						 * 'ORIENTATION_EDGE' will do the other way around */
-						project_v3_v3v3(tvec, normal, plane);
-						sub_v3_v3(normal, tvec);
 					}
 
 					result = ORIENTATION_EDGE;
@@ -962,8 +956,16 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 
 		/* Vectors from edges don't need the special transpose inverse multiplication */
 		if (result == ORIENTATION_EDGE) {
+			float tvec[3];
+
 			mul_mat3_m4_v3(ob->obmat, normal);
 			mul_mat3_m4_v3(ob->obmat, plane);
+
+			/* align normal to edge direction (so normal is perpendicular to the plane).
+			 * 'ORIENTATION_EDGE' will do the other way around.
+			 * This has to be done **after** applying obmat, see T45775! */
+			project_v3_v3v3(tvec, normal, plane);
+			sub_v3_v3(normal, tvec);
 		}
 		else {
 			mul_m3_v3(mat, normal);
