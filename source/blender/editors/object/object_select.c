@@ -958,7 +958,8 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 
 		switch (match) {
 			case OB_SEL_LAYERMATCH_EXACT:
-				ok = (base->lay == (1 << (layernum - 1)));
+				/* Mask out bits used for local view, only work on real layer ones, see T45783. */
+				ok = ((base->lay & ((1 << 20) - 1)) == (1 << (layernum - 1)));
 				break;
 			case OB_SEL_LAYERMATCH_SHARED:
 				ok = (base->lay & (1 << (layernum - 1))) != 0;
