@@ -273,29 +273,40 @@ static EnumPropertyItem prop_scene_op_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static void outliner_do_scene_operation(
+static bool outliner_do_scene_operation(
         bContext *C, eOutliner_PropSceneOps event, ListBase *lb,
-        void (*operation_cb)(bContext *, eOutliner_PropSceneOps, TreeElement *, TreeStoreElem *))
+        bool (*operation_cb)(bContext *, eOutliner_PropSceneOps, TreeElement *, TreeStoreElem *))
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
+	bool success = false;
 
 	for (te = lb->first; te; te = te->next) {
 		tselem = TREESTORE(te);
 		if (tselem->flag & TSE_SELECTED) {
-			operation_cb(C, event, te, tselem);
+			if (operation_cb(C, event, te, tselem)) {
+				success = true;
+			}
 		}
 	}
+
+	return success;
 }
 
-static void scene_cb(bContext *C, eOutliner_PropSceneOps event, TreeElement *UNUSED(te), TreeStoreElem *tselem)
+static bool scene_cb(bContext *C, eOutliner_PropSceneOps event, TreeElement *UNUSED(te), TreeStoreElem *tselem)
 {
 	Scene *scene = (Scene *)tselem->id;
 
 	if (event == OL_SCENE_OP_DELETE) {
-		ED_screen_delete_scene(C, scene);
-		WM_event_add_notifier(C, NC_SCENE | NA_REMOVED, scene);
+		if (ED_screen_delete_scene(C, scene)) {
+			WM_event_add_notifier(C, NC_SCENE | NA_REMOVED, scene);
+		}
+		else {
+			return false;
+		}
 	}
+
+	return true;
 }
 
 static int outliner_scene_operation_exec(bContext *C, wmOperator *op)
@@ -303,7 +314,9 @@ static int outliner_scene_operation_exec(bContext *C, wmOperator *op)
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	const eOutliner_PropSceneOps event = RNA_enum_get(op->ptr, "type");
 
-	outliner_do_scene_operation(C, event, &soops->tree, scene_cb);
+	if (outliner_do_scene_operation(C, event, &soops->tree, scene_cb) == false) {
+		return OPERATOR_CANCELLED;
+	}
 
 	if (event == OL_SCENE_OP_DELETE) {
 		outliner_cleanup_tree(soops);

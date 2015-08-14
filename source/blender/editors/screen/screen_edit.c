@@ -1707,8 +1707,11 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 	
 }
 
-/* only call outside of area/region loops */
-void ED_screen_delete_scene(bContext *C, Scene *scene)
+/**
+ * \note Only call outside of area/region loops
+ * \return true if successful
+ */
+bool ED_screen_delete_scene(bContext *C, Scene *scene)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *newscene;
@@ -1718,11 +1721,13 @@ void ED_screen_delete_scene(bContext *C, Scene *scene)
 	else if (scene->id.next)
 		newscene = scene->id.next;
 	else
-		return;
+		return false;
 
 	ED_screen_set_scene(C, CTX_wm_screen(C), newscene);
 
 	BKE_scene_unlink(bmain, scene, newscene);
+
+	return true;
 }
 
 ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
