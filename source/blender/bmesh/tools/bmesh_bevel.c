@@ -54,6 +54,8 @@
 #define BEVEL_EPSILON_SQ 1e-12f
 #define BEVEL_EPSILON_BIG 1e-4f
 #define BEVEL_EPSILON_BIG_SQ 1e-8f
+#define BEVEL_EPSILON_ANG DEG2RADF(2.0f)
+#define BEVEL_SMALL_ANG DEG2RADF(10.0f)
 
 /* happens far too often, uncomment for development */
 // #define BEVEL_ASSERT_PROJECT
@@ -663,7 +665,7 @@ static bool point_between_edges(float co[3], BMVert *v, BMFace *f, EdgeHalf *e1,
 	cross_v3_v3v3(no, dir1, dirco);
 	if (dot_v3v3(no, f->no) < 0.0f)
 		ang1co = (float)(M_PI * 2.0) - ang1co;
-	return (ang11 - ang1co > -BEVEL_EPSILON_BIG);
+	return (ang11 - ang1co > -BEVEL_EPSILON_ANG);
 }
 
 /*
@@ -703,7 +705,7 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, bool e
 	}
 
 	ang = angle_v3v3(dir1, dir2);
-	if (ang < BEVEL_EPSILON_BIG) {
+	if (ang < BEVEL_EPSILON_ANG) {
 		/* special case: e1 and e2 are parallel; put offset point perp to both, from v.
 		 * need to find a suitable plane.
 		 * if offsets are different, we're out of luck:
@@ -724,7 +726,7 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, bool e
 			e2->offset_l = d;
 		copy_v3_v3(meetco, off1a);
 	}
-	else if (fabsf(ang - (float)M_PI) < BEVEL_EPSILON_BIG) {
+	else if (fabsf(ang - (float)M_PI) < BEVEL_EPSILON_ANG) {
 		/* special case e1 and e2 are antiparallel, so bevel is into
 		 * a zero-area face.  Just make the offset point on the
 		 * common line, at offset distance from v. */
@@ -738,10 +740,19 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, bool e
 	else {
 		/* Get normal to plane where meet point should be,
 		 * using cross product instead of f->no in case f is non-planar.
+		 * Except: sometimes locally there can be a small angle
+		 * between dir1 and dir2 that leads to a normal that is actually almost
+		 * perpendicular to the face normal; in this case it looks wrong to use
+		 * the local (cross-product) normal, so use the face normal if the angle
+		 * between dir1 and dir2 is smallish.
 		 * If e1-v-e2 is a reflex angle (viewed from vertex normal side), need to flip.
 		 * Use f->no to figure out which side to look at angle from, as even if
 		 * f is non-planar, will be more accurate than vertex normal */
-		if (!edges_between) {
+		if (f && ang < BEVEL_SMALL_ANG) {
+			copy_v3_v3(norm_v1, f->no);
+			copy_v3_v3(norm_v2, f->no);
+		}
+		else if (!edges_between) {
 			cross_v3_v3v3(norm_v1, dir2, dir1);
 			normalize_v3(norm_v1);
 			if (dot_v3v3(norm_v1, f ? f->no : v->no) < 0.0f)
@@ -1162,7 +1173,7 @@ static bool make_unit_square_map(
 
 	sub_v3_v3v3(va_vmid, vmid, va);
 	sub_v3_v3v3(vb_vmid, vmid, vb);
-	if (fabsf(angle_v3v3(va_vmid, vb_vmid) - (float)M_PI) > 100.0f * BEVEL_EPSILON) {
+	if (fabsf(angle_v3v3(va_vmid, vb_vmid) - (float)M_PI) > BEVEL_EPSILON_ANG) {
 		sub_v3_v3v3(vo, va, vb_vmid);
 		cross_v3_v3v3(vddir, vb_vmid, va_vmid);
 		normalize_v3(vddir);
@@ -1508,8 +1519,8 @@ static bool eh_on_plane(EdgeHalf *e)
 
 	if (e->fprev && e->fnext) {
 		dot = dot_v3v3(e->fprev->no, e->fnext->no);
-		if (fabsf(dot) <= BEVEL_EPSILON ||
-		    fabsf(dot - 1.0f) <= BEVEL_EPSILON)
+		if (fabsf(dot) <= BEVEL_EPSILON_BIG ||
+		    fabsf(dot - 1.0f) <= BEVEL_EPSILON_BIG)
 		{
 			return true;
 		}
@@ -1919,7 +1930,7 @@ static BoundVert *pipe_test(BevVert *bv)
 			sub_v3_v3v3(dir3, BM_edge_other_vert(v3->ebev->e, bv->v)->co, bv->v->co);
 			normalize_v3(dir1);
 			normalize_v3(dir3);
-			if (angle_normalized_v3v3(dir1, dir3) < BEVEL_EPSILON_BIG) {
+			if (angle_normalized_v3v3(dir1, dir3) < BEVEL_EPSILON_ANG) {
 				epipe =  v1->ebev;
 				break;
 			}
@@ -1932,7 +1943,7 @@ static BoundVert *pipe_test(BevVert *bv)
 	/* check face planes: all should have normals perpendicular to epipe */
 	for (e = &bv->edges[0]; e != &bv->edges[bv->edgecount]; e++) {
 		if (e->fnext) {
-			if (dot_v3v3(dir1, e->fnext->no) > BEVEL_EPSILON)
+			if (dot_v3v3(dir1, e->fnext->no) > BEVEL_EPSILON_BIG)
 				return NULL;
 		}
 	}
