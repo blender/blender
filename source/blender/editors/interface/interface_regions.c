@@ -1119,6 +1119,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	float aspect = but->block->aspect;
 	rctf rect_fl;
 	rcti rect_i;
+	const int margin = UI_POPUP_MARGIN;
 	int winx /*, winy */, ofsx, ofsy;
 	int i;
 	
@@ -1160,8 +1161,6 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	
 	/* compute position */
 	if (but->block->flag & UI_BLOCK_SEARCH_MENU) {
-		const int margin_x = UI_POPUP_MARGIN;
-		const int margin_y = MENU_TOP;
 		const int search_but_h = BLI_rctf_size_y(&but->rect) + 10;
 		/* this case is search menu inside other menu */
 		/* we copy region size */
@@ -1169,11 +1168,10 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		ar->winrct = butregion->winrct;
 		
 		/* widget rect, in region coords */
-		data->bbox.xmin = margin_x;
-		data->bbox.xmax = BLI_rcti_size_x(&ar->winrct) - margin_x;
-		/* Do not use shadow width for height, gives insane margin with big shadows, and issue T41548 with small ones */
-		data->bbox.ymin = margin_y;
-		data->bbox.ymax = BLI_rcti_size_y(&ar->winrct) - margin_y;
+		data->bbox.xmin = margin;
+		data->bbox.xmax = BLI_rcti_size_x(&ar->winrct) - margin;
+		data->bbox.ymin = margin;
+		data->bbox.ymax = BLI_rcti_size_y(&ar->winrct) - margin;
 		
 		/* check if button is lower half */
 		if (but->rect.ymax < BLI_rctf_cent_y(&but->block->rect)) {
@@ -1185,7 +1183,6 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 	else {
 		const int searchbox_width = UI_searchbox_size_x();
-		const int margin = UI_POPUP_MARGIN;
 
 		rect_fl.xmin = but->rect.xmin - 5;   /* align text with button */
 		rect_fl.xmax = but->rect.xmax + 5;   /* symmetrical */
