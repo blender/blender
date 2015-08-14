@@ -34,14 +34,45 @@
 #  define BLEND_MAKE_ID(a, b, c, d) ( (int)(d) << 24 | (int)(c) << 16 | (b) << 8 | (a) )
 #endif
 
-#define DATA BLEND_MAKE_ID('D', 'A', 'T', 'A')
-#define GLOB BLEND_MAKE_ID('G', 'L', 'O', 'B')
-
-#define DNA1 BLEND_MAKE_ID('D', 'N', 'A', '1')
-#define TEST BLEND_MAKE_ID('T', 'E', 'S', 'T') /* used as preview between 'REND' and 'GLOB' */
-#define REND BLEND_MAKE_ID('R', 'E', 'N', 'D')
-#define USER BLEND_MAKE_ID('U', 'S', 'E', 'R')
-
-#define ENDB BLEND_MAKE_ID('E', 'N', 'D', 'B')
+/**
+ * Codes used for #BHead.code.
+ *
+ * These coexist with ID codes such as #ID_OB, #ID_SCE ... etc.
+ */
+enum {
+	/**
+	 * Arbitrary allocated memory
+	 * (owned by #ID's, or will leak on exit)
+	 */
+	DATA = BLEND_MAKE_ID('D', 'A', 'T', 'A'),
+	/**
+	 * Used for #Global struct.
+	 */
+	GLOB = BLEND_MAKE_ID('G', 'L', 'O', 'B'),
+	/**
+	 * Used for storing the encoded SDNA string
+	 * (decoded into an #SDNA on load).
+	 */
+	DNA1 = BLEND_MAKE_ID('D', 'N', 'A', '1'),
+	/**
+	 * Used as preview between #REND and #GLOB,
+	 * (ignored for regular file reading)
+	 */
+	TEST = BLEND_MAKE_ID('T', 'E', 'S', 'T'),
+	/**
+	 * Used for #RenderInfo, basic Scene and frame range info,
+	 * can be easily read by other applications without writing a full blend file parser.
+	 */
+	REND = BLEND_MAKE_ID('R', 'E', 'N', 'D'),
+	/**
+	 * Used for #UserDef, (user-preferences data).
+	 * (written to #BLENDER_STARTUP_FILE & #BLENDER_USERPREF_FILE).
+	 */
+	USER = BLEND_MAKE_ID('U', 'S', 'E', 'R'),
+	/**
+	 * Terminate reading (no data).
+	 */
+	ENDB = BLEND_MAKE_ID('E', 'N', 'D', 'B'),
+};
 
 #endif  /* __BLO_BLEND_DEFS_H__ */
