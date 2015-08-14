@@ -7225,10 +7225,19 @@ static void ui_blocks_set_tooltips(ARegion *ar, const bool enable)
 
 static bool ui_region_contains_point_px(ARegion *ar, int x, int y)
 {
-	uiBlock *block;
-	
+	uiBlock *block = ar->uiblocks.first;
+	rcti rect = ar->winrct;
+	const bool is_block_loop = block->flag & UI_BLOCK_LOOP;
+
+	/* scale down area rect to exclude shadow */
+	if (is_block_loop) {
+		const int shadow_xy = UI_ThemeMenuShadowWidth();
+		BLI_rcti_resize(&rect, BLI_rcti_size_x(&ar->winrct) - shadow_xy * 2,
+		                BLI_rcti_size_y(&ar->winrct) - shadow_xy * 2);
+	}
+
 	/* check if the mouse is in the region */
-	if (!BLI_rcti_isect_pt(&ar->winrct, x, y)) {
+	if (!BLI_rcti_isect_pt(&rect, x, y)) {
 		for (block = ar->uiblocks.first; block; block = block->next)
 			block->auto_open = false;
 		
