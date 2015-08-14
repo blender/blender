@@ -3135,43 +3135,50 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv)
 				BLI_assert(bmv1 && bmv2 && bmv3 && bmv4);
 				if (bp->vertex_only) {
 					if (j < k) {
-						if (k == ns2 && j == ns2 - 1)
+						if (k == ns2 && j == ns2 - 1) {
 							bev_create_quad_ex(bm, bmv1, bmv2, bmv3, bmv4, f2, f2, f2, f2,
-								NULL, NULL, v->next->efirst->e, bme, mat_nr);
-						else
+							                   NULL, NULL, v->next->efirst->e, bme, mat_nr);
+						}
+						else {
 							bev_create_quad(bm, bmv1, bmv2, bmv3, bmv4, f2, f2, f2, f2, mat_nr);
+						}
 					}
 					else if (j > k) {
 						bev_create_quad(bm, bmv1, bmv2, bmv3, bmv4, f2, f2, f2, f2, mat_nr);
 					}
 					else { /* j == k */
 						/* only one edge attached to v, since vertex_only */
-						if (e->is_seam)
+						if (e->is_seam) {
 							bev_create_quad_ex(bm, bmv1, bmv2, bmv3, bmv4, f2, f2, f2, f2,
-								bme, NULL, bme, NULL, mat_nr);
-						else
+							                   bme, NULL, bme, NULL, mat_nr);
+						}
+						else {
 							bev_create_quad_ex(bm, bmv1, bmv2, bmv3, bmv4, f2, f2, f2, f,
-								bme, NULL, bme, NULL, mat_nr);
+							                   bme, NULL, bme, NULL, mat_nr);
+						}
 					}
 				}
 				else { /* edge bevel */
 					if (odd) {
 						if (k == ns2) {
-							if (e->is_seam)
+							if (e->is_seam) {
 								bev_create_quad_ex(bm, bmv1, bmv2, bmv3, bmv4, f, f, f, f,
-									NULL, bme, bme, NULL, mat_nr);
-							else
+								                   NULL, bme, bme, NULL, mat_nr);
+							}
+							else {
 								bev_create_quad(bm, bmv1, bmv2, bmv3, bmv4, f, f2, f2, f, mat_nr);
+							}
 						}
-						else
+						else {
 							bev_create_quad(bm, bmv1, bmv2, bmv3, bmv4, f, f, f, f, mat_nr);
+						}
 					}
 					else {
 						bme1 = k == ns2 - 1 ? bme : NULL;
 						bme3 = j == ns2 - 1 ? v->prev->ebev->e : NULL;
 						bme2 = bme1 != NULL ? bme1 : bme3;
 						bev_create_quad_ex(bm, bmv1, bmv2, bmv3, bmv4, f, f, f, f,
-							NULL, bme1, bme2, bme3, mat_nr);
+						                   NULL, bme1, bme2, bme3, mat_nr);
 					}
 				}
 			}

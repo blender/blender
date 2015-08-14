@@ -114,7 +114,6 @@
 #include "BKE_material.h"
 #include "BKE_camera.h"
 #include "BKE_image.h"
-#include "BKE_lattice.h"
 
 #ifdef WITH_MOD_FLUID
 #include "LBM_fluidsim.h"
