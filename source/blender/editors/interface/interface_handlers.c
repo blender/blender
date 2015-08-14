@@ -9703,14 +9703,15 @@ static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *UNUSE
 		uiBut *but_other;
 		uiHandleButtonData *data;
 		bool is_inside_menu = false;
+		const int shadow_xy = UI_ThemeMenuShadowWidth();
 
 		/* look for a popup menu containing the mouse */
 		for (ar_temp = screen->regionbase.first; ar_temp; ar_temp = ar_temp->next) {
 			rcti rect = ar_temp->winrct;
 
 			/* resize region rect to ignore shadow */
-			BLI_rcti_resize(&rect, (BLI_rcti_size_x(&ar_temp->winrct) - UI_ThemeMenuShadowWidth() * 2),
-			                (BLI_rcti_size_y(&ar_temp->winrct) - UI_ThemeMenuShadowWidth() * 2));
+			BLI_rcti_resize(&rect, BLI_rcti_size_x(&ar_temp->winrct) - shadow_xy * 2,
+			                BLI_rcti_size_y(&ar_temp->winrct) - shadow_xy * 2);
 			if (BLI_rcti_isect_pt_v(&rect, &event->x)) {
 				BLI_assert(ar_temp->type->regionid == RGN_TYPE_TEMPORARY);
 
