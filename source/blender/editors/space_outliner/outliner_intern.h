@@ -249,6 +249,7 @@ void OUTLINER_OT_group_link(struct wmOperatorType *ot);
 /* outliner_tools.c ---------------------------------------------- */
 
 void OUTLINER_OT_operation(struct wmOperatorType *ot);
+void OUTLINER_OT_scene_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_object_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_group_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_id_operation(struct wmOperatorType *ot);
