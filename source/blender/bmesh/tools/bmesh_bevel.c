@@ -1628,7 +1628,7 @@ static void build_boundary_terminal_edge(BevelParams *bp, BevVert *bv, EdgeHalf 
 	else {
 		/* More than 2 edges in. Put on-edge verts on all the other edges
 		 * and join with the beveled edge to make a poly or adj mesh,
-		 * Because e->prev has offset 0, offset_meet will put co on that edge */
+		 * Because e->prev has offset 0, offset_meet will put co on that edge. */
 		/* TODO: should do something else if angle between e and e->prev > 180 */
 		offset_meet(e->prev, e, bv->v, e->fprev, false, co);
 		if (construct) {
@@ -1653,7 +1653,8 @@ static void build_boundary_terminal_edge(BevelParams *bp, BevVert *bv, EdgeHalf 
 		else {
 			adjust_bound_vert(e->leftv, co);
 		}
-		d = len_v3v3(bv->v->co, co);
+		/* For the edges not adjacent to the beveled edge, slide the bevel amount along. */
+		d = efirst->offset_l_spec;
 		for (e = e->next; e->next != efirst; e = e->next) {
 			slide_dist(e, bv->v, d, co);
 			if (construct) {
@@ -1743,7 +1744,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 
 	if (bv->selcount == 1) {
 		/* special case: only one beveled edge in */
-		build_boundary_terminal_edge(bp, bv, efirst, construct);
+  		build_boundary_terminal_edge(bp, bv, efirst, construct);
 		return;
 	}
 
