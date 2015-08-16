@@ -45,7 +45,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"

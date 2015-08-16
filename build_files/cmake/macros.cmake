@@ -591,6 +591,7 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		ge_videotex
 		bf_dna
 		bf_blenfont
+		bf_blentranslation
 		bf_intern_audaspace
 		bf_intern_mikktspace
 		bf_intern_dualcon

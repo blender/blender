@@ -55,7 +55,7 @@
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 
 #include "DNA_material_types.h"

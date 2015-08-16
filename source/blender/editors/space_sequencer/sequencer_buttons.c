@@ -34,7 +34,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -69,7 +69,7 @@ void sequencer_buttons_register(ARegionType *UNUSED(art))
 	pt = MEM_callocN(sizeof(PanelType), "spacetype sequencer panel gpencil");
 	strcpy(pt->idname, "SEQUENCER_PT_gpencil");
 	strcpy(pt->label, N_("Grease Pencil"));
-	strcpy(pt->translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
+	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw_header = ED_gpencil_panel_standard_header;
 	pt->draw = ED_gpencil_panel_standard;
 	pt->poll = sequencer_grease_pencil_panel_poll;

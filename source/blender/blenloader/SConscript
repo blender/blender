@@ -35,6 +35,7 @@ incs = [
     '../blenfont',
     '../blenkernel',
     '../blenlib',
+    '../blentranslation',
     '../imbuf',
     '../makesdna',
     '../makesrna',

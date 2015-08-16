@@ -25,9 +25,9 @@
 
 set(INC
 	.
-	../blenfont
 	../blenkernel
 	../blenlib
+	../blentranslation
 	../makesdna
 	../../../intern/guardedalloc
 	../../../extern/rangetree

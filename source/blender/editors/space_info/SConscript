@@ -38,6 +38,7 @@ incs = [
     '../../blenkernel',
     '../../blenlib',
     '../../blenloader',
+    '../../blentranslation',
     '../../bmesh',
     '../../gpu',
     '../../imbuf',

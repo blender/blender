@@ -34,7 +34,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -64,13 +64,13 @@ static const char *rna_translate_ui_text(const char *text, const char *text_ctxt
                                          int translate)
 {
 	/* Also return text if UI labels translation is disabled. */
-	if (!text || !text[0] || !translate || !BLF_translate_iface()) {
+	if (!text || !text[0] || !translate || !BLT_translate_iface()) {
 		return text;
 	}
 
 	/* If a text_ctxt is specified, use it! */
 	if (text_ctxt && text_ctxt[0]) {
-		return BLF_pgettext(text_ctxt, text);
+		return BLT_pgettext(text_ctxt, text);
 	}
 
 	/* Else, if an RNA type or property is specified, use its context. */
@@ -82,17 +82,17 @@ static const char *rna_translate_ui_text(const char *text, const char *text_ctxt
 	 *     if default context is not suitable.
 	 */
 	if (prop) {
-		return BLF_pgettext(RNA_property_translation_context(prop), text);
+		return BLT_pgettext(RNA_property_translation_context(prop), text);
 	}
 #else
 	(void)prop;
 #endif
 	if (type) {
-		return BLF_pgettext(RNA_struct_translation_context(type), text);
+		return BLT_pgettext(RNA_struct_translation_context(type), text);
 	}
 
 	/* Else, default context! */
-	return BLF_pgettext(BLF_I18NCONTEXT_DEFAULT, text);
+	return BLT_pgettext(BLT_I18NCONTEXT_DEFAULT, text);
 }
 
 static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, const char *propname, const char *name, const char *text_ctxt,

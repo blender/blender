@@ -35,7 +35,7 @@
 #include "DNA_speaker_types.h"
 #include "DNA_sound_types.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #ifdef RNA_RUNTIME
 
@@ -62,7 +62,7 @@ static void rna_def_speaker(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SPK_MUTED);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Mute", "Mute the speaker");
-	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_SOUND);
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SOUND);
 	/* RNA_def_property_update(prop, 0, "rna_Speaker_update"); */
 
 	prop = RNA_def_property(srna, "relative", PROP_BOOLEAN, PROP_NONE);
@@ -142,14 +142,14 @@ static void rna_def_speaker(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "volume", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Volume", "How loud the sound is");
-	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_SOUND);
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SOUND);
 	/* RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_volume_set", NULL); */
 	/* RNA_def_property_update(prop, 0, "rna_Speaker_update"); */
 
 	prop = RNA_def_property(srna, "pitch", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.1f, 10.0f);
 	RNA_def_property_ui_text(prop, "Pitch", "Playback pitch of the sound");
-	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_SOUND);
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SOUND);
 	/* RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_pitch_set", NULL); */
 	/* RNA_def_property_update(prop, 0, "rna_Speaker_update"); */
 

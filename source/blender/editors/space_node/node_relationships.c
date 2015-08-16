@@ -57,7 +57,7 @@
 #include "UI_view2d.h"
 #include "UI_resources.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "node_intern.h"  /* own include */
 

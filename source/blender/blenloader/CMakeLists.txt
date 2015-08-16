@@ -28,6 +28,7 @@ set(INC
 	../blenfont
 	../blenkernel
 	../blenlib
+	../blentranslation
 	../imbuf
 	../makesdna
 	../makesrna

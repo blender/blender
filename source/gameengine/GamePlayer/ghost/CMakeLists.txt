@@ -42,6 +42,7 @@ set(INC
 	../../../blender/blenkernel
 	../../../blender/blenlib
 	../../../blender/blenloader
+	../../../blender/blentranslation
 	../../../blender/gpu
 	../../../blender/imbuf
 	../../../blender/makesdna

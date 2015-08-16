@@ -41,7 +41,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"

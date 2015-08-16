@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenfont/intern/blf_lang.c
- *  \ingroup blf
+/** \file blender/blenfont/intern/blt_lang.c
+ *  \ingroup blt
  *
  * Main internationalization functions to set the locale and query available languages.
  */
@@ -39,7 +39,8 @@
 
 #include "RNA_types.h"
 
-#include "BLF_translation.h" /* own include */
+#include "BLT_translation.h"
+#include "BLT_lang.h" /* own include */
 
 #include "BLI_fileops.h"
 #include "BLI_linklist.h"
@@ -180,7 +181,7 @@ static void fill_locales(void)
 }
 #endif  /* WITH_INTERNATIONAL */
 
-EnumPropertyItem *BLF_RNA_lang_enum_properties(void)
+EnumPropertyItem *BLT_lang_RNA_enum_properties(void)
 {
 #ifdef WITH_INTERNATIONAL
 	return locales_menu;
@@ -189,7 +190,7 @@ EnumPropertyItem *BLF_RNA_lang_enum_properties(void)
 #endif
 }
 
-void BLF_lang_init(void)
+void BLT_lang_init(void)
 {
 #ifdef WITH_INTERNATIONAL
 	const char * const messagepath = BKE_appdir_folder_id(BLENDER_DATAFILES, "locale");
@@ -234,7 +235,7 @@ void BLF_lang_init(void)
 #endif
 }
 
-void BLF_lang_free(void)
+void BLT_lang_free(void)
 {
 #ifdef WITH_INTERNATIONAL
 	free_locales();
@@ -247,7 +248,7 @@ void BLF_lang_free(void)
 #  define LOCALE(_id) (locales ? locales[(_id)] : "")
 #endif
 
-void BLF_lang_set(const char *str)
+void BLT_lang_set(const char *str)
 {
 #ifdef WITH_INTERNATIONAL
 	int ulang = ULANGUAGE;
@@ -281,10 +282,10 @@ void BLF_lang_set(const char *str)
 }
 
 /* Get the current locale (short code, e.g. es_ES). */
-const char *BLF_lang_get(void)
+const char *BLT_lang_get(void)
 {
 #ifdef WITH_INTERNATIONAL
-	if (BLF_translate()) {
+	if (BLT_translate()) {
 		const char *locale = LOCALE(ULANGUAGE);
 		if (locale[0] == '\0') {
 			/* Default locale, we have to find which one we are actually using! */
@@ -306,8 +307,9 @@ const char *BLF_lang_get(void)
  * Non-null elements are always MEM_mallocN'ed, it's the caller's responsibility to free them.
  * NOTE: Keep that one always available, you never know, may become useful even in no-WITH_INTERNATIONAL context...
  */
-void BLF_locale_explode(const char *locale, char **language, char **country, char **variant,
-                        char **language_country, char **language_variant)
+void BLT_lang_locale_explode(
+        const char *locale, char **language, char **country, char **variant,
+        char **language_country, char **language_variant)
 {
 	char *m1, *m2, *_t = NULL;
 

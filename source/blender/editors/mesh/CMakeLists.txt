@@ -21,9 +21,9 @@
 set(INC
 	../include
 	../uvedit
-	../../blenfont
 	../../blenkernel
 	../../blenlib
+	../../blentranslation
 	../../bmesh
 	../../gpu
 	../../imbuf

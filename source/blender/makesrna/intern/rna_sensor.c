@@ -33,7 +33,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -460,7 +460,7 @@ static void rna_def_keyboard_sensor(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, event_type_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Sensor_keyboard_key_set", NULL);
 	RNA_def_property_ui_text(prop, "Key",  "");
-	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_WINDOWMANAGER);
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_WINDOWMANAGER);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
 	prop = RNA_def_property(srna, "modifier_key_1", PROP_ENUM, PROP_NONE);

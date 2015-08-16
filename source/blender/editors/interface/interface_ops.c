@@ -39,7 +39,7 @@
 #include "BLI_math_color.h"
 
 #include "BLF_api.h"
-#include "BLF_translation.h"
+#include "BLT_lang.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -830,7 +830,7 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 		PointerRNA ptr;
 		char popath[FILE_MAX];
 		const char *root = U.i18ndir;
-		const char *uilng = BLF_lang_get();
+		const char *uilng = BLT_lang_get();
 
 		uiStringInfo but_label = {BUT_GET_LABEL, NULL};
 		uiStringInfo rna_label = {BUT_GET_RNA_LABEL, NULL};
@@ -925,9 +925,9 @@ static void UI_OT_edittranslation_init(wmOperatorType *ot)
 
 static int reloadtranslation_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
-	BLF_lang_init();
+	BLT_lang_init();
 	BLF_cache_clear();
-	BLF_lang_set(NULL);
+	BLT_lang_set(NULL);
 	UI_reinit_font();
 	return OPERATOR_FINISHED;
 }

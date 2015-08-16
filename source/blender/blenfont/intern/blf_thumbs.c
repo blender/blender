@@ -45,7 +45,7 @@
 #include "blf_internal_types.h"
 
 #include "BLF_api.h"
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BLI_strict_flags.h"
 
@@ -90,7 +90,7 @@ void BLF_thumb_preview(
 	font_size_curr = font_size;
 
 	for (i = 0; i < draw_str_lines; i++) {
-		const char *draw_str_i18n = BLF_translate_do(BLF_I18NCONTEXT_DEFAULT, draw_str[i]);
+		const char *draw_str_i18n = BLT_translate_do(BLT_I18NCONTEXT_DEFAULT, draw_str[i]);
 		const size_t draw_str_i18n_len = strlen(draw_str_i18n);
 		int draw_str_i18n_nbr = 0;
 

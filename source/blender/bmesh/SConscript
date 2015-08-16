@@ -35,8 +35,8 @@ sources += env.Glob('tools/*.c')
 
 incs = [
     './',
-    '../blenfont',
     '../blenlib',
+    '../blentranslation',
     '../makesdna',
     '../blenkernel',
     '#/intern/guardedalloc',

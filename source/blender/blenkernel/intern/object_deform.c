@@ -27,7 +27,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"

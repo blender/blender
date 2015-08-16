@@ -39,7 +39,7 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BIF_gl.h"
 

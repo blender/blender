@@ -72,7 +72,7 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_threads.h"
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"

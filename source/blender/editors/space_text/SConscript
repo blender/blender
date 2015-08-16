@@ -40,6 +40,7 @@ incs = [
     '../../blenfont',
     '../../blenkernel',
     '../../blenlib',
+    '../../blentranslation',
     '../../gpu',
     '../../imbuf',
     '../../makesdna',

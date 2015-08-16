@@ -39,7 +39,7 @@ incs = [
     '../include',
     '../../blenkernel',
     '../../blenlib',
-    '../../blenfont',
+    '../../blentranslation',
     '../../gpu',
     '../../makesdna',
     '../../makesrna',

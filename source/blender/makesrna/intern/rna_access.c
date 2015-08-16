@@ -43,7 +43,7 @@
 #include "BLI_math.h"
 
 #include "BLF_api.h"
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
@@ -1256,9 +1256,9 @@ static void property_enum_translate(PropertyRNA *prop, EnumPropertyItem **r_item
 	if (!(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
 		int i;
 
-		/* Note: Only do those tests once, and then use BLF_pgettext. */
-		bool do_iface = BLF_translate_iface();
-		bool do_tooltip = BLF_translate_tooltips();
+		/* Note: Only do those tests once, and then use BLT_pgettext. */
+		bool do_iface = BLT_translate_iface();
+		bool do_tooltip = BLT_translate_tooltips();
 		EnumPropertyItem *nitem;
 
 		if (!(do_iface || do_tooltip))
@@ -1289,10 +1289,10 @@ static void property_enum_translate(PropertyRNA *prop, EnumPropertyItem **r_item
 
 		for (i = 0; nitem[i].identifier; i++) {
 			if (nitem[i].name && do_iface) {
-				nitem[i].name = BLF_pgettext(prop->translation_context, nitem[i].name);
+				nitem[i].name = BLT_pgettext(prop->translation_context, nitem[i].name);
 			}
 			if (nitem[i].description && do_tooltip) {
-				nitem[i].description = BLF_pgettext(NULL, nitem[i].description);
+				nitem[i].description = BLT_pgettext(NULL, nitem[i].description);
 			}
 		}
 
@@ -1505,8 +1505,8 @@ bool RNA_property_enum_name_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA 
 
 	if (result) {
 		if (!(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
-			if (BLF_translate_iface()) {
-				*name = BLF_pgettext(prop->translation_context, *name);
+			if (BLT_translate_iface()) {
+				*name = BLT_pgettext(prop->translation_context, *name);
 			}
 		}
 	}

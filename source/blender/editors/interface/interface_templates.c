@@ -47,7 +47,7 @@
 #include "BLI_fnmatch.h"
 
 #include "BLF_api.h"
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -372,7 +372,7 @@ static const char *template_id_context(StructRNA *type)
 	if (type) {
 		return BKE_idcode_to_translation_context(RNA_type_to_ID_code(type));
 	}
-	return BLF_I18NCONTEXT_DEFAULT;
+	return BLT_I18NCONTEXT_DEFAULT;
 }
 #endif
 
@@ -485,31 +485,31 @@ static void template_ID(
 		int w = id ? UI_UNIT_X : (flag & UI_ID_OPEN) ? UI_UNIT_X * 3 : UI_UNIT_X * 6;
 		
 		/* i18n markup, does nothing! */
-		BLF_I18N_MSGID_MULTI_CTXT("New", BLF_I18NCONTEXT_DEFAULT,
-		                                 BLF_I18NCONTEXT_ID_SCENE,
-		                                 BLF_I18NCONTEXT_ID_OBJECT,
-		                                 BLF_I18NCONTEXT_ID_MESH,
-		                                 BLF_I18NCONTEXT_ID_CURVE,
-		                                 BLF_I18NCONTEXT_ID_METABALL,
-		                                 BLF_I18NCONTEXT_ID_MATERIAL,
-		                                 BLF_I18NCONTEXT_ID_TEXTURE,
-		                                 BLF_I18NCONTEXT_ID_IMAGE,
-		                                 BLF_I18NCONTEXT_ID_LATTICE,
-		                                 BLF_I18NCONTEXT_ID_LAMP,
-		                                 BLF_I18NCONTEXT_ID_CAMERA,
-		                                 BLF_I18NCONTEXT_ID_WORLD,
-		                                 BLF_I18NCONTEXT_ID_SCREEN,
-		                                 BLF_I18NCONTEXT_ID_TEXT,
+		BLT_I18N_MSGID_MULTI_CTXT("New", BLT_I18NCONTEXT_DEFAULT,
+		                                 BLT_I18NCONTEXT_ID_SCENE,
+		                                 BLT_I18NCONTEXT_ID_OBJECT,
+		                                 BLT_I18NCONTEXT_ID_MESH,
+		                                 BLT_I18NCONTEXT_ID_CURVE,
+		                                 BLT_I18NCONTEXT_ID_METABALL,
+		                                 BLT_I18NCONTEXT_ID_MATERIAL,
+		                                 BLT_I18NCONTEXT_ID_TEXTURE,
+		                                 BLT_I18NCONTEXT_ID_IMAGE,
+		                                 BLT_I18NCONTEXT_ID_LATTICE,
+		                                 BLT_I18NCONTEXT_ID_LAMP,
+		                                 BLT_I18NCONTEXT_ID_CAMERA,
+		                                 BLT_I18NCONTEXT_ID_WORLD,
+		                                 BLT_I18NCONTEXT_ID_SCREEN,
+		                                 BLT_I18NCONTEXT_ID_TEXT,
 		);
-		BLF_I18N_MSGID_MULTI_CTXT("New", BLF_I18NCONTEXT_ID_SPEAKER,
-		                                 BLF_I18NCONTEXT_ID_SOUND,
-		                                 BLF_I18NCONTEXT_ID_ARMATURE,
-		                                 BLF_I18NCONTEXT_ID_ACTION,
-		                                 BLF_I18NCONTEXT_ID_NODETREE,
-		                                 BLF_I18NCONTEXT_ID_BRUSH,
-		                                 BLF_I18NCONTEXT_ID_PARTICLESETTINGS,
-		                                 BLF_I18NCONTEXT_ID_GPENCIL,
-		                                 BLF_I18NCONTEXT_ID_FREESTYLELINESTYLE,
+		BLT_I18N_MSGID_MULTI_CTXT("New", BLT_I18NCONTEXT_ID_SPEAKER,
+		                                 BLT_I18NCONTEXT_ID_SOUND,
+		                                 BLT_I18NCONTEXT_ID_ARMATURE,
+		                                 BLT_I18NCONTEXT_ID_ACTION,
+		                                 BLT_I18NCONTEXT_ID_NODETREE,
+		                                 BLT_I18NCONTEXT_ID_BRUSH,
+		                                 BLT_I18NCONTEXT_ID_PARTICLESETTINGS,
+		                                 BLT_I18NCONTEXT_ID_GPENCIL,
+		                                 BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE,
 		);
 		
 		if (newop) {
@@ -943,21 +943,21 @@ static uiLayout *draw_modifier(
 				
 				if (!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
 					if (ELEM(psys->part->ren_as, PART_DRAW_GR, PART_DRAW_OB))
-						uiItemO(row, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Convert"), ICON_NONE,
+						uiItemO(row, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Convert"), ICON_NONE,
 						        "OBJECT_OT_duplicates_make_real");
 					else if (psys->part->ren_as == PART_DRAW_PATH && psys->pathcache)
-						uiItemO(row, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Convert"), ICON_NONE,
+						uiItemO(row, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Convert"), ICON_NONE,
 						        "OBJECT_OT_modifier_convert");
 				}
 			}
 			else {
 				uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
-				uiItemEnumO(row, "OBJECT_OT_modifier_apply", CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
+				uiItemEnumO(row, "OBJECT_OT_modifier_apply", CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
 				            0, "apply_as", MODIFIER_APPLY_DATA);
 				
 				if (modifier_isSameTopology(md) && !modifier_isNonGeometrical(md)) {
 					uiItemEnumO(row, "OBJECT_OT_modifier_apply",
-					            CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Apply as Shape Key"),
+					            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply as Shape Key"),
 					            0, "apply_as", MODIFIER_APPLY_SHAPE);
 				}
 			}
@@ -968,7 +968,7 @@ static uiLayout *draw_modifier(
 			if (!ELEM(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem,
 			           eModifierType_Cloth, eModifierType_Smoke))
 			{
-				uiItemO(row, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Copy"), ICON_NONE,
+				uiItemO(row, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy"), ICON_NONE,
 				        "OBJECT_OT_modifier_copy");
 			}
 		}

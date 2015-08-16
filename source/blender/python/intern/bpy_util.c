@@ -39,7 +39,7 @@
 #include "BKE_report.h"
 #include "BKE_context.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "../generic/py_capi_utils.h"
 

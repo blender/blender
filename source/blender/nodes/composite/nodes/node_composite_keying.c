@@ -30,7 +30,7 @@
  *  \ingroup cmpnodes
  */
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "DNA_movieclip_types.h"
 

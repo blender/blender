@@ -40,7 +40,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BKE_colortools.h"
 #include "BKE_image.h"

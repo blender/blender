@@ -52,7 +52,7 @@
 #include "BKE_main.h"
 #include "BKE_screen.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "ED_armature.h"
 
@@ -85,7 +85,7 @@ static bool uniqueOrientationNameCheck(void *arg, const char *name)
 
 static void uniqueOrientationName(ListBase *lb, char *name)
 {
-	BLI_uniquename_cb(uniqueOrientationNameCheck, lb, CTX_DATA_(BLF_I18NCONTEXT_ID_SCENE, "Space"), '.', name,
+	BLI_uniquename_cb(uniqueOrientationNameCheck, lb, CTX_DATA_(BLT_I18NCONTEXT_ID_SCENE, "Space"), '.', name,
 	                  sizeof(((TransformOrientation *)NULL)->name));
 }
 

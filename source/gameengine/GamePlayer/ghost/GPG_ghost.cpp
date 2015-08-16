@@ -87,7 +87,8 @@ extern "C"
 	
 // For BLF
 #include "BLF_api.h"
-#include "BLF_translation.h"
+#include "BLT_translation.h"
+#include "BLT_lang.h"
 extern int datatoc_bfont_ttf_size;
 extern char datatoc_bfont_ttf[];
 extern int datatoc_bmonofont_ttf_size;
@@ -472,8 +473,8 @@ int main(int argc, char** argv)
 
 	// Setup builtin font for BLF (mostly copied from creator.c, wm_init_exit.c and interface_style.c)
 	BLF_init(11, U.dpi);
-	BLF_lang_init();
-	BLF_lang_set("");
+	BLT_lang_init();
+	BLT_lang_set("");
 
 	BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
 	if (blf_mono_font == -1)
@@ -1140,7 +1141,7 @@ int main(int argc, char** argv)
 #ifdef WITH_INTERNATIONAL
 	BLF_free_unifont();
 	BLF_free_unifont_mono();
-	BLF_lang_free();
+	BLT_lang_free();
 #endif
 
 	IMB_exit();

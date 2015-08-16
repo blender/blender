@@ -42,6 +42,7 @@ incs = [
     '../blenkernel',
     '../blenlib',
     '../blenloader',
+    '../blentranslation',
     '../compositor',
     '../editors/include',
     '../gpu',

@@ -46,7 +46,7 @@
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
@@ -572,7 +572,7 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
 	ot->poll = brush_curve_preset_poll;
 
 	prop = RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
-	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
 }
 
 

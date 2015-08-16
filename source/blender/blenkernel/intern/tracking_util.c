@@ -45,7 +45,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
@@ -196,7 +196,7 @@ void tracks_map_merge(TracksMap *map, MovieTracking *tracking)
 		track->next = track->prev = NULL;
 		BLI_addtail(&new_tracks, track);
 
-		BLI_uniquename(&new_tracks, track, CTX_DATA_(BLF_I18NCONTEXT_ID_MOVIECLIP, "Track"), '.',
+		BLI_uniquename(&new_tracks, track, CTX_DATA_(BLT_I18NCONTEXT_ID_MOVIECLIP, "Track"), '.',
 		               offsetof(MovieTrackingTrack, name), sizeof(track->name));
 
 		track = next;

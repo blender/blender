@@ -39,7 +39,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "DNA_sequence_types.h"
 
@@ -164,7 +164,7 @@ static void colorBalance_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *ma
 }
 
 static SequenceModifierTypeInfo seqModifier_ColorBalance = {
-	CTX_N_(BLF_I18NCONTEXT_ID_SEQUENCE, "Color Balance"),  /* name */
+	CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Color Balance"),  /* name */
 	"ColorBalanceModifierData",                            /* struct_name */
 	sizeof(ColorBalanceModifierData),                      /* struct_size */
 	colorBalance_init_data,                                /* init_data */
@@ -273,7 +273,7 @@ static void curves_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *m
 }
 
 static SequenceModifierTypeInfo seqModifier_Curves = {
-	CTX_N_(BLF_I18NCONTEXT_ID_SEQUENCE, "Curves"),   /* name */
+	CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Curves"),   /* name */
 	"CurvesModifierData",                            /* struct_name */
 	sizeof(CurvesModifierData),                      /* struct_size */
 	curves_init_data,                                /* init_data */
@@ -381,7 +381,7 @@ static void hue_correct_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImB
 }
 
 static SequenceModifierTypeInfo seqModifier_HueCorrect = {
-	CTX_N_(BLF_I18NCONTEXT_ID_SEQUENCE, "Hue Correct"),    /* name */
+	CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Hue Correct"),    /* name */
 	"HueCorrectModifierData",                              /* struct_name */
 	sizeof(HueCorrectModifierData),                        /* struct_size */
 	hue_correct_init_data,                                 /* init_data */
@@ -478,7 +478,7 @@ static void brightcontrast_apply(struct SequenceModifierData *smd, ImBuf *ibuf, 
 }
 
 static SequenceModifierTypeInfo seqModifier_BrightContrast = {
-	CTX_N_(BLF_I18NCONTEXT_ID_SEQUENCE, "Bright/Contrast"),   /* name */
+	CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Bright/Contrast"),   /* name */
 	"BrightContrastModifierData",                             /* struct_name */
 	sizeof(BrightContrastModifierData),                       /* struct_size */
 	NULL,                                                     /* init_data */
@@ -539,7 +539,7 @@ static void maskmodifier_apply(struct SequenceModifierData *UNUSED(smd), ImBuf *
 }
 
 static SequenceModifierTypeInfo seqModifier_Mask = {
-	CTX_N_(BLF_I18NCONTEXT_ID_SEQUENCE, "Mask"), /* name */
+	CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Mask"), /* name */
 	"SequencerMaskModifierData",                 /* struct_name */
 	sizeof(SequencerMaskModifierData),           /* struct_size */
 	NULL,                                        /* init_data */
@@ -636,7 +636,7 @@ void BKE_sequence_modifier_unique_name(Sequence *seq, SequenceModifierData *smd)
 {
 	const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
 
-	BLI_uniquename(&seq->modifiers, smd, CTX_DATA_(BLF_I18NCONTEXT_ID_SEQUENCE, smti->name), '.',
+	BLI_uniquename(&seq->modifiers, smd, CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, smti->name), '.',
 	               offsetof(SequenceModifierData, name), sizeof(smd->name));
 }
 

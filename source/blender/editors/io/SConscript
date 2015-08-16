@@ -33,9 +33,9 @@ defs = []
 
 incs = [
     '../include',
-    '../../blenfont',
     '../../blenkernel',
     '../../blenlib',
+    '../../blentranslation',
     '../../collada',
     '../../makesrna',
     '../../windowmanager',

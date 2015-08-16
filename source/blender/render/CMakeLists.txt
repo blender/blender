@@ -27,9 +27,9 @@
 set(INC 
 	extern/include
 	intern/include
-	../blenfont
 	../blenkernel
 	../blenlib
+	../blentranslation
 	../imbuf
 	../depsgraph
 	../makesdna

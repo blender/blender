@@ -42,7 +42,7 @@
 #include "BLI_listbase.h"
 #include "BLI_ghash.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "RNA_define.h"
 
@@ -736,7 +736,7 @@ StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRN
 	srna->name = identifier; /* may be overwritten later RNA_def_struct_ui_text */
 	srna->description = "";
 	/* may be overwritten later RNA_def_struct_translation_context */
-	srna->translation_context = BLF_I18NCONTEXT_DEFAULT_BPYRNA;
+	srna->translation_context = BLT_I18NCONTEXT_DEFAULT_BPYRNA;
 	srna->flag |= STRUCT_UNDO;
 	if (!srnafrom)
 		srna->icon = ICON_DOT;
@@ -984,7 +984,7 @@ void RNA_def_struct_ui_icon(StructRNA *srna, int icon)
 
 void RNA_def_struct_translation_context(StructRNA *srna, const char *context)
 {
-	srna->translation_context = context ? context : BLF_I18NCONTEXT_DEFAULT_BPYRNA;
+	srna->translation_context = context ? context : BLT_I18NCONTEXT_DEFAULT_BPYRNA;
 }
 
 /* Property Definition */
@@ -1113,7 +1113,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 	prop->subtype = subtype;
 	prop->name = identifier;
 	prop->description = "";
-	prop->translation_context = BLF_I18NCONTEXT_DEFAULT_BPYRNA;
+	prop->translation_context = BLT_I18NCONTEXT_DEFAULT_BPYRNA;
 	/* a priori not raw editable */
 	prop->rawtype = -1;
 
@@ -2106,7 +2106,7 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 
 void RNA_def_property_translation_context(PropertyRNA *prop, const char *context)
 {
-	prop->translation_context = context ? context : BLF_I18NCONTEXT_DEFAULT_BPYRNA;
+	prop->translation_context = context ? context : BLT_I18NCONTEXT_DEFAULT_BPYRNA;
 }
 
 /* Functions */

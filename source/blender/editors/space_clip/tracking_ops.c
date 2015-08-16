@@ -68,7 +68,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "PIL_time.h"
 

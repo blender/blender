@@ -30,7 +30,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_modifier_types.h"

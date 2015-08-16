@@ -20,10 +20,10 @@
 
 set(INC
 	../include
-	../../blenfont
 	../../blenkernel
 	../../blenlib
 	../../blenloader
+	../../blentranslation
 	../../gpu
 	../../imbuf
 	../../bmesh

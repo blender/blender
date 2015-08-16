@@ -35,7 +35,7 @@
 #include "BLI_mempool.h"
 #include "BLI_listbase.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"

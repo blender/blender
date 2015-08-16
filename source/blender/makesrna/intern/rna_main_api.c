@@ -107,7 +107,7 @@
 
 #include "ED_screen.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"

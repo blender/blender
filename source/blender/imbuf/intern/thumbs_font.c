@@ -37,7 +37,7 @@
 
 /* XXX, bad level call */
 #include "../../blenfont/BLF_api.h"
-#include "../../blenfont/BLF_translation.h"  /* 'N_' macro and BLF_lang_get()... */
+#include "../../blentranslation/BLT_translation.h"
 
 static const char *thumb_str[] = {
     N_("AaBbCc"),
@@ -89,7 +89,7 @@ bool IMB_thumb_load_font_get_hash(char *r_hash)
 	len += BLI_strncpy_rlen(str + len, THUMB_DEFAULT_HASH, sizeof(buf) - len);
 
 	for (i = 0; (i < draw_str_lines) && (len < sizeof(buf)); i++) {
-		len += BLI_strncpy_rlen(str + len, BLF_translate_do(BLF_I18NCONTEXT_DEFAULT, thumb_str[i]), sizeof(buf) - len);
+		len += BLI_strncpy_rlen(str + len, BLT_translate_do(BLT_I18NCONTEXT_DEFAULT, thumb_str[i]), sizeof(buf) - len);
 	}
 
 	BLI_hash_md5_buffer(str, len, digest);

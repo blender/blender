@@ -32,7 +32,7 @@
 
 #include "BLI_path_util.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"

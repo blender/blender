@@ -51,7 +51,7 @@
 #include "BLI_string.h"
 #include "BLI_threads.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_tracking.h"
@@ -468,7 +468,7 @@ MovieTrackingTrack *BKE_tracking_track_duplicate(MovieTrackingTrack *track)
  */
 void BKE_tracking_track_unique_name(ListBase *tracksbase, MovieTrackingTrack *track)
 {
-	BLI_uniquename(tracksbase, track, CTX_DATA_(BLF_I18NCONTEXT_ID_MOVIECLIP, "Track"), '.',
+	BLI_uniquename(tracksbase, track, CTX_DATA_(BLT_I18NCONTEXT_ID_MOVIECLIP, "Track"), '.',
 	               offsetof(MovieTrackingTrack, name), sizeof(track->name));
 }
 
@@ -1238,7 +1238,7 @@ MovieTrackingPlaneTrack *BKE_tracking_plane_track_add(MovieTracking *tracking, L
 
 void BKE_tracking_plane_track_unique_name(ListBase *plane_tracks_base, MovieTrackingPlaneTrack *plane_track)
 {
-	BLI_uniquename(plane_tracks_base, plane_track, CTX_DATA_(BLF_I18NCONTEXT_ID_MOVIECLIP, "Plane Track"), '.',
+	BLI_uniquename(plane_tracks_base, plane_track, CTX_DATA_(BLT_I18NCONTEXT_ID_MOVIECLIP, "Plane Track"), '.',
 	               offsetof(MovieTrackingPlaneTrack, name), sizeof(plane_track->name));
 }
 

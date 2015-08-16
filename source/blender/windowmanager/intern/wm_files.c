@@ -60,7 +60,7 @@
 #include "BLI_system.h"
 #include BLI_SYSTEM_PID_H
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"

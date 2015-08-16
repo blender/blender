@@ -20,9 +20,9 @@
 
 set(INC
 	../include
-	../../blenfont
 	../../blenkernel
 	../../blenlib
+	../../blentranslation
 	../../gpu
 	../../makesdna
 	../../makesrna

@@ -42,7 +42,7 @@
 
 #include "PIL_time.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"

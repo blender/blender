@@ -22,7 +22,7 @@ set(INC
 	../include
 	../../blenkernel
 	../../blenlib
-	../../blenfont
+	../../blentranslation
 	../../imbuf
 	../../gpu
 	../../makesdna

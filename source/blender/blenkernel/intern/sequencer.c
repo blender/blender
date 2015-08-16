@@ -59,7 +59,7 @@
 #  include <unistd.h>
 #endif
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BKE_animsys.h"
 #include "BKE_depsgraph.h"

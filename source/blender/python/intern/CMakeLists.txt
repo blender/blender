@@ -25,10 +25,10 @@
 
 set(INC 
 	..
-	../../blenfont
 	../../blenkernel
 	../../blenlib
 	../../blenloader
+	../../blentranslation
 	../../editors/include
 	../../gpu
 	../../imbuf

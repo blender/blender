@@ -35,7 +35,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -1077,7 +1077,7 @@ DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *c
 	modifier_path_init(surface->image_output_path, sizeof(surface->image_output_path), "cache_dynamicpaint");
 
 	/* Using ID_BRUSH i18n context, as we have no physics/dpaint one for now... */
-	dynamicPaintSurface_setUniqueName(surface, CTX_DATA_(BLF_I18NCONTEXT_ID_BRUSH, "Surface"));
+	dynamicPaintSurface_setUniqueName(surface, CTX_DATA_(BLT_I18NCONTEXT_ID_BRUSH, "Surface"));
 
 	surface->effector_weights = BKE_add_effector_weights(NULL);
 

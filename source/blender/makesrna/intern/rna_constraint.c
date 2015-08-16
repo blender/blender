@@ -28,7 +28,7 @@
 
 #include "BLI_math.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "DNA_action_types.h"
 #include "DNA_constraint_types.h"

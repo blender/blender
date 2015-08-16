@@ -40,7 +40,7 @@
 #include "BLI_math.h"
 #include "BLI_ghash.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"

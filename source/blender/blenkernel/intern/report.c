@@ -38,7 +38,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BKE_report.h"
 #include "BKE_global.h" /* G.background only */

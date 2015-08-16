@@ -41,7 +41,7 @@
 
 #include "BLI_math.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "WM_types.h"
 
@@ -192,7 +192,7 @@ static void rna_BoneGroup_name_set(PointerRNA *ptr, const char *value)
 	/* copy the new name into the name slot */
 	BLI_strncpy_utf8(agrp->name, value, sizeof(agrp->name));
 
-	BLI_uniquename(&ob->pose->agroups, agrp, CTX_DATA_(BLF_I18NCONTEXT_ID_ARMATURE, "Group"), '.',
+	BLI_uniquename(&ob->pose->agroups, agrp, CTX_DATA_(BLT_I18NCONTEXT_ID_ARMATURE, "Group"), '.',
 	               offsetof(bActionGroup, name), sizeof(agrp->name));
 }
 

@@ -53,7 +53,7 @@
 #include "ED_image.h"
 #include "ED_view3d.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "UI_resources.h"
 

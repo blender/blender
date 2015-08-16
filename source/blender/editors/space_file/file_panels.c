@@ -34,7 +34,7 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -100,7 +100,7 @@ void file_panels_register(ARegionType *art)
 	pt = MEM_callocN(sizeof(PanelType), "spacetype file operator properties");
 	strcpy(pt->idname, "FILE_PT_operator");
 	strcpy(pt->label, N_("Operator"));
-	strcpy(pt->translation_context, BLF_I18NCONTEXT_DEFAULT_BPYRNA);
+	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->poll = file_panel_operator_poll;
 	pt->draw_header = file_panel_operator_header;
 	pt->draw = file_panel_operator;

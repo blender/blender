@@ -67,7 +67,7 @@
 #include "BLI_linklist.h"
 #include "BLI_kdtree.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BKE_pbvh.h"
 #include "BKE_main.h"

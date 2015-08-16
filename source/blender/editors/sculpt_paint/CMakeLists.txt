@@ -23,7 +23,7 @@ set(INC
 	../uvedit
 	../../blenkernel
 	../../blenlib
-	../../blenfont
+	../../blentranslation
 	../../bmesh
 	../../gpu
 	../../imbuf

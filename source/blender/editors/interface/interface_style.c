@@ -49,7 +49,7 @@
 
 #include "BLF_api.h"
 #ifdef WITH_INTERNATIONAL
-#  include "BLF_translation.h"
+#  include "BLT_translation.h"
 #endif
 
 #include "UI_interface.h"

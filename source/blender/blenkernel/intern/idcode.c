@@ -37,7 +37,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BKE_idcode.h"
 
@@ -52,43 +52,43 @@ typedef struct {
 } IDType;
 
 /* plural need to match rna_main.c's MainCollectionDef */
-/* WARNING! Keep it in sync with i18n contexts in BLF_translation.h */
+/* WARNING! Keep it in sync with i18n contexts in BLT_translation.h */
 static IDType idtypes[] = {
-	{ ID_AC,   "Action",             "actions",         BLF_I18NCONTEXT_ID_ACTION,             IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_AR,   "Armature",           "armatures",       BLF_I18NCONTEXT_ID_ARMATURE,           IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_BR,   "Brush",              "brushes",         BLF_I18NCONTEXT_ID_BRUSH,              IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_CA,   "Camera",             "cameras",         BLF_I18NCONTEXT_ID_CAMERA,             IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_CU,   "Curve",              "curves",          BLF_I18NCONTEXT_ID_CURVE,              IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_GD,   "GPencil",            "grease_pencil",   BLF_I18NCONTEXT_ID_GPENCIL,            IDTYPE_FLAGS_ISLINKABLE }, /* rename gpencil */
-	{ ID_GR,   "Group",              "groups",          BLF_I18NCONTEXT_ID_GROUP,              IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_ID,   "ID",                 "ids",             BLF_I18NCONTEXT_ID_ID,                 0                       }, /* plural is fake */
-	{ ID_IM,   "Image",              "images",          BLF_I18NCONTEXT_ID_IMAGE,              IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_AC,   "Action",             "actions",         BLT_I18NCONTEXT_ID_ACTION,             IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_AR,   "Armature",           "armatures",       BLT_I18NCONTEXT_ID_ARMATURE,           IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_BR,   "Brush",              "brushes",         BLT_I18NCONTEXT_ID_BRUSH,              IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_CA,   "Camera",             "cameras",         BLT_I18NCONTEXT_ID_CAMERA,             IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_CU,   "Curve",              "curves",          BLT_I18NCONTEXT_ID_CURVE,              IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_GD,   "GPencil",            "grease_pencil",   BLT_I18NCONTEXT_ID_GPENCIL,            IDTYPE_FLAGS_ISLINKABLE }, /* rename gpencil */
+	{ ID_GR,   "Group",              "groups",          BLT_I18NCONTEXT_ID_GROUP,              IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_ID,   "ID",                 "ids",             BLT_I18NCONTEXT_ID_ID,                 0                       }, /* plural is fake */
+	{ ID_IM,   "Image",              "images",          BLT_I18NCONTEXT_ID_IMAGE,              IDTYPE_FLAGS_ISLINKABLE },
 	{ ID_IP,   "Ipo",                "ipos",            "",                                    IDTYPE_FLAGS_ISLINKABLE }, /* deprecated */
-	{ ID_KE,   "Key",                "shape_keys",      BLF_I18NCONTEXT_ID_SHAPEKEY,           0                       },
-	{ ID_LA,   "Lamp",               "lamps",           BLF_I18NCONTEXT_ID_LAMP,               IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_LI,   "Library",            "libraries",       BLF_I18NCONTEXT_ID_LIBRARY,            0                       },
-	{ ID_LS,   "FreestyleLineStyle", "linestyles",      BLF_I18NCONTEXT_ID_FREESTYLELINESTYLE, IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_LT,   "Lattice",            "lattices",        BLF_I18NCONTEXT_ID_LATTICE,            IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_MA,   "Material",           "materials",       BLF_I18NCONTEXT_ID_MATERIAL,           IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_MB,   "Metaball",           "metaballs",       BLF_I18NCONTEXT_ID_METABALL,           IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_MC,   "MovieClip",          "movieclips",      BLF_I18NCONTEXT_ID_MOVIECLIP,          IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_ME,   "Mesh",               "meshes",          BLF_I18NCONTEXT_ID_MESH,               IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_MSK,  "Mask",               "masks",           BLF_I18NCONTEXT_ID_MASK,               IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_NT,   "NodeTree",           "node_groups",     BLF_I18NCONTEXT_ID_NODETREE,           IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_OB,   "Object",             "objects",         BLF_I18NCONTEXT_ID_OBJECT,             IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_PA,   "ParticleSettings",   "particles",       BLF_I18NCONTEXT_ID_PARTICLESETTINGS,   0                       },
-	{ ID_PAL,  "Palettes",           "palettes",        BLF_I18NCONTEXT_ID_PALETTE,            IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_PC,   "PaintCurve",         "paint_curves",    BLF_I18NCONTEXT_ID_PAINTCURVE,         IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_SCE,  "Scene",              "scenes",          BLF_I18NCONTEXT_ID_SCENE,              IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_SCR,  "Screen",             "screens",         BLF_I18NCONTEXT_ID_SCREEN,             0                       },
-	{ ID_SEQ,  "Sequence",           "sequences",       BLF_I18NCONTEXT_ID_SEQUENCE,           0                       }, /* not actually ID data */
-	{ ID_SPK,  "Speaker",            "speakers",        BLF_I18NCONTEXT_ID_SPEAKER,            IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_SO,   "Sound",              "sounds",          BLF_I18NCONTEXT_ID_SOUND,              IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_TE,   "Texture",            "textures",        BLF_I18NCONTEXT_ID_TEXTURE,            IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_TXT,  "Text",               "texts",           BLF_I18NCONTEXT_ID_TEXT,               IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_VF,   "VFont",              "fonts",           BLF_I18NCONTEXT_ID_VFONT,              IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_WO,   "World",              "worlds",          BLF_I18NCONTEXT_ID_WORLD,              IDTYPE_FLAGS_ISLINKABLE },
-	{ ID_WM,   "WindowManager",      "window_managers", BLF_I18NCONTEXT_ID_WINDOWMANAGER,      0                       },
+	{ ID_KE,   "Key",                "shape_keys",      BLT_I18NCONTEXT_ID_SHAPEKEY,           0                       },
+	{ ID_LA,   "Lamp",               "lamps",           BLT_I18NCONTEXT_ID_LAMP,               IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_LI,   "Library",            "libraries",       BLT_I18NCONTEXT_ID_LIBRARY,            0                       },
+	{ ID_LS,   "FreestyleLineStyle", "linestyles",      BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE, IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_LT,   "Lattice",            "lattices",        BLT_I18NCONTEXT_ID_LATTICE,            IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_MA,   "Material",           "materials",       BLT_I18NCONTEXT_ID_MATERIAL,           IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_MB,   "Metaball",           "metaballs",       BLT_I18NCONTEXT_ID_METABALL,           IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_MC,   "MovieClip",          "movieclips",      BLT_I18NCONTEXT_ID_MOVIECLIP,          IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_ME,   "Mesh",               "meshes",          BLT_I18NCONTEXT_ID_MESH,               IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_MSK,  "Mask",               "masks",           BLT_I18NCONTEXT_ID_MASK,               IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_NT,   "NodeTree",           "node_groups",     BLT_I18NCONTEXT_ID_NODETREE,           IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_OB,   "Object",             "objects",         BLT_I18NCONTEXT_ID_OBJECT,             IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_PA,   "ParticleSettings",   "particles",       BLT_I18NCONTEXT_ID_PARTICLESETTINGS,   0                       },
+	{ ID_PAL,  "Palettes",           "palettes",        BLT_I18NCONTEXT_ID_PALETTE,            IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_PC,   "PaintCurve",         "paint_curves",    BLT_I18NCONTEXT_ID_PAINTCURVE,         IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_SCE,  "Scene",              "scenes",          BLT_I18NCONTEXT_ID_SCENE,              IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_SCR,  "Screen",             "screens",         BLT_I18NCONTEXT_ID_SCREEN,             0                       },
+	{ ID_SEQ,  "Sequence",           "sequences",       BLT_I18NCONTEXT_ID_SEQUENCE,           0                       }, /* not actually ID data */
+	{ ID_SPK,  "Speaker",            "speakers",        BLT_I18NCONTEXT_ID_SPEAKER,            IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_SO,   "Sound",              "sounds",          BLT_I18NCONTEXT_ID_SOUND,              IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_TE,   "Texture",            "textures",        BLT_I18NCONTEXT_ID_TEXTURE,            IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_TXT,  "Text",               "texts",           BLT_I18NCONTEXT_ID_TEXT,               IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_VF,   "VFont",              "fonts",           BLT_I18NCONTEXT_ID_VFONT,              IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_WO,   "World",              "worlds",          BLT_I18NCONTEXT_ID_WORLD,              IDTYPE_FLAGS_ISLINKABLE },
+	{ ID_WM,   "WindowManager",      "window_managers", BLT_I18NCONTEXT_ID_WINDOWMANAGER,      0                       },
 };
 
 static IDType *idtype_from_name(const char *str) 
@@ -273,7 +273,7 @@ const char *BKE_idcode_to_translation_context(int code)
 {
 	IDType *idt = idtype_from_code(code);
 	BLI_assert(idt);
-	return idt ? idt->i18n_context : BLF_I18NCONTEXT_DEFAULT;
+	return idt ? idt->i18n_context : BLT_I18NCONTEXT_DEFAULT;
 }
 
 /**

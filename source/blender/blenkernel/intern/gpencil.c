@@ -40,7 +40,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "DNA_gpencil_types.h"
 #include "DNA_userdef_types.h"

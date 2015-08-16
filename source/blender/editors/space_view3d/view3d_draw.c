@@ -80,7 +80,7 @@
 #include "WM_api.h"
 
 #include "BLF_api.h"
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "ED_armature.h"
 #include "ED_keyframing.h"

@@ -315,10 +315,11 @@ endif()
 blender_include_dirs(
 	.
 	..
+	../../blenfont
 	../../blenkernel
 	../../blenlib
 	../../bmesh
-	../../blenfont
+	../../blentranslation
 	../../depsgraph
 	../../gpu
 	../../imbuf

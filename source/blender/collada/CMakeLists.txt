@@ -29,7 +29,7 @@ set(INC
 	.
 	../blenkernel
 	../blenlib
-	../blenfont
+	../blentranslation
 	../editors/include
 	../makesdna
 	../makesrna

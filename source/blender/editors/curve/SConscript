@@ -34,9 +34,9 @@ defs = []
 incs = [
     '#/intern/guardedalloc',
     '../include',
-    '../../blenfont',
     '../../blenkernel',
     '../../blenlib',
+    '../../blentranslation',
     '../../makesdna',
     '../../makesrna',
     '../../render/extern/include',

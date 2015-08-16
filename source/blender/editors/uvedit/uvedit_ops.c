@@ -53,7 +53,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
 
-#include "BLF_translation.h"
+#include "BLT_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
@@ -4193,8 +4193,8 @@ static int uv_mark_seam_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 	layout = UI_popup_menu_layout(pup);
 
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Mark Seam"), ICON_NONE, op->type->idname, "clear", false);
-	uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Seam"), ICON_NONE, op->type->idname, "clear", true);
+	uiItemBooleanO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Mark Seam"), ICON_NONE, op->type->idname, "clear", false);
+	uiItemBooleanO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Seam"), ICON_NONE, op->type->idname, "clear", true);
 
 	UI_popup_menu_end(C, pup);
 
