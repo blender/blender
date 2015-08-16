@@ -56,6 +56,7 @@
 #define BEVEL_EPSILON_BIG_SQ 1e-8f
 #define BEVEL_EPSILON_ANG DEG2RADF(2.0f)
 #define BEVEL_SMALL_ANG DEG2RADF(10.0f)
+#define BEVEL_MAX_ADJUST_PCT 10.0f
 
 /* happens far too often, uncomment for development */
 // #define BEVEL_ASSERT_PROJECT
@@ -1692,6 +1693,20 @@ static void build_boundary_terminal_edge(BevelParams *bp, BevVert *bv, EdgeHalf 
 	}
 }
 
+/* Return a value that is v if v is within BEVEL_MAX_ADJUST_PCT of the spec (assumed positive),
+ * else clamp to make it at most that far away from spec */
+static float clamp_adjust(float v, float spec)
+{
+	float allowed_delta = spec * (BEVEL_MAX_ADJUST_PCT / 100.0f);
+
+	if (v - spec > allowed_delta)
+		return spec + allowed_delta;
+	else if (spec - v > allowed_delta)
+		return spec - allowed_delta;
+	else
+		return v;
+}
+
 /* Make a circular list of BoundVerts for bv, each of which has the coordinates
  * of a vertex on the boundary of the beveled vertex bv->v.
  * This may adjust some EdgeHalf widths, and there might have to be
@@ -1732,8 +1747,16 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 		eother = find_other_end_edge_half(bp, e, &bvother);
 		if (eother && bvother->visited && bp->offset_type != BEVEL_AMT_PERCENT) {
 			/* try to keep bevel even by matching other end offsets */
-			e->offset_l = eother->offset_r;
-			e->offset_r = eother->offset_l;
+			/* sometimes, adjustment can accumulate errors so use the bp->limit_offset to
+			 * let user limit the adjustment to within a reasonable range around spec */
+			if (bp->limit_offset) {
+				e->offset_l = clamp_adjust(eother->offset_r, e->offset_l_spec);
+				e->offset_r = clamp_adjust(eother->offset_l, e->offset_r_spec);
+			}
+			else {
+				e->offset_l = eother->offset_r;
+				e->offset_r = eother->offset_l;
+			}
 		}
 		else {
 			/* reset to user spec */
