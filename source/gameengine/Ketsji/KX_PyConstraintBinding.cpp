@@ -583,7 +583,7 @@ static PyObject *gPyRemoveConstraint(PyObject *self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->RemoveConstraint(constraintid);
+			PHY_GetActiveEnvironment()->RemoveConstraintById(constraintid);
 		}
 	}
 	else {

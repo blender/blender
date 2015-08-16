@@ -168,7 +168,7 @@ class PHY_IPhysicsEnvironment
 			float axis1X=0,float axis1Y=0,float axis1Z=0,
 			float axis2X=0,float axis2Y=0,float axis2Z=0,int flag=0
 		)=0;
-		virtual void		RemoveConstraint(int	constraintid)=0;
+		virtual void RemoveConstraintById(int constraintid) = 0;
 		virtual float		GetAppliedImpulse(int	constraintid) { return 0.0f; }
 
 
