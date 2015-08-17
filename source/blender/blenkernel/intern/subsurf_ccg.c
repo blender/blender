@@ -903,11 +903,16 @@ static int ccgDM_getNumEdges(DerivedMesh *dm)
 	return ccgSubSurf_getNumFinalEdges(ccgdm->ss);
 }
 
-static int ccgDM_getNumTessFaces(DerivedMesh *dm)
+static int ccgDM_getNumPolys(DerivedMesh *dm)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 
 	return ccgSubSurf_getNumFinalFaces(ccgdm->ss);
+}
+
+static int ccgDM_getNumTessFaces(DerivedMesh *dm)
+{
+	return dm->numTessFaceData;
 }
 
 static int ccgDM_getNumLoops(DerivedMesh *dm)
@@ -1433,7 +1438,7 @@ static void ccgDM_copyFinalFaceArray(DerivedMesh *dm, MFace *mface)
 	int i = 0;
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
 
-	totface = ccgSubSurf_getNumFaces(ss);
+	totface = dm->getNumTessFaces(dm);
 	for (index = 0; index < totface; index++) {
 		CCGFace *f = ccgdm->faceMap[index].face;
 		int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(f);
@@ -3568,58 +3573,6 @@ static void ccgDM_release(DerivedMesh *dm)
 	}
 }
 
-static void ccg_loops_to_corners(CustomData *fdata, CustomData *ldata, 
-                                 CustomData *pdata, int loopstart, int findex,  int polyindex,
-                                 const int numTex, const int numCol, const int hasPCol, const int hasOrigSpace)
-{
-	MTFace *texface;
-	MTexPoly *texpoly;
-	MCol *mcol;
-	MLoopCol *mloopcol;
-	MLoopUV *mloopuv;
-	int i, j;
-
-	for (i = 0; i < numTex; i++) {
-		texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
-		texpoly = CustomData_get_n(pdata, CD_MTEXPOLY, polyindex, i);
-		
-		ME_MTEXFACE_CPY(texface, texpoly);
-
-		mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, loopstart, i);
-		for (j = 0; j < 4; j++, mloopuv++) {
-			copy_v2_v2(texface->uv[j], mloopuv->uv);
-		}
-	}
-
-	for (i = 0; i < numCol; i++) {
-		mloopcol = CustomData_get_n(ldata, CD_MLOOPCOL, loopstart, i);
-		mcol = CustomData_get_n(fdata, CD_MCOL, findex, i);
-
-		for (j = 0; j < 4; j++, mloopcol++) {
-			MESH_MLOOPCOL_TO_MCOL(mloopcol, &mcol[j]);
-		}
-	}
-	
-	if (hasPCol) {
-		mloopcol = CustomData_get(ldata, loopstart, CD_PREVIEW_MLOOPCOL);
-		mcol = CustomData_get(fdata, findex, CD_PREVIEW_MCOL);
-
-		for (j = 0; j < 4; j++, mloopcol++) {
-			MESH_MLOOPCOL_TO_MCOL(mloopcol, &mcol[j]);
-		}
-	}
-
-	if (hasOrigSpace) {
-		OrigSpaceFace *of = CustomData_get(fdata, findex, CD_ORIGSPACE);
-		OrigSpaceLoop *lof;
-
-		lof = CustomData_get(ldata, loopstart, CD_ORIGSPACE_MLOOP);
-		for (j = 0; j < 4; j++, lof++) {
-			copy_v2_v2(of->uv[j], lof->uv);
-		}
-	}
-}
-
 static void *ccgDM_get_vert_data_layer(DerivedMesh *dm, int type)
 {
 	if (type == CD_ORIGINDEX) {
@@ -4102,10 +4055,10 @@ static void set_default_ccgdm_callbacks(CCGDerivedMesh *ccgdm)
 	ccgdm->dm.getMinMax = ccgDM_getMinMax;
 	ccgdm->dm.getNumVerts = ccgDM_getNumVerts;
 	ccgdm->dm.getNumEdges = ccgDM_getNumEdges;
-	ccgdm->dm.getNumTessFaces = ccgDM_getNumTessFaces;
 	ccgdm->dm.getNumLoops = ccgDM_getNumLoops;
 	/* reuse of ccgDM_getNumTessFaces is intentional here: subsurf polys are just created from tessfaces */
-	ccgdm->dm.getNumPolys = ccgDM_getNumTessFaces;
+	ccgdm->dm.getNumPolys = ccgDM_getNumPolys;
+	ccgdm->dm.getNumTessFaces = ccgDM_getNumTessFaces;
 
 	ccgdm->dm.getLoopTriArray = ccgDM_getLoopTriArray;
 
@@ -4254,10 +4207,6 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
 	numCol = CustomData_number_of_layers(&ccgdm->dm.loopData, CD_MLOOPCOL);
 	hasPCol = CustomData_has_layer(&ccgdm->dm.loopData, CD_PREVIEW_MLOOPCOL);
 	hasOrigSpace = CustomData_has_layer(&ccgdm->dm.loopData, CD_ORIGSPACE_MLOOP);
-
-	/* We absolutely need that layer, else it's no valid tessellated data! */
-	polyidx = CustomData_add_layer(&ccgdm->dm.faceData, CD_ORIGINDEX, CD_CALLOC,
-	                               NULL, ccgSubSurf_getNumFinalFaces(ss));
 
 	edgeSize = ccgSubSurf_getEdgeSize(ss);
 	gridSize = ccgSubSurf_getGridSize(ss);
@@ -4410,11 +4359,6 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
 					/*copy over poly data, e.g. mtexpoly*/
 					CustomData_copy_data(&dm->polyData, &ccgdm->dm.polyData, origIndex, faceNum, 1);
 
-					/*generate tessellated face data used for drawing*/
-					ccg_loops_to_corners(&ccgdm->dm.faceData, &ccgdm->dm.loopData,
-					                     &ccgdm->dm.polyData, loopindex2 - 4, faceNum, faceNum,
-					                     numTex, numCol, hasPCol, hasOrigSpace);
-
 					/*set original index data*/
 					if (faceOrigIndex) {
 						/* reference the index in 'polyOrigIndex' */
@@ -4429,7 +4373,9 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
 					ccgdm->reverseFaceMap[faceNum] = index;
 
 					/* This is a simple one to one mapping, here... */
-					polyidx[faceNum] = faceNum;
+					if (polyidx) {
+						polyidx[faceNum] = faceNum;
+					}
 
 					faceNum++;
 				}
@@ -4566,8 +4512,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	const int totface = ccgSubSurf_getNumFaces(ss);
 #endif
 	CCGDerivedMesh *ccgdm = MEM_callocN(sizeof(*ccgdm), "ccgdm");
-	int numTex, numCol;
-	int hasPCol, hasOrigSpace;
 
 	if (use_gpu_backend == false) {
 		BLI_assert(totedge == ccgSubSurf_getNumEdges(ss));
@@ -4575,34 +4519,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		DM_from_template(&ccgdm->dm, dm, DM_TYPE_CCGDM,
 		                 ccgSubSurf_getNumFinalVerts(ss),
 		                 ccgSubSurf_getNumFinalEdges(ss),
-		                 ccgSubSurf_getNumFinalFaces(ss),
+		                 0,
 		                 ccgSubSurf_getNumFinalFaces(ss) * 4,
 		                 ccgSubSurf_getNumFinalFaces(ss));
-
-		numTex = CustomData_number_of_layers(&ccgdm->dm.loopData,
-		                                     CD_MLOOPUV);
-		numCol = CustomData_number_of_layers(&ccgdm->dm.loopData,
-		                                     CD_MLOOPCOL);
-		hasPCol = CustomData_has_layer(&ccgdm->dm.loopData,
-		                               CD_PREVIEW_MLOOPCOL);
-		hasOrigSpace = CustomData_has_layer(&ccgdm->dm.loopData,
-		                                    CD_ORIGSPACE_MLOOP);
-
-		if (
-		    (numTex && CustomData_number_of_layers(&ccgdm->dm.faceData,
-		                                           CD_MTFACE) != numTex)  ||
-		    (numCol && CustomData_number_of_layers(&ccgdm->dm.faceData,
-		                                           CD_MCOL) != numCol)    ||
-		    (hasPCol && !CustomData_has_layer(&ccgdm->dm.faceData,
-		                                      CD_PREVIEW_MCOL))           ||
-		    (hasOrigSpace && !CustomData_has_layer(&ccgdm->dm.faceData,
-		                                           CD_ORIGSPACE)) )
-		{
-			CustomData_from_bmeshpoly(&ccgdm->dm.faceData,
-			                          &ccgdm->dm.polyData,
-			                          &ccgdm->dm.loopData,
-			                          ccgSubSurf_getNumFinalFaces(ss));
-		}
 
 		CustomData_free_layer_active(&ccgdm->dm.polyData, CD_NORMAL,
 		                             ccgdm->dm.numPolyData);
@@ -4641,12 +4560,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 	ccgdm->dm.numVertData = ccgSubSurf_getNumFinalVerts(ss);
 	ccgdm->dm.numEdgeData = ccgSubSurf_getNumFinalEdges(ss);
-	ccgdm->dm.numTessFaceData = ccgSubSurf_getNumFinalFaces(ss);
-	ccgdm->dm.numLoopData = ccgdm->dm.numTessFaceData * 4;
-	ccgdm->dm.numPolyData = ccgdm->dm.numTessFaceData;
-
-	/* All tessellated CD layers were updated! */
-	ccgdm->dm.dirty &= ~DM_DIRTY_TESS_CDLAYERS;
+	ccgdm->dm.numPolyData = ccgSubSurf_getNumFinalFaces(ss);
+	ccgdm->dm.numLoopData = ccgdm->dm.numPolyData * 4;
+	ccgdm->dm.numTessFaceData = 0;
 
 	return ccgdm;
 }
