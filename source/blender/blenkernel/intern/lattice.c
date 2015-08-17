@@ -1152,7 +1152,7 @@ static void boundbox_lattice(Object *ob)
 	lt = ob->data;
 
 	INIT_MINMAX(min, max);
-	BKE_lattice_minmax(lt, min, max);
+	BKE_lattice_minmax_dl(ob, lt, min, max);
 	BKE_boundbox_init_from_minmax(bb, min, max);
 }
 
@@ -1161,6 +1161,24 @@ BoundBox *BKE_lattice_boundbox_get(Object *ob)
 	boundbox_lattice(ob);
 
 	return ob->bb;
+}
+
+void BKE_lattice_minmax_dl(Object *ob, Lattice *lt, float min[3], float max[3])
+{
+	DispList *dl = ob->curve_cache ? BKE_displist_find(&ob->curve_cache->disp, DL_VERTS) : NULL;
+
+	if (!dl) {
+		BKE_lattice_minmax(lt, min, max);
+	}
+	else {
+		int i, numVerts;
+		
+		if (lt->editlatt) lt = lt->editlatt->latt;
+		numVerts = lt->pntsu * lt->pntsv * lt->pntsw;
+
+		for (i = 0; i < numVerts; i++)
+			minmax_v3v3_v3(min, max, &dl->verts[i * 3]);
+	}
 }
 
 void BKE_lattice_minmax(Lattice *lt, float min[3], float max[3])

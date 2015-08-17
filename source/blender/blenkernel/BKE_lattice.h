@@ -81,6 +81,7 @@ struct MDeformVert *BKE_lattice_deform_verts_get(struct Object *lattice);
 struct BPoint *BKE_lattice_active_point_get(struct Lattice *lt);
 
 struct BoundBox *BKE_lattice_boundbox_get(struct Object *ob);
+void BKE_lattice_minmax_dl(struct Object *ob, struct Lattice *lt, float min[3], float max[3]);
 void BKE_lattice_minmax(struct Lattice *lt, float min[3], float max[3]);
 void BKE_lattice_center_median(struct Lattice *lt, float cent[3]);
 void BKE_lattice_center_bounds(struct Lattice *lt, float cent[3]);
