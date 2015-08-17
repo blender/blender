@@ -2055,14 +2055,13 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 														converter,
 														libloading);
 
-						/* Insert object to the constraint game object list
-						 * so we can check later if there is a instance in the scene or
-						 * an instance and its actual group definition. */
-						convertedlist.insert((KX_GameObject*)gameobj->AddRef());
-
 						bool isInActiveLayer = false;
-						if (gameobj)
-						{
+						if (gameobj) {
+							/* Insert object to the constraint game object list
+							 * so we can check later if there is a instance in the scene or
+							 * an instance and its actual group definition. */
+							convertedlist.insert((KX_GameObject*)gameobj->AddRef());
+
 							/* macro calls object conversion funcs */
 							BL_CONVERTBLENDEROBJECT_SINGLE;
 
