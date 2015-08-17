@@ -2093,13 +2093,9 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[4][4])
 	if (par->curve_cache == NULL) /* only happens on reload file, but violates depsgraph still... fix! */
 		BKE_displist_make_curveTypes(scene, par, 0);
 	if (par->curve_cache->path == NULL) return;
-	
-	/* catch exceptions: feature for nla stride editing */
-	if (ob->ipoflag & OB_DISABLE_PATH) {
-		ctime = 0.0f;
-	}
+
 	/* catch exceptions: curve paths used as a duplicator */
-	else if (enable_cu_speed) {
+	if (enable_cu_speed) {
 		/* ctime is now a proper var setting of Curve which gets set by Animato like any other var that's animated,
 		 * but this will only work if it actually is animated... 
 		 *

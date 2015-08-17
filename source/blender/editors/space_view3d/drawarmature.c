@@ -2366,7 +2366,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 	bArmature *arm = ob->data;
 	bPose *posen, *poseo;
 	float start, end, stepsize, range, colfac;
-	int cfrao, flago, ipoflago;
+	int cfrao, flago;
 	
 	start = (float)arm->ghostsf;
 	end = (float)arm->ghostef;
@@ -2381,8 +2381,6 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 	cfrao = CFRA;
 	flago = arm->flag;
 	arm->flag &= ~(ARM_DRAWNAMES | ARM_DRAWAXES);
-	ipoflago = ob->ipoflag;
-	ob->ipoflag |= OB_DISABLE_PATH;
 	
 	/* copy the pose */
 	poseo = ob->pose;
@@ -2418,7 +2416,6 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 	ob->pose = poseo;
 	arm->flag = flago;
 	ob->mode |= OB_MODE_POSE;
-	ob->ipoflag = ipoflago;
 }
 
 /* draw ghosts on keyframes in action within range 
@@ -2462,8 +2459,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *
 	cfrao = CFRA;
 	flago = arm->flag;
 	arm->flag &= ~(ARM_DRAWNAMES | ARM_DRAWAXES);
-	ob->ipoflag |= OB_DISABLE_PATH;
-	
+
 	/* copy the pose */
 	poseo = ob->pose;
 	BKE_pose_copy_data(&posen, ob->pose, 1);
