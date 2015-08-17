@@ -88,9 +88,8 @@ def blend_extract_thumb(path):
     import os
     open_wrapper = open_wrapper_get()
 
-    # def MAKE_ID(tag): ord(tag[0])<<24 | ord(tag[1])<<16 | ord(tag[2])<<8 | ord(tag[3])
-    REND = 1145980242  # MAKE_ID(b'REND')
-    TEST = 1414743380  # MAKE_ID(b'TEST')
+    REND = b'REND'
+    TEST = b'TEST'
 
     blendfile = open_wrapper(path, 'rb')
 
@@ -116,7 +115,8 @@ def blend_extract_thumb(path):
         return None, 0, 0
 
     sizeof_bhead = 24 if is_64_bit else 20
-    int_endian_pair = '>ii' if is_big_endian else '<ii'
+    int_endian = '>i' if is_big_endian else '<i'
+    int_endian_pair = int_endian + 'i'
 
     while True:
         bhead = blendfile.read(sizeof_bhead)
@@ -124,7 +124,8 @@ def blend_extract_thumb(path):
         if len(bhead) < sizeof_bhead:
             return None, 0, 0
 
-        code, length = struct.unpack(int_endian_pair, bhead[0:8])  # 8 == sizeof(int) * 2
+        code = bhead[:4]
+        length = struct.unpack(int_endian, bhead[4:8])[0]  # 4 == sizeof(int)
 
         if code == REND:
             blendfile.seek(length, os.SEEK_CUR)
