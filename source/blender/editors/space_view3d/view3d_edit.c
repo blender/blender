@@ -100,6 +100,9 @@ static bool view3d_operator_offset_lock_check(bContext *C, wmOperator *op)
 
 /* ********************** view3d_edit: view manipulations ********************* */
 
+/**
+ * \return true when the view-port is locked to its camera.
+ */
 bool ED_view3d_camera_lock_check(const View3D *v3d, const RegionView3D *rv3d)
 {
 	return ((v3d->camera) &&
@@ -108,6 +111,10 @@ bool ED_view3d_camera_lock_check(const View3D *v3d, const RegionView3D *rv3d)
 	        (rv3d->persp == RV3D_CAMOB));
 }
 
+/**
+ * Apply the camera object transformation to the view-port.
+ * (needed so we can use regular view-port manipulation operators, that sync back to the camera).
+ */
 void ED_view3d_camera_lock_init_ex(View3D *v3d, RegionView3D *rv3d, const bool calc_dist)
 {
 	if (ED_view3d_camera_lock_check(v3d, rv3d)) {
@@ -124,7 +131,11 @@ void ED_view3d_camera_lock_init(View3D *v3d, RegionView3D *rv3d)
 	ED_view3d_camera_lock_init_ex(v3d, rv3d, true);
 }
 
-/* return true if the camera is moved */
+/**
+ * Apply the view-port transformation back to the camera object.
+ *
+ * \return true if the camera is moved.
+ */
 bool ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 {
 	if (ED_view3d_camera_lock_check(v3d, rv3d)) {

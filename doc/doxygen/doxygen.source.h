@@ -94,6 +94,10 @@
 
 /** \defgroup blender Blender */
 
+/** \defgroup blt BlenTranslation
+ *  \ingroup blender
+ */
+
 /** \defgroup blf BlenFont
  *  \ingroup blender
  */
