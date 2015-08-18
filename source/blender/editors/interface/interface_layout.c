@@ -1246,7 +1246,10 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	}
 
 	/* menus and pie-menus don't show checkbox without this */
-	if (ELEM(layout->root->type, UI_LAYOUT_MENU, UI_LAYOUT_PIEMENU)) {
+	if ((layout->root->type == UI_LAYOUT_MENU) ||
+	    /* use checkboxes only as a fallback in pie-menu's, when no icon is defined */
+	    ((layout->root->type == UI_LAYOUT_PIEMENU) && (icon == ICON_NONE)))
+	{
 		if (type == PROP_BOOLEAN && ((is_array == false) || (index != RNA_NO_INDEX))) {
 			if (is_array) icon = (RNA_property_boolean_get_index(ptr, prop, index)) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
 			else icon = (RNA_property_boolean_get(ptr, prop)) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
@@ -1266,7 +1269,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	toggle = (flag & UI_ITEM_R_TOGGLE) != 0;
 	expand = (flag & UI_ITEM_R_EXPAND) != 0;
 	icon_only = (flag & UI_ITEM_R_ICON_ONLY) != 0;
-	no_bg = (flag & UI_ITEM_R_NO_BG);
+	no_bg = (flag & UI_ITEM_R_NO_BG) != 0;
 
 	/* get size */
 	ui_item_rna_size(layout, name, icon, ptr, prop, index, icon_only, &w, &h);
@@ -1431,7 +1434,7 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 
 		for (i = 0; i < totitem; i++) {
 			if (item[i].identifier[0]) {
-				uiItemEnumR_prop(column, item[i].name, ICON_NONE, ptr, prop, item[i].value);
+				uiItemEnumR_prop(column, item[i].name, item[i].icon, ptr, prop, item[i].value);
 				ui_but_tip_from_enum_item(block->buttons.last, &item[i]);
 			}
 			else {
