@@ -450,6 +450,7 @@ extern void ui_window_to_block_fl(const struct ARegion *ar, uiBlock *block, floa
 extern void ui_window_to_block(const struct ARegion *ar, uiBlock *block, int *x, int *y);
 extern void ui_window_to_region(const ARegion *ar, int *x, int *y);
 extern void ui_region_to_window(const struct ARegion *ar, int *x, int *y);
+extern void ui_region_winrct_get_no_margin(const struct ARegion *ar, struct rcti *r_rect);
 
 extern double ui_but_value_get(uiBut *but);
 extern void ui_but_value_set(uiBut *but, double value);

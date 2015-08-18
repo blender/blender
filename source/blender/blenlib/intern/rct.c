@@ -584,6 +584,14 @@ void BLI_rcti_rctf_copy(rcti *dst, const rctf *src)
 	dst->ymax = dst->ymin + floorf(BLI_rctf_size_y(src) + 0.5f);
 }
 
+void BLI_rcti_rctf_copy_floor(rcti *dst, const rctf *src)
+{
+	dst->xmin = floorf(src->xmin);
+	dst->xmax = floorf(src->xmax);
+	dst->ymin = floorf(src->ymin);
+	dst->ymax = floorf(src->ymax);
+}
+
 void BLI_rctf_rcti_copy(rctf *dst, const rcti *src)
 {
 	dst->xmin = src->xmin;
