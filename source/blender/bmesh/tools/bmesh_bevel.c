@@ -1767,7 +1767,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 
 	if (bv->selcount == 1) {
 		/* special case: only one beveled edge in */
-  		build_boundary_terminal_edge(bp, bv, efirst, construct);
+		build_boundary_terminal_edge(bp, bv, efirst, construct);
 		return;
 	}
 

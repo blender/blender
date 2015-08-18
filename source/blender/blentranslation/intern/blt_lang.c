@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenfont/intern/blt_lang.c
+/** \file blender/blentranslation/intern/blt_lang.c
  *  \ingroup blt
  *
  * Main internationalization functions to set the locale and query available languages.

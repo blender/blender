@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenfont/BLT_lang.h
+/** \file blender/blentranslation/BLT_lang.h
  *  \ingroup blt
  */
 

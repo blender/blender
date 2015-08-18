@@ -653,7 +653,8 @@ static struct IMBThumbLocks {
 	ThreadCondition cond;
 } thumb_locks = {0};
 
-void IMB_thumb_locks_acquire(void) {
+void IMB_thumb_locks_acquire(void)
+{
 	BLI_lock_thread(LOCK_IMAGE);
 
 	if (thumb_locks.lock_counter == 0) {
@@ -668,7 +669,8 @@ void IMB_thumb_locks_acquire(void) {
 	BLI_unlock_thread(LOCK_IMAGE);
 }
 
-void IMB_thumb_locks_release(void) {
+void IMB_thumb_locks_release(void)
+{
 	BLI_lock_thread(LOCK_IMAGE);
 	BLI_assert((thumb_locks.locked_paths != NULL) && (thumb_locks.lock_counter > 0));
 
@@ -682,7 +684,8 @@ void IMB_thumb_locks_release(void) {
 	BLI_unlock_thread(LOCK_IMAGE);
 }
 
-void IMB_thumb_path_lock(const char *path) {
+void IMB_thumb_path_lock(const char *path)
+{
 	void *key = BLI_strdup(path);
 
 	BLI_lock_thread(LOCK_IMAGE);
@@ -697,7 +700,8 @@ void IMB_thumb_path_lock(const char *path) {
 	BLI_unlock_thread(LOCK_IMAGE);
 }
 
-void IMB_thumb_path_unlock(const char *path) {
+void IMB_thumb_path_unlock(const char *path)
+{
 	const void *key = path;
 
 	BLI_lock_thread(LOCK_IMAGE);

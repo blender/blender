@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenfont/intern/blt_translation.c
+/** \file blender/blentranslation/intern/blt_translation.c
  *  \ingroup blt
  *
  * Manages translation files and provides translation functions.

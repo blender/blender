@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenfont/intern/blf_font_access.c
+/** \file blender/blenfont/intern/blf_font_i18n.c
  *  \ingroup blf
  *
  * API for accessing font files.
