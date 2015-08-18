@@ -2602,7 +2602,8 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	BlendHandle *bh;
 	Library *lib;
 	PropertyRNA *prop;
-	char name[FILE_MAX], dir[FILE_MAX], libname[FILE_MAX], group[BLO_GROUP_MAX];
+	char name[FILE_MAX], dir[FILE_MAX], libname[FILE_MAX];
+	char *group;
 	int idcode, totfiles = 0;
 	short flag;
 
@@ -2610,11 +2611,11 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "directory", dir);
 
 	/* test if we have a valid data */
-	if (BLO_library_path_explode(dir, libname, group, NULL) == 0) {
+	if (BLO_library_path_explode(dir, libname, &group, NULL) == 0) {
 		BKE_report(op->reports, RPT_ERROR, "Not a library");
 		return OPERATOR_CANCELLED;
 	}
-	else if (group[0] == 0) {
+	else if ((group == NULL) || (group[0] == '\0')) {
 		BKE_report(op->reports, RPT_ERROR, "Nothing indicated");
 		return OPERATOR_CANCELLED;
 	}
