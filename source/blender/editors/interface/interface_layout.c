@@ -1339,11 +1339,23 @@ void uiItemR(uiLayout *layout, PointerRNA *ptr, const char *propname, int flag, 
 	uiItemFullR(layout, ptr, prop, RNA_NO_INDEX, 0, flag, name, icon);
 }
 
+void uiItemEnumR_prop(uiLayout *layout, const char *name, int icon, struct PointerRNA *ptr, PropertyRNA *prop, int value)
+{
+	if (RNA_property_type(prop) != PROP_ENUM) {
+		const char *propname = RNA_property_identifier(prop);
+		ui_item_disabled(layout, propname);
+		RNA_warning("property not an enum: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	uiItemFullR(layout, ptr, prop, RNA_ENUM_VALUE, value, 0, name, icon);
+}
+
 void uiItemEnumR(uiLayout *layout, const char *name, int icon, struct PointerRNA *ptr, const char *propname, int value)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 
-	if (!prop || RNA_property_type(prop) != PROP_ENUM) {
+	if (prop == NULL) {
 		ui_item_disabled(layout, propname);
 		RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
 		return;
@@ -1419,7 +1431,7 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 
 		for (i = 0; i < totitem; i++) {
 			if (item[i].identifier[0]) {
-				uiItemEnumR(column, item[i].name, ICON_NONE, ptr, propname, item[i].value);
+				uiItemEnumR_prop(column, item[i].name, ICON_NONE, ptr, prop, item[i].value);
 				ui_but_tip_from_enum_item(block->buttons.last, &item[i]);
 			}
 			else {
