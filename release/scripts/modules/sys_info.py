@@ -113,7 +113,7 @@ def write_sysinfo(op):
     ffmpeg = bpy.app.ffmpeg
     if ffmpeg.supported:
         for lib in ("avcodec", "avdevice", "avformat", "avutil", "swscale"):
-            output.write("%r:%r%r\n" % (lib, " " * (10 - len(lib)),
+            output.write("%s:%s%r\n" % (lib, " " * (10 - len(lib)),
                          getattr(ffmpeg, lib + "_version_string")))
     else:
         output.write("Blender was built without FFmpeg support\n")
