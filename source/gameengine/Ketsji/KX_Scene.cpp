@@ -2019,8 +2019,12 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 	to->GetLogicManager()->RegisterGameObjectName(gameobj->GetName(), gameobj);
 	to->GetLogicManager()->RegisterGameObj(gameobj->GetBlenderObject(), gameobj);
 
-	for (int i=0; i<gameobj->GetMeshCount(); ++i)
-		to->GetLogicManager()->RegisterGameMeshName(gameobj->GetMesh(i)->GetName(), gameobj->GetBlenderObject());
+	for (int i = 0; i < gameobj->GetMeshCount(); ++i) {
+		RAS_MeshObject *meshobj = gameobj->GetMesh(i);
+		// Register the mesh object by name and blender object.
+		to->GetLogicManager()->RegisterGameMeshName(meshobj->GetName(), gameobj->GetBlenderObject());
+		to->GetLogicManager()->RegisterMeshName(meshobj->GetName(), meshobj);
+	}
 }
 
 bool KX_Scene::MergeScene(KX_Scene *other)
