@@ -2610,7 +2610,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "directory", dir);
 
 	/* test if we have a valid data */
-	if (BLO_is_a_library(dir, libname, group) == 0) {
+	if (BLO_library_path_explode(dir, libname, group, NULL) == 0) {
 		BKE_report(op->reports, RPT_ERROR, "Not a library");
 		return OPERATOR_CANCELLED;
 	}

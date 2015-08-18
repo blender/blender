@@ -1347,8 +1347,8 @@ int file_parent_exec(bContext *C, wmOperator *UNUSED(unused))
 			BLI_cleanup_dir(G.main->name, sfile->params->dir);
 			/* if not browsing in .blend file, we still want to check whether the path is a directory */
 			if (sfile->params->type == FILE_LOADLIB) {
-				char tdir[FILE_MAX], tgroup[FILE_MAX];
-				if (BLO_is_a_library(sfile->params->dir, tdir, tgroup)) {
+				char tdir[FILE_MAX];
+				if (BLO_library_path_explode(sfile->params->dir, tdir, NULL, NULL)) {
 					ED_file_change_dir(C, false);
 				}
 				else {
@@ -1842,9 +1842,9 @@ void file_filename_enter_handle(bContext *C, void *UNUSED(arg_unused), void *arg
 				WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 			}
 			else if (sfile->params->type == FILE_LOADLIB) {
-				char tdir[FILE_MAX], tgroup[FILE_MAX];
+				char tdir[FILE_MAX];
 				BLI_add_slash(filepath);
-				if (BLO_is_a_library(filepath, tdir, tgroup)) {
+				if (BLO_library_path_explode(filepath, tdir, NULL, NULL)) {
 					BLI_cleanup_dir(G.main->name, filepath);
 					BLI_strncpy(sfile->params->dir, filepath, sizeof(sfile->params->dir));
 					sfile->params->file[0] = '\0';
@@ -2022,8 +2022,8 @@ static int file_rename_poll(bContext *C)
 			poll = 0;
 		}
 		else {
-			char dir[FILE_MAX], group[FILE_MAX];
-			if (filelist_islibrary(sfile->files, dir, group)) poll = 0;
+			char dir[FILE_MAX];
+			if (filelist_islibrary(sfile->files, dir, NULL)) poll = 0;
 		}
 	}
 	else
@@ -2050,12 +2050,12 @@ static int file_delete_poll(bContext *C)
 	SpaceFile *sfile = CTX_wm_space_file(C);
 
 	if (sfile && sfile->params) {
-		char dir[FILE_MAX], group[FILE_MAX];
+		char dir[FILE_MAX];
 		int numfiles = filelist_numfiles(sfile->files);
 		int i;
 		int num_selected = 0;
 
-		if (filelist_islibrary(sfile->files, dir, group)) poll = 0;
+		if (filelist_islibrary(sfile->files, dir, NULL)) poll = 0;
 		for (i = 0; i < numfiles; i++) {
 			if (filelist_is_selected(sfile->files, i, CHECK_FILES)) {
 				num_selected++;

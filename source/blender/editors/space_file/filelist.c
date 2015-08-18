@@ -470,9 +470,9 @@ static bool is_filtered_file(struct direntry *file, const char *UNUSED(root), Fi
 static bool is_filtered_lib(struct direntry *file, const char *root, FileListFilter *filter)
 {
 	bool is_filtered = !is_hidden_file(file->relname, filter);
-	char dir[FILE_MAXDIR], group[BLO_GROUP_MAX];
+	char dir[FILE_MAXDIR];
 
-	if (BLO_is_a_library(root, dir, group)) {
+	if (BLO_library_path_explode(root, dir, NULL, NULL)) {
 		is_filtered = !is_hidden_file(file->relname, filter);
 		if (is_filtered && filter->filter && !FILENAME_IS_CURRPAR(file->relname)) {
 			if (is_filtered && (filter->filter_search[0] != '\0')) {
@@ -1044,9 +1044,9 @@ bool filelist_is_selected(struct FileList *filelist, int index, FileCheckType ch
 }
 
 
-bool filelist_islibrary(struct FileList *filelist, char *dir, char *group)
+bool filelist_islibrary(struct FileList *filelist, char *dir, char **group)
 {
-	return BLO_is_a_library(filelist->dir, dir, group);
+	return BLO_library_path_explode(filelist->dir, dir, group, NULL);
 }
 
 static int groupname_to_code(const char *group)
@@ -1068,10 +1068,10 @@ static void filelist_from_library(struct FileList *filelist)
 	struct ImBuf *ima;
 	int ok, i, nprevs, nnames, idcode;
 	char filename[FILE_MAX];
-	char dir[FILE_MAX], group[BLO_GROUP_MAX];
+	char dir[FILE_MAX], *group;
 
 	/* name test */
-	ok = filelist_islibrary(filelist, dir, group);
+	ok = filelist_islibrary(filelist, dir, &group);
 	if (!ok) {
 		/* free */
 		if (filelist->libfiledata) BLO_blendhandle_close(filelist->libfiledata);
@@ -1088,7 +1088,7 @@ static void filelist_from_library(struct FileList *filelist)
 		if (filelist->libfiledata == NULL) return;
 	}
 	
-	idcode = groupname_to_code(group);
+	idcode = group ? groupname_to_code(group) : 0;
 
 	/* memory for strings is passed into filelist[i].relname
 	 * and freed in freefilelist */

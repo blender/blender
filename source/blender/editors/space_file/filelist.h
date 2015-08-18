@@ -98,7 +98,7 @@ void                filelist_select_file(struct FileList *filelist, int index, F
 bool                filelist_is_selected(struct FileList *filelist, int index, FileCheckType check);
 
 struct BlendHandle *filelist_lib(struct FileList *filelist);
-bool                filelist_islibrary(struct FileList *filelist, char *dir, char *group);
+bool                filelist_islibrary(struct FileList *filelist, char *dir, char **group);
 void                filelist_freelib(struct FileList *filelist);
 
 bool                filelist_need_thumbnails(struct FileList *filelist);

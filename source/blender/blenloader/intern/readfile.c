@@ -1234,47 +1234,60 @@ bool BLO_has_bfile_extension(const char *str)
 	return BLI_testextensie_array(str, ext_test);
 }
 
-bool BLO_is_a_library(const char *path, char *dir, char *group)
+bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, char **r_name)
 {
-	/* return ok when a blenderfile, in dir is the filename,
-	 * in group the type of libdata
-	 */
-	int len;
-	char *fd;
-	
-	/* if path leads to a directory we can be sure we're not in a library */
-	if (BLI_is_dir(path)) return 0;
+	/* We might get some data names with slashes, so we have to go up in path until we find blend file itself,
+	 * then we now next path item is group, and everything else is data name. */
+	char *slash = NULL, *prev_slash = NULL, c = '\0';
 
-	strcpy(dir, path);
-	len = strlen(dir);
-	if (len < 7) return 0;
-	if ((dir[len - 1] != '/') && (dir[len - 1] != '\\')) return 0;
-	
-	group[0] = '\0';
-	dir[len - 1] = '\0';
-
-	/* Find the last slash */
-	fd = (char *)BLI_last_slash(dir);
-
-	if (fd == NULL) return 0;
-	*fd = 0;
-	if (BLO_has_bfile_extension(fd+1)) {
-		/* the last part of the dir is a .blend file, no group follows */
-		*fd = '/'; /* put back the removed slash separating the dir and the .blend file name */
+	r_dir[0] = '\0';
+	if (r_group) {
+		*r_group = NULL;
 	}
-	else {
-		const char * const gp = fd + 1; // in case we have a .blend file, gp points to the group
-		
-		/* Find the last slash */
-		fd = (char *)BLI_last_slash(dir);
-		if (!fd || !BLO_has_bfile_extension(fd+1)) return 0;
-		
-		/* now we know that we are in a blend file and it is safe to 
-		 * assume that gp actually points to a group */
-		if (!STREQ("Screen", gp))
-			BLI_strncpy(group, gp, BLO_GROUP_MAX);
+	if (r_name) {
+		*r_name = NULL;
 	}
-	return 1;
+
+	/* if path leads to an existing directory, we can be sure we're not (in) a library */
+	if (BLI_is_dir(path)) {
+		return false;
+	}
+
+	strcpy(r_dir, path);
+
+	while ((slash = (char *)BLI_last_slash(r_dir))) {
+		char tc = *slash;
+		*slash = '\0';
+		if (BLO_has_bfile_extension(r_dir)) {
+			break;
+		}
+
+		if (prev_slash) {
+			*prev_slash = c;
+		}
+		prev_slash = slash;
+		c = tc;
+	}
+
+	if (!slash) {
+		return false;
+	}
+
+	if (slash[1] != '\0') {
+		BLI_assert(strlen(slash + 1) < BLO_GROUP_MAX);
+		if (r_group) {
+			*r_group = slash + 1;
+		}
+	}
+
+	if (prev_slash && (prev_slash[1] != '\0')) {
+		BLI_assert(strlen(prev_slash + 1) < MAX_ID_NAME - 2);
+		if (r_name) {
+			*r_name = prev_slash + 1;
+		}
+	}
+
+	return true;
 }
 
 /* ************** OLD POINTERS ******************* */
