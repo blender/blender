@@ -84,7 +84,7 @@ ImBuf *IMB_thumb_manage(const char *path, ThumbSize size, ThumbSource source);
 void IMB_thumb_makedirs(void);
 
 /* special function for loading a thumbnail embedded into a blend file */
-ImBuf *IMB_thumb_load_blend(const char *path);
+ImBuf *IMB_thumb_load_blend(const char *blen_path, const char *blen_group, const char *blen_id);
 void   IMB_thumb_overlay_blend(unsigned int *thumb, int width, int height, float aspect);
 
 /* special function for previewing fonts */

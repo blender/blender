@@ -44,6 +44,8 @@
 #include "BLI_threads.h"
 #include BLI_SYSTEM_PID_H
 
+#include "BLO_readfile.h"
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_thumbs.h"
@@ -314,6 +316,7 @@ void IMB_thumb_makedirs(void)
 /* create thumbnail for file and returns new imbuf for thumbnail */
 static ImBuf *thumb_create_ex(
         const char *file_path, const char *uri, const char *thumb, const bool use_hash, const char *hash,
+        const char *blen_group, const char *blen_id,
         ThumbSize size, ThumbSource source, ImBuf *img)
 {
 	char desc[URI_MAX + 22];
@@ -371,7 +374,7 @@ static ImBuf *thumb_create_ex(
 							img = IMB_loadiffname(file_path, IB_rect | IB_metadata, NULL);
 							break;
 						case THB_SOURCE_BLEND:
-							img = IMB_thumb_load_blend(file_path);
+							img = IMB_thumb_load_blend(file_path, blen_group, blen_id);
 							break;
 						case THB_SOURCE_FONT:
 							img = IMB_thumb_load_font(file_path, tsize, tsize);
@@ -464,13 +467,13 @@ static ImBuf *thumb_create_ex(
 
 static ImBuf *thumb_create_or_fail(
         const char *file_path, const char *uri, const char *thumb, const bool use_hash, const char *hash,
-        ThumbSize size, ThumbSource source)
+        const char *blen_group, const char *blen_id, ThumbSize size, ThumbSource source)
 {
-	ImBuf *img = thumb_create_ex(file_path, uri, thumb, use_hash, hash, size, source, NULL);
+	ImBuf *img = thumb_create_ex(file_path, uri, thumb, use_hash, hash, blen_group, blen_id, size, source, NULL);
 
 	if (!img) {
 		/* thumb creation failed, write fail thumb */
-		img = thumb_create_ex(file_path, uri, thumb, use_hash, hash, THB_FAIL, source, NULL);
+		img = thumb_create_ex(file_path, uri, thumb, use_hash, hash, blen_group, blen_id, THB_FAIL, source, NULL);
 		if (img) {
 			/* we don't need failed thumb anymore */
 			IMB_freeImBuf(img);
@@ -489,7 +492,7 @@ ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, Im
 	uri_from_filename(path, uri);
 	thumbname_from_uri(uri, thumb_name, sizeof(thumb_name));
 
-	return thumb_create_ex(path, uri, thumb_name, false, THUMB_DEFAULT_HASH, size, source, img);
+	return thumb_create_ex(path, uri, thumb_name, false, THUMB_DEFAULT_HASH, NULL, NULL, size, source, img);
 }
 
 /* read thumbnail for file and returns new imbuf for thumbnail */
@@ -535,12 +538,25 @@ ImBuf *IMB_thumb_manage(const char *org_path, ThumbSize size, ThumbSource source
 	char thumb_path[FILE_MAX];
 	char thumb_name[40];
 	char uri[URI_MAX];
+	char path_buff[FILE_MAX];
 	const char *file_path;
 	const char *path;
 	BLI_stat_t st;
 	ImBuf *img = NULL;
+	char *blen_group = NULL, *blen_id = NULL;
 
 	path = file_path = org_path;
+	if (source == THB_SOURCE_BLEND) {
+		if (BLO_library_path_explode(path, path_buff, &blen_group, &blen_id)) {
+			if (blen_group) {
+				if (!blen_id) {
+					/* No preview for blen groups */
+					return NULL;
+				}
+				file_path = path_buff;  /* path needs to be a valid file! */
+			}
+		}
+	}
 
 	if (BLI_stat(file_path, &st) == -1) {
 		return NULL;
@@ -551,7 +567,7 @@ ImBuf *IMB_thumb_manage(const char *org_path, ThumbSize size, ThumbSource source
 	if (thumbpath_from_uri(uri, thumb_path, sizeof(thumb_path), THB_FAIL)) {
 		/* failure thumb exists, don't try recreating */
 		if (BLI_exists(thumb_path)) {
-			/* clear out of date fail case */
+			/* clear out of date fail case (note for blen IDs we use blender file itself here) */
 			if (BLI_file_older(thumb_path, file_path)) {
 				BLI_delete(thumb_path, false, false);
 			}
@@ -600,14 +616,16 @@ ImBuf *IMB_thumb_manage(const char *org_path, ThumbSize size, ThumbSource source
 					IMB_thumb_delete(path, THB_NORMAL);
 					IMB_thumb_delete(path, THB_LARGE);
 					IMB_thumb_delete(path, THB_FAIL);
-					img = thumb_create_or_fail(file_path, uri, thumb_name, use_hash, thumb_hash, size, source);
+					img = thumb_create_or_fail(
+					          file_path, uri, thumb_name, use_hash, thumb_hash, blen_group, blen_id, size, source);
 				}
 			}
 			else {
 				char thumb_hash[33];
 				const bool use_hash = thumbhash_from_path(file_path, source, thumb_hash);
 
-				img = thumb_create_or_fail(file_path, uri, thumb_name, use_hash, thumb_hash, size, source);
+				img = thumb_create_or_fail(
+				          file_path, uri, thumb_name, use_hash, thumb_hash, blen_group, blen_id, size, source);
 			}
 		}
 	}
