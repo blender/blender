@@ -89,6 +89,7 @@
 
 #ifdef WITH_INPUT_IME
 #  include "wm_window.h"
+#  include "BLT_lang.h"
 #endif
 
 /* place the mouse at the scaled down location when un-grabbing */
