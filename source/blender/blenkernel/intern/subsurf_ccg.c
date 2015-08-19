@@ -4016,7 +4016,7 @@ static const MLoopTri *ccgDM_getLoopTriArray(DerivedMesh *dm)
 	}
 	else {
 		MLoopTri *mlooptri;
-		const int tottri = dm->numTessFaceData * 2;
+		const int tottri = dm->numPolyData * 2;
 		int i, poly_index;
 
 		DM_ensure_looptri_data(dm);
