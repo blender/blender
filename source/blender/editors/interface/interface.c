@@ -223,7 +223,7 @@ void ui_region_to_window(const ARegion *ar, int *x, int *y)
 void ui_region_winrct_get_no_margin(const struct ARegion *ar, struct rcti *r_rect)
 {
 	uiBlock *block = ar->uiblocks.first;
-	if (block && block->flag & UI_BLOCK_LOOP) {
+	if (block && (block->flag & UI_BLOCK_LOOP) && (block->flag & UI_BLOCK_RADIAL) == 0) {
 		BLI_rcti_rctf_copy_floor(r_rect, &block->rect);
 		BLI_rcti_translate(r_rect, ar->winrct.xmin, ar->winrct.ymin);
 	}
