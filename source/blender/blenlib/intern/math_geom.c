@@ -1522,7 +1522,7 @@ bool isect_tri_tri_epsilon_v3(
 				        isect_co, isect_co_other,
 				        tri_pair[t][j], tri_pair[t][j_prev],
 				        ix_span, ix_tri,
-				        epsilon) == 2)
+				        epsilon) != 0)
 				{
 					const float edge_fac = line_point_factor_v3(ix_tri, tri_pair[t][j], tri_pair[t][j_prev]);
 					if (edge_fac >= -epsilon && edge_fac <= 1.0f + epsilon) {
