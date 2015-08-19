@@ -2462,12 +2462,12 @@ static void filelist_readjob_do(
 			BLI_join_dirfile(dir, sizeof(dir), subdir, entry->relpath);
 			BLI_cleanup_file(root, dir);
 
-			/* Generate our entry uuid. Abusing uuid as an uint64, shall be more than enough here,
+			/* Generate our entry uuid. Abusing uuid as an uint32, shall be more than enough here,
 			 * things would crash way before we overflow that counter!
 			 * Using an atomic operation to avoid having to lock thread...
 			 * Note that we do not really need this here currently, since there is a single listing thread, but better
              * remain consistent about threading! */
-			*((uint64_t *)entry->uuid) = atomic_add_uint64((uint64_t *)filelist->filelist_intern.curr_uuid, 1);
+			*((uint32_t *)entry->uuid) = atomic_add_uint32((uint32_t *)filelist->filelist_intern.curr_uuid, 1);
 
 			BLI_path_rel(dir, root);
 			/* Only thing we change in direntry here, so we need to free it first. */
