@@ -1574,9 +1574,14 @@ static bool filelist_file_cache_block_create(FileList *filelist, const int start
 		int i, idx;
 
 		for (i = 0, idx = start_index; i < size; i++, idx++, cursor++) {
-			FileDirEntry *entry = filelist_file_create_entry(filelist, idx);
+			FileDirEntry *entry;
+
+			/* That entry might have already been requested and stored in misc cache... */
+			if ((entry = BLI_ghash_popkey(cache->misc_entries, SET_INT_IN_POINTER(idx), NULL)) == NULL) {
+				entry = filelist_file_create_entry(filelist, idx);
+				BLI_ghash_insert(cache->uuids, entry->uuid, entry);
+			}
 			cache->block_entries[cursor] = entry;
-			BLI_ghash_insert(cache->uuids, entry->uuid, entry);
 		}
 		return true;
 	}
