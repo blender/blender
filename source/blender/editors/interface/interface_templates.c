@@ -3343,7 +3343,8 @@ void uiTemplateOperatorSearch(uiLayout *layout)
 #define B_STOPCOMPO     4
 #define B_STOPSEQ       5
 #define B_STOPCLIP      6
-#define B_STOPOTHER     7
+#define B_STOPFILE      7
+#define B_STOPOTHER     8
 
 static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
 {
@@ -3364,6 +3365,9 @@ static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
 			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
 			break;
 		case B_STOPCLIP:
+			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
+			break;
+		case B_STOPFILE:
 			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
 			break;
 		case B_STOPOTHER:
@@ -3395,6 +3399,12 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		if (WM_jobs_test(wm, sa, WM_JOB_TYPE_ANY))
 			owner = sa;
 		handle_event = B_STOPCLIP;
+	}
+	else if (sa->spacetype == SPACE_FILE) {
+		if (WM_jobs_test(wm, sa, WM_JOB_TYPE_FILESEL_READDIR)) {
+			owner = sa;
+		}
+		handle_event = B_STOPFILE;
 	}
 	else {
 		Scene *scene;

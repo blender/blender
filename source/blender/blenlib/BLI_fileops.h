@@ -91,11 +91,19 @@ char  *BLI_current_working_dir(char *dir, const size_t maxlen) ATTR_NONNULL();
 
 /* Filelist */
 
-unsigned int BLI_filelist_dir_contents(const char *dir, struct direntry **filelist);
+unsigned int BLI_filelist_dir_contents(const char *dir, struct direntry **r_filelist);
+void BLI_filelist_entry_duplicate(struct direntry *dst, const struct direntry *src);
 void BLI_filelist_duplicate(
-        struct direntry **dest_filelist, struct direntry *src_filelist, unsigned int nrentries,
-        void *(*dup_poin)(void *));
-void BLI_filelist_free(struct direntry *filelist, unsigned int nrentries, void (*free_poin)(void *));
+        struct direntry **dest_filelist, struct direntry * const src_filelist, const unsigned int nrentries);
+void BLI_filelist_entry_free(struct direntry *entry);
+void BLI_filelist_free(struct direntry *filelist, const unsigned int nrentries);
+
+void BLI_filelist_entry_size_to_string(const struct stat *st, const uint64_t sz, const bool compact, char r_size[]);
+void BLI_filelist_entry_mode_to_string(
+        const struct stat *st, const bool compact, char r_mode1[], char r_mode2[], char r_mode3[]);
+void BLI_filelist_entry_owner_to_string(const struct stat *st, const bool compact, char r_owner[]);
+void BLI_filelist_entry_datetime_to_string(
+        const struct stat *st, const int64_t ts, const bool compact, char r_time[], char r_date[]);
 
 /* Files */
 

@@ -182,7 +182,6 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 						/* Hack around for UNC paths on windows - does not support stat on '\\SERVER\foo\..', sigh... */
 						file->type |= S_IFDIR;
 					}
-					file->flags = 0;
 					dir_ctx->nrfiles++;
 					file++;
 					dlink = dlink->next;
@@ -210,111 +209,12 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 }
 
 /**
- * Fills in the "mode[123]", "size" and "string" fields in the elements of the files
- * array with descriptive details about each item. "string" will have a format similar to "ls -l".
- */
-static void bli_adddirstrings(struct BuildDirCtx *dir_ctx)
-{
-	const char *types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
-	/* symbolic display, indexed by mode field value */
-	int num;
-	double size;
-	struct direntry *file;
-	struct tm *tm;
-	time_t zero = 0;
-
-#ifndef WIN32
-	int mode;
-#endif
-
-	for (num = 0, file = dir_ctx->files; num < dir_ctx->nrfiles; num++, file++) {
-
-		/* Mode */
-#ifdef WIN32
-		BLI_strncpy(file->mode1, types[0], sizeof(file->mode1));
-		BLI_strncpy(file->mode2, types[0], sizeof(file->mode2));
-		BLI_strncpy(file->mode3, types[0], sizeof(file->mode3));
-#else
-		mode = file->s.st_mode;
-
-		BLI_strncpy(file->mode1, types[(mode & 0700) >> 6], sizeof(file->mode1));
-		BLI_strncpy(file->mode2, types[(mode & 0070) >> 3], sizeof(file->mode2));
-		BLI_strncpy(file->mode3, types[(mode & 0007)],      sizeof(file->mode3));
-
-		if (((mode & S_ISGID) == S_ISGID) && (file->mode2[2] == '-')) file->mode2[2] = 'l';
-
-		if (mode & (S_ISUID | S_ISGID)) {
-			if (file->mode1[2] == 'x') file->mode1[2] = 's';
-			else file->mode1[2] = 'S';
-
-			if (file->mode2[2] == 'x') file->mode2[2] = 's';
-		}
-
-		if (mode & S_ISVTX) {
-			if (file->mode3[2] == 'x') file->mode3[2] = 't';
-			else file->mode3[2] = 'T';
-		}
-#endif
-
-
-		/* User */
-#ifdef WIN32
-		strcpy(file->owner, "user");
-#else
-		{
-			struct passwd *pwuser;
-			pwuser = getpwuid(file->s.st_uid);
-			if (pwuser) {
-				BLI_strncpy(file->owner, pwuser->pw_name, sizeof(file->owner));
-			}
-			else {
-				BLI_snprintf(file->owner, sizeof(file->owner), "%u", file->s.st_uid);
-			}
-		}
-#endif
-
-
-		/* Time */
-		tm = localtime(&file->s.st_mtime);
-		// prevent impossible dates in windows
-		if (tm == NULL) tm = localtime(&zero);
-		strftime(file->time, sizeof(file->time), "%H:%M", tm);
-		strftime(file->date, sizeof(file->date), "%d-%b-%y", tm);
-
-
-		/* Size */
-		/*
-		 * Seems st_size is signed 32-bit value in *nix and Windows.  This
-		 * will buy us some time until files get bigger than 4GB or until
-		 * everyone starts using __USE_FILE_OFFSET64 or equivalent.
-		 */
-		size = (double)file->s.st_size;
-
-		if (size > 1024.0 * 1024.0 * 1024.0 * 1024.0) {
-			BLI_snprintf(file->size, sizeof(file->size), "%.1f TiB", size / (1024.0 * 1024.0 * 1024.0 * 1024.0));
-		}
-		else if (size > 1024.0 * 1024.0 * 1024.0) {
-			BLI_snprintf(file->size, sizeof(file->size), "%.1f GiB", size / (1024.0 * 1024.0 * 1024.0));
-		}
-		else if (size > 1024.0 * 1024.0) {
-			BLI_snprintf(file->size, sizeof(file->size), "%.1f MiB", size / (1024.0 * 1024.0));
-		}
-		else if (size > 1024.0) {
-			BLI_snprintf(file->size, sizeof(file->size), "%.1f KiB", size / 1024.0);
-		}
-		else {
-			BLI_snprintf(file->size, sizeof(file->size), "%d B", (int)size);
-		}
-	}
-}
-
-/**
  * Scans the contents of the directory named *dirname, and allocates and fills in an
  * array of entries describing them in *filelist.
  *
  * \return The length of filelist array.
  */
-unsigned int BLI_filelist_dir_contents(const char *dirname,  struct direntry **filelist)
+unsigned int BLI_filelist_dir_contents(const char *dirname,  struct direntry **r_filelist)
 {
 	struct BuildDirCtx dir_ctx;
 
@@ -322,18 +222,147 @@ unsigned int BLI_filelist_dir_contents(const char *dirname,  struct direntry **f
 	dir_ctx.files = NULL;
 
 	bli_builddir(&dir_ctx, dirname);
-	bli_adddirstrings(&dir_ctx);
 
 	if (dir_ctx.files) {
-		*filelist = dir_ctx.files;
+		*r_filelist = dir_ctx.files;
 	}
 	else {
 		// keep blender happy. Blender stores this in a variable
 		// where 0 has special meaning.....
-		*filelist = MEM_mallocN(sizeof(**filelist), __func__);
+		*r_filelist = MEM_mallocN(sizeof(**r_filelist), __func__);
 	}
 
 	return dir_ctx.nrfiles;
+}
+
+/**
+ * Convert given entry's size into human-readable strings.
+ *
+ */
+void BLI_filelist_entry_size_to_string(
+        const struct stat *st, const uint64_t sz, const bool compact, char r_size[FILELIST_DIRENTRY_SIZE_LEN])
+{
+	double size;
+	const char *fmt;
+	const char *units[] = {"KiB", "MiB", "GiB", "TiB", NULL};
+	const char *units_compact[] = {"K", "M", "G", "T", NULL};
+	const char *unit = "B";
+
+	/*
+	 * Seems st_size is signed 32-bit value in *nix and Windows.  This
+	 * will buy us some time until files get bigger than 4GB or until
+	 * everyone starts using __USE_FILE_OFFSET64 or equivalent.
+	 */
+	size = (double)(st ? st->st_size : sz);
+
+	if (size > 1024.0) {
+		const char **u;
+		for (u = compact ? units_compact : units, size /= 1024.0; size > 1024.0 && *(u + 1); u++, size /= 1024.0);
+		fmt =  size > 100.0 ? "%.0f %s" : (size > 10.0 ? "%.1f %s" : "%.2f %s");
+		unit = *u;
+	}
+	else {
+		fmt = "%.0f %s";
+	}
+
+	BLI_snprintf(r_size, sizeof(*r_size) * FILELIST_DIRENTRY_SIZE_LEN, fmt, size, unit);
+}
+
+/**
+ * Convert given entry's modes into human-readable strings.
+ *
+ */
+void BLI_filelist_entry_mode_to_string(
+        const struct stat *st, const bool UNUSED(compact), char r_mode1[FILELIST_DIRENTRY_MODE_LEN],
+        char r_mode2[FILELIST_DIRENTRY_MODE_LEN], char r_mode3[FILELIST_DIRENTRY_MODE_LEN])
+{
+	const char *types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
+
+#ifdef WIN32
+	BLI_strncpy(r_mode1, types[0], sizeof(*r_mode1) * FILELIST_DIRENTRY_MODE_LEN);
+	BLI_strncpy(r_mode2, types[0], sizeof(*r_mode2) * FILELIST_DIRENTRY_MODE_LEN);
+	BLI_strncpy(r_mode3, types[0], sizeof(*r_mode3) * FILELIST_DIRENTRY_MODE_LEN);
+#else
+	const int mode = st->st_mode;
+
+	BLI_strncpy(r_mode1, types[(mode & 0700) >> 6], sizeof(*r_mode1) * FILELIST_DIRENTRY_MODE_LEN);
+	BLI_strncpy(r_mode2, types[(mode & 0070) >> 3], sizeof(*r_mode2) * FILELIST_DIRENTRY_MODE_LEN);
+	BLI_strncpy(r_mode3, types[(mode & 0007)],      sizeof(*r_mode3) * FILELIST_DIRENTRY_MODE_LEN);
+
+	if (((mode & S_ISGID) == S_ISGID) && (r_mode2[2] == '-')) r_mode2[2] = 'l';
+
+	if (mode & (S_ISUID | S_ISGID)) {
+		if (r_mode1[2] == 'x') r_mode1[2] = 's';
+		else r_mode1[2] = 'S';
+
+		if (r_mode2[2] == 'x') r_mode2[2] = 's';
+	}
+
+	if (mode & S_ISVTX) {
+		if (r_mode3[2] == 'x') r_mode3[2] = 't';
+		else r_mode3[2] = 'T';
+	}
+#endif
+}
+
+/**
+ * Convert given entry's owner into human-readable strings.
+ *
+ */
+void BLI_filelist_entry_owner_to_string(
+        const struct stat *st, const bool UNUSED(compact), char r_owner[FILELIST_DIRENTRY_OWNER_LEN])
+{
+#ifdef WIN32
+	strcpy(r_owner, "unknown");
+#else
+	struct passwd *pwuser = getpwuid(st->st_uid);
+
+	if (pwuser) {
+		BLI_strncpy(r_owner, pwuser->pw_name, sizeof(*r_owner) * FILELIST_DIRENTRY_OWNER_LEN);
+	}
+	else {
+		BLI_snprintf(r_owner, sizeof(*r_owner) * FILELIST_DIRENTRY_OWNER_LEN, "%u", st->st_uid);
+	}
+#endif
+}
+
+/**
+ * Convert given entry's time into human-readable strings.
+ */
+void BLI_filelist_entry_datetime_to_string(
+        const struct stat *st, const int64_t ts, const bool compact,
+        char r_time[FILELIST_DIRENTRY_TIME_LEN], char r_date[FILELIST_DIRENTRY_DATE_LEN])
+{
+	const struct tm *tm = localtime(st ? &st->st_mtime : &ts);
+	const time_t zero = 0;
+
+	/* Prevent impossible dates in windows. */
+	if (tm == NULL) {
+		tm = localtime(&zero);
+	}
+
+	if (r_time) {
+		strftime(r_time, sizeof(*r_time) * FILELIST_DIRENTRY_TIME_LEN, "%H:%M", tm);
+	}
+	if (r_date) {
+		strftime(r_date, sizeof(*r_date) * FILELIST_DIRENTRY_DATE_LEN, compact ? "%d/%m/%y" : "%d-%b-%y", tm);
+	}
+}
+
+/**
+ * Deep-duplicate of a single direntry.
+ *
+ * \param dup_poin If given, called for each non-NULL direntry->poin. Otherwise, pointer is always simply copied over.
+ */
+void BLI_filelist_entry_duplicate(struct direntry *dst, const struct direntry *src)
+{
+	*dst = *src;
+	if (dst->relname) {
+		dst->relname = MEM_dupallocN(src->relname);
+	}
+	if (dst->path) {
+		dst->path = MEM_dupallocN(src->path);
+	}
 }
 
 /**
@@ -342,48 +371,39 @@ unsigned int BLI_filelist_dir_contents(const char *dirname,  struct direntry **f
  * \param dup_poin If given, called for each non-NULL direntry->poin. Otherwise, pointer is always simply copied over.
  */
 void BLI_filelist_duplicate(
-        struct direntry **dest_filelist, struct direntry *src_filelist, unsigned int nrentries,
-        void *(*dup_poin)(void *))
+        struct direntry **dest_filelist, struct direntry * const src_filelist, const unsigned int nrentries)
 {
 	unsigned int i;
 
 	*dest_filelist = MEM_mallocN(sizeof(**dest_filelist) * (size_t)(nrentries), __func__);
 	for (i = 0; i < nrentries; ++i) {
 		struct direntry * const src = &src_filelist[i];
-		struct direntry *dest = &(*dest_filelist)[i];
-		*dest = *src;
-		if (dest->image) {
-			dest->image = IMB_dupImBuf(src->image);
-		}
-		if (dest->relname) {
-			dest->relname = MEM_dupallocN(src->relname);
-		}
-		if (dest->path) {
-			dest->path = MEM_dupallocN(src->path);
-		}
-		if (dest->poin && dup_poin) {
-			dest->poin = dup_poin(src->poin);
-		}
+		struct direntry *dst = &(*dest_filelist)[i];
+		BLI_filelist_entry_duplicate(dst, src);
+	}
+}
+
+/**
+ * frees storage for a single direntry, not the direntry itself.
+ */
+void BLI_filelist_entry_free(struct direntry *entry)
+{
+	if (entry->relname) {
+		MEM_freeN((void *)entry->relname);
+	}
+	if (entry->path) {
+		MEM_freeN((void *)entry->path);
 	}
 }
 
 /**
  * frees storage for an array of direntries, including the array itself.
  */
-void BLI_filelist_free(struct direntry *filelist, unsigned int nrentries, void (*free_poin)(void *))
+void BLI_filelist_free(struct direntry *filelist, const unsigned int nrentries)
 {
 	unsigned int i;
 	for (i = 0; i < nrentries; ++i) {
-		struct direntry *entry = filelist + i;
-		if (entry->image) {
-			IMB_freeImBuf(entry->image);
-		}
-		if (entry->relname)
-			MEM_freeN((void *)entry->relname);
-		if (entry->path)
-			MEM_freeN((void *)entry->path);
-		if (entry->poin && free_poin)
-			free_poin(entry->poin);
+		BLI_filelist_entry_free(&filelist[i]);
 	}
 
 	if (filelist != NULL) {

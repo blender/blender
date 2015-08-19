@@ -163,6 +163,8 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		params->filter = 0;
 		if ((prop = RNA_struct_find_property(op->ptr, "filter_blender")))
 			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_BLENDER : 0;
+		if ((prop = RNA_struct_find_property(op->ptr, "filter_blenlib")))
+			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_BLENDERLIB : 0;
 		if ((prop = RNA_struct_find_property(op->ptr, "filter_backup")))
 			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_BLENDER_BACKUP : 0;
 		if ((prop = RNA_struct_find_property(op->ptr, "filter_image")))
@@ -199,6 +201,13 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 				params->flag &= ~FILE_FILTER;
 			}
 		}
+
+		/* For now, always init filterid to 'all true' */
+		params->filter_id = FILTER_ID_AC | FILTER_ID_AR | FILTER_ID_BR | FILTER_ID_CA | FILTER_ID_CU | FILTER_ID_GD |
+		                    FILTER_ID_GR | FILTER_ID_IM | FILTER_ID_LA | FILTER_ID_LS | FILTER_ID_LT | FILTER_ID_MA |
+		                    FILTER_ID_MB | FILTER_ID_MC | FILTER_ID_ME | FILTER_ID_MSK | FILTER_ID_NT | FILTER_ID_OB |
+		                    FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_SCE | FILTER_ID_SPK | FILTER_ID_SO | FILTER_ID_TE |
+		                    FILTER_ID_TXT | FILTER_ID_VF | FILTER_ID_WO;
 
 		if (U.uiflag & USER_HIDE_DOT) {
 			params->flag |= FILE_HIDE_DOT;
@@ -292,9 +301,9 @@ void ED_fileselect_reset_params(SpaceFile *sfile)
  */
 void fileselect_file_set(SpaceFile *sfile, const int index)
 {
-	const struct direntry *file = filelist_file(sfile->files, index);
-	if (file && file->relname[0] && file->path && !BLI_is_dir(file->path)) {
-		BLI_strncpy(sfile->params->file, file->relname, FILE_MAXFILE);
+	const struct FileDirEntry *file = filelist_file(sfile->files, index);
+	if (file && file->relpath && file->relpath[0] && !(file->typeflag & FILE_TYPE_FOLDER)) {
+		BLI_strncpy(sfile->params->file, file->relpath, FILE_MAXFILE);
 	}
 }
 
@@ -446,37 +455,20 @@ float file_font_pointsize(void)
 #endif
 }
 
-static void column_widths(struct FileList *files, struct FileLayout *layout)
+static void column_widths(FileSelectParams *params, struct FileLayout *layout)
 {
 	int i;
-	int numfiles = filelist_numfiles(files);
+	const bool small_size = SMALL_SIZE_CHECK(params->thumbnail_size);
 
 	for (i = 0; i < MAX_FILE_COLUMN; ++i) {
 		layout->column_widths[i] = 0;
 	}
 
-	for (i = 0; (i < numfiles); ++i) {
-		struct direntry *file = filelist_file(files, i);
-		if (file) {
-			float len;
-			len = file_string_width(file->relname);
-			if (len > layout->column_widths[COLUMN_NAME]) layout->column_widths[COLUMN_NAME] = len;
-			len = file_string_width(file->date);
-			if (len > layout->column_widths[COLUMN_DATE]) layout->column_widths[COLUMN_DATE] = len;
-			len = file_string_width(file->time);
-			if (len > layout->column_widths[COLUMN_TIME]) layout->column_widths[COLUMN_TIME] = len;
-			len = file_string_width(file->size);
-			if (len > layout->column_widths[COLUMN_SIZE]) layout->column_widths[COLUMN_SIZE] = len;
-			len = file_string_width(file->mode1);
-			if (len > layout->column_widths[COLUMN_MODE1]) layout->column_widths[COLUMN_MODE1] = len;
-			len = file_string_width(file->mode2);
-			if (len > layout->column_widths[COLUMN_MODE2]) layout->column_widths[COLUMN_MODE2] = len;
-			len = file_string_width(file->mode3);
-			if (len > layout->column_widths[COLUMN_MODE3]) layout->column_widths[COLUMN_MODE3] = len;
-			len = file_string_width(file->owner);
-			if (len > layout->column_widths[COLUMN_OWNER]) layout->column_widths[COLUMN_OWNER] = len;
-		}
-	}
+	layout->column_widths[COLUMN_NAME] = ((float)params->thumbnail_size / 8.0f) * UI_UNIT_X;;
+	/* Biggest possible reasonable values... */
+	layout->column_widths[COLUMN_DATE] = file_string_width(small_size ? "23/08/89" : "23-Dec-89");
+	layout->column_widths[COLUMN_TIME] = file_string_width("23:59");
+	layout->column_widths[COLUMN_SIZE] = file_string_width(small_size ? "98.7 M" : "98.7 MiB");
 }
 
 void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
@@ -496,7 +488,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
 		return;
 	}
 
-	numfiles = filelist_numfiles(sfile->files);
+	numfiles = filelist_files_ensure(sfile->files);
 	textheight = (int)file_font_pointsize();
 	layout = sfile->layout;
 	layout->textheight = textheight;
@@ -535,7 +527,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
 		layout->height = (int)(BLI_rctf_size_y(&v2d->cur) - 2 * layout->tile_border_y);
 		layout->rows = layout->height / (layout->tile_h + 2 * layout->tile_border_y);
 
-		column_widths(sfile->files, layout);
+		column_widths(params, layout);
 
 		if (params->display == FILE_SHORTDISPLAY) {
 			maxlen = ICON_DEFAULT_WIDTH_SCALE + column_icon_space +
@@ -545,12 +537,6 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
 		else {
 			maxlen = ICON_DEFAULT_WIDTH_SCALE + column_icon_space +
 			         (int)layout->column_widths[COLUMN_NAME] + column_space +
-#ifndef WIN32
-			         (int)layout->column_widths[COLUMN_MODE1] + column_space +
-			         (int)layout->column_widths[COLUMN_MODE2] + column_space +
-			         (int)layout->column_widths[COLUMN_MODE3] + column_space +
-			         (int)layout->column_widths[COLUMN_OWNER] + column_space +
-#endif
 			         (int)layout->column_widths[COLUMN_DATE] + column_space +
 			         (int)layout->column_widths[COLUMN_TIME] + column_space +
 			         (int)layout->column_widths[COLUMN_SIZE] + column_space;
@@ -581,9 +567,10 @@ void ED_file_change_dir(bContext *C, const bool checkdir)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceFile *sfile = CTX_wm_space_file(C);
+	ScrArea *sa = CTX_wm_area(C);
 
 	if (sfile->params) {
-		ED_fileselect_clear(wm, sfile);
+		ED_fileselect_clear(wm, sa, sfile);
 
 		/* Clear search string, it is very rare to want to keep that filter while changing dir,
 		 * and usually very annoying to keep it actually! */
@@ -610,8 +597,8 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matche
 	int match = 0;
 	
 	int i;
-	struct direntry *file;
-	int n = filelist_numfiles(sfile->files);
+	FileDirEntry *file;
+	int n = filelist_files_ensure(sfile->files);
 
 	/* select any file that matches the pattern, this includes exact match 
 	 * if the user selects a single file by entering the filename
@@ -619,10 +606,10 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matche
 	for (i = 0; i < n; i++) {
 		file = filelist_file(sfile->files, i);
 		/* Do not check wether file is a file or dir here! Causes T44243 (we do accept dirs at this stage). */
-		if (fnmatch(pattern, file->relname, 0) == 0) {
-			file->selflag |= FILE_SEL_SELECTED;
+		if (fnmatch(pattern, file->relpath, 0) == 0) {
+			filelist_entry_select_set(sfile->files, file, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
 			if (!match) {
-				BLI_strncpy(matched_file, file->relname, FILE_MAX);
+				BLI_strncpy(matched_file, file->relpath, FILE_MAX);
 			}
 			match++;
 		}
@@ -687,14 +674,12 @@ int autocomplete_file(struct bContext *C, char *str, void *UNUSED(arg_v))
 	/* search if str matches the beginning of name */
 	if (str[0] && sfile->files) {
 		AutoComplete *autocpl = UI_autocomplete_begin(str, FILE_MAX);
-		int nentries = filelist_numfiles(sfile->files);
+		int nentries = filelist_files_ensure(sfile->files);
 		int i;
 
 		for (i = 0; i < nentries; ++i) {
-			struct direntry *file = filelist_file(sfile->files, i);
-			if (file && (S_ISREG(file->type) || S_ISDIR(file->type))) {
-				UI_autocomplete_update_name(autocpl, file->relname);
-			}
+			FileDirEntry *file = filelist_file(sfile->files, i);
+			UI_autocomplete_update_name(autocpl, file->relpath);
 		}
 		match = UI_autocomplete_end(autocpl, str);
 	}
@@ -702,20 +687,20 @@ int autocomplete_file(struct bContext *C, char *str, void *UNUSED(arg_v))
 	return match;
 }
 
-void ED_fileselect_clear(struct wmWindowManager *wm, struct SpaceFile *sfile)
+void ED_fileselect_clear(wmWindowManager *wm, ScrArea *sa, SpaceFile *sfile)
 {
 	/* only NULL in rare cases - [#29734] */
 	if (sfile->files) {
-		thumbnails_stop(wm, sfile->files);
+		filelist_readjob_stop(wm, sa);
 		filelist_freelib(sfile->files);
-		filelist_free(sfile->files);
+		filelist_clear(sfile->files);
 	}
 
 	sfile->params->highlight_file = -1;
 	WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 }
 
-void ED_fileselect_exit(struct wmWindowManager *wm, struct SpaceFile *sfile)
+void ED_fileselect_exit(wmWindowManager *wm, ScrArea *sa, SpaceFile *sfile)
 {
 	if (!sfile) return;
 	if (sfile->op) {
@@ -727,7 +712,8 @@ void ED_fileselect_exit(struct wmWindowManager *wm, struct SpaceFile *sfile)
 	folderlist_free(sfile->folders_next);
 	
 	if (sfile->files) {
-		ED_fileselect_clear(wm, sfile);
+		ED_fileselect_clear(wm, sa, sfile);
+		filelist_free(sfile->files);
 		MEM_freeN(sfile->files);
 		sfile->files = NULL;
 	}

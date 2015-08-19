@@ -29,6 +29,7 @@ Import ('env')
 
 sources = env.Glob('*.c')
 incs = [
+    '#/intern/atomic',
     '#/intern/guardedalloc',
     env['BF_GLEW_INC'],
     '#/intern/glew-mx',

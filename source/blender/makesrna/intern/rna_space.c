@@ -219,6 +219,16 @@ static EnumPropertyItem buttons_texture_context_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+
+static EnumPropertyItem fileselectparams_recursion_level_items[] = {
+	{0, "NONE",  0, "None", "Only list current directory's content, with no recursion"},
+	{1, "BLEND", 0, "Blend File", "List .blend files' content"},
+	{2, "ALL_1", 0, "One Level", "List all sub-directories' content, one level of recursion"},
+	{3, "ALL_2", 0, "Two Levels", "List all sub-directories' content, two levels of recursion"},
+	{4, "ALL_3", 0, "Three Levels", "List all sub-directories' content, three levels of recursion"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_anim_types.h"
@@ -1521,6 +1531,37 @@ static void rna_SpaceClipEditor_view_type_update(Main *UNUSED(bmain), Scene *UNU
 }
 
 /* File browser. */
+
+static int rna_FileSelectParams_use_lib_get(PointerRNA *ptr)
+{
+	FileSelectParams *params = ptr->data;
+
+	return params && (params->type == FILE_LOADLIB);
+}
+
+static EnumPropertyItem *rna_FileSelectParams_recursion_level_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	FileSelectParams *params = ptr->data;
+
+	if (params && params->type != FILE_LOADLIB) {
+		EnumPropertyItem *item = NULL;
+		int totitem = 0;
+
+		RNA_enum_items_add_value(&item, &totitem, fileselectparams_recursion_level_items, 0);
+		RNA_enum_items_add_value(&item, &totitem, fileselectparams_recursion_level_items, 2);
+		RNA_enum_items_add_value(&item, &totitem, fileselectparams_recursion_level_items, 3);
+		RNA_enum_items_add_value(&item, &totitem, fileselectparams_recursion_level_items, 4);
+
+		RNA_enum_item_end(&item, &totitem);
+		*r_free = true;
+
+		return item;
+	}
+
+	*r_free = false;
+	return fileselectparams_recursion_level_items;
+}
 
 static void rna_FileBrowser_FSMenuEntry_path_get(PointerRNA *ptr, char *value)
 {
@@ -3710,6 +3751,58 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	    {0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem file_filter_idtypes_items[] = {
+		{FILTER_ID_AC, "ACTION", ICON_ANIM_DATA, "Actions", "Show/hide Action datablocks"},
+		{FILTER_ID_AR, "ARMATURE", ICON_ARMATURE_DATA, "Armatures", "Show/hide Armature datablocks"},
+		{FILTER_ID_BR, "BRUSH", ICON_BRUSH_DATA, "Brushes", "Show/hide Brushes datablocks"},
+		{FILTER_ID_CA, "CAMERA", ICON_CAMERA_DATA, "Cameras", "Show/hide Camera datablocks"},
+		{FILTER_ID_CU, "CURVE", ICON_CURVE_DATA, "Curves", "Show/hide Curve datablocks"},
+		{FILTER_ID_GD, "GREASE_PENCIL", ICON_GREASEPENCIL, "Grease Pencil", "Show/hide Grease pencil datablocks"},
+		{FILTER_ID_GR, "GROUP", ICON_GROUP, "Groups", "Show/hide Group datablocks"},
+		{FILTER_ID_IM, "IMAGE", ICON_IMAGE_DATA, "Images", "Show/hide Image datablocks"},
+		{FILTER_ID_LA, "LAMP", ICON_LAMP_DATA, "Lamps", "Show/hide Lamp datablocks"},
+		{FILTER_ID_LS, "LINESTYLE", ICON_LINE_DATA, "Freestyle Linestyles", "Show/hide Freestyle's Line Style datablocks"},
+		{FILTER_ID_LT, "LATTICE", ICON_LATTICE_DATA, "Lattices", "Show/hide Lattice datablocks"},
+		{FILTER_ID_MA, "MATERIAL", ICON_MATERIAL_DATA, "Materials", "Show/hide Material datablocks"},
+		{FILTER_ID_MB, "METABALL", ICON_META_DATA, "Metaballs", "Show/hide Mateball datablocks"},
+		{FILTER_ID_MC, "MOVIE_CLIP", ICON_CLIP, "Movie Clips", "Show/hide Movie Clip datablocks"},
+		{FILTER_ID_ME, "MESH", ICON_MESH_DATA, "Meshes", "Show/hide Mesh datablocks"},
+		{FILTER_ID_MSK, "MASK", ICON_MOD_MASK, "Masks", "Show/hide Mask datablocks"},
+		{FILTER_ID_NT, "NODE_TREE", ICON_NODETREE, "Node Trees", "Show/hide Node Tree datablocks"},
+		{FILTER_ID_OB, "OBJECT", ICON_OBJECT_DATA, "Objects", "Show/hide Object datablocks"},
+		{FILTER_ID_PAL, "PALETTE", ICON_COLOR, "Palettes", "Show/hide Palette datablocks"},
+		{FILTER_ID_PC, "PAINT_CURVE", ICON_CURVE_BEZCURVE, "Paint Curves", "Show/hide Paint Curve datablocks"},
+		{FILTER_ID_SCE, "SCENE", ICON_SCENE_DATA, "Scenes", "Show/hide Scene datablocks"},
+		{FILTER_ID_SPK, "SPEAKER", ICON_SPEAKER, "Speakers", "Show/hide Speaker datablocks"},
+		{FILTER_ID_SO, "SOUND", ICON_SOUND, "Sounds", "Show/hide Sound datablocks"},
+		{FILTER_ID_TE, "TEXTURE", ICON_TEXTURE_DATA, "Textures", "Show/hide Texture datablocks"},
+		{FILTER_ID_TXT, "TEXT", ICON_TEXT, "Texts", "Show/hide Text datablocks"},
+		{FILTER_ID_VF, "FONT", ICON_FONT_DATA, "Fonts", "Show/hide Font datablocks"},
+		{FILTER_ID_WO, "WORLD", ICON_WORLD_DATA, "Worlds", "Show/hide World datablocks"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem file_filter_idcategories_items[] = {
+	    {FILTER_ID_SCE,
+	     "SCENE", ICON_SCENE_DATA, "Scenes", "Show/hide scenes"},
+	    {FILTER_ID_AC,
+	     "ANIMATION", ICON_ANIM_DATA, "Animations", "Show/hide animation data"},
+		{FILTER_ID_OB | FILTER_ID_GR,
+	     "OBJECT", ICON_GROUP, "Objects & Groups", "Show/hide objects and groups"},
+		{FILTER_ID_AR | FILTER_ID_CU | FILTER_ID_LT | FILTER_ID_MB | FILTER_ID_ME,
+	     "GEOMETRY", ICON_MESH_DATA, "Geometry", "Show/hide meshes, curves, lattice, armatures and metaballs data"},
+		{FILTER_ID_LS | FILTER_ID_MA | FILTER_ID_NT | FILTER_ID_TE,
+	     "SHADING", ICON_MATERIAL_DATA, "Shading",
+	     "Show/hide materials, nodetrees, textures and Freestyle's linestyles"},
+		{FILTER_ID_IM | FILTER_ID_MC | FILTER_ID_MSK | FILTER_ID_SO,
+	     "IMAGE", ICON_IMAGE_DATA, "Images & Sounds", "Show/hide images, movie clips, sounds and masks"},
+		{FILTER_ID_CA | FILTER_ID_LA | FILTER_ID_SPK | FILTER_ID_WO,
+	     "ENVIRONMENT", ICON_WORLD_DATA, "Environment", "Show/hide worlds, lamps, cameras and speakers"},
+		{FILTER_ID_BR | FILTER_ID_GD | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_TXT | FILTER_ID_VF,
+	     "MISC", ICON_GREASEPENCIL, "Miscellaneous", "Show/hide other data types"},
+	    {0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "FileSelectParams", NULL);
 	RNA_def_struct_ui_text(srna, "File Select Parameters", "File Select Parameters");
 
@@ -3728,10 +3821,21 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "File Name", "Active file in the file browser");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
+	prop = RNA_def_property(srna, "use_library_browsing", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Library Browser", "Whether we may browse blender files' content or not");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_FileSelectParams_use_lib_get", NULL);
+
 	prop = RNA_def_property(srna, "display_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "display");
 	RNA_def_property_enum_items(prop, file_display_items);
 	RNA_def_property_ui_text(prop, "Display Mode", "Display mode for the file list");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+
+	prop = RNA_def_property(srna, "recursion_level", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, fileselectparams_recursion_level_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_FileSelectParams_recursion_level_itemf");
+	RNA_def_property_ui_text(prop, "Recursion", "Numbers of dirtree levels to show simultaneously");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
 	prop = RNA_def_property(srna, "use_filter", PROP_BOOLEAN, PROP_NONE);
@@ -3803,7 +3907,27 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Filter Folder", "Show folders");
 	RNA_def_property_ui_icon(prop, ICON_FILE_FOLDER, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
-	
+
+	prop = RNA_def_property(srna, "use_filter_blendid", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filter", FILE_TYPE_BLENDERLIB);
+	RNA_def_property_ui_text(prop, "Filter Blender IDs", "Show .blend files items (objects, materials, etc.)");
+	RNA_def_property_ui_icon(prop, ICON_BLENDER, 0);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+
+	prop = RNA_def_property(srna, "filter_id", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "filter_id");
+	RNA_def_property_enum_items(prop, file_filter_idtypes_items);
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+	RNA_def_property_ui_text(prop, "Filter ID types", "Which ID types to show/hide, when browsing a library");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+
+	prop = RNA_def_property(srna, "filter_id_category", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "filter_id");
+	RNA_def_property_enum_items(prop, file_filter_idcategories_items);
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+	RNA_def_property_ui_text(prop, "Filter ID categories", "Which ID categories to show/hide, when browsing a library");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+
 	prop = RNA_def_property(srna, "filter_glob", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "filter_glob");
 	RNA_def_property_ui_text(prop, "Extension Filter", "");

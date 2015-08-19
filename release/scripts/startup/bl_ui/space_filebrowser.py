@@ -40,22 +40,23 @@ class FILEBROWSER_HT_header(Header):
         row.operator("file.parent", text="", icon='FILE_PARENT')
         row.operator("file.refresh", text="", icon='FILE_REFRESH')
 
-        row = layout.row()
-        row.separator()
-
-        row = layout.row(align=True)
+        layout.separator()
         layout.operator_context = 'EXEC_DEFAULT'
-        row.operator("file.directory_new", icon='NEWFOLDER')
+        layout.operator("file.directory_new", icon='NEWFOLDER', text="")
+        layout.separator()
 
         layout.operator_context = 'INVOKE_DEFAULT'
         params = st.params
 
         # can be None when save/reload with a file selector open
         if params:
+            is_lib_browser = params.use_library_browsing
+
+            layout.prop(params, "recursion_level", text="")
+
             layout.prop(params, "display_type", expand=True, text="")
 
-            if params.display_type == 'FILE_IMGDISPLAY':
-                layout.prop(params, "thumbnail_size", text="")
+            layout.prop(params, "thumbnail_size", text="")
 
             layout.prop(params, "sort_method", expand=True, text="")
 
@@ -81,8 +82,16 @@ class FILEBROWSER_HT_header(Header):
                 row.prop(params, "use_filter_sound", text="")
                 row.prop(params, "use_filter_text", text="")
 
+            if is_lib_browser:
+                row.prop(params, "use_filter_blendid", text="")
+                if params.use_filter_blendid:
+                    row.separator()
+                    row.prop(params, "filter_id_category", text="")
+
             row.separator()
             row.prop(params, "filter_search", text="", icon='VIEWZOOM')
+
+        layout.template_running_jobs()
 
 
 class FILEBROWSER_UL_dir(bpy.types.UIList):
@@ -212,6 +221,25 @@ class FILEBROWSER_PT_recent_folders(Panel):
 
             col = row.column(align=True)
             col.operator("file.reset_recent", icon='X', text="")
+
+
+class FILEBROWSER_PT_advanced_filter(Panel):
+    bl_space_type = 'FILE_BROWSER'
+    bl_region_type = 'TOOLS'
+    bl_category = "Filter"
+    bl_label = "Advanced Filter"
+
+    def draw(self, context):
+        layout = self.layout
+        space = context.space_data
+        params = space.params
+
+        if params and params.use_library_browsing:
+            layout.prop(params, "use_filter_blendid")
+            if params.use_filter_blendid:
+                layout.separator()
+                col = layout.column()
+                col.prop(params, "filter_id")
 
 
 if __name__ == "__main__":  # only for live edit.

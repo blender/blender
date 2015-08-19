@@ -39,7 +39,11 @@
 typedef unsigned int mode_t;
 #endif
 
-struct ImBuf;
+#define FILELIST_DIRENTRY_SIZE_LEN  16
+#define FILELIST_DIRENTRY_MODE_LEN  4
+#define FILELIST_DIRENTRY_OWNER_LEN 16
+#define FILELIST_DIRENTRY_TIME_LEN  8
+#define FILELIST_DIRENTRY_DATE_LEN  16
 
 struct direntry {
 	mode_t  type;
@@ -56,19 +60,6 @@ struct direntry {
 #else
 	struct stat s;
 #endif
-	unsigned int flags;
-	char    size[16];
-	char    mode1[4];
-	char    mode2[4];
-	char    mode3[4];
-	char    owner[16];
-	char    time[8];
-	char    date[16];
-	char    extra[16];
-	void   *poin;
-	int     nr;
-	struct ImBuf *image;
-	unsigned int selflag; /* selection flag */
 };
 
 struct dirlink {

@@ -31,6 +31,7 @@ set(INC
 	../../makesrna
 	../../render/extern/include
 	../../windowmanager
+	../../../../intern/atomic
 	../../../../intern/guardedalloc
 	../../../../intern/glew-mx
 )

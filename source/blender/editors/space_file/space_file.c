@@ -117,6 +117,8 @@ static void file_free(SpaceLink *sl)
 {	
 	SpaceFile *sfile = (SpaceFile *) sl;
 	
+	BLI_assert(sfile->previews_timer == NULL);
+
 	if (sfile->files) {
 		// XXXXX would need to do thumbnails_stop here, but no context available
 		filelist_freelib(sfile->files);
@@ -170,7 +172,12 @@ static void file_exit(wmWindowManager *wm, ScrArea *sa)
 {
 	SpaceFile *sfile = (SpaceFile *)sa->spacedata.first;
 
-	ED_fileselect_exit(wm, sfile);
+	if (sfile->previews_timer) {
+		WM_event_remove_timer_notifier(wm, NULL, sfile->previews_timer);
+		sfile->previews_timer = NULL;
+	}
+
+	ED_fileselect_exit(wm, sa, sfile);
 }
 
 static SpaceLink *file_duplicate(SpaceLink *sl)
@@ -211,13 +218,15 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 	}
 	if (!sfile->files) {
 		sfile->files = filelist_new(params->type);
-		filelist_setdir(sfile->files, params->dir);
 		params->highlight_file = -1; /* added this so it opens nicer (ton) */
 	}
+	filelist_setdir(sfile->files, params->dir);
+	filelist_setrecursion(sfile->files, params->recursion_level);
 	filelist_setsorting(sfile->files, params->sort);
-	filelist_setfilter_options(sfile->files, params->flag & FILE_HIDE_DOT,
+	filelist_setfilter_options(sfile->files, (params->flag & FILE_HIDE_DOT) != 0,
 	                                         false, /* TODO hide_parent, should be controllable? */
 	                                         params->flag & FILE_FILTER ? params->filter : 0,
+	                                         params->filter_id,
 	                                         params->filter_glob,
 	                                         params->filter_search);
 
@@ -227,39 +236,45 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 	sfile->bookmarknr = fsmenu_get_active_indices(fsmenu, FS_CATEGORY_BOOKMARKS, params->dir);
 	sfile->recentnr = fsmenu_get_active_indices(fsmenu, FS_CATEGORY_RECENT, params->dir);
 
-	if (filelist_empty(sfile->files)) {
-		thumbnails_stop(wm, sfile->files);
-		filelist_readdir(sfile->files);
-		filelist_sort(sfile->files);
-		BLI_strncpy(params->dir, filelist_dir(sfile->files), FILE_MAX);
-	}
-	else if (filelist_need_sorting(sfile->files)) {
-		thumbnails_stop(wm, sfile->files);
-		filelist_sort(sfile->files);
+	if (filelist_force_reset(sfile->files)) {
+		filelist_readjob_stop(wm, sa);
+		filelist_clear(sfile->files);
 	}
 
-	if ((params->display == FILE_IMGDISPLAY) && filelist_need_thumbnails(sfile->files)) {
-		if (!thumbnails_running(wm, sfile->files)) {
-			thumbnails_start(sfile->files, C);
+	if (filelist_empty(sfile->files)) {
+		if (!filelist_pending(sfile->files)) {
+			filelist_readjob_start(sfile->files, C);
 		}
 	}
-	else {
-		/* stop any running thumbnail jobs if we're not displaying them - speedup for NFS */
-		thumbnails_stop(wm, sfile->files);
-	}
 
+	filelist_sort(sfile->files);
 	filelist_filter(sfile->files);
 
+	if (params->display == FILE_IMGDISPLAY) {
+		filelist_cache_previews_set(sfile->files, true);
+	}
+	else {
+		filelist_cache_previews_set(sfile->files, false);
+		if (sfile->previews_timer) {
+			WM_event_remove_timer_notifier(wm, CTX_wm_window(C), sfile->previews_timer);
+			sfile->previews_timer = NULL;
+		}
+	}
+
 	if (params->renamefile[0] != '\0') {
-		int idx = filelist_find(sfile->files, params->renamefile);
+		int idx = filelist_file_findpath(sfile->files, params->renamefile);
 		if (idx >= 0) {
-			struct direntry *file = filelist_file(sfile->files, idx);
+			FileDirEntry *file = filelist_file(sfile->files, idx);
 			if (file) {
-				file->selflag |= FILE_SEL_EDITING;
+				filelist_entry_select_set(sfile->files, file, FILE_SEL_ADD, FILE_SEL_EDITING, CHECK_ALL);
 			}
 		}
 		BLI_strncpy(sfile->params->renameedit, sfile->params->renamefile, sizeof(sfile->params->renameedit));
-		params->renamefile[0] = '\0';
+		/* File listing is now async, do not clear renamefile if matching entry not found
+		 * and dirlist is not finished! */
+		if (idx >= 0 || filelist_is_ready(sfile->files)) {
+			params->renamefile[0] = '\0';
+		}
 	}
 
 	if (sfile->layout) {
@@ -278,7 +293,7 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 
 static void file_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 {
-	/* SpaceFile *sfile = (SpaceFile *)sa->spacedata.first; */
+	SpaceFile *sfile = (SpaceFile *)sa->spacedata.first;
 
 	/* context changes */
 	switch (wmn->category) {
@@ -291,6 +306,12 @@ static void file_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 				case ND_SPACE_FILE_PARAMS:
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
+					break;
+				case ND_SPACE_FILE_PREVIEW:
+					if (filelist_cache_previews_update(sfile->files)) {
+						ED_area_tag_refresh(sa);
+						ED_area_tag_redraw(sa);
+					}
 					break;
 			}
 			break;

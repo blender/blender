@@ -590,6 +590,7 @@ typedef struct FileSelectParams {
 	char filter_glob[64]; /* list of filetypes to filter */
 
 	char filter_search[64];  /* text items' name must match to be shown. */
+	int filter_id;  /* same as filter, but for ID types (aka library groups). */
 
 	int active_file;    /* active file used for keyboard navigation */
 	int highlight_file; /* file under cursor */
@@ -603,7 +604,9 @@ typedef struct FileSelectParams {
 	short flag; /* settings for filter, hiding dots files,...  */
 	short sort; /* sort order */
 	short display; /* display mode flag */
-	short filter; /* filter when (flags & FILE_FILTER) is true */
+	int filter; /* filter when (flags & FILE_FILTER) is true */
+
+	short recursion_level;  /* max number of levels in dirtree to show at once, 0 to disable recursion. */
 
 	/* XXX --- still unused -- */
 	short f_fp; /* show font preview */
@@ -635,6 +638,7 @@ typedef struct SpaceFile {
 	struct wmOperator *op; 
 
 	struct wmTimer *smoothscroll_timer;
+	struct wmTimer *previews_timer;
 
 	struct FileLayout *layout;
 	
@@ -709,7 +713,10 @@ typedef enum eFileSel_Params_Flag {
 } eFileSel_Params_Flag;
 
 
-/* files in filesel list: file types */
+/* files in filesel list: file types
+ * Note we could use mere values (instead of bitflags) for file types themselves,
+ * but since we do not lack of bytes currently...
+ */
 typedef enum eFileSel_File_Types {
 	FILE_TYPE_BLENDER           = (1 << 2),
 	FILE_TYPE_BLENDER_BACKUP    = (1 << 3),
@@ -725,6 +732,9 @@ typedef enum eFileSel_File_Types {
 	FILE_TYPE_COLLADA           = (1 << 13),
 	FILE_TYPE_OPERATOR          = (1 << 14), /* from filter_glob operator property */
 	FILE_TYPE_APPLICATIONBUNDLE = (1 << 15),
+
+	FILE_TYPE_DIR               = (1 << 30),  /* An FS directory (i.e. S_ISDIR on its path is true). */
+	FILE_TYPE_BLENDERLIB        = (1 << 31),
 } eFileSel_File_Types;
 
 /* Selection Flags in filesel: struct direntry, unsigned char selflag */
@@ -734,6 +744,117 @@ typedef enum eDirEntry_SelectFlag {
 	FILE_SEL_SELECTED       = (1 << 3),
 	FILE_SEL_EDITING        = (1 << 4),
 } eDirEntry_SelectFlag;
+
+#define FILE_LIST_MAX_RECURSION 4
+
+/* ***** Related to file browser, but never saved in DNA, only here to help with RNA. ***** */
+
+/* About Unique identifier.
+ * Stored in a CustomProps once imported.
+ * Each engine is free to use it as it likes - it will be the only thing passed to it by blender to identify
+ * asset/variant/version (concatenating the three into a single 48 bytes one).
+ * Assumed to be 128bits, handled as four integers due to lack of real bytes proptype in RNA :|.
+ */
+#define ASSET_UUID_LENGTH     16
+
+/* Used to communicate with asset engines outside of 'import' context. */
+typedef struct AssetUUID {
+	int uuid_asset[4];
+	int uuid_variant[4];
+	int uuid_revision[4];
+} AssetUUID;
+
+typedef struct AssetUUIDList {
+	AssetUUID *uuids;
+	int nbr_uuids, pad;
+} AssetUUIDList;
+
+/* Container for a revision, only relevant in asset context. */
+typedef struct FileDirEntryRevision {
+	struct FileDirEntryRevision *next, *prev;
+
+	int uuid[4];
+	char *comment;
+
+	uint64_t size;
+	int64_t time;
+	/* Temp caching of UI-generated strings... */
+	char    size_str[16];
+	char    time_str[8];
+	char    date_str[16];
+} FileDirEntryRevision;
+
+/* Container for a variant, only relevant in asset context.
+ * In case there are no variants, a single one shall exist, with NULL name/description. */
+typedef struct FileDirEntryVariant {
+	struct FileDirEntryVariant *next, *prev;
+
+	int uuid[4];
+	char *name;
+	char *description;
+
+	ListBase revisions;
+	int nbr_revisions;
+	int act_revision;
+} FileDirEntryVariant;
+
+/* Container for mere direntry, with additional asset-related data. */
+typedef struct FileDirEntry {
+	struct FileDirEntry *next, *prev;
+
+	int uuid[4];
+	char *name;
+	char *description;
+
+	/* Either point to active variant/revision if available, or own entry (in mere filebrowser case). */
+	FileDirEntryRevision *entry;
+
+	int typeflag;  /* eFileSel_File_Types */
+	int blentype;  /* ID type, in case typeflag has FILE_TYPE_BLENDERLIB set. */
+
+	char *relpath;
+
+	void *poin;  /* TODO: make this a real ID pointer? */
+	struct ImBuf *image;
+
+	/* Tags are for info only, most of filtering is done in asset engine. */
+	char **tags;
+	int nbr_tags;
+
+	short status;
+	short flags;
+
+	ListBase variants;
+	int nbr_variants;
+	int act_variant;
+} FileDirEntry;
+
+/* Array of direntries. */
+/* This struct is used in various, different contexts.
+ * In Filebrowser UI, it stores the total number of available entries, the number of visible (filtered) entries,
+ *                    and a subset of those in 'entries' ListBase, from idx_start (included) to idx_end (excluded).
+ * In AssetEngine context (i.e. outside of 'browsing' context), entries contain all needed data, there is no filtering,
+ *                        so nbr_entries_filtered, entry_idx_start and entry_idx_end should all be set to -1.
+ */
+typedef struct FileDirEntryArr {
+	ListBase entries;
+	int nbr_entries;
+	int nbr_entries_filtered;
+	int entry_idx_start, entry_idx_end;
+
+	char root[1024];	 /* FILE_MAX */
+} FileDirEntryArr;
+
+/* FileDirEntry.status */
+enum {
+	ASSET_STATUS_LOCAL  = 1 << 0,  /* If active uuid is available localy/immediately. */
+	ASSET_STATUS_LATEST = 1 << 1,  /* If active uuid is latest available version. */
+};
+
+/* FileDirEntry.flags */
+enum {
+	FILE_ENTRY_INVALID_PREVIEW = 1 << 0,  /* The preview for this entry could not be generated. */
+};
 
 /* Image/UV Editor ======================================== */
 
