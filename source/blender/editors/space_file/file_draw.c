@@ -546,7 +546,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 //			printf("%s: preview task: %d\n", __func__, previews_running);
 			if (previews_running && !sfile->previews_timer) {
 				sfile->previews_timer = WM_event_add_timer_notifier(CTX_wm_manager(C), CTX_wm_window(C),
-																	NC_SPACE | ND_SPACE_FILE_PREVIEW, 0.01);
+				                                                    NC_SPACE | ND_SPACE_FILE_PREVIEW, 0.01);
 			}
 			if (!previews_running && sfile->previews_timer) {
 				/* Preview is not running, no need to keep generating update events! */

@@ -369,7 +369,7 @@ static int compare_direntry_generic(const FileListInternEntry *entry1, const Fil
 	/* type is equal to stat.st_mode */
 
 	if (entry1->typeflag & FILE_TYPE_DIR) {
-	    if (entry2->typeflag & FILE_TYPE_DIR) {
+		if (entry2->typeflag & FILE_TYPE_DIR) {
 			/* If both entries are tagged as dirs, we make a 'sub filter' that shows first the real dirs,
 			 * then libs (.blend files), then categories in libs. */
 			if (entry1->typeflag & FILE_TYPE_BLENDERLIB) {
@@ -1003,7 +1003,7 @@ static void filelist_entry_clear(FileDirEntry *entry)
 
 		BLI_freelistN(&entry->variants);
 	}
-	else if (entry->entry){
+	else if (entry->entry) {
 		MEM_freeN(entry->entry);
 	}
 }
@@ -1164,7 +1164,7 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
 
 	if (!entry->image &&
 	    !(entry->flags & FILE_ENTRY_INVALID_PREVIEW) &&
-		(entry->typeflag & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT |
+	    (entry->typeflag & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT |
 	                        FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB)))
 	{
 		FileListEntryPreview *preview = MEM_mallocN(sizeof(*preview), __func__);
@@ -1232,7 +1232,7 @@ static void filelist_cache_clear(FileListEntryCache *cache, size_t new_size)
 	BLI_ghash_clear_ex(cache->misc_entries, NULL, NULL, new_size);
 	if (new_size != cache->size) {
 		cache->misc_entries_indices = MEM_reallocN(cache->misc_entries_indices,
-												   sizeof(*cache->misc_entries_indices) * new_size);
+		                                           sizeof(*cache->misc_entries_indices) * new_size);
 	}
 	copy_vn_i(cache->misc_entries_indices, new_size, -1);
 
@@ -2368,7 +2368,7 @@ static void filelist_readjob_main_rec(struct FileList *filelist)
 						files->entry->relpath = BLI_strdup(id->name + 2);
 					}
 					else {
-				        char relname[FILE_MAX + (MAX_ID_NAME - 2) + 3];
+						char relname[FILE_MAX + (MAX_ID_NAME - 2) + 3];
 						BLI_snprintf(relname, sizeof(relname), "%s | %s", id->lib->name, id->name + 2);
 						files->entry->relpath = BLI_strdup(relname);
 					}
@@ -2486,7 +2486,7 @@ static void filelist_readjob_do(
 					/* Skip... */
 				}
 				else if (!is_lib && (recursion_level >= max_recursion) &&
-						 ((entry->typeflag & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) == 0))
+				         ((entry->typeflag & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) == 0))
 				{
 					/* Do not recurse in real directories in this case, only in .blend libs. */
 				}
