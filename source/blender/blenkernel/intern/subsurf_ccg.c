@@ -4195,18 +4195,11 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
 	int gridSize;
 	int gridFaces, gridCuts;
 	int gridSideEdges;
-	int numTex, numCol;
-	int hasPCol, hasOrigSpace;
 	int gridInternalEdges;
 	WeightTable wtable = {NULL};
 	MEdge *medge = NULL;
 	MPoly *mpoly = NULL;
 	bool has_edge_cd;
-
-	numTex = CustomData_number_of_layers(&ccgdm->dm.loopData, CD_MLOOPUV);
-	numCol = CustomData_number_of_layers(&ccgdm->dm.loopData, CD_MLOOPCOL);
-	hasPCol = CustomData_has_layer(&ccgdm->dm.loopData, CD_PREVIEW_MLOOPCOL);
-	hasOrigSpace = CustomData_has_layer(&ccgdm->dm.loopData, CD_ORIGSPACE_MLOOP);
 
 	edgeSize = ccgSubSurf_getEdgeSize(ss);
 	gridSize = ccgSubSurf_getGridSize(ss);
