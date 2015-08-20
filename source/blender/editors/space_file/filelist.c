@@ -1366,13 +1366,9 @@ const char *filelist_dir(struct FileList *filelist)
  */
 void filelist_setdir(struct FileList *filelist, char *r_dir)
 {
-#ifndef NDEBUG
-	size_t len = strlen(r_dir);
-	BLI_assert((len < FILE_MAX_LIBEXTRA) && ELEM(r_dir[len - 1], SEP, ALTSEP));
-#endif
+	BLI_assert(strlen(r_dir) < FILE_MAX_LIBEXTRA);
 
 	BLI_cleanup_dir(G.main->name, r_dir);
-	BLI_add_slash(r_dir);
 	filelist->checkdirf(filelist, r_dir);
 
 	if (!STREQ(filelist->filelist.root, r_dir)) {
