@@ -584,22 +584,11 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				// inside the GameLogic dictionary when the python interpreter is finalized.
 				// which allows the scene to safely delete them :)
 				// see: (space.c)->start_game
-				
-				//PyDict_Clear(PyModule_GetDict(gameLogic));
-				
-				// Keep original items, means python plugins will autocomplete members
-				PyObject *gameLogic_keys_new = PyDict_Keys(PyModule_GetDict(gameLogic));
-				const Py_ssize_t numitems= PyList_GET_SIZE(gameLogic_keys_new);
-				Py_ssize_t listIndex;
-				for (listIndex=0; listIndex < numitems; listIndex++) {
-					PyObject *item = PyList_GET_ITEM(gameLogic_keys_new, listIndex);
-					if (!PySequence_Contains(gameLogic_keys, item)) {
-						PyDict_DelItem(	PyModule_GetDict(gameLogic), item);
-					}
-				}
-				Py_DECREF(gameLogic_keys_new);
-				gameLogic_keys_new = NULL;
+
+				PyDict_Clear(PyModule_GetDict(gameLogic));
+				PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict);
 #endif
+
 				ketsjiengine->StopEngine();
 #ifdef WITH_PYTHON
 				exitGamePythonScripting();
