@@ -36,7 +36,7 @@
  * - Nearest point on surface:
  *   #BLI_bvhtree_find_nearest, #BVHNearestData
  * - Overlapping 2 trees:
- *   #BLI_bvhtree_overlap, #BVHOverlapData
+ *   #BLI_bvhtree_overlap, #BVHOverlapData_Shared, #BVHOverlapData_Thread
  */
 
 #include <assert.h>
@@ -103,11 +103,22 @@ BLI_STATIC_ASSERT((sizeof(void *) == 8 && sizeof(BVHTree) <= 48) ||
                   (sizeof(void *) == 4 && sizeof(BVHTree) <= 32),
                   "over sized")
 
-typedef struct BVHOverlapData {
-	BVHTree *tree1, *tree2; 
-	struct BLI_Stack *overlap;  /* store BVHTreeOverlap */
+/* avoid duplicating vars in BVHOverlapData_Thread */
+typedef struct BVHOverlapData_Shared {
+	const BVHTree *tree1, *tree2;
 	axis_t start_axis, stop_axis;
-} BVHOverlapData;
+
+	/* use for callbacks */
+	BVHTree_OverlapCallback callback;
+	void *userdata;
+} BVHOverlapData_Shared;
+
+typedef struct BVHOverlapData_Thread {
+	BVHOverlapData_Shared *shared;
+	struct BLI_Stack *overlap;  /* store BVHTreeOverlap */
+	/* use for callbacks */
+	unsigned int thread;
+} BVHOverlapData_Thread;
 
 typedef struct BVHNearestData {
 	BVHTree *tree;
@@ -1059,8 +1070,11 @@ static bool tree_overlap_test(const BVHNode *node1, const BVHNode *node2, axis_t
 	return 1;
 }
 
-static void tree_overlap_traverse(BVHOverlapData *data, const BVHNode *node1, const BVHNode *node2)
+static void tree_overlap_traverse(
+        BVHOverlapData_Thread *data_thread,
+        const BVHNode *node1, const BVHNode *node2)
 {
+	BVHOverlapData_Shared *data = data_thread->shared;
 	int j;
 
 	if (tree_overlap_test(node1, node2, data->start_axis, data->stop_axis)) {
@@ -1075,34 +1089,96 @@ static void tree_overlap_traverse(BVHOverlapData *data, const BVHNode *node1, co
 				}
 
 				/* both leafs, insert overlap! */
-				overlap = BLI_stack_push_r(data->overlap);
+				overlap = BLI_stack_push_r(data_thread->overlap);
 				overlap->indexA = node1->index;
 				overlap->indexB = node2->index;
 			}
 			else {
 				for (j = 0; j < data->tree2->tree_type; j++) {
-					if (node2->children[j])
-						tree_overlap_traverse(data, node1, node2->children[j]);
+					if (node2->children[j]) {
+						tree_overlap_traverse(data_thread, node1, node2->children[j]);
+					}
 				}
 			}
 		}
 		else {
 			for (j = 0; j < data->tree2->tree_type; j++) {
-				if (node1->children[j])
-					tree_overlap_traverse(data, node1->children[j], node2);
+				if (node1->children[j]) {
+					tree_overlap_traverse(data_thread, node1->children[j], node2);
+				}
 			}
 		}
 	}
-	return;
 }
 
-BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int *r_overlap_tot)
+/**
+ * a version of #tree_overlap_traverse that runs a callback to check if the nodes really intersect.
+ */
+static void tree_overlap_traverse_cb(
+        BVHOverlapData_Thread *data_thread,
+        const BVHNode *node1, const BVHNode *node2)
 {
-	const unsigned int tree_type = (unsigned int)tree1->tree_type;
+	BVHOverlapData_Shared *data = data_thread->shared;
+	int j;
+
+	if (tree_overlap_test(node1, node2, data->start_axis, data->stop_axis)) {
+		/* check if node1 is a leaf */
+		if (!node1->totnode) {
+			/* check if node2 is a leaf */
+			if (!node2->totnode) {
+				BVHTreeOverlap *overlap;
+
+				if (UNLIKELY(node1 == node2)) {
+					return;
+				}
+
+				/* only difference to tree_overlap_traverse! */
+				if (data->callback(data->userdata, node1->index, node2->index, data_thread->thread)) {
+					/* both leafs, insert overlap! */
+					overlap = BLI_stack_push_r(data_thread->overlap);
+					overlap->indexA = node1->index;
+					overlap->indexB = node2->index;
+				}
+			}
+			else {
+				for (j = 0; j < data->tree2->tree_type; j++) {
+					if (node2->children[j]) {
+						tree_overlap_traverse_cb(data_thread, node1, node2->children[j]);
+					}
+				}
+			}
+		}
+		else {
+			for (j = 0; j < data->tree2->tree_type; j++) {
+				if (node1->children[j]) {
+					tree_overlap_traverse_cb(data_thread, node1->children[j], node2);
+				}
+			}
+		}
+	}
+}
+
+/**
+ * Use to check the total number of threads #BLI_bvhtree_overlap will use.
+ *
+ * \warning Must be the first tree passed to #BLI_bvhtree_overlap!
+ */
+unsigned int BLI_bvhtree_overlap_thread_num(const BVHTree *tree)
+{
+	return (unsigned int)MIN2(tree->tree_type, tree->nodes[tree->totleaf]->totnode);
+}
+
+BVHTreeOverlap *BLI_bvhtree_overlap(
+        const BVHTree *tree1, const BVHTree *tree2, unsigned int *r_overlap_tot,
+        /* optional callback to test the overlap before adding (must be thread-safe!) */
+        BVHTree_OverlapCallback callback, void *userdata)
+{
+	const unsigned int thread_num = BLI_bvhtree_overlap_thread_num(tree1);
 	unsigned int j;
 	size_t total = 0;
 	BVHTreeOverlap *overlap = NULL, *to = NULL;
-	BVHOverlapData *data = BLI_array_alloca(data, tree_type);
+	BVHOverlapData_Shared data_shared;
+	BVHOverlapData_Thread *data = BLI_array_alloca(data, thread_num);
 	axis_t start_axis, stop_axis;
 	
 	/* check for compatibility of both trees (can't compare 14-DOP with 18-DOP) */
@@ -1122,26 +1198,40 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 		return NULL;
 	}
 
-	for (j = 0; j < tree_type; j++) {
-		/* init BVHOverlapData */
-		data[j].tree1 = tree1;
-		data[j].tree2 = tree2;
+	data_shared.tree1 = tree1;
+	data_shared.tree2 = tree2;
+	data_shared.start_axis = start_axis;
+	data_shared.stop_axis = stop_axis;
+
+	/* can be NULL */
+	data_shared.callback = callback;
+	data_shared.userdata = userdata;
+
+	for (j = 0; j < thread_num; j++) {
+		/* init BVHOverlapData_Thread */
+		data[j].shared = &data_shared;
 		data[j].overlap = BLI_stack_new(sizeof(BVHTreeOverlap), __func__);
-		data[j].start_axis = start_axis;
-		data[j].stop_axis  = stop_axis;
+
+		/* for callback */
+		data[j].thread = j;
 	}
 
 #pragma omp parallel for private(j) schedule(static)  if (tree1->totleaf > KDOPBVH_OMP_LIMIT)
-	for (j = 0; j < MIN2(tree1->tree_type, tree1->nodes[tree1->totleaf]->totnode); j++) {
-		tree_overlap_traverse(&data[j], tree1->nodes[tree1->totleaf]->children[j], tree2->nodes[tree2->totleaf]);
+	for (j = 0; j < thread_num; j++) {
+		if (callback) {
+			tree_overlap_traverse_cb(&data[j], tree1->nodes[tree1->totleaf]->children[j], tree2->nodes[tree2->totleaf]);
+		}
+		else {
+			tree_overlap_traverse(&data[j], tree1->nodes[tree1->totleaf]->children[j], tree2->nodes[tree2->totleaf]);
+		}
 	}
 	
-	for (j = 0; j < tree_type; j++)
+	for (j = 0; j < thread_num; j++)
 		total += BLI_stack_count(data[j].overlap);
 	
 	to = overlap = MEM_mallocN(sizeof(BVHTreeOverlap) * total, "BVHTreeOverlap");
 	
-	for (j = 0; j < tree_type; j++) {
+	for (j = 0; j < thread_num; j++) {
 		unsigned int count = (unsigned int)BLI_stack_count(data[j].overlap);
 		BLI_stack_pop_n(data[j].overlap, to, count);
 		BLI_stack_free(data[j].overlap);

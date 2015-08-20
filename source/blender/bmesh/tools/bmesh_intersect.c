@@ -885,7 +885,7 @@ bool BM_mesh_intersect(
 		tree_b = tree_a;
 	}
 
-	overlap = BLI_bvhtree_overlap(tree_b, tree_a, &tree_overlap_tot);
+	overlap = BLI_bvhtree_overlap(tree_b, tree_a, &tree_overlap_tot, NULL, NULL);
 
 	if (overlap) {
 		unsigned int i;

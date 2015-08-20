@@ -723,7 +723,7 @@ int cloth_bvh_objcollision(Object *ob, ClothModifierData *clmd, float step, floa
 				continue;
 			
 			/* search for overlapping collision pairs */
-			overlap = BLI_bvhtree_overlap ( cloth_bvh, collmd->bvhtree, &result );
+			overlap = BLI_bvhtree_overlap(cloth_bvh, collmd->bvhtree, &result, NULL, NULL);
 				
 			// go to next object if no overlap is there
 			if ( result && overlap ) {
@@ -785,7 +785,7 @@ int cloth_bvh_objcollision(Object *ob, ClothModifierData *clmd, float step, floa
 	
 				if ( cloth->bvhselftree ) {
 					// search for overlapping collision pairs
-					overlap = BLI_bvhtree_overlap ( cloth->bvhselftree, cloth->bvhselftree, &result );
+					overlap = BLI_bvhtree_overlap(cloth->bvhselftree, cloth->bvhselftree, &result, NULL, NULL);
 	
 	// #pragma omp parallel for private(k, i, j) schedule(static)
 					for ( k = 0; k < result; k++ ) {
@@ -1248,7 +1248,7 @@ int cloth_points_objcollision(Object *ob, ClothModifierData *clmd, float step, f
 				continue;
 			
 			/* search for overlapping collision pairs */
-			overlap = BLI_bvhtree_overlap ( cloth_bvh, collmd->bvhtree, &result );
+			overlap = BLI_bvhtree_overlap(cloth_bvh, collmd->bvhtree, &result, NULL, NULL);
 			epsilon = BLI_bvhtree_getepsilon(collmd->bvhtree);
 			
 			// go to next object if no overlap is there
@@ -1374,7 +1374,7 @@ void cloth_find_point_contacts(Object *ob, ClothModifierData *clmd, float step, 
 			continue;
 		
 		/* search for overlapping collision pairs */
-		overlap = BLI_bvhtree_overlap(cloth_bvh, collmd->bvhtree, &result);
+		overlap = BLI_bvhtree_overlap(cloth_bvh, collmd->bvhtree, &result, NULL, NULL);
 		epsilon = BLI_bvhtree_getepsilon(collmd->bvhtree);
 		
 		// go to next object if no overlap is there
