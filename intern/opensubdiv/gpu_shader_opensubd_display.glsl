@@ -28,6 +28,7 @@
 #extension GL_EXT_geometry_shader4 : enable
 #extension GL_ARB_gpu_shader5 : enable
 #extension GL_ARB_explicit_attrib_location : require
+#extension GL_ARB_uniform_buffer_object : require
 
 struct VertexData {
 	vec4 position;
