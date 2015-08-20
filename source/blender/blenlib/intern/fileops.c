@@ -342,7 +342,7 @@ static bool delete_recursive(const char *dir)
 		err = true;
 	}
 
-	BLI_filelist_free(filelist, nbr, NULL);
+	BLI_filelist_free(filelist, nbr);
 
 	return err;
 }
