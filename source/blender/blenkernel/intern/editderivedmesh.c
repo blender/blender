@@ -2125,15 +2125,17 @@ static void statvis_calc_intersect(
         /* result */
         unsigned char (*r_face_colors)[4])
 {
-	BMIter iter;
 	BMesh *bm = em->bm;
-	BMEdge *e;
-	int index;
+	int i;
 
 	/* fallback */
 	// const char col_fallback[4] = {64, 64, 64, 255};
+	float fcol[3];
+	unsigned char col[3];
 
 	struct BMBVHTree *bmtree;
+	BVHTreeOverlap *overlap;
+	unsigned int overlap_len;
 
 	memset(r_face_colors, 64, sizeof(int) * em->bm->totface);
 
@@ -2144,46 +2146,30 @@ static void statvis_calc_intersect(
 
 	bmtree = BKE_bmbvh_new_from_editmesh(em, 0, vertexCos, false);
 
-	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-		BMFace *f_hit;
-		float cos[2][3];
-		float cos_mid[3];
-		float ray_no[3];
+	overlap = BKE_bmbvh_overlap(bmtree, bmtree, &overlap_len);
 
-		if (e->l == NULL)
-			continue;
+	/* same for all faces */
+	weight_to_rgb(fcol, 1.0f);
+	rgb_float_to_uchar(col, fcol);
 
-		if (vertexCos) {
-			copy_v3_v3(cos[0], vertexCos[BM_elem_index_get(e->v1)]);
-			copy_v3_v3(cos[1], vertexCos[BM_elem_index_get(e->v2)]);
+	if (overlap) {
+		for (i = 0; i < overlap_len; i++) {
+			BMFace *f_hit_pair[2] = {
+			    em->looptris[overlap[i].indexA][0]->f,
+			    em->looptris[overlap[i].indexB][0]->f,
+			};
+			int j;
+
+			for (j = 0; j < 2; j++) {
+				BMFace *f_hit = f_hit_pair[j];
+				int index;
+
+				index = BM_elem_index_get(f_hit);
+
+				copy_v3_v3_char((char *)r_face_colors[index], (const char *)col);
+			}
 		}
-		else {
-			copy_v3_v3(cos[0], e->v1->co);
-			copy_v3_v3(cos[1], e->v2->co);
-		}
-
-		mid_v3_v3v3(cos_mid, cos[0], cos[1]);
-		sub_v3_v3v3(ray_no, cos[1], cos[0]);
-
-		f_hit = BKE_bmbvh_find_face_segment(bmtree, cos[0], cos[1],
-		                                    NULL, NULL, NULL);
-
-		if (f_hit) {
-			BMLoop *l_iter, *l_first;
-			float fcol[3];
-
-			index = BM_elem_index_get(f_hit);
-			weight_to_rgb(fcol, 1.0f);
-			rgb_float_to_uchar(r_face_colors[index], fcol);
-
-			l_iter = l_first = e->l;
-			do {
-				index = BM_elem_index_get(l_iter->f);
-				weight_to_rgb(fcol, 1.0f);
-				rgb_float_to_uchar(r_face_colors[index], fcol);
-			} while ((l_iter = l_iter->radial_next) != l_first);
-		}
-
+		MEM_freeN(overlap);
 	}
 
 	BKE_bmbvh_free(bmtree);
