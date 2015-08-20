@@ -980,6 +980,24 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata, CustomData *edata,
 		          MAX_MCOL, tot_vcolloop - MAX_MCOL);
 	}
 
+	/* check indices of clone/stencil */
+	if (do_fixes && CustomData_get_clone_layer(pdata, CD_MTEXPOLY) >= tot_texpoly) {
+		CustomData_set_layer_clone(pdata, CD_MTEXPOLY, 0);
+		is_change_p = true;
+	}
+	if (do_fixes && CustomData_get_clone_layer(ldata, CD_MLOOPUV) >= tot_uvloop) {
+		CustomData_set_layer_clone(ldata, CD_MLOOPUV, 0);
+		is_change_l = true;
+	}
+	if (do_fixes && CustomData_get_stencil_layer(pdata, CD_MTEXPOLY) >= tot_texpoly) {
+		CustomData_set_layer_stencil(pdata, CD_MTEXPOLY, 0);
+		is_change_p = true;
+	}
+	if (do_fixes && CustomData_get_stencil_layer(ldata, CD_MLOOPUV) >= tot_uvloop) {
+		CustomData_set_layer_stencil(ldata, CD_MLOOPUV, 0);
+		is_change_l = true;
+	}
+
 	*r_change = (is_change_v || is_change_e || is_change_l || is_change_p);
 
 	return is_valid;
