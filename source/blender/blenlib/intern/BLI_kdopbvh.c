@@ -126,6 +126,8 @@ typedef struct BVHRayCastData {
 
 
 	BVHTreeRay ray;
+
+	/* initialized by bvhtree_ray_cast_data_precalc */
 	float ray_dot_axis[13];
 	float idot_axis[13];
 	int index[6];
@@ -1543,10 +1545,27 @@ static void iterative_raycast(BVHRayCastData *data, BVHNode *node)
 }
 #endif
 
+static void bvhtree_ray_cast_data_precalc(BVHRayCastData *data)
+{
+	int i;
+
+	for (i = 0; i < 3; i++) {
+		data->ray_dot_axis[i] = dot_v3v3(data->ray.direction, KDOP_AXES[i]);
+		data->idot_axis[i] = 1.0f / data->ray_dot_axis[i];
+
+		if (fabsf(data->ray_dot_axis[i]) < FLT_EPSILON) {
+			data->ray_dot_axis[i] = 0.0;
+		}
+		data->index[2 * i] = data->idot_axis[i] < 0.0f ? 1 : 0;
+		data->index[2 * i + 1] = 1 - data->index[2 * i];
+		data->index[2 * i]   += 2 * i;
+		data->index[2 * i + 1] += 2 * i;
+	}
+}
+
 int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], float radius, BVHTreeRayHit *hit,
                          BVHTree_RayCastCallback callback, void *userdata)
 {
-	int i;
 	BVHRayCastData data;
 	BVHNode *root = tree->nodes[tree->totleaf];
 
@@ -1561,19 +1580,7 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], f
 
 	normalize_v3(data.ray.direction);
 
-	for (i = 0; i < 3; i++) {
-		data.ray_dot_axis[i] = dot_v3v3(data.ray.direction, KDOP_AXES[i]);
-		data.idot_axis[i] = 1.0f / data.ray_dot_axis[i];
-
-		if (fabsf(data.ray_dot_axis[i]) < FLT_EPSILON) {
-			data.ray_dot_axis[i] = 0.0;
-		}
-		data.index[2 * i] = data.idot_axis[i] < 0.0f ? 1 : 0;
-		data.index[2 * i + 1] = 1 - data.index[2 * i];
-		data.index[2 * i]   += 2 * i;
-		data.index[2 * i + 1] += 2 * i;
-	}
-
+	bvhtree_ray_cast_data_precalc(&data);
 
 	if (hit)
 		memcpy(&data.hit, hit, sizeof(*hit));
@@ -1622,7 +1629,6 @@ float BLI_bvhtree_bb_raycast(const float bv[6], const float light_start[3], cons
 int BLI_bvhtree_ray_cast_all(BVHTree *tree, const float co[3], const float dir[3], float radius,
                              BVHTree_RayCastCallback callback, void *userdata)
 {
-	int i;
 	BVHRayCastData data;
 	BVHNode *root = tree->nodes[tree->totleaf];
 
@@ -1637,19 +1643,7 @@ int BLI_bvhtree_ray_cast_all(BVHTree *tree, const float co[3], const float dir[3
 
 	normalize_v3(data.ray.direction);
 
-	for (i = 0; i < 3; i++) {
-		data.ray_dot_axis[i] = dot_v3v3(data.ray.direction, KDOP_AXES[i]);
-		data.idot_axis[i] = 1.0f / data.ray_dot_axis[i];
-
-		if (fabsf(data.ray_dot_axis[i]) < FLT_EPSILON) {
-			data.ray_dot_axis[i] = 0.0;
-		}
-		data.index[2 * i] = data.idot_axis[i] < 0.0f ? 1 : 0;
-		data.index[2 * i + 1] = 1 - data.index[2 * i];
-		data.index[2 * i]   += 2 * i;
-		data.index[2 * i + 1] += 2 * i;
-	}
-
+	bvhtree_ray_cast_data_precalc(&data);
 
 	data.hit.index = -1;
 	data.hit.dist = FLT_MAX;
