@@ -1155,9 +1155,10 @@ int isect_point_quad_v2(const float pt[2], const float v1[2], const float v2[2],
  * test if the line starting at p1 ending at p2 intersects the triangle v0..v2
  * return non zero if it does
  */
-bool isect_line_tri_v3(const float p1[3], const float p2[3],
-                       const float v0[3], const float v1[3], const float v2[3],
-                       float *r_lambda, float r_uv[2])
+bool isect_line_tri_v3(
+        const float p1[3], const float p2[3],
+        const float v0[3], const float v1[3], const float v2[3],
+        float *r_lambda, float r_uv[2])
 {
 
 	float p[3], s[3], d[3], e1[3], e2[3], q[3];
@@ -1194,9 +1195,10 @@ bool isect_line_tri_v3(const float p1[3], const float p2[3],
 }
 
 /* like isect_line_tri_v3, but allows epsilon tolerance around triangle */
-bool isect_line_tri_epsilon_v3(const float p1[3], const float p2[3],
-                       const float v0[3], const float v1[3], const float v2[3],
-                       float *r_lambda, float r_uv[2], const float epsilon)
+bool isect_line_tri_epsilon_v3(
+        const float p1[3], const float p2[3],
+        const float v0[3], const float v1[3], const float v2[3],
+        float *r_lambda, float r_uv[2], const float epsilon)
 {
 
 	float p[3], s[3], d[3], e1[3], e2[3], q[3];
@@ -1236,10 +1238,14 @@ bool isect_line_tri_epsilon_v3(const float p1[3], const float p2[3],
  * test if the ray starting at p1 going in d direction intersects the triangle v0..v2
  * return non zero if it does
  */
-bool isect_ray_tri_v3(const float p1[3], const float d[3],
-                      const float v0[3], const float v1[3], const float v2[3],
-                      float *r_lambda, float r_uv[2])
+bool isect_ray_tri_v3(
+        const float p1[3], const float d[3],
+        const float v0[3], const float v1[3], const float v2[3],
+        float *r_lambda, float r_uv[2])
 {
+	/* note: these values were 0.000001 in 2.4x but for projection snapping on
+	 * a human head (1BU == 1m), subsurf level 2, this gave many errors - campbell */
+	const float epsilon = 0.00000001f;
 	float p[3], s[3], e1[3], e2[3], q[3];
 	float a, f, u, v;
 
@@ -1248,9 +1254,7 @@ bool isect_ray_tri_v3(const float p1[3], const float d[3],
 
 	cross_v3_v3v3(p, d, e2);
 	a = dot_v3v3(e1, p);
-	/* note: these values were 0.000001 in 2.4x but for projection snapping on
-	 * a human head (1BU == 1m), subsurf level 2, this gave many errors - campbell */
-	if ((a > -0.00000001f) && (a < 0.00000001f)) return false;
+	if ((a > -epsilon) && (a < epsilon)) return false;
 	f = 1.0f / a;
 
 	sub_v3_v3v3(s, p1, v0);
@@ -1278,10 +1282,12 @@ bool isect_ray_tri_v3(const float p1[3], const float d[3],
  * if clip is nonzero, will only return true if lambda is >= 0.0
  * (i.e. intersection point is along positive d)
  */
-bool isect_ray_plane_v3(const float p1[3], const float d[3],
-                        const float v0[3], const float v1[3], const float v2[3],
-                        float *r_lambda, const int clip)
+bool isect_ray_plane_v3(
+        const float p1[3], const float d[3],
+        const float v0[3], const float v1[3], const float v2[3],
+        float *r_lambda, const bool clip)
 {
+	const float epsilon = 0.00000001f;
 	float p[3], s[3], e1[3], e2[3], q[3];
 	float a, f;
 	/* float  u, v; */ /*UNUSED*/
@@ -1293,7 +1299,7 @@ bool isect_ray_plane_v3(const float p1[3], const float d[3],
 	a = dot_v3v3(e1, p);
 	/* note: these values were 0.000001 in 2.4x but for projection snapping on
 	 * a human head (1BU == 1m), subsurf level 2, this gave many errors - campbell */
-	if ((a > -0.00000001f) && (a < 0.00000001f)) return false;
+	if ((a > -epsilon) && (a < epsilon)) return false;
 	f = 1.0f / a;
 
 	sub_v3_v3v3(s, p1, v0);
@@ -1310,9 +1316,10 @@ bool isect_ray_plane_v3(const float p1[3], const float d[3],
 	return true;
 }
 
-bool isect_ray_tri_epsilon_v3(const float p1[3], const float d[3],
-                              const float v0[3], const float v1[3], const float v2[3],
-                              float *r_lambda, float uv[2], const float epsilon)
+bool isect_ray_tri_epsilon_v3(
+        const float p1[3], const float d[3],
+        const float v0[3], const float v1[3], const float v2[3],
+        float *r_lambda, float uv[2], const float epsilon)
 {
 	float p[3], s[3], e1[3], e2[3], q[3];
 	float a, f, u, v;
@@ -1322,7 +1329,7 @@ bool isect_ray_tri_epsilon_v3(const float p1[3], const float d[3],
 
 	cross_v3_v3v3(p, d, e2);
 	a = dot_v3v3(e1, p);
-	if (a == 0.0f) return 0;
+	if (a == 0.0f) return false;
 	f = 1.0f / a;
 
 	sub_v3_v3v3(s, p1, v0);
@@ -1346,10 +1353,17 @@ bool isect_ray_tri_epsilon_v3(const float p1[3], const float d[3],
 	return true;
 }
 
-bool isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
-                                const float v0[3], const float v1[3], const float v2[3],
-                                float *r_lambda, float r_uv[2], const float threshold)
+#if 0  /* UNUSED */
+/**
+ * A version of #isect_ray_tri_v3 which takes a threshold argument
+ * so rays slightly outside the triangle to be considered as intersecting.
+ */
+bool isect_ray_tri_threshold_v3(
+        const float p1[3], const float d[3],
+        const float v0[3], const float v1[3], const float v2[3],
+        float *r_lambda, float r_uv[2], const float threshold)
 {
+	const float epsilon = 0.00000001f;
 	float p[3], s[3], e1[3], e2[3], q[3];
 	float a, f, u, v;
 	float du, dv;
@@ -1359,7 +1373,7 @@ bool isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
 
 	cross_v3_v3v3(p, d, e2);
 	a = dot_v3v3(e1, p);
-	if ((a > -0.000001f) && (a < 0.000001f)) return false;
+	if ((a > -epsilon) && (a < epsilon)) return false;
 	f = 1.0f / a;
 
 	sub_v3_v3v3(s, p1, v0);
@@ -1400,6 +1414,7 @@ bool isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
 
 	return true;
 }
+#endif
 
 /**
  * Check if a point is behind all planes.
@@ -1782,6 +1797,7 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const fl
 bool isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3],
                              const float v0[3], const float v1[3], const float v2[3], float *r_lambda)
 {
+	const float epsilon = 0.000001f;
 	float p[3], e1[3], e2[3];
 	float u, v, f;
 	int a0 = axis, a1 = (axis + 1) % 3, a2 = (axis + 2) % 3;
@@ -1803,15 +1819,15 @@ bool isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3
 	sub_v3_v3v3(p, v0, p1);
 
 	f = (e2[a1] * e1[a2] - e2[a2] * e1[a1]);
-	if ((f > -0.000001f) && (f < 0.000001f)) return false;
+	if ((f > -epsilon) && (f < epsilon)) return false;
 
 	v = (p[a2] * e1[a1] - p[a1] * e1[a2]) / f;
 	if ((v < 0.0f) || (v > 1.0f)) return false;
 
 	f = e1[a1];
-	if ((f > -0.000001f) && (f < 0.000001f)) {
+	if ((f > -epsilon) && (f < epsilon)) {
 		f = e1[a2];
-		if ((f > -0.000001f) && (f < 0.000001f)) return false;
+		if ((f > -epsilon) && (f < epsilon)) return false;
 		u = (-p[a2] - v * e2[a2]) / f;
 	}
 	else
@@ -1916,6 +1932,7 @@ bool isect_line_line_strict_v3(const float v1[3], const float v2[3],
                                const float v3[3], const float v4[3],
                                float vi[3], float *r_lambda)
 {
+	const float epsilon = 0.000001f;
 	float a[3], b[3], c[3], ab[3], cb[3], ca[3], dir1[3], dir2[3];
 	float d, div;
 
@@ -1940,7 +1957,7 @@ bool isect_line_line_strict_v3(const float v1[3], const float v2[3],
 		return false;
 	}
 	/* test if the two lines are coplanar */
-	else if (d > -0.000001f && d < 0.000001f) {
+	else if (d > -epsilon && d < epsilon) {
 		float f1, f2;
 		cross_v3_v3v3(cb, c, b);
 		cross_v3_v3v3(ca, c, a);
