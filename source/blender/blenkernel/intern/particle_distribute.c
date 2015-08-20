@@ -545,7 +545,7 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
 		v2=mvert[mface->v2].co;
 		v3=mvert[mface->v3].co;
 		
-		if (isect_ray_tri_v3(co, nor, v2, v3, v1, &cur_d, 0)) {
+		if (isect_ray_tri_v3(co, nor, v2, v3, v1, &cur_d, NULL)) {
 			if (cur_d<min_d) {
 				min_d=cur_d;
 				pa->foffset=cur_d*0.5f; /* to the middle of volume */
@@ -555,7 +555,7 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
 		if (mface->v4) {
 			v4=mvert[mface->v4].co;
 			
-			if (isect_ray_tri_v3(co, nor, v4, v1, v3, &cur_d, 0)) {
+			if (isect_ray_tri_v3(co, nor, v4, v1, v3, &cur_d, NULL)) {
 				if (cur_d<min_d) {
 					min_d=cur_d;
 					pa->foffset=cur_d*0.5f; /* to the middle of volume */

@@ -386,18 +386,21 @@ static void bvh_callback(void *userdata, int index, const BVHTreeRay *UNUSED(ray
 	const MLoop *mloop = data->sys->heat.mloop;
 	float (*verts)[3] = data->sys->heat.verts;
 	const float *vtri_co[3];
-	float lambda, uv[2], n[3], dir[3];
+	float lambda, dir[3];
 
 	mul_v3_v3fl(dir, data->vec, hit->dist);
 	vtri_co[0] = verts[mloop[lt->tri[0]].v];
 	vtri_co[1] = verts[mloop[lt->tri[1]].v];
 	vtri_co[2] = verts[mloop[lt->tri[2]].v];
 
-	if (isect_ray_tri_v3(data->start, dir, UNPACK3(vtri_co), &lambda, uv)) {
-		normal_tri_v3(n, UNPACK3(vtri_co));
-		if (lambda < 1.0f && dot_v3v3(n, data->vec) < -1e-5f) {
-			hit->index = index;
-			hit->dist *= lambda;
+	if (isect_ray_tri_v3(data->start, dir, UNPACK3(vtri_co), &lambda, NULL)) {
+		if (lambda < 1.0f) {
+			float n[3];
+			normal_tri_v3(n, UNPACK3(vtri_co));
+			if (dot_v3v3(n, data->vec) < -1e-5f) {
+				hit->index = index;
+				hit->dist *= lambda;
+			}
 		}
 	}
 }
