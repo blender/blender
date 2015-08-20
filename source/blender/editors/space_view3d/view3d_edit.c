@@ -4818,10 +4818,17 @@ static float view_autodist_depth_margin(ARegion *ar, const int mval[2], int marg
 	return depth_close;
 }
 
-/* XXX todo Zooms in on a border drawn by the user */
-bool ED_view3d_autodist(Scene *scene, ARegion *ar, View3D *v3d,
-                        const int mval[2], float mouse_worldloc[3],
-                        const bool alphaoverride, const float fallback_depth_pt[3])
+/**
+ * Get the world-space 3d location from a screen-space 2d point.
+ *
+ * \param mval: Input screen-space pixel location.
+ * \param mouse_worldloc: Output world-space loction.
+ * \param fallback_depth_pt: Use this points depth when no depth can be found.
+ */
+bool ED_view3d_autodist(
+        Scene *scene, ARegion *ar, View3D *v3d,
+        const int mval[2], float mouse_worldloc[3],
+        const bool alphaoverride, const float fallback_depth_pt[3])
 {
 	bglMats mats; /* ZBuffer depth vars */
 	float depth_close;
