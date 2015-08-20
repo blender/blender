@@ -113,9 +113,6 @@ static void mesh_faces_nearest_point(void *userdata, int index, const float co[3
 			nearest->dist_sq = dist_sq;
 			copy_v3_v3(nearest->co, nearest_tmp);
 			normal_tri_v3(nearest->no, t0, t1, t2);
-
-			if (t1 == vert[face->v3].co)
-				nearest->flags |= BVH_ONQUAD;
 		}
 
 		t1 = t2;
@@ -202,9 +199,6 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 			madd_v3_v3v3fl(hit->co, ray->origin, ray->direction, dist);
 
 			normal_tri_v3(hit->no, t0, t1, t2);
-
-			if (t1 == vert[face->v3].co)
-				hit->flags |= BVH_ONQUAD;
 		}
 
 		t1 = t2;

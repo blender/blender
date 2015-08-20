@@ -47,9 +47,6 @@ typedef struct BVHTreeOverlap {
 	int indexB;
 } BVHTreeOverlap;
 
-/* flags */
-#define BVH_ONQUAD (1 << 0)
-
 typedef struct BVHTreeNearest {
 	int index;          /* the index of the nearest found (untouched if none is found within a dist radius from the given coordinates) */
 	float co[3];        /* nearest coordinates (untouched it none is found within a dist radius from the given coordinates) */
@@ -69,7 +66,6 @@ typedef struct BVHTreeRayHit {
 	float co[3];        /* coordinates of the hit point */
 	float no[3];        /* normal on hit point */
 	float dist;         /* distance to the hit point */
-	int flags;
 } BVHTreeRayHit;
 
 /* callback must update nearest in case it finds a nearest result */
