@@ -75,7 +75,7 @@ typedef void (*BVHTree_NearestPointCallback)(void *userdata, int index, const fl
 typedef void (*BVHTree_RayCastCallback)(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit);
 
 /* callback to check if 2 nodes overlap (use thread if intersection results need to be stored) */
-typedef bool (*BVHTree_OverlapCallback)(void *userdata, int index_a, int index_b, unsigned int thread);
+typedef bool (*BVHTree_OverlapCallback)(void *userdata, int index_a, int index_b, int thread);
 
 /* callback to range search query */
 typedef void (*BVHTree_RangeQuery)(void *userdata, int index, float dist_sq);
@@ -91,7 +91,7 @@ void BLI_bvhtree_balance(BVHTree *tree);
 bool BLI_bvhtree_update_node(BVHTree *tree, int index, const float co[3], const float co_moving[3], int numpoints);
 void BLI_bvhtree_update_tree(BVHTree *tree);
 
-unsigned int BLI_bvhtree_overlap_thread_num(const BVHTree *tree);
+int BLI_bvhtree_overlap_thread_num(const BVHTree *tree);
 
 /* collision/overlap: check two trees if they overlap, alloc's *overlap with length of the int return value */
 BVHTreeOverlap *BLI_bvhtree_overlap(

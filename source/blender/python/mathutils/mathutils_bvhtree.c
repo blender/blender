@@ -451,7 +451,7 @@ struct PyBVHTree_OverlapData {
 	float epsilon;
 };
 
-static bool py_bvhtree_overlap_cb(void *userdata, int index_a, int index_b, unsigned int UNUSED(thread))
+static bool py_bvhtree_overlap_cb(void *userdata, int index_a, int index_b, int UNUSED(thread))
 {
 	struct PyBVHTree_OverlapData *data = userdata;
 	PyBVHTree *tree_a = data->tree_pair[0];

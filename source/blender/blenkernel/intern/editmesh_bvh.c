@@ -442,7 +442,7 @@ struct BMBVHTree_OverlapData {
 	float epsilon;
 };
 
-static bool bmbvh_overlap_cb(void *userdata, int index_a, int index_b, unsigned int UNUSED(thread))
+static bool bmbvh_overlap_cb(void *userdata, int index_a, int index_b, int UNUSED(thread))
 {
 	struct BMBVHTree_OverlapData *data = userdata;
 	const BMBVHTree *bmtree_a = data->tree_pair[0];

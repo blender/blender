@@ -117,7 +117,7 @@ typedef struct BVHOverlapData_Thread {
 	BVHOverlapData_Shared *shared;
 	struct BLI_Stack *overlap;  /* store BVHTreeOverlap */
 	/* use for callbacks */
-	unsigned int thread;
+	int thread;
 } BVHOverlapData_Thread;
 
 typedef struct BVHNearestData {
@@ -1163,9 +1163,9 @@ static void tree_overlap_traverse_cb(
  *
  * \warning Must be the first tree passed to #BLI_bvhtree_overlap!
  */
-unsigned int BLI_bvhtree_overlap_thread_num(const BVHTree *tree)
+int BLI_bvhtree_overlap_thread_num(const BVHTree *tree)
 {
-	return (unsigned int)MIN2(tree->tree_type, tree->nodes[tree->totleaf]->totnode);
+	return (int)MIN2(tree->tree_type, tree->nodes[tree->totleaf]->totnode);
 }
 
 BVHTreeOverlap *BLI_bvhtree_overlap(
@@ -1173,12 +1173,12 @@ BVHTreeOverlap *BLI_bvhtree_overlap(
         /* optional callback to test the overlap before adding (must be thread-safe!) */
         BVHTree_OverlapCallback callback, void *userdata)
 {
-	const unsigned int thread_num = BLI_bvhtree_overlap_thread_num(tree1);
-	unsigned int j;
+	const int thread_num = BLI_bvhtree_overlap_thread_num(tree1);
+	int j;
 	size_t total = 0;
 	BVHTreeOverlap *overlap = NULL, *to = NULL;
 	BVHOverlapData_Shared data_shared;
-	BVHOverlapData_Thread *data = BLI_array_alloca(data, thread_num);
+	BVHOverlapData_Thread *data = BLI_array_alloca(data, (size_t)thread_num);
 	axis_t start_axis, stop_axis;
 	
 	/* check for compatibility of both trees (can't compare 14-DOP with 18-DOP) */
