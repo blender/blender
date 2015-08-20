@@ -506,7 +506,7 @@ float effector_falloff(EffectorCache *eff, EffectorData *efd, EffectedPoint *UNU
 			if (falloff == 0.0f)
 				break;
 
-			madd_v3_v3v3fl(temp, efd->vec_to_point, efd->nor, -fac);
+			madd_v3_v3v3fl(temp, efd->vec_to_point2, efd->nor, -fac);
 			r_fac= len_v3(temp);
 			falloff*= falloff_func_rad(eff->pd, r_fac);
 			break;
