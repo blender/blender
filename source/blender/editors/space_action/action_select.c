@@ -632,7 +632,7 @@ void ACTION_OT_select_linked(wmOperatorType *ot)
 	ot->poll = ED_operator_action_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER /*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ******************** Select More/Less Operators *********************** */
@@ -709,7 +709,7 @@ void ACTION_OT_select_more(wmOperatorType *ot)
 	ot->poll = ED_operator_action_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER /*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ----------------- */
@@ -743,7 +743,7 @@ void ACTION_OT_select_less(wmOperatorType *ot)
 	ot->poll = ED_operator_action_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER /*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ******************** Select Left/Right Operator ************************* */

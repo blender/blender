@@ -198,7 +198,7 @@ void GRAPH_OT_select_all_toggle(wmOperatorType *ot)
 	ot->poll = graphop_visible_keyframes_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER /*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
 	ot->prop = RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
@@ -397,7 +397,7 @@ void GRAPH_OT_select_border(wmOperatorType *ot)
 	ot->poll = graphop_visible_keyframes_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER /*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* rna */
 	WM_operator_properties_gesture_border(ot, true);
@@ -744,7 +744,7 @@ void GRAPH_OT_select_column(wmOperatorType *ot)
 	ot->poll = graphop_visible_keyframes_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER /*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
 	ot->prop = RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
@@ -802,7 +802,7 @@ void GRAPH_OT_select_linked(wmOperatorType *ot)
 	ot->poll = graphop_visible_keyframes_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER /*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ******************** Select More/Less Operators *********************** */
@@ -880,7 +880,7 @@ void GRAPH_OT_select_more(wmOperatorType *ot)
 	ot->poll = graphop_visible_keyframes_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER /*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ----------------- */
@@ -914,7 +914,7 @@ void GRAPH_OT_select_less(wmOperatorType *ot)
 	ot->poll = graphop_visible_keyframes_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER /*|OPTYPE_UNDO*/;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ******************** Select Left/Right Operator ************************* */
