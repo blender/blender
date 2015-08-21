@@ -127,7 +127,7 @@ typedef enum eDepsOperation_Type {
  * data-level checks...
  */
 typedef enum eDepsRelation_Type {
-	/* reationship type unknown/irrelevant */
+	/* relationship type unknown/irrelevant */
 	DEPSREL_TYPE_STANDARD = 0,
 
 	/* root -> active scene or entity (screen, image, etc.) */
