@@ -243,7 +243,85 @@ void BVHSpatialSplit::split(BVHBuild *builder, BVHRange& left, BVHRange& right, 
 	right = BVHRange(right_bounds, right_start, right_end - right_start);
 }
 
-void BVHSpatialSplit::split_reference(BVHBuild *builder, BVHReference& left, BVHReference& right, const BVHReference& ref, int dim, float pos)
+void BVHSpatialSplit::split_triangle_reference(const BVHReference& ref,
+                                               const Mesh *mesh,
+                                               int dim,
+                                               float pos,
+                                               BoundBox& left_bounds,
+                                               BoundBox& right_bounds)
+{
+	const int *inds = mesh->triangles[ref.prim_index()].v;
+	const float3 *verts = &mesh->verts[0];
+	const float3 *v1 = &verts[inds[2]];
+
+	for(int i = 0; i < 3; i++) {
+		const float3 *v0 = v1;
+		int vindex = inds[i];
+		v1 = &verts[vindex];
+		float v0p = (*v0)[dim];
+		float v1p = (*v1)[dim];
+
+		/* insert vertex to the boxes it belongs to. */
+		if(v0p <= pos)
+			left_bounds.grow(*v0);
+
+		if(v0p >= pos)
+			right_bounds.grow(*v0);
+
+		/* edge intersects the plane => insert intersection to both boxes. */
+		if((v0p < pos && v1p > pos) || (v0p > pos && v1p < pos)) {
+			float3 t = lerp(*v0, *v1, clamp((pos - v0p) / (v1p - v0p), 0.0f, 1.0f));
+			left_bounds.grow(t);
+			right_bounds.grow(t);
+		}
+	}
+}
+
+void BVHSpatialSplit::split_curve_reference(const BVHReference& ref,
+                                            const Mesh *mesh,
+                                            int dim,
+                                            float pos,
+                                            BoundBox& left_bounds,
+                                            BoundBox& right_bounds)
+{
+	/* curve split: NOTE - Currently ignores curve width and needs to be fixed.*/
+	const int k0 = mesh->curves[ref.prim_index()].first_key + PRIMITIVE_UNPACK_SEGMENT(ref.prim_type());
+	const int k1 = k0 + 1;
+	const float4 key0 = mesh->curve_keys[k0];
+	const float4 key1 = mesh->curve_keys[k1];
+	const float3 v0 = float4_to_float3(key0);
+	const float3 v1 = float4_to_float3(key1);
+
+	float v0p = v0[dim];
+	float v1p = v1[dim];
+
+	/* insert vertex to the boxes it belongs to. */
+	if(v0p <= pos)
+		left_bounds.grow(v0);
+
+	if(v0p >= pos)
+		right_bounds.grow(v0);
+
+	if(v1p <= pos)
+		left_bounds.grow(v1);
+
+	if(v1p >= pos)
+		right_bounds.grow(v1);
+
+	/* edge intersects the plane => insert intersection to both boxes. */
+	if((v0p < pos && v1p > pos) || (v0p > pos && v1p < pos)) {
+		float3 t = lerp(v0, v1, clamp((pos - v0p) / (v1p - v0p), 0.0f, 1.0f));
+		left_bounds.grow(t);
+		right_bounds.grow(t);
+	}
+}
+
+void BVHSpatialSplit::split_reference(BVHBuild *builder,
+                                      BVHReference& left,
+                                      BVHReference& right,
+                                      const BVHReference& ref,
+                                      int dim,
+                                      float pos)
 {
 	/* initialize boundboxes */
 	BoundBox left_bounds = BoundBox::empty;
@@ -254,63 +332,23 @@ void BVHSpatialSplit::split_reference(BVHBuild *builder, BVHReference& left, BVH
 	const Mesh *mesh = ob->mesh;
 
 	if(ref.prim_type() & PRIMITIVE_ALL_TRIANGLE) {
-		const int *inds = mesh->triangles[ref.prim_index()].v;
-		const float3 *verts = &mesh->verts[0];
-		const float3* v1 = &verts[inds[2]];
-
-		for(int i = 0; i < 3; i++) {
-			const float3* v0 = v1;
-			int vindex = inds[i];
-			v1 = &verts[vindex];
-			float v0p = (*v0)[dim];
-			float v1p = (*v1)[dim];
-
-			/* insert vertex to the boxes it belongs to. */
-			if(v0p <= pos)
-				left_bounds.grow(*v0);
-
-			if(v0p >= pos)
-				right_bounds.grow(*v0);
-
-			/* edge intersects the plane => insert intersection to both boxes. */
-			if((v0p < pos && v1p > pos) || (v0p > pos && v1p < pos)) {
-				float3 t = lerp(*v0, *v1, clamp((pos - v0p) / (v1p - v0p), 0.0f, 1.0f));
-				left_bounds.grow(t);
-				right_bounds.grow(t);
-			}
-		}
+		split_triangle_reference(ref,
+		                         mesh,
+		                         dim,
+		                         pos,
+		                         left_bounds,
+		                         right_bounds);
+	}
+	else if(ref.prim_type() & PRIMITIVE_ALL_CURVE) {
+		split_curve_reference(ref,
+		                      mesh,
+		                      dim,
+		                      pos,
+		                      left_bounds,
+		                      right_bounds);
 	}
 	else {
-		/* curve split: NOTE - Currently ignores curve width and needs to be fixed.*/
-		const int k0 = mesh->curves[ref.prim_index()].first_key + PRIMITIVE_UNPACK_SEGMENT(ref.prim_type());
-		const int k1 = k0 + 1;
-		const float4 key0 = mesh->curve_keys[k0];
-		const float4 key1 = mesh->curve_keys[k1];
-		const float3 v0 = float4_to_float3(key0);
-		const float3 v1 = float4_to_float3(key1);
-
-		float v0p = v0[dim];
-		float v1p = v1[dim];
-
-		/* insert vertex to the boxes it belongs to. */
-		if(v0p <= pos)
-			left_bounds.grow(v0);
-
-		if(v0p >= pos)
-			right_bounds.grow(v0);
-
-		if(v1p <= pos)
-			left_bounds.grow(v1);
-
-		if(v1p >= pos)
-			right_bounds.grow(v1);
-
-		/* edge intersects the plane => insert intersection to both boxes. */
-		if((v0p < pos && v1p > pos) || (v0p > pos && v1p < pos)) {
-			float3 t = lerp(v0, v1, clamp((pos - v0p) / (v1p - v0p), 0.0f, 1.0f));
-			left_bounds.grow(t);
-			right_bounds.grow(t);
-		}
+		assert(!"Unknown primitive type in BVH reference split.");
 	}
 
 	/* intersect with original bounds. */

@@ -55,7 +55,26 @@ public:
 	BVHSpatialSplit(BVHBuild *builder, const BVHRange& range, float nodeSAH);
 
 	void split(BVHBuild *builder, BVHRange& left, BVHRange& right, const BVHRange& range);
-	void split_reference(BVHBuild *builder, BVHReference& left, BVHReference& right, const BVHReference& ref, int dim, float pos);
+	void split_reference(BVHBuild *builder,
+	                     BVHReference& left,
+	                     BVHReference& right,
+	                     const BVHReference& ref,
+	                     int dim,
+	                     float pos);
+
+protected:
+	void split_triangle_reference(const BVHReference& ref,
+	                              const Mesh *mesh,
+	                              int dim,
+	                              float pos,
+	                              BoundBox& left_bounds,
+	                              BoundBox& right_bounds);
+	void split_curve_reference(const BVHReference& ref,
+	                           const Mesh *mesh,
+	                           int dim,
+	                           float pos,
+	                           BoundBox& left_bounds,
+	                           BoundBox& right_bounds);
 };
 
 /* Mixed Object-Spatial Split */
