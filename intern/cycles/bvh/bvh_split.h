@@ -63,6 +63,20 @@ public:
 	                     float pos);
 
 protected:
+	void split_triangle_primitive(const Mesh *mesh,
+	                              int prim_index,
+	                              int dim,
+	                              float pos,
+	                              BoundBox& left_bounds,
+	                              BoundBox& right_bounds);
+	void split_curve_primitive(const Mesh *mesh,
+	                           int prim_index,
+	                           int segment_index,
+	                           int dim,
+	                           float pos,
+	                           BoundBox& left_bounds,
+	                           BoundBox& right_bounds);
+
 	void split_triangle_reference(const BVHReference& ref,
 	                              const Mesh *mesh,
 	                              int dim,

@@ -243,14 +243,14 @@ void BVHSpatialSplit::split(BVHBuild *builder, BVHRange& left, BVHRange& right, 
 	right = BVHRange(right_bounds, right_start, right_end - right_start);
 }
 
-void BVHSpatialSplit::split_triangle_reference(const BVHReference& ref,
-                                               const Mesh *mesh,
+void BVHSpatialSplit::split_triangle_primitive(const Mesh *mesh,
+                                               int prim_index,
                                                int dim,
                                                float pos,
                                                BoundBox& left_bounds,
                                                BoundBox& right_bounds)
 {
-	const int *inds = mesh->triangles[ref.prim_index()].v;
+	const int *inds = mesh->triangles[prim_index].v;
 	const float3 *verts = &mesh->verts[0];
 	const float3 *v1 = &verts[inds[2]];
 
@@ -277,15 +277,16 @@ void BVHSpatialSplit::split_triangle_reference(const BVHReference& ref,
 	}
 }
 
-void BVHSpatialSplit::split_curve_reference(const BVHReference& ref,
-                                            const Mesh *mesh,
+void BVHSpatialSplit::split_curve_primitive(const Mesh *mesh,
+                                            int prim_index,
+                                            int segment_index,
                                             int dim,
                                             float pos,
                                             BoundBox& left_bounds,
                                             BoundBox& right_bounds)
 {
 	/* curve split: NOTE - Currently ignores curve width and needs to be fixed.*/
-	const int k0 = mesh->curves[ref.prim_index()].first_key + PRIMITIVE_UNPACK_SEGMENT(ref.prim_type());
+	const int k0 = mesh->curves[prim_index].first_key + segment_index;
 	const int k1 = k0 + 1;
 	const float4 key0 = mesh->curve_keys[k0];
 	const float4 key1 = mesh->curve_keys[k1];
@@ -314,6 +315,37 @@ void BVHSpatialSplit::split_curve_reference(const BVHReference& ref,
 		left_bounds.grow(t);
 		right_bounds.grow(t);
 	}
+}
+
+void BVHSpatialSplit::split_triangle_reference(const BVHReference& ref,
+                                               const Mesh *mesh,
+                                               int dim,
+                                               float pos,
+                                               BoundBox& left_bounds,
+                                               BoundBox& right_bounds)
+{
+	split_triangle_primitive(mesh,
+	                         ref.prim_index(),
+	                         dim,
+	                         pos,
+	                         left_bounds,
+	                         right_bounds);
+}
+
+void BVHSpatialSplit::split_curve_reference(const BVHReference& ref,
+                                            const Mesh *mesh,
+                                            int dim,
+                                            float pos,
+                                            BoundBox& left_bounds,
+                                            BoundBox& right_bounds)
+{
+	split_curve_primitive(mesh,
+	                      ref.prim_index(),
+	                      PRIMITIVE_UNPACK_SEGMENT(ref.prim_type()),
+	                      dim,
+	                      pos,
+	                      left_bounds,
+	                      right_bounds);
 }
 
 void BVHSpatialSplit::split_reference(BVHBuild *builder,
