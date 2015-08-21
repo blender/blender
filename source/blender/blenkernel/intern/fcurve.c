@@ -332,10 +332,23 @@ FCurve *rna_get_fcurve_context_ui(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 	
 	if (action) *action = NULL;
 	
+	/* Special case for NLA Control Curves... */
+	if (ptr->type == &RNA_NlaStrip) {
+		NlaStrip *strip = (NlaStrip *)ptr->data;
+		
+		/* Set the special flag, since it cannot be a normal action/driver
+		 * if we've been told to start looking here...
+		 */
+		*r_special = true;
+		
+		/* The F-Curve either exists or it doesn't here... */
+		fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), rnaindex);
+		return fcu;
+	}
+	
 	/* there must be some RNA-pointer + property combon */
 	if (prop && tptr.id.data && RNA_property_animateable(&tptr, prop)) {
 		AnimData *adt = BKE_animdata_from_id(tptr.id.data);
-		AnimData *adt_initial = adt;
 		int step = C ? 2 : 1;  /* Always 1 in case we have no context (can't check in 'ancestors' of given RNA ptr). */
 		char *path = NULL;
 		
@@ -345,6 +358,7 @@ FCurve *rna_get_fcurve_context_ui(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 			step--;
 		}
 		
+		/* Standard F-Curve - Animation (Action) or Drivers */
 		while (adt && step--) {
 			if ((adt->action && adt->action->curves.first) || (adt->drivers.first)) {
 				/* XXX this function call can become a performance bottleneck */
@@ -386,36 +400,6 @@ FCurve *rna_get_fcurve_context_ui(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 						}
 						else {
 							adt = NULL;
-						}
-					}
-				}
-			}
-			
-			/* if we still haven't found anything, check whether it's a "special" property */
-			/* NOTE: Need to go back to the original AnimData (vs one further up the chain,
-			 *       that we'd get after the loop above failed), or else this check will not 
-			 *       work for Materials
-			 */
-			if ((fcu == NULL) && (adt_initial && adt_initial->nla_tracks.first)) {
-				NlaTrack *nlt;
-				const char *propname = RNA_property_identifier(prop);
-				
-				for (nlt = adt_initial->nla_tracks.first; nlt; nlt = nlt->next) {
-					NlaStrip *strip;
-					
-					if (fcu)
-						break;
-					
-					/* FIXME: need to do recursive search here for correctness, 
-					 * but this will do for most use cases (i.e. interactive editing),
-					 * where nested strips can't be easily edited
-					 */
-					for (strip = nlt->strips.first; strip; strip = strip->next) {
-						fcu = list_find_fcurve(&strip->fcurves, propname, rnaindex);
-						
-						if (fcu) {
-							*r_special = true;
-							break;
 						}
 					}
 				}
