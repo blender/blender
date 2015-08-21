@@ -328,6 +328,7 @@ enum {
 	FILTER_ID_TXT       = (1 << 24),
 	FILTER_ID_VF        = (1 << 25),
 	FILTER_ID_WO        = (1 << 26),
+	FILTER_ID_PA        = (1 << 27),
 };
 
 #ifdef __cplusplus
