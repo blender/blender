@@ -139,6 +139,10 @@ typedef struct BVHRayCastData {
 
 	BVHTreeRay ray;
 
+#ifdef USE_KDOPBVH_WATERTIGHT
+	struct IsectRayPrecalc isect_precalc;
+#endif
+
 	/* initialized by bvhtree_ray_cast_data_precalc */
 	float ray_dot_axis[13];
 	float idot_axis[13];
@@ -1626,7 +1630,7 @@ static void iterative_raycast(BVHRayCastData *data, BVHNode *node)
 }
 #endif
 
-static void bvhtree_ray_cast_data_precalc(BVHRayCastData *data)
+static void bvhtree_ray_cast_data_precalc(BVHRayCastData *data, int flag)
 {
 	int i;
 
@@ -1642,10 +1646,24 @@ static void bvhtree_ray_cast_data_precalc(BVHRayCastData *data)
 		data->index[2 * i]   += 2 * i;
 		data->index[2 * i + 1] += 2 * i;
 	}
+
+#ifdef USE_KDOPBVH_WATERTIGHT
+	if (flag & BVH_RAYCAST_WATERTIGHT) {
+		isect_ray_tri_watertight_v3_precalc(&data->isect_precalc, data->ray.direction);
+		data->ray.isect_precalc = &data->isect_precalc;
+	}
+	else {
+		data->ray.isect_precalc = NULL;
+	}
+#else
+	UNUSED_VARS(flag);
+#endif
 }
 
-int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], float radius, BVHTreeRayHit *hit,
-                         BVHTree_RayCastCallback callback, void *userdata)
+int BLI_bvhtree_ray_cast_ex(
+        BVHTree *tree, const float co[3], const float dir[3], float radius, BVHTreeRayHit *hit,
+        BVHTree_RayCastCallback callback, void *userdata,
+        int flag)
 {
 	BVHRayCastData data;
 	BVHNode *root = tree->nodes[tree->totleaf];
@@ -1661,10 +1679,11 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], f
 	copy_v3_v3(data.ray.direction, dir);
 	data.ray.radius = radius;
 
-	bvhtree_ray_cast_data_precalc(&data);
+	bvhtree_ray_cast_data_precalc(&data, flag);
 
-	if (hit)
+	if (hit) {
 		memcpy(&data.hit, hit, sizeof(*hit));
+	}
 	else {
 		data.hit.index = -1;
 		data.hit.dist = FLT_MAX;
@@ -1680,6 +1699,13 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], f
 		memcpy(hit, &data.hit, sizeof(*hit));
 
 	return data.hit.index;
+}
+
+int BLI_bvhtree_ray_cast(
+        BVHTree *tree, const float co[3], const float dir[3], float radius, BVHTreeRayHit *hit,
+        BVHTree_RayCastCallback callback, void *userdata)
+{
+	return BLI_bvhtree_ray_cast_ex(tree, co, dir, radius, hit, callback, userdata, BVH_RAYCAST_DEFAULT);
 }
 
 float BLI_bvhtree_bb_raycast(const float bv[6], const float light_start[3], const float light_end[3], float pos[3])
@@ -1707,8 +1733,13 @@ float BLI_bvhtree_bb_raycast(const float bv[6], const float light_start[3], cons
 	
 }
 
-int BLI_bvhtree_ray_cast_all(BVHTree *tree, const float co[3], const float dir[3], float radius,
-                             BVHTree_RayCastCallback callback, void *userdata)
+/**
+ * Calls the callback for every ray intersection
+ */
+int BLI_bvhtree_ray_cast_all_ex(
+        BVHTree *tree, const float co[3], const float dir[3], float radius,
+        BVHTree_RayCastCallback callback, void *userdata,
+        int flag)
 {
 	BVHRayCastData data;
 	BVHNode *root = tree->nodes[tree->totleaf];
@@ -1724,7 +1755,7 @@ int BLI_bvhtree_ray_cast_all(BVHTree *tree, const float co[3], const float dir[3
 	copy_v3_v3(data.ray.direction, dir);
 	data.ray.radius = radius;
 
-	bvhtree_ray_cast_data_precalc(&data);
+	bvhtree_ray_cast_data_precalc(&data, flag);
 
 	data.hit.index = -1;
 	data.hit.dist = FLT_MAX;
@@ -1734,6 +1765,13 @@ int BLI_bvhtree_ray_cast_all(BVHTree *tree, const float co[3], const float dir[3
 	}
 
 	return data.hit.index;
+}
+
+int BLI_bvhtree_ray_cast_all(
+        BVHTree *tree, const float co[3], const float dir[3], float radius,
+        BVHTree_RayCastCallback callback, void *userdata)
+{
+	return BLI_bvhtree_ray_cast_all_ex(tree, co, dir, radius, callback, userdata, BVH_RAYCAST_DEFAULT);
 }
 
 /**

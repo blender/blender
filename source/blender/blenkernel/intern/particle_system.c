@@ -2586,6 +2586,7 @@ void BKE_psys_collision_neartest_cb(void *userdata, int index, const BVHTreeRay 
 }
 static int collision_detect(ParticleData *pa, ParticleCollision *col, BVHTreeRayHit *hit, ListBase *colliders)
 {
+	const int raycast_flag = BVH_RAYCAST_DEFAULT & ~(BVH_RAYCAST_WATERTIGHT);
 	ColliderCache *coll;
 	float ray_dir[3];
 
@@ -2616,8 +2617,11 @@ static int collision_detect(ParticleData *pa, ParticleCollision *col, BVHTreeRay
 		col->fac1 = (col->old_cfra - coll->collmd->time_x) / (coll->collmd->time_xnew - coll->collmd->time_x);
 		col->fac2 = (col->cfra - coll->collmd->time_x) / (coll->collmd->time_xnew - coll->collmd->time_x);
 
-		if (col->md && col->md->bvhtree)
-			BLI_bvhtree_ray_cast(col->md->bvhtree, col->co1, ray_dir, col->radius, hit, BKE_psys_collision_neartest_cb, col);
+		if (col->md && col->md->bvhtree) {
+			BLI_bvhtree_ray_cast_ex(
+			        col->md->bvhtree, col->co1, ray_dir, col->radius, hit,
+			        BKE_psys_collision_neartest_cb, col, raycast_flag);
+		}
 	}
 
 	return hit->index >= 0;

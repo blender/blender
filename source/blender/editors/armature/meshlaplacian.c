@@ -379,27 +379,32 @@ typedef struct BVHCallbackUserData {
 	LaplacianSystem *sys;
 } BVHCallbackUserData;
 
-static void bvh_callback(void *userdata, int index, const BVHTreeRay *UNUSED(ray), BVHTreeRayHit *hit)
+static void bvh_callback(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
 	BVHCallbackUserData *data = (struct BVHCallbackUserData *)userdata;
 	const MLoopTri *lt = &data->sys->heat.mlooptri[index];
 	const MLoop *mloop = data->sys->heat.mloop;
 	float (*verts)[3] = data->sys->heat.verts;
 	const float *vtri_co[3];
-	float lambda, dir[3];
+	float dist_test;
 
-	mul_v3_v3fl(dir, data->vec, hit->dist);
 	vtri_co[0] = verts[mloop[lt->tri[0]].v];
 	vtri_co[1] = verts[mloop[lt->tri[1]].v];
 	vtri_co[2] = verts[mloop[lt->tri[2]].v];
 
-	if (isect_ray_tri_v3(data->start, dir, UNPACK3(vtri_co), &lambda, NULL)) {
-		if (lambda < 1.0f) {
+#ifdef USE_KDOPBVH_WATERTIGHT
+	if (isect_ray_tri_watertight_v3(data->start, ray->isect_precalc, UNPACK3(vtri_co), &dist_test, NULL))
+#else
+	UNUSED_VARS(ray);
+	if (isect_ray_tri_v3(data->start, data->vec, UNPACK3(vtri_co), &dist_test, NULL))
+#endif
+	{
+		if (dist_test < hit->dist) {
 			float n[3];
 			normal_tri_v3(n, UNPACK3(vtri_co));
 			if (dot_v3v3(n, data->vec) < -1e-5f) {
 				hit->index = index;
-				hit->dist *= lambda;
+				hit->dist = dist_test;
 			}
 		}
 	}

@@ -391,6 +391,7 @@ static void eff_tri_ray_hit(void *UNUSED(userData), int UNUSED(index), const BVH
 // get visibility of a wind ray
 static float eff_calc_visibility(ListBase *colliders, EffectorCache *eff, EffectorData *efd, EffectedPoint *point)
 {
+	const int raycast_flag = BVH_RAYCAST_DEFAULT & ~(BVH_RAYCAST_WATERTIGHT);
 	ListBase *colls = colliders;
 	ColliderCache *col;
 	float norm[3], len = 0.0;
@@ -422,7 +423,10 @@ static float eff_calc_visibility(ListBase *colliders, EffectorCache *eff, Effect
 			hit.dist = len + FLT_EPSILON;
 
 			/* check if the way is blocked */
-			if (BLI_bvhtree_ray_cast(collmd->bvhtree, point->loc, norm, 0.0f, &hit, eff_tri_ray_hit, NULL)>=0) {
+			if (BLI_bvhtree_ray_cast_ex(
+			        collmd->bvhtree, point->loc, norm, 0.0f, &hit,
+			        eff_tri_ray_hit, NULL, raycast_flag) != -1)
+			{
 				absorption= col->ob->pd->absorption;
 
 				/* visibility is only between 0 and 1, calculated from 1-absorption */

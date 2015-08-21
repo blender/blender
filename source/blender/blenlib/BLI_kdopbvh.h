@@ -41,6 +41,7 @@ extern "C" {
 
 struct BVHTree;
 typedef struct BVHTree BVHTree;
+#define USE_KDOPBVH_WATERTIGHT
 
 typedef struct BVHTreeOverlap {
 	int indexA;
@@ -59,6 +60,9 @@ typedef struct BVHTreeRay {
 	float origin[3];    /* ray origin */
 	float direction[3]; /* ray direction */
 	float radius;       /* radius around ray */
+#ifdef USE_KDOPBVH_WATERTIGHT
+	struct IsectRayPrecalc *isect_precalc;
+#endif
 } BVHTreeRay;
 
 typedef struct BVHTreeRayHit {
@@ -67,6 +71,12 @@ typedef struct BVHTreeRayHit {
 	float no[3];        /* normal on hit point */
 	float dist;         /* distance to the hit point */
 } BVHTreeRayHit;
+
+enum {
+	/* calculate IsectRayPrecalc data */
+	BVH_RAYCAST_WATERTIGHT		= (1 << 0),
+};
+#define BVH_RAYCAST_DEFAULT (BVH_RAYCAST_WATERTIGHT)
 
 /* callback must update nearest in case it finds a nearest result */
 typedef void (*BVHTree_NearestPointCallback)(void *userdata, int index, const float co[3], BVHTreeNearest *nearest);
@@ -105,12 +115,21 @@ float BLI_bvhtree_getepsilon(const BVHTree *tree);
 int BLI_bvhtree_find_nearest(BVHTree *tree, const float co[3], BVHTreeNearest *nearest,
                              BVHTree_NearestPointCallback callback, void *userdata);
 
-int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], float radius, BVHTreeRayHit *hit,
-                         BVHTree_RayCastCallback callback, void *userdata);
+int BLI_bvhtree_ray_cast_ex(
+        BVHTree *tree, const float co[3], const float dir[3], float radius, BVHTreeRayHit *hit,
+        BVHTree_RayCastCallback callback, void *userdata,
+        int flag);
+int BLI_bvhtree_ray_cast(
+        BVHTree *tree, const float co[3], const float dir[3], float radius, BVHTreeRayHit *hit,
+        BVHTree_RayCastCallback callback, void *userdata);
 
-/* Calls the callback for every ray intersection */
-int BLI_bvhtree_ray_cast_all(BVHTree *tree, const float co[3], const float dir[3], float radius,
-                             BVHTree_RayCastCallback callback, void *userdata);
+int BLI_bvhtree_ray_cast_all_ex(
+        BVHTree *tree, const float co[3], const float dir[3], float radius,
+        BVHTree_RayCastCallback callback, void *userdata,
+        int flag);
+int BLI_bvhtree_ray_cast_all(
+        BVHTree *tree, const float co[3], const float dir[3], float radius,
+        BVHTree_RayCastCallback callback, void *userdata);
 
 float BLI_bvhtree_bb_raycast(const float bv[6], const float light_start[3], const float light_end[3], float pos[3]);
 

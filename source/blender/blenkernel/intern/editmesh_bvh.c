@@ -278,8 +278,13 @@ static void bmbvh_ray_cast_cb(void *userdata, int index, const BVHTreeRay *ray, 
 	isect = (ray->radius > 0.0f ?
 	         isect_ray_tri_epsilon_v3(ray->origin, ray->direction,
 	                                  tri_cos[0], tri_cos[1], tri_cos[2], &dist, uv, ray->radius) :
+#ifdef USE_KDOPBVH_WATERTIGHT
+	         isect_ray_tri_watertight_v3(ray->origin, ray->isect_precalc,
+	                                     tri_cos[0], tri_cos[1], tri_cos[2], &dist, uv));
+#else
 	         isect_ray_tri_v3(ray->origin, ray->direction,
 	                          tri_cos[0], tri_cos[1], tri_cos[2], &dist, uv));
+#endif
 
 	if (isect && dist < hit->dist) {
 		hit->dist = dist;

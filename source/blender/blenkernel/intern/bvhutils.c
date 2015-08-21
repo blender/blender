@@ -60,8 +60,14 @@ float bvhtree_ray_tri_intersection(
 {
 	float dist;
 
+#ifdef USE_KDOPBVH_WATERTIGHT
+	if (isect_ray_tri_watertight_v3(ray->origin, ray->isect_precalc, v0, v1, v2, &dist, NULL))
+#else
 	if (isect_ray_tri_epsilon_v3(ray->origin, ray->direction, v0, v1, v2, &dist, NULL, FLT_EPSILON))
+#endif
+	{
 		return dist;
+	}
 
 	return FLT_MAX;
 }
