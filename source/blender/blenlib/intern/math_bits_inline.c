@@ -56,4 +56,37 @@ MINLINE int count_bits_i(unsigned int i)
 }
 #endif
 
+MINLINE int float_as_int(float f)
+{
+	union { int i; float f; } u;
+	u.f = f;
+	return u.i;
+}
+
+MINLINE unsigned int float_as_uint(float f)
+{
+	union { unsigned int i; float f; } u;
+	u.f = f;
+	return u.i;
+}
+
+MINLINE float int_as_float(int i)
+{
+	union { int i; float f; } u;
+	u.i = i;
+	return u.f;
+}
+
+MINLINE float uint_as_float(unsigned int i)
+{
+	union { unsigned int i; float f; } u;
+	u.i = i;
+	return u.f;
+}
+
+MINLINE float xor_fl(float x, int y)
+{
+	return int_as_float(float_as_int(x) ^ y);
+}
+
 #endif /* __MATH_BITS_INLINE_C__ */

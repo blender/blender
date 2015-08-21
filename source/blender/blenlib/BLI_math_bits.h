@@ -40,6 +40,12 @@ MINLINE unsigned short highest_order_bit_s(unsigned short n);
 MINLINE int count_bits_i(unsigned int n);
 #endif
 
+MINLINE int float_as_int(float f);
+MINLINE unsigned int float_as_uint(float f);
+MINLINE float int_as_float(int i);
+MINLINE float uint_as_float(unsigned int i);
+MINLINE float xor_fl(float x, int y);
+
 #if BLI_MATH_DO_INLINE
 #include "intern/math_bits_inline.c"
 #endif
