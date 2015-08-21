@@ -203,6 +203,27 @@ bool isect_tri_tri_epsilon_v3(
         float r_i1[3], float r_i2[3],
         const float epsilon);
 
+/* water-tight raycast (requires pre-calculation) */
+struct IsectRayPrecalc {
+	/* Maximal dimension kz, and orthogonal dimensions. */
+	int kx, ky, kz;
+
+	/* Shear constants. */
+	float sx, sy, sz;
+};
+
+void isect_ray_tri_watertight_v3_precalc(
+        struct IsectRayPrecalc *isect_precalc, const float dir[3]);
+bool isect_ray_tri_watertight_v3(
+        const float P[3], const struct IsectRayPrecalc *isect_precalc,
+        const float v0[3], const float v1[3], const float v2[3],
+        float *r_dist, float r_uv[2]);
+/* slower version which calculates IsectRayPrecalc each time */
+bool isect_ray_tri_watertight_v3_simple(
+        const float P[3], const float dir[3],
+        const float v0[3], const float v1[3], const float v2[3],
+        float *r_lambda, float r_uv[2]);
+
 /* point in polygon */
 bool isect_point_poly_v2(const float pt[2], const float verts[][2], const unsigned int nr, const bool use_holes);
 bool isect_point_poly_v2_int(const int pt[2], const int verts[][2], const unsigned int nr, const bool use_holes);

@@ -30,6 +30,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_math_bits.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_strict_flags.h"
@@ -1351,6 +1352,121 @@ bool isect_ray_tri_epsilon_v3(
 	}
 
 	return true;
+}
+
+void isect_ray_tri_watertight_v3_precalc(struct IsectRayPrecalc *isect_precalc, const float dir[3])
+{
+	float inv_dir_z;
+
+	/* Calculate dimension where the ray direction is maximal. */
+	int kz = axis_dominant_v3_single(dir);
+	int kx = (kz != 2) ? (kz + 1) : 0;
+	int ky = (kx != 2) ? (kx + 1) : 0;
+
+	/* Swap kx and ky dimensions to preserve winding direction of triangles. */
+	if (dir[kz] < 0.0f) {
+		SWAP(int, kx, ky);
+	}
+
+	/* Calculate the shear constants. */
+	inv_dir_z = 1.0f / dir[kz];
+	isect_precalc->sx = dir[kx] * inv_dir_z;
+	isect_precalc->sy = dir[ky] * inv_dir_z;
+	isect_precalc->sz = inv_dir_z;
+
+	/* Store the dimensions. */
+	isect_precalc->kx = kx;
+	isect_precalc->ky = ky;
+	isect_precalc->kz = kz;
+}
+
+bool isect_ray_tri_watertight_v3(
+        const float p[3], const struct IsectRayPrecalc *isect_precalc,
+        const float v0[3], const float v1[3], const float v2[3],
+        float *r_lambda, float r_uv[2])
+{
+	const int kx = isect_precalc->kx;
+	const int ky = isect_precalc->ky;
+	const int kz = isect_precalc->kz;
+	const float sx = isect_precalc->sx;
+	const float sy = isect_precalc->sy;
+	const float sz = isect_precalc->sz;
+
+	/* Calculate vertices relative to ray origin. */
+	const float a[3] = {v0[0] - p[0], v0[1] - p[1], v0[2] - p[2]};
+	const float b[3] = {v1[0] - p[0], v1[1] - p[1], v1[2] - p[2]};
+	const float c[3] = {v2[0] - p[0], v2[1] - p[1], v2[2] - p[2]};
+
+	const float a_kx = a[kx], a_ky = a[ky], a_kz = a[kz];
+	const float b_kx = b[kx], b_ky = b[ky], b_kz = b[kz];
+	const float c_kx = c[kx], c_ky = c[ky], c_kz = c[kz];
+
+	/* Perform shear and scale of vertices. */
+	const float ax = a_kx - sx * a_kz;
+	const float ay = a_ky - sy * a_kz;
+	const float bx = b_kx - sx * b_kz;
+	const float by = b_ky - sy * b_kz;
+	const float cx = c_kx - sx * c_kz;
+	const float cy = c_ky - sy * c_kz;
+
+	/* Calculate scaled barycentric coordinates. */
+	float u = cx * by - cy * bx;
+	int sign_mask = (float_as_int(u) & (int)0x80000000);
+	float v = ax * cy - ay * cx;
+	float w, det;
+
+	if (sign_mask != (float_as_int(v) & (int)0x80000000)) {
+		return false;
+	}
+	w = bx * ay - by * ax;
+	if (sign_mask != (float_as_int(w) & (int)0x80000000)) {
+		return false;
+	}
+
+	/* Calculate determinant. */
+	det = u + v + w;
+	if (UNLIKELY(det == 0.0f)) {
+		return false;
+	}
+	else {
+		/* Calculate scaled z-coordinates of vertices and use them to calculate
+		 * the hit distance.
+		 */
+		const float t = (u * a_kz + v * b_kz + w * c_kz) * sz;
+		const float sign_t = xor_fl(t, sign_mask);
+		if ((sign_t < 0.0f)
+		    /* differ from Cycles, don't read r_lambda's original value
+		     * otherwise we won't match any of the other intersect functions here...
+		     * which would be confusing */
+#if 0
+		    ||
+		    (sign_T > *r_lambda * xor_signmask(det, sign_mask))
+#endif
+		    )
+		{
+			return false;
+		}
+		else {
+			/* Normalize u, v and t. */
+			const float inv_det = 1.0f / det;
+			if (r_uv) {
+				r_uv[0] = u * inv_det;
+				r_uv[1] = v * inv_det;
+			}
+			*r_lambda = t * inv_det;
+			return true;
+		}
+	}
+}
+
+bool isect_ray_tri_watertight_v3_simple(
+        const float P[3], const float dir[3],
+        const float v0[3], const float v1[3], const float v2[3],
+        float *r_lambda, float r_uv[2])
+{
+	struct IsectRayPrecalc isect_precalc;
+	isect_ray_tri_watertight_v3_precalc(&isect_precalc, dir);
+	return isect_ray_tri_watertight_v3(P, &isect_precalc, v0, v1, v2, r_lambda, r_uv);
 }
 
 #if 0  /* UNUSED */
