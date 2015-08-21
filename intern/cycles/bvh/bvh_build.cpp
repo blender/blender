@@ -276,6 +276,8 @@ BVHNode* BVHBuild::run()
 		else if(!params.use_spatial_split) {
 			/*rotate(rootnode, 4, 5);*/
 			rootnode->update_visibility();
+		}
+		if(rootnode != NULL) {
 			VLOG(1) << "BVH build statistics:\n"
 			        << "  Build time: " << time_dt() - build_start_time << "\n"
 			        << "  Total number of nodes: "
