@@ -214,7 +214,7 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 		mul_v3_fl(ray_dir, acbr->look_ahead);
 		col.f = 0.0f;
 		hit.index = -1;
-		hit.dist = col.original_ray_length = len_v3(ray_dir);
+		hit.dist = col.original_ray_length = normalize_v3(ray_dir);
 
 		/* find out closest deflector object */
 		for (coll = bbd->sim->colliders->first; coll; coll=coll->next) {
@@ -794,7 +794,7 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float grou
 		sub_v3_v3v3(ray_dir, col.co2, col.co1);
 		col.f = 0.0f;
 		hit.index = -1;
-		hit.dist = col.original_ray_length = len_v3(ray_dir);
+		hit.dist = col.original_ray_length = normalize_v3(ray_dir);
 		col.pce.inside = 0;
 
 		for (coll = bbd->sim->colliders->first; coll; coll = coll->next) {
@@ -820,7 +820,7 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float grou
 		sub_v3_v3v3(ray_dir, col.co2, col.co1);
 		col.f = 0.0f;
 		hit.index = -1;
-		hit.dist = col.original_ray_length = len_v3(ray_dir);
+		hit.dist = col.original_ray_length = normalize_v3(ray_dir);
 
 		for (coll = bbd->sim->colliders->first; coll; coll = coll->next) {
 			col.current = coll->ob;

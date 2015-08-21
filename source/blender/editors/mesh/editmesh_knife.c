@@ -1809,13 +1809,14 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd, float co[3], float
 	float dist = KMAXDIST;
 	float origin[3];
 	float origin_ofs[3];
-	float ray[3];
+	float ray[3], ray_normal[3];
 
 	/* unproject to find view ray */
 	knife_input_ray_segment(kcd, kcd->curr.mval, 1.0f, origin, origin_ofs);
 	sub_v3_v3v3(ray, origin_ofs, origin);
+	normalize_v3_v3(ray_normal, ray);
 
-	f = BKE_bmbvh_ray_cast(kcd->bmbvh, origin, ray, 0.0f, NULL, co, cageco);
+	f = BKE_bmbvh_ray_cast(kcd->bmbvh, origin, ray_normal, 0.0f, NULL, co, cageco);
 
 	if (f && kcd->only_select && BM_elem_flag_test(f, BM_ELEM_SELECT) == 0) {
 		f = NULL;

@@ -1119,6 +1119,7 @@ typedef struct MeshDeformBind {
 typedef struct MeshDeformIsect {
 	float start[3];
 	float vec[3];
+	float vec_length;
 	float lambda;
 
 	bool isect;
@@ -1225,7 +1226,7 @@ static void harmonic_ray_callback(void *userdata, int index, const BVHTreeRay *r
 		normal_tri_v3(no, UNPACK3(face));
 	}
 
-	dist = len_v3v3(ray->origin, co) / len_v3(isec->vec);
+	dist = len_v3v3(ray->origin, co) / isec->vec_length;
 	if (dist < hit->dist) {
 		hit->index = index;
 		hit->dist = dist;
@@ -1244,7 +1245,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, const 
 		mdb,
 		&isect_mdef,
 	};
-	float end[3];
+	float end[3], vec_normal[3];
 	// static float epsilon[3] = {1e-4, 1e-4, 1e-4};
 
 	/* happens binding when a cage has no faces */
@@ -1263,10 +1264,11 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, const 
 	copy_v3_v3(end, co2);
 #endif
 	sub_v3_v3v3(isect_mdef.vec, end, isect_mdef.start);
+	isect_mdef.vec_length = normalize_v3_v3(vec_normal, isect_mdef.vec);
 
 	hit.index = -1;
 	hit.dist = FLT_MAX;
-	if (BLI_bvhtree_ray_cast(mdb->bvhtree, isect_mdef.start, isect_mdef.vec,
+	if (BLI_bvhtree_ray_cast(mdb->bvhtree, isect_mdef.start, vec_normal,
 	                         0.0, &hit, harmonic_ray_callback, &data) != -1)
 	{
 		const MLoop *mloop = mdb->cagedm_cache.mloop;

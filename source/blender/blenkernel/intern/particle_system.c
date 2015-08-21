@@ -2594,7 +2594,7 @@ static int collision_detect(ParticleData *pa, ParticleCollision *col, BVHTreeRay
 
 	sub_v3_v3v3(ray_dir, col->co2, col->co1);
 	hit->index = -1;
-	hit->dist = col->original_ray_length = len_v3(ray_dir);
+	hit->dist = col->original_ray_length = normalize_v3(ray_dir);
 	col->pce.inside = 0;
 
 	/* even if particle is stationary we want to check for moving colliders */

@@ -3290,10 +3290,9 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 		if (brush->flags & MOD_DPAINT_PROX_PROJECT && brush->collision != MOD_DPAINT_COL_VOLUME) {
 			mul_v3_fl(avg_brushNor, 1.0f / (float)numOfVerts);
 			/* instead of null vector use positive z */
-			if (!(MIN3(avg_brushNor[0], avg_brushNor[1], avg_brushNor[2])))
+			if (UNLIKELY(normalize_v3(avg_brushNor) == 0.0f)) {
 				avg_brushNor[2] = 1.0f;
-			else
-				normalize_v3(avg_brushNor);
+			}
 		}
 
 		/* check bounding box collision */

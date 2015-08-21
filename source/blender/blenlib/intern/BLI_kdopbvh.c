@@ -1650,6 +1650,8 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], f
 	BVHRayCastData data;
 	BVHNode *root = tree->nodes[tree->totleaf];
 
+	BLI_ASSERT_UNIT_V3(dir);
+
 	data.tree = tree;
 
 	data.callback = callback;
@@ -1658,8 +1660,6 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], f
 	copy_v3_v3(data.ray.origin,    co);
 	copy_v3_v3(data.ray.direction, dir);
 	data.ray.radius = radius;
-
-	normalize_v3(data.ray.direction);
 
 	bvhtree_ray_cast_data_precalc(&data);
 
@@ -1713,6 +1713,8 @@ int BLI_bvhtree_ray_cast_all(BVHTree *tree, const float co[3], const float dir[3
 	BVHRayCastData data;
 	BVHNode *root = tree->nodes[tree->totleaf];
 
+	BLI_ASSERT_UNIT_V3(dir);
+
 	data.tree = tree;
 
 	data.callback = callback;
@@ -1721,8 +1723,6 @@ int BLI_bvhtree_ray_cast_all(BVHTree *tree, const float co[3], const float dir[3
 	copy_v3_v3(data.ray.origin,    co);
 	copy_v3_v3(data.ray.direction, dir);
 	data.ray.radius = radius;
-
-	normalize_v3(data.ray.direction);
 
 	bvhtree_ray_cast_data_precalc(&data);
 
