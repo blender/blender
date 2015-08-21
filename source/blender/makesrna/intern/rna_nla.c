@@ -107,6 +107,16 @@ static void rna_NlaStrip_transform_update(Main *UNUSED(bmain), Scene *UNUSED(sce
 	NlaStrip *strip = (NlaStrip *)ptr->data;
 
 	BKE_nlameta_flush_transforms(strip);
+
+	/* set the flag */
+	if ((strip->flag & NLASTRIP_FLAG_AUTO_BLENDS) && ptr->id.data) {
+		/* validate state to ensure that auto-blend gets applied immediately */
+		IdAdtTemplate *iat = (IdAdtTemplate *)ptr->id.data;
+
+		if (iat->adt) {
+			BKE_nla_validate_state(iat->adt);
+		}
+	}
 }
 
 static void rna_NlaStrip_start_frame_set(PointerRNA *ptr, float value)
@@ -546,7 +556,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_update(prop, 0, "rna_NlaStrip_transform_update");
-	
+
 	prop = RNA_def_property(srna, "frame_end", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "end");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_end_frame_set", NULL);
@@ -588,13 +598,13 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "actstart");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_action_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Action Start Frame", "First frame from action to use");
-	RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, NULL); /* this will do? */
+	RNA_def_property_update(prop, 0, "rna_NlaStrip_transform_update");
 	
 	prop = RNA_def_property(srna, "action_frame_end", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "actend");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_action_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Action End Frame", "Last frame from action to use");
-	RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, NULL); /* this will do? */
+	RNA_def_property_update(prop, 0, "rna_NlaStrip_transform_update");
 	
 	/* Action Reuse */
 	prop = RNA_def_property(srna, "repeat", PROP_FLOAT, PROP_NONE);
@@ -613,7 +623,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	 * due to numeric errors */
 	RNA_def_property_range(prop, 0.0001f, 1000.0f);
 	RNA_def_property_ui_text(prop, "Scale", "Scaling factor for action");
-	RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, NULL); /* this will do? */
+	RNA_def_property_update(prop, 0, "rna_NlaStrip_transform_update");
 	
 	/* Strip's F-Curves */
 	prop = RNA_def_property(srna, "fcurves", PROP_COLLECTION, PROP_NONE);
