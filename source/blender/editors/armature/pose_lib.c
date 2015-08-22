@@ -177,6 +177,15 @@ static int has_poselib_pose_data_poll(bContext *C)
 	return (ob && ob->poselib);
 }
 
+/* Poll callback for operators that require existing PoseLib data (with poses)
+ * as they need to do some editing work on those poses (i.e. not on lib-linked actions)
+ */
+static int has_poselib_pose_data_for_editing_poll(bContext *C)
+{
+	Object *ob = get_poselib_object(C);
+	return (ob && ob->poselib && !ob->poselib->id.lib);
+}
+
 /* ----------------------------------- */
 
 /* Initialize a new poselib (whether it is needed or not) */
@@ -357,13 +366,32 @@ void POSELIB_OT_action_sanitize(wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = poselib_sanitize_exec;
-	ot->poll = has_poselib_pose_data_poll;
+	ot->poll = has_poselib_pose_data_for_editing_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ------------------------------------------ */
+
+/* Poll callback for adding poses to a PoseLib */
+static int poselib_add_poll(bContext *C)
+{
+	/* There are 2 cases we need to be careful with:
+	 *  1) When this operator is invoked from a hotkey, there may be no PoseLib yet
+	 *  2) If a PoseLib already exists, we can't edit the action if it is a lib-linked
+	 *     actions, as data will be lost when saving the file
+	 */
+	if (ED_operator_posemode(C)) {
+		Object *ob = get_poselib_object(C);
+		if (ob) {
+			if ((ob->poselib == NULL) || (ob->poselib->id.lib == 0)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
 
 static void poselib_add_menu_invoke__replacemenu(bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
@@ -488,7 +516,7 @@ void POSELIB_OT_pose_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = poselib_add_menu_invoke;
 	ot->exec = poselib_add_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = poselib_add_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -604,7 +632,7 @@ void POSELIB_OT_pose_remove(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
 	ot->exec = poselib_remove_exec;
-	ot->poll = has_poselib_pose_data_poll;
+	ot->poll = has_poselib_pose_data_for_editing_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -692,7 +720,7 @@ void POSELIB_OT_pose_rename(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = poselib_rename_invoke;
 	ot->exec = poselib_rename_exec;
-	ot->poll = has_poselib_pose_data_poll;
+	ot->poll = has_poselib_pose_data_for_editing_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

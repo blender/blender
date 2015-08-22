@@ -186,7 +186,6 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
             # column of operators for active pose
             # - goes beside list
             col = row.column(align=True)
-            col.active = (poselib.library is None)
 
             # invoke should still be used for 'add', as it is needed to allow
             # add/replace options to be used properly

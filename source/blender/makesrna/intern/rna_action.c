@@ -650,13 +650,14 @@ static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "TimelineMarker");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_LIB_EXCEPTION);
 	RNA_def_property_pointer_funcs(prop, "rna_Action_active_pose_marker_get",
 	                               "rna_Action_active_pose_marker_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Pose Marker", "Active pose marker for this action");
 	
 	prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "active_marker");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	RNA_def_property_int_funcs(prop, "rna_Action_active_pose_marker_index_get",
 	                           "rna_Action_active_pose_marker_index_set", "rna_Action_active_pose_marker_index_range");
 	RNA_def_property_ui_text(prop, "Active Pose Marker Index", "Index of active pose marker");
@@ -688,6 +689,7 @@ static void rna_def_action(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "pose_markers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "markers", NULL);
 	RNA_def_property_struct_type(prop, "TimelineMarker");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION); /* T45689 - so that the list isn't greyed out; adding/removing is still banned though */
 	RNA_def_property_ui_text(prop, "Pose Markers", "Markers specific to this action, for labeling poses");
 	rna_def_action_pose_markers(brna, prop);
 	
