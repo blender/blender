@@ -1969,27 +1969,19 @@ int isect_line_line_epsilon_v3(
         const float v3[3], const float v4[3], float i1[3], float i2[3],
         const float epsilon)
 {
-	float a[3], b[3], c[3], ab[3], cb[3], dir1[3], dir2[3];
+	float a[3], b[3], c[3], ab[3], cb[3];
 	float d, div;
 
 	sub_v3_v3v3(c, v3, v1);
 	sub_v3_v3v3(a, v2, v1);
 	sub_v3_v3v3(b, v4, v3);
 
-	normalize_v3_v3(dir1, a);
-	normalize_v3_v3(dir2, b);
-	d = dot_v3v3(dir1, dir2);
-	if (d == 1.0f || d == -1.0f) {
-		/* colinear */
-		return 0;
-	}
-
 	cross_v3_v3v3(ab, a, b);
 	d = dot_v3v3(c, ab);
 	div = dot_v3v3(ab, ab);
 
 	/* test zero length line */
-	if (UNLIKELY(div == 0.0f)) {
+	if (UNLIKELY(div <= epsilon)) {
 		return 0;
 	}
 	/* test if the two lines are coplanar */
@@ -2049,31 +2041,26 @@ bool isect_line_line_strict_v3(const float v1[3], const float v2[3],
                                float vi[3], float *r_lambda)
 {
 	const float epsilon = 0.000001f;
-	float a[3], b[3], c[3], ab[3], cb[3], ca[3], dir1[3], dir2[3];
+	float a[3], b[3], c[3], ab[3], cb[3], ca[3];
 	float d, div;
 
 	sub_v3_v3v3(c, v3, v1);
 	sub_v3_v3v3(a, v2, v1);
 	sub_v3_v3v3(b, v4, v3);
 
-	normalize_v3_v3(dir1, a);
-	normalize_v3_v3(dir2, b);
-	d = dot_v3v3(dir1, dir2);
-	if (d == 1.0f || d == -1.0f || d == 0) {
-		/* colinear or one vector is zero-length*/
-		return false;
-	}
-
 	cross_v3_v3v3(ab, a, b);
 	d = dot_v3v3(c, ab);
 	div = dot_v3v3(ab, ab);
 
 	/* test zero length line */
-	if (UNLIKELY(div == 0.0f)) {
+	if (UNLIKELY(div <= epsilon)) {
 		return false;
 	}
 	/* test if the two lines are coplanar */
-	else if (d > -epsilon && d < epsilon) {
+	else if (UNLIKELY(fabsf(d) < epsilon)) {
+		return false;
+	}
+	else {
 		float f1, f2;
 		cross_v3_v3v3(cb, c, b);
 		cross_v3_v3v3(ca, c, a);
@@ -2094,9 +2081,6 @@ bool isect_line_line_strict_v3(const float v1[3], const float v2[3],
 		else {
 			return false;
 		}
-	}
-	else {
-		return false;
 	}
 }
 
