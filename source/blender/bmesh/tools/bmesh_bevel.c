@@ -792,7 +792,7 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, bool e
 		/* intersect the lines */
 		isect_kind = isect_line_line_v3(off1a, off1b, off2a, off2b, meetco, isect2);
 		if (isect_kind == 0) {
-			/* lines are colinear: we already tested for this, but this used a different epsilon */
+			/* lines are collinear: we already tested for this, but this used a different epsilon */
 			copy_v3_v3(meetco, off1a);  /* just to do something */
 			d = dist_to_line_v3(meetco, v->co, BM_edge_other_vert(e2->e, v)->co);
 			if (fabsf(d - e2->offset_l) > BEVEL_EPSILON)

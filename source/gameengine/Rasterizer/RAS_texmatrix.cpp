@@ -34,7 +34,7 @@
 
 void RAS_CalcTexMatrix(RAS_TexVert p[3],MT_Point3& origin,MT_Vector3& udir,MT_Vector3& vdir)
 {
-// precondition: 3 vertices are non-colinear
+// precondition: 3 vertices are non-collinear
 
 	MT_Vector3 vec1 = p[1].xyz()-p[0].xyz();
 	MT_Vector3 vec2 = p[2].xyz()-p[0].xyz();

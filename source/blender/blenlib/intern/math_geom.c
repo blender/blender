@@ -573,7 +573,7 @@ float dist_signed_squared_to_corner_v3v3v3(
 	dist_a = dist_signed_squared_to_plane_v3(p, plane_a);
 	dist_b = dist_signed_squared_to_plane_v3(p, plane_b);
 #else
-	/* calculate without he planes 4th component to avoid float precision issues */
+	/* calculate without the planes 4th component to avoid float precision issues */
 	sub_v3_v3v3(s_p_v2, p, v2);
 
 	dist_a = dist_signed_squared_to_plane3_v3(s_p_v2, plane_a);
@@ -1960,7 +1960,7 @@ bool isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3
 
 /**
  * \return The number of point of interests
- * 0 - lines are colinear
+ * 0 - lines are collinear
  * 1 - lines are coplanar, i1 is set to intersection
  * 2 - i1 and i2 are the nearest points on line 1 (v1, v2) and line 2 (v3, v4) respectively
  */

@@ -522,8 +522,8 @@ static PyObject *py_bvhtree_overlap(PyBVHTree *self, PyBVHTree *other)
 
 			item = PyTuple_New(2);
 			PyTuple_SET_ITEMS(item,
-					PyLong_FromLong(overlap[i].indexA),
-					PyLong_FromLong(overlap[i].indexB));
+			        PyLong_FromLong(overlap[i].indexA),
+			        PyLong_FromLong(overlap[i].indexB));
 
 			PyList_Append(ret, item);
 			Py_DECREF(item);

@@ -2038,16 +2038,16 @@ static void project_bucket_clip_face(
 	int inside_bucket_flag = 0;
 	int inside_face_flag = 0;
 	int flip;
-	bool colinear = false;
+	bool collinear = false;
 	
 	float bucket_bounds_ss[4][2];
 
-	/* detect pathological case where face the three vertices are almost colinear in screen space.
+	/* detect pathological case where face the three vertices are almost collinear in screen space.
 	 * mostly those will be culled but when flood filling or with smooth shading it's a possibility */
 	if (dist_squared_to_line_v2(v1coSS, v2coSS, v3coSS) < 0.5f ||
 	    dist_squared_to_line_v2(v2coSS, v3coSS, v1coSS) < 0.5f)
 	{
-		colinear = true;
+		collinear = true;
 	}
 	
 	/* get the UV space bounding box */
@@ -2077,7 +2077,7 @@ static void project_bucket_clip_face(
 		return;
 	}
 	/* handle pathological case here, no need for further intersections below since tringle area is almost zero */
-	if (colinear) {
+	if (collinear) {
 		int flag;
 		
 		(*tot) = 0;
