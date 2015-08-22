@@ -848,6 +848,10 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		id = ((PointerRNA *)idv)->id.data;
 		if (!id) id = ((PointerRNA *)idv)->data;
 	}
+	else if (type == TSE_GP_LAYER) {
+		/* idv is the layer its self */
+		id = TREESTORE(parent)->id;
+	}
 
 	/* One exception */
 	if (type == TSE_ID_BASE) {
