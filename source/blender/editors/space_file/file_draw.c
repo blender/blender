@@ -641,37 +641,48 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			file_draw_string(sx + 1, tpos, file->name, (float)textwidth, textheight, align);
 		}
 
+		sx += (int)layout->column_widths[COLUMN_NAME] + column_space;
 		if (params->display == FILE_SHORTDISPLAY) {
-			sx += (int)layout->column_widths[COLUMN_NAME] + column_space;
-			if (!(file->typeflag & FILE_TYPE_DIR)) {
+			if ((file->typeflag & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) ||
+			    !(file->typeflag & (FILE_TYPE_DIR | FILE_TYPE_BLENDERLIB)))
+			{
 				if ((file->entry->size_str[0] == '\0') || update_stat_strings) {
 					BLI_filelist_entry_size_to_string(NULL, file->entry->size, small_size, file->entry->size_str);
 				}
 				file_draw_string(
 				            sx, sy, file->entry->size_str, layout->column_widths[COLUMN_SIZE], layout->tile_h, align);
-				sx += (int)layout->column_widths[COLUMN_SIZE] + column_space;
 			}
+			sx += (int)layout->column_widths[COLUMN_SIZE] + column_space;
 		}
 		else if (params->display == FILE_LONGDISPLAY) {
-			sx += (int)layout->column_widths[COLUMN_NAME] + column_space;
-
-			if ((file->entry->date_str[0] == '\0') || update_stat_strings) {
-				BLI_filelist_entry_datetime_to_string(
-				            NULL, file->entry->time, small_size, file->entry->time_str, file->entry->date_str);
+			if (!(file->typeflag & FILE_TYPE_BLENDERLIB) && !FILENAME_IS_CURRPAR(file->relpath))
+			{
+				if ((file->entry->date_str[0] == '\0') || update_stat_strings) {
+					BLI_filelist_entry_datetime_to_string(
+								NULL, file->entry->time, small_size, file->entry->time_str, file->entry->date_str);
+				}
+				file_draw_string(
+				            sx, sy, file->entry->date_str, layout->column_widths[COLUMN_DATE], layout->tile_h, align);
+				sx += (int)layout->column_widths[COLUMN_DATE] + column_space;
+				file_draw_string(
+				            sx, sy, file->entry->time_str, layout->column_widths[COLUMN_TIME], layout->tile_h, align);
+				sx += (int)layout->column_widths[COLUMN_TIME] + column_space;
 			}
-			file_draw_string(sx, sy, file->entry->date_str, layout->column_widths[COLUMN_DATE], layout->tile_h, align);
-			sx += (int)layout->column_widths[COLUMN_DATE] + column_space;
-			file_draw_string(sx, sy, file->entry->time_str, layout->column_widths[COLUMN_TIME], layout->tile_h, align);
-			sx += (int)layout->column_widths[COLUMN_TIME] + column_space;
+			else {
+				sx += (int)layout->column_widths[COLUMN_DATE] + column_space;
+				sx += (int)layout->column_widths[COLUMN_TIME] + column_space;
+			}
 
-			if (!(file->typeflag & FILE_TYPE_DIR)) {
+			if ((file->typeflag & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) ||
+			    !(file->typeflag & (FILE_TYPE_DIR | FILE_TYPE_BLENDERLIB)))
+			{
 				if ((file->entry->size_str[0] == '\0') || update_stat_strings) {
 					BLI_filelist_entry_size_to_string(NULL, file->entry->size, small_size, file->entry->size_str);
 				}
 				file_draw_string(
 				            sx, sy, file->entry->size_str, layout->column_widths[COLUMN_SIZE], layout->tile_h, align);
-				sx += (int)layout->column_widths[COLUMN_SIZE] + column_space;
 			}
+			sx += (int)layout->column_widths[COLUMN_SIZE] + column_space;
 		}
 	}
 
