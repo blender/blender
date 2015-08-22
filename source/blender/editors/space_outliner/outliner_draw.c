@@ -1002,20 +1002,23 @@ static void tselem_draw_gp_icon_uibut(struct DrawIconArg *arg, ID *id, bGPDlayer
 	}
 	else {
 		PointerRNA ptr;
-		float w = 0.85f * U.widget_unit;
+		const float eps = 0.001f;
+		const bool is_stroke_visible = (gpl->color[3] > eps);
+		const bool is_fill_visible = (gpl->fill[3] > eps);
+		float w = 0.5f  * UI_UNIT_X;
 		float h = 0.85f * UI_UNIT_Y;
-		
+
 		RNA_pointer_create(id, &RNA_GPencilLayer, gpl, &ptr);
-		
+
 		UI_block_align_begin(arg->block);
 		
-		UI_block_emboss_set(arg->block, RNA_boolean_get(&ptr, "is_stroke_visible") ? UI_EMBOSS : UI_EMBOSS_NONE);
+		UI_block_emboss_set(arg->block, is_stroke_visible ? UI_EMBOSS : UI_EMBOSS_NONE);
 		uiDefButR(arg->block, UI_BTYPE_COLOR, 1, "", arg->xb, arg->yb, w, h,
 		          &ptr, "color", -1,
 		          0, 0, 0, 0, NULL);
 		
-		UI_block_emboss_set(arg->block, RNA_boolean_get(&ptr, "is_fill_visible") ? UI_EMBOSS : UI_EMBOSS_NONE);
-		uiDefButR(arg->block, UI_BTYPE_COLOR, 1, "", arg->xb, arg->yb, w, h,
+		UI_block_emboss_set(arg->block, is_fill_visible ? UI_EMBOSS : UI_EMBOSS_NONE);
+		uiDefButR(arg->block, UI_BTYPE_COLOR, 1, "", arg->xb + w, arg->yb, w, h,
 		          &ptr, "fill_color", -1,
 		          0, 0, 0, 0, NULL);
 		
