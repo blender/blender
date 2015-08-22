@@ -244,6 +244,7 @@ void BVHSpatialSplit::split(BVHBuild *builder, BVHRange& left, BVHRange& right, 
 }
 
 void BVHSpatialSplit::split_triangle_primitive(const Mesh *mesh,
+                                               const Transform *tfm,
                                                int prim_index,
                                                int dim,
                                                float pos,
@@ -252,25 +253,25 @@ void BVHSpatialSplit::split_triangle_primitive(const Mesh *mesh,
 {
 	const int *inds = mesh->triangles[prim_index].v;
 	const float3 *verts = &mesh->verts[0];
-	const float3 *v1 = &verts[inds[2]];
+	float3 v1 = tfm ? transform_point(tfm, verts[inds[2]]) : verts[inds[2]];
 
 	for(int i = 0; i < 3; i++) {
-		const float3 *v0 = v1;
+		float3 v0 = v1;
 		int vindex = inds[i];
-		v1 = &verts[vindex];
-		float v0p = (*v0)[dim];
-		float v1p = (*v1)[dim];
+		v1 = tfm ? transform_point(tfm, verts[vindex]) : verts[vindex];
+		float v0p = v0[dim];
+		float v1p = v1[dim];
 
 		/* insert vertex to the boxes it belongs to. */
 		if(v0p <= pos)
-			left_bounds.grow(*v0);
+			left_bounds.grow(v0);
 
 		if(v0p >= pos)
-			right_bounds.grow(*v0);
+			right_bounds.grow(v0);
 
 		/* edge intersects the plane => insert intersection to both boxes. */
 		if((v0p < pos && v1p > pos) || (v0p > pos && v1p < pos)) {
-			float3 t = lerp(*v0, *v1, clamp((pos - v0p) / (v1p - v0p), 0.0f, 1.0f));
+			float3 t = lerp(v0, v1, clamp((pos - v0p) / (v1p - v0p), 0.0f, 1.0f));
 			left_bounds.grow(t);
 			right_bounds.grow(t);
 		}
@@ -278,6 +279,7 @@ void BVHSpatialSplit::split_triangle_primitive(const Mesh *mesh,
 }
 
 void BVHSpatialSplit::split_curve_primitive(const Mesh *mesh,
+                                            const Transform *tfm,
                                             int prim_index,
                                             int segment_index,
                                             int dim,
@@ -290,8 +292,13 @@ void BVHSpatialSplit::split_curve_primitive(const Mesh *mesh,
 	const int k1 = k0 + 1;
 	const float4 key0 = mesh->curve_keys[k0];
 	const float4 key1 = mesh->curve_keys[k1];
-	const float3 v0 = float4_to_float3(key0);
-	const float3 v1 = float4_to_float3(key1);
+	float3 v0 = float4_to_float3(key0);
+	float3 v1 = float4_to_float3(key1);
+
+	if(tfm != NULL) {
+		v0 = transform_point(tfm, v0);
+		v1 = transform_point(tfm, v1);
+	}
 
 	float v0p = v0[dim];
 	float v1p = v1[dim];
@@ -325,6 +332,7 @@ void BVHSpatialSplit::split_triangle_reference(const BVHReference& ref,
                                                BoundBox& right_bounds)
 {
 	split_triangle_primitive(mesh,
+	                         NULL,
 	                         ref.prim_index(),
 	                         dim,
 	                         pos,
@@ -340,12 +348,47 @@ void BVHSpatialSplit::split_curve_reference(const BVHReference& ref,
                                             BoundBox& right_bounds)
 {
 	split_curve_primitive(mesh,
+	                      NULL,
 	                      ref.prim_index(),
 	                      PRIMITIVE_UNPACK_SEGMENT(ref.prim_type()),
 	                      dim,
 	                      pos,
 	                      left_bounds,
 	                      right_bounds);
+}
+
+void BVHSpatialSplit::split_object_reference(const Object *object,
+                                             int dim,
+                                             float pos,
+                                             BoundBox& left_bounds,
+                                             BoundBox& right_bounds)
+{
+	Mesh *mesh = object->mesh;
+	for(int tri_idx = 0; tri_idx < mesh->triangles.size(); ++tri_idx) {
+		split_triangle_primitive(mesh,
+		                         &object->tfm,
+		                         tri_idx,
+		                         dim,
+		                         pos,
+		                         left_bounds,
+		                         right_bounds);
+	}
+	for(int curve_idx = 0; curve_idx < mesh->curves.size(); ++curve_idx) {
+		Mesh::Curve &curve = mesh->curves[curve_idx];
+		for(int segment_idx = 0;
+		    segment_idx < curve.num_keys - 1;
+		    ++segment_idx)
+		{
+			split_curve_primitive(mesh,
+			                      &object->tfm,
+			                      curve_idx,
+			                      segment_idx,
+			                      dim,
+			                      pos,
+			                      left_bounds,
+			                      right_bounds);
+		}
+	}
 }
 
 void BVHSpatialSplit::split_reference(BVHBuild *builder,
@@ -380,7 +423,11 @@ void BVHSpatialSplit::split_reference(BVHBuild *builder,
 		                      right_bounds);
 	}
 	else {
-		assert(!"Unknown primitive type in BVH reference split.");
+		split_object_reference(ob,
+		                       dim,
+		                       pos,
+		                       left_bounds,
+		                       right_bounds);
 	}
 
 	/* intersect with original bounds. */

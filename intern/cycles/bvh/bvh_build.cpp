@@ -234,8 +234,14 @@ BVHNode* BVHBuild::run()
 		return NULL;
 
 	/* init spatial splits */
-	if(params.top_level) /* todo: get rid of this */
+	if(params.top_level) {
+		/* NOTE: Technically it is supported by the builder but it's not really
+		 * optimized for speed yet and not really clear yet if it has measurable
+		 * improvement on render time. Needs some extra investigation before
+		 * enabling spatial split for top level BVH.
+		 */
 		params.use_spatial_split = false;
+	}
 
 	spatial_min_overlap = root.bounds().safe_area() * params.spatial_split_alpha;
 	spatial_right_bounds.clear();

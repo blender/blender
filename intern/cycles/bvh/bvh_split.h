@@ -63,13 +63,21 @@ public:
 	                     float pos);
 
 protected:
+	/* Lower-level functions which calculates boundaries of left and right nodes
+	 * needed for spatial split.
+	 *
+	 * Operates directly with primitive specified by it's index, reused by higher
+	 * level splitting functions.
+	 */
 	void split_triangle_primitive(const Mesh *mesh,
+	                              const Transform *tfm,
 	                              int prim_index,
 	                              int dim,
 	                              float pos,
 	                              BoundBox& left_bounds,
 	                              BoundBox& right_bounds);
 	void split_curve_primitive(const Mesh *mesh,
+	                           const Transform *tfm,
 	                           int prim_index,
 	                           int segment_index,
 	                           int dim,
@@ -77,6 +85,11 @@ protected:
 	                           BoundBox& left_bounds,
 	                           BoundBox& right_bounds);
 
+	/* Lower-level functions which calculates boundaries of left and right nodes
+	 * needed for spatial split.
+	 *
+	 * Operates with BVHReference, internally uses lower level API functions.
+	 */
 	void split_triangle_reference(const BVHReference& ref,
 	                              const Mesh *mesh,
 	                              int dim,
@@ -89,6 +102,11 @@ protected:
 	                           float pos,
 	                           BoundBox& left_bounds,
 	                           BoundBox& right_bounds);
+	void split_object_reference(const Object *object,
+	                            int dim,
+	                            float pos,
+	                            BoundBox& left_bounds,
+	                            BoundBox& right_bounds);
 };
 
 /* Mixed Object-Spatial Split */
