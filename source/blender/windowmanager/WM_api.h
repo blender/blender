@@ -278,7 +278,7 @@ void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring
 void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot);
 void        WM_operator_properties_clear(struct PointerRNA *ptr);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
-void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type, short action, short flag, short display);
+void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type, short action, short flag, short display, short sort);
 void        WM_operator_properties_border(struct wmOperatorType *ot);
 void        WM_operator_properties_border_to_rcti(struct wmOperator *op, struct rcti *rect);
 void        WM_operator_properties_border_to_rctf(struct wmOperator *op, rctf *rect);

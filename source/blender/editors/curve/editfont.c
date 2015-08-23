@@ -450,7 +450,7 @@ void FONT_OT_text_paste_from_file(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FILE_TYPE_FOLDER | FILE_TYPE_TEXT, FILE_SPECIAL, FILE_OPENFILE,
-	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
 }
 
 
@@ -508,7 +508,7 @@ void FONT_OT_text_paste_from_clipboard(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FILE_TYPE_FOLDER | FILE_TYPE_TEXT, FILE_SPECIAL, FILE_OPENFILE,
-	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
 }
 
 /******************* text to object operator ********************/
@@ -1785,7 +1785,7 @@ void FONT_OT_open(wmOperatorType *ot)
 	
 	/* properties */
 	WM_operator_properties_filesel(ot, FILE_TYPE_FOLDER | FILE_TYPE_FTFONT, FILE_SPECIAL, FILE_OPENFILE,
-	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
+	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
 }
 
 /******************* delete operator *********************/

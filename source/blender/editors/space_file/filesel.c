@@ -227,6 +227,13 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			params->display = RNA_property_enum_get(op->ptr, prop);
 		}
 
+		if ((prop = RNA_struct_find_property(op->ptr, "sort_method"))) {
+			params->sort = RNA_property_enum_get(op->ptr, prop);
+		}
+		else {
+			params->sort = FILE_SORT_ALPHA;
+		}
+
 		if (params->display == FILE_DEFAULTDISPLAY) {
 			if (U.uiflag & USER_SHOW_THUMBNAILS) {
 				if (params->filter & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE))
@@ -258,7 +265,6 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 	}
 
 	/* operator has no setting for this */
-	params->sort = FILE_SORT_ALPHA;
 	params->active_file = -1;
 
 

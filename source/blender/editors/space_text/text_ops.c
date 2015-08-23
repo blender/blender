@@ -301,7 +301,7 @@ void TEXT_OT_open(wmOperatorType *ot)
 	
 	/* properties */
 	WM_operator_properties_filesel(ot, FILE_TYPE_FOLDER | FILE_TYPE_TEXT | FILE_TYPE_PYSCRIPT, FILE_SPECIAL, FILE_OPENFILE,
-	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);  //XXX TODO, relative_path
+	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);  //XXX TODO, relative_path
 	RNA_def_boolean(ot->srna, "internal", 0, "Make internal", "Make text file internal after loading");
 }
 
@@ -578,7 +578,7 @@ void TEXT_OT_save_as(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FILE_TYPE_FOLDER | FILE_TYPE_TEXT | FILE_TYPE_PYSCRIPT, FILE_SPECIAL, FILE_SAVE,
-	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);  //XXX TODO, relative_path
+	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);  //XXX TODO, relative_path
 }
 
 /******************* run script operator *********************/

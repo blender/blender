@@ -1620,7 +1620,7 @@ void TEXTURE_OT_envmap_save(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 
 	WM_operator_properties_filesel(ot, FILE_TYPE_FOLDER | FILE_TYPE_IMAGE | FILE_TYPE_MOVIE, FILE_SPECIAL, FILE_SAVE,
-	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
 }
 
 static int envmap_clear_exec(bContext *C, wmOperator *UNUSED(op))
