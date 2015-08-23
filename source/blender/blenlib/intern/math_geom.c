@@ -308,72 +308,25 @@ float volume_tetrahedron_signed_v3(const float v1[3], const float v2[3], const f
  * using Hesse formula, NO LINE PIECE! */
 float dist_squared_to_line_v2(const float p[2], const float l1[2], const float l2[2])
 {
-	float a[2], deler;
+	float closest[2];
 
-	a[0] = l1[1] - l2[1];
-	a[1] = l2[0] - l1[0];
+	closest_to_line_v2(closest, p, l1, l2);
 
-	deler = len_squared_v2(a);
-
-	if (deler != 0.0f) {
-		float f = ((p[0] - l1[0]) * a[0] +
-		           (p[1] - l1[1]) * a[1]);
-		return (f * f) / deler;
-	}
-	else {
-		return 0.0f;
-	}
+	return len_squared_v2v2(closest, p);
 }
 float dist_to_line_v2(const float p[2], const float l1[2], const float l2[2])
 {
-	float a[2], deler;
-
-	a[0] = l1[1] - l2[1];
-	a[1] = l2[0] - l1[0];
-
-	deler = len_squared_v2(a);
-
-	if (deler != 0.0f) {
-		float f = ((p[0] - l1[0]) * a[0] +
-		           (p[1] - l1[1]) * a[1]);
-		return fabsf(f) / sqrtf(deler);
-	}
-	else {
-		return 0.0f;
-	}
+	return sqrtf(dist_squared_to_line_v2(p, l1, l2));
 }
 
 /* distance p to line-piece v1-v2 */
 float dist_squared_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2])
 {
-	float lambda, rc[2], pt[2], len;
+	float closest[2];
 
-	rc[0] = l2[0] - l1[0];
-	rc[1] = l2[1] - l1[1];
-	len = rc[0] * rc[0] + rc[1] * rc[1];
-	if (len == 0.0f) {
-		rc[0] = p[0] - l1[0];
-		rc[1] = p[1] - l1[1];
-		return (rc[0] * rc[0] + rc[1] * rc[1]);
-	}
+	closest_to_line_segment_v2(closest, p, l1, l2);
 
-	lambda = (rc[0] * (p[0] - l1[0]) + rc[1] * (p[1] - l1[1])) / len;
-	if (lambda <= 0.0f) {
-		pt[0] = l1[0];
-		pt[1] = l1[1];
-	}
-	else if (lambda >= 1.0f) {
-		pt[0] = l2[0];
-		pt[1] = l2[1];
-	}
-	else {
-		pt[0] = lambda * rc[0] + l1[0];
-		pt[1] = lambda * rc[1] + l1[1];
-	}
-
-	rc[0] = pt[0] - p[0];
-	rc[1] = pt[1] - p[1];
-	return (rc[0] * rc[0] + rc[1] * rc[1]);
+	return len_squared_v2v2(closest, p);
 }
 
 float dist_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2])
@@ -501,17 +454,17 @@ float dist_to_line_segment_v3(const float p[3], const float l1[3], const float l
 	return sqrtf(dist_squared_to_line_segment_v3(p, l1, l2));
 }
 
-float dist_squared_to_line_v3(const float v1[3], const float l1[3], const float l2[3])
+float dist_squared_to_line_v3(const float p[3], const float l1[3], const float l2[3])
 {
 	float closest[3];
 
-	closest_to_line_v3(closest, v1, l1, l2);
+	closest_to_line_v3(closest, p, l1, l2);
 
-	return len_squared_v3v3(closest, v1);
+	return len_squared_v3v3(closest, p);
 }
-float dist_to_line_v3(const float v1[3], const float l1[3], const float l2[3])
+float dist_to_line_v3(const float p[3], const float l1[3], const float l2[3])
 {
-	return sqrtf(dist_squared_to_line_v3(v1, l1, l2));
+	return sqrtf(dist_squared_to_line_v3(p, l1, l2));
 }
 
 /**
