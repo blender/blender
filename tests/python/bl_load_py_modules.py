@@ -32,6 +32,7 @@ import os
 
 BLACKLIST = {
     "bl_i18n_utils",
+    "bl_previews_utils",
     "cycles",
     "io_export_dxf",  # TODO, check on why this fails
     'io_import_dxf',  # Because of cydxfentity.so dependency
