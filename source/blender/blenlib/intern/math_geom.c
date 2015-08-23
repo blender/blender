@@ -3065,18 +3065,22 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
 	const float *v_curr, *v_next;
 	float ht_prev, ht;  /* half tangents */
 	float totweight = 0.0f;
-	int i = 0;
+	int i_curr, i_next;
 	char ix_flag = 0;
 	struct Float3_Len d_curr, d_next;
 
-	v_curr = v[0];
-	v_next = v[1];
+	/* loop over 'i_next' */
+	i_curr = n - 1;
+	i_next = 0;
 
-	DIR_V3_SET(&d_curr, v[n - 1], co);
-	DIR_V3_SET(&d_next, v_curr, co);
+	v_curr = v[i_curr];
+	v_next = v[i_next];
+
+	DIR_V3_SET(&d_curr, v_curr - 3 /* v[n - 2] */, co);
+	DIR_V3_SET(&d_next, v_curr     /* v[n - 1] */, co);
 	ht_prev = mean_value_half_tan_v3(&d_curr, &d_next);
 
-	while (i < n) {
+	while (i_next < n) {
 		/* Mark Mayer et al algorithm that is used here does not operate well if vertex is close
 		 * to borders of face. In that case, do simple linear interpolation between the two edge vertices */
 
@@ -3093,22 +3097,19 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
 		d_curr = d_next;
 		DIR_V3_SET(&d_next, v_next, co);
 		ht = mean_value_half_tan_v3(&d_curr, &d_next);
-		w[i] = (ht_prev + ht) / d_curr.len;
-		totweight += w[i];
+		w[i_curr] = (ht_prev + ht) / d_curr.len;
+		totweight += w[i_curr];
 
 		/* step */
-		i++;
+		i_curr = i_next++;
 		v_curr = v_next;
-		v_next = v[(i + 1) % n];
+		v_next = v[i_next];
 
 		ht_prev = ht;
 	}
 
 	if (ix_flag) {
-		const int i_curr = i;
-		for (i = 0; i < n; i++) {
-			w[i] = 0.0f;
-		}
+		memset(w, 0, sizeof(*w) * (size_t)n);
 
 		if (ix_flag & IS_POINT_IX) {
 			w[i_curr] = 1.0f;
@@ -3117,13 +3118,13 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
 			float fac = line_point_factor_v3(co, v_curr, v_next);
 			CLAMP(fac, 0.0f, 1.0f);
 			w[i_curr] = 1.0f - fac;
-			w[(i_curr + 1) % n] = fac;
+			w[i_next] = fac;
 		}
 	}
 	else {
 		if (totweight != 0.0f) {
-			for (i = 0; i < n; i++) {
-				w[i] /= totweight;
+			for (i_curr = 0; i_curr < n; i_curr++) {
+				w[i_curr] /= totweight;
 			}
 		}
 	}
@@ -3137,18 +3138,22 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
 	const float *v_curr, *v_next;
 	float ht_prev, ht;  /* half tangents */
 	float totweight = 0.0f;
-	int i = 0;
+	int i_curr, i_next;
 	char ix_flag = 0;
 	struct Float2_Len d_curr, d_next;
 
-	v_curr = v[0];
-	v_next = v[1];
+	/* loop over 'i_next' */
+	i_curr = n - 1;
+	i_next = 0;
 
-	DIR_V2_SET(&d_curr, v[n - 1], co);
-	DIR_V2_SET(&d_next, v_curr, co);
+	v_curr = v[i_curr];
+	v_next = v[i_next];
+
+	DIR_V2_SET(&d_curr, v_curr - 2 /* v[n - 2] */, co);
+	DIR_V2_SET(&d_next, v_curr     /* v[n - 1] */, co);
 	ht_prev = mean_value_half_tan_v2(&d_curr, &d_next);
 
-	while (i < n) {
+	while (i_next < n) {
 		/* Mark Mayer et al algorithm that is used here does not operate well if vertex is close
 		 * to borders of face. In that case, do simple linear interpolation between the two edge vertices */
 
@@ -3165,22 +3170,19 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
 		d_curr = d_next;
 		DIR_V2_SET(&d_next, v_next, co);
 		ht = mean_value_half_tan_v2(&d_curr, &d_next);
-		w[i] = (ht_prev + ht) / d_curr.len;
-		totweight += w[i];
+		w[i_curr] = (ht_prev + ht) / d_curr.len;
+		totweight += w[i_curr];
 
 		/* step */
-		i++;
+		i_curr = i_next++;
 		v_curr = v_next;
-		v_next = v[(i + 1) % n];
+		v_next = v[i_next];
 
 		ht_prev = ht;
 	}
 
 	if (ix_flag) {
-		const int i_curr = i;
-		for (i = 0; i < n; i++) {
-			w[i] = 0.0f;
-		}
+		memset(w, 0, sizeof(*w) * (size_t)n);
 
 		if (ix_flag & IS_POINT_IX) {
 			w[i_curr] = 1.0f;
@@ -3189,13 +3191,13 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
 			float fac = line_point_factor_v2(co, v_curr, v_next);
 			CLAMP(fac, 0.0f, 1.0f);
 			w[i_curr] = 1.0f - fac;
-			w[(i_curr + 1) % n] = fac;
+			w[i_next] = fac;
 		}
 	}
 	else {
 		if (totweight != 0.0f) {
-			for (i = 0; i < n; i++) {
-				w[i] /= totweight;
+			for (i_curr = 0; i_curr < n; i_curr++) {
+				w[i_curr] /= totweight;
 			}
 		}
 	}
