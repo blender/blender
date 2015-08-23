@@ -544,6 +544,10 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				if (python_main) {
 					char *python_code = KX_GetPythonCode(blenderdata, python_main);
 					if (python_code) {
+						// Set python environement variable.
+						KX_SetActiveScene(startscene);
+						PHY_SetActiveEnvironment(startscene->GetPhysicsEnvironment());
+
 						ketsjinextframestate.ketsjiengine = ketsjiengine;
 						ketsjinextframestate.C = C;
 						ketsjinextframestate.win = win;

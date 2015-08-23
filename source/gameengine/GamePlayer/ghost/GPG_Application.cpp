@@ -112,6 +112,7 @@ GPG_Application::GPG_Application(GHOST_ISystem* system)
 	: m_startSceneName(""), 
 	  m_startScene(0),
 	  m_maggie(0),
+	  m_kxStartScene(NULL),
 	  m_exitRequested(0),
 	  m_system(system), 
 	  m_mainWindow(0), 
@@ -714,7 +715,7 @@ bool GPG_Application::startEngine(void)
 	m_sceneconverter = new KX_BlenderSceneConverter(m_maggie, m_ketsjiengine);
 	if (m_sceneconverter)
 	{
-		STR_String startscenename = m_startSceneName.Ptr();
+		STR_String m_kxStartScenename = m_startSceneName.Ptr();
 		m_ketsjiengine->SetSceneConverter(m_sceneconverter);
 
 		//	if (always_use_expand_framing)
@@ -726,17 +727,17 @@ bool GPG_Application::startEngine(void)
 		if (m_startScene->gm.flag & GAME_NO_MATERIAL_CACHING)
 			m_sceneconverter->SetCacheMaterials(false);
 
-		KX_Scene* startscene = new KX_Scene(m_keyboard,
+		m_kxStartScene = new KX_Scene(m_keyboard,
 			m_mouse,
 			m_networkdevice,
-			startscenename,
+			m_kxStartScenename,
 			m_startScene,
 			m_canvas);
 		
 #ifdef WITH_PYTHON
 			// some python things
 			PyObject *gameLogic, *gameLogic_keys;
-			setupGamePython(m_ketsjiengine, startscene, m_maggie, NULL, &gameLogic, &gameLogic_keys, m_argc, m_argv);
+			setupGamePython(m_ketsjiengine, m_kxStartScene, m_maggie, NULL, &gameLogic, &gameLogic_keys, m_argc, m_argv);
 #endif // WITH_PYTHON
 
 		//initialize Dome Settings
@@ -755,10 +756,10 @@ bool GPG_Application::startEngine(void)
 		loadGamePythonConfig(m_pyGlobalDictString, m_pyGlobalDictString_Length);
 #endif
 		m_sceneconverter->ConvertScene(
-			startscene,
+			m_kxStartScene,
 			m_rasterizer,
 			m_canvas);
-		m_ketsjiengine->AddScene(startscene);
+		m_ketsjiengine->AddScene(m_kxStartScene);
 		
 		// Create a timer that is used to kick the engine
 		if (!m_frameTimer) {
@@ -771,7 +772,7 @@ bool GPG_Application::startEngine(void)
 		// Set the animation playback rate for ipo's and actions
 		// the framerate below should patch with FPS macro defined in blendef.h
 		// Could be in StartEngine set the framerate, we need the scene to do this
-		Scene *scene= startscene->GetBlenderScene(); // needed for macro
+		Scene *scene= m_kxStartScene->GetBlenderScene(); // needed for macro
 		m_ketsjiengine->SetAnimFrameRate(FPS);
 	}
 	

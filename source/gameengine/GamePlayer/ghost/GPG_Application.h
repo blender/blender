@@ -40,6 +40,7 @@
 #include "KX_KetsjiEngine.h"
 
 class KX_KetsjiEngine;
+class KX_Scene;
 class KX_ISceneConverter;
 class NG_LoopBackNetworkDeviceInterface;
 class RAS_IRasterizer;
@@ -83,6 +84,12 @@ public:
 	int getExitRequested(void);
 	const STR_String& getExitString(void);
 	GlobalSettings* getGlobalSettings(void);
+
+	inline KX_Scene *GetStartScene() const
+	{
+		return m_kxStartScene;
+	}
+
 	bool StartGameEngine(int stereoMode);
 	void StopGameEngine();
 	void EngineNextFrame();
@@ -118,6 +125,7 @@ protected:
 	STR_String				m_startSceneName;
 	struct Scene*			m_startScene;
 	struct Main*			m_maggie;
+	KX_Scene *m_kxStartScene;
 
 	/* Exit state. */
 	int						m_exitRequested;
