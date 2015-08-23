@@ -832,16 +832,17 @@ static PyObject *C_BVHTree_FromPolygons(PyObject *UNUSED(cls), PyObject *args, P
 #ifndef MATH_STANDALONE
 
 PyDoc_STRVAR(C_BVHTree_FromBMesh_doc,
-".. classmethod:: FromBMesh(bmesh)\n"
+".. classmethod:: FromBMesh(bmesh, epsilon=0.0)\n"
 "\n"
 "   BVH tree based on :class:`BMesh` data.\n"
 "\n"
 "   :arg bmesh: BMesh data.\n"
 "   :type bmesh: :class:`BMesh`\n"
+PYBVH_FROM_GENERIC_EPSILON_DOC
 );
 static PyObject *C_BVHTree_FromBMesh(PyObject *UNUSED(cls), PyObject *args, PyObject *kwargs)
 {
-	const char *keywords[] = {"bmesh", NULL};
+	const char *keywords[] = {"bmesh", "epsilon", NULL};
 
 	BPy_BMesh *py_bm;
 
