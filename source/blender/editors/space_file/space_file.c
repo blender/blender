@@ -308,7 +308,7 @@ static void file_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_redraw(sa);
 					break;
 				case ND_SPACE_FILE_PREVIEW:
-					if (filelist_cache_previews_update(sfile->files)) {
+					if (sfile->files && filelist_cache_previews_update(sfile->files)) {
 						ED_area_tag_refresh(sa);
 						ED_area_tag_redraw(sa);
 					}
