@@ -533,11 +533,9 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 	/* Extend an array when needed. */
 	if(prim_type.size() < range.end()) {
 		assert(params.use_spatial_split);
-		/* TODO(sergey): We might want to look into different policies of
-		 * re-allocation here, so on the one hand we would not do as much
-		 * re-allocations and on the other hand will have small memory
-		 * overhead.
-		 */
+		prim_type.reserve(references.size());
+		prim_index.reserve(references.size());
+		prim_object.reserve(references.size());
 		prim_type.resize(range.end());
 		prim_index.resize(range.end());
 		prim_object.resize(range.end());
