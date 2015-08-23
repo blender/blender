@@ -1606,7 +1606,7 @@ protected:
 		 * mega kernel is not getting feature-based optimizations.
 		 *
 		 * Ideally we need always compile kernel with as less features
-		 * enabed as possible to keep performance at it's max.
+		 * enabled as possible to keep performance at it's max.
 		 */
 		return "";
 	}

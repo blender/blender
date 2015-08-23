@@ -1036,7 +1036,7 @@ enum QueueNumber {
 	                                            * contribution for AO are enqueued here.
 	                                            */
 	QUEUE_SHADOW_RAY_CAST_DL_RAYS = 3,         /* All rays for which a shadow ray should be cast to determine radiance
-	                                            * contributuin for direct lighting are enqueued here.
+	                                            * contributing for direct lighting are enqueued here.
 	                                            */
 };
 

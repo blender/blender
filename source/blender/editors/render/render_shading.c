@@ -480,7 +480,7 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
-		 * pointer se also increases user, so this compensates it */
+		 * pointer use also increases user, so this compensates it */
 		ma->id.us--;
 
 		RNA_id_pointer_create(&ma->id, &idptr);

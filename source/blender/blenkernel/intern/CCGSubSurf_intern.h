@@ -250,7 +250,7 @@ struct CCGSubSurf {
 
 	/* Limit evaluator, used to evaluate CCG. */
 	struct OpenSubdiv_EvaluatorDescr *osd_evaluator;
-	/* Next PTex face index, used while CCG synchroization
+	/* Next PTex face index, used while CCG synchronization
 	 * to fill in PTex index of CCGFace.
 	 */
 	int osd_next_face_ptex_index;

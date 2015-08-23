@@ -31,7 +31,7 @@
  * Un-initialized Ray --------------|                                  |--- Initialized Ray
  * Un-initialized PathState --------|                                  |--- Initialized PathState
  * Un-initialized QueueData --------|                                  |--- Initialized QueueData (to QUEUE_EMPTY_SLOT)
- * Un-initilaized QueueIndex -------|                                  |--- Initialized QueueIndex (to 0)
+ * Un-initialized QueueIndex -------|                                  |--- Initialized QueueIndex (to 0)
  * Un-initialized use_queues_flag---|                                  |--- Initialized use_queues_flag (to false)
  * Un-initialized ray_state --------|                                  |--- Initialized ray_state
  * parallel_samples --------------- |                                  |--- Initialized per_sample_output_buffers
@@ -383,7 +383,7 @@ ccl_device void kernel_data_init(
 		                        &Ray_coop[ray_index]);
 
 		if(Ray_coop[ray_index].t != 0.0f) {
-			/* Initialize throuput, L_transparent, Ray, PathState;
+			/* Initialize throughput, L_transparent, Ray, PathState;
 			 * These rays proceed with path-iteration.
 			 */
 			throughput_coop[ray_index] = make_float3(1.0f, 1.0f, 1.0f);

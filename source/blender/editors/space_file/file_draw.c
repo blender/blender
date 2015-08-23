@@ -655,11 +655,10 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			sx += (int)layout->column_widths[COLUMN_SIZE] + column_space;
 		}
 		else if (params->display == FILE_LONGDISPLAY) {
-			if (!(file->typeflag & FILE_TYPE_BLENDERLIB) && !FILENAME_IS_CURRPAR(file->relpath))
-			{
+			if (!(file->typeflag & FILE_TYPE_BLENDERLIB) && !FILENAME_IS_CURRPAR(file->relpath)) {
 				if ((file->entry->date_str[0] == '\0') || update_stat_strings) {
 					BLI_filelist_entry_datetime_to_string(
-								NULL, file->entry->time, small_size, file->entry->time_str, file->entry->date_str);
+					            NULL, file->entry->time, small_size, file->entry->time_str, file->entry->date_str);
 				}
 				file_draw_string(
 				            sx, sy, file->entry->date_str, layout->column_widths[COLUMN_DATE], layout->tile_h, align);
