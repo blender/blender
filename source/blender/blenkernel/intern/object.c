@@ -4018,8 +4018,7 @@ bool BKE_object_modifier_use_time(Object *ob, ModifierData *md)
 		FCurve *fcu;
 
 		char pattern[MAX_NAME + 10];
-		/* TODO(sergey): Escape modifier name. */
-		BLI_snprintf(pattern, sizeof(pattern), "modifiers[%s", md->name);
+		BLI_snprintf(pattern, sizeof(pattern), "modifiers[\"%s\"]", md->name);
 
 		/* action - check for F-Curves with paths containing 'modifiers[' */
 		if (adt->action) {
