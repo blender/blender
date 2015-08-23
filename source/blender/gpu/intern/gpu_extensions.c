@@ -1558,6 +1558,8 @@ static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH], 
 		                "#extension GL_ARB_gpu_shader5 : enable\n"
 		                "#extension GL_ARB_explicit_attrib_location : require\n");
 	}
+	else if (GPU_bicubic_bump_support())
+		strcat(defines, "#extension GL_ARB_texture_query_lod: enable\n");
 #else
 	/* need this extension for high quality bump mapping */
 	if (GPU_bicubic_bump_support())
