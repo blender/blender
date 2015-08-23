@@ -191,11 +191,16 @@ void BVHSpatialSplit::split(BVHBuild *builder, BVHRange& left, BVHRange& right, 
 		}
 	}
 
-	/* duplicate or unsplit references intersecting both sides. */
+	/* Duplicate or unsplit references intersecting both sides.
+	 *
+	 * Duplication happens into a temporary pre-allocated vector in order to
+	 * reduce number of memmove() calls happening in vector.insert().
+	 */
+	vector<BVHReference> new_refs;
+	new_refs.reserve(right_start - left_end);
 	while(left_end < right_start) {
 		/* split reference. */
 		BVHReference lref, rref;
-
 		split_reference(builder, lref, rref, refs[left_end], this->dim, this->pos);
 
 		/* compute SAH for duplicate/unsplit candidates. */
@@ -234,11 +239,16 @@ void BVHSpatialSplit::split(BVHBuild *builder, BVHRange& left, BVHRange& right, 
 			left_bounds = ldb;
 			right_bounds = rdb;
 			refs[left_end++] = lref;
-			refs.insert(refs.begin() + right_end, rref);
+			new_refs.push_back(rref);
 			right_end++;
 		}
 	}
-
+	/* Insert duplicated references into actual array in one go. */
+	if(new_refs.size() != 0) {
+		refs.insert(refs.begin() + right_end - new_refs.size(),
+		            new_refs.begin(),
+		            new_refs.end());
+	}
 	left = BVHRange(left_bounds, left_start, left_end - left_start);
 	right = BVHRange(right_bounds, right_start, right_end - right_start);
 }
