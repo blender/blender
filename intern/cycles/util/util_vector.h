@@ -105,6 +105,7 @@ public:
 	{
 		data = NULL;
 		datasize = 0;
+		capacity = 0;
 	}
 
 	array(size_t newsize)
@@ -112,10 +113,12 @@ public:
 		if(newsize == 0) {
 			data = NULL;
 			datasize = 0;
+			capacity = 0;
 		}
 		else {
 			data = (T*)util_aligned_malloc(sizeof(T)*newsize, alignment);
 			datasize = newsize;
+			capacity = datasize;
 		}
 	}
 
@@ -129,11 +132,13 @@ public:
 		if(from.datasize == 0) {
 			data = NULL;
 			datasize = 0;
+			capacity = 0;
 		}
 		else {
 			data = (T*)util_aligned_malloc(sizeof(T)*from.datasize, alignment);
 			memcpy(data, from.data, from.datasize*sizeof(T));
 			datasize = from.datasize;
+			capacity = datasize;
 		}
 
 		return *this;
@@ -142,6 +147,7 @@ public:
 	array& operator=(const vector<T>& from)
 	{
 		datasize = from.size();
+		capacity = datasize;
 		data = NULL;
 
 		if(datasize > 0) {
@@ -163,13 +169,15 @@ public:
 			clear();
 		}
 		else if(newsize != datasize) {
-			T *newdata = (T*)util_aligned_malloc(sizeof(T)*newsize, alignment);
-			if(data) {
-				memcpy(newdata, data, ((datasize < newsize)? datasize: newsize)*sizeof(T));
-				util_aligned_free(data);
+			if(newsize > capacity) {
+				T *newdata = (T*)util_aligned_malloc(sizeof(T)*newsize, alignment);
+				if(data) {
+					memcpy(newdata, data, ((datasize < newsize)? datasize: newsize)*sizeof(T));
+					util_aligned_free(data);
+				}
+				data = newdata;
+				capacity = newsize;
 			}
-
-			data = newdata;
 			datasize = newsize;
 		}
 	}
@@ -179,6 +187,7 @@ public:
 		util_aligned_free(data);
 		data = NULL;
 		datasize = 0;
+		capacity = 0;
 	}
 
 	size_t size() const
@@ -192,9 +201,22 @@ public:
 		return data[i];
 	}
 
+	void reserve(size_t newcapacity) {
+		if(newcapacity > capacity) {
+			T *newdata = (T*)util_aligned_malloc(sizeof(T)*newcapacity, alignment);
+			if(data) {
+				memcpy(newdata, data, ((datasize < newcapacity)? datasize: newcapacity)*sizeof(T));
+				util_aligned_free(data);
+			}
+			data = newdata;
+			capacity = newcapacity;
+		}
+	}
+
 protected:
 	T *data;
 	size_t datasize;
+	size_t capacity;
 };
 
 CCL_NAMESPACE_END
