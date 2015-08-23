@@ -460,8 +460,27 @@ static bool py_bvhtree_overlap_cb(void *userdata, int index_a, int index_b, int 
 	const unsigned int *tri_b = tree_b->tris[index_b];
 	const float *tri_a_co[3] = {tree_a->coords[tri_a[0]], tree_a->coords[tri_a[1]], tree_a->coords[tri_a[2]]};
 	const float *tri_b_co[3] = {tree_b->coords[tri_b[0]], tree_b->coords[tri_b[1]], tree_b->coords[tri_b[2]]};
+	float ix_pair[2][3];
+	int verts_shared = 0;
 
-	return isect_tri_tri_epsilon_v3(UNPACK3(tri_a_co), UNPACK3(tri_b_co), NULL, NULL, data->epsilon);
+	if (tree_a == tree_b) {
+		if (UNLIKELY(index_a == index_b)) {
+			return false;
+		}
+
+		verts_shared = (
+		        ELEM(tri_a_co[0], UNPACK3(tri_b_co)) +
+		        ELEM(tri_a_co[1], UNPACK3(tri_b_co)) +
+		        ELEM(tri_a_co[2], UNPACK3(tri_b_co)));
+
+		/* if 2 points are shared, bail out */
+		if (verts_shared >= 2) {
+			return false;
+		}
+	}
+
+	return (isect_tri_tri_epsilon_v3(UNPACK3(tri_a_co), UNPACK3(tri_b_co), ix_pair[0], ix_pair[1], data->epsilon) &&
+	        ((verts_shared == 0) || (len_squared_v3v3(ix_pair[0], ix_pair[1]) > data->epsilon)));
 }
 
 PyDoc_STRVAR(py_bvhtree_overlap_doc,
