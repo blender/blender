@@ -1957,6 +1957,7 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->calcNormals = CDDM_calc_normals;
 	dm->calcLoopNormals = CDDM_calc_loop_normals;
 	dm->calcLoopNormalsSpaceArray = CDDM_calc_loop_normals_spacearr;
+	dm->calcLoopTangents = DM_calc_loop_tangents;
 	dm->recalcTessellation = CDDM_recalc_tessellation;
 	dm->recalcLoopTri = CDDM_recalc_looptri;
 

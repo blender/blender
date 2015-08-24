@@ -456,7 +456,7 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, bool require_t
 
 		if (require_tangent) {
 			if (CustomData_get_layer_index(&dm->loopData, CD_TANGENT) == -1)
-				DM_add_tangent_layer(dm);
+				DM_calc_loop_tangents(dm);
 
 			pvtangent = DM_get_loop_data_layer(dm, CD_TANGENT);
 		}

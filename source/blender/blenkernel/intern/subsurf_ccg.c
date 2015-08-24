@@ -4096,6 +4096,7 @@ static void set_default_ccgdm_callbacks(CCGDerivedMesh *ccgdm)
 	ccgdm->dm.calcNormals = ccgDM_calcNormals;
 	ccgdm->dm.calcLoopNormals = CDDM_calc_loop_normals;
 	ccgdm->dm.calcLoopNormalsSpaceArray = CDDM_calc_loop_normals_spacearr;
+	ccgdm->dm.calcLoopTangents = DM_calc_loop_tangents;
 	ccgdm->dm.recalcTessellation = ccgDM_recalcTessellation;
 	ccgdm->dm.recalcLoopTri = ccgDM_recalcLoopTri;
 

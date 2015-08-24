@@ -375,7 +375,7 @@ static void mesh_calc_tri_tessface(
 
 	if (tangent) {
 		DM_ensure_normals(dm);
-		DM_add_tangent_layer(dm);
+		DM_calc_loop_tangents(dm);
 
 		precomputed_normals = dm->getPolyDataArray(dm, CD_NORMAL);
 		calculate_normal = precomputed_normals ? false : true;

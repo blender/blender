@@ -3070,7 +3070,7 @@ static void SetTSpace(const SMikkTSpaceContext *pContext, const float fvTangent[
 	pRes[3] = fSign;
 }
 
-void DM_add_tangent_layer(DerivedMesh *dm)
+void DM_calc_loop_tangents(DerivedMesh *dm)
 {
 	/* mesh vars */
 	const MLoopTri *looptri;
@@ -3296,6 +3296,7 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 {
 	CustomData *vdata, *ldata;
 	int a, b, layer;
+	const bool is_editmesh = (dm->type == DM_TYPE_EDITBMESH);
 
 	/* From the layers requested by the GLSL shader, figure out which ones are
 	 * actually available for this derivedmesh, and retrieve the pointers */
@@ -3312,115 +3313,64 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 	/* add a tangent layer if necessary */
 	for (b = 0; b < gattribs->totlayer; b++) {
 		if (gattribs->layer[b].type == CD_TANGENT) {
-			if (CustomData_get_layer_index(ldata, CD_TANGENT) == -1) {
-				DM_add_tangent_layer(dm);
-				break;
+			if (CustomData_get_layer_index(&dm->loopData, CD_TANGENT) == -1) {
+				dm->calcLoopTangents(dm);
 			}
+			break;
 		}
 	}
 
 	for (b = 0; b < gattribs->totlayer; b++) {
 		if (gattribs->layer[b].type == CD_MTFACE) {
 			/* uv coordinates */
-			if (dm->type == DM_TYPE_EDITBMESH) {
-				/* exception .. */
-				CustomData *ldata = dm->getLoopDataLayout(dm);
+			if (gattribs->layer[b].name[0])
+				layer = CustomData_get_named_layer_index(ldata, CD_MLOOPUV, gattribs->layer[b].name);
+			else
+				layer = CustomData_get_active_layer_index(ldata, CD_MLOOPUV);
 
-				if (gattribs->layer[b].name[0])
-					layer = CustomData_get_named_layer_index(ldata, CD_MLOOPUV,
-					                                         gattribs->layer[b].name);
-				else
-					layer = CustomData_get_active_layer_index(ldata, CD_MLOOPUV);
+			a = attribs->tottface++;
 
-				a = attribs->tottface++;
-
-				if (layer != -1) {
-					attribs->tface[a].array = NULL;
-					attribs->tface[a].em_offset = ldata->layers[layer].offset;
-				}
-				else {
-					attribs->tface[a].array = NULL;
-					attribs->tface[a].em_offset = -1;
-				}
-
-				attribs->tface[a].gl_index = gattribs->layer[b].glindex;
-				attribs->tface[a].gl_texco = gattribs->layer[b].gltexco;
+			if (layer != -1) {
+				attribs->tface[a].array = is_editmesh ? NULL: ldata->layers[layer].data;
+				attribs->tface[a].em_offset = ldata->layers[layer].offset;
 			}
 			else {
-				if (gattribs->layer[b].name[0])
-					layer = CustomData_get_named_layer_index(ldata, CD_MLOOPUV,
-					                                         gattribs->layer[b].name);
-				else
-					layer = CustomData_get_active_layer_index(ldata, CD_MLOOPUV);
-
-				a = attribs->tottface++;
-
-				if (layer != -1) {
-					attribs->tface[a].array = ldata->layers[layer].data;
-					attribs->tface[a].em_offset = ldata->layers[layer].offset;
-				}
-				else {
-					attribs->tface[a].array = NULL;
-					attribs->tface[a].em_offset = -1;
-				}
-
-				attribs->tface[a].gl_index = gattribs->layer[b].glindex;
-				attribs->tface[a].gl_texco = gattribs->layer[b].gltexco;
+				attribs->tface[a].array = NULL;
+				attribs->tface[a].em_offset = -1;
 			}
+
+			attribs->tface[a].gl_index = gattribs->layer[b].glindex;
+			attribs->tface[a].gl_texco = gattribs->layer[b].gltexco;
 		}
 		else if (gattribs->layer[b].type == CD_MCOL) {
-			if (dm->type == DM_TYPE_EDITBMESH) {
-				if (gattribs->layer[b].name[0])
-					layer = CustomData_get_named_layer_index(ldata, CD_MLOOPCOL,
-					                                         gattribs->layer[b].name);
-				else
-					layer = CustomData_get_active_layer_index(ldata, CD_MLOOPCOL);
+			if (gattribs->layer[b].name[0])
+				layer = CustomData_get_named_layer_index(ldata, CD_MLOOPCOL, gattribs->layer[b].name);
+			else
+				layer = CustomData_get_active_layer_index(ldata, CD_MLOOPCOL);
 
-				a = attribs->totmcol++;
+			a = attribs->totmcol++;
 
-				if (layer != -1) {
-					attribs->mcol[a].array = NULL;
-					/* odd, store the offset for a different layer type here, but editmode draw code expects it */
-					attribs->mcol[a].em_offset = ldata->layers[layer].offset;
-				}
-				else {
-					attribs->mcol[a].array = NULL;
-					attribs->mcol[a].em_offset = -1;
-				}
-
-				attribs->mcol[a].gl_index = gattribs->layer[b].glindex;
+			if (layer != -1) {
+				attribs->mcol[a].array = is_editmesh ? NULL: ldata->layers[layer].data;
+				/* odd, store the offset for a different layer type here, but editmode draw code expects it */
+				attribs->mcol[a].em_offset = ldata->layers[layer].offset;
 			}
 			else {
-				/* vertex colors */
-				if (gattribs->layer[b].name[0])
-					layer = CustomData_get_named_layer_index(ldata, CD_MLOOPCOL,
-					                                         gattribs->layer[b].name);
-				else
-					layer = CustomData_get_active_layer_index(ldata, CD_MLOOPCOL);
-
-				a = attribs->totmcol++;
-
-				if (layer != -1) {
-					attribs->mcol[a].array = ldata->layers[layer].data;
-					/* odd, store the offset for a different layer type here, but editmode draw code expects it */
-					attribs->mcol[a].em_offset = ldata->layers[layer].offset;
-				}
-				else {
-					attribs->mcol[a].array = NULL;
-					attribs->mcol[a].em_offset = -1;
-				}
-
-				attribs->mcol[a].gl_index = gattribs->layer[b].glindex;
+				attribs->mcol[a].array = NULL;
+				attribs->mcol[a].em_offset = -1;
 			}
+
+			attribs->mcol[a].gl_index = gattribs->layer[b].glindex;
 		}
 		else if (gattribs->layer[b].type == CD_TANGENT) {
-			layer = CustomData_get_layer_index(ldata, CD_TANGENT);
+			/* note, even with 'is_editmesh' this uses the derived-meshes loop data */
+			layer = CustomData_get_layer_index(&dm->loopData, CD_TANGENT);
 
 			attribs->tottang = 1;
 
 			if (layer != -1) {
-				attribs->tang.array = ldata->layers[layer].data;
-				attribs->tang.em_offset = ldata->layers[layer].offset;
+				attribs->tang.array = dm->loopData.layers[layer].data;
+				attribs->tang.em_offset = dm->loopData.layers[layer].offset;
 			}
 			else {
 				attribs->tang.array = NULL;
