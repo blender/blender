@@ -894,7 +894,7 @@ static int start_ffmpeg_impl(FFMpegContext *context, struct RenderData *rd, int 
 			break;
 		case FFMPEG_MPEG4:
 		default:
-			fmt->video_codec = AV_CODEC_ID_MPEG4;
+			fmt->video_codec = context->ffmpeg_codec;
 			break;
 	}
 	if (fmt->video_codec == AV_CODEC_ID_DVVIDEO) {
