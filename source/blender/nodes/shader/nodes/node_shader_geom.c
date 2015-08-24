@@ -91,7 +91,7 @@ static void node_shader_exec_geom(void *data, int UNUSED(thread), bNode *node, b
 				}
 			}
 
-			copy_v3_v3(out[GEOM_OUT_VCOL]->vec, scol->col);
+			srgb_to_linearrgb_v3_v3(out[GEOM_OUT_VCOL]->vec, scol->col);
 			out[GEOM_OUT_VCOL]->vec[3] = scol->col[3];
 			out[GEOM_OUT_VCOL_ALPHA]->vec[0] = scol->col[3];
 		}

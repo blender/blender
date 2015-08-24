@@ -149,6 +149,7 @@ void geom(vec3 co, vec3 nor, mat4 viewinvmat, vec3 attorco, vec2 attuv, vec4 att
 	uv_attribute(attuv, uv);
 	normal = -normalize(nor);	/* blender render normal is negated */
 	vcol_attribute(attvcol, vcol);
+	srgb_to_linearrgb(vcol, vcol);
 	vcol_alpha = attvcol.a;
 	frontback = (gl_FrontFacing)? 1.0: 0.0;
 }
