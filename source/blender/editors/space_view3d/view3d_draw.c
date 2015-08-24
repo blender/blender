@@ -2504,7 +2504,7 @@ typedef struct View3DShadow {
 
 static void gpu_render_lamp_update(Scene *scene, View3D *v3d,
                                    Object *ob, Object *par,
-                                   float obmat[4][4], uint lay,
+                                   float obmat[4][4], unsigned int lay,
                                    ListBase *shadows, SceneRenderLayer *srl)
 {
 	GPULamp *lamp;
