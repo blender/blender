@@ -307,6 +307,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		}
 
 		switch (m_playtype) {
+			case ACT_ACTION_FROM_PROP:
 			case ACT_ACTION_LOOP_STOP:
 				obj->StopAction(m_layer); // Stop the action after getting the frame
 
