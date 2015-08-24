@@ -3860,7 +3860,7 @@ MEdge *DM_get_edge_array(DerivedMesh *dm, bool *allocated)
 
 MLoop *DM_get_loop_array(DerivedMesh *dm, bool *r_allocated)
 {
-	CustomData *loop_data = dm->getEdgeDataLayout(dm);
+	CustomData *loop_data = dm->getLoopDataLayout(dm);
 	MLoop *mloop = CustomData_get_layer(loop_data, CD_MLOOP);
 	*r_allocated = false;
 
