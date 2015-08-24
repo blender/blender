@@ -81,7 +81,7 @@
 		CustomDataLayer *layer;                                                                 \
 		if (data) {                                                                             \
 			int index = CustomData_get_##active_type##_layer_index(data, layer_type);           \
-			layer = (index == -1) ? NULL: &data->layers[index];                                 \
+			layer = (index == -1) ? NULL : &data->layers[index];                                \
 		}                                                                                       \
 		else {                                                                                  \
 			layer = NULL;                                                                       \

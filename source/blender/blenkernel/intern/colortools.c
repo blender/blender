@@ -1126,7 +1126,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 	}
 
 	/* Keep number of threads in sync with the merge parts below. */
-#pragma omp parallel for private(y) schedule(static) num_threads(num_threads) if(ibuf->y > 256)
+#pragma omp parallel for private(y) schedule(static) num_threads(num_threads) if (ibuf->y > 256)
 	for (y = 0; y < ibuf->y; y++) {
 #ifdef _OPENMP
 		const int thread_idx = omp_get_thread_num();

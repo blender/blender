@@ -322,9 +322,9 @@ void MixDifferenceOperation::executePixelSampled(float output[4], float x, float
 		value *= inputColor2[3];
 	}
 	float valuem = 1.0f - value;
-	output[0] = valuem * inputColor1[0] + value *fabsf(inputColor1[0] - inputColor2[0]);
-	output[1] = valuem * inputColor1[1] + value *fabsf(inputColor1[1] - inputColor2[1]);
-	output[2] = valuem * inputColor1[2] + value *fabsf(inputColor1[2] - inputColor2[2]);
+	output[0] = valuem * inputColor1[0] + value * fabsf(inputColor1[0] - inputColor2[0]);
+	output[1] = valuem * inputColor1[1] + value * fabsf(inputColor1[1] - inputColor2[1]);
+	output[2] = valuem * inputColor1[2] + value * fabsf(inputColor1[2] - inputColor2[2]);
 	output[3] = inputColor1[3];
 
 	clampIfNeeded(output);

@@ -113,13 +113,13 @@ void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self);
 
 /* since this is called so often avoid where possible */
 #define BaseMath_ReadCallback(_self) \
-	(((_self)->cb_user ?	_BaseMathObject_ReadCallback((BaseMathObject *)_self):0))
+	(((_self)->cb_user ?	_BaseMathObject_ReadCallback((BaseMathObject *)_self) : 0))
 #define BaseMath_WriteCallback(_self) \
-	(((_self)->cb_user ?_BaseMathObject_WriteCallback((BaseMathObject *)_self):0))
+	(((_self)->cb_user ?_BaseMathObject_WriteCallback((BaseMathObject *)_self) : 0))
 #define BaseMath_ReadIndexCallback(_self, _index) \
-	(((_self)->cb_user ?	_BaseMathObject_ReadIndexCallback((BaseMathObject *)_self, _index):0))
+	(((_self)->cb_user ?	_BaseMathObject_ReadIndexCallback((BaseMathObject *)_self, _index) : 0))
 #define BaseMath_WriteIndexCallback(_self, _index) \
-	(((_self)->cb_user ?	_BaseMathObject_WriteIndexCallback((BaseMathObject *)_self, _index):0))
+	(((_self)->cb_user ?	_BaseMathObject_WriteIndexCallback((BaseMathObject *)_self, _index) : 0))
 
 /* support BASE_MATH_FLAG_IS_FROZEN */
 #define BaseMath_ReadCallback_ForWrite(_self) \

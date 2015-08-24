@@ -60,7 +60,7 @@ void DirectionalBlurOperation::initExecution()
 	this->m_center_y_pix = center_y * height;
 
 	this->m_tx  =  itsc * D * cosf(a);
-	this->m_ty  = -itsc *D *sinf(a);
+	this->m_ty  = -itsc * D * sinf(a);
 	this->m_sc  =  itsc * zoom;
 	this->m_rot =  itsc * spin;
 

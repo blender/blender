@@ -60,7 +60,7 @@ void BLI_covariance_m_vn_ex(
 
 	memset(r_covmat, 0, sizeof(*r_covmat) * (size_t)(n * n));
 
-#pragma omp parallel for default(shared) private(i, j, k) schedule(static) if((nbr_cos_vn * n) >= 10000)
+#pragma omp parallel for default(shared) private(i, j, k) schedule(static) if ((nbr_cos_vn * n) >= 10000)
 	for (i = 0; i < n; i++) {
 		for (j = i; j < n; j++) {
 			r_covmat[i * n + j] = 0.0f;
