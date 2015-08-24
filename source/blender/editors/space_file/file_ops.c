@@ -1275,10 +1275,14 @@ int file_exec(bContext *C, wmOperator *exec_op)
 
 	/* directory change */
 	if (file && (file->typeflag & FILE_TYPE_DIR)) {
+		if (!file->relpath) {
+			return OPERATOR_CANCELLED;
+		}
+
 		if (FILENAME_IS_PARENT(file->relpath)) {
 			BLI_parent_dir(sfile->params->dir);
 		}
-		else if (file->relpath) {
+		else {
 			BLI_cleanup_dir(G.main->name, sfile->params->dir);
 			strcat(sfile->params->dir, file->relpath);
 			BLI_add_slash(sfile->params->dir);

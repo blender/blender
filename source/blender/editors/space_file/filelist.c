@@ -1842,9 +1842,14 @@ bool filelist_cache_previews_update(FileList *filelist)
 
 	while (!BLI_thread_queue_is_empty(cache->previews_done)) {
 		FileListEntryPreview *preview = BLI_thread_queue_pop(cache->previews_done);
+		FileDirEntry *entry;
 
+		/* Paranoid (should never happen currently since we consume this queue from a single thread), but... */
+		if (!preview) {
+			continue;
+		}
 		/* entry might have been removed from cache in the mean while, we do not want to cache it again here. */
-		FileDirEntry *entry = filelist_file_ex(filelist, preview->index, false);
+		entry = filelist_file_ex(filelist, preview->index, false);
 
 //		printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
 
