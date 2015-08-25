@@ -173,7 +173,7 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	if(kernel_tex_fetch(__prim_visibility, triAddr) & visibility)
 #endif
 	{
-		if(len_squared(cross(tri_a, tri_b)) < 1e-14f) {
+		if(len_squared(cross(A, B)) < 1e-12f) {
 			return false;
 		}
 		/* Normalize U, V, W, and T. */
