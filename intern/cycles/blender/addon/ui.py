@@ -1164,12 +1164,16 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
         col.prop(mat, "alpha")
 
         col.separator()
-        col.prop(mat, "pass_index")
+        col.label("Viewport Alpha:")
+        col.prop(mat.game_settings, "alpha_blend", text="")
 
         col = split.column(align=True)
         col.label("Viewport Specular:")
         col.prop(mat, "specular_color", text="")
         col.prop(mat, "specular_hardness", text="Hardness")
+
+        col.separator()
+        col.prop(mat, "pass_index")
 
 
 class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
