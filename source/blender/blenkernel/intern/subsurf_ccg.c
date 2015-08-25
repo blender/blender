@@ -2876,7 +2876,24 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm,
 
 #ifdef WITH_OPENSUBDIV
 	if (ccgdm->useGpuBackend) {
-		BLI_assert(!"Not currently supported");
+		int new_matnr;
+		bool draw_smooth;
+		GPU_draw_update_fvar_offset(dm);
+		if (UNLIKELY(ccgSubSurf_prepareGLMesh(ss, true) == false)) {
+			return;
+		}
+		/* TODO(sergey): Single matierial currently. */
+		if (faceFlags) {
+			draw_smooth = (faceFlags[0].flag & ME_SMOOTH);
+			new_matnr = (faceFlags[0].mat_nr + 1);
+		}
+		else {
+			draw_smooth = true;
+			new_matnr = 1;
+		}
+		glShadeModel(draw_smooth ? GL_SMOOTH : GL_FLAT);
+		setMaterial(userData, new_matnr, &gattribs);
+		ccgSubSurf_drawGLMesh(ss, true, -1, -1);
 		return;
 	}
 #endif
@@ -3234,20 +3251,42 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 
 #ifdef WITH_OPENSUBDIV
 	if (ccgdm->useGpuBackend) {
-		/* TODO(sergey): This is for cases when vertex colors or weights
-		 * are visualising. Currently we don't have CD layers for this data
-		 * and here we only make it so there's no garbage displayed.
-		 *
-		 * In the future we'll either need to have CD for this data or pass
-		 * this data as face-varying or vertex-varying data in OSD mesh.
-		 */
+		DMFlagMat *faceFlags = ccgdm->faceFlags;
+		int new_matnr;
+		bool draw_smooth, do_draw = true;
 		if (setDrawOptions == NULL) {
+			/* TODO(sergey): This is for cases when vertex colors or weights
+			 * are visualising. Currently we don't have CD layers for this data
+			 * and here we only make it so there's no garbage displayed.
+			 *
+			 * In the future we'll either need to have CD for this data or pass
+			 * this data as face-varying or vertex-varying data in OSD mesh.
+			 */
 			glColor3f(0.8f, 0.8f, 0.8f);
 		}
 		if (UNLIKELY(ccgSubSurf_prepareGLMesh(ss, true) == false)) {
 			return;
 		}
-		ccgSubSurf_drawGLMesh(ss, true, -1, -1);
+		if (faceFlags) {
+			draw_smooth = (faceFlags[0].flag & ME_SMOOTH);
+			new_matnr = (faceFlags[0].mat_nr + 1);
+		}
+		else {
+			draw_smooth = true;
+			new_matnr = 1;
+		}
+		if (setMaterial) {
+			setMaterial(new_matnr, NULL);
+		}
+		if (setDrawOptions) {
+			if (setDrawOptions(userData, 0) == DM_DRAW_OPTION_SKIP) {
+				do_draw = false;
+			}
+		}
+		if (do_draw) {
+			glShadeModel(draw_smooth ? GL_SMOOTH : GL_FLAT);
+			ccgSubSurf_drawGLMesh(ss, true, -1, -1);
+		}
 		return;
 	}
 #endif
@@ -3423,7 +3462,12 @@ static void ccgDM_drawMappedEdges(DerivedMesh *dm,
 
 #ifdef WITH_OPENSUBDIV
 	if (ccgdm->useGpuBackend) {
-		BLI_assert(!"Not currently supported");
+		/* TODO(sergey): Only draw edges from base mesh. */
+		if (ccgSubSurf_prepareGLMesh(ccgdm->ss, true)) {
+			if (!setDrawOptions || (setDrawOptions(userData, 0) != DM_DRAW_OPTION_SKIP)) {
+				ccgSubSurf_drawGLMesh(ccgdm->ss, false, -1, -1);
+			}
+		}
 		return;
 	}
 #endif
