@@ -184,15 +184,15 @@ DOMAIN = "blender"
 # File type (ext) to parse.
 PYGETTEXT_ALLOWED_EXTS = {".c", ".cpp", ".cxx", ".hpp", ".hxx", ".h"}
 
-# Max number of contexts into a BLF_I18N_MSGID_MULTI_CTXT macro...
+# Max number of contexts into a BLT_I18N_MSGID_MULTI_CTXT macro...
 PYGETTEXT_MAX_MULTI_CTXT = 16
 
 # Where to search contexts definitions, relative to SOURCE_DIR (defined below).
-PYGETTEXT_CONTEXTS_DEFSRC = os.path.join("source", "blender", "blenfont", "BLF_translation.h")
+PYGETTEXT_CONTEXTS_DEFSRC = os.path.join("source", "blender", "blentranslation", "BLT_translation.h")
 
-# Regex to extract contexts defined in BLF_translation.h
+# Regex to extract contexts defined in BLT_translation.h
 # XXX Not full-proof, but should be enough here!
-PYGETTEXT_CONTEXTS = "#define\\s+(BLF_I18NCONTEXT_[A-Z_0-9]+)\\s+\"([^\"]*)\""
+PYGETTEXT_CONTEXTS = "#define\\s+(BLT_I18NCONTEXT_[A-Z_0-9]+)\\s+\"([^\"]*)\""
 
 # Keywords' regex.
 # XXX Most unfortunately, we can't use named backreferences inside character sets,
@@ -255,7 +255,7 @@ PYGETTEXT_KEYWORDS = (() +
 
     tuple((r"{}\(\s*" + _msg_re + r"\s*,\s*(?:" +
            r"\s*,\s*)?(?:".join(_ctxt_re_gen(i) for i in range(PYGETTEXT_MAX_MULTI_CTXT)) + r")?\s*\)").format(it)
-          for it in ("BLF_I18N_MSGID_MULTI_CTXT",))
+          for it in ("BLT_I18N_MSGID_MULTI_CTXT",))
 )
 
 # Check printf mismatches between msgid and msgstr.
@@ -333,6 +333,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "expected a view3d region & editcurve",
     "expected a view3d region & editmesh",
     "image file not found",
+    "image format is read-only",
     "image path can't be written to",
     "in memory to enable editing!",
     "jumps over",
