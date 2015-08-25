@@ -2986,7 +2986,7 @@ static float mean_value_half_tan_v3(const struct Float3_Len *d_curr, const struc
 	float cross[3], area;
 	cross_v3_v3v3(cross, d_curr->dir, d_next->dir);
 	area = len_v3(cross);
-	if (LIKELY(area != 0.0f)) {
+	if (LIKELY(fabsf(area) > FLT_EPSILON)) {
 		const float dot = dot_v3v3(d_curr->dir, d_next->dir);
 		const float len = d_curr->len * d_next->len;
 		return (len - dot) / area;
@@ -3001,7 +3001,7 @@ static float mean_value_half_tan_v2(const struct Float2_Len *d_curr, const struc
 	float area;
 	/* different from the 3d version but still correct */
 	area = cross_v2v2(d_curr->dir, d_next->dir);
-	if (LIKELY(area != 0.0f)) {
+	if (LIKELY(fabsf(area) > FLT_EPSILON)) {
 		const float dot = dot_v2v2(d_curr->dir, d_next->dir);
 		const float len = d_curr->len * d_next->len;
 		return (len - dot) / area;
