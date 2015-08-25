@@ -131,6 +131,14 @@ void CustomData_update_typemap(struct CustomData *data);
 bool CustomData_merge(const struct CustomData *source, struct CustomData *dest,
                       CustomDataMask mask, int alloctype, int totelem);
 
+/* Reallocate custom data to a new element count.
+ * Only affects on data layers which are owned by the CustomData itself,
+ * referenced data is kept unchanged,
+ *
+ * NOTE: Take care of referenced layers by yourself!
+ */
+void CustomData_realloc(struct CustomData *data, int totelem);
+
 /* bmesh version of CustomData_merge; merges the layouts of source and dest,
  * then goes through the mesh and makes sure all the customdata blocks are
  * consistent with the new layout.*/
