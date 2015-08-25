@@ -839,6 +839,8 @@ static char *code_generate_geometry(ListBase *nodes, bool use_opensubdiv)
 		BLI_dynstr_append(ds, datatoc_gpu_shader_geometry_glsl);
 
 		/* Generate varying assignments. */
+		/* TODO(sergey): Disabled for now, needs revisit. */
+#if 0
 		for (node = nodes->first; node; node = node->next) {
 			for (input = node->inputs.first; input; input = input->next) {
 				if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
@@ -852,6 +854,7 @@ static char *code_generate_geometry(ListBase *nodes, bool use_opensubdiv)
 				}
 			}
 		}
+#endif
 
 		BLI_dynstr_append(ds, "}\n\n");
 		code = BLI_dynstr_get_cstring(ds);
