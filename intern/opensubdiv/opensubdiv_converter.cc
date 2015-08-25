@@ -574,6 +574,17 @@ int openSubdiv_topologyRefinerGetNumFaces(
 	return base_level.GetNumFaces();
 }
 
+int openSubdiv_topologyRefinerGetNumFaceVerts(
+        const OpenSubdiv_TopologyRefinerDescr *topology_refiner,
+        int face)
+{
+	using OpenSubdiv::Far::TopologyLevel;
+	using OpenSubdiv::Far::TopologyRefiner;
+	const TopologyRefiner *refiner = (const TopologyRefiner *)topology_refiner;
+	const TopologyLevel &base_level = refiner->GetLevel(0);
+	return base_level.GetFaceVertices(face).size();
+}
+
 int openSubdiv_topologyRefnerCompareConverter(
         const OpenSubdiv_TopologyRefinerDescr *topology_refiner,
         OpenSubdiv_Converter *converter)

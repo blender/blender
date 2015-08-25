@@ -94,7 +94,7 @@ void openSubdiv_deleteTopologyRefinerDescr(
         OpenSubdiv_TopologyRefinerDescr *topology_refiner);
 
 /* TODO(sergey): Those calls are not strictly related on conversion.
- * needs some dedicated fiel perhaps.
+ * needs some dedicated file perhaps.
  */
 
 int openSubdiv_topologyRefinerGetSubdivLevel(
@@ -108,6 +108,10 @@ int openSubdiv_topologyRefinerGetNumEdges(
 
 int openSubdiv_topologyRefinerGetNumFaces(
         const OpenSubdiv_TopologyRefinerDescr *topology_refiner);
+
+int openSubdiv_topologyRefinerGetNumFaceVerts(
+        const OpenSubdiv_TopologyRefinerDescr *topology_refiner,
+        int face);
 
 int openSubdiv_topologyRefnerCompareConverter(
         const OpenSubdiv_TopologyRefinerDescr *topology_refiner,

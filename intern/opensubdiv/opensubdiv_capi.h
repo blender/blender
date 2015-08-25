@@ -135,8 +135,8 @@ void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl,
 /* Draw patches which corresponds to a given partition. */
 void openSubdiv_osdGLMeshDisplay(OpenSubdiv_GLMesh *gl_mesh,
                                  int fill_quads,
-                                 int start_partition,
-                                 int num_partitions);
+                                 int start_patch,
+                                 int num_patches);
 
 /* ** Utility functions ** */
 int openSubdiv_supportGPUDisplay(void);

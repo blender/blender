@@ -308,6 +308,31 @@ void ccgSubSurf_drawGLMesh(CCGSubSurf *ss, bool fill_quads,
 	}
 }
 
+int ccgSubSurf_getNumGLMeshBaseFaces(CCGSubSurf *ss)
+{
+	const OpenSubdiv_TopologyRefinerDescr *topology_refiner;
+	if (ss->osd_topology_refiner != NULL) {
+		topology_refiner = ss->osd_topology_refiner;
+	}
+	else {
+		topology_refiner = openSubdiv_getGLMeshTopologyRefiner(ss->osd_mesh);
+	}
+	return openSubdiv_topologyRefinerGetNumFaces(topology_refiner);
+}
+
+/* Get number of vertices in base faces in a particular GL mesh. */
+int ccgSubSurf_getNumGLMeshBaseFaceVerts(CCGSubSurf *ss, int face)
+{
+	const OpenSubdiv_TopologyRefinerDescr *topology_refiner;
+	if (ss->osd_topology_refiner != NULL) {
+		topology_refiner = ss->osd_topology_refiner;
+	}
+	else {
+		topology_refiner = openSubdiv_getGLMeshTopologyRefiner(ss->osd_mesh);
+	}
+	return openSubdiv_topologyRefinerGetNumFaceVerts(topology_refiner, face);
+}
+
 void ccgSubSurf_setSkipGrids(CCGSubSurf *ss, bool skip_grids)
 {
 	ss->skip_grids = skip_grids;
