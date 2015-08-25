@@ -491,13 +491,13 @@ static bool file_walk_select_selection_set(
 
 	if (has_selection) {
 		if (extend &&
-		    filelist_entry_select_index_get(files, active_old, FILE_SEL_SELECTED) &&
-		    filelist_entry_select_index_get(files, active_new, FILE_SEL_SELECTED))
+		    filelist_entry_select_index_get(files, active_old, CHECK_ALL) &&
+		    filelist_entry_select_index_get(files, active_new, CHECK_ALL))
 		{
 			/* conditions for deselecting: initial file is selected, new file is
 			 * selected and either other_side isn't selected/found or we use fill */
 			deselect = (fill || other_site == -1 ||
-			            !filelist_entry_select_index_get(files, other_site, FILE_SEL_SELECTED));
+			            !filelist_entry_select_index_get(files, other_site, CHECK_ALL));
 
 			/* don't change highlight_file here since we either want to deselect active or we want to
 			 * walk through a block of selected files without selecting/deselecting anything */
