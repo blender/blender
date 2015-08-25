@@ -163,9 +163,10 @@ const char* gpuErrorString(GLenum err)
 #endif
 
 
-static void APIENTRY gpu_debug_proc(GLenum source, GLenum type, GLuint UNUSED(id),
-                               GLenum UNUSED(severity), GLsizei UNUSED(length),
-                               const GLchar *message, GLvoid *UNUSED(userParm))
+static void APIENTRY gpu_debug_proc(
+        GLenum source, GLenum type, GLuint UNUSED(id),
+        GLenum UNUSED(severity), GLsizei UNUSED(length),
+        const GLchar *message, const GLvoid *UNUSED(userParm))
 {
 	if (source == GL_DEBUG_SOURCE_API && type == GL_DEBUG_TYPE_ERROR) {
 		fprintf(stderr, "GL: %s\n", message);
@@ -179,9 +180,10 @@ static void APIENTRY gpu_debug_proc(GLenum source, GLenum type, GLuint UNUSED(id
 
 
 #ifndef GLEW_ES_ONLY
-static void APIENTRY gpu_debug_proc_amd(GLuint UNUSED(id), GLenum UNUSED(category),
-                               GLenum UNUSED(severity), GLsizei UNUSED(length),
-                               const GLchar *message,  GLvoid *UNUSED(userParm))
+static void APIENTRY gpu_debug_proc_amd(
+        GLuint UNUSED(id), GLenum UNUSED(category),
+        GLenum UNUSED(severity), GLsizei UNUSED(length),
+        const GLchar *message,  GLvoid *UNUSED(userParm))
 {
 	fprintf(stderr, "GL: %s\n", message);
 }
