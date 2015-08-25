@@ -4018,7 +4018,7 @@ bool BKE_object_modifier_use_time(Object *ob, ModifierData *md)
 		AnimData *adt = ob->adt;
 		FCurve *fcu;
 
-		char pattern[MAX_NAME + 10];
+		char pattern[MAX_NAME + 16];
 		BLI_snprintf(pattern, sizeof(pattern), "modifiers[\"%s\"]", md->name);
 
 		/* action - check for F-Curves with paths containing 'modifiers[' */
