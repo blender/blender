@@ -225,6 +225,9 @@ public:
 	KX_ISceneConverter* GetSceneConverter() { return m_sceneconverter; }
 	void			SetAnimRecordMode(bool animation_record, int startFrame);
 
+	int getAnimRecordFrame() const;
+	void setAnimRecordFrame(int framenr);
+
 	RAS_IRasterizer*		GetRasterizer() { return m_rasterizer; }
 	RAS_ICanvas*		    GetCanvas() { return m_canvas; }
 	SCA_IInputDevice*		GetKeyboardDevice() { return m_keyboarddevice; }

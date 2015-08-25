@@ -337,6 +337,28 @@ General functions
 
    .. warning: Not implimented yet
 
+.. function:: getAnimRecordFrame()
+
+    Gets the current frame number used for recording animations. This
+    number is incremented automatically by Blender when the "Record
+    animation" feature is turned on.
+
+    :rtype: int
+
+.. function:: setAnimRecordFrame(framenr)
+
+    Sets the current frame number used for recording animations. This
+    number is automatically incremented by Blender when the "Record
+    animation" feature is turned on.
+
+    The frame number Must be non-negative, unless Blender has
+    :attr:`bpy.types.UserPreferencesEdit.use_negative_frames` enabled
+    in its user preferences. Only use non-negative numbers to be on
+    the safe side, unless you know what you are doing.
+
+    :arg framenr: The new frame number.
+    :type framenr: int
+
 .. function:: getExitKey()
 
    Gets the key used to exit the game engine

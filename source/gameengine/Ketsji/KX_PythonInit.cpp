@@ -526,6 +526,27 @@ static PyObject *gPyGetPhysicsTicRate(PyObject *)
 	return PyFloat_FromDouble(PHY_GetActiveEnvironment()->GetFixedTimeStep());
 }
 
+static PyObject *gPySetAnimRecordFrame(PyObject *, PyObject *args)
+{
+	int anim_record_frame;
+
+	if (!PyArg_ParseTuple(args, "i:setAnimRecordFrame", &anim_record_frame))
+		return NULL;
+
+	if (anim_record_frame < 0 && (U.flag & USER_NONEGFRAMES)) {
+		PyErr_Format(PyExc_ValueError, "Frame number must be non-negative (was %i).", anim_record_frame);
+		return NULL;
+	}
+
+	gp_KetsjiEngine->setAnimRecordFrame(anim_record_frame);
+	Py_RETURN_NONE;
+}
+
+static PyObject *gPyGetAnimRecordFrame(PyObject *)
+{
+	return PyLong_FromLong(gp_KetsjiEngine->getAnimRecordFrame());
+}
+
 static PyObject *gPyGetAverageFrameRate(PyObject *)
 {
 	return PyFloat_FromDouble(KX_KetsjiEngine::GetAverageFrameRate());
@@ -887,6 +908,8 @@ static struct PyMethodDef game_methods[] = {
 	{"setLogicTicRate", (PyCFunction) gPySetLogicTicRate, METH_VARARGS, (const char *)"Sets the logic tic rate"},
 	{"getPhysicsTicRate", (PyCFunction) gPyGetPhysicsTicRate, METH_NOARGS, (const char *)"Gets the physics tic rate"},
 	{"setPhysicsTicRate", (PyCFunction) gPySetPhysicsTicRate, METH_VARARGS, (const char *)"Sets the physics tic rate"},
+	{"getAnimRecordFrame", (PyCFunction) gPyGetAnimRecordFrame, METH_NOARGS, (const char *)"Gets the current frame number used for animation recording"},
+	{"setAnimRecordFrame", (PyCFunction) gPySetAnimRecordFrame, METH_VARARGS, (const char *)"Sets the current frame number used for animation recording"},
 	{"getExitKey", (PyCFunction) gPyGetExitKey, METH_NOARGS, (const char *)"Gets the key used to exit the game engine"},
 	{"setExitKey", (PyCFunction) gPySetExitKey, METH_VARARGS, (const char *)"Sets the key used to exit the game engine"},
 	{"getAverageFrameRate", (PyCFunction) gPyGetAverageFrameRate, METH_NOARGS, (const char *)"Gets the estimated average frame rate"},

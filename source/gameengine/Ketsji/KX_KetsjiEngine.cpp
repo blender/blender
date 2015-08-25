@@ -1750,6 +1750,16 @@ void	KX_KetsjiEngine::SetAnimRecordMode(bool animation_record, int startFrame)
 	m_currentFrame = startFrame;
 }
 
+int KX_KetsjiEngine::getAnimRecordFrame() const
+{
+	return m_currentFrame;
+}
+
+void KX_KetsjiEngine::setAnimRecordFrame(int framenr)
+{
+	m_currentFrame = framenr;
+}
+
 bool KX_KetsjiEngine::GetUseFixedTime(void) const
 {
 	return m_bFixedTime;
