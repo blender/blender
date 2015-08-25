@@ -37,7 +37,10 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
-#include "DNA_userdef_types.h"
+
+#ifdef WITH_OPENSUBDIV
+#  include "DNA_userdef_types.h"
+#endif
 
 #include "BLI_utildefines.h"
 
