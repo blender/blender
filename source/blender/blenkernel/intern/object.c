@@ -1562,6 +1562,7 @@ Object *BKE_object_copy_ex(Main *bmain, Object *ob, bool copy_caches)
 	}
 
 	/* Do not copy object's preview (mostly due to the fact renderers create temp copy of objects). */
+	obn->preview = NULL;
 
 	return obn;
 }
