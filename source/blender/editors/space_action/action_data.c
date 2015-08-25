@@ -532,7 +532,7 @@ void ACTION_OT_stash_and_create(wmOperatorType *ot)
  * 3) We need a convenient way to exit Tweak Mode from the Action Editor
  */
 
-void ED_animedit_unlink_action(bContext *C, ID *id, AnimData *adt, bAction *act, ReportList *reports)
+void ED_animedit_unlink_action(bContext *C, ID *id, AnimData *adt, bAction *act, ReportList *reports, bool force_delete)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	
@@ -546,6 +546,45 @@ void ED_animedit_unlink_action(bContext *C, ID *id, AnimData *adt, bAction *act,
 		BKE_reportf(reports, RPT_WARNING,
 		            "Action '%s' will not be saved, create Fake User or Stash in NLA Stack to retain",
 		            act->id.name + 2);
+	}
+	
+	/* Clear Fake User and remove action stashing strip (if present) */
+	if (force_delete) {
+		/* Remove stashed strip binding this action to this datablock */
+		/* XXX: we cannot unlink it from *OTHER* datablocks that may also be stashing it,
+		 * but GE users only seem to use/care about single-object binding for now so this
+		 * should be fine
+		 */
+		if (adt) {
+			NlaTrack *nlt, *nlt_next;
+			NlaStrip *strip, *nstrip;
+			
+			for (nlt = adt->nla_tracks.first; nlt; nlt = nlt_next) {
+				nlt_next = nlt->next;
+				
+				if (strstr(nlt->name, DATA_("[Action Stash]"))) {
+					for (strip = nlt->strips.first; strip; strip = nstrip) {
+						nstrip = strip->next;
+						
+						if (strip->act == act) {
+							/* Remove this strip, and the track too if it doesn't have anything else */
+							free_nlastrip(&nlt->strips, strip);
+							
+							if (nlt->strips.first == NULL) {
+								BLI_assert(nstrip == NULL);
+								free_nlatrack(&adt->nla_tracks, nlt);
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		/* Clear Fake User */
+		if (act->id.flag & LIB_FAKEUSER) {
+			act->id.flag &= ~LIB_FAKEUSER;
+			act->id.us--;
+		}
 	}
 	
 	/* If in Tweak Mode, don't unlink. Instead, this 
@@ -602,24 +641,40 @@ static int action_unlink_poll(bContext *C)
 static int action_unlink_exec(bContext *C, wmOperator *op)
 {
 	AnimData *adt = ED_actedit_animdata_from_context(C);
+	bool force_delete = RNA_boolean_get(op->ptr, "force_delete");
 	
 	if (adt && adt->action) {
-		ED_animedit_unlink_action(C, NULL, adt, adt->action, op->reports);
+		ED_animedit_unlink_action(C, NULL, adt, adt->action, op->reports, force_delete);
 	}
 	
 	return OPERATOR_FINISHED;
 }
 
+static int action_unlink_invoke(bContext *C, wmOperator *op, const wmEvent *evt)
+{
+	/* NOTE: this is hardcoded to match the behaviour for the unlink button (in interface_templates.c) */
+	RNA_boolean_set(op->ptr, "force_delete", evt->shift != 0);
+	return action_unlink_exec(C, op);
+}
+
 void ACTION_OT_unlink(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Unlink Action";
 	ot->idname = "ACTION_OT_unlink";
 	ot->description = "Unlink this action from the active action slot (and/or exit Tweak Mode)";
 	
 	/* callbacks */
+	ot->invoke = action_unlink_invoke;
 	ot->exec = action_unlink_exec;
 	ot->poll = action_unlink_poll;
+	
+	/* properties */
+	prop = RNA_def_boolean(ot->srna, "force_delete", false, "Force Delete", 
+	                       "Clear Fake User and remove copy stashed in this datablock's NLA stack");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ************************************************************************** */

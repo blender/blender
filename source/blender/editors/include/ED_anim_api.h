@@ -683,7 +683,9 @@ void ED_operatormacros_action(void);
 
 /* Action Editor - Action Management */
 struct AnimData *ED_actedit_animdata_from_context(struct bContext *C);
-void ED_animedit_unlink_action(struct bContext *C, struct ID *id, struct AnimData *adt, struct bAction *act, struct ReportList *reports);
+void ED_animedit_unlink_action(struct bContext *C, struct ID *id, 
+                               struct AnimData *adt, struct bAction *act,
+                               struct ReportList *reports, bool force_delete);
 
 /* ************************************************ */
 

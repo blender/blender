@@ -534,22 +534,38 @@ static int nla_action_unlink_exec(bContext *C, wmOperator *op)
 	
 	/* do unlinking */
 	if (adt && adt->action) {
-		ED_animedit_unlink_action(C, adt_ptr.id.data, adt, adt->action, op->reports);
+		bool force_delete = RNA_boolean_get(op->ptr, "force_delete");
+		ED_animedit_unlink_action(C, adt_ptr.id.data, adt, adt->action, op->reports, force_delete);
 	}
 	
 	return OPERATOR_FINISHED;
 }
 
+static int nla_action_unlink_invoke(bContext *C, wmOperator *op, const wmEvent *evt)
+{
+	/* NOTE: this is hardcoded to match the behaviour for the unlink button (in interface_templates.c) */
+	RNA_boolean_set(op->ptr, "force_delete", evt->shift != 0);
+	return nla_action_unlink_exec(C, op);
+}
+
 void NLA_OT_action_unlink(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Unlink Action";
 	ot->idname = "NLA_OT_action_unlink";
 	ot->description = "Unlink this action from the active action slot (and/or exit Tweak Mode)";
 	
 	/* callbacks */
+	ot->invoke = nla_action_unlink_invoke;
 	ot->exec = nla_action_unlink_exec;
 	ot->poll = nla_action_unlink_poll;
+	
+	/* properties */
+	prop = RNA_def_boolean(ot->srna, "force_delete", false, "Force Delete", 
+	                       "Clear Fake User and remove copy stashed in this datablock's NLA stack");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ******************** Add Tracks Operator ***************************** */
