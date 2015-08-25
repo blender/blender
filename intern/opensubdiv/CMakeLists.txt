@@ -47,7 +47,6 @@ set(SRC
 	opensubdiv_device_context_cuda.h
 	opensubdiv_device_context_opencl.h
 	opensubdiv_intern.h
-	opensubdiv_partitioned.h
 )
 
 if(WITH_SUBSURF_WERROR)

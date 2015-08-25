@@ -47,11 +47,8 @@
 #include <opensubdiv/osd/cpuGLVertexBuffer.h>
 #include <opensubdiv/osd/cpuEvaluator.h>
 
-#include "opensubdiv_partitioned.h"
-
 //using OpenSubdiv::FarPatchTables;
 using OpenSubdiv::Osd::GLMeshInterface;
-//sing OpenSubdiv::PartitionedGLMeshInterface;
 
 extern "C" char datatoc_gpu_shader_opensubd_display_glsl[];
 
@@ -301,7 +298,7 @@ GLuint linkProgram(const char *define)
 	return program;
 }
 
-void bindProgram(PartitionedGLMeshInterface * /*mesh*/,
+void bindProgram(GLMeshInterface * /*mesh*/,
                  int program)
 {
 	glUseProgram(program);
@@ -467,7 +464,7 @@ void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl,
 	}
 }
 
-static GLuint preapre_patchDraw(PartitionedGLMeshInterface *mesh,
+static GLuint preapre_patchDraw(GLMeshInterface *mesh,
                                 bool fill_quads)
 {
 	GLint program = 0;
@@ -575,7 +572,7 @@ static void finish_patchDraw(bool fill_quads)
 	}
 }
 
-static void draw_partition_patches_range(PartitionedGLMeshInterface *mesh,
+static void draw_partition_patches_range(GLMeshInterface *mesh,
                                          GLuint program,
                                          int start_patch,
                                          int num_patches)
@@ -611,7 +608,7 @@ static void draw_partition_patches_range(PartitionedGLMeshInterface *mesh,
     }
 }
 
-static void draw_all_patches(PartitionedGLMeshInterface *mesh,
+static void draw_all_patches(GLMeshInterface *mesh,
                              GLuint program)
 {
 	const OpenSubdiv::Osd::PatchArrayVector& patches =
@@ -635,8 +632,8 @@ void openSubdiv_osdGLMeshDisplay(OpenSubdiv_GLMesh *gl_mesh,
                                  int start_patch,
                                  int num_patches)
 {
-	PartitionedGLMeshInterface *mesh =
-		(PartitionedGLMeshInterface *)(gl_mesh->descriptor);
+	GLMeshInterface *mesh =
+		(GLMeshInterface *)(gl_mesh->descriptor);
 
 	/* Make sure all global invariants are initialized. */
 	openSubdiv_osdGLDisplayInit();

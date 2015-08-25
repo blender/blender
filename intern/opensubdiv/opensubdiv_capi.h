@@ -132,7 +132,7 @@ void openSubdiv_evaluateVarying(OpenSubdiv_EvaluatorDescr *evaluator_descr,
 void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl,
                                         int active_uv_index);
 
-/* Draw patches which corresponds to a given partition. */
+/* Draw specified patches. */
 void openSubdiv_osdGLMeshDisplay(OpenSubdiv_GLMesh *gl_mesh,
                                  int fill_quads,
                                  int start_patch,
