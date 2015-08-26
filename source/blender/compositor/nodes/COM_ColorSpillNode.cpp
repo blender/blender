@@ -38,16 +38,10 @@ void ColorSpillNode::convertToOperations(NodeConverter &converter, const Composi
 	NodeOutput *outputSocketImage = this->getOutputSocket(0);
 	
 	ColorSpillOperation *operation;
-	if (editorsnode->custom2 == 0) {
-		// Simple color spill
-		operation = new ColorSpillOperation();
-	}
-	else {
-		// Average color spill
-		operation = new ColorSpillAverageOperation();
-	}
+	operation = new ColorSpillOperation();
 	operation->setSettings((NodeColorspill *)editorsnode->storage);
 	operation->setSpillChannel(editorsnode->custom1 - 1); // Channel for spilling
+	operation->setSpillMethod(editorsnode->custom2); // Channel method
 	converter.addOperation(operation);
 	
 	converter.mapInputSocket(inputSocketImage, operation->getInputSocket(0));

@@ -34,6 +34,7 @@ protected:
 	SocketReader *m_inputImageReader;
 	SocketReader *m_inputFacReader;
 	int m_spillChannel;
+	int m_spillMethod;
 	int m_channel2;
 	int m_channel3;
 	float m_rmut, m_gmut, m_bmut;
@@ -53,12 +54,9 @@ public:
 
 	void setSettings(NodeColorspill *nodeColorSpill) { this->m_settings = nodeColorSpill; }
 	void setSpillChannel(int channel) { this->m_spillChannel = channel; }
+	void setSpillMethod(int method) { this->m_spillMethod = method; }
 	
 	float calculateMapValue(float fac, float *input);
 };
 
-class ColorSpillAverageOperation : public ColorSpillOperation {
-public:
-	float calculateMapValue(float fac, float *input);
-};
 #endif

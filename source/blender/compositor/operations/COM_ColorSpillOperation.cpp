@@ -33,6 +33,7 @@ ColorSpillOperation::ColorSpillOperation() : NodeOperation()
 	this->m_inputImageReader = NULL;
 	this->m_inputFacReader = NULL;
 	this->m_spillChannel = 1; // GREEN
+	this->m_spillMethod = 0;
 }
 
 void ColorSpillOperation::initExecution()
@@ -91,7 +92,17 @@ void ColorSpillOperation::executePixelSampled(float output[4], float x, float y,
 	this->m_inputFacReader->readSampled(fac, x, y, sampler);
 	this->m_inputImageReader->readSampled(input, x, y, sampler);
 	float rfac = min(1.0f, fac[0]);
-	float map = calculateMapValue(rfac, input);
+	float map;
+
+	switch (this->m_spillMethod) {
+		case 0:  /* simple */
+			map = rfac * (input[this->m_spillChannel] - (this->m_settings->limscale * input[this->m_settings->limchan]));
+			break;
+		default:  /* average */
+			map = rfac * (input[this->m_spillChannel] - (this->m_settings->limscale * AVG(input[this->m_channel2], input[this->m_channel3])));
+			break;
+	}
+
 	if (map > 0.0f) {
 		output[0] = input[0] + this->m_rmut * (this->m_settings->uspillr * map);
 		output[1] = input[1] + this->m_gmut * (this->m_settings->uspillg * map);
@@ -101,14 +112,4 @@ void ColorSpillOperation::executePixelSampled(float output[4], float x, float y,
 	else {
 		copy_v4_v4(output, input);
 	}
-}
-float ColorSpillOperation::calculateMapValue(float fac, float *input)
-{
-	return fac * (input[this->m_spillChannel] - (this->m_settings->limscale * input[this->m_settings->limchan]));
-}
-
-
-float ColorSpillAverageOperation::calculateMapValue(float fac, float *input)
-{
-	return fac * (input[this->m_spillChannel] - (this->m_settings->limscale * AVG(input[this->m_channel2], input[this->m_channel3])));
 }
