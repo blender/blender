@@ -1609,12 +1609,12 @@ bool ED_screen_delete(bContext *C, bScreen *sc)
 	 * can safely assume ours is not in use anywhere an delete it */
 
 	for (newsc = sc->id.prev; newsc; newsc = newsc->id.prev)
-		if (!ed_screen_used(wm, newsc))
+		if (!ed_screen_used(wm, newsc) && !newsc->temp)
 			break;
 	
 	if (!newsc) {
 		for (newsc = sc->id.next; newsc; newsc = newsc->id.next)
-			if (!ed_screen_used(wm, newsc))
+			if (!ed_screen_used(wm, newsc) && !newsc->temp)
 				break;
 	}
 
