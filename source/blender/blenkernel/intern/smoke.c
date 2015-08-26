@@ -93,6 +93,8 @@
 
 #ifdef WITH_SMOKE
 
+static ThreadMutex object_update_lock = BLI_MUTEX_INITIALIZER;
+
 #ifdef _WIN32
 #include <time.h>
 #include <stdio.h>
@@ -2164,7 +2166,9 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 					}
 					else { /* MOD_SMOKE_FLOW_SOURCE_MESH */
 						/* update flow object frame */
+						BLI_mutex_lock(&object_update_lock);
 						subframe_updateObject(scene, collob, 1, 5, BKE_scene_frame_get(scene), for_render);
+						BLI_mutex_unlock(&object_update_lock);
 
 						/* apply flow */
 						emit_from_derivedmesh(collob, sds, sfs, &em_temp, sdt);
