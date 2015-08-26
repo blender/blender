@@ -289,12 +289,22 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
 	if (flag & ANIM_UNITCONV_NORMALIZE_FREEZE) {
 		if (r_offset)
 			*r_offset = fcu->prev_offset;
+		if (fcu->prev_norm_factor == 0.0f) {
+			/* Happens when Auto Normalize was disabled before
+			 * any curves were displayed.
+			 */
+			return 1.0f;
+		}
 		return fcu->prev_norm_factor;
 	}
 
 	if (G.moving & G_TRANSFORM_FCURVES) {
 		if (r_offset)
 			*r_offset = fcu->prev_offset;
+		if (fcu->prev_norm_factor == 0.0f) {
+			/* Same as above. */
+			return 1.0f;
+		}
 		return fcu->prev_norm_factor;
 	}
 
@@ -342,7 +352,7 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
 		}
 		offset = -min_coord - range / 2.0f;
 	}
-
+	BLI_assert(factor != 0.0f);
 	if (r_offset) {
 		*r_offset = offset;
 	}
