@@ -615,6 +615,11 @@ static void rna_Window_screen_set(PointerRNA *ptr, PointerRNA value)
 {
 	wmWindow *win = (wmWindow *)ptr->data;
 
+	/* disallow ID-browsing away from temp screens */
+	if (win->screen->temp) {
+		return;
+	}
+
 	if (value.data == NULL)
 		return;
 
