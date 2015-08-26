@@ -298,5 +298,6 @@ int openSubdiv_supportGPUDisplay(void)
 {
 	return GL_EXT_geometry_shader4 &&
 	       GL_ARB_gpu_shader5 &&
+	       GL_ARB_uniform_buffer_object &&
 	       glProgramParameteriEXT;
 }
