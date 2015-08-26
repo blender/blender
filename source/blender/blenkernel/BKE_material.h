@@ -98,7 +98,7 @@ void BKE_material_clear_id(struct ID *id, bool update_data);
 /* rendering */
 
 void init_render_material(struct Material *, int, float *);
-void init_render_materials(struct Main *, int, float *);
+void init_render_materials(struct Main *, int r_mode, float *amd, bool do_default_material);
 void end_render_material(struct Material *);
 void end_render_materials(struct Main *);
 

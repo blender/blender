@@ -1132,7 +1132,7 @@ void init_render_material(Material *mat, int r_mode, float *amb)
 	}
 }
 
-void init_render_materials(Main *bmain, int r_mode, float *amb)
+void init_render_materials(Main *bmain, int r_mode, float *amb, bool do_default_material)
 {
 	Material *ma;
 	
@@ -1153,8 +1153,10 @@ void init_render_materials(Main *bmain, int r_mode, float *amb)
 		if (ma->id.us) 
 			init_render_material(ma, r_mode, amb);
 	}
-	
-	init_render_material(&defmaterial, r_mode, amb);
+
+	if (do_default_material) {
+		init_render_material(&defmaterial, r_mode, amb);
+	}
 }
 
 /* only needed for nodes now */
