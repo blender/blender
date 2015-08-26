@@ -66,6 +66,16 @@ void ChromaMatteOperation::executePixelSampled(float output[4], float x, float y
 
 	/* Algorithm from book "Video Demistified," does not include the spill reduction part */
 	/* find theta, the angle that the color space should be rotated based on key */
+
+	/* rescale to -1.0..1.0 */
+	// inImage[0] = (inImage[0] * 2.0f) - 1.0f;  // UNUSED
+	inImage[1] = (inImage[1] * 2.0f) - 1.0f;
+	inImage[2] = (inImage[2] * 2.0f) - 1.0f;
+
+	// inKey[0] = (inKey[0] * 2.0f) - 1.0f;  // UNUSED
+	inKey[1] = (inKey[1] * 2.0f) - 1.0f;
+	inKey[2] = (inKey[2] * 2.0f) - 1.0f;
+
 	theta = atan2(inKey[2], inKey[1]);
 
 	/*rotate the cb and cr into x/z space */
@@ -77,7 +87,7 @@ void ChromaMatteOperation::executePixelSampled(float output[4], float x, float y
 	kfg = x_angle - (fabsf(z_angle) / tanf(acceptance / 2.f));
 
 	if (kfg > 0.f) {  /* found a pixel that is within key color */
-		alpha = (1.f - kfg) * (gain);
+		alpha = 1.0f - (kfg / gain);
 
 		beta = atan2(z_angle, x_angle);
 
