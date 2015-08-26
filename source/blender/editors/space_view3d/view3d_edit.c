@@ -3815,8 +3815,16 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
 		                      smooth_viewtx);
 	}
 	else {
+		float ofs[3], dist;
+
+		copy_v3_v3(ofs, rv3d->ofs);
+		dist = rv3d->dist;
+
+		/* so we animate _from_ the camera location */
+		ED_view3d_from_object(v3d->camera, rv3d->ofs, NULL, &rv3d->dist, NULL);
+
 		ED_view3d_smooth_view(C, v3d, ar, NULL, NULL,
-		                      NULL, quat, NULL, NULL,
+		                      ofs, quat, &dist, NULL,
 		                      smooth_viewtx);
 	}
 
