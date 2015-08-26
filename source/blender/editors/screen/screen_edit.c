@@ -1568,15 +1568,24 @@ void ED_screen_set(bContext *C, bScreen *sc)
 	}
 }
 
-static int ed_screen_used(wmWindowManager *wm, bScreen *sc)
+static bool ed_screen_used(wmWindowManager *wm, bScreen *sc)
 {
 	wmWindow *win;
 
-	for (win = wm->windows.first; win; win = win->next)
-		if (win->screen == sc)
-			return 1;
-	
-	return 0;
+	for (win = wm->windows.first; win; win = win->next) {
+		if (win->screen == sc) {
+			return true;
+		}
+
+		if (ELEM(win->screen->state, SCREENMAXIMIZED, SCREENFULL)) {
+			ScrArea *sa = win->screen->areabase.first;
+			if (sa->full == sc) {
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 /* only call outside of area/region loops */
