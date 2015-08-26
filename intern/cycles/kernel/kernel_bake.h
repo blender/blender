@@ -31,6 +31,13 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 	float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
 	bool is_sss_sample = is_sss;
 
+	ray.P = sd->P + sd->Ng;
+	ray.D = -sd->Ng;
+	ray.t = FLT_MAX;
+#ifdef __CAMERA_MOTION__
+	ray.time = TIME_INVALID;
+#endif
+
 	/* init radiance */
 	path_radiance_init(&L_sample, kernel_data.film.use_light_pass);
 
