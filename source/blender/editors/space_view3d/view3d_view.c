@@ -137,6 +137,9 @@ struct SmoothView3DStore {
 	struct SmoothView3DState org;  /* original */
 
 	bool to_camera;
+
+	/* When smooth-view is enabled, store the 'rv3d->view' here,
+	 * assign back when the view motion is completed. */
 	char org_view;
 
 	double time_allowed;
@@ -180,12 +183,12 @@ void ED_view3d_smooth_view_ex(
 	/* if smoothview runs multiple times... */
 	if (rv3d->sms == NULL) {
 		view3d_smooth_view_state_backup(&sms.org, v3d, rv3d);
-		sms.org_view = rv3d->view;
 	}
 	else {
 		sms.org = rv3d->sms->org;
-		sms.org_view = rv3d->sms->org_view;
 	}
+	sms.org_view = rv3d->view;
+
 	/* sms.to_camera = false; */  /* initizlized to zero anyway */
 
 	/* note on camera locking, this is a little confusing but works ok.
