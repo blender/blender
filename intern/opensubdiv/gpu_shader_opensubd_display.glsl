@@ -198,15 +198,17 @@ struct LightSource {
 	vec4 diffuse;
 	vec4 specular;
 	vec4 spotDirection;
+#ifdef SUPPORT_COLOR_MATERIAL
 	float constantAttenuation;
 	float linearAttenuation;
 	float quadraticAttenuation;
 	float spotCutoff;
 	float spotExponent;
 	float spotCosCutoff;
+#endif
 };
 
-uniform Lighting {
+layout(std140) uniform Lighting {
 	LightSource lightSource[MAX_LIGHTS];
 	int num_enabled_lights;
 };

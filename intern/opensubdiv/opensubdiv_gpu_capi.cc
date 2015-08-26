@@ -59,19 +59,19 @@ typedef struct Light {
 	float diffuse[4];
 	float specular[4];
 	float spot_direction[4];
+#ifdef SUPPORT_COLOR_MATERIAL
 	float constant_attenuation;
 	float linear_attenuation;
 	float quadratic_attenuation;
 	float spot_cutoff;
 	float spot_exponent;
 	float spot_cos_cutoff;
-	float pad[2];
+#endif
 } Light;
 
 typedef struct Lighting {
 	Light lights[MAX_LIGHTS];
 	int num_enabled;
-	int pad[3];
 } Lighting;
 
 typedef struct Transform {
@@ -444,6 +444,7 @@ void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl,
 		glGetLightfv(GL_LIGHT0 + i,
 		             GL_SPOT_DIRECTION,
 		             g_lighting_data.lights[i].spot_direction);
+#ifdef SUPPORT_COLOR_MATERIAL
 		glGetLightfv(GL_LIGHT0 + i,
 		             GL_CONSTANT_ATTENUATION,
 		             &g_lighting_data.lights[i].constant_attenuation);
@@ -461,6 +462,7 @@ void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl,
 		             &g_lighting_data.lights[i].spot_exponent);
 		g_lighting_data.lights[i].spot_cos_cutoff =
 			cos(g_lighting_data.lights[i].spot_cutoff);
+#endif
 	}
 }
 
