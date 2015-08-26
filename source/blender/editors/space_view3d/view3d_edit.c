@@ -3768,6 +3768,8 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
 {
 	RegionView3D *rv3d = ar->regiondata; /* no NULL check is needed, poll checks */
 	float quat[4];
+	const short orig_persp = rv3d->persp;
+
 
 	normalize_qt_qt(quat, quat_);
 
@@ -3810,11 +3812,13 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
 	}
 
 	if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
+		/* to camera */
 		ED_view3d_smooth_view(C, v3d, ar, v3d->camera, NULL,
 		                      rv3d->ofs, quat, NULL, NULL,
 		                      smooth_viewtx);
 	}
-	else {
+	else if (orig_persp == RV3D_CAMOB && v3d->camera) {
+		/* from camera */
 		float ofs[3], dist;
 
 		copy_v3_v3(ofs, rv3d->ofs);
@@ -3827,7 +3831,12 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
 		                      ofs, quat, &dist, NULL,
 		                      smooth_viewtx);
 	}
-
+	else {
+		/* no camera involved */
+		ED_view3d_smooth_view(C, v3d, ar, NULL, NULL,
+		                      NULL, quat, NULL, NULL,
+		                      smooth_viewtx);
+	}
 }
 
 static int viewnumpad_exec(bContext *C, wmOperator *op)
