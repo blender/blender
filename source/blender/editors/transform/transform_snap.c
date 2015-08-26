@@ -810,14 +810,18 @@ static void ApplySnapRotation(TransInfo *t, float *value)
 
 static void ApplySnapResize(TransInfo *t, float vec[3])
 {
+	float dist;
+
 	if (t->tsnap.target == SCE_SNAP_TARGET_CLOSEST) {
-		vec[0] = vec[1] = vec[2] = t->tsnap.dist;
+		dist = t->tsnap.dist;
 	}
 	else {
 		float point[3];
 		getSnapPoint(t, point);
-		vec[0] = vec[1] = vec[2] = ResizeBetween(t, t->tsnap.snapTarget, point);
+		dist = ResizeBetween(t, t->tsnap.snapTarget, point);
 	}
+
+	copy_v3_fl(vec, dist * M_SQRT3);
 }
 
 /********************** DISTANCE **************************/
