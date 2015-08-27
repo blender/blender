@@ -1366,45 +1366,17 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 	BLI_path_cwd(filename);
 
 	if (G.background) {
+		Main *bmain;
+		wmWindowManager *wm;
 		int retval;
 
-		BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_PRE);
+		bmain = CTX_data_main(C);
+
+		BLI_callback_exec(bmain, NULL, BLI_CB_EVT_LOAD_PRE);
 
 		retval = BKE_read_file(C, filename, NULL);
 
-		/* we successfully loaded a blend file, get sure that
-		 * pointcache works */
-		if (retval != BKE_READ_FILE_FAIL) {
-			wmWindowManager *wm = CTX_wm_manager(C);
-			Main *bmain = CTX_data_main(C);
-
-			/* special case, 2.4x files */
-			if (wm == NULL && BLI_listbase_is_empty(&bmain->wm)) {
-				extern void wm_add_default(bContext *C);
-
-				/* wm_add_default() needs the screen to be set. */
-				CTX_wm_screen_set(C, bmain->screen.first);
-				wm_add_default(C);
-			}
-
-			CTX_wm_manager_set(C, NULL); /* remove wm to force check */
-			WM_check(C);
-			if (bmain->name[0]) {
-				G.save_over = 1;
-				G.relbase_valid = 1;
-			}
-			else {
-				G.save_over = 0;
-				G.relbase_valid = 0;
-			}
-			if (CTX_wm_manager(C) == NULL) CTX_wm_manager_set(C, wm);  /* reset wm */
-
-			/* WM_file_read would call normally */
-			ED_editors_init(C);
-			DAG_on_visible_update(bmain, true);
-			BKE_scene_update_tagged(bmain->eval_ctx, bmain, CTX_data_scene(C));
-		}
-		else {
+		if (retval == BKE_READ_FILE_FAIL) {
 			/* failed to load file, stop processing arguments */
 			if (G.background) {
 				/* Set is_break if running in the background mode so
@@ -1417,13 +1389,46 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 			return -1;
 		}
 
+		wm = CTX_wm_manager(C);
+		bmain = CTX_data_main(C);
+
+		/* special case, 2.4x files */
+		if (wm == NULL && BLI_listbase_is_empty(&bmain->wm)) {
+			extern void wm_add_default(bContext *C);
+
+			/* wm_add_default() needs the screen to be set. */
+			CTX_wm_screen_set(C, bmain->screen.first);
+			wm_add_default(C);
+		}
+
+		CTX_wm_manager_set(C, NULL); /* remove wm to force check */
+		WM_check(C);
+		if (bmain->name[0]) {
+			G.save_over = 1;
+			G.relbase_valid = 1;
+		}
+		else {
+			G.save_over = 0;
+			G.relbase_valid = 0;
+		}
+
+		if (CTX_wm_manager(C) == NULL) {
+			CTX_wm_manager_set(C, wm);  /* reset wm */
+		}
+
+		/* WM_file_read would call normally */
+		ED_editors_init(C);
+		DAG_on_visible_update(bmain, true);
+
 		/* WM_file_read() runs normally but since we're in background mode do here */
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
 		BPY_python_reset(C);
 #endif
 
-		BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
+		BLI_callback_exec(bmain, NULL, BLI_CB_EVT_LOAD_POST);
+
+		BKE_scene_update_tagged(bmain->eval_ctx, bmain, CTX_data_scene(C));
 
 		/* happens for the UI on file reading too (huh? (ton))*/
 		// XXX		BKE_undo_reset();
