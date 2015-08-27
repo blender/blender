@@ -108,8 +108,7 @@ void PlaneDistortWarpImageOperation::executePixelSampled(float output[4], float 
 		warpCoord(x, y, this->m_samples[0].perspectiveMatrix, uv, deriv);
 		m_pixelReader->readFiltered(output,
 		                            uv[0], uv[1],
-		                            deriv[0], deriv[1],
-		                            COM_PS_BILINEAR);
+		                            deriv[0], deriv[1]);
 	}
 	else {
 		zero_v4(output);
@@ -118,8 +117,7 @@ void PlaneDistortWarpImageOperation::executePixelSampled(float output[4], float 
 			warpCoord(x, y, this->m_samples[sample].perspectiveMatrix, uv, deriv);
 			m_pixelReader->readFiltered(color,
 			                            uv[0], uv[1],
-			                            deriv[0], deriv[1],
-			                            COM_PS_BILINEAR);
+			                            deriv[0], deriv[1]);
 			add_v4_v4(output, color);
 		}
 		mul_v4_fl(output, 1.0f / (float)this->m_motion_blur_samples);

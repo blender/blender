@@ -53,7 +53,7 @@ void MapUVOperation::executePixelSampled(float output[4], float x, float y, Pixe
 	}
 
 	/* EWA filtering */
-	this->m_inputColorProgram->readFiltered(output, uv[0], uv[1], deriv[0], deriv[1], COM_PS_BILINEAR);
+	this->m_inputColorProgram->readFiltered(output, uv[0], uv[1], deriv[0], deriv[1]);
 	
 	/* UV to alpha threshold */
 	const float threshold = this->m_alpha * 0.05f;

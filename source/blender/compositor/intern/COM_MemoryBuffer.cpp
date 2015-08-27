@@ -195,45 +195,15 @@ void MemoryBuffer::addPixel(int x, int y, const float color[4])
 	}
 }
 
-typedef struct ReadEWAData {
-	MemoryBuffer *buffer;
-	PixelSampler sampler;
-	float ufac, vfac;
-} ReadEWAData;
-
 static void read_ewa_pixel_sampled(void *userdata, int x, int y, float result[4])
 {
-	ReadEWAData *data = (ReadEWAData *) userdata;
-	switch (data->sampler) {
-		case COM_PS_NEAREST:
-			data->buffer->read(result, x, y);
-			break;
-		case COM_PS_BILINEAR:
-			data->buffer->readBilinear(result,
-			                           (float)x + data->ufac,
-			                           (float)y + data->vfac);
-			break;
-		case COM_PS_BICUBIC:
-			/* TOOD(sergey): no readBicubic method yet */
-			data->buffer->readBilinear(result,
-			                           (float)x + data->ufac,
-			                           (float)y + data->vfac);
-			break;
-		default:
-			zero_v4(result);
-			break;
-	}
+	MemoryBuffer *buffer = (MemoryBuffer *) userdata;
+	buffer->read(result, x, y);
 }
 
-void MemoryBuffer::readEWA(float *result, const float uv[2], const float derivatives[2][2], PixelSampler sampler)
+void MemoryBuffer::readEWA(float *result, const float uv[2], const float derivatives[2][2])
 {
 	BLI_assert(this->m_datatype == COM_DT_COLOR);
-	ReadEWAData data;
-	data.buffer = this;
-	data.sampler = sampler;
-	data.ufac = uv[0] - floorf(uv[0]);
-	data.vfac = uv[1] - floorf(uv[1]);
-
 	int width = this->getWidth(), height = this->getHeight();
 	/* TODO(sergey): Render pipeline uses normalized coordinates and derivatives,
 	 * but compositor uses pixel space. For now let's just divide the values and
@@ -248,6 +218,6 @@ void MemoryBuffer::readEWA(float *result, const float uv[2], const float derivat
 	               true,
 	               uv_normal, du_normal, dv_normal,
 	               read_ewa_pixel_sampled,
-	               &data,
+	               this,
 	               result);
 }

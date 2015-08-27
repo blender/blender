@@ -93,8 +93,7 @@ protected:
 	 */
 	virtual void executePixelFiltered(float /*output*/[4],
 	                                  float /*x*/, float /*y*/,
-	                                  float /*dx*/[2], float /*dy*/[2],
-	                                  PixelSampler /*sampler*/) {}
+	                                  float /*dx*/[2], float /*dy*/[2]) {}
 
 public:
 	inline void readSampled(float result[4], float x, float y, PixelSampler sampler) {
@@ -103,8 +102,8 @@ public:
 	inline void read(float result[4], int x, int y, void *chunkData) {
 		executePixel(result, x, y, chunkData);
 	}
-	inline void readFiltered(float result[4], float x, float y, float dx[2], float dy[2], PixelSampler sampler) {
-		executePixelFiltered(result, x, y, dx, dy, sampler);
+	inline void readFiltered(float result[4], float x, float y, float dx[2], float dy[2]) {
+		executePixelFiltered(result, x, y, dx, dy);
 	}
 
 	virtual void *initializeTileData(rcti * /*rect*/) { return 0; }

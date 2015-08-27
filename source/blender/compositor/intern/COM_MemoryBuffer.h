@@ -262,7 +262,7 @@ public:
 		BLI_bilinear_interpolation_fl(this->m_buffer, result, this->m_width, this->m_height, this->m_num_channels, u, v);
 	}
 
-	void readEWA(float *result, const float uv[2], const float derivatives[2][2], PixelSampler sampler);
+	void readEWA(float *result, const float uv[2], const float derivatives[2][2]);
 	
 	/**
 	 * @brief is this MemoryBuffer a temporarily buffer (based on an area, not on a chunk)
