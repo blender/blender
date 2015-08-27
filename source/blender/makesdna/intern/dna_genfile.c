@@ -311,7 +311,21 @@ int DNA_struct_find_nr(SDNA *sdna, const char *str)
 	}
 
 #ifdef WITH_DNA_GHASH
-	return (intptr_t)BLI_ghash_lookup(sdna->structs_map, str) - 1;
+	{
+		void **index_p;
+		int a;
+
+		index_p = BLI_ghash_lookup_p(sdna->structs_map, str);
+
+		if (index_p) {
+			a = GET_INT_FROM_POINTER(*index_p);
+			sdna->lastfind = a;
+		}
+		else {
+			a = -1;
+		}
+		return a;
+	}
 #else
 	{
 		int a;
@@ -525,7 +539,7 @@ static void init_structDNA(SDNA *sdna, bool do_endian_swap)
 
 		for (nr = 0; nr < sdna->nr_structs; nr++) {
 			sp = sdna->structs[nr];
-			BLI_ghash_insert(sdna->structs_map, sdna->types[sp[0]], SET_INT_IN_POINTER(nr + 1));
+			BLI_ghash_insert(sdna->structs_map, sdna->types[sp[0]], SET_INT_IN_POINTER(nr));
 		}
 #endif
 	}
