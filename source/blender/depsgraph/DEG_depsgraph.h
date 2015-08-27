@@ -193,6 +193,8 @@ void DEG_evaluate_on_refresh(struct EvaluationContext *eval_ctx,
                              Depsgraph *graph,
                              struct Scene *scene);
 
+bool DEG_needs_eval(Depsgraph *graph);
+
 /* Editors Integration  -------------------------- */
 
 /* Mechanism to allow editors to be informed of depsgraph updates,

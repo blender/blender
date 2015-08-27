@@ -1804,6 +1804,11 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	else
 #endif
 	{
+#ifdef OPENSUBDIV_GL_WORKAROUND
+		if (DEG_needs_eval(scene->depsgraph)) {
+			scene_free_unused_opensubdiv_cache(scene);
+		}
+#endif
 		DEG_evaluate_on_refresh(eval_ctx, scene->depsgraph, scene);
 		/* TODO(sergey): This is to beocme a node in new depsgraph. */
 		BKE_mask_update_scene(bmain, scene);

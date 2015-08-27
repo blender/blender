@@ -392,3 +392,8 @@ void DEG_evaluate_on_framechange(EvaluationContext *eval_ctx,
 	/* Perform recalculation updates. */
 	DEG_evaluate_on_refresh_ex(eval_ctx, graph, layers);
 }
+
+bool DEG_needs_eval(Depsgraph *graph)
+{
+	return graph->entry_tags.size() != 0;
+}
