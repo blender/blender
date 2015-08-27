@@ -205,10 +205,16 @@ typedef void (*DEG_EditorUpdateIDCb)(struct Main *bmain, struct ID *id);
 typedef void (*DEG_EditorUpdateSceneCb)(struct Main *bmain,
                                         struct Scene *scene,
                                         int updated);
+typedef void (*DEG_EditorUpdateScenePreCb)(struct Main *bmain,
+                                           struct Scene *scene,
+                                           bool time);
 
 /* Set callbacks which are being called when depsgraph changes. */
 void DEG_editors_set_update_cb(DEG_EditorUpdateIDCb id_func,
-                               DEG_EditorUpdateSceneCb scene_func);
+                               DEG_EditorUpdateSceneCb scene_func,
+                               DEG_EditorUpdateScenePreCb scene_pre_func);
+
+void DEG_editors_update_pre(struct Main *bmain, struct Scene *scene, bool time);
 
 #ifdef __cplusplus
 } /* extern "C" */

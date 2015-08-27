@@ -1349,16 +1349,32 @@ void graph_print_adj_list(DagForest *dag)
  * to do their own updates based on changes... */
 static void (*EditorsUpdateIDCb)(Main *bmain, ID *id) = NULL;
 static void (*EditorsUpdateSceneCb)(Main *bmain, Scene *scene, int updated) = NULL;
+static void (*EditorsUpdateScenePreCb)(Main *bmain, Scene *scene, bool time) = NULL;
 
-void DAG_editors_update_cb(void (*id_func)(Main *bmain, ID *id), void (*scene_func)(Main *bmain, Scene *scene, int updated))
+void DAG_editors_update_cb(void (*id_func)(Main *bmain, ID *id),
+                           void (*scene_func)(Main *bmain, Scene *scene, int updated),
+                           void (*scene_pre_func)(Main *bmain, Scene *scene, bool time))
 {
 	if (DEG_depsgraph_use_legacy()) {
 		EditorsUpdateIDCb = id_func;
 		EditorsUpdateSceneCb = scene_func;
+		EditorsUpdateScenePreCb = scene_pre_func;
 	}
 	else {
 		/* New dependency graph. */
-		DEG_editors_set_update_cb(id_func, scene_func);
+		DEG_editors_set_update_cb(id_func, scene_func, scene_pre_func);
+	}
+}
+
+void DAG_editors_update_pre(Main *bmain, Scene *scene, bool time)
+{
+	if (DEG_depsgraph_use_legacy()) {
+		if (EditorsUpdateScenePreCb != NULL) {
+			EditorsUpdateScenePreCb(bmain, scene, time);
+		}
+	}
+	else {
+		DEG_editors_update_pre(bmain, scene, time);
 	}
 }
 

@@ -159,7 +159,9 @@ void WM_init(bContext *C, int argc, const char **argv)
 	BKE_library_callback_free_editor_id_reference_set(WM_main_remove_editor_id_reference);   /* library.c */
 	BKE_blender_callback_test_break_set(wm_window_testbreak); /* blender.c */
 	BKE_spacedata_callback_id_unref_set(ED_spacedata_id_unref); /* screen.c */
-	DAG_editors_update_cb(ED_render_id_flush_update, ED_render_scene_update); /* depsgraph.c */
+	DAG_editors_update_cb(ED_render_id_flush_update,
+	                      ED_render_scene_update,
+	                      ED_render_scene_update_pre); /* depsgraph.c */
 	
 	ED_spacetypes_init();   /* editors/space_api/spacetype.c */
 	

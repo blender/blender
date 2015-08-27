@@ -1890,6 +1890,8 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 	(void) do_invisible_flush;
 #endif
 
+	DAG_editors_update_pre(bmain, sce, true);
+
 	/* keep this first */
 	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
 	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_PRE);

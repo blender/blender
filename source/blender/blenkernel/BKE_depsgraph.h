@@ -147,7 +147,10 @@ void DAG_pose_sort(struct Object *ob);
 /* Editors: callbacks to notify editors of datablock changes */
 
 void DAG_editors_update_cb(void (*id_func)(struct Main *bmain, struct ID *id),
-                           void (*scene_func)(struct Main *bmain, struct Scene *scene, int updated));
+                           void (*scene_func)(struct Main *bmain, struct Scene *scene, int updated),
+                           void (*scene_pre_func)(struct Main *bmain, struct Scene *scene, bool time));
+
+void DAG_editors_update_pre(struct Main *bmain, struct Scene *scene, bool time);
 
 /* ** Threaded update ** */
 
