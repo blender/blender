@@ -357,9 +357,12 @@ DepsRelation *Depsgraph::add_new_relation(OperationDepsNode *from,
 #ifdef WITH_OPENSUBDIV
 	if (type == DEPSREL_TYPE_GEOMETRY_EVAL) {
 		IDDepsNode *id_to = to->owner->owner;
-		if ((id_to->eval_flags & DAG_EVAL_NEED_CPU) == 0) {
-			id_to->tag_update(this);
-			id_to->eval_flags |= DAG_EVAL_NEED_CPU;
+		IDDepsNode *id_from = to->owner->owner;
+		if (id_to != id_from) {
+			if ((id_to->eval_flags & DAG_EVAL_NEED_CPU) == 0) {
+				id_to->tag_update(this);
+				id_to->eval_flags |= DAG_EVAL_NEED_CPU;
+			}
 		}
 	}
 #endif
