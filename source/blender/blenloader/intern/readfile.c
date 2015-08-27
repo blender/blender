@@ -917,6 +917,41 @@ static int read_file_dna(FileData *fd)
 	return 0;
 }
 
+static int *read_file_thumbnail(FileData *fd)
+{
+	BHead *bhead;
+	int *blend_thumb = NULL;
+
+	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
+		if (bhead->code == TEST) {
+			const bool do_endian_swap = (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0;
+			int *data = (int *)(bhead + 1);
+
+			if (bhead->len < (2 * sizeof(int))) {
+				break;
+			}
+
+			if (do_endian_swap) {
+				BLI_endian_switch_int32(&data[0]);
+				BLI_endian_switch_int32(&data[1]);
+			}
+
+			if (bhead->len < BLEN_THUMB_MEMSIZE_FILE(data[0], data[1])) {
+				break;
+			}
+
+			blend_thumb = data;
+			break;
+		}
+		else if (bhead->code != REND) {
+			/* Thumbnail is stored in TEST immediately after first REND... */
+			break;
+		}
+	}
+
+	return blend_thumb;
+}
+
 static int fd_read_from_file(FileData *filedata, void *buffer, unsigned int size)
 {
 	int readsize = read(filedata->filedes, buffer, size);
@@ -1078,6 +1113,33 @@ FileData *blo_openblenderfile(const char *filepath, ReportList *reports)
 		
 		return blo_decode_and_check(fd, reports);
 	}
+}
+
+/**
+ * Same as blo_openblenderfile(), but does not reads DNA data, only header. Use it for light access
+ * (e.g. thumbnail reading).
+ */
+static FileData *blo_openblenderfile_minimal(const char *filepath)
+{
+	gzFile gzfile;
+	errno = 0;
+	gzfile = BLI_gzopen(filepath, "rb");
+
+	if (gzfile != (gzFile)Z_NULL) {
+		FileData *fd = filedata_new();
+		fd->gzfiledes = gzfile;
+		fd->read = fd_read_gzip_from_file;
+
+		decode_blender_header(fd);
+
+		if (fd->flags & FD_FLAGS_FILE_OK) {
+			return fd;
+		}
+
+		blo_freefiledata(fd);
+	}
+
+	return NULL;
 }
 
 static int fd_read_gzip_from_memory(FileData *filedata, void *buffer, unsigned int size)
@@ -1288,6 +1350,33 @@ bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, cha
 	}
 
 	return true;
+}
+
+BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
+{
+	FileData *fd;
+	BlendThumbnail *data;
+	int *fd_data;
+
+	fd = blo_openblenderfile_minimal(filepath);
+	fd_data = fd ? read_file_thumbnail(fd) : NULL;
+
+	if (fd_data) {
+		const size_t sz = BLEN_THUMB_MEMSIZE(fd_data[0], fd_data[1]);
+		data = MEM_mallocN(sz, __func__);
+
+		BLI_assert((sz - sizeof(*data)) == (BLEN_THUMB_MEMSIZE_FILE(fd_data[0], fd_data[1]) - (sizeof(*fd_data) * 2)));
+		data->width = fd_data[0];
+		data->height = fd_data[1];
+		memcpy(data->rect, &fd_data[2], sz - sizeof(*data));
+	}
+	else {
+		data = NULL;
+	}
+
+	blo_freefiledata(fd);
+
+	return data;
 }
 
 /* ************** OLD POINTERS ******************* */
@@ -8173,6 +8262,24 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 	
 	bfd->type = BLENFILETYPE_BLEND;
 	BLI_strncpy(bfd->main->name, filepath, sizeof(bfd->main->name));
+
+	if (G.background) {
+		/* We only read & store .blend thumbnail in background mode
+		 * (because we cannot re-generate it, no OpenGL available).
+		 */
+		const int *data = read_file_thumbnail(fd);
+
+		if (data) {
+			const size_t sz = BLEN_THUMB_MEMSIZE(data[0], data[1]);
+			bfd->main->blen_thumb = MEM_mallocN(sz, __func__);
+
+			BLI_assert((sz - sizeof(*bfd->main->blen_thumb)) ==
+			           (BLEN_THUMB_MEMSIZE_FILE(data[0], data[1]) - (sizeof(*data) * 2)));
+			bfd->main->blen_thumb->width = data[0];
+			bfd->main->blen_thumb->height = data[1];
+			memcpy(bfd->main->blen_thumb->rect, &data[2], sz - sizeof(*bfd->main->blen_thumb));
+		}
+	}
 
 	while (bhead) {
 		switch (bhead->code) {

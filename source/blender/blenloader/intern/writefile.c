@@ -3688,10 +3688,18 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
  * second are an RGBA image (unsigned char)
  * note, this uses 'TEST' since new types will segfault on file load for older blender versions.
  */
-static void write_thumb(WriteData *wd, const int *img)
+static void write_thumb(WriteData *wd, const BlendThumbnail *thumb)
 {
-	if (img)
-		writedata(wd, TEST, (2 + img[0] * img[1]) * sizeof(int), img);
+	if (thumb) {
+		size_t sz = BLEN_THUMB_MEMSIZE_FILE(thumb->width, thumb->height);
+		int *img = alloca(sz);
+
+		BLI_assert((sz - (sizeof(*img) * 2)) == (BLEN_THUMB_MEMSIZE(thumb->width, thumb->height) - sizeof(thumb)));
+		img[0] = thumb->width;
+		img[1] = thumb->height;
+		memcpy(&img[2], thumb->rect, sz - (sizeof(*img) * 2));
+		writedata(wd, TEST, sz, img);
+	}
 }
 
 /* if MemFile * there's filesave to memory */
@@ -3699,7 +3707,7 @@ static int write_file_handle(
         Main *mainvar,
         WriteWrap *ww,
         MemFile *compare, MemFile *current,
-        int write_user_block, int write_flags, const int *thumb)
+        int write_user_block, int write_flags, const BlendThumbnail *thumb)
 {
 	BHead bhead;
 	ListBase mainlist;
@@ -3831,7 +3839,8 @@ static bool do_history(const char *name, ReportList *reports)
 }
 
 /* return: success (1) */
-int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportList *reports, const int *thumb)
+int BLO_write_file(
+        Main *mainvar, const char *filepath, int write_flags, ReportList *reports, const BlendThumbnail *thumb)
 {
 	char tempname[FILE_MAX+1];
 	int err, write_user_block;

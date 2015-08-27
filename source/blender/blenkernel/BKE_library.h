@@ -38,8 +38,10 @@ extern "C" {
 
 #include "BLI_compiler_attrs.h"
 
+struct BlendThumbnail;
 struct ListBase;
 struct ID;
+struct ImBuf;
 struct Main;
 struct Library;
 struct wmWindowManager;
@@ -86,6 +88,10 @@ void BKE_main_free(struct Main *mainvar);
 
 void BKE_main_lock(struct Main *bmain);
 void BKE_main_unlock(struct Main *bmain);
+
+struct BlendThumbnail *BKE_main_thumbnail_from_imbuf(struct Main *bmain, struct ImBuf *img);
+struct ImBuf *BKE_main_thumbnail_to_imbuf(struct Main *bmain, struct BlendThumbnail *data);
+void BKE_main_thumbnail_create(struct Main *bmain);
 
 void BKE_main_id_tag_idcode(struct Main *mainvar, const short type, const bool tag);
 void BKE_main_id_tag_listbase(struct ListBase *lb, const bool tag);

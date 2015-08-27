@@ -33,14 +33,14 @@
  *  \brief external writefile function prototypes.
  */
 
+struct BlendThumbnail;
 struct MemFile;
 struct Main;
 struct ReportList;
 
-extern int BLO_write_file(struct Main *mainvar, const char *filepath, int write_flags, struct ReportList *reports, const int *thumb);
+extern int BLO_write_file(struct Main *mainvar, const char *filepath, int write_flags,
+        struct ReportList *reports, const struct BlendThumbnail *thumb);
 extern int BLO_write_file_mem(struct Main *mainvar, struct MemFile *compare, struct MemFile *current, int write_flags);
-
-#define BLEN_THUMB_SIZE 128
 
 #endif
 

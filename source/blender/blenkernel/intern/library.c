@@ -119,6 +119,9 @@
 
 #include "RNA_access.h"
 
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
@@ -1097,6 +1100,8 @@ void BKE_main_free(Main *mainvar)
 	ListBase *lbarray[MAX_LIBARRAY];
 	int a;
 
+	MEM_SAFE_FREE(mainvar->blen_thumb);
+
 	a = set_listbasepointers(mainvar, lbarray);
 	while (a--) {
 		ListBase *lb = lbarray[a];
@@ -1164,6 +1169,74 @@ void BKE_main_lock(struct Main *bmain)
 void BKE_main_unlock(struct Main *bmain)
 {
 	BLI_spin_unlock((SpinLock *) bmain->lock);
+}
+
+/**
+ * Generates a raw .blend file thumbnail data from given image.
+ *
+ * \param bmain If not NULL, also store generated data in this Main.
+ * \param img ImBuf image to generate thumbnail data from.
+ * \return The generated .blend file raw thumbnail data.
+ */
+BlendThumbnail *BKE_main_thumbnail_from_imbuf(Main *bmain, ImBuf *img)
+{
+	BlendThumbnail *data = NULL;
+
+	if (bmain) {
+		MEM_SAFE_FREE(bmain->blen_thumb);
+	}
+
+	if (img) {
+		const size_t sz = BLEN_THUMB_MEMSIZE(img->x, img->y);
+		data = MEM_mallocN(sz, __func__);
+
+		IMB_rect_from_float(img);  /* Just in case... */
+		data->width = img->x;
+		data->height = img->y;
+		memcpy(data->rect, img->rect, sz - sizeof(*data));
+	}
+
+	if (bmain) {
+		bmain->blen_thumb = data;
+	}
+	return data;
+}
+
+/**
+ * Generates an image from raw .blend file thumbnail \a data.
+ *
+ * \param bmain Use this bmain->blen_thumb data if given \a data is NULL.
+ * \param data Raw .blend file thumbnail data.
+ * \return An ImBuf from given data, or NULL if invalid.
+ */
+ImBuf *BKE_main_thumbnail_to_imbuf(Main *bmain, BlendThumbnail *data)
+{
+	ImBuf *img = NULL;
+
+	if (!data && bmain) {
+		data = bmain->blen_thumb;
+	}
+
+	if (data) {
+		/* Note: we cannot use IMB_allocFromBuffer(), since it tries to dupalloc passed buffer, which will fail
+		 *       here (we do not want to pass the first two ints!). */
+		img = IMB_allocImBuf((unsigned int)data->width, (unsigned int)data->height, 32, IB_rect | IB_metadata);
+		memcpy(img->rect, data->rect, BLEN_THUMB_MEMSIZE(data->width, data->height) - sizeof(*data));
+	}
+
+	return img;
+}
+
+/**
+ * Generates an empty (black) thumbnail for given Main.
+ */
+void BKE_main_thumbnail_create(struct Main *bmain)
+{
+	MEM_SAFE_FREE(bmain->blen_thumb);
+
+	bmain->blen_thumb = MEM_callocN(BLEN_THUMB_MEMSIZE(BLEN_THUMB_SIZE, BLEN_THUMB_SIZE), __func__);
+	bmain->blen_thumb->width = BLEN_THUMB_SIZE;
+	bmain->blen_thumb->height = BLEN_THUMB_SIZE;
 }
 
 /* ***************** ID ************************ */

@@ -36,6 +36,7 @@
 extern "C" {
 #endif
 
+struct BlendThumbnail;
 struct bScreen;
 struct LinkNode;
 struct Main;
@@ -277,6 +278,15 @@ void BLO_expand_main(void *fdhandle, struct Main *mainvar);
 /* Update defaults in startup.blend & userprefs.blend, without having to save and embed it */
 void BLO_update_defaults_userpref_blend(void);
 void BLO_update_defaults_startup_blend(struct Main *mainvar);
+
+/**
+ * Does a very light reading of given .blend file to extract its stored thumbnail.
+ *
+ * \param filepath The path of the file to extract thumbnail from.
+ * \return The raw thumbnail
+ *         (MEM-allocated, as stored in file, use BKE_main_thumbnail_to_imbuf() to convert it to ImBuf image).
+ */
+struct BlendThumbnail *BLO_thumbnail_from_file(const char *filepath);
 
 #ifdef __cplusplus
 } 

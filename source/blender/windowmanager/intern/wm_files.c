@@ -76,6 +76,7 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
@@ -864,11 +865,11 @@ static void wm_history_file_update(void)
 
 
 /* screen can be NULL */
-static ImBuf *blend_file_thumb(Scene *scene, bScreen *screen, int **thumb_pt)
+static ImBuf *blend_file_thumb(Scene *scene, bScreen *screen, BlendThumbnail **thumb_pt)
 {
 	/* will be scaled down, but gives some nice oversampling */
 	ImBuf *ibuf;
-	int *thumb;
+	BlendThumbnail *thumb;
 	char err_out[256] = "unknown";
 
 	/* screen if no camera found */
@@ -876,7 +877,11 @@ static ImBuf *blend_file_thumb(Scene *scene, bScreen *screen, int **thumb_pt)
 	ARegion *ar = NULL;
 	View3D *v3d = NULL;
 
-	*thumb_pt = NULL;
+	/* In case we are given a valid thumbnail data, just generate image from it. */
+	if (*thumb_pt) {
+		thumb = *thumb_pt;
+		return BKE_main_thumbnail_to_imbuf(NULL, thumb);
+	}
 
 	/* scene can be NULL if running a script at startup and calling the save operator */
 	if (G.background || scene == NULL)
@@ -914,13 +919,7 @@ static ImBuf *blend_file_thumb(Scene *scene, bScreen *screen, int **thumb_pt)
 		/* add pretty overlay */
 		IMB_thumb_overlay_blend(ibuf->rect, ibuf->x, ibuf->y, aspect);
 		
-		/* first write into thumb buffer */
-		thumb = MEM_mallocN(((2 + (BLEN_THUMB_SIZE * BLEN_THUMB_SIZE))) * sizeof(int), "write_file thumb");
-
-		thumb[0] = BLEN_THUMB_SIZE;
-		thumb[1] = BLEN_THUMB_SIZE;
-
-		memcpy(thumb + 2, ibuf->rect, BLEN_THUMB_SIZE * BLEN_THUMB_SIZE * sizeof(int));
+		thumb = BKE_main_thumbnail_from_imbuf(NULL, ibuf);
 	}
 	else {
 		/* '*thumb_pt' needs to stay NULL to prevent a bad thumbnail from being handled */
@@ -959,25 +958,26 @@ int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *
 {
 	Library *li;
 	int len;
-	int *thumb = NULL;
+	int ret = -1;
+	BlendThumbnail *thumb, *main_thumb;
 	ImBuf *ibuf_thumb = NULL;
 
 	len = strlen(filepath);
 	
 	if (len == 0) {
 		BKE_report(reports, RPT_ERROR, "Path is empty, cannot save");
-		return -1;
+		return ret;
 	}
 
 	if (len >= FILE_MAX) {
 		BKE_report(reports, RPT_ERROR, "Path too long, cannot save");
-		return -1;
+		return ret;
 	}
 	
 	/* Check if file write permission is ok */
 	if (BLI_exists(filepath) && !BLI_file_is_writable(filepath)) {
 		BKE_reportf(reports, RPT_ERROR, "Cannot save blend file, path '%s' is not writable", filepath);
-		return -1;
+		return ret;
 	}
  
 	/* note: used to replace the file extension (to ensure '.blend'),
@@ -988,17 +988,20 @@ int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *
 	for (li = G.main->library.first; li; li = li->id.next) {
 		if (BLI_path_cmp(li->filepath, filepath) == 0) {
 			BKE_reportf(reports, RPT_ERROR, "Cannot overwrite used library '%.240s'", filepath);
-			return -1;
+			return ret;
 		}
 	}
 
+	/* Call pre-save callbacks befores writing preview, that way you can generate custom file thumbnail... */
+	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_SAVE_PRE);
+
 	/* blend file thumbnail */
 	/* save before exit_editmode, otherwise derivedmeshes for shared data corrupt #27765) */
+	/* Main now can store a .blend thumbnail, usefull for background mode or thumbnail customization. */
+	main_thumb = thumb = CTX_data_main(C)->blen_thumb;
 	if ((U.flag & USER_SAVE_PREVIEWS) && BLI_thread_is_main()) {
 		ibuf_thumb = blend_file_thumb(CTX_data_scene(C), CTX_wm_screen(C), &thumb);
 	}
-
-	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_SAVE_PRE);
 
 	/* operator now handles overwrite checks */
 
@@ -1044,22 +1047,21 @@ int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *
 		if (ibuf_thumb) {
 			IMB_thumb_delete(filepath, THB_FAIL); /* without this a failed thumb overrides */
 			ibuf_thumb = IMB_thumb_create(filepath, THB_LARGE, THB_SOURCE_BLEND, ibuf_thumb);
-			IMB_freeImBuf(ibuf_thumb);
 		}
 
-		if (thumb) MEM_freeN(thumb);
+		ret = 0;  /* Success. */
 	}
-	else {
-		if (ibuf_thumb) IMB_freeImBuf(ibuf_thumb);
-		if (thumb) MEM_freeN(thumb);
-		
-		WM_cursor_wait(0);
-		return -1;
+
+	if (ibuf_thumb) {
+		IMB_freeImBuf(ibuf_thumb);
+	}
+	if (thumb && thumb != main_thumb) {
+		MEM_freeN(thumb);
 	}
 
 	WM_cursor_wait(0);
-	
-	return 0;
+
+	return ret;
 }
 
 /**

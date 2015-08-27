@@ -28,8 +28,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "zlib.h"
-
 #include "BLI_utildefines.h"
 #include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
@@ -41,6 +39,8 @@
 #include "BKE_global.h"
 #include "BKE_idcode.h"
 #include "BKE_icons.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
 
 #include "DNA_ID.h"  /* For preview images... */
 
@@ -48,97 +48,20 @@
 #include "IMB_imbuf.h"
 #include "IMB_thumbs.h"
 
-/* extracts the thumbnail from between the 'REND' and the 'GLOB'
- * chunks of the header, don't use typical blend loader because its too slow */
-
-static ImBuf *loadblend_thumb(gzFile gzfile)
-{
-	char buf[12];
-	int bhead[24 / sizeof(int)]; /* max size on 64bit */
-	char endian, pointer_size;
-	char endian_switch;
-	int sizeof_bhead;
-
-	/* read the blend file header */
-	if (gzread(gzfile, buf, 12) != 12)
-		return NULL;
-	if (!STREQLEN(buf, "BLENDER", 7))
-		return NULL;
-
-	if (buf[7] == '-')
-		pointer_size = 8;
-	else if (buf[7] == '_')
-		pointer_size = 4;
-	else
-		return NULL;
-
-	sizeof_bhead = 16 + pointer_size;
-
-	if (buf[8] == 'V')
-		endian = B_ENDIAN;  /* big: PPC */
-	else if (buf[8] == 'v')
-		endian = L_ENDIAN;  /* little: x86 */
-	else
-		return NULL;
-
-	endian_switch = ((ENDIAN_ORDER != endian)) ? 1 : 0;
-
-	while (gzread(gzfile, bhead, sizeof_bhead) == sizeof_bhead) {
-		if (endian_switch)
-			BLI_endian_switch_int32(&bhead[1]);  /* length */
-
-		if (bhead[0] == REND) {
-			gzseek(gzfile, bhead[1], SEEK_CUR); /* skip to the next */
-		}
-		else {
-			break;
-		}
-	}
-
-	/* using 'TEST' since new names segfault when loading in old blenders */
-	if (bhead[0] == TEST) {
-		ImBuf *img = NULL;
-		int size[2];
-
-		if (gzread(gzfile, size, sizeof(size)) != sizeof(size))
-			return NULL;
-
-		if (endian_switch) {
-			BLI_endian_switch_int32(&size[0]);
-			BLI_endian_switch_int32(&size[1]);
-		}
-		/* length */
-		bhead[1] -= sizeof(int) * 2;
-
-		/* inconsistent image size, quit early */
-		if (bhead[1] != size[0] * size[1] * sizeof(int))
-			return NULL;
-	
-		/* finally malloc and read the data */
-		img = IMB_allocImBuf(size[0], size[1], 32, IB_rect | IB_metadata);
-	
-		if (gzread(gzfile, img->rect, bhead[1]) != bhead[1]) {
-			IMB_freeImBuf(img);
-			img = NULL;
-		}
-	
-		return img;
-	}
-	
-	return NULL;
-}
+#include "MEM_guardedalloc.h"
 
 ImBuf *IMB_thumb_load_blend(const char *blen_path, const char *blen_group, const char *blen_id)
 {
+	ImBuf *ima = NULL;
+
 	if (blen_group && blen_id) {
 		LinkNode *ln, *names, *lp, *previews = NULL;
 		struct BlendHandle *libfiledata = BLO_blendhandle_from_file(blen_path, NULL);
-		ImBuf *ima = NULL;
 		int idcode = BKE_idcode_from_name(blen_group);
 		int i, nprevs, nnames;
 
 		if (libfiledata == NULL) {
-			return NULL;
+			return ima;
 		}
 
 		/* Note: we should handle all previews for a same group at once, would avoid reopening .blend file
@@ -180,25 +103,19 @@ ImBuf *IMB_thumb_load_blend(const char *blen_path, const char *blen_group, const
 
 		BLI_linklist_free(previews, BKE_previewimg_freefunc);
 		BLI_linklist_free(names, free);
-		return ima;
 	}
 	else {
-		gzFile gzfile;
-		/* not necessarily a gzip */
-		gzfile = BLI_gzopen(blen_path, "rb");
+		BlendThumbnail *data;
 
-		if (NULL == gzfile) {
-			return NULL;
-		}
-		else {
-			ImBuf *img = loadblend_thumb(gzfile);
+		data = BLO_thumbnail_from_file(blen_path);
+		ima = BKE_main_thumbnail_to_imbuf(NULL, data);
 
-			/* read ok! */
-			gzclose(gzfile);
-
-			return img;
+		if (data) {
+			MEM_freeN(data);
 		}
 	}
+
+	return ima;
 }
 
 /* add a fake passepartout overlay to a byte buffer, use for blend file thumbnails */
