@@ -204,14 +204,15 @@ static void read_ewa_pixel_sampled(void *userdata, int x, int y, float result[4]
 void MemoryBuffer::readEWA(float *result, const float uv[2], const float derivatives[2][2])
 {
 	BLI_assert(this->m_datatype == COM_DT_COLOR);
-	int width = this->getWidth(), height = this->getHeight();
+	float inv_width = 1.0f / (float)this->getWidth(),
+	      inv_height = 1.0f / (float)this->getHeight();
 	/* TODO(sergey): Render pipeline uses normalized coordinates and derivatives,
 	 * but compositor uses pixel space. For now let's just divide the values and
 	 * switch compositor to normalized space for EWA later.
 	 */
-	float uv_normal[2] = {uv[0] / width, uv[1] / height};
-	float du_normal[2] = {derivatives[0][0] / width, derivatives[0][1] / height};
-	float dv_normal[2] = {derivatives[1][0] / width, derivatives[1][1] / height};
+	float uv_normal[2] = {uv[0] * inv_width, uv[1] * inv_height};
+	float du_normal[2] = {derivatives[0][0] * inv_width, derivatives[0][1] * inv_height};
+	float dv_normal[2] = {derivatives[1][0] * inv_width, derivatives[1][1] * inv_height};
 
 	BLI_ewa_filter(this->getWidth(), this->getHeight(),
 	               false,
