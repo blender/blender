@@ -1426,6 +1426,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 		BPY_python_reset(C);
 #endif
 
+		BLI_callback_exec(bmain, NULL, BLI_CB_EVT_VERSION_UPDATE);
 		BLI_callback_exec(bmain, NULL, BLI_CB_EVT_LOAD_POST);
 
 		BKE_scene_update_tagged(bmain->eval_ctx, bmain, CTX_data_scene(C));
