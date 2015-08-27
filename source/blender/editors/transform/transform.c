@@ -1063,15 +1063,14 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				/* only switch when... */
 				if (!(t->options & CTX_TEXTURE) && !(t->options & (CTX_MOVIECLIP | CTX_MASK))) {
 					if (ELEM(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
+						restoreTransObjects(t);
 						resetTransModal(t);
 						resetTransRestrictions(t);
 						
 						if (t->mode == TFM_ROTATION) {
-							restoreTransObjects(t);
 							initTrackball(t);
 						}
 						else {
-							restoreTransObjects(t);
 							initRotation(t);
 						}
 						initSnapping(t, NULL); // need to reinit after mode change
@@ -1363,15 +1362,14 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 				/* only switch when... */
 				if (!(t->options & CTX_TEXTURE)) {
 					if (ELEM(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION)) {
+						restoreTransObjects(t);
 						resetTransModal(t);
 						resetTransRestrictions(t);
 
 						if (t->mode == TFM_ROTATION) {
-							restoreTransObjects(t);
 							initTrackball(t);
 						}
 						else {
-							restoreTransObjects(t);
 							initRotation(t);
 						}
 						initSnapping(t, NULL); // need to reinit after mode change
