@@ -766,7 +766,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				}
 
 				/* we wont be looping on this data again so copy normals here */
-				if (angle < 0.0f)
+				if ((angle < 0.0f) != do_flip)
 					negate_v3(vc->no);
 
 				normalize_v3(vc->no);
