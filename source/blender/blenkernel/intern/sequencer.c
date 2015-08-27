@@ -3083,8 +3083,8 @@ static ImBuf *seq_render_mask_strip(const SeqRenderData *context, Sequence *seq,
 static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq, float nr, float cfra)
 {
 	ImBuf *ibuf = NULL;
-	float frame;
-	float oldcfra;
+	double frame;
+	float oldcfra, oldsubframe;
 	Object *camera;
 	ListBase oldmarkers;
 	
@@ -3137,13 +3137,15 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 	}
 
 	scene = seq->scene;
-	frame = scene->r.sfra + nr + seq->anim_startofs;
+	frame = (double)scene->r.sfra + (double)nr + (double)seq->anim_startofs;
 
 	// have_seq = (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first);  /* UNUSED */
 	have_comp = (scene->r.scemode & R_DOCOMP) && scene->use_nodes && scene->nodetree;
 
 	oldcfra = scene->r.cfra;
-	scene->r.cfra = frame;
+	oldsubframe = scene->r.subframe;
+
+	BKE_scene_frame_set(scene, frame);
 
 	if (seq->scene_camera) {
 		camera = seq->scene_camera;
@@ -3159,6 +3161,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 
 	if (have_comp == false && camera == NULL) {
 		scene->r.cfra = oldcfra;
+		scene->r.subframe = oldsubframe;
 		return NULL;
 	}
 
@@ -3273,6 +3276,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 	scene->r.scemode |= do_seq;
 	
 	scene->r.cfra = oldcfra;
+	scene->r.subframe = oldsubframe;
 
 	if (frame != oldcfra) {
 		BKE_scene_update_for_newframe(context->eval_ctx, context->bmain, scene, scene->lay);
