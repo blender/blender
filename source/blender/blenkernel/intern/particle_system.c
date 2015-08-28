@@ -4212,10 +4212,12 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 /* **** Depsgraph evaluation **** */
 
 void BKE_particle_system_eval(EvaluationContext *UNUSED(eval_ctx),
+                              Scene *scene,
                               Object *ob,
                               ParticleSystem *psys)
 {
 	if (G.debug & G_DEBUG_DEPSGRAPH) {
 		printf("%s on %s:%s\n", __func__, ob->id.name, psys->name);
 	}
+	BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH);
 }
