@@ -920,7 +920,7 @@ class IMAGE_PT_paint_curve(BrushButtonsPanel, Panel):
         row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
 
-class VIEW3D_PT_tools_imagepaint_symmetry(BrushButtonsPanel, Panel):
+class IMAGE_PT_tools_imagepaint_symmetry(BrushButtonsPanel, Panel):
     bl_category = "Tools"
     bl_context = "imagepaint"
     bl_label = "Tiling"
