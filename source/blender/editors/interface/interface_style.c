@@ -154,8 +154,21 @@ void UI_fontstyle_draw_ex(
 {
 	float height;
 	int xofs = 0, yofs;
+	int font_flag = BLF_CLIPPING;
 	
 	UI_fontstyle_set(fs);
+
+	/* set the flag */
+	if (fs->shadow) {
+		font_flag |= BLF_SHADOW;
+		BLF_shadow(fs->uifont_id, fs->shadow, fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha);
+		BLF_shadow_offset(fs->uifont_id, fs->shadx, fs->shady);
+	}
+	if (fs->kerning == 1) {
+		font_flag |= BLF_KERNING_DEFAULT;
+	}
+
+	BLF_enable(fs->uifont_id, font_flag);
 
 	height = BLF_ascender(fs->uifont_id);
 	yofs = ceil(0.5f * (BLI_rcti_size_y(rect) - height));
@@ -173,24 +186,11 @@ void UI_fontstyle_draw_ex(
 	
 	/* clip is very strict, so we give it some space */
 	BLF_clipping(fs->uifont_id, rect->xmin - 2, rect->ymin - 4, rect->xmax + 1, rect->ymax + 4);
-	BLF_enable(fs->uifont_id, BLF_CLIPPING);
 	BLF_position(fs->uifont_id, rect->xmin + xofs, rect->ymin + yofs, 0.0f);
 
-	if (fs->shadow) {
-		BLF_enable(fs->uifont_id, BLF_SHADOW);
-		BLF_shadow(fs->uifont_id, fs->shadow, fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha);
-		BLF_shadow_offset(fs->uifont_id, fs->shadx, fs->shady);
-	}
-
-	if (fs->kerning == 1)
-		BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
-
 	BLF_draw(fs->uifont_id, str, len);
-	BLF_disable(fs->uifont_id, BLF_CLIPPING);
-	if (fs->shadow)
-		BLF_disable(fs->uifont_id, BLF_SHADOW);
-	if (fs->kerning == 1)
-		BLF_disable(fs->uifont_id, BLF_KERNING_DEFAULT);
+
+	BLF_disable(fs->uifont_id, font_flag);
 
 	*r_xofs = xofs;
 	*r_yofs = yofs;
