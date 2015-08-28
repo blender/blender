@@ -158,8 +158,6 @@ struct OpenSubdiv_GLMesh *openSubdiv_createOsdGLMeshFromTopologyRefiner(
 	bits.set(OpenSubdiv::Osd::MeshInterleaveVarying, 1);
 	bits.set(OpenSubdiv::Osd::MeshFVarData, 1);
 	bits.set(OpenSubdiv::Osd::MeshEndCapBSplineBasis, 1);
-	// bits.set(Osd::MeshEndCapGregoryBasis, 1);
-	// bits.set(Osd::MeshEndCapLegacyGregory, 1);
 
 	const int num_vertex_elements = 3;
 	const int num_varying_elements = 3;

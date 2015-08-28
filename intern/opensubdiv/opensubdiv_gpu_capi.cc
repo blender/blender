@@ -47,7 +47,6 @@
 #include <opensubdiv/osd/cpuGLVertexBuffer.h>
 #include <opensubdiv/osd/cpuEvaluator.h>
 
-//using OpenSubdiv::FarPatchTables;
 using OpenSubdiv::Osd::GLMeshInterface;
 
 extern "C" char datatoc_gpu_shader_opensubd_display_glsl[];
@@ -544,13 +543,11 @@ static void perform_drawElements(GLuint program,
                                  int num_elements,
                                  int start_element)
 {
-	int mode = GL_QUADS;
 	if (program) {
 		glUniform1i(glGetUniformLocation(program, "PrimitiveIdBase"),
 		            patch_index);
 	}
-	mode = GL_LINES_ADJACENCY;
-	glDrawElements(mode,
+	glDrawElements(GL_LINES_ADJACENCY,
 	               num_elements,
 	               GL_UNSIGNED_INT,
 	               (void *)(start_element * sizeof(unsigned int)));
