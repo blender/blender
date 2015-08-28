@@ -3084,9 +3084,16 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 {
 	ImBuf *ibuf = NULL;
 	double frame;
-	float oldcfra, oldsubframe;
 	Object *camera;
-	ListBase oldmarkers;
+
+	struct {
+		int scemode;
+		int cfra;
+		float subframe;
+#ifdef DURIAN_CAMERA_SWITCH
+		ListBase markers;
+#endif
+	} orig_data;
 	
 	/* Old info:
 	 * Hack! This function can be called from do_render_seq(), in that case
@@ -3124,10 +3131,11 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 	const bool do_seq_gl = is_rendering ?
 	        0 /* (context->scene->r.seq_flag & R_SEQ_GL_REND) */ :
 	        (context->scene->r.seq_flag & R_SEQ_GL_PREV) != 0;
-	int do_seq;
 	// bool have_seq = false;  /* UNUSED */
 	bool have_comp = false;
 	bool use_gpencil = true;
+	/* do we need to re-evaluate the frame after rendering? */
+	bool is_frame_update = false;
 	Scene *scene;
 	int is_thread_main = BLI_thread_is_main();
 
@@ -3142,8 +3150,12 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 	// have_seq = (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first);  /* UNUSED */
 	have_comp = (scene->r.scemode & R_DOCOMP) && scene->use_nodes && scene->nodetree;
 
-	oldcfra = scene->r.cfra;
-	oldsubframe = scene->r.subframe;
+	orig_data.scemode = scene->r.scemode;
+	orig_data.cfra = scene->r.cfra;
+	orig_data.subframe = scene->r.subframe;
+#ifdef DURIAN_CAMERA_SWITCH
+	orig_data.markers = scene->markers;
+#endif
 
 	BKE_scene_frame_set(scene, frame);
 
@@ -3155,27 +3167,23 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 		camera = scene->camera;
 	}
 	
+	if (have_comp == false && camera == NULL) {
+		goto finally;
+	}
+
 	if (seq->flag & SEQ_SCENE_NO_GPENCIL) {
 		use_gpencil = false;
 	}
 
-	if (have_comp == false && camera == NULL) {
-		scene->r.cfra = oldcfra;
-		scene->r.subframe = oldsubframe;
-		return NULL;
-	}
-
 	/* prevent eternal loop */
-	do_seq = scene->r.scemode & R_DOSEQ;
 	scene->r.scemode &= ~R_DOSEQ;
 	
 #ifdef DURIAN_CAMERA_SWITCH
 	/* stooping to new low's in hackyness :( */
-	oldmarkers = scene->markers;
 	BLI_listbase_clear(&scene->markers);
-#else
-	(void)oldmarkers;
 #endif
+
+	is_frame_update = (orig_data.cfra != scene->r.cfra) || (orig_data.subframe != scene->r.subframe);
 
 	if ((sequencer_view3d_cb && do_seq_gl && camera) && is_thread_main) {
 		char err_out[256] = "unknown";
@@ -3271,20 +3279,21 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 
 		// BIF_end_render_callbacks();
 	}
-	
-	/* restore */
-	scene->r.scemode |= do_seq;
-	
-	scene->r.cfra = oldcfra;
-	scene->r.subframe = oldsubframe;
 
-	if (frame != oldcfra) {
+
+finally:
+	/* restore */
+	scene->r.scemode = orig_data.scemode;
+	scene->r.cfra = orig_data.cfra;
+	scene->r.subframe = orig_data.subframe;
+
+	if (is_frame_update) {
 		BKE_scene_update_for_newframe(context->eval_ctx, context->bmain, scene, scene->lay);
 	}
-	
+
 #ifdef DURIAN_CAMERA_SWITCH
 	/* stooping to new low's in hackyness :( */
-	scene->markers = oldmarkers;
+	scene->markers = orig_data.markers;
 #endif
 
 	return ibuf;
