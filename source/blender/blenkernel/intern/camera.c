@@ -442,8 +442,8 @@ void BKE_camera_view_frame_ex(
 			*r_drawsize = 1.0f;
 			depth = -(camera->clipsta + 0.1f) * scale[2];
 			fac = depth / (camera->lens / (-half_sensor));
-			scale_x = 1.0f;
-			scale_y = 1.0f;
+			scale_x = scale[0] / scale[2];
+			scale_y = scale[1] / scale[2];
 		}
 		else {
 			/* fixed size, variable depth (stays a reasonable size in the 3D view) */
