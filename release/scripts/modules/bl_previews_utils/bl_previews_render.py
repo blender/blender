@@ -320,14 +320,17 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
     prev_scenename = bpy.context.screen.scene.name
 
     if do_objects:
-        prev_shown = tuple(ob.hide_render for ob in bpy.data.objects)
-        for ob in bpy.data.objects:
+        data_objects_names = tuple(ob.name for ob in bpy.data.objects)
+        prev_shown = tuple(bpy.data.objects[obname].hide_render for obname in data_objects_names)
+        for obname in data_objects_names:
+            ob = bpy.data.objects[obname]
             if ob in objects_ignored:
                 continue
             ob.hide_render = True
-        for root in bpy.data.objects:
-            if root.name in objects_ignored:
+        for root_name in data_objects_names:
+            if root_name in objects_ignored:
                 continue
+            root = bpy.data.objects[root_name]
             if root.type not in OBJECT_TYPES_RENDER:
                 continue
             objects = (root.name,)
@@ -366,13 +369,15 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
                 scene.objects.unlink(ob)
                 ob.hide_render = True
 
-        for ob, is_rendered in zip(bpy.data.objects, prev_shown):
-            ob.hide_render = is_rendered
+        for obname, is_rendered in zip(data_objects_names, prev_shown):
+            bpy.data.objects[obname].hide_render = is_rendered
 
     if do_groups:
-        for grp in bpy.data.groups:
-            if grp.name in groups_ignored:
+        data_groups_names = tuple(grp.name for grp in bpy.data.groups)
+        for grpname in data_groups_names:
+            if grpname in groups_ignored:
                 continue
+            grp = bpy.data.groups[grpname]
             objects = tuple(ob.name for ob in grp.objects)
 
             render_engine = objects_render_engine_guess(objects)
@@ -400,19 +405,21 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
             do_save = False  # Do not save file if something went wrong here, we could 'pollute' it with temp data...
 
     if do_scenes:
-        for scene in bpy.data.scenes:
-            has_camera = scene.camera is not None
-            bpy.context.screen.scene = scene
+        data_scenes_names = tuple(sce.name for sce in bpy.data.scenes)
+        for scename in data_scenes_names:
+            sce = bpy.data.scenes[scename]
+            has_camera = sce.camera is not None
+            bpy.context.screen.scene = sce
             render_context = render_context_create('__SCENE', objects_ignored)
-            scene.update()
+            sce.update()
 
             objects = None
             if not has_camera:
                 # We had to add a temp camera, now we need to place it to see interesting objects!
-                objects = tuple(ob.name for ob in scene.objects
+                objects = tuple(ob.name for ob in sce.objects
                                         if (not ob.hide_render) and (ob.type in OBJECT_TYPES_RENDER))
 
-            preview_render_do(render_context, 'scenes', scene.name, objects)
+            preview_render_do(render_context, 'scenes', sce.name, objects)
 
             if not render_context_delete(render_context):
                 do_save = False
