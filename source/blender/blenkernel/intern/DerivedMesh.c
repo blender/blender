@@ -2266,12 +2266,9 @@ static void editbmesh_calc_modifiers(
 #if 0 /* XXX Will re-enable this when we have global mod stack options. */
 	const bool do_final_wmcol = (scene->toolsettings->weights_preview == WP_WPREVIEW_FINAL) && do_wmcol;
 #endif
-#ifndef WITH_OPENSUBDIV
 	const bool do_final_wmcol = false;
 	const bool do_init_wmcol = ((((Mesh *)ob->data)->drawflag & ME_DRAWEIGHT) && !do_final_wmcol);
-#else
-	const bool do_init_wmcol = false;
-#endif
+
 	const bool do_init_statvis = ((((Mesh *)ob->data)->drawflag & ME_DRAW_STATVIS) && !do_init_wmcol);
 	const bool do_mod_wmcol = do_init_wmcol;
 	VirtualModifierData virtualModifierData;
