@@ -8331,10 +8331,10 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 	}
 	
 	/* do before read_libraries, but skip undo case */
-	if (fd->memfile==NULL)
+	if (fd->memfile == NULL) {
 		do_versions(fd, NULL, bfd->main);
-	
-	do_versions_userdef(fd, bfd);
+		do_versions_userdef(fd, bfd);
+	}
 	
 	read_libraries(fd, &mainlist);
 	
