@@ -403,6 +403,27 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	return 0;
 }
 
+static int parse_relative_int(const char *str, int pos, int neg, int min, int max)
+{
+	int ret;
+
+	switch (*str) {
+		case '+':
+			ret = pos + atoi(str + 1);
+			break;
+		case '-':
+			ret = (neg - atoi(str + 1)) + 1;
+			break;
+		default:
+			ret = atoi(str);
+			break;
+	}
+
+	CLAMP(ret, min, max);
+
+	return ret;
+}
+
 static int end_arguments(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	return -1;
@@ -1067,22 +1088,10 @@ static int render_frame(int argc, const char **argv, void *data)
 			int frame;
 			ReportList reports;
 
-			switch (*argv[1]) {
-				case '+':
-					frame = scene->r.sfra + atoi(argv[1] + 1);
-					break;
-				case '-':
-					frame = (scene->r.efra - atoi(argv[1] + 1)) + 1;
-					break;
-				default:
-					frame = atoi(argv[1]);
-					break;
-			}
+			frame = parse_relative_int(argv[1], scene->r.sfra, scene->r.efra, MINAFRAME, MAXFRAME);
 
 			BLI_begin_threaded_malloc();
 			BKE_reports_init(&reports, RPT_PRINT);
-
-			frame = CLAMPIS(frame, MINAFRAME, MAXFRAME);
 
 			RE_SetReports(re, &reports);
 			RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, frame, frame, scene->r.frame_step);
@@ -1144,8 +1153,8 @@ static int set_start_frame(int argc, const char **argv, void *data)
 	Scene *scene = CTX_data_scene(C);
 	if (scene) {
 		if (argc > 1) {
-			int frame = atoi(argv[1]);
-			(scene->r.sfra) = CLAMPIS(frame, MINFRAME, MAXFRAME);
+			scene->r.sfra = parse_relative_int(argv[1], scene->r.sfra, scene->r.sfra - 1, MINAFRAME, MAXFRAME);
+
 			return 1;
 		}
 		else {
@@ -1165,8 +1174,7 @@ static int set_end_frame(int argc, const char **argv, void *data)
 	Scene *scene = CTX_data_scene(C);
 	if (scene) {
 		if (argc > 1) {
-			int frame = atoi(argv[1]);
-			(scene->r.efra) = CLAMPIS(frame, MINFRAME, MAXFRAME);
+			scene->r.efra = parse_relative_int(argv[1], scene->r.efra, scene->r.efra - 1, MINAFRAME, MAXFRAME);
 			return 1;
 		}
 		else {
@@ -1591,8 +1599,8 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 4, "-f", "--render-frame", "<frame>\n\tRender frame <frame> and save it.\n\t+<frame> start frame relative, -<frame> end frame relative.", render_frame, C);
 	BLI_argsAdd(ba, 4, "-a", "--render-anim", "\n\tRender frames from start to end (inclusive)", render_animation, C);
 	BLI_argsAdd(ba, 4, "-S", "--scene", "<name>\n\tSet the active scene <name> for rendering", set_scene, C);
-	BLI_argsAdd(ba, 4, "-s", "--frame-start", "<frame>\n\tSet start to frame <frame> (use before the -a argument)", set_start_frame, C);
-	BLI_argsAdd(ba, 4, "-e", "--frame-end", "<frame>\n\tSet end to frame <frame> (use before the -a argument)", set_end_frame, C);
+	BLI_argsAdd(ba, 4, "-s", "--frame-start", "<frame>\n\tSet start to frame <frame>, supports +/- for relative frames too.", set_start_frame, C);
+	BLI_argsAdd(ba, 4, "-e", "--frame-end", "<frame>\n\tSet end to frame <frame>, supports +/- for relative frames too.", set_end_frame, C);
 	BLI_argsAdd(ba, 4, "-j", "--frame-jump", "<frames>\n\tSet number of frames to step forward after each rendered frame", set_skip_frame, C);
 	BLI_argsAdd(ba, 4, "-P", "--python", "<filename>\n\tRun the given Python script file", run_python_file, C);
 	BLI_argsAdd(ba, 4, NULL, "--python-text", "<name>\n\tRun the given Python script text block", run_python_text, C);
