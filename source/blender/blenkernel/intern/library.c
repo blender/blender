@@ -1147,6 +1147,7 @@ void BKE_main_free(Main *mainvar)
 				case  30: BKE_libblock_free_ex(mainvar, id, false); break;
 				case  31: BKE_libblock_free_ex(mainvar, id, false); break;
 				case  32: BKE_libblock_free_ex(mainvar, id, false); break;
+				case  33: BKE_libblock_free_ex(mainvar, id, false); break;
 				default:
 					BLI_assert(0);
 					break;
