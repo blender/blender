@@ -300,8 +300,8 @@ void BVHSpatialSplit::split_curve_primitive(const Mesh *mesh,
 	/* curve split: NOTE - Currently ignores curve width and needs to be fixed.*/
 	const int k0 = mesh->curves[prim_index].first_key + segment_index;
 	const int k1 = k0 + 1;
-	const float4 key0 = mesh->curve_keys[k0];
-	const float4 key1 = mesh->curve_keys[k1];
+	const float4& key0 = mesh->curve_keys[k0];
+	const float4& key1 = mesh->curve_keys[k1];
 	float3 v0 = float4_to_float3(key0);
 	float3 v1 = float4_to_float3(key1);
 
