@@ -117,7 +117,7 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
 				}
 				va = *va_p;
 
-				closest_to_plane_v3(co, plane, l_iter->v->co);
+				closest_to_plane_normalized_v3(co, plane, l_iter->v->co);
 				va->co_tot += 1;
 
 				interp_v3_v3v3(va->co, va->co, co, 1.0f / (float)va->co_tot);

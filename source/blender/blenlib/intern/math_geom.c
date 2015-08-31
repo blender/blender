@@ -380,6 +380,27 @@ void closest_to_plane_v3(float r_close[3], const float plane[4], const float pt[
 	madd_v3_v3v3fl(r_close, pt, plane, -side / len_sq);
 }
 
+void closest_to_plane_normalized_v3(float r_close[3], const float plane[4], const float pt[3])
+{
+	const float side = plane_point_side_v3(plane, pt);
+	BLI_ASSERT_UNIT_V3(plane);
+	madd_v3_v3v3fl(r_close, pt, plane, -side);
+}
+
+void closest_to_plane3_v3(float r_close[3], const float plane[3], const float pt[3])
+{
+	const float len_sq = len_squared_v3(plane);
+	const float side = dot_v3v3(plane, pt);
+	madd_v3_v3v3fl(r_close, pt, plane, -side / len_sq);
+}
+
+void closest_to_plane3_normalized_v3(float r_close[3], const float plane[3], const float pt[3])
+{
+	const float side = dot_v3v3(plane, pt);
+	BLI_ASSERT_UNIT_V3(plane);
+	madd_v3_v3v3fl(r_close, pt, plane, -side);
+}
+
 float dist_signed_squared_to_plane_v3(const float pt[3], const float plane[4])
 {
 	const float len_sq = len_squared_v3(plane);

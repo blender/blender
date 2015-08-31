@@ -1213,8 +1213,8 @@ static void getVerticalAndHorizontalChange(const float norm[3], float d, const f
 
 	plane_from_point_normal_v3(plane, coord, norm);
 
-	closest_to_plane_v3(projA, plane, start);
-	closest_to_plane_v3(projB, plane, end);
+	closest_to_plane_normalized_v3(projA, plane, start);
+	closest_to_plane_normalized_v3(projB, plane, end);
 	/* (vertical and horizontal refer to the plane's y and xz respectively)
 	 * vertical distance */
 	dists[index] = dot_v3v3(norm, end) + d;

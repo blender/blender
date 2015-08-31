@@ -823,7 +823,7 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, bool e
 					if (!ff)
 						continue;
 					plane_from_point_normal_v3(plane, v->co, ff->no);
-					closest_to_plane_v3(dropco, plane, meetco);
+					closest_to_plane_normalized_v3(dropco, plane, meetco);
 					if (point_between_edges(dropco, v, ff, e, e->next)) {
 						copy_v3_v3(meetco, dropco);
 						break;
