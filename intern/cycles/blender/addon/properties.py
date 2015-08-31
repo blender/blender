@@ -743,7 +743,7 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
                 name="Map Resolution",
                 description="Importance map size is resolution x resolution; "
                             "higher values potentially produce less noise, at the cost of memory and speed",
-                min=4, max=8096,
+                min=4, max=8192,
                 default=256,
                 )
         cls.samples = IntProperty(
