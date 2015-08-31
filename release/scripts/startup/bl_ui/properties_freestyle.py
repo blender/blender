@@ -381,7 +381,6 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
                     message = "Enable Face Smoothness to use this modifier"
                     self.draw_modifier_box_error(col.box(), modifier, message)
 
-
     def draw_alpha_modifier(self, context, modifier):
         layout = self.layout
 
@@ -496,7 +495,6 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
                 row.prop(modifier, "angle_min")
                 row.prop(modifier, "angle_max")
 
-
             elif modifier.type == 'CURVATURE_3D':
                 self.draw_modifier_curve_common(box, modifier, False, False)
                 row = box.row(align=True)
@@ -509,7 +507,6 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
                 if not freestyle.use_smoothness:
                     message = "Enable Face Smoothness to use this modifier"
                     self.draw_modifier_box_error(col.box(), modifier, message)
-
 
     def draw_geometry_modifier(self, context, modifier):
         layout = self.layout
@@ -610,7 +607,6 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
 
             elif modifier.type == 'SIMPLIFICATION':
                 box.prop(modifier, "tolerance")
-
 
     def draw(self, context):
         layout = self.layout

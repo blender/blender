@@ -1998,7 +1998,7 @@ class VIEW3D_MT_pose_group(Menu):
 
             layout.separator()
 
-            #layout.operator_context = 'INVOKE_AREA'
+            # layout.operator_context = 'INVOKE_AREA'
             layout.operator("pose.group_unassign")
             layout.operator("pose.group_remove")
 
@@ -3292,7 +3292,7 @@ class VIEW3D_PT_background_image(Panel):
                         box.template_image(bg, "image", bg.image_user, compact=True)
                         has_bg = True
 
-                        if use_multiview and bg.view_axis in {'CAMERA','ALL'}:
+                        if use_multiview and bg.view_axis in {'CAMERA', 'ALL'}:
                             box.prop(bg.image, "use_multiview")
 
                             column = box.column()

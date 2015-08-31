@@ -230,7 +230,7 @@ class TIME_MT_autokey(Menu):
 
 def marker_menu_generic(layout):
 
-    #layout.operator_context = 'EXEC_REGION_WIN'
+    # layout.operator_context = 'EXEC_REGION_WIN'
 
     layout.column()
     layout.operator("marker.add", "Add Marker")

@@ -28,6 +28,7 @@ from bpy.props import (
 
 # ########## Datablock previews... ##########
 
+
 class WM_OT_previews_batch_generate(Operator):
     """Generate selected .blend file's previews"""
     bl_idname = "wm.previews_batch_generate"

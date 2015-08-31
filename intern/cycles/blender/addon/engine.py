@@ -49,6 +49,7 @@ def _workaround_buggy_drivers():
             print("Cycles: OpenGL driver known to be buggy, disabling OpenCL platform.")
             _cycles.opencl_disable()
 
+
 def init():
     import bpy
     import _cycles

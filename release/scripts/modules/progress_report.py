@@ -20,6 +20,7 @@
 
 import time
 
+
 class ProgressReport:
     """
     A basic 'progress report' using either simple prints in console, or WindowManager's 'progress' API.

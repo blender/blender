@@ -941,7 +941,7 @@ class IMAGE_PT_tools_imagepaint_symmetry(BrushButtonsPanel, Panel):
         row = col.row(align=True)
         row.prop(ipaint, "tile_x", text="X", toggle=True)
         row.prop(ipaint, "tile_y", text="Y", toggle=True)
- 
+
 
 class IMAGE_PT_tools_brush_appearance(BrushButtonsPanel, Panel):
     bl_label = "Appearance"

@@ -1552,7 +1552,6 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
         row.prop(sculpt, "lock_y", text="Y", toggle=True)
         row.prop(sculpt, "lock_z", text="Z", toggle=True)
 
-
         layout.label(text="Tiling:")
 
         row = layout.row(align=True)
@@ -1561,6 +1560,7 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
         row.prop(sculpt, "tile_z", text="Z", toggle=True)
 
         layout.column().prop(sculpt, "tile_offset", text="Tile Offset")
+
 
 class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
     bl_category = "Options"

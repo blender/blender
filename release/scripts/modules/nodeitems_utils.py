@@ -85,6 +85,7 @@ class NodeItemCustom:
 
 _node_categories = {}
 
+
 def register_node_categories(identifier, cat_list):
     if identifier in _node_categories:
         raise KeyError("Node categories list '%s' already registered" % identifier)
@@ -166,6 +167,7 @@ def unregister_node_categories(identifier=None):
         for cat_types in _node_categories.values():
             unregister_node_cat_types(cat_types)
         _node_categories.clear()
+
 
 def draw_node_categories_menu(self, context):
     for cats in _node_categories.values():
