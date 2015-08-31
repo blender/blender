@@ -575,7 +575,7 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 {
 	const int mode_flag = OB_MODE_EDIT;
 	const bool is_mode_set = (CTX_data_edit_object(C) != NULL);
-	ToolSettings *toolsettings =  CTX_data_tool_settings(C);
+	Scene *scene =  CTX_data_scene(C);
 
 	if (!is_mode_set) {
 		Object *ob = CTX_data_active_object(C);
@@ -589,7 +589,7 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 	else
 		ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR);  /* had EM_DO_UNDO but op flag calls undo too [#24685] */
 	
-	ED_space_image_uv_sculpt_update(CTX_wm_manager(C), toolsettings);
+	ED_space_image_uv_sculpt_update(CTX_wm_manager(C), scene);
 
 	return OPERATOR_FINISHED;
 }

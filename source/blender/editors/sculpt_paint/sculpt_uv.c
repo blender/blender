@@ -224,8 +224,9 @@ static void brush_drawcursor_uvsculpt(bContext *C, int x, int y, void *UNUSED(cu
 }
 
 
-void ED_space_image_uv_sculpt_update(wmWindowManager *wm, ToolSettings *settings)
+void ED_space_image_uv_sculpt_update(wmWindowManager *wm, Scene *scene)
 {
+	ToolSettings *settings = scene->toolsettings;
 	if (settings->use_uv_sculpt) {
 		if (!settings->uvsculpt) {
 			settings->uvsculpt = MEM_callocN(sizeof(*settings->uvsculpt), "UV Smooth paint");
@@ -236,7 +237,7 @@ void ED_space_image_uv_sculpt_update(wmWindowManager *wm, ToolSettings *settings
 			settings->uvsculpt->paint.flags |= PAINT_SHOW_BRUSH;
 		}
 
-		BKE_paint_init(&settings->unified_paint_settings, &settings->uvsculpt->paint, PAINT_CURSOR_SCULPT);
+		BKE_paint_init(scene, ePaintSculptUV, PAINT_CURSOR_SCULPT);
 
 		settings->uvsculpt->paint.paint_cursor = WM_paint_cursor_activate(wm, uv_sculpt_brush_poll,
 		                                                                  brush_drawcursor_uvsculpt, NULL);

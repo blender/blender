@@ -66,13 +66,13 @@ extern const char PAINT_CURSOR_WEIGHT_PAINT[3];
 extern const char PAINT_CURSOR_TEXTURE_PAINT[3];
 
 typedef enum PaintMode {
-	PAINT_SCULPT = 0,
-	PAINT_VERTEX = 1,
-	PAINT_WEIGHT = 2,
-	PAINT_TEXTURE_PROJECTIVE = 3,
-	PAINT_TEXTURE_2D = 4,
-	PAINT_SCULPT_UV = 5,
-	PAINT_INVALID = 6
+	ePaintSculpt = 0,
+	ePaintVertex = 1,
+	ePaintWeight = 2,
+	ePaintTextureProjective = 3,
+	ePaintTexture2D = 4,
+	ePaintSculptUV = 5,
+	ePaintInvalid = 6
 } PaintMode;
 
 /* overlay invalidation */
@@ -108,12 +108,14 @@ void                 BKE_palette_clear(struct Palette *palette);
 struct PaintCurve *BKE_paint_curve_add(struct Main *bmain, const char *name);
 void BKE_paint_curve_free(struct PaintCurve *pc);
 
-void BKE_paint_init(struct UnifiedPaintSettings *ups, struct Paint *p, const char col[3]);
+void BKE_paint_init(struct Scene *sce, PaintMode mode, const char col[3]);
 void BKE_paint_free(struct Paint *p);
 void BKE_paint_copy(struct Paint *src, struct Paint *tar);
 
 void BKE_paint_cavity_curve_preset(struct Paint *p, int preset);
 
+short BKE_paint_object_mode_from_paint_mode(PaintMode mode);
+struct Paint *BKE_paint_get_active_from_paintmode(struct Scene *sce, PaintMode mode);
 struct Paint *BKE_paint_get_active(struct Scene *sce);
 struct Paint *BKE_paint_get_active_from_context(const struct bContext *C);
 PaintMode BKE_paintmode_get_active_from_context(const struct bContext *C);

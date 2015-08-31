@@ -756,7 +756,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
                                      ViewContext *vc, int x, int y, float zoom, PaintMode mode)
 {
 	/* color means that primary brush texture is colured and secondary is used for alpha/mask control */
-	bool col = ELEM(mode, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D, PAINT_VERTEX) ? true : false;
+	bool col = ELEM(mode, ePaintTextureProjective, ePaintTexture2D, ePaintVertex) ? true : false;
 	OverlayControlFlags flags = BKE_paint_get_overlay_flags();
 	/* save lots of GL state
 	 * TODO: check on whether all of these are needed? */
@@ -782,7 +782,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 			paint_draw_cursor_overlay(ups, brush, vc, x, y, zoom);
 	}
 	else {
-		if (!(flags & PAINT_OVERLAY_OVERRIDE_PRIMARY) && (mode != PAINT_WEIGHT))
+		if (!(flags & PAINT_OVERLAY_OVERRIDE_PRIMARY) && (mode != ePaintWeight))
 			paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, false, true);
 		if (!(flags & PAINT_OVERLAY_OVERRIDE_CURSOR))
 			paint_draw_cursor_overlay(ups, brush, vc, x, y, zoom);
@@ -958,7 +958,7 @@ static void paint_cursor_on_hit(UnifiedPaintSettings *ups, Brush *brush, ViewCon
 static bool ommit_cursor_drawing(Paint *paint, PaintMode mode, Brush *brush)
 {
 	if (paint->flags & PAINT_SHOW_BRUSH) {
-		if (ELEM(mode, PAINT_TEXTURE_2D, PAINT_TEXTURE_PROJECTIVE) && brush->imagepaint_tool == PAINT_TOOL_FILL) {
+		if (ELEM(mode, ePaintTexture2D, ePaintTextureProjective) && brush->imagepaint_tool == PAINT_TOOL_FILL) {
 			return true;
 		}
 		return false;
@@ -1014,7 +1014,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 	/* TODO: as sculpt and other paint modes are unified, this
 	 * special mode of drawing will go away */
-	if ((mode == PAINT_SCULPT) && vc.obact->sculpt) {
+	if ((mode == ePaintSculpt) && vc.obact->sculpt) {
 		float location[3];
 		int pixel_radius;
 		bool hit;

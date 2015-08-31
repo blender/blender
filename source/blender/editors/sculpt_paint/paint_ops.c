@@ -66,11 +66,12 @@ static int brush_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Paint *paint = BKE_paint_get_active_from_context(C);
 	Brush *br = BKE_paint_brush(paint);
 	Main *bmain = CTX_data_main(C);
+	PaintMode mode = BKE_paintmode_get_active_from_context(C);
 
 	if (br)
 		br = BKE_brush_copy(br);
 	else
-		br = BKE_brush_add(bmain, "Brush");
+		br = BKE_brush_add(bmain, "Brush", BKE_paint_object_mode_from_paint_mode(mode));
 
 	BKE_paint_brush_set(paint, br);
 
@@ -201,11 +202,11 @@ static int palette_color_add_exec(bContext *C, wmOperator *UNUSED(op))
 	color = BKE_palette_color_add(palette);
 	palette->active_color = BLI_listbase_count(&palette->colors) - 1;
 
-	if (ELEM(mode, PAINT_TEXTURE_PROJECTIVE, PAINT_TEXTURE_2D, PAINT_VERTEX)) {
+	if (ELEM(mode, ePaintTextureProjective, ePaintTexture2D, ePaintVertex)) {
 		copy_v3_v3(color->rgb, BKE_brush_color_get(scene, brush));
 		color->value = 0.0;
 	}
-	else if (mode == PAINT_WEIGHT) {
+	else if (mode == ePaintWeight) {
 		zero_v3(color->rgb);
 		color->value = brush->weight;
 	}
@@ -431,9 +432,8 @@ static int brush_generic_tool_set(Main *bmain, Paint *paint, const int tool,
 		brush = brush_tool_cycle(bmain, brush_orig, tool, tool_offset, ob_mode);
 
 	if (!brush && brush_tool(brush_orig, tool_offset) != tool && create_missing) {
-		brush = BKE_brush_add(bmain, tool_name);
+		brush = BKE_brush_add(bmain, tool_name, ob_mode);
 		brush_tool_set(brush, tool_offset, tool);
-		brush->ob_mode = ob_mode;
 		brush->toggle_brush = brush_orig;
 	}
 

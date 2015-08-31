@@ -131,7 +131,7 @@ static void brush_defaults(Brush *brush)
 
 /* Datablock add/copy/free/make_local */
 
-Brush *BKE_brush_add(Main *bmain, const char *name)
+Brush *BKE_brush_add(Main *bmain, const char *name, short ob_mode)
 {
 	Brush *brush;
 
@@ -143,11 +143,23 @@ Brush *BKE_brush_add(Main *bmain, const char *name)
 	brush_defaults(brush);
 
 	brush->sculpt_tool = SCULPT_TOOL_DRAW; /* sculpting defaults to the draw tool for new brushes */
+	brush->ob_mode = ob_mode;
 
 	/* the default alpha falloff curve */
 	BKE_brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
 
 	return brush;
+}
+
+struct Brush *BKE_brush_first_search(struct Main *bmain, short ob_mode)
+{
+	Brush *brush;
+
+	for (brush = bmain->brush.first; brush; brush = brush->id.next) {
+		if (brush->ob_mode & ob_mode)
+			return brush;
+	}
+	return NULL;
 }
 
 Brush *BKE_brush_copy(Brush *brush)

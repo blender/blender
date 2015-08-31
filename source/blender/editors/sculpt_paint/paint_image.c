@@ -1045,8 +1045,9 @@ static void toggle_paint_cursor(bContext *C, int enable)
  * purpose is to make sure the paint cursor is shown if paint
  * mode is enabled in the image editor. the paint poll will
  * ensure that the cursor is hidden when not in paint mode */
-void ED_space_image_paint_update(wmWindowManager *wm, ToolSettings *settings)
+void ED_space_image_paint_update(wmWindowManager *wm, Scene *scene)
 {
+	ToolSettings *settings = scene->toolsettings;
 	wmWindow *win;
 	ScrArea *sa;
 	ImagePaintSettings *imapaint = &settings->imapaint;
@@ -1059,7 +1060,7 @@ void ED_space_image_paint_update(wmWindowManager *wm, ToolSettings *settings)
 					enabled = true;
 
 	if (enabled) {
-		BKE_paint_init(&settings->unified_paint_settings, &imapaint->paint, PAINT_CURSOR_TEXTURE_PAINT);
+		BKE_paint_init(scene, ePaintTexture2D, PAINT_CURSOR_TEXTURE_PAINT);
 
 		paint_cursor_start_explicit(&imapaint->paint, wm, image_paint_poll);
 	}
@@ -1212,7 +1213,7 @@ static int sample_color_exec(bContext *C, wmOperator *op)
 	RNA_int_get_array(op->ptr, "location", location);
 	use_palette = RNA_boolean_get(op->ptr, "palette");
 
-	paint_sample_color(C, ar, location[0], location[1], mode == PAINT_TEXTURE_PROJECTIVE, use_palette);
+	paint_sample_color(C, ar, location[0], location[1], mode == ePaintTextureProjective, use_palette);
 
 	if (show_cursor) {
 		paint->flags |= PAINT_SHOW_BRUSH;
@@ -1250,7 +1251,7 @@ static int sample_color_invoke(bContext *C, wmOperator *op, const wmEvent *event
 
 	RNA_int_set_array(op->ptr, "location", event->mval);
 
-	paint_sample_color(C, ar, event->mval[0], event->mval[1], mode == PAINT_TEXTURE_PROJECTIVE, false);
+	paint_sample_color(C, ar, event->mval[0], event->mval[1], mode == ePaintTextureProjective, false);
 	WM_cursor_modal_set(win, BC_EYEDROPPER_CURSOR);
 
 	WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
@@ -1289,7 +1290,7 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		{
 			ARegion *ar = CTX_wm_region(C);
 			RNA_int_set_array(op->ptr, "location", event->mval);
-			paint_sample_color(C, ar, event->mval[0], event->mval[1], mode == PAINT_TEXTURE_PROJECTIVE, false);
+			paint_sample_color(C, ar, event->mval[0], event->mval[1], mode == ePaintTextureProjective, false);
 			WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
 			break;
 		}
@@ -1298,7 +1299,7 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			if (event->val == KM_PRESS) {
 				ARegion *ar = CTX_wm_region(C);
 				RNA_int_set_array(op->ptr, "location", event->mval);
-				paint_sample_color(C, ar, event->mval[0], event->mval[1], mode == PAINT_TEXTURE_PROJECTIVE, true);
+				paint_sample_color(C, ar, event->mval[0], event->mval[1], mode == ePaintTextureProjective, true);
 				if (!data->sample_palette) {
 					data->sample_palette = true;
 					sample_color_update_header(data, C);
@@ -1416,7 +1417,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 		
 		ob->mode |= mode_flag;
 
-		BKE_paint_init(&scene->toolsettings->unified_paint_settings, &imapaint->paint, PAINT_CURSOR_TEXTURE_PAINT);
+		BKE_paint_init(scene, ePaintTextureProjective, PAINT_CURSOR_TEXTURE_PAINT);
 
 		if (U.glreslimit != 0)
 			GPU_free_images();

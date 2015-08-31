@@ -730,7 +730,7 @@ static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
 
 static void rna_SpaceImageEditor_mode_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
 {
-	ED_space_image_paint_update(bmain->wm.first, scene->toolsettings);
+	ED_space_image_paint_update(bmain->wm.first, scene);
 }
 
 

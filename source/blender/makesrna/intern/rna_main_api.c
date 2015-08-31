@@ -36,6 +36,7 @@
 #include "DNA_ID.h"
 #include "DNA_modifier_types.h"
 #include "DNA_space_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
@@ -88,7 +89,6 @@
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_text_types.h"
@@ -483,12 +483,13 @@ static void rna_Main_textures_remove(Main *bmain, ReportList *reports, PointerRN
 	}
 }
 
-static Brush *rna_Main_brushes_new(Main *bmain, const char *name)
+static Brush *rna_Main_brushes_new(Main *bmain, const char *name, int mode)
 {
-	Brush *brush = BKE_brush_add(bmain, name);
+	Brush *brush = BKE_brush_add(bmain, name, mode);
 	id_us_min(&brush->id);
 	return brush;
 }
+
 static void rna_Main_brushes_remove(Main *bmain, ReportList *reports, PointerRNA *brush_ptr)
 {
 	Brush *brush = brush_ptr->data;
@@ -1422,6 +1423,7 @@ void RNA_def_main_brushes(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a new brush to the main database");
 	parm = RNA_def_string(func, "name", "Brush", 0, "", "New name for the datablock");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_enum(func, "mode", object_mode_items, OB_MODE_TEXTURE_PAINT, "", "Paint Mode for the new brush");
 	/* return type */
 	parm = RNA_def_pointer(func, "brush", "Brush", "", "New brush datablock");
 	RNA_def_function_return(func, parm);

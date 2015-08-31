@@ -134,12 +134,12 @@ static void paintcurve_undo_begin(bContext *C, wmOperator *op, PaintCurve *pc)
 	UndoCurve *uc;
 
 	switch (mode) {
-		case PAINT_TEXTURE_2D:
-		case PAINT_TEXTURE_PROJECTIVE:
+		case ePaintTexture2D:
+		case ePaintTextureProjective:
 			undo_stack_id = UNDO_PAINT_IMAGE;
 			break;
 
-		case PAINT_SCULPT:
+		case ePaintSculpt:
 			undo_stack_id = UNDO_PAINT_MESH;
 			break;
 
@@ -737,17 +737,17 @@ static int paintcurve_draw_exec(bContext *C, wmOperator *UNUSED(op))
 	const char *name;
 
 	switch (mode) {
-		case PAINT_TEXTURE_2D:
-		case PAINT_TEXTURE_PROJECTIVE:
+		case ePaintTexture2D:
+		case ePaintTextureProjective:
 			name = "PAINT_OT_image_paint";
 			break;
-		case PAINT_WEIGHT:
+		case ePaintWeight:
 			name = "PAINT_OT_weight_paint";
 			break;
-		case PAINT_VERTEX:
+		case ePaintVertex:
 			name = "PAINT_OT_vertex_paint";
 			break;
-		case PAINT_SCULPT:
+		case ePaintSculpt:
 			name = "SCULPT_OT_brush_stroke";
 			break;
 		default:
@@ -777,7 +777,7 @@ static int paintcurve_cursor_invoke(bContext *C, wmOperator *UNUSED(op), const w
 	PaintMode mode = BKE_paintmode_get_active_from_context(C);
 	
 	switch (mode) {
-		case PAINT_TEXTURE_2D:
+		case ePaintTexture2D:
 		{
 			ARegion *ar = CTX_wm_region(C);
 			SpaceImage *sima = CTX_wm_space_image(C);

@@ -705,7 +705,7 @@ class IMAGE_PT_tools_transform_uvs(Panel, UVToolsPanel):
         col.operator("transform.shear")
 
 
-class IMAGE_PT_paint(Panel, BrushButtonsPanel):
+class IMAGE_PT_paint(Panel, ImagePaintPanel):
     bl_label = "Paint"
     bl_category = "Tools"
 
@@ -721,6 +721,11 @@ class IMAGE_PT_paint(Panel, BrushButtonsPanel):
         if brush:
             brush_texpaint_common(self, context, layout, brush, settings)
 
+    @classmethod
+    def poll(cls, context):
+        sima = context.space_data
+        toolsettings = context.tool_settings.image_paint
+        return sima.show_paint
 
 class IMAGE_PT_tools_brush_overlay(BrushButtonsPanel, Panel):
     bl_label = "Overlay"

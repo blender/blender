@@ -4062,7 +4062,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	 *      brush coord/pressure/etc.
 	 *      It's more an events design issue, which doesn't split coordinate/pressure/angle
 	 *      changing events. We should avoid this after events system re-design */
-	if (paint_supports_dynamic_size(brush, PAINT_SCULPT) || cache->first_time) {
+	if (paint_supports_dynamic_size(brush, ePaintSculpt) || cache->first_time) {
 		cache->pressure = RNA_float_get(ptr, "pressure");
 	}
 
@@ -4079,7 +4079,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 		}
 	}
 
-	if (BKE_brush_use_size_pressure(scene, brush) && paint_supports_dynamic_size(brush, PAINT_SCULPT)) {
+	if (BKE_brush_use_size_pressure(scene, brush) && paint_supports_dynamic_size(brush, ePaintSculpt)) {
 		cache->radius = cache->initial_radius * cache->pressure;
 	}
 	else {
@@ -5141,7 +5141,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 			           "Object has negative scale, sculpting may be unpredictable");
 		}
 
-		BKE_paint_init(&ts->unified_paint_settings, &ts->sculpt->paint, PAINT_CURSOR_SCULPT);
+		BKE_paint_init(scene, ePaintSculpt, PAINT_CURSOR_SCULPT);
 
 		paint_cursor_start(C, sculpt_poll_view3d);
 	}

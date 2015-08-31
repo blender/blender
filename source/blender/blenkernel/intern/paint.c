@@ -128,6 +128,32 @@ void BKE_paint_reset_overlay_invalid(OverlayControlFlags flag)
 	overlay_flags &= ~(flag);
 }
 
+Paint *BKE_paint_get_active_from_paintmode(Scene *sce, PaintMode mode)
+{
+	if (sce) {
+		ToolSettings *ts = sce->toolsettings;
+
+		switch (mode) {
+			case ePaintSculpt:
+				return &ts->sculpt->paint;
+			case ePaintVertex:
+				return &ts->vpaint->paint;
+			case ePaintWeight:
+				return &ts->wpaint->paint;
+			case ePaintTexture2D:
+			case ePaintTextureProjective:
+				return &ts->imapaint.paint;
+			case ePaintSculptUV:
+				return &ts->uvsculpt->paint;
+			case ePaintInvalid:
+				return NULL;
+			default:
+				return &ts->imapaint.paint;
+		}
+	}
+
+	return NULL;
+}
 
 Paint *BKE_paint_get_active(Scene *sce)
 {
@@ -223,39 +249,39 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
 		if ((sima = CTX_wm_space_image(C)) != NULL) {
 			if (obact && obact->mode == OB_MODE_EDIT) {
 				if (sima->mode == SI_MODE_PAINT)
-					return PAINT_TEXTURE_2D;
+					return ePaintTexture2D;
 				else if (ts->use_uv_sculpt)
-					return PAINT_SCULPT_UV;
+					return ePaintSculptUV;
 			}
 			else {
-				return PAINT_TEXTURE_2D;
+				return ePaintTexture2D;
 			}
 		}
 		else if (obact) {
 			switch (obact->mode) {
 				case OB_MODE_SCULPT:
-					return PAINT_SCULPT;
+					return ePaintSculpt;
 				case OB_MODE_VERTEX_PAINT:
-					return PAINT_VERTEX;
+					return ePaintVertex;
 				case OB_MODE_WEIGHT_PAINT:
-					return PAINT_WEIGHT;
+					return ePaintWeight;
 				case OB_MODE_TEXTURE_PAINT:
-					return PAINT_TEXTURE_PROJECTIVE;
+					return ePaintTextureProjective;
 				case OB_MODE_EDIT:
 					if (ts->use_uv_sculpt)
-						return PAINT_SCULPT_UV;
-					return PAINT_TEXTURE_2D;
+						return ePaintSculptUV;
+					return ePaintTexture2D;
 				default:
-					return PAINT_TEXTURE_2D;
+					return ePaintTexture2D;
 			}
 		}
 		else {
 			/* default to image paint */
-			return PAINT_TEXTURE_2D;
+			return ePaintTexture2D;
 		}
 	}
 
-	return PAINT_INVALID;
+	return ePaintInvalid;
 }
 
 Brush *BKE_paint_brush(Paint *p)
@@ -418,23 +444,51 @@ void BKE_paint_cavity_curve_preset(Paint *p, int preset)
 	curvemapping_changed(p->cavity_curve, false);
 }
 
-void BKE_paint_init(UnifiedPaintSettings *ups, Paint *p, const char col[3])
+short BKE_paint_object_mode_from_paint_mode(PaintMode mode)
 {
+	switch (mode) {
+		case ePaintSculpt:
+			return OB_MODE_SCULPT;
+		case ePaintVertex:
+			return OB_MODE_VERTEX_PAINT;
+		case ePaintWeight:
+			return OB_MODE_WEIGHT_PAINT;
+		case ePaintTextureProjective:
+			return OB_MODE_TEXTURE_PAINT;
+		case ePaintTexture2D:
+			return OB_MODE_TEXTURE_PAINT;
+		case ePaintSculptUV:
+			return OB_MODE_EDIT;
+		case ePaintInvalid:
+		default:
+			return 0;
+	}
+}
+
+void BKE_paint_init(Scene *sce, PaintMode mode, const char col[3])
+{
+	UnifiedPaintSettings *ups = &sce->toolsettings->unified_paint_settings;
 	Brush *brush;
+	Paint *paint = BKE_paint_get_active_from_paintmode(sce, mode);
 
 	/* If there's no brush, create one */
-	brush = BKE_paint_brush(p);
-	if (brush == NULL)
-		brush = BKE_brush_add(G.main, "Brush");
-	BKE_paint_brush_set(p, brush);
+	brush = BKE_paint_brush(paint);
+	if (brush == NULL) {
+		short ob_mode = BKE_paint_object_mode_from_paint_mode(mode);
+		brush = BKE_brush_first_search(G.main, ob_mode);
 
-	memcpy(p->paint_cursor_col, col, 3);
-	p->paint_cursor_col[3] = 128;
+		if (!brush)
+			brush = BKE_brush_add(G.main, "Brush", ob_mode);
+		BKE_paint_brush_set(paint, brush);
+	}
+
+	memcpy(paint->paint_cursor_col, col, 3);
+	paint->paint_cursor_col[3] = 128;
 	ups->last_stroke_valid = false;
 	zero_v3(ups->average_stroke_accum);
 	ups->average_stroke_counter = 0;
-	if (!p->cavity_curve)
-		BKE_paint_cavity_curve_preset(p, CURVE_PRESET_LINE);
+	if (!paint->cavity_curve)
+		BKE_paint_cavity_curve_preset(paint, CURVE_PRESET_LINE);
 }
 
 void BKE_paint_free(Paint *paint)

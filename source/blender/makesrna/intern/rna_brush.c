@@ -510,7 +510,7 @@ static EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA *ptr,
 	Brush *me = (Brush *)(ptr->data);
 
 	switch (mode) {
-		case PAINT_SCULPT:
+		case ePaintSculpt:
 			switch (me->sculpt_tool) {
 				case SCULPT_TOOL_DRAW:
 				case SCULPT_TOOL_CREASE:
@@ -550,8 +550,8 @@ static EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA *ptr,
 			}
 			break;
 
-		case PAINT_TEXTURE_2D:
-		case PAINT_TEXTURE_PROJECTIVE:
+		case ePaintTexture2D:
+		case ePaintTextureProjective:
 			switch (me->imagepaint_tool) {
 				case PAINT_TOOL_SOFTEN:
 					return prop_soften_sharpen_items;
@@ -581,9 +581,9 @@ static EnumPropertyItem *rna_Brush_stroke_itemf(bContext *C, PointerRNA *UNUSED(
 	};
 
 	switch (mode) {
-		case PAINT_SCULPT:
-		case PAINT_TEXTURE_2D:
-		case PAINT_TEXTURE_PROJECTIVE:
+		case ePaintSculpt:
+		case ePaintTexture2D:
+		case ePaintTextureProjective:
 			return sculpt_stroke_method_items;
 
 		default:

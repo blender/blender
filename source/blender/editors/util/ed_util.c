@@ -111,7 +111,7 @@ void ED_editors_init(bContext *C)
 
 	/* image editor paint mode */
 	if (sce) {
-		ED_space_image_paint_update(wm, sce->toolsettings);
+		ED_space_image_paint_update(wm, sce);
 	}
 
 	SWAP(int, reports->flag, reports_flag_prev);
