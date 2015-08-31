@@ -208,18 +208,11 @@ static void bm_loop_customdata_merge(
 			 */
 			const void *data_src;
 
-			CustomData_data_add(
+			CustomData_data_mix_value(
 			        type,
 			        BM_ELEM_CD_GET_VOID_P(l_a_inner_inset, offset),
-			        BM_ELEM_CD_GET_VOID_P(l_b_inner_inset, offset));
-			CustomData_data_multiply(
-			        type,
-			        BM_ELEM_CD_GET_VOID_P(l_a_inner_inset, offset),
-			        0.5f);
-			CustomData_data_copy_value(
-			        type,
-			        BM_ELEM_CD_GET_VOID_P(l_a_inner_inset, offset),
-			        BM_ELEM_CD_GET_VOID_P(l_b_inner_inset, offset));
+			        BM_ELEM_CD_GET_VOID_P(l_b_inner_inset, offset),
+			        CDT_MIX_MIX, 0.5f);
 
 			/* use this as a reference (could be 'l_b_inner_inset' too) */
 			data_src = BM_ELEM_CD_GET_VOID_P(l_a_inner_inset, offset);
