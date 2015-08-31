@@ -1607,7 +1607,8 @@ bool isect_tri_tri_epsilon_v3(
 		/**
 		 * Implementation note: its simpler to project the triangles onto the intersection plane
 		 * before intersecting their edges with the ray, defined by 'isect_plane_plane_v3'.
-		 * This way we can use 'line_point_factor_v3_ex' to see if an edge crosses 'co_proj'.
+		 * This way we can use 'line_point_factor_v3_ex' to see if an edge crosses 'co_proj',
+		 * then use the factor to calculate the world-space point.
 		 */
 		struct {
 			float min, max;
@@ -1621,7 +1622,7 @@ bool isect_tri_tri_epsilon_v3(
 
 		closest_to_plane3_normalized_v3(co_proj, plane_no, plane_co);
 
-		/* For both triangles, find the overlap with the line defined by the ray [co_proj, isect_no].
+		/* For both triangles, find the overlap with the line defined by the ray [co_proj, plane_no].
 		 * When the ranges overlap we know the triangles do too. */
 		for (t = 0; t < 2; t++) {
 			int j, j_prev;
@@ -1634,9 +1635,9 @@ bool isect_tri_tri_epsilon_v3(
 			for (j = 0, j_prev = 2; j < 3; j_prev = j++) {
 				const float edge_fac = line_point_factor_v3_ex(co_proj, tri_proj[j_prev], tri_proj[j], epsilon, -1.0f);
 				/* ignore collinear lines, they are either an edge shared between 2 tri's
-				 * (which runs along [co_proj, isect_no], but can be safely ignored).
+				 * (which runs along [co_proj, plane_no], but can be safely ignored).
 				 *
-				 * or an collinear edge placed away from the ray - which we don't intersect with & can ignore. */
+				 * or a collinear edge placed away from the ray - which we don't intersect with & can ignore. */
 				if (UNLIKELY(edge_fac == -1.0f)) {
 					/* pass */
 				}
