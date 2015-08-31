@@ -81,10 +81,20 @@ void DistanceMatteNode::convertToOperations(NodeConverter &converter, const Comp
 		operation = matte;
 	}
 	
+	converter.mapOutputSocket(outputSocketMatte, operation->getOutputSocket(0));
 	converter.addLink(operation->getOutputSocket(), operationAlpha->getInputSocket(1));
 	
-	converter.mapOutputSocket(outputSocketMatte, operation->getOutputSocket());
-	converter.mapOutputSocket(outputSocketImage, operationAlpha->getOutputSocket());
+	if (storage->channel != 1) {
+		ConvertYCCToRGBOperation *inv_convert = new ConvertYCCToRGBOperation();
+		inv_convert->setMode(0); /* BLI_YCC_ITU_BT601 */
+
+		converter.addOperation(inv_convert);
+		converter.addLink(operationAlpha->getOutputSocket(0), inv_convert->getInputSocket(0));
+		converter.mapOutputSocket(outputSocketImage, inv_convert->getOutputSocket());
+	}
+	else {
+		converter.mapOutputSocket(outputSocketImage, operationAlpha->getOutputSocket());
+	}
 	
 	converter.addPreview(operationAlpha->getOutputSocket());
 }
