@@ -291,11 +291,10 @@ static void ww_handle_init(eWriteWrapType ww_type, WriteWrap *r_ww)
 typedef struct {
 	struct SDNA *sdna;
 
-	int file;
 	unsigned char *buf;
 	MemFile *compare, *current;
 	
-	int tot, count, error, memsize;
+	int tot, count, error;
 
 	/* Wrap writing, so we can use zlib or
 	 * other compression types later, see: G_FILE_COMPRESS
