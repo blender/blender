@@ -1976,6 +1976,7 @@ int isect_line_line_epsilon_v3(
 	d = dot_v3v3(c, ab);
 	div = dot_v3v3(ab, ab);
 
+	/* important not to use an epsilon here, see: T45919 */
 	/* test zero length line */
 	if (UNLIKELY(div == 0.0f)) {
 		return 0;
@@ -2048,8 +2049,9 @@ bool isect_line_line_strict_v3(const float v1[3], const float v2[3],
 	d = dot_v3v3(c, ab);
 	div = dot_v3v3(ab, ab);
 
+	/* important not to use an epsilon here, see: T45919 */
 	/* test zero length line */
-	if (UNLIKELY(div <= epsilon)) {
+	if (UNLIKELY(div == 0.0f)) {
 		return false;
 	}
 	/* test if the two lines are coplanar */
