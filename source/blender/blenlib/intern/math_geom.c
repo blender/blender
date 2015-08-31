@@ -1596,45 +1596,66 @@ bool isect_tri_tri_epsilon_v3(
 {
 	const float *tri_pair[2][3] = {{t_a0, t_a1, t_a2}, {t_b0, t_b1, t_b2}};
 	float no_a[3], no_b[3];
-	float isect_co[3], isect_no[3];
+	float plane_co[3], plane_no[3];
 
 	BLI_assert((r_i1 != NULL) == (r_i2 != NULL));
 
-	normal_tri_v3(no_a, UNPACK3(tri_pair[0]));
-	normal_tri_v3(no_b, UNPACK3(tri_pair[1]));
+	cross_tri_v3(no_a, UNPACK3(tri_pair[0]));
+	cross_tri_v3(no_b, UNPACK3(tri_pair[1]));
 
-	if (isect_plane_plane_v3(isect_co, isect_no, t_a0, no_a, t_b0, no_b)) {
-		float isect_co_other[3];
+	if (isect_plane_plane_v3(plane_co, plane_no, t_a0, no_a, t_b0, no_b)) {
+		/**
+		 * Implementation note: its simpler to project the triangles onto the intersection plane
+		 * before intersecting their edges with the ray, defined by 'isect_plane_plane_v3'.
+		 * This way we can use 'line_point_factor_v3_ex' to see if an edge crosses 'co_proj'.
+		 */
 		struct {
 			float min, max;
 		} range[2] = {{FLT_MAX, -FLT_MAX}, {FLT_MAX, -FLT_MAX}};
 		int t;
+		float co_proj[3];
 
-		add_v3_v3v3(isect_co_other, isect_co, isect_no);
+		/* only for numeric stability
+		 * (and so we can call 'closest_to_plane3_normalized_v3' below) */
+		normalize_v3(plane_no);
 
-		/* For both triangles, find the overlap with the line defined by (isect_co, isect_co_other).
+		closest_to_plane3_normalized_v3(co_proj, plane_no, plane_co);
+
+		/* For both triangles, find the overlap with the line defined by the ray [co_proj, isect_no].
 		 * When the ranges overlap we know the triangles do too. */
 		for (t = 0; t < 2; t++) {
 			int j, j_prev;
+			float tri_proj[3][3];
+
+			closest_to_plane3_normalized_v3(tri_proj[0], plane_no, tri_pair[t][0]);
+			closest_to_plane3_normalized_v3(tri_proj[1], plane_no, tri_pair[t][1]);
+			closest_to_plane3_normalized_v3(tri_proj[2], plane_no, tri_pair[t][2]);
 
 			for (j = 0, j_prev = 2; j < 3; j_prev = j++) {
-				/* intersection point on the line intersecting both planes */
-				float ix_span[3];
-				/* intersection point on the triangles edge */
-				float ix_tri[3];
+				const float edge_fac = line_point_factor_v3_ex(co_proj, tri_proj[j_prev], tri_proj[j], epsilon, -1.0f);
+				/* ignore collinear lines, they are either an edge shared between 2 tri's
+				 * (which runs along [co_proj, isect_no], but can be safely ignored).
+				 *
+				 * or an collinear edge placed away from the ray - which we don't intersect with & can ignore. */
+				if (UNLIKELY(edge_fac == -1.0f)) {
+					/* pass */
+				}
+				else if (edge_fac > 0.0f && edge_fac < 1.0f) {
+					float ix_tri[3];
+					float span_fac;
 
-				if (isect_line_line_epsilon_v3(
-				        isect_co, isect_co_other,
-				        tri_pair[t][j], tri_pair[t][j_prev],
-				        ix_span, ix_tri,
-				        epsilon) != 0)
-				{
-					const float edge_fac = line_point_factor_v3(ix_tri, tri_pair[t][j], tri_pair[t][j_prev]);
-					if (edge_fac >= -epsilon && edge_fac <= 1.0f + epsilon) {
-						const float span_fac = dist_signed_squared_to_plane3_v3(ix_tri, isect_no);
-						range[t].min = min_ff(range[t].min, span_fac);
-						range[t].max = max_ff(range[t].max, span_fac);
+					interp_v3_v3v3(ix_tri, tri_pair[t][j_prev], tri_pair[t][j], edge_fac);
+#if 0
+					span_fac = dist_signed_squared_to_plane3_v3(ix_tri, plane_no);
+#else
+					{
+						span_fac = dot_v3v3(plane_no, ix_tri);
+						span_fac = copysignf(span_fac * span_fac, span_fac);
 					}
+#endif
+
+					range[t].min = min_ff(range[t].min, span_fac);
+					range[t].max = max_ff(range[t].max, span_fac);
 				}
 			}
 
@@ -1647,9 +1668,9 @@ bool isect_tri_tri_epsilon_v3(
 		     (range[0].max < range[1].min)) == 0)
 		{
 			if (r_i1 && r_i2) {
-				project_plane_v3_v3v3(isect_co, isect_co, isect_no);
-				madd_v3_v3v3fl(r_i1, isect_co, isect_no, sqrtf_signed(max_ff(range[0].min, range[1].min)));
-				madd_v3_v3v3fl(r_i2, isect_co, isect_no, sqrtf_signed(min_ff(range[0].max, range[1].max)));
+				project_plane_v3_v3v3(plane_co, plane_co, plane_no);
+				madd_v3_v3v3fl(r_i1, plane_co, plane_no, sqrtf_signed(max_ff(range[0].min, range[1].min)));
+				madd_v3_v3v3fl(r_i2, plane_co, plane_no, sqrtf_signed(min_ff(range[0].max, range[1].max)));
 			}
 
 			return true;
@@ -2151,7 +2172,9 @@ float closest_to_line_v2(float cp[2], const float p[2], const float l1[2], const
  * A simplified version of #closest_to_line_v3
  * we only need to return the ``lambda``
  */
-float line_point_factor_v3(const float p[3], const float l1[3], const float l2[3])
+float line_point_factor_v3_ex(
+        const float p[3], const float l1[3], const float l2[3],
+        const float epsilon, const float fallback)
 {
 	float h[3], u[3];
 	float dot;
@@ -2162,11 +2185,18 @@ float line_point_factor_v3(const float p[3], const float l1[3], const float l2[3
 #else
 	/* better check for zero */
 	dot = dot_v3v3(u, u);
-	return (dot != 0.0f) ? (dot_v3v3(u, h) / dot) : 0.0f;
+	return (fabsf(dot) >= epsilon) ? (dot_v3v3(u, h) / dot) : fallback;
 #endif
 }
+float line_point_factor_v3(
+        const float p[3], const float l1[3], const float l2[3])
+{
+	return line_point_factor_v3_ex(p, l1, l2, 0.0f, 0.0f);
+}
 
-float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2])
+float line_point_factor_v2_ex(
+        const float p[2], const float l1[2], const float l2[2],
+        const float epsilon, const float fallback)
 {
 	float h[2], u[2];
 	float dot;
@@ -2177,8 +2207,13 @@ float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2
 #else
 	/* better check for zero */
 	dot = dot_v2v2(u, u);
-	return (dot != 0.0f) ? (dot_v2v2(u, h) / dot) : 0.0f;
+	return (fabsf(dot) >= epsilon) ? (dot_v2v2(u, h) / dot) : fallback;
 #endif
+}
+
+float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2])
+{
+	return line_point_factor_v2_ex(p, l1, l2, 0.0f, 0.0f);
 }
 
 /**
