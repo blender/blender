@@ -3691,14 +3691,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 static void write_thumb(WriteData *wd, const BlendThumbnail *thumb)
 {
 	if (thumb) {
-		size_t sz = BLEN_THUMB_MEMSIZE_FILE(thumb->width, thumb->height);
-		int *img = alloca(sz);
-
-		BLI_assert((sz - (sizeof(*img) * 2)) == (BLEN_THUMB_MEMSIZE(thumb->width, thumb->height) - sizeof(thumb)));
-		img[0] = thumb->width;
-		img[1] = thumb->height;
-		memcpy(&img[2], thumb->rect, sz - (sizeof(*img) * 2));
-		writedata(wd, TEST, sz, img);
+		writedata(wd, TEST, BLEN_THUMB_MEMSIZE_FILE(thumb->width, thumb->height), thumb);
 	}
 }
 
