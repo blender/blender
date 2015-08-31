@@ -374,7 +374,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 			/* distance sampling */
 			sample_t = kernel_volume_distance_sample(ray->t, sigma_t, channel, xi, &transmittance, &pdf);
 
-			/* modifiy pdf for hit/miss decision */
+			/* modify pdf for hit/miss decision */
 			if(probalistic_scatter)
 				pdf *= make_float3(1.0f, 1.0f, 1.0f) - volume_color_transmittance(sigma_t, t);
 
@@ -422,7 +422,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(KernelGloba
 
 /* heterogeneous volume distance sampling: integrate stepping through the
  * volume until we reach the end, get absorbed entirely, or run out of
- * iterations. this does probalistically scatter or get transmitted through
+ * iterations. this does probabilistically scatter or get transmitted through
  * for path tracing where we don't want to branch. */
 ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous_distance(KernelGlobals *kg,
 	PathState *state, Ray *ray, ShaderData *sd, PathRadiance *L, float3 *throughput, RNG *rng)
@@ -610,7 +610,7 @@ typedef struct VolumeSegment {
 /* record volume steps to the end of the volume.
  *
  * it would be nice if we could only record up to the point that we need to scatter,
- * but the entire segment is needed to do always scattering, rather than probalistically
+ * but the entire segment is needed to do always scattering, rather than probabilistically
  * hitting or missing the volume. if we don't know the transmittance at the end of the
  * volume we can't generate stratified distance samples up to that transmittance */
 ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg, PathState *state,
@@ -766,7 +766,7 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 	sd->randb_closure = rphase*3.0f - channel;
 	float xi = rscatter;
 
-	/* probalistic scattering decision based on transmittance */
+	/* probabilistic scattering decision based on transmittance */
 	if(probalistic_scatter) {
 		float sample_transmittance = kernel_volume_channel_get(segment->accum_transmittance, channel);
 
@@ -846,7 +846,7 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 		float3 distance_pdf;
 		sample_t = prev_t + kernel_volume_distance_sample(step_t, step->sigma_t, channel, xi, &transmittance, &distance_pdf);
 
-		/* modifiy pdf for hit/miss decision */
+		/* modify pdf for hit/miss decision */
 		if(probalistic_scatter)
 			distance_pdf *= make_float3(1.0f, 1.0f, 1.0f) - segment->accum_transmittance;
 
@@ -942,7 +942,7 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 /* decide if we need to use decoupled or not */
 ccl_device bool kernel_volume_use_decoupled(KernelGlobals *kg, bool heterogeneous, bool direct, int sampling_method)
 {
-	/* decoupled ray marching for heterogenous volumes not supported on the GPU,
+	/* decoupled ray marching for heterogeneous volumes not supported on the GPU,
 	 * which also means equiangular and multiple importance sampling is not
 	 * support for that case */
 #ifdef __KERNEL_GPU__
