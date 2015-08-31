@@ -491,7 +491,9 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text,
 			 * incompatible'.
 			 * So now we load the script file data to a buffer */
 			{
-				const char *pystring = "with open(__file__, 'r') as f: exec(f.read())";
+				const char *pystring =
+				        "ns = globals().copy()\n"
+				        "with open(__file__, 'rb') as f: exec(compile(f.read(), __file__, 'exec'), ns)";
 
 				fclose(fp);
 
