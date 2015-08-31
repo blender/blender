@@ -66,6 +66,8 @@ void DistanceMatteNode::convertToOperations(NodeConverter &converter, const Comp
 		
 		ConvertRGBToYCCOperation *operationYCCImage = new ConvertRGBToYCCOperation();
 		ConvertRGBToYCCOperation *operationYCCMatte = new ConvertRGBToYCCOperation();
+		operationYCCImage->setMode(0);  /* BLI_YCC_ITU_BT601 */
+		operationYCCMatte->setMode(0);  /* BLI_YCC_ITU_BT601 */
 		converter.addOperation(operationYCCImage);
 		converter.addOperation(operationYCCMatte);
 		
