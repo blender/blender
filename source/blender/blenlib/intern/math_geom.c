@@ -1955,7 +1955,7 @@ int isect_line_line_epsilon_v3(
 	div = dot_v3v3(ab, ab);
 
 	/* test zero length line */
-	if (UNLIKELY(div <= epsilon)) {
+	if (UNLIKELY(div == 0.0f)) {
 		return 0;
 	}
 	/* test if the two lines are coplanar */
