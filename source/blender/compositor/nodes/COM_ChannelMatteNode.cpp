@@ -55,7 +55,7 @@ void ChannelMatteNode::convertToOperations(NodeConverter &converter, const Compo
 			convert = new ConvertRGBToYCCOperation();
 			((ConvertRGBToYCCOperation *)convert)->setMode(0); /* BLI_YCC_ITU_BT601 */
 			inv_convert = new ConvertYCCToRGBOperation();
-			((ConvertRGBToYCCOperation *)inv_convert)->setMode(0); /* BLI_YCC_ITU_BT601 */
+			((ConvertYCCToRGBOperation *)inv_convert)->setMode(0); /* BLI_YCC_ITU_BT601 */
 			break;
 		default:
 			break;
