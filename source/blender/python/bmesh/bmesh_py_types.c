@@ -27,9 +27,8 @@
  *  \ingroup pybmesh
  */
 
-#include <Python.h>
-
 #include "BLI_math.h"
+#include "BLI_sort.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
@@ -40,6 +39,8 @@
 #include "BKE_DerivedMesh.h"
 
 #include "bmesh.h"
+
+#include <Python.h>
 
 #include "../mathutils/mathutils.h"
 
@@ -2455,10 +2456,10 @@ PyDoc_STRVAR(bpy_bmelemseq_sort_doc,
  * Note: the functions below assumes the keys array has been allocated and it
  * has enough elements to complete the task.
  */
-static double *keys = NULL;
 
-static int bpy_bmelemseq_sort_cmp_by_keys_ascending(const void *index1_v, const void *index2_v)
+static int bpy_bmelemseq_sort_cmp_by_keys_ascending(const void *index1_v, const void *index2_v, void *keys_v)
 {
+	const double *keys = keys_v;
 	const int *index1 = (int *)index1_v;
 	const int *index2 = (int *)index2_v;
 
@@ -2467,9 +2468,9 @@ static int bpy_bmelemseq_sort_cmp_by_keys_ascending(const void *index1_v, const 
 	else                                    return 0;
 }
 
-static int bpy_bmelemseq_sort_cmp_by_keys_descending(const void *index1_v, const void *index2_v)
+static int bpy_bmelemseq_sort_cmp_by_keys_descending(const void *index1_v, const void *index2_v, void *keys_v)
 {
-	return -bpy_bmelemseq_sort_cmp_by_keys_ascending(index1_v, index2_v);
+	return -bpy_bmelemseq_sort_cmp_by_keys_ascending(index1_v, index2_v, keys_v);
 }
 
 static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObject *kw)
@@ -2484,9 +2485,10 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
 	BMIter iter;
 	BMElem *ele;
 
+	double *keys;
 	int *elem_idx;
 	unsigned int *elem_map_idx;
-	int (*elem_idx_compare_by_keys)(const void *, const void *);
+	int (*elem_idx_compare_by_keys)(const void *, const void *, void *);
 
 	unsigned int *vert_idx = NULL;
 	unsigned int *edge_idx = NULL;
@@ -2577,7 +2579,7 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
 	else
 		elem_idx_compare_by_keys = bpy_bmelemseq_sort_cmp_by_keys_ascending;
 
-	qsort(elem_idx, n_elem, sizeof(*elem_idx), elem_idx_compare_by_keys);
+	BLI_qsort_r(elem_idx, n_elem, sizeof(*elem_idx), elem_idx_compare_by_keys, keys);
 
 	elem_map_idx = PyMem_MALLOC(sizeof(*elem_map_idx) * n_elem);
 	if (elem_map_idx == NULL) {
