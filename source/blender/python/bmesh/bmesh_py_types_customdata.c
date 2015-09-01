@@ -490,7 +490,7 @@ static PyObject *bpy_bmlayercollection_items(BPy_BMLayerCollection *self)
 		item = PyTuple_New(2);
 		PyTuple_SET_ITEMS(item,
 		        PyUnicode_FromString(data->layers[index].name),
-		        BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index));
+		        BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, i));
 		PyList_SET_ITEM(ret, i++, item);
 	}
 
@@ -523,7 +523,7 @@ static PyObject *bpy_bmlayercollection_values(BPy_BMLayerCollection *self)
 	ret = PyList_New(tot);
 
 	for (i = 0; tot-- > 0; index++) {
-		item = BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
+		item = BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, i);
 		PyList_SET_ITEM(ret, i++, item);
 	}
 
