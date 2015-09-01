@@ -1252,7 +1252,13 @@ static void createTransArmatureVerts(TransInfo *t)
 			else {
 				if (ebo->flag & BONE_TIPSEL) {
 					copy_v3_v3(td->iloc, ebo->tail);
-					copy_v3_v3(td->center, (t->around == V3D_LOCAL) ? ebo->head : td->iloc);
+
+					/* don't allow single selected tips to have a modified center,
+					 * causes problem with snapping T45974 */
+					copy_v3_v3(td->center,
+					           ((t->around == V3D_LOCAL) &&
+					            (ebo->flag & BONE_ROOTSEL)) ? ebo->head : td->iloc);
+
 					td->loc = ebo->tail;
 					td->flag = TD_SELECTED;
 					if (ebo->flag & BONE_EDITMODE_LOCKED)
