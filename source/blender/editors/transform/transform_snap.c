@@ -1002,6 +1002,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 			BLI_freelistN(&depth_peels);
 		}
 		else {
+			zero_v3(no);  /* objects won't set this */
 			found = snapObjectsTransform(t, mval, &dist_px, loc, no, t->tsnap.modeSelect);
 		}
 		
