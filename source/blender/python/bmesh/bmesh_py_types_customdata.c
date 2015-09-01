@@ -149,10 +149,9 @@ static PyObject *bpy_bmlayercollection_active_get(BPy_BMLayerItem *self, void *U
 	BPY_BM_CHECK_OBJ(self);
 
 	data = bpy_bm_customdata_get(self->bm, self->htype);
-	index = CustomData_get_active_layer_index(data, self->type); /* absolute */
+	index = CustomData_get_active_layer(data, self->type);  /* type relative */
 
 	if (index != -1) {
-		index -= CustomData_get_layer_index(data, self->type); /* make relative */
 		return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
 	}
 	else {
@@ -330,14 +329,11 @@ static PyObject *bpy_bmlayercollection_verify(BPy_BMLayerCollection *self)
 
 	data = bpy_bm_customdata_get(self->bm, self->htype);
 
-	index = CustomData_get_layer_index(data, self->type);
+	index = CustomData_get_active_layer(data, self->type);  /* type relative */
 
 	if (index == -1) {
 		BM_data_layer_add(self->bm, data, self->type);
 		index = 0;
-	}
-	else {
-		index = CustomData_get_active_layer_index(data, self->type) - index; /* make relative */
 	}
 
 	BLI_assert(index >= 0);
@@ -557,10 +553,9 @@ static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject
 		int index;
 
 		data = bpy_bm_customdata_get(self->bm, self->htype);
-		index = CustomData_get_named_layer_index(data, self->type, key); /* absolute index */
+		index = CustomData_get_named_layer(data, self->type, key);  /* type relative */
 
 		if (index != -1) {
-			index -= CustomData_get_layer_index(data, self->type); /* make relative */
 			return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
 		}
 	}
@@ -607,10 +602,9 @@ static PyObject *bpy_bmlayercollection_subscript_str(BPy_BMLayerCollection *self
 	BPY_BM_CHECK_OBJ(self);
 
 	data = bpy_bm_customdata_get(self->bm, self->htype);
-	index = CustomData_get_named_layer_index(data, self->type, keyname); /* absolute */
+	index = CustomData_get_named_layer(data, self->type, keyname);  /* type relative */
 
 	if (index != -1) {
-		index -= CustomData_get_layer_index(data, self->type); /* make relative */
 		return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
 	}
 	else {
