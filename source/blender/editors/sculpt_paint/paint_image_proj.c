@@ -3559,34 +3559,6 @@ static bool project_paint_winclip(
 }
 #endif //PROJ_DEBUG_WINCLIP
 
-/* Return true if face should be culled, false otherwise */
-static bool project_paint_backface_cull(
-        const ProjPaintState *ps, const MLoopTri *lt,
-        const ProjPaintFaceCoSS *coSS)
-{
-	if (ps->do_backfacecull) {
-		if (ps->do_mask_normal) {
-			const int lt_vtri[3] = { PS_LOOPTRI_AS_VERT_INDEX_3(ps, lt) };
-			/* Since we are interpolating the normals of faces, we want to make
-			 * sure all the verts are pointing away from the view,
-			 * not just the face */
-			if ((ps->vertFlags[lt_vtri[0]] & PROJ_VERT_CULL) &&
-			    (ps->vertFlags[lt_vtri[1]] & PROJ_VERT_CULL) &&
-			    (ps->vertFlags[lt_vtri[2]] & PROJ_VERT_CULL))
-			{
-				return true;
-			}
-		}
-		else {
-			if ((line_point_side_v2(coSS->v1, coSS->v2, coSS->v3) < 0.0f) != ps->is_flip_object) {
-				return true;
-			}
-
-		}
-	}
-
-	return false;
-}
 
 static void project_paint_build_proj_ima(
         ProjPaintState *ps, MemArena *arena,
@@ -3631,6 +3603,7 @@ static void project_paint_prepare_all_faces(
 	TexPaintSlot *slot = NULL;
 	const MLoopTri *lt;
 	int image_index = -1, tri_index;
+	int prev_poly = -1;
 
 	for (tri_index = 0, lt = ps->dm_mlooptri; tri_index < ps->dm_totlooptri; tri_index++, lt++) {
 		bool is_face_sel;
@@ -3691,8 +3664,37 @@ static void project_paint_prepare_all_faces(
 
 #endif //PROJ_DEBUG_WINCLIP
 
-				if (project_paint_backface_cull(ps, lt, &coSS)) {
-					continue;
+				/* backface culls individual triangles but mask normal will use polygon */
+				if (ps->do_backfacecull) {
+					if (ps->do_mask_normal) {
+						if (prev_poly != lt->poly) {\
+							int iloop;
+							bool culled = true;
+							const MPoly *poly = ps->dm_mpoly + lt->poly;
+							int poly_loops = poly->totloop;
+							prev_poly = lt->poly;
+							for (iloop = 0; iloop < poly_loops; iloop++) {
+								if (!(ps->vertFlags[ps->dm_mloop[poly->loopstart + iloop].v] & PROJ_VERT_CULL)) {
+									culled = false;
+									break;
+								}
+							}
+
+							if (culled) {
+								/* poly loops - 2 is number of triangles for poly,
+								 * but counter gets incremented when continuing, so decrease by 3 */
+								int poly_tri = poly_loops - 3;
+								tri_index += poly_tri;
+								lt += poly_tri;
+								continue;
+							}
+						}
+					}
+					else {
+						if ((line_point_side_v2(coSS.v1, coSS.v2, coSS.v3) < 0.0f) != ps->is_flip_object) {
+							continue;
+						}
+					}
 				}
 			}
 
