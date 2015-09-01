@@ -1854,8 +1854,16 @@ static bool snapObject(Scene *scene, short snap_mode, ARegion *ar, Object *ob, f
 			do_bb = false;
 		}
 		else {
+			/* in this case we wan't the mesh from the editmesh, avoids stale data. see: T45978.
+			 * still set the 'em' to NULL, since we only want the 'dm'. */
+			em = BKE_editmesh_from_object(ob);
+			if (em) {
+				editbmesh_get_derived_cage_and_final(scene, ob, em, CD_MASK_BAREMESH, &dm);
+			}
+			else {
+				dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
+			}
 			em = NULL;
-			dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 		}
 		
 		retval = snapDerivedMesh(snap_mode, ar, ob, dm, em, obmat, ray_start, ray_normal, ray_origin, mval, r_loc, r_no, r_dist_px, r_depth, do_bb);
