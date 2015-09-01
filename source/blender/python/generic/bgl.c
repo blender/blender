@@ -1696,7 +1696,9 @@ PyObject *BPyInit_bgl(void)
 	Py_INCREF((PyObject *)&BGL_bufferType);
 
 /* needed since some function pointers won't be NULL */
-#pragma GCC diagnostic ignored "-Waddress"
+#ifdef __GNUC__
+#  pragma GCC diagnostic ignored "-Waddress"
+#endif
 
 #define PY_MOD_ADD_METHOD(func) \
 	{ \
