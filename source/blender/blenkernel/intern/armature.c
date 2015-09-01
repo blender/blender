@@ -1506,6 +1506,8 @@ void vec_roll_to_mat3_normalized(const float nor[3], const float roll, float mat
 	float theta;
 	float rMatrix[3][3], bMatrix[3][3];
 
+	BLI_ASSERT_UNIT_V3(nor);
+
 	theta = 1.0f + nor[1];
 
 	/* With old algo, 1.0e-13f caused T23954 and T31333, 1.0e-6f caused T27675 and T30438,
