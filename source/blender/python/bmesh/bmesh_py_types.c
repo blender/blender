@@ -2443,6 +2443,9 @@ PyDoc_STRVAR(bpy_bmelemseq_sort_doc,
 "      When the 'key' argument is not provided, the elements are reordered following their current index value.\n"
 "      In particular this can be used by setting indices manually before calling this method.\n"
 "\n"
+"   .. warning::\n"
+"\n"
+"      Existing references to the N'th element, will continue to point the data at that index.\n"
 );
 
 /* Use a static variable here because there is the need to sort some array

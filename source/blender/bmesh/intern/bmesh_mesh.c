@@ -1438,6 +1438,24 @@ int BM_mesh_elem_count(BMesh *bm, const char htype)
 }
 
 /**
+ * Special case: Python uses custom-data layers to hold PyObject references.
+ * These have to be kept in-place, else the PyObject's we point to, wont point back to us.
+ *
+ * \note ``ele_src`` Is a duplicate, so we don't need to worry about getting in a feedback loop.
+ *
+ * \note If there are other customdata layers which need this functionality, it should be generalized.
+ * However #BM_mesh_remap is currently the only place where this is done.
+ */
+static void bm_mesh_remap_cd_update(
+        BMHeader *ele_dst, BMHeader *ele_src,
+        const int cd_elem_pyptr)
+{
+	void **pyptr_dst_p = BM_ELEM_CD_GET_VOID_P(((BMElem *)ele_dst), cd_elem_pyptr);
+	void **pyptr_src_p = BM_ELEM_CD_GET_VOID_P(((BMElem *)ele_src), cd_elem_pyptr);
+	*pyptr_dst_p = *pyptr_src_p;
+}
+
+/**
  * Remaps the vertices, edges and/or faces of the bmesh as indicated by vert/edge/face_idx arrays
  * (xxx_idx[org_index] = new_index).
  *
@@ -1477,6 +1495,7 @@ void BM_mesh_remap(
 		BMVert **verts_pool, *verts_copy, **vep;
 		int i, totvert = bm->totvert;
 		const unsigned int *new_idx;
+		const int cd_vert_pyptr  = CustomData_get_offset(&bm->vdata, CD_BM_ELEM_PYPTR);
 
 		/* Init the old-to-new vert pointers mapping */
 		vptr_map = BLI_ghash_ptr_new_ex("BM_mesh_remap vert pointers mapping", bm->totvert);
@@ -1498,6 +1517,9 @@ void BM_mesh_remap(
 			*new_vep = *ve;
 /*			printf("mapping vert from %d to %d (%p/%p to %p)\n", i, *new_idx, *vep, verts_pool[i], new_vep);*/
 			BLI_ghash_insert(vptr_map, *vep, new_vep);
+			if (cd_vert_pyptr != -1) {
+				bm_mesh_remap_cd_update(&(*vep)->head, &new_vep->head, cd_vert_pyptr);
+			}
 		}
 		bm->elem_index_dirty |= BM_VERT;
 		bm->elem_table_dirty |= BM_VERT;
@@ -1510,6 +1532,7 @@ void BM_mesh_remap(
 		BMEdge **edges_pool, *edges_copy, **edp;
 		int i, totedge = bm->totedge;
 		const unsigned int *new_idx;
+		const int cd_edge_pyptr  = CustomData_get_offset(&bm->edata, CD_BM_ELEM_PYPTR);
 
 		/* Init the old-to-new vert pointers mapping */
 		eptr_map = BLI_ghash_ptr_new_ex("BM_mesh_remap edge pointers mapping", bm->totedge);
@@ -1530,6 +1553,9 @@ void BM_mesh_remap(
 			*new_edp = *ed;
 			BLI_ghash_insert(eptr_map, *edp, new_edp);
 /*			printf("mapping edge from %d to %d (%p/%p to %p)\n", i, *new_idx, *edp, edges_pool[i], new_edp);*/
+			if (cd_edge_pyptr != -1) {
+				bm_mesh_remap_cd_update(&(*edp)->head, &new_edp->head, cd_edge_pyptr);
+			}
 		}
 		bm->elem_index_dirty |= BM_EDGE;
 		bm->elem_table_dirty |= BM_EDGE;
@@ -1542,6 +1568,7 @@ void BM_mesh_remap(
 		BMFace **faces_pool, *faces_copy, **fap;
 		int i, totface = bm->totface;
 		const unsigned int *new_idx;
+		const int cd_poly_pyptr  = CustomData_get_offset(&bm->pdata, CD_BM_ELEM_PYPTR);
 
 		/* Init the old-to-new vert pointers mapping */
 		fptr_map = BLI_ghash_ptr_new_ex("BM_mesh_remap face pointers mapping", bm->totface);
@@ -1561,6 +1588,9 @@ void BM_mesh_remap(
 			BMFace *new_fap = faces_pool[*new_idx];
 			*new_fap = *fa;
 			BLI_ghash_insert(fptr_map, *fap, new_fap);
+			if (cd_poly_pyptr != -1) {
+				bm_mesh_remap_cd_update(&(*fap)->head, &new_fap->head, cd_poly_pyptr);
+			}
 		}
 
 		bm->elem_index_dirty |= BM_FACE | BM_LOOP;
