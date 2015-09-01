@@ -304,11 +304,8 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
         image = bpy.data.images[render_context.image, None]
         item = getattr(bpy.data, item_container)[item_name, None]
         image.reload()
-        # Note: we could use struct module here, but not quite sure it'd give any advantage really...
-        pix = tuple((round(r * 255)) + (round(g * 255) << 8) + (round(b * 255) << 16) + (round(a * 255) << 24)
-                    for r, g, b, a in zip(*[iter(image.pixels)] * 4))
         item.preview.image_size = (RENDER_PREVIEW_SIZE, RENDER_PREVIEW_SIZE)
-        item.preview.image_pixels = pix
+        item.preview.image_pixels_float[:] = image.pixels
 
     # And now, main code!
     do_save = True
