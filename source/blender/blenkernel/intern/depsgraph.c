@@ -3504,9 +3504,15 @@ void DAG_exit(void)
 /* ************************ API *********************** */
 
 void DAG_editors_update_cb(DEG_EditorUpdateIDCb id_func,
-                           DEG_EditorUpdateSceneCb scene_func)
+                           DEG_EditorUpdateSceneCb scene_func,
+                           DEG_EditorUpdateScenePreCb scene_func_pre)
 {
-	DEG_editors_set_update_cb(id_func, scene_func);
+	DEG_editors_set_update_cb(id_func, scene_func, scene_func_pre);
+}
+
+void DAG_editors_update_pre(Main *bmain, Scene *scene, bool time)
+{
+	DEG_editors_update_pre(bmain, scene, time);
 }
 
 /* Tag all relations for update. */
