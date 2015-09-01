@@ -3388,6 +3388,10 @@ void uiLayoutOperatorButs(
 		/* XXX, could give some nicer feedback or not show redo panel at all? */
 		uiItemL(layout, IFACE_("* Redo Unsupported *"), ICON_NONE);
 	}
+	else {
+		/* useful for macros where only one of the steps can't be re-done */
+		UI_block_lock_clear(uiLayoutGetBlock(layout));
+	}
 
 	/* menu */
 	if (op->type->flag & OPTYPE_PRESET) {
