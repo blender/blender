@@ -1681,7 +1681,7 @@ int main(
 		int i;
 		for (i = 0; i < argc; i++) {
 			if (STREQ(argv[i], "--debug") || STREQ(argv[i], "-d") ||
-			    STREQ(argv[i], "--debug-memory"))
+			    STREQ(argv[i], "--debug-memory") || STREQ(argv[i], "--debug-all"))
 			{
 				printf("Switching to fully guarded memory allocator.\n");
 				MEM_use_guarded_allocator();
