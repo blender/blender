@@ -183,7 +183,8 @@ static EnumPropertyItem *dt_layers_select_src_itemf(
 }
 
 /* Note: DT_layers_select_dst_items enum is from rna_modifier.c */
-static EnumPropertyItem *dt_layers_select_dst_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
+static EnumPropertyItem *dt_layers_select_dst_itemf(
+        bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
@@ -206,6 +207,26 @@ static EnumPropertyItem *dt_layers_select_dst_itemf(bContext *C, PointerRNA *ptr
 	*r_free = true;
 
 	return item;
+}
+
+static EnumPropertyItem *dt_layers_select_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *prop, bool *r_free)
+{
+	const bool reverse_transfer = RNA_boolean_get(ptr, "use_reverse_transfer");
+
+	if (STREQ(RNA_property_identifier(prop), "layers_select_dst")) {
+		if (reverse_transfer) {
+			return dt_layers_select_src_itemf(C, ptr, prop, r_free);
+		}
+		else {
+			return dt_layers_select_dst_itemf(C, ptr, prop, r_free);
+		}
+	}
+	else if (reverse_transfer) {
+		return dt_layers_select_dst_itemf(C, ptr, prop, r_free);
+	}
+	else {
+		return dt_layers_select_src_itemf(C, ptr, prop, r_free);
+	}
 }
 
 /* Note: DT_mix_mode_items enum is from rna_modifier.c */
@@ -530,7 +551,7 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
 	/* Properties.*/
 	prop = RNA_def_boolean(ot->srna, "use_reverse_transfer", false, "Reverse Transfer",
 	                       "Transfer from selected objects to active one");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
 	RNA_def_boolean(ot->srna, "use_freeze", false, "Freeze Operator",
 	                "Prevent changes to settings to re-run the operator, "
@@ -574,11 +595,11 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
 	/* How to handle multi-layers types of data. */
 	prop = RNA_def_enum(ot->srna, "layers_select_src", DT_layers_select_src_items, DT_LAYERS_ACTIVE_SRC,
 	                    "Source Layers Selection", "Which layers to transfer, in case of multi-layers types");
-	RNA_def_property_enum_funcs_runtime(prop, NULL, NULL, dt_layers_select_src_itemf);
+	RNA_def_property_enum_funcs_runtime(prop, NULL, NULL, dt_layers_select_itemf);
 
 	prop = RNA_def_enum(ot->srna, "layers_select_dst", DT_layers_select_dst_items, DT_LAYERS_ACTIVE_DST,
 	                    "Destination Layers Matching", "How to match source and destination layers");
-	RNA_def_property_enum_funcs_runtime(prop, NULL, NULL, dt_layers_select_dst_itemf);
+	RNA_def_property_enum_funcs_runtime(prop, NULL, NULL, dt_layers_select_itemf);
 
 	prop = RNA_def_enum(ot->srna, "mix_mode", DT_mix_mode_items, CDT_MIX_TRANSFER, "Mix Mode",
 	                   "How to affect destination elements with source values");
