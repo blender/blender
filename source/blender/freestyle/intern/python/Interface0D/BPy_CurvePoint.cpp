@@ -220,8 +220,8 @@ static PyGetSetDef BPy_CurvePoint_getseters[] = {
 	                          (char *)CurvePoint_first_svertex_doc, NULL},
 	{(char *)"second_svertex", (getter)CurvePoint_second_svertex_get, (setter)CurvePoint_second_svertex_set,
 	                           (char *)CurvePoint_second_svertex_doc, NULL},
-    {(char *)"fedge", (getter)CurvePoint_fedge_get, NULL,
-                               CurvePoint_fedge_doc, NULL},
+	{(char *)"fedge", (getter)CurvePoint_fedge_get, NULL,
+	                           CurvePoint_fedge_doc, NULL},
 	{(char *)"t2d", (getter)CurvePoint_t2d_get, (setter)CurvePoint_t2d_set, (char *)CurvePoint_t2d_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };

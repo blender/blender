@@ -230,10 +230,12 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 
 static int gpu_shader_math(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	static const char *names[] = {"math_add", "math_subtract", "math_multiply",
-		                          "math_divide", "math_sine", "math_cosine", "math_tangent", "math_asin",
-		                          "math_acos", "math_atan", "math_pow", "math_log", "math_min", "math_max",
-                                  "math_round", "math_less_than", "math_greater_than", "math_modulo", "math_abs"};
+	static const char *names[] = {
+	    "math_add", "math_subtract", "math_multiply",
+	    "math_divide", "math_sine", "math_cosine", "math_tangent", "math_asin",
+	    "math_acos", "math_atan", "math_pow", "math_log", "math_min", "math_max",
+	    "math_round", "math_less_than", "math_greater_than", "math_modulo", "math_abs",
+	};
 
 	switch (node->custom1) {
 		case NODE_MATH_ADD:

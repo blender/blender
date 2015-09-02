@@ -3667,7 +3667,7 @@ static void project_paint_prepare_all_faces(
 				/* backface culls individual triangles but mask normal will use polygon */
 				if (ps->do_backfacecull) {
 					if (ps->do_mask_normal) {
-						if (prev_poly != lt->poly) {\
+						if (prev_poly != lt->poly) {
 							int iloop;
 							bool culled = true;
 							const MPoly *poly = ps->dm_mpoly + lt->poly;
