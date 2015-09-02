@@ -1547,6 +1547,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 void WM_main_playanim(int argc, const char **argv)
 {
+	const char *argv_next[2];
 	bool looping = true;
 
 #ifdef WITH_AUDASPACE
@@ -1569,9 +1570,12 @@ void WM_main_playanim(int argc, const char **argv)
 		const char *filepath = wm_main_playanim_intern(argc, argv);
 
 		if (filepath) {	/* use simple args */
-			argv[1] = "-a";
-			argv[2] = filepath;
-			argc = 3;
+			argv_next[0] = argv[0];
+			argv_next[1] = filepath;
+			argc = 2;
+
+			/* continue with new args */
+			argv = argv_next;
 		}
 		else {
 			looping = false;
