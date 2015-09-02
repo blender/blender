@@ -88,10 +88,10 @@ void ChannelMatteNode::convertToOperations(NodeConverter &converter, const Compo
 		converter.addOperation(inv_convert);
 		converter.addLink(operationAlpha->getOutputSocket(0), inv_convert->getInputSocket(0));
 		converter.mapOutputSocket(outputSocketImage, inv_convert->getOutputSocket());
+		converter.addPreview(inv_convert->getOutputSocket());
 	}
 	else {
 		converter.mapOutputSocket(outputSocketImage, operationAlpha->getOutputSocket());
+		converter.addPreview(operationAlpha->getOutputSocket());
 	}
-
-	converter.addPreview(operationAlpha->getOutputSocket());
 }
