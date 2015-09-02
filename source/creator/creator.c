@@ -1489,7 +1489,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 		"\n\t-g linearmipmap\t\tLinear Texture Mipmapping instead of Nearest (default)";
 
 	static char debug_doc[] = "\n\tTurn debugging on\n"
-		"\n\t* Prints every operator call and their arguments"
+		"\n\t* Enables memory error detection"
 		"\n\t* Disables mouse grab (to interact with a debugger in some cases)"
 		"\n\t* Keeps Python's 'sys.stdin' rather than setting it to None";
 
@@ -1540,7 +1540,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, NULL, "--debug-python", "\n\tEnable debug messages for Python", debug_mode_generic, (void *)G_DEBUG_PYTHON);
 	BLI_argsAdd(ba, 1, NULL, "--debug-events", "\n\tEnable debug messages for the event system", debug_mode_generic, (void *)G_DEBUG_EVENTS);
 	BLI_argsAdd(ba, 1, NULL, "--debug-handlers", "\n\tEnable debug messages for event handling", debug_mode_generic, (void *)G_DEBUG_HANDLERS);
-	BLI_argsAdd(ba, 1, NULL, "--debug-wm",     "\n\tEnable debug messages for the window manager", debug_mode_generic, (void *)G_DEBUG_WM);
+	BLI_argsAdd(ba, 1, NULL, "--debug-wm",     "\n\tEnable debug messages for the window manager, also prints every operator call", debug_mode_generic, (void *)G_DEBUG_WM);
 	BLI_argsAdd(ba, 1, NULL, "--debug-all",    "\n\tEnable all debug messages (excludes libmv)", debug_mode_generic, (void *)G_DEBUG_ALL);
 
 	BLI_argsAdd(ba, 1, NULL, "--debug-fpe", "\n\tEnable floating point exceptions", set_fpe, NULL);
