@@ -1912,6 +1912,8 @@ static void ccgDM_buffer_copy_normal(
 	int shademodel;
 	int start = 0;
 
+	CCG_key_top_level(&key, ss);
+
 	for (i = 0; i < totface; i++) {
 		CCGFace *f = ccgdm->faceMap[i].face;
 		int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(f);
@@ -2113,6 +2115,8 @@ static void ccgDM_buffer_copy_vertex(
 	int totedge = ccgSubSurf_getNumEdges(ss);
 	int start = 0;
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
+
+	CCG_key_top_level(&key, ss);
 
 	for (i = 0; i < totface; i++) {
 		CCGFace *f = ccgdm->faceMap[i].face;
