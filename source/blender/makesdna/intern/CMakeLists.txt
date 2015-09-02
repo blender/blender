@@ -57,7 +57,7 @@ add_executable(makesdna ${SRC} ${SRC_DNA_INC})
 # Output dna.c
 add_custom_command(
 	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dna.c
-	COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna ${CMAKE_CURRENT_BINARY_DIR}/dna.c ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
+	COMMAND "$<TARGET_FILE:makesdna>" ${CMAKE_CURRENT_BINARY_DIR}/dna.c ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
 	DEPENDS makesdna
 )
 
