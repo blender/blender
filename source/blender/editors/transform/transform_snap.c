@@ -1983,8 +1983,20 @@ static bool snapObjects(Scene *scene, short snap_mode, Base *base_act, View3D *v
 bool snapObjectsTransform(TransInfo *t, const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
 {
 	float ray_dist = TRANSFORM_DIST_MAX_RAY;
-	return snapObjects(t->scene, t->scene->toolsettings->snap_mode, t->scene->basact, t->view, t->ar, t->obedit,
-	                   mval, r_dist_px, r_loc, r_no, &ray_dist, mode);
+	Object *obedit = NULL;
+	Base *base_act = NULL;
+
+	if (t->flag & T_EDIT) {
+		obedit = t->obedit;
+	}
+
+	if ((t->options & CTX_GPENCIL_STROKES) == 0) {
+		base_act = t->scene->basact;
+	}
+
+	return snapObjects(
+	        t->scene, t->scene->toolsettings->snap_mode, base_act, t->view, t->ar, obedit,
+	        mval, r_dist_px, r_loc, r_no, &ray_dist, mode);
 }
 
 bool snapObjectsContext(bContext *C, const float mval[2], float *r_dist_px, float r_loc[3], float r_no[3], SnapMode mode)
