@@ -77,10 +77,10 @@
 #  include AUD_SOUND_H
 #  include AUD_SPECIAL_H
 
-AUD_Sound *source = NULL;
-AUD_Handle *playback_handle = NULL;
-AUD_Handle *scrub_handle = NULL;
-AUD_Device *audio_device = NULL;
+static AUD_Sound *source = NULL;
+static AUD_Handle *playback_handle = NULL;
+static AUD_Handle *scrub_handle = NULL;
+static AUD_Device *audio_device = NULL;
 #endif
 
 /* simple limiter to avoid flooding memory */
@@ -1101,20 +1101,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	
 	PlayState ps = {0};
 
-#ifdef WITH_AUDASPACE
-	AUD_DeviceSpecs specs;
-
-	specs.rate = AUD_RATE_44100;
-	specs.format = AUD_FORMAT_S16;
-	specs.channels = AUD_CHANNELS_STEREO;
-
-	AUD_initOnce();
-
-	if (!(audio_device = AUD_init("OpenAL", specs, 1024, "Blender")))
-		audio_device = AUD_init("Null", specs, 0, "Blender");
-
-#endif
-
 	/* ps.doubleb   = true;*/ /* UNUSED */
 	ps.go        = true;
 	ps.direction = true;
@@ -1514,12 +1500,16 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	added_images = 0;
 
 #ifdef WITH_AUDASPACE
-	if (playback_handle)
+	if (playback_handle) {
 		AUD_Handle_stop(playback_handle);
-	if (scrub_handle)
+		playback_handle = NULL;
+	}
+	if (scrub_handle) {
 		AUD_Handle_stop(scrub_handle);
+		scrub_handle = NULL;
+	}
 	AUD_Sound_free(source);
-	AUD_exit(audio_device);
+	source = NULL;
 #endif
 
 #if 0 // XXX25
@@ -1559,6 +1549,22 @@ void WM_main_playanim(int argc, const char **argv)
 {
 	bool looping = true;
 
+#ifdef WITH_AUDASPACE
+	{
+		AUD_DeviceSpecs specs;
+
+		specs.rate = AUD_RATE_44100;
+		specs.format = AUD_FORMAT_S16;
+		specs.channels = AUD_CHANNELS_STEREO;
+
+		AUD_initOnce();
+
+		if (!(audio_device = AUD_init("OpenAL", specs, 1024, "Blender"))) {
+			audio_device = AUD_init("Null", specs, 0, "Blender");
+		}
+	}
+#endif
+
 	while (looping) {
 		const char *filepath = wm_main_playanim_intern(argc, argv);
 
@@ -1571,4 +1577,9 @@ void WM_main_playanim(int argc, const char **argv)
 			looping = false;
 		}
 	}
+
+#ifdef WITH_AUDASPACE
+	AUD_exit(audio_device);
+	AUD_exitOnce();
+#endif
 }
