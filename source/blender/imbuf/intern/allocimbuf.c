@@ -206,7 +206,18 @@ ImBuf *IMB_makeSingleUser(ImBuf *ibuf)
 {
 	ImBuf *rval;
 
-	if (!ibuf || ibuf->refcounter == 0) { return ibuf; }
+	if (ibuf) {
+		bool is_single;
+		BLI_spin_lock(&refcounter_spin);
+		is_single = (ibuf->refcounter == 0);
+		BLI_spin_unlock(&refcounter_spin);
+		if (is_single) {
+			return ibuf;
+		}
+	}
+	else {
+		return NULL;
+	}
 
 	rval = IMB_dupImBuf(ibuf);
 
