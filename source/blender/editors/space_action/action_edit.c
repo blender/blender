@@ -223,7 +223,7 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
 				float tmin, tmax;
 
 				/* get range and apply necessary scaling before processing */
-				if (calc_fcurve_range(fcu, &tmin, &tmax, onlySel, true)) {
+				if (calc_fcurve_range(fcu, &tmin, &tmax, onlySel, false)) {
 
 					if (adt) {
 						tmin = BKE_nla_tweakedit_remap(adt, tmin, NLATIME_CONVERT_MAP);
@@ -237,7 +237,7 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
 				}
 			}
 		}
-		
+
 		/* free memory */
 		ANIM_animdata_freelist(&anim_data);
 	}
@@ -275,8 +275,12 @@ static int actkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 	/* set the range directly */
 	get_keyframe_extents(&ac, &min, &max, false);
 	scene->r.flag |= SCER_PRV_RANGE;
-	scene->r.psfra = iroundf(min);
-	scene->r.pefra = iroundf(max);
+	scene->r.psfra = floorf(min);
+	scene->r.pefra = ceilf(max);
+
+	if (scene->r.psfra == scene->r.pefra) {
+		scene->r.pefra = scene->r.psfra + 1;
+	}
 	
 	/* set notifier that things have changed */
 	// XXX err... there's nothing for frame ranges yet, but this should do fine too
