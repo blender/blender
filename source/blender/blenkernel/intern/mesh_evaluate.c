@@ -1432,7 +1432,30 @@ static void mesh_normals_loop_custom_set(
 					loops = loops->next;
 					BLI_BITMAP_ENABLE(done_loops, lidx);
 				}
-				BLI_BITMAP_ENABLE(done_loops, i);  /* For single loops, where lnors_spacearr.lspacearr[i]->loops is NULL. */
+
+				/* We also have to check between last and first loops, otherwise we may miss some sharp edges here!
+				 * This is just a simplified version of above while loop.
+				 * See T45984. */
+				loops = lnors_spacearr.lspacearr[i]->loops;
+				if (loops && org_nor) {
+					const int lidx = GET_INT_FROM_POINTER(loops->link);
+					MLoop *ml = &mloops[lidx];
+					const int nidx = lidx;
+					float *nor = custom_loopnors[nidx];
+
+					if (is_zero_v3(nor)) {
+						nor = lnors[nidx];
+					}
+
+					if (dot_v3v3(org_nor, nor) < LNOR_SPACE_TRIGO_THRESHOLD) {
+						const MPoly *mp = &mpolys[loop_to_poly[lidx]];
+						const MLoop *mlp = &mloops[(lidx == mp->loopstart) ? mp->loopstart + mp->totloop - 1 : lidx - 1];
+						medges[(prev_ml->e == mlp->e) ? prev_ml->e : ml->e].flag |= ME_SHARP;
+					}
+				}
+
+				/* For single loops, where lnors_spacearr.lspacearr[i]->loops is NULL. */
+				BLI_BITMAP_ENABLE(done_loops, i);
 			}
 		}
 
