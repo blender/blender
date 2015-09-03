@@ -2383,9 +2383,9 @@ static void ccgDM_buffer_copy_edge(
 	/* part one, handle all normal edges */
 	for (j = 0; j < totedge; j++) {
 		CCGFace *f;
-		int fhandle;
-		int totvert;
-		unsigned int S;
+		int fhandle = 0;
+		int totvert = 0;
+		unsigned int S = 0;
 		CCGEdge *e = ccgdm->edgeMap[j].edge;
 		bool isloose = !ccgSubSurf_getEdgeNumFaces(e);
 

@@ -453,7 +453,7 @@ static void text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int x,
 {
 	const bool use_syntax = (st->showsyntax && format);
 	FlattenString fs;
-	int columns, size, n, w = 0, padding, amount = 0;
+	int columns, size, n, w = 0, padding = 0, amount = 0;
 	const char *in = NULL;
 
 	for (n = flatten_string(st, &fs, str), str = fs.buf; n > 0; n--) {

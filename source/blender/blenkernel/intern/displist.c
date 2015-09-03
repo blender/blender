@@ -1600,7 +1600,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 						float bottom_no[3] = {0.0f};
 						float top_no[3] = {0.0f};
 						float firstblend = 0.0f, lastblend = 0.0f;
-						int i, start, steps;
+						int i, start, steps = 0;
 
 						if (nu->flagu & CU_NURB_CYCLIC) {
 							calc_bevfac_mapping_default(bl,

@@ -570,7 +570,7 @@ static int recursive_operation(const char *startfrom, const char *startto,
 	char *from_path = NULL, *to_path = NULL;
 	struct dirent **dirlist = NULL;
 	size_t from_alloc_len = -1, to_alloc_len = -1;
-	int i, n, ret = 0;
+	int i, n = 0, ret = 0;
 
 	do {  /* once */
 		/* ensure there's no trailing slash in file path */

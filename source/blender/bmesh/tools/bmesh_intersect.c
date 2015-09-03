@@ -1000,7 +1000,7 @@ bool BM_mesh_intersect(
 
 				if (BM_vert_in_edge(e, v_prev)) {
 					v_prev = BM_edge_split(bm, e, v_prev, NULL, CLAMPIS(fac, 0.0f, 1.0f));
-					BLI_assert( BM_vert_in_edge(e, v_end));
+					BLI_assert(BM_vert_in_edge(e, v_end));
 
 					if (!BM_edge_exists(v_prev, vi) &&
 					    !BM_vert_splice_check_double(v_prev, vi) &&
@@ -1017,6 +1017,7 @@ bool BM_mesh_intersect(
 					}
 				}
 			}
+			UNUSED_VARS_NDEBUG(v_end);
 		}
 	}
 #endif

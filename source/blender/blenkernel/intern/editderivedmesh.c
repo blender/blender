@@ -397,7 +397,7 @@ static void emDM_calcLoopTangents(DerivedMesh *dm)
 		mesh2tangent.precomputedLoopNormals = tlnors;
 		mesh2tangent.looptris = em->looptris;
 		mesh2tangent.cd_loop_uv_offset = cd_loop_uv_offset;
-		mesh2tangent.orco = orco;
+		mesh2tangent.orco = (const float (*)[3])orco;
 		mesh2tangent.tangent = tangent;
 		mesh2tangent.numTessFaces = totface;
 

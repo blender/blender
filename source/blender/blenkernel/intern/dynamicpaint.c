@@ -2085,7 +2085,7 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 			int i, edge1_index, edge2_index,
 			    e1_index, e2_index, target_tri;
 			float closest_point[2], lambda, dir_vec[2];
-			int target_uv1, target_uv2, final_pixel[2], final_index;
+			int target_uv1 = 0, target_uv2 = 0, final_pixel[2], final_index;
 
 			const float *s_uv1, *s_uv2, *t_uv1, *t_uv2;
 
@@ -3416,7 +3416,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 							{
 								float proxDist = -1.0f;
 								float hitCo[3] = {0.0f, 0.0f, 0.0f};
-								int tri;
+								int tri = 0;
 
 								/* if inverse prox and no hit found, skip this sample */
 								if (inner_proximity && !hit_found) continue;

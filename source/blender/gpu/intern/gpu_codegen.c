@@ -718,7 +718,7 @@ static char *code_generate_vertex(ListBase *nodes, const GPUMatType type)
 	GPUNode *node;
 	GPUInput *input;
 	char *code;
-	char *vertcode;
+	char *vertcode = NULL;
 	
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {

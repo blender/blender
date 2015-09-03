@@ -563,7 +563,7 @@ static int bake(
 	Object *ob_cage = NULL;
 
 	BakeHighPolyData *highpoly = NULL;
-	int tot_highpoly;
+	int tot_highpoly = 0;
 
 	char restrict_flag_low = ob_low->restrictflag;
 	char restrict_flag_cage = 0;

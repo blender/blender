@@ -491,8 +491,8 @@ void bmo_rotate_uvs_exec(BMesh *bm, BMOperator *op)
 		BMO_ITER (fs, &fs_iter, op->slots_in, "faces", BM_FACE) {
 			if (use_ccw == false) {  /* same loops direction */
 				BMLoop *lf;	/* current face loops */
-				MLoopUV *f_luv; /* first face loop uv */
-				float p_uv[2];	/* previous uvs */
+				MLoopUV *f_luv = NULL; /* first face loop uv */
+				float p_uv[2] = {0.0f, 0.0f};	/* previous uvs */
 				float t_uv[2];	/* tmp uvs */
 
 				int n = 0;
@@ -516,8 +516,8 @@ void bmo_rotate_uvs_exec(BMesh *bm, BMOperator *op)
 			else { /* counter loop direction */
 				BMLoop *lf;	/* current face loops */
 				MLoopUV *p_luv; /* previous loop uv */
-				MLoopUV *luv;
-				float t_uv[2];	/* current uvs */
+				MLoopUV *luv = NULL;
+				float t_uv[2] = {0.0f, 0.0f};	/* current uvs */
 
 				int n = 0;
 				BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
@@ -594,7 +594,7 @@ void bmo_rotate_colors_exec(BMesh *bm, BMOperator *op)
 		BMO_ITER (fs, &fs_iter, op->slots_in, "faces", BM_FACE) {
 			if (use_ccw == false) {  /* same loops direction */
 				BMLoop *lf;	/* current face loops */
-				MLoopCol *f_lcol; /* first face loop color */
+				MLoopCol *f_lcol = NULL; /* first face loop color */
 				MLoopCol p_col;	/* previous color */
 				MLoopCol t_col;	/* tmp color */
 
@@ -619,7 +619,7 @@ void bmo_rotate_colors_exec(BMesh *bm, BMOperator *op)
 			else {  /* counter loop direction */
 				BMLoop *lf;	/* current face loops */
 				MLoopCol *p_lcol; /* previous loop color */
-				MLoopCol *lcol;
+				MLoopCol *lcol = NULL;
 				MLoopCol t_col;	/* current color */
 
 				int n = 0;

@@ -276,7 +276,7 @@ static void bmo_face_inset_individual(
 	BMLoop *l_iter, *l_first;
 	BMLoop *l_other;
 	unsigned int i;
-	float e_length_prev;
+	float e_length_prev = 0.0f;
 
 	l_first = BM_FACE_FIRST_LOOP(f);
 

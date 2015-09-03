@@ -404,5 +404,7 @@ int GHOST_X11_GL_GetAttributes(
 
 	GHOST_ASSERT(i <= attribs_max, "attribute size too small");
 
+	(void)attribs_max;
+
 	return i;
 }

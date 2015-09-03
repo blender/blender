@@ -74,7 +74,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
 	MaskSplinePoint *point = NULL;
 	float dist_best_sq = FLT_MAX, co[2];
 	int width, height;
-	float u;
+	float u = 0.0f;
 	float scalex, scaley;
 
 	ED_mask_get_size(sa, &width, &height);

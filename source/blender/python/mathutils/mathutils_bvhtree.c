@@ -277,7 +277,7 @@ static void py_bvhtree_raycast_cb(void *userdata, int index, const BVHTreeRay *r
 {
 	const PyBVHTree *self = userdata;
 
-	const float (*coords)[3] = self->coords;
+	const float (*coords)[3] = (const float (*)[3])self->coords;
 	const unsigned int *tri = self->tris[index];
 	const float *tri_co[3] = {coords[tri[0]], coords[tri[1]], coords[tri[2]]};
 	float dist;
@@ -306,7 +306,7 @@ static void py_bvhtree_nearest_point_cb(void *userdata, int index, const float c
 {
 	PyBVHTree *self = userdata;
 
-	const float (*coords)[3] = self->coords;
+	const float (*coords)[3] = (const float (*)[3])self->coords;
 	const unsigned int *tri = self->tris[index];
 	const float *tri_co[3] = {coords[tri[0]], coords[tri[1]], coords[tri[2]]};
 	float nearest_tmp[3], dist_sq;

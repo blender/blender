@@ -2626,7 +2626,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 	BevPoint *bevp, *bevp2, *bevp1 = NULL, *bevp0;
 	const float treshold = 0.00001f;
 	float min, inp;
-	float *seglen;
+	float *seglen = NULL;
 	struct BevelSort *sortdata, *sd, *sd1;
 	int a, b, nr, poly, resolu = 0, len = 0, segcount;
 	int *segbevcount;

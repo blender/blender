@@ -65,7 +65,7 @@ UvVertMap *BKE_mesh_uv_vert_map_create(
 	unsigned int a;
 	int i, totuv, nverts;
 
-	bool *winding;
+	bool *winding = NULL;
 	BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, 32);
 
 	totuv = 0;
@@ -94,7 +94,7 @@ UvVertMap *BKE_mesh_uv_vert_map_create(
 	mp = mpoly;
 	for (a = 0; a < totpoly; a++, mp++) {
 		if (!selected || (!(mp->flag & ME_HIDE) && (mp->flag & ME_FACE_SEL))) {
-			float (*tf_uv)[2];
+			float (*tf_uv)[2] = NULL;
 
 			if (use_winding) {
 				tf_uv = (float (*)[2])BLI_buffer_resize_data(&tf_uv_buf, vec2f, mp->totloop);

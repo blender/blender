@@ -2163,8 +2163,8 @@ static bool peelDerivedMesh(
 
 			if (data.bvhdata.tree != NULL) {
 				data.ob = ob;
-				data.obmat = obmat;
-				data.timat = timat;
+				data.obmat = (const float (*)[4])obmat;
+				data.timat = (const float (*)[3])timat;
 				data.ray_start = ray_start;
 				data.looptri = looptri;
 				data.polynors = dm->getPolyDataArray(dm, CD_NORMAL);  /* can be NULL */

@@ -4032,7 +4032,7 @@ static float find_superellipse_chord_u(float u0, float d2goal, float r)
  * Return the u's in *r_params, which should point to an array of size n+1. */
 static void find_even_superellipse_params(int n, float r, float *r_params)
 {
-	float d2low, d2high, d2, d2final, u;
+	float d2low, d2high, d2 = 0.0f, d2final, u;
 	int i, j, n2;
 	const int maxiters = 40;
 	const float d2tol = 1e-6f;
