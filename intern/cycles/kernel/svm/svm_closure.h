@@ -63,6 +63,9 @@ ccl_device_inline ShaderClosure *svm_node_closure_get_non_bsdf(ShaderData *sd, C
 	if(ccl_fetch(sd, num_closure) < MAX_CLOSURE) {
 		sc->weight *= mix_weight;
 		sc->type = type;
+		sc->data0 = 0.0f;
+		sc->data1 = 0.0f;
+		sc->data2 = 0.0f;
 #ifdef __OSL__
 		sc->prim = NULL;
 #endif
