@@ -290,9 +290,12 @@ def ensure_ext(filepath, ext, case_sensitive=False):
     :type case_sensitive: bool
     """
 
-    if ((case_sensitive and filepath.endswith(ext)) or
-            (not case_sensitive and filepath.lower().endswith(ext.lower()))):
-        return filepath
+    if case_sensitive:
+        if filepath.endswith(ext):
+            return filepath
+    else:
+        if filepath[-len(ext):].lower().endswith(ext.lower()):
+            return filepath
 
     return filepath + ext
 
