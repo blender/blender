@@ -36,9 +36,9 @@ extern "C" {
 
 class DistortionCache {
 private:
-	float m_k1;
-	float m_k2;
-	float m_k3;
+	short m_distortion_model;
+	float m_k1, m_k2, m_k3;
+	float m_division_k1, m_division_k2;
 	float m_principal_x;
 	float m_principal_y;
 	float m_pixel_aspect;
@@ -59,9 +59,12 @@ public:
 	                bool inverted,
 	                const int margin[2])
 	{
+		this->m_distortion_model = movieclip->tracking.camera.distortion_model;
 		this->m_k1 = movieclip->tracking.camera.k1;
 		this->m_k2 = movieclip->tracking.camera.k2;
 		this->m_k3 = movieclip->tracking.camera.k3;
+		this->m_division_k1 = movieclip->tracking.camera.division_k1;
+		this->m_division_k2 = movieclip->tracking.camera.division_k2;
 		this->m_principal_x = movieclip->tracking.camera.principal[0];
 		this->m_principal_y = movieclip->tracking.camera.principal[1];
 		this->m_pixel_aspect = movieclip->tracking.camera.pixel_aspect;
@@ -101,9 +104,12 @@ public:
 	                int calibration_width, int claibration_height,
 	                bool inverted)
 	{
-		return this->m_k1 == movieclip->tracking.camera.k1 &&
+		return this->m_distortion_model == movieclip->tracking.camera.distortion_model &&
+		       this->m_k1 == movieclip->tracking.camera.k1 &&
 		       this->m_k2 == movieclip->tracking.camera.k2 &&
 		       this->m_k3 == movieclip->tracking.camera.k3 &&
+		       this->m_division_k1 == movieclip->tracking.camera.division_k1 &&
+		       this->m_division_k2 == movieclip->tracking.camera.division_k2 &&
 		       this->m_principal_x == movieclip->tracking.camera.principal[0] &&
 		       this->m_principal_y == movieclip->tracking.camera.principal[1] &&
 		       this->m_pixel_aspect == movieclip->tracking.camera.pixel_aspect &&
