@@ -2395,6 +2395,8 @@ void bmesh_edge_separate(
  * Disconnects a face from its vertex fan at loop \a l_sep
  *
  * \return The newly created BMVert
+ *
+ * \note Will be a no-op and return original vertex if only two edges at that vertex.
  */
 BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *l_sep)
 {
@@ -2406,8 +2408,10 @@ BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *l_sep)
 
 	/* peel the face from the edge radials on both sides of the
 	 * loop vert, disconnecting the face from its fan */
-	bmesh_edge_separate(bm, l_sep->e, l_sep, false);
-	bmesh_edge_separate(bm, l_sep->prev->e, l_sep->prev, false);
+	if (!BM_edge_is_boundary(l_sep->e))
+		bmesh_edge_separate(bm, l_sep->e, l_sep, false);
+	if (!BM_edge_is_boundary(l_sep->prev->e))
+		bmesh_edge_separate(bm, l_sep->prev->e, l_sep->prev, false);
 
 	/* do inline, below */
 #if 0
