@@ -2655,6 +2655,16 @@ void BKE_boundbox_calc_size_aabb(const BoundBox *bb, float r_size[3])
 	r_size[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
 }
 
+void BKE_boundbox_minmax(const BoundBox *bb, float obmat[4][4], float r_min[3], float r_max[3])
+{
+	int i;
+	for (i = 0; i < 8; i++) {
+		float vec[3];
+		mul_v3_m4v3(vec, obmat, bb->vec[i]);
+		minmax_v3v3_v3(r_min, r_max, vec);
+	}
+}
+
 BoundBox *BKE_object_boundbox_get(Object *ob)
 {
 	BoundBox *bb = NULL;
@@ -2730,7 +2740,6 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 {
 	BoundBox bb;
 	float vec[3];
-	int a;
 	bool changed = false;
 	
 	switch (ob->type) {
@@ -2739,11 +2748,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 		case OB_SURF:
 		{
 			bb = *BKE_curve_boundbox_get(ob);
-
-			for (a = 0; a < 8; a++) {
-				mul_m4_v3(ob->obmat, bb.vec[a]);
-				minmax_v3v3_v3(min_r, max_r, bb.vec[a]);
-			}
+			BKE_boundbox_minmax(&bb, ob->obmat, min_r, max_r);
 			changed = true;
 			break;
 		}
@@ -2766,23 +2771,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 		}
 		case OB_ARMATURE:
 		{
-			if (ob->pose) {
-				bArmature *arm = ob->data;
-				bPoseChannel *pchan;
-
-				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-					/* XXX pchan->bone may be NULL for duplicated bones, see duplicateEditBoneObjects() comment
-					 *     (editarmature.c:2592)... Skip in this case too! */
-					if (pchan->bone && !((use_hidden == false) && (PBONE_VISIBLE(arm, pchan->bone) == false))) {
-						mul_v3_m4v3(vec, ob->obmat, pchan->pose_head);
-						minmax_v3v3_v3(min_r, max_r, vec);
-						mul_v3_m4v3(vec, ob->obmat, pchan->pose_tail);
-						minmax_v3v3_v3(min_r, max_r, vec);
-
-						changed = true;
-					}
-				}
-			}
+			changed = BKE_pose_minmax(ob, min_r, max_r, use_hidden, false);
 			break;
 		}
 		case OB_MESH:
@@ -2791,11 +2780,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 
 			if (me) {
 				bb = *BKE_mesh_boundbox_get(ob);
-
-				for (a = 0; a < 8; a++) {
-					mul_m4_v3(ob->obmat, bb.vec[a]);
-					minmax_v3v3_v3(min_r, max_r, bb.vec[a]);
-				}
+				BKE_boundbox_minmax(&bb, ob->obmat, min_r, max_r);
 				changed = true;
 			}
 			break;

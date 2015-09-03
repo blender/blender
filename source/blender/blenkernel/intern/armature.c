@@ -2209,6 +2209,45 @@ BoundBox *BKE_armature_boundbox_get(Object *ob)
 	return ob->bb;
 }
 
+bool BKE_pose_minmax(Object *ob, float r_min[3], float r_max[3], bool use_hidden, bool use_select)
+{
+	bool changed = false;
+
+	if (ob->pose) {
+		bArmature *arm = ob->data;
+		bPoseChannel *pchan;
+
+		for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+			/* XXX pchan->bone may be NULL for duplicated bones, see duplicateEditBoneObjects() comment
+			 *     (editarmature.c:2592)... Skip in this case too! */
+			if (pchan->bone &&
+			    (!((use_hidden == false) && (PBONE_VISIBLE(arm, pchan->bone) == false)) &&
+			     !((use_select == true)  && ((pchan->bone->flag & BONE_SELECTED) == 0))))
+			{
+				bPoseChannel *pchan_tx = (pchan->custom && pchan->custom_tx) ? pchan->custom_tx : pchan;
+				BoundBox *bb_custom = pchan->custom ? BKE_object_boundbox_get(pchan->custom) : NULL;
+
+				if (bb_custom) {
+					float mat[4][4];
+					mul_m4_m4m4(mat, ob->obmat, pchan_tx->pose_mat);
+					BKE_boundbox_minmax(bb_custom, mat, r_min, r_max);
+				}
+				else {
+					float vec[3];
+					mul_v3_m4v3(vec, ob->obmat, pchan_tx->pose_head);
+					minmax_v3v3_v3(r_min, r_max, vec);
+					mul_v3_m4v3(vec, ob->obmat, pchan_tx->pose_tail);
+					minmax_v3v3_v3(r_min, r_max, vec);
+				}
+
+				changed = true;
+			}
+		}
+	}
+
+	return changed;
+}
+
 /************** Graph evaluation ********************/
 
 bPoseChannel *BKE_armature_ik_solver_find_root(
