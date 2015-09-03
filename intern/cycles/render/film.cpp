@@ -144,7 +144,13 @@ void Pass::add(PassType type, vector<Pass>& passes)
 			pass.exposure = false;
 			break;
 		case PASS_LIGHT:
-			/* ignores */
+			/* This isn't a real pass, used by baking to see whether
+			 * light data is needed or not.
+			 *
+			 * Set components to 0 so pass sort below happens in a
+			 * determined way.
+			 */
+			pass.components = 0;
 			break;
 #ifdef WITH_CYCLES_DEBUG
 		case PASS_BVH_TRAVERSAL_STEPS:
