@@ -8,7 +8,8 @@ Intro
 
 .. module:: bge.render
 
-Example of using a :class:`bge.types.SCA_MouseSensor`, and two :class:`bge.types.KX_ObjectActuator` to implement MouseLook:
+Example of using a :class:`bge.types.SCA_MouseSensor`,
+and two :class:`bge.types.KX_ObjectActuator` to implement MouseLook:
 
 .. note::
    This can also be achieved with the :class:`bge.types.KX_MouseActuator`.
@@ -77,7 +78,9 @@ Constants
 
 .. DATA:: VSYNC_ADAPTIVE
 
-   Enables adaptive vsync if supported. Adaptive vsync enables vsync if the framerate is above the monitors refresh rate. Otherwise, vsync is diabled if the framerate is too low.
+   Enables adaptive vsync if supported.
+   Adaptive vsync enables vsync if the framerate is above the monitors refresh rate.
+   Otherwise, vsync is diabled if the framerate is too low.
 
 .. data:: LEFT_EYE
 
@@ -108,8 +111,7 @@ Functions
 
    Set the width and height of the window (in pixels). This also works for fullscreen applications.
 
-   .. NOTE::
-       Only works in the standalone player, not the Blender-embedded player.
+   .. note:: Only works in the standalone player, not the Blender-embedded player.
 
    :type width: integer
    :type height: integer
@@ -118,8 +120,7 @@ Functions
 
    Set whether or not the window should be fullscreen.
 
-   .. NOTE::
-       Only works in the standalone player, not the Blender-embedded player.
+   .. note:: Only works in the standalone player, not the Blender-embedded player.
 
    :type enable: bool
 
@@ -127,9 +128,7 @@ Functions
 
    Returns whether or not the window is fullscreen.
 
-   .. NOTE::
-       Only works in the standalone player, not the Blender-embedded player;
-       there it always returns False.
+   .. note:: Only works in the standalone player, not the Blender-embedded player; there it always returns False.
 
    :rtype: bool
 
@@ -143,15 +142,18 @@ Functions
 
    Writes an image file with the current displayed frame.
 
-   The image is written to *'filename'*. The path may be absolute (eg. "/home/foo/image") or relative when started with
-   "//" (eg. "//image"). Note that absolute paths are not portable between platforms.
-   If the filename contains a "#", it will be replaced by an incremental index so that screenshots can be taken multiple
-   times without overwriting the previous ones (eg. "image-#").
+   The image is written to *'filename'*.
+   The path may be absolute (eg. ``/home/foo/image``) or relative when started with
+   ``//`` (eg. ``//image``). Note that absolute paths are not portable between platforms.
+   If the filename contains a ``#``,
+   it will be replaced by an incremental index so that screenshots can be taken multiple
+   times without overwriting the previous ones (eg. ``image-#``).
 
-   Settings for the image are taken from the render settings (file format and respective settings, gamma and colospace
-   conversion, etc). The image resolution matches the framebuffer, meaning, the window size and aspect ratio.
-   When running from the standalone player, instead of the embedded player, only PNG files are supported. Additional
-   color conversions are also not supported.
+   Settings for the image are taken from the render settings (file format and respective settings,
+   gamma and colospace conversion, etc).
+   The image resolution matches the framebuffer, meaning, the window size and aspect ratio.
+   When running from the standalone player, instead of the embedded player, only PNG files are supported.
+   Additional color conversions are also not supported.
 
    :arg filename: path and name of the file to write
    :type filename: string
