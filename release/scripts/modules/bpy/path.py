@@ -283,22 +283,18 @@ def ensure_ext(filepath, ext, case_sensitive=False):
     """
     Return the path with the extension added if it is not already set.
 
-    :arg ext: The extension to check for.
+    :arg ext: The extension to check for, can be a compound extension. Should
+              start with a dot, such as '.blend' or '.tar.gz'.
     :type ext: string
     :arg case_sensitive: Check for matching case when comparing extensions.
     :type case_sensitive: bool
     """
-    fn_base, fn_ext = _os.path.splitext(filepath)
-    if fn_base and fn_ext:
-        if ((case_sensitive and ext == fn_ext) or
-            (ext.lower() == fn_ext.lower())):
 
-            return filepath
-        else:
-            return fn_base + ext
+    if ((case_sensitive and filepath.endswith(ext)) or
+            (not case_sensitive and filepath.lower().endswith(ext.lower()))):
+        return filepath
 
-    else:
-        return filepath + ext
+    return filepath + ext
 
 
 def module_names(path, recursive=False):
