@@ -1600,8 +1600,9 @@ bool isect_tri_tri_epsilon_v3(
 
 	BLI_assert((r_i1 != NULL) == (r_i2 != NULL));
 
-	cross_tri_v3(no_a, UNPACK3(tri_pair[0]));
-	cross_tri_v3(no_b, UNPACK3(tri_pair[1]));
+	/* normalizing is needed for small triangles T46007 */
+	normal_tri_v3(no_a, UNPACK3(tri_pair[0]));
+	normal_tri_v3(no_b, UNPACK3(tri_pair[1]));
 
 	if (isect_plane_plane_v3(plane_co, plane_no, t_a0, no_a, t_b0, no_b)) {
 		/**
