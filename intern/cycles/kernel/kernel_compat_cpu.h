@@ -173,16 +173,11 @@ template<typename T> struct texture_image  {
 					}
 					/* Fall through. */
 				case EXTENSION_EXTEND:
+					nix = wrap_clamp(ix+1, width);
+					niy = wrap_clamp(iy+1, height);
+
 					ix = wrap_clamp(ix, width);
 					iy = wrap_clamp(iy, height);
-
-					if (x >= 0.0f && y >= 0.0f && x <= 1.0f && y <= 1.0f) {
-						nix = wrap_clamp(ix+1, width);
-						niy = wrap_clamp(iy+1, height);
-					}
-					else {
-						return read(data[ix + iy*width]);
-					}
 					break;
 			}
 
@@ -195,8 +190,8 @@ template<typename T> struct texture_image  {
 		}
 		else {
 			/* Bicubic b-spline interpolation. */
-			const float tx = frac(x*(float)width - 0.5f, &ix);
-			const float ty = frac(y*(float)height - 0.5f, &iy);
+			float tx = frac(x*(float)width - 0.5f, &ix);
+			float ty = frac(y*(float)height - 0.5f, &iy);
 			int pix, piy, nnix, nniy;
 			switch(extension) {
 				case EXTENSION_REPEAT:
@@ -218,22 +213,17 @@ template<typename T> struct texture_image  {
 					}
 					/* Fall through. */
 				case EXTENSION_EXTEND:
+					pix = wrap_clamp(ix-1, width);
+					piy = wrap_clamp(iy-1, height);
+
+					nix = wrap_clamp(ix+1, width);
+					niy = wrap_clamp(iy+1, height);
+
+					nnix = wrap_clamp(ix+2, width);
+					nniy = wrap_clamp(iy+2, height);
+
 					ix = wrap_clamp(ix, width);
 					iy = wrap_clamp(iy, height);
-
-					if (x >= 0.0f && y >= 0.0f && x <= 1.0f && y <= 1.0f) {
-						pix = wrap_clamp(ix-1, width);
-						piy = wrap_clamp(iy-1, height);
-
-						nix = wrap_clamp(ix+1, width);
-						niy = wrap_clamp(iy+1, height);
-
-						nnix = wrap_clamp(ix+2, width);
-						nniy = wrap_clamp(iy+2, height);
-					}
-					else {
-						return read(data[ix + iy*width]);
-					}
 					break;
 			}
 
@@ -323,18 +313,13 @@ template<typename T> struct texture_image  {
 					}
 					/* Fall through. */
 				case EXTENSION_EXTEND:
+					nix = wrap_clamp(ix+1, width);
+					niy = wrap_clamp(iy+1, height);
+					niz = wrap_clamp(iz+1, depth);
+
 					ix = wrap_clamp(ix, width);
 					iy = wrap_clamp(iy, height);
 					iz = wrap_clamp(iz, depth);
-
-					if (x >= 0.0f && y >= 0.0f && x <= 1.0f && y <= 1.0f) {
-						nix = wrap_clamp(ix+1, width);
-						niy = wrap_clamp(iy+1, height);
-						niz = wrap_clamp(iz+1, depth);
-					}
-					else {
-						return read(data[ix + iy*width + iz*width*height]);
-					}
 					break;
 			}
 
@@ -383,26 +368,21 @@ template<typename T> struct texture_image  {
 					}
 					/* Fall through. */
 				case EXTENSION_EXTEND:
+					pix = wrap_clamp(ix-1, width);
+					piy = wrap_clamp(iy-1, height);
+					piz = wrap_clamp(iz-1, depth);
+
+					nix = wrap_clamp(ix+1, width);
+					niy = wrap_clamp(iy+1, height);
+					niz = wrap_clamp(iz+1, depth);
+
+					nnix = wrap_clamp(ix+2, width);
+					nniy = wrap_clamp(iy+2, height);
+					nniz = wrap_clamp(iz+2, depth);
+
 					ix = wrap_clamp(ix, width);
 					iy = wrap_clamp(iy, height);
 					iz = wrap_clamp(iz, depth);
-
-					if (x >= 0.0f && y >= 0.0f && x <= 1.0f && y <= 1.0f) {
-						pix = wrap_clamp(ix-1, width);
-						piy = wrap_clamp(iy-1, height);
-						piz = wrap_clamp(iz-1, depth);
-
-						nix = wrap_clamp(ix+1, width);
-						niy = wrap_clamp(iy+1, height);
-						niz = wrap_clamp(iz+1, depth);
-
-						nnix = wrap_clamp(ix+2, width);
-						nniy = wrap_clamp(iy+2, height);
-						nniz = wrap_clamp(iz+2, depth);
-					}
-					else {
-						return read(data[ix + iy*width + iz*width*height]);
-					}
 					break;
 			}
 
