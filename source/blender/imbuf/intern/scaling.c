@@ -1555,7 +1555,7 @@ struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned
 	struct imbufRGBA *rectf, *_newrectf, *newrectf;
 	int x, y;
 	bool do_float = false, do_rect = false;
-	int ofsx, ofsy, stepx, stepy;
+	size_t ofsx, ofsy, stepx, stepy;
 
 	rect = NULL; _newrect = NULL; newrect = NULL;
 	rectf = NULL; _newrectf = NULL; newrectf = NULL;
