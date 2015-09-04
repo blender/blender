@@ -842,6 +842,7 @@ void BlenderSync::sync_mesh_motion(BL::Object b_ob, Object *object, float motion
 		return;
 	}
 
+	/* TODO(sergey): Perform preliminary check for number of verticies. */
 	if(numverts) {
 		/* find attributes */
 		Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -873,7 +874,9 @@ void BlenderSync::sync_mesh_motion(BL::Object b_ob, Object *object, float motion
 
 		/* in case of new attribute, we verify if there really was any motion */
 		if(new_attribute) {
-			if(i != numverts || memcmp(mP, &mesh->verts[0], sizeof(float3)*numverts) == 0) {
+			if(b_mesh.vertices.length() != numverts ||
+			   memcmp(mP, &mesh->verts[0], sizeof(float3)*numverts) == 0)
+			{
 				/* no motion, remove attributes again */
 				VLOG(1) << "No actual deformation motion for object " << b_ob.name();
 				mesh->attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
