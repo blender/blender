@@ -1668,7 +1668,9 @@ bool isect_tri_tri_epsilon_v3(
 	plane_a[3] = -dot_v3v3(plane_a, t_a0);
 	plane_b[3] = -dot_v3v3(plane_b, t_b0);
 
-	if (isect_plane_plane_v3(plane_a, plane_b, plane_co, plane_no)) {
+	if (isect_plane_plane_v3(plane_a, plane_b, plane_co, plane_no) &&
+	    (normalize_v3(plane_no) > epsilon))
+	{
 		/**
 		 * Implementation note: its simpler to project the triangles onto the intersection plane
 		 * before intersecting their edges with the ray, defined by 'isect_plane_plane_v3'.
@@ -1680,10 +1682,6 @@ bool isect_tri_tri_epsilon_v3(
 		} range[2] = {{FLT_MAX, -FLT_MAX}, {FLT_MAX, -FLT_MAX}};
 		int t;
 		float co_proj[3];
-
-		/* only for numeric stability
-		 * (and so we can call 'closest_to_plane3_normalized_v3' below) */
-		normalize_v3(plane_no);
 
 		closest_to_plane3_normalized_v3(co_proj, plane_no, plane_co);
 
@@ -1698,7 +1696,10 @@ bool isect_tri_tri_epsilon_v3(
 			closest_to_plane3_normalized_v3(tri_proj[2], plane_no, tri_pair[t][2]);
 
 			for (j = 0, j_prev = 2; j < 3; j_prev = j++) {
-				const float edge_fac = line_point_factor_v3_ex(co_proj, tri_proj[j_prev], tri_proj[j], epsilon, -1.0f);
+				/* note that its important to have a very small nonzero epsilon here
+				 * otherwise this fails for very small faces.
+				 * However if its too small, large adjacent faces will count as intersecting */
+				const float edge_fac = line_point_factor_v3_ex(co_proj, tri_proj[j_prev], tri_proj[j], 1e-10f, -1.0f);
 				/* ignore collinear lines, they are either an edge shared between 2 tri's
 				 * (which runs along [co_proj, plane_no], but can be safely ignored).
 				 *
