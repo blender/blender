@@ -1647,14 +1647,8 @@ bool isect_tri_tri_epsilon_v3(
 					float span_fac;
 
 					interp_v3_v3v3(ix_tri, tri_pair[t][j_prev], tri_pair[t][j], edge_fac);
-#if 0
-					span_fac = dist_signed_squared_to_plane3_v3(ix_tri, plane_no);
-#else
-					{
-						span_fac = dot_v3v3(plane_no, ix_tri);
-						span_fac = copysignf(span_fac * span_fac, span_fac);
-					}
-#endif
+					/* the actual distance, since 'plane_no' is normalized */
+					span_fac = dot_v3v3(plane_no, ix_tri);
 
 					range[t].min = min_ff(range[t].min, span_fac);
 					range[t].max = max_ff(range[t].max, span_fac);
@@ -1671,8 +1665,8 @@ bool isect_tri_tri_epsilon_v3(
 		{
 			if (r_i1 && r_i2) {
 				project_plane_v3_v3v3(plane_co, plane_co, plane_no);
-				madd_v3_v3v3fl(r_i1, plane_co, plane_no, sqrtf_signed(max_ff(range[0].min, range[1].min)));
-				madd_v3_v3v3fl(r_i2, plane_co, plane_no, sqrtf_signed(min_ff(range[0].max, range[1].max)));
+				madd_v3_v3v3fl(r_i1, plane_co, plane_no, max_ff(range[0].min, range[1].min));
+				madd_v3_v3v3fl(r_i2, plane_co, plane_no, min_ff(range[0].max, range[1].max));
 			}
 
 			return true;
