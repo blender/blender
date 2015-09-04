@@ -2175,6 +2175,9 @@ float closest_to_line_v2(float cp[2], const float p[2], const float l1[2], const
 /**
  * A simplified version of #closest_to_line_v3
  * we only need to return the ``lambda``
+ *
+ * \param epsilon: avoid approaching divide-by-zero.
+ * Passing a zero will just check for nonzero division.
  */
 float line_point_factor_v3_ex(
         const float p[3], const float l1[3], const float l2[3],
@@ -2189,7 +2192,7 @@ float line_point_factor_v3_ex(
 #else
 	/* better check for zero */
 	dot = dot_v3v3(u, u);
-	return (fabsf(dot) >= epsilon) ? (dot_v3v3(u, h) / dot) : fallback;
+	return (fabsf(dot) > epsilon) ? (dot_v3v3(u, h) / dot) : fallback;
 #endif
 }
 float line_point_factor_v3(
@@ -2211,7 +2214,7 @@ float line_point_factor_v2_ex(
 #else
 	/* better check for zero */
 	dot = dot_v2v2(u, u);
-	return (fabsf(dot) >= epsilon) ? (dot_v2v2(u, h) / dot) : fallback;
+	return (fabsf(dot) > epsilon) ? (dot_v2v2(u, h) / dot) : fallback;
 #endif
 }
 
