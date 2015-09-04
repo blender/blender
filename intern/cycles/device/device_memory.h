@@ -211,7 +211,10 @@ public:
 	T *resize(size_t width, size_t height = 0, size_t depth = 0)
 	{
 		data_size = width * ((height == 0)? 1: height) * ((depth == 0)? 1: depth);
-		data.resize(data_size);
+		if(data.resize(data_size) == NULL) {
+			clear();
+			return NULL;
+		}
 		data_width = width;
 		data_height = height;
 		data_depth = depth;
@@ -226,7 +229,9 @@ public:
 	T *copy(T *ptr, size_t width, size_t height = 0, size_t depth = 0)
 	{
 		T *mem = resize(width, height, depth);
-		memcpy(mem, ptr, memory_size());
+		if(mem != NULL) {
+			memcpy(mem, ptr, memory_size());
+		}
 		return mem;
 	}
 

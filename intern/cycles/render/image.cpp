@@ -450,6 +450,9 @@ bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
 
 	/* read RGBA pixels */
 	uchar *pixels = (uchar*)tex_img.resize(width, height, depth);
+	if(pixels == NULL) {
+		return false;
+	}
 	bool cmyk = false;
 
 	if(in) {
@@ -573,6 +576,9 @@ bool ImageManager::file_load_float_image(Image *img, device_vector<float4>& tex_
 
 	/* read RGBA pixels */
 	float *pixels = (float*)tex_img.resize(width, height, depth);
+	if(pixels == NULL) {
+		return false;
+	}
 	bool cmyk = false;
 
 	if(in) {

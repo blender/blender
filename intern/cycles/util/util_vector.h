@@ -163,7 +163,7 @@ public:
 		util_aligned_free(data);
 	}
 
-	void resize(size_t newsize)
+	T* resize(size_t newsize)
 	{
 		if(newsize == 0) {
 			clear();
@@ -171,7 +171,12 @@ public:
 		else if(newsize != datasize) {
 			if(newsize > capacity) {
 				T *newdata = (T*)util_aligned_malloc(sizeof(T)*newsize, alignment);
-				if(data) {
+				if(newdata == NULL) {
+					/* Allocation failed, likely out of memory. */
+					clear();
+					return NULL;
+				}
+				else if(data) {
 					memcpy(newdata, data, ((datasize < newsize)? datasize: newsize)*sizeof(T));
 					util_aligned_free(data);
 				}
@@ -180,12 +185,15 @@ public:
 			}
 			datasize = newsize;
 		}
+		return data;
 	}
 
 	void clear()
 	{
-		util_aligned_free(data);
-		data = NULL;
+		if(data != NULL) {
+			util_aligned_free(data);
+			data = NULL;
+		}
 		datasize = 0;
 		capacity = 0;
 	}
