@@ -1338,12 +1338,14 @@ void BKE_mesh_normals_loop_split(
  * Compute internal representation of given custom normals (as an array of float[2]).
  * It also makes sure the mesh matches those custom normals, by setting sharp edges flag as needed to get a
  * same custom lnor for all loops sharing a same smooth fan.
- * If use_vertices if true, custom_loopnors is assumed to be per-vertex, not per-loop
+ * If use_vertices if true, r_custom_loopnors is assumed to be per-vertex, not per-loop
  * (this allows to set whole vert's normals at once, useful in some cases).
+ * r_custom_loopnors is expected to have normalized normals, or zero ones, in which case they will be replaced
+ * by default loop/vertex normal.
  */
 static void mesh_normals_loop_custom_set(
         const MVert *mverts, const int numVerts, MEdge *medges, const int numEdges,
-        MLoop *mloops, float (*custom_loopnors)[3], const int numLoops,
+        MLoop *mloops, float (*r_custom_loopnors)[3], const int numLoops,
         MPoly *mpolys, const float (*polynors)[3], const int numPolys,
         short (*r_clnors_data)[2], const bool use_vertices)
 {
@@ -1368,6 +1370,22 @@ static void mesh_normals_loop_custom_set(
 	BKE_mesh_normals_loop_split(mverts, numVerts, medges, numEdges, mloops, lnors, numLoops,
 	                            mpolys, polynors, numPolys, use_split_normals, split_angle,
 	                            &lnors_spacearr, NULL, loop_to_poly);
+
+	/* Set all given zero vectors to their default value. */
+	if (use_vertices) {
+		for (i = 0; i < numVerts; i++) {
+			if (is_zero_v3(r_custom_loopnors[i])) {
+				normal_short_to_float_v3(r_custom_loopnors[i], mverts[i].no);
+			}
+		}
+	}
+	else {
+		for (i = 0; i < numLoops; i++) {
+			if (is_zero_v3(r_custom_loopnors[i])) {
+				copy_v3_v3(r_custom_loopnors[i], lnors[i]);
+			}
+		}
+	}
 
 	/* Now, check each current smooth fan (one lnor space per smooth fan!), and if all its matching custom lnors
 	 * are not (enough) equal, add sharp edges as needed.
@@ -1406,11 +1424,7 @@ static void mesh_normals_loop_custom_set(
 					const int lidx = GET_INT_FROM_POINTER(loops->link);
 					MLoop *ml = &mloops[lidx];
 					const int nidx = lidx;
-					float *nor = custom_loopnors[nidx];
-
-					if (is_zero_v3(nor)) {
-						nor = lnors[nidx];
-					}
+					float *nor = r_custom_loopnors[nidx];
 
 					if (!org_nor) {
 						org_nor = nor;
@@ -1441,11 +1455,7 @@ static void mesh_normals_loop_custom_set(
 					const int lidx = GET_INT_FROM_POINTER(loops->link);
 					MLoop *ml = &mloops[lidx];
 					const int nidx = lidx;
-					float *nor = custom_loopnors[nidx];
-
-					if (is_zero_v3(nor)) {
-						nor = lnors[nidx];
-					}
+					float *nor = r_custom_loopnors[nidx];
 
 					if (dot_v3v3(org_nor, nor) < LNOR_SPACE_TRIGO_THRESHOLD) {
 						const MPoly *mp = &mpolys[loop_to_poly[lidx]];
@@ -1492,11 +1502,7 @@ static void mesh_normals_loop_custom_set(
 				while (loops) {
 					const int lidx = GET_INT_FROM_POINTER(loops->link);
 					const int nidx = use_vertices ? (int)mloops[lidx].v : lidx;
-					float *nor = custom_loopnors[nidx];
-
-					if (is_zero_v3(nor)) {
-						nor = lnors[nidx];
-					}
+					float *nor = r_custom_loopnors[nidx];
 
 					nbr_nors++;
 					add_v3_v3(avg_nor, nor);
@@ -1516,7 +1522,7 @@ static void mesh_normals_loop_custom_set(
 			}
 			else {
 				const int nidx = use_vertices ? (int)mloops[i].v : i;
-				float *nor = custom_loopnors[nidx];
+				float *nor = r_custom_loopnors[nidx];
 
 				BKE_lnor_space_custom_normal_to_data(lnors_spacearr.lspacearr[i], nor, r_clnors_data[i]);
 				BLI_BITMAP_DISABLE(done_loops, i);
@@ -1532,21 +1538,21 @@ static void mesh_normals_loop_custom_set(
 
 void BKE_mesh_normals_loop_custom_set(
         const MVert *mverts, const int numVerts, MEdge *medges, const int numEdges,
-        MLoop *mloops, float (*custom_loopnors)[3], const int numLoops,
+        MLoop *mloops, float (*r_custom_loopnors)[3], const int numLoops,
         MPoly *mpolys, const float (*polynors)[3], const int numPolys,
         short (*r_clnors_data)[2])
 {
-	mesh_normals_loop_custom_set(mverts, numVerts, medges, numEdges, mloops, custom_loopnors, numLoops,
+	mesh_normals_loop_custom_set(mverts, numVerts, medges, numEdges, mloops, r_custom_loopnors, numLoops,
 	                             mpolys, polynors, numPolys, r_clnors_data, false);
 }
 
 void BKE_mesh_normals_loop_custom_from_vertices_set(
-        const MVert *mverts, float (*custom_vertnors)[3], const int numVerts,
+        const MVert *mverts, float (*r_custom_vertnors)[3], const int numVerts,
         MEdge *medges, const int numEdges, MLoop *mloops, const int numLoops,
         MPoly *mpolys, const float (*polynors)[3], const int numPolys,
         short (*r_clnors_data)[2])
 {
-	mesh_normals_loop_custom_set(mverts, numVerts, medges, numEdges, mloops, custom_vertnors, numLoops,
+	mesh_normals_loop_custom_set(mverts, numVerts, medges, numEdges, mloops, r_custom_vertnors, numLoops,
 	                             mpolys, polynors, numPolys, r_clnors_data, true);
 }
 

@@ -234,11 +234,11 @@ void BKE_mesh_normals_loop_split(
 
 void BKE_mesh_normals_loop_custom_set(
         const struct MVert *mverts, const int numVerts, struct MEdge *medges, const int numEdges,
-        struct MLoop *mloops, float (*custom_loopnors)[3], const int numLoops,
+        struct MLoop *mloops, float (*r_custom_loopnors)[3], const int numLoops,
         struct MPoly *mpolys, const float (*polynors)[3], const int numPolys,
         short (*r_clnors_data)[2]);
 void BKE_mesh_normals_loop_custom_from_vertices_set(
-        const struct MVert *mverts, float (*custom_vertnors)[3], const int numVerts,
+        const struct MVert *mverts, float (*r_custom_vertnors)[3], const int numVerts,
         struct MEdge *medges, const int numEdges, struct MLoop *mloops, const int numLoops,
         struct MPoly *mpolys, const float (*polynors)[3], const int numPolys,
         short (*r_clnors_data)[2]);
