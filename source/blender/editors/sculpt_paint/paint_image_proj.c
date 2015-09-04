@@ -4458,7 +4458,7 @@ static void *do_projectpaint_thread(void *ph_v)
 						/* these could probably be cached instead of being done per pixel */
 						float tangent[2];
 						float line_len_sq_inv, line_len;
-						float f = 0.0f;
+						float f;
 						float color_f[4];
 						float p[2] = {projPixel->projCoSS[0] - lastpos[0], projPixel->projCoSS[1] - lastpos[1]};
 
@@ -4474,6 +4474,7 @@ static void *do_projectpaint_thread(void *ph_v)
 								break;
 							}
 							case BRUSH_GRADIENT_RADIAL:
+							default:
 							{
 								f = len_v2(p) / line_len;
 								break;
@@ -4586,7 +4587,7 @@ static void *do_projectpaint_thread(void *ph_v)
 					falloff = BKE_brush_curve_strength_clamped(ps->brush, dist, brush_radius);
 
 					if (falloff > 0.0f) {
-						float texrgb[3] = {0.0f, 0.0f, 0.0f};
+						float texrgb[3];
 						float mask;
 
 						if (ps->do_masking) {

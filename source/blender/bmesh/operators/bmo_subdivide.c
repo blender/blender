@@ -787,7 +787,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(verts);
 	float smooth, fractal, along_normal;
 	bool use_sphere, use_single_edge, use_grid_fill, use_only_quads;
-	int cornertype, seed, i, j, a, b = 0, numcuts, totesel, smooth_falloff;
+	int cornertype, seed, i, j, a, b, numcuts, totesel, smooth_falloff;
 	
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, SUBD_SPLIT);
 	

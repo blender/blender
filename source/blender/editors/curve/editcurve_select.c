@@ -1579,7 +1579,7 @@ static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst
 {
 	Heap *heap;
 
-	int i, vert_curr = 0;
+	int i, vert_curr;
 
 	int totu = nu->pntsu;
 	int totv = nu->pntsv;

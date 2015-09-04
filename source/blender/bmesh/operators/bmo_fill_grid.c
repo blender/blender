@@ -228,7 +228,7 @@ static void bm_grid_fill_array(
 	unsigned int x, y;
 
 	/* for use_loop_interp */
-	BMLoop *((*larr_x_a)[2]) = NULL, *((*larr_x_b)[2]) = NULL, *((*larr_y_a)[2]) = NULL, *((*larr_y_b)[2]) = NULL;
+	BMLoop *((*larr_x_a)[2]), *((*larr_x_b)[2]), *((*larr_y_a)[2]), *((*larr_y_b)[2]);
 
 	float (*weight_table)[4];
 
