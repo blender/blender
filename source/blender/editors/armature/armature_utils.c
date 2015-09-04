@@ -477,49 +477,78 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 	return eBoneAct;
 }
 
-/* nasty stuff for converting roll in editbones into bones */
-/* also sets restposition in armature (arm_mat) */
-static void fix_bonelist_roll(ListBase *bonelist, ListBase *editbonelist)
+/* This function:
+ *     - sets local head/tail rest locations using parent bone's arm_mat.
+ *     - calls BKE_armature_where_is_bone() which uses parent's transform (arm_mat) to define this bone's transform.
+ *     - fixes (converts) EditBone roll into Bone roll.
+ *     - calls again BKE_armature_where_is_bone(), since roll fidling may have changed things for our bone...
+ * Note that order is crucial here, we can only handle child if all its parents in chain have already been handled
+ * (this is ensured by recursive process). */
+static void armature_finalize_restpose(ListBase *bonelist, ListBase *editbonelist)
 {
 	Bone *curBone;
 	EditBone *ebone;
-	float premat[3][3];
-	float postmat[3][3];
-	float difmat[3][3];
-	float imat[3][3];
-	
+
 	for (curBone = bonelist->first; curBone; curBone = curBone->next) {
-		/* sets local matrix and arm_mat (restpos).
-		 * Do not recurse into children here, fix_bonelist_roll is already recursive. */
-		BKE_armature_where_is_bone(curBone, curBone->parent, false);
-		
-		/* Find the associated editbone */
-		for (ebone = editbonelist->first; ebone; ebone = ebone->next)
-			if (ebone->temp.bone == curBone)
-				break;
-		
-		if (ebone) {
-			/* Get the ebone premat */
-			ED_armature_ebone_to_mat3(ebone, premat);
-			
-			/* Get the bone postmat */
-			copy_m3_m4(postmat, curBone->arm_mat);
-			
-			invert_m3_m3(imat, premat);
-			mul_m3_m3m3(difmat, imat, postmat);
-#if 0
-			printf("Bone %s\n", curBone->name);
-			print_m4("premat", premat);
-			print_m4("postmat", postmat);
-			print_m4("difmat", difmat);
-			printf("Roll = %f\n",  RAD2DEGF(-atan2(difmat[2][0], difmat[2][2])));
-#endif
-			curBone->roll = -atan2f(difmat[2][0], difmat[2][2]);
-			
-			/* and set restposition again */
-			BKE_armature_where_is_bone(curBone, curBone->parent, false);
+		/* Set bone's local head/tail.
+		 * Note that it's important to use final parent's restpose (arm_mat) here, instead of setting those values
+		 * from editbone's matrix (see T46010). */
+		if (curBone->parent) {
+			float parmat_inv[4][4];
+
+			invert_m4_m4(parmat_inv, curBone->parent->arm_mat);
+
+			/* Get the new head and tail */
+			sub_v3_v3v3(curBone->head, curBone->arm_head, curBone->parent->arm_tail);
+			sub_v3_v3v3(curBone->tail, curBone->arm_tail, curBone->parent->arm_tail);
+
+			mul_mat3_m4_v3(parmat_inv, curBone->head);
+			mul_mat3_m4_v3(parmat_inv, curBone->tail);
 		}
-		fix_bonelist_roll(&curBone->childbase, editbonelist);
+		else {
+			copy_v3_v3(curBone->head, curBone->arm_head);
+			copy_v3_v3(curBone->tail, curBone->arm_tail);
+		}
+
+		/* Set local matrix and arm_mat (restpose).
+		 * Do not recurse into children here, armature_finalize_restpose() is already recursive. */
+		BKE_armature_where_is_bone(curBone, curBone->parent, false);
+
+		/* Find the associated editbone */
+		for (ebone = editbonelist->first; ebone; ebone = ebone->next) {
+			if (ebone->temp.bone == curBone) {
+				float premat[3][3];
+				float postmat[3][3];
+				float difmat[3][3];
+				float imat[3][3];
+
+				/* Get the ebone premat and its inverse. */
+				ED_armature_ebone_to_mat3(ebone, premat);
+				invert_m3_m3(imat, premat);
+
+				/* Get the bone postmat. */
+				copy_m3_m4(postmat, curBone->arm_mat);
+
+				mul_m3_m3m3(difmat, imat, postmat);
+
+#if 0
+				printf("Bone %s\n", curBone->name);
+				print_m4("premat", premat);
+				print_m4("postmat", postmat);
+				print_m4("difmat", difmat);
+				printf("Roll = %f\n",  RAD2DEGF(-atan2(difmat[2][0], difmat[2][2])));
+#endif
+
+				curBone->roll = -atan2f(difmat[2][0], difmat[2][2]);
+
+				/* and set restposition again */
+				BKE_armature_where_is_bone(curBone, curBone->parent, false);
+				break;
+			}
+		}
+
+		/* Recurse into children... */
+		armature_finalize_restpose(&curBone->childbase, editbonelist);
 	}
 }
 
@@ -588,48 +617,29 @@ void ED_armature_from_edit(bArmature *arm)
 			newBone->prop = IDP_CopyProperty(eBone->prop);
 	}
 	
-	/* Fix parenting in a separate pass to ensure ebone->bone connections
-	 * are valid at this point */
+	/* Fix parenting in a separate pass to ensure ebone->bone connections are valid at this point.
+	 * Do not set bone->head/tail here anymore, using EditBone data for that is not OK since our later fidling
+	 * with parent's arm_mat (for roll conversion) may have some small but visible impact on locations (T46010). */
 	for (eBone = arm->edbo->first; eBone; eBone = eBone->next) {
 		newBone = eBone->temp.bone;
 		if (eBone->parent) {
 			newBone->parent = eBone->parent->temp.bone;
 			BLI_addtail(&newBone->parent->childbase, newBone);
-			
-			{
-				float M_parentRest[3][3];
-				float iM_parentRest[3][3];
-				
-				/* Get the parent's  matrix (rotation only) */
-				ED_armature_ebone_to_mat3(eBone->parent, M_parentRest);
-				
-				/* Invert the parent matrix */
-				invert_m3_m3(iM_parentRest, M_parentRest);
-				
-				/* Get the new head and tail */
-				sub_v3_v3v3(newBone->head, eBone->head, eBone->parent->tail);
-				sub_v3_v3v3(newBone->tail, eBone->tail, eBone->parent->tail);
-				
-				mul_m3_v3(iM_parentRest, newBone->head);
-				mul_m3_v3(iM_parentRest, newBone->tail);
-			}
 		}
 		/*	...otherwise add this bone to the armature's bonebase */
 		else {
-			copy_v3_v3(newBone->head, eBone->head);
-			copy_v3_v3(newBone->tail, eBone->tail);
 			BLI_addtail(&arm->bonebase, newBone);
 		}
 	}
 	
-	/* Make a pass through the new armature to fix rolling */
-	/* also builds restposition again (like BKE_armature_where_is) */
-	fix_bonelist_roll(&arm->bonebase, arm->edbo);
+	/* Finalize definition of restpose data (roll, bone_mat, arm_mat, head/tail...). */
+	armature_finalize_restpose(&arm->bonebase, arm->edbo);
 	
 	/* so all users of this armature should get rebuilt */
 	for (obt = G.main->object.first; obt; obt = obt->id.next) {
-		if (obt->data == arm)
+		if (obt->data == arm) {
 			BKE_pose_rebuild(obt, arm);
+		}
 	}
 	
 	DAG_id_tag_update(&arm->id, 0);
