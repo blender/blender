@@ -1141,8 +1141,7 @@ void BKE_armature_loc_world_to_pose(Object *ob, const float inloc[3], float outl
  * Not exported, as it is only used in this file currently... */
 static void get_offset_bone_mat(Bone *bone, float offs_bone[4][4])
 {
-	if (!bone->parent)
-		return;
+	BLI_assert(bone->parent != NULL);
 
 	/* Bone transform itself. */
 	copy_m4_m3(offs_bone, bone->bone_mat);
