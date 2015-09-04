@@ -530,6 +530,7 @@ static PyObject *M_Geometry_intersect_plane_plane(PyObject *UNUSED(self), PyObje
 	PyObject *ret, *ret_co, *ret_no;
 	PyObject *py_plane_a_co, *py_plane_a_no, *py_plane_b_co, *py_plane_b_no;
 	float plane_a_co[3], plane_a_no[3], plane_b_co[3], plane_b_no[3];
+	float plane_a[4], plane_b[4];
 
 	float isect_co[3];
 	float isect_no[3];
@@ -549,9 +550,12 @@ static PyObject *M_Geometry_intersect_plane_plane(PyObject *UNUSED(self), PyObje
 		return NULL;
 	}
 
-	if (isect_plane_plane_v3(isect_co, isect_no,
-	                         plane_a_co, plane_a_no,
-	                         plane_b_co, plane_b_no))
+	plane_from_point_normal_v3(plane_a, plane_a_co, plane_a_no);
+	plane_from_point_normal_v3(plane_b, plane_b_co, plane_b_no);
+
+	if (isect_plane_plane_v3(
+	        plane_a, plane_b,
+	        isect_co, isect_no))
 	{
 		normalize_v3(isect_no);
 

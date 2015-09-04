@@ -1556,28 +1556,89 @@ bool isect_line_plane_v3(float out[3],
 }
 
 /**
+ * Intersect three planes, return the point where all 3 meet.
+ * See Graphics Gems 1 pg 305
+ *
+ * \param plane_a, plane_b, plane_c: Planes.
+ * \param r_isect_co: The resulting intersection point.
+ */
+bool isect_plane_plane_plane_v3(
+        const float plane_a[4], const float plane_b[4], const float plane_c[4],
+        float r_isect_co[3])
+{
+	float det;
+
+	det = determinant_m3(UNPACK3(plane_a), UNPACK3(plane_b), UNPACK3(plane_c));
+
+	if (det != 0.0f) {
+		float tmp[3];
+
+		/* (plane_b.xyz.cross(plane_c.xyz) * -plane_a[3] +
+		 *  plane_c.xyz.cross(plane_a.xyz) * -plane_b[3] +
+		 *  plane_a.xyz.cross(plane_b.xyz) * -plane_c[3]) / det; */
+
+		cross_v3_v3v3(tmp, plane_b, plane_c);
+		mul_v3_v3fl(r_isect_co, tmp, -plane_a[3]);
+
+		cross_v3_v3v3(tmp, plane_c, plane_a);
+		madd_v3_v3fl(r_isect_co, tmp, -plane_b[3]);
+
+		cross_v3_v3v3(tmp, plane_a, plane_b);
+		madd_v3_v3fl(r_isect_co, tmp, -plane_c[3]);
+
+		mul_v3_fl(r_isect_co, 1.0f / det);
+
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+/**
  * Intersect two planes, return a point on the intersection and a vector
  * that runs on the direction of the intersection.
- * Return error code is the same as 'isect_line_line_v3'.
  *
- * \param r_isect_co The resulting intersection point.
- * \param r_isect_no The resulting vector of the intersection.
- * \param plane_a_co The point on the first plane.
- * \param plane_a_no The normal of the first plane.
- * \param plane_b_co The point on the second plane.
- * \param plane_b_no The normal of the second plane.
  *
- * \note return normal isn't unit length
+ * \note this is a slightly reduced version of #isect_plane_plane_plane_v3
+ *
+ * \param plane_a, plane_b: Planes.
+ * \param r_isect_co: The resulting intersection point.
+ * \param r_isect_no: The resulting vector of the intersection.
+ *
+ * \note \a r_isect_no isn't unit length.
  */
-bool isect_plane_plane_v3(float r_isect_co[3], float r_isect_no[3],
-                          const float plane_a_co[3], const float plane_a_no[3],
-                          const float plane_b_co[3], const float plane_b_no[3])
+bool isect_plane_plane_v3(
+        const float plane_a[4], const float plane_b[4],
+        float r_isect_co[3], float r_isect_no[3])
 {
-	float plane_a_co_other[3];
-	cross_v3_v3v3(r_isect_no, plane_a_no, plane_b_no); /* direction is simply the cross product */
-	cross_v3_v3v3(plane_a_co_other, plane_a_no, r_isect_no);
-	add_v3_v3(plane_a_co_other, plane_a_co);
-	return isect_line_plane_v3(r_isect_co, plane_a_co, plane_a_co_other, plane_b_co, plane_b_no);
+	float det, plane_c[3];
+
+	/* direction is simply the cross product */
+	cross_v3_v3v3(plane_c, plane_a, plane_b);
+
+	det = determinant_m3(UNPACK3(plane_a), UNPACK3(plane_b), UNPACK3(plane_c));
+
+	if (det != 0.0f) {
+		float tmp[3];
+
+		/* (plane_b.xyz.cross(plane_c.xyz) * -plane_a[3] +
+		 *  plane_c.xyz.cross(plane_a.xyz) * -plane_b[3]) / det; */
+		cross_v3_v3v3(tmp, plane_b, plane_c);
+		mul_v3_v3fl(r_isect_co, tmp, -plane_a[3]);
+
+		cross_v3_v3v3(tmp, plane_c, plane_a);
+		madd_v3_v3fl(r_isect_co, tmp, -plane_b[3]);
+
+		mul_v3_fl(r_isect_co, 1.0f / det);
+
+		copy_v3_v3(r_isect_no, plane_c);
+
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 /**
@@ -1595,16 +1656,19 @@ bool isect_tri_tri_epsilon_v3(
         const float epsilon)
 {
 	const float *tri_pair[2][3] = {{t_a0, t_a1, t_a2}, {t_b0, t_b1, t_b2}};
-	float no_a[3], no_b[3];
+	float plane_a[4], plane_b[4];
 	float plane_co[3], plane_no[3];
 
 	BLI_assert((r_i1 != NULL) == (r_i2 != NULL));
 
 	/* normalizing is needed for small triangles T46007 */
-	normal_tri_v3(no_a, UNPACK3(tri_pair[0]));
-	normal_tri_v3(no_b, UNPACK3(tri_pair[1]));
+	normal_tri_v3(plane_a, UNPACK3(tri_pair[0]));
+	normal_tri_v3(plane_b, UNPACK3(tri_pair[1]));
 
-	if (isect_plane_plane_v3(plane_co, plane_no, t_a0, no_a, t_b0, no_b)) {
+	plane_a[3] = -dot_v3v3(plane_a, t_a0);
+	plane_b[3] = -dot_v3v3(plane_b, t_b0);
+
+	if (isect_plane_plane_v3(plane_a, plane_b, plane_co, plane_no)) {
 		/**
 		 * Implementation note: its simpler to project the triangles onto the intersection plane
 		 * before intersecting their edges with the ray, defined by 'isect_plane_plane_v3'.
