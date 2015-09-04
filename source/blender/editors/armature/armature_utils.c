@@ -489,8 +489,9 @@ static void fix_bonelist_roll(ListBase *bonelist, ListBase *editbonelist)
 	float imat[3][3];
 	
 	for (curBone = bonelist->first; curBone; curBone = curBone->next) {
-		/* sets local matrix and arm_mat (restpos) */
-		BKE_armature_where_is_bone(curBone, curBone->parent);
+		/* sets local matrix and arm_mat (restpos).
+		 * Do not recurse into children here, fix_bonelist_roll is already recursive. */
+		BKE_armature_where_is_bone(curBone, curBone->parent, false);
 		
 		/* Find the associated editbone */
 		for (ebone = editbonelist->first; ebone; ebone = ebone->next)
@@ -516,7 +517,7 @@ static void fix_bonelist_roll(ListBase *bonelist, ListBase *editbonelist)
 			curBone->roll = -atan2f(difmat[2][0], difmat[2][2]);
 			
 			/* and set restposition again */
-			BKE_armature_where_is_bone(curBone, curBone->parent);
+			BKE_armature_where_is_bone(curBone, curBone->parent, false);
 		}
 		fix_bonelist_roll(&curBone->childbase, editbonelist);
 	}
