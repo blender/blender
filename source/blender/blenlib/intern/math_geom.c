@@ -1617,7 +1617,8 @@ bool isect_plane_plane_v3(
 	/* direction is simply the cross product */
 	cross_v3_v3v3(plane_c, plane_a, plane_b);
 
-	det = determinant_m3(UNPACK3(plane_a), UNPACK3(plane_b), UNPACK3(plane_c));
+	/* in this case we don't need to use 'determinant_m3' */
+	det = len_squared_v3(plane_c);
 
 	if (det != 0.0f) {
 		float tmp[3];
