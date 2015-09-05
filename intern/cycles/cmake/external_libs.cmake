@@ -87,6 +87,13 @@ if(CYCLES_STANDALONE_REPOSITORY)
 	find_package(OpenEXR)
 
 	####
+	# OpenShadingLanguage
+	if(WITH_CYCLES_OSL)
+		find_package(OpenShadingLanguage REQUIRED)
+		find_package(LLVM REQUIRED)
+	endif()
+
+	####
 	# Boost
 	set(__boost_packages filesystem regex system thread date_time)
 	if(WITH_CYCLES_NETWORK)
@@ -96,6 +103,8 @@ if(CYCLES_STANDALONE_REPOSITORY)
 		# TODO(sergey): This is because of the way how our precompiled
 		# libraries works, could be different for someone's else libs..
 		if(APPLE OR MSVC)
+			list(APPEND __boost_packages wave)
+		elseif(NOT (${OSL_LIBRARY_VERSION_MAJOR} EQUAL "1" AND ${OSL_LIBRARY_VERSION_MINOR} LESS "6"))
 			list(APPEND __boost_packages wave)
 		endif()
 	endif()
@@ -112,13 +121,6 @@ if(CYCLES_STANDALONE_REPOSITORY)
 	set(BOOST_LIBRARIES ${Boost_LIBRARIES})
 	set(BOOST_LIBPATH ${Boost_LIBRARY_DIRS})
 	set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
-
-	####
-	# OpenShadingLanguage
-	if(WITH_CYCLES_OSL)
-		find_package(OpenShadingLanguage REQUIRED)
-		find_package(LLVM REQUIRED)
-	endif()
 
 	####
 	# Logging
