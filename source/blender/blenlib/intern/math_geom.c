@@ -1577,14 +1577,14 @@ bool isect_plane_plane_plane_v3(
 		 *  plane_c.xyz.cross(plane_a.xyz) * -plane_b[3] +
 		 *  plane_a.xyz.cross(plane_b.xyz) * -plane_c[3]) / det; */
 
-		cross_v3_v3v3(tmp, plane_b, plane_c);
-		mul_v3_v3fl(r_isect_co, tmp, -plane_a[3]);
+		cross_v3_v3v3(tmp, plane_c, plane_b);
+		mul_v3_v3fl(r_isect_co, tmp, plane_a[3]);
 
-		cross_v3_v3v3(tmp, plane_c, plane_a);
-		madd_v3_v3fl(r_isect_co, tmp, -plane_b[3]);
+		cross_v3_v3v3(tmp, plane_a, plane_c);
+		madd_v3_v3fl(r_isect_co, tmp, plane_b[3]);
 
-		cross_v3_v3v3(tmp, plane_a, plane_b);
-		madd_v3_v3fl(r_isect_co, tmp, -plane_c[3]);
+		cross_v3_v3v3(tmp, plane_b, plane_a);
+		madd_v3_v3fl(r_isect_co, tmp, plane_c[3]);
 
 		mul_v3_fl(r_isect_co, 1.0f / det);
 
@@ -1625,11 +1625,11 @@ bool isect_plane_plane_v3(
 
 		/* (plane_b.xyz.cross(plane_c.xyz) * -plane_a[3] +
 		 *  plane_c.xyz.cross(plane_a.xyz) * -plane_b[3]) / det; */
-		cross_v3_v3v3(tmp, plane_b, plane_c);
-		mul_v3_v3fl(r_isect_co, tmp, -plane_a[3]);
+		cross_v3_v3v3(tmp, plane_c, plane_b);
+		mul_v3_v3fl(r_isect_co, tmp, plane_a[3]);
 
-		cross_v3_v3v3(tmp, plane_c, plane_a);
-		madd_v3_v3fl(r_isect_co, tmp, -plane_b[3]);
+		cross_v3_v3v3(tmp, plane_a, plane_c);
+		madd_v3_v3fl(r_isect_co, tmp, plane_b[3]);
 
 		mul_v3_fl(r_isect_co, 1.0f / det);
 
