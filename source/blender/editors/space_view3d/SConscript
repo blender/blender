@@ -68,4 +68,7 @@ if env['WITH_BF_INTERNATIONAL']:
 if env['WITH_BF_FREESTYLE']:
     defs.append('WITH_FREESTYLE')
 
+if env['WITH_BF_LEGACY_DEPSGRAPH']:
+    defs.append('WITH_LEGACY_DEPSGRAPH')
+
 env.BlenderLib ( 'bf_editors_space_view3d', sources, incs, defines = defs, libtype=['core'], priority=[40] )
