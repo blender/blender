@@ -485,6 +485,7 @@ extern bool ui_but_is_unit(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_but_is_compatible(const uiBut *but_a, const uiBut *but_b) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_but_is_rna_valid(uiBut *but) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_but_is_utf8(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+extern bool ui_but_supports_cycling(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 
 extern int  ui_but_is_pushed_ex(uiBut *but, double *value) ATTR_WARN_UNUSED_RESULT;
 extern int  ui_but_is_pushed(uiBut *but) ATTR_WARN_UNUSED_RESULT;
@@ -605,11 +606,14 @@ uiPopupBlockHandle *ui_popup_menu_create(
 
 void ui_popup_block_free(struct bContext *C, uiPopupBlockHandle *handle);
 
-int ui_but_menu_step(uiBut *but, int step);
+int  ui_but_menu_step(uiBut *but, int step);
+bool ui_but_menu_step_poll(const uiBut *but);
 
 
 /* interface_panel.c */
-extern int ui_handler_panel_region(struct bContext *C, const struct wmEvent *event, struct ARegion *ar);
+extern int ui_handler_panel_region(
+        struct bContext *C, const struct wmEvent *event,
+        struct ARegion *ar, const uiBut *active_but);
 extern void ui_draw_aligned_panel(struct uiStyle *style, uiBlock *block, const rcti *rect, const bool show_pin);
 
 /* interface_draw.c */

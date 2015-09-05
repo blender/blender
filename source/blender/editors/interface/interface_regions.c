@@ -107,15 +107,22 @@ static int rna_property_enum_step(const bContext *C, PointerRNA *ptr, PropertyRN
 	return value;
 }
 
+bool ui_but_menu_step_poll(const uiBut *but)
+{
+	BLI_assert(but->type == UI_BTYPE_MENU);
+
+	/* currenly only RNA buttons */
+	return (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM);
+}
+
 int ui_but_menu_step(uiBut *but, int direction)
 {
-	/* currenly only RNA buttons */
-	if ((but->rnaprop == NULL) || (RNA_property_type(but->rnaprop) != PROP_ENUM)) {
-		printf("%s: cannot cycle button '%s'\n", __func__, but->str);
-		return 0;
+	if (ui_but_menu_step_poll(but)) {
+		return rna_property_enum_step(but->block->evil_C, &but->rnapoin, but->rnaprop, direction);
 	}
 
-	return rna_property_enum_step(but->block->evil_C, &but->rnapoin, but->rnaprop, direction);
+	printf("%s: cannot cycle button '%s'\n", __func__, but->str);
+	return 0;
 }
 
 /******************** Creating Temporary regions ******************/

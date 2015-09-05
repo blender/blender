@@ -7359,7 +7359,7 @@ static uiBut *ui_but_find_mouse_over(ARegion *ar, const wmEvent *event)
 }
 
 
-static uiBut *ui_list_find_mouse_over(ARegion *ar, int x, int y)
+static uiBut *ui_list_find_mouse_over_ex(ARegion *ar, int x, int y)
 {
 	uiBlock *block;
 	uiBut *but;
@@ -7381,6 +7381,11 @@ static uiBut *ui_list_find_mouse_over(ARegion *ar, int x, int y)
 	}
 
 	return NULL;
+}
+
+static uiBut *ui_list_find_mouse_over(ARegion *ar, const wmEvent *event)
+{
+	return ui_list_find_mouse_over_ex(ar, event->x, event->y);
 }
 
 /* ****************** button state handling **************************/
@@ -8241,21 +8246,15 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 	return retval;
 }
 
-static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
+static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar, uiBut *listbox)
 {
-	uiBut *but;
 	uiList *ui_list;
 	uiListDyn *dyn_data;
 	int retval = WM_UI_HANDLER_CONTINUE;
 	int type = event->type, val = event->val;
 	int mx, my;
 
-	but = ui_list_find_mouse_over(ar, event->x, event->y);
-	if (!but) {
-		return retval;
-	}
-
-	ui_list = but->custom_data;
+	ui_list = listbox->custom_data;
 	if (!ui_list || !ui_list->dyn_data) {
 		return retval;
 	}
@@ -8263,7 +8262,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 
 	mx = event->x;
 	my = event->y;
-	ui_window_to_block(ar, but->block, &mx, &my);
+	ui_window_to_block(ar, listbox->block, &mx, &my);
 
 	/* convert pan to scrollwheel */
 	if (type == MOUSEPAN) {
@@ -8279,7 +8278,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 		if (ELEM(type, UPARROWKEY, DOWNARROWKEY) ||
 		    ((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->ctrl)))
 		{
-			const int value_orig = RNA_property_int_get(&but->rnapoin, but->rnaprop);
+			const int value_orig = RNA_property_int_get(&listbox->rnapoin, listbox->rnaprop);
 			int value, min, max, inc;
 
 			/* activate up/down the list */
@@ -8332,14 +8331,14 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar)
 
 			CLAMP(value, 0, dyn_data->items_len - 1);
 
-			RNA_property_int_range(&but->rnapoin, but->rnaprop, &min, &max);
+			RNA_property_int_range(&listbox->rnapoin, listbox->rnaprop, &min, &max);
 			CLAMP(value, min, max);
 
 			if (value != value_orig) {
-				RNA_property_int_set(&but->rnapoin, but->rnaprop, value);
-				RNA_property_update(C, &but->rnapoin, but->rnaprop);
+				RNA_property_int_set(&listbox->rnapoin, listbox->rnaprop, value);
+				RNA_property_update(C, &listbox->rnapoin, listbox->rnaprop);
 
-				ui_apply_but_undo(but);
+				ui_apply_but_undo(listbox);
 
 				ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
 				ED_region_tag_redraw(ar);
@@ -9624,7 +9623,7 @@ static int ui_handle_menus_recursive(
 static int ui_region_handler(bContext *C, const wmEvent *event, void *UNUSED(userdata))
 {
 	ARegion *ar;
-	uiBut *but;
+	uiBut *but, *listbox;
 	int retval;
 
 	/* here we handle buttons at the region level, non-modal */
@@ -9637,11 +9636,12 @@ static int ui_region_handler(bContext *C, const wmEvent *event, void *UNUSED(use
 
 	/* either handle events for already activated button or try to activate */
 	but = ui_but_find_active_in_region(ar);
+	listbox = ui_list_find_mouse_over(ar, event);
 
-	retval = ui_handler_panel_region(C, event, ar);
+	retval = ui_handler_panel_region(C, event, ar, listbox ? listbox : but);
 
-	if (retval == WM_UI_HANDLER_CONTINUE)
-		retval = ui_handle_list_event(C, event, ar);
+	if (retval == WM_UI_HANDLER_CONTINUE && listbox)
+		retval = ui_handle_list_event(C, event, ar, listbox);
 
 	if (retval == WM_UI_HANDLER_CONTINUE) {
 		if (but)

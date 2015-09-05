@@ -1850,7 +1850,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 /* XXX should become modal keymap */
 /* AKey is opening/closing panels, independent of button state now */
 
-int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar)
+int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar, const uiBut *active_but)
 {
 	uiBlock *block;
 	Panel *pa;
@@ -1878,20 +1878,26 @@ int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar)
 
 				/* first check if the mouse is in the tab region */
 				if (event->ctrl || (event->mval[0] < ((PanelCategoryDyn *)ar->panels_category.first)->rect.xmax)) {
-					const char *category = UI_panel_category_active_get(ar, false);
-					if (LIKELY(category)) {
-						PanelCategoryDyn *pc_dyn = UI_panel_category_find(ar, category);
-						if (LIKELY(pc_dyn)) {
-							pc_dyn = (event->type == WHEELDOWNMOUSE) ? pc_dyn->next : pc_dyn->prev;
-							if (pc_dyn) {
-								/* intentionally don't reset scroll in this case,
-								 * this allows for quick browsing between tabs */
-								UI_panel_category_active_set(ar, pc_dyn->idname);
-								ED_region_tag_redraw(ar);
+					if (active_but && ui_but_supports_cycling(active_but)) {
+						/* skip - exception to make cycling buttons
+						 * using ctrl+mousewheel work in tabbed regions */
+					}
+					else {
+						const char *category = UI_panel_category_active_get(ar, false);
+						if (LIKELY(category)) {
+							PanelCategoryDyn *pc_dyn = UI_panel_category_find(ar, category);
+							if (LIKELY(pc_dyn)) {
+								pc_dyn = (event->type == WHEELDOWNMOUSE) ? pc_dyn->next : pc_dyn->prev;
+								if (pc_dyn) {
+									/* intentionally don't reset scroll in this case,
+									 * this allows for quick browsing between tabs */
+									UI_panel_category_active_set(ar, pc_dyn->idname);
+									ED_region_tag_redraw(ar);
+								}
 							}
 						}
+						retval = WM_UI_HANDLER_BREAK;
 					}
-					retval = WM_UI_HANDLER_BREAK;
 				}
 			}
 		}

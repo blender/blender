@@ -1805,6 +1805,16 @@ bool ui_but_is_rna_valid(uiBut *but)
 	}
 }
 
+/**
+ * Checks if the button supports ctrl+mousewheel cycling
+ */
+bool ui_but_supports_cycling(const uiBut *but)
+{
+	return ((ELEM(but->type, UI_BTYPE_ROW, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER, UI_BTYPE_LISTBOX)) ||
+	        (but->type == UI_BTYPE_MENU && ui_but_menu_step_poll(but)) ||
+	        (but->type == UI_BTYPE_COLOR && but->a1 != -1));
+}
+
 double ui_but_value_get(uiBut *but)
 {
 	PropertyRNA *prop;
