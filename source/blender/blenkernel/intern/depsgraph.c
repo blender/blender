@@ -2019,25 +2019,50 @@ void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const sho
 	dag_tag_renderlayers(sce, lay);
 }
 
-static int object_modifiers_use_time(Object *ob)
+static bool modifier_nlastrips_use_time(ListBase *strips)
+{
+	NlaStrip *strip;
+	
+	if (strips) {
+		for (strip = strips->first; strip; strip = strip->next) {
+			if (modifier_nlastrips_use_time(&strip->strips)) {
+				return true;
+			}
+			else if (strip->act) {
+				FCurve *fcu;
+				
+				for (fcu = strip->act->curves.first; fcu; fcu = fcu->next) {
+					if (fcu->rna_path && strstr(fcu->rna_path, "modifiers["))
+						return true;
+				}
+			}
+		}
+	}
+	
+	return false;
+}
+
+static bool object_modifiers_use_time(Object *ob)
 {
 	ModifierData *md;
 	
 	/* check if a modifier in modifier stack needs time input */
-	for (md = ob->modifiers.first; md; md = md->next)
+	for (md = ob->modifiers.first; md; md = md->next) {
 		if (modifier_dependsOnTime(md))
-			return 1;
+			return true;
+	}
 	
 	/* check whether any modifiers are animated */
 	if (ob->adt) {
 		AnimData *adt = ob->adt;
+		NlaTrack *nlt;
 		FCurve *fcu;
 		
 		/* action - check for F-Curves with paths containing 'modifiers[' */
 		if (adt->action) {
 			for (fcu = adt->action->curves.first; fcu; fcu = fcu->next) {
 				if (fcu->rna_path && strstr(fcu->rna_path, "modifiers["))
-					return 1;
+					return true;
 			}
 		}
 		
@@ -2049,14 +2074,17 @@ static int object_modifiers_use_time(Object *ob)
 		 */
 		for (fcu = adt->drivers.first; fcu; fcu = fcu->next) {
 			if (fcu->rna_path && strstr(fcu->rna_path, "modifiers["))
-				return 1;
+				return true;
 		}
 		
-		/* XXX: also, should check NLA strips, though for now assume that nobody uses
-		 * that and we can omit that for performance reasons... */
+		/* Also check NLA Strips... [#T45938] */
+		for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
+			if (modifier_nlastrips_use_time(&nlt->strips))
+				return true;
+		}
 	}
 	
-	return 0;
+	return false;
 }
 
 static short animdata_use_time(AnimData *adt)
