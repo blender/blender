@@ -1631,7 +1631,7 @@ void mat4_to_dquat(DualQuat *dq, float basemat[4][4], float mat[4][4])
 
 	copy_m3_m4(mat3, mat);
 
-	if (!is_orthonormal_m3(mat3) || (determinant_m4(mat) < 0.0f) || len_v3(dscale) > 1e-4f) {
+	if (!is_orthonormal_m3(mat3) || (determinant_m4(mat) < 0.0f) || len_squared_v3(dscale) > SQUARE(1e-4f)) {
 		/* extract R and S  */
 		float tmp[4][4];
 

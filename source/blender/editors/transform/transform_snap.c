@@ -981,7 +981,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 						break;
 					}
 					
-					new_dist = len_v3v3(last_p, vec);
+					new_dist = len_squared_v3v3(last_p, vec);
 					
 					if (new_dist < max_dist) {
 						copy_v3_v3(p, vec);

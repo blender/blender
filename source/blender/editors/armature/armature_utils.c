@@ -565,9 +565,9 @@ void ED_armature_from_edit(bArmature *arm)
 	
 	/* remove zero sized bones, this gives unstable restposes */
 	for (eBone = arm->edbo->first; eBone; eBone = neBone) {
-		float len = len_v3v3(eBone->head, eBone->tail);
+		float len_sq = len_squared_v3v3(eBone->head, eBone->tail);
 		neBone = eBone->next;
-		if (len <= 0.000001f) {  /* FLT_EPSILON is too large? */
+		if (len_sq <= SQUARE(0.000001f)) {  /* FLT_EPSILON is too large? */
 			EditBone *fBone;
 			
 			/*	Find any bones that refer to this bone	*/
