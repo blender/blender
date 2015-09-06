@@ -169,15 +169,15 @@ float BKE_camera_object_dof_distance(Object *ob)
 	if (ob->type != OB_CAMERA)
 		return 0.0f;
 	if (cam->dof_ob) {
-		/* too simple, better to return the distance on the view axis only
-		 * return len_v3v3(ob->obmat[3], cam->dof_ob->obmat[3]); */
-		float mat[4][4], imat[4][4], obmat[4][4];
-		
-		copy_m4_m4(obmat, ob->obmat);
-		normalize_m4(obmat);
-		invert_m4_m4(imat, obmat);
-		mul_m4_m4m4(mat, imat, cam->dof_ob->obmat);
-		return fabsf(mat[3][2]);
+#if 0
+		/* too simple, better to return the distance on the view axis only */
+		return len_v3v3(ob->obmat[3], cam->dof_ob->obmat[3]);
+#else
+		float view_dir[3], dof_dir[3];
+		normalize_v3_v3(view_dir, ob->obmat[2]);
+		sub_v3_v3v3(dof_dir, ob->obmat[3], cam->dof_ob->obmat[3]);
+		return fabsf(dot_v3v3(view_dir, dof_dir));
+#endif
 	}
 	return cam->YF_dofdist;
 }
@@ -958,11 +958,6 @@ void BKE_camera_to_gpu_dof(struct Object *camera, struct GPUFXSettings *r_fx_set
 		r_fx_settings->dof = &cam->gpu_dof;
 		r_fx_settings->dof->focal_length = cam->lens;
 		r_fx_settings->dof->sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
-		if (cam->dof_ob) {
-			r_fx_settings->dof->focus_distance = len_v3v3(cam->dof_ob->obmat[3], camera->obmat[3]);
-		}
-		else {
-			r_fx_settings->dof->focus_distance = cam->YF_dofdist;
-		}
+		r_fx_settings->dof->focus_distance = BKE_camera_object_dof_distance(camera);
 	}
 }
