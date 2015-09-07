@@ -12,8 +12,12 @@ contents: dir(bgl).  A simple search on the web can point to more
 than enough material to teach OpenGL programming, from books to many
 collections of tutorials.
 
-Here is a comprehensive `list of books <http://www.opengl.org/documentation/books/>`_ (non free). The `arcsynthesis tutorials  <http://www.arcsynthesis.org/gltut/>`_ is one of the best resources to learn modern OpenGL and `g-truc <http://www.g-truc.net/post-tech-content-sample.html>`_ offers a set of extensive examples, including advanced features.
-    
+Here is a comprehensive `list of books <http://www.opengl.org/documentation/books/>`__ (non free).
+The `arcsynthesis tutorials  <http://www.arcsynthesis.org/gltut/>`__
+is one of the best resources to learn modern OpenGL and
+`g-truc <http://www.g-truc.net/post-tech-content-sample.html>`__
+offers a set of extensive examples, including advanced features.
+
 
 .. note::
    You can use the :class:`Image` type to load and set textures.
@@ -25,7 +29,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Operate on the accumulation buffer.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glAccum.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glAccum.xml>`__
 
    :type op: Enumerated constant
    :arg op: The accumulation buffer operation.
@@ -37,7 +41,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify the alpha test function.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glAlphaFunc.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glAlphaFunc.xml>`__
 
    :type func: Enumerated constant
    :arg func: Specifies the alpha comparison function.
@@ -50,7 +54,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Determine if textures are loaded in texture memory
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glAreTexturesResident.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glAreTexturesResident.xml>`__
 
    :type n: int
    :arg n: Specifies the number of textures to be queried.
@@ -66,7 +70,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Delimit the vertices of a primitive or a group of like primatives
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glBegin.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glBegin.xml>`__
 
    :type mode: Enumerated constant
    :arg mode: Specifies the primitive that will be create from vertices between
@@ -77,7 +81,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Bind a named texture to a texturing target
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glBindTexture.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glBindTexture.xml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the target to which the texture is bound.
@@ -89,7 +93,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Draw a bitmap
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glBitmap.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glBitmap.xml>`__
 
    :type width, height: int
    :arg width, height: Specify the pixel width and height of the bitmap image.
@@ -107,7 +111,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify pixel arithmetic
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glBlendFunc.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glBlendFunc.xml>`__
 
    :type sfactor: Enumerated constant
    :arg sfactor: Specifies how the red, green, blue, and alpha source blending factors are
@@ -121,7 +125,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Execute a display list
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glCallList.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glCallList.xml>`__
 
    :type list: unsigned int
    :arg list: Specifies the integer name of the display list to be executed.
@@ -131,7 +135,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Execute a list of display lists
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glCallLists.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glCallLists.xml>`__
 
    :type n: int
    :arg n: Specifies the number of display lists to be executed.
@@ -147,7 +151,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Clear buffers to preset values
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glClear.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glClear.xml>`__
 
    :type mask: Enumerated constant(s)
    :arg mask: Bitwise OR of masks that indicate the buffers to be cleared.
@@ -157,7 +161,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify clear values for the accumulation buffer
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glClearAccum.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glClearAccum.xml>`__
 
    :type red, green, blue, alpha: float
    :arg red, green, blue, alpha: Specify the red, green, blue, and alpha values used when the
@@ -168,7 +172,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify clear values for the color buffers
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glClearColor.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glClearColor.xml>`__
 
    :type red, green, blue, alpha: float
    :arg red, green, blue, alpha: Specify the red, green, blue, and alpha values used when the
@@ -179,7 +183,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify the clear value for the depth buffer
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glClearDepth.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glClearDepth.xml>`__
 
    :type depth: int
    :arg depth: Specifies the depth value used when the depth buffer is cleared.
@@ -190,7 +194,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify the clear value for the color index buffers
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glClearIndex.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glClearIndex.xml>`__
 
    :type c: float
    :arg c: Specifies the index used when the color index buffers are cleared.
@@ -201,7 +205,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify the clear value for the stencil buffer
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glClearStencil.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glClearStencil.xml>`__
 
    :type s: int
    :arg s: Specifies the index used when the stencil buffer is cleared. The initial value is 0.
@@ -211,7 +215,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify a plane against which all geometry is clipped
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glClipPlane.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glClipPlane.xml>`__
 
    :type plane: Enumerated constant
    :arg plane: Specifies which clipping plane is being positioned.
@@ -230,7 +234,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set a new color.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glColor.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glColor.xml>`__
 
    :type red, green, blue, alpha: Depends on function prototype.
    :arg red, green, blue: Specify new red, green, and blue values for the current color.
@@ -242,7 +246,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Enable and disable writing of frame buffer color components
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glColorMask.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glColorMask.xml>`__
 
    :type red, green, blue, alpha: int (boolean)
    :arg red, green, blue, alpha: Specify whether red, green, blue, and alpha can or cannot be
@@ -254,7 +258,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Cause a material color to track the current color
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glColorMaterial.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glColorMaterial.xml>`__
 
    :type face: Enumerated constant
    :arg face: Specifies whether front, back, or both front and back material parameters should
@@ -267,7 +271,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Copy pixels in the frame buffer
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glCopyPixels.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glCopyPixels.xml>`__
 
    :type x, y: int
    :arg x, y: Specify the window coordinates of the lower left corner of the rectangular
@@ -283,7 +287,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Copy pixels into a 2D texture image
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glCopyTexImage2D.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glCopyTexImage2D.xml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the target texture.
@@ -312,7 +316,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify whether front- or back-facing facets can be culled
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glCullFace.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glCullFace.xml>`__
 
    :type mode: Enumerated constant
    :arg mode: Specifies whether front- or back-facing facets are candidates for culling.
@@ -322,7 +326,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Delete a contiguous group of display lists
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDeleteLists.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDeleteLists.xml>`__
 
    :type list: unsigned int
    :arg list: Specifies the integer name of the first display list to delete
@@ -334,7 +338,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Delete named textures
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDeleteTextures.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDeleteTextures.xml>`__
 
    :type n: int
    :arg n: Specifies the number of textures to be deleted
@@ -346,7 +350,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify the value used for depth buffer comparisons
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDepthFunc.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDepthFunc.xml>`__
 
    :type func: Enumerated constant
    :arg func: Specifies the depth comparison function.
@@ -356,7 +360,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Enable or disable writing into the depth buffer
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDepthMask.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDepthMask.xml>`__
 
    :type flag: int (boolean)
    :arg flag: Specifies whether the depth buffer is enabled for writing. If flag is GL_FALSE,
@@ -368,7 +372,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify mapping of depth values from normalized device coordinates to window coordinates
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDepthRange.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDepthRange.xml>`__
 
    :type zNear: int
    :arg zNear: Specifies the mapping of the near clipping plane to window coordinates.
@@ -382,7 +386,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Disable server-side GL capabilities
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glEnable.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glEnable.xml>`__
 
    :type cap: Enumerated constant
    :arg cap: Specifies a symbolic constant indicating a GL capability.
@@ -392,7 +396,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify which color buffers are to be drawn into
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDrawBuffer.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDrawBuffer.xml>`__
 
    :type mode: Enumerated constant
    :arg mode: Specifies up to four color buffers to be drawn into.
@@ -402,7 +406,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Write a block of pixels to the frame buffer
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDrawPixels.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDrawPixels.xml>`__
 
    :type width, height: int
    :arg width, height: Specify the dimensions of the pixel rectangle to be
@@ -421,7 +425,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Flag edges as either boundary or non-boundary
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glEdgeFlag.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glEdgeFlag.xml>`__
 
    :type flag: Depends of function prototype
    :arg flag: Specifies the current edge flag value.The initial value is GL_TRUE.
@@ -431,7 +435,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Enable server-side GL capabilities
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glEnable.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glEnable.xml>`__
 
    :type cap: Enumerated constant
    :arg cap: Specifies a symbolic constant indicating a GL capability.
@@ -441,14 +445,14 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Delimit the vertices of a primitive or group of like primitives
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glBegin.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glBegin.xml>`__
 
 
 .. function:: glEndList():
 
    Create or replace a display list
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glNewList.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glNewList.xml>`__
 
 
 .. function:: glEvalCoord (u,v):
@@ -458,7 +462,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Evaluate enabled one- and two-dimensional maps
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glEvalCoord.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glEvalCoord.xml>`__
 
    :type u: Depends on function prototype.
    :arg u: Specifies a value that is the domain coordinate u to the basis function defined
@@ -476,7 +480,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Compute a one- or two-dimensional grid of points or lines
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glEvalMesh.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glEvalMesh.xml>`__
 
    :type mode: Enumerated constant
    :arg mode: In glEvalMesh1, specifies whether to compute a one-dimensional
@@ -491,7 +495,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Generate and evaluate a single point in a mesh
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glEvalPoint.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glEvalPoint.xml>`__
 
    :type i: int
    :arg i: Specifies the integer value for grid domain variable i.
@@ -503,7 +507,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Controls feedback mode
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glFeedbackBuffer.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glFeedbackBuffer.xml>`__
 
    :type size: int
    :arg size: Specifies the maximum number of values that can be written into buffer.
@@ -518,14 +522,14 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Block until all GL execution is complete
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glFinish.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glFinish.xml>`__
 
 
 .. function:: glFlush():
 
    Force Execution of GL commands in finite time
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glFlush.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glFlush.xml>`__
 
 
 .. function:: glFog (pname, param):
@@ -534,7 +538,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify fog parameters
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glFog.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glFog.xml>`__
 
    :type pname: Enumerated constant
    :arg pname: Specifies a single-valued fog parameter. If the function prototype
@@ -549,7 +553,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Define front- and back-facing polygons
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glFrontFace.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glFrontFace.xml>`__
 
    :type mode: Enumerated constant
    :arg mode: Specifies the orientation of front-facing polygons.
@@ -559,7 +563,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Multiply the current matrix by a perspective matrix
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glFrustum.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glFrustum.xml>`__
 
    :type left, right: double (float)
    :arg left, right: Specify the coordinates for the left and right vertical
@@ -576,7 +580,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Generate a contiguous set of empty display lists
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGenLists.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGenLists.xml>`__
 
    :type range: int
    :arg range: Specifies the number of contiguous empty display lists to be generated.
@@ -586,7 +590,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Generate texture names
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGenTextures.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGenTextures.xml>`__
 
    :type n: int
    :arg n: Specifies the number of textures name to be generated.
@@ -600,7 +604,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Return the value or values of a selected parameter
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGet.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGet.xml>`__
 
    :type pname: Enumerated constant
    :arg pname: Specifies the parameter value to be returned.
@@ -612,7 +616,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Return the coefficients of the specified clipping plane
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetClipPlane.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetClipPlane.xml>`__
 
    :type plane: Enumerated constant
    :arg plane: Specifies a clipping plane. The number of clipping planes depends on the
@@ -627,7 +631,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Return error information
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetError.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetError.xml>`__
 
 
 .. function:: glGetLight (light, pname, params):
@@ -636,7 +640,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Return light source parameter values
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetLight.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetLight.xml>`__
 
    :type light: Enumerated constant
    :arg light: Specifies a light source. The number of possible lights depends on the
@@ -670,7 +674,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Return material parameters
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetMaterial.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetMaterial.xml>`__
 
    :type face: Enumerated constant
    :arg face: Specifies which of the two materials is being queried.
@@ -687,7 +691,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Return the specified pixel map
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetPixelMap.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetPixelMap.xml>`__
 
    :type map:  Enumerated constant
    :arg map: Specifies the name of the pixel map to return.
@@ -699,7 +703,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Return the polygon stipple pattern
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetPolygonStipple.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetPolygonStipple.xml>`__
 
    :type mask: :class:`bgl.Buffer` object I{type GL_BYTE}
    :arg mask: Returns the stipple pattern. The initial value is all 1's.
@@ -709,7 +713,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Return a string describing the current GL connection
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetString.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetString.xml>`__
 
    :type name: Enumerated constant
    :arg name: Specifies a symbolic constant.
@@ -722,7 +726,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Return texture environment parameters
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetTexEnv.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetTexEnv.xml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies a texture environment. Must be GL_TEXTURE_ENV.
@@ -738,7 +742,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Return texture coordinate generation parameters
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetTexGen.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetTexGen.xml>`__
 
    :type coord: Enumerated constant
    :arg coord: Specifies a texture coordinate.
@@ -752,7 +756,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Return a texture image
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetTexImage.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetTexImage.xml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies which texture is to be obtained.
@@ -774,7 +778,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    return texture parameter values for a specific level of detail
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetTexLevelParameter.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetTexLevelParameter.xml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the symbolic name of the target texture.
@@ -793,7 +797,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Return texture parameter values
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetTexParameter.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetTexParameter.xml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the symbolic name of the target texture.
@@ -807,7 +811,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify implementation-specific hints
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glHint.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glHint.xml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies a symbolic constant indicating the behavior to be
@@ -822,7 +826,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set the current color index
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glIndex.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glIndex.xml>`__
 
    :type c: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg c: Specifies a pointer to a one element array that contains the new value for
@@ -833,7 +837,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Control the writing of individual bits in the color index buffers
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glIndexMask.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glIndexMask.xml>`__
 
    :type mask: int
    :arg mask: Specifies a bit mask to enable and disable the writing of individual bits
@@ -845,14 +849,14 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Initialize the name stack
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glInitNames.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glInitNames.xml>`__
 
 
 .. function:: glIsEnabled(cap):
 
    Test whether a capability is enabled
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glIsEnabled.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glIsEnabled.xml>`__
 
    :type cap: Enumerated constant
    :arg cap: Specifies a constant representing a GL capability.
@@ -862,7 +866,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Determine if a name corresponds to a display-list
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glIsList.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glIsList.xml>`__
 
    :type list: unsigned int
    :arg list: Specifies a potential display-list name.
@@ -872,7 +876,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Determine if a name corresponds to a texture
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glIsTexture.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glIsTexture.xml>`__
 
    :type texture: unsigned int
    :arg texture: Specifies a value that may be the name of a texture.
@@ -884,7 +888,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set the light source parameters
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLight.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLight.xml>`__
 
    :type light: Enumerated constant
    :arg light: Specifies a light. The number of lights depends on the implementation,
@@ -904,7 +908,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set the lighting model parameters
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLightModel.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLightModel.xml>`__
 
    :type pname:  Enumerated constant
    :arg pname: Specifies a single-value light model parameter.
@@ -917,7 +921,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify the line stipple pattern
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLineStipple.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLineStipple.xml>`__
 
    :type factor: int
    :arg factor: Specifies a multiplier for each bit in the line stipple pattern.
@@ -934,7 +938,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify the width of rasterized lines.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLineWidth.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLineWidth.xml>`__
 
    :type width: float
    :arg width: Specifies the width of rasterized lines. The initial value is 1.
@@ -944,7 +948,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set the display-list base for glCallLists
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glListBase.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glListBase.xml>`__
 
    :type base: unsigned int
    :arg base: Specifies an integer offset that will be added to glCallLists
@@ -955,7 +959,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Replace the current matrix with the identity matrix
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLoadIdentity.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLoadIdentity.xml>`__
 
 
 .. function:: glLoadMatrix (m):
@@ -964,7 +968,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Replace the current matrix with the specified matrix
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLoadMatrix.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLoadMatrix.xml>`__
 
    :type m: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg m: Specifies a pointer to 16 consecutive values, which are used as the elements
@@ -975,7 +979,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Load a name onto the name stack.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLoadName.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLoadName.xml>`__
 
    :type name: unsigned int
    :arg name: Specifies a name that will replace the top value on the name stack.
@@ -985,7 +989,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify a logical pixel operation for color index rendering
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLogicOp.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLogicOp.xml>`__
 
    :type opcode: Enumerated constant
    :arg opcode: Specifies a symbolic constant that selects a logical operation.
@@ -997,7 +1001,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Define a one-dimensional evaluator
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glMap1.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glMap1.xml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the kind of values that are generated by the evaluator.
@@ -1022,7 +1026,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Define a two-dimensional evaluator
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glMap2.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glMap2.xml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the kind of values that are generated by the evaluator.
@@ -1063,7 +1067,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Define a one- or two-dimensional mesh
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glMapGrid.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glMapGrid.xml>`__
 
    :type un: int
    :arg un: Specifies the number of partitions in the grid range interval
@@ -1082,7 +1086,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify material parameters for the lighting model.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glMaterial.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glMaterial.xml>`__
 
    :type face: Enumerated constant
    :arg face: Specifies which face or faces are being updated. Must be one of:
@@ -1099,7 +1103,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify which matrix is the current matrix.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glMatrixMode.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glMatrixMode.xml>`__
 
    :type mode: Enumerated constant
    :arg mode: Specifies which matrix stack is the target for subsequent matrix operations.
@@ -1111,7 +1115,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Multiply the current matrix with the specified matrix
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glMultMatrix.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glMultMatrix.xml>`__
 
    :type m: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg m: Points to 16 consecutive values that are used as the elements of a 4x4 column
@@ -1122,7 +1126,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Create or replace a display list
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glNewList.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glNewList.xml>`__
 
    :type list: unsigned int
    :arg list: Specifies the display list name
@@ -1137,7 +1141,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set the current normal vector
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glNormal.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glNormal.xml>`__
 
    :type nx, ny, nz: Depends on function prototype. (non - 'v' prototypes only)
    :arg nx, ny, nz: Specify the x, y, and z coordinates of the new current normal.
@@ -1151,7 +1155,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Multiply the current matrix with an orthographic matrix
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glOrtho.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glOrtho.xml>`__
 
    :type left, right: double (float)
    :arg left, right: Specify the coordinates for the left and
@@ -1168,7 +1172,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Place a marker in the feedback buffer
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPassThrough.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPassThrough.xml>`__
 
    :type token: float
    :arg token: Specifies a marker value to be placed in the feedback
@@ -1181,7 +1185,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set up pixel transfer maps
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPixelMap.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPixelMap.xml>`__
 
    :type map: Enumerated constant
    :arg map: Specifies a symbolic map name.
@@ -1197,7 +1201,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set pixel storage modes
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPixelStore.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPixelStore.xml>`__
 
    :type pname: Enumerated constant
    :arg pname: Specifies the symbolic name of the parameter to be set.
@@ -1213,7 +1217,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set pixel transfer modes
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPixelTransfer.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPixelTransfer.xml>`__
 
    :type pname: Enumerated constant
    :arg pname: Specifies the symbolic name of the pixel transfer parameter to be set.
@@ -1225,7 +1229,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify the pixel zoom factors
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPixelZoom.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPixelZoom.xml>`__
 
    :type xfactor, yfactor: float
    :arg xfactor, yfactor: Specify the x and y zoom factors for pixel write operations.
@@ -1235,7 +1239,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify the diameter of rasterized points
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPointSize.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPointSize.xml>`__
 
    :type size: float
    :arg size: Specifies the diameter of rasterized points. The initial value is 1.
@@ -1245,7 +1249,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Select a polygon rasterization mode
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPolygonMode.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPolygonMode.xml>`__
 
    :type face: Enumerated constant
    :arg face: Specifies the polygons that mode applies to.
@@ -1260,7 +1264,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set the scale and units used to calculate depth values
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPolygonOffset.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPolygonOffset.xml>`__
 
    :type factor: float
    :arg factor: Specifies a scale factor that is used to create a variable depth
@@ -1274,7 +1278,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set the polygon stippling pattern
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPolygonStipple.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPolygonStipple.xml>`__
 
    :type mask: :class:`bgl.Buffer` object I{type GL_BYTE}
    :arg mask: Specifies a pointer to a 32x32 stipple pattern that will be unpacked
@@ -1285,35 +1289,35 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Pop the server attribute stack
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPopAttrib.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPopAttrib.xml>`__
 
 
 .. function:: glPopClientAttrib():
 
    Pop the client attribute stack
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPopClientAttrib.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPopClientAttrib.xml>`__
 
 
 .. function:: glPopMatrix():
 
    Pop the current matrix stack
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPopMatrix.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPopMatrix.xml>`__
 
 
 .. function:: glPopName():
 
    Pop the name stack
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPopName.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPopName.xml>`__
 
 
 .. function:: glPrioritizeTextures(n, textures, priorities):
 
    Set texture residence priority
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPrioritizeTextures.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPrioritizeTextures.xml>`__
 
    :type n: int
    :arg n: Specifies the number of textures to be prioritized.
@@ -1329,7 +1333,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Push the server attribute stack
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPushAttrib.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPushAttrib.xml>`__
 
    :type mask: Enumerated constant(s)
    :arg mask: Specifies a mask that indicates which attributes to save.
@@ -1339,7 +1343,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Push the client attribute stack
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPushClientAttrib.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPushClientAttrib.xml>`__
 
    :type mask: Enumerated constant(s)
    :arg mask: Specifies a mask that indicates which attributes to save.
@@ -1349,14 +1353,14 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Push the current matrix stack
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPushMatrix.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPushMatrix.xml>`__
 
 
 .. function:: glPushName(name):
 
    Push the name stack
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPushName.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glPushName.xml>`__
 
    :type name: unsigned int
    :arg name: Specifies a name that will be pushed onto the name stack.
@@ -1372,7 +1376,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify the raster position for pixel operations
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glRasterPos.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glRasterPos.xml>`__
 
    :type x, y, z, w: Depends on function prototype. (z and w for '3' and '4' prototypes only)
    :arg x, y, z, w: Specify the x,y,z, and w object coordinates (if present) for the
@@ -1404,7 +1408,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Select a color buffer source for pixels.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glReadBuffer.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glReadBuffer.xml>`__
 
    :type mode: Enumerated constant
    :arg mode: Specifies a color buffer.
@@ -1414,7 +1418,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Read a block of pixels from the frame buffer
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glReadPixels.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glReadPixels.xml>`__
 
    :type x, y: int
    :arg x, y: Specify the window coordinates of the first pixel that is read
@@ -1437,7 +1441,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Draw a rectangle
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glRect.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glRect.xml>`__
 
    :type x1, y1: Depends on function prototype. (for non 'v' prototypes only)
    :arg x1, y1: Specify one vertex of a rectangle
@@ -1452,7 +1456,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set rasterization mode
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glRenderMode.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glRenderMode.xml>`__
 
    :type mode: Enumerated constant
    :arg mode: Specifies the rasterization mode.
@@ -1464,7 +1468,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Multiply the current matrix by a rotation matrix
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glRotate.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glRotate.xml>`__
 
    :type angle:  Depends on function prototype.
    :arg angle:  Specifies the angle of rotation in degrees.
@@ -1478,7 +1482,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Multiply the current matrix by a general scaling matrix
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glScale.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glScale.xml>`__
 
    :type x, y, z: Depends on function prototype.
    :arg x, y, z: Specify scale factors along the x, y, and z axes, respectively.
@@ -1488,7 +1492,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Define the scissor box
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glScissor.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glScissor.xml>`__
 
    :type x, y: int
    :arg x, y: Specify the lower left corner of the scissor box. Initially (0, 0).
@@ -1502,7 +1506,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Establish a buffer for selection mode values
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glSelectBuffer.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glSelectBuffer.xml>`__
 
    :type size: int
    :arg size: Specifies the size of buffer
@@ -1514,7 +1518,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Select flat or smooth shading
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glShadeModel.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glShadeModel.xml>`__
 
    :type mode: Enumerated constant
    :arg mode: Specifies a symbolic value representing a shading technique.
@@ -1524,7 +1528,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set function and reference value for stencil testing
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glStencilFuc.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glStencilFuc.xml>`__
 
    :type func: Enumerated constant
    :arg func: Specifies the test function.
@@ -1541,7 +1545,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Control the writing of individual bits in the stencil planes
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glStencilMask.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glStencilMask.xml>`__
 
    :type mask: unsigned int
    :arg mask: Specifies a bit mask to enable and disable writing of individual bits
@@ -1552,7 +1556,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set stencil test actions
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glStencilOp.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glStencilOp.xml>`__
 
    :type fail: Enumerated constant
    :arg fail: Specifies the action to take when the stencil test fails.
@@ -1580,7 +1584,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set the current texture coordinates
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glTexCoord.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glTexCoord.xml>`__
 
    :type s, t, r, q: Depends on function prototype. (r and q for '3' and '4' prototypes only)
    :arg s, t, r, q: Specify s, t, r, and q texture coordinates. Not all parameters are
@@ -1596,7 +1600,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set texture environment parameters
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glTexEnv.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glTexEnv.xml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies a texture environment. Must be GL_TEXTURE_ENV.
@@ -1615,7 +1619,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Control the generation of texture coordinates
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glTexGen.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glTexGen.xml>`__
 
    :type coord: Enumerated constant
    :arg coord: Specifies a texture coordinate.
@@ -1633,7 +1637,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify a one-dimensional texture image
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glTexImage1D.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glTexImage1D.xml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the target texture.
@@ -1660,7 +1664,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify a two-dimensional texture image
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glTexImage2D.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glTexImage2D.xml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the target texture.
@@ -1693,7 +1697,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set texture parameters
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glTexParameter.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glTexParameter.xml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the target texture.
@@ -1710,7 +1714,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Multiply the current matrix by a translation matrix
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glTranslate.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glTranslate.xml>`__
 
    :type x, y, z: Depends on function prototype.
    :arg x, y, z: Specify the x, y, and z coordinates of a translation vector.
@@ -1725,7 +1729,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Specify a vertex
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glVertex.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glVertex.xml>`__
 
    :type x, y, z, w: Depends on function prototype (z and w for '3' and '4' prototypes only)
    :arg x, y, z, w: Specify x, y, z, and w coordinates of a vertex. Not all parameters
@@ -1741,7 +1745,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Set the viewport
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glViewport.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glViewport.xml>`__
 
    :type x, y: int
    :arg x, y: Specify the lower left corner of the viewport rectangle,
@@ -1849,7 +1853,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Installs a program object as part of current rendering state
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glUseProgram.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glUseProgram.xml>`__
 
    :type program: int
    :arg program: Specifies the handle of the program object whose executables are to be used as part of current rendering state.
@@ -1859,7 +1863,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Validates a program object
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glValidateProgram.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glValidateProgram.xml>`__
 
    :type program: int
    :arg program: Specifies the handle of the program object to be validated.
@@ -1869,7 +1873,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Links a program object.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLinkProgram.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glLinkProgram.xml>`__
 
    :type program: int
    :arg program: Specifies the handle of the program object to be linked.
@@ -1879,7 +1883,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Select active texture unit.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glActiveTexture.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glActiveTexture.xml>`__
 
    :type texture: int
    :arg texture: Constant in ``GL_TEXTURE0`` 0 - 8
@@ -1889,7 +1893,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Attaches a shader object to a program object.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glAttachShader.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glAttachShader.xml>`__
 
    :type program: int
    :arg program: Specifies the program object to which a shader object will be attached.
@@ -1901,7 +1905,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Compiles a shader object.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glCompileShader.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glCompileShader.xml>`__
 
    :type shader: int
    :arg shader: Specifies the shader object to be compiled.
@@ -1911,7 +1915,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Creates a program object
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glCreateProgram.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glCreateProgram.xml>`__
 
    :rtype: int
    :return: The new program or zero if an error occurs.
@@ -1921,7 +1925,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Creates a shader object.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glCreateShader.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glCreateShader.xml>`__
 
    :type shaderType: Specifies the type of shader to be created.
       Must be one of ``GL_VERTEX_SHADER``,
@@ -1938,7 +1942,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Deletes a program object.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDeleteProgram.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDeleteProgram.xml>`__
 
    :type program: int
    :arg program: Specifies the program object to be deleted.
@@ -1948,7 +1952,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Deletes a shader object.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDeleteShader.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDeleteShader.xml>`__
 
    :type shader: int
    :arg shader: Specifies the shader object to be deleted.
@@ -1958,7 +1962,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Detaches a shader object from a program object to which it is attached.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDetachShader.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glDetachShader.xml>`__
 
    :type program: int
    :arg program: Specifies the program object from which to detach the shader object.
@@ -1970,7 +1974,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Returns the handles of the shader objects attached to a program object.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetAttachedShaders.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetAttachedShaders.xml>`__
 
    :type program: int
    :arg program: Specifies the program object to be queried.
@@ -1986,7 +1990,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Returns the information log for a program object.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetProgramInfoLog.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetProgramInfoLog.xml>`__
 
    :type program: int
    :arg program: Specifies the program object whose information log is to be queried.
@@ -2002,7 +2006,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Returns the information log for a shader object.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetShaderInfoLog.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetShaderInfoLog.xml>`__
 
    :type shader: int
    :arg shader: Specifies the shader object whose information log is to be queried.
@@ -2018,7 +2022,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Returns a parameter from a program object.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetProgram.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetProgram.xml>`__
 
    :type program: int
    :arg program: Specifies the program object to be queried.
@@ -2032,7 +2036,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Determines if a name corresponds to a shader object.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glIsShader.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glIsShader.xml>`__
 
    :type shader: int
    :arg shader: Specifies a potential shader object.
@@ -2042,7 +2046,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Determines if a name corresponds to a program object
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glIsProgram.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glIsProgram.xml>`__
 
    :type program: int
    :arg program: Specifies a potential program object.
@@ -2052,7 +2056,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Returns the source code string from a shader object
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetShaderSource.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetShaderSource.xml>`__
 
    :type shader: int
    :arg shader: Specifies the shader object to be queried.
@@ -2068,7 +2072,7 @@ Here is a comprehensive `list of books <http://www.opengl.org/documentation/book
 
    Replaces the source code in a shader object.
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glShaderSource.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/html/glShaderSource.xhtml>`__
 
    :type shader: int
    :arg shader: Specifies the handle of the shader object whose source code is to be replaced.

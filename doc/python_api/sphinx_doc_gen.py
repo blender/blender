@@ -1600,7 +1600,7 @@ def write_rst_contents(basepath):
     fw("\n")
 
     # fw("`A PDF version of this document is also available <%s>`_\n" % BLENDER_PDF_FILENAME)
-    fw("This site can be downloaded for offline use `Download the full Documentation (zipped HTML files)<%s>`_\n" % BLENDER_ZIP_FILENAME)
+    fw("This site can be downloaded for offline use `Download the full Documentation (zipped HTML files) <%s>`_\n" % BLENDER_ZIP_FILENAME)
 
     fw("\n")
 

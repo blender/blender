@@ -133,10 +133,11 @@ base class --- :class:`PyObjectPlus`
       Returns the contraint type (read only)
 
       :type: integer
-      - 1 = :class:`~bge.constraints.POINTTOPOINT_CONSTRAINT`
-      - 2 = :class:`~bge.constraints.LINEHINGE_CONSTRAINT`
-      - 3 = :class:`~bge.constraints.ANGULAR_CONSTRAINT`
-      - 4 = :class:`~bge.constraints.CONETWIST_CONSTRAINT`
-      - 11 = :class:`~bge.constraints.VEHICLE_CONSTRAINT`
-      - 12 = :class:`~bge.constraints.GENERIC_6DOF_CONSTRAINT`
+
+         - :class:`~bge.constraints.POINTTOPOINT_CONSTRAINT`
+         - :class:`~bge.constraints.LINEHINGE_CONSTRAINT`
+         - :class:`~bge.constraints.ANGULAR_CONSTRAINT`
+         - :class:`~bge.constraints.CONETWIST_CONSTRAINT`
+         - :class:`~bge.constraints.VEHICLE_CONSTRAINT`
+         - :class:`~bge.constraints.GENERIC_6DOF_CONSTRAINT`
 
