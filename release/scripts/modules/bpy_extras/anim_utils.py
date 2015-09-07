@@ -142,6 +142,13 @@ def bake_action(frame_start,
             obj_info.append(obj_frame_info(obj))
 
     # -------------------------------------------------------------------------
+    # Clean (store initial data)
+    if do_clean and action is not None:
+        clean_orig_data = {fcu: {p.co[1] for p in fcu.keyframe_points} for fcu in action.fcurves}
+    else:
+        clean_orig_data = {}
+
+    # -------------------------------------------------------------------------
     # Create action
 
     # in case animation data hasn't been created
@@ -230,12 +237,19 @@ def bake_action(frame_start,
 
     if do_clean:
         for fcu in action.fcurves:
+            fcu_orig_data = clean_orig_data.get(fcu, set())
+
             keyframe_points = fcu.keyframe_points
             i = 1
-            while i < len(fcu.keyframe_points) - 1:
+            while i < len(keyframe_points) - 1:
+                val = keyframe_points[i].co[1]
+
+                if val in fcu_orig_data:
+                    i += 1
+                    continue
+
                 val_prev = keyframe_points[i - 1].co[1]
                 val_next = keyframe_points[i + 1].co[1]
-                val = keyframe_points[i].co[1]
 
                 if abs(val - val_prev) + abs(val - val_next) < 0.0001:
                     keyframe_points.remove(keyframe_points[i])
