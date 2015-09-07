@@ -107,9 +107,9 @@ static float blender_camera_focal_distance(BL::RenderEngine b_engine, BL::Object
 	b_engine.camera_model_matrix(b_ob, b_ob_matrix);
 	Transform obmat = get_transform(b_ob_matrix);
 	Transform dofmat = get_transform(b_dof_object.matrix_world());
-	Transform mat = transform_inverse(obmat) * dofmat;
-
-	return fabsf(transform_get_column(&mat, 3).z);
+	float3 view_dir = normalize(transform_get_column(&obmat, 2));
+	float3 dof_dir = transform_get_column(&obmat, 3) - transform_get_column(&dofmat, 3);
+	return fabsf(dot(view_dir, dof_dir));
 }
 
 static void blender_camera_from_object(BlenderCamera *bcam, BL::RenderEngine b_engine, BL::Object b_ob, bool skip_panorama = false)
