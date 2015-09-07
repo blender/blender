@@ -2947,7 +2947,7 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv)
 				BLI_array_append(ve, v == vm->boundstart ? NULL : frep_e);
 			}
 			else {
-				BLI_array_append(vf, frep);
+				BLI_array_append(vf, boundvert_rep_face(v, NULL));
 				BLI_array_append(ve, NULL);
 			}
 		} while ((v = v->next) != vm->boundstart);
