@@ -1610,16 +1610,16 @@ bool BLI_testextensie_glob(const char *str, const char *ext_fnmatch)
 
 	while (ext_step[0]) {
 		const char *ext_next;
-		int len_ext;
+		size_t len_ext;
 
 		if ((ext_next = strchr(ext_step, ';'))) {
-			len_ext = (int)(ext_next - ext_step) + 1;
+			len_ext = ext_next - ext_step + 1;
 		}
 		else {
 			len_ext = sizeof(pattern);
 		}
 
-		BLI_strncpy(pattern, ext_step, len_ext);
+		len_ext = BLI_strncpy_rlen(pattern, ext_step, len_ext);
 
 		if (fnmatch(pattern, str, FNM_CASEFOLD) == 0) {
 			return true;
