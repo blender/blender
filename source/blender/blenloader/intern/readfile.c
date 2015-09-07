@@ -6523,6 +6523,7 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 				else if (sl->spacetype == SPACE_FILE) {
 					SpaceFile *sfile = (SpaceFile *)sl;
 					sfile->op = NULL;
+					sfile->previews_timer = NULL;
 				}
 				else if (sl->spacetype == SPACE_ACTION) {
 					SpaceAction *saction = (SpaceAction *)sl;
@@ -7052,6 +7053,7 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 				sfile->files = NULL;
 				sfile->layout = NULL;
 				sfile->op = NULL;
+				sfile->previews_timer = NULL;
 				sfile->params = newdataadr(fd, sfile->params);
 			}
 			else if (sl->spacetype == SPACE_CLIP) {
