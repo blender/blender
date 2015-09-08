@@ -357,8 +357,8 @@ void ShaderManager::device_update_common(Device *device,
 				flag |= SD_HAS_ONLY_VOLUME;
 
 			/* todo: this could check more fine grained, to skip useless volumes
-			 * enclosed inside an opaque bsdf, although we still need to handle
-			 * the case with camera inside volumes too */
+			 * enclosed inside an opaque bsdf.
+			 */
 			flag |= SD_HAS_TRANSPARENT_SHADOW;
 		}
 		if(shader->heterogeneous_volume && shader->has_heterogeneous_volume)
