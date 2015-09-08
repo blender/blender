@@ -1559,7 +1559,7 @@ void WM_cursor_warp(wmWindow *win, int x, int y)
 /**
  * Set x, y to values we can actually position the cursor to.
  */
-void WM_cursor_comaptible_xy(wmWindow *win, int *x, int *y)
+void WM_cursor_compatible_xy(wmWindow *win, int *x, int *y)
 {
 	float f = GHOST_GetNativePixelSize(win->ghostwin);
 	if (f != 1.0f) {

@@ -585,7 +585,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 	walk->center_mval[0] += walk->ar->winrct.xmin;
 	walk->center_mval[1] += walk->ar->winrct.ymin;
 
-	WM_cursor_comaptible_xy(win, &walk->center_mval[0], &walk->center_mval[1]);
+	WM_cursor_compatible_xy(win, &walk->center_mval[0], &walk->center_mval[1]);
 
 	walk->center_mval[0] -= walk->ar->winrct.xmin;
 	walk->center_mval[1] -= walk->ar->winrct.ymin;
