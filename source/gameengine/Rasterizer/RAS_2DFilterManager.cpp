@@ -75,6 +75,12 @@ texturewidth(-1), textureheight(-1),
 RAS_2DFilterManager::~RAS_2DFilterManager()
 {
 	FreeTextures();
+
+	for (int passindex = 0; passindex < MAX_RENDER_PASS; passindex++) {
+		if (m_filters[passindex]) {
+			glDeleteObjectARB(m_filters[passindex]);
+		}
+	}
 }
 
 void RAS_2DFilterManager::PrintShaderErrors(unsigned int shader, const char *task, const char *code)
@@ -119,11 +125,10 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(const char* shadersource)
 
 
 	glGetObjectParameterivARB(fShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
+	if (!success) {
 		/*Shader Comile Error*/
 		PrintShaderErrors(fShader, "compile", shadersource);
-		return 0;
+		goto fail;
 	}
 		
 	program = glCreateProgramObjectARB();
@@ -131,23 +136,37 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(const char* shadersource)
 
 	glLinkProgramARB(program);
 	glGetObjectParameterivARB(program, GL_LINK_STATUS, &success);
-	if (!success)
-	{
+	if (!success) {
 		/*Program Link Error*/
 		PrintShaderErrors(fShader, "link", shadersource);
-		return 0;
+		goto fail;
 	}
 	
 	glValidateProgramARB(program);
 	glGetObjectParameterivARB(program, GL_VALIDATE_STATUS, &success);
-	if (!success)
-	{
+	if (!success) {
 		/*Program Validation Error*/
 		PrintShaderErrors(fShader, "validate", shadersource);
-		return 0;
+		goto fail;
+	}
+
+	/* owned by 'program' */
+	if (fShader) {
+		glDeleteObjectARB(fShader);
 	}
 
 	return program;
+
+
+fail:
+	if (fShader) {
+		glDeleteObjectARB(fShader);
+	}
+
+	if (program) {
+		glDeleteObjectARB(program);
+	}
+	return 0;
 }
 
 unsigned int RAS_2DFilterManager::CreateShaderProgram(int filtermode)
