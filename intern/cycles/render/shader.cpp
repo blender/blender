@@ -18,6 +18,7 @@
 #include "camera.h"
 #include "device.h"
 #include "graph.h"
+#include "integrator.h"
 #include "light.h"
 #include "mesh.h"
 #include "nodes.h"
@@ -338,6 +339,7 @@ void ShaderManager::device_update_common(Device *device,
 	uint *shader_flag = dscene->shader_flag.resize(shader_flag_size);
 	uint i = 0;
 	bool has_volumes = false;
+	bool has_transparent_shadow = false;
 
 	foreach(Shader *shader, scene->shaders) {
 		uint flag = 0;
@@ -382,6 +384,8 @@ void ShaderManager::device_update_common(Device *device,
 
 		shader_flag[i++] = flag;
 		shader_flag[i++] = shader->pass_id;
+
+		has_transparent_shadow |= (flag & SD_HAS_TRANSPARENT_SHADOW);
 	}
 
 	device->tex_alloc("__shader_flag", dscene->shader_flag);
@@ -404,6 +408,10 @@ void ShaderManager::device_update_common(Device *device,
 	/* integrator */
 	KernelIntegrator *kintegrator = &dscene->data.integrator;
 	kintegrator->use_volumes = has_volumes;
+	/* TODO(sergey): De-duplicate with flags set in integrator.cpp. */
+	if(scene->integrator->transparent_shadows) {
+		kintegrator->transparent_shadows = has_transparent_shadow;
+	}
 }
 
 void ShaderManager::device_free_common(Device *device, DeviceScene *dscene, Scene *scene)
