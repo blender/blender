@@ -1557,6 +1557,18 @@ void WM_cursor_warp(wmWindow *win, int x, int y)
 }
 
 /**
+ * Set x, y to values we can actually position the cursor to.
+ */
+void WM_cursor_comaptible_xy(wmWindow *win, int *x, int *y)
+{
+	float f = GHOST_GetNativePixelSize(win->ghostwin);
+	if (f != 1.0f) {
+		*x = (int)(*x / f) * f;
+		*y = (int)(*y / f) * f;
+	}
+}
+
+/**
  * Get the cursor pressure, in most cases you'll want to use wmTabletData from the event
  */
 float WM_cursor_pressure(const struct wmWindow *win)

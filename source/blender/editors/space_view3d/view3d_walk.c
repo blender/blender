@@ -62,6 +62,9 @@
 
 #define USE_TABLET_SUPPORT
 
+/* ensure the target position is one we can reach, see: T45771 */
+#define USE_PIXELSIZE_NATIVE_SUPPORT
+
 /* prototypes */
 static float getVelocityZeroTime(const float gravity, const float velocity);
 
@@ -577,6 +580,16 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 	/* center the mouse */
 	walk->center_mval[0] = walk->ar->winx * 0.5f;
 	walk->center_mval[1] = walk->ar->winy * 0.5f;
+
+#ifdef USE_PIXELSIZE_NATIVE_SUPPORT
+	walk->center_mval[0] += walk->ar->winrct.xmin;
+	walk->center_mval[1] += walk->ar->winrct.ymin;
+
+	WM_cursor_comaptible_xy(win, &walk->center_mval[0], &walk->center_mval[1]);
+
+	walk->center_mval[0] -= walk->ar->winrct.xmin;
+	walk->center_mval[1] -= walk->ar->winrct.ymin;
+#endif
 
 	copy_v2_v2_int(walk->prev_mval, walk->center_mval);
 
