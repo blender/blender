@@ -394,7 +394,7 @@ int BIF_countTransformOrientation(const bContext *C)
 bool applyTransformOrientation(const bContext *C, float mat[3][3], char *r_name, int index)
 {
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
-	const TransformOrientation *ts = BLI_findlink(transform_spaces, index);
+	TransformOrientation *ts = BLI_findlink(transform_spaces, index);
 
 	BLI_assert(index >= 0);
 
@@ -1047,7 +1047,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3])
 	/* dummy value, not V3D_ACTIVE and not V3D_LOCAL */
 	short around = V3D_CENTER;
 
-	getTransformOrientation_ex(C, normal, plane, around);
+	return getTransformOrientation_ex(C, normal, plane, around);
 }
 
 void ED_getTransformOrientationMatrix(const bContext *C, float orientation_mat[3][3], const short around)
