@@ -1,6 +1,7 @@
 """
 Basic Panel Example
 +++++++++++++++++++
+
 This script is a simple panel which will draw into the object properties
 section.
 

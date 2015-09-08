@@ -1,8 +1,9 @@
 """
 Modal Execution
 +++++++++++++++
+
 This operator defines a :class:`Operator.modal` function which running,
-handling events until it returns {'FINISHED'} or {'CANCELLED'}.
+handling events until it returns ``{'FINISHED'}`` or ``{'CANCELLED'}``.
 
 Grab, Rotate, Scale and Fly-Mode are examples of modal operators.
 They are especially useful for interactive tools,
@@ -10,9 +11,9 @@ your operator can have its own state where keys toggle options as the operator
 runs.
 
 :class:`Operator.invoke` is used to initialize the operator as being by
-returning {'RUNNING_MODAL'}, initializing the modal loop.
+returning ``{'RUNNING_MODAL'}``, initializing the modal loop.
 
-Notice __init__() and __del__() are declared.
+Notice ``__init__()`` and ``__del__()`` are declared.
 For other operator types they are not useful but for modal operators they will
 be called before the :class:`Operator.invoke` and after the operator finishes.
 """

@@ -1,6 +1,7 @@
 """
 Dialog Box
 ++++++++++
+
 This operator uses its :class:`Operator.invoke` function to call a popup.
 """
 import bpy

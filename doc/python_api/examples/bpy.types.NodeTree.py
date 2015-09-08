@@ -1,6 +1,7 @@
 """
 Poll Function
 +++++++++++++++
+
 The :class:`NodeTree.poll` function determines if a node tree is visible
 in the given context (similar to how :class:`Panel.poll`
 and :class:`Menu.poll` define visibility). If it returns False,

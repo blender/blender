@@ -1,6 +1,7 @@
 """
 Basic Menu Example
 ++++++++++++++++++
+
 Here is an example of a simple menu. Menus differ from panels in that they must
 reference from a header, panel or another menu.
 

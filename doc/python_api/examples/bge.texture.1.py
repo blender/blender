@@ -1,6 +1,7 @@
 """
 Texture Replacement
 +++++++++++++++++++
+
 Example of how to replace a texture in game with an external image.
 ``createTexture()`` and ``removeTexture()`` are to be called from a
 module Python Controller.

@@ -4,7 +4,7 @@ Calling a File Selector
 This example shows how an operator can use the file selector.
 
 Notice the invoke function calls a window manager method and returns
-RUNNING_MODAL, this means the file selector stays open and the operator does not
+``{'RUNNING_MODAL'}``, this means the file selector stays open and the operator does not
 exit immediately after invoke finishes.
 
 The file selector runs the operator, calling :class:`Operator.execute` when the

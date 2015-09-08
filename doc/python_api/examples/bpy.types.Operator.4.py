@@ -1,6 +1,7 @@
 """
 Custom Drawing
 ++++++++++++++
+
 By default operator properties use an automatic user interface layout.
 If you need more control you can create your own layout with a
 :class:`Operator.draw` function.

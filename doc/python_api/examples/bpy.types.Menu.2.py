@@ -1,6 +1,7 @@
 """
 Extending Menus
 +++++++++++++++
+
 When creating menus for addons you can't reference menus in Blender's default
 scripts.
 Instead, the addon can add menu items to existing menus.

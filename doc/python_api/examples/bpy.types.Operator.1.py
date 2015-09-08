@@ -1,6 +1,7 @@
 """
 Invoke Function
 +++++++++++++++
+
 :class:`Operator.invoke` is used to initialize the operator from the context
 at the moment the operator is called.
 invoke() is typically used to assign properties which are then used by

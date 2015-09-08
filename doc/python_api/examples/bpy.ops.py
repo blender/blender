@@ -3,21 +3,21 @@ Calling Operators
 -----------------
 
 Provides python access to calling operators, this includes operators written in
-C, Python or Macros.
+C, Python or macros.
 
 Only keyword arguments can be used to pass operator properties.
 
-Operators don't have return values as you might expect, instead they return a
-set() which is made up of: {'RUNNING_MODAL', 'CANCELLED', 'FINISHED',
-'PASS_THROUGH'}.
-Common return values are {'FINISHED'} and {'CANCELLED'}.
+Operators don't have return values as you might expect,
+instead they return a set() which is made up of:
+``{'RUNNING_MODAL', 'CANCELLED', 'FINISHED', 'PASS_THROUGH'}``.
+Common return values are ``{'FINISHED'}`` and ``{'CANCELLED'}``.
 
 
-Calling an operator in the wrong context will raise a RuntimeError,
+Calling an operator in the wrong context will raise a ``RuntimeError``,
 there is a poll() method to avoid this problem.
 
-Note that the operator ID (bl_idname) in this example is 'mesh.subdivide',
-'bpy.ops' is just the access path for python.
+Note that the operator ID (bl_idname) in this example is ``mesh.subdivide``,
+``bpy.ops`` is just the access path for python.
 
 
 Keywords and Positional Arguments
@@ -32,9 +32,9 @@ There are 3 optional positional arguments (documented in detail below).
 
    bpy.ops.test.operator(override_context, execution_context, undo)
 
-* override_context - dict type
-* execution_context - string (enum)
-* undo - boolean
+- override_context - ``dict`` type.
+- execution_context - ``str`` (enum).
+- undo - ``bool`` type.
 
 
 Each of these arguments is optional, but must be given in the order above.

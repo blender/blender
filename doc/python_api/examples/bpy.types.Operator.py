@@ -1,6 +1,7 @@
 """
 Basic Operator Example
 ++++++++++++++++++++++
+
 This script shows simple operator which prints a message.
 
 Since the operator only has an :class:`Operator.execute` function it takes no

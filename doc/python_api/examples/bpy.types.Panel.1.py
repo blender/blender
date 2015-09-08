@@ -1,6 +1,7 @@
 """
 Simple Object Panel
 +++++++++++++++++++
+
 This panel has a :class:`Panel.poll` and :class:`Panel.draw_header` function,
 even though the contents is basic this closely resembles blenders panels.
 """

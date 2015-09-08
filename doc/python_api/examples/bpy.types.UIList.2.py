@@ -1,7 +1,8 @@
 """
 Advanced UIList Example - Filtering and Reordering
 ++++++++++++++++++++++++++++++++++++++++++++++++++
-This script is an extended version of the UIList subclass used to show vertex groups. It is not used 'as is',
+
+This script is an extended version of the ``UIList`` subclass used to show vertex groups. It is not used 'as is',
 because iterating over all vertices in a 'draw' function is a very bad idea for UI performances! However, it's a good
 example of how to create/use filtering/reordering callbacks.
 """

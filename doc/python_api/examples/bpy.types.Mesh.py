@@ -7,10 +7,10 @@ for more flexible mesh editing from python see :mod:`bmesh`.
 
 Blender stores 4 main arrays to define mesh geometry.
 
-* :class:`Mesh.vertices` (3 points in space)
-* :class:`Mesh.edges` (reference 2 vertices)
-* :class:`Mesh.loops` (reference a single vertex and edge)
-* :class:`Mesh.polygons`: (reference a range of loops)
+- :class:`Mesh.vertices` (3 points in space)
+- :class:`Mesh.edges` (reference 2 vertices)
+- :class:`Mesh.loops` (reference a single vertex and edge)
+- :class:`Mesh.polygons`: (reference a range of loops)
 
 
 Each polygon reference a slice in the loop array, this way, polygons do not store vertices or corner data such as UV's directly,

@@ -1,6 +1,7 @@
 """
 Basic Object Operations Example
 +++++++++++++++++++++++++++++++
+
 This script demonstrates basic operations on object like creating new
 object, placing it into scene, selecting it and making it active.
 """
