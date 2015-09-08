@@ -53,6 +53,7 @@ Camera::Camera()
 	longitude_min = -M_PI_F;
 	longitude_max = M_PI_F;
 	fov = M_PI_4_F;
+	fov_pre = fov_post = fov;
 
 	sensorwidth = 0.036f;
 	sensorheight = 0.024f;
