@@ -36,10 +36,6 @@
 #include "KX_KetsjiEngine.h"
 #include "EXP_PyObjectPlus.h"
 
-#ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
-#endif
-
 #ifdef USE_MATHUTILS
 void KX_WorldInfo_Mathutils_Callback_Init(void);
 #endif
@@ -103,10 +99,6 @@ public:
 	static PyObject *pyattr_get_ambient_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_ambient_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	virtual PyObject *py_repr(void);
-#endif
-
-#ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_WorldInfo")
 #endif
 };
 
