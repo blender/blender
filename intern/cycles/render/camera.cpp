@@ -92,19 +92,26 @@ Camera::~Camera()
 
 void Camera::compute_auto_viewplane()
 {
-	float aspect = (float)width/(float)height;
-
-	if(width >= height) {
-		viewplane.left = -aspect;
-		viewplane.right = aspect;
-		viewplane.bottom = -1.0f;
+	if(type == CAMERA_PANORAMA) {
+		viewplane.left = 0.0f;
+		viewplane.right = 1.0f;
+		viewplane.bottom = 0.0f;
 		viewplane.top = 1.0f;
 	}
 	else {
-		viewplane.left = -1.0f;
-		viewplane.right = 1.0f;
-		viewplane.bottom = -1.0f/aspect;
-		viewplane.top = 1.0f/aspect;
+		float aspect = (float)width/(float)height;
+		if(width >= height) {
+			viewplane.left = -aspect;
+			viewplane.right = aspect;
+			viewplane.bottom = -1.0f;
+			viewplane.top = 1.0f;
+		}
+		else {
+			viewplane.left = -1.0f;
+			viewplane.right = 1.0f;
+			viewplane.bottom = -1.0f/aspect;
+			viewplane.top = 1.0f/aspect;
+		}
 	}
 }
 
