@@ -568,7 +568,7 @@ static int calc_manipulator_stats(const bContext *C)
 			{
 				if (obedit || ob->mode & OB_MODE_POSE) {
 					float mat[3][3];
-					ED_getTransformOrientationMatrix(C, mat, (v3d->around == V3D_ACTIVE));
+					ED_getTransformOrientationMatrix(C, mat, v3d->around);
 					copy_m4_m3(rv3d->twmat, mat);
 					break;
 				}
@@ -583,7 +583,7 @@ static int calc_manipulator_stats(const bContext *C)
 					 * and users who select many bones will understand whats going on and what local means
 					 * when they start transforming */
 					float mat[3][3];
-					ED_getTransformOrientationMatrix(C, mat, (v3d->around == V3D_ACTIVE));
+					ED_getTransformOrientationMatrix(C, mat, v3d->around);
 					copy_m4_m3(rv3d->twmat, mat);
 					break;
 				}
@@ -602,7 +602,7 @@ static int calc_manipulator_stats(const bContext *C)
 			default: /* V3D_MANIP_CUSTOM */
 			{
 				float mat[3][3];
-				if (applyTransformOrientation(C, mat, NULL)) {
+				if (applyTransformOrientation(C, mat, NULL, v3d->twmode - V3D_MANIP_CUSTOM)) {
 					copy_m4_m3(rv3d->twmat, mat);
 				}
 				break;

@@ -1207,18 +1207,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			t->around = V3D_CURSOR;
 		}
 
-		if (op && ((prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) &&
-		           RNA_property_is_set(op->ptr, prop)))
-		{
-			t->current_orientation = RNA_property_enum_get(op->ptr, prop);
-
-			if (t->current_orientation >= V3D_MANIP_CUSTOM + BIF_countTransformOrientation(C)) {
-				t->current_orientation = V3D_MANIP_GLOBAL;
-			}
-		}
-		else {
-			t->current_orientation = v3d->twmode;
-		}
+		t->current_orientation = v3d->twmode;
 
 		/* exceptional case */
 		if (t->around == V3D_LOCAL) {
@@ -1304,6 +1293,16 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			t->view = NULL;
 		}
 		t->around = V3D_CENTER;
+	}
+
+	if (op && ((prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) &&
+	           RNA_property_is_set(op->ptr, prop)))
+	{
+		t->current_orientation = RNA_property_enum_get(op->ptr, prop);
+
+		if (t->current_orientation >= V3D_MANIP_CUSTOM + BIF_countTransformOrientation(C)) {
+			t->current_orientation = V3D_MANIP_GLOBAL;
+		}
 	}
 	
 	if (op && ((prop = RNA_struct_find_property(op->ptr, "release_confirm")) &&
