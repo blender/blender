@@ -224,6 +224,7 @@ static bool paint_brush_update(bContext *C,
 	bool location_sampled = false;
 	bool location_success = false;
 	bool do_random = false;
+	bool do_random_mask = false;
 	/* XXX: Use pressure value from first brush step for brushes which don't
 	 *      support strokes (grab, thumb). They depends on initial state and
 	 *      brush coord/pressure/etc.
@@ -271,9 +272,11 @@ static bool paint_brush_update(bContext *C,
 	}
 
 	if (paint_supports_dynamic_tex_coords(brush, mode)) {
-		if (((brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) ||
-		     (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA) ||
-		     (brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)))
+
+		if (ELEM(brush->mtex.brush_map_mode,
+		         MTEX_MAP_MODE_VIEW,
+		         MTEX_MAP_MODE_AREA,
+		         MTEX_MAP_MODE_RANDOM))
 		{
 			do_random = true;
 		}
@@ -286,6 +289,15 @@ static bool paint_brush_update(bContext *C,
 
 		/* take care of mask texture, if any */
 		if (brush->mask_mtex.tex) {
+
+			if (ELEM(brush->mask_mtex.brush_map_mode,
+			         MTEX_MAP_MODE_VIEW,
+			         MTEX_MAP_MODE_AREA,
+			         MTEX_MAP_MODE_RANDOM))
+			{
+				do_random_mask = true;
+			}
+
 			if (brush->mask_mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM)
 				BKE_brush_randomize_texture_coords(ups, true);
 			else {
@@ -357,7 +369,9 @@ static bool paint_brush_update(bContext *C,
 			ups->brush_rotation += -brush->mtex.random_angle / 2.0f +
 			                       brush->mtex.random_angle * BLI_frand();
 		}
+	}
 
+	if (do_random_mask) {
 		if (brush->mask_mtex.brush_angle_mode & MTEX_ANGLE_RANDOM) {
 			ups->brush_rotation_sec += -brush->mask_mtex.random_angle / 2.0f +
 			                           brush->mask_mtex.random_angle * BLI_frand();
