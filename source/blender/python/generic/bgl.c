@@ -1667,6 +1667,13 @@ static void py_module_dict_add_int(PyObject *dict, const char *name, int value)
 	Py_DECREF(item);
 }
 
+static void py_module_dict_add_int64(PyObject *dict, const char *name, int64_t value)
+{
+	PyObject *item;
+	PyDict_SetItemString(dict, name, item = PyLong_FromLongLong(value));
+	Py_DECREF(item);
+}
+
 static void py_module_dict_add_method(PyObject *submodule, PyObject *dict, PyMethodDef *method_def, bool is_valid)
 {
 	if (is_valid) {
@@ -2332,6 +2339,7 @@ PyObject *BPyInit_bgl(void)
 	}
 
 #define PY_DICT_ADD_INT(x) py_module_dict_add_int(dict, #x, x)
+#define PY_DICT_ADD_INT64(x) py_module_dict_add_int64(dict, #x, x)
 
 	/* GL_VERSION_1_1 */
 	{
@@ -3631,7 +3639,7 @@ PyObject *BPyInit_bgl(void)
 		PY_DICT_ADD_INT(GL_TEXTURE_FIXED_SAMPLE_LOCATIONS);
 		PY_DICT_ADD_INT(GL_TEXTURE_SAMPLES);
 		PY_DICT_ADD_INT(GL_TIMEOUT_EXPIRED);
-		PY_DICT_ADD_INT(GL_TIMEOUT_IGNORED);
+		PY_DICT_ADD_INT64(GL_TIMEOUT_IGNORED);
 		PY_DICT_ADD_INT(GL_TRIANGLES_ADJACENCY);
 		PY_DICT_ADD_INT(GL_TRIANGLE_STRIP_ADJACENCY);
 		PY_DICT_ADD_INT(GL_UNSIGNALED);
