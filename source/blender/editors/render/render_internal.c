@@ -190,7 +190,7 @@ static void image_buffer_rect_update(RenderJob *rj, RenderResult *rr, ImBuf *ibu
 	 *                                              - sergey -
 	 */
 	/* TODO(sergey): Need to check has_combined here? */
-	if (iuser->passtype == SCE_PASS_COMBINED) {
+	if (iuser->pass == 0) {
 		RenderView *rv;
 		size_t view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
 		rv = RE_RenderViewGetById(rr, view_id);
@@ -525,6 +525,7 @@ static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, 
 			}
 		}
 
+		iuser->pass = sima->iuser.pass;
 		iuser->layer = sima->iuser.layer;
 
 		RE_ReleaseResult(rj->re);
@@ -898,7 +899,6 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	rj->write_still = is_write_still && !is_animation;
 	rj->iuser.scene = scene;
 	rj->iuser.ok = 1;
-	rj->iuser.passtype = SCE_PASS_COMBINED;
 	rj->reports = op->reports;
 	rj->orig_layer = 0;
 	rj->last_layer = 0;

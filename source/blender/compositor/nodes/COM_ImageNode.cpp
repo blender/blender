@@ -40,19 +40,19 @@ ImageNode::ImageNode(bNode *editorNode) : Node(editorNode)
 
 }
 NodeOperation *ImageNode::doMultilayerCheck(NodeConverter &converter, RenderLayer *rl, Image *image, ImageUser *user,
-                                            int framenumber, int outputsocketIndex, int passtype, int view, DataType datatype) const
+                                            int framenumber, int outputsocketIndex, int passindex, int view, DataType datatype) const
 {
 	NodeOutput *outputSocket = this->getOutputSocket(outputsocketIndex);
 	MultilayerBaseOperation *operation = NULL;
 	switch (datatype) {
 		case COM_DT_VALUE:
-			operation = new MultilayerValueOperation(passtype, view);
+			operation = new MultilayerValueOperation(passindex, view);
 			break;
 		case COM_DT_VECTOR:
-			operation = new MultilayerVectorOperation(passtype, view);
+			operation = new MultilayerVectorOperation(passindex, view);
 			break;
 		case COM_DT_COLOR:
-			operation = new MultilayerColorOperation(passtype, view);
+			operation = new MultilayerColorOperation(passindex, view);
 			break;
 		default:
 			break;
@@ -124,20 +124,21 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 					}
 
 					if (rpass) {
+						int passindex = BLI_findindex(&rl->passes, rpass);
 						switch (rpass->channels) {
 							case 1:
 								operation = doMultilayerCheck(converter, rl, image, imageuser, framenumber, index,
-								                              rpass->passtype, view, COM_DT_VALUE);
+								                              passindex, view, COM_DT_VALUE);
 								break;
 								/* using image operations for both 3 and 4 channels (RGB and RGBA respectively) */
 								/* XXX any way to detect actual vector images? */
 							case 3:
 								operation = doMultilayerCheck(converter, rl, image, imageuser, framenumber, index,
-								                              rpass->passtype, view, COM_DT_VECTOR);
+								                              passindex, view, COM_DT_VECTOR);
 								break;
 							case 4:
 								operation = doMultilayerCheck(converter, rl, image, imageuser, framenumber, index,
-								                              rpass->passtype, view, COM_DT_COLOR);
+								                              passindex, view, COM_DT_COLOR);
 								break;
 							default:
 								/* dummy operation is added below */

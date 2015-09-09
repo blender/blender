@@ -2578,21 +2578,10 @@ static void image_init_imageuser(Image *ima, ImageUser *iuser)
 	RenderResult *rr = ima->rr;
 
 	iuser->multi_index = 0;
-	iuser->layer = iuser->view = 0;
-	iuser->passtype = SCE_PASS_COMBINED;
+	iuser->layer = iuser->pass = iuser->view = 0;
 
-	if (rr) {
-		RenderLayer *rl = rr->layers.first;
-
-		if (rl) {
-			RenderPass *rp = rl->passes.first;
-
-			if (rp)
-				iuser->passtype = rp->passtype;
-		}
-
+	if (rr)
 		BKE_image_multilayer_index(rr, iuser);
-	}
 }
 
 void BKE_image_init_imageuser(Image *ima, ImageUser *iuser)
@@ -2740,6 +2729,52 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 	}
 }
 
+#define PASSTYPE_UNSET -1
+/* return renderpass for a given pass index and active view */
+/* fallback to available if there are missing passes for active view */
+static RenderPass *image_render_pass_get(RenderLayer *rl, const int pass, const int view, int *r_passindex)
+{
+	RenderPass *rpass_ret = NULL;
+	RenderPass *rpass;
+
+	int rp_index = 0;
+	int rp_passtype = PASSTYPE_UNSET;
+
+	for (rpass = rl->passes.first; rpass; rpass = rpass->next, rp_index++) {
+		if (rp_index == pass) {
+			rpass_ret = rpass;
+			if (view == 0) {
+				/* no multiview or left eye */
+				break;
+			}
+			else {
+				rp_passtype = rpass->passtype;
+			}
+		}
+		/* multiview */
+		else if ((rp_passtype != PASSTYPE_UNSET) &&
+		         (rpass->passtype == rp_passtype) &&
+		         (rpass->view_id == view))
+		{
+			rpass_ret = rpass;
+			break;
+		}
+	}
+
+	/* fallback to the first pass in the layer */
+	if (rpass_ret == NULL) {
+		rp_index = 0;
+		rpass_ret = rl->passes.first;
+	}
+
+	if (r_passindex) {
+		*r_passindex = (rpass == rpass_ret ? rp_index : pass);
+	}
+
+	return rpass_ret;
+}
+#undef PASSTYPE_UNSET
+
 /* if layer or pass changes, we need an index for the imbufs list */
 /* note it is called for rendered results, but it doesnt use the index! */
 /* and because rendered results use fake layer/passes, don't correct for wrong indices here */
@@ -2759,27 +2794,16 @@ RenderPass *BKE_image_multilayer_index(RenderResult *rr, ImageUser *iuser)
 		if (RE_HasFakeLayer(rr)) rl_index += 1;
 
 		for (rl = rr->layers.first; rl; rl = rl->next, rl_index++) {
-			for (rpass = rl->passes.first; rpass; rpass = rpass->next, index++) {
-				if (iuser->layer == rl_index &&
-				    iuser->passtype == rpass->passtype &&
-				    rv_index == rpass->view_id)
-				{
-					break;
-				}
-			}
-			if (rpass)
+			if (iuser->layer == rl_index) {
+				int rp_index;
+				rpass = image_render_pass_get(rl, iuser->pass, rv_index, &rp_index);
+				iuser->multi_index = index + rp_index;
 				break;
+			}
+			else {
+				index += BLI_listbase_count(&rl->passes);
+			}
 		}
-		iuser->multi_index = (rpass ? index : 0);
-	}
-
-	if (rpass == NULL) {
-		rl = rr->layers.first;
-		if (rl)
-			rpass = rl->passes.first;
-
-		if (rpass && iuser)
-			iuser->passtype = rpass->passtype;
 	}
 
 	return rpass;
@@ -3613,7 +3637,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
 	float *rectf, *rectz;
 	unsigned int *rect;
 	float dither;
-	int channels, layer, passtype;
+	int channels, layer, pass;
 	ImBuf *ibuf;
 	int from_render = (ima->render_slot == ima->last_render_slot);
 	int actview;
@@ -3630,7 +3654,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
 
 	channels = 4;
 	layer = iuser->layer;
-	passtype = iuser->passtype;
+	pass = iuser->pass;
 	actview = iuser->view;
 
 	if ((ima->flag & IMA_IS_STEREO) && (iuser->flag & IMA_SHOW_STEREO))
@@ -3693,19 +3717,10 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
 	else if (rres.layers.first) {
 		RenderLayer *rl = BLI_findlink(&rres.layers, layer - (rres.have_combined ? 1 : 0));
 		if (rl) {
-			RenderPass *rpass;
-
-			for (rpass = rl->passes.first; rpass; rpass = rpass->next) {
-				if (passtype == rpass->passtype &&
-				    actview == rpass->view_id)
-				{
-					break;
-				}
-			}
-
+			RenderPass *rpass = image_render_pass_get(rl, pass, actview, NULL);
 			if (rpass) {
 				rectf = rpass->rect;
-				if (passtype == SCE_PASS_COMBINED) {
+				if (pass == 0) {
 					if (rectf == NULL) {
 						/* Happens when Save Buffers is enabled.
 						 * Use display buffer stored in the render layer.

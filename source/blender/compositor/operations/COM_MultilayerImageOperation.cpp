@@ -27,9 +27,9 @@ extern "C" {
 #  include "IMB_imbuf_types.h"
 }
 
-MultilayerBaseOperation::MultilayerBaseOperation(int passtype, int view) : BaseImageOperation()
+MultilayerBaseOperation::MultilayerBaseOperation(int passindex, int view) : BaseImageOperation()
 {
-	this->m_passtype = passtype;
+	this->m_passId = passindex;
 	this->m_view = view;
 }
 
@@ -39,7 +39,7 @@ ImBuf *MultilayerBaseOperation::getImBuf()
 	int view = this->m_imageUser->view;
 
 	this->m_imageUser->view = this->m_view;
-	this->m_imageUser->passtype = this->m_passtype;
+	this->m_imageUser->pass = this->m_passId;
 
 	if (BKE_image_multilayer_index(this->m_image->rr, this->m_imageUser)) {
 		ImBuf *ibuf = BaseImageOperation::getImBuf();
