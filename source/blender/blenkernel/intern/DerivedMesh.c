@@ -593,8 +593,6 @@ void DM_generate_tangent_tessface_data(DerivedMesh *dm, bool generate)
 	if (!polyindex)
 		return;
 
-	CustomData_from_bmeshpoly(fdata, pdata, ldata, totface);
-
 	if (generate) {
 		for (i = 0; i < ldata->totlayer; i++) {
 			if (ldata->layers[i].type == CD_TANGENT)
