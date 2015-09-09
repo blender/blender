@@ -2930,7 +2930,8 @@ static ImBuf *do_text_effect(const SeqRenderData *context, Sequence *seq, float 
 	if (context->preview_render_size == SEQ_PROXY_RENDER_SIZE_100) {
 		/* Should be rendered at 100%, but context->preview_render_size = 99 right now. */
 		proxy_size_comp = 1.0f;
-	} else {
+	}
+	else {
 		proxy_size_comp = context->preview_render_size / 100.0f;
 	}
 
