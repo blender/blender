@@ -43,6 +43,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_anim_types.h"
+#include "DNA_space_types.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_sequencer.h"
@@ -2920,12 +2921,21 @@ static ImBuf *do_text_effect(const SeqRenderData *context, Sequence *seq, float 
 	const char *display_device;
 	const int mono = blf_mono_font_render; // XXX
 	int y_ofs, x, y;
+	float proxy_size_comp;
 
 	display_device = context->scene->display_settings.display_device;
 	display = IMB_colormanagement_display_get_named(display_device);
 
+	/* Compensate text size for preview render size. */
+	if (context->preview_render_size == SEQ_PROXY_RENDER_SIZE_100) {
+		/* Should be rendered at 100%, but context->preview_render_size = 99 right now. */
+		proxy_size_comp = 1.0f;
+	} else {
+		proxy_size_comp = context->preview_render_size / 100.0f;
+	}
+
 	/* set before return */
-	BLF_size(mono, (context->scene->r.size / 100.0f) * data->text_size, 72);
+	BLF_size(mono, proxy_size_comp * (context->scene->r.size / 100) * data->text_size, 72);
 
 	BLF_buffer(mono, out->rect_float, (unsigned char *)out->rect, width, height, out->channels, display);
 
