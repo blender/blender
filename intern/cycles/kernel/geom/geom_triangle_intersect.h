@@ -140,13 +140,15 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 
 	/* Calculate scaled barycentric coordinates. */
 	float U = Cx * By - Cy * Bx;
-	int sign_mask = (__float_as_int(U) & 0x80000000);
 	float V = Ax * Cy - Ay * Cx;
-	if(sign_mask != (__float_as_int(V) & 0x80000000)) {
-		return false;
-	}
 	float W = Bx * Ay - By * Ax;
-	if(sign_mask != (__float_as_int(W) & 0x80000000)) {
+	const int sign_mask = (__float_as_int(U) & 0x80000000);
+	/* TODO(sergey): Check if multiplication plus sign check is faster
+	 * or at least same speed (but robust for endian types).
+	 */
+	if(sign_mask != (__float_as_int(V) & 0x80000000) ||
+	   sign_mask != (__float_as_int(W) & 0x80000000))
+	{
 		return false;
 	}
 
@@ -173,6 +175,7 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	if(kernel_tex_fetch(__prim_visibility, triAddr) & visibility)
 #endif
 	{
+#ifdef __KERNEL_GPU__
 		float4 a = tri_b - tri_a, b = tri_c - tri_a;
 		if(len_squared(make_float3(a.y*b.z - a.z*b.y,
 		                           a.z*b.x - a.x*b.z,
@@ -180,6 +183,8 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 		{
 			return false;
 		}
+#endif
+
 		/* Normalize U, V, W, and T. */
 		const float inv_det = 1.0f / det;
 		isect->prim = triAddr;
