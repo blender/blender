@@ -78,7 +78,7 @@ static unsigned char* read_packet(FILE * fp, char * expect)
 	len = read_be32(len);
 
 	if (strcmp(expect, head) != 0) {
-		fprintf(stderr, "Read: %s, expect: %s\n", head, expect);
+		/* fprintf(stderr, "Read: %s, expect: %s\n", head, expect); */
 		return NULL;
 	}
 
