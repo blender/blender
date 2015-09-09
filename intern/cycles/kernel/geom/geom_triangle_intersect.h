@@ -98,7 +98,7 @@ void triangle_intersect_precalc(float3 dir,
 }
 
 /* TODO(sergey): Make it general utility function. */
-ccl_device_inline float xor_signmast(float x, int y)
+ccl_device_inline float xor_signmask(float x, int y)
 {
 	return __int_as_float(__float_as_int(x) ^ y);
 }
@@ -162,9 +162,9 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	 * the hit distance.
 	 */
 	const float T = (U * A_kz + V * B_kz + W * C_kz) * Sz;
-	const float sign_T = xor_signmast(T, sign_mask);
+	const float sign_T = xor_signmask(T, sign_mask);
 	if((sign_T < 0.0f) ||
-	   (sign_T > isect->t * xor_signmast(det, sign_mask)))
+	   (sign_T > isect->t * xor_signmask(det, sign_mask)))
 	{
 		return false;
 	}
@@ -265,9 +265,9 @@ ccl_device_inline void triangle_intersect_subsurface(
 	 * the hit distance.
 	 */
 	const float T = (U * A_kz + V * B_kz + W * C_kz) * Sz;
-	const float sign_T = xor_signmast(T, sign_mask);
+	const float sign_T = xor_signmask(T, sign_mask);
 	if((sign_T < 0.0f) ||
-	   (sign_T > tmax * xor_signmast(det, sign_mask)))
+	   (sign_T > tmax * xor_signmask(det, sign_mask)))
 	{
 		return;
 	}
