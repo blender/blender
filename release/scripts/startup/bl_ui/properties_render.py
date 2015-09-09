@@ -461,6 +461,10 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
         split.prop(rd.ffmpeg, "format")
         if ffmpeg.format in {'AVI', 'QUICKTIME', 'MKV', 'OGG', 'MPEG4'}:
             split.prop(ffmpeg, "codec")
+            if ffmpeg.codec == 'H264':
+                row = layout.row()
+                row.label()
+                row.prop(ffmpeg, "use_lossless_output")
         elif rd.ffmpeg.format == 'H264':
             split.prop(ffmpeg, "use_lossless_output")
         else:
