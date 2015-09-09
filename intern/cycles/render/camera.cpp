@@ -425,9 +425,9 @@ BoundBox Camera::viewplane_bounds_get()
 	BoundBox bounds = BoundBox::empty;
 
 	if(type == CAMERA_PANORAMA) {
-		bounds.grow(make_float3(cameratoworld.w.x,
-		                        cameratoworld.w.y,
-		                        cameratoworld.w.z));
+		bounds.grow(make_float3(cameratoworld.x.w,
+		                        cameratoworld.y.w,
+		                        cameratoworld.z.w));
 	}
 	else {
 		bounds.grow(transform_raster_to_world(0.0f, 0.0f));
