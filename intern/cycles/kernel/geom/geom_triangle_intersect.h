@@ -156,7 +156,7 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 		return false;
 	}
 
-	/* Calculate scaled z−coordinates of vertices and use them to calculate
+	/* Calculate scaled z-coordinates of vertices and use them to calculate
 	 * the hit distance.
 	 */
 	const float T = (U * A_kz + V * B_kz + W * C_kz) * Sz;
