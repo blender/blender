@@ -85,7 +85,7 @@ const struct OpenSubdiv_TopologyRefinerDescr *openSubdiv_getGLMeshTopologyRefine
         OpenSubdiv_GLMesh *gl_mesh);
 
 /* ** Initialize/Deinitialize global OpenGL drawing buffers/GLSL programs ** */
-void openSubdiv_osdGLDisplayInit(void);
+bool openSubdiv_osdGLDisplayInit(void);
 void openSubdiv_osdGLDisplayDeinit(void);
 
 /* ** Evaluator API ** */

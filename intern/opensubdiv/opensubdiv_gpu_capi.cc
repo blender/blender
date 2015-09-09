@@ -214,7 +214,7 @@ GLuint compileShader(GLenum shaderType,
 		fprintf(stderr, "Section: %s\n", sdefine);
 		fprintf(stderr, "Defines: %s\n", define);
 		fprintf(stderr, "Source: %s\n", sources[2]);
-		exit(1);
+		return 0;
 	}
 
 	return shader;
@@ -225,12 +225,21 @@ GLuint linkProgram(const char *define)
 	GLuint vertexShader = compileShader(GL_VERTEX_SHADER,
 	                                    "VERTEX_SHADER",
 	                                    define);
+	if (vertexShader == 0) {
+		return 0;
+	}
 	GLuint geometryShader = compileShader(GL_GEOMETRY_SHADER,
 	                                      "GEOMETRY_SHADER",
 	                                      define);
+	if (geometryShader == 0) {
+		return 0;
+	}
 	GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER,
 	                                      "FRAGMENT_SHADER",
 	                                      define);
+	if (fragmentShader == 0) {
+		return 0;
+	}
 
 	GLuint program = glCreateProgram();
 
@@ -279,7 +288,8 @@ GLuint linkProgram(const char *define)
 		glGetProgramInfoLog(program, sizeof(emsg), 0, emsg);
 		fprintf(stderr, "Error linking GLSL program : %s\n", emsg);
 		fprintf(stderr, "Defines: %s\n", define);
-		exit(1);
+		glDeleteProgram(program);
+		return 0;
 	}
 
 	glUniformBlockBinding(program,
@@ -363,9 +373,10 @@ void bindProgram(GLMeshInterface * /*mesh*/,
 
 }  /* namespace */
 
-void openSubdiv_osdGLDisplayInit(void)
+bool openSubdiv_osdGLDisplayInit(void)
 {
 	static bool need_init = true;
+	static bool init_success = false;
 	if (need_init) {
 		g_flat_fill_solid_program = linkProgram("#define FLAT_SHADING\n");
 		g_flat_fill_texture2d_program = linkProgram("#define USE_TEXTURE_2D\n#define FLAT_SHADING\n");
@@ -379,7 +390,13 @@ void openSubdiv_osdGLDisplayInit(void)
 		             sizeof(g_lighting_data), NULL, GL_STATIC_DRAW);
 
 		need_init = false;
+		init_success = g_flat_fill_solid_program != 0 &&
+		               g_flat_fill_texture2d_program != 0 &&
+		               g_smooth_fill_solid_program != 0 &&
+		               g_smooth_fill_texture2d_program != 0 &&
+		               g_wireframe_program;
 	}
+	return init_success;
 }
 
 void openSubdiv_osdGLDisplayDeinit(void)
@@ -635,7 +652,9 @@ void openSubdiv_osdGLMeshDisplay(OpenSubdiv_GLMesh *gl_mesh,
 		(GLMeshInterface *)(gl_mesh->descriptor);
 
 	/* Make sure all global invariants are initialized. */
-	openSubdiv_osdGLDisplayInit();
+	if (!openSubdiv_osdGLDisplayInit()) {
+		return;
+	}
 
 	/* Setup GLSL/OpenGL to draw patches in current context. */
 	GLuint program = preapre_patchDraw(mesh, fill_quads != 0);
