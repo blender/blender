@@ -1614,12 +1614,11 @@ bool BLI_testextensie_glob(const char *str, const char *ext_fnmatch)
 
 		if ((ext_next = strchr(ext_step, ';'))) {
 			len_ext = ext_next - ext_step + 1;
+			BLI_strncpy(pattern, ext_step, (len_ext > sizeof(pattern)) ? sizeof(pattern) : len_ext);
 		}
 		else {
-			len_ext = sizeof(pattern);
+			len_ext = BLI_strncpy_rlen(pattern, ext_step, sizeof(pattern));
 		}
-
-		len_ext = BLI_strncpy_rlen(pattern, ext_step, len_ext);
 
 		if (fnmatch(pattern, str, FNM_CASEFOLD) == 0) {
 			return true;
