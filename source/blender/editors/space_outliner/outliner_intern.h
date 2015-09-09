@@ -68,47 +68,6 @@ typedef struct TreeElement {
 #define TE_LAZY_CLOSED  4
 #define TE_FREE_NAME    8
 
-/* TreeStoreElem types */
-#define TSE_NLA             1
-#define TSE_NLA_ACTION      2
-#define TSE_DEFGROUP_BASE   3
-#define TSE_DEFGROUP        4
-#define TSE_BONE            5
-#define TSE_EBONE           6
-#define TSE_CONSTRAINT_BASE 7
-#define TSE_CONSTRAINT      8
-#define TSE_MODIFIER_BASE   9
-#define TSE_MODIFIER        10
-#define TSE_LINKED_OB       11
-// #define TSE_SCRIPT_BASE     12  // UNUSED
-#define TSE_POSE_BASE       13
-#define TSE_POSE_CHANNEL    14
-#define TSE_ANIM_DATA       15
-#define TSE_DRIVER_BASE     16
-#define TSE_DRIVER          17
-
-#define TSE_PROXY           18
-#define TSE_R_LAYER_BASE    19
-#define TSE_R_LAYER         20
-#define TSE_R_PASS          21
-#define TSE_LINKED_MAT      22
-/* NOTE, is used for light group */
-#define TSE_LINKED_LAMP     23
-#define TSE_POSEGRP_BASE    24
-#define TSE_POSEGRP         25
-#define TSE_SEQUENCE        26
-#define TSE_SEQ_STRIP       27
-#define TSE_SEQUENCE_DUP    28
-#define TSE_LINKED_PSYS     29
-#define TSE_RNA_STRUCT      30
-#define TSE_RNA_PROPERTY    31
-#define TSE_RNA_ARRAY_ELEM  32
-#define TSE_NLA_TRACK       33
-#define TSE_KEYMAP          34
-#define TSE_KEYMAP_ITEM     35
-#define TSE_ID_BASE			36
-#define TSE_GP_LAYER        37
-
 /* button events */
 #define OL_NAMEBUTTON       1
 

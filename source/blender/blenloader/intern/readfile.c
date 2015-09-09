@@ -6607,7 +6607,13 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 
 						BLI_mempool_iternew(so->treestore, &iter);
 						while ((tselem = BLI_mempool_iterstep(&iter))) {
-							tselem->id = restore_pointer_by_name(newmain, tselem->id, USER_IGNORE);
+							/* Do not try to restore pointers to drivers/sequence/etc., can crash in undo case! */
+							if (TSE_IS_REAL_ID(tselem)) {
+								tselem->id = restore_pointer_by_name(newmain, tselem->id, USER_IGNORE);
+							}
+							else {
+								tselem->id = NULL;
+							}
 						}
 						if (so->treehash) {
 							/* rebuild hash table, because it depends on ids too */
