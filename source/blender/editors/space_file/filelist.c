@@ -233,6 +233,9 @@ typedef struct FileListEntryCache {
 
 	int flags;
 
+	/* This one gathers all entries from both block and misc caches. Used for easy bulk-freing. */
+	ListBase cached_entries;
+
 	/* Block cache: all entries between start and end index. used for part of the list on diplay. */
 	FileDirEntry **block_entries;
 	int block_start_index, block_end_index, block_center_index, block_cursor;
@@ -1016,6 +1019,7 @@ static void filelist_entry_free(FileDirEntry *entry)
 
 static void filelist_direntryarr_free(FileDirEntryArr *array)
 {
+#if 0
 	FileDirEntry *entry, *entry_next;
 
 	for (entry = array->entries.first; entry; entry = entry_next) {
@@ -1023,6 +1027,9 @@ static void filelist_direntryarr_free(FileDirEntryArr *array)
 		filelist_entry_free(entry);
 	}
 	BLI_listbase_clear(&array->entries);
+#else
+	BLI_assert(BLI_listbase_is_empty(&array->entries));
+#endif
 	array->nbr_entries = 0;
 	array->nbr_entries_filtered = -1;
 	array->entry_idx_start = -1;
@@ -1182,6 +1189,8 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
 
 static void filelist_cache_init(FileListEntryCache *cache, size_t cache_size)
 {
+	BLI_listbase_clear(&cache->cached_entries);
+
 	cache->block_cursor = cache->block_start_index = cache->block_center_index = cache->block_end_index = 0;
 	cache->block_entries = MEM_mallocN(sizeof(*cache->block_entries) * cache_size, __func__);
 
@@ -1200,30 +1209,38 @@ static void filelist_cache_init(FileListEntryCache *cache, size_t cache_size)
 
 static void filelist_cache_free(FileListEntryCache *cache)
 {
+	FileDirEntry *entry, *entry_next;
+
 	if (!(cache->flags & FLC_IS_INIT)) {
 		return;
 	}
 
 	filelist_cache_previews_free(cache, true);
 
-	/* Note we nearly have nothing to do here, entries are just 'borrowed', not owned by cache... */
 	MEM_freeN(cache->block_entries);
 
 	BLI_ghash_free(cache->misc_entries, NULL, NULL);
 	MEM_freeN(cache->misc_entries_indices);
 
 	BLI_ghash_free(cache->uuids, NULL, NULL);
+
+	for (entry = cache->cached_entries.first; entry; entry = entry_next) {
+		entry_next = entry->next;
+		filelist_entry_free(entry);
+	}
+	BLI_listbase_clear(&cache->cached_entries);
 }
 
 static void filelist_cache_clear(FileListEntryCache *cache, size_t new_size)
 {
+	FileDirEntry *entry, *entry_next;
+
 	if (!(cache->flags & FLC_IS_INIT)) {
 		return;
 	}
 
 	filelist_cache_previews_clear(cache);
 
-	/* Note we nearly have nothing to do here, entries are just 'borrowed', not owned by cache... */
 	cache->block_cursor = cache->block_start_index = cache->block_center_index = cache->block_end_index = 0;
 	if (new_size != cache->size) {
 		cache->block_entries = MEM_reallocN(cache->block_entries, sizeof(*cache->block_entries) * new_size);
@@ -1239,6 +1256,12 @@ static void filelist_cache_clear(FileListEntryCache *cache, size_t new_size)
 	BLI_ghash_clear_ex(cache->uuids, NULL, NULL, new_size * 2);
 
 	cache->size = new_size;
+
+	for (entry = cache->cached_entries.first; entry; entry = entry_next) {
+		entry_next = entry->next;
+		filelist_entry_free(entry);
+	}
+	BLI_listbase_clear(&cache->cached_entries);
 }
 
 FileList *filelist_new(short type)
@@ -1417,6 +1440,7 @@ int filelist_files_ensure(FileList *filelist)
 static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int index)
 {
 	FileListInternEntry *entry = filelist->filelist_intern.filtered[index];
+	FileListEntryCache *cache = &filelist->filelist_cache;
 	FileDirEntry *ret;
 	FileDirEntryRevision *rev;
 
@@ -1435,13 +1459,13 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
 	ret->blentype = entry->blentype;
 	ret->typeflag = entry->typeflag;
 
-	BLI_addtail(&filelist->filelist.entries, ret);
+	BLI_addtail(&cache->cached_entries, ret);
 	return ret;
 }
 
 static void filelist_file_release_entry(FileList *filelist, FileDirEntry *entry)
 {
-	BLI_remlink(&filelist->filelist.entries, entry);
+	BLI_remlink(&filelist->filelist_cache.cached_entries, entry);
 	filelist_entry_free(entry);
 }
 
