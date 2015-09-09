@@ -2489,6 +2489,10 @@ void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *l
 void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata, int total)
 {
 	int i;
+
+	/* avoid accumulating extra layers */
+	BLI_assert(!CustomData_from_bmeshpoly_test(fdata, pdata, ldata, false));
+
 	for (i = 0; i < pdata->totlayer; i++) {
 		if (pdata->layers[i].type == CD_MTEXPOLY) {
 			CustomData_add_layer_named(fdata, CD_MTFACE, CD_CALLOC, NULL, total, pdata->layers[i].name);
@@ -2514,6 +2518,41 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData 
 
 	CustomData_bmesh_update_active_layers(fdata, pdata, ldata);
 }
+
+#ifndef NDEBUG
+/**
+ * Debug check, used to assert when we expect layers to be in/out of sync.
+ *
+ * \param fallback: Use when there are no layers to handle,
+ * since callers may expect success or failure.
+ */
+bool CustomData_from_bmeshpoly_test(CustomData *fdata, CustomData *pdata, CustomData *ldata, bool fallback)
+{
+	int a_num = 0, b_num = 0;
+#define LAYER_CMP(l_a, t_a, l_b, t_b) \
+	((a_num += CustomData_number_of_layers(l_a, t_a)) == (b_num += CustomData_number_of_layers(l_b, t_b)))
+
+	if (!LAYER_CMP(pdata, CD_MTEXPOLY, fdata, CD_MTFACE))
+		return false;
+	if (!LAYER_CMP(ldata, CD_MLOOPCOL, fdata, CD_MCOL))
+		return false;
+	if (!LAYER_CMP(ldata, CD_PREVIEW_MLOOPCOL, fdata, CD_PREVIEW_MCOL))
+		return false;
+	if (!LAYER_CMP(ldata, CD_ORIGSPACE_MLOOP, fdata, CD_ORIGSPACE))
+		return false;
+	if (!LAYER_CMP(ldata, CD_NORMAL, fdata, CD_TESSLOOPNORMAL))
+		return false;
+	if (!LAYER_CMP(ldata, CD_TANGENT, fdata, CD_TANGENT))
+		return false;
+
+#undef TEST_RET
+
+	/* if no layers are on either CustomData's,
+	 * then there was nothing to do... */
+	return a_num ? true : fallback;
+}
+#endif
+
 
 void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *pdata, CustomData *ldata)
 {

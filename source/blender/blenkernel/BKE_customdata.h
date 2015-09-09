@@ -381,6 +381,10 @@ void CustomData_bmesh_update_active_layers(struct CustomData *fdata, struct Cust
 void CustomData_bmesh_do_versions_update_active_layers(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata);
 void CustomData_bmesh_init_pool(struct CustomData *data, int totelem, const char htype);
 
+#ifndef NDEBUG
+bool CustomData_from_bmeshpoly_test(CustomData *fdata, CustomData *pdata, CustomData *ldata, bool fallback);
+#endif
+
 /* External file storage */
 
 void CustomData_external_add(struct CustomData *data,

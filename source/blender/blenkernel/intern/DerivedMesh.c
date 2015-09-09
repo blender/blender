@@ -601,6 +601,8 @@ void DM_generate_tangent_tessface_data(DerivedMesh *dm, bool generate)
 		CustomData_bmesh_update_active_layers(fdata, pdata, ldata);
 	}
 
+	BLI_assert(CustomData_from_bmeshpoly_test(fdata, pdata, ldata, true));
+
 	loopindex = MEM_mallocN(sizeof(*loopindex) * totface, __func__);
 
 	for (mf_idx = 0, mf = mface; mf_idx < totface; mf_idx++, mf++) {
