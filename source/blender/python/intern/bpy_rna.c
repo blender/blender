@@ -3389,6 +3389,21 @@ static PyObject *pyrna_prop_as_bytes(BPy_PropertyRNA *self)
 	}
 }
 
+PyDoc_STRVAR(pyrna_prop_update_doc,
+".. method:: update()\n"
+"\n"
+"   Execute the properties update callback.\n"
+"\n"
+"   .. note::\n"
+"      This is called when assigning a property,\n"
+"      however in rare cases its useful to call explicitly.\n"
+);
+static PyObject *pyrna_prop_update(BPy_PropertyRNA *self)
+{
+	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
+	Py_RETURN_NONE;
+}
+
 PyDoc_STRVAR(pyrna_struct_type_recast_doc,
 ".. method:: type_recast()\n"
 "\n"
@@ -4722,6 +4737,7 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 static struct PyMethodDef pyrna_prop_methods[] = {
 	{"path_from_id", (PyCFunction)pyrna_prop_path_from_id, METH_NOARGS, pyrna_prop_path_from_id_doc},
 	{"as_bytes", (PyCFunction)pyrna_prop_as_bytes, METH_NOARGS, pyrna_prop_as_bytes_doc},
+	{"update", (PyCFunction)pyrna_prop_update, METH_NOARGS, pyrna_prop_update_doc},
 	{"__dir__", (PyCFunction)pyrna_prop_dir, METH_NOARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };
