@@ -39,6 +39,11 @@ def rna_idprop_ui_del(item):
         pass
 
 
+def rna_idprop_ui_prop_update(item, prop):
+    prop_rna = item.path_resolve("[\"%s\"]" % prop.replace("\"", "\\\""), False)
+    prop_rna.update()
+
+
 def rna_idprop_ui_prop_get(item, prop, create=True):
 
     rna_ui = rna_idprop_ui_get(item, create)
