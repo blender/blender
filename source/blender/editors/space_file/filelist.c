@@ -2191,14 +2191,14 @@ static int filelist_readjob_list_dir(
 
 			entry = MEM_callocN(sizeof(*entry), __func__);
 			entry->relpath = MEM_dupallocN(files[i].relname);
-			if (S_ISDIR(files[i].s.st_mode)) {
-				entry->typeflag |= FILE_TYPE_DIR;
-			}
 			entry->st = files[i].s;
 
 			/* Set file type. */
-			/* If we are considering .blend files as libs, promote them to directory status! */
-			if (do_lib && BLO_has_bfile_extension(entry->relpath)) {
+			if (S_ISDIR(files[i].s.st_mode)) {
+				entry->typeflag = FILE_TYPE_DIR;
+			}
+			else if (do_lib && BLO_has_bfile_extension(entry->relpath)) {
+				/* If we are considering .blend files as libs, promote them to directory status. */
 				char name[FILE_MAX];
 
 				entry->typeflag = FILE_TYPE_BLENDER;
