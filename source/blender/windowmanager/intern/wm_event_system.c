@@ -1801,7 +1801,13 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 				const SpaceLink *sl = sa->spacedata.first;
 				const bool was_prev_temp = (sl->next && sl->next->spacetype == SPACE_IMAGE);
 
-				ED_screen_full_prevspace(C, sa, was_prev_temp);
+				if (sa->full) {
+					ED_screen_full_prevspace(C, sa, was_prev_temp);
+				}
+				/* user may have left fullscreen */
+				else {
+					ED_area_prevspace(C, sa);
+				}
 			}
 
 			wm_handler_op_context(C, handler, CTX_wm_window(C)->eventstate);

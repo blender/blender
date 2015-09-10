@@ -1791,6 +1791,8 @@ ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
  */
 void ED_screen_full_prevspace(bContext *C, ScrArea *sa, const bool was_prev_temp)
 {
+	BLI_assert(sa->full);
+
 	if (sa->flag & AREA_FLAG_STACKED_FULLSCREEN) {
 		/* stacked fullscreen -> only go back to previous screen and don't toggle out of fullscreen */
 		ED_area_prevspace(C, sa);
@@ -1800,12 +1802,7 @@ void ED_screen_full_prevspace(bContext *C, ScrArea *sa, const bool was_prev_temp
 		}
 	}
 	else {
-		if (sa->full) {
-			ED_screen_restore_temp_type(C, sa);
-		}
-		else {
-			ED_area_prevspace(C, sa);
-		}
+		ED_screen_restore_temp_type(C, sa);
 	}
 }
 
