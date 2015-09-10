@@ -50,6 +50,7 @@
 #include "BKE_lattice.h"
 
 #include "BKE_deform.h"
+#include "BKE_editmesh.h"
 #include "BKE_mesh.h"  /* for OMP limits. */
 #include "BKE_subsurf.h"
 
@@ -276,6 +277,14 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 		if (!auxMesh)
 			return;
 		BLI_SPACE_TRANSFORM_SETUP(&local2aux, calc->ob, calc->smd->auxTarget);
+	}
+
+	/* use editmesh to avoid array allocation */
+	if (calc->smd->target && calc->target->type == DM_TYPE_EDITBMESH) {
+		treeData.em_evil = BKE_editmesh_from_object(calc->smd->target);
+	}
+	if (calc->smd->auxTarget && auxMesh->type == DM_TYPE_EDITBMESH) {
+		auxData.em_evil = BKE_editmesh_from_object(calc->smd->auxTarget);
 	}
 
 	/* After sucessufuly build the trees, start projection vertexs */
