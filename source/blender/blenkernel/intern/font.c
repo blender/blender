@@ -777,7 +777,7 @@ makebreak:
 
 			if ((tb_scale.h != 0.0f) &&
 			    (cu->totbox > (curbox + 1)) &&
-			    ((-(yof - tb_scale.y)) > (tb_scale.h - (linedist * cu->fsize)) - yof_scale))
+			    ((-(yof - tb_scale.y)) > (tb_scale.h - linedist) - yof_scale))
 			{
 				maxlen = 0;
 				curbox++;
