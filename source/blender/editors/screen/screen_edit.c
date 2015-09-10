@@ -1800,7 +1800,12 @@ void ED_screen_full_prevspace(bContext *C, ScrArea *sa, const bool was_prev_temp
 		}
 	}
 	else {
-		ED_screen_restore_temp_type(C, sa);
+		if (sa->full) {
+			ED_screen_restore_temp_type(C, sa);
+		}
+		else {
+			ED_area_prevspace(C, sa);
+		}
 	}
 }
 
