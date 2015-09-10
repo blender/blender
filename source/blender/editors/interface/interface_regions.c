@@ -520,9 +520,10 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			}
 
 			if (data_path) {
+				const char *data_delim = (data_path[0] == '[') ? "" : ".";
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]),
-				             "%s.%s",  /* no need to translate */
-				             id_path, data_path);
+				             "%s%s%s",  /* no need to translate */
+				             id_path, data_delim, data_path);
 				MEM_freeN(data_path);
 			}
 			else if (prop) {

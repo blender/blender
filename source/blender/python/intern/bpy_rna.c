@@ -988,15 +988,16 @@ static PyObject *pyrna_prop_repr(BPy_PropertyRNA *self)
 
 	path = RNA_path_from_ID_to_property(&self->ptr, self->prop);
 	if (path) {
+		const char *data_delim = (path[0] == '[') ? "" : ".";
 		if (GS(id->name) == ID_NT) { /* nodetree paths are not accurate */
 			ret = PyUnicode_FromFormat("bpy.data...%s",
 			                           path);
 		}
 		else {
-			ret = PyUnicode_FromFormat("bpy.data.%s[%R].%s",
+			ret = PyUnicode_FromFormat("bpy.data.%s[%R]%s%s",
 			                           BKE_idcode_to_name_plural(GS(id->name)),
 			                           tmp_str,
-			                           path);
+			                           data_delim, path);
 		}
 
 		MEM_freeN((void *)path);

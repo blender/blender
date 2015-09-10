@@ -4720,6 +4720,7 @@ char *RNA_path_full_struct_py(struct PointerRNA *ptr)
 char *RNA_path_full_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 {
 	char *id_path;
+	const char *data_delim;
 	char *data_path;
 
 	char *ret;
@@ -4733,13 +4734,15 @@ char *RNA_path_full_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 
 	data_path = RNA_path_from_ID_to_property(ptr, prop);
 
+	data_delim = (data_path && data_path[0] == '[') ? "" : ".";
+
 	if ((index == -1) || (RNA_property_array_check(prop) == false)) {
-		ret = BLI_sprintfN("%s.%s",
-		                   id_path, data_path);
+		ret = BLI_sprintfN("%s%s%s",
+		                   id_path, data_delim, data_path);
 	}
 	else {
-		ret = BLI_sprintfN("%s.%s[%d]",
-		                   id_path, data_path, index);
+		ret = BLI_sprintfN("%s%s%s[%d]",
+		                   id_path, data_delim, data_path, index);
 	}
 	MEM_freeN(id_path);
 	if (data_path) {
