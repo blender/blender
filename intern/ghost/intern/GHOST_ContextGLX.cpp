@@ -246,6 +246,7 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
 
 		if (framebuffer_config) {
 			m_context = glXCreateContextAttribsARB(m_display, framebuffer_config[0], s_sharedContext, True, attribs);
+			XFree(framebuffer_config);
 		}
 	}
 	else {
