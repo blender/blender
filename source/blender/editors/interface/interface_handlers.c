@@ -5703,7 +5703,9 @@ static int ui_do_but_COLORBAND(bContext *C, uiBlock *block, uiBut *but, uiHandle
 {
 	ColorBand *coba;
 	CBData *cbd;
-	int mx, my, a, xco, mindist = 12;
+	/* ignore zoom-level for mindist */
+	int mindist = (50 * UI_DPI_FAC) * block->aspect;
+	int mx, my, a, xco;
 
 	mx = event->x;
 	my = event->y;
