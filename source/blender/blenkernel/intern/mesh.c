@@ -2340,6 +2340,19 @@ Mesh *BKE_mesh_new_from_object(
 			tmpcu = (Curve *)tmpobj->data;
 			tmpcu->id.us--;
 
+			/* Copy cached display list, it might be needed by the stack evaluation.
+			 * Ideally stack should be able to use render-time display list, but doing
+			 * so is quite tricky and not safe so close to the release.
+			 *
+			 * TODO(sergey): Look into more proper solution.
+			 */
+			if (ob->curve_cache != NULL) {
+				if (tmpobj->curve_cache == NULL) {
+					tmpobj->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for curve types");
+				}
+				BKE_displist_copy(&tmpobj->curve_cache->disp, &ob->curve_cache->disp);
+			}
+
 			/* if getting the original caged mesh, delete object modifiers */
 			if (cage)
 				BKE_object_free_modifiers(tmpobj);
