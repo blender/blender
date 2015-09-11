@@ -153,15 +153,13 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 				calchandles_fcurve(fcu);
 
 				fcurves.push_back(fcu);
+				unused_curves.push_back(fcu);
 			}
 		}
 		break;
 		default:
 			fprintf(stderr, "Output dimension of %d is not yet supported (animation id = %s)\n", (int)dim, curve->getOriginalId().c_str());
 	}
-
-	for (std::vector<FCurve *>::iterator it = fcurves.begin(); it != fcurves.end(); it++)
-		unused_curves.push_back(*it);
 }
 
 
@@ -173,6 +171,11 @@ void AnimationImporter::fcurve_deg_to_rad(FCurve *cu)
 		cu->bezt[i].vec[0][1] *= DEG2RADF(1.0f);
 		cu->bezt[i].vec[2][1] *= DEG2RADF(1.0f);
 	}
+}
+
+void AnimationImporter::fcurve_is_used(FCurve *fcu)
+{
+	unused_curves.erase(std::remove(unused_curves.begin(), unused_curves.end(), fcu), unused_curves.end());
 }
 
 
@@ -225,6 +228,7 @@ void AnimationImporter::add_fcurves_to_object(Object *ob, std::vector<FCurve *>&
 				
 				/* add F-Curve to group */
 				action_groups_add_channel(act, grp, fcu);
+				fcurve_is_used(fcu);
 				
 			}
 #if 0
@@ -235,10 +239,8 @@ void AnimationImporter::add_fcurves_to_object(Object *ob, std::vector<FCurve *>&
 		}
 		else {
 			BLI_addtail(&act->curves, fcu);
+			fcurve_is_used(fcu);
 		}
-
-		// curve is used, so remove it from unused_curves
-		unused_curves.erase(std::remove(unused_curves.begin(), unused_curves.end(), fcu), unused_curves.end());
 	}
 }
 
@@ -438,7 +440,7 @@ void AnimationImporter::modify_fcurve(std::vector<FCurve *> *curves, const char 
 		if (array_index == -1) fcu->array_index = i;
 		else fcu->array_index = array_index;
 
-		unused_curves.erase(std::remove(unused_curves.begin(), unused_curves.end(), fcu), unused_curves.end());
+		fcurve_is_used(fcu);
 	}
 }
 
@@ -448,7 +450,7 @@ void AnimationImporter::unused_fcurve(std::vector<FCurve *> *curves)
 	std::vector<FCurve *>::iterator it;
 	for (it = curves->begin(); it != curves->end(); it++) {
 		FCurve *fcu = *it;
-		unused_curves.erase(std::remove(unused_curves.begin(), unused_curves.end(), fcu), unused_curves.end());
+		fcurve_is_used(fcu);
 	}
 }
 
@@ -621,6 +623,7 @@ void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& list
 		for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
 			FCurve *fcu = *iter;
 			BLI_addtail(AnimCurves, fcu);
+			fcurve_is_used(fcu);
 		}
 	}
 
@@ -660,6 +663,7 @@ void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& list
 				/** XXX What About animtype "rotation" ? */
 
 				BLI_addtail(AnimCurves, fcu);
+				fcurve_is_used(fcu);
 			}
 		}
 	}
@@ -705,6 +709,7 @@ void AnimationImporter::Assign_lens_animations(const COLLADAFW::UniqueId& listid
 				}
 
 				BLI_addtail(AnimCurves, fcu);
+				fcurve_is_used(fcu);
 			}
 		}
 	}
@@ -840,7 +845,9 @@ void AnimationImporter::apply_matrix_curves(Object *ob, std::vector<FCurve *>& a
 			add_bone_fcurve(ob, node, newcu[i]);
 		else
 			BLI_addtail(curves, newcu[i]);
+		// fcurve_is_used(newcu[i]);  // never added to unused
 	}
+
 
 	if (is_joint) {
 		bPoseChannel *chan = BKE_pose_channel_find_name(ob->pose, bone_name);
@@ -966,6 +973,7 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 								FCurve *fcu = *iter;
 							
 								BLI_addtail(AnimCurves, fcu);
+								fcurve_is_used(fcu);
 							}
 						}
 						
@@ -1233,6 +1241,7 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob, std::vector<FCurv
 	// add curves
 	for (int i = 0; i < totcu; i++) {
 		add_bone_fcurve(ob, node, newcu[i]);
+		// fcurve_is_used(newcu[i]);  // never added to unused
 	}
 
 	bPoseChannel *chan = BKE_pose_channel_find_name(ob->pose, bone_name);
@@ -1832,7 +1841,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 						i++;
 						j = 0;
 					}
-					unused_curves.erase(std::remove(unused_curves.begin(), unused_curves.end(), *it), unused_curves.end());
+					fcurve_is_used(*it);
 				}
 
 				COLLADAFW::Matrix tm(matrix);

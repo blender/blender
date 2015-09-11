@@ -85,7 +85,10 @@ private:
 
 	void fcurve_deg_to_rad(FCurve *cu);
 
+	void fcurve_is_used(FCurve *fcu);
+
 	void add_fcurves_to_object(Object *ob, std::vector<FCurve*>& curves, char *rna_path, int array_index, Animation *animated);
+
 	
 	int typeFlag;
 
