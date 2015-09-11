@@ -292,6 +292,30 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu, FSMenuCategory category, const c
 	fsm_iter = MEM_mallocN(sizeof(*fsm_iter), "fsme");
 	fsm_iter->path = BLI_strdup(path);
 	fsm_iter->save = (flag & FS_INSERT_SAVE) != 0;
+
+	if ((category == FS_CATEGORY_RECENT) && (!name || !name[0])) {
+		/* Special handling when adding new recent entry - check if dir exists in some other categories,
+		 * and try to use name from there if so. */
+		FSMenuCategory cats[] = {FS_CATEGORY_SYSTEM, FS_CATEGORY_SYSTEM_BOOKMARKS, FS_CATEGORY_BOOKMARKS};
+		int i = ARRAY_SIZE(cats);
+
+		while (i--) {
+			FSMenuEntry *tfsm = ED_fsmenu_get_category(fsmenu, cats[i]);
+
+			for (; tfsm; tfsm = tfsm->next) {
+				if (STREQ(tfsm->path, fsm_iter->path)) {
+					if (tfsm->name && tfsm->name[0]) {
+						name = tfsm->name;
+					}
+					break;
+				}
+			}
+			if (tfsm) {
+				break;
+			}
+		}
+	}
+
 	if (name && name[0]) {
 		BLI_strncpy(fsm_iter->name, name, sizeof(fsm_iter->name));
 	}
@@ -439,19 +463,36 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 	{
 		wchar_t wline[FILE_MAXDIR];
 		__int64 tmp;
-		char tmps[4];
+		char tmps[4], *name;
 		int i;
-			
+
 		tmp = GetLogicalDrives();
-		
+
 		for (i = 0; i < 26; i++) {
 			if ((tmp >> i) & 1) {
 				tmps[0] = 'A' + i;
 				tmps[1] = ':';
 				tmps[2] = '\\';
-				tmps[3] = 0;
-				
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, tmps, NULL, FS_INSERT_SORTED);
+				tmps[3] = '\0';
+				name = NULL;
+
+				/* Flee from horrible win querying hover floppy drives! */
+				if (i > 1) {
+					/* Try to get volume label as well... */
+					BLI_strncpy_wchar_from_utf8(wline, tmps, 4);
+					if (GetVolumeInformationW(wline, wline + 4, FILE_MAXDIR - 4, NULL, NULL, NULL, NULL, 0)) {
+						size_t label_len;
+
+						BLI_strncpy_wchar_as_utf8(line, wline + 4, FILE_MAXDIR - 4);
+
+						label_len = MIN2(strlen(line), FILE_MAXDIR - 6);
+						BLI_snprintf(line + label_len, 6, " (%.2s)", tmps);
+
+						name = line;
+					}
+				}
+
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, tmps, name, FS_INSERT_SORTED);
 			}
 		}
 
