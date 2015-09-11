@@ -898,8 +898,6 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
                                              std::multimap<COLLADAFW::UniqueId, Object *>& object_map,
                                              std::map<COLLADAFW::UniqueId, const COLLADAFW::Object *> FW_object_map)
 {
-	AnimationImporter::AnimMix *animType = get_animation_type(node, FW_object_map);
-
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 	COLLADAFW::UniqueId uid = node->getUniqueId();
 	COLLADAFW::Node *root = root_map.find(uid) == root_map.end() ? node : root_map[uid];
@@ -915,6 +913,8 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 		return;
 	}
 
+
+	AnimationImporter::AnimMix *animType = get_animation_type(node, FW_object_map);
 	bAction *act;
 
 	if ( (animType->transform) != 0) {
@@ -1116,6 +1116,8 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 			}
 		}
 	}
+
+	delete animType;
 }
 
 void AnimationImporter::add_bone_animation_sampled(Object *ob, std::vector<FCurve *>& animcurves, COLLADAFW::Node *root, COLLADAFW::Node *node, COLLADAFW::Transformation *tm)
