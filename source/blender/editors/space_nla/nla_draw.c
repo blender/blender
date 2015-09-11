@@ -422,13 +422,14 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 } 
 
 /* add the relevant text to the cache of text-strings to draw in pixelspace */
-static void nla_draw_strip_text(AnimData *adt, NlaTrack *nlt, NlaStrip *strip, int index, View2D *v2d, float yminc, float ymaxc)
+static void nla_draw_strip_text(
+        AnimData *adt, NlaTrack *nlt, NlaStrip *strip, int index, View2D *v2d,
+        float xminc, float xmaxc, float yminc, float ymaxc)
 {
 	const bool non_solo = ((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) && (nlt->flag & NLATRACK_SOLO) == 0);
 	char str[256];
 	size_t str_len;
 	char col[4];
-	float xofs;
 	rctf rect;
 	
 	/* just print the name and the range */
@@ -452,20 +453,14 @@ static void nla_draw_strip_text(AnimData *adt, NlaTrack *nlt, NlaStrip *strip, i
 		col[3] = 255;
 	else
 		col[3] = 128;
-	
-	/* determine the amount of padding required - cannot be constant otherwise looks weird in some cases */
-	if ((strip->end - strip->start) <= 5.0f)
-		xofs = 0.5f;
-	else
-		xofs = 1.0f;
-	
+
 	/* set bounding-box for text 
 	 *	- padding of 2 'units' on either side
 	 */
 	// TODO: make this centered?
-	rect.xmin = strip->start + xofs;
+	rect.xmin = xminc;
 	rect.ymin = yminc;
-	rect.xmax = strip->end - xofs;
+	rect.xmax = xmaxc;
 	rect.ymax = ymaxc;
 	
 	/* add this string to the cache of texts to draw */
@@ -510,6 +505,8 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 	float y = 0.0f;
 	size_t items;
 	int height;
+	const float pixelx = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
+	const float text_margin_x = (8 * UI_DPI_FAC) * pixelx;
 	
 	/* build list of channels to draw */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
@@ -550,11 +547,16 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					/* draw each strip in the track (if visible) */
 					for (strip = nlt->strips.first, index = 1; strip; strip = strip->next, index++) {
 						if (BKE_nlastrip_within_bounds(strip, v2d->cur.xmin, v2d->cur.xmax)) {
+							const float xminc = strip->start + text_margin_x;
+							const float xmaxc = strip->end + text_margin_x;
+
 							/* draw the visualization of the strip */
 							nla_draw_strip(snla, adt, nlt, strip, v2d, yminc, ymaxc);
 							
 							/* add the text for this strip to the cache */
-							nla_draw_strip_text(adt, nlt, strip, index, v2d, yminc, ymaxc);
+							if (xminc < xmaxc) {
+								nla_draw_strip_text(adt, nlt, strip, index, v2d, xminc, xmaxc, yminc, ymaxc);
+							}
 							
 							/* if transforming strips (only real reason for temp-metas currently), 
 							 * add to the cache the frame numbers of the strip's extents
