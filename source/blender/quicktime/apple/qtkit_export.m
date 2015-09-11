@@ -378,8 +378,7 @@ int start_qt(
 	}
 	else {
 		makeqtstring(rd, name, preview);
-		qtexport->filename = [[NSString alloc] initWithCString:name
-		                                                       encoding:[NSString defaultCStringEncoding]];
+		qtexport->filename = [[NSString alloc] initWithUTF8String:name];
 		qtexport->movie = nil;
 		qtexport->audioFile = NULL;
 
