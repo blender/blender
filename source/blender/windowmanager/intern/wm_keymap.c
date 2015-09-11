@@ -586,8 +586,23 @@ static void wm_keymap_patch(wmKeyMap *km, wmKeyMap *diff_km)
 			/* Do not re-add an already existing keymap item! See T42088. */
 			/* We seek only for exact copy here! See T42137. */
 			kmi_add = wm_keymap_find_item_equals(km, kmdi->add_item);
+
+			/* If kmi_add is same as kmi_remove (can happen in some cases, typically when we got kmi_remove
+			 * from wm_keymap_find_item_equals_result()), no need to add or remove anything, see T45579. */
+			/* Note: This typically happens when we apply user-defined keymap diff to a base one that was exported
+			 *       with that customized keymap already. In that case:
+			 *         - wm_keymap_find_item_equals(km, kmdi->remove_item) finds nothing (because actual shortcut of
+			 *           current base does not match kmdi->remove_item any more).
+			 *         - wm_keymap_find_item_equals_result(km, kmdi->remove_item) finds the current kmi from
+			 *           base keymap (because it does exactly the same thing).
+			 *         - wm_keymap_find_item_equals(km, kmdi->add_item) finds the same kmi, since base keymap was
+			 *           exported with that user-defined shortcut already!
+			 *       Maybe we should rather keep user-defined keymaps specific to a given base one? */
+			if (kmi_add != NULL && kmi_add == kmi_remove) {
+				kmi_add = kmi_remove = NULL;
+			}
 			/* only if nothing to remove or item to remove found */
-			if (!kmi_add && (!kmdi->remove_item || kmi_remove)) {
+			else if (!kmi_add && (!kmdi->remove_item || kmi_remove)) {
 				kmi_add = wm_keymap_item_copy(kmdi->add_item);
 				kmi_add->flag |= KMI_USER_MODIFIED;
 
