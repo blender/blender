@@ -599,7 +599,7 @@ static void wm_keymap_patch(wmKeyMap *km, wmKeyMap *diff_km)
 			 *           exported with that user-defined shortcut already!
 			 *       Maybe we should rather keep user-defined keymaps specific to a given base one? */
 			if (kmi_add != NULL && kmi_add == kmi_remove) {
-				kmi_add = kmi_remove = NULL;
+				kmi_remove = NULL;
 			}
 			/* only if nothing to remove or item to remove found */
 			else if (!kmi_add && (!kmdi->remove_item || kmi_remove)) {
