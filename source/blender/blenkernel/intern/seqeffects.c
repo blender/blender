@@ -2927,8 +2927,10 @@ static ImBuf *do_text_effect(const SeqRenderData *context, Sequence *seq, float 
 	display = IMB_colormanagement_display_get_named(display_device);
 
 	/* Compensate text size for preview render size. */
-	if (context->preview_render_size == SEQ_PROXY_RENDER_SIZE_100) {
-		/* Should be rendered at 100%, but context->preview_render_size = 99 right now. */
+	if (ELEM(context->preview_render_size, SEQ_PROXY_RENDER_SIZE_SCENE, SEQ_PROXY_RENDER_SIZE_FULL)) {
+		proxy_size_comp = context->scene->r.size / 100.0f;
+	}
+	else if (context->preview_render_size == SEQ_PROXY_RENDER_SIZE_100) {
 		proxy_size_comp = 1.0f;
 	}
 	else {
@@ -2936,7 +2938,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context, Sequence *seq, float 
 	}
 
 	/* set before return */
-	BLF_size(mono, proxy_size_comp * (context->scene->r.size / 100) * data->text_size, 72);
+	BLF_size(mono, proxy_size_comp * data->text_size, 72);
 
 	BLF_buffer(mono, out->rect_float, (unsigned char *)out->rect, width, height, out->channels, display);
 
@@ -2964,12 +2966,12 @@ static ImBuf *do_text_effect(const SeqRenderData *context, Sequence *seq, float 
 		int fontx, fonty;
 		fontx = BLF_width_max(mono);
 		fonty = BLF_height_max(mono);
-		BLF_position(mono, x + max_ii(fontx / 25, 1), y + max_ii(fonty / 25, 1), 0.0);
-		BLF_buffer_col(mono, 0.0f, 0.0f, 0.0f, 1.0);
+		BLF_position(mono, x + max_ii(fontx / 25, 1), y + max_ii(fonty / 25, 1), 0.0f);
+		BLF_buffer_col(mono, 0.0f, 0.0f, 0.0f, 1.0f);
 		BLF_draw_buffer(mono, data->text);
 	}
-	BLF_position(mono, x, y, 0.0);
-	BLF_buffer_col(mono, 1.0f, 1.0f, 1.0f, 1.0);
+	BLF_position(mono, x, y, 0.0f);
+	BLF_buffer_col(mono, 1.0f, 1.0f, 1.0f, 1.0f);
 	BLF_draw_buffer(mono, data->text);
 
 	BLF_buffer(mono, NULL, NULL, 0, 0, 0, NULL);
