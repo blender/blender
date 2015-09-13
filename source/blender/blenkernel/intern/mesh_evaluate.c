@@ -1560,7 +1560,7 @@ void BKE_mesh_normals_loop_custom_from_vertices_set(
  * Computes average per-vertex normals from given custom loop normals.
  *
  * @param clnors The computed custom loop normals.
- * @param r_vert_clnors The (already allocated) array wher to store averaged per-vertex normals.
+ * @param r_vert_clnors The (already allocated) array where to store averaged per-vertex normals.
  */
 void BKE_mesh_normals_loop_to_vertex(
         const int numVerts, const MLoop *mloops, const int numLoops,

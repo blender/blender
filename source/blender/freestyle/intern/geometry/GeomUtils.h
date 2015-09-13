@@ -200,7 +200,7 @@ void fromWorldToCamera(const Vec3r& p, Vec3r& q, const real model_view_matrix[4]
 void fromCameraToRetina(const Vec3r& p, Vec3r& q, const real projection_matrix[4][4]);
 
 /*! From retina to image.
- *  Returns the coordinates expressed in Image coorinates system.
+ *  Returns the coordinates expressed in Image coordinates system.
  *  p
  *    point's coordinates expressed in retina system
  *  q

@@ -36,7 +36,7 @@
 #ifndef __MATH_COLOR_BLEND_INLINE_C__
 #define __MATH_COLOR_BLEND_INLINE_C__
 
-/* don't add any saturation to a completly black and white image */
+/* don't add any saturation to a completely black and white image */
 #define EPS_SATURATION 0.0005f
 #define EPS_ALPHA 0.0005f
 

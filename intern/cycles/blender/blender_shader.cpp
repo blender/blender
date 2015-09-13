@@ -1176,7 +1176,7 @@ void BlenderSync::sync_world(bool update_all)
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
 	/* when doing preview render check for BI's transparency settings,
-	 * this is so because bledner's preview render routines are not able
+	 * this is so because Blender's preview render routines are not able
 	 * to tweak all cycles's settings depending on different circumstances
 	 */
 	if(b_engine.is_preview() == false)

@@ -2013,7 +2013,7 @@ void EDBM_selectmode_set(BMEditMesh *em)
 
 /**
  * Expand & Contract the Selection
- * (used when chaning modes and Ctrl key held)
+ * (used when changing modes and Ctrl key held)
  *
  * Flush the selection up:
  * - vert -> edge

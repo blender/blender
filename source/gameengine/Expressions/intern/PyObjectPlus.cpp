@@ -80,7 +80,7 @@ void PyObjectPlus::ProcessReplica()
 }
 
 /* Sometimes we might want to manually invalidate a BGE type even if
- * it hasnt been released by the BGE, say for example when an object
+ * it hasn't been released by the BGE, say for example when an object
  * is removed from a scene, accessing it may cause problems.
  *
  * In this case the current proxy is made invalid, disowned,

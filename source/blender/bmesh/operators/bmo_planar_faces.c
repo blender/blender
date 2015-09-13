@@ -21,7 +21,7 @@
 /** \file blender/bmesh/operators/bmo_planar_faces.c
  *  \ingroup bmesh
  *
- * Iternatively flatten 4+ sided faces.
+ * Iteratively flatten 4+ sided faces.
  */
 
 #include "MEM_guardedalloc.h"

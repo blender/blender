@@ -1436,7 +1436,7 @@ static void node_parent_offset_apply(NodeInsertOfsData *data, bNode *parent, con
 #define NODE_INSOFS_ANIM_DURATION 0.25f
 
 /**
- * Callback that applies NodeInsertOfsData.offset_x to a node or its parent, similiar
+ * Callback that applies NodeInsertOfsData.offset_x to a node or its parent, similar
  * to node_link_insert_offset_output_chain_cb below, but with slightly different logic
  */
 static bool node_link_insert_offset_frame_chain_cb(

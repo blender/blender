@@ -39,7 +39,7 @@
 /**
  * \brief Compute the covariance matrix of given set of nD coordinates.
  *
- * \param n the dimension of the vectors (and hence, of the covairance matrix to compute).
+ * \param n the dimension of the vectors (and hence, of the covariance matrix to compute).
  * \param cos_vn the nD points to compute covariance from.
  * \param nbr_cos_vn the number of nD coordinates in cos_vn.
  * \param center the center (or mean point) of cos_vn. If NULL, it is assumed cos_vn is already centered.

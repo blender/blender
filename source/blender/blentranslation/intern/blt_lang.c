@@ -97,7 +97,7 @@ static void fill_locales(void)
 	BLI_join_dirfile(languages, FILE_MAX, languages_path, "languages");
 	line = lines = BLI_file_read_as_lines(languages);
 
-	/* This whole "parsing" code is a bit weak, in that it expects strictly formated input file...
+	/* This whole "parsing" code is a bit weak, in that it expects strictly formatted input file...
 	 * Should not be a problem, though, as this file is script-generated! */
 
 	/* First loop to find highest locale ID */

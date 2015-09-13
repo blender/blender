@@ -1854,7 +1854,7 @@ static bool snapObject(Scene *scene, short snap_mode, ARegion *ar, Object *ob, f
 			do_bb = false;
 		}
 		else {
-			/* in this case we wan't the mesh from the editmesh, avoids stale data. see: T45978.
+			/* in this case we want the mesh from the editmesh, avoids stale data. see: T45978.
 			 * still set the 'em' to NULL, since we only want the 'dm'. */
 			em = BKE_editmesh_from_object(ob);
 			if (em) {

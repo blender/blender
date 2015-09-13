@@ -2079,7 +2079,7 @@ static void write_meshes(WriteData *wd, ListBase *idbase)
 
 				/* now fill in polys to mfaces */
 				/* XXX This breaks writing desing, by using temp allocated memory, which will likely generate
-				 *     doublons in stored 'old' addresses.
+				 *     duplicates in stored 'old' addresses.
 				 *     This is very bad, but do not see easy way to avoid this, aside from generating those data
 				 *     outside of save process itself.
 				 *     Maybe we can live with this, though?

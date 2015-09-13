@@ -756,7 +756,7 @@ void BLI_str_toupper_ascii(char *str, const size_t len)
  *
  * \param str
  * \param pad
- * \return The number of zeto's stripped.
+ * \return The number of zeros stripped.
  */
 int BLI_str_rstrip_float_zero(char *str, const char pad)
 {

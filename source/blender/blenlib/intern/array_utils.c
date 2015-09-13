@@ -90,7 +90,7 @@ void _bli_array_wrap(void *arr_v, unsigned int arr_len, size_t arr_stride, int d
 
 /**
  *In-place array permute.
- * (re-arrange elemrnts based on an array of indices).
+ * (re-arrange elements based on an array of indices).
  *
  * Access via #BLI_array_wrap
  */

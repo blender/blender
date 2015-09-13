@@ -2675,7 +2675,7 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 	                   brush->mtex.tex;
 
 	/* are we painting onto a modified mesh?,
-	 * if not we can skip face map trickyness */
+	 * if not we can skip face map trickiness */
 	if (vertex_paint_use_fast_update_check(ob)) {
 		vpd->use_fast_update = true;
 /*		printf("Fast update!\n");*/

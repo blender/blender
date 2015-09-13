@@ -2016,7 +2016,7 @@ bool BM_vert_splice_check_double(BMVert *v_a, BMVert *v_b)
  *
  * \return Success
  *
- * \warning This does't work for collapsing edges,
+ * \warning This doesn't work for collapsing edges,
  * where \a v and \a vtarget are connected by an edge
  * (assert checks for this case).
  */

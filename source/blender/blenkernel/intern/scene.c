@@ -1360,7 +1360,7 @@ static void scene_do_rb_simulation_recursive(Scene *scene, float ctime)
  *
  * Ideally Mballs shouldn't do such an iteration and use DAG
  * queries instead. For the time being we've got new DAG
- * let's keep it simple and update mballs in a ingle thread.
+ * let's keep it simple and update mballs in a single thread.
  */
 #define MBALL_SINGLETHREAD_HACK
 

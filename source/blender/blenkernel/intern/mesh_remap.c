@@ -237,7 +237,7 @@ static void mesh_calc_eigen_matrix(
 
 		/* Protect against 1D/2D degenerated cases! */
 		/* Note: not sure why we need square root of eigen values here (which are equivalent to singular values,
-		 * as far as I have understood), but it seems to heavily reduce (if not completly nullify)
+		 * as far as I have understood), but it seems to heavily reduce (if not completely nullify)
 		 * the error due to non-uniform scalings... */
 		evi = (evi < 1e-6f && evi > -1e-6f) ? ((evi < 0.0f) ? -1e-3f : 1e-3f) : sqrtf_signed(evi);
 		mul_v3_fl(eigen_vec[i], evi);

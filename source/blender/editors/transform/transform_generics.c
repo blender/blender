@@ -1831,7 +1831,7 @@ void calculateCenter(TransInfo *t)
 		/* zfac is only used convertViewVec only in cases operator was invoked in RGN_TYPE_WINDOW
 		 * and never used in other cases.
 		 *
-		 * We need special case here as well, since ED_view3d_calc_zfac will crahs when called
+		 * We need special case here as well, since ED_view3d_calc_zfac will crash when called
 		 * for a region different from RGN_TYPE_WINDOW.
 		 */
 		if (t->ar->regiontype == RGN_TYPE_WINDOW) {

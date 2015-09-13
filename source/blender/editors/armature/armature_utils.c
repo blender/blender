@@ -481,7 +481,7 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
  *     - sets local head/tail rest locations using parent bone's arm_mat.
  *     - calls BKE_armature_where_is_bone() which uses parent's transform (arm_mat) to define this bone's transform.
  *     - fixes (converts) EditBone roll into Bone roll.
- *     - calls again BKE_armature_where_is_bone(), since roll fidling may have changed things for our bone...
+ *     - calls again BKE_armature_where_is_bone(), since roll fiddling may have changed things for our bone...
  * Note that order is crucial here, we can only handle child if all its parents in chain have already been handled
  * (this is ensured by recursive process). */
 static void armature_finalize_restpose(ListBase *bonelist, ListBase *editbonelist)
@@ -618,7 +618,7 @@ void ED_armature_from_edit(bArmature *arm)
 	}
 	
 	/* Fix parenting in a separate pass to ensure ebone->bone connections are valid at this point.
-	 * Do not set bone->head/tail here anymore, using EditBone data for that is not OK since our later fidling
+	 * Do not set bone->head/tail here anymore, using EditBone data for that is not OK since our later fiddling
 	 * with parent's arm_mat (for roll conversion) may have some small but visible impact on locations (T46010). */
 	for (eBone = arm->edbo->first; eBone; eBone = eBone->next) {
 		newBone = eBone->temp.bone;

@@ -137,7 +137,7 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
  * This function won't crash if its not but won't work right either.
  * \a e_b is the new edge.
  *
- * \note The edge this face comes from needs to be from the first and second verts fo the face.
+ * \note The edge this face comes from needs to be from the first and second verts to the face.
  * The caller must ensure this else we will copy from the wrong source.
  */
 static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f)

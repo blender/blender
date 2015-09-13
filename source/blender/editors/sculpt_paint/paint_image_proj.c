@@ -1269,7 +1269,7 @@ static void screen_px_to_vector_persp(
 }
 
 /**
- * Special function to return the factor fo a point along a line in pixel space.
+ * Special function to return the factor to a point along a line in pixel space.
  *
  * This is needed since we can't use #line_point_factor_v2 for perspective screen-space coords.
  *
@@ -5413,7 +5413,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	IMB_freeImBuf(ibuf);
 
 	if (image) {
-		/* now for the trickyness. store the view projection here!
+		/* now for the trickiness. store the view projection here!
 		 * re-projection will reuse this */
 		View3D *v3d = CTX_wm_view3d(C);
 		RegionView3D *rv3d = CTX_wm_region_view3d(C);

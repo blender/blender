@@ -2356,7 +2356,7 @@ static void SCREEN_OT_marker_jump(wmOperatorType *ot)
 static bool screen_set_is_ok(bScreen *screen, bScreen *screen_prev)
 {
 	return ((screen->winid == 0) &&
-	        /* in typical useage these should have a nonzero winid
+	        /* in typical usage these should have a nonzero winid
 	         * (all temp screens should be used, or closed & freed). */
 	        (screen->temp == false) &&
 	        (screen->state == SCREENNORMAL) &&

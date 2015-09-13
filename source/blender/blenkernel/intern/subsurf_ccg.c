@@ -796,7 +796,7 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss,
 {
 #ifdef WITH_OPENSUBDIV
 	/* Reset all related descriptors if actual mesh topology changed or if
-	 * other evlauation-related settings changed.
+	 * other evaluation-related settings changed.
 	 */
 	if (!ccgSubSurf_needGrids(ss)) {
 		/* TODO(sergey): Use vertex coordinates and flat subdiv flag. */
@@ -4803,7 +4803,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 				 *
 				 * TODO(sergey): There was a good eason why final calculation
 				 * used to free entirely cached subsurf structure. reason of
-				 * this is to be investiated still to be sure we don't have
+				 * this is to be investigated still to be sure we don't have
 				 * regressions here.
 				 */
 				if (use_gpu_backend) {

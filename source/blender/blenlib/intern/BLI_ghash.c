@@ -653,7 +653,7 @@ GHash *BLI_ghash_copy(GHash *gh, GHashKeyCopyFP keycopyfp, GHashValCopyFP valcop
 }
 
 /**
- * Reverve given ammount of entries (resize \a gh accordingly if needed).
+ * Reserve given amount of entries (resize \a gh accordingly if needed).
  */
 void BLI_ghash_reserve(GHash *gh, const unsigned int nentries_reserve)
 {

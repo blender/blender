@@ -348,7 +348,7 @@ static EdgeHalf *next_bev(BevVert *bv, EdgeHalf *from_e)
 /* Return a good representative face (for materials, etc.) for faces
  * created around/near BoundVert v.
  * Sometimes care about a second choice, if there is one.
- * If r_fother paramenter is non-NULL and there is another, different,
+ * If r_fother parameter is non-NULL and there is another, different,
  * possible frep, return the other one in that parameter. */
 static BMFace *boundvert_rep_face(BoundVert *v, BMFace **r_fother)
 {

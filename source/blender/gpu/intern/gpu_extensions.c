@@ -1685,8 +1685,8 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const
 {
 #ifdef WITH_OPENSUBDIV
 	/* TODO(sergey): used to add #version 150 to the geometry shader.
-	 * Could safely be renamed to "use_geometry_code" since it's evry much
-	 * liely any of geometry code will want to use GLSL 1.5.
+	 * Could safely be renamed to "use_geometry_code" since it's very
+	 * likely any of geometry code will want to use GLSL 1.5.
 	 */
 	bool use_opensubdiv = geocode != NULL;
 #else

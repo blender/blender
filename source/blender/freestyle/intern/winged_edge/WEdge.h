@@ -989,7 +989,7 @@ public:
 	}
 
 	/*! For triangles, returns the edge opposite to the vertex in e.
-	 *  returns flase if the face is not a triangle or if the vertex is not found
+	 *  returns false if the face is not a triangle or if the vertex is not found
 	 */
 	bool getOppositeEdge (const WVertex *v, WOEdge *&e);
 

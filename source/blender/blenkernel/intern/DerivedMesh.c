@@ -2536,7 +2536,7 @@ static void editbmesh_calc_modifiers(
 #ifdef WITH_OPENSUBDIV
 /* The idea is to skip CPU-side ORCO calculation when
  * we'll be using GPU backend of OpenSubdiv. This is so
- * playback performance is kept as high as posssible.
+ * playback performance is kept as high as possible.
  */
 static bool calc_modifiers_skip_orco(const Object *ob)
 {

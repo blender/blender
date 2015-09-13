@@ -2162,11 +2162,10 @@ static unsigned int groupname_to_filter_id(const char *group)
 	return BKE_idcode_to_idfilter(id_code);
 }
 
-/*
- * From here, we are in 'Job Context', i.e. have to be careful about sharing stuff between bacground working thread
+/**
+ * From here, we are in 'Job Context', i.e. have to be careful about sharing stuff between background working thread
  * and main one (used by UI among other things).
  */
-
 typedef struct TodoDir {
 	int level;
 	char *dir;

@@ -1785,7 +1785,7 @@ float ED_view3d_radius_to_dist(
 			lens = params.lens;
 			sensor_size = BKE_camera_sensor_size(params.sensor_fit, params.sensor_x, params.sensor_y);
 
-			/* ignore 'rv3d->camzoom' because we wan't to fit to the cameras frame */
+			/* ignore 'rv3d->camzoom' because we want to fit to the cameras frame */
 			zoom = CAMERA_PARAM_ZOOM_INIT_CAMOB;
 		}
 		else {

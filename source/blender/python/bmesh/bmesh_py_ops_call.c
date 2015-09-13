@@ -27,7 +27,7 @@
  *  \ingroup pybmesh
  *
  * This file provides __call__ aka BPy_BMO_call for
- * the bmesh operatorand has been given its own file
+ * the bmesh operator and has been given its own file
  * because argument conversion is involved.
  */
 

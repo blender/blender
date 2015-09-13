@@ -1546,7 +1546,7 @@ float BLI_gTurbulence(float noisesize, float x, float y, float z, int oct, int h
 
 /*
  * The following code is based on Ken Musgrave's explanations and sample
- * source code in the book "Texturing and Modelling: A procedural approach"
+ * source code in the book "Texturing and Modeling: A procedural approach"
  */
 
 /*
