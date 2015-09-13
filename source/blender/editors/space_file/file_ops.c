@@ -1831,11 +1831,12 @@ void file_filename_enter_handle(bContext *C, void *UNUSED(arg_unused), void *arg
 		matched_file[0] = '\0';
 		filepath[0] = '\0';
 
-		BLI_filename_make_safe(sfile->params->file);
-
 		file_expand_directory(C);
 
 		matches = file_select_match(sfile, sfile->params->file, matched_file);
+
+		/* *After* file_select_match! */
+		BLI_filename_make_safe(sfile->params->file);
 
 		if (matches) {
 			/* int i, numfiles = filelist_numfiles(sfile->files); */ /* XXX UNUSED */
