@@ -1023,19 +1023,14 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 	{
 		if (packet.stream_index == m_videoStream) 
 		{
-			if (m_isImage)
-			{
-				// If we're an image, we're probably not going to be here often,
-				// so we don't want to deal with delayed frames from threading.
-				// There might be a better way to handle this, but I'll leave that
-				// for people more knowledgeable with ffmpeg than myself. We don't
-				// need threading for a single image anyways.
-				m_codecCtx->thread_count = 1;
-			}
+			AVFrame *input = m_frame;
+			short counter = 0;
 
-			avcodec_decode_video2(m_codecCtx,
-				m_frame, &frameFinished,
-				&packet);
+			/* While the data is not read properly (png, tiffs, etc formats may need several pass)*/
+			while ((input->data[0] == 0 && input->data[1] == 0 && input->data[2] == 0 && input->data[3] == 0) && counter < 10) {
+				avcodec_decode_video2(m_codecCtx, m_frame, &frameFinished, &packet);
+				counter++;
+			}
 
 			// remember dts to compute exact frame number
 			dts = packet.dts;
