@@ -792,6 +792,11 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports,
 	ret = nodeAddLink(ntree, fromnode, fromsock, tonode, tosock);
 	
 	if (ret) {
+
+		/* not an issue from the UI, clear hidden from API to keep valid state. */
+		fromsock->flag &= ~SOCK_HIDDEN;
+		tosock->flag   &= ~SOCK_HIDDEN;
+
 		if (tonode)
 			nodeUpdate(ntree, tonode);
 
