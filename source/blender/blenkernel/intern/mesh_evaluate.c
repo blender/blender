@@ -3240,7 +3240,7 @@ void BKE_mesh_flush_hidden_from_polys_ex(MVert *mvert,
 			j = mp->totloop;
 			for (ml = &mloop[mp->loopstart]; j--; ml++) {
 				mvert[ml->v].flag &= (char)~ME_HIDE;
-				medge[ml->e].flag &= (char)~ME_HIDE;
+				medge[ml->e].flag &= (short)~ME_HIDE;
 			}
 		}
 	}
