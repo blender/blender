@@ -1179,20 +1179,20 @@ static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void
 
 static void count_images(MultiresBakeRender *bkr)
 {
-	int a, totface;
+	int a, totpoly;
 	DerivedMesh *dm = bkr->lores_dm;
-	MTFace *mtface = CustomData_get_layer(&dm->faceData, CD_MTFACE);
+	MTexPoly *mtexpoly = CustomData_get_layer(&dm->polyData, CD_MTEXPOLY);
 
 	BLI_listbase_clear(&bkr->image);
 	bkr->tot_image = 0;
 
-	totface = dm->getNumTessFaces(dm);
+	totpoly = dm->getNumPolys(dm);
 
-	for (a = 0; a < totface; a++)
-		mtface[a].tpage->id.flag &= ~LIB_DOIT;
+	for (a = 0; a < totpoly; a++)
+		mtexpoly[a].tpage->id.flag &= ~LIB_DOIT;
 
-	for (a = 0; a < totface; a++) {
-		Image *ima = mtface[a].tpage;
+	for (a = 0; a < totpoly; a++) {
+		Image *ima = mtexpoly[a].tpage;
 		if ((ima->id.flag & LIB_DOIT) == 0) {
 			LinkData *data = BLI_genericNodeN(ima);
 			BLI_addtail(&bkr->image, data);
@@ -1201,8 +1201,8 @@ static void count_images(MultiresBakeRender *bkr)
 		}
 	}
 
-	for (a = 0; a < totface; a++)
-		mtface[a].tpage->id.flag &= ~LIB_DOIT;
+	for (a = 0; a < totpoly; a++)
+		mtexpoly[a].tpage->id.flag &= ~LIB_DOIT;
 }
 
 static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)

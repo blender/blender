@@ -215,7 +215,7 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 		tmp_mmd.simple = true;
 	}
 
-	DM_set_only_copy(cddm, CD_MASK_BAREMESH | CD_MASK_MFACE | CD_MASK_MTFACE);
+	DM_set_only_copy(cddm, CD_MASK_BAREMESH);
 
 	tmp_mmd.lvl = *lvl;
 	tmp_mmd.sculptlvl = *lvl;
@@ -283,23 +283,6 @@ static void clear_single_image(Image *image, ClearFlag flag)
 	}
 }
 
-static void clear_images(MTFace *mtface, int totface, ClearFlag flag)
-{
-	int a;
-
-	for (a = 0; a < totface; a++) {
-		mtface[a].tpage->id.flag &= ~LIB_DOIT;
-	}
-
-	for (a = 0; a < totface; a++) {
-		clear_single_image(mtface[a].tpage, flag);
-	}
-
-	for (a = 0; a < totface; a++) {
-		mtface[a].tpage->id.flag &= ~LIB_DOIT;
-	}
-}
-
 static void clear_images_poly(MTexPoly *mtpoly, int totpoly, ClearFlag flag)
 {
 	int a;
@@ -342,7 +325,6 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 				clear_flag = CLEAR_DISPLACEMENT;
 			}
 
-			clear_images(me->mtface, me->totface, clear_flag);
 			clear_images_poly(me->mtpoly, me->totpoly, clear_flag);
 		}
 		CTX_DATA_END;
@@ -440,7 +422,7 @@ static void multiresbake_startjob(void *bkv, short *stop, short *do_update, floa
 	if (bkj->bake_clear) {  /* clear images */
 		for (data = bkj->data.first; data; data = data->next) {
 			DerivedMesh *dm = data->lores_dm;
-			MTFace *mtface = CustomData_get_layer(&dm->faceData, CD_MTFACE);
+			MTexPoly *mtexpoly = CustomData_get_layer(&dm->polyData, CD_MTEXPOLY);
 			ClearFlag clear_flag = 0;
 
 			if (bkj->mode == RE_BAKE_NORMALS) {
@@ -450,7 +432,7 @@ static void multiresbake_startjob(void *bkv, short *stop, short *do_update, floa
 				clear_flag = CLEAR_DISPLACEMENT;
 			}
 
-			clear_images(mtface, dm->getNumTessFaces(dm), clear_flag);
+			clear_images_poly(mtexpoly, dm->getNumPolys(dm), clear_flag);
 		}
 	}
 
