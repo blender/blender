@@ -1473,12 +1473,6 @@ void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels)
 	glReadPixels(0, 0, ofs->color->w, ofs->color->h, GL_RGBA, type, pixels);
 }
 
-//if non power of two textures are not supported, than ofs->w/h may not be same size as allocated *pixels
-void GPU_offscreen_read_pixels_wh(GPUOffScreen *ofs, int width, int height, int type, void *pixels)
-{
-	glReadPixels(0, 0, width, height, GL_RGBA, type, pixels);
-}
-
 int GPU_offscreen_width(const GPUOffScreen *ofs)
 {
 	return ofs->color->w;

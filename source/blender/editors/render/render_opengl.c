@@ -324,7 +324,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 			G.f &= ~G_RENDER_OGL;
 
 			gp_rect = MEM_mallocN(sizex * sizey * sizeof(unsigned char) * 4, "offscreen rect");
-			GPU_offscreen_read_pixels_wh(oglrender->ofs, sizex, sizey, GL_UNSIGNED_BYTE, gp_rect);
+			GPU_offscreen_read_pixels(oglrender->ofs, GL_UNSIGNED_BYTE, gp_rect);
 
 			BLI_assert(rectf != NULL);
 
@@ -380,7 +380,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 			        scene, v3d, ar, sizex, sizey, NULL, winmat,
 			        draw_bgpic, draw_sky, is_persp,
 			        oglrender->ofs, oglrender->fx, &fx_settings, viewname);
-			GPU_offscreen_read_pixels_wh(oglrender->ofs, sizex, sizey, GL_UNSIGNED_BYTE, rect);
+			GPU_offscreen_read_pixels(oglrender->ofs, GL_UNSIGNED_BYTE, rect);
 		}
 		else {
 			/* simple accumulation, less hassle then FSAA FBO's */
@@ -396,7 +396,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 			        scene, v3d, ar, sizex, sizey, NULL, winmat,
 			        draw_bgpic, draw_sky, is_persp,
 			        oglrender->ofs, oglrender->fx, &fx_settings, viewname);
-			GPU_offscreen_read_pixels_wh(oglrender->ofs, sizex, sizey, GL_UNSIGNED_BYTE, rect);
+			GPU_offscreen_read_pixels(oglrender->ofs, GL_UNSIGNED_BYTE, rect);
 
 			for (i = 0; i < sizex * sizey * 4; i++)
 				accum_buffer[i] = rect[i];
@@ -412,7 +412,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 				        scene, v3d, ar, sizex, sizey, NULL, winmat_jitter,
 				        draw_bgpic, draw_sky, is_persp,
 				        oglrender->ofs, oglrender->fx, &fx_settings, viewname);
-				GPU_offscreen_read_pixels_wh(oglrender->ofs, sizex, sizey, GL_UNSIGNED_BYTE, rect);
+				GPU_offscreen_read_pixels(oglrender->ofs, GL_UNSIGNED_BYTE, rect);
 
 				for (i = 0; i < sizex * sizey * 4; i++)
 					accum_buffer[i] += rect[i];
