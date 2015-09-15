@@ -93,7 +93,7 @@ void RegisterBlendExtension(void)
 	char RegCmd[MAX_PATH * 2];
 	char MBox[256];
 	char *blender_app;
-#ifndef WIN64
+#ifndef _WIN64
 	BOOL IsWOW64;
 #endif
 
@@ -158,7 +158,7 @@ void RegisterBlendExtension(void)
 	
 	BLI_getInstallationDir(InstallDir);
 	GetSystemDirectory(SysDir, FILE_MAXDIR);
-#ifdef WIN64
+#ifdef _WIN64
 	ThumbHandlerDLL = "BlendThumb64.dll";
 #elif defined(__MINGW32__)
 	ThumbHandlerDLL = "BlendThumb.dll";
