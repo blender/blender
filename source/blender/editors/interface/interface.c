@@ -3123,6 +3123,20 @@ void ui_block_cm_to_scene_linear_v3(uiBlock *block, float pixel[3])
 	IMB_colormanagement_display_to_scene_linear_v3(pixel, display);
 }
 
+void ui_block_cm_to_display_space_range(uiBlock *block, float *min, float *max)
+{
+	struct ColorManagedDisplay *display = ui_block_cm_display_get(block);
+	float pixel[3];
+
+	copy_v3_fl(pixel, *min);
+	IMB_colormanagement_scene_linear_to_display_v3(pixel, display);
+	*min = min_fff(UNPACK3(pixel));
+
+	copy_v3_fl(pixel, *max);
+	IMB_colormanagement_scene_linear_to_display_v3(pixel, display);
+	*max = max_fff(UNPACK3(pixel));
+}
+
 /**
  * \brief ui_def_but is the function that draws many button types
  *

@@ -2587,8 +2587,11 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 	
 	/* map v from property range to [0,1] */
 	if (but->a1 == UI_GRAD_V_ALT) {
-		float range = but->softmax - but->softmin;
-		v = (v - but->softmin) / range;
+		float min = but->softmin, max = but->softmax;
+		if (color_profile) {
+			ui_block_cm_to_display_space_range(but->block, &min, &max);
+		}
+		v = (v - min) / (max - min);
 	}
 
 	widget_init(&wtb);

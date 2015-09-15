@@ -5200,11 +5200,16 @@ static bool ui_numedit_but_HSVCUBE(
 			hsv[2] = y;
 			break;
 		case UI_GRAD_V_ALT:
+		{
 			/* vertical 'value' strip */
-
+			float min = but->softmin, max = but->softmax;
+			if (use_display_colorspace) {
+				ui_block_cm_to_display_space_range(but->block, &min, &max);
+			}
 			/* exception only for value strip - use the range set in but->min/max */
-			hsv[2] = y * (but->softmax - but->softmin) + but->softmin;
+			hsv[2] = y * (max - min) + min;
 			break;
+		}
 		default:
 			BLI_assert(0);
 			break;
