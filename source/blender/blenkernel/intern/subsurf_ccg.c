@@ -2007,7 +2007,7 @@ static void ccgDM_buffer_copy_triangles(
         const int *mat_orig_to_new)
 {
 	GPUBufferMaterial *gpumat, *gpumaterials = dm->drawObject->materials;
-	const int totmat = dm->drawObject->totmaterial;
+	const short totmat = dm->drawObject->totmaterial;
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGKey key;
@@ -2015,7 +2015,8 @@ static void ccgDM_buffer_copy_triangles(
 	int gridFaces = gridSize - 1;
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
 	int i, totface = ccgSubSurf_getNumFaces(ss);
-	int matnr = -1, start;
+	short mat_nr = -1;
+	int start;
 	int totloops = 0;
 	FaceCount *fc = MEM_mallocN(sizeof(*fc) * totmat, "gpumaterial.facecount");
 
@@ -2036,14 +2037,14 @@ static void ccgDM_buffer_copy_triangles(
 		int mati;
 
 		if (faceFlags) {
-			matnr = faceFlags[index].mat_nr;
+			mat_nr = ME_MAT_NR_TEST(faceFlags[index].mat_nr, totmat);
 			is_hidden = (faceFlags[index].flag & ME_HIDE) != 0;
 		}
 		else {
-			matnr = 0;
+			mat_nr = 0;
 			is_hidden = false;
 		}
-		mati = mat_orig_to_new[matnr];
+		mati = mat_orig_to_new[mat_nr];
 		gpumat = dm->drawObject->materials + mati;
 
 		if (is_hidden) {
@@ -2539,7 +2540,7 @@ static GPUDrawObject *ccgDM_GPUObjectNew(DerivedMesh *dm)
 	GPUDrawObject *gdo;
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
 	int gridFaces = ccgSubSurf_getGridSize(ss) - 1;
-	int totmat = (faceFlags) ? dm->totmat : 1;
+	const short totmat = (faceFlags) ? dm->totmat : 1;
 	GPUBufferMaterial *matinfo;
 	int i;
 	unsigned int tot_internal_edges = 0;
@@ -2559,7 +2560,7 @@ static GPUDrawObject *ccgDM_GPUObjectNew(DerivedMesh *dm)
 			CCGFace *f = ccgdm->faceMap[i].face;
 			int numVerts = ccgSubSurf_getFaceNumVerts(f);
 			int index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
-			int new_matnr = faceFlags[index].mat_nr;
+			const short new_matnr = ME_MAT_NR_TEST(faceFlags[index].mat_nr, totmat);
 			matinfo[new_matnr].totelements += numVerts * gridFaces * gridFaces * 6;
 			matinfo[new_matnr].totloops += numVerts * gridFaces * gridFaces * 4;
 			matinfo[new_matnr].totpolys++;

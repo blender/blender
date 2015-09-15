@@ -867,6 +867,7 @@ static void cdDM_drawMappedFacesGLSL(
 	const float (*nors)[3] = dm->getPolyDataArray(dm, CD_NORMAL);
 	const float (*lnors)[3] = dm->getLoopDataArray(dm, CD_NORMAL);
 	const int totpoly = dm->getNumPolys(dm);
+	const short totmat = dm->totmat;
 	int a, b, matnr, new_matnr;
 	bool do_draw;
 	int orig;
@@ -1047,8 +1048,9 @@ static void cdDM_drawMappedFacesGLSL(
 			}
 
 			for (a = 0; a < totpoly; a++, mpoly++) {
+				const short mat_nr = ME_MAT_NR_TEST(mpoly->mat_nr, totmat);
 				int j;
-				int i = mat_orig_to_new[mpoly->mat_nr];
+				int i = mat_orig_to_new[mat_nr];
 				offset = tot_loops * max_element_size;
 
 				if (matconv[i].numdata != 0) {
@@ -1258,7 +1260,7 @@ static void cdDM_buffer_copy_triangles(
 	GPUBufferMaterial *gpumat, *gpumaterials = dm->drawObject->materials;
 	int i, j, start;
 
-	const int totmat = dm->drawObject->totmaterial;
+	const short totmat = dm->drawObject->totmaterial;
 	const MPoly *mpoly = dm->getPolyArray(dm);
 	const MLoopTri *lt = dm->getLoopTriArray(dm);
 	const int totpoly = dm->getNumPolys(dm);
@@ -1273,8 +1275,9 @@ static void cdDM_buffer_copy_triangles(
 	}
 
 	for (i = 0; i < totpoly; i++) {
+		const short mat_nr = ME_MAT_NR_TEST(mpoly[i].mat_nr, totmat);
 		int tottri = ME_POLY_TRI_TOT(&mpoly[i]);
-		int mati = mat_orig_to_new[mpoly[i].mat_nr];
+		int mati = mat_orig_to_new[mat_nr];
 		gpumat = gpumaterials + mati;
 
 		if (mpoly[i].flag & ME_HIDE) {
@@ -1695,7 +1698,7 @@ static GPUDrawObject *cdDM_GPUobject_new(DerivedMesh *dm)
 	GPUDrawObject *gdo;
 	const MPoly *mpoly;
 	const MLoop *mloop;
-	int totmat = dm->totmat;
+	const short totmat = dm->totmat;
 	GPUBufferMaterial *mat_info;
 	int i, totloops, totpolys;
 
@@ -1713,7 +1716,7 @@ static GPUDrawObject *cdDM_GPUobject_new(DerivedMesh *dm)
 	mat_info = MEM_callocN(sizeof(*mat_info) * totmat, "GPU_drawobject_new.mat_orig_to_new");
 
 	for (i = 0; i < totpolys; i++) {
-		const int mat_nr = mpoly[i].mat_nr;
+		const short mat_nr = ME_MAT_NR_TEST(mpoly[i].mat_nr, totmat);
 		mat_info[mat_nr].totpolys++;
 		mat_info[mat_nr].totelements += 3 * ME_POLY_TRI_TOT(&mpoly[i]);
 		mat_info[mat_nr].totloops += mpoly[i].totloop;
