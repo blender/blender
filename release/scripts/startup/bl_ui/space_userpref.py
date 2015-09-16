@@ -493,7 +493,8 @@ class USERPREF_PT_system(Panel):
         col.separator()
 
         col.label(text="Sequencer / Clip Editor:")
-        col.prop(system, "prefetch_frames")
+        # currently disabled in the code
+        # col.prop(system, "prefetch_frames")
         col.prop(system, "memory_cache_limit")
 
         # 3. Column
