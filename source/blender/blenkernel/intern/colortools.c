@@ -725,6 +725,16 @@ void curvemapping_changed(CurveMapping *cumap, const bool rem_doubles)
 				cmp[a].y -= dy;
 			}
 		}
+
+		/* ensure zoom-level respects clipping */
+		if (BLI_rctf_size_x(&cumap->curr) > BLI_rctf_size_x(&cumap->clipr)) {
+			cumap->curr.xmin = cumap->clipr.xmin;
+			cumap->curr.xmax = cumap->clipr.xmax;
+		}
+		if (BLI_rctf_size_y(&cumap->curr) > BLI_rctf_size_y(&cumap->clipr)) {
+			cumap->curr.ymin = cumap->clipr.ymin;
+			cumap->curr.ymax = cumap->clipr.ymax;
+		}
 	}
 	
 	
