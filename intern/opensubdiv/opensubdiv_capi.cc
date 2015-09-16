@@ -306,7 +306,7 @@ int openSubdiv_supportGPUDisplay(void)
 		if (!vendor_checked) {
 			vendor_checked = true;
 			const char *vendor = (const char *)glGetString(GL_VENDOR);
-			if (strstr(vendor, "Intel")) {
+			if (vendor != NULL && strstr(vendor, "Intel")) {
 				if(getenv("OPENSUBDIV_ALLOW_INTEL") == NULL) {
 					is_intel = true;
 				}
