@@ -120,7 +120,7 @@ if(WITH_IMAGE_OPENJPEG)
 		intern/jp2.c
 	)
 
-	add_definitions(-DWITH_OPENJPEG)
+	add_definitions(-DWITH_OPENJPEG ${OPENJPEG_DEFINES})
 endif()
 
 if(WITH_IMAGE_REDCODE)

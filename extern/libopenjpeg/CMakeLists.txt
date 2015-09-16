@@ -31,9 +31,12 @@ set(INC_SYS
 
 )
 
+# TODO(sergey): Handle this via OPENJPEG_DEFINES
 if(WIN32)
 	add_definitions(-DOPJ_STATIC)
 endif()
+
+add_definitions(${OPENJPEG_DEFINES})
 
 set(SRC
 	bio.c
