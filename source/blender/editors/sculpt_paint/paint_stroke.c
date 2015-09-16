@@ -347,6 +347,7 @@ static bool paint_brush_update(bContext *C,
 		}
 		else {
 			copy_v2_v2(ups->anchored_initial_mouse, stroke->initial_mouse);
+			copy_v2_v2(mouse, stroke->initial_mouse);
 			stroke->stroke_distance = ups->pixel_radius;
 		}
 		ups->pixel_radius /= stroke->zoom_2d;
