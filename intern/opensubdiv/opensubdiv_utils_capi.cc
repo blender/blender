@@ -78,6 +78,7 @@ int openSubdiv_getAvailableEvaluators(void)
 	 * hard time evaluating required shaders.
 	 */
 	if (!vendor_checked) {
+		vendor_checked = true;
 		const char *vendor = (const char *)glGetString(GL_VENDOR);
 		const char *renderer = (const char *)glGetString(GL_RENDERER);
 		if (strstr(vendor, "ATI") ||
