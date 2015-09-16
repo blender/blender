@@ -232,17 +232,16 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	/* Execute / cancel buttons. */
 	if (loadbutton) {
 		const struct FileDirEntry *file = sfile->files ? filelist_file(sfile->files, params->active_file) : NULL;
-
 		char const *str_exec;
-		if (file) {
-			const bool is_parent_dir = (FILENAME_IS_PARENT(file->relpath));
-			if (is_parent_dir){
-				str_exec = IFACE_("Parent Directory");
-			} else if (file->typeflag & FILE_TYPE_DIR) {
-				str_exec = IFACE_("Open Directory");
-			}
-		} else {
-			str_exec = params->title; /* params->title is already translated! */
+
+		if (file && FILENAME_IS_PARENT(file->relpath)){
+			str_exec = IFACE_("Parent Directory");
+		}
+		else if (file && file->typeflag & FILE_TYPE_DIR) {
+			str_exec = IFACE_("Open Directory");
+		}
+		else {
+			str_exec = params->title;  /* params->title is already translated! */
 		}
 
 		uiDefButO(block, UI_BTYPE_BUT, "FILE_OT_execute", WM_OP_EXEC_REGION_WIN, str_exec,
