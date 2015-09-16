@@ -95,8 +95,6 @@ const GPUBufferTypeSettings gpu_buffer_type_settings[] = {
     {GL_ELEMENT_ARRAY_BUFFER_ARB, 4},
     /* triangles, 1 point since we are allocating from tottriangle points, which account for all points */
     {GL_ELEMENT_ARRAY_BUFFER_ARB, 1},
-    /* fast triangles */
-    {GL_ELEMENT_ARRAY_BUFFER_ARB, 1},
 };
 
 #define MAX_GPU_ATTRIB_DATA 32
