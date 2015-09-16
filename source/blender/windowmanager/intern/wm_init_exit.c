@@ -191,6 +191,10 @@ void WM_init(bContext *C, int argc, const char **argv)
 		GPU_set_anisotropic(U.anisotropic_filter);
 		GPU_set_gpu_mipmapping(U.use_gpu_mipmap);
 
+#ifdef WITH_OPENSUBDIV
+		openSubdiv_init();
+#endif
+
 		UI_init();
 	}
 	else {

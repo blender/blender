@@ -98,6 +98,12 @@ int openSubdiv_getAvailableEvaluators(void)
 	return flags;
 }
 
+void openSubdiv_init(void)
+{
+	/* Ensure all OpenGL strings are cached. */
+	(void)openSubdiv_getAvailableEvaluators();
+}
+
 void openSubdiv_cleanup(void)
 {
 	openSubdiv_osdGLDisplayDeinit();
