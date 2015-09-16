@@ -306,6 +306,9 @@ bool GPU_fx_compositor_initialize_passes(
 
 	fx->effects = 0;
 
+	if (!GPU_non_power_of_two_support() || !GLEW_EXT_framebuffer_object || !GLEW_ARB_fragment_shader)
+		return false;
+
 	if (!fx_settings) {
 		cleanup_fx_gl_data(fx, true);
 		return false;
@@ -340,15 +343,17 @@ bool GPU_fx_compositor_initialize_passes(
 	if (fx_flag & GPU_FX_FLAG_SSAO)
 		num_passes++;
 
-	if (!fx->gbuffer)
+	if (!fx->gbuffer) {
 		fx->gbuffer = GPU_framebuffer_create();
+
+		if (!fx->gbuffer) {
+			return false;
+		}
+	}
 
 	/* try creating the jitter texture */
 	if (!fx->jitter_buffer)
 		fx->jitter_buffer = create_jitter_texture();
-
-	if (!fx->gbuffer)
-		return false;
 
 	/* check if color buffers need recreation */
 	if (!fx->color_buffer || !fx->depth_buffer || w != fx->gbuffer_dim[0] || h != fx->gbuffer_dim[1]) {
