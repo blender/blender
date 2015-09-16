@@ -82,8 +82,8 @@ int openSubdiv_getAvailableEvaluators(void)
 		const char *vendor = (const char *)glGetString(GL_VENDOR);
 		const char *renderer = (const char *)glGetString(GL_RENDERER);
 		if (strstr(vendor, "ATI") ||
-			strstr(renderer, "Mesa DRI R") ||
-			(strstr(renderer, "Gallium ") && strstr(renderer, " on ATI ")))
+		    strstr(renderer, "Mesa DRI R") ||
+		    (strstr(renderer, "Gallium ") && strstr(renderer, " on ATI ")))
 		{
 			disable_glsl_compute = true;
 		}
