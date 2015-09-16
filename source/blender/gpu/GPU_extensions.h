@@ -204,6 +204,19 @@ void GPU_program_unbind(GPUProgram *);
  * - must call texture bind before setting a texture as uniform! */
 
 GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const char *geocode, const char *libcode, const char *defines, int input, int output, int number);
+enum {
+	GPU_SHADER_FLAGS_NONE = 0,
+	GPU_SHADER_FLAGS_SPECIAL_OPENSUBDIV = (1 << 0),
+};
+GPUShader *GPU_shader_create_ex(const char *vertexcode,
+                                const char *fragcode,
+                                const char *geocode,
+                                const char *libcode,
+                                const char *defines,
+                                int input,
+                                int output,
+                                int number,
+                                const int flags);
 void GPU_shader_free(GPUShader *shader);
 
 void GPU_shader_bind(GPUShader *shader);

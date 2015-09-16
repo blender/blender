@@ -1681,16 +1681,42 @@ void GPU_program_parameter_4f(GPUProgram *program, unsigned int location, float 
 	glProgramLocalParameter4fARB(program->type, location, x, y, z, w);
 }
 
+GPUShader *GPU_shader_create(const char *vertexcode,
+                             const char *fragcode,
+                             const char *geocode,
+                             const char *libcode,
+                             const char *defines,
+                             int input,
+                             int output,
+                             int number)
+{
+	return GPU_shader_create_ex(vertexcode,
+	                            fragcode,
+	                            geocode,
+	                            libcode,
+	                            defines,
+	                            input,
+	                            output,
+	                            number,
+	                            GPU_SHADER_FLAGS_NONE);
+}
 
-
-GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const char *geocode, const char *libcode, const char *defines, int input, int output, int number)
+GPUShader *GPU_shader_create_ex(const char *vertexcode,
+                                const char *fragcode,
+                                const char *geocode,
+                                const char *libcode,
+                                const char *defines,
+                                int input,
+                                int output,
+                                int number,
+                                const int flags)
 {
 #ifdef WITH_OPENSUBDIV
 	/* TODO(sergey): used to add #version 150 to the geometry shader.
 	 * Could safely be renamed to "use_geometry_code" since it's very
 	 * likely any of geometry code will want to use GLSL 1.5.
 	 */
-	bool use_opensubdiv = geocode != NULL;
+	bool use_opensubdiv = (flags & GPU_SHADER_FLAGS_SPECIAL_OPENSUBDIV) != 0;
 #else
 	bool use_opensubdiv = false;
 #endif

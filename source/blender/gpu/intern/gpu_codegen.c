@@ -1615,7 +1615,16 @@ GPUPass *GPU_generate_pass(ListBase *nodes, GPUNodeLink *outlink,
 	fragmentcode = code_generate_fragment(nodes, outlink->output);
 	vertexcode = code_generate_vertex(nodes, type);
 	geometrycode = code_generate_geometry(nodes, use_opensubdiv);
-	shader = GPU_shader_create(vertexcode, fragmentcode, geometrycode, glsl_material_library, NULL, 0, 0, 0);
+	shader = GPU_shader_create_ex(vertexcode,
+	                              fragmentcode,
+	                              geometrycode,
+	                              glsl_material_library,
+	                              NULL,
+	                              0,
+	                              0,
+	                              0,
+	                              use_opensubdiv ? GPU_SHADER_FLAGS_SPECIAL_OPENSUBDIV
+	                                             : GPU_SHADER_FLAGS_NONE);
 
 	/* failed? */
 	if (!shader) {
