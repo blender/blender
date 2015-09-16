@@ -164,11 +164,8 @@ static DerivedMesh *applyModifierEM(ModifierData *md, Object *UNUSED(ob),
 	SubsurfFlags ss_flags = (flag & MOD_APPLY_ORCO) ? 0 : (SUBSURF_FOR_EDIT_MODE | SUBSURF_IN_EDIT_MODE);
 #ifdef WITH_OPENSUBDIV
 	const bool allow_gpu = (flag & MOD_APPLY_ALLOW_GPU) != 0;
-	/* TODO(sergey): Not entirely correct, modifiers on top of subsurf
-	 * could be disabled.
-	 */
 	if (md->next == NULL && allow_gpu && smd->use_opensubdiv) {
-		ss_flags |= SUBSURF_USE_GPU_BACKEND;
+		modifier_setError(md, "OpenSubdiv is not supported in edit mode");
 	}
 #endif
 
