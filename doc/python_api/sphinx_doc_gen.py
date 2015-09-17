@@ -472,6 +472,18 @@ else:
     _BPY_PROP_COLLECTION_ID = "collection"
 
 
+def escape_rst(text):
+    """ Escape plain text which may contain characters used by RST.
+    """
+    return text.translate(escape_rst.trans)
+escape_rst.trans = str.maketrans({
+    "`": "\\`",
+    "|": "\\|",
+    "*": "\\*",
+    "\\": "\\\\",
+    })
+
+
 def is_struct_seq(value):
     return isinstance(value, tuple) and type(tuple) != tuple and hasattr(value, "n_fields")
 
@@ -1139,7 +1151,7 @@ def pycontext2sphinx(basepath):
 
 
 def pyrna_enum2sphinx(prop, use_empty_descriptions=False):
-    """ write a bullet point list of enum + descrptons
+    """ write a bullet point list of enum + descriptions
     """
 
     if use_empty_descriptions:
@@ -1154,7 +1166,7 @@ def pyrna_enum2sphinx(prop, use_empty_descriptions=False):
     if ok:
         return "".join(["* ``%s`` %s.\n" %
                         (identifier,
-                         ", ".join(val for val in (name, description) if val),
+                         ", ".join(escape_rst(val) for val in (name, description) if val),
                          )
                         for identifier, name, description in prop.enum_items
                         ])
