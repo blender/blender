@@ -2325,6 +2325,10 @@ if(WITH_IMAGE_OPENJPEG)
 		set(OPENJPEG_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/extern/libopenjpeg")
 		set(OPENJPEG_DEFINES "-DOPJ_STATIC")
 	endif()
+	# Special handling of Windows platform where openjpeg is always static.
+	if(WIN32)
+		set(OPENJPEG_DEFINES "-DOPJ_STATIC")
+	endif()
 endif()
 
 if(WITH_IMAGE_REDCODE)
