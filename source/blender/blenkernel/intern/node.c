@@ -818,7 +818,7 @@ void nodeChainIter(
 	bNodeLink *link;
 
 	for (link = ntree->links.first; link; link = link->next) {
-		if (link->flag & NODE_LINK_VALID) {
+		if ((link->flag & NODE_LINK_VALID) == 0) {
 			/* Skip links marked as cyclic. */
 			continue;
 		}
