@@ -93,8 +93,8 @@ if env['WITH_BF_PYTHON_SAFETY']:
 if env['BF_BUILDINFO']:
     defs.append('BUILD_DATE')
 
-
-# Audaspace is always on currently
+if env['WITH_BF_AUDASPACE']:
+    defs += env['BF_AUDASPACE_DEF']
 
 if env['WITH_BF_BULLET']:
     defs.append('WITH_BULLET')
