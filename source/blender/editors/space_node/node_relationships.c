@@ -1600,7 +1600,7 @@ static void node_link_insert_offset_ntree(
 				node_offset_apply(offs_node, addval);
 			}
 			else if (!insert->parent && offs_node->parent) {
-				node_offset_apply(offs_node->parent, addval);
+				node_offset_apply(nodeFindRootParent(offs_node), addval);
 			}
 			margin = addval;
 		}
