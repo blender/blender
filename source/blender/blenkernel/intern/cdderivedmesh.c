@@ -867,7 +867,7 @@ static void cdDM_drawMappedFacesGLSL(
 	const float (*nors)[3] = dm->getPolyDataArray(dm, CD_NORMAL);
 	const float (*lnors)[3] = dm->getLoopDataArray(dm, CD_NORMAL);
 	const int totpoly = dm->getNumPolys(dm);
-	const short totmat = dm->totmat;
+	const short dm_totmat = dm->totmat;
 	int a, b, matnr, new_matnr;
 	bool do_draw;
 	int orig;
@@ -1048,7 +1048,7 @@ static void cdDM_drawMappedFacesGLSL(
 			}
 
 			for (a = 0; a < totpoly; a++, mpoly++) {
-				const short mat_nr = ME_MAT_NR_TEST(mpoly->mat_nr, totmat);
+				const short mat_nr = ME_MAT_NR_TEST(mpoly->mat_nr, dm_totmat);
 				int j;
 				int i = mat_orig_to_new[mat_nr];
 				offset = tot_loops * max_element_size;
@@ -1260,14 +1260,15 @@ static void cdDM_buffer_copy_triangles(
 	GPUBufferMaterial *gpumat, *gpumaterials = dm->drawObject->materials;
 	int i, j, start;
 
-	const short totmat = dm->drawObject->totmaterial;
+	const int gpu_totmat = dm->drawObject->totmaterial;
+	const short dm_totmat = dm->totmat;
 	const MPoly *mpoly = dm->getPolyArray(dm);
 	const MLoopTri *lt = dm->getLoopTriArray(dm);
 	const int totpoly = dm->getNumPolys(dm);
 
-	FaceCount *fc = MEM_mallocN(sizeof(*fc) * totmat, "gpumaterial.facecount");
+	FaceCount *fc = MEM_mallocN(sizeof(*fc) * gpu_totmat, "gpumaterial.facecount");
 
-	for (i = 0; i < totmat; i++) {
+	for (i = 0; i < gpu_totmat; i++) {
 		fc[i].i_visible = 0;
 		fc[i].i_tri_visible = 0;
 		fc[i].i_hidden = gpumaterials[i].totpolys - 1;
@@ -1275,7 +1276,7 @@ static void cdDM_buffer_copy_triangles(
 	}
 
 	for (i = 0; i < totpoly; i++) {
-		const short mat_nr = ME_MAT_NR_TEST(mpoly[i].mat_nr, totmat);
+		const short mat_nr = ME_MAT_NR_TEST(mpoly[i].mat_nr, dm_totmat);
 		int tottri = ME_POLY_TRI_TOT(&mpoly[i]);
 		int mati = mat_orig_to_new[mat_nr];
 		gpumat = gpumaterials + mati;
@@ -1305,7 +1306,7 @@ static void cdDM_buffer_copy_triangles(
 	}
 
 	/* set the visible polygons */
-	for (i = 0; i < totmat; i++) {
+	for (i = 0; i < gpu_totmat; i++) {
 		gpumaterials[i].totvisiblepolys = fc[i].i_visible;
 	}
 
@@ -1698,12 +1699,12 @@ static GPUDrawObject *cdDM_GPUobject_new(DerivedMesh *dm)
 	GPUDrawObject *gdo;
 	const MPoly *mpoly;
 	const MLoop *mloop;
-	const short totmat = dm->totmat;
+	const short dm_totmat = dm->totmat;
 	GPUBufferMaterial *mat_info;
 	int i, totloops, totpolys;
 
 	/* object contains at least one material (default included) so zero means uninitialized dm */
-	BLI_assert(totmat != 0);
+	BLI_assert(dm_totmat != 0);
 
 	mpoly = dm->getPolyArray(dm);
 	mloop = dm->getLoopArray(dm);
@@ -1713,10 +1714,10 @@ static GPUDrawObject *cdDM_GPUobject_new(DerivedMesh *dm)
 
 	/* get the number of points used by each material, treating
 	 * each quad as two triangles */
-	mat_info = MEM_callocN(sizeof(*mat_info) * totmat, "GPU_drawobject_new.mat_orig_to_new");
+	mat_info = MEM_callocN(sizeof(*mat_info) * dm_totmat, "GPU_drawobject_new.mat_orig_to_new");
 
 	for (i = 0; i < totpolys; i++) {
-		const short mat_nr = ME_MAT_NR_TEST(mpoly[i].mat_nr, totmat);
+		const short mat_nr = ME_MAT_NR_TEST(mpoly[i].mat_nr, dm_totmat);
 		mat_info[mat_nr].totpolys++;
 		mat_info[mat_nr].totelements += 3 * ME_POLY_TRI_TOT(&mpoly[i]);
 		mat_info[mat_nr].totloops += mpoly[i].totloop;
@@ -1726,7 +1727,7 @@ static GPUDrawObject *cdDM_GPUobject_new(DerivedMesh *dm)
 	gdo->totvert = dm->getNumVerts(dm);
 	gdo->totedge = dm->getNumEdges(dm);
 
-	GPU_buffer_material_finalize(gdo, mat_info, totmat);
+	GPU_buffer_material_finalize(gdo, mat_info, dm_totmat);
 
 	gdo->tot_loop_verts = totloops;
 

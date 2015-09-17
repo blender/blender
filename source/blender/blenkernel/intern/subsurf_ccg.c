@@ -2007,7 +2007,8 @@ static void ccgDM_buffer_copy_triangles(
         const int *mat_orig_to_new)
 {
 	GPUBufferMaterial *gpumat, *gpumaterials = dm->drawObject->materials;
-	const short totmat = dm->drawObject->totmaterial;
+	const int gpu_totmat = dm->drawObject->totmaterial;
+	const short dm_totmat = dm->totmat;
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGKey key;
@@ -2018,11 +2019,11 @@ static void ccgDM_buffer_copy_triangles(
 	short mat_nr = -1;
 	int start;
 	int totloops = 0;
-	FaceCount *fc = MEM_mallocN(sizeof(*fc) * totmat, "gpumaterial.facecount");
+	FaceCount *fc = MEM_mallocN(sizeof(*fc) * gpu_totmat, "gpumaterial.facecount");
 
 	CCG_key_top_level(&key, ss);
 
-	for (i = 0; i < totmat; i++) {
+	for (i = 0; i < gpu_totmat; i++) {
 		fc[i].i_visible = 0;
 		fc[i].i_tri_visible = 0;
 		fc[i].i_hidden = gpumaterials[i].totpolys - 1;
@@ -2037,7 +2038,7 @@ static void ccgDM_buffer_copy_triangles(
 		int mati;
 
 		if (faceFlags) {
-			mat_nr = ME_MAT_NR_TEST(faceFlags[index].mat_nr, totmat);
+			mat_nr = ME_MAT_NR_TEST(faceFlags[index].mat_nr, dm_totmat);
 			is_hidden = (faceFlags[index].flag & ME_HIDE) != 0;
 		}
 		else {
@@ -2094,7 +2095,7 @@ static void ccgDM_buffer_copy_triangles(
 	}
 
 	/* set the visible polygons */
-	for (i = 0; i < totmat; i++) {
+	for (i = 0; i < gpu_totmat; i++) {
 		gpumaterials[i].totvisiblepolys = fc[i].i_visible;
 	}
 
@@ -2242,7 +2243,7 @@ static void ccgDM_buffer_copy_uv_texpaint(
 	int i, totface = ccgSubSurf_getNumFaces(ss);
 	int start = 0;
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
-	int totmaterial = dm->totmat;
+	int dm_totmat = dm->totmat;
 	MLoopUV **mloopuv_base;
 	MLoopUV  *stencil_base;
 	int stencil;
@@ -2251,9 +2252,9 @@ static void ccgDM_buffer_copy_uv_texpaint(
 
 	/* should have been checked for before, reassert */
 	BLI_assert(DM_get_loop_data_layer(dm, CD_MLOOPUV));
-	mloopuv_base = MEM_mallocN(totmaterial * sizeof(*mloopuv_base), "texslots");
+	mloopuv_base = MEM_mallocN(dm_totmat * sizeof(*mloopuv_base), "texslots");
 
-	for (i = 0; i < totmaterial; i++) {
+	for (i = 0; i < dm_totmat; i++) {
 		mloopuv_base[i] = DM_paint_uvlayer_active_get(dm, i);
 	}
 
@@ -2540,7 +2541,7 @@ static GPUDrawObject *ccgDM_GPUObjectNew(DerivedMesh *dm)
 	GPUDrawObject *gdo;
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
 	int gridFaces = ccgSubSurf_getGridSize(ss) - 1;
-	const short totmat = (faceFlags) ? dm->totmat : 1;
+	const short dm_totmat = (faceFlags) ? dm->totmat : 1;
 	GPUBufferMaterial *matinfo;
 	int i;
 	unsigned int tot_internal_edges = 0;
@@ -2551,16 +2552,16 @@ static GPUDrawObject *ccgDM_GPUObjectNew(DerivedMesh *dm)
 	int totface = ccgSubSurf_getNumFaces(ss);
 
 	/* object contains at least one material (default included) so zero means uninitialized dm */
-	BLI_assert(totmat != 0);
+	BLI_assert(dm_totmat != 0);
 
-	matinfo = MEM_callocN(sizeof(*matinfo) * totmat, "GPU_drawobject_new.mat_orig_to_new");
+	matinfo = MEM_callocN(sizeof(*matinfo) * dm_totmat, "GPU_drawobject_new.mat_orig_to_new");
 	
 	if (faceFlags) {
 		for (i = 0; i < totface; i++) {
 			CCGFace *f = ccgdm->faceMap[i].face;
 			int numVerts = ccgSubSurf_getFaceNumVerts(f);
 			int index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
-			const short new_matnr = ME_MAT_NR_TEST(faceFlags[index].mat_nr, totmat);
+			const short new_matnr = ME_MAT_NR_TEST(faceFlags[index].mat_nr, dm_totmat);
 			matinfo[new_matnr].totelements += numVerts * gridFaces * gridFaces * 6;
 			matinfo[new_matnr].totloops += numVerts * gridFaces * gridFaces * 4;
 			matinfo[new_matnr].totpolys++;
@@ -2583,7 +2584,7 @@ static GPUDrawObject *ccgDM_GPUObjectNew(DerivedMesh *dm)
 	gdo->totvert = 0; /* used to count indices, doesn't really matter for ccgsubsurf */
 	gdo->totedge = (totedge * edgeSize + tot_internal_edges);
 
-	GPU_buffer_material_finalize(gdo, matinfo, totmat);
+	GPU_buffer_material_finalize(gdo, matinfo, dm_totmat);
 
 	/* store total number of points used for triangles */
 	gdo->tot_triangle_point = ccgSubSurf_getNumFinalFaces(ss) * 6;
