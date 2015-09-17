@@ -643,8 +643,6 @@ static void TRANSFORM_OT_skin_resize(struct wmOperatorType *ot)
 
 static void TRANSFORM_OT_trackball(struct wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name   = "Trackball";
 	ot->description = "Trackball style rotation of selected items";
@@ -659,16 +657,13 @@ static void TRANSFORM_OT_trackball(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_screenactive;
 
 	/* Maybe we could use float_vector_xyz here too? */
-	prop = RNA_def_float_vector(ot->srna, "value", 2, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -FLT_MAX, FLT_MAX);
-	RNA_def_property_subtype(prop, PROP_ANGLE);
+	RNA_def_float_rotation(ot->srna, "value", 2, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -FLT_MAX, FLT_MAX);
 
 	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT);
 }
 
 static void TRANSFORM_OT_rotate(struct wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name = "Rotate";
 	ot->description = "Rotate selected items";
@@ -682,8 +677,7 @@ static void TRANSFORM_OT_rotate(struct wmOperatorType *ot)
 	ot->cancel = transform_cancel;
 	ot->poll   = ED_operator_screenactive;
 
-	prop = RNA_def_float(ot->srna, "value", 0.0f, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);
-	RNA_def_property_subtype(prop, PROP_ANGLE);
+	RNA_def_float_rotation(ot->srna, "value", 0, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);
 
 	Transform_Properties(ot, P_AXIS | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_GEO_SNAP | P_GPENCIL_EDIT);
 }

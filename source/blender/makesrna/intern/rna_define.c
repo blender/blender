@@ -1314,8 +1314,10 @@ void RNA_def_property_ui_icon(PropertyRNA *prop, int icon, bool consecutive)
 /**
  * The values hare are a little confusing:
  *
- * \param step For floats this is (step / 100), why /100? - nobody knows.
- * for int's, whole values are used.
+ * \param step: Used as the value to increase/decrease when clicking on number buttons,
+ * \as well as scaling mouse input for click-dragging number buttons.
+ * For floats this is (step * UI_PRECISION_FLOAT_SCALE), why? - nobody knows.
+ * For ints, whole values are used.
  *
  * \param precision The number of zeros to show
  * (as a whole number - common range is 1 - 6), see PRECISION_FLOAT_MAX
@@ -2857,7 +2859,7 @@ PropertyRNA *RNA_def_float_rotation(StructOrFunctionRNA *cont_, const char *iden
 
 	ASSERT_SOFT_HARD_LIMITS;
 
-	prop = RNA_def_property(cont, identifier, PROP_FLOAT, (len != 0) ? PROP_EULER : PROP_ANGLE);
+	prop = RNA_def_property(cont, identifier, PROP_FLOAT, (len >= 3) ? PROP_EULER : PROP_ANGLE);
 	if (len != 0) {
 		RNA_def_property_array(prop, len);
 		if (default_value) RNA_def_property_float_array_default(prop, default_value);
@@ -2868,7 +2870,7 @@ PropertyRNA *RNA_def_float_rotation(StructOrFunctionRNA *cont_, const char *iden
 	}
 	if (hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
-	RNA_def_property_ui_range(prop, softmin, softmax, 1, 3);
+	RNA_def_property_ui_range(prop, softmin, softmax, 10, 3);
 
 	return prop;
 }

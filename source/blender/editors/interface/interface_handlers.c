@@ -4291,7 +4291,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			if (mx < (but->rect.xmin + handlewidth)) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
-				tempf = (float)data->value - 0.01f * but->a1;
+				tempf = (float)data->value - (UI_PRECISION_FLOAT_SCALE * but->a1);
 				if (tempf < softmin) tempf = softmin;
 				data->value = tempf;
 
@@ -4300,7 +4300,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			else if (mx > but->rect.xmax - handlewidth) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
-				tempf = (float)data->value + 0.01f * but->a1;
+				tempf = (float)data->value + (UI_PRECISION_FLOAT_SCALE * but->a1);
 				if (tempf > softmax) tempf = softmax;
 				data->value = tempf;
 

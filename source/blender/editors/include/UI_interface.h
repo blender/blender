@@ -1040,6 +1040,8 @@ void UI_butstore_unregister(uiButStore *bs_handle, uiBut **but_p);
 
 /* Float precision helpers */
 #define UI_PRECISION_FLOAT_MAX 7
+/* For float buttons the 'step' (or a1), is scaled */
+#define UI_PRECISION_FLOAT_SCALE 0.01f
 
 /* Typical UI text */
 #define UI_FSTYLE_WIDGET (const uiFontStyle *)&(UI_style_get()->widget)
