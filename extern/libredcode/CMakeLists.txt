@@ -41,4 +41,6 @@ set(SRC
 	format.h
 )
 
+add_definitions(${OPENJPEG_DEFINES})
+
 blender_add_lib(extern_redcode "${SRC}" "${INC}" "${INC_SYS}")
