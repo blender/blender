@@ -1917,7 +1917,7 @@ void BKE_image_stamp_buf(
 
 		/* and draw the text. */
 		BLF_position(mono, x, y + y_ofs, 0.0);
-		BLF_draw_buffer(mono, stamp_data.file);
+		BLF_draw_buffer(mono, stamp_data.file, BLF_DRAW_STR_DUMMY_MAX);
 
 		/* the extra pixel for background. */
 		y -= BUFF_MARGIN_Y * 2;
@@ -1932,7 +1932,7 @@ void BKE_image_stamp_buf(
 		                  0, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
-		BLF_draw_buffer(mono, stamp_data.note);
+		BLF_draw_buffer(mono, stamp_data.note, BLF_DRAW_STR_DUMMY_MAX);
 
 		/* the extra pixel for background. */
 		y -= BUFF_MARGIN_Y * 2;
@@ -1947,7 +1947,7 @@ void BKE_image_stamp_buf(
 		                  0, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
-		BLF_draw_buffer(mono, stamp_data.date);
+		BLF_draw_buffer(mono, stamp_data.date, BLF_DRAW_STR_DUMMY_MAX);
 
 		/* the extra pixel for background. */
 		y -= BUFF_MARGIN_Y * 2;
@@ -1962,7 +1962,7 @@ void BKE_image_stamp_buf(
 		                  0, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
-		BLF_draw_buffer(mono, stamp_data.rendertime);
+		BLF_draw_buffer(mono, stamp_data.rendertime, BLF_DRAW_STR_DUMMY_MAX);
 	}
 
 	x = 0;
@@ -1977,7 +1977,7 @@ void BKE_image_stamp_buf(
 
 		/* and pad the text. */
 		BLF_position(mono, x, y + y_ofs, 0.0);
-		BLF_draw_buffer(mono, stamp_data.marker);
+		BLF_draw_buffer(mono, stamp_data.marker, BLF_DRAW_STR_DUMMY_MAX);
 
 		/* space width. */
 		x += w + pad;
@@ -1992,7 +1992,7 @@ void BKE_image_stamp_buf(
 
 		/* and pad the text. */
 		BLF_position(mono, x, y + y_ofs, 0.0);
-		BLF_draw_buffer(mono, stamp_data.time);
+		BLF_draw_buffer(mono, stamp_data.time, BLF_DRAW_STR_DUMMY_MAX);
 
 		/* space width. */
 		x += w + pad;
@@ -2006,7 +2006,7 @@ void BKE_image_stamp_buf(
 
 		/* and pad the text. */
 		BLF_position(mono, x, y + y_ofs, 0.0);
-		BLF_draw_buffer(mono, stamp_data.frame);
+		BLF_draw_buffer(mono, stamp_data.frame, BLF_DRAW_STR_DUMMY_MAX);
 
 		/* space width. */
 		x += w + pad;
@@ -2018,7 +2018,7 @@ void BKE_image_stamp_buf(
 		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 		                  x - BUFF_MARGIN_X, y - BUFF_MARGIN_Y, x + w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 		BLF_position(mono, x, y + y_ofs, 0.0);
-		BLF_draw_buffer(mono, stamp_data.camera);
+		BLF_draw_buffer(mono, stamp_data.camera, BLF_DRAW_STR_DUMMY_MAX);
 
 		/* space width. */
 		x += w + pad;
@@ -2030,7 +2030,7 @@ void BKE_image_stamp_buf(
 		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
 		                  x - BUFF_MARGIN_X, y - BUFF_MARGIN_Y, x + w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 		BLF_position(mono, x, y + y_ofs, 0.0);
-		BLF_draw_buffer(mono, stamp_data.cameralens);
+		BLF_draw_buffer(mono, stamp_data.cameralens, BLF_DRAW_STR_DUMMY_MAX);
 	}
 
 	if (TEXT_SIZE_CHECK(stamp_data.scene, w, h)) {
@@ -2044,7 +2044,7 @@ void BKE_image_stamp_buf(
 
 		/* and pad the text. */
 		BLF_position(mono, x, y + y_ofs, 0.0);
-		BLF_draw_buffer(mono, stamp_data.scene);
+		BLF_draw_buffer(mono, stamp_data.scene, BLF_DRAW_STR_DUMMY_MAX);
 	}
 
 	if (TEXT_SIZE_CHECK(stamp_data.strip, w, h)) {
@@ -2058,7 +2058,7 @@ void BKE_image_stamp_buf(
 		                  x - BUFF_MARGIN_X, y - BUFF_MARGIN_Y, x + w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
-		BLF_draw_buffer(mono, stamp_data.strip);
+		BLF_draw_buffer(mono, stamp_data.strip, BLF_DRAW_STR_DUMMY_MAX);
 	}
 
 	/* cleanup the buffer. */

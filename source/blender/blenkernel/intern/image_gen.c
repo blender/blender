@@ -309,26 +309,26 @@ static void checker_board_text(unsigned char *rect, float *rect_float, int width
 			BLF_buffer_col(mono, 1.0, 1.0, 1.0, 1.0);
 
 			BLF_position(mono, pen_x - outline, pen_y, 0.0);
-			BLF_draw_buffer(mono, text);
+			BLF_draw_buffer(mono, text, 2);
 			BLF_position(mono, pen_x + outline, pen_y, 0.0);
-			BLF_draw_buffer(mono, text);
+			BLF_draw_buffer(mono, text, 2);
 			BLF_position(mono, pen_x, pen_y - outline, 0.0);
-			BLF_draw_buffer(mono, text);
+			BLF_draw_buffer(mono, text, 2);
 			BLF_position(mono, pen_x, pen_y + outline, 0.0);
-			BLF_draw_buffer(mono, text);
+			BLF_draw_buffer(mono, text, 2);
 
 			BLF_position(mono, pen_x - outline, pen_y - outline, 0.0);
-			BLF_draw_buffer(mono, text);
+			BLF_draw_buffer(mono, text, 2);
 			BLF_position(mono, pen_x + outline, pen_y + outline, 0.0);
-			BLF_draw_buffer(mono, text);
+			BLF_draw_buffer(mono, text, 2);
 			BLF_position(mono, pen_x - outline, pen_y + outline, 0.0);
-			BLF_draw_buffer(mono, text);
+			BLF_draw_buffer(mono, text, 2);
 			BLF_position(mono, pen_x + outline, pen_y - outline, 0.0);
-			BLF_draw_buffer(mono, text);
+			BLF_draw_buffer(mono, text, 2);
 
 			BLF_buffer_col(mono, 0.0, 0.0, 0.0, 1.0);
 			BLF_position(mono, pen_x, pen_y, 0.0);
-			BLF_draw_buffer(mono, text);
+			BLF_draw_buffer(mono, text, 2);
 
 			text[1]++;
 		}

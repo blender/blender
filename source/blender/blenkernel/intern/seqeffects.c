@@ -2968,11 +2968,11 @@ static ImBuf *do_text_effect(const SeqRenderData *context, Sequence *seq, float 
 		fonty = BLF_height_max(mono);
 		BLF_position(mono, x + max_ii(fontx / 25, 1), y + max_ii(fonty / 25, 1), 0.0f);
 		BLF_buffer_col(mono, 0.0f, 0.0f, 0.0f, 1.0f);
-		BLF_draw_buffer(mono, data->text);
+		BLF_draw_buffer(mono, data->text, BLF_DRAW_STR_DUMMY_MAX);
 	}
 	BLF_position(mono, x, y, 0.0f);
 	BLF_buffer_col(mono, 1.0f, 1.0f, 1.0f, 1.0f);
-	BLF_draw_buffer(mono, data->text);
+	BLF_draw_buffer(mono, data->text, BLF_DRAW_STR_DUMMY_MAX);
 
 	BLF_buffer(mono, NULL, NULL, 0, 0, 0, NULL);
 

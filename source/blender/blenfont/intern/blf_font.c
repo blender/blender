@@ -58,8 +58,6 @@
 #include "BIF_gl.h"
 #include "BLF_api.h"
 
-#include "IMB_colormanagement.h"
-
 #include "blf_internal_types.h"
 #include "blf_internal.h"
 
@@ -174,12 +172,14 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 	}                                                                            \
 } (void)0
 
-void blf_font_draw(FontBLF *font, const char *str, size_t len)
+static void blf_font_draw_ex(
+        FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info,
+        int pen_y)
 {
 	unsigned int c;
 	GlyphBLF *g, *g_prev = NULL;
 	FT_Vector delta;
-	int pen_x = 0, pen_y = 0;
+	int pen_x = 0;
 	size_t i = 0;
 	GlyphBLF **glyph_ascii_table = font->glyph_cache->glyph_ascii_table;
 
@@ -203,15 +203,26 @@ void blf_font_draw(FontBLF *font, const char *str, size_t len)
 		pen_x += g->advance_i;
 		g_prev = g;
 	}
+
+	if (r_info) {
+		r_info->lines = 1;
+		r_info->width = pen_x;
+	}
+}
+void blf_font_draw(FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info)
+{
+	blf_font_draw_ex(font, str, len, r_info, 0);
 }
 
 /* faster version of blf_font_draw, ascii only for view dimensions */
-void blf_font_draw_ascii(FontBLF *font, const char *str, size_t len)
+static void blf_font_draw_ascii_ex(
+        FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info,
+        int pen_y)
 {
 	unsigned char c;
 	GlyphBLF *g, *g_prev = NULL;
 	FT_Vector delta;
-	int pen_x = 0, pen_y = 0;
+	int pen_x = 0;
 	GlyphBLF **glyph_ascii_table = font->glyph_cache->glyph_ascii_table;
 
 	BLF_KERNING_VARS(font, has_kerning, kern_mode);
@@ -231,6 +242,15 @@ void blf_font_draw_ascii(FontBLF *font, const char *str, size_t len)
 		pen_x += g->advance_i;
 		g_prev = g;
 	}
+
+	if (r_info) {
+		r_info->lines = 1;
+		r_info->width = pen_x;
+	}
+}
+void blf_font_draw_ascii(FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info)
+{
+	blf_font_draw_ascii_ex(font, str, len, r_info, 0);
 }
 
 /* use fixed column width, but an utf8 character may occupy multiple columns */
@@ -268,24 +288,22 @@ int blf_font_draw_mono(FontBLF *font, const char *str, size_t len, int cwidth)
 }
 
 /* Sanity checks are done by BLF_draw_buffer() */
-void blf_font_buffer(FontBLF *font, const char *str)
+static void blf_font_draw_buffer_ex(
+        FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info,
+        int pen_y)
 {
 	unsigned int c;
 	GlyphBLF *g, *g_prev = NULL;
 	FT_Vector delta;
-	int pen_x = (int)font->pos[0], pen_y = 0;
+	int pen_x = (int)font->pos[0];
+	int pen_y_basis = (int)font->pos[1] + pen_y;
 	size_t i = 0;
 	GlyphBLF **glyph_ascii_table = font->glyph_cache->glyph_ascii_table;
 
 	/* buffer specific vars */
 	FontBufInfoBLF *buf_info = &font->buf_info;
-	float b_col_float[4];
-	const unsigned char b_col_char[4] = {
-	    (unsigned char)(buf_info->col[0] * 255),
-	    (unsigned char)(buf_info->col[1] * 255),
-	    (unsigned char)(buf_info->col[2] * 255),
-	    (unsigned char)(buf_info->col[3] * 255)};
-
+	const float *b_col_float = buf_info->col_float;
+	const unsigned char *b_col_char = buf_info->col_char;
 	int chx, chy;
 	int y, x;
 	float a;
@@ -295,15 +313,8 @@ void blf_font_buffer(FontBLF *font, const char *str)
 	blf_font_ensure_ascii_table(font);
 
 	/* another buffer specific call for color conversion */
-	if (buf_info->display) {
-		copy_v4_v4(b_col_float, buf_info->col);
-		IMB_colormanagement_display_to_scene_linear_v3(b_col_float, buf_info->display);
-	}
-	else {
-		srgb_to_linearrgb_v4(b_col_float, buf_info->col);
-	}
 
-	while (str[i]) {
+	while ((i < len) && str[i]) {
 		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
 
 		if (UNLIKELY(c == BLI_UTF8_ERR))
@@ -314,13 +325,13 @@ void blf_font_buffer(FontBLF *font, const char *str)
 			BLF_KERNING_STEP(font, kern_mode, g_prev, g, delta, pen_x);
 
 		chx = pen_x + ((int)g->pos_x);
-		chy = (int)font->pos[1] + g->height;
+		chy = pen_y_basis + g->height;
 
 		if (g->pitch < 0) {
-			pen_y = (int)font->pos[1] + (g->height - (int)g->pos_y);
+			pen_y = pen_y_basis + (g->height - (int)g->pos_y);
 		}
 		else {
-			pen_y = (int)font->pos[1] - (g->height - (int)g->pos_y);
+			pen_y = pen_y_basis - (g->height - (int)g->pos_y);
 		}
 
 		if ((chx + g->width) >= 0 && chx < buf_info->w && (pen_y + g->height) >= 0 && pen_y < buf_info->h) {
@@ -429,6 +440,16 @@ void blf_font_buffer(FontBLF *font, const char *str)
 		pen_x += g->advance_i;
 		g_prev = g;
 	}
+
+	if (r_info) {
+		r_info->lines = 1;
+		r_info->width = pen_x;
+	}
+}
+void blf_font_draw_buffer(
+        FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info)
+{
+	blf_font_draw_buffer_ex(font, str, len, r_info, 0);
 }
 
 size_t blf_font_width_to_strlen(FontBLF *font, const char *str, size_t len, float width, float *r_width)
@@ -558,12 +579,14 @@ size_t blf_font_width_to_rstrlen(FontBLF *font, const char *str, size_t len, flo
 	return i_prev;
 }
 
-void blf_font_boundbox(FontBLF *font, const char *str, size_t len, rctf *box)
+static void blf_font_boundbox_ex(
+        FontBLF *font, const char *str, size_t len, rctf *box, struct ResultBLF *r_info,
+        int pen_y)
 {
 	unsigned int c;
 	GlyphBLF *g, *g_prev = NULL;
 	FT_Vector delta;
-	int pen_x = 0, pen_y = 0;
+	int pen_x = 0;
 	size_t i = 0;
 	GlyphBLF **glyph_ascii_table = font->glyph_cache->glyph_ascii_table;
 
@@ -609,9 +632,168 @@ void blf_font_boundbox(FontBLF *font, const char *str, size_t len, rctf *box)
 		box->xmax = 0.0f;
 		box->ymax = 0.0f;
 	}
+
+	if (r_info) {
+		r_info->lines = 1;
+		r_info->width = pen_x;
+	}
+}
+void blf_font_boundbox(FontBLF *font, const char *str, size_t len, rctf *r_box, struct ResultBLF *r_info)
+{
+	blf_font_boundbox_ex(font, str, len, r_box, r_info, 0);
 }
 
-void blf_font_width_and_height(FontBLF *font, const char *str, size_t len, float *width, float *height)
+
+/* -------------------------------------------------------------------- */
+/** \name Word-Wrap Support
+ * \{ */
+
+
+/**
+ * Generic function to add word-wrap support for other existing functions.
+ *
+ * Wraps on spaces and respects newlines.
+ * Intentionally ignores non-unix newlines, tabs and more advanced text formatting.
+ *
+ * \note If we want rich text - we better have a higher level API to handle that
+ * (color, bold, switching fonts... etc).
+ */
+static void blf_font_wrap_apply(
+        FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info,
+        void (*callback)(FontBLF *font, const char *str, size_t len, int pen_y, void *userdata),
+        void *userdata)
+{
+	unsigned int c;
+	GlyphBLF *g, *g_prev = NULL;
+	FT_Vector delta;
+	int pen_x = 0, pen_y = 0;
+	size_t i = 0;
+	GlyphBLF **glyph_ascii_table = font->glyph_cache->glyph_ascii_table;
+	int lines = 0;
+
+	BLF_KERNING_VARS(font, has_kerning, kern_mode);
+
+	struct WordWrapVars {
+		int wrap_width;
+		size_t start, last[2];
+	} wrap = {font->wrap_width != -1 ? font->wrap_width : INT_MAX, 0, {0, 0}};
+
+	blf_font_ensure_ascii_table(font);
+	// printf("%s wrapping (%d, %d) `%s`:\n", __func__, len, strlen(str), str);
+	while ((i < len) && str[i]) {
+
+		/* wrap vars */
+		size_t i_curr = i;
+		int pen_x_next;
+		bool do_draw = false;
+
+		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
+
+		if (UNLIKELY(c == BLI_UTF8_ERR))
+			break;
+		if (UNLIKELY(g == NULL))
+			continue;
+		if (has_kerning)
+			BLF_KERNING_STEP(font, kern_mode, g_prev, g, delta, pen_x);
+
+		/**
+		 * Implementation Detail (utf8).
+		 *
+		 * Take care with single byte offsets here,
+		 * since this is utf8 we can't be sure a single byte is a single character.
+		 *
+		 * This is _only_ done when we know for sure the character is ascii (newline or a space).
+		 */
+		pen_x_next = pen_x + g->advance_i;
+		if (UNLIKELY((pen_x_next >= wrap.wrap_width) && (wrap.start != wrap.last[0]))) {
+			do_draw = true;
+		}
+		else if (UNLIKELY(((i < len) && str[i]) == 0)) {
+			/* need check here for trailing newline, else we draw it */
+			wrap.last[0] = i + ((g->c != '\n') ? 1 : 0);
+			wrap.last[1] = i;
+			do_draw = true;
+		}
+		else if (UNLIKELY(g->c == '\n')) {
+			wrap.last[0] = i_curr + 1;
+			wrap.last[1] = i;
+			do_draw = true;
+		}
+		else if (UNLIKELY(g->c != ' ' && (g_prev ? g_prev->c == ' ' : false))) {
+			wrap.last[0] = i_curr;
+			wrap.last[1] = i;
+		}
+
+		if (UNLIKELY(do_draw)) {
+			// printf("(%d..%d)  `%.*s`\n", wrap.start, wrap.last[0], (wrap.last[0] - wrap.start) - 1, &str[wrap.start]);
+			callback(font, &str[wrap.start], (wrap.last[0] - wrap.start) - 1, pen_y, userdata);
+			wrap.start = wrap.last[0];
+			i = wrap.last[1];
+			pen_x = 0;
+			pen_y -= font->glyph_cache->max_glyph_height;
+			g_prev = NULL;
+			lines += 1;
+			continue;
+		}
+
+		pen_x = pen_x_next;
+		g_prev = g;
+	}
+
+	// printf("done! %d lines\n", lines);
+
+	if (r_info) {
+		r_info->lines = lines;
+		/* width of last line only (with wrapped lines) */
+		r_info->width = pen_x;
+	}
+}
+
+/* blf_font_draw__wrap */
+static void blf_font_draw__wrap_cb(FontBLF *font, const char *str, size_t len, int pen_y, void *UNUSED(userdata))
+{
+	blf_font_draw_ex(font, str, len, NULL, pen_y);
+}
+void blf_font_draw__wrap(FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info)
+{
+	blf_font_wrap_apply(font, str, len, r_info, blf_font_draw__wrap_cb, NULL);
+}
+
+/* blf_font_boundbox__wrap */
+static void blf_font_boundbox_wrap_cb(FontBLF *font, const char *str, size_t len, int pen_y, void *userdata)
+{
+	rctf *box = userdata;
+	rctf box_single;
+
+	blf_font_boundbox_ex(font, str, len, &box_single, NULL, pen_y);
+	BLI_rctf_union(box, &box_single);
+}
+void blf_font_boundbox__wrap(FontBLF *font, const char *str, size_t len, rctf *box, struct ResultBLF *r_info)
+{
+	box->xmin = 32000.0f;
+	box->xmax = -32000.0f;
+	box->ymin = 32000.0f;
+	box->ymax = -32000.0f;
+
+	blf_font_wrap_apply(font, str, len, r_info, blf_font_boundbox_wrap_cb, box);
+}
+
+/* blf_font_draw_buffer__wrap */
+static void blf_font_draw_buffer__wrap_cb(FontBLF *font, const char *str, size_t len, int pen_y, void *UNUSED(userdata))
+{
+	blf_font_draw_buffer_ex(font, str, len, NULL, pen_y);
+}
+void blf_font_draw_buffer__wrap(FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info)
+{
+	blf_font_wrap_apply(font, str, len, r_info, blf_font_draw_buffer__wrap_cb, NULL);
+}
+
+/** \} */
+
+
+void blf_font_width_and_height(
+        FontBLF *font, const char *str, size_t len,
+        float *r_width, float *r_height, struct ResultBLF *r_info)
 {
 	float xa, ya;
 	rctf box;
@@ -625,12 +807,17 @@ void blf_font_width_and_height(FontBLF *font, const char *str, size_t len, float
 		ya = 1.0f;
 	}
 
-	blf_font_boundbox(font, str, len, &box);
-	*width  = (BLI_rctf_size_x(&box) * xa);
-	*height = (BLI_rctf_size_y(&box) * ya);
+	if (font->flags & BLF_WORD_WRAP) {
+		blf_font_boundbox__wrap(font, str, len, &box, r_info);
+	}
+	else {
+		blf_font_boundbox(font, str, len, &box, r_info);
+	}
+	*r_width  = (BLI_rctf_size_x(&box) * xa);
+	*r_height = (BLI_rctf_size_y(&box) * ya);
 }
 
-float blf_font_width(FontBLF *font, const char *str, size_t len)
+float blf_font_width(FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info)
 {
 	float xa;
 	rctf box;
@@ -640,11 +827,16 @@ float blf_font_width(FontBLF *font, const char *str, size_t len)
 	else
 		xa = 1.0f;
 
-	blf_font_boundbox(font, str, len, &box);
+	if (font->flags & BLF_WORD_WRAP) {
+		blf_font_boundbox__wrap(font, str, len, &box, r_info);
+	}
+	else {
+		blf_font_boundbox(font, str, len, &box, r_info);
+	}
 	return BLI_rctf_size_x(&box) * xa;
 }
 
-float blf_font_height(FontBLF *font, const char *str, size_t len)
+float blf_font_height(FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info)
 {
 	float ya;
 	rctf box;
@@ -654,7 +846,12 @@ float blf_font_height(FontBLF *font, const char *str, size_t len)
 	else
 		ya = 1.0f;
 
-	blf_font_boundbox(font, str, len, &box);
+	if (font->flags & BLF_WORD_WRAP) {
+		blf_font_boundbox__wrap(font, str, len, &box, r_info);
+	}
+	else {
+		blf_font_boundbox(font, str, len, &box, r_info);
+	}
 	return BLI_rctf_size_y(&box) * ya;
 }
 
@@ -744,10 +941,10 @@ static void blf_font_fill(FontBLF *font)
 	font->buf_info.w = 0;
 	font->buf_info.h = 0;
 	font->buf_info.ch = 0;
-	font->buf_info.col[0] = 0;
-	font->buf_info.col[1] = 0;
-	font->buf_info.col[2] = 0;
-	font->buf_info.col[3] = 0;
+	font->buf_info.col_init[0] = 0;
+	font->buf_info.col_init[1] = 0;
+	font->buf_info.col_init[2] = 0;
+	font->buf_info.col_init[3] = 0;
 
 	font->ft_lib = ft_lib;
 	font->ft_lib_mutex = &ft_lib_mutex;
