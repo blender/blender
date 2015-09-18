@@ -21,6 +21,7 @@ CCL_NAMESPACE_BEGIN
 ccl_device_noinline float brick_noise(int n) /* fast integer noise */
 {
 	int nn;
+	n = (n + 1013) & 0x7fffffff;
 	n = (n >> 13) ^ n;
 	nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7fffffff;
 	return 0.5f * ((float)nn / 1073741824.0f);
