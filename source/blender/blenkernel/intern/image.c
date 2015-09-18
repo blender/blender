@@ -1872,11 +1872,22 @@ void BKE_image_stamp_buf(
 	struct ColorManagedDisplay *display;
 	const char *display_device;
 
+	/* vars for calculating wordwrap */
+	struct {
+		struct ResultBLF info;
+		rctf rect;
+	} wrap;
+
 	/* this could be an argument if we want to operate on non linear float imbuf's
 	 * for now though this is only used for renders which use scene settings */
 
 #define TEXT_SIZE_CHECK(str, w, h) \
 	((str[0]) && ((void)(h = h_fixed), (w = BLF_width(mono, str, sizeof(str)))))
+
+	/* must enable BLF_WORD_WRAP before using */
+#define TEXT_SIZE_CHECK_WORD_WRAP(str, w, h) \
+	((str[0]) && (BLF_boundbox_ex(mono, str, sizeof(str), &wrap.rect, &wrap.info), \
+	 (void)(h = h_fixed * wrap.info.lines), (w = BLI_rctf_size_x(&wrap.rect))))
 
 #define BUFF_MARGIN_X 2
 #define BUFF_MARGIN_Y 1
@@ -1895,6 +1906,7 @@ void BKE_image_stamp_buf(
 
 	/* set before return */
 	BLF_size(mono, scene->r.stamp_font_id, 72);
+	BLF_wordwrap(mono, width - (BUFF_MARGIN_X * 2));
 
 	BLF_buffer(mono, rectf, rect, width, height, channels, display);
 	BLF_buffer_col(mono, scene->r.fg_stamp[0], scene->r.fg_stamp[1], scene->r.fg_stamp[2], 1.0);
@@ -1924,21 +1936,6 @@ void BKE_image_stamp_buf(
 	}
 
 	/* Top left corner, below File */
-	if (TEXT_SIZE_CHECK(stamp_data.note, w, h)) {
-		y -= h;
-
-		/* and space for background. */
-		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
-		                  0, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
-
-		BLF_position(mono, x, y + y_ofs, 0.0);
-		BLF_draw_buffer(mono, stamp_data.note, BLF_DRAW_STR_DUMMY_MAX);
-
-		/* the extra pixel for background. */
-		y -= BUFF_MARGIN_Y * 2;
-	}
-
-	/* Top left corner, below File (or Note) */
 	if (TEXT_SIZE_CHECK(stamp_data.date, w, h)) {
 		y -= h;
 
@@ -1953,7 +1950,7 @@ void BKE_image_stamp_buf(
 		y -= BUFF_MARGIN_Y * 2;
 	}
 
-	/* Top left corner, below File, Date or Note */
+	/* Top left corner, below File, Date */
 	if (TEXT_SIZE_CHECK(stamp_data.rendertime, w, h)) {
 		y -= h;
 
@@ -1963,7 +1960,24 @@ void BKE_image_stamp_buf(
 
 		BLF_position(mono, x, y + y_ofs, 0.0);
 		BLF_draw_buffer(mono, stamp_data.rendertime, BLF_DRAW_STR_DUMMY_MAX);
+
+		/* the extra pixel for background. */
+		y -= BUFF_MARGIN_Y * 2;
 	}
+
+	/* Top left corner, below File, Date, Rendertime */
+	BLF_enable(mono, BLF_WORD_WRAP);
+	if (TEXT_SIZE_CHECK_WORD_WRAP(stamp_data.note, w, h)) {
+		y -= h;
+
+		/* and space for background. */
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, display,
+		                  0, y - BUFF_MARGIN_Y, w + BUFF_MARGIN_X, y + h + BUFF_MARGIN_Y);
+
+		BLF_position(mono, x, y + y_ofs + (h - h_fixed), 0.0);
+		BLF_draw_buffer(mono, stamp_data.note, BLF_DRAW_STR_DUMMY_MAX);
+	}
+	BLF_disable(mono, BLF_WORD_WRAP);
 
 	x = 0;
 	y = 0;
@@ -2063,8 +2077,10 @@ void BKE_image_stamp_buf(
 
 	/* cleanup the buffer. */
 	BLF_buffer(mono, NULL, NULL, 0, 0, 0, NULL);
+	BLF_wordwrap(mono, 0);
 
 #undef TEXT_SIZE_CHECK
+#undef TEXT_SIZE_CHECK_WORD_WRAP
 #undef BUFF_MARGIN_X
 #undef BUFF_MARGIN_Y
 }
