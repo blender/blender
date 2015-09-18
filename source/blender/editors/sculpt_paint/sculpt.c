@@ -4217,7 +4217,10 @@ static float sculpt_raycast_init(ViewContext *vc, const float mouse[2], float ra
 	sub_v3_v3v3(ray_normal, ray_end, ray_start);
 	dist = normalize_v3(ray_normal);
 
-	if (!rv3d->is_persp) {
+	if ((rv3d->is_persp == false) &&
+	    /* if the ray is clipped, don't adjust its start/end */
+	    ((rv3d->rflag & RV3D_CLIPPING) == 0))
+	{
 		BKE_pbvh_raycast_project_ray_root(ob->sculpt->pbvh, original, ray_start, ray_end, ray_normal);
 
 		/* recalculate the normal */
