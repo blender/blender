@@ -74,7 +74,8 @@ typedef struct uiFontStyle {
 	short uifont_id;		/* saved in file, 0 is default */
 	short points;			/* actual size depends on 'global' dpi */
 	short kerning;			/* unfitted or default kerning value. */
-	char pad[6];
+	char word_wrap;			/* enable word-wrap when drawing */
+	char pad[5];
 	short italic, bold;		/* style hint */
 	short shadow;			/* value is amount of pixels blur */
 	short shadx, shady;		/* shadow offset in pixels */
