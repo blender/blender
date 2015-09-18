@@ -2960,7 +2960,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context, Sequence *seq, float 
 	if ((data->align   == SEQ_TEXT_ALIGN_X_LEFT) &&
 	    (data->align_y == SEQ_TEXT_ALIGN_Y_TOP))
 	{
-		/* pass */
+		y -= line_height;
 	}
 	else {
 		/* vars for calculating wordwrap */
@@ -2978,7 +2978,10 @@ static ImBuf *do_text_effect(const SeqRenderData *context, Sequence *seq, float 
 			x -= BLI_rctf_size_x(&wrap.rect) / 2;
 		}
 
-		if (data->align_y == SEQ_TEXT_ALIGN_Y_BOTTOM) {
+		if (data->align_y == SEQ_TEXT_ALIGN_Y_TOP) {
+			y -= line_height;
+		}
+		else if (data->align_y == SEQ_TEXT_ALIGN_Y_BOTTOM) {
 			y += (wrap.info.lines - 1) * line_height;
 		}
 		else if (data->align_y == SEQ_TEXT_ALIGN_Y_CENTER) {
