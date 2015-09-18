@@ -38,6 +38,7 @@
 
 #include "BLI_math.h" /* windows needs for M_PI */
 #include "BLI_utildefines.h"
+#include "BLI_rect.h"
 #include "BLI_string.h"
 
 #include "DNA_scene_types.h"
@@ -2893,7 +2894,8 @@ static void init_text_effect(Sequence *seq)
 	BLI_strncpy(data->text, "Text", sizeof(data->text));
 
 	data->loc[0] = 0.5f;
-	data->align = SEQ_TEXT_ALIGN_CENTER;
+	data->align   = SEQ_TEXT_ALIGN_X_CENTER;
+	data->align_y = SEQ_TEXT_ALIGN_Y_BOTTOM;
 }
 
 static int num_inputs_text(void)
@@ -2920,6 +2922,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context, Sequence *seq, float 
 	struct ColorManagedDisplay *display;
 	const char *display_device;
 	const int mono = blf_mono_font_render; // XXX
+	int line_height;
 	int y_ofs, x, y;
 	float proxy_size_comp;
 
@@ -2940,24 +2943,46 @@ static ImBuf *do_text_effect(const SeqRenderData *context, Sequence *seq, float 
 	/* set before return */
 	BLF_size(mono, proxy_size_comp * data->text_size, 72);
 
+	BLF_enable(mono, BLF_WORD_WRAP);
+
+	/* use max width to enable newlines only */
+	BLF_wordwrap(mono, (data->wrap_width != 0.0f) ? data->wrap_width * width : -1);
+
 	BLF_buffer(mono, out->rect_float, (unsigned char *)out->rect, width, height, out->channels, display);
+
+	line_height = BLF_height_max(mono);
 
 	y_ofs = -BLF_descender(mono);
 
 	x = (data->loc[0] * width);
 	y = (data->loc[1] * height) + y_ofs;
 
-	if (data->align == SEQ_TEXT_ALIGN_LEFT) {
+	if ((data->align   == SEQ_TEXT_ALIGN_X_LEFT) &&
+	    (data->align_y == SEQ_TEXT_ALIGN_Y_TOP))
+	{
 		/* pass */
 	}
 	else {
-		const int w = BLF_width(mono, data->text, sizeof(data->text));
+		/* vars for calculating wordwrap */
+		struct {
+			struct ResultBLF info;
+			rctf rect;
+		} wrap;
 
-		if (data->align == SEQ_TEXT_ALIGN_RIGHT) {
-			x -= w;
+		BLF_boundbox_ex(mono, data->text, sizeof(data->text), &wrap.rect, &wrap.info);
+
+		if (data->align == SEQ_TEXT_ALIGN_X_RIGHT) {
+			x -= BLI_rctf_size_x(&wrap.rect);
 		}
-		else {  /* SEQ_TEXT_ALIGN_CENTER */
-			x -= w / 2;
+		else if (data->align == SEQ_TEXT_ALIGN_X_CENTER) {
+			x -= BLI_rctf_size_x(&wrap.rect) / 2;
+		}
+
+		if (data->align_y == SEQ_TEXT_ALIGN_Y_BOTTOM) {
+			y += (wrap.info.lines - 1) * line_height;
+		}
+		else if (data->align_y == SEQ_TEXT_ALIGN_Y_CENTER) {
+			y += (((wrap.info.lines - 1) / 2) * line_height) - (line_height / 2);
 		}
 	}
 
@@ -2965,7 +2990,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context, Sequence *seq, float 
 	if (data->flag & SEQ_TEXT_SHADOW) {
 		int fontx, fonty;
 		fontx = BLF_width_max(mono);
-		fonty = BLF_height_max(mono);
+		fonty = line_height;
 		BLF_position(mono, x + max_ii(fontx / 25, 1), y + max_ii(fonty / 25, 1), 0.0f);
 		BLF_buffer_col(mono, 0.0f, 0.0f, 0.0f, 1.0f);
 		BLF_draw_buffer(mono, data->text, BLF_DRAW_STR_DUMMY_MAX);
@@ -2975,6 +3000,8 @@ static ImBuf *do_text_effect(const SeqRenderData *context, Sequence *seq, float 
 	BLF_draw_buffer(mono, data->text, BLF_DRAW_STR_DUMMY_MAX);
 
 	BLF_buffer(mono, NULL, NULL, 0, 0, 0, NULL);
+
+	BLF_disable(mono, BLF_WORD_WRAP);
 
 	return out;
 }

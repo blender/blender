@@ -275,9 +275,10 @@ typedef struct TextVars {
 	char text[512];
 	int text_size;
 	float loc[2];
-	short flag;
-	char align;
-	char pad;
+	float wrap_width;
+	char flag;
+	char align, align_y;
+	char pad[5];
 } TextVars;
 
 /* TextVars.flag */
@@ -287,9 +288,16 @@ enum {
 
 /* TextVars.align */
 enum {
-	SEQ_TEXT_ALIGN_LEFT = 0,
-	SEQ_TEXT_ALIGN_CENTER = 1,
-	SEQ_TEXT_ALIGN_RIGHT = 2,
+	SEQ_TEXT_ALIGN_X_LEFT = 0,
+	SEQ_TEXT_ALIGN_X_CENTER = 1,
+	SEQ_TEXT_ALIGN_X_RIGHT = 2,
+};
+
+/* TextVars.align_y */
+enum {
+	SEQ_TEXT_ALIGN_Y_TOP = 0,
+	SEQ_TEXT_ALIGN_Y_CENTER = 1,
+	SEQ_TEXT_ALIGN_Y_BOTTOM = 2,
 };
 
 /* ***************** Sequence modifiers ****************** */

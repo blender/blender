@@ -638,8 +638,10 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             col.prop(strip, "text")
             col.prop(strip, "font_size")
             col.prop(strip, "use_shadow")
-            col.prop(strip, "align")
+            col.prop(strip, "align_x")
+            col.prop(strip, "align_y")
             col.prop(strip, "location")
+            col.prop(strip, "wrap_width")
             layout.operator("sequencer.export_subtitles")
 
         col = layout.column(align=True)

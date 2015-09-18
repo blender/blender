@@ -2307,10 +2307,16 @@ static void rna_def_gaussian_blur(StructRNA *srna)
 
 static void rna_def_text(StructRNA *srna)
 {
-	static EnumPropertyItem text_align_items[] = {
-		{SEQ_TEXT_ALIGN_LEFT, "LEFT", 0, "Left", ""},
-		{SEQ_TEXT_ALIGN_CENTER, "CENTER", 0, "Center", ""},
-		{SEQ_TEXT_ALIGN_RIGHT, "RIGHT", 0, "Right", ""},
+	static EnumPropertyItem text_align_x_items[] = {
+		{SEQ_TEXT_ALIGN_X_LEFT, "LEFT", 0, "Left", ""},
+		{SEQ_TEXT_ALIGN_X_CENTER, "CENTER", 0, "Center", ""},
+		{SEQ_TEXT_ALIGN_X_RIGHT, "RIGHT", 0, "Right", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+	static EnumPropertyItem text_align_y_items[] = {
+		{SEQ_TEXT_ALIGN_Y_TOP, "TOP", 0, "Top", ""},
+		{SEQ_TEXT_ALIGN_Y_CENTER, "CENTER", 0, "Center", ""},
+		{SEQ_TEXT_ALIGN_Y_BOTTOM, "BOTTOM", 0, "Bottom", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -2331,10 +2337,23 @@ static void rna_def_text(StructRNA *srna)
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, -1);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 
-	prop = RNA_def_property(srna, "align", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "wrap_width", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "wrap_width");
+	RNA_def_property_ui_text(prop, "Wrap Width", "Word wrap width as factor, zero disables");
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, -1);
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
+
+	prop = RNA_def_property(srna, "align_x", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "align");
-	RNA_def_property_enum_items(prop, text_align_items);
-	RNA_def_property_ui_text(prop, "Align", "");
+	RNA_def_property_enum_items(prop, text_align_x_items);
+	RNA_def_property_ui_text(prop, "Align X", "");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
+
+	prop = RNA_def_property(srna, "align_y", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "align_y");
+	RNA_def_property_enum_items(prop, text_align_y_items);
+	RNA_def_property_ui_text(prop, "Align Y", "");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 
 	prop = RNA_def_property(srna, "text", PROP_STRING, PROP_NONE);
