@@ -172,7 +172,14 @@ void UI_fontstyle_draw_ex(
 
 	BLF_enable(fs->uifont_id, font_flag);
 
-	yofs = BLI_rcti_size_y(rect) - BLF_height_max(fs->uifont_id);
+	if (fs->word_wrap == 1) {
+		/* draw from boundbox top */
+		yofs = BLI_rcti_size_y(rect) - BLF_height_max(fs->uifont_id);
+	}
+	else {
+		/* draw from boundbox center */
+		yofs = ceil(0.5f * (BLI_rcti_size_y(rect) - BLF_ascender(fs->uifont_id)));
+	}
 
 	if (fs->align == UI_STYLE_TEXT_CENTER) {
 		xofs = floor(0.5f * (BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str, len)));
