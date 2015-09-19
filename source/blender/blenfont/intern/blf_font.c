@@ -670,6 +670,7 @@ static void blf_font_wrap_apply(
 	size_t i = 0;
 	GlyphBLF **glyph_ascii_table = font->glyph_cache->glyph_ascii_table;
 	int lines = 0;
+	int pen_x_next = 0;
 
 	BLF_KERNING_VARS(font, has_kerning, kern_mode);
 
@@ -684,7 +685,6 @@ static void blf_font_wrap_apply(
 
 		/* wrap vars */
 		size_t i_curr = i;
-		int pen_x_next;
 		bool do_draw = false;
 
 		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
@@ -745,7 +745,7 @@ static void blf_font_wrap_apply(
 	if (r_info) {
 		r_info->lines = lines;
 		/* width of last line only (with wrapped lines) */
-		r_info->width = pen_x;
+		r_info->width = pen_x_next;
 	}
 }
 
