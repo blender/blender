@@ -308,7 +308,16 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
 		ar->v2d.tab_offset = NULL;
 	}
 
-	BLI_freelistN(&ar->panels);
+	if (!BLI_listbase_is_empty(&ar->panels)) {
+		Panel *pa, *pa_next;
+		for (pa = ar->panels.first; pa; pa = pa_next) {
+			pa_next = pa->next;
+			if (pa->activedata) {
+				MEM_freeN(pa->activedata);
+			}
+			MEM_freeN(pa);
+		}
+	}
 
 	for (uilst = ar->ui_lists.first; uilst; uilst = uilst->next) {
 		if (uilst->dyn_data) {
