@@ -237,6 +237,49 @@ static bool file_is_any_selected(struct FileList *files)
 	return false;
 }
 
+/**
+ * If \a file is outside viewbounds, this adjusts view to make sure it's inside
+ */
+static void file_ensure_inside_viewbounds(ARegion *ar, SpaceFile *sfile, const int file)
+{
+	FileLayout *layout = ED_fileselect_get_layout(sfile, ar);
+	rctf *cur = &ar->v2d.cur;
+	rcti rect;
+	bool changed = true;
+
+	file_tile_boundbox(ar, layout, file, &rect);
+
+	/* down - also use if tile is higher than viewbounds so view is aligned to file name */
+	if (cur->ymin > rect.ymin || layout->tile_h > ar->winy) {
+		cur->ymin = rect.ymin - (2 * layout->tile_border_y);
+		cur->ymax = cur->ymin + ar->winy;
+	}
+	/* up */
+	else if (cur->ymax < rect.ymax) {
+		cur->ymax = rect.ymax + layout->tile_border_y;
+		cur->ymin = cur->ymax - ar->winy;
+	}
+	/* left - also use if tile is wider than viewbounds so view is aligned to file name */
+	else if (cur->xmin > rect.xmin || layout->tile_w > ar->winx) {
+		cur->xmin = rect.xmin - layout->tile_border_x;
+		cur->xmax = cur->xmin + ar->winx;
+	}
+	/* right */
+	else if (cur->xmax < rect.xmax) {
+		cur->xmax = rect.xmax + (2 * layout->tile_border_x);
+		cur->xmin = cur->xmax - ar->winx;
+	}
+	else {
+		BLI_assert(cur->xmin <= rect.xmin && cur->xmax >= rect.xmax &&
+		           cur->ymin <= rect.ymin && cur->ymax >= rect.ymax);
+		changed = false;
+	}
+
+	if (changed) {
+		UI_view2d_curRect_validate(&ar->v2d);
+	}
+}
+
 
 static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select, bool fill, bool do_diropen)
 {
@@ -573,6 +616,9 @@ static bool file_walk_select_selection_set(
 
 	BLI_assert(IN_RANGE(active, -1, numfiles));
 	fileselect_file_set(sfile, params->active_file);
+
+	/* ensure newly selected file is inside viewbounds */
+	file_ensure_inside_viewbounds(CTX_wm_region(C), sfile, params->active_file);
 
 	/* selection changed */
 	return true;
