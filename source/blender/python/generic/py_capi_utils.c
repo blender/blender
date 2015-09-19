@@ -666,7 +666,7 @@ void PyC_SetHomePath(const char *py_path_bundle)
 
 bool PyC_IsInterpreterActive(void)
 {
-	return (((PyThreadState *)_Py_atomic_load_relaxed(&_PyThreadState_Current)) != NULL);
+	return (PyThreadState_GET() != NULL);
 }
 
 /* Would be nice if python had this built in
