@@ -181,8 +181,8 @@ typedef struct uiTooltipData {
 	} format[MAX_TOOLTIP_LINES];
 
 	struct {
-		unsigned int width;
-		unsigned int lines;
+		unsigned int x_pos;     /* x cursor position at the end of the last line */
+		unsigned int lines;     /* number of lines, 1 or more with word-wrap */
 	} line_geom[MAX_TOOLTIP_LINES];
 
 	int wrap_width;
@@ -277,7 +277,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 		if (data->format[i].style == UI_TIP_STYLE_HEADER) {
 			/* draw header and active data (is done here to be able to change color) */
 			uiFontStyle fstyle_header = data->fstyle;
-			float xofs;
+			float xofs, yofs;
 
 			/* override text-style */
 			fstyle_header.shadow = 1;
@@ -290,13 +290,19 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 			glColor3fv(tip_colors[UI_TIP_LC_MAIN]);
 			UI_fontstyle_draw(&fstyle_header, &bbox, data->header);
 
-			xofs = data->line_geom[i].width;
+			/* offset to the end of the last line */
+			xofs = data->line_geom[i].x_pos;
+			yofs = data->lineh * (data->line_geom[i].lines - 1);
 			bbox.xmin += xofs;
+			bbox.ymax -= yofs;
 
 			glColor3fv(tip_colors[UI_TIP_LC_ACTIVE]);
-			UI_fontstyle_draw(&data->fstyle, &bbox, data->active_info);
+			fstyle_header.shadow = 0;
+			UI_fontstyle_draw(&fstyle_header, &bbox, data->active_info);
 
+			/* undo offset */
 			bbox.xmin -= xofs;
+			bbox.ymax += yofs;
 		}
 		else if (data->format[i].style == UI_TIP_STYLE_MONO) {
 			uiFontStyle fstyle_mono = data->fstyle;
@@ -317,7 +323,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 			/* draw remaining data */
 			UI_fontstyle_set(&fstyle_normal);
 			glColor3fv(tip_colors[data->format[i].color_id]);
-			UI_fontstyle_draw(&data->fstyle, &bbox, data->lines[i]);
+			UI_fontstyle_draw(&fstyle_normal, &bbox, data->lines[i]);
 		}
 
 		bbox.ymax -= data->lineh * data->line_geom[i].lines;
@@ -615,12 +621,14 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 	for (i = 0, fontw = 0, fonth = 0; i < data->totline; i++) {
 		struct ResultBLF info;
-		int w, w_other = 0;
+		int w, x_pos = 0;
 
 		if (data->format[i].style == UI_TIP_STYLE_HEADER) {
 			w = BLF_width_ex(data->fstyle.uifont_id, data->header, sizeof(data->header), &info);
-			if (enum_label.strinfo)
-				w_other = BLF_width(data->fstyle.uifont_id, data->active_info, sizeof(data->active_info));
+			if (enum_label.strinfo) {
+				x_pos = info.width + (U.widget_unit / 2);
+				w = max_ii(w, x_pos + BLF_width(data->fstyle.uifont_id, data->active_info, sizeof(data->active_info)));
+			}
 		}
 		else if (data->format[i].style == UI_TIP_STYLE_MONO) {
 			BLF_size(blf_mono_font, data->fstyle.points * U.pixelsize, U.dpi);
@@ -633,7 +641,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			w = BLF_width_ex(data->fstyle.uifont_id, data->lines[i], sizeof(data->lines[i]), &info);
 		}
 
-		fontw = max_ii(fontw, w + w_other);
+		fontw = max_ii(fontw, w);
 
 		fonth += h * info.lines;
 		if ((i + 1 != data->totline) && data->format[i + 1].is_pad) {
@@ -641,7 +649,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 
 		data->line_geom[i].lines = info.lines;
-		data->line_geom[i].width = w;
+		data->line_geom[i].x_pos = x_pos;
 	}
 
 	//fontw *= aspect;
