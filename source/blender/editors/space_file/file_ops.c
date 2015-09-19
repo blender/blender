@@ -276,6 +276,9 @@ static int file_border_select_find_last_selected(
 	FileLayout *layout = ED_fileselect_get_layout(sfile, ar);
 	rcti bounds_first, bounds_last;
 	int dist_first, dist_last;
+	float mouseco_view[2];
+
+	UI_view2d_region_to_view(&ar->v2d, UNPACK2(mouse_xy), &mouseco_view[0], &mouseco_view[1]);
 
 	file_tile_boundbox(ar, layout, sel->first, &bounds_first);
 	file_tile_boundbox(ar, layout, sel->last, &bounds_last);
@@ -285,18 +288,18 @@ static int file_border_select_find_last_selected(
 	    (layout->flag & FILE_LAYOUT_VER && bounds_first.ymin != bounds_last.ymin))
 	{
 		/* use vertical distance */
-		const int my_loc = mouse_xy[1] - ar->winrct.ymin;
+		const int my_loc = (int)mouseco_view[1];
 		dist_first = BLI_rcti_length_y(&bounds_first, my_loc);
 		dist_last = BLI_rcti_length_y(&bounds_last, my_loc);
 	}
 	else {
 		/* use horizontal distance */
-		const int mx_loc = mouse_xy[0] - ar->winrct.xmin;
+		const int mx_loc = (int)mouseco_view[0];
 		dist_first = BLI_rcti_length_x(&bounds_first, mx_loc);
 		dist_last = BLI_rcti_length_x(&bounds_last, mx_loc);
 	}
 
-	return dist_first < dist_last ? sel->first : sel->last;
+	return (dist_first < dist_last) ? sel->first : sel->last;
 }
 
 static int file_border_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -339,7 +342,7 @@ static int file_border_select_modal(bContext *C, wmOperator *op, const wmEvent *
 			}
 		}
 		params->sel_first = sel.first; params->sel_last = sel.last;
-		params->active_file = file_border_select_find_last_selected(sfile, ar, &sel, &event->x);
+		params->active_file = file_border_select_find_last_selected(sfile, ar, &sel, event->mval);
 	}
 	else {
 		params->highlight_file = -1;

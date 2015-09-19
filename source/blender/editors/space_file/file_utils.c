@@ -41,6 +41,7 @@ void file_tile_boundbox(const ARegion *ar, FileLayout *layout, const int file, r
 	int xmin, ymax;
 
 	ED_fileselect_layout_tilepos(layout, file, &xmin, &ymax);
+	ymax = ar->v2d.tot.ymax - ymax; /* real, view space ymax */
 	BLI_rcti_init(r_bounds, xmin, xmin + layout->tile_w + layout->tile_border_x,
-	              ar->winy - ymax - layout->tile_h - layout->tile_border_y, ar->winy - ymax);
+	              ymax - layout->tile_h - layout->tile_border_y, ymax);
 }
