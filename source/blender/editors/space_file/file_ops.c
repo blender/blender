@@ -305,6 +305,20 @@ static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select,
 	if (select != FILE_SEL_ADD && !file_is_any_selected(sfile->files)) {
 		sfile->params->active_file = -1;
 	}
+	else {
+		ARegion *ar = CTX_wm_region(C);
+		const FileLayout *layout = ED_fileselect_get_layout(sfile, ar);
+
+		/* Adjust view to display selection. Doing iterations for first and last
+		 * selected item makes view showing as much of the selection possible.
+		 * Not really useful if tiles are (almost) bigger than viewbounds though. */
+		if (((layout->flag & FILE_LAYOUT_HOR) && ar->winx > (1.2f * layout->tile_w)) ||
+		    ((layout->flag & FILE_LAYOUT_VER) && ar->winy > (2.0f * layout->tile_h)))
+		{
+			file_ensure_inside_viewbounds(ar, sfile, sel.last);
+			file_ensure_inside_viewbounds(ar, sfile, sel.first);
+		}
+	}
 
 	/* update operator for name change event */
 	file_draw_check(C);
