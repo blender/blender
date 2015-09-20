@@ -1078,7 +1078,10 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode, float *amb)
 {
 	bNode *node;
-	
+
+	/* parses the geom+tex nodes */
+	ntreeShaderGetTexcoMode(ntree, r_mode, &basemat->texco, &basemat->mode_l);
+
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->id) {
 			if (GS(node->id->name) == ID_MA) {
@@ -1114,9 +1117,6 @@ void init_render_material(Material *mat, int r_mode, float *amb)
 		 * mode_l will have it set when all node materials are shadeless. */
 		mat->mode_l = (mat->mode & MA_MODE_PIPELINE) | MA_SHLESS;
 		mat->mode2_l = mat->mode2 & MA_MODE2_PIPELINE;
-
-		/* parses the geom+tex nodes */
-		ntreeShaderGetTexcoMode(mat->nodetree, r_mode, &mat->texco, &mat->mode_l);
 
 		init_render_nodetree(mat->nodetree, mat, r_mode, amb);
 		
