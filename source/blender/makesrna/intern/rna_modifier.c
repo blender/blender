@@ -1493,7 +1493,7 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "angle_limit", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "angle");
 	RNA_def_property_range(prop, 0, DEG2RAD(180));
-	RNA_def_property_ui_range(prop, 0, DEG2RAD(180), 100, 2);
+	RNA_def_property_ui_range(prop, 0, DEG2RAD(180), 10, 2);
 	RNA_def_property_ui_text(prop, "Angle Limit", "Only dissolve angles below this (planar only)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -2801,7 +2801,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "angle_limit", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "bevel_angle");
 	RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
-	RNA_def_property_ui_range(prop, 0.0f, DEG2RADF(180.0f), 100, 2);
+	RNA_def_property_ui_range(prop, 0.0f, DEG2RADF(180.0f), 10, 2);
 	RNA_def_property_ui_text(prop, "Angle", "Angle above which to bevel edges");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -3255,7 +3255,7 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
-	RNA_def_property_ui_range(prop, -M_PI * 2, M_PI * 2, 2, -1);
+	RNA_def_property_ui_range(prop, -M_PI * 2, M_PI * 2, 10, -1);
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Angle", "Angle of revolution");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
