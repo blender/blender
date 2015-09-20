@@ -1634,12 +1634,31 @@ static int node_insert_offset_modal(bContext *C, wmOperator *UNUSED(op), const w
 	NodeInsertOfsData *iofsd = snode->iofsd;
 	bNode *node;
 	float duration;
+	bool redraw = false;
 
 	if (!snode || event->type != TIMER || iofsd->anim_timer != event->customdata)
 		return OPERATOR_PASS_THROUGH;
 
-	/* end timer + free insert offset data */
 	duration = (float)iofsd->anim_timer->duration;
+
+	/* handle animation - do this before possibly aborting due to duration, since
+	 * main thread might be so busy that node hasn't reached final position yet */
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
+		if (UNLIKELY(node->anim_ofsx)) {
+			const float endval = node->anim_init_locx + node->anim_ofsx;
+			if (node->locx < endval) {
+				node->locx = BLI_easing_cubic_ease_in_out(duration, node->anim_init_locx, node->anim_ofsx,
+				                                          NODE_INSOFS_ANIM_DURATION);
+				CLAMP_MAX(node->locx, endval);
+				redraw = true;
+			}
+		}
+	}
+	if (redraw) {
+		ED_region_tag_redraw(CTX_wm_region(C));
+	}
+
+	/* end timer + free insert offset data */
 	if (duration > NODE_INSOFS_ANIM_DURATION) {
 		WM_event_remove_timer(CTX_wm_manager(C), NULL, iofsd->anim_timer);
 
@@ -1652,15 +1671,6 @@ static int node_insert_offset_modal(bContext *C, wmOperator *UNUSED(op), const w
 
 		return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
 	}
-
-	/* handle animation */
-	for (node = snode->edittree->nodes.first; node; node = node->next) {
-		if (node->anim_ofsx) {
-			node->locx = BLI_easing_cubic_ease_in_out(duration, node->anim_init_locx, node->anim_ofsx,
-			                                          NODE_INSOFS_ANIM_DURATION);
-		}
-	}
-	ED_region_tag_redraw(CTX_wm_region(C));
 
 	return OPERATOR_RUNNING_MODAL;
 }
