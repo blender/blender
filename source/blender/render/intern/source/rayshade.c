@@ -736,6 +736,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, con
 		//shi.sample= 0; // memset above, so don't need this
 		shi.xs= origshi->xs;
 		shi.ys= origshi->ys;
+		shi.do_manage= origshi->do_manage;
 		shi.lay= origshi->lay;
 		shi.passflag= SCE_PASS_COMBINED; /* result of tracing needs no pass info */
 		shi.combinedflag= 0xFFFFFF;		 /* ray trace does all options */
@@ -1622,6 +1623,7 @@ static void ray_trace_shadow_tra(Isect *is, ShadeInput *origshi, int depth, int 
 	
 		shi.xs= origshi->xs;
 		shi.ys= origshi->ys;
+		shi.do_manage= origshi->do_manage;
 		shi.lay= origshi->lay;
 		shi.nodes= origshi->nodes;
 		
