@@ -452,8 +452,8 @@ enum {
  * So usage such as array lookup needs to check.
  */
 #define ME_MAT_NR_TEST(mat_nr, totmat) \
-	(CHECK_TYPE_ANY(mat_nr, short), \
-	 CHECK_TYPE_ANY(totmat, short), \
+	(CHECK_TYPE_ANY(mat_nr, short, const short), \
+	 CHECK_TYPE_ANY(totmat, short, const short), \
 	 (LIKELY(mat_nr < totmat) ? mat_nr : 0))
 
 /* mselect->type */
