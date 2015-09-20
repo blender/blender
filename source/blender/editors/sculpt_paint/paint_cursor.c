@@ -644,9 +644,9 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 			glMatrixMode(GL_MODELVIEW);
 			glPushMatrix();
 			if (primary)
-				glTranslatef(brush->stencil_pos[0], brush->stencil_pos[1], 0);
+				glTranslate2fv(brush->stencil_pos);
 			else
-				glTranslatef(brush->mask_stencil_pos[0], brush->mask_stencil_pos[1], 0);
+				glTranslate2fv(brush->mask_stencil_pos);
 			glRotatef(RAD2DEGF(mtex->rot), 0, 0, 1);
 			glMatrixMode(GL_TEXTURE);
 		}
@@ -725,7 +725,7 @@ static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
 			do_pop = true;
 			glPushMatrix();
 			glLoadIdentity();
-			glTranslatef(center[0], center[1], 0);
+			glTranslate2fv(center);
 			glScalef(ups->size_pressure_value, ups->size_pressure_value, 1);
 			glTranslatef(-center[0], -center[1], 0);
 		}
@@ -1056,7 +1056,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	glColor4f(outline_col[0], outline_col[1], outline_col[2], outline_alpha);
 
 	/* draw brush outline */
-	glTranslatef(translation[0], translation[1], 0);
+	glTranslate2fv(translation);
 
 	/* draw an inner brush */
 	if (ups->stroke_active && BKE_brush_use_size_pressure(scene, brush)) {

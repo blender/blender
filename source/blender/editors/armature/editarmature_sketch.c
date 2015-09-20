@@ -436,7 +436,7 @@ static float sk_clampPointSize(SK_Point *pt, float size)
 
 static void sk_drawPoint(GLUquadric *quad, SK_Point *pt, float size)
 {
-	glTranslatef(pt->p[0], pt->p[1], pt->p[2]);
+	glTranslate3fv(pt->p);
 	gluSphere(quad, sk_clampPointSize(pt, size), 8, 8);
 }
 
@@ -455,7 +455,7 @@ static void sk_drawEdge(GLUquadric *quad, SK_Point *pt0, SK_Point *pt1, float si
 
 	angle = angle_normalized_v3v3(vec2, vec1);
 
-	glRotatef(angle * (float)(180.0 / M_PI) + 180.0f, axis[0], axis[1], axis[2]);
+	glRotate3fv(angle * (float)(180.0 / M_PI) + 180.0f, axis);
 
 	gluCylinder(quad, sk_clampPointSize(pt1, size), sk_clampPointSize(pt0, size), length, 8, 8);
 }
@@ -475,7 +475,7 @@ static void sk_drawNormal(GLUquadric *quad, SK_Point *pt, float size, float heig
 
 	angle = angle_normalized_v3v3(vec2, pt->no);
 
-	glRotatef(angle * (float)(180.0 / M_PI), axis[0], axis[1], axis[2]);
+	glRotate3fv(angle * (float)(180.0 / M_PI), axis);
 
 	glColor3f(0, 1, 1);
 	gluCylinder(quad, sk_clampPointSize(pt, size), 0, sk_clampPointSize(pt, height), 10, 2);
@@ -2112,7 +2112,7 @@ static void sk_drawSketch(Scene *scene, View3D *UNUSED(v3d), SK_Sketch *sketch, 
 
 			glColor3fv(colors[index]);
 			glPushMatrix();
-			glTranslatef(p->p[0], p->p[1], p->p[2]);
+			glTranslate3fv(p->p);
 			gluSphere(quad, 0.02, 8, 8);
 			glPopMatrix();
 		}

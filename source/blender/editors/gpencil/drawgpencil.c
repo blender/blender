@@ -398,7 +398,7 @@ static void gp_draw_stroke_point(bGPDspoint *points, short thickness, short dfla
 			gluQuadricDrawStyle(qobj, GLU_FILL);
 			
 			/* need to translate drawing position, but must reset after too! */
-			glTranslatef(co[0], co[1], 0.0);
+			glTranslate2fv(co);
 			gluDisk(qobj, 0.0,  thickness, 32, 1);
 			glTranslatef(-co[0], -co[1], 0.0);
 			

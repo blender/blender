@@ -220,7 +220,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			h = (((float)hi) / IMG_SIZE_FALLBACK) * G.sima->zoom * yuser_asp;
 			
 			cpack(0xFFFFFF);
-			glTranslatef(t->tsnap.snapPoint[0], t->tsnap.snapPoint[1], 0.0f);
+			glTranslate2fv(t->tsnap.snapPoint);
 			
 			//glRectf(0, 0, 1, 1);
 			

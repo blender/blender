@@ -1303,7 +1303,7 @@ void RAS_OpenGLRasterizer::applyTransform(double* oglmatrix,int objectdrawmode )
 		                   up[0],   up[1],   up[2],   0,
 		                   0,       0,       0,       1};
 
-		glTranslated(objpos[0],objpos[1],objpos[2]);
+		glTranslate3dv(objpos);
 		glMultMatrixd(maat);
 
 	}

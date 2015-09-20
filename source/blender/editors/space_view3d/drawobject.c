@@ -976,7 +976,7 @@ static void drawcube_size(const float size[3])
 {
 
 	glPushMatrix();
-	glScalef(size[0],  size[1],  size[2]);
+	glScale3fv(size);
 	
 
 	glBegin(GL_LINE_STRIP);
@@ -1315,7 +1315,7 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 		mul_v3_v3fl(v2, imat[0], circrad * 2.5f);
 		
 		/* center */
-		glTranslatef(vec[0], vec[1], vec[2]);
+		glTranslate3fv(vec);
 		
 		setlinestyle(3);
 		
@@ -1659,7 +1659,7 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 			GPU_select_load_id(base->selcol + (tracknr << 16));
 
 		glPushMatrix();
-		glTranslatef(track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
+		glTranslate3fv(track->bundle_pos);
 		glScalef(v3d->bundle_size / 0.05f / camera_size[0],
 		         v3d->bundle_size / 0.05f / camera_size[1],
 		         v3d->bundle_size / 0.05f / camera_size[2]);
@@ -7184,7 +7184,7 @@ static void draw_bb_quadric(BoundBox *bb, char type, bool around_origin)
 	glPushMatrix();
 	if (type == OB_BOUND_SPHERE) {
 		float scale = MAX3(size[0], size[1], size[2]);
-		glTranslatef(cent[0], cent[1], cent[2]);
+		glTranslate3fv(cent);
 		glScalef(scale, scale, scale);
 		gluSphere(qobj, 1.0, 8, 5);
 	}

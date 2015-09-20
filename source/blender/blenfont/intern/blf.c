@@ -522,7 +522,7 @@ static void blf_draw_gl__start(FontBLF *font, GLint *mode, GLint *param)
 	if (font->flags & BLF_MATRIX)
 		glMultMatrixd((GLdouble *)&font->m);
 
-	glTranslatef(font->pos[0], font->pos[1], font->pos[2]);
+	glTranslate3fv(font->pos);
 
 	if (font->flags & BLF_ASPECT)
 		glScalef(font->aspect[0], font->aspect[1], font->aspect[2]);

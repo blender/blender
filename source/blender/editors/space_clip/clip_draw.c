@@ -520,7 +520,7 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 
 	/* pattern and search outline */
 	glPushMatrix();
-	glTranslatef(marker_pos[0], marker_pos[1], 0);
+	glTranslate2fv(marker_pos);
 
 	if (!tiny)
 		glLineWidth(3.0f);
@@ -652,7 +652,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 
 	/* pattern */
 	glPushMatrix();
-	glTranslatef(marker_pos[0], marker_pos[1], 0);
+	glTranslate2fv(marker_pos);
 
 	if (tiny) {
 		glLineStipple(3, 0xaaaa);
@@ -805,7 +805,7 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	}
 
 	glPushMatrix();
-	glTranslatef(marker_pos[0], marker_pos[1], 0);
+	glTranslate2fv(marker_pos);
 
 	dx = 6.0f / width / sc->zoom;
 	dy = 6.0f / height / sc->zoom;
@@ -1786,7 +1786,7 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 					int framenr = ED_space_clip_get_clip_frame_number(sc);
 					MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
-					glTranslatef(marker->pos[0], marker->pos[1], 0.0f);
+					glTranslate2fv(marker->pos);
 				}
 			}
 

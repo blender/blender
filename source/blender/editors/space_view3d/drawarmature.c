@@ -1547,7 +1547,7 @@ static void draw_pose_dofs(Object *ob)
 							glPushMatrix();
 							
 							copy_v3_v3(posetrans, pchan->pose_mat[3]);
-							glTranslatef(posetrans[0], posetrans[1], posetrans[2]);
+							glTranslate3fv(posetrans);
 							
 							if (pchan->parent) {
 								copy_m4_m4(mat, pchan->parent->pose_mat);
