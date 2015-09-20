@@ -292,6 +292,7 @@ void IK_SolverAddGoal(IK_Solver *solver, IK_Segment *tip, float goal[3], float w
 	IK_QSolver *qsolver = (IK_QSolver *)solver;
 	IK_QSegment *qtip = (IK_QSegment *)tip;
 
+	// in case of composite segment the second segment is the tip
 	if (qtip->Composite())
 		qtip = qtip->Composite();
 
@@ -310,6 +311,7 @@ void IK_SolverAddGoalOrientation(IK_Solver *solver, IK_Segment *tip, float goal[
 	IK_QSolver *qsolver = (IK_QSolver *)solver;
 	IK_QSegment *qtip = (IK_QSegment *)tip;
 
+	// in case of composite segment the second segment is the tip
 	if (qtip->Composite())
 		qtip = qtip->Composite();
 
@@ -330,6 +332,10 @@ void IK_SolverSetPoleVectorConstraint(IK_Solver *solver, IK_Segment *tip, float 
 
 	IK_QSolver *qsolver = (IK_QSolver *)solver;
 	IK_QSegment *qtip = (IK_QSegment *)tip;
+
+	// in case of composite segment the second segment is the tip
+	if (qtip->Composite())
+		qtip = qtip->Composite();
 
 	MT_Vector3 qgoal(goal);
 	MT_Vector3 qpolegoal(polegoal);
