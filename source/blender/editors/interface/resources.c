@@ -2639,6 +2639,13 @@ void init_userdef_do_versions(void)
 		U.node_margin = 80;
 	}
 
+	if (!USER_VERSION_ATLEAST(276, 1)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			rgba_char_args_set_fl(btheme->tima.preview_back, 0.0f, 0.0f, 0.0f, 0.3f);
+		}
+	}
+
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
 	
