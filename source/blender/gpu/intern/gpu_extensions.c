@@ -1727,6 +1727,10 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 	char standard_defines[MAX_DEFINE_LENGTH] = "";
 	char standard_extensions[MAX_EXT_DEFINE_LENGTH] = "";
 
+#ifndef WITH_OPENSUBDIV
+	UNUSED_VARS(flags);
+#endif
+
 	if (!GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader || (geocode && !GPU_geometry_shader_support()))
 		return NULL;
 

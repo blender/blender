@@ -234,7 +234,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		const struct FileDirEntry *file = sfile->files ? filelist_file(sfile->files, params->active_file) : NULL;
 		char const *str_exec;
 
-		if (file && FILENAME_IS_PARENT(file->relpath)){
+		if (file && FILENAME_IS_PARENT(file->relpath)) {
 			str_exec = IFACE_("Parent Directory");
 		}
 		else if (file && file->typeflag & FILE_TYPE_DIR) {

@@ -317,7 +317,7 @@ float BM_loop_point_side_of_loop_test(const BMLoop *l, const float co[3])
  * Check if a point is inside the edge defined by a loop
  * (within the plane defined by the loops edge & face normal).
  *
- * \return signed, squared distablce to the edge plane, less than 0.0 when outside.
+ * \return signed, squared distance to the edge plane, less than 0.0 when outside.
  */
 float BM_loop_point_side_of_edge_test(const BMLoop *l, const float co[3])
 {
