@@ -391,6 +391,7 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
 	float x, y;
 	const int font_size = data->label_size / aspect;
 	const float margin = (float)(NODE_DY / 4);
+	int label_height;
 
 	nodeLabel(ntree, node, label, sizeof(label));
 
@@ -403,10 +404,11 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
 
 	width = BLF_width(fontid, label, sizeof(label));
 	ascender = BLF_ascender(fontid);
+	label_height = ((margin / aspect) + (ascender * aspect));
 	
 	/* 'x' doesn't need aspect correction */
 	x = BLI_rctf_cent_x(rct) - (0.5f * width);
-	y = rct->ymax - ((margin / aspect) + (ascender * aspect));
+	y = rct->ymax - label_height;
 
 	BLF_position(fontid, x, y, 0);
 	BLF_draw(fontid, label, BLF_DRAW_STR_DUMMY_MAX);
@@ -415,31 +417,39 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
 	if (node->id) {
 		Text *text = (Text *)node->id;
 		TextLine *line;
-		const float line_spacing = (BLF_height_max(fontid) * aspect) * 0.7f;
+		const int   line_height_max = BLF_height_max(fontid);
+		const float line_spacing = (line_height_max * aspect);
+		const float line_width = (BLI_rctf_size_x(rct) - margin) / aspect;
+		int y_min;
 
 		/* 'x' doesn't need aspect correction */
 		x = rct->xmin + margin;
-		y = rct->ymax - ((margin / aspect) + (ascender * aspect));
-		y -= line_spacing;
+		y = rct->ymax - (label_height + line_spacing);
+		/* early exit */
+		y_min = y + ((margin * 2) - (y - rct->ymin));
 
-		BLF_enable(fontid, BLF_CLIPPING);
+		BLF_enable(fontid, BLF_CLIPPING | BLF_WORD_WRAP);
 		BLF_clipping(
 		        fontid,
 		        rct->xmin,
-		        rct->ymin,
-		        rct->xmin + ((rct->xmax - rct->xmin) / aspect) - margin,
+		        /* round to avoid clipping half-way through a line */
+		        y - (floorf(((y - rct->ymin) - (margin * 2)) / line_spacing) * line_spacing),
+		        rct->xmin + line_width,
 		        rct->ymax);
 
+		BLF_wordwrap(fontid, line_width);
+
 		for (line = text->lines.first; line; line = line->next) {
+			struct ResultBLF info;
 			BLF_position(fontid, x, y, 0);
-			BLF_draw(fontid, line->line, line->len);
-			y -= line_spacing;
-			if (y < rct->ymin) {
+			BLF_draw_ex(fontid, line->line, line->len, &info);
+			y -= line_spacing * info.lines;
+			if (y < y_min) {
 				break;
 			}
 		}
 
-		BLF_disable(fontid, BLF_CLIPPING);
+		BLF_disable(fontid, BLF_CLIPPING | BLF_WORD_WRAP);
 	}
 
 	BLF_disable(fontid, BLF_ASPECT);
