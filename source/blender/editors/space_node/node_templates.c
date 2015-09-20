@@ -622,7 +622,7 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 	uiLayout *split, *row, *col;
 	bNode *lnode;
 	char label[UI_MAX_NAME_STR];
-	int indent = (depth > 1) ? 2 * (depth - 1) : 0;
+	int i, indent = (depth > 1) ? 2 * (depth - 1) : 0;
 	int dependency_loop;
 
 	if (input->flag & SOCK_UNAVAIL)
@@ -641,7 +641,8 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 	RNA_pointer_create(&ntree->id, &RNA_Node, node, &nodeptr);
 
 	/* indented label */
-	memset(label, ' ', indent);
+	for (i = 0; i < indent; i++)
+		label[i] = ' ';
 	label[indent] = '\0';
 	BLI_snprintf(label, UI_MAX_NAME_STR, "%s%s:", label, IFACE_(input->name));
 
