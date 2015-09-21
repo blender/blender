@@ -629,6 +629,7 @@ void RE_engine_frame_set(struct RenderEngine *engine, int frame, float subframe)
 void RE_FreePersistentData(void) RET_NONE
 void RE_sample_point_density(struct Scene *scene, struct PointDensity *pd, int resolution, float *values) RET_NONE;
 void RE_instance_get_particle_info(struct ObjectInstanceRen *obi, float *index, float *age, float *lifetime, float co[3], float *size, float vel[3], float angvel[3]) RET_NONE
+void RE_FreeAllPersistentData(void) RET_NONE
 
 /* python */
 struct wmOperatorType *WM_operatortype_find(const char *idname, bool quiet) RET_NULL
