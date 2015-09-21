@@ -919,7 +919,8 @@ static void image_tools_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), 
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_BRUSH:
-			if (wmn->action == NA_EDITED)
+			/* NA_SELECTED is used on brush changes */
+			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED))
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SCENE:
