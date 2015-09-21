@@ -198,7 +198,8 @@ typedef struct bPoseChannel {
 	short agrp_index;               /* index of action-group this bone belongs to (0 = default/no group) */
 	char constflag;                 /* for quick detecting which constraints affect this channel */
 	char selectflag;                /* copy of bone flag, so you can work with library armatures, not for runtime use */
-	char pad0[6];
+	char drawflag;
+	char pad0[5];
 
 	struct Bone         *bone;      /* set on read file or rebuild pose */
 	struct bPoseChannel *parent;    /* set on read file or rebuild pose */
@@ -212,6 +213,9 @@ typedef struct bPoseChannel {
 	struct bPoseChannel *custom_tx; /* odd feature, display with another bones transform.
 	                                 * needed in rare cases for advanced rigs,
 	                                 * since the alternative is highly complicated - campbell */
+	float custom_scale;
+
+	char pad1[4];
 
 	/* transforms - written in by actions or transform */
 	float loc[3];
@@ -305,6 +309,14 @@ typedef enum ePchan_IkFlag {
 	BONE_IK_NO_YDOF_TEMP = (1 << 11),
 	BONE_IK_NO_ZDOF_TEMP = (1 << 12)
 } ePchan_IkFlag;
+
+/* PoseChannel->drawflag */
+typedef enum ePchan_DrawFlag {
+	PCHAN_DRAW_NO_CUSTOM_BONE_SIZE = (1 << 0),
+} ePchan_DrawFlag;
+
+#define PCHAN_CUSTOM_DRAW_SIZE(pchan) \
+	(pchan)->custom_scale * (((pchan)->drawflag & PCHAN_DRAW_NO_CUSTOM_BONE_SIZE) ? 1.0f : (pchan)->bone->length)
 
 /* PoseChannel->rotmode and Object->rotmode */
 typedef enum eRotationModes {

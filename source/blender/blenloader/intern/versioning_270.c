@@ -853,4 +853,19 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 #undef BRUSH_TORUS
 	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 276, 2)) {
+		if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "float", "custom_scale")) {
+			Object *ob;
+
+			for (ob = main->object.first; ob; ob = ob->id.next) {
+				if (ob->pose) {
+					bPoseChannel *pchan;
+					for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+						pchan->custom_scale = 1.0f;
+					}
+				}
+			}
+		}
+	}
 }

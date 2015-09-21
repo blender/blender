@@ -229,6 +229,8 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
                 col.label(text="Custom Shape:")
                 col.prop(pchan, "custom_shape", text="")
                 if pchan.custom_shape:
+                    col.prop(pchan, "use_custom_shape_bone_size", text="Bone Size")
+                    col.prop(pchan, "custom_shape_scale", text="Scale")
                     col.prop_search(pchan, "custom_shape_transform", ob.pose, "bones", text="At")
 
 

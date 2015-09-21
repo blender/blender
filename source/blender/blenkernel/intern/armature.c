@@ -2229,7 +2229,7 @@ bool BKE_pose_minmax(Object *ob, float r_min[3], float r_max[3], bool use_hidden
 				                      BKE_object_boundbox_get(pchan->custom) : NULL;
 				if (bb_custom) {
 					float mat[4][4], smat[4][4];
-					scale_m4_fl(smat, pchan->bone->length);
+					scale_m4_fl(smat, PCHAN_CUSTOM_DRAW_SIZE(pchan));
 					mul_m4_series(mat, ob->obmat, pchan_tx->pose_mat, smat);
 					BKE_boundbox_minmax(bb_custom, mat, r_min, r_max);
 				}

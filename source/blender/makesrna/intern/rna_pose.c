@@ -1062,6 +1062,17 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 	
+	prop = RNA_def_property(srna, "custom_shape_scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "custom_scale");
+	RNA_def_property_range(prop, 0.0f, 1000.0f);
+	RNA_def_property_ui_text(prop, "Custom Shape Scale", "Adjust the size of the custom shape");
+	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
+
+	prop = RNA_def_property(srna, "use_custom_shape_bone_size", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "drawflag", PCHAN_DRAW_NO_CUSTOM_BONE_SIZE);
+	RNA_def_property_ui_text(prop, "Use Bone Size", "Scale the custom object by the bone length");
+	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
+
 	prop = RNA_def_property(srna, "custom_shape_transform", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "custom_tx");
 	RNA_def_property_struct_type(prop, "PoseBone");
