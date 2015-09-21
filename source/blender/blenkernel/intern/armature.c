@@ -2225,11 +2225,12 @@ bool BKE_pose_minmax(Object *ob, float r_min[3], float r_max[3], bool use_hidden
 			     !((use_select == true)  && ((pchan->bone->flag & BONE_SELECTED) == 0))))
 			{
 				bPoseChannel *pchan_tx = (pchan->custom && pchan->custom_tx) ? pchan->custom_tx : pchan;
-				BoundBox *bb_custom = pchan->custom ? BKE_object_boundbox_get(pchan->custom) : NULL;
-
+				BoundBox *bb_custom = ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) ?
+				                      BKE_object_boundbox_get(pchan->custom) : NULL;
 				if (bb_custom) {
-					float mat[4][4];
-					mul_m4_m4m4(mat, ob->obmat, pchan_tx->pose_mat);
+					float mat[4][4], smat[4][4];
+					scale_m4_fl(smat, pchan->bone->length);
+					mul_m4_series(mat, ob->obmat, pchan_tx->pose_mat, smat);
 					BKE_boundbox_minmax(bb_custom, mat, r_min, r_max);
 				}
 				else {
