@@ -417,6 +417,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	BKE_scene_set_background(G.main, curscene);
 
 	if (mode != LOAD_UNDO) {
+		RE_FreeAllPersistentData();
 		IMB_colormanagement_check_file_config(G.main);
 	}
 

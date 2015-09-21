@@ -207,6 +207,10 @@ void RE_InitRenderCB(struct Render *re);
 void RE_FreeRender(struct Render *re);
 /* only called on exit */
 void RE_FreeAllRender(void);
+/* Free memory used by persistent data.
+ * Invoked when loading new file.
+ */
+void RE_FreeAllPersistentData(void);
 /* only call on file load */
 void RE_FreeAllRenderResults(void);
 /* for external render engines that can keep persistent data */
