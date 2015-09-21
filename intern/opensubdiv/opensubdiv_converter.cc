@@ -467,6 +467,14 @@ inline bool TopologyRefinerFactory<OpenSubdiv_Converter>::assignComponentTags(
 				break;
 			}
 		}
+		if (vert_edges.size() == 2) {
+			int edge0 = vert_edges[0],
+			    edge1 = vert_edges[1];
+			float sharpness0 = conv.get_edge_sharpness(&conv, edge0),
+			      sharpness1 = conv.get_edge_sharpness(&conv, edge1);
+			float sharpness = std::min(sharpness0,  sharpness1);
+			setBaseVertexSharpness(refiner, vert, sharpness);
+		}
 	}
 
 	return true;
