@@ -533,6 +533,17 @@ void RE_FreeAllRender(void)
 #endif
 }
 
+void RE_FreeAllPersistentData(void)
+{
+	Render *re;
+	for (re = RenderGlobal.renderlist.first; re != NULL; re = re->next) {
+		if ((re->r.mode & R_PERSISTENT_DATA) != 0 && re->engine != NULL) {
+			RE_engine_free(re->engine);
+			re->engine = NULL;
+		}
+	}
+}
+
 /* on file load, free all re */
 void RE_FreeAllRenderResults(void)
 {
