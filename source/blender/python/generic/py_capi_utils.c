@@ -29,6 +29,8 @@
  * BLI_string_utf8() for unicode conversion.
  */
 
+/* needed for Py3.6+ to access Py_PyThreadState_Current */
+#define Py_BUILD_CORE
 
 #include <Python.h>
 #include <frameobject.h>
@@ -666,7 +668,8 @@ void PyC_SetHomePath(const char *py_path_bundle)
 
 bool PyC_IsInterpreterActive(void)
 {
-	return (PyThreadState_GET() != NULL);
+	/* expanded PyThreadState_GET which won't throw an exception */
+	return (((PyThreadState *)_Py_atomic_load_relaxed(&_PyThreadState_Current)) != NULL);
 }
 
 /* Would be nice if python had this built in
