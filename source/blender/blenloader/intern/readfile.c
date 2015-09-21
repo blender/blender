@@ -618,7 +618,9 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
 	m = BKE_main_new();
 	BLI_addtail(mainlist, m);
 	
-	lib = BKE_libblock_alloc(m, ID_LI, "lib");
+	/* Add library datablock itself to 'main' Main, since libraries are **never** linked data.
+	 * Fixes bug where you could end with all ID_LI datablocks having the same name... */
+	lib = BKE_libblock_alloc(mainlist->first, ID_LI, "Lib");
 	BLI_strncpy(lib->name, filepath, sizeof(lib->name));
 	BLI_strncpy(lib->filepath, name1, sizeof(lib->filepath));
 	
