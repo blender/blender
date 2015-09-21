@@ -756,7 +756,7 @@ static short gp_stroke_eraser_splitdel(bGPDframe *gpf, bGPDstroke *gps, int i)
 	else if (i == gps->totpoints - 2) {
 		/* allocate new points array, and assign most of the old stroke there */
 		gps->totpoints--;
-		gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
+		gps->points = MEM_mallocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
 		memcpy(gps->points, pt_tmp, sizeof(bGPDspoint) * gps->totpoints);
 		
 		/* free temp buffer */
@@ -770,7 +770,7 @@ static short gp_stroke_eraser_splitdel(bGPDframe *gpf, bGPDstroke *gps, int i)
 	else if (i == 0) {
 		/* allocate new points array, and assign most of the old stroke there */
 		gps->totpoints--;
-		gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
+		gps->points = MEM_mallocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
 		memcpy(gps->points, pt_tmp + 1, sizeof(bGPDspoint) * gps->totpoints);
 		
 		/* We must adjust timings!
@@ -807,7 +807,7 @@ static short gp_stroke_eraser_splitdel(bGPDframe *gpf, bGPDstroke *gps, int i)
 		BLI_insertlinkafter(&gpf->strokes, gps, gsn);
 		
 		gsn->totpoints = gps->totpoints - i;
-		gsn->points = MEM_callocN(sizeof(bGPDspoint) * gsn->totpoints, "gp_stroke_points");
+		gsn->points = MEM_mallocN(sizeof(bGPDspoint) * gsn->totpoints, "gp_stroke_points");
 		memcpy(gsn->points, pt_tmp + i, sizeof(bGPDspoint) * gsn->totpoints);
 		
 		/* We must adjust timings of this new stroke!
@@ -831,8 +831,8 @@ static short gp_stroke_eraser_splitdel(bGPDframe *gpf, bGPDstroke *gps, int i)
 		
 		/* adjust existing stroke  */
 		gps->totpoints = i;
-		gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
-		memcpy(gps->points, pt_tmp, sizeof(bGPDspoint) * i);
+		gps->points = MEM_mallocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
+		memcpy(gps->points, pt_tmp, sizeof(bGPDspoint) * gps->totpoints);
 		
 		/* free temp buffer */
 		MEM_freeN(pt_tmp);

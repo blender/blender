@@ -1464,10 +1464,10 @@ DerivedMesh *multires_make_derived_from_derived(DerivedMesh *dm,
 	gridData = result->getGridData(result);
 	result->getGridKey(result, &key);
 
-	subGridData = MEM_callocN(sizeof(CCGElem *) * numGrids, "subGridData*");
+	subGridData = MEM_mallocN(sizeof(CCGElem *) * numGrids, "subGridData*");
 
 	for (i = 0; i < numGrids; i++) {
-		subGridData[i] = MEM_callocN(key.elem_size * gridSize * gridSize, "subGridData");
+		subGridData[i] = MEM_mallocN(key.elem_size * gridSize * gridSize, "subGridData");
 		memcpy(subGridData[i], gridData[i], key.elem_size * gridSize * gridSize);
 	}
 
