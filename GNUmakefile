@@ -122,7 +122,7 @@ endif
 # Build Blender
 all: FORCE
 	@echo
-	@echo Configuring Blender ...
+	@echo Configuring Blender in \"$(BUILD_DIR)\" ...
 
 #	# if test ! -f $(BUILD_DIR)/CMakeCache.txt ; then \
 #	# 	$(CMAKE_CONFIG); \
