@@ -1377,8 +1377,8 @@ ObjectInstanceRen *RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, 
 	obi->lay= lay;
 
 	/* Fill particle info */
-	if (obi->psysindex >= 0) {
-		int psysindex = 0;
+	if (obi->psysindex > 0) {
+		int psysindex = 1;
 		int index;
 		ParticleSystem *psys;
 		if (obi->par) {
