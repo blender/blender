@@ -2538,7 +2538,7 @@ install_RPM() {
       if $NUMPY_SKIP; then
         WARNING "Skipping NumPy installation, as requested..."
       else
-        check_package_version_match_RPM python3-numpy $NUMPY_VERSION_MIN
+        check_package_version_ge_RPM python3-numpy $NUMPY_VERSION_MIN
         if [ $? -eq 0 ]; then
           install_packages_RPM python3-numpy
         elif $NUMPY_REQUIRED; then
