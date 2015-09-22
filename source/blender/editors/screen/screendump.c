@@ -354,6 +354,10 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 	
 	if (BKE_imtype_is_movie(rd.im_format.imtype)) {
 		mh = BKE_movie_handle_get(sj->scene->r.im_format.imtype);
+		if (mh == NULL) {
+			printf("Movie format unsupported\n");
+			return;
+		}
 		sj->movie_ctx = mh->context_create();
 		sj->movie_handle = mh;
 

@@ -706,7 +706,7 @@ static void screen_opengl_render_cancel(bContext *C, wmOperator *op)
 }
 
 /* share between invoke and exec */
-static int screen_opengl_render_anim_initialize(bContext *C, wmOperator *op)
+static bool screen_opengl_render_anim_initialize(bContext *C, wmOperator *op)
 {
 	/* initialize animation */
 	OGLRender *oglrender;
@@ -722,8 +722,15 @@ static int screen_opengl_render_anim_initialize(bContext *C, wmOperator *op)
 		size_t i, width, height;
 
 		BKE_scene_multiview_videos_dimensions_get(&scene->r, oglrender->sizex, oglrender->sizey, &width, &height);
-		oglrender->movie_ctx_arr = MEM_mallocN(sizeof(void *) * oglrender->totvideos, "Movies");
 		oglrender->mh = BKE_movie_handle_get(scene->r.im_format.imtype);
+
+		if (oglrender->mh == NULL) {
+			BKE_report(oglrender->reports, RPT_ERROR, "Movie format unsupported");
+			screen_opengl_render_end(C, oglrender);
+			return false;
+		}
+
+		oglrender->movie_ctx_arr = MEM_mallocN(sizeof(void *) * oglrender->totvideos, "Movies");
 
 		for (i = 0; i < oglrender->totvideos; i++) {
 			const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, i);
@@ -733,7 +740,7 @@ static int screen_opengl_render_anim_initialize(bContext *C, wmOperator *op)
 			                                oglrender->sizey, oglrender->reports, PRVRANGEON != 0, suffix))
 			{
 				screen_opengl_render_end(C, oglrender);
-				return 0;
+				return false;
 			}
 		}
 	}
@@ -742,7 +749,7 @@ static int screen_opengl_render_anim_initialize(bContext *C, wmOperator *op)
 	oglrender->nfra = PSFRA;
 	scene->r.cfra = PSFRA;
 
-	return 1;
+	return true;
 }
 
 static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)

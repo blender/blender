@@ -3517,6 +3517,11 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 		get_videos_dimensions(re, &rd, &width, &height);
 
 		mh = BKE_movie_handle_get(scene->r.im_format.imtype);
+		if (mh == NULL) {
+			BKE_report(re->reports, RPT_ERROR, "Movie format unsupported");
+			return;
+		}
+
 		re->movie_ctx_arr = MEM_mallocN(sizeof(void *) * totvideos, "Movies' Context");
 
 		for (i = 0; i < totvideos; i++) {
