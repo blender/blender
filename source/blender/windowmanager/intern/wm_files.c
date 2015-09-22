@@ -401,6 +401,53 @@ void WM_file_autoexec_init(const char *filepath)
 	}
 }
 
+/**
+ * Logic shared between #WM_file_read & #wm_homefile_read,
+ * updates to make after reading a file.
+ */
+static void wm_file_read_post(bContext *C, bool is_startup_file)
+{
+	CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
+
+	ED_editors_init(C);
+	DAG_on_visible_update(CTX_data_main(C), true);
+
+#ifdef WITH_PYTHON
+	if (is_startup_file) {
+		/* possible python hasn't been initialized */
+		if (CTX_py_init_get(C)) {
+			/* sync addons, these may have changed from the defaults */
+			BPY_string_exec(C, "__import__('addon_utils').reset_all()");
+
+			BPY_python_reset(C);
+		}
+	}
+	else {
+		/* run any texts that were loaded in and flagged as modules */
+		BPY_python_reset(C);
+	}
+#endif  /* WITH_PYTHON */
+
+	WM_operatortype_last_properties_clear_all();
+
+	/* important to do before NULL'ing the context */
+	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_VERSION_UPDATE);
+	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
+
+	WM_event_add_notifier(C, NC_WM | ND_FILEREAD, NULL);
+
+	if (!G.background) {
+		/* in background mode this makes it hard to load
+		 * a blend file and do anything since the screen
+		 * won't be set to a valid value again */
+		CTX_wm_window_set(C, NULL); /* exits queues */
+	}
+
+//	undo_editmode_clear();
+	BKE_undo_reset();
+	BKE_undo_write(C, "original");  /* save current state */
+}
+
 bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 {
 	/* assume automated tasks with background, don't write recent file list */
@@ -465,32 +512,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 			}
 		}
 
-
-		WM_event_add_notifier(C, NC_WM | ND_FILEREAD, NULL);
-//		refresh_interface_font();
-
-		CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
-
-		ED_editors_init(C);
-		DAG_on_visible_update(CTX_data_main(C), true);
-
-#ifdef WITH_PYTHON
-		/* run any texts that were loaded in and flagged as modules */
-		BPY_python_reset(C);
-#endif
-
-		WM_operatortype_last_properties_clear_all();
-
-		/* important to do before NULL'ing the context */
-		BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_VERSION_UPDATE);
-		BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
-
-		if (!G.background) {
-			/* in background mode this makes it hard to load
-			 * a blend file and do anything since the screen
-			 * won't be set to a valid value again */
-			CTX_wm_window_set(C, NULL); /* exits queues */
-		}
+		wm_file_read_post(C, false);
 
 #if 0
 		/* gives popups on windows but not linux, bug in report API
@@ -509,9 +531,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 			}
 		}
 #endif
-
-		BKE_undo_reset();
-		BKE_undo_write(C, "original");  /* save current state */
 
 		success = true;
 	}
@@ -673,38 +692,7 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 	G.save_over = 0;    // start with save preference untitled.blend
 	G.fileflags &= ~G_FILE_AUTOPLAY;    /*  disable autoplay in startup.blend... */
 
-//	refresh_interface_font();
-	
-//	undo_editmode_clear();
-	BKE_undo_reset();
-	BKE_undo_write(C, "original");  /* save current state */
-
-	CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
-
-	ED_editors_init(C);
-	DAG_on_visible_update(CTX_data_main(C), true);
-
-#ifdef WITH_PYTHON
-	if (CTX_py_init_get(C)) {
-		/* sync addons, these may have changed from the defaults */
-		BPY_string_exec(C, "__import__('addon_utils').reset_all()");
-
-		BPY_python_reset(C);
-	}
-#endif
-
-	WM_operatortype_last_properties_clear_all();
-
-	/* important to do before NULL'ing the context */
-	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_VERSION_UPDATE);
-	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
-
-	WM_event_add_notifier(C, NC_WM | ND_FILEREAD, NULL);
-
-	/* in background mode the scene will stay NULL */
-	if (!G.background) {
-		CTX_wm_window_set(C, NULL); /* exits queues */
-	}
+	wm_file_read_post(C, true);
 
 	return true;
 }
