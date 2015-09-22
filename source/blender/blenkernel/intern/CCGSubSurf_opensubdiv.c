@@ -314,8 +314,11 @@ int ccgSubSurf_getNumGLMeshBaseFaces(CCGSubSurf *ss)
 	if (ss->osd_topology_refiner != NULL) {
 		topology_refiner = ss->osd_topology_refiner;
 	}
-	else {
+	else if (ss->osd_mesh != NULL) {
 		topology_refiner = openSubdiv_getGLMeshTopologyRefiner(ss->osd_mesh);
+	}
+	else {
+		return 0;
 	}
 	return openSubdiv_topologyRefinerGetNumFaces(topology_refiner);
 }
@@ -327,8 +330,11 @@ int ccgSubSurf_getNumGLMeshBaseFaceVerts(CCGSubSurf *ss, int face)
 	if (ss->osd_topology_refiner != NULL) {
 		topology_refiner = ss->osd_topology_refiner;
 	}
-	else {
+	else if (ss->osd_mesh != NULL) {
 		topology_refiner = openSubdiv_getGLMeshTopologyRefiner(ss->osd_mesh);
+	}
+	else {
+		return 0;
 	}
 	return openSubdiv_topologyRefinerGetNumFaceVerts(topology_refiner, face);
 }
