@@ -38,6 +38,7 @@ int			wm_homefile_read_exec(struct bContext *C, struct wmOperator *op);
 int			wm_homefile_read(struct bContext *C, struct ReportList *reports, bool from_memory, const char *filepath);
 int			wm_homefile_write_exec(struct bContext *C, struct wmOperator *op);
 int			wm_userpref_write_exec(struct bContext *C, struct wmOperator *op);
+void		wm_file_read_report(bContext *C);
 
 
 #endif /* __WM_FILES_H__ */

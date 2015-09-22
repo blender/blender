@@ -404,12 +404,40 @@ void WM_file_autoexec_init(const char *filepath)
 	}
 }
 
+void wm_file_read_report(bContext *C)
+{
+	ReportList *reports = NULL;
+	Scene *sce;
+
+	for (sce = G.main->scene.first; sce; sce = sce->id.next) {
+		if (sce->r.engine[0] &&
+		    BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL)
+		{
+			if (reports == NULL) {
+				reports = CTX_wm_reports(C);
+			}
+
+			BKE_reportf(reports, RPT_ERROR,
+			            "Engine '%s' not available for scene '%s' "
+			            "(an addon may need to be installed or enabled)",
+			            sce->r.engine, sce->id.name + 2);
+		}
+	}
+
+	if (reports) {
+		if (!G.background) {
+			WM_report_banner_show(C);
+		}
+	}
+}
+
 /**
  * Logic shared between #WM_file_read & #wm_homefile_read,
  * updates to make after reading a file.
  */
 static void wm_file_read_post(bContext *C, bool is_startup_file)
 {
+	bool addons_loaded = false;
 	CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
 
 	ED_editors_init(C);
@@ -423,11 +451,13 @@ static void wm_file_read_post(bContext *C, bool is_startup_file)
 			BPY_string_exec(C, "__import__('addon_utils').reset_all()");
 
 			BPY_python_reset(C);
+			addons_loaded = true;
 		}
 	}
 	else {
 		/* run any texts that were loaded in and flagged as modules */
 		BPY_python_reset(C);
+		addons_loaded = true;
 	}
 #endif  /* WITH_PYTHON */
 
@@ -439,31 +469,10 @@ static void wm_file_read_post(bContext *C, bool is_startup_file)
 
 	WM_event_add_notifier(C, NC_WM | ND_FILEREAD, NULL);
 
-	/* report any errors */
-	{
-		ReportList *reports = NULL;
-		Scene *sce;
-
-		for (sce = G.main->scene.first; sce; sce = sce->id.next) {
-			if (sce->r.engine[0] &&
-			    BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL)
-			{
-				if (reports == NULL) {
-					reports = CTX_wm_reports(C);
-				}
-
-				BKE_reportf(reports, RPT_ERROR,
-				            "Engine '%s' not available for scene '%s' "
-				            "(an addon may need to be installed or enabled)",
-				            sce->r.engine, sce->id.name + 2);
-			}
-		}
-
-		if (reports) {
-			if (!G.background) {
-				WM_report_banner_show(C);
-			}
-		}
+	/* report any errors.
+	 * currently disabled if addons aren't yet loaded */
+	if (addons_loaded) {
+		wm_file_read_report(C);
 	}
 
 	if (!G.background) {

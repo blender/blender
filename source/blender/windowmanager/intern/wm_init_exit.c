@@ -261,13 +261,24 @@ void WM_init(bContext *C, int argc, const char **argv)
 		/* that prevents loading both the kept session, and the file on the command line */
 	}
 	else {
+		/* note, logic here is from wm_file_read_post,
+		 * call functions that depend on Python being initialized. */
+
 		/* normally 'wm_homefile_read' will do this,
 		 * however python is not initialized when called from this function.
 		 *
 		 * unlikely any handlers are set but its possible,
 		 * note that recovering the last session does its own callbacks. */
+		CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
+
 		BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_VERSION_UPDATE);
 		BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
+
+		wm_file_read_report(C);
+
+		if (!G.background) {
+			CTX_wm_window_set(C, NULL);
+		}
 	}
 }
 

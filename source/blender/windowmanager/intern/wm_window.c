@@ -1278,7 +1278,7 @@ void WM_event_timer_sleep(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *t
 wmTimer *WM_event_add_timer(wmWindowManager *wm, wmWindow *win, int event_type, double timestep)
 {
 	wmTimer *wt = MEM_callocN(sizeof(wmTimer), "window timer");
-	
+
 	wt->event_type = event_type;
 	wt->ltime = PIL_check_seconds_timer();
 	wt->ntime = wt->ltime + timestep;
