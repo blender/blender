@@ -2389,6 +2389,15 @@ static bool select_linked_delimit_test(
 	return false;
 }
 
+static void select_linked_delimit_validate(BMesh *bm, int *delimit)
+{
+	if ((*delimit) & BMO_DELIM_UV) {
+		if (!CustomData_has_layer(&bm->ldata, CD_MLOOPUV)) {
+			(*delimit) &= ~BMO_DELIM_UV;
+		}
+	}
+}
+
 static void select_linked_delimit_begin(BMesh *bm, short selectmode, int delimit)
 {
 	struct DelimitData delimit_data = {0};
@@ -2441,7 +2450,9 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 	BMIter iter;
 	BMWalker walker;
 
-	const int delimit = RNA_enum_get(op->ptr, "delimit");
+	int delimit = RNA_enum_get(op->ptr, "delimit");
+
+	select_linked_delimit_validate(bm, &delimit);
 
 	if (delimit) {
 		select_linked_delimit_begin(em->bm, em->selectmode, delimit);
@@ -2606,6 +2617,8 @@ static void edbm_select_linked_pick_ex(
 {
 	BMesh *bm = em->bm;
 	BMWalker walker;
+
+	select_linked_delimit_validate(bm, &delimit);
 
 	if (delimit) {
 		select_linked_delimit_begin(bm, em->selectmode, delimit);
