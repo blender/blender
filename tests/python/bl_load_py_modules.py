@@ -38,6 +38,9 @@ BLACKLIST = {
     'io_import_dxf',  # Because of cydxfentity.so dependency
     }
 
+if not bpy.app.build_options.freestyle:
+    BLACKLIST.add("render_freestyle_svg")
+
 BLACKLIST_DIRS = (
     os.path.join(bpy.utils.resource_path('USER'), "scripts"),
     ) + tuple(addon_utils.paths()[1:])
@@ -75,8 +78,11 @@ def load_addons():
 
     for mod in modules:
         mod_name = mod.__name__
+        if mod_name in BLACKLIST:
+            continue
         addon_utils.enable(mod_name, default_set=True)
-        assert(mod_name in addons)
+        if not (mod_name in addons):
+            raise Exception("'addon_utils.enable(%r)' call failed" % mod_name)
 
 
 def load_modules():
@@ -157,7 +163,8 @@ def load_modules():
     ignore_paths = [
         os.sep + "presets" + os.sep,
         os.sep + "templates" + os.sep,
-    ] + [(os.sep + f + os.sep) for f in BLACKLIST]
+    ] + ([(os.sep + f + os.sep) for f in BLACKLIST] +
+         [(os.sep + f + ".py")  for f in BLACKLIST])
 
     for f in source_files:
         ok = False
