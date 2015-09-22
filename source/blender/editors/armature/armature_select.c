@@ -929,7 +929,7 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 	ob = obedit;
 	arm = (bArmature *)ob->data;
 
-	 ebone_active = arm->act_edbone;
+	ebone_active = arm->act_edbone;
 	if (ebone_active == NULL) {
 		return OPERATOR_CANCELLED;
 	}

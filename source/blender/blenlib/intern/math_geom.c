@@ -3570,8 +3570,8 @@ void perspective_m4(float mat[4][4], const float left, const float right, const 
 	mat[2][3] = -1.0f;
 	mat[3][2] = (-2.0f * nearClip * farClip) / Zdelta;
 	mat[0][1] = mat[0][2] = mat[0][3] =
-	        mat[1][0] = mat[1][2] = mat[1][3] =
-	        mat[3][0] = mat[3][1] = mat[3][3] = 0.0f;
+	mat[1][0] = mat[1][2] = mat[1][3] =
+	mat[3][0] = mat[3][1] = mat[3][3] = 0.0f;
 
 }
 

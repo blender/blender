@@ -855,21 +855,15 @@ void getConstraintMatrix(TransInfo *t)
 	unit_m3(t->con.pmtx);
 
 	if (!(t->con.mode & CON_AXIS0)) {
-		t->con.pmtx[0][0]       =
-		    t->con.pmtx[0][1]   =
-		    t->con.pmtx[0][2]   = 0.0f;
+		zero_v3(t->con.pmtx[0]);
 	}
 
 	if (!(t->con.mode & CON_AXIS1)) {
-		t->con.pmtx[1][0]       =
-		    t->con.pmtx[1][1]   =
-		    t->con.pmtx[1][2]   = 0.0f;
+		zero_v3(t->con.pmtx[1]);
 	}
 
 	if (!(t->con.mode & CON_AXIS2)) {
-		t->con.pmtx[2][0]       =
-		    t->con.pmtx[2][1]   =
-		    t->con.pmtx[2][2]   = 0.0f;
+		zero_v3(t->con.pmtx[2]);
 	}
 
 	mul_m3_m3m3(mat, t->con.pmtx, t->con.imtx);

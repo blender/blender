@@ -1773,8 +1773,8 @@ static DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd,
 										}
 										else {
 											col[l_index].r =
-											    col[l_index].g =
-											        col[l_index].b = FTOCHAR(pPoint[v_index].wetness);
+											col[l_index].g =
+											col[l_index].b = FTOCHAR(pPoint[v_index].wetness);
 											col[l_index].a = 255;
 										}
 									}
