@@ -361,10 +361,12 @@ void RE_engine_set_error_message(RenderEngine *engine, const char *msg)
 	Render *re = engine->re;
 	if (re != NULL) {
 		RenderResult *rr = RE_AcquireResultRead(re);
-		if (rr->error != NULL) {
-			MEM_freeN(rr->error);
+		if (rr) {
+			if (rr->error != NULL) {
+				MEM_freeN(rr->error);
+			}
+			rr->error = BLI_strdup(msg);
 		}
-		rr->error = BLI_strdup(msg);
 		RE_ReleaseResult(re);
 	}
 }
