@@ -343,12 +343,12 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "start_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "animStart");
-	RNA_def_property_range(prop, 0, 100);
+	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Start Time", "Simulation time of the first blender frame (in seconds)");
 	
 	prop = RNA_def_property(srna, "end_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "animEnd");
-	RNA_def_property_range(prop, 0, 100);
+	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_text(prop, "End Time", "Simulation time of the last blender frame (in seconds)");
 	
 	prop = RNA_def_property(srna, "frame_offset", PROP_INT, PROP_NONE);
@@ -627,12 +627,12 @@ static void rna_def_fluidsim_control(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "start_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "cpsTimeStart");
-	RNA_def_property_range(prop, 0.0, 100.0);
+	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Start Time", "Time when the control particles are activated");
 	
 	prop = RNA_def_property(srna, "end_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "cpsTimeEnd");
-	RNA_def_property_range(prop, 0.0, 100.0);
+	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_text(prop, "End Time", "Time when the control particles are deactivated");
 
 	prop = RNA_def_property(srna, "attraction_strength", PROP_FLOAT, PROP_NONE);
