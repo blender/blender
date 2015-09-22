@@ -679,6 +679,8 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 	BKE_undo_reset();
 	BKE_undo_write(C, "original");  /* save current state */
 
+	CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
+
 	ED_editors_init(C);
 	DAG_on_visible_update(CTX_data_main(C), true);
 
