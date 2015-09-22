@@ -1234,15 +1234,6 @@ static void end_ffmpeg_impl(FFMpegContext *context, int is_autosplit)
 		context->video_stream = 0;
 	}
 
-	
-	/* Close the output file */
-	if (context->outfile) {
-		for (i = 0; i < context->outfile->nb_streams; i++) {
-			if (&context->outfile->streams[i]) {
-				av_freep(&context->outfile->streams[i]);
-			}
-		}
-	}
 	/* free the temp buffer */
 	if (context->current_frame) {
 		delete_picture(context->current_frame);
@@ -1254,7 +1245,7 @@ static void end_ffmpeg_impl(FFMpegContext *context, int is_autosplit)
 		}
 	}
 	if (context->outfile) {
-		av_free(context->outfile);
+		avformat_free_context(context->outfile);
 		context->outfile = 0;
 	}
 	if (context->audio_input_buffer) {
