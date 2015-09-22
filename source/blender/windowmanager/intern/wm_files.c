@@ -106,6 +106,9 @@
 
 #include "GPU_draw.h"
 
+/* only to report a missing engine */
+#include "RE_engine.h"
+
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
@@ -436,6 +439,33 @@ static void wm_file_read_post(bContext *C, bool is_startup_file)
 
 	WM_event_add_notifier(C, NC_WM | ND_FILEREAD, NULL);
 
+	/* report any errors */
+	{
+		ReportList *reports = NULL;
+		Scene *sce;
+
+		for (sce = G.main->scene.first; sce; sce = sce->id.next) {
+			if (sce->r.engine[0] &&
+			    BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL)
+			{
+				if (reports == NULL) {
+					reports = CTX_wm_reports(C);
+				}
+
+				BKE_reportf(reports, RPT_ERROR,
+				            "Engine '%s' not available for scene '%s' "
+				            "(an addon may need to be installed or enabled)",
+				            sce->r.engine, sce->id.name + 2);
+			}
+		}
+
+		if (reports) {
+			if (!G.background) {
+				WM_report_banner_show(C);
+			}
+		}
+	}
+
 	if (!G.background) {
 		/* in background mode this makes it hard to load
 		 * a blend file and do anything since the screen
@@ -513,24 +543,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 		}
 
 		wm_file_read_post(C, false);
-
-#if 0
-		/* gives popups on windows but not linux, bug in report API
-		 * but disable for now to stop users getting annoyed  */
-		/* TODO, make this show in header info window */
-		{
-			Scene *sce;
-			for (sce = G.main->scene.first; sce; sce = sce->id.next) {
-				if (sce->r.engine[0] &&
-				    BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL)
-				{
-					BKE_reportf(reports, RPT_ERROR, "Engine '%s' not available for scene '%s' "
-					            "(an addon may need to be installed or enabled)",
-					            sce->r.engine, sce->id.name + 2);
-				}
-			}
-		}
-#endif
 
 		success = true;
 	}
