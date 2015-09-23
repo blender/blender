@@ -33,6 +33,7 @@ import bpy
 
 from bpy.props import (
         BoolProperty,
+        BoolVectorProperty,
         FloatVectorProperty,
         )
 
@@ -136,16 +137,22 @@ def object_data_add(context, obdata, operator=None, use_active_layer=True, name=
     if context.space_data and context.space_data.type == 'VIEW_3D':
         v3d = context.space_data
 
-    if use_active_layer:
-        if v3d and v3d.local_view:
-            base.layers_from_view(context.space_data)
-            base.layers[scene.active_layer] = True
-        else:
-            base.layers = [True if i == scene.active_layer
-                           else False for i in range(len(scene.layers))]
+    if operator is not None and any(operator.layers):
+        base.layers = operator.layers
     else:
-        if v3d:
-            base.layers_from_view(context.space_data)
+        if use_active_layer:
+            if v3d and v3d.local_view:
+                base.layers_from_view(context.space_data)
+                base.layers[scene.active_layer] = True
+            else:
+                base.layers = [True if i == scene.active_layer
+                               else False for i in range(len(scene.layers))]
+        else:
+            if v3d:
+                base.layers_from_view(context.space_data)
+
+        if operator is not None:
+            operator.layers = base.layers
 
     obj_new.matrix_world = add_object_align_init(context, operator)
 
@@ -208,6 +215,12 @@ class AddObjectHelper:
     rotation = FloatVectorProperty(
             name="Rotation",
             subtype='EULER',
+            )
+    layers = BoolVectorProperty(
+            name="Layers",
+            size=20,
+            subtype='LAYER',
+            options={'HIDDEN', 'SKIP_SAVE'},
             )
 
     @classmethod
