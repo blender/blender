@@ -1193,7 +1193,10 @@ static short selectbuffer_ret_hits_5(unsigned int *buffer, const short hits15, c
 
 /* we want a select buffer with bones, if there are... */
 /* so check three selection levels and compare */
-static short mixed_bones_object_selectbuffer(ViewContext *vc, unsigned int *buffer, const int mval[2], bool *p_do_nearest, bool enumerate)
+static short mixed_bones_object_selectbuffer(
+        ViewContext *vc, unsigned int *buffer, const int mval[2],
+        bool use_cycle, bool enumerate,
+        bool *r_do_nearest)
 {
 	rcti rect;
 	int offs;
@@ -1204,16 +1207,24 @@ static short mixed_bones_object_selectbuffer(ViewContext *vc, unsigned int *buff
 	View3D *v3d = vc->v3d;
 
 	/* define if we use solid nearest select or not */
-	if (v3d->drawtype > OB_WIRE) {
-		do_nearest = true;
-		if (len_manhattan_v2v2_int(mval, last_mval) < 3) {
-			do_nearest = false;
+	if (use_cycle) {
+		if (v3d->drawtype > OB_WIRE) {
+			do_nearest = true;
+			if (len_manhattan_v2v2_int(mval, last_mval) < 3) {
+				do_nearest = false;
+			}
+		}
+		copy_v2_v2_int(last_mval, mval);
+	}
+	else {
+		if (v3d->drawtype > OB_WIRE) {
+			do_nearest = true;
 		}
 	}
-	copy_v2_v2_int(last_mval, mval);
 
-	if (p_do_nearest)
-		*p_do_nearest = do_nearest;
+	if (r_do_nearest) {
+		*r_do_nearest = do_nearest;
+	}
 
 	do_nearest = do_nearest && !enumerate;
 
@@ -1353,7 +1364,7 @@ Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
 	view3d_operator_needs_opengl(C);
 	view3d_set_viewcontext(C, &vc);
 	
-	hits = mixed_bones_object_selectbuffer(&vc, buffer, mval, &do_nearest, false);
+	hits = mixed_bones_object_selectbuffer(&vc, buffer, mval, false, false, &do_nearest);
 	
 	if (hits > 0) {
 		const bool has_bones = selectbuffer_has_bones(buffer, hits);
@@ -1448,7 +1459,7 @@ static bool mouse_select(bContext *C, const int mval[2],
 
 		/* if objects have posemode set, the bones are in the same selection buffer */
 		
-		hits = mixed_bones_object_selectbuffer(&vc, buffer, mval, &do_nearest, enumerate);
+		hits = mixed_bones_object_selectbuffer(&vc, buffer, mval, true, enumerate, &do_nearest);
 		
 		if (hits > 0) {
 			/* note: bundles are handling in the same way as bones */
