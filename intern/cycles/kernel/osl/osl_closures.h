@@ -78,6 +78,11 @@ void name(RendererServices *, int id, void *data) \
 #define TO_COLOR3(v) OSL::Color3(v.x, v.y, v.z)
 #define TO_FLOAT3(v) make_float3(v[0], v[1], v[2])
 
+#if OSL_LIBRARY_VERSION_CODE < 10700
+#  undef CLOSURE_STRING_KEYPARAM
+#  define CLOSURE_STRING_KEYPARAM(st, fld, key) { TypeDesc::TypeString, 0, key, 0 }
+#endif
+
 /* Closure */
 
 class CClosurePrimitive {
@@ -97,6 +102,10 @@ public:
 	virtual void setup() {}
 
 	Category category;
+
+#if OSL_LIBRARY_VERSION_CODE >= 10700
+	OSL::ustring label;
+#endif
 };
 
 /* BSDF */
@@ -175,7 +184,7 @@ static ClosureParam *bsdf_##lower##_params() \
 /* parameters */
 
 #define BSDF_CLOSURE_CLASS_END(Upper, lower) \
-		CLOSURE_STRING_KEYPARAM("label"), \
+		CLOSURE_STRING_KEYPARAM(Upper##Closure, label, "label"), \
 	    CLOSURE_FINISH_PARAM(Upper##Closure) \
 	}; \
 	return params; \
@@ -223,7 +232,7 @@ static ClosureParam *volume_##lower##_params() \
 /* parameters */
 
 #define VOLUME_CLOSURE_CLASS_END(Upper, lower) \
-		CLOSURE_STRING_KEYPARAM("label"), \
+		CLOSURE_STRING_KEYPARAM(Upper##Closure, label, "label"), \
 	    CLOSURE_FINISH_PARAM(Upper##Closure) \
 	}; \
 	return params; \

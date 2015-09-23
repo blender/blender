@@ -69,7 +69,7 @@ ClosureParam *closure_bssrdf_cubic_params()
 		CLOSURE_FLOAT3_PARAM(CubicBSSRDFClosure, radius),
 		CLOSURE_FLOAT_PARAM(CubicBSSRDFClosure, sc.data1),
 		CLOSURE_FLOAT_PARAM(CubicBSSRDFClosure, sc.T.x),
-	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_STRING_KEYPARAM(CubicBSSRDFClosure, label, "label"),
 	    CLOSURE_FINISH_PARAM(CubicBSSRDFClosure)
 	};
 	return params;
@@ -97,7 +97,7 @@ ClosureParam *closure_bssrdf_gaussian_params()
 		CLOSURE_FLOAT3_PARAM(GaussianBSSRDFClosure, sc.N),
 		CLOSURE_FLOAT3_PARAM(GaussianBSSRDFClosure, radius),
 		CLOSURE_FLOAT_PARAM(GaussianBSSRDFClosure, sc.data1),
-	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_STRING_KEYPARAM(GaussianBSSRDFClosure, label, "label"),
 	    CLOSURE_FINISH_PARAM(GaussianBSSRDFClosure)
 	};
 	return params;

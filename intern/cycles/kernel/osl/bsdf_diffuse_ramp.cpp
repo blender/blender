@@ -93,7 +93,7 @@ ClosureParam *closure_bsdf_diffuse_ramp_params()
 	static ClosureParam params[] = {
 		CLOSURE_FLOAT3_PARAM(DiffuseRampClosure, sc.N),
 		CLOSURE_COLOR_ARRAY_PARAM(DiffuseRampClosure, colors, 8),
-		CLOSURE_STRING_KEYPARAM("label"),
+		CLOSURE_STRING_KEYPARAM(DiffuseRampClosure, label, "label"),
 	    CLOSURE_FINISH_PARAM(DiffuseRampClosure)
 	};
 	return params;

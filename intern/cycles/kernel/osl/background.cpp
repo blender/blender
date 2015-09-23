@@ -77,7 +77,7 @@ public:
 ClosureParam *closure_background_params()
 {
 	static ClosureParam params[] = {
-	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_STRING_KEYPARAM(GenericBackgroundClosure, label, "label"),
 	    CLOSURE_FINISH_PARAM(GenericBackgroundClosure)
 	};
 	return params;
@@ -98,7 +98,7 @@ CCLOSURE_PREPARE(closure_holdout_prepare, HoldoutClosure)
 ClosureParam *closure_ambient_occlusion_params()
 {
 	static ClosureParam params[] = {
-	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_STRING_KEYPARAM(AmbientOcclusionClosure, label, "label"),
 	    CLOSURE_FINISH_PARAM(AmbientOcclusionClosure)
 	};
 	return params;
