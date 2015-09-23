@@ -84,9 +84,15 @@ struct DerivedMesh *CDDM_copy_from_tessface(struct DerivedMesh *dm);
  * given DerivedMesh and containing the requested numbers of elements.
  * elements are initialized to all zeros
  */
-struct DerivedMesh *CDDM_from_template(struct DerivedMesh *source,
-                                       int numVerts, int numEdges, int numFaces,
-                                       int numLoops, int numPolys);
+struct DerivedMesh *CDDM_from_template_ex(
+        struct DerivedMesh *source,
+        int numVerts, int numEdges, int numFaces,
+        int numLoops, int numPolys,
+        CustomDataMask mask);
+struct DerivedMesh *CDDM_from_template(
+        struct DerivedMesh *source,
+        int numVerts, int numEdges, int numFaces,
+        int numLoops, int numPolys);
 
 /* converts mfaces to mpolys.  note things may break if there are not valid
  * medges surrounding each mface.

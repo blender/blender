@@ -861,7 +861,7 @@ static DerivedMesh *explodeMesh(ExplodeModifierData *emd,
 	BLI_edgehashIterator_free(ehi);
 
 	/* the final duplicated vertices */
-	explode = CDDM_from_template(dm, totdup, 0, totface - delface, 0, 0);
+	explode = CDDM_from_template_ex(dm, totdup, 0, totface - delface, 0, 0, CD_MASK_DERIVEDMESH | CD_MASK_FACECORNERS);
 	mtface = CustomData_get_layer_named(&explode->faceData, CD_MTFACE, emd->uvname);
 	/*dupvert = CDDM_get_verts(explode);*/
 
