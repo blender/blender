@@ -29,8 +29,11 @@
  * BLI_string_utf8() for unicode conversion.
  */
 
+/* TODO, resolve linking errors on win32 */
+#ifndef _WIN32
 /* needed for Py3.6+ to access Py_PyThreadState_Current */
 #define Py_BUILD_CORE
+#endif
 
 #include <Python.h>
 #include <frameobject.h>
