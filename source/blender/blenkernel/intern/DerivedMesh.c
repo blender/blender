@@ -3052,7 +3052,7 @@ static void GetNormal(const SMikkTSpaceContext *pContext, float r_no[3], const i
 		}
 	}
 	else {
-		const short *no = pMesh->mvert[pMesh->mloop[lt->tri[0]].v].no;
+		const short *no = pMesh->mvert[pMesh->mloop[lt->tri[vert_index]].v].no;
 		normal_short_to_float_v3(r_no, no);
 	}
 }
