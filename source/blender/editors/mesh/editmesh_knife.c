@@ -1489,7 +1489,7 @@ static void clip_to_ortho_planes(float v1[3], float v2[3], float d)
 
 	closest_to_line_v3(closest, origin, v1, v2);
 	dist_ensure_v3_v3fl(v1, closest, d);
-	dist_ensure_v3_v3fl(v2, closest, d);
+	flip_v3_v3v3(v2, closest, v1);
 }
 
 static void set_linehit_depth(KnifeTool_OpData *kcd, KnifeLineHit *lh)
