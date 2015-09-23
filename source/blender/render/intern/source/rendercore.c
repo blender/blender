@@ -1971,9 +1971,9 @@ void add_halo_flare(Render *re)
 
 		rect = RE_RenderLayerGetPass(rl, SCE_PASS_COMBINED, re->viewname);
 
-		if (rl==NULL || rect)
-			return;
-		
+		if (rect==NULL)
+			continue;
+
 		mode= R.r.mode;
 		R.r.mode &= ~R_PANORAMA;
 		
