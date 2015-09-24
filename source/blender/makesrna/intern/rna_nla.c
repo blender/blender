@@ -614,7 +614,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	 * (minimum should still be > 0 though) if needed... */
 	RNA_def_property_range(prop, 0.1f, 1000.0f);
 	RNA_def_property_ui_text(prop, "Repeat", "Number of times to repeat the action range");
-	RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, NULL); /* this will do? */
+	RNA_def_property_update(prop, 0, "rna_NlaStrip_transform_update");
 	
 	prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "scale");
