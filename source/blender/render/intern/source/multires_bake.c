@@ -612,7 +612,7 @@ static void get_ccgdm_data(DerivedMesh *lodm, DerivedMesh *hidm,
 		int col = cell_index % polys_per_grid_side;
 
 		/* S is the vertex whose grid we are examining */
-		S = loc_cage_poly_offs / (polys_per_grid_side * polys_per_grid_side);
+		S = poly_index / (1 << (2 * (lvl - 1))) - grid_offset[cage_face_index];
 		/* get offset of grid data for original cage face */
 		g_index = grid_offset[cage_face_index];
 
