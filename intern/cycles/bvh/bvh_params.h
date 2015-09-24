@@ -43,9 +43,6 @@ public:
 	/* object or mesh level bvh */
 	bool top_level;
 
-	/* disk cache */
-	bool use_cache;
-
 	/* QBVH */
 	bool use_qbvh;
 
@@ -71,7 +68,6 @@ public:
 		max_curve_leaf_size = 2;
 
 		top_level = false;
-		use_cache = false;
 		use_qbvh = false;
 	}
 
