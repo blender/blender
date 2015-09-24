@@ -73,6 +73,16 @@ if(USE_EXPERIMENTAL_TESTS)
 	)
 endif()
 
+# ------------------------------------------------------------------------------
+# PY API TESTS
+add_test(script_pyapi_bpy_path ${TEST_BLENDER_EXE}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_bpy_path.py
+)
+
+add_test(script_pyapi_bpy_utils_units ${TEST_BLENDER_EXE}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_bpy_utils_units.py
+)
+
 # test running mathutils testing script
 add_test(script_pyapi_mathutils ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_mathutils.py
