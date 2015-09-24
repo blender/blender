@@ -313,7 +313,7 @@ void opencl_get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices)
 				continue;
 			}
 			if(!opencl_device_version_check(device_id)) {
-				FIRST_VLOG(2) << "Ignoting device " << device_name
+				FIRST_VLOG(2) << "Ignoring device " << device_name
 				              << " due to old compiler version.";
 				continue;
 			}
@@ -327,8 +327,8 @@ void opencl_get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices)
 				                   &device_type,
 				                   NULL) != CL_SUCCESS)
 				{
-					FIRST_VLOG(2) << "Ignoting device " << device_name
-					              << ", faield to fetch device type.";
+					FIRST_VLOG(2) << "Ignoring device " << device_name
+					              << ", failed to fetch device type.";
 					continue;
 				}
 				FIRST_VLOG(2) << "Adding new device " << device_name << ".";
@@ -339,7 +339,7 @@ void opencl_get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices)
 				                                               device_name));
 			}
 			else {
-				FIRST_VLOG(2) << "Ignoting device " << device_name
+				FIRST_VLOG(2) << "Ignoring device " << device_name
 				              << ", not officially supported yet.";
 			}
 		}
