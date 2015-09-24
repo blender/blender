@@ -209,6 +209,8 @@ typedef struct KnifeTool_OpData {
 
 	bool is_ortho;
 	float ortho_extent;
+	float ortho_extent_center[3];
+
 	float clipsta, clipend;
 
 	enum {
@@ -1281,20 +1283,29 @@ static bool knife_ray_intersect_face(
 	return false;
 }
 
-/* Calculate maximum excursion from (0,0,0) of mesh */
+/**
+ * Calculate the center and maximum excursion of mesh.
+ */
 static void calc_ortho_extent(KnifeTool_OpData *kcd)
 {
 	BMIter iter;
 	BMVert *v;
 	BMesh *bm = kcd->em->bm;
-	float max_xyz = 0.0f;
-	int i;
+	float min[3], max[3];
 
-	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-		for (i = 0; i < 3; i++)
-			max_xyz = max_ff(max_xyz, fabsf(v->co[i]));
+	INIT_MINMAX(min, max);
+
+	if (kcd->cagecos) {
+		minmax_v3v3_v3_array(min, max, kcd->cagecos, bm->totvert);
 	}
-	kcd->ortho_extent = max_xyz;
+	else {
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+			minmax_v3v3_v3(min, max, v->co);
+		}
+	}
+
+	kcd->ortho_extent = len_v3v3(min, max) / 2;
+	mid_v3_v3v3(kcd->ortho_extent_center, min, max);
 }
 
 static BMElem *bm_elem_from_knife_vert(KnifeVert *kfv, KnifeEdge **r_kfe)
@@ -1482,14 +1493,20 @@ static bool point_is_visible(
 
 /* Clip the line (v1, v2) to planes perpendicular to it and distances d from
  * the closest point on the line to the origin */
-static void clip_to_ortho_planes(float v1[3], float v2[3], float d)
+static void clip_to_ortho_planes(float v1[3], float v2[3], const float center[3], const float d)
 {
-	float closest[3];
-	const float origin[3] = {0.0f, 0.0f, 0.0f};
+	float closest[3], dir[3];
 
-	closest_to_line_v3(closest, origin, v1, v2);
-	dist_ensure_v3_v3fl(v1, closest, d);
-	flip_v3_v3v3(v2, closest, v1);
+	sub_v3_v3v3(dir, v1, v2);
+	normalize_v3(dir);
+
+	/* could be v1 or v2 */
+	sub_v3_v3(v1, center);
+	project_plane_v3_v3v3(closest, v1, dir);
+	add_v3_v3(closest, center);
+
+	madd_v3_v3v3fl(v1, closest, dir,  d);
+	madd_v3_v3v3fl(v2, closest, dir, -d);
 }
 
 static void set_linehit_depth(KnifeTool_OpData *kcd, KnifeLineHit *lh)
@@ -1573,8 +1590,8 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	if (kcd->is_ortho && (kcd->vc.rv3d->persp != RV3D_CAMOB)) {
 		if (kcd->ortho_extent == 0.0f)
 			calc_ortho_extent(kcd);
-		clip_to_ortho_planes(v1, v3, kcd->ortho_extent + 10.0f);
-		clip_to_ortho_planes(v2, v4, kcd->ortho_extent + 10.0f);
+		clip_to_ortho_planes(v1, v3, kcd->ortho_extent_center, kcd->ortho_extent + 10.0f);
+		clip_to_ortho_planes(v2, v4, kcd->ortho_extent_center, kcd->ortho_extent + 10.0f);
 	}
 
 	/* First use bvh tree to find faces, knife edges, and knife verts that might
