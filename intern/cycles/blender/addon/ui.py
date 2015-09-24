@@ -332,7 +332,6 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         col.separator()
 
         col.label(text="Final Render:")
-        col.prop(cscene, "use_cache")
         col.prop(rd, "use_persistent_data", text="Persistent Images")
 
         col.separator()

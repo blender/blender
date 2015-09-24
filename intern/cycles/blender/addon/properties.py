@@ -463,11 +463,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Use BVH spatial splits: longer builder time, faster render",
                 default=False,
                 )
-        cls.use_cache = BoolProperty(
-                name="Cache BVH",
-                description="Cache last built BVH to disk for faster re-render if no geometry changed",
-                default=False,
-                )
         cls.tile_order = EnumProperty(
                 name="Tile Order",
                 description="Tile order for rendering",
