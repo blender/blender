@@ -812,6 +812,10 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		ComponentKey geometry_key(shape_key->from, DEPSNODE_TYPE_GEOMETRY);
 		add_relation(driver_key, geometry_key, DEPSREL_TYPE_DRIVER, "[Driver -> ShapeKey Geom]");
 	}
+	else if (strstr(fcu->rna_path, "key_blocks[")) {
+		ComponentKey geometry_key(id, DEPSNODE_TYPE_GEOMETRY);
+		add_relation(driver_key, geometry_key, DEPSREL_TYPE_DRIVER, "[Driver -> ShapeKey Geom]");
+	}
 	else {
 		if (GS(id->name) == ID_OB) {
 			/* assume that driver affects a transform... */
