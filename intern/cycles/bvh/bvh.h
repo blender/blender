@@ -29,7 +29,6 @@ class BVHNode;
 struct BVHStackEntry;
 class BVHParams;
 class BoundBox;
-class CacheData;
 class LeafNode;
 class Object;
 class Progress;
@@ -95,10 +94,6 @@ public:
 
 protected:
 	BVH(const BVHParams& params, const vector<Object*>& objects);
-
-	/* cache */
-	bool cache_read(CacheData& key);
-	void cache_write(CacheData& key);
 
 	/* triangles and strands*/
 	void pack_primitives();

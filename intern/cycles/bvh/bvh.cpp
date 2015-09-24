@@ -25,7 +25,6 @@
 #include "bvh_node.h"
 #include "bvh_params.h"
 
-#include "util_cache.h"
 #include "util_debug.h"
 #include "util_foreach.h"
 #include "util_logging.h"
@@ -70,103 +69,11 @@ BVH *BVH::create(const BVHParams& params, const vector<Object*>& objects)
 		return new RegularBVH(params, objects);
 }
 
-/* Cache */
-
-bool BVH::cache_read(CacheData& key)
-{
-	key.add(system_cpu_bits());
-	key.add(&params, sizeof(params));
-
-	foreach(Object *ob, objects) {
-		Mesh *mesh = ob->mesh;
-
-		key.add(mesh->verts);
-		key.add(mesh->triangles);
-		key.add(mesh->curve_keys);
-		key.add(mesh->curves);
-		key.add(&ob->bounds, sizeof(ob->bounds));
-		key.add(&ob->visibility, sizeof(ob->visibility));
-		key.add(&mesh->transform_applied, sizeof(bool));
-
-		if(mesh->use_motion_blur) {
-			Attribute *attr = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-			if(attr)
-				key.add(attr->buffer);
-
-			attr = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-			if(attr)
-				key.add(attr->buffer);
-		}
-	}
-
-	CacheData value;
-
-	if(Cache::global.lookup(key, value)) {
-
-		if(!(value.read(pack.root_index) &&
-		     value.read(pack.SAH) &&
-		     value.read(pack.nodes) &&
-		     value.read(pack.leaf_nodes) &&
-		     value.read(pack.object_node) &&
-		     value.read(pack.tri_woop) &&
-		     value.read(pack.prim_type) &&
-		     value.read(pack.prim_visibility) &&
-		     value.read(pack.prim_index) &&
-		     value.read(pack.prim_object)))
-		{
-			/* Clear the pack if load failed. */
-			pack.root_index = 0;
-			pack.SAH = 0.0f;
-			pack.nodes.clear();
-			pack.leaf_nodes.clear();
-			pack.object_node.clear();
-			pack.tri_woop.clear();
-			pack.prim_type.clear();
-			pack.prim_visibility.clear();
-			pack.prim_index.clear();
-			pack.prim_object.clear();
-			return false;
-		}
-		return true;
-	}
-
-	return false;
-}
-
-void BVH::cache_write(CacheData& key)
-{
-	CacheData value;
-
-	value.add(pack.root_index);
-	value.add(pack.SAH);
-
-	value.add(pack.nodes);
-	value.add(pack.leaf_nodes);
-	value.add(pack.object_node);
-	value.add(pack.tri_woop);
-	value.add(pack.prim_type);
-	value.add(pack.prim_visibility);
-	value.add(pack.prim_index);
-	value.add(pack.prim_object);
-
-	Cache::global.insert(key, value);
-}
-
 /* Building */
 
 void BVH::build(Progress& progress)
 {
 	progress.set_substatus("Building BVH");
-
-	/* cache read */
-	CacheData key("bvh");
-
-	if(params.use_cache) {
-		progress.set_substatus("Looking in BVH cache");
-
-		if(cache_read(key))
-			return;
-	}
 
 	/* build nodes */
 	BVHBuild bvh_build(objects,
@@ -206,14 +113,6 @@ void BVH::build(Progress& progress)
 
 	/* free build nodes */
 	root->deleteSubtree();
-
-	if(progress.get_cancel()) return;
-
-	/* cache write */
-	if(params.use_cache) {
-		progress.set_substatus("Writing BVH cache");
-		cache_write(key);
-	}
 }
 
 /* Refitting */
