@@ -513,7 +513,6 @@ void Mesh::compute_bvh(SceneParams *params, Progress *progress, int n, int total
 			progress->set_status(msg, "Building BVH");
 
 			BVHParams bparams;
-			bparams.use_cache = params->use_bvh_cache;
 			bparams.use_spatial_split = params->use_bvh_spatial_split;
 			bparams.use_qbvh = params->use_qbvh;
 
@@ -1084,7 +1083,6 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 	bparams.top_level = true;
 	bparams.use_qbvh = scene->params.use_qbvh;
 	bparams.use_spatial_split = scene->params.use_bvh_spatial_split;
-	bparams.use_cache = scene->params.use_bvh_cache;
 
 	delete bvh;
 	bvh = BVH::create(bparams, scene->objects);

@@ -20,7 +20,6 @@
 
 #include "bvh_params.h"
 
-#include "util_string.h"
 #include "util_types.h"
 #include "util_vector.h"
 
@@ -87,15 +86,12 @@ public:
 	PackedBVH pack;
 	BVHParams params;
 	vector<Object*> objects;
-	string cache_filename;
 
 	static BVH *create(const BVHParams& params, const vector<Object*>& objects);
 	virtual ~BVH() {}
 
 	void build(Progress& progress);
 	void refit(Progress& progress);
-
-	void clear_cache_except();
 
 protected:
 	BVH(const BVHParams& params, const vector<Object*>& objects);
