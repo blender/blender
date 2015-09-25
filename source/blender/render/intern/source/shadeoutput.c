@@ -1815,7 +1815,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		shr->combined[1]= shi->g;
 		shr->combined[2]= shi->b;
 		shr->alpha= shi->alpha;
-		return;
+		goto finally_shadeless;
 	}
 
 	if ( (ma->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))== MA_VERTEXCOL ) {	/* vertexcolor light */
@@ -2006,7 +2006,11 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		add_v3_v3(shr->combined, shr->emit);
 	if (shi->combinedflag & SCE_PASS_SPEC)
 		add_v3_v3(shr->combined, shr->spec);
-	
+
+
+	/* Last section of this function applies to shadeless colors too */
+finally_shadeless:
+
 	/* modulate by the object color */
 	if ((ma->shade_flag & MA_OBCOLOR) && shi->obr->ob) {
 		if (!(ma->sss_flag & MA_DIFF_SSS) || !sss_pass_done(&R, ma)) {
