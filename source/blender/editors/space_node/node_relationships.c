@@ -1646,10 +1646,15 @@ static int node_insert_offset_modal(bContext *C, wmOperator *UNUSED(op), const w
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (UNLIKELY(node->anim_ofsx)) {
 			const float endval = node->anim_init_locx + node->anim_ofsx;
-			if (node->locx < endval) {
+			if (IS_EQF(node->locx, endval) == false) {
 				node->locx = BLI_easing_cubic_ease_in_out(duration, node->anim_init_locx, node->anim_ofsx,
 				                                          NODE_INSOFS_ANIM_DURATION);
-				CLAMP_MAX(node->locx, endval);
+				if (node->anim_ofsx < 0) {
+					CLAMP_MIN(node->locx, endval);
+				}
+				else {
+					CLAMP_MAX(node->locx, endval);
+				}
 				redraw = true;
 			}
 		}
