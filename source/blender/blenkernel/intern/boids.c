@@ -80,6 +80,9 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 	float priority = 0.0f, len = 0.0f;
 	int ret = 0;
 
+	int p = 0;
+	efd.index = cur_efd.index = &p;
+
 	pd_point_from_particle(bbd->sim, pa, &pa->state, &epoint);
 
 	/* first find out goal/predator with highest priority */
