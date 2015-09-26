@@ -260,6 +260,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		params->flag |= FILE_HIDE_DOT;
 		params->flag &= ~FILE_DIRSEL_ONLY;
 		params->display = FILE_SHORTDISPLAY;
+		params->sort = FILE_SORT_ALPHA;
 		params->filter = 0;
 		params->filter_glob[0] = '\0';
 	}
