@@ -190,7 +190,7 @@ Functions
 
 .. function:: setBackgroundColor(rgba)
 
-   Deprecated and no longer functional. Use :py:meth:`bge.types.KX_WorldInfo.background_color` instead.
+   Deprecated and no longer functional. Use :py:meth:`bge.types.KX_WorldInfo.backgroundColor` instead.
 
 
 .. function:: setEyeSeparation(eyesep)
