@@ -1674,6 +1674,7 @@ static void rna_def_event(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Type",  "");
 
@@ -2120,6 +2121,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_KeyMapItem_type_itemf");
 	RNA_def_property_ui_text(prop, "Type", "Type of event");
 	RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
@@ -2177,6 +2179,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "key_modifier", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "keymodifier");
 	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_wmKeyMapItem_keymodifier_set", NULL);
 	RNA_def_property_ui_text(prop, "Key Modifier", "Regular key pressed as a modifier");
 	RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");

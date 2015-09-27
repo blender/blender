@@ -106,7 +106,11 @@ const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid
 /* Default context for operator names/labels. */
 #define BLT_I18NCONTEXT_OPERATOR_DEFAULT "Operator"
 
-/* Mark the msgid applies to several elements (needed in some cases, as english adjectives have no plural mark. :( */
+/* Context for events/keymaps (necessary, since those often use one or two letters,
+ * easy to get collisions with other areas...). */
+#define BLT_I18NCONTEXT_UI_EVENTS "UI_Events_KeyMaps"
+
+/* Mark the msgid applies to several elements (needed in some cases, as english adjectives have no plural mark :( ). */
 #define BLT_I18NCONTEXT_PLURAL "Plural"
 
 /* ID-types contexts. */
@@ -160,6 +164,7 @@ typedef struct {
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_DEFAULT, "default_real"),                                                    \
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_DEFAULT_BPYRNA, "default"),                                                  \
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "operator_default"),                                       \
+	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_UI_EVENTS, "ui_events_keymaps"),                                             \
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_PLURAL, "plural"),                                                           \
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_ACTION, "id_action"),                                                     \
 	BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_ARMATURE, "id_armature"),                                                 \

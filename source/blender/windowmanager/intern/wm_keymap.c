@@ -903,15 +903,21 @@ static void wm_user_modal_keymap_set_items(wmWindowManager *wm, wmKeyMap *km)
 
 const char *WM_key_event_string(const short type, const bool compact)
 {
-	const char *name = NULL;
+	EnumPropertyItem *it;
+	const int i = RNA_enum_from_value(event_type_items, (int)type);
+
+	if (i == -1) {
+		return "";
+	}
+	it = &event_type_items[i];
+
 	/* We first try enum items' description (abused as shortname here), and fall back to usual name if empty. */
-	if ((compact && RNA_enum_description(event_type_items, (int)type, &name) && name[0]) ||
-	    RNA_enum_name(event_type_items, (int)type, &name))
-	{
-		return IFACE_(name);
+	if (compact && it->description[0]) {
+		/* XXX No context for enum descriptions... In practice shall not be an issue though. */
+		return IFACE_(it->description);
 	}
 
-	return "";
+	return CTX_IFACE_(BLT_I18NCONTEXT_UI_EVENTS, it->name);
 }
 
 /* TODO: also support (some) value, like e.g. double-click? */

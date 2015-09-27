@@ -458,6 +458,7 @@ static void rna_def_keyboard_sensor(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "key", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "key");
 	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Sensor_keyboard_key_set", NULL);
 	RNA_def_property_ui_text(prop, "Key",  "");
 	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_WINDOWMANAGER);
@@ -466,6 +467,7 @@ static void rna_def_keyboard_sensor(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "modifier_key_1", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "qual");
 	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Sensor_keyboard_modifier_set", NULL);
 	RNA_def_property_ui_text(prop, "Modifier Key", "Modifier key code");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
@@ -473,6 +475,7 @@ static void rna_def_keyboard_sensor(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "modifier_key_2", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "qual2");
 	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Sensor_keyboard_modifier2_set", NULL);
 	RNA_def_property_ui_text(prop, "Second Modifier Key", "Modifier key code");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
@@ -813,7 +816,7 @@ static void rna_def_joystick_sensor(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem event_type_items[] = {
+	static EnumPropertyItem event_type_joystick_items[] = {
 		{SENS_JOY_BUTTON, "BUTTON", 0, "Button", ""},
 		{SENS_JOY_AXIS, "AXIS", 0, "Axis", ""},
 		{SENS_JOY_HAT, "HAT", 0, "Hat", ""},
@@ -854,7 +857,8 @@ static void rna_def_joystick_sensor(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "event_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_enum_items(prop, event_type_joystick_items);
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
 	RNA_def_property_ui_text(prop, "Event Type", "The type of event this joystick sensor is triggered on");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
