@@ -539,6 +539,9 @@ static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg)
 				if (user->ptr.data == part->mtex[a])
 					part->texact = a;
 		}
+
+		if (sbuts && tex)
+			sbuts->preview = 1;
 	}
 
 	ct->user = user;
