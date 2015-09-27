@@ -854,47 +854,47 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 
 	switch (type) {
 		case OBJECT_GRPSEL_CHILDREN_RECURSIVE:
-			changed = select_grouped_children(C, ob, true);
+			changed |= select_grouped_children(C, ob, true);
 			break;
 		case OBJECT_GRPSEL_CHILDREN:
-			changed = select_grouped_children(C, ob, false);
+			changed |= select_grouped_children(C, ob, false);
 			break;
 		case OBJECT_GRPSEL_PARENT:
-			changed = select_grouped_parent(C);
+			changed |= select_grouped_parent(C);
 			break;
 		case OBJECT_GRPSEL_SIBLINGS:
-			changed = select_grouped_siblings(C, ob);
+			changed |= select_grouped_siblings(C, ob);
 			break;
 		case OBJECT_GRPSEL_TYPE:
-			changed = select_grouped_type(C, ob);
+			changed |= select_grouped_type(C, ob);
 			break;
 		case OBJECT_GRPSEL_LAYER:
-			changed = select_grouped_layer(C, ob);
+			changed |= select_grouped_layer(C, ob);
 			break;
 		case OBJECT_GRPSEL_GROUP:
-			changed = select_grouped_group(C, ob);
+			changed |= select_grouped_group(C, ob);
 			break;
 		case OBJECT_GRPSEL_HOOK:
-			changed = select_grouped_object_hooks(C, ob);
+			changed |= select_grouped_object_hooks(C, ob);
 			break;
 		case OBJECT_GRPSEL_PASS:
-			changed = select_grouped_index_object(C, ob);
+			changed |= select_grouped_index_object(C, ob);
 			break;
 		case OBJECT_GRPSEL_COLOR:
-			changed = select_grouped_color(C, ob);
+			changed |= select_grouped_color(C, ob);
 			break;
 		case OBJECT_GRPSEL_PROPERTIES:
-			changed = select_grouped_gameprops(C, ob);
+			changed |= select_grouped_gameprops(C, ob);
 			break;
 		case OBJECT_GRPSEL_KEYINGSET:
-			changed = select_grouped_keyingset(C, ob, op->reports);
+			changed |= select_grouped_keyingset(C, ob, op->reports);
 			break;
 		case OBJECT_GRPSEL_LAMP_TYPE:
 			if (ob->type != OB_LAMP) {
 				BKE_report(op->reports, RPT_ERROR, "Active object must be a lamp");
 				break;
 			}
-			changed = select_grouped_lamptype(C, ob);
+			changed |= select_grouped_lamptype(C, ob);
 			break;
 		default:
 			break;
