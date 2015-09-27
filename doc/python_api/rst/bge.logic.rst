@@ -258,7 +258,8 @@ General functions
 
    Sets the world gravity.
    
-   :type gravity: list [fx, fy, fz]
+   :arg gravity: gravity vector
+   :type gravity: Vector((fx, fy, fz))
 
 .. function:: getSpectrum()
 

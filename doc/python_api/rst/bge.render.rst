@@ -113,7 +113,9 @@ Functions
 
    .. note:: Only works in the standalone player, not the Blender-embedded player.
 
+   :arg width: width in pixels
    :type width: integer
+   :arg height: height in pixels
    :type height: integer
 
 .. function:: setFullScreen(enable)
@@ -122,6 +124,7 @@ Functions
 
    .. note:: Only works in the standalone player, not the Blender-embedded player.
 
+   :arg enable: ``True`` to set full screen, ``False`` to set windowed.
    :type enable: bool
 
 .. function:: getFullScreen()
@@ -134,9 +137,12 @@ Functions
 
 .. function:: getDisplayDimensions()
 
-   Get the actual display dimensions, in pixels, of the physical display (e.g., the monitor).
+   Get the display dimensions, in pixels, of the display (e.g., the
+   monitor). Can return the size of the entire view, so the
+   combination of all monitors; for example, ``(3840, 1080)`` for two
+   side-by-side 1080p monitors.
    
-   :type dimension: list [width,heigh] 
+   :rtype: tuple (width, height)
 
 .. function:: makeScreenshot(filename)
 
@@ -161,13 +167,14 @@ Functions
 
 .. function:: enableVisibility(visible)
 
-   Doesn't really do anything...
+   Deprecated; doesn't do anything.
 
 
 .. function:: showMouse(visible)
 
    Enables or disables the operating system mouse cursor.
 
+   :arg visible:
    :type visible: boolean
 
 
@@ -175,15 +182,15 @@ Functions
 
    Sets the mouse cursor position.
 
+   :arg x: X-coordinate in screen pixel coordinates.
    :type x: integer
+   :arg y: Y-coordinate in screen pixel coordinates.
    :type y: integer
 
 
 .. function:: setBackgroundColor(rgba)
 
-   Sets the window background color. (Deprecated: use KX_WorldInfo.background_color)
-
-   :type rgba: list [r, g, b, a]
+   Deprecated and no longer functional. Use :py:meth:`bge.types.KX_WorldInfo.background_color` instead.
 
 
 .. function:: setEyeSeparation(eyesep)
@@ -227,6 +234,7 @@ Functions
 
    Set the material mode to use for OpenGL rendering.
 
+   :arg mode: material mode
    :type mode: KX_TEXFACE_MATERIAL, KX_BLENDER_MULTITEX_MATERIAL, KX_BLENDER_GLSL_MATERIAL
 
    .. note:: Changes will only affect newly created scenes.
@@ -243,14 +251,17 @@ Functions
 
    Enables or disables a GLSL material setting.
 
+   :arg setting:
    :type setting: string (lights, shaders, shadows, ramps, nodes, extra_textures)
+   :arg enable:
    :type enable: boolean
 
 
-.. function:: getGLSLMaterialSetting(setting, enable)
+.. function:: getGLSLMaterialSetting(setting)
 
    Get the state of a GLSL material setting.
 
+   :arg setting:
    :type setting: string (lights, shaders, shadows, ramps, nodes, extra_textures)
    :rtype: boolean
 
@@ -311,24 +322,28 @@ Functions
 
    Show or hide the framerate.
 
+   :arg enable:
    :type enable: boolean
 
 .. function:: showProfile(enable)
 
    Show or hide the profile.
 
+   :arg enable:
    :type enable: boolean
 
 .. function:: showProperties(enable)
 
    Show or hide the debug properties.
 
+   :arg enable:
    :type enable: boolean
 
 .. function:: autoDebugList(enable)
 
    Enable or disable auto adding debug properties to the debug list.
 
+   :arg enable:
    :type enable: boolean
 
 .. function:: clearDebugList()
