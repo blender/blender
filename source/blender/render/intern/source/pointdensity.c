@@ -614,29 +614,59 @@ static void sample_dummy_point_density(int resolution, float *values)
 	memset(values, 0, sizeof(float) * 4 * resolution * resolution * resolution);
 }
 
-static void particle_system_minmax(Object *object,
+static void particle_system_minmax(Scene *scene,
+                                   Object *object,
                                    ParticleSystem *psys,
                                    float radius,
                                    float min[3], float max[3])
 {
+	const float size[3] = {radius, radius, radius};
+	const float cfra = BKE_scene_frame_get(scene);
 	ParticleSettings *part = psys->part;
-	float imat[4][4];
-	float size[3] = {radius, radius, radius};
-	PARTICLE_P;
+	ParticleSimulationData sim = {NULL};
+	ParticleData *pa = NULL;
+	int i;
+	int total_particles;
+	float mat[4][4], imat[4][4];
+
 	INIT_MINMAX(min, max);
 	if (part->type == PART_HAIR) {
 		/* TOOD(sergey): Not supported currently. */
 		return;
 	}
+
+	unit_m4(mat);
+	psys_render_set(object, psys, mat, mat, 1, 1, 0);
+
+	sim.scene = scene;
+	sim.ob = object;
+	sim.psys = psys;
+	sim.psmd = psys_get_modifier(object, psys);
+
 	invert_m4_m4(imat, object->obmat);
-	LOOP_PARTICLES {
+	total_particles = psys->totpart + psys->totchild;
+	psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
+
+	for (i = 0, pa = psys->particles; i < total_particles; i++, pa++) {
 		float co_object[3], co_min[3], co_max[3];
-		mul_v3_m4v3(co_object, imat, pa->state.co);
+		ParticleKey state;
+		state.time = cfra;
+		if (!psys_get_particle_state(&sim, i, &state, 0)) {
+			continue;
+		}
+		mul_v3_m4v3(co_object, imat, state.co);
 		sub_v3_v3v3(co_min, co_object, size);
 		add_v3_v3v3(co_max, co_object, size);
 		minmax_v3v3_v3(min, max, co_min);
 		minmax_v3v3_v3(min, max, co_max);
 	}
+
+	if (psys->lattice_deform_data) {
+		end_latt_deform(psys->lattice_deform_data);
+		psys->lattice_deform_data = NULL;
+	}
+
+	psys_render_restore(object, psys);
 }
 
 void RE_sample_point_density(Scene *scene, PointDensity *pd,
@@ -663,7 +693,7 @@ void RE_sample_point_density(Scene *scene, PointDensity *pd,
 			sample_dummy_point_density(resolution, values);
 			return;
 		}
-		particle_system_minmax(object, psys, pd->radius, min, max);
+		particle_system_minmax(scene, object, psys, pd->radius, min, max);
 	}
 	else {
 		float radius[3] = {pd->radius, pd->radius, pd->radius};
