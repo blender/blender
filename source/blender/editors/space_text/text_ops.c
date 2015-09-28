@@ -1054,108 +1054,100 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 	Text *text = CTX_data_edit_text(C);
 	TextLine *tmp;
 	FlattenString fs;
-	size_t a, j;
-	char *new_line;
-	int extra, number; //unknown for now
+	size_t a, j, max_len = 0;
 	int type = RNA_enum_get(op->ptr, "type");
 
 	/* first convert to all space, this make it a lot easier to convert to tabs
 	 * because there is no mixtures of ' ' && '\t' */
 	for (tmp = text->lines.first; tmp; tmp = tmp->next) {
-		const char *text_check_line     = tmp->line;
-		const int   text_check_line_len = tmp->len;
-		number = flatten_string(st, &fs, text_check_line) + 1;
-		flatten_string_free(&fs);
-		new_line = MEM_callocN(number, "Converted_Line");
-		j = 0;
-		for (a = 0; a < text_check_line_len; a++) { //foreach char in line
-			if (text_check_line[a] == '\t') { //checking for tabs
-				//get the number of spaces this tabs is showing
-				//i don't like doing it this way but will look into it later
-				new_line[j] = '\0';
-				number = flatten_string(st, &fs, new_line);
-				flatten_string_free(&fs);
-				new_line[j] = '\t';
-				new_line[j + 1] = '\0';
-				number = flatten_string(st, &fs, new_line) - number;
-				flatten_string_free(&fs);
+		char *new_line;
 
-				for (extra = 0; extra < number; extra++) {
-					new_line[j] = ' ';
-					j++;
-				}
-			}
-			else {
-				new_line[j] = text_check_line[a];
-				j++;
-			}
-		}
-		new_line[j] = '\0';
-		// put new_line in the tmp->line spot still need to try and set the curc correctly
-		if (tmp->line) MEM_freeN(tmp->line);
-		if (tmp->format) MEM_freeN(tmp->format);
+		flatten_string(st, &fs, tmp->line);
+		new_line = BLI_strdup(fs.buf);
+		flatten_string_free(&fs);
+
+		/* Put new_line in the tmp->line spot still need to try and set the curc correctly. */
+		if (tmp->line)
+			MEM_freeN(tmp->line);
+		if (tmp->format)
+			MEM_freeN(tmp->format);
 		
 		tmp->line = new_line;
 		tmp->len = strlen(new_line);
 		tmp->format = NULL;
+		if (tmp->len > max_len) {
+			max_len = tmp->len;
+		}
 	}
 	
-	if (type == TO_TABS) { // Converting to tabs
-		//start over from the beginning
-		
+	if (type == TO_TABS) {
+		char *tmp_line = MEM_mallocN(sizeof(*tmp_line) * (max_len + 1), __func__);
+
 		for (tmp = text->lines.first; tmp; tmp = tmp->next) {
 			const char *text_check_line     = tmp->line;
 			const int   text_check_line_len = tmp->len;
-			extra = 0;
-			for (a = 0; a < text_check_line_len; a++) {
-				number = 0;
-				for (j = 0; j < (size_t)st->tabnumber; j++) {
-					if ((a + j) <= text_check_line_len) { //check to make sure we are not pass the end of the line
-						if (text_check_line[a + j] != ' ') {
-							number = 1;
+			char *tmp_line_cur = tmp_line;
+			const size_t tab_len = st->tabnumber;
+
+			for (a = 0; a < text_check_line_len;) {
+				/* A tab can only start at a position multiple of tab_len... */
+				if (!(a % tab_len) && (text_check_line[a] == ' ')) {
+					/* a + 0 we already know to be ' ' char... */
+					for (j = 1; (j < tab_len) && (a + j < text_check_line_len) && (text_check_line[a + j] == ' '); j++);
+
+					if (j == tab_len) {
+						/* We found a set of spaces that can be replaced by a tab... */
+						if ((tmp_line_cur == tmp_line) && a != 0) {
+							/* Copy all 'valid' string already 'parsed'... */
+							memcpy(tmp_line_cur, text_check_line, a);
+							tmp_line_cur += a;
 						}
+						*tmp_line_cur = '\t';
+						tmp_line_cur++;
+						a += j;
+					}
+					else {
+						if (tmp_line_cur != tmp_line) {
+							memcpy(tmp_line_cur, &text_check_line[a], j);
+							tmp_line_cur += j;
+						}
+						a += j;
 					}
 				}
-				if (!number) { //found all number of space to equal a tab
-					a = a + (st->tabnumber - 1);
-					extra = extra + 1;
+				else {
+					size_t len = BLI_str_utf8_size_safe(&text_check_line[a]);
+					if (tmp_line_cur != tmp_line) {
+						memcpy(tmp_line_cur, &text_check_line[a], len);
+						tmp_line_cur += len;
+					}
+					a += len;
 				}
 			}
-			
-			if (extra > 0) {   //got tabs make malloc and do what you have to do
-				new_line = MEM_callocN(text_check_line_len - (((st->tabnumber * extra) - extra) - 1), "Converted_Line");
-				extra = 0; //reuse vars
-				for (a = 0; a < text_check_line_len; a++) {
-					number = 0;
-					for (j = 0; j < (size_t)st->tabnumber; j++) {
-						if ((a + j) <= text_check_line_len) { //check to make sure we are not pass the end of the line
-							if (text_check_line[a + j] != ' ') {
-								number = 1;
-							}
-						}
-					}
 
-					if (!number) { //found all number of space to equal a tab
-						new_line[extra] = '\t';
-						a = a + (st->tabnumber - 1);
-						extra++;
-						
-					}
-					else { //not adding a tab
-						new_line[extra] = text_check_line[a];
-						extra++;
-					}
-				}
-				new_line[extra] = '\0';
-				// put new_line in the tmp->line spot still need to try and set the curc correctly
-				if (tmp->line) MEM_freeN(tmp->line);
-				if (tmp->format) MEM_freeN(tmp->format);
-				
-				tmp->line = new_line;
-				tmp->len = strlen(new_line);
+			if (tmp_line_cur != tmp_line) {
+				*tmp_line_cur = '\0';
+
+#ifndef NDEBUG
+				BLI_assert(tmp_line_cur - tmp_line <= max_len);
+
+				flatten_string(st, &fs, tmp_line);
+				BLI_assert(STREQ(fs.buf, tmp->line));
+				flatten_string_free(&fs);
+#endif
+
+				/* Put new_line in the tmp->line spot still need to try and set the curc correctly. */
+				if (tmp->line)
+					MEM_freeN(tmp->line);
+				if (tmp->format)
+					MEM_freeN(tmp->format);
+
+				tmp->line = BLI_strdup(tmp_line);
+				tmp->len = strlen(tmp_line);
 				tmp->format = NULL;
 			}
 		}
+
+		MEM_freeN(tmp_line);
 	}
 
 	text_update_edited(text);
