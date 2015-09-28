@@ -304,7 +304,8 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         else:
             bl_rna_base_props = set()
 
-        for prop in bl_rna.properties:
+        props = sorted(bl_rna.properties, key=lambda p: p.identifier)
+        for prop in props:
             # Only write this property if our parent hasn't got it.
             if prop in bl_rna_base_props:
                 continue
@@ -456,7 +457,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
 
     def extract_strings_split(node):
         """
-        Returns a list args as returned by 'extract_strings()', But split into groups based on separate_nodes, this way
+        Returns a list args as returned by 'extract_strings()', but split into groups based on separate_nodes, this way
         expressions like ("A" if test else "B") wont be merged but "A" + "B" will.
         """
         estr_ls = []
