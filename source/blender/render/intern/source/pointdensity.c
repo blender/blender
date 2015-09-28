@@ -597,6 +597,9 @@ int pointdensitytex(Tex *tex, const float texvec[3], TexResult *texres)
 
 	BRICONT;
 
+	if (pd->color_source == TEX_PD_COLOR_CONSTANT)
+		return retval;
+
 	retval |= pointdensity_color(pd, texres, age, vec);
 	BRICONTRGB;
 
