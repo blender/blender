@@ -46,6 +46,7 @@
 #include "BLI_fileops.h"
 
 #include "imbuf.h"
+#include "IMB_allocimbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_filetype.h"
@@ -174,7 +175,10 @@ ImBuf *IMB_loadifffile(int file, const char *filepath, int flags, char colorspac
 
 	size = BLI_file_descriptor_size(file);
 
+	imb_mmap_lock();
 	mem = mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
+	imb_mmap_unlock();
+
 	if (mem == (unsigned char *) -1) {
 		fprintf(stderr, "%s: couldn't get mapping %s\n", __func__, descr);
 		return NULL;
@@ -182,8 +186,10 @@ ImBuf *IMB_loadifffile(int file, const char *filepath, int flags, char colorspac
 
 	ibuf = IMB_ibImageFromMemory(mem, size, flags, colorspace, descr);
 
+	imb_mmap_lock();
 	if (munmap(mem, size))
 		fprintf(stderr, "%s: couldn't unmap file %s\n", __func__, descr);
+	imb_mmap_unlock();
 
 	return ibuf;
 }
@@ -269,7 +275,10 @@ static void imb_loadtilefile(ImBuf *ibuf, int file, int tx, int ty, unsigned int
 
 	size = BLI_file_descriptor_size(file);
 
+	imb_mmap_lock();
 	mem = mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
+	imb_mmap_unlock();
+
 	if (mem == (unsigned char *) -1) {
 		fprintf(stderr, "Couldn't get memory mapping for %s\n", ibuf->cachename);
 		return;
@@ -279,8 +288,10 @@ static void imb_loadtilefile(ImBuf *ibuf, int file, int tx, int ty, unsigned int
 		if (type->load_tile && type->ftype(type, ibuf))
 			type->load_tile(ibuf, mem, size, tx, ty, rect);
 
+	imb_mmap_lock();
 	if (munmap(mem, size))
 		fprintf(stderr, "Couldn't unmap memory for %s.\n", ibuf->cachename);
+	imb_mmap_unlock();
 }
 
 void imb_loadtile(ImBuf *ibuf, int tx, int ty, unsigned int *rect)
