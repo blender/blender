@@ -4529,6 +4529,10 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				}
 			}
 			else {
+#ifdef USE_CONT_MOUSE_CORRECT
+				/* reset! */
+				copy_v2_fl(data->ungrab_mval, FLT_MAX);
+#endif
 				click = 1;
 			}
 		}
