@@ -138,6 +138,8 @@ static bool ui_mouse_motion_keynav_test(struct uiKeyNavLock *keynav, const wmEve
 
 #define MENU_TOWARDS_MARGIN 20  /* margin in pixels */
 #define MENU_TOWARDS_WIGGLE_ROOM 64  /* tolerance in pixels */
+/* drag-lock distance threshold in pixels */
+#define BUTTON_DRAGLOCK_THRESH      3
 
 typedef enum uiButtonActivateType {
 	BUTTON_ACTIVATE_OVER,
@@ -527,6 +529,30 @@ static bool ui_but_is_cursor_warp(uiBut *but)
 	}
 
 	return false;
+}
+
+/**
+ * Ignore mouse movements within some horizontal pixel threshold before starting to drag
+ */
+static bool ui_but_dragedit_poll(uiHandleButtonData *data, int mx)
+{
+	if (mx == data->draglastx)
+		return false;
+
+	if (data->draglock) {
+		if (ABS(mx - data->dragstartx) <= BUTTON_DRAGLOCK_THRESH) {
+			return false;
+		}
+#ifdef USE_DRAG_MULTINUM
+		if (ELEM(data->multi_data.init, BUTTON_MULTI_INIT_UNSET, BUTTON_MULTI_INIT_SETUP)) {
+			return false;
+		}
+#endif
+		data->draglock = false;
+		data->dragstartx = mx;  /* ignore mouse movement within drag-lock */
+	}
+
+	return true;
 }
 
 static float ui_mouse_scale_warp_factor(const bool shift)
@@ -3993,23 +4019,10 @@ static bool ui_numedit_but_NUM(
 	int lvalue, temp;
 	bool changed = false;
 	const bool is_float = ui_but_is_float(but);
-	
-	if (mx == data->draglastx)
-		return changed;
-	
-	/* drag-lock - prevent unwanted scroll adjustments */
-	/* change value (now 3) to adjust threshold in pixels */
-	if (data->draglock) {
-		if (abs(mx - data->dragstartx) <= 3)
-			return changed;
-#ifdef USE_DRAG_MULTINUM
-		if (ELEM(data->multi_data.init, BUTTON_MULTI_INIT_UNSET, BUTTON_MULTI_INIT_SETUP)) {
-			return changed;
-		}
-#endif
 
-		data->draglock = false;
-		data->dragstartx = mx;  /* ignore mouse movement within drag-lock */
+	/* prevent unwanted drag adjustments */
+	if (ui_but_dragedit_poll(data, mx) == false) {
+		return changed;
 	}
 
 	softmin = but->softmin;
@@ -4331,6 +4344,11 @@ static bool ui_numedit_but_SLI(
 	float mx_fl, my_fl;
 	/* note, 'offs' is really from the widget drawing rounded corners see 'widget_numslider' */
 	float offs;
+
+	/* prevent unwanted drag adjustments */
+	if (ui_but_dragedit_poll(data, mx) == false) {
+		return changed;
+	}
 
 	softmin = but->softmin;
 	softmax = but->softmax;
