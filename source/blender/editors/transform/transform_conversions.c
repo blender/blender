@@ -1253,11 +1253,16 @@ static void createTransArmatureVerts(TransInfo *t)
 				if (ebo->flag & BONE_TIPSEL) {
 					copy_v3_v3(td->iloc, ebo->tail);
 
-					/* don't allow single selected tips to have a modified center,
-					 * causes problem with snapping T45974 */
-					copy_v3_v3(td->center,
-					           ((t->around == V3D_LOCAL) &&
-					            (ebo->flag & BONE_ROOTSEL)) ? ebo->head : td->iloc);
+					/* Don't allow single selected tips to have a modified center,
+					 * causes problem with snapping (see T45974).
+					 * However, in rotation mode, we want to keep that 'rotate bone around root with
+					 * only its tip selected' behavior (see T46325). */
+					if ((t->around == V3D_LOCAL) && ((t->mode == TFM_ROTATION) || (ebo->flag & BONE_ROOTSEL))) {
+						copy_v3_v3(td->center, ebo->head);
+					}
+					else {
+						copy_v3_v3(td->center, td->iloc);
+					}
 
 					td->loc = ebo->tail;
 					td->flag = TD_SELECTED;
