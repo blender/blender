@@ -911,6 +911,10 @@ void ccgSubSurf_getMinMax(CCGSubSurf *ss, float r_min[3], float r_max[3])
 {
 	int i;
 	BLI_assert(ss->skip_grids == true);
+	if (ss->osd_num_coarse_coords == 0) {
+		zero_v3(r_min);
+		zero_v3(r_max);
+	}
 	for (i = 0; i < ss->osd_num_coarse_coords; i++) {
 		/* Coarse coordinates has normals interleaved into the array. */
 		DO_MINMAX(ss->osd_coarse_coords[2 * i], r_min, r_max);
