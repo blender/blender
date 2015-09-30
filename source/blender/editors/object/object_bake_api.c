@@ -689,7 +689,6 @@ static int bake(
 	/* get the mesh as it arrives in the renderer */
 	me_low = BKE_mesh_new_from_object(bmain, scene, ob_low, 1, 2, 0, 0);
 	BKE_mesh_split_faces(me_low);
-	BKE_mesh_tessface_ensure(me_low);
 
 	/* populate the pixel array with the face data */
 	if ((is_selected_to_active && (ob_cage == NULL) && is_cage) == false)
@@ -706,8 +705,7 @@ static int bake(
 		if (ob_cage) {
 			me_cage = BKE_mesh_new_from_object(bmain, scene, ob_cage, 1, 2, 0, 0);
 			BKE_mesh_split_faces(me_cage);
-			BKE_mesh_tessface_ensure(me_cage);
-			if (me_low->totface != me_cage->totface) {
+			if ((me_low->totpoly != me_cage->totpoly) || (me_low->totloop != me_cage->totloop)) {
 				BKE_report(reports, RPT_ERROR,
 				           "Invalid cage object, the cage mesh must have the same number "
 				           "of faces as the active object");
@@ -740,7 +738,6 @@ static int bake(
 			/* get the cage mesh as it arrives in the renderer */
 			me_cage = BKE_mesh_new_from_object(bmain, scene, ob_low, 1, 2, 0, 0);
 			BKE_mesh_split_faces(me_cage);
-			BKE_mesh_tessface_ensure(me_cage);
 			RE_bake_pixels_populate(me_cage, pixel_array_low, num_pixels, &bake_images, uv_layer);
 		}
 
@@ -769,7 +766,6 @@ static int bake(
 			highpoly[i].me = BKE_mesh_new_from_object(bmain, scene, highpoly[i].ob, 1, 2, 0, 0);
 			highpoly[i].ob->restrictflag &= ~OB_RESTRICT_RENDER;
 			BKE_mesh_split_faces(highpoly[i].me);
-			BKE_mesh_tessface_ensure(highpoly[i].me);
 
 			/* lowpoly to highpoly transformation matrix */
 			copy_m4_m4(highpoly[i].obmat, highpoly[i].ob->obmat);
@@ -873,7 +869,6 @@ cage_cleanup:
 
 					me_nores = BKE_mesh_new_from_object(bmain, scene, ob_low, 1, 2, 0, 0);
 					BKE_mesh_split_faces(me_nores);
-					BKE_mesh_tessface_ensure(me_nores);
 					RE_bake_pixels_populate(me_nores, pixel_array_low, num_pixels, &bake_images, uv_layer);
 
 					RE_bake_normal_world_to_tangent(pixel_array_low, num_pixels, depth, result, me_nores, normal_swizzle, ob_low->obmat);
