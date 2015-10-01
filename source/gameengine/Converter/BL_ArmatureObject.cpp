@@ -176,6 +176,10 @@ static void game_blend_poses(bPose *dst, bPose *src, float srcweight, short mode
 			
 			copy_qt_qt(dquat, dchan->quat);
 			copy_qt_qt(squat, schan->quat);
+			// Normalize quaternions so that interpolation/multiplication result is correct.
+			normalize_qt(dquat);
+			normalize_qt(squat);
+
 			if (mode==BL_Action::ACT_BLEND_BLEND)
 				interp_qt_qtqt(dchan->quat, dquat, squat, srcweight);
 			else {
