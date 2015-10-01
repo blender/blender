@@ -955,6 +955,7 @@ short paste_animedit_keys(bAnimContext *ac, ListBase *anim_data,
 		aci = animcopybuf.first;
 		
 		paste_animedit_keys_fcurve(fcu, aci, offset, merge_mode, false);
+		ale->update |= ANIM_UPDATE_DEFAULT;
 	}
 	else {
 		/* from selected channels 
