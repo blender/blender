@@ -68,10 +68,12 @@ static void density_particle_system_texture_space(
 	float3 particle_size = make_float3(radius, radius, radius);
 	for(int i = 0; i < b_particle_system.particles.length(); ++i) {
 		BL::Particle particle = b_particle_system.particles[i];
-		float3 location = get_float3(particle.location());
-		location = transform_point(&itfm, location);
-		min = ccl::min(min, location - particle_size);
-		max = ccl::max(max, location + particle_size);
+		if (particle.alive_state() == BL::Particle::alive_state_ALIVE) {
+			float3 location = get_float3(particle.location());
+			location = transform_point(&itfm, location);
+			min = ccl::min(min, location - particle_size);
+			max = ccl::max(max, location + particle_size);
+		}
 	}
 	/* Calculate texture space from the particle bounds.  */
 	loc = (min + max) * 0.5f;
