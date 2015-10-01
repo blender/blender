@@ -34,14 +34,25 @@ CurveBaseOperation::CurveBaseOperation() : NodeOperation()
 {
 	this->m_curveMapping = NULL;
 }
+
+CurveBaseOperation::~CurveBaseOperation()
+{
+	if (this->m_curveMapping) {
+		curvemapping_free(this->m_curveMapping);
+		this->m_curveMapping = NULL;
+	}
+}
+
 void CurveBaseOperation::initExecution()
 {
 	curvemapping_initialize(this->m_curveMapping);
 }
 void CurveBaseOperation::deinitExecution()
 {
-	curvemapping_free(this->m_curveMapping);
-	this->m_curveMapping = NULL;
+	if (this->m_curveMapping) {
+		curvemapping_free(this->m_curveMapping);
+		this->m_curveMapping = NULL;
+	}
 }
 
 void CurveBaseOperation::setCurveMapping(CurveMapping *mapping)

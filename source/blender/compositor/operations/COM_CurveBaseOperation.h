@@ -33,6 +33,7 @@ protected:
 	CurveMapping *m_curveMapping;
 public:
 	CurveBaseOperation();
+	~CurveBaseOperation();
 	
 	/**
 	 * Initialize the execution
