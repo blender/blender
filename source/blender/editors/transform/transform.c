@@ -1037,6 +1037,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 							}
 							/* vert slide can fail on unconnected vertices (rare but possible) */
 							if (t->state == TRANS_CANCEL) {
+								t->mode = TFM_TRANSLATION;
 								t->state = TRANS_STARTING;
 								restoreTransObjects(t);
 								resetTransRestrictions(t);
