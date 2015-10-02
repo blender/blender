@@ -532,6 +532,7 @@ void filelist_sort(struct FileList *filelist)
 			case FILE_SORT_NONE:  /* Should never reach this point! */
 			default:
 				BLI_assert(0);
+				break;
 		}
 
 		filelist_filter_clear(filelist);

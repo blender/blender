@@ -6708,12 +6708,12 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 
 				but2 = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, ICON_NONE,
 				                        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut"),
-										0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+				                        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 				UI_but_func_set(but2, popup_change_shortcut_func, but, NULL);
 
 				but2 = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, ICON_NONE,
 				                        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Shortcut"),
-										0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+				                        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 				UI_but_func_set(but2, remove_shortcut_func, but, NULL);
 			}
 			else {
