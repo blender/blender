@@ -6692,28 +6692,42 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 		int w = uiLayoutGetWidth(layout);
 		wmKeyMap *km;
 		wmKeyMapItem *kmi = NULL;
-		int kmi_id = WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, true, &km);
+		/* We want to know if this op has a shortcut, be it hotkey or not. */
+		int kmi_id = WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, false, &km);
 
 		if (kmi_id)
 			kmi = WM_keymap_item_find_id(km, kmi_id);
 
-		/* keyboard shortcuts */
-		if ((kmi) && ISKEYBOARD(kmi->type)) {
+		/* We do have a shortcut, but only keyboard ones are editbale that way... */
+		if (kmi) {
+			if (ISKEYBOARD(kmi->type)) {
+#if 0			/* would rather use a block but, but gets weirdly positioned... */
+				uiDefBlockBut(block, menu_change_shortcut, but, "Change Shortcut",
+				              0, 0, uiLayoutGetWidth(layout), UI_UNIT_Y, "");
+#endif
 
-			/* would rather use a block but, but gets weirdly positioned... */
-			//uiDefBlockBut(block, menu_change_shortcut, but, "Change Shortcut", 0, 0, uiLayoutGetWidth(layout), UI_UNIT_Y, "");
-			
-			but2 = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, 0, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut"),
-			                        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
-			UI_but_func_set(but2, popup_change_shortcut_func, but, NULL);
+				but2 = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, ICON_NONE,
+				                        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut"),
+										0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+				UI_but_func_set(but2, popup_change_shortcut_func, but, NULL);
 
-			but2 = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, 0, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Shortcut"),
-			                        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
-			UI_but_func_set(but2, remove_shortcut_func, but, NULL);
+				but2 = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, ICON_NONE,
+				                        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Shortcut"),
+										0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+				UI_but_func_set(but2, remove_shortcut_func, but, NULL);
+			}
+			else {
+				but2 = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, ICON_NONE, IFACE_("Non-Keyboard Shortcut"),
+				                        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0,
+				                        TIP_("Only keyboard shortcuts can be edited that way, "
+				                             "please use User Preferences otherwise"));
+				UI_but_flag_enable(but2, UI_BUT_DISABLED);
+			}
 		}
 		/* only show 'add' if there's a suitable key map for it to go in */
 		else if (WM_keymap_guess_opname(C, but->optype->idname)) {
-			but2 = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, 0, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Shortcut"),
+			but2 = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, ICON_NONE,
+			                        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Shortcut"),
 			                        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 			UI_but_func_set(but2, popup_add_shortcut_func, but, NULL);
 		}
