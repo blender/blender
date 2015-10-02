@@ -534,7 +534,7 @@ static bool ui_but_is_cursor_warp(uiBut *but)
 /**
  * Ignore mouse movements within some horizontal pixel threshold before starting to drag
  */
-static bool ui_but_dragedit_poll(uiHandleButtonData *data, int mx)
+static bool ui_but_dragedit_update_mval(uiHandleButtonData *data, int mx)
 {
 	if (mx == data->draglastx)
 		return false;
@@ -4021,7 +4021,7 @@ static bool ui_numedit_but_NUM(
 	const bool is_float = ui_but_is_float(but);
 
 	/* prevent unwanted drag adjustments */
-	if (ui_but_dragedit_poll(data, mx) == false) {
+	if (ui_but_dragedit_update_mval(data, mx) == false) {
 		return changed;
 	}
 
@@ -4346,7 +4346,7 @@ static bool ui_numedit_but_SLI(
 	float offs;
 
 	/* prevent unwanted drag adjustments */
-	if (ui_but_dragedit_poll(data, mx) == false) {
+	if (ui_but_dragedit_update_mval(data, mx) == false) {
 		return changed;
 	}
 
