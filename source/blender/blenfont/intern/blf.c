@@ -908,7 +908,7 @@ void BLF_buffer_col(int fontid, float r, float g, float b, float a)
 }
 
 
-static void blf_draw_buffer__start(FontBLF *font)
+void blf_draw_buffer__start(FontBLF *font)
 {
 	FontBufInfoBLF *buf_info = &font->buf_info;
 
@@ -925,7 +925,7 @@ static void blf_draw_buffer__start(FontBLF *font)
 		srgb_to_linearrgb_v4(buf_info->col_float, buf_info->col_init);
 	}
 }
-static void blf_draw_buffer__end(void) {}
+void blf_draw_buffer__end(void) {}
 
 void BLF_draw_buffer_ex(
         int fontid, const char *str, size_t len,
