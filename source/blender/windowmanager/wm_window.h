@@ -64,7 +64,9 @@ bool		wm_window_get_swap_interval(wmWindow *win, int *intervalOut);
 
 float		wm_window_pixelsize(wmWindow *win);
 
-void		wm_get_cursor_position	(wmWindow *win, int *x, int *y);
+void		wm_get_cursor_position			(wmWindow *win, int *x, int *y);
+void		wm_cursor_position_from_ghost	(wmWindow *win, int *x, int *y);
+void		wm_cursor_position_to_ghost		(wmWindow *win, int *x, int *y);
 
 void		wm_window_testbreak		(void);
 

@@ -676,7 +676,7 @@ int wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 /* ************ events *************** */
 
-static void wm_convert_cursor_position(wmWindow *win, int *x, int *y)
+void wm_cursor_position_from_ghost(wmWindow *win, int *x, int *y)
 {
 	float fac = GHOST_GetNativePixelSize(win->ghostwin);
 	
@@ -687,11 +687,21 @@ static void wm_convert_cursor_position(wmWindow *win, int *x, int *y)
 	*y *= fac;
 }
 
+void wm_cursor_position_to_ghost(wmWindow *win, int *x, int *y)
+{
+	float fac = GHOST_GetNativePixelSize(win->ghostwin);
+
+	*x /= fac;
+	*y /= fac;
+	*y = win->sizey - *y - 1;
+
+	GHOST_ClientToScreen(win->ghostwin, *x, *y, x, y);
+}
 
 void wm_get_cursor_position(wmWindow *win, int *x, int *y)
 {
 	GHOST_GetCursorPosition(g_system, x, y);
-	wm_convert_cursor_position(win, x, y);
+	wm_cursor_position_from_ghost(win, x, y);
 }
 
 typedef enum {
@@ -1118,7 +1128,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 			{
 				GHOST_TEventTrackpadData *pd = data;
 				
-				wm_convert_cursor_position(win, &pd->x, &pd->y);
+				wm_cursor_position_from_ghost(win, &pd->x, &pd->y);
 				wm_event_add_ghostevent(wm, win, type, time, data);
 				break;
 			}
@@ -1126,7 +1136,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 			{
 				GHOST_TEventCursorData *cd = data;
 				
-				wm_convert_cursor_position(win, &cd->x, &cd->y);
+				wm_cursor_position_from_ghost(win, &cd->x, &cd->y);
 				wm_event_add_ghostevent(wm, win, type, time, data);
 				break;
 			}
@@ -1541,14 +1551,9 @@ void WM_init_native_pixels(bool do_it)
 void WM_cursor_warp(wmWindow *win, int x, int y)
 {
 	if (win && win->ghostwin) {
-		float f = GHOST_GetNativePixelSize(win->ghostwin);
 		int oldx = x, oldy = y;
 
-		x = x / f;
-		y = y / f;
-		y = win->sizey - y - 1;
-
-		GHOST_ClientToScreen(win->ghostwin, x, y, &x, &y);
+		wm_cursor_position_to_ghost(win, &x, &y);
 		GHOST_SetCursorPosition(g_system, x, y);
 
 		win->eventstate->prevx = oldx;

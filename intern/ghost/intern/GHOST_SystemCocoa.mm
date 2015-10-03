@@ -1317,6 +1317,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						GHOST_TInt32 x_warp, y_warp, x_accum, y_accum, x, y;
 						
 						window->getCursorGrabInitPos(x_warp, y_warp);
+						window->screenToClientIntern(x_warp, y_warp, x_warp, y_warp);
 						
 						window->getCursorGrabAccum(x_accum, y_accum);
 						x_accum += [event deltaX];
@@ -1368,6 +1369,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						
 						//Post event
 						window->getCursorGrabInitPos(x_cur, y_cur);
+						window->screenToClientIntern(x_cur, y_cur, x_cur, y_cur);
 						window->clientToScreenIntern(x_cur + x_accum, y_cur + y_accum, x, y);
 						pushEvent(new GHOST_EventCursor([event timestamp] * 1000, GHOST_kEventCursorMove, window, x, y));
 						break;

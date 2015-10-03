@@ -1463,12 +1463,9 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 	if (mode != GHOST_kGrabDisable) {
 		//No need to perform grab without warp as it is always on in OS X
 		if (mode != GHOST_kGrabNormal) {
-			GHOST_TInt32 x_old,y_old;
 			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-			m_systemCocoa->getCursorPosition(x_old,y_old);
-			screenToClientIntern(x_old, y_old, m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
-			//Warp position is stored in client (window base) coordinates
+			m_systemCocoa->getCursorPosition(m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
 			setCursorGrabAccum(0, 0);
 			
 			if (mode == GHOST_kGrabHide) {
@@ -1486,7 +1483,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 	}
 	else {
 		if (m_cursorGrab==GHOST_kGrabHide) {
-			//No need to set again cursor position, as it has not changed for Cocoa
+			m_systemCocoa->setCursorPosition(m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
 			setWindowCursorVisibility(true);
 		}
 		

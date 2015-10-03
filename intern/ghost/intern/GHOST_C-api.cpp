@@ -358,27 +358,20 @@ GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
                                    int bounds[4], const int mouse_ungrab_xy[2])
 {
 	GHOST_IWindow *window = (GHOST_IWindow *) windowhandle;
-	GHOST_Rect bounds_rect, bounds_win;
-	GHOST_TInt32 mouse_ungrab_xy_global[2];
+	GHOST_Rect bounds_rect;
+	GHOST_TInt32 mouse_xy[2];
 
 	if (bounds) {
-		/* if this is X11 specific we need a function that converts */
-		window->getClientBounds(bounds_win);
-		window->clientToScreen(bounds[0], bounds_win.getHeight() - bounds[1], bounds_rect.m_l, bounds_rect.m_t);
-		window->clientToScreen(bounds[2], bounds_win.getHeight() - bounds[3], bounds_rect.m_r, bounds_rect.m_b);
-
+		bounds_rect = GHOST_Rect(bounds[0], bounds[1], bounds[2], bounds[3]);
 	}
-	
 	if (mouse_ungrab_xy) {
-		if (bounds == NULL)
-			window->getClientBounds(bounds_win);
-		window->clientToScreen(mouse_ungrab_xy[0], bounds_win.getHeight() - mouse_ungrab_xy[1],
-		                       mouse_ungrab_xy_global[0], mouse_ungrab_xy_global[1]);
+		mouse_xy[0] = mouse_ungrab_xy[0];
+		mouse_xy[1] = mouse_ungrab_xy[1];
 	}
 
 	return window->setCursorGrab(mode,
 	                             bounds ? &bounds_rect : NULL,
-	                             mouse_ungrab_xy ? mouse_ungrab_xy_global : NULL);
+	                             mouse_ungrab_xy ? mouse_xy : NULL);
 }
 
 

@@ -199,14 +199,10 @@ void WM_cursor_grab_enable(wmWindow *win, bool wrap, bool hide, int bounds[4])
 	 * It helps not to get a stuck WM when hitting a breakpoint  
 	 * */
 	GHOST_TGrabCursorMode mode = GHOST_kGrabNormal;
-	float fac = GHOST_GetNativePixelSize(win->ghostwin);
 
-	/* in case pixel coords differ from window/mouse coords */
 	if (bounds) {
-		bounds[0] /= fac;
-		bounds[1] /= fac;
-		bounds[2] /= fac;
-		bounds[3] /= fac;
+		wm_cursor_position_to_ghost(win, &bounds[0], &bounds[1]);
+		wm_cursor_position_to_ghost(win, &bounds[2], &bounds[3]);
 	}
 	
 	if (hide) {
@@ -234,7 +230,15 @@ void WM_cursor_grab_disable(wmWindow *win, const int mouse_ungrab_xy[2])
 {
 	if ((G.debug & G_DEBUG) == 0) {
 		if (win && win->ghostwin) {
-			GHOST_SetCursorGrab(win->ghostwin, GHOST_kGrabDisable, NULL, mouse_ungrab_xy);
+			if (mouse_ungrab_xy) {
+				int mouse_xy[2] = {mouse_ungrab_xy[0], mouse_ungrab_xy[1]};
+				wm_cursor_position_to_ghost(win, &mouse_xy[0], &mouse_xy[1]);
+				GHOST_SetCursorGrab(win->ghostwin, GHOST_kGrabDisable, NULL, mouse_xy);
+			}
+			else {
+				GHOST_SetCursorGrab(win->ghostwin, GHOST_kGrabDisable, NULL, NULL);
+			}
+
 			win->grabcursor = GHOST_kGrabDisable;
 		}
 	}
