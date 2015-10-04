@@ -65,6 +65,14 @@ void BLI_buffer_resize(BLI_Buffer *buffer, int new_count)
 			buffer->data = buffer_realloc(buffer, buffer->alloc_count);
 		}
 	}
+	else {
+		if (buffer->flag & BLI_BUFFER_USE_CALLOC) {
+			if (new_count > buffer->count) {
+				memset(POINTER_OFFSET(buffer->data, buffer->elem_size * buffer->count), 0,
+				       buffer->elem_size * (new_count - buffer->count));
+			}
+		}
+	}
 
 	buffer->count = new_count;
 }
