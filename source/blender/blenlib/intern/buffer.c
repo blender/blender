@@ -20,30 +20,55 @@
 
 /** \file blender/blenlib/intern/buffer.c
  *  \ingroup bli
+ *
+ * Primitive generic buffer library.
+ *
+ * - Automatically grow as needed.
+ *   (currently never shrinks).
+ * - Can be passed between functions.
+ * - Supports using stack memory by default,
+ *   falling back to heap as needed.
+ *
+ * Usage examples:
+ * \code{.c}
+ * BLI_buffer_declare_static(int, my_int_array, BLI_BUFFER_NOP, 32);
+ *
+ * BLI_buffer_append(my_int_array, int, 42);
+ * assert(my_int_array.count == 1);
+ * assert(BLI_buffer_at(my_int_array, int, 0) == 42);
+ *
+ * BLI_buffer_free(&my_int_array);
+ * \endcode
+ *
+ * \note this more or less fills same purpose as #BLI_array,
+ * but supports resizing the array outside of the function
+ * it was declared in.
  */
+
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_buffer.h"
 #include "BLI_utildefines.h"
 
-#include <string.h>
+#include "BLI_strict_flags.h"
 
-static void *buffer_alloc(BLI_Buffer *buffer, int len)
+static void *buffer_alloc(BLI_Buffer *buffer, const size_t len)
 {
 	return ((buffer->flag & BLI_BUFFER_USE_CALLOC) ?
 	        MEM_callocN : MEM_mallocN)
 	        (buffer->elem_size * len, "BLI_Buffer.data");
 }
 
-static void *buffer_realloc(BLI_Buffer *buffer, int len)
+static void *buffer_realloc(BLI_Buffer *buffer, const size_t len)
 {
 	return ((buffer->flag & BLI_BUFFER_USE_CALLOC) ?
 	        MEM_recallocN_id : MEM_reallocN_id)
 	        (buffer->data, buffer->elem_size * len, "BLI_Buffer.data");
 }
 
-void BLI_buffer_resize(BLI_Buffer *buffer, int new_count)
+void BLI_buffer_resize(BLI_Buffer *buffer, const size_t new_count)
 {
 	if (UNLIKELY(new_count > buffer->alloc_count)) {
 		if (buffer->flag & BLI_BUFFER_USE_STATIC) {
