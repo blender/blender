@@ -1077,12 +1077,10 @@ static void cdDM_drawMappedFacesGLSL(
 						}
 					}
 					if (matconv[i].attribs.tottang && matconv[i].attribs.tang.array) {
-						if (matconv[i].attribs.tface[b].array) {
-							const float (*looptang)[4] = (const float (*)[4])matconv[i].attribs.tang.array;
-							for (j = 0; j < mpoly->totloop; j++)
-								copy_v4_v4((float *)&varray[offset + j * max_element_size], looptang[mpoly->loopstart + j]);
-							offset += sizeof(float) * 4;
-						}
+						const float (*looptang)[4] = (const float (*)[4])matconv[i].attribs.tang.array;
+						for (j = 0; j < mpoly->totloop; j++)
+							copy_v4_v4((float *)&varray[offset + j * max_element_size], looptang[mpoly->loopstart + j]);
+						offset += sizeof(float) * 4;
 					}
 				}
 
