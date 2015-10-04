@@ -108,6 +108,8 @@ void BKE_sequencer_new_render_data(
         int rectx, int recty, int preview_render_size,
         SeqRenderData *r_context);
 
+int BKE_sequencer_cmp_time_startdisp(const void *a, const void *b);
+
 /* Wipe effect */
 enum {
 	DO_SINGLE_WIPE,
