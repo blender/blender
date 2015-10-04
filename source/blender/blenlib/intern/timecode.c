@@ -72,20 +72,20 @@ size_t BLI_timecode_string_from_time(
 		time = -time;
 	}
 
-	if (time >= 3600) {
+	if (time >= 3600.0f) {
 		/* hours */
 		/* XXX should we only display a single digit for hours since clips are
 		 *     VERY UNLIKELY to be more than 1-2 hours max? However, that would
 		 *     go against conventions...
 		 */
 		hours = (int)time / 3600;
-		time = (float)fmod(time, 3600);
+		time = fmodf(time, 3600);
 	}
 
-	if (time >= 60) {
+	if (time >= 60.0f) {
 		/* minutes */
 		minutes = (int)time / 60;
-		time = (float)fmod(time, 60);
+		time = fmodf(time, 60);
 	}
 
 	if (power <= 0) {
@@ -161,6 +161,18 @@ size_t BLI_timecode_string_from_time(
 			else {
 				rlen = BLI_snprintf_rlen(str, maxncpy, "%s%02d:%0*.*f", neg, minutes, s_pad,  ms_dp, time);
 			}
+			break;
+		}
+		case USER_TIMECODE_SUBRIP:
+		{
+			/* SubRip, like SMPTE milliseconds but seconds and milliseconds are separated by a comma, not a dot... */
+
+			/* precision of decimal part */
+			const int ms_dp = (power <= 0) ? (1 - power) : 1;
+			const int ms = iroundf((time - (float)seconds) * 1000.0f);
+
+			rlen = BLI_snprintf_rlen(
+			           str, maxncpy, "%s%02d:%02d:%02d,%0*d", neg, hours, minutes, seconds, ms_dp, ms);
 			break;
 		}
 		case USER_TIMECODE_SECONDS_ONLY:

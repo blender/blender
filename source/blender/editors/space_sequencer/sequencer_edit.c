@@ -3892,24 +3892,15 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
 	{
 		if (seq->type == SEQ_TYPE_TEXT) {
 			TextVars *data = seq->effectdata;
-			char timecode_str[32];
-			double sec;
-			int frac;
-			int len;
-			fprintf(file, "%d\n", iter++);
-			sec = FRA2TIME(seq->startdisp);
-			frac = 1000 * (sec - floor(sec));
-			sec = floor(sec);
-			BLI_timecode_string_from_time(timecode_str, sizeof(timecode_str), 1, sec, FPS, USER_TIMECODE_SMPTE_FULL);
-			len = strlen(timecode_str);
-			timecode_str[len - 3] = 0;
-			fprintf(file, "%s,%d", timecode_str, frac);
-			sec = FRA2TIME(seq->enddisp);
-			BLI_timecode_string_from_time(timecode_str, sizeof(timecode_str), 1, sec, FPS, USER_TIMECODE_SMPTE_FULL);
-			len = strlen(timecode_str);
-			timecode_str[len - 3] = 0;
-			fprintf(file, " --> %s,%d\n", timecode_str, frac);
-			fprintf(file, "%s\n\n", data->text);
+			char timecode_str_start[32];
+			char timecode_str_end[32];
+
+			BLI_timecode_string_from_time(timecode_str_start, sizeof(timecode_str_start),
+			                              -2, FRA2TIME(seq->startdisp), FPS, USER_TIMECODE_SUBRIP);
+			BLI_timecode_string_from_time(timecode_str_end, sizeof(timecode_str_end),
+			                              -2, FRA2TIME(seq->enddisp), FPS, USER_TIMECODE_SUBRIP);
+
+			fprintf(file, "%d\n%s --> %s\n%s\n\n", iter++, timecode_str_start, timecode_str_end, data->text);
 		}
 	}
 	SEQ_END

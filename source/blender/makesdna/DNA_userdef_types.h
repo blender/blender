@@ -801,19 +801,23 @@ typedef enum eTimecodeStyles {
 	 * with '+' to denote the frames 
 	 * i.e. HH:MM:SS+FF, MM:SS+FF, SS+FF, or MM:SS
 	 */
-	USER_TIMECODE_MINIMAL		= 0,
-	
+	USER_TIMECODE_MINIMAL       = 0,
+
 	/* reduced SMPTE - (HH:)MM:SS:FF */
-	USER_TIMECODE_SMPTE_MSF		= 1,
-	
+	USER_TIMECODE_SMPTE_MSF     = 1,
+
 	/* full SMPTE - HH:MM:SS:FF */
-	USER_TIMECODE_SMPTE_FULL	= 2,
-	
+	USER_TIMECODE_SMPTE_FULL    = 2,
+
 	/* milliseconds for sub-frames - HH:MM:SS.sss */
-	USER_TIMECODE_MILLISECONDS	= 3,
-	
+	USER_TIMECODE_MILLISECONDS  = 3,
+
 	/* seconds only */
-	USER_TIMECODE_SECONDS_ONLY	= 4,
+	USER_TIMECODE_SECONDS_ONLY  = 4,
+
+	/* Private (not exposed as generic choices) options. */
+	/* milliseconds for sub-frames , SubRip format- HH:MM:SS,sss */
+	USER_TIMECODE_SUBRIP        = 100,
 } eTimecodeStyles;
 
 /* theme drawtypes */
