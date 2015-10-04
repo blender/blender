@@ -111,7 +111,9 @@ void BLI_buffer_reinit(BLI_Buffer *buffer, size_t new_count)
 {
 	if (UNLIKELY(new_count > buffer->alloc_count)) {
 		if ((buffer->flag & BLI_BUFFER_USE_STATIC) == 0) {
-			MEM_freeN(buffer->data);
+			if (buffer->data) {
+				MEM_freeN(buffer->data);
+			}
 		}
 
 		if (buffer->alloc_count && (new_count < buffer->alloc_count * 2)) {
