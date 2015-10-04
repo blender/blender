@@ -102,6 +102,37 @@ void BLI_buffer_resize(BLI_Buffer *buffer, const size_t new_count)
 	buffer->count = new_count;
 }
 
+/**
+ * Similar to #BLI_buffer_resize, but use when the existing data can be:
+ * - Ignored (malloc'd)
+ * - Cleared (when BLI_BUFFER_USE_CALLOC is set)
+ */
+void BLI_buffer_reinit(BLI_Buffer *buffer, size_t new_count)
+{
+	if (UNLIKELY(new_count > buffer->alloc_count)) {
+		if ((buffer->flag & BLI_BUFFER_USE_STATIC) == 0) {
+			MEM_freeN(buffer->data);
+		}
+
+		if (buffer->alloc_count && (new_count < buffer->alloc_count * 2)) {
+			buffer->alloc_count *= 2;
+		}
+		else {
+			buffer->alloc_count = new_count;
+		}
+
+		buffer->data = buffer_alloc(buffer, new_count);
+	}
+	else {
+		if (buffer->flag & BLI_BUFFER_USE_CALLOC) {
+			memset(buffer->data, 0,
+			       buffer->elem_size * new_count);
+		}
+	}
+
+	buffer->count = new_count;
+}
+
 /* callers use BLI_buffer_free */
 void _bli_buffer_free(BLI_Buffer *buffer)
 {

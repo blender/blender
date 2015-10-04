@@ -575,7 +575,7 @@ static void pbvh_bmesh_edge_loops(BLI_Buffer *buf, BMEdge *e)
 		buf->count = 2;
 	}
 	else {
-		BLI_buffer_resize(buf, BM_edge_face_count(e));
+		BLI_buffer_reinit(buf, BM_edge_face_count(e));
 		BM_iter_as_array(NULL, BM_LOOPS_OF_EDGE, e, buf->data, buf->count);
 	}
 }

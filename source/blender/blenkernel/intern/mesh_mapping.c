@@ -97,7 +97,7 @@ UvVertMap *BKE_mesh_uv_vert_map_create(
 			float (*tf_uv)[2] = NULL;
 
 			if (use_winding) {
-				tf_uv = (float (*)[2])BLI_buffer_resize_data(&tf_uv_buf, vec2f, (size_t)mp->totloop);
+				tf_uv = (float (*)[2])BLI_buffer_reinit_data(&tf_uv_buf, vec2f, (size_t)mp->totloop);
 			}
 
 			nverts = mp->totloop;

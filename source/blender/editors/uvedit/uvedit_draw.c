@@ -187,8 +187,8 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 			
 			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 				const int efa_len = efa->len;
-				float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_resize_data(&tf_uv_buf,     vec2f, efa_len);
-				float (*tf_uvorig)[2] = (float (*)[2])BLI_buffer_resize_data(&tf_uvorig_buf, vec2f, efa_len);
+				float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_reinit_data(&tf_uv_buf,     vec2f, efa_len);
+				float (*tf_uvorig)[2] = (float (*)[2])BLI_buffer_reinit_data(&tf_uvorig_buf, vec2f, efa_len);
 				tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 
 				BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
@@ -230,8 +230,8 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 					if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
 						const int efa_len = efa->len;
-						float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_resize_data(&tf_uv_buf,     vec2f, efa_len);
-						float (*tf_uvorig)[2] = (float (*)[2])BLI_buffer_resize_data(&tf_uvorig_buf, vec2f, efa_len);
+						float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_reinit_data(&tf_uv_buf,     vec2f, efa_len);
+						float (*tf_uvorig)[2] = (float (*)[2])BLI_buffer_reinit_data(&tf_uvorig_buf, vec2f, efa_len);
 
 						area = BM_face_calc_area(efa) / totarea;
 
@@ -284,12 +284,12 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				
 				if (uvedit_face_visible_test(scene, ima, efa, tf)) {
 					const int efa_len = efa->len;
-					float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_resize_data(&tf_uv_buf,     vec2f, efa_len);
-					float (*tf_uvorig)[2] = (float (*)[2])BLI_buffer_resize_data(&tf_uvorig_buf, vec2f, efa_len);
-					float *uvang = BLI_buffer_resize_data(&uvang_buf, float, efa_len);
-					float *ang   = BLI_buffer_resize_data(&ang_buf,   float, efa_len);
-					float (*av)[3]  = (float (*)[3])BLI_buffer_resize_data(&av_buf, vec3f, efa_len);
-					float (*auv)[2] = (float (*)[2])BLI_buffer_resize_data(&auv_buf, vec2f, efa_len);
+					float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_reinit_data(&tf_uv_buf,     vec2f, efa_len);
+					float (*tf_uvorig)[2] = (float (*)[2])BLI_buffer_reinit_data(&tf_uvorig_buf, vec2f, efa_len);
+					float *uvang = BLI_buffer_reinit_data(&uvang_buf, float, efa_len);
+					float *ang   = BLI_buffer_reinit_data(&ang_buf,   float, efa_len);
+					float (*av)[3]  = (float (*)[3])BLI_buffer_reinit_data(&av_buf, vec3f, efa_len);
+					float (*auv)[2] = (float (*)[2])BLI_buffer_reinit_data(&auv_buf, vec2f, efa_len);
 					int j;
 
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);

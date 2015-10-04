@@ -64,7 +64,7 @@ enum {
 #define BLI_buffer_at(buffer_, type_, index_) ( \
 	(((type_ *)(buffer_)->data)[ \
 	        (BLI_assert(sizeof(type_) == (buffer_)->elem_size)), \
-	        (BLI_assert(index_ >= 0 && index_ < (buffer_)->count)), \
+	        (BLI_assert((int)index_ >= 0 && (size_t)index_ < (buffer_)->count)), \
 	        index_]))
 
 #define BLI_buffer_array(buffer_, type_) ( \
@@ -72,6 +72,9 @@ enum {
 
 #define BLI_buffer_resize_data(buffer_, type_, new_count_) ( \
 	(BLI_buffer_resize(buffer_, new_count_), new_count_ ? BLI_buffer_array(buffer_, type_) : NULL))
+
+#define BLI_buffer_reinit_data(buffer_, type_, new_count_) ( \
+	(BLI_buffer_reinit(buffer_, new_count_), new_count_ ? BLI_buffer_array(buffer_, type_) : NULL))
 
 #define BLI_buffer_append(buffer_, type_, val_)  ( \
 	BLI_buffer_resize(buffer_, (buffer_)->count + 1), \
@@ -84,6 +87,9 @@ enum {
 
 /* Never decreases the amount of memory allocated */
 void BLI_buffer_resize(BLI_Buffer *buffer, const size_t new_count);
+
+/* Ensure size, throwing away old data, respecting BLI_BUFFER_USE_CALLOC */
+void BLI_buffer_reinit(BLI_Buffer *buffer, const size_t new_count);
 
 /* Does not free the buffer structure itself */
 void _bli_buffer_free(BLI_Buffer *buffer);
