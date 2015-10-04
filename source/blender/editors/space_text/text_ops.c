@@ -1062,16 +1062,17 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 	for (tmp = text->lines.first; tmp; tmp = tmp->next) {
 		char *new_line;
 
+		BLI_assert(tmp->line);
+
 		flatten_string(st, &fs, tmp->line);
 		new_line = BLI_strdup(fs.buf);
 		flatten_string_free(&fs);
 
-		/* Put new_line in the tmp->line spot still need to try and set the curc correctly. */
-		if (tmp->line)
-			MEM_freeN(tmp->line);
+		MEM_freeN(tmp->line);
 		if (tmp->format)
 			MEM_freeN(tmp->format);
 		
+		/* Put new_line in the tmp->line spot still need to try and set the curc correctly. */
 		tmp->line = new_line;
 		tmp->len = strlen(new_line);
 		tmp->format = NULL;
@@ -1088,6 +1089,8 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 			const int   text_check_line_len = tmp->len;
 			char *tmp_line_cur = tmp_line;
 			const size_t tab_len = st->tabnumber;
+
+			BLI_assert(text_check_line);
 
 			for (a = 0; a < text_check_line_len;) {
 				/* A tab can only start at a position multiple of tab_len... */
@@ -1135,12 +1138,11 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 				flatten_string_free(&fs);
 #endif
 
-				/* Put new_line in the tmp->line spot still need to try and set the curc correctly. */
-				if (tmp->line)
-					MEM_freeN(tmp->line);
+				MEM_freeN(tmp->line);
 				if (tmp->format)
 					MEM_freeN(tmp->format);
 
+				/* Put new_line in the tmp->line spot still need to try and set the curc correctly. */
 				tmp->line = BLI_strdup(tmp_line);
 				tmp->len = strlen(tmp_line);
 				tmp->format = NULL;
