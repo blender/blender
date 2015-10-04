@@ -163,6 +163,85 @@ static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v_a, BMVert *v_b, BMFace
 
 	return NULL;
 }
+
+/**
+ * Specialized slerp that uses a sphere defined by each points normal.
+ */
+static void interp_slerp_co_no_v3(
+        const float co_a[3], const float no_a[3],
+        const float co_b[3], const float no_b[3],
+        const float no_dir[3],  /* caller already knows, avoid normalize */
+        float fac,
+        float r_co[3])
+{
+	/* center of the sphere defined by both normals */
+	float center[3];
+
+	BLI_assert(len_squared_v3v3(no_a, no_b) != 0);
+
+	/* calculate sphere 'center' */
+	{
+		/* use point on plane to */
+		float plane_a[4], plane_b[4], plane_c[4];
+		float no_mid[3], no_ortho[3];
+		/* pass this as an arg instead */
+#if 0
+		float no_dir[3];
+#endif
+
+		float v_a_no_ortho[3], v_b_no_ortho[3];
+
+		add_v3_v3v3(no_mid, no_a, no_b);
+		normalize_v3(no_mid);
+
+#if 0
+		sub_v3_v3v3(no_dir, co_a, co_b);
+		normalize_v3(no_dir);
+#endif
+
+		/* axis of slerp */
+		cross_v3_v3v3(no_ortho, no_mid, no_dir);
+		normalize_v3(no_ortho);
+
+		/* creater planes */
+		cross_v3_v3v3(v_a_no_ortho, no_ortho, no_a);
+		cross_v3_v3v3(v_b_no_ortho, no_ortho, no_b);
+		project_v3_plane(v_a_no_ortho, no_ortho, v_a_no_ortho);
+		project_v3_plane(v_b_no_ortho, no_ortho, v_b_no_ortho);
+
+		plane_from_point_normal_v3(plane_a, co_a, v_a_no_ortho);
+		plane_from_point_normal_v3(plane_b, co_b, v_b_no_ortho);
+		plane_from_point_normal_v3(plane_c, co_b, no_ortho);
+
+		/* find the sphere center from 3 planes */
+		if (isect_plane_plane_plane_v3(plane_a, plane_b, plane_c, center)) {
+			/* pass */
+		}
+		else {
+			mid_v3_v3v3(center, co_a, co_b);
+		}
+	}
+
+	/* calculate the final output 'r_co' */
+	{
+		float ofs_a[3], ofs_b[3], ofs_slerp[3];
+		float dist_a, dist_b;
+
+		sub_v3_v3v3(ofs_a, co_a, center);
+		sub_v3_v3v3(ofs_b, co_b, center);
+
+		dist_a = normalize_v3(ofs_a);
+		dist_b = normalize_v3(ofs_b);
+
+		if (interp_v3_v3v3_slerp(ofs_slerp, ofs_a, ofs_b, fac)) {
+			madd_v3_v3v3fl(r_co, center, ofs_slerp, interpf(dist_b, dist_a, fac));
+		}
+		else {
+			interp_v3_v3v3(r_co, co_a, co_b, fac);
+		}
+	}
+}
+
 /* calculates offset for co, based on fractal, sphere or smooth settings  */
 static void alter_co(
         BMVert *v, BMEdge *UNUSED(e_orig),
@@ -179,32 +258,72 @@ static void alter_co(
 		mul_v3_fl(co, params->smooth);
 	}
 	else if (params->use_smooth) {
-		/* we calculate an offset vector vec1[], to be added to *co */
-		float dir[3], tvec[3];
-		float fac, len, val;
+		/* calculating twice and blending gives smoother results,
+		 * removing visible seams. */
+#define USE_SPHERE_DUAL_BLEND
 
-		sub_v3_v3v3(dir, v_a->co, v_b->co);
-		len = (float)M_SQRT1_2 * normalize_v3(dir);
+		const float eps_unit_vec = 1e-5f;
+		float smooth;
+		float no_dir[3];
 
-		/* cosine angle */
-		fac = dot_v3v3(dir, v_a->no);
-		mul_v3_v3fl(tvec, v_a->no, fac);
+#ifdef USE_SPHERE_DUAL_BLEND
+		float no_reflect[3], co_a[3], co_b[3];
+#endif
 
-		/* cosine angle */
-		fac = -dot_v3v3(dir, v_b->no);
-		madd_v3_v3fl(tvec, v_b->no, fac);
+		sub_v3_v3v3(no_dir, v_a->co, v_b->co);
+		normalize_v3(no_dir);
 
-		/* falloff for multi subdivide */
-		val = fabsf(1.0f - 2.0f * fabsf(0.5f - perc));
-		val = bmesh_subd_falloff_calc(params->smooth_falloff, val);
-
-		if (params->use_smooth_even) {
-			val *= shell_v3v3_mid_normalized_to_dist(v_a->no, v_b->no);
+#ifndef USE_SPHERE_DUAL_BLEND
+		if (len_squared_v3v3(v_a->no, v_b->no) < eps_unit_vec) {
+			interp_v3_v3v3(co, v_a->co, v_b->co, perc);
+		}
+		else {
+			interp_slerp_co_no_v3(v_a->co, v_a->no, v_b->co, v_b->no, no_dir, perc, co);
+		}
+#else
+		/* sphere-a */
+		reflect_v3_v3v3(no_reflect, v_a->no, no_dir);
+		if (len_squared_v3v3(v_a->no, no_reflect) < eps_unit_vec) {
+			interp_v3_v3v3(co_a, v_a->co, v_b->co, perc);
+		}
+		else {
+			interp_slerp_co_no_v3(v_a->co, v_a->no, v_b->co, no_reflect, no_dir, perc, co_a);
 		}
 
-		mul_v3_fl(tvec, params->smooth * val * len);
+		/* sphere-b */
+		reflect_v3_v3v3(no_reflect, v_b->no, no_dir);
+		if (len_squared_v3v3(v_b->no, no_reflect) < eps_unit_vec) {
+			interp_v3_v3v3(co_b, v_a->co, v_b->co, perc);
+		}
+		else {
+			interp_slerp_co_no_v3(v_a->co, no_reflect, v_b->co, v_b->no, no_dir, perc, co_b);
+		}
 
-		add_v3_v3(co, tvec);
+		/* blend both spheres */
+		interp_v3_v3v3(co, co_a, co_b, perc);
+#endif  /* USE_SPHERE_DUAL_BLEND */
+
+		/* apply falloff */
+		if (params->smooth_falloff == SUBD_FALLOFF_LIN) {
+			smooth = 1.0f;
+		}
+		else {
+			smooth = fabsf(1.0f - 2.0f * fabsf(0.5f - perc));
+			smooth = 1.0f + bmesh_subd_falloff_calc(params->smooth_falloff, smooth);
+		}
+
+		if (params->use_smooth_even) {
+			smooth *= shell_v3v3_mid_normalized_to_dist(v_a->no, v_b->no);
+		}
+
+		smooth *= params->smooth;
+		if (smooth != 1.0f) {
+			float co_flat[3];
+			interp_v3_v3v3(co_flat, v_a->co, v_b->co, perc);
+			interp_v3_v3v3(co, co_flat, co, smooth);
+		}
+
+#undef USE_SPHERE_DUAL_BLEND
 	}
 
 	if (params->use_fractal) {

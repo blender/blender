@@ -85,7 +85,7 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	const int cuts = RNA_int_get(op->ptr, "number_cuts");
-	float smooth = 0.292f * RNA_float_get(op->ptr, "smoothness");
+	float smooth = RNA_float_get(op->ptr, "smoothness");
 	const float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
 	const float along_normal = RNA_float_get(op->ptr, "fractal_along_normal");
 
@@ -96,7 +96,7 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	}
 	
 	BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
-	                   smooth, SUBD_FALLOFF_INVSQUARE, false,
+	                   smooth, SUBD_FALLOFF_LIN, false,
 	                   fractal, along_normal,
 	                   cuts,
 	                   SUBDIV_SELECT_ORIG, RNA_enum_get(op->ptr, "quadcorner"),

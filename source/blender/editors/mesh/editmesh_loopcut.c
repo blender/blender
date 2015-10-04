@@ -401,7 +401,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 {
 	RingSelOpData *lcd = op->customdata;
 	const int cuts = RNA_int_get(op->ptr, "number_cuts");
-	const float smoothness = 0.292f * RNA_float_get(op->ptr, "smoothness");
+	const float smoothness = RNA_float_get(op->ptr, "smoothness");
 	const int smooth_falloff = RNA_enum_get(op->ptr, "falloff");
 #ifdef BMW_EDGERING_NGON
 	const bool use_only_quads = false;
