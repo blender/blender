@@ -1013,6 +1013,15 @@ void BKE_sequencer_sort(Scene *scene)
 	*(ed->seqbasep) = seqbase;
 }
 
+/** Comparision function suitable to be used with BLI_listbase_sort()... */
+int BKE_sequencer_cmp_time_startdisp(const void *a, const void *b)
+{
+	Sequence *seq_a = a;
+	Sequence *seq_b = b;
+
+	return (seq_a->startdisp > seq_b->startdisp);
+}
+
 static int clear_scene_in_allseqs_cb(Sequence *seq, void *arg_pt)
 {
 	if (seq->scene == (Scene *)arg_pt)
