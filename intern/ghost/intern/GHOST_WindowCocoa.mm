@@ -393,16 +393,6 @@ enum {
 	systemCocoa->handleMouseEvent(event);
 }
 
-- (void)beginGestureWithEvent:(NSEvent *)event
-{
-	systemCocoa->handleMouseEvent(event);
-}
-
-- (void)endGestureWithEvent:(NSEvent *)event
-{
-	systemCocoa->handleMouseEvent(event);
-}
-
 - (void)tabletPoint:(NSEvent *)event
 {
 	systemCocoa->handleTabletEvent(event,[event type]);

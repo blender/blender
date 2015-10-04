@@ -370,8 +370,6 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	rstring = (char*)malloc( len );
 	sysctl( mib, 2, rstring, &len, NULL, 0 );
 	
-	m_hasMultiTouchTrackpad = false;
-	
 	free( rstring );
 	rstring = NULL;
 	
@@ -1223,10 +1221,10 @@ bool GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
 	NSEvent *event = (NSEvent *)eventPtr;
 
 	switch ([event subtype]) {
-		case NX_SUBTYPE_TABLET_POINT:
+		case NSTabletPointEventSubtype:
 			handleTabletEvent(eventPtr, NSTabletPoint);
 			return true;
-		case NX_SUBTYPE_TABLET_PROXIMITY:
+		case NSTabletProximityEventSubtype:
 			handleTabletEvent(eventPtr, NSTabletProximity);
 			return true;
 		default:
@@ -1390,25 +1388,22 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 				}
 			}
 			break;
-			
-			/* these events only happen on swiping trackpads or tablets */
-			/* warning: using tablet + trackpad at same time frustrates this static variable */
-		case NSEventTypeBeginGesture:
-			m_hasMultiTouchTrackpad = 1;
-			break;
-		case NSEventTypeEndGesture:
-			m_hasMultiTouchTrackpad = 0;
-			break;
-			
+
 		case NSScrollWheel:
 			{
-				int *momentum = NULL;
+				NSEventPhase momentum = NSEventPhaseNone;
+				NSEventPhase phase = NSEventPhaseNone;
+				bool hasMultiTouch = false;
 				
 				if ([event respondsToSelector:@selector(momentumPhase)])
-					momentum = (int *)[event momentumPhase];
+					momentum = [event momentumPhase];
+				if ([event respondsToSelector:@selector(phase)])
+					phase = [event phase];
+				if ([event respondsToSelector:@selector(hasPreciseScrollingDeltas)])
+					hasMultiTouch = [event hasPreciseScrollingDeltas];
 
 				/* standard scrollwheel case, if no swiping happened, and no momentum (kinetic scroll) works */
-				if (!m_hasMultiTouchTrackpad && momentum == NULL) {
+				if (!hasMultiTouch && momentum == NSEventPhaseNone) {
 					GHOST_TInt32 delta;
 					
 					double deltaF = [event deltaY];
@@ -1424,16 +1419,14 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 					GHOST_TInt32 x, y;
 					double dx;
 					double dy;
-					
+
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
-					int phase = [event phase];
-					
 					/* with 10.7 nice scrolling deltas are supported */
 					dx = [event scrollingDeltaX];
 					dy = [event scrollingDeltaY];
 					
 					/* however, wacom tablet (intuos5) needs old deltas, it then has momentum and phase at zero */
-					if (phase == 0 && momentum==NULL) {
+					if (phase == NSEventPhaseNone && momentum == NSEventPhaseNone) {
 						dx = [event deltaX];
 						dy = [event deltaY];
 					}
