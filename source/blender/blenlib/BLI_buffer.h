@@ -64,7 +64,7 @@ enum {
 #define BLI_buffer_at(buffer_, type_, index_) ( \
 	(((type_ *)(buffer_)->data)[ \
 	        (BLI_assert(sizeof(type_) == (buffer_)->elem_size)), \
-	        (BLI_assert((int)index_ >= 0 && (size_t)index_ < (buffer_)->count)), \
+	        (BLI_assert((int)(index_) >= 0 && (size_t)(index_) < (buffer_)->count)), \
 	        index_]))
 
 #define BLI_buffer_array(buffer_, type_) ( \
