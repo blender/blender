@@ -297,6 +297,8 @@ protected:
 	 */
 	GHOST_TInt32 m_cursorDelta_x, m_cursorDelta_y;
 	
+	/** Temporarily ignore momentum scroll events */
+	bool m_ignoreMomentumScroll;
 };
 
 #endif // __GHOST_SYSTEMCOCOA_H__

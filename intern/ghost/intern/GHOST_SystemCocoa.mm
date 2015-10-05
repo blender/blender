@@ -374,6 +374,7 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	rstring = NULL;
 	
 	m_ignoreWindowSizedMessages = false;
+	m_ignoreMomentumScroll = false;
 }
 
 GHOST_SystemCocoa::~GHOST_SystemCocoa()
@@ -1391,19 +1392,33 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 
 		case NSScrollWheel:
 			{
-				NSEventPhase momentum = NSEventPhaseNone;
+				NSEventPhase momentumPhase = NSEventPhaseNone;
 				NSEventPhase phase = NSEventPhaseNone;
 				bool hasMultiTouch = false;
 				
 				if ([event respondsToSelector:@selector(momentumPhase)])
-					momentum = [event momentumPhase];
+					momentumPhase = [event momentumPhase];
 				if ([event respondsToSelector:@selector(phase)])
 					phase = [event phase];
 				if ([event respondsToSelector:@selector(hasPreciseScrollingDeltas)])
 					hasMultiTouch = [event hasPreciseScrollingDeltas];
 
+				/* when pressing a key while momentum scrolling continues after
+				 * lifting fingers off the trackpad, the action can unexpectedly
+				 * change from e.g. scrolling to zooming. this works around the
+				 * issue by ignoring momentum scroll after a key press */
+				if (momentumPhase)
+				{
+					if (m_ignoreMomentumScroll)
+						break;
+				}
+				else
+				{
+					m_ignoreMomentumScroll = false;
+				}
+
 				/* standard scrollwheel case, if no swiping happened, and no momentum (kinetic scroll) works */
-				if (!hasMultiTouch && momentum == NSEventPhaseNone) {
+				if (!hasMultiTouch && momentumPhase == NSEventPhaseNone) {
 					GHOST_TInt32 delta;
 					
 					double deltaF = [event deltaY];
@@ -1426,7 +1441,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 					dy = [event scrollingDeltaY];
 					
 					/* however, wacom tablet (intuos5) needs old deltas, it then has momentum and phase at zero */
-					if (phase == NSEventPhaseNone && momentum == NSEventPhaseNone) {
+					if (phase == NSEventPhaseNone && momentumPhase == NSEventPhaseNone) {
 						dx = [event deltaX];
 						dy = [event deltaY];
 					}
@@ -1561,6 +1576,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 				pushEvent( new GHOST_EventKey([event timestamp] * 1000, GHOST_kEventKeyUp, window, keyCode, 0, NULL) );
 				//printf("Key up rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii, utf8_buf);
 			}
+			m_ignoreMomentumScroll = true;
 			break;
 	
 		case NSFlagsChanged: 
@@ -1580,6 +1596,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 			}
 			
 			m_modifierMask = modifiers;
+			m_ignoreMomentumScroll = true;
 			break;
 			
 		default:
