@@ -730,11 +730,10 @@ void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int syste
 	bUnitCollection *usys = unit_get_system(system, type);
 
 	bUnitDef *unit;
-	bUnitDef *unit_def = unit_default(usys);
 
 	/* find and substitute all units */
 	for (unit = usys->units; unit->name; unit++) {
-		if (len_max > 0 && (unit->name_alt || unit == unit_def)) {
+		if (len_max > 0 && unit->name_alt) {
 			const char *found = unit_find_str(orig_str, unit->name_short);
 			if (found) {
 				int offset = (int)(found - orig_str);
