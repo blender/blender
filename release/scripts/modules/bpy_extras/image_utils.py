@@ -32,6 +32,8 @@ def load_image(imagepath,
                convert_callback=None,
                verbose=False,
                relpath=None,
+               check_existing=False,
+               force_reload=False,
                ):
     """
     Return an image from the file path with options to search multiple paths
@@ -60,6 +62,12 @@ def load_image(imagepath,
     :type convert_callback: function
     :arg relpath: If not None, make the file relative to this path.
     :type relpath: None or string
+    :arg check_existing: If true, returns already loaded image datablock if possible
+       (based on file path).
+    :type check_existing: bool
+    :arg force_reload: If true, force reloading of image (only useful when `check_existing`
+        is also enabled).
+    :type force_reload: bool
     :return: an image or None
     :rtype: :class:`bpy.types.Image`
     """
@@ -86,7 +94,7 @@ def load_image(imagepath,
             path = convert_callback(path)
 
         try:
-            image = bpy.data.images.load(path)
+            image = bpy.data.images.load(path, check_existing)
         except RuntimeError:
             image = None
 
@@ -102,6 +110,8 @@ def load_image(imagepath,
             image = _image_load_placeholder(path)
 
         if image:
+            if force_reload:
+                image.reload()
             if relpath is not None:
                 # make relative
                 from bpy.path import relpath as relpath_fn

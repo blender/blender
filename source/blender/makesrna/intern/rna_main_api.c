@@ -352,12 +352,17 @@ static Image *rna_Main_images_new(Main *bmain, const char *name, int width, int 
 	id_us_min(&image->id);
 	return image;
 }
-static Image *rna_Main_images_load(Main *bmain, ReportList *reports, const char *filepath)
+static Image *rna_Main_images_load(Main *bmain, ReportList *reports, const char *filepath, int check_existing)
 {
 	Image *ima;
 
 	errno = 0;
-	ima = BKE_image_load(bmain, filepath);
+	if (check_existing) {
+		ima = BKE_image_load_exists(filepath);
+	}
+	else {
+		ima = BKE_image_load(bmain, filepath);
+	}
 
 	if (!ima) {
 		BKE_reportf(reports, RPT_ERROR, "Cannot read '%s': %s", filepath,
@@ -1207,6 +1212,8 @@ void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Load a new image into the main database");
 	parm = RNA_def_string_file_path(func, "filepath", "File Path", 0, "", "path of the file to load");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_boolean(func, "check_existing", false, "",
+	                "Check whether this image filepath is already used, and return existing datablock in this case");
 	/* return type */
 	parm = RNA_def_pointer(func, "image", "Image", "", "New image datablock");
 	RNA_def_function_return(func, parm);
