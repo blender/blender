@@ -585,4 +585,5 @@ ModifierTypeInfo modifierType_Ocean = {
 	/* dependsOnNormals */	dependsOnNormals,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

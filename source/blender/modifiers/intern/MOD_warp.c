@@ -126,9 +126,7 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
 
 	walk(userData, ob, (ID **)&wmd->texture);
 
-	walk(userData, ob, (ID **)&wmd->object_from);
-	walk(userData, ob, (ID **)&wmd->object_to);
-	walk(userData, ob, (ID **)&wmd->map_object);
+	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
 static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void *userData)

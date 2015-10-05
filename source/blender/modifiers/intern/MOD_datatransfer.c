@@ -118,17 +118,12 @@ static bool dependsOnNormals(ModifierData *md)
 	return false;
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob,
-                              void (*walk)(void *userData, Object *ob, Object **obpoin),
-                              void *userData)
+static void foreachObjectLink(
+        ModifierData *md, Object *ob,
+        ObjectWalkFunc walk, void *userData)
 {
 	DataTransferModifierData *dtmd = (DataTransferModifierData *) md;
 	walk(userData, ob, &dtmd->ob_source);
-}
-
-static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
-{
-	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,
@@ -260,6 +255,6 @@ ModifierTypeInfo modifierType_DataTransfer = {
 	/* dependsOnTime */     NULL,
 	/* dependsOnNormals */  dependsOnNormals,
 	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */     foreachIDLink,
+	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
 };

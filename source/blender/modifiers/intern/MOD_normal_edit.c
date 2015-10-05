@@ -453,13 +453,6 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
 	walk(userData, ob, &smd->target);
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
-{
-	NormalEditModifierData *smd = (NormalEditModifierData *) md;
-
-	walk(userData, ob, (ID **)&smd->target);
-}
-
 static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	NormalEditModifierData *smd = (NormalEditModifierData *)md;
@@ -524,6 +517,6 @@ ModifierTypeInfo modifierType_NormalEdit = {
 	/* dependsOnTime */     NULL,
 	/* dependsOnNormals */  dependsOnNormals,
 	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */     foreachIDLink,
+	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
 };

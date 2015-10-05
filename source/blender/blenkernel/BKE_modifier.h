@@ -104,6 +104,7 @@ typedef enum {
 	eModifierTypeFlag_UsesPreview = (1 << 9)
 } ModifierTypeFlag;
 
+/* IMPORTANT! Keep ObjectWalkFunc and IDWalkFunc signatures compatible. */
 typedef void (*ObjectWalkFunc)(void *userData, struct Object *ob, struct Object **obpoin);
 typedef void (*IDWalkFunc)(void *userData, struct Object *ob, struct ID **idpoin);
 typedef void (*TexWalkFunc)(void *userData, struct Object *ob, struct ModifierData *md, const char *propname);

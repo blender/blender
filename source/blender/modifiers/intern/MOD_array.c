@@ -90,8 +90,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 static void foreachObjectLink(
         ModifierData *md, Object *ob,
-        void (*walk)(void *userData, Object *ob, Object **obpoin),
-        void *userData)
+        ObjectWalkFunc walk, void *userData)
 {
 	ArrayModifierData *amd = (ArrayModifierData *) md;
 

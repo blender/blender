@@ -101,8 +101,7 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 
 	walk(userData, ob, (ID **)&umd->image);
 
-	foreachObjectLink(md, ob, (ObjectWalkFunc)walk,
-	                  userData);
+	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

@@ -1090,8 +1090,7 @@ static void updateDepsgraph(ModifierData *md,
 
 static void foreachObjectLink(
         ModifierData *md, Object *ob,
-        void (*walk)(void *userData, Object *ob, Object **obpoin),
-        void *userData)
+        ObjectWalkFunc walk, void *userData)
 {
 	ScrewModifierData *ltmd = (ScrewModifierData *) md;
 

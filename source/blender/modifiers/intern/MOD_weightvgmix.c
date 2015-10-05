@@ -171,9 +171,7 @@ static bool dependsOnTime(ModifierData *md)
 	return false;
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob,
-                              void (*walk)(void *userData, Object *ob, Object **obpoin),
-                              void *userData)
+static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
 {
 	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
 	walk(userData, ob, &wmd->mask_tex_map_obj);
