@@ -117,6 +117,7 @@ public:
 	             float * /*dresultds*/,
 	             float * /*dresultdt*/)
 	{
+		/* TODO(sergey): Support derivatives. */
 		return texture(filename,
 		               options,
 		               sg,
@@ -141,6 +142,7 @@ public:
 	               float * /*dresultdt*/,
 	               float * /*dresultdr*/)
 	{
+		/* TODO(sergey): Support derivatives. */
 		return texture3d(filename,
 		                 options,
 		                 sg,
