@@ -104,7 +104,7 @@ public:
 	               const OSL::Vec3 &dPdx, const OSL::Vec3 &dPdy,
 	               const OSL::Vec3 &dPdz, int nchannels, float *result);
 
-#if OSL_LIBRARY_VERSION_CODE >= 10700
+#if OSL_LIBRARY_VERSION_CODE >= 10600
 	bool texture(ustring filename,
 	             TextureHandle * /*texture_handle*/,
 	             TexturePerthread * /*texture_thread_info*/,
