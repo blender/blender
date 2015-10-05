@@ -796,6 +796,8 @@ def AppIt(target=None, source=None, env=None):
         commands.getoutput(cmd)
         cmd = 'cp -R %s/release/site-packages/ %s/%s.app/Contents/Resources/%s/python/lib/python%s/site-packages/'%(libdir,installdir,binary,VERSION,env['BF_PYTHON_VERSION'])
         commands.getoutput(cmd)
+        cmd = 'cp -r %s/python/bin -d %s/%s.app/Contents/Resources/%s/python/'%(libdir,installdir,binary,VERSION)
+        commands.getoutput(cmd)
 
     cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(installdir,binary, binary)
     commands.getoutput(cmd)
