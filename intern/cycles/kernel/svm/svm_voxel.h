@@ -43,15 +43,6 @@ ccl_device void svm_node_tex_voxel(KernelGlobals *kg,
 		tfm.w = read_node_float(kg, offset);
 		co = transform_point(&tfm, co);
 	}
-	if(co.x < 0.0f || co.y < 0.0f || co.z < 0.0f ||
-	   co.x > 1.0f || co.y > 1.0f || co.z > 1.0f)
-	{
-		if (stack_valid(density_out_offset))
-			stack_store_float(stack, density_out_offset, 0.0f);
-		if (stack_valid(color_out_offset))
-			stack_store_float3(stack, color_out_offset, make_float3(0.0f, 0.0f, 0.0f));
-		return;
-	}
 	float4 r = kernel_tex_image_interp_3d(id, co.x, co.y, co.z);
 	if (stack_valid(density_out_offset))
 		stack_store_float(stack, density_out_offset, r.w);
