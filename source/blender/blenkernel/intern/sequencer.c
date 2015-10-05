@@ -1016,8 +1016,8 @@ void BKE_sequencer_sort(Scene *scene)
 /** Comparision function suitable to be used with BLI_listbase_sort()... */
 int BKE_sequencer_cmp_time_startdisp(const void *a, const void *b)
 {
-	Sequence *seq_a = a;
-	Sequence *seq_b = b;
+	const Sequence *seq_a = a;
+	const Sequence *seq_b = b;
 
 	return (seq_a->startdisp > seq_b->startdisp);
 }
