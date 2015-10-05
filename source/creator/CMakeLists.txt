@@ -948,6 +948,10 @@ elseif(APPLE)
 			${CMAKE_CURRENT_BINARY_DIR}/python/lib/python${PYTHON_VERSION}/site-packages
 		)
 
+		install(DIRECTORY ${LIBDIR}/python/bin
+			DESTINATION ${TARGETDIR_VER}/python
+			USE_SOURCE_PERMISSIONS
+		)
 	endif()
 	
 	# install blenderplayer bundle - copy of blender.app above. re-using macros et al
