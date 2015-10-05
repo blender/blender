@@ -279,7 +279,9 @@ template<typename T> struct texture_image  {
 					iz = wrap_periodic(iz, depth);
 					break;
 				case EXTENSION_CLIP:
-					if (x < 0.0f || y < 0.0f || x > 1.0f || y > 1.0f) {
+					if (x < 0.0f || y < 0.0f || z < 0.0f ||
+					    x > 1.0f || y > 1.0f || z > 1.0f)
+					{
 						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 					}
 					/* Fall through. */
@@ -308,7 +310,9 @@ template<typename T> struct texture_image  {
 					niz = wrap_periodic(iz+1, depth);
 					break;
 				case EXTENSION_CLIP:
-					if (x < 0.0f || y < 0.0f || x > 1.0f || y > 1.0f) {
+					if (x < 0.0f || y < 0.0f || z < 0.0f ||
+					    x > 1.0f || y > 1.0f || z > 1.0f)
+					{
 						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 					}
 					/* Fall through. */
@@ -363,7 +367,9 @@ template<typename T> struct texture_image  {
 					nniz = wrap_periodic(iz+2, depth);
 					break;
 				case EXTENSION_CLIP:
-					if (x < 0.0f || y < 0.0f || x > 1.0f || y > 1.0f) {
+					if (x < 0.0f || y < 0.0f || z < 0.0f ||
+					    x > 1.0f || y > 1.0f || z > 1.0f)
+					{
 						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 					}
 					/* Fall through. */
