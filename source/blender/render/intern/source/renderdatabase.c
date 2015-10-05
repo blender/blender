@@ -1363,7 +1363,9 @@ void project_renderdata(Render *re,
 
 /* ------------------------------------------------------------------------- */
 
-ObjectInstanceRen *RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, Object *par, int index, int psysindex, float mat[4][4], int lay)
+ObjectInstanceRen *RE_addRenderInstance(
+        Render *re, ObjectRen *obr, Object *ob, Object *par,
+        int index, int psysindex, float mat[4][4], int lay, const DupliObject *dob)
 {
 	ObjectInstanceRen *obi;
 	float mat3[3][3];
@@ -1377,33 +1379,30 @@ ObjectInstanceRen *RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, 
 	obi->lay= lay;
 
 	/* Fill particle info */
-	if (obi->psysindex > 0) {
-		int psysindex = 1;
-		int index;
-		ParticleSystem *psys;
-		if (obi->par) {
-			for (psys = obi->par->particlesystem.first; psys; psys = psys->next) {
-				if (psysindex == obi->psysindex)
-					break;
-				++psysindex;
+	if (par && dob) {
+		const ParticleSystem *psys = dob->particle_system;
+		if (psys) {
+			int index;
+			if (obi->index < psys->totpart) {
+				index = obi->index;
 			}
-			if (psys) {
-				if (obi->index < psys->totpart)
-					index = obi->index;
-				else {
-					index = psys->child[obi->index - psys->totpart].parent;
-				}
-				if (index >= 0) {
-					ParticleData* p = &psys->particles[index];
-					obi->part_index = index;
-					obi->part_size = p->size;
-					obi->part_age = RE_GetStats(re)->cfra - p->time;
-					obi->part_lifetime = p->lifetime;
+			else if (psys->child) {
+				index = psys->child[obi->index - psys->totpart].parent;
+			}
+			else {
+				index = -1;
+			}
 
-					copy_v3_v3(obi->part_co, p->state.co);
-					copy_v3_v3(obi->part_vel, p->state.vel);
-					copy_v3_v3(obi->part_avel, p->state.ave);
-				}
+			if (index >= 0) {
+				const ParticleData *p = &psys->particles[index];
+				obi->part_index = index;
+				obi->part_size = p->size;
+				obi->part_age = RE_GetStats(re)->cfra - p->time;
+				obi->part_lifetime = p->lifetime;
+
+				copy_v3_v3(obi->part_co, p->state.co);
+				copy_v3_v3(obi->part_vel, p->state.vel);
+				copy_v3_v3(obi->part_avel, p->state.ave);
 			}
 		}
 	}
