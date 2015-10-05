@@ -855,7 +855,7 @@ void draw_image_main(const bContext *C, ARegion *ar)
 			BLI_rctf_init(&frame, 0.0f, ibuf->x, 0.0f, ibuf->y);
 			UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
-			ED_region_image_metadata_draw(x, y, ibuf, frame, zoomx, zoomy);
+			ED_region_image_metadata_draw(x, y, ibuf, &frame, zoomx, zoomy);
 		}
 	}
 

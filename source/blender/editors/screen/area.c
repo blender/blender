@@ -2202,7 +2202,7 @@ static float metadata_box_height_get(ImBuf *ibuf, int fontid, const bool is_top)
 
 #undef MAX_METADATA_STR
 
-void ED_region_image_metadata_draw(int x, int y, ImBuf *ibuf, rctf frame, float zoomx, float zoomy)
+void ED_region_image_metadata_draw(int x, int y, ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy)
 {
 	float box_y;
 	rctf rect;
@@ -2229,7 +2229,7 @@ void ED_region_image_metadata_draw(int x, int y, ImBuf *ibuf, rctf frame, float 
 		UI_ThemeColor(TH_METADATA_BG);
 
 		/* set up rect */
-		BLI_rctf_init(&rect, frame.xmin, frame.xmax, frame.ymax, frame.ymax + box_y);
+		BLI_rctf_init(&rect, frame->xmin, frame->xmax, frame->ymax, frame->ymax + box_y);
 		/* draw top box */
 		glRectf(rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 
@@ -2251,7 +2251,7 @@ void ED_region_image_metadata_draw(int x, int y, ImBuf *ibuf, rctf frame, float 
 		UI_ThemeColor(TH_METADATA_BG);
 
 		/* set up box rect */
-		BLI_rctf_init(&rect, frame.xmin, frame.xmax, frame.ymin - box_y, frame.ymin);
+		BLI_rctf_init(&rect, frame->xmin, frame->xmax, frame->ymin - box_y, frame->ymin);
 		/* draw top box */
 		glRectf(rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 
