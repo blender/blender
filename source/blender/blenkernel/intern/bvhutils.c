@@ -646,7 +646,10 @@ static BVHTree *bvhtree_from_mesh_faces_create_tree(
 						insert = insert_prev;
 					}
 					else if (insert) {
-						if (BM_elem_flag_test(f, BM_ELEM_SELECT) || BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+						if (tree_type == BVHTREE_FROM_FACES_EDITMESH_ALL) {
+							/* pass */
+						}
+						else if (BM_elem_flag_test(f, BM_ELEM_SELECT) || BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
 							/* Don't insert triangles tessellated from faces that are hidden or selected */
 							insert = false;
 						}
@@ -746,7 +749,9 @@ static void bvhtree_from_mesh_faces_setup_data(
 BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *dm, float epsilon, int tree_type, int axis)
 {
 	BMEditMesh *em = data->em_evil;
-	const int bvhcache_type = em ? BVHTREE_FROM_FACES_EDITMESH : BVHTREE_FROM_FACES;
+	const int bvhcache_type = em ?
+	        (data->em_evil_all ? BVHTREE_FROM_FACES_EDITMESH_ALL : BVHTREE_FROM_FACES_EDITMESH_SNAP) :
+	        BVHTREE_FROM_FACES;
 	BVHTree *tree;
 	MVert *vert = NULL;
 	MFace *face = NULL;
@@ -881,7 +886,10 @@ static BVHTree *bvhtree_from_mesh_looptri_create_tree(
 						insert = insert_prev;
 					}
 					else if (insert) {
-						if (BM_elem_flag_test(f, BM_ELEM_SELECT) || BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+						if (tree_type == BVHTREE_FROM_FACES_EDITMESH_ALL) {
+							/* pass */
+						}
+						else if (BM_elem_flag_test(f, BM_ELEM_SELECT) || BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
 							/* Don't insert triangles tessellated from faces that are hidden or selected */
 							insert = false;
 						}
@@ -986,7 +994,9 @@ static void bvhtree_from_mesh_looptri_setup_data(
 BVHTree *bvhtree_from_mesh_looptri(BVHTreeFromMesh *data, DerivedMesh *dm, float epsilon, int tree_type, int axis)
 {
 	BMEditMesh *em = data->em_evil;
-	const int bvhcache_type = em ? BVHTREE_FROM_FACES_EDITMESH : BVHTREE_FROM_LOOPTRI;
+	const int bvhcache_type = em ?
+	        (data->em_evil_all ? BVHTREE_FROM_FACES_EDITMESH_ALL : BVHTREE_FROM_FACES_EDITMESH_SNAP) :
+	        BVHTREE_FROM_LOOPTRI;
 	BVHTree *tree;
 	MVert *mvert = NULL;
 	MLoop *mloop = NULL;

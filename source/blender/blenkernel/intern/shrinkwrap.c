@@ -282,9 +282,11 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 	/* use editmesh to avoid array allocation */
 	if (calc->smd->target && calc->target->type == DM_TYPE_EDITBMESH) {
 		treeData.em_evil = BKE_editmesh_from_object(calc->smd->target);
+		treeData.em_evil_all = true;
 	}
 	if (calc->smd->auxTarget && auxMesh->type == DM_TYPE_EDITBMESH) {
 		auxData.em_evil = BKE_editmesh_from_object(calc->smd->auxTarget);
+		auxData.em_evil_all = true;
 	}
 
 	/* After sucessufuly build the trees, start projection vertexs */
