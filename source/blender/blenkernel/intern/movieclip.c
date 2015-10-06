@@ -603,8 +603,7 @@ static void detect_clip_source(MovieClip *clip)
 MovieClip *BKE_movieclip_file_add(Main *bmain, const char *name)
 {
 	MovieClip *clip;
-	int file, len;
-	const char *libname;
+	int file;
 	char str[FILE_MAX];
 
 	BLI_strncpy(str, name, sizeof(str));
@@ -619,13 +618,7 @@ MovieClip *BKE_movieclip_file_add(Main *bmain, const char *name)
 	/* ** add new movieclip ** */
 
 	/* create a short library name */
-	len = strlen(name);
-
-	while (len > 0 && name[len - 1] != '/' && name[len - 1] != '\\')
-		len--;
-	libname = name + len;
-
-	clip = movieclip_alloc(bmain, libname);
+	clip = movieclip_alloc(bmain, BLI_path_basename(name));
 	BLI_strncpy(clip->name, name, sizeof(clip->name));
 
 	detect_clip_source(clip);

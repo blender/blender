@@ -74,11 +74,8 @@ static char **audio_device_names = NULL;
 bSound *BKE_sound_new_file(struct Main *bmain, const char *filepath)
 {
 	bSound *sound;
-
-	char str[FILE_MAX];
 	const char *path;
-
-	size_t len;
+	char str[FILE_MAX];
 
 	BLI_strncpy(str, filepath, sizeof(str));
 
@@ -86,11 +83,7 @@ bSound *BKE_sound_new_file(struct Main *bmain, const char *filepath)
 
 	BLI_path_abs(str, path);
 
-	len = strlen(filepath);
-	while (len > 0 && filepath[len - 1] != '/' && filepath[len - 1] != '\\')
-		len--;
-
-	sound = BKE_libblock_alloc(bmain, ID_SO, filepath + len);
+	sound = BKE_libblock_alloc(bmain, ID_SO, BLI_path_basename(filepath));
 	BLI_strncpy(sound->name, filepath, FILE_MAX);
 	/* sound->type = SOUND_TYPE_FILE; */ /* XXX unused currently */
 
