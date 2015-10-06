@@ -213,7 +213,7 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	errno = 0;
 
-	clip = BKE_movieclip_file_add(bmain, str);
+	clip = BKE_movieclip_file_add_exists(bmain, str);
 
 	if (!clip) {
 		if (op->customdata)

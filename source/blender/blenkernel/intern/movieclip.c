@@ -605,7 +605,7 @@ MovieClip *BKE_movieclip_file_add(Main *bmain, const char *name)
 	MovieClip *clip;
 	int file, len;
 	const char *libname;
-	char str[FILE_MAX], strtest[FILE_MAX];
+	char str[FILE_MAX];
 
 	BLI_strncpy(str, name, sizeof(str));
 	BLI_path_abs(str, bmain->name);
@@ -615,19 +615,6 @@ MovieClip *BKE_movieclip_file_add(Main *bmain, const char *name)
 	if (file == -1)
 		return NULL;
 	close(file);
-
-	/* ** first search an identical clip ** */
-	for (clip = bmain->movieclip.first; clip; clip = clip->id.next) {
-		BLI_strncpy(strtest, clip->name, sizeof(clip->name));
-		BLI_path_abs(strtest, G.main->name);
-
-		if (STREQ(strtest, str)) {
-			BLI_strncpy(clip->name, name, sizeof(clip->name));  /* for stringcode */
-			clip->id.us++;  /* officially should not, it doesn't link here! */
-
-			return clip;
-		}
-	}
 
 	/* ** add new movieclip ** */
 
@@ -653,6 +640,37 @@ MovieClip *BKE_movieclip_file_add(Main *bmain, const char *name)
 	movieclip_calc_length(clip);
 
 	return clip;
+}
+
+MovieClip *BKE_movieclip_file_add_exists_ex(Main *bmain, const char *filepath, bool *r_exists)
+{
+	MovieClip *clip;
+	char str[FILE_MAX], strtest[FILE_MAX];
+
+	BLI_strncpy(str, filepath, sizeof(str));
+	BLI_path_abs(str, bmain->name);
+
+	/* first search an identical filepath */
+	for (clip = bmain->movieclip.first; clip; clip = clip->id.next) {
+		BLI_strncpy(strtest, clip->name, sizeof(clip->name));
+		BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &clip->id));
+
+		if (BLI_path_cmp(strtest, str) == 0) {
+			clip->id.us++;  /* officially should not, it doesn't link here! */
+			if (r_exists)
+				*r_exists = true;
+			return clip;
+		}
+	}
+
+	if (r_exists)
+		*r_exists = false;
+	return BKE_movieclip_file_add(bmain, filepath);
+}
+
+MovieClip *BKE_movieclip_file_add_exists(Main *bmain, const char *filepath)
+{
+	return BKE_movieclip_file_add_exists_ex(bmain, filepath, NULL);
 }
 
 static void real_ibuf_size(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, int *width, int *height)

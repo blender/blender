@@ -61,7 +61,9 @@ void BKE_sound_exit(void);
 
 void BKE_sound_force_device(const char *device);
 
-struct bSound *BKE_sound_new_file(struct Main *main, const char *filename);
+struct bSound *BKE_sound_new_file(struct Main *main, const char *filepath);
+struct bSound *BKE_sound_new_file_exists_ex(struct Main *bmain, const char *filepath, bool *r_exists);
+struct bSound *BKE_sound_new_file_exists(struct Main *bmain, const char *filepath);
 
 // XXX unused currently
 #if 0

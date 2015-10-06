@@ -80,7 +80,9 @@ void BKE_vfont_builtin_register(void *mem, int size);
 void BKE_vfont_free_data(struct VFont *vfont);
 void BKE_vfont_free(struct VFont *sc); 
 struct VFont *BKE_vfont_builtin_get(void);
-struct VFont *BKE_vfont_load(struct Main *bmain, const char *name);
+struct VFont *BKE_vfont_load(struct Main *bmain, const char *filepath);
+struct VFont *BKE_vfont_load_exists_ex(struct Main *bmain, const char *filepath, bool *r_exists);
+struct VFont *BKE_vfont_load_exists(struct Main *bmain, const char *filepath);
 
 bool BKE_vfont_to_curve_ex(struct Main *bmain, struct Object *ob, int mode,
                            struct ListBase *r_nubase,

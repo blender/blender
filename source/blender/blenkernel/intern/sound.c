@@ -71,7 +71,7 @@ static int sound_cfra;
 static char **audio_device_names = NULL;
 #endif
 
-bSound *BKE_sound_new_file(struct Main *bmain, const char *filename)
+bSound *BKE_sound_new_file(struct Main *bmain, const char *filepath)
 {
 	bSound *sound;
 
@@ -80,23 +80,54 @@ bSound *BKE_sound_new_file(struct Main *bmain, const char *filename)
 
 	size_t len;
 
-	BLI_strncpy(str, filename, sizeof(str));
+	BLI_strncpy(str, filepath, sizeof(str));
 
 	path = /*bmain ? bmain->name :*/ G.main->name;
 
 	BLI_path_abs(str, path);
 
-	len = strlen(filename);
-	while (len > 0 && filename[len - 1] != '/' && filename[len - 1] != '\\')
+	len = strlen(filepath);
+	while (len > 0 && filepath[len - 1] != '/' && filepath[len - 1] != '\\')
 		len--;
 
-	sound = BKE_libblock_alloc(bmain, ID_SO, filename + len);
-	BLI_strncpy(sound->name, filename, FILE_MAX);
+	sound = BKE_libblock_alloc(bmain, ID_SO, filepath + len);
+	BLI_strncpy(sound->name, filepath, FILE_MAX);
 	/* sound->type = SOUND_TYPE_FILE; */ /* XXX unused currently */
 
 	BKE_sound_load(bmain, sound);
 
 	return sound;
+}
+
+bSound *BKE_sound_new_file_exists_ex(struct Main *bmain, const char *filepath, bool *r_exists)
+{
+	bSound *sound;
+	char str[FILE_MAX], strtest[FILE_MAX];
+
+	BLI_strncpy(str, filepath, sizeof(str));
+	BLI_path_abs(str, bmain->name);
+
+	/* first search an identical filepath */
+	for (sound = bmain->sound.first; sound; sound = sound->id.next) {
+		BLI_strncpy(strtest, sound->name, sizeof(sound->name));
+		BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &sound->id));
+
+		if (BLI_path_cmp(strtest, str) == 0) {
+			sound->id.us++;  /* officially should not, it doesn't link here! */
+			if (r_exists)
+				*r_exists = true;
+			return sound;
+		}
+	}
+
+	if (r_exists)
+		*r_exists = false;
+	return BKE_sound_new_file(bmain, filepath);
+}
+
+bSound *BKE_sound_new_file_exists(struct Main *bmain, const char *filepath)
+{
+	return BKE_sound_new_file_exists_ex(bmain, filepath, NULL);
 }
 
 void BKE_sound_free(bSound *sound)

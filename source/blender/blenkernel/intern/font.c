@@ -203,7 +203,7 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 	return vfont->data;
 }
 
-VFont *BKE_vfont_load(Main *bmain, const char *name)
+VFont *BKE_vfont_load(Main *bmain, const char *filepath)
 {
 	char filename[FILE_MAXFILE];
 	VFont *vfont = NULL;
@@ -211,16 +211,16 @@ VFont *BKE_vfont_load(Main *bmain, const char *name)
 	PackedFile *temp_pf = NULL;
 	bool is_builtin;
 	
-	if (STREQ(name, FO_BUILTIN_NAME)) {
-		BLI_strncpy(filename, name, sizeof(filename));
+	if (STREQ(filepath, FO_BUILTIN_NAME)) {
+		BLI_strncpy(filename, filepath, sizeof(filename));
 		
 		pf = get_builtin_packedfile();
 		is_builtin = true;
 	}
 	else {
-		BLI_split_file_part(name, filename, sizeof(filename));
-		pf = newPackedFile(NULL, name, bmain->name);
-		temp_pf = newPackedFile(NULL, name, bmain->name);
+		BLI_split_file_part(filepath, filename, sizeof(filename));
+		pf = newPackedFile(NULL, filepath, bmain->name);
+		temp_pf = newPackedFile(NULL, filepath, bmain->name);
 		
 		is_builtin = false;
 	}
@@ -237,7 +237,7 @@ VFont *BKE_vfont_load(Main *bmain, const char *name)
 			if (vfd->name[0] != '\0') {
 				BLI_strncpy(vfont->id.name + 2, vfd->name, sizeof(vfont->id.name) - 2);
 			}
-			BLI_strncpy(vfont->name, name, sizeof(vfont->name));
+			BLI_strncpy(vfont->name, filepath, sizeof(vfont->name));
 
 			/* if autopack is on store the packedfile in de font structure */
 			if (!is_builtin && (G.fileflags & G_AUTOPACK)) {
@@ -257,6 +257,37 @@ VFont *BKE_vfont_load(Main *bmain, const char *name)
 	}
 	
 	return vfont;
+}
+
+VFont *BKE_vfont_load_exists_ex(struct Main *bmain, const char *filepath, bool *r_exists)
+{
+	VFont *vfont;
+	char str[FILE_MAX], strtest[FILE_MAX];
+
+	BLI_strncpy(str, filepath, sizeof(str));
+	BLI_path_abs(str, bmain->name);
+
+	/* first search an identical filepath */
+	for (vfont = bmain->vfont.first; vfont; vfont = vfont->id.next) {
+		BLI_strncpy(strtest, vfont->name, sizeof(vfont->name));
+		BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &vfont->id));
+
+		if (BLI_path_cmp(strtest, str) == 0) {
+			vfont->id.us++;  /* officially should not, it doesn't link here! */
+			if (r_exists)
+				*r_exists = true;
+			return vfont;
+		}
+	}
+
+	if (r_exists)
+		*r_exists = false;
+	return BKE_vfont_load(bmain, filepath);
+}
+
+VFont *BKE_vfont_load_exists(struct Main *bmain, const char *filepath)
+{
+	return BKE_vfont_load_exists_ex(bmain, filepath, NULL);
 }
 
 static VFont *which_vfont(Curve *cu, CharInfo *info)

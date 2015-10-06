@@ -746,7 +746,7 @@ Image *BKE_image_load_exists_ex(const char *filepath, bool *r_exists)
 	BLI_strncpy(str, filepath, sizeof(str));
 	BLI_path_abs(str, G.main->name);
 
-	/* first search an identical image */
+	/* first search an identical filepath */
 	for (ima = G.main->image.first; ima; ima = ima->id.next) {
 		if (ima->source != IMA_SRC_VIEWER && ima->source != IMA_SRC_GENERATED) {
 			BLI_strncpy(strtest, ima->name, sizeof(ima->name));
