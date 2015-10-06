@@ -2626,13 +2626,13 @@ static CustomDataMask object_get_datamask(const Scene *scene, Object *ob, bool *
 {
 	Object *actob = scene->basact ? scene->basact->object : NULL;
 	CustomDataMask mask = ob->customdata_mask;
-	bool editing = BKE_paint_select_face_test(ob);
 
 	if (r_need_mapping) {
 		*r_need_mapping = false;
 	}
 
 	if (ob == actob) {
+		bool editing = BKE_paint_select_face_test(ob);
 
 		/* weight paint and face select need original indices because of selection buffer drawing */
 		if (r_need_mapping) {
