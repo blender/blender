@@ -992,6 +992,11 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	rect.ymax = rect.ymin + BLI_rcti_size_y(&rect) / U.pixelsize;
 
 	newwin = WM_window_open(C, &rect);
+	if (newwin == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Failed to open window!");
+		goto finally;
+	}
+
 	*newwin->stereo3d_format = *win->stereo3d_format;
 	
 	/* allocs new screen and adds to newly created window, using window size */
@@ -1005,11 +1010,18 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	/* screen, areas init */
 	WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
-	
+
+
+finally:
 	if (event->type == EVT_ACTIONZONE_AREA)
 		actionzone_exit(op);
 	
-	return OPERATOR_FINISHED;
+	if (newwin) {
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 static void SCREEN_OT_area_dupli(wmOperatorType *ot)
@@ -3845,7 +3857,7 @@ static void SCREEN_OT_back_to_previous(struct wmOperatorType *ot)
 
 /* *********** show user pref window ****** */
 
-static int userpref_show_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int userpref_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmWindow *win = CTX_wm_window(C);
 	rcti rect;
@@ -3862,9 +3874,13 @@ static int userpref_show_invoke(bContext *C, wmOperator *UNUSED(op), const wmEve
 	rect.ymax = rect.ymin + sizey;
 	
 	/* changes context! */
-	WM_window_open_temp(C, &rect, WM_WINDOW_USERPREFS);
-	
-	return OPERATOR_FINISHED;
+	if (WM_window_open_temp(C, &rect, WM_WINDOW_USERPREFS) != NULL) {
+		return OPERATOR_FINISHED;
+	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "Failed to open window!");
+		return OPERATOR_CANCELLED;
+	}
 }
 
 

@@ -376,7 +376,7 @@ void WM_check(bContext *C)
 		}
 
 		/* case: no open windows at all, for old file reads */
-		wm_window_add_ghostwindows(wm);
+		wm_window_ghostwindows_ensure(wm);
 	}
 
 	/* case: fileread */

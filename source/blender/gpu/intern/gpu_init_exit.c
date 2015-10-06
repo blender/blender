@@ -49,7 +49,7 @@ static bool initialized = false;
 
 void GPU_init(void)
 {
-	/* can't avoid calling this multiple times, see wm_window_add_ghostwindow */
+	/* can't avoid calling this multiple times, see wm_window_ghostwindow_add */
 	if (initialized)
 		return;
 

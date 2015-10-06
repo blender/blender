@@ -438,7 +438,14 @@ void wm_file_read_report(bContext *C)
 static void wm_file_read_post(bContext *C, bool is_startup_file)
 {
 	bool addons_loaded = false;
-	CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
+	wmWindowManager *wm = CTX_wm_manager(C);
+
+	if (!G.background) {
+		/* remove windows which failed to be added via WM_check */
+		wm_window_ghostwindows_remove_invalid(C, wm);
+	}
+
+	CTX_wm_window_set(C, wm->windows.first);
 
 	ED_editors_init(C);
 	DAG_on_visible_update(CTX_data_main(C), true);

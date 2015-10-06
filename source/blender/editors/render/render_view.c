@@ -38,6 +38,7 @@
 #include "BKE_image.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
+#include "BKE_report.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -125,7 +126,7 @@ static ScrArea *find_area_image_empty(bContext *C)
 /********************** open image editor for render *************************/
 
 /* new window uses x,y to set position */
-ScrArea *render_view_open(bContext *C, int mx, int my)
+ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
 {
 	wmWindow *win = CTX_wm_window(C);
 	Scene *scene = CTX_data_scene(C);
@@ -155,7 +156,10 @@ ScrArea *render_view_open(bContext *C, int mx, int my)
 		rect.ymax = rect.ymin + sizey;
 
 		/* changes context! */
-		WM_window_open_temp(C, &rect, WM_WINDOW_RENDER);
+		if (WM_window_open_temp(C, &rect, WM_WINDOW_RENDER) == NULL) {
+			BKE_report(reports, RPT_ERROR, "Failed to open window!");
+			return NULL;
+		}
 
 		sa = CTX_wm_area(C);
 	}
@@ -292,7 +296,7 @@ void RENDER_OT_view_cancel(struct wmOperatorType *ot)
 
 /************************* show render viewer *****************/
 
-static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int render_view_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmWindow *wincur = CTX_wm_window(C);
 	
@@ -341,7 +345,7 @@ static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(op), const wm
 			}
 		}
 		else {
-			render_view_open(C, event->x, event->y);
+			render_view_open(C, event->x, event->y, op->reports);
 		}
 	}
 

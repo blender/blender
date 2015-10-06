@@ -329,12 +329,17 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 		CTX_wm_window_set(C, win);  /* needed by handlers */
 		WM_event_remove_handlers(C, &win->handlers);
 		WM_event_remove_handlers(C, &win->modalhandlers);
-		ED_screen_exit(C, win, win->screen); 
+
+		/* for regular use this will _never_ be NULL,
+		 * however we may be freeing an improperly initialized window. */
+		if (win->screen) {
+			ED_screen_exit(C, win, win->screen);
+		}
 		
 		wm_window_free(C, wm, win);
 	
 		/* if temp screen, delete it after window free (it stops jobs that can access it) */
-		if (screen->temp) {
+		if (screen && screen->temp) {
 			Main *bmain = CTX_data_main(C);
 			BKE_libblock_free(bmain, screen);
 		}
@@ -380,7 +385,7 @@ float wm_window_pixelsize(wmWindow *win)
 }
 
 /* belongs to below */
-static void wm_window_add_ghostwindow(wmWindowManager *wm, const char *title, wmWindow *win)
+static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wmWindow *win)
 {
 	GHOST_WindowHandle ghostwin;
 	GHOST_GLSettings glSettings = {0};
@@ -466,14 +471,26 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, const char *title, wm
 	}
 }
 
-/* for wmWindows without ghostwin, open these and clear */
-/* window size is read from window, if 0 it uses prefsize */
-/* called in WM_check, also inits stuff after file read */
-void wm_window_add_ghostwindows(wmWindowManager *wm)
+/**
+ * Initialize #wmWindows without ghostwin, open these and clear.
+ *
+ * window size is read from window, if 0 it uses prefsize
+ * called in #WM_check, also inits stuff after file read.
+ *
+ * \warning
+ * After running, 'win->ghostwin' can be NULL in rare cases
+ * (where OpenGL driver fails to create a context for eg).
+ * We could remove them with #wm_window_ghostwindows_remove_invalid
+ * but better not since caller may continue to use.
+ * Instead, caller needs to handle the error case and cleanup.
+ */
+void wm_window_ghostwindows_ensure(wmWindowManager *wm)
 {
 	wmKeyMap *keymap;
 	wmWindow *win;
 	
+	BLI_assert(G.background == false);
+
 	/* no commandline prefsize? then we set this.
 	 * Note that these values will be used only
 	 * when there is no startup.blend yet.
@@ -521,7 +538,7 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 				win->cursor = CURSOR_STD;
 			}
 
-			wm_window_add_ghostwindow(wm, "Blender", win);
+			wm_window_ghostwindow_add(wm, "Blender", win);
 		}
 		/* happens after fileread */
 		if (win->eventstate == NULL)
@@ -546,11 +563,33 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 	}
 }
 
-/* new window, no screen yet, but we open ghostwindow for it */
-/* also gets the window level handlers */
-/* area-rip calls this */
+/**
+ * Call after #wm_window_ghostwindows_ensure or #WM_check
+ * (after loading a new file) in the unlikely event a window couldn't be created.
+ */
+void wm_window_ghostwindows_remove_invalid(bContext *C, wmWindowManager *wm)
+{
+	wmWindow *win, *win_next;
+
+	BLI_assert(G.background == false);
+
+	for (win = wm->windows.first; win; win = win_next) {
+		win_next = win->next;
+		if (win->ghostwin == NULL) {
+			wm_window_close(C, wm, win);
+		}
+	}
+}
+
+/**
+ * new window, no screen yet, but we open ghostwindow for it,
+ * also gets the window level handlers
+ * \note area-rip calls this.
+ * \return the window or NULL.
+ */
 wmWindow *WM_window_open(bContext *C, const rcti *rect)
 {
+	wmWindow *win_prev = CTX_wm_window(C);
 	wmWindow *win = wm_window_new(C);
 	
 	win->posx = rect->xmin;
@@ -561,22 +600,35 @@ wmWindow *WM_window_open(bContext *C, const rcti *rect)
 	win->drawmethod = U.wmdrawmethod;
 
 	WM_check(C);
-	
-	return win;
+
+	if (win->ghostwin) {
+		return win;
+	}
+	else {
+		wm_window_close(C, CTX_wm_manager(C), win);
+		CTX_wm_window_set(C, win_prev);
+		return NULL;
+	}
 }
 
-/* uses screen->temp tag to define what to do, currently it limits
- * to only one "temp" window for render out, preferences, filewindow, etc */
-/* type is defined in WM_api.h */
-
-void WM_window_open_temp(bContext *C, rcti *position, int type)
+/**
+ * Uses `screen->temp` tag to define what to do, currently it limits
+ * to only one "temp" window for render out, preferences, filewindow, etc...
+ *
+ * \param type: WM_WINDOW_RENDER, WM_WINDOW_USERPREFS...
+ * \return the window or NULL.
+ */
+wmWindow *WM_window_open_temp(bContext *C, const rcti *rect_init, int type)
 {
+	wmWindow *win_prev = CTX_wm_window(C);
 	wmWindow *win;
 	ScrArea *sa;
 	Scene *scene = CTX_data_scene(C);
-	
+	const char *title;
+	rcti rect = *rect_init;
+
 	/* changes rect to fit within desktop */
-	wm_window_check_position(position);
+	wm_window_check_position(&rect);
 	
 	/* test if we have a temp screen already */
 	for (win = CTX_wm_manager(C)->windows.first; win; win = win->next)
@@ -587,12 +639,12 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 	if (win == NULL) {
 		win = wm_window_new(C);
 		
-		win->posx = position->xmin;
-		win->posy = position->ymin;
+		win->posx = rect.xmin;
+		win->posy = rect.ymin;
 	}
 	
-	win->sizex = BLI_rcti_size_x(position);
-	win->sizey = BLI_rcti_size_y(position);
+	win->sizex = BLI_rcti_size_x(&rect);
+	win->sizey = BLI_rcti_size_y(&rect);
 	
 	if (win->ghostwin) {
 		wm_window_set_size(win, win->sizex, win->sizey);
@@ -614,7 +666,13 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 	/* make window active, and validate/resize */
 	CTX_wm_window_set(C, win);
 	WM_check(C);
-	
+
+	/* It's possible `win->ghostwin == NULL`.
+	 * instead of attempting to cleanup here (in a half finished state),
+	 * finish setting up the screen, then free it at the end of the function,
+	 * to avoid having to take into account a partially-created window.
+	 */
+
 	/* ensure it shows the right spacetype editor */
 	sa = win->screen->areabase.first;
 	CTX_wm_area_set(C, sa);
@@ -630,13 +688,25 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 	ED_screen_refresh(CTX_wm_manager(C), win); /* test scale */
 	
 	if (sa->spacetype == SPACE_IMAGE)
-		GHOST_SetTitle(win->ghostwin, IFACE_("Blender Render"));
+		title = IFACE_("Blender Render");
 	else if (ELEM(sa->spacetype, SPACE_OUTLINER, SPACE_USERPREF))
-		GHOST_SetTitle(win->ghostwin, IFACE_("Blender User Preferences"));
+		title = IFACE_("Blender User Preferences");
 	else if (sa->spacetype == SPACE_FILE)
-		GHOST_SetTitle(win->ghostwin, IFACE_("Blender File View"));
+		title = IFACE_("Blender File View");
 	else
-		GHOST_SetTitle(win->ghostwin, "Blender");
+		title = "Blender";
+
+	if (win->ghostwin) {
+		GHOST_SetTitle(win->ghostwin, title);
+		return win;
+	}
+	else {
+		/* very unlikely! but opening a new window can fail */
+		wm_window_close(C, CTX_wm_manager(C), win);
+		CTX_wm_window_set(C, win_prev);
+
+		return NULL;
+	}
 }
 
 
