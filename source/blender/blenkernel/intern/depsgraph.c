@@ -513,7 +513,6 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Sc
 	}
 
 	/* also build a custom data mask for dependencies that need certain layers */
-	node->customdata_mask = 0;
 	
 	if (ob->type == OB_ARMATURE) {
 		if (ob->pose) {
