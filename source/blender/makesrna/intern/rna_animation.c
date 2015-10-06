@@ -97,7 +97,7 @@ static int rna_AnimData_action_editable(PointerRNA *ptr)
 	if ((adt->flag & ADT_NLA_EDIT_ON) || (adt->actstrip) || (adt->tmpact))
 		return 0;
 	else
-		return 1;
+		return PROP_EDITABLE;
 }
 
 static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value)
@@ -381,7 +381,7 @@ static int rna_KeyingSet_active_ksPath_editable(PointerRNA *ptr)
 	KeyingSet *ks = (KeyingSet *)ptr->data;
 	
 	/* only editable if there are some paths to change to */
-	return (BLI_listbase_is_empty(&ks->paths) == false);
+	return (BLI_listbase_is_empty(&ks->paths) == false) ? PROP_EDITABLE : 0;
 }
 
 static PointerRNA rna_KeyingSet_active_ksPath_get(PointerRNA *ptr)

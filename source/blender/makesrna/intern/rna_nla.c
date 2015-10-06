@@ -290,7 +290,7 @@ static int rna_NlaStrip_action_editable(PointerRNA *ptr)
 		return 0;
 		
 	/* should be ok, though we may still miss some cases */
-	return 1;
+	return PROP_EDITABLE;
 }
 
 static void rna_NlaStrip_action_start_frame_set(PointerRNA *ptr, float value)

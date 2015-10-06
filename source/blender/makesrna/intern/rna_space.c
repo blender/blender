@@ -1617,7 +1617,7 @@ static int rna_FileBrowser_FSMenuEntry_name_get_editable(PointerRNA *ptr)
 {
 	FSMenuEntry *fsm = ptr->data;
 
-	return fsm->save;
+	return fsm->save ? PROP_EDITABLE : 0;
 }
 
 static void rna_FileBrowser_FSMenu_next(CollectionPropertyIterator *iter)

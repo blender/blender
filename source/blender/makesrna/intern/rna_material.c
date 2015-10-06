@@ -237,7 +237,7 @@ static int rna_Material_active_texture_editable(PointerRNA *ptr)
 {
 	Material *ma = (Material *)ptr->id.data;
 
-	return has_current_material_texture(ma);
+	return has_current_material_texture(ma) ? PROP_EDITABLE : 0;
 }
 
 static PointerRNA rna_Material_active_node_material_get(PointerRNA *ptr)

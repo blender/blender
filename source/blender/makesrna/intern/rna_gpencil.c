@@ -73,7 +73,7 @@ static int rna_GPencilLayer_active_frame_editable(PointerRNA *ptr)
 	if (gpl->flag & GP_LAYER_LOCKED)
 		return 0;
 	else
-		return 1;
+		return PROP_EDITABLE;
 }
 
 static void rna_GPencilLayer_line_width_range(PointerRNA *ptr, int *min, int *max,

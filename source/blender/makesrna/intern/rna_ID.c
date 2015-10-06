@@ -126,7 +126,7 @@ static int rna_ID_name_editable(PointerRNA *ptr)
 			return false;
 	}
 	
-	return true;
+	return PROP_EDITABLE;
 }
 
 short RNA_type_to_ID_code(StructRNA *type)
