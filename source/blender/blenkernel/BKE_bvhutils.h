@@ -68,7 +68,8 @@ typedef struct BVHTreeFromMesh {
 	float sphere_radius;
 
 	/* Private data */
-	void *em_evil;  /* var only for snapping */
+	void *em_evil;
+	bool  em_evil_all;  /* ignore selection/hidden state, adding all loops to the tree */
 	bool cached;
 
 } BVHTreeFromMesh;
@@ -141,8 +142,11 @@ enum {
 	BVHTREE_FROM_VERTS           = 0,
 	BVHTREE_FROM_EDGES           = 1,
 	BVHTREE_FROM_FACES           = 2,
-	BVHTREE_FROM_FACES_EDITMESH  = 3,
-	BVHTREE_FROM_LOOPTRI         = 4,
+	BVHTREE_FROM_LOOPTRI         = 3,
+	/* all faces */
+	BVHTREE_FROM_FACES_EDITMESH_ALL     = 4,
+	/* visible unselected, only used for transform snapping */
+	BVHTREE_FROM_FACES_EDITMESH_SNAP    = 5,
 };
 
 typedef struct LinkNode *BVHCache;
