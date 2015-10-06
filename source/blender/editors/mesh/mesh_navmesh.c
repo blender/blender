@@ -84,6 +84,7 @@ static void createVertsTrisData(bContext *C, LinkNode *obs,
 	for (oblink = obs; oblink; oblink = oblink->next) {
 		ob = (Object *) oblink->link;
 		dm = mesh_create_derived_no_virtual(scene, ob, NULL, CD_MASK_MESH);
+		DM_ensure_tessface(dm);
 		BLI_linklist_prepend(&dms, dm);
 
 		nverts += dm->getNumVerts(dm);
