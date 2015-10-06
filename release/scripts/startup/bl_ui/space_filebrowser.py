@@ -229,6 +229,11 @@ class FILEBROWSER_PT_advanced_filter(Panel):
     bl_category = "Filter"
     bl_label = "Advanced Filter"
 
+    @classmethod
+    def poll(cls, context):
+        # only useful in append/link (library) context currently...
+        return context.space_data.params.use_library_browsing
+
     def draw(self, context):
         layout = self.layout
         space = context.space_data
