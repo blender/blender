@@ -163,6 +163,9 @@ if env['WITH_BF_OPENSUBDIV']:
     defs.append('WITH_OPENSUBDIV')
     incs += ' #intern/opensubdiv'
 
+if env['WITH_BF_AUDASPACE']:
+    defs.append('WITH_AUDASPACE')
+
 if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
 
