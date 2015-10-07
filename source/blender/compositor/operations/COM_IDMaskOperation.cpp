@@ -38,7 +38,9 @@ void IDMaskOperation::executePixelSampled(float output[4], float x, float y, Pix
 	float inputValue[4];
 	
 	this->m_inputProgram->readSampled(inputValue, x, y, sampler);
-	const float a = (inputValue[0] == this->m_objectIndex) ? 1.0f : 0.0f;
+	/* 'round' since sampling may adjust value slightly.
+	 * ID-mask input are originally integers too. */
+	const float a = (roundf(inputValue[0]) == this->m_objectIndex) ? 1.0f : 0.0f;
 	output[0] = a;
 }
 
