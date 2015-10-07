@@ -4350,7 +4350,9 @@ static bool ui_numedit_but_SLI(
 	float offs;
 
 	/* prevent unwanted drag adjustments */
-	if (ui_but_dragedit_update_mval(data, mx) == false && but->type != UI_BTYPE_SCROLL) {
+	if ((but->type != UI_BTYPE_SCROLL) &&
+	    (ui_but_dragedit_update_mval(data, mx) == false))
+	{
 		return changed;
 	}
 
