@@ -94,10 +94,6 @@ public:
 			float playback_speed,
 			short blend_mode);
 	/**
-	 * Stop playing the action
-	 */
-	void Stop();
-	/**
 	 * Whether or not the action is still playing
 	 */
 	bool IsDone();

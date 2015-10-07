@@ -268,11 +268,6 @@ bool BL_Action::Play(const char* name,
 	return true;
 }
 
-void BL_Action::Stop()
-{
-	m_done = true;
-}
-
 bool BL_Action::IsDone()
 {
 	return m_done;

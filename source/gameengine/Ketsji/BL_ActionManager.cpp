@@ -53,14 +53,6 @@ BL_Action *BL_ActionManager::GetAction(short layer)
 	return (it != m_layers.end()) ? it->second : 0;
 }
 
-BL_Action* BL_ActionManager::AddAction(short layer)
-{
-	BL_Action *action = new BL_Action(m_obj);
-	m_layers[layer] = action;
-
-	return action;
-}
-
 float BL_ActionManager::GetActionFrame(short layer)
 {
 	BL_Action *action = GetAction(layer);
@@ -116,8 +108,10 @@ bool BL_ActionManager::PlayAction(const char* name,
 {
 	// Only this method will create layer if non-existent
 	BL_Action *action = GetAction(layer);
-	if (!action)
-		action = AddAction(layer);
+	if (!action) {
+		action = new BL_Action(m_obj);
+		m_layers[layer] = action;
+	}
 
 	// Disable layer blending on the first layer
 	if (layer == 0) layer_weight = -1.f;
@@ -129,7 +123,10 @@ void BL_ActionManager::StopAction(short layer)
 {
 	BL_Action *action = GetAction(layer);
 
-	if (action) action->Stop();
+	if (action) {
+		m_layers.erase(layer);
+		delete action;
+	}
 }
 
 void BL_ActionManager::RemoveTaggedActions()
@@ -158,15 +155,10 @@ void BL_ActionManager::Update(float curtime)
 	m_prevUpdate = curtime;
 
 	BL_ActionMap::iterator it;
-	for (it = m_layers.begin(); it != m_layers.end(); )
+	for (it = m_layers.begin(); it != m_layers.end(); ++it)
 	{
-		if (it->second->IsDone()) {
-			delete it->second;
-			m_layers.erase(it++);
-		}
-		else {
+		if (!it->second->IsDone()) {
 			it->second->Update(curtime);
-			++it;
 		}
 	}
 }

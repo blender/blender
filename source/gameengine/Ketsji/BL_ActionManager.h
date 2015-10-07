@@ -59,11 +59,6 @@ private:
 	 */
 	BL_Action* GetAction(short layer);
 
-	/**
-	 * Add new action with given layer
-	 */
-	BL_Action* AddAction(short layer);
-
 public:
 	BL_ActionManager(class KX_GameObject* obj);
 	~BL_ActionManager();
