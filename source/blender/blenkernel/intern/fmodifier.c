@@ -103,8 +103,8 @@ static FModifierTypeInfo FMI_MODNAME = {
 
 /* Generators available:
  *  1) simple polynomial generator:
- *		- Exanded form - (y = C[0]*(x^(n)) + C[1]*(x^(n-1)) + ... + C[n])  
- *		- Factorized form - (y = (C[0][0]*x + C[0][1]) * (C[1][0]*x + C[1][1]) * ... * (C[n][0]*x + C[n][1]))
+ *     - Expanded form - (y = C[0]*(x^(n)) + C[1]*(x^(n-1)) + ... + C[n])
+ *     - Factorized form - (y = (C[0][0]*x + C[0][1]) * (C[1][0]*x + C[1][1]) * ... * (C[n][0]*x + C[n][1]))
  */
 
 static void fcm_generator_free(FModifier *fcm)
@@ -849,7 +849,7 @@ static FModifierTypeInfo FMI_FILTER = {
 	NULL, /* copy data */
 	NULL, /* new data */
 	NULL /*fcm_filter_verify*/, /* verify */
-	NULL, /* evlauate time */
+	NULL, /* evaluate time */
 	fcm_filter_evaluate, /* evaluate */
 	NULL, /* evaluate time with storage */
 	NULL /* evaluate with storage */

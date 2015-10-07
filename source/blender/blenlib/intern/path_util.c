@@ -533,7 +533,7 @@ bool BLI_filename_make_safe(char *fname)
 bool BLI_path_make_safe(char *path)
 {
 	/* Simply apply BLI_filename_make_safe() over each component of the path.
-	 * Luckily enough, same 'sfae' rules applies to filenames and dirnames. */
+	 * Luckily enough, same 'safe' rules applies to filenames and dirnames. */
 	char *curr_slash, *curr_path = path;
 	bool changed = false;
 	bool skip_first = false;

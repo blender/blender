@@ -1198,8 +1198,6 @@ int BKE_ffmpeg_append(void *context_v, RenderData *rd, int start_frame, int fram
 
 static void end_ffmpeg_impl(FFMpegContext *context, int is_autosplit)
 {
-	unsigned int i;
-	
 	PRINT("Closing ffmpeg...\n");
 
 #if 0

@@ -799,7 +799,7 @@ static void polyfill_prepare(
 		coords_sign = (cross_poly_v2(coords, coords_tot) >= 0.0f) ? 1 : -1;
 	}
 	else {
-		/* chech we're passing in correcty args */
+		/* check we're passing in correcty args */
 #ifdef USE_STRICT_ASSERT
 #ifndef NDEBUG
 		if (coords_sign == 1) {

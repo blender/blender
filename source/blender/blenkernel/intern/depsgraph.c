@@ -1446,7 +1446,7 @@ static void dag_scene_free(Scene *sce)
 	}
 }
 
-/* Chech whether object data needs to be evaluated before it
+/* Check whether object data needs to be evaluated before it
  * might be used by others.
  *
  * Means that mesh object needs to have proper derivedFinal,
@@ -1658,7 +1658,7 @@ static void dag_scene_build(Main *bmain, Scene *sce)
 	/* temporal...? */
 	sce->recalc |= SCE_PRV_CHANGED; /* test for 3d preview */
 
-	/* Make sure that new dependencies which came from invisble layers
+	/* Make sure that new dependencies which came from invisible layers
 	 * are tagged for update (if they're needed for objects which were
 	 * tagged for update).
 	 */

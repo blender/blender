@@ -5559,7 +5559,7 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob,
 		
 		if (IS_AUTOKEY_FLAG(scene, ONLYKEYINGSET) && (active_ks)) {
 			/* only insert into active keyingset 
-			 * NOTE: we assume here that the active Keying Set does not need to have its iterator overridden spe
+			 * NOTE: we assume here that the active Keying Set does not need to have its iterator overridden
 			 */
 			ANIM_apply_keyingset(C, &dsources, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
 		}

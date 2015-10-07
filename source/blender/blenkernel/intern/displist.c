@@ -1521,7 +1521,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 
 		BKE_curve_bevelList_free(&ob->curve_cache->bev);
 
-		/* We only re-evlauate path if evaluation is not happening for orco.
+		/* We only re-evaluate path if evaluation is not happening for orco.
 		 * If the calculation happens for orco, we should never free data which
 		 * was needed before and only not needed for orco calculation.
 		 */

@@ -203,7 +203,7 @@ static void interp_slerp_co_no_v3(
 		cross_v3_v3v3(no_ortho, no_mid, no_dir);
 		normalize_v3(no_ortho);
 
-		/* creater planes */
+		/* create planes */
 		cross_v3_v3v3(v_a_no_ortho, no_ortho, no_a);
 		cross_v3_v3v3(v_b_no_ortho, no_ortho, no_b);
 		project_v3_plane(v_a_no_ortho, no_ortho, v_a_no_ortho);

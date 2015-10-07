@@ -497,7 +497,7 @@ float dist_to_line_v3(const float p[3], const float l1[3], const float l2[3])
  * \note the distance from \a v1 & \a v3 to \a v2 doesnt matter
  * (it just defines the planes).
  *
- * \return the lowest squared distance to eithe of the planes.
+ * \return the lowest squared distance to either of the planes.
  * where ``(return < 0.0)`` is outside.
  *
  * <pre>
