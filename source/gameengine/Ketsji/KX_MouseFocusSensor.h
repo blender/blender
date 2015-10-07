@@ -35,6 +35,8 @@
 
 #include "SCA_MouseSensor.h"
 
+#include "BLI_utildefines.h"
+
 class KX_RayCast;
 
 /**
@@ -90,8 +92,10 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 		return result;
 	};
 
-	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
-	bool NeedRayCast(KX_ClientObjectInfo* client);
+	/// \see KX_RayCast
+	bool RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void *UNUSED(data));
+	/// \see KX_RayCast
+	bool NeedRayCast(KX_ClientObjectInfo *client, void *UNUSED(data));
 	
 	const MT_Point3& RaySource() const;
 	const MT_Point3& RayTarget() const;

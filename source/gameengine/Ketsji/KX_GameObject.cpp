@@ -47,7 +47,6 @@
 #include "KX_MeshProxy.h"
 #include "KX_PolyProxy.h"
 #include <stdio.h> // printf
-#include <climits> // USHRT_MAX
 #include "SG_Controller.h"
 #include "PHY_IGraphicController.h"
 #include "SG_Node.h"
@@ -108,8 +107,6 @@ KX_GameObject::KX_GameObject(
       m_bOccluder(false),
       m_pPhysicsController(NULL),
       m_pGraphicController(NULL),
-      m_xray(false),
-      m_pHitObject(NULL),
       m_pObstacleSimulation(NULL),
       m_pInstanceObjects(NULL),
       m_pDupliGroupObject(NULL),
@@ -2361,8 +2358,8 @@ int KX_GameObject::pyattr_set_collisionGroup(void *self_v, const KX_PYATTRIBUTE_
 		return PY_SET_ATTR_FAIL;
 	}
 
-	if (val < 0 || val > USHRT_MAX) {
-		PyErr_Format(PyExc_AttributeError, "gameOb.collisionGroup = int: KX_GameObject, expected a int bit field between 0 and %i", USHRT_MAX);
+	if (val == 0 || val & ~((1 << OB_MAX_COL_MASKS) - 1)) {
+		PyErr_Format(PyExc_AttributeError, "gameOb.collisionGroup = int: KX_GameObject, expected a int bit field, 0 < group < %i", (1 << OB_MAX_COL_MASKS));
 		return PY_SET_ATTR_FAIL;
 	}
 
@@ -2386,8 +2383,8 @@ int KX_GameObject::pyattr_set_collisionMask(void *self_v, const KX_PYATTRIBUTE_D
 		return PY_SET_ATTR_FAIL;
 	}
 
-	if (val < 0 || val > USHRT_MAX) {
-		PyErr_Format(PyExc_AttributeError, "gameOb.collisionMask = int: KX_GameObject, expected a int bit field between 0 and %i", USHRT_MAX);
+	if (val == 0 || val & ~((1 << OB_MAX_COL_MASKS) - 1)) {
+		PyErr_Format(PyExc_AttributeError, "gameOb.collisionMask = int: KX_GameObject, expected a int bit field, 0 < mask < %i", (1 << OB_MAX_COL_MASKS));
 		return PY_SET_ATTR_FAIL;
 	}
 
@@ -3572,15 +3569,32 @@ KX_PYMETHODDEF_DOC_O(KX_GameObject, getVectTo,
 	return returnValue;
 }
 
-bool KX_GameObject::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void * const data)
+struct KX_GameObject::RayCastData
+{
+	RayCastData(STR_String prop, bool xray, short mask)
+		:m_prop(prop),
+		m_xray(xray),
+		m_mask(mask),
+		m_hitObject(NULL)
+	{
+	}
+
+	STR_String m_prop;
+	bool m_xray;
+	unsigned short m_mask;
+	KX_GameObject *m_hitObject;
+};
+
+bool KX_GameObject::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, RayCastData *rayData)
 {
 	KX_GameObject* hitKXObj = client->m_gameobject;
-	
+
 	// if X-ray option is selected, the unwnted objects were not tested, so get here only with true hit
 	// if not, all objects were tested and the front one may not be the correct one.
-	if (m_xray || m_testPropName.Length() == 0 || hitKXObj->GetProperty(m_testPropName) != NULL)
+	if ((rayData->m_xray || rayData->m_prop.Length() == 0 || hitKXObj->GetProperty(rayData->m_prop) != NULL) && 
+		hitKXObj->GetUserCollisionGroup() & rayData->m_mask)
 	{
-		m_pHitObject = hitKXObj;
+		rayData->m_hitObject = hitKXObj;
 		return true;
 	}
 	// return true to stop RayCast::RayTest from looping, the above test was decisive
@@ -3591,10 +3605,10 @@ bool KX_GameObject::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void
 /* this function is used to pre-filter the object before casting the ray on them.
  * This is useful for "X-Ray" option when we want to see "through" unwanted object.
  */
-bool KX_GameObject::NeedRayCast(KX_ClientObjectInfo *client)
+bool KX_GameObject::NeedRayCast(KX_ClientObjectInfo *client, RayCastData *rayData)
 {
 	KX_GameObject* hitKXObj = client->m_gameobject;
-	
+
 	if (client->m_type > KX_ClientObjectInfo::ACTOR)
 	{
 		// Unknown type of object, skip it.
@@ -3605,7 +3619,8 @@ bool KX_GameObject::NeedRayCast(KX_ClientObjectInfo *client)
 	
 	// if X-Ray option is selected, skip object that don't match the criteria as we see through them
 	// if not, test all objects because we don't know yet which one will be on front
-	if (!m_xray || m_testPropName.Length() == 0 || hitKXObj->GetProperty(m_testPropName) != NULL)
+	if ((!rayData->m_xray || rayData->m_prop.Length() == 0 || hitKXObj->GetProperty(rayData->m_prop) != NULL) && 
+		hitKXObj->GetUserCollisionGroup() & rayData->m_mask)
 	{
 		return true;
 	}
@@ -3652,17 +3667,11 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	KX_GameObject *parent = GetParent();
 	if (!spc && parent)
 		spc = parent->GetPhysicsController();
-	
-	m_pHitObject = NULL;
-	if (propName)
-		m_testPropName = propName;
-	else
-		m_testPropName.SetLength(0);
-	KX_RayCast::Callback<KX_GameObject> callback(this,spc);
-	KX_RayCast::RayTest(pe, fromPoint, toPoint, callback);
 
-	if (m_pHitObject)
-		return m_pHitObject->GetProxy();
+	RayCastData rayData(propName, false, (1 << OB_MAX_COL_MASKS) - 1);
+	KX_RayCast::Callback<KX_GameObject, RayCastData> callback(this, spc, &rayData);
+	if (KX_RayCast::RayTest(pe, fromPoint, toPoint, callback))
+		return rayData.m_hitObject->GetProxy();
 	
 	Py_RETURN_NONE;
 }
@@ -3713,7 +3722,7 @@ static PyObject *none_tuple_5()
 }
 
 KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
-				   "rayCast(to,from,dist,prop,face,xray,poly): cast a ray and return 3-tuple (object,hit,normal) or 4-tuple (object,hit,normal,polygon) or 4-tuple (object,hit,normal,polygon,hituv) of contact point with object within dist that matches prop.\n"
+				   "rayCast(to,from,dist,prop,face,xray,poly,mask): cast a ray and return 3-tuple (object,hit,normal) or 4-tuple (object,hit,normal,polygon) or 4-tuple (object,hit,normal,polygon,hituv) of contact point with object within dist that matches prop.\n"
 				   " If no hit, return (None,None,None) or (None,None,None,None) or (None,None,None,None,None).\n"
 " to   = 3-tuple or object reference for destination of ray (if object, use center of object)\n"
 " from = 3-tuple or object reference for origin of ray (if object, use center of object)\n"
@@ -3727,6 +3736,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 "                        2=>return value is a 5-tuple, the 4th element is the KX_PolyProxy object\n"
 "                           and the 5th element is the vector of UV coordinates at the hit point of the None if there is no UV mapping\n"
 "        If 0 or omitted, return value is a 3-tuple\n"
+" mask = collision mask: the collision mask that ray can hit, 0 < mask < 65536\n"
 "Note: The object on which you call this method matters: the ray will ignore it.\n"
 "      prop and xray option interact as follow:\n"
 "        prop off, xray off: return closest hit or no hit if there is no object on the full extend of the ray\n"
@@ -3742,8 +3752,9 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	char *propName = NULL;
 	KX_GameObject *other;
 	int face=0, xray=0, poly=0;
+	int mask = (1 << OB_MAX_COL_MASKS) - 1;
 
-	if (!PyArg_ParseTuple(args,"O|Ofsiii:rayCast", &pyto, &pyfrom, &dist, &propName, &face, &xray, &poly)) {
+	if (!PyArg_ParseTuple(args,"O|Ofsiiii:rayCast", &pyto, &pyfrom, &dist, &propName, &face, &xray, &poly, &mask)) {
 		return NULL; // Python sets a simple error
 	}
 
@@ -3773,11 +3784,16 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 			fromPoint = other->NodeGetWorldPosition();
 		} else
 		{
-			PyErr_SetString(PyExc_TypeError, "gameOb.rayCast(to,from,dist,prop,face,xray,poly): KX_GameObject, the second optional argument to rayCast must be a vector or a KX_GameObject");
+			PyErr_SetString(PyExc_TypeError, "gameOb.rayCast(to,from,dist,prop,face,xray,poly,mask): KX_GameObject, the second optional argument to rayCast must be a vector or a KX_GameObject");
 			return NULL;
 		}
 	}
-	
+
+	if (mask == 0 || mask & ~((1 << OB_MAX_COL_MASKS) - 1)) {
+		PyErr_Format(PyExc_TypeError, "gameOb.rayCast(to,from,dist,prop,face,xray,poly,mask): KX_GameObject, mask argument to rayCast must be a int bitfield, 0 < mask < %i", (1 << OB_MAX_COL_MASKS));
+		return NULL;
+	}
+
 	if (dist != 0.0f) {
 		MT_Vector3 toDir = toPoint-fromPoint;
 		if (MT_fuzzyZero(toDir.length2())) {
@@ -3796,22 +3812,16 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	KX_GameObject *parent = GetParent();
 	if (!spc && parent)
 		spc = parent->GetPhysicsController();
-	
-	m_pHitObject = NULL;
-	if (propName)
-		m_testPropName = propName;
-	else
-		m_testPropName.SetLength(0);
-	m_xray = xray;
-	// to get the hit results
-	KX_RayCast::Callback<KX_GameObject> callback(this,spc,NULL,face,(poly==2));
-	KX_RayCast::RayTest(pe, fromPoint, toPoint, callback);
 
-	if (m_pHitObject)
+	// to get the hit results
+	RayCastData rayData(propName, xray, mask);
+	KX_RayCast::Callback<KX_GameObject, RayCastData> callback(this, spc, &rayData, face, (poly == 2));
+
+	if (KX_RayCast::RayTest(pe, fromPoint, toPoint, callback))
 	{
 		PyObject *returnValue = (poly == 2) ? PyTuple_New(5) : (poly) ? PyTuple_New(4) : PyTuple_New(3);
 		if (returnValue) { // unlikely this would ever fail, if it does python sets an error
-			PyTuple_SET_ITEM(returnValue, 0, m_pHitObject->GetProxy());
+			PyTuple_SET_ITEM(returnValue, 0, rayData.m_hitObject->GetProxy());
 			PyTuple_SET_ITEM(returnValue, 1, PyObjectFrom(callback.m_hitPoint));
 			PyTuple_SET_ITEM(returnValue, 2, PyObjectFrom(callback.m_hitNormal));
 			if (poly)

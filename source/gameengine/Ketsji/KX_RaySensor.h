@@ -38,6 +38,8 @@
 #include "SCA_IScene.h" /* only for scene replace */
 #include "KX_Scene.h" /* only for scene replace */
 
+#include "BLI_utildefines.h"
+
 struct KX_ClientObjectInfo;
 class KX_RayCast;
 
@@ -74,8 +76,10 @@ public:
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
 
-	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
-	bool NeedRayCast(KX_ClientObjectInfo* client);
+	/// \see KX_RayCast
+	bool RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void *UNUSED(data));
+	/// \see KX_RayCast
+	bool NeedRayCast(KX_ClientObjectInfo *client, void *UNUSED(data));
 
 	virtual void		Replace_IScene(SCA_IScene *val) 
 	{ 	

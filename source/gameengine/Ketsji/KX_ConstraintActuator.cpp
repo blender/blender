@@ -117,7 +117,7 @@ KX_ConstraintActuator::~KX_ConstraintActuator()
 	// there's nothing to be done here, really....
 } /* end of destructor */
 
-bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void * const data)
+bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void *UNUSED(data))
 {
 
 	m_hitObject = client->m_gameobject;
@@ -153,7 +153,7 @@ bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo *client, KX_RayCast *resu
 /* This function is used to pre-filter the object before casting the ray on them.
  * This is useful for "X-Ray" option when we want to see "through" unwanted object.
  */
-bool KX_ConstraintActuator::NeedRayCast(KX_ClientObjectInfo *client)
+bool KX_ConstraintActuator::NeedRayCast(KX_ClientObjectInfo *client, void *UNUSED(data))
 {
 	if (client->m_type > KX_ClientObjectInfo::ACTOR)
 	{
@@ -347,7 +347,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 						spc = parent->GetPhysicsController();
 					}
 				}
-				KX_RayCast::Callback<KX_ConstraintActuator> callback(this,dynamic_cast<PHY_IPhysicsController*>(spc));
+				KX_RayCast::Callback<KX_ConstraintActuator, void> callback(this,dynamic_cast<PHY_IPhysicsController*>(spc));
 				result = KX_RayCast::RayTest(pe, position, topoint, callback);
 				if (result)	{
 					MT_Vector3 newnormal = callback.m_hitNormal;
@@ -459,7 +459,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 				m_hitObject = NULL;
 				// distance of Fh area is stored in m_minimum
 				MT_Point3 topoint = position + (m_minimumBound+spc->GetRadius()) * direction;
-				KX_RayCast::Callback<KX_ConstraintActuator> callback(this, spc);
+				KX_RayCast::Callback<KX_ConstraintActuator, void> callback(this, spc);
 				result = KX_RayCast::RayTest(pe, position, topoint, callback);
 				// we expect a hit object
 				if (!m_hitObject)

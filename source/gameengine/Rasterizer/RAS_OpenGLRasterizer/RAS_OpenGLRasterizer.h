@@ -45,6 +45,8 @@ using namespace std;
 #include "RAS_MaterialBucket.h"
 #include "RAS_IPolygonMaterial.h"
 
+#include "BLI_utildefines.h"
+
 class RAS_IStorage;
 class RAS_ICanvas;
 class RAS_OpenGLLight;
@@ -306,8 +308,10 @@ public:
 	void PushMatrix();
 	void PopMatrix();
 
-	bool RayHit(struct KX_ClientObjectInfo *client, class KX_RayCast *result, void * const data);
-	bool NeedRayCast(struct KX_ClientObjectInfo *) { return true; }
+	/// \see KX_RayCast
+	bool RayHit(struct KX_ClientObjectInfo *client, class KX_RayCast *result, double *oglmatrix);
+	/// \see KX_RayCast
+	bool NeedRayCast(struct KX_ClientObjectInfo *, void *UNUSED(data)) { return true; }
 
 	RAS_ILightObject* CreateLight();
 	void AddLight(RAS_ILightObject* lightobject);

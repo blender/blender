@@ -44,12 +44,15 @@ struct KX_ClientObjectInfo;
 /**
  *  Defines a function for doing a ray cast.
  *
- *  eg KX_RayCast::RayTest(ignore_physics_controller, physics_environment, frompoint, topoint, result_point, result_normal, KX_RayCast::Callback<KX_MyClass>(this, data)
+ *  eg KX_RayCast::RayTest(ignore_physics_controller, physics_environment, frompoint, topoint, result_point, result_normal, KX_RayCast::Callback<MyClass, MyDataClass>(this, data)
  *
- *  Calls myclass->RayHit(client, hit_point, hit_normal, data) for all client
+ *  Calls myclass->NeedRayCast(client, data) for all client in environment
+ *  and myclass->RayHit(client, hit_point, hit_normal, data) for all client
  *  between frompoint and topoint
  *
- *  myclass->RayHit should return true to end the raycast, false to ignore the current client.
+ *  myclass->NeedRayCast should return true to ray test the current client.
+ *
+ *  myclass->RayHit should return true to end the raycast, false to ignore the current client and to continue.
  *
  *  Returns true if a client was accepted, false if nothing found.
  */
@@ -80,10 +83,10 @@ public:
 	/** 
 	 *  Callback wrapper.
 	 *
-	 *  Construct with KX_RayCast::Callback<MyClass>(this, data)
+	 *  Construct with KX_RayCast::Callback<MyClass, MyDataClass>(this, data)
 	 *  and pass to KX_RayCast::RayTest
 	 */
-	template<class T> class Callback;
+	template<class T, class dataT> class Callback;
 	
 	/// Public interface.
 	/// Implement bool RayHit in your class to receive ray callbacks.
@@ -99,12 +102,18 @@ public:
 #endif
 };
 
-template<class T> class KX_RayCast::Callback : public KX_RayCast
+template<class T, class dataT>
+class KX_RayCast::Callback : public KX_RayCast
 {
 	T *self;
-	void *data;
+	/**
+	 * Some user info passed as argument in constructor.
+	 * It contains all info needed to check client in NeedRayCast
+	 * and RayHit.
+	 */
+	dataT *data;
 public:
-	Callback(T *_self, PHY_IPhysicsController* controller=NULL, void *_data = NULL, bool faceNormal=false, bool faceUV=false)
+	Callback(T *_self, PHY_IPhysicsController *controller = NULL, dataT *_data = NULL, bool faceNormal = false, bool faceUV = false)
 		: KX_RayCast(controller, faceNormal, faceUV),
 		self(_self),
 		data(_data)
@@ -127,7 +136,7 @@ public:
 			MT_assert(info && "Physics controller with no client object info");
 			return false;
 		}
-		return self->NeedRayCast(info);
+		return self->NeedRayCast(info, data);
 	}
 	
 	

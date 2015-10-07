@@ -144,7 +144,7 @@ bool KX_MouseFocusSensor::Evaluate()
 	return result;
 }
 
-bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo *client_info, KX_RayCast *result, void * const data)
+bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo *client_info, KX_RayCast *result, void *UNUSED(data))
 {
 	KX_GameObject* hitKXObj = client_info->m_gameobject;
 	
@@ -198,7 +198,7 @@ bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo *client_info, KX_RayCast *r
 /* this function is used to pre-filter the object before casting the ray on them.
  * This is useful for "X-Ray" option when we want to see "through" unwanted object.
  */
-bool KX_MouseFocusSensor::NeedRayCast(KX_ClientObjectInfo* client)
+bool KX_MouseFocusSensor::NeedRayCast(KX_ClientObjectInfo *client, void *UNUSED(data))
 {
 	KX_GameObject *hitKXObj = client->m_gameobject;
 
@@ -356,7 +356,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	PHY_IPhysicsEnvironment* physics_environment = m_kxscene->GetPhysicsEnvironment();
 
 	// get UV mapping
-	KX_RayCast::Callback<KX_MouseFocusSensor> callback(this,physics_controller,NULL,false,true);
+	KX_RayCast::Callback<KX_MouseFocusSensor, void> callback(this,physics_controller,NULL,false,true);
 	 
 	KX_RayCast::RayTest(physics_environment, m_prevSourcePoint, m_prevTargetPoint, callback);
 	

@@ -107,7 +107,7 @@ bool KX_RaySensor::IsPositiveTrigger()
 	return result;
 }
 
-bool KX_RaySensor::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void * const data)
+bool KX_RaySensor::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void *UNUSED(data))
 {
 
 	KX_GameObject* hitKXObj = client->m_gameobject;
@@ -158,7 +158,7 @@ bool KX_RaySensor::RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void 
 /* this function is used to pre-filter the object before casting the ray on them.
  * This is useful for "X-Ray" option when we want to see "through" unwanted object.
  */
-bool KX_RaySensor::NeedRayCast(KX_ClientObjectInfo *client)
+bool KX_RaySensor::NeedRayCast(KX_ClientObjectInfo *client, void *UNUSED(data))
 {
 	KX_GameObject *hitKXObj = client->m_gameobject;
 
@@ -282,7 +282,7 @@ bool KX_RaySensor::Evaluate()
 	PHY_IPhysicsEnvironment* physics_environment = this->m_scene->GetPhysicsEnvironment();
 	
 
-	KX_RayCast::Callback<KX_RaySensor> callback(this, spc);
+	KX_RayCast::Callback<KX_RaySensor, void> callback(this, spc);
 	KX_RayCast::RayTest(physics_environment, frompoint, topoint, callback);
 
 	/* now pass this result to some controller */

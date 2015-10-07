@@ -799,7 +799,7 @@ base class --- :class:`SCA_IObject`
       :return: the first object hit or None if no object or object does not match prop
       :rtype: :class:`KX_GameObject`
 
-   .. method:: rayCast(objto, objfrom, dist, prop, face, xray, poly)
+   .. method:: rayCast(objto, objfrom, dist, prop, face, xray, poly, mask)
 
       Look from a point/object to another point/object and find first object hit within dist that matches prop.
       if poly is 0, returns a 3-tuple with object reference, hit point and hit normal or (None, None, None) if no hit.
@@ -851,6 +851,8 @@ base class --- :class:`SCA_IObject`
          * 2: return value is a 5-tuple and the 5th element is a 2-tuple (u, v) with the UV mapping of the hit point or None if no hit, or the object doesn't use a mesh collision shape, or doesn't have a UV mapping.
 
       :type poly: integer
+      :arg mask: collision mask: The collision mask (16 layers mapped to a 16-bit integer) is combined with each object's collision group, to hit only a subset of the objects in the scene. Only those objects for which ``collisionGroup & mask`` is true can be hit.
+      :type mask: bitfield
       :return: (object, hitpoint, hitnormal) or (object, hitpoint, hitnormal, polygon) or (object, hitpoint, hitnormal, polygon, hituv).
 
          * object, hitpoint and hitnormal are None if no hit.

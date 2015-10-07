@@ -37,6 +37,8 @@
 #include "MT_Vector3.h"
 #include "KX_ClientObjectInfo.h"
 
+#include "BLI_utildefines.h"
+
 class KX_RayCast;
 class KX_GameObject;
 
@@ -113,9 +115,11 @@ protected:
 		KX_ACT_CONSTRAINT_LOCAL = 1024,
 		KX_ACT_CONSTRAINT_DOROTFH = 2048
 	};
-	bool IsValidMode(KX_CONSTRAINTTYPE m); 
-	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
-	bool NeedRayCast(KX_ClientObjectInfo*);
+	bool IsValidMode(KX_CONSTRAINTTYPE m);
+	/// \see KX_RayCast
+	bool RayHit(KX_ClientObjectInfo *client, KX_RayCast *result, void *UNUSED(data));
+	/// \see KX_RayCast
+	bool NeedRayCast(KX_ClientObjectInfo *client, void *UNUSED(data));
 
 	KX_ConstraintActuator(SCA_IObject* gameobj,
 						  int posDamptime,
