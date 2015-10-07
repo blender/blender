@@ -1665,6 +1665,40 @@ void BM_mesh_remap(
 		}
 	}
 
+	/* Selection history */
+	{
+		BMEditSelection *ese;
+		for (ese = bm->selected.first; ese; ese = ese->next) {
+			switch (ese->htype) {
+				case BM_VERT:
+					if (vptr_map) {
+						ese->ele = BLI_ghash_lookup(vptr_map, ese->ele);
+						BLI_assert(ese->ele);
+					}
+					break;
+				case BM_EDGE:
+					if (eptr_map) {
+						ese->ele = BLI_ghash_lookup(eptr_map, ese->ele);
+						BLI_assert(ese->ele);
+					}
+					break;
+				case BM_FACE:
+					if (fptr_map) {
+						ese->ele = BLI_ghash_lookup(fptr_map, ese->ele);
+						BLI_assert(ese->ele);
+					}
+					break;
+			}
+		}
+	}
+
+	if (fptr_map) {
+		if (bm->act_face) {
+			bm->act_face = BLI_ghash_lookup(fptr_map, bm->act_face);
+			BLI_assert(bm->act_face);
+		}
+	}
+
 	if (vptr_map)
 		BLI_ghash_free(vptr_map, NULL, NULL);
 	if (eptr_map)
