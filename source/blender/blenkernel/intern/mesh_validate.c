@@ -241,6 +241,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 		struct {
 			int verts : 1;
 			int verts_weight : 1;
+			int loops_edge : 1;
 		};
 		int as_flag;
 	} fix_flag;
@@ -564,6 +565,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 						if (do_fixes) {
 							int prev_e = ml->e;
 							ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(edge_hash, v1, v2));
+							fix_flag.loops_edge = true;
 							PRINT_ERR("\tLoop %u has invalid edge reference (%d), fixed using edge %u\n",
 							          sp->loopstart + j, prev_e, ml->e);
 						}
@@ -580,6 +582,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 							if (do_fixes) {
 								int prev_e = ml->e;
 								ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(edge_hash, v1, v2));
+								fix_flag.loops_edge = true;
 								PRINT_ERR("\tPoly %u has invalid edge reference (%d), fixed using edge %u\n",
 								          sp->index, prev_e, ml->e);
 							}
