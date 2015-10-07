@@ -142,8 +142,8 @@ void BKE_bproperty_object_set(Object *ob, bProperty *propc)
 	bProperty *prop;
 	prop = BKE_bproperty_object_get(ob, propc->name);
 	if (prop) {
-		BKE_bproperty_free(prop);
 		BLI_remlink(&ob->prop, prop);
+		BKE_bproperty_free(prop);
 	}
 	BLI_addtail(&ob->prop, BKE_bproperty_copy(propc));
 }
