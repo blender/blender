@@ -338,11 +338,13 @@ static void wm_init_userdef(bContext *C, const bool from_memory)
 #define BKE_READ_EXOTIC_FAIL_FORMAT     -2 /* file format is not supported */
 #define BKE_READ_EXOTIC_FAIL_OPEN       -1 /* Can't open the file */
 #define BKE_READ_EXOTIC_OK_BLEND         0 /* .blend file */
+#if 0
 #define BKE_READ_EXOTIC_OK_OTHER         1 /* other supported formats */
+#endif
 
 
 /* intended to check for non-blender formats but for now it only reads blends */
-static int wm_read_exotic(Scene *UNUSED(scene), const char *name)
+static int wm_read_exotic(const char *name)
 {
 	int len;
 	gzFile gzfile;
@@ -513,7 +515,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 	/* first try to append data from exotic file formats... */
 	/* it throws error box when file doesn't exist and returns -1 */
 	/* note; it should set some error message somewhere... (ton) */
-	retval = wm_read_exotic(CTX_data_scene(C), filepath);
+	retval = wm_read_exotic(filepath);
 	
 	/* we didn't succeed, now try to read Blender file */
 	if (retval == BKE_READ_EXOTIC_OK_BLEND) {
@@ -562,8 +564,10 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
 		success = true;
 	}
+#if 0
 	else if (retval == BKE_READ_EXOTIC_OK_OTHER)
 		BKE_undo_write(C, "Import file");
+#endif
 	else if (retval == BKE_READ_EXOTIC_FAIL_OPEN) {
 		BKE_reportf(reports, RPT_ERROR, "Cannot read file '%s': %s", filepath,
 		            errno ? strerror(errno) : TIP_("unable to open the file"));
