@@ -1194,8 +1194,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 		BLI_strncpy(filepath, argv[1], sizeof(filepath));
 	}
 	else {
-		BLI_current_working_dir(filepath, sizeof(filepath));
-		BLI_add_slash(filepath);
+		printf("%s: no filepath argument given\n", __func__);
+		exit(1);
 	}
 
 	if (IMB_isanim(filepath)) {
