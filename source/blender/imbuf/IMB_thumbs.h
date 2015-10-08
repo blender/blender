@@ -63,7 +63,7 @@ typedef enum ThumbSource {
 
 #define PREVIEW_RENDER_DEFAULT_HEIGHT 128
 
-/* Note this can also be used as versionning system,
+/* Note this can also be used as versioning system,
  * to force refreshing all thumbnails if e.g. we change some thumb generating code or so.
  * Only used by fonts so far. */
 #define THUMB_DEFAULT_HASH  "00000000000000000000000000000000"

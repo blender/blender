@@ -1260,7 +1260,7 @@ static void draw_tracking_tracks(SpaceClip *sc, Scene *scene, ARegion *ar, Movie
 	/* ** find window pixel coordinates of origin ** */
 
 	/* UI_view2d_view_to_region_no_clip return integer values, this could
-	 * lead to 1px flickering when view is locked to selection during playbeck.
+	 * lead to 1px flickering when view is locked to selection during playback.
 	 * to avoid this flickering, calculate base point in the same way as it happens
 	 * in UI_view2d_view_to_region_no_clip, but do it in floats here */
 

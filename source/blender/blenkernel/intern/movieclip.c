@@ -858,7 +858,7 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *u
 	bool need_postprocess = false;
 
 	/* cache isn't threadsafe itself and also loading of movies
-	 * can't happen from concurent threads that's why we use lock here */
+	 * can't happen from concurrent threads that's why we use lock here */
 	BLI_lock_thread(LOCK_MOVIECLIP);
 
 	/* try to obtain cached postprocessed frame first */

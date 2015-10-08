@@ -59,7 +59,7 @@ public:
 	 * @brief schedule a chunk of a group to be calculated.
 	 * An execution group schedules a chunk in the WorkScheduler
 	 * when ExecutionGroup.isOpenCL is set the work will be handled by a OpenCLDevice
-	 * otherwide the work is scheduled for an CPUDevice
+	 * otherwise the work is scheduled for an CPUDevice
 	 * @see ExecutionGroup.execute
 	 * @param group the execution group
 	 * @param chunkNumber the number of the chunk in the group to be executed
