@@ -4596,7 +4596,7 @@ static void lib_link_modifiers__linkModifiers(
 	FileData *fd = userData;
 
 	*idpoin = newlibadr(fd, ob->id.lib, *idpoin);
-	if (cd_flag & IDWALK_USER) {
+	if (*idpoin != NULL && (cd_flag & IDWALK_USER) != 0) {
 		(*idpoin)->us++;
 	}
 }
