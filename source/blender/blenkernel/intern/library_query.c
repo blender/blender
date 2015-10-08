@@ -174,12 +174,15 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 		case ID_SCE:
 		{
 			Scene *scene = (Scene *) id;
+			ToolSettings *toolsett = scene->toolsettings;
 			SceneRenderLayer *srl;
 			Base *base;
 
 			CALLBACK_INVOKE(scene->camera, IDWALK_NOP);
 			CALLBACK_INVOKE(scene->world, IDWALK_USER);
 			CALLBACK_INVOKE(scene->set, IDWALK_NOP);
+			CALLBACK_INVOKE(scene->clip, IDWALK_NOP);
+			CALLBACK_INVOKE(scene->nodetree, IDWALK_NOP);
 			if (scene->basact) {
 				CALLBACK_INVOKE(scene->basact->object, IDWALK_NOP);
 			}
@@ -218,6 +221,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 					CALLBACK_INVOKE(seq->scene_camera, IDWALK_NOP);
 					CALLBACK_INVOKE(seq->clip, IDWALK_USER);
 					CALLBACK_INVOKE(seq->mask, IDWALK_USER);
+					CALLBACK_INVOKE(seq->sound, IDWALK_USER);
 				}
 				SEQ_END
 			}
@@ -227,6 +231,34 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 			for (base = scene->base.first; base; base = base->next) {
 				CALLBACK_INVOKE(base->object, IDWALK_USER);
 			}
+
+			if (toolsett) {
+				CALLBACK_INVOKE(toolsett->skgen_template, IDWALK_NOP);
+				CALLBACK_INVOKE(toolsett->particle.scene, IDWALK_NOP);
+				CALLBACK_INVOKE(toolsett->particle.object, IDWALK_NOP);
+				CALLBACK_INVOKE(toolsett->particle.shape_object, IDWALK_NOP);
+				CALLBACK_INVOKE(toolsett->imapaint.stencil, IDWALK_NOP);
+				CALLBACK_INVOKE(toolsett->imapaint.clone, IDWALK_NOP);
+				CALLBACK_INVOKE(toolsett->imapaint.canvas, IDWALK_NOP);
+				if (toolsett->vpaint) {
+					CALLBACK_INVOKE(toolsett->vpaint->paint.brush, IDWALK_NOP);
+					CALLBACK_INVOKE(toolsett->vpaint->paint.palette, IDWALK_NOP);
+				}
+				if (toolsett->wpaint) {
+					CALLBACK_INVOKE(toolsett->wpaint->paint.brush, IDWALK_NOP);
+					CALLBACK_INVOKE(toolsett->wpaint->paint.palette, IDWALK_NOP);
+				}
+				if (toolsett->sculpt) {
+					CALLBACK_INVOKE(toolsett->sculpt->paint.brush, IDWALK_NOP);
+					CALLBACK_INVOKE(toolsett->sculpt->paint.palette, IDWALK_NOP);
+					CALLBACK_INVOKE(toolsett->sculpt->gravity_object, IDWALK_NOP);
+				}
+				if (toolsett->uvsculpt) {
+					CALLBACK_INVOKE(toolsett->uvsculpt->paint.brush, IDWALK_NOP);
+					CALLBACK_INVOKE(toolsett->uvsculpt->paint.palette, IDWALK_NOP);
+				}
+			}
+
 			break;
 		}
 
@@ -248,6 +280,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 
 			CALLBACK_INVOKE(object->parent, IDWALK_NOP);
 			CALLBACK_INVOKE(object->track, IDWALK_NOP);
+			/* object->proxy is refcounted, but not object->proxy_group... *sigh* */
 			CALLBACK_INVOKE(object->proxy, IDWALK_USER);
 			CALLBACK_INVOKE(object->proxy_group, IDWALK_NOP);
 			CALLBACK_INVOKE(object->proxy_from, IDWALK_NOP);
@@ -351,6 +384,16 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 			Tex *texture = (Tex *) id;
 			CALLBACK_INVOKE(texture->nodetree, IDWALK_NOP);
 			CALLBACK_INVOKE(texture->ima, IDWALK_USER);
+			if (texture->env) {
+				CALLBACK_INVOKE(texture->env->object, IDWALK_NOP);
+				CALLBACK_INVOKE(texture->env->ima, IDWALK_USER);
+			}
+			if (texture->pd)
+				CALLBACK_INVOKE(texture->pd->object, IDWALK_NOP);
+			if (texture->vd)
+				CALLBACK_INVOKE(texture->vd->object, IDWALK_NOP);
+			if (texture->ot)
+				CALLBACK_INVOKE(texture->ot->object, IDWALK_NOP);
 			break;
 		}
 
@@ -427,6 +470,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 		{
 			bNodeTree *ntree = (bNodeTree *) id;
 			bNode *node;
+			CALLBACK_INVOKE(ntree->gpd, IDWALK_USER);
 			for (node = ntree->nodes.first; node; node = node->next) {
 				CALLBACK_INVOKE_ID(node->id, IDWALK_USER);
 			}
@@ -437,6 +481,8 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 		{
 			Brush *brush = (Brush *) id;
 			CALLBACK_INVOKE(brush->toggle_brush, IDWALK_NOP);
+			CALLBACK_INVOKE(brush->clone.image, IDWALK_NOP);
+			CALLBACK_INVOKE(brush->paint_curve, IDWALK_USER);
 			library_foreach_mtex(&data, &brush->mtex);
 			library_foreach_mtex(&data, &brush->mask_mtex);
 			break;
@@ -448,9 +494,35 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 			CALLBACK_INVOKE(psett->dup_group, IDWALK_NOP);
 			CALLBACK_INVOKE(psett->dup_ob, IDWALK_NOP);
 			CALLBACK_INVOKE(psett->bb_ob, IDWALK_NOP);
+
+			for (i = 0; i < MAX_MTEX; i++) {
+				if (psett->mtex[i]) {
+					library_foreach_mtex(&data, psett->mtex[i]);
+				}
+			}
+
 			if (psett->effector_weights) {
 				CALLBACK_INVOKE(psett->effector_weights->group, IDWALK_NOP);
 			}
+
+			if (psett->boids) {
+				BoidState *state;
+				BoidRule *rule;
+
+				for (state = psett->boids->states.first; state; state = state->next) {
+					for (rule = state->rules.first; rule; rule = rule->next) {
+						if (rule->type == eBoidRuleType_Avoid) {
+							BoidRuleGoalAvoid *gabr = (BoidRuleGoalAvoid *)rule;
+							CALLBACK_INVOKE(gabr->ob, IDWALK_NOP);
+						}
+						else if (rule->type == eBoidRuleType_FollowLeader) {
+							BoidRuleFollowLeader *flbr = (BoidRuleFollowLeader *)rule;
+							CALLBACK_INVOKE(flbr->ob, IDWALK_NOP);
+						}
+					}
+				}
+			}
+
 			break;
 		}
 
