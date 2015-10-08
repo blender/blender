@@ -66,6 +66,7 @@
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
+#include "BKE_rigidbody.h"
 #include "BKE_sequencer.h"
 #include "BKE_tracking.h"
 
@@ -102,6 +103,13 @@ typedef struct LibraryForeachIDData {
 	LibraryIDLinkCallback callback;
 	void *user_data;
 } LibraryForeachIDData;
+
+static void library_foreach_rigidbodyworldSceneLooper(
+        struct RigidBodyWorld *UNUSED(rbw), ID **id_pointer, void *user_data, int cd_flag)
+{
+	LibraryForeachIDData *data = (LibraryForeachIDData *) user_data;
+	FOREACH_CALLBACK_INVOKE_ID_PP(data->self_id, id_pointer, data->flag, data->callback, data->user_data, cd_flag);
+}
 
 static void library_foreach_modifiersForeachIDLink(
         void *user_data, Object *UNUSED(object), ID **id_pointer, int cd_flag)
@@ -264,6 +272,10 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 					CALLBACK_INVOKE(toolsett->uvsculpt->paint.brush, IDWALK_NOP);
 					CALLBACK_INVOKE(toolsett->uvsculpt->paint.palette, IDWALK_NOP);
 				}
+			}
+
+			if (scene->rigidbody_world) {
+				BKE_rigidbody_world_id_loop(scene->rigidbody_world, library_foreach_rigidbodyworldSceneLooper, &data);
 			}
 
 			break;
