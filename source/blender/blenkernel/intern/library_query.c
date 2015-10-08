@@ -117,6 +117,13 @@ static void library_foreach_constraintObjectLooper(bConstraint *UNUSED(con), ID 
 	FOREACH_CALLBACK_INVOKE_ID_PP(data->self_id, id_pointer, data->flag, data->callback, data->user_data, IDWALK_NOP);
 }
 
+static void library_foreach_particlesystemsObjectLooper(
+        ParticleSystem *UNUSED(psys), ID **id_pointer, void *user_data, int cd_flag)
+{
+	LibraryForeachIDData *data = (LibraryForeachIDData *) user_data;
+	FOREACH_CALLBACK_INVOKE_ID_PP(data->self_id, id_pointer, data->flag, data->callback, data->user_data, cd_flag);
+}
+
 static void library_foreach_animationData(LibraryForeachIDData *data, AnimData *adt)
 {
 	FCurve *fcu;
@@ -265,6 +272,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 		case ID_OB:
 		{
 			Object *object = (Object *) id;
+			ParticleSystem *psys;
 
 			/* object data special case */
 			if (object->type == OB_EMPTY) {
@@ -326,6 +334,10 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 
 			modifiers_foreachIDLink(object, library_foreach_modifiersForeachIDLink, &data);
 			BKE_constraints_id_loop(&object->constraints, library_foreach_constraintObjectLooper, &data);
+
+			for (psys = object->particlesystem.first; psys; psys = psys->next) {
+				BKE_particlesystem_id_loop(psys, library_foreach_particlesystemsObjectLooper, &data);
+			}
 			break;
 		}
 

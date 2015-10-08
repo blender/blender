@@ -77,6 +77,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_collision.h"
 #include "BKE_effect.h"
+#include "BKE_library_query.h"
 #include "BKE_particle.h"
 #include "BKE_global.h"
 
@@ -4207,6 +4208,30 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	/* save matrix for duplicators, at rendertime the actual dupliobject's matrix is used so don't update! */
 	if (psys->renderdata==0)
 		invert_m4_m4(psys->imat, ob->obmat);
+}
+
+/* ID looper */
+
+void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func, void *userdata)
+{
+	ParticleTarget *pt;
+
+	func(psys, (ID **)&psys->part, userdata, IDWALK_NOP);
+	func(psys, (ID **)&psys->target_ob, userdata, IDWALK_NOP);
+	func(psys, (ID **)&psys->parent, userdata, IDWALK_NOP);
+
+	for (pt = psys->targets.first; pt; pt = pt->next) {
+		func(psys, (ID **)&pt->ob, userdata, IDWALK_NOP);
+	}
+
+	if (psys->part->phystype == PART_PHYS_BOIDS) {
+		ParticleData *pa;
+		int p;
+
+		for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++) {
+			func(psys, (ID **)&pa->boid->ground, userdata, IDWALK_NOP);
+		}
+	}
 }
 
 /* **** Depsgraph evaluation **** */
