@@ -640,11 +640,12 @@ static ShaderNode *add_node(Scene *scene,
 			if(b_image.is_updated()) {
 				scene->image_manager->tag_reload_image(env->filename,
 				                                       env->builtin_data,
-				                                       INTERPOLATION_LINEAR,
+				                                       (InterpolationType)b_env_node.interpolation(),
 				                                       EXTENSION_REPEAT);
 			}
 		}
 		env->color_space = EnvironmentTextureNode::color_space_enum[(int)b_env_node.color_space()];
+		env->interpolation = (InterpolationType)b_env_node.interpolation();
 		env->projection = EnvironmentTextureNode::projection_enum[(int)b_env_node.projection()];
 		get_tex_mapping(&env->tex_mapping, b_env_node.texture_mapping());
 		node = env;

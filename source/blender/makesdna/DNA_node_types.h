@@ -748,6 +748,8 @@ typedef struct NodeTexEnvironment {
 	ImageUser iuser;
 	int color_space;
 	int projection;
+	int interpolation;
+	int pad;
 } NodeTexEnvironment;
 
 typedef struct NodeTexGradient {

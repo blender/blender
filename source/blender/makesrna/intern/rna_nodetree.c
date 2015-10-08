@@ -3548,17 +3548,29 @@ static void def_sh_tex_sky(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static const EnumPropertyItem sh_tex_prop_color_space_items[] = {
+	{SHD_COLORSPACE_COLOR, "COLOR", 0, "Color",
+	                       "Image contains color data, and will be converted to linear color for rendering"},
+	{SHD_COLORSPACE_NONE, "NONE", 0, "Non-Color Data",
+	                      "Image contains non-color data, for example a displacement or normal map, "
+	                      "and will not be converted"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static const EnumPropertyItem sh_tex_prop_interpolation_items[] = {
+	{SHD_INTERP_LINEAR,  "Linear", 0, "Linear",
+	                     "Linear interpolation"},
+	{SHD_INTERP_CLOSEST, "Closest", 0, "Closest",
+	                     "No interpolation (sample closest texel)"},
+	{SHD_INTERP_CUBIC,   "Cubic", 0, "Cubic",
+	                     "Cubic interpolation (CPU only)"},
+	{SHD_INTERP_SMART,   "Smart", 0, "Smart",
+	                     "Bicubic when magnifying, else bilinear (OSL only)"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 static void def_sh_tex_environment(StructRNA *srna)
 {
-	static const EnumPropertyItem prop_color_space_items[] = {
-		{SHD_COLORSPACE_COLOR, "COLOR", 0, "Color",
-		                       "Image contains color data, and will be converted to linear color for rendering"},
-		{SHD_COLORSPACE_NONE, "NONE", 0, "Non-Color Data",
-		                      "Image contains non-color data, for example a displacement or normal map, "
-		                      "and will not be converted"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	static const EnumPropertyItem prop_projection_items[] = {
 		{SHD_PROJ_EQUIRECTANGULAR, "EQUIRECTANGULAR", 0, "Equirectangular",
 		                           "Equirectangular or latitude-longitude projection"},
@@ -3580,7 +3592,7 @@ static void def_sh_tex_environment(StructRNA *srna)
 	def_sh_tex(srna);
 
 	prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_color_space_items);
+	RNA_def_property_enum_items(prop, sh_tex_prop_color_space_items);
 	RNA_def_property_enum_default(prop, SHD_COLORSPACE_COLOR);
 	RNA_def_property_ui_text(prop, "Color Space", "Image file color space");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
@@ -3588,6 +3600,11 @@ static void def_sh_tex_environment(StructRNA *srna)
 	prop = RNA_def_property(srna, "projection", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_projection_items);
 	RNA_def_property_ui_text(prop, "Projection", "Projection of the input image");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, sh_tex_prop_interpolation_items);
+	RNA_def_property_ui_text(prop, "Interpolation", "Texture interpolation");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
@@ -3600,15 +3617,6 @@ static void def_sh_tex_environment(StructRNA *srna)
 
 static void def_sh_tex_image(StructRNA *srna)
 {
-	static const EnumPropertyItem prop_color_space_items[] = {
-		{SHD_COLORSPACE_COLOR, "COLOR", 0, "Color",
-		                       "Image contains color data, and will be converted to linear color for rendering"},
-		{SHD_COLORSPACE_NONE, "NONE", 0, "Non-Color Data",
-		                      "Image contains non-color data, for example a displacement or normal map, "
-		                      "and will not be converted"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	static const EnumPropertyItem prop_projection_items[] = {
 		{SHD_PROJ_FLAT,   "FLAT", 0, "Flat",
 		                  "Image is projected flat using the X and Y coordinates of the texture vector"},
@@ -3618,18 +3626,6 @@ static void def_sh_tex_image(StructRNA *srna)
 		                  "Image is projected spherically using the Z axis as central"},
 		{SHD_PROJ_TUBE,   "TUBE", 0, "Tube",
 		                  "Image is projected from the tube using the Z axis as central"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
-	static const EnumPropertyItem prop_interpolation_items[] = {
-		{SHD_INTERP_LINEAR,  "Linear", 0, "Linear",
-		                     "Linear interpolation"},
-		{SHD_INTERP_CLOSEST, "Closest", 0, "Closest",
-		                     "No interpolation (sample closest texel)"},
-		{SHD_INTERP_CUBIC,   "Cubic", 0, "Cubic",
-		                     "Cubic interpolation (CPU only)"},
-		{SHD_INTERP_SMART,   "Smart", 0, "Smart",
-		                     "Bicubic when magnifying, else bilinear (OSL only)"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -3653,7 +3649,7 @@ static void def_sh_tex_image(StructRNA *srna)
 	def_sh_tex(srna);
 
 	prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_color_space_items);
+	RNA_def_property_enum_items(prop, sh_tex_prop_color_space_items);
 	RNA_def_property_enum_default(prop, SHD_COLORSPACE_COLOR);
 	RNA_def_property_ui_text(prop, "Color Space", "Image file color space");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
@@ -3664,7 +3660,7 @@ static void def_sh_tex_image(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_interpolation_items);
+	RNA_def_property_enum_items(prop, sh_tex_prop_interpolation_items);
 	RNA_def_property_ui_text(prop, "Interpolation", "Texture interpolation");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 

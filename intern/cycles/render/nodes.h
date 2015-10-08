@@ -116,6 +116,7 @@ public:
 	void *builtin_data;
 	ustring color_space;
 	ustring projection;
+	InterpolationType interpolation;
 	bool animated;
 
 	static ShaderEnum color_space_enum;

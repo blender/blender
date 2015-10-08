@@ -45,6 +45,7 @@ shader node_environment_texture(
 	vector Vector = P,
 	string filename = "",
 	string projection = "Equirectangular",
+	string interpolation = "linear",
 	string color_space = "sRGB",
 	int is_float = 1,
 	int use_alpha = 1,
@@ -64,7 +65,7 @@ shader node_environment_texture(
 		p = environment_texture_direction_to_mirrorball(p);
 
 	/* todo: use environment for better texture filtering of equirectangular */
-	Color = (color)texture(filename, p[0], 1.0 - p[1], "wrap", "periodic", "alpha", Alpha);
+	Color = (color)texture(filename, p[0], 1.0 - p[1], "wrap", "periodic", "interp", interpolation, "alpha", Alpha);
 
 	if (use_alpha) {
 		Color = color_unpremultiply(Color, Alpha);
