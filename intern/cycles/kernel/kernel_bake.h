@@ -150,7 +150,7 @@ ccl_device bool is_aa_pass(ShaderEvalType type)
 
 ccl_device bool is_light_pass(ShaderEvalType type)
 {
-	switch (type) {
+	switch(type) {
 		case SHADER_EVAL_AO:
 		case SHADER_EVAL_COMBINED:
 		case SHADER_EVAL_SHADOW:
@@ -262,7 +262,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 		                   sample);
 	}
 
-	switch (type) {
+	switch(type) {
 		/* data passes */
 		case SHADER_EVAL_NORMAL:
 		{

@@ -184,7 +184,7 @@ static ShaderEnum image_projection_init()
 
 static const char* get_osl_interpolation_parameter(InterpolationType interpolation)
 {
-	switch (interpolation) {
+	switch(interpolation) {
 		case INTERPOLATION_CLOSEST:
 			return "closest";
 		case INTERPOLATION_CUBIC:
@@ -1417,10 +1417,10 @@ void PointDensityTextureNode::compile(SVMCompiler& compiler)
 
 	image_manager = compiler.image_manager;
 
-	if (use_density || use_color) {
-		if (use_density)
+	if(use_density || use_color) {
+		if(use_density)
 			compiler.stack_assign(density_out);
-		if (use_color)
+		if(use_color)
 			compiler.stack_assign(color_out);
 
 		if(slot == -1) {
@@ -1470,7 +1470,7 @@ void PointDensityTextureNode::compile(OSLCompiler& compiler)
 
 	image_manager = compiler.image_manager;
 
-	if (use_density || use_color) {
+	if(use_density || use_color) {
 		if(slot == -1) {
 			bool is_float, is_linear;
 			slot = image_manager->add_image(filename, builtin_data,
@@ -1488,7 +1488,7 @@ void PointDensityTextureNode::compile(OSLCompiler& compiler)
 			compiler.parameter("mapping", transform_transpose(tfm));
 			compiler.parameter("use_mapping", 1);
 		}
-		switch (interpolation) {
+		switch(interpolation) {
 			case INTERPOLATION_CLOSEST:
 				compiler.parameter("interpolation", "closest");
 				break;

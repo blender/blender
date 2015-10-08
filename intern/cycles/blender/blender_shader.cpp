@@ -88,7 +88,7 @@ static float3 get_node_output_vector(BL::Node b_node, const string& name)
 
 static ShaderSocketType convert_socket_type(BL::NodeSocket b_socket)
 {
-	switch (b_socket.type()) {
+	switch(b_socket.type()) {
 		case BL::NodeSocket::type_VALUE:
 			return SHADER_SOCKET_FLOAT;
 		case BL::NodeSocket::type_INT:
@@ -339,17 +339,16 @@ static ShaderNode *add_node(Scene *scene,
 		BL::ShaderNodeBsdfAnisotropic b_aniso_node(b_node);
 		AnisotropicBsdfNode *aniso = new AnisotropicBsdfNode();
 
-		switch (b_aniso_node.distribution())
-		{
-		case BL::ShaderNodeBsdfAnisotropic::distribution_BECKMANN:
-			aniso->distribution = ustring("Beckmann");
-			break;
-		case BL::ShaderNodeBsdfAnisotropic::distribution_GGX:
-			aniso->distribution = ustring("GGX");
-			break;
-		case BL::ShaderNodeBsdfAnisotropic::distribution_ASHIKHMIN_SHIRLEY:
-			aniso->distribution = ustring("Ashikhmin-Shirley");
-			break;
+		switch(b_aniso_node.distribution()) {
+			case BL::ShaderNodeBsdfAnisotropic::distribution_BECKMANN:
+				aniso->distribution = ustring("Beckmann");
+				break;
+			case BL::ShaderNodeBsdfAnisotropic::distribution_GGX:
+				aniso->distribution = ustring("GGX");
+				break;
+			case BL::ShaderNodeBsdfAnisotropic::distribution_ASHIKHMIN_SHIRLEY:
+				aniso->distribution = ustring("Ashikhmin-Shirley");
+				break;
 		}
 
 		node = aniso;

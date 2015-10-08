@@ -78,7 +78,7 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 			int prim = mesh->tri_offset + i;
 			float u, v;
 			
-			switch (j) {
+			switch(j) {
 				case 0:
 					u = 1.0f;
 					v = 0.0f;

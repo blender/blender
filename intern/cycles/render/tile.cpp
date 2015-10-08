@@ -199,7 +199,7 @@ list<Tile>::iterator TileManager::next_background_tile(int device, TileOrder til
 			int64_t distx = cordx;
 			int64_t disty = cordy;
 			
-			switch (tile_order) {
+			switch(tile_order) {
 				case TILE_CENTER:
 					distx = centx - (cur_tile.x + (cur_tile.w / 2));
 					disty = centy - (cur_tile.y + (cur_tile.h / 2));

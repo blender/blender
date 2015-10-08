@@ -85,7 +85,7 @@ static void mikk_get_texture_coordinate(const SMikkTSpaceContext *context, float
 		BL::MeshTextureFace tf = userdata->layer->data[face_num];
 		float3 tfuv;
 
-		switch (vert_num) {
+		switch(vert_num) {
 			case 0:
 				tfuv = get_float3(tf.uv1());
 				break;

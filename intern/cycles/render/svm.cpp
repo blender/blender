@@ -121,7 +121,7 @@ int SVMCompiler::stack_size(ShaderSocketType type)
 {
 	int size = 0;
 	
-	switch (type) {
+	switch(type) {
 		case SHADER_SOCKET_FLOAT:
 		case SHADER_SOCKET_INT:
 			size = 1;
@@ -624,7 +624,7 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 	ShaderNode *node = graph->output();
 	ShaderInput *clin = NULL;
 	
-	switch (type) {
+	switch(type) {
 		case SHADER_TYPE_SURFACE:
 			clin = node->input("Surface");
 			break;
@@ -654,7 +654,7 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 		if(clin->link) {
 			bool generate = false;
 			
-			switch (type) {
+			switch(type) {
 				case SHADER_TYPE_SURFACE: /* generate surface shader */		
 					generate = true;
 					shader->has_surface = true;
