@@ -81,6 +81,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_sound.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 
 #include "BLO_readfile.h"
@@ -476,6 +477,12 @@ static void wm_file_read_post(bContext *C, bool is_startup_file)
 	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_VERSION_UPDATE);
 	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
 
+	/* would otherwise be handled by event loop */
+	if (G.background) {
+		Main *bmain = CTX_data_main(C);
+		BKE_scene_update_tagged(bmain->eval_ctx, bmain, CTX_data_scene(C));
+	}
+
 	WM_event_add_notifier(C, NC_WM | ND_FILEREAD, NULL);
 
 	/* report any errors.
@@ -491,9 +498,11 @@ static void wm_file_read_post(bContext *C, bool is_startup_file)
 		CTX_wm_window_set(C, NULL); /* exits queues */
 	}
 
-//	undo_editmode_clear();
-	BKE_undo_reset();
-	BKE_undo_write(C, "original");  /* save current state */
+	if (!G.background) {
+//		undo_editmode_clear();
+		BKE_undo_reset();
+		BKE_undo_write(C, "original");  /* save current state */
+	}
 }
 
 bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)

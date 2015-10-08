@@ -1361,6 +1361,8 @@ static int set_addons(int argc, const char **argv, void *data)
 static int load_file(int UNUSED(argc), const char **argv, void *data)
 {
 	bContext *C = data;
+	ReportList reports;
+	bool success;
 
 	/* Make the path absolute because its needed for relative linked blends to be found */
 	char filename[FILE_MAX];
@@ -1373,84 +1375,23 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 	BLI_strncpy(filename, argv[0], sizeof(filename));
 	BLI_path_cwd(filename, sizeof(filename));
 
-	if (G.background) {
-		Main *bmain;
-		wmWindowManager *wm;
-		int retval;
+	/* load the file */
+	BKE_reports_init(&reports, RPT_PRINT);
+	WM_file_autoexec_init(filename);
+	success = WM_file_read(C, filename, &reports);
+	BKE_reports_clear(&reports);
 
-		bmain = CTX_data_main(C);
-
-		BLI_callback_exec(bmain, NULL, BLI_CB_EVT_LOAD_PRE);
-
-		retval = BKE_read_file(C, filename, NULL);
-
-		if (retval == BKE_READ_FILE_FAIL) {
-			/* failed to load file, stop processing arguments */
-			if (G.background) {
-				/* Set is_break if running in the background mode so
-				 * blender will return non-zero exit code which then
-				 * could be used in automated script to control how
-				 * good or bad things are.
-				 */
-				G.is_break = true;
-			}
-			return -1;
+	if (success == false) {
+		/* failed to load file, stop processing arguments */
+		if (G.background) {
+			/* Set is_break if running in the background mode so
+			 * blender will return non-zero exit code which then
+			 * could be used in automated script to control how
+			 * good or bad things are.
+			 */
+			G.is_break = true;
 		}
-
-		wm = CTX_wm_manager(C);
-		bmain = CTX_data_main(C);
-
-		/* special case, 2.4x files */
-		if (wm == NULL && BLI_listbase_is_empty(&bmain->wm)) {
-			extern void wm_add_default(bContext *C);
-
-			/* wm_add_default() needs the screen to be set. */
-			CTX_wm_screen_set(C, bmain->screen.first);
-			wm_add_default(C);
-		}
-
-		CTX_wm_manager_set(C, NULL); /* remove wm to force check */
-		WM_check(C);
-		if (bmain->name[0]) {
-			G.save_over = 1;
-			G.relbase_valid = 1;
-		}
-		else {
-			G.save_over = 0;
-			G.relbase_valid = 0;
-		}
-
-		if (CTX_wm_manager(C) == NULL) {
-			CTX_wm_manager_set(C, wm);  /* reset wm */
-		}
-
-		/* WM_file_read would call normally */
-		ED_editors_init(C);
-		DAG_on_visible_update(bmain, true);
-
-		/* WM_file_read() runs normally but since we're in background mode do here */
-#ifdef WITH_PYTHON
-		/* run any texts that were loaded in and flagged as modules */
-		BPY_python_reset(C);
-#endif
-
-		BLI_callback_exec(bmain, NULL, BLI_CB_EVT_VERSION_UPDATE);
-		BLI_callback_exec(bmain, NULL, BLI_CB_EVT_LOAD_POST);
-
-		BKE_scene_update_tagged(bmain->eval_ctx, bmain, CTX_data_scene(C));
-
-		/* happens for the UI on file reading too (huh? (ton))*/
-		// XXX		BKE_undo_reset();
-		//			BKE_undo_write("original");	/* save current state */
-	}
-	else {
-		/* we are not running in background mode here, but start blender in UI mode with
-		 * a file - this should do everything a 'load file' does */
-		ReportList reports;
-		BKE_reports_init(&reports, RPT_PRINT);
-		WM_file_autoexec_init(filename);
-		WM_file_read(C, filename, &reports);
-		BKE_reports_clear(&reports);
+		return -1;
 	}
 
 	G.file_loaded = 1;
