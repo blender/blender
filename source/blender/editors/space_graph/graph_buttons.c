@@ -356,7 +356,9 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 		/* interpolation */
 		col = uiLayoutColumn(layout, false);
 		if (fcu->flag & FCURVE_DISCRETE_VALUES) {
-			uiItemL(col, IFACE_("Interpolation: Enums/Booleans cannot be interpolated"), ICON_NONE);
+			uiLayout *split = uiLayoutSplit(col, 0.33f, true);
+			uiItemL(split, IFACE_("Interpolation:"), ICON_NONE);
+			uiItemL(split, IFACE_("None for Enum/Boolean"), ICON_IPO_CONSTANT);
 		}
 		else {
 			uiItemR(col, &bezt_ptr, "interpolation", 0, NULL, ICON_NONE);
