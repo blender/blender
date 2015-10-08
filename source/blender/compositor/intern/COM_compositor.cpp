@@ -25,9 +25,7 @@ extern "C" {
 #include "BKE_node.h"
 #include "BLI_threads.h"
 }
-#include "BKE_main.h"
 #include "BKE_scene.h"
-#include "BKE_global.h"
 
 #include "COM_compositor.h"
 #include "COM_ExecutionSystem.h"

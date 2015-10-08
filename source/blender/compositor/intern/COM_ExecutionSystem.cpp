@@ -36,8 +36,6 @@ extern "C" {
 #include "COM_ReadBufferOperation.h"
 #include "COM_Debug.h"
 
-#include "BKE_global.h"
-
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
 #endif

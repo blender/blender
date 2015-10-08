@@ -24,7 +24,6 @@
 #define __COM_NODE_H__
 
 #include "DNA_node_types.h"
-#include "BKE_text.h"
 #include <vector>
 #include <string>
 #include <algorithm>

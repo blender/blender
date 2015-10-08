@@ -24,7 +24,6 @@
 #define _COM_CompositorContext_h
 
 #include <vector>
-#include "BKE_text.h"
 #include <string>
 #include "DNA_node_types.h"
 #include "DNA_color_types.h"

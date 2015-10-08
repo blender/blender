@@ -40,7 +40,6 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
-#include "BKE_global.h"
 #include "PIL_time.h"
 #include "WM_api.h"
 #include "WM_types.h"
