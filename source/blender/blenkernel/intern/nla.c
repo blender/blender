@@ -1791,6 +1791,13 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
 		}
 	}
 	
+	/* tag all other strips in active track that uses the same action as the active strip */
+	for (strip = activeTrack->strips.first; strip; strip = strip->next) {
+		if ((strip->act == activeStrip->act) && (strip != activeStrip))
+			strip->flag |= NLASTRIP_FLAG_TWEAKUSER;
+		else
+			strip->flag &= ~NLASTRIP_FLAG_TWEAKUSER;
+	}
 	
 	/* go over all the tracks after AND INCLUDING the active one, tagging them as being disabled 
 	 *	- the active track needs to also be tagged, otherwise, it'll overlap with the tweaks going on
