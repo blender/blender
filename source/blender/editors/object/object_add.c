@@ -1195,88 +1195,15 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 /**************************** Copy Utilities ******************************/
 
 /* after copying objects, copied data should get new pointers */
-static void copy_object_set_idnew(bContext *C, int dupflag)
+static void copy_object_set_idnew(bContext *C)
 {
 	Main *bmain = CTX_data_main(C);
-	Material *ma, *mao;
-	ID *id;
-	int a;
 
-	/* XXX check object pointers */
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		BKE_object_relink(ob);
+		BKE_libblock_relink(&ob->id);
 	}
 	CTX_DATA_END;
-
-	/* materials */
-	if (dupflag & USER_DUP_MAT) {
-		mao = bmain->mat.first;
-		while (mao) {
-			if (mao->id.newid) {
-				ma = (Material *)mao->id.newid;
-
-				if (dupflag & USER_DUP_TEX) {
-					for (a = 0; a < MAX_MTEX; a++) {
-						if (ma->mtex[a]) {
-							id = (ID *)ma->mtex[a]->tex;
-							if (id) {
-								ID_NEW_US(ma->mtex[a]->tex)
-								else
-									ma->mtex[a]->tex = BKE_texture_copy(ma->mtex[a]->tex);
-								id->us--;
-							}
-						}
-					}
-				}
-#if 0 // XXX old animation system
-				id = (ID *)ma->ipo;
-				if (id) {
-					ID_NEW_US(ma->ipo)
-					else
-						ma->ipo = copy_ipo(ma->ipo);
-					id->us--;
-				}
-#endif // XXX old animation system
-			}
-			mao = mao->id.next;
-		}
-	}
-
-#if 0 // XXX old animation system
-	  /* lamps */
-	if (dupflag & USER_DUP_IPO) {
-		Lamp *la = bmain->lamp.first;
-		while (la) {
-			if (la->id.newid) {
-				Lamp *lan = (Lamp *)la->id.newid;
-				id = (ID *)lan->ipo;
-				if (id) {
-					ID_NEW_US(lan->ipo)
-					else
-						lan->ipo = copy_ipo(lan->ipo);
-					id->us--;
-				}
-			}
-			la = la->id.next;
-		}
-	}
-
-	/* ipos */
-	ipo = bmain->ipo.first;
-	while (ipo) {
-		if (ipo->id.lib == NULL && ipo->id.newid) {
-			Ipo *ipon = (Ipo *)ipo->id.newid;
-			IpoCurve *icu;
-			for (icu = ipon->curve.first; icu; icu = icu->next) {
-				if (icu->driver) {
-					ID_NEW(icu->driver->ob);
-				}
-			}
-		}
-		ipo = ipo->id.next;
-	}
-#endif // XXX old animation system
 
 	set_sca_new_poins();
 
@@ -1468,7 +1395,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 	if (parent_gh)
 		BLI_ghash_free(parent_gh, NULL, NULL);
 
-	copy_object_set_idnew(C, 0);
+	copy_object_set_idnew(C);
 
 	free_object_duplilist(lb);
 
@@ -2187,7 +2114,7 @@ Base *ED_object_add_duplicate(Main *bmain, Scene *scene, Base *base, int dupflag
 	ob = basen->object;
 
 	/* link own references to the newly duplicated data [#26816] */
-	BKE_object_relink(ob);
+	BKE_libblock_relink(&ob->id);
 	set_sca_new_poins_ob(ob);
 
 	/* DAG_relations_tag_update(bmain); */ /* caller must do */
@@ -2232,7 +2159,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	copy_object_set_idnew(C, dupflag);
+	copy_object_set_idnew(C);
 
 	DAG_relations_tag_update(bmain);
 
@@ -2317,7 +2244,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
 	ED_base_object_select(basen, BA_SELECT);
 	ED_base_object_activate(C, basen);
 
-	copy_object_set_idnew(C, dupflag);
+	copy_object_set_idnew(C);
 
 	DAG_relations_tag_update(bmain);
 

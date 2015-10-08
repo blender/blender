@@ -63,5 +63,6 @@ enum {
 
 /* Loop over all of the ID's this datablock links to. */
 void BKE_library_foreach_ID_link(struct ID *id, LibraryIDLinkCallback callback, void *user_data, int flag);
+void BKE_library_update_ID_link_user(struct ID *id_dst, struct ID *id_src, const int cd_flag);
 
 #endif  /* __BKE_LIBRARY_QUERY_H__ */

@@ -54,6 +54,7 @@ void *BKE_libblock_copy_ex(struct Main *bmain, struct ID *id) ATTR_WARN_UNUSED_R
 void *BKE_libblock_copy_nolib(struct ID *id, const bool do_action) ATTR_NONNULL();
 void *BKE_libblock_copy(struct ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void  BKE_libblock_copy_data(struct ID *id, const struct ID *id_from, const bool do_action);
+void  BKE_libblock_relink(struct ID *id);
 
 void BKE_id_lib_local_paths(struct Main *bmain, struct Library *lib, struct ID *id);
 void id_lib_extern(struct ID *id);

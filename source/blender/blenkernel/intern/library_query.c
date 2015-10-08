@@ -62,6 +62,7 @@
 #include "BKE_animsys.h"
 #include "BKE_constraint.h"
 #include "BKE_fcurve.h"
+#include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
@@ -534,3 +535,19 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 
 #undef FOREACH_CALLBACK_INVOKE_ID
 #undef FOREACH_CALLBACK_INVOKE
+
+/**
+ * re-usable function, use when replacing ID's
+ */
+void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cd_flag)
+{
+	if (cd_flag & IDWALK_USER) {
+		id_us_min(id_src);
+		id_us_plus(id_dst);
+	}
+	else if (cd_flag & IDWALK_USER_ONE) {
+		if (id_dst->us == 0) {
+			id_us_plus(id_dst);
+		}
+	}
+}

@@ -3722,38 +3722,6 @@ bool BKE_object_is_animated(Scene *scene, Object *ob)
 	return false;
 }
 
-static void copy_object__forwardModifierLinks(void *UNUSED(userData), Object *UNUSED(ob), ID **idpoin)
-{
-	/* this is copied from ID_NEW; it might be better to have a macro */
-	if (*idpoin && (*idpoin)->newid) *idpoin = (*idpoin)->newid;
-}
-
-void BKE_object_relink(Object *ob)
-{
-	if (ob->id.lib)
-		return;
-
-	BKE_constraints_relink(&ob->constraints);
-	if (ob->pose) {
-		bPoseChannel *chan;
-		for (chan = ob->pose->chanbase.first; chan; chan = chan->next) {
-			BKE_constraints_relink(&chan->constraints);
-		}
-	}
-	modifiers_foreachIDLink(ob, copy_object__forwardModifierLinks, NULL);
-
-	if (ob->adt)
-		BKE_animdata_relink(ob->adt);
-	
-	if (ob->rigidbody_constraint)
-		BKE_rigidbody_relink_constraint(ob->rigidbody_constraint);
-
-	ID_NEW(ob->parent);
-
-	ID_NEW(ob->proxy);
-	ID_NEW(ob->proxy_group);
-}
-
 MovieClip *BKE_object_movieclip_get(Scene *scene, Object *ob, bool use_default)
 {
 	MovieClip *clip = use_default ? scene->clip : NULL;
