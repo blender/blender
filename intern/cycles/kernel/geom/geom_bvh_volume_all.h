@@ -62,7 +62,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	const uint visibility = PATH_RAY_ALL_VISIBILITY;
 
 #if BVH_FEATURE(BVH_MOTION)
-	Transform ob_tfm;
+	Transform ob_itfm;
 #endif
 
 #if BVH_FEATURE(BVH_INSTANCING)
@@ -230,7 +230,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 									if(num_hits == max_hits) {
 #if BVH_FEATURE(BVH_INSTANCING)
 #if BVH_FEATURE(BVH_MOTION)
-										float t_fac = len(transform_direction(&ob_tfm, 1.0f/idir));
+										float t_fac = 1.0f / len(transform_direction(&ob_itfm, dir));
 #else
 										Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 										float t_fac = 1.0f / len(transform_direction(&itfm, dir));
@@ -268,7 +268,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 									if(num_hits == max_hits) {
 #if BVH_FEATURE(BVH_INSTANCING)
 #  if BVH_FEATURE(BVH_MOTION)
-										float t_fac = len(transform_direction(&ob_tfm, 1.0f/idir));
+										float t_fac = 1.0f / len(transform_direction(&ob_itfm, dir));
 #  else
 										Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 										float t_fac = 1.0f / len(transform_direction(&itfm, dir));
@@ -311,7 +311,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 									if(num_hits == max_hits) {
 #if BVH_FEATURE(BVH_INSTANCING)
 #  if BVH_FEATURE(BVH_MOTION)
-										float t_fac = len(transform_direction(&ob_tfm, 1.0f/idir));
+										float t_fac = 1.0f / len(transform_direction(&ob_itfm, dir));
 #  else
 										Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 										float t_fac = 1.0f / len(transform_direction(&itfm, dir));
@@ -341,7 +341,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 					if(object_flag & SD_OBJECT_HAS_VOLUME) {
 
 #if BVH_FEATURE(BVH_MOTION)
-						bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_tfm);
+						bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_itfm);
 #else
 						bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect_t);
 #endif
@@ -384,7 +384,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 			if(num_hits_in_instance) {
 				float t_fac;
 #if BVH_FEATURE(BVH_MOTION)
-				bvh_instance_motion_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac, &ob_tfm);
+				bvh_instance_motion_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac, &ob_itfm);
 #else
 				bvh_instance_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac);
 #endif
@@ -397,7 +397,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 			else {
 				float ignore_t = FLT_MAX;
 #if BVH_FEATURE(BVH_MOTION)
-				bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &ignore_t, &ob_tfm);
+				bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &ignore_t, &ob_itfm);
 #else
 				bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &ignore_t);
 #endif

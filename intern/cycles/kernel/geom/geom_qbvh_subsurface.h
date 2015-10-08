@@ -58,7 +58,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 	uint num_hits = 0;
 
 #if BVH_FEATURE(BVH_MOTION)
-	Transform ob_tfm;
+	Transform ob_itfm;
 #endif
 
 #ifndef __KERNEL_SSE41__
@@ -256,7 +256,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 						object = subsurface_object;
 
 #if BVH_FEATURE(BVH_MOTION)
-						bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_tfm);
+						bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_itfm);
 #else
 						bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect_t);
 #endif
@@ -297,7 +297,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 
 			/* Instance pop. */
 #if BVH_FEATURE(BVH_MOTION)
-			bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_tfm);
+			bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_itfm);
 #else
 			bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &isect_t);
 #endif

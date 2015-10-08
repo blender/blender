@@ -59,7 +59,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	float isect_t = tmax;
 
 #if BVH_FEATURE(BVH_MOTION)
-	Transform ob_tfm;
+	Transform ob_itfm;
 #endif
 
 #if BVH_FEATURE(BVH_INSTANCING)
@@ -302,7 +302,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 					object = kernel_tex_fetch(__prim_object, -primAddr-1);
 
 #if BVH_FEATURE(BVH_MOTION)
-					bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_tfm);
+					bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_itfm);
 #else
 					bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect_t);
 #endif
@@ -338,7 +338,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 				float t_fac;
 
 #if BVH_FEATURE(BVH_MOTION)
-				bvh_instance_motion_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac, &ob_tfm);
+				bvh_instance_motion_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac, &ob_itfm);
 #else
 				bvh_instance_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac);
 #endif
@@ -353,7 +353,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 				float ignore_t = FLT_MAX;
 
 #if BVH_FEATURE(BVH_MOTION)
-				bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &ignore_t, &ob_tfm);
+				bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &ignore_t, &ob_itfm);
 #else
 				bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &ignore_t);
 #endif
