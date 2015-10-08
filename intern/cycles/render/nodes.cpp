@@ -1675,7 +1675,7 @@ void ConvertNode::compile(SVMCompiler& compiler)
 			compiler.stack_assign(in);
 			compiler.stack_assign(out);
 
-			compiler.add_node(NODE_VALUE_V, in->stack_offset);
+			compiler.add_node(NODE_VALUE_V, out->stack_offset);
 			compiler.add_node(NODE_VALUE_V, in->value);
 		}
 	}
