@@ -3019,7 +3019,11 @@ static int point_density_color_source_from_shader(NodeShaderTexPointDensity *sha
 /* TODO(sergey): This function assumes allocated array was passed,
  * works fine with Cycles via C++ RNA, but fails with call from python.
  */
-void rna_ShaderNodePointDensity_density_calc(bNode *self, Scene *scene, int *length, float **values)
+void rna_ShaderNodePointDensity_density_calc(bNode *self,
+                                             Scene *scene,
+                                             int settings,
+                                             int *length,
+                                             float **values)
 {
 	NodeShaderTexPointDensity *shader_point_density = self->storage;
 	PointDensity pd;
@@ -3051,6 +3055,7 @@ void rna_ShaderNodePointDensity_density_calc(bNode *self, Scene *scene, int *len
 	/* Single-threaded sampling of the voxel domain. */
 	RE_sample_point_density(scene, &pd,
 	                        shader_point_density->resolution,
+	                        settings == 1,
 	                        *values);
 
 	/* We're done, time to clean up. */
@@ -3934,6 +3939,13 @@ static void def_sh_tex_pointdensity(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	/* TODO(sergey): Use some mnemonic names for the hardcoded values here. */
+	static EnumPropertyItem calc_mode_items[] = {
+		{0, "VIEWPORT", 0, "Viewport", "Canculate density using viewport settings"},
+		{1, "RENDER", 0, "Render", "Canculate duplis using render settings"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
 	RNA_def_property_struct_type(prop, "Object");
@@ -3986,6 +3998,7 @@ static void def_sh_tex_pointdensity(StructRNA *srna)
 	func = RNA_def_function(srna, "calc_point_density", "rna_ShaderNodePointDensity_density_calc");
 	RNA_def_function_ui_description(func, "Calculate point density");
 	RNA_def_pointer(func, "scene", "Scene", "", "");
+	RNA_def_enum(func, "settings", calc_mode_items, 1, "", "Calculate density for rendering");
 	/* TODO, See how array size of 0 works, this shouldnt be used. */
 	prop = RNA_def_float_array(func, "rgba_values", 1, NULL, 0, 0, "", "RGBA Values", 0, 0);
 	RNA_def_property_flag(prop, PROP_DYNAMIC);

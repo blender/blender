@@ -1194,7 +1194,8 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 		if(b_node.is_a(&RNA_ShaderNodeTexPointDensity)) {
 			BL::ShaderNodeTexPointDensity b_point_density_node(b_node);
 			int length;
-			b_point_density_node.calc_point_density(b_scene, &length, &pixels);
+			int settings = background ? 1 : 0;  /* 1 - render settings, 0 - vewport settings. */
+			b_point_density_node.calc_point_density(b_scene, settings, &length, &pixels);
 		}
 	}
 
