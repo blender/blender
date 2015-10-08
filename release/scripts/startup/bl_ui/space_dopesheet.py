@@ -153,7 +153,8 @@ class DOPESHEET_HT_header(Header):
         row = layout.row(align=True)
         row.operator("action.copy", text="", icon='COPYDOWN')
         row.operator("action.paste", text="", icon='PASTEDOWN')
-        row.operator("action.paste", text="", icon='PASTEFLIPDOWN').flipped = True
+        if st.mode not in ('GPENCIL', 'MASK'):
+            row.operator("action.paste", text="", icon='PASTEFLIPDOWN').flipped = True
 
 
 class DOPESHEET_MT_editor_menus(Menu):
