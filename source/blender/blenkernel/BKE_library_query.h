@@ -38,6 +38,16 @@ enum {
 	IDWALK_NOP = 0,
 	IDWALK_NEVER_NULL = (1 << 0),
 	IDWALK_NEVER_SELF = (1 << 1),
+
+	/**
+	 * Adjusts #ID.us reference-count.
+	 * \note keep in sync with 'newlibadr_us' use in readfile.c
+	 */
+	IDWALK_USER = (1 << 8),
+	/**
+	 * Ensure #ID.us is at least 1 on use.
+	 */
+	IDWALK_USER_ONE = (1 << 9),
 };
 
 /* Call a callback for each ID link which the given ID uses.
