@@ -1246,7 +1246,7 @@ static int run_python_file(int argc, const char **argv, void *data)
 		/* Make the path absolute because its needed for relative linked blends to be found */
 		char filename[FILE_MAX];
 		BLI_strncpy(filename, argv[1], sizeof(filename));
-		BLI_path_cwd(filename);
+		BLI_path_cwd(filename, sizeof(filename));
 
 		BPY_CTX_SETUP(BPY_filepath_exec(C, filename, NULL));
 
@@ -1371,7 +1371,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 	}
 
 	BLI_strncpy(filename, argv[0], sizeof(filename));
-	BLI_path_cwd(filename);
+	BLI_path_cwd(filename, sizeof(filename));
 
 	if (G.background) {
 		Main *bmain;

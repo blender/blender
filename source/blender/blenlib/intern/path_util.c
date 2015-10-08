@@ -1202,7 +1202,7 @@ bool BLI_path_abs(char *path, const char *basepath)
  * \note Should only be done with command line paths.
  * this is _not_ something blenders internal paths support like the "//" prefix
  */
-bool BLI_path_cwd(char *path)
+bool BLI_path_cwd(char *path, const size_t maxlen)
 {
 	bool wasrelative = true;
 	const int filelen = strlen(path);
@@ -1216,24 +1216,15 @@ bool BLI_path_cwd(char *path)
 #endif
 	
 	if (wasrelative) {
-		char cwd[FILE_MAX] = "";
-		BLI_current_working_dir(cwd, sizeof(cwd)); /* in case the full path to the blend isn't used */
-		
-		if (cwd[0] == '\0') {
-			printf("Could not get the current working directory - $PWD for an unknown reason.\n");
-		}
-		else {
-			/* uses the blend path relative to cwd important for loading relative linked files.
-			 *
-			 * cwd should contain c:\ etc on win32 so the relbase can be NULL
-			 * relbase being NULL also prevents // being misunderstood as relative to the current
-			 * blend file which isn't a feature we want to use in this case since were dealing
-			 * with a path from the command line, rather than from inside Blender */
-
+		char cwd[FILE_MAX];
+		/* in case the full path to the blend isn't used */
+		if (BLI_current_working_dir(cwd, sizeof(cwd))) {
 			char origpath[FILE_MAX];
 			BLI_strncpy(origpath, path, FILE_MAX);
-			
-			BLI_make_file_string(NULL, path, cwd, origpath); 
+			BLI_join_dirfile(path, maxlen, cwd, origpath);
+		}
+		else {
+			printf("Could not get the current working directory - $PWD for an unknown reason.\n");
 		}
 	}
 	

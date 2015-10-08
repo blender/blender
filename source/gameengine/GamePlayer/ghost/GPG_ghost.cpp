@@ -855,7 +855,7 @@ int main(int argc, char** argv)
 
 				get_filename(argc_py_clamped, argv, filename);
 				if (filename[0])
-					BLI_path_cwd(filename);
+					BLI_path_cwd(filename, sizeof(filename));
 				
 
 				// fill the GlobalSettings with the first scene files

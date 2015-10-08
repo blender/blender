@@ -91,8 +91,14 @@ char *BLI_current_working_dir(char *dir, const size_t maxncpy)
 {
 	const char *pwd = getenv("PWD");
 	if (pwd) {
-		BLI_strncpy(dir, pwd, maxncpy);
-		return dir;
+		size_t srclen = BLI_strnlen(pwd, maxncpy);
+		if (srclen != maxncpy) {
+			memcpy(dir, pwd, srclen);
+			return dir;
+		}
+		else {
+			return NULL;
+		}
 	}
 
 	return getcwd(dir, maxncpy);
