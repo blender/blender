@@ -428,8 +428,8 @@ ccl_device_inline void qbvh_instance_push(KernelGlobals *kg,
 ccl_device_inline void bvh_instance_pop(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *dir, float3 *idir, ccl_addr_space float *t)
 {
 	if(*t != FLT_MAX) {
-		Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
-		*t *= len(transform_direction(&tfm, 1.0f/(*idir)));
+		Transform tfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+		*t /= len(transform_direction(&tfm, ray->D));
 	}
 
 	*P = ray->P;
@@ -441,8 +441,8 @@ ccl_device_inline void bvh_instance_pop(KernelGlobals *kg, int object, const Ray
 
 ccl_device_inline void bvh_instance_pop_factor(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *dir, float3 *idir, float *t_fac)
 {
-	Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
-	*t_fac = len(transform_direction(&tfm, 1.0f/(*idir)));
+	Transform tfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+	*t_fac = 1.0f / len(transform_direction(&tfm, ray->D));
 
 	*P = ray->P;
 	*dir = bvh_clamp_direction(ray->D);

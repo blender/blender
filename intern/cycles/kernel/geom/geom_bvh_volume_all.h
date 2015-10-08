@@ -232,8 +232,8 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #if BVH_FEATURE(BVH_MOTION)
 										float t_fac = len(transform_direction(&ob_tfm, 1.0f/idir));
 #else
-										Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
-										float t_fac = len(transform_direction(&tfm, 1.0f/idir));
+										Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+										float t_fac = 1.0f / len(transform_direction(&itfm, dir));
 #endif
 										for(int i = 0; i < num_hits_in_instance; i++) {
 											(isect_array-i-1)->t *= t_fac;
@@ -270,8 +270,8 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #  if BVH_FEATURE(BVH_MOTION)
 										float t_fac = len(transform_direction(&ob_tfm, 1.0f/idir));
 #  else
-										Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
-										float t_fac = len(transform_direction(&tfm, 1.0f/idir));
+										Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+										float t_fac = 1.0f / len(transform_direction(&itfm, dir));
 #endif
 										for(int i = 0; i < num_hits_in_instance; i++) {
 											(isect_array-i-1)->t *= t_fac;
@@ -313,8 +313,8 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 #  if BVH_FEATURE(BVH_MOTION)
 										float t_fac = len(transform_direction(&ob_tfm, 1.0f/idir));
 #  else
-										Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
-										float t_fac = len(transform_direction(&tfm, 1.0f/idir));
+										Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+										float t_fac = 1.0f / len(transform_direction(&itfm, dir));
 #endif
 										for(int i = 0; i < num_hits_in_instance; i++) {
 											(isect_array-i-1)->t *= t_fac;
