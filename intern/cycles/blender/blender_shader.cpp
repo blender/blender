@@ -290,7 +290,7 @@ static ShaderNode *add_node(Scene *scene,
 	else if(b_node.is_a(&RNA_ShaderNodeVectorTransform)) {
 		BL::ShaderNodeVectorTransform b_vector_transform_node(b_node);
 		VectorTransformNode *vtransform = new VectorTransformNode();
-		vtransform->type = VectorTransformNode::type_enum[b_vector_transform_node.type()];
+		vtransform->type = VectorTransformNode::type_enum[b_vector_transform_node.vector_type()];
 		vtransform->convert_from = VectorTransformNode::convert_space_enum[b_vector_transform_node.convert_from()];
 		vtransform->convert_to = VectorTransformNode::convert_space_enum[b_vector_transform_node.convert_to()];
 		node = vtransform;
