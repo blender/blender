@@ -5576,16 +5576,10 @@ static void lib_link_scene(FileData *fd, Main *main)
 					}
 				}
 				if (seq->clip) {
-					seq->clip = newlibadr(fd, sce->id.lib, seq->clip);
-					if (seq->clip) {
-						seq->clip->id.us++;
-					}
+					seq->clip = newlibadr_us(fd, sce->id.lib, seq->clip);
 				}
 				if (seq->mask) {
-					seq->mask = newlibadr(fd, sce->id.lib, seq->mask);
-					if (seq->mask) {
-						seq->mask->id.us++;
-					}
+					seq->mask = newlibadr_us(fd, sce->id.lib, seq->mask);
 				}
 				if (seq->scene_camera) {
 					seq->scene_camera = newlibadr(fd, sce->id.lib, seq->scene_camera);
@@ -7174,11 +7168,7 @@ static void lib_link_speaker(FileData *fd, Main *main)
 		if (spk->id.flag & LIB_NEED_LINK) {
 			if (spk->adt) lib_link_animdata(fd, &spk->id, spk->adt);
 			
-			spk->sound= newlibadr(fd, spk->id.lib, spk->sound);
-			if (spk->sound) {
-				spk->sound->id.us++;
-			}
-			
+			spk->sound = newlibadr_us(fd, spk->id.lib, spk->sound);
 			spk->id.flag -= LIB_NEED_LINK;
 		}
 	}
