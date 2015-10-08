@@ -88,11 +88,6 @@ typedef struct FluidsimSettings {
 	/* gravity strength */
 	float iniVelx, iniVely, iniVelz;
 
-	/* store pointer to original mesh (for replacing the current one) */
-	struct Mesh *orgMesh;
-	/* a mesh to display the bounding box used for simulation */
-	struct Mesh *meshBB;
-
 	/* store output path, and file prefix for baked fluid surface */
 	/* strlens; 256= FILE_MAXFILE, 768= FILE_MAXDIR */
 	char surfdataPath[1024];

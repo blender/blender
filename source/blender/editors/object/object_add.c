@@ -2023,9 +2023,6 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 					ID_NEW_US2(obn->data)
 					else {
 						obn->data = BKE_mesh_copy(obn->data);
-						if (obn->fluidsimSettings) {
-							obn->fluidsimSettings->orgMesh = (Mesh *)obn->data;
-						}
 						didit = 1;
 					}
 					id->us--;
