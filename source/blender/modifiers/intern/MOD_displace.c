@@ -41,6 +41,7 @@
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_texture.h"
@@ -129,7 +130,7 @@ static void foreachObjectLink(ModifierData *md, Object *ob,
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *) md;
 
-	walk(userData, ob, &dmd->map_object);
+	walk(userData, ob, &dmd->map_object, IDWALK_NOP);
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob,
@@ -137,7 +138,7 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *) md;
 
-	walk(userData, ob, (ID **)&dmd->texture);
+	walk(userData, ob, (ID **)&dmd->texture, IDWALK_USER);
 
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }

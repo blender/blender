@@ -41,6 +41,7 @@
 #include "BKE_data_transfer.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
 #include "BKE_modifier.h"
@@ -123,7 +124,7 @@ static void foreachObjectLink(
         ObjectWalkFunc walk, void *userData)
 {
 	DataTransferModifierData *dtmd = (DataTransferModifierData *) md;
-	walk(userData, ob, &dtmd->ob_source);
+	walk(userData, ob, &dtmd->ob_source, IDWALK_NOP);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

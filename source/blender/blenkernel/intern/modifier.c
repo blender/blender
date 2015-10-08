@@ -215,8 +215,7 @@ void modifiers_clearErrors(Object *ob)
 	}
 }
 
-void modifiers_foreachObjectLink(Object *ob, ObjectWalkFunc walk,
-                                 void *userData)
+void modifiers_foreachObjectLink(Object *ob, ObjectWalkFunc walk, void *userData)
 {
 	ModifierData *md = ob->modifiers.first;
 

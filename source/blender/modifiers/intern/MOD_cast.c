@@ -42,6 +42,7 @@
 
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_library_query.h"
 #include "BKE_modifier.h"
 
 
@@ -101,7 +102,7 @@ static void foreachObjectLink(
 {
 	CastModifierData *cmd = (CastModifierData *) md;
 
-	walk(userData, ob, &cmd->object);
+	walk(userData, ob, &cmd->object, IDWALK_NOP);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

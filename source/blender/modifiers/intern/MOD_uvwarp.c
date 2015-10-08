@@ -36,6 +36,7 @@
 #include "BKE_action.h"  /* BKE_pose_channel_find_name */
 #include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
+#include "BKE_library_query.h"
 #include "BKE_modifier.h"
 
 #include "depsgraph_private.h"
@@ -200,8 +201,8 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
 {
 	UVWarpModifierData *umd = (UVWarpModifierData *) md;
 
-	walk(userData, ob, &umd->object_dst);
-	walk(userData, ob, &umd->object_src);
+	walk(userData, ob, &umd->object_dst, IDWALK_NOP);
+	walk(userData, ob, &umd->object_src, IDWALK_NOP);
 }
 
 static void uv_warp_deps_object_bone(DagForest *forest, DagNode *obNode,

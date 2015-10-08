@@ -41,6 +41,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_library_query.h"
 #include "BKE_modifier.h"
 #include "BKE_shrinkwrap.h"
 
@@ -100,8 +101,8 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *) md;
 
-	walk(userData, ob, &smd->target);
-	walk(userData, ob, &smd->auxTarget);
+	walk(userData, ob, &smd->target, IDWALK_NOP);
+	walk(userData, ob, &smd->auxTarget, IDWALK_NOP);
 }
 
 static void deformVerts(ModifierData *md, Object *ob,

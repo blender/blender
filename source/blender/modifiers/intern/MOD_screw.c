@@ -44,6 +44,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_library_query.h"
 
 #include "depsgraph_private.h"
 #include "DEG_depsgraph_build.h"
@@ -1094,7 +1095,7 @@ static void foreachObjectLink(
 {
 	ScrewModifierData *ltmd = (ScrewModifierData *) md;
 
-	walk(userData, ob, &ltmd->ob_axis);
+	walk(userData, ob, &ltmd->ob_axis, IDWALK_NOP);
 }
 
 ModifierTypeInfo modifierType_Screw = {

@@ -38,6 +38,7 @@
 #include "BLI_bitmap.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_library_query.h"
 #include "BKE_mesh.h"
 #include "BKE_deform.h"
 
@@ -450,7 +451,7 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
 {
 	NormalEditModifierData *smd = (NormalEditModifierData *) md;
 
-	walk(userData, ob, &smd->target);
+	walk(userData, ob, &smd->target, IDWALK_NOP);
 }
 
 static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))

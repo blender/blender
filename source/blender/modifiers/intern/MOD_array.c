@@ -48,6 +48,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_curve.h"
+#include "BKE_library_query.h"
 #include "BKE_modifier.h"
 
 #include "MOD_util.h"
@@ -94,10 +95,10 @@ static void foreachObjectLink(
 {
 	ArrayModifierData *amd = (ArrayModifierData *) md;
 
-	walk(userData, ob, &amd->start_cap);
-	walk(userData, ob, &amd->end_cap);
-	walk(userData, ob, &amd->curve_ob);
-	walk(userData, ob, &amd->offset_ob);
+	walk(userData, ob, &amd->start_cap, IDWALK_NOP);
+	walk(userData, ob, &amd->end_cap, IDWALK_NOP);
+	walk(userData, ob, &amd->curve_ob, IDWALK_NOP);
+	walk(userData, ob, &amd->offset_ob, IDWALK_NOP);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

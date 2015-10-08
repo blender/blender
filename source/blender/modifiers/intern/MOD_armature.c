@@ -45,6 +45,7 @@
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_lattice.h"
+#include "BKE_library_query.h"
 #include "BKE_modifier.h"
 
 #include "MEM_guardedalloc.h"
@@ -95,7 +96,7 @@ static void foreachObjectLink(
 {
 	ArmatureModifierData *amd = (ArmatureModifierData *) md;
 
-	walk(userData, ob, &amd->object);
+	walk(userData, ob, &amd->object, IDWALK_NOP);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

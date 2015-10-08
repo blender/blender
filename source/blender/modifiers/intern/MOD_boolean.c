@@ -40,6 +40,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_library_query.h"
 #include "BKE_modifier.h"
 
 #include "depsgraph_private.h"
@@ -69,7 +70,7 @@ static void foreachObjectLink(
 {
 	BooleanModifierData *bmd = (BooleanModifierData *) md;
 
-	walk(userData, ob, &bmd->object);
+	walk(userData, ob, &bmd->object, IDWALK_NOP);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

@@ -45,6 +45,7 @@
 
 
 #include "BKE_camera.h"
+#include "BKE_library_query.h"
 #include "BKE_mesh.h"
 #include "BKE_DerivedMesh.h"
 
@@ -91,7 +92,7 @@ static void foreachObjectLink(ModifierData *md, Object *ob,
 	int i;
 
 	for (i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; ++i)
-		walk(userData, ob, &umd->projectors[i]);
+		walk(userData, ob, &umd->projectors[i], IDWALK_NOP);
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob,
@@ -99,7 +100,7 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 {
 	UVProjectModifierData *umd = (UVProjectModifierData *) md;
 
-	walk(userData, ob, (ID **)&umd->image);
+	walk(userData, ob, (ID **)&umd->image, IDWALK_USER);
 
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }

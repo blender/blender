@@ -42,6 +42,7 @@
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_lattice.h"
+#include "BKE_library_query.h"
 #include "BKE_modifier.h"
 
 #include "depsgraph_private.h"
@@ -88,7 +89,7 @@ static void foreachObjectLink(
 {
 	CurveModifierData *cmd = (CurveModifierData *) md;
 
-	walk(userData, ob, &cmd->object);
+	walk(userData, ob, &cmd->object, IDWALK_NOP);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

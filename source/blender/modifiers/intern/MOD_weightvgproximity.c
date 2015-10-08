@@ -42,6 +42,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
 #include "BKE_modifier.h"
 #include "BKE_texture.h"          /* Texture masking. */
 
@@ -290,15 +291,15 @@ static bool dependsOnTime(ModifierData *md)
 static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
 {
 	WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *) md;
-	walk(userData, ob, &wmd->proximity_ob_target);
-	walk(userData, ob, &wmd->mask_tex_map_obj);
+	walk(userData, ob, &wmd->proximity_ob_target, IDWALK_NOP);
+	walk(userData, ob, &wmd->mask_tex_map_obj, IDWALK_NOP);
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
 	WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *) md;
 
-	walk(userData, ob, (ID **)&wmd->mask_texture);
+	walk(userData, ob, (ID **)&wmd->mask_texture, IDWALK_USER);
 
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }

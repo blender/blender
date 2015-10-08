@@ -46,6 +46,7 @@
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_lattice.h"
+#include "BKE_library_query.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -144,7 +145,7 @@ static void foreachObjectLink(ModifierData *md, Object *ob,
 {
 	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *) md;
 
-	walk(userData, ob, &pimd->ob);
+	walk(userData, ob, &pimd->ob, IDWALK_NOP);
 }
 
 static int particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *psys, int p)

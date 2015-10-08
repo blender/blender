@@ -124,6 +124,7 @@
 #include "BKE_global.h" // for G
 #include "BKE_group.h"
 #include "BKE_library.h" // for which_libbase
+#include "BKE_library_query.h"
 #include "BKE_idcode.h"
 #include "BKE_material.h"
 #include "BKE_main.h" // for Main
@@ -4589,15 +4590,15 @@ static void direct_link_latt(FileData *fd, Lattice *lt)
 
 /* ************ READ OBJECT ***************** */
 
-static void lib_link_modifiers__linkModifiers(void *userData, Object *ob,
-                                              ID **idpoin)
+static void lib_link_modifiers__linkModifiers(
+        void *userData, Object *ob, ID **idpoin, int cd_flag)
 {
 	FileData *fd = userData;
 
 	*idpoin = newlibadr(fd, ob->id.lib, *idpoin);
-	/* hardcoded bad exception; non-object modifier data gets user count (texture, displace) */
-	if (*idpoin && GS((*idpoin)->name)!=ID_OB)
+	if (cd_flag & IDWALK_USER) {
 		(*idpoin)->us++;
+	}
 }
 static void lib_link_modifiers(FileData *fd, Object *ob)
 {
@@ -8999,8 +9000,8 @@ static void expand_armature(FileData *fd, Main *mainvar, bArmature *arm)
 #endif
 }
 
-static void expand_object_expandModifiers(void *userData, Object *UNUSED(ob),
-                                          ID **idpoin)
+static void expand_object_expandModifiers(
+        void *userData, Object *UNUSED(ob), ID **idpoin, int UNUSED(cd_flag))
 {
 	struct { FileData *fd; Main *mainvar; } *data= userData;
 	

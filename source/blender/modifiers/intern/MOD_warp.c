@@ -36,6 +36,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_library_query.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
 #include "BKE_texture.h"
@@ -115,16 +116,16 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
 {
 	WarpModifierData *wmd = (WarpModifierData *) md;
 
-	walk(userData, ob, &wmd->object_from);
-	walk(userData, ob, &wmd->object_to);
-	walk(userData, ob, &wmd->map_object);
+	walk(userData, ob, &wmd->object_from, IDWALK_NOP);
+	walk(userData, ob, &wmd->object_to, IDWALK_NOP);
+	walk(userData, ob, &wmd->map_object, IDWALK_NOP);
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
 	WarpModifierData *wmd = (WarpModifierData *) md;
 
-	walk(userData, ob, (ID **)&wmd->texture);
+	walk(userData, ob, (ID **)&wmd->texture, IDWALK_USER);
 
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }

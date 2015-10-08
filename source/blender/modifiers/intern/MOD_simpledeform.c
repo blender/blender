@@ -40,6 +40,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_library_query.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
 
@@ -284,7 +285,7 @@ static void foreachObjectLink(
         ObjectWalkFunc walk, void *userData)
 {
 	SimpleDeformModifierData *smd  = (SimpleDeformModifierData *)md;
-	walk(userData, ob, &smd->origin);
+	walk(userData, ob, &smd->origin, IDWALK_NOP);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

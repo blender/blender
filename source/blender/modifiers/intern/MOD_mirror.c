@@ -39,6 +39,7 @@
 #include "BLI_math.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_library_query.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
 
@@ -71,7 +72,7 @@ static void foreachObjectLink(
 {
 	MirrorModifierData *mmd = (MirrorModifierData *) md;
 
-	walk(userData, ob, &mmd->mirror_ob);
+	walk(userData, ob, &mmd->mirror_ob, IDWALK_NOP);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,
