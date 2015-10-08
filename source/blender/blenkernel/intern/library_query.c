@@ -47,6 +47,7 @@
 #include "DNA_mask_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_force.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_screen_types.h"
@@ -249,11 +250,28 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				}
 			}
 
+			if (object->pd) {
+				CALLBACK_INVOKE(object->pd->tex, IDWALK_NOP);
+				CALLBACK_INVOKE(object->pd->f_source, IDWALK_NOP);
+			}
+
 			if (object->pose) {
 				bPoseChannel *pchan;
 				for (pchan = object->pose->chanbase.first; pchan; pchan = pchan->next) {
 					CALLBACK_INVOKE(pchan->custom, IDWALK_NOP);
 					BKE_constraints_id_loop(&pchan->constraints, library_foreach_constraintObjectLooper, &data);
+				}
+			}
+
+			if (object->rigidbody_constraint) {
+				CALLBACK_INVOKE(object->rigidbody_constraint->ob1, IDWALK_NOP);
+				CALLBACK_INVOKE(object->rigidbody_constraint->ob2, IDWALK_NOP);
+			}
+
+			if (object->lodlevels.first) {
+				LodLevel *level;
+				for (level = object->lodlevels.first; level; level = level->next) {
+					CALLBACK_INVOKE(level->source, IDWALK_NOP);
 				}
 			}
 
