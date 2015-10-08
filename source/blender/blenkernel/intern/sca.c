@@ -48,6 +48,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
 #include "BKE_sca.h"
 
 /* ******************* SENSORS ************************ */
@@ -900,6 +901,179 @@ void unlink_logicbricks(void **poin, void ***ppoin, short *tot)
 			(*ppoin)= NULL;
 		}
 		return;
+	}
+}
+
+void BKE_sca_sensors_id_loop(ListBase *senslist, SCASensorIDFunc func, void *userdata)
+{
+	bSensor *sensor;
+
+	for (sensor = senslist->first; sensor; sensor = sensor->next) {
+		func(sensor, (ID **)&sensor->ob, userdata, IDWALK_NOP);
+
+		switch (sensor->type) {
+			case SENS_TOUCH:  /* DEPRECATED */
+			{
+				bTouchSensor *ts = sensor->data;
+				func(sensor, (ID **)&ts->ma, userdata, IDWALK_NOP);
+				break;
+			}
+			case SENS_MESSAGE:
+			{
+				bMessageSensor *ms = sensor->data;
+				func(sensor, (ID **)&ms->fromObject, userdata, IDWALK_NOP);
+				break;
+			}
+			case SENS_ALWAYS:
+			case SENS_NEAR:
+			case SENS_KEYBOARD:
+			case SENS_PROPERTY:
+			case SENS_MOUSE:
+			case SENS_COLLISION:
+			case SENS_RADAR:
+			case SENS_RANDOM:
+			case SENS_RAY:
+			case SENS_JOYSTICK:
+			case SENS_ACTUATOR:
+			case SENS_DELAY:
+			case SENS_ARMATURE:
+			default:
+				break;
+		}
+	}
+}
+
+void BKE_sca_controllers_id_loop(ListBase *contlist, SCAControllerIDFunc func, void *userdata)
+{
+	bController *controller;
+
+	for (controller = contlist->first; controller; controller = controller->next) {
+		switch (controller->type) {
+			case CONT_PYTHON:
+			{
+				bPythonCont *pc = controller->data;
+				func(controller, (ID **)&pc->text, userdata, IDWALK_NOP);
+				break;
+			}
+			case CONT_LOGIC_AND:
+			case CONT_LOGIC_OR:
+			case CONT_EXPRESSION:
+			case CONT_LOGIC_NAND:
+			case CONT_LOGIC_NOR:
+			case CONT_LOGIC_XOR:
+			case CONT_LOGIC_XNOR:
+			default:
+				break;
+		}
+	}
+}
+
+void BKE_sca_actuators_id_loop(ListBase *actlist, SCAActuatorIDFunc func, void *userdata)
+{
+	bActuator *actuator;
+
+	for (actuator = actlist->first; actuator; actuator = actuator->next) {
+		func(actuator, (ID **)&actuator->ob, userdata, IDWALK_NOP);
+
+		switch (actuator->type) {
+			case ACT_ADD_OBJECT:  /* DEPRECATED */
+			{
+				bAddObjectActuator *aoa = actuator->data;
+				func(actuator, (ID **)&aoa->ob, userdata, IDWALK_NOP);
+				break;
+			}
+			case ACT_ACTION:
+			{
+				bActionActuator *aa = actuator->data;
+				func(actuator, (ID **)&aa->act, userdata, IDWALK_NOP);
+				break;
+			}
+			case ACT_SOUND:
+			{
+				bSoundActuator *sa = actuator->data;
+				func(actuator, (ID **)&sa->sound, userdata, IDWALK_NOP);
+				break;
+			}
+			case ACT_EDIT_OBJECT:
+			{
+				bEditObjectActuator *eoa = actuator->data;
+				func(actuator, (ID **)&eoa->ob, userdata, IDWALK_NOP);
+				func(actuator, (ID **)&eoa->me, userdata, IDWALK_NOP);
+				break;
+			}
+			case ACT_SCENE:
+			{
+				bSceneActuator *sa = actuator->data;
+				func(actuator, (ID **)&sa->scene, userdata, IDWALK_NOP);
+				func(actuator, (ID **)&sa->camera, userdata, IDWALK_NOP);
+				break;
+			}
+			case ACT_PROPERTY:
+			{
+				bPropertyActuator *pa = actuator->data;
+				func(actuator, (ID **)&pa->ob, userdata, IDWALK_NOP);
+				break;
+			}
+			case ACT_OBJECT:
+			{
+				bObjectActuator *oa = actuator->data;
+				func(actuator, (ID **)&oa->reference, userdata, IDWALK_NOP);
+				break;
+			}
+			case ACT_CAMERA:
+			{
+				bCameraActuator *ca = actuator->data;
+				func(actuator, (ID **)&ca->ob, userdata, IDWALK_NOP);
+				break;
+			}
+			case ACT_MESSAGE:
+			{
+				bMessageActuator *ma = actuator->data;
+				func(actuator, (ID **)&ma->toObject, userdata, IDWALK_NOP);
+				break;
+			}
+			case ACT_2DFILTER:
+			{
+				bTwoDFilterActuator *tdfa = actuator->data;
+				func(actuator, (ID **)&tdfa->text, userdata, IDWALK_NOP);
+				break;
+			}
+			case ACT_PARENT:
+			{
+				bParentActuator *pa = actuator->data;
+				func(actuator, (ID **)&pa->ob, userdata, IDWALK_NOP);
+				break;
+			}
+			case ACT_ARMATURE:
+			{
+				bArmatureActuator *aa = actuator->data;
+				func(actuator, (ID **)&aa->target, userdata, IDWALK_NOP);
+				func(actuator, (ID **)&aa->subtarget, userdata, IDWALK_NOP);
+				break;
+			}
+			case ACT_STEERING:
+			{
+				bSteeringActuator *sa = actuator->data;
+				func(actuator, (ID **)&sa->target, userdata, IDWALK_NOP);
+				func(actuator, (ID **)&sa->navmesh, userdata, IDWALK_NOP);
+				break;
+			}
+			/* Note: some types seems to be non-implemented? ACT_LAMP, ACT_MATERIAL... */
+			case ACT_IPO:  /* DEPRECATED */
+			case ACT_LAMP:
+			case ACT_MATERIAL:
+			case ACT_END_OBJECT:  /* DEPRECATED */
+			case ACT_CONSTRAINT:
+			case ACT_GROUP:
+			case ACT_RANDOM:
+			case ACT_GAME:
+			case ACT_VISIBILITY:
+			case ACT_SHAPEACTION:
+			case ACT_STATE:
+			case ACT_MOUSE:
+			default:
+				break;
+		}
 	}
 }
 
