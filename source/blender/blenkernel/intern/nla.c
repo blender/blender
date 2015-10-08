@@ -1778,7 +1778,7 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
 		}
 		return false;
 	}
-		
+	
 	/* go over all the tracks up to the active one, tagging each strip that uses the same 
 	 * action as the active strip, but leaving everything else alone
 	 */
@@ -1859,8 +1859,19 @@ void BKE_nla_tweakmode_exit(AnimData *adt)
 	for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
 		nlt->flag &= ~NLATRACK_DISABLED;
 		
-		for (strip = nlt->strips.first; strip; strip = strip->next)
+		for (strip = nlt->strips.first; strip; strip = strip->next) {
+			/* sync strip extents if this strip uses the same action */
+			if ((adt->actstrip) && (adt->actstrip->act == strip->act) && (strip->flag & NLASTRIP_FLAG_SYNC_LENGTH)) {
+				/* recalculate the length of the action */
+				calc_action_range(strip->act, &strip->actstart, &strip->actend, 0);
+				
+				/* adjust the strip extents in response to this */
+				BKE_nlastrip_recalculate_bounds(strip);
+			}
+			
+			/* clear tweakuser flag */
 			strip->flag &= ~NLASTRIP_FLAG_TWEAKUSER;
+		}
 	}
 	
 	/* handle AnimData level changes:
