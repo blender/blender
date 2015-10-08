@@ -93,7 +93,7 @@ char *BLI_current_working_dir(char *dir, const size_t maxncpy)
 	if (pwd) {
 		size_t srclen = BLI_strnlen(pwd, maxncpy);
 		if (srclen != maxncpy) {
-			memcpy(dir, pwd, srclen);
+			memcpy(dir, pwd, srclen + 1);
 			return dir;
 		}
 		else {
