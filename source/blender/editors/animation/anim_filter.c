@@ -2016,7 +2016,7 @@ typedef struct tAnimFilterModifiersContext {
 
 
 /* dependency walker callback for modifier dependencies */
-static void animfilter_modifier_idpoin_cb(void *afm_ptr, Object *ob, ID **idpoin)
+static void animfilter_modifier_idpoin_cb(void *afm_ptr, Object *ob, ID **idpoin, int UNUSED(cd_flag))
 {
 	tAnimFilterModifiersContext *afm = (tAnimFilterModifiersContext *)afm_ptr;
 	ID *owner_id = &ob->id;
