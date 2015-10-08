@@ -141,7 +141,7 @@ void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
 {
 	memset(gs, 0, sizeof(*gs));
 	
-	copy_v4_v4(gs->vec, ns->vec);
+	nodestack_get_vec(gs->vec, type, ns);
 	gs->link = ns->data;
 	
 	if (type == SOCK_FLOAT)
