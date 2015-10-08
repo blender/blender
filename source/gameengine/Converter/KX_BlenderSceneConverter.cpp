@@ -108,12 +108,12 @@ extern "C" {
 	#include "../../blender/blenlib/BLI_linklist.h"
 }
 
-#include <pthread.h>
+#include "BLI_task.h"
 
-/* This is used to avoid including pthread.h in KX_BlenderSceneConverter.h */
+// This is used to avoid including BLI_task.h in KX_BlenderSceneConverter.h
 typedef struct ThreadInfo {
-	vector<pthread_t>	threads;
-	pthread_mutex_t		merge_lock;
+	TaskPool *m_pool;
+	ThreadMutex m_mutex;
 } ThreadInfo;
 
 KX_BlenderSceneConverter::KX_BlenderSceneConverter(
@@ -129,7 +129,8 @@ KX_BlenderSceneConverter::KX_BlenderSceneConverter(
 	BKE_main_id_tag_all(maggie, false);  /* avoid re-tagging later on */
 	m_newfilename = "";
 	m_threadinfo = new ThreadInfo();
-	pthread_mutex_init(&m_threadinfo->merge_lock, NULL);
+	m_threadinfo->m_pool = BLI_task_pool_create(engine->GetTaskScheduler(), NULL);
+	BLI_mutex_init(&m_threadinfo->m_mutex);
 }
 
 KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
@@ -138,13 +139,10 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 	// delete sumoshapes
 
 	if (m_threadinfo) {
-		vector<pthread_t>::iterator pit = m_threadinfo->threads.begin();
-		while (pit != m_threadinfo->threads.end()) {
-			pthread_join((*pit), NULL);
-			pit++;
-		}
+		BLI_task_pool_work_and_wait(m_threadinfo->m_pool);
+		BLI_task_pool_free(m_threadinfo->m_pool);
 
-		pthread_mutex_destroy(&m_threadinfo->merge_lock);
+		BLI_mutex_end(&m_threadinfo->m_mutex);
 		delete m_threadinfo;
 	}
 
@@ -787,7 +785,7 @@ void KX_BlenderSceneConverter::MergeAsyncLoads()
 	vector<KX_LibLoadStatus *>::iterator mit;
 	vector<KX_Scene *>::iterator sit;
 
-	pthread_mutex_lock(&m_threadinfo->merge_lock);
+	BLI_mutex_lock(&m_threadinfo->m_mutex);
 
 	for (mit = m_mergequeue.begin(); mit != m_mergequeue.end(); ++mit) {
 		merge_scenes = (vector<KX_Scene *> *)(*mit)->GetData();
@@ -805,17 +803,17 @@ void KX_BlenderSceneConverter::MergeAsyncLoads()
 
 	m_mergequeue.clear();
 
-	pthread_mutex_unlock(&m_threadinfo->merge_lock);
+	BLI_mutex_unlock(&m_threadinfo->m_mutex);
 }
 
 void KX_BlenderSceneConverter::AddScenesToMergeQueue(KX_LibLoadStatus *status)
 {
-	pthread_mutex_lock(&m_threadinfo->merge_lock);
+	BLI_mutex_lock(&m_threadinfo->m_mutex);
 	m_mergequeue.push_back(status);
-	pthread_mutex_unlock(&m_threadinfo->merge_lock);
+	BLI_mutex_unlock(&m_threadinfo->m_mutex);
 }
 
-static void *async_convert(void *ptr)
+static void async_convert(TaskPool *pool, void *ptr, int UNUSED(threadid))
 {
 	KX_Scene *new_scene = NULL;
 	KX_LibLoadStatus *status = (KX_LibLoadStatus *)ptr;
@@ -835,8 +833,6 @@ static void *async_convert(void *ptr)
 	status->SetData(merge_scenes);
 
 	status->GetConverter()->AddScenesToMergeQueue(status);
-
-	return NULL;
 }
 
 KX_LibLoadStatus *KX_BlenderSceneConverter::LinkBlendFileMemory(void *data, int length, const char *path, char *group, KX_Scene *scene_merge, char **err_str, short options)
@@ -981,10 +977,8 @@ KX_LibLoadStatus *KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openl
 		}
 
 		if (options & LIB_LOAD_ASYNC) {
-			pthread_t id;
 			status->SetData(scenes);
-			pthread_create(&id, NULL, &async_convert, (void *)status);
-			m_threadinfo->threads.push_back(id);
+			BLI_task_pool_push(m_threadinfo->m_pool, async_convert, (void *)status, false, TASK_PRIORITY_LOW);
 		}
 
 #ifdef WITH_PYTHON
