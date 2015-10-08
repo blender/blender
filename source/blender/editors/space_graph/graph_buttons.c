@@ -355,7 +355,12 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 		
 		/* interpolation */
 		col = uiLayoutColumn(layout, false);
-		uiItemR(col, &bezt_ptr, "interpolation", 0, NULL, ICON_NONE);
+		if (fcu->flag & FCURVE_DISCRETE_VALUES) {
+			uiItemL(col, IFACE_("Interpolation: Enums/Booleans cannot be interpolated"), ICON_NONE);
+		}
+		else {
+			uiItemR(col, &bezt_ptr, "interpolation", 0, NULL, ICON_NONE);
+		}
 		
 		/* easing type */
 		if (bezt->ipo > BEZT_IPO_BEZ)
