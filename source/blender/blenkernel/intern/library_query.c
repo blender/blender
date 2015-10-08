@@ -81,16 +81,19 @@
 			/* TODO(sergey): Make it less creepy without too much duplicated code.. */ \
 			return; \
 		} \
-	} (void) 0
+	} ((void)0)
 
 #define FOREACH_CALLBACK_INVOKE_ID(self_id, id, flag, callback, user_data, cb_flag) \
-	FOREACH_CALLBACK_INVOKE_ID_PP(self_id, &(id), flag, callback, user_data, cb_flag) \
+	{ \
+		CHECK_TYPE_ANY(id, ID *, void *); \
+		FOREACH_CALLBACK_INVOKE_ID_PP(self_id, (ID **)&(id), flag, callback, user_data, cb_flag); \
+	} ((void)0)
 
 #define FOREACH_CALLBACK_INVOKE(self_id, id_super, flag, callback, user_data, cb_flag) \
 	{ \
 		CHECK_TYPE(&((id_super)->id), ID *); \
 		FOREACH_CALLBACK_INVOKE_ID_PP(self_id, (ID **)&id_super, flag, callback, user_data, cb_flag); \
-	} (void) 0
+	} ((void)0)
 
 typedef struct LibraryForeachIDData {
 	ID *self_id;
@@ -230,6 +233,19 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 		case ID_OB:
 		{
 			Object *object = (Object *) id;
+
+			/* object data special case */
+			if (object->type == OB_EMPTY) {
+				/* empty can have NULL or Image */
+				CALLBACK_INVOKE_ID(object->data, IDWALK_NOP);
+			}
+			else {
+				/* when set, this can't be NULL */
+				if (object->data) {
+					CALLBACK_INVOKE_ID(object->data, IDWALK_NEVER_NULL);
+				}
+			}
+
 			CALLBACK_INVOKE(object->parent, IDWALK_NOP);
 			CALLBACK_INVOKE(object->track, IDWALK_NOP);
 			CALLBACK_INVOKE(object->proxy, IDWALK_NOP);
