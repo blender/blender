@@ -1178,7 +1178,34 @@ static void nlastrip_fix_resize_overlaps(NlaStrip *strip)
 		NlaStrip *nls = strip->next;
 		float offset = 0.0f;
 		
-		if (strip->end > nls->start) {
+		if (nls->type == NLASTRIP_TYPE_TRANSITION) {
+			/* transition strips should grow/shrink to accomodate the resized strip,
+			 * but if the strip's bounds now exceed the transition, we're forced to
+			 * offset everything to maintain the balance
+			 */
+			if (strip->end <= nls->start) {
+				/* grow the transition to fill the void */
+				nls->start = strip->end;
+			}
+			else if (strip->end < nls->end) {
+				/* shrink the transition to give the strip room */
+				nls->start = strip->end;
+			}
+			else {
+				/* shrink transition down to 1 frame long (so that it can still be found),
+				 * then offset everything else by the remaining defict to give the strip room
+				 */
+				nls->start = nls->end - 1.0f;
+				offset     = ceilf(strip->end - nls->start);  /* XXX: review whether preventing fractionals is good here... */
+				
+				/* apply necessary offset to ensure that the strip has enough space */
+				for (; nls; nls = nls->next) {
+					nls->start += offset;
+					nls->end   += offset;
+				}
+			}
+		}
+		else if (strip->end > nls->start) {
 			/* NOTE: need to ensure we don't have a fractional frame offset, even if that leaves a gap,
 			 * otherwise it will be very hard to get rid of later
 			 */
@@ -1198,7 +1225,34 @@ static void nlastrip_fix_resize_overlaps(NlaStrip *strip)
 		NlaStrip *nls = strip->prev;
 		float offset = 0.0f;
 		
-		if (strip->start < nls->end) {
+		if (nls->type == NLASTRIP_TYPE_TRANSITION) {
+			/* transition strips should grow/shrink to accomodate the resized strip,
+			 * but if the strip's bounds now exceed the transition, we're forced to
+			 * offset everything to maintain the balance
+			 */
+			if (strip->start >= nls->end) {
+				/* grow the transition to fill the void */
+				nls->end = strip->start;
+			}
+			else if (strip->start > nls->start) {
+				/* shrink the transition to give the strip room */
+				nls->end = strip->start;
+			}
+			else {
+				/* shrink transition down to 1 frame long (so that it can still be found),
+				 * then offset everything else by the remaining defict to give the strip room
+				 */
+				nls->end = nls->start + 1.0f;
+				offset   = ceilf(nls->end - strip->start);  /* XXX: review whether preventing fractionals is good here... */
+				
+				/* apply necessary offset to ensure that the strip has enough space */
+				for (; nls; nls = nls->next) {
+					nls->start -= offset;
+					nls->end   -= offset;
+				}
+			}
+		}
+		else if (strip->start < nls->end) {
 			/* NOTE: need to ensure we don't have a fractional frame offset, even if that leaves a gap,
 			 * otherwise it will be very hard to get rid of later
 			 */
