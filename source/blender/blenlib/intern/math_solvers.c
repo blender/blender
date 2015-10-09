@@ -59,3 +59,16 @@ bool BLI_eigen_solve_selfadjoint_m3(const float m3[3][3], float r_eigen_values[3
 
 	return EG3_self_adjoint_eigen_solve(3, (const float *)m3, r_eigen_values, (float *)r_eigen_vectors);
 }
+
+/**
+ * \brief Compute the SVD (Singular Values Decomposition) of given 3D  matrix (m3 = USV*).
+ *
+ * \param m3 the matrix to decompose.
+ * \return r_U the computed left singular vector of \a m3 (NULL if not needed).
+ * \return r_S the computed singular values of \a m3 (NULL if not needed).
+ * \return r_V the computed right singular vector of \a m3 (NULL if not needed).
+ */
+void BLI_svd_m3(const float m3[3][3], float r_U[3][3], float r_S[3], float r_V[3][3])
+{
+	EG3_svd_square_matrix(3, (const float *)m3, (float *)r_U, (float *)r_S, (float *)r_V);
+}

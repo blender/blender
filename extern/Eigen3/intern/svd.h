@@ -24,10 +24,17 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __EIGEN3_C_API_H__
-#define __EIGEN3_C_API_H__
+#ifndef __EIGEN3_SVD_C_API_H__
+#define __EIGEN3_SVD_C_API_H__
 
-#include "intern/eigenvalues.h"
-#include "intern/svd.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#endif  /* __EIGEN3_C_API_H__ */
+void EG3_svd_square_matrix(const int size, const float *matrix, float *r_U, float *r_S, float *r_V);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  /* __EIGEN3_SVD_C_API_H__ */

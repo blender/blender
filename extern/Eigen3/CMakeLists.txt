@@ -34,8 +34,10 @@ set(SRC
 	eigen3_capi.h
 
 	intern/eigenvalues.cc
+	intern/svd.cc
 
 	intern/eigenvalues.h
+	intern/svd.h
 )
 
 blender_add_lib(extern_eigen3 "${SRC}" "${INC}" "${INC_SYS}")
