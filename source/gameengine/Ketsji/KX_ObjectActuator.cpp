@@ -276,8 +276,16 @@ bool KX_ObjectActuator::Update()
 			{
 				parent->ApplyRotation(m_drot,(m_bitLocalFlag.DRot) != 0);
 			}
-			if (!m_bitLocalFlag.ZeroLinearVelocity)
-			{
+
+			if (m_bitLocalFlag.ZeroLinearVelocity) {
+				if (!m_bitLocalFlag.AddOrSetLinV) {
+					/* No need to select local or world, as the velocity is zero anyway,
+					 * and setLinearVelocity() converts local to world first. We do need to
+					 * pass a true zero vector, as m_linear_velocity is only fuzzily zero. */
+					parent->setLinearVelocity(MT_Vector3(0, 0, 0), false);
+				}
+			}
+			else {
 				if (m_bitLocalFlag.AddOrSetLinV) {
 					parent->addLinearVelocity(m_linear_velocity,(m_bitLocalFlag.LinearVelocity) != 0);
 				} else {
@@ -302,8 +310,13 @@ bool KX_ObjectActuator::Update()
 					}
 				}
 			}
-			if (!m_bitLocalFlag.ZeroAngularVelocity)
-			{
+			if (m_bitLocalFlag.ZeroAngularVelocity) {
+				/* No need to select local or world, as the velocity is zero anyway,
+				 * and setAngularVelocity() converts local to world first. We do need to
+				 * pass a true zero vector, as m_angular_velocity is only fuzzily zero. */
+				parent->setAngularVelocity(MT_Vector3(0, 0, 0), false);
+			}
+			else {
 				m_active_combined_velocity = true;
 				if (m_damping > 0) {
 					MT_Vector3 angV;
