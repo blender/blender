@@ -612,15 +612,20 @@ static int view_zoom_poll(bContext *C)
 	
 	/* check if there's a region in context to work with */
 	if (ar == NULL)
-		return 0;
+		return false;
+
+	/* Do not show that in 3DView context. */
+	if (CTX_wm_region_view3d(C))
+		return false;
+
 	v2d = &ar->v2d;
 	
 	/* check that 2d-view is zoomable */
 	if ((v2d->keepzoom & V2D_LOCKZOOM_X) && (v2d->keepzoom & V2D_LOCKZOOM_Y))
-		return 0;
+		return false;
 		
 	/* view is zoomable */
-	return 1;
+	return true;
 }
  
 /* apply transform to view (i.e. adjust 'cur' rect) */
