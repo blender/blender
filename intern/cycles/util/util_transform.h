@@ -348,9 +348,9 @@ ccl_device_inline Transform transform_quick_inverse(Transform M)
 	Transform R;
 	float det = M.x.x*(M.z.z*M.y.y - M.z.y*M.y.z) - M.y.x*(M.z.z*M.x.y - M.z.y*M.x.z) + M.z.x*(M.y.z*M.x.y - M.y.y*M.x.z);
 	if(det == 0.0f) {
-		M[0][0] += 1e-8f;
-		M[1][1] += 1e-8f;
-		M[2][2] += 1e-8f;
+		M.x.x += 1e-8f;
+		M.y.y += 1e-8f;
+		M.z.z += 1e-8f;
 		det = M.x.x*(M.z.z*M.y.y - M.z.y*M.y.z) - M.y.x*(M.z.z*M.x.y - M.z.y*M.x.z) + M.z.x*(M.y.z*M.x.y - M.y.y*M.x.z);
 	}
 	det = (det != 0.0f)? 1.0f/det: 0.0f;
