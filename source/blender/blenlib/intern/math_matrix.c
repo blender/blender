@@ -1521,6 +1521,34 @@ void mat4_decompose(float loc[3], float quat[4], float size[3], float wmat[4][4]
 	mat3_to_quat(quat, rot);
 }
 
+/**
+ * Right polar decomposition:
+ *     M = UP
+ *
+ * U is the 'rotation'-like component, the closest orthogonal matrix to M.
+ * P is the 'scaling'-like component, defined in U space.
+ *
+ * See https://en.wikipedia.org/wiki/Polar_decomposition for more.
+ */
+void mat3_polar_decompose(float mat3[3][3], float r_U[3][3], float r_P[3][3])
+{
+	/* From svd decomposition (M = WSV*), we have:
+	 *     U = WV*
+	 *     P = VSV*
+	 */
+	float W[3][3], S[3][3], V[3][3], Vt[3][3];
+	float sval[3];
+
+	BLI_svd_m3(mat3, W, sval, V);
+
+	size_to_mat3(S, sval);
+
+	transpose_m3_m3(Vt, V);
+	mul_m3_m3m3(r_U, W, Vt);
+	mul_m3_series(r_P, V, S, Vt);
+}
+
+
 void scale_m3_fl(float m[3][3], float scale)
 {
 	m[0][0] = m[1][1] = m[2][2] = scale;
@@ -1658,6 +1686,75 @@ void blend_m4_m4m4(float out[4][4], float dst[4][4], float src[4][4], const floa
 
 	/* compose new matrix */
 	loc_quat_size_to_mat4(out, floc, fquat, fsize);
+}
+
+/**
+ * A polar-decomposition-based interpolation between matrix A and matrix B.
+ *
+ * \note This code is about five times slower as the 'naive' interpolation done by \a blend_m3_m3m3
+ *       (it typically remains below 2 usec on an average i74700, while \a blend_m3_m3m3 remains below 0.4 usec).
+ *       However, it gives expected results even with non-uniformaly scaled matrices, see T46418 for an example.
+ *
+ * Based on "Matrix Animation and Polar Decomposition", by Ken Shoemake & Tom Duff
+ *
+ * @return R the interpolated matrix.
+ * @param A the intput matrix which is totally effective with \a t = 0.0.
+ * @param B the intput matrix which is totally effective with \a t = 1.0.
+ * @param t the interpolation factor.
+ */
+void interp_m3_m3m3(float R[3][3], float A[3][3], float B[3][3], const float t)
+{
+	/* 'Rotation' component ('U' part of polar decomposition, the closest orthogonal matrix to M3 rot/scale
+	 * transformation matrix), spherically interpolated. */
+	float U_A[3][3], U_B[3][3], U[3][3];
+	float quat_A[4], quat_B[4], quat[4];
+	/* 'Scaling' component ('P' part of polar decomposition, i.e. scaling in U-defined space), linearly interpolated. */
+	float P_A[3][3], P_B[3][3], P[3][3];
+
+	int i;
+
+	mat3_polar_decompose(A, U_A, P_A);
+	mat3_polar_decompose(B, U_B, P_B);
+
+	mat3_to_quat(quat_A, U_A);
+	mat3_to_quat(quat_B, U_B);
+	interp_qt_qtqt(quat, quat_A, quat_B, t);
+	quat_to_mat3(U, quat);
+
+	for (i = 0; i < 3; i++) {
+		interp_v3_v3v3(P[i], P_A[i], P_B[i], t);
+	}
+
+	/* And we reconstruct rot/scale matrix from interpolated polar components */
+	mul_m3_m3m3(R, U, P);
+}
+
+/**
+ * Complete transform matrix interpolation, based on polar-decomposition-based interpolation from interp_m3_m3m3.
+ *
+ * @return R the interpolated matrix.
+ * @param A the intput matrix which is totally effective with \a t = 0.0.
+ * @param B the intput matrix which is totally effective with \a t = 1.0.
+ * @param t the interpolation factor.
+ */
+void interp_m4_m4m4(float R[4][4], float A[4][4], float B[4][4], const float t)
+{
+	float A3[3][3], B3[3][3], R3[3][3];
+
+	/* Location component, linearly interpolated. */
+	float loc_A[3], loc_B[3], loc[3];
+
+	copy_v3_v3(loc_A, A[3]);
+	copy_v3_v3(loc_B, B[3]);
+	interp_v3_v3v3(loc, loc_A, loc_B, t);
+
+	copy_m3_m4(A3, A);
+	copy_m3_m4(B3, B);
+
+	interp_m3_m3m3(R3, A3, B3, t);
+
+	copy_m4_m3(R, R3);
+	copy_v3_v3(R[3], loc);
 }
 
 bool is_negative_m3(float mat[3][3])
