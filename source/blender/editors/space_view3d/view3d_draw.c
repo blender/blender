@@ -1961,15 +1961,13 @@ void ED_view3d_after_add(ListBase *lb, Base *base, const short dflag)
 /* disables write in zbuffer and draws it over */
 static void view3d_draw_transp(Scene *scene, ARegion *ar, View3D *v3d)
 {
-	View3DAfter *v3da, *next;
+	View3DAfter *v3da;
 	
 	glDepthMask(GL_FALSE);
 	v3d->transp = true;
 	
-	for (v3da = v3d->afterdraw_transp.first; v3da; v3da = next) {
-		next = v3da->next;
+	while ((v3da = BLI_pophead(&v3d->afterdraw_transp))) {
 		draw_object(scene, ar, v3d, v3da->base, v3da->dflag);
-		BLI_remlink(&v3d->afterdraw_transp, v3da);
 		MEM_freeN(v3da);
 	}
 	v3d->transp = false;
@@ -1981,7 +1979,7 @@ static void view3d_draw_transp(Scene *scene, ARegion *ar, View3D *v3d)
 /* clears zbuffer and draws it over */
 static void view3d_draw_xray(Scene *scene, ARegion *ar, View3D *v3d, bool *clear)
 {
-	View3DAfter *v3da, *next;
+	View3DAfter *v3da;
 
 	if (*clear && v3d->zbuf) {
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -1989,10 +1987,8 @@ static void view3d_draw_xray(Scene *scene, ARegion *ar, View3D *v3d, bool *clear
 	}
 
 	v3d->xray = true;
-	for (v3da = v3d->afterdraw_xray.first; v3da; v3da = next) {
-		next = v3da->next;
+	while ((v3da = BLI_pophead(&v3d->afterdraw_xray))) {
 		draw_object(scene, ar, v3d, v3da->base, v3da->dflag);
-		BLI_remlink(&v3d->afterdraw_xray, v3da);
 		MEM_freeN(v3da);
 	}
 	v3d->xray = false;
@@ -2002,7 +1998,7 @@ static void view3d_draw_xray(Scene *scene, ARegion *ar, View3D *v3d, bool *clear
 /* clears zbuffer and draws it over */
 static void view3d_draw_xraytransp(Scene *scene, ARegion *ar, View3D *v3d, const bool clear)
 {
-	View3DAfter *v3da, *next;
+	View3DAfter *v3da;
 
 	if (clear && v3d->zbuf)
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -2012,10 +2008,8 @@ static void view3d_draw_xraytransp(Scene *scene, ARegion *ar, View3D *v3d, const
 	
 	glDepthMask(GL_FALSE);
 
-	for (v3da = v3d->afterdraw_xraytransp.first; v3da; v3da = next) {
-		next = v3da->next;
+	while ((v3da = BLI_pophead(&v3d->afterdraw_xraytransp))) {
 		draw_object(scene, ar, v3d, v3da->base, v3da->dflag);
-		BLI_remlink(&v3d->afterdraw_xraytransp, v3da);
 		MEM_freeN(v3da);
 	}
 
@@ -2431,7 +2425,7 @@ void ED_view3d_draw_depth(Scene *scene, ARegion *ar, View3D *v3d, bool alphaover
 	    v3d->afterdraw_xray.first ||
 	    v3d->afterdraw_xraytransp.first)
 	{
-		View3DAfter *v3da, *next;
+		View3DAfter *v3da;
 		int mask_orig;
 
 		v3d->xray = true;
@@ -2442,8 +2436,7 @@ void ED_view3d_draw_depth(Scene *scene, ARegion *ar, View3D *v3d, bool alphaover
 
 		if (v3d->afterdraw_xray.first || v3d->afterdraw_xraytransp.first) {
 			glDepthFunc(GL_ALWAYS); /* always write into the depth bufer, overwriting front z values */
-			for (v3da = v3d->afterdraw_xray.first; v3da; v3da = next) {
-				next = v3da->next;
+			for (v3da = v3d->afterdraw_xray.first; v3da; v3da = v3da->next) {
 				draw_object(scene, ar, v3d, v3da->base, dflag_depth);
 			}
 			glDepthFunc(GL_LEQUAL); /* Now write the depth buffer normally */
@@ -2452,28 +2445,22 @@ void ED_view3d_draw_depth(Scene *scene, ARegion *ar, View3D *v3d, bool alphaover
 		/* draw 3 passes, transp/xray/xraytransp */
 		v3d->xray = false;
 		v3d->transp = true;
-		for (v3da = v3d->afterdraw_transp.first; v3da; v3da = next) {
-			next = v3da->next;
+		while ((v3da = BLI_pophead(&v3d->afterdraw_transp))) {
 			draw_object(scene, ar, v3d, v3da->base, dflag_depth);
-			BLI_remlink(&v3d->afterdraw_transp, v3da);
 			MEM_freeN(v3da);
 		}
 
 		v3d->xray = true;
 		v3d->transp = false;
-		for (v3da = v3d->afterdraw_xray.first; v3da; v3da = next) {
-			next = v3da->next;
+		while ((v3da = BLI_pophead(&v3d->afterdraw_xray))) {
 			draw_object(scene, ar, v3d, v3da->base, dflag_depth);
-			BLI_remlink(&v3d->afterdraw_xray, v3da);
 			MEM_freeN(v3da);
 		}
 
 		v3d->xray = true;
 		v3d->transp = true;
-		for (v3da = v3d->afterdraw_xraytransp.first; v3da; v3da = next) {
-			next = v3da->next;
+		while ((v3da = BLI_pophead(&v3d->afterdraw_xraytransp))) {
 			draw_object(scene, ar, v3d, v3da->base, dflag_depth);
-			BLI_remlink(&v3d->afterdraw_xraytransp, v3da);
 			MEM_freeN(v3da);
 		}
 
