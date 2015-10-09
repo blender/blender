@@ -1549,6 +1549,7 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 			len_diff = 0.0f;  /* In case BVHTree would fail for some reason... */
 
 			treeData.em_evil = em;
+			treeData.em_evil_all = false;
 			bvhtree_from_mesh_looptri(&treeData, dm, 0.0f, 2, 6);
 			if (treeData.tree != NULL) {
 				nearest.index = -1;
@@ -1591,6 +1592,7 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 				}
 
 				treeData.em_evil = em;
+				treeData.em_evil_all = false;
 				bvhtree_from_mesh_looptri(&treeData, dm, 0.0f, 4, 6);
 
 				hit.index = -1;
@@ -2177,6 +2179,7 @@ static bool peelDerivedMesh(
 			struct PeelRayCast_Data data;
 
 			data.bvhdata.em_evil = em;
+			data.bvhdata.em_evil_all = false;
 			bvhtree_from_mesh_looptri(&data.bvhdata, dm, 0.0f, 4, 6);
 
 			if (data.bvhdata.tree != NULL) {
