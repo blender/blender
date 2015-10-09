@@ -980,6 +980,9 @@ static void bvhtree_from_mesh_looptri_setup_data(
 		if (vert_allocated) {
 			MEM_freeN((void *)vert);
 		}
+		if (loop_allocated) {
+			MEM_freeN((void *)mloop);
+		}
 		if (looptri_allocated) {
 			MEM_freeN((void *)looptri);
 		}
