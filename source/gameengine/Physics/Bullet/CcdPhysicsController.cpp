@@ -1283,7 +1283,13 @@ void		CcdPhysicsController::ApplyForce(const MT_Vector3& forcein,bool local)
 void		CcdPhysicsController::SetAngularVelocity(const MT_Vector3& ang_vel,bool local)
 {
 	btVector3 angvel(ang_vel.x(),ang_vel.y(),ang_vel.z());
-	if (m_object && angvel.length2() > (SIMD_EPSILON*SIMD_EPSILON))
+
+	/* Refuse tiny tiny velocities, as they might cause instabilities. */
+	float vel_squared = angvel.length2();
+	if (vel_squared > 0 && vel_squared <= (SIMD_EPSILON*SIMD_EPSILON))
+		angvel = btVector3(0, 0, 0);
+
+	if (m_object)
 	{
 		m_object->activate(true);
 		if (m_object->isStaticObject())
@@ -1305,9 +1311,14 @@ void		CcdPhysicsController::SetAngularVelocity(const MT_Vector3& ang_vel,bool lo
 }
 void		CcdPhysicsController::SetLinearVelocity(const MT_Vector3& lin_vel,bool local)
 {
-
 	btVector3 linVel(lin_vel.x(),lin_vel.y(),lin_vel.z());
-	if (m_object/* && linVel.length2() > (SIMD_EPSILON*SIMD_EPSILON)*/)
+
+	/* Refuse tiny tiny velocities, as they might cause instabilities. */
+	float vel_squared = linVel.length2();
+	if (vel_squared > 0 && vel_squared <= (SIMD_EPSILON*SIMD_EPSILON))
+		linVel = btVector3(0, 0, 0);
+
+	if (m_object)
 	{
 		m_object->activate(true);
 		if (m_object->isStaticObject())
