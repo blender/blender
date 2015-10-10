@@ -61,7 +61,8 @@ class ArrayND : public BaseArray {
      Resize(s0, s1, s2);
   }
 
-  ArrayND(T* data, int s0, int s1, int s2) : data_(data), own_data_(false) {
+  ArrayND(T* data, int s0, int s1, int s2)
+      : shape_(0), strides_(0), data_(data), own_data_(false) {
     Resize(s0, s1, s2);
   }
 
