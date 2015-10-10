@@ -55,6 +55,8 @@ extern "C" {
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_math_color.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "RE_pipeline.h"
@@ -113,7 +115,6 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 	BLI_strncpy(freestyle_scene->r.engine, old_scene->r.engine, sizeof(freestyle_scene->r.engine));
 	freestyle_scene->r.im_format.planes = R_IMF_PLANES_RGBA; 
 	freestyle_scene->r.im_format.imtype = R_IMF_IMTYPE_PNG;
-	BKE_scene_disable_color_management(freestyle_scene);
 
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		printf("%s: %d thread(s)\n", __func__, BKE_render_num_threads(&freestyle_scene->r));
@@ -871,38 +872,24 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 						}
 					}
 
-					// colors and alpha transparency
+					// colors and alpha transparency. vertex colors are in sRGB
+					// space by convention, so convert from linear
+					float rgba[3][4];
+
+					for (int i = 0; i < 3; i++) {
+						copy_v3fl_v3db(rgba[i], &svRep[i]->color()[0]);
+						rgba[i][3] = svRep[i]->alpha();
+					}
+
 					if (is_odd) {
-						colors[0].r = (short)(255.0f * svRep[2]->color()[0]);
-						colors[0].g = (short)(255.0f * svRep[2]->color()[1]);
-						colors[0].b = (short)(255.0f * svRep[2]->color()[2]);
-						colors[0].a = (short)(255.0f * svRep[2]->alpha());
-
-						colors[1].r = (short)(255.0f * svRep[0]->color()[0]);
-						colors[1].g = (short)(255.0f * svRep[0]->color()[1]);
-						colors[1].b = (short)(255.0f * svRep[0]->color()[2]);
-						colors[1].a = (short)(255.0f * svRep[0]->alpha());
-
-						colors[2].r = (short)(255.0f * svRep[1]->color()[0]);
-						colors[2].g = (short)(255.0f * svRep[1]->color()[1]);
-						colors[2].b = (short)(255.0f * svRep[1]->color()[2]);
-						colors[2].a = (short)(255.0f * svRep[1]->alpha());
+						linearrgb_to_srgb_uchar4(&colors[0].r, rgba[2]);
+						linearrgb_to_srgb_uchar4(&colors[1].r, rgba[0]);
+						linearrgb_to_srgb_uchar4(&colors[2].r, rgba[1]);
 					}
 					else {
-						colors[0].r = (short)(255.0f * svRep[2]->color()[0]);
-						colors[0].g = (short)(255.0f * svRep[2]->color()[1]);
-						colors[0].b = (short)(255.0f * svRep[2]->color()[2]);
-						colors[0].a = (short)(255.0f * svRep[2]->alpha());
-
-						colors[1].r = (short)(255.0f * svRep[1]->color()[0]);
-						colors[1].g = (short)(255.0f * svRep[1]->color()[1]);
-						colors[1].b = (short)(255.0f * svRep[1]->color()[2]);
-						colors[1].a = (short)(255.0f * svRep[1]->alpha());
-
-						colors[2].r = (short)(255.0f * svRep[0]->color()[0]);
-						colors[2].g = (short)(255.0f * svRep[0]->color()[1]);
-						colors[2].b = (short)(255.0f * svRep[0]->color()[2]);
-						colors[2].a = (short)(255.0f * svRep[0]->alpha());
+						linearrgb_to_srgb_uchar4(&colors[0].r, rgba[2]);
+						linearrgb_to_srgb_uchar4(&colors[1].r, rgba[1]);
+						linearrgb_to_srgb_uchar4(&colors[2].r, rgba[0]);
 					}
 					transp[0].r = transp[0].g = transp[0].b = colors[0].a;
 					transp[1].r = transp[1].g = transp[1].b = colors[1].a;
