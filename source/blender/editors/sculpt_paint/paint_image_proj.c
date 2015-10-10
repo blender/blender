@@ -4324,7 +4324,7 @@ static void do_projectpaint_soften(ProjPaintState *ps, ProjPixel *projPixel, flo
 		}
 		else {
 			premul_float_to_straight_uchar(rgba_ub, rgba);
-			blend_color_interpolate_byte(rgba_ub, rgba_ub, projPixel->pixel.ch_pt, mask);
+			blend_color_interpolate_byte(rgba_ub, projPixel->pixel.ch_pt, rgba_ub, mask);
 		}
 		BLI_linklist_prepend_arena(softenPixels, (void *)projPixel, softenArena);
 	}
