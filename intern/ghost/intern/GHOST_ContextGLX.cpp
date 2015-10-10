@@ -40,6 +40,8 @@
 #include <cstdio>
 #include <cstring>
 
+/* this should eventually be enabled, but causes T46431 */
+// #define USE_CONTEXT_FLAGS
 
 #ifdef WITH_GLEW_MX
 GLXEWContext *glxewContext = NULL;
@@ -154,12 +156,19 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
 	XIOErrorHandler old_handler_io = XSetIOErrorHandler(GHOST_X11_ApplicationIOErrorHandler);
 #endif
 
+#ifdef USE_CONTEXT_FLAGS
 	/* needed so 'GLXEW_ARB_create_context' is valid */
 	mxIgnoreNoVersion(1);
 	initContextGLXEW();
 	mxIgnoreNoVersion(0);
+#endif
 
-	if (GLXEW_ARB_create_context) {
+#ifdef USE_CONTEXT_FLAGS
+	if (GLXEW_ARB_create_context)
+#else
+	if (0)
+#endif
+	{
 		int profileBitCore   = m_contextProfileMask & GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
 		int profileBitCompat = m_contextProfileMask & GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
 
@@ -263,6 +272,12 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
 		s_sharedCount++;
 
 		glXMakeCurrent(m_display, m_window, m_context);
+
+#ifndef USE_CONTEXT_FLAGS
+		// Seems that this has to be called after MakeCurrent,
+		// which means we cannot use glX extensions until after we create a context
+		initContextGLXEW();
+#endif
 
 		initClearGL();
 		::glXSwapBuffers(m_display, m_window);
