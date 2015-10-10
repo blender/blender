@@ -3551,13 +3551,16 @@ static int edbm_select_random_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
 	const float randfac =  RNA_float_get(op->ptr, "percent") / 100.0f;
+	const int seed = RNA_int_get(op->ptr, "seed");
 
 	BMIter iter;
+
+	RNG *rng = BLI_rng_new_srandom(seed);
 
 	if (em->selectmode & SCE_SELECT_VERTEX) {
 		BMVert *eve;
 		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-			if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BLI_frand() < randfac) {
+			if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BLI_rng_get_float(rng) < randfac) {
 				BM_vert_select_set(em->bm, eve, select);
 			}
 		}
@@ -3565,7 +3568,7 @@ static int edbm_select_random_exec(bContext *C, wmOperator *op)
 	else if (em->selectmode & SCE_SELECT_EDGE) {
 		BMEdge *eed;
 		BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-			if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BLI_frand() < randfac) {
+			if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BLI_rng_get_float(rng) < randfac) {
 				BM_edge_select_set(em->bm, eed, select);
 			}
 		}
@@ -3573,11 +3576,13 @@ static int edbm_select_random_exec(bContext *C, wmOperator *op)
 	else {
 		BMFace *efa;
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && BLI_frand() < randfac) {
+			if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && BLI_rng_get_float(rng) < randfac) {
 				BM_face_select_set(em->bm, efa, select);
 			}
 		}
 	}
+
+	BLI_rng_free(rng);
 
 	if (select) {
 		/* was EDBM_select_flush, but it over select in edge/face mode */
@@ -3607,9 +3612,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float_percentage(ot->srna, "percent", 50.0f, 0.0f, 100.0f,
-	                         "Percent", "Percentage of elements to select randomly", 0.0f, 100.0f);
-	WM_operator_properties_select_action_simple(ot, SEL_SELECT);
+	WM_operator_properties_select_random(ot);
 }
 
 static int edbm_select_ungrouped_poll(bContext *C)

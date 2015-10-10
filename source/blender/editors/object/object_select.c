@@ -1179,19 +1179,22 @@ void OBJECT_OT_select_mirror(wmOperatorType *ot)
 
 static int object_select_random_exec(bContext *C, wmOperator *op)
 {	
-	float percent;
+	const float randfac = RNA_float_get(op->ptr, "percent") / 100.0f;
+	const int seed = RNA_int_get(op->ptr, "seed");
 	const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
 
-	percent = RNA_float_get(op->ptr, "percent") / 100.0f;
-		
+	RNG *rng = BLI_rng_new_srandom(seed);
+
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
-		if (BLI_frand() < percent) {
+		if (BLI_rng_get_float(rng) < randfac) {
 			ED_base_object_select(base, select);
 		}
 	}
 	CTX_DATA_END;
-	
+
+	BLI_rng_free(rng);
+
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
@@ -1213,6 +1216,5 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of objects to select randomly", 0.f, 100.0f);
-	WM_operator_properties_select_action_simple(ot, SEL_SELECT);
+	WM_operator_properties_select_random(ot);
 }

@@ -372,17 +372,22 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 	MetaBall *mb = (MetaBall *)obedit->data;
 	MetaElem *ml;
 	const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
-	float percent = RNA_float_get(op->ptr, "percent") / 100.0f;
+	const float randfac = RNA_float_get(op->ptr, "percent") / 100.0f;
+	const int seed = RNA_int_get(op->ptr, "seed");
 	
+	RNG *rng = BLI_rng_new_srandom(seed);
+
 	for (ml = mb->editelems->first; ml; ml = ml->next) {
-		if (BLI_frand() < percent) {
+		if (BLI_rng_get_float(rng) < randfac) {
 			if (select)
 				ml->flag |= SELECT;
 			else
 				ml->flag &= ~SELECT;
 		}
 	}
-	
+
+	BLI_rng_free(rng);
+
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 	
 	return OPERATOR_FINISHED;
@@ -404,9 +409,7 @@ void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f,
-	                         "Percent", "Percentage of elements to select randomly", 0.0f, 100.0f);
-	WM_operator_properties_select_action_simple(ot, SEL_SELECT);
+	WM_operator_properties_select_random(ot);
 }
 
 /***************************** Duplicate operator *****************************/

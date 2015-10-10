@@ -999,12 +999,14 @@ void CURVE_OT_select_less(wmOperatorType *ot)
 
 /********************** select random *********************/
 
-static void curve_select_random(ListBase *editnurb, float randfac, bool select)
+static void curve_select_random(ListBase *editnurb, float randfac, int seed, bool select)
 {
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
 	int a;
+
+	RNG *rng = BLI_rng_new_srandom(seed);
 
 	for (nu = editnurb->first; nu; nu = nu->next) {
 		if (nu->type == CU_BEZIER) {
@@ -1012,7 +1014,7 @@ static void curve_select_random(ListBase *editnurb, float randfac, bool select)
 			a = nu->pntsu;
 			while (a--) {
 				if (!bezt->hide) {
-					if (BLI_frand() < randfac) {
+					if (BLI_rng_get_float(rng) < randfac) {
 						select_beztriple(bezt, select, SELECT, VISIBLE);
 					}
 				}
@@ -1025,7 +1027,7 @@ static void curve_select_random(ListBase *editnurb, float randfac, bool select)
 
 			while (a--) {
 				if (!bp->hide) {
-					if (BLI_frand() < randfac) {
+					if (BLI_rng_get_float(rng) < randfac) {
 						select_bpoint(bp, select, SELECT, VISIBLE);
 					}
 				}
@@ -1033,6 +1035,8 @@ static void curve_select_random(ListBase *editnurb, float randfac, bool select)
 			}
 		}
 	}
+
+	BLI_rng_free(rng);
 }
 
 static int curve_select_random_exec(bContext *C, wmOperator *op)
@@ -1041,8 +1045,9 @@ static int curve_select_random_exec(bContext *C, wmOperator *op)
 	ListBase *editnurb = object_editcurve_get(obedit);
 	const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
 	const float randfac = RNA_float_get(op->ptr, "percent") / 100.0f;
+	const int seed = RNA_int_get(op->ptr, "seed");
 
-	curve_select_random(editnurb, randfac, select);
+	curve_select_random(editnurb, randfac, seed, select);
 	BKE_curve_nurb_vert_active_validate(obedit->data);
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
@@ -1065,9 +1070,7 @@ void CURVE_OT_select_random(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f,
-	                         "Percent", "Percentage of elements to select randomly", 0.0f, 100.0f);
-	WM_operator_properties_select_action_simple(ot, SEL_SELECT);
+	WM_operator_properties_select_random(ot);
 }
 
 /********************* every nth number of point *******************/
