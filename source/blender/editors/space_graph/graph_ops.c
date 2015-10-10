@@ -83,13 +83,20 @@ static void graphview_cursor_apply(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	SpaceIpo *sipo = CTX_wm_space_graph(C);
 	
-	/* adjust the frame 
-	 * NOTE: sync this part of the code with ANIM_OT_change_frame
-	 */
-	CFRA = RNA_int_get(op->ptr, "frame");
-	FRAMENUMBER_MIN_CLAMP(CFRA);
-	SUBFRA = 0.f;
-	BKE_sound_seek_scene(bmain, scene);
+	/* adjust the frame or the cursor x-value */
+	if (sipo->mode == SIPO_MODE_DRIVERS) {
+		/* adjust cursor x-value */
+		sipo->cursorTime = (float)RNA_int_get(op->ptr, "frame"); // XXX: need new prop
+	}
+	else {
+		/* adjust the frame 
+		 * NOTE: sync this part of the code with ANIM_OT_change_frame
+		 */
+		CFRA = RNA_int_get(op->ptr, "frame");
+		FRAMENUMBER_MIN_CLAMP(CFRA);
+		SUBFRA = 0.f;
+		BKE_sound_seek_scene(bmain, scene);
+	}
 	
 	/* set the cursor value */
 	sipo->cursorVal = RNA_float_get(op->ptr, "value");
@@ -200,7 +207,7 @@ static void GRAPH_OT_cursor_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set Cursor";
 	ot->idname = "GRAPH_OT_cursor_set";
-	ot->description = "Interactively set the current frame number and value cursor";
+	ot->description = "Interactively set the current frame and value cursor";
 	
 	/* api callbacks */
 	ot->exec = graphview_cursor_exec;

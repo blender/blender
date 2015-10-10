@@ -327,8 +327,10 @@ typedef struct SpaceIpo {
 	short autosnap;         /* time-transform autosnapping settings for Graph editor (eAnimEdit_AutoSnap in DNA_action_types.h) */
 	int flag;               /* settings for Graph editor (eGraphEdit_Flag) */
 	
+	float cursorTime;       /* time value for cursor (when in drivers mode; animation uses current frame) */
 	float cursorVal;        /* cursor value (y-value, x-value is current frame) */
 	int around;             /* pivot point for transforms */
+	int pad;
 } SpaceIpo;
 
 

@@ -3504,6 +3504,11 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Cursor", "Show 2D cursor");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 	
+	prop = RNA_def_property(srna, "cursor_position_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "cursorTime");
+	RNA_def_property_ui_text(prop, "Cursor X-Value", "Graph Editor 2D-Value cursor - X-Value component");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
+	
 	prop = RNA_def_property(srna, "cursor_position_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "cursorVal");
 	RNA_def_property_ui_text(prop, "Cursor Y-Value", "Graph Editor 2D-Value cursor - Y-Value component");

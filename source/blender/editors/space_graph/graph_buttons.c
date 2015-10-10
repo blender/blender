@@ -133,7 +133,10 @@ static void graph_panel_view(const bContext *C, Panel *pa)
 	sub = uiLayoutColumn(col, true);
 	uiLayoutSetActive(sub, RNA_boolean_get(&spaceptr, "show_cursor"));
 	row = uiLayoutSplit(sub, 0.7f, true);
-	uiItemR(row, &sceneptr, "frame_current", 0, IFACE_("Cursor X"), ICON_NONE);
+	if (sipo->mode == SIPO_MODE_DRIVERS)
+		uiItemR(row, &spaceptr, "cursor_position_x", 0, IFACE_("Cursor X"), ICON_NONE);
+	else
+		uiItemR(row, &sceneptr, "frame_current", 0, IFACE_("Cursor X"), ICON_NONE);
 	uiItemEnumO(row, "GRAPH_OT_snap", IFACE_("To Keys"), 0, "type", GRAPHKEYS_SNAP_CFRA);
 	
 	row = uiLayoutSplit(sub, 0.7f, true);
