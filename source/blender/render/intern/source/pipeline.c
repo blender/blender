@@ -3168,11 +3168,17 @@ void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene, int render
 void RE_RenderFreestyleExternal(Render *re)
 {
 	if (!re->test_break(re->tbh)) {
-		RE_Database_FromScene(re, re->main, re->scene, re->lay, 1);
-		RE_Database_Preprocess(re);
+		RenderView *rv;
+
 		init_freestyle(re);
-		add_freestyle(re, 1);
-		RE_Database_Free(re);
+
+		for (rv = re->result->views.first; rv; rv = rv->next) {
+			RE_SetActiveRenderView(re, rv->name);
+			RE_Database_FromScene(re, re->main, re->scene, re->lay, 1);
+			RE_Database_Preprocess(re);
+			add_freestyle(re, 1);
+			RE_Database_Free(re);
+		}
 	}
 }
 #endif
