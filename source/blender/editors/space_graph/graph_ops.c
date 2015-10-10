@@ -166,6 +166,8 @@ static int graphview_cursor_modal(bContext *C, wmOperator *op, const wmEvent *ev
 		case ESCKEY:
 			if (screen)
 				screen->scrubbing = false;
+			
+			WM_event_add_notifier(C, NC_SCENE | ND_FRAME, CTX_data_scene(C));
 			return OPERATOR_FINISHED;
 		
 		case MOUSEMOVE:
@@ -183,6 +185,8 @@ static int graphview_cursor_modal(bContext *C, wmOperator *op, const wmEvent *ev
 			if (event->val == KM_RELEASE) {
 				if (screen)
 					screen->scrubbing = false;
+				
+				WM_event_add_notifier(C, NC_SCENE | ND_FRAME, CTX_data_scene(C));
 				return OPERATOR_FINISHED;
 			}
 			break;
