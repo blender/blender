@@ -715,8 +715,8 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, Image *image, RenderRes
 	}
 
 	/* stereo image */
-	else if (((image->flag & IMA_IS_STEREO) && (!show_stereo)) ||
-	         ((image->flag & IMA_IS_MULTIVIEW) && ((image->flag & IMA_IS_STEREO) == 0)))
+	else if ((BKE_image_is_stereo(image) && (!show_stereo)) ||
+	         (BKE_image_is_multiview(image) && !BKE_image_is_stereo(image)))
 	{
 		ImageView *iv;
 		int nr = 0;

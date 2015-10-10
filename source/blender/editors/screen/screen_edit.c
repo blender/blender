@@ -42,6 +42,7 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_image.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -2195,7 +2196,7 @@ bool ED_screen_stereo3d_required(bScreen *screen)
 				/* images should always show in stereo, even if
 				 * the file doesn't have views enabled */
 				sima = sa->spacedata.first;
-				if (sima->image && (sima->image->flag & IMA_IS_STEREO) &&
+				if (sima->image && BKE_image_is_stereo(sima->image) &&
 				    (sima->iuser.flag & IMA_SHOW_STEREO))
 				{
 					return true;

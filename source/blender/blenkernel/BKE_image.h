@@ -212,6 +212,8 @@ void BKE_image_multiview_index(struct Image *ima, struct ImageUser *iuser);
 
 /* for multilayer images as well as for render-viewer */
 bool BKE_image_is_multilayer(struct Image *ima);
+bool BKE_image_is_multiview(struct Image *ima);
+bool BKE_image_is_stereo(struct Image *ima);
 struct RenderResult *BKE_image_acquire_renderresult(struct Scene *scene, struct Image *ima);
 void BKE_image_release_renderresult(struct Scene *scene, struct Image *ima);
 
