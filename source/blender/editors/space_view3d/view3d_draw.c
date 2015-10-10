@@ -1618,7 +1618,7 @@ exit:
 
 static void view3d_stereo_bgpic_setup(Scene *scene, View3D *v3d, Image *ima, ImageUser *iuser)
 {
-	if ((ima->flag & IMA_IS_STEREO)) {
+	if (BKE_image_is_stereo(ima)) {
 		iuser->flag |= IMA_SHOW_STEREO;
 
 		if ((scene->r.scemode & R_MULTIVIEW) == 0) {

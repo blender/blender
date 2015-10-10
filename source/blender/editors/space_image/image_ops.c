@@ -1153,8 +1153,6 @@ static int image_open_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		ima->flag &= ~IMA_USE_VIEWS;
-		ima->flag &= ~IMA_IS_STEREO;
-		ima->flag &= ~IMA_IS_MULTIVIEW;
 		BKE_image_free_views(ima);
 	}
 
@@ -1703,7 +1701,7 @@ static bool save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 		/* we need renderresult for exr and rendered multiview */
 		scene = CTX_data_scene(C);
 		rr = BKE_image_acquire_renderresult(scene, ima);
-		is_mono = rr ? BLI_listbase_count_ex(&rr->views, 2) < 2 : (ima->flag & IMA_IS_MULTIVIEW) == 0;
+		is_mono = rr ? BLI_listbase_count_ex(&rr->views, 2) < 2 : BLI_listbase_count_ex(&ima->views, 2) < 2;
 
 		/* error handling */
 		if (!rr) {
@@ -1714,7 +1712,7 @@ static bool save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 		}
 		else {
 			if (imf->views_format == R_IMF_VIEWS_STEREO_3D) {
-				if ((ima->flag & IMA_IS_STEREO) == 0) {
+				if (!BKE_image_is_stereo(ima)) {
 					BKE_reportf(op->reports, RPT_ERROR, "Did not write, the image doesn't have a \"%s\" and \"%s\" views",
 					           STEREO_LEFT_NAME, STEREO_RIGHT_NAME);
 					goto cleanup;
@@ -1959,9 +1957,9 @@ static int image_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 
 	/* show multiview save options only if image has multiviews */
 	prop = RNA_struct_find_property(op->ptr, "show_multiview");
-	RNA_property_boolean_set(op->ptr, prop, (ima->flag & IMA_IS_MULTIVIEW) != 0);
+	RNA_property_boolean_set(op->ptr, prop, BKE_image_is_multiview(ima));
 	prop = RNA_struct_find_property(op->ptr, "use_multiview");
-	RNA_property_boolean_set(op->ptr, prop, (ima->flag & IMA_IS_MULTIVIEW) != 0);
+	RNA_property_boolean_set(op->ptr, prop, BKE_image_is_multiview(ima));
 
 	image_filesel(C, op, simopts.filepath);
 

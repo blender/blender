@@ -172,8 +172,8 @@ enum {
 	IMA_IGNORE_ALPHA        = (1 << 12),
 	IMA_DEINTERLACE         = (1 << 13),
 	IMA_USE_VIEWS           = (1 << 14),
-	IMA_IS_STEREO           = (1 << 15),
-	IMA_IS_MULTIVIEW        = (1 << 16), /* similar to stereo, but a more general case */
+	// IMA_IS_STEREO        = (1 << 15), /* deprecated */
+	// IMA_IS_MULTIVIEW     = (1 << 16), /* deprecated */
 };
 
 /* Image.tpageflag */
