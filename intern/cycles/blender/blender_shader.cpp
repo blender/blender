@@ -107,15 +107,8 @@ static ShaderSocketType convert_socket_type(BL::NodeSocket b_socket)
 	}
 }
 
-template <class SocketType>
-static void set_default_value(ShaderInput *input,
-                              SocketType b_sock,
-                              BL::BlendData b_data,
-                              BL::ID b_id)
+static void set_default_value(ShaderInput *input, BL::NodeSocket b_sock, BL::BlendData b_data, BL::ID b_id)
 {
-	/* TODO(sergey): Use static assert to check SocketType is either BL::NodeSocket
-	 * or BL::NodeSocketInterface.
-	 */
 	/* copy values for non linked inputs */
 	switch(input->type) {
 	case SHADER_SOCKET_FLOAT: {
@@ -918,8 +911,7 @@ static void add_nodes(Scene *scene,
 			 * Do this even if the node group has no internal tree,
 			 * so that links have something to connect to and assert won't fail.
 			 */
-			int input_index = 0;
-			for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input, ++input_index) {
+			for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
 				ProxyNode *proxy = new ProxyNode(convert_socket_type(*b_input));
 				graph->add(proxy);
 
@@ -928,11 +920,7 @@ static void add_nodes(Scene *scene,
 
 				input_map[b_input->ptr.data] = proxy->inputs[0];
 
-				/* Use default value from corresponding socket interface since it's
-				 * not copied from group to actual group node.
-				 */
-				BL::NodeSocketInterface socket_interface = b_group_ntree.inputs[input_index];
-				set_default_value(proxy->inputs[0], socket_interface, b_data, b_ntree);
+				set_default_value(proxy->inputs[0], *b_input, b_data, b_ntree);
 			}
 			for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
 				ProxyNode *proxy = new ProxyNode(convert_socket_type(*b_output));
