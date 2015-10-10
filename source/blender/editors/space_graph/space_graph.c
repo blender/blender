@@ -240,7 +240,7 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(v2d);
 	
 	/* grid */
-	unitx = (sipo->flag & SIPO_DRAWTIME) ? V2D_UNIT_SECONDS : V2D_UNIT_FRAMESCALE;
+	unitx = ((sipo->mode == SIPO_MODE_ANIMATION) && (sipo->flag & SIPO_DRAWTIME)) ? V2D_UNIT_SECONDS : V2D_UNIT_FRAMESCALE;
 	grid = UI_view2d_grid_calc(CTX_data_scene(C), v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP, ar->winx, ar->winy);
 	UI_view2d_grid_draw(v2d, grid, V2D_GRIDLINES_ALL);
 	
