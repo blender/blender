@@ -12,7 +12,7 @@ if(EXISTS ${SOURCE_DIR}/.git)
 	# The FindGit.cmake module is part of the standard distribution
 	find_package(Git)
 	if(GIT_FOUND)
-		message(STATUS "-- Found Git: ${GIT_EXECUTABLE}")
+		message(STATUS "Found Git: ${GIT_EXECUTABLE}")
 
 		execute_process(COMMAND git rev-parse --abbrev-ref HEAD
 		                WORKING_DIRECTORY ${SOURCE_DIR}
