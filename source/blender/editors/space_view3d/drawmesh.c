@@ -664,7 +664,7 @@ static void update_tface_color_layer(DerivedMesh *dm, bool use_mcol)
 		else if (ma && (ma->shade_flag & MA_OBCOLOR)) {
 			int loop_index = mp->loopstart;
 			for (j = 0; j < mp->totloop; j++, loop_index++) {
-				copy_v3_v3_char(&finalCol[loop_index].r, (char *)Gtexdraw.obcol);
+				copy_v3_v3_uchar(&finalCol[loop_index].r, Gtexdraw.obcol);
 			}
 			copy_mode = COPY_PREV;
 		}

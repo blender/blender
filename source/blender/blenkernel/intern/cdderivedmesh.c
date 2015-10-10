@@ -967,7 +967,7 @@ static void cdDM_drawMappedFacesGLSL(
 		int *mat_orig_to_new;
 		int tot_active_mat;
 		GPUBuffer *buffer = NULL;
-		char *varray;
+		unsigned char *varray;
 		size_t max_element_size = 0;
 		int tot_loops = 0;
 
@@ -1072,7 +1072,7 @@ static void cdDM_drawMappedFacesGLSL(
 						if (matconv[i].attribs.mcol[b].array) {
 							const MLoopCol *mloopcol = matconv[i].attribs.mcol[b].array;
 							for (j = 0; j < mpoly->totloop; j++)
-								copy_v4_v4_char((char *)&varray[offset + j * max_element_size], &mloopcol[mpoly->loopstart + j].r);
+								copy_v4_v4_uchar(&varray[offset + j * max_element_size], &mloopcol[mpoly->loopstart + j].r);
 							offset += sizeof(unsigned char) * 4;
 						}
 					}
@@ -1482,7 +1482,7 @@ static void cdDM_buffer_copy_mcol(
 
 	for (i = 0; i < totpoly; i++, mpoly++) {
 		for (j = 0; j < mpoly->totloop; j++) {
-			copy_v3_v3_char((char *)&varray[start], &mloopcol[mpoly->loopstart + j].r);
+			copy_v3_v3_uchar(&varray[start], &mloopcol[mpoly->loopstart + j].r);
 			start += 3;
 		}
 	}

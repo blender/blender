@@ -1248,7 +1248,7 @@ static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const B
 		GLubyte col[4];
 		if (attribs->mcol[i].em_offset != -1) {
 			const MLoopCol *cp = BM_ELEM_CD_GET_VOID_P(loop, attribs->mcol[i].em_offset);
-			copy_v4_v4_char((char *)col, &cp->r);
+			copy_v4_v4_uchar(col, &cp->r);
 		}
 		else {
 			col[0] = 0; col[1] = 0; col[2] = 0; col[3] = 0;
@@ -2170,8 +2170,8 @@ static void statvis_calc_overhang(
 			rgb_float_to_uchar(r_face_colors[index], fcol);
 		}
 		else {
-			unsigned char *fallback = is_max ? col_fallback_max : col_fallback;
-			copy_v4_v4_char((char *)r_face_colors[index], (const char *)fallback);
+			const unsigned char *fallback = is_max ? col_fallback_max : col_fallback;
+			copy_v4_v4_uchar(r_face_colors[index], fallback);
 		}
 	}
 }
@@ -2210,7 +2210,7 @@ static void statvis_calc_thickness(
 	struct BMLoop *(*looptris)[3] = em->looptris;
 
 	/* fallback */
-	const char col_fallback[4] = {64, 64, 64, 255};
+	const unsigned char col_fallback[4] = {64, 64, 64, 255};
 
 	struct BMBVHTree *bmtree;
 
@@ -2305,7 +2305,7 @@ static void statvis_calc_thickness(
 			rgb_float_to_uchar(r_face_colors[i], fcol);
 		}
 		else {
-			copy_v4_v4_char((char *)r_face_colors[i], (const char *)col_fallback);
+			copy_v4_v4_uchar(r_face_colors[i], col_fallback);
 		}
 	}
 }
@@ -2357,7 +2357,7 @@ static void statvis_calc_intersect(
 
 				index = BM_elem_index_get(f_hit);
 
-				copy_v3_v3_char((char *)r_face_colors[index], (const char *)col);
+				copy_v3_v3_uchar(r_face_colors[index], col);
 			}
 		}
 		MEM_freeN(overlap);
@@ -2382,7 +2382,7 @@ static void statvis_calc_distort(
 	const float minmax_irange = 1.0f / (max - min);
 
 	/* fallback */
-	const char col_fallback[4] = {64, 64, 64, 255};
+	const unsigned char col_fallback[4] = {64, 64, 64, 255};
 
 	/* now convert into global space */
 	BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, index) {
@@ -2431,7 +2431,7 @@ static void statvis_calc_distort(
 			rgb_float_to_uchar(r_face_colors[index], fcol);
 		}
 		else {
-			copy_v4_v4_char((char *)r_face_colors[index], (const char *)col_fallback);
+			copy_v4_v4_uchar(r_face_colors[index], col_fallback);
 		}
 	}
 }
@@ -2453,7 +2453,7 @@ static void statvis_calc_sharp(
 	int i;
 
 	/* fallback */
-	const char col_fallback[4] = {64, 64, 64, 255};
+	const unsigned char col_fallback[4] = {64, 64, 64, 255};
 
 	(void)vertexCos;  /* TODO */
 
@@ -2481,7 +2481,7 @@ static void statvis_calc_sharp(
 			rgb_float_to_uchar(r_vert_colors[i], fcol);
 		}
 		else {
-			copy_v4_v4_char((char *)r_vert_colors[i], (const char *)col_fallback);
+			copy_v4_v4_uchar(r_vert_colors[i], col_fallback);
 		}
 	}
 }

@@ -829,7 +829,7 @@ void view3d_cached_text_draw_add(const float co[3],
 	BLI_LINKS_PREPEND(g_v3d_strings[g_v3d_string_level], vos);
 
 	copy_v3_v3(vos->vec, co);
-	copy_v4_v4_char((char *)vos->col.ub, (const char *)col);
+	copy_v4_v4_uchar(vos->col.ub, col);
 	vos->xoffs = xoffs;
 	vos->flag = flag;
 	vos->str_len = str_len;

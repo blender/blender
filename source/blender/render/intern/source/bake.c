@@ -320,7 +320,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 		}
 		else {
 			unsigned char *imcol = (unsigned char *)(bs->rect + bs->rectx * y + x);
-			copy_v4_v4_char((char *)imcol, (char *)col);
+			copy_v4_v4_uchar(imcol, col);
 		}
 
 	}
@@ -375,8 +375,8 @@ static void bake_displacement(void *handle, ShadeInput *UNUSED(shi), float dist,
 			bs->vcol->b = col[2];
 		}
 		else {
-			char *imcol = (char *)(bs->rect + bs->rectx * y + x);
-			copy_v4_v4_char(imcol, (char *)col);
+			unsigned char *imcol = (unsigned char *)(bs->rect + bs->rectx * y + x);
+			copy_v4_v4_uchar(imcol, col);
 		}
 	}
 	if (bs->rect_mask) {

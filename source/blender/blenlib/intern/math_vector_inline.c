@@ -97,7 +97,29 @@ MINLINE void copy_v4_fl(float r[4], float f)
 	r[3] = f;
 }
 
-/* short */
+/* unsigned char */
+MINLINE void copy_v2_v2_uchar(unsigned char r[2], const unsigned char a[2])
+{
+	r[0] = a[0];
+	r[1] = a[1];
+}
+
+MINLINE void copy_v3_v3_uchar(unsigned char r[3], const unsigned char a[3])
+{
+	r[0] = a[0];
+	r[1] = a[1];
+	r[2] = a[2];
+}
+
+MINLINE void copy_v4_v4_uchar(unsigned char r[4], const unsigned char a[4])
+{
+	r[0] = a[0];
+	r[1] = a[1];
+	r[2] = a[2];
+	r[3] = a[3];
+}
+
+/* char */
 MINLINE void copy_v2_v2_char(char r[2], const char a[2])
 {
 	r[0] = a[0];

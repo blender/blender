@@ -2167,7 +2167,7 @@ static void ccgDM_buffer_copy_color(
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGKey key;
-	const char *mloopcol = user_data;
+	const unsigned char *mloopcol = user_data;
 	int gridSize = ccgSubSurf_getGridSize(ss);
 	int gridFaces = gridSize - 1;
 	int i, totface = ccgSubSurf_getNumFaces(ss);
@@ -2184,10 +2184,10 @@ static void ccgDM_buffer_copy_color(
 		for (S = 0; S < numVerts; S++) {
 			for (y = 0; y < gridFaces; y++) {
 				for (x = 0; x < gridFaces; x++) {
-					copy_v3_v3_char((char *)&varray[start + 0], &mloopcol[iface * 16 + 0]);
-					copy_v3_v3_char((char *)&varray[start + 3], &mloopcol[iface * 16 + 12]);
-					copy_v3_v3_char((char *)&varray[start + 6], &mloopcol[iface * 16 + 8]);
-					copy_v3_v3_char((char *)&varray[start + 9], &mloopcol[iface * 16 + 4]);
+					copy_v3_v3_uchar(&varray[start + 0], &mloopcol[iface * 16 + 0]);
+					copy_v3_v3_uchar(&varray[start + 3], &mloopcol[iface * 16 + 12]);
+					copy_v3_v3_uchar(&varray[start + 6], &mloopcol[iface * 16 + 8]);
+					copy_v3_v3_uchar(&varray[start + 9], &mloopcol[iface * 16 + 4]);
 
 					start += 12;
 					iface++;
