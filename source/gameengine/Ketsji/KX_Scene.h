@@ -339,6 +339,7 @@ public:
 	void RemoveNodeDestructObject(SG_IObject* node,
 	                              CValue* gameobj);
 	void RemoveObject(CValue* gameobj);
+	void RemoveDupliGroup(CValue *gameobj);
 	void DelayedRemoveObject(CValue* gameobj);
 	
 	int NewRemoveObject(CValue* gameobj);
