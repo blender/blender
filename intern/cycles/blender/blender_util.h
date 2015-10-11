@@ -196,7 +196,11 @@ static inline uint get_layer(BL::Array<int, 20> array)
 	return layer;
 }
 
-static inline uint get_layer(BL::Array<int, 20> array, BL::Array<int, 8> local_array, bool use_local, bool is_light = false)
+static inline uint get_layer(BL::Array<int, 20> array,
+                             BL::Array<int, 8> local_array,
+                             bool use_local,
+                             bool is_light = false,
+                             uint scene_layers = (1 << 20) - 1)
 {
 	uint layer = 0;
 
@@ -205,9 +209,13 @@ static inline uint get_layer(BL::Array<int, 20> array, BL::Array<int, 8> local_a
 			layer |= (1 << i);
 
 	if(is_light) {
-		/* consider lamps on all local view layers */
-		for(uint i = 0; i < 8; i++)
-			layer |= (1 << (20+i));
+		/* Consider light is visible if it was visible without layer
+		 * override, which matches behavior of Blender Internal.
+		 */
+		if(layer & scene_layers) {
+			for(uint i = 0; i < 8; i++)
+				layer |= (1 << (20+i));
+		}
 	}
 	else {
 		for(uint i = 0; i < 8; i++)

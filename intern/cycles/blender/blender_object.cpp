@@ -558,11 +558,20 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, float motion_time)
 	bool cancel = false;
 	bool use_portal = false;
 
+	uint layer_override = get_layer(b_engine.layer_override());
 	for(; b_sce && !cancel; b_sce = b_sce.background_set()) {
+		/* Render layer's scene_layer is affected by local view already,
+		 * which is not a desired behavior here.
+		 */
+		uint scene_layers = layer_override ? layer_override : get_layer(b_scene.layers());
 		for(b_sce.object_bases.begin(b_base); b_base != b_sce.object_bases.end() && !cancel; ++b_base) {
 			BL::Object b_ob = b_base->object();
 			bool hide = (render_layer.use_viewport_visibility)? b_ob.hide(): b_ob.hide_render();
-			uint ob_layer = get_layer(b_base->layers(), b_base->layers_local_view(), render_layer.use_localview, object_is_light(b_ob));
+			uint ob_layer = get_layer(b_base->layers(),
+			                          b_base->layers_local_view(),
+			                          render_layer.use_localview,
+			                          object_is_light(b_ob),
+			                          scene_layers);
 			hide = hide || !(ob_layer & scene_layer);
 
 			if(!hide) {
