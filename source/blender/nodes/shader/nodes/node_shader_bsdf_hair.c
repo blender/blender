@@ -33,7 +33,9 @@ static bNodeSocketTemplate sh_node_bsdf_hair_in[] = {
 	{	SOCK_RGBA,  1, N_("Color"),			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Offset"),		0.0f, 0.0f, 0.0f, 0.0f, -M_PI_2, M_PI_2, PROP_ANGLE},
 	{	SOCK_FLOAT, 1, N_("RoughnessU"),	0.1f, 0.1f, 0.1f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-	{	SOCK_FLOAT, 1, N_("RoughnessV"),	1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},	{	-1, 0, ""	}
+	{	SOCK_FLOAT, 1, N_("RoughnessV"),	1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{	SOCK_VECTOR, 1, N_("Tangent"),		0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
+	{	-1, 0, ""	},
 };
 
 static bNodeSocketTemplate sh_node_bsdf_hair_out[] = {

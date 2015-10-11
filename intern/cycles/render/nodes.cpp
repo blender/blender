@@ -2358,6 +2358,7 @@ HairBsdfNode::HairBsdfNode()
 	add_input("Offset", SHADER_SOCKET_FLOAT);
 	add_input("RoughnessU", SHADER_SOCKET_FLOAT);
 	add_input("RoughnessV", SHADER_SOCKET_FLOAT);
+	add_input("Tangent", SHADER_SOCKET_VECTOR);
 }
 
 void HairBsdfNode::compile(SVMCompiler& compiler)
