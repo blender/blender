@@ -1696,7 +1696,7 @@ static void draw_actuator_filter_2d(uiLayout *layout, PointerRNA *ptr)
 static void draw_actuator_game(uiLayout *layout, PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
-	if (RNA_enum_get(ptr, "mode") == ACT_GAME_LOAD)
+	if (ELEM(RNA_enum_get(ptr, "mode"), ACT_GAME_LOAD, ACT_GAME_SCREENSHOT))
 		uiItemR(layout, ptr, "filename", 0, NULL, ICON_NONE);
 }
 

@@ -512,6 +512,7 @@ typedef struct bActuator {
 #define ACT_GAME_QUIT		3
 #define ACT_GAME_SAVECFG	4
 #define ACT_GAME_LOADCFG	5
+#define ACT_GAME_SCREENSHOT	6
 
 /* visibilityact->flag */
 /* Set means the object will become invisible */

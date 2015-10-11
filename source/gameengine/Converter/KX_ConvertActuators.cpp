@@ -806,6 +806,12 @@ void BL_ConvertActuators(const char* maggiename,
 						mode = KX_GameActuator::KX_GAME_LOADCFG;
 						break;
 					}
+					case ACT_GAME_SCREENSHOT:
+					{
+						mode = KX_GameActuator::KX_GAME_SCREENSHOT;
+						filename = gameact->filename;
+						break;
+					}
 				default:
 					; /* flag error */
 				}

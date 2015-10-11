@@ -41,6 +41,7 @@
 #include "KX_Scene.h"
 #include "KX_KetsjiEngine.h"
 #include "KX_PythonInit.h" /* for config load/saving */
+#include "RAS_ICanvas.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -203,6 +204,17 @@ bool KX_GameActuator::Update()
 			}
 			break;
 #endif // WITH_PYTHON
+		}
+		case KX_GAME_SCREENSHOT:
+		{
+			RAS_ICanvas *canvas = m_ketsjiengine->GetCanvas();
+			if (canvas) {
+				canvas->MakeScreenShot(m_filename);
+			}
+			else {
+				printf("KX_GAME_SCREENSHOT error: Rasterizer not available");
+			}
+			break;
 		}
 	default:
 		; /* do nothing? this is an internal error !!! */
