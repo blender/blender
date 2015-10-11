@@ -69,6 +69,9 @@ void ImageManager::set_extended_image_limits(const DeviceInfo& info)
 	else if((info.type == DEVICE_CUDA || info.type == DEVICE_MULTI) && info.extended_images) {
 		tex_num_images = TEX_EXTENDED_NUM_IMAGES_GPU;
 	}
+	else if(info.pack_images) {
+		tex_num_images = TEX_PACKED_NUM_IMAGES;
+	}
 }
 
 bool ImageManager::set_animation_frame_update(int frame)

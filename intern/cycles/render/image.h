@@ -40,6 +40,13 @@ CCL_NAMESPACE_BEGIN
 #define TEX_EXTENDED_NUM_IMAGES_CPU		1024
 #define TEX_EXTENDED_IMAGE_BYTE_START	TEX_EXTENDED_NUM_FLOAT_IMAGES
 
+/* Limitations for packed images.
+ *
+ * Technically number of textures is unlimited, but it should in
+ * fact be in sync with CPU limitations.
+ */
+#define TEX_PACKED_NUM_IMAGES			1024
+
 /* color to use when textures are not found */
 #define TEX_IMAGE_MISSING_R 1
 #define TEX_IMAGE_MISSING_G 0
