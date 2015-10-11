@@ -81,24 +81,24 @@ void BlenderBulletCharacterController::updateAction(btCollisionWorld *collisionW
 	m_motionState->setWorldTransform(getGhostObject()->getWorldTransform());
 }
 
-int BlenderBulletCharacterController::getMaxJumps() const
+unsigned char BlenderBulletCharacterController::getMaxJumps() const
 {
 	return m_maxJumps;
 }
 
-void BlenderBulletCharacterController::setMaxJumps(int maxJumps)
+void BlenderBulletCharacterController::setMaxJumps(unsigned char maxJumps)
 {
 	m_maxJumps = maxJumps;
 }
 
-int BlenderBulletCharacterController::getJumpCount() const
+unsigned char BlenderBulletCharacterController::getJumpCount() const
 {
 	return m_jumps;
 }
 
 bool BlenderBulletCharacterController::canJump() const
 {
-	return onGround() || m_jumps < m_maxJumps;
+	return (onGround() && m_maxJumps > 0) || m_jumps < m_maxJumps;
 }
 
 void BlenderBulletCharacterController::jump()

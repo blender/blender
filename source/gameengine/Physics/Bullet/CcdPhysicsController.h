@@ -407,19 +407,19 @@ class BlenderBulletCharacterController : public btKinematicCharacterController, 
 {
 private:
 	btMotionState* m_motionState;
-	int m_jumps;
-	int m_maxJumps;
+	unsigned char m_jumps;
+	unsigned char m_maxJumps;
 
 public:
 	BlenderBulletCharacterController(btMotionState *motionState, btPairCachingGhostObject *ghost, btConvexShape* shape, float stepHeight);
 
 	virtual void updateAction(btCollisionWorld *collisionWorld, btScalar dt);
 
-	int getMaxJumps() const;
+	unsigned char getMaxJumps() const;
 
-	void setMaxJumps(int maxJumps);
+	void setMaxJumps(unsigned char maxJumps);
 
-	int getJumpCount() const;
+	unsigned char getJumpCount() const;
 
 	virtual bool canJump() const;
 
@@ -432,9 +432,9 @@ public:
 	virtual bool OnGround(){ return onGround(); }
 	virtual float GetGravity() { return getGravity(); }
 	virtual void SetGravity(float gravity) { setGravity(gravity); }
-	virtual int GetMaxJumps() { return getMaxJumps(); }
-	virtual void SetMaxJumps(int maxJumps) { setMaxJumps(maxJumps); }
-	virtual int GetJumpCount() { return getJumpCount(); }
+	virtual unsigned char GetMaxJumps() { return getMaxJumps(); }
+	virtual void SetMaxJumps(unsigned char maxJumps) { setMaxJumps(maxJumps); }
+	virtual unsigned char GetJumpCount() { return getJumpCount(); }
 	virtual void SetWalkDirection(const MT_Vector3& dir)
 	{
 		btVector3 vec = btVector3(dir[0], dir[1], dir[2]);

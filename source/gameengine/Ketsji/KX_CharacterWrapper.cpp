@@ -25,6 +25,7 @@
 #include "KX_CharacterWrapper.h"
 #include "PHY_ICharacter.h"
 #include "KX_PyMath.h"
+#include "BLI_utildefines.h"
 
 KX_CharacterWrapper::KX_CharacterWrapper(PHY_ICharacter* character) :
 		PyObjectPlus(),
@@ -116,7 +117,9 @@ int KX_CharacterWrapper::pyattr_set_max_jumps(void *self_v, const KX_PYATTRIBUTE
 		return PY_SET_ATTR_FAIL;
 	}
 
-	self->m_character->SetMaxJumps((int)param);
+	CLAMP(param, 0, 255);
+
+	self->m_character->SetMaxJumps((unsigned char)param);
 	return PY_SET_ATTR_SUCCESS;
 }
 

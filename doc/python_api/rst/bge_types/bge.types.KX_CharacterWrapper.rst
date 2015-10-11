@@ -25,7 +25,7 @@ base class --- :class:`PyObjectPlus`
 
       The maximum number of jumps a character can perform before having to touch the ground. By default this is set to 1. 2 allows for a double jump, etc.
 
-      :type: int
+      :type: int in [0, 255], default 1
 
    .. attribute:: jumpCount
 
