@@ -1215,7 +1215,8 @@ static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blendero
 	shapeProps->m_step_height = blenderobject->step_height;
 	shapeProps->m_jump_speed = blenderobject->jump_speed;
 	shapeProps->m_fall_speed = blenderobject->fall_speed;
-	
+	shapeProps->m_max_jumps = blenderobject->max_jumps;
+
 	return shapeProps;
 }
 

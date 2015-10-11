@@ -316,7 +316,8 @@ struct CcdConstructionInfo
 	float	m_stepHeight;
 	float	m_jumpSpeed;
 	float	m_fallSpeed;
-	
+	unsigned char m_maxJumps;
+
 	int		m_gamesoftFlag;
 	float	m_soft_linStiff;			/* linear stiffness 0..1 */
 	float	m_soft_angStiff;		/* angular stiffness 0..1 */

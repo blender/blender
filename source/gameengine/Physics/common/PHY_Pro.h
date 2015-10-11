@@ -51,6 +51,7 @@ struct PHY_ShapeProps {
 	MT_Scalar  m_step_height;			// Max height of climbable steps (Character)
 	MT_Scalar  m_jump_speed;			// Velocity of jumps (Character)
 	MT_Scalar  m_fall_speed;			// Max velocity of falling (Character)
+	unsigned char m_max_jumps;          // Max ammount of jumps (Character)
 };
 
 

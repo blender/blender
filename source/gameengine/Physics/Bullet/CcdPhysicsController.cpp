@@ -533,6 +533,7 @@ bool CcdPhysicsController::CreateCharacterController()
 
 	m_characterController->setJumpSpeed(m_cci.m_jumpSpeed);
 	m_characterController->setFallSpeed(m_cci.m_fallSpeed);
+	m_characterController->setMaxJumps(m_cci.m_maxJumps);
 
 	return true;
 }

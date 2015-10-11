@@ -55,6 +55,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
             layout.prop(game, "step_height", slider=True)
             layout.prop(game, "jump_speed")
             layout.prop(game, "fall_speed")
+            layout.prop(game, "max_jumps")
 
         elif physics_type in {'DYNAMIC', 'RIGID_BODY'}:
             split = layout.split()

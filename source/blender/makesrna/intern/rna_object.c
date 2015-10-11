@@ -1771,6 +1771,14 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_float_default(prop, 55.0f);
 	RNA_def_property_ui_text(prop, "Fall Speed Max", "Maximum speed at which the character will fall");
 
+	prop = RNA_def_property(srna, "max_jumps", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "max_jumps");
+	RNA_def_property_range(prop, 1, CHAR_MAX);
+	RNA_def_property_ui_range(prop, 1, 10, 1, 1);
+	RNA_def_property_int_default(prop, 1);
+	RNA_def_property_ui_text(prop, "Max Jumps",
+	                         "The maximum number of jumps the character can make before it hits the ground.");
+
 	/* Collision Masks */
 	prop = RNA_def_property(srna, "collision_group", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "col_group", 1);

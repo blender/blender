@@ -119,7 +119,7 @@ int KX_CharacterWrapper::pyattr_set_max_jumps(void *self_v, const KX_PYATTRIBUTE
 
 	CLAMP(param, 0, 255);
 
-	self->m_character->SetMaxJumps((unsigned char)param);
+	self->m_character->SetMaxJumps(param);
 	return PY_SET_ATTR_SUCCESS;
 }
 

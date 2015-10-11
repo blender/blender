@@ -189,7 +189,7 @@ typedef struct Object {
 
 	/* did last modifier stack generation need mapping support? */
 	char lastNeedMapping;  /* bool */
-	char pad[5];
+	char pad;
 
 	/* dupli-frame settings */
 	int dupon, dupoff, dupsta, dupend;
@@ -222,6 +222,8 @@ typedef struct Object {
 	float step_height;
 	float jump_speed;
 	float fall_speed;
+	unsigned char max_jumps;
+	char pad2[3];
 
 	/** Collision mask settings */
 	unsigned short col_group, col_mask;
