@@ -3064,7 +3064,9 @@ static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
 	const char *colorspace = ima->colorspace_settings.name;
 	bool predivide = (ima->alpha_mode == IMA_ALPHA_PREMUL);
 
-	ima->rr = RE_MultilayerConvert(ibuf->userdata, colorspace, predivide, ibuf->x, ibuf->y);
+	/* only load rr once for multiview */
+	if (!ima->rr)
+		ima->rr = RE_MultilayerConvert(ibuf->userdata, colorspace, predivide, ibuf->x, ibuf->y);
 
 	IMB_exr_close(ibuf->userdata);
 
