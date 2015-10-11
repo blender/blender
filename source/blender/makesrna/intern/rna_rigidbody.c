@@ -53,7 +53,7 @@ EnumPropertyItem rigidbody_object_type_items[] = {
 EnumPropertyItem rigidbody_object_shape_items[] = {
 	{RB_SHAPE_BOX, "BOX", ICON_MESH_CUBE, "Box", "Box-like shapes (i.e. cubes), including planes (i.e. ground planes)"},
 	{RB_SHAPE_SPHERE, "SPHERE", ICON_MESH_UVSPHERE, "Sphere", ""},
-	{RB_SHAPE_CAPSULE, "CAPSULE", ICON_OUTLINER_OB_META, "Capsule", ""},
+	{RB_SHAPE_CAPSULE, "CAPSULE", ICON_MESH_CAPSULE, "Capsule", ""},
 	{RB_SHAPE_CYLINDER, "CYLINDER", ICON_MESH_CYLINDER, "Cylinder", ""},
 	{RB_SHAPE_CONE, "CONE", ICON_MESH_CONE, "Cone", ""},
 	{RB_SHAPE_CONVEXH, "CONVEX_HULL", ICON_MESH_ICOSPHERE, "Convex Hull",

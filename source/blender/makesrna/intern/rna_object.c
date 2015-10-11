@@ -107,13 +107,13 @@ static EnumPropertyItem dupli_items[] = {
 #endif
 
 static EnumPropertyItem collision_bounds_items[] = {
-	{OB_BOUND_BOX, "BOX", 0, "Box", ""},
-	{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", ""},
-	{OB_BOUND_CYLINDER, "CYLINDER", 0, "Cylinder", ""},
-	{OB_BOUND_CONE, "CONE", 0, "Cone", ""},
-	{OB_BOUND_CONVEX_HULL, "CONVEX_HULL", 0, "Convex Hull", ""},
-	{OB_BOUND_TRIANGLE_MESH, "TRIANGLE_MESH", 0, "Triangle Mesh", ""},
-	{OB_BOUND_CAPSULE, "CAPSULE", 0, "Capsule", ""},
+	{OB_BOUND_BOX, "BOX", ICON_MESH_CUBE, "Box", ""},
+	{OB_BOUND_SPHERE, "SPHERE", ICON_MESH_UVSPHERE, "Sphere", ""},
+	{OB_BOUND_CYLINDER, "CYLINDER", ICON_MESH_CYLINDER, "Cylinder", ""},
+	{OB_BOUND_CONE, "CONE", ICON_MESH_CONE, "Cone", ""},
+	{OB_BOUND_CONVEX_HULL, "CONVEX_HULL", ICON_MESH_ICOSPHERE, "Convex Hull", ""},
+	{OB_BOUND_TRIANGLE_MESH, "TRIANGLE_MESH", ICON_MESH_MONKEY, "Triangle Mesh", ""},
+	{OB_BOUND_CAPSULE, "CAPSULE", ICON_MESH_CAPSULE, "Capsule", ""},
 	/*{OB_DYN_MESH, "DYNAMIC_MESH", 0, "Dynamic Mesh", ""}, */
 	{0, NULL, 0, NULL, NULL}
 };
