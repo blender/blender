@@ -516,7 +516,8 @@ void mul_v3_mat3_m4v3(float r[3], float mat[4][4], const float vec[3])
 
 void mul_project_m4_v3(float mat[4][4], float vec[3])
 {
-	const float w = mul_project_m4_v3_zfac(mat, vec);
+	/* absolute value to not flip the frustum upside down behind the camera */
+	const float w = fabsf(mul_project_m4_v3_zfac(mat, vec));
 	mul_m4_v3(mat, vec);
 
 	vec[0] /= w;
@@ -526,7 +527,7 @@ void mul_project_m4_v3(float mat[4][4], float vec[3])
 
 void mul_v3_project_m4_v3(float r[3], float mat[4][4], const float vec[3])
 {
-	const float w = mul_project_m4_v3_zfac(mat, vec);
+	const float w = fabsf(mul_project_m4_v3_zfac(mat, vec));
 	mul_v3_m4v3(r, mat, vec);
 
 	r[0] /= w;
@@ -536,7 +537,7 @@ void mul_v3_project_m4_v3(float r[3], float mat[4][4], const float vec[3])
 
 void mul_v2_project_m4_v3(float r[2], float mat[4][4], const float vec[3])
 {
-	const float w = mul_project_m4_v3_zfac(mat, vec);
+	const float w = fabsf(mul_project_m4_v3_zfac(mat, vec));
 	mul_v2_m4v3(r, mat, vec);
 
 	r[0] /= w;
