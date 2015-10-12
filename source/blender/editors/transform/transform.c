@@ -168,11 +168,12 @@ static void applyBoneEnvelope(TransInfo *t, const int mval[2]);
 static void initBoneRoll(TransInfo *t);
 static void applyBoneRoll(TransInfo *t, const int mval[2]);
 
-static void initEdgeSlide_ex(TransInfo *t, bool use_double_side);
+static void initEdgeSlide_ex(TransInfo *t, bool use_double_side, bool use_even, bool flipped);
 static void initEdgeSlide(TransInfo *t);
 static eRedrawFlag handleEventEdgeSlide(TransInfo *t, const struct wmEvent *event);
 static void applyEdgeSlide(TransInfo *t, const int mval[2]);
 
+static void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped);
 static void initVertSlide(TransInfo *t);
 static eRedrawFlag handleEventVertSlide(TransInfo *t, const struct wmEvent *event);
 static void applyVertSlide(TransInfo *t, const int mval[2]);
@@ -2229,12 +2230,18 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		case TFM_EDGE_SLIDE:
 		{
 			const bool use_double_side = (op ? !RNA_boolean_get(op->ptr, "single_side") : true);
-			initEdgeSlide_ex(t, use_double_side);
+			const bool use_even = (op ? RNA_boolean_get(op->ptr, "use_even") : false);
+			const bool flipped = (op ? RNA_boolean_get(op->ptr, "flipped") : false);
+			initEdgeSlide_ex(t, use_double_side, use_even, flipped);
 			break;
 		}
 		case TFM_VERT_SLIDE:
-			initVertSlide(t);
+		{
+			const bool use_even = (op ? RNA_boolean_get(op->ptr, "use_even") : false);
+			const bool flipped = (op ? RNA_boolean_get(op->ptr, "flipped") : false);
+			initVertSlide_ex(t, use_even, flipped);
 			break;
+		}
 		case TFM_BONE_ROLL:
 			initBoneRoll(t);
 			break;
@@ -5973,7 +5980,7 @@ static void calcEdgeSlide_mval_range(
 	}
 }
 
-static void calcEdgeSlide_non_proportional(
+static void calcEdgeSlide_even(
         TransInfo *t, EdgeSlideData *sld, const float mval[2])
 {
 	TransDataEdgeSlideVert *sv = sld->sv;
@@ -6019,7 +6026,7 @@ static void calcEdgeSlide_non_proportional(
 	}
 }
 
-static bool createEdgeSlideVerts_double_side(TransInfo *t)
+static bool createEdgeSlideVerts_double_side(TransInfo *t, bool use_even, bool flipped)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 	BMesh *bm = em->bm;
@@ -6038,9 +6045,9 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t)
 
 	slide_origdata_init_flag(t, &sld->orig_data);
 
-	sld->is_proportional = true;
+	sld->use_even = use_even;
 	sld->curr_sv_index = 0;
-	sld->flipped_vtx = false;
+	sld->flipped = flipped;
 
 	/*ensure valid selection*/
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -6346,7 +6353,7 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t)
 	slide_origdata_create_data(t, &sld->orig_data, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv);
 
 	if (rv3d) {
-		calcEdgeSlide_non_proportional(t, sld, mval);
+		calcEdgeSlide_even(t, sld, mval);
 	}
 
 	sld->em = em;
@@ -6364,7 +6371,7 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t)
  * A simple version of #createEdgeSlideVerts_double_side
  * Which assumes the longest unselected.
  */
-static bool createEdgeSlideVerts_single_side(TransInfo *t)
+static bool createEdgeSlideVerts_single_side(TransInfo *t, bool use_even, bool flipped)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 	BMesh *bm = em->bm;
@@ -6389,10 +6396,10 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t)
 
 	slide_origdata_init_flag(t, &sld->orig_data);
 
-	sld->is_proportional = true;
+	sld->use_even = use_even;
 	sld->curr_sv_index = 0;
-	/* heppans to be best for single-sided */
-	sld->flipped_vtx = true;
+	/* happens to be best for single-sided */
+	sld->flipped = !flipped;
 
 	/* ensure valid selection */
 	j = 0;
@@ -6538,7 +6545,7 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t)
 	slide_origdata_create_data(t, &sld->orig_data, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv);
 
 	if (rv3d) {
-		calcEdgeSlide_non_proportional(t, sld, mval);
+		calcEdgeSlide_even(t, sld, mval);
 	}
 
 	sld->em = em;
@@ -6586,7 +6593,7 @@ void freeEdgeSlideVerts(TransInfo *t)
 	t->customData = NULL;
 }
 
-static void initEdgeSlide_ex(TransInfo *t, bool use_double_side)
+static void initEdgeSlide_ex(TransInfo *t, bool use_double_side, bool use_even, bool flipped)
 {
 	EdgeSlideData *sld;
 	bool ok;
@@ -6596,10 +6603,10 @@ static void initEdgeSlide_ex(TransInfo *t, bool use_double_side)
 	t->handleEvent = handleEventEdgeSlide;
 
 	if (use_double_side) {
-		ok = createEdgeSlideVerts_double_side(t);
+		ok = createEdgeSlideVerts_double_side(t, use_even, flipped);
 	}
 	else {
-		ok = createEdgeSlideVerts_single_side(t);
+		ok = createEdgeSlideVerts_single_side(t, use_even, flipped);
 	}
 
 	if (!ok) {
@@ -6633,7 +6640,7 @@ static void initEdgeSlide_ex(TransInfo *t, bool use_double_side)
 
 static void initEdgeSlide(TransInfo *t)
 {
-	initEdgeSlide_ex(t, true);
+	initEdgeSlide_ex(t, true, false, false);
 }
 
 static eRedrawFlag handleEventEdgeSlide(struct TransInfo *t, const struct wmEvent *event)
@@ -6645,16 +6652,14 @@ static eRedrawFlag handleEventEdgeSlide(struct TransInfo *t, const struct wmEven
 			switch (event->type) {
 				case EKEY:
 					if (event->val == KM_PRESS) {
-						sld->is_proportional = !sld->is_proportional;
+						sld->use_even = !sld->use_even;
 						calcEdgeSlideCustomPoints(t);
 						return TREDRAW_HARD;
 					}
 					break;
 				case FKEY:
 					if (event->val == KM_PRESS) {
-						if (sld->is_proportional == false) {
-							sld->flipped_vtx = !sld->flipped_vtx;
-						}
+						sld->flipped = !sld->flipped;
 						calcEdgeSlideCustomPoints(t);
 						return TREDRAW_HARD;
 					}
@@ -6694,8 +6699,8 @@ static void drawEdgeSlide(TransInfo *t)
 		EdgeSlideData *sld = t->customData;
 		const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
 
-		/* Non-Prop mode */
-		if ((sld->is_proportional == false) || (is_clamp == false)) {
+		/* Even mode */
+		if ((sld->use_even == true) || (is_clamp == false)) {
 			View3D *v3d = t->view;
 			const float line_size = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
 
@@ -6710,7 +6715,7 @@ static void drawEdgeSlide(TransInfo *t)
 
 			glMultMatrixf(t->obedit->obmat);
 
-			if (sld->is_proportional == false) {
+			if (sld->use_even == true) {
 				float co_a[3], co_b[3], co_mark[3];
 				TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
 				const float fac = (sld->perc + 1.0f) / 2.0f;
@@ -6737,7 +6742,7 @@ static void drawEdgeSlide(TransInfo *t)
 				UI_ThemeColorShadeAlpha(TH_SELECT, -30, alpha_shade);
 				glPointSize(ctrl_size);
 				bglBegin(GL_POINTS);
-				if (sld->flipped_vtx) {
+				if (sld->flipped) {
 					if (curr_sv->v_side[1]) bglVertex3fv(curr_sv->v_side[1]->co);
 				}
 				else {
@@ -6813,7 +6818,7 @@ static void doEdgeSlide(TransInfo *t, float perc)
 	sld->perc = perc;
 	sv = svlist;
 
-	if (sld->is_proportional == true) {
+	if (sld->use_even == false) {
 		const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
 		if (is_clamp) {
 			const int side_index = (perc < 0.0f);
@@ -6843,7 +6848,7 @@ static void doEdgeSlide(TransInfo *t, float perc)
 	}
 	else {
 		/**
-		 * Implementation note, non proportional mode ignores the starting positions and uses only the
+		 * Implementation note, even mode ignores the starting positions and uses only the
 		 * a/b verts, this could be changed/improved so the distance is still met but the verts are moved along
 		 * their original path (which may not be straight), however how it works now is OK and matches 2.4x - Campbell
 		 *
@@ -6851,7 +6856,7 @@ static void doEdgeSlide(TransInfo *t, float perc)
 		 * is the same as the distance between the original vert locations, same goes for the lines below.
 		 */
 		TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
-		const float curr_length_perc = curr_sv->edge_len * (((sld->flipped_vtx ? perc : -perc) + 1.0f) / 2.0f);
+		const float curr_length_perc = curr_sv->edge_len * (((sld->flipped ? perc : -perc) + 1.0f) / 2.0f);
 
 		float co_a[3];
 		float co_b[3];
@@ -6863,7 +6868,7 @@ static void doEdgeSlide(TransInfo *t, float perc)
 				add_v3_v3v3(co_a, sv->v_co_orig, sv->dir_side[0]);
 				add_v3_v3v3(co_b, sv->v_co_orig, sv->dir_side[1]);
 
-				if (sld->flipped_vtx) {
+				if (sld->flipped) {
 					interp_line_v3_v3v3v3(sv->v->co, co_b, sv->v_co_orig, co_a, fac);
 				}
 				else {
@@ -6880,8 +6885,8 @@ static void applyEdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 	size_t ofs = 0;
 	float final;
 	EdgeSlideData *sld =  t->customData;
-	bool flipped = sld->flipped_vtx;
-	bool is_proportional = sld->is_proportional;
+	bool flipped = sld->flipped;
+	bool use_even = sld->use_even;
 	const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
 	const bool is_constrained = !(is_clamp == false || hasNumInput(&t->num));
 
@@ -6908,8 +6913,8 @@ static void applyEdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 	else {
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, "%.4f ", final);
 	}
-	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("(E)ven: %s, "), WM_bool_as_string(!is_proportional));
-	if (!is_proportional) {
+	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("(E)ven: %s, "), WM_bool_as_string(use_even));
+	if (use_even) {
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("(F)lipped: %s, "), WM_bool_as_string(flipped));
 	}
 	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Alt or (C)lamp: %s"), WM_bool_as_string(is_clamp));
@@ -6950,7 +6955,7 @@ static void calcVertSlideCustomPoints(struct TransInfo *t)
 	ARRAY_SET_ITEMS(mval_start, co_orig_2d[0] + mval_ofs[0], co_orig_2d[1] + mval_ofs[1]);
 	ARRAY_SET_ITEMS(mval_end, co_curr_2d[0] + mval_ofs[0], co_curr_2d[1] + mval_ofs[1]);
 
-	if (sld->flipped_vtx && sld->is_proportional == false) {
+	if (sld->flipped && sld->use_even) {
 		setCustomPoints(t, &t->mouse, mval_start, mval_end);
 	}
 	else {
@@ -7041,7 +7046,7 @@ static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2]
 	}
 }
 
-static bool createVertSlideVerts(TransInfo *t)
+static bool createVertSlideVerts(TransInfo *t, bool use_even, bool flipped)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 	BMesh *bm = em->bm;
@@ -7055,9 +7060,9 @@ static bool createVertSlideVerts(TransInfo *t)
 
 	slide_origdata_init_flag(t, &sld->orig_data);
 
-	sld->is_proportional = true;
+	sld->use_even = use_even;
 	sld->curr_sv_index = 0;
-	sld->flipped_vtx = false;
+	sld->flipped = flipped;
 
 	j = 0;
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -7191,7 +7196,7 @@ void freeVertSlideVerts(TransInfo *t)
 	t->customData = NULL;
 }
 
-static void initVertSlide(TransInfo *t)
+static void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped)
 {
 	VertSlideData *sld;
 
@@ -7199,7 +7204,7 @@ static void initVertSlide(TransInfo *t)
 	t->transform = applyVertSlide;
 	t->handleEvent = handleEventVertSlide;
 
-	if (!createVertSlideVerts(t)) {
+	if (!createVertSlideVerts(t, use_even, flipped)) {
 		t->state = TRANS_CANCEL;
 		return;
 	}
@@ -7228,6 +7233,11 @@ static void initVertSlide(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT | T_NO_PROJECT;
 }
 
+static void initVertSlide(TransInfo *t)
+{
+	initVertSlide_ex(t, false, false);
+}
+
 static eRedrawFlag handleEventVertSlide(struct TransInfo *t, const struct wmEvent *event)
 {
 	if (t->mode == TFM_VERT_SLIDE) {
@@ -7237,8 +7247,8 @@ static eRedrawFlag handleEventVertSlide(struct TransInfo *t, const struct wmEven
 			switch (event->type) {
 				case EKEY:
 					if (event->val == KM_PRESS) {
-						sld->is_proportional = !sld->is_proportional;
-						if (sld->flipped_vtx) {
+						sld->use_even = !sld->use_even;
+						if (sld->flipped) {
 							calcVertSlideCustomPoints(t);
 						}
 						return TREDRAW_HARD;
@@ -7246,7 +7256,7 @@ static eRedrawFlag handleEventVertSlide(struct TransInfo *t, const struct wmEven
 					break;
 				case FKEY:
 					if (event->val == KM_PRESS) {
-						sld->flipped_vtx = !sld->flipped_vtx;
+						sld->flipped = !sld->flipped;
 						calcVertSlideCustomPoints(t);
 						return TREDRAW_HARD;
 					}
@@ -7345,7 +7355,7 @@ static void drawVertSlide(TransInfo *t)
 			glPointSize(ctrl_size);
 
 			bglBegin(GL_POINTS);
-			bglVertex3fv((sld->flipped_vtx && sld->is_proportional == false) ?
+			bglVertex3fv((sld->flipped && sld->use_even) ?
 			             curr_sv->co_link_orig_3d[curr_sv->co_link_curr] :
 			             curr_sv->co_orig_3d);
 			bglEnd();
@@ -7403,7 +7413,7 @@ static void doVertSlide(TransInfo *t, float perc)
 	sld->perc = perc;
 	sv = svlist;
 
-	if (sld->is_proportional == true) {
+	if (sld->use_even == false) {
 		for (i = 0; i < sld->totsv; i++, sv++) {
 			interp_v3_v3v3(sv->v->co, sv->co_orig_3d, sv->co_link_orig_3d[sv->co_link_curr], perc);
 		}
@@ -7421,7 +7431,7 @@ static void doVertSlide(TransInfo *t, float perc)
 			edge_len = normalize_v3(dir);
 
 			if (edge_len > FLT_EPSILON) {
-				if (sld->flipped_vtx) {
+				if (sld->flipped) {
 					madd_v3_v3v3fl(sv->v->co, sv->co_link_orig_3d[sv->co_link_curr], dir, -tperc);
 				}
 				else {
@@ -7441,8 +7451,8 @@ static void applyVertSlide(TransInfo *t, const int UNUSED(mval[2]))
 	size_t ofs = 0;
 	float final;
 	VertSlideData *sld =  t->customData;
-	const bool flipped = sld->flipped_vtx;
-	const bool is_proportional = sld->is_proportional;
+	const bool flipped = sld->flipped;
+	const bool use_even = sld->use_even;
 	const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
 	const bool is_constrained = !(is_clamp == false || hasNumInput(&t->num));
 
@@ -7469,8 +7479,8 @@ static void applyVertSlide(TransInfo *t, const int UNUSED(mval[2]))
 	else {
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, "%.4f ", final);
 	}
-	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("(E)ven: %s, "), WM_bool_as_string(!is_proportional));
-	if (!is_proportional) {
+	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("(E)ven: %s, "), WM_bool_as_string(use_even));
+	if (use_even) {
 		ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("(F)lipped: %s, "), WM_bool_as_string(flipped));
 	}
 	ofs += BLI_snprintf(str + ofs, MAX_INFO_LEN - ofs, IFACE_("Alt or (C)lamp: %s"), WM_bool_as_string(is_clamp));

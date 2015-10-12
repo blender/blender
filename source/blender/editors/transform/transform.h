@@ -252,8 +252,8 @@ typedef struct EdgeSlideData {
 
 	float perc;
 
-	bool is_proportional;
-	bool flipped_vtx;
+	bool use_even;
+	bool flipped;
 
 	int curr_sv_index;
 
@@ -284,8 +284,8 @@ typedef struct VertSlideData {
 
 	float perc;
 
-	bool is_proportional;
-	bool flipped_vtx;
+	bool use_even;
+	bool flipped;
 
 	int curr_sv_index;
 
