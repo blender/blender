@@ -3085,6 +3085,7 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 	float value;
 	int i;
 	char str[MAX_INFO_LEN];
+	const bool is_local_center = transdata_check_local_center(t, t->around);
 	
 	copy_m3_m4(persmat, t->viewmat);
 	invert_m3_m3(persinv, persmat);
@@ -3120,8 +3121,10 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 	
 	mul_m3_m3m3(tmat, smat, persmat);
 	mul_m3_m3m3(totmat, persinv, tmat);
-	
+
 	for (i = 0; i < t->total; i++, td++) {
+		const float *center, *co;
+
 		if (td->flag & TD_NOACTION)
 			break;
 		
@@ -3136,12 +3139,22 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 		else {
 			copy_m3_m3(tmat, totmat);
 		}
-		sub_v3_v3v3(vec, td->center, t->center);
+
+		if (is_local_center) {
+			center = td->center;
+			co = td->loc;
+		}
+		else {
+			center = t->center;
+			co = td->center;
+		}
+
+		sub_v3_v3v3(vec, co, center);
 		
 		mul_m3_v3(tmat, vec);
 		
-		add_v3_v3(vec, t->center);
-		sub_v3_v3(vec, td->center);
+		add_v3_v3(vec, center);
+		sub_v3_v3(vec, co);
 		
 		mul_v3_fl(vec, td->factor);
 		
