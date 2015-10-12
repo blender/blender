@@ -9536,93 +9536,77 @@ static bool object_in_any_scene(Main *mainvar, Object *ob)
 	return false;
 }
 
-static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const short idcode, const bool is_link, const short active_lay)
+static void give_base_to_objects(Main *mainvar, Scene *scene, View3D *v3d, Library *lib, const short flag)
 {
 	Object *ob;
 	Base *base;
-	const bool is_group_append = (is_link == false && idcode == ID_GR);
+	const unsigned int active_lay = (flag & FILE_ACTIVELAY) ? BKE_screen_view3d_layer_active(v3d, scene) : 0;
+	const bool is_link = (flag & FILE_LINK) != 0;
+
+	BLI_assert(scene);
 
 	/* give all objects which are LIB_INDIRECT a base, or for a group when *lib has been set */
 	for (ob = mainvar->object.first; ob; ob = ob->id.next) {
-		if (ob->id.flag & LIB_INDIRECT) {
-			/* IF below is quite confusing!
-			 * if we are appending, but this object wasnt just added along with a group,
-			 * then this is already used indirectly in the scene somewhere else and we didnt just append it.
-			 *
-			 * (ob->id.flag & LIB_PRE_EXISTING)==0 means that this is a newly appended object - Campbell */
-			if (is_group_append==0 || (ob->id.flag & LIB_PRE_EXISTING)==0) {
-				bool do_it = false;
-				
-				if (ob->id.us == 0) {
-					do_it = true;
-				}
-				else if (idcode==ID_GR) {
-					if ((is_link == false) && (ob->id.lib == lib)) {
-						if ((ob->flag & OB_FROMGROUP) && object_in_any_scene(mainvar, ob)==0) {
-							do_it = true;
-						}
-					}
-				}
-				else {
-					/* when appending, make sure any indirectly loaded objects
-					 * get a base else they cant be accessed at all [#27437] */
-					if ((is_link == false) && (ob->id.lib == lib)) {
-						/* we may be appending from a scene where we already
-						 *  have a linked object which is not in any scene [#27616] */
-						if ((ob->id.flag & LIB_PRE_EXISTING)==0) {
-							if (object_in_any_scene(mainvar, ob)==0) {
-								do_it = true;
-							}
-						}
-					}
-				}
-				
-				if (do_it) {
-					base = MEM_callocN(sizeof(Base), "add_ext_base");
-					BLI_addtail(&sce->base, base);
-					
-					if (active_lay) ob->lay = sce->lay;
-					
-					base->lay = ob->lay;
-					base->object = ob;
-					base->flag = ob->flag;
+		if ((ob->id.flag & LIB_INDIRECT) && (ob->id.flag & LIB_PRE_EXISTING) == 0) {
+			bool do_it = false;
 
-					CLAMP_MIN(ob->id.us, 0);
-					ob->id.us += 1;
-					
-					ob->id.flag -= LIB_INDIRECT;
-					ob->id.flag |= LIB_EXTERN;
+			if (ob->id.us == 0) {
+				do_it = true;
+			}
+			else if (!is_link && (ob->id.lib == lib) && (object_in_any_scene(mainvar, ob) == 0)) {
+				/* When appending, make sure any indirectly loaded objects get a base, else they cant be accessed at all
+				 * (see T27437). */
+				do_it = true;
+			}
+
+			if (do_it) {
+				base = MEM_callocN(sizeof(Base), __func__);
+				BLI_addtail(&scene->base, base);
+
+				if (active_lay) {
+					ob->lay = active_lay;
 				}
+
+				base->lay = ob->lay;
+				base->object = ob;
+				base->flag = ob->flag;
+
+				CLAMP_MIN(ob->id.us, 0);
+				ob->id.us += 1;
+
+				ob->id.flag &= ~LIB_INDIRECT;
+				ob->id.flag |= LIB_EXTERN;
 			}
 		}
 	}
 }
 
-static void give_base_to_groups(Main *mainvar, Scene *scene)
+static void give_base_to_groups(
+        Main *mainvar, Scene *scene, View3D *v3d, Library *UNUSED(lib), const short UNUSED(flag))
 {
 	Group *group;
-	
+	Base *base;
+	Object *ob;
+	const unsigned int active_lay = BKE_screen_view3d_layer_active(v3d, scene);
+
 	/* give all objects which are tagged a base */
 	for (group = mainvar->group.first; group; group = group->id.next) {
 		if (group->id.flag & LIB_DOIT) {
-			Base *base;
-			Object *ob;
-
 			/* any indirect group should not have been tagged */
-			BLI_assert((group->id.flag & LIB_INDIRECT)==0);
-			
+			BLI_assert((group->id.flag & LIB_INDIRECT) == 0);
+
 			/* BKE_object_add(...) messes with the selection */
 			ob = BKE_object_add_only_object(mainvar, OB_EMPTY, group->id.name + 2);
 			ob->type = OB_EMPTY;
-			ob->lay = scene->lay;
-			
+			ob->lay = active_lay;
+
 			/* assign the base */
 			base = BKE_scene_base_add(scene, ob);
 			base->flag |= SELECT;
-			base->object->flag= base->flag;
+			base->object->flag = base->flag;
 			DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 			scene->basact = base;
-			
+
 			/* assign the group */
 			ob->dup_group = group;
 			ob->transflag |= OB_DUPLIGROUP;
@@ -9694,33 +9678,33 @@ void BLO_library_link_all(Main *mainl, BlendHandle *bh)
 	}
 }
 
-
-static ID *link_named_part_ex(const bContext *C, Main *mainl, FileData *fd, const char *idname, const int idcode, const int flag)
+static ID *link_named_part_ex(
+        Main *mainl, FileData *fd, const char *idname, const int idcode, const int flag,
+		Scene *scene, View3D *v3d)
 {
 	ID *id = link_named_part(mainl, fd, idname, idcode);
 
 	if (id && (GS(id->name) == ID_OB)) {	/* loose object: give a base */
-		Scene *scene = CTX_data_scene(C); /* can be NULL */
 		if (scene) {
 			Base *base;
 			Object *ob;
-			
-			base= MEM_callocN(sizeof(Base), "app_nam_part");
+
+			base = MEM_callocN(sizeof(Base), "app_nam_part");
 			BLI_addtail(&scene->base, base);
-			
+
 			ob = (Object *)id;
-			
+
 			/* link at active layer (view3d if available in context, else scene one */
-			if ((flag & FILE_ACTIVELAY)) {
-				View3D *v3d = CTX_wm_view3d(C);
+			if (flag & FILE_ACTIVELAY) {
 				ob->lay = BKE_screen_view3d_layer_active(v3d, scene);
 			}
-			
+
 			ob->mode = OB_MODE_OBJECT;
 			base->lay = ob->lay;
 			base->object = ob;
+			base->flag = ob->flag;
 			ob->id.us++;
-			
+
 			if (flag & FILE_AUTOSELECT) {
 				base->flag |= SELECT;
 				base->object->flag = base->flag;
@@ -9729,11 +9713,11 @@ static ID *link_named_part_ex(const bContext *C, Main *mainl, FileData *fd, cons
 		}
 	}
 	else if (id && (GS(id->name) == ID_GR)) {
-		/* tag as needing to be instanced */
+		/* tag as needing to be instantiated */
 		if (flag & FILE_GROUP_INSTANCE)
 			id->flag |= LIB_DOIT;
 	}
-	
+
 	return id;
 }
 
@@ -9756,20 +9740,21 @@ ID *BLO_library_link_named_part(Main *mainl, BlendHandle **bh, const char *idnam
  * Link a named datablock from an external blend file.
  * Optionally instantiate the object/group in the scene when the flags are set.
  *
- * \param C The context, when NULL instantiating object in the scene isn't done.
  * \param mainl The main database to link from (not the active one).
  * \param bh The blender file handle.
  * \param idname The name of the datablock (without the 2 char ID prefix).
  * \param idcode The kind of datablock to link.
  * \param flag Options for linking, used for instantiating.
+ * \param scene The scene in which to instantiate objects/groups (if NULL, no instantiation is done).
+ * \param v3d The active View3D (only to define active layers for instantiated objects & groups, can be NULL).
  * \return the appended ID when found.
  */
 ID *BLO_library_link_named_part_ex(
-        const bContext *C, Main *mainl, BlendHandle **bh,
-        const char *idname, const int idcode, const short flag)
+        Main *mainl, BlendHandle **bh, const char *idname, const int idcode, const short flag,
+        Scene *scene, View3D *v3d)
 {
 	FileData *fd = (FileData*)(*bh);
-	return link_named_part_ex(C, mainl, fd, idname, idcode, flag);
+	return link_named_part_ex(mainl, fd, idname, idcode, flag, scene, v3d);
 }
 
 static void link_id_part(FileData *fd, Main *mainvar, ID *id, ID **r_id)
@@ -9825,71 +9810,58 @@ Main *BLO_library_link_begin(Main *mainvar, BlendHandle **bh, const char *filepa
 	return library_link_begin(mainvar, &fd, filepath);
 }
 
-
-/* Context == NULL signifies not to do any scene manipulation */
-static void library_link_end(const bContext *C, Main *mainl, FileData **fd, int idcode, short flag)
+/* scene and v3d may be NULL. */
+static void library_link_end(Main *mainl, FileData **fd, const short flag, Scene *scene, View3D *v3d)
 {
 	Main *mainvar;
 	Library *curlib;
-	
+
 	/* expander now is callback function */
 	BLO_main_expander(expand_doit_library);
-	
+
 	/* make main consistent */
 	BLO_expand_main(*fd, mainl);
-	
+
 	/* do this when expand found other libs */
 	read_libraries(*fd, (*fd)->mainlist);
-	
+
 	curlib = mainl->curlib;
-	
+
 	/* make the lib path relative if required */
 	if (flag & FILE_RELPATH) {
 		/* use the full path, this could have been read by other library even */
 		BLI_strncpy(curlib->name, curlib->filepath, sizeof(curlib->name));
-		
+
 		/* uses current .blend file as reference */
 		BLI_path_rel(curlib->name, G.main->name);
 	}
-	
+
 	blo_join_main((*fd)->mainlist);
 	mainvar = (*fd)->mainlist->first;
 	MEM_freeN((*fd)->mainlist);
 	mainl = NULL; /* blo_join_main free's mainl, cant use anymore */
-	
+
 	lib_link_all(*fd, mainvar);
 	lib_verify_nodetree(mainvar, false);
 	fix_relpaths_library(G.main->name, mainvar); /* make all relative paths, relative to the open blend file */
-	
-	if (C) {
-		Scene *scene = CTX_data_scene(C);
-		
-		/* give a base to loose objects. If group append, do it for objects too */
-		if (scene) {
-			const bool is_link = (flag & FILE_LINK) != 0;
-			if (idcode == ID_SCE) {
-				/* don't instance anything when linking in scenes, assume the scene its self instances the data */
-			}
-			else {
-				give_base_to_objects(mainvar, scene, curlib, idcode, is_link, flag & FILE_ACTIVELAY);
-				
-				if (flag & FILE_GROUP_INSTANCE) {
-					give_base_to_groups(mainvar, scene);
-				}
-			}
+
+	/* Give a base to loose objects. If group append, do it for objects too.
+	 * Only directly linked objects & groups are instantiated by `BLO_library_link_named_part_ex()` & co,
+	 * here we handle indirect ones and other possible edge-cases. */
+	if (scene) {
+		give_base_to_objects(mainvar, scene, v3d, curlib, flag);
+
+		if (flag & FILE_GROUP_INSTANCE) {
+			give_base_to_groups(mainvar, scene, v3d, curlib, flag);
 		}
-		else {
-			printf("library_append_end, scene is NULL (objects wont get bases)\n");
-		}
+	}
+	else {
+		/* printf("library_append_end, scene is NULL (objects wont get bases)\n"); */
 	}
 
 	/* clear group instantiating tag */
 	BKE_main_id_tag_listbase(&(mainvar->group), false);
-	
-	/* has been removed... erm, why? s..ton) */
-	/* 20040907: looks like they are give base already in append_named_part(); -Nathan L */
-	/* 20041208: put back. It only linked direct, not indirect objects (ton) */
-	
+
 	/* patch to prevent switch_endian happens twice */
 	if ((*fd)->flags & FD_FLAGS_SWITCH_ENDIAN) {
 		blo_freefiledata(*fd);
@@ -9898,19 +9870,20 @@ static void library_link_end(const bContext *C, Main *mainl, FileData **fd, int 
 }
 
 /**
- * Finalize the linking process (among other things, ensures remaining needed intantiation is done).
+ * Finalize linking from a given .blend file (library).
+ * Optionally instance the indirect object/group in the scene when the flags are set.
  * \note Do not use \a bh after calling this function, it may frees it.
  *
- * \param C The context, when NULL instantiating object in the scene isn't done.
  * \param mainl The main database to link from (not the active one).
- * \param bh The blender file handle.
- * \param idcode The kind of datablock that has been linked.
- * \param flag Options for for instantiating.
+ * \param bh The blender file handle (WARNING! may be freed by this function!).
+ * \param flag Options for linking, used for instantiating.
+ * \param scene The scene in which to instantiate objects/groups (if NULL, no instantiation is done).
+ * \param v3d The active View3D (only to define active layers for instantiated objects & groups, can be NULL).
  */
-void BLO_library_link_end(const bContext *C, struct Main *mainl, BlendHandle **bh, int idcode, short flag)
+void BLO_library_link_end(Main *mainl, BlendHandle **bh, short flag, Scene *scene, View3D *v3d)
 {
 	FileData *fd = (FileData*)(*bh);
-	library_link_end(C, mainl, &fd, idcode, flag);
+	library_link_end(mainl, &fd, flag, scene, v3d);
 	*bh = (BlendHandle*)fd;
 }
 

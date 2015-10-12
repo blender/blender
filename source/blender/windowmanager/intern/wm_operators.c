@@ -2656,7 +2656,7 @@ static void wm_link_append_do_libgroup(
 	}
 
 	if (name) {
-		BLO_library_link_named_part_ex(C, mainl, &bh, name, idcode, flag);
+		BLO_library_link_named_part_ex(mainl, &bh, name, idcode, flag, CTX_data_scene(C), CTX_wm_view3d(C));
 	}
 	else {
 		if (is_first_run) {
@@ -2680,7 +2680,7 @@ static void wm_link_append_do_libgroup(
 				curr_idcode = BKE_idcode_from_name(group);
 
 				if ((idcode == curr_idcode) && (BLI_path_cmp(curr_libname, libname) == 0)) {
-					BLO_library_link_named_part_ex(C, mainl, &bh, name, idcode, flag);
+					BLO_library_link_named_part_ex(mainl, &bh, name, idcode, flag, CTX_data_scene(C), CTX_wm_view3d(C));
 				}
 				else if (is_first_run) {
 					BLI_join_dirfile(path, sizeof(path), curr_libname, group);
@@ -2692,7 +2692,7 @@ static void wm_link_append_do_libgroup(
 		}
 		RNA_END;
 	}
-	BLO_library_link_end(C, mainl, &bh, idcode, flag);
+	BLO_library_link_end(mainl, &bh, flag, CTX_data_scene(C), CTX_wm_view3d(C));
 
 	BLO_blendhandle_close(bh);
 

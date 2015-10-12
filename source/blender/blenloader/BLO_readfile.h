@@ -44,6 +44,7 @@ struct MemFile;
 struct ReportList;
 struct Scene;
 struct UserDef;
+struct View3D;
 struct bContext;
 struct BHead;
 struct FileData;
@@ -97,9 +98,10 @@ bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, cha
 struct Main *BLO_library_link_begin(struct Main *mainvar, BlendHandle **bh, const char *filepath);
 struct ID *BLO_library_link_named_part(struct Main *mainl, BlendHandle **bh, const char *idname, const int idcode);
 struct ID *BLO_library_link_named_part_ex(
-        const struct bContext *C, struct Main *mainl, BlendHandle **bh,
-        const char *idname, const int idcode, const short flag);
-void BLO_library_link_end(const struct bContext *C, struct Main *mainl, BlendHandle **bh, int idcode, short flag);
+        struct Main *mainl, BlendHandle **bh,
+        const char *idname, const int idcode, const short flag,
+        struct Scene *scene, struct View3D *v3d);
+void BLO_library_link_end(struct Main *mainl, BlendHandle **bh, short flag, struct Scene *scene, struct View3D *v3d);
 
 void BLO_library_link_all(struct Main *mainl, BlendHandle *bh);
 

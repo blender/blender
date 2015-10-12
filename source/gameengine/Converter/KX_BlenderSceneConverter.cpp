@@ -918,7 +918,7 @@ KX_LibLoadStatus *KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openl
 		load_datablocks(main_tmp, bpy_openlib, path, ID_AC);
 	}
 
-	BLO_library_link_end(NULL, main_tmp, &bpy_openlib, idcode, flag);
+	BLO_library_link_end(main_tmp, &bpy_openlib, flag, NULL, NULL);
 
 	BLO_blendhandle_close(bpy_openlib);
 
