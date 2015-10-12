@@ -2528,6 +2528,17 @@ void BKE_image_walk_all_users(const Main *mainp, void *customdata,
 		if (tex->type == TEX_IMAGE && tex->ima) {
 			callback(tex->ima, &tex->iuser, customdata);
 		}
+
+		if (tex->nodetree) {
+			bNode *node;
+			for (node = tex->nodetree->nodes.first; node; node = node->next) {
+				if (node->id && node->type == TEX_NODE_IMAGE) {
+					Image *ima = (Image *)node->id;
+					ImageUser *iuser = node->storage;
+					callback(ima, iuser, customdata);
+				}
+			}
+		}
 	}
 
 	/* image window, compo node users */
