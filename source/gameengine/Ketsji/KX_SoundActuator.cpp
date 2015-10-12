@@ -65,7 +65,7 @@ KX_SoundActuator::KX_SoundActuator(SCA_IObject* gameobj,
 								   KX_SOUNDACT_TYPE type)//,
 								   : SCA_IActuator(gameobj, KX_ACT_SOUND)
 {
-	m_sound = AUD_Sound_copy(sound);
+	m_sound = sound ? AUD_Sound_copy(sound) : NULL;
 	m_handle = NULL;
 	m_volume = volume;
 	m_pitch = pitch;
