@@ -96,7 +96,8 @@ typedef struct FileData {
 	struct GHash *bhead_idname_hash;
 	
 	ListBase *mainlist;
-	
+	ListBase *old_mainlist;  /* Used for undo. */
+
 	/* ick ick, used to return
 	 * data through streamglue.
 	 */
@@ -139,7 +140,7 @@ void blo_make_sound_pointer_map(FileData *fd, Main *oldmain);
 void blo_end_sound_pointer_map(FileData *fd, Main *oldmain);
 void blo_make_packed_pointer_map(FileData *fd, Main *oldmain);
 void blo_end_packed_pointer_map(FileData *fd, Main *oldmain);
-void blo_add_library_pointer_map(ListBase *mainlist, FileData *fd);
+void blo_add_library_pointer_map(ListBase *old_mainlist, FileData *fd);
 
 void blo_freefiledata(FileData *fd);
 

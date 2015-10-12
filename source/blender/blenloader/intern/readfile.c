@@ -854,6 +854,12 @@ BHead *blo_nextbhead(FileData *fd, BHead *thisblock)
 	return(bhead);
 }
 
+/* Warning! Caller's responsability to ensure given bhead **is** and ID one! */
+const char *bhead_id_name(const FileData *fd, const BHead *bhead)
+{
+	return (const char *)POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_name_offs);
+}
+
 static void decode_blender_header(FileData *fd)
 {
 	char header[SIZEOFBLENDERHEADER], num[4];
@@ -1772,9 +1778,9 @@ void blo_end_packed_pointer_map(FileData *fd, Main *oldmain)
 
 
 /* undo file support: add all library pointers in lookup */
-void blo_add_library_pointer_map(ListBase *mainlist, FileData *fd)
+void blo_add_library_pointer_map(ListBase *old_mainlist, FileData *fd)
 {
-	Main *ptr = mainlist->first;
+	Main *ptr = old_mainlist->first;
 	ListBase *lbarray[MAX_LIBARRAY];
 	
 	for (ptr = ptr->next; ptr; ptr = ptr->next) {
@@ -1785,6 +1791,8 @@ void blo_add_library_pointer_map(ListBase *mainlist, FileData *fd)
 				oldnewmap_insert(fd->libmap, id, id, GS(id->name));
 		}
 	}
+
+	fd->old_mainlist = old_mainlist;
 }
 
 
@@ -7822,14 +7830,66 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *a
 
 static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID **r_id)
 {
-	/* this routine reads a libblock and its direct data. Use link functions
-	 * to connect it all
+	/* this routine reads a libblock and its direct data. Use link functions to connect it all
 	 */
 	ID *id;
 	ListBase *lb;
 	const char *allocname;
 	bool wrong_id = false;
-	
+
+	/* In undo case, most libs and linked data should be kept as is from previous state (see BLO_read_from_memfile).
+	 * However, some needed by the snapshot being read may have been removed in previous one, and would go missing.
+	 * This leads e.g. to desappearing objects in some undo/redo case, see T34446.
+     * That means we have to carefully check whether current lib or libdata already exits in old main, if it does
+     * we merely copy it over into new main area, otherwise we have to do a full read of that bhead... */
+	if (fd->memfile && ELEM(bhead->code, ID_LI, ID_ID)) {
+		const char *idname = bhead_id_name(fd, bhead);
+
+		/* printf("Checking %s...\n", idname); */
+
+		if (bhead->code == ID_LI) {
+			Main *libmain = fd->old_mainlist->first;
+			/* Skip oldmain itself... */
+			for (libmain = libmain->next; libmain; libmain = libmain->next) {
+				/* printf("... against %s: ", libmain->curlib ? libmain->curlib->id.name : "<NULL>"); */
+				if (libmain->curlib && STREQ(idname, libmain->curlib->id.name)) {
+					Main *oldmain = fd->old_mainlist->first;
+					/* printf("FOUND!\n"); */
+					/* In case of a library, we need to re-add its main to fd->mainlist, because if we have later
+					 * a missing ID_ID, we need to get the correct lib it is linked to!
+					 * Order is crucial, we cannot bulk-add it in BLO_read_from_memfile() like it used to be... */
+					BLI_remlink(fd->old_mainlist, libmain);
+					BLI_remlink_safe(&oldmain->library, libmain->curlib);
+					BLI_addtail(fd->mainlist, libmain);
+					BLI_addtail(&main->library, libmain->curlib);
+
+					if (r_id) {
+						*r_id = NULL;  /* Just in case... */
+					}
+					return blo_nextbhead(fd, bhead);
+				}
+				/* printf("nothing...\n"); */
+			}
+		}
+		else {
+			/* printf("... in %s (%s): ", main->curlib ? main->curlib->id.name : "<NULL>", main->curlib ? main->curlib->name : "<NULL>"); */
+			if ((id = BKE_libblock_find_name_ex(main, GS(idname), idname + 2))) {
+				/* printf("FOUND!\n"); */
+				/* Even though we found our linked ID, there is no guarantee its address is still the same... */
+				if (id != bhead->old) {
+					oldnewmap_insert(fd->libmap, bhead->old, id, GS(id->name));
+				}
+
+				/* No need to do anything else for ID_ID, it's assumed already present in its lib's main... */
+				if (r_id) {
+					*r_id = NULL;  /* Just in case... */
+				}
+				return blo_nextbhead(fd, bhead);
+			}
+			/* printf("nothing...\n"); */
+		}
+	}
+
 	/* read libblock */
 	id = read_struct(fd, bhead, "lib block");
 	if (r_id)
@@ -8300,26 +8360,10 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 			bhead = NULL;
 			break;
 		
-		case ID_LI:
-			/* skip library datablocks in undo, this works together with
-			 * BLO_read_from_memfile, where the old main->library is restored
-			 * overwriting  the libraries from the memory file. previously
-			 * it did not save ID_LI/ID_ID blocks in this case, but they are
-			 * needed to make quit.blend recover them correctly. */
-			if (fd->memfile)
-				bhead = blo_nextbhead(fd, bhead);
-			else
-				bhead = read_libblock(fd, bfd->main, bhead, LIB_LOCAL, NULL);
-			break;
 		case ID_ID:
-			/* same as above */
-			if (fd->memfile)
-				bhead = blo_nextbhead(fd, bhead);
-			else
-				/* always adds to the most recently loaded
-				 * ID_LI block, see direct_link_library.
-				 * this is part of the file format definition. */
-				bhead = read_libblock(fd, mainlist.last, bhead, LIB_READ+LIB_EXTERN, NULL);
+			/* Always adds to the most recently loaded ID_LI block, see direct_link_library.
+			 * This is part of the file format definition. */
+			bhead = read_libblock(fd, mainlist.last, bhead, LIB_READ | LIB_EXTERN, NULL);
 			break;
 			
 			/* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
@@ -8471,11 +8515,6 @@ static BHead *find_bhead_from_idname(FileData *fd, const char *idname)
 #else
 	return find_bhead_from_code_name(fd, GS(idname), idname + 2);
 #endif
-}
-
-const char *bhead_id_name(const FileData *fd, const BHead *bhead)
-{
-	return (const char *)POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_name_offs);
 }
 
 static ID *is_yet_read(FileData *fd, Main *mainvar, BHead *bhead)

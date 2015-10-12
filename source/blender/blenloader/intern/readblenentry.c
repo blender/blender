@@ -303,7 +303,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFil
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
-	ListBase mainlist;
+	ListBase old_mainlist;
 	
 	fd = blo_openblendermemfile(memfile, reports);
 	if (fd) {
@@ -314,9 +314,9 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFil
 		blo_clear_proxy_pointers_from_lib(oldmain);
 
 		/* separate libraries from old main */
-		blo_split_main(&mainlist, oldmain);
+		blo_split_main(&old_mainlist, oldmain);
 		/* add the library pointers in oldmap lookup */
-		blo_add_library_pointer_map(&mainlist, fd);
+		blo_add_library_pointer_map(&old_mainlist, fd);
 		
 		/* makes lookup of existing images in old main */
 		blo_make_image_pointer_map(fd, oldmain);
@@ -340,19 +340,44 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFil
 		/* ensures relinked sounds are not freed */
 		blo_end_sound_pointer_map(fd, oldmain);
 
-		/* move libraries from old main to new main */
-		if (bfd && mainlist.first != mainlist.last) {
-			
-			/* Library structs themselves */
-			bfd->main->library = oldmain->library;
-			BLI_listbase_clear(&oldmain->library);
-			
-			/* add the Library mainlist to the new main */
-			BLI_remlink(&mainlist, oldmain);
-			BLI_addhead(&mainlist, bfd->main);
+		/* Still in-use libraries have already been moved from oldmain to new mainlist,
+		 * but oldmain itself shall *never* be 'transferred' to new mainlist! */
+		BLI_assert(old_mainlist.first == oldmain);
+
+		if (bfd && old_mainlist.first != old_mainlist.last) {
+			/* Even though directly used libs have been already moved to new main, indirect ones have not.
+			 * This is a bit annoying, but we have no choice but to keep them all for now - means some now unused
+			 * data may remain in memory, but think we'll have to live with it. */
+			Main *libmain;
+			Main *newmain = bfd->main;
+			ListBase new_mainlist = {newmain, newmain};
+
+			for (libmain = oldmain->next; libmain; libmain = libmain->next) {
+				/* Note that LIB_INDIRECT does not work with libraries themselves, so we use non-NULL parent
+				 * to detect indirect-linked ones... */
+				if (libmain->curlib && (libmain->curlib->parent != NULL)) {
+					BLI_remlink(&old_mainlist, libmain);
+					BLI_addtail(&new_mainlist, libmain);
+				}
+#if 0
+				else {
+					printf("Dropped Main for lib: %s\n", libmain->curlib->id.name);
+				}
+#endif
+			}
+			/* In any case, we need to move all lib datablocks themselves - those are 'first level data',
+			 * getting rid of them would imply updating spaces & co to prevent invalid pointers access. */
+			BLI_movelisttolist(&newmain->library, &oldmain->library);
+
+			blo_join_main(&new_mainlist);
 		}
-		blo_join_main(&mainlist);
-		
+
+		/* printf("Remaining mains/libs in oldmain: %d\n", BLI_listbase_count(&fd->old_mainlist) - 1); */
+
+		/* That way, libs (aka mains) we did not reuse in new undone/redone state
+		 * will be cleared together with oldmain... */
+		blo_join_main(&old_mainlist);
+
 		blo_freefiledata(fd);
 	}
 
