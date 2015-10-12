@@ -8624,7 +8624,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
 	}
 }
 
-static void (*expand_doit)(void *, Main *, void *);
+static BLOExpandDoitCallback expand_doit;
 
 // XXX deprecated - old animation system
 static void expand_ipo(FileData *fd, Main *mainvar, Ipo *ipo)
@@ -9404,7 +9404,7 @@ static void expand_gpencil(FileData *fd, Main *mainvar, bGPdata *gpd)
  *
  * \param expand_doit_func Called for each ID block it finds.
  */
-void BLO_main_expander(void (*expand_doit_func)(void *, Main *, void *))
+void BLO_main_expander(BLOExpandDoitCallback expand_doit_func)
 {
 	expand_doit = expand_doit_func;
 }

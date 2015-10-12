@@ -110,7 +110,9 @@ BlendFileData *blo_read_blendafterruntime(int file, const char *name, int actual
 /* internal function but we need to expose it */
 void blo_lib_link_screen_restore(struct Main *newmain, struct bScreen *curscreen, struct Scene *curscene);
 
-void BLO_main_expander(void (*expand_doit_func)(void *, struct Main *, void *));
+typedef void (*BLOExpandDoitCallback) (void *fdhandle, struct Main *mainvar, void *idv);
+
+void BLO_main_expander(BLOExpandDoitCallback expand_doit_func);
 void BLO_expand_main(void *fdhandle, struct Main *mainvar);
 
 /* Update defaults in startup.blend & userprefs.blend, without having to save and embed it */
