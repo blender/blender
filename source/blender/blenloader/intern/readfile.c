@@ -1299,12 +1299,27 @@ void blo_freefiledata(FileData *fd)
 
 /* ************ DIV ****************** */
 
+/**
+ * Check whether given path ends with a blend file compatible extension (.blend, .ble or .blend.gz).
+ *
+ * \param str The path to check.
+ * \return true is this path ends with a blender file extension.
+ */
 bool BLO_has_bfile_extension(const char *str)
 {
 	const char *ext_test[4] = {".blend", ".ble", ".blend.gz", NULL};
 	return BLI_testextensie_array(str, ext_test);
 }
 
+/**
+ * Try to explode given path into its 'library components' (i.e. a .blend file, id type/group, and datablock itself).
+ *
+ * \param path the full path to explode.
+ * \param r_dir the string that'll contain path up to blend file itself ('library' path).
+ * \param r_group the string that'll contain 'group' part of the path, if any. May be NULL.
+ * \param r_name the string that'll contain data's name part of the path, if any. May be NULL.
+ * \return true if path contains a blend file.
+ */
 bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, char **r_name)
 {
 	/* We might get some data names with slashes, so we have to go up in path until we find blend file itself,
@@ -1361,6 +1376,13 @@ bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, cha
 	return true;
 }
 
+/**
+ * Does a very light reading of given .blend file to extract its stored thumbnail.
+ *
+ * \param filepath The path of the file to extract thumbnail from.
+ * \return The raw thumbnail
+ *         (MEM-allocated, as stored in file, use BKE_main_thumbnail_to_imbuf() to convert it to ImBuf image).
+ */
 BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
 {
 	FileData *fd;
@@ -9377,11 +9399,23 @@ static void expand_gpencil(FileData *fd, Main *mainvar, bGPdata *gpd)
 		expand_animdata(fd, mainvar, gpd->adt);
 }
 
+/**
+ * Set the callback func used over all ID data found by \a BLO_expand_main func.
+ *
+ * \param expand_doit_func Called for each ID block it finds.
+ */
 void BLO_main_expander(void (*expand_doit_func)(void *, Main *, void *))
 {
 	expand_doit = expand_doit_func;
 }
 
+/**
+ * Loop over all ID data in Main to mark relations.
+ * Set (id->flag & LIB_NEED_EXPAND) to mark expanding. Flags get cleared after expanding.
+ *
+ * \param fdhandle usually filedata, or own handle.
+ * \param mainvar the Main database to expand.
+ */
 void BLO_expand_main(void *fdhandle, Main *mainvar)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
@@ -9637,7 +9671,9 @@ static ID *link_named_part(Main *mainl, FileData *fd, const char *idname, const 
 	return id;
 }
 
-/* simple reader for copy/paste buffers */
+/**
+ * Simple reader for copy/paste buffers.
+ */
 void BLO_library_link_all(Main *mainl, BlendHandle *bh)
 {
 	FileData *fd = (FileData *)(bh);
@@ -9701,13 +9737,36 @@ static ID *link_named_part_ex(const bContext *C, Main *mainl, FileData *fd, cons
 	return id;
 }
 
+/**
+ * Link a named datablock from an external blend file.
+ *
+ * \param mainl The main database to link from (not the active one).
+ * \param bh The blender file handle.
+ * \param idname The name of the datablock (without the 2 char ID prefix).
+ * \param idcode The kind of datablock to link.
+ * \return the appended ID when found.
+ */
 ID *BLO_library_link_named_part(Main *mainl, BlendHandle **bh, const char *idname, const int idcode)
 {
 	FileData *fd = (FileData*)(*bh);
 	return link_named_part(mainl, fd, idname, idcode);
 }
 
-ID *BLO_library_link_named_part_ex(const bContext *C, Main *mainl, BlendHandle **bh, const char *idname, const int idcode, const short flag)
+/**
+ * Link a named datablock from an external blend file.
+ * Optionally instantiate the object/group in the scene when the flags are set.
+ *
+ * \param C The context, when NULL instantiating object in the scene isn't done.
+ * \param mainl The main database to link from (not the active one).
+ * \param bh The blender file handle.
+ * \param idname The name of the datablock (without the 2 char ID prefix).
+ * \param idcode The kind of datablock to link.
+ * \param flag Options for linking, used for instantiating.
+ * \return the appended ID when found.
+ */
+ID *BLO_library_link_named_part_ex(
+        const bContext *C, Main *mainl, BlendHandle **bh,
+        const char *idname, const int idcode, const short flag)
 {
 	FileData *fd = (FileData*)(*bh);
 	return link_named_part_ex(C, mainl, fd, idname, idcode, flag);
@@ -9752,6 +9811,14 @@ static Main *library_link_begin(Main *mainvar, FileData **fd, const char *filepa
 	return mainl;
 }
 
+/**
+ * Initialize the BlendHandle for linking library data.
+ *
+ * \param mainvar The current main database, e.g. G.main or CTX_data_main(C).
+ * \param bh A blender file handle as returned by \a BLO_blendhandle_from_file or \a BLO_blendhandle_from_memory.
+ * \param filepath Used for relative linking, copied to the \a lib->name.
+ * \return the library Main, to be passed to \a BLO_library_append_named_part as \a mainl.
+ */
 Main *BLO_library_link_begin(Main *mainvar, BlendHandle **bh, const char *filepath)
 {
 	FileData *fd = (FileData*)(*bh);
@@ -9830,6 +9897,16 @@ static void library_link_end(const bContext *C, Main *mainl, FileData **fd, int 
 	}
 }
 
+/**
+ * Finalize the linking process (among other things, ensures remaining needed intantiation is done).
+ * \note Do not use \a bh after calling this function, it may frees it.
+ *
+ * \param C The context, when NULL instantiating object in the scene isn't done.
+ * \param mainl The main database to link from (not the active one).
+ * \param bh The blender file handle.
+ * \param idcode The kind of datablock that has been linked.
+ * \param flag Options for for instantiating.
+ */
 void BLO_library_link_end(const bContext *C, struct Main *mainl, BlendHandle **bh, int idcode, short flag)
 {
 	FileData *fd = (FileData*)(*bh);
