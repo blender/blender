@@ -58,6 +58,7 @@
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
+#include "BKE_mesh.h"
 #include "BKE_editmesh.h"
 #include "BKE_scene.h"
 
@@ -1798,6 +1799,66 @@ void BKE_keyblock_convert_to_mesh(KeyBlock *kb, Mesh *me)
 		copy_v3_v3(mvert->co, *fp);
 	}
 }
+
+/**
+ * Computes normals (vertices, polygons and/or loops ones) of given mesh for given shape key.
+ *
+ * \param kb the KeyBlock to use to compute normals.
+ * \param mesh the Mesh to apply keyblock to.
+ * \param r_vertnors if non-NULL, an array of vectors, same length as number of vertices.
+ * \param r_polynors if non-NULL, an array of vectors, same length as number of polygons.
+ * \param r_loopnors if non-NULL, an array of vectors, same length as number of loops.
+ */
+void BKE_keyblock_mesh_calc_normals(
+        struct KeyBlock *kb, struct Mesh *mesh,
+        float (*r_vertnors)[3], float (*r_polynors)[3], float (*r_loopnors)[3])
+{
+	/* We use a temp, shallow copy of mesh to work. */
+	Mesh me;
+	bool free_polynors = false;
+
+	if (r_vertnors == NULL && r_polynors == NULL && r_loopnors == NULL) {
+		return;
+	}
+
+	me = *mesh;
+	me.mvert = MEM_dupallocN(mesh->mvert);
+	CustomData_reset(&me.vdata);
+	CustomData_reset(&me.edata);
+	CustomData_reset(&me.pdata);
+	CustomData_reset(&me.ldata);
+	CustomData_reset(&me.fdata);
+
+	BKE_keyblock_convert_to_mesh(kb, &me);
+
+	if (r_polynors == NULL && r_loopnors != NULL) {
+		r_polynors = MEM_mallocN(sizeof(float[3]) * me.totpoly, __func__);
+		free_polynors = true;
+	}
+	BKE_mesh_calc_normals_poly(
+	            me.mvert, r_vertnors, me.totvert, me.mloop, me.mpoly, me.totloop, me.totpoly, r_polynors, false);
+
+	if (r_loopnors) {
+		short (*clnors)[2] = CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);  /* May be NULL. */
+
+		BKE_mesh_normals_loop_split(
+		        me.mvert, me.totvert, me.medge, me.totedge,
+		        me.mloop, r_loopnors, me.totloop, me.mpoly, r_polynors, me.totpoly,
+		        (me.flag & ME_AUTOSMOOTH) != 0, me.smoothresh, NULL, clnors, NULL);
+	}
+
+	CustomData_free(&me.vdata, me.totvert);
+	CustomData_free(&me.edata, me.totedge);
+	CustomData_free(&me.pdata, me.totpoly);
+	CustomData_free(&me.ldata, me.totloop);
+	CustomData_free(&me.fdata, me.totface);
+	MEM_freeN(me.mvert);
+
+	if (free_polynors) {
+		MEM_freeN(r_polynors);
+	}
+}
+
 
 /************************* raw coords ************************/
 void BKE_keyblock_update_from_vertcos(Object *ob, KeyBlock *kb, float (*vertCos)[3])

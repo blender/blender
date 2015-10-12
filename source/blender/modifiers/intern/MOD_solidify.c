@@ -272,7 +272,7 @@ static DerivedMesh *applyModifier(
 		/* calculate only face normals */
 		face_nors = MEM_mallocN(sizeof(*face_nors) * (size_t)numFaces, __func__);
 		BKE_mesh_calc_normals_poly(
-		            orig_mvert, (int)numVerts,
+		            orig_mvert, NULL, (int)numVerts,
 		            orig_mloop, orig_mpoly,
 		            (int)numLoops, (int)numFaces,
 		            face_nors, true);

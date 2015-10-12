@@ -291,7 +291,7 @@ static void data_transfer_dtdata_type_preprocess(
 					poly_nors_dst = CustomData_add_layer(pdata_dst, CD_NORMAL, CD_CALLOC, NULL, num_polys_dst);
 					CustomData_set_layer_flag(pdata_dst, CD_NORMAL, CD_FLAG_TEMPORARY);
 				}
-				BKE_mesh_calc_normals_poly(verts_dst, num_verts_dst, loops_dst, polys_dst,
+				BKE_mesh_calc_normals_poly(verts_dst, NULL, num_verts_dst, loops_dst, polys_dst,
 				                           num_loops_dst, num_polys_dst, poly_nors_dst, true);
 			}
 			/* Cache loop nors into a temp CDLayer. */

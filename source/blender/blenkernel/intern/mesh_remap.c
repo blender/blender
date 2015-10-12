@@ -1234,7 +1234,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 					CustomData_set_layer_flag(pdata_dst, CD_NORMAL, CD_FLAG_TEMPORARY);
 				}
 				if (dirty_nors_dst) {
-					BKE_mesh_calc_normals_poly(verts_dst, numverts_dst, loops_dst, polys_dst,
+					BKE_mesh_calc_normals_poly(verts_dst, NULL, numverts_dst, loops_dst, polys_dst,
 					                           numloops_dst, numpolys_dst, poly_nors_dst, true);
 				}
 			}
@@ -1999,7 +1999,7 @@ void BKE_mesh_remap_calc_polys_from_dm(
 			CustomData_set_layer_flag(pdata_dst, CD_NORMAL, CD_FLAG_TEMPORARY);
 		}
 		if (dirty_nors_dst) {
-			BKE_mesh_calc_normals_poly(verts_dst, numverts_dst, loops_dst, polys_dst, numloops_dst, numpolys_dst,
+			BKE_mesh_calc_normals_poly(verts_dst, NULL, numverts_dst, loops_dst, polys_dst, numloops_dst, numpolys_dst,
 			                           poly_nors_dst, true);
 		}
 	}

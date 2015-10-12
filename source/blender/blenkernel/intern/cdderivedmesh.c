@@ -2547,7 +2547,7 @@ void CDDM_calc_normals_mapping_ex(DerivedMesh *dm, const bool only_face_normals)
 
 	/* calculate face normals */
 	BKE_mesh_calc_normals_poly(
-	        cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
+	        cddm->mvert, NULL, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
 	        dm->numLoopData, dm->numPolyData, face_nors,
 	        only_face_normals);
 
@@ -2597,7 +2597,7 @@ void CDDM_calc_normals(DerivedMesh *dm)
 	/* we don't want to overwrite any referenced layers */
 	cddm->mvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);
 
-	BKE_mesh_calc_normals_poly(cddm->mvert, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
+	BKE_mesh_calc_normals_poly(cddm->mvert, NULL, dm->numVertData, CDDM_get_loops(dm), CDDM_get_polys(dm),
 	                           dm->numLoopData, dm->numPolyData, NULL, false);
 
 	cddm->dm.dirty &= ~DM_DIRTY_NORMALS;
@@ -2646,7 +2646,7 @@ void CDDM_calc_loop_normals_spacearr(
 	if (!pnors) {
 		pnors = CustomData_add_layer(pdata, CD_NORMAL, CD_CALLOC, NULL, numPolys);
 	}
-	BKE_mesh_calc_normals_poly(mverts, numVerts, mloops, mpolys, numLoops, numPolys, pnors,
+	BKE_mesh_calc_normals_poly(mverts, NULL, numVerts, mloops, mpolys, numLoops, numPolys, pnors,
 	                           (dm->dirty & DM_DIRTY_NORMALS) ? false : true);
 
 	dm->dirty &= ~DM_DIRTY_NORMALS;

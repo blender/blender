@@ -136,8 +136,9 @@ static void rna_Mesh_normals_split_custom_do(Mesh *mesh, float (*custom_loopnors
 	}
 	else {
 		polynors = MEM_mallocN(sizeof(float[3]) * mesh->totpoly, __func__);
-		BKE_mesh_calc_normals_poly(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-		                           polynors, false);
+		BKE_mesh_calc_normals_poly(
+		            mesh->mvert, NULL, mesh->totvert,
+		            mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, polynors, false);
 		free_polynors = true;
 	}
 

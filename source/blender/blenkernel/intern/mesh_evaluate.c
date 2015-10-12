@@ -133,7 +133,7 @@ void BKE_mesh_calc_normals_mapping_ex(
 	if (only_face_normals == false) {
 		/* vertex normals are optional, they require some extra calculations,
 		 * so make them optional */
-		BKE_mesh_calc_normals_poly(mverts, numVerts, mloop, mpolys, numLoops, numPolys, pnors, false);
+		BKE_mesh_calc_normals_poly(mverts, NULL, numVerts, mloop, mpolys, numLoops, numPolys, pnors, false);
 	}
 	else {
 		/* only calc poly normals */
@@ -222,18 +222,20 @@ static void mesh_calc_normals_poly_accum(
 }
 
 void BKE_mesh_calc_normals_poly(
-        MVert *mverts, int numVerts,
+        MVert *mverts, float (*r_vertnors)[3], int numVerts,
         const MLoop *mloop, const MPoly *mpolys,
         int UNUSED(numLoops), int numPolys, float (*r_polynors)[3],
         const bool only_face_normals)
 {
 	float (*pnors)[3] = r_polynors;
-	float (*tnorms)[3];
+	float (*vnors)[3] = r_vertnors;
+	bool free_vnors = false;
 	int i;
 	const MPoly *mp;
 
 	if (only_face_normals) {
 		BLI_assert((pnors != NULL) || (numPolys == 0));
+		BLI_assert(r_vertnors == NULL);
 
 #pragma omp parallel for if (numPolys > BKE_MESH_OMP_LIMIT)
 		for (i = 0; i < numPolys; i++) {
@@ -243,25 +245,30 @@ void BKE_mesh_calc_normals_poly(
 	}
 
 	/* first go through and calculate normals for all the polys */
-	tnorms = MEM_callocN(sizeof(*tnorms) * (size_t)numVerts, __func__);
+	if (vnors == NULL) {
+		vnors = MEM_callocN(sizeof(*vnors) * (size_t)numVerts, __func__);
+		free_vnors = true;
+	}
+	else {
+		memset(vnors, 0, sizeof(*vnors) * (size_t)numVerts);
+	}
 
+	mp = mpolys;
 	if (pnors) {
-		mp = mpolys;
 		for (i = 0; i < numPolys; i++, mp++) {
-			mesh_calc_normals_poly_accum(mp, mloop + mp->loopstart, mverts, pnors[i], tnorms);
+			mesh_calc_normals_poly_accum(mp, mloop + mp->loopstart, mverts, pnors[i], vnors);
 		}
 	}
 	else {
 		float tpnor[3];  /* temp poly normal */
-		mp = mpolys;
 		for (i = 0; i < numPolys; i++, mp++) {
-			mesh_calc_normals_poly_accum(mp, mloop + mp->loopstart, mverts, tpnor, tnorms);
+			mesh_calc_normals_poly_accum(mp, mloop + mp->loopstart, mverts, tpnor, vnors);
 		}
 	}
 
 	for (i = 0; i < numVerts; i++) {
 		MVert *mv = &mverts[i];
-		float *no = tnorms[i];
+		float *no = vnors[i];
 
 		if (UNLIKELY(normalize_v3(no) == 0.0f)) {
 			/* following Mesh convention; we use vertex coordinate itself for normal in this case */
@@ -271,7 +278,9 @@ void BKE_mesh_calc_normals_poly(
 		normal_float_to_short_v3(mv->no, no);
 	}
 
-	MEM_freeN(tnorms);
+	if (free_vnors) {
+		MEM_freeN(vnors);
+	}
 }
 
 void BKE_mesh_calc_normals(Mesh *mesh)
@@ -279,7 +288,7 @@ void BKE_mesh_calc_normals(Mesh *mesh)
 #ifdef DEBUG_TIME
 	TIMEIT_START(BKE_mesh_calc_normals);
 #endif
-	BKE_mesh_calc_normals_poly(mesh->mvert, mesh->totvert,
+	BKE_mesh_calc_normals_poly(mesh->mvert, NULL, mesh->totvert,
 	                           mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
 	                           NULL, false);
 #ifdef DEBUG_TIME
