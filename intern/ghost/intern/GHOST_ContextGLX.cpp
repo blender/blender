@@ -40,6 +40,14 @@
 #include <cstdio>
 #include <cstring>
 
+/* needed for intel drivers (works w/ mesa-swrast & nvidia) */
+#define USE_GLXEW_INIT_WORKAROUND
+
+#ifdef USE_GLXEW_INIT_WORKAROUND
+static GLuint _glewStrLen(const GLubyte *s);
+static GLboolean _glewSearchExtension(const char *name, const GLubyte *start, const GLubyte *end);
+#endif
+
 #ifdef WITH_GLEW_MX
 GLXEWContext *glxewContext = NULL;
 #endif
@@ -153,9 +161,54 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
 	XIOErrorHandler old_handler_io = XSetIOErrorHandler(GHOST_X11_ApplicationIOErrorHandler);
 #endif
 
+
+
+	/* -------------------------------------------------------------------- */
+	/* Begin Inline Glew  */
+
+#ifdef USE_GLXEW_INIT_WORKAROUND
+	const GLubyte *extStart = (GLubyte *)"";
+	const GLubyte *extEnd;
+	if (glXQueryExtension(m_display, NULL, NULL)) {
+		extStart = (const GLubyte *)glXGetClientString(m_display, GLX_EXTENSIONS);
+		if ((extStart == NULL) ||
+		    (glXChooseFBConfig = (PFNGLXCHOOSEFBCONFIGPROC)glXGetProcAddressARB(
+		             (const GLubyte *)"glXChooseFBConfig")) == NULL ||
+		    (glXCreateContextAttribsARB = (PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB(
+		             (const GLubyte *)"glXCreateContextAttribsARB")) == NULL)
+		{
+			extStart = (GLubyte *)"";
+		}
+	}
+	extEnd = extStart + _glewStrLen(extStart);
+
+#undef GLXEW_ARB_create_context
+	const bool GLXEW_ARB_create_context =
+	        _glewSearchExtension("GLX_ARB_create_context", extStart, extEnd);
+#undef GLXEW_ARB_create_context_profile
+	const bool GLXEW_ARB_create_context_profile =
+	        _glewSearchExtension("GLX_ARB_create_context_profile", extStart, extEnd);
+#undef GLXEW_ARB_create_context_robustness
+const bool GLXEW_ARB_create_context_robustness =
+	        _glewSearchExtension("GLX_ARB_create_context_robustness", extStart, extEnd);
+#ifdef WITH_GLEW_ES
+#undef GLXEW_EXT_create_context_es_profile
+	const bool GLXEW_EXT_create_context_es_profile =
+	        _glewSearchExtension("GLX_EXT_create_context_es_profile", extStart, extEnd);
+#undef GLXEW_EXT_create_context_es2_profile
+	const bool GLXEW_EXT_create_context_es2_profile =
+	        _glewSearchExtension("GLX_EXT_create_context_es2_profile", extStart, extEnd);
+#endif  /* WITH_GLEW_ES */
+
+	/* End Inline Glew */
+	/* -------------------------------------------------------------------- */
+#else
 	/* important to initialize only glxew (_not_ glew),
 	 * since this breaks w/ Mesa's `swrast`, see: T46431 */
 	glxewInit();
+#endif  /* USE_GLXEW_INIT_WORKAROUND */
+
+
 
 	if (GLXEW_ARB_create_context) {
 		int profileBitCore   = m_contextProfileMask & GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
@@ -411,3 +464,45 @@ int GHOST_X11_GL_GetAttributes(
 
 	return i;
 }
+
+
+/* excuse inlining part of glew */
+#ifdef USE_GLXEW_INIT_WORKAROUND
+static GLuint _glewStrLen(const GLubyte *s)
+{
+	GLuint i = 0;
+	if (s == NULL) return 0;
+	while (s[i] != '\0') i++;
+	return i;
+}
+
+static GLuint _glewStrCLen(const GLubyte *s, GLubyte c)
+{
+	GLuint i = 0;
+	if (s == NULL) return 0;
+	while (s[i] != '\0' && s[i] != c) i++;
+	return (s[i] == '\0' || s[i] == c) ? i : 0;
+}
+
+static GLboolean _glewStrSame(const GLubyte *a, const GLubyte *b, GLuint n)
+{
+	GLuint i = 0;
+	if (a == NULL || b == NULL)
+		return (a == NULL && b == NULL && n == 0) ? GL_TRUE : GL_FALSE;
+	while (i < n && a[i] != '\0' && b[i] != '\0' && a[i] == b[i]) i++;
+	return i == n ? GL_TRUE : GL_FALSE;
+}
+
+static GLboolean _glewSearchExtension(const char *name, const GLubyte *start, const GLubyte *end)
+{
+	const GLubyte *p;
+	GLuint len = _glewStrLen((const GLubyte *)name);
+	p = start;
+	while (p < end) {
+		GLuint n = _glewStrCLen(p, ' ');
+		if (len == n && _glewStrSame((const GLubyte *)name, p, n)) return GL_TRUE;
+		p += n + 1;
+	}
+	return GL_FALSE;
+}
+#endif  /* USE_GLXEW_INIT_WORKAROUND */
