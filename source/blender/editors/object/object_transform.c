@@ -382,7 +382,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, bool apply_l
 	/* first check if we can execute */
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		if (ELEM(ob->type, OB_MESH, OB_ARMATURE, OB_LATTICE, OB_MBALL, OB_CURVE, OB_SURF)) {
+		if (ELEM(ob->type, OB_MESH, OB_ARMATURE, OB_LATTICE, OB_MBALL, OB_CURVE, OB_SURF, OB_FONT)) {
 			ID *obdata = ob->data;
 			if (ID_REAL_USERS(obdata) > 1) {
 				BKE_reportf(reports, RPT_ERROR,
@@ -415,6 +415,15 @@ static int apply_objects_internal(bContext *C, ReportList *reports, bool apply_l
 				BKE_reportf(reports, RPT_ERROR,
 				            "Can't apply to a curve with shape-keys: Object \"%s\", %s \"%s\", aborting",
 				            ob->id.name + 2, BKE_idcode_to_name(GS(obdata->name)), obdata->name + 2);
+				changed = false;
+			}
+		}
+
+		if (ob->type == OB_FONT) {
+			if (apply_rot || apply_loc) {
+				BKE_reportf(reports, RPT_ERROR,
+				            "Font's can only have scale applied: \"%s\"",
+				            ob->id.name + 2);
 				changed = false;
 			}
 		}
@@ -495,6 +504,22 @@ static int apply_objects_internal(bContext *C, ReportList *reports, bool apply_l
 			Curve *cu = ob->data;
 			scale = mat3_to_scale(rsmat);
 			BKE_curve_transform_ex(cu, mat, true, scale);
+		}
+		else if (ob->type == OB_FONT) {
+			Curve *cu = ob->data;
+			int i;
+
+			scale = mat3_to_scale(rsmat);
+
+			for (i = 0; i < cu->totbox; i++) {
+				TextBox *tb = &cu->tb[i];
+				tb->x *= scale;
+				tb->y *= scale;
+				tb->w *= scale;
+				tb->h *= scale;
+			}
+
+			cu->fsize *= scale;
 		}
 		else if (ob->type == OB_CAMERA) {
 			MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
