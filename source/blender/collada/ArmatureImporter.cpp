@@ -255,9 +255,13 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone
 {
 	BoneExtended *dominant_child = NULL;
 	int maxlen = 0;
-	Bone *child = (Bone *)parentbone->childbase.first;
-	if (child && (import_settings->find_chains || child->next==NULL) )
-	{
+	Bone *child;
+
+	if (parentbone == NULL)
+		return;
+
+	child = (Bone *)parentbone->childbase.first;
+	if (child && (import_settings->find_chains || child->next==NULL)) {
 		for (; child; child = child->next) {
 			BoneExtended *be = extended_bones[child->name];
 			if (be != NULL) {
