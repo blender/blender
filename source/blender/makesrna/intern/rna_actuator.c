@@ -1724,7 +1724,7 @@ static void rna_def_game_actuator(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_ui_text(prop, "File",
 	                         "The file to use depending on the mode (e.g., the blend file to load or a destination "
-	                         "for saving a screenshot). Use the \"//\" prefix for a relative path.");
+	                         "for saving a screenshot). Use the \"//\" prefix for a relative path");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	/*XXX to do: an operator that calls file_browse with relative_path on and blender filtering active */
 }
