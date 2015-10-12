@@ -2807,7 +2807,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	/* sanity checks for flag */
 	if (scene && scene->id.lib) {
 		BKE_reportf(op->reports, RPT_WARNING,
-		            "Scene '%s' is linked, instanciation of objects & groups is disabled", scene->id.name + 2);
+		            "Scene '%s' is linked, instantiation of objects & groups is disabled", scene->id.name + 2);
 		flag &= ~FILE_GROUP_INSTANCE;
 		scene = NULL;
 	}

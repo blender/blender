@@ -851,8 +851,10 @@ static void TRANSFORM_OT_edge_slide(struct wmOperatorType *ot)
 
 	prop = RNA_def_boolean(ot->srna, "single_side", false, "Single Side", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-	RNA_def_boolean(ot->srna, "use_even", false, "Even", "Makes the edge loop match the shape of the adjacent edge loop.");
-	RNA_def_boolean(ot->srna, "flipped", false, "Flipped", "When Even mode is active, flips between the two adjacent edge loops");
+	RNA_def_boolean(ot->srna, "use_even", false, "Even",
+	                "Make the edge loop match the shape of the adjacent edge loop");
+	RNA_def_boolean(ot->srna, "flipped", false, "Flipped",
+	                "When Even mode is active, flips between the two adjacent edge loops");
 
 	Transform_Properties(ot, P_MIRROR | P_SNAP | P_CORRECT_UV);
 }
@@ -873,8 +875,10 @@ static void TRANSFORM_OT_vert_slide(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_editmesh_region_view3d;
 
 	RNA_def_float_factor(ot->srna, "value", 0, -10.0f, 10.0f, "Factor", "", -1.0f, 1.0f);
-	RNA_def_boolean(ot->srna, "use_even", false, "Even", "Makes the edge loop match the shape of the adjacent edge loop.");
-	RNA_def_boolean(ot->srna, "flipped", false, "Flipped", "When Even mode is active, flips between the two adjacent edge loops");
+	RNA_def_boolean(ot->srna, "use_even", false, "Even",
+	                "Make the edge loop match the shape of the adjacent edge loop");
+	RNA_def_boolean(ot->srna, "flipped", false, "Flipped",
+	                "When Even mode is active, flips between the two adjacent edge loops");
 
 	Transform_Properties(ot, P_MIRROR | P_SNAP | P_CORRECT_UV);
 }
