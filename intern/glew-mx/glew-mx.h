@@ -95,8 +95,6 @@ MXContext *mxGetCurrentContext (void);
 void       mxMakeCurrentContext(MXContext *ctx);
 void       mxDestroyContext    (MXContext *ctx);
 
-void       mxIgnoreNoVersion(int ignore);
-
 GLenum glew_chk(GLenum error, const char *file, int line, const char *text);
 
 #ifndef NDEBUG
