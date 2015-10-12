@@ -2644,7 +2644,7 @@ static void wm_link_append_do_libgroup(
 	}
 
 	/* here appending/linking starts */
-	mainl = BLO_library_append_begin(bmain, &bh, libname);
+	mainl = BLO_library_link_begin(bmain, &bh, libname);
 	lib = mainl->curlib;
 	BLI_assert(lib);
 
@@ -2656,7 +2656,7 @@ static void wm_link_append_do_libgroup(
 	}
 
 	if (name) {
-		BLO_library_append_named_part_ex(C, mainl, &bh, name, idcode, flag);
+		BLO_library_link_named_part_ex(C, mainl, &bh, name, idcode, flag);
 	}
 	else {
 		if (is_first_run) {
@@ -2680,7 +2680,7 @@ static void wm_link_append_do_libgroup(
 				curr_idcode = BKE_idcode_from_name(group);
 
 				if ((idcode == curr_idcode) && (BLI_path_cmp(curr_libname, libname) == 0)) {
-					BLO_library_append_named_part_ex(C, mainl, &bh, name, idcode, flag);
+					BLO_library_link_named_part_ex(C, mainl, &bh, name, idcode, flag);
 				}
 				else if (is_first_run) {
 					BLI_join_dirfile(path, sizeof(path), curr_libname, group);
@@ -2692,7 +2692,7 @@ static void wm_link_append_do_libgroup(
 		}
 		RNA_END;
 	}
-	BLO_library_append_end(C, mainl, &bh, idcode, flag);
+	BLO_library_link_end(C, mainl, &bh, idcode, flag);
 
 	BLO_blendhandle_close(bh);
 

@@ -861,7 +861,7 @@ static void load_datablocks(Main *main_tmp, BlendHandle *bpy_openlib, const char
 	int i = 0;
 	LinkNode *n = names;
 	while (n) {
-		BLO_library_append_named_part(main_tmp, &bpy_openlib, (char *)n->link, idcode);
+		BLO_library_link_named_part(main_tmp, &bpy_openlib, (char *)n->link, idcode);
 		n = (LinkNode *)n->next;
 		i++;
 	}
@@ -905,7 +905,7 @@ KX_LibLoadStatus *KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openl
 
 	short flag = 0; /* don't need any special options */
 	/* created only for linking, then freed */
-	Main *main_tmp = BLO_library_append_begin(main_newlib, &bpy_openlib, (char *)path);
+	Main *main_tmp = BLO_library_link_begin(main_newlib, &bpy_openlib, (char *)path);
 
 	load_datablocks(main_tmp, bpy_openlib, path, idcode);
 
@@ -918,7 +918,7 @@ KX_LibLoadStatus *KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openl
 		load_datablocks(main_tmp, bpy_openlib, path, ID_AC);
 	}
 
-	BLO_library_append_end(NULL, main_tmp, &bpy_openlib, idcode, flag);
+	BLO_library_link_end(NULL, main_tmp, &bpy_openlib, idcode, flag);
 
 	BLO_blendhandle_close(bpy_openlib);
 

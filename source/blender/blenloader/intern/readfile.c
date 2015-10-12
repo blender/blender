@@ -9493,12 +9493,13 @@ static bool object_in_any_scene(Main *mainvar, Object *ob)
 {
 	Scene *sce;
 	
-	for (sce= mainvar->scene.first; sce; sce= sce->id.next) {
-		if (BKE_scene_base_find(sce, ob))
-			return 1;
+	for (sce = mainvar->scene.first; sce; sce = sce->id.next) {
+		if (BKE_scene_base_find(sce, ob)) {
+			return true;
+		}
 	}
 	
-	return 0;
+	return false;
 }
 
 static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const short idcode, const bool is_link, const short active_lay)
@@ -9598,7 +9599,7 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 
 /* returns true if the item was found
  * but it may already have already been appended/linked */
-static ID *append_named_part(Main *mainl, FileData *fd, const char *idname, const short idcode)
+static ID *link_named_part(Main *mainl, FileData *fd, const char *idname, const short idcode)
 {
 	BHead *bhead = find_bhead_from_code_name(fd, idcode, idname);
 	ID *id;
@@ -9637,7 +9638,7 @@ static ID *append_named_part(Main *mainl, FileData *fd, const char *idname, cons
 }
 
 /* simple reader for copy/paste buffers */
-void BLO_library_append_all(Main *mainl, BlendHandle *bh)
+void BLO_library_link_all(Main *mainl, BlendHandle *bh)
 {
 	FileData *fd = (FileData *)(bh);
 	BHead *bhead;
@@ -9658,9 +9659,9 @@ void BLO_library_append_all(Main *mainl, BlendHandle *bh)
 }
 
 
-static ID *append_named_part_ex(const bContext *C, Main *mainl, FileData *fd, const char *idname, const int idcode, const int flag)
+static ID *link_named_part_ex(const bContext *C, Main *mainl, FileData *fd, const char *idname, const int idcode, const int flag)
 {
-	ID *id= append_named_part(mainl, fd, idname, idcode);
+	ID *id = link_named_part(mainl, fd, idname, idcode);
 
 	if (id && (GS(id->name) == ID_OB)) {	/* loose object: give a base */
 		Scene *scene = CTX_data_scene(C); /* can be NULL */
@@ -9700,19 +9701,19 @@ static ID *append_named_part_ex(const bContext *C, Main *mainl, FileData *fd, co
 	return id;
 }
 
-ID *BLO_library_append_named_part(Main *mainl, BlendHandle **bh, const char *idname, const int idcode)
+ID *BLO_library_link_named_part(Main *mainl, BlendHandle **bh, const char *idname, const int idcode)
 {
 	FileData *fd = (FileData*)(*bh);
-	return append_named_part(mainl, fd, idname, idcode);
+	return link_named_part(mainl, fd, idname, idcode);
 }
 
-ID *BLO_library_append_named_part_ex(const bContext *C, Main *mainl, BlendHandle **bh, const char *idname, const int idcode, const short flag)
+ID *BLO_library_link_named_part_ex(const bContext *C, Main *mainl, BlendHandle **bh, const char *idname, const int idcode, const short flag)
 {
 	FileData *fd = (FileData*)(*bh);
-	return append_named_part_ex(C, mainl, fd, idname, idcode, flag);
+	return link_named_part_ex(C, mainl, fd, idname, idcode, flag);
 }
 
-static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **r_id)
+static void link_id_part(FileData *fd, Main *mainvar, ID *id, ID **r_id)
 {
 	BHead *bhead = find_bhead_from_idname(fd, id->name);
 
@@ -9726,13 +9727,13 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **r_id)
 
 /* common routine to append/link something from a library */
 
-static Main *library_append_begin(Main *mainvar, FileData **fd, const char *filepath)
+static Main *library_link_begin(Main *mainvar, FileData **fd, const char *filepath)
 {
 	Main *mainl;
 
 	(*fd)->mainlist = MEM_callocN(sizeof(ListBase), "FileData.mainlist");
 	
-	/* clear for group instancing tag */
+	/* clear for group instantiating tag */
 	BKE_main_id_tag_listbase(&(mainvar->group), false);
 
 	/* make mains */
@@ -9751,15 +9752,15 @@ static Main *library_append_begin(Main *mainvar, FileData **fd, const char *file
 	return mainl;
 }
 
-Main *BLO_library_append_begin(Main *mainvar, BlendHandle **bh, const char *filepath)
+Main *BLO_library_link_begin(Main *mainvar, BlendHandle **bh, const char *filepath)
 {
 	FileData *fd = (FileData*)(*bh);
-	return library_append_begin(mainvar, &fd, filepath);
+	return library_link_begin(mainvar, &fd, filepath);
 }
 
 
 /* Context == NULL signifies not to do any scene manipulation */
-static void library_append_end(const bContext *C, Main *mainl, FileData **fd, int idcode, short flag)
+static void library_link_end(const bContext *C, Main *mainl, FileData **fd, int idcode, short flag)
 {
 	Main *mainvar;
 	Library *curlib;
@@ -9815,7 +9816,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 		}
 	}
 
-	/* clear group instancing tag */
+	/* clear group instantiating tag */
 	BKE_main_id_tag_listbase(&(mainvar->group), false);
 	
 	/* has been removed... erm, why? s..ton) */
@@ -9829,10 +9830,10 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 	}
 }
 
-void BLO_library_append_end(const bContext *C, struct Main *mainl, BlendHandle **bh, int idcode, short flag)
+void BLO_library_link_end(const bContext *C, struct Main *mainl, BlendHandle **bh, int idcode, short flag)
 {
 	FileData *fd = (FileData*)(*bh);
-	library_append_end(C, mainl, &fd, idcode, flag);
+	library_link_end(C, mainl, &fd, idcode, flag);
 	*bh = (BlendHandle*)fd;
 }
 
@@ -9979,7 +9980,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 								ID *realid = NULL;
 								BLI_remlink(lbarray[a], id);
 								
-								append_id_part(fd, mainptr, id, &realid);
+								link_id_part(fd, mainptr, id, &realid);
 								if (!realid) {
 									blo_reportf_wrap(
 									        fd->reports, RPT_WARNING,

@@ -213,13 +213,13 @@ bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, cha
  * \param filepath Used for relative linking, copied to the lib->name
  * \return the library Main, to be passed to BLO_library_append_named_part as mainl.
  */
-struct Main *BLO_library_append_begin(
+struct Main *BLO_library_link_begin(
         struct Main *mainvar, BlendHandle **bh,
         const char *filepath);
 
 
 /**
- * Link/Append a named datablock from an external blend file.
+ * Link a named datablock from an external blend file.
  *
  * \param mainl The main database to link from (not the active one).
  * \param bh The blender file handle.
@@ -227,13 +227,13 @@ struct Main *BLO_library_append_begin(
  * \param idcode The kind of datablock to link.
  * \return the appended ID when found.
  */
-struct ID *BLO_library_append_named_part(
+struct ID *BLO_library_link_named_part(
         struct Main *mainl, BlendHandle **bh,
         const char *idname, const int idcode);
 
 /**
- * Link/Append a named datablock from an external blend file.
- * optionally instance the object in the scene when the flags are set.
+ * Link a named datablock from an external blend file.
+ * optionally instantiate the object/group in the scene when the flags are set.
  *
  * \param C The context, when NULL instancing object in the scene isn't done.
  * \param mainl The main database to link from (not the active one).
@@ -243,13 +243,13 @@ struct ID *BLO_library_append_named_part(
  * \param flag Options for linking, used for instancing.
  * \return the appended ID when found.
  */
-struct ID *BLO_library_append_named_part_ex(
+struct ID *BLO_library_link_named_part_ex(
         const struct bContext *C, struct Main *mainl, BlendHandle **bh,
         const char *idname, const int idcode, const short flag);
 
-void BLO_library_append_end(const struct bContext *C, struct Main *mainl, BlendHandle **bh, int idcode, short flag);
+void BLO_library_link_end(const struct bContext *C, struct Main *mainl, BlendHandle **bh, int idcode, short flag);
 
-void BLO_library_append_all(struct Main *mainl, BlendHandle *bh);
+void BLO_library_link_all(struct Main *mainl, BlendHandle *bh);
 
 void *BLO_library_read_struct(struct FileData *fd, struct BHead *bh, const char *blockname);
 
