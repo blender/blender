@@ -422,7 +422,7 @@ class DOPESHEET_MT_delete(Menu):
 
         layout.separator()
 
-        layout.operator("action.clean")
+        layout.operator("action.clean").channels = False
         layout.operator("action.clean", text="Clean Channels").channels = True
 
 
