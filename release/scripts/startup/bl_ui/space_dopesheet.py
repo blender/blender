@@ -339,7 +339,7 @@ class DOPESHEET_MT_key(Menu):
         layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
 
         layout.separator()
-        layout.operator("action.clean")
+        layout.operator("action.clean").channels = False
         layout.operator("action.clean", text="Clean Channels").channels = True
         layout.operator("action.sample")
 
