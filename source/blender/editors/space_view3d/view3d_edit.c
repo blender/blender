@@ -558,7 +558,7 @@ typedef struct ViewOpsData {
 
 } ViewOpsData;
 
-#define TRACKBALLSIZE  (1.1)
+#define TRACKBALLSIZE  (1.1f)
 
 static void calctrackballvec(const rcti *rect, int mx, int my, float vec[3])
 {
@@ -1028,31 +1028,25 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 	rv3d->view = RV3D_VIEW_USER; /* need to reset every time because of view snapping */
 
 	if (U.flag & USER_TRACKBALL) {
-		float phi, si, q1[4], dvec[3], newvec[3];
+		float axis[3], q1[4], dvec[3], newvec[3];
+		float angle;
 
 		calctrackballvec(&vod->ar->winrct, x, y, newvec);
 
 		sub_v3_v3v3(dvec, newvec, vod->trackvec);
 
-		si = len_v3(dvec);
-		si /= (float)(2.0 * TRACKBALLSIZE);
-
-		cross_v3_v3v3(q1 + 1, vod->trackvec, newvec);
-		normalize_v3(q1 + 1);
+		angle = (len_v3(dvec) / (2.0f * TRACKBALLSIZE)) * M_PI;
 
 		/* Allow for rotation beyond the interval [-pi, pi] */
-		while (si > 1.0f)
-			si -= 2.0f;
+		angle = fmod(angle + (float)M_PI, M_PI * 2) - (float)M_PI;
 
-		/* This relation is used instead of
-		 * - phi = asin(si) so that the angle
-		 * - of rotation is linearly proportional
-		 * - to the distance that the mouse is
-		 * - dragged. */
-		phi = si * (float)M_PI_2;
+		/* This relation is used instead of the actual angle between vectors
+		 * so that the angle of rotation is linearly proportional to
+		 * the distance that the mouse is dragged. */
 
-		q1[0] = cosf(phi);
-		mul_v3_fl(q1 + 1, sinf(phi));
+		cross_v3_v3v3(axis, vod->trackvec, newvec);
+		axis_angle_to_quat(q1, axis, angle);
+
 		mul_qt_qtqt(vod->viewquat, q1, vod->oldquat);
 
 		viewrotate_apply_dyn_ofs(vod, vod->viewquat);
@@ -1476,8 +1470,7 @@ static void view3d_ndof_orbit(const struct wmNDOFMotionData *ndof, ScrArea *sa, 
 
 		/* Perform the up/down rotation */
 		angle = ndof->dt * rot[0];
-		quat[0] = cosf(angle);
-		mul_v3_v3fl(quat + 1, xvec, sinf(angle));
+		axis_angle_to_quat(quat, xvec, angle * 2);
 		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, quat);
 
 		/* Perform the orbital rotation */
