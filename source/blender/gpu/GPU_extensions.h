@@ -130,6 +130,8 @@ GPUTexture *GPU_texture_create_depth(int w, int h, char err_out[256]);
 GPUTexture *GPU_texture_create_vsm_shadow_map(int size, char err_out[256]);
 GPUTexture *GPU_texture_create_2D_procedural(int w, int h, const float *pixels, bool repeat, char err_out[256]);
 GPUTexture *GPU_texture_create_1D_procedural(int w, const float *pixels, char err_out[256]);
+GPUTexture *GPU_texture_create_2D_multisample(int w, int h, const float *pixels, GPUHDRType hdr, int samples, char err_out[256]);
+GPUTexture *GPU_texture_create_depth_multisample(int w, int h, int samples, char err_out[256]);
 GPUTexture *GPU_texture_from_blender(struct Image *ima,
 	struct ImageUser *iuser, bool is_data, double time, int mipmap);
 GPUTexture *GPU_texture_from_preview(struct PreviewImage *prv, int mipmap);
@@ -179,7 +181,7 @@ void GPU_framebuffer_blur(GPUFrameBuffer *fb, GPUTexture *tex, GPUFrameBuffer *b
  * - wrapper around framebuffer and texture for simple offscreen drawing
  * - changes size if graphics card can't support it */
 
-GPUOffScreen *GPU_offscreen_create(int width, int height, char err_out[256]);
+GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, char err_out[256]);
 void GPU_offscreen_free(GPUOffScreen *ofs);
 void GPU_offscreen_bind(GPUOffScreen *ofs, bool save);
 void GPU_offscreen_unbind(GPUOffScreen *ofs, bool restore);

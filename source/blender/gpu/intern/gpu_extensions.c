@@ -110,6 +110,7 @@ static struct GPUGlobal {
 	int glslsupport;
 	int extdisabled;
 	int colordepth;
+	int samples_color_texture_max;
 	int npotdisabled; /* ATI 3xx-5xx (and more) chipsets support NPoT partially (== not enough) */
 	int dlistsdisabled; /* Legacy ATI driver does not support display lists well */
 	GPUDeviceType device;
@@ -179,6 +180,10 @@ void gpu_extensions_init(void)
 	glGetIntegerv(GL_GREEN_BITS, &g);
 	glGetIntegerv(GL_BLUE_BITS, &b);
 	GG.colordepth = r + g + b; /* assumes same depth for RGB */
+
+	if (GLEW_ARB_texture_multisample) {
+		glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES , &GG.samples_color_texture_max);
+	}
 
 	vendor = (const char *)glGetString(GL_VENDOR);
 	renderer = (const char *)glGetString(GL_RENDERER);
@@ -384,6 +389,7 @@ struct GPUTexture {
 	int number;         /* number for multitexture binding */
 	int refcount;       /* reference count */
 	GLenum target;      /* GL_TEXTURE_* */
+	GLenum target_base; /* same as target, (but no multisample) */
 	GLuint bindcode;    /* opengl identifier for texture */
 	int fromblender;    /* we got the texture from Blender */
 
@@ -421,7 +427,8 @@ static void GPU_glTexSubImageEmpty(GLenum target, GLenum format, int x, int y, i
 }
 
 static GPUTexture *GPU_texture_create_nD(
-        int w, int h, int n, const float *fpixels, int depth, GPUHDRType hdr_type, int components,
+        int w, int h, int n, const float *fpixels, int depth,
+        GPUHDRType hdr_type, int components, int samples,
         char err_out[256])
 {
 	GPUTexture *tex;
@@ -431,12 +438,17 @@ static GPUTexture *GPU_texture_create_nD(
 	if (depth && !GLEW_ARB_depth_texture)
 		return NULL;
 
+	if (samples) {
+		CLAMP_MAX(samples, GG.samples_color_texture_max);
+	}
+
 	tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
 	tex->w = tex->w_orig = w;
 	tex->h = tex->h_orig = h;
 	tex->number = -1;
 	tex->refcount = 1;
-	tex->target = (n == 1)? GL_TEXTURE_1D: GL_TEXTURE_2D;
+	tex->target = (n == 1) ? GL_TEXTURE_1D : (samples ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D);
+	tex->target_base = (n == 1) ? GL_TEXTURE_1D : GL_TEXTURE_2D;
 	tex->depth = tex->depth_orig = depth;
 	tex->fb_attachment = -1;
 
@@ -523,8 +535,13 @@ static GPUTexture *GPU_texture_create_nD(
 		}
 	}
 	else {
-		glTexImage2D(tex->target, 0, internalformat, tex->w, tex->h, 0,
-		             format, type, NULL);
+		if (samples) {
+			glTexImage2DMultisample(tex->target, samples, internalformat, tex->w, tex->h, true);
+		}
+		else {
+			glTexImage2D(tex->target, 0, internalformat, tex->w, tex->h, 0,
+			             format, type, NULL);
+		}
 
 		if (fpixels) {
 			glTexSubImage2D(tex->target, 0, 0, 0, w, h,
@@ -541,23 +558,23 @@ static GPUTexture *GPU_texture_create_nD(
 		MEM_freeN(pixels);
 
 	if (depth) {
-		glTexParameteri(tex->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(tex->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(tex->target, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
-		glTexParameteri(tex->target, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
-		glTexParameteri(tex->target, GL_DEPTH_TEXTURE_MODE_ARB, GL_INTENSITY);  
+		glTexParameteri(tex->target_base, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(tex->target_base, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(tex->target_base, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
+		glTexParameteri(tex->target_base, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
+		glTexParameteri(tex->target_base, GL_DEPTH_TEXTURE_MODE_ARB, GL_INTENSITY);
 	}
 	else {
-		glTexParameteri(tex->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(tex->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(tex->target_base, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(tex->target_base, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	}
 
-	if (tex->target != GL_TEXTURE_1D) {
-		glTexParameteri(tex->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(tex->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	if (tex->target_base != GL_TEXTURE_1D) {
+		glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 	else
-		glTexParameteri(tex->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(tex->target_base, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 
 	return tex;
 }
@@ -581,6 +598,7 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, const f
 	tex->number = -1;
 	tex->refcount = 1;
 	tex->target = GL_TEXTURE_3D;
+	tex->target_base = GL_TEXTURE_3D;
 
 	glGenTextures(1, &tex->bindcode);
 
@@ -727,6 +745,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, bool is_data,
 	tex->number = -1;
 	tex->refcount = 1;
 	tex->target = GL_TEXTURE_2D;
+	tex->target_base = GL_TEXTURE_2D;
 	tex->fromblender = 1;
 
 	ima->gputexture= tex;
@@ -775,6 +794,7 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
 	tex->number = -1;
 	tex->refcount = 1;
 	tex->target = GL_TEXTURE_2D;
+	tex->target_base = GL_TEXTURE_2D;
 	
 	prv->gputexture[0] = tex;
 	
@@ -798,7 +818,7 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
 
 GPUTexture *GPU_texture_create_1D(int w, const float *fpixels, char err_out[256])
 {
-	GPUTexture *tex = GPU_texture_create_nD(w, 1, 1, fpixels, 0, GPU_HDR_NONE, 4, err_out);
+	GPUTexture *tex = GPU_texture_create_nD(w, 1, 1, fpixels, 0, GPU_HDR_NONE, 4, 0, err_out);
 
 	if (tex)
 		GPU_texture_unbind(tex);
@@ -808,21 +828,39 @@ GPUTexture *GPU_texture_create_1D(int w, const float *fpixels, char err_out[256]
 
 GPUTexture *GPU_texture_create_2D(int w, int h, const float *fpixels, GPUHDRType hdr, char err_out[256])
 {
-	GPUTexture *tex = GPU_texture_create_nD(w, h, 2, fpixels, 0, hdr, 4, err_out);
+	GPUTexture *tex = GPU_texture_create_nD(w, h, 2, fpixels, 0, hdr, 4, 0, err_out);
 
 	if (tex)
 		GPU_texture_unbind(tex);
 	
 	return tex;
 }
+GPUTexture *GPU_texture_create_2D_multisample(int w, int h, const float *fpixels, GPUHDRType hdr, int samples, char err_out[256])
+{
+	GPUTexture *tex = GPU_texture_create_nD(w, h, 2, fpixels, 0, hdr, 4, samples, err_out);
+
+	if (tex)
+		GPU_texture_unbind(tex);
+
+	return tex;
+}
 
 GPUTexture *GPU_texture_create_depth(int w, int h, char err_out[256])
 {
-	GPUTexture *tex = GPU_texture_create_nD(w, h, 2, NULL, 1, GPU_HDR_NONE, 1, err_out);
+	GPUTexture *tex = GPU_texture_create_nD(w, h, 2, NULL, 1, GPU_HDR_NONE, 1, 0, err_out);
 
 	if (tex)
 		GPU_texture_unbind(tex);
 	
+	return tex;
+}
+GPUTexture *GPU_texture_create_depth_multisample(int w, int h, int samples, char err_out[256])
+{
+	GPUTexture *tex = GPU_texture_create_nD(w, h, 2, NULL, 1, GPU_HDR_NONE, 1, samples, err_out);
+
+	if (tex)
+		GPU_texture_unbind(tex);
+
 	return tex;
 }
 
@@ -831,7 +869,7 @@ GPUTexture *GPU_texture_create_depth(int w, int h, char err_out[256])
  */
 GPUTexture *GPU_texture_create_vsm_shadow_map(int size, char err_out[256])
 {
-	GPUTexture *tex = GPU_texture_create_nD(size, size, 2, NULL, 0, GPU_HDR_FULL_FLOAT, 2, err_out);
+	GPUTexture *tex = GPU_texture_create_nD(size, size, 2, NULL, 0, GPU_HDR_FULL_FLOAT, 2, 0, err_out);
 
 	if (tex) {
 		/* Now we tweak some of the settings */
@@ -846,7 +884,7 @@ GPUTexture *GPU_texture_create_vsm_shadow_map(int size, char err_out[256])
 
 GPUTexture *GPU_texture_create_2D_procedural(int w, int h, const float *pixels, bool repeat, char err_out[256])
 {
-	GPUTexture *tex = GPU_texture_create_nD(w, h, 2, pixels, 0, GPU_HDR_HALF_FLOAT, 2, err_out);
+	GPUTexture *tex = GPU_texture_create_nD(w, h, 2, pixels, 0, GPU_HDR_HALF_FLOAT, 2, 0, err_out);
 
 	if (tex) {
 		/* Now we tweak some of the settings */
@@ -865,7 +903,7 @@ GPUTexture *GPU_texture_create_2D_procedural(int w, int h, const float *pixels, 
 
 GPUTexture *GPU_texture_create_1D_procedural(int w, const float *pixels, char err_out[256])
 {
-	GPUTexture *tex = GPU_texture_create_nD(w, 0, 1, pixels, 0, GPU_HDR_HALF_FLOAT, 2, err_out);
+	GPUTexture *tex = GPU_texture_create_nD(w, 0, 1, pixels, 0, GPU_HDR_HALF_FLOAT, 2, 0, err_out);
 
 	if (tex) {
 		/* Now we tweak some of the settings */
@@ -965,7 +1003,7 @@ void GPU_texture_unbind(GPUTexture *tex)
 	arbnumber = (GLenum)((GLuint)GL_TEXTURE0_ARB + tex->number);
 	if (tex->number != 0) glActiveTextureARB(arbnumber);
 	glBindTexture(tex->target, 0);
-	glDisable(tex->target);
+	glDisable(tex->target_base);
 	if (tex->number != 0) glActiveTextureARB(GL_TEXTURE0_ARB);
 
 	tex->number = -1;
@@ -1189,6 +1227,10 @@ void GPU_texture_bind_as_framebuffer(GPUTexture *tex)
 		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT + tex->fb_attachment);
 	}
 	
+	if (tex->target == GL_TEXTURE_2D_MULTISAMPLE) {
+		glEnable(GL_MULTISAMPLE_ARB);
+	}
+
 	/* push matrices and set default viewport and matrix */
 	glViewport(0, 0, tex->w_orig, tex->h_orig);
 	GG.currentfb = tex->fb->object;
@@ -1395,7 +1437,7 @@ struct GPUOffScreen {
 	GPUTexture *depth;
 };
 
-GPUOffScreen *GPU_offscreen_create(int width, int height, char err_out[256])
+GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, char err_out[256])
 {
 	GPUOffScreen *ofs;
 
@@ -1407,7 +1449,15 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, char err_out[256])
 		return NULL;
 	}
 
-	ofs->depth = GPU_texture_create_depth(width, height, err_out);
+	if (samples) {
+		if (!GL_EXT_framebuffer_multisample ||
+		    !GLEW_ARB_texture_multisample)
+		{
+			samples = 0;
+		}
+	}
+
+	ofs->depth = GPU_texture_create_depth_multisample(width, height, samples, err_out);
 	if (!ofs->depth) {
 		GPU_offscreen_free(ofs);
 		return NULL;
@@ -1418,7 +1468,7 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, char err_out[256])
 		return NULL;
 	}
 
-	ofs->color = GPU_texture_create_2D(width, height, NULL, GPU_HDR_NONE, err_out);
+	ofs->color = GPU_texture_create_2D_multisample(width, height, NULL, GPU_HDR_NONE, samples, err_out);
 	if (!ofs->color) {
 		GPU_offscreen_free(ofs);
 		return NULL;
@@ -1472,7 +1522,81 @@ void GPU_offscreen_unbind(GPUOffScreen *ofs, bool restore)
 
 void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels)
 {
-	glReadPixels(0, 0, ofs->color->w_orig, ofs->color->h_orig, GL_RGBA, type, pixels);
+	const int w = ofs->color->w_orig;
+	const int h = ofs->color->h_orig;
+
+	if (ofs->color->target == GL_TEXTURE_2D_MULTISAMPLE) {
+		/* For a multi-sample texture,
+		 * we need to create an intermediate buffer to blit to,
+		 * before its copied using 'glReadPixels' */
+
+		/* not needed since 'ofs' needs to be bound to the framebuffer already */
+// #define USE_FBO_CTX_SWITCH
+
+		GLuint fbo_blit = 0;
+		GLuint tex_blit = 0;
+		GLenum status;
+
+		/* create texture for new 'fbo_blit' */
+		glGenTextures(1, &tex_blit);
+		if (!tex_blit) {
+			goto finally;
+		}
+
+		glBindTexture(GL_TEXTURE_2D, tex_blit);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, type, 0);
+
+#ifdef USE_FBO_CTX_SWITCH
+		/* read from multi-sample buffer */
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER, ofs->color->fb->object);
+		glFramebufferTexture2DEXT(
+		        GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + ofs->color->fb_attachment,
+		        GL_TEXTURE_2D_MULTISAMPLE, ofs->color->bindcode, 0);
+		status = glCheckFramebufferStatus(GL_READ_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE) {
+			goto finally;
+		}
+#endif
+
+		/* write into new single-sample buffer */
+		glGenFramebuffersEXT(1, &fbo_blit);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_blit);
+		glFramebufferTexture2DEXT(
+		        GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		        GL_TEXTURE_2D, tex_blit, 0);
+		status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE) {
+			goto finally;
+		}
+
+		/* perform the copy */
+		glBlitFramebufferEXT(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+		/* read the results */
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER, fbo_blit);
+		glReadPixels(0, 0, w, h, GL_RGBA, type, pixels);
+
+#ifdef USE_FBO_CTX_SWITCH
+		/* restore the original frame-bufer */
+		glBindFramebufferEXT(GL_FRAMEBUFFER, ofs->color->fb->object);
+#undef USE_FBO_CTX_SWITCH
+#endif
+
+
+finally:
+		/* cleanup */
+		if (tex_blit) {
+			glDeleteTextures(1, &tex_blit);
+		}
+		if (fbo_blit) {
+			glDeleteFramebuffersEXT(1, &fbo_blit);
+		}
+
+		GPU_ASSERT_NO_GL_ERRORS("Read Multi-Sample Pixels");
+	}
+	else {
+		glReadPixels(0, 0, w, h, GL_RGBA, type, pixels);
+	}
 }
 
 int GPU_offscreen_width(const GPUOffScreen *ofs)
