@@ -293,7 +293,7 @@ class GRAPH_MT_delete(Menu):
 
         layout.separator()
 
-        layout.operator("graph.clean")
+        layout.operator("graph.clean").channels = False
         layout.operator("graph.clean", text="Clean Channels").channels = True
 
 
