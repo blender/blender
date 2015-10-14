@@ -1019,6 +1019,10 @@ void KX_KetsjiEngine::GetSceneViewport(KX_Scene *scene, KX_Camera* cam, RAS_Rect
 
 void KX_KetsjiEngine::UpdateAnimations(KX_Scene *scene)
 {
+	if (scene->IsSuspended()) {
+		return;
+	}
+
 	// Handle the animations independently of the logic time step
 	if (GetRestrictAnimationFPS()) {
 		double anim_timestep = 1.0 / KX_GetActiveScene()->GetAnimationFPS();
