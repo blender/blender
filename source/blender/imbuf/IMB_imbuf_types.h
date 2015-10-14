@@ -124,12 +124,6 @@ enum eImbTypes {
 
 #define RAWTGA	        1
 
-#define JPG_STD	        0
-#define JPG_VID	        1
-#define JPG_JST	        2
-#define JPG_MAX	        3
-#define JPG_MSK	        0x03
-
 #ifdef WITH_TIFF
 #define TIF_16BIT		(1 << 8 )
 #endif
