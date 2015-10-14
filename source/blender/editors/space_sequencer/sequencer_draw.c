@@ -198,7 +198,7 @@ static void drawseqwave(const bContext *C, SpaceSeq *sseq, Scene *scene, Sequenc
 		float yscale = (y2 - y1) / 2;
 		float samplestep;
 		float startsample, endsample;
-		float value;
+		float value1, value2;
 		bSound *sound = seq->sound;
 		
 		SoundWaveform *waveform;
@@ -238,35 +238,37 @@ static void drawseqwave(const bContext *C, SpaceSeq *sseq, Scene *scene, Sequenc
 		if (length > floor((waveform->length - startsample) / samplestep))
 			length = floor((waveform->length - startsample) / samplestep);
 
-		glBegin(GL_LINE_STRIP);
+		glColor4f(1.0f, 1.0f, 1.0f, 0.5);
+		glEnable(GL_BLEND);
+		glBegin(GL_TRIANGLE_STRIP);
 		for (i = 0; i < length; i++) {
-			pos = startsample + i * samplestep;
+			float sampleoffset = startsample + i * samplestep;
+			pos = sampleoffset;
 
-			value = waveform->data[pos * 3];
+			value1 = waveform->data[pos * 3];
+			value2 = waveform->data[pos * 3 + 1];
 
-			for (j = pos + 1; (j < waveform->length) && (j < pos + samplestep); j++) {
-				if (value > waveform->data[j * 3])
-					value = waveform->data[j * 3];
+			if (samplestep >= 2.0f) {
+				for (j = pos + 1; (j < waveform->length) && (j < pos + samplestep); j++) {
+					if (value1 > waveform->data[j * 3])
+						value1 = waveform->data[j * 3];
+
+					if (value2 < waveform->data[j * 3 + 1])
+						value2 = waveform->data[j * 3 + 1];
+				}
+			}
+			else {
+				float f = sampleoffset - pos;
+				value1 = (1.0f - f) * value1 + f * waveform->data[pos * 3 + 3];
+				value2 = (1.0f - f) * value2 + f * waveform->data[pos * 3 + 4];
 			}
 
-			glVertex2f(x1 + i * stepsize, ymid + value * yscale);
+			/* max(value, -1) ensures that no sound gets drawn as a line */
+			glVertex2f(x1 + i * stepsize, ymid + value1 * yscale);
+			glVertex2f(x1 + i * stepsize, ymid + value2 * yscale);
 		}
 		glEnd();
-
-		glBegin(GL_LINE_STRIP);
-		for (i = 0; i < length; i++) {
-			pos = startsample + i * samplestep;
-
-			value = waveform->data[pos * 3 + 1];
-
-			for (j = pos + 1; (j < waveform->length) && (j < pos + samplestep); j++) {
-				if (value < waveform->data[j * 3 + 1])
-					value = waveform->data[j * 3 + 1];
-			}
-
-			glVertex2f(x1 + i * stepsize, ymid + value * yscale);
-		}
-		glEnd();
+		glDisable(GL_BLEND);
 	}
 }
 
