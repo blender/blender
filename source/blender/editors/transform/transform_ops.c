@@ -855,6 +855,8 @@ static void TRANSFORM_OT_edge_slide(struct wmOperatorType *ot)
 	                "Make the edge loop match the shape of the adjacent edge loop");
 	RNA_def_boolean(ot->srna, "flipped", false, "Flipped",
 	                "When Even mode is active, flips between the two adjacent edge loops");
+	RNA_def_boolean(ot->srna, "use_clamp", true, "Clamp",
+	                "Clamp within the edge extents");
 
 	Transform_Properties(ot, P_MIRROR | P_SNAP | P_CORRECT_UV);
 }
@@ -879,6 +881,8 @@ static void TRANSFORM_OT_vert_slide(struct wmOperatorType *ot)
 	                "Make the edge loop match the shape of the adjacent edge loop");
 	RNA_def_boolean(ot->srna, "flipped", false, "Flipped",
 	                "When Even mode is active, flips between the two adjacent edge loops");
+	RNA_def_boolean(ot->srna, "use_clamp", true, "Clamp",
+	                "Clamp within the edge extents");
 
 	Transform_Properties(ot, P_MIRROR | P_SNAP | P_CORRECT_UV);
 }

@@ -168,12 +168,12 @@ static void applyBoneEnvelope(TransInfo *t, const int mval[2]);
 static void initBoneRoll(TransInfo *t);
 static void applyBoneRoll(TransInfo *t, const int mval[2]);
 
-static void initEdgeSlide_ex(TransInfo *t, bool use_double_side, bool use_even, bool flipped);
+static void initEdgeSlide_ex(TransInfo *t, bool use_double_side, bool use_even, bool flipped, bool use_clamp);
 static void initEdgeSlide(TransInfo *t);
 static eRedrawFlag handleEventEdgeSlide(TransInfo *t, const struct wmEvent *event);
 static void applyEdgeSlide(TransInfo *t, const int mval[2]);
 
-static void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped);
+static void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use_clamp);
 static void initVertSlide(TransInfo *t);
 static eRedrawFlag handleEventVertSlide(TransInfo *t, const struct wmEvent *event);
 static void applyVertSlide(TransInfo *t, const int mval[2]);
@@ -2228,18 +2228,18 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			t->mode = TFM_BONE_ENVELOPE_DIST;
 			break;
 		case TFM_EDGE_SLIDE:
-		{
-			const bool use_double_side = (op ? !RNA_boolean_get(op->ptr, "single_side") : true);
-			const bool use_even = (op ? RNA_boolean_get(op->ptr, "use_even") : false);
-			const bool flipped = (op ? RNA_boolean_get(op->ptr, "flipped") : false);
-			initEdgeSlide_ex(t, use_double_side, use_even, flipped);
-			break;
-		}
 		case TFM_VERT_SLIDE:
 		{
 			const bool use_even = (op ? RNA_boolean_get(op->ptr, "use_even") : false);
 			const bool flipped = (op ? RNA_boolean_get(op->ptr, "flipped") : false);
-			initVertSlide_ex(t, use_even, flipped);
+			const bool use_clamp = (op ? RNA_boolean_get(op->ptr, "use_clamp") : true);
+			if (mode == TFM_EDGE_SLIDE) {
+				const bool use_double_side = (op ? !RNA_boolean_get(op->ptr, "single_side") : true);
+				initEdgeSlide_ex(t, use_double_side, use_even, flipped, use_clamp);
+			}
+			else {
+				initVertSlide_ex(t, use_even, flipped, use_clamp);
+			}
 			break;
 		}
 		case TFM_BONE_ROLL:
@@ -6026,7 +6026,7 @@ static void calcEdgeSlide_even(
 	}
 }
 
-static bool createEdgeSlideVerts_double_side(TransInfo *t, bool use_even, bool flipped)
+static bool createEdgeSlideVerts_double_side(TransInfo *t, bool use_even, bool flipped, bool use_clamp)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 	BMesh *bm = em->bm;
@@ -6048,6 +6048,8 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t, bool use_even, bool f
 	sld->use_even = use_even;
 	sld->curr_sv_index = 0;
 	sld->flipped = flipped;
+	if (!use_clamp)
+		t->flag |= T_ALT_TRANSFORM;
 
 	/*ensure valid selection*/
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -6371,7 +6373,7 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t, bool use_even, bool f
  * A simple version of #createEdgeSlideVerts_double_side
  * Which assumes the longest unselected.
  */
-static bool createEdgeSlideVerts_single_side(TransInfo *t, bool use_even, bool flipped)
+static bool createEdgeSlideVerts_single_side(TransInfo *t, bool use_even, bool flipped, bool use_clamp)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 	BMesh *bm = em->bm;
@@ -6400,6 +6402,8 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t, bool use_even, bool f
 	sld->curr_sv_index = 0;
 	/* happens to be best for single-sided */
 	sld->flipped = !flipped;
+	if (!use_clamp)
+		t->flag |= T_ALT_TRANSFORM;
 
 	/* ensure valid selection */
 	j = 0;
@@ -6593,7 +6597,7 @@ void freeEdgeSlideVerts(TransInfo *t)
 	t->customData = NULL;
 }
 
-static void initEdgeSlide_ex(TransInfo *t, bool use_double_side, bool use_even, bool flipped)
+static void initEdgeSlide_ex(TransInfo *t, bool use_double_side, bool use_even, bool flipped, bool use_clamp)
 {
 	EdgeSlideData *sld;
 	bool ok;
@@ -6603,10 +6607,10 @@ static void initEdgeSlide_ex(TransInfo *t, bool use_double_side, bool use_even, 
 	t->handleEvent = handleEventEdgeSlide;
 
 	if (use_double_side) {
-		ok = createEdgeSlideVerts_double_side(t, use_even, flipped);
+		ok = createEdgeSlideVerts_double_side(t, use_even, flipped, use_clamp);
 	}
 	else {
-		ok = createEdgeSlideVerts_single_side(t, use_even, flipped);
+		ok = createEdgeSlideVerts_single_side(t, use_even, flipped, use_clamp);
 	}
 
 	if (!ok) {
@@ -6640,7 +6644,7 @@ static void initEdgeSlide_ex(TransInfo *t, bool use_double_side, bool use_even, 
 
 static void initEdgeSlide(TransInfo *t)
 {
-	initEdgeSlide_ex(t, true, false, false);
+	initEdgeSlide_ex(t, true, false, false, true);
 }
 
 static eRedrawFlag handleEventEdgeSlide(struct TransInfo *t, const struct wmEvent *event)
@@ -7046,7 +7050,7 @@ static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2]
 	}
 }
 
-static bool createVertSlideVerts(TransInfo *t, bool use_even, bool flipped)
+static bool createVertSlideVerts(TransInfo *t, bool use_even, bool flipped, bool use_clamp)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 	BMesh *bm = em->bm;
@@ -7063,6 +7067,8 @@ static bool createVertSlideVerts(TransInfo *t, bool use_even, bool flipped)
 	sld->use_even = use_even;
 	sld->curr_sv_index = 0;
 	sld->flipped = flipped;
+	if (!use_clamp)
+		t->flag |= T_ALT_TRANSFORM;
 
 	j = 0;
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -7196,7 +7202,7 @@ void freeVertSlideVerts(TransInfo *t)
 	t->customData = NULL;
 }
 
-static void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped)
+static void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use_clamp)
 {
 	VertSlideData *sld;
 
@@ -7204,7 +7210,7 @@ static void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped)
 	t->transform = applyVertSlide;
 	t->handleEvent = handleEventVertSlide;
 
-	if (!createVertSlideVerts(t, use_even, flipped)) {
+	if (!createVertSlideVerts(t, use_even, flipped, use_clamp)) {
 		t->state = TRANS_CANCEL;
 		return;
 	}
@@ -7235,7 +7241,7 @@ static void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped)
 
 static void initVertSlide(TransInfo *t)
 {
-	initVertSlide_ex(t, false, false);
+	initVertSlide_ex(t, false, false, true);
 }
 
 static eRedrawFlag handleEventVertSlide(struct TransInfo *t, const struct wmEvent *event)
