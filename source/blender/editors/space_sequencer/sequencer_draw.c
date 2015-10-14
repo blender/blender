@@ -248,7 +248,7 @@ static void drawseqwave(const bContext *C, SpaceSeq *sseq, Scene *scene, Sequenc
 			value1 = waveform->data[pos * 3];
 			value2 = waveform->data[pos * 3 + 1];
 
-			if (samplestep >= 2.0f) {
+			if (samplestep > 1.0f) {
 				for (j = pos + 1; (j < waveform->length) && (j < pos + samplestep); j++) {
 					if (value1 > waveform->data[j * 3])
 						value1 = waveform->data[j * 3];
@@ -258,12 +258,12 @@ static void drawseqwave(const bContext *C, SpaceSeq *sseq, Scene *scene, Sequenc
 				}
 			}
 			else {
+				/* use simple linear interpolation */
 				float f = sampleoffset - pos;
 				value1 = (1.0f - f) * value1 + f * waveform->data[pos * 3 + 3];
 				value2 = (1.0f - f) * value2 + f * waveform->data[pos * 3 + 4];
 			}
 
-			/* max(value, -1) ensures that no sound gets drawn as a line */
 			glVertex2f(x1 + i * stepsize, ymid + value1 * yscale);
 			glVertex2f(x1 + i * stepsize, ymid + value2 * yscale);
 		}
