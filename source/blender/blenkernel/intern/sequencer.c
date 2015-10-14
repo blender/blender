@@ -563,6 +563,8 @@ void BKE_sequencer_new_render_data(
 	r_context->skip_cache = false;
 	r_context->is_proxy_render = false;
 	r_context->view_id = 0;
+	r_context->gpu_offscreen = NULL;
+	r_context->gpu_samples = (scene->r.mode & R_OSA) ? scene->r.osa : 0;
 }
 
 /* ************************* iterator ************************** */
@@ -3212,10 +3214,14 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 
 		/* opengl offscreen render */
 		BKE_scene_update_for_newframe(context->eval_ctx, context->bmain, scene, scene->lay);
-		ibuf = sequencer_view3d_cb(scene, camera, width, height, IB_rect,
-		                           context->scene->r.seq_prev_type,
-		                           (context->scene->r.seq_flag & R_SEQ_SOLID_TEX) != 0,
-		                           use_gpencil, true, scene->r.alphamode, viewname, err_out);
+		ibuf = sequencer_view3d_cb(
+		        /* set for OpenGL render (NULL when scrubbing) */
+		        scene, camera, width, height, IB_rect,
+		        context->scene->r.seq_prev_type,
+		        (context->scene->r.seq_flag & R_SEQ_SOLID_TEX) != 0,
+		        use_gpencil, true, scene->r.alphamode,
+		        context->gpu_samples, viewname,
+		        context->gpu_offscreen, err_out);
 		if (ibuf == NULL) {
 			fprintf(stderr, "seq_render_scene_strip failed to get opengl buffer: %s\n", err_out);
 		}

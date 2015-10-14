@@ -3144,10 +3144,9 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
 void ED_view3d_draw_offscreen(
         Scene *scene, View3D *v3d, ARegion *ar, int winx, int winy,
         float viewmat[4][4], float winmat[4][4],
-        bool do_bgpic, bool do_sky, bool is_persp,
-        GPUOffScreen *ofs,
+        bool do_bgpic, bool do_sky, bool is_persp, const char *viewname,
         GPUFX *fx, GPUFXSettings *fx_settings,
-        const char *viewname)
+        GPUOffScreen *ofs)
 {
 	struct bThemeState theme_state;
 	int bwinx, bwiny;
@@ -3247,26 +3246,37 @@ void ED_view3d_draw_offscreen(
 	G.f &= ~G_RENDER_OGL;
 }
 
-/* utility func for ED_view3d_draw_offscreen */
-ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, int sizex, int sizey, unsigned int flag,
-                                      bool draw_background, int alpha_mode, const char *viewname, char err_out[256])
+/**
+ * Utility func for ED_view3d_draw_offscreen
+ *
+ * \param ofs: Optional off-screen buffer, can be NULL.
+ * (avoids re-creating when doing multiple GL renders).
+ */
+ImBuf *ED_view3d_draw_offscreen_imbuf(
+        Scene *scene, View3D *v3d, ARegion *ar, int sizex, int sizey,
+        unsigned int flag, bool draw_background,
+        int alpha_mode, int samples, const char *viewname,
+        /* output vars */
+        GPUOffScreen *ofs, char err_out[256])
 {
 	RegionView3D *rv3d = ar->regiondata;
 	ImBuf *ibuf;
-	GPUOffScreen *ofs;
-	bool draw_sky = (alpha_mode == R_ADDSKY) && v3d && (v3d->flag3 & V3D_SHOW_WORLD);
+	const bool draw_sky = (alpha_mode == R_ADDSKY) && v3d && (v3d->flag3 & V3D_SHOW_WORLD);
+	const bool own_ofs = (ofs == NULL);
 
 	if (UNLIKELY(v3d == NULL))
 		return NULL;
 
-	/* state changes make normal drawing go weird otherwise */
-	glPushAttrib(GL_LIGHTING_BIT);
+	if (own_ofs) {
+		/* state changes make normal drawing go weird otherwise */
+		glPushAttrib(GL_LIGHTING_BIT);
 
-	/* bind */
-	ofs = GPU_offscreen_create(sizex, sizey, 0, err_out);
-	if (ofs == NULL) {
-		glPopAttrib();
-		return NULL;
+		/* bind */
+		ofs = GPU_offscreen_create(sizex, sizey, samples, err_out);
+		if (ofs == NULL) {
+			glPopAttrib();
+			return NULL;
+		}
 	}
 
 	ED_view3d_draw_offscreen_init(scene, v3d);
@@ -3292,14 +3302,15 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 
 		ED_view3d_draw_offscreen(
 		        scene, v3d, ar, sizex, sizey, NULL, params.winmat,
-		        draw_background, draw_sky, !params.is_ortho,
-		        ofs, NULL, &fx_settings, viewname);
+		        draw_background, draw_sky, !params.is_ortho, viewname,
+		        NULL, &fx_settings,
+		        ofs);
 	}
 	else {
 		ED_view3d_draw_offscreen(
 		        scene, v3d, ar, sizex, sizey, NULL, NULL,
-		        draw_background, draw_sky, true,
-		        ofs, NULL, NULL, viewname);
+		        draw_background, draw_sky, true, viewname,
+		        NULL, NULL, ofs);
 	}
 
 	/* read in pixels & stamp */
@@ -3312,9 +3323,12 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 
 	/* unbind */
 	GPU_offscreen_unbind(ofs, true);
-	GPU_offscreen_free(ofs);
 
-	glPopAttrib();
+	if (own_ofs) {
+		GPU_offscreen_free(ofs);
+
+		glPopAttrib();
+	}
 	
 	if (ibuf->rect_float && ibuf->rect)
 		IMB_rect_from_float(ibuf);
@@ -3322,10 +3336,19 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	return ibuf;
 }
 
-/* creates own 3d views, used by the sequencer */
-ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int width, int height, unsigned int flag, int drawtype,
-                                             bool use_solid_tex, bool use_gpencil, bool draw_background, int alpha_mode,
-                                             const char *viewname, char err_out[256])
+/**
+ * Creates own fake 3d views (wrapping #ED_view3d_draw_offscreen_imbuf)
+ *
+ * \param ofs: Optional off-screen buffer can be NULL.
+ * (avoids re-creating when doing multiple GL renders).
+ *
+ * \note used by the sequencer
+ */
+ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
+        Scene *scene, Object *camera, int width, int height,
+        unsigned int flag, int drawtype, bool use_solid_tex, bool use_gpencil, bool draw_background,
+        int alpha_mode, int samples, const char *viewname,
+        GPUOffScreen *ofs, char err_out[256])
 {
 	View3D v3d = {NULL};
 	ARegion ar = {NULL};
@@ -3372,8 +3395,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 	mul_m4_m4m4(rv3d.persmat, rv3d.winmat, rv3d.viewmat);
 	invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
-	return ED_view3d_draw_offscreen_imbuf(scene, &v3d, &ar, width, height, flag,
-	                                      draw_background, alpha_mode, viewname, err_out);
+	return ED_view3d_draw_offscreen_imbuf(
+	        scene, &v3d, &ar, width, height, flag,
+	        draw_background, alpha_mode, samples, viewname,
+	        ofs, err_out);
 
 	// seq_view3d_cb(scene, cfra, render_size, seqrectx, seqrecty);
 }

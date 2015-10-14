@@ -35,6 +35,7 @@ struct EvaluationContext;
 struct StripColorBalance;
 struct Editing;
 struct GSet;
+struct GPUOffScreen;
 struct ImBuf;
 struct Main;
 struct Mask;
@@ -101,6 +102,10 @@ typedef struct SeqRenderData {
 	bool skip_cache;
 	bool is_proxy_render;
 	size_t view_id;
+
+	/* special case for OpenGL render */
+	struct GPUOffScreen *gpu_offscreen;
+	int gpu_samples;
 } SeqRenderData;
 
 void BKE_sequencer_new_render_data(
@@ -408,7 +413,11 @@ struct Sequence *BKE_sequencer_add_sound_strip(struct bContext *C, ListBase *seq
 struct Sequence *BKE_sequencer_add_movie_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
 
 /* view3d draw callback, run when not in background view */
-typedef struct ImBuf *(*SequencerDrawView)(struct Scene *, struct Object *, int, int, unsigned int, int, bool, bool, bool, int, const char *, char[256]);
+typedef struct ImBuf *(*SequencerDrawView)(
+        struct Scene *, struct Object *, int, int,
+        unsigned int, int, bool, bool, bool,
+        int, int, const char *,
+        struct GPUOffScreen *, char[256]);
 extern SequencerDrawView sequencer_view3d_cb;
 
 /* copy/paste */
