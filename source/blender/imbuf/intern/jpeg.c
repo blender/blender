@@ -64,8 +64,8 @@ static void memory_source(j_decompress_ptr cinfo, const unsigned char *buffer, s
 static boolean handle_app1(j_decompress_ptr cinfo);
 static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int flags);
 
-static int jpeg_default_quality;
-static int ibuf_foptions;
+static const uchar jpeg_default_quality = 75;
+static uchar ibuf_quality;
 
 int imb_is_a_jpeg(const unsigned char *mem)
 {
@@ -234,6 +234,13 @@ static void memory_source(j_decompress_ptr cinfo, const unsigned char *buffer, s
 	      bytes_in_buffer--; \
 	      V += GETJOCTET(*next_input_byte++); )
 
+struct NeoGeo_Word {
+	uchar pad1;
+	uchar pad2;
+	uchar pad3;
+	uchar quality;
+} ;
+BLI_STATIC_ASSERT(sizeof(struct NeoGeo_Word) == 4, "Must be 4 bytes");
 
 static boolean handle_app1(j_decompress_ptr cinfo)
 {
@@ -247,13 +254,19 @@ static boolean handle_app1(j_decompress_ptr cinfo)
 	length -= 2;
 	
 	if (length < 16) {
-		for (i = 0; i < length; i++) INPUT_BYTE(cinfo, neogeo[i], return false);
+		for (i = 0; i < length; i++) {
+			INPUT_BYTE(cinfo, neogeo[i], return false);
+		}
 		length = 0;
-		if (STREQLEN(neogeo, "NeoGeo", 6)) memcpy(&ibuf_foptions, neogeo + 6, 4);
-		ibuf_foptions = BIG_LONG(ibuf_foptions);
+		if (STREQLEN(neogeo, "NeoGeo", 6)) {
+			struct NeoGeo_Word *neogeo_word = (struct NeoGeo_Word *)(neogeo + 6);
+			ibuf_quality = neogeo_word->quality;
+		}
 	}
 	INPUT_SYNC(cinfo);  /* do before skip_input_data */
-	if (length > 0) (*cinfo->src->skip_input_data)(cinfo, length);
+	if (length > 0) {
+		(*cinfo->src->skip_input_data)(cinfo, length);
+	}
 	return true;
 }
 
@@ -270,7 +283,7 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int fla
 	char *str, *key, *value;
 
 	/* install own app1 handler */
-	ibuf_foptions = 0;
+	ibuf_quality = jpeg_default_quality;
 	jpeg_set_marker_processor(cinfo, 0xe1, handle_app1);
 	cinfo->dct_method = JDCT_FLOAT;
 	jpeg_save_markers(cinfo, JPEG_COM, 0xffff);
@@ -408,7 +421,7 @@ next_stamp_marker:
 		jpeg_destroy((j_common_ptr) cinfo);
 		if (ibuf) {
 			ibuf->ftype = IMB_FTYPE_JPG;
-			ibuf->foptions.flag = ibuf_foptions;
+			ibuf->foptions.quality = MIN2(ibuf_quality, 100);
 		}
 	}
 
@@ -453,16 +466,16 @@ static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
 	uchar *rect;
 	int x, y;
 	char neogeo[128];
+	struct NeoGeo_Word *neogeo_word;
 	char *text;
 
 	jpeg_start_compress(cinfo, true);
 
 	strcpy(neogeo, "NeoGeo");
-	ibuf_foptions = BIG_LONG((((int)ibuf->foptions.flag) << 8) | (int)ibuf->foptions.quality);
-	
-	memcpy(neogeo + 6, &ibuf_foptions, 4);
+	neogeo_word = (struct NeoGeo_Word *)(neogeo + 6);
+	memset(neogeo_word, 0, sizeof(*neogeo_word));
+	neogeo_word->quality = ibuf->foptions.quality;
 	jpeg_write_marker(cinfo, 0xe1, (JOCTET *) neogeo, 10);
-
 	if (ibuf->metadata) {
 		IDProperty *prop;
 		/* key + max value + "Blender" */
@@ -585,8 +598,8 @@ static int save_stdjpeg(const char *name, struct ImBuf *ibuf)
 	struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
 	struct my_error_mgr jerr;
 
-	if ((outfile = BLI_fopen(name, "wb")) == NULL) return 0;
-	jpeg_default_quality = 75;
+	if ((outfile = BLI_fopen(name, "wb")) == NULL)
+		return 0;
 
 	cinfo->err = jpeg_std_error(&jerr.pub);
 	jerr.pub.error_exit = jpeg_error;
