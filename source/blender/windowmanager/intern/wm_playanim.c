@@ -383,7 +383,6 @@ static void build_pict_list_ex(PlayState *ps, const char *first, int totframes, 
 //	short val;
 	PlayAnimPict *picture = NULL;
 	struct ImBuf *ibuf = NULL;
-	char str[32 + FILE_MAX];
 	struct anim *anim;
 
 	if (IMB_isanim(first)) {
@@ -402,8 +401,7 @@ static void build_pict_list_ex(PlayState *ps, const char *first, int totframes, 
 				picture->anim = anim;
 				picture->frame = pic;
 				picture->IB_flags = IB_rect;
-				BLI_snprintf(str, sizeof(str), "%s : %4.d", first, pic + 1);
-				picture->name = strdup(str);
+				picture->name = BLI_sprintfN("%s : %4.d", first, pic + 1);
 				BLI_addtail(&picsbase, picture);
 			}
 		}
@@ -480,8 +478,8 @@ static void build_pict_list_ex(PlayState *ps, const char *first, int totframes, 
 			}
 
 			picture->mem = mem;
-			picture->name = strdup(filepath);
-			picture->frame = count; /* not exact but should work for positioning */
+			picture->name = BLI_strdup(filepath);
+			picture->frame = count;
 			close(file);
 			BLI_addtail(&picsbase, picture);
 			count++;
@@ -1102,7 +1100,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	GHOST_TUns32 maxwinx, maxwiny;
 	int i;
 	/* This was done to disambiguate the name for use under c++. */
-	struct anim *anim = NULL;
 	int start_x = 0, start_y = 0;
 	int sfra = -1;
 	int efra = -1;
@@ -1209,6 +1206,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 	if (IMB_isanim(filepath)) {
 		/* OCIO_TODO: support different input color spaces */
+		struct anim *anim;
 		anim = IMB_open_anim(filepath, IB_rect, 0, NULL);
 		if (anim) {
 			ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
@@ -1480,13 +1478,13 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 			}
 		}
 	}
-	ps.picture = picsbase.first;
-	anim = NULL;
-	while (ps.picture) {
-		if (ps.picture && ps.picture->anim && (anim != ps.picture->anim)) {
-			// to prevent divx crashes
-			anim = ps.picture->anim;
-			IMB_close_anim(anim);
+	while ((ps.picture = BLI_pophead(&picsbase))) {
+		if (ps.picture->anim) {
+			if ((ps.picture->next == NULL) ||
+			    (ps.picture->next->anim != ps.picture->anim))
+			{
+				IMB_close_anim(ps.picture->anim);
+			}
 		}
 
 		if (ps.picture->ibuf) {
@@ -1496,7 +1494,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 			MEM_freeN(ps.picture->mem);
 		}
 
-		ps.picture = ps.picture->next;
+		MEM_freeN((void *)ps.picture->name);
+		MEM_freeN(ps.picture);
 	}
 
 	/* cleanup */
