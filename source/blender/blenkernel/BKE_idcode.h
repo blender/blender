@@ -32,15 +32,15 @@
  *  \ingroup bke
  */
 
-const char *BKE_idcode_to_name(int code);
-const char *BKE_idcode_to_name_plural(int code);
-const char *BKE_idcode_to_translation_context(int code);
-int         BKE_idcode_from_name(const char *name);
-bool        BKE_idcode_is_linkable(int code);
-bool        BKE_idcode_is_valid(int code);
+const char *BKE_idcode_to_name(short idcode);
+const char *BKE_idcode_to_name_plural(short idcode);
+const char *BKE_idcode_to_translation_context(short idcode);
+short       BKE_idcode_from_name(const char *name);
+bool        BKE_idcode_is_linkable(short idcode);
+bool        BKE_idcode_is_valid(short idcode);
 
-int         BKE_idcode_to_idfilter(const int idcode);
-int         BKE_idcode_from_idfilter(const int idfilter);
+int         BKE_idcode_to_idfilter(const short idcode);
+short       BKE_idcode_from_idfilter(const int idfilter);
 
 /**
  * Return an ID code and steps the index forward 1.
@@ -48,6 +48,6 @@ int         BKE_idcode_from_idfilter(const int idfilter);
  * \param index start as 0.
  * \return the code, 0 when all codes have been returned.
  */
-int BKE_idcode_iter_step(int *index);
+short BKE_idcode_iter_step(int *index);
 
 #endif

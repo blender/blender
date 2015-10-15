@@ -103,12 +103,12 @@ static IDType *idtype_from_name(const char *str)
 
 	return NULL;
 }
-static IDType *idtype_from_code(int code) 
+static IDType *idtype_from_code(short idcode)
 {
 	int i = ARRAY_SIZE(idtypes);
 
 	while (i--)
-		if (code == idtypes[i].code)
+		if (idcode == idtypes[i].code)
 			return &idtypes[i];
 	
 	return NULL;
@@ -120,9 +120,9 @@ static IDType *idtype_from_code(int code)
  * \param code The code to check.
  * \return Boolean, 0 when invalid.
  */
-bool BKE_idcode_is_valid(int code)
+bool BKE_idcode_is_valid(short idcode)
 {
-	return idtype_from_code(code) ? true : false;
+	return idtype_from_code(idcode) ? true : false;
 }
 
 /**
@@ -131,9 +131,9 @@ bool BKE_idcode_is_valid(int code)
  * \param code The code to check.
  * \return Boolean, 0 when non linkable.
  */
-bool BKE_idcode_is_linkable(int code)
+bool BKE_idcode_is_linkable(short idcode)
 {
-	IDType *idt = idtype_from_code(code);
+	IDType *idt = idtype_from_code(idcode);
 	BLI_assert(idt);
 	return idt ? ((idt->flags & IDTYPE_FLAGS_ISLINKABLE) != 0) : false;
 }
@@ -145,9 +145,9 @@ bool BKE_idcode_is_linkable(int code)
  * \return A static string representing the name of
  * the code.
  */
-const char *BKE_idcode_to_name(int code) 
+const char *BKE_idcode_to_name(short idcode)
 {
-	IDType *idt = idtype_from_code(code);
+	IDType *idt = idtype_from_code(idcode);
 	BLI_assert(idt);
 	return idt ? idt->name : NULL;
 }
@@ -158,7 +158,7 @@ const char *BKE_idcode_to_name(int code)
  * \param name The name to convert.
  * \return The code for the name, or 0 if invalid.
  */
-int BKE_idcode_from_name(const char *name) 
+short BKE_idcode_from_name(const char *name)
 {
 	IDType *idt = idtype_from_name(name);
 	BLI_assert(idt);
@@ -168,7 +168,7 @@ int BKE_idcode_from_name(const char *name)
 /**
  * Convert an idcode into an idfilter (e.g. ID_OB -> FILTER_ID_OB).
  */
-int BKE_idcode_to_idfilter(const int idcode)
+int BKE_idcode_to_idfilter(const short idcode)
 {
 #define CASE_IDFILTER(_id) case ID_##_id: return FILTER_ID_##_id
 
@@ -211,7 +211,7 @@ int BKE_idcode_to_idfilter(const int idcode)
 /**
  * Convert an idfilter into an idcode (e.g. FILTER_ID_OB -> ID_OB).
  */
-int BKE_idcode_from_idfilter(const int idfilter)
+short BKE_idcode_from_idfilter(const int idfilter)
 {
 #define CASE_IDFILTER(_id) case FILTER_ID_##_id: return ID_##_id
 
@@ -258,9 +258,9 @@ int BKE_idcode_from_idfilter(const int idfilter)
  * \return A static string representing the name of
  * the code.
  */
-const char *BKE_idcode_to_name_plural(int code) 
+const char *BKE_idcode_to_name_plural(short idcode)
 {
-	IDType *idt = idtype_from_code(code);
+	IDType *idt = idtype_from_code(idcode);
 	BLI_assert(idt);
 	return idt ? idt->plural : NULL;
 }
@@ -271,9 +271,9 @@ const char *BKE_idcode_to_name_plural(int code)
  * \param code The code to convert.
  * \return A static string representing the i18n context of the code.
  */
-const char *BKE_idcode_to_translation_context(int code)
+const char *BKE_idcode_to_translation_context(short idcode)
 {
-	IDType *idt = idtype_from_code(code);
+	IDType *idt = idtype_from_code(idcode);
 	BLI_assert(idt);
 	return idt ? idt->i18n_context : BLT_I18NCONTEXT_DEFAULT;
 }
@@ -284,7 +284,7 @@ const char *BKE_idcode_to_translation_context(int code)
  * \param index start as 0.
  * \return the code, 0 when all codes have been returned.
  */
-int BKE_idcode_iter_step(int *index)
+short BKE_idcode_iter_step(int *index)
 {
 	return (*index < ARRAY_SIZE(idtypes)) ? idtypes[(*index)++].code : 0;
 }
