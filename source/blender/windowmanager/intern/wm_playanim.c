@@ -544,17 +544,16 @@ static void update_sound_fps(void)
 static void change_frame(PlayState *ps, int cx)
 {
 	int sizex, sizey;
-	int i;
+	int i, i_last;
+
+	if (BLI_listbase_is_empty(&picsbase)) {
+		return;
+	}
 
 	playanim_window_get_size(&sizex, &sizey);
-	ps->picture = picsbase.first;
-	/* TODO - store in ps direct? */
-	i = 0;
-	while (ps->picture) {
-		i++;
-		ps->picture = ps->picture->next;
-	}
-	i = (i * cx) / sizex;
+	i_last = ((struct PlayAnimPict *)picsbase.last)->frame;
+	i = (i_last * cx) / sizex;
+	CLAMP(i, 0, i_last);
 
 #ifdef WITH_AUDASPACE
 	if (scrub_handle) {
@@ -588,11 +587,8 @@ static void change_frame(PlayState *ps, int cx)
 	}
 #endif
 
-	ps->picture = picsbase.first;
-	for (; i > 0; i--) {
-		if (ps->picture->next == NULL) break;
-		ps->picture = ps->picture->next;
-	}
+	ps->picture = BLI_findlink(&picsbase, i);
+	BLI_assert(ps->picture != NULL);
 
 	ps->sstep = true;
 	ps->wait2 = false;
