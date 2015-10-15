@@ -926,6 +926,7 @@ static void layerInterp_mloopuv(
 	}
 
 	/* delay writing to the destination incase dest is in sources */
+	((MLoopUV *)dest)->flag = ((MLoopUV *)sources)->flag;
 	copy_v2_v2(((MLoopUV *)dest)->uv, uv);
 }
 
