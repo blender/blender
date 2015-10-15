@@ -102,6 +102,7 @@ static bool bm_vert_is_edge_select_any(const BMVert *v)
 }
 #endif
 
+#if 0
 static bool bm_edge_is_face_select_any_other(BMLoop *l_first)
 {
 	const BMLoop *l_iter = l_first;
@@ -114,6 +115,7 @@ static bool bm_edge_is_face_select_any_other(BMLoop *l_first)
 	}
 	return false;
 }
+#endif
 
 #if 0
 static bool bm_edge_is_face_select_any(const BMEdge *e)
@@ -498,6 +500,20 @@ void BM_face_select_set(BMesh *bm, BMFace *f, const bool select)
 			BM_elem_flag_disable(f, BM_ELEM_SELECT);
 			bm->totfacesel -= 1;
 		}
+		/**
+		 * \note This allows a temporarily invalid state - where for eg
+		 * an edge bay be de-selected, but an adjacent face remains selected.
+		 *
+		 * Rely on #BM_mesh_select_mode_flush to correct these cases.
+		 */
+#if 1
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
+			BM_vert_select_set(bm, l_iter->v, false);
+			BM_edge_select_set(bm, l_iter->e, false);
+		} while ((l_iter = l_iter->next) != l_first);
+#else
+		/* disabled, see T46494 */
 
 		/* flush down to edges */
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
@@ -515,6 +531,7 @@ void BM_face_select_set(BMesh *bm, BMFace *f, const bool select)
 				BM_vert_select_set(bm, l_iter->v, false);
 			}
 		} while ((l_iter = l_iter->next) != l_first);
+#endif
 	}
 }
 
