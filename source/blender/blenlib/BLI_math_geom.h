@@ -176,7 +176,7 @@ bool isect_line_line_strict_v3(const float v1[3], const float v2[3],
 
 bool isect_ray_plane_v3(
         const float p1[3], const float d[3],
-        const float v0[3], const float v1[3], const float v2[3],
+        const float plane[4],
         float *r_lambda, const bool clip);
 
 bool isect_point_planes_v3(float (*planes)[4], int totplane, const float p[3]);
