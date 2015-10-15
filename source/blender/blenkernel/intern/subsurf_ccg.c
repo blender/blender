@@ -2705,6 +2705,13 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 	GPU_buffers_unbind();
 }
 
+typedef struct {
+	DMVertexAttribs attribs;
+	int numdata;
+
+	GPUAttrib datatypes[GPU_MAX_ATTRIB]; /* TODO, messing up when switching materials many times - [#21056]*/
+} GPUMaterialConv;
+
 /* Only used by non-editmesh types */
 static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
                                       DMSetMaterial setMaterial,
@@ -2715,14 +2722,15 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGKey key;
 	GPUVertexAttribs gattribs;
-	DMVertexAttribs attribs = {{{NULL}}};
-	/* MTFace *tf = dm->getTessFaceDataArray(dm, CD_MTFACE); */ /* UNUSED */
+	int a, b, do_draw, new_matnr;
+	DMFlagMat *faceFlags = ccgdm->faceFlags;
+	unsigned char *varray;
+	size_t max_element_size = 0;
+	int tot_loops = 0;
+	int totpoly = ccgSubSurf_getNumFaces(ss);
 	int gridSize = ccgSubSurf_getGridSize(ss);
 	int gridFaces = gridSize - 1;
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
-	DMFlagMat *faceFlags = ccgdm->faceFlags;
-	const float (*lnors)[3] = dm->getLoopDataArray(dm, CD_NORMAL);
-	int a, i, do_draw, numVerts, matnr, new_matnr, totface;
 
 #ifdef WITH_OPENSUBDIV
 	if (ccgdm->useGpuBackend) {
@@ -2791,154 +2799,358 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	}
 #endif
 
+	glShadeModel(GL_SMOOTH);
+
 	CCG_key_top_level(&key, ss);
 	ccgdm_pbvh_update(ccgdm);
 
-	do_draw = 0;
-	matnr = -1;
+	/* workaround for NVIDIA GPUs on Mac not supporting vertex arrays + interleaved formats, see T43342 */
+	if ((GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_ANY) && (U.gameflags & USER_DISABLE_VBO)) ||
+	        setDrawOptions != NULL)
+	{
+		const float (*lnors)[3] = dm->getLoopDataArray(dm, CD_NORMAL);
+		DMVertexAttribs attribs = {{{NULL}}};
+		int i;
+		int matnr = -1;
+		do_draw = 0;
 
 #define PASSATTRIB(dx, dy, vert) {                                            \
 	if (attribs.totorco)                                                      \
 		index = getFaceIndex(ss, f, S, x + dx, y + dy, edgeSize, gridSize);   \
 	else                                                                      \
 		index = 0;                                                            \
-	DM_draw_attrib_vertex(&attribs, a, index, vert, ((a) * 4) + vert);          \
+	DM_draw_attrib_vertex(&attribs, a, index, vert, ((a) * 4) + vert);        \
 } (void)0
 
-	totface = ccgSubSurf_getNumFaces(ss);
-	for (a = 0, i = 0; i < totface; i++) {
-		CCGFace *f = ccgdm->faceMap[i].face;
-		const float (*ln)[3] = NULL;
-		int S, x, y, drawSmooth;
-		int index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
-		int origIndex = ccgDM_getFaceMapIndex(ss, f);
-		
-		numVerts = ccgSubSurf_getFaceNumVerts(f);
+		totpoly = ccgSubSurf_getNumFaces(ss);
+		for (a = 0, i = 0; i < totpoly; i++) {
+			CCGFace *f = ccgdm->faceMap[i].face;
+			const float (*ln)[3] = NULL;
+			int S, x, y, drawSmooth;
+			int index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
+			int origIndex = ccgDM_getFaceMapIndex(ss, f);
 
-		if (faceFlags) {
-			drawSmooth = (lnors || (faceFlags[index].flag & ME_SMOOTH));
-			new_matnr = faceFlags[index].mat_nr + 1;
-		}
-		else {
-			drawSmooth = 1;
-			new_matnr = 1;
-		}
+			int numVerts = ccgSubSurf_getFaceNumVerts(f);
 
-		if (lnors) {
-			ln = lnors;
-			lnors += (gridFaces * gridFaces * numVerts) * 4;
-		}
-
-		if (new_matnr != matnr) {
-			do_draw = setMaterial(matnr = new_matnr, &gattribs);
-			if (do_draw)
-				DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
-		}
-
-		if (!do_draw || (setDrawOptions && (origIndex != ORIGINDEX_NONE) &&
-		                (setDrawOptions(userData, origIndex) == DM_DRAW_OPTION_SKIP)))
-		{
-			a += gridFaces * gridFaces * numVerts;
-			continue;
-		}
-
-		glShadeModel(drawSmooth ? GL_SMOOTH : GL_FLAT);
-		for (S = 0; S < numVerts; S++) {
-			CCGElem *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
-			CCGElem *vda, *vdb;
-
-			if (ln) {
-				glBegin(GL_QUADS);
-				for (y = 0; y < gridFaces; y++) {
-					for (x = 0; x < gridFaces; x++) {
-						float *aco = CCG_grid_elem_co(&key, faceGridData, x, y);
-						float *bco = CCG_grid_elem_co(&key, faceGridData, x + 1, y);
-						float *cco = CCG_grid_elem_co(&key, faceGridData, x + 1, y + 1);
-						float *dco = CCG_grid_elem_co(&key, faceGridData, x, y + 1);
-
-						PASSATTRIB(0, 1, 1);
-						glNormal3fv(ln[1]);
-						glVertex3fv(dco);
-						PASSATTRIB(1, 1, 2);
-						glNormal3fv(ln[2]);
-						glVertex3fv(cco);
-						PASSATTRIB(1, 0, 3);
-						glNormal3fv(ln[3]);
-						glVertex3fv(bco);
-						PASSATTRIB(0, 0, 0);
-						glNormal3fv(ln[0]);
-						glVertex3fv(aco);
-
-						ln += 4;
-						a++;
-					}
-				}
-				glEnd();
+			if (faceFlags) {
+				drawSmooth = (lnors || (faceFlags[index].flag & ME_SMOOTH));
+				new_matnr = faceFlags[index].mat_nr + 1;
 			}
-			else if (drawSmooth) {
-				for (y = 0; y < gridFaces; y++) {
-					glBegin(GL_QUAD_STRIP);
-					for (x = 0; x < gridFaces; x++) {
+			else {
+				drawSmooth = 1;
+				new_matnr = 1;
+			}
+
+			if (lnors) {
+				ln = lnors;
+				lnors += (gridFaces * gridFaces * numVerts) * 4;
+			}
+
+			if (new_matnr != matnr) {
+				do_draw = setMaterial(matnr = new_matnr, &gattribs);
+				if (do_draw)
+					DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
+			}
+
+			if (!do_draw || (setDrawOptions && (origIndex != ORIGINDEX_NONE) &&
+			                (setDrawOptions(userData, origIndex) == DM_DRAW_OPTION_SKIP)))
+			{
+				a += gridFaces * gridFaces * numVerts;
+				continue;
+			}
+
+			glShadeModel(drawSmooth ? GL_SMOOTH : GL_FLAT);
+			for (S = 0; S < numVerts; S++) {
+				CCGElem *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
+				CCGElem *vda, *vdb;
+
+				if (ln) {
+					glBegin(GL_QUADS);
+					for (y = 0; y < gridFaces; y++) {
+						for (x = 0; x < gridFaces; x++) {
+							float *aco = CCG_grid_elem_co(&key, faceGridData, x, y);
+							float *bco = CCG_grid_elem_co(&key, faceGridData, x + 1, y);
+							float *cco = CCG_grid_elem_co(&key, faceGridData, x + 1, y + 1);
+							float *dco = CCG_grid_elem_co(&key, faceGridData, x, y + 1);
+
+							PASSATTRIB(0, 1, 1);
+							glNormal3fv(ln[1]);
+							glVertex3fv(dco);
+							PASSATTRIB(1, 1, 2);
+							glNormal3fv(ln[2]);
+							glVertex3fv(cco);
+							PASSATTRIB(1, 0, 3);
+							glNormal3fv(ln[3]);
+							glVertex3fv(bco);
+							PASSATTRIB(0, 0, 0);
+							glNormal3fv(ln[0]);
+							glVertex3fv(aco);
+
+							ln += 4;
+							a++;
+						}
+					}
+					glEnd();
+				}
+				else if (drawSmooth) {
+					for (y = 0; y < gridFaces; y++) {
+						glBegin(GL_QUAD_STRIP);
+						for (x = 0; x < gridFaces; x++) {
+							vda = CCG_grid_elem(&key, faceGridData, x, y + 0);
+							vdb = CCG_grid_elem(&key, faceGridData, x, y + 1);
+
+							PASSATTRIB(0, 0, 0);
+							glNormal3fv(CCG_elem_no(&key, vda));
+							glVertex3fv(CCG_elem_co(&key, vda));
+
+							PASSATTRIB(0, 1, 1);
+							glNormal3fv(CCG_elem_no(&key, vdb));
+							glVertex3fv(CCG_elem_co(&key, vdb));
+
+							if (x != gridFaces - 1)
+								a++;
+						}
+
 						vda = CCG_grid_elem(&key, faceGridData, x, y + 0);
 						vdb = CCG_grid_elem(&key, faceGridData, x, y + 1);
-						
-						PASSATTRIB(0, 0, 0);
+
+						PASSATTRIB(0, 0, 3);
 						glNormal3fv(CCG_elem_no(&key, vda));
 						glVertex3fv(CCG_elem_co(&key, vda));
 
-						PASSATTRIB(0, 1, 1);
+						PASSATTRIB(0, 1, 2);
 						glNormal3fv(CCG_elem_no(&key, vdb));
 						glVertex3fv(CCG_elem_co(&key, vdb));
 
-						if (x != gridFaces - 1)
-							a++;
-					}
+						glEnd();
 
-					vda = CCG_grid_elem(&key, faceGridData, x, y + 0);
-					vdb = CCG_grid_elem(&key, faceGridData, x, y + 1);
-
-					PASSATTRIB(0, 0, 3);
-					glNormal3fv(CCG_elem_no(&key, vda));
-					glVertex3fv(CCG_elem_co(&key, vda));
-
-					PASSATTRIB(0, 1, 2);
-					glNormal3fv(CCG_elem_no(&key, vdb));
-					glVertex3fv(CCG_elem_co(&key, vdb));
-
-					glEnd();
-
-					a++;
-				}
-			}
-			else {
-				glBegin(GL_QUADS);
-				for (y = 0; y < gridFaces; y++) {
-					for (x = 0; x < gridFaces; x++) {
-						float *aco = CCG_grid_elem_co(&key, faceGridData, x, y);
-						float *bco = CCG_grid_elem_co(&key, faceGridData, x + 1, y);
-						float *cco = CCG_grid_elem_co(&key, faceGridData, x + 1, y + 1);
-						float *dco = CCG_grid_elem_co(&key, faceGridData, x, y + 1);
-
-						ccgDM_glNormalFast(aco, bco, cco, dco);
-
-						PASSATTRIB(0, 1, 1);
-						glVertex3fv(dco);
-						PASSATTRIB(1, 1, 2);
-						glVertex3fv(cco);
-						PASSATTRIB(1, 0, 3);
-						glVertex3fv(bco);
-						PASSATTRIB(0, 0, 0);
-						glVertex3fv(aco);
-						
 						a++;
 					}
 				}
-				glEnd();
+				else {
+					glBegin(GL_QUADS);
+					for (y = 0; y < gridFaces; y++) {
+						for (x = 0; x < gridFaces; x++) {
+							float *aco = CCG_grid_elem_co(&key, faceGridData, x, y);
+							float *bco = CCG_grid_elem_co(&key, faceGridData, x + 1, y);
+							float *cco = CCG_grid_elem_co(&key, faceGridData, x + 1, y + 1);
+							float *dco = CCG_grid_elem_co(&key, faceGridData, x, y + 1);
+
+							ccgDM_glNormalFast(aco, bco, cco, dco);
+
+							PASSATTRIB(0, 1, 1);
+							glVertex3fv(dco);
+							PASSATTRIB(1, 1, 2);
+							glVertex3fv(cco);
+							PASSATTRIB(1, 0, 3);
+							glVertex3fv(bco);
+							PASSATTRIB(0, 0, 0);
+							glVertex3fv(aco);
+
+							a++;
+						}
+					}
+					glEnd();
+				}
 			}
 		}
-	}
 
 #undef PASSATTRIB
+	}
+	else {
+		GPUMaterialConv *matconv;
+		size_t offset;
+		int *mat_orig_to_new;
+		int tot_active_mat;
+		GPUBuffer *buffer = NULL;
+
+		GPU_vertex_setup(dm);
+		GPU_normal_setup(dm);
+		GPU_triangle_setup(dm);
+
+		tot_active_mat = dm->drawObject->totmaterial;
+
+		matconv = MEM_callocN(sizeof(*matconv) * tot_active_mat,
+		                      "cdDM_drawMappedFacesGLSL.matconv");
+		mat_orig_to_new = MEM_mallocN(sizeof(*mat_orig_to_new) * dm->totmat,
+		                              "cdDM_drawMappedFacesGLSL.mat_orig_to_new");
+
+		/* part one, check what attributes are needed per material */
+		for (a = 0; a < tot_active_mat; a++) {
+			new_matnr = dm->drawObject->materials[a].mat_nr;
+
+			/* map from original material index to new
+			 * GPUBufferMaterial index */
+			mat_orig_to_new[new_matnr] = a;
+			do_draw = setMaterial(new_matnr + 1, &gattribs);
+
+			if (do_draw) {
+				int numdata = 0;
+				DM_vertex_attributes_from_gpu(dm, &gattribs, &matconv[a].attribs);
+
+				if (matconv[a].attribs.totorco && matconv[a].attribs.orco.array) {
+					matconv[a].datatypes[numdata].index = matconv[a].attribs.orco.gl_index;
+					matconv[a].datatypes[numdata].size = 3;
+					matconv[a].datatypes[numdata].type = GL_FLOAT;
+					numdata++;
+				}
+				for (b = 0; b < matconv[a].attribs.tottface; b++) {
+					if (matconv[a].attribs.tface[b].array) {
+						matconv[a].datatypes[numdata].index = matconv[a].attribs.tface[b].gl_index;
+						matconv[a].datatypes[numdata].size = 2;
+						matconv[a].datatypes[numdata].type = GL_FLOAT;
+						numdata++;
+					}
+				}
+				for (b = 0; b < matconv[a].attribs.totmcol; b++) {
+					if (matconv[a].attribs.mcol[b].array) {
+						matconv[a].datatypes[numdata].index = matconv[a].attribs.mcol[b].gl_index;
+						matconv[a].datatypes[numdata].size = 4;
+						matconv[a].datatypes[numdata].type = GL_UNSIGNED_BYTE;
+						numdata++;
+					}
+				}
+				if (matconv[a].attribs.tottang && matconv[a].attribs.tang.array) {
+					matconv[a].datatypes[numdata].index = matconv[a].attribs.tang.gl_index;
+					matconv[a].datatypes[numdata].size = 4;
+					matconv[a].datatypes[numdata].type = GL_FLOAT;
+					numdata++;
+				}
+				if (numdata != 0) {
+					matconv[a].numdata = numdata;
+					max_element_size = max_ii(GPU_attrib_element_size(matconv[a].datatypes, numdata), max_element_size);
+				}
+			}
+		}
+
+		/* part two, generate and fill the arrays with the data */
+		if (max_element_size > 0) {
+			buffer = GPU_buffer_alloc(max_element_size * dm->drawObject->tot_loop_verts, false);
+
+			if (buffer == NULL) {
+				buffer = GPU_buffer_alloc(max_element_size * dm->drawObject->tot_loop_verts, true);
+			}
+			varray = GPU_buffer_lock_stream(buffer, GPU_BINDING_ARRAY);
+			if (varray == NULL) {
+				GPU_buffers_unbind();
+				GPU_buffer_free(buffer);
+				MEM_freeN(mat_orig_to_new);
+				MEM_freeN(matconv);
+				fprintf(stderr, "Out of memory, can't draw object\n");
+				return;
+			}
+
+			for (a = 0; a < totpoly; a++) {
+				CCGFace *f = ccgdm->faceMap[a].face;
+				int index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
+				int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(f);
+				int i;
+
+				if (faceFlags) {
+					i = mat_orig_to_new[faceFlags[index].mat_nr];
+				}
+				else {
+					i = mat_orig_to_new[0];
+				}
+
+				if (matconv[i].numdata != 0) {
+					for (S = 0; S < numVerts; S++) {
+						for (y = 0; y < gridFaces; y++) {
+							for (x = 0; x < gridFaces; x++) {
+
+								offset = tot_loops * max_element_size;
+
+								if (matconv[i].attribs.totorco && matconv[i].attribs.orco.array) {
+									int index;
+
+									index = getFaceIndex(ss, f, S, x, y, edgeSize, gridSize);
+									copy_v3_v3((float *)&varray[offset],
+									           (float *)matconv[i].attribs.orco.array[index]);
+									index = getFaceIndex(ss, f, S, x + 1, y, edgeSize, gridSize);
+									copy_v3_v3((float *)&varray[offset + max_element_size],
+									        (float *)matconv[i].attribs.orco.array[index]);
+									index = getFaceIndex(ss, f, S, x + 1, y + 1, edgeSize, gridSize);
+									copy_v3_v3((float *)&varray[offset + 2 * max_element_size],
+									        (float *)matconv[i].attribs.orco.array[index]);
+									index = getFaceIndex(ss, f, S, x, y + 1, edgeSize, gridSize);
+									copy_v3_v3((float *)&varray[offset + 3 * max_element_size],
+									        (float *)matconv[i].attribs.orco.array[index]);
+
+									offset += sizeof(float) * 3;
+								}
+								for (b = 0; b < matconv[i].attribs.tottface; b++) {
+									if (matconv[i].attribs.tface[b].array) {
+										const MLoopUV *mloopuv = matconv[i].attribs.tface[b].array + tot_loops;
+
+										copy_v2_v2((float *)&varray[offset], mloopuv[0].uv);
+										copy_v2_v2((float *)&varray[offset + max_element_size], mloopuv[3].uv);
+										copy_v2_v2((float *)&varray[offset + 2 * max_element_size], mloopuv[2].uv);
+										copy_v2_v2((float *)&varray[offset + 3 * max_element_size], mloopuv[1].uv);
+
+										offset += sizeof(float) * 2;
+									}
+								}
+								for (b = 0; b < matconv[i].attribs.totmcol; b++) {
+									if (matconv[i].attribs.mcol[b].array) {
+										const MLoopCol *mloopcol = matconv[i].attribs.mcol[b].array + tot_loops;
+
+										copy_v4_v4_uchar(&varray[offset], &mloopcol[0].r);
+										copy_v4_v4_uchar(&varray[offset + max_element_size], &mloopcol[3].r);
+										copy_v4_v4_uchar(&varray[offset + 2 * max_element_size], &mloopcol[2].r);
+										copy_v4_v4_uchar(&varray[offset + 3 * max_element_size], &mloopcol[1].r);
+
+										offset += sizeof(unsigned char) * 4;
+									}
+								}
+								if (matconv[i].attribs.tottang && matconv[i].attribs.tang.array) {
+									const float (*looptang)[4] = (const float (*)[4])matconv[i].attribs.tang.array + tot_loops;
+
+									copy_v4_v4((float *)&varray[offset], looptang[0]);
+									copy_v4_v4((float *)&varray[offset + max_element_size], looptang[3]);
+									copy_v4_v4((float *)&varray[offset + 2 * max_element_size], looptang[2]);
+									copy_v4_v4((float *)&varray[offset + 3 * max_element_size], looptang[1]);
+
+									offset += sizeof(float) * 4;
+								}
+
+								tot_loops += 4;
+							}
+						}
+					}
+				}
+				else {
+					tot_loops += 4 * numVerts * gridFaces * gridFaces;
+				}
+			}
+			GPU_buffer_unlock(buffer, GPU_BINDING_ARRAY);
+		}
+
+		for (a = 0; a < tot_active_mat; a++) {
+			new_matnr = dm->drawObject->materials[a].mat_nr;
+
+			do_draw = setMaterial(new_matnr + 1, &gattribs);
+
+			if (do_draw) {
+				if (matconv[a].numdata) {
+					GPU_interleaved_attrib_setup(buffer, matconv[a].datatypes, matconv[a].numdata, max_element_size);
+				}
+				GPU_buffer_draw_elements(dm->drawObject->triangles, GL_TRIANGLES,
+				                         dm->drawObject->materials[a].start, dm->drawObject->materials[a].totelements);
+				if (matconv[a].numdata) {
+					GPU_interleaved_attrib_unbind();
+				}
+			}
+		}
+
+		GPU_buffers_unbind();
+		if (buffer)
+			GPU_buffer_free(buffer);
+
+		MEM_freeN(mat_orig_to_new);
+		MEM_freeN(matconv);
+	}
+
+	glShadeModel(GL_FLAT);
 }
 
 static void ccgDM_drawFacesGLSL(DerivedMesh *dm, DMSetMaterial setMaterial)
