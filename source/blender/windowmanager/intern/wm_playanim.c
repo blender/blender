@@ -412,7 +412,14 @@ static void build_pict_list_ex(PlayState *ps, const char *first, int totframes, 
 	else {
 		int count = 0;
 
+		int fp_framenr;
+		struct {
+			char head[FILE_MAX], tail[FILE_MAX];
+			unsigned short digits;
+		} fp_decoded;
+
 		BLI_strncpy(filepath, first, sizeof(filepath));
+		fp_framenr = BLI_stringdec(filepath, fp_decoded.head, fp_decoded.tail, &fp_decoded.digits);
 
 		pupdate_time();
 		ptottime = 1.0;
@@ -503,7 +510,9 @@ static void build_pict_list_ex(PlayState *ps, const char *first, int totframes, 
 				ptottime = 0.0;
 			}
 
-			BLI_newname(filepath, +fstep);
+			/* create a new filepath each time */
+			fp_framenr += fstep;
+			BLI_stringenc(filepath, fp_decoded.head, fp_decoded.tail, fp_decoded.digits, fp_framenr);
 
 			while ((hasevent = GHOST_ProcessEvents(g_WS.ghost_system, 0))) {
 				if (hasevent) {
