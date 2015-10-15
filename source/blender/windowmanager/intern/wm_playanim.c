@@ -973,6 +973,19 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				GHOST_TEventCursorData *cd = GHOST_GetEventData(evt);
 				int cx, cy;
 
+				/* Ignore 'in-between' events, since they can make scrubbing lag.
+				 *
+				 * Ideally we would keep into the event queue and see if this is the last motion event.
+				 * however the API currently doesn't support this. */
+				{
+					int x_test, y_test;
+					GHOST_GetCursorPosition(g_WS.ghost_system, &x_test, &y_test);
+					if (x_test != cd->x || y_test != cd->y) {
+						/* we're not the last event... skipping */
+						break;
+					}
+				}
+
 				GHOST_ScreenToClient(g_WS.ghost_window, cd->x, cd->y, &cx, &cy);
 
 				change_frame(ps, cx);
