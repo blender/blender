@@ -358,7 +358,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 						// printf("  %s\n", item_str);
 
 						if (item_str) {
-							ID *id = BLO_library_link_named_part(mainl, &(self->blo_handle), item_str, idcode);
+							ID *id = BLO_library_link_named_part(mainl, &(self->blo_handle), idcode, item_str);
 							if (id) {
 #ifdef USE_RNA_DATABLOCKS
 								/* swap name for pointer to the id */

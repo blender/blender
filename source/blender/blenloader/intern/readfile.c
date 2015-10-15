@@ -9617,9 +9617,9 @@ static void give_base_to_groups(
 
 /* returns true if the item was found
  * but it may already have already been appended/linked */
-static ID *link_named_part(Main *mainl, FileData *fd, const char *idname, const short idcode)
+static ID *link_named_part(Main *mainl, FileData *fd, const short idcode, const char *name)
 {
-	BHead *bhead = find_bhead_from_code_name(fd, idcode, idname);
+	BHead *bhead = find_bhead_from_code_name(fd, idcode, name);
 	ID *id;
 
 	if (bhead) {
@@ -9679,10 +9679,10 @@ void BLO_library_link_all(Main *mainl, BlendHandle *bh)
 }
 
 static ID *link_named_part_ex(
-        Main *mainl, FileData *fd, const char *idname, const int idcode, const int flag,
+        Main *mainl, FileData *fd, const short idcode, const char *name, const short flag,
 		Scene *scene, View3D *v3d)
 {
-	ID *id = link_named_part(mainl, fd, idname, idcode);
+	ID *id = link_named_part(mainl, fd, idcode, name);
 
 	if (id && (GS(id->name) == ID_OB)) {	/* loose object: give a base */
 		if (scene) {
@@ -9726,14 +9726,14 @@ static ID *link_named_part_ex(
  *
  * \param mainl The main database to link from (not the active one).
  * \param bh The blender file handle.
- * \param idname The name of the datablock (without the 2 char ID prefix).
  * \param idcode The kind of datablock to link.
- * \return the appended ID when found.
+ * \param name The name of the datablock (without the 2 char ID prefix).
+ * \return the linked ID when found.
  */
-ID *BLO_library_link_named_part(Main *mainl, BlendHandle **bh, const char *idname, const int idcode)
+ID *BLO_library_link_named_part(Main *mainl, BlendHandle **bh, const short idcode, const char *name)
 {
 	FileData *fd = (FileData*)(*bh);
-	return link_named_part(mainl, fd, idname, idcode);
+	return link_named_part(mainl, fd, idcode, name);
 }
 
 /**
@@ -9742,19 +9742,20 @@ ID *BLO_library_link_named_part(Main *mainl, BlendHandle **bh, const char *idnam
  *
  * \param mainl The main database to link from (not the active one).
  * \param bh The blender file handle.
- * \param idname The name of the datablock (without the 2 char ID prefix).
  * \param idcode The kind of datablock to link.
+ * \param name The name of the datablock (without the 2 char ID prefix).
  * \param flag Options for linking, used for instantiating.
  * \param scene The scene in which to instantiate objects/groups (if NULL, no instantiation is done).
  * \param v3d The active View3D (only to define active layers for instantiated objects & groups, can be NULL).
- * \return the appended ID when found.
+ * \return the linked ID when found.
  */
 ID *BLO_library_link_named_part_ex(
-        Main *mainl, BlendHandle **bh, const char *idname, const int idcode, const short flag,
+        Main *mainl, BlendHandle **bh,
+        const short idcode, const char *name, const short flag,
         Scene *scene, View3D *v3d)
 {
 	FileData *fd = (FileData*)(*bh);
-	return link_named_part_ex(mainl, fd, idname, idcode, flag, scene, v3d);
+	return link_named_part_ex(mainl, fd, idcode, name, flag, scene, v3d);
 }
 
 static void link_id_part(FileData *fd, Main *mainvar, ID *id, ID **r_id)

@@ -861,7 +861,7 @@ static void load_datablocks(Main *main_tmp, BlendHandle *bpy_openlib, const char
 	int i = 0;
 	LinkNode *n = names;
 	while (n) {
-		BLO_library_link_named_part(main_tmp, &bpy_openlib, (char *)n->link, idcode);
+		BLO_library_link_named_part(main_tmp, &bpy_openlib, idcode, (char *)n->link);
 		n = (LinkNode *)n->next;
 		i++;
 	}
