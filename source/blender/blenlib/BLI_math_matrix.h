@@ -153,10 +153,14 @@ void transpose_m4_m4(float R[4][4], float A[4][4]);
 
 int compare_m4m4(float mat1[4][4], float mat2[4][4], float limit);
 
-void normalize_m3(float R[3][3]);
-void normalize_m3_m3(float R[3][3], float A[3][3]);
-void normalize_m4(float R[4][4]);
-void normalize_m4_m4(float R[4][4], float A[4][4]);
+void normalize_m3_ex(float R[3][3], float r_scale[3]) ATTR_NONNULL();
+void normalize_m3(float R[3][3]) ATTR_NONNULL();
+void normalize_m3_m3_ex(float R[3][3], float A[3][3], float r_scale[3]) ATTR_NONNULL();
+void normalize_m3_m3(float R[3][3], float A[3][3]) ATTR_NONNULL();
+void normalize_m4_ex(float R[4][4], float r_scale[3]) ATTR_NONNULL();
+void normalize_m4(float R[4][4]) ATTR_NONNULL();
+void normalize_m4_m4_ex(float R[4][4], float A[4][4], float r_scale[3]) ATTR_NONNULL();
+void normalize_m4_m4(float R[4][4], float A[4][4]) ATTR_NONNULL();
 
 void orthogonalize_m3(float R[3][3], int axis);
 void orthogonalize_m4(float R[4][4], int axis);

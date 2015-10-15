@@ -1248,36 +1248,72 @@ bool is_uniform_scaled_m4(float m[4][4])
 	return is_uniform_scaled_m3(t);
 }
 
+void normalize_m3_ex(float mat[3][3], float r_scale[3])
+{
+	int i;
+	for (i = 0; i < 3; i++) {
+		r_scale[i] = normalize_v3(mat[i]);
+	}
+}
 void normalize_m3(float mat[3][3])
 {
-	normalize_v3(mat[0]);
-	normalize_v3(mat[1]);
-	normalize_v3(mat[2]);
+	int i;
+	for (i = 0; i < 3; i++) {
+		normalize_v3(mat[i]);
+	}
 }
 
+void normalize_m3_m3_ex(float rmat[3][3], float mat[3][3], float r_scale[3])
+{
+	int i;
+	for (i = 0; i < 3; i++) {
+		r_scale[i] = normalize_v3_v3(rmat[i], mat[i]);
+	}
+}
 void normalize_m3_m3(float rmat[3][3], float mat[3][3])
 {
-	normalize_v3_v3(rmat[0], mat[0]);
-	normalize_v3_v3(rmat[1], mat[1]);
-	normalize_v3_v3(rmat[2], mat[2]);
+	int i;
+	for (i = 0; i < 3; i++) {
+		normalize_v3_v3(rmat[i], mat[i]);
+	}
 }
 
+void normalize_m4_ex(float mat[4][4], float r_scale[3])
+{
+	int i;
+	for (i = 0; i < 3; i++) {
+		r_scale[i] = normalize_v3(mat[i]);
+		if (r_scale[i] != 0.0f) {
+			mat[i][3] /= r_scale[i];
+		}
+	}
+}
 void normalize_m4(float mat[4][4])
 {
-	float len;
-
-	len = normalize_v3(mat[0]);
-	if (len != 0.0f) mat[0][3] /= len;
-	len = normalize_v3(mat[1]);
-	if (len != 0.0f) mat[1][3] /= len;
-	len = normalize_v3(mat[2]);
-	if (len != 0.0f) mat[2][3] /= len;
+	int i;
+	for (i = 0; i < 3; i++) {
+		float len = normalize_v3(mat[i]);
+		if (len != 0.0f) {
+			mat[i][3] /= len;
+		}
+	}
 }
 
+void normalize_m4_m4_ex(float rmat[4][4], float mat[4][4], float r_scale[3])
+{
+	int i;
+	for (i = 0; i < 3; i++) {
+		r_scale[i] = normalize_v3_v3(rmat[i], mat[i]);
+		rmat[i][3] = (r_scale[i] != 0.0f) ? (mat[i][3] / r_scale[i]) : mat[i][3];
+	}
+}
 void normalize_m4_m4(float rmat[4][4], float mat[4][4])
 {
-	copy_m4_m4(rmat, mat);
-	normalize_m4(rmat);
+	int i;
+	for (i = 0; i < 3; i++) {
+		float len = normalize_v3_v3(rmat[i], mat[i]);
+		rmat[i][3] = (len != 0.0f) ? (mat[i][3] / len) : mat[i][3];
+	}
 }
 
 void adjoint_m2_m2(float m1[2][2], float m[2][2])
