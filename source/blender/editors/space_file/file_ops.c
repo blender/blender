@@ -1973,6 +1973,37 @@ void FILE_OT_bookmark_toggle(struct wmOperatorType *ot)
 }
 
 
+/**
+ * Looks for a string of digits within name (using BLI_stringdec) and adjusts it by add.
+ */
+static void filenum_newname(char *name, size_t name_size, int add)
+{
+	char head[FILE_MAXFILE], tail[FILE_MAXFILE];
+	char name_temp[FILE_MAXFILE];
+	int pic;
+	unsigned short digits;
+
+	pic = BLI_stringdec(name, head, tail, &digits);
+
+	/* are we going from 100 -> 99 or from 10 -> 9 */
+	if (add < 0 && digits > 0) {
+		int i, exp;
+		exp = 1;
+		for (i = digits; i > 1; i--) {
+			exp *= 10;
+		}
+		if (pic >= exp && (pic + add) < exp) {
+			digits--;
+		}
+	}
+
+	pic += add;
+	if (pic < 0)
+		pic = 0;
+	BLI_stringenc(name_temp, head, tail, digits, pic);
+	BLI_strncpy(name, name_temp, name_size);
+}
+
 static int file_filenum_exec(bContext *C, wmOperator *op)
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
@@ -1980,7 +2011,7 @@ static int file_filenum_exec(bContext *C, wmOperator *op)
 	
 	int inc = RNA_int_get(op->ptr, "increment");
 	if (sfile->params && (inc != 0)) {
-		BLI_newname(sfile->params->file, inc);
+		filenum_newname(sfile->params->file, sizeof(sfile->params->file), inc);
 		ED_area_tag_redraw(sa);
 		file_draw_check(C);
 		// WM_event_add_notifier(C, NC_WINDOW, NULL);

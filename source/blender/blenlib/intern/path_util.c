@@ -191,31 +191,6 @@ int BLI_split_name_num(char *left, int *nr, const char *name, const char delim)
 }
 
 /**
- * Looks for a string of digits within name (using BLI_stringdec) and adjusts it by add.
- */
-void BLI_newname(char *name, int add)
-{
-	char head[UNIQUE_NAME_MAX], tail[UNIQUE_NAME_MAX];
-	int pic;
-	unsigned short digits;
-	
-	pic = BLI_stringdec(name, head, tail, &digits);
-	
-	/* are we going from 100 -> 99 or from 10 -> 9 */
-	if (add < 0 && digits < 4 && digits > 0) {
-		int i, exp;
-		exp = 1;
-		for (i = digits; i > 1; i--) exp *= 10;
-		if (pic >= exp && (pic + add) < exp) digits--;
-	}
-	
-	pic += add;
-	
-	if (digits == 4 && pic < 0) pic = 0;
-	BLI_stringenc(name, head, tail, digits, pic);
-}
-
-/**
  * Ensures name is unique (according to criteria specified by caller in unique_check callback),
  * incrementing its numeric suffix as necessary. Returns true if name had to be adjusted.
  *
