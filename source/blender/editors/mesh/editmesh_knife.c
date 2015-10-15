@@ -228,14 +228,8 @@ typedef struct KnifeTool_OpData {
 
 	/* use to check if we're currently dragging an angle snapped line */
 	bool is_angle_snapping;
-
-	enum {
-		ANGLE_FREE,
-		ANGLE_0,
-		ANGLE_45,
-		ANGLE_90,
-		ANGLE_135
-	} angle_snapping;
+	bool angle_snapping;
+	float angle;
 
 	const float (*cagecos)[3];
 } KnifeTool_OpData;
@@ -285,7 +279,7 @@ static void knife_update_header(bContext *C, wmOperator *op, KnifeTool_OpData *k
 	             WM_MODALKEY(KNF_MODAL_ADD_CUT), WM_MODALKEY(KNF_MODAL_ADD_CUT_CLOSED), WM_MODALKEY(KNF_MODAL_NEW_CUT),
 	             WM_MODALKEY(KNF_MODAL_MIDPOINT_ON), WM_bool_as_string(kcd->snap_midpoints),
 	             WM_MODALKEY(KNF_MODEL_IGNORE_SNAP_ON), WM_bool_as_string(kcd->ignore_edge_snapping),
-	             WM_MODALKEY(KNF_MODAL_ANGLE_SNAP_TOGGLE), WM_bool_as_string(kcd->is_angle_snapping),
+	             WM_MODALKEY(KNF_MODAL_ANGLE_SNAP_TOGGLE), WM_bool_as_string(kcd->angle_snapping),
 	             WM_MODALKEY(KNF_MODAL_CUT_THROUGH_TOGGLE), WM_bool_as_string(kcd->cut_through),
 	             WM_MODALKEY(KNF_MODAL_PANNING));
 
@@ -943,98 +937,66 @@ static void knife_finish_cut(KnifeTool_OpData *kcd)
 
 static void knifetool_draw_angle_snapping(const KnifeTool_OpData *kcd)
 {
-	bglMats mats;
-	double u[3], u1[2], u2[2], v1[3], v2[3], dx, dy;
-	double wminx, wminy, wmaxx, wmaxy;
+	float v1[3], v2[3];
+	float planes[4][4];
 
-	/* make u the window coords of prevcage */
-	view3d_get_transformation(kcd->ar, kcd->vc.rv3d, kcd->ob, &mats);
-	gluProject(kcd->prev.cage[0], kcd->prev.cage[1], kcd->prev.cage[2],
-	           mats.modelview, mats.projection, mats.viewport,
-	           &u[0], &u[1], &u[2]);
+	planes_from_projmat(
+	        (float (*)[4])kcd->projmat,
+	        planes[2], planes[0], planes[3], planes[1], NULL, NULL);
 
-	/* make u1, u2 the points on window going through u at snap angle */
-	wminx = kcd->ar->winrct.xmin;
-	wmaxx = kcd->ar->winrct.xmin + kcd->ar->winx;
-	wminy = kcd->ar->winrct.ymin;
-	wmaxy = kcd->ar->winrct.ymin + kcd->ar->winy;
+	/* ray-cast all planes */
+	{
+		float ray_dir[3];
+		float ray_hit_best[2][3] = {{UNPACK3(kcd->prev.cage)}, {UNPACK3(kcd->curr.cage)}};
+		float lambda_best[2] = {-FLT_MAX, FLT_MAX};
+		int i;
 
-	switch (kcd->angle_snapping) {
-		case ANGLE_0:
-			u1[0] = wminx;
-			u2[0] = wmaxx;
-			u1[1] = u2[1] = u[1];
-			break;
-		case ANGLE_90:
-			u1[0] = u2[0] = u[0];
-			u1[1] = wminy;
-			u2[1] = wmaxy;
-			break;
-		case ANGLE_45:
-			/* clip against left or bottom */
-			dx = u[0] - wminx;
-			dy = u[1] - wminy;
-			if (dy > dx) {
-				u1[0] = wminx;
-				u1[1] = u[1] - dx;
+		/* we (sometimes) need the lines to be at the same depth before projecting */
+#if 0
+		sub_v3_v3v3(ray_dir, kcd->curr.cage, kcd->prev.cage);
+#else
+		{
+			float curr_cage_adjust[3];
+			float co_depth[3];
+
+			copy_v3_v3(co_depth, kcd->prev.cage);
+			mul_m4_v3(kcd->ob->obmat, co_depth);
+			ED_view3d_win_to_3d(kcd->ar, co_depth, kcd->curr.mval, curr_cage_adjust);
+			mul_m4_v3(kcd->ob->imat, curr_cage_adjust);
+
+			sub_v3_v3v3(ray_dir, curr_cage_adjust, kcd->prev.cage);
+		}
+#endif
+
+		for (i = 0; i < 4; i++) {
+			float ray_hit[3];
+			float lambda_test;
+			if (isect_ray_plane_v3(kcd->prev.cage, ray_dir, planes[i], &lambda_test, false)) {
+				madd_v3_v3v3fl(ray_hit, kcd->prev.cage, ray_dir, lambda_test);
+				if (lambda_test < 0.0f) {
+					if (lambda_test > lambda_best[0]) {
+						copy_v3_v3(ray_hit_best[0], ray_hit);
+						lambda_best[0] = lambda_test;
+					}
+				}
+				else {
+					if (lambda_test < lambda_best[1]) {
+						copy_v3_v3(ray_hit_best[1], ray_hit);
+						lambda_best[1] = lambda_test;
+					}
+				}
 			}
-			else {
-				u1[0] = u[0] - dy;
-				u1[1] = wminy;
-			}
-			/* clip against right or top */
-			dx = wmaxx - u[0];
-			dy = wmaxy - u[1];
-			if (dy > dx) {
-				u2[0] = wmaxx;
-				u2[1] = u[1] + dx;
-			}
-			else {
-				u2[0] = u[0] + dy;
-				u2[1] = wmaxy;
-			}
-			break;
-		case ANGLE_135:
-			/* clip against right or bottom */
-			dx = wmaxx - u[0];
-			dy = u[1] - wminy;
-			if (dy > dx) {
-				u1[0] = wmaxx;
-				u1[1] = u[1] - dx;
-			}
-			else {
-				u1[0] = u[0] + dy;
-				u1[1] = wminy;
-			}
-			/* clip against left or top */
-			dx = u[0] - wminx;
-			dy = wmaxy - u[1];
-			if (dy > dx) {
-				u2[0] = wminx;
-				u2[1] = u[1] + dx;
-			}
-			else {
-				u2[0] = u[0] - dy;
-				u2[1] = wmaxy;
-			}
-			break;
-		default:
-			return;
+		}
+
+		copy_v3_v3(v1, ray_hit_best[0]);
+		copy_v3_v3(v2, ray_hit_best[1]);
 	}
-
-	/* unproject u1 and u2 back into object space */
-	gluUnProject(u1[0], u1[1], 0.0,
-	             mats.modelview, mats.projection, mats.viewport,
-	             &v1[0], &v1[1], &v1[2]);
-	gluUnProject(u2[0], u2[1], 0.0,
-	             mats.modelview, mats.projection, mats.viewport,
-	             &v2[0], &v2[1], &v2[2]);
 
 	UI_ThemeColor(TH_TRANSFORM);
 	glLineWidth(2.0);
 	glBegin(GL_LINES);
-	glVertex3dv(v1);
-	glVertex3dv(v2);
+	glVertex3fv(v1);
+	glVertex3fv(v2);
 	glEnd();
 }
 
@@ -1067,7 +1029,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 	glMultMatrixf(kcd->ob->obmat);
 
 	if (kcd->mode == MODE_DRAGGING) {
-		if (kcd->angle_snapping != ANGLE_FREE)
+		if (kcd->is_angle_snapping)
 			knifetool_draw_angle_snapping(kcd);
 
 		glColor3ubv(kcd->colors.line);
@@ -2141,42 +2103,41 @@ static KnifeVert *knife_find_closest_vert(KnifeTool_OpData *kcd, float p[3], flo
 	return NULL;
 }
 
+/**
+ * Snaps a 2d vector to an angle, relative to \a v_ref.
+ */
+static float snap_v2_angle(float r[2], const float v[2], const float v_ref[2], float angle_snap)
+{
+	float m2[2][2];
+	float v_unit[2];
+	float angle, angle_delta;
+
+	BLI_ASSERT_UNIT_V2(v_ref);
+
+	normalize_v2_v2(v_unit, v);
+	angle = angle_signed_v2v2(v_unit, v_ref);
+	angle_delta = (round(angle / angle_snap) * angle_snap) - angle;
+	rotate_m2(m2, angle_delta);
+
+	mul_v2_m2v2(r, m2, v);
+	return angle + angle_delta;
+}
+
 /* update both kcd->curr.mval and kcd->mval to snap to required angle */
 static bool knife_snap_angle(KnifeTool_OpData *kcd)
 {
-	float dx, dy;
-	float w, abs_tan;
+	const float dvec_ref[2] = {0.0f, 1.0f};
+	float dvec[2], dvec_snap[2];
+	float snap_step = DEG2RADF(45);
 
-	dx = kcd->curr.mval[0] - kcd->prev.mval[0];
-	dy = kcd->curr.mval[1] - kcd->prev.mval[1];
-	if (dx == 0.0f && dy == 0.0f)
+	sub_v2_v2v2(dvec, kcd->curr.mval, kcd->prev.mval);
+	if (is_zero_v2(dvec)) {
 		return false;
-
-	if (dx == 0.0f) {
-		kcd->angle_snapping = ANGLE_90;
-		kcd->curr.mval[0] = kcd->prev.mval[0];
 	}
 
-	w = dy / dx;
-	abs_tan = fabsf(w);
-	if (abs_tan <= 0.4142f) { /* tan(22.5 degrees) = 0.4142 */
-		kcd->angle_snapping = ANGLE_0;
-		kcd->curr.mval[1] = kcd->prev.mval[1];
-	}
-	else if (abs_tan < 2.4142f) { /* tan(67.5 degrees) = 2.4142 */
-		if (w > 0) {
-			kcd->angle_snapping = ANGLE_45;
-			kcd->curr.mval[1] = kcd->prev.mval[1] + dx;
-		}
-		else {
-			kcd->angle_snapping = ANGLE_135;
-			kcd->curr.mval[1] = kcd->prev.mval[1] - dx;
-		}
-	}
-	else {
-		kcd->angle_snapping = ANGLE_90;
-		kcd->curr.mval[0] = kcd->prev.mval[0];
-	}
+	kcd->angle = snap_v2_angle(dvec_snap, dvec, dvec_ref, snap_step);
+
+	add_v2_v2v2(kcd->curr.mval, kcd->prev.mval, dvec_snap);
 
 	copy_v2_v2(kcd->mval, kcd->curr.mval);
 
@@ -2192,7 +2153,7 @@ static int knife_update_active(KnifeTool_OpData *kcd)
 	/* view matrix may have changed, reproject */
 	knife_project_v2(kcd, kcd->prev.cage, kcd->prev.mval);
 
-	if (kcd->angle_snapping != ANGLE_FREE && kcd->mode == MODE_DRAGGING) {
+	if (kcd->angle_snapping && (kcd->mode == MODE_DRAGGING)) {
 		kcd->is_angle_snapping = knife_snap_angle(kcd);
 	}
 	else {
