@@ -1584,11 +1584,13 @@ void lamp_visibility_sphere(float lampdist, float dist, float visifac, out float
 	outvisifac= visifac*max(t, 0.0)/lampdist;
 }
 
-void lamp_visibility_spot_square(vec3 lampvec, mat4 lampimat, vec3 lv, out float inpr)
+void lamp_visibility_spot_square(vec3 lampvec, mat4 lampimat, vec2 scale, vec3 lv, out float inpr)
 {
 	if(dot(lv, lampvec) > 0.0) {
 		vec3 lvrot = (lampimat*vec4(lv, 0.0)).xyz;
-		float x = max(abs(lvrot.x/lvrot.z), abs(lvrot.y/lvrot.z));
+		/* without clever non-uniform scale, we could do: */
+		// float x = max(abs(lvrot.x / lvrot.z), abs(lvrot.y / lvrot.z));
+		float x = max(abs((lvrot.x / scale.x) / lvrot.z), abs((lvrot.y / scale.y) / lvrot.z));
 
 		inpr = 1.0/sqrt(1.0 + x*x);
 	}
@@ -1596,9 +1598,21 @@ void lamp_visibility_spot_square(vec3 lampvec, mat4 lampimat, vec3 lv, out float
 		inpr = 0.0;
 }
 
-void lamp_visibility_spot_circle(vec3 lampvec, vec3 lv, out float inpr)
+void lamp_visibility_spot_circle(vec3 lampvec, mat4 lampimat, vec2 scale, vec3 lv, out float inpr)
 {
-	inpr = dot(lv, lampvec);
+	/* without clever non-uniform scale, we could do: */
+	// inpr = dot(lv, lampvec);
+	if (dot(lv, lampvec) > 0.0) {
+		vec3 lvrot = (lampimat * vec4(lv, 0.0)).xyz;
+		float x = abs(lvrot.x / lvrot.z);
+		float y = abs(lvrot.y / lvrot.z);
+
+		float ellipse = abs((x * x) / (scale.x * scale.x) + (y * y) / (scale.y * scale.y));
+
+		inpr = 1.0 / sqrt(1.0 + ellipse);
+	}
+	else
+		inpr = 0.0;
 }
 
 void lamp_visibility_spot(float spotsi, float spotbl, float inpr, float visifac, out float outvisifac)

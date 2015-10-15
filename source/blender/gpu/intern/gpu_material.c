@@ -141,6 +141,7 @@ struct GPULamp {
 	float dynimat[4][4];
 
 	float spotsi, spotbl, k;
+	float spotvec[2];
 	float dyndist, dynatt1, dynatt2;
 	float dist, att1, att2;
 	float shadow_color[3];
@@ -536,12 +537,15 @@ static GPUNodeLink *lamp_get_visibility(GPUMaterial *mat, GPULamp *lamp, GPUNode
 
 		if (lamp->type == LA_SPOT) {
 			if (lamp->mode & LA_SQUARE) {
-				mat->dynproperty |= DYN_LAMP_VEC|DYN_LAMP_IMAT;
-				GPU_link(mat, "lamp_visibility_spot_square", GPU_dynamic_uniform(lamp->dynvec, GPU_DYNAMIC_LAMP_DYNVEC, lamp->ob), GPU_dynamic_uniform((float*)lamp->dynimat, GPU_DYNAMIC_LAMP_DYNIMAT, lamp->ob), *lv, &inpr);
+				mat->dynproperty |= DYN_LAMP_VEC | DYN_LAMP_IMAT;
+				GPU_link(mat, "lamp_visibility_spot_square", GPU_dynamic_uniform(lamp->dynvec, GPU_DYNAMIC_LAMP_DYNVEC, lamp->ob), GPU_dynamic_uniform((float*)lamp->dynimat, GPU_DYNAMIC_LAMP_DYNIMAT, lamp->ob),
+				GPU_dynamic_uniform((float *)lamp->spotvec, GPU_DYNAMIC_LAMP_SPOTSCALE, lamp->ob), *lv, &inpr);
 			}
 			else {
-				mat->dynproperty |= DYN_LAMP_VEC;
-				GPU_link(mat, "lamp_visibility_spot_circle", GPU_dynamic_uniform(lamp->dynvec, GPU_DYNAMIC_LAMP_DYNVEC, lamp->ob), *lv, &inpr);
+				mat->dynproperty |= DYN_LAMP_VEC | DYN_LAMP_IMAT;
+				GPU_link(mat, "lamp_visibility_spot_circle", GPU_dynamic_uniform(lamp->dynvec, GPU_DYNAMIC_LAMP_DYNVEC, lamp->ob),
+				GPU_dynamic_uniform((float *)lamp->dynimat, GPU_DYNAMIC_LAMP_DYNIMAT, lamp->ob),
+				GPU_dynamic_uniform((float *)lamp->spotvec, GPU_DYNAMIC_LAMP_SPOTSCALE, lamp->ob), *lv, &inpr);
 			}
 			
 			GPU_link(mat, "lamp_visibility_spot", GPU_dynamic_uniform(&lamp->spotsi, GPU_DYNAMIC_LAMP_SPOTSIZE, lamp->ob), GPU_dynamic_uniform(&lamp->spotbl, GPU_DYNAMIC_LAMP_SPOTSIZE, lamp->ob), inpr, visifac, &visifac);
@@ -1854,24 +1858,41 @@ static void gpu_lamp_calc_winmat(GPULamp *lamp)
 		temp = 0.5f * lamp->size * cosf(angle) / sinf(angle);
 		pixsize = lamp->d / temp;
 		wsize = pixsize * 0.5f * lamp->size;
-		perspective_m4(lamp->winmat, -wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend);
+		if (lamp->type & LA_SPOT) {
+			/* compute shadows according to X and Y scaling factors */
+			perspective_m4(
+			        lamp->winmat,
+			        -wsize * lamp->spotvec[0], wsize * lamp->spotvec[0],
+			        -wsize * lamp->spotvec[1], wsize * lamp->spotvec[1],
+			        lamp->d, lamp->clipend);
+		}
+		else {
+			perspective_m4(lamp->winmat, -wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend);
+		}
 	}
 }
 
 void GPU_lamp_update(GPULamp *lamp, int lay, int hide, float obmat[4][4])
 {
 	float mat[4][4];
+	float obmat_scale[3];
 
 	lamp->lay = lay;
 	lamp->hide = hide;
 
-	copy_m4_m4(mat, obmat);
-	normalize_m4(mat);
+	normalize_m4_m4_ex(mat, obmat, obmat_scale);
 
 	copy_v3_v3(lamp->vec, mat[2]);
 	copy_v3_v3(lamp->co, mat[3]);
 	copy_m4_m4(lamp->obmat, mat);
 	invert_m4_m4(lamp->imat, mat);
+
+	/* update spotlamp scale on X and Y axis */
+	lamp->spotvec[0] = obmat_scale[0] / obmat_scale[2];
+	lamp->spotvec[1] = obmat_scale[1] / obmat_scale[2];
+
+	/* makeshadowbuf */
+	gpu_lamp_calc_winmat(lamp);
 }
 
 void GPU_lamp_update_colors(GPULamp *lamp, float r, float g, float b, float energy)
@@ -1895,8 +1916,6 @@ void GPU_lamp_update_spot(GPULamp *lamp, float spotsize, float spotblend)
 {
 	lamp->spotsi = cosf(spotsize * 0.5f);
 	lamp->spotbl = (1.0f - lamp->spotsi) * spotblend;
-
-	gpu_lamp_calc_winmat(lamp);
 }
 
 static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *la, GPULamp *lamp)
@@ -1941,9 +1960,6 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 
 	/* arbitrary correction for the fact we do no soft transition */
 	lamp->bias *= 0.25f;
-
-	/* makeshadowbuf */
-	gpu_lamp_calc_winmat(lamp);
 }
 
 static void gpu_lamp_shadow_free(GPULamp *lamp)

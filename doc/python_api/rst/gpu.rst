@@ -277,6 +277,12 @@ GLSL Lamp Uniforms
 
    :type: float
 
+.. data:: GPU_DYNAMIC_LAMP_SPOTSCALE
+
+   Represents the SpotLamp local scale.
+
+   :type: float2
+
 
 GLSL Sampler Uniforms
 ^^^^^^^^^^^^^^^^^^^^^

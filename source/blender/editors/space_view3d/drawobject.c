@@ -1198,7 +1198,7 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 	Object *ob = base->object;
 	const float pixsize = ED_view3d_pixel_size(rv3d, ob->obmat[3]);
 	Lamp *la = ob->data;
-	float vec[3], lvec[3], vvec[3], circrad, x, y, z;
+	float vec[3], lvec[3], vvec[3], circrad;
 	float lampsize;
 	float imat[4][4];
 
@@ -1345,7 +1345,7 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 		/* skip drawing extra info */
 	}
 	else if ((la->type == LA_SPOT) || (la->type == LA_YF_PHOTON)) {
-
+		float x, y, z, z_abs;
 		copy_v3_fl3(lvec, 0.0f, 0.0f, 1.0f);
 		copy_v3_fl3(vvec, rv3d->persmat[0][2], rv3d->persmat[1][2], rv3d->persmat[2][2]);
 		mul_transposed_mat3_m4_v3(ob->obmat, vvec);
@@ -1358,46 +1358,75 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 		mul_v3_fl(lvec, x);
 		mul_v3_fl(vvec, x);
 
-		/* draw the angled sides of the cone */
-		glBegin(GL_LINE_STRIP);
-		glVertex3fv(vvec);
-		glVertex3fv(vec);
-		glVertex3fv(lvec);
-		glEnd();
-		
 		x *= y;
 
-		/* draw the circle/square at the end of the cone */
-		glTranslatef(0.0, 0.0, x);
+		z_abs = fabsf(z);
+
 		if (la->mode & LA_SQUARE) {
-			float tvec[3];
-			float z_abs = fabsf(z);
+			/* draw pyramid */
+			const float vertices[5][3] = {
+			    /* 5 of vertex coords of pyramid */
+			    {0.0f, 0.0f, 0.0f},
+			    {z_abs, z_abs, x},
+			    {-z_abs, -z_abs, x},
+			    {z_abs, -z_abs, x},
+			    {-z_abs, z_abs, x},
+			};
+			const unsigned char indices[] = {
+			    0, 1, 3,
+			    0, 3, 2,
+			    0, 2, 4,
+			    0, 1, 4,
+			};
 
-			tvec[0] = tvec[1] = z_abs;
-			tvec[2] = 0.0;
+			/* Draw call:
+			 * activate and specify pointer to vertex array */
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glVertexPointer(3, GL_FLOAT, 0, vertices);
+			/* draw the pyramid */
+			glDrawElements(GL_LINE_STRIP, 12, GL_UNSIGNED_BYTE, indices);
 
-			glBegin(GL_LINE_LOOP);
-			glVertex3fv(tvec);
-			tvec[1] = -z_abs; /* neg */
-			glVertex3fv(tvec);
-			tvec[0] = -z_abs; /* neg */
-			glVertex3fv(tvec);
-			tvec[1] = z_abs; /* pos */
-			glVertex3fv(tvec);
-			glEnd();
+			/* deactivate vertex arrays after drawing */
+			glDisableClientState(GL_VERTEX_ARRAY);
+
+			glTranslatef(0.0f, 0.0f, x);
+
+			/* draw the square representing spotbl */
+			if (la->type == LA_SPOT) {
+				float blend = z_abs * (1.0f - pow2f(la->spotblend));
+
+				/* hide line if it is zero size or overlaps with outer border,
+				 * previously it adjusted to always to show it but that seems
+				 * confusing because it doesn't show the actual blend size */
+				if (blend != 0.0f && blend != z_abs) {
+					fdrawbox(blend, -blend, -blend, blend);
+				}
+			}
 		}
 		else {
-			circ(0.0, 0.0, fabsf(z));
-		}
 
-		/* draw the circle/square representing spotbl */
-		if (la->type == LA_SPOT) {
-			float spotblcirc = fabsf(z) * (1.0f - pow2f(la->spotblend));
-			/* hide line if it is zero size or overlaps with outer border,
-			 * previously it adjusted to always to show it but that seems
-			 * confusing because it doesn't show the actual blend size */
-			if (spotblcirc != 0 && spotblcirc != fabsf(z))
-				circ(0.0, 0.0, spotblcirc);
+			/* draw the angled sides of the cone */
+			glBegin(GL_LINE_STRIP);
+			glVertex3fv(vvec);
+			glVertex3fv(vec);
+			glVertex3fv(lvec);
+			glEnd();
+
+			/* draw the circle at the end of the cone */
+			glTranslatef(0.0f, 0.0f, x);
+			circ(0.0f, 0.0f, z_abs);
+
+			/* draw the circle representing spotbl */
+			if (la->type == LA_SPOT) {
+				float blend = z_abs * (1.0f - pow2f(la->spotblend));
+
+				/* hide line if it is zero size or overlaps with outer border,
+				* previously it adjusted to always to show it but that seems
+				* confusing because it doesn't show the actual blend size */
+				if (blend != 0.0f && blend != z_abs) {
+					circ(0.0f, 0.0f, blend);
+				}
+			}
 		}
 
 		if (drawcone)
