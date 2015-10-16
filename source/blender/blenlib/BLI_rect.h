@@ -66,6 +66,8 @@ void BLI_rctf_interp(struct rctf *rect, const struct rctf *rect_a, const struct 
 //void BLI_rcti_interp(struct rctf *rect, struct rctf *rect_a, struct rctf *rect_b, float fac);
 bool BLI_rctf_clamp_pt_v(const struct rctf *rect, float xy[2]);
 bool BLI_rcti_clamp_pt_v(const struct rcti *rect, int xy[2]);
+bool BLI_rctf_clamp(struct rctf *rect, const struct rctf *rect_bounds, float r_xy[2]);
+bool BLI_rcti_clamp(struct rcti *rect, const struct rcti *rect_bounds, int r_xy[2]);
 bool BLI_rctf_compare(const struct rctf *rect_a, const struct rctf *rect_b, const float limit);
 bool BLI_rcti_compare(const struct rcti *rect_a, const struct rcti *rect_b);
 bool BLI_rctf_isect(const struct rctf *src1, const struct rctf *src2, struct rctf *dest);
