@@ -368,9 +368,11 @@ static void ui_block_bounds_calc_popup(
         wmWindow *window, uiBlock *block,
         eBlockBoundsCalc bounds_calc, const int xy[2])
 {
-	int startx, starty, endx, endy, width, height, oldwidth, oldheight;
+	int width, height, oldwidth, oldheight;
 	int oldbounds, xmax, ymax;
 	const int margin = UI_SCREEN_MARGIN;
+	rcti rect, rect_bounds;
+	int ofs_dummy[2];
 
 	oldbounds = block->bounds;
 
@@ -405,27 +407,18 @@ static void ui_block_bounds_calc_popup(
 
 	/* offset block based on mouse position, user offset is scaled
 	 * along in case we resized the block in ui_block_bounds_calc_text */
-	startx = xy[0] + block->rect.xmin + (block->mx * width) / oldwidth;
-	starty = xy[1] + block->rect.ymin + (block->my * height) / oldheight;
+	rect.xmin = xy[0] + block->rect.xmin + (block->mx * width) / oldwidth;
+	rect.ymin = xy[1] + block->rect.ymin + (block->my * height) / oldheight;
+	rect.xmax = rect.xmin + width;
+	rect.ymax = rect.ymin + height;
 
-	if (startx < margin)
-		startx = margin;
-	if (starty < margin)
-		starty = margin;
+	rect_bounds.xmin = margin;
+	rect_bounds.ymin = margin;
+	rect_bounds.xmax = xmax - margin;
+	rect_bounds.ymax = ymax - UI_POPUP_MENU_TOP;
 
-	endx = startx + width;
-	endy = starty + height;
-
-	if (endx > xmax) {
-		endx = xmax - margin;
-		startx = endx - width;
-	}
-	if (endy > ymax - margin) {
-		endy = ymax - margin;
-		starty = endy - height;
-	}
-
-	ui_block_translate(block, startx - block->rect.xmin, starty - block->rect.ymin);
+	BLI_rcti_clamp(&rect, &rect_bounds, ofs_dummy);
+	ui_block_translate(block, rect.xmin - block->rect.xmin, rect.ymin - block->rect.ymin);
 
 	/* now recompute bounds and safety */
 	ui_block_bounds_calc(block);
