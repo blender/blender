@@ -3735,9 +3735,9 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem file_display_items[] = {
-		{FILE_SHORTDISPLAY, "FILE_SHORTDISPLAY", ICON_SHORTDISPLAY, "Short List", "Display files as short list"},
-		{FILE_LONGDISPLAY, "FILE_LONGDISPLAY", ICON_LONGDISPLAY, "Long List", "Display files as a detailed list"},
-		{FILE_IMGDISPLAY, "FILE_IMGDISPLAY", ICON_IMGDISPLAY, "Thumbnails", "Display files as thumbnails"},
+		{FILE_SHORTDISPLAY, "LIST_SHORT", ICON_SHORTDISPLAY, "Short List", "Display files as short list"},
+		{FILE_LONGDISPLAY,  "LIST_LONG", ICON_LONGDISPLAY, "Long List", "Display files as a detailed list"},
+		{FILE_IMGDISPLAY, "THUMBNAIL", ICON_IMGDISPLAY, "Thumbnails", "Display files as thumbnails"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

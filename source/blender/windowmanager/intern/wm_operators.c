@@ -1215,10 +1215,10 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 	PropertyRNA *prop;
 
 	static EnumPropertyItem file_display_items[] = {
-		{FILE_DEFAULTDISPLAY, "FILE_DEFAULTDISPLAY", 0, "Default", "Automatically determine display type for files"},
-		{FILE_SHORTDISPLAY, "FILE_SHORTDISPLAY", ICON_SHORTDISPLAY, "Short List", "Display files as short list"},
-		{FILE_LONGDISPLAY, "FILE_LONGDISPLAY", ICON_LONGDISPLAY, "Long List", "Display files as a detailed list"},
-		{FILE_IMGDISPLAY, "FILE_IMGDISPLAY", ICON_IMGDISPLAY, "Thumbnails", "Display files as thumbnails"},
+		{FILE_DEFAULTDISPLAY, "DEFAULT", 0, "Default", "Automatically determine display type for files"},
+		{FILE_SHORTDISPLAY, "LIST_SHORT", ICON_SHORTDISPLAY, "Short List", "Display files as short list"},
+		{FILE_LONGDISPLAY, "LIST_LONG", ICON_LONGDISPLAY, "Long List", "Display files as a detailed list"},
+		{FILE_IMGDISPLAY, "THUMBNAIL", ICON_IMGDISPLAY, "Thumbnails", "Display files as thumbnails"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
