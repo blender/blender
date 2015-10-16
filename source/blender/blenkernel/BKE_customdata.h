@@ -472,6 +472,8 @@ typedef struct CustomDataTransferLayerMap {
 	size_t data_offset;  /* Offset of actual data we transfer (in element contained in data_src/dst). */
 	uint64_t data_flag;  /* For bitflag transfer, flag(s) to affect in transfered data. */
 
+	void *interp_data;   /* Opaque pointer, to be used by specific interp callback (e.g. transformspace for normals). */
+
 	cd_datatransfer_interp interp;
 } CustomDataTransferLayerMap;
 
