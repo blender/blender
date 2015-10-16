@@ -554,6 +554,7 @@ static void rna_Scene_set_set(PointerRNA *ptr, PointerRNA value)
 			return;
 	}
 
+	id_lib_extern((ID *)set);
 	scene->set = set;
 }
 

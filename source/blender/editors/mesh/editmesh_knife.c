@@ -2128,7 +2128,7 @@ static bool knife_snap_angle(KnifeTool_OpData *kcd)
 {
 	const float dvec_ref[2] = {0.0f, 1.0f};
 	float dvec[2], dvec_snap[2];
-	float snap_step = DEG2RADF(45);
+	float snap_step = DEG2RADF(5);
 
 	sub_v2_v2v2(dvec, kcd->curr.mval, kcd->prev.mval);
 	if (is_zero_v2(dvec)) {
