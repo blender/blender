@@ -412,6 +412,7 @@ static void rna_Constraint_followTrack_camera_set(PointerRNA *ptr, PointerRNA va
 	if (ob) {
 		if (ob->type == OB_CAMERA && ob != (Object *)ptr->id.data) {
 			data->camera = ob;
+			id_lib_extern((ID *)ob);
 		}
 	}
 	else {
@@ -428,6 +429,7 @@ static void rna_Constraint_followTrack_depthObject_set(PointerRNA *ptr, PointerR
 	if (ob) {
 		if (ob->type == OB_MESH && ob != (Object *)ptr->id.data) {
 			data->depth_ob = ob;
+			id_lib_extern((ID *)ob);
 		}
 	}
 	else {
@@ -457,6 +459,7 @@ static void rna_Constraint_objectSolver_camera_set(PointerRNA *ptr, PointerRNA v
 	if (ob) {
 		if (ob->type == OB_CAMERA && ob != (Object *)ptr->id.data) {
 			data->camera = ob;
+			id_lib_extern((ID *)ob);
 		}
 	}
 	else {

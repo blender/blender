@@ -549,9 +549,11 @@ RNA_MOD_OBJECT_SET(Shrinkwrap, auxTarget, OB_MESH);
 static void rna_HookModifier_object_set(PointerRNA *ptr, PointerRNA value)
 {
 	HookModifierData *hmd = ptr->data;
+	Object *ob = (Object *)value.data;
 
-	hmd->object = (Object *)value.data;
-	BKE_object_modifier_hook_reset((Object *)ptr->id.data, hmd);
+	hmd->object = ob;
+	id_lib_extern((ID *)ob);
+	BKE_object_modifier_hook_reset(ob, hmd);
 }
 
 static PointerRNA rna_UVProjector_object_get(PointerRNA *ptr)
@@ -562,8 +564,10 @@ static PointerRNA rna_UVProjector_object_get(PointerRNA *ptr)
 
 static void rna_UVProjector_object_set(PointerRNA *ptr, PointerRNA value)
 {
-	Object **ob = (Object **)ptr->data;
-	*ob = value.data;
+	Object **ob_p = (Object **)ptr->data;
+	Object *ob = (Object *)value.data;
+	id_lib_extern((ID *)ob);
+	*ob_p = ob;
 }
 
 #undef RNA_MOD_OBJECT_SET
