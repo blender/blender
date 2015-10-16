@@ -70,7 +70,6 @@
 
 #include "interface_intern.h"
 
-#define MENU_TOP			(int)(8 * UI_DPI_FAC)
 #define MENU_PADDING		(int)(0.2f * UI_UNIT_Y)
 #define MENU_BORDER			(int)(0.3f * U.widget_unit)
 
@@ -822,7 +821,7 @@ bool UI_search_item_add(uiSearchItems *items, const char *name, void *poin, int 
 
 int UI_searchbox_size_y(void)
 {
-	return SEARCH_ITEMS * UI_UNIT_Y + 2 * MENU_TOP;
+	return SEARCH_ITEMS * UI_UNIT_Y + 2 * UI_POPUP_MENU_TOP;
 }
 
 int UI_searchbox_size_x(void)
@@ -898,13 +897,13 @@ static void ui_searchbox_butrect(rcti *r_rect, uiSearchboxData *data, int itemnr
 	}
 	/* list view */
 	else {
-		int buth = (BLI_rcti_size_y(&data->bbox) - 2 * MENU_TOP) / SEARCH_ITEMS;
+		int buth = (BLI_rcti_size_y(&data->bbox) - 2 * UI_POPUP_MENU_TOP) / SEARCH_ITEMS;
 		
 		*r_rect = data->bbox;
 		r_rect->xmin = data->bbox.xmin + 3.0f;
 		r_rect->xmax = data->bbox.xmax - 3.0f;
 		
-		r_rect->ymax = data->bbox.ymax - MENU_TOP - itemnr * buth;
+		r_rect->ymax = data->bbox.ymax - UI_POPUP_MENU_TOP - itemnr * buth;
 		r_rect->ymin = r_rect->ymax - buth;
 	}
 	
@@ -1630,8 +1629,8 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 	
 	if (block->rect.ymin < width)
 		block->rect.ymin = width;
-	if (block->rect.ymax > winy - MENU_TOP)
-		block->rect.ymax = winy - MENU_TOP;
+	if (block->rect.ymax > winy - UI_POPUP_MENU_TOP)
+		block->rect.ymax = winy - UI_POPUP_MENU_TOP;
 	
 	/* ensure menu items draw inside left/right boundary */
 	for (bt = block->buttons.first; bt; bt = bt->next) {
@@ -1818,7 +1817,7 @@ uiBlock *ui_popup_block_refresh(
 		ar->winrct.xmin = block->rect.xmin - margin;
 		ar->winrct.xmax = block->rect.xmax + margin;
 		ar->winrct.ymin = block->rect.ymin - margin;
-		ar->winrct.ymax = block->rect.ymax + MENU_TOP;
+		ar->winrct.ymax = block->rect.ymax + UI_POPUP_MENU_TOP;
 
 		ui_block_translate(block, -ar->winrct.xmin, -ar->winrct.ymin);
 	}

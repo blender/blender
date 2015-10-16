@@ -682,6 +682,8 @@ void ui_draw_preview_item(struct uiFontStyle *fstyle, rcti *rect, const char *na
 
 #define UI_TEXT_MARGIN_X 0.4f
 #define UI_POPUP_MARGIN (UI_DPI_FAC * 12)
+/* margin at top of screen for popups */
+#define UI_POPUP_MENU_TOP (int)(8 * UI_DPI_FAC)
 
 /* interface_style.c */
 void uiStyleInit(void);
