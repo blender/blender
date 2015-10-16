@@ -63,7 +63,7 @@
 
 #include "interface_intern.h"
 
-static void ui_view2d_curRect_validate_resize(View2D *v2d, int resize, int mask_scrollers);
+static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize, bool mask_scrollers);
 
 /* *********************************************************************** */
 
@@ -116,7 +116,7 @@ static int view2d_scroll_mapped(int scroll)
 }
 
 /* called each time cur changes, to dynamically update masks */
-static void view2d_masks(View2D *v2d, int check_scrollers)
+static void view2d_masks(View2D *v2d, bool check_scrollers)
 {
 	int scroll;
 	
@@ -368,7 +368,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
  * 'cur' is not allowed to be: larger than max, smaller than min, or outside of 'tot'
  */
 // XXX pre2.5 -> this used to be called  test_view2d()
-static void ui_view2d_curRect_validate_resize(View2D *v2d, int resize, int mask_scrollers)
+static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize, bool mask_scrollers)
 {
 	float totwidth, totheight, curwidth, curheight, width, height;
 	float winx, winy;
@@ -899,7 +899,7 @@ void UI_view2d_curRect_reset(View2D *v2d)
 /* ------------------ */
 
 /* Change the size of the maximum viewable area (i.e. 'tot' rect) */
-void UI_view2d_totRect_set_resize(View2D *v2d, int width, int height, int resize)
+void UI_view2d_totRect_set_resize(View2D *v2d, int width, int height, bool resize)
 {
 //	int scroll = view2d_scroll_mapped(v2d->scroll);
 	

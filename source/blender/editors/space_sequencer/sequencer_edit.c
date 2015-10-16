@@ -3911,9 +3911,9 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
 		char timecode_str_end[32];
 
 		BLI_timecode_string_from_time(timecode_str_start, sizeof(timecode_str_start),
-									  -2, FRA2TIME(seq->startdisp), FPS, USER_TIMECODE_SUBRIP);
+		                              -2, FRA2TIME(seq->startdisp), FPS, USER_TIMECODE_SUBRIP);
 		BLI_timecode_string_from_time(timecode_str_end, sizeof(timecode_str_end),
-									  -2, FRA2TIME(seq->enddisp), FPS, USER_TIMECODE_SUBRIP);
+		                              -2, FRA2TIME(seq->enddisp), FPS, USER_TIMECODE_SUBRIP);
 
 		fprintf(file, "%d\n%s --> %s\n%s\n\n", iter++, timecode_str_start, timecode_str_end, data->text);
 

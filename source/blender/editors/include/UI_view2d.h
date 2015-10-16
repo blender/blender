@@ -153,7 +153,7 @@ void UI_view2d_curRect_reset(struct View2D *v2d);
 void UI_view2d_sync(struct bScreen *screen, struct ScrArea *sa, struct View2D *v2dcur, int flag);
 
 void UI_view2d_totRect_set(struct View2D *v2d, int width, int height);
-void UI_view2d_totRect_set_resize(struct View2D *v2d, int width, int height, int resize);
+void UI_view2d_totRect_set_resize(struct View2D *v2d, int width, int height, bool resize);
 
 /* per tab offsets, returns 1 if tab changed */
 bool UI_view2d_tab_set(struct View2D *v2d, int tab);
