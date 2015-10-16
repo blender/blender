@@ -1163,7 +1163,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(
 					}
 					data_transfer_layersmapping_add_item(r_map, CD_FAKE_MDEFORMVERT, mix_mode, mix_factor, mix_weights,
 					                                     data_src, data_dst, idx_src, idx_src,
-					                                     elem_size, 0, 0, 0, vgroups_datatransfer_interp);
+					                                     elem_size, 0, 0, 0, vgroups_datatransfer_interp, NULL);
 				}
 			}
 			break;
@@ -1211,7 +1211,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(
 						data_transfer_layersmapping_add_item(
 						        r_map, CD_FAKE_MDEFORMVERT, mix_mode, mix_factor, mix_weights,
 						        data_src, data_dst, idx_src, idx_dst,
-						        elem_size, 0, 0, 0, vgroups_datatransfer_interp);
+						        elem_size, 0, 0, 0, vgroups_datatransfer_interp, NULL);
 					}
 				}
 				break;
@@ -1317,7 +1317,7 @@ bool data_transfer_layersmapping_vgroups(
 
 			data_transfer_layersmapping_add_item(r_map, CD_FAKE_MDEFORMVERT, mix_mode, mix_factor, mix_weights,
 			                                     data_src, data_dst, idx_src, idx_dst,
-			                                     elem_size, 0, 0, 0, vgroups_datatransfer_interp);
+			                                     elem_size, 0, 0, 0, vgroups_datatransfer_interp, NULL);
 		}
 	}
 	else {
