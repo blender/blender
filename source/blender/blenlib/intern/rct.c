@@ -508,8 +508,8 @@ bool BLI_rctf_clamp(rctf *rect, const rctf *rect_bounds, float r_xy[2])
 
 	if (rect->xmin < rect_bounds->xmin) {
 		float ofs = rect_bounds->xmin - rect->xmin;
-		rect->xmin += r_xy[0];
-		rect->xmax += r_xy[0];
+		rect->xmin += ofs;
+		rect->xmax += ofs;
 		r_xy[0] += ofs;
 		changed = true;
 	}
@@ -524,8 +524,8 @@ bool BLI_rctf_clamp(rctf *rect, const rctf *rect_bounds, float r_xy[2])
 
 	if (rect->ymin < rect_bounds->ymin) {
 		float ofs = rect_bounds->ymin - rect->ymin;
-		rect->ymin += r_xy[1];
-		rect->ymax += r_xy[1];
+		rect->ymin += ofs;
+		rect->ymax += ofs;
 		r_xy[1] += ofs;
 		changed = true;
 	}
@@ -550,8 +550,8 @@ bool BLI_rcti_clamp(rcti *rect, const rcti *rect_bounds, int r_xy[2])
 
 	if (rect->xmin < rect_bounds->xmin) {
 		int ofs = rect_bounds->xmin - rect->xmin;
-		rect->xmin += r_xy[0];
-		rect->xmax += r_xy[0];
+		rect->xmin += ofs;
+		rect->xmax += ofs;
 		r_xy[0] += ofs;
 		changed = true;
 	}
@@ -566,8 +566,8 @@ bool BLI_rcti_clamp(rcti *rect, const rcti *rect_bounds, int r_xy[2])
 
 	if (rect->ymin < rect_bounds->ymin) {
 		int ofs = rect_bounds->ymin - rect->ymin;
-		rect->ymin += r_xy[1];
-		rect->ymax += r_xy[1];
+		rect->ymin += ofs;
+		rect->ymax += ofs;
 		r_xy[1] += ofs;
 		changed = true;
 	}
