@@ -960,7 +960,7 @@ bool BLI_path_frame_range(char *path, int sta, int end, int digits)
  */
 bool BLI_path_frame_get(char *path, int *r_frame, int *r_numdigits)
 {
-	if (path && *path) {
+	if (*path) {
 		char *file = (char *)BLI_last_slash(path);
 		char *c;
 		int len, numdigits;
@@ -1009,9 +1009,9 @@ bool BLI_path_frame_get(char *path, int *r_frame, int *r_numdigits)
 	return false;
 }
 
-void BLI_path_frame_strip(char *path, bool setsharp, char *ext)
+void BLI_path_frame_strip(char *path, bool set_frame_char, char *ext)
 {
-	if (path && *path) {
+	if (*path) {
 		char *file = (char *)BLI_last_slash(path);
 		char *c, *suffix;
 		int len;
@@ -1046,15 +1046,12 @@ void BLI_path_frame_strip(char *path, bool setsharp, char *ext)
 		if (numdigits) {
 			/* replace the number with the suffix and terminate the string */
 			while (numdigits--) {
-				if (ext) *ext++ = *suffix;
-
-				if (setsharp) *c++ = '#';
-				else *c++ = *suffix;
-
+				*ext++ = *suffix;
+				*c++ = set_frame_char ? '#' : *suffix;
 				suffix++;
 			}
-			*c = 0;
-			if (ext) *ext = 0;
+			*c = '\0';
+			*ext = '\0';
 		}
 	}
 }

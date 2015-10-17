@@ -176,9 +176,6 @@ int BLF_load(const char *name)
 	char *filename;
 	int i;
 
-	if (!name)
-		return -1;
-
 	/* check if we already load this font. */
 	i = blf_search(name);
 	if (i >= 0) {
@@ -215,9 +212,6 @@ int BLF_load_unique(const char *name)
 	FontBLF *font;
 	char *filename;
 	int i;
-
-	if (!name)
-		return -1;
 
 	/* Don't search in the cache!! make a new
 	 * object font, this is for keep fonts threads safe.
@@ -260,9 +254,6 @@ int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size)
 	FontBLF *font;
 	int i;
 
-	if (!name)
-		return -1;
-
 	i = blf_search(name);
 	if (i >= 0) {
 		/*font = global_font[i];*/ /*UNUSED*/
@@ -275,7 +266,7 @@ int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size)
 		return -1;
 	}
 
-	if (!mem || !mem_size) {
+	if (!mem_size) {
 		printf("Can't load font: %s from memory!!\n", name);
 		return -1;
 	}
@@ -295,9 +286,6 @@ int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size
 	FontBLF *font;
 	int i;
 
-	if (!name)
-		return -1;
-
 	/*
 	 * Don't search in the cache, make a new object font!
 	 * this is to keep the font thread safe.
@@ -308,7 +296,7 @@ int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size
 		return -1;
 	}
 
-	if (!mem || !mem_size) {
+	if (!mem_size) {
 		printf("Can't load font: %s from memory!!\n", name);
 		return -1;
 	}

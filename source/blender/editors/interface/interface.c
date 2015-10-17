@@ -2093,7 +2093,7 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
 
 		BLI_assert(step > 0.0);
 
-		step_final = (step / scale_unit) / UI_PRECISION_FLOAT_SCALE;
+		step_final = (step / scale_unit) / (double)UI_PRECISION_FLOAT_SCALE;
 
 		if (step == step_unit) {
 			/* Logic here is to scale by the original 'step_orig'

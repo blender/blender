@@ -1035,7 +1035,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 
 		sub_v3_v3v3(dvec, newvec, vod->trackvec);
 
-		angle = (len_v3(dvec) / (2.0f * TRACKBALLSIZE)) * M_PI;
+		angle = (len_v3(dvec) / (2.0f * TRACKBALLSIZE)) * (float)M_PI;
 
 		/* Allow for rotation beyond the interval [-pi, pi] */
 		angle = angle_wrap_rad(angle);
