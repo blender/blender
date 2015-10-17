@@ -513,8 +513,8 @@ void	CcdPhysicsEnvironment::AddCcdPhysicsController(CcdPhysicsController* ctrl)
 
 void CcdPhysicsEnvironment::RemoveConstraint(btTypedConstraint *con)
 {
-	btRigidBody rbA = con->getRigidBodyA();
-	btRigidBody rbB = con->getRigidBodyB();
+	btRigidBody &rbA = con->getRigidBodyA();
+	btRigidBody &rbB = con->getRigidBodyB();
 	rbA.activate();
 	rbB.activate();
 	m_dynamicsWorld->removeConstraint(con);
