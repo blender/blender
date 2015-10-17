@@ -307,14 +307,15 @@ static int BLI_path_unc_prefix_len(const char *path); /* defined below in same f
 
 /* ******************** string encoding ***************** */
 
-/* This is quite an ugly function... its purpose is to
- * take the dir name, make it absolute, and clean it up, replacing
- * excess file entry stuff (like /tmp/../tmp/../)
- * note that dir isn't protected for max string names... 
- * 
- * If relbase is NULL then its ignored
+/**
+ * Remove redundant characters from \a path and optionally make absolute.
+ *
+ * \param relbase: The path this is relative to, or ignored when NULL.
+ * \param path: Can be any input, and this function converts it to a regular full path.
+ * Also removes garbage from directory paths, like `/../` or double slashes etc.
+ *
+ * \note \a path isn't protected for max string names...
  */
-
 void BLI_cleanup_path(const char *relabase, char *path)
 {
 	ptrdiff_t a;
@@ -403,6 +404,9 @@ void BLI_cleanup_path(const char *relabase, char *path)
 #endif
 }
 
+/**
+ * Cleanup filepath ensuring a trailing slash.
+ */
 void BLI_cleanup_dir(const char *relabase, char *dir)
 {
 	BLI_cleanup_path(relabase, dir);
@@ -410,6 +414,9 @@ void BLI_cleanup_dir(const char *relabase, char *dir)
 
 }
 
+/**
+ * Cleanup filepath ensuring no trailing slash.
+ */
 void BLI_cleanup_file(const char *relabase, char *path)
 {
 	BLI_cleanup_path(relabase, path);
@@ -1063,9 +1070,14 @@ bool BLI_path_frame_check_chars(const char *path)
 }
 
 /**
- * If path begins with "//", strips that and replaces it with basepath directory. Also converts
- * a drive-letter prefix to something more sensible if this is a non-drive-letter-based system.
- * Returns true if "//" prefix expansion was done.
+ * If path begins with "//", strips that and replaces it with basepath directory.
+ *
+ * \note Also converts drive-letter prefix to something more sensible
+ * if this is a non-drive-letter-based system.
+ *
+ * \param path: The path to convert.
+ * \param basepath: The directory to base relative paths with.
+ * \return true if the path was relative (started with "//").
  */
 bool BLI_path_abs(char *path, const char *basepath)
 {

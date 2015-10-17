@@ -99,12 +99,6 @@ int BLI_stringdec(const char *string, char *head, char *start, unsigned short *n
 void BLI_stringenc(char *string, const char *head, const char *tail, unsigned short numlen, int pic);
 int BLI_split_name_num(char *left, int *nr, const char *name, const char delim);
 
-/**
- * dir can be any input, like from buttons, and this function
- * converts it to a regular full path.
- * Also removes garbage from directory paths, like /../ or double slashes etc 
- */
-
 /* removes trailing slash */
 void BLI_cleanup_file(const char *relabase, char *path) ATTR_NONNULL(2);
 /* same as above but adds a trailing slash */
@@ -118,23 +112,11 @@ bool BLI_path_make_safe(char *path) ATTR_NONNULL(1);
 /* go back one directory */
 bool BLI_parent_dir(char *path) ATTR_NONNULL();
 
-/**
- * Blender's path code replacement function.
- * Bases \a path strings leading with "//" by the
- * directory \a basepath, and replaces instances of
- * '#' with the \a framenum. Results are written
- * back into \a path.
- * 
- * \a path The path to convert
- * \a basepath The directory to base relative paths with.
- * \a framenum The framenumber to replace the frame code with.
- * \retval Returns true if the path was relative (started with "//").
- */
 bool BLI_path_abs(char *path, const char *basepath)  ATTR_NONNULL();
 bool BLI_path_frame(char *path, int frame, int digits) ATTR_NONNULL();
 bool BLI_path_frame_range(char *path, int sta, int end, int digits) ATTR_NONNULL();
 bool BLI_path_frame_get(char *path, int *r_frame, int *numdigits) ATTR_NONNULL();
-void BLI_path_frame_strip(char *path, bool setsharp, char *ext) ATTR_NONNULL();
+void BLI_path_frame_strip(char *path, bool set_frame_char, char *ext) ATTR_NONNULL();
 bool BLI_path_frame_check_chars(const char *path) ATTR_NONNULL();
 bool BLI_path_cwd(char *path, const size_t maxlen) ATTR_NONNULL();
 void BLI_path_rel(char *file, const char *relfile) ATTR_NONNULL();
@@ -179,5 +161,4 @@ bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char
 }
 #endif
 
-#endif
-
+#endif  /* __BLI_PATH_UTIL_H__ */
