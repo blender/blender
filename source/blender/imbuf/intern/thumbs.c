@@ -243,16 +243,9 @@ static int uri_from_filename(const char *path, char *uri)
 #else
 	BLI_snprintf(orig_uri, URI_MAX, "file://%s", dirstart);
 #endif
-	
-#ifdef WITH_ICONV
-	{
-		char uri_utf8[URI_MAX];
-		escape_uri_string(orig_uri, uri_utf8, URI_MAX, UNSAFE_PATH);
-		BLI_string_to_utf8(uri_utf8, uri, NULL);
-	}
-#else 
+
 	escape_uri_string(orig_uri, uri, URI_MAX, UNSAFE_PATH);
-#endif
+
 	return 1;
 }
 

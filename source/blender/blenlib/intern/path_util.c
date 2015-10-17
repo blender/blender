@@ -1981,38 +1981,3 @@ void BLI_path_native_slash(char *path)
 	BLI_str_replace_char(path + BLI_path_unc_prefix_len(path), '\\', '/');
 #endif
 }
-
-
-#ifdef WITH_ICONV
-
-/**
- * Converts a string encoded in the charset named by *code to UTF-8.
- * Opens a new iconv context each time it is run, which is probably not the
- * most efficient. */
-void BLI_string_to_utf8(char *original, char *utf_8, const char *code)
-{
-	size_t inbytesleft = strlen(original);
-	size_t outbytesleft = 512;
-	size_t rv = 0;
-	iconv_t cd;
-	
-	if (NULL == code) {
-		code = locale_charset();
-	}
-	cd = iconv_open("UTF-8", code);
-
-	if (cd == (iconv_t)(-1)) {
-		printf("iconv_open Error");
-		*utf_8 = '\0';
-		return;
-	}
-	rv = iconv(cd, &original, &inbytesleft, &utf_8, &outbytesleft);
-	if (rv == (size_t) -1) {
-		printf("iconv Error\n");
-		iconv_close(cd);
-		return;
-	}
-	*utf_8 = '\0';
-	iconv_close(cd);
-}
-#endif // WITH_ICONV

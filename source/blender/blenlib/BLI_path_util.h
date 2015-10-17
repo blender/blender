@@ -158,10 +158,6 @@ bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char
 #  define BLI_path_ncmp strncmp
 #endif
 
-#ifdef WITH_ICONV
-void BLI_string_to_utf8(char *original, char *utf_8, const char *code);
-#endif
-
 /* these values need to be hardcoded in structs, dna does not recognize defines */
 /* also defined in DNA_space_types.h */
 #ifndef FILE_MAXDIR
