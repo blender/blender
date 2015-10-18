@@ -352,7 +352,7 @@ static PyObject *py_bvhtree_ray_cast(PyBVHTree *self, PyObject *args)
 
 		if (!PyArg_ParseTuple(
 		        args, (char *)"OO|f:ray_cast",
-		        &py_co, &py_direction, max_dist))
+		        &py_co, &py_direction, &max_dist))
 		{
 			return NULL;
 		}
