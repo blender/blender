@@ -436,6 +436,7 @@ void BLI_cleanup_file(const char *relabase, char *path)
  * \note Space case ' ' is a bit of an edge case here - in theory it is allowed, but again can be an issue
  *       in some cases, so we simply replace it by an underscore too (good practice anyway).
  *       REMOVED based on popular demand (see T45900).
+ *       Percent '%' char is a bit same case - not recommended to use it, but supported by all decent FS/OS around...
  *
  * \note On Windows, it also ensures there is no '.' (dot char) at the end of the file, this can lead to issues...
  *
@@ -446,7 +447,7 @@ bool BLI_filename_make_safe(char *fname)
 {
 	const char *invalid = "\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"
 	                      "\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f"
-	                      "/\\?%*:|\"<>";
+	                      "/\\?*:|\"<>";
 	char *fn;
 	bool changed = false;
 
