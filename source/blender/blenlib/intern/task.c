@@ -207,7 +207,6 @@ TaskScheduler *BLI_task_scheduler_create(int num_threads)
 
 			if (pthread_create(&scheduler->threads[i], NULL, task_scheduler_thread_run, thread) != 0) {
 				fprintf(stderr, "TaskScheduler failed to launch thread %d/%d\n", i, num_threads);
-				MEM_freeN(thread);
 			}
 		}
 	}
