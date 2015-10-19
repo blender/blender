@@ -101,10 +101,6 @@ public:
 	 * Update the action's frame, etc.
 	 */
 	void Update(float curtime);
-	/**
-	 * Update object IPOs (note: not thread-safe!)
-	 */
-	void UpdateIPOs();
 
 	// Accessors
 	float GetFrame();
@@ -139,6 +135,11 @@ public:
 		ACT_IPOFLAG_ADD = 4,
 		ACT_IPOFLAG_CHILD = 8,
 	};
+
+	/// Initialize a lock for animation thread issues.
+	static void InitLock();
+	/// Finalize a lock for animation thread issues.
+	static void EndLock();
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:BL_Action")
