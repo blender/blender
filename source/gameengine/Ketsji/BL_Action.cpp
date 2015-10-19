@@ -74,7 +74,6 @@ BL_Action::BL_Action(class KX_GameObject* gameobj)
 	m_obj(gameobj),
 	m_startframe(0.f),
 	m_endframe(0.f),
-	m_endtime(0.f),
 	m_localframe(0.f),
 	m_blendin(0.f),
 	m_blendframe(0.f),
