@@ -37,13 +37,10 @@
  * ----------------------------------------------------------------------
  */
 
-#ifdef WIN32
-#  include "BLI_utildefines.h"
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_fileops.h"
+#include "BLI_utildefines.h"
 
 #include "imbuf.h"
 
@@ -76,7 +73,7 @@ static const unsigned char *oldreadcolrs(RGBE *scan, const unsigned char *mem, i
 {
 	int i, rshift = 0, len = xmax;
 	while (len > 0) {
-		if (mem_eof - mem < 4) {
+		if (UNLIKELY(mem_eof - mem < 4)) {
 			return NULL;
 		}
 		scan[0][RED] = *mem++;
@@ -104,11 +101,11 @@ static const unsigned char *freadcolrs(RGBE *scan, const unsigned char *mem, int
 {
 	int i, j, code, val;
 
-	if (mem_eof - mem < 4) {
+	if (UNLIKELY(mem_eof - mem < 4)) {
 		return NULL;
 	}
 
-	if ((xmax < MINELEN) | (xmax > MAXELEN)) {
+	if (UNLIKELY((xmax < MINELEN) | (xmax > MAXELEN))) {
 		return oldreadcolrs(scan, mem, xmax, mem_eof);
 	}
 
@@ -128,12 +125,12 @@ static const unsigned char *freadcolrs(RGBE *scan, const unsigned char *mem, int
 		return oldreadcolrs(scan + 1, mem, xmax - 1, mem_eof);
 	}
 
-	if (((scan[0][BLU] << 8) | i) != xmax) {
+	if (UNLIKELY(((scan[0][BLU] << 8) | i) != xmax)) {
 		return NULL;
 	}
 
 	for (i = 0; i < 4; i++) {
-		if (mem_eof - mem < 2) {
+		if (UNLIKELY(mem_eof - mem < 2)) {
 			return NULL;
 		}
 		for (j = 0; j < xmax; ) {
@@ -146,7 +143,7 @@ static const unsigned char *freadcolrs(RGBE *scan, const unsigned char *mem, int
 				}
 			}
 			else {
-				if (mem_eof - mem < code) {
+				if (UNLIKELY(mem_eof - mem < code)) {
 					return NULL;
 				}
 				while (code--) {
@@ -240,13 +237,17 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem, size_t size, int flags, char
 			if (flags & IB_test) ibuf = IMB_allocImBuf(width, height, 32, 0);
 			else ibuf = IMB_allocImBuf(width, height, 32, (flags & IB_rect) | IB_rectfloat);
 
-			if (ibuf == NULL) return NULL;
+			if (UNLIKELY(ibuf == NULL)) {
+				return NULL;
+			}
 			ibuf->ftype = IMB_FTYPE_RADHDR;
 
 			if (flags & IB_alphamode_detect)
 				ibuf->flags |= IB_alphamode_premul;
 
-			if (flags & IB_test) return ibuf;
+			if (flags & IB_test) {
+				return ibuf;
+			}
 
 			/* read in and decode the actual data */
 			sline = (RGBE *)MEM_mallocN(sizeof(*sline) * width, __func__);
@@ -290,7 +291,9 @@ static int fwritecolrs(FILE *file, int width, int channels, unsigned char *ibufs
 	fCOLOR fcol;
 	RGBE rgbe, *rgbe_scan;
 
-	if ((ibufscan == NULL) && (fpscan == NULL)) return 0;
+	if (UNLIKELY((ibufscan == NULL) && (fpscan == NULL))) {
+		return 0;
+	}
 
 	rgbe_scan = (RGBE *)MEM_mallocN(sizeof(RGBE) * width, "radhdr_write_tmpscan");
 
@@ -381,7 +384,9 @@ int imb_savehdr(struct ImBuf *ibuf, const char *name, int flags)
 	
 	(void)flags; /* unused */
 	
-	if (file == NULL) return 0;
+	if (file == NULL) {
+		return 0;
+	}
 
 	writeHeader(file, width, height);
 
