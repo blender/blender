@@ -137,6 +137,9 @@ static const unsigned char *freadcolrs(RGBE *scan, const unsigned char *mem, int
 			code = *mem++;
 			if (code > 128) {
 				code &= 127;
+				if (UNLIKELY(code + j > xmax)) {
+					return NULL;
+				}
 				val = *mem++;
 				while (code--) {
 					scan[j++][i] = (unsigned char)val;
@@ -144,6 +147,9 @@ static const unsigned char *freadcolrs(RGBE *scan, const unsigned char *mem, int
 			}
 			else {
 				if (UNLIKELY(mem_eof - mem < code)) {
+					return NULL;
+				}
+				if (UNLIKELY(code + j > xmax)) {
 					return NULL;
 				}
 				while (code--) {
