@@ -48,9 +48,9 @@ private:
 
 	float m_startframe;
 	float m_endframe;
+	/// The current action frame.
+	float m_localframe;
 	float m_starttime;
-	float m_endtime;
-	float m_localtime;
 
 	float m_blendin;
 	float m_blendframe;
