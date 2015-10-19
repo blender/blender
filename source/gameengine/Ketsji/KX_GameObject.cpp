@@ -484,11 +484,6 @@ void KX_GameObject::UpdateActionManager(float curtime)
 	GetActionManager()->Update(curtime);
 }
 
-void KX_GameObject::UpdateActionIPOs()
-{
-	GetActionManager()->UpdateIPOs();
-}
-
 float KX_GameObject::GetActionFrame(short layer)
 {
 	return GetActionManager()->GetActionFrame(layer);
@@ -952,6 +947,9 @@ void KX_GameObject::InitIPO(bool ipo_as_force,
 void KX_GameObject::UpdateIPO(float curframetime,
 							  bool recurse) 
 {
+	/* This function shouldn't call BL_Action::Update, not even indirectly, 
+	 * as it will cause deadlock due to the lock in BL_Action::Update. */
+
 	// just the 'normal' update procedure.
 	GetSGNode()->SetSimulatedTime(curframetime,recurse);
 	GetSGNode()->UpdateWorldData(curframetime);

@@ -1678,10 +1678,6 @@ void KX_Scene::UpdateAnimations(double curtime)
 
 	BLI_task_pool_work_and_wait(pool);
 	BLI_task_pool_free(pool);
-
-	for (int i=0; i<m_animatedlist->GetCount(); ++i) {
-		((KX_GameObject*)m_animatedlist->GetValue(i))->UpdateActionIPOs();
-	}
 }
 
 void KX_Scene::LogicUpdateFrame(double curtime, bool frame)
