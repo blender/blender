@@ -513,6 +513,17 @@ extern "C" {
 	       sizeof(*(struct_var)) - OFFSETOF_STRUCT(struct_var, member)); \
 } (void)0
 
+/* defined
+ * in memory_utils.c for now. I do not know where we should put it actually... */
+#ifndef __BLI_MEMORY_UTILS_H__
+extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
+#endif
+
+#define MEMCMP_STRUCT_OFS_IS_ZERO(struct_var, member) \
+	(BLI_memory_is_zero( \
+	       (char *)(struct_var)  + OFFSETOF_STRUCT(struct_var, member), \
+	       sizeof(*(struct_var)) - OFFSETOF_STRUCT(struct_var, member)))
+
 /* Warning-free macros for storing ints in pointers. Use these _only_
  * for storing an int in a pointer, not a pointer in an int (64bit)! */
 #define SET_INT_IN_POINTER(i)    ((void *)(intptr_t)(i))

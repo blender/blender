@@ -88,6 +88,7 @@ set(SRC
 	intern/math_statistics.c
 	intern/math_vector.c
 	intern/math_vector_inline.c
+	intern/memory_utils.c
 	intern/noise.c
 	intern/path_util.c
 	intern/polyfill2d.c
@@ -169,6 +170,7 @@ set(SRC
 	BLI_math_statistics.h
 	BLI_math_vector.h
 	BLI_memarena.h
+	BLI_memory_utils.h
 	BLI_mempool.h
 	BLI_noise.h
 	BLI_path_util.h
