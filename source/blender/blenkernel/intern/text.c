@@ -171,14 +171,12 @@ void BKE_text_free(Text *text)
 #endif
 }
 
-Text *BKE_text_add(Main *bmain, const char *name) 
+void BKE_text_init(Text *ta)
 {
-	Text *ta;
 	TextLine *tmp;
-	
-	ta = BKE_libblock_alloc(bmain, ID_TXT, name);
-	ta->id.us = 1;
-	
+
+	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(ta, id));
+
 	ta->name = NULL;
 
 	init_undo_text(ta);
@@ -206,6 +204,15 @@ Text *BKE_text_add(Main *bmain, const char *name)
 	ta->curc = 0;
 	ta->sell = ta->lines.first;
 	ta->selc = 0;
+}
+
+Text *BKE_text_add(Main *bmain, const char *name)
+{
+	Text *ta;
+
+	ta = BKE_libblock_alloc(bmain, ID_TXT, name);
+
+	BKE_text_init(ta);
 
 	return ta;
 }

@@ -490,12 +490,10 @@ static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
 	mesh->totface = 0;
 }
 
-Mesh *BKE_mesh_add(Main *bmain, const char *name)
+void BKE_mesh_init(Mesh *me)
 {
-	Mesh *me;
-	
-	me = BKE_libblock_alloc(bmain, ID_ME, name);
-	
+	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(me, id));
+
 	me->size[0] = me->size[1] = me->size[2] = 1.0;
 	me->smoothresh = 30;
 	me->texflag = ME_AUTOSPACE;
@@ -511,6 +509,15 @@ Mesh *BKE_mesh_add(Main *bmain, const char *name)
 	CustomData_reset(&me->fdata);
 	CustomData_reset(&me->pdata);
 	CustomData_reset(&me->ldata);
+}
+
+Mesh *BKE_mesh_add(Main *bmain, const char *name)
+{
+	Mesh *me;
+
+	me = BKE_libblock_alloc(bmain, ID_ME, name);
+
+	BKE_mesh_init(me);
 
 	return me;
 }

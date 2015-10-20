@@ -131,11 +131,9 @@ static void brush_defaults(Brush *brush)
 
 /* Datablock add/copy/free/make_local */
 
-Brush *BKE_brush_add(Main *bmain, const char *name, short ob_mode)
+void BKE_brush_init(Brush *brush)
 {
-	Brush *brush;
-
-	brush = BKE_libblock_alloc(bmain, ID_BR, name);
+	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(brush, id));
 
 	/* enable fake user by default */
 	brush->id.flag |= LIB_FAKEUSER;
@@ -143,10 +141,20 @@ Brush *BKE_brush_add(Main *bmain, const char *name, short ob_mode)
 	brush_defaults(brush);
 
 	brush->sculpt_tool = SCULPT_TOOL_DRAW; /* sculpting defaults to the draw tool for new brushes */
-	brush->ob_mode = ob_mode;
 
 	/* the default alpha falloff curve */
 	BKE_brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
+}
+
+Brush *BKE_brush_add(Main *bmain, const char *name, short ob_mode)
+{
+	Brush *brush;
+
+	brush = BKE_libblock_alloc(bmain, ID_BR, name);
+
+	BKE_brush_init(brush);
+
+	brush->ob_mode = ob_mode;
 
 	return brush;
 }

@@ -69,6 +69,7 @@ typedef struct CurveCache {
 void BKE_curve_unlink(struct Curve *cu);
 void BKE_curve_free(struct Curve *cu);
 void BKE_curve_editfont_free(struct Curve *cu);
+void BKE_curve_init(struct Curve *cu);
 struct Curve *BKE_curve_add(struct Main *bmain, const char *name, int type);
 struct Curve *BKE_curve_copy(struct Curve *cu);
 void BKE_curve_make_local(struct Curve *cu);

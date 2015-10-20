@@ -80,8 +80,10 @@ static const char *modifier_name[LS_MODIFIER_NUM] = {
 	"3D Curvature",
 };
 
-static void default_linestyle_settings(FreestyleLineStyle *linestyle)
+void BKE_linestyle_init(FreestyleLineStyle *linestyle)
 {
+	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(linestyle, id));
+
 	linestyle->panel = LS_PANEL_STROKES;
 	linestyle->r = linestyle->g = linestyle->b = 0.0f;
 	linestyle->alpha = 1.0f;
@@ -118,7 +120,7 @@ FreestyleLineStyle *BKE_linestyle_new(struct Main *bmain, const char *name)
 
 	linestyle = (FreestyleLineStyle *)BKE_libblock_alloc(bmain, ID_LS, name);
 
-	default_linestyle_settings(linestyle);
+	BKE_linestyle_init(linestyle);
 
 	return linestyle;
 }

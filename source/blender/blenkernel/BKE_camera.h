@@ -50,6 +50,7 @@ struct GPUFXSettings;
 
 /* Camera Datablock */
 
+void BKE_camera_init(struct Camera *cam);
 void *BKE_camera_add(struct Main *bmain, const char *name);
 struct Camera *BKE_camera_copy(struct Camera *cam);
 void BKE_camera_make_local(struct Camera *cam);

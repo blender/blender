@@ -42,6 +42,7 @@ struct Lamp;
 struct Main;
 struct Scene;
 
+void BKE_lamp_init(struct Lamp *la);
 struct Lamp *BKE_lamp_add(struct Main *bmain, const char *name) ATTR_WARN_UNUSED_RESULT;
 struct Lamp *BKE_lamp_copy(struct Lamp *la) ATTR_WARN_UNUSED_RESULT;
 struct Lamp *localize_lamp(struct Lamp *la) ATTR_WARN_UNUSED_RESULT;

@@ -53,12 +53,10 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 
-Lamp *BKE_lamp_add(Main *bmain, const char *name)
+void BKE_lamp_init(Lamp *la)
 {
-	Lamp *la;
-	
-	la =  BKE_libblock_alloc(bmain, ID_LA, name);
-	
+	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(la, id));
+
 	la->r = la->g = la->b = la->k = 1.0f;
 	la->haint = la->energy = 1.0f;
 	la->dist = 25.0f;
@@ -100,6 +98,16 @@ Lamp *BKE_lamp_add(Main *bmain, const char *name)
 	la->shadow_frustum_size = 10.0f;
 	
 	curvemapping_initialize(la->curfalloff);
+}
+
+Lamp *BKE_lamp_add(Main *bmain, const char *name)
+{
+	Lamp *la;
+
+	la =  BKE_libblock_alloc(bmain, ID_LA, name);
+
+	BKE_lamp_init(la);
+
 	return la;
 }
 

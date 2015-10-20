@@ -203,6 +203,26 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 	return vfont->data;
 }
 
+/* Bad naming actually in this case... */
+void BKE_vfont_init(VFont *vfont)
+{
+	PackedFile *pf = get_builtin_packedfile();
+
+	if (pf) {
+		VFontData *vfd;
+
+		vfd = BLI_vfontdata_from_freetypefont(pf);
+		if (vfd) {
+			vfont->data = vfd;
+
+			BLI_strncpy(vfont->name, FO_BUILTIN_NAME, sizeof(vfont->name));
+		}
+
+		/* Free the packed file */
+		freePackedFile(pf);
+	}
+}
+
 VFont *BKE_vfont_load(Main *bmain, const char *filepath)
 {
 	char filename[FILE_MAXFILE];

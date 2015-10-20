@@ -40,6 +40,7 @@ void BKE_brush_system_init(void);
 void BKE_brush_system_exit(void);
 
 /* datablock functions */
+void BKE_brush_init(struct Brush *brush);
 struct Brush *BKE_brush_add(struct Main *bmain, const char *name, short ob_mode);
 struct Brush *BKE_brush_first_search(struct Main *bmain, short ob_mode);
 struct Brush *BKE_brush_copy(struct Brush *brush);

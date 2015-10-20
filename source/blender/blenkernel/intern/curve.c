@@ -161,15 +161,14 @@ void BKE_curve_free(Curve *cu)
 		MEM_freeN(cu->tb);
 }
 
-Curve *BKE_curve_add(Main *bmain, const char *name, int type)
+void BKE_curve_init(Curve *cu)
 {
-	Curve *cu;
+	/* BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(cu, id)); */  /* cu->type is already initialized... */
 
-	cu = BKE_libblock_alloc(bmain, ID_CU, name);
 	copy_v3_fl(cu->size, 1.0f);
 	cu->flag = CU_FRONT | CU_BACK | CU_DEFORM_BOUNDS_OFF | CU_PATH_RADIUS;
 	cu->pathlen = 100;
-	cu->resolu = cu->resolv = (type == OB_SURF) ? 4 : 12;
+	cu->resolu = cu->resolv = (cu->type == OB_SURF) ? 4 : 12;
 	cu->width = 1.0;
 	cu->wordspace = 1.0;
 	cu->spacing = cu->linedist = 1.0;
@@ -179,7 +178,6 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
 	cu->smallcaps_scale = 0.75f;
 	/* XXX: this one seems to be the best one in most cases, at least for curve deform... */
 	cu->twist_mode = CU_TWIST_MINIMUM;
-	cu->type = type;
 	cu->bevfac1 = 0.0f;
 	cu->bevfac2 = 1.0f;
 	cu->bevfac1_mapping = CU_BEVFAC_MAP_RESOLU;
@@ -187,7 +185,7 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
 
 	cu->bb = BKE_boundbox_alloc_unit();
 
-	if (type == OB_FONT) {
+	if (cu->type == OB_FONT) {
 		cu->vfont = cu->vfontb = cu->vfonti = cu->vfontbi = BKE_vfont_builtin_get();
 		cu->vfont->id.us += 4;
 		cu->str = MEM_mallocN(12, "str");
@@ -198,6 +196,16 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
 		cu->tb = MEM_callocN(MAXTEXTBOX * sizeof(TextBox), "textbox");
 		cu->tb[0].w = cu->tb[0].h = 0.0;
 	}
+}
+
+Curve *BKE_curve_add(Main *bmain, const char *name, int type)
+{
+	Curve *cu;
+
+	cu = BKE_libblock_alloc(bmain, ID_CU, name);
+	cu->type = type;
+
+	BKE_curve_init(cu);
 
 	return cu;
 }

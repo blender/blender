@@ -261,6 +261,8 @@ typedef struct PreviewImage {
 
 #define ID_BLEND_PATH(_bmain, _id) ((_id)->lib ? (_id)->lib->filepath : (_bmain)->name)
 
+#define ID_MISSING(_id) (((_id)->flag & LIB_MISSING) != 0)
+
 #ifdef GS
 #  undef GS
 #endif
@@ -280,6 +282,8 @@ enum {
 	LIB_TESTIND         = (LIB_NEED_EXPAND | LIB_INDIRECT),
 	LIB_READ            = 1 << 4,
 	LIB_NEED_LINK       = 1 << 5,
+	/* tag datablock as a place-holder (because the real one could not be linked from its library e.g.). */
+	LIB_MISSING         = 1 << 6,
 
 	LIB_NEW             = 1 << 8,
 	LIB_FAKEUSER        = 1 << 9,

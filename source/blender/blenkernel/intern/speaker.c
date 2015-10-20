@@ -37,11 +37,9 @@
 #include "BKE_main.h"
 #include "BKE_speaker.h"
 
-void *BKE_speaker_add(Main *bmain, const char *name)
+void BKE_speaker_init(Speaker *spk)
 {
-	Speaker *spk;
-
-	spk =  BKE_libblock_alloc(bmain, ID_SPK, name);
+	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(spk, id));
 
 	spk->attenuation = 1.0f;
 	spk->cone_angle_inner = 360.0f;
@@ -55,6 +53,15 @@ void *BKE_speaker_add(Main *bmain, const char *name)
 	spk->volume = 1.0f;
 	spk->volume_max = 1.0f;
 	spk->volume_min = 0.0f;
+}
+
+void *BKE_speaker_add(Main *bmain, const char *name)
+{
+	Speaker *spk;
+
+	spk =  BKE_libblock_alloc(bmain, ID_SPK, name);
+
+	BKE_speaker_init(spk);
 
 	return spk;
 }
