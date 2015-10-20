@@ -1613,6 +1613,11 @@ int GPU_offscreen_height(const GPUOffScreen *ofs)
 	return ofs->color->h_orig;
 }
 
+int GPU_offscreen_color_texture(const GPUOffScreen *ofs)
+{
+	return ofs->color->bindcode;
+}
+
 /* GPUShader */
 
 struct GPUShader {

@@ -55,7 +55,7 @@
 #define PY_MODULE_ADD_CONSTANT(module, name) PyModule_AddIntConstant(module, # name, name)
 
 PyDoc_STRVAR(M_gpu_doc,
-"This module provides access to the GLSL shader."
+"This module provides access to the GLSL shader and Offscreen rendering functionalities."
 );
 static struct PyModuleDef gpumodule = {
 	PyModuleDef_HEAD_INIT,
@@ -309,12 +309,25 @@ static PyMethodDef meth_export_shader[] = {
 	{"export_shader", (PyCFunction)GPU_export_shader, METH_VARARGS | METH_KEYWORDS, GPU_export_shader_doc}
 };
 
+/* -------------------------------------------------------------------- */
+/* Initialize Module */
+
 PyObject *GPU_initPython(void)
 {
-	PyObject *module = PyInit_gpu();
-	PyModule_AddObject(module, "export_shader", (PyObject *)PyCFunction_New(meth_export_shader, NULL));
-	PyDict_SetItemString(PyImport_GetModuleDict(), "gpu", module);
+	PyObject *module;
+	PyObject *submodule;
+	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
 
+	module = PyInit_gpu();
+
+	PyModule_AddObject(module, "export_shader", (PyObject *)PyCFunction_New(meth_export_shader, NULL));
+
+	/* gpu.offscreen */
+	PyModule_AddObject(module, "offscreen", (submodule = BPyInit_gpu_offscreen()));
+	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
+	Py_INCREF(submodule);
+
+	PyDict_SetItemString(PyImport_GetModuleDict(), "gpu", module);
 	return module;
 }
 

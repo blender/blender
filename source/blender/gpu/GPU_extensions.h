@@ -188,6 +188,7 @@ void GPU_offscreen_unbind(GPUOffScreen *ofs, bool restore);
 void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels);
 int GPU_offscreen_width(const GPUOffScreen *ofs);
 int GPU_offscreen_height(const GPUOffScreen *ofs);
+int GPU_offscreen_color_texture(const GPUOffScreen *ofs);
 
 /* Builtin/Non-generated shaders */
 typedef enum GPUProgramType {
