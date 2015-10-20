@@ -27,11 +27,6 @@
  * these functions are slightly different from the original Python API,
  * don't throw SIGABRT even if the thread state is NULL. */
 
-/* grr, python redefines */
-#ifdef _POSIX_C_SOURCE
-#  undef _POSIX_C_SOURCE
-#endif
-
 #include <Python.h>
 
 #include "BLI_utildefines.h"

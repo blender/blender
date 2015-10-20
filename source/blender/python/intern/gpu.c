@@ -32,11 +32,6 @@
  * from blender materials.
  */
 
-/* python redefines */
-#ifdef _POSIX_C_SOURCE
-#undef _POSIX_C_SOURCE
-#endif
-
 #include <Python.h>
 
 #include "DNA_scene_types.h"
