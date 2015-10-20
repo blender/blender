@@ -522,8 +522,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.motion_blur_position = EnumProperty(
             name="Motion Blur Position",
             default='CENTER',
-            description="Specifies an offset for the shutter’s time interval "
-                        "which allows to change the motion blur trails",
+            description="Offset for the shutter's time interval, allows to change the motion blur trails",
             items=(
                 ('START', "Start on Frame", "The shutter opens at the current frame"),
                 ('CENTER', "Center on Frame", "The shutter is open during the current frame"),
