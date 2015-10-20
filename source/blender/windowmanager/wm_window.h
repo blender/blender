@@ -77,6 +77,7 @@ void		wm_window_IME_end	(wmWindow *win);
 #endif
 
 /* *************** window operators ************** */
+int			wm_window_close_exec(bContext *C, struct wmOperator *op);
 int			wm_window_duplicate_exec(bContext *C, struct wmOperator *op);
 int			wm_window_fullscreen_toggle_exec(bContext *C, struct wmOperator *op);
 

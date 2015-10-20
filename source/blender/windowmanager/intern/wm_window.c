@@ -712,6 +712,14 @@ wmWindow *WM_window_open_temp(bContext *C, const rcti *rect_init, int type)
 
 /* ****************** Operators ****************** */
 
+int wm_window_close_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *win = CTX_wm_window(C);
+	wm_window_close(C, wm, win);
+	return OPERATOR_FINISHED;
+}
+
 /* operator callback */
 int wm_window_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {

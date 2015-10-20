@@ -2247,6 +2247,17 @@ static int wm_operator_winactive_normal(bContext *C)
 	return 1;
 }
 
+/* included for script-access */
+static void WM_OT_window_close(wmOperatorType *ot)
+{
+	ot->name = "Close Window";
+	ot->idname = "WM_OT_window_close";
+	ot->description = "Close the current Blender window";
+
+	ot->exec = wm_window_close_exec;
+	ot->poll = WM_operator_winactive;
+}
+
 static void WM_OT_window_duplicate(wmOperatorType *ot)
 {
 	ot->name = "Duplicate Window";
@@ -5250,6 +5261,7 @@ void wm_operatortype_init(void)
 	/* reserve size is set based on blender default setup */
 	global_ops_hash = BLI_ghash_str_new_ex("wm_operatortype_init gh", 2048);
 
+	WM_operatortype_append(WM_OT_window_close);
 	WM_operatortype_append(WM_OT_window_duplicate);
 	WM_operatortype_append(WM_OT_read_history);
 	WM_operatortype_append(WM_OT_read_homefile);
