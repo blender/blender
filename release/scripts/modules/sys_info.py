@@ -49,15 +49,16 @@ def write_sysinfo(op):
 
 
     header = "= Blender %s System Information =\n" % bpy.app.version_string
-    lilies = "%s\n\n" % (len(header) * "=")
-    firstlilies = "%s\n" % (len(header) * "=")
-    output.write(firstlilies)
+    lilies = "%s\n\n" % ((len(header) - 1) * "=")
+    output.write(lilies[:-1])
     output.write(header)
     output.write(lilies)
 
+    def title(text):
+        return "\n%s:\n%s" % (text, lilies)
+
     # build info
-    output.write("\nBlender:\n")
-    output.write(lilies)
+    output.write(title("Blender"))
     output.write("version: %s, branch: %s, commit date: %s %s, hash: %s, type: %s\n" %
         (bpy.app.version_string,
          prepr(bpy.app.build_branch),
@@ -76,16 +77,16 @@ def write_sysinfo(op):
     output.write("build system: %s\n" % prepr(bpy.app.build_system))
 
     # python info
-    output.write("\nPython:\n")
-    output.write(lilies)
+    output.write(title("Python"))
     output.write("version: %s\n" % (sys.version))
     output.write("paths:\n")
     for p in sys.path:
-        output.write("\t%r\n" % (p))
+        output.write("\t%r\n" % p)
 
-    output.write("\nDirectories:\n")
-    output.write(lilies)
-    output.write("scripts: %r\n" % (bpy.utils.script_paths()))
+    output.write(title("Directories"))
+    output.write("scripts:\n")
+    for p in bpy.utils.script_paths():
+        output.write("\t%r\n" % p)
     output.write("user scripts: %r\n" % (bpy.utils.script_path_user()))
     output.write("pref scripts: %r\n" % (bpy.utils.script_path_pref()))
     output.write("datafiles: %r\n" % (bpy.utils.user_resource('DATAFILES')))
@@ -94,8 +95,7 @@ def write_sysinfo(op):
     output.write("autosave: %r\n" % (bpy.utils.user_resource('AUTOSAVE')))
     output.write("tempdir: %r\n" % (bpy.app.tempdir))
 
-    output.write("\nFFmpeg:\n")
-    output.write(lilies)
+    output.write(title("FFmpeg"))
     ffmpeg = bpy.app.ffmpeg
     if ffmpeg.supported:
         for lib in ("avcodec", "avdevice", "avformat", "avutil", "swscale"):
@@ -105,8 +105,7 @@ def write_sysinfo(op):
         output.write("Blender was built without FFmpeg support\n")
 
     if bpy.app.build_options.sdl:
-        output.write("\nSDL\n")
-        output.write(lilies)
+        output.write(title("SDL"))
         output.write("Version: %s\n" % bpy.app.sdl.version_string)
         output.write("Loading method: ")
         if bpy.app.build_options.sdl_dynload:
@@ -116,8 +115,7 @@ def write_sysinfo(op):
         if not bpy.app.sdl.available:
             output.write("WARNING: Blender could not load SDL library\n")
 
-    output.write("\nOther Libraries:\n")
-    output.write(lilies)
+    output.write(title("Other Libraries"))
     ocio = bpy.app.ocio
     output.write("OpenColorIO: ")
     if ocio.supported:
@@ -152,8 +150,7 @@ def write_sysinfo(op):
     if bpy.app.background:
         output.write("\nOpenGL: missing, background mode\n")
     else:
-        output.write("\nOpenGL\n")
-        output.write(lilies)
+        output.write(title("OpenGL"))
         version = bgl.glGetString(bgl.GL_RENDERER)
         output.write("renderer:\t%r\n" % version)
         output.write("vendor:\t\t%r\n" % (bgl.glGetString(bgl.GL_VENDOR)))
@@ -165,8 +162,7 @@ def write_sysinfo(op):
         for l in glext:
             output.write("\t%s\n" % l)
 
-        output.write("\nImplementation Dependent OpenGL Limits:\n")
-        output.write(lilies)
+        output.write(title("Implementation Dependent OpenGL Limits"))
         limit = bgl.Buffer(bgl.GL_INT, 1)
         bgl.glGetIntegerv(bgl.GL_MAX_TEXTURE_UNITS, limit)
         output.write("Maximum Fixed Function Texture Units:\t%d\n" % limit[0])
@@ -190,8 +186,7 @@ def write_sysinfo(op):
 
     if bpy.app.build_options.cycles:
         import cycles
-        output.write("\nCycles\n")
-        output.write(lilies)
+        output.write(title("Cycles"))
         output.write(cycles.engine.system_info())
 
     output.current_line_index = 0
