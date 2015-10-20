@@ -63,6 +63,14 @@
 
 #include "MEM_guardedalloc.h"
 
+static void rna_ImagePackedFile_save(ImagePackedFile *imapf, ReportList *reports)
+{
+	if (writePackedFile(reports, imapf->filepath, imapf->packedfile, 0) != RET_OK) {
+		BKE_reportf(reports, RPT_ERROR, "Image could not save packed file to '%s'",
+		            imapf->filepath);
+	}
+}
+
 static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports, const char *path, Scene *scene)
 {
 	ImBuf *ibuf;
@@ -115,17 +123,10 @@ static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *r
 		BLI_strncpy(filename, image->name, sizeof(filename));
 		BLI_path_abs(filename, ID_BLEND_PATH(bmain, &image->id));
 
-		if (BKE_image_has_packedfile(image)) {
-			ImagePackedFile *imapf;
+		/* note, we purposefully ignore packed files here,
+		 * developers need to explicitly write them via 'packed_files' */
 
-			for (imapf = image->packedfiles.first; imapf; imapf = imapf->next) {
-				if (writePackedFile(reports, imapf->filepath, imapf->packedfile, 0) != RET_OK) {
-					BKE_reportf(reports, RPT_ERROR, "Image '%s' could not save packed file to '%s'",
-					            image->id.name + 2, imapf->filepath);
-				}
-			}
-		}
-		else if (IMB_saveiff(ibuf, filename, ibuf->flags)) {
+		if (IMB_saveiff(ibuf, filename, ibuf->flags)) {
 			image->type = IMA_TYPE_IMAGE;
 
 			if (image->source == IMA_SRC_GENERATED)
@@ -294,6 +295,15 @@ static void rna_Image_buffers_free(Image *image)
 }
 
 #else
+
+void RNA_api_image_packed_file(StructRNA *srna)
+{
+	FunctionRNA *func;
+
+	func = RNA_def_function(srna, "save", "rna_ImagePackedFile_save");
+	RNA_def_function_ui_description(func, "Save the packed file to its filepath");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+}
 
 void RNA_api_image(StructRNA *srna)
 {
