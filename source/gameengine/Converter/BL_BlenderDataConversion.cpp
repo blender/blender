@@ -562,11 +562,11 @@ static void GetUVs(BL_Material *material, MTF_localLayer *layers, MFace *mface, 
 // ------------------------------------
 static bool ConvertMaterial(
 	BL_Material *material,
-	Material *mat, 
-	MTFace* tface,  
+	Material *mat,
+	MTFace *tface,
 	const char *tfaceName,
-	MFace* mface, 
-	MCol* mmcol,
+	MFace *mface,
+	MCol *mmcol,
 	bool glslmat)
 {
 	material->Initialize();
@@ -583,41 +583,41 @@ static bool ConvertMaterial(
 	if (validmat) {
 
 		// use lighting?
-		material->ras_mode |= ( mat->mode & MA_SHLESS )?0:USE_LIGHT;
-		material->ras_mode |= ( mat->game.flag & GEMAT_BACKCULL )?0:TWOSIDED;
+		material->ras_mode |= (mat->mode & MA_SHLESS) ? 0 : USE_LIGHT;
+		material->ras_mode |= (mat->game.flag & GEMAT_BACKCULL) ? 0 : TWOSIDED;
 
 		// cast shadows?
-		material->ras_mode |= ( (mat->mode2 & MA_CASTSHADOW) && (mat->mode & MA_SHADBUF) )?CAST_SHADOW:0;
+		material->ras_mode |= ((mat->mode2 & MA_CASTSHADOW) && (mat->mode & MA_SHADBUF)) ? CAST_SHADOW : 0;
 
 		// only shadows?
-		material->ras_mode |= ( mat->mode & MA_ONLYCAST )?ONLY_SHADOW:0;
+		material->ras_mode |= (mat->mode & MA_ONLYCAST) ? ONLY_SHADOW : 0;
 
-		MTex *mttmp = 0;
+		MTex *mttmp = NULL;
 		int valid_index = 0;
-		
+
 		/* In Multitexture use the face texture if and only if
 		 * it is set in the buttons
 		 * In GLSL is not working yet :/ 3.2011 */
 		bool facetex = false;
-		if (validface && mat->mode &MA_FACETEXTURE) 
+		if (validface && mat->mode & MA_FACETEXTURE) {
 			facetex = true;
-	
-		// foreach MTex
-		for (int i=0; i<MAXTEX; i++) {
-			// use face tex
+		}
 
-			if (i==0 && facetex ) {
+		// foreach MTex
+		for (int i = 0; i < MAXTEX; i++) {
+			// use face tex
+			if (i == 0 && facetex ) {
 				facetex = false;
-				Image*tmp = (Image*)(tface->tpage);
+				Image *tmp = (Image *)(tface->tpage);
 
 				if (tmp) {
 					material->img[i] = tmp;
 					material->texname[i] = material->img[i]->id.name;
 					material->flag[i] |= MIPMAP;
 
-					material->flag[i] |= ( mat->game.alpha_blend & GEMAT_ALPHA_SORT )?USEALPHA:0;
-					material->flag[i] |= ( mat->game.alpha_blend & GEMAT_ALPHA )?USEALPHA:0;
-					material->flag[i] |= ( mat->game.alpha_blend & GEMAT_ADD )?CALCALPHA:0;
+					material->flag[i] |= (mat->game.alpha_blend & GEMAT_ALPHA_SORT) ? USEALPHA : 0;
+					material->flag[i] |= (mat->game.alpha_blend & GEMAT_ALPHA) ? USEALPHA : 0;
+					material->flag[i] |= (mat->game.alpha_blend & GEMAT_ADD) ? CALCALPHA : 0;
 
 					if (material->img[i]->flag & IMA_REFLECT) {
 						material->mapping[i].mapping |= USEREFL;
@@ -643,44 +643,43 @@ static bool ConvertMaterial(
 			mttmp = getMTexFromMaterial(mat, i);
 			if (mttmp) {
 				if (mttmp->tex) {
-					if ( mttmp->tex->type == TEX_IMAGE ) {
+					if (mttmp->tex->type == TEX_IMAGE) {
 						material->mtexname[i] = mttmp->tex->id.name;
 						material->img[i] = mttmp->tex->ima;
-						if ( material->img[i] ) {
+						if (material->img[i]) {
 
 							material->texname[i] = material->img[i]->id.name;
-							material->flag[i] |= ( mttmp->tex->imaflag &TEX_MIPMAP )?MIPMAP:0;
-							// -----------------------
-							if (material->img[i] && (material->img[i]->flag & IMA_IGNORE_ALPHA) == 0)
-								material->flag[i]	|= USEALPHA;
-							// -----------------------
-							if ( mttmp->tex->imaflag &TEX_CALCALPHA ) {
-								material->flag[i]	|= CALCALPHA;
+							material->flag[i] |= (mttmp->tex->imaflag &TEX_MIPMAP) ? MIPMAP : 0;
+							if (material->img[i] && (material->img[i]->flag & IMA_IGNORE_ALPHA) == 0) {
+								material->flag[i] |= USEALPHA;
 							}
-							else if (mttmp->tex->flag &TEX_NEGALPHA) {
-								material->flag[i]	|= USENEGALPHA;
+							if (mttmp->tex->imaflag & TEX_CALCALPHA) {
+								material->flag[i] |= CALCALPHA;
+							}
+							else if (mttmp->tex->flag & TEX_NEGALPHA) {
+								material->flag[i] |= USENEGALPHA;
 							}
 
 							material->color_blend[i] = mttmp->colfac;
-							material->flag[i] |= ( mttmp->mapto  & MAP_ALPHA		)?TEXALPHA:0;
-							material->flag[i] |= ( mttmp->texflag& MTEX_NEGATIVE	)?TEXNEG:0;
+							material->flag[i] |= (mttmp->mapto & MAP_ALPHA) ? TEXALPHA : 0;
+							material->flag[i] |= (mttmp->texflag & MTEX_NEGATIVE) ? TEXNEG : 0;
 
-							if (!glslmat && (material->flag[i] & TEXALPHA))
+							if (!glslmat && (material->flag[i] & TEXALPHA)) {
 								texalpha = 1;
+							}
 						}
 					}
 					else if (mttmp->tex->type == TEX_ENVMAP) {
-						if ( mttmp->tex->env->stype == ENV_LOAD ) {
-					
-							material->mtexname[i]     = mttmp->tex->id.name;
+						if (mttmp->tex->env->stype == ENV_LOAD) {
+							material->mtexname[i] = mttmp->tex->id.name;
 							EnvMap *env = mttmp->tex->env;
 							env->ima = mttmp->tex->ima;
 							material->cubemap[i] = env;
 
-							if (material->cubemap[i])
-							{
-								if (!material->cubemap[i]->cube[0])
+							if (material->cubemap[i]) {
+								if (!material->cubemap[i]->cube[0]) {
 									BL_Texture::SplitEnvMap(material->cubemap[i]);
+								}
 
 								material->texname[i] = material->cubemap[i]->ima->id.name;
 								material->mapping[i].mapping |= USEENV;
@@ -695,29 +694,36 @@ static bool ConvertMaterial(
 					if (mat->septex & (1 << i)) {
 						// If this texture slot isn't in use, set it to disabled to prevent multi-uv problems
 						material->mapping[i].mapping = DISABLE;
-					} else {
-						material->mapping[i].mapping |= ( mttmp->texco  & TEXCO_REFL	)?USEREFL:0;
+					} 
+					else {
+						material->mapping[i].mapping |= (mttmp->texco & TEXCO_REFL) ? USEREFL : 0;
 
 						if (mttmp->texco & TEXCO_OBJECT) {
 							material->mapping[i].mapping |= USEOBJ;
-							if (mttmp->object)
+							if (mttmp->object) {
 								material->mapping[i].objconame = mttmp->object->id.name;
+							}
 						}
-						else if (mttmp->texco &TEXCO_REFL)
+						else if (mttmp->texco & TEXCO_REFL) {
 							material->mapping[i].mapping |= USEREFL;
-						else if (mttmp->texco &(TEXCO_ORCO|TEXCO_GLOB))
+						}
+						else if (mttmp->texco & (TEXCO_ORCO | TEXCO_GLOB)) {
 							material->mapping[i].mapping |= USEORCO;
+						}
 						else if (mttmp->texco & TEXCO_UV) {
 							/* string may be "" but thats detected as empty after */
 							material->mapping[i].uvCoName = mttmp->uvname;
 							material->mapping[i].mapping |= USEUV;
 						}
-						else if (mttmp->texco &TEXCO_NORM)
+						else if (mttmp->texco & TEXCO_NORM) {
 							material->mapping[i].mapping |= USENORM;
-						else if (mttmp->texco &TEXCO_TANGENT)
+						}
+						else if (mttmp->texco & TEXCO_TANGENT) {
 							material->mapping[i].mapping |= USETANG;
-						else
+						}
+						else {
 							material->mapping[i].mapping |= DISABLE;
+						}
 
 						material->mapping[i].scale[0] = mttmp->size[0];
 						material->mapping[i].scale[1] = mttmp->size[1];
@@ -771,59 +777,60 @@ static bool ConvertMaterial(
 
 		material->num_enabled = valid_index;
 
-		material->speccolor[0]	= mat->specr;
-		material->speccolor[1]	= mat->specg;
-		material->speccolor[2]	= mat->specb;
-		material->hard			= (float)mat->har/4.0f;
-		material->matcolor[0]	= mat->r;
-		material->matcolor[1]	= mat->g;
-		material->matcolor[2]	= mat->b;
-		material->matcolor[3]	= mat->alpha;
-		material->alpha			= mat->alpha;
-		material->emit			= mat->emit;
-		material->spec_f		= mat->spec;
-		material->ref			= mat->ref;
-		material->amb			= mat->amb;
+		material->speccolor[0] = mat->specr;
+		material->speccolor[1] = mat->specg;
+		material->speccolor[2] = mat->specb;
+		material->hard = (float)mat->har / 4.0f;
+		material->matcolor[0] = mat->r;
+		material->matcolor[1] = mat->g;
+		material->matcolor[2] = mat->b;
+		material->matcolor[3] = mat->alpha;
+		material->alpha = mat->alpha;
+		material->emit = mat->emit;
+		material->spec_f = mat->spec;
+		material->ref = mat->ref;
+		material->amb = mat->amb;
 
-		material->ras_mode |= (mat->material_type == MA_TYPE_WIRE)? WIRE: 0;
+		material->ras_mode |= (mat->material_type == MA_TYPE_WIRE) ? WIRE : 0;
 	}
 	else { // No Material
 		int valid = 0;
 
 		// check for tface tex to fallback on
-		if ( validface ) {
-			material->img[0] = (Image*)(tface->tpage);
+		if (validface) {
+			material->img[0] = (Image *)(tface->tpage);
 			// ------------------------
 			if (material->img[0]) {
 				material->texname[0] = material->img[0]->id.name;
-				material->mapping[0].mapping |= ( (material->img[0]->flag & IMA_REFLECT)!=0 )?USEREFL:0;
+				material->mapping[0].mapping |= ((material->img[0]->flag & IMA_REFLECT) != 0) ? USEREFL : 0;
 
 				/* see if depth of the image is 32bits */
 				if (BKE_image_has_alpha(material->img[0])) {
 					material->flag[0] |= USEALPHA;
 					material->alphablend = GEMAT_ALPHA;
 				}
-				else
+				else {
 					material->alphablend = GEMAT_SOLID;
-
+				}
 				valid++;
 			}
 		}
-		else
+		else {
 			material->alphablend = GEMAT_SOLID;
+		}
 
 		material->SetUsers(-1);
-		material->num_enabled	= valid;
-		material->IdMode		= TEXFACE;
-		material->speccolor[0]	= 1.f;
-		material->speccolor[1]	= 1.f;
-		material->speccolor[2]	= 1.f;
-		material->hard			= 35.f;
-		material->matcolor[0]	= 0.5f;
-		material->matcolor[1]	= 0.5f;
-		material->matcolor[2]	= 0.5f;
-		material->spec_f		= 0.5f;
-		material->ref			= 0.8f;
+		material->num_enabled = valid;
+		material->IdMode = TEXFACE;
+		material->speccolor[0] = 1.0f;
+		material->speccolor[1] = 1.0f;
+		material->speccolor[2] = 1.0f;
+		material->hard = 35.0f;
+		material->matcolor[0] = 0.5f;
+		material->matcolor[1] = 0.5f;
+		material->matcolor[2] = 0.5f;
+		material->spec_f = 0.5f;
+		material->ref = 0.8f;
 
 		// No material - old default TexFace properties
 		material->ras_mode |= USE_LIGHT;
@@ -831,13 +838,13 @@ static bool ConvertMaterial(
 
 	/* No material, what to do? let's see what is in the UV and set the material accordingly
 	 * light and visible is always on */
-	if ( validface ) {
-		material->tile	= tface->tile;
+	if (validface) {
+		material->tile = tface->tile;
 	}
 	else {
 		// nothing at all
-		material->alphablend	= GEMAT_SOLID;
-		material->tile		= 0;
+		material->alphablend = GEMAT_SOLID;
+		material->tile = 0;
 	}
 
 	if (validmat && validface) {
@@ -845,13 +852,14 @@ static bool ConvertMaterial(
 	}
 
 	// with ztransp enabled, enforce alpha blending mode
-	if (validmat && (mat->mode & MA_TRANSP) && (mat->mode & MA_ZTRANSP) && (material->alphablend == GEMAT_SOLID))
+	if (validmat && (mat->mode & MA_TRANSP) && (mat->mode & MA_ZTRANSP) && (material->alphablend == GEMAT_SOLID)) {
 		material->alphablend = GEMAT_ALPHA;
+	}
 
 	// always zsort alpha + add
-	if ((ELEM(material->alphablend, GEMAT_ALPHA, GEMAT_ALPHA_SORT, GEMAT_ADD) || texalpha) && (material->alphablend != GEMAT_CLIP )) {
+	if ((ELEM(material->alphablend, GEMAT_ALPHA, GEMAT_ALPHA_SORT, GEMAT_ADD) || texalpha) && (material->alphablend != GEMAT_CLIP)) {
 		material->ras_mode |= ALPHA;
-		material->ras_mode |= (mat && (mat->game.alpha_blend & GEMAT_ALPHA_SORT))? ZSORT: 0;
+		material->ras_mode |= (mat && (mat->game.alpha_blend & GEMAT_ALPHA_SORT)) ? ZSORT : 0;
 	}
 
 	// XXX The RGB values here were meant to be temporary storage for the conversion process,
@@ -860,16 +868,16 @@ static bool ConvertMaterial(
 	GetRGB(use_vcol, mface, mmcol, mat, rgb);
 
 	// swap the material color, so MCol on bitmap font works
-	if (validmat && (use_vcol == false) && (mat->game.flag & GEMAT_TEXT))
-	{
+	if (validmat && (use_vcol == false) && (mat->game.flag & GEMAT_TEXT)) {
 		material->rgb[0] = KX_rgbaint2uint_new(rgb[0]);
 		material->rgb[1] = KX_rgbaint2uint_new(rgb[1]);
 		material->rgb[2] = KX_rgbaint2uint_new(rgb[2]);
 		material->rgb[3] = KX_rgbaint2uint_new(rgb[3]);
 	}
 
-	if (validmat)
-		material->matname	=(mat->id.name);
+	if (validmat) {
+		material->matname =(mat->id.name);
+	}
 
 	if (tface) {
 		ME_MTEXFACE_CPY(&material->mtexpoly, tface);
@@ -877,7 +885,7 @@ static bool ConvertMaterial(
 	else {
 		memset(&material->mtexpoly, 0, sizeof(material->mtexpoly));
 	}
-	material->material	= mat;
+	material->material = mat;
 	return true;
 }
 
