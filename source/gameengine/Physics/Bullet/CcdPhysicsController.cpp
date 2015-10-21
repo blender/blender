@@ -1858,8 +1858,10 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject *meshobj, DerivedMesh *dm,
 	if (!dm) {
 		free_dm = true;
 		dm = CDDM_from_mesh(meshobj->GetMesh());
-		DM_ensure_tessface(dm);
 	}
+
+	// Some meshes with modifiers returns 0 polys, call DM_ensure_tessface avoid this.
+	DM_ensure_tessface(dm);
 
 	MVert *mvert = dm->getVertArray(dm);
 	MFace *mface = dm->getTessFaceArray(dm);
