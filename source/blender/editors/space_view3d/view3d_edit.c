@@ -1470,7 +1470,7 @@ static void view3d_ndof_orbit(const struct wmNDOFMotionData *ndof, ScrArea *sa, 
 
 		/* Perform the up/down rotation */
 		angle = ndof->dt * rot[0];
-		axis_angle_to_quat(quat, xvec, angle * 2);
+		axis_angle_to_quat(quat, xvec, angle);
 		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, quat);
 
 		/* Perform the orbital rotation */
@@ -1482,7 +1482,7 @@ static void view3d_ndof_orbit(const struct wmNDOFMotionData *ndof, ScrArea *sa, 
 		rv3d->rot_axis[1] = 0;
 		rv3d->rot_axis[2] = 1;
 
-		axis_angle_to_quat_single(quat, 'Z', angle * 2);
+		axis_angle_to_quat_single(quat, 'Z', angle);
 		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, quat);
 
 	}
