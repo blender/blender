@@ -1016,6 +1016,20 @@ void angle_to_mat2(float mat[2][2], const float angle)
 	mat[1][1] =  angle_cos;
 }
 
+void axis_angle_to_quat_single(float q[4], const char axis, const float angle)
+{
+	const float angle_half = angle * 0.5f;
+	const float angle_cos = cosf(angle_half);
+	const float angle_sin = sinf(angle_half);
+	const int axis_index = (axis - 'X');
+
+	assert(axis >= 'X' && axis <= 'Z');
+
+	q[0] = angle_cos;
+	zero_v3(q + 1);
+	q[axis_index + 1] = angle_sin;
+}
+
 /****************************** Exponential Map ******************************/
 
 void quat_normalized_to_expmap(float expmap[3], const float q[4])

@@ -720,8 +720,6 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	float dvec[3] = {0, 0, 0}; /* this is the direction thast added to the view offset per redraw */
 
 	/* Camera Uprighting variables */
-	float upvec[3] = {0, 0, 0}; /* stores the view's up vector */
-
 	float moffset[2]; /* mouse offset from the views center */
 	float tmp_quat[4]; /* used for rotating the view */
 
@@ -815,6 +813,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 
 				/* rotate about the X axis- look up/down */
 				if (moffset[1]) {
+					float upvec[3];
 					copy_v3_fl3(upvec, 1.0f, 0.0f, 0.0f);
 					mul_m3_v3(mat, upvec);
 					/* Rotate about the relative up vec */
@@ -830,7 +829,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 
 				/* rotate about the Y axis- look left/right */
 				if (moffset[0]) {
-
+					float upvec[3];
 					/* if we're upside down invert the moffset */
 					copy_v3_fl3(upvec, 0.0f, 1.0f, 0.0f);
 					mul_m3_v3(mat, upvec);
@@ -858,6 +857,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				}
 
 				if (fly->zlock == FLY_AXISLOCK_STATE_ACTIVE) {
+					float upvec[3];
 					copy_v3_fl3(upvec, 1.0f, 0.0f, 0.0f);
 					mul_m3_v3(mat, upvec);
 
@@ -882,6 +882,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 
 				/* only apply xcorrect when mouse isn't applying x rot */
 				if (fly->xlock == FLY_AXISLOCK_STATE_ACTIVE && moffset[1] == 0) {
+					float upvec[3];
 					copy_v3_fl3(upvec, 0.0f, 0.0f, 1.0f);
 					mul_m3_v3(mat, upvec);
 					/* make sure we have some z rolling */
