@@ -1384,16 +1384,14 @@ bool isect_ray_tri_watertight_v3(
 	const float cy = c_ky - sy * c_kz;
 
 	/* Calculate scaled barycentric coordinates. */
-	float u = cx * by - cy * bx;
-	int sign_mask = (float_as_int(u) & (int)0x80000000);
-	float v = ax * cy - ay * cx;
-	float w, det;
+	const float u = cx * by - cy * bx;
+	const float v = ax * cy - ay * cx;
+	const float w = bx * ay - by * ax;
+	float det;
 
-	if (sign_mask != (float_as_int(v) & (int)0x80000000)) {
-		return false;
-	}
-	w = bx * ay - by * ax;
-	if (sign_mask != (float_as_int(w) & (int)0x80000000)) {
+	if ((u < 0.0f || v < 0.0f || w < 0.0f) &&
+	    (u > 0.0f || v > 0.0f || w > 0.0f))
+	{
 		return false;
 	}
 
@@ -1406,8 +1404,9 @@ bool isect_ray_tri_watertight_v3(
 		/* Calculate scaled z-coordinates of vertices and use them to calculate
 		 * the hit distance.
 		 */
+		const int sign_det = (float_as_int(det) & (int)0x80000000);
 		const float t = (u * a_kz + v * b_kz + w * c_kz) * sz;
-		const float sign_t = xor_fl(t, sign_mask);
+		const float sign_t = xor_fl(t, sign_det);
 		if ((sign_t < 0.0f)
 		    /* differ from Cycles, don't read r_lambda's original value
 		     * otherwise we won't match any of the other intersect functions here...
