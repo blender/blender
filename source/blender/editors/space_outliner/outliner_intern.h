@@ -150,8 +150,15 @@ int outliner_item_do_activate(struct bContext *C, int x, int y, bool extend, boo
 
 /* outliner_edit.c ---------------------------------------------- */
 
-void outliner_do_object_operation(struct bContext *C, struct Scene *scene, struct SpaceOops *soops, struct ListBase *lb, 
-                                  void (*operation_cb)(struct bContext *C, struct Scene *scene, struct TreeElement *, struct TreeStoreElem *, TreeStoreElem *));
+void outliner_do_object_operation_ex(
+        struct bContext *C, struct Scene *scene, struct SpaceOops *soops, struct ListBase *lb,
+        void (*operation_cb)(struct bContext *C, struct Scene *scene,
+                             struct TreeElement *, struct TreeStoreElem *, TreeStoreElem *),
+        bool recurse_selected);
+void outliner_do_object_operation(
+        struct bContext *C, struct Scene *scene, struct SpaceOops *soops, struct ListBase *lb,
+        void (*operation_cb)(struct bContext *C, struct Scene *scene,
+                             struct TreeElement *, struct TreeStoreElem *, TreeStoreElem *));
 
 int common_restrict_check(struct bContext *C, struct Object *ob);
 
