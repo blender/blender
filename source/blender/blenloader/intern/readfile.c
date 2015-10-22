@@ -2220,14 +2220,6 @@ static void direct_link_paint_curve(FileData *fd, PaintCurve *pc)
 	pc->points = newdataadr(fd, pc->points);
 }
 
-
-static void direct_link_script(FileData *UNUSED(fd), Script *script)
-{
-	script->id.us = 1;
-	SCRIPT_SET_NULL(script);
-}
-
-
 /* ************ READ PACKEDFILE *************** */
 
 static PackedFile *direct_link_packedfile(FileData *fd, PackedFile *oldpf)
@@ -8034,9 +8026,6 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 			break;
 		case ID_PA:
 			direct_link_particlesettings(fd, (ParticleSettings*)id);
-			break;
-		case ID_SCRIPT:
-			direct_link_script(fd, (Script*)id);
 			break;
 		case ID_GD:
 			direct_link_gpencil(fd, (bGPdata *)id);

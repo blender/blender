@@ -256,7 +256,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 		/* comes from readfile.c */
 		SWAP(ListBase, G.main->wm, bfd->main->wm);
 		SWAP(ListBase, G.main->screen, bfd->main->screen);
-		SWAP(ListBase, G.main->script, bfd->main->script);
 		
 		/* we re-use current screen */
 		curscreen = CTX_wm_screen(C);

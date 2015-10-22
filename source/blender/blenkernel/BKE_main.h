@@ -85,7 +85,6 @@ typedef struct Main {
 	ListBase key;
 	ListBase world;
 	ListBase screen;
-	ListBase script;
 	ListBase vfont;
 	ListBase text;
 	ListBase speaker;

@@ -3246,7 +3246,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		idproperties_fix_group_lengths(main->key);
 		idproperties_fix_group_lengths(main->world);
 		idproperties_fix_group_lengths(main->screen);
-		idproperties_fix_group_lengths(main->script);
 		idproperties_fix_group_lengths(main->vfont);
 		idproperties_fix_group_lengths(main->text);
 		idproperties_fix_group_lengths(main->sound);

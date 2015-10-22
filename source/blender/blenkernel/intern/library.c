@@ -264,8 +264,6 @@ bool id_make_local(ID *id, bool test)
 			return false; /* not implemented */
 		case ID_TXT:
 			return false; /* not implemented */
-		case ID_SCRIPT:
-			return false; /* deprecated */
 		case ID_SO:
 			return false; /* not implemented */
 		case ID_GR:
@@ -360,8 +358,6 @@ bool id_copy(ID *id, ID **newid, bool test)
 		case ID_TXT:
 			if (!test) *newid = (ID *)BKE_text_copy(G.main, (Text *)id);
 			return true;
-		case ID_SCRIPT:
-			return false;  /* deprecated */
 		case ID_SO:
 			return false;  /* not implemented */
 		case ID_GR:
@@ -496,8 +492,6 @@ ListBase *which_libbase(Main *mainlib, short type)
 			return &(mainlib->vfont);
 		case ID_TXT:
 			return &(mainlib->text);
-		case ID_SCRIPT:
-			return &(mainlib->script);
 		case ID_SPK:
 			return &(mainlib->speaker);
 		case ID_SO:
@@ -614,7 +608,6 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++] = &(main->palettes);
 	lb[a++] = &(main->paintcurves);
 	lb[a++] = &(main->brush);
-	lb[a++] = &(main->script);
 	lb[a++] = &(main->particle);
 	lb[a++] = &(main->speaker);
 
@@ -707,9 +700,6 @@ void *BKE_libblock_alloc_notest(short type)
 			break;
 		case ID_TXT:
 			id = MEM_callocN(sizeof(Text), "text");
-			break;
-		case ID_SCRIPT:
-			//XXX id = MEM_callocN(sizeof(Script), "script");
 			break;
 		case ID_SPK:
 			id = MEM_callocN(sizeof(Speaker), "speaker");
@@ -857,9 +847,6 @@ void BKE_libblock_init_empty(ID *id)
 			break;
 		case ID_TXT:
 			BKE_text_init((Text *)id);
-			break;
-		case ID_SCRIPT:
-			BLI_assert(0);
 			break;
 		case ID_SO:
 			/* Another fuzzy case, think NULLified content is OK here... */
@@ -1134,9 +1121,6 @@ void BKE_libblock_free_ex(Main *bmain, void *idv, bool do_id_user)
 			break;
 		case ID_TXT:
 			BKE_text_free((Text *)id);
-			break;
-		case ID_SCRIPT:
-			/* deprecated */
 			break;
 		case ID_SPK:
 			BKE_speaker_free((Speaker *)id);
