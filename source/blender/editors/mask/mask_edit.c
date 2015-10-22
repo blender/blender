@@ -403,6 +403,10 @@ bool ED_mask_selected_minmax(const bContext *C, float min[2], float max[2])
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *mask_layer;
 	bool ok = false;
+
+	if (mask == NULL)
+		return ok;
+
 	INIT_MINMAX2(min, max);
 	for (mask_layer = mask->masklayers.first;
 	     mask_layer != NULL;
