@@ -289,7 +289,6 @@ typedef struct View3D {
 #define RV3D_VIEW_RIGHT			 4
 #define RV3D_VIEW_TOP			 5
 #define RV3D_VIEW_BOTTOM		 6
-#define RV3D_VIEW_PERSPORTHO	 7
 #define RV3D_VIEW_CAMERA		 8
 
 #define RV3D_VIEW_IS_AXIS(view) \

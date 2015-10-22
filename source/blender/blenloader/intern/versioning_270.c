@@ -867,5 +867,46 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		}
+
+		{
+			bScreen *screen;
+#define RV3D_VIEW_PERSPORTHO	 7
+			for (screen = main->screen.first; screen; screen = screen->id.next) {
+				ScrArea *sa;
+				for (sa = screen->areabase.first; sa; sa = sa->next) {
+					SpaceLink *sl;
+					for (sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_VIEW3D) {
+							ARegion *ar;
+							ListBase *lb = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+							for (ar = lb->first; ar; ar = ar->next) {
+								if (ar->regiontype == RGN_TYPE_WINDOW) {
+									if (ar->regiondata) {
+										RegionView3D *rv3d = ar->regiondata;
+										if (rv3d->view == RV3D_VIEW_PERSPORTHO) {
+											rv3d->view = RV3D_VIEW_USER;
+										}
+									}
+								}
+							}
+							break;
+						}
+					}
+				}
+			}
+#undef RV3D_VIEW_PERSPORTHO
+		}
+
+		{
+			Lamp *lamp;
+#define LA_YF_PHOTON	5
+			for (lamp = main->lamp.first; lamp; lamp = lamp->id.next) {
+				if (lamp->type == LA_YF_PHOTON) {
+					lamp->type = LA_LOCAL;
+				}
+			}
+#undef LA_YF_PHOTON
+		}
+
 	}
 }

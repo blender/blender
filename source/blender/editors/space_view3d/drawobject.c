@@ -1344,7 +1344,7 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 	if (is_view) {
 		/* skip drawing extra info */
 	}
-	else if ((la->type == LA_SPOT) || (la->type == LA_YF_PHOTON)) {
+	else if (la->type == LA_SPOT) {
 		float x, y, z, z_abs;
 		copy_v3_fl3(lvec, 0.0f, 0.0f, 1.0f);
 		copy_v3_fl3(vvec, rv3d->persmat[0][2], rv3d->persmat[1][2], rv3d->persmat[2][2]);

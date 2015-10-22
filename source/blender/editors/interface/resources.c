@@ -2646,6 +2646,15 @@ void init_userdef_do_versions(void)
 		}
 	}
 
+	if (!USER_VERSION_ATLEAST(276, 2)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			rgba_char_args_set(btheme->tclip.gp_vertex, 0, 0, 0, 255);
+			rgba_char_args_set(btheme->tclip.gp_vertex_select, 255, 133, 0, 255);
+			btheme->tclip.gp_vertex_size = 3;
+		}
+	}
+
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
 	

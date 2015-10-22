@@ -1615,9 +1615,6 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 			lar= go->lampren;
 			if (lar==NULL) continue;
 			
-			/* yafray: ignore shading by photonlights, not used in Blender */
-			if (lar->type==LA_YF_PHOTON) continue;
-			
 			if (lar->mode & LA_LAYER) if ((lar->lay & shi->obi->lay)==0) continue;
 			if ((lar->lay & shi->lay)==0) continue;
 			
@@ -1858,9 +1855,6 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			lar= go->lampren;
 			if (lar==NULL) continue;
 			
-			/* yafray: ignore shading by photonlights, not used in Blender */
-			if (lar->type==LA_YF_PHOTON) continue;
-			
 			/* test for lamp layer */
 			if (lar->mode & LA_LAYER) if ((lar->lay & shi->obi->lay)==0) continue;
 			if ((lar->lay & shi->lay)==0) continue;
@@ -2035,7 +2029,7 @@ static float lamp_get_data_internal(ShadeInput *shi, GroupObject *go, float col[
 	LampRen *lar = go->lampren;
 	float visifac, inp;
 
-	if (!lar || lar->type == LA_YF_PHOTON
+	if (!lar
 	    || ((lar->mode & LA_LAYER) && (lar->lay & shi->obi->lay) == 0)
 	    || (lar->lay & shi->lay) == 0)
 		return 0.0f;
