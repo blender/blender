@@ -1063,6 +1063,11 @@ AviError AVI_close_compress(AviMovie *movie)
 {
 	int temp, movi_size, i;
 
+	if (movie->fp == NULL) {
+		/* none of the allocations below were done if the file failed to open */
+		return AVI_ERROR_FOUND;
+	}
+
 	fseek(movie->fp, 0L, SEEK_END);
 	movi_size = (int)ftell(movie->fp);
 

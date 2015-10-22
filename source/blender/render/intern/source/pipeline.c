@@ -3486,6 +3486,18 @@ static void get_videos_dimensions(Render *re, RenderData *rd, size_t *r_width, s
 	BKE_scene_multiview_videos_dimensions_get(rd, width, height, r_width, r_height);
 }
 
+static void re_movie_free_all(Render *re, bMovieHandle *mh, size_t totvideos)
+{
+	size_t i;
+
+	for (i = 0; i < totvideos; i++) {
+		mh->end_movie(re->movie_ctx_arr[i]);
+		mh->context_free(re->movie_ctx_arr[i]);
+	}
+
+	MEM_SAFE_FREE(re->movie_ctx_arr);
+}
+
 /* saves images to disk */
 void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_override,
                     unsigned int lay_override, int sfra, int efra, int tfra)
@@ -3510,15 +3522,10 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 		BKE_report(re->reports, RPT_ERROR, "Frame Server only support stereo output for multiview rendering");
 		return;
 	}
-	
-	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
-	/* is also set by caller renderwin.c */
-	G.is_rendering = true;
-
-	re->flag |= R_ANIMATION;
 
 	if (is_movie) {
 		size_t i, width, height;
+		bool is_error = false;
 
 		get_videos_dimensions(re, &rd, &width, &height);
 
@@ -3535,10 +3542,24 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 
 			re->movie_ctx_arr[i] = mh->context_create();
 
-			if (!mh->start_movie(re->movie_ctx_arr[i], scene, &re->r, width, height, re->reports, false, suffix))
-				G.is_break = true;
+			if (!mh->start_movie(re->movie_ctx_arr[i], scene, &re->r, width, height, re->reports, false, suffix)) {
+				is_error = true;
+				break;
+			}
+		}
+
+		if (is_error) {
+			/* report is handled above */
+			re_movie_free_all(re, mh, i + 1);
+			return;
 		}
 	}
+
+	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
+	/* is also set by caller renderwin.c */
+	G.is_rendering = true;
+
+	re->flag |= R_ANIMATION;
 
 	if (mh && mh->get_next_frame) {
 		/* MULTIVIEW_TODO:
@@ -3723,15 +3744,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	
 	/* end movie */
 	if (is_movie) {
-		size_t i;
-		for (i = 0; i < totvideos; i++) {
-			mh->end_movie(re->movie_ctx_arr[i]);
-			mh->context_free(re->movie_ctx_arr[i]);
-		}
-
-		if (re->movie_ctx_arr) {
-			MEM_freeN(re->movie_ctx_arr);
-		}
+		re_movie_free_all(re, mh, totvideos);
 	}
 	
 	if (totskipped && totrendered == 0)
