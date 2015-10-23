@@ -847,7 +847,10 @@ static int start_ffmpeg_impl(FFMpegContext *context, struct RenderData *rd, int 
 		BKE_report(reports, RPT_ERROR, "Error opening output file");
 		return 0;
 	}
-	
+
+
+	/* Returns after this must 'goto fail;' */
+
 	of->oformat = fmt;
 	of->packet_size = rd->ffcodecdata.mux_packet_size;
 	if (context->ffmpeg_audio_codec != AV_CODEC_ID_NONE) {
@@ -900,15 +903,15 @@ static int start_ffmpeg_impl(FFMpegContext *context, struct RenderData *rd, int 
 	if (fmt->video_codec == AV_CODEC_ID_DVVIDEO) {
 		if (rectx != 720) {
 			BKE_report(reports, RPT_ERROR, "Render width has to be 720 pixels for DV!");
-			return 0;
+			goto fail;
 		}
 		if (rd->frs_sec != 25 && recty != 480) {
 			BKE_report(reports, RPT_ERROR, "Render height has to be 480 pixels for DV-NTSC!");
-			return 0;
+			goto fail;
 		}
 		if (rd->frs_sec == 25 && recty != 576) {
 			BKE_report(reports, RPT_ERROR, "Render height has to be 576 pixels for DV-PAL!");
-			return 0;
+			goto fail;
 		}
 	}
 	
@@ -916,8 +919,7 @@ static int start_ffmpeg_impl(FFMpegContext *context, struct RenderData *rd, int 
 		fmt->audio_codec = AV_CODEC_ID_PCM_S16LE;
 		if (context->ffmpeg_audio_codec != AV_CODEC_ID_NONE && rd->ffcodecdata.audio_mixrate != 48000 && rd->ffcodecdata.audio_channels != 2) {
 			BKE_report(reports, RPT_ERROR, "FFMPEG only supports 48khz / stereo audio for DV!");
-			av_dict_free(&opts);
-			return 0;
+			goto fail;
 		}
 	}
 	
@@ -929,9 +931,7 @@ static int start_ffmpeg_impl(FFMpegContext *context, struct RenderData *rd, int 
 				BKE_report(reports, RPT_ERROR, error);
 			else
 				BKE_report(reports, RPT_ERROR, "Error initializing video stream");
-
-			av_dict_free(&opts);
-			return 0;
+			goto fail;
 		}
 	}
 
@@ -942,22 +942,18 @@ static int start_ffmpeg_impl(FFMpegContext *context, struct RenderData *rd, int 
 				BKE_report(reports, RPT_ERROR, error);
 			else
 				BKE_report(reports, RPT_ERROR, "Error initializing audio stream");
-			av_dict_free(&opts);
-			return 0;
+			goto fail;
 		}
 	}
 	if (!(fmt->flags & AVFMT_NOFILE)) {
 		if (avio_open(&of->pb, name, AVIO_FLAG_WRITE) < 0) {
 			BKE_report(reports, RPT_ERROR, "Could not open file for writing");
-			av_dict_free(&opts);
-			return 0;
+			goto fail;
 		}
 	}
 	if (avformat_write_header(of, NULL) < 0) {
 		BKE_report(reports, RPT_ERROR, "Could not initialize streams, probably unsupported codec combination");
-		av_dict_free(&opts);
-		avio_close(of->pb);
-		return 0;
+		goto fail;
 	}
 
 	context->outfile = of;
@@ -965,6 +961,26 @@ static int start_ffmpeg_impl(FFMpegContext *context, struct RenderData *rd, int 
 	av_dict_free(&opts);
 
 	return 1;
+
+
+fail:
+	if (of->pb) {
+		avio_close(of->pb);
+	}
+
+	if (context->video_stream && context->video_stream->codec) {
+		avcodec_close(context->video_stream->codec);
+		context->video_stream = NULL;
+	}
+
+	if (context->audio_stream && context->audio_stream->codec) {
+		avcodec_close(context->audio_stream->codec);
+		context->audio_stream = NULL;
+	}
+
+	av_dict_free(&opts);
+	avformat_free_context(of);
+	return 0;
 }
 
 /**
@@ -1230,6 +1246,11 @@ static void end_ffmpeg_impl(FFMpegContext *context, int is_autosplit)
 		avcodec_close(context->video_stream->codec);
 		PRINT("zero video stream %p\n", context->video_stream);
 		context->video_stream = 0;
+	}
+
+	if (context->audio_stream && context->audio_stream->codec) {
+		avcodec_close(context->audio_stream->codec);
+		context->audio_stream = 0;
 	}
 
 	/* free the temp buffer */
