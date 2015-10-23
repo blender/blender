@@ -5031,16 +5031,12 @@ void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist
 
 	/* Quat */
 	if (quat) {
-		float imat[3][3];
-		invert_m3_m3(imat, nmat);
-		mat3_to_quat(quat, imat);
+		mat3_to_quat(quat, nmat);
+		invert_qt_normalized(quat);
 	}
 
 	if (ofs && dist) {
-		float vec[3] = {0.0f, 0.0f, -(*dist)};
-
-		mul_m3_v3(nmat, vec);
-		sub_v3_v3(ofs, vec);
+		madd_v3_v3fl(ofs, nmat[2], *dist);
 	}
 }
 
