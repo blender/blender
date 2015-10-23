@@ -809,7 +809,7 @@ static int start_ffmpeg_impl(FFMpegContext *context, struct RenderData *rd, int 
 	AVFormatContext *of;
 	AVOutputFormat *fmt;
 	AVDictionary *opts = NULL;
-	char name[256], error[1024];
+	char name[FILE_MAX], error[1024];
 	const char **exts;
 
 	context->ffmpeg_type = rd->ffcodecdata.type;
