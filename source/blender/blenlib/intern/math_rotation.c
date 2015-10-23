@@ -1149,10 +1149,8 @@ void eul_to_mat4(float mat[4][4], const float eul[3])
 /* XYZ order */
 static void mat3_to_eul2(float tmat[3][3], float eul1[3], float eul2[3])
 {
-	float cy, quat[4], mat[3][3];
+	float cy, mat[3][3];
 
-	mat3_to_quat(quat, tmat);
-	quat_to_mat3(mat, quat);
 	normalize_m3_m3(mat, tmat);
 
 	cy = hypotf(mat[0][0], mat[0][1]);
@@ -1494,7 +1492,6 @@ void eulO_to_mat4(float M[4][4], const float e[3], const short order)
 	float m[3][3];
 
 	/* for now, we'll just do this the slow way (i.e. copying matrices) */
-	normalize_m3(m);
 	eulO_to_mat3(m, e, order);
 	copy_m4_m3(M, m);
 }
