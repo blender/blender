@@ -4195,6 +4195,10 @@ static int uv_mark_seam_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
+	if (RNA_struct_property_is_set(op->ptr, "clear")) {
+		return uv_mark_seam_exec(C, op);
+	}
+
 	pup = UI_popup_menu_begin(C, IFACE_("Edges"), ICON_NONE);
 	layout = UI_popup_menu_layout(pup);
 
