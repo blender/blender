@@ -537,7 +537,7 @@ void RNA_api_object(StructRNA *srna)
 
 	/* mesh */
 	func = RNA_def_function(srna, "to_mesh", "rna_Object_to_mesh");
-	RNA_def_function_ui_description(func, "Create a Mesh datablock with modifiers applied");
+	RNA_def_function_ui_description(func, "Create a Mesh data-block with modifiers applied");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate modifiers");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);

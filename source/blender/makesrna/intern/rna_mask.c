@@ -1037,7 +1037,7 @@ static void rna_def_mask(BlenderRNA *brna)
 	rna_def_mask_layer(brna);
 
 	srna = RNA_def_struct(brna, "Mask", "ID");
-	RNA_def_struct_ui_text(srna, "Mask", "Mask datablock defining mask for compositing");
+	RNA_def_struct_ui_text(srna, "Mask", "Mask data-block defining mask for compositing");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_MASK);
 
 	/* mask layers */

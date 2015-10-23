@@ -113,7 +113,7 @@ void RNA_def_group(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "Group", "ID");
-	RNA_def_struct_ui_text(srna, "Group", "Group of Object datablocks");
+	RNA_def_struct_ui_text(srna, "Group", "Group of Object data-blocks");
 	RNA_def_struct_ui_icon(srna, ICON_GROUP);
 	/* this is done on save/load in readfile.c, removed if no objects are in the group */
 	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);

@@ -6532,7 +6532,7 @@ bool RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, 
 		 * since prop in this case is just a fake wrapper around actual IDProp data, and not a 'real' PropertyRNA. */
 		prop = (PropertyRNA *)rna_idproperty_find(ptr, ((IDProperty *)fromprop)->name);
 
-		/* its possible the custom-prop doesn't exist on this datablock */
+		/* its possible the custom-prop doesn't exist on this data-block */
 		if (prop == NULL) {
 			return false;
 		}

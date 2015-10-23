@@ -864,10 +864,10 @@ void RNA_def_main_cameras(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_cameras_new");
 	RNA_def_function_ui_description(func, "Add a new camera to the main database");
-	parm = RNA_def_string(func, "name", "Camera", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "Camera", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "camera", "Camera", "", "New camera datablock");
+	parm = RNA_def_pointer(func, "camera", "Camera", "", "New camera data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_cameras_remove");
@@ -900,10 +900,10 @@ void RNA_def_main_scenes(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_scenes_new");
 	RNA_def_function_ui_description(func, "Add a new scene to the main database");
-	parm = RNA_def_string(func, "name", "Scene", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "Scene", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "scene", "Scene", "", "New scene datablock");
+	parm = RNA_def_pointer(func, "scene", "Scene", "", "New scene data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_scenes_remove");
@@ -937,13 +937,13 @@ void RNA_def_main_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new", "rna_Main_objects_new");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a new object to the main database");
-	parm = RNA_def_string(func, "name", "Object", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "Object", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "object_data", "ID", "", "Object data or None for an empty object");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	/* return type */
-	parm = RNA_def_pointer(func, "object", "Object", "", "New object datablock");
+	parm = RNA_def_pointer(func, "object", "Object", "", "New object data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_objects_remove");
@@ -976,10 +976,10 @@ void RNA_def_main_materials(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_materials_new");
 	RNA_def_function_ui_description(func, "Add a new material to the main database");
-	parm = RNA_def_string(func, "name", "Material", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "Material", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "material", "Material", "", "New material datablock");
+	parm = RNA_def_pointer(func, "material", "Material", "", "New material data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_materials_remove");
@@ -1016,13 +1016,13 @@ void RNA_def_main_node_groups(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_nodetree_new");
 	RNA_def_function_ui_description(func, "Add a new node tree to the main database");
-	parm = RNA_def_string(func, "name", "NodeGroup", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "NodeGroup", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_enum(func, "type", dummy_items, 0, "Type", "The type of node_group to add");
 	RNA_def_property_enum_funcs(parm, NULL, NULL, "rna_Main_nodetree_type_itemf");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "tree", "NodeTree", "", "New node tree datablock");
+	parm = RNA_def_pointer(func, "tree", "NodeTree", "", "New node tree data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_nodetree_remove");
@@ -1060,10 +1060,10 @@ void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_meshes_new");
 	RNA_def_function_ui_description(func, "Add a new mesh to the main database");
-	parm = RNA_def_string(func, "name", "Mesh", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "Mesh", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "mesh", "Mesh", "", "New mesh datablock");
+	parm = RNA_def_pointer(func, "mesh", "Mesh", "", "New mesh data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "new_from_object", "rna_Main_meshes_new_from_object");
@@ -1112,12 +1112,12 @@ void RNA_def_main_lamps(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_lamps_new");
 	RNA_def_function_ui_description(func, "Add a new lamp to the main database");
-	parm = RNA_def_string(func, "name", "Lamp", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "Lamp", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_enum(func, "type", lamp_type_items, 0, "Type", "The type of texture to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "lamp", "Lamp", "", "New lamp datablock");
+	parm = RNA_def_pointer(func, "lamp", "Lamp", "", "New lamp data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_lamps_remove");
@@ -1212,7 +1212,7 @@ void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_images_new");
 	RNA_def_function_ui_description(func, "Add a new image to the main database");
-	parm = RNA_def_string(func, "name", "Image", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "Image", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_int(func, "width", 1024, 1, INT_MAX, "", "Width of the image", 1, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -1222,7 +1222,7 @@ void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_boolean(func, "float_buffer", 0, "Float Buffer", "Create an image with floating point color");
 	RNA_def_boolean(func, "stereo3d", 0, "Stereo 3D", "Create left and right views");
 	/* return type */
-	parm = RNA_def_pointer(func, "image", "Image", "", "New image datablock");
+	parm = RNA_def_pointer(func, "image", "Image", "", "New image data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "load", "rna_Main_images_load");
@@ -1232,7 +1232,7 @@ void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_boolean(func, "check_existing", false, "", "Using existing data-block if this file is already loaded");
 	/* return type */
-	parm = RNA_def_pointer(func, "image", "Image", "", "New image datablock");
+	parm = RNA_def_pointer(func, "image", "Image", "", "New image data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_images_remove");
@@ -1265,10 +1265,10 @@ void RNA_def_main_lattices(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_lattices_new");
 	RNA_def_function_ui_description(func, "Add a new lattice to the main database");
-	parm = RNA_def_string(func, "name", "Lattice", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "Lattice", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "lattice", "Lattice", "", "New lattices datablock");
+	parm = RNA_def_pointer(func, "lattice", "Lattice", "", "New lattices data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_lattices_remove");
@@ -1300,12 +1300,12 @@ void RNA_def_main_curves(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_curves_new");
 	RNA_def_function_ui_description(func, "Add a new curve to the main database");
-	parm = RNA_def_string(func, "name", "Curve", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "Curve", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_enum(func, "type", object_type_curve_items, 0, "Type", "The type of curve to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "curve", "Curve", "", "New curve datablock");
+	parm = RNA_def_pointer(func, "curve", "Curve", "", "New curve data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_curves_remove");
@@ -1337,10 +1337,10 @@ void RNA_def_main_metaballs(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_metaballs_new");
 	RNA_def_function_ui_description(func, "Add a new metaball to the main database");
-	parm = RNA_def_string(func, "name", "MetaBall", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "MetaBall", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "metaball", "MetaBall", "", "New metaball datablock");
+	parm = RNA_def_pointer(func, "metaball", "MetaBall", "", "New metaball data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_metaballs_remove");
@@ -1377,7 +1377,7 @@ void RNA_def_main_fonts(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_boolean(func, "check_existing", false, "", "Using existing data-block if this file is already loaded");
 	/* return type */
-	parm = RNA_def_pointer(func, "vfont", "VectorFont", "", "New font datablock");
+	parm = RNA_def_pointer(func, "vfont", "VectorFont", "", "New font data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_fonts_remove");
@@ -1409,12 +1409,12 @@ void RNA_def_main_textures(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_textures_new");
 	RNA_def_function_ui_description(func, "Add a new texture to the main database");
-	parm = RNA_def_string(func, "name", "Texture", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "Texture", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_enum(func, "type", texture_type_items, 0, "Type", "The type of texture to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "texture", "Texture", "", "New texture datablock");
+	parm = RNA_def_pointer(func, "texture", "Texture", "", "New texture data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_textures_remove");
@@ -1446,11 +1446,11 @@ void RNA_def_main_brushes(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_brushes_new");
 	RNA_def_function_ui_description(func, "Add a new brush to the main database");
-	parm = RNA_def_string(func, "name", "Brush", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "Brush", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_enum(func, "mode", object_mode_items, OB_MODE_TEXTURE_PAINT, "", "Paint Mode for the new brush");
 	/* return type */
-	parm = RNA_def_pointer(func, "brush", "Brush", "", "New brush datablock");
+	parm = RNA_def_pointer(func, "brush", "Brush", "", "New brush data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_brushes_remove");
@@ -1483,10 +1483,10 @@ void RNA_def_main_worlds(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_worlds_new");
 	RNA_def_function_ui_description(func, "Add a new world to the main database");
-	parm = RNA_def_string(func, "name", "World", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "World", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "world", "World", "", "New world datablock");
+	parm = RNA_def_pointer(func, "world", "World", "", "New world data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_worlds_remove");
@@ -1519,10 +1519,10 @@ void RNA_def_main_groups(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_groups_new");
 	RNA_def_function_ui_description(func, "Add a new group to the main database");
-	parm = RNA_def_string(func, "name", "Group", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "Group", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "group", "Group", "", "New group datablock");
+	parm = RNA_def_pointer(func, "group", "Group", "", "New group data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_groups_remove");
@@ -1554,10 +1554,10 @@ void RNA_def_main_speakers(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_speakers_new");
 	RNA_def_function_ui_description(func, "Add a new speaker to the main database");
-	parm = RNA_def_string(func, "name", "Speaker", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "Speaker", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "speaker", "Speaker", "", "New speaker datablock");
+	parm = RNA_def_pointer(func, "speaker", "Speaker", "", "New speaker data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_speakers_remove");
@@ -1590,10 +1590,10 @@ void RNA_def_main_texts(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_texts_new");
 	RNA_def_function_ui_description(func, "Add a new text to the main database");
-	parm = RNA_def_string(func, "name", "Text", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "Text", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "text", "Text", "", "New text datablock");
+	parm = RNA_def_pointer(func, "text", "Text", "", "New text data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_texts_remove");
@@ -1606,11 +1606,11 @@ void RNA_def_main_texts(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "load", "rna_Main_texts_load");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a new text to the main database from a file");
-	parm = RNA_def_string_file_path(func, "filepath", "Path", FILE_MAX, "", "path for the datablock");
+	parm = RNA_def_string_file_path(func, "filepath", "Path", FILE_MAX, "", "path for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_boolean(func, "internal", 0, "Make internal", "Make text file internal after loading");
 	/* return type */
-	parm = RNA_def_pointer(func, "text", "Text", "", "New text datablock");
+	parm = RNA_def_pointer(func, "text", "Text", "", "New text data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "tag", "rna_Main_texts_tag");
@@ -1637,11 +1637,11 @@ void RNA_def_main_sounds(BlenderRNA *brna, PropertyRNA *cprop)
 	/* load func */
 	func = RNA_def_function(srna, "load", "rna_Main_sounds_load");
 	RNA_def_function_ui_description(func, "Add a new sound to the main database from a file");
-	parm = RNA_def_string_file_path(func, "filepath", "Path", FILE_MAX, "", "path for the datablock");
+	parm = RNA_def_string_file_path(func, "filepath", "Path", FILE_MAX, "", "path for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_boolean(func, "check_existing", false, "", "Using existing data-block if this file is already loaded");
 	/* return type */
-	parm = RNA_def_pointer(func, "sound", "Sound", "", "New text datablock");
+	parm = RNA_def_pointer(func, "sound", "Sound", "", "New text data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_sounds_remove");
@@ -1674,10 +1674,10 @@ void RNA_def_main_armatures(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_armatures_new");
 	RNA_def_function_ui_description(func, "Add a new armature to the main database");
-	parm = RNA_def_string(func, "name", "Armature", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "Armature", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "armature", "Armature", "", "New armature datablock");
+	parm = RNA_def_pointer(func, "armature", "Armature", "", "New armature data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_armatures_remove");
@@ -1709,10 +1709,10 @@ void RNA_def_main_actions(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_actions_new");
 	RNA_def_function_ui_description(func, "Add a new action to the main database");
-	parm = RNA_def_string(func, "name", "Action", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "Action", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "action", "Action", "", "New action datablock");
+	parm = RNA_def_pointer(func, "action", "Action", "", "New action data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_actions_remove");
@@ -1744,10 +1744,10 @@ void RNA_def_main_particles(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_particles_new");
 	RNA_def_function_ui_description(func, "Add a new particle settings instance to the main database");
-	parm = RNA_def_string(func, "name", "ParticleSettings", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "ParticleSettings", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "particle", "ParticleSettings", "", "New particle settings datablock");
+	parm = RNA_def_pointer(func, "particle", "ParticleSettings", "", "New particle settings data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_particles_remove");
@@ -1779,10 +1779,10 @@ void RNA_def_main_palettes(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_palettes_new");
 	RNA_def_function_ui_description(func, "Add a new palette to the main database");
-	parm = RNA_def_string(func, "name", "Palette", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "Palette", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "palette", "Palette", "", "New palette datablock");
+	parm = RNA_def_pointer(func, "palette", "Palette", "", "New palette data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_palettes_remove");
@@ -1818,10 +1818,10 @@ void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "gpencil_data_addnew");
 	RNA_def_function_flag(func, FUNC_NO_SELF);
-	parm = RNA_def_string(func, "name", "GreasePencil", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "GreasePencil", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "grease_pencil", "GreasePencil", "", "New grease pencil datablock");
+	parm = RNA_def_pointer(func, "grease_pencil", "GreasePencil", "", "New grease pencil data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_grease_pencil_remove");
@@ -1861,11 +1861,11 @@ void RNA_def_main_movieclips(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "load", "rna_Main_movieclip_load");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a new movie clip to the main database from a file");
-	parm = RNA_def_string_file_path(func, "filepath", "Path", FILE_MAX, "", "path for the datablock");
+	parm = RNA_def_string_file_path(func, "filepath", "Path", FILE_MAX, "", "path for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_boolean(func, "check_existing", false, "", "Using existing data-block if this file is already loaded");
 	/* return type */
-	parm = RNA_def_pointer(func, "clip", "MovieClip", "", "New movie clip datablock");
+	parm = RNA_def_pointer(func, "clip", "MovieClip", "", "New movie clip data-block");
 	RNA_def_function_return(func, parm);
 }
 
@@ -1887,9 +1887,9 @@ void RNA_def_main_masks(BlenderRNA *brna, PropertyRNA *cprop)
 	/* new func */
 	func = RNA_def_function(srna, "new", "rna_Main_mask_new");
 	RNA_def_function_ui_description(func, "Add a new mask with a given name to the main database");
-	RNA_def_string_file_path(func, "name", NULL, MAX_ID_NAME - 2, "Mask", "Name of new mask datablock");
+	RNA_def_string_file_path(func, "name", NULL, MAX_ID_NAME - 2, "Mask", "Name of new mask data-block");
 	/* return type */
-	parm = RNA_def_pointer(func, "mask", "Mask", "", "New mask datablock");
+	parm = RNA_def_pointer(func, "mask", "Mask", "", "New mask data-block");
 	RNA_def_function_return(func, parm);
 
 	/* remove func */
@@ -1918,10 +1918,10 @@ void RNA_def_main_linestyles(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_Main_linestyles_new");
 	RNA_def_function_ui_description(func, "Add a new line style instance to the main database");
-	parm = RNA_def_string(func, "name", "FreestyleLineStyle", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "FreestyleLineStyle", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "linestyle", "FreestyleLineStyle", "", "New line style datablock");
+	parm = RNA_def_pointer(func, "linestyle", "FreestyleLineStyle", "", "New line style data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_linestyles_remove");

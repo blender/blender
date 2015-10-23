@@ -1885,7 +1885,7 @@ static void rna_def_mvert(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "MeshVertex", NULL);
 	RNA_def_struct_sdna(srna, "MVert");
-	RNA_def_struct_ui_text(srna, "Mesh Vertex", "Vertex in a Mesh datablock");
+	RNA_def_struct_ui_text(srna, "Mesh Vertex", "Vertex in a Mesh data-block");
 	RNA_def_struct_path_func(srna, "rna_MeshVertex_path");
 	RNA_def_struct_ui_icon(srna, ICON_VERTEXSEL);
 
@@ -1942,7 +1942,7 @@ static void rna_def_medge(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "MeshEdge", NULL);
 	RNA_def_struct_sdna(srna, "MEdge");
-	RNA_def_struct_ui_text(srna, "Mesh Edge", "Edge in a Mesh datablock");
+	RNA_def_struct_ui_text(srna, "Mesh Edge", "Edge in a Mesh data-block");
 	RNA_def_struct_path_func(srna, "rna_MeshEdge_path");
 	RNA_def_struct_ui_icon(srna, ICON_EDGESEL);
 
@@ -2005,7 +2005,7 @@ static void rna_def_mface(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "MeshTessFace", NULL);
 	RNA_def_struct_sdna(srna, "MFace");
-	RNA_def_struct_ui_text(srna, "Mesh TessFace", "TessFace in a Mesh datablock");
+	RNA_def_struct_ui_text(srna, "Mesh TessFace", "TessFace in a Mesh data-block");
 	RNA_def_struct_path_func(srna, "rna_MeshTessFace_path");
 	RNA_def_struct_ui_icon(srna, ICON_FACESEL);
 
@@ -2082,7 +2082,7 @@ static void rna_def_mloop(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "MeshLoop", NULL);
 	RNA_def_struct_sdna(srna, "MLoop");
-	RNA_def_struct_ui_text(srna, "Mesh Loop", "Loop in a Mesh datablock");
+	RNA_def_struct_ui_text(srna, "Mesh Loop", "Loop in a Mesh data-block");
 	RNA_def_struct_path_func(srna, "rna_MeshLoop_path");
 	RNA_def_struct_ui_icon(srna, ICON_EDGESEL);
 
@@ -2141,7 +2141,7 @@ static void rna_def_mpolygon(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "MeshPolygon", NULL);
 	RNA_def_struct_sdna(srna, "MPoly");
-	RNA_def_struct_ui_text(srna, "Mesh Polygon", "Polygon in a Mesh datablock");
+	RNA_def_struct_ui_text(srna, "Mesh Polygon", "Polygon in a Mesh data-block");
 	RNA_def_struct_path_func(srna, "rna_MeshPolygon_path");
 	RNA_def_struct_ui_icon(srna, ICON_FACESEL);
 
@@ -2267,7 +2267,7 @@ static void rna_def_mtface(BlenderRNA *brna)
 	const int uv_dim[] = {4, 2};
 
 	srna = RNA_def_struct(brna, "MeshTextureFaceLayer", NULL);
-	RNA_def_struct_ui_text(srna, "Mesh UV Map", "UV map with assigned image textures in a Mesh datablock");
+	RNA_def_struct_ui_text(srna, "Mesh UV Map", "UV map with assigned image textures in a Mesh data-block");
 	RNA_def_struct_sdna(srna, "CustomDataLayer");
 	RNA_def_struct_path_func(srna, "rna_MeshTextureFaceLayer_path");
 	RNA_def_struct_ui_icon(srna, ICON_GROUP_UVS);
@@ -2379,7 +2379,7 @@ static void rna_def_mtexpoly(BlenderRNA *brna)
 #endif
 
 	srna = RNA_def_struct(brna, "MeshTexturePolyLayer", NULL);
-	RNA_def_struct_ui_text(srna, "Mesh UV Map", "UV map with assigned image textures in a Mesh datablock");
+	RNA_def_struct_ui_text(srna, "Mesh UV Map", "UV map with assigned image textures in a Mesh data-block");
 	RNA_def_struct_sdna(srna, "CustomDataLayer");
 	RNA_def_struct_path_func(srna, "rna_MeshTexturePolyLayer_path");
 	RNA_def_struct_ui_icon(srna, ICON_GROUP_UVS);
@@ -2454,7 +2454,7 @@ static void rna_def_mcol(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "MeshColorLayer", NULL);
-	RNA_def_struct_ui_text(srna, "Mesh Vertex Color Layer", "Layer of vertex colors in a Mesh datablock");
+	RNA_def_struct_ui_text(srna, "Mesh Vertex Color Layer", "Layer of vertex colors in a Mesh data-block");
 	RNA_def_struct_sdna(srna, "CustomDataLayer");
 	RNA_def_struct_path_func(srna, "rna_MeshColorLayer_path");
 	RNA_def_struct_ui_icon(srna, ICON_GROUP_VCOL);
@@ -2524,7 +2524,7 @@ static void rna_def_mloopcol(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "MeshLoopColorLayer", NULL);
-	RNA_def_struct_ui_text(srna, "Mesh Vertex Color Layer", "Layer of vertex colors in a Mesh datablock");
+	RNA_def_struct_ui_text(srna, "Mesh Vertex Color Layer", "Layer of vertex colors in a Mesh data-block");
 	RNA_def_struct_sdna(srna, "CustomDataLayer");
 	RNA_def_struct_path_func(srna, "rna_MeshLoopColorLayer_path");
 	RNA_def_struct_ui_icon(srna, ICON_GROUP_VCOL);
@@ -3241,7 +3241,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "Mesh", "ID");
-	RNA_def_struct_ui_text(srna, "Mesh", "Mesh datablock defining geometric surfaces");
+	RNA_def_struct_ui_text(srna, "Mesh", "Mesh data-block defining geometric surfaces");
 	RNA_def_struct_ui_icon(srna, ICON_MESH_DATA);
 
 	prop = RNA_def_property(srna, "vertices", PROP_COLLECTION, PROP_NONE);

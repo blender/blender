@@ -1193,7 +1193,7 @@ static void rna_def_surface(BlenderRNA *brna)
 	
 	srna = RNA_def_struct(brna, "SurfaceCurve", "Curve");
 	RNA_def_struct_sdna(srna, "Curve");
-	RNA_def_struct_ui_text(srna, "Surface Curve", "Curve datablock used for storing surfaces");
+	RNA_def_struct_ui_text(srna, "Surface Curve", "Curve data-block used for storing surfaces");
 	RNA_def_struct_ui_icon(srna, ICON_SURFACE_DATA);
 
 	rna_def_nurbs(brna, srna);
@@ -1205,7 +1205,7 @@ static void rna_def_text(BlenderRNA *brna)
 	
 	srna = RNA_def_struct(brna, "TextCurve", "Curve");
 	RNA_def_struct_sdna(srna, "Curve");
-	RNA_def_struct_ui_text(srna, "Text Curve", "Curve datablock used for storing text");
+	RNA_def_struct_ui_text(srna, "Text Curve", "Curve data-block used for storing text");
 	RNA_def_struct_ui_icon(srna, ICON_FONT_DATA);
 
 	rna_def_font(brna, srna);
@@ -1336,7 +1336,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	};
 
 	srna = RNA_def_struct(brna, "Curve", "ID");
-	RNA_def_struct_ui_text(srna, "Curve", "Curve datablock storing curves, splines and NURBS");
+	RNA_def_struct_ui_text(srna, "Curve", "Curve data-block storing curves, splines and NURBS");
 	RNA_def_struct_ui_icon(srna, ICON_CURVE_DATA);
 	RNA_def_struct_refine_func(srna, "rna_Curve_refine");
 

@@ -2887,7 +2887,7 @@ static void rna_ShaderNodeScript_mode_set(PointerRNA *ptr, int value)
 		nss->filepath[0] = '\0';
 		nss->flag &= ~NODE_SCRIPT_AUTO_UPDATE;
 
-		/* replace text datablock by filepath */
+		/* replace text data-block by filepath */
 		if (node->id) {
 			Text *text = (Text *)node->id;
 
@@ -3135,7 +3135,7 @@ static EnumPropertyItem node_hair_items[] = {
 };
 
 static EnumPropertyItem node_script_mode_items[] = {
-	{NODE_SCRIPT_INTERNAL, "INTERNAL", 0, "Internal", "Use internal text datablock"},
+	{NODE_SCRIPT_INTERNAL, "INTERNAL", 0, "Internal", "Use internal text data-block"},
 	{NODE_SCRIPT_EXTERNAL, "EXTERNAL", 0, "External", "Use external .osl or .oso file"},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -7943,7 +7943,7 @@ static void rna_def_nodetree(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "gpd");
 	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
-	RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil datablock");
+	RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil data-block");
 	RNA_def_property_update(prop, NC_NODE, NULL);
 	
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -8081,7 +8081,7 @@ static void rna_def_shader_nodetree(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "ShaderNodeTree", "NodeTree");
 	RNA_def_struct_ui_text(srna, "Shader Node Tree",
-	                       "Node tree consisting of linked nodes used for materials (and other shading datablocks)");
+	                       "Node tree consisting of linked nodes used for materials (and other shading data-blocks)");
 	RNA_def_struct_sdna(srna, "bNodeTree");
 	RNA_def_struct_ui_icon(srna, ICON_MATERIAL);
 }

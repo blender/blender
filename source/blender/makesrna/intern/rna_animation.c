@@ -952,7 +952,7 @@ void rna_def_animdata_common(StructRNA *srna)
 	prop = RNA_def_property(srna, "animation_data", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "adt");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Animation Data", "Animation data for this datablock");
+	RNA_def_property_ui_text(prop, "Animation Data", "Animation data for this data-block");
 }
 
 static void rna_def_animdata(BlenderRNA *brna)
@@ -961,7 +961,7 @@ static void rna_def_animdata(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "AnimData", NULL);
-	RNA_def_struct_ui_text(srna, "Animation Data", "Animation data for datablock");
+	RNA_def_struct_ui_text(srna, "Animation Data", "Animation data for data-block");
 	RNA_def_struct_ui_icon(srna, ICON_ANIM_DATA);
 	
 	/* NLA */
@@ -978,7 +978,7 @@ static void rna_def_animdata(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_AnimData_action_set", NULL, "rna_Action_id_poll");
 	RNA_def_property_editable_func(prop, "rna_AnimData_action_editable");
-	RNA_def_property_ui_text(prop, "Action", "Active Action for this datablock");
+	RNA_def_property_ui_text(prop, "Action", "Active Action for this data-block");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_NLA_ACTCHANGE, "rna_AnimData_update");
 
 	/* Active Action Settings */
@@ -1008,7 +1008,7 @@ static void rna_def_animdata(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "drivers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "drivers", NULL);
 	RNA_def_property_struct_type(prop, "FCurve");
-	RNA_def_property_ui_text(prop, "Drivers", "The Drivers/Expressions for this datablock");
+	RNA_def_property_ui_text(prop, "Drivers", "The Drivers/Expressions for this data-block");
 	
 	rna_api_animdata_drivers(brna, prop);
 	

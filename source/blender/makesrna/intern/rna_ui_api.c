@@ -698,10 +698,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func = RNA_def_function(srna, "template_preview", "uiTemplatePreview");
 	RNA_def_function_ui_description(func, "Item. A preview window for materials, textures, lamps or worlds");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	parm = RNA_def_pointer(func, "id", "ID", "", "ID datablock");
+	parm = RNA_def_pointer(func, "id", "ID", "", "ID data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_boolean(func, "show_buttons", true, "", "Show preview buttons?");
-	RNA_def_pointer(func, "parent", "ID", "", "ID datablock");
+	RNA_def_pointer(func, "parent", "ID", "", "ID data-block");
 	RNA_def_pointer(func, "slot", "TextureSlot", "", "Texture slot");
 	RNA_def_string(func, "preview_id", NULL, 0, "",
 	               "Identifier of this preview widget, if not set the ID type will be used "

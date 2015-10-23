@@ -222,7 +222,7 @@ static void rna_def_moviecliUser(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "MovieClipUser", NULL);
 	RNA_def_struct_ui_text(srna, "Movie Clip User",
-	                       "Parameters defining how a MovieClip datablock is used by another datablock");
+	                       "Parameters defining how a MovieClip data-block is used by another data-block");
 
 	prop = RNA_def_property(srna, "frame_current", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "framenr");
@@ -265,7 +265,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	};
 
 	srna = RNA_def_struct(brna, "MovieClip", "ID");
-	RNA_def_struct_ui_text(srna, "MovieClip", "MovieClip datablock referencing an external movie file");
+	RNA_def_struct_ui_text(srna, "MovieClip", "MovieClip data-block referencing an external movie file");
 	RNA_def_struct_ui_icon(srna, ICON_SEQUENCE);
 
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);

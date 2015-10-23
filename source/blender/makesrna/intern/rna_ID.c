@@ -911,14 +911,14 @@ static void rna_def_ID(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "ID", NULL);
 	RNA_def_struct_ui_text(srna, "ID",
-	                       "Base type for datablocks, defining a unique name, linking from other libraries "
+	                       "Base type for data-blocks, defining a unique name, linking from other libraries "
 	                       "and garbage collection");
 	RNA_def_struct_flag(srna, STRUCT_ID | STRUCT_ID_REFCOUNT);
 	RNA_def_struct_refine_func(srna, "rna_ID_refine");
 	RNA_def_struct_idprops_func(srna, "rna_ID_idprops");
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Name", "Unique datablock ID name");
+	RNA_def_property_ui_text(prop, "Name", "Unique data-block ID name");
 	RNA_def_property_string_funcs(prop, "rna_ID_name_get", "rna_ID_name_length", "rna_ID_name_set");
 	RNA_def_property_string_maxlength(prop, MAX_ID_NAME - 2);
 	RNA_def_property_editable_func(prop, "rna_ID_name_editable");
@@ -928,11 +928,11 @@ static void rna_def_ID(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "users", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "us");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Users", "Number of times this datablock is referenced");
+	RNA_def_property_ui_text(prop, "Users", "Number of times this data-block is referenced");
 
 	prop = RNA_def_property(srna, "use_fake_user", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_FAKEUSER);
-	RNA_def_property_ui_text(prop, "Fake User", "Save this datablock even if it has no users");
+	RNA_def_property_ui_text(prop, "Fake User", "Save this data-block even if it has no users");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_ID_fake_user_set");
 
 	prop = RNA_def_property(srna, "tag", PROP_BOOLEAN, PROP_NONE);
@@ -960,21 +960,21 @@ static void rna_def_ID(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "library", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "lib");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Library", "Library file the datablock is linked from");
+	RNA_def_property_ui_text(prop, "Library", "Library file the data-block is linked from");
 
 	prop = RNA_def_pointer(srna, "preview", "ImagePreview", "Preview",
-	                       "Preview image and icon of this datablock (None if not supported for this type of data)");
+	                       "Preview image and icon of this data-block (None if not supported for this type of data)");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, "rna_IDPreview_get", NULL, NULL, NULL);
 
 	/* functions */
 	func = RNA_def_function(srna, "copy", "rna_ID_copy");
-	RNA_def_function_ui_description(func, "Create a copy of this datablock (not supported for all datablocks)");
+	RNA_def_function_ui_description(func, "Create a copy of this data-block (not supported for all data-blocks)");
 	parm = RNA_def_pointer(func, "id", "ID", "", "New copy of the ID");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "user_clear", "rna_ID_user_clear");
-	RNA_def_function_ui_description(func, "Clear the user count of a datablock so its not saved, "
+	RNA_def_function_ui_description(func, "Clear the user count of a data-block so its not saved, "
 	                                "on reload the data will be removed");
 
 	func = RNA_def_function(srna, "animation_data_create", "rna_ID_animation_data_create");

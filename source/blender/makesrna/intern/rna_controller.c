@@ -287,7 +287,7 @@ void RNA_def_controller(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "text", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Text");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Text", "Text datablock with the python script");
+	RNA_def_property_ui_text(prop, "Text", "Text data-block with the python script");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "module", PROP_STRING, PROP_NONE);

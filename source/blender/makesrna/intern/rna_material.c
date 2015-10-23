@@ -501,7 +501,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	
 	srna = RNA_def_struct(brna, "MaterialTextureSlot", "TextureSlot");
 	RNA_def_struct_sdna(srna, "MTex");
-	RNA_def_struct_ui_text(srna, "Material Texture Slot", "Texture slot for textures in a Material datablock");
+	RNA_def_struct_ui_text(srna, "Material Texture Slot", "Texture slot for textures in a Material data-block");
 
 	prop = RNA_def_property(srna, "texture_coords", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "texco");
@@ -853,7 +853,7 @@ static void rna_def_material_gamesettings(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "MaterialGameSettings", NULL);
 	RNA_def_struct_sdna(srna, "GameSettings");
 	RNA_def_struct_nested(brna, srna, "Material");
-	RNA_def_struct_ui_text(srna, "Material Game Settings", "Game Engine settings for a Material datablock");
+	RNA_def_struct_ui_text(srna, "Material Game Settings", "Game Engine settings for a Material data-block");
 	
 	prop = RNA_def_property(srna, "use_backface_culling", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GEMAT_BACKCULL); /* use bitflags */
@@ -1076,7 +1076,7 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "MaterialRaytraceMirror", NULL);
 	RNA_def_struct_sdna(srna, "Material");
 	RNA_def_struct_nested(brna, srna, "Material");
-	RNA_def_struct_ui_text(srna, "Material Raytrace Mirror", "Raytraced reflection settings for a Material datablock");
+	RNA_def_struct_ui_text(srna, "Material Raytrace Mirror", "Raytraced reflection settings for a Material data-block");
 
 	prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_RAYMIRROR); /* use bitflags */
@@ -1162,7 +1162,7 @@ static void rna_def_material_raytra(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Material");
 	RNA_def_struct_nested(brna, srna, "Material");
 	RNA_def_struct_ui_text(srna, "Material Raytrace Transparency",
-	                       "Raytraced refraction settings for a Material datablock");
+	                       "Raytraced refraction settings for a Material data-block");
 
 	prop = RNA_def_property(srna, "ior", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ang");
@@ -1256,7 +1256,7 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "MaterialVolume", NULL);
 	RNA_def_struct_sdna(srna, "VolumeSettings");
 	RNA_def_struct_nested(brna, srna, "Material");
-	RNA_def_struct_ui_text(srna, "Material Volume", "Volume rendering settings for a Material datablock");
+	RNA_def_struct_ui_text(srna, "Material Volume", "Volume rendering settings for a Material data-block");
 	
 	prop = RNA_def_property(srna, "step_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "stepsize_type");
@@ -1399,7 +1399,7 @@ static void rna_def_material_halo(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "MaterialHalo", NULL);
 	RNA_def_struct_sdna(srna, "Material");
 	RNA_def_struct_nested(brna, srna, "Material");
-	RNA_def_struct_ui_text(srna, "Material Halo", "Halo particle effect settings for a Material datablock");
+	RNA_def_struct_ui_text(srna, "Material Halo", "Halo particle effect settings for a Material data-block");
 
 	prop = RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "hasize");
@@ -1528,7 +1528,7 @@ static void rna_def_material_sss(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Material");
 	RNA_def_struct_nested(brna, srna, "Material");
 	RNA_def_struct_ui_text(srna, "Material Subsurface Scattering",
-	                       "Diffuse subsurface scattering settings for a Material datablock");
+	                       "Diffuse subsurface scattering settings for a Material data-block");
 
 	prop = RNA_def_property(srna, "radius", PROP_FLOAT, PROP_COLOR | PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "sss_radius");
@@ -1659,7 +1659,7 @@ static void rna_def_material_strand(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "MaterialStrand", NULL);
 	RNA_def_struct_sdna(srna, "Material");
 	RNA_def_struct_nested(brna, srna, "Material");
-	RNA_def_struct_ui_text(srna, "Material Strand", "Strand settings for a Material datablock");
+	RNA_def_struct_ui_text(srna, "Material Strand", "Strand settings for a Material data-block");
 
 	prop = RNA_def_property(srna, "use_tangent_shading", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_TANGENT_STR);
@@ -1730,7 +1730,7 @@ static void rna_def_material_physics(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "MaterialPhysics", NULL);
 	RNA_def_struct_sdna(srna, "Material");
 	RNA_def_struct_nested(brna, srna, "Material");
-	RNA_def_struct_ui_text(srna, "Material Physics", "Physics settings for a Material datablock");
+	RNA_def_struct_ui_text(srna, "Material Physics", "Physics settings for a Material data-block");
 	
 	prop = RNA_def_property(srna, "friction", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "friction");
@@ -1806,7 +1806,7 @@ void RNA_def_material(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "Material", "ID");
 	RNA_def_struct_ui_text(srna, "Material",
-	                       "Material datablock to define the appearance of geometric objects for rendering");
+	                       "Material data-block to define the appearance of geometric objects for rendering");
 	RNA_def_struct_ui_icon(srna, ICON_MATERIAL_DATA);
 	
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);

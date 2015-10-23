@@ -513,7 +513,7 @@ static void rna_def_linestyle_mtex(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "LineStyleTextureSlot", "TextureSlot");
 	RNA_def_struct_sdna(srna, "MTex");
-	RNA_def_struct_ui_text(srna, "LineStyle Texture Slot", "Texture slot for textures in a LineStyle datablock");
+	RNA_def_struct_ui_text(srna, "LineStyle Texture Slot", "Texture slot for textures in a LineStyle data-block");
 
 	prop = RNA_def_property(srna, "mapping_x", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "projx");

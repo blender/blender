@@ -558,7 +558,7 @@ static char *rna_Sequence_path(PointerRNA *ptr)
 	Sequence *seq = (Sequence *)ptr->data;
 	
 	/* sequencer data comes from scene...
-	 * TODO: would be nice to make SequenceEditor data a datablock of its own (for shorter paths)
+	 * TODO: would be nice to make SequenceEditor data a data-block of its own (for shorter paths)
 	 */
 	if (seq->name + 2) {
 		char name_esc[(sizeof(seq->name) - 2) * 2];
@@ -1604,7 +1604,7 @@ static void rna_def_editor(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	srna = RNA_def_struct(brna, "SequenceEditor", NULL);
-	RNA_def_struct_ui_text(srna, "Sequence Editor", "Sequence editing data for a Scene datablock");
+	RNA_def_struct_ui_text(srna, "Sequence Editor", "Sequence editing data for a Scene data-block");
 	RNA_def_struct_ui_icon(srna, ICON_SEQUENCE);
 	RNA_def_struct_sdna(srna, "Editing");
 
@@ -2029,7 +2029,7 @@ static void rna_def_sound(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "sound", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Sound");
-	RNA_def_property_ui_text(prop, "Sound", "Sound datablock used by this sequence");
+	RNA_def_property_ui_text(prop, "Sound", "Sound data-block used by this sequence");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 
 	prop = RNA_def_property(srna, "volume", PROP_FLOAT, PROP_NONE);

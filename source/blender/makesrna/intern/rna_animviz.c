@@ -348,7 +348,7 @@ void rna_def_animviz_common(StructRNA *srna)
 	prop = RNA_def_property(srna, "animation_visualization", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "avs");
-	RNA_def_property_ui_text(prop, "Animation Visualization", "Animation data for this datablock");
+	RNA_def_property_ui_text(prop, "Animation Visualization", "Animation data for this data-block");
 }
 
 static void rna_def_animviz(BlenderRNA *brna)

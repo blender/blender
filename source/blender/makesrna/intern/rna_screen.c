@@ -374,7 +374,7 @@ static void rna_def_screen(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "Screen", "ID");
 	RNA_def_struct_sdna(srna, "Screen"); /* it is actually bScreen but for 2.5 the dna is patched! */
-	RNA_def_struct_ui_text(srna, "Screen", "Screen datablock, defining the layout of areas in a window");
+	RNA_def_struct_ui_text(srna, "Screen", "Screen data-block, defining the layout of areas in a window");
 	RNA_def_struct_ui_icon(srna, ICON_SPLITSCREEN);
 
 	/* pointers */

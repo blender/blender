@@ -142,7 +142,7 @@ static void rna_def_world_mtex(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "WorldTextureSlot", "TextureSlot");
 	RNA_def_struct_sdna(srna, "MTex");
-	RNA_def_struct_ui_text(srna, "World Texture Slot", "Texture slot for textures in a World datablock");
+	RNA_def_struct_ui_text(srna, "World Texture Slot", "Texture slot for textures in a World data-block");
 
 	/* map to */
 	prop = RNA_def_property(srna, "use_map_blend", PROP_BOOLEAN, PROP_NONE);
@@ -238,7 +238,7 @@ static void rna_def_lighting(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "WorldLighting", NULL);
 	RNA_def_struct_sdna(srna, "World");
 	RNA_def_struct_nested(brna, srna, "World");
-	RNA_def_struct_ui_text(srna, "Lighting", "Lighting for a World datablock");
+	RNA_def_struct_ui_text(srna, "Lighting", "Lighting for a World data-block");
 
 	/* ambient occlusion */
 	prop = RNA_def_property(srna, "use_ambient_occlusion", PROP_BOOLEAN, PROP_NONE);
@@ -447,7 +447,7 @@ void RNA_def_world(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "World", "ID");
 	RNA_def_struct_ui_text(srna, "World",
-	                       "World datablock describing the environment and ambient lighting of a scene");
+	                       "World data-block describing the environment and ambient lighting of a scene");
 	RNA_def_struct_ui_icon(srna, ICON_WORLD_DATA);
 
 	rna_def_animdata_common(srna);

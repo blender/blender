@@ -189,7 +189,7 @@ static void rna_def_metaelement(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "MetaElement", NULL);
 	RNA_def_struct_sdna(srna, "MetaElem");
-	RNA_def_struct_ui_text(srna, "Meta Element", "Blobby element in a Metaball datablock");
+	RNA_def_struct_ui_text(srna, "Meta Element", "Blobby element in a Metaball data-block");
 	RNA_def_struct_path_func(srna, "rna_MetaElement_path");
 	RNA_def_struct_ui_icon(srna, ICON_OUTLINER_DATA_META);
 
@@ -304,7 +304,7 @@ static void rna_def_metaball(BlenderRNA *brna)
 	};
 	
 	srna = RNA_def_struct(brna, "MetaBall", "ID");
-	RNA_def_struct_ui_text(srna, "MetaBall", "Metaball datablock to defined blobby surfaces");
+	RNA_def_struct_ui_text(srna, "MetaBall", "Metaball data-block to defined blobby surfaces");
 	RNA_def_struct_ui_icon(srna, ICON_META_DATA);
 
 	prop = RNA_def_property(srna, "elements", PROP_COLLECTION, PROP_NONE);
