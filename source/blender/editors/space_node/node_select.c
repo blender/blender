@@ -531,7 +531,15 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 	UI_view2d_region_to_view_rctf(&ar->v2d, &rectf, &rectf);
 	
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
-		if (BLI_rctf_isect(&rectf, &node->totr, NULL)) {
+		bool select;
+		if (node->type == NODE_FRAME) {
+			select = BLI_rctf_inside_rctf(&rectf, &node->totr);
+		}
+		else {
+			select = BLI_rctf_isect(&rectf, &node->totr, NULL);
+		}
+
+		if (select) {
 			nodeSetSelected(node, (gesture_mode == GESTURE_MODAL_SELECT));
 		}
 		else if (!extend) {
