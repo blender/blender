@@ -5031,7 +5031,7 @@ void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist
 
 	/* Quat */
 	if (quat) {
-		mat3_to_quat(quat, nmat);
+		mat3_normalized_to_quat(quat, nmat);
 		invert_qt_normalized(quat);
 	}
 

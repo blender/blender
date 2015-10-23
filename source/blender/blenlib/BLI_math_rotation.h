@@ -79,6 +79,8 @@ void add_qt_qtqt(float q[4], const float a[4], const float b[4], const float t);
 void quat_to_mat3(float mat[3][3], const float q[4]);
 void quat_to_mat4(float mat[4][4], const float q[4]);
 
+void mat3_normalized_to_quat(float q[4], float mat[3][3]);
+void mat4_normalized_to_quat(float q[4], float mat[4][4]);
 void mat3_to_quat(float q[4], float mat[3][3]);
 void mat4_to_quat(float q[4], float mat[4][4]);
 void tri_to_quat_ex(float quat[4], const float v1[3], const float v2[3], const float v3[3],
@@ -114,9 +116,11 @@ void axis_angle_normalized_to_mat3_ex(float mat[3][3], const float axis[3],
 void axis_angle_normalized_to_mat3(float R[3][3], const float axis[3], const float angle);
 void axis_angle_to_mat4(float R[4][4], const float axis[3], const float angle);
 
-void quat_to_axis_angle(float axis[3], float *angle, const float q[4]);
+void mat3_normalized_to_axis_angle(float axis[3], float *angle, float M[3][3]);
+void mat4_normalized_to_axis_angle(float axis[3], float *angle, float M[4][4]);
 void mat3_to_axis_angle(float axis[3], float *angle, float M[3][3]);
 void mat4_to_axis_angle(float axis[3], float *angle, float M[4][4]);
+void quat_to_axis_angle(float axis[3], float *angle, const float q[4]);
 
 void axis_angle_to_mat3_single(float R[3][3], const char axis, const float angle);
 void      angle_to_mat2(float R[2][2], const float angle);
@@ -134,12 +138,16 @@ void eul_to_quat(float quat[4], const float eul[3]);
 void eul_to_mat3(float mat[3][3], const float eul[3]);
 void eul_to_mat4(float mat[4][4], const float eul[3]);
 
-void quat_to_eul(float eul[3], const float quat[4]);
+void mat3_normalized_to_eul(float eul[3], float mat[3][3]);
+void mat4_normalized_to_eul(float eul[3], float mat[4][4]);
 void mat3_to_eul(float eul[3], float mat[3][3]);
 void mat4_to_eul(float eul[3], float mat[4][4]);
+void quat_to_eul(float eul[3], const float quat[4]);
 
-void compatible_eul(float eul[3], const float old[3]);
+void mat3_normalized_to_compatible_eul(float eul[3], const float old[3], float mat[3][3]);
 void mat3_to_compatible_eul(float eul[3], const float old[3], float mat[3][3]);
+void quat_to_compatible_eul(float eul[3], const float oldrot[3], const float quat[4]);
+void compatible_eul(float eul[3], const float old[3]);
 
 void rotate_eul(float eul[3], const char axis, const float angle);
 
@@ -164,14 +172,19 @@ void eulO_to_mat3(float mat[3][3], const float eul[3], const short order);
 void eulO_to_mat4(float mat[4][4], const float eul[3], const short order);
 void eulO_to_axis_angle(float axis[3], float *angle, const float eul[3], const short order);
 void eulO_to_gimbal_axis(float gmat[3][3], const float eul[3], const short order);
- 
-void quat_to_eulO(float eul[3], const short order, const float quat[4]);
+
+void mat3_normalized_to_eulO(float eul[3], const short order, float mat[3][3]);
+void mat4_normalized_to_eulO(float eul[3], const short order, float mat[4][4]);
 void mat3_to_eulO(float eul[3], const short order, float mat[3][3]);
 void mat4_to_eulO(float eul[3], const short order, float mat[4][4]);
+void quat_to_eulO(float eul[3], const short order, const float quat[4]);
 void axis_angle_to_eulO(float eul[3], const short order, const float axis[3], const float angle);
 
+void mat3_normalized_to_compatible_eulO(float eul[3], float old[3], const short order, float mat[3][3]);
+void mat4_normalized_to_compatible_eulO(float eul[3], float old[3], const short order, float mat[4][4]);
 void mat3_to_compatible_eulO(float eul[3], float old[3], const short order, float mat[3][3]);
 void mat4_to_compatible_eulO(float eul[3], float old[3], const short order, float mat[4][4]);
+void quat_to_compatible_eulO(float eul[3], float old[3], const short order, const float quat[4]);
 
 void rotate_eulO(float eul[3], const short order, char axis, float angle);
 

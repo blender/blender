@@ -115,8 +115,8 @@ static PyObject *Quaternion_to_euler(QuaternionObject *self, PyObject *args)
 
 		quat_to_mat3(mat, tquat);
 
-		if (order == EULER_ORDER_XYZ)  mat3_to_compatible_eul(eul, eul_compat->eul, mat);
-		else                           mat3_to_compatible_eulO(eul, eul_compat->eul, order, mat);
+		if (order == EULER_ORDER_XYZ)  mat3_normalized_to_compatible_eul(eul, eul_compat->eul, mat);
+		else                           mat3_normalized_to_compatible_eulO(eul, eul_compat->eul, order, mat);
 	}
 	else {
 		if (order == EULER_ORDER_XYZ)  quat_to_eul(eul, tquat);

@@ -1120,8 +1120,7 @@ static PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
 	float eul[3], eul_compatf[3];
 	EulerObject *eul_compat = NULL;
 
-	float tmat[3][3];
-	float (*mat)[3];
+	float mat[3][3];
 
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
@@ -1138,11 +1137,10 @@ static PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
 
 	/*must be 3-4 cols, 3-4 rows, square matrix */
 	if (self->num_row == 3 && self->num_col == 3) {
-		mat = (float (*)[3])self->matrix;
+		copy_m3_m3(mat, (float (*)[3])self->matrix);
 	}
 	else if (self->num_row == 4 && self->num_col == 4) {
-		copy_m3_m4(tmat, (float (*)[4])self->matrix);
-		mat = tmat;
+		copy_m3_m4(mat, (float (*)[4])self->matrix);
 	}
 	else {
 		PyErr_SetString(PyExc_ValueError,
@@ -1158,13 +1156,15 @@ static PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
 			return NULL;
 	}
 
+	normalize_m3(mat);
+
 	if (eul_compat) {
-		if (order == 1) mat3_to_compatible_eul(eul, eul_compatf, mat);
-		else            mat3_to_compatible_eulO(eul, eul_compatf, order, mat);
+		if (order == 1) mat3_normalized_to_compatible_eul(eul, eul_compatf, mat);
+		else            mat3_normalized_to_compatible_eulO(eul, eul_compatf, order, mat);
 	}
 	else {
-		if (order == 1) mat3_to_eul(eul, mat);
-		else mat3_to_eulO(eul, order, mat);
+		if (order == 1) mat3_normalized_to_eul(eul, mat);
+		else            mat3_normalized_to_eulO(eul, order, mat);
 	}
 
 	return Euler_CreatePyObject(eul, order, NULL);
