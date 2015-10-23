@@ -95,8 +95,8 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context, ListBase *seq
 static ImBuf *seq_render_strip(const SeqRenderData *context, Sequence *seq, float cfra);
 static void seq_free_animdata(Scene *scene, Sequence *seq);
 static ImBuf *seq_render_mask(const SeqRenderData *context, Mask *mask, float nr, bool make_float);
-static size_t seq_num_files(Scene *scene, char views_format, const bool is_multiview);
-static void seq_anim_add_suffix(Scene *scene, struct anim *anim, const size_t view_id);
+static int seq_num_files(Scene *scene, char views_format, const bool is_multiview);
+static void seq_anim_add_suffix(Scene *scene, struct anim *anim, const int view_id);
 
 /* **** XXX ******** */
 #define SELECT 1
@@ -799,8 +799,9 @@ void BKE_sequence_calc(Scene *scene, Sequence *seq)
 	}
 }
 
-static void seq_multiview_name(Scene *scene, const size_t view_id, const char *prefix,
-                               const char *ext, char *r_path, size_t r_size)
+static void seq_multiview_name(
+        Scene *scene, const int view_id, const char *prefix, const char *ext,
+        char *r_path, size_t r_size)
 {
 	const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, view_id);
 	BLI_snprintf(r_path, r_size, "%s%s%s", prefix, suffix, ext);
@@ -857,7 +858,7 @@ void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, const bool lock_r
 			if (is_multiview && (seq->views_format == R_IMF_VIEWS_INDIVIDUAL)) {
 				char prefix[FILE_MAX];
 				const char *ext = NULL;
-				size_t totfiles = seq_num_files(scene, seq->views_format, true);
+				const int totfiles = seq_num_files(scene, seq->views_format, true);
 				int i = 0;
 
 				BKE_scene_multiview_view_prefix_get(scene, path, prefix, &ext);
@@ -1383,7 +1384,7 @@ typedef struct SeqIndexBuildContext {
 	int size_flags;
 	int quality;
 	bool overwrite;
-	size_t view_id;
+	int view_id;
 
 	Main *bmain;
 	Scene *scene;
@@ -1424,7 +1425,7 @@ static double seq_rendersize_to_scale_factor(int size)
 }
 
 /* the number of files will vary according to the stereo format */
-static size_t seq_num_files(Scene *scene, char views_format, const bool is_multiview)
+static int seq_num_files(Scene *scene, char views_format, const bool is_multiview)
 {
 	if (!is_multiview) {
 		return 1;
@@ -1489,7 +1490,7 @@ static void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
 	}
 
 	if (is_multiview && seq->views_format == R_IMF_VIEWS_INDIVIDUAL) {
-		size_t totfiles = seq_num_files(scene, seq->views_format, true);
+		int totfiles = seq_num_files(scene, seq->views_format, true);
 		char prefix[FILE_MAX];
 		const char *ext = NULL;
 		int i;
@@ -1572,7 +1573,7 @@ static void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
 	}
 }
 
-static bool seq_proxy_get_fname(Editing *ed, Sequence *seq, int cfra, int render_size, char *name, const size_t view_id)
+static bool seq_proxy_get_fname(Editing *ed, Sequence *seq, int cfra, int render_size, char *name, const int view_id)
 {
 	int frameno;
 	char dir[PROXY_MAXFILE];
@@ -1630,7 +1631,7 @@ static bool seq_proxy_get_fname(Editing *ed, Sequence *seq, int cfra, int render
 	}
 
 	if (view_id > 0)
-		BLI_snprintf(suffix, sizeof(suffix), "_%zu", view_id);
+		BLI_snprintf(suffix, sizeof(suffix), "_%d", view_id);
 
 	if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE && sanim && sanim->anim &&
 	    ed->proxy_storage != SEQ_EDIT_PROXY_DIR_STORAGE)
@@ -1782,7 +1783,7 @@ static void seq_proxy_build_frame(const SeqRenderData *context, Sequence *seq, i
 
 /* returns whether the file this context would read from even exist, if not, don't create the context
 */
-static bool seq_proxy_multiview_context_invalid(Sequence *seq, Scene *scene, const size_t view_id)
+static bool seq_proxy_multiview_context_invalid(Sequence *seq, Scene *scene, const int view_id)
 {
 	if ((scene->r.scemode & R_MULTIVIEW) == 0)
 		return false;
@@ -1818,9 +1819,9 @@ static bool seq_proxy_multiview_context_invalid(Sequence *seq, Scene *scene, con
 
 /** This returns the maximum possible number of required contexts
 */
-static size_t seq_proxy_context_count(Sequence *seq, Scene *scene)
+static int seq_proxy_context_count(Sequence *seq, Scene *scene)
 {
-	size_t num_views = 1;
+	int num_views = 1;
 
 	if ((scene->r.scemode & R_MULTIVIEW) == 0)
 		return 1;
@@ -1858,8 +1859,8 @@ void BKE_sequencer_proxy_rebuild_context(Main *bmain, Scene *scene, Sequence *se
 	SeqIndexBuildContext *context;
 	Sequence *nseq;
 	LinkData *link;
-	size_t i;
-	size_t num_files;
+	int num_files;
+	int i;
 
 	if (!seq->strip || !seq->strip->proxy) {
 		return;
@@ -2751,8 +2752,8 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context, Sequence *seq
 		/* don't do anything */
 	}
 	else if (is_multiview) {
-		size_t totfiles = seq_num_files(context->scene, seq->views_format, true);
-		size_t totviews;
+		const int totfiles = seq_num_files(context->scene, seq->views_format, true);
+		int totviews;
 		struct ImBuf **ibufs_arr;
 		char prefix[FILE_MAX];
 		const char *ext = NULL;
@@ -2853,8 +2854,8 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context, Sequence *seq
 
 	if (is_multiview) {
 		ImBuf **ibuf_arr;
-		size_t totviews;
-		size_t totfiles = seq_num_files(context->scene, seq->views_format, true);
+		const int totfiles = seq_num_files(context->scene, seq->views_format, true);
+		int totviews;
 		int i;
 
 		if (totfiles != BLI_listbase_count_ex(&seq->anims, totfiles + 1))
@@ -3228,7 +3229,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 	}
 	else {
 		Render *re = RE_GetRender(scene->id.name);
-		size_t totviews = BKE_scene_multiview_num_views_get(&scene->r);
+		const int totviews = BKE_scene_multiview_num_views_get(&scene->r);
 		int i;
 		ImBuf **ibufs_arr;
 
@@ -5078,7 +5079,7 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 }
 #endif // WITH_AUDASPACE
 
-static void seq_anim_add_suffix(Scene *scene, struct anim *anim, const size_t view_id)
+static void seq_anim_add_suffix(Scene *scene, struct anim *anim, const int view_id)
 {
 	const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, view_id);
 	IMB_suffix_anim(anim, suffix);
@@ -5095,7 +5096,7 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	char colorspace[64] = "\0"; /* MAX_COLORSPACE_NAME */
 	bool is_multiview_loaded = false;
 	const bool is_multiview = (seq_load->flag & SEQ_USE_VIEWS) != 0;
-	size_t totfiles = seq_num_files(scene, seq_load->views_format, is_multiview);
+	const int totfiles = seq_num_files(scene, seq_load->views_format, is_multiview);
 	struct anim **anim_arr;
 	int i;
 

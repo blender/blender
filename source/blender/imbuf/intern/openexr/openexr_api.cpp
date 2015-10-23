@@ -371,9 +371,10 @@ static void openexr_header_metadata_callback(void *data, const char *propname, c
 }
 
 
-static bool imb_save_openexr_half(ImBuf *ibuf, const char *name, const int flags, const size_t totviews,
-                                  const char * (*getview)(void *base, size_t view_id),
-                                  ImBuf * (*getbuffer)(void *base, const size_t view_id))
+static bool imb_save_openexr_half(
+        ImBuf *ibuf, const char *name, const int flags, const int totviews,
+        const char * (*getview)(void *base, int view_id),
+        ImBuf *(*getbuffer)(void *base, const int view_id))
 {
 	const int channels = ibuf->channels;
 	const bool is_alpha = (channels >= 4) && (ibuf->planes == 32);
@@ -385,7 +386,7 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *name, const int flags
 	BLI_assert((!is_multiview) || (getview && getbuffer));
 
 	std::vector <string> views;
-	size_t view_id;
+	int view_id;
 
 	try
 	{
@@ -488,9 +489,10 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *name, const int flags
 	return true;
 }
 
-static bool imb_save_openexr_float(ImBuf *ibuf, const char *name, const int flags, const size_t totviews,
-                                   const char * (*getview)(void *base, const size_t view_id),
-                                   ImBuf * (*getbuffer)(void *base, const size_t view_id))
+static bool imb_save_openexr_float(
+        ImBuf *ibuf, const char *name, const int flags, const int totviews,
+        const char * (*getview)(void *base, const int view_id),
+        ImBuf *(*getbuffer)(void *base, const int view_id))
 {
 	const int channels = ibuf->channels;
 	const bool is_alpha = (channels >= 4) && (ibuf->planes == 32);
@@ -502,7 +504,7 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *name, const int flag
 	BLI_assert((!is_multiview) || (getview && getbuffer));
 
 	std::vector <string> views;
-	size_t view_id;
+	int view_id;
 
 	try
 	{
@@ -591,9 +593,10 @@ int imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
 	}
 }
 
-static bool imb_save_openexr_multiview(ImBuf *ibuf, const char *name, const int flags, const size_t totviews,
-                                       const char * (*getview)(void *base, const size_t view_id),
-                                       ImBuf * (*getbuffer)(void *base, const size_t view_id))
+static bool imb_save_openexr_multiview(
+        ImBuf *ibuf, const char *name, const int flags, const int totviews,
+        const char *(*getview)(void *base, const int view_id),
+        ImBuf *(*getbuffer)(void *base, const int view_id))
 {
 	if (flags & IB_mem) {
 		printf("OpenEXR-save: Create multiview EXR in memory CURRENTLY NOT SUPPORTED !\n");
@@ -616,9 +619,10 @@ static bool imb_save_openexr_multiview(ImBuf *ibuf, const char *name, const int 
 /* Save single-layer multiview OpenEXR
  * If we have more multiview formats in the future, the function below could be incorporated
  * in our ImBuf write functions, meanwhile this is an OpenEXR special case only */
-bool IMB_exr_multiview_save(ImBuf *ibuf, const char *name, const int flags, const size_t totviews,
-                            const char * (*getview)(void *base, size_t view_id),
-                            ImBuf * (*getbuffer)(void *base, const size_t view_id))
+bool IMB_exr_multiview_save(
+        ImBuf *ibuf, const char *name, const int flags, const int totviews,
+        const char *(*getview)(void *base, const int view_id),
+        ImBuf *(*getbuffer)(void *base, const int view_id))
 {
 	return imb_save_openexr_multiview(ibuf, name, flags, totviews, getview, getbuffer);
 }
@@ -1050,7 +1054,7 @@ float  *IMB_exr_channel_rect(void *handle, const char *layname, const char *pass
 		BLI_strncpy(name, temp_buf, sizeof(name));
 	}
 	else if (data->multiView->size() > 1) {
-		size_t view_id = std::max(0, imb_exr_get_multiView_id(*data->multiView, viewname));
+		const int view_id = std::max(0, imb_exr_get_multiView_id(*data->multiView, viewname));
 		std::string raw_name = insertViewName(name, *data->multiView, view_id);
 		BLI_strncpy(name, raw_name.c_str(), sizeof(name));
 	}
@@ -1135,7 +1139,7 @@ void IMB_exrtile_write_channels(void *handle, int partx, int party, int level, c
 	FrameBuffer frameBuffer;
 	ExrChannel *echan;
 	std::string view(viewname);
-	const size_t view_id = imb_exr_get_multiView_id(*data->multiView, view);
+	const int view_id = imb_exr_get_multiView_id(*data->multiView, view);
 
 	exr_printf("\nIMB_exrtile_write_channels(view: %s)\n", viewname);
 	exr_printf("%s %-6s %-22s \"%s\"\n", "p", "view", "name", "internal_name");
@@ -1181,7 +1185,7 @@ void IMB_exrtile_write_channels(void *handle, int partx, int party, int level, c
 void IMB_exrmultiview_write_channels(void *handle, const char *viewname)
 {
 	ExrHandle *data = (ExrHandle *)handle;
-	const size_t view_id = viewname ? imb_exr_get_multiView_id(*data->multiView, viewname) : -1;
+	const int view_id = viewname ? imb_exr_get_multiView_id(*data->multiView, viewname) : -1;
 	int numparts = (view_id == -1 ? data->parts : view_id + 1);
 	std::vector <FrameBuffer> frameBuffers(numparts);
 	std::vector <OutputPart> outputParts;

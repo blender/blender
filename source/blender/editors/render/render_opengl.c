@@ -105,7 +105,7 @@ typedef struct OGLRender {
 	bMovieHandle *mh;
 	int cfrao, nfra;
 
-	size_t totvideos;
+	int totvideos;
 
 	/* quick lookup */
 	int view_id;
@@ -622,7 +622,7 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = oglrender->scene;
-	size_t i;
+	int i;
 
 	if (oglrender->mh) {
 		if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
@@ -680,7 +680,8 @@ static bool screen_opengl_render_anim_initialize(bContext *C, wmOperator *op)
 	oglrender->reports = op->reports;
 
 	if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
-		size_t i, width, height;
+		size_t width, height;
+		int i;
 
 		BKE_scene_multiview_videos_dimensions_get(&scene->r, oglrender->sizex, oglrender->sizey, &width, &height);
 		oglrender->mh = BKE_movie_handle_get(scene->r.im_format.imtype);

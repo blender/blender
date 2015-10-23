@@ -1758,9 +1758,9 @@ static bool save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 		}
 		/* individual multiview images */
 		else if (imf->views_format == R_IMF_VIEWS_INDIVIDUAL) {
-			size_t i;
+			int i;
 			unsigned char planes = ibuf->planes;
-			const size_t totviews = (rr ? BLI_listbase_count(&rr->views) : BLI_listbase_count(&ima->views));
+			const int totviews = (rr ? BLI_listbase_count(&rr->views) : BLI_listbase_count(&ima->views));
 
 			if (!is_multilayer) {
 				ED_space_image_release_buffer(sima, ibuf, lock);

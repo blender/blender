@@ -101,7 +101,7 @@ typedef struct SeqRenderData {
 	float motion_blur_shutter;
 	bool skip_cache;
 	bool is_proxy_render;
-	size_t view_id;
+	int view_id;
 
 	/* special case for OpenGL render */
 	struct GPUOffScreen *gpu_offscreen;

@@ -69,9 +69,9 @@ void    IMB_exr_multiview_convert(
 }
 
 bool    IMB_exr_multiview_save(
-        struct ImBuf * /*ibuf*/, const char * /*name*/, const int /*flags*/, const size_t /*totviews*/,
-        const char * (* /*getview*/)(void *base, size_t view_id),
-        struct ImBuf * (* /*getbuffer*/)(void *base, const size_t view_id))
+        struct ImBuf * /*ibuf*/, const char * /*name*/, const int /*flags*/, const int /*totviews*/,
+        const char *(* /*getview*/)(void *base, const int view_id),
+        struct ImBuf *(* /*getbuffer*/)(void *base, const int view_id))
 {
 	return false;
 }
