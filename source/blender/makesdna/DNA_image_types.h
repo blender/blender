@@ -145,7 +145,7 @@ typedef struct Image {
 	/* Multiview */
 	char eye; /* for viewer node stereoscopy */
 	char views_format;
-	ListBase views;
+	ListBase views;  /* ImageView */
 	struct Stereo3dFormat *stereo3d_format;
 
 	RenderSlot render_slots[8];  /* 8 = IMA_MAX_RENDER_SLOT */
