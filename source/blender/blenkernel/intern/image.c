@@ -2864,11 +2864,22 @@ bool BKE_image_is_stereo(Image *ima)
             BLI_findstring(&ima->views, STEREO_RIGHT_NAME, offsetof(ImageView, name)));
 }
 
+static void image_view_from_render_view(ImageView *iv_dst, RenderView *rv_src)
+{
+	BLI_strncpy(iv_dst->name, rv_src->name, sizeof(iv_dst->name));
+}
+
 static void image_init_multilayer_multiview(Image *ima, RenderResult *rr)
 {
 	BKE_image_free_views(ima);
 	if (rr) {
-		BLI_duplicatelist(&ima->views, &rr->views);
+		RenderView *rv_src;
+		for (rv_src = rr->views.first; rv_src; rv_src = rv_src->next) {
+			ImageView *iv_dst;
+			iv_dst = MEM_callocN(sizeof(ImageView), "Viewer Image View");
+			image_view_from_render_view(iv_dst, rv_src);
+			BLI_addhead(&ima->views, iv_dst);
+		}
 	}
 }
 
