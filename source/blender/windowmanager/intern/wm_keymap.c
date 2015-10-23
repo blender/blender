@@ -1783,7 +1783,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	}
 	/* UV Editor */
 	else if (STRPREFIX(opname, "UV_OT")) {
-		km = WM_keymap_find_all(C, "UV Editor", sl->spacetype, 0);
+		km = WM_keymap_find_all(C, "UV Editor", 0, 0);
 	}
 	/* Node Editor */
 	else if (STRPREFIX(opname, "NODE_OT")) {
