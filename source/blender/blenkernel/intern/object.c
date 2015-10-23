@@ -1951,7 +1951,7 @@ void BKE_object_mat3_to_rot(Object *ob, float mat[3][3], bool use_compat)
 			float dquat[4];
 			mat3_to_quat(ob->quat, mat);
 			normalize_qt_qt(dquat, ob->dquat);
-			invert_qt(dquat);
+			invert_qt_normalized(dquat);
 			mul_qt_qtqt(ob->quat, dquat, ob->quat);
 			break;
 		}
@@ -1963,7 +1963,7 @@ void BKE_object_mat3_to_rot(Object *ob, float mat[3][3], bool use_compat)
 			/* without drot we could apply 'mat' directly */
 			mat3_to_quat(quat, mat);
 			axis_angle_to_quat(dquat, ob->drotAxis, ob->drotAngle);
-			invert_qt(dquat);
+			invert_qt_normalized(dquat);
 			mul_qt_qtqt(quat, dquat, quat);
 			quat_to_axis_angle(ob->rotAxis, &ob->rotAngle, quat);
 			break;
@@ -1977,7 +1977,7 @@ void BKE_object_mat3_to_rot(Object *ob, float mat[3][3], bool use_compat)
 			/* without drot we could apply 'mat' directly */
 			mat3_to_quat(quat, mat);
 			eulO_to_quat(dquat, ob->drot, ob->rotmode);
-			invert_qt(dquat);
+			invert_qt_normalized(dquat);
 			mul_qt_qtqt(quat, dquat, quat);
 			quat_to_mat3(tmat, quat);
 			/* end drot correction */

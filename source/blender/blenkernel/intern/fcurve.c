@@ -1235,7 +1235,7 @@ static float dvar_eval_rotDiff(ChannelDriver *driver, DriverVar *dvar)
 	mat4_to_quat(q1, pchan->pose_mat);
 	mat4_to_quat(q2, pchan2->pose_mat);
 	
-	invert_qt(q1);
+	invert_qt_normalized(q1);
 	mul_qt_qtqt(quat, q1, q2);
 	angle = 2.0f * (saacos(quat[0]));
 	angle = ABS(angle);

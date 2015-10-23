@@ -154,6 +154,24 @@ void invert_qt_qt(float q1[4], const float q2[4])
 	invert_qt(q1);
 }
 
+/**
+ * This is just conjugate_qt for cases we know \a q is unit-length.
+ * we could use #conjugate_qt directly, but use this function to show intent,
+ * and assert if its ever becomes non-unit-length.
+ */
+void invert_qt_normalized(float q[4])
+{
+	BLI_ASSERT_UNIT_QUAT(q);
+	conjugate_qt(q);
+
+}
+
+void invert_qt_qt_normalized(float q1[4], const float q2[4])
+{
+	copy_qt_qt(q1, q2);
+	invert_qt_normalized(q1);
+}
+
 /* simple mult */
 void mul_qt_fl(float q[4], const float f)
 {
