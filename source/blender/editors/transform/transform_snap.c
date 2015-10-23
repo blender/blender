@@ -889,13 +889,13 @@ static float ResizeBetween(TransInfo *t, const float p1[3], const float p2[3])
 
 	sub_v3_v3v3(d1, p1, t->center_global);
 	sub_v3_v3v3(d2, p2, t->center_global);
-	
-	project_v3_v3v3(d1, d1, d2);
 
 	if (t->con.applyRot != NULL && (t->con.mode & CON_APPLY)) {
 		mul_m3_v3(t->con.pmtx, d1);
 		mul_m3_v3(t->con.pmtx, d2);
 	}
+
+	project_v3_v3v3(d1, d1, d2);
 	
 	len_d1 = len_v3(d1);
 
