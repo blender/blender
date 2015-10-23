@@ -85,7 +85,7 @@
 
 #define TRANSFORM_DIST_MAX_PX 1000.0f
 #define TRANSFORM_SNAP_MAX_PX 100.0f
-#define TRANSFORM_DIST_INVALID NAN_FLT
+#define TRANSFORM_DIST_INVALID -FLT_MAX
 
 /* use half of flt-max so we can scale up without an exception */
 
