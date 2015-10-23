@@ -156,7 +156,7 @@ public:
 
 	void ClrLink() { m_links=0; }
 	void IncLink() { m_links++; }
-	void DecLink();
+	virtual void DecLink();
 	bool IsNoLink() const { return !m_links; }
 	bool IsType(KX_ACTUATOR_TYPE type) { return m_type == type; }
 	

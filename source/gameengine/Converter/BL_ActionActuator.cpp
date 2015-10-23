@@ -336,6 +336,17 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	return m_flag & ACT_FLAG_ACTIVE;
 }
 
+void BL_ActionActuator::DecLink()
+{
+	SCA_IActuator::DecLink();
+	/* In this case no controllers use this action actuator,
+	   and it should stop its action. */
+	if (m_links == 0) {
+		KX_GameObject *obj = (KX_GameObject *)GetParent();
+		obj->StopAction(m_layer);
+	}
+}
+
 #ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */

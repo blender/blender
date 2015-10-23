@@ -69,6 +69,8 @@ public:
 	bAction*	GetAction() { return m_action; }
 	void		SetAction(bAction* act) { m_action= act; }
 
+	virtual void DecLink();
+
 #ifdef WITH_PYTHON
 
 	KX_PYMETHOD_O(BL_ActionActuator,GetChannel)
