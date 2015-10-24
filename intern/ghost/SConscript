@@ -33,7 +33,6 @@ Import ('env')
 window_system = env['OURPLATFORM']
 
 sources = env.Glob('intern/*.cpp')
-sources2 = env.Glob('intern/GHOST_NDOFManager3Dconnexion.c')
 if window_system == 'darwin':
     sources += env.Glob('intern/*.mm')
     #remove, will be readded below if needed.
@@ -193,7 +192,3 @@ elif window_system == 'darwin' and env['C_COMPILER_ID'] == 'gcc' and  env['CCVER
 
 else:
     env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15] )
-    
-if window_system == 'darwin' and env['WITH_BF_3DMOUSE']: # build seperate to circumvent extern "C" linkage issues
-    env.BlenderLib ('bf_intern_ghostndof3dconnexion', sources2, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15] )
-
