@@ -51,8 +51,12 @@ struct CurveMapping *curvemapping_copy(struct CurveMapping *cumap);
 void                curvemapping_set_black_white_ex(const float black[3], const float white[3], float r_bwmul[3]);
 void                curvemapping_set_black_white(struct CurveMapping *cumap, const float black[3], const float white[3]);
 
-#define CURVEMAP_SLOPE_NEGATIVE 0
-#define CURVEMAP_SLOPE_POSITIVE 1
+enum {
+	CURVEMAP_SLOPE_NEGATIVE   = 0,
+	CURVEMAP_SLOPE_POSITIVE   = 1,
+	CURVEMAP_SLOPE_RAISE_FALL = 2,
+};
+
 void                    curvemap_reset(struct CurveMap *cuma, const struct rctf *clipr, int preset, int slope);
 void                    curvemap_remove(struct CurveMap *cuma, const short flag);
 bool                    curvemap_remove_point(struct CurveMap *cuma, struct CurveMapPoint *cmp);
