@@ -850,17 +850,14 @@ void view3d_winmatrix_set(ARegion *ar, const View3D *v3d, const rctf *rect)
 static void obmat_to_viewmat(RegionView3D *rv3d, Object *ob)
 {
 	float bmat[4][4];
-	float tmat[3][3];
 
 	rv3d->view = RV3D_VIEW_USER; /* don't show the grid */
 
-	copy_m4_m4(bmat, ob->obmat);
-	normalize_m4(bmat);
+	normalize_m4_m4(bmat, ob->obmat);
 	invert_m4_m4(rv3d->viewmat, bmat);
 
 	/* view quat calculation, needed for add object */
-	copy_m3_m4(tmat, rv3d->viewmat);
-	mat3_to_quat(rv3d->viewquat, tmat);
+	mat4_normalized_to_quat(rv3d->viewquat, rv3d->viewmat);
 }
 
 static float view3d_quat_axis[6][4] = {
