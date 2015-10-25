@@ -47,7 +47,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* TODO(sergey): Make sure it does not conflict with SSE intrinsics. */
 ccl_device_inline float madd(const float a, const float b, const float c)
 {
 	/* NOTE: In the future we may want to explicitly ask for a fused
