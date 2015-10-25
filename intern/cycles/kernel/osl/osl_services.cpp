@@ -18,7 +18,7 @@
  * here, so for now we just put here. In the future it might be better
  * to have dedicated file for such tweaks.
  */
-#if defined(__GNUC__) && defined(NDEBUG)
+#if (defined(__GNUC__) && !defined(__clang__)) && defined(NDEBUG)
 #  pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #  pragma GCC diagnostic ignored "-Wuninitialized"
 #endif

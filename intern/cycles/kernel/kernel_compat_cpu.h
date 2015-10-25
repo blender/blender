@@ -22,7 +22,7 @@
 /* Release kernel has too much false-positive maybe-uninitialized warnings,
  * which makes it possible to miss actual warnings.
  */
-#if defined(__GNUC__) && defined(NDEBUG)
+#if (defined(__GNUC__) && !defined(__clang__)) && defined(NDEBUG)
 #  pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #  pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
