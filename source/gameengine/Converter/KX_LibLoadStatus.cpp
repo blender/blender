@@ -36,7 +36,8 @@ KX_LibLoadStatus::KX_LibLoadStatus(class KX_BlenderSceneConverter* kx_converter,
 			m_mergescene(merge_scene),
 			m_data(NULL),
 			m_libname(path),
-			m_progress(0.f)
+			m_progress(0.0f),
+			m_finished(false)
 #ifdef WITH_PYTHON
 			,
 			m_finish_cb(NULL),
@@ -48,6 +49,7 @@ KX_LibLoadStatus::KX_LibLoadStatus(class KX_BlenderSceneConverter* kx_converter,
 
 void KX_LibLoadStatus::Finish()
 {
+	m_finished = true;
 	m_progress = 1.f;
 	m_endtime = PIL_check_seconds_timer();
 
@@ -157,6 +159,7 @@ PyAttributeDef KX_LibLoadStatus::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RO("progress", KX_LibLoadStatus, m_progress),
 	KX_PYATTRIBUTE_STRING_RO("libraryName", KX_LibLoadStatus, m_libname),
 	KX_PYATTRIBUTE_RO_FUNCTION("timeTaken", KX_LibLoadStatus, pyattr_get_timetaken),
+	KX_PYATTRIBUTE_BOOL_RO("finished", KX_LibLoadStatus, m_finished),
 	{ NULL }	//Sentinel
 };
 

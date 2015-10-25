@@ -25,6 +25,12 @@ base class --- :class:`PyObjectPlus`
 
       :type: callable
 
+   .. attribute:: finished
+
+      The current status of the lib load.
+
+      :type: boolean
+
    .. attribute:: progress
 
       The current progress of the lib load as a normalized value from 0.0 to 1.0.

@@ -64,6 +64,7 @@ public:
 
 	// handle any pending merges from asynchronous loads
 	virtual void MergeAsyncLoads()=0;
+	virtual void FinalizeAsyncLoads() = 0;
 
 	virtual void	SetAlwaysUseExpandFraming(bool to_what) = 0;
 

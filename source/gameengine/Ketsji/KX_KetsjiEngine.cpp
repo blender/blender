@@ -1273,6 +1273,7 @@ void KX_KetsjiEngine::StopEngine()
 {
 	if (m_bInitialized)
 	{
+		m_sceneconverter->FinalizeAsyncLoads();
 
 		if (m_animation_record)
 		{

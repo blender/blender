@@ -184,6 +184,7 @@ public:
 	bool FreeBlendFile(const char *path);
 
 	virtual void MergeAsyncLoads();
+	virtual void FinalizeAsyncLoads();
 	void AddScenesToMergeQueue(class KX_LibLoadStatus *status);
  
 	void PrintStats() {
