@@ -35,6 +35,9 @@
 #include <ctype.h>
 
 #include "MEM_guardedalloc.h"
+
+#include "BLI_string.h"
+
 #include "DNA_text_types.h"
 #include "BKE_suggestions.h"
 
@@ -46,18 +49,6 @@ static Text *activeToolText = NULL;
 static SuggList suggestions = {NULL, NULL, NULL, NULL, NULL};
 static char *documentation = NULL;
 //static int doc_lines = 0;
-
-/* TODO, replace with  BLI_strncasecmp() */
-static int txttl_cmp(const char *first, const char *second, int len)
-{
-	int cmp, i;
-	for (cmp = 0, i = 0; i < len; i++) {
-		if ((cmp = toupper(first[i]) - toupper(second[i]))) {
-			break;
-		}
-	}
-	return cmp;
-}
 
 static void txttl_free_suggest(void)
 {
@@ -124,7 +115,6 @@ void texttool_suggest_add(const char *name, char type)
 		return;
 	}
 
-	newitem->name = (char *) (newitem + 1);
 	memcpy(newitem->name, name, len + 1);
 	newitem->type = type;
 	newitem->prev = newitem->next = NULL;
@@ -136,7 +126,7 @@ void texttool_suggest_add(const char *name, char type)
 	else {
 		cmp = -1;
 		for (item = suggestions.last; item; item = item->prev) {
-			cmp = txttl_cmp(name, item->name, len);
+			cmp = BLI_strncasecmp(name, item->name, len);
 
 			/* Newitem comes after this item, insert here */
 			if (cmp >= 0) {
@@ -177,7 +167,7 @@ void texttool_suggest_prefix(const char *prefix, const int prefix_len)
 	
 	first = last = NULL;
 	for (match = suggestions.first; match; match = match->next) {
-		cmp = txttl_cmp(prefix, match->name, prefix_len);
+		cmp = BLI_strncasecmp(prefix, match->name, prefix_len);
 		if (cmp == 0) {
 			if (!first) {
 				first = match;

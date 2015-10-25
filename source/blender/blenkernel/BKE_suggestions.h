@@ -54,8 +54,8 @@ struct Text;
 
 typedef struct SuggItem {
 	struct SuggItem *prev, *next;
-	char *name;
 	char type;
+	char name[0];
 } SuggItem;
 
 typedef struct SuggList {
