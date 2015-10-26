@@ -111,8 +111,6 @@ void EllipseMaskOperation::executePixelSampled(float output[4], float x, float y
 			}
 			break;
 	}
-
-
 }
 
 void EllipseMaskOperation::deinitExecution()

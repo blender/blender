@@ -213,8 +213,6 @@ void BLI_argsAddCase(struct bArgs *ba, int pass,
 
 	if (long_arg)
 		internalAdd(ba, long_arg, pass, long_case, cb, data, d);
-
-
 }
 
 void BLI_argsAdd(struct bArgs *ba, int pass,

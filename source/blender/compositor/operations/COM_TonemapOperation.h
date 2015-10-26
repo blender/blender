@@ -82,8 +82,6 @@ public:
 	void setData(NodeTonemap *data) { this->m_data = data; }
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-
-
 };
 
 /**

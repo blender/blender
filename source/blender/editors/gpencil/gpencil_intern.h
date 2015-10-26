@@ -203,8 +203,4 @@ typedef enum ACTCONT_TYPES {
 	ACTCONT_GPENCIL
 } ACTCONT_TYPES;
 
-
-
-
 #endif /* __GPENCIL_INTERN_H__ */
-

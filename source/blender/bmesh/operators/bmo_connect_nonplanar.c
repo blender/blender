@@ -120,8 +120,6 @@ static bool bm_face_split_find(BMesh *bm, BMFace *f, BMLoop *l_pair[2], float *r
 	*r_angle = angle_best;
 
 	return found;
-
-
 }
 
 static bool bm_face_split_by_angle(BMesh *bm, BMFace *f, BMFace *r_f_pair[2], const float angle_limit)

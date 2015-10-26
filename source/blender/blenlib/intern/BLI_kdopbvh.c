@@ -1789,8 +1789,6 @@ typedef struct RangeQueryData {
 
 	BVHTree_RangeQuery callback;
 	void *userdata;
-
-
 } RangeQueryData;
 
 

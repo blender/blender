@@ -626,8 +626,6 @@ void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& list
 			fcurve_is_used(fcu);
 		}
 	}
-
-
 }
 
 void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, const char *anim_type)

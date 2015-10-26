@@ -142,8 +142,6 @@ void AnimationExporter::operator()(Object *ob)
 			}
 		}
 	}
-
-
 }
 
 void AnimationExporter::export_object_constraint_animation(Object *ob)

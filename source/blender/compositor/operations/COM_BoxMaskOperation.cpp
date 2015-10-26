@@ -107,8 +107,6 @@ void BoxMaskOperation::executePixelSampled(float output[4], float x, float y, Pi
 			}
 			break;
 	}
-
-
 }
 
 void BoxMaskOperation::deinitExecution()
@@ -116,4 +114,3 @@ void BoxMaskOperation::deinitExecution()
 	this->m_inputMask = NULL;
 	this->m_inputValue = NULL;
 }
-

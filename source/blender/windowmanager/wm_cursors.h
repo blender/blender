@@ -29,9 +29,6 @@
  *  \ingroup wm
  */
 
-
-
-
 #ifndef __WM_CURSORS_H__
 #define __WM_CURSORS_H__
 

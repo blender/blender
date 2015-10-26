@@ -53,7 +53,5 @@ public:
 	void setColorBand(ColorBand *colorBand) {
 		this->m_colorBand = colorBand;
 	}
-
-
 };
 #endif

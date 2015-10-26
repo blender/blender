@@ -133,7 +133,6 @@ static int graphview_cursor_exec(bContext *C, wmOperator *op)
 /* set the operator properties from the initial event */
 static void graphview_cursor_setprops(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	float viewx, viewy;
 	
