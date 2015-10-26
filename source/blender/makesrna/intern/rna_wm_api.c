@@ -420,7 +420,7 @@ void RNA_api_wm(StructRNA *srna)
 
 	/* Progress bar interface */
 	func = RNA_def_function(srna, "progress_begin", "rna_progress_begin");
-	RNA_def_function_ui_description(func, "Start Progress bar");
+	RNA_def_function_ui_description(func, "Start progress report");
 
 	parm = RNA_def_property(func, "min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_ui_text(parm, "min", "any value in range [0,9999]");
@@ -436,7 +436,7 @@ void RNA_api_wm(StructRNA *srna)
 	RNA_def_property_ui_text(parm, "value", "any value between min and max as set in progress_begin()");
 
 	func = RNA_def_function(srna, "progress_end", "rna_progress_end");
-	RNA_def_function_ui_description(func, "Terminate Progress bar");
+	RNA_def_function_ui_description(func, "Terminate progress report");
 
 	/* invoke functions, for use with python */
 	func = RNA_def_function(srna, "invoke_props_popup", "rna_Operator_props_popup");

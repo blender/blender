@@ -1100,7 +1100,7 @@ static bool ui_but_event_property_operator_string(const bContext *C, uiBut *but,
 			
 			/* check each until one works... */
 			for (i = 0; (i < num_ops) && (ctx_toggle_opnames[i]); i++) {
-				//printf("\t%s\n", ctx_toggle_opnames[i]);
+				printf("\t%s\n", ctx_toggle_opnames[i]);
 				if (WM_key_event_operator_string(C, ctx_toggle_opnames[i], WM_OP_INVOKE_REGION_WIN, prop_path, false,
 				                                 buf_len, buf))
 				{
