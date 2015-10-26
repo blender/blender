@@ -184,6 +184,7 @@ void PAINT_OT_add_simple_uvs(struct wmOperatorType *ot);
 
 /* uv sculpting */
 int uv_sculpt_poll(struct bContext *C);
+int uv_sculpt_keymap_poll(struct bContext *C);
 
 void SCULPT_OT_uv_sculpt_stroke(struct wmOperatorType *ot);
 

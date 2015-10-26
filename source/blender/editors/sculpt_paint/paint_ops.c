@@ -1487,7 +1487,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "deselect", true);
 
 	keymap = WM_keymap_find(keyconf, "UV Sculpt", 0, 0);
-	keymap->poll = uv_sculpt_poll;
+	keymap->poll = uv_sculpt_keymap_poll;
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", QKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_uv_sculpt");
