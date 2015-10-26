@@ -1665,8 +1665,14 @@ void calculateCenterCursorGraph2D(TransInfo *t, float r_center[2])
 	Scene *scene = t->scene;
 	
 	/* cursor is combination of current frame, and graph-editor cursor value */
-	r_center[0] = (float)(scene->r.cfra);
-	r_center[1] = sipo->cursorVal;
+	if (sipo->mode == SIPO_MODE_DRIVERS) {
+		r_center[0] = sipo->cursorTime;
+		r_center[1] = sipo->cursorVal;
+	}
+	else {
+		r_center[0] = (float)(scene->r.cfra);
+		r_center[1] = sipo->cursorVal;
+	}
 }
 
 void calculateCenterMedian(TransInfo *t, float r_center[3])
