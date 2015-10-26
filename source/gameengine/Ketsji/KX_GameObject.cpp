@@ -55,7 +55,6 @@
 #include "KX_RayCast.h"
 #include "KX_PythonInit.h"
 #include "KX_PyMath.h"
-#include "KX_PythonSeq.h"
 #include "SCA_IActuator.h"
 #include "SCA_ISensor.h"
 #include "SCA_IController.h"
@@ -69,6 +68,7 @@
 #include "BL_Action.h"
 
 #include "EXP_PyObjectPlus.h" /* python stuff */
+#include "EXP_ListWrapper.h"
 #include "BLI_utildefines.h"
 
 #ifdef WITH_PYTHON
@@ -3057,20 +3057,83 @@ int KX_GameObject::pyattr_set_obcolor(void *self_v, const KX_PYATTRIBUTE_DEF *at
 	return PY_SET_ATTR_SUCCESS;
 }
 
+static int kx_game_object_get_sensors_size_cb(void *self_v)
+{
+	return ((KX_GameObject *)self_v)->GetSensors().size();
+}
+
+static PyObject *kx_game_object_get_sensors_item_cb(void *self_v, int index)
+{
+	return ((KX_GameObject *)self_v)->GetSensors()[index]->GetProxy();
+}
+
+static const char *kx_game_object_get_sensors_item_name_cb(void *self_v, int index)
+{
+	return ((KX_GameObject *)self_v)->GetSensors()[index]->GetName().ReadPtr();
+}
+
 /* These are experimental! */
 PyObject *KX_GameObject::pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	return KX_PythonSeq_CreatePyObject((static_cast<KX_GameObject*>(self_v))->m_proxy, KX_PYGENSEQ_OB_TYPE_SENSORS);
+	return (new CListWrapper(self_v,
+							 ((KX_GameObject *)self_v)->GetProxy(),
+							 NULL,
+							 kx_game_object_get_sensors_size_cb,
+							 kx_game_object_get_sensors_item_cb,
+							 kx_game_object_get_sensors_item_name_cb,
+							 NULL))->NewProxy(true);
+}
+
+static int kx_game_object_get_controllers_size_cb(void *self_v)
+{
+	return ((KX_GameObject *)self_v)->GetControllers().size();
+}
+
+static PyObject *kx_game_object_get_controllers_item_cb(void *self_v, int index)
+{
+	return ((KX_GameObject *)self_v)->GetControllers()[index]->GetProxy();
+}
+
+static const char *kx_game_object_get_controllers_item_name_cb(void *self_v, int index)
+{
+	return ((KX_GameObject *)self_v)->GetControllers()[index]->GetName().ReadPtr();
 }
 
 PyObject *KX_GameObject::pyattr_get_controllers(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	return KX_PythonSeq_CreatePyObject((static_cast<KX_GameObject*>(self_v))->m_proxy, KX_PYGENSEQ_OB_TYPE_CONTROLLERS);
+	return (new CListWrapper(self_v,
+							 ((KX_GameObject *)self_v)->GetProxy(),
+							 NULL,
+							 kx_game_object_get_controllers_size_cb,
+							 kx_game_object_get_controllers_item_cb,
+							 kx_game_object_get_controllers_item_name_cb,
+							 NULL))->NewProxy(true);
+}
+
+static int kx_game_object_get_actuators_size_cb(void *self_v)
+{
+	return ((KX_GameObject *)self_v)->GetActuators().size();
+}
+
+static PyObject *kx_game_object_get_actuators_item_cb(void *self_v, int index)
+{
+	return ((KX_GameObject *)self_v)->GetActuators()[index]->GetProxy();
+}
+
+static const char *kx_game_object_get_actuators_item_name_cb(void *self_v, int index)
+{
+	return ((KX_GameObject *)self_v)->GetActuators()[index]->GetName().ReadPtr();
 }
 
 PyObject *KX_GameObject::pyattr_get_actuators(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	return KX_PythonSeq_CreatePyObject((static_cast<KX_GameObject*>(self_v))->m_proxy, KX_PYGENSEQ_OB_TYPE_ACTUATORS);
+	return (new CListWrapper(self_v,
+							 ((KX_GameObject *)self_v)->GetProxy(),
+							 NULL,
+							 kx_game_object_get_actuators_size_cb,
+							 kx_game_object_get_actuators_item_cb,
+							 kx_game_object_get_actuators_item_name_cb,
+							 NULL))->NewProxy(true);
 }
 /* End experimental */
 

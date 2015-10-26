@@ -54,6 +54,7 @@ set(SRC
 	intern/StringValue.cpp
 	intern/Value.cpp
 	intern/VectorValue.cpp
+	intern/ListWrapper.cpp
 
 	EXP_BoolValue.h
 	EXP_ConstExpr.h
@@ -75,6 +76,8 @@ set(SRC
 	EXP_Value.h
 	EXP_VectorValue.h
 	EXP_VoidValue.h
+	EXP_ListWrapper.h
+
 )
 
 if(WITH_PYTHON)

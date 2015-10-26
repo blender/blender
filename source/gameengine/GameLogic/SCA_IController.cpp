@@ -37,7 +37,7 @@
 #include "SCA_IActuator.h"
 #include "SCA_ISensor.h"
 #include "EXP_PyObjectPlus.h"
-#include "../Ketsji/KX_PythonSeq.h" /* not nice, only need for KX_PythonSeq_CreatePyObject */
+#include "EXP_ListWrapper.h"
 
 #include <stdio.h>
 
@@ -244,13 +244,55 @@ PyObject *SCA_IController::pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_D
 	return PyLong_FromLong(self->m_statemask);
 }
 
+static int sca_icontroller_get_sensors_size_cb(void *self_v)
+{
+	return ((SCA_IController *)self_v)->GetLinkedSensors().size();
+}
+
+static PyObject *sca_icontroller_get_sensors_item_cb(void *self_v, int index)
+{
+	return ((SCA_IController *)self_v)->GetLinkedSensors()[index]->GetProxy();
+}
+
+static const char *sca_icontroller_get_sensors_item_name_cb(void *self_v, int index)
+{
+	return ((SCA_IController *)self_v)->GetLinkedSensors()[index]->GetName().ReadPtr();
+}
+
 PyObject *SCA_IController::pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	return KX_PythonSeq_CreatePyObject((static_cast<SCA_IController*>(self_v))->m_proxy, KX_PYGENSEQ_CONT_TYPE_SENSORS);
+	return (new CListWrapper(self_v,
+							 ((SCA_IController *)self_v)->GetProxy(),
+							 NULL,
+							 sca_icontroller_get_sensors_size_cb,
+							 sca_icontroller_get_sensors_item_cb,
+							 sca_icontroller_get_sensors_item_name_cb,
+							 NULL))->NewProxy(true);
+}
+
+static int sca_icontroller_get_actuators_size_cb(void *self_v)
+{
+	return ((SCA_IController *)self_v)->GetLinkedActuators().size();
+}
+
+static PyObject *sca_icontroller_get_actuators_item_cb(void *self_v, int index)
+{
+	return ((SCA_IController *)self_v)->GetLinkedActuators()[index]->GetProxy();
+}
+
+static const char *sca_icontroller_get_actuators_item_name_cb(void *self_v, int index)
+{
+	return ((SCA_IController *)self_v)->GetLinkedActuators()[index]->GetName().ReadPtr();
 }
 
 PyObject *SCA_IController::pyattr_get_actuators(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	return KX_PythonSeq_CreatePyObject((static_cast<SCA_IController*>(self_v))->m_proxy, KX_PYGENSEQ_CONT_TYPE_ACTUATORS);
+	return (new CListWrapper(self_v,
+							 ((SCA_IController *)self_v)->GetProxy(),
+							 NULL,
+							 sca_icontroller_get_actuators_size_cb,
+							 sca_icontroller_get_actuators_item_cb,
+							 sca_icontroller_get_actuators_item_name_cb,
+							 NULL))->NewProxy(true);
 }
 #endif // WITH_PYTHON

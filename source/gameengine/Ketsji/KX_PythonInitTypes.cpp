@@ -58,7 +58,6 @@
 #include "KX_ObjectActuator.h"
 #include "KX_ParentActuator.h"
 #include "KX_PolyProxy.h"
-#include "KX_PythonSeq.h"
 #include "KX_SCA_AddObjectActuator.h"
 #include "KX_SCA_EndObjectActuator.h"
 #include "KX_SCA_ReplaceMeshActuator.h"
@@ -99,6 +98,7 @@
 #include "SCA_IController.h"
 #include "KX_NavMeshObject.h"
 #include "KX_MouseActuator.h"
+#include "EXP_ListWrapper.h"
 
 static void PyType_Attr_Set(PyGetSetDef *attr_getset, PyAttributeDef *attr)
 {
@@ -203,6 +203,7 @@ PyMODINIT_FUNC initGameTypesPythonBinding(void)
 		PyType_Ready_AttrPtr(dict, BL_ArmatureChannel, init_getset);
 		// PyType_Ready_Attr(dict, CPropValue, init_getset);  // doesn't use Py_Header
 		PyType_Ready_Attr(dict, CListValue, init_getset);
+		PyType_Ready_Attr(dict, CListWrapper, init_getset);
 		PyType_Ready_Attr(dict, CValue, init_getset);
 		PyType_Ready_Attr(dict, KX_ArmatureSensor, init_getset);
 		PyType_Ready_Attr(dict, KX_BlenderMaterial, init_getset);
@@ -272,10 +273,6 @@ PyMODINIT_FUNC initGameTypesPythonBinding(void)
 		PyType_Ready_Attr(dict, SCA_PythonKeyboard, init_getset);
 		PyType_Ready_Attr(dict, SCA_PythonMouse, init_getset);
 	}
-
-
-	/* Normal python type */
-	PyType_Ready(&KX_PythonSeq_Type);
 
 #ifdef USE_MATHUTILS
 	/* Init mathutils callbacks */

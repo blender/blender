@@ -60,6 +60,11 @@ public:
 						struct bPoseChannel *posechannel);
 	virtual ~BL_ArmatureChannel();
 
+	inline const char *GetName()
+	{
+		return m_posechannel->name;
+	}
+
 #ifdef WITH_PYTHON
 	// Python access
 	virtual PyObject *py_repr(void);

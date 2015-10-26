@@ -60,9 +60,10 @@ extern "C" {
 #include "DNA_scene_types.h"
 #include "DNA_constraint_types.h"
 #include "RNA_access.h"
-#include "KX_PythonSeq.h"
 #include "KX_PythonInit.h"
 #include "KX_KetsjiEngine.h"
+
+#include "EXP_ListWrapper.h"
 
 #include "MT_Matrix4x4.h"
 
@@ -619,16 +620,58 @@ PyAttributeDef BL_ArmatureObject::Attributes[] = {
 	{NULL} //Sentinel
 };
 
+static int bl_armature_object_get_constraints_size_cb(void *self_v)
+{
+	return ((BL_ArmatureObject *)self_v)->GetConstraintNumber();
+}
+
+static PyObject *bl_armature_object_get_constraints_item_cb(void *self_v, int index)
+{
+	return ((BL_ArmatureObject *)self_v)->GetConstraint(index)->GetProxy();
+}
+
+static const char *bl_armature_object_get_constraints_item_name_cb(void *self_v, int index)
+{
+	return ((BL_ArmatureObject *)self_v)->GetConstraint(index)->GetName();
+}
+
 PyObject *BL_ArmatureObject::pyattr_get_constraints(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	return KX_PythonSeq_CreatePyObject((static_cast<BL_ArmatureObject*>(self_v))->m_proxy, KX_PYGENSEQ_OB_TYPE_CONSTRAINTS);
+	return (new CListWrapper(self_v,
+							 ((BL_ArmatureObject *)self_v)->GetProxy(),
+							 NULL,
+							 bl_armature_object_get_constraints_size_cb,
+							 bl_armature_object_get_constraints_item_cb,
+							 bl_armature_object_get_constraints_item_name_cb,
+							 NULL))->NewProxy(true);
+}
+
+static int bl_armature_object_get_channels_size_cb(void *self_v)
+{
+	return ((BL_ArmatureObject *)self_v)->GetChannelNumber();
+}
+
+static PyObject *bl_armature_object_get_channels_item_cb(void *self_v, int index)
+{
+	return ((BL_ArmatureObject *)self_v)->GetChannel(index)->GetProxy();
+}
+
+static const char *bl_armature_object_get_channels_item_name_cb(void *self_v, int index)
+{
+	return ((BL_ArmatureObject *)self_v)->GetChannel(index)->GetName();
 }
 
 PyObject *BL_ArmatureObject::pyattr_get_channels(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	BL_ArmatureObject* self = static_cast<BL_ArmatureObject*>(self_v);
+	BL_ArmatureObject *self = static_cast<BL_ArmatureObject *>(self_v);
 	self->LoadChannels(); // make sure we have the channels
-	return KX_PythonSeq_CreatePyObject((static_cast<BL_ArmatureObject*>(self_v))->m_proxy, KX_PYGENSEQ_OB_TYPE_CHANNELS);
+	return (new CListWrapper(self_v,
+							 self->GetProxy(),
+							 NULL,
+							 bl_armature_object_get_channels_size_cb,
+							 bl_armature_object_get_channels_item_cb,
+							 bl_armature_object_get_channels_item_name_cb,
+							 NULL))->NewProxy(true);
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(BL_ArmatureObject, update, 
