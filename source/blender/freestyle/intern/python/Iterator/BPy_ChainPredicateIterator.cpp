@@ -54,25 +54,6 @@ PyDoc_STRVAR(ChainPredicateIterator_doc,
 "predicate is kept as the next one.  If none of the potential next\n"
 "ViewEdge respects these two predicates, None is returned.\n"
 "\n"
-".. method:: __init__(restrict_to_selection=True, restrict_to_unvisited=True, begin=None, orientation=True)\n"
-"\n"
-"   Builds a ChainPredicateIterator from a starting ViewEdge and its\n"
-"   orientation.\n"
-"\n"
-"   :arg restrict_to_selection: Indicates whether to force the chaining\n"
-"      to stay within the set of selected ViewEdges or not.\n"
-"   :type restrict_to_selection: bool\n"
-"   :arg restrict_to_unvisited: Indicates whether a ViewEdge that has\n"
-"      already been chained must be ignored ot not.\n"
-"   :type restrict_to_unvisited: bool\n"
-"   :arg begin: The ViewEdge from where to start the iteration.\n"
-"   :type begin: :class:`freestyle.types.ViewEdge` or None\n"
-"   :arg orientation: If true, we'll look for the next ViewEdge among\n"
-"      the ViewEdges that surround the ending ViewVertex of begin.  If\n"
-"      false, we'll search over the ViewEdges surrounding the ending\n"
-"      ViewVertex of begin. \n"
-"   :type orientation: bool\n"
-"\n"
 ".. method:: __init__(upred, bpred, restrict_to_selection=True, restrict_to_unvisited=True, begin=None, "
 "orientation=True)\n"
 "\n"
@@ -118,11 +99,14 @@ static int ChainPredicateIterator_init(BPy_ChainPredicateIterator *self, PyObjec
 	static const char *kwlist_1[] = {"brother", NULL};
 	static const char *kwlist_2[] = {"upred", "bpred", "restrict_to_selection", "restrict_to_unvisited", "begin",
 	                                 "orientation", NULL};
-	static const char *kwlist_3[] = {"restrict_to_selection", "restrict_to_unvisited", "begin", "orientation", NULL};
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0, *obj4 = 0, *obj5 = 0, *obj6 = 0;
 
-	if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_1, &ChainingIterator_Type, &obj1)) {
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_1, &ChainPredicateIterator_Type, &obj1)) {
 		self->cp_it = new ChainPredicateIterator(*(((BPy_ChainPredicateIterator *)obj1)->cp_it));
+		self->upred = ((BPy_ChainPredicateIterator *)obj1)->upred;
+		self->bpred = ((BPy_ChainPredicateIterator *)obj1)->bpred;
+		Py_INCREF(self->upred);
+		Py_INCREF(self->bpred);
 	}
 	else if (PyErr_Clear(), (obj3 = obj4 = obj5 = obj6 = 0),
 	         PyArg_ParseTupleAndKeywords(args, kwds, "O!O!|O!O!O&O!", (char **)kwlist_2,
@@ -142,19 +126,6 @@ static int ChainPredicateIterator_init(BPy_ChainPredicateIterator *self, PyObjec
 		self->bpred = obj2;
 		Py_INCREF(self->upred);
 		Py_INCREF(self->bpred);
-	}
-	else if (PyErr_Clear(), (obj1 = obj2 = obj3 = obj4 = 0),
-	         PyArg_ParseTupleAndKeywords(args, kwds, "|O!O!O&O!", (char **)kwlist_3,
-	                                     &PyBool_Type, &obj1, &PyBool_Type, &obj2, check_begin, &obj3,
-	                                     &PyBool_Type, &obj4))
-	{
-		bool restrict_to_selection = (!obj1) ? true : bool_from_PyBool(obj1);
-		bool restrict_to_unvisited = (!obj2) ? true : bool_from_PyBool(obj2);
-		ViewEdge *begin = (!obj3 || obj3 == Py_None) ? NULL : ((BPy_ViewEdge *)obj3)->ve;
-		bool orientation = (!obj4) ? true : bool_from_PyBool(obj4);
-		self->cp_it = new ChainPredicateIterator(restrict_to_selection, restrict_to_unvisited, begin, orientation);
-		self->upred = NULL;
-		self->bpred = NULL;
 	}
 	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
