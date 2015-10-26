@@ -714,6 +714,14 @@ static short snap_bezier_horizontal(KeyframeEditData *UNUSED(ked), BezTriple *be
 	return 0;
 }
 
+/* frame to snap to is stored in the custom data -> first float value slot */
+static short snap_bezier_time(KeyframeEditData *ked, BezTriple *bezt)
+{
+	if (bezt->f2 & SELECT)
+		bezt->vec[1][0] = ked->f1;
+	return 0;
+}
+
 /* value to snap to is stored in the custom data -> first float value slot */
 static short snap_bezier_value(KeyframeEditData *ked, BezTriple *bezt)
 {
@@ -736,6 +744,8 @@ KeyframeEditFunc ANIM_editkeyframes_snap(short type)
 			return snap_bezier_nearestsec;
 		case SNAP_KEYS_HORIZONTAL: /* snap handles to same value */
 			return snap_bezier_horizontal;
+		case SNAP_KEYS_TIME: /* snap to given frame/time */
+			return snap_bezier_time;
 		case SNAP_KEYS_VALUE: /* snap to given value */
 			return snap_bezier_value;
 		default: /* just in case */
@@ -812,6 +822,16 @@ static short mirror_bezier_marker(KeyframeEditData *ked, BezTriple *bezt)
 	return 0;
 }
 
+static short mirror_bezier_time(KeyframeEditData *ked, BezTriple *bezt)
+{
+	/* value to mirror over is strored in f1 */
+	if (bezt->f2 & SELECT) {
+		mirror_bezier_xaxis_ex(bezt, ked->f1);
+	}
+	
+	return 0;
+}
+
 static short mirror_bezier_value(KeyframeEditData *ked, BezTriple *bezt)
 {
 	/* value to mirror over is stored in the custom data -> first float value slot */
@@ -835,6 +855,8 @@ KeyframeEditFunc ANIM_editkeyframes_mirror(short type)
 			return mirror_bezier_xaxis;
 		case MIRROR_KEYS_MARKER: /* mirror over marker */
 			return mirror_bezier_marker; 
+		case MIRROR_KEYS_TIME: /* mirror over frame/time */
+			return mirror_bezier_time;
 		case MIRROR_KEYS_VALUE: /* mirror over given value */
 			return mirror_bezier_value;
 		default: /* just in case */
