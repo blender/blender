@@ -26,6 +26,7 @@
 #include "util_debug.h"
 #include "util_foreach.h"
 #include "util_math.h"
+#include "util_math_cdf.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -214,11 +215,8 @@ static float filter_func_gaussian(float v, float width)
 
 static vector<float> filter_table(FilterType type, float width)
 {
-	const int filter_table_size = FILTER_TABLE_SIZE-1;
-	vector<float> filter_table_cdf(filter_table_size+1);
-	vector<float> filter_table(filter_table_size+1);
+	vector<float> filter_table(FILTER_TABLE_SIZE);
 	float (*filter_func)(float, float) = NULL;
-	int i, half_size = filter_table_size/2;
 
 	switch(type) {
 		case FILTER_BOX:
@@ -231,37 +229,23 @@ static vector<float> filter_table(FilterType type, float width)
 			assert(0);
 	}
 
-	/* compute cumulative distribution function */
-	filter_table_cdf[0] = 0.0f;
-	
-	for(i = 0; i < filter_table_size; i++) {
-		float x = i*width*0.5f/(filter_table_size-1);
-		float y = filter_func(x, width);
-		filter_table_cdf[i+1] += filter_table_cdf[i] + fabsf(y);
-	}
+	/* Create importance sampling table. */
 
-	for(i = 0; i <= filter_table_size; i++)
-		filter_table_cdf[i] /= filter_table_cdf[filter_table_size];
-	
-	/* create importance sampling table */
-	for(i = 0; i <= half_size; i++) {
-		float x = i/(float)half_size;
-		int index = upper_bound(filter_table_cdf.begin(), filter_table_cdf.end(), x) - filter_table_cdf.begin();
-		float t;
+	/* TODO(sergey): With the even filter table size resolution we can not
+	 * really make it nice symmetric importance map without sampling full range
+	 * (meaning, we would need to sample full filter range and not use the
+	 * make_symmetric argument).
+	 *
+	 * Current code matches exactly initial filter table code, but we should
+	 * consider either making FILTER_TABLE_SIZE odd value or sample full filter.
+	 */
 
-		if(index < filter_table_size+1) {
-			t = (x - filter_table_cdf[index])/(filter_table_cdf[index+1] - filter_table_cdf[index]);
-		}
-		else {
-			t = 0.0f;
-			index = filter_table_size;
-		}
-
-		float y = ((index + t)/(filter_table_size))*width;
-
-		filter_table[half_size+i] = 0.5f*(1.0f + y);
-		filter_table[half_size-i] = 0.5f*(1.0f - y);
-	}
+	util_cdf_inverted(FILTER_TABLE_SIZE,
+	                  0.0f,
+	                  width * 0.5f,
+	                  function_bind(filter_func, _1, width),
+	                  true,
+	                  filter_table);
 
 	return filter_table;
 }
