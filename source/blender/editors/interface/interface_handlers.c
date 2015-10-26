@@ -7517,8 +7517,14 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 	else if (data->state == BUTTON_STATE_NUM_EDITING) {
 		ui_numedit_end(but, data);
 
-		if (but->flag & UI_BUT_DRIVEN)
-			WM_report(C, RPT_INFO, "Can't edit driven number value, see graph editor for the driver setup.");
+		if (but->flag & UI_BUT_DRIVEN) {
+			/* Only warn when editing stepping/dragging the value.
+			 * No warnings should show for editing driver expressions though!
+			 */
+			if (state != BUTTON_STATE_TEXT_EDITING) {
+				WM_report(C, RPT_INFO, "Can't edit driven number value, see graph editor for the driver setup.");
+			}
+		}
 
 		if (ui_but_is_cursor_warp(but)) {
 
