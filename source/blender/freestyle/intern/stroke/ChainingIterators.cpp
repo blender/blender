@@ -191,6 +191,8 @@ int ChainSilhouetteIterator::traverse(const AdjacencyIterator& ait)
 
 int ChainPredicateIterator::traverse(const AdjacencyIterator& ait)
 {
+	if (!_unary_predicate || !_binary_predicate)
+		return -1;
 	AdjacencyIterator it(ait);
 	// Iterates over next edges to see if one of them respects the predicate:
 	while (!it.isEnd()) {
