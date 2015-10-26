@@ -1934,10 +1934,18 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 		SpaceIpo *sipo = (SpaceIpo *)ac.sl;
 		Scene *scene = ac.scene;
 		
-		/* take the average values, rounding to the nearest int for the current frame */
-		CFRA = iroundf(ked.f1 / ked.i1);
-		SUBFRA = 0.f;
-		sipo->cursorVal = ked.f2 / (float)ked.i1;
+		/* take the average values, rounding to the nearest int as necessary for int results */
+		if (sipo->mode == SIPO_MODE_DRIVERS) {
+			/* Drivers Mode - Affects cursor (float) */
+			sipo->cursorTime = ked.f1 / (float)ked.i1;
+			sipo->cursorVal  = ked.f2 / (float)ked.i1;
+		}
+		else {
+			/* Animation Mode - Affects current frame (int) */
+			CFRA = iroundf(ked.f1 / ked.i1);
+			SUBFRA = 0.f;
+			sipo->cursorVal = ked.f2 / (float)ked.i1;
+		}
 	}
 	
 	/* set notifier that things have changed */
