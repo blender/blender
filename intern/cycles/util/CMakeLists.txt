@@ -12,6 +12,7 @@ set(SRC
 	util_aligned_malloc.cpp
 	util_cache.cpp
 	util_logging.cpp
+	util_math_cdf.cpp
 	util_md5.cpp
 	util_path.cpp
 	util_string.cpp
@@ -49,6 +50,7 @@ set(SRC_HEADERS
 	util_logging.h
 	util_map.h
 	util_math.h
+	util_math_cdf.h
 	util_math_fast.h
 	util_md5.h
 	util_opengl.h
