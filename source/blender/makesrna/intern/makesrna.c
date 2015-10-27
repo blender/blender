@@ -1795,7 +1795,7 @@ static void rna_def_property_funcs_header_cpp(FILE *f, StructRNA *srna, Property
 		}
 		case PROP_STRING:
 		{
-			fprintf(f, "\tinline std::string %s(void);", rna_safe_id(prop->identifier));
+			fprintf(f, "\tinline std::string %s(void);\n", rna_safe_id(prop->identifier));
 			fprintf(f, "\tinline void %s(const std::string& value);", rna_safe_id(prop->identifier));
 			break;
 		}
