@@ -2643,6 +2643,9 @@ CustomDataMask ED_view3d_screen_datamask(const bScreen *screen)
 	return mask;
 }
 
+/**
+ * \note keep this synced with #ED_view3d_mats_rv3d_backup/#ED_view3d_mats_rv3d_restore
+ */
 void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[4][4], float winmat[4][4])
 {
 	RegionView3D *rv3d = ar->regiondata;
@@ -2914,6 +2917,47 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 	glLoadMatrixf(rv3d->winmat);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(rv3d->viewmat);
+}
+
+/**
+ * Store values from #RegionView3D, set when drawing.
+ * This is needed when we draw with to a viewport using a different matrix (offscreen drawing for example).
+ *
+ * Values set by #ED_view3d_update_viewmat should be handled here.
+ */
+struct RV3DMatrixStore {
+	float winmat[4][4];
+	float viewmat[4][4];
+	float viewinv[4][4];
+	float persmat[4][4];
+	float persinv[4][4];
+	float viewcamtexcofac[4];
+	float pixsize;
+};
+
+void *ED_view3d_mats_rv3d_backup(struct RegionView3D *rv3d)
+{
+	struct RV3DMatrixStore *rv3dmat = MEM_mallocN(sizeof(*rv3dmat), __func__);
+	copy_m4_m4(rv3dmat->winmat, rv3d->winmat);
+	copy_m4_m4(rv3dmat->viewmat, rv3d->viewmat);
+	copy_m4_m4(rv3dmat->persmat, rv3d->persmat);
+	copy_m4_m4(rv3dmat->persinv, rv3d->persinv);
+	copy_m4_m4(rv3dmat->viewinv, rv3d->viewinv);
+	copy_v4_v4(rv3dmat->viewcamtexcofac, rv3d->viewcamtexcofac);
+	rv3dmat->pixsize = rv3d->pixsize;
+	return (void *)rv3dmat;
+}
+
+void ED_view3d_mats_rv3d_restore(struct RegionView3D *rv3d, void *rv3dmat_pt)
+{
+	struct RV3DMatrixStore *rv3dmat = rv3dmat_pt;
+	copy_m4_m4(rv3d->winmat, rv3dmat->winmat);
+	copy_m4_m4(rv3d->viewmat, rv3dmat->viewmat);
+	copy_m4_m4(rv3d->persmat, rv3dmat->persmat);
+	copy_m4_m4(rv3d->persinv, rv3dmat->persinv);
+	copy_m4_m4(rv3d->viewinv, rv3dmat->viewinv);
+	copy_v4_v4(rv3d->viewcamtexcofac, rv3dmat->viewcamtexcofac);
+	rv3d->pixsize = rv3dmat->pixsize;
 }
 
 void ED_view3d_draw_offscreen_init(Scene *scene, View3D *v3d)

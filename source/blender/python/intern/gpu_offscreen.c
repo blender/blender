@@ -29,6 +29,8 @@
 
 #include <Python.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.h"
 
 #include "WM_types.h"
@@ -200,6 +202,7 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 	ARegion *ar;
 	GPUFX *fx;
 	GPUFXSettings fx_settings;
+	void *rv3d_mats;
 
 	BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
 
@@ -221,6 +224,8 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 
 	ED_view3d_draw_offscreen_init(scene, v3d);
 
+	rv3d_mats = ED_view3d_mats_rv3d_backup(ar->regiondata);
+
 	GPU_offscreen_bind(self->ofs, true); /* bind */
 
 	ED_view3d_draw_offscreen(
@@ -232,6 +237,9 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 
 	GPU_fx_compositor_destroy(fx);
 	GPU_offscreen_unbind(self->ofs, true); /* unbind */
+
+	ED_view3d_mats_rv3d_restore(ar->regiondata, rv3d_mats);
+	MEM_freeN(rv3d_mats);
 
 	Py_RETURN_NONE;
 }
