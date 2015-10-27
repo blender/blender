@@ -41,6 +41,7 @@ private:
 	float m_value;
 	bool m_valueSet;
 	int m_framenumber;
+	bool m_invert;
 	MovieClipAttribute m_attribute;
 public:
 	/**
@@ -57,5 +58,6 @@ public:
 	void setMovieClip(MovieClip *clip) { this->m_clip = clip; }
 	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
 	void setAttribute(MovieClipAttribute attribute) { this->m_attribute = attribute; }
+	void setInvert(bool invert) { this->m_invert = invert; }
 };
 #endif

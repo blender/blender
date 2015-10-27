@@ -2035,6 +2035,7 @@ static void node_composit_buts_stabilize2d(uiLayout *layout, bContext *C, Pointe
 		return;
 
 	uiItemR(layout, ptr, "filter_type", 0, "", ICON_NONE);
+	uiItemR(layout, ptr, "invert", 0, NULL, ICON_NONE);
 }
 
 static void node_composit_buts_translate(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

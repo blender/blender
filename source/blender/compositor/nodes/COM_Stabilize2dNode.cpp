@@ -40,11 +40,13 @@ Stabilize2dNode::Stabilize2dNode(bNode *editorNode) : Node(editorNode)
 
 void Stabilize2dNode::convertToOperations(NodeConverter &converter, const CompositorContext &context) const
 {
+	bNode *editorNode = this->getbNode();
 	NodeInput *imageInput = this->getInputSocket(0);
-	MovieClip *clip = (MovieClip *)getbNode()->id;
+	MovieClip *clip = (MovieClip *)editorNode->id;
+	bool invert = (editorNode->custom2 & CMP_NODEFLAG_STABILIZE_INVERSE) != 0;
 	
 	ScaleOperation *scaleOperation = new ScaleOperation();
-	scaleOperation->setSampler((PixelSampler)this->getbNode()->custom1);
+	scaleOperation->setSampler((PixelSampler)editorNode->custom1);
 	RotateOperation *rotateOperation = new RotateOperation();
 	rotateOperation->setDoDegree2RadConversion(false);
 	TranslateOperation *translateOperation = new TranslateOperation();
@@ -53,24 +55,28 @@ void Stabilize2dNode::convertToOperations(NodeConverter &converter, const Compos
 	MovieClipAttributeOperation *xAttribute = new MovieClipAttributeOperation();
 	MovieClipAttributeOperation *yAttribute = new MovieClipAttributeOperation();
 	SetSamplerOperation *psoperation = new SetSamplerOperation();
-	psoperation->setSampler((PixelSampler)this->getbNode()->custom1);
-	
+	psoperation->setSampler((PixelSampler)editorNode->custom1);
+
 	scaleAttribute->setAttribute(MCA_SCALE);
 	scaleAttribute->setFramenumber(context.getFramenumber());
 	scaleAttribute->setMovieClip(clip);
-	
+	scaleAttribute->setInvert(invert);
+
 	angleAttribute->setAttribute(MCA_ANGLE);
 	angleAttribute->setFramenumber(context.getFramenumber());
 	angleAttribute->setMovieClip(clip);
-	
+	angleAttribute->setInvert(invert);
+
 	xAttribute->setAttribute(MCA_X);
 	xAttribute->setFramenumber(context.getFramenumber());
 	xAttribute->setMovieClip(clip);
-	
+	xAttribute->setInvert(invert);
+
 	yAttribute->setAttribute(MCA_Y);
 	yAttribute->setFramenumber(context.getFramenumber());
 	yAttribute->setMovieClip(clip);
-	
+	yAttribute->setInvert(invert);
+
 	converter.addOperation(scaleAttribute);
 	converter.addOperation(angleAttribute);
 	converter.addOperation(xAttribute);
