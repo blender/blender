@@ -146,6 +146,7 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_overrideCamUseOrtho(false),
 	m_overrideCamNear(0.0),
 	m_overrideCamFar(0.0),
+	m_overrideCamZoom(1.0f),
 
 	m_stereo(false),
 	m_curreye(0),
@@ -976,6 +977,11 @@ void KX_KetsjiEngine::SetCameraOverrideLens(float lens)
 	m_overrideCamLens = lens;
 }
 
+void KX_KetsjiEngine::SetCameraOverrideZoom(float camzoom)
+{
+	m_overrideCamZoom = camzoom;
+}
+
 void KX_KetsjiEngine::GetSceneViewport(KX_Scene *scene, KX_Camera* cam, RAS_Rect& area, RAS_Rect& viewport)
 {
 	// In this function we make sure the rasterizer settings are upto
@@ -1154,6 +1160,7 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 			farfrust = m_overrideCamFar;
 		}
 
+		float camzoom = override_camera ? m_overrideCamZoom : m_cameraZoom;
 		if (orthographic) {
 
 			RAS_FramingManager::ComputeOrtho(
@@ -1169,10 +1176,10 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 				frustum
 			);
 			if (!cam->GetViewport()) {
-				frustum.x1 *= m_cameraZoom;
-				frustum.x2 *= m_cameraZoom;
-				frustum.y1 *= m_cameraZoom;
-				frustum.y2 *= m_cameraZoom;
+				frustum.x1 *= camzoom;
+				frustum.x2 *= camzoom;
+				frustum.y1 *= camzoom;
+				frustum.y2 *= camzoom;
 			}
 			projmat = m_rasterizer->GetOrthoMatrix(
 				frustum.x1, frustum.x2, frustum.y1, frustum.y2, frustum.camnear, frustum.camfar);
@@ -1194,10 +1201,10 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 			);
 
 			if (!cam->GetViewport()) {
-				frustum.x1 *= m_cameraZoom;
-				frustum.x2 *= m_cameraZoom;
-				frustum.y1 *= m_cameraZoom;
-				frustum.y2 *= m_cameraZoom;
+				frustum.x1 *= camzoom;
+				frustum.x2 *= camzoom;
+				frustum.y1 *= camzoom;
+				frustum.y2 *= camzoom;
 			}
 			projmat = m_rasterizer->GetFrustumMatrix(
 				frustum.x1, frustum.x2, frustum.y1, frustum.y2, frustum.camnear, frustum.camfar, focallength);
@@ -1242,7 +1249,7 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 
 	//render all the font objects for this scene
 	scene->RenderFonts();
-	
+
 	if (scene->GetPhysicsEnvironment())
 		scene->GetPhysicsEnvironment()->DebugDrawWorld();
 }
