@@ -290,10 +290,13 @@ ccl_device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, f
 
 #ifdef __CAMERA_MOTION__
 	/* motion blur */
-	if(kernel_data.cam.shuttertime == -1.0f)
+	if(kernel_data.cam.shuttertime == -1.0f) {
 		ray->time = TIME_INVALID;
-	else
-		ray->time = time;
+	}
+	else {
+		const int shutter_table_offset = kernel_data.cam.shutter_table_offset;
+		ray->time = lookup_table_read(kg, time, shutter_table_offset, SHUTTER_TABLE_SIZE);
+	}
 #endif
 
 	/* sample */

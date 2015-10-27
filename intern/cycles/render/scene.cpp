@@ -97,7 +97,7 @@ void Scene::free_memory(bool final)
 	particle_systems.clear();
 
 	if(device) {
-		camera->device_free(device, &dscene);
+		camera->device_free(device, &dscene, this);
 		film->device_free(device, &dscene, this);
 		background->device_free(device, &dscene);
 		integrator->device_free(device, &dscene);

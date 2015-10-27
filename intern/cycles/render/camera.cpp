@@ -18,18 +18,36 @@
 #include "mesh.h"
 #include "object.h"
 #include "scene.h"
+#include "tables.h"
 
 #include "device.h"
 
 #include "util_foreach.h"
+#include "util_function.h"
+#include "util_math_cdf.h"
 #include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN
+
+static float shutter_curve_eval(float x,
+                                float shutter_curve[RAMP_TABLE_SIZE])
+{
+	x *= RAMP_TABLE_SIZE;
+	int index = (int)x;
+	float frac = x - index;
+	if(index < RAMP_TABLE_SIZE - 1) {
+		return lerp(shutter_curve[index], shutter_curve[index + 1], frac);
+	}
+	else {
+		return shutter_curve[RAMP_TABLE_SIZE - 1];
+	}
+}
 
 Camera::Camera()
 {
 	shuttertime = 1.0f;
 	motion_position = MOTION_POSITION_CENTER;
+	shutter_table_offset = TABLE_OFFSET_INVALID;
 
 	aperturesize = 0.0f;
 	focaldistance = 10.0f;
@@ -85,6 +103,12 @@ Camera::Camera()
 	need_device_update = true;
 	need_flags_update = true;
 	previous_need_motion = -1;
+
+	/* Initialize shutter curve. */
+	const int num_shutter_points = sizeof(shutter_curve) / sizeof(*shutter_curve);
+	for(int i = 0; i < num_shutter_points; ++i) {
+		shutter_curve[i] = 1.0f;
+	}
 }
 
 Camera::~Camera()
@@ -279,6 +303,23 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	/* motion blur */
 #ifdef __CAMERA_MOTION__
 	kcam->shuttertime = (need_motion == Scene::MOTION_BLUR) ? shuttertime: -1.0f;
+
+	if(need_motion == Scene::MOTION_BLUR) {
+		vector<float> shutter_table;
+		util_cdf_inverted(SHUTTER_TABLE_SIZE,
+		                  0.0f,
+		                  1.0f,
+		                  function_bind(shutter_curve_eval, _1, shutter_curve),
+		                  false,
+		                  shutter_table);
+		shutter_table_offset = scene->lookup_tables->add_table(dscene,
+		                                                       shutter_table);
+		kcam->shutter_table_offset = (int)shutter_table_offset;
+	}
+	else if(shutter_table_offset != TABLE_OFFSET_INVALID) {
+		scene->lookup_tables->remove_table(shutter_table_offset);
+		shutter_table_offset = TABLE_OFFSET_INVALID;
+	}
 #else
 	kcam->shuttertime = -1.0f;
 #endif
@@ -342,9 +383,14 @@ void Camera::device_update_volume(Device * /*device*/,
 	need_flags_update = false;
 }
 
-void Camera::device_free(Device * /*device*/, DeviceScene * /*dscene*/)
+void Camera::device_free(Device * /*device*/,
+                         DeviceScene * /*dscene*/,
+                         Scene *scene)
 {
-	/* nothing to free, only writing to constant memory */
+	if(shutter_table_offset != TABLE_OFFSET_INVALID) {
+		scene->lookup_tables->remove_table(shutter_table_offset);
+		shutter_table_offset = TABLE_OFFSET_INVALID;
+	}
 }
 
 bool Camera::modified(const Camera& cam)

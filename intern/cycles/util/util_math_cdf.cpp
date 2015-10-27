@@ -37,7 +37,7 @@ void util_cdf_invert(const int resolution,
 			float x = i / (float)half_size;
 			int index = upper_bound(cdf.begin(), cdf.end(), x) - cdf.begin();
 			float t;
-			if(index < cdf.size()) {
+			if(index < cdf.size() - 1) {
 				t = (x - cdf[index])/(cdf[index+1] - cdf[index]);
 			} else {
 				t = 0.0f;
@@ -49,11 +49,11 @@ void util_cdf_invert(const int resolution,
 		}
 	}
 	else {
-		for(int i = 0; i <= resolution; i++) {
+		for(int i = 0; i < resolution; i++) {
 			float x = from + range * (float)i * inv_resolution;
 			int index = upper_bound(cdf.begin(), cdf.end(), x) - cdf.begin();
 			float t;
-			if(index < cdf.size()) {
+			if(index < cdf.size() - 1) {
 				t = (x - cdf[index])/(cdf[index+1] - cdf[index]);
 			} else {
 				t = 0.0f;

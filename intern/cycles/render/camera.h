@@ -50,6 +50,8 @@ public:
 	/* motion blur */
 	float shuttertime;
 	MotionPosition motion_position;
+	float shutter_curve[RAMP_TABLE_SIZE];
+	size_t shutter_table_offset;
 
 	/* depth of field */
 	float focaldistance;
@@ -132,7 +134,7 @@ public:
 
 	void device_update(Device *device, DeviceScene *dscene, Scene *scene);
 	void device_update_volume(Device *device, DeviceScene *dscene, Scene *scene);
-	void device_free(Device *device, DeviceScene *dscene);
+	void device_free(Device *device, DeviceScene *dscene, Scene *scene);
 
 	bool modified(const Camera& cam);
 	bool motion_modified(const Camera& cam);
