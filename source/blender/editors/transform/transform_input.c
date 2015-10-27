@@ -39,6 +39,11 @@
 
 #include "MEM_guardedalloc.h" 
 
+struct InputTrackBall_Data {
+	float value_accum[2];
+	float value_prev[2];
+};
+
 /* ************************** INPUT FROM MOUSE *************************** */
 
 static void InputVector(TransInfo *t, MouseInput *mi, const int mval[2], float output[3])
@@ -102,18 +107,23 @@ static void InputSpringDelta(TransInfo *t, MouseInput *mi, const int mval[2], fl
 
 static void InputTrackBall(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], float output[3])
 {
+	struct InputTrackBall_Data *data = mi->data;
+	float dxy[2];
+	float dxy_accum[2];
+
+	dxy[0] = (mi->imval[1] - mval[1]);
+	dxy[1] = (mval[0] - mi->imval[0]);
+
+	sub_v2_v2v2(dxy_accum, dxy, data->value_prev);
+
+	add_v2_v2(data->value_prev, dxy_accum);
 
 	if (mi->precision) {
-		output[0] = (mi->imval[1] - mi->precision_mval[1]) + (mi->precision_mval[1] - mval[1]) * 0.1f;
-		output[1] = (mi->precision_mval[0] - mi->imval[0]) + (mval[0] - mi->precision_mval[0]) * 0.1f;
-	}
-	else {
-		output[0] = (float)(mi->imval[1] - mval[1]);
-		output[1] = (float)(mval[0] - mi->imval[0]);
+		mul_v2_fl(dxy_accum, 1.0f / 30.0f);
 	}
 
-	output[0] *= mi->factor;
-	output[1] *= mi->factor;
+	add_v2_v2(data->value_accum, dxy_accum);
+	mul_v2_v2fl(output, data->value_accum, mi->factor);
 }
 
 static void InputHorizontalRatio(TransInfo *t, MouseInput *mi, const int mval[2], float output[3])
@@ -358,6 +368,7 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 		case INPUT_TRACKBALL:
 			/* factor has to become setting or so */
 			mi->factor = 0.01f;
+			mi->data = MEM_callocN(sizeof(struct InputTrackBall_Data), "angle accumulator");
 			mi->apply = InputTrackBall;
 			t->helpline = HLP_TRACKBALL;
 			break;
