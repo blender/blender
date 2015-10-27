@@ -1140,7 +1140,7 @@ void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel
 
 	/* TODO(sergey): Find a better place for this. */
 #ifdef WITH_OPENSUBDIV
-	if ((rel & DAG_RL_DATA_DATA) != 0) {
+	if ((rel & (DAG_RL_DATA_DATA | DAG_RL_DATA_OB)) != 0) {
 		if (fob1->type == ID_OB) {
 			if ((fob1->eval_flags & DAG_EVAL_NEED_CPU) == 0) {
 				Object *ob2 = fob2->ob;
