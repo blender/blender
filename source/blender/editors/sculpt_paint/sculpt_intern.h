@@ -118,7 +118,7 @@ typedef struct SculptUndoNode {
 SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType type);
 SculptUndoNode *sculpt_undo_get_node(PBVHNode *node);
 void sculpt_undo_push_begin(const char *name);
-void sculpt_undo_push_end(void);
+void sculpt_undo_push_end(const struct bContext *C);
 
 void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3]);
 

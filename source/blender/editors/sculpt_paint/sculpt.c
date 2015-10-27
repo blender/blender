@@ -4522,7 +4522,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 		sculpt_cache_free(ss->cache);
 		ss->cache = NULL;
 
-		sculpt_undo_push_end();
+		sculpt_undo_push_end(C);
 
 		BKE_pbvh_update(ss->pbvh, PBVH_UpdateOriginalBB, NULL);
 		
@@ -4846,7 +4846,7 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator *UNUSED(o
 		sculpt_dynamic_topology_enable(C);
 		sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
 	}
-	sculpt_undo_push_end();
+	sculpt_undo_push_end(C);
 
 	return OPERATOR_FINISHED;
 }
@@ -5008,7 +5008,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* Finish undo */
 	BM_log_all_added(ss->bm, ss->bm_log);
-	sculpt_undo_push_end();
+	sculpt_undo_push_end(C);
 
 	/* Redraw */
 	sculpt_pbvh_clear(ob);
@@ -5216,7 +5216,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	MEM_freeN(nodes);
-	sculpt_undo_push_end();
+	sculpt_undo_push_end(C);
 
 	/* force rebuild of pbvh for better BB placement */
 	sculpt_pbvh_clear(ob);

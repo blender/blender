@@ -1314,3 +1314,13 @@ void wm_open_init_use_scripts(wmOperator *op, bool use_prefs)
 }
 
 /** \} */
+
+void WM_file_tag_modified(const bContext *C)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	if (wm->file_saved) {
+		wm->file_saved = 0;
+		/* notifier that data changed, for save-over warning or header */
+		WM_event_add_notifier(C, NC_WM | ND_DATACHANGED, NULL);
+	}
+}

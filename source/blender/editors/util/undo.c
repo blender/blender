@@ -111,11 +111,7 @@ void ED_undo_push(bContext *C, const char *str)
 		BKE_undo_write(C, str);
 	}
 
-	if (wm->file_saved) {
-		wm->file_saved = 0;
-		/* notifier that data changed, for save-over warning or header */
-		WM_event_add_notifier(C, NC_WM | ND_DATACHANGED, NULL);
-	}
+	WM_file_tag_modified(C);
 }
 
 /* note: also check undo_history_exec() in bottom if you change notifiers */

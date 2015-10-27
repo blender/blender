@@ -112,6 +112,7 @@ void		WM_file_autoexec_init(const char *filepath);
 bool		WM_file_read(struct bContext *C, const char *filepath, struct ReportList *reports);
 void		WM_autosave_init(struct wmWindowManager *wm);
 void		WM_recover_last_session(struct bContext *C, struct ReportList *reports);
+void		WM_file_tag_modified(const struct bContext *C);
 
 			/* mouse cursors */
 void		WM_cursor_set(struct wmWindow *win, int curs);
