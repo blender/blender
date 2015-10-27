@@ -2108,9 +2108,10 @@ static void ntree_render_scenes(Render *re)
 /* bad call... need to think over proper method still */
 static void render_composit_stats(void *UNUSED(arg), const char *str)
 {
-	R.i.infostr = str;
-	R.stats_draw(R.sdh, &R.i);
-	R.i.infostr = NULL;
+	RenderStats i;
+	memcpy(&i, &R.i, sizeof(i));
+	i.infostr = str;
+	R.stats_draw(R.sdh, &i);
 }
 
 #ifdef WITH_FREESTYLE
