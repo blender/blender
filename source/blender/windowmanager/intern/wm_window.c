@@ -412,7 +412,12 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 	
 	ghostwin = GHOST_CreateWindow(g_system, title,
 	                              win->posx, posy, win->sizex, win->sizey,
+#ifdef __APPLE__
+	                              /* we agreed to not set any fullscreen or iconized state on startup */
+	                              GHOST_kWindowStateNormal,
+#else
 	                              (GHOST_TWindowState)win->windowstate,
+#endif
 	                              GHOST_kDrawingContextTypeOpenGL,
 	                              glSettings);
 	
@@ -431,11 +436,6 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 		if (win->eventstate == NULL)
 			win->eventstate = MEM_callocN(sizeof(wmEvent), "window event state");
 		
-#ifdef __APPLE__
-		/* set the state here, else OSX would not recognize changed screen resolution */
-		/* we agreed to not set any fullscreen or iconized state on startup */
-		GHOST_SetWindowState(ghostwin, GHOST_kWindowStateNormal);
-#endif
 		/* store actual window size in blender window */
 		bounds = GHOST_GetClientBounds(win->ghostwin);
 		win->sizex = GHOST_GetWidthRectangle(bounds);
