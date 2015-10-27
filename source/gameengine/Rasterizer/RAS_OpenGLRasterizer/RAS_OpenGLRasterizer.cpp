@@ -1362,9 +1362,13 @@ static void DisableForText()
 		for (int i=0; i<RAS_MAX_TEXCO; i++) {
 			glActiveTextureARB(GL_TEXTURE0_ARB+i);
 
-			if (GLEW_ARB_texture_cube_map)
+			if (GLEW_ARB_texture_cube_map) {
 				glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-
+				glDisable(GL_TEXTURE_GEN_S);
+				glDisable(GL_TEXTURE_GEN_T);
+				glDisable(GL_TEXTURE_GEN_Q);
+				glDisable(GL_TEXTURE_GEN_R);
+			}
 			glDisable(GL_TEXTURE_2D);
 		}
 
