@@ -37,6 +37,7 @@ struct BlenderCamera {
 	float lens;
 	float shuttertime;
 	Camera::MotionPosition motion_position;
+	float shutter_curve[RAMP_TABLE_SIZE];
 
 	float aperturesize;
 	uint apertureblades;
@@ -417,6 +418,8 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	cam->fov_post = cam->fov;
 	cam->motion_position = bcam->motion_position;
 
+	memcpy(cam->shutter_curve, bcam->shutter_curve, sizeof(cam->shutter_curve));
+
 	/* border */
 	cam->border = bcam->border;
 	cam->viewport_camera_border = bcam->viewport_camera_border;
@@ -437,6 +440,9 @@ void BlenderSync::sync_camera(BL::RenderSettings b_render, BL::Object b_override
 	bcam.pixelaspect.x = b_render.pixel_aspect_x();
 	bcam.pixelaspect.y = b_render.pixel_aspect_y();
 	bcam.shuttertime = b_render.motion_blur_shutter();
+	curvemapping_to_array(b_render.motion_blur_shutter_curve(),
+	                      bcam.shutter_curve,
+	                      RAMP_TABLE_SIZE);
 
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 	switch(RNA_enum_get(&cscene, "motion_blur_position")) {
@@ -545,6 +551,9 @@ static void blender_camera_from_view(BlenderCamera *bcam, BL::RenderEngine b_eng
 	bcam->farclip = b_v3d.clip_end();
 	bcam->lens = b_v3d.lens();
 	bcam->shuttertime = b_scene.render().motion_blur_shutter();
+	curvemapping_to_array(b_scene.render().motion_blur_shutter_curve(),
+	                      bcam->shutter_curve,
+	                      RAMP_TABLE_SIZE);
 
 	if(b_rv3d.view_perspective() == BL::RegionView3D::view_perspective_CAMERA) {
 		/* camera view */

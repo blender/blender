@@ -351,6 +351,8 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		scen->preview = BKE_previewimg_copy(sce->preview);
 	}
 
+	curvemapping_copy_data(&scen->r.mblur_shutter_curve, &sce->r.mblur_shutter_curve);
+
 	return scen;
 }
 
@@ -462,6 +464,7 @@ void BKE_scene_free(Scene *sce)
 	BKE_color_managed_view_settings_free(&sce->view_settings);
 
 	BKE_previewimg_free(&sce->preview);
+	curvemapping_free_data(&sce->r.mblur_shutter_curve);
 }
 
 void BKE_scene_init(Scene *sce)

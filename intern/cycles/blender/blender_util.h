@@ -62,6 +62,16 @@ static inline void colorramp_to_array(BL::ColorRamp ramp, float4 *data, int size
 	}
 }
 
+static inline void curvemapping_to_array(BL::CurveMapping cumap, float *data, int size)
+{
+	cumap.update();
+	BL::CurveMap curve = cumap.curves[0];
+	for(int i = 0; i < size; i++) {
+		float t = (float)i/(float)(size-1);
+		data[i] = curve.evaluate(t);
+	}
+}
+
 static inline void curvemapping_color_to_array(BL::CurveMapping cumap, float4 *data, int size, bool rgb_curve)
 {
 	cumap.update();

@@ -2576,6 +2576,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		}
 		
 		write_previews(wd, sce->preview);
+		write_curvemapping_curves(wd, &sce->r.mblur_shutter_curve);
 
 		sce= sce->id.next;
 	}

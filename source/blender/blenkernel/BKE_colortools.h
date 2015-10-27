@@ -54,7 +54,7 @@ void                curvemapping_set_black_white(struct CurveMapping *cumap, con
 enum {
 	CURVEMAP_SLOPE_NEGATIVE   = 0,
 	CURVEMAP_SLOPE_POSITIVE   = 1,
-	CURVEMAP_SLOPE_RAISE_FALL = 2,
+	CURVEMAP_SLOPE_POS_NEG    = 2,
 };
 
 void                    curvemap_reset(struct CurveMap *cuma, const struct rctf *clipr, int preset, int slope);

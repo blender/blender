@@ -268,6 +268,19 @@ class CyclesRender_PT_motion_blur(CyclesButtonsPanel, Panel):
         col.prop(cscene, "motion_blur_position", text="Position")
         col.prop(rd, "motion_blur_shutter")
 
+        col = layout.column()
+        col.label("Shutter curve:")
+        col.template_curve_mapping(rd, "motion_blur_shutter_curve")
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.operator("render.shutter_curve_preset", icon='SMOOTHCURVE', text="").shape = 'SMOOTH'
+        row.operator("render.shutter_curve_preset", icon='SPHERECURVE', text="").shape = 'ROUND'
+        row.operator("render.shutter_curve_preset", icon='ROOTCURVE', text="").shape = 'ROOT'
+        row.operator("render.shutter_curve_preset", icon='SHARPCURVE', text="").shape = 'SHARP'
+        row.operator("render.shutter_curve_preset", icon='LINCURVE', text="").shape = 'LINE'
+        row.operator("render.shutter_curve_preset", icon='NOCURVE', text="").shape = 'MAX'
+
 
 class CyclesRender_PT_film(CyclesButtonsPanel, Panel):
     bl_label = "Film"

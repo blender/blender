@@ -702,6 +702,9 @@ typedef struct RenderData {
 	short actview;
 	short views_format;
 	short pad8[2];
+
+	/* Motion blur shutter */
+	struct CurveMapping mblur_shutter_curve;
 } RenderData;
 
 /* *************************************************************** */

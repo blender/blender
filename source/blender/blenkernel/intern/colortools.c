@@ -368,7 +368,7 @@ void curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope)
 		MEM_freeN(cuma->curve);
 		cuma->curve = newpoints;
 	}
-	else if (slope == CURVEMAP_SLOPE_RAISE_FALL) {
+	else if (slope == CURVEMAP_SLOPE_POS_NEG) {
 		const int num_points = cuma->totpoint * 2 - 1;
 		CurveMapPoint *new_points = MEM_mallocN(num_points * sizeof(CurveMapPoint),
 		                                       "curve symmetric points");
