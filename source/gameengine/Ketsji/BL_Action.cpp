@@ -84,7 +84,8 @@ BL_Action::BL_Action(class KX_GameObject* gameobj)
 	m_blendmode(ACT_BLEND_BLEND),
 	m_ipo_flags(0),
 	m_done(true),
-	m_calc_localtime(true)
+	m_calc_localtime(true),
+	m_initializedTime(false)
 {
 }
 
@@ -271,6 +272,7 @@ bool BL_Action::Play(const char* name,
 	m_layer_weight = layer_weight;
 	
 	m_done = false;
+	m_initializedTime = false;
 
 	return true;
 }
@@ -400,8 +402,10 @@ void BL_Action::Update(float curtime)
 
 	// Grab the start time here so we don't end up with a negative m_localframe when
 	// suspending and resuming scenes.
-	if (m_starttime < 0)
+	if (!m_initializedTime) {
 		m_starttime = curtime;
+		m_initializedTime = true;
+	}
 
 	if (m_calc_localtime)
 		SetLocalTime(curtime);

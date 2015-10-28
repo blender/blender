@@ -69,6 +69,8 @@ private:
 
 	bool m_done;
 	bool m_calc_localtime;
+	/// Set to true when m_starttime is initialized in Update.
+	bool m_initializedTime;
 
 	void ClearControllerList();
 	void InitIPO();
