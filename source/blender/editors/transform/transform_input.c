@@ -53,11 +53,11 @@ static void InputVector(TransInfo *t, MouseInput *mi, const int mval[2], float o
 		/* calculate the main translation and the precise one separate */
 		convertViewVec(t, dvec, (mval[0] - mi->precision_mval[0]), (mval[1] - mi->precision_mval[1]));
 		mul_v3_fl(dvec, 0.1f);
-		convertViewVec(t, vec, (mi->precision_mval[0] - t->imval[0]), (mi->precision_mval[1] - t->imval[1]));
+		convertViewVec(t, vec, (mi->precision_mval[0] - t->mouse.imval[0]), (mi->precision_mval[1] - t->mouse.imval[1]));
 		add_v3_v3v3(output, vec, dvec);
 	}
 	else {
-		convertViewVec(t, output, (mval[0] - t->imval[0]), (mval[1] - t->imval[1]));
+		convertViewVec(t, output, (mval[0] - t->mouse.imval[0]), (mval[1] - t->mouse.imval[1]));
 	}
 
 }

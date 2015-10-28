@@ -3027,7 +3027,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 		/* only side on which mouse is gets transformed */
 		float xmouse, ymouse;
 		
-		UI_view2d_region_to_view(&ac.ar->v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
+		UI_view2d_region_to_view(&ac.ar->v2d, t->mouse.imval[0], t->mouse.imval[1], &xmouse, &ymouse);
 		t->frame_side = (xmouse > CFRA) ? 'R' : 'L';
 	}
 	else {
@@ -3664,7 +3664,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		/* only side on which mouse is gets transformed */
 		float xmouse, ymouse;
 		
-		UI_view2d_region_to_view(&ac.ar->v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
+		UI_view2d_region_to_view(&ac.ar->v2d, t->mouse.imval[0], t->mouse.imval[1], &xmouse, &ymouse);
 		t->frame_side = (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
 	}
 	else {
@@ -4063,7 +4063,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		/* only side on which mouse is gets transformed */
 		float xmouse, ymouse;
 		
-		UI_view2d_region_to_view(v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
+		UI_view2d_region_to_view(v2d, t->mouse.imval[0], t->mouse.imval[1], &xmouse, &ymouse);
 		t->frame_side = (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
 	}
 	else {
@@ -5108,7 +5108,7 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 
 	t->customFree = freeSeqData;
 
-	xmouse = (int)UI_view2d_region_to_view_x(v2d, t->imval[0]);
+	xmouse = (int)UI_view2d_region_to_view_x(v2d, t->mouse.imval[0]);
 
 	/* which side of the current frame should be allowed */
 	if (t->mode == TFM_TIME_EXTEND) {

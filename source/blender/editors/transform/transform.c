@@ -2160,7 +2160,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	calculatePropRatio(t);
 	calculateCenter(t);
 
-	initMouseInput(t, &t->mouse, t->center2d, t->imval);
+	initMouseInput(t, &t->mouse, t->center2d, event->mval);
 
 	switch (mode) {
 		case TFM_TRANSLATION:
@@ -3386,7 +3386,7 @@ static void applyResize(TransInfo *t, const int mval[2])
 
 	/* for manipulator, center handle, the scaling can't be done relative to center */
 	if ((t->flag & T_USES_MANIPULATOR) && t->con.mode == 0) {
-		ratio = 1.0f - ((t->imval[0] - mval[0]) + (t->imval[1] - mval[1])) / 100.0f;
+		ratio = 1.0f - ((t->mouse.imval[0] - mval[0]) + (t->mouse.imval[1] - mval[1])) / 100.0f;
 	}
 	else {
 		ratio = t->values[0];
@@ -5185,7 +5185,7 @@ static void applyBoneSize(TransInfo *t, const int mval[2])
 	// TRANSFORM_FIX_ME MOVE TO MOUSE INPUT
 	/* for manipulator, center handle, the scaling can't be done relative to center */
 	if ((t->flag & T_USES_MANIPULATOR) && t->con.mode == 0) {
-		ratio = 1.0f - ((t->imval[0] - mval[0]) + (t->imval[1] - mval[1])) / 100.0f;
+		ratio = 1.0f - ((t->mouse.imval[0] - mval[0]) + (t->mouse.imval[1] - mval[1])) / 100.0f;
 	}
 	else {
 		ratio = t->values[0];
@@ -6955,7 +6955,7 @@ static void calcVertSlideCustomPoints(struct TransInfo *t)
 	ED_view3d_project_float_v2_m4(t->ar, co_orig_3d, co_orig_2d, sld->proj_mat);
 	ED_view3d_project_float_v2_m4(t->ar, co_curr_3d, co_curr_2d, sld->proj_mat);
 
-	ARRAY_SET_ITEMS(mval_ofs, t->imval[0] - co_orig_2d[0], t->imval[1] - co_orig_2d[1]);
+	ARRAY_SET_ITEMS(mval_ofs, t->mouse.imval[0] - co_orig_2d[0], t->mouse.imval[1] - co_orig_2d[1]);
 	ARRAY_SET_ITEMS(mval_start, co_orig_2d[0] + mval_ofs[0], co_orig_2d[1] + mval_ofs[1]);
 	ARRAY_SET_ITEMS(mval_end, co_curr_2d[0] + mval_ofs[0], co_curr_2d[1] + mval_ofs[1]);
 
@@ -7005,7 +7005,7 @@ static void calcVertSlideMouseActiveVert(struct TransInfo *t, const int mval[2])
 static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2])
 {
 	VertSlideData *sld = t->customData;
-	float imval_fl[2] = {UNPACK2(t->imval)};
+	float imval_fl[2] = {UNPACK2(t->mouse.imval)};
 	float  mval_fl[2] = {UNPACK2(mval)};
 
 	float dir[3];
@@ -7369,16 +7369,16 @@ static void drawVertSlide(TransInfo *t)
 			glDisable(GL_BLEND);
 
 			/* direction from active vertex! */
-			if ((t->mval[0] != t->imval[0]) ||
-			    (t->mval[1] != t->imval[1]))
+			if ((t->mval[0] != t->mouse.imval[0]) ||
+			    (t->mval[1] != t->mouse.imval[1]))
 			{
 				float zfac;
 				float mval_ofs[2];
 				float co_orig_3d[3];
 				float co_dest_3d[3];
 
-				mval_ofs[0] = t->mval[0] - t->imval[0];
-				mval_ofs[1] = t->mval[1] - t->imval[1];
+				mval_ofs[0] = t->mval[0] - t->mouse.imval[0];
+				mval_ofs[1] = t->mval[1] - t->mouse.imval[1];
 
 				mul_v3_m4v3(co_orig_3d, t->obedit->obmat, curr_sv->co_orig_3d);
 				zfac = ED_view3d_calc_zfac(t->ar->regiondata, co_orig_3d, NULL);
@@ -8158,7 +8158,7 @@ static void applyTimeTranslate(TransInfo *t, const int mval[2])
 	if (t->flag & T_MODAL) {
 		float cval[2], sval[2];
 		UI_view2d_region_to_view(v2d, mval[0], mval[0], &cval[0], &cval[1]);
-		UI_view2d_region_to_view(v2d, t->imval[0], t->imval[0], &sval[0], &sval[1]);
+		UI_view2d_region_to_view(v2d, t->mouse.imval[0], t->mouse.imval[0], &sval[0], &sval[1]);
 
 		/* we only need to calculate effect for time (applyTimeTranslate only needs that) */
 		t->values[0] = cval[0] - sval[0];
@@ -8299,7 +8299,7 @@ static void applyTimeSlide(TransInfo *t, const int mval[2])
 
 	/* calculate mouse co-ordinates */
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &cval[0], &cval[1]);
-	UI_view2d_region_to_view(v2d, t->imval[0], t->imval[1], &sval[0], &sval[1]);
+	UI_view2d_region_to_view(v2d, t->mouse.imval[0], t->mouse.imval[1], &sval[0], &sval[1]);
 
 	/* t->values[0] stores cval[0], which is the current mouse-pointer location (in frames) */
 	// XXX Need to be able to repeat this
@@ -8344,10 +8344,10 @@ static void initTimeScale(TransInfo *t)
 	 * what is used in time scale */
 	t->center[0] = t->scene->r.cfra;
 	projectFloatView(t, t->center, center);
-	center[1] = t->imval[1];
+	center[1] = t->mouse.imval[1];
 
 	/* force a reinit with the center2d used here */
-	initMouseInput(t, &t->mouse, center, t->imval);
+	initMouseInput(t, &t->mouse, center, t->mouse.imval);
 
 	initMouseInputMode(t, &t->mouse, INPUT_SPRING_FLIP);
 
