@@ -18,8 +18,10 @@ DO_OUT_HTML=true
 DO_OUT_HTML_ZIP=true
 DO_OUT_PDF=false
 
+if [ -z $BLENDER_BIN ] ; then
+	BLENDER_BIN="./blender.bin"
+fi
 
-BLENDER="./blender.bin"
 SSH_USER=$1
 SSH_HOST=$SSH_USER"@blender.org"
 SSH_UPLOAD="/data/www/vhosts/www.blender.org/api" # blender_python_api_VERSION, added after
@@ -52,7 +54,7 @@ SPHINXBASE=doc/python_api
 
 if $DO_EXE_BLENDER ; then
 	# dont delete existing docs, now partial updates are used for quick builds.
-	$BLENDER --background -noaudio --factory-startup --python $SPHINXBASE/sphinx_doc_gen.py
+	$BLENDER_BIN --background -noaudio --factory-startup --python $SPHINXBASE/sphinx_doc_gen.py
 fi
 
 
