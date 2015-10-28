@@ -1156,16 +1156,15 @@ bool BKE_object_lod_remove(Object *ob, int level)
 static LodLevel *lod_level_select(Object *ob, const float camera_position[3])
 {
 	LodLevel *current = ob->currentlod;
-	float dist_sq, dist_sq_curr;
+	float dist_sq;
 
 	if (!current) return NULL;
 
 	dist_sq = len_squared_v3v3(ob->obmat[3], camera_position);
-	dist_sq_curr = current->distance * current->distance;
 
-	if (dist_sq < dist_sq_curr) {
+	if (dist_sq < SQUARE(current->distance)) {
 		/* check for higher LoD */
-		while (current->prev && dist_sq < dist_sq_curr) {
+		while (current->prev && dist_sq < SQUARE(current->distance)) {
 			current = current->prev;
 		}
 	}
