@@ -1406,10 +1406,11 @@ def process(layer_name, lineset_name):
             shaders_list.append(ColorDistanceFromCameraShader(
                 m.blend, m.influence, m.color_ramp,
                 m.range_min, m.range_max))
-        elif m.type == 'DISTANCE_FROM_OBJECT' and m.target is not None:
-            shaders_list.append(ColorDistanceFromObjectShader(
-                m.blend, m.influence, m.color_ramp, m.target,
-                m.range_min, m.range_max))
+        elif m.type == 'DISTANCE_FROM_OBJECT':
+            if m.target is not None:
+                shaders_list.append(ColorDistanceFromObjectShader(
+                    m.blend, m.influence, m.color_ramp, m.target,
+                    m.range_min, m.range_max))
         elif m.type == 'MATERIAL':
             shaders_list.append(ColorMaterialShader(
                 m.blend, m.influence, m.color_ramp, m.material_attribute,
@@ -1439,10 +1440,11 @@ def process(layer_name, lineset_name):
             shaders_list.append(AlphaDistanceFromCameraShader(
                 m.blend, m.influence, m.mapping, m.invert, m.curve,
                 m.range_min, m.range_max))
-        elif m.type == 'DISTANCE_FROM_OBJECT' and m.target is not None:
-            shaders_list.append(AlphaDistanceFromObjectShader(
-                m.blend, m.influence, m.mapping, m.invert, m.curve, m.target,
-                m.range_min, m.range_max))
+        elif m.type == 'DISTANCE_FROM_OBJECT':
+            if m.target is not None:
+                shaders_list.append(AlphaDistanceFromObjectShader(
+                    m.blend, m.influence, m.mapping, m.invert, m.curve, m.target,
+                    m.range_min, m.range_max))
         elif m.type == 'MATERIAL':
             shaders_list.append(AlphaMaterialShader(
                 m.blend, m.influence, m.mapping, m.invert, m.curve,
@@ -1475,11 +1477,12 @@ def process(layer_name, lineset_name):
                 thickness_position, linestyle.thickness_ratio,
                 m.blend, m.influence, m.mapping, m.invert, m.curve,
                 m.range_min, m.range_max, m.value_min, m.value_max))
-        elif m.type == 'DISTANCE_FROM_OBJECT' and m.target is not None:
-            shaders_list.append(ThicknessDistanceFromObjectShader(
-                thickness_position, linestyle.thickness_ratio,
-                m.blend, m.influence, m.mapping, m.invert, m.curve, m.target,
-                m.range_min, m.range_max, m.value_min, m.value_max))
+        elif m.type == 'DISTANCE_FROM_OBJECT':
+            if m.target is not None:
+                shaders_list.append(ThicknessDistanceFromObjectShader(
+                    thickness_position, linestyle.thickness_ratio,
+                    m.blend, m.influence, m.mapping, m.invert, m.curve, m.target,
+                    m.range_min, m.range_max, m.value_min, m.value_max))
         elif m.type == 'MATERIAL':
             shaders_list.append(ThicknessMaterialShader(
                 thickness_position, linestyle.thickness_ratio,
