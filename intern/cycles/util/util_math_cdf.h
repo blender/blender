@@ -28,7 +28,7 @@ template <typename Functor>
 void util_cdf_evaluate(const int resolution,
                        const float from,
                        const float to,
-                       const Functor functor,
+                       Functor functor,
                        vector<float> &cdf)
 {
 	const int cdf_count = resolution + 1;
@@ -60,7 +60,7 @@ template <typename Functor>
 void util_cdf_inverted(const int resolution,
                        const float from,
                        const float to,
-                       const Functor functor,
+                       Functor functor,
                        const bool make_symmetric,
                        vector<float> &inv_cdf)
 {
