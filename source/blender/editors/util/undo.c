@@ -76,7 +76,6 @@
 
 void ED_undo_push(bContext *C, const char *str)
 {
-	wmWindowManager *wm = CTX_wm_manager(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obact = CTX_data_active_object(C);
 
