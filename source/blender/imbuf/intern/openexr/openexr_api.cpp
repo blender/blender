@@ -1810,8 +1810,15 @@ static void imb_exr_type_by_channels(ChannelList& channels, StringVector& views,
 	/* will not include empty layer names */
 	channels.layers(layerNames);
 
-	if (views.size() && views[0] != "")
+	if (views.size() && views[0] != "") {
 		*r_multiview = true;
+	}
+	else {
+		*r_singlelayer = false;
+		*r_multilayer = true;
+		*r_multiview = false;
+		return;
+	}
 
 	if (layerNames.size()) {
 		/* if layerNames is not empty, it means at least one layer is non-empty,
@@ -1828,7 +1835,7 @@ static void imb_exr_type_by_channels(ChannelList& channels, StringVector& views,
 					std::string layerName = *i;
 					size_t pos = layerName.rfind ('.');
 
-					if (pos != std::string::npos) {
+					if (pos == std::string::npos) {
 						*r_multilayer = true;
 						*r_singlelayer = false;
 						return;
