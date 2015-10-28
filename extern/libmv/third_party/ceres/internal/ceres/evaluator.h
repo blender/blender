@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -72,7 +72,7 @@ class Evaluator {
 
   static Evaluator* Create(const Options& options,
                            Program* program,
-                           string* error);
+                           std::string* error);
 
   // This is used for computing the cost, residual and Jacobian for
   // returning to the user. For actually solving the optimization
@@ -95,8 +95,8 @@ class Evaluator {
   static bool Evaluate(Program* program,
                        int num_threads,
                        double* cost,
-                       vector<double>* residuals,
-                       vector<double>* gradient,
+                       std::vector<double>* residuals,
+                       std::vector<double>* gradient,
                        CRSMatrix* jacobian);
 
   // Build and return a sparse matrix for storing and working with the Jacobian
@@ -190,12 +190,12 @@ class Evaluator {
   // that the base class implementation does not have to worry about
   // life time issues. Further, these calls are not expected to be
   // frequent or performance sensitive.
-  virtual map<string, int> CallStatistics() const {
-    return map<string, int>();
+  virtual std::map<std::string, int> CallStatistics() const {
+    return std::map<std::string, int>();
   }
 
-  virtual map<string, double> TimeStatistics() const {
-    return map<string, double>();
+  virtual std::map<std::string, double> TimeStatistics() const {
+    return std::map<std::string, double>();
   }
 };
 

@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -40,6 +40,9 @@
 
 namespace ceres {
 namespace internal {
+
+using std::vector;
+
 namespace {
 
 // Helper functor used by the constructor for reordering the contents
@@ -155,7 +158,7 @@ CompressedRowSparseMatrix::~CompressedRowSparseMatrix() {
 }
 
 void CompressedRowSparseMatrix::SetZero() {
-  fill(values_.begin(), values_.end(), 0);
+  std::fill(values_.begin(), values_.end(), 0);
 }
 
 void CompressedRowSparseMatrix::RightMultiply(const double* x,
@@ -184,7 +187,7 @@ void CompressedRowSparseMatrix::LeftMultiply(const double* x, double* y) const {
 void CompressedRowSparseMatrix::SquaredColumnNorm(double* x) const {
   CHECK_NOTNULL(x);
 
-  fill(x, x + num_cols_, 0.0);
+  std::fill(x, x + num_cols_, 0.0);
   for (int idx = 0; idx < rows_[num_rows_]; ++idx) {
     x[cols_[idx]] += values_[idx] * values_[idx];
   }
@@ -238,26 +241,38 @@ void CompressedRowSparseMatrix::AppendRows(const CompressedRowSparseMatrix& m) {
       << "The matrix being appended has: " << m.row_blocks().size()
       << " row blocks.";
 
+  if (m.num_rows() == 0) {
+    return;
+  }
+
   if (cols_.size() < num_nonzeros() + m.num_nonzeros()) {
     cols_.resize(num_nonzeros() + m.num_nonzeros());
     values_.resize(num_nonzeros() + m.num_nonzeros());
   }
 
   // Copy the contents of m into this matrix.
-  copy(m.cols(), m.cols() + m.num_nonzeros(), &cols_[num_nonzeros()]);
-  copy(m.values(), m.values() + m.num_nonzeros(), &values_[num_nonzeros()]);
+  DCHECK_LT(num_nonzeros(), cols_.size());
+  if (m.num_nonzeros() > 0) {
+    std::copy(m.cols(), m.cols() + m.num_nonzeros(), &cols_[num_nonzeros()]);
+    std::copy(m.values(),
+              m.values() + m.num_nonzeros(),
+              &values_[num_nonzeros()]);
+  }
+
   rows_.resize(num_rows_ + m.num_rows() + 1);
   // new_rows = [rows_, m.row() + rows_[num_rows_]]
-  fill(rows_.begin() + num_rows_,
-       rows_.begin() + num_rows_ + m.num_rows() + 1,
-       rows_[num_rows_]);
+  std::fill(rows_.begin() + num_rows_,
+            rows_.begin() + num_rows_ + m.num_rows() + 1,
+            rows_[num_rows_]);
 
   for (int r = 0; r < m.num_rows() + 1; ++r) {
     rows_[num_rows_ + r] += m.rows()[r];
   }
 
   num_rows_ += m.num_rows();
-  row_blocks_.insert(row_blocks_.end(), m.row_blocks().begin(), m.row_blocks().end());
+  row_blocks_.insert(row_blocks_.end(),
+                     m.row_blocks().begin(),
+                     m.row_blocks().end());
 }
 
 void CompressedRowSparseMatrix::ToTextFile(FILE* file) const {
@@ -329,7 +344,7 @@ CompressedRowSparseMatrix* CompressedRowSparseMatrix::CreateBlockDiagonalMatrix(
   int* rows = matrix->mutable_rows();
   int* cols = matrix->mutable_cols();
   double* values = matrix->mutable_values();
-  fill(values, values + num_nonzeros, 0.0);
+  std::fill(values, values + num_nonzeros, 0.0);
 
   int idx_cursor = 0;
   int col_cursor = 0;
@@ -481,8 +496,9 @@ CompressedRowSparseMatrix::CreateOuterProductMatrixAndProgram(
       const CompressedRowSparseMatrix& m,
       vector<int>* program) {
   CHECK_NOTNULL(program)->clear();
-  CHECK_GT(m.num_nonzeros(), 0) << "Congratulations, "
-                                << "you found a bug in Ceres. Please report it.";
+  CHECK_GT(m.num_nonzeros(), 0)
+                << "Congratulations, "
+                << "you found a bug in Ceres. Please report it.";
 
   vector<ProductTerm> product;
   const vector<int>& row_blocks = m.row_blocks();
@@ -495,7 +511,9 @@ CompressedRowSparseMatrix::CreateOuterProductMatrixAndProgram(
     // Compute the lower triangular part of the product.
     for (int idx1 = m.rows()[r]; idx1 < m.rows()[r + 1]; ++idx1) {
       for (int idx2 = m.rows()[r]; idx2 <= idx1; ++idx2) {
-        product.push_back(ProductTerm(m.cols()[idx1], m.cols()[idx2], product.size()));
+        product.push_back(ProductTerm(m.cols()[idx1],
+                                      m.cols()[idx2],
+                                      product.size()));
       }
     }
     row_block_begin = row_block_end;

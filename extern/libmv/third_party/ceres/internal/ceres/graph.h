@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -139,9 +139,9 @@ class WeightedGraph {
     for (typename HashSet<Vertex>::const_iterator it = sinks.begin();
          it != sinks.end(); ++it) {
       if (vertex < *it) {
-        edge_weights_.erase(make_pair(vertex, *it));
+        edge_weights_.erase(std::make_pair(vertex, *it));
       } else {
-        edge_weights_.erase(make_pair(*it, vertex));
+        edge_weights_.erase(std::make_pair(*it, vertex));
       }
       edges_[*it].erase(vertex);
     }
@@ -165,9 +165,9 @@ class WeightedGraph {
     }
 
     if (vertex1 < vertex2) {
-      edge_weights_[make_pair(vertex1, vertex2)] = weight;
+      edge_weights_[std::make_pair(vertex1, vertex2)] = weight;
     } else {
-      edge_weights_[make_pair(vertex2, vertex1)] = weight;
+      edge_weights_[std::make_pair(vertex2, vertex1)] = weight;
     }
   }
 
@@ -188,9 +188,11 @@ class WeightedGraph {
   // the edge weight is zero.
   double EdgeWeight(const Vertex& vertex1, const Vertex& vertex2) const {
     if (vertex1 < vertex2) {
-      return FindWithDefault(edge_weights_, make_pair(vertex1, vertex2), 0.0);
+      return FindWithDefault(edge_weights_,
+                             std::make_pair(vertex1, vertex2), 0.0);
     } else {
-      return FindWithDefault(edge_weights_, make_pair(vertex2, vertex1), 0.0);
+      return FindWithDefault(edge_weights_,
+                             std::make_pair(vertex2, vertex1), 0.0);
     }
   }
 
@@ -206,13 +208,13 @@ class WeightedGraph {
 
   static double InvalidWeight() {
     return std::numeric_limits<double>::quiet_NaN();
-  };
+  }
 
  private:
   HashSet<Vertex> vertices_;
   HashMap<Vertex, double> vertex_weights_;
   HashMap<Vertex, HashSet<Vertex> > edges_;
-  HashMap<pair<Vertex, Vertex>, double> edge_weights_;
+  HashMap<std::pair<Vertex, Vertex>, double> edge_weights_;
 
   CERES_DISALLOW_COPY_AND_ASSIGN(WeightedGraph);
 };

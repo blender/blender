@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2014 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -31,8 +31,8 @@
 #include "ceres/trust_region_minimizer.h"
 
 #include <algorithm>
-#include <cstdlib>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <limits>
 #include <string>
@@ -85,22 +85,14 @@ LineSearch::Summary DoLineSearch(const Minimizer::Options& options,
       options.max_line_search_step_expansion;
   line_search_options.function = &line_search_function;
 
-  string message;
-  scoped_ptr<LineSearch>
-      line_search(CHECK_NOTNULL(
-                      LineSearch::Create(ceres::ARMIJO,
-                                         line_search_options,
-                                         &message)));
+  std::string message;
+  scoped_ptr<LineSearch> line_search(
+      CHECK_NOTNULL(LineSearch::Create(ceres::ARMIJO,
+                                       line_search_options,
+                                       &message)));
   LineSearch::Summary summary;
   line_search_function.Init(x, delta);
-  // Try the trust region step.
   line_search->Search(1.0, cost, gradient.dot(delta), &summary);
-  if (!summary.success) {
-    // If that was not successful, try the negative gradient as a
-    // search direction.
-    line_search_function.Init(x, -gradient);
-    line_search->Search(1.0, cost, -gradient.squaredNorm(), &summary);
-  }
   return summary;
 }
 
@@ -148,6 +140,7 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
   summary->termination_type = NO_CONVERGENCE;
   summary->num_successful_steps = 0;
   summary->num_unsuccessful_steps = 0;
+  summary->is_constrained = options.is_constrained;
 
   const int num_parameters = evaluator->NumParameters();
   const int num_effective_parameters = evaluator->NumEffectiveParameters();
@@ -231,6 +224,15 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
                                     options_.gradient_tolerance);
     summary->termination_type = CONVERGENCE;
     VLOG_IF(1, is_not_silent) << "Terminating: " << summary->message;
+
+    // Ensure that there is an iteration summary object for iteration
+    // 0 in Summary::iterations.
+    iteration_summary.iteration_time_in_seconds =
+        WallTimeInSeconds() - iteration_start_time;
+    iteration_summary.cumulative_time_in_seconds =
+        WallTimeInSeconds() - start_time +
+        summary->preprocessor_time_in_seconds;
+    summary->iterations.push_back(iteration_summary);
     return;
   }
 
@@ -390,6 +392,16 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
       if (use_line_search) {
         const LineSearch::Summary line_search_summary =
             DoLineSearch(options, x, gradient, cost, delta, evaluator);
+
+        summary->line_search_cost_evaluation_time_in_seconds +=
+            line_search_summary.cost_evaluation_time_in_seconds;
+        summary->line_search_gradient_evaluation_time_in_seconds +=
+            line_search_summary.gradient_evaluation_time_in_seconds;
+        summary->line_search_polynomial_minimization_time_in_seconds +=
+            line_search_summary.polynomial_minimization_time_in_seconds;
+        summary->line_search_total_time_in_seconds +=
+            line_search_summary.total_time_in_seconds;
+
         if (line_search_summary.success) {
           delta *= line_search_summary.optimal_step_size;
         }
@@ -398,17 +410,19 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
       double new_cost = std::numeric_limits<double>::max();
       if (evaluator->Plus(x.data(), delta.data(), x_plus_delta.data())) {
         if (!evaluator->Evaluate(x_plus_delta.data(),
-                                &new_cost,
-                                NULL,
-                                NULL,
-                                NULL)) {
-          LOG(WARNING) << "Step failed to evaluate. "
-                       << "Treating it as a step with infinite cost";
-          new_cost = numeric_limits<double>::max();
+                                 &new_cost,
+                                 NULL,
+                                 NULL,
+                                 NULL)) {
+          LOG_IF(WARNING, is_not_silent)
+              << "Step failed to evaluate. "
+              << "Treating it as a step with infinite cost";
+          new_cost = std::numeric_limits<double>::max();
         }
       } else {
-        LOG(WARNING) << "x_plus_delta = Plus(x, delta) failed. "
-                     << "Treating it as a step with infinite cost";
+        LOG_IF(WARNING, is_not_silent)
+            << "x_plus_delta = Plus(x, delta) failed. "
+            << "Treating it as a step with infinite cost";
       }
 
       if (new_cost < std::numeric_limits<double>::max()) {
@@ -475,7 +489,7 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
       iteration_summary.cost_change =  cost - new_cost;
       const double absolute_function_tolerance =
           options_.function_tolerance * cost;
-      if (fabs(iteration_summary.cost_change) < absolute_function_tolerance) {
+      if (fabs(iteration_summary.cost_change) <= absolute_function_tolerance) {
         summary->message =
             StringPrintf("Function tolerance reached. "
                          "|cost_change|/cost: %e <= %e",
@@ -507,7 +521,7 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
       // reference iteration, allowing for non-monotonic steps.
       iteration_summary.relative_decrease =
           options.use_nonmonotonic_steps
-          ? max(relative_decrease, historical_relative_decrease)
+          ? std::max(relative_decrease, historical_relative_decrease)
           : relative_decrease;
 
       // Normally, the quality of a trust region step is measured by
@@ -598,18 +612,8 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
       }
 
       iteration_summary.gradient_max_norm =
-        (x - projected_gradient_step).lpNorm<Eigen::Infinity>();
+          (x - projected_gradient_step).lpNorm<Eigen::Infinity>();
       iteration_summary.gradient_norm = (x - projected_gradient_step).norm();
-
-      if (iteration_summary.gradient_max_norm <= options.gradient_tolerance) {
-        summary->message = StringPrintf("Gradient tolerance reached. "
-                                        "Gradient max norm: %e <= %e",
-                                        iteration_summary.gradient_max_norm,
-                                        options_.gradient_tolerance);
-        summary->termination_type = CONVERGENCE;
-        VLOG_IF(1, is_not_silent) << "Terminating: " << summary->message;
-        return;
-      }
 
       if (options_.jacobi_scaling) {
         jacobian->ScaleColumns(scale.data());
@@ -668,20 +672,42 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
 
     iteration_summary.cost = cost + summary->fixed_cost;
     iteration_summary.trust_region_radius = strategy->Radius();
-    if (iteration_summary.trust_region_radius <
-        options_.min_trust_region_radius) {
-      summary->message = "Termination. Minimum trust region radius reached.";
-      summary->termination_type = CONVERGENCE;
-      VLOG_IF(1, is_not_silent) << summary->message;
-      return;
-    }
-
     iteration_summary.iteration_time_in_seconds =
         WallTimeInSeconds() - iteration_start_time;
     iteration_summary.cumulative_time_in_seconds =
         WallTimeInSeconds() - start_time
         + summary->preprocessor_time_in_seconds;
     summary->iterations.push_back(iteration_summary);
+
+    // If the step was successful, check for the gradient norm
+    // collapsing to zero, and if the step is unsuccessful then check
+    // if the trust region radius has collapsed to zero.
+    //
+    // For correctness (Number of IterationSummary objects, correct
+    // final cost, and state update) these convergence tests need to
+    // be performed at the end of the iteration.
+    if (iteration_summary.step_is_successful) {
+      // Gradient norm can only go down in successful steps.
+      if (iteration_summary.gradient_max_norm <= options.gradient_tolerance) {
+        summary->message = StringPrintf("Gradient tolerance reached. "
+                                        "Gradient max norm: %e <= %e",
+                                        iteration_summary.gradient_max_norm,
+                                        options_.gradient_tolerance);
+        summary->termination_type = CONVERGENCE;
+        VLOG_IF(1, is_not_silent) << "Terminating: " << summary->message;
+        return;
+      }
+    } else {
+      // Trust region radius can only go down if the step if
+      // unsuccessful.
+      if (iteration_summary.trust_region_radius <
+          options_.min_trust_region_radius) {
+        summary->message = "Termination. Minimum trust region radius reached.";
+        summary->termination_type = CONVERGENCE;
+        VLOG_IF(1, is_not_silent) << summary->message;
+        return;
+      }
+    }
   }
 }
 

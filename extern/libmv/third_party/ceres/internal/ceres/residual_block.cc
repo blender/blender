@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -49,10 +49,11 @@ using Eigen::Dynamic;
 namespace ceres {
 namespace internal {
 
-ResidualBlock::ResidualBlock(const CostFunction* cost_function,
-                             const LossFunction* loss_function,
-                             const vector<ParameterBlock*>& parameter_blocks,
-                             int index)
+ResidualBlock::ResidualBlock(
+    const CostFunction* cost_function,
+    const LossFunction* loss_function,
+    const std::vector<ParameterBlock*>& parameter_blocks,
+    int index)
     : cost_function_(cost_function),
       loss_function_(loss_function),
       parameter_blocks_(
@@ -116,7 +117,7 @@ bool ResidualBlock::Evaluate(const bool apply_loss_function,
                          cost,
                          residuals,
                          eval_jacobians)) {
-    string message =
+    std::string message =
         "\n\n"
         "Error in evaluating the ResidualBlock.\n\n"
         "There are two possible reasons. Either the CostFunction did not evaluate and fill all    \n"  // NOLINT

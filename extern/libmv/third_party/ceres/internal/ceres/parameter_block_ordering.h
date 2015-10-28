@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -56,13 +56,13 @@ class ParameterBlock;
 //             complement of the independent set,
 //             fixed blocks]
 int ComputeSchurOrdering(const Program& program,
-                         vector<ParameterBlock* >* ordering);
+                         std::vector<ParameterBlock* >* ordering);
 
 // Same as above, except that ties while computing the independent set
 // ordering are resolved in favour of the order in which the parameter
 // blocks occur in the program.
 int ComputeStableSchurOrdering(const Program& program,
-                               vector<ParameterBlock* >* ordering);
+                               std::vector<ParameterBlock* >* ordering);
 
 // Use an approximate independent set ordering to decompose the
 // parameter blocks of a problem in a sequence of independent
@@ -81,7 +81,7 @@ Graph<ParameterBlock*>* CreateHessianGraph(const Program& program);
 // Iterate over each of the groups in order of their priority and fill
 // summary with their sizes.
 void OrderingToGroupSizes(const ParameterBlockOrdering* ordering,
-                          vector<int>* group_sizes);
+                          std::vector<int>* group_sizes);
 
 }  // namespace internal
 }  // namespace ceres

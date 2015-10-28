@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2014 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -30,14 +30,22 @@
 
 #include <string>
 
+#include "Eigen/Core"
 #include "ceres/internal/port.h"
+#include "ceres/solver_utils.h"
 #include "ceres/version.h"
 
 namespace ceres {
 namespace internal {
 
-string VersionString() {
-  string value = string(CERES_VERSION_STRING);
+#define CERES_EIGEN_VERSION                                          \
+  CERES_TO_STRING(EIGEN_WORLD_VERSION) "."                           \
+  CERES_TO_STRING(EIGEN_MAJOR_VERSION) "."                           \
+  CERES_TO_STRING(EIGEN_MINOR_VERSION)
+
+std::string VersionString() {
+  std::string value = std::string(CERES_VERSION_STRING);
+  value += "-eigen-(" + std::string(CERES_EIGEN_VERSION) + ")";
 
 #ifdef CERES_NO_LAPACK
   value += "-no_lapack";
@@ -46,11 +54,11 @@ string VersionString() {
 #endif
 
 #ifndef CERES_NO_SUITESPARSE
-  value += "-suitesparse";
+  value += "-suitesparse-(" + std::string(CERES_SUITESPARSE_VERSION) + ")";
 #endif
 
 #ifndef CERES_NO_CXSPARSE
-  value += "-cxsparse";
+  value += "-cxsparse-(" + std::string(CERES_CXSPARSE_VERSION) + ")";
 #endif
 
 #ifdef CERES_USE_EIGEN_SPARSE

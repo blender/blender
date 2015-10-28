@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2013 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -79,11 +79,11 @@ class GradientProblemEvaluator : public Evaluator {
 
   virtual int NumResiduals() const { return 1; }
 
-  virtual map<string, int> CallStatistics() const {
+  virtual std::map<std::string, int> CallStatistics() const {
     return execution_summary_.calls();
   }
 
-  virtual map<string, double> TimeStatistics() const {
+  virtual std::map<std::string, double> TimeStatistics() const {
     return execution_summary_.times();
   }
 

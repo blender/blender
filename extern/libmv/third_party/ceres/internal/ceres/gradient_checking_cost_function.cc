@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -51,6 +51,12 @@
 
 namespace ceres {
 namespace internal {
+
+using std::abs;
+using std::max;
+using std::string;
+using std::vector;
+
 namespace {
 
 // True if x and y have an absolute relative difference less than
@@ -67,20 +73,20 @@ bool IsClose(double x, double y, double relative_precision,
   if (!relative_error) {
     relative_error = &local_relative_error;
   }
-  *absolute_error = fabs(x - y);
-  *relative_error = *absolute_error / max(fabs(x), fabs(y));
+  *absolute_error = abs(x - y);
+  *relative_error = *absolute_error / max(abs(x), abs(y));
   if (x == 0 || y == 0) {
     // If x or y is exactly zero, then relative difference doesn't have any
     // meaning. Take the absolute difference instead.
     *relative_error = *absolute_error;
   }
-  return fabs(*relative_error) < fabs(relative_precision);
+  return abs(*relative_error) < abs(relative_precision);
 }
 
 class GradientCheckingCostFunction : public CostFunction {
  public:
   GradientCheckingCostFunction(const CostFunction* function,
-                               double relative_step_size,
+                               const NumericDiffOptions& options,
                                double relative_precision,
                                const string& extra_info)
       : function_(function),
@@ -91,7 +97,7 @@ class GradientCheckingCostFunction : public CostFunction {
         new DynamicNumericDiffCostFunction<CostFunction, CENTRAL>(
             function,
             DO_NOT_TAKE_OWNERSHIP,
-            relative_step_size);
+            options);
 
     const vector<int32>& parameter_block_sizes =
         function->parameter_block_sizes();
@@ -181,8 +187,7 @@ class GradientCheckingCostFunction : public CostFunction {
                        relative_precision_,
                        &relative_error,
                        &absolute_error);
-          worst_relative_error = std::max(worst_relative_error,
-                                          relative_error);
+          worst_relative_error = max(worst_relative_error, relative_error);
 
           StringAppendF(&m, "%6d %4d %4d %17g %17g %17g %17g %17g %17g",
                         k, i, j,
@@ -230,8 +235,11 @@ CostFunction *CreateGradientCheckingCostFunction(
     double relative_step_size,
     double relative_precision,
     const string& extra_info) {
+  NumericDiffOptions numeric_diff_options;
+  numeric_diff_options.relative_step_size = relative_step_size;
+
   return new GradientCheckingCostFunction(cost_function,
-                                          relative_step_size,
+                                          numeric_diff_options,
                                           relative_precision,
                                           extra_info);
 }

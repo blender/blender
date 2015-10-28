@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012, 2013 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -79,6 +79,11 @@ SchurEliminatorBase::Create(const LinearSolver::Options& options) {
       (options.e_block_size == 3) &&
       (options.f_block_size == 4)) {
     return new SchurEliminator<2, 3, 4>(options);
+  }
+  if ((options.row_block_size == 2) &&
+      (options.e_block_size == 3) &&
+      (options.f_block_size == 6)) {
+    return new SchurEliminator<2, 3, 6>(options);
   }
   if ((options.row_block_size == 2) &&
       (options.e_block_size == 3) &&

@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2013 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -120,18 +120,18 @@ class DynamicAutoDiffCostFunction : public CostFunction {
                                                0);
 
     // Allocate scratch space for the strided evaluation.
-    vector<Jet<double, Stride> > input_jets(num_parameters);
-    vector<Jet<double, Stride> > output_jets(num_residuals());
+    std::vector<Jet<double, Stride> > input_jets(num_parameters);
+    std::vector<Jet<double, Stride> > output_jets(num_residuals());
 
     // Make the parameter pack that is sent to the functor (reused).
-    vector<Jet<double, Stride>* > jet_parameters(num_parameter_blocks,
+    std::vector<Jet<double, Stride>* > jet_parameters(num_parameter_blocks,
         static_cast<Jet<double, Stride>* >(NULL));
     int num_active_parameters = 0;
 
     // To handle constant parameters between non-constant parameter blocks, the
     // start position --- a raw parameter index --- of each contiguous block of
     // non-constant parameters is recorded in start_derivative_section.
-    vector<int> start_derivative_section;
+    std::vector<int> start_derivative_section;
     bool in_derivative_section = false;
     int parameter_cursor = 0;
 

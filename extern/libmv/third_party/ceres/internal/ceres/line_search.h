@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -44,6 +44,7 @@ namespace internal {
 
 class Evaluator;
 struct FunctionSample;
+class LineSearchFunction;
 
 // Line search is another name for a one dimensional optimization
 // algorithm. The name "line search" comes from the fact one
@@ -57,7 +58,7 @@ struct FunctionSample;
 // algorithms, e.g., Armijo, Wolfe etc.
 class LineSearch {
  public:
-  class Function;
+  struct Summary;
 
   struct Options {
     Options()
@@ -147,31 +148,7 @@ class LineSearch {
 
     // The one dimensional function that the line search algorithm
     // minimizes.
-    Function* function;
-  };
-
-  // An object used by the line search to access the function values
-  // and gradient of the one dimensional function being optimized.
-  //
-  // In practice, this object will provide access to the objective
-  // function value and the directional derivative of the underlying
-  // optimization problem along a specific search direction.
-  //
-  // See LineSearchFunction for an example implementation.
-  class Function {
-   public:
-    virtual ~Function() {}
-    // Evaluate the line search objective
-    //
-    //   f(x) = p(position + x * direction)
-    //
-    // Where, p is the objective function of the general optimization
-    // problem.
-    //
-    // g is the gradient f'(x) at x.
-    //
-    // f must not be null. The gradient is computed only if g is not null.
-    virtual bool Evaluate(double x, double* f, double* g) = 0;
+    LineSearchFunction* function;
   };
 
   // Result of the line search.
@@ -181,14 +158,28 @@ class LineSearch {
           optimal_step_size(0.0),
           num_function_evaluations(0),
           num_gradient_evaluations(0),
-          num_iterations(0) {}
+          num_iterations(0),
+          cost_evaluation_time_in_seconds(-1.0),
+          gradient_evaluation_time_in_seconds(-1.0),
+          polynomial_minimization_time_in_seconds(-1.0),
+          total_time_in_seconds(-1.0) {}
 
     bool success;
     double optimal_step_size;
     int num_function_evaluations;
     int num_gradient_evaluations;
     int num_iterations;
-    string error;
+    // Cumulative time spent evaluating the value of the cost function across
+    // all iterations.
+    double cost_evaluation_time_in_seconds;
+    // Cumulative time spent evaluating the gradient of the cost function across
+    // all iterations.
+    double gradient_evaluation_time_in_seconds;
+    // Cumulative time spent minimizing the interpolating polynomial to compute
+    // the next candidate step size across all iterations.
+    double polynomial_minimization_time_in_seconds;
+    double total_time_in_seconds;
+    std::string error;
   };
 
   explicit LineSearch(const LineSearch::Options& options);
@@ -196,7 +187,7 @@ class LineSearch {
 
   static LineSearch* Create(const LineSearchType line_search_type,
                             const LineSearch::Options& options,
-                            string* error);
+                            std::string* error);
 
   // Perform the line search.
   //
@@ -208,10 +199,10 @@ class LineSearch {
   // search.
   //
   // Summary::success is true if a non-zero step size is found.
-  virtual void Search(double step_size_estimate,
-                      double initial_cost,
-                      double initial_gradient,
-                      Summary* summary) = 0;
+  void Search(double step_size_estimate,
+              double initial_cost,
+              double initial_gradient,
+              Summary* summary) const;
   double InterpolatingPolynomialMinimizingStepSize(
       const LineSearchInterpolationType& interpolation_type,
       const FunctionSample& lowerbound_sample,
@@ -224,16 +215,41 @@ class LineSearch {
   const LineSearch::Options& options() const { return options_; }
 
  private:
+  virtual void DoSearch(double step_size_estimate,
+                        double initial_cost,
+                        double initial_gradient,
+                        Summary* summary) const = 0;
+
+ private:
   LineSearch::Options options_;
 };
 
-class LineSearchFunction : public LineSearch::Function {
+// An object used by the line search to access the function values
+// and gradient of the one dimensional function being optimized.
+//
+// In practice, this object provides access to the objective
+// function value and the directional derivative of the underlying
+// optimization problem along a specific search direction.
+class LineSearchFunction {
  public:
   explicit LineSearchFunction(Evaluator* evaluator);
-  virtual ~LineSearchFunction() {}
   void Init(const Vector& position, const Vector& direction);
-  virtual bool Evaluate(double x, double* f, double* g);
+  // Evaluate the line search objective
+  //
+  //   f(x) = p(position + x * direction)
+  //
+  // Where, p is the objective function of the general optimization
+  // problem.
+  //
+  // g is the gradient f'(x) at x.
+  //
+  // f must not be null. The gradient is computed only if g is not null.
+  bool Evaluate(double x, double* f, double* g);
   double DirectionInfinityNorm() const;
+  // Resets to now, the start point for the results from TimeStatistics().
+  void ResetTimeStatistics();
+  void TimeStatistics(double* cost_evaluation_time_in_seconds,
+                      double* gradient_evaluation_time_in_seconds) const;
 
  private:
   Evaluator* evaluator_;
@@ -246,6 +262,13 @@ class LineSearchFunction : public LineSearch::Function {
   // scaled_direction = x * direction_;
   Vector scaled_direction_;
   Vector gradient_;
+
+  // We may not exclusively own the evaluator (e.g. in the Trust Region
+  // minimizer), hence we need to save the initial evaluation durations for the
+  // value & gradient to accurately determine the duration of the evaluations
+  // we invoked.  These are reset by a call to ResetTimeStatistics().
+  double initial_evaluator_residual_time_in_seconds;
+  double initial_evaluator_jacobian_time_in_seconds;
 };
 
 // Backtracking and interpolation based Armijo line search. This
@@ -257,10 +280,12 @@ class ArmijoLineSearch : public LineSearch {
  public:
   explicit ArmijoLineSearch(const LineSearch::Options& options);
   virtual ~ArmijoLineSearch() {}
-  virtual void Search(double step_size_estimate,
-                      double initial_cost,
-                      double initial_gradient,
-                      Summary* summary);
+
+ private:
+  virtual void DoSearch(double step_size_estimate,
+                        double initial_cost,
+                        double initial_gradient,
+                        Summary* summary) const;
 };
 
 // Bracketing / Zoom Strong Wolfe condition line search.  This implementation
@@ -274,23 +299,26 @@ class WolfeLineSearch : public LineSearch {
  public:
   explicit WolfeLineSearch(const LineSearch::Options& options);
   virtual ~WolfeLineSearch() {}
-  virtual void Search(double step_size_estimate,
-                      double initial_cost,
-                      double initial_gradient,
-                      Summary* summary);
+
   // Returns true iff either a valid point, or valid bracket are found.
   bool BracketingPhase(const FunctionSample& initial_position,
                        const double step_size_estimate,
                        FunctionSample* bracket_low,
                        FunctionSample* bracket_high,
                        bool* perform_zoom_search,
-                       Summary* summary);
+                       Summary* summary) const;
   // Returns true iff final_line_sample satisfies strong Wolfe conditions.
   bool ZoomPhase(const FunctionSample& initial_position,
                  FunctionSample bracket_low,
                  FunctionSample bracket_high,
                  FunctionSample* solution,
-                 Summary* summary);
+                 Summary* summary) const;
+
+ private:
+  virtual void DoSearch(double step_size_estimate,
+                        double initial_cost,
+                        double initial_gradient,
+                        Summary* summary) const;
 };
 
 }  // namespace internal

@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -71,7 +71,7 @@ class ResidualBlock {
   // residual_blocks array.
   ResidualBlock(const CostFunction* cost_function,
                 const LossFunction* loss_function,
-                const vector<ParameterBlock*>& parameter_blocks,
+                const std::vector<ParameterBlock*>& parameter_blocks,
                 int index);
 
   // Evaluates the residual term, storing the scalar cost in *cost, the residual
@@ -127,7 +127,7 @@ class ResidualBlock {
   int index() const { return index_; }
   void set_index(int index) { index_ = index; }
 
-  string ToString() {
+  std::string ToString() {
     return StringPrintf("{residual block; index=%d}", index_);
   }
 

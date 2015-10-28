@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -60,7 +60,7 @@ class CoordinateDescentMinimizer : public Minimizer {
   bool Init(const Program& program,
             const ProblemImpl::ParameterMap& parameter_map,
             const ParameterBlockOrdering& ordering,
-            string* error);
+            std::string* error);
 
   // Minimizer interface.
   virtual ~CoordinateDescentMinimizer();
@@ -71,7 +71,7 @@ class CoordinateDescentMinimizer : public Minimizer {
   // Verify that each group in the ordering forms an independent set.
   static bool IsOrderingValid(const Program& program,
                               const ParameterBlockOrdering& ordering,
-                              string* message);
+                              std::string* message);
 
   // Find a recursive decomposition of the Hessian matrix as a set
   // of independent sets of decreasing size and invert it. This
@@ -85,13 +85,13 @@ class CoordinateDescentMinimizer : public Minimizer {
              double* parameters,
              Solver::Summary* summary);
 
-  vector<ParameterBlock*> parameter_blocks_;
-  vector<vector<ResidualBlock*> > residual_blocks_;
+  std::vector<ParameterBlock*> parameter_blocks_;
+  std::vector<std::vector<ResidualBlock*> > residual_blocks_;
   // The optimization is performed in rounds. In each round all the
   // parameter blocks that form one independent set are optimized in
   // parallel. This array, marks the boundaries of the independent
   // sets in parameter_blocks_.
-  vector<int> independent_set_offsets_;
+  std::vector<int> independent_set_offsets_;
 
   Evaluator::Options evaluator_options_;
 };

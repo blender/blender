@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2013 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -41,7 +41,6 @@
 #include "ceres/suitesparse.h"
 
 namespace ceres {
-
 namespace internal {
 
 class CompressedRowSparseMatrix;
@@ -52,15 +51,19 @@ class CovarianceImpl {
   ~CovarianceImpl();
 
   bool Compute(
-      const vector<pair<const double*, const double*> >& covariance_blocks,
+      const std::vector<std::pair<const double*,
+                                  const double*> >& covariance_blocks,
       ProblemImpl* problem);
 
-  bool GetCovarianceBlock(const double* parameter_block1,
-                          const double* parameter_block2,
-                          double* covariance_block) const;
+  bool GetCovarianceBlockInTangentOrAmbientSpace(
+      const double* parameter_block1,
+      const double* parameter_block2,
+      bool lift_covariance_to_ambient_space,
+      double* covariance_block) const;
 
   bool ComputeCovarianceSparsity(
-      const vector<pair<const double*, const double*> >& covariance_blocks,
+      const std::vector<std::pair<const double*,
+                                  const double*> >& covariance_blocks,
       ProblemImpl* problem);
 
   bool ComputeCovarianceValues();
@@ -78,8 +81,8 @@ class CovarianceImpl {
   Problem::EvaluateOptions evaluate_options_;
   bool is_computed_;
   bool is_valid_;
-  map<const double*, int> parameter_block_to_row_index_;
-  set<const double*> constant_parameter_blocks_;
+  std::map<const double*, int> parameter_block_to_row_index_;
+  std::set<const double*> constant_parameter_blocks_;
   scoped_ptr<CompressedRowSparseMatrix> covariance_matrix_;
 };
 

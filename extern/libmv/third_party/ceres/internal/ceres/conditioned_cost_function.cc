@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -45,7 +45,7 @@ namespace ceres {
 // the one it's wrapping.
 ConditionedCostFunction::ConditionedCostFunction(
     CostFunction* wrapped_cost_function,
-    const vector<CostFunction*>& conditioners,
+    const std::vector<CostFunction*>& conditioners,
     Ownership ownership)
     : wrapped_cost_function_(wrapped_cost_function),
       conditioners_(conditioners),

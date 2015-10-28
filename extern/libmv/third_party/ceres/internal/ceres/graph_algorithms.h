@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -95,7 +95,7 @@ class VertexDegreeLessThan {
 // cardinality of S.
 template <typename Vertex>
 int IndependentSetOrdering(const Graph<Vertex>& graph,
-                           vector<Vertex>* ordering) {
+                           std::vector<Vertex>* ordering) {
   const HashSet<Vertex>& vertices = graph.vertices();
   const int num_vertices = vertices.size();
 
@@ -110,7 +110,7 @@ int IndependentSetOrdering(const Graph<Vertex>& graph,
 
   // Mark all vertices white.
   HashMap<Vertex, char> vertex_color;
-  vector<Vertex> vertex_queue;
+  std::vector<Vertex> vertex_queue;
   for (typename HashSet<Vertex>::const_iterator it = vertices.begin();
        it != vertices.end();
        ++it) {
@@ -119,8 +119,8 @@ int IndependentSetOrdering(const Graph<Vertex>& graph,
   }
 
 
-  sort(vertex_queue.begin(), vertex_queue.end(),
-       VertexTotalOrdering<Vertex>(graph));
+  std::sort(vertex_queue.begin(), vertex_queue.end(),
+            VertexTotalOrdering<Vertex>(graph));
 
   // Iterate over vertex_queue. Pick the first white vertex, add it
   // to the independent set. Mark it black and its neighbors grey.
@@ -145,7 +145,7 @@ int IndependentSetOrdering(const Graph<Vertex>& graph,
   // Iterate over the vertices and add all the grey vertices to the
   // ordering. At this stage there should only be black or grey
   // vertices in the graph.
-  for (typename vector<Vertex>::const_iterator it = vertex_queue.begin();
+  for (typename std::vector<Vertex>::const_iterator it = vertex_queue.begin();
        it != vertex_queue.end();
        ++it) {
     const Vertex vertex = *it;
@@ -171,7 +171,7 @@ int IndependentSetOrdering(const Graph<Vertex>& graph,
 // ordering algorithm over all.
 template <typename Vertex>
 int StableIndependentSetOrdering(const Graph<Vertex>& graph,
-                                 vector<Vertex>* ordering) {
+                                 std::vector<Vertex>* ordering) {
   CHECK_NOTNULL(ordering);
   const HashSet<Vertex>& vertices = graph.vertices();
   const int num_vertices = vertices.size();
@@ -182,10 +182,10 @@ int StableIndependentSetOrdering(const Graph<Vertex>& graph,
   const char kGrey = 1;
   const char kBlack = 2;
 
-  vector<Vertex> vertex_queue(*ordering);
+  std::vector<Vertex> vertex_queue(*ordering);
 
-  stable_sort(vertex_queue.begin(), vertex_queue.end(),
-              VertexDegreeLessThan<Vertex>(graph));
+  std::stable_sort(vertex_queue.begin(), vertex_queue.end(),
+                  VertexDegreeLessThan<Vertex>(graph));
 
   // Mark all vertices white.
   HashMap<Vertex, char> vertex_color;
@@ -220,7 +220,7 @@ int StableIndependentSetOrdering(const Graph<Vertex>& graph,
   // Iterate over the vertices and add all the grey vertices to the
   // ordering. At this stage there should only be black or grey
   // vertices in the graph.
-  for (typename vector<Vertex>::const_iterator it = vertex_queue.begin();
+  for (typename std::vector<Vertex>::const_iterator it = vertex_queue.begin();
        it != vertex_queue.end();
        ++it) {
     const Vertex vertex = *it;
@@ -274,7 +274,7 @@ template <typename Vertex>
 WeightedGraph<Vertex>*
 Degree2MaximumSpanningForest(const WeightedGraph<Vertex>& graph) {
   // Array of edges sorted in decreasing order of their weights.
-  vector<pair<double, pair<Vertex, Vertex> > > weighted_edges;
+  std::vector<std::pair<double, std::pair<Vertex, Vertex> > > weighted_edges;
   WeightedGraph<Vertex>* forest = new WeightedGraph<Vertex>();
 
   // Disjoint-set to keep track of the connected components in the
@@ -302,19 +302,20 @@ Degree2MaximumSpanningForest(const WeightedGraph<Vertex>& graph) {
         continue;
       }
       const double weight = graph.EdgeWeight(vertex1, vertex2);
-      weighted_edges.push_back(make_pair(weight, make_pair(vertex1, vertex2)));
+      weighted_edges.push_back(
+          std::make_pair(weight, std::make_pair(vertex1, vertex2)));
     }
   }
 
   // The elements of this vector, are pairs<edge_weight,
   // edge>. Sorting it using the reverse iterators gives us the edges
   // in decreasing order of edges.
-  sort(weighted_edges.rbegin(), weighted_edges.rend());
+  std::sort(weighted_edges.rbegin(), weighted_edges.rend());
 
   // Greedily add edges to the spanning tree/forest as long as they do
   // not violate the degree/cycle constraint.
   for (int i =0; i < weighted_edges.size(); ++i) {
-    const pair<Vertex, Vertex>& edge = weighted_edges[i].second;
+    const std::pair<Vertex, Vertex>& edge = weighted_edges[i].second;
     const Vertex vertex1 = edge.first;
     const Vertex vertex2 = edge.second;
 
@@ -350,7 +351,7 @@ Degree2MaximumSpanningForest(const WeightedGraph<Vertex>& graph) {
     // lookup.
     if (root2 < root1) {
       std::swap(root1, root2);
-    };
+    }
 
     disjoint_set[root2] = root1;
   }

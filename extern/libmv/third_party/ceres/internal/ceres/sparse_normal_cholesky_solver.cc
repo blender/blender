@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -57,9 +57,9 @@ namespace {
 // A templated factorized and solve function, which allows us to use
 // the same code independent of whether a AMD or a Natural ordering is
 // used.
-template <typename SimplicialCholeskySolver>
+template <typename SimplicialCholeskySolver, typename SparseMatrixType>
 LinearSolver::Summary SimplicialLDLTSolve(
-    Eigen::MappedSparseMatrix<double, Eigen::ColMajor>& lhs,
+    const SparseMatrixType& lhs,
     const bool do_symbolic_analysis,
     SimplicialCholeskySolver* solver,
     double* rhs_and_solution,
@@ -102,6 +102,53 @@ LinearSolver::Summary SimplicialLDLTSolve(
 }
 
 #endif  // CERES_USE_EIGEN_SPARSE
+
+#ifndef CERES_NO_CXSPARSE
+LinearSolver::Summary ComputeNormalEquationsAndSolveUsingCXSparse(
+    CompressedRowSparseMatrix* A,
+    double * rhs_and_solution,
+    EventLogger* event_logger) {
+  LinearSolver::Summary summary;
+  summary.num_iterations = 1;
+  summary.termination_type = LINEAR_SOLVER_SUCCESS;
+  summary.message = "Success.";
+
+  CXSparse cxsparse;
+
+  // Wrap the augmented Jacobian in a compressed sparse column matrix.
+  cs_di a_transpose = cxsparse.CreateSparseMatrixTransposeView(A);
+
+  // Compute the normal equations. J'J delta = J'f and solve them
+  // using a sparse Cholesky factorization. Notice that when compared
+  // to SuiteSparse we have to explicitly compute the transpose of Jt,
+  // and then the normal equations before they can be
+  // factorized. CHOLMOD/SuiteSparse on the other hand can just work
+  // off of Jt to compute the Cholesky factorization of the normal
+  // equations.
+  cs_di* a = cxsparse.TransposeMatrix(&a_transpose);
+  cs_di* lhs = cxsparse.MatrixMatrixMultiply(&a_transpose, a);
+  cxsparse.Free(a);
+  event_logger->AddEvent("NormalEquations");
+
+  cs_dis* factor = cxsparse.AnalyzeCholesky(lhs);
+  event_logger->AddEvent("Analysis");
+
+  if (factor == NULL) {
+    summary.termination_type = LINEAR_SOLVER_FATAL_ERROR;
+    summary.message = "CXSparse::AnalyzeCholesky failed.";
+  } else if (!cxsparse.SolveCholesky(lhs, factor, rhs_and_solution)) {
+    summary.termination_type = LINEAR_SOLVER_FAILURE;
+    summary.message = "CXSparse::SolveCholesky failed.";
+  }
+  event_logger->AddEvent("Solve");
+
+  cxsparse.Free(lhs);
+  cxsparse.Free(factor);
+  event_logger->AddEvent("TearDown");
+  return summary;
+}
+
+#endif  // CERES_NO_CXSPARSE
 
 }  // namespace
 
@@ -155,13 +202,13 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImpl(
   LinearSolver::Summary summary;
   switch (options_.sparse_linear_algebra_library_type) {
     case SUITE_SPARSE:
-      summary = SolveImplUsingSuiteSparse(A, per_solve_options, x);
+      summary = SolveImplUsingSuiteSparse(A, x);
       break;
     case CX_SPARSE:
-      summary = SolveImplUsingCXSparse(A, per_solve_options, x);
+      summary = SolveImplUsingCXSparse(A, x);
       break;
     case EIGEN_SPARSE:
-      summary = SolveImplUsingEigen(A, per_solve_options, x);
+      summary = SolveImplUsingEigen(A, x);
       break;
     default:
       LOG(FATAL) << "Unknown sparse linear algebra library : "
@@ -177,7 +224,6 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImpl(
 
 LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingEigen(
     CompressedRowSparseMatrix* A,
-    const LinearSolver::PerSolveOptions& per_solve_options,
     double * rhs_and_solution) {
 #ifndef CERES_USE_EIGEN_SPARSE
 
@@ -200,9 +246,28 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingEigen(
   // before they can be factorized. CHOLMOD/SuiteSparse on the other
   // hand can just work off of Jt to compute the Cholesky
   // factorization of the normal equations.
-  //
-  // TODO(sameeragarwal): See note about how this maybe a bad idea for
-  // dynamic sparsity.
+
+  if (options_.dynamic_sparsity) {
+    // In the case where the problem has dynamic sparsity, it is not
+    // worth using the ComputeOuterProduct routine, as the setup cost
+    // is not amortized over multiple calls to Solve.
+    Eigen::MappedSparseMatrix<double, Eigen::RowMajor> a(
+        A->num_rows(),
+        A->num_cols(),
+        A->num_nonzeros(),
+        A->mutable_rows(),
+        A->mutable_cols(),
+        A->mutable_values());
+
+    Eigen::SparseMatrix<double> lhs = a.transpose() * a;
+    Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
+    return SimplicialLDLTSolve(lhs,
+                               true,
+                               &solver,
+                               rhs_and_solution,
+                               &event_logger);
+  }
+
   if (outer_product_.get() == NULL) {
     outer_product_.reset(
         CompressedRowSparseMatrix::CreateOuterProductMatrixAndProgram(
@@ -217,7 +282,7 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingEigen(
   // outer_product_ is a compressed row sparse matrix and in lower
   // triangular form, when mapped to a compressed column sparse
   // matrix, it becomes an upper triangular matrix.
-  Eigen::MappedSparseMatrix<double, Eigen::ColMajor> AtA(
+  Eigen::MappedSparseMatrix<double, Eigen::ColMajor> lhs(
       outer_product_->num_rows(),
       outer_product_->num_rows(),
       outer_product_->num_nonzeros(),
@@ -225,27 +290,19 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingEigen(
       outer_product_->mutable_cols(),
       outer_product_->mutable_values());
 
-  // Dynamic sparsity means that we cannot depend on a static analysis
-  // of sparsity structure of the jacobian, so we compute a new
-  // symbolic factorization every time.
-  if (options_.dynamic_sparsity) {
-    amd_ldlt_.reset(NULL);
-  }
-
   bool do_symbolic_analysis = false;
 
-  // If using post ordering or dynamic sparsity, or an old version of
-  // Eigen, we cannot depend on a preordered jacobian, so we work with
-  // a SimplicialLDLT decomposition with AMD ordering.
+  // If using post ordering or an old version of Eigen, we cannot
+  // depend on a preordered jacobian, so we work with a SimplicialLDLT
+  // decomposition with AMD ordering.
   if (options_.use_postordering ||
-      options_.dynamic_sparsity ||
       !EIGEN_VERSION_AT_LEAST(3, 2, 2)) {
     if (amd_ldlt_.get() == NULL) {
       amd_ldlt_.reset(new SimplicialLDLTWithAMDOrdering);
       do_symbolic_analysis = true;
     }
 
-    return SimplicialLDLTSolve(AtA,
+    return SimplicialLDLTSolve(lhs,
                                do_symbolic_analysis,
                                amd_ldlt_.get(),
                                rhs_and_solution,
@@ -259,7 +316,7 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingEigen(
     do_symbolic_analysis = true;
   }
 
-  return SimplicialLDLTSolve(AtA,
+  return SimplicialLDLTSolve(lhs,
                              do_symbolic_analysis,
                              natural_ldlt_.get(),
                              rhs_and_solution,
@@ -269,11 +326,8 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingEigen(
 #endif  // EIGEN_USE_EIGEN_SPARSE
 }
 
-
-
 LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingCXSparse(
     CompressedRowSparseMatrix* A,
-    const LinearSolver::PerSolveOptions& per_solve_options,
     double * rhs_and_solution) {
 #ifdef CERES_NO_CXSPARSE
 
@@ -290,6 +344,11 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingCXSparse(
 #else
 
   EventLogger event_logger("SparseNormalCholeskySolver::CXSparse::Solve");
+  if (options_.dynamic_sparsity) {
+    return ComputeNormalEquationsAndSolveUsingCXSparse(A,
+                                                       rhs_and_solution,
+                                                       &event_logger);
+  }
 
   LinearSolver::Summary summary;
   summary.num_iterations = 1;
@@ -302,10 +361,6 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingCXSparse(
   // before they can be factorized. CHOLMOD/SuiteSparse on the other
   // hand can just work off of Jt to compute the Cholesky
   // factorization of the normal equations.
-  //
-  // TODO(sameeragarwal): If dynamic sparsity is enabled, then this is
-  // not a good idea performance wise, since the jacobian has far too
-  // many entries and the program will go crazy with memory.
   if (outer_product_.get() == NULL) {
     outer_product_.reset(
         CompressedRowSparseMatrix::CreateOuterProductMatrixAndProgram(
@@ -314,27 +369,19 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingCXSparse(
 
   CompressedRowSparseMatrix::ComputeOuterProduct(
       *A, pattern_, outer_product_.get());
-  cs_di AtA_view =
+  cs_di lhs =
       cxsparse_.CreateSparseMatrixTransposeView(outer_product_.get());
-  cs_di* AtA = &AtA_view;
 
   event_logger.AddEvent("Setup");
 
   // Compute symbolic factorization if not available.
-  if (options_.dynamic_sparsity) {
-    FreeFactorization();
-  }
   if (cxsparse_factor_ == NULL) {
     if (options_.use_postordering) {
-      cxsparse_factor_ = cxsparse_.BlockAnalyzeCholesky(AtA,
+      cxsparse_factor_ = cxsparse_.BlockAnalyzeCholesky(&lhs,
                                                         A->col_blocks(),
                                                         A->col_blocks());
     } else {
-      if (options_.dynamic_sparsity) {
-        cxsparse_factor_ = cxsparse_.AnalyzeCholesky(AtA);
-      } else {
-        cxsparse_factor_ = cxsparse_.AnalyzeCholeskyWithNaturalOrdering(AtA);
-      }
+      cxsparse_factor_ = cxsparse_.AnalyzeCholeskyWithNaturalOrdering(&lhs);
     }
   }
   event_logger.AddEvent("Analysis");
@@ -343,7 +390,7 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingCXSparse(
     summary.termination_type = LINEAR_SOLVER_FATAL_ERROR;
     summary.message =
         "CXSparse failure. Unable to find symbolic factorization.";
-  } else if (!cxsparse_.SolveCholesky(AtA,
+  } else if (!cxsparse_.SolveCholesky(&lhs,
                                       cxsparse_factor_,
                                       rhs_and_solution)) {
     summary.termination_type = LINEAR_SOLVER_FAILURE;
@@ -357,7 +404,6 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingCXSparse(
 
 LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingSuiteSparse(
     CompressedRowSparseMatrix* A,
-    const LinearSolver::PerSolveOptions& per_solve_options,
     double * rhs_and_solution) {
 #ifdef CERES_NO_SUITESPARSE
 
@@ -385,6 +431,7 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingSuiteSparse(
   if (options_.dynamic_sparsity) {
     FreeFactorization();
   }
+
   if (factor_ == NULL) {
     if (options_.use_postordering) {
       factor_ = ss_.BlockAnalyzeCholesky(&lhs,

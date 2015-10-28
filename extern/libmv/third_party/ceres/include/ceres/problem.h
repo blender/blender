@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2013 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -211,9 +211,10 @@ class CERES_EXPORT Problem {
   //   problem.AddResidualBlock(new MyUnaryCostFunction(...), NULL, x1);
   //   problem.AddResidualBlock(new MyBinaryCostFunction(...), NULL, x2, x1);
   //
-  ResidualBlockId AddResidualBlock(CostFunction* cost_function,
-                                   LossFunction* loss_function,
-                                   const vector<double*>& parameter_blocks);
+  ResidualBlockId AddResidualBlock(
+      CostFunction* cost_function,
+      LossFunction* loss_function,
+      const std::vector<double*>& parameter_blocks);
 
   // Convenience methods for adding residuals with a small number of
   // parameters. This is the common case. Instead of specifying the
@@ -356,17 +357,17 @@ class CERES_EXPORT Problem {
   // Fills the passed parameter_blocks vector with pointers to the
   // parameter blocks currently in the problem. After this call,
   // parameter_block.size() == NumParameterBlocks.
-  void GetParameterBlocks(vector<double*>* parameter_blocks) const;
+  void GetParameterBlocks(std::vector<double*>* parameter_blocks) const;
 
   // Fills the passed residual_blocks vector with pointers to the
   // residual blocks currently in the problem. After this call,
   // residual_blocks.size() == NumResidualBlocks.
-  void GetResidualBlocks(vector<ResidualBlockId>* residual_blocks) const;
+  void GetResidualBlocks(std::vector<ResidualBlockId>* residual_blocks) const;
 
   // Get all the parameter blocks that depend on the given residual block.
   void GetParameterBlocksForResidualBlock(
       const ResidualBlockId residual_block,
-      vector<double*>* parameter_blocks) const;
+      std::vector<double*>* parameter_blocks) const;
 
   // Get the CostFunction for the given residual block.
   const CostFunction* GetCostFunctionForResidualBlock(
@@ -385,7 +386,7 @@ class CERES_EXPORT Problem {
   // block will incur a scan of the entire Problem object.
   void GetResidualBlocksForParameterBlock(
       const double* values,
-      vector<ResidualBlockId>* residual_blocks) const;
+      std::vector<ResidualBlockId>* residual_blocks) const;
 
   // Options struct to control Problem::Evaluate.
   struct EvaluateOptions {
@@ -408,18 +409,17 @@ class CERES_EXPORT Problem {
     // used to add parameter blocks to the Problem. These parameter
     // block should NOT point to new memory locations. Bad things will
     // happen otherwise.
-    vector<double*> parameter_blocks;
+    std::vector<double*> parameter_blocks;
 
     // The set of residual blocks to evaluate. This vector determines
     // the order in which the residuals occur, and how the rows of the
     // jacobian are ordered. If residual_blocks is empty, then it is
-    // assumed to be equal to the vector containing all the residual
-    // blocks. If this vector is empty, then it is assumed to be equal
-    // to a vector containing ALL the residual blocks. Generally
-    // speaking the residual blocks will occur in the order in which
-    // they were added to the problem. But, this may change if the
-    // user removes any residual blocks from the problem.
-    vector<ResidualBlockId> residual_blocks;
+    // assumed to be equal to the vector containing ALL the residual
+    // blocks. Generally speaking the residual blocks will occur in
+    // the order in which they were added to the problem. But, this
+    // may change if the user removes any residual blocks from the
+    // problem.
+    std::vector<ResidualBlockId> residual_blocks;
 
     // Even though the residual blocks in the problem may contain loss
     // functions, setting apply_loss_function to false will turn off
@@ -463,8 +463,8 @@ class CERES_EXPORT Problem {
   // columns in the jacobian).
   bool Evaluate(const EvaluateOptions& options,
                 double* cost,
-                vector<double>* residuals,
-                vector<double>* gradient,
+                std::vector<double>* residuals,
+                std::vector<double>* gradient,
                 CRSMatrix* jacobian);
 
  private:

@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -78,10 +78,10 @@ class GradientChecker {
     // block.
 
     // Derivatives as computed by the cost function.
-    vector<Matrix> term_jacobians;
+    std::vector<Matrix> term_jacobians;
 
     // Derivatives as computed by finite differencing.
-    vector<Matrix> finite_difference_jacobians;
+    std::vector<Matrix> finite_difference_jacobians;
 
     // Infinity-norm of term_jacobians - finite_difference_jacobians.
     double error_jacobians;
@@ -119,7 +119,7 @@ class GradientChecker {
     // Do a consistency check between the term and the template parameters.
     CHECK_EQ(M, term->num_residuals());
     const int num_residuals = M;
-    const vector<int32>& block_sizes = term->parameter_block_sizes();
+    const std::vector<int32>& block_sizes = term->parameter_block_sizes();
     const int num_blocks = block_sizes.size();
 
     CHECK_LE(num_blocks, 5) << "Unable to test functions that take more "

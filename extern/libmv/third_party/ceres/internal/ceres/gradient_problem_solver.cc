@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2014 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -46,6 +46,7 @@
 namespace ceres {
 using internal::StringPrintf;
 using internal::StringAppendF;
+using std::string;
 
 namespace {
 
@@ -138,6 +139,7 @@ void GradientProblemSolver::Solve(const GradientProblemSolver::Options& options,
   solver_summary.fixed_cost = 0.0;
   solver_summary.preprocessor_time_in_seconds = 0.0;
   solver_summary.postprocessor_time_in_seconds = 0.0;
+  solver_summary.line_search_polynomial_minimization_time_in_seconds = 0.0;
 
   minimizer->Minimize(minimizer_options, solution.data(), &solver_summary);
 
@@ -146,13 +148,15 @@ void GradientProblemSolver::Solve(const GradientProblemSolver::Options& options,
   summary->initial_cost     = solver_summary.initial_cost;
   summary->final_cost       = solver_summary.final_cost;
   summary->iterations       = solver_summary.iterations;
+  summary->line_search_polynomial_minimization_time_in_seconds =
+      solver_summary.line_search_polynomial_minimization_time_in_seconds;
 
   if (summary->IsSolutionUsable()) {
     parameters = solution;
     SetSummaryFinalCost(summary);
   }
 
-  const map<string, double>& evaluator_time_statistics =
+  const std::map<string, double>& evaluator_time_statistics =
        minimizer_options.evaluator->TimeStatistics();
   summary->cost_evaluation_time_in_seconds =
       FindWithDefault(evaluator_time_statistics, "Evaluator::Residual", 0.0);
@@ -172,6 +176,7 @@ GradientProblemSolver::Summary::Summary()
       total_time_in_seconds(-1.0),
       cost_evaluation_time_in_seconds(-1.0),
       gradient_evaluation_time_in_seconds(-1.0),
+      line_search_polynomial_minimization_time_in_seconds(-1.0),
       num_parameters(-1),
       num_local_parameters(-1),
       line_search_direction_type(LBFGS),
@@ -195,7 +200,7 @@ string GradientProblemSolver::Summary::BriefReport() const {
                       initial_cost,
                       final_cost,
                       TerminationTypeToString(termination_type));
-};
+}
 
 string GradientProblemSolver::Summary::FullReport() const {
   using internal::VersionString;
@@ -246,18 +251,20 @@ string GradientProblemSolver::Summary::FullReport() const {
 
   StringAppendF(&report, "\nTime (in seconds):\n");
 
-  StringAppendF(&report, "\n  Cost evaluation     %23.3f\n",
+  StringAppendF(&report, "\n  Cost evaluation     %23.4f\n",
                 cost_evaluation_time_in_seconds);
-  StringAppendF(&report, "  Gradient evaluation %23.3f\n",
+  StringAppendF(&report, "  Gradient evaluation %23.4f\n",
                 gradient_evaluation_time_in_seconds);
+  StringAppendF(&report, "  Polynomial minimization   %17.4f\n",
+                line_search_polynomial_minimization_time_in_seconds);
 
-  StringAppendF(&report, "Total               %25.3f\n\n",
+  StringAppendF(&report, "Total               %25.4f\n\n",
                 total_time_in_seconds);
 
   StringAppendF(&report, "Termination:        %25s (%s)\n",
                 TerminationTypeToString(termination_type), message.c_str());
   return report;
-};
+}
 
 void Solve(const GradientProblemSolver::Options& options,
            const GradientProblem& problem,

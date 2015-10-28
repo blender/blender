@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -69,19 +69,15 @@ class SparseNormalCholeskySolver : public CompressedRowSparseMatrixSolver {
 
   LinearSolver::Summary SolveImplUsingSuiteSparse(
       CompressedRowSparseMatrix* A,
-      const LinearSolver::PerSolveOptions& options,
       double* rhs_and_solution);
 
-  // Crashes if CSparse is not installed.
+
   LinearSolver::Summary SolveImplUsingCXSparse(
       CompressedRowSparseMatrix* A,
-      const LinearSolver::PerSolveOptions& options,
       double* rhs_and_solution);
 
-  // Crashes if CERES_USE_EIGEN_SPARSE is not defined.
   LinearSolver::Summary SolveImplUsingEigen(
       CompressedRowSparseMatrix* A,
-      const LinearSolver::PerSolveOptions& options,
       double* rhs_and_solution);
 
   void FreeFactorization();
@@ -120,7 +116,7 @@ class SparseNormalCholeskySolver : public CompressedRowSparseMatrixSolver {
 #endif
 
   scoped_ptr<CompressedRowSparseMatrix> outer_product_;
-  vector<int> pattern_;
+  std::vector<int> pattern_;
   const LinearSolver::Options options_;
   CERES_DISALLOW_COPY_AND_ASSIGN(SparseNormalCholeskySolver);
 };

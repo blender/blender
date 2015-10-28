@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -128,7 +128,7 @@ void TripletSparseMatrix::Reserve(int new_max_num_nonzeros) {
 }
 
 void TripletSparseMatrix::SetZero() {
-  fill(values_.get(), values_.get() + max_num_nonzeros_, 0.0);
+  std::fill(values_.get(), values_.get() + max_num_nonzeros_, 0.0);
   num_nonzeros_ = 0;
 }
 
@@ -136,7 +136,7 @@ void TripletSparseMatrix::set_num_nonzeros(int num_nonzeros) {
   CHECK_GE(num_nonzeros, 0);
   CHECK_LE(num_nonzeros, max_num_nonzeros_);
   num_nonzeros_ = num_nonzeros;
-};
+}
 
 void TripletSparseMatrix::AllocateMemory() {
   rows_.reset(new int[max_num_nonzeros_]);

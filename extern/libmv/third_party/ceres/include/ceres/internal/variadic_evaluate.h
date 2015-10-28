@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2013 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -35,6 +35,7 @@
 #include <stddef.h>
 
 #include "ceres/jet.h"
+#include "ceres/types.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/fixed_array.h"
 #include "glog/logging.h"
@@ -173,6 +174,17 @@ struct VariadicEvaluate<Functor, T, N0, 0, 0, 0, 0, 0, 0, 0, 0, 0> {
   static bool Call(const Functor& functor, T const *const *input, T* output) {
     return functor(input[0],
                    output);
+  }
+};
+
+// Template instantiation for dynamically-sized functors.
+template<typename Functor, typename T>
+struct VariadicEvaluate<Functor, T, ceres::DYNAMIC, ceres::DYNAMIC,
+                        ceres::DYNAMIC, ceres::DYNAMIC, ceres::DYNAMIC,
+                        ceres::DYNAMIC, ceres::DYNAMIC, ceres::DYNAMIC,
+                        ceres::DYNAMIC, ceres::DYNAMIC> {
+  static bool Call(const Functor& functor, T const *const *input, T* output) {
+    return functor(input, output);
   }
 };
 

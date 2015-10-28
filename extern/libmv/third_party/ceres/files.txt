@@ -157,8 +157,6 @@ internal/ceres/graph_algorithms.h
 internal/ceres/graph.h
 internal/ceres/implicit_schur_complement.cc
 internal/ceres/implicit_schur_complement.h
-internal/ceres/incomplete_lq_factorization.cc
-internal/ceres/incomplete_lq_factorization.h
 internal/ceres/integral_types.h
 internal/ceres/iterative_schur_complement_solver.cc
 internal/ceres/iterative_schur_complement_solver.h

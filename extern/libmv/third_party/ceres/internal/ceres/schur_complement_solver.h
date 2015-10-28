@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -188,7 +188,7 @@ class SparseSchurComplementSolver : public SchurComplementSolver {
       double* solution);
 
   // Size of the blocks in the Schur complement.
-  vector<int> blocks_;
+  std::vector<int> blocks_;
 
   SuiteSparse ss_;
   // Symbolic factorization of the reduced linear system. Precomputed

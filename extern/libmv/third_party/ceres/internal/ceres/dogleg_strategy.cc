@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -120,7 +120,8 @@ TrustRegionStrategy::Summary DoglegStrategy::ComputeStep(
   //
   jacobian->SquaredColumnNorm(diagonal_.data());
   for (int i = 0; i < n; ++i) {
-    diagonal_[i] = min(max(diagonal_[i], min_diagonal_), max_diagonal_);
+    diagonal_[i] = std::min(std::max(diagonal_[i], min_diagonal_),
+                            max_diagonal_);
   }
   diagonal_ = diagonal_.array().sqrt();
 
@@ -618,13 +619,13 @@ void DoglegStrategy::StepAccepted(double step_quality) {
   }
 
   if (step_quality > increase_threshold_) {
-    radius_ = max(radius_, 3.0 * dogleg_step_norm_);
+    radius_ = std::max(radius_, 3.0 * dogleg_step_norm_);
   }
 
   // Reduce the regularization multiplier, in the hope that whatever
   // was causing the rank deficiency has gone away and we can return
   // to doing a pure Gauss-Newton solve.
-  mu_ = max(min_mu_, 2.0 * mu_ / mu_increase_factor_);
+  mu_ = std::max(min_mu_, 2.0 * mu_ / mu_increase_factor_);
   reuse_ = false;
 }
 

@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -61,7 +61,7 @@ CostFunction* CreateGradientCheckingCostFunction(
     const CostFunction* cost_function,
     double relative_step_size,
     double relative_precision,
-    const string& extra_info);
+    const std::string& extra_info);
 
 // Create a new ProblemImpl object from the input problem_impl, where
 // each CostFunctions in problem_impl are wrapped inside a

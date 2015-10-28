@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -35,6 +35,8 @@
 #include "glog/logging.h"
 
 namespace ceres {
+
+using std::string;
 
 #define CASESTR(x) case x: return #x
 #define STRENUM(x) if (value == #x) { *type = x; return true;}
@@ -97,6 +99,7 @@ const char* SparseLinearAlgebraLibraryTypeToString(
     CASESTR(SUITE_SPARSE);
     CASESTR(CX_SPARSE);
     CASESTR(EIGEN_SPARSE);
+    CASESTR(NO_SPARSE);
     default:
       return "UNKNOWN";
   }
@@ -109,6 +112,7 @@ bool StringToSparseLinearAlgebraLibraryType(
   STRENUM(SUITE_SPARSE);
   STRENUM(CX_SPARSE);
   STRENUM(EIGEN_SPARSE);
+  STRENUM(NO_SPARSE);
   return false;
 }
 
@@ -280,6 +284,27 @@ bool StringToCovarianceAlgorithmType(
   return false;
 }
 
+const char* NumericDiffMethodTypeToString(
+    NumericDiffMethodType type) {
+  switch (type) {
+    CASESTR(CENTRAL);
+    CASESTR(FORWARD);
+    CASESTR(RIDDERS);
+    default:
+      return "UNKNOWN";
+  }
+}
+
+bool StringToNumericDiffMethodType(
+    string value,
+    NumericDiffMethodType* type) {
+  UpperCase(&value);
+  STRENUM(CENTRAL);
+  STRENUM(FORWARD);
+  STRENUM(RIDDERS);
+  return false;
+}
+
 const char* VisibilityClusteringTypeToString(
     VisibilityClusteringType type) {
   switch (type) {
@@ -335,6 +360,14 @@ bool IsSparseLinearAlgebraLibraryTypeAvailable(
     return false;
 #else
     return true;
+#endif
+  }
+
+  if (type == EIGEN_SPARSE) {
+#ifdef CERES_USE_EIGEN_SPARSE
+    return true;
+#else
+    return false;
 #endif
   }
 

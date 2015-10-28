@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -50,26 +50,9 @@ namespace ceres {
 inline bool IsFinite  (double x) { return _finite(x) != 0;                   }
 inline bool IsInfinite(double x) { return _finite(x) == 0 && _isnan(x) == 0; }
 inline bool IsNaN     (double x) { return _isnan(x) != 0;                    }
-inline bool IsNormal  (double x) {
-  int classification = _fpclass(x);
-  return classification == _FPCLASS_NN ||
-         classification == _FPCLASS_PN;
-}
-
-#elif defined(ANDROID) && defined(_STLPORT_VERSION)
-
-// On Android, when using the STLPort, the C++ isnan and isnormal functions
-// are defined as macros.
-inline bool IsNaN     (double x) { return isnan(x);    }
-inline bool IsNormal  (double x) { return isnormal(x); }
-// On Android NDK r6, when using STLPort, the isinf and isfinite functions are
-// not available, so reimplement them.
-inline bool IsInfinite(double x) {
-  return x ==  std::numeric_limits<double>::infinity() ||
-         x == -std::numeric_limits<double>::infinity();
-}
-inline bool IsFinite(double x) {
-  return !isnan(x) && !IsInfinite(x);
+inline bool IsNormal  (double x) {  // NOLINT
+  const int classification = _fpclass(x);
+  return (classification == _FPCLASS_NN || classification == _FPCLASS_PN);
 }
 
 # else

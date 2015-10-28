@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -263,7 +263,7 @@ class SchurEliminator : public SchurEliminatorBase {
   // buffer_layout[z1] = 0
   // buffer_layout[z5] = y1 * z1
   // buffer_layout[z2] = y1 * z1 + y1 * z5
-  typedef map<int, int> BufferLayoutType;
+  typedef std::map<int, int> BufferLayoutType;
   struct Chunk {
     Chunk() : size(0) {}
     int size;
@@ -315,11 +315,11 @@ class SchurEliminator : public SchurEliminatorBase {
   // position of each f block in the row/col of the reduced linear
   // system. Thus lhs_row_layout_[i] is the row/col position of the
   // i^th f block.
-  vector<int> lhs_row_layout_;
+  std::vector<int> lhs_row_layout_;
 
   // Combinatorial structure of the chunks in A. For more information
   // see the documentation of the Chunk object above.
-  vector<Chunk> chunks_;
+  std::vector<Chunk> chunks_;
 
   // TODO(sameeragarwal): The following two arrays contain per-thread
   // storage. They should be refactored into a per thread struct.
@@ -346,7 +346,7 @@ class SchurEliminator : public SchurEliminatorBase {
 
   // Locks for the blocks in the right hand side of the reduced linear
   // system.
-  vector<Mutex*> rhs_locks_;
+  std::vector<Mutex*> rhs_locks_;
 };
 
 }  // namespace internal

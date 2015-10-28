@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2013 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -38,6 +38,9 @@
 
 namespace ceres {
 
+using std::pair;
+using std::vector;
+
 Covariance::Covariance(const Covariance::Options& options) {
   impl_.reset(new internal::CovarianceImpl(options));
 }
@@ -54,9 +57,20 @@ bool Covariance::Compute(
 bool Covariance::GetCovarianceBlock(const double* parameter_block1,
                                     const double* parameter_block2,
                                     double* covariance_block) const {
-  return impl_->GetCovarianceBlock(parameter_block1,
-                                   parameter_block2,
-                                   covariance_block);
+  return impl_->GetCovarianceBlockInTangentOrAmbientSpace(parameter_block1,
+                                                          parameter_block2,
+                                                          true,  // ambient
+                                                          covariance_block);
+}
+
+bool Covariance::GetCovarianceBlockInTangentSpace(
+    const double* parameter_block1,
+    const double* parameter_block2,
+    double* covariance_block) const {
+  return impl_->GetCovarianceBlockInTangentOrAmbientSpace(parameter_block1,
+                                                          parameter_block2,
+                                                          false,  // tangent
+                                                          covariance_block);
 }
 
 }  // namespace ceres

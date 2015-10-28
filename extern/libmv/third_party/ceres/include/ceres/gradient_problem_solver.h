@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2014 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -81,7 +81,7 @@ class CERES_EXPORT GradientProblemSolver {
     // Returns true if the options struct has a valid
     // configuration. Returns false otherwise, and fills in *error
     // with a message describing the problem.
-    bool IsValid(string* error) const;
+    bool IsValid(std::string* error) const;
 
     // Minimizer options ----------------------------------------
     LineSearchDirectionType line_search_direction_type;
@@ -261,7 +261,7 @@ class CERES_EXPORT GradientProblemSolver {
     // executed, then set update_state_every_iteration to true.
     //
     // The solver does NOT take ownership of these pointers.
-    vector<IterationCallback*> callbacks;
+    std::vector<IterationCallback*> callbacks;
   };
 
   struct CERES_EXPORT Summary {
@@ -269,11 +269,11 @@ class CERES_EXPORT GradientProblemSolver {
 
     // A brief one line description of the state of the solver after
     // termination.
-    string BriefReport() const;
+    std::string BriefReport() const;
 
     // A full multiline description of the state of the solver after
     // termination.
-    string FullReport() const;
+    std::string FullReport() const;
 
     bool IsSolutionUsable() const;
 
@@ -281,7 +281,7 @@ class CERES_EXPORT GradientProblemSolver {
     TerminationType termination_type;
 
     // Reason why the solver terminated.
-    string message;
+    std::string message;
 
     // Cost of the problem (value of the objective function) before
     // the optimization.
@@ -292,7 +292,7 @@ class CERES_EXPORT GradientProblemSolver {
     double final_cost;
 
     // IterationSummary for each minimizer iteration in order.
-    vector<IterationSummary> iterations;
+    std::vector<IterationSummary> iterations;
 
     // Sum total of all time spent inside Ceres when Solve is called.
     double total_time_in_seconds;
@@ -302,6 +302,10 @@ class CERES_EXPORT GradientProblemSolver {
 
     // Time (in seconds) spent evaluating the gradient.
     double gradient_evaluation_time_in_seconds;
+
+    // Time (in seconds) spent minimizing the interpolating polynomial
+    // to compute the next candidate step size as part of a line search.
+    double line_search_polynomial_minimization_time_in_seconds;
 
     // Number of parameters in the probem.
     int num_parameters;

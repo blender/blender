@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -34,8 +34,6 @@
 // This file needs to compile as c code.
 #ifdef __cplusplus
 
-#include <string>
-
 #include "ceres/internal/config.h"
 
 #if defined(CERES_TR1_MEMORY_HEADER)
@@ -45,16 +43,6 @@
 #endif
 
 namespace ceres {
-
-// It is unfortunate that this import of the entire standard namespace is
-// necessary. The reasons are historical and won't be explained here, but
-// suffice to say it is not a mistake and can't be removed without breaking
-// things outside of the Ceres optimization package.
-using namespace std;
-
-// This is necessary to properly handle the case that there is a different
-// "string" implementation in the global namespace.
-using std::string;
 
 #if defined(CERES_TR1_SHARED_PTR)
 using std::tr1::shared_ptr;

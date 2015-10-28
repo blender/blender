@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -68,11 +68,11 @@ bool IsEvaluationValid(const ResidualBlock& block,
 // Create a string representation of the Residual block containing the
 // value of the parameters, residuals and jacobians if present.
 // Useful for debugging output.
-string EvaluationToString(const ResidualBlock& block,
-                          double const* const* parameters,
-                          double* cost,
-                          double* residuals,
-                          double** jacobians);
+std::string EvaluationToString(const ResidualBlock& block,
+                               double const* const* parameters,
+                               double* cost,
+                               double* residuals,
+                               double** jacobians);
 
 }  // namespace internal
 }  // namespace ceres

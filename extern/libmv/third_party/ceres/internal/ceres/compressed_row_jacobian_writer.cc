@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -30,6 +30,9 @@
 
 #include "ceres/compressed_row_jacobian_writer.h"
 
+#include <utility>
+#include <vector>
+
 #include "ceres/casts.h"
 #include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/parameter_block.h"
@@ -39,6 +42,10 @@
 
 namespace ceres {
 namespace internal {
+
+using std::make_pair;
+using std::pair;
+using std::vector;
 
 void CompressedRowJacobianWriter::PopulateJacobianRowAndColumnBlockVectors(
     const Program* program, CompressedRowSparseMatrix* jacobian) {
@@ -214,9 +221,9 @@ void CompressedRowJacobianWriter::Write(int residual_id,
       double* column_block_begin =
           jacobian_values + jacobian_rows[residual_offset + r] + col_pos;
 
-      copy(block_row_begin,
-           block_row_begin + parameter_block_size,
-           column_block_begin);
+      std::copy(block_row_begin,
+                block_row_begin + parameter_block_size,
+                column_block_begin);
     }
     col_pos += parameter_block_size;
   }

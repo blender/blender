@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -63,23 +63,23 @@ namespace internal {
 #endif
 
 // Return a C++ string.
-extern string StringPrintf(const char* format, ...)
+extern std::string StringPrintf(const char* format, ...)
     // Tell the compiler to do printf format string checking.
     CERES_PRINTF_ATTRIBUTE(1, 2);
 
 // Store result into a supplied string and return it.
-extern const string& SStringPrintf(string* dst, const char* format, ...)
+extern const std::string& SStringPrintf(std::string* dst, const char* format, ...)
     // Tell the compiler to do printf format string checking.
     CERES_PRINTF_ATTRIBUTE(2, 3);
 
 // Append result to a supplied string.
-extern void StringAppendF(string* dst, const char* format, ...)
+extern void StringAppendF(std::string* dst, const char* format, ...)
     // Tell the compiler to do printf format string checking.
     CERES_PRINTF_ATTRIBUTE(2, 3);
 
 // Lower-level routine that takes a va_list and appends to a specified string.
 // All other routines are just convenience wrappers around it.
-extern void StringAppendV(string* dst, const char* format, va_list ap);
+extern void StringAppendV(std::string* dst, const char* format, va_list ap);
 
 #undef CERES_PRINTF_ATTRIBUTE
 

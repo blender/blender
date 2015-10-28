@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2014 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -56,6 +56,12 @@
 
 namespace ceres {
 namespace internal {
+
+using std::map;
+using std::set;
+using std::string;
+using std::vector;
+
 namespace {
 
 // Find the minimum index of any parameter block to the given
@@ -87,7 +93,7 @@ Eigen::SparseMatrix<int> CreateBlockJacobian(
   const int* rows = block_jacobian_transpose.rows();
   const int* cols = block_jacobian_transpose.cols();
   int num_nonzeros = block_jacobian_transpose.num_nonzeros();
-  std::vector<Triplet> triplets;
+  vector<Triplet> triplets;
   triplets.reserve(num_nonzeros);
   for (int i = 0; i < num_nonzeros; ++i) {
     triplets.push_back(Triplet(cols[i], rows[i], 1));
@@ -126,6 +132,11 @@ void OrderingForSparseNormalCholeskyUsingSuiteSparse(
           parameter_block_ordering.GroupId(
               parameter_blocks[i]->mutable_user_state()));
     }
+
+    // Renumber the entries of constraints to be contiguous integers
+    // as CAMD requires that the group ids be in the range [0,
+    // parameter_blocks.size() - 1].
+    MapValuesToContiguousRange(constraints.size(), &constraints[0]);
     ss.ConstrainedApproximateMinimumDegreeOrdering(block_jacobian_transpose,
                                                    &constraints[0],
                                                    ordering);
@@ -217,9 +228,7 @@ bool ApplyOrdering(const ProblemImpl::ParameterMap& parameter_map,
       program->mutable_parameter_blocks();
   parameter_blocks->clear();
 
-  const map<int, set<double*> >& groups =
-      ordering.group_to_elements();
-
+  const map<int, set<double*> >& groups = ordering.group_to_elements();
   for (map<int, set<double*> >::const_iterator group_it = groups.begin();
        group_it != groups.end();
        ++group_it) {
@@ -344,8 +353,8 @@ void MaybeReorderSchurComplementColumnsUsingSuiteSparse(
             parameter_blocks[i]->mutable_user_state()));
   }
 
-  // Renumber the entries of constraints to be contiguous integers
-  // as camd requires that the group ids be in the range [0,
+  // Renumber the entries of constraints to be contiguous integers as
+  // CAMD requires that the group ids be in the range [0,
   // parameter_blocks.size() - 1].
   MapValuesToContiguousRange(constraints.size(), &constraints[0]);
 
@@ -531,6 +540,15 @@ bool ReorderProgramForSparseNormalCholesky(
     const ParameterBlockOrdering& parameter_block_ordering,
     Program* program,
     string* error) {
+  if (parameter_block_ordering.NumElements() != program->NumParameterBlocks()) {
+    *error = StringPrintf(
+        "The program has %d parameter blocks, but the parameter block "
+        "ordering has %d parameter blocks.",
+        program->NumParameterBlocks(),
+        parameter_block_ordering.NumElements());
+    return false;
+  }
+
   // Compute a block sparse presentation of J'.
   scoped_ptr<TripletSparseMatrix> tsm_block_jacobian_transpose(
       program->CreateJacobianBlockSparsityTranspose());

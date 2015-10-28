@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2014 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -48,12 +48,16 @@
 
 namespace ceres {
 namespace internal {
+
+using std::vector;
+
 namespace {
 
 ParameterBlockOrdering* CreateDefaultLinearSolverOrdering(
     const Program& program) {
   ParameterBlockOrdering* ordering = new ParameterBlockOrdering;
-  const vector<ParameterBlock*>& parameter_blocks = program.parameter_blocks();
+  const vector<ParameterBlock*>& parameter_blocks =
+      program.parameter_blocks();
   for (int i = 0; i < parameter_blocks.size(); ++i) {
     ordering->AddElementToGroup(
         const_cast<double*>(parameter_blocks[i]->user_state()), 0);
@@ -63,7 +67,7 @@ ParameterBlockOrdering* CreateDefaultLinearSolverOrdering(
 
 // Check if all the user supplied values in the parameter blocks are
 // sane or not, and if the program is feasible or not.
-bool IsProgramValid(const Program& program, string* error) {
+bool IsProgramValid(const Program& program, std::string* error) {
   return (program.ParameterBlocksAreFinite(error) &&
           program.IsFeasible(error));
 }
@@ -80,7 +84,7 @@ void AlternateLinearSolverAndPreconditionerForSchurTypeLinearSolver(
   options->linear_solver_type = LinearSolver::LinearSolverForZeroEBlocks(
       linear_solver_type_given);
 
-  string message;
+  std::string message;
   if (linear_solver_type_given == ITERATIVE_SCHUR) {
     options->preconditioner_type = Preconditioner::PreconditionerForZeroEBlocks(
         preconditioner_type_given);

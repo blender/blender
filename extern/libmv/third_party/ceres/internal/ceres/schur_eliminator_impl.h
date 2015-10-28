@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -139,7 +139,7 @@ Init(int num_eliminate_blocks, const CompressedRowBlockStructure* bs) {
         }
       }
 
-      buffer_size_ = max(buffer_size, buffer_size_);
+      buffer_size_ = std::max(buffer_size, buffer_size_);
       ++chunk.size;
     }
 
@@ -194,7 +194,7 @@ Eliminate(const BlockSparseMatrix* A,
                                          &row_stride, &col_stride);
       if (cell_info != NULL) {
         const int block_size = bs->cols[i].size;
-        typename EigenTypes<kFBlockSize>::ConstVectorRef
+        typename EigenTypes<Eigen::Dynamic>::ConstVectorRef
             diag(D + bs->cols[i].position, block_size);
 
         CeresMutexLock l(&cell_info->m);
@@ -205,20 +205,19 @@ Eliminate(const BlockSparseMatrix* A,
     }
   }
 
-  // Eliminate y blocks one chunk at a time.  For each chunk,x3
-  // compute the entries of the normal equations and the gradient
-  // vector block corresponding to the y block and then apply
-  // Gaussian elimination to them. The matrix ete stores the normal
-  // matrix corresponding to the block being eliminated and array
-  // buffer_ contains the non-zero blocks in the row corresponding
-  // to this y block in the normal equations. This computation is
-  // done in ChunkDiagonalBlockAndGradient. UpdateRhs then applies
-  // gaussian elimination to the rhs of the normal equations,
-  // updating the rhs of the reduced linear system by modifying rhs
-  // blocks for all the z blocks that share a row block/residual
-  // term with the y block. EliminateRowOuterProduct does the
-  // corresponding operation for the lhs of the reduced linear
-  // system.
+  // Eliminate y blocks one chunk at a time.  For each chunk, compute
+  // the entries of the normal equations and the gradient vector block
+  // corresponding to the y block and then apply Gaussian elimination
+  // to them. The matrix ete stores the normal matrix corresponding to
+  // the block being eliminated and array buffer_ contains the
+  // non-zero blocks in the row corresponding to this y block in the
+  // normal equations. This computation is done in
+  // ChunkDiagonalBlockAndGradient. UpdateRhs then applies gaussian
+  // elimination to the rhs of the normal equations, updating the rhs
+  // of the reduced linear system by modifying rhs blocks for all the
+  // z blocks that share a row block/residual term with the y
+  // block. EliminateRowOuterProduct does the corresponding operation
+  // for the lhs of the reduced linear system.
 #pragma omp parallel for num_threads(num_threads_) schedule(dynamic)
   for (int i = 0; i < chunks_.size(); ++i) {
 #ifdef CERES_USE_OPENMP
@@ -594,8 +593,8 @@ template <int kRowBlockSize, int kEBlockSize, int kFBlockSize>
 void
 SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
 NoEBlockRowOuterProduct(const BlockSparseMatrix* A,
-                     int row_block_index,
-                     BlockRandomAccessMatrix* lhs) {
+                        int row_block_index,
+                        BlockRandomAccessMatrix* lhs) {
   const CompressedRowBlockStructure* bs = A->block_structure();
   const CompressedRow& row = bs->rows[row_block_index];
   const double* values = A->values();

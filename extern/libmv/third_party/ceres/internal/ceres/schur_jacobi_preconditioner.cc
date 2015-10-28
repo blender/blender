@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2013 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -54,7 +54,7 @@ SchurJacobiPreconditioner::SchurJacobiPreconditioner(
       << "Jacobian should have atleast 1 f_block for "
       << "SCHUR_JACOBI preconditioner.";
 
-  vector<int> blocks(num_blocks);
+  std::vector<int> blocks(num_blocks);
   for (int i = 0; i < num_blocks; ++i) {
     blocks[i] = bs.cols[i + options_.elimination_groups[0]].size;
   }

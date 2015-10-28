@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -55,15 +55,15 @@ class SizedCostFunction : public CostFunction {
 
     // This block breaks the 80 column rule to keep it somewhat readable.
     CHECK((!N1 && !N2 && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
-           ((N1 > 0) && !N2 && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
-           ((N1 > 0) && (N2 > 0) && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
-           ((N1 > 0) && (N2 > 0) && (N3 > 0) && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
-           ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && !N5 && !N6 && !N7 && !N8 && !N9) ||
-           ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && !N6 && !N7 && !N8 && !N9) ||
-           ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && !N7 && !N8 && !N9) ||
-           ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && !N8 && !N9) ||
-           ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && (N8 > 0) && !N9) ||
-           ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && (N8 > 0) && (N9 > 0)))
+          ((N1 > 0) && !N2 && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
+          ((N1 > 0) && (N2 > 0) && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||                                   // NOLINT
+          ((N1 > 0) && (N2 > 0) && (N3 > 0) && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||                              // NOLINT
+          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && !N5 && !N6 && !N7 && !N8 && !N9) ||                         // NOLINT
+          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && !N6 && !N7 && !N8 && !N9) ||                    // NOLINT
+          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && !N7 && !N8 && !N9) ||               // NOLINT
+          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && !N8 && !N9) ||          // NOLINT
+          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && (N8 > 0) && !N9) ||     // NOLINT
+          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && (N8 > 0) && (N9 > 0)))  // NOLINT
         << "Zero block cannot precede a non-zero block. Block sizes are "
         << "(ignore trailing 0s): " << N0 << ", " << N1 << ", " << N2 << ", "
         << N3 << ", " << N4 << ", " << N5 << ", " << N6 << ", " << N7 << ", "
@@ -71,19 +71,19 @@ class SizedCostFunction : public CostFunction {
 
     set_num_residuals(kNumResiduals);
 
-#define ADD_PARAMETER_BLOCK(N) \
+#define CERES_ADD_PARAMETER_BLOCK(N) \
     if (N) mutable_parameter_block_sizes()->push_back(N);
-    ADD_PARAMETER_BLOCK(N0);
-    ADD_PARAMETER_BLOCK(N1);
-    ADD_PARAMETER_BLOCK(N2);
-    ADD_PARAMETER_BLOCK(N3);
-    ADD_PARAMETER_BLOCK(N4);
-    ADD_PARAMETER_BLOCK(N5);
-    ADD_PARAMETER_BLOCK(N6);
-    ADD_PARAMETER_BLOCK(N7);
-    ADD_PARAMETER_BLOCK(N8);
-    ADD_PARAMETER_BLOCK(N9);
-#undef ADD_PARAMETER_BLOCK
+    CERES_ADD_PARAMETER_BLOCK(N0);
+    CERES_ADD_PARAMETER_BLOCK(N1);
+    CERES_ADD_PARAMETER_BLOCK(N2);
+    CERES_ADD_PARAMETER_BLOCK(N3);
+    CERES_ADD_PARAMETER_BLOCK(N4);
+    CERES_ADD_PARAMETER_BLOCK(N5);
+    CERES_ADD_PARAMETER_BLOCK(N6);
+    CERES_ADD_PARAMETER_BLOCK(N7);
+    CERES_ADD_PARAMETER_BLOCK(N8);
+    CERES_ADD_PARAMETER_BLOCK(N9);
+#undef CERES_ADD_PARAMETER_BLOCK
   }
 
   virtual ~SizedCostFunction() { }

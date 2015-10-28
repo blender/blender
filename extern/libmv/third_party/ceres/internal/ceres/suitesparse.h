@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -42,7 +42,6 @@
 #include <string>
 #include <vector>
 
-#include "ceres/internal/port.h"
 #include "ceres/linear_solver.h"
 #include "cholmod.h"
 #include "glog/logging.h"
@@ -144,12 +143,12 @@ class SuiteSparse {
   // message contains an explanation of the failures if any.
   //
   // Caller owns the result.
-  cholmod_factor* AnalyzeCholesky(cholmod_sparse* A, string* message);
+  cholmod_factor* AnalyzeCholesky(cholmod_sparse* A, std::string* message);
 
   cholmod_factor* BlockAnalyzeCholesky(cholmod_sparse* A,
-                                       const vector<int>& row_blocks,
-                                       const vector<int>& col_blocks,
-                                       string* message);
+                                       const std::vector<int>& row_blocks,
+                                       const std::vector<int>& col_blocks,
+                                       std::string* message);
 
   // If A is symmetric, then compute the symbolic Cholesky
   // factorization of A(ordering, ordering). If A is unsymmetric, then
@@ -162,9 +161,10 @@ class SuiteSparse {
   // message contains an explanation of the failures if any.
   //
   // Caller owns the result.
-  cholmod_factor* AnalyzeCholeskyWithUserOrdering(cholmod_sparse* A,
-                                                  const vector<int>& ordering,
-                                                  string* message);
+  cholmod_factor* AnalyzeCholeskyWithUserOrdering(
+      cholmod_sparse* A,
+      const std::vector<int>& ordering,
+      std::string* message);
 
   // Perform a symbolic factorization of A without re-ordering A. No
   // postordering of the elimination tree is performed. This ensures
@@ -173,7 +173,7 @@ class SuiteSparse {
   //
   // message contains an explanation of the failures if any.
   cholmod_factor* AnalyzeCholeskyWithNaturalOrdering(cholmod_sparse* A,
-                                                     string* message);
+                                                     std::string* message);
 
   // Use the symbolic factorization in L, to find the numerical
   // factorization for the matrix A or AA^T. Return true if
@@ -183,14 +183,14 @@ class SuiteSparse {
   // message contains an explanation of the failures if any.
   LinearSolverTerminationType Cholesky(cholmod_sparse* A,
                                        cholmod_factor* L,
-                                       string* message);
+                                       std::string* message);
 
   // Given a Cholesky factorization of a matrix A = LL^T, solve the
   // linear system Ax = b, and return the result. If the Solve fails
   // NULL is returned. Caller owns the result.
   //
   // message contains an explanation of the failures if any.
-  cholmod_dense* Solve(cholmod_factor* L, cholmod_dense* b, string* message);
+  cholmod_dense* Solve(cholmod_factor* L, cholmod_dense* b, std::string* message);
 
   // By virtue of the modeling layer in Ceres being block oriented,
   // all the matrices used by Ceres are also block oriented. When
@@ -215,9 +215,9 @@ class SuiteSparse {
   // A. If this is the case, only the first sum(col_blocks) are used
   // to compute the ordering.
   bool BlockAMDOrdering(const cholmod_sparse* A,
-                        const vector<int>& row_blocks,
-                        const vector<int>& col_blocks,
-                        vector<int>* ordering);
+                        const std::vector<int>& row_blocks,
+                        const std::vector<int>& col_blocks,
+                        std::vector<int>* ordering);
 
   // Find a fill reducing approximate minimum degree
   // ordering. ordering is expected to be large enough to hold the
@@ -236,7 +236,7 @@ class SuiteSparse {
   // being conservative and choosing the next minor version where
   // things are stable.
   static bool IsConstrainedApproximateMinimumDegreeOrderingAvailable() {
-    return (SUITESPARSE_VERSION>4001);
+    return (SUITESPARSE_VERSION > 4001);
   }
 
   // Find a fill reducing approximate minimum degree
@@ -260,15 +260,15 @@ class SuiteSparse {
   void Free(cholmod_dense* m)  { cholmod_free_dense(&m, &cc_);  }
   void Free(cholmod_factor* m) { cholmod_free_factor(&m, &cc_); }
 
-  void Print(cholmod_sparse* m, const string& name) {
+  void Print(cholmod_sparse* m, const std::string& name) {
     cholmod_print_sparse(m, const_cast<char*>(name.c_str()), &cc_);
   }
 
-  void Print(cholmod_dense* m, const string& name) {
+  void Print(cholmod_dense* m, const std::string& name) {
     cholmod_print_dense(m, const_cast<char*>(name.c_str()), &cc_);
   }
 
-  void Print(cholmod_triplet* m, const string& name) {
+  void Print(cholmod_triplet* m, const std::string& name) {
     cholmod_print_triplet(m, const_cast<char*>(name.c_str()), &cc_);
   }
 
@@ -298,7 +298,7 @@ class SuiteSparse {
     return false;
   }
 
-  void Free(void*) {};
+  void Free(void* arg) {}
 };
 
 #endif  // CERES_NO_SUITESPARSE

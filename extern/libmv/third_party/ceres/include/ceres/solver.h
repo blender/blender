@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2014 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -92,7 +92,7 @@ class CERES_EXPORT Solver {
       gradient_tolerance = 1e-10;
       parameter_tolerance = 1e-8;
 
-#if defined(CERES_NO_SUITESPARSE) && defined(CERES_NO_CXSPARSE) && !defined(CERES_ENABLE_LGPL_CODE)
+#if defined(CERES_NO_SUITESPARSE) && defined(CERES_NO_CXSPARSE) && !defined(CERES_ENABLE_LGPL_CODE)  // NOLINT
       linear_solver_type = DENSE_QR;
 #else
       linear_solver_type = SPARSE_NORMAL_CHOLESKY;
@@ -104,7 +104,8 @@ class CERES_EXPORT Solver {
 
       // Choose a default sparse linear algebra library in the order:
       //
-      //   SUITE_SPARSE > CX_SPARSE > EIGEN_SPARSE
+      //   SUITE_SPARSE > CX_SPARSE > EIGEN_SPARSE > NO_SPARSE
+      sparse_linear_algebra_library_type = NO_SPARSE;
 #if !defined(CERES_NO_SUITESPARSE)
       sparse_linear_algebra_library_type = SUITE_SPARSE;
 #else
@@ -140,7 +141,7 @@ class CERES_EXPORT Solver {
     // Returns true if the options struct has a valid
     // configuration. Returns false otherwise, and fills in *error
     // with a message describing the problem.
-    bool IsValid(string* error) const;
+    bool IsValid(std::string* error) const;
 
     // Minimizer options ----------------------------------------
 
@@ -676,13 +677,13 @@ class CERES_EXPORT Solver {
     // List of iterations at which the minimizer should dump the trust
     // region problem. Useful for testing and benchmarking. If empty
     // (default), no problems are dumped.
-    vector<int> trust_region_minimizer_iterations_to_dump;
+    std::vector<int> trust_region_minimizer_iterations_to_dump;
 
     // Directory to which the problems should be written to. Should be
     // non-empty if trust_region_minimizer_iterations_to_dump is
     // non-empty and trust_region_problem_dump_format_type is not
     // CONSOLE.
-    string trust_region_problem_dump_directory;
+    std::string trust_region_problem_dump_directory;
     DumpFormatType trust_region_problem_dump_format_type;
 
     // Finite differences options ----------------------------------------------
@@ -746,7 +747,7 @@ class CERES_EXPORT Solver {
     // executed, then set update_state_every_iteration to true.
     //
     // The solver does NOT take ownership of these pointers.
-    vector<IterationCallback*> callbacks;
+    std::vector<IterationCallback*> callbacks;
   };
 
   struct CERES_EXPORT Summary {
@@ -754,11 +755,11 @@ class CERES_EXPORT Solver {
 
     // A brief one line description of the state of the solver after
     // termination.
-    string BriefReport() const;
+    std::string BriefReport() const;
 
     // A full multiline description of the state of the solver after
     // termination.
-    string FullReport() const;
+    std::string FullReport() const;
 
     bool IsSolutionUsable() const;
 
@@ -768,7 +769,7 @@ class CERES_EXPORT Solver {
     TerminationType termination_type;
 
     // Reason why the solver terminated.
-    string message;
+    std::string message;
 
     // Cost of the problem (value of the objective function) before
     // the optimization.
@@ -784,7 +785,7 @@ class CERES_EXPORT Solver {
     double fixed_cost;
 
     // IterationSummary for each minimizer iteration in order.
-    vector<IterationSummary> iterations;
+    std::vector<IterationSummary> iterations;
 
     // Number of minimizer iterations in which the step was
     // accepted. Unless use_non_monotonic_steps is true this is also
@@ -832,6 +833,26 @@ class CERES_EXPORT Solver {
     // Time (in seconds) spent doing inner iterations.
     double inner_iteration_time_in_seconds;
 
+    // Cumulative timing information for line searches performed as part of the
+    // solve.  Note that in addition to the case when the Line Search minimizer
+    // is used, the Trust Region minimizer also uses a line search when
+    // solving a constrained problem.
+
+    // Time (in seconds) spent evaluating the univariate cost function as part
+    // of a line search.
+    double line_search_cost_evaluation_time_in_seconds;
+
+    // Time (in seconds) spent evaluating the gradient of the univariate cost
+    // function as part of a line search.
+    double line_search_gradient_evaluation_time_in_seconds;
+
+    // Time (in seconds) spent minimizing the interpolating polynomial
+    // to compute the next candidate step size as part of a line search.
+    double line_search_polynomial_minimization_time_in_seconds;
+
+    // Total time (in seconds) spent performing line searches.
+    double line_search_total_time_in_seconds;
+
     // Number of parameter blocks in the problem.
     int num_parameter_blocks;
 
@@ -871,6 +892,9 @@ class CERES_EXPORT Solver {
     //  Number of residuals in the reduced problem.
     int num_residuals_reduced;
 
+    // Is the reduced problem bounds constrained.
+    bool is_constrained;
+
     //  Number of threads specified by the user for Jacobian and
     //  residual evaluation.
     int num_threads_given;
@@ -902,7 +926,7 @@ class CERES_EXPORT Solver {
 
     // Size of the elimination groups given by the user as hints to
     // the linear solver.
-    vector<int> linear_solver_ordering_given;
+    std::vector<int> linear_solver_ordering_given;
 
     // Size of the parameter groups used by the solver when ordering
     // the columns of the Jacobian.  This maybe different from
@@ -910,7 +934,7 @@ class CERES_EXPORT Solver {
     // linear_solver_ordering_given blank and asked for an automatic
     // ordering, or if the problem contains some constant or inactive
     // parameter blocks.
-    vector<int> linear_solver_ordering_used;
+    std::vector<int> linear_solver_ordering_used;
 
     // True if the user asked for inner iterations to be used as part
     // of the optimization.
@@ -924,7 +948,7 @@ class CERES_EXPORT Solver {
 
     // Size of the parameter groups given by the user for performing
     // inner iterations.
-    vector<int> inner_iteration_ordering_given;
+    std::vector<int> inner_iteration_ordering_given;
 
     // Size of the parameter groups given used by the solver for
     // performing inner iterations. This maybe different from
@@ -932,7 +956,7 @@ class CERES_EXPORT Solver {
     // inner_iteration_ordering_given blank and asked for an automatic
     // ordering, or if the problem contains some constant or inactive
     // parameter blocks.
-    vector<int> inner_iteration_ordering_used;
+    std::vector<int> inner_iteration_ordering_used;
 
     // Type of the preconditioner requested by the user.
     PreconditionerType preconditioner_type_given;

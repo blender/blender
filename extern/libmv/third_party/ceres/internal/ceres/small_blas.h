@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2013 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -73,7 +73,7 @@ namespace internal {
   DCHECK((kColB == Eigen::Dynamic) || (kColB == num_col_b));            \
   const int NUM_ROW_A = (kRowA != Eigen::Dynamic ? kRowA : num_row_a);  \
   const int NUM_COL_A = (kColA != Eigen::Dynamic ? kColA : num_col_a);  \
-  const int NUM_ROW_B = (kColB != Eigen::Dynamic ? kRowB : num_row_b);  \
+  const int NUM_ROW_B = (kRowB != Eigen::Dynamic ? kRowB : num_row_b);  \
   const int NUM_COL_B = (kColB != Eigen::Dynamic ? kColB : num_col_b);
 
 #define CERES_GEMM_EIGEN_HEADER                                         \

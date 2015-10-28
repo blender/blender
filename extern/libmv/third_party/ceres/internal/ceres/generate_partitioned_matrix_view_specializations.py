@@ -1,6 +1,6 @@
 # Ceres Solver - A fast non-linear least squares minimizer
-# Copyright 2013 Google Inc. All rights reserved.
-# http://code.google.com/p/ceres-solver/
+# Copyright 2015 Google Inc. All rights reserved.
+# http://ceres-solver.org/
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -53,6 +53,7 @@ SPECIALIZATIONS = [(2, 2, 2),
                    (2, 2, "Eigen::Dynamic"),
                    (2, 3, 3),
                    (2, 3, 4),
+                   (2, 3, 6),
                    (2, 3, 9),
                    (2, 3, "Eigen::Dynamic"),
                    (2, 4, 3),
@@ -67,8 +68,8 @@ SPECIALIZATIONS = [(2, 2, 2),
                    (4, 4, "Eigen::Dynamic"),
                    ("Eigen::Dynamic", "Eigen::Dynamic", "Eigen::Dynamic")]
 HEADER = """// Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2013 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:

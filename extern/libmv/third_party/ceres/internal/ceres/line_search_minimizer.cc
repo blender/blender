@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -69,7 +69,7 @@ namespace {
 bool Evaluate(Evaluator* evaluator,
               const Vector& x,
               LineSearchMinimizer::State* state,
-              string* message) {
+              std::string* message) {
   if (!evaluator->Evaluate(x.data(),
                            &(state->cost),
                            NULL,
@@ -290,9 +290,9 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
     // iteration.
     const double initial_step_size =
         (iteration_summary.iteration == 1 || !line_search_status)
-        ? min(1.0, 1.0 / current_state.gradient_max_norm)
-        : min(1.0, 2.0 * (current_state.cost - previous_state.cost) /
-              current_state.directional_derivative);
+        ? std::min(1.0, 1.0 / current_state.gradient_max_norm)
+        : std::min(1.0, 2.0 * (current_state.cost - previous_state.cost) /
+                   current_state.directional_derivative);
     // By definition, we should only ever go forwards along the specified search
     // direction in a line search, most likely cause for this being violated
     // would be a numerical failure in the line search direction calculation.
@@ -332,6 +332,8 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
     iteration_summary.step_solver_time_in_seconds =
         WallTimeInSeconds() - iteration_start_time;
 
+    const double x_norm = x.norm();
+
     if (!evaluator->Plus(x.data(), delta.data(), x_plus_delta.data())) {
       summary->termination_type = FAILURE;
       summary->message =
@@ -361,7 +363,6 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
     iteration_summary.step_norm = delta.norm();
     iteration_summary.step_is_valid = true;
     iteration_summary.step_is_successful = true;
-    iteration_summary.step_norm = delta.norm();
     iteration_summary.step_size =  current_state.step_size;
     iteration_summary.line_search_function_evaluations =
         line_search_summary.num_function_evaluations;
@@ -375,7 +376,29 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
         WallTimeInSeconds() - start_time
         + summary->preprocessor_time_in_seconds;
 
+    summary->line_search_cost_evaluation_time_in_seconds +=
+        line_search_summary.cost_evaluation_time_in_seconds;
+    summary->line_search_gradient_evaluation_time_in_seconds +=
+        line_search_summary.gradient_evaluation_time_in_seconds;
+    summary->line_search_polynomial_minimization_time_in_seconds +=
+        line_search_summary.polynomial_minimization_time_in_seconds;
+    summary->line_search_total_time_in_seconds +=
+        line_search_summary.total_time_in_seconds;
     ++summary->num_successful_steps;
+
+    const double step_size_tolerance = options.parameter_tolerance *
+                                       (x_norm + options.parameter_tolerance);
+    if (iteration_summary.step_norm <= step_size_tolerance) {
+      summary->message =
+          StringPrintf("Parameter tolerance reached. "
+                       "Relative step_norm: %e <= %e.",
+                       (iteration_summary.step_norm /
+                        (x_norm + options.parameter_tolerance)),
+                       options.parameter_tolerance);
+      summary->termination_type = CONVERGENCE;
+      VLOG_IF(1, is_not_silent) << "Terminating: " << summary->message;
+      return;
+    }
 
     if (iteration_summary.gradient_max_norm <= options.gradient_tolerance) {
       summary->message = StringPrintf("Gradient tolerance reached. "
@@ -389,7 +412,7 @@ void LineSearchMinimizer::Minimize(const Minimizer::Options& options,
 
     const double absolute_function_tolerance =
         options.function_tolerance * previous_state.cost;
-    if (fabs(iteration_summary.cost_change) < absolute_function_tolerance) {
+    if (fabs(iteration_summary.cost_change) <= absolute_function_tolerance) {
       summary->message =
           StringPrintf("Function tolerance reached. "
                        "|cost_change|/cost: %e <= %e",

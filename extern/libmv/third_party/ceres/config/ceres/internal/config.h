@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2014 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -30,13 +30,16 @@
 
 // Default (empty) configuration options for Ceres.
 //
-// IMPORTANT: Most users of Ceres will not use this file, when compiling Ceres
-//            with CMake, CMake will configure a new config.h with the currently
-//            selected Ceres compile options and copy it into the source
-//            directory before compilation.  However, for some users of Ceres
-//            who compile without CMake, this file ensures that Ceres will
-//            compile, with the user either specifying manually the Ceres
-//            compile options, or passing them directly through the compiler.
+// IMPORTANT: Most users of Ceres will not use this file, when
+//            compiling Ceres with CMake, CMake will configure a new
+//            config.h with the currently selected Ceres compile
+//            options in <BUILD_DIR>/config, which will be added to
+//            the include path for compilation, and installed with the
+//            public Ceres headers.  However, for some users of Ceres
+//            who compile without CMake (Android), this file ensures
+//            that Ceres will compile, with the user either specifying
+//            manually the Ceres compile options, or passing them
+//            directly through the compiler.
 
 #ifndef CERES_PUBLIC_INTERNAL_CONFIG_H_
 #define CERES_PUBLIC_INTERNAL_CONFIG_H_

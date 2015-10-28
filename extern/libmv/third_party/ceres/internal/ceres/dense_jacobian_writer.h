@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -70,10 +70,7 @@ class DenseJacobianWriter {
              int residual_offset,
              double **jacobians,
              SparseMatrix* jacobian) {
-    DenseSparseMatrix* dense_jacobian;
-    if (jacobian != NULL) {
-      dense_jacobian = down_cast<DenseSparseMatrix*>(jacobian);
-    }
+    DenseSparseMatrix* dense_jacobian = down_cast<DenseSparseMatrix*>(jacobian);
     const ResidualBlock* residual_block =
         program_->residual_blocks()[residual_id];
     int num_parameter_blocks = residual_block->NumParameterBlocks();

@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -41,6 +41,8 @@
 namespace ceres {
 namespace internal {
 
+using std::string;
+
 // It is a near impossibility that user code generates this exact
 // value in normal operation, thus we will use it to fill arrays
 // before passing them to user code. If on return an element of the
@@ -71,7 +73,7 @@ int FindInvalidValue(const int size, const double* x) {
   }
 
   return size;
-};
+}
 
 void InvalidateArray(const int size, double* x) {
   if (x != NULL) {

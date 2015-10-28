@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -36,6 +36,8 @@
 
 namespace ceres {
 namespace internal {
+
+using std::list;
 
 // The (L)BFGS algorithm explicitly requires that the secant equation:
 //
@@ -126,7 +128,7 @@ void LowRankInverseHessian::RightMultiply(const double* x_ptr,
   const int num_corrections = indices_.size();
   Vector alpha(num_corrections);
 
-  for (std::list<int>::const_reverse_iterator it = indices_.rbegin();
+  for (list<int>::const_reverse_iterator it = indices_.rbegin();
        it != indices_.rend();
        ++it) {
     const double alpha_i = delta_x_history_.col(*it).dot(search_direction) /
@@ -173,7 +175,7 @@ void LowRankInverseHessian::RightMultiply(const double* x_ptr,
             << "approximation.";
   }
 
-  for (std::list<int>::const_iterator it = indices_.begin();
+  for (list<int>::const_iterator it = indices_.begin();
        it != indices_.end();
        ++it) {
     const double beta = delta_gradient_history_.col(*it).dot(search_direction) /

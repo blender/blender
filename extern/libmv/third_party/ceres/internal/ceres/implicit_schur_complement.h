@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -97,7 +97,7 @@ class ImplicitSchurComplement : public LinearOperator {
   //
   // TODO(sameeragarwal): Get rid of the two bools below and replace
   // them with enums.
-  ImplicitSchurComplement(const LinearSolver::Options& options);
+  explicit ImplicitSchurComplement(const LinearSolver::Options& options);
   virtual ~ImplicitSchurComplement();
 
   // Initialize the Schur complement for a linear least squares

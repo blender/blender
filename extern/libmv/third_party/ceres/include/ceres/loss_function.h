@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -274,10 +274,28 @@ class CERES_EXPORT TolerantLoss : public LossFunction {
   const double a_, b_, c_;
 };
 
+// This is the Tukey biweight loss function which aggressively
+// attempts to suppress large errors.
+//
+// The term is computed as:
+//
+//   rho(s) = a^2 / 6 * (1 - (1 - s / a^2)^3 )   for s <= a^2,
+//   rho(s) = a^2 / 6                            for s >  a^2.
+//
+// At s = 0: rho = [0, 0.5, -1 / a^2]
+class CERES_EXPORT TukeyLoss : public ceres::LossFunction {
+ public:
+  explicit TukeyLoss(double a) : a_squared_(a * a) { }
+  virtual void Evaluate(double, double*) const;
+
+ private:
+  const double a_squared_;
+};
+
 // Composition of two loss functions.  The error is the result of first
 // evaluating g followed by f to yield the composition f(g(s)).
 // The loss functions must not be NULL.
-class ComposedLoss : public LossFunction {
+class CERES_EXPORT ComposedLoss : public LossFunction {
  public:
   explicit ComposedLoss(const LossFunction* f, Ownership ownership_f,
                         const LossFunction* g, Ownership ownership_g);
@@ -340,6 +358,9 @@ class CERES_EXPORT ScaledLoss : public LossFunction {
 // whose scale can be mutated after an optimization problem has been
 // constructed.
 //
+// Since we treat the a NULL Loss function as the Identity loss
+// function, rho = NULL is a valid input.
+//
 // Example usage
 //
 //  Problem problem;
@@ -376,8 +397,14 @@ class CERES_EXPORT LossFunctionWrapper : public LossFunction {
   }
 
   virtual void Evaluate(double sq_norm, double out[3]) const {
-    CHECK_NOTNULL(rho_.get());
-    rho_->Evaluate(sq_norm, out);
+    if (rho_.get() == NULL) {
+      out[0] = sq_norm;
+      out[1] = 1.0;
+      out[2] = 0.0;
+    }
+    else {
+      rho_->Evaluate(sq_norm, out);
+    }
   }
 
   void Reset(LossFunction* rho, Ownership ownership) {
@@ -396,6 +423,6 @@ class CERES_EXPORT LossFunctionWrapper : public LossFunction {
 
 }  // namespace ceres
 
-#include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_PUBLIC_LOSS_FUNCTION_H_

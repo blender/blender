@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -63,7 +63,8 @@ class OrderedGroups {
       return false;
     }
 
-    typename map<T, int>::const_iterator it = element_to_group_.find(element);
+    typename std::map<T, int>::const_iterator it =
+        element_to_group_.find(element);
     if (it != element_to_group_.end()) {
       if (it->second == group) {
         // Element is already in the right group, nothing to do.
@@ -107,7 +108,7 @@ class OrderedGroups {
 
   // Bulk remove elements. The return value indicates the number of
   // elements successfully removed.
-  int Remove(const vector<T>& elements) {
+  int Remove(const std::vector<T>& elements) {
     if (NumElements() == 0 || elements.size() == 0) {
       return 0;
     }
@@ -121,14 +122,18 @@ class OrderedGroups {
 
   // Reverse the order of the groups in place.
   void Reverse() {
-    typename map<int, set<T> >::reverse_iterator it =
+    if (NumGroups() == 0) {
+      return;
+    }
+
+    typename std::map<int, std::set<T> >::reverse_iterator it =
         group_to_elements_.rbegin();
-    map<int, set<T> > new_group_to_elements;
+    std::map<int, std::set<T> > new_group_to_elements;
     new_group_to_elements[it->first] = it->second;
 
     int new_group_id = it->first + 1;
     for (++it; it != group_to_elements_.rend(); ++it) {
-      for (typename set<T>::const_iterator element_it = it->second.begin();
+      for (typename std::set<T>::const_iterator element_it = it->second.begin();
            element_it != it->second.end();
            ++element_it) {
         element_to_group_[*element_it] = new_group_id;
@@ -143,7 +148,8 @@ class OrderedGroups {
   // Return the group id for the element. If the element is not a
   // member of any group, return -1.
   int GroupId(const T element) const {
-    typename map<T, int>::const_iterator it = element_to_group_.find(element);
+    typename std::map<T, int>::const_iterator it =
+        element_to_group_.find(element);
     if (it == element_to_group_.end()) {
       return -1;
     }
@@ -151,14 +157,15 @@ class OrderedGroups {
   }
 
   bool IsMember(const T element) const {
-    typename map<T, int>::const_iterator it = element_to_group_.find(element);
+    typename std::map<T, int>::const_iterator it =
+        element_to_group_.find(element);
     return (it != element_to_group_.end());
   }
 
   // This function always succeeds, i.e., implicitly there exists a
   // group for every integer.
   int GroupSize(const int group) const {
-    typename map<int, set<T> >::const_iterator it =
+    typename std::map<int, std::set<T> >::const_iterator it =
         group_to_elements_.find(group);
     return (it ==  group_to_elements_.end()) ? 0 : it->second.size();
   }
@@ -180,17 +187,17 @@ class OrderedGroups {
     return group_to_elements_.begin()->first;
   }
 
-  const map<int, set<T> >& group_to_elements() const {
+  const std::map<int, std::set<T> >& group_to_elements() const {
     return group_to_elements_;
   }
 
-  const map<T, int>& element_to_group() const {
+  const std::map<T, int>& element_to_group() const {
     return element_to_group_;
   }
 
  private:
-  map<int, set<T> > group_to_elements_;
-  map<T, int> element_to_group_;
+  std::map<int, std::set<T> > group_to_elements_;
+  std::map<T, int> element_to_group_;
 };
 
 // Typedef for the most commonly used version of OrderedGroups.

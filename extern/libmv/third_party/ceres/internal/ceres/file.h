@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -39,12 +39,13 @@
 namespace ceres {
 namespace internal {
 
-void WriteStringToFileOrDie(const string &data, const string &filename);
-void ReadFileToStringOrDie(const string &filename, string *data);
+void WriteStringToFileOrDie(const std::string &data,
+                            const std::string &filename);
+void ReadFileToStringOrDie(const std::string &filename, std::string *data);
 
 // Join two path components, adding a slash if necessary.  If basename is an
 // absolute path then JoinPath ignores dirname and simply returns basename.
-string JoinPath(const string& dirname, const string& basename);
+std::string JoinPath(const std::string& dirname, const std::string& basename);
 
 }  // namespace internal
 }  // namespace ceres

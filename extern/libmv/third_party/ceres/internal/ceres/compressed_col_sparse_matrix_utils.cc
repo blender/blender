@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2013 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -38,12 +38,15 @@
 namespace ceres {
 namespace internal {
 
-void CompressedColumnScalarMatrixToBlockMatrix(const int* scalar_rows,
-                                               const int* scalar_cols,
-                                               const vector<int>& row_blocks,
-                                               const vector<int>& col_blocks,
-                                               vector<int>* block_rows,
-                                               vector<int>* block_cols) {
+using std::vector;
+
+void CompressedColumnScalarMatrixToBlockMatrix(
+    const int* scalar_rows,
+    const int* scalar_cols,
+    const vector<int>& row_blocks,
+    const vector<int>& col_blocks,
+    vector<int>* block_rows,
+    vector<int>* block_cols) {
   CHECK_NOTNULL(block_rows)->clear();
   CHECK_NOTNULL(block_cols)->clear();
   const int num_row_blocks = row_blocks.size();
@@ -66,9 +69,10 @@ void CompressedColumnScalarMatrixToBlockMatrix(const int* scalar_rows,
   for (int col_block = 0; col_block < num_col_blocks; ++col_block) {
     int column_size = 0;
     for (int idx = scalar_cols[c]; idx < scalar_cols[c + 1]; ++idx) {
-      vector<int>::const_iterator it = lower_bound(row_block_starts.begin(),
-                                                   row_block_starts.end(),
-                                                   scalar_rows[idx]);
+      vector<int>::const_iterator it =
+          std::lower_bound(row_block_starts.begin(),
+                           row_block_starts.end(),
+                           scalar_rows[idx]);
       // Since we are using lower_bound, it will return the row id
       // where the row block starts. For everything but the first row
       // of the block, where these values will be the same, we can

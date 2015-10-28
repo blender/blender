@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2014 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -57,10 +57,16 @@
 
 namespace ceres {
 namespace internal {
+
+using std::make_pair;
+using std::pair;
+using std::set;
+using std::vector;
+
 namespace {
 
 class BlockRandomAccessSparseMatrixAdapter : public LinearOperator {
-  public:
+ public:
   explicit BlockRandomAccessSparseMatrixAdapter(
       const BlockRandomAccessSparseMatrix& m)
       : m_(m) {
@@ -86,7 +92,7 @@ class BlockRandomAccessSparseMatrixAdapter : public LinearOperator {
 };
 
 class BlockRandomAccessDiagonalMatrixAdapter : public LinearOperator {
-  public:
+ public:
   explicit BlockRandomAccessDiagonalMatrixAdapter(
       const BlockRandomAccessDiagonalMatrix& m)
       : m_(m) {
@@ -130,7 +136,7 @@ LinearSolver::Summary SchurComplementSolver::SolveImpl(
     eliminator_.reset(CHECK_NOTNULL(SchurEliminatorBase::Create(options_)));
     eliminator_->Init(options_.elimination_groups[0], A->block_structure());
   };
-  fill(x, x + A->num_cols(), 0.0);
+  std::fill(x, x + A->num_cols(), 0.0);
   event_logger.AddEvent("Setup");
 
   eliminator_->Eliminate(A, b, per_solve_options.D, lhs_.get(), rhs_.get());

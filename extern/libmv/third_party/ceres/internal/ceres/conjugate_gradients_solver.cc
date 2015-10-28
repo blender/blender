@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -114,7 +114,6 @@ LinearSolver::Summary ConjugateGradientsSolver::Solve(
   double Q0 = -1.0 * xref.dot(bref + r);
 
   for (summary.num_iterations = 1;; ++summary.num_iterations) {
-
     // Apply preconditioner
     if (per_solve_options.preconditioner != NULL) {
       z.setZero();
@@ -129,7 +128,7 @@ LinearSolver::Summary ConjugateGradientsSolver::Solve(
       summary.termination_type = LINEAR_SOLVER_FAILURE;
       summary.message = StringPrintf("Numerical failure. rho = r'z = %e.", rho);
       break;
-    };
+    }
 
     if (summary.num_iterations == 1) {
       p = z;
@@ -138,7 +137,8 @@ LinearSolver::Summary ConjugateGradientsSolver::Solve(
       if (IsZeroOrInfinity(beta)) {
         summary.termination_type = LINEAR_SOLVER_FAILURE;
         summary.message = StringPrintf(
-            "Numerical failure. beta = rho_n / rho_{n-1} = %e.", beta);
+            "Numerical failure. beta = rho_n / rho_{n-1} = %e, "
+            "rho_n = %e, rho_{n-1} = %e", beta, rho, last_rho);
         break;
       }
       p = z + beta * p;
@@ -149,8 +149,11 @@ LinearSolver::Summary ConjugateGradientsSolver::Solve(
     A->RightMultiply(p.data(), q.data());
     const double pq = p.dot(q);
     if ((pq <= 0) || IsInfinite(pq))  {
-      summary.termination_type = LINEAR_SOLVER_FAILURE;
-      summary.message = StringPrintf("Numerical failure. p'q = %e.", pq);
+      summary.termination_type = LINEAR_SOLVER_NO_CONVERGENCE;
+      summary.message = StringPrintf(
+          "Matrix is indefinite, no more progress can be made. "
+          "p'q = %e. |p| = %e, |q| = %e",
+          pq, p.norm(), q.norm());
       break;
     }
 
@@ -158,7 +161,8 @@ LinearSolver::Summary ConjugateGradientsSolver::Solve(
     if (IsInfinite(alpha)) {
       summary.termination_type = LINEAR_SOLVER_FAILURE;
       summary.message =
-          StringPrintf("Numerical failure. alpha = rho / pq = %e", alpha);
+          StringPrintf("Numerical failure. alpha = rho / pq = %e, "
+                       "rho = %e, pq = %e.", alpha, rho, pq);
       break;
     }
 
@@ -210,9 +214,11 @@ LinearSolver::Summary ConjugateGradientsSolver::Solve(
         summary.num_iterations >= options_.min_num_iterations) {
       summary.termination_type = LINEAR_SOLVER_SUCCESS;
       summary.message =
-          StringPrintf("Convergence: zeta = %e < %e",
+          StringPrintf("Iteration: %d Convergence: zeta = %e < %e. |r| = %e",
+                       summary.num_iterations,
                        zeta,
-                       per_solve_options.q_tolerance);
+                       per_solve_options.q_tolerance,
+                       r.norm());
       break;
     }
     Q0 = Q1;
@@ -223,7 +229,10 @@ LinearSolver::Summary ConjugateGradientsSolver::Solve(
         summary.num_iterations >= options_.min_num_iterations) {
       summary.termination_type = LINEAR_SOLVER_SUCCESS;
       summary.message =
-          StringPrintf("Convergence. |r| = %e <= %e.", norm_r, tol_r);
+          StringPrintf("Iteration: %d Convergence. |r| = %e <= %e.",
+                       summary.num_iterations,
+                       norm_r,
+                       tol_r);
       break;
     }
 
@@ -233,7 +242,7 @@ LinearSolver::Summary ConjugateGradientsSolver::Solve(
   }
 
   return summary;
-};
+}
 
 }  // namespace internal
 }  // namespace ceres

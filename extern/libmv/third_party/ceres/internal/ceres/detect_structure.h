@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -51,6 +51,10 @@ namespace internal {
 // For more details about e_blocks and f_blocks, see
 // schur_eliminator.h. This information is used to initialized an
 // appropriate template specialization of SchurEliminator.
+//
+// Note: The structure of rows without any e-blocks has no effect on
+// the values returned by this function. It is entirely possible that
+// the f_block_size and row_blocks_size is not constant in such rows.
 void DetectStructure(const CompressedRowBlockStructure& bs,
                      const int num_eliminate_blocks,
                      int* row_block_size,

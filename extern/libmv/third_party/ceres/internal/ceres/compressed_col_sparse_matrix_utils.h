@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2013 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -47,19 +47,21 @@ namespace internal {
 // and column block j, then it is expected that A contains at least
 // one non-zero entry corresponding to the top left entry of c_ij,
 // as that entry is used to detect the presence of a non-zero c_ij.
-void CompressedColumnScalarMatrixToBlockMatrix(const int* scalar_rows,
-                                               const int* scalar_cols,
-                                               const vector<int>& row_blocks,
-                                               const vector<int>& col_blocks,
-                                               vector<int>* block_rows,
-                                               vector<int>* block_cols);
+void CompressedColumnScalarMatrixToBlockMatrix(
+    const int* scalar_rows,
+    const int* scalar_cols,
+    const std::vector<int>& row_blocks,
+    const std::vector<int>& col_blocks,
+    std::vector<int>* block_rows,
+    std::vector<int>* block_cols);
 
 // Given a set of blocks and a permutation of these blocks, compute
 // the corresponding "scalar" ordering, where the scalar ordering of
 // size sum(blocks).
-void BlockOrderingToScalarOrdering(const vector<int>& blocks,
-                                   const vector<int>& block_ordering,
-                                   vector<int>* scalar_ordering);
+void BlockOrderingToScalarOrdering(
+    const std::vector<int>& blocks,
+    const std::vector<int>& block_ordering,
+    std::vector<int>* scalar_ordering);
 
 // Solve the linear system
 //
@@ -120,7 +122,7 @@ void SolveRTRWithSparseRHS(IntegerType num_cols,
                            const double* values,
                            const int rhs_nonzero_index,
                            double* solution) {
-  fill(solution, solution + num_cols, 0.0);
+  std::fill(solution, solution + num_cols, 0.0);
   solution[rhs_nonzero_index] = 1.0 / values[cols[rhs_nonzero_index + 1] - 1];
 
   for (IntegerType c = rhs_nonzero_index + 1; c < num_cols; ++c) {

@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2014 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -30,6 +30,9 @@
 
 #ifndef CERES_INTERNAL_PREPROCESSOR_H_
 #define CERES_INTERNAL_PREPROCESSOR_H_
+
+#include <string>
+#include <vector>
 
 #include "ceres/coordinate_descent_minimizer.h"
 #include "ceres/evaluator.h"
@@ -65,7 +68,7 @@ struct PreprocessedProblem;
 // The output of the Preprocessor is stored in a PreprocessedProblem
 // object.
 class Preprocessor {
-public:
+ public:
   // Factory.
   static Preprocessor* Create(MinimizerType minimizer_type);
   virtual ~Preprocessor();
@@ -81,7 +84,7 @@ struct PreprocessedProblem {
       : fixed_cost(0.0) {
   }
 
-  string error;
+  std::string error;
   Solver::Options options;
   LinearSolver::Options linear_solver_options;
   Evaluator::Options evaluator_options;
@@ -97,7 +100,7 @@ struct PreprocessedProblem {
   shared_ptr<Evaluator> evaluator;
   shared_ptr<CoordinateDescentMinimizer> inner_iteration_minimizer;
 
-  vector<double*> removed_parameter_blocks;
+  std::vector<double*> removed_parameter_blocks;
   Vector reduced_parameters;
   double fixed_cost;
 };

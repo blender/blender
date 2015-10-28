@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -151,15 +151,16 @@ class VisibilityBasedPreconditioner : public BlockSparseMatrixPreconditioner {
   LinearSolverTerminationType Factorize();
   void ScaleOffDiagonalCells();
 
-  void ClusterCameras(const vector< set<int> >& visibility);
+  void ClusterCameras(const std::vector<std::set<int> >& visibility);
   void FlattenMembershipMap(const HashMap<int, int>& membership_map,
-                            vector<int>* membership_vector) const;
-  void ComputeClusterVisibility(const vector<set<int> >& visibility,
-                                vector<set<int> >* cluster_visibility) const;
+                            std::vector<int>* membership_vector) const;
+  void ComputeClusterVisibility(
+      const std::vector<std::set<int> >& visibility,
+      std::vector<std::set<int> >* cluster_visibility) const;
   WeightedGraph<int>* CreateClusterGraph(
-      const vector<set<int> >& visibility) const;
+      const std::vector<std::set<int> >& visibility) const;
   void ForestToClusterPairs(const WeightedGraph<int>& forest,
-                            HashSet<pair<int, int> >* cluster_pairs) const;
+                            HashSet<std::pair<int, int> >* cluster_pairs) const;
   void ComputeBlockPairsInPreconditioner(const CompressedRowBlockStructure& bs);
   bool IsBlockPairInPreconditioner(int block1, int block2) const;
   bool IsBlockPairOffDiagonal(int block1, int block2) const;
@@ -171,19 +172,19 @@ class VisibilityBasedPreconditioner : public BlockSparseMatrixPreconditioner {
   int num_clusters_;
 
   // Sizes of the blocks in the schur complement.
-  vector<int> block_size_;
+  std::vector<int> block_size_;
 
   // Mapping from cameras to clusters.
-  vector<int> cluster_membership_;
+  std::vector<int> cluster_membership_;
 
   // Non-zero camera pairs from the schur complement matrix that are
   // present in the preconditioner, sorted by row (first element of
   // each pair), then column (second).
-  set<pair<int, int> > block_pairs_;
+  std::set<std::pair<int, int> > block_pairs_;
 
   // Set of cluster pairs (including self pairs (i,i)) in the
   // preconditioner.
-  HashSet<pair<int, int> > cluster_pairs_;
+  HashSet<std::pair<int, int> > cluster_pairs_;
   scoped_ptr<SchurEliminatorBase> eliminator_;
 
   // Preconditioner matrix.

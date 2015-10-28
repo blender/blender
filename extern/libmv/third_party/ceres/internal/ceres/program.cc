@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -49,6 +49,11 @@
 
 namespace ceres {
 namespace internal {
+
+using std::max;
+using std::set;
+using std::string;
+using std::vector;
 
 Program::Program() {}
 
@@ -261,9 +266,10 @@ bool Program::IsFeasible(string* message) const {
   return true;
 }
 
-Program* Program::CreateReducedProgram(vector<double*>* removed_parameter_blocks,
-                                       double* fixed_cost,
-                                       string* error) const {
+Program* Program::CreateReducedProgram(
+    vector<double*>* removed_parameter_blocks,
+    double* fixed_cost,
+    string* error) const {
   CHECK_NOTNULL(removed_parameter_blocks);
   CHECK_NOTNULL(fixed_cost);
   CHECK_NOTNULL(error);
@@ -342,7 +348,8 @@ bool Program::RemoveFixedBlocks(vector<double*>* removed_parameter_blocks,
   for (int i = 0; i < parameter_blocks_.size(); ++i) {
     ParameterBlock* parameter_block = parameter_blocks_[i];
     if (parameter_block->index() == -1) {
-      removed_parameter_blocks->push_back(parameter_block->mutable_user_state());
+      removed_parameter_blocks->push_back(
+          parameter_block->mutable_user_state());
     } else {
       parameter_blocks_[num_active_parameter_blocks++] = parameter_block;
     }
@@ -360,7 +367,8 @@ bool Program::RemoveFixedBlocks(vector<double*>* removed_parameter_blocks,
   return true;
 }
 
-bool Program::IsParameterBlockSetIndependent(const set<double*>& independent_set) const {
+bool Program::IsParameterBlockSetIndependent(
+    const set<double*>& independent_set) const {
   // Loop over each residual block and ensure that no two parameter
   // blocks in the same residual block are part of
   // parameter_block_ptrs as that would violate the assumption that it
@@ -495,8 +503,7 @@ int Program::MaxParametersPerResidualBlock() const {
 int Program::MaxResidualsPerResidualBlock() const {
   int max_residuals = 0;
   for (int i = 0; i < residual_blocks_.size(); ++i) {
-    max_residuals = max(max_residuals,
-                        residual_blocks_[i]->NumResiduals());
+    max_residuals = max(max_residuals, residual_blocks_[i]->NumResiduals());
   }
   return max_residuals;
 }

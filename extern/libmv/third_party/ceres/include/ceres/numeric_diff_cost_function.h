@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -132,7 +132,7 @@
 //
 // ALTERNATE INTERFACE
 //
-// For a variety of reason, including compatibility with legacy code,
+// For a variety of reasons, including compatibility with legacy code,
 // NumericDiffCostFunction can also take CostFunction objects as
 // input. The following describes how.
 //
@@ -165,6 +165,7 @@
 #include "ceres/cost_function.h"
 #include "ceres/internal/numeric_diff.h"
 #include "ceres/internal/scoped_ptr.h"
+#include "ceres/numeric_diff_options.h"
 #include "ceres/sized_cost_function.h"
 #include "ceres/types.h"
 #include "glog/logging.h"
@@ -172,7 +173,7 @@
 namespace ceres {
 
 template <typename CostFunctor,
-          NumericDiffMethod method = CENTRAL,
+          NumericDiffMethodType method = CENTRAL,
           int kNumResiduals = 0,  // Number of residuals, or ceres::DYNAMIC
           int N0 = 0,   // Number of parameters in block 0.
           int N1 = 0,   // Number of parameters in block 1.
@@ -189,19 +190,43 @@ class NumericDiffCostFunction
                                N0, N1, N2, N3, N4,
                                N5, N6, N7, N8, N9> {
  public:
-  NumericDiffCostFunction(CostFunctor* functor,
-                          Ownership ownership = TAKE_OWNERSHIP,
-                          int num_residuals = kNumResiduals,
-                          const double relative_step_size = 1e-6)
-      :functor_(functor),
-       ownership_(ownership),
-       relative_step_size_(relative_step_size) {
+  NumericDiffCostFunction(
+      CostFunctor* functor,
+      Ownership ownership = TAKE_OWNERSHIP,
+      int num_residuals = kNumResiduals,
+      const NumericDiffOptions& options = NumericDiffOptions())
+      : functor_(functor),
+        ownership_(ownership),
+        options_(options) {
     if (kNumResiduals == DYNAMIC) {
       SizedCostFunction<kNumResiduals,
                         N0, N1, N2, N3, N4,
                         N5, N6, N7, N8, N9>
           ::set_num_residuals(num_residuals);
     }
+  }
+
+  // Deprecated. New users should avoid using this constructor. Instead, use the
+  // constructor with NumericDiffOptions.
+  NumericDiffCostFunction(CostFunctor* functor,
+                          Ownership ownership,
+                          int num_residuals,
+                          const double relative_step_size)
+      :functor_(functor),
+       ownership_(ownership),
+       options_() {
+    LOG(WARNING) << "This constructor is deprecated and will be removed in "
+                    "a future version. Please use the NumericDiffOptions "
+                    "constructor instead.";
+
+    if (kNumResiduals == DYNAMIC) {
+      SizedCostFunction<kNumResiduals,
+                        N0, N1, N2, N3, N4,
+                        N5, N6, N7, N8, N9>
+          ::set_num_residuals(num_residuals);
+    }
+
+    options_.relative_step_size = relative_step_size;
   }
 
   ~NumericDiffCostFunction() {
@@ -250,25 +275,25 @@ class NumericDiffCostFunction
     if (N8) parameters_reference_copy[8] = parameters_reference_copy[7] + N7;
     if (N9) parameters_reference_copy[9] = parameters_reference_copy[8] + N8;
 
-#define COPY_PARAMETER_BLOCK(block)                                     \
+#define CERES_COPY_PARAMETER_BLOCK(block)                               \
   if (N ## block) memcpy(parameters_reference_copy[block],              \
                          parameters[block],                             \
                          sizeof(double) * N ## block);  // NOLINT
 
-    COPY_PARAMETER_BLOCK(0);
-    COPY_PARAMETER_BLOCK(1);
-    COPY_PARAMETER_BLOCK(2);
-    COPY_PARAMETER_BLOCK(3);
-    COPY_PARAMETER_BLOCK(4);
-    COPY_PARAMETER_BLOCK(5);
-    COPY_PARAMETER_BLOCK(6);
-    COPY_PARAMETER_BLOCK(7);
-    COPY_PARAMETER_BLOCK(8);
-    COPY_PARAMETER_BLOCK(9);
+    CERES_COPY_PARAMETER_BLOCK(0);
+    CERES_COPY_PARAMETER_BLOCK(1);
+    CERES_COPY_PARAMETER_BLOCK(2);
+    CERES_COPY_PARAMETER_BLOCK(3);
+    CERES_COPY_PARAMETER_BLOCK(4);
+    CERES_COPY_PARAMETER_BLOCK(5);
+    CERES_COPY_PARAMETER_BLOCK(6);
+    CERES_COPY_PARAMETER_BLOCK(7);
+    CERES_COPY_PARAMETER_BLOCK(8);
+    CERES_COPY_PARAMETER_BLOCK(9);
 
-#undef COPY_PARAMETER_BLOCK
+#undef CERES_COPY_PARAMETER_BLOCK
 
-#define EVALUATE_JACOBIAN_FOR_BLOCK(block)                              \
+#define CERES_EVALUATE_JACOBIAN_FOR_BLOCK(block)                        \
     if (N ## block && jacobians[block] != NULL) {                       \
       if (!NumericDiff<CostFunctor,                                     \
                        method,                                          \
@@ -278,28 +303,30 @@ class NumericDiffCostFunction
                        N ## block >::EvaluateJacobianForParameterBlock( \
                            functor_.get(),                              \
                            residuals,                                   \
-                           relative_step_size_,                         \
+                           options_,                                    \
                           SizedCostFunction<kNumResiduals,              \
                            N0, N1, N2, N3, N4,                          \
                            N5, N6, N7, N8, N9>::num_residuals(),        \
+                           block,                                       \
+                           N ## block,                                  \
                            parameters_reference_copy.get(),             \
                            jacobians[block])) {                         \
         return false;                                                   \
       }                                                                 \
     }
 
-    EVALUATE_JACOBIAN_FOR_BLOCK(0);
-    EVALUATE_JACOBIAN_FOR_BLOCK(1);
-    EVALUATE_JACOBIAN_FOR_BLOCK(2);
-    EVALUATE_JACOBIAN_FOR_BLOCK(3);
-    EVALUATE_JACOBIAN_FOR_BLOCK(4);
-    EVALUATE_JACOBIAN_FOR_BLOCK(5);
-    EVALUATE_JACOBIAN_FOR_BLOCK(6);
-    EVALUATE_JACOBIAN_FOR_BLOCK(7);
-    EVALUATE_JACOBIAN_FOR_BLOCK(8);
-    EVALUATE_JACOBIAN_FOR_BLOCK(9);
+    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(0);
+    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(1);
+    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(2);
+    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(3);
+    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(4);
+    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(5);
+    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(6);
+    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(7);
+    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(8);
+    CERES_EVALUATE_JACOBIAN_FOR_BLOCK(9);
 
-#undef EVALUATE_JACOBIAN_FOR_BLOCK
+#undef CERES_EVALUATE_JACOBIAN_FOR_BLOCK
 
     return true;
   }
@@ -307,7 +334,7 @@ class NumericDiffCostFunction
  private:
   internal::scoped_ptr<CostFunctor> functor_;
   Ownership ownership_;
-  const double relative_step_size_;
+  NumericDiffOptions options_;
 };
 
 }  // namespace ceres

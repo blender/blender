@@ -80,7 +80,6 @@ set(SRC
 	internal/ceres/gradient_problem.cc
 	internal/ceres/gradient_problem_solver.cc
 	internal/ceres/implicit_schur_complement.cc
-	internal/ceres/incomplete_lq_factorization.cc
 	internal/ceres/iterative_schur_complement_solver.cc
 	internal/ceres/lapack.cc
 	internal/ceres/levenberg_marquardt_strategy.cc
@@ -209,7 +208,6 @@ set(SRC
 	internal/ceres/graph_algorithms.h
 	internal/ceres/graph.h
 	internal/ceres/implicit_schur_complement.h
-	internal/ceres/incomplete_lq_factorization.h
 	internal/ceres/integral_types.h
 	internal/ceres/iterative_schur_complement_solver.h
 	internal/ceres/lapack.h
@@ -270,6 +268,7 @@ if(WITH_LIBMV_SCHUR_SPECIALIZATIONS)
 		internal/ceres/generated/partitioned_matrix_view_2_2_d.cc
 		internal/ceres/generated/partitioned_matrix_view_2_3_3.cc
 		internal/ceres/generated/partitioned_matrix_view_2_3_4.cc
+		internal/ceres/generated/partitioned_matrix_view_2_3_6.cc
 		internal/ceres/generated/partitioned_matrix_view_2_3_9.cc
 		internal/ceres/generated/partitioned_matrix_view_2_3_d.cc
 		internal/ceres/generated/partitioned_matrix_view_2_4_3.cc
@@ -288,6 +287,7 @@ if(WITH_LIBMV_SCHUR_SPECIALIZATIONS)
 		internal/ceres/generated/schur_eliminator_2_2_d.cc
 		internal/ceres/generated/schur_eliminator_2_3_3.cc
 		internal/ceres/generated/schur_eliminator_2_3_4.cc
+		internal/ceres/generated/schur_eliminator_2_3_6.cc
 		internal/ceres/generated/schur_eliminator_2_3_9.cc
 		internal/ceres/generated/schur_eliminator_2_3_d.cc
 		internal/ceres/generated/schur_eliminator_2_4_3.cc

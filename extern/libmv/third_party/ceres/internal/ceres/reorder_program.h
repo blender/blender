@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2014 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -46,14 +46,14 @@ class Program;
 bool ApplyOrdering(const ProblemImpl::ParameterMap& parameter_map,
                    const ParameterBlockOrdering& ordering,
                    Program* program,
-                   string* error);
+                   std::string* error);
 
 // Reorder the residuals for program, if necessary, so that the residuals
 // involving each E block occur together. This is a necessary condition for the
 // Schur eliminator, which works on these "row blocks" in the jacobian.
 bool LexicographicallyOrderResidualBlocks(int size_of_first_elimination_group,
                                           Program* program,
-                                          string* error);
+                                          std::string* error);
 
 // Schur type solvers require that all parameter blocks eliminated
 // by the Schur eliminator occur before others and the residuals be
@@ -77,7 +77,7 @@ bool ReorderProgramForSchurTypeLinearSolver(
     const ProblemImpl::ParameterMap& parameter_map,
     ParameterBlockOrdering* parameter_block_ordering,
     Program* program,
-    string* error);
+    std::string* error);
 
 // Sparse cholesky factorization routines when doing the sparse
 // cholesky factorization of the Jacobian matrix, reorders its
@@ -93,7 +93,7 @@ bool ReorderProgramForSparseNormalCholesky(
     SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type,
     const ParameterBlockOrdering& parameter_block_ordering,
     Program* program,
-    string* error);
+    std::string* error);
 
 }  // namespace internal
 }  // namespace ceres

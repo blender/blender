@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -132,9 +132,9 @@ class Minimizer {
     bool jacobi_scaling;
     bool use_nonmonotonic_steps;
     int max_consecutive_nonmonotonic_steps;
-    vector<int> trust_region_minimizer_iterations_to_dump;
+    std::vector<int> trust_region_minimizer_iterations_to_dump;
     DumpFormatType trust_region_problem_dump_format_type;
-    string trust_region_problem_dump_directory;
+    std::string trust_region_problem_dump_directory;
     int max_num_consecutive_invalid_steps;
     double min_trust_region_radius;
     LineSearchDirectionType line_search_direction_type;
@@ -163,7 +163,7 @@ class Minimizer {
     // of each iteration.
     //
     // The Options struct does not own these pointers.
-    vector<IterationCallback*> callbacks;
+    std::vector<IterationCallback*> callbacks;
 
     // Object responsible for evaluating the cost, residuals and
     // Jacobian matrix.

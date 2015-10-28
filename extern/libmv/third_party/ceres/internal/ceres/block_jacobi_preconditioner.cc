@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -43,7 +43,7 @@ namespace internal {
 BlockJacobiPreconditioner::BlockJacobiPreconditioner(
     const BlockSparseMatrix& A) {
   const CompressedRowBlockStructure* bs = A.block_structure();
-  vector<int> blocks(bs->cols.size());
+  std::vector<int> blocks(bs->cols.size());
   for (int i = 0; i < blocks.size(); ++i) {
     blocks[i] = bs->cols[i].size;
   }
@@ -60,7 +60,7 @@ bool BlockJacobiPreconditioner::UpdateImpl(const BlockSparseMatrix& A,
   m_->SetZero();
   for (int i = 0; i < bs->rows.size(); ++i) {
     const int row_block_size = bs->rows[i].block.size;
-    const vector<Cell>& cells = bs->rows[i].cells;
+    const std::vector<Cell>& cells = bs->rows[i].cells;
     for (int j = 0; j < cells.size(); ++j) {
       const int block_id = cells[j].block_id;
       const int col_block_size = bs->cols[block_id].size;

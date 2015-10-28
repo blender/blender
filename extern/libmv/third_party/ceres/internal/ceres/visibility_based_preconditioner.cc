@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -57,6 +57,12 @@
 
 namespace ceres {
 namespace internal {
+
+using std::make_pair;
+using std::pair;
+using std::set;
+using std::swap;
+using std::vector;
 
 // TODO(sameeragarwal): Currently these are magic weights for the
 // preconditioner construction. Move these higher up into the Options
@@ -399,7 +405,7 @@ bool VisibilityBasedPreconditioner::UpdateImpl(const BlockSparseMatrix& A,
 // matrix. Scaling these off-diagonal entries by 1/2 forces this
 // matrix to be positive definite.
 void VisibilityBasedPreconditioner::ScaleOffDiagonalCells() {
-  for (set< pair<int, int> >::const_iterator it = block_pairs_.begin();
+  for (set<pair<int, int> >::const_iterator it = block_pairs_.begin();
        it != block_pairs_.end();
        ++it) {
     const int block1 = it->first;
@@ -439,7 +445,7 @@ LinearSolverTerminationType VisibilityBasedPreconditioner::Factorize() {
   lhs->stype = 1;
 
   // TODO(sameeragarwal): Refactor to pipe this up and out.
-  string status;
+  std::string status;
 
   // Symbolic factorization is computed if we don't already have one handy.
   if (factor_ == NULL) {
@@ -464,7 +470,7 @@ void VisibilityBasedPreconditioner::RightMultiply(const double* x,
   const int num_rows = m_->num_rows();
   memcpy(CHECK_NOTNULL(tmp_rhs_)->x, x, m_->num_rows() * sizeof(*x));
   // TODO(sameeragarwal): Better error handling.
-  string status;
+  std::string status;
   cholmod_dense* solution =
       CHECK_NOTNULL(ss->Solve(factor_, tmp_rhs_, &status));
   memcpy(y, solution->x, sizeof(*y) * num_rows);
@@ -484,7 +490,7 @@ bool VisibilityBasedPreconditioner::IsBlockPairInPreconditioner(
   int cluster1 = cluster_membership_[block1];
   int cluster2 = cluster_membership_[block2];
   if (cluster1 > cluster2) {
-    std::swap(cluster1, cluster2);
+    swap(cluster1, cluster2);
   }
   return (cluster_pairs_.count(make_pair(cluster1, cluster2)) > 0);
 }

@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -79,7 +79,8 @@ TrustRegionStrategy::Summary LevenbergMarquardtStrategy::ComputeStep(
 
     jacobian->SquaredColumnNorm(diagonal_.data());
     for (int i = 0; i < num_parameters; ++i) {
-      diagonal_[i] = min(max(diagonal_[i], min_diagonal_), max_diagonal_);
+      diagonal_[i] = std::min(std::max(diagonal_[i], min_diagonal_),
+                              max_diagonal_);
     }
   }
 
@@ -107,9 +108,12 @@ TrustRegionStrategy::Summary LevenbergMarquardtStrategy::ComputeStep(
       linear_solver_->Solve(jacobian, residuals, solve_options, step);
 
   if (linear_solver_summary.termination_type == LINEAR_SOLVER_FATAL_ERROR) {
-    LOG(WARNING) << "Linear solver fatal error.";
-  } else if (linear_solver_summary.termination_type == LINEAR_SOLVER_FAILURE ||
-             !IsArrayValid(num_parameters, step)) {
+    LOG(WARNING) << "Linear solver fatal error: "
+                 << linear_solver_summary.message;
+  } else if (linear_solver_summary.termination_type == LINEAR_SOLVER_FAILURE)  {
+    LOG(WARNING) << "Linear solver failure. Failed to compute a step: "
+                 << linear_solver_summary.message;
+  } else if (!IsArrayValid(num_parameters, step)) {
     LOG(WARNING) << "Linear solver failure. Failed to compute a finite step.";
     linear_solver_summary.termination_type = LINEAR_SOLVER_FAILURE;
   } else {

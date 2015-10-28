@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -41,6 +41,9 @@
 
 namespace ceres {
 namespace internal {
+
+using std::vector;
+
 namespace {
 
 // Given the residual block ordering, build a lookup table to determine which
@@ -163,8 +166,7 @@ SparseMatrix* BlockJacobianWriter::CreateJacobian() const {
   }
 
   // Construct the cells in each row.
-  const vector<ResidualBlock*>& residual_blocks =
-      program_->residual_blocks();
+  const vector<ResidualBlock*>& residual_blocks = program_->residual_blocks();
   int row_block_position = 0;
   bs->rows.resize(residual_blocks.size());
   for (int i = 0; i < residual_blocks.size(); ++i) {

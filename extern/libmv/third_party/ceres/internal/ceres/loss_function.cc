@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -111,6 +111,22 @@ void TolerantLoss::Evaluate(double s, double rho[3]) const {
     rho[0] = b_ * log(1.0 + e_x) - c_;
     rho[1] = std::max(std::numeric_limits<double>::min(), e_x / (1.0 + e_x));
     rho[2] = 0.5 / (b_ * (1.0 + cosh(x)));
+  }
+}
+
+void TukeyLoss::Evaluate(double s, double* rho) const {
+  if (s <= a_squared_) {
+    // Inlier region.
+    const double value = 1.0 - s / a_squared_;
+    const double value_sq = value * value;
+    rho[0] = a_squared_ / 6.0 * (1.0 - value_sq * value);
+    rho[1] = 0.5 * value_sq;
+    rho[2] = -1.0 / a_squared_ * value;
+  } else {
+    // Outlier region.
+    rho[0] = a_squared_ / 6.0;
+    rho[1] = 0.0;
+    rho[2] = 0.0;
   }
 }
 

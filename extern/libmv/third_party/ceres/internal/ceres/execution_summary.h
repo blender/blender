@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2013 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -46,30 +46,30 @@ namespace internal {
 // can be used for reporting times associated with various activities.
 class ExecutionSummary {
  public:
-  void IncrementTimeBy(const string& name, const double value) {
+  void IncrementTimeBy(const std::string& name, const double value) {
     CeresMutexLock l(&times_mutex_);
     times_[name] += value;
   }
 
-  void IncrementCall(const string& name) {
+  void IncrementCall(const std::string& name) {
     CeresMutexLock l(&calls_mutex_);
     calls_[name] += 1;
   }
 
-  const map<string, double>& times() const { return times_; }
-  const map<string, int>& calls() const { return calls_; }
+  const std::map<std::string, double>& times() const { return times_; }
+  const std::map<std::string, int>& calls() const { return calls_; }
 
  private:
   Mutex times_mutex_;
-  map<string, double> times_;
+  std::map<std::string, double> times_;
 
   Mutex calls_mutex_;
-  map<string, int> calls_;
+  std::map<std::string, int> calls_;
 };
 
 class ScopedExecutionTimer {
  public:
-  ScopedExecutionTimer(const string& name, ExecutionSummary* summary)
+  ScopedExecutionTimer(const std::string& name, ExecutionSummary* summary)
       : start_time_(WallTimeInSeconds()),
         name_(name),
         summary_(summary) {}
@@ -80,7 +80,7 @@ class ScopedExecutionTimer {
 
  private:
   const double start_time_;
-  const string name_;
+  const std::string name_;
   ExecutionSummary* summary_;
 };
 

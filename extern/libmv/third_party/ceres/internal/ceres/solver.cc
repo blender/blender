@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2014 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -48,6 +48,10 @@
 
 namespace ceres {
 namespace {
+
+using std::map;
+using std::string;
+using std::vector;
 
 #define OPTION_OP(x, y, OP)                                             \
   if (!(options.x OP y)) {                                              \
@@ -150,15 +154,11 @@ bool TrustRegionOptionsAreValid(const Solver::Options& options, string* error) {
       *error = "Can't use DENSE_NORMAL_CHOLESKY with LAPACK because "
           "LAPACK was not enabled when Ceres was built.";
       return false;
-    }
-
-    if (options.linear_solver_type == DENSE_QR) {
+    } else if (options.linear_solver_type == DENSE_QR) {
       *error = "Can't use DENSE_QR with LAPACK because "
           "LAPACK was not enabled when Ceres was built.";
       return false;
-    }
-
-    if (options.linear_solver_type == DENSE_SCHUR) {
+    } else if (options.linear_solver_type == DENSE_SCHUR) {
       *error = "Can't use DENSE_SCHUR with LAPACK because "
           "LAPACK was not enabled when Ceres was built.";
       return false;
@@ -172,21 +172,15 @@ bool TrustRegionOptionsAreValid(const Solver::Options& options, string* error) {
       *error = "Can't use SPARSE_NORMAL_CHOLESKY with SUITESPARSE because "
              "SuiteSparse was not enabled when Ceres was built.";
       return false;
-    }
-
-    if (options.linear_solver_type == SPARSE_SCHUR) {
+    } else if (options.linear_solver_type == SPARSE_SCHUR) {
       *error = "Can't use SPARSE_SCHUR with SUITESPARSE because "
           "SuiteSparse was not enabled when Ceres was built.";
       return false;
-    }
-
-    if (options.preconditioner_type == CLUSTER_JACOBI) {
+    } else if (options.preconditioner_type == CLUSTER_JACOBI) {
       *error =  "CLUSTER_JACOBI preconditioner not supported. "
           "SuiteSparse was not enabled when Ceres was built.";
       return false;
-    }
-
-    if (options.preconditioner_type == CLUSTER_TRIDIAGONAL) {
+    } else if (options.preconditioner_type == CLUSTER_TRIDIAGONAL) {
       *error =  "CLUSTER_TRIDIAGONAL preconditioner not supported. "
           "SuiteSparse was not enabled when Ceres was built.";
     return false;
@@ -200,9 +194,7 @@ bool TrustRegionOptionsAreValid(const Solver::Options& options, string* error) {
       *error = "Can't use SPARSE_NORMAL_CHOLESKY with CX_SPARSE because "
              "CXSparse was not enabled when Ceres was built.";
       return false;
-    }
-
-    if (options.linear_solver_type == SPARSE_SCHUR) {
+    } else if (options.linear_solver_type == SPARSE_SCHUR) {
       *error = "Can't use SPARSE_SCHUR with CX_SPARSE because "
           "CXSparse was not enabled when Ceres was built.";
       return false;
@@ -217,9 +209,7 @@ bool TrustRegionOptionsAreValid(const Solver::Options& options, string* error) {
           "Eigen's sparse linear algebra was not enabled when Ceres was "
           "built.";
       return false;
-    }
-
-    if (options.linear_solver_type == SPARSE_SCHUR) {
+    } else if (options.linear_solver_type == SPARSE_SCHUR) {
       *error = "Can't use SPARSE_SCHUR with EIGEN_SPARSE because "
           "Eigen's sparse linear algebra was not enabled when Ceres was "
           "built.";
@@ -227,6 +217,18 @@ bool TrustRegionOptionsAreValid(const Solver::Options& options, string* error) {
     }
   }
 #endif
+
+  if (options.sparse_linear_algebra_library_type == NO_SPARSE) {
+    if (options.linear_solver_type == SPARSE_NORMAL_CHOLESKY) {
+      *error = "Can't use SPARSE_NORMAL_CHOLESKY as "
+          "sparse_linear_algebra_library_type is NO_SPARSE.";
+      return false;
+    } else if (options.linear_solver_type == SPARSE_SCHUR) {
+      *error = "Can't use SPARSE_SCHUR as "
+          "sparse_linear_algebra_library_type is NO_SPARSE.";
+      return false;
+    }
+  }
 
   if (options.trust_region_strategy_type == DOGLEG) {
     if (options.linear_solver_type == ITERATIVE_SCHUR ||
@@ -349,6 +351,10 @@ void PreSolveSummarize(const Solver::Options& options,
   summary->dense_linear_algebra_library_type  = options.dense_linear_algebra_library_type;  //  NOLINT
   summary->dogleg_type                        = options.dogleg_type;
   summary->inner_iteration_time_in_seconds    = 0.0;
+  summary->line_search_cost_evaluation_time_in_seconds = 0.0;
+  summary->line_search_gradient_evaluation_time_in_seconds = 0.0;
+  summary->line_search_polynomial_minimization_time_in_seconds = 0.0;
+  summary->line_search_total_time_in_seconds  = 0.0;
   summary->inner_iterations_given             = options.use_inner_iterations;
   summary->line_search_direction_type         = options.line_search_direction_type;         //  NOLINT
   summary->line_search_interpolation_type     = options.line_search_interpolation_type;     //  NOLINT
@@ -446,11 +452,16 @@ bool Solver::Options::IsValid(string* error) const {
     return false;
   }
 
-  if (minimizer_type == TRUST_REGION) {
-    return TrustRegionOptionsAreValid(*this, error);
+  if (minimizer_type == TRUST_REGION &&
+      !TrustRegionOptionsAreValid(*this, error)) {
+    return false;
   }
 
-  CHECK_EQ(minimizer_type, LINE_SEARCH);
+  // We do not know if the problem is bounds constrained or not, if it
+  // is then the trust region solver will also use the line search
+  // solver to do a projection onto the box constraints, so make sure
+  // that the line search options are checked independent of what
+  // minimizer algorithm is being used.
   return LineSearchOptionsAreValid(*this, error);
 }
 
@@ -553,6 +564,10 @@ Solver::Summary::Summary()
       residual_evaluation_time_in_seconds(-1.0),
       jacobian_evaluation_time_in_seconds(-1.0),
       inner_iteration_time_in_seconds(-1.0),
+      line_search_cost_evaluation_time_in_seconds(-1.0),
+      line_search_gradient_evaluation_time_in_seconds(-1.0),
+      line_search_polynomial_minimization_time_in_seconds(-1.0),
+      line_search_total_time_in_seconds(-1.0),
       num_parameter_blocks(-1),
       num_parameters(-1),
       num_effective_parameters(-1),
@@ -563,6 +578,7 @@ Solver::Summary::Summary()
       num_effective_parameters_reduced(-1),
       num_residual_blocks_reduced(-1),
       num_residuals_reduced(-1),
+      is_constrained(false),
       num_threads_given(-1),
       num_threads_used(-1),
       num_linear_solver_threads_given(-1),
@@ -597,7 +613,7 @@ string Solver::Summary::BriefReport() const {
                       initial_cost,
                       final_cost,
                       TerminationTypeToString(termination_type));
-};
+}
 
 string Solver::Summary::FullReport() const {
   using internal::VersionString;
@@ -768,38 +784,55 @@ string Solver::Summary::FullReport() const {
                   num_inner_iteration_steps);
   }
 
+  const bool print_line_search_timing_information =
+      minimizer_type == LINE_SEARCH ||
+      (minimizer_type == TRUST_REGION && is_constrained);
+
   StringAppendF(&report, "\nTime (in seconds):\n");
-  StringAppendF(&report, "Preprocessor        %25.3f\n",
+  StringAppendF(&report, "Preprocessor        %25.4f\n",
                 preprocessor_time_in_seconds);
 
-  StringAppendF(&report, "\n  Residual evaluation %23.3f\n",
+  StringAppendF(&report, "\n  Residual evaluation %23.4f\n",
                 residual_evaluation_time_in_seconds);
-  StringAppendF(&report, "  Jacobian evaluation %23.3f\n",
+  if (print_line_search_timing_information) {
+    StringAppendF(&report, "    Line search cost evaluation    %10.4f\n",
+                  line_search_cost_evaluation_time_in_seconds);
+  }
+  StringAppendF(&report, "  Jacobian evaluation %23.4f\n",
                 jacobian_evaluation_time_in_seconds);
+  if (print_line_search_timing_information) {
+    StringAppendF(&report, "    Line search gradient evaluation    %6.4f\n",
+                  line_search_gradient_evaluation_time_in_seconds);
+  }
 
   if (minimizer_type == TRUST_REGION) {
-    StringAppendF(&report, "  Linear solver       %23.3f\n",
+    StringAppendF(&report, "  Linear solver       %23.4f\n",
                   linear_solver_time_in_seconds);
   }
 
   if (inner_iterations_used) {
-    StringAppendF(&report, "  Inner iterations    %23.3f\n",
+    StringAppendF(&report, "  Inner iterations    %23.4f\n",
                   inner_iteration_time_in_seconds);
   }
 
-  StringAppendF(&report, "Minimizer           %25.3f\n\n",
+  if (print_line_search_timing_information) {
+    StringAppendF(&report, "  Line search polynomial minimization  %.4f\n",
+                  line_search_polynomial_minimization_time_in_seconds);
+  }
+
+  StringAppendF(&report, "Minimizer           %25.4f\n\n",
                 minimizer_time_in_seconds);
 
-  StringAppendF(&report, "Postprocessor        %24.3f\n",
+  StringAppendF(&report, "Postprocessor        %24.4f\n",
                 postprocessor_time_in_seconds);
 
-  StringAppendF(&report, "Total               %25.3f\n\n",
+  StringAppendF(&report, "Total               %25.4f\n\n",
                 total_time_in_seconds);
 
   StringAppendF(&report, "Termination:        %25s (%s)\n",
                 TerminationTypeToString(termination_type), message.c_str());
   return report;
-};
+}
 
 bool Solver::Summary::IsSolutionUsable() const {
   return internal::IsSolutionUsable(*this);

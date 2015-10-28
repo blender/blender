@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -61,7 +61,7 @@ PartitionedMatrixView(
   // explicit_schur_complement_solver.h
   num_row_blocks_e_ = 0;
   for (int r = 0; r < bs->rows.size(); ++r) {
-    const vector<Cell>& cells = bs->rows[r].cells;
+    const std::vector<Cell>& cells = bs->rows[r].cells;
     if (cells[0].block_id < num_col_blocks_e_) {
       ++num_row_blocks_e_;
     }
@@ -131,7 +131,7 @@ RightMultiplyF(const double* x, double* y) const {
   for (int r = 0; r < num_row_blocks_e_; ++r) {
     const int row_block_pos = bs->rows[r].block.position;
     const int row_block_size = bs->rows[r].block.size;
-    const vector<Cell>& cells = bs->rows[r].cells;
+    const std::vector<Cell>& cells = bs->rows[r].cells;
     for (int c = 1; c < cells.size(); ++c) {
       const int col_block_id = cells[c].block_id;
       const int col_block_pos = bs->cols[col_block_id].position;
@@ -146,7 +146,7 @@ RightMultiplyF(const double* x, double* y) const {
   for (int r = num_row_blocks_e_; r < bs->rows.size(); ++r) {
     const int row_block_pos = bs->rows[r].block.position;
     const int row_block_size = bs->rows[r].block.size;
-    const vector<Cell>& cells = bs->rows[r].cells;
+    const std::vector<Cell>& cells = bs->rows[r].cells;
     for (int c = 0; c < cells.size(); ++c) {
       const int col_block_id = cells[c].block_id;
       const int col_block_pos = bs->cols[col_block_id].position;
@@ -197,7 +197,7 @@ LeftMultiplyF(const double* x, double* y) const {
   for (int r = 0; r < num_row_blocks_e_; ++r) {
     const int row_block_pos = bs->rows[r].block.position;
     const int row_block_size = bs->rows[r].block.size;
-    const vector<Cell>& cells = bs->rows[r].cells;
+    const std::vector<Cell>& cells = bs->rows[r].cells;
     for (int c = 1; c < cells.size(); ++c) {
       const int col_block_id = cells[c].block_id;
       const int col_block_pos = bs->cols[col_block_id].position;
@@ -212,7 +212,7 @@ LeftMultiplyF(const double* x, double* y) const {
   for (int r = num_row_blocks_e_; r < bs->rows.size(); ++r) {
     const int row_block_pos = bs->rows[r].block.position;
     const int row_block_size = bs->rows[r].block.size;
-    const vector<Cell>& cells = bs->rows[r].cells;
+    const std::vector<Cell>& cells = bs->rows[r].cells;
     for (int c = 0; c < cells.size(); ++c) {
       const int col_block_id = cells[c].block_id;
       const int col_block_pos = bs->cols[col_block_id].position;
@@ -339,7 +339,7 @@ UpdateBlockDiagonalFtF(BlockSparseMatrix* block_diagonal) const {
   const double* values = matrix_.values();
   for (int r = 0; r < num_row_blocks_e_; ++r) {
     const int row_block_size = bs->rows[r].block.size;
-    const vector<Cell>& cells = bs->rows[r].cells;
+    const std::vector<Cell>& cells = bs->rows[r].cells;
     for (int c = 1; c < cells.size(); ++c) {
       const int col_block_id = cells[c].block_id;
       const int col_block_size = bs->cols[col_block_id].size;
@@ -358,7 +358,7 @@ UpdateBlockDiagonalFtF(BlockSparseMatrix* block_diagonal) const {
 
   for (int r = num_row_blocks_e_; r < bs->rows.size(); ++r) {
     const int row_block_size = bs->rows[r].block.size;
-    const vector<Cell>& cells = bs->rows[r].cells;
+    const std::vector<Cell>& cells = bs->rows[r].cells;
     for (int c = 0; c < cells.size(); ++c) {
       const int col_block_id = cells[c].block_id;
       const int col_block_size = bs->cols[col_block_id].size;

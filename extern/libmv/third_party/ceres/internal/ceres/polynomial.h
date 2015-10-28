@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -32,6 +32,7 @@
 #ifndef CERES_INTERNAL_POLYNOMIAL_SOLVER_H_
 #define CERES_INTERNAL_POLYNOMIAL_SOLVER_H_
 
+#include <string>
 #include <vector>
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/port.h"
@@ -95,7 +96,7 @@ struct FunctionSample {
         gradient(0.0),
         gradient_is_valid(false) {
   }
-  string ToDebugString() const;
+  std::string ToDebugString() const;
 
   double x;
   double value;      // value = f(x)
@@ -115,7 +116,7 @@ struct FunctionSample {
 // Of course its possible to sample a polynomial any number of times,
 // in which case, generally speaking the spurious higher order
 // coefficients will be zero.
-Vector FindInterpolatingPolynomial(const vector<FunctionSample>& samples);
+Vector FindInterpolatingPolynomial(const std::vector<FunctionSample>& samples);
 
 // Interpolate the function described by samples with a polynomial,
 // and minimize it on the interval [x_min, x_max]. Depending on the
@@ -123,7 +124,7 @@ Vector FindInterpolatingPolynomial(const vector<FunctionSample>& samples);
 // finding algorithms may fail due to numerical difficulties. But the
 // function is guaranteed to return its best guess of an answer, by
 // considering the samples and the end points as possible solutions.
-void MinimizeInterpolatingPolynomial(const vector<FunctionSample>& samples,
+void MinimizeInterpolatingPolynomial(const std::vector<FunctionSample>& samples,
                                      double x_min,
                                      double x_max,
                                      double* optimal_x,

@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2013 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -70,7 +70,7 @@ LinearSolverTerminationType LAPACK::SolveInPlaceUsingCholesky(
     int num_rows,
     const double* in_lhs,
     double* rhs_and_solution,
-    string* message) {
+    std::string* message) {
 #ifdef CERES_NO_LAPACK
   LOG(FATAL) << "Ceres was built without a BLAS library.";
   return LINEAR_SOLVER_FATAL_ERROR;
@@ -110,7 +110,7 @@ LinearSolverTerminationType LAPACK::SolveInPlaceUsingCholesky(
   *message = "Success";
   return LINEAR_SOLVER_SUCCESS;
 #endif
-};
+}
 
 int LAPACK::EstimateWorkSizeForQR(int num_rows, int num_cols) {
 #ifdef CERES_NO_LAPACK
@@ -151,7 +151,7 @@ LinearSolverTerminationType LAPACK::SolveInPlaceUsingQR(
     int work_size,
     double* work,
     double* rhs_and_solution,
-    string* message) {
+    std::string* message) {
 #ifdef CERES_NO_LAPACK
   LOG(FATAL) << "Ceres was built without a LAPACK library.";
   return LINEAR_SOLVER_FATAL_ERROR;

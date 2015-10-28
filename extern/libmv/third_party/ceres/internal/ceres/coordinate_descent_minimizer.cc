@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2014 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -48,10 +48,16 @@
 #include "ceres/solver.h"
 #include "ceres/trust_region_minimizer.h"
 #include "ceres/trust_region_strategy.h"
-#include "ceres/parameter_block_ordering.h"
 
 namespace ceres {
 namespace internal {
+
+using std::map;
+using std::max;
+using std::min;
+using std::set;
+using std::string;
+using std::vector;
 
 CoordinateDescentMinimizer::~CoordinateDescentMinimizer() {
 }
@@ -244,7 +250,7 @@ bool CoordinateDescentMinimizer::IsOrderingValid(
 
   // Verify that each group is an independent set
   map<int, set<double*> >::const_iterator it = group_to_elements.begin();
-  for ( ; it != group_to_elements.end(); ++it) {
+  for (; it != group_to_elements.end(); ++it) {
     if (!program.IsParameterBlockSetIndependent(it->second)) {
       *message =
           StringPrintf("The user-provided "

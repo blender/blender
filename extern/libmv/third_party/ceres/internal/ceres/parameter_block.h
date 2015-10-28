@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012, 2013 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -193,7 +193,7 @@ class ParameterBlock {
     }
 
     upper_bounds_[index] = upper_bound;
-  };
+  }
 
   void SetLowerBound(int index, double lower_bound) {
     CHECK_LT(index, size_);
@@ -237,10 +237,11 @@ class ParameterBlock {
     return true;
   }
 
-  string ToString() const {
-    return StringPrintf("{ user_state=%p, state=%p, size=%d, "
+  std::string ToString() const {
+    return StringPrintf("{ this=%p, user_state=%p, state=%p, size=%d, "
                         "constant=%d, index=%d, state_offset=%d, "
                         "delta_offset=%d }",
+                        this,
                         user_state_,
                         state_,
                         size_,

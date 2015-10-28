@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -71,20 +71,20 @@ bool CellLessThan(const Cell& lhs, const Cell& rhs);
 
 struct CompressedList {
   Block block;
-  vector<Cell> cells;
+  std::vector<Cell> cells;
 };
 
 typedef CompressedList CompressedRow;
 typedef CompressedList CompressedColumn;
 
 struct CompressedRowBlockStructure {
-  vector<Block> cols;
-  vector<CompressedRow> rows;
+  std::vector<Block> cols;
+  std::vector<CompressedRow> rows;
 };
 
 struct CompressedColumnBlockStructure {
-  vector<Block> rows;
-  vector<CompressedColumn> cols;
+  std::vector<Block> rows;
+  std::vector<CompressedColumn> cols;
 };
 
 }  // namespace internal

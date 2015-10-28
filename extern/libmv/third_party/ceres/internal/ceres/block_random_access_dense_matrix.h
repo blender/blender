@@ -1,6 +1,6 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
-// http://code.google.com/p/ceres-solver/
+// Copyright 2015 Google Inc. All rights reserved.
+// http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -56,7 +56,7 @@ class BlockRandomAccessDenseMatrix : public BlockRandomAccessMatrix {
  public:
   // blocks is a vector of block sizes. The resulting matrix has
   // blocks.size() * blocks.size() cells.
-  explicit BlockRandomAccessDenseMatrix(const vector<int>& blocks);
+  explicit BlockRandomAccessDenseMatrix(const std::vector<int>& blocks);
 
   // The destructor is not thread safe. It assumes that no one is
   // modifying any cells when the matrix is being destroyed.
@@ -85,7 +85,7 @@ class BlockRandomAccessDenseMatrix : public BlockRandomAccessMatrix {
 
  private:
   int num_rows_;
-  vector<int> block_layout_;
+  std::vector<int> block_layout_;
   scoped_array<double> values_;
   scoped_array<CellInfo> cell_infos_;
 
