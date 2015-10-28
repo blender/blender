@@ -518,6 +518,11 @@ void KX_GameObject::ProcessReplica()
 	m_pGraphicController = NULL;
 	m_pPhysicsController = NULL;
 	m_pSGNode = NULL;
+
+	/* Dupli group and instance list are set later in replication.
+	 * See KX_Scene::DupliGroupRecurse. */
+	m_pDupliGroupObject = NULL;
+	m_pInstanceObjects = NULL;
 	m_pClient_info = new KX_ClientObjectInfo(*m_pClient_info);
 	m_pClient_info->m_gameobject = this;
 	m_actionManager = NULL;
