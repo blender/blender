@@ -996,6 +996,8 @@ public:
 
 	inline bool operator()(Interface1D *i1, Interface1D *i2)
 	{
+		if (i1 == i2)
+			return false;
 		if ((*_pred)(*i1, *i2) < 0)
 			throw std::runtime_error("comparison failed");
 		return _pred->result;
