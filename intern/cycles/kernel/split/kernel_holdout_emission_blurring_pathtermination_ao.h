@@ -36,7 +36,7 @@
  * Intersection_coop ------------------------------------|                                                           |--- L_transparent_coop
  * PathState_coop ---------------------------------------|                                                           |--- per_sample_output_buffers
  * L_transparent_coop -----------------------------------|                                                           |--- PathRadiance_coop
- * shader_data ------------------------------------------|                                                           |--- ShaderData
+ * sd ---------------------------------------------------|                                                           |--- ShaderData
  * ray_state --------------------------------------------|                                                           |--- ray_state
  * Queue_data (QUEUE_ACTIVE_AND_REGENERATED_RAYS) -------|                                                           |--- Queue_data (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
  * Queue_index (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS) ---|                                                           |--- AOAlpha_coop
@@ -71,9 +71,9 @@
  * QUEUE_SHADOW_RAY_CAST_AO_RAYS will be filled with rays marked with flag RAY_SHADOW_RAY_CAST_AO
  */
 ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
-        ccl_global char *globals,
+        KernelGlobals *kg,
         ccl_constant KernelData *data,
-        ccl_global char *shader_data,          /* Required throughout the kernel except probabilistic path termination and AO */
+        ShaderData *sd,                        /* Required throughout the kernel except probabilistic path termination and AO */
         ccl_global float *per_sample_output_buffers,
         ccl_global uint *rng_coop,             /* Required for "kernel_write_data_passes" and AO */
         ccl_global float3 *throughput_coop,    /* Required for handling holdout material and AO */
@@ -95,10 +95,6 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
         char *enqueue_flag,
         char *enqueue_flag_AO_SHADOW_RAY_CAST)
 {
-	/* Load kernel globals structure and ShaderData structure */
-	KernelGlobals *kg = (KernelGlobals *)globals;
-	ShaderData *sd = (ShaderData *)shader_data;
-
 #ifdef __WORK_STEALING__
 	unsigned int my_work;
 	unsigned int pixel_x;

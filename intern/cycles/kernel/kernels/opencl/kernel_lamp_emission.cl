@@ -17,9 +17,9 @@
 #include "split/kernel_lamp_emission.h"
 
 __kernel void kernel_ocl_path_trace_lamp_emission(
-        ccl_global char *globals,
+        ccl_global char *kg,
         ccl_constant KernelData *data,
-        ccl_global char *shader_data,          /* Required for lamp emission */
+        ccl_global char *sd,                   /* Required for lamp emission */
         ccl_global float3 *throughput_coop,    /* Required for lamp emission */
         PathRadiance *PathRadiance_coop,       /* Required for lamp emission */
         ccl_global Ray *Ray_coop,              /* Required for lamp emission */
@@ -68,9 +68,9 @@ __kernel void kernel_ocl_path_trace_lamp_emission(
 		}
 	}
 
-	kernel_lamp_emission(globals,
+	kernel_lamp_emission((KenrelGLobals *)kg,
 	                     data,
-	                     shader_data,
+	                     (ShaderData *)sd,
 	                     throughput_coop,
 	                     PathRadiance_coop,
 	                     Ray_coop,

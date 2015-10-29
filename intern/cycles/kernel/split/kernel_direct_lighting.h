@@ -30,13 +30,13 @@
  *
  * rng_coop -----------------------------------------|--- kernel_direct_lighting --|--- BSDFEval_coop
  * PathState_coop -----------------------------------|                             |--- ISLamp_coop
- * shader_data --------------------------------------|                             |--- LightRay_coop
+ * sd -----------------------------------------------|                             |--- LightRay_coop
  * ray_state ----------------------------------------|                             |--- ray_state
  * Queue_data (QUEUE_ACTIVE_AND_REGENERATED_RAYS) ---|                             |
  * kg (globals + data) ------------------------------|                             |
  * queuesize ----------------------------------------|                             |
  *
- * note on shader_DL : shader_DL is neither input nor output to this kernel; shader_DL is filled and consumed in this kernel itself.
+ * note on sd_DL : sd_DL is neither input nor output to this kernel; sd_DL is filled and consumed in this kernel itself.
  * Note on Queues :
  * This kernel only reads from the QUEUE_ACTIVE_AND_REGENERATED_RAYS queue and processes
  * only the rays of state RAY_ACTIVE; If a ray needs to execute the corresponding shadow_blocked
@@ -49,10 +49,10 @@
  * kernel call. Before this kernel call the QUEUE_SHADOW_RAY_CAST_DL_RAYS will be empty.
  */
 ccl_device char kernel_direct_lighting(
-        ccl_global char *globals,
+        KernelGlobals *kg,
         ccl_constant KernelData *data,
-        ccl_global char *shader_data,           /* Required for direct lighting */
-        ccl_global char *shader_DL,             /* Required for direct lighting */
+        ShaderData *sd,                         /* Required for direct lighting */
+        ShaderData *sd_DL,                      /* Required for direct lighting */
         ccl_global uint *rng_coop,              /* Required for direct lighting */
         ccl_global PathState *PathState_coop,   /* Required for direct lighting */
         ccl_global int *ISLamp_coop,            /* Required for direct lighting */
@@ -63,11 +63,6 @@ ccl_device char kernel_direct_lighting(
 {
 	char enqueue_flag = 0;
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
-		/* Load kernel globals structure and ShaderData structure. */
-		KernelGlobals *kg = (KernelGlobals *)globals;
-		ShaderData *sd = (ShaderData *)shader_data;
-		ShaderData *sd_DL  = (ShaderData *)shader_DL;
-
 		ccl_global PathState *state = &PathState_coop[ray_index];
 
 		/* direct lighting */

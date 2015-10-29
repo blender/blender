@@ -23,7 +23,7 @@
  * the rays of state RAY_TO_REGENERATE and enqueues them in QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS queue.
  *
  * The input and output of the kernel is as follows,
- * rng_coop -------------------------------------------|--- kernel_shader_eval --|--- shader_data
+ * rng_coop -------------------------------------------|--- kernel_shader_eval --|--- sd
  * Ray_coop -------------------------------------------|                         |--- Queue_data (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
  * PathState_coop -------------------------------------|                         |--- Queue_index (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
  * Intersection_coop ----------------------------------|                         |
@@ -45,9 +45,9 @@
  * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be filled with RAY_TO_REGENERATE rays
  */
 ccl_device void kernel_shader_eval(
-        ccl_global char *globals,
+        KernelGlobals *kg,
         ccl_constant KernelData *data,
-        ccl_global char *shader_data,          /* Output ShaderData structure to be filled */
+        ShaderData *sd,                        /* Output ShaderData structure to be filled */
         ccl_global uint *rng_coop,             /* Required for rbsdf calculation */
         ccl_global Ray *Ray_coop,              /* Required for setting up shader from ray */
         ccl_global PathState *PathState_coop,  /* Required for all functions in this kernel */
@@ -56,8 +56,6 @@ ccl_device void kernel_shader_eval(
         int ray_index)
 {
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
-		KernelGlobals *kg = (KernelGlobals *)globals;
-		ShaderData *sd = (ShaderData *)shader_data;
 		Intersection *isect = &Intersection_coop[ray_index];
 		ccl_global uint *rng = &rng_coop[ray_index];
 		ccl_global PathState *state = &PathState_coop[ray_index];

@@ -17,9 +17,9 @@
 #include "split/kernel_background_buffer_update.h"
 
 __kernel void kernel_ocl_path_trace_background_buffer_update(
-        ccl_global char *globals,
+        ccl_global char *kg,
         ccl_constant KernelData *data,
-        ccl_global char *shader_data,
+        ccl_global char *sd,
         ccl_global float *per_sample_output_buffers,
         ccl_global uint *rng_state,
         ccl_global uint *rng_coop,             /* Required for buffer Update */
@@ -83,9 +83,9 @@ __kernel void kernel_ocl_path_trace_background_buffer_update(
 	if(ray_index != QUEUE_EMPTY_SLOT) {
 #endif
 		enqueue_flag =
-			kernel_background_buffer_update(globals,
+			kernel_background_buffer_update((KernelGlobals *)kg,
 			                                data,
-			                                shader_data,
+			                                (ShaderData *)sd,
 			                                per_sample_output_buffers,
 			                                rng_state,
 			                                rng_coop,

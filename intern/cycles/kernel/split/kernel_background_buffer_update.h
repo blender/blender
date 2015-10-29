@@ -57,7 +57,7 @@
  * work_pool_wgs ----------------------------------------|                                      |
  * num_samples ------------------------------------------|                                      |
  *
- * note on shader_data : shader_data argument is neither an input nor an output for this kernel. It is just filled and consumed here itself.
+ * note on sd : sd argument is neither an input nor an output for this kernel. It is just filled and consumed here itself.
  * Note on Queues :
  * This kernel fetches rays from QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS queue.
  *
@@ -70,9 +70,9 @@
  * QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS will be empty
  */
 ccl_device char kernel_background_buffer_update(
-        ccl_global char *globals,
+        KernelGlobals *kg,
         ccl_constant KernelData *data,
-        ccl_global char *shader_data,
+        ShaderData *sd,
         ccl_global float *per_sample_output_buffers,
         ccl_global uint *rng_state,
         ccl_global uint *rng_coop,             /* Required for buffer Update */
@@ -100,11 +100,6 @@ ccl_device char kernel_background_buffer_update(
         int ray_index)
 {
 	char enqueue_flag = 0;
-
-	/* Load kernel globals structure and ShaderData strucuture */
-	KernelGlobals *kg = (KernelGlobals *)globals;
-	ShaderData *sd = (ShaderData *)shader_data;
-
 #ifdef __KERNEL_DEBUG__
 	DebugData *debug_data = &debugdata_coop[ray_index];
 #endif

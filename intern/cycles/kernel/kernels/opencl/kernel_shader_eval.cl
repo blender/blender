@@ -17,9 +17,9 @@
 #include "split/kernel_shader_eval.h"
 
 __kernel void kernel_ocl_path_trace_shader_eval(
-        ccl_global char *globals,
+        ccl_global char *kg,
         ccl_constant KernelData *data,
-        ccl_global char *shader_data,          /* Output ShaderData structure to be filled */
+        ccl_global char *sd,                   /* Output ShaderData structure to be filled */
         ccl_global uint *rng_coop,             /* Required for rbsdf calculation */
         ccl_global Ray *Ray_coop,              /* Required for setting up shader from ray */
         ccl_global PathState *PathState_coop,  /* Required for all functions in this kernel */
@@ -57,9 +57,9 @@ __kernel void kernel_ocl_path_trace_shader_eval(
 	                        Queue_index);
 
 	/* Continue on with shader evaluation. */
-	kernel_shader_eval(globals,
+	kernel_shader_eval((KernelGlobals *)kg,
 	                   data,
-	                   shader_data,
+	                   (ShaderData *)sd,
 	                   rng_coop,
 	                   Ray_coop,
 	                   PathState_coop,

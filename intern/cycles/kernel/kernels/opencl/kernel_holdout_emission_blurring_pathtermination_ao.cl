@@ -17,9 +17,9 @@
 #include "split/kernel_holdout_emission_blurring_pathtermination_ao.h"
 
 __kernel void kernel_ocl_path_trace_holdout_emission_blurring_pathtermination_ao(
-        ccl_global char *globals,
+        ccl_global char *kg,
         ccl_constant KernelData *data,
-        ccl_global char *shader_data,          /* Required throughout the kernel except probabilistic path termination and AO */
+        ccl_global char *sd,                   /* Required throughout the kernel except probabilistic path termination and AO */
         ccl_global float *per_sample_output_buffers,
         ccl_global uint *rng_coop,             /* Required for "kernel_write_data_passes" and AO */
         ccl_global float3 *throughput_coop,    /* Required for handling holdout material and AO */
@@ -75,9 +75,9 @@ __kernel void kernel_ocl_path_trace_holdout_emission_blurring_pathtermination_ao
 	if(ray_index != QUEUE_EMPTY_SLOT) {
 #endif
 		kernel_holdout_emission_blurring_pathtermination_ao(
-		        globals,
+		        (KernelGlobals *)kg,
 		        data,
-		        shader_data,
+		        (ShaderData *)sd,
 		        per_sample_output_buffers,
 		        rng_coop,
 		        throughput_coop,
