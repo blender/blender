@@ -505,6 +505,13 @@ void BL_ConvertActuators(const char* maggiename,
 					{
 						RAS_MeshObject *tmpmesh = converter->FindGameMesh(editobact->me);
 
+						if (!tmpmesh) {
+							std::cout << "Warning: object \"" << objectname <<
+							"\" from ReplaceMesh actuator \"" << uniquename <<
+							"\" uses a mesh not owned by an object in scene \"" <<
+							scene->GetName() << "\"." << std::endl;
+						}
+
 						KX_SCA_ReplaceMeshActuator* tmpreplaceact = new KX_SCA_ReplaceMeshActuator(
 						            gameobj,
 						            tmpmesh,
