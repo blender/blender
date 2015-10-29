@@ -57,7 +57,6 @@ void register_node_type_cmp_view_levels(void)
 	cmp_node_type_base(&ntype, CMP_NODE_VIEW_LEVELS, "Levels", NODE_CLASS_OUTPUT, NODE_PREVIEW);
 	node_type_socket_templates(&ntype, cmp_node_view_levels_in, cmp_node_view_levels_out);
 	node_type_init(&ntype, node_composit_init_view_levels);
-	node_type_storage(&ntype, "ImageUser", NULL, NULL);
 
 	nodeRegisterType(&ntype);
 }

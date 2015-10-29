@@ -3424,6 +3424,10 @@ void node_type_size_preset(struct bNodeType *ntype, eNodeSizePreset size)
 	}
 }
 
+/**
+ * \warning Nodes defining a storage type _must_ allocate this for new nodes.
+ * Otherwise nodes will reload as undefined (T46619).
+ */
 void node_type_storage(bNodeType *ntype,
 	const char *storagename,
 	void (*freefunc)(struct bNode *node),
