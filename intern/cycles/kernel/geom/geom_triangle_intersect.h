@@ -51,11 +51,7 @@ typedef struct IsectPrecalc {
 
 #if defined(__KERNEL_CUDA__)
 #  if (defined(i386) || defined(_M_IX86))
-#    if __CUDA_ARCH__ > 500
 ccl_device_noinline
-#    else  /* __CUDA_ARCH__ > 500 */
-ccl_device_inline
-#    endif  /* __CUDA_ARCH__ > 500 */
 #  else  /* (defined(i386) || defined(_M_IX86)) */
 #    if defined(__KERNEL_EXPERIMENTAL__) && (__CUDA_ARCH__ >= 500)
 ccl_device_noinline
@@ -201,7 +197,13 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
  */
 
 #ifdef __SUBSURFACE__
-ccl_device_inline void triangle_intersect_subsurface(
+
+#if defined(__KERNEL_CUDA__) && (defined(i386) || defined(_M_IX86))
+ccl_device_noinline
+#else
+ccl_device_inline
+#endif
+void triangle_intersect_subsurface(
         KernelGlobals *kg,
         const IsectPrecalc *isect_precalc,
         Intersection *isect_array,
