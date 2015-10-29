@@ -17,91 +17,8 @@
 #include "split/kernel_data_init.h"
 
 __kernel void kernel_ocl_path_trace_data_init(
-        ccl_global char *kg,
-        ccl_global char *sd,
+        ccl_global char *globals,
         ccl_global char *sd_DL_shadow,
-
-        ccl_global float3 *P_sd,
-        ccl_global float3 *P_sd_DL_shadow,
-
-        ccl_global float3 *N_sd,
-        ccl_global float3 *N_sd_DL_shadow,
-
-        ccl_global float3 *Ng_sd,
-        ccl_global float3 *Ng_sd_DL_shadow,
-
-        ccl_global float3 *I_sd,
-        ccl_global float3 *I_sd_DL_shadow,
-
-        ccl_global int *shader_sd,
-        ccl_global int *shader_sd_DL_shadow,
-
-        ccl_global int *flag_sd,
-        ccl_global int *flag_sd_DL_shadow,
-
-        ccl_global int *prim_sd,
-        ccl_global int *prim_sd_DL_shadow,
-
-        ccl_global int *type_sd,
-        ccl_global int *type_sd_DL_shadow,
-
-        ccl_global float *u_sd,
-        ccl_global float *u_sd_DL_shadow,
-
-        ccl_global float *v_sd,
-        ccl_global float *v_sd_DL_shadow,
-
-        ccl_global int *object_sd,
-        ccl_global int *object_sd_DL_shadow,
-
-        ccl_global float *time_sd,
-        ccl_global float *time_sd_DL_shadow,
-
-        ccl_global float *ray_length_sd,
-        ccl_global float *ray_length_sd_DL_shadow,
-
-        /* Ray differentials. */
-        ccl_global differential3 *dP_sd,
-        ccl_global differential3 *dP_sd_DL_shadow,
-
-        ccl_global differential3 *dI_sd,
-        ccl_global differential3 *dI_sd_DL_shadow,
-
-        ccl_global differential *du_sd,
-        ccl_global differential *du_sd_DL_shadow,
-
-        ccl_global differential *dv_sd,
-        ccl_global differential *dv_sd_DL_shadow,
-
-        /* Dp/Du */
-        ccl_global float3 *dPdu_sd,
-        ccl_global float3 *dPdu_sd_DL_shadow,
-
-        ccl_global float3 *dPdv_sd,
-        ccl_global float3 *dPdv_sd_DL_shadow,
-
-        /* Object motion. */
-        ccl_global Transform *ob_tfm_sd,
-        ccl_global Transform *ob_tfm_sd_DL_shadow,
-
-        ccl_global Transform *ob_itfm_sd,
-        ccl_global Transform *ob_itfm_sd_DL_shadow,
-
-        ShaderClosure *closure_sd,
-        ShaderClosure *closure_sd_DL_shadow,
-
-        ccl_global int *num_closure_sd,
-        ccl_global int *num_closure_sd_DL_shadow,
-
-        ccl_global float *randb_closure_sd,
-        ccl_global float *randb_closure_sd_DL_shadow,
-
-        ccl_global float3 *ray_P_sd,
-        ccl_global float3 *ray_P_sd_DL_shadow,
-
-        ccl_global differential3 *ray_dP_sd,
-        ccl_global differential3 *ray_dP_sd_DL_shadow,
-
         ccl_constant KernelData *data,
         ccl_global float *per_sample_output_buffers,
         ccl_global uint *rng_state,
@@ -136,68 +53,8 @@ __kernel void kernel_ocl_path_trace_data_init(
 #endif
         int parallel_samples)                        /* Number of samples to be processed in parallel */
 {
-	kernel_data_init((KernelGlobals *)kg,
-	                 (ShaderData *)sd,
+	kernel_data_init((KernelGlobals *)globals,
 	                 (ShaderData *)sd_DL_shadow,
-	                 P_sd,
-	                 P_sd_DL_shadow,
-	                 N_sd,
-	                 N_sd_DL_shadow,
-	                 Ng_sd,
-	                 Ng_sd_DL_shadow,
-	                 I_sd,
-	                 I_sd_DL_shadow,
-	                 shader_sd,
-	                 shader_sd_DL_shadow,
-	                 flag_sd,
-	                 flag_sd_DL_shadow,
-	                 prim_sd,
-	                 prim_sd_DL_shadow,
-	                 type_sd,
-	                 type_sd_DL_shadow,
-	                 u_sd,
-	                 u_sd_DL_shadow,
-	                 v_sd,
-	                 v_sd_DL_shadow,
-	                 object_sd,
-	                 object_sd_DL_shadow,
-	                 time_sd,
-	                 time_sd_DL_shadow,
-	                 ray_length_sd,
-	                 ray_length_sd_DL_shadow,
-
-	                 /* Ray differentials. */
-	                 dP_sd,
-	                 dP_sd_DL_shadow,
-	                 dI_sd,
-	                 dI_sd_DL_shadow,
-	                 du_sd,
-	                 du_sd_DL_shadow,
-	                 dv_sd,
-	                 dv_sd_DL_shadow,
-
-	                 /* Dp/Du */
-	                 dPdu_sd,
-	                 dPdu_sd_DL_shadow,
-	                 dPdv_sd,
-	                 dPdv_sd_DL_shadow,
-
-	                 /* Object motion. */
-	                 ob_tfm_sd,
-	                 ob_tfm_sd_DL_shadow,
-	                 ob_itfm_sd,
-	                 ob_itfm_sd_DL_shadow,
-
-	                 closure_sd,
-	                 closure_sd_DL_shadow,
-	                 num_closure_sd,
-	                 num_closure_sd_DL_shadow,
-	                 randb_closure_sd,
-	                 randb_closure_sd_DL_shadow,
-	                 ray_P_sd,
-	                 ray_P_sd_DL_shadow,
-	                 ray_dP_sd,
-	                 ray_dP_sd_DL_shadow,
 	                 data,
 	                 per_sample_output_buffers,
 	                 rng_state,

@@ -1908,59 +1908,6 @@ public:
 	                        * shadow_blocked kernel.
 	                        */
 
-	/* Global buffers of each member of ShaderData. */
-	cl_mem P_sd;
-	cl_mem P_sd_DL_shadow;
-	cl_mem N_sd;
-	cl_mem N_sd_DL_shadow;
-	cl_mem Ng_sd;
-	cl_mem Ng_sd_DL_shadow;
-	cl_mem I_sd;
-	cl_mem I_sd_DL_shadow;
-	cl_mem shader_sd;
-	cl_mem shader_sd_DL_shadow;
-	cl_mem flag_sd;
-	cl_mem flag_sd_DL_shadow;
-	cl_mem prim_sd;
-	cl_mem prim_sd_DL_shadow;
-	cl_mem type_sd;
-	cl_mem type_sd_DL_shadow;
-	cl_mem u_sd;
-	cl_mem u_sd_DL_shadow;
-	cl_mem v_sd;
-	cl_mem v_sd_DL_shadow;
-	cl_mem object_sd;
-	cl_mem object_sd_DL_shadow;
-	cl_mem time_sd;
-	cl_mem time_sd_DL_shadow;
-	cl_mem ray_length_sd;
-	cl_mem ray_length_sd_DL_shadow;
-
-	/* Ray differentials. */
-	cl_mem dP_sd, dI_sd;
-	cl_mem dP_sd_DL_shadow, dI_sd_DL_shadow;
-	cl_mem du_sd, dv_sd;
-	cl_mem du_sd_DL_shadow, dv_sd_DL_shadow;
-
-	/* Dp/Du */
-	cl_mem dPdu_sd, dPdv_sd;
-	cl_mem dPdu_sd_DL_shadow, dPdv_sd_DL_shadow;
-
-	/* Object motion. */
-	cl_mem ob_tfm_sd, ob_itfm_sd;
-	cl_mem ob_tfm_sd_DL_shadow, ob_itfm_sd_DL_shadow;
-
-	cl_mem closure_sd;
-	cl_mem closure_sd_DL_shadow;
-	cl_mem num_closure_sd;
-	cl_mem num_closure_sd_DL_shadow;
-	cl_mem randb_closure_sd;
-	cl_mem randb_closure_sd_DL_shadow;
-	cl_mem ray_P_sd;
-	cl_mem ray_P_sd_DL_shadow;
-	cl_mem ray_dP_sd;
-	cl_mem ray_dP_sd_DL_shadow;
-
 	/* Global memory required for shadow blocked and accum_radiance. */
 	cl_mem BSDFEval_coop;
 	cl_mem ISLamp_coop;
@@ -2056,66 +2003,6 @@ public:
 		kgbuffer = NULL;
 		sd = NULL;
 		sd_DL_shadow = NULL;
-
-		P_sd = NULL;
-		P_sd_DL_shadow = NULL;
-		N_sd = NULL;
-		N_sd_DL_shadow = NULL;
-		Ng_sd = NULL;
-		Ng_sd_DL_shadow = NULL;
-		I_sd = NULL;
-		I_sd_DL_shadow = NULL;
-		shader_sd = NULL;
-		shader_sd_DL_shadow = NULL;
-		flag_sd = NULL;
-		flag_sd_DL_shadow = NULL;
-		prim_sd = NULL;
-		prim_sd_DL_shadow = NULL;
-		type_sd = NULL;
-		type_sd_DL_shadow = NULL;
-		u_sd = NULL;
-		u_sd_DL_shadow = NULL;
-		v_sd = NULL;
-		v_sd_DL_shadow = NULL;
-		object_sd = NULL;
-		object_sd_DL_shadow = NULL;
-		time_sd = NULL;
-		time_sd_DL_shadow = NULL;
-		ray_length_sd = NULL;
-		ray_length_sd_DL_shadow = NULL;
-
-		/* Ray differentials. */
-		dP_sd = NULL;
-		dI_sd = NULL;
-		dP_sd_DL_shadow = NULL;
-		dI_sd_DL_shadow = NULL;
-		du_sd = NULL;
-		dv_sd = NULL;
-		du_sd_DL_shadow = NULL;
-		dv_sd_DL_shadow = NULL;
-
-		/* Dp/Du */
-		dPdu_sd = NULL;
-		dPdv_sd = NULL;
-		dPdu_sd_DL_shadow = NULL;
-		dPdv_sd_DL_shadow = NULL;
-
-		/* Object motion. */
-		ob_tfm_sd = NULL;
-		ob_itfm_sd = NULL;
-		ob_tfm_sd_DL_shadow = NULL;
-		ob_itfm_sd_DL_shadow = NULL;
-
-		closure_sd = NULL;
-		closure_sd_DL_shadow = NULL;
-		num_closure_sd = NULL;
-		num_closure_sd_DL_shadow = NULL;
-		randb_closure_sd = NULL;
-		randb_closure_sd_DL_shadow = NULL;
-		ray_P_sd = NULL;
-		ray_P_sd_DL_shadow = NULL;
-		ray_dP_sd = NULL;
-		ray_dP_sd_DL_shadow = NULL;
 
 		rng_coop = NULL;
 		throughput_coop = NULL;
@@ -2232,17 +2119,10 @@ public:
 		return ret_size;
 	}
 
-	size_t get_shader_closure_size(int max_closure)
+	size_t get_shader_data_size(size_t max_closure)
 	{
-		return (sizeof(ShaderClosure) * max_closure);
-	}
-
-	size_t get_shader_data_size(size_t shader_closure_size)
-	{
-		/* ShaderData size without accounting for ShaderClosure array. */
-		size_t shader_data_size =
-			sizeof(ShaderData) - (sizeof(ShaderClosure) * MAX_CLOSURE);
-		return (shader_data_size + shader_closure_size);
+		/* ShaderData size with variable size ShaderClosure array */
+		return sizeof(ShaderData) - (sizeof(ShaderClosure) * (MAX_CLOSURE - max_closure));
 	}
 
 	/* Returns size of KernelGlobals structure associated with OpenCL. */
@@ -2262,20 +2142,6 @@ public:
 		} KernelGlobals;
 
 		return sizeof(KernelGlobals);
-	}
-
-	/* Returns size of Structure of arrays implementation of. */
-	size_t get_shaderdata_soa_size()
-	{
-		size_t shader_soa_size = 0;
-
-#define SD_VAR(type, what) shader_soa_size += sizeof(void *);
-#define SD_CLOSURE_VAR(type, what, max_closure) shader_soa_size += sizeof(void *);
-		#include "kernel_shaderdata_vars.h"
-#undef SD_VAR
-#undef SD_CLOSURE_VAR
-
-		return shader_soa_size;
 	}
 
 	bool load_kernels(const DeviceRequestedFeatures& requested_features)
@@ -2398,66 +2264,6 @@ public:
 		release_kernel_safe(ckPathTraceKernel_sum_all_radiance);
 
 		/* Release global memory */
-		release_mem_object_safe(P_sd);
-		release_mem_object_safe(P_sd_DL_shadow);
-		release_mem_object_safe(N_sd);
-		release_mem_object_safe(N_sd_DL_shadow);
-		release_mem_object_safe(Ng_sd);
-		release_mem_object_safe(Ng_sd_DL_shadow);
-		release_mem_object_safe(I_sd);
-		release_mem_object_safe(I_sd_DL_shadow);
-		release_mem_object_safe(shader_sd);
-		release_mem_object_safe(shader_sd_DL_shadow);
-		release_mem_object_safe(flag_sd);
-		release_mem_object_safe(flag_sd_DL_shadow);
-		release_mem_object_safe(prim_sd);
-		release_mem_object_safe(prim_sd_DL_shadow);
-		release_mem_object_safe(type_sd);
-		release_mem_object_safe(type_sd_DL_shadow);
-		release_mem_object_safe(u_sd);
-		release_mem_object_safe(u_sd_DL_shadow);
-		release_mem_object_safe(v_sd);
-		release_mem_object_safe(v_sd_DL_shadow);
-		release_mem_object_safe(object_sd);
-		release_mem_object_safe(object_sd_DL_shadow);
-		release_mem_object_safe(time_sd);
-		release_mem_object_safe(time_sd_DL_shadow);
-		release_mem_object_safe(ray_length_sd);
-		release_mem_object_safe(ray_length_sd_DL_shadow);
-
-		/* Ray differentials. */
-		release_mem_object_safe(dP_sd);
-		release_mem_object_safe(dP_sd_DL_shadow);
-		release_mem_object_safe(dI_sd);
-		release_mem_object_safe(dI_sd_DL_shadow);
-		release_mem_object_safe(du_sd);
-		release_mem_object_safe(du_sd_DL_shadow);
-		release_mem_object_safe(dv_sd);
-		release_mem_object_safe(dv_sd_DL_shadow);
-
-		/* Dp/Du */
-		release_mem_object_safe(dPdu_sd);
-		release_mem_object_safe(dPdu_sd_DL_shadow);
-		release_mem_object_safe(dPdv_sd);
-		release_mem_object_safe(dPdv_sd_DL_shadow);
-
-		/* Object motion. */
-		release_mem_object_safe(ob_tfm_sd);
-		release_mem_object_safe(ob_itfm_sd);
-
-		release_mem_object_safe(ob_tfm_sd_DL_shadow);
-		release_mem_object_safe(ob_itfm_sd_DL_shadow);
-
-		release_mem_object_safe(closure_sd);
-		release_mem_object_safe(closure_sd_DL_shadow);
-		release_mem_object_safe(num_closure_sd);
-		release_mem_object_safe(num_closure_sd_DL_shadow);
-		release_mem_object_safe(randb_closure_sd);
-		release_mem_object_safe(randb_closure_sd_DL_shadow);
-		release_mem_object_safe(ray_P_sd);
-		release_mem_object_safe(ray_P_sd_DL_shadow);
-		release_mem_object_safe(ray_dP_sd);
-		release_mem_object_safe(ray_dP_sd_DL_shadow);
 		release_mem_object_safe(rng_coop);
 		release_mem_object_safe(throughput_coop);
 		release_mem_object_safe(L_transparent_coop);
@@ -2572,7 +2378,7 @@ public:
 			/* TODO(sergey): This will actually over-allocate if
 			 * particular kernel does not support multiclosure.
 			 */
-			size_t ShaderClosure_size = get_shader_closure_size(current_max_closure);
+			size_t shaderdata_size = get_shader_data_size(current_max_closure);
 
 #ifdef __WORK_STEALING__
 			/* Calculate max groups */
@@ -2593,67 +2399,8 @@ public:
 			kgbuffer = mem_alloc(get_KernelGlobals_size());
 
 			/* Create global buffers for ShaderData. */
-			sd = mem_alloc(get_shaderdata_soa_size());
-			sd_DL_shadow = mem_alloc(get_shaderdata_soa_size());
-			P_sd = mem_alloc(num_global_elements * sizeof(float3));
-			P_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float3));
-			N_sd = mem_alloc(num_global_elements * sizeof(float3));
-			N_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float3));
-			Ng_sd = mem_alloc(num_global_elements * sizeof(float3));
-			Ng_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float3));
-			I_sd = mem_alloc(num_global_elements * sizeof(float3));
-			I_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float3));
-			shader_sd = mem_alloc(num_global_elements * sizeof(int));
-			shader_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(int));
-			flag_sd = mem_alloc(num_global_elements * sizeof(int));
-			flag_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(int));
-			prim_sd = mem_alloc(num_global_elements * sizeof(int));
-			prim_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(int));
-			type_sd = mem_alloc(num_global_elements * sizeof(int));
-			type_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(int));
-			u_sd = mem_alloc(num_global_elements * sizeof(float));
-			u_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float));
-			v_sd = mem_alloc(num_global_elements * sizeof(float));
-			v_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float));
-			object_sd = mem_alloc(num_global_elements * sizeof(int));
-			object_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(int));
-			time_sd = mem_alloc(num_global_elements * sizeof(float));
-			time_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float));
-			ray_length_sd = mem_alloc(num_global_elements * sizeof(float));
-			ray_length_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float));
-
-			/* Ray differentials. */
-			dP_sd = mem_alloc(num_global_elements * sizeof(differential3));
-			dP_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(differential3));
-			dI_sd = mem_alloc(num_global_elements * sizeof(differential3));
-			dI_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(differential3));
-			du_sd = mem_alloc(num_global_elements * sizeof(differential));
-			du_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(differential));
-			dv_sd = mem_alloc(num_global_elements * sizeof(differential));
-			dv_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(differential));
-
-			/* Dp/Du */
-			dPdu_sd = mem_alloc(num_global_elements * sizeof(float3));
-			dPdu_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float3));
-			dPdv_sd = mem_alloc(num_global_elements * sizeof(float3));
-			dPdv_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float3));
-
-			/* Object motion. */
-			ob_tfm_sd = mem_alloc(num_global_elements * sizeof(Transform));
-			ob_tfm_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(Transform));
-			ob_itfm_sd = mem_alloc(num_global_elements * sizeof(Transform));
-			ob_itfm_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(Transform));
-
-			closure_sd = mem_alloc(num_global_elements * ShaderClosure_size);
-			closure_sd_DL_shadow = mem_alloc(num_global_elements * 2 * ShaderClosure_size);
-			num_closure_sd = mem_alloc(num_global_elements * sizeof(int));
-			num_closure_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(int));
-			randb_closure_sd = mem_alloc(num_global_elements * sizeof(float));
-			randb_closure_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float));
-			ray_P_sd = mem_alloc(num_global_elements * sizeof(float3));
-			ray_P_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float3));
-			ray_dP_sd = mem_alloc(num_global_elements * sizeof(differential3));
-			ray_dP_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(differential3));
+			sd = mem_alloc(num_global_elements * shaderdata_size);
+			sd_DL_shadow = mem_alloc(num_global_elements * 2 * shaderdata_size);
 
 			/* Creation of global memory buffers which are shared among
 			 * the kernels.
@@ -2694,79 +2441,7 @@ public:
 			kernel_set_args(ckPathTraceKernel_data_init,
 			                0,
 			                kgbuffer,
-			                sd,
 			                sd_DL_shadow,
-			                P_sd,
-			                P_sd_DL_shadow,
-			                N_sd,
-			                N_sd_DL_shadow,
-			                Ng_sd,
-			                Ng_sd_DL_shadow,
-			                I_sd,
-			                I_sd_DL_shadow,
-			                shader_sd,
-			                shader_sd_DL_shadow,
-			                flag_sd,
-			                flag_sd_DL_shadow,
-			                prim_sd,
-			                prim_sd_DL_shadow,
-			                type_sd,
-			                type_sd_DL_shadow,
-			                u_sd,
-			                u_sd_DL_shadow,
-			                v_sd,
-			                v_sd_DL_shadow,
-			                object_sd,
-			                object_sd_DL_shadow,
-			                time_sd,
-			                time_sd_DL_shadow,
-			                ray_length_sd,
-			                ray_length_sd_DL_shadow);
-
-		/* Ray differentials. */
-		start_arg_index +=
-			kernel_set_args(ckPathTraceKernel_data_init,
-			                start_arg_index,
-			                dP_sd,
-			                dP_sd_DL_shadow,
-			                dI_sd,
-			                dI_sd_DL_shadow,
-			                du_sd,
-			                du_sd_DL_shadow,
-			                dv_sd,
-			                dv_sd_DL_shadow);
-
-		/* Dp/Du */
-		start_arg_index +=
-			kernel_set_args(ckPathTraceKernel_data_init,
-			                start_arg_index,
-			                dPdu_sd,
-			                dPdu_sd_DL_shadow,
-			                dPdv_sd,
-			                dPdv_sd_DL_shadow);
-
-		/* Object motion. */
-		start_arg_index +=
-			kernel_set_args(ckPathTraceKernel_data_init,
-			                start_arg_index,
-			                ob_tfm_sd,
-			                ob_tfm_sd_DL_shadow,
-			                ob_itfm_sd,
-			                ob_itfm_sd_DL_shadow);
-
-		start_arg_index +=
-			kernel_set_args(ckPathTraceKernel_data_init,
-			                start_arg_index,
-			                closure_sd,
-			                closure_sd_DL_shadow,
-			                num_closure_sd,
-			                num_closure_sd_DL_shadow,
-			                randb_closure_sd,
-			                randb_closure_sd_DL_shadow,
-			                ray_P_sd,
-			                ray_P_sd_DL_shadow,
-			                ray_dP_sd,
-			                ray_dP_sd_DL_shadow,
 			                d_data,
 			                per_sample_output_buffers,
 			                d_rng_state,
@@ -3132,16 +2807,12 @@ public:
 	{
 		size_t total_invariable_mem_allocated = 0;
 		size_t KernelGlobals_size = 0;
-		size_t ShaderData_SOA_size = 0;
 
 		KernelGlobals_size = get_KernelGlobals_size();
-		ShaderData_SOA_size = get_shaderdata_soa_size();
 
 		total_invariable_mem_allocated += KernelGlobals_size; /* KernelGlobals size */
 		total_invariable_mem_allocated += NUM_QUEUES * sizeof(unsigned int); /* Queue index size */
 		total_invariable_mem_allocated += sizeof(char); /* use_queues_flag size */
-		total_invariable_mem_allocated += ShaderData_SOA_size; /* sd size */
-		total_invariable_mem_allocated += ShaderData_SOA_size; /* sd_DL_shadow size */
 
 		return total_invariable_mem_allocated;
 	}
@@ -3208,13 +2879,11 @@ public:
 	/* Calculate the memory required for one thread in split kernel. */
 	size_t get_per_thread_memory()
 	{
-		size_t shader_closure_size = 0;
-		size_t shaderdata_volume = 0;
-		shader_closure_size = get_shader_closure_size(current_max_closure);
+		size_t shaderdata_size = 0;
 		/* TODO(sergey): This will actually over-allocate if
 		 * particular kernel does not support multiclosure.
 		 */
-		shaderdata_volume = get_shader_data_size(shader_closure_size);
+		shaderdata_size = get_shader_data_size(current_max_closure);
 		size_t retval = sizeof(RNG)
 			+ sizeof(float3)          /* Throughput size */
 			+ sizeof(float)           /* L transparent size */
@@ -3225,8 +2894,8 @@ public:
 			+ sizeof(Intersection)    /* Overall isect */
 			+ sizeof(Intersection)    /* Instersection_coop_AO */
 			+ sizeof(Intersection)    /* Intersection coop DL */
-			+ shaderdata_volume       /* Overall ShaderData */
-			+ (shaderdata_volume * 2) /* ShaderData : DL and shadow */
+			+ shaderdata_size         /* Overall ShaderData */
+			+ (shaderdata_size * 2)   /* ShaderData : DL and shadow */
 			+ sizeof(Ray) + sizeof(BsdfEval)
 			+ sizeof(float3)          /* AOAlpha size */
 			+ sizeof(float3)          /* AOBSDF size */
