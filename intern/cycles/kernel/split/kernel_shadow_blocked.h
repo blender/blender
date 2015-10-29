@@ -73,10 +73,12 @@ ccl_device void kernel_shadow_blocked(
 
 		ccl_global Ray *light_ray_global =
 		        shadow_blocked_type == RAY_SHADOW_RAY_CAST_AO
-		                 ? light_ray_ao_global
-		                 : light_ray_dl_global;
+		                ? light_ray_ao_global
+		                : light_ray_dl_global;
 		Intersection *isect_global =
-		        RAY_SHADOW_RAY_CAST_AO ? isect_ao_global : isect_dl_global;
+		        shadow_blocked_type == RAY_SHADOW_RAY_CAST_AO
+		                ? isect_ao_global
+		                : isect_dl_global;
 
 		float3 shadow;
 		update_path_radiance = !(shadow_blocked(kg,
