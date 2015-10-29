@@ -640,7 +640,7 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 		 * center, in other cases it's not clear what rotation center shall be
 		 * so just rotate around object origin
 		 */
-		if (ob->mode & (OB_MODE_SCULPT | OB_MODE_TEXTURE_PAINT)) {
+		if (ob->mode & (OB_MODE_SCULPT | OB_MODE_TEXTURE_PAINT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
 			float stroke[3];
 			BKE_paint_stroke_get_average(scene, ob, stroke);
 			copy_v3_v3(lastofs, stroke);
