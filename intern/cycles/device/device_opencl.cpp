@@ -130,7 +130,12 @@ bool opencl_kernel_use_split(const string& platform_name,
                              const cl_device_type device_type)
 {
 	if(getenv("CYCLES_OPENCL_SPLIT_KERNEL_TEST") != NULL) {
+		VLOG(1) << "Forcing split kernel to use.";
 		return true;
+	}
+	if(getenv("CYCLES_OPENCL_MEGA_KERNEL_TEST") != NULL) {
+		VLOG(1) << "Forcing mega kernel to use.";
+		return false;
 	}
 	/* TODO(sergey): Replace string lookups with more enum-like API,
 	 * similar to device/vendor checks blender's gpu.
