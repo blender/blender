@@ -50,7 +50,8 @@ extern "C" {
 
 ComponentDepsNode::ComponentDepsNode() :
     entry_operation(NULL),
-    exit_operation(NULL)
+    exit_operation(NULL),
+    flags(0)
 {
 }
 

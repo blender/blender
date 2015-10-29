@@ -284,6 +284,7 @@ void DEG_graph_flush_updates(Main *bmain, Depsgraph *graph)
 	{
 		OperationDepsNode *node = *it;
 		node->scheduled = false;
+		node->owner->flags &= ~DEPSCOMP_FULLY_SCHEDULED;
 	}
 
 	FlushQueue queue;
@@ -353,12 +354,16 @@ void DEG_graph_flush_updates(Main *bmain, Depsgraph *graph)
 		 * witin a component at least we tag the whole component
 		 * for update.
 		 */
-		for (ComponentDepsNode::OperationMap::iterator it = node->owner->operations.begin();
-		     it != node->owner->operations.end();
-		     ++it)
-		{
-			OperationDepsNode *op = it->second;
-			op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
+		ComponentDepsNode *component = node->owner;
+		if ((component->flags & DEPSCOMP_FULLY_SCHEDULED) == 0) {
+			for (ComponentDepsNode::OperationMap::iterator it = component->operations.begin();
+			     it != node->owner->operations.end();
+			     ++it)
+			{
+				OperationDepsNode *op = it->second;
+				op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
+			}
+			component->flags |= DEPSCOMP_FULLY_SCHEDULED;
 		}
 	}
 }
