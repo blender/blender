@@ -378,5 +378,15 @@ const char* clewErrorString(cl_int error)
         , "CL_INVALID_DEVICE_PARTITION_COUNT"           //  -68
     };
 
+    static const int num_errors = sizeof(strings) / sizeof(strings[0]);
+
+    if (error == -1001) {
+        return "CL_PLATFORM_NOT_FOUND_KHR";
+    }
+
+    if (error > 0 || -error >= num_errors) {
+        return "Unknown OpenCL error";
+    }
+
     return strings[-error];
 }
