@@ -1194,16 +1194,12 @@ void CcdPhysicsController::SetMass(MT_Scalar newmass)
 	btRigidBody *body = GetRigidBody();
 	if (body && !m_suspended && newmass>MT_EPSILON && GetMass()>MT_EPSILON)
 	{
-		btVector3 grav = body->getGravity();
-		btVector3 accel = grav / GetMass();
-
 		btBroadphaseProxy* handle = body->getBroadphaseHandle();
 		GetPhysicsEnvironment()->UpdateCcdPhysicsController(this,
 			newmass,
 			body->getCollisionFlags(),
 			handle->m_collisionFilterGroup,
 			handle->m_collisionFilterMask);
-		body->setGravity(accel);
 	}
 }
 		
