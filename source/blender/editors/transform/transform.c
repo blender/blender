@@ -2034,7 +2034,10 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	}
 }
 
-/* note: caller needs to free 't' on a 0 return */
+/**
+ * \note  caller needs to free 't' on a 0 return
+ * \warning  \a event might be NULL (when tweaking from redo panel)
+ */
 bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event, int mode)
 {
 	int options = 0;
@@ -2160,7 +2163,9 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	calculatePropRatio(t);
 	calculateCenter(t);
 
-	initMouseInput(t, &t->mouse, t->center2d, event->mval);
+	if (event) {
+		initMouseInput(t, &t->mouse, t->center2d, event->mval);
+	}
 
 	switch (mode) {
 		case TFM_TRANSLATION:
