@@ -86,6 +86,8 @@
 #include "render_types.h"
 #include "zbuf.h"
 
+/* Remove when Cycles moves from MFace to MLoopTri */
+#define USE_MFACE_WORKAROUND
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
@@ -352,6 +354,27 @@ static bool cast_ray_highpoly(
 	return hit_mesh != -1;
 }
 
+#ifdef USE_MFACE_WORKAROUND
+/**
+ * Until cycles moves to #MLoopTri, we need to keep face-rotation in sync with #test_index_face
+ *
+ * We only need to consider quads since #BKE_mesh_recalc_tessellation doesn't execute this on triangles.
+ */
+static void test_index_face_looptri(const MPoly *mp, MLoop *mloop, MLoopTri *lt)
+{
+	if (mp->totloop == 4) {
+		if (UNLIKELY((mloop[mp->loopstart + 2].v == 0) ||
+		             (mloop[mp->loopstart + 3].v == 0)))
+		{
+			/* remap: (2, 3, 0, 1) */
+			unsigned int l = mp->loopstart;
+			ARRAY_SET_ITEMS(lt[0].tri, l + 2, l + 3, l + 0);
+			ARRAY_SET_ITEMS(lt[1].tri, l + 2, l + 0, l + 1);
+		}
+	}
+}
+#endif
+
 /**
  * This function populates an array of verts for the triangles of a mesh
  * Tangent and Normals are also stored
@@ -372,6 +395,10 @@ static TriTessFace *mesh_calc_tri_tessface(
 	/* calculate normal for each polygon only once */
 	unsigned int mpoly_prev = UINT_MAX;
 	float no[3];
+
+#ifdef USE_MFACE_WORKAROUND
+	unsigned int mpoly_prev_testindex = UINT_MAX;
+#endif
 
 	mvert = CustomData_get_layer(&me->vdata, CD_MVERT);
 	looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
@@ -395,8 +422,15 @@ static TriTessFace *mesh_calc_tri_tessface(
 	            looptri);
 
 	for (i = 0; i < tottri; i++) {
-		MLoopTri *lt = &looptri[i];
-		MPoly *mp = &me->mpoly[lt->poly];
+		const MLoopTri *lt = &looptri[i];
+		const MPoly *mp = &me->mpoly[lt->poly];
+
+#ifdef USE_MFACE_WORKAROUND
+		if (lt->poly != mpoly_prev_testindex) {
+			test_index_face_looptri(mp, me->mloop, &looptri[i]);
+			mpoly_prev_testindex = lt->poly;
+		}
+#endif
 
 		triangles[i].mverts[0] = &mvert[me->mloop[lt->tri[0]].v];
 		triangles[i].mverts[1] = &mvert[me->mloop[lt->tri[1]].v];
@@ -586,6 +620,9 @@ void RE_bake_pixels_populate(
 	const MLoopUV *mloopuv;
 	const int tottri = poly_to_tri_count(me->totpoly, me->totloop);
 	MLoopTri *looptri;
+#ifdef USE_MFACE_WORKAROUND
+	unsigned int mpoly_prev_testindex = UINT_MAX;
+#endif
 
 	/* we can't bake in edit mode */
 	if (me->edit_btmesh)
@@ -632,6 +669,13 @@ void RE_bake_pixels_populate(
 
 		bd.bk_image = &bake_images->data[image_id];
 		bd.primitive_id = ++p_id;
+
+#ifdef USE_MFACE_WORKAROUND
+		if (lt->poly != mpoly_prev_testindex) {
+			test_index_face_looptri(mp, me->mloop, &looptri[i]);
+			mpoly_prev_testindex = lt->poly;
+		}
+#endif
 
 		for (a = 0; a < 3; a++) {
 			const float *uv = mloopuv[lt->tri[a]].uv;
