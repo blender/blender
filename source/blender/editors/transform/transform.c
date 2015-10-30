@@ -313,7 +313,7 @@ static void convertViewVec2D_mask(View2D *v2d, float r_vec[3], int dx, int dy)
 	r_vec[2] = 0.0f;
 }
 
-void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
+void convertViewVec(TransInfo *t, float r_vec[3], double dx, double dy)
 {
 	if ((t->spacetype == SPACE_VIEW3D) && (t->ar->regiontype == RGN_TYPE_WINDOW)) {
 		if (t->options & CTX_PAINT_CURVE) {
@@ -7605,12 +7605,17 @@ static void applyBakeTime(TransInfo *t, const int mval[2])
 
 	float fac = 0.1f;
 
+	/* XXX, disable precission for now,
+	 * this isn't even accessible by the user */
+#if 0
 	if (t->mouse.precision) {
 		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
 		time = (float)(t->center2d[0] - t->mouse.precision_mval[0]) * fac;
 		time += 0.1f * ((float)(t->center2d[0] * fac - mval[0]) - time);
 	}
-	else {
+	else
+#endif
+	{
 		time = (float)(t->center2d[0] - mval[0]) * fac;
 	}
 

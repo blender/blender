@@ -326,15 +326,29 @@ typedef struct TransData {
 } TransData;
 
 typedef struct MouseInput {
-	void	(*apply)(struct TransInfo *t, struct MouseInput *mi, const int mval[2], float output[3]);
+	void	(*apply)(struct TransInfo *t, struct MouseInput *mi, const double mval[2], float output[3]);
 	void	(*post)(struct TransInfo *t, float values[3]);
 
 	int     imval[2];       	/* initial mouse position                */
 	bool	precision;
-	int     precision_mval[2];	/* mouse position when precision key was pressed */
+	float   precision_factor;
 	float	center[2];
 	float	factor;
 	void 	*data; /* additional data, if needed by the particular function */
+
+	/**
+	 * Use virtual cursor, which takes precission into account
+	 * keeping track of the cursors 'virtual' location,
+	 * to avoid jumping values when its toggled.
+	 *
+	 * This works well for scaling drag motion,
+	 * but not for rotating around a point (rotaton needs its own custom accumulator)
+	 */
+	bool use_virtual_mval;
+	struct {
+		double prev[2];
+		double accum[2];
+	} virtual_mval;
 } MouseInput;
 
 typedef struct TransInfo {
@@ -549,7 +563,7 @@ int  transformEnd(struct bContext *C, TransInfo *t);
 
 void setTransformViewMatrices(TransInfo *t);
 void setTransformViewAspect(TransInfo *t, float r_aspect[3]);
-void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy);
+void convertViewVec(TransInfo *t, float r_vec[3], double dx, double dy);
 void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DProjTest flag);
 void projectIntView(TransInfo *t, const float vec[3], int adr[2]);
 void projectFloatViewEx(TransInfo *t, const float vec[3], float adr[2], const eV3DProjTest flag);
