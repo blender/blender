@@ -666,6 +666,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 	/* copy render data and render layers for thread safety */
 	BLI_freelistN(&re->r.layers);
 	BLI_freelistN(&re->r.views);
+	curvemapping_free_data(&re->r.mblur_shutter_curve);
 	re->r = *rd;
 	BLI_duplicatelist(&re->r.layers, &rd->layers);
 	BLI_duplicatelist(&re->r.views, &rd->views);
