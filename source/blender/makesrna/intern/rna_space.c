@@ -142,6 +142,9 @@ static EnumPropertyItem draw_channels_items[] = {
 	{SI_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Draw alpha transparency channel"},
 	{SI_SHOW_ZBUF, "Z_BUFFER", ICON_IMAGE_ZDEPTH, "Z-Buffer",
 	               "Draw Z-buffer associated with image (mapped from camera clip start to end)"},
+	{SI_SHOW_R, "RED",   ICON_COLOR_RED, "Red", ""},
+	{SI_SHOW_G, "GREEN", ICON_COLOR_GREEN, "Green", ""},
+	{SI_SHOW_B, "BLUE",  ICON_COLOR_BLUE, "Blue", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -837,6 +840,10 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *UNUS
 	else {
 		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, 0);
 	}
+
+	RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_SHOW_R);
+	RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_SHOW_G);
+	RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_SHOW_B);
 
 	RNA_enum_item_end(&item, &totitem);
 	*r_free = true;

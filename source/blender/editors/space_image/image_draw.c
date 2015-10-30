@@ -478,6 +478,19 @@ static void sima_draw_zbuffloat_pixels(Scene *scene, float x1, float y1, int rec
 	MEM_freeN(rectf);
 }
 
+static int draw_image_channel_offset(SpaceImage *sima)
+{
+#ifdef __BIG_ENDIAN__
+	if      (sima->flag & SI_SHOW_R) return 2;
+	else if (sima->flag & SI_SHOW_G) return 1;
+	else                             return 0;
+#else
+	if      (sima->flag & SI_SHOW_R) return 1;
+	else if (sima->flag & SI_SHOW_G) return 2;
+	else                             return 3;
+#endif
+}
+
 static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, Scene *scene, ImBuf *ibuf, float fx, float fy, float zoomx, float zoomy)
 {
 	int x, y;
@@ -513,7 +526,27 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 			fdrawcheckerboard(x, y, x + ibuf->x * zoomx, y + ibuf->y * zoomy);
 		}
 
-		glaDrawImBuf_glsl_ctx(C, ibuf, x, y, GL_NEAREST);
+		if ((sima->flag & (SI_SHOW_R | SI_SHOW_G | SI_SHOW_B)) == 0) {
+			glaDrawImBuf_glsl_ctx(C, ibuf, x, y, GL_NEAREST);
+		}
+		else {
+			unsigned char *display_buffer;
+			void *cache_handle;
+
+			/* TODO(sergey): Ideally GLSL shading should be capable of either
+			 * disabling some channels or displaying buffer with custom offset.
+			 */
+			display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
+
+			if (display_buffer != NULL) {
+				int channel_offset = draw_image_channel_offset(sima);
+				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_LUMINANCE, GL_UNSIGNED_INT,
+				                  display_buffer + channel_offset);
+			}
+			if (cache_handle != NULL) {
+				IMB_display_buffer_release(cache_handle);
+			}
+		}
 
 		if (sima->flag & SI_USE_ALPHA)
 			glDisable(GL_BLEND);
@@ -551,6 +584,7 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 	unsigned int *rect;
 	int dx, dy, sx, sy, x, y;
 	void *cache_handle;
+	int channel_offset = -1;
 
 	/* verify valid values, just leave this a while */
 	if (ima->xrep < 1) return;
@@ -577,11 +611,19 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 	rect = get_part_from_buffer((unsigned int *)display_buffer, ibuf->x, sx, sy, sx + dx, sy + dy);
 	
 	/* draw repeated */
+	if ((sima->flag & (SI_SHOW_R | SI_SHOW_G | SI_SHOW_B)) != 0) {
+		channel_offset = draw_image_channel_offset(sima);
+	}
 	for (sy = 0; sy + dy <= ibuf->y; sy += dy) {
 		for (sx = 0; sx + dx <= ibuf->x; sx += dx) {
 			UI_view2d_view_to_region(&ar->v2d, fx + (float)sx / (float)ibuf->x, fy + (float)sy / (float)ibuf->y, &x, &y);
-
-			glaDrawPixelsSafe(x, y, dx, dy, dx, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+			if (channel_offset == -1) {
+				glaDrawPixelsSafe(x, y, dx, dy, dx, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+			}
+			else {
+				glaDrawPixelsSafe(x, y, dx, dy, dx, GL_LUMINANCE, GL_UNSIGNED_INT,
+				                  (unsigned char*)rect + channel_offset);
+			}
 		}
 	}
 

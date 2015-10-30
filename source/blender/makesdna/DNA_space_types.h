@@ -966,7 +966,11 @@ typedef enum eSpaceImage_Flag {
 	SI_COLOR_CORRECTION   = (1 << 24),
 
 	SI_NO_DRAW_TEXPAINT   = (1 << 25),
-	SI_DRAW_METADATA      = (1 << 26)
+	SI_DRAW_METADATA      = (1 << 26),
+
+	SI_SHOW_R             = (1 << 27),
+	SI_SHOW_G             = (1 << 28),
+	SI_SHOW_B             = (1 << 29),
 } eSpaceImage_Flag;
 
 /* Text Editor ============================================ */
