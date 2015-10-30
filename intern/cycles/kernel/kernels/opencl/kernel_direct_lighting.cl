@@ -61,7 +61,7 @@ __kernel void kernel_ocl_path_trace_direct_lighting(
 #ifndef __COMPUTE_DEVICE_GPU__
 	if(ray_index != QUEUE_EMPTY_SLOT) {
 #endif
-		enqueue_flag = kernel_direct_lighting((KernelGLobals *)kg,
+		enqueue_flag = kernel_direct_lighting((KernelGlobals *)kg,
 		                                      data,
 		                                      (ShaderData *)sd,
 		                                      (ShaderData *)sd_DL,

@@ -68,7 +68,7 @@ __kernel void kernel_ocl_path_trace_lamp_emission(
 		}
 	}
 
-	kernel_lamp_emission((KenrelGLobals *)kg,
+	kernel_lamp_emission((KernelGlobals *)kg,
 	                     data,
 	                     (ShaderData *)sd,
 	                     throughput_coop,
