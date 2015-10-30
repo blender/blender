@@ -50,6 +50,8 @@ from os.path import join, dirname, normpath, relpath, exists
 
 
 def create_nb_project_main():
+    from xml.sax.saxutils import escape
+
     files = list(source_list(SOURCE_DIR, filename_check=is_project_file))
     files_rel = [relpath(f, start=PROJECT_DIR) for f in files]
     files_rel.sort()
@@ -207,8 +209,8 @@ def create_nb_project_main():
             build_cmd = "${MAKE} -f Makefile"
             clean_cmd = "${MAKE} -f Makefile clean"
 
-        f.write('          <buildCommand>%s</buildCommand>\n' % build_cmd)
-        f.write('          <cleanCommand>%s</cleanCommand>\n' % clean_cmd)
+        f.write('          <buildCommand>%s</buildCommand>\n' % escape(build_cmd))
+        f.write('          <cleanCommand>%s</cleanCommand>\n' % escape(clean_cmd))
         f.write('          <executablePath>./bin/blender</executablePath>\n')
         del build_cmd, clean_cmd
 
@@ -219,7 +221,7 @@ def create_nb_project_main():
             f.write('            </incDir>\n')
             f.write('            <preprocessorList>\n')
             for cdef in defines:
-                f.write('              <Elem>%s</Elem>\n' % cdef)
+                f.write('              <Elem>%s</Elem>\n' % escape(cdef))
             f.write('            </preprocessorList>\n')
 
         f.write('          <cTool>\n')
