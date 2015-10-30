@@ -20,14 +20,15 @@
 
 # classes for extracting info from blenders internal classes
 
-import bpy
-import bgl
-
-import sys
-
 
 def write_sysinfo(op):
+    import sys
+
     import textwrap
+    import subprocess
+
+    import bpy
+    import bgl
 
     output_filename = "system-info.txt"
 
@@ -82,6 +83,18 @@ def write_sysinfo(op):
     output.write("paths:\n")
     for p in sys.path:
         output.write("\t%r\n" % p)
+
+    output.write(title("Python (External Binary)"))
+    output.write("binary path: %s\n" % prepr(bpy.app.binary_path_python))
+    try:
+        py_ver = prepr(subprocess.check_output([
+                bpy.app.binary_path_python,
+                "--version",
+                ]).strip())
+    except Exception as e:
+        py_ver = str(e)
+    output.write("version: %s\n" % py_ver)
+    del py_ver
 
     output.write(title("Directories"))
     output.write("scripts:\n")
