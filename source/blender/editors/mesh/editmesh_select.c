@@ -3331,16 +3331,16 @@ static int edbm_select_sharp_edges_exec(bContext *C, wmOperator *op)
 	BMIter iter;
 	BMEdge *e;
 	BMLoop *l1, *l2;
-	const float sharp = RNA_float_get(op->ptr, "sharpness");
+	const float angle_limit_cos = cosf(RNA_float_get(op->ptr, "sharpness"));
 
 	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) == false &&
 		    BM_edge_loop_pair(e, &l1, &l2))
 		{
 			/* edge has exactly two neighboring faces, check angle */
-			const float angle = angle_normalized_v3v3(l1->f->no, l2->f->no);
+			const float angle_cos = dot_v3v3(l1->f->no, l2->f->no);
 
-			if (fabsf(angle) > sharp) {
+			if (angle_cos < angle_limit_cos) {
 				BM_edge_select_set(em->bm, e, true);
 			}
 		}
@@ -3384,7 +3384,7 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 	BMIter iter, liter, liter2;
 	BMFace *f;
 	BMLoop *l, *l2;
-	const float angle_limit = RNA_float_get(op->ptr, "sharpness");
+	const float angle_limit_cos = cosf(RNA_float_get(op->ptr, "sharpness"));
 
 	BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
 
@@ -3407,7 +3407,7 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 
 			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 				BM_ITER_ELEM (l2, &liter2, l, BM_LOOPS_OF_LOOP) {
-					float angle;
+					float angle_cos;
 
 					if (BM_elem_flag_test(l2->f, BM_ELEM_TAG) ||
 					    BM_elem_flag_test(l2->f, BM_ELEM_HIDDEN))
@@ -3415,9 +3415,9 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 						continue;
 					}
 
-					angle = angle_normalized_v3v3(f->no, l2->f->no);
+					angle_cos = dot_v3v3(f->no, l2->f->no);
 
-					if (angle < angle_limit) {
+					if (angle_cos > angle_limit_cos) {
 						BLI_LINKSTACK_PUSH(stack, l2->f);
 					}
 				}
