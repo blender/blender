@@ -600,7 +600,7 @@ bool BKE_appdir_program_python_search(
 	const char *basename = "python";
 	char python_ver[16];
 	/* check both possible names */
-	const char *python_names[] = {basename, python_ver};
+	const char *python_names[] = {python_ver, basename};
 	int i;
 
 	bool is_found = false;
