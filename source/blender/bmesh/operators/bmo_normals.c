@@ -69,35 +69,35 @@ static bool bmo_recalc_normal_edge_filter_cb(BMElem *ele, void *UNUSED(user_data
  * In the example above, the a\ face can point towards the \a center
  * which would end up flipping the normals inwards.
  *
- * To take these spikes into account, use the normals of the faces edges.
+ * To take these spikes into account, find the furthest face-loop-vertex.
  */
-#define USE_FACE_EDGE_NORMAL_TEST
-
-/**
- * The center of the entire island is't necessarily well placed,
- *
- * This re-calculated a center relative to this face.
- */
-#ifdef USE_FACE_EDGE_NORMAL_TEST
-#  define USE_FACE_LOCAL_CENTER_TEST
-#endif
 
 /**
  * \return a face index in \a faces and set \a r_is_flip if the face is flipped away from the center.
  */
 static int recalc_face_normals_find_index(BMesh *bm, BMFace **faces, const int faces_len, bool *r_is_flip)
 {
+	const float eps = FLT_EPSILON;
 	float cent_area_accum = 0.0f;
-	float f_len_best_sq;
-
-	float cent[3], tvec[3];
+	float cent[3];
 	const float cent_fac = 1.0f / (float)faces_len;
 
-	float (*faces_center)[3] = MEM_mallocN(sizeof(*faces_center) * faces_len, __func__);
-	float *faces_area = MEM_mallocN(sizeof(*faces_area) * faces_len, __func__);
 	bool is_flip = false;
 	int f_start_index;
 	int i;
+
+	/* Search for the best loop. Members are comapred in-order defined here. */
+	struct {
+		/* Squared distance from the center to the loops vertex 'l->v'.
+		 * The normalized direction between the center and this vertex is also used for the dot-products below. */
+		float dist_sq;
+		/* Signed dot product using the normalized edge vector,
+		 * (best of 'l->prev->v' or 'l->next->v'). */
+		float edge_dot;
+		/* Unsigned dot product using the loop-normal
+		 * (sign is used to check if we need to flip) */
+		float loop_dot;
+	} best, test;
 
 	UNUSED_VARS_NDEBUG(bm);
 
@@ -105,12 +105,11 @@ static int recalc_face_normals_find_index(BMesh *bm, BMFace **faces, const int f
 
 	/* first calculate the center */
 	for (i = 0; i < faces_len; i++) {
-		float *f_cent = faces_center[i];
+		float f_cent[3];
 		const float f_area = BM_face_calc_area(faces[i]);
 		BM_face_calc_center_mean_weighted(faces[i], f_cent);
 		madd_v3_v3fl(cent, f_cent, cent_fac * f_area);
 		cent_area_accum += f_area;
-		faces_area[i] = f_area;
 
 		BLI_assert(BMO_elem_flag_test(bm, faces[i], FACE_TEMP) == 0);
 		BLI_assert(BM_face_is_normal_valid(faces[i]));
@@ -120,82 +119,69 @@ static int recalc_face_normals_find_index(BMesh *bm, BMFace **faces, const int f
 		mul_v3_fl(cent, 1.0f / cent_area_accum);
 	}
 
-	f_len_best_sq = -FLT_MAX;
+	/* Distances must start above zero,
+	 * or we can't do meaningful calculations based on the direction to the center */
+	best.dist_sq = eps;
+	best.edge_dot = best.loop_dot = -FLT_MAX;
+
 	/* used in degenerate cases only */
 	f_start_index = 0;
 
+	/**
+	 * Find the outer-most vertex, comparing distance to the center,
+	 * then the outer-most loop attached to that vertex.
+	 *
+	 * Important this is correctly detected,
+	 * where casting a ray from the center wont hit any loops past this one.
+	 * Otherwise the result may be incorrect.
+	 */
 	for (i = 0; i < faces_len; i++) {
-		float f_len_test_sq;
-
-		if (faces_area[i] > FLT_EPSILON) {
-			if ((f_len_test_sq = len_squared_v3v3(faces_center[i], cent)) > f_len_best_sq) {
-				f_len_best_sq = f_len_test_sq;
-				f_start_index = i;
-			}
-		}
-	}
-
-#ifdef USE_FACE_EDGE_NORMAL_TEST
-	{
-		BMFace *f_test = faces[f_start_index];
 		BMLoop *l_iter, *l_first;
-		float e_len_best_sq = -FLT_MAX;
-		BMLoop *l_other_best = NULL;
-		float no_edge[3];
-		const float *no_best;
 
-		l_iter = l_first = BM_FACE_FIRST_LOOP(f_test);
+		l_iter = l_first = BM_FACE_FIRST_LOOP(faces[i]);
 		do {
-			if (BM_edge_is_manifold(l_iter->e) &&
-			    bmo_recalc_normal_edge_filter_cb((BMElem *)l_iter->e, NULL))
-			{
-				BMLoop *l_other = l_iter->radial_next;
+			bool is_best_dist_sq;
+			float dir[3];
+			sub_v3_v3v3(dir, l_iter->v->co, cent);
+			test.dist_sq = len_squared_v3(dir);
+			is_best_dist_sq =      (test.dist_sq  > best.dist_sq);
+			if (is_best_dist_sq || (test.dist_sq == best.dist_sq)) {
+				float edge_dir_pair[2][3];
+				mul_v3_fl(dir, 1.0f / sqrtf(test.dist_sq));
 
-				if (len_squared_v3v3(l_iter->v->co, l_iter->next->v->co) > FLT_EPSILON) {
-					float e_len_test_sq;
-					float e_cent[3];
-					mid_v3_v3v3(e_cent, l_iter->v->co, l_iter->next->v->co);
-					e_len_test_sq = len_squared_v3v3(cent, e_cent);
-					if (e_len_test_sq > e_len_best_sq) {
-						l_other_best = l_other;
-						e_len_best_sq = e_len_test_sq;
+				sub_v3_v3v3(edge_dir_pair[0], l_iter->next->v->co, l_iter->v->co);
+				sub_v3_v3v3(edge_dir_pair[1], l_iter->prev->v->co, l_iter->v->co);
+
+				if ((normalize_v3(edge_dir_pair[0]) > eps) &&
+				    (normalize_v3(edge_dir_pair[1]) > eps))
+				{
+					bool is_best_edge_dot;
+					test.edge_dot = max_ff(dot_v3v3(dir, edge_dir_pair[0]),
+					                       dot_v3v3(dir, edge_dir_pair[1]));
+					is_best_edge_dot =                         (test.edge_dot  > best.edge_dot);
+					if (is_best_dist_sq || is_best_edge_dot || (test.edge_dot == best.edge_dot)) {
+						float loop_dir[3];
+						cross_v3_v3v3(loop_dir, edge_dir_pair[0], edge_dir_pair[1]);
+						if (normalize_v3(loop_dir) > eps) {
+							float loop_dir_dot;
+							/* Highly unlikely the furthest loop is also the concave part of an ngon,
+							 * but it can be contrived with _very_ non-planar faces - so better check. */
+							if (UNLIKELY(dot_v3v3(loop_dir, l_iter->f->no) < 0.0f)) {
+								negate_v3(loop_dir);
+							}
+							loop_dir_dot = dot_v3v3(dir, loop_dir);
+							test.loop_dot = fabsf(loop_dir_dot);
+							if (is_best_dist_sq || is_best_edge_dot || (test.loop_dot > best.loop_dot)) {
+								best = test;
+								f_start_index = i;
+								is_flip = (loop_dir_dot < 0.0f);
+							}
+						}
 					}
 				}
 			}
 		} while ((l_iter = l_iter->next) != l_first);
-
-		/* furthest edge on furthest face */
-		if (l_other_best) {
-			float e_cent[3];
-
-#ifdef USE_FACE_LOCAL_CENTER_TEST
-			{
-				float f_cent_other[3];
-				BM_face_calc_center_mean_weighted(l_other_best->f, f_cent_other);
-				mid_v3_v3v3(cent, f_cent_other, faces_center[f_start_index]);
-			}
-#endif
-			mid_v3_v3v3(e_cent, l_other_best->e->v1->co, l_other_best->e->v2->co);
-			sub_v3_v3v3(tvec, e_cent, cent);
-
-			madd_v3_v3v3fl(no_edge, f_test->no, l_other_best->f->no, BM_edge_is_contiguous(l_other_best->e) ? 1 : -1);
-			no_best = no_edge;
-		}
-		else {
-			sub_v3_v3v3(tvec, faces_center[f_start_index], cent);
-			no_best = f_test->no;
-		}
-
-		is_flip = (dot_v3v3(tvec, no_best) < 0.0f);
 	}
-#else
-	sub_v3_v3v3(tvec, faces_center[f_start_index], cent);
-	is_flip = (dot_v3v3(tvec, faces[f_start_index]->no) < 0.0f);
-#endif
-
-	/* make sure the starting face has the correct winding */
-	MEM_freeN(faces_center);
-	MEM_freeN(faces_area);
 
 	*r_is_flip = is_flip;
 	return f_start_index;
