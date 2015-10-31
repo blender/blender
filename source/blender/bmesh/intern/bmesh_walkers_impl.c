@@ -475,7 +475,7 @@ static void bmw_LoopShellWireWalker_begin(BMWalker *walker, void *data)
 				bmw_LoopShellWireWalker_visitVert(walker, e->v1, NULL);
 				bmw_LoopShellWireWalker_visitVert(walker, e->v2, NULL);
 			}
-			else {
+			else if (e->l) {
 				BMLoop *l_iter, *l_first;
 
 				l_iter = l_first = e->l;
