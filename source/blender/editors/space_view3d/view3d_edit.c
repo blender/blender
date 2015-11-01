@@ -3076,8 +3076,6 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 		view3d_from_minmax(C, v3d, ar, min, max, ok_dist, smooth_viewtx);
 	}
 
-// XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
-
 	return OPERATOR_FINISHED;
 }
 

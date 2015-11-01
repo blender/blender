@@ -3297,8 +3297,6 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 			}
 		}
 		MEM_freeN(ibufs_arr);
-
-		// BIF_end_render_callbacks();
 	}
 
 

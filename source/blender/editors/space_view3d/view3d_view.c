@@ -764,7 +764,6 @@ bool ED_view3d_clip_range_get(
 	return params.is_ortho;
 }
 
-/* also exposed in previewrender.c */
 bool ED_view3d_viewplane_get(
         const View3D *v3d, const RegionView3D *rv3d, int winx, int winy,
         rctf *r_viewplane, float *r_clipsta, float *r_clipend, float *r_pixsize)
@@ -1133,7 +1132,6 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 		v3d->zbuf = 0;
 		glDisable(GL_DEPTH_TEST);
 	}
-// XXX	persp(PERSP_WIN);
 	
 	if (vc->rv3d->rflag & RV3D_CLIPPING)
 		ED_view3d_clipping_disable();

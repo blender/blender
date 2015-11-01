@@ -894,7 +894,7 @@ void calc_R_ref(ShadeInput *shi)
 
 }
 
-/* called from ray.c */
+/* called from rayshade.c */
 void shade_color(ShadeInput *shi, ShadeResult *shr)
 {
 	Material *ma= shi->mat;

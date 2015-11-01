@@ -673,11 +673,6 @@ void drawConstraint(TransInfo *t)
 	if (t->flag & T_NO_CONSTRAINT)
 		return;
 
-	/* nasty exception for Z constraint in camera view */
-	// TRANSFORM_FIX_ME
-//	if ((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp==V3D_CAMOB)
-//		return;
-
 	if (tc->drawExtra) {
 		tc->drawExtra(t);
 	}

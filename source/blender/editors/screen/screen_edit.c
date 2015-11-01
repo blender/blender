@@ -2121,8 +2121,6 @@ void ED_update_for_newframe(Main *bmain, Scene *scene, int UNUSED(mute))
 		}
 	}
 #endif
-
-	//extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
 	
 	ED_clip_update_frame(bmain, scene->r.cfra);
 
@@ -2132,16 +2130,7 @@ void ED_update_for_newframe(Main *bmain, Scene *scene, int UNUSED(mute))
 
 	/* this function applies the changes too */
 	BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene, layers);
-	
-	//if ((CFRA > 1) && (!mute) && (scene->r.audio.flag & AUDIO_SCRUB))
-	//	audiostream_scrub( CFRA );
-	
-	/* 3d window, preview */
-	//BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
-	
-	/* all movie/sequence images */
-	//BIF_image_update_frame();
-	
+
 	/* composite */
 	if (scene->use_nodes && scene->nodetree)
 		ntreeCompositTagAnimated(scene->nodetree);

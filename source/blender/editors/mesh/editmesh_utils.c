@@ -764,8 +764,6 @@ UvMapVert *BM_uv_vert_map_at_index(UvVertMap *vmap, unsigned int v)
 	return vmap->vert[v];
 }
 
-/* from editmesh_lib.c in trunk */
-
 
 /* A specialized vert map used by stitch operator */
 UvElementMap *BM_uv_element_map_create(

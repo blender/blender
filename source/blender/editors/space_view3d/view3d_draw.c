@@ -1427,10 +1427,6 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 
 	if (rv3d->rflag & RV3D_CLIPPING)
 		ED_view3d_clipping_disable();
-
-	/* it is important to end a view in a transform compatible with buttons */
-//	persp(PERSP_WIN);  /* set ortho */
-
 }
 
 void view3d_opengl_read_pixels(ARegion *ar, int x, int y, int w, int h, int format, int type, void *data)
@@ -2386,7 +2382,6 @@ void ED_view3d_draw_depth(Scene *scene, ARegion *ar, View3D *v3d, bool alphaover
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
 	glLoadMatrixf(rv3d->viewmat);
-//	persp(PERSP_STORE);  /* store correct view for persp(PERSP_VIEW) calls */
 	
 	if (rv3d->rflag & RV3D_CLIPPING) {
 		ED_view3d_clipping_set(rv3d);
