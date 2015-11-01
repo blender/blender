@@ -43,10 +43,6 @@
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
 
-#ifdef RIGID_DEFORM
-#include "BLI_polardecomp.h"
-#endif
-
 #include "ED_mesh.h"
 #include "ED_armature.h"
 
@@ -104,17 +100,6 @@ struct LaplacianSystem {
 		BVHTree   *bvhtree; /* ray tracing acceleration structure */
 		const MLoopTri **vltree;  /* a looptri that the vertex belongs to */
 	} heat;
-
-#ifdef RIGID_DEFORM
-	struct RigidDeformation {
-		EditMesh *mesh;
-
-		float (*R)[3][3];
-		float (*rhs)[3];
-		float (*origco)[3];
-		int thrownerror;
-	} rigid;
-#endif
 };
 
 /* Laplacian matrix construction */
@@ -463,11 +448,7 @@ static int heat_ray_source_visible(LaplacianSystem *sys, int vertex, int source)
 	data.sys = sys;
 	copy_v3_v3(data.start, sys->heat.verts[vertex]);
 
-	if (sys->heat.root) /* bone */
-		closest_to_line_segment_v3(end, data.start,
-		                           sys->heat.root[source], sys->heat.tip[source]);
-	else /* vertex */
-		copy_v3_v3(end, sys->heat.source[source]);
+	closest_to_line_segment_v3(end, data.start, sys->heat.root[source], sys->heat.tip[source]);
 
 	sub_v3_v3v3(data.vec, end, data.start);
 	madd_v3_v3v3fl(data.start, data.start, data.vec, 1e-5);
@@ -487,11 +468,7 @@ static float heat_source_distance(LaplacianSystem *sys, int vertex, int source)
 	float closest[3], d[3], dist, cosine;
 	
 	/* compute euclidian distance */
-	if (sys->heat.root) /* bone */
-		closest_to_line_segment_v3(closest, sys->heat.verts[vertex],
-		                           sys->heat.root[source], sys->heat.tip[source]);
-	else /* vertex */
-		copy_v3_v3(closest, sys->heat.source[source]);
+	closest_to_line_segment_v3(closest, sys->heat.verts[vertex], sys->heat.root[source], sys->heat.tip[source]);
 
 	sub_v3_v3v3(d, sys->heat.verts[vertex], closest);
 	dist = normalize_v3(d);
@@ -815,232 +792,6 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 	laplacian_system_delete(sys);
 }
 
-#ifdef RIGID_DEFORM
-/********************** As-Rigid-As-Possible Deformation ******************/
-/* From "As-Rigid-As-Possible Surface Modeling",
- * Olga Sorkine and Marc Alexa, ESGP 2007. */
-
-/* investigate:
- * - transpose R in orthogonal
- * - flipped normals and per face adding
- * - move canceling to transform, make origco pointer
- */
-
-static LaplacianSystem *RigidDeformSystem = NULL;
-
-static void rigid_add_half_edge_to_R(LaplacianSystem *sys, EditVert *v1, EditVert *v2, float w)
-{
-	float e[3], e_[3];
-	int i;
-
-	sub_v3_v3v3(e, sys->rigid.origco[v1->tmp.l], sys->rigid.origco[v2->tmp.l]);
-	sub_v3_v3v3(e_, v1->co, v2->co);
-
-	/* formula (5) */
-	for (i = 0; i < 3; i++) {
-		sys->rigid.R[v1->tmp.l][i][0] += w * e[0] * e_[i];
-		sys->rigid.R[v1->tmp.l][i][1] += w * e[1] * e_[i];
-		sys->rigid.R[v1->tmp.l][i][2] += w * e[2] * e_[i];
-	}
-}
-
-static void rigid_add_edge_to_R(LaplacianSystem *sys, EditVert *v1, EditVert *v2, float w)
-{
-	rigid_add_half_edge_to_R(sys, v1, v2, w);
-	rigid_add_half_edge_to_R(sys, v2, v1, w);
-}
-
-static void rigid_orthogonalize_R(float R[3][3])
-{
-	HMatrix M, Q, S;
-
-	copy_m4_m3(M, R);
-	polar_decomp(M, Q, S);
-	copy_m3_m4(R, Q);
-}
-
-static void rigid_add_half_edge_to_rhs(LaplacianSystem *sys, EditVert *v1, EditVert *v2, float w)
-{
-	/* formula (8) */
-	float Rsum[3][3], rhs[3];
-
-	if (sys->vpinned[v1->tmp.l])
-		return;
-
-	add_m3_m3m3(Rsum, sys->rigid.R[v1->tmp.l], sys->rigid.R[v2->tmp.l]);
-	transpose_m3(Rsum);
-
-	sub_v3_v3v3(rhs, sys->rigid.origco[v1->tmp.l], sys->rigid.origco[v2->tmp.l]);
-	mul_m3_v3(Rsum, rhs);
-	mul_v3_fl(rhs, 0.5f);
-	mul_v3_fl(rhs, w);
-
-	add_v3_v3(sys->rigid.rhs[v1->tmp.l], rhs);
-}
-
-static void rigid_add_edge_to_rhs(LaplacianSystem *sys, EditVert *v1, EditVert *v2, float w)
-{
-	rigid_add_half_edge_to_rhs(sys, v1, v2, w);
-	rigid_add_half_edge_to_rhs(sys, v2, v1, w);
-}
-
-void rigid_deform_iteration()
-{
-	LaplacianSystem *sys = RigidDeformSystem;
-	EditMesh *em;
-	EditVert *eve;
-	EditFace *efa;
-	int a, i;
-
-	if (!sys)
-		return;
-	
-	nlMakeCurrent(sys->context);
-	em = sys->rigid.mesh;
-
-	/* compute R */
-	memset(sys->rigid.R, 0, sizeof(float) * 3 * 3 * sys->totvert);
-	memset(sys->rigid.rhs, 0, sizeof(float) * 3 * sys->totvert);
-
-	for (a = 0, efa = em->faces.first; efa; efa = efa->next, a++) {
-		rigid_add_edge_to_R(sys, efa->v1, efa->v2, sys->fweights[a][2]);
-		rigid_add_edge_to_R(sys, efa->v2, efa->v3, sys->fweights[a][0]);
-		rigid_add_edge_to_R(sys, efa->v3, efa->v1, sys->fweights[a][1]);
-
-		if (efa->v4) {
-			a++;
-			rigid_add_edge_to_R(sys, efa->v1, efa->v3, sys->fweights[a][2]);
-			rigid_add_edge_to_R(sys, efa->v3, efa->v4, sys->fweights[a][0]);
-			rigid_add_edge_to_R(sys, efa->v4, efa->v1, sys->fweights[a][1]);
-		}
-	}
-
-	for (a = 0, eve = em->verts.first; eve; eve = eve->next, a++) {
-		rigid_orthogonalize_R(sys->rigid.R[a]);
-		eve->tmp.l = a;
-	}
-	
-	/* compute right hand sides for solving */
-	for (a = 0, efa = em->faces.first; efa; efa = efa->next, a++) {
-		rigid_add_edge_to_rhs(sys, efa->v1, efa->v2, sys->fweights[a][2]);
-		rigid_add_edge_to_rhs(sys, efa->v2, efa->v3, sys->fweights[a][0]);
-		rigid_add_edge_to_rhs(sys, efa->v3, efa->v1, sys->fweights[a][1]);
-
-		if (efa->v4) {
-			a++;
-			rigid_add_edge_to_rhs(sys, efa->v1, efa->v3, sys->fweights[a][2]);
-			rigid_add_edge_to_rhs(sys, efa->v3, efa->v4, sys->fweights[a][0]);
-			rigid_add_edge_to_rhs(sys, efa->v4, efa->v1, sys->fweights[a][1]);
-		}
-	}
-
-	/* solve for positions, for X, Y and Z separately */
-	for (i = 0; i < 3; i++) {
-		laplacian_begin_solve(sys, i);
-
-		for (a = 0; a < sys->totvert; a++)
-			if (!sys->vpinned[a])
-				laplacian_add_right_hand_side(sys, a, sys->rigid.rhs[a][i]);
-
-		if (laplacian_system_solve(sys)) {
-			for (a = 0, eve = em->verts.first; eve; eve = eve->next, a++)
-				eve->co[i] = laplacian_system_get_solution(a);
-		}
-		else {
-			if (!sys->rigid.thrownerror) {
-				error("RigidDeform: failed to find solution");
-				sys->rigid.thrownerror = 1;
-			}
-			break;
-		}
-	}
-}
-
-static void rigid_laplacian_create(LaplacianSystem *sys)
-{
-	EditMesh *em = sys->rigid.mesh;
-	EditVert *eve;
-	EditFace *efa;
-	int a;
-
-	/* add verts and faces to laplacian */
-	for (a = 0, eve = em->verts.first; eve; eve = eve->next, a++) {
-		laplacian_add_vertex(sys, eve->co, eve->pinned);
-		eve->tmp.l = a;
-	}
-
-	for (efa = em->faces.first; efa; efa = efa->next) {
-		laplacian_add_triangle(sys,
-		                       efa->v1->tmp.l, efa->v2->tmp.l, efa->v3->tmp.l);
-		if (efa->v4)
-			laplacian_add_triangle(sys,
-			                       efa->v1->tmp.l, efa->v3->tmp.l, efa->v4->tmp.l);
-	}
-}
-
-void rigid_deform_begin(EditMesh *em)
-{
-	LaplacianSystem *sys;
-	EditVert *eve;
-	EditFace *efa;
-	int a, totvert, totface;
-
-	/* count vertices, triangles */
-	for (totvert = 0, eve = em->verts.first; eve; eve = eve->next)
-		totvert++;
-
-	for (totface = 0, efa = em->faces.first; efa; efa = efa->next) {
-		totface++;
-		if (efa->v4) totface++;
-	}
-
-	/* create laplacian */
-	sys = laplacian_system_construct_begin(totvert, totface, 0);
-
-	sys->rigid.mesh = em;
-	sys->rigid.R = MEM_callocN(sizeof(float) * 3 * 3 * totvert, "RigidDeformR");
-	sys->rigid.rhs = MEM_callocN(sizeof(float) * 3 * totvert, "RigidDeformRHS");
-	sys->rigid.origco = MEM_callocN(sizeof(float) * 3 * totvert, "RigidDeformCo");
-
-	for (a = 0, eve = em->verts.first; eve; eve = eve->next, a++)
-		copy_v3_v3(sys->rigid.origco[a], eve->co);
-
-	sys->areaweights = 0;
-	sys->storeweights = 1;
-
-	rigid_laplacian_create(sys);
-
-	laplacian_system_construct_end(sys);
-
-	RigidDeformSystem = sys;
-}
-
-void rigid_deform_end(int cancel)
-{
-	LaplacianSystem *sys = RigidDeformSystem;
-
-	if (sys) {
-		EditMesh *em = sys->rigid.mesh;
-		EditVert *eve;
-		int a;
-
-		if (cancel)
-			for (a = 0, eve = em->verts.first; eve; eve = eve->next, a++)
-				if (!eve->pinned)
-					copy_v3_v3(eve->co, sys->rigid.origco[a]);
-
-		if (sys->rigid.R) MEM_freeN(sys->rigid.R);
-		if (sys->rigid.rhs) MEM_freeN(sys->rigid.rhs);
-		if (sys->rigid.origco) MEM_freeN(sys->rigid.origco);
-
-		/* free */
-		laplacian_system_delete(sys);
-	}
-
-	RigidDeformSystem = NULL;
-}
-#endif
-
 /************************** Harmonic Coordinates ****************************/
 /* From "Harmonic Coordinates for Character Articulation",
  * Pushkar Joshi, Mark Meyer, Tony DeRose, Brian Green and Tom Sanocki,
@@ -1251,7 +1002,6 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, const 
 		&isect_mdef,
 	};
 	float end[3], vec_normal[3];
-	// static float epsilon[3] = {1e-4, 1e-4, 1e-4};
 
 	/* happens binding when a cage has no faces */
 	if (UNLIKELY(mdb->bvhtree == NULL))
@@ -1261,13 +1011,8 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, const 
 	memset(&isect_mdef, 0, sizeof(isect_mdef));
 	isect_mdef.lambda = 1e10f;
 
-#if 0
-	add_v3_v3v3(isect_mdef.start, co1, epsilon);
-	add_v3_v3v3(end, co2, epsilon);
-#else
 	copy_v3_v3(isect_mdef.start, co1);
 	copy_v3_v3(end, co2);
-#endif
 	sub_v3_v3v3(isect_mdef.vec, end, isect_mdef.start);
 	isect_mdef.vec_length = normalize_v3_v3(vec_normal, isect_mdef.vec);
 
@@ -1693,10 +1438,6 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
 		nlEnd(NL_MATRIX);
 		nlEnd(NL_SYSTEM);
 
-#if 0
-		nlPrintMatrix();
-#endif
-
 		if (nlSolveAdvanced(NULL, NL_TRUE)) {
 			for (z = 0; z < mdb->size; z++)
 				for (y = 0; y < mdb->size; y++)
@@ -1917,76 +1658,6 @@ static void harmonic_coordinates_bind(Scene *UNUSED(scene), MeshDeformModifierDa
 	free_bvhtree_from_mesh(&mdb->bvhdata);
 }
 
-#if 0
-static void heat_weighting_bind(Scene *scene, DerivedMesh *dm, MeshDeformModifierData *mmd, MeshDeformBind *mdb)
-{
-	LaplacianSystem *sys;
-	MFace *mface = dm->getTessFaceArray(dm), *mf;
-	int totvert = dm->getNumVerts(dm);
-	int totface = dm->getNumTessFaces(dm);
-	float solution, weight;
-	int a, tottri, j, thrownerror = 0;
-
-	mdb->weights = MEM_callocN(sizeof(float) * mdb->totvert * mdb->totcagevert, "MDefWeights");
-
-	/* count triangles */
-	for (tottri = 0, a = 0, mf = mface; a < totface; a++, mf++) {
-		tottri++;
-		if (mf->v4) tottri++;
-	}
-
-	/* create laplacian */
-	sys = laplacian_system_construct_begin(totvert, tottri, 1);
-
-	sys->heat.mface = mface;
-	sys->heat.totface = totface;
-	sys->heat.totvert = totvert;
-	sys->heat.verts = mdb->vertexcos;
-	sys->heat.source = mdb->cagecos;
-	sys->heat.numsource = mdb->totcagevert;
-
-	heat_ray_tree_create(sys);
-	heat_laplacian_create(sys);
-
-	laplacian_system_construct_end(sys);
-
-	/* compute weights per bone */
-	for (j = 0; j < mdb->totcagevert; j++) {
-		/* fill right hand side */
-		laplacian_begin_solve(sys, -1);
-
-		for (a = 0; a < totvert; a++)
-			if (heat_source_closest(sys, a, j))
-				laplacian_add_right_hand_side(sys, a,
-				                              sys->heat.H[a] * sys->heat.p[a]);
-
-		/* solve */
-		if (laplacian_system_solve(sys)) {
-			/* load solution into vertex groups */
-			for (a = 0; a < totvert; a++) {
-				solution = laplacian_system_get_solution(a);
-				
-				weight = heat_limit_weight(solution);
-				if (weight > 0.0f)
-					mdb->weights[a * mdb->totcagevert + j] = weight;
-			}
-		}
-		else if (!thrownerror) {
-			error("Mesh Deform Heat Weighting:"
-			      " failed to find solution for one or more vertices");
-			thrownerror = 1;
-			break;
-		}
-	}
-
-	/* free */
-	heat_system_free(sys);
-	laplacian_system_delete(sys);
-
-	mmd->bindweights = mdb->weights;
-}
-#endif
-
 void mesh_deform_bind(Scene *scene, MeshDeformModifierData *mmd, float *vertexcos, int totvert, float cagemat[4][4])
 {
 	MeshDeformBind mdb;
@@ -2014,14 +1685,7 @@ void mesh_deform_bind(Scene *scene, MeshDeformModifierData *mmd, float *vertexco
 		mul_v3_m4v3(mdb.vertexcos[a], mdb.cagemat, vertexcos + a * 3);
 
 	/* solve */
-#if 0
-	if (mmd->mode == MOD_MDEF_VOLUME)
-		harmonic_coordinates_bind(scene, mmd, &mdb);
-	else
-		heat_weighting_bind(scene, dm, mmd, &mdb);
-#else
 	harmonic_coordinates_bind(scene, mmd, &mdb);
-#endif
 
 	/* assign bind variables */
 	mmd->bindcagecos = (float *)mdb.cagecos;
