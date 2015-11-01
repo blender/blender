@@ -3460,7 +3460,6 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "smoothresh");
 	RNA_def_property_float_default(prop, DEG2RADF(180.0f));
 	RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
-	RNA_def_property_ui_range(prop, DEG2RADF(0.0f), DEG2RADF(180.0f), 1.0, 1);
 	RNA_def_property_ui_text(prop, "Auto Smooth Angle",
 	                         "Maximum angle between face normals that will be considered as smooth "
 	                         "(unused if custom split normals data are available)");
