@@ -61,7 +61,7 @@ __kernel void kernel_ocl_path_trace_lamp_emission(
 			return;
 		}
 	} else {
-		if(x < (sw * parallel_samples) && y < sh){
+		if(x < (sw * parallel_samples) && y < sh) {
 			ray_index = x + y * (sw * parallel_samples);
 		} else {
 			return;

@@ -1115,7 +1115,7 @@ public:
 	{
 		/* this is blocking */
 		size_t size = mem.memory_size();
-		if(size != 0){
+		if(size != 0) {
 			opencl_assert(clEnqueueWriteBuffer(cqCommandQueue,
 			                                   CL_MEM_PTR(mem.device_pointer),
 			                                   CL_TRUE,
