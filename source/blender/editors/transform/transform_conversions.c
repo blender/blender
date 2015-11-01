@@ -8085,8 +8085,4 @@ void createTransData(bContext *C, TransInfo *t)
 			}
 		}
 	}
-
-// TRANSFORM_FIX_ME
-//	/* temporal...? */
-//	t->scene->recalc |= SCE_PRV_CHANGED;	/* test for 3d preview */
 }

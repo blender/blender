@@ -1414,7 +1414,7 @@ typedef struct Scene {
 	void *pad1;
 	struct  DagForest *theDag;
 	short dagflags;
-	short recalc;				/* recalc = counterpart of ob->recalc */
+	short pad3;
 
 	/* User-Defined KeyingSets */
 	int active_keyingset;			/* index of the active KeyingSet. first KeyingSet has index 1, 'none' active is 0, 'add new' is -1 */
@@ -1737,9 +1737,6 @@ extern const char *RE_engine_id_CYCLES;
 #define SCE_SELECT_PATH		1
 #define SCE_SELECT_POINT	2
 #define SCE_SELECT_END		4
-
-/* sce->recalc (now in use by previewrender) */
-#define SCE_PRV_CHANGED		1
 
 /* toolsettings->prop_mode (proportional falloff) */
 #define PROP_SMOOTH            0
