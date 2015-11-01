@@ -24,7 +24,7 @@
  * by all different samples and stores them in the RenderTile's output buffer.
  */
 ccl_device void kernel_sum_all_radiance(
-        KernelGlobals *kg,                           /* To get pass_stride to offet into buffer */
+        ccl_constant KernelData *data,               /* To get pass_stride to offet into buffer */
         ccl_global float *buffer,                    /* Output buffer of RenderTile */
         ccl_global float *per_sample_output_buffer,  /* Radiance contributed by all samples */
         int parallel_samples, int sw, int sh, int stride,
@@ -37,14 +37,14 @@ ccl_device void kernel_sum_all_radiance(
 	int y = get_global_id(1);
 
 	if(x < sw && y < sh) {
-		buffer += ((buffer_offset_x + x) + (buffer_offset_y + y) * buffer_stride) * (kg->data->film.pass_stride);
-		per_sample_output_buffer += ((x + y * stride) * parallel_samples) * (kg->data->film.pass_stride);
+		buffer += ((buffer_offset_x + x) + (buffer_offset_y + y) * buffer_stride) * (data->film.pass_stride);
+		per_sample_output_buffer += ((x + y * stride) * parallel_samples) * (data->film.pass_stride);
 
-		int sample_stride = (kg->data->film.pass_stride);
+		int sample_stride = (data->film.pass_stride);
 
 		int sample_iterator = 0;
 		int pass_stride_iterator = 0;
-		int num_floats = kg->data->film.pass_stride;
+		int num_floats = data->film.pass_stride;
 
 		for(sample_iterator = 0; sample_iterator < parallel_samples; sample_iterator++) {
 			for(pass_stride_iterator = 0; pass_stride_iterator < num_floats; pass_stride_iterator++) {

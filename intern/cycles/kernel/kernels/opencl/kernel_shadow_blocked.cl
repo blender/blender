@@ -18,6 +18,7 @@
 
 __kernel void kernel_ocl_path_trace_shadow_blocked(
         ccl_global char *kg,
+        ccl_constant KernelData *data,
         ccl_global char *sd_shadow,            /* Required for shadow blocked */
         ccl_global PathState *PathState_coop,  /* Required for shadow blocked */
         ccl_global Ray *LightRay_dl_coop,      /* Required for direct lighting's shadow blocked */

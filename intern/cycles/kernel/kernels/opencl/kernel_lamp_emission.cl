@@ -18,6 +18,7 @@
 
 __kernel void kernel_ocl_path_trace_lamp_emission(
         ccl_global char *kg,
+        ccl_constant KernelData *data,
         ccl_global char *sd,                   /* Required for lamp emission */
         ccl_global float3 *throughput_coop,    /* Required for lamp emission */
         PathRadiance *PathRadiance_coop,       /* Required for lamp emission */

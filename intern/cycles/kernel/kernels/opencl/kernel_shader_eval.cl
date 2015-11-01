@@ -18,6 +18,7 @@
 
 __kernel void kernel_ocl_path_trace_shader_eval(
         ccl_global char *kg,
+        ccl_constant KernelData *data,
         ccl_global char *sd,                   /* Output ShaderData structure to be filled */
         ccl_global uint *rng_coop,             /* Required for rbsdf calculation */
         ccl_global Ray *Ray_coop,              /* Required for setting up shader from ray */
