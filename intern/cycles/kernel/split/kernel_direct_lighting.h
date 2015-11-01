@@ -33,7 +33,7 @@
  * sd -----------------------------------------------|                             |--- LightRay_coop
  * ray_state ----------------------------------------|                             |--- ray_state
  * Queue_data (QUEUE_ACTIVE_AND_REGENERATED_RAYS) ---|                             |
- * kg (globals + data) ------------------------------|                             |
+ * kg (globals) -------------------------------------|                             |
  * queuesize ----------------------------------------|                             |
  *
  * note on sd_DL : sd_DL is neither input nor output to this kernel; sd_DL is filled and consumed in this kernel itself.
@@ -50,7 +50,6 @@
  */
 ccl_device char kernel_direct_lighting(
         KernelGlobals *kg,
-        ccl_constant KernelData *data,
         ShaderData *sd,                         /* Required for direct lighting */
         ShaderData *sd_DL,                      /* Required for direct lighting */
         ccl_global uint *rng_coop,              /* Required for direct lighting */

@@ -31,7 +31,7 @@
               QUEUE_SHADOW_RAY_CAST_DL_RAYS) -------|                            |
  * Queue_index(QUEUE_SHADOW_RAY_CAST_AO_RAYS&
               QUEUE_SHADOW_RAY_CAST_DL_RAYS) -------|                            |
- * kg (globals + data) -----------------------------|                            |
+ * kg (globals) ------------------------------------|                            |
  * queuesize ---------------------------------------|                            |
  *
  * Note on sd_shadow : sd_shadow is neither input nor output to this kernel. sd_shadow is filled and consumed in this kernel itself.
@@ -47,7 +47,6 @@
  */
 ccl_device void kernel_shadow_blocked(
         KernelGlobals *kg,
-        ccl_constant KernelData *data,
         ShaderData *sd_shadow,                 /* Required for shadow blocked */
         ccl_global PathState *PathState_coop,  /* Required for shadow blocked */
         ccl_global Ray *LightRay_dl_coop,      /* Required for direct lighting's shadow blocked */

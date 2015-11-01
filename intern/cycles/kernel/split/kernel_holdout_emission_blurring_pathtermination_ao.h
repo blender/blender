@@ -40,7 +40,7 @@
  * ray_state --------------------------------------------|                                                           |--- ray_state
  * Queue_data (QUEUE_ACTIVE_AND_REGENERATED_RAYS) -------|                                                           |--- Queue_data (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS)
  * Queue_index (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS) ---|                                                           |--- AOAlpha_coop
- * kg (globals + data) ----------------------------------|                                                           |--- AOBSDF_coop
+ * kg (globals) -----------------------------------------|                                                           |--- AOBSDF_coop
  * parallel_samples -------------------------------------|                                                           |--- AOLightRay_coop
  * per_sample_output_buffers ----------------------------|                                                           |
  * sw ---------------------------------------------------|                                                           |
@@ -72,7 +72,6 @@
  */
 ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
         KernelGlobals *kg,
-        ccl_constant KernelData *data,
         ShaderData *sd,                        /* Required throughout the kernel except probabilistic path termination and AO */
         ccl_global float *per_sample_output_buffers,
         ccl_global uint *rng_coop,             /* Required for "kernel_write_data_passes" and AO */

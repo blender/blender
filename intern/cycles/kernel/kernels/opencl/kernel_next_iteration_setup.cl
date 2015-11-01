@@ -18,7 +18,6 @@
 
 __kernel void kernel_ocl_path_trace_next_iteration_setup(
         ccl_global char *kg,
-        ccl_constant KernelData *data,
         ccl_global char *sd,                  /* Required for setting up ray for next iteration */
         ccl_global uint *rng_coop,            /* Required for setting up ray for next iteration */
         ccl_global float3 *throughput_coop,   /* Required for setting up ray for next iteration */
@@ -84,7 +83,6 @@ __kernel void kernel_ocl_path_trace_next_iteration_setup(
 	if(ray_index != QUEUE_EMPTY_SLOT) {
 #endif
 		enqueue_flag = kernel_next_iteration_setup((KernelGlobals *)kg,
-		                                           data,
 		                                           (ShaderData *)sd,
 		                                           rng_coop,
 		                                           throughput_coop,

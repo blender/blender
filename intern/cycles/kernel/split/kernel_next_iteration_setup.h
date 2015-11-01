@@ -35,7 +35,7 @@
  * Queue_data (QUEUE_ACTIVE_AND_REGENERATD_RAYS) --------|                                 |--- Ray_coop
  * Queue_index (QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS) ---|                                 |--- use_queues_flag
  * Ray_coop ---------------------------------------------|                                 |
- * kg (globals + data) ----------------------------------|                                 |
+ * kg (globals) -----------------------------------------|                                 |
  * LightRay_dl_coop -------------------------------------|
  * ISLamp_coop ------------------------------------------|
  * BSDFEval_coop ----------------------------------------|
@@ -61,7 +61,6 @@
  */
 ccl_device char kernel_next_iteration_setup(
         KernelGlobals *kg,
-        ccl_constant KernelData *data,
         ShaderData *sd,                       /* Required for setting up ray for next iteration */
         ccl_global uint *rng_coop,            /* Required for setting up ray for next iteration */
         ccl_global float3 *throughput_coop,   /* Required for setting up ray for next iteration */

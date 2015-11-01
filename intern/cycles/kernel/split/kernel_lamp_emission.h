@@ -26,7 +26,7 @@
  * Throughput_coop ------------------------------------|--- kernel_lamp_emission --|--- PathRadiance_coop
  * Ray_coop -------------------------------------------|                           |--- Queue_data(QUEUE_ACTIVE_AND_REGENERATED_RAYS)
  * PathState_coop -------------------------------------|                           |--- Queue_index(QUEUE_ACTIVE_AND_REGENERATED_RAYS)
- * kg (globals + data) --------------------------------|                           |
+ * kg (globals) ---------------------------------------|                           |
  * Intersection_coop ----------------------------------|                           |
  * ray_state ------------------------------------------|                           |
  * Queue_data (QUEUE_ACTIVE_AND_REGENERATED_RAYS) -----|                           |
@@ -41,7 +41,6 @@
  */
 ccl_device void kernel_lamp_emission(
         KernelGlobals *kg,
-        ccl_constant KernelData *data,
         ShaderData *sd,                        /* Required for lamp emission */
         ccl_global float3 *throughput_coop,    /* Required for lamp emission */
         PathRadiance *PathRadiance_coop,       /* Required for lamp emission */
