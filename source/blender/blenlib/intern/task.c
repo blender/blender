@@ -43,6 +43,7 @@ typedef struct Task {
 	TaskRunFunction run;
 	void *taskdata;
 	bool free_taskdata;
+	TaskFreeFunction freedata;
 	TaskPool *pool;
 } Task;
 
@@ -78,6 +79,19 @@ typedef struct TaskThread {
 	TaskScheduler *scheduler;
 	int id;
 } TaskThread;
+
+/* Helper */
+static void task_data_free(Task *task, const int thread_id)
+{
+	if (task->free_taskdata) {
+		if (task->freedata) {
+			task->freedata(task->pool, task->taskdata, thread_id);
+		}
+		else {
+			MEM_freeN(task->taskdata);
+		}
+	}
+}
 
 /* Task Scheduler */
 
@@ -172,8 +186,7 @@ static void *task_scheduler_thread_run(void *thread_p)
 		task->run(pool, task->taskdata, thread_id);
 
 		/* delete task */
-		if (task->free_taskdata)
-			MEM_freeN(task->taskdata);
+		task_data_free(task, thread_id);
 		MEM_freeN(task);
 
 		/* notify pool task was done */
@@ -221,7 +234,7 @@ TaskScheduler *BLI_task_scheduler_create(int num_threads)
 			}
 		}
 	}
-	
+
 	return scheduler;
 }
 
@@ -254,8 +267,7 @@ void BLI_task_scheduler_free(TaskScheduler *scheduler)
 
 	/* delete leftover tasks */
 	for (task = scheduler->queue.first; task; task = task->next) {
-		if (task->free_taskdata)
-			MEM_freeN(task->taskdata);
+		task_data_free(task, 0);
 	}
 	BLI_freelistN(&scheduler->queue);
 
@@ -299,8 +311,7 @@ static void task_scheduler_clear(TaskScheduler *scheduler, TaskPool *pool)
 		nexttask = task->next;
 
 		if (task->pool == pool) {
-			if (task->free_taskdata)
-				MEM_freeN(task->taskdata);
+			task_data_free(task, 0);
 			BLI_freelinkN(&scheduler->queue, task);
 
 			done++;
@@ -356,17 +367,25 @@ void BLI_task_pool_free(TaskPool *pool)
 	BLI_end_threaded_malloc();
 }
 
-void BLI_task_pool_push(TaskPool *pool, TaskRunFunction run,
-	void *taskdata, bool free_taskdata, TaskPriority priority)
+void BLI_task_pool_push_ex(
+        TaskPool *pool, TaskRunFunction run, void *taskdata,
+        bool free_taskdata, TaskFreeFunction freedata, TaskPriority priority)
 {
 	Task *task = MEM_callocN(sizeof(Task), "Task");
 
 	task->run = run;
 	task->taskdata = taskdata;
 	task->free_taskdata = free_taskdata;
+	task->freedata = freedata;
 	task->pool = pool;
 
 	task_scheduler_push(pool->scheduler, task, priority);
+}
+
+void BLI_task_pool_push(
+        TaskPool *pool, TaskRunFunction run, void *taskdata, bool free_taskdata, TaskPriority priority)
+{
+	BLI_task_pool_push_ex(pool, run, taskdata, free_taskdata, NULL, priority);
 }
 
 void BLI_task_pool_work_and_wait(TaskPool *pool)
@@ -408,8 +427,7 @@ void BLI_task_pool_work_and_wait(TaskPool *pool)
 			work_task->run(pool, work_task->taskdata, 0);
 
 			/* delete task */
-			if (work_task->free_taskdata)
-				MEM_freeN(work_task->taskdata);
+			task_data_free(task, 0);
 			MEM_freeN(work_task);
 
 			/* notify pool task was done */
