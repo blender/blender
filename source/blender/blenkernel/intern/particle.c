@@ -4013,10 +4013,18 @@ void psys_get_dupli_texture(ParticleSystem *psys, ParticleSettings *part,
 	float loc[3];
 	int num;
 
+	/* XXX: on checking '(psmd->dm != NULL)'
+	 * This is incorrect but needed for metaball evaluation.
+	 * Ideally this would be calcualted via the depsgraph, however with metaballs,
+	 * the entire scenes dupli's are scanned, which also looks into uncalculated data.
+	 *
+	 * For now just include this workaround as an alternative to crashing,
+	 * but longer term metaballs should behave in a more manageable way, see: T46622. */
+
 	uv[0] = uv[1] = 0.f;
 
 	if (cpa) {
-		if (part->childtype == PART_CHILD_FACES) {
+		if ((part->childtype == PART_CHILD_FACES) && (psmd->dm != NULL)) {
 			mtface = CustomData_get_layer(&psmd->dm->faceData, CD_MTFACE);
 			if (mtface) {
 				mface = psmd->dm->getTessFaceData(psmd->dm, cpa->num, CD_MFACE);
@@ -4032,7 +4040,7 @@ void psys_get_dupli_texture(ParticleSystem *psys, ParticleSettings *part,
 		}
 	}
 
-	if (part->from == PART_FROM_FACE) {
+	if ((part->from == PART_FROM_FACE) && (psmd->dm != NULL)) {
 		mtface = CustomData_get_layer(&psmd->dm->faceData, CD_MTFACE);
 		num = pa->num_dmcache;
 
