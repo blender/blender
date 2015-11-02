@@ -406,11 +406,11 @@ bool id_unlink(ID *id, int test)
 			break;
 		case ID_GR:
 			if (test) return true;
-			BKE_group_unlink((Group *)id);
+			BKE_group_unlink(mainlib, (Group *)id);
 			break;
 		case ID_OB:
 			if (test) return true;
-			BKE_object_unlink((Object *)id);
+			BKE_object_unlink(mainlib, (Object *)id);
 			break;
 	}
 
@@ -1205,7 +1205,11 @@ void BKE_libblock_free_us(Main *bmain, void *idv)      /* test users */
 		else printf("ERROR block %s users %d\n", id->name, id->us);
 	}
 	if (id->us == 0) {
-		if (GS(id->name) == ID_OB) BKE_object_unlink((Object *)id);
+		switch (GS(id->name)) {
+			case ID_OB:
+				BKE_object_unlink(bmain, (Object *)id);
+				break;
+		}
 		
 		BKE_libblock_free(bmain, id);
 	}

@@ -478,9 +478,8 @@ static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Objec
 	}
 }
 
-void BKE_object_unlink(Object *ob)
+void BKE_object_unlink(Main *bmain, Object *ob)
 {
-	Main *bmain = G.main;
 	Object *obt;
 	Material *mat;
 	World *wrld;
