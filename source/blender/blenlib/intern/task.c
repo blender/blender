@@ -347,17 +347,15 @@ static TaskPool *task_pool_create_ex(TaskScheduler *scheduler, void *userdata, c
 	TaskPool *pool = MEM_callocN(sizeof(TaskPool), "TaskPool");
 
 #ifndef NDEBUG
-#  ifndef WIN32  /* WIN32 pthread_t seems to ba a struct, no direct comparison available, *sigh* */
 	/* Assert we do not try to create a background pool from some parent task - those only work OK from main thread. */
 	if (is_background) {
 		const pthread_t thread_id = pthread_self();
-        int i = scheduler->num_threads;
+		int i = scheduler->num_threads;
 
 		while (i--) {
-			BLI_assert(scheduler->threads[i] != thread_id);
+			BLI_assert(!pthread_equal(scheduler->threads[i], thread_id));
 		}
 	}
-#  endif
 #endif
 
 	pool->scheduler = scheduler;
