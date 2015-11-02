@@ -494,6 +494,7 @@ static void rna_Main_brushes_remove(Main *bmain, ReportList *reports, PointerRNA
 {
 	Brush *brush = brush_ptr->data;
 	if (ID_REAL_USERS(brush) <= 0) {
+		BKE_brush_unlink(bmain, brush);
 		BKE_libblock_free(bmain, brush);
 		RNA_POINTER_INVALIDATE(brush_ptr);
 	}
