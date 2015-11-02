@@ -61,12 +61,17 @@ struct TaskPool {
 	ThreadMutex user_mutex;
 
 	volatile bool do_cancel;
+
+	/* If set, this pool may never be work_and_wait'ed, which means TaskScheduler has to use its special
+	 * background fallback thread in case we are in single-threaded situation. */
+	bool run_in_background;
 };
 
 struct TaskScheduler {
 	pthread_t *threads;
 	struct TaskThread *task_threads;
 	int num_threads;
+	bool background_thread_only;
 
 	ListBase queue;
 	ThreadMutex queue_mutex;
@@ -152,6 +157,11 @@ static bool task_scheduler_thread_wait_pop(TaskScheduler *scheduler, Task **task
 		     current_task = current_task->next)
 		{
 			TaskPool *pool = current_task->pool;
+
+			if (scheduler->background_thread_only && !pool->run_in_background) {
+				continue;
+			}
+
 			if (pool->num_threads == 0 ||
 			    pool->currently_running_tasks < pool->num_threads)
 			{
@@ -215,6 +225,12 @@ TaskScheduler *BLI_task_scheduler_create(int num_threads)
 
 	/* main thread will also work, so we count it too */
 	num_threads -= 1;
+
+	/* Add background-only thread if needed. */
+	if (num_threads == 0) {
+	    scheduler->background_thread_only = true;
+	    num_threads = 1;
+	}
 
 	/* launch threads that will be waiting for work */
 	if (num_threads > 0) {
@@ -326,15 +342,28 @@ static void task_scheduler_clear(TaskScheduler *scheduler, TaskPool *pool)
 
 /* Task Pool */
 
-TaskPool *BLI_task_pool_create(TaskScheduler *scheduler, void *userdata)
+static TaskPool *task_pool_create_ex(TaskScheduler *scheduler, void *userdata, const bool is_background)
 {
 	TaskPool *pool = MEM_callocN(sizeof(TaskPool), "TaskPool");
+
+#ifndef NDEBUG
+	/* Assert we do not try to create a background pool from some parent task - those only work OK from main thread. */
+	if (is_background) {
+		const pthread_t thread_id = pthread_self();
+        int i = scheduler->num_threads;
+
+		while (i--) {
+			BLI_assert(scheduler->threads[i] != thread_id);
+		}
+	}
+#endif
 
 	pool->scheduler = scheduler;
 	pool->num = 0;
 	pool->num_threads = 0;
 	pool->currently_running_tasks = 0;
 	pool->do_cancel = false;
+	pool->run_in_background = is_background;
 
 	BLI_mutex_init(&pool->num_mutex);
 	BLI_condition_init(&pool->num_cond);
@@ -351,6 +380,31 @@ TaskPool *BLI_task_pool_create(TaskScheduler *scheduler, void *userdata)
 	BLI_begin_threaded_malloc();
 
 	return pool;
+}
+
+/**
+ * Create a normal task pool.
+ * This means that in single-threaded context, it will not be executed at all until you call
+ * \a BLI_task_pool_work_and_wait() on it.
+ */
+TaskPool *BLI_task_pool_create(TaskScheduler *scheduler, void *userdata)
+{
+	return task_pool_create_ex(scheduler, userdata, false);
+}
+
+/**
+ * Create a background task pool.
+ * In multi-threaded context, there is no differences with \a BLI_task_pool_create(), but in single-threaded case
+ * it is ensured to have at least one worker thread to run on (i.e. you do not have to call
+ * \a BLI_task_pool_work_and_wait() on it to be sure it will be processed).
+ *
+ * \note Background pools are non-recursive (that is, you should not create other background pools in tasks assigned
+ *       to a brackground pool, they could end never being executed, since the 'fallback' background thread is already
+ *       busy with parent task in single-threaded context).
+ */
+TaskPool *BLI_task_pool_create_background(TaskScheduler *scheduler, void *userdata)
+{
+	return task_pool_create_ex(scheduler, userdata, true);
 }
 
 void BLI_task_pool_free(TaskPool *pool)
