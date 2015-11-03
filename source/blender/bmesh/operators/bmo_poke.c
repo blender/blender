@@ -51,7 +51,7 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
 	const float offset = BMO_slot_float_get(op->slots_in, "offset");
 	const bool use_relative_offset = BMO_slot_bool_get(op->slots_in,  "use_relative_offset");
 	const int center_mode = BMO_slot_int_get(op->slots_in, "center_mode");
-	void (*bm_face_calc_center_fn)(BMFace *f, float r_cent[3]);
+	void (*bm_face_calc_center_fn)(const BMFace *f, float r_cent[3]);
 
 	switch (center_mode) {
 		case BMOP_POKE_MEAN_WEIGHTED:

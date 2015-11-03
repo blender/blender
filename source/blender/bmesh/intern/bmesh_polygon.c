@@ -103,7 +103,7 @@ static float bm_face_calc_poly_normal(const BMFace *f, float n[3])
  * but takes an array of vertex locations.
  */
 static float bm_face_calc_poly_normal_vertex_cos(
-        BMFace *f, float r_no[3],
+        const BMFace *f, float r_no[3],
         float const (*vertexCos)[3])
 {
 	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
@@ -129,15 +129,15 @@ static float bm_face_calc_poly_normal_vertex_cos(
  * \brief COMPUTE POLY CENTER (BMFace)
  */
 static void bm_face_calc_poly_center_mean_vertex_cos(
-        BMFace *f, float r_cent[3],
+        const BMFace *f, float r_cent[3],
         float const (*vertexCos)[3])
 {
-	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
-	BMLoop *l_iter  = l_first;
+	const BMLoop *l_first, *l_iter;
 
 	zero_v3(r_cent);
 
 	/* Newell's Method */
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
 		add_v3_v3(r_cent, vertexCos[BM_elem_index_get(l_iter->v)]);
 	} while ((l_iter = l_iter->next) != l_first);
@@ -201,9 +201,9 @@ void BM_face_calc_tessellation(const BMFace *f, BMLoop **r_loops, unsigned int (
 /**
  * get the area of the face
  */
-float BM_face_calc_area(BMFace *f)
+float BM_face_calc_area(const BMFace *f)
 {
-	BMLoop *l_iter, *l_first;
+	const BMLoop *l_iter, *l_first;
 	float (*verts)[3] = BLI_array_alloca(verts, f->len);
 	float area;
 	unsigned int i = 0;
@@ -226,9 +226,9 @@ float BM_face_calc_area(BMFace *f)
 /**
  * compute the perimeter of an ngon
  */
-float BM_face_calc_perimeter(BMFace *f)
+float BM_face_calc_perimeter(const BMFace *f)
 {
-	BMLoop *l_iter, *l_first;
+	const BMLoop *l_iter, *l_first;
 	float perimeter = 0.0f;
 
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
@@ -262,12 +262,12 @@ void BM_vert_tri_calc_plane(BMVert *verts[3], float r_plane[3])
  * Compute a meaningful direction along the face (use for manipulator axis).
  * \note result isnt normalized.
  */
-void BM_face_calc_plane(BMFace *f, float r_plane[3])
+void BM_face_calc_plane(const BMFace *f, float r_plane[3])
 {
 	if (f->len == 3) {
 		BMVert *verts[3];
 
-		BM_face_as_array_vert_tri(f, verts);
+		BM_face_as_array_vert_tri((BMFace *)f, verts);
 
 		BM_vert_tri_calc_plane(verts, r_plane);
 	}
@@ -276,7 +276,7 @@ void BM_face_calc_plane(BMFace *f, float r_plane[3])
 		float vec[3], vec_a[3], vec_b[3];
 
 		// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, efa, (void **)verts, 4);
-		BM_face_as_array_vert_quad(f, verts);
+		BM_face_as_array_vert_quad((BMFace *)f, verts);
 
 		sub_v3_v3v3(vec_a, verts[3]->co, verts[2]->co);
 		sub_v3_v3v3(vec_b, verts[0]->co, verts[1]->co);
@@ -291,7 +291,7 @@ void BM_face_calc_plane(BMFace *f, float r_plane[3])
 		}
 	}
 	else {
-		BMLoop *l_long  = BM_face_find_longest_loop(f);
+		const BMLoop *l_long  = BM_face_find_longest_loop((BMFace *)f);
 
 		sub_v3_v3v3(r_plane, l_long->v->co, l_long->next->v->co);
 	}
@@ -302,10 +302,9 @@ void BM_face_calc_plane(BMFace *f, float r_plane[3])
 /**
  * computes center of face in 3d.  uses center of bounding box.
  */
-void BM_face_calc_center_bounds(BMFace *f, float r_cent[3])
+void BM_face_calc_center_bounds(const BMFace *f, float r_cent[3])
 {
-	BMLoop *l_iter;
-	BMLoop *l_first;
+	const BMLoop *l_iter, *l_first;
 	float min[3], max[3];
 
 	INIT_MINMAX(min, max);
@@ -321,9 +320,9 @@ void BM_face_calc_center_bounds(BMFace *f, float r_cent[3])
 /**
  * computes the center of a face, using the mean average
  */
-void BM_face_calc_center_mean(BMFace *f, float r_cent[3])
+void BM_face_calc_center_mean(const BMFace *f, float r_cent[3])
 {
-	BMLoop *l_iter, *l_first;
+	const BMLoop *l_iter, *l_first;
 
 	zero_v3(r_cent);
 
@@ -338,10 +337,10 @@ void BM_face_calc_center_mean(BMFace *f, float r_cent[3])
  * computes the center of a face, using the mean average
  * weighted by edge length
  */
-void BM_face_calc_center_mean_weighted(BMFace *f, float r_cent[3])
+void BM_face_calc_center_mean_weighted(const BMFace *f, float r_cent[3])
 {
-	BMLoop *l_iter;
-	BMLoop *l_first;
+	const BMLoop *l_iter;
+	const BMLoop *l_first;
 	float totw = 0.0f;
 	float w_prev;
 
@@ -551,7 +550,7 @@ void BM_face_normal_update(BMFace *f)
 
 /* exact same as 'BM_face_calc_normal' but accepts vertex coords */
 float BM_face_calc_normal_vcos(
-        BMesh *bm, BMFace *f, float r_no[3],
+        const BMesh *bm, const BMFace *f, float r_no[3],
         float const (*vertexCos)[3])
 {
 	BMLoop *l;
@@ -589,13 +588,13 @@ float BM_face_calc_normal_vcos(
 /**
  * Calculates the face subset normal.
  */
-float BM_face_calc_normal_subset(BMLoop *l_first, BMLoop *l_last, float r_no[3])
+float BM_face_calc_normal_subset(const BMLoop *l_first, const BMLoop *l_last, float r_no[3])
 {
 	const float *v_prev, *v_curr;
 
 	/* Newell's Method */
-	BMLoop *l_iter = l_first;
-	BMLoop *l_term = l_last->next;
+	const BMLoop *l_iter = l_first;
+	const BMLoop *l_term = l_last->next;
 
 	zero_v3(r_no);
 
@@ -611,7 +610,7 @@ float BM_face_calc_normal_subset(BMLoop *l_first, BMLoop *l_last, float r_no[3])
 
 /* exact same as 'BM_face_calc_normal' but accepts vertex coords */
 void BM_face_calc_center_mean_vcos(
-        BMesh *bm, BMFace *f, float r_cent[3],
+        const BMesh *bm, const BMFace *f, float r_cent[3],
         float const (*vertexCos)[3])
 {
 	/* must have valid index data */
@@ -704,7 +703,7 @@ static bool line_crosses_v2f(const float v1[2], const float v2[2], const float v
  * instead of projecting co directly into f's orientation space,
  * so there might be accuracy issues.
  */
-bool BM_face_point_inside_test(BMFace *f, const float co[3])
+bool BM_face_point_inside_test(const BMFace *f, const float co[3])
 {
 	float axis_mat[3][3];
 	float (*projverts)[2] = BLI_array_alloca(projverts, f->len);
@@ -713,8 +712,7 @@ bool BM_face_point_inside_test(BMFace *f, const float co[3])
 	BMLoop *l_iter;
 	int i;
 	
-	if (is_zero_v3(f->no))
-		BM_face_normal_update(f);
+	BLI_assert(BM_face_is_normal_valid(f));
 
 	axis_dominant_v3_to_m3(axis_mat, f->no);
 
