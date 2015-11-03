@@ -30,7 +30,11 @@
 struct LinkNode;
 struct MemArena;
 
-void  BM_loop_interp_multires(BMesh *bm, BMLoop *l_dst, const BMFace *f_src);
+void  BM_loop_interp_multires_ex(
+        BMesh *bm, BMLoop *l_dst, const BMFace *f_src,
+        const float f_dst_center[3], const float f_src_center[3], const int cd_loop_mdisp_offset);
+void  BM_loop_interp_multires(
+        BMesh *bm, BMLoop *l_dst, const BMFace *f_src);
 void  BM_vert_interp_from_face(BMesh *bm, BMVert *v_dst, const BMFace *f_src);
 
 void  BM_data_interp_from_verts(BMesh *bm, const BMVert *v_src_1, const BMVert *v_src_2, BMVert *v_dst, const float fac);

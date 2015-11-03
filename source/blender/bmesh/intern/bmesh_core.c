@@ -1107,6 +1107,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 	BMVert *v1 = NULL, *v2 = NULL;
 	const char *err = NULL;
 	int i, tote = 0;
+	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
 
 	if (UNLIKELY(!totface)) {
 		BMESH_ASSERT(0);
@@ -1237,11 +1238,19 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 	BM_ELEM_API_FLAG_DISABLE(f_new, _FLAG_JF);
 
 	/* handle multi-res data */
-	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+	if (cd_loop_mdisp_offset != -1) {
+		float f_center[3];
+		float (*faces_center)[3] = BLI_array_alloca(faces_center, totface);
+
+		BM_face_calc_center_mean(f_new, f_center);
+		for (i = 0; i < totface; i++) {
+			BM_face_calc_center_mean(faces[i], faces_center[i]);
+		}
+
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);
 		do {
 			for (i = 0; i < totface; i++) {
-				BM_loop_interp_multires(bm, l_iter, faces[i]);
+				BM_loop_interp_multires_ex(bm, l_iter, faces[i], f_center, faces_center[i], cd_loop_mdisp_offset);
 			}
 		} while ((l_iter = l_iter->next) != l_first);
 	}

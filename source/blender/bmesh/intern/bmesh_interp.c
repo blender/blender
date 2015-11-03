@@ -242,18 +242,25 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *f_dst, const BMFace *f_src, con
  * </pre>
  */
 static int compute_mdisp_quad(
-        BMLoop *l, float v1[3], float v2[3], float v3[3], float v4[3],
+        const BMLoop *l, const float l_f_center[3],
+        float v1[3], float v2[3], float v3[3], float v4[3],
         float e1[3], float e2[3])
 {
-	float cent[3], n[3], p[3];
+	float n[3], p[3];
 
-	/* computer center */
-	BM_face_calc_center_mean(l->f, cent);
+#ifndef NDEBUG
+	{
+		float cent[3];
+		/* computer center */
+		BM_face_calc_center_mean(l->f, cent);
+		BLI_assert(equals_v3v3(cent, l_f_center));
+	}
+#endif
 
 	mid_v3_v3v3(p, l->prev->v->co, l->v->co);
 	mid_v3_v3v3(n, l->next->v->co, l->v->co);
 	
-	copy_v3_v3(v1, cent);
+	copy_v3_v3(v1, l_f_center);
 	copy_v3_v3(v2, p);
 	copy_v3_v3(v3, l->v->co);
 	copy_v3_v3(v4, n);
@@ -304,9 +311,9 @@ static float quad_coord(const float aa[3], const float bb[3], const float cc[3],
 }
 
 static int quad_co(
-        float *r_x, float *r_y,
         const float v1[3], const float v2[3], const float v3[3], const float v4[3],
-        const float p[3], const float n[3])
+        const float p[3], const float n[3],
+        float r_uv[2])
 {
 	float projverts[5][3], n2[3];
 	float dprojverts[4][3], origin[3] = {0.0f, 0.0f, 0.0f};
@@ -342,38 +349,39 @@ static int quad_co(
 		return 0;
 	}
 	
-	*r_y = quad_coord(dprojverts[1], dprojverts[0], dprojverts[2], dprojverts[3], 0, 1);
-	*r_x = quad_coord(dprojverts[2], dprojverts[1], dprojverts[3], dprojverts[0], 0, 1);
+	r_uv[0] = quad_coord(dprojverts[2], dprojverts[1], dprojverts[3], dprojverts[0], 0, 1);
+	r_uv[1] = quad_coord(dprojverts[1], dprojverts[0], dprojverts[2], dprojverts[3], 0, 1);
 
 	return 1;
 }
 
 static void mdisp_axis_from_quad(
         float v1[3], float v2[3], float UNUSED(v3[3]), float v4[3],
-        float axis_x[3], float axis_y[3])
+        float r_axis_x[3], float r_axis_y[3])
 {
-	sub_v3_v3v3(axis_x, v4, v1);
-	sub_v3_v3v3(axis_y, v2, v1);
+	sub_v3_v3v3(r_axis_x, v4, v1);
+	sub_v3_v3v3(r_axis_y, v2, v1);
 
-	normalize_v3(axis_x);
-	normalize_v3(axis_y);
+	normalize_v3(r_axis_x);
+	normalize_v3(r_axis_y);
 }
 
 /* tl is loop to project onto, l is loop whose internal displacement, co, is being
  * projected.  x and y are location in loop's mdisps grid of point co. */
 static bool mdisp_in_mdispquad(
-        BMLoop *l, BMLoop *tl, float p[3], float *x, float *y,
-        int res, float axis_x[3], float axis_y[3])
+        BMLoop *l_src, BMLoop *l_dst, const float l_dst_f_center[3],
+        const float p[3], int res,
+        float r_axis_x[3], float r_axis_y[3], float r_uv[2])
 {
 	float v1[3], v2[3], c[3], v3[3], v4[3], e1[3], e2[3];
 	float eps = FLT_EPSILON * 4000;
 	
-	if (is_zero_v3(l->v->no))
-		BM_vert_normal_update_all(l->v);
-	if (is_zero_v3(tl->v->no))
-		BM_vert_normal_update_all(tl->v);
+	if (is_zero_v3(l_src->v->no))
+		BM_vert_normal_update_all(l_src->v);
+	if (is_zero_v3(l_dst->v->no))
+		BM_vert_normal_update_all(l_dst->v);
 
-	compute_mdisp_quad(tl, v1, v2, v3, v4, e1, e2);
+	compute_mdisp_quad(l_dst, l_dst_f_center, v1, v2, v3, v4, e1, e2);
 
 	/* expand quad a bit */
 	cent_quad_v3(c, v1, v2, v3, v4);
@@ -385,13 +393,12 @@ static bool mdisp_in_mdispquad(
 	add_v3_v3(v1, c); add_v3_v3(v2, c);
 	add_v3_v3(v3, c); add_v3_v3(v4, c);
 	
-	if (!quad_co(x, y, v1, v2, v3, v4, p, l->v->no))
+	if (!quad_co(v1, v2, v3, v4, p, l_src->v->no, r_uv))
 		return 0;
 	
-	*x *= res - 1;
-	*y *= res - 1;
+	mul_v2_fl(r_uv, (float)(res - 1));
 
-	mdisp_axis_from_quad(v1, v2, v3, v4, axis_x, axis_y);
+	mdisp_axis_from_quad(v1, v2, v3, v4, r_axis_x, r_axis_y);
 
 	return 1;
 }
@@ -439,23 +446,21 @@ static void bm_loop_flip_disp(
 	disp[1] = (mat[0][0] * b[1] - b[0] * mat[1][0]) / d;
 }
 
-static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *l_dst, const BMFace *f_src)
+void BM_loop_interp_multires_ex(
+        BMesh *UNUSED(bm), BMLoop *l_dst, const BMFace *f_src,
+        const float f_dst_center[3], const float f_src_center[3], const int cd_loop_mdisp_offset)
 {
-	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
 	MDisps *md_dst;
 	float d, v1[3], v2[3], v3[3], v4[3] = {0.0f, 0.0f, 0.0f}, e1[3], e2[3];
 	int ix, res;
 	float axis_x[3], axis_y[3];
-
-	if (cd_loop_mdisp_offset == -1)
-		return;
 	
 	/* ignore 2-edged faces */
 	if (UNLIKELY(l_dst->f->len < 3))
 		return;
 
 	md_dst = BM_ELEM_CD_GET_VOID_P(l_dst, cd_loop_mdisp_offset);
-	compute_mdisp_quad(l_dst, v1, v2, v3, v4, e1, e2);
+	compute_mdisp_quad(l_dst, f_dst_center, v1, v2, v3, v4, e1, e2);
 	
 	/* if no disps data allocate a new grid, the size of the first grid in f_src. */
 	if (!md_dst->totdisp) {
@@ -484,29 +489,20 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *l_dst, const BMFace *f_src)
 			BMLoop *l_first;
 			float co1[3], co2[3], co[3];
 
-			copy_v3_v3(co1, e1);
-			
-			mul_v3_fl(co1, y);
-			add_v3_v3(co1, v1);
-			
-			copy_v3_v3(co2, e2);
-			mul_v3_fl(co2, y);
-			add_v3_v3(co2, v4);
-			
-			sub_v3_v3v3(co, co2, co1);
-			mul_v3_fl(co, x);
-			add_v3_v3(co, co1);
+			madd_v3_v3v3fl(co1, v1, e1, y);
+			madd_v3_v3v3fl(co2, v4, e2, y);
+			interp_v3_v3v3(co, co1, co2, x);
 			
 			l_iter = l_first = BM_FACE_FIRST_LOOP(f_src);
 			do {
-				float x2, y2;
 				MDisps *md_src;
 				float src_axis_x[3], src_axis_y[3];
+				float uv[2];
 
 				md_src = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_mdisp_offset);
 				
-				if (mdisp_in_mdispquad(l_dst, l_iter, co, &x2, &y2, res, src_axis_x, src_axis_y)) {
-					old_mdisps_bilinear(md_dst->disps[iy * res + ix], md_src->disps, res, (float)x2, (float)y2);
+				if (mdisp_in_mdispquad(l_dst, l_iter, f_src_center, co, res, src_axis_x, src_axis_y, uv)) {
+					old_mdisps_bilinear(md_dst->disps[iy * res + ix], md_src->disps, res, uv[0], uv[1]);
 					bm_loop_flip_disp(src_axis_x, src_axis_y, axis_x, axis_y, md_dst->disps[iy * res + ix]);
 
 					break;
@@ -514,6 +510,21 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *l_dst, const BMFace *f_src)
 			} while ((l_iter = l_iter->next) != l_first);
 		}
 	}
+}
+
+/**
+ * project the multires grid in target onto f_src's set of multires grids
+ */
+void BM_loop_interp_multires(BMesh *bm, BMLoop *l_dst, const BMFace *f_src)
+{
+	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+	float f_dst_center[3];
+	float f_src_center[3];
+
+	BM_face_calc_center_mean(l_dst->f, f_dst_center);
+	BM_face_calc_center_mean(f_src,    f_src_center);
+
+	BM_loop_interp_multires_ex(bm, l_dst, f_src, f_dst_center, f_src_center, cd_loop_mdisp_offset);
 }
 
 /**
@@ -623,14 +634,6 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 }
 
 /**
- * project the multires grid in target onto f_src's set of multires grids
- */
-void BM_loop_interp_multires(BMesh *bm, BMLoop *l_dst, const BMFace *f_src)
-{
-	bm_loop_interp_mdisps(bm, l_dst, f_src);
-}
-
-/**
  * projects a single loop, target, onto f_src for customdata interpolation. multires is handled.
  * if do_vertex is true, target's vert data will also get interpolated.
  */
@@ -673,7 +676,7 @@ void BM_loop_interp_from_face(
 	}
 
 	if (do_multires) {
-		bm_loop_interp_mdisps(bm, l_dst, f_src);
+		BM_loop_interp_multires(bm, l_dst, f_src);
 	}
 }
 
