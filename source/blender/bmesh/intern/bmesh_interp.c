@@ -271,52 +271,13 @@ static int compute_mdisp_quad(
 	return 1;
 }
 
-/* funnily enough, I think this is identical to face_to_crn_interp, heh */
-static float quad_coord(const float aa[3], const float bb[3], const float cc[3], const float dd[3], int a1, int a2)
-{
-	float x, y, z, f1;
-	float div;
-	
-	x = aa[a1] * cc[a2] - cc[a1] * aa[a2];
-	y = aa[a1] * dd[a2] + bb[a1] * cc[a2] - cc[a1] * bb[a2] - dd[a1] * aa[a2];
-	z = bb[a1] * dd[a2] - dd[a1] * bb[a2];
-
-	div = 2.0f * (x - y + z);
-
-	if (fabsf(div) > FLT_EPSILON * 10.0f) {
-		const float f_tmp = sqrtf(y * y - 4.0f * x * z);
-
-		f1 = min_ff(fabsf(( f_tmp - y + 2.0f * z) / div),
-		            fabsf((-f_tmp - y + 2.0f * z) / div));
-
-		CLAMP_MAX(f1, 1.0f + FLT_EPSILON);
-	}
-	else {
-		f1 = -z / (y - 2 * z);
-		CLAMP(f1, 0.0f, 1.0f + FLT_EPSILON);
-		
-		if (isnan(f1) || f1 > 1.0f || f1 < 0.0f) {
-			int i;
-			
-			for (i = 0; i < 2; i++) {
-				if (fabsf(aa[i]) < FLT_EPSILON * 100.0f)
-					return aa[(i + 1) % 2] / fabsf(bb[(i + 1) % 2] - aa[(i + 1) % 2]);
-				if (fabsf(cc[i]) < FLT_EPSILON * 100.0f)
-					return cc[(i + 1) % 2] / fabsf(dd[(i + 1) % 2] - cc[(i + 1) % 2]);
-			}
-		}
-	}
-
-	return f1;
-}
-
-static int quad_co(
+static bool quad_co(
         const float v1[3], const float v2[3], const float v3[3], const float v4[3],
         const float p[3], const float n[3],
         float r_uv[2])
 {
 	float projverts[5][3], n2[3];
-	float dprojverts[4][3], origin[3] = {0.0f, 0.0f, 0.0f};
+	float origin[2] = {0.0f, 0.0f};
 	int i;
 
 	/* project points into 2d along normal */
@@ -329,7 +290,7 @@ static int quad_co(
 	normal_quad_v3(n2, projverts[0], projverts[1], projverts[2], projverts[3]);
 
 	if (dot_v3v3(n, n2) < -FLT_EPSILON) {
-		return 0;
+		return false;
 	}
 
 	/* rotate */
@@ -337,22 +298,16 @@ static int quad_co(
 
 	/* subtract origin */
 	for (i = 0; i < 4; i++) {
-		sub_v3_v3(projverts[i], projverts[4]);
+		sub_v2_v2(projverts[i], projverts[4]);
 	}
-	
-	copy_v3_v3(dprojverts[0], projverts[0]);
-	copy_v3_v3(dprojverts[1], projverts[1]);
-	copy_v3_v3(dprojverts[2], projverts[2]);
-	copy_v3_v3(dprojverts[3], projverts[3]);
 
-	if (!isect_point_quad_v2(origin, dprojverts[0], dprojverts[1], dprojverts[2], dprojverts[3])) {
-		return 0;
+	if (!isect_point_quad_v2(origin, projverts[0], projverts[1], projverts[2], projverts[3])) {
+		return false;
 	}
-	
-	r_uv[0] = quad_coord(dprojverts[2], dprojverts[1], dprojverts[3], dprojverts[0], 0, 1);
-	r_uv[1] = quad_coord(dprojverts[1], dprojverts[0], dprojverts[2], dprojverts[3], 0, 1);
 
-	return 1;
+	resolve_quad_uv_v2(r_uv, origin, projverts[0], projverts[3], projverts[2], projverts[1]);
+
+	return true;
 }
 
 static void mdisp_axis_from_quad(
