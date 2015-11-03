@@ -54,7 +54,8 @@ void  BM_face_normal_update(BMFace *f) ATTR_NONNULL();
 
 void  BM_edge_normals_update(BMEdge *e) ATTR_NONNULL();
 
-bool BM_vert_normal_update_ex(BMVert *v, const char hflag, float r_no[3]);
+bool  BM_vert_calc_normal_ex(const BMVert *v, const char hflag, float r_no[3]);
+bool  BM_vert_calc_normal(const BMVert *v, float r_no[3]);
 void  BM_vert_normal_update(BMVert *v) ATTR_NONNULL();
 void  BM_vert_normal_update_all(BMVert *v) ATTR_NONNULL();
 

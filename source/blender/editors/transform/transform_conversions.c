@@ -2229,7 +2229,7 @@ static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx
 	if ((t->mode == TFM_SHRINKFATTEN) &&
 	    (em->selectmode & SCE_SELECT_FACE) &&
 	    BM_elem_flag_test(eve, BM_ELEM_SELECT) &&
-	    (BM_vert_normal_update_ex(eve, BM_ELEM_SELECT, _no)))
+	    (BM_vert_calc_normal_ex(eve, BM_ELEM_SELECT, _no)))
 	{
 		no = _no;
 	}

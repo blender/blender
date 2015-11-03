@@ -421,36 +421,107 @@ void BM_edge_normals_update(BMEdge *e)
 	BM_vert_normal_update(e->v2);
 }
 
-bool BM_vert_normal_update_ex(BMVert *v, const char hflag, float r_no[3])
+static void bm_loop_normal_accum(const BMLoop *l, float no[3])
 {
-	/* TODO, we can normalize each edge only once, then compare with previous edge */
+	float vec1[3], vec2[3], fac;
 
-	BMIter liter;
-	BMLoop *l;
+	/* Same calculation used in BM_mesh_normals_update */
+	sub_v3_v3v3(vec1, l->v->co, l->prev->v->co);
+	sub_v3_v3v3(vec2, l->next->v->co, l->v->co);
+	normalize_v3(vec1);
+	normalize_v3(vec2);
+
+	fac = saacos(-dot_v3v3(vec1, vec2));
+
+	madd_v3_v3fl(no, l->f->no, fac);
+}
+
+bool BM_vert_calc_normal_ex(const BMVert *v, const char hflag, float r_no[3])
+{
 	int len = 0;
 
 	zero_v3(r_no);
 
-	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-		if (BM_elem_flag_test(l->f, hflag)) {
-			float vec1[3], vec2[3], fac;
-
-			/* Same calculation used in BM_mesh_normals_update */
-			sub_v3_v3v3(vec1, l->v->co, l->prev->v->co);
-			sub_v3_v3v3(vec2, l->next->v->co, l->v->co);
-			normalize_v3(vec1);
-			normalize_v3(vec2);
-
-			fac = saacos(-dot_v3v3(vec1, vec2));
-
-			madd_v3_v3fl(r_no, l->f->no, fac);
-
-			len++;
-		}
+	if (v->e) {
+		const BMEdge *e = v->e;
+		do {
+			if (e->l) {
+				const BMLoop *l = e->l;
+				do {
+					if (l->v == v) {
+						if (BM_elem_flag_test(l->f, hflag)) {
+							bm_loop_normal_accum(l, r_no);
+							len++;
+						}
+					}
+				} while ((l = l->radial_next) != e->l);
+			}
+		} while ((e = bmesh_disk_edge_next(e, v)) != v->e);
 	}
 
 	if (len) {
 		normalize_v3(r_no);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool BM_vert_calc_normal(const BMVert *v, float r_no[3])
+{
+	int len = 0;
+
+	zero_v3(r_no);
+
+	if (v->e) {
+		const BMEdge *e = v->e;
+		do {
+			if (e->l) {
+				const BMLoop *l = e->l;
+				do {
+					if (l->v == v) {
+						bm_loop_normal_accum(l, r_no);
+						len++;
+					}
+				} while ((l = l->radial_next) != e->l);
+			}
+		} while ((e = bmesh_disk_edge_next(e, v)) != v->e);
+	}
+
+	if (len) {
+		normalize_v3(r_no);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+void BM_vert_normal_update_all(BMVert *v)
+{
+	int len = 0;
+
+	zero_v3(v->no);
+
+	if (v->e) {
+		const BMEdge *e = v->e;
+		do {
+			if (e->l) {
+				const BMLoop *l = e->l;
+				do {
+					if (l->v == v) {
+						BM_face_normal_update(l->f);
+						bm_loop_normal_accum(l, v->no);
+						len++;
+					}
+				} while ((l = l->radial_next) != e->l);
+			}
+		} while ((e = bmesh_disk_edge_next(e, v)) != v->e);
+	}
+
+	if (len) {
+		normalize_v3(v->no);
 		return true;
 	}
 	else {
@@ -463,45 +534,7 @@ bool BM_vert_normal_update_ex(BMVert *v, const char hflag, float r_no[3])
  */
 void BM_vert_normal_update(BMVert *v)
 {
-	/* TODO, we can normalize each edge only once, then compare with previous edge */
-
-	BMIter liter;
-	BMLoop *l;
-	int len = 0;
-
-	zero_v3(v->no);
-
-	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-		float vec1[3], vec2[3], fac;
-
-		/* Same calculation used in BM_mesh_normals_update */
-		sub_v3_v3v3(vec1, l->v->co, l->prev->v->co);
-		sub_v3_v3v3(vec2, l->next->v->co, l->v->co);
-		normalize_v3(vec1);
-		normalize_v3(vec2);
-
-		fac = saacos(-dot_v3v3(vec1, vec2));
-
-		madd_v3_v3fl(v->no, l->f->no, fac);
-
-		len++;
-	}
-
-	if (len) {
-		normalize_v3(v->no);
-	}
-}
-
-void BM_vert_normal_update_all(BMVert *v)
-{
-	BMIter iter;
-	BMFace *f;
-
-	BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
-		BM_face_normal_update(f);
-	}
-
-	BM_vert_normal_update(v);
+	BM_vert_calc_normal(v, v->no);
 }
 
 /**
