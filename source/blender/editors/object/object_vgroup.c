@@ -566,7 +566,7 @@ static void vgroup_remove_weight(Object *ob, const int def_nr)
 
 }
 
-static void vgroup_normalize_active(Object *ob, eVGroupSelect subset_type)
+static bool vgroup_normalize_active_vertex(Object *ob, eVGroupSelect subset_type)
 {
 	Mesh *me = ob->data;
 	BMEditMesh *em = me->edit_btmesh;
@@ -585,7 +585,7 @@ static void vgroup_normalize_active(Object *ob, eVGroupSelect subset_type)
 	}
 
 	if (dvert_act == NULL) {
-		return;
+		return false;
 	}
 
 	vgroup_validmap = BKE_object_defgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
@@ -601,6 +601,8 @@ static void vgroup_normalize_active(Object *ob, eVGroupSelect subset_type)
 			ED_mesh_defvert_mirror_update_ob(ob, -1, v_act);
 		}
 	}
+
+	return true;
 }
 
 static void vgroup_copy_active_to_sel(Object *ob, eVGroupSelect subset_type)
@@ -1067,7 +1069,7 @@ static void vgroup_duplicate(Object *ob)
 	}
 }
 
-static void vgroup_normalize(Object *ob)
+static bool vgroup_normalize(Object *ob)
 {
 	MDeformWeight *dw;
 	MDeformVert *dv, **dvert_array = NULL;
@@ -1077,7 +1079,7 @@ static void vgroup_normalize(Object *ob)
 	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
 	if (!BLI_findlink(&ob->defbase, def_nr)) {
-		return;
+		return false;
 	}
 
 	ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
@@ -1117,7 +1119,11 @@ static void vgroup_normalize(Object *ob)
 		}
 
 		MEM_freeN(dvert_array);
+
+		return true;
 	}
+
+	return false;
 }
 
 /* This finds all of the vertices face-connected to vert by an edge and returns a
@@ -1521,11 +1527,13 @@ static void vgroup_levels_subset(Object *ob, const bool *vgroup_validmap, const 
 	}
 }
 
-static void vgroup_normalize_all(Object *ob,
-                                 const bool *vgroup_validmap,
-                                 const int vgroup_tot,
-                                 const int subset_count,
-                                 const bool lock_active)
+static bool vgroup_normalize_all(
+        Object *ob,
+        const bool *vgroup_validmap,
+        const int vgroup_tot,
+        const int subset_count,
+        const bool lock_active,
+        ReportList *reports)
 {
 	MDeformVert *dv, **dvert_array = NULL;
 	int i, dvert_tot = 0;
@@ -1533,8 +1541,9 @@ static void vgroup_normalize_all(Object *ob,
 
 	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
-	if ((lock_active && !BLI_findlink(&ob->defbase, def_nr)) || subset_count == 0) {
-		return;
+	if (subset_count == 0) {
+		BKE_report(reports, RPT_ERROR, "No vertex groups to operate on");
+		return false;
 	}
 
 	ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
@@ -1542,12 +1551,26 @@ static void vgroup_normalize_all(Object *ob,
 	if (dvert_array) {
 		const int defbase_tot = BLI_listbase_count(&ob->defbase);
 		bool *lock_flags = BKE_object_defgroup_lock_flags_get(ob, defbase_tot);
+		bool changed = false;
 
 		if ((lock_active == true) &&
 		    (lock_flags != NULL) &&
 		    (def_nr < defbase_tot))
 		{
 			lock_flags[def_nr] = true;
+		}
+
+		if (lock_flags) {
+			for (i = 0; i < defbase_tot; i++) {
+				if (lock_flags[i] == false) {
+					break;
+				}
+			}
+
+			if (i == defbase_tot) {
+				BKE_report(reports, RPT_ERROR, "All groups are locked");
+				goto finally;
+			}
 		}
 
 		for (i = 0; i < dvert_tot; i++) {
@@ -1567,12 +1590,19 @@ static void vgroup_normalize_all(Object *ob,
 			}
 		}
 
+		changed = true;
+
+finally:
 		if (lock_flags) {
 			MEM_freeN(lock_flags);
 		}
 
 		MEM_freeN(dvert_array);
+
+		return changed;
 	}
+
+	return false;
 }
 
 enum {
@@ -2826,14 +2856,20 @@ void OBJECT_OT_vertex_group_levels(wmOperatorType *ot)
 static int vertex_group_normalize_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_object_context(C);
+	bool changed;
 
-	vgroup_normalize(ob);
+	changed = vgroup_normalize(ob);
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+	if (changed) {
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 
-	return OPERATOR_FINISHED;
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void OBJECT_OT_vertex_group_normalize(wmOperatorType *ot)
@@ -2856,18 +2892,24 @@ static int vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
 	Object *ob = ED_object_context(C);
 	bool lock_active = RNA_boolean_get(op->ptr, "lock_active");
 	eVGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
-
+	bool changed;
 	int subset_count, vgroup_tot;
-
 	const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
-	vgroup_normalize_all(ob, vgroup_validmap, vgroup_tot, subset_count, lock_active);
+
+	changed = vgroup_normalize_all(ob, vgroup_validmap, vgroup_tot, subset_count, lock_active, op->reports);
 	MEM_freeN((void *)vgroup_validmap);
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+	if (changed) {
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 
-	return OPERATOR_FINISHED;
+		return OPERATOR_FINISHED;
+	}
+	else {
+		/* allow to adjust settings */
+		return OPERATOR_FINISHED;
+	}
 }
 
 void OBJECT_OT_vertex_group_normalize_all(wmOperatorType *ot)
@@ -3825,13 +3867,19 @@ static int vertex_weight_normalize_active_vertex_exec(bContext *C, wmOperator *U
 	Object *ob = ED_object_context(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	eVGroupSelect subset_type = ts->vgroupsubset;
+	bool changed;
 
-	vgroup_normalize_active(ob, subset_type);
+	changed = vgroup_normalize_active_vertex(ob, subset_type);
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+	if (changed) {
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
-	return OPERATOR_FINISHED;
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void OBJECT_OT_vertex_weight_normalize_active_vertex(wmOperatorType *ot)

@@ -357,7 +357,7 @@ void defvert_normalize_lock_map(
 	else if (dvert->totweight == 1) {
 		MDeformWeight *dw = dvert->dw;
 		if ((dw->def_nr < vgroup_tot) && vgroup_subset[dw->def_nr]) {
-			if (LIKELY(defbase_tot >= 1) && lock_flags[0]) {
+			if ((dw->def_nr < defbase_tot) && (lock_flags[dw->def_nr] == false)) {
 				dw->weight = 1.0f;
 			}
 		}
