@@ -8820,7 +8820,6 @@ static void expand_brush(FileData *fd, Main *mainvar, Brush *brush)
 	expand_doit(fd, mainvar, brush->mtex.tex);
 	expand_doit(fd, mainvar, brush->mask_mtex.tex);
 	expand_doit(fd, mainvar, brush->clone.image);
-	expand_doit(fd, mainvar, brush->toggle_brush);
 	expand_doit(fd, mainvar, brush->paint_curve);
 }
 
