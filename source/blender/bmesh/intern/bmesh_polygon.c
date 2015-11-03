@@ -522,10 +522,6 @@ void BM_vert_normal_update_all(BMVert *v)
 
 	if (len) {
 		normalize_v3(v->no);
-		return true;
-	}
-	else {
-		return false;
 	}
 }
 
