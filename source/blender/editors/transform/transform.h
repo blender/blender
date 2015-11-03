@@ -225,6 +225,8 @@ typedef struct TransDataEdgeSlideVert {
 typedef struct SlideOrigData {
 	/* flag that is set when origfaces is initialized */
 	bool use_origfaces;
+	int cd_loop_mdisp_offset;
+
 	struct GHash    *origverts;  /* map {BMVert: TransDataGenericSlideVert} */
 	struct GHash    *origfaces;
 	struct BMesh *bm_origfaces;

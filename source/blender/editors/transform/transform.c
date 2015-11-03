@@ -5318,17 +5318,21 @@ static void slide_origdata_init_flag(
 {
 	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 	BMesh *bm = em->bm;
+	const bool has_layer_math = CustomData_has_math(&bm->ldata);
+	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
 
 	if ((t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) &&
 	    /* don't do this at all for non-basis shape keys, too easy to
 	     * accidentally break uv maps or vertex colors then */
 	    (bm->shapenr <= 1) &&
-	    CustomData_has_math(&bm->ldata))
+	    (has_layer_math || (cd_loop_mdisp_offset != -1)))
 	{
 		sod->use_origfaces = true;
+		sod->cd_loop_mdisp_offset = cd_loop_mdisp_offset;
 	}
 	else {
 		sod->use_origfaces = false;
+		sod->cd_loop_mdisp_offset = -1;
 	}
 }
 
@@ -5380,7 +5384,7 @@ static void slide_origdata_create_data_vert(
 	}
 
 	/* store cd_loop_groups */
-	if (l_num != 0) {
+	if (sod->layer_math_map_num && (l_num != 0)) {
 		sv->cd_loop_groups = BLI_memarena_alloc(sod->arena, sod->layer_math_map_num * sizeof(void *));
 		for (j = 0; j < sod->layer_math_map_num; j++) {
 			const int layer_nr = sod->layer_math_map[j];
@@ -5407,15 +5411,19 @@ static void slide_origdata_create_data(
 		int layer_index_dst;
 		int j;
 
-		/* over alloc, only 'math' layers are indexed */
-		sod->layer_math_map = MEM_mallocN(bm->ldata.totlayer * sizeof(int), __func__);
 		layer_index_dst = 0;
-		for (j = 0; j < bm->ldata.totlayer; j++) {
-			if (CustomData_layer_has_math(&bm->ldata, j)) {
-				sod->layer_math_map[layer_index_dst++] = j;
+
+		if (CustomData_has_math(&bm->ldata)) {
+			/* over alloc, only 'math' layers are indexed */
+			sod->layer_math_map = MEM_mallocN(bm->ldata.totlayer * sizeof(int), __func__);
+			for (j = 0; j < bm->ldata.totlayer; j++) {
+				if (CustomData_layer_has_math(&bm->ldata, j)) {
+					sod->layer_math_map[layer_index_dst++] = j;
+				}
 			}
+			BLI_assert(layer_index_dst != 0);
 		}
-		BLI_assert(layer_index_dst != 0);
+
 		sod->layer_math_map_num = layer_index_dst;
 
 		sod->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
@@ -5473,7 +5481,8 @@ static void slide_origdata_interp_data_vert(
 	BMIter liter;
 	int j, l_num;
 	float *loop_weights;
-	const bool do_loop_weight = (len_squared_v3v3(sv->v->co, sv->co_orig_3d) > FLT_EPSILON);
+	const bool is_moved = (len_squared_v3v3(sv->v->co, sv->co_orig_3d) > FLT_EPSILON);
+	const bool do_loop_weight = sod->layer_math_map_num && is_moved;
 	const float *v_proj_axis = sv->v->no;
 	/* original (l->prev, l, l->next) projections for each loop ('l' remains unchanged) */
 	float v_proj[3][3];
@@ -5494,7 +5503,7 @@ static void slide_origdata_interp_data_vert(
 
 		/* only loop data, no vertex data since that contains shape keys,
 		 * and we do not want to mess up other shape keys */
-		BM_loop_interp_from_face(bm, l, f_copy, false, is_final);
+		BM_loop_interp_from_face(bm, l, f_copy, false, false);
 
 		/* make sure face-attributes are correct (e.g. MTexPoly) */
 		BM_elem_attrs_copy(sod->bm_origfaces, bm, f_copy, l->f);
@@ -5542,14 +5551,46 @@ static void slide_origdata_interp_data_vert(
 		}
 	}
 
-	if (do_loop_weight) {
-		for (j = 0; j < sod->layer_math_map_num; j++) {
-			 BM_vert_loop_groups_data_layer_merge_weights(bm, sv->cd_loop_groups[j], sod->layer_math_map[j], loop_weights);
+	if (sod->layer_math_map_num) {
+		if (do_loop_weight) {
+			for (j = 0; j < sod->layer_math_map_num; j++) {
+				 BM_vert_loop_groups_data_layer_merge_weights(bm, sv->cd_loop_groups[j], sod->layer_math_map[j], loop_weights);
+			}
+		}
+		else {
+			for (j = 0; j < sod->layer_math_map_num; j++) {
+				 BM_vert_loop_groups_data_layer_merge(bm, sv->cd_loop_groups[j], sod->layer_math_map[j]);
+			}
 		}
 	}
-	else {
-		for (j = 0; j < sod->layer_math_map_num; j++) {
-			 BM_vert_loop_groups_data_layer_merge(bm, sv->cd_loop_groups[j], sod->layer_math_map[j]);
+
+	/* Special handling for multires
+	 *
+	 * Interpolate from every other loop (not ideal)
+	 * However values will only be taken from loops which overlap other mdisps.
+	 * */
+	if (is_final && is_moved && (sod->cd_loop_mdisp_offset != -1)) {
+		float (*faces_center)[3] = BLI_array_alloca(faces_center, l_num);
+		BMLoop *l;
+
+		BM_ITER_ELEM_INDEX (l, &liter, sv->v, BM_LOOPS_OF_VERT, j) {;
+			BM_face_calc_center_mean(l->f, faces_center[j]);
+		}
+
+		BM_ITER_ELEM_INDEX (l, &liter, sv->v, BM_LOOPS_OF_VERT, j) {
+			BMFace *f_copy = BLI_ghash_lookup(sod->origfaces, l->f);
+			float f_copy_center[3];
+			BMIter liter_other;
+			BMLoop *l_other;
+			int j_other;
+
+			BM_face_calc_center_mean(f_copy, f_copy_center);
+
+			BM_ITER_ELEM_INDEX (l_other, &liter_other, sv->v, BM_LOOPS_OF_VERT, j_other) {
+				BM_loop_interp_multires_ex(
+				        bm, l_other, f_copy,
+				        faces_center[j_other], f_copy_center, sod->cd_loop_mdisp_offset);
+			}
 		}
 	}
 }
@@ -5563,10 +5604,11 @@ static void slide_origdata_interp_data(
 		BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 		BMesh *bm = em->bm;
 		unsigned int i;
+		const bool has_mdisps = (sod->cd_loop_mdisp_offset != -1);
 
 		for (i = 0; i < v_num; i++, sv = POINTER_OFFSET(sv, v_stride)) {
 
-			if (sv->cd_loop_groups) {
+			if (sv->cd_loop_groups || has_mdisps) {
 				slide_origdata_interp_data_vert(sod, bm, is_final, sv);
 			}
 		}
@@ -5574,7 +5616,7 @@ static void slide_origdata_interp_data(
 		if (sod->sv_mirror) {
 			sv = sod->sv_mirror;
 			for (i = 0; i < v_num; i++, sv++) {
-				if (sv->cd_loop_groups) {
+				if (sv->cd_loop_groups || has_mdisps) {
 					slide_origdata_interp_data_vert(sod, bm, is_final, sv);
 				}
 			}
