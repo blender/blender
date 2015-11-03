@@ -1292,9 +1292,11 @@ AUD_Device *AUD_openMixdownDevice(AUD_DeviceSpecs specs, AUD_Sound *sequencer, f
 		device->setQuality(true);
 		device->setVolume(volume);
 
-		dynamic_cast<AUD_SequencerFactory *>(sequencer->get())->setSpecs(specs.specs);
+		AUD_SequencerFactory *f = dynamic_cast<AUD_SequencerFactory *>(sequencer->get());
 
-		AUD_Handle handle = device->play(*sequencer);
+		f->setSpecs(specs.specs);
+
+		AUD_Handle handle = device->play(f->createQualityReader());
 		if (handle.get()) {
 			handle->seek(start);
 		}
