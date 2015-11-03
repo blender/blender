@@ -435,9 +435,6 @@ void init_actuator(bActuator *act)
 		oa= act->data;
 		oa->flag= 15;
 		break;
-	case ACT_IPO:
-		act->data= MEM_callocN(sizeof(bIpoActuator), "ipoact");
-		break;
 	case ACT_PROPERTY:
 		act->data= MEM_callocN(sizeof(bPropertyActuator), "propact");
 		break;
@@ -1059,7 +1056,6 @@ void BKE_sca_actuators_id_loop(ListBase *actlist, SCAActuatorIDFunc func, void *
 				break;
 			}
 			/* Note: some types seems to be non-implemented? ACT_LAMP, ACT_MATERIAL... */
-			case ACT_IPO:  /* DEPRECATED */
 			case ACT_LAMP:
 			case ACT_MATERIAL:
 			case ACT_END_OBJECT:  /* DEPRECATED */

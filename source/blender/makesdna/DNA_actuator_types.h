@@ -362,12 +362,7 @@ typedef struct bActuator {
 #define ACT_ACTION_ADD			1
 
 /* ipoactuator->type */
-#define ACT_IPO_PLAY		0
-#define ACT_IPO_PINGPONG	1
-#define ACT_IPO_FLIPPER		2
-#define ACT_IPO_LOOP_STOP	3
-#define ACT_IPO_LOOP_END	4
-#define ACT_IPO_KEY2KEY		5
+/* used for conversion from 2.01 */
 #define ACT_IPO_FROM_PROP	6
 
 /* groupactuator->type */
@@ -385,12 +380,6 @@ typedef struct bActuator {
 #define ACT_IPOLOCAL		(1 << 2)
 #define ACT_IPOCHILD        (1 << 4)	
 #define ACT_IPOADD			(1 << 5)
-
-/* ipoactuator->flag for k2k */
-#define ACT_K2K_PREV		1
-#define ACT_K2K_CYCLIC		2
-#define ACT_K2K_PINGPONG	4
-#define ACT_K2K_HOLD		8
 
 /* property actuator->type */
 #define ACT_PROP_ASSIGN		0

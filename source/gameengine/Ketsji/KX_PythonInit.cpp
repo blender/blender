@@ -98,7 +98,6 @@ extern "C" {
 #include "SCA_PythonKeyboard.h"
 #include "SCA_PythonMouse.h"
 #include "KX_ConstraintActuator.h"
-#include "KX_IpoActuator.h"
 #include "KX_SoundActuator.h"
 #include "KX_StateActuator.h"
 #include "BL_ActionActuator.h"

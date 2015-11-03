@@ -54,7 +54,6 @@
 
 // Ketsji specific logicbricks
 #include "KX_SceneActuator.h"
-#include "KX_IpoActuator.h"
 #include "KX_SoundActuator.h"
 #include "KX_ObjectActuator.h"
 #include "KX_TrackToActuator.h"
@@ -261,32 +260,6 @@ void BL_ConvertActuators(const char* maggiename,
 				}
 				else
 					printf ("Discarded shape action actuator from non-mesh object [%s]\n", blenderobject->id.name+2);
-			}
-		case ACT_IPO:
-			{
-				bIpoActuator* ipoact = (bIpoActuator*) bact->data;
-				bool ipochild = (ipoact->flag & ACT_IPOCHILD) !=0;
-				STR_String propname = ipoact->name;
-				STR_String frameProp = ipoact->frameProp;
-				// first bit?
-				bool ipo_as_force = (ipoact->flag & ACT_IPOFORCE);
-				bool local = (ipoact->flag & ACT_IPOLOCAL);
-				bool ipo_add = (ipoact->flag & ACT_IPOADD);
-				
-				KX_IpoActuator* tmpbaseact = new KX_IpoActuator(
-				            gameobj,
-				            propname ,
-				            frameProp,
-				            ipoact->sta,
-				            ipoact->end,
-				            ipochild,
-				            ipoact->type + 1, // + 1, because Blender starts to count at zero,
-				            // Ketsji at 1, because zero is reserved for "NoDef"
-				            ipo_as_force,
-				            ipo_add,
-				            local);
-				baseact = tmpbaseact;
-				break;
 			}
 		case ACT_LAMP:
 			{

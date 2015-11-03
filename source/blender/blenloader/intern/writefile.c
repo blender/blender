@@ -1356,9 +1356,6 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 		case ACT_OBJECT:
 			writestruct(wd, DATA, "bObjectActuator", 1, act->data);
 			break;
-		case ACT_IPO:
-			writestruct(wd, DATA, "bIpoActuator", 1, act->data);
-			break;
 		case ACT_PROPERTY:
 			writestruct(wd, DATA, "bPropertyActuator", 1, act->data);
 			break;

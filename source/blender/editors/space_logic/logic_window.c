@@ -397,8 +397,6 @@ static const char *actuator_name(int type)
 		return N_("Action");
 	case ACT_OBJECT:
 		return N_("Motion");
-	case ACT_IPO:
-		return N_("F-Curve");
 	case ACT_LAMP:
 		return N_("Lamp");
 	case ACT_CAMERA:

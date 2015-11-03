@@ -84,7 +84,6 @@
 #include "SCA_PythonJoystick.h"
 #include "SCA_PythonKeyboard.h"
 #include "SCA_PythonMouse.h"
-#include "KX_IpoActuator.h"
 #include "KX_NearSensor.h"
 #include "KX_RadarSensor.h"
 #include "KX_RaySensor.h"
@@ -214,7 +213,6 @@ PyMODINIT_FUNC initGameTypesPythonBinding(void)
 		PyType_Ready_Attr(dict, KX_ConstraintWrapper, init_getset);
 		PyType_Ready_Attr(dict, KX_GameActuator, init_getset);
 		PyType_Ready_Attr(dict, KX_GameObject, init_getset);
-		PyType_Ready_Attr(dict, KX_IpoActuator, init_getset);
 		PyType_Ready_Attr(dict, KX_LibLoadStatus, init_getset);
 		PyType_Ready_Attr(dict, KX_LightObject, init_getset);
 		PyType_Ready_Attr(dict, KX_FontObject, init_getset);

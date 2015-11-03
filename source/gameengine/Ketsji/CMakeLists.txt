@@ -85,7 +85,6 @@ set(SRC
 	KX_GameObject.cpp
 	KX_IpoConvert.cpp
 	KX_IPO_SGController.cpp
-	KX_IpoActuator.cpp
 	KX_KetsjiEngine.cpp
 	KX_Light.cpp
 	KX_LightIpoSGController.cpp
@@ -163,7 +162,6 @@ set(SRC
 	KX_IScalarInterpolator.h
 	KX_ISceneConverter.h
 	KX_ISystem.h
-	KX_IpoActuator.h
 	KX_KetsjiEngine.h
 	KX_Light.h
 	KX_LightIpoSGController.h
