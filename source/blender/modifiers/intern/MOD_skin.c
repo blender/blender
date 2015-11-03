@@ -708,7 +708,8 @@ static EMat *build_edge_mats(const MVertSkin *vs,
                              int totvert,
                              const MEdge *medge,
                              const MeshElemMap *emap,
-                             int totedge)
+                             int totedge,
+                             bool *has_valid_root)
 {
 	BLI_Stack *stack;
 	EMat *emat;
@@ -736,6 +737,8 @@ static EMat *build_edge_mats(const MVertSkin *vs,
 					stack_elem.e = emap[v].indices[i];
 					BLI_stack_push(stack, &stack_elem);
 				}
+
+				*has_valid_root = true;
 			}
 		}
 	}
@@ -1828,6 +1831,7 @@ static DerivedMesh *base_skin(DerivedMesh *origdm,
 	MEdge *medge;
 	MDeformVert *dvert;
 	int totvert, totedge;
+	bool has_valid_root = false;
 
 	nodes = CustomData_get_layer(&origdm->vertData, CD_MVERT_SKIN);
 
@@ -1839,7 +1843,7 @@ static DerivedMesh *base_skin(DerivedMesh *origdm,
 
 	BKE_mesh_vert_edge_map_create(&emap, &emapmem, medge, totvert, totedge);
 
-	emat = build_edge_mats(nodes, mvert, totvert, medge, emap, totedge);
+	emat = build_edge_mats(nodes, mvert, totvert, medge, emap, totedge, &has_valid_root);
 	skin_nodes = build_frames(mvert, totvert, nodes, emap, emat);
 	MEM_freeN(emat);
 	emat = NULL;
@@ -1849,6 +1853,10 @@ static DerivedMesh *base_skin(DerivedMesh *origdm,
 	MEM_freeN(skin_nodes);
 	MEM_freeN(emap);
 	MEM_freeN(emapmem);
+
+	if (!has_valid_root) {
+		modifier_setError(&smd->modifier, "No valid root vertex found (you need one per mesh island you want to skin)");
+	}
 
 	if (!bm)
 		return NULL;
