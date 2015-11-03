@@ -42,6 +42,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_data_transfer.h"
@@ -1136,11 +1137,15 @@ bool BKE_object_data_transfer_dm(
 	/* XXX Hack! In case this is being evaluated from dm stack, we cannot compute final dm,
 	 *     can lead to infinite recursion in case of dependency cycles of DataTransfer modifiers...
 	 *     Issue is, this means we cannot be sure to have requested cd layers in source.
+	 *
+	 *     Also, we need to make a local copy of dm_src, otherwise we may end with concurrent creation
+	 *     of data in it (multi-threaded evaluation of the modifier stack, see T46672).
 	 */
 	dm_src = dm_dst ? ob_src->derivedFinal : mesh_get_derived_final(scene, ob_src, dm_src_mask);
 	if (!dm_src) {
 		return changed;
 	}
+	dm_src = CDDM_copy(dm_src);
 
 	if (auto_transform) {
 		MVert *verts_dst = dm_dst ? dm_dst->getVertArray(dm_dst) : me_dst->mvert;
@@ -1190,12 +1195,12 @@ bool BKE_object_data_transfer_dm(
 					BKE_report(reports, RPT_ERROR,
 					           "Source and destination meshes do not have the same amount of vertices, "
 					           "'Topology' mapping cannot be used in this case");
-					return changed;
+					continue;
 				}
 				if (ELEM(0, num_verts_dst, num_verts_src)) {
 					BKE_report(reports, RPT_ERROR,
 					           "Source or destination meshes do not have any vertices, cannot transfer vertex data");
-					return changed;
+					continue;
 				}
 
 				BKE_mesh_remap_calc_verts_from_dm(
@@ -1238,12 +1243,12 @@ bool BKE_object_data_transfer_dm(
 					BKE_report(reports, RPT_ERROR,
 					           "Source and destination meshes do not have the same amount of edges, "
 					           "'Topology' mapping cannot be used in this case");
-					return changed;
+					continue;
 				}
 				if (ELEM(0, num_edges_dst, num_edges_src)) {
 					BKE_report(reports, RPT_ERROR,
 					           "Source or destination meshes do not have any edges, cannot transfer edge data");
-					return changed;
+					continue;
 				}
 
 				BKE_mesh_remap_calc_edges_from_dm(
@@ -1297,12 +1302,12 @@ bool BKE_object_data_transfer_dm(
 					BKE_report(reports, RPT_ERROR,
 					           "Source and destination meshes do not have the same amount of face corners, "
 					           "'Topology' mapping cannot be used in this case");
-					return changed;
+					continue;
 				}
 				if (ELEM(0, num_loops_dst, num_loops_src)) {
 					BKE_report(reports, RPT_ERROR,
 					           "Source or destination meshes do not have any polygons, cannot transfer loop data");
-					return changed;
+					continue;
 				}
 
 				BKE_mesh_remap_calc_loops_from_dm(
@@ -1355,12 +1360,12 @@ bool BKE_object_data_transfer_dm(
 					BKE_report(reports, RPT_ERROR,
 					           "Source and destination meshes do not have the same amount of faces, "
 					           "'Topology' mapping cannot be used in this case");
-					return changed;
+					continue;
 				}
 				if (ELEM(0, num_polys_dst, num_polys_src)) {
 					BKE_report(reports, RPT_ERROR,
 					           "Source or destination meshes do not have any polygons, cannot transfer poly data");
-					return changed;
+					continue;
 				}
 
 				BKE_mesh_remap_calc_polys_from_dm(
@@ -1402,6 +1407,7 @@ bool BKE_object_data_transfer_dm(
 		BKE_mesh_remap_free(&geom_map[i]);
 		MEM_SAFE_FREE(weights[i]);
 	}
+	dm_src->release(dm_src);
 
 	return changed;
 
