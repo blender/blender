@@ -34,10 +34,9 @@ ccl_device_inline int cmj_fast_mod_pow2(int a, int b)
 	return (a & (b - 1));
 }
 
-/* a must be > 0 and b must be > 1 */
+/* b must be > 1 */
 ccl_device_inline int cmj_fast_div_pow2(int a, int b)
 {
-	kernel_assert(a > 0);
 	kernel_assert(b > 1);
 #if defined(__KERNEL_SSE2__)
 #  ifdef _MSC_VER
