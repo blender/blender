@@ -985,7 +985,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	view3d_set_viewcontext(C, &vc);
 	me = BKE_mesh_from_object(vc.obact);
 
-	if (me && me->dvert && vc.v3d && vc.rv3d) {
+	if (me && me->dvert && vc.v3d && vc.rv3d && (vc.obact->actdef != 0)) {
 		const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 		int v_idx_best = -1;
 		unsigned int index;

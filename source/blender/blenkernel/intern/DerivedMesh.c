@@ -1443,7 +1443,7 @@ static void calc_weightpaint_vert_array(
 	MDeformVert *dv = DM_get_vert_data_layer(dm, CD_MDEFORMVERT);
 	int numVerts = dm->getNumVerts(dm);
 
-	if (dv) {
+	if (dv && (ob->actdef != 0)) {
 		unsigned char (*wc)[4] = r_wtcol_v;
 		unsigned int i;
 
