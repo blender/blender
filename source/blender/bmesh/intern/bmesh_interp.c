@@ -527,6 +527,31 @@ void BM_loop_interp_multires(BMesh *bm, BMLoop *l_dst, const BMFace *f_src)
 	BM_loop_interp_multires_ex(bm, l_dst, f_src, f_dst_center, f_src_center, cd_loop_mdisp_offset);
 }
 
+void BM_face_interp_multires_ex(
+        BMesh *bm, BMFace *f_dst, const BMFace *f_src,
+        const float f_dst_center[3], const float f_src_center[3], const int cd_loop_mdisp_offset)
+{
+	BMLoop *l_iter, *l_first;
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f_dst);
+	do {
+		BM_loop_interp_multires_ex(
+		        bm, l_iter, f_src,
+		        f_dst_center, f_src_center, cd_loop_mdisp_offset);
+	} while ((l_iter = l_iter->next) != l_first);
+}
+
+void BM_face_interp_multires(BMesh *bm, BMFace *f_dst, const BMFace *f_src)
+{
+	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+	float f_dst_center[3];
+	float f_src_center[3];
+
+	BM_face_calc_center_mean(f_dst, f_dst_center);
+	BM_face_calc_center_mean(f_src, f_src_center);
+
+	BM_face_interp_multires_ex(bm, f_dst, f_src, f_dst_center, f_src_center, cd_loop_mdisp_offset);
+}
+
 /**
  * smooths boundaries between multires grids,
  * including some borders in adjacent faces

@@ -5483,11 +5483,12 @@ static void slide_origdata_interp_data_vert(
 	float *loop_weights;
 	const bool is_moved = (len_squared_v3v3(sv->v->co, sv->co_orig_3d) > FLT_EPSILON);
 	const bool do_loop_weight = sod->layer_math_map_num && is_moved;
+	const bool do_loop_mdisps = is_final && is_moved && (sod->cd_loop_mdisp_offset != -1);
 	const float *v_proj_axis = sv->v->no;
 	/* original (l->prev, l, l->next) projections for each loop ('l' remains unchanged) */
 	float v_proj[3][3];
 
-	if (do_loop_weight) {
+	if (do_loop_weight || do_loop_mdisps) {
 		project_plane_v3_v3v3(v_proj[1], sv->co_orig_3d, v_proj_axis);
 	}
 
@@ -5569,7 +5570,7 @@ static void slide_origdata_interp_data_vert(
 	 * Interpolate from every other loop (not ideal)
 	 * However values will only be taken from loops which overlap other mdisps.
 	 * */
-	if (is_final && is_moved && (sod->cd_loop_mdisp_offset != -1)) {
+	if (do_loop_mdisps) {
 		float (*faces_center)[3] = BLI_array_alloca(faces_center, l_num);
 		BMLoop *l;
 
@@ -5587,8 +5588,8 @@ static void slide_origdata_interp_data_vert(
 			BM_face_calc_center_mean(f_copy, f_copy_center);
 
 			BM_ITER_ELEM_INDEX (l_other, &liter_other, sv->v, BM_LOOPS_OF_VERT, j_other) {
-				BM_loop_interp_multires_ex(
-				        bm, l_other, f_copy,
+				BM_face_interp_multires_ex(
+				        bm, l_other->f, f_copy,
 				        faces_center[j_other], f_copy_center, sod->cd_loop_mdisp_offset);
 			}
 		}

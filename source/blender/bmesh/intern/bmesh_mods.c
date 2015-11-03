@@ -313,24 +313,16 @@ BMFace *BM_face_split(
 	if (f_new) {
 		/* handle multires update */
 		if (cd_loop_mdisp_offset != -1) {
-			BMLoop *l_iter;
-			BMLoop *l_first;
 			float f_dst_center[3];
 			float f_src_center[3];
 
 			BM_face_calc_center_mean(f_tmp, f_src_center);
 
 			BM_face_calc_center_mean(f, f_dst_center);
-			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-			do {
-				BM_loop_interp_multires_ex(bm, l_iter, f_tmp, f_dst_center, f_src_center, cd_loop_mdisp_offset);
-			} while ((l_iter = l_iter->next) != l_first);
+			BM_face_interp_multires_ex(bm, f, f_tmp, f_dst_center, f_src_center, cd_loop_mdisp_offset);
 
 			BM_face_calc_center_mean(f_new, f_dst_center);
-			l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);
-			do {
-				BM_loop_interp_multires_ex(bm, l_iter, f_tmp, f_dst_center, f_src_center, cd_loop_mdisp_offset);
-			} while ((l_iter = l_iter->next) != l_first);
+			BM_face_interp_multires_ex(bm, f_new, f_tmp, f_dst_center, f_src_center, cd_loop_mdisp_offset);
 
 #if 0
 			/* BM_face_multires_bounds_smooth doesn't flip displacement correct */
@@ -1229,7 +1221,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 
 			for (j = 0; j < 2; j++) {
 				BMEdge *e1 = j ? *r_e : e;
-				BMLoop *l, *l2;
+				BMLoop *l;
 				
 				l = e1->l;
 
@@ -1241,17 +1233,12 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 				do {
 					/* check this is an old face */
 					if (BM_ELEM_API_FLAG_TEST(l->f, _FLAG_OVERLAP)) {
-						BMLoop *l2_first;
 						float f_center[3];
 
 						BM_face_calc_center_mean(l->f, f_center);
-
-						l2 = l2_first = BM_FACE_FIRST_LOOP(l->f);
-						do {
-							BM_loop_interp_multires_ex(
-							        bm, l2, oldfaces[i],
-							        f_center, f_center_old, cd_loop_mdisp_offset);
-						} while ((l2 = l2->next) != l2_first);
+						BM_face_interp_multires_ex(
+						        bm, l->f, oldfaces[i],
+						        f_center, f_center_old, cd_loop_mdisp_offset);
 					}
 					l = l->radial_next;
 				} while (l != e1->l);
