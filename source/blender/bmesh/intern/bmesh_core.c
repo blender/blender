@@ -896,7 +896,7 @@ static bool bm_loop_reverse_loop(BMesh *bm, BMFace *f
 #endif
 
 	const int len = f->len;
-	const bool do_disps = CustomData_has_layer(&bm->ldata, CD_MDISPS);
+	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
 	BMLoop *l_iter, *oldprev, *oldnext;
 	BMEdge **edar = BLI_array_alloca(edar, len);
 	int i, j, edok;
@@ -913,12 +913,12 @@ static bool bm_loop_reverse_loop(BMesh *bm, BMFace *f
 		l_iter->prev = oldnext;
 		l_iter = oldnext;
 		
-		if (do_disps) {
+		if (cd_loop_mdisp_offset != -1) {
 			float (*co)[3];
 			int x, y, sides;
 			MDisps *md;
 			
-			md = CustomData_bmesh_get(&bm->ldata, l_iter->head.data, CD_MDISPS);
+			md = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_mdisp_offset);
 			if (!md->totdisp || !md->disps)
 				continue;
 
@@ -957,6 +957,7 @@ static bool bm_loop_reverse_loop(BMesh *bm, BMFace *f
 	for (i = 0, l_iter = l_first; i < len; i++, l_iter = l_iter->next)
 		bmesh_radial_append(l_iter->e, l_iter);
 
+#ifndef NDEBUG
 	/* validate radial */
 	for (i = 0, l_iter = l_first; i < len; i++, l_iter = l_iter->next) {
 		BM_CHECK_ELEMENT(l_iter);
@@ -966,6 +967,7 @@ static bool bm_loop_reverse_loop(BMesh *bm, BMFace *f
 	}
 
 	BM_CHECK_ELEMENT(f);
+#endif
 
 	/* Loop indices are no more valid! */
 	bm->elem_index_dirty |= BM_LOOP;
