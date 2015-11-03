@@ -926,12 +926,25 @@ static bool bm_loop_reverse_loop(BMesh *bm, BMFace *f
 			co = md->disps;
 			
 			for (x = 0; x < sides; x++) {
+				float *co_a, *co_b;
+
 				for (y = 0; y < x; y++) {
-					swap_v3_v3(co[y * sides + x], co[sides * x + y]);
-					SWAP(float, co[y * sides + x][0], co[y * sides + x][1]);
-					SWAP(float, co[x * sides + y][0], co[x * sides + y][1]);
+					co_a = co[y * sides + x];
+					co_b = co[x * sides + y];
+
+					swap_v3_v3(co_a, co_b);
+					SWAP(float, co_a[0], co_a[1]);
+					SWAP(float, co_b[0], co_b[1]);
+
+					co_a[2] *= -1.0f;
+					co_b[2] *= -1.0f;
 				}
-				SWAP(float, co[x * sides + x][0], co[x * sides + x][1]);
+
+				co_a = co[x * sides + x];
+
+				SWAP(float, co_a[0], co_a[1]);
+
+				co_a[2] *= -1.0f;
 			}
 		}
 	}
