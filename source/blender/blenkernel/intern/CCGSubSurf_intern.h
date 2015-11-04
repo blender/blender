@@ -307,9 +307,11 @@ void ccgSubSurf__sync_opensubdiv(CCGSubSurf *ss);
  * main thread and schedule free for later free otherwise.
  */
 
+#ifdef WITH_OPENSUBDIV
 void ccgSubSurf__delete_osdGLMesh(struct OpenSubdiv_GLMesh *osd_mesh);
 void ccgSubSurf__delete_vertex_array(unsigned int vao);
 void ccgSubSurf__delete_pending(void);
+#endif
 
 /* * CCGSubSurf_opensubdiv_converter.c * */
 
