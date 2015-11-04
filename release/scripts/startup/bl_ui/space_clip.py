@@ -520,6 +520,7 @@ class CLIP_PT_tools_object(CLIP_PT_reconstruction_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Object"
+    bl_category = "Solve"
 
     @classmethod
     def poll(cls, context):
