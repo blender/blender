@@ -93,6 +93,5 @@ if env['OURPLATFORM'] in ('linux', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8',
 
 if env['WITH_BF_OPENSUBDIV']:
     defs.append("WITH_OPENSUBDIV")
-    incs += ' #intern/opensubdiv'
 
 env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), defines=defs, libtype=['core'], priority=[5] )

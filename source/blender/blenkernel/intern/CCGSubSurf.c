@@ -334,11 +334,10 @@ void ccgSubSurf_free(CCGSubSurf *ss)
 		openSubdiv_deleteEvaluatorDescr(ss->osd_evaluator);
 	}
 	if (ss->osd_mesh != NULL) {
-		/* TODO(sergey): Make sure free happens form the main thread! */
-		openSubdiv_deleteOsdGLMesh(ss->osd_mesh);
+		ccgSubSurf__delete_osdGLMesh(ss->osd_mesh);
 	}
 	if (ss->osd_vao != 0) {
-		glDeleteVertexArrays(1, &ss->osd_vao);
+		ccgSubSurf__delete_vertex_array(ss->osd_vao);
 	}
 	if (ss->osd_coarse_coords != NULL) {
 		MEM_freeN(ss->osd_coarse_coords);

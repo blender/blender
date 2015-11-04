@@ -1376,11 +1376,6 @@ static void scene_do_rb_simulation_recursive(Scene *scene, float ctime)
  */
 #define MBALL_SINGLETHREAD_HACK
 
-/* Need this because CCFDM holds some OpenGL resources. */
-#ifdef WITH_OPENSUBDIV
-#  define OPENSUBDIV_GL_WORKAROUND
-#endif
-
 #ifdef WITH_LEGACY_DEPSGRAPH
 typedef struct StatisicsEntry {
 	struct StatisicsEntry *next, *prev;
@@ -1582,56 +1577,6 @@ static bool scene_need_update_objects(Main *bmain)
 		DAG_id_type_tagged(bmain, ID_AR);     /* Armature */
 }
 
-#ifdef OPENSUBDIV_GL_WORKAROUND
-/* CCG DrivedMesh currently hold some OpenGL handles, which could only be
- * released from the main thread.
- *
- * Ideally we need to use gpu_buffer_free, but it's a bit tricky because
- * some buffers are only accessible from OpenSubdiv side.
- */
-static void scene_free_unused_opensubdiv_cache(Scene *scene)
-{
-	Base *base;
-	for (base = scene->base.first; base; base = base->next) {
-		Object *object = base->object;
-		if (object->type == OB_MESH && object->recalc & OB_RECALC_DATA) {
-			ModifierData *md = object->modifiers.last;
-			if (md != NULL && md->type == eModifierType_Subsurf) {
-				SubsurfModifierData *smd = (SubsurfModifierData *) md;
-				const bool object_in_editmode = (object->mode == OB_MODE_EDIT);
-				const bool use_simple = (smd->subdivType == ME_SIMPLE_SUBSURF);
-				if (!smd->use_opensubdiv ||
-				    DAG_get_eval_flags_for_object(scene, object) & DAG_EVAL_NEED_CPU)
-				{
-					if (smd->mCache != NULL) {
-						ccgSubSurf_free_osd_mesh(smd->mCache);
-					}
-					if (smd->emCache != NULL) {
-						ccgSubSurf_free_osd_mesh(smd->emCache);
-					}
-				}
-				if (smd->mCache != NULL) {
-					if (object_in_editmode ||
-					    ccgSubSurf_getSimpleSubdiv(smd->mCache) != use_simple)
-					{
-						ccgSubSurf_free(smd->mCache);
-						smd->mCache = NULL;
-					}
-				}
-				if (smd->emCache != NULL) {
-					if (!object_in_editmode ||
-					    ccgSubSurf_getSimpleSubdiv(smd->emCache) != use_simple)
-					{
-						ccgSubSurf_free(smd->emCache);
-						smd->emCache = NULL;
-					}
-				}
-			}
-		}
-	}
-}
-#endif
-
 static void scene_update_objects(EvaluationContext *eval_ctx, Main *bmain, Scene *scene, Scene *scene_parent)
 {
 	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
@@ -1649,10 +1594,6 @@ static void scene_update_objects(EvaluationContext *eval_ctx, Main *bmain, Scene
 	if (!scene_need_update_objects(bmain)) {
 		return;
 	}
-
-#ifdef OPENSUBDIV_GL_WORKAROUND
-	scene_free_unused_opensubdiv_cache(scene);
-#endif
 
 	state.eval_ctx = eval_ctx;
 	state.scene = scene;
@@ -1827,11 +1768,6 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	else
 #endif
 	{
-#ifdef OPENSUBDIV_GL_WORKAROUND
-		if (DEG_needs_eval(scene->depsgraph)) {
-			scene_free_unused_opensubdiv_cache(scene);
-		}
-#endif
 		DEG_evaluate_on_refresh(eval_ctx, scene->depsgraph, scene);
 		/* TODO(sergey): This is to beocme a node in new depsgraph. */
 		BKE_mask_update_scene(bmain, scene);

@@ -118,7 +118,7 @@
 #include "COM_compositor.h"
 
 #ifdef WITH_OPENSUBDIV
-#  include "opensubdiv_capi.h"
+#  include "BKE_subsurf.h"
 #endif
 
 static void wm_init_reports(bContext *C)
@@ -196,7 +196,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 		GPU_set_gpu_mipmapping(U.use_gpu_mipmap);
 
 #ifdef WITH_OPENSUBDIV
-		openSubdiv_init();
+		BKE_subsurf_osd_init();
 #endif
 
 		UI_init();
@@ -547,7 +547,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 #endif
 
 #ifdef WITH_OPENSUBDIV
-	openSubdiv_cleanup();
+	BKE_subsurf_osd_cleanup();
 #endif
 
 	if (!G.background) {

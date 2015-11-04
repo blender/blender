@@ -142,9 +142,6 @@ endif()
 
 if(WITH_OPENSUBDIV)
 	add_definitions(-DWITH_OPENSUBDIV)
-	list(APPEND INC
-		../../../intern/opensubdiv
-	)
 endif()
 
 if(WIN32)

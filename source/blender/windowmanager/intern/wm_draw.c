@@ -69,6 +69,10 @@
 #include "wm_window.h"
 #include "wm_event_system.h"
 
+#ifdef WITH_OPENSUBDIV
+#  include "BKE_subsurf.h"
+#endif
+
 /* swap */
 #define WIN_NONE_OK     0
 #define WIN_BACK_OK     1
@@ -1001,6 +1005,10 @@ void wm_draw_update(bContext *C)
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win;
 	int drawmethod;
+
+#ifdef WITH_OPENSUBDIV
+	BKE_subsurf_free_unused_buffers();
+#endif
 
 	GPU_free_unused_buffers();
 	

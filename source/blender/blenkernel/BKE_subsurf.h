@@ -140,5 +140,11 @@ typedef struct CCGDerivedMesh {
 	struct EdgeHash *ehash;
 } CCGDerivedMesh;
 
+#ifdef WITH_OPENSUBDIV
+/* TODO(sergey): Not really ideal place, but we don't currently have better one. */
+void BKE_subsurf_osd_init(void);
+void BKE_subsurf_free_unused_buffers(void);
+void BKE_subsurf_osd_cleanup(void);
 #endif
 
+#endif
