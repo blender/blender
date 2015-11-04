@@ -55,6 +55,49 @@
 
 #include "WM_api.h"
 
+static ListBase *tracking_tracksbase_from_track(MovieClip *clip,
+                                                MovieTrackingTrack *track)
+{
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *tracksbase = &tracking->tracks;
+	/* TODO: it's a bit difficult to find list track came from knowing just
+	 *       movie clip ID and MovieTracking structure, so keep this naive
+	 *       search for a while */
+	if (BLI_findindex(tracksbase, track) == -1) {
+		MovieTrackingObject *object = tracking->objects.first;
+		while (object) {
+			if (BLI_findindex(&object->tracks, track) != -1) {
+				return &object->tracks;
+				break;
+			}
+			object = object->next;
+		}
+	}
+	return tracksbase;
+}
+
+static ListBase *tracking_tracksbase_from_plane_track(
+        MovieClip *clip,
+        MovieTrackingPlaneTrack *plane_track)
+{
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *plane_tracks_base = &tracking->plane_tracks;
+	/* TODO: it's a bit difficult to find list track came from knowing just
+	 *       movie clip ID and MovieTracking structure, so keep this naive
+	 *       search for a while */
+	if (BLI_findindex(plane_tracks_base, plane_track) == -1) {
+		MovieTrackingObject *object = tracking->objects.first;
+		while (object) {
+			if (BLI_findindex(&object->plane_tracks, plane_track) != -1) {
+				return &object->plane_tracks;
+				break;
+			}
+			object = object->next;
+		}
+	}
+	return plane_tracks_base;
+}
+
 static char *rna_tracking_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_sprintfN("tracking");
@@ -178,28 +221,9 @@ static void rna_tracking_active_plane_track_set(PointerRNA *ptr, PointerRNA valu
 static void rna_trackingTrack_name_set(PointerRNA *ptr, const char *value)
 {
 	MovieClip *clip = (MovieClip *)ptr->id.data;
-	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *track = (MovieTrackingTrack *)ptr->data;
-	ListBase *tracksbase = &tracking->tracks;
-
+	ListBase *tracksbase = tracking_tracksbase_from_track(clip, track);
 	BLI_strncpy(track->name, value, sizeof(track->name));
-
-	/* TODO: it's a bit difficult to find list track came from knowing just
-	 *       movie clip ID and MovieTracking structure, so keep this naive
-	 *       search for a while */
-	if (BLI_findindex(tracksbase, track) == -1) {
-		MovieTrackingObject *object = tracking->objects.first;
-
-		while (object) {
-			if (BLI_findindex(&object->tracks, track) != -1) {
-				tracksbase = &object->tracks;
-				break;
-			}
-
-			object = object->next;
-		}
-	}
-
 	BKE_tracking_track_unique_name(tracksbase, track);
 }
 
@@ -276,28 +300,9 @@ static char *rna_trackingPlaneTrack_path(PointerRNA *ptr)
 static void rna_trackingPlaneTrack_name_set(PointerRNA *ptr, const char *value)
 {
 	MovieClip *clip = (MovieClip *)ptr->id.data;
-	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingPlaneTrack *plane_track = (MovieTrackingPlaneTrack *)ptr->data;
-	ListBase *plane_tracks_base = &tracking->plane_tracks;
-
+	ListBase *plane_tracks_base = tracking_tracksbase_from_plane_track(clip, plane_track);
 	BLI_strncpy(plane_track->name, value, sizeof(plane_track->name));
-
-	/* TODO: it's a bit difficult to find list track came from knowing just
-	 *       movie clip ID and MovieTracking structure, so keep this naive
-	 *       search for a while */
-	if (BLI_findindex(plane_tracks_base, plane_track) == -1) {
-		MovieTrackingObject *object = tracking->objects.first;
-
-		while (object) {
-			if (BLI_findindex(&object->plane_tracks, plane_track) != -1) {
-				plane_tracks_base = &object->plane_tracks;
-				break;
-			}
-
-			object = object->next;
-		}
-	}
-
 	BKE_tracking_plane_track_unique_name(plane_tracks_base, plane_track);
 }
 
