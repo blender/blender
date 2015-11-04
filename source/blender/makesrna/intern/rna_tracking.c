@@ -55,8 +55,8 @@
 
 #include "WM_api.h"
 
-static ListBase *tracking_tracksbase_from_track(MovieClip *clip,
-                                                MovieTrackingTrack *track)
+static MovieTrackingObject *tracking_object_from_track(MovieClip *clip,
+                                                       MovieTrackingTrack *track)
 {
 	MovieTracking *tracking = &clip->tracking;
 	ListBase *tracksbase = &tracking->tracks;
@@ -67,16 +67,26 @@ static ListBase *tracking_tracksbase_from_track(MovieClip *clip,
 		MovieTrackingObject *object = tracking->objects.first;
 		while (object) {
 			if (BLI_findindex(&object->tracks, track) != -1) {
-				return &object->tracks;
-				break;
+				return object;
 			}
 			object = object->next;
 		}
 	}
-	return tracksbase;
+	return NULL;
 }
 
-static ListBase *tracking_tracksbase_from_plane_track(
+static ListBase *tracking_tracksbase_from_track(MovieClip *clip,
+                                                MovieTrackingTrack *track)
+{
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingObject *object = tracking_object_from_track(clip, track);
+	if (object != NULL) {
+		return &object->tracks;
+	}
+	return &tracking->tracks;
+}
+
+static MovieTrackingObject *tracking_object_from_plane_track(
         MovieClip *clip,
         MovieTrackingPlaneTrack *plane_track)
 {
@@ -89,13 +99,25 @@ static ListBase *tracking_tracksbase_from_plane_track(
 		MovieTrackingObject *object = tracking->objects.first;
 		while (object) {
 			if (BLI_findindex(&object->plane_tracks, plane_track) != -1) {
-				return &object->plane_tracks;
-				break;
+				return object;
 			}
 			object = object->next;
 		}
 	}
-	return plane_tracks_base;
+	return NULL;
+}
+
+static ListBase *tracking_tracksbase_from_plane_track(
+        MovieClip *clip,
+        MovieTrackingPlaneTrack *plane_track)
+{
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingObject *object = tracking_object_from_plane_track(clip,
+	                                                               plane_track);
+	if (object != NULL) {
+		return &object->plane_tracks;
+	}
+	return &tracking->plane_tracks;
 }
 
 static char *rna_tracking_path(PointerRNA *UNUSED(ptr))
@@ -125,10 +147,21 @@ static void rna_tracking_defaultSettings_searchUpdate(Main *UNUSED(bmain), Scene
 
 static char *rna_trackingTrack_path(PointerRNA *ptr)
 {
+	MovieClip *clip = (MovieClip *)ptr->id.data;
 	MovieTrackingTrack *track = (MovieTrackingTrack *)ptr->data;
-	char name_esc[sizeof(track->name) * 2];
-	BLI_strescape(name_esc, track->name, sizeof(name_esc));
-	return BLI_sprintfN("tracking.tracks[\"%s\"]", name_esc);
+	MovieTrackingObject *object = tracking_object_from_track(clip, track);
+	char track_name_esc[sizeof(track->name) * 2];
+	BLI_strescape(track_name_esc, track->name, sizeof(track_name_esc));
+	if (object == NULL) {
+		return BLI_sprintfN("tracking.tracks[\"%s\"]", track_name_esc);
+	}
+	else {
+		char object_name_esc[sizeof(object->name) * 2];
+		BLI_strescape(object_name_esc, object->name, sizeof(object_name_esc));
+		return BLI_sprintfN("tracking.objects[\"%s\"].tracks[\"%s\"]",
+		                    object_name_esc,
+		                    track_name_esc);
+	}
 }
 
 static void rna_trackingTracks_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -291,10 +324,21 @@ static void rna_trackingPlaneMarker_frame_set(PointerRNA *ptr, int value)
 
 static char *rna_trackingPlaneTrack_path(PointerRNA *ptr)
 {
+	MovieClip *clip = (MovieClip *)ptr->id.data;
 	MovieTrackingPlaneTrack *plane_track = (MovieTrackingPlaneTrack *)ptr->data;
-	char name_esc[sizeof(plane_track->name) * 2];
-	BLI_strescape(name_esc, plane_track->name, sizeof(name_esc));
-	return BLI_sprintfN("tracking.plane_tracks[\"%s\"]", name_esc);
+	char track_name_esc[sizeof(plane_track->name) * 2];
+	MovieTrackingObject *object = tracking_object_from_plane_track(clip, plane_track);
+	BLI_strescape(track_name_esc, plane_track->name, sizeof(track_name_esc));
+	if (object == NULL) {
+		return BLI_sprintfN("tracking.plane_tracks[\"%s\"]", track_name_esc);
+	}
+	else {
+		char object_name_esc[sizeof(object->name) * 2];
+		BLI_strescape(object_name_esc, object->name, sizeof(object_name_esc));
+		return BLI_sprintfN("tracking.objects[\"%s\"].plane_tracks[\"%s\"]",
+		                    object_name_esc,
+		                    track_name_esc);
+	}
 }
 
 static void rna_trackingPlaneTrack_name_set(PointerRNA *ptr, const char *value)
