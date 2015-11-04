@@ -796,110 +796,110 @@ void BM_face_triangulate(
 	/* ensure both are valid or NULL */
 	BLI_assert((r_faces_new == NULL) == (r_faces_new_tot == NULL));
 
-	if (f->len == 4) {
-		BMLoop *l_v1, *l_v2;
-		l_first = BM_FACE_FIRST_LOOP(f);
+	BLI_assert(f->len > 3);
 
-		switch (quad_method) {
-			case MOD_TRIANGULATE_QUAD_FIXED:
-			{
-				l_v1 = l_first;
-				l_v2 = l_first->next->next;
-				break;
-			}
-			case MOD_TRIANGULATE_QUAD_ALTERNATE:
-			{
-				l_v1 = l_first->next;
-				l_v2 = l_first->prev;
-				break;
-			}
-			case MOD_TRIANGULATE_QUAD_SHORTEDGE:
-			case MOD_TRIANGULATE_QUAD_BEAUTY:
-			default:
-			{
-				BMLoop *l_v3, *l_v4;
-				bool split_24;
-
-				l_v1 = l_first->next;
-				l_v2 = l_first->next->next;
-				l_v3 = l_first->prev;
-				l_v4 = l_first;
-
-				if (quad_method == MOD_TRIANGULATE_QUAD_SHORTEDGE) {
-					float d1, d2;
-					d1 = len_squared_v3v3(l_v4->v->co, l_v2->v->co);
-					d2 = len_squared_v3v3(l_v1->v->co, l_v3->v->co);
-					split_24 = ((d2 - d1) > 0.0f);
-				}
-				else {
-					/* first check if the quad is concave on either diagonal */
-					const int flip_flag = is_quad_flip_v3(l_v1->v->co, l_v2->v->co, l_v3->v->co, l_v4->v->co);
-					if (UNLIKELY(flip_flag & (1 << 0))) {
-						split_24 = true;
-					}
-					else if (UNLIKELY(flip_flag & (1 << 1))) {
-						split_24 = false;
-					}
-					else {
-						split_24 = (BM_verts_calc_rotate_beauty(l_v1->v, l_v2->v, l_v3->v, l_v4->v, 0, 0) > 0.0f);
-					}
-				}
-
-				/* named confusingly, l_v1 is in fact the second vertex */
-				if (split_24) {
-					l_v1 = l_v4;
-					//l_v2 = l_v2;
-				}
-				else {
-					//l_v1 = l_v1;
-					l_v2 = l_v3;
-				}
-				break;
-			}
-		}
-
-		f_new = BM_face_split(bm, f, l_v1, l_v2, &l_new, NULL, true);
-		copy_v3_v3(f_new->no, f->no);
-
-		if (use_tag) {
-			BM_elem_flag_enable(l_new->e, BM_ELEM_TAG);
-			BM_elem_flag_enable(f_new, BM_ELEM_TAG);
-		}
-
-		if (r_faces_new) {
-			r_faces_new[nf_i++] = f_new;
-		}
-		if (r_edges_new) {
-			r_edges_new[ne_i++] = l_new->e;
-		}
-	}
-	else if (f->len > 4) {
-
-		float axis_mat[3][3];
-		float (*projverts)[2] = BLI_array_alloca(projverts, f->len);
+	{
 		BMLoop **loops = BLI_array_alloca(loops, f->len);
 		unsigned int (*tris)[3] = BLI_array_alloca(tris, f->len);
 		const int totfilltri = f->len - 2;
 		const int last_tri = f->len - 3;
 		int i;
 
-		axis_dominant_v3_to_m3_negate(axis_mat, f->no);
+		if (f->len == 4) {
+			/* even though we're not using BLI_polyfill, fill in 'tris' and 'loops'
+			 * so we can share code to handle face creation afterwards. */
+			BMLoop *l_v1, *l_v2;
 
-		for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l_iter = l_iter->next) {
-			loops[i] = l_iter;
-			mul_v2_m3v3(projverts[i], axis_mat, l_iter->v->co);
+			l_first = BM_FACE_FIRST_LOOP(f);
+
+			switch (quad_method) {
+				case MOD_TRIANGULATE_QUAD_FIXED:
+				{
+					l_v1 = l_first;
+					l_v2 = l_first->next->next;
+					break;
+				}
+				case MOD_TRIANGULATE_QUAD_ALTERNATE:
+				{
+					l_v1 = l_first->next;
+					l_v2 = l_first->prev;
+					break;
+				}
+				case MOD_TRIANGULATE_QUAD_SHORTEDGE:
+				case MOD_TRIANGULATE_QUAD_BEAUTY:
+				default:
+				{
+					BMLoop *l_v3, *l_v4;
+					bool split_24;
+
+					l_v1 = l_first->next;
+					l_v2 = l_first->next->next;
+					l_v3 = l_first->prev;
+					l_v4 = l_first;
+
+					if (quad_method == MOD_TRIANGULATE_QUAD_SHORTEDGE) {
+						float d1, d2;
+						d1 = len_squared_v3v3(l_v4->v->co, l_v2->v->co);
+						d2 = len_squared_v3v3(l_v1->v->co, l_v3->v->co);
+						split_24 = ((d2 - d1) > 0.0f);
+					}
+					else {
+						/* first check if the quad is concave on either diagonal */
+						const int flip_flag = is_quad_flip_v3(l_v1->v->co, l_v2->v->co, l_v3->v->co, l_v4->v->co);
+						if (UNLIKELY(flip_flag & (1 << 0))) {
+							split_24 = true;
+						}
+						else if (UNLIKELY(flip_flag & (1 << 1))) {
+							split_24 = false;
+						}
+						else {
+							split_24 = (BM_verts_calc_rotate_beauty(l_v1->v, l_v2->v, l_v3->v, l_v4->v, 0, 0) > 0.0f);
+						}
+					}
+
+					/* named confusingly, l_v1 is in fact the second vertex */
+					if (split_24) {
+						l_v1 = l_v4;
+						//l_v2 = l_v2;
+					}
+					else {
+						//l_v1 = l_v1;
+						l_v2 = l_v3;
+					}
+					break;
+				}
+			}
+
+			loops[0] = l_v1;
+			loops[1] = l_v1->next;
+			loops[2] = l_v2;
+			loops[3] = l_v2->next;
+
+			ARRAY_SET_ITEMS(tris[0], 0, 1, 2);
+			ARRAY_SET_ITEMS(tris[1], 0, 2, 3);
 		}
+		else {
+			float axis_mat[3][3];
+			float (*projverts)[2] = BLI_array_alloca(projverts, f->len);
 
-		BLI_polyfill_calc_arena((const float (*)[2])projverts, f->len, 1, tris,
-		                        pf_arena);
+			axis_dominant_v3_to_m3_negate(axis_mat, f->no);
 
-		if (use_beauty) {
-			BLI_polyfill_beautify(
-			        (const float (*)[2])projverts, f->len, tris,
-			        pf_arena, pf_heap, pf_ehash);
+			for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l_iter = l_iter->next) {
+				loops[i] = l_iter;
+				mul_v2_m3v3(projverts[i], axis_mat, l_iter->v->co);
+			}
+
+			BLI_polyfill_calc_arena((const float (*)[2])projverts, f->len, 1, tris,
+			                        pf_arena);
+
+			if (use_beauty) {
+				BLI_polyfill_beautify(
+				        (const float (*)[2])projverts, f->len, tris,
+				        pf_arena, pf_heap, pf_ehash);
+			}
+
+			BLI_memarena_clear(pf_arena);
 		}
-
-		BLI_memarena_clear(pf_arena);
 
 		/* loop over calculated triangles and create new geometry */
 		for (i = 0; i < totfilltri; i++) {
