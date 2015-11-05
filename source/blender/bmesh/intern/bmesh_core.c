@@ -220,7 +220,7 @@ static BMLoop *bm_loop_create(
 	l = BLI_mempool_alloc(bm->lpool);
 
 	BLI_assert((l_example == NULL) || (l_example->head.htype == BM_LOOP));
-	BLI_assert(!(create_flag & BM_CREATE_NO_DOUBLE));
+	BLI_assert(!(create_flag & 1));
 
 #ifndef NDEBUG
 	if (l_example) {
