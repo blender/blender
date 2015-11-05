@@ -1567,7 +1567,7 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 	glPopMatrix();
 }
 
-static void draw_limit_line(float sta, float end, const short dflag, unsigned int col)
+static void draw_limit_line(float sta, float end, const short dflag, const unsigned char col[3])
 {
 	glBegin(GL_LINES);
 	glVertex3f(0.0, 0.0, -sta);
@@ -1578,7 +1578,7 @@ static void draw_limit_line(float sta, float end, const short dflag, unsigned in
 		glPointSize(3.0);
 		glBegin(GL_POINTS);
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
-			cpack(col);
+			glColor3ubv(col);
 		}
 		glVertex3f(0.0, 0.0, -sta);
 		glVertex3f(0.0, 0.0, -end);
@@ -2084,7 +2084,8 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	float drawsize;
 	MovieClip *clip = BKE_object_movieclip_get(scene, base->object, false);
 
-	const bool is_view = (rv3d->persp == RV3D_CAMOB && ob == v3d->camera);
+	const bool is_active = (ob == v3d->camera);
+	const bool is_view = (rv3d->persp == RV3D_CAMOB && is_active);
 	const bool is_multiview = (scene->r.scemode & R_MULTIVIEW) != 0;
 	const bool is_stereo3d = drawcamera_is_stereo3d(scene, v3d, ob);
 	const bool is_stereo3d_view = (scene->r.views_format == SCE_VIEWS_FORMAT_STEREO_3D);
@@ -2176,7 +2177,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	 * for active cameras so the wire can be seen side-on */
 	for (i = 0; i < 2; i++) {
 		if (i == 0) glBegin(GL_LINE_LOOP);
-		else if (i == 1 && (ob == v3d->camera)) glBegin(GL_TRIANGLES);
+		else if (i == 1 && is_active) glBegin(GL_TRIANGLES);
 		else break;
 
 		tvec[0] = shift[0] + ((-0.7f * drawsize) * scale[0]);
@@ -2206,15 +2207,20 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 			glMultMatrixf(nobmat);
 
 			if (cam->flag & CAM_SHOWLIMITS) {
-				draw_limit_line(cam->clipsta, cam->clipend, dflag, 0x77FFFF);
+				const unsigned char col[3] = {128, 128, 60}, col_hi[3] = {255, 255, 120};
+
+				draw_limit_line(cam->clipsta, cam->clipend, dflag, (is_active ? col_hi : col));
 				/* qdn: was yafray only, now also enabled for Blender to be used with defocus composite node */
 				draw_focus_cross(BKE_camera_object_dof_distance(ob), cam->drawsize);
 			}
 
 			if (cam->flag & CAM_SHOWMIST) {
 				World *world = scene->world;
+				const unsigned char col[3] = {128, 128, 128}, col_hi[3] = {255, 255, 255};
+
 				if (world) {
-					draw_limit_line(world->miststa, world->miststa + world->mistdist, dflag, 0xFFFFFF);
+					draw_limit_line(world->miststa, world->miststa + world->mistdist,
+					                dflag, (is_active ? col_hi : col));
 				}
 			}
 			glPopMatrix();
