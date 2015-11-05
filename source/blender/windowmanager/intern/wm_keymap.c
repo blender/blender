@@ -1797,7 +1797,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 	}
 	/* Animation Editor Channels */
 	else if (STRPREFIX(opname, "ANIM_OT_channels")) {
-		km = WM_keymap_find_all(C, "Animation Channels", sl->spacetype, 0);
+		km = WM_keymap_find_all(C, "Animation Channels", 0, 0);
 	}
 	/* Animation Generic - after channels */
 	else if (STRPREFIX(opname, "ANIM_OT")) {
