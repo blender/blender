@@ -247,6 +247,9 @@ static BMLoop *bm_loop_create(
 
 	if (!(create_flag & BM_CREATE_SKIP_CD)) {
 		if (l_example) {
+			/* no need to copy attrs, just handle customdata */
+			// BM_elem_attrs_copy(bm, bm, l_example, l);
+			CustomData_bmesh_free_block_data(&bm->ldata, l->head.data);
 			CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, l_example->head.data, &l->head.data);
 		}
 		else {
