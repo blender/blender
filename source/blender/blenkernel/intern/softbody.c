@@ -2229,7 +2229,7 @@ static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, fl
 	/* bproot= sb->bpoint; */ /* need this for proper spring addressing */ /* UNUSED */
 
 	if (do_springcollision || do_aero)
-	sb_sfesf_threads_run(scene, ob, timenow, sb->totspring, NULL);
+		sb_sfesf_threads_run(scene, ob, timenow, sb->totspring, NULL);
 
 	/* after spring scan because it uses Effoctors too */
 	do_effector= pdInitEffectors(scene, ob, NULL, sb->effector_weights, true);

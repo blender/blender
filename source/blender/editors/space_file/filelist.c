@@ -394,7 +394,7 @@ static int compare_direntry_generic(const FileListInternEntry *entry1, const Fil
 		}
 	}
 	else if (entry2->typeflag & FILE_TYPE_DIR) {
-	    return 1;
+		return 1;
 	}
 
 	/* make sure "." and ".." are always first */
@@ -1069,7 +1069,7 @@ static void filelist_cache_preview_runf(TaskPool *pool, void *taskdata, int UNUS
 
 //	printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
 	BLI_assert(preview->flags & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT |
-								 FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB));
+	                             FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB));
 
 	if (preview->flags & FILE_TYPE_IMAGE) {
 		source = THB_SOURCE_IMAGE;

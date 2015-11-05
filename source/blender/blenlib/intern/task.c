@@ -140,10 +140,10 @@ static bool task_scheduler_thread_wait_pop(TaskScheduler *scheduler, Task **task
 		/* Assuming we can only have a void queue in 'exit' case here seems logical (we should only be here after
 		 * our worker thread has been woken up from a condition_wait(), which only happens after a new task was
 		 * added to the queue), but it is wrong.
-		 * Waiting on condition may wake up the thread even if condition is not signaled (spurious wakeups), and some
+		 * Waiting on condition may wake up the thread even if condition is not signaled (spurious wake-ups), and some
 		 * race condition may also empty the queue **after** condition has been signaled, but **before** awoken thread
 		 * reaches this point...
-		 * See http://stackoverflow.com/questions/8594591/why-does-pthread-cond-wait-have-spurious-wakeups
+		 * See http://stackoverflow.com/questions/8594591
 		 *
 		 * So we only abort here if do_exit is set.
 		 */
@@ -399,7 +399,7 @@ TaskPool *BLI_task_pool_create(TaskScheduler *scheduler, void *userdata)
  * \a BLI_task_pool_work_and_wait() on it to be sure it will be processed).
  *
  * \note Background pools are non-recursive (that is, you should not create other background pools in tasks assigned
- *       to a brackground pool, they could end never being executed, since the 'fallback' background thread is already
+ *       to a background pool, they could end never being executed, since the 'fallback' background thread is already
  *       busy with parent task in single-threaded context).
  */
 TaskPool *BLI_task_pool_create_background(TaskScheduler *scheduler, void *userdata)

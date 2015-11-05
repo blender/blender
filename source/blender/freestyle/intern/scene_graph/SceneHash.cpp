@@ -30,9 +30,9 @@ namespace Freestyle {
 
 string SceneHash::toString()
 {
-	 stringstream ss;
-	 ss << hex << _sum;
-	 return ss.str();
+	stringstream ss;
+	ss << hex << _sum;
+	return ss.str();
 }
 
 void SceneHash::visitNodeSceneRenderLayer(NodeSceneRenderLayer& node)

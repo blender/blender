@@ -5574,7 +5574,7 @@ static void slide_origdata_interp_data_vert(
 		float (*faces_center)[3] = BLI_array_alloca(faces_center, l_num);
 		BMLoop *l;
 
-		BM_ITER_ELEM_INDEX (l, &liter, sv->v, BM_LOOPS_OF_VERT, j) {;
+		BM_ITER_ELEM_INDEX (l, &liter, sv->v, BM_LOOPS_OF_VERT, j) {
 			BM_face_calc_center_mean(l->f, faces_center[j]);
 		}
 

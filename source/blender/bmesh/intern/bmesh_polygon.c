@@ -921,7 +921,6 @@ void BM_face_triangulate(
 
 		/* loop over calculated triangles and create new geometry */
 		for (i = 0; i < totfilltri; i++) {
-			/* the order is reverse, otherwise the normal is flipped */
 			BMLoop *l_tri[3] = {
 			    loops[tris[i][0]],
 			    loops[tris[i][1]],

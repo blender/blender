@@ -1307,7 +1307,7 @@ void file_sfile_filepath_set(SpaceFile *sfile, const char *filepath)
 			BLI_split_dirfile(filepath, sfile->params->dir, sfile->params->file,
 			                  sizeof(sfile->params->dir), sizeof(sfile->params->file));
 		}
-		else{
+		else {
 			BLI_split_dir_part(filepath, sfile->params->dir, sizeof(sfile->params->dir));
 		}
 	}

@@ -800,7 +800,7 @@ static Base *outline_delete_hierarchy(bContext *C, Scene *scene, Base *base)
 	Object *parent;
 
 	if (!base) {
-	    return NULL;
+		return NULL;
 	}
 
 	for (child_base = scene->base.first; child_base; child_base = base_next) {

@@ -3858,8 +3858,7 @@ static int sequencer_export_subtitles_invoke(bContext *C, wmOperator *op, const 
 static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Sequence *seq = BKE_sequencer_active_get(scene);
-	Sequence *seq_next;
+	Sequence *seq, *seq_next;
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	ListBase text_seq = {0};
 	int iter = 0;

@@ -622,7 +622,7 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 			}
 			else {
 				glaDrawPixelsSafe(x, y, dx, dy, dx, GL_LUMINANCE, GL_UNSIGNED_INT,
-				                  (unsigned char*)rect + channel_offset);
+				                  (unsigned char *)rect + channel_offset);
 			}
 		}
 	}

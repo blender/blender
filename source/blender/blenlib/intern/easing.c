@@ -330,7 +330,7 @@ float BLI_easing_quint_ease_out(float time, float begin, float change, float dur
 float BLI_easing_quint_ease_in_out(float time, float begin, float change, float duration)
 {
 	if ((time /= duration / 2) < 1.0f)
-		 return change / 2 * time * time * time * time * time + begin;
+		return change / 2 * time * time * time * time * time + begin;
 	time -= 2.0f;
 	return change / 2 * (time * time * time * time * time + 2) + begin;
 }
