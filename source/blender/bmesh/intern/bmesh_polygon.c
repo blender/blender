@@ -42,6 +42,8 @@
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
+#include "BKE_customdata.h"
+
 #include "intern/bmesh_private.h"
 
 /**
@@ -785,11 +787,13 @@ void BM_face_triangulate(
         /* use for MOD_TRIANGULATE_NGON_BEAUTY only! */
         struct Heap *pf_heap, struct EdgeHash *pf_ehash)
 {
+	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+	const bool use_beauty = (ngon_method == MOD_TRIANGULATE_NGON_BEAUTY);
 	BMLoop *l_iter, *l_first, *l_new;
 	BMFace *f_new;
 	int nf_i = 0;
 	int ne_i = 0;
-	bool use_beauty = (ngon_method == MOD_TRIANGULATE_NGON_BEAUTY);
+
 
 	BLI_assert(BM_face_is_normal_valid(f));
 
@@ -804,6 +808,8 @@ void BM_face_triangulate(
 		const int totfilltri = f->len - 2;
 		const int last_tri = f->len - 3;
 		int i;
+		/* for mdisps */
+		float f_center[3];
 
 		if (f->len == 4) {
 			/* even though we're not using BLI_polyfill, fill in 'tris' and 'loops'
@@ -901,6 +907,10 @@ void BM_face_triangulate(
 			BLI_memarena_clear(pf_arena);
 		}
 
+		if (cd_loop_mdisp_offset != -1) {
+			BM_face_calc_center_mean(f, f_center);
+		}
+
 		/* loop over calculated triangles and create new geometry */
 		for (i = 0; i < totfilltri; i++) {
 			/* the order is reverse, otherwise the normal is flipped */
@@ -953,6 +963,12 @@ void BM_face_triangulate(
 					}
 					/* note, never disable tag's */
 				} while ((l_iter = l_iter->next) != l_first);
+			}
+
+			if (cd_loop_mdisp_offset != -1) {
+				float f_new_center[3];
+				BM_face_calc_center_mean(f_new, f_new_center);
+				BM_face_interp_multires_ex(bm, f_new, f, f_new_center, f_center, cd_loop_mdisp_offset);
 			}
 		}
 

@@ -34,6 +34,8 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
+#include "BKE_customdata.h"
+
 #define ELE_NEW 1
 
 /**
@@ -45,6 +47,7 @@
  */
 void bmo_poke_exec(BMesh *bm, BMOperator *op)
 {
+	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
 	BMOIter oiter;
 	BMFace *f;
 
@@ -70,7 +73,7 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
 
 	BMO_ITER (f, &oiter, op->slots_in, "faces", BM_FACE) {
 		BMFace *f_new;
-		float f_center[3];
+		float f_center[3], f_center_mean[3];
 		BMVert *v_center = NULL;
 		BMLoop *l_iter, *l_first;
 		/* only interpolate the central loop from the face once,
@@ -85,6 +88,15 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
 		bm_face_calc_center_fn(f, f_center);
 		v_center = BM_vert_create(bm, f_center, NULL, BM_CREATE_NOP);
 		BMO_elem_flag_enable(bm, v_center, ELE_NEW);
+
+		if (cd_loop_mdisp_offset != -1) {
+			if (center_mode == BMOP_POKE_MEAN) {
+				copy_v3_v3(f_center_mean, f_center);
+			}
+			else {
+				BM_face_calc_center_mean(f, f_center_mean);
+			}
+		}
 
 		/* handled by BM_loop_interp_from_face */
 		// BM_vert_interp_from_face(bm, v_center, f);
@@ -106,7 +118,7 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
 
 			if (i == 0) {
 				l_center_example = l_new->prev;
-				BM_loop_interp_from_face(bm, l_center_example, f, true, true);
+				BM_loop_interp_from_face(bm, l_center_example, f, true, false);
 			}
 			else {
 				BM_elem_attrs_copy(bm, bm, l_center_example, l_new->prev);
@@ -117,6 +129,12 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
 			BM_elem_attrs_copy(bm, bm, l_iter->next, l_new->next);
 
 			BMO_elem_flag_enable(bm, f_new, ELE_NEW);
+
+			if (cd_loop_mdisp_offset != -1) {
+				float f_new_center[3];
+				BM_face_calc_center_mean(f_new, f_new_center);
+				BM_face_interp_multires_ex(bm, f_new, f, f_new_center, f_center, cd_loop_mdisp_offset);
+			}
 
 			if (use_relative_offset) {
 				offset_fac += len_v3v3(f_center, l_iter->v->co);
