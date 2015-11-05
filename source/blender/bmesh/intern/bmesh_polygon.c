@@ -38,6 +38,7 @@
 #include "BLI_memarena.h"
 #include "BLI_polyfill2d.h"
 #include "BLI_polyfill2d_beautify.h"
+#include "BLI_linklist.h"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
@@ -767,6 +768,12 @@ bool BM_face_point_inside_test(const BMFace *f, const float co[3])
  * with a length equal to (f->len - 3). It will be filled with the new
  * triangles (not including the original triangle).
  *
+ * \param r_faces_double: When newly created faces are duplicates of existing faces, they're added to this list.
+ * Caller must handle de-duplication.
+ * This is done because its possible _all_ faces exist already,
+ * and in that case we would have to remove all faces including the one passed,
+ * which causes complications adding/removing faces while looking over them.
+ *
  * \note The number of faces is _almost_ always (f->len - 3),
  *       However there may be faces that already occupying the
  *       triangles we would make, so the caller must check \a r_faces_new_tot.
@@ -779,6 +786,7 @@ void BM_face_triangulate(
         int     *r_faces_new_tot,
         BMEdge **r_edges_new,
         int     *r_edges_new_tot,
+        LinkNode **r_faces_double,
         const int quad_method,
         const int ngon_method,
         const bool use_tag,
@@ -789,11 +797,10 @@ void BM_face_triangulate(
 {
 	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
 	const bool use_beauty = (ngon_method == MOD_TRIANGULATE_NGON_BEAUTY);
-	BMLoop *l_iter, *l_first, *l_new;
+	BMLoop *l_first, *l_new;
 	BMFace *f_new;
 	int nf_i = 0;
 	int ne_i = 0;
-
 
 	BLI_assert(BM_face_is_normal_valid(f));
 
@@ -885,6 +892,7 @@ void BM_face_triangulate(
 			ARRAY_SET_ITEMS(tris[1], 0, 2, 3);
 		}
 		else {
+			BMLoop *l_iter;
 			float axis_mat[3][3];
 			float (*projverts)[2] = BLI_array_alloca(projverts, f->len);
 
@@ -929,6 +937,16 @@ void BM_face_triangulate(
 
 			BLI_assert(v_tri[0] == l_new->v);
 
+			/* check for duplicate */
+			if (l_new->radial_next != l_new) {
+				BMLoop *l_iter = l_new->radial_next;
+				do {
+					if (UNLIKELY(l_new->prev->v == l_iter->prev->v)) {
+						BLI_linklist_prepend(r_faces_double, l_new->f);
+					}
+				} while ((l_iter = l_iter->radial_next) != l_new);
+			}
+
 			/* copy CD data */
 			BM_elem_attrs_copy(bm, bm, l_tri[0], l_new);
 			BM_elem_attrs_copy(bm, bm, l_tri[1], l_new->next);
@@ -946,6 +964,8 @@ void BM_face_triangulate(
 
 			if (use_tag || r_edges_new) {
 				/* new faces loops */
+				BMLoop *l_iter;
+
 				l_iter = l_first = l_new;
 				do {
 					BMEdge *e = l_iter->e;

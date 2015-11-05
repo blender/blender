@@ -1171,6 +1171,7 @@ static BMOpDefine bmo_triangulate_def = {
 	{{"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
 	 {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
 	 {"face_map.out", BMO_OP_SLOT_MAPPING, {(int)BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
+	 {"face_map_double.out", BMO_OP_SLOT_MAPPING, {(int)BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},  /* duplicate faces */
 	 {{'\0'}},
 	},
 	bmo_triangulate_exec,

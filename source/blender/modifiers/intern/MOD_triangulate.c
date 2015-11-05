@@ -44,7 +44,7 @@ static DerivedMesh *triangulate_dm(DerivedMesh *dm, const int quad_method, const
 
 	bm = DM_to_bmesh(dm, true);
 
-	BM_mesh_triangulate(bm, quad_method, ngon_method, false, NULL, NULL);
+	BM_mesh_triangulate(bm, quad_method, ngon_method, false, NULL, NULL, NULL);
 
 	result = CDDM_from_bmesh(bm, false);
 	BM_mesh_free(bm);

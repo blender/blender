@@ -32,6 +32,6 @@
 
 void BM_mesh_triangulate(
         BMesh *bm, const int quad_method, const int ngon_method, const bool tag_only,
-        BMOperator *op, BMOpSlot *slot_facemap_out);
+        BMOperator *op, BMOpSlot *slot_facemap_out, BMOpSlot *slot_doubles_out);
 
 #endif  /* __BMESH_TRIANGULATE_H__ */

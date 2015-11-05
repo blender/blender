@@ -42,6 +42,7 @@
 #include "BLI_polyfill2d.h"
 #include "BLI_polyfill2d_beautify.h"
 #include "BLI_edgehash.h"
+#include "BLI_linklist.h"
 
 #include "bmesh.h"
 
@@ -84,6 +85,7 @@ static bool bm_face_split_by_concave(
 	BMFace  **faces_array = BLI_array_alloca(faces_array, faces_array_tot);
 	BMEdge  **edges_array = BLI_array_alloca(edges_array, edges_array_tot);
 	const int quad_method = 0, ngon_method = 0;  /* beauty */
+	LinkNode *r_faces_double = NULL;
 
 	float normal[3];
 	BLI_assert(f_base->len > 3);
@@ -94,6 +96,7 @@ static bool bm_face_split_by_concave(
 	        bm, f_base,
 	        faces_array, &faces_array_tot,
 	        edges_array, &edges_array_tot,
+	        &r_faces_double,
 	        quad_method, ngon_method, false,
 	        pf_arena,
 	        pf_heap, pf_ehash);
