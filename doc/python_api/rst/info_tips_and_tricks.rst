@@ -114,9 +114,9 @@ This example shows loading a script in as a module and executing a module functi
 .. code-block:: python
 
    import myscript
-   import imp
+   import importlib
 
-   imp.reload(myscript)
+   importlib.reload(myscript)
    myscript.main()
 
 
@@ -143,8 +143,8 @@ this example adds the current blend files directory to the search path, then loa
       sys.path.append(blend_dir)
 
    import myscript
-   import imp
-   imp.reload(myscript)
+   import importlib
+   importlib.reload(myscript)
    myscript.main()
 
 
@@ -307,7 +307,7 @@ Since it's possible to access data which has been removed (see Gotcha's),
 this can be hard to track down the cause of crashes.
 
 To raise Python exceptions on accessing freed data (rather than crashing),
-enable the CMake build option WITH_PYTHON_SAFETY.
+enable the CMake build option ``WITH_PYTHON_SAFETY``.
 
 This enables data tracking which makes data access about 2x slower
 which is why the option isn't enabled in release builds.
