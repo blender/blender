@@ -206,6 +206,11 @@ BMEdge *BM_edge_create(
 	return e;
 }
 
+/**
+ * \note In most cases a \a l_example should be NULL,
+ * since this is a low level API and we shouldn't attempt to be clever and guess whats intended.
+ * In cases where copying adjacent loop-data is useful, see #BM_face_copy_shared.
+ */
 static BMLoop *bm_loop_create(
         BMesh *bm, BMVert *v, BMEdge *e, BMFace *f,
         const BMLoop *l_example, const eBMCreateFlag create_flag)
@@ -215,7 +220,15 @@ static BMLoop *bm_loop_create(
 	l = BLI_mempool_alloc(bm->lpool);
 
 	BLI_assert((l_example == NULL) || (l_example->head.htype == BM_LOOP));
-	BLI_assert(!(create_flag & 1));
+	BLI_assert(!(create_flag & BM_CREATE_NO_DOUBLE));
+
+#ifndef NDEBUG
+	if (l_example) {
+		/* ensure passing a loop is either sharing the same vertex, or entirely disconnected
+		 * use to catch mistake passing in loop offset-by-one. */
+		BLI_assert((v == l_example->v) || !ELEM(v, l_example->prev->v, l_example->next->v));
+	}
+#endif
 
 	/* --- assign all members --- */
 	l->head.data = NULL;
@@ -267,7 +280,7 @@ static BMLoop *bm_face_boundary_add(
 #ifdef USE_BMESH_HOLES
 	BMLoopList *lst = BLI_mempool_calloc(bm->looplistpool);
 #endif
-	BMLoop *l = bm_loop_create(bm, startv, starte, f, starte->l, create_flag);
+	BMLoop *l = bm_loop_create(bm, startv, starte, f, NULL /* starte->l */, create_flag);
 	
 	bmesh_radial_append(starte, l);
 
@@ -442,7 +455,7 @@ BMFace *BM_face_create(
 	startl->v = verts[0];
 	startl->e = edges[0];
 	for (i = 1; i < len; i++) {
-		l = bm_loop_create(bm, verts[i], edges[i], f, edges[i]->l, create_flag);
+		l = bm_loop_create(bm, verts[i], edges[i], f, NULL /* edges[i]->l */, create_flag);
 		
 		l->f = f;
 		bmesh_radial_append(edges[i], l);

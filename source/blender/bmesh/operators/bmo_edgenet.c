@@ -73,8 +73,8 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	/* --- Attribute Fill --- */
 	/* may as well since we have the faces already in a buffer */
 	BMO_op_initf(bm, &op_attr, op->flag,
-	             "face_attribute_fill faces=%S use_normals=%b",
-	             op, "faces.out", true);
+	             "face_attribute_fill faces=%S use_normals=%b use_data=%b",
+	             op, "faces.out", true, true);
 
 	BMO_op_exec(bm, &op_attr);
 
