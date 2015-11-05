@@ -358,7 +358,7 @@ void bc_triangulate_mesh(Mesh *me)
 	 
 	BMesh *bm = BM_mesh_create(&bm_mesh_allocsize_default);
 	BM_mesh_bm_from_me(bm, me, true, false, 0);
-	BM_mesh_triangulate(bm, quad_method, use_beauty, tag_only, NULL, NULL);
+	BM_mesh_triangulate(bm, quad_method, use_beauty, tag_only, NULL, NULL, NULL);
 
 	BM_mesh_bm_to_me(bm, me, false);
 	BM_mesh_free(bm);
