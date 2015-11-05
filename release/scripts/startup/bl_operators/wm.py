@@ -1402,7 +1402,7 @@ class WM_OT_copy_prev_settings(Operator):
         if os.path.isdir(path_dst):
             self.report({'ERROR'}, "Target path %r exists" % path_dst)
         elif not os.path.isdir(path_src):
-            self.report({'ERROR'}, "Source path %r exists" % path_src)
+            self.report({'ERROR'}, "Source path %r does not exist" % path_src)
         else:
             shutil.copytree(path_src, path_dst, symlinks=True)
 
