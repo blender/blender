@@ -403,25 +403,94 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	return 0;
 }
 
-static int parse_relative_int(const char *str, int pos, int neg, int min, int max)
+static bool parse_int_relative(
+        const char *str, int pos, int neg,
+        int *r_value, const char **r_err_msg)
 {
-	int ret;
+	char *str_end = NULL;
+	long value;
+
+	errno = 0;
 
 	switch (*str) {
 		case '+':
-			ret = pos + atoi(str + 1);
+			value = pos + strtol(str + 1, &str_end, 10);
 			break;
 		case '-':
-			ret = (neg - atoi(str + 1)) + 1;
+			value = (neg - strtol(str + 1, &str_end, 10)) + 1;
 			break;
 		default:
-			ret = atoi(str);
+			value = strtol(str, &str_end, 10);
 			break;
 	}
 
-	CLAMP(ret, min, max);
 
-	return ret;
+	if (*str_end != '\0') {
+		static const char *msg = "not a number";
+		*r_err_msg = msg;
+		return false;
+	}
+	else if ((errno == ERANGE) || ((value < INT_MIN || value > INT_MAX))) {
+		static const char *msg = "exceeds range";
+		*r_err_msg = msg;
+		return false;
+	}
+	else {
+		*r_value = (int)value;
+		return true;
+	}
+}
+
+static bool parse_int_relative_clamp(
+        const char *str, int pos, int neg, int min, int max,
+        int *r_value, const char **r_err_msg)
+{
+	if (parse_int_relative(str, pos, neg, r_value, r_err_msg)) {
+		CLAMP(*r_value, min, max);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+static bool parse_int(
+        const char *str,
+        int *r_value, const char **r_err_msg)
+{
+	char *str_end = NULL;
+	long value;
+
+	errno = 0;
+	value = strtol(str, &str_end, 10);
+
+	if (*str_end != '\0') {
+		static const char *msg = "not a number";
+		*r_err_msg = msg;
+		return false;
+	}
+	else if ((errno == ERANGE) || ((value < INT_MIN || value > INT_MAX))) {
+		static const char *msg = "exceeds range";
+		*r_err_msg = msg;
+		return false;
+	}
+	else {
+		*r_value = (int)value;
+		return true;
+	}
+}
+
+static bool parse_int_clamp(
+        const char *str, int min, int max,
+        int *r_value, const char **r_err_msg)
+{
+	if (parse_int(str, r_value, r_err_msg)) {
+		CLAMP(*r_value, min, max);
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 static int end_arguments(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
@@ -510,8 +579,16 @@ static int debug_mode_memory(int UNUSED(argc), const char **UNUSED(argv), void *
 
 static int set_debug_value(int argc, const char **argv, void *UNUSED(data))
 {
+	const char *arg_id = "--debug-value";
 	if (argc > 1) {
-		G.debug_value = atoi(argv[1]);
+		const char *err_msg = NULL;
+		int value;
+		if (!parse_int(argv[1], &value, &err_msg)) {
+			printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+			return 1;
+		}
+
+		G.debug_value = value;
 
 		return 1;
 	}
@@ -765,19 +842,23 @@ static int playback_mode(int argc, const char **argv, void *UNUSED(data))
 
 static int prefsize(int argc, const char **argv, void *UNUSED(data))
 {
-	int stax, stay, sizx, sizy;
+	const char *arg_id = "-p / --window-geometry";
+	int params[4], i;
 
 	if (argc < 5) {
-		fprintf(stderr, "-p requires four arguments\n");
+		fprintf(stderr, "Error: requires four arguments '%s'\n", arg_id);
 		exit(1);
 	}
 
-	stax = atoi(argv[1]);
-	stay = atoi(argv[2]);
-	sizx = atoi(argv[3]);
-	sizy = atoi(argv[4]);
+	for (i = 0; i < 4; i++) {
+		const char *err_msg = NULL;
+		if (!parse_int(argv[i + 1], &params[i], &err_msg)) {
+			printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+			exit(1);
+		}
+	}
 
-	WM_init_state_size_set(stax, stay, sizx, sizy);
+	WM_init_state_size_set(UNPACK4(params));
 
 	return 4;
 }
@@ -946,8 +1027,14 @@ static int set_image_type(int argc, const char **argv, void *data)
 
 static int set_threads(int argc, const char **argv, void *UNUSED(data))
 {
+	const char *arg_id = "-t / --threads";
 	if (argc > 1) {
-		int threads = atoi(argv[1]);
+		const char *err_msg = NULL;
+		int threads;
+		if (!parse_int(argv[1], &threads, &err_msg)) {
+			printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+			return 1;
+		}
 
 		if (threads >= 0 && threads <= BLENDER_MAX_THREADS) {
 			BLI_system_num_threads_override_set(threads);
@@ -958,7 +1045,7 @@ static int set_threads(int argc, const char **argv, void *UNUSED(data))
 		return 1;
 	}
 	else {
-		printf("\nError: you must specify a number of threads between 0 and %d '-t / --threads'.\n", BLENDER_MAX_THREADS);
+		printf("\nError: you must specify a number of threads between 0 and %d '%s'.\n", BLENDER_MAX_THREADS, arg_id);
 		return 0;
 	}
 }
@@ -972,8 +1059,13 @@ static int depsgraph_use_new(int UNUSED(argc), const char **UNUSED(argv), void *
 
 static int set_verbosity(int argc, const char **argv, void *UNUSED(data))
 {
+	const char *arg_id = "--verbose";
 	if (argc > 1) {
-		int level = atoi(argv[1]);
+		const char *err_msg = NULL;
+		int level;
+		if (!parse_int(argv[1], &level, &err_msg)) {
+			printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+		}
 
 #ifdef WITH_LIBMV
 		libmv_setLoggingVerbosity(level);
@@ -1078,18 +1170,27 @@ static int set_ge_parameters(int argc, const char **argv, void *data)
 
 static int render_frame(int argc, const char **argv, void *data)
 {
+	const char *arg_id = "-f / --render-frame";
 	bContext *C = data;
 	Scene *scene = CTX_data_scene(C);
 	if (scene) {
 		Main *bmain = CTX_data_main(C);
 
 		if (argc > 1) {
-			Render *re = RE_NewRender(scene->id.name);
+			const char *err_msg = NULL;
+			Render *re;
 			int frame;
 			ReportList reports;
 
-			frame = parse_relative_int(argv[1], scene->r.sfra, scene->r.efra, MINAFRAME, MAXFRAME);
+			if (!parse_int_relative_clamp(
+			        argv[1], scene->r.sfra, scene->r.efra, MINAFRAME, MAXFRAME,
+			        &frame, &err_msg))
+			{
+				printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+				return 1;
+			}
 
+			re = RE_NewRender(scene->id.name);
 			BLI_begin_threaded_malloc();
 			BKE_reports_init(&reports, RPT_PRINT);
 
@@ -1100,12 +1201,12 @@ static int render_frame(int argc, const char **argv, void *data)
 			return 1;
 		}
 		else {
-			printf("\nError: frame number must follow '-f / --render-frame'.\n");
+			printf("\nError: frame number must follow '%s'.\n", arg_id);
 			return 0;
 		}
 	}
 	else {
-		printf("\nError: no blend loaded. cannot use '-f / --render-frame'.\n");
+		printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
 		return 0;
 	}
 }
@@ -1149,62 +1250,78 @@ static int set_scene(int argc, const char **argv, void *data)
 
 static int set_start_frame(int argc, const char **argv, void *data)
 {
+	const char *arg_id = "-s / --frame-start";
 	bContext *C = data;
 	Scene *scene = CTX_data_scene(C);
 	if (scene) {
 		if (argc > 1) {
-			scene->r.sfra = parse_relative_int(argv[1], scene->r.sfra, scene->r.sfra - 1, MINAFRAME, MAXFRAME);
-
+			const char *err_msg = NULL;
+			if (!parse_int_relative_clamp(
+			        argv[1], scene->r.sfra, scene->r.sfra - 1, MINAFRAME, MAXFRAME,
+			        &scene->r.sfra, &err_msg))
+			{
+				printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+			}
 			return 1;
 		}
 		else {
-			printf("\nError: frame number must follow '-s / --frame-start'.\n");
+			printf("\nError: frame number must follow '%s'.\n", arg_id);
 			return 0;
 		}
 	}
 	else {
-		printf("\nError: no blend loaded. cannot use '-s / --frame-start'.\n");
+		printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
 		return 0;
 	}
 }
 
 static int set_end_frame(int argc, const char **argv, void *data)
 {
+	const char *arg_id = "-e / --frame-end";
 	bContext *C = data;
 	Scene *scene = CTX_data_scene(C);
 	if (scene) {
 		if (argc > 1) {
-			scene->r.efra = parse_relative_int(argv[1], scene->r.efra, scene->r.efra - 1, MINAFRAME, MAXFRAME);
+			const char *err_msg = NULL;
+			if (!parse_int_relative_clamp(
+			        argv[1], scene->r.efra, scene->r.efra - 1, MINAFRAME, MAXFRAME,
+			        &scene->r.efra, &err_msg))
+			{
+				printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+			}
 			return 1;
 		}
 		else {
-			printf("\nError: frame number must follow '-e / --frame-end'.\n");
+			printf("\nError: frame number must follow '%s'.\n", arg_id);
 			return 0;
 		}
 	}
 	else {
-		printf("\nError: no blend loaded. cannot use '-e / --frame-end'.\n");
+		printf("\nError: no blend loaded. cannot use '%d'.\n", arg_id);
 		return 0;
 	}
 }
 
 static int set_skip_frame(int argc, const char **argv, void *data)
 {
+	const char *arg_id = "-j / --frame-jump";
 	bContext *C = data;
 	Scene *scene = CTX_data_scene(C);
 	if (scene) {
 		if (argc > 1) {
-			int frame = atoi(argv[1]);
-			(scene->r.frame_step) = CLAMPIS(frame, 1, MAXFRAME);
+			const char *err_msg = NULL;
+			if (!parse_int_clamp(argv[1], 1, MAXFRAME, &scene->r.frame_step, &err_msg)) {
+				printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+			}
 			return 1;
 		}
 		else {
-			printf("\nError: number of frames to step must follow '-j / --frame-jump'.\n");
+			printf("\nError: number of frames to step must follow '%s'.\n", arg_id);
 			return 0;
 		}
 	}
 	else {
-		printf("\nError: no blend loaded. cannot use '-j / --frame-jump'.\n");
+		printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
 		return 0;
 	}
 }
