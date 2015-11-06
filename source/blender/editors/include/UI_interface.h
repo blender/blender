@@ -203,6 +203,12 @@ enum {
 	UI_BUT_ALIGN_RIGHT       = (1 << 16),
 	UI_BUT_ALIGN_DOWN        = (1 << 17),
 	UI_BUT_ALIGN             = (UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_LEFT | UI_BUT_ALIGN_RIGHT | UI_BUT_ALIGN_DOWN),
+
+	/* Warning - HACK! Needed for buttons which are not TOP/LEFT aligned, but have some top/left corner stitched to some
+	 *                 other TOP/LEFT-aligned button, because of 'corrective' hack in widget_roundbox_set()... */
+	UI_BUT_ALIGN_STITCH_TOP  = (1 << 18),
+	UI_BUT_ALIGN_STITCH_LEFT = (1 << 19),
+	UI_BUT_ALIGN_ALL         = (UI_BUT_ALIGN | UI_BUT_ALIGN_STITCH_TOP | UI_BUT_ALIGN_STITCH_LEFT),
 };
 
 /* scale fixed button widths by this to account for DPI */

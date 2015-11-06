@@ -174,6 +174,9 @@ extern const short ui_radial_dir_to_angle[8];
 /* split numbuts by ':' and align l/r */
 #define USE_NUMBUTS_LR_ALIGN
 
+/* Use new 'align' computation code. */
+#define USE_UIBUT_SPATIAL_ALIGN
+
 /* PieMenuData->flags */
 enum {
 	UI_PIE_DEGREES_RANGE_LARGE  = (1 << 0),  /* pie menu item collision is detected at 90 degrees */

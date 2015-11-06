@@ -3548,9 +3548,9 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 	if ((but->drawflag & UI_BUT_ALIGN) && but->type != UI_BTYPE_PULLDOWN) {
 		
 		/* ui_block_position has this correction too, keep in sync */
-		if (but->drawflag & UI_BUT_ALIGN_TOP)
+		if (but->drawflag & (UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_STITCH_TOP))
 			rect->ymax += U.pixelsize;
-		if (but->drawflag & UI_BUT_ALIGN_LEFT)
+		if (but->drawflag & (UI_BUT_ALIGN_LEFT | UI_BUT_ALIGN_STITCH_LEFT))
 			rect->xmin -= U.pixelsize;
 		
 		switch (but->drawflag & UI_BUT_ALIGN) {

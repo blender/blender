@@ -3012,7 +3012,9 @@ static void ui_item_align(uiLayout *litem, short nr)
 	for (item = litem->items.last; item; item = item->prev) {
 		if (item->type == ITEM_BUTTON) {
 			bitem = (uiButtonItem *)item;
+#ifndef USE_UIBUT_SPATIAL_ALIGN
 			if (ui_but_can_align(bitem->but))
+#endif
 				if (!bitem->but->alignnr)
 					bitem->but->alignnr = nr;
 		}

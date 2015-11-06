@@ -40,6 +40,7 @@ set(INC_SYS
 
 set(SRC
 	interface.c
+	interface_align.c
 	interface_anim.c
 	interface_draw.c
 	interface_eyedropper.c
