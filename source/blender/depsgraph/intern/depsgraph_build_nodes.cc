@@ -1101,7 +1101,7 @@ void DepsgraphNodeBuilder::build_nodetree(DepsNode *owner_node, bNodeTree *ntree
 	build_animdata(ntree_id);
 
 	/* Parameters for drivers. */
-	add_operation_node(ntree_id, DEPSNODE_TYPE_PARAMETERS, DEPSOP_TYPE_EXEC, NULL,
+	add_operation_node(ntree_id, DEPSNODE_TYPE_PARAMETERS, DEPSOP_TYPE_POST, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Parameters Eval");
 
 	/* nodetree's nodes... */
@@ -1114,9 +1114,9 @@ void DepsgraphNodeBuilder::build_nodetree(DepsNode *owner_node, bNodeTree *ntree
 				build_texture(owner_node, (Tex *)bnode->id);
 			}
 			else if (bnode->type == NODE_GROUP) {
-				bNodeTree *ntree = (bNodeTree *)bnode->id;
-				if ((ntree_id->flag & LIB_DOIT) == 0) {
-					build_nodetree(owner_node, ntree);
+				bNodeTree *group_ntree = (bNodeTree *)bnode->id;
+				if ((group_ntree->id.flag & LIB_DOIT) == 0) {
+					build_nodetree(owner_node, group_ntree);
 				}
 			}
 		}

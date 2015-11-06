@@ -1778,6 +1778,11 @@ void DepsgraphRelationBuilder::build_nodetree(ID *owner, bNodeTree *ntree)
 
 	build_animdata(ntree_id);
 
+	OperationKey parameters_key(ntree_id,
+	                            DEPSNODE_TYPE_PARAMETERS,
+	                            DEG_OPCODE_PLACEHOLDER,
+	                            "Parameters Eval");
+
 	/* nodetree's nodes... */
 	for (bNode *bnode = (bNode *)ntree->nodes.first; bnode; bnode = bnode->next) {
 		if (bnode->id) {
@@ -1788,17 +1793,22 @@ void DepsgraphRelationBuilder::build_nodetree(ID *owner, bNodeTree *ntree)
 				build_texture(owner, (Tex *)bnode->id);
 			}
 			else if (bnode->type == NODE_GROUP) {
-				bNodeTree *ntree = (bNodeTree *)bnode->id;
-				if ((ntree_id->flag & LIB_DOIT) == 0) {
-					build_nodetree(owner, ntree);
-					ntree_id->flag |= LIB_DOIT;
+				bNodeTree *group_ntree = (bNodeTree *)bnode->id;
+				if ((group_ntree->id.flag & LIB_DOIT) == 0) {
+					build_nodetree(owner, group_ntree);
+					group_ntree->flag |= LIB_DOIT;
 				}
+				OperationKey group_parameters_key(&group_ntree->id,
+				                                  DEPSNODE_TYPE_PARAMETERS,
+				                                  DEG_OPCODE_PLACEHOLDER,
+				                                  "Parameters Eval");
+				add_relation(group_parameters_key, parameters_key,
+				             DEPSREL_TYPE_COMPONENT_ORDER, "Group Node");
 			}
 		}
 	}
 
 	if (needs_animdata_node(ntree_id)) {
-		ComponentKey parameters_key(ntree_id, DEPSNODE_TYPE_PARAMETERS);
 		ComponentKey animation_key(ntree_id, DEPSNODE_TYPE_ANIMATION);
 		add_relation(animation_key, parameters_key,
 		             DEPSREL_TYPE_COMPONENT_ORDER, "NTree Parameters");
