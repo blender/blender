@@ -1297,7 +1297,7 @@ static int set_end_frame(int argc, const char **argv, void *data)
 		}
 	}
 	else {
-		printf("\nError: no blend loaded. cannot use '%d'.\n", arg_id);
+		printf("\nError: no blend loaded. cannot use '%s'.\n", arg_id);
 		return 0;
 	}
 }
