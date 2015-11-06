@@ -181,7 +181,7 @@ static float get_avg_surrounds(float *cache, int *res, int xx, int yy, int zz)
 					for (x=-1; x <= 1; x++) {
 						x_ = xx+x;
 						if (x_ >= 0 && x_ <= res[0]-1) {
-							const int i = BLI_VOXEL_INDEX(x_, y_, z_, res);
+							const int64_t i = BLI_VOXEL_INDEX(x_, y_, z_, res);
 							
 							if (cache[i] > 0.0f) {
 								tot += cache[i];
@@ -212,7 +212,7 @@ static void lightcache_filter(VolumePrecache *vp)
 		for (y=0; y < vp->res[1]; y++) {
 			for (x=0; x < vp->res[0]; x++) {
 				/* trigger for outside mesh */
-				const int i = BLI_VOXEL_INDEX(x, y, z, vp->res);
+				const int64_t i = BLI_VOXEL_INDEX(x, y, z, vp->res);
 				
 				if (vp->data_r[i] < -0.f)
 					vp->data_r[i] = get_avg_surrounds(vp->data_r, vp->res, x, y, z);
@@ -244,7 +244,7 @@ static void lightcache_filter2(VolumePrecache *vp)
 		for (y=0; y < vp->res[1]; y++) {
 			for (x=0; x < vp->res[0]; x++) {
 				/* trigger for outside mesh */
-				const int i = BLI_VOXEL_INDEX(x, y, z, vp->res);
+				const int64_t i = BLI_VOXEL_INDEX(x, y, z, vp->res);
 				if (vp->data_r[i] < -0.f)
 					new_r[i] = get_avg_surrounds(vp->data_r, vp->res, x, y, z);
 				if (vp->data_g[i] < -0.f)
@@ -265,22 +265,30 @@ static void lightcache_filter2(VolumePrecache *vp)
 }
 #endif
 
-BLI_INLINE int ms_I(int x, int y, int z, int *n) /* has a pad of 1 voxel surrounding the core for boundary simulation */
+/* has a pad of 1 voxel surrounding the core for boundary simulation */
+BLI_INLINE int64_t ms_I(int x, int y, int z, const int *n)
 {
 	/* different ordering to light cache */
-	return x*(n[1]+2)*(n[2]+2) + y*(n[2]+2) + z;
+	return ((int64_t)x * (int64_t)(n[1] + 2) * (int64_t)(n[2] + 2) +
+	        (int64_t)y * (int64_t)(n[2] + 2) +
+	        (int64_t)z);
 }
 
-BLI_INLINE int v_I_pad(int x, int y, int z, int *n) /* has a pad of 1 voxel surrounding the core for boundary simulation */
+/* has a pad of 1 voxel surrounding the core for boundary simulation */
+BLI_INLINE int64_t v_I_pad(int x, int y, int z, const int *n)
 {
 	/* same ordering to light cache, with padding */
-	return z*(n[1]+2)*(n[0]+2) + y*(n[0]+2) + x;
+	return ((int64_t)z * (int64_t)(n[1] + 2) * (int64_t)(n[0] + 2) +
+	        (int64_t)y * (int64_t)(n[0] + 2) +
+	        (int64_t)x);
 }
 
-BLI_INLINE int lc_to_ms_I(int x, int y, int z, int *n)
+BLI_INLINE int64_t lc_to_ms_I(int x, int y, int z, const int *n)
 { 
 	/* converting light cache index to multiple scattering index */
-	return (x-1)*(n[1]*n[2]) + (y-1)*(n[2]) + z-1;
+	return ((int64_t)(x - 1) * ((int64_t)n[1] * (int64_t)n[2]) +
+	        (int64_t)(y - 1) * ((int64_t)n[2]) +
+	        (int64_t)(z - 1));
 }
 
 /* *** multiple scattering approximation *** */
@@ -295,7 +303,7 @@ static float total_ss_energy(Render *re, int do_test_break, VolumePrecache *vp)
 	for (z=0; z < res[2]; z++) {
 		for (y=0; y < res[1]; y++) {
 			for (x=0; x < res[0]; x++) {
-				const int i = BLI_VOXEL_INDEX(x, y, z, res);
+				const int64_t i = BLI_VOXEL_INDEX(x, y, z, res);
 			
 				if (vp->data_r[i] > 0.f) energy += vp->data_r[i];
 				if (vp->data_g[i] > 0.f) energy += vp->data_g[i];
@@ -309,7 +317,7 @@ static float total_ss_energy(Render *re, int do_test_break, VolumePrecache *vp)
 	return energy;
 }
 
-static float total_ms_energy(Render *re, int do_test_break, float *sr, float *sg, float *sb, int *res)
+static float total_ms_energy(Render *re, int do_test_break, float *sr, float *sg, float *sb, const int res[3])
 {
 	int x, y, z;
 	float energy=0.f;
@@ -317,7 +325,7 @@ static float total_ms_energy(Render *re, int do_test_break, float *sr, float *sg
 	for (z=1;z<=res[2];z++) {
 		for (y=1;y<=res[1];y++) {
 			for (x=1;x<=res[0];x++) {
-				const int i = ms_I(x, y, z, res);
+				const int64_t i = ms_I(x, y, z, res);
 				
 				if (sr[i] > 0.f) energy += sr[i];
 				if (sg[i] > 0.f) energy += sg[i];
@@ -331,20 +339,28 @@ static float total_ms_energy(Render *re, int do_test_break, float *sr, float *sg
 	return energy;
 }
 
-static void ms_diffuse(Render *re, int do_test_break, float *x0, float *x, float diff, int *n) //n is the unpadded resolution
+/**
+ * \param n: the unpadded resolution
+ */
+static void ms_diffuse(Render *re, int do_test_break, const float *x0, float *x, float diff, const int n[3])
 {
 	int i, j, k, l;
 	const float dt = VOL_MS_TIMESTEP;
-	size_t size = n[0]*n[1]*n[2];
-	const float a = dt*diff*size;
+	int64_t size = (int64_t)n[0] * (int64_t)n[1] * (int64_t)n[2];
+	const float a = dt * diff * size;
 	
 	for (l=0; l<20; l++) {
 		for (k=1; k<=n[2]; k++) {
 			for (j=1; j<=n[1]; j++) {
 				for (i=1; i<=n[0]; i++) {
-				   x[v_I_pad(i, j, k, n)] = (x0[v_I_pad(i, j, k, n)]) + a*(	x0[v_I_pad(i-1, j, k, n)]+ x0[v_I_pad(i+1, j, k, n)]+ x0[v_I_pad(i, j-1, k, n)]+
-																		x0[v_I_pad(i, j+1, k, n)]+ x0[v_I_pad(i, j, k-1, n)]+x0[v_I_pad(i, j, k+1, n)]
-																		) / (1+6*a);
+					x[v_I_pad(i, j, k, n)] =
+					        ((x0[v_I_pad(i, j, k, n)]) + (
+					         (x0[v_I_pad(i - 1, j, k, n)] +
+					          x0[v_I_pad(i + 1, j, k, n)] +
+					          x0[v_I_pad(i, j - 1, k, n)] +
+					          x0[v_I_pad(i, j + 1, k, n)] +
+					          x0[v_I_pad(i, j, k - 1, n)] +
+					          x0[v_I_pad(i, j, k + 1, n)]) * a) / (1 + 6 * a));
 				}
 			}
 
@@ -363,7 +379,7 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 	float fac = ma->vol.ms_intensity;
 	
 	int x, y, z, m;
-	int *n = vp->res;
+	const int *n = vp->res;
 	const int size = (n[0]+2)*(n[1]+2)*(n[2]+2);
 	const int do_test_break = (size > 100000);
 	double time, lasttime= PIL_check_seconds_timer();
@@ -389,8 +405,8 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 		for (z=1; z<=n[2]; z++) {
 			for (y=1; y<=n[1]; y++) {
 				for (x=1; x<=n[0]; x++) {
-					const int i = lc_to_ms_I(x, y, z, n);	//lc index
-					const int j = ms_I(x, y, z, n);			//ms index
+					const int64_t i = lc_to_ms_I(x, y, z, n);	//lc index
+					const int64_t j = ms_I(x, y, z, n);			//ms index
 					
 					time= PIL_check_seconds_timer();
 					c++;
@@ -448,8 +464,8 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 	for (z=1;z<=n[2];z++) {
 		for (y=1;y<=n[1];y++) {
 			for (x=1;x<=n[0];x++) {
-				const int i = lc_to_ms_I(x, y, z, n);	//lc index
-				const int j = ms_I(x, y, z, n);			//ms index
+				const int64_t i = lc_to_ms_I(x, y, z, n);	//lc index
+				const int64_t j = ms_I(x, y, z, n);			//ms index
 				
 				vp->data_r[i] = origf * vp->data_r[i] + fac * sr[j];
 				vp->data_g[i] = origf * vp->data_g[i] + fac * sg[j];
@@ -507,7 +523,7 @@ static void vol_precache_part(TaskPool *pool, void *taskdata, int UNUSED(threadi
 	ShadeInput *shi = pa->shi;
 	float scatter_col[3] = {0.f, 0.f, 0.f};
 	float co[3], cco[3], view[3];
-	int x, y, z, i;
+	int x, y, z;
 	int res[3];
 	double time;
 
@@ -527,6 +543,7 @@ static void vol_precache_part(TaskPool *pool, void *taskdata, int UNUSED(threadi
 			co[1] = pa->bbmin[1] + (pa->voxel[1] * (y + 0.5f));
 			
 			for (x=pa->minx; x < pa->maxx; x++) {
+				int64_t i;
 				co[0] = pa->bbmin[0] + (pa->voxel[0] * (x + 0.5f));
 				
 				if (re->test_break && re->test_break(re->tbh))

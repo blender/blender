@@ -29,10 +29,10 @@
  *  \ingroup bli
  */
 
-
-#include "BLI_voxel.h"
 #include "BLI_utildefines.h"
+#include "BLI_voxel.h"
 
+#include "BLI_strict_flags.h"
 
 
 BLI_INLINE float D(float *data, const int res[3], int x, int y, int z)
@@ -49,9 +49,9 @@ float BLI_voxel_sample_nearest(float *data, const int res[3], const float co[3])
 {
 	int xi, yi, zi;
 	
-	xi = co[0] * res[0];
-	yi = co[1] * res[1];
-	zi = co[2] * res[2];
+	xi = (int)(co[0] * (float)res[0]);
+	yi = (int)(co[1] * (float)res[1]);
+	zi = (int)(co[2] * (float)res[2]);
 	
 	return D(data, res, xi, yi, zi);
 }
@@ -68,7 +68,7 @@ BLI_INLINE int FLOORI(float x)
  *
  * this causes the test (x + 2) < 0 with int x == 2147483647 to return false (x being an integer,
  * x + 2 should wrap around to -2147483647 so the test < 0 should return true, which it doesn't) */
-BLI_INLINE int _clamp(int a, int b, int c)
+BLI_INLINE int64_t _clamp(int a, int b, int c)
 {
 	return (a < b) ? b : ((a > c) ? c : a);
 }
@@ -77,15 +77,24 @@ float BLI_voxel_sample_trilinear(float *data, const int res[3], const float co[3
 {
 	if (data) {
 	
-		const float xf = co[0] * res[0] - 0.5f;
-		const float yf = co[1] * res[1] - 0.5f;
-		const float zf = co[2] * res[2] - 0.5f;
+		const float xf = co[0] * (float)res[0] - 0.5f;
+		const float yf = co[1] * (float)res[1] - 0.5f;
+		const float zf = co[2] * (float)res[2] - 0.5f;
 		
 		const int x = FLOORI(xf), y = FLOORI(yf), z = FLOORI(zf);
 	
-		const int xc[2] = {_clamp(x, 0, res[0] - 1), _clamp(x + 1, 0, res[0] - 1)};
-		const int yc[2] = {res[0] * _clamp(y, 0, res[1] - 1), res[0] * _clamp(y + 1, 0, res[1] - 1)};
-		const int zc[2] = {res[0] * res[1] * _clamp(z, 0, res[2] - 1), res[0] * res[1] * _clamp(z + 1, 0, res[2] - 1)};
+		const int64_t xc[2] = {
+		    _clamp(x,     0, res[0] - 1),
+		    _clamp(x + 1, 0, res[0] - 1),
+		};
+		const int64_t yc[2] = {
+		    _clamp(y,     0, res[1] - 1) * res[0],
+		    _clamp(y + 1, 0, res[1] - 1) * res[0],
+		};
+		const int64_t zc[2] = {
+		    _clamp(z,     0, res[2] - 1) * res[0] * res[1],
+		    _clamp(z + 1, 0, res[2] - 1) * res[0] * res[1],
+		};
 	
 		const float dx = xf - (float)x;
 		const float dy = yf - (float)y;
@@ -103,18 +112,31 @@ float BLI_voxel_sample_trilinear(float *data, const int res[3], const float co[3
 	}
 	return 0.f;
 }
-	
 
 float BLI_voxel_sample_triquadratic(float *data, const int res[3], const float co[3])
 {
 	if (data) {
 
-		const float xf = co[0] * res[0], yf = co[1] * res[1], zf = co[2] * res[2];
+		const float xf = co[0] * (float)res[0];
+		const float yf = co[1] * (float)res[1];
+		const float zf = co[2] * (float)res[2];
 		const int x = FLOORI(xf), y = FLOORI(yf), z = FLOORI(zf);
 
-		const int xc[3] = {_clamp(x - 1, 0, res[0] - 1), _clamp(x, 0, res[0] - 1), _clamp(x + 1, 0, res[0] - 1)};
-		const int yc[3] = {res[0] * _clamp(y - 1, 0, res[1] - 1), res[0] * _clamp(y, 0, res[1] - 1), res[0] * _clamp(y + 1, 0, res[1] - 1)};
-		const int zc[3] = {res[0] * res[1] * _clamp(z - 1, 0, res[2] - 1), res[0] * res[1] * _clamp(z, 0, res[2] - 1), res[0] * res[1] * _clamp(z + 1, 0, res[2] - 1)};
+		const int64_t xc[3] = {
+		    _clamp(x - 1, 0, res[0] - 1),
+		    _clamp(x,     0, res[0] - 1),
+		    _clamp(x + 1, 0, res[0] - 1),
+		};
+		const int64_t yc[3] = {
+		    _clamp(y - 1, 0, res[1] - 1) * res[0],
+		    _clamp(y,     0, res[1] - 1) * res[0],
+		    _clamp(y + 1, 0, res[1] - 1) * res[0],
+		};
+		const int64_t zc[3] = {
+		    _clamp(z - 1, 0, res[2] - 1) * res[0] * res[1],
+		    _clamp(z,     0, res[2] - 1) * res[0] * res[1],
+		    _clamp(z + 1, 0, res[2] - 1) * res[0] * res[1],
+		};
 
 		const float dx = xf - (float)x, dy = yf - (float)y, dz = zf - (float)z;
 		const float u[3] = {dx * (0.5f * dx - 1.f) + 0.5f, dx * (1.0f - dx) + 0.5f, 0.5f * dx * dx};
@@ -139,13 +161,29 @@ float BLI_voxel_sample_tricubic(float *data, const int res[3], const float co[3]
 {
 	if (data) {
 
-		const float xf = co[0] * res[0] - 0.5f, yf = co[1] * res[1] - 0.5f, zf = co[2] * res[2] - 0.5f;
+		const float xf = co[0] * (float)res[0] - 0.5f;
+		const float yf = co[1] * (float)res[1] - 0.5f;
+		const float zf = co[2] * (float)res[2] - 0.5f;
 		const int x = FLOORI(xf), y = FLOORI(yf), z = FLOORI(zf);
 
-		const int xc[4] = {_clamp(x - 1, 0, res[0] - 1), _clamp(x, 0, res[0] - 1), _clamp(x + 1, 0, res[0] - 1), _clamp(x + 2, 0, res[0] - 1)};
-		const int yc[4] = {res[0] * _clamp(y - 1, 0, res[1] - 1), res[0] * _clamp(y, 0, res[1] - 1), res[0] * _clamp(y + 1, 0, res[1] - 1), res[0] * _clamp(y + 2, 0, res[1] - 1)};
-		const int zc[4] = {res[0] * res[1] * _clamp(z - 1, 0, res[2] - 1), res[0] * res[1] * _clamp(z, 0, res[2] - 1), res[0] * res[1] * _clamp(z + 1, 0, res[2] - 1), res[0] * res[1] * _clamp(z + 2, 0, res[2] - 1)};
-
+		const int64_t xc[4] = {
+		    _clamp(x - 1, 0, res[0] - 1),
+		    _clamp(x,     0, res[0] - 1),
+		    _clamp(x + 1, 0, res[0] - 1),
+		    _clamp(x + 2, 0, res[0] - 1),
+		};
+		const int64_t yc[4] = {
+		    _clamp(y - 1, 0, res[1] - 1) * res[0],
+		    _clamp(y,     0, res[1] - 1) * res[0],
+		    _clamp(y + 1, 0, res[1] - 1) * res[0],
+		    _clamp(y + 2, 0, res[1] - 1) * res[0],
+		};
+		const int64_t zc[4] = {
+		    _clamp(z - 1, 0, res[2] - 1) * res[0] * res[1],
+		    _clamp(z,     0, res[2] - 1) * res[0] * res[1],
+		    _clamp(z + 1, 0, res[2] - 1) * res[0] * res[1],
+		    _clamp(z + 2, 0, res[2] - 1) * res[0] * res[1],
+		};
 		const float dx = xf - (float)x, dy = yf - (float)y, dz = zf - (float)z;
 
 		float u[4], v[4], w[4];
