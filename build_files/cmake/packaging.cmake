@@ -73,6 +73,7 @@ if(WIN32)
 	set(CPACK_WIX_PRODUCT_ICON ${CMAKE_SOURCE_DIR}/source/icons/winblender.ico)
 	set(CPACK_WIX_UPGRADE_GUID "B767E4FD-7DE7-4094-B051-3AE62E13A17A")
 
+	set(CPACK_WIX_TEMPLATE ${LIBDIR}/package/installer_wix/WIX.template)
 	set(CPACK_WIX_UI_BANNER ${LIBDIR}/package/installer_wix/WIX_UI_BANNER.bmp)
 	set(CPACK_WIX_UI_DIALOG ${LIBDIR}/package/installer_wix/WIX_UI_DIALOG.bmp)
 
