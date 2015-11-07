@@ -7653,7 +7653,7 @@ static void applyBakeTime(TransInfo *t, const int mval[2])
 
 	float fac = 0.1f;
 
-	/* XXX, disable precission for now,
+	/* XXX, disable precision for now,
 	 * this isn't even accessible by the user */
 #if 0
 	if (t->mouse.precision) {

@@ -156,7 +156,7 @@ static void block_align_proximity_compute(ButAlign *butal, ButAlign *butal_other
 					if (delta <= butal->dists[side]) {
 						/* We found a closer neighbor.
 						 * If both buttons are alignable, we set them as each other neighbors.
-						 * Else, we have an unalignable one, we need to reset the other's matching neighbor to NULL
+						 * Else, we have an unalignable one, we need to reset the others matching neighbor to NULL
 						 * if its 'proximity distance' is really lower with current one. */
 						if (butal_can_align && butal_other_can_align) {
 							butal->neighbors[side] = butal_other;
@@ -238,8 +238,8 @@ static void block_align_stitch_neighbors(
 
 	/* We have to check stitching flags on both sides of the stitching, since we only clear one of them flags to break
 	 * any future loop on same 'columns/side' case.
-     * Also, if butal is spanning over several rows or columns of neighbors, it may have both of its  stiching flags
-     * set, but would not be the case of its immediate neighbor! */
+	 * Also, if butal is spanning over several rows or columns of neighbors, it may have both of its stitching flags
+	 * set, but would not be the case of its immediate neighbor! */
 	while ((butal->flags[side] & stitch_s1) &&
 	       (butal = butal->neighbors[side_s1]) &&
 	       (butal->flags[side] & stitch_s2))

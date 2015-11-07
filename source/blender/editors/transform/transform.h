@@ -339,7 +339,7 @@ typedef struct MouseInput {
 	void 	*data; /* additional data, if needed by the particular function */
 
 	/**
-	 * Use virtual cursor, which takes precission into account
+	 * Use virtual cursor, which takes precision into account
 	 * keeping track of the cursors 'virtual' location,
 	 * to avoid jumping values when its toggled.
 	 *
