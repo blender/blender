@@ -107,7 +107,7 @@ enum {
 /* Max distance between to buttons for them to be 'mergeable'. */
 #define MAX_DELTA 0.45f * max_ii(UI_UNIT_Y, UI_UNIT_X)
 
-bool ui_but_can_align(uiBut *but)
+bool ui_but_can_align(const uiBut *but)
 {
 	return !ELEM(but->type, UI_BTYPE_LABEL, UI_BTYPE_CHECKBOX, UI_BTYPE_CHECKBOX_N, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE);
 }

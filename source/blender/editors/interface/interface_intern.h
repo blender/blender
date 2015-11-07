@@ -496,7 +496,6 @@ extern int  ui_but_is_pushed(uiBut *but) ATTR_WARN_UNUSED_RESULT;
 
 extern void ui_block_bounds_calc(uiBlock *block);
 extern void ui_block_translate(uiBlock *block, int x, int y);
-extern void ui_block_align_calc(uiBlock *block);
 
 extern struct ColorManagedDisplay *ui_block_cm_display_get(uiBlock *block);
 void ui_block_cm_to_display_space_v3(uiBlock *block, float pixel[3]);
@@ -709,7 +708,8 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 void ui_layout_list_set_labels_active(uiLayout *layout);
 
 /* interface_align.c */
-bool ui_but_can_align(uiBut *but) ATTR_WARN_UNUSED_RESULT;
+bool ui_but_can_align(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+void ui_block_align_calc(uiBlock *block);
 
 /* interface_anim.c */
 void ui_but_anim_flag(uiBut *but, float cfra);
