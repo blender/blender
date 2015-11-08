@@ -3016,9 +3016,6 @@ static int point_density_color_source_from_shader(NodeShaderTexPointDensity *sha
 	}
 }
 
-/* TODO(sergey): This function assumes allocated array was passed,
- * works fine with Cycles via C++ RNA, but fails with call from python.
- */
 void rna_ShaderNodePointDensity_density_calc(bNode *self,
                                              Scene *scene,
                                              int settings,
