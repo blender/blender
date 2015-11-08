@@ -3028,6 +3028,11 @@ void rna_ShaderNodePointDensity_density_calc(bNode *self,
 	NodeShaderTexPointDensity *shader_point_density = self->storage;
 	PointDensity pd;
 
+	if (scene == NULL) {
+		*length = 0;
+		return;
+	}
+
 	*length = 4 * shader_point_density->resolution *
 	              shader_point_density->resolution *
 	              shader_point_density->resolution;
