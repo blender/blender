@@ -90,11 +90,6 @@
 #include "BKE_unit.h"
 #include "BKE_world.h"
 
-#ifdef WITH_OPENSUBDIV
-#  include "BKE_modifier.h"
-#  include "CCGSubSurf.h"
-#endif
-
 #include "DEG_depsgraph.h"
 
 #include "RE_engine.h"
