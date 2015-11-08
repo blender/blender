@@ -259,6 +259,8 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 			}
 			new_srl = new_srl->next;
 		}
+
+		curvemapping_copy_data(&scen->r.mblur_shutter_curve, &sce->r.mblur_shutter_curve);
 	}
 
 	/* tool settings */
@@ -350,8 +352,6 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 	if (sce->preview) {
 		scen->preview = BKE_previewimg_copy(sce->preview);
 	}
-
-	curvemapping_copy_data(&scen->r.mblur_shutter_curve, &sce->r.mblur_shutter_curve);
 
 	return scen;
 }
@@ -473,6 +473,7 @@ void BKE_scene_init(Scene *sce)
 	int a;
 	const char *colorspace_name;
 	SceneRenderView *srv;
+	CurveMapping *mblur_shutter_curve;
 
 	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(sce, id));
 
@@ -576,6 +577,14 @@ void BKE_scene_init(Scene *sce)
 	
 	sce->r.line_thickness_mode = R_LINE_THICKNESS_ABSOLUTE;
 	sce->r.unit_line_thickness = 1.0f;
+
+	mblur_shutter_curve = &sce->r.mblur_shutter_curve;
+	curvemapping_set_defaults(mblur_shutter_curve, 1, 0.0f, 0.0f, 1.0f, 1.0f);
+	curvemapping_initialize(mblur_shutter_curve);
+	curvemap_reset(mblur_shutter_curve->cm,
+	               &mblur_shutter_curve->clipr,
+	               CURVE_PRESET_MAX,
+	               CURVEMAP_SLOPE_POS_NEG);
 
 	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings), "Tool Settings Struct");
 	sce->toolsettings->doublimit = 0.001;
