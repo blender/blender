@@ -184,12 +184,11 @@ void id_us_plus(ID *id)
 void id_us_min(ID *id)
 {
 	if (id) {
-		if (id->us < 2 && (id->flag & LIB_FAKEUSER)) {
-			printf("ID user decrement error: %s\n", id->name);
-			id->us = 1;
-		}
-		else if (id->us <= 0) {
-			printf("ID user decrement error: %s\n", id->name);
+		const int limit = (id->flag & LIB_FAKEUSER) ? 1 : 0;
+		if (id->us <= limit) {
+			printf("ID user decrement error: %s (from '%s')\n", id->name, id->lib ? id->lib->filepath : "[Main]");
+			BLI_assert(0);
+			id->us = limit;
 		}
 		else {
 			id->us--;
