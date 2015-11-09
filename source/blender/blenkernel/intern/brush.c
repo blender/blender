@@ -136,7 +136,7 @@ void BKE_brush_init(Brush *brush)
 	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(brush, id));
 
 	/* enable fake user by default */
-	brush->id.flag |= LIB_FAKEUSER;
+	id_fake_user_set(&brush->id);
 
 	brush_defaults(brush);
 
@@ -193,11 +193,8 @@ Brush *BKE_brush_copy(Brush *brush)
 	brushn->curve = curvemapping_copy(brush->curve);
 
 	/* enable fake user by default */
-	if (!(brushn->id.flag & LIB_FAKEUSER)) {
-		brushn->id.flag |= LIB_FAKEUSER;
-		id_us_plus(&brushn->id);
-	}
-	
+	id_fake_user_set(&brush->id);
+
 	if (brush->id.lib) {
 		BKE_id_lib_local_paths(G.main, brush->id.lib, &brushn->id);
 	}
@@ -280,15 +277,11 @@ void BKE_brush_make_local(Brush *brush)
 		extern_local_brush(brush);
 
 		/* enable fake user by default */
-		if (!(brush->id.flag & LIB_FAKEUSER)) {
-			brush->id.flag |= LIB_FAKEUSER;
-			id_us_plus(&brush->id);
-		}
+		id_fake_user_set(&brush->id);
 	}
 	else if (is_local && is_lib) {
-		Brush *brush_new = BKE_brush_copy(brush);
+		Brush *brush_new = BKE_brush_copy(brush);  /* Ensures FAKE_USER is set */
 		brush_new->id.us = 1; /* only keep fake user */
-		brush_new->id.flag |= LIB_FAKEUSER;
 
 		/* Remap paths of new ID using old library as base. */
 		BKE_id_lib_local_paths(bmain, brush->id.lib, &brush_new->id);

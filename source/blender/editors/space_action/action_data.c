@@ -581,10 +581,7 @@ void ED_animedit_unlink_action(bContext *C, ID *id, AnimData *adt, bAction *act,
 		}
 		
 		/* Clear Fake User */
-		if (act->id.flag & LIB_FAKEUSER) {
-			act->id.flag &= ~LIB_FAKEUSER;
-			id_us_min(&act->id);
-		}
+		id_fake_user_clear(&act->id);
 	}
 	
 	/* If in Tweak Mode, don't unlink. Instead, this 

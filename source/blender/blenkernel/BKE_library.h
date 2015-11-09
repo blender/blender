@@ -64,6 +64,8 @@ void BKE_library_filepath_set(struct Library *lib, const char *filepath);
 void id_us_ensure_real(struct ID *id);
 void id_us_plus(struct ID *id);
 void id_us_min(struct ID *id);
+void id_fake_user_set(struct ID *id);
+void id_fake_user_clear(struct ID *id);
 
 bool id_make_local(struct ID *id, bool test);
 bool id_single_user(struct bContext *C, struct ID *id, struct PointerRNA *ptr, struct PropertyRNA *prop);

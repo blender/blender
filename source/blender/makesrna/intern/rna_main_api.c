@@ -639,8 +639,7 @@ static void rna_Main_armatures_remove(Main *bmain, ReportList *reports, PointerR
 static bAction *rna_Main_actions_new(Main *bmain, const char *name)
 {
 	bAction *act = add_empty_action(bmain, name);
-	id_us_min(&act->id);
-	act->id.flag &= ~LIB_FAKEUSER;
+	id_fake_user_clear(&act->id);
 	return act;
 }
 static void rna_Main_actions_remove(Main *bmain, ReportList *reports, PointerRNA *act_ptr)

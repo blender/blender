@@ -421,10 +421,7 @@ static void id_fake_user_set_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeE
 {
 	ID *id = tselem->id;
 	
-	if ((id) && ((id->flag & LIB_FAKEUSER) == 0)) {
-		id->flag |= LIB_FAKEUSER;
-		id_us_plus(id);
-	}
+	id_fake_user_set(id);
 }
 
 static void id_fake_user_clear_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te),
@@ -432,10 +429,7 @@ static void id_fake_user_clear_cb(bContext *UNUSED(C), Scene *UNUSED(scene), Tre
 {
 	ID *id = tselem->id;
 	
-	if ((id) && (id->flag & LIB_FAKEUSER)) {
-		id->flag &= ~LIB_FAKEUSER;
-		id_us_min(id);
-	}
+	id_fake_user_clear(id);
 }
 
 static void id_select_linked_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te),

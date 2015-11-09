@@ -196,6 +196,22 @@ void id_us_min(ID *id)
 	}
 }
 
+void id_fake_user_set(ID *id)
+{
+	if (id && !(id->flag & LIB_FAKEUSER)) {
+		id->flag |= LIB_FAKEUSER;
+		id_us_plus(id);
+	}
+}
+
+void id_fake_user_clear(ID *id)
+{
+	if (id && (id->flag & LIB_FAKEUSER)) {
+		id->flag &= ~LIB_FAKEUSER;
+		id_us_min(id);
+	}
+}
+
 /* calls the appropriate make_local method for the block, unless test. Returns true
  * if the block can be made local. */
 bool id_make_local(ID *id, bool test)
@@ -1610,10 +1626,7 @@ void id_clear_lib_data(Main *bmain, ID *id)
 
 	BKE_id_lib_local_paths(bmain, id->lib, id);
 
-	if (id->flag & LIB_FAKEUSER) {
-		id->us--;
-		id->flag &= ~LIB_FAKEUSER;
-	}
+	id_fake_user_clear(id);
 
 	id->lib = NULL;
 	id->flag = LIB_LOCAL;

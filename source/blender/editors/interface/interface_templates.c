@@ -275,7 +275,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 
 			if (id && CTX_wm_window(C)->eventstate->shift) {
 				/* only way to force-remove data (on save) */
-				id->flag &= ~LIB_FAKEUSER;
+				id_fake_user_clear(id);
 				id->us = 0;
 			}
 

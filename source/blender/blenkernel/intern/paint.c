@@ -373,7 +373,7 @@ Palette *BKE_palette_add(Main *bmain, const char *name)
 	palette = BKE_libblock_alloc(bmain, ID_PAL, name);
 
 	/* enable fake user by default */
-	palette->id.flag |= LIB_FAKEUSER;
+	id_fake_user_set(&palette->id);
 
 	return palette;
 }
