@@ -2497,7 +2497,9 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 
 	float startx = but->rect.xmin;
 	float starty_dummy = 0.0f;
-	char *origstr, password_str[UI_MAX_PASSWORD_STR];
+	char password_str[UI_MAX_PASSWORD_STR];
+	/* treat 'str_last' as null terminator for str, no need to modify in-place */
+	const char *str = but->editstr, *str_last;
 
 	ui_block_to_window_fl(data->region, but->block, &startx, &starty_dummy);
 
@@ -2509,10 +2511,6 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	
 	ui_but_text_password_hide(password_str, but, false);
-
-	origstr = MEM_mallocN(sizeof(char) * data->maxlen, "ui_textedit origstr");
-
-	BLI_strncpy(origstr, but->editstr, data->maxlen);
 
 	if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
 		if (but->flag & UI_HAS_ICON) {
@@ -2526,12 +2524,12 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 	if (x < startx) {
 		int i = but->ofs;
 
-		origstr[but->ofs] = '\0';
+		str_last = &str[but->ofs];
 		
 		while (i > 0) {
-			if (BLI_str_cursor_step_prev_utf8(origstr, but->ofs, &i)) {
+			if (BLI_str_cursor_step_prev_utf8(str, but->ofs, &i)) {
 				/* 0.25 == scale factor for less sensitivity */
-				if (BLF_width(fstyle->uifont_id, origstr + i, BLF_DRAW_STR_DUMMY_MAX) > (startx - x) * 0.25f) {
+				if (BLF_width(fstyle->uifont_id, str + i, (str_last - str) - i) > (startx - x) * 0.25f) {
 					break;
 				}
 			}
@@ -2550,10 +2548,12 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 		float cdist, cdist_prev = 0.0f;
 		short pos_prev;
 		
-		but->pos = pos_prev = strlen(origstr) - but->ofs;
+		str_last = &str[strlen(str)];
+
+		but->pos = pos_prev = ((str_last - str) - but->ofs);
 
 		while (true) {
-			cdist = startx + BLF_width(fstyle->uifont_id, origstr + but->ofs, BLF_DRAW_STR_DUMMY_MAX);
+			cdist = startx + BLF_width(fstyle->uifont_id, str + but->ofs, (str_last - str) - but->ofs);
 
 			/* check if position is found */
 			if (cdist < x) {
@@ -2569,9 +2569,9 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 
 			pos_i = but->pos;
 			if (but->pos <= 0) break;
-			if (BLI_str_cursor_step_prev_utf8(origstr, but->ofs, &pos_i)) {
+			if (BLI_str_cursor_step_prev_utf8(str, but->ofs, &pos_i)) {
 				but->pos = pos_i;
-				origstr[but->pos + but->ofs] = 0;
+				str_last = &str[but->pos + but->ofs];
 			}
 			else {
 				break; /* unlikely but possible */
@@ -2585,8 +2585,6 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	
 	ui_but_text_password_hide(password_str, but, true);
-
-	MEM_freeN(origstr);
 
 	fstyle->points = fstyle_points_prev;
 }
