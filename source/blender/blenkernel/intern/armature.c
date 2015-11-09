@@ -169,8 +169,8 @@ void BKE_armature_make_local(bArmature *arm)
 			if (ob->data == arm) {
 				if (ob->id.lib == NULL) {
 					ob->data = arm_new;
-					arm_new->id.us++;
-					arm->id.us--;
+					id_us_plus(&arm_new->id);
+					id_us_min(&arm->id);
 				}
 			}
 		}

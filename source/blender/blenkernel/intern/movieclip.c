@@ -649,7 +649,7 @@ MovieClip *BKE_movieclip_file_add_exists_ex(Main *bmain, const char *filepath, b
 		BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &clip->id));
 
 		if (BLI_path_cmp(strtest, str) == 0) {
-			clip->id.us++;  /* officially should not, it doesn't link here! */
+			id_us_plus(&clip->id);  /* officially should not, it doesn't link here! */
 			if (r_exists)
 				*r_exists = true;
 			return clip;

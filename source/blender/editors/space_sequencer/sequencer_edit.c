@@ -2386,7 +2386,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 			/* remove seq so overlap tests don't conflict,
 			 * see seq_free_sequence below for the real free'ing */
 			BLI_remlink(ed->seqbasep, seq);
-			/* if (seq->ipo) seq->ipo->id.us--; */
+			/* if (seq->ipo) id_us_min(&seq->ipo->id); */
 			/* XXX, remove fcurve and assign to split image strips */
 
 			start_ofs = cfra = BKE_sequence_tx_get_final_left(seq, false);

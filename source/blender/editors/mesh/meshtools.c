@@ -513,11 +513,13 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	/* old material array */
 	for (a = 1; a <= ob->totcol; a++) {
 		ma = ob->mat[a - 1];
-		if (ma) ma->id.us--;
+		if (ma)
+			id_us_min(&ma->id);
 	}
 	for (a = 1; a <= me->totcol; a++) {
 		ma = me->mat[a - 1];
-		if (ma) ma->id.us--;
+		if (ma)
+			id_us_min(&ma->id);
 	}
 	if (ob->mat) MEM_freeN(ob->mat);
 	if (ob->matbits) MEM_freeN(ob->matbits);

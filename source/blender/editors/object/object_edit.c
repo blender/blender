@@ -934,16 +934,20 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 						cu1->wordspace = cu->wordspace;
 						cu1->ulpos = cu->ulpos;
 						cu1->ulheight = cu->ulheight;
-						if (cu1->vfont) cu1->vfont->id.us--;
+						if (cu1->vfont)
+							id_us_min(&cu1->vfont->id);
 						cu1->vfont = cu->vfont;
 						id_us_plus((ID *)cu1->vfont);
-						if (cu1->vfontb) cu1->vfontb->id.us--;
+						if (cu1->vfontb)
+							id_us_min(&cu1->vfontb->id);
 						cu1->vfontb = cu->vfontb;
 						id_us_plus((ID *)cu1->vfontb);
-						if (cu1->vfonti) cu1->vfonti->id.us--;
+						if (cu1->vfonti)
+							id_us_min(&cu1->vfonti->id);
 						cu1->vfonti = cu->vfonti;
 						id_us_plus((ID *)cu1->vfonti);
-						if (cu1->vfontbi) cu1->vfontbi->id.us--;
+						if (cu1->vfontbi)
+							id_us_min(&cu1->vfontbi->id);
 						cu1->vfontbi = cu->vfontbi;
 						id_us_plus((ID *)cu1->vfontbi);
 						

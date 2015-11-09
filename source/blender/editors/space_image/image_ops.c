@@ -1169,7 +1169,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 	if (iod->pprop.prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
 		 * pointer se also increases user, so this compensates it */
-		ima->id.us--;
+		id_us_min(&ima->id);
 		if ((frame_seq_len > 1) && ima->source == IMA_SRC_FILE) {
 			ima->source = IMA_SRC_SEQUENCE;
 		}
@@ -2276,7 +2276,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	if (prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
 		 * pointer se also increases user, so this compensates it */
-		ima->id.us--;
+		id_us_min(&ima->id);
 
 		RNA_id_pointer_create(&ima->id, &idptr);
 		RNA_property_pointer_set(&ptr, prop, idptr);

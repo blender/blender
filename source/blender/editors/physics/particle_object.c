@@ -202,7 +202,7 @@ static int new_particle_settings_exec(bContext *C, wmOperator *UNUSED(op))
 	ob= ptr.id.data;
 
 	if (psys->part)
-		psys->part->id.us--;
+		id_us_min(&psys->part->id);
 
 	psys->part = part;
 

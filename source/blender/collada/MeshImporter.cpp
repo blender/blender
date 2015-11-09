@@ -1176,7 +1176,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
 	
 	const std::string& str_geom_id = mesh->getName().size() ? mesh->getName() : mesh->getOriginalId();
 	Mesh *me = BKE_mesh_add(G.main, (char *)str_geom_id.c_str());
-	me->id.us--; // is already 1 here, but will be set later in BKE_mesh_assign_object
+	id_us_min(&me->id); // is already 1 here, but will be set later in BKE_mesh_assign_object
 
 	// store the Mesh pointer to link it later with an Object
 	// mesh_geom_map needed to map mesh to its geometry name (for shape key naming)

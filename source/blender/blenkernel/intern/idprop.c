@@ -439,14 +439,15 @@ void IDP_FreeString(IDProperty *prop)
  * \{ */
 void IDP_LinkID(IDProperty *prop, ID *id)
 {
-	if (prop->data.pointer) ((ID *)prop->data.pointer)->us--;
+	if (prop->data.pointer)
+		id_us_min(((ID *)prop->data.pointer));
 	prop->data.pointer = id;
 	id_us_plus(id);
 }
 
 void IDP_UnlinkID(IDProperty *prop)
 {
-	((ID *)prop->data.pointer)->us--;
+	id_us_min(((ID *)prop->data.pointer));
 }
 /** \} */
 

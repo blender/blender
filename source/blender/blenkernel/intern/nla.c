@@ -1935,7 +1935,8 @@ void BKE_nla_tweakmode_exit(AnimData *adt)
 	 *	- editing-flag for this AnimData block should also get turned off
 	 *	- clear pointer to active strip
 	 */
-	if (adt->action) adt->action->id.us--;
+	if (adt->action)
+		id_us_min(&adt->action->id);
 	adt->action = adt->tmpact;
 	adt->tmpact = NULL;
 	adt->act_track = NULL;

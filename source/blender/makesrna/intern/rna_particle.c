@@ -751,13 +751,13 @@ static void rna_particle_settings_set(PointerRNA *ptr, PointerRNA value)
 
 	if (psys->part) {
 		old_type = psys->part->type;
-		psys->part->id.us--;
+		id_us_min(&psys->part->id);
 	}
 
 	psys->part = (ParticleSettings *)value.data;
 
 	if (psys->part) {
-		psys->part->id.us++;
+		id_us_plus(&psys->part->id);
 		psys_check_boid_data(psys);
 		if (old_type != psys->part->type)
 			psys->recalc |= PSYS_RECALC_TYPE;

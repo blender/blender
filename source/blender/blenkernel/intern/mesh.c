@@ -438,13 +438,14 @@ void BKE_mesh_unlink(Mesh *me)
 
 	if (me->mat) {
 		for (a = 0; a < me->totcol; a++) {
-			if (me->mat[a]) me->mat[a]->id.us--;
+			if (me->mat[a])
+				id_us_min(&me->mat[a]->id);
 			me->mat[a] = NULL;
 		}
 	}
 
 	if (me->key) {
-		me->key->id.us--;
+		id_us_min(&me->key->id);
 	}
 	me->key = NULL;
 	
@@ -1031,7 +1032,7 @@ void BKE_mesh_assign_object(Object *ob, Mesh *me)
 	if (ob->type == OB_MESH) {
 		old = ob->data;
 		if (old)
-			old->id.us--;
+			id_us_min(&old->id);
 		ob->data = me;
 		id_us_plus((ID *)me);
 	}
@@ -1728,7 +1729,7 @@ void BKE_mesh_to_curve(Scene *scene, Object *ob)
 
 		cu->nurb = nurblist;
 
-		((Mesh *)ob->data)->id.us--;
+		id_us_min(&((Mesh *)ob->data)->id);
 		ob->data = cu;
 		ob->type = OB_CURVE;
 
@@ -2346,7 +2347,7 @@ Mesh *BKE_mesh_new_from_object(
 			/* copies object and modifiers (but not the data) */
 			tmpobj = BKE_object_copy_ex(bmain, ob, true);
 			tmpcu = (Curve *)tmpobj->data;
-			tmpcu->id.us--;
+			id_us_min(&tmpcu->id);
 
 			/* Copy cached display list, it might be needed by the stack evaluation.
 			 * Ideally stack should be able to use render-time display list, but doing
@@ -2416,7 +2417,7 @@ Mesh *BKE_mesh_new_from_object(
 
 			tmpmesh = BKE_mesh_add(bmain, "Mesh");
 			/* BKE_mesh_add gives us a user count we don't need */
-			tmpmesh->id.us--;
+			id_us_min(&tmpmesh->id);
 
 			if (render) {
 				ListBase disp = {NULL, NULL};
@@ -2471,7 +2472,7 @@ Mesh *BKE_mesh_new_from_object(
 			}
 
 			/* BKE_mesh_add/copy gives us a user count we don't need */
-			tmpmesh->id.us--;
+			id_us_min(&tmpmesh->id);
 
 			break;
 		default:
@@ -2494,7 +2495,7 @@ Mesh *BKE_mesh_new_from_object(
 					tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : tmpcu->mat[i];
 
 					if (tmpmesh->mat[i]) {
-						tmpmesh->mat[i]->id.us++;
+						id_us_plus(&tmpmesh->mat[i]->id);
 					}
 				}
 			}
@@ -2511,7 +2512,7 @@ Mesh *BKE_mesh_new_from_object(
 				for (i = tmpmb->totcol; i-- > 0; ) {
 					tmpmesh->mat[i] = tmpmb->mat[i]; /* CRASH HERE ??? */
 					if (tmpmesh->mat[i]) {
-						tmpmb->mat[i]->id.us++;
+						id_us_plus(&tmpmb->mat[i]->id);
 					}
 				}
 			}
@@ -2531,7 +2532,7 @@ Mesh *BKE_mesh_new_from_object(
 						tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : origmesh->mat[i];
 
 						if (tmpmesh->mat[i]) {
-							tmpmesh->mat[i]->id.us++;
+							id_us_plus(&tmpmesh->mat[i]->id);
 						}
 					}
 				}

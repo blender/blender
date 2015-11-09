@@ -2017,8 +2017,8 @@ void ntreeMakeLocal(bNodeTree *ntree)
 				if (node->id == (ID *)ntree) {
 					if (owner_id->lib == NULL) {
 						node->id = (ID *)newtree;
-						newtree->id.us++;
-						ntree->id.us--;
+						id_us_plus(&newtree->id);
+						id_us_min(&ntree->id);
 					}
 				}
 			}
@@ -2106,8 +2106,10 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 			adt->action = ladt->action = action_backup;
 			adt->tmpact = ladt->tmpact = tmpact_backup;
 
-			if (action_backup) action_backup->id.us++;
-			if (tmpact_backup) tmpact_backup->id.us++;
+			if (action_backup)
+				id_us_plus(&action_backup->id);
+			if (tmpact_backup)
+				id_us_plus(&tmpact_backup->id);
 
 		}
 		/* end animdata uglyness */

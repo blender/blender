@@ -133,7 +133,7 @@ static bAction *action_create_new(bContext *C, bAction *oldact)
 	 * for that here
 	 */
 	BLI_assert(action->id.us == 1);
-	action->id.us--;
+	id_us_min(&action->id);
 	
 	/* set ID-Root type */
 	if (sa->spacetype == SPACE_ACTION) {
@@ -583,7 +583,7 @@ void ED_animedit_unlink_action(bContext *C, ID *id, AnimData *adt, bAction *act,
 		/* Clear Fake User */
 		if (act->id.flag & LIB_FAKEUSER) {
 			act->id.flag &= ~LIB_FAKEUSER;
-			act->id.us--;
+			id_us_min(&act->id);
 		}
 	}
 	

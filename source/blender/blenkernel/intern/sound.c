@@ -106,7 +106,7 @@ bSound *BKE_sound_new_file_exists_ex(struct Main *bmain, const char *filepath, b
 		BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &sound->id));
 
 		if (BLI_path_cmp(strtest, str) == 0) {
-			sound->id.us++;  /* officially should not, it doesn't link here! */
+			id_us_plus(&sound->id);  /* officially should not, it doesn't link here! */
 			if (r_exists)
 				*r_exists = true;
 			return sound;

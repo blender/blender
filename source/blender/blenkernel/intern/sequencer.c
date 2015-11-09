@@ -198,7 +198,7 @@ static void BKE_sequence_free_ex(Scene *scene, Sequence *seq, const bool do_cach
 	}
 
 	if (seq->sound) {
-		((ID *)seq->sound)->us--; 
+		id_us_min(((ID *)seq->sound));
 	}
 
 	if (seq->stereo3d_format) {

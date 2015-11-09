@@ -1587,7 +1587,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 				/* decrement original mesh's usage count  */
 				me = newob->data;
-				me->id.us--;
+				id_us_min(&me->id);
 
 				/* make a new copy of the mesh */
 				newob->data = BKE_mesh_copy(me);
@@ -1612,7 +1612,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 				/* decrement original mesh's usage count  */
 				me = newob->data;
-				me->id.us--;
+				id_us_min(&me->id);
 
 				/* make a new copy of the mesh */
 				newob->data = BKE_mesh_copy(me);
@@ -1643,7 +1643,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				newob = basen->object;
 
 				/* decrement original curve's usage count  */
-				((Curve *)newob->data)->id.us--;
+				id_us_min(&((Curve *)newob->data)->id);
 
 				/* make a new copy of the curve */
 				newob->data = BKE_curve_copy(ob->data);
@@ -1664,19 +1664,19 @@ static int convert_exec(bContext *C, wmOperator *op)
 			cu->type = OB_CURVE;
 
 			if (cu->vfont) {
-				cu->vfont->id.us--;
+				id_us_min(&cu->vfont->id);
 				cu->vfont = NULL;
 			}
 			if (cu->vfontb) {
-				cu->vfontb->id.us--;
+				id_us_min(&cu->vfontb->id);
 				cu->vfontb = NULL;
 			}
 			if (cu->vfonti) {
-				cu->vfonti->id.us--;
+				id_us_min(&cu->vfonti->id);
 				cu->vfonti = NULL;
 			}
 			if (cu->vfontbi) {
-				cu->vfontbi->id.us--;
+				id_us_min(&cu->vfontbi->id);
 				cu->vfontbi = NULL;
 			}
 
@@ -1714,7 +1714,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 					newob = basen->object;
 
 					/* decrement original curve's usage count  */
-					((Curve *)newob->data)->id.us--;
+					id_us_min(&((Curve *)newob->data)->id);
 
 					/* make a new copy of the curve */
 					newob->data = BKE_curve_copy(ob->data);
@@ -1749,7 +1749,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				newob = basen->object;
 
 				mb = newob->data;
-				mb->id.us--;
+				id_us_min(&mb->id);
 
 				newob->data = BKE_mesh_add(bmain, "Mesh");
 				newob->type = OB_MESH;
@@ -1915,7 +1915,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 					ID_NEW_US(obn->mat[a])
 					else
 						obn->mat[a] = BKE_material_copy(obn->mat[a]);
-					id->us--;
+					id_us_min(id);
 
 					if (dupflag & USER_DUP_ACT) {
 						BKE_animdata_copy_id_action(&obn->mat[a]->id);
@@ -1936,7 +1936,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 						BKE_animdata_copy_id_action(&psys->part->id);
 					}
 
-					id->us--;
+					id_us_min(id);
 				}
 			}
 		}
@@ -1952,7 +1952,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 						obn->data = BKE_mesh_copy(obn->data);
 						didit = 1;
 					}
-					id->us--;
+					id_us_min(id);
 				}
 				break;
 			case OB_CURVE:
@@ -1962,7 +1962,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 						obn->data = BKE_curve_copy(obn->data);
 						didit = 1;
 					}
-					id->us--;
+					id_us_min(id);
 				}
 				break;
 			case OB_SURF:
@@ -1972,7 +1972,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 						obn->data = BKE_curve_copy(obn->data);
 						didit = 1;
 					}
-					id->us--;
+					id_us_min(id);
 				}
 				break;
 			case OB_FONT:
@@ -1982,7 +1982,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 						obn->data = BKE_curve_copy(obn->data);
 						didit = 1;
 					}
-					id->us--;
+					id_us_min(id);
 				}
 				break;
 			case OB_MBALL:
@@ -1992,7 +1992,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 						obn->data = BKE_mball_copy(obn->data);
 						didit = 1;
 					}
-					id->us--;
+					id_us_min(id);
 				}
 				break;
 			case OB_LAMP:
@@ -2002,7 +2002,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 						obn->data = BKE_lamp_copy(obn->data);
 						didit = 1;
 					}
-					id->us--;
+					id_us_min(id);
 				}
 				break;
 			case OB_ARMATURE:
@@ -2016,7 +2016,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 						BKE_pose_rebuild(obn, obn->data);
 						didit = 1;
 					}
-					id->us--;
+					id_us_min(id);
 				}
 				break;
 			case OB_LATTICE:
@@ -2026,7 +2026,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 						obn->data = BKE_lattice_copy(obn->data);
 						didit = 1;
 					}
-					id->us--;
+					id_us_min(id);
 				}
 				break;
 			case OB_CAMERA:
@@ -2036,7 +2036,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 						obn->data = BKE_camera_copy(obn->data);
 						didit = 1;
 					}
-					id->us--;
+					id_us_min(id);
 				}
 				break;
 			case OB_SPEAKER:
@@ -2046,7 +2046,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 						obn->data = BKE_speaker_copy(obn->data);
 						didit = 1;
 					}
-					id->us--;
+					id_us_min(id);
 				}
 				break;
 		}
@@ -2083,7 +2083,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 							ID_NEW_US((*matarar)[a])
 							else
 								(*matarar)[a] = BKE_material_copy((*matarar)[a]);
-							id->us--;
+							id_us_min(id);
 						}
 					}
 				}

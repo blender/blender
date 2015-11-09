@@ -150,7 +150,7 @@ static void node_remove_linked(bNodeTree *ntree, bNode *rem_node)
 
 		if (node->flag & NODE_TEST) {
 			if (node->id)
-				node->id->us--;
+				id_us_min(node->id);
 			nodeFreeNode(ntree, node);
 		}
 	}

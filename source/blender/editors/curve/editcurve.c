@@ -49,6 +49,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_animsys.h"
@@ -1298,7 +1299,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 	newob = newbase->object;
 	newcu = newob->data = BKE_curve_copy(oldcu);
 	newcu->editnurb = NULL;
-	oldcu->id.us--; /* because new curve is a copy: reduce user count */
+	id_us_min(&oldcu->id); /* because new curve is a copy: reduce user count */
 
 	/* 3. put new object in editmode, clear it and set separated nurbs */
 	make_editNurb(newob);

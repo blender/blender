@@ -137,7 +137,7 @@ static int sound_open_exec(bContext *C, wmOperator *op)
 	if (pprop->prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
 		 * pointer se also increases user, so this compensates it */
-		sound->id.us--;
+		id_us_min(&sound->id);
 
 		RNA_id_pointer_create(&sound->id, &idptr);
 		RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr);

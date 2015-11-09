@@ -845,7 +845,7 @@ Mask *BKE_mask_copy_nolib(Mask *mask)
 	/* enable fake user by default */
 	if (!(mask_new->id.flag & LIB_FAKEUSER)) {
 		mask_new->id.flag |= LIB_FAKEUSER;
-		mask_new->id.us++;
+		id_us_plus(&mask_new->id);
 	}
 
 	return mask_new;
@@ -864,7 +864,7 @@ Mask *BKE_mask_copy(Mask *mask)
 	/* enable fake user by default */
 	if (!(mask_new->id.flag & LIB_FAKEUSER)) {
 		mask_new->id.flag |= LIB_FAKEUSER;
-		mask_new->id.us++;
+		id_us_plus(&mask_new->id);
 	}
 
 	if (mask->id.lib) {

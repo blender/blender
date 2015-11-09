@@ -35,6 +35,7 @@
 #include "DNA_group_types.h"
 
 #include "BKE_freestyle.h"
+#include "BKE_library.h"
 #include "BKE_linestyle.h"
 
 #include "BLI_blenlib.h"
@@ -65,11 +66,11 @@ void BKE_freestyle_config_free(FreestyleConfig *config)
 
 	for (lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
 		if (lineset->group) {
-			lineset->group->id.us--;
+			id_us_min(&lineset->group->id);
 			lineset->group = NULL;
 		}
 		if (lineset->linestyle) {
-			lineset->linestyle->id.us--;
+			id_us_min(&lineset->linestyle->id);
 			lineset->linestyle = NULL;
 		}
 	}
@@ -107,7 +108,7 @@ static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *linese
 {
 	new_lineset->linestyle = lineset->linestyle;
 	if (new_lineset->linestyle)
-		new_lineset->linestyle->id.us++;
+		id_us_plus(&new_lineset->linestyle->id);
 	new_lineset->flags = lineset->flags;
 	new_lineset->selection = lineset->selection;
 	new_lineset->qi = lineset->qi;
@@ -117,7 +118,7 @@ static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *linese
 	new_lineset->exclude_edge_types = lineset->exclude_edge_types;
 	new_lineset->group = lineset->group;
 	if (new_lineset->group) {
-		new_lineset->group->id.us++;
+		id_us_plus(&new_lineset->group->id);
 	}
 	strcpy(new_lineset->name, lineset->name);
 }
@@ -215,10 +216,10 @@ bool BKE_freestyle_lineset_delete(FreestyleConfig *config, FreestyleLineSet *lin
 	if (BLI_findindex(&config->linesets, lineset) == -1)
 		return false;
 	if (lineset->group) {
-		lineset->group->id.us--;
+		id_us_min(&lineset->group->id);
 	}
 	if (lineset->linestyle) {
-		lineset->linestyle->id.us--;
+		id_us_min(&lineset->linestyle->id);
 	}
 	BLI_remlink(&config->linesets, lineset);
 	MEM_freeN(lineset);

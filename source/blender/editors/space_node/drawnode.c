@@ -247,7 +247,7 @@ static void node_browse_tex_cb(bContext *C, void *ntree_v, void *node_v)
 	if (node->menunr < 1) return;
 	
 	if (node->id) {
-		node->id->us--;
+		id_us_min(node->id);
 		node->id = NULL;
 	}
 	tex = BLI_findlink(&bmain->tex, node->menunr - 1);

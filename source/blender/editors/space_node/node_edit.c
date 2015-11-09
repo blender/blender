@@ -1669,7 +1669,7 @@ static int node_delete_exec(bContext *C, wmOperator *UNUSED(op))
 		if (node->flag & SELECT) {
 			/* check id user here, nodeFreeNode is called for free dbase too */
 			if (node->id)
-				node->id->us--;
+				id_us_min(node->id);
 			nodeFreeNode(snode->edittree, node);
 		}
 	}
@@ -1760,7 +1760,7 @@ static int node_delete_reconnect_exec(bContext *C, wmOperator *UNUSED(op))
 			
 			/* check id user here, nodeFreeNode is called for free dbase too */
 			if (node->id)
-				node->id->us--;
+				id_us_min(node->id);
 			nodeFreeNode(snode->edittree, node);
 		}
 	}

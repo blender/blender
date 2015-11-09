@@ -508,7 +508,7 @@ static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *o
 	BKE_scene_base_unlink(scene, base);
 	MEM_freeN(base);
 
-	ob->id.us--;
+	id_us_min(&ob->id);
 
 	/* needed otherwise the depgraph will contain freed objects which can crash, see [#20958] */
 	DAG_relations_tag_update(G.main);
@@ -1815,9 +1815,9 @@ static void rna_FreestyleLineSet_linestyle_set(PointerRNA *ptr, PointerRNA value
 	FreestyleLineSet *lineset = (FreestyleLineSet *)ptr->data;
 
 	if (lineset->linestyle)
-		lineset->linestyle->id.us--;
+		id_us_min(&lineset->linestyle->id);
 	lineset->linestyle = (FreestyleLineStyle *)value.data;
-	lineset->linestyle->id.us++;
+	id_us_plus(&lineset->linestyle->id);
 }
 
 static FreestyleLineSet *rna_FreestyleSettings_lineset_add(

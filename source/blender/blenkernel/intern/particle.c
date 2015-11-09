@@ -395,8 +395,10 @@ void BKE_particlesettings_free(ParticleSettings *part)
 
 	for (a = 0; a < MAX_MTEX; a++) {
 		mtex = part->mtex[a];
-		if (mtex && mtex->tex) mtex->tex->id.us--;
-		if (mtex) MEM_freeN(mtex);
+		if (mtex && mtex->tex)
+			id_us_min(&mtex->tex->id);
+		if (mtex)
+			MEM_freeN(mtex);
 	}
 }
 
@@ -567,7 +569,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
 			ob->transflag &= ~OB_DUPLIPARTS;
 
 		if (psys->part) {
-			psys->part->id.us--;
+			id_us_min(&psys->part->id);
 			psys->part = NULL;
 		}
 
@@ -3315,8 +3317,8 @@ void BKE_particlesettings_make_local(ParticleSettings *part)
 			for (psys = ob->particlesystem.first; psys; psys = psys->next) {
 				if (psys->part == part && ob->id.lib == 0) {
 					psys->part = part_new;
-					part_new->id.us++;
-					part->id.us--;
+					id_us_plus(&part_new->id);
+					id_us_min(&part->id);
 				}
 			}
 		}

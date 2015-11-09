@@ -698,10 +698,10 @@ void FRS_paste_active_lineset(FreestyleConfig *config)
 
 	if (lineset) {
 		if (lineset->linestyle)
-			lineset->linestyle->id.us--;
+			id_us_min(&lineset->linestyle->id);
 		lineset->linestyle = lineset_buffer.linestyle;
 		if (lineset->linestyle)
-			lineset->linestyle->id.us++;
+			id_us_plus(&lineset->linestyle->id);
 		lineset->flags = lineset_buffer.flags;
 		lineset->selection = lineset_buffer.selection;
 		lineset->qi = lineset_buffer.qi;
@@ -710,12 +710,12 @@ void FRS_paste_active_lineset(FreestyleConfig *config)
 		lineset->edge_types = lineset_buffer.edge_types;
 		lineset->exclude_edge_types = lineset_buffer.exclude_edge_types;
 		if (lineset->group) {
-			lineset->group->id.us--;
+			id_us_min(&lineset->group->id);
 			lineset->group = NULL;
 		}
 		if (lineset_buffer.group) {
 			lineset->group = lineset_buffer.group;
-			lineset->group->id.us++;
+			id_us_plus(&lineset->group->id);
 		}
 		strcpy(lineset->name, lineset_buffer.name);
 		BKE_freestyle_lineset_unique_name(config, lineset);

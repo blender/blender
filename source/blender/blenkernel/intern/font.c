@@ -293,7 +293,7 @@ VFont *BKE_vfont_load_exists_ex(struct Main *bmain, const char *filepath, bool *
 		BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &vfont->id));
 
 		if (BLI_path_cmp(strtest, str) == 0) {
-			vfont->id.us++;  /* officially should not, it doesn't link here! */
+			id_us_plus(&vfont->id);  /* officially should not, it doesn't link here! */
 			if (r_exists)
 				*r_exists = true;
 			return vfont;

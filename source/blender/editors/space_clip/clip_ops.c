@@ -57,6 +57,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_report.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_movieclip.h"
 #include "BKE_sound.h"
@@ -234,7 +235,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	if (pprop->prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
 		 * pointer se also increases user, so this compensates it */
-		clip->id.us--;
+		id_us_min(&clip->id);
 
 		RNA_id_pointer_create(&clip->id, &idptr);
 		RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr);

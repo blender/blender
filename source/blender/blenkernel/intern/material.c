@@ -95,8 +95,10 @@ void BKE_material_free_ex(Material *ma, bool do_id_user)
 	
 	for (a = 0; a < MAX_MTEX; a++) {
 		mtex = ma->mtex[a];
-		if (do_id_user && mtex && mtex->tex) mtex->tex->id.us--;
-		if (mtex) MEM_freeN(mtex);
+		if (do_id_user && mtex && mtex->tex)
+			id_us_min(&mtex->tex->id);
+		if (mtex)
+			MEM_freeN(mtex);
 	}
 	
 	if (ma->ramp_col) MEM_freeN(ma->ramp_col);
@@ -403,8 +405,8 @@ void BKE_material_make_local(Material *ma)
 					if (ob->mat[a] == ma) {
 						if (ob->id.lib == NULL) {
 							ob->mat[a] = ma_new;
-							ma_new->id.us++;
-							ma->id.us--;
+							id_us_plus(&ma_new->id);
+							id_us_min(&ma->id);
 						}
 					}
 				}
@@ -419,8 +421,8 @@ void BKE_material_make_local(Material *ma)
 					if (me->mat[a] == ma) {
 						if (me->id.lib == NULL) {
 							me->mat[a] = ma_new;
-							ma_new->id.us++;
-							ma->id.us--;
+							id_us_plus(&ma_new->id);
+							id_us_min(&ma->id);
 						}
 					}
 				}
@@ -435,8 +437,8 @@ void BKE_material_make_local(Material *ma)
 					if (cu->mat[a] == ma) {
 						if (cu->id.lib == NULL) {
 							cu->mat[a] = ma_new;
-							ma_new->id.us++;
-							ma->id.us--;
+							id_us_plus(&ma_new->id);
+							id_us_min(&ma->id);
 						}
 					}
 				}
@@ -451,8 +453,8 @@ void BKE_material_make_local(Material *ma)
 					if (mb->mat[a] == ma) {
 						if (mb->id.lib == NULL) {
 							mb->mat[a] = ma_new;
-							ma_new->id.us++;
-							ma->id.us--;
+							id_us_plus(&ma_new->id);
+							id_us_min(&ma->id);
 						}
 					}
 				}
@@ -840,11 +842,12 @@ void assign_material_id(ID *id, Material *ma, short act)
 
 	/* in data */
 	mao = (*matarar)[act - 1];
-	if (mao) mao->id.us--;
+	if (mao)
+		id_us_min(&mao->id);
 	(*matarar)[act - 1] = ma;
 
 	if (ma)
-		id_us_plus((ID *)ma);
+		id_us_plus(&ma->id);
 
 	test_object_materials(G.main, id);
 }
@@ -918,17 +921,19 @@ void assign_material(Object *ob, Material *ma, short act, int assign_type)
 	ob->matbits[act - 1] = bit;
 	if (bit == 1) {   /* in object */
 		mao = ob->mat[act - 1];
-		if (mao) mao->id.us--;
+		if (mao)
+			id_us_min(&mao->id);
 		ob->mat[act - 1] = ma;
 	}
 	else {  /* in data */
 		mao = (*matarar)[act - 1];
-		if (mao) mao->id.us--;
+		if (mao)
+			id_us_min(&mao->id);
 		(*matarar)[act - 1] = ma;
 	}
 
 	if (ma)
-		id_us_plus((ID *)ma);
+		id_us_plus(&ma->id);
 	test_object_materials(G.main, ob->data);
 }
 
@@ -1306,7 +1311,8 @@ bool object_remove_material_slot(Object *ob)
 	
 	/* we delete the actcol */
 	mao = (*matarar)[ob->actcol - 1];
-	if (mao) mao->id.us--;
+	if (mao)
+		id_us_min(&mao->id);
 	
 	for (a = ob->actcol; a < ob->totcol; a++)
 		(*matarar)[a - 1] = (*matarar)[a];
@@ -1325,7 +1331,8 @@ bool object_remove_material_slot(Object *ob)
 			
 			/* WATCH IT: do not use actcol from ob or from obt (can become zero) */
 			mao = obt->mat[actcol - 1];
-			if (mao) mao->id.us--;
+			if (mao)
+				id_us_min(&mao->id);
 		
 			for (a = actcol; a < obt->totcol; a++) {
 				obt->mat[a - 1] = obt->mat[a];
@@ -1804,8 +1811,10 @@ void paste_matcopybuf(Material *ma)
 	if (ma->ramp_spec) MEM_freeN(ma->ramp_spec);
 	for (a = 0; a < MAX_MTEX; a++) {
 		mtex = ma->mtex[a];
-		if (mtex && mtex->tex) mtex->tex->id.us--;
-		if (mtex) MEM_freeN(mtex);
+		if (mtex && mtex->tex)
+			id_us_min(&mtex->tex->id);
+		if (mtex)
+			MEM_freeN(mtex);
 	}
 
 	if (ma->nodetree) {

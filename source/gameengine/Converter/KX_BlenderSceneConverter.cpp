@@ -1426,7 +1426,7 @@ RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene *kx_scene,
 		printf("Mesh has a user \"%s\"\n", name);
 #endif
 		me = (ID*)BKE_mesh_copy_ex(from_maggie, (Mesh*)me);
-		me->us--;
+		id_us_min(me);
 	}
 	BLI_remlink(&from_maggie->mesh, me); /* even if we made the copy it needs to be removed */
 	BLI_addtail(&maggie->mesh, me);
@@ -1450,7 +1450,7 @@ RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene *kx_scene,
 				Material *mat_new = BKE_material_copy(mat_old);
 
 				mat_new->id.flag |= LIB_DOIT;
-				mat_old->id.us--;
+				id_us_min(&mat_old->id);
 
 				BLI_remlink(&G.main->mat, mat_new); // BKE_material_copy uses G.main, and there is no BKE_material_copy_ex
 				BLI_addtail(&maggie->mat, mat_new);
@@ -1461,8 +1461,8 @@ RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene *kx_scene,
 				for (int j = i + 1; j < mesh->totcol; j++) {
 					if (mesh->mat[j] == mat_old) {
 						mesh->mat[j] = mat_new;
-						mat_new->id.us++;
-						mat_old->id.us--;
+						id_us_plus(&mat_new->id);
+						id_us_min(&mat_old->id);
 					}
 				}
 			}

@@ -64,6 +64,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -139,7 +140,7 @@ void free_partdeflect(PartDeflect *pd)
 		return;
 
 	if (pd->tex)
-		pd->tex->id.us--;
+		id_us_min(&pd->tex->id);
 
 	if (pd->rng)
 		BLI_rng_free(pd->rng);

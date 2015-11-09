@@ -143,8 +143,8 @@ void BKE_camera_make_local(Camera *cam)
 			if (ob->data == cam) {
 				if (ob->id.lib == NULL) {
 					ob->data = cam_new;
-					cam_new->id.us++;
-					cam->id.us--;
+					id_us_plus(&cam_new->id);
+					id_us_min(&cam->id);
 				}
 			}
 		}

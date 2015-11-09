@@ -209,8 +209,8 @@ void BKE_lamp_make_local(Lamp *la)
 				
 				if (ob->id.lib == NULL) {
 					ob->data = la_new;
-					la_new->id.us++;
-					la->id.us--;
+					id_us_plus(&la_new->id);
+					id_us_min(&la->id);
 				}
 			}
 			ob = ob->id.next;
@@ -225,8 +225,10 @@ void BKE_lamp_free(Lamp *la)
 
 	for (a = 0; a < MAX_MTEX; a++) {
 		mtex = la->mtex[a];
-		if (mtex && mtex->tex) mtex->tex->id.us--;
-		if (mtex) MEM_freeN(mtex);
+		if (mtex && mtex->tex)
+			id_us_min(&mtex->tex->id);
+		if (mtex)
+			MEM_freeN(mtex);
 	}
 	
 	BKE_animdata_free((ID *)la);

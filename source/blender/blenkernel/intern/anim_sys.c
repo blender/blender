@@ -229,10 +229,10 @@ void BKE_animdata_free(ID *id)
 		if (adt) {
 			/* unlink action (don't free, as it's in its own list) */
 			if (adt->action)
-				adt->action->id.us--;
+				id_us_min(&adt->action->id);
 			/* same goes for the temporarily displaced action */
 			if (adt->tmpact)
-				adt->tmpact->id.us--;
+				id_us_min(&adt->tmpact->id);
 				
 			/* free nla data */
 			free_nladata(&adt->nla_tracks);

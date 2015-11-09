@@ -59,8 +59,10 @@ void BKE_world_free_ex(World *wrld, bool do_id_user)
 	
 	for (a = 0; a < MAX_MTEX; a++) {
 		mtex = wrld->mtex[a];
-		if (do_id_user && mtex && mtex->tex) mtex->tex->id.us--;
-		if (mtex) MEM_freeN(mtex);
+		if (do_id_user && mtex && mtex->tex)
+			id_us_min(&mtex->tex->id);
+		if (mtex)
+			MEM_freeN(mtex);
 	}
 	BKE_previewimg_free(&wrld->preview);
 
@@ -220,8 +222,8 @@ void BKE_world_make_local(World *wrld)
 			if (sce->world == wrld) {
 				if (sce->id.lib == NULL) {
 					sce->world = wrld_new;
-					wrld_new->id.us++;
-					wrld->id.us--;
+					id_us_plus(&wrld_new->id);
+					id_us_min(&wrld->id);
 				}
 			}
 		}

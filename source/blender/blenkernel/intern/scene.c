@@ -368,7 +368,7 @@ void BKE_scene_free(Scene *sce)
 
 	base = sce->base.first;
 	while (base) {
-		base->object->id.us--;
+		id_us_min(&base->object->id);
 		base = base->next;
 	}
 	/* do not free objects! */
@@ -378,7 +378,7 @@ void BKE_scene_free(Scene *sce)
 		/* since the grease pencil data is freed before the scene.
 		 * since grease pencil data is not (yet?), shared between objects
 		 * its probably safe not to do this, some save and reload will free this. */
-		sce->gpd->id.us--;
+		id_us_min(&sce->gpd->id);
 #endif
 		sce->gpd = NULL;
 	}

@@ -195,7 +195,7 @@ Brush *BKE_brush_copy(Brush *brush)
 	/* enable fake user by default */
 	if (!(brushn->id.flag & LIB_FAKEUSER)) {
 		brushn->id.flag |= LIB_FAKEUSER;
-		brushn->id.us++;
+		id_us_plus(&brushn->id);
 	}
 	
 	if (brush->id.lib) {
@@ -282,7 +282,7 @@ void BKE_brush_make_local(Brush *brush)
 		/* enable fake user by default */
 		if (!(brush->id.flag & LIB_FAKEUSER)) {
 			brush->id.flag |= LIB_FAKEUSER;
-			brush->id.us++;
+			id_us_plus(&brush->id);
 		}
 	}
 	else if (is_local && is_lib) {
@@ -505,7 +505,7 @@ int BKE_brush_texture_set_nr(Brush *brush, int nr)
 	if (idtest == NULL) { /* new tex */
 		if (id) idtest = (ID *)BKE_texture_copy((Tex *)id);
 		else idtest = (ID *)BKE_texture_add(G.main, "Tex");
-		idtest->us--;
+		id_us_min(idtest);
 	}
 	if (idtest != id) {
 		BKE_brush_texture_delete(brush);
@@ -522,7 +522,7 @@ int BKE_brush_texture_set_nr(Brush *brush, int nr)
 int BKE_brush_texture_delete(Brush *brush)
 {
 	if (brush->mtex.tex)
-		brush->mtex.tex->id.us--;
+		id_us_min(&brush->mtex.tex->id);
 
 	return 1;
 }
@@ -548,7 +548,7 @@ int BKE_brush_clone_image_set_nr(Brush *brush, int nr)
 int BKE_brush_clone_image_delete(Brush *brush)
 {
 	if (brush && brush->clone.image) {
-		brush->clone.image->id.us--;
+		id_us_min(&brush->clone.image->id);
 		brush->clone.image = NULL;
 		return 1;
 	}

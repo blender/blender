@@ -360,8 +360,8 @@ void BKE_lattice_make_local(Lattice *lt)
 			if (ob->data == lt) {
 				if (ob->id.lib == NULL) {
 					ob->data = lt_new;
-					lt_new->id.us++;
-					lt->id.us--;
+					id_us_plus(&lt_new->id);
+					id_us_min(&lt->id);
 				}
 			}
 		}

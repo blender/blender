@@ -52,6 +52,7 @@
 
 #include "BKE_action.h"
 #include "BKE_context.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_sca.h"
 
@@ -308,12 +309,13 @@ static void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 						}
 						
 						if (sa->sound)
-							((ID *)sa->sound)->us--;
+							id_us_min(((ID *)sa->sound));
 						
 						sa->sound= (struct bSound *)sound;
 						
-						if (sound)
-							sound->us++;
+						if (sound) {
+							id_us_plus(sound);
+						}
 						
 						sa->sndnr= 0;
 						didit= 1;

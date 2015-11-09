@@ -74,27 +74,28 @@ void BKE_curve_unlink(Curve *cu)
 	int a;
 
 	for (a = 0; a < cu->totcol; a++) {
-		if (cu->mat[a]) cu->mat[a]->id.us--;
+		if (cu->mat[a])
+			id_us_min(&cu->mat[a]->id);
 		cu->mat[a] = NULL;
 	}
 	if (cu->vfont)
-		cu->vfont->id.us--;
+		id_us_min(&cu->vfont->id);
 	cu->vfont = NULL;
 
 	if (cu->vfontb)
-		cu->vfontb->id.us--;
+		id_us_min(&cu->vfontb->id);
 	cu->vfontb = NULL;
 
 	if (cu->vfonti)
-		cu->vfonti->id.us--;
+		id_us_min(&cu->vfonti->id);
 	cu->vfonti = NULL;
 
 	if (cu->vfontbi)
-		cu->vfontbi->id.us--;
+		id_us_min(&cu->vfontbi->id);
 	cu->vfontbi = NULL;
 
 	if (cu->key)
-		cu->key->id.us--;
+		id_us_min(&cu->key->id);
 	cu->key = NULL;
 }
 
@@ -305,8 +306,8 @@ void BKE_curve_make_local(Curve *cu)
 			if (ob->data == cu) {
 				if (ob->id.lib == NULL) {
 					ob->data = cu_new;
-					cu_new->id.us++;
-					cu->id.us--;
+					id_us_plus(&cu_new->id);
+					id_us_min(&cu->id);
 				}
 			}
 		}

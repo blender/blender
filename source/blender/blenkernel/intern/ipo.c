@@ -71,6 +71,7 @@
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_nla.h"
 #include "BKE_sequencer.h"
@@ -1429,7 +1430,7 @@ static void ipo_to_animato(ID *id, Ipo *ipo, char actname[], char constname[], S
 	}
 	
 	/* if this IPO block doesn't have any users after this one, free... */
-	ipo->id.us--;
+	id_us_min(&ipo->id);
 	if (ID_REAL_USERS(ipo) <= 0) {
 		IpoCurve *icn;
 		
@@ -1477,7 +1478,7 @@ static void action_to_animato(ID *id, bAction *act, ListBase *groups, ListBase *
 		/* convert Action Channel's IPO data */
 		if (achan->ipo) {
 			ipo_to_animato(id, achan->ipo, achan->name, NULL, NULL, groups, curves, drivers);
-			achan->ipo->id.us--;
+			id_us_min(&achan->ipo->id);
 			achan->ipo = NULL;
 		}
 		
@@ -1489,7 +1490,7 @@ static void action_to_animato(ID *id, bAction *act, ListBase *groups, ListBase *
 			/* convert Constraint Channel's IPO data */
 			if (conchan->ipo) {
 				ipo_to_animato(id, conchan->ipo, achan->name, conchan->name, NULL, groups, curves, drivers);
-				conchan->ipo->id.us--;
+				id_us_min(&conchan->ipo->id);
 				conchan->ipo = NULL;
 			}
 			
@@ -1718,7 +1719,7 @@ void do_versions_ipos_to_animato(Main *main)
 			if (ob->ipo) {
 				ipo_to_animdata(id, ob->ipo, NULL, NULL, NULL);
 				
-				ob->ipo->id.us--;
+				id_us_min(&ob->ipo->id);
 				ob->ipo = NULL;
 			}
 			
@@ -1726,7 +1727,7 @@ void do_versions_ipos_to_animato(Main *main)
 			 * causing errors with evaluation in the new evaluation pipeline
 			 */
 			if (ob->action) {
-				ob->action->id.us--;
+				id_us_min(&ob->action->id);
 				ob->action = NULL;
 			}
 			
@@ -1743,7 +1744,7 @@ void do_versions_ipos_to_animato(Main *main)
 				
 				/* only decrease usercount if this Action isn't now being used by AnimData */
 				if (ob->action != adt->action) {
-					ob->action->id.us--;
+					id_us_min(&ob->action->id);
 					ob->action = NULL;
 				}
 			}
@@ -1751,7 +1752,7 @@ void do_versions_ipos_to_animato(Main *main)
 			/* IPO second... */
 			if (ob->ipo) {
 				ipo_to_animdata(id, ob->ipo, NULL, NULL, NULL);
-				ob->ipo->id.us--;
+				id_us_min(&ob->ipo->id);
 				ob->ipo = NULL;
 
 				{
@@ -1788,7 +1789,7 @@ void do_versions_ipos_to_animato(Main *main)
 						 * so that drivers can be added properly...
 						 */
 						ipo_to_animdata(id, con->ipo, pchan->name, con->name, NULL);
-						con->ipo->id.us--;
+						id_us_min(&con->ipo->id);
 						con->ipo = NULL;
 					}
 				}
@@ -1808,7 +1809,7 @@ void do_versions_ipos_to_animato(Main *main)
 				 * so that drivers can be added properly...
 				 */
 				ipo_to_animdata(id, con->ipo, NULL, con->name, NULL);
-				con->ipo->id.us--;
+				id_us_min(&con->ipo->id);
 				con->ipo = NULL;
 			}
 			 
@@ -1828,7 +1829,7 @@ void do_versions_ipos_to_animato(Main *main)
 				/* convert Constraint Channel's IPO data */
 				if (conchan->ipo) {
 					ipo_to_animdata(id, conchan->ipo, NULL, conchan->name, NULL);
-					conchan->ipo->id.us--;
+					id_us_min(&conchan->ipo->id);
 					conchan->ipo = NULL;
 				}
 				
@@ -1865,7 +1866,7 @@ void do_versions_ipos_to_animato(Main *main)
 			if (adt->action)
 				adt->action->idroot = key->ipo->blocktype;
 			
-			key->ipo->id.us--;
+			id_us_min(&key->ipo->id);
 			key->ipo = NULL;
 		}
 	}
@@ -1887,7 +1888,7 @@ void do_versions_ipos_to_animato(Main *main)
 			if (adt->action)
 				adt->action->idroot = ma->ipo->blocktype;
 			
-			ma->ipo->id.us--;
+			id_us_min(&ma->ipo->id);
 			ma->ipo = NULL;
 		}
 	}
@@ -1909,7 +1910,7 @@ void do_versions_ipos_to_animato(Main *main)
 			if (adt->action)
 				adt->action->idroot = wo->ipo->blocktype;
 			
-			wo->ipo->id.us--;
+			id_us_min(&wo->ipo->id);
 			wo->ipo = NULL;
 		}
 	}
@@ -1960,7 +1961,7 @@ void do_versions_ipos_to_animato(Main *main)
 				if (adt->action)
 					adt->action->idroot = ID_SCE;  /* scene-rooted */
 				
-				seq->ipo->id.us--;
+				id_us_min(&seq->ipo->id);
 				seq->ipo = NULL;
 			}
 			SEQ_END
@@ -1985,7 +1986,7 @@ void do_versions_ipos_to_animato(Main *main)
 			if (adt->action)
 				adt->action->idroot = te->ipo->blocktype;
 			
-			te->ipo->id.us--;
+			id_us_min(&te->ipo->id);
 			te->ipo = NULL;
 		}
 	}
@@ -2007,7 +2008,7 @@ void do_versions_ipos_to_animato(Main *main)
 			if (adt->action)
 				adt->action->idroot = ca->ipo->blocktype;
 			
-			ca->ipo->id.us--;
+			id_us_min(&ca->ipo->id);
 			ca->ipo = NULL;
 		}
 	}
@@ -2029,7 +2030,7 @@ void do_versions_ipos_to_animato(Main *main)
 			if (adt->action)
 				adt->action->idroot = la->ipo->blocktype;
 			
-			la->ipo->id.us--;
+			id_us_min(&la->ipo->id);
 			la->ipo = NULL;
 		}
 	}
@@ -2051,7 +2052,7 @@ void do_versions_ipos_to_animato(Main *main)
 			if (adt->action)
 				adt->action->idroot = cu->ipo->blocktype;
 			
-			cu->ipo->id.us--;
+			id_us_min(&cu->ipo->id);
 			cu->ipo = NULL;
 		}
 	}

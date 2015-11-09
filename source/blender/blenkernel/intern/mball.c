@@ -71,7 +71,8 @@ void BKE_mball_unlink(MetaBall *mb)
 	int a;
 	
 	for (a = 0; a < mb->totcol; a++) {
-		if (mb->mat[a]) mb->mat[a]->id.us--;
+		if (mb->mat[a])
+			id_us_min(&mb->mat[a]->id);
 		mb->mat[a] = NULL;
 	}
 }
@@ -186,8 +187,8 @@ void BKE_mball_make_local(MetaBall *mb)
 			if (ob->data == mb) {
 				if (ob->id.lib == NULL) {
 					ob->data = mb_new;
-					mb_new->id.us++;
-					mb->id.us--;
+					id_us_plus(&mb_new->id);
+					id_us_min(&mb->id);
 				}
 			}
 		}

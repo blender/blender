@@ -51,6 +51,7 @@
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_font.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -538,7 +539,7 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, const 
 
 	cu = obedit->data;
 	cu->vfont = BKE_vfont_builtin_get();
-	cu->vfont->id.us++;
+	id_us_plus(&cu->vfont->id);
 
 	for (tmp = firstline, a = 0; nbytes < MAXTEXT && a < totline; tmp = tmp->next, a++) {
 		size_t nchars_line, nbytes_line;
@@ -1727,7 +1728,7 @@ static int font_open_exec(bContext *C, wmOperator *op)
 	if (pprop->prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
 		 * pointer se also increases user, so this compensates it */
-		font->id.us--;
+		id_us_min(&font->id);
 	
 		RNA_id_pointer_create(&font->id, &idptr);
 		RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr);
