@@ -2196,6 +2196,63 @@ void ui_but_string_get(uiBut *but, char *str, const size_t maxlen)
 	ui_but_string_get_ex(but, str, maxlen, -1);
 }
 
+/**
+ * A version of #ui_but_string_get_ex for dynamic buffer sizes
+ * (where #ui_but_string_get_max_length returns 0).
+ *
+ * \param r_str_size: size of the returned string (including terminator).
+ */
+char *ui_but_string_get_dynamic(uiBut *but, int *r_str_size)
+{
+	char *str = NULL;
+	*r_str_size = 1;
+
+	if (but->rnaprop && ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
+		PropertyType type;
+
+		type = RNA_property_type(but->rnaprop);
+
+		if (type == PROP_STRING) {
+			/* RNA string */
+			str = RNA_property_string_get_alloc(&but->rnapoin, but->rnaprop, NULL, 0, r_str_size);
+			(*r_str_size) += 1;
+		}
+		else if (type == PROP_ENUM) {
+			/* RNA enum */
+			int value = RNA_property_enum_get(&but->rnapoin, but->rnaprop);
+			const char *value_id;
+			if (!RNA_property_enum_name(but->block->evil_C, &but->rnapoin, but->rnaprop, value, &value_id)) {
+				value_id = "";
+			}
+
+			*r_str_size = strlen(value_id) + 1;
+			str = BLI_strdupn(value_id, *r_str_size);
+		}
+		else if (type == PROP_POINTER) {
+			/* RNA pointer */
+			PointerRNA ptr = RNA_property_pointer_get(&but->rnapoin, but->rnaprop);
+			str = RNA_struct_name_get_alloc(&ptr, NULL, 0, r_str_size);
+			(*r_str_size) += 1;
+		}
+		else {
+			BLI_assert(0);
+		}
+	}
+	else {
+		BLI_assert(0);
+	}
+
+	if (UNLIKELY(str == NULL)) {
+		/* should never happen, paranoid check */
+		*r_str_size = 1;
+		str = BLI_strdup("");
+		BLI_assert(0);
+
+	}
+
+	return str;
+}
+
 #ifdef WITH_PYTHON
 
 static bool ui_set_but_string_eval_num_unit(bContext *C, uiBut *but, const char *str, double *value)
@@ -3366,8 +3423,7 @@ static uiBut *ui_def_but_rna(
 		else if (proptype == PROP_STRING) {
 			min = 0;
 			max = RNA_property_string_maxlength(prop);
-			if (max == 0) /* interface code should ideally support unlimited length */
-				max = UI_MAX_DRAW_STR;
+			/* note, 'max' may be zero (code for dynamically resized array) */
 		}
 	}
 
