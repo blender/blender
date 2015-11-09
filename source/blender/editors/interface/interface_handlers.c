@@ -304,7 +304,13 @@ typedef struct uiHandleButtonData {
 	/* text selection/editing */
 	/* size of 'str' (including terminator) */
 	int maxlen;
-	int selextend;
+	/* Button text selection:
+	 * extension direction, selextend, inside ui_do_but_TEX */
+	enum {
+		EXTEND_NONE =     0,
+		EXTEND_LEFT =     1,
+		EXTEND_RIGHT =    2,
+	} selextend;
 	float selstartx;
 	/* allow to realloc str/editstr and use 'maxlen' to track alloc size (maxlen + 1) */
 	bool is_str_dynamic;
@@ -2719,7 +2725,7 @@ static void ui_textedit_move(
 				but->pos = but->selend = but->selsta;
 			}
 		}
-		data->selextend = 0;
+		data->selextend = EXTEND_NONE;
 	}
 	else {
 		int pos_i = but->pos;
@@ -2730,7 +2736,7 @@ static void ui_textedit_move(
 			/* existing selection */
 			if (has_sel) {
 
-				if (data->selextend == 0) {
+				if (data->selextend == EXTEND_NONE) {
 					data->selextend = EXTEND_RIGHT;
 				}
 
@@ -2999,7 +3005,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	len = strlen(data->str);
 
 	data->origstr = BLI_strdupn(data->str, len);
-	data->selextend = 0;
+	data->selextend = EXTEND_NONE;
 	data->selstartx = 0.0f;
 
 	/* set cursor pos to the end of the text */

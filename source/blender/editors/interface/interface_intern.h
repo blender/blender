@@ -155,14 +155,6 @@ extern const short ui_radial_dir_to_angle[8];
 #define PNL_GRID    (UI_UNIT_Y / 5) /* 4 default */
 #define PNL_HEADER  (UI_UNIT_Y + 4) /* 24 default */
 
-/* Button text selection:
- * extension direction, selextend, inside ui_do_but_TEX */
-#define EXTEND_LEFT     1
-#define EXTEND_RIGHT    2
-
-/* for scope resize zone */
-#define SCOPE_RESIZE_PAD    9
-
 /* bit button defines */
 /* Bit operations */
 #define UI_BITBUT_TEST(a, b)    ( ( (a) & 1 << (b) ) != 0)
