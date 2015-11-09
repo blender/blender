@@ -514,7 +514,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 			Group *group = (Group *) id;
 			GroupObject *gob;
 			for (gob = group->gobject.first; gob; gob = gob->next) {
-				CALLBACK_INVOKE(gob->ob, IDWALK_NOP);
+				CALLBACK_INVOKE(gob->ob, IDWALK_USER_ONE);
 			}
 			break;
 		}

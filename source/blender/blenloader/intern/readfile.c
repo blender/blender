@@ -7268,25 +7268,26 @@ static void lib_link_group(FileData *fd, Main *main)
 {
 	Group *group;
 	GroupObject *go;
-	int add_us;
+	bool add_us;
 	
 	for (group = main->group.first; group; group = group->id.next) {
 		if (group->id.flag & LIB_NEED_LINK) {
 			group->id.flag -= LIB_NEED_LINK;
 			
-			add_us = 0;
+			add_us = false;
 			
 			for (go = group->gobject.first; go; go = go->next) {
 				go->ob= newlibadr(fd, group->id.lib, go->ob);
 				if (go->ob) {
 					go->ob->flag |= OB_FROMGROUP;
 					/* if group has an object, it increments user... */
-					add_us = 1;
-					if (go->ob->id.us == 0)
-						go->ob->id.us = 1;
+					add_us = true;
+					id_us_ensure_real(&go->ob->id);
 				}
 			}
-			if (add_us) group->id.us++;
+			if (add_us) {
+				id_us_ensure_real(&group->id);
+			}
 			BKE_group_object_unlink(group, NULL, NULL, NULL);	/* removes NULL entries */
 		}
 	}
