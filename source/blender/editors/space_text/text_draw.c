@@ -47,6 +47,7 @@
 #include "ED_text.h"
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -1433,15 +1434,18 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	}
 	
 	if (st->flags & ST_SHOW_MARGIN) {
-		UI_ThemeColor(TH_HILITE);
-
 		margin_column_x = x + st->cwidth * (st->margin_column - st->left);
 		
 		if (margin_column_x >= x) {
+			/* same color as line number background */
+			UI_ThemeColor(TH_GRID);
+
+			setlinestyle(1);
 			glBegin(GL_LINES);
 			glVertex2i(margin_column_x, 0);
 			glVertex2i(margin_column_x, ar->winy - 2);
 			glEnd();
+			setlinestyle(0);
 		}
 	}
 
