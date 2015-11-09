@@ -670,8 +670,6 @@ void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cd_flag)
 		id_us_plus(id_dst);
 	}
 	else if (cd_flag & IDWALK_USER_ONE) {
-		if (id_dst->us == 0) {
-			id_us_plus(id_dst);
-		}
+		id_us_ensure_real(id_dst);
 	}
 }
