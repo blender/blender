@@ -1,8 +1,5 @@
 
-cmake_policy(SET CMP0003 NEW)
-cmake_policy(SET CMP0005 NEW)
-
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0.0)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../../..//build_files/cmake/Modules")
 

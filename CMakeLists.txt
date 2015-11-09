@@ -45,12 +45,7 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 	endif()
 endif()
 
-cmake_minimum_required(VERSION 2.8)
-
-if(NOT (${CMAKE_VERSION} VERSION_LESS 3.0))
-	# keep until CMake-3.0 is min requirement
-	cmake_policy(SET CMP0043 OLD)
-endif()
+cmake_minimum_required(VERSION 3.0.0)
 
 if(NOT EXECUTABLE_OUTPUT_PATH)
 	set(FIRST_RUN TRUE)
@@ -76,18 +71,8 @@ set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_RELWITHDEBINFO  NDEBU
 #-----------------------------------------------------------------------------
 # Set policy
 
-# see "cmake --help-policy CMP0003"
-# So library linking is more sane
-cmake_policy(SET CMP0003 NEW)
-
-# So BUILDINFO and BLENDERPATH strings are automatically quoted
-cmake_policy(SET CMP0005 NEW)
-
-# So syntax problems are errors
-cmake_policy(SET CMP0010 NEW)
-
-# Input directories must have CMakeLists.txt
-cmake_policy(SET CMP0014 NEW)
+# Simplify variable reference and escape sequence evaluation
+cmake_policy(SET CMP0053 NEW)
 
 #-----------------------------------------------------------------------------
 # Load some macros.
@@ -499,11 +484,6 @@ endif()
 # Apple
 
 if(APPLE)
-	if(${CMAKE_VERSION} VERSION_LESS 3.0) # else breaks setting CMP0043 policy
-		cmake_minimum_required(VERSION 2.8.8)
-		cmake_policy(VERSION 2.8.8)
-	endif()
-
 	if(NOT CMAKE_OSX_ARCHITECTURES)
 		set(CMAKE_OSX_ARCHITECTURES x86_64 CACHE STRING
 		"Choose the architecture you want to build Blender for: i386, x86_64 or ppc"
@@ -513,12 +493,8 @@ if(APPLE)
 	execute_process(COMMAND uname -r OUTPUT_VARIABLE MAC_SYS) # check for actual system-version
 	if(${MAC_SYS} MATCHES 15)
 		set(OSX_SYSTEM 10.11)
-		# throw an error here, older cmake cannot handle 2 digit subversion!
-		cmake_minimum_required(VERSION 3.0.0)
 	elseif(${MAC_SYS} MATCHES 14)
 		set(OSX_SYSTEM 10.10)
-		# throw an error here, older cmake cannot handle 2 digit subversion!
-		cmake_minimum_required(VERSION 3.0.0)
 	elseif(${MAC_SYS} MATCHES 13)
 		set(OSX_SYSTEM 10.9)
 	elseif(${MAC_SYS} MATCHES 12)
