@@ -388,7 +388,7 @@ void BKE_object_free_ex(Object *ob, bool do_id_user)
 {
 	int a;
 	
-	BKE_object_free_derived_caches(ob);
+	BKE_object_free_modifiers(ob);
 	
 	/* disconnect specific data, but not for lib data (might be indirect data, can get relinked) */
 	if (ob->data) {
@@ -436,7 +436,6 @@ void BKE_object_free_ex(Object *ob, bool do_id_user)
 	if (ob->mpath)
 		animviz_free_motionpath(ob->mpath);
 	BKE_bproperty_free_list(&ob->prop);
-	BKE_object_free_modifiers(ob);
 	
 	free_sensors(&ob->sensors);
 	free_controllers(&ob->controllers);
