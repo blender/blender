@@ -118,9 +118,13 @@ void BKE_library_make_local(struct Main *bmain, struct Library *lib, bool untagg
 struct ID *BKE_libblock_find_name_ex(struct Main *bmain, const short type, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 struct ID *BKE_libblock_find_name(const short type, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-void BKE_library_callback_free_window_manager_set(void (*func)(struct bContext *, struct wmWindowManager *));
-void BKE_library_callback_free_notifier_reference_set(void (*func)(const void *));
-void BKE_library_callback_free_editor_id_reference_set(void (*func)(const struct ID *));
+typedef void (*BKE_library_free_window_manager_cb)(struct bContext *, struct wmWindowManager *);
+typedef void (*BKE_library_free_notifier_reference_cb)(const void *);
+typedef void (*BKE_library_free_editor_id_reference_cb)(const struct ID *);
+
+void BKE_library_callback_free_window_manager_set(BKE_library_free_window_manager_cb func);
+void BKE_library_callback_free_notifier_reference_set(BKE_library_free_notifier_reference_cb func);
+void BKE_library_callback_free_editor_id_reference_set(BKE_library_free_editor_id_reference_cb func);
 
 /* use when "" is given to new_id() */
 #define ID_FALLBACK_NAME N_("Untitled")

@@ -1021,23 +1021,23 @@ static void BKE_library_free(Library *lib)
 		freePackedFile(lib->packedfile);
 }
 
-static void (*free_windowmanager_cb)(bContext *, wmWindowManager *) = NULL;
+static BKE_library_free_window_manager_cb free_windowmanager_cb = NULL;
 
-void BKE_library_callback_free_window_manager_set(void (*func)(bContext *C, wmWindowManager *) )
+void BKE_library_callback_free_window_manager_set(BKE_library_free_window_manager_cb func)
 {
 	free_windowmanager_cb = func;
 }
 
-static void (*free_notifier_reference_cb)(const void *) = NULL;
+static BKE_library_free_notifier_reference_cb free_notifier_reference_cb = NULL;
 
-void BKE_library_callback_free_notifier_reference_set(void (*func)(const void *) )
+void BKE_library_callback_free_notifier_reference_set(BKE_library_free_notifier_reference_cb func)
 {
 	free_notifier_reference_cb = func;
 }
 
-static void (*free_editor_id_reference_cb)(const ID *) = NULL;
+static BKE_library_free_editor_id_reference_cb free_editor_id_reference_cb = NULL;
 
-void BKE_library_callback_free_editor_id_reference_set(void (*func)(const ID *))
+void BKE_library_callback_free_editor_id_reference_set(BKE_library_free_editor_id_reference_cb func)
 {
 	free_editor_id_reference_cb = func;
 }
