@@ -3402,7 +3402,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			ui_textedit_delete_selection(but, data);
 		}
 		if (event->type == WM_IME_COMPOSITE_EVENT && ime_data->result_len) {
-			ui_textedit_type_buf(
+			ui_textedit_insert_buf(
 			        but, data,
 			        ime_data->str_result,
 			        ime_data->result_len);
