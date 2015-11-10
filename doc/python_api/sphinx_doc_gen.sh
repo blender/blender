@@ -110,6 +110,9 @@ if $DO_UPLOAD ; then
 
 	## symlink the dir to a static URL
 	#ssh $SSH_USER@blender.org 'rm '$SSH_UPLOAD'/250PythonDoc && ln -s '$SSH_UPLOAD_FULL' '$SSH_UPLOAD'/250PythonDoc'
+	if [ "$blender_version_cycle" = "release" ] ; then
+		ssh $SSH_USER@blender.org 'rm '$SSH_UPLOAD'/blender_python_api_current && ln -s '$SSH_UPLOAD_FULL' '$SSH_UPLOAD'/blender_python_api_current'
+	fi
 
 	# better redirect
 	ssh $SSH_USER@blender.org 'echo "<html><head><title>Redirecting...</title><meta http-equiv=\"REFRESH\" content=\"0;url=../blender_python_api_'$BLENDER_VERSION'/\"></head><body>Redirecting...</body></html>" > '$SSH_UPLOAD'/250PythonDoc/index.html'
