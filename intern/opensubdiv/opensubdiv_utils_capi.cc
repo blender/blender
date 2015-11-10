@@ -72,27 +72,8 @@ int openSubdiv_getAvailableEvaluators(void)
 #endif  /* OPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK */
 
 #ifdef OPENSUBDIV_HAS_GLSL_COMPUTE
-	static bool vendor_checked = false;
-	static bool disable_glsl_compute = false;
-	/* Force disable GLSL Compute on AMD hardware because it has really
-	 * hard time evaluating required shaders.
-	 */
-	if (!vendor_checked) {
-		vendor_checked = true;
-		const char *vendor = (const char *)glGetString(GL_VENDOR);
-		const char *renderer = (const char *)glGetString(GL_RENDERER);
-		if (vendor != NULL && renderer != NULL) {
-			if (strstr(vendor, "ATI") ||
-			    strstr(renderer, "Mesa DRI R") ||
-			    (strstr(renderer, "Gallium ") && strstr(renderer, " on ATI ")))
-			{
-				disable_glsl_compute = true;
-			}
-		}
-	}
-	if (!disable_glsl_compute) {
-		flags |= OPENSUBDIV_EVALUATOR_GLSL_COMPUTE;
-	}
+	/* TODO(sergey): Do we need to check availble extensions here? */
+	flags |= OPENSUBDIV_EVALUATOR_GLSL_COMPUTE;
 #endif  /* OPENSUBDIV_HAS_GLSL_COMPUTE */
 
 	return flags;
