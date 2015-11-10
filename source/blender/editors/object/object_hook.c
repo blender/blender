@@ -318,6 +318,8 @@ static bool object_hook_index_array(Scene *scene, Object *obedit,
 			EDBM_mesh_load(obedit);
 			EDBM_mesh_make(scene->toolsettings, obedit);
 
+			DAG_id_tag_update(&obedit->id, 0);
+
 			em = me->edit_btmesh;
 
 			EDBM_mesh_normals_update(em);

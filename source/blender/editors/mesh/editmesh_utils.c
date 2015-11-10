@@ -380,6 +380,10 @@ void EDBM_mesh_make(ToolSettings *ts, Object *ob)
 	EDBM_selectmode_flush(me->edit_btmesh);
 }
 
+/**
+ * \warning This can invalidate the #DerivedMesh cache of other objects (for linked duplicates).
+ * Most callers should run #DAG_id_tag_update on \a ob, see: T46738.
+ */
 void EDBM_mesh_load(Object *ob)
 {
 	Mesh *me = ob->data;
