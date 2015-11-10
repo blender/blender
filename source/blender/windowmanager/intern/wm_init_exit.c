@@ -546,11 +546,11 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	(void)do_python;
 #endif
 
+	if (!G.background) {
 #ifdef WITH_OPENSUBDIV
-	BKE_subsurf_osd_cleanup();
+		BKE_subsurf_osd_cleanup();
 #endif
 
-	if (!G.background) {
 		GPU_global_buffer_pool_free();
 		GPU_free_unused_buffers();
 
