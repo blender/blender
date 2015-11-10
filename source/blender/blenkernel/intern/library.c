@@ -163,8 +163,13 @@ void id_lib_extern(ID *id)
 void id_us_ensure_real(ID *id)
 {
 	if (id) {
-		if (ID_REAL_USERS(id) <= 0) {
-			id->us = MAX2(id->us, 0) + 1;
+		const int limit = ID_FAKE_USERS(id);
+		if (id->us <= limit) {
+			if (id->us < limit) {
+				printf("ID user count error: %s (from '%s')\n", id->name, id->lib ? id->lib->filepath : "[Main]");
+				BLI_assert(0);
+			}
+			id->us = limit + 1;
 		}
 	}
 }
@@ -172,6 +177,7 @@ void id_us_ensure_real(ID *id)
 void id_us_plus(ID *id)
 {
 	if (id) {
+		BLI_assert(id->us >= 0);
 		id->us++;
 		if (id->flag & LIB_INDIRECT) {
 			id->flag -= LIB_INDIRECT;
@@ -184,7 +190,7 @@ void id_us_plus(ID *id)
 void id_us_min(ID *id)
 {
 	if (id) {
-		const int limit = (id->flag & LIB_FAKEUSER) ? 1 : 0;
+		const int limit = ID_FAKE_USERS(id);
 		if (id->us <= limit) {
 			printf("ID user decrement error: %s (from '%s')\n", id->name, id->lib ? id->lib->filepath : "[Main]");
 			BLI_assert(0);

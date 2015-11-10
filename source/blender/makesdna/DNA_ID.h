@@ -254,7 +254,8 @@ typedef struct PreviewImage {
 			/* fluidsim Ipo */
 #define ID_FLUIDSIM	MAKE_ID2('F', 'S')
 
-#define ID_REAL_USERS(id) (((ID *)id)->us - ((((ID *)id)->flag & LIB_FAKEUSER) ? 1 : 0))
+#define ID_FAKE_USERS(id) ((((ID *)id)->flag & LIB_FAKEUSER) ? 1 : 0)
+#define ID_REAL_USERS(id) (((ID *)id)->us - ID_FAKE_USERS(id))
 
 #define ID_CHECK_UNDO(id) ((GS((id)->name) != ID_SCR) && (GS((id)->name) != ID_WM))
 
