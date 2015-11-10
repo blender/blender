@@ -211,6 +211,9 @@ void BKE_object_free_modifiers(Object *ob)
 
 	/* same for softbody */
 	BKE_object_free_softbody(ob);
+
+	/* modifiers may have stored data in the DM cache */
+	BKE_object_free_derived_caches(ob);
 }
 
 void BKE_object_modifier_hook_reset(Object *ob, HookModifierData *hmd)

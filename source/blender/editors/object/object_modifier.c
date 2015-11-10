@@ -324,6 +324,7 @@ static bool object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
 
 	BLI_remlink(&ob->modifiers, md);
 	modifier_free(md);
+	BKE_object_free_derived_caches(ob);
 
 	return 1;
 }
@@ -708,6 +709,8 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 
 	BLI_remlink(&ob->modifiers, md);
 	modifier_free(md);
+
+	BKE_object_free_derived_caches(ob);
 
 	return 1;
 }
