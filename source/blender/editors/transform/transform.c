@@ -2650,7 +2650,7 @@ static void constraintob_from_transdata(bConstraintOb *cob, TransData *td)
 		}
 		else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
 			/* axis angle */
-			axis_angle_to_mat4(cob->matrix, &td->ext->quat[1], td->ext->quat[0]);
+			axis_angle_to_mat4(cob->matrix, td->ext->rotAxis, *td->ext->rotAngle);
 		}
 		else {
 			/* eulers */
@@ -2716,7 +2716,7 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 			}
 			else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
 				/* axis angle */
-				mat4_to_axis_angle(&td->ext->quat[1], &td->ext->quat[0], cob.matrix);
+				mat4_to_axis_angle(td->ext->rotAxis, td->ext->rotAngle, cob.matrix);
 			}
 			else {
 				/* eulers */
