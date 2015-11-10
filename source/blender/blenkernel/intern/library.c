@@ -1214,12 +1214,8 @@ void BKE_libblock_free_us(Main *bmain, void *idv)      /* test users */
 {
 	ID *id = idv;
 	
-	id->us--;
+	id_us_min(id);
 
-	if (id->us < 0) {
-		if (id->lib) printf("ERROR block %s %s users %d\n", id->lib->name, id->name, id->us);
-		else printf("ERROR block %s users %d\n", id->name, id->us);
-	}
 	if (id->us == 0) {
 		switch (GS(id->name)) {
 			case ID_OB:
