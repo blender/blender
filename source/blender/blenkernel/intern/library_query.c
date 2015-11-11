@@ -336,14 +336,6 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 			CALLBACK_INVOKE(object->gpd, IDWALK_USER);
 			CALLBACK_INVOKE(object->dup_group, IDWALK_USER);
 
-			if (object->particlesystem.first) {
-				ParticleSystem *psys;
-				for (psys = object->particlesystem.first; psys; psys = psys->next) {
-					CALLBACK_INVOKE(psys->target_ob, IDWALK_NOP);
-					CALLBACK_INVOKE(psys->parent, IDWALK_NOP);
-				}
-			}
-
 			if (object->pd) {
 				CALLBACK_INVOKE(object->pd->tex, IDWALK_USER);
 				CALLBACK_INVOKE(object->pd->f_source, IDWALK_NOP);
