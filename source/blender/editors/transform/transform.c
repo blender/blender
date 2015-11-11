@@ -1908,7 +1908,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		copy_v4_v4(values, (t->flag & T_AUTOVALUES) ? t->auto_values : t->values);
 
 		if (t->con.mode & CON_APPLY) {
-			mul_v3_m3v3(values, t->con.imtx, values);
+			mul_m3_v3(t->con.imtx, values);
 		}
 
 		if (RNA_property_array_check(prop)) {
