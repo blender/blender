@@ -333,12 +333,12 @@ void ED_view3d_draw_offscreen(
 struct ImBuf *ED_view3d_draw_offscreen_imbuf(
         struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey,
         unsigned int flag, bool draw_background,
-        int alpha_mode, int samples, const char *viewname,
+        int alpha_mode, int samples, bool full_samples, const char *viewname,
         struct GPUFX *fx, struct GPUOffScreen *ofs, char err_out[256]);
 struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
         struct Scene *scene, struct Object *camera, int width, int height,
         unsigned int flag, int drawtype, bool use_solid_tex, bool use_gpencil, bool draw_background,
-        int alpha_mode, int samples, const char *viewname,
+        int alpha_mode, int samples, bool full_samples, const char *viewname,
         struct GPUFX *fx, struct GPUOffScreen *ofs, char err_out[256]);
 
 struct Base *ED_view3d_give_base_under_cursor(struct bContext *C, const int mval[2]);

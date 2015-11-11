@@ -262,8 +262,9 @@ class INFO_MT_opengl_render(Menu):
         layout = self.layout
 
         rd = context.scene.render
-
         layout.prop(rd, "use_antialiasing")
+        layout.prop(rd, "use_full_sample")
+
         layout.prop_menu_enum(rd, "antialiasing_samples")
         layout.prop_menu_enum(rd, "alpha_mode")
 

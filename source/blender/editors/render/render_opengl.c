@@ -97,6 +97,7 @@ typedef struct OGLRender {
 
 	GPUOffScreen *ofs;
 	int ofs_samples;
+	bool ofs_full_samples;
 	GPUFX *fx;
 	int sizex, sizey;
 	int write_still;
@@ -276,7 +277,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 		context.view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
 		context.gpu_offscreen = oglrender->ofs;
 		context.gpu_fx = oglrender->fx;
-		context.gpu_samples = oglrender->ofs_samples;
+		context.gpu_full_samples = oglrender->ofs_full_samples;
 
 		ibuf = BKE_sequencer_give_ibuf(&context, CFRA, chanshown);
 
@@ -341,12 +342,13 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 		/* shouldnt suddenly give errors mid-render but possible */
 		char err_out[256] = "unknown";
 		ImBuf *ibuf_view;
+		const int alpha_mode = (draw_sky) ? R_ADDSKY : R_ALPHAPREMUL;
 
 		if (view_context) {
 			ibuf_view = ED_view3d_draw_offscreen_imbuf(
 			       scene, v3d, ar, sizex, sizey,
 			       IB_rect, draw_bgpic,
-			       (draw_sky) ? R_ADDSKY : R_ALPHAPREMUL, oglrender->ofs_samples, viewname,
+			       alpha_mode, oglrender->ofs_samples, oglrender->ofs_full_samples, viewname,
 			       oglrender->fx, oglrender->ofs, err_out);
 
 			/* for stamp only */
@@ -358,7 +360,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 			ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(
 			        scene, scene->camera, oglrender->sizex, oglrender->sizey,
 			        IB_rect, OB_SOLID, false, true, true,
-			        (draw_sky) ? R_ADDSKY : R_ALPHAPREMUL, oglrender->ofs_samples, viewname,
+			        alpha_mode, oglrender->ofs_samples, oglrender->ofs_full_samples, viewname,
 			        oglrender->fx, oglrender->ofs, err_out);
 			camera = scene->camera;
 		}
@@ -471,6 +473,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 	OGLRender *oglrender;
 	int sizex, sizey;
 	const int samples = (scene->r.mode & R_OSA) ? scene->r.osa : 0;
+	const bool full_samples = (samples != 0) && (scene->r.scemode & R_FULL_SAMPLE);
 	bool is_view_context = RNA_boolean_get(op->ptr, "view_context");
 	const bool is_animation = RNA_boolean_get(op->ptr, "animation");
 	const bool is_sequencer = RNA_boolean_get(op->ptr, "sequencer");
@@ -515,7 +518,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 	sizey = (scene->r.size * scene->r.ysch) / 100;
 
 	/* corrects render size with actual size, not every card supports non-power-of-two dimensions */
-	ofs = GPU_offscreen_create(sizex, sizey, samples, err_out);
+	ofs = GPU_offscreen_create(sizex, sizey, full_samples ? 0 : samples, err_out);
 
 	if (!ofs) {
 		BKE_reportf(op->reports, RPT_ERROR, "Failed to create OpenGL off-screen buffer, %s", err_out);
@@ -528,6 +531,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 
 	oglrender->ofs = ofs;
 	oglrender->ofs_samples = samples;
+	oglrender->ofs_full_samples = full_samples;
 	oglrender->sizex = sizex;
 	oglrender->sizey = sizey;
 	oglrender->bmain = CTX_data_main(C);
