@@ -281,7 +281,7 @@ void BKE_brush_make_local(Brush *brush)
 	}
 	else if (is_local && is_lib) {
 		Brush *brush_new = BKE_brush_copy(brush);  /* Ensures FAKE_USER is set */
-		brush_new->id.us = 1; /* only keep fake user */
+		id_us_min(&brush_new->id);  /* Remove user added by standard BKE_libblock_copy(). */
 
 		/* Remap paths of new ID using old library as base. */
 		BKE_id_lib_local_paths(bmain, brush->id.lib, &brush_new->id);

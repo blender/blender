@@ -428,7 +428,6 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
 	}
 
 	ta = BKE_libblock_alloc(bmain, ID_TXT, BLI_path_basename(str));
-	ta->id.us = 1;
 
 	BLI_listbase_clear(&ta->lines);
 	ta->curl = ta->sell = NULL;

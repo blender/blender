@@ -44,6 +44,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_sequencer.h"
 #include "BKE_movieclip.h"
@@ -385,8 +386,7 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 	seq->blend_mode = SEQ_TYPE_CROSS;
 	seq->clip = clip;
 
-	if (seq->clip->id.us == 0)
-		seq->clip->id.us = 1;
+	id_us_ensure_real(&seq->clip->id);
 
 	/* basic defaults */
 	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
@@ -470,8 +470,7 @@ static int sequencer_add_mask_strip_exec(bContext *C, wmOperator *op)
 	seq->blend_mode = SEQ_TYPE_CROSS;
 	seq->mask = mask;
 
-	if (seq->mask->id.us == 0)
-		seq->mask->id.us = 1;
+	id_us_ensure_real(&seq->mask->id);
 
 	/* basic defaults */
 	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");

@@ -45,6 +45,7 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 
@@ -85,9 +86,7 @@ void ED_node_tree_update(const bContext *C)
 	if (snode) {
 		snode_set_context(C);
 
-		if (snode->nodetree && snode->nodetree->id.us == 0) {
-			snode->nodetree->id.us = 1;
-		}
+		id_us_ensure_real(&snode->nodetree->id);
 	}
 }
 

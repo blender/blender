@@ -2184,10 +2184,7 @@ static bool make_local_all__instance_indirect_unused(Main *bmain, Scene *scene)
 		if (ob->id.lib && (ob->id.us == 0)) {
 			Base *base;
 
-			ob->id.us = 1;
-
-			/* not essential, but for correctness */
-			id_lib_extern(&ob->id);
+			id_us_plus(&ob->id);
 
 			base = BKE_scene_base_add(scene, ob);
 			base->flag |= SELECT;
