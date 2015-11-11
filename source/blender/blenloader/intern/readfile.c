@@ -3602,7 +3602,7 @@ static void direct_link_text(FileData *fd, Text *text)
 	
 	text->flags = (text->flags) & ~TXT_ISEXT;
 	
-	text->id.us = 1;
+	id_us_ensure_real(&text->id);
 }
 
 /* ************ READ IMAGE ***************** */
@@ -4263,8 +4263,7 @@ static void lib_link_mtface(FileData *fd, Mesh *me, MTFace *mtface, int totface)
 	 * to each image it used. - z0r */
 	for (i = 0; i < totface; i++, tf++) {
 		tf->tpage= newlibadr(fd, me->id.lib, tf->tpage);
-		if (tf->tpage && tf->tpage->id.us==0)
-			tf->tpage->id.us= 1;
+		id_us_ensure_real(&tf->tpage->id);
 	}
 }
 
@@ -4293,9 +4292,7 @@ static void lib_link_customdata_mtpoly(FileData *fd, Mesh *me, CustomData *pdata
 			
 			for (j = 0; j < totface; j++, tf++) {
 				tf->tpage = newlibadr(fd, me->id.lib, tf->tpage);
-				if (tf->tpage && tf->tpage->id.us == 0) {
-					tf->tpage->id.us = 1;
-				}
+				id_us_ensure_real((ID *)tf->tpage);
 			}
 		}
 	}
@@ -5797,7 +5794,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	BKE_sound_create_scene(sce);
 	
 	/* set users to one by default, not in lib-link, this will increase it for compo nodes */
-	sce->id.us = 1;
+	id_us_ensure_real(&sce->id);
 	
 	link_list(fd, &(sce->base));
 	
@@ -6018,7 +6015,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 {
 	wmWindow *win;
 	
-	wm->id.us = 1;
+	id_us_ensure_real(&wm->id);
 	link_list(fd, &wm->windows);
 	
 	for (win = wm->windows.first; win; win = win->next) {
@@ -6151,7 +6148,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 	
 	for (sc = main->screen.first; sc; sc = sc->id.next) {
 		if (sc->id.flag & LIB_NEED_LINK) {
-			sc->id.us = 1;
+			id_us_ensure_real(&sc->id);
 			sc->scene = newlibadr(fd, sc->id.lib, sc->scene);
 
 			/* this should not happen, but apparently it does somehow. Until we figure out the cause,
@@ -7144,7 +7141,7 @@ static void lib_link_library(FileData *UNUSED(fd), Main *main)
 {
 	Library *lib;
 	for (lib = main->library.first; lib; lib = lib->id.next) {
-		lib->id.us = 1;
+		id_us_ensure_real(&lib->id);
 	}
 }
 
