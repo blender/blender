@@ -1903,7 +1903,14 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	}
 
 	if ((prop = RNA_struct_find_property(op->ptr, "value"))) {
-		const float *values = (t->flag & T_AUTOVALUES) ? t->auto_values : t->values;
+		float values[4];
+
+		copy_v4_v4(values, (t->flag & T_AUTOVALUES) ? t->auto_values : t->values);
+
+		if (t->con.mode & CON_APPLY) {
+			mul_v3_m3v3(values, t->con.imtx, values);
+		}
+
 		if (RNA_property_array_check(prop)) {
 			RNA_property_float_set_array(op->ptr, prop, values);
 		}
@@ -2302,22 +2309,6 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		return 0;
 	}
 
-	/* overwrite initial values if operator supplied a non-null vector */
-	if ((prop = RNA_struct_find_property(op->ptr, "value")) && RNA_property_is_set(op->ptr, prop)) {
-		float values[4] = {0}; /* in case value isn't length 4, avoid uninitialized memory  */
-
-		if (RNA_property_array_check(prop)) {
-			RNA_float_get_array(op->ptr, "value", values);
-		}
-		else {
-			values[0] = RNA_float_get(op->ptr, "value");
-		}
-
-		copy_v4_v4(t->values, values);
-		copy_v4_v4(t->auto_values, values);
-		t->flag |= T_AUTOVALUES;
-	}
-
 	/* Transformation axis from operator */
 	if ((prop = RNA_struct_find_property(op->ptr, "axis")) && RNA_property_is_set(op->ptr, prop)) {
 		RNA_property_float_get_array(op->ptr, prop, t->axis);
@@ -2346,6 +2337,29 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
 			setUserConstraint(t, t->current_orientation, t->con.mode, "%s");
 		}
+	}
+
+	/* overwrite initial values if operator supplied a non-null vector
+	 *
+	 * keep last so we can apply the constraints space.
+	 */
+	if ((prop = RNA_struct_find_property(op->ptr, "value")) && RNA_property_is_set(op->ptr, prop)) {
+		float values[4] = {0}; /* in case value isn't length 4, avoid uninitialized memory  */
+
+		if (RNA_property_array_check(prop)) {
+			RNA_float_get_array(op->ptr, "value", values);
+		}
+		else {
+			values[0] = RNA_float_get(op->ptr, "value");
+		}
+
+		if (t->con.mode & CON_APPLY) {
+			mul_m3_v3(t->con.mtx, values);
+		}
+
+		copy_v4_v4(t->values, values);
+		copy_v4_v4(t->auto_values, values);
+		t->flag |= T_AUTOVALUES;
 	}
 
 	t->context = NULL;
