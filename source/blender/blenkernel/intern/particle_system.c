@@ -4216,7 +4216,7 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
 {
 	ParticleTarget *pt;
 
-	func(psys, (ID **)&psys->part, userdata, IDWALK_NOP);
+	func(psys, (ID **)&psys->part, userdata, IDWALK_NEVER_NULL);
 	func(psys, (ID **)&psys->target_ob, userdata, IDWALK_NOP);
 	func(psys, (ID **)&psys->parent, userdata, IDWALK_NOP);
 
