@@ -36,6 +36,7 @@ struct StripColorBalance;
 struct Editing;
 struct GSet;
 struct GPUOffScreen;
+struct GPUFX;
 struct ImBuf;
 struct Main;
 struct Mask;
@@ -105,6 +106,7 @@ typedef struct SeqRenderData {
 
 	/* special case for OpenGL render */
 	struct GPUOffScreen *gpu_offscreen;
+	struct GPUFX *gpu_fx;
 	int gpu_samples;
 } SeqRenderData;
 
@@ -417,7 +419,7 @@ typedef struct ImBuf *(*SequencerDrawView)(
         struct Scene *, struct Object *, int, int,
         unsigned int, int, bool, bool, bool,
         int, int, const char *,
-        struct GPUOffScreen *, char[256]);
+        struct GPUFX *, struct GPUOffScreen *, char[256]);
 extern SequencerDrawView sequencer_view3d_cb;
 
 /* copy/paste */

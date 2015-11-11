@@ -253,7 +253,6 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 	RegionView3D *rv3d = oglrender->rv3d;
 	Object *camera = NULL;
 	ImBuf *ibuf;
-	float winmat[4][4];
 	float *rectf = RE_RenderViewGetById(rr, oglrender->view_id)->rectf;
 	int sizex = oglrender->sizex;
 	int sizey = oglrender->sizey;
@@ -276,6 +275,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 
 		context.view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
 		context.gpu_offscreen = oglrender->ofs;
+		context.gpu_fx = oglrender->fx;
 		context.gpu_samples = oglrender->ofs_samples;
 
 		ibuf = BKE_sequencer_give_ibuf(&context, CFRA, chanshown);
@@ -337,61 +337,31 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 			MEM_freeN(gp_rect);
 		}
 	}
-	else if (view_context) {
-		bool is_persp;
-		/* full copy */
-		GPUFXSettings fx_settings = v3d->fx_settings;
-
-		ED_view3d_draw_offscreen_init(scene, v3d);
-
-		GPU_offscreen_bind(oglrender->ofs, true); /* bind */
-
-		/* render 3d view */
-		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
-#if 0
-			const bool is_ortho = (scene->r.mode & R_ORTHO) != 0;
-#endif
-			camera = BKE_camera_multiview_render(oglrender->scene, v3d->camera, viewname);
-			RE_GetCameraWindow(oglrender->re, camera, scene->r.cfra, winmat);
-			if (camera->type == OB_CAMERA) {
-				Camera *cam = camera->data;
-				is_persp = cam->type == CAM_PERSP;
-			}
-			else
-				is_persp = true;
-			BKE_camera_to_gpu_dof(camera, &fx_settings);
-		}
-		else {
-			rctf viewplane;
-			float clipsta, clipend;
-
-			bool is_ortho = ED_view3d_viewplane_get(v3d, rv3d, sizex, sizey, &viewplane, &clipsta, &clipend, NULL);
-			if (is_ortho) orthographic_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, -clipend, clipend);
-			else perspective_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, clipsta, clipend);
-
-			is_persp = !is_ortho;
-		}
-
-		rect = MEM_mallocN(sizex * sizey * sizeof(unsigned char) * 4, "offscreen rect");
-
-		ED_view3d_draw_offscreen(
-		        scene, v3d, ar, sizex, sizey, NULL, winmat,
-		        draw_bgpic, draw_sky, is_persp, viewname,
-		        oglrender->fx, &fx_settings,
-		        oglrender->ofs);
-		GPU_offscreen_read_pixels(oglrender->ofs, GL_UNSIGNED_BYTE, rect);
-
-		GPU_offscreen_unbind(oglrender->ofs, true); /* unbind */
-	}
 	else {
 		/* shouldnt suddenly give errors mid-render but possible */
 		char err_out[256] = "unknown";
-		ImBuf *ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(
-		        scene, scene->camera, oglrender->sizex, oglrender->sizey,
-		        IB_rect, OB_SOLID, false, true, true,
-		        (draw_sky) ? R_ADDSKY : R_ALPHAPREMUL, oglrender->ofs_samples, viewname,
-		        oglrender->ofs, err_out);
-		camera = scene->camera;
+		ImBuf *ibuf_view;
+
+		if (view_context) {
+			ibuf_view = ED_view3d_draw_offscreen_imbuf(
+			       scene, v3d, ar, sizex, sizey,
+			       IB_rect, draw_bgpic,
+			       (draw_sky) ? R_ADDSKY : R_ALPHAPREMUL, oglrender->ofs_samples, viewname,
+			       oglrender->fx, oglrender->ofs, err_out);
+
+			/* for stamp only */
+			if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
+				camera = BKE_camera_multiview_render(oglrender->scene, v3d->camera, viewname);
+			}
+		}
+		else {
+			ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(
+			        scene, scene->camera, oglrender->sizex, oglrender->sizey,
+			        IB_rect, OB_SOLID, false, true, true,
+			        (draw_sky) ? R_ADDSKY : R_ALPHAPREMUL, oglrender->ofs_samples, viewname,
+			        oglrender->fx, oglrender->ofs, err_out);
+			camera = scene->camera;
+		}
 
 		if (ibuf_view) {
 			/* steal rect reference from ibuf */

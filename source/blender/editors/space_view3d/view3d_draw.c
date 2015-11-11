@@ -3296,12 +3296,17 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
         unsigned int flag, bool draw_background,
         int alpha_mode, int samples, const char *viewname,
         /* output vars */
-        GPUOffScreen *ofs, char err_out[256])
+        GPUFX *fx, GPUOffScreen *ofs, char err_out[256])
 {
 	RegionView3D *rv3d = ar->regiondata;
 	ImBuf *ibuf;
 	const bool draw_sky = (alpha_mode == R_ADDSKY) && v3d && (v3d->flag3 & V3D_SHOW_WORLD);
 	const bool own_ofs = (ofs == NULL);
+
+	/* view state */
+	GPUFXSettings fx_settings = {NULL};
+	float winmat[4][4];
+	bool is_ortho;
 
 	if (UNLIKELY(v3d == NULL))
 		return NULL;
@@ -3325,7 +3330,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 	/* render 3d view */
 	if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
 		CameraParams params;
-		GPUFXSettings fx_settings = {NULL};
 		Object *camera = BKE_camera_multiview_render(scene, v3d->camera, viewname);
 
 		BKE_camera_params_init(&params);
@@ -3339,18 +3343,28 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 
 		BKE_camera_to_gpu_dof(camera, &fx_settings);
 
-		ED_view3d_draw_offscreen(
-		        scene, v3d, ar, sizex, sizey, NULL, params.winmat,
-		        draw_background, draw_sky, !params.is_ortho, viewname,
-		        NULL, &fx_settings,
-		        ofs);
+		is_ortho = params.is_ortho;
+		copy_m4_m4(winmat, params.winmat);
 	}
 	else {
-		ED_view3d_draw_offscreen(
-		        scene, v3d, ar, sizex, sizey, NULL, NULL,
-		        draw_background, draw_sky, true, viewname,
-		        NULL, NULL, ofs);
+		rctf viewplane;
+		float clipsta, clipend;
+
+		fx_settings = v3d->fx_settings;
+
+		is_ortho = ED_view3d_viewplane_get(v3d, rv3d, sizex, sizey, &viewplane, &clipsta, &clipend, NULL);
+		if (is_ortho) {
+			orthographic_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, -clipend, clipend);
+		}
+		else {
+			perspective_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, clipsta, clipend);
+		}
 	}
+
+	ED_view3d_draw_offscreen(
+	        scene, v3d, ar, sizex, sizey, NULL, winmat,
+	        draw_background, draw_sky, !is_ortho, viewname,
+	        fx, &fx_settings, ofs);
 
 	/* read in pixels & stamp */
 	ibuf = IMB_allocImBuf(sizex, sizey, 32, flag);
@@ -3368,7 +3382,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 
 		glPopAttrib();
 	}
-	
+
 	if (ibuf->rect_float && ibuf->rect)
 		IMB_rect_from_float(ibuf);
 
@@ -3387,7 +3401,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
         Scene *scene, Object *camera, int width, int height,
         unsigned int flag, int drawtype, bool use_solid_tex, bool use_gpencil, bool draw_background,
         int alpha_mode, int samples, const char *viewname,
-        GPUOffScreen *ofs, char err_out[256])
+        GPUFX *fx, GPUOffScreen *ofs, char err_out[256])
 {
 	View3D v3d = {NULL};
 	ARegion ar = {NULL};
@@ -3437,9 +3451,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 	return ED_view3d_draw_offscreen_imbuf(
 	        scene, &v3d, &ar, width, height, flag,
 	        draw_background, alpha_mode, samples, viewname,
-	        ofs, err_out);
-
-	// seq_view3d_cb(scene, cfra, render_size, seqrectx, seqrecty);
+	        fx, ofs, err_out);
 }
 
 
