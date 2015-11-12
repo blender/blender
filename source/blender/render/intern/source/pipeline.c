@@ -3527,7 +3527,10 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	if (!render_initialize_from_main(re, &rd, bmain, scene, NULL, camera_override, lay_override, 0, 1))
 		return;
 
-	/* we don't support Frame Server and streaming of individual views */
+	/* MULTIVIEW_TODO:
+	 * in case a new video format is added that implements get_next_frame multiview has to be addressed
+	 * or the error throwing for R_IMF_IMTYPE_FRAMESERVER has to be extended for those cases as well
+	 */
 	if ((rd.im_format.imtype == R_IMF_IMTYPE_FRAMESERVER) && (totvideos > 1)) {
 		BKE_report(re->reports, RPT_ERROR, "Frame Server only support stereo output for multiview rendering");
 		return;
@@ -3572,43 +3575,26 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 
 	re->flag |= R_ANIMATION;
 
-	if (mh && mh->get_next_frame) {
-		/* MULTIVIEW_TODO:
-		 * in case a new video format is added that implements get_next_frame multiview has to be addressed
-		 * or the error throwing for R_IMF_IMTYPE_FRAMESERVER has to be extended for those cases as well
-		 */
-		BLI_assert(totvideos < 2);
-
-		while (!(G.is_break == 1)) {
-			int nf = mh->get_next_frame(re->movie_ctx_arr[0], &re->r, re->reports);
-			if (nf >= 0 && nf >= scene->r.sfra && nf <= scene->r.efra) {
-				scene->r.cfra = re->r.cfra = nf;
-
-				BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
-
-				do_render_all_options(re);
-				totrendered++;
-
-				if (re->test_break(re->tbh) == 0) {
-					if (!do_write_image_or_movie(re, bmain, scene, mh, totvideos, NULL))
-						G.is_break = true;
-				}
-
-				if (G.is_break == false) {
-					BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_POST); /* keep after file save */
-					BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_WRITE);
-				}
-			}
-			else {
-				if (re->test_break(re->tbh)) {
-					G.is_break = true;
-				}
-			}
-		}
-	}
-	else {
+	{
 		for (nfra = sfra, scene->r.cfra = sfra; scene->r.cfra <= efra; scene->r.cfra++) {
 			char name[FILE_MAX];
+
+			/* Special case for 'mh->get_next_frame'
+			 * this overrides regular frame stepping logic */
+			if (mh->get_next_frame) {
+				while (G.is_break == false) {
+					int nfra_test = mh->get_next_frame(re->movie_ctx_arr[0], &re->r, re->reports);
+					if (nfra_test >= 0 && nfra_test >= sfra && nfra_test <= efra) {
+						nfra = nfra_test;
+						break;
+					}
+					else {
+						if (re->test_break(re->tbh)) {
+							G.is_break = true;
+						}
+					}
+				}
+			}
 
 			/* Here is a feedback loop exists -- render initialization requires updated
 			 * render layers settings which could be animated, but scene evaluation for
