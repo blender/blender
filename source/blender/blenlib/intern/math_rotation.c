@@ -1224,9 +1224,9 @@ void mat3_normalized_to_eul(float eul[3], float mat[3][3])
 }
 void mat3_to_eul(float eul[3], float mat[3][3])
 {
-	float tmat[3][3];
-	normalize_m3_m3(tmat, mat);
-	mat3_normalized_to_eul(eul, mat);
+	float unit_mat[3][3];
+	normalize_m3_m3(unit_mat, mat);
+	mat3_normalized_to_eul(eul, unit_mat);
 }
 
 /* XYZ order */
