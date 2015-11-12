@@ -94,7 +94,6 @@ enum TfmMode {
 #define CTX_NO_PET          (1 << 2)
 #define CTX_NO_MIRROR       (1 << 3)
 #define CTX_AUTOCONFIRM     (1 << 4)
-#define CTX_NDOF            (1 << 5)
 #define CTX_MOVIECLIP       (1 << 6)
 #define CTX_MASK            (1 << 7)
 #define CTX_PAINT_CURVE     (1 << 8)

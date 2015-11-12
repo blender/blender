@@ -290,7 +290,6 @@ enum {
 #define AREAGRID	4
 #define AREAMINX	32
 #define HEADERY		26
-#define AREAMINY	(HEADERY+EDGEWIDTH)
 
 #define HEADERDOWN	1
 #define HEADERTOP	2

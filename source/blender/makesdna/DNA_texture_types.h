@@ -368,12 +368,14 @@ typedef struct ColorMapping {
 #define TXF_AREA		3
 
 /* imaflag unused, only for version check */
+#ifdef DNA_DEPRECATED_ALLOW
 #define TEX_FIELDS_		8
 #define TEX_ANIMCYCLIC_	64
 #define TEX_ANIM5_		128
 #define TEX_ANTIALI_	256
 #define TEX_ANTISCALE_	512
 #define TEX_STD_FIELD_	1024
+#endif
 
 /* flag */
 #define TEX_COLORBAND		1

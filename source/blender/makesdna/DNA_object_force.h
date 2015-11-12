@@ -253,10 +253,10 @@ typedef struct BulletSoftBody {
 
 /* BulletSoftBody.flag */
 #define OB_BSB_SHAPE_MATCHING	2
-#define OB_BSB_UNUSED 4
+// #define OB_BSB_UNUSED 4
 #define OB_BSB_BENDING_CONSTRAINTS 8
 #define OB_BSB_AERO_VPOINT 16 /* aero model, Vertex normals are oriented toward velocity*/
-#define OB_BSB_AERO_VTWOSIDE 32 /* aero model, Vertex normals are flipped to match velocity */
+// #define OB_BSB_AERO_VTWOSIDE 32 /* aero model, Vertex normals are flipped to match velocity */
 
 /* BulletSoftBody.collisionflags */
 #define OB_BSB_COL_SDF_RS	2 /* SDF based rigid vs soft */

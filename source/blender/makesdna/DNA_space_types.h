@@ -147,7 +147,8 @@ typedef struct SpaceButs {
 #define CONTEXT_LOGIC   6
 
 /* sbuts->mainb old (deprecated) */
-#define BUTS_VIEW           0
+#ifdef DNA_DEPRECATED_ALLOW
+// #define BUTS_VIEW           0
 #define BUTS_LAMP           1
 #define BUTS_MAT            2
 #define BUTS_TEX            3
@@ -159,9 +160,10 @@ typedef struct SpaceButs {
 #define BUTS_FPAINT         9
 #define BUTS_RADIO          10
 #define BUTS_SCRIPT         11
-#define BUTS_SOUND          12
+// #define BUTS_SOUND          12
 #define BUTS_CONSTRAINT     13
-#define BUTS_EFFECTS        14
+// #define BUTS_EFFECTS        14
+#endif
 
 /* buts->mainb new */
 typedef enum eSpaceButtons_Context {

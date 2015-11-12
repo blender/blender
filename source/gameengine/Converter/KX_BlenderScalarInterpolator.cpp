@@ -35,7 +35,6 @@
 #include <cstring>
 
 extern "C" {
-#include "DNA_ipo_types.h"
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "BKE_fcurve.h"

@@ -69,11 +69,6 @@ typedef struct OceanCache {
 	int baked;
 } OceanCache;
 
-
-#define OCEAN_NOT_CACHED    0
-#define OCEAN_CACHING       1
-#define OCEAN_CACHED        2
-
 struct Ocean *BKE_ocean_add(void);
 void BKE_ocean_free_data(struct Ocean *oc);
 void BKE_ocean_free(struct Ocean *oc);

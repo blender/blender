@@ -303,8 +303,6 @@ typedef struct bJoystickSensor {
 #define SENS_JOY_ANY_EVENT		1
 
 #define SENS_JOY_BUTTON		0			/* axis type */
-#define SENS_JOY_BUTTON_PRESSED	0
-#define SENS_JOY_BUTTON_RELEASED	1
 
 #define SENS_JOY_AXIS			1		/* axis type */
 #define SENS_JOY_X_AXIS		0

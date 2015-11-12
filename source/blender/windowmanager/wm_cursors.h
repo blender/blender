@@ -108,9 +108,6 @@ enum {
 	BC_YELLOW
 };
 
-#define SMALL_CURSOR    0
-#define BIG_CURSOR      1
-
 struct wmWindow;
 struct wmEvent;
 

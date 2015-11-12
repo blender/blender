@@ -34,7 +34,7 @@
 #include "DNA_object_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_ipo_types.h"
+#include "DNA_curve_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"

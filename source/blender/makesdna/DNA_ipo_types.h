@@ -46,9 +46,6 @@
 
 /* -------------------------- Type Defines --------------------------- */
 
-/* sometimes used - mainly for GE/Ketsji */
-typedef short IPO_Channel;  
-
 
 /* --- IPO Curve Driver --- */
 
