@@ -849,7 +849,7 @@ void NODE_OT_link_make(wmOperatorType *ot)
 }
 
 /* ********************** Cut Link operator ***************** */
-static int cut_links_intersect(bNodeLink *link, float mcoords[][2], int tot)
+static bool cut_links_intersect(bNodeLink *link, float mcoords[][2], int tot)
 {
 	float coord_array[NODE_LINK_RESOL + 1][2];
 	int i, b;

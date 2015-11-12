@@ -334,6 +334,9 @@ void    UI_ThemeColorBlendShadeAlpha(int colorid1, int colorid2, float fac, int 
 float   UI_GetThemeValuef(int colorid);
 int     UI_GetThemeValue(int colorid);
 
+float   UI_GetThemeValueTypef(int colorid, int spacetype);
+int     UI_GetThemeValueType(int colorid, int spacetype);
+
 // get three color values, scaled to 0.0-1.0 range
 void    UI_GetThemeColor3fv(int colorid, float col[3]);
 void    UI_GetThemeColorBlend3ubv(int colorid1, int colorid2, float fac, unsigned char col[3]);
