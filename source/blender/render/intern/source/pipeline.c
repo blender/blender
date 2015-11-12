@@ -35,6 +35,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 
+#include "DNA_anim_types.h"
 #include "DNA_image_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -3608,7 +3609,24 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	else {
 		for (nfra = sfra, scene->r.cfra = sfra; scene->r.cfra <= efra; scene->r.cfra++) {
 			char name[FILE_MAX];
-			
+
+			/* Here is a feedback loop exists -- render initialization requires updated
+			 * render layers settings which could be animated, but scene evaluation for
+			 * the frame happens later because it depends on what layers are visible to
+			 * render engine.
+			 *
+			 * The idea here is to only evaluate animation data associated with the scene,
+			 * which will make sure render layer settings are up-to-date, initialize the
+			 * render database itself and then perform full scene update with only needed
+			 * layers.
+			 *                                                              -sergey-
+			 */
+			{
+				float ctime = BKE_scene_frame_get(scene);
+				AnimData *adt = BKE_animdata_from_id(&scene->id);
+				BKE_animsys_evaluate_animdata(scene, &scene->id, adt, ctime, ADT_RECALC_ALL);
+			}
+
 			/* only border now, todo: camera lens. (ton) */
 			render_initialize_from_main(re, &rd, bmain, scene, NULL, camera_override, lay_override, 1, 0);
 
