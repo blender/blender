@@ -410,9 +410,15 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 		solidtex = false;
 		Gtexdraw.is_lit = 0;
 	}
+	else if ((ob->mode & OB_MODE_TEXTURE_PAINT) && BKE_scene_use_new_shading_nodes(scene)) {
+		solidtex = true;
+		if (v3d->flag2 & V3D_SHADELESS_TEX)
+			Gtexdraw.is_lit = 0;
+		else
+			Gtexdraw.is_lit = -1;
+	}
 	else if ((v3d->drawtype == OB_SOLID) ||
-	         ((ob->mode & OB_MODE_EDIT) && (v3d->drawtype != OB_TEXTURE)) ||
-	         ((ob->mode & OB_MODE_TEXTURE_PAINT) && BKE_scene_use_new_shading_nodes(scene)))
+	         ((ob->mode & OB_MODE_EDIT) && (v3d->drawtype != OB_TEXTURE)))
 	{
 		/* draw with default lights in solid draw mode and edit mode */
 		solidtex = true;
@@ -1132,10 +1138,14 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	if (ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
 	else glFrontFace(GL_CCW);
 
-	if ((v3d->drawtype == OB_TEXTURE) && (v3d->flag2 & V3D_SHADELESS_TEX))
+	if ((v3d->flag2 & V3D_SHADELESS_TEX) &&
+	    ((v3d->drawtype == OB_TEXTURE) || (ob->mode & OB_MODE_TEXTURE_PAINT)))
+	{
 		glColor3f(1.0f, 1.0f, 1.0f);
-	else
+	}
+	else {
 		glEnable(GL_LIGHTING);
+	}
 
 	{
 		Mesh *me = ob->data;

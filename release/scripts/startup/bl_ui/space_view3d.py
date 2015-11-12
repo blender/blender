@@ -3046,7 +3046,7 @@ class VIEW3D_PT_view3d_shading(Panel):
             col.prop(view, "use_matcap")
             if view.use_matcap:
                 col.template_icon_view(view, "matcap_icon")
-        elif view.viewport_shade == 'TEXTURED':
+        if view.viewport_shade == 'TEXTURED' or context.mode == 'PAINT_TEXTURE':
             if scene.render.use_shading_nodes or gs.material_mode != 'GLSL':
                 col.prop(view, "show_textured_shadeless")
 
