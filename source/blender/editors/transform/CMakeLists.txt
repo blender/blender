@@ -30,6 +30,7 @@ set(INC
 	../../makesdna
 	../../makesrna
 	../../windowmanager
+	../../depsgraph
 	../../../../intern/guardedalloc
 	../../../../intern/glew-mx
 )
