@@ -502,6 +502,8 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 
 	if (ibuf1->rect) flags |= IB_rect;
 	if (ibuf1->rect_float) flags |= IB_rectfloat;
+	if (ibuf1->zbuf) flags |= IB_zbuf;
+	if (ibuf1->zbuf_float) flags |= IB_zbuffloat;
 
 	x = ibuf1->x;
 	y = ibuf1->y;
@@ -515,6 +517,12 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 	
 	if (flags & IB_rectfloat)
 		memcpy(ibuf2->rect_float, ibuf1->rect_float, ((size_t)ibuf1->channels) * x * y * sizeof(float));
+
+	if (flags & IB_zbuf)
+		memcpy(ibuf2->zbuf, ibuf1->zbuf, ((size_t)x) * y * sizeof(int));
+
+	if (flags & IB_rectfloat)
+		memcpy(ibuf2->zbuf_float, ibuf1->zbuf_float, ((size_t)x) * y * sizeof(float));
 
 	if (ibuf1->encodedbuffer) {
 		ibuf2->encodedbuffersize = ibuf1->encodedbuffersize;
@@ -533,8 +541,8 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 	tbuf.rect          = ibuf2->rect;
 	tbuf.rect_float    = ibuf2->rect_float;
 	tbuf.encodedbuffer = ibuf2->encodedbuffer;
-	tbuf.zbuf          = NULL;
-	tbuf.zbuf_float    = NULL;
+	tbuf.zbuf          = ibuf2->zbuf;
+	tbuf.zbuf_float    = ibuf2->zbuf_float;
 	for (a = 0; a < IMB_MIPMAP_LEVELS; a++)
 		tbuf.mipmap[a] = NULL;
 	tbuf.dds_data.data = NULL;
