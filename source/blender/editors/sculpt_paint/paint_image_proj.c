@@ -2989,10 +2989,10 @@ static bool project_bucket_face_isect(ProjPaintState *ps, int bucket_x, int buck
 	    isect_point_tri_v2(p3, v1, v2, v3) ||
 	    isect_point_tri_v2(p4, v1, v2, v3) ||
 	    /* we can avoid testing v3,v1 because another intersection MUST exist if this intersects */
-	    (isect_line_line_v2(p1, p2, v1, v2) || isect_line_line_v2(p1, p2, v2, v3)) ||
-	    (isect_line_line_v2(p2, p3, v1, v2) || isect_line_line_v2(p2, p3, v2, v3)) ||
-	    (isect_line_line_v2(p3, p4, v1, v2) || isect_line_line_v2(p3, p4, v2, v3)) ||
-	    (isect_line_line_v2(p4, p1, v1, v2) || isect_line_line_v2(p4, p1, v2, v3)))
+	    (isect_seg_seg_v2(p1, p2, v1, v2) || isect_seg_seg_v2(p1, p2, v2, v3)) ||
+	    (isect_seg_seg_v2(p2, p3, v1, v2) || isect_seg_seg_v2(p2, p3, v2, v3)) ||
+	    (isect_seg_seg_v2(p3, p4, v1, v2) || isect_seg_seg_v2(p3, p4, v2, v3)) ||
+	    (isect_seg_seg_v2(p4, p1, v1, v2) || isect_seg_seg_v2(p4, p1, v2, v3)))
 	{
 		return 1;
 	}

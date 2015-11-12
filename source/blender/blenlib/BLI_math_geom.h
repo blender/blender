@@ -154,25 +154,31 @@ void limit_dist_v3(float v1[3], float v2[3], const float dist);
 #define ISECT_LINE_LINE_EXACT        1
 #define ISECT_LINE_LINE_CROSS        2
 
-int isect_line_line_v2_point(const float v0[2], const float v1[2], const float v2[2], const float v3[2], float r_vi[2]);
-int isect_line_line_v2(const float a1[2], const float a2[2], const float b1[2], const float b2[2]);
-int isect_line_line_v2_int(const int a1[2], const int a2[2], const int b1[2], const int b2[2]);
+int  isect_seg_seg_v2(const float a1[2], const float a2[2], const float b1[2], const float b2[2]);
+int  isect_seg_seg_v2_int(const int a1[2], const int a2[2], const int b1[2], const int b2[2]);
+int  isect_seg_seg_v2_point(const float v0[2], const float v1[2], const float v2[2], const float v3[2], float vi[2]);
+bool isect_seg_seg_v2_simple(const float v1[2], const float v2[2], const float v3[2], const float v4[2]);
+
 int isect_line_sphere_v3(const float l1[3], const float l2[3], const float sp[3], const float r, float r_p1[3], float r_p2[3]);
 int isect_line_sphere_v2(const float l1[2], const float l2[2], const float sp[2], const float r, float r_p1[2], float r_p2[2]);
-int isect_seg_seg_v2_point(const float v0[2], const float v1[2], const float v2[2], const float v3[2], float vi[2]);
-bool isect_seg_seg_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2]);
 
+int isect_line_line_v2_point(
+        const float v0[2], const float v1[2],
+        const float v2[2], const float v3[2],
+        float r_vi[2]);
 int isect_line_line_epsilon_v3(
         const float v1[3], const float v2[3],
-        const float v3[3], const float v4[3], float i1[3], float i2[3],
+        const float v3[3], const float v4[3],
+        float i1[3], float i2[3],
         const float epsilon);
 int isect_line_line_v3(
         const float v1[3], const float v2[3],
         const float v3[3], const float v4[3],
-        float i1[3], float i2[3]);
-bool isect_line_line_strict_v3(const float v1[3], const float v2[3],
-                               const float v3[3], const float v4[3],
-                               float vi[3], float *r_lambda);
+        float r_i1[3], float r_i2[3]);
+bool isect_line_line_strict_v3(
+        const float v1[3], const float v2[3],
+        const float v3[3], const float v4[3],
+        float vi[3], float *r_lambda);
 
 bool isect_ray_plane_v3(
         const float p1[3], const float d[3],

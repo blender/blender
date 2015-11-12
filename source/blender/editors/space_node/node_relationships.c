@@ -858,7 +858,7 @@ static bool cut_links_intersect(bNodeLink *link, float mcoords[][2], int tot)
 
 		for (i = 0; i < tot - 1; i++)
 			for (b = 0; b < NODE_LINK_RESOL; b++)
-				if (isect_line_line_v2(mcoords[i], mcoords[i + 1], coord_array[b], coord_array[b + 1]) > 0)
+				if (isect_seg_seg_v2(mcoords[i], mcoords[i + 1], coord_array[b], coord_array[b + 1]) > 0)
 					return 1;
 	}
 	return 0;

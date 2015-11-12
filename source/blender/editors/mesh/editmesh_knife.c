@@ -1672,7 +1672,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 		knife_project_v2(kcd, kfe->v2->cageco, se2);
 		isect_kind = (kfe_verts_in_cut) ? -1 : isect_seg_seg_v2_point(s1, s2, se1, se2, sint);
 		if (isect_kind == -1) {
-			/* isect_seg_seg_v2 doesn't do tolerance test around ends of s1-s2 */
+			/* isect_seg_seg_v2_simple doesn't do tolerance test around ends of s1-s2 */
 			closest_to_line_segment_v2(sint, s1, se1, se2);
 			if (len_squared_v2v2(sint, s1) <= line_tol_sq)
 				isect_kind = 1;
@@ -2480,7 +2480,7 @@ static bool find_hole_chains(KnifeTool_OpData *kcd, ListBase *hole, BMFace *f, L
 				for (k = 0; k < nh && ok; k++) {
 					if (k == i || (k + 1) % nh == i)
 						continue;
-					if (isect_line_line_v2(hco[i], fco[j], hco[k], hco[(k + 1) % nh]))
+					if (isect_seg_seg_v2(hco[i], fco[j], hco[k], hco[(k + 1) % nh]))
 						ok = false;
 				}
 				if (!ok)
@@ -2488,7 +2488,7 @@ static bool find_hole_chains(KnifeTool_OpData *kcd, ListBase *hole, BMFace *f, L
 				for (k = 0; k < nf && ok; k++) {
 					if (k == j || (k + 1) % nf == j)
 						continue;
-					if (isect_line_line_v2(hco[i], fco[j], fco[k], fco[(k + 1) % nf]))
+					if (isect_seg_seg_v2(hco[i], fco[j], fco[k], fco[(k + 1) % nf]))
 						ok = false;
 				}
 				if (ok) {

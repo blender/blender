@@ -91,7 +91,7 @@ static int cut_links_intersect(uiLinkLine *line, float mcoords[][2], int tot)
 	if (ui_link_bezier_points(&rectlink, coord_array, LINK_RESOL)) {
 		for (i=0; i<tot-1; i++)
 			for (b=0; b<LINK_RESOL-1; b++)
-				if (isect_line_line_v2(mcoords[i], mcoords[i+1], coord_array[b], coord_array[b+1]) > 0)
+				if (isect_seg_seg_v2(mcoords[i], mcoords[i + 1], coord_array[b], coord_array[b + 1]) > 0)
 					return 1;
 	}
 	return 0;

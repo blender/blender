@@ -87,9 +87,9 @@ bool BLI_lasso_is_edge_inside(const int mcords[][2], const unsigned int moves,
 
 	/* no points in lasso, so we have to intersect with lasso edge */
 
-	if (isect_line_line_v2_int(mcords[0], mcords[moves - 1], v1, v2) > 0) return true;
+	if (isect_seg_seg_v2_int(mcords[0], mcords[moves - 1], v1, v2) > 0) return true;
 	for (a = 0; a < moves - 1; a++) {
-		if (isect_line_line_v2_int(mcords[a], mcords[a + 1], v1, v2) > 0) return true;
+		if (isect_seg_seg_v2_int(mcords[a], mcords[a + 1], v1, v2) > 0) return true;
 	}
 
 	return false;

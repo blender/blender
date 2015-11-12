@@ -253,7 +253,7 @@ static void feather_bucket_check_intersect(
 		if (check_a >= cur_a - 1 || cur_b == check_a)
 			continue;
 
-		if (isect_seg_seg_v2(v1, v2, v3, v4)) {
+		if (isect_seg_seg_v2_simple(v1, v2, v3, v4)) {
 			int k;
 			float p[2];
 			float min_a[2], max_a[2];
