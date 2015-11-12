@@ -163,20 +163,24 @@ static void InputCustomRatio(TransInfo *t, MouseInput *mi, const double mval[2],
 	output[0] = -output[0];
 }
 
+struct InputAngle_Data {
+	double angle;
+	double mval_prev[2];
+};
+
 static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const double mval[2], float output[3])
 {
+	struct InputAngle_Data *data = mi->data;
 	double dx2 = mval[0] - mi->center[0];
 	double dy2 = mval[1] - mi->center[1];
 	double B = sqrt(dx2 * dx2 + dy2 * dy2);
 
-	double dx1 = mi->imval[0] - mi->center[0];
-	double dy1 = mi->imval[1] - mi->center[1];
+	double dx1 = data->mval_prev[0] - mi->center[0];
+	double dy1 = data->mval_prev[1] - mi->center[1];
 	double A = sqrt(dx1 * dx1 + dy1 * dy1);
 
-	double dx3 = mval[0] - mi->imval[0];
-	double dy3 = mval[1] - mi->imval[1];
-
-	double *angle = mi->data;
+	double dx3 = mval[0] - data->mval_prev[0];
+	double dy3 = mval[1] - data->mval_prev[1];
 
 	/* use doubles here, to make sure a "1.0" (no rotation) doesn't become 9.999999e-01, which gives 0.02 for acos */
 	double deler = (((dx1 * dx1 + dy1 * dy1) +
@@ -210,19 +214,12 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const double mval[2
 		if ((dx1 * dy2 - dx2 * dy1) > 0.0) dphi = -dphi;
 	}
 
-	if (mi->precision) {
-		dphi = dphi * mi->precision_factor;
-	}
+	data->angle += ((double)dphi) * (mi->precision ? mi->precision_factor : 1.0f);
 
-	/* if no delta angle, don't update initial position */
-	if (dphi != 0) {
-		mi->imval[0] = mval[0];
-		mi->imval[1] = mval[1];
-	}
+	data->mval_prev[0] = mval[0];
+	data->mval_prev[1] = mval[1];
 
-	*angle += (double)dphi;
-
-	output[0] = *angle;
+	output[0] = data->angle;
 }
 
 static void InputAngleSpring(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
@@ -288,19 +285,24 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 			t->helpline = HLP_SPRING;
 			break;
 		case INPUT_ANGLE:
+		case INPUT_ANGLE_SPRING:
+		{
+			struct InputAngle_Data *data;
 			mi->use_virtual_mval = false;
 			mi->precision_factor = 1.0f / 30.0f;
-			mi->data = MEM_callocN(sizeof(double), "angle accumulator");
-			mi->apply = InputAngle;
+			data = MEM_callocN(sizeof(struct InputAngle_Data), "angle accumulator");
+			data->mval_prev[0] = mi->imval[0];
+			data->mval_prev[1] = mi->imval[1];
+			mi->data = data;
+			if (mode == INPUT_ANGLE) {
+				mi->apply = InputAngle;
+			}
+			else {
+				mi->apply = InputAngleSpring;
+			}
 			t->helpline = HLP_ANGLE;
 			break;
-		case INPUT_ANGLE_SPRING:
-			mi->use_virtual_mval = false;
-			calcSpringFactor(mi);
-			mi->data = MEM_callocN(sizeof(double), "angle accumulator");
-			mi->apply = InputAngleSpring;
-			t->helpline = HLP_ANGLE;
-			break;
+		}
 		case INPUT_TRACKBALL:
 			mi->precision_factor = 1.0f / 30.0f;
 			/* factor has to become setting or so */
