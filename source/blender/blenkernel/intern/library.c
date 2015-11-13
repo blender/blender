@@ -89,6 +89,7 @@
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_gpencil.h"
+#include "BKE_idcode.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_ipo.h"
@@ -152,6 +153,7 @@ void BKE_id_lib_local_paths(Main *bmain, Library *lib, ID *id)
 void id_lib_extern(ID *id)
 {
 	if (id) {
+		BLI_assert(BKE_idcode_is_linkable(GS(id->name)));
 		if (id->flag & LIB_INDIRECT) {
 			id->flag -= LIB_INDIRECT;
 			id->flag |= LIB_EXTERN;
@@ -179,10 +181,7 @@ void id_us_plus(ID *id)
 	if (id) {
 		BLI_assert(id->us >= 0);
 		id->us++;
-		if (id->flag & LIB_INDIRECT) {
-			id->flag -= LIB_INDIRECT;
-			id->flag |= LIB_EXTERN;
-		}
+		id_lib_extern(id);
 	}
 }
 

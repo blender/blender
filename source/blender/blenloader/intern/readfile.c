@@ -3382,6 +3382,8 @@ static void lib_link_key(FileData *fd, Main *main)
 			blo_do_versions_key_uidgen(key);
 		}
 		
+		BLI_assert((key->id.flag & LIB_EXTERN) == 0);
+
 		if (key->id.flag & LIB_NEED_LINK) {
 			lib_link_animdata(fd, &key->id, key->adt);
 			
@@ -9623,6 +9625,8 @@ static ID *link_named_part(Main *mainl, FileData *fd, const short idcode, const 
 	BHead *bhead = find_bhead_from_code_name(fd, idcode, name);
 	ID *id;
 
+	BLI_assert(BKE_idcode_is_linkable(idcode) && BKE_idcode_is_valid(idcode));
+
 	if (bhead) {
 		id = is_yet_read(fd, mainl, bhead);
 		if (id == NULL) {
@@ -9762,12 +9766,23 @@ ID *BLO_library_link_named_part_ex(
 static void link_id_part(ReportList *reports, FileData *fd, Main *mainvar, ID *id, ID **r_id)
 {
 	BHead *bhead = NULL;
+	const bool is_valid = BKE_idcode_is_linkable(GS(id->name)) || ((id->flag & LIB_EXTERN) == 0);
 
 	if (fd) {
 		bhead = find_bhead_from_idname(fd, id->name);
 	}
 
 	id->flag &= ~LIB_READ;
+
+	if (!is_valid) {
+		blo_reportf_wrap(
+		        reports, RPT_ERROR,
+		        TIP_("LIB: %s: '%s' is directly linked from '%s' (parent '%s'), but is a non-linkable datatype"),
+		        BKE_idcode_to_name(GS(id->name)),
+		        id->name + 2,
+		        mainvar->curlib->filepath,
+		        library_parent_filepath(mainvar->curlib));
+	}
 
 	if (bhead) {
 		id->flag |= LIB_NEED_EXPAND;
@@ -9785,7 +9800,7 @@ static void link_id_part(ReportList *reports, FileData *fd, Main *mainvar, ID *i
 
 		/* Generate a placeholder for this ID (simplified version of read_libblock actually...). */
 		if (r_id) {
-			*r_id = create_placeholder(mainvar, id->name, id->flag);
+			*r_id = is_valid ? create_placeholder(mainvar, id->name, id->flag) : NULL;
 		}
 	}
 }
@@ -10055,7 +10070,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 							link_id_part(basefd->reports, fd, mainptr, id, &realid);
 
-							BLI_assert(realid != NULL);
+							/* realid shall never be NULL - unless some source file/lib is broken
+							 * (known case: some directly linked shapekey from a missing lib...). */
+							/* BLI_assert(realid != NULL); */
 
 							change_idid_adr(mainlist, basefd, id, realid);
 
