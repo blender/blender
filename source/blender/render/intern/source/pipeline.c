@@ -3581,7 +3581,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 
 			/* Special case for 'mh->get_next_frame'
 			 * this overrides regular frame stepping logic */
-			if (mh->get_next_frame) {
+			if (mh && mh->get_next_frame) {
 				while (G.is_break == false) {
 					int nfra_test = mh->get_next_frame(re->movie_ctx_arr[0], &re->r, re->reports);
 					if (nfra_test >= 0 && nfra_test >= sfra && nfra_test <= efra) {
