@@ -43,7 +43,7 @@
 #include "BKE_report.h"
 #include "BKE_global.h" /* G.background only */
 
-static const char *report_type_str(int type)
+const char *BKE_report_type_str(ReportType type)
 {
 	switch (type) {
 		case RPT_DEBUG:
@@ -109,7 +109,7 @@ void BKE_report(ReportList *reports, ReportType type, const char *_message)
 	/* in background mode always print otherwise there are cases the errors wont be displayed,
 	 * but still add to the report list since this is used for python exception handling */
 	if (G.background || !reports || ((reports->flag & RPT_PRINT) && (type >= reports->printlevel))) {
-		printf("%s: %s\n", report_type_str(type), message);
+		printf("%s: %s\n", BKE_report_type_str(type), message);
 		fflush(stdout); /* this ensures the message is printed before a crash */
 	}
 
@@ -117,7 +117,7 @@ void BKE_report(ReportList *reports, ReportType type, const char *_message)
 		char *message_alloc;
 		report = MEM_callocN(sizeof(Report), "Report");
 		report->type = type;
-		report->typestr = report_type_str(type);
+		report->typestr = BKE_report_type_str(type);
 
 		len = strlen(message);
 		message_alloc = MEM_callocN(sizeof(char) * (len + 1), "ReportMessage");
@@ -136,7 +136,7 @@ void BKE_reportf(ReportList *reports, ReportType type, const char *_format, ...)
 	const char *format = TIP_(_format);
 
 	if (G.background || !reports || ((reports->flag & RPT_PRINT) && (type >= reports->printlevel))) {
-		printf("%s: ", report_type_str(type));
+		printf("%s: ", BKE_report_type_str(type));
 		va_start(args, _format);
 		vprintf(format, args);
 		va_end(args);
@@ -157,7 +157,7 @@ void BKE_reportf(ReportList *reports, ReportType type, const char *_format, ...)
 		BLI_dynstr_free(ds);
 
 		report->type = type;
-		report->typestr = report_type_str(type);
+		report->typestr = BKE_report_type_str(type);
 
 		BLI_addtail(&reports->list, report);
 	}

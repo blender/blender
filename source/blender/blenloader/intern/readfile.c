@@ -255,7 +255,7 @@ void blo_reportf_wrap(ReportList *reports, ReportType type, const char *format, 
 	BKE_report(reports, type, fixed_buf);
 	
 	if (G.background == 0) {
-		printf("%s\n", fixed_buf);
+		printf("%s: %s\n", BKE_report_type_str(type), fixed_buf);
 	}
 }
 
@@ -5578,7 +5578,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				base->object = newlibadr_us(fd, sce->id.lib, base->object);
 				
 				if (base->object == NULL) {
-					blo_reportf_wrap(fd->reports, RPT_WARNING, TIP_("LIB ERROR: object lost from scene: '%s'"),
+					blo_reportf_wrap(fd->reports, RPT_WARNING, TIP_("LIB: object lost from scene: '%s'"),
 					                 sce->id.name + 2);
 					BLI_remlink(&sce->base, base);
 					if (base == sce->basact) sce->basact = NULL;
@@ -8547,7 +8547,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
 				if (ptr->curlib == NULL) {
 					const char *idname= bhead_id_name(fd, bhead);
 					
-					blo_reportf_wrap(fd->reports, RPT_WARNING, TIP_("LIB ERROR: Data refers to main .blend file: '%s' from %s"),
+					blo_reportf_wrap(fd->reports, RPT_WARNING, TIP_("LIB: Data refers to main .blend file: '%s' from %s"),
 					                 idname, mainvar->curlib->filepath);
 					return;
 				}
@@ -9777,7 +9777,7 @@ static void link_id_part(ReportList *reports, FileData *fd, Main *mainvar, ID *i
 	else {
 		blo_reportf_wrap(
 		        reports, RPT_WARNING,
-		        TIP_("LIB ERROR: %s: '%s' missing from '%s', parent '%s'"),
+		        TIP_("LIB: %s: '%s' missing from '%s', parent '%s'"),
 		        BKE_idcode_to_name(GS(id->name)),
 		        id->name + 2,
 		        mainvar->curlib->filepath,
@@ -10084,8 +10084,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					BLI_assert(0);
 					BLI_remlink(lbarray[a], id);
 					blo_reportf_wrap(
-					        basefd->reports, RPT_WARNING,
-					        TIP_("LIB ERROR: %s: '%s' unread lib block missing from '%s', parent '%s' - "
+					        basefd->reports, RPT_ERROR,
+					        TIP_("LIB: %s: '%s' unread lib block missing from '%s', parent '%s' - "
 					             "Please file a bug report if you see this message"),
 					        BKE_idcode_to_name(GS(id->name)),
 					        id->name + 2,

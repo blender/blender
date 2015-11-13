@@ -66,6 +66,8 @@ Report *BKE_reports_last_displayable(ReportList *reports);
 
 bool BKE_reports_contain(ReportList *reports, ReportType level);
 
+const char *BKE_report_type_str(ReportType type);
+
 bool BKE_report_write_file_fp(FILE *fp, ReportList *reports, const char *header);
 bool BKE_report_write_file(const char *filepath, ReportList *reports, const char *header);
 
