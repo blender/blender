@@ -583,7 +583,7 @@ void BKE_mesh_remap_calc_verts_from_dm(
 					}
 
 					if (mesh_remap_bvhtree_query_nearest(&treedata, &nearest, tmp_co, max_dist_sq, &hit_dist)) {
-						const MLoopTri *lt = &treedata.looptri[rayhit.index];
+						const MLoopTri *lt = &treedata.looptri[nearest.index];
 						MPoly *mp = &polys_src[lt->poly];
 
 						if (mode == MREMAP_MODE_VERT_POLY_NEAREST) {
@@ -812,7 +812,7 @@ void BKE_mesh_remap_calc_edges_from_dm(
 				}
 
 				if (mesh_remap_bvhtree_query_nearest(&treedata, &nearest, tmp_co, max_dist_sq, &hit_dist)) {
-					const MLoopTri *lt = &treedata.looptri[rayhit.index];
+					const MLoopTri *lt = &treedata.looptri[nearest.index];
 					MPoly *mp_src = &polys_src[lt->poly];
 					MLoop *ml_src = &loops_src[mp_src->loopstart];
 					int nloops = mp_src->totloop;
