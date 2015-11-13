@@ -1438,7 +1438,9 @@ void BKE_mesh_remap_calc_loops_from_dm(
 
 			if (mode == MREMAP_MODE_LOOP_NEAREST_POLYNOR) {
 				copy_v3_v3(pnor_dst, poly_nors_dst[pidx_dst]);
-				BLI_space_transform_apply_normal(space_transform, pnor_dst);
+				if (space_transform) {
+					BLI_space_transform_apply_normal(space_transform, pnor_dst);
+				}
 			}
 
 			if ((size_t)mp_dst->totloop > islands_res_buff_size) {
@@ -1473,7 +1475,9 @@ void BKE_mesh_remap_calc_loops_from_dm(
 
 							if (mode == MREMAP_MODE_LOOP_NEAREST_LOOPNOR) {
 								copy_v3_v3(tmp_no, loop_nors_dst[plidx_dst + mp_dst->loopstart]);
-								BLI_space_transform_apply_normal(space_transform, tmp_no);
+								if (space_transform) {
+									BLI_space_transform_apply_normal(space_transform, tmp_no);
+								}
 								nor_dst = &tmp_no;
 								nors_src = loop_nors_src;
 								vert_to_refelem_map_src = vert_to_loop_map_src;
