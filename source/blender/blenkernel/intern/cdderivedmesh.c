@@ -344,9 +344,6 @@ static void cdDM_update_normals_from_pbvh(DerivedMesh *dm)
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 	float (*face_nors)[3];
 
-	if (!cddm->pbvh || !cddm->pbvh_draw || !dm->numPolyData)
-		return;
-
 	face_nors = CustomData_get_layer(&dm->polyData, CD_NORMAL);
 
 	BKE_pbvh_update(cddm->pbvh, PBVH_UpdateNormals, face_nors);
@@ -446,18 +443,18 @@ static void cdDM_drawFacesSolid(
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 	int a;
 
-	if (cddm->pbvh && cddm->pbvh_draw) {
-		if (BKE_pbvh_has_faces(cddm->pbvh)) {
+	if (cddm->pbvh) {
+		if (cddm->pbvh_draw && BKE_pbvh_has_faces(cddm->pbvh)) {
 			float (*face_nors)[3] = CustomData_get_layer(&dm->faceData, CD_NORMAL);
-
-			cdDM_update_normals_from_pbvh(dm);
 
 			BKE_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors,
 			              setMaterial, false, false);
 			glShadeModel(GL_FLAT);
+			return;
 		}
-
-		return;
+		else {
+			cdDM_update_normals_from_pbvh(dm);
+		}
 	}
 	
 	GPU_vertex_setup(dm);
@@ -505,14 +502,18 @@ static void cdDM_drawFacesTex_common(
 	 *       textured view, but object itself will be displayed gray
 	 *       (the same as it'll display without UV maps in textured view)
 	 */
-	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
-		if (BKE_pbvh_has_faces(cddm->pbvh)) {
-			cdDM_update_normals_from_pbvh(dm);
+	if (cddm->pbvh) {
+		if (cddm->pbvh_draw &&
+		    BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH &&
+		    BKE_pbvh_has_faces(cddm->pbvh))
+		{
 			GPU_set_tpage(NULL, false, false);
 			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, false, false);
+			return;
 		}
-
-		return;
+		else {
+			cdDM_update_normals_from_pbvh(dm);
+		}
 	}
 
 	colType = CD_TEXTURE_MLOOPCOL;
@@ -878,14 +879,18 @@ static void cdDM_drawMappedFacesGLSL(
 	 *       will skip using textures (dyntopo currently destroys UV anyway) and
 	 *       works fine for matcap
 	 */
-	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
-		if (BKE_pbvh_has_faces(cddm->pbvh)) {
-			cdDM_update_normals_from_pbvh(dm);
+	if (cddm->pbvh) {
+		if (cddm->pbvh_draw &&
+		    BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH &&
+		    BKE_pbvh_has_faces(cddm->pbvh))
+		{
 			setMaterial(1, &gattribs);
 			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, false, false);
+			return;
 		}
-
-		return;
+		else {
+			cdDM_update_normals_from_pbvh(dm);
+		}
 	}
 
 	matnr = -1;
@@ -1147,14 +1152,18 @@ static void cdDM_drawMappedFacesMat(
 	 *       works fine for matcap
 	 */
 
-	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
-		if (BKE_pbvh_has_faces(cddm->pbvh)) {
-			cdDM_update_normals_from_pbvh(dm);
+	if (cddm->pbvh) {
+		if (cddm->pbvh_draw &&
+		    BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH &&
+		    BKE_pbvh_has_faces(cddm->pbvh))
+		{
 			setMaterial(userData, 1, &gattribs);
 			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, false, false);
+			return;
 		}
-
-		return;
+		else {
+			cdDM_update_normals_from_pbvh(dm);
+		}
 	}
 
 	matnr = -1;
@@ -1347,6 +1356,7 @@ static void cdDM_buffer_copy_vertex(
 static void cdDM_buffer_copy_normal(
         DerivedMesh *dm, short *varray)
 {
+	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 	int i, j, totpoly;
 	int start;
 
@@ -1361,6 +1371,10 @@ static void cdDM_buffer_copy_normal(
 	mpoly = dm->getPolyArray(dm);
 	mloop = dm->getLoopArray(dm);
 	totpoly = dm->getNumPolys(dm);
+
+	/* we are in sculpt mode, disable loop normals (since they won't get updated) */
+	if (cddm->pbvh)
+		lnors = NULL;
 
 	start = 0;
 	for (i = 0; i < totpoly; i++, mpoly++) {

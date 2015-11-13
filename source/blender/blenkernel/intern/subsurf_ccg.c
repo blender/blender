@@ -1912,6 +1912,10 @@ static void ccgDM_buffer_copy_normal(
 	int shademodel;
 	int start = 0;
 
+	/* we are in sculpt mode, disable loop normals (since they won't get updated) */
+	if (ccgdm->pbvh)
+		lnors = NULL;
+
 	CCG_key_top_level(&key, ss);
 
 	for (i = 0; i < totface; i++) {

@@ -5149,6 +5149,9 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 		paint_cursor_start(C, sculpt_poll_view3d);
 	}
 
+	if (ob->derivedFinal) /* VBO no longer valid */
+		GPU_drawobject_free(ob->derivedFinal);
+
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
 
 	return OPERATOR_FINISHED;
