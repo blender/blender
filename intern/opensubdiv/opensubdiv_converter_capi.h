@@ -93,7 +93,7 @@ OpenSubdiv_TopologyRefinerDescr *openSubdiv_createTopologyRefinerDescr(
 void openSubdiv_deleteTopologyRefinerDescr(
         OpenSubdiv_TopologyRefinerDescr *topology_refiner);
 
-/* TODO(sergey): Those calls are not strictly related on conversion.
+/* TODO(sergey): Those calls are not strictly related to conversion.
  * needs some dedicated file perhaps.
  */
 

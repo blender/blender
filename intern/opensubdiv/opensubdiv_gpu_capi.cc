@@ -312,7 +312,7 @@ void bindProgram(GLMeshInterface * /*mesh*/,
 {
 	glUseProgram(program);
 
-	/* Matricies */
+	/* Matrices */
 	glUniformMatrix4fv(glGetUniformLocation(program, "modelViewMatrix"),
 	                   1, false,
 	                   g_transform.model_view_matrix);
@@ -323,7 +323,7 @@ void bindProgram(GLMeshInterface * /*mesh*/,
 	                   1, false,
 	                   g_transform.normal_matrix);
 
-	/* Ligthing */
+	/* Lighting */
 	glBindBuffer(GL_UNIFORM_BUFFER, g_lighting_ub);
 	glBufferSubData(GL_UNIFORM_BUFFER,
 	                0, sizeof(g_lighting_data), &g_lighting_data);
@@ -427,7 +427,7 @@ void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl,
 	g_use_osd_glsl = use_osd_glsl != 0;
 	g_active_uv_index = active_uv_index;
 
-	/* Update transformation matricies. */
+	/* Update transformation matrices. */
 	glGetFloatv(GL_PROJECTION_MATRIX, g_transform.projection_matrix);
 	glGetFloatv(GL_MODELVIEW_MATRIX, g_transform.model_view_matrix);
 
@@ -482,7 +482,7 @@ void openSubdiv_osdGLMeshDisplayPrepare(int use_osd_glsl,
 	}
 }
 
-static GLuint preapre_patchDraw(GLMeshInterface *mesh,
+static GLuint prepare_patchDraw(GLMeshInterface *mesh,
                                 bool fill_quads)
 {
 	GLint program = 0;
@@ -657,7 +657,7 @@ void openSubdiv_osdGLMeshDisplay(OpenSubdiv_GLMesh *gl_mesh,
 	}
 
 	/* Setup GLSL/OpenGL to draw patches in current context. */
-	GLuint program = preapre_patchDraw(mesh, fill_quads != 0);
+	GLuint program = prepare_patchDraw(mesh, fill_quads != 0);
 
 	if (start_patch != -1) {
 		draw_partition_patches_range(mesh,
