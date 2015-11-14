@@ -295,28 +295,6 @@ const struct OpenSubdiv_TopologyRefinerDescr *openSubdiv_getGLMeshTopologyRefine
 
 int openSubdiv_supportGPUDisplay(void)
 {
-	{
-		/* Currently Intel GPUs has hard time working on Windows.
-		 *
-		 * For until we've got access to a hardware which demonstrates
-		 * the issue we disable OpenSubdiv on Intel GPUs.
-		 */
-		static bool vendor_checked = false;
-		static bool is_intel = false;
-		if (!vendor_checked) {
-			vendor_checked = true;
-			const char *vendor = (const char *)glGetString(GL_VENDOR);
-			if (vendor != NULL && strstr(vendor, "Intel")) {
-				if(getenv("OPENSUBDIV_ALLOW_INTEL") == NULL) {
-					is_intel = true;
-				}
-			}
-		}
-		if (is_intel) {
-			return false;
-		}
-	}
-
 	return GLEW_EXT_geometry_shader4 &&
 	       GLEW_ARB_gpu_shader5 &&
 	       GLEW_ARB_uniform_buffer_object;
