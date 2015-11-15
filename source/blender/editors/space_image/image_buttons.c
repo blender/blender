@@ -635,7 +635,9 @@ static void image_user_change(bContext *C, void *iuser_v, void *unused)
 }
 #endif
 
-static void uiblock_layer_pass_buttons(uiLayout *layout, Image *image, RenderResult *rr, ImageUser *iuser, int w, short *render_slot)
+static void uiblock_layer_pass_buttons(
+        uiLayout *layout, Image *image, RenderResult *rr, ImageUser *iuser, int w, bool show_arrowbuts,
+        short *render_slot)
 {
 	static void *rnd_pt[4];  /* XXX, workaround */
 	uiBlock *block = uiLayoutGetBlock(layout);
@@ -689,6 +691,14 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, Image *image, RenderRes
 			                   0, 0, wmenu2, UI_UNIT_Y, TIP_("Select Layer"));
 			UI_but_func_set(but, image_multi_cb, rr, iuser);
 			UI_but_type_set_menu_from_pulldown(but);
+
+			/* decrease, increase arrows */
+			if (show_arrowbuts) {
+				but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_TRIA_LEFT,   0, 0, 0.85f * UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, TIP_("Previous Layer"));
+				UI_but_func_set(but, image_multi_declay_cb, rr, iuser);
+				but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_TRIA_RIGHT,  0, 0, 0.90f * UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, TIP_("Next Layer"));
+				UI_but_func_set(but, image_multi_inclay_cb, rr, iuser);
+			}
 		}
 
 		/* pass */
@@ -700,6 +710,14 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, Image *image, RenderRes
 		                   0, 0, wmenu3, UI_UNIT_Y, TIP_("Select Pass"));
 		UI_but_func_set(but, image_multi_cb, rr, iuser);
 		UI_but_type_set_menu_from_pulldown(but);
+
+		/* decrease, increase arrows */
+		if (show_arrowbuts) {
+			but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_TRIA_LEFT,   0, 0, 0.85f * UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, TIP_("Previous Pass"));
+			UI_but_func_set(but, image_multi_decpass_cb, rr, iuser);
+			but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_TRIA_RIGHT,  0, 0, 0.90f * UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, TIP_("Next Pass"));
+			UI_but_func_set(but, image_multi_incpass_cb, rr, iuser);
+		}
 
 		/* view */
 		if (BLI_listbase_count_ex(&rr->views, 2) > 1 &&
@@ -732,39 +750,6 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, Image *image, RenderRes
 		UI_but_func_set(but, image_multiview_cb, image, iuser);
 		UI_but_type_set_menu_from_pulldown(but);
 	}
-}
-
-static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, Image *image, RenderResult *rr, ImageUser *iuser,
-                                             int menus_width, short *render_slot)
-{
-	uiBlock *block = uiLayoutGetBlock(layout);
-	uiLayout *row;
-	uiBut *but;
-	
-	row = uiLayoutRow(layout, true);
-
-	if (rr == NULL || iuser == NULL)
-		return;
-	if (BLI_listbase_is_empty(&rr->layers)) {
-		uiItemL(row, IFACE_("No Layers in Render Result"), ICON_NONE);
-		return;
-	}
-
-	/* decrease, increase arrows */
-	but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_TRIA_LEFT,   0, 0, 0.85f * UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, TIP_("Previous Layer"));
-	UI_but_func_set(but, image_multi_declay_cb, rr, iuser);
-	but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_TRIA_RIGHT,  0, 0, 0.90f * UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, TIP_("Next Layer"));
-	UI_but_func_set(but, image_multi_inclay_cb, rr, iuser);
-
-	uiblock_layer_pass_buttons(row, image, rr, iuser, menus_width, render_slot);
-
-	/* decrease, increase arrows */
-	but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_TRIA_LEFT,   0, 0, 0.85f * UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, TIP_("Previous Pass"));
-	UI_but_func_set(but, image_multi_decpass_cb, rr, iuser);
-	but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_TRIA_RIGHT,  0, 0, 0.90f * UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, TIP_("Next Pass"));
-	UI_but_func_set(but, image_multi_incpass_cb, rr, iuser);
-
-	UI_block_align_end(block);
 }
 
 // XXX HACK!
@@ -875,15 +860,11 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 				RenderResult *rr;
 				const float dpi_fac = UI_DPI_FAC;
 				const int menus_width = 230 * dpi_fac;
+				const bool show_arrow_buts = (rr != NULL);
 
 				/* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
 				rr = BKE_image_acquire_renderresult(scene, ima);
-				if (rr) {
-					uiblock_layer_pass_arrow_buttons(layout, ima, rr, iuser, menus_width, &ima->render_slot);
-				}
-				else {
-					uiblock_layer_pass_buttons(layout, ima, rr, iuser, menus_width, &ima->render_slot);
-				}
+				uiblock_layer_pass_buttons(layout, ima, rr, iuser, menus_width, show_arrow_buts, &ima->render_slot);
 				BKE_image_release_renderresult(scene, ima);
 			}
 		}
@@ -917,7 +898,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			/* multilayer? */
 			if (ima->type == IMA_TYPE_MULTILAYER && ima->rr) {
 				const float dpi_fac = UI_DPI_FAC;
-				uiblock_layer_pass_arrow_buttons(layout, ima, ima->rr, iuser, 230 * dpi_fac, NULL);
+				uiblock_layer_pass_buttons(layout, ima, ima->rr, iuser, 230 * dpi_fac, true, NULL);
 			}
 			else if (ima->source != IMA_SRC_GENERATED) {
 				if (compact == 0) {
@@ -1231,16 +1212,12 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 		const float dpi_fac = UI_DPI_FAC;
 		const int menus_width = 160 * dpi_fac;
 		const bool is_render_result = (ima->type == IMA_TYPE_R_RESULT);
+		const bool show_arrow_buts = (rr && is_render_result);
 
 		/* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
 		rr = BKE_image_acquire_renderresult(scene, ima);
-		if (rr && is_render_result) {
-			uiblock_layer_pass_arrow_buttons(layout, ima, rr, iuser, menus_width, &ima->render_slot);
-		}
-		else {
-			uiblock_layer_pass_buttons(layout, ima, rr, iuser, menus_width,
-			                           is_render_result ? &ima->render_slot : NULL);
-		}
+		uiblock_layer_pass_buttons(layout, ima, rr, iuser, menus_width, show_arrow_buts,
+		                           is_render_result ? &ima->render_slot : NULL);
 		BKE_image_release_renderresult(scene, ima);
 	}
 }
