@@ -281,6 +281,8 @@ struct uiBut {
 	/* UI_BTYPE_PULLDOWN/UI_BTYPE_MENU data */
 	uiMenuCreateFunc menu_create_func;
 
+	uiMenuStepFunc menu_step_func;
+
 	/* RNA data */
 	struct PointerRNA rnapoin;
 	struct PropertyRNA *rnaprop;

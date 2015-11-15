@@ -111,13 +111,19 @@ bool ui_but_menu_step_poll(const uiBut *but)
 	BLI_assert(but->type == UI_BTYPE_MENU);
 
 	/* currenly only RNA buttons */
-	return (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM);
+	return ((but->menu_step_func != NULL) ||
+	        (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM));
 }
 
 int ui_but_menu_step(uiBut *but, int direction)
 {
 	if (ui_but_menu_step_poll(but)) {
-		return rna_property_enum_step(but->block->evil_C, &but->rnapoin, but->rnaprop, direction);
+		if (but->menu_step_func) {
+			return but->menu_step_func(but->block->evil_C, direction, but->poin);
+		}
+		else {
+			return rna_property_enum_step(but->block->evil_C, &but->rnapoin, but->rnaprop, direction);
+		}
 	}
 
 	printf("%s: cannot cycle button '%s'\n", __func__, but->str);

@@ -1804,7 +1804,8 @@ bool ui_but_supports_cycling(const uiBut *but)
 {
 	return ((ELEM(but->type, UI_BTYPE_ROW, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER, UI_BTYPE_LISTBOX)) ||
 	        (but->type == UI_BTYPE_MENU && ui_but_menu_step_poll(but)) ||
-	        (but->type == UI_BTYPE_COLOR && but->a1 != -1));
+	        (but->type == UI_BTYPE_COLOR && but->a1 != -1) ||
+	        (but->menu_step_func != NULL));
 }
 
 double ui_but_value_get(uiBut *but)
@@ -4128,6 +4129,11 @@ void UI_but_func_complete_set(uiBut *but, uiButCompleteFunc func, void *arg)
 {
 	but->autocomplete_func = func;
 	but->autofunc_arg = arg;
+}
+
+void UI_but_func_menu_step_set(uiBut *but, uiMenuStepFunc func)
+{
+	but->menu_step_func = func;
 }
 
 void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *argN)
