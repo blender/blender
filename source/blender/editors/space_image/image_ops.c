@@ -3280,22 +3280,12 @@ static int image_cycle_render_slot_poll(bContext *C)
 static int image_cycle_render_slot_exec(bContext *C, wmOperator *op)
 {
 	Image *ima = CTX_data_edit_image(C);
-	int a, slot, cur = ima->render_slot;
-	const bool use_reverse = RNA_boolean_get(op->ptr, "reverse");
+	const int direction = RNA_boolean_get(op->ptr, "reverse") ? -1 : 1;
 
-	for (a = 1; a < IMA_MAX_RENDER_SLOT; a++) {
-		slot = (cur + (use_reverse ? -a : a)) % IMA_MAX_RENDER_SLOT;
-		if (slot < 0) slot += IMA_MAX_RENDER_SLOT;
-
-		if (ima->renders[slot] || slot == ima->last_render_slot) {
-			ima->render_slot = slot;
-			break;
-		}
+	if (!ED_image_slot_cycle(ima, direction)) {
+		return OPERATOR_CANCELLED;
 	}
 
-	if (a == IMA_MAX_RENDER_SLOT)
-		ima->render_slot = ((cur == 1) ? 0 : 1);
-	
 	WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
 
 	/* no undo push for browsing existing */

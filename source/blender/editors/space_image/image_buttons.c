@@ -53,6 +53,7 @@
 
 #include "ED_gpencil.h"
 #include "ED_screen.h"
+#include "ED_image.h"
 
 #include "RNA_access.h"
 
@@ -310,6 +311,19 @@ static void ui_imageuser_slot_menu(bContext *UNUSED(C), uiLayout *layout, void *
 	}
 }
 
+static bool ui_imageuser_slot_menu_step(bContext *C, int direction, void *image_p)
+{
+	Image *image = image_p;
+
+	if (ED_image_slot_cycle(image, direction)) {
+		WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
+		return true;
+	}
+	else {
+		return true;
+	}
+}
+
 static const char *ui_imageuser_layer_fake_name(RenderResult *rr)
 {
 	RenderView *rv = RE_RenderViewGetById(rr, 0);
@@ -526,93 +540,118 @@ static void image_multi_cb(bContext *C, void *rr_v, void *iuser_v)
 	WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
 }
 
-static void image_multi_inclay_cb(bContext *C, void *rr_v, void *iuser_v) 
+static bool ui_imageuser_layer_menu_step(bContext *C, int direction, void *rnd_pt)
 {
-	RenderResult *rr = rr_v;
-	ImageUser *iuser = iuser_v;
-	int tot = BLI_listbase_count(&rr->layers);
+	Scene *scene = CTX_data_scene(C);
+	struct ImageUI_Data *rnd_data = rnd_pt;
+	Image *image = rnd_data->image;
+	ImageUser *iuser = rnd_data->iuser;
+	RenderResult *rr;
+	bool changed = false;
 
-	if (RE_HasFakeLayer(rr))
-		tot++;  /* fake compo/sequencer layer */
+	rr = BKE_image_acquire_renderresult(scene, image);
+	if (UNLIKELY(rr == NULL)) {
+		return false;
+	}
 
-	if (iuser->layer < tot - 1) {
-		iuser->layer++;
-		BKE_image_multilayer_index(rr, iuser); 
+	if (direction == -1) {
+		if (iuser->layer > 0) {
+			iuser->layer--;
+			changed = true;
+		}
+	}
+	else if (direction == 1) {
+		int tot = BLI_listbase_count(&rr->layers);
+
+		if (RE_HasFakeLayer(rr))
+			tot++;  /* fake compo/sequencer layer */
+
+		if (iuser->layer < tot - 1) {
+			iuser->layer++;
+			changed = true;
+		}
+	}
+	else {
+		BLI_assert(0);
+	}
+
+	if (changed) {
+		BKE_image_multilayer_index(rr, iuser);
 		WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
 	}
-}
-static void image_multi_declay_cb(bContext *C, void *rr_v, void *iuser_v) 
-{
-	ImageUser *iuser = iuser_v;
 
-	if (iuser->layer > 0) {
-		iuser->layer--;
-		BKE_image_multilayer_index(rr_v, iuser); 
-		WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
-	}
+	return changed;
 }
-static void image_multi_incpass_cb(bContext *C, void *rr_v, void *iuser_v) 
+
+static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt)
 {
-	RenderResult *rr = rr_v;
-	ImageUser *iuser = iuser_v;
-	RenderLayer *rl;
-	RenderPass *rp;
+	Scene *scene = CTX_data_scene(C);
+	struct ImageUI_Data *rnd_data = rnd_pt;
+	Image *image = rnd_data->image;
+	ImageUser *iuser = rnd_data->iuser;
+	RenderResult *rr;
+	bool changed = false;
 	int layer = iuser->layer;
+	RenderLayer *rl;
+	RenderPass *rpass;
 
-	if (RE_HasFakeLayer(rr))
+	rr = BKE_image_acquire_renderresult(scene, image);
+	if (UNLIKELY(rr == NULL)) {
+		return false;
+	}
+
+	if (RE_HasFakeLayer(rr)) {
 		layer -= 1;
+	}
 
 	rl = BLI_findlink(&rr->layers, layer);
+	if (rl == NULL) {
+		return false;
+	}
 
-	if (rl) {
-		RenderPass *rpass = BLI_findlink(&rl->passes, iuser->pass);
+	rpass = BLI_findlink(&rl->passes, iuser->pass);
+	if (rpass == NULL) {
+		return false;
+	}
+
+	/* note, this looks reversed, but matches menu direction */
+	if (direction == -1) {
+		RenderPass *rp;
 		int rp_index = iuser->pass + 1;
-
-		if (rpass == NULL)
-			return;
 
 		for (rp = rpass->next; rp; rp = rp->next, rp_index++) {
 			if (rp->passtype != rpass->passtype) {
 				iuser->pass = rp_index;
-				BKE_image_multilayer_index(rr, iuser);
-				WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
+				changed = true;
 				break;
 			}
 		}
 	}
-}
-static void image_multi_decpass_cb(bContext *C, void *rr_v, void *iuser_v) 
-{
-	RenderResult *rr = rr_v;
-	ImageUser *iuser = iuser_v;
-	RenderLayer *rl;
-	RenderPass *rp;
-	int layer = iuser->layer;
-
-	if (iuser->pass == 0)
-		return;
-
-	if (RE_HasFakeLayer(rr))
-		layer -= 1;
-
-	rl = BLI_findlink(&rr->layers, layer);
-
-	if (rl) {
-		RenderPass *rpass = BLI_findlink(&rl->passes, iuser->pass);
+	else if (direction == 1) {
+		RenderPass *rp;
 		int rp_index = 0;
 
-		if (rpass == NULL)
-			return;
+		if (iuser->pass == 0)
+			return false;
 
 		for (rp = rl->passes.first; rp; rp = rp->next, rp_index++) {
 			if (rp->passtype == rpass->passtype) {
 				iuser->pass = rp_index - 1;
-				BKE_image_multilayer_index(rr, iuser);
-				WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
+				changed = true;
 				break;
 			}
 		}
 	}
+	else {
+		BLI_assert(0);
+	}
+
+	if (changed) {
+		BKE_image_multilayer_index(rr, iuser);
+		WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, NULL);
+	}
+
+	return changed;
 }
 
 /* 5 view button callbacks... */
@@ -643,7 +682,7 @@ static void image_user_change(bContext *C, void *iuser_v, void *unused)
 #endif
 
 static void uiblock_layer_pass_buttons(
-        uiLayout *layout, Image *image, RenderResult *rr, ImageUser *iuser, int w, bool show_arrowbuts,
+        uiLayout *layout, Image *image, RenderResult *rr, ImageUser *iuser, int w,
         short *render_slot)
 {
 	static struct ImageUI_Data rnd_pt;  /* XXX, workaround */
@@ -676,7 +715,9 @@ static void uiblock_layer_pass_buttons(
 		else {
 			BLI_snprintf(str, sizeof(str), IFACE_("Slot %d"), *render_slot + 1);
 		}
+
 		but = uiDefMenuBut(block, ui_imageuser_slot_menu, image, str, 0, 0, wmenu1, UI_UNIT_Y, TIP_("Select Slot"));
+		UI_but_func_menu_step_set(but, ui_imageuser_slot_menu_step);
 		UI_but_func_set(but, image_multi_cb, rr, iuser);
 		UI_but_type_set_menu_from_pulldown(but);
 	}
@@ -696,16 +737,9 @@ static void uiblock_layer_pass_buttons(
 			display_name = rl ? rl->name : (fake_name ? fake_name : "");
 			but = uiDefMenuBut(block, ui_imageuser_layer_menu, &rnd_pt, display_name,
 			                   0, 0, wmenu2, UI_UNIT_Y, TIP_("Select Layer"));
+			UI_but_func_menu_step_set(but, ui_imageuser_layer_menu_step);
 			UI_but_func_set(but, image_multi_cb, rr, iuser);
 			UI_but_type_set_menu_from_pulldown(but);
-
-			/* decrease, increase arrows */
-			if (show_arrowbuts) {
-				but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_TRIA_LEFT,   0, 0, 0.85f * UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, TIP_("Previous Layer"));
-				UI_but_func_set(but, image_multi_declay_cb, rr, iuser);
-				but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_TRIA_RIGHT,  0, 0, 0.90f * UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, TIP_("Next Layer"));
-				UI_but_func_set(but, image_multi_inclay_cb, rr, iuser);
-			}
 		}
 
 		/* pass */
@@ -715,16 +749,9 @@ static void uiblock_layer_pass_buttons(
 		display_name = rpass ? rpass->internal_name : (fake_name ? fake_name : "");
 		but = uiDefMenuBut(block, ui_imageuser_pass_menu, &rnd_pt, IFACE_(display_name),
 		                   0, 0, wmenu3, UI_UNIT_Y, TIP_("Select Pass"));
+		UI_but_func_menu_step_set(but, ui_imageuser_pass_menu_step);
 		UI_but_func_set(but, image_multi_cb, rr, iuser);
 		UI_but_type_set_menu_from_pulldown(but);
-
-		/* decrease, increase arrows */
-		if (show_arrowbuts) {
-			but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_TRIA_LEFT,   0, 0, 0.85f * UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, TIP_("Previous Pass"));
-			UI_but_func_set(but, image_multi_decpass_cb, rr, iuser);
-			but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_TRIA_RIGHT,  0, 0, 0.90f * UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, TIP_("Next Pass"));
-			UI_but_func_set(but, image_multi_incpass_cb, rr, iuser);
-		}
 
 		/* view */
 		if (BLI_listbase_count_ex(&rr->views, 2) > 1 &&
@@ -864,14 +891,13 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			}
 			else if (ima->type == IMA_TYPE_R_RESULT) {
 				/* browse layer/passes */
-
-				/* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
-				RenderResult *rr = BKE_image_acquire_renderresult(scene, ima);
+				RenderResult *rr;
 				const float dpi_fac = UI_DPI_FAC;
 				const int menus_width = 230 * dpi_fac;
-				const bool show_arrow_buts = (rr != NULL);
 
-				uiblock_layer_pass_buttons(layout, ima, rr, iuser, menus_width, show_arrow_buts, &ima->render_slot);
+				/* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
+				rr = BKE_image_acquire_renderresult(scene, ima);
+				uiblock_layer_pass_buttons(layout, ima, rr, iuser, menus_width, &ima->render_slot);
 				BKE_image_release_renderresult(scene, ima);
 			}
 		}
@@ -905,7 +931,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			/* multilayer? */
 			if (ima->type == IMA_TYPE_MULTILAYER && ima->rr) {
 				const float dpi_fac = UI_DPI_FAC;
-				uiblock_layer_pass_buttons(layout, ima, ima->rr, iuser, 230 * dpi_fac, true, NULL);
+				uiblock_layer_pass_buttons(layout, ima, ima->rr, iuser, 230 * dpi_fac, NULL);
 			}
 			else if (ima->source != IMA_SRC_GENERATED) {
 				if (compact == 0) {
@@ -1215,14 +1241,14 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 
 	/* render layers and passes */
 	if (ima && iuser) {
-		RenderResult *rr = BKE_image_acquire_renderresult(scene, ima);
+		RenderResult *rr;
 		const float dpi_fac = UI_DPI_FAC;
 		const int menus_width = 160 * dpi_fac;
 		const bool is_render_result = (ima->type == IMA_TYPE_R_RESULT);
-		const bool show_arrow_buts = (rr && is_render_result);
 
 		/* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
-		uiblock_layer_pass_buttons(layout, ima, rr, iuser, menus_width, show_arrow_buts,
+		rr = BKE_image_acquire_renderresult(scene, ima);
+		uiblock_layer_pass_buttons(layout, ima, rr, iuser, menus_width,
 		                           is_render_result ? &ima->render_slot : NULL);
 		BKE_image_release_renderresult(scene, ima);
 	}
