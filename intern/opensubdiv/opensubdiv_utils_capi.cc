@@ -73,8 +73,9 @@ int openSubdiv_getAvailableEvaluators(void)
 #endif  /* OPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK */
 
 #ifdef OPENSUBDIV_HAS_GLSL_COMPUTE
-	/* TODO(sergey): Do we need to check availble extensions here? */
-	flags |= OPENSUBDIV_EVALUATOR_GLSL_COMPUTE;
+	if (GLEW_VERSION_4_3 || GLEW_ARB_compute_shader) {
+		flags |= OPENSUBDIV_EVALUATOR_GLSL_COMPUTE;
+	}
 #endif  /* OPENSUBDIV_HAS_GLSL_COMPUTE */
 
 	return flags;
