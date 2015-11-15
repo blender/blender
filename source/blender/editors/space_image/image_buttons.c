@@ -324,12 +324,19 @@ static const char *ui_imageuser_layer_fake_name(RenderResult *rr)
 	}
 }
 
+/* workaround for passing many args */
+struct ImageUI_Data {
+	Image *image;
+	ImageUser *iuser;
+	int rpass_index;
+};
+
 static void ui_imageuser_layer_menu(bContext *UNUSED(C), uiLayout *layout, void *rnd_pt)
 {
-	void **rnd_data = rnd_pt;
+	struct ImageUI_Data *rnd_data = rnd_pt;
 	uiBlock *block = uiLayoutGetBlock(layout);
-	Image *image = rnd_data[0];
-	ImageUser *iuser = rnd_data[1];
+	Image *image = rnd_data->image;
+	ImageUser *iuser = rnd_data->iuser;
 	Scene *scene = iuser->scene;
 	RenderResult *rr;
 	RenderLayer *rl;
@@ -387,12 +394,12 @@ static const char *ui_imageuser_pass_fake_name(RenderLayer *rl)
 
 static void ui_imageuser_pass_menu(bContext *UNUSED(C), uiLayout *layout, void *rnd_pt)
 {
-	void **rnd_data = rnd_pt;
+	struct ImageUI_Data *rnd_data = rnd_pt;
 	uiBlock *block = uiLayoutGetBlock(layout);
-	Image *image = rnd_data[0];
-	ImageUser *iuser = rnd_data[1];
+	Image *image = rnd_data->image;
+	ImageUser *iuser = rnd_data->iuser;
 	/* (rpass_index == -1) means composite result */
-	const int rpass_index = GET_INT_FROM_POINTER(rnd_data[2]);
+	const int rpass_index = rnd_data->rpass_index;
 	Scene *scene = iuser->scene;
 	RenderResult *rr;
 	RenderLayer *rl;
@@ -454,10 +461,10 @@ final:
 /**************************** view menus *****************************/
 static void ui_imageuser_view_menu_rr(bContext *UNUSED(C), uiLayout *layout, void *rnd_pt)
 {
-	void **rnd_data = rnd_pt;
+	struct ImageUI_Data *rnd_data = rnd_pt;
 	uiBlock *block = uiLayoutGetBlock(layout);
-	Image *image = rnd_data[0];
-	ImageUser *iuser = rnd_data[1];
+	Image *image = rnd_data->image;
+	ImageUser *iuser = rnd_data->iuser;
 	RenderResult *rr;
 	RenderView *rview;
 	int nr;
@@ -488,10 +495,10 @@ static void ui_imageuser_view_menu_rr(bContext *UNUSED(C), uiLayout *layout, voi
 
 static void ui_imageuser_view_menu_multiview(bContext *UNUSED(C), uiLayout *layout, void *rnd_pt)
 {
-	void **rnd_data = rnd_pt;
+	struct ImageUI_Data *rnd_data = rnd_pt;
 	uiBlock *block = uiLayoutGetBlock(layout);
-	Image *image = rnd_data[0];
-	ImageUser *iuser = rnd_data[1];
+	Image *image = rnd_data->image;
+	ImageUser *iuser = rnd_data->iuser;
 	int nr;
 	ImageView *iv;
 
@@ -639,7 +646,7 @@ static void uiblock_layer_pass_buttons(
         uiLayout *layout, Image *image, RenderResult *rr, ImageUser *iuser, int w, bool show_arrowbuts,
         short *render_slot)
 {
-	static void *rnd_pt[4];  /* XXX, workaround */
+	static struct ImageUI_Data rnd_pt;  /* XXX, workaround */
 	uiBlock *block = uiLayoutGetBlock(layout);
 	uiBut *but;
 	RenderLayer *rl = NULL;
@@ -656,9 +663,9 @@ static void uiblock_layer_pass_buttons(
 	wmenu3 = (3 * w) / 6;
 	wmenu4 = (3 * w) / 6;
 	
-	rnd_pt[0] = image;
-	rnd_pt[1] = iuser;
-	rnd_pt[2] = NULL;
+	rnd_pt.image = image;
+	rnd_pt.iuser = iuser;
+	rnd_pt.rpass_index = 0;
 
 	/* menu buts */
 	if (render_slot) {
@@ -683,11 +690,11 @@ static void uiblock_layer_pass_buttons(
 		fake_name = ui_imageuser_layer_fake_name(rr);
 		rpass_index = iuser->layer  - (fake_name ? 1 : 0);
 		rl = BLI_findlink(&rr->layers, rpass_index);
-		rnd_pt[2] = SET_INT_IN_POINTER(rpass_index);
+		rnd_pt.rpass_index = rpass_index;
 
 		if (RE_layers_have_name(rr)) {
 			display_name = rl ? rl->name : (fake_name ? fake_name : "");
-			but = uiDefMenuBut(block, ui_imageuser_layer_menu, rnd_pt, display_name,
+			but = uiDefMenuBut(block, ui_imageuser_layer_menu, &rnd_pt, display_name,
 			                   0, 0, wmenu2, UI_UNIT_Y, TIP_("Select Layer"));
 			UI_but_func_set(but, image_multi_cb, rr, iuser);
 			UI_but_type_set_menu_from_pulldown(but);
@@ -706,7 +713,7 @@ static void uiblock_layer_pass_buttons(
 		rpass = (rl ? BLI_findlink(&rl->passes, iuser->pass  - (fake_name ? 1 : 0)) : NULL);
 
 		display_name = rpass ? rpass->internal_name : (fake_name ? fake_name : "");
-		but = uiDefMenuBut(block, ui_imageuser_pass_menu, rnd_pt, IFACE_(display_name),
+		but = uiDefMenuBut(block, ui_imageuser_pass_menu, &rnd_pt, IFACE_(display_name),
 		                   0, 0, wmenu3, UI_UNIT_Y, TIP_("Select Pass"));
 		UI_but_func_set(but, image_multi_cb, rr, iuser);
 		UI_but_type_set_menu_from_pulldown(but);
@@ -726,7 +733,7 @@ static void uiblock_layer_pass_buttons(
 			rview = BLI_findlink(&rr->views, iuser->view);
 			display_name = rview ? rview->name : "";
 
-			but = uiDefMenuBut(block, ui_imageuser_view_menu_rr, rnd_pt, display_name, 0, 0, wmenu4, UI_UNIT_Y, TIP_("Select View"));
+			but = uiDefMenuBut(block, ui_imageuser_view_menu_rr, &rnd_pt, display_name, 0, 0, wmenu4, UI_UNIT_Y, TIP_("Select View"));
 			UI_but_func_set(but, image_multi_cb, rr, iuser);
 			UI_but_type_set_menu_from_pulldown(but);
 		}
@@ -746,7 +753,7 @@ static void uiblock_layer_pass_buttons(
 			}
 		}
 
-		but = uiDefMenuBut(block, ui_imageuser_view_menu_multiview, rnd_pt, display_name, 0, 0, wmenu1, UI_UNIT_Y, TIP_("Select View"));
+		but = uiDefMenuBut(block, ui_imageuser_view_menu_multiview, &rnd_pt, display_name, 0, 0, wmenu1, UI_UNIT_Y, TIP_("Select View"));
 		UI_but_func_set(but, image_multiview_cb, image, iuser);
 		UI_but_type_set_menu_from_pulldown(but);
 	}
