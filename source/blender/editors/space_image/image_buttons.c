@@ -857,13 +857,13 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			}
 			else if (ima->type == IMA_TYPE_R_RESULT) {
 				/* browse layer/passes */
-				RenderResult *rr;
+
+				/* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
+				RenderResult *rr = BKE_image_acquire_renderresult(scene, ima);
 				const float dpi_fac = UI_DPI_FAC;
 				const int menus_width = 230 * dpi_fac;
 				const bool show_arrow_buts = (rr != NULL);
 
-				/* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
-				rr = BKE_image_acquire_renderresult(scene, ima);
 				uiblock_layer_pass_buttons(layout, ima, rr, iuser, menus_width, show_arrow_buts, &ima->render_slot);
 				BKE_image_release_renderresult(scene, ima);
 			}
@@ -1208,14 +1208,13 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 
 	/* render layers and passes */
 	if (ima && iuser) {
-		RenderResult *rr;
+		RenderResult *rr = BKE_image_acquire_renderresult(scene, ima);
 		const float dpi_fac = UI_DPI_FAC;
 		const int menus_width = 160 * dpi_fac;
 		const bool is_render_result = (ima->type == IMA_TYPE_R_RESULT);
 		const bool show_arrow_buts = (rr && is_render_result);
 
 		/* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
-		rr = BKE_image_acquire_renderresult(scene, ima);
 		uiblock_layer_pass_buttons(layout, ima, rr, iuser, menus_width, show_arrow_buts,
 		                           is_render_result ? &ima->render_slot : NULL);
 		BKE_image_release_renderresult(scene, ima);
