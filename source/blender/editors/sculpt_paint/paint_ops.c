@@ -1267,6 +1267,7 @@ static void paint_keymap_curve(wmKeyMap *keymap)
 
 	WM_keymap_add_item(keymap, "PAINTCURVE_OT_cursor", ACTIONMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINTCURVE_OT_delete_point", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PAINTCURVE_OT_delete_point", DELKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "PAINTCURVE_OT_draw", RETKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINTCURVE_OT_draw", PADENTER, KM_PRESS, 0, 0);
