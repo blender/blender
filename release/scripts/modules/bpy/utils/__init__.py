@@ -251,7 +251,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         _initialize()
         del _addon_utils._initialize
     else:
-        _addon_utils.reset_all(reload_scripts)
+        _addon_utils.reset_all(reload_scripts=reload_scripts)
     del _initialize
 
     # run the active integration preset
