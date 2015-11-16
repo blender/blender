@@ -282,29 +282,22 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 		ibuf = BKE_sequencer_give_ibuf(&context, CFRA, chanshown);
 
 		if (ibuf) {
-			ImBuf *linear_ibuf;
-
-			BLI_assert((oglrender->sizex == ibuf->x) && (oglrender->sizey == ibuf->y));
-
-			linear_ibuf = IMB_dupImBuf(ibuf);
+			ImBuf *out = IMB_dupImBuf(ibuf);
 			IMB_freeImBuf(ibuf);
-
-			if (linear_ibuf->rect_float == NULL) {
-				/* internally sequencer working in display space and stores both bytes and float buffers in that space.
-				 * It is possible that byte->float onversion didn't happen in sequencer (e.g. when adding image sequence/movie
-				 * into sequencer) there'll be only byte buffer. Create float buffer from existing byte buffer, making it linear
-				 */
-
-				IMB_float_from_rect(linear_ibuf);
+			/* OpenGL render is considered to be preview and should be
+			 * as fast as possible. So currently we're making sure sequencer
+			 * result is always byte to simplify color management pipeline.
+			 *
+			 * TODO(sergey): In the case of output to float container (EXR)
+			 * it actually makes sense to keep float buffer instead.
+			 */
+			if (out->rect_float != NULL) {
+				IMB_rect_from_float(out);
+				imb_freerectfloatImBuf(out);
 			}
-			else {
-				/* ensure float buffer is in linear space, not in display space */
-				BKE_sequencer_imbuf_from_sequencer_space(scene, linear_ibuf);
-			}
-
-			memcpy(rectf, linear_ibuf->rect_float, sizeof(float) * 4 * oglrender->sizex * oglrender->sizey);
-
-			IMB_freeImBuf(linear_ibuf);
+			BLI_assert((oglrender->sizex == ibuf->x) && (oglrender->sizey == ibuf->y));
+			RE_render_result_rect_from_ibuf(rr, &scene->r, out, oglrender->view_id);
+			IMB_freeImBuf(out);
 		}
 
 		if (gpd) {

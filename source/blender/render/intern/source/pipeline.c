@@ -2658,7 +2658,7 @@ static void do_render_seq(Render *re)
 
 		if (ibuf_arr[view_id]) {
 			/* copy ibuf into combined pixel rect */
-			render_result_rect_from_ibuf(rr, &re->r, ibuf_arr[view_id], view_id);
+			RE_render_result_rect_from_ibuf(rr, &re->r, ibuf_arr[view_id], view_id);
 
 			if (ibuf_arr[view_id]->metadata && (re->r.stamp & R_STAMP_STRIPMETA)) {
 				/* ensure render stamp info first */

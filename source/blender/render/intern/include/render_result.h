@@ -97,8 +97,6 @@ bool render_result_exr_file_cache_read(struct Render *re);
 /* Combined Pixel Rect */
 
 struct ImBuf *render_result_rect_to_ibuf(struct RenderResult *rr, struct RenderData *rd, const int view_id);
-void render_result_rect_from_ibuf(struct RenderResult *rr, struct RenderData *rd,
-	struct ImBuf *ibuf, const int view_id);
 
 void render_result_rect_fill_zero(struct RenderResult *rr, const int view_id);
 void render_result_rect_get_pixels(struct RenderResult *rr,

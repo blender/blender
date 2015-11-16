@@ -1527,7 +1527,7 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, RenderData *rd, const int vi
 	return ibuf;
 }
 
-void render_result_rect_from_ibuf(RenderResult *rr, RenderData *UNUSED(rd), ImBuf *ibuf, const int view_id)
+void RE_render_result_rect_from_ibuf(RenderResult *rr, RenderData *UNUSED(rd), ImBuf *ibuf, const int view_id)
 {
 	RenderView *rv = RE_RenderViewGetById(rr, view_id);
 

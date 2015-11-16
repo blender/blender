@@ -231,6 +231,9 @@ struct RenderStats *RE_GetStats(struct Render *re);
 void RE_ResultGet32(struct Render *re, unsigned int *rect);
 void RE_AcquiredResultGet32(struct Render *re, struct RenderResult *result, unsigned int *rect, const int view_id);
 
+void RE_render_result_rect_from_ibuf(struct RenderResult *rr, struct RenderData *rd,
+    struct ImBuf *ibuf, const int view_id);
+
 struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name);
 float *RE_RenderLayerGetPass(volatile struct RenderLayer *rl, int passtype, const char *viewname);
 
