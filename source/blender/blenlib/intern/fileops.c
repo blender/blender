@@ -304,7 +304,7 @@ static bool delete_unique(const char *path, const bool dir)
 
 	if (dir) {
 		err = !RemoveDirectoryW(path_16);
-		if (err) printf("Unable to remove directory");
+		if (err) printf("Unable to remove directory\n");
 	}
 	else {
 		err = !DeleteFileW(path_16);

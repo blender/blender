@@ -76,7 +76,7 @@ uint Image::height() const
 const Color32 * Image::scanline(uint h) const
 {
 	if (h >= m_height) {
-		printf("DDS: scanline beyond dimensions of image");
+		printf("DDS: scanline beyond dimensions of image\n");
 		return m_data;
 	}
 	return m_data + h * m_width;
@@ -85,7 +85,7 @@ const Color32 * Image::scanline(uint h) const
 Color32 * Image::scanline(uint h)
 {
 	if (h >= m_height) {
-		printf("DDS: scanline beyond dimensions of image");
+		printf("DDS: scanline beyond dimensions of image\n");
 		return m_data;
 	}
 	return m_data + h * m_width;
@@ -104,7 +104,7 @@ Color32 * Image::pixels()
 const Color32 & Image::pixel(uint idx) const
 {
 	if (idx >= m_width * m_height) {
-		printf("DDS: pixel beyond dimensions of image");
+		printf("DDS: pixel beyond dimensions of image\n");
 		return m_data[0];
 	}
 	return m_data[idx];
@@ -113,7 +113,7 @@ const Color32 & Image::pixel(uint idx) const
 Color32 & Image::pixel(uint idx)
 {
 	if (idx >= m_width * m_height) {
-		printf("DDS: pixel beyond dimensions of image");
+		printf("DDS: pixel beyond dimensions of image\n");
 		return m_data[0];
 	}
 	return m_data[idx];

@@ -956,7 +956,7 @@ void GPU_texture_bind(GPUTexture *tex, int number)
 	GLenum arbnumber;
 
 	if (number >= GG.maxtextures) {
-		fprintf(stderr, "Not enough texture slots.");
+		fprintf(stderr, "Not enough texture slots.\n");
 		return;
 	}
 
@@ -991,7 +991,7 @@ void GPU_texture_unbind(GPUTexture *tex)
 	GLenum arbnumber;
 
 	if (tex->number >= GG.maxtextures) {
-		fprintf(stderr, "Not enough texture slots.");
+		fprintf(stderr, "Not enough texture slots.\n");
 		return;
 	}
 
@@ -1016,7 +1016,7 @@ void GPU_texture_filter_mode(GPUTexture *tex, bool compare, bool use_filter)
 	GLenum arbnumber;
 
 	if (tex->number >= GG.maxtextures) {
-		fprintf(stderr, "Not enough texture slots.");
+		fprintf(stderr, "Not enough texture slots.\n");
 		return;
 	}
 
@@ -1129,13 +1129,17 @@ int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot
 	GLenum error;
 
 	if (slot >= GPU_FB_MAX_SLOTS) {
-		fprintf(stderr, "Attaching to index %d framebuffer slot unsupported in blender use at most %d\n", slot, GPU_FB_MAX_SLOTS);
+		fprintf(stderr,
+		        "Attaching to index %d framebuffer slot unsupported. "
+		        "Use at most %d\n", slot, GPU_FB_MAX_SLOTS);
 		return 0;
 	}
 
 	if ((G.debug & G_DEBUG)) {
 		if (tex->number != -1) {
-			fprintf(stderr, "Feedback loop warning!: Attempting to attach texture to framebuffer while still bound to texture unit for drawing!");
+			fprintf(stderr,
+			        "Feedback loop warning!: "
+			        "Attempting to attach texture to framebuffer while still bound to texture unit for drawing!\n");
 		}
 	}
 
@@ -1206,7 +1210,7 @@ void GPU_framebuffer_texture_detach(GPUTexture *tex)
 void GPU_texture_bind_as_framebuffer(GPUTexture *tex)
 {
 	if (!tex->fb) {
-		fprintf(stderr, "Error, texture not bound to framebuffer!");
+		fprintf(stderr, "Error, texture not bound to framebuffer!\n");
 		return;
 	}
 
@@ -1247,7 +1251,7 @@ void GPU_framebuffer_slots_bind(GPUFrameBuffer *fb, int slot)
 	GLenum attachments[4];
 	
 	if (!fb->colortex[slot]) {
-		fprintf(stderr, "Error, framebuffer slot empty!");
+		fprintf(stderr, "Error, framebuffer slot empty!\n");
 		return;
 	}
 	
@@ -2155,7 +2159,7 @@ void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUText
 	GLenum arbnumber;
 
 	if (tex->number >= GG.maxtextures) {
-		fprintf(stderr, "Not enough texture slots.");
+		fprintf(stderr, "Not enough texture slots.\n");
 		return;
 	}
 		

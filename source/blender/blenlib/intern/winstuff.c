@@ -198,7 +198,8 @@ void get_default_root(char *root)
 		/* if GetWindowsDirectory fails, something has probably gone wrong, 
 		 * we are trying the blender install dir though */
 		if (GetModuleFileName(NULL, str, MAX_PATH + 1)) {
-			printf("Error! Could not get the Windows Directory - Defaulting to Blender installation Dir!");
+			printf("Error! Could not get the Windows Directory - "
+			       "Defaulting to Blender installation Dir!\n");
 			root[0] = str[0];
 			root[1] = ':';
 			root[2] = '\\';
@@ -209,7 +210,8 @@ void get_default_root(char *root)
 			int i;
 			int rc = 0;
 			/* now something has gone really wrong - still trying our best guess */
-			printf("Error! Could not get the Windows Directory - Defaulting to first valid drive! Path might be invalid!");
+			printf("Error! Could not get the Windows Directory - "
+			       "Defaulting to first valid drive! Path might be invalid!\n");
 			tmp = GetLogicalDrives();
 			for (i = 2; i < 26; i++) {
 				if ((tmp >> i) & 1) {
@@ -224,7 +226,7 @@ void get_default_root(char *root)
 				}
 			}
 			if (0 == rc) {
-				printf("ERROR in 'get_default_root': can't find a valid drive!");
+				printf("ERROR in 'get_default_root': can't find a valid drive!\n");
 				root[0] = 'C';
 				root[1] = ':';
 				root[2] = '\\';

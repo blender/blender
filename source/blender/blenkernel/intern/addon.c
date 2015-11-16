@@ -53,7 +53,7 @@ bAddonPrefType *BKE_addon_pref_type_find(const char *idname, bool quiet)
 	}
 	else {
 		if (!quiet) {
-			printf("search for empty addon-pref");
+			printf("search for empty addon-pref\n");
 		}
 	}
 
