@@ -225,9 +225,9 @@ elseif(WITH_X11)
 
 	if(WITH_INPUT_NDOF)
 		list(APPEND SRC
-			intern/GHOST_NDOFManagerX11.cpp
+			intern/GHOST_NDOFManagerUnix.cpp
 
-			intern/GHOST_NDOFManagerX11.h
+			intern/GHOST_NDOFManagerUnix.h
 		)
 	endif()
 
@@ -310,8 +310,8 @@ if(APPLE)
 
 elseif(UNIX)
 	list(APPEND SRC
-		intern/GHOST_SystemPathsX11.cpp
-		intern/GHOST_SystemPathsX11.h
+		intern/GHOST_SystemPathsUnix.cpp
+		intern/GHOST_SystemPathsUnix.h
 	)
 
 	if(NOT WITH_INSTALL_PORTABLE)

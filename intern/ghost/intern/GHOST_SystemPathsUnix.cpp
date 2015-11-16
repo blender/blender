@@ -24,12 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file ghost/intern/GHOST_SystemPathsX11.cpp
+/** \file ghost/intern/GHOST_SystemPathsUnix.cpp
  *  \ingroup GHOST
  */
 
-
-#include "GHOST_SystemPathsX11.h"
+#include "GHOST_SystemPathsUnix.h"
 
 #include "GHOST_Debug.h"
 
@@ -52,15 +51,15 @@ static const char *static_path = PREFIX "/share";
 static const char *static_path = NULL;
 #endif
 
-GHOST_SystemPathsX11::GHOST_SystemPathsX11()
+GHOST_SystemPathsUnix::GHOST_SystemPathsUnix()
 {
 }
 
-GHOST_SystemPathsX11::~GHOST_SystemPathsX11()
+GHOST_SystemPathsUnix::~GHOST_SystemPathsUnix()
 {
 }
 
-const GHOST_TUns8 *GHOST_SystemPathsX11::getSystemDir(int, const char *versionstr) const
+const GHOST_TUns8 *GHOST_SystemPathsUnix::getSystemDir(int, const char *versionstr) const
 {
 	/* no prefix assumes a portable build which only uses bundled scripts */
 	if (static_path) {
@@ -71,7 +70,7 @@ const GHOST_TUns8 *GHOST_SystemPathsX11::getSystemDir(int, const char *versionst
 	return NULL;
 }
 
-const GHOST_TUns8 *GHOST_SystemPathsX11::getUserDir(int version, const char *versionstr) const
+const GHOST_TUns8 *GHOST_SystemPathsUnix::getUserDir(int version, const char *versionstr) const
 {
 	static string user_path = "";
 	static int last_version = 0;
@@ -116,12 +115,12 @@ const GHOST_TUns8 *GHOST_SystemPathsX11::getUserDir(int version, const char *ver
 	}
 }
 
-const GHOST_TUns8 *GHOST_SystemPathsX11::getBinaryDir() const
+const GHOST_TUns8 *GHOST_SystemPathsUnix::getBinaryDir() const
 {
 	return NULL;
 }
 
-void GHOST_SystemPathsX11::addToSystemRecentFiles(const char * /*filename*/) const
+void GHOST_SystemPathsUnix::addToSystemRecentFiles(const char * /*filename*/) const
 {
 	/* XXXXX TODO: Implementation for X11 if possible */
 

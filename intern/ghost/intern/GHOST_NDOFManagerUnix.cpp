@@ -23,13 +23,14 @@
 
 #ifdef WITH_INPUT_NDOF
 
-#include "GHOST_NDOFManagerX11.h"
-#include "GHOST_SystemX11.h"
+#include "GHOST_NDOFManagerUnix.h"
+#include "GHOST_System.h"
+
 #include <spnav.h>
 #include <stdio.h>
 
 
-GHOST_NDOFManagerX11::GHOST_NDOFManagerX11(GHOST_System& sys)
+GHOST_NDOFManagerUnix::GHOST_NDOFManagerUnix(GHOST_System& sys)
     : GHOST_NDOFManager(sys),
       m_available(false)
 {
@@ -63,13 +64,13 @@ GHOST_NDOFManagerX11::GHOST_NDOFManagerX11(GHOST_System& sys)
 	}
 }
 
-GHOST_NDOFManagerX11::~GHOST_NDOFManagerX11()
+GHOST_NDOFManagerUnix::~GHOST_NDOFManagerUnix()
 {
 	if (m_available)
 		spnav_close();
 }
 
-bool GHOST_NDOFManagerX11::available()
+bool GHOST_NDOFManagerUnix::available()
 {
 	return m_available;
 }
@@ -89,7 +90,7 @@ bool GHOST_NDOFManagerX11::available()
 static bool motion_test_prev = false;
 #endif
 
-bool GHOST_NDOFManagerX11::processEvents()
+bool GHOST_NDOFManagerUnix::processEvents()
 {
 	bool anyProcessed = false;
 

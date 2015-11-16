@@ -48,7 +48,7 @@
 #include "GHOST_DisplayManagerX11.h"
 #include "GHOST_EventDragnDrop.h"
 #ifdef WITH_INPUT_NDOF
-#  include "GHOST_NDOFManagerX11.h"
+#  include "GHOST_NDOFManagerUnix.h"
 #endif
 
 #ifdef WITH_XDND
@@ -202,7 +202,7 @@ init()
 
 	if (success) {
 #ifdef WITH_INPUT_NDOF
-		m_ndofManager = new GHOST_NDOFManagerX11(*this);
+		m_ndofManager = new GHOST_NDOFManagerUnix(*this);
 #endif
 		m_displayManager = new GHOST_DisplayManagerX11(this);
 
@@ -589,7 +589,7 @@ processEvents(
 		}
 
 #ifdef WITH_INPUT_NDOF
-		if (static_cast<GHOST_NDOFManagerX11 *>(m_ndofManager)->processEvents()) {
+		if (static_cast<GHOST_NDOFManagerUnix *>(m_ndofManager)->processEvents()) {
 			anyProcessed = true;
 		}
 #endif

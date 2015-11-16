@@ -21,8 +21,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#ifndef __GHOST_NDOFMANAGERX11_H__
-#define __GHOST_NDOFMANAGERX11_H__
+#ifndef __GHOST_NDOFMANAGERUNIX_H__
+#define __GHOST_NDOFMANAGERUNIX_H__
 
 #ifdef WITH_INPUT_NDOF
 
@@ -31,11 +31,11 @@
 /* Event capture is handled within the NDOF manager on Linux,
  * so there's no need for SystemX11 to look for them. */
 
-class GHOST_NDOFManagerX11 : public GHOST_NDOFManager
+class GHOST_NDOFManagerUnix : public GHOST_NDOFManager
 {
 public:
-	GHOST_NDOFManagerX11(GHOST_System&);
-	~GHOST_NDOFManagerX11();
+	GHOST_NDOFManagerUnix(GHOST_System&);
+	~GHOST_NDOFManagerUnix();
 	bool available();
 	bool processEvents();
 
@@ -43,6 +43,5 @@ private:
 	bool m_available;
 };
 
-#endif /* WITH_INPUT_NDOF */
-#endif /* #include guard */
-
+#endif  /* WITH_INPUT_NDOF */
+#endif  /* __GHOST_NDOFMANAGERUNIX_H__ */

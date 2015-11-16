@@ -117,6 +117,11 @@ elif window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64
             pass
 
         try:
+            sources.remove('intern' + os.sep + f + 'Unix.cpp')
+        except ValueError:
+            pass
+
+        try:
             sources.remove('intern' + os.sep + f + 'SDL.cpp')
         except ValueError:
             pass
@@ -135,6 +140,10 @@ elif window_system == 'darwin':
 
         try:
             sources.remove('intern' + os.sep + f + 'X11.cpp')
+        except ValueError:
+            pass
+        try:
+            sources.remove('intern' + os.sep + f + 'Unix.cpp')
         except ValueError:
             pass
         try:
@@ -175,7 +184,7 @@ else:
         elif window_system=='darwin':
             sources.remove('intern' + os.sep + 'GHOST_NDOFManagerCocoa.mm')
         else:
-            sources.remove('intern' + os.sep + 'GHOST_NDOFManagerX11.cpp')
+            sources.remove('intern' + os.sep + 'GHOST_NDOFManagerUnix.cpp')
     except ValueError:
         pass
 
