@@ -521,7 +521,7 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 	if (flags & IB_zbuf)
 		memcpy(ibuf2->zbuf, ibuf1->zbuf, ((size_t)x) * y * sizeof(int));
 
-	if (flags & IB_rectfloat)
+	if (flags & IB_zbuffloat)
 		memcpy(ibuf2->zbuf_float, ibuf1->zbuf_float, ((size_t)x) * y * sizeof(float));
 
 	if (ibuf1->encodedbuffer) {
