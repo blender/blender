@@ -9777,7 +9777,7 @@ static void link_id_part(ReportList *reports, FileData *fd, Main *mainvar, ID *i
 	if (!is_valid) {
 		blo_reportf_wrap(
 		        reports, RPT_ERROR,
-		        TIP_("LIB: %s: '%s' is directly linked from '%s' (parent '%s'), but is a non-linkable datatype"),
+		        TIP_("LIB: %s: '%s' is directly linked from '%s' (parent '%s'), but is a non-linkable data type"),
 		        BKE_idcode_to_name(GS(id->name)),
 		        id->name + 2,
 		        mainvar->curlib->filepath,
