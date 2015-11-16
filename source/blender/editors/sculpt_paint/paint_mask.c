@@ -439,7 +439,7 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
 
 	ot->name = "Mask Lasso Gesture";
 	ot->idname = "PAINT_OT_mask_lasso_gesture";
-	ot->description = "Add mask within the lasso as you move the pointer";
+	ot->description = "Add mask within the lasso as you move the brush";
 
 	ot->invoke = WM_gesture_lasso_invoke;
 	ot->modal = WM_gesture_lasso_modal;

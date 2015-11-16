@@ -3209,7 +3209,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 		int height = (scene->r.ysch * scene->r.size) / 100;
 		const char *viewname = BKE_scene_multiview_render_view_name_get(&scene->r, context->view_id);
 
-		/* for old scened this can be uninitialized,
+		/* for old scene this can be uninitialized,
 		 * should probably be added to do_versions at some point if the functionality stays */
 		if (context->scene->r.seq_prev_type == 0)
 			context->scene->r.seq_prev_type = 3 /* == OB_SOLID */;

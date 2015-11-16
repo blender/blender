@@ -3381,7 +3381,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 	}
 	else {
 		/* Multi-pass render, use accumulation buffer & jitter for 'full' oversampling.
-		 * Use becauise OpenGL may use a lower quality MSAA, and only oversample edges. */
+		 * Use because OpenGL may use a lower quality MSAA, and only over-sample edges. */
 		static float jit_ofs[32][2];
 		float winmat_jitter[4][4];
 		/* use imbuf as temp storage, before writing into it from accumulation buffer */

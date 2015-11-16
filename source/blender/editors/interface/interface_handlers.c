@@ -2641,7 +2641,7 @@ static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, 
 /**
  * This is used for both utf8 and ascii
  *
- * For unicode buttons, \a buf is treated as unicde.
+ * For unicode buttons, \a buf is treated as unicode.
  */
 static bool ui_textedit_insert_buf(
         uiBut *but, uiHandleButtonData *data,

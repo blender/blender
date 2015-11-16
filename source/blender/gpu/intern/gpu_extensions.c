@@ -1457,7 +1457,7 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, char err_
 		if (!GLEW_EXT_framebuffer_multisample ||
 		    !GLEW_ARB_texture_multisample ||
 		    /* Only needed for GPU_offscreen_read_pixels.
-		     * We could add an arg if we intend to use multi-samle
+		     * We could add an arg if we intend to use multi-sample
 		     * offscreen buffers w/o reading their pixels */
 		    !GLEW_EXT_framebuffer_blit ||
 		    /* This is required when blitting from a multi-sampled buffers,

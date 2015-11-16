@@ -975,7 +975,7 @@ float UI_text_clip_middle_ex(
 	float strwidth;
 
 	/* Add some epsilon to OK width, avoids 'ellipsing' text that nearly fits!
-	 * Better to have a small piece of the last char cut out, than two remaining chars replaced by an allipsis... */
+	 * Better to have a small piece of the last char cut out, than two remaining chars replaced by an ellipsis... */
 	okwidth += 1.0f + UI_DPI_FAC;
 
 	BLI_assert(str[0]);

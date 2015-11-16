@@ -3862,7 +3862,7 @@ static int create_plane_track_tracks_exec(bContext *C, wmOperator *op)
 		clip->tracking.act_track = NULL;
 		clip->tracking.act_plane_track = plane_track;
 
-		/* Copute homoraphies and apply them on marker's corner, so we've got
+		/* Compute homoraphies and apply them on marker's corner, so we've got
 		 * quite nice motion from the very beginning.
 		 */
 		BKE_tracking_track_plane_from_existing_motion(plane_track, framenr);

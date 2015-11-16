@@ -4578,7 +4578,7 @@ void flushTransGraphData(TransInfo *t)
 		/* handle snapping for time values
 		 *	- we should still be in NLA-mapping timespace
 		 *	- only apply to keyframes (but never to handles)
-		 *  - don't do this when cancelling, or else these changes won't go away
+		 *  - don't do this when canceling, or else these changes won't go away
 		 */
 		if ((t->state != TRANS_CANCEL) && (td->flag & TD_NOTIMESNAP) == 0) {
 			switch (sipo->autosnap) {
@@ -4608,7 +4608,7 @@ void flushTransGraphData(TransInfo *t)
 		 *
 		 * NOTE: We also have to apply to td->loc, as that's what the handle-adjustment step below looks
 		 *       to, otherwise we get "swimming handles"
-		 * NOTE: We don't do this when cancelling transforms, or else these changes don't go away
+		 * NOTE: We don't do this when canceling transforms, or else these changes don't go away
 		 */
 		if ((t->state != TRANS_CANCEL) && (td->flag & TD_NOTIMESNAP) == 0 && 
 		    ELEM(sipo->autosnap, SACTSNAP_STEP, SACTSNAP_TSTEP)) 
