@@ -494,6 +494,114 @@ static bool state_step(PathContext *pc, PathLinkState *state)
 	return (state_orig.link_last != state->link_last);
 }
 
+/**
+ * Get a orientation matrix from 2 vertices.
+ */
+static void bm_vert_pair_to_matrix(BMVert *v_pair[2], float r_unit_mat[3][3])
+{
+	const float eps = 1e-8f;
+
+	float basis_dir[3];
+	float basis_tmp[3];
+	float basis_nor[3];
+
+	sub_v3_v3v3(basis_dir, v_pair[0]->co, v_pair[1]->co);
+
+#if 0
+	add_v3_v3v3(basis_nor, v_pair[0]->no, v_pair[1]->no);
+	cross_v3_v3v3(basis_tmp, basis_nor, basis_dir);
+	cross_v3_v3v3(basis_nor, basis_tmp, basis_dir);
+#else
+	/* align both normals to the directions before combining */
+	{
+		float basis_nor_a[3];
+		float basis_nor_b[3];
+
+		/* align normal to direction */
+		cross_v3_v3v3(basis_tmp,   v_pair[0]->no, basis_dir);
+		cross_v3_v3v3(basis_nor_a, basis_tmp,     basis_dir);
+
+		cross_v3_v3v3(basis_tmp,   v_pair[1]->no, basis_dir);
+		cross_v3_v3v3(basis_nor_b, basis_tmp,     basis_dir);
+
+		/* combine the normals */
+		normalize_v3(basis_nor_a);
+		normalize_v3(basis_nor_b);
+
+		/* for flipped faces */
+		if (dot_v3v3(basis_nor_a, basis_nor_b) < 0.0f) {
+			negate_v3(basis_nor_b);
+		}
+		add_v3_v3v3(basis_nor, basis_nor_a, basis_nor_b);
+	}
+#endif
+
+	/* get third axis */
+	normalize_v3(basis_dir);
+	normalize_v3(basis_nor);
+	cross_v3_v3v3(basis_tmp, basis_dir, basis_nor);
+
+
+	/* Try get the axis from surrounding faces, fallback to 'ortho_v3_v3' */
+	if (UNLIKELY(normalize_v3(basis_tmp) < eps)) {
+		/* vertex normals are directly opposite */
+
+		/* find the loop with the lowest angle */
+		struct { float nor[3]; float angle_cos; } axis_pair[2];
+		int i;
+
+		for (i = 0; i < 2; i++) {
+			BMIter liter;
+			BMLoop *l;
+
+			zero_v2(axis_pair[i].nor);
+			axis_pair[i].angle_cos = -FLT_MAX;
+
+			BM_ITER_ELEM (l, &liter, v_pair[i], BM_LOOPS_OF_VERT) {
+				float l_normal[3], basis_dir_proj[3];
+				float angle_cos_test;
+
+				BM_loop_calc_face_normal(l, l_normal);
+
+				/* project basis dir onto the normal to find its closest angle */
+				project_plane_v3_v3v3(basis_dir_proj, basis_dir, l_normal);
+
+				if (normalize_v3(basis_dir_proj) > eps) {
+					angle_cos_test = dot_v3v3(basis_dir_proj, basis_dir);
+
+					if (angle_cos_test > axis_pair[i].angle_cos) {
+						axis_pair[i].angle_cos = angle_cos_test;
+						copy_v3_v3(axis_pair[i].nor, basis_dir_proj);
+					}
+				}
+			}
+		}
+
+		/* create a new 'basis_nor' from the best direction.
+		 * note: we could add the directions,
+		 * but this more often gives 45d rotated matrix, so just use the best one. */
+		copy_v3_v3(basis_nor, axis_pair[axis_pair[0].angle_cos < axis_pair[1].angle_cos].nor);
+		project_plane_v3_v3v3(basis_nor, basis_nor, basis_dir);
+
+		cross_v3_v3v3(basis_tmp, basis_dir, basis_nor);
+
+		/* last resort, pick _any_ ortho axis */
+		if (UNLIKELY(normalize_v3(basis_tmp) < eps)) {
+			ortho_v3_v3(basis_nor, basis_dir);
+			normalize_v3(basis_nor);
+			cross_v3_v3v3(basis_tmp, basis_dir, basis_nor);
+			normalize_v3(basis_tmp);
+		}
+	}
+
+	copy_v3_v3(r_unit_mat[0], basis_tmp);
+	copy_v3_v3(r_unit_mat[1], basis_dir);
+	copy_v3_v3(r_unit_mat[2], basis_nor);
+	if (invert_m3(r_unit_mat) == false) {
+		unit_m3(r_unit_mat);
+	}
+}
+
 void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 {
 	BMOpSlot *op_verts_slot = BMO_slot_get(op->slots_in, "verts");
@@ -532,60 +640,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 
 	/* calculate matrix */
 	{
-		float basis_dir[3];
-		float basis_tmp[3];
-		float basis_nor[3];
-
-
-		sub_v3_v3v3(basis_dir, pc.v_a->co, pc.v_b->co);
-
-#if 0
-		add_v3_v3v3(basis_nor, pc.v_a->no, pc.v_b->no);
-		cross_v3_v3v3(basis_tmp, basis_nor, basis_dir);
-		cross_v3_v3v3(basis_nor, basis_tmp, basis_dir);
-#else
-		/* align both normals to the directions before combining */
-		{
-			float basis_nor_a[3];
-			float basis_nor_b[3];
-
-			/* align normal to direction */
-			cross_v3_v3v3(basis_tmp,   pc.v_a->no, basis_dir);
-			cross_v3_v3v3(basis_nor_a, basis_tmp,  basis_dir);
-
-			cross_v3_v3v3(basis_tmp,   pc.v_b->no, basis_dir);
-			cross_v3_v3v3(basis_nor_b, basis_tmp,  basis_dir);
-
-			/* combine the normals */
-			normalize_v3(basis_nor_a);
-			normalize_v3(basis_nor_b);
-
-			/* for flipped faces */
-			if (dot_v3v3(basis_nor_a, basis_nor_b) < 0.0f) {
-				negate_v3(basis_nor_b);
-			}
-			add_v3_v3v3(basis_nor, basis_nor_a, basis_nor_b);
-		}
-#endif
-
-		/* get third axis */
-		normalize_v3(basis_dir);
-		normalize_v3(basis_nor);
-		cross_v3_v3v3(basis_tmp, basis_dir, basis_nor);
-		if (UNLIKELY(normalize_v3(basis_tmp) < FLT_EPSILON)) {
-			ortho_v3_v3(basis_nor, basis_dir);
-			normalize_v3(basis_nor);
-			cross_v3_v3v3(basis_tmp, basis_dir, basis_nor);
-			normalize_v3(basis_tmp);
-		}
-
-		copy_v3_v3(pc.matrix[0], basis_tmp);
-		copy_v3_v3(pc.matrix[1], basis_dir);
-		copy_v3_v3(pc.matrix[2], basis_nor);
-		if (invert_m3(pc.matrix) == false) {
-			unit_m3(pc.matrix);
-		}
-
+		bm_vert_pair_to_matrix(&pc.v_a, pc.matrix);
 		pc.axis_sep = dot_m3_v3_row_x(pc.matrix, pc.v_a->co);
 	}
 
