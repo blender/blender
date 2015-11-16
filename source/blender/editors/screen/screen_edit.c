@@ -1272,16 +1272,20 @@ void ED_region_exit(bContext *C, ARegion *ar)
 
 	CTX_wm_region_set(C, ar);
 	WM_event_remove_handlers(C, &ar->handlers);
-	if (ar->swinid)
+	if (ar->swinid) {
 		wm_subwindow_close(CTX_wm_window(C), ar->swinid);
-	ar->swinid = 0;
+		ar->swinid = 0;
+	}
 	
-	if (ar->headerstr)
+	if (ar->headerstr) {
 		MEM_freeN(ar->headerstr);
-	ar->headerstr = NULL;
+		ar->headerstr = NULL;
+	}
 	
-	if (ar->regiontimer)
+	if (ar->regiontimer) {
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), ar->regiontimer);
+		ar->regiontimer = NULL;
+	}
 
 	CTX_wm_region_set(C, prevar);
 }
