@@ -403,7 +403,7 @@ typedef enum StructFlag {
 	STRUCT_RUNTIME         = (1 << 3),
 	STRUCT_GENERATED       = (1 << 4),
 	STRUCT_FREE_POINTERS   = (1 << 5),
-	STRUCT_NO_IDPROPERTIES = (1 << 6), /* Menu's and Panels don't need properties */
+	STRUCT_NO_IDPROPERTIES = (1 << 6), /* Menus and Panels don't need properties */
 } StructFlag;
 
 typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);
