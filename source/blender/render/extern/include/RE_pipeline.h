@@ -277,7 +277,7 @@ bool RE_WriteRenderViewsImage(
         struct ReportList *reports, struct RenderResult *rr, struct Scene *scene, const bool stamp, char *name);
 bool RE_WriteRenderViewsMovie(
         struct ReportList *reports, struct RenderResult *rr, struct Scene *scene, struct RenderData *rd,
-        struct bMovieHandle *mh, const size_t width, const size_t height, void **movie_ctx_arr,
+        struct bMovieHandle *mh, void **movie_ctx_arr,
         const int totvideos, bool preview);
 
 /* only RE_NewRender() needed, main Blender render calls */

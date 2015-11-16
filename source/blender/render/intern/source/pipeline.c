@@ -3340,7 +3340,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 
 bool RE_WriteRenderViewsMovie(
         ReportList *reports, RenderResult *rr, Scene *scene, RenderData *rd, bMovieHandle *mh,
-        const size_t width, const size_t height, void **movie_ctx_arr, const int totvideos, bool preview)
+        void **movie_ctx_arr, const int totvideos, bool preview)
 {
 	bool is_mono;
 	bool ok = true;
@@ -3421,7 +3421,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 
 	/* write movie or image */
 	if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
-		RE_WriteRenderViewsMovie(re->reports, &rres, scene, &re->r, mh, re->rectx, re->recty, re->movie_ctx_arr, totvideos, false);
+		RE_WriteRenderViewsMovie(re->reports, &rres, scene, &re->r, mh, re->movie_ctx_arr, totvideos, false);
 	}
 	else {
 		if (name_override)
