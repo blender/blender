@@ -3386,14 +3386,6 @@ bool RE_WriteRenderViewsMovie(
 			int view_id = BLI_findstringindex(&rr->views, names[i], offsetof(RenderView, name));
 			ibuf_arr[i] = render_result_rect_to_ibuf(rr, &scene->r, view_id);
 
-			/* note; the way it gets 32 bits rects is weak... */
-			if (ibuf_arr[i]->rect == NULL) {
-				ibuf_arr[i]->rect = MEM_mapallocN(sizeof(int) * width * height, "temp 32 bits rect");
-				ibuf_arr[i]->mall |= IB_rect;
-				render_result_rect_get_pixels(rr, ibuf_arr[i]->rect, width, height, &scene->view_settings, &scene->display_settings, view_id);
-				do_free[i] = true;
-			}
-
 			IMB_colormanagement_imbuf_for_write(ibuf_arr[i], true, false, &scene->view_settings,
 			                                    &scene->display_settings, &scene->r.im_format);
 		}
