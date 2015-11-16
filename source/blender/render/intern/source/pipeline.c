@@ -3357,14 +3357,6 @@ bool RE_WriteRenderViewsMovie(
 			const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, view_id);
 			ImBuf *ibuf = render_result_rect_to_ibuf(rr, &scene->r, view_id);
 
-			/* note; the way it gets 32 bits rects is weak... */
-			if (ibuf->rect == NULL) {
-				ibuf->rect = MEM_mapallocN(sizeof(int) * rr->rectx * rr->recty, "temp 32 bits rect");
-				ibuf->mall |= IB_rect;
-				render_result_rect_get_pixels(rr, ibuf->rect, width, height, &scene->view_settings, &scene->display_settings, view_id);
-				do_free = true;
-			}
-
 			IMB_colormanagement_imbuf_for_write(ibuf, true, false, &scene->view_settings,
 			                                    &scene->display_settings, &scene->r.im_format);
 
