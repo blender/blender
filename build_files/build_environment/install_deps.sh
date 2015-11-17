@@ -632,7 +632,7 @@ version_ge() {
 # $1 and $2 should be version numbers made of numbers only.
 version_ge_lt() {
   version_ge $1 $3
-  if [ $? -eq 1 ]; then
+  if [ $? -eq 0 ]; then
     return 1
   else
     version_ge $1 $2
