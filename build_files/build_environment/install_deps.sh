@@ -228,6 +228,7 @@ _with_built_openexr=false
 
 OIIO_VERSION="1.4.16"
 OIIO_VERSION_MIN="1.4.0"
+OIIO_VERSION_MAX="1.5.0"  # Not supported by current OSL...
 OIIO_FORCE_REBUILD=false
 OIIO_SKIP=false
 
@@ -624,6 +625,18 @@ version_ge() {
     return 1
   else
     return 0
+  fi
+}
+
+# Return 0 if $3 > $1 >= $2, else 1.
+# $1 and $2 should be version numbers made of numbers only.
+version_ge_lt() {
+  version_ge $1 $3
+  if [ $? -eq 1 ]; then
+    return 1
+  else
+    version_ge $1 $2
+    return $?
   fi
 }
 
@@ -1877,6 +1890,17 @@ check_package_version_ge_DEB() {
   return $?
 }
 
+check_package_version_ge_lt_DEB() {
+  v=`apt-cache policy $1 | grep 'Candidate:' | sed -r 's/.*:\s*([0-9]+:)?(([0-9]+\.?)+).*/\2/'`
+
+  if [ -z "$v" ]; then
+    return 1
+  fi
+
+  version_ge_lt $v $2 $3
+  return $?
+}
+
 install_packages_DEB() {
   if [ ! $SUDO ]; then
     WARNING "--no-sudo enabled, impossible to run apt-get install for $@, you'll have to do it yourself..."
@@ -2159,7 +2183,7 @@ install_DEB() {
   if $OIIO_SKIP; then
     WARNING "Skipping OpenImageIO installation, as requested..."
   else
-    check_package_version_ge_DEB libopenimageio-dev $OIIO_VERSION_MIN
+    check_package_version_ge_lt_DEB libopenimageio-dev $OIIO_VERSION_MIN $OIIO_VERSION_MAX
     if [ $? -eq 0 -a $_with_built_openexr == false ]; then
       install_packages_DEB libopenimageio-dev
       clean_OIIO
@@ -2322,6 +2346,17 @@ check_package_version_ge_RPM() {
   fi
 
   version_ge $v $2
+  return $?
+}
+
+check_package_version_ge_lt_RPM() {
+  v=`get_package_version_RPM $1`
+
+  if [ -z "$v" ]; then
+    return 1
+  fi
+
+  version_ge_lt $v $2 $3
   return $?
 }
 
@@ -2608,7 +2643,7 @@ install_RPM() {
   if $OIIO_SKIP; then
     WARNING "Skipping OpenImageIO installation, as requested..."
   else
-    check_package_version_ge_RPM OpenImageIO-devel $OIIO_VERSION_MIN
+    check_package_version_ge_lt_RPM OpenImageIO-devel $OIIO_VERSION_MIN $OIIO_VERSION_MAX
     if [ $? -eq 0 -a $_with_built_openexr == false ]; then
       install_packages_RPM OpenImageIO-devel
       clean_OIIO
@@ -2745,6 +2780,17 @@ check_package_version_ge_ARCH() {
   fi
 
   version_ge $v $2
+  return $?
+}
+
+check_package_version_ge_lt_ARCH() {
+  v=`get_package_version_ARCH $1`
+
+  if [ -z "$v" ]; then
+    return 1
+  fi
+
+  version_ge_lt $v $2 $3
   return $?
 }
 
@@ -2937,7 +2983,7 @@ install_ARCH() {
   if $OIIO_SKIP; then
     WARNING "Skipping OpenImageIO installation, as requested..."
   else
-    check_package_version_ge_ARCH openimageio $OIIO_VERSION_MIN
+    check_package_version_ge_lt_ARCH openimageio $OIIO_VERSION_MIN $OIIO_VERSION_MAX
     if [ $? -eq 0 ]; then
       install_packages_ARCH openimageio
       clean_OIIO
