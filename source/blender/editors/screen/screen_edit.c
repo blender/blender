@@ -1859,6 +1859,7 @@ void ED_screen_full_restore(bContext *C, ScrArea *sa)
  */
 ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const short state)
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	bScreen *sc, *oldscreen;
 	ARegion *ar;
 
@@ -1866,8 +1867,14 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 		/* ensure we don't have a button active anymore, can crash when
 		 * switching screens with tooltip open because region and tooltip
 		 * are no longer in the same screen */
-		for (ar = sa->regionbase.first; ar; ar = ar->next)
+		for (ar = sa->regionbase.first; ar; ar = ar->next) {
 			UI_blocklist_free(C, &ar->uiblocks);
+
+			if (ar->regiontimer) {
+				WM_event_remove_timer(wm, NULL, ar->regiontimer);
+				ar->regiontimer = NULL;
+			}
+		}
 
 		/* prevent hanging header prints */
 		ED_area_headerprint(sa, NULL);
