@@ -1550,6 +1550,17 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Triangulate", "Keep triangulated faces resulting from decimation (collapse only)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop = RNA_def_property(srna, "use_symmetry", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_DECIM_FLAG_SYMMETRY);
+	RNA_def_property_ui_text(prop, "Symmetry", "Maintain symmetry on an axis");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "symmetry_axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "symmetry_axis");
+	RNA_def_property_enum_items(prop, object_axis_unsigned_items);
+	RNA_def_property_ui_text(prop, "Axis", "Axis of symmetry");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
 	prop = RNA_def_property(srna, "vertex_group_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "defgrp_factor");
 	RNA_def_property_range(prop, 0, 1000);

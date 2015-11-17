@@ -430,7 +430,7 @@ typedef struct DecimateModifierData {
 	float percent;  /* (mode == MOD_DECIM_MODE_COLLAPSE) */
 	short iter;     /* (mode == MOD_DECIM_MODE_UNSUBDIV) */
 	char delimit;   /* (mode == MOD_DECIM_MODE_DISSOLVE) */
-	char pad;
+	char symmetry_axis; /* (mode == MOD_DECIM_MODE_COLLAPSE) */
 	float angle;    /* (mode == MOD_DECIM_MODE_DISSOLVE) */
 
 	char defgrp_name[64];  /* MAX_VGROUP_NAME */
@@ -445,6 +445,7 @@ enum {
 	MOD_DECIM_FLAG_INVERT_VGROUP       = (1 << 0),
 	MOD_DECIM_FLAG_TRIANGULATE         = (1 << 1),  /* for collapse only. dont convert tri pairs back to quads */
 	MOD_DECIM_FLAG_ALL_BOUNDARY_VERTS  = (1 << 2),  /* for dissolve only. collapse all verts between 2 faces */
+	MOD_DECIM_FLAG_SYMMETRY            = (1 << 3),
 };
 
 enum {

@@ -94,7 +94,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	DerivedMesh *dm = derivedData, *result = NULL;
 	BMesh *bm;
 	bool calc_face_normal;
-
 	float *vweights = NULL;
 
 #ifdef USE_TIMEIT
@@ -165,7 +164,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		case MOD_DECIM_MODE_COLLAPSE:
 		{
 			const bool do_triangulate = (dmd->flag & MOD_DECIM_FLAG_TRIANGULATE) != 0;
-			BM_mesh_decimate_collapse(bm, dmd->percent, vweights, dmd->defgrp_factor, do_triangulate);
+			const int symmetry_axis = (dmd->flag & MOD_DECIM_FLAG_SYMMETRY) ? dmd->symmetry_axis : -1;
+			const float symmetry_eps = 0.00002f;
+			BM_mesh_decimate_collapse(
+			        bm, dmd->percent, vweights, dmd->defgrp_factor, do_triangulate,
+			        symmetry_axis, symmetry_eps);
 			break;
 		}
 		case MOD_DECIM_MODE_UNSUBDIV:
