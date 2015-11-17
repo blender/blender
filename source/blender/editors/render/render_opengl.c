@@ -254,7 +254,6 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 	RegionView3D *rv3d = oglrender->rv3d;
 	Object *camera = NULL;
 	ImBuf *ibuf;
-	float *rectf = RE_RenderViewGetById(rr, oglrender->view_id)->rectf;
 	int sizex = oglrender->sizex;
 	int sizey = oglrender->sizey;
 	const short view_context = (v3d != NULL);
@@ -303,6 +302,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 		if (gpd) {
 			int i;
 			unsigned char *gp_rect;
+			unsigned char *rect = (unsigned char*)RE_RenderViewGetById(rr, oglrender->view_id)->rect32;
 
 			GPU_offscreen_bind(oglrender->ofs, true);
 
@@ -319,12 +319,8 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 			gp_rect = MEM_mallocN(sizex * sizey * sizeof(unsigned char) * 4, "offscreen rect");
 			GPU_offscreen_read_pixels(oglrender->ofs, GL_UNSIGNED_BYTE, gp_rect);
 
-			BLI_assert(rectf != NULL);
-
 			for (i = 0; i < sizex * sizey * 4; i += 4) {
-				float  col_src[4];
-				rgba_uchar_to_float(col_src, &gp_rect[i]);
-				blend_color_mix_float(&rectf[i], &rectf[i], col_src);
+				blend_color_mix_byte(&rect[i], &rect[i], &gp_rect[i]);
 			}
 			GPU_offscreen_unbind(oglrender->ofs, true);
 
