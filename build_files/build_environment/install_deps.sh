@@ -27,7 +27,7 @@ getopt \
 -o s:i:t:h \
 --long source:,install:,tmp:,info:,threads:,help,no-sudo,with-all,with-opencollada,\
 ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,\
-force-all,force-python,force-numpy,force-boost,force-ocio,force-oiio,force-llvm,force-osl,force-osd,\
+force-all,force-python,force-numpy,force-boost,force-ocio,force-openexr,force-oiio,force-llvm,force-osl,force-osd,\
 force-ffmpeg,force-opencollada,\
 skip-python,skip-numpy,skip-boost,skip-ocio,skip-openexr,skip-oiio,skip-llvm,skip-osl,skip-osd,\
 skip-ffmpeg,skip-opencollada,\
