@@ -58,6 +58,10 @@ int BLI_kdtree_find_nearest(
 #define BLI_kdtree_range_search(tree, co, r_nearest, range) \
         BLI_kdtree_range_search__normal(tree, co, NULL, r_nearest, range)
 
+void BLI_kdtree_range_search_cb(
+        const KDTree *tree, const float co[3], float range,
+        bool (*search_cb)(void *user_data, int index, const float co[3], float dist_sq), void *user_data);
+
 /* Normal use is deprecated */
 /* remove __normal functions when last users drop */
 int BLI_kdtree_find_nearest_n__normal(

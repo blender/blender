@@ -524,3 +524,90 @@ int BLI_kdtree_range_search__normal(
 
 	return (int)found;
 }
+
+/**
+ * A version of #BLI_kdtree_range_search which runs a callback
+ * instead of allocating an array.
+ *
+ * \param search_cb: Called for every node found in \a range, false return value performs an early exit.
+ *
+ * \note the order of calls isn't sorted based on distance.
+ */
+void BLI_kdtree_range_search_cb(
+        const KDTree *tree, const float co[3], float range,
+        bool (*search_cb)(void *user_data, int index, const float co[3], float dist_sq), void *user_data)
+{
+	const KDTreeNode *nodes = tree->nodes;
+	const KDTreeNode *root;
+	unsigned int *stack, defaultstack[KD_STACK_INIT];
+	float range_sq = range * range, dist_sq;
+	unsigned int totstack, cur = 0;
+
+#ifdef DEBUG
+	BLI_assert(tree->is_balanced == true);
+#endif
+
+	if (UNLIKELY(tree->root == KD_NODE_UNSET))
+		return false;
+
+	stack = defaultstack;
+	totstack = KD_STACK_INIT;
+
+	root = &nodes[tree->root];
+
+	if (co[root->d] + range < root->co[root->d]) {
+		if (root->left != KD_NODE_UNSET)
+			stack[cur++] = root->left;
+	}
+	else if (co[root->d] - range > root->co[root->d]) {
+		if (root->right != KD_NODE_UNSET)
+			stack[cur++] = root->right;
+	}
+	else {
+		dist_sq = len_squared_v3v3(root->co, co);
+		if (dist_sq <= range_sq) {
+			if (search_cb(user_data, root->index, root->co, dist_sq) == false) {
+				goto finally;
+			}
+		}
+
+		if (root->left != KD_NODE_UNSET)
+			stack[cur++] = root->left;
+		if (root->right != KD_NODE_UNSET)
+			stack[cur++] = root->right;
+	}
+
+	while (cur--) {
+		const KDTreeNode *node = &nodes[stack[cur]];
+
+		if (co[node->d] + range < node->co[node->d]) {
+			if (node->left != KD_NODE_UNSET)
+				stack[cur++] = node->left;
+		}
+		else if (co[node->d] - range > node->co[node->d]) {
+			if (node->right != KD_NODE_UNSET)
+				stack[cur++] = node->right;
+		}
+		else {
+			dist_sq = len_squared_v3v3(node->co, co);
+			if (dist_sq <= range_sq) {
+				if (search_cb(user_data, node->index, node->co, dist_sq) == false) {
+					goto finally;
+				}
+			}
+
+			if (node->left != KD_NODE_UNSET)
+				stack[cur++] = node->left;
+			if (node->right != KD_NODE_UNSET)
+				stack[cur++] = node->right;
+		}
+
+		if (UNLIKELY(cur + 3 > totstack)) {
+			stack = realloc_nodes(stack, &totstack, defaultstack != stack);
+		}
+	}
+
+finally:
+	if (stack != defaultstack)
+		MEM_freeN(stack);
+}
