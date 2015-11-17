@@ -534,7 +534,7 @@ OSL_SOURCE=( "https://github.com/Nazg-Gul/OpenShadingLanguage/archive/Release-1.
 #~ OSL_SOURCE_REPO_UID="85179714e1bc69cd25ecb6bb711c1a156685d395"
 #~ OSL_SOURCE_REPO_BRANCH="master"
 OSL_SOURCE_REPO=( "https://github.com/Nazg-Gul/OpenShadingLanguage.git" )
-OSL_SOURCE_REPO_UID="22ee5ea298fd215430dfbd160b5aefd507f06db0"
+OSL_SOURCE_REPO_UID="7d40ff5fe8e47b030042afb92d0e955f5aa96f48"
 OSL_SOURCE_REPO_BRANCH="blender-fixes"
 
 OSD_USE_REPO=true
