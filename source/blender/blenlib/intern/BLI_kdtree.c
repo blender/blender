@@ -451,7 +451,7 @@ int BLI_kdtree_range_search__normal(
 	const KDTreeNode *root;
 	unsigned int *stack, defaultstack[KD_STACK_INIT];
 	KDTreeNearest *foundstack = NULL;
-	float range2 = range * range, dist2;
+	float range_sq = range * range, dist_sq;
 	unsigned int totstack, cur = 0, found = 0, totfoundstack = 0;
 
 #ifdef DEBUG
@@ -475,9 +475,10 @@ int BLI_kdtree_range_search__normal(
 			stack[cur++] = root->right;
 	}
 	else {
-		dist2 = squared_distance(root->co, co, nor);
-		if (dist2 <= range2)
-			add_in_range(&foundstack, &totfoundstack, found++, root->index, dist2, root->co);
+		dist_sq = squared_distance(root->co, co, nor);
+		if (dist_sq <= range_sq) {
+			add_in_range(&foundstack, &totfoundstack, found++, root->index, dist_sq, root->co);
+		}
 
 		if (root->left != KD_NODE_UNSET)
 			stack[cur++] = root->left;
@@ -497,9 +498,10 @@ int BLI_kdtree_range_search__normal(
 				stack[cur++] = node->right;
 		}
 		else {
-			dist2 = squared_distance(node->co, co, nor);
-			if (dist2 <= range2)
-				add_in_range(&foundstack, &totfoundstack, found++, node->index, dist2, node->co);
+			dist_sq = squared_distance(node->co, co, nor);
+			if (dist_sq <= range_sq) {
+				add_in_range(&foundstack, &totfoundstack, found++, node->index, dist_sq, node->co);
+			}
 
 			if (node->left != KD_NODE_UNSET)
 				stack[cur++] = node->left;
