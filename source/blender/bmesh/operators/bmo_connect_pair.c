@@ -506,6 +506,7 @@ static void bm_vert_pair_to_matrix(BMVert *v_pair[2], float r_unit_mat[3][3])
 	float basis_nor[3];
 
 	sub_v3_v3v3(basis_dir, v_pair[0]->co, v_pair[1]->co);
+	normalize_v3(basis_dir);
 
 #if 0
 	add_v3_v3v3(basis_nor, v_pair[0]->no, v_pair[1]->no);
@@ -518,16 +519,12 @@ static void bm_vert_pair_to_matrix(BMVert *v_pair[2], float r_unit_mat[3][3])
 		float basis_nor_b[3];
 
 		/* align normal to direction */
-		cross_v3_v3v3(basis_tmp,   v_pair[0]->no, basis_dir);
-		cross_v3_v3v3(basis_nor_a, basis_tmp,     basis_dir);
+		project_plane_v3_v3v3(basis_nor_a, v_pair[0]->no, basis_dir);
+		project_plane_v3_v3v3(basis_nor_b, v_pair[1]->no, basis_dir);
 
-		cross_v3_v3v3(basis_tmp,   v_pair[1]->no, basis_dir);
-		cross_v3_v3v3(basis_nor_b, basis_tmp,     basis_dir);
+		/* don't normalize before combining so as normals approach the direction, they have less effect (T46784). */
 
 		/* combine the normals */
-		normalize_v3(basis_nor_a);
-		normalize_v3(basis_nor_b);
-
 		/* for flipped faces */
 		if (dot_v3v3(basis_nor_a, basis_nor_b) < 0.0f) {
 			negate_v3(basis_nor_b);
@@ -537,7 +534,6 @@ static void bm_vert_pair_to_matrix(BMVert *v_pair[2], float r_unit_mat[3][3])
 #endif
 
 	/* get third axis */
-	normalize_v3(basis_dir);
 	normalize_v3(basis_nor);
 	cross_v3_v3v3(basis_tmp, basis_dir, basis_nor);
 
@@ -558,13 +554,11 @@ static void bm_vert_pair_to_matrix(BMVert *v_pair[2], float r_unit_mat[3][3])
 			axis_pair[i].angle_cos = -FLT_MAX;
 
 			BM_ITER_ELEM (l, &liter, v_pair[i], BM_LOOPS_OF_VERT) {
-				float l_normal[3], basis_dir_proj[3];
+				float basis_dir_proj[3];
 				float angle_cos_test;
 
-				BM_loop_calc_face_normal(l, l_normal);
-
 				/* project basis dir onto the normal to find its closest angle */
-				project_plane_v3_v3v3(basis_dir_proj, basis_dir, l_normal);
+				project_plane_v3_v3v3(basis_dir_proj, basis_dir, l->f->no);
 
 				if (normalize_v3(basis_dir_proj) > eps) {
 					angle_cos_test = dot_v3v3(basis_dir_proj, basis_dir);
