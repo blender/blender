@@ -3355,13 +3355,6 @@ static void rna_def_modifier_uvwarp(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem uvwarp_axis[] = {
-		{0, "X", 0, "X", ""},
-		{1, "Y", 0, "Y", ""},
-		{2, "Z", 0, "Z", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	srna = RNA_def_struct(brna, "UVWarpModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "UVWarp Modifier", "Add target position to uv coordinates");
 	RNA_def_struct_sdna(srna, "UVWarpModifierData");
@@ -3369,13 +3362,13 @@ static void rna_def_modifier_uvwarp(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "axis_u", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "axis_u");
-	RNA_def_property_enum_items(prop, uvwarp_axis);
+	RNA_def_property_enum_items(prop, object_axis_unsigned_items);
 	RNA_def_property_ui_text(prop, "U-Axis", "Pole axis for rotation");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "axis_v", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "axis_v");
-	RNA_def_property_enum_items(prop, uvwarp_axis);
+	RNA_def_property_enum_items(prop, object_axis_unsigned_items);
 	RNA_def_property_ui_text(prop, "V-Axis", "Pole axis for rotation");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 

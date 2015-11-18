@@ -34,6 +34,7 @@
 #include "DNA_smoke_types.h"
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -1169,13 +1170,6 @@ static void rna_def_field(BlenderRNA *brna)
 		{6, "ROLL", 0, "Roll", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-		
-	static EnumPropertyItem guide_kink_axis_items[] = {
-		{0, "X", 0, "X", ""},
-		{1, "Y", 0, "Y", ""},
-		{2, "Z", 0, "Z", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
 
 	srna = RNA_def_struct(brna, "FieldSettings", NULL);
 	RNA_def_struct_sdna(srna, "PartDeflect");
@@ -1456,7 +1450,7 @@ static void rna_def_field(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "guide_kink_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "kink_axis");
-	RNA_def_property_enum_items(prop, guide_kink_axis_items);
+	RNA_def_property_enum_items(prop, object_axis_unsigned_items);
 	RNA_def_property_ui_text(prop, "Axis", "Which axis to use for offset");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 

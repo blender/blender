@@ -1997,13 +1997,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem kink_axis_items[] = {
-		{0, "X", 0, "X", ""},
-		{1, "Y", 0, "Y", ""},
-		{2, "Z", 0, "Z", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	static EnumPropertyItem bb_align_items[] = {
 		{PART_BB_X, "X", 0, "X", ""},
 		{PART_BB_Y, "Y", 0, "Y", ""},
@@ -2421,7 +2414,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	prop = RNA_def_property(srna, "kink_axis", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, kink_axis_items);
+	RNA_def_property_enum_items(prop, object_axis_unsigned_items);
 	RNA_def_property_ui_text(prop, "Axis", "Which axis to use for offset");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
