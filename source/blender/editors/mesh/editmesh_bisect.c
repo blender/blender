@@ -285,13 +285,13 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
 
 		/* Fill */
 		BMO_op_initf(
-		        bm, &bmop_fill, op->flag,
+		        bm, &bmop_fill, 0,
 		        "triangle_fill edges=%S normal=%v use_dissolve=%b",
 		        &bmop, "geom_cut.out", normal_fill, true);
 		BMO_op_exec(bm, &bmop_fill);
 
 		/* Copy Attributes */
-		BMO_op_initf(bm, &bmop_attr, op->flag,
+		BMO_op_initf(bm, &bmop_attr, 0,
 		             "face_attribute_fill faces=%S use_normals=%b use_data=%b",
 		             &bmop_fill, "geom.out", false, true);
 		BMO_op_exec(bm, &bmop_attr);

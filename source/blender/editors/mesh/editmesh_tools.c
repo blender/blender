@@ -5127,7 +5127,7 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 				EDBM_mesh_normals_update(em);
 
 				BMO_op_initf(
-				        em->bm, &bmop_subd, op->flag,
+				        em->bm, &bmop_subd, 0,
 				        "subdivide_edgering edges=%S interp_mode=%i cuts=%i smooth=%f "
 				        "profile_shape=%i profile_shape_factor=%f",
 				        &bmop, "edges.out", op_props.interp_mode, op_props.cuts, op_props.smooth,
