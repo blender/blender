@@ -1510,7 +1510,7 @@ void FONT_OT_textbox_remove(wmOperatorType *ot)
 
 /***************** editmode enter/exit ********************/
 
-void make_editText(Object *obedit)
+void ED_curve_editfont_make(Object *obedit)
 {
 	Curve *cu = obedit->data;
 	EditFont *ef = cu->editfont;
@@ -1546,7 +1546,7 @@ void make_editText(Object *obedit)
 	BKE_vfont_select_clamp(obedit);
 }
 
-void load_editText(Object *obedit)
+void ED_curve_editfont_load(Object *obedit)
 {
 	Curve *cu = obedit->data;
 	EditFont *ef = cu->editfont;
@@ -1575,7 +1575,7 @@ void load_editText(Object *obedit)
 	cu->selend = ef->selend;
 }
 
-void free_editText(Object *obedit)
+void ED_curve_editfont_free(Object *obedit)
 {
 	BKE_curve_editfont_free((Curve *)obedit->data);
 }
@@ -1886,7 +1886,7 @@ void undo_push_font(bContext *C, const char *name)
 /**
  * TextBox selection
  */
-bool mouse_font(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
+bool ED_curve_editfont_select_pick(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Curve *cu = obedit->data;

@@ -39,13 +39,13 @@ void ED_operatortypes_metaball(void);
 void ED_operatormacros_metaball(void);
 void ED_keymap_metaball(struct wmKeyConfig *keyconf);
 
-struct MetaElem *add_metaball_primitive(struct bContext *C, struct Object *obedit, float mat[4][4], float dia, int type);
+struct MetaElem *ED_mball_add_primitive(struct bContext *C, struct Object *obedit, float mat[4][4], float dia, int type);
 
-bool mouse_mball(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
+bool ED_mball_select_pick(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
 
-void free_editMball(struct Object *obedit);
-void make_editMball(struct Object *obedit);
-void load_editMball(struct Object *obedit);
+void ED_mball_editmball_free(struct Object *obedit);
+void ED_mball_editmball_make(struct Object *obedit);
+void ED_mball_editmball_load(struct Object *obedit);
 
 void undo_push_mball(struct bContext *C, const char *name);
 

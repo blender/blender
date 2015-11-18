@@ -63,7 +63,7 @@
 #include "mball_intern.h"
 
 /* This function is used to free all MetaElems from MetaBall */
-void free_editMball(Object *obedit)
+void ED_mball_editmball_free(Object *obedit)
 {
 	MetaBall *mb = (MetaBall *)obedit->data;
 
@@ -73,7 +73,7 @@ void free_editMball(Object *obedit)
 
 /* This function is called, when MetaBall Object is
  * switched from object mode to edit mode */
-void make_editMball(Object *obedit)
+void ED_mball_editmball_make(Object *obedit)
 {
 	MetaBall *mb = (MetaBall *)obedit->data;
 	MetaElem *ml; /*, *newml;*/
@@ -91,12 +91,12 @@ void make_editMball(Object *obedit)
 /* This function is called, when MetaBall Object switched from
  * edit mode to object mode. List of MetaElements is copied
  * from object->data->edit_elems to object->data->elems. */
-void load_editMball(Object *UNUSED(obedit))
+void ED_mball_editmball_load(Object *UNUSED(obedit))
 {
 }
 
 /* Add metaelem primitive to metaball object (which is in edit mode) */
-MetaElem *add_metaball_primitive(bContext *UNUSED(C), Object *obedit, float mat[4][4], float dia, int type)
+MetaElem *ED_mball_add_primitive(bContext *UNUSED(C), Object *obedit, float mat[4][4], float dia, int type)
 {
 	MetaBall *mball = (MetaBall *)obedit->data;
 	MetaElem *ml;
@@ -579,7 +579,7 @@ void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 
 /* Select MetaElement with mouse click (user can select radius circle or
  * stiffness circle) */
-bool mouse_mball(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
+bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
 	static MetaElem *startelem = NULL;
 	Object *obedit = CTX_data_edit_object(C);

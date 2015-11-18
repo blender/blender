@@ -425,7 +425,7 @@ static int ebone_select_flag(EditBone *ebone)
 }
 
 /* context: editmode armature in view3d */
-bool mouse_armature(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
+bool ED_armature_select_pick(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	bArmature *arm = obedit->data;

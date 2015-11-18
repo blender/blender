@@ -356,20 +356,20 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
 		DAG_relations_tag_update(bmain);
 	}
 	else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
-		load_editNurb(obedit);
-		if (freedata) free_editNurb(obedit);
+		ED_curve_editnurb_load(obedit);
+		if (freedata) ED_curve_editnurb_free(obedit);
 	}
 	else if (obedit->type == OB_FONT) {
-		load_editText(obedit);
-		if (freedata) free_editText(obedit);
+		ED_curve_editfont_load(obedit);
+		if (freedata) ED_curve_editfont_free(obedit);
 	}
 	else if (obedit->type == OB_LATTICE) {
-		load_editLatt(obedit);
-		if (freedata) free_editLatt(obedit);
+		ED_lattice_editlatt_load(obedit);
+		if (freedata) ED_lattice_editlatt_free(obedit);
 	}
 	else if (obedit->type == OB_MBALL) {
-		load_editMball(obedit);
-		if (freedata) free_editMball(obedit);
+		ED_mball_editmball_load(obedit);
+		if (freedata) ED_mball_editmball_free(obedit);
 	}
 
 	/* Tag update so no access to freed data referenced from
@@ -532,28 +532,28 @@ void ED_object_editmode_enter(bContext *C, int flag)
 	else if (ob->type == OB_FONT) {
 		scene->obedit = ob; /* XXX for context */
 		ok = 1;
-		make_editText(ob);
+		ED_curve_editfont_make(ob);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_TEXT, scene);
 	}
 	else if (ob->type == OB_MBALL) {
 		scene->obedit = ob; /* XXX for context */
 		ok = 1;
-		make_editMball(ob);
+		ED_mball_editmball_make(ob);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_MBALL, scene);
 	}
 	else if (ob->type == OB_LATTICE) {
 		scene->obedit = ob; /* XXX for context */
 		ok = 1;
-		make_editLatt(ob);
+		ED_lattice_editlatt_make(ob);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_LATTICE, scene);
 	}
 	else if (ob->type == OB_SURF || ob->type == OB_CURVE) {
 		ok = 1;
 		scene->obedit = ob; /* XXX for context */
-		make_editNurb(ob);
+		ED_curve_editnurb_make(ob);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_CURVE, scene);
 	}

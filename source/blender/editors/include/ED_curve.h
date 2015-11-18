@@ -51,13 +51,13 @@ void    ED_keymap_curve(struct wmKeyConfig *keyconf);
 void    undo_push_curve(struct bContext *C, const char *name);
 ListBase *object_editcurve_get(struct Object *ob);
 
-void    load_editNurb(struct Object *obedit);
-void    make_editNurb(struct Object *obedit);
-void    free_editNurb(struct Object *obedit);
+void    ED_curve_editnurb_load(struct Object *obedit);
+void    ED_curve_editnurb_make(struct Object *obedit);
+void    ED_curve_editnurb_free(struct Object *obedit);
 
-bool    mouse_nurb(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
+bool    ED_curve_editnurb_select_pick(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
 
-struct Nurb *add_nurbs_primitive(struct bContext *C, struct Object *obedit, float mat[4][4], int type, int newob);
+struct Nurb *ED_curve_add_nurbs_primitive(struct bContext *C, struct Object *obedit, float mat[4][4], int type, int newob);
 
 bool    ED_curve_nurb_select_check(struct Curve *cu, struct Nurb *nu);
 int     ED_curve_nurb_select_count(struct Curve *cu, struct Nurb *nu);
@@ -75,9 +75,9 @@ bool ED_curve_select_nth(struct Curve *cu, int nth, int skip, int offset);
 
 /* editfont.h */
 void    undo_push_font(struct bContext *C, const char *name);
-void    make_editText(struct Object *obedit);
-void    load_editText(struct Object *obedit);
-void    free_editText(struct Object *obedit);
+void    ED_curve_editfont_load(struct Object *obedit);
+void    ED_curve_editfont_make(struct Object *obedit);
+void    ED_curve_editfont_free(struct Object *obedit);
 
 void    ED_text_to_object(struct bContext *C, struct Text *text, const bool split_lines);
 
@@ -88,7 +88,7 @@ int ED_curve_updateAnimPaths(struct Curve *cu);
 
 bool ED_curve_active_center(struct Curve *cu, float center[3]);
 
-bool    mouse_font(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
+bool ED_curve_editfont_select_pick(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
 
 #if 0
 /* debug only */

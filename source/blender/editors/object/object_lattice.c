@@ -72,7 +72,7 @@
 
 /********************** Load/Make/Free ********************/
 
-void free_editLatt(Object *ob)
+void ED_lattice_editlatt_free(Object *ob)
 {
 	Lattice *lt = ob->data;
 	
@@ -91,12 +91,12 @@ void free_editLatt(Object *ob)
 	}
 }
 
-void make_editLatt(Object *obedit)
+void ED_lattice_editlatt_make(Object *obedit)
 {
 	Lattice *lt = obedit->data;
 	KeyBlock *actkey;
 
-	free_editLatt(obedit);
+	ED_lattice_editlatt_free(obedit);
 
 	actkey = BKE_keyblock_from_object(obedit);
 	if (actkey)
@@ -115,7 +115,7 @@ void make_editLatt(Object *obedit)
 	if (lt->key) lt->editlatt->shapenr = obedit->shapenr;
 }
 
-void load_editLatt(Object *obedit)
+void ED_lattice_editlatt_load(Object *obedit)
 {
 	Lattice *lt, *editlt;
 	KeyBlock *actkey;
@@ -415,7 +415,7 @@ void LATTICE_OT_select_less(wmOperatorType *ot)
 
 /************************** Select All Operator *************************/
 
-void ED_setflagsLatt(Object *obedit, int flag)
+void ED_lattice_flags_set(Object *obedit, int flag)
 {
 	Lattice *lt = obedit->data;
 	BPoint *bp;
@@ -461,10 +461,10 @@ static int lattice_select_all_exec(bContext *C, wmOperator *op)
 
 	switch (action) {
 		case SEL_SELECT:
-			ED_setflagsLatt(obedit, 1);
+			ED_lattice_flags_set(obedit, 1);
 			break;
 		case SEL_DESELECT:
-			ED_setflagsLatt(obedit, 0);
+			ED_lattice_flags_set(obedit, 0);
 			break;
 		case SEL_INVERT:
 			bp = lt->editlatt->latt->def;
@@ -518,7 +518,7 @@ static int lattice_select_ungrouped_exec(bContext *C, wmOperator *op)
 	}
 
 	if (!RNA_boolean_get(op->ptr, "extend")) {
-		ED_setflagsLatt(obedit, 0);
+		ED_lattice_flags_set(obedit, 0);
 	}
 
 	dv = lt->dvert;
@@ -867,7 +867,7 @@ static BPoint *findnearestLattvert(ViewContext *vc, const int mval[2], int sel)
 	return data.bp;
 }
 
-bool mouse_lattice(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
+bool ED_lattice_select_pick(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
 	ViewContext vc;
 	BPoint *bp = NULL;
@@ -888,7 +888,7 @@ bool mouse_lattice(bContext *C, const int mval[2], bool extend, bool deselect, b
 			bp->f1 ^= SELECT;  /* swap */
 		}
 		else {
-			ED_setflagsLatt(vc.obedit, 0);
+			ED_lattice_flags_set(vc.obedit, 0);
 			bp->f1 |= SELECT;
 		}
 
