@@ -569,6 +569,20 @@ static void bm_grid_fill(
 #undef USE_FLIP_DETECT
 }
 
+static void bm_edgeloop_flag_set(struct BMEdgeLoopStore *estore, char hflag, bool set)
+{
+	/* only handle closed loops in this case */
+	LinkData *link = BM_edgeloop_verts_get(estore)->first;
+	link = link->next;
+	while (link) {
+		BMEdge *e = BM_edge_exists(link->data, link->prev->data);
+		if (e) {
+			BM_elem_flag_set(e, hflag, set);
+		}
+		link = link->next;
+	}
+}
+
 static bool bm_edge_test_cb(BMEdge *e, void *bm_v)
 {
 	return BMO_elem_flag_test_bool((BMesh *)bm_v, e, EDGE_MARK);
@@ -630,48 +644,40 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 
 	/* ok. all error checking done, now we can find the rail edges */
 
-	if (BM_mesh_edgeloops_find_path(bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_first, v_b_first) == false) {
+
+	/* cheat here, temp hide all edges so they won't be included in rails
+	 * this puts the mesh in an invalid state for a short time. */
+	bm_edgeloop_flag_set(estore_a, BM_ELEM_HIDDEN, true);
+	bm_edgeloop_flag_set(estore_b, BM_ELEM_HIDDEN, true);
+
+	if ((BM_mesh_edgeloops_find_path(bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_first, v_b_first)) &&
+	    (BM_mesh_edgeloops_find_path(bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_last, v_b_last)))
+	{
+		estore_rail_a = eloops_rail.first;
+		estore_rail_b = eloops_rail.last;
+	}
+	else {
+		BM_mesh_edgeloops_free(&eloops_rail);
+
+		if ((BM_mesh_edgeloops_find_path(bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_first, v_b_last)) &&
+		    (BM_mesh_edgeloops_find_path(bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_last, v_b_first)))
+		{
+			estore_rail_a = eloops_rail.first;
+			estore_rail_b = eloops_rail.last;
+		}
+		else {
+			BM_mesh_edgeloops_free(&eloops_rail);
+		}
+	}
+
+	bm_edgeloop_flag_set(estore_a, BM_ELEM_HIDDEN, false);
+	bm_edgeloop_flag_set(estore_b, BM_ELEM_HIDDEN, false);
+
+
+	if (BLI_listbase_is_empty(&eloops_rail)) {
 		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
 		                "Loops are not connected by wire/boundary edges");
 		goto cleanup;
-	}
-
-	/* We may find a first path, but not a second one! See geometry attached to bug [#37388]. */
-	if (BM_mesh_edgeloops_find_path(bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_first, v_b_last) == false) {
-		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
-		                "Loops are not connected by wire/boundary edges");
-		goto cleanup;
-	}
-
-	/* Check flipping by comparing path length */
-	estore_rail_a = eloops_rail.first;
-	estore_rail_b = eloops_rail.last;
-
-	BLI_assert(BM_edgeloop_length_get(estore_rail_a) != BM_edgeloop_length_get(estore_rail_b));
-
-	if (BM_edgeloop_length_get(estore_rail_a) < BM_edgeloop_length_get(estore_rail_b)) {
-		BLI_remlink(&eloops_rail, estore_rail_b);
-		BM_edgeloop_free(estore_rail_b);
-		estore_rail_b = NULL;
-
-		BM_mesh_edgeloops_find_path(bm, &eloops_rail, bm_edge_test_rail_cb, (void *)bm,
-		                            v_a_last,
-		                            v_b_last);
-		estore_rail_b = eloops_rail.last;
-	}
-	else {  /* a > b */
-		BLI_remlink(&eloops_rail, estore_rail_a);
-		BM_edgeloop_free(estore_rail_a);
-		estore_rail_a = estore_rail_b;
-
-		/* reverse so both are sorted the same way */
-		BM_edgeloop_flip(bm, estore_b);
-		SWAP(BMVert *, v_b_first, v_b_last);
-
-		BM_mesh_edgeloops_find_path(bm, &eloops_rail, bm_edge_test_rail_cb, (void *)bm,
-		                            v_a_last,
-		                            v_b_last);
-		estore_rail_b = eloops_rail.last;
 	}
 
 	BLI_assert(estore_a != estore_b);
