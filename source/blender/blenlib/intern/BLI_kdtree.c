@@ -548,7 +548,7 @@ void BLI_kdtree_range_search_cb(
 #endif
 
 	if (UNLIKELY(tree->root == KD_NODE_UNSET))
-		return false;
+		return;
 
 	stack = defaultstack;
 	totstack = KD_STACK_INIT;
