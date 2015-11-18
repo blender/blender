@@ -1878,6 +1878,18 @@ GlossyBsdfNode::GlossyBsdfNode()
 	add_input("Roughness", SHADER_SOCKET_FLOAT, 0.2f);
 }
 
+void GlossyBsdfNode::optimize()
+{
+	/* Fallback to Sharp closure for Roughness close to 0.
+	 * Note: Keep the epsilon in sync with kernel!
+	 */
+	ShaderInput *roughness_input = get_input("Roughness");
+	if(!roughness_input->link && roughness_input->value.x <= 1e-4f) {
+		closure = CLOSURE_BSDF_REFLECTION_ID;
+		distribution = ustring("Sharp");
+	}
+}
+
 void GlossyBsdfNode::compile(SVMCompiler& compiler)
 {
 	closure = (ClosureType)distribution_enum[distribution];
@@ -1918,6 +1930,18 @@ GlassBsdfNode::GlassBsdfNode()
 	add_input("IOR", SHADER_SOCKET_FLOAT, 0.3f);
 }
 
+void GlassBsdfNode::optimize()
+{
+	/* Fallback to Sharp closure for Roughness close to 0.
+	 * Note: Keep the epsilon in sync with kernel!
+	 */
+	ShaderInput *roughness_input = get_input("Roughness");
+	if(!roughness_input->link && roughness_input->value.x <= 1e-4f) {
+		closure = CLOSURE_BSDF_SHARP_GLASS_ID;
+		distribution = ustring("Sharp");
+	}
+}
+
 void GlassBsdfNode::compile(SVMCompiler& compiler)
 {
 	closure = (ClosureType)distribution_enum[distribution];
@@ -1956,6 +1980,18 @@ RefractionBsdfNode::RefractionBsdfNode()
 
 	add_input("Roughness", SHADER_SOCKET_FLOAT, 0.0f);
 	add_input("IOR", SHADER_SOCKET_FLOAT, 0.3f);
+}
+
+void RefractionBsdfNode::optimize()
+{
+	/* Fallback to Sharp closure for Roughness close to 0.
+	 * Note: Keep the epsilon in sync with kernel!
+	 */
+	ShaderInput *roughness_input = get_input("Roughness");
+	if(!roughness_input->link && roughness_input->value.x <= 1e-4f) {
+		closure = CLOSURE_BSDF_REFRACTION_ID;
+		distribution = ustring("Sharp");
+	}
 }
 
 void RefractionBsdfNode::compile(SVMCompiler& compiler)

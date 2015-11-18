@@ -196,6 +196,7 @@ public:
 	virtual void attributes(Shader *shader, AttributeRequestSet *attributes);
 	virtual void compile(SVMCompiler& compiler) = 0;
 	virtual void compile(OSLCompiler& compiler) = 0;
+	virtual void optimize() {};
 
 	virtual bool has_surface_emission() { return false; }
 	virtual bool has_surface_transparent() { return false; }
@@ -275,6 +276,7 @@ public:
 	void relink(vector<ShaderInput*> inputs, vector<ShaderInput*> outputs, ShaderOutput *output);
 
 	void remove_unneeded_nodes();
+	void simplify_nodes();
 	void finalize(bool do_bump = false, bool do_osl = false);
 
 	int get_num_closures();

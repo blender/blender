@@ -310,6 +310,8 @@ class GlossyBsdfNode : public BsdfNode {
 public:
 	SHADER_NODE_CLASS(GlossyBsdfNode)
 
+	void optimize();
+
 	ustring distribution;
 	static ShaderEnum distribution_enum;
 };
@@ -318,6 +320,8 @@ class GlassBsdfNode : public BsdfNode {
 public:
 	SHADER_NODE_CLASS(GlassBsdfNode)
 
+	void optimize();
+
 	ustring distribution;
 	static ShaderEnum distribution_enum;
 };
@@ -325,6 +329,8 @@ public:
 class RefractionBsdfNode : public BsdfNode {
 public:
 	SHADER_NODE_CLASS(RefractionBsdfNode)
+
+	void optimize();
 
 	ustring distribution;
 	static ShaderEnum distribution_enum;

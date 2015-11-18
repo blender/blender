@@ -354,7 +354,13 @@ void ShaderGraph::copy_nodes(set<ShaderNode*>& nodes, map<ShaderNode*, ShaderNod
 		}
 	}
 }
+/* Graph simplification */
+/* ******************** */
 
+/* Step 1: Remove unused nodes.
+ * Remove nodes which are not needed in the graph, such as proxies,
+ * mix nodes with a factor of 0 or 1, emission shaders without contribution...
+ */
 void ShaderGraph::remove_unneeded_nodes()
 {
 	vector<bool> removed(num_node_ids, false);
@@ -550,6 +556,14 @@ void ShaderGraph::remove_unneeded_nodes()
 	}
 }
 
+/* Step 3: Simplification.*/
+void ShaderGraph::simplify_nodes()
+{
+	foreach(ShaderNode *node, nodes) {
+		node->optimize();
+	}
+}
+
 void ShaderGraph::break_cycles(ShaderNode *node, vector<bool>& visited, vector<bool>& on_stack)
 {
 	visited[node->id] = true;
@@ -590,7 +604,7 @@ void ShaderGraph::clean()
 	/* TODO(dingto): Implement */
 
 	/* 3: Simplification. */
-	/* TODO(dingto): Implement */
+	simplify_nodes();
 
 	/* 4: De-duplication. */
 	/* TODO(dingto): Implement */
