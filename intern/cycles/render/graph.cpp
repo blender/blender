@@ -117,6 +117,30 @@ ShaderOutput *ShaderNode::add_output(const char *name, ShaderSocketType type)
 	return output;
 }
 
+ShaderInput *ShaderNode::get_input(const char *name)
+{
+	foreach(ShaderInput *input, inputs) {
+		if(input->name == name)
+			return input;
+	}
+
+	/* Should never happen. */
+	assert(!"No Shader Input!");
+	return NULL;
+}
+
+ShaderOutput *ShaderNode::get_output(const char *name)
+{
+	foreach(ShaderOutput *output, outputs) {
+		if(output->name == name)
+			return output;
+	}
+
+	/* Should never happen. */
+	assert(!"No Shader Output!");
+	return NULL;
+}
+
 void ShaderNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
 	foreach(ShaderInput *input, inputs) {
