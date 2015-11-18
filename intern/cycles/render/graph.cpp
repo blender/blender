@@ -576,8 +576,24 @@ void ShaderGraph::break_cycles(ShaderNode *node, vector<bool>& visited, vector<b
 
 void ShaderGraph::clean()
 {
-	/* remove proxy and unnecessary nodes */
+	/* Graph simplification:
+	 *  1: Remove unnecesarry nodes
+	 *  2: Constant folding
+	 *  3: Simplification
+	 *  4: De-duplication
+	 */
+
+	/* 1: Remove proxy and unnecessary nodes. */
 	remove_unneeded_nodes();
+
+	/* 2: Constant folding. */
+	/* TODO(dingto): Implement */
+
+	/* 3: Simplification. */
+	/* TODO(dingto): Implement */
+
+	/* 4: De-duplication. */
+	/* TODO(dingto): Implement */
 
 	/* we do two things here: find cycles and break them, and remove unused
 	 * nodes that don't feed into the output. how cycles are broken is
