@@ -1498,7 +1498,13 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 	success = WM_file_read(C, filename, &reports);
 	BKE_reports_clear(&reports);
 
-	if (success == false) {
+	if (success) {
+		if (G.background) {
+			/* ensuer we use 'C->data.scene' for background render */
+			CTX_wm_window_set(C, NULL);
+		}
+	}
+	else {
 		/* failed to load file, stop processing arguments */
 		if (G.background) {
 			/* Set is_break if running in the background mode so
