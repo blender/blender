@@ -659,6 +659,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 		{
 			estore_rail_a = eloops_rail.first;
 			estore_rail_b = eloops_rail.last;
+			BM_edgeloop_flip(bm, estore_b);
 		}
 		else {
 			BM_mesh_edgeloops_free(&eloops_rail);
