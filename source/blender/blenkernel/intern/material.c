@@ -669,6 +669,10 @@ void BKE_material_clear_id(struct ID *id, bool update_data)
 	Material ***matar;
 	if ((matar = give_matarar_id(id))) {
 		short *totcol = give_totcolp_id(id);
+
+		while ((*totcol)--) {
+			id_us_min((ID *)((*matar)[*totcol]));
+		}
 		*totcol = 0;
 		if (*matar) {
 			MEM_freeN(*matar);
