@@ -1117,6 +1117,16 @@ BMEdge *BM_vert_collapse_edge(
 #undef DO_V_INTERP
 
 /**
+ * Collapse and edge into a single vertex.
+ */
+BMVert *BM_edge_collapse(
+        BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
+        const bool do_del, const bool kill_degenerate_faces)
+{
+	return bmesh_jvke(bm, e_kill, v_kill, do_del, true, kill_degenerate_faces);
+}
+
+/**
  * \brief Edge Split
  *
  * <pre>

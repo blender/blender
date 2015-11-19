@@ -100,6 +100,10 @@ BMEdge *bmesh_jekv(
         BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
         const bool do_del, const bool check_edge_splice,
         const bool kill_degenerate_faces);
+BMVert *bmesh_jvke(
+        BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
+        const bool do_del, const bool check_edge_double,
+        const bool kill_degenerate_faces);
 BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e);
 BMVert *bmesh_urmv(BMesh *bm, BMFace *f_sep, BMVert *v_sep);
 BMVert *bmesh_urmv_loop(BMesh *bm, BMLoop *l_sep);
