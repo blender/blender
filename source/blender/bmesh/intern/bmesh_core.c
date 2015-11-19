@@ -1686,16 +1686,15 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
  * \par Examples:
  *
  * <pre>
- *     Before:         OE      KE
- *                   ------- -------
- *                   |     ||      |
- *                  OV     KV      TV
+ *     Before:    e_old  e_kill
+ *              +-------+-------+
+ *              |       |       |
+ *              v_old   v_kill  v_target
  *
- *
- *     After:              OE
- *                   ---------------
- *                   |             |
- *                  OV             TV
+ *     After:           e_old
+ *              +---------------+
+ *              |               |
+ *              v_old           v_target
  * </pre>
  *
  * \par Restrictions:
@@ -1714,7 +1713,7 @@ BMEdge *bmesh_jekv(
         const bool kill_degenerate_faces)
 {
 	BMEdge *e_old;
-	BMVert *v_old, *tv;
+	BMVert *v_old, *v_target;
 	BMLoop *l_kill;
 	bool halt = false;
 #ifndef NDEBUG
@@ -1735,9 +1734,9 @@ BMEdge *bmesh_jekv(
 #endif
 
 		e_old = bmesh_disk_edge_next(e_kill, v_kill);
-		tv = BM_edge_other_vert(e_kill, v_kill);
+		v_target = BM_edge_other_vert(e_kill, v_kill);
 		v_old = BM_edge_other_vert(e_old, v_kill);
-		halt = BM_verts_in_edge(v_kill, tv, e_old); /* check for double edges */
+		halt = BM_verts_in_edge(v_kill, v_target, e_old); /* check for double edges */
 		
 		if (halt) {
 			return NULL;
@@ -1748,19 +1747,19 @@ BMEdge *bmesh_jekv(
 			BMLoop *l_kill_next;
 
 #ifndef NDEBUG
-			/* For verification later, count valence of v_old and tv */
+			/* For verification later, count valence of 'v_old' and 'v_target' */
 			valence1 = bmesh_disk_count(v_old);
-			valence2 = bmesh_disk_count(tv);
+			valence2 = bmesh_disk_count(v_target);
 #endif
 
 			if (check_edge_double) {
-				e_splice = BM_edge_exists(tv, v_old);
+				e_splice = BM_edge_exists(v_target, v_old);
 			}
 
-			bmesh_disk_vert_replace(e_old, tv, v_kill);
+			bmesh_disk_vert_replace(e_old, v_target, v_kill);
 
-			/* remove e_kill from tv's disk cycle */
-			bmesh_disk_edge_remove(e_kill, tv);
+			/* remove e_kill from 'v_target's disk cycle */
+			bmesh_disk_edge_remove(e_kill, v_target);
 
 #ifndef NDEBUG
 			/* deal with radial cycle of e_kill */
@@ -1774,7 +1773,7 @@ BMEdge *bmesh_jekv(
 				do {
 					/* relink loops and fix vertex pointer */
 					if (l_kill->next->v == v_kill) {
-						l_kill->next->v = tv;
+						l_kill->next->v = v_target;
 					}
 
 					l_kill->next->prev = l_kill->prev;
@@ -1814,10 +1813,10 @@ BMEdge *bmesh_jekv(
 			}
 
 #ifndef NDEBUG
-			/* Validate disk cycle lengths of v_old, tv are unchanged */
+			/* Validate disk cycle lengths of 'v_old', 'v_target' are unchanged */
 			edok = bmesh_disk_validate(valence1, v_old->e, v_old);
 			BMESH_ASSERT(edok != false);
-			edok = bmesh_disk_validate(valence2, tv->e, tv);
+			edok = bmesh_disk_validate(valence2, v_target->e, v_target);
 			BMESH_ASSERT(edok != false);
 
 			/* Validate loop cycle of all faces attached to 'e_old' */
@@ -1849,7 +1848,7 @@ BMEdge *bmesh_jekv(
 			}
 
 			BM_CHECK_ELEMENT(v_old);
-			BM_CHECK_ELEMENT(tv);
+			BM_CHECK_ELEMENT(v_target);
 			BM_CHECK_ELEMENT(e_old);
 
 			return e_old;
