@@ -30,6 +30,7 @@
 
 struct ListBase;
 struct BMEdgeLoopStore;
+struct GSet;
 
 /* multiple edgeloops (ListBase) */
 int                 BM_mesh_edgeloops_find(
@@ -66,7 +67,9 @@ bool                BM_edgeloop_calc_normal_aligned(
         BMesh *bm, struct BMEdgeLoopStore *el_store,
         const float no_align[3]);
 void                BM_edgeloop_flip(BMesh *bm, struct BMEdgeLoopStore *el_store);
-void                BM_edgeloop_expand(BMesh *bm, struct BMEdgeLoopStore *el_store, int el_store_len);
+void                BM_edgeloop_expand(
+        BMesh *bm, struct BMEdgeLoopStore *el_store, int el_store_len,
+        bool split, struct GSet *split_edges);
 
 bool                BM_edgeloop_overlap_check(struct BMEdgeLoopStore *el_store_a, struct BMEdgeLoopStore *el_store_b);
 

@@ -284,7 +284,7 @@ static void bridge_loop_pair(
 
 	if (el_store_a_len > el_store_b_len) {
 		el_store_b = BM_edgeloop_copy(el_store_b);
-		BM_edgeloop_expand(bm, el_store_b, el_store_a_len);
+		BM_edgeloop_expand(bm, el_store_b, el_store_a_len, false, NULL);
 		el_store_b_free = true;
 	}
 
