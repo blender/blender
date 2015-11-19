@@ -70,15 +70,15 @@ typedef enum BMIterType {
 	/* returns elements from all boundaries, and returns
 	 * the first element at the end to flag that we're entering
 	 * a different face hole boundary*/
-	BM_ALL_LOOPS_OF_FACE = 12,
+	// BM_ALL_LOOPS_OF_FACE = 12,
 	/* iterate through loops around this loop, which are fetched
 	 * from the other faces in the radial cycle surrounding the
 	 * input loop's edge.*/
-	BM_LOOPS_OF_LOOP = 13,
-	BM_LOOPS_OF_EDGE = 14
+	BM_LOOPS_OF_LOOP = 12,
+	BM_LOOPS_OF_EDGE = 13
 } BMIterType;
 
-#define BM_ITYPE_MAX 15
+#define BM_ITYPE_MAX 14
 
 /* the iterator htype for each iterator */
 extern const char bm_iter_itype_htype_map[BM_ITYPE_MAX];

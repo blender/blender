@@ -2789,7 +2789,7 @@ static PyTypeObject *bpy_bm_itype_as_pytype(const char itype)
 		case BM_FACES_OF_VERT:
 			return &BPy_BMFace_Type;
 
-		case BM_ALL_LOOPS_OF_FACE:
+		// case BM_ALL_LOOPS_OF_FACE:
 		case BM_LOOPS_OF_FACE:
 		case BM_LOOPS_OF_EDGE:
 		case BM_LOOPS_OF_VERT:
