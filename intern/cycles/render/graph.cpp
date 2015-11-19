@@ -120,7 +120,7 @@ ShaderOutput *ShaderNode::add_output(const char *name, ShaderSocketType type)
 ShaderInput *ShaderNode::get_input(const char *name)
 {
 	foreach(ShaderInput *input, inputs) {
-		if(input->name == name)
+		if(strcmp(input->name, name) == 0)
 			return input;
 	}
 
@@ -132,7 +132,7 @@ ShaderInput *ShaderNode::get_input(const char *name)
 ShaderOutput *ShaderNode::get_output(const char *name)
 {
 	foreach(ShaderOutput *output, outputs) {
-		if(output->name == name)
+		if(strcmp(output->name, name) == 0)
 			return output;
 	}
 
