@@ -629,15 +629,17 @@ int bmesh_elem_check(void *element, const char htype)
 					err |= (1 << 18);
 				if (!l_iter->v)
 					err |= (1 << 19);
-				if (!BM_vert_in_edge(l_iter->e, l_iter->v) || !BM_vert_in_edge(l_iter->e, l_iter->next->v)) {
-					err |= (1 << 20);
+				if (l_iter->e && l_iter->v) {
+					if (!BM_vert_in_edge(l_iter->e, l_iter->v) || !BM_vert_in_edge(l_iter->e, l_iter->next->v)) {
+						err |= (1 << 20);
+					}
+
+					if (!bmesh_radial_validate(bmesh_radial_length(l_iter), l_iter))
+						err |= (1 << 21);
+
+					if (!bmesh_disk_count(l_iter->v) || !bmesh_disk_count(l_iter->next->v))
+						err |= (1 << 22);
 				}
-
-				if (!bmesh_radial_validate(bmesh_radial_length(l_iter), l_iter))
-					err |= (1 << 21);
-
-				if (!bmesh_disk_count(l_iter->v) || !bmesh_disk_count(l_iter->next->v))
-					err |= (1 << 22);
 
 				len++;
 			} while ((l_iter = l_iter->next) != l_first);
