@@ -609,6 +609,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 	const short mat_nr = (short)BMO_slot_int_get(op->slots_in,  "mat_nr");
 	const bool use_smooth = BMO_slot_bool_get(op->slots_in, "use_smooth");
 	const bool use_interp_simple = BMO_slot_bool_get(op->slots_in, "use_interp_simple");
+	GSet *split_edges = NULL;
 
 	int count;
 	bool changed = false;
@@ -629,12 +630,6 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 	v_a_last  = ((LinkData *)BM_edgeloop_verts_get(estore_a)->last)->data;
 	v_b_first = ((LinkData *)BM_edgeloop_verts_get(estore_b)->first)->data;
 	v_b_last  = ((LinkData *)BM_edgeloop_verts_get(estore_b)->last)->data;
-
-	if (BM_edgeloop_length_get(estore_a) != BM_edgeloop_length_get(estore_b)) {
-		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
-		                "Edge loop vertex count mismatch");
-		goto cleanup;
-	}
 
 	if (BM_edgeloop_is_closed(estore_a) || BM_edgeloop_is_closed(estore_b)) {
 		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
@@ -683,16 +678,33 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 	BLI_assert(estore_a != estore_b);
 	BLI_assert(v_a_last != v_b_last);
 
-	if (BM_edgeloop_length_get(estore_rail_a) != BM_edgeloop_length_get(estore_rail_b)) {
-		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
-		                "Connecting edges vertex mismatch");
-		goto cleanup;
-	}
-
 	if (BM_edgeloop_overlap_check(estore_rail_a, estore_rail_b)) {
 		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION,
 		                "Connecting edge loops overlap");
 		goto cleanup;
+	}
+
+	/* add vertices if needed */
+	{
+		struct BMEdgeLoopStore *estore_pairs[2][2] = {{estore_a, estore_b}, {estore_rail_a, estore_rail_b}};
+		int i;
+
+		for (i = 0; i < 2; i++) {
+			const int len_a = BM_edgeloop_length_get(estore_pairs[i][0]);
+			const int len_b = BM_edgeloop_length_get(estore_pairs[i][1]);
+			if (len_a != len_b) {
+				if (split_edges == NULL) {
+					split_edges = BLI_gset_ptr_new(__func__);
+				}
+
+				if (len_a < len_b) {
+					BM_edgeloop_expand(bm, estore_pairs[i][0], len_b, true, split_edges);
+				}
+				else {
+					BM_edgeloop_expand(bm, estore_pairs[i][1], len_a, true, split_edges);
+				}
+			}
+		}
 	}
 
 	/* finally we have all edge loops needed */
@@ -701,6 +713,14 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 
 	changed = true;
 
+	if (split_edges) {
+		GSetIterator gs_iter;
+		GSET_ITER (gs_iter, split_edges) {
+			BMEdge *e = BLI_gsetIterator_getKey(&gs_iter);
+			BM_edge_collapse(bm, e, e->v2, true, true);
+		}
+		BLI_gset_free(split_edges, NULL);
+	}
 
 cleanup:
 	BM_mesh_edgeloops_free(&eloops);
