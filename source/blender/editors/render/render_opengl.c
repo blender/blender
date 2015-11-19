@@ -302,7 +302,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 		if (gpd) {
 			int i;
 			unsigned char *gp_rect;
-			unsigned char *rect = (unsigned char*)RE_RenderViewGetById(rr, oglrender->view_id)->rect32;
+			unsigned char *rect = (unsigned char *)RE_RenderViewGetById(rr, oglrender->view_id)->rect32;
 
 			GPU_offscreen_bind(oglrender->ofs, true);
 

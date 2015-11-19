@@ -564,7 +564,6 @@ BlurKernel *paint_new_blur_kernel(Brush *br, bool proj)
 			MEM_freeN(kernel->wdata);
 			MEM_freeN(kernel);
 			return NULL;
-			break;
 	}
 
 	return kernel;

@@ -357,7 +357,6 @@ static MeshRemapIslandsCalc data_transfer_get_loop_islands_generator(const int c
 	switch (cddata_type) {
 		case CD_FAKE_UV:
 			return BKE_mesh_calc_islands_loop_poly_uv;
-			break;
 		default:
 			break;
 	}

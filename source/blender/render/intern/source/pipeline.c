@@ -3963,13 +3963,10 @@ bool RE_layers_have_name(struct RenderResult *rr)
 	switch (BLI_listbase_count_ex(&rr->layers, 2)) {
 		case 0:
 			return false;
-			break;
 		case 1:
 			return (((RenderLayer *)rr->layers.first)->name[0] != '\0');
-			break;
 		default:
 			return true;
-			break;
 	}
 	return false;
 }

@@ -512,10 +512,8 @@ static bool ch_is_op(char op)
 		case '=':
 		case '%':
 			return true;
-			break;
 		default:
 			return false;
-			break;
 	}
 }
 

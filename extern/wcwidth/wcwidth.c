@@ -61,6 +61,8 @@
 
 #include <wchar.h>
 
+#include "wcwidth.h"
+
 struct interval {
   int first;
   int last;
