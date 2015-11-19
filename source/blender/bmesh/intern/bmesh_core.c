@@ -1744,6 +1744,8 @@ BMEdge *bmesh_jekv(
 		}
 		else {
 			BMEdge *e_splice;
+			BLI_SMALLSTACK_DECLARE(faces_degenerate, BMFace *);
+			BMLoop *l_kill_next;
 
 #ifndef NDEBUG
 			/* For verification later, count valence of v_old and tv */
@@ -1765,8 +1767,7 @@ BMEdge *bmesh_jekv(
 			radlen = bmesh_radial_length(e_kill->l);
 #endif
 			if (e_kill->l) {
-				BLI_SMALLSTACK_DECLARE(faces_degenerate, BMFace *);
-				BMLoop *l_kill_next;
+
 
 				/* fix the neighboring loops of all loops in e_kill's radial cycle */
 				l_kill = e_kill->l;
@@ -1800,12 +1801,6 @@ BMEdge *bmesh_jekv(
 				edok = bmesh_radial_validate(radlen, e_old->l);
 				BMESH_ASSERT(edok != false);
 #endif
-				if (kill_degenerate_faces) {
-					BMFace *f_kill;
-					while ((f_kill = BLI_SMALLSTACK_POP(faces_degenerate))) {
-						BM_face_kill(bm, f_kill);
-					}
-				}
 			}
 			/* deallocate edge */
 			bm_kill_only_edge(bm, e_kill);
@@ -1839,11 +1834,17 @@ BMEdge *bmesh_jekv(
 				BM_CHECK_ELEMENT(l->f);
 			}
 #endif
-
 			if (check_edge_double) {
 				if (e_splice) {
 					/* removes e_splice */
 					BM_edge_splice(bm, e_old, e_splice);
+				}
+			}
+
+			if (kill_degenerate_faces) {
+				BMFace *f_kill;
+				while ((f_kill = BLI_SMALLSTACK_POP(faces_degenerate))) {
+					BM_face_kill(bm, f_kill);
 				}
 			}
 
