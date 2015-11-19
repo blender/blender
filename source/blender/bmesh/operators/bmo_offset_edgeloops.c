@@ -278,7 +278,7 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 			}
 
 			while ((v = STACK_POP(varr))) {
-				bmesh_jekv(bm, v->e, v, true, false);
+				bmesh_jekv(bm, v->e, v, true, false, false);
 			}
 		}
 	}

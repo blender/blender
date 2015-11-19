@@ -1708,14 +1708,15 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
  */
 BMEdge *bmesh_jekv(
         BMesh *bm, BMEdge *e_kill, BMVert *v_kill,
-        const bool do_del, const bool check_edge_double)
+        const bool do_del, const bool check_edge_double,
+        const bool kill_degenerate_faces)
 {
 	BMEdge *e_old;
 	BMVert *v_old, *tv;
 	BMLoop *l_kill;
-	int radlen = 0, i;
 	bool halt = false;
 #ifndef NDEBUG
+	int radlen, i;
 	bool edok;
 #endif
 
@@ -1757,11 +1758,17 @@ BMEdge *bmesh_jekv(
 			/* remove e_kill from tv's disk cycle */
 			bmesh_disk_edge_remove(e_kill, tv);
 
+#ifndef NDEBUG
 			/* deal with radial cycle of e_kill */
 			radlen = bmesh_radial_length(e_kill->l);
+#endif
 			if (e_kill->l) {
-				/* first step, fix the neighboring loops of all loops in e_kill's radial cycle */
-				for (i = 0, l_kill = e_kill->l; i < radlen; i++, l_kill = l_kill->radial_next) {
+				BLI_SMALLSTACK_DECLARE(faces_degenerate, BMFace *);
+				BMLoop *l_kill_next;
+
+				/* fix the neighboring loops of all loops in e_kill's radial cycle */
+				l_kill = e_kill->l;
+				do {
 					/* relink loops and fix vertex pointer */
 					if (l_kill->next->v == v_kill) {
 						l_kill->next->v = tv;
@@ -1772,34 +1779,31 @@ BMEdge *bmesh_jekv(
 					if (BM_FACE_FIRST_LOOP(l_kill->f) == l_kill) {
 						BM_FACE_FIRST_LOOP(l_kill->f) = l_kill->next;
 					}
-					l_kill->next = NULL;
-					l_kill->prev = NULL;
 
 					/* fix len attribute of face */
 					l_kill->f->len--;
-				}
-				/* second step, remove all the hanging loops attached to e_kill */
-				radlen = bmesh_radial_length(e_kill->l);
-
-				if (LIKELY(radlen)) {
-					BMLoop **loops = BLI_array_alloca(loops, radlen);
-
-					l_kill = e_kill->l;
-
-					/* this should be wrapped into a bme_free_radial function to be used by bmesh_KF as well... */
-					for (i = 0; i < radlen; i++) {
-						loops[i] = l_kill;
-						l_kill = l_kill->radial_next;
+					if (kill_degenerate_faces) {
+						if (l_kill->f->len < 3) {
+							BLI_SMALLSTACK_PUSH(faces_degenerate, l_kill->f);
+						}
 					}
-					for (i = 0; i < radlen; i++) {
-						bm_kill_only_loop(bm, loops[i]);
-					}
-				}
+					l_kill_next = l_kill->radial_next;
+
+					bm_kill_only_loop(bm, l_kill);
+
+				} while ((l_kill = l_kill_next) != e_kill->l);
+				/* `e_kill->l` is invalid but the edge is freed next. */
 #ifndef NDEBUG
 				/* Validate radial cycle of e_old */
 				edok = bmesh_radial_validate(radlen, e_old->l);
 				BMESH_ASSERT(edok != false);
 #endif
+				if (kill_degenerate_faces) {
+					BMFace *f_kill;
+					while ((f_kill = BLI_SMALLSTACK_POP(faces_degenerate))) {
+						BM_face_kill(bm, f_kill);
+					}
+				}
 			}
 			/* deallocate edge */
 			bm_kill_only_edge(bm, e_kill);

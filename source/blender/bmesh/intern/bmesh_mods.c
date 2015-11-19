@@ -1066,32 +1066,8 @@ BMEdge *BM_vert_collapse_faces(
 		/* single face or no faces */
 		/* same as BM_vert_collapse_edge() however we already
 		 * have vars to perform this operation so don't call. */
-		e_new = bmesh_jekv(bm, e_kill, v_kill, do_del, true);
+		e_new = bmesh_jekv(bm, e_kill, v_kill, do_del, true, kill_degenerate_faces);
 		/* e_new = BM_edge_exists(tv, tv2); */ /* same as return above */
-
-		if (e_new && kill_degenerate_faces) {
-			BMFace **bad_faces = NULL;
-			BLI_array_staticdeclare(bad_faces, BM_DEFAULT_ITER_STACK_SIZE);
-
-			BMIter fiter;
-			BMFace *f;
-			BMVert *verts[2] = {e_new->v1, e_new->v2};
-			int i;
-
-			for (i = 0; i < 2; i++) {
-				/* cant kill data we loop on, build a list and remove those */
-				BLI_array_empty(bad_faces);
-				BM_ITER_ELEM (f, &fiter, verts[i], BM_FACES_OF_VERT) {
-					if (UNLIKELY(f->len < 3)) {
-						BLI_array_append(bad_faces, f);
-					}
-				}
-				while ((f = BLI_array_pop(bad_faces))) {
-					BM_face_kill(bm, f);
-				}
-			}
-			BLI_array_free(bad_faces);
-		}
 	}
 
 	return e_new;
