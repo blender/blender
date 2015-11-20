@@ -516,12 +516,52 @@ ccl_device_inline void _shader_bsdf_multi_eval(KernelGlobals *kg, const ShaderDa
 	*pdf = (sum_sample_weight > 0.0f)? sum_pdf/sum_sample_weight: 0.0f;
 }
 
-ccl_device void shader_bsdf_eval(KernelGlobals *kg, ShaderData *sd,
-	const float3 omega_in, BsdfEval *eval, float *pdf)
+#ifdef __BRANCHED_PATH__
+ccl_device_inline void _shader_bsdf_multi_eval_branched(KernelGlobals *kg,
+                                                        const ShaderData *sd,
+                                                        const float3 omega_in,
+                                                        BsdfEval *result_eval,
+                                                        float light_pdf,
+                                                        bool use_mis)
+{
+	for(int i = 0; i < ccl_fetch(sd, num_closure); i++) {
+		const ShaderClosure *sc = ccl_fetch_array(sd, closure, i);
+		if(CLOSURE_IS_BSDF(sc->type)) {
+			float bsdf_pdf = 0.0f;
+			float3 eval = bsdf_eval(kg, sd, sc, omega_in, &bsdf_pdf);
+			if(bsdf_pdf != 0.0f) {
+				float mis_weight = use_mis? power_heuristic(light_pdf, bsdf_pdf): 1.0f;
+				bsdf_eval_accum(result_eval,
+				                sc->type,
+				                eval * sc->weight * mis_weight);
+			}
+		}
+	}
+}
+#endif
+
+ccl_device void shader_bsdf_eval(KernelGlobals *kg,
+                                 ShaderData *sd,
+                                 const float3 omega_in,
+                                 BsdfEval *eval,
+                                 float light_pdf,
+                                 bool use_mis)
 {
 	bsdf_eval_init(eval, NBUILTIN_CLOSURES, make_float3(0.0f, 0.0f, 0.0f), kernel_data.film.use_light_pass);
 
-	_shader_bsdf_multi_eval(kg, sd, omega_in, pdf, -1, eval, 0.0f, 0.0f);
+#ifdef __BRANCHED_PATH__
+	if(kernel_data.integrator.branched)
+		_shader_bsdf_multi_eval_branched(kg, sd, omega_in, eval, light_pdf, use_mis);
+	else
+#endif
+	{
+		float pdf;
+		_shader_bsdf_multi_eval(kg, sd, omega_in, &pdf, -1, eval, 0.0f, 0.0f);
+		if(use_mis) {
+			float weight = power_heuristic(light_pdf, pdf);
+			bsdf_eval_mul(eval, make_float3(weight, weight, weight));
+		}
+	}
 }
 
 ccl_device int shader_bsdf_sample(KernelGlobals *kg, const ShaderData *sd,

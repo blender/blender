@@ -99,23 +99,23 @@ ccl_device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd,
 		return false;
 
 	/* evaluate BSDF at shading point */
-	float bsdf_pdf;
 
 #ifdef __VOLUME__
 	if(ccl_fetch(sd, prim) != PRIM_NONE)
-		shader_bsdf_eval(kg, sd, ls->D, eval, &bsdf_pdf);
-	else
+		shader_bsdf_eval(kg, sd, ls->D, eval, ls->pdf, ls->shader & SHADER_USE_MIS);
+	else {
+		float bsdf_pdf;
 		shader_volume_phase_eval(kg, sd, ls->D, eval, &bsdf_pdf);
+		if(ls->shader & SHADER_USE_MIS) {
+			/* Multiple importance sampling. */
+			float mis_weight = power_heuristic(ls->pdf, bsdf_pdf);
+			light_eval *= mis_weight;
+		}
+	}
 #else
-	shader_bsdf_eval(kg, sd, ls->D, eval, &bsdf_pdf);
+	shader_bsdf_eval(kg, sd, ls->D, eval, ls->pdf, ls->shader & SHADER_USE_MIS);
 #endif
 
-	if(ls->shader & SHADER_USE_MIS) {
-		/* multiple importance sampling */
-		float mis_weight = power_heuristic(ls->pdf, bsdf_pdf);
-		light_eval *= mis_weight;
-	}
-	
 	bsdf_eval_mul(eval, light_eval/ls->pdf);
 
 #ifdef __PASSES__
