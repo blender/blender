@@ -306,9 +306,27 @@ static float facetag_cut_cost(BMFace *f_a, BMFace *f_b, BMEdge *e)
 	float f_b_cent[3];
 	float e_cent[3];
 
-	BM_face_calc_center_mean(f_a, f_a_cent);
-	BM_face_calc_center_mean(f_b, f_b_cent);
+	BM_face_calc_center_mean_weighted(f_a, f_a_cent);
+	BM_face_calc_center_mean_weighted(f_b, f_b_cent);
+#if 0
 	mid_v3_v3v3(e_cent, e->v1->co, e->v2->co);
+#else
+	/* for triangle fans it gives better results to pick a point on the edge */
+	{
+		float ix_e[3], ix_f[3], f;
+		isect_line_line_v3(e->v1->co, e->v2->co, f_a_cent, f_b_cent, ix_e, ix_f);
+		f = line_point_factor_v3(ix_e, e->v1->co, e->v2->co);
+		if (f < 0.0) {
+			copy_v3_v3(e_cent, e->v1->co);
+		}
+		else if (f > 1.0) {
+			copy_v3_v3(e_cent, e->v2->co);
+		}
+		else {
+			copy_v3_v3(e_cent, ix_e);
+		}
+	}
+#endif
 
 	return step_cost_3_v3(f_a_cent, e_cent, f_b_cent);
 }
