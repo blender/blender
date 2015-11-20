@@ -78,7 +78,7 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 
 		SVMCompiler compiler(scene->shader_manager, scene->image_manager);
 		compiler.background = ((int)i == scene->default_background);
-		compiler.compile(shader, svm_nodes, i);
+		compiler.compile(scene, shader, svm_nodes, i);
 	}
 
 	dscene->svm_nodes.copy((uint4*)&svm_nodes[0], svm_nodes.size());
@@ -396,6 +396,10 @@ void SVMCompiler::generate_node(ShaderNode *node, set<ShaderNode*>& done)
 	if(node->has_object_dependency()) {
 		current_shader->has_object_dependency = true;
 	}
+
+	if(node->has_integrator_dependency()) {
+		current_shader->has_integrator_dependency = true;
+	}
 }
 
 void SVMCompiler::generate_svm_nodes(const set<ShaderNode*>& nodes, set<ShaderNode*>& done)
@@ -691,7 +695,10 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 	add_node(NODE_END, 0, 0, 0);
 }
 
-void SVMCompiler::compile(Shader *shader, vector<int4>& global_svm_nodes, int index)
+void SVMCompiler::compile(Scene *scene,
+                          Shader *shader,
+                          vector<int4>& global_svm_nodes,
+                          int index)
 {
 	/* copy graph for shader with bump mapping */
 	ShaderNode *node = shader->graph->output();
@@ -701,9 +708,16 @@ void SVMCompiler::compile(Shader *shader, vector<int4>& global_svm_nodes, int in
 			shader->graph_bump = shader->graph->copy();
 
 	/* finalize */
-	shader->graph->finalize(false, false);
-	if(shader->graph_bump)
-		shader->graph_bump->finalize(true, false);
+	shader->graph->finalize(scene,
+	                        false,
+	                        false,
+	                        shader->has_integrator_dependency);
+	if(shader->graph_bump) {
+		shader->graph_bump->finalize(scene,
+		                             true,
+		                             false,
+		                             shader->has_integrator_dependency);
+	}
 
 	current_shader = shader;
 
@@ -716,6 +730,7 @@ void SVMCompiler::compile(Shader *shader, vector<int4>& global_svm_nodes, int in
 	shader->has_displacement = false;
 	shader->has_heterogeneous_volume = false;
 	shader->has_object_dependency = false;
+	shader->has_integrator_dependency = false;
 
 	/* generate surface shader */
 	compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);

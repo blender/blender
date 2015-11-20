@@ -113,7 +113,7 @@ protected:
 class OSLCompiler {
 public:
 	OSLCompiler(void *manager, void *shadingsys, ImageManager *image_manager);
-	void compile(OSLGlobals *og, Shader *shader);
+	void compile(Scene *scene, OSLGlobals *og, Shader *shader);
 
 	void add(ShaderNode *node, const char *name, bool isfilepath = false);
 

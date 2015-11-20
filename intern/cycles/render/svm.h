@@ -53,7 +53,10 @@ public:
 class SVMCompiler {
 public:
 	SVMCompiler(ShaderManager *shader_manager, ImageManager *image_manager);
-	void compile(Shader *shader, vector<int4>& svm_nodes, int index);
+	void compile(Scene *scene,
+	             Shader *shader,
+	             vector<int4>& svm_nodes,
+	             int index);
 
 	void stack_assign(ShaderOutput *output);
 	void stack_assign(ShaderInput *input);

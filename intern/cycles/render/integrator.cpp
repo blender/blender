@@ -18,6 +18,7 @@
 #include "integrator.h"
 #include "light.h"
 #include "scene.h"
+#include "shader.h"
 #include "sobol.h"
 
 #include "util_foreach.h"
@@ -217,8 +218,14 @@ bool Integrator::modified(const Integrator& integrator)
 		sample_all_lights_indirect == integrator.sample_all_lights_indirect);
 }
 
-void Integrator::tag_update(Scene * /*scene*/)
+void Integrator::tag_update(Scene *scene)
 {
+	foreach(Shader *shader, scene->shaders) {
+		if(shader->has_integrator_dependency) {
+			scene->shader_manager->need_update = true;
+			break;
+		}
+	}
 	need_update = true;
 }
 

@@ -15,7 +15,9 @@
  */
 
 #include "image.h"
+#include "integrator.h"
 #include "nodes.h"
+#include "scene.h"
 #include "svm.h"
 #include "svm_math_util.h"
 #include "osl.h"
@@ -1874,20 +1876,37 @@ GlossyBsdfNode::GlossyBsdfNode()
 {
 	closure = CLOSURE_BSDF_MICROFACET_GGX_ID;
 	distribution = ustring("GGX");
+	distribution_orig = ustring("");
 
 	add_input("Roughness", SHADER_SOCKET_FLOAT, 0.2f);
 }
 
-void GlossyBsdfNode::optimize()
+void GlossyBsdfNode::optimize(Scene *scene)
 {
-	/* Fallback to Sharp closure for Roughness close to 0.
-	 * Note: Keep the epsilon in sync with kernel!
-	 */
-	ShaderInput *roughness_input = get_input("Roughness");
-	if(!roughness_input->link && roughness_input->value.x <= 1e-4f) {
-		closure = CLOSURE_BSDF_REFLECTION_ID;
-		distribution = ustring("Sharp");
+	if(distribution_orig == "") {
+		distribution_orig = distribution;
 	}
+	Integrator *integrator = scene->integrator;
+	if(integrator->filter_glossy == 0.0f) {
+		/* Fallback to Sharp closure for Roughness close to 0.
+		 * Note: Keep the epsilon in sync with kernel!
+		 */
+		ShaderInput *roughness_input = get_input("Roughness");
+		if(!roughness_input->link && roughness_input->value.x <= 1e-4f) {
+			distribution = ustring("Sharp");
+		}
+	}
+	else {
+		/* Rollback to original distribution when filter glossy is used. */
+		distribution = distribution_orig;
+	}
+	closure = (ClosureType)distribution_enum[distribution];
+}
+
+bool GlossyBsdfNode::has_integrator_dependency()
+{
+	ShaderInput *roughness_input = get_input("Roughness");
+	return !roughness_input->link && roughness_input->value.x <= 1e-4f;
 }
 
 void GlossyBsdfNode::compile(SVMCompiler& compiler)
@@ -1925,21 +1944,38 @@ GlassBsdfNode::GlassBsdfNode()
 {
 	closure = CLOSURE_BSDF_SHARP_GLASS_ID;
 	distribution = ustring("Sharp");
+	distribution_orig = ustring("");
 
 	add_input("Roughness", SHADER_SOCKET_FLOAT, 0.0f);
 	add_input("IOR", SHADER_SOCKET_FLOAT, 0.3f);
 }
 
-void GlassBsdfNode::optimize()
+void GlassBsdfNode::optimize(Scene *scene)
 {
-	/* Fallback to Sharp closure for Roughness close to 0.
-	 * Note: Keep the epsilon in sync with kernel!
-	 */
-	ShaderInput *roughness_input = get_input("Roughness");
-	if(!roughness_input->link && roughness_input->value.x <= 1e-4f) {
-		closure = CLOSURE_BSDF_SHARP_GLASS_ID;
-		distribution = ustring("Sharp");
+	if(distribution_orig == "") {
+		distribution_orig = distribution;
 	}
+	Integrator *integrator = scene->integrator;
+	if(integrator->filter_glossy == 0.0f) {
+		/* Fallback to Sharp closure for Roughness close to 0.
+		 * Note: Keep the epsilon in sync with kernel!
+		 */
+		ShaderInput *roughness_input = get_input("Roughness");
+		if(!roughness_input->link && roughness_input->value.x <= 1e-4f) {
+			distribution = ustring("Sharp");
+		}
+	}
+	else {
+		/* Rollback to original distribution when filter glossy is used. */
+		distribution = distribution_orig;
+	}
+	closure = (ClosureType)distribution_enum[distribution];
+}
+
+bool GlassBsdfNode::has_integrator_dependency()
+{
+	ShaderInput *roughness_input = get_input("Roughness");
+	return !roughness_input->link && roughness_input->value.x <= 1e-4f;
 }
 
 void GlassBsdfNode::compile(SVMCompiler& compiler)
@@ -1977,21 +2013,38 @@ RefractionBsdfNode::RefractionBsdfNode()
 {
 	closure = CLOSURE_BSDF_REFRACTION_ID;
 	distribution = ustring("Sharp");
+	distribution_orig = ustring("");
 
 	add_input("Roughness", SHADER_SOCKET_FLOAT, 0.0f);
 	add_input("IOR", SHADER_SOCKET_FLOAT, 0.3f);
 }
 
-void RefractionBsdfNode::optimize()
+void RefractionBsdfNode::optimize(Scene *scene)
 {
-	/* Fallback to Sharp closure for Roughness close to 0.
-	 * Note: Keep the epsilon in sync with kernel!
-	 */
-	ShaderInput *roughness_input = get_input("Roughness");
-	if(!roughness_input->link && roughness_input->value.x <= 1e-4f) {
-		closure = CLOSURE_BSDF_REFRACTION_ID;
-		distribution = ustring("Sharp");
+	if(distribution_orig == "") {
+		distribution_orig = distribution;
 	}
+	Integrator *integrator = scene->integrator;
+	if(integrator->filter_glossy == 0.0f) {
+		/* Fallback to Sharp closure for Roughness close to 0.
+		 * Note: Keep the epsilon in sync with kernel!
+		 */
+		ShaderInput *roughness_input = get_input("Roughness");
+		if(!roughness_input->link && roughness_input->value.x <= 1e-4f) {
+			distribution = ustring("Sharp");
+		}
+	}
+	else {
+		/* Rollback to original distribution when filter glossy is used. */
+		distribution = distribution_orig;
+	}
+	closure = (ClosureType)distribution_enum[distribution];
+}
+
+bool RefractionBsdfNode::has_integrator_dependency()
+{
+	ShaderInput *roughness_input = get_input("Roughness");
+	return !roughness_input->link && roughness_input->value.x <= 1e-4f;
 }
 
 void RefractionBsdfNode::compile(SVMCompiler& compiler)

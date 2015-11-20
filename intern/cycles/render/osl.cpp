@@ -100,7 +100,7 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 
 		OSLCompiler compiler((void*)this, (void*)ss, scene->image_manager);
 		compiler.background = (shader == scene->shaders[scene->default_background]);
-		compiler.compile(og, shader);
+		compiler.compile(scene, og, shader);
 
 		if(shader->use_mis && shader->has_surface_emission)
 			scene->light_manager->need_update = true;
@@ -573,6 +573,10 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 	if(node->has_object_dependency()) {
 		current_shader->has_object_dependency = true;
 	}
+
+	if(node->has_integrator_dependency()) {
+		current_shader->has_integrator_dependency = true;
+	}
 }
 
 void OSLCompiler::parameter(const char *name, float f)
@@ -788,7 +792,7 @@ OSL::ShadingAttribStateRef OSLCompiler::compile_type(Shader *shader, ShaderGraph
 	return group;
 }
 
-void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
+void OSLCompiler::compile(Scene *scene, OSLGlobals *og, Shader *shader)
 {
 	if(shader->need_update) {
 		ShaderGraph *graph = shader->graph;
@@ -800,9 +804,16 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 				shader->graph_bump = shader->graph->copy();
 
 		/* finalize */
-		shader->graph->finalize(false, true);
-		if(shader->graph_bump)
-			shader->graph_bump->finalize(true, true);
+		shader->graph->finalize(scene,
+		                        false,
+		                        true,
+		                        shader->has_integrator_dependency);
+		if(shader->graph_bump) {
+			shader->graph_bump->finalize(scene,
+			                             true,
+			                             true,
+			                             shader->has_integrator_dependency);
+		}
 
 		current_shader = shader;
 
@@ -815,6 +826,7 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 		shader->has_displacement = false;
 		shader->has_heterogeneous_volume = false;
 		shader->has_object_dependency = false;
+		shader->has_integrator_dependency = false;
 
 		/* generate surface shader */
 		if(shader->used && graph && output->input("Surface")->link) {

@@ -29,6 +29,7 @@
 CCL_NAMESPACE_BEGIN
 
 class AttributeRequestSet;
+class Scene;
 class Shader;
 class ShaderInput;
 class ShaderOutput;
@@ -196,7 +197,7 @@ public:
 	virtual void attributes(Shader *shader, AttributeRequestSet *attributes);
 	virtual void compile(SVMCompiler& compiler) = 0;
 	virtual void compile(OSLCompiler& compiler) = 0;
-	virtual void optimize() {};
+	virtual void optimize(Scene * /*scene*/) {};
 
 	virtual bool has_surface_emission() { return false; }
 	virtual bool has_surface_transparent() { return false; }
@@ -204,6 +205,7 @@ public:
 	virtual bool has_bssrdf_bump() { return false; }
 	virtual bool has_spatial_varying() { return false; }
 	virtual bool has_object_dependency() { return false; }
+	virtual bool has_integrator_dependency() { return false; }
 
 	vector<ShaderInput*> inputs;
 	vector<ShaderOutput*> outputs;
@@ -276,8 +278,10 @@ public:
 	void relink(vector<ShaderInput*> inputs, vector<ShaderInput*> outputs, ShaderOutput *output);
 
 	void remove_unneeded_nodes();
-	void simplify_nodes();
-	void finalize(bool do_bump = false, bool do_osl = false);
+	void finalize(Scene *scene,
+	              bool do_bump = false,
+	              bool do_osl = false,
+	              bool do_simplify = false);
 
 	int get_num_closures();
 
@@ -290,7 +294,8 @@ protected:
 	void copy_nodes(set<ShaderNode*>& nodes, map<ShaderNode*, ShaderNode*>& nnodemap);
 
 	void break_cycles(ShaderNode *node, vector<bool>& visited, vector<bool>& on_stack);
-	void clean();
+	void clean(Scene *scene);
+	void simplify_nodes(Scene *scene);
 	void bump_from_displacement();
 	void refine_bump_nodes();
 	void default_inputs(bool do_osl);

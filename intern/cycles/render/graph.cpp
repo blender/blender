@@ -266,7 +266,10 @@ void ShaderGraph::relink(vector<ShaderInput*> inputs, vector<ShaderInput*> outpu
 	}
 }
 
-void ShaderGraph::finalize(bool do_bump, bool do_osl)
+void ShaderGraph::finalize(Scene *scene,
+                           bool do_bump,
+                           bool do_osl,
+                           bool do_simplify)
 {
 	/* before compiling, the shader graph may undergo a number of modifications.
 	 * currently we set default geometry shader inputs, and create automatic bump
@@ -274,7 +277,7 @@ void ShaderGraph::finalize(bool do_bump, bool do_osl)
 	 * modified afterwards. */
 
 	if(!finalized) {
-		clean();
+		clean(scene);
 		default_inputs(do_osl);
 		refine_bump_nodes();
 
@@ -292,6 +295,9 @@ void ShaderGraph::finalize(bool do_bump, bool do_osl)
 			transform_multi_closure(volume_in->link->parent, NULL, true);
 
 		finalized = true;
+	}
+	else if(do_simplify) {
+		simplify_nodes(scene);
 	}
 }
 
@@ -557,10 +563,10 @@ void ShaderGraph::remove_unneeded_nodes()
 }
 
 /* Step 3: Simplification.*/
-void ShaderGraph::simplify_nodes()
+void ShaderGraph::simplify_nodes(Scene *scene)
 {
 	foreach(ShaderNode *node, nodes) {
-		node->optimize();
+		node->optimize(scene);
 	}
 }
 
@@ -588,7 +594,7 @@ void ShaderGraph::break_cycles(ShaderNode *node, vector<bool>& visited, vector<b
 	on_stack[node->id] = false;
 }
 
-void ShaderGraph::clean()
+void ShaderGraph::clean(Scene *scene)
 {
 	/* Graph simplification:
 	 *  1: Remove unnecesarry nodes
@@ -604,7 +610,7 @@ void ShaderGraph::clean()
 	/* TODO(dingto): Implement */
 
 	/* 3: Simplification. */
-	simplify_nodes();
+	simplify_nodes(scene);
 
 	/* 4: De-duplication. */
 	/* TODO(dingto): Implement */

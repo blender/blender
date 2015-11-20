@@ -154,6 +154,7 @@ Shader::Shader()
 	has_bssrdf_bump = false;
 	has_heterogeneous_volume = false;
 	has_object_dependency = false;
+	has_integrator_dependency = false;
 
 	used = false;
 
