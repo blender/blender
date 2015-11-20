@@ -314,6 +314,7 @@ void BKE_sequence_tx_set_final_left(struct Sequence *seq, int val);
 void BKE_sequence_tx_set_final_right(struct Sequence *seq, int val);
 void BKE_sequence_tx_handle_xlimits(struct Sequence *seq, int leftflag, int rightflag);
 bool BKE_sequence_tx_test(struct Sequence *seq);
+bool BKE_sequence_tx_fullupdate_test(struct Sequence *seq);
 bool BKE_sequence_single_check(struct Sequence *seq);
 void BKE_sequence_single_fix(struct Sequence *seq);
 bool BKE_sequence_test_overlap(struct ListBase *seqbasep, struct Sequence *test);
