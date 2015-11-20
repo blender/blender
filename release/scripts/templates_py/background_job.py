@@ -11,7 +11,7 @@
 #
 # Notice:
 # '--factory-startup' is used to avoid the user default settings from
-#                     interfearing with automated scene generation.
+#                     interfering with automated scene generation.
 #
 # '--' causes blender to ignore all following arguments so python can use them.
 #
@@ -51,18 +51,7 @@ def example_function(text, save_path, render_path):
     lamp_ob.location = 2.0, 2.0, 5.0
 
     if save_path:
-        try:
-            f = open(save_path, 'w')
-            f.close()
-            ok = True
-        except:
-            print("Cannot save to path %r" % save_path)
-
-            import traceback
-            traceback.print_exc()
-
-        if ok:
-            bpy.ops.wm.save_as_mainfile(filepath=save_path)
+        bpy.ops.wm.save_as_mainfile(filepath=save_path)
 
     if render_path:
         render = scene.render
@@ -85,9 +74,10 @@ def main():
         argv = argv[argv.index("--") + 1:]  # get all args after "--"
 
     # When --help or no args are given, print this help
-    usage_text = \
-    "Run blender in background mode with this script:"
-    "  blender --background --python " + __file__ + " -- [options]"
+    usage_text = (
+            "Run blender in background mode with this script:"
+            "  blender --background --python " + __file__ + " -- [options]"
+            )
 
     parser = argparse.ArgumentParser(description=usage_text)
 
