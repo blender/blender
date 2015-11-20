@@ -531,6 +531,24 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 ),
             )
 
+        cls.rolling_shutter_type = EnumProperty(
+            name="Shutter Type",
+            default='NONE',
+            description="Type of rolling shutter effect matching CMOS-based cameras",
+            items=(
+                ('NONE', "None", "No rolling shutter effect used"),
+                ('TOP', "Top-Bottom", "Sensor is being scanned from top to bottom")
+                # TODO(seergey): Are there real cameras with different scanning direction?
+                ),
+            )
+
+        cls.rolling_shutter_duration = FloatProperty(
+            name="Rolling Shutter Duration",
+            description="Scanline \"exposure\" time for the rolling shutter effect",
+            default = 0.1,
+            min=0.0, max=1.0,
+            )
+
     @classmethod
     def unregister(cls):
         del bpy.types.Scene.cycles

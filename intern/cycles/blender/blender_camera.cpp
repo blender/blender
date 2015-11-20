@@ -39,6 +39,9 @@ struct BlenderCamera {
 	Camera::MotionPosition motion_position;
 	float shutter_curve[RAMP_TABLE_SIZE];
 
+	Camera::RollingShutterType rolling_shutter_type;
+	float rolling_shutter_duration;
+
 	float aperturesize;
 	uint apertureblades;
 	float aperturerotation;
@@ -86,6 +89,8 @@ static void blender_camera_init(BlenderCamera *bcam, BL::RenderSettings b_render
 	bcam->sensor_fit = BlenderCamera::AUTO;
 	bcam->shuttertime = 1.0f;
 	bcam->motion_position = Camera::MOTION_POSITION_CENTER;
+	bcam->rolling_shutter_type = Camera::ROLLING_SHUTTER_NONE;
+	bcam->rolling_shutter_duration = 0.1f;
 	bcam->border.right = 1.0f;
 	bcam->border.top = 1.0f;
 	bcam->pano_viewplane.right = 1.0f;
@@ -418,6 +423,9 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	cam->fov_post = cam->fov;
 	cam->motion_position = bcam->motion_position;
 
+	cam->rolling_shutter_type = bcam->rolling_shutter_type;
+	cam->rolling_shutter_duration = bcam->rolling_shutter_duration;
+
 	memcpy(cam->shutter_curve, bcam->shutter_curve, sizeof(cam->shutter_curve));
 
 	/* border */
@@ -459,6 +467,19 @@ void BlenderSync::sync_camera(BL::RenderSettings b_render, BL::Object b_override
 			bcam.motion_position = Camera::MOTION_POSITION_CENTER;
 			break;
 	}
+
+	switch(RNA_enum_get(&cscene, "rolling_shutter_type")) {
+		case 0:
+			bcam.rolling_shutter_type = Camera::ROLLING_SHUTTER_NONE;
+			break;
+		case 1:
+			bcam.rolling_shutter_type = Camera::ROLLING_SHUTTER_TOP;
+			break;
+		default:
+			bcam.rolling_shutter_type = Camera::ROLLING_SHUTTER_NONE;
+			break;
+	}
+	bcam.rolling_shutter_duration = RNA_float_get(&cscene, "rolling_shutter_duration");
 
 	/* border */
 	if(b_render.use_border()) {

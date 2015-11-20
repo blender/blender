@@ -109,6 +109,10 @@ Camera::Camera()
 	for(int i = 0; i < num_shutter_points; ++i) {
 		shutter_curve[i] = 1.0f;
 	}
+
+	/* Initialize rolling shutter effect. */
+	rolling_shutter_type = ROLLING_SHUTTER_NONE;
+	rolling_shutter_duration = 0.1f;
 }
 
 Camera::~Camera()
@@ -356,6 +360,10 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 
 	/* Camera in volume. */
 	kcam->is_inside_volume = 0;
+
+	/* Rolling shutter effect */
+	kcam->rolling_shutter_type = rolling_shutter_type;
+	kcam->rolling_shutter_duration = rolling_shutter_duration;
 
 	previous_need_motion = need_motion;
 }

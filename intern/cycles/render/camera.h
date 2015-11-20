@@ -47,11 +47,27 @@ public:
 		MOTION_POSITION_END,
 	};
 
+	/* Specifies rolling shutter effect. */
+	enum RollingShutterType {
+		/* No rolling shutter effect. */
+		ROLLING_SHUTTER_NONE = 0,
+		/* Sensor is being scanned vertically from top to bottom. */
+		ROLLING_SHUTTER_TOP,
+	};
+
 	/* motion blur */
 	float shuttertime;
 	MotionPosition motion_position;
 	float shutter_curve[RAMP_TABLE_SIZE];
 	size_t shutter_table_offset;
+
+	/* ** Rolling shutter effect. ** */
+	/* Defines rolling shutter effect type. */
+	RollingShutterType rolling_shutter_type;
+	/* Specifies exposure time of scanlines when using
+	 * rolling shutter effect.
+	 */
+	float rolling_shutter_duration;
 
 	/* depth of field */
 	float focaldistance;

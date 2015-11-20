@@ -294,8 +294,37 @@ ccl_device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, f
 		ray->time = TIME_INVALID;
 	}
 	else {
+		/* TODO(sergey): Such lookup is unneeded when there's rolling shutter
+		 * effect in use but rollign shutter duration is set to 0.0.
+		 */
 		const int shutter_table_offset = kernel_data.cam.shutter_table_offset;
 		ray->time = lookup_table_read(kg, time, shutter_table_offset, SHUTTER_TABLE_SIZE);
+		/* TODO(sergey): Currently single rolling shutter effect type only
+		 * where scanlines are acquired from top to bottom and whole scanline
+		 * is acquired at once (no delay in acquisition happens between pixels
+		 * of sinle scanline).
+		 *
+		 * Might want to support more models in the future.
+		 */
+		if(kernel_data.cam.rolling_shutter_type) {
+			/* Time corresponding to a fully rolling shutter only effect:
+			 * top of the frame is time 0.0, bottom of the frame is time 1.0.
+			 */
+			const float time = 1.0f - (float)y / kernel_data.cam.height;
+			const float duration = kernel_data.cam.rolling_shutter_duration;
+			if(duration != 0.0f) {
+				/* This isn't fully physical correct, but lets us to have simple
+				 * controls in the interface. The idea here is basically sort of
+				 * linear interpolation between how much rolling shutter effect
+				 * exist on the frame and how much of it is a motion blur effect.
+				 */
+				ray->time = (ray->time - 0.5f) * duration;
+				ray->time += (time - 0.5f) * (1.0f - duration) + 0.5f;
+			}
+			else {
+				ray->time = time;
+			}
+		}
 	}
 #endif
 

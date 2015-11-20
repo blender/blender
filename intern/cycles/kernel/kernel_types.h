@@ -849,6 +849,11 @@ typedef struct KernelCamera {
 	PerspectiveMotionTransform perspective_motion;
 
 	int shutter_table_offset;
+
+	/* Rolling shutter */
+	int rolling_shutter_type;
+	float rolling_shutter_duration;
+
 	int pad;
 } KernelCamera;
 
