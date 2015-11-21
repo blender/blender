@@ -1645,14 +1645,45 @@ static int delete_key_v3d_exec(bContext *C, wmOperator *op)
 			
 			for (fcu = act->curves.first; fcu; fcu = fcn) {
 				fcn = fcu->next;
-
+				
+				/* don't touch protected F-Curves */
 				if (BKE_fcurve_is_protected(fcu)) {
 					BKE_reportf(op->reports, RPT_WARNING,
 					            "Not deleting keyframe for locked F-Curve '%s', object '%s'",
 					            fcu->rna_path, id->name + 2);
 					continue;
 				}
-
+				
+				/* special exception for bones, as this makes this operator more convenient to use
+				 * NOTE: This is only done in pose mode. In object mode, we're dealign with the entire object.
+				 */
+				if ((ob->mode & OB_MODE_POSE) && strstr(fcu->rna_path, "pose.bones[\"")) {
+					bPoseChannel *pchan;
+					char *bone_name;
+					
+					/* get bone-name, and check if this bone is selected */
+					bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
+					pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
+					if (bone_name) MEM_freeN(bone_name);
+					
+					/* skip if bone is not selected */
+					if ((pchan) && (pchan->bone)) {
+						/* bones are only selected/editable if visible... */
+						bArmature *arm = (bArmature *)ob->data;
+					
+						/* skipping - not visible on currently visible layers */
+						if ((arm->layer & pchan->bone->layer) == 0)
+							continue;
+						/* skipping - is currently hidden */
+						if (pchan->bone->flag & BONE_HIDDEN_P)
+							continue;
+						
+						/* selection flag... */
+						if ((pchan->bone->flag & BONE_SELECTED) == 0)
+							continue;
+					}
+				}
+				
 				/* delete keyframes on current frame 
 				 * WARNING: this can delete the next F-Curve, hence the "fcn" copying
 				 */
@@ -1661,7 +1692,11 @@ static int delete_key_v3d_exec(bContext *C, wmOperator *op)
 		}
 		
 		/* report success (or failure) */
-		BKE_reportf(op->reports, RPT_INFO, "Object '%s' successfully had %d keyframes removed", id->name + 2, success);
+		if (success)
+			BKE_reportf(op->reports, RPT_INFO, "Object '%s' successfully had %d keyframes removed", id->name + 2, success);
+		else
+			BKE_reportf(op->reports, RPT_ERROR, "No keyframes removed from Object '%s'", id->name + 2);
+		
 		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 	}
 	CTX_DATA_END;
@@ -1676,7 +1711,7 @@ void ANIM_OT_keyframe_delete_v3d(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Delete Keyframe";
-	ot->description = "Remove keyframes on current frame for selected objects";
+	ot->description = "Remove keyframes on current frame for selected objects and bones";
 	ot->idname = "ANIM_OT_keyframe_delete_v3d";
 	
 	/* callbacks */
