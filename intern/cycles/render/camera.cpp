@@ -150,7 +150,6 @@ void Camera::update()
 	Transform bordertofull = transform_inverse(fulltoborder);
 
 	/* ndc to raster */
-	Transform screentocamera;
 	Transform ndctoraster = transform_scale(width, height, 1.0f) * bordertofull;
 
 	/* raster to screen */
@@ -160,14 +159,15 @@ void Camera::update()
 	Transform rastertoscreen = transform_inverse(screentoraster);
 
 	/* screen to camera */
+	Transform cameratoscreen;
 	if(type == CAMERA_PERSPECTIVE)
-		screentocamera = transform_inverse(transform_perspective(fov, nearclip, farclip));
+		cameratoscreen = transform_perspective(fov, nearclip, farclip);
 	else if(type == CAMERA_ORTHOGRAPHIC)
-		screentocamera = transform_inverse(transform_orthographic(nearclip, farclip));
+		cameratoscreen = transform_orthographic(nearclip, farclip);
 	else
-		screentocamera = transform_identity();
+		cameratoscreen = transform_identity();
 	
-	Transform cameratoscreen = transform_inverse(screentocamera);
+	Transform screentocamera = transform_inverse(cameratoscreen);
 
 	rastertocamera = screentocamera * rastertoscreen;
 	cameratoraster = screentoraster * cameratoscreen;
