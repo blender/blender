@@ -490,42 +490,42 @@ void ShaderManager::add_default(Scene *scene)
 	}
 }
 
-/* NOTE: Expects max_group and features to be initialized in the callee. */
 void ShaderManager::get_requested_graph_features(ShaderGraph *graph,
-                                                 int& max_group,
-                                                 int& features)
+                                                 DeviceRequestedFeatures *requested_features)
 {
 	foreach(ShaderNode *node, graph->nodes) {
-		max_group = max(max_group, node->get_group());
-		features |= node->get_feature();
+		requested_features->max_nodes_group = max(requested_features->max_nodes_group,
+		                                          node->get_group());
+		requested_features->nodes_features |= node->get_feature();
 		if(node->special_type == SHADER_SPECIAL_TYPE_CLOSURE) {
 			BsdfNode *bsdf_node = static_cast<BsdfNode*>(node);
 			if(CLOSURE_IS_VOLUME(bsdf_node->closure)) {
-				features |= NODE_FEATURE_VOLUME;
+				requested_features->nodes_features |= NODE_FEATURE_VOLUME;
 			}
+		}
+		if(node->has_surface_bssrdf()) {
+			requested_features->use_subsurface = true;
 		}
 	}
 }
 
 void ShaderManager::get_requested_features(Scene *scene,
-                                           int& max_group,
-                                           int& features)
+                                           DeviceRequestedFeatures *requested_features)
 {
-	max_group = NODE_GROUP_LEVEL_0;
-	features = 0;
+	requested_features->max_nodes_group = NODE_GROUP_LEVEL_0;
+	requested_features->nodes_features = 0;
 	for(int i = 0; i < scene->shaders.size(); i++) {
 		Shader *shader = scene->shaders[i];
 		/* Gather requested features from all the nodes from the graph nodes. */
-		get_requested_graph_features(shader->graph, max_group, features);
+		get_requested_graph_features(shader->graph, requested_features);
 		/* Gather requested features from the graph itself. */
 		if(shader->graph_bump) {
 			get_requested_graph_features(shader->graph_bump,
-			                             max_group,
-			                             features);
+			                             requested_features);
 		}
 		ShaderNode *output_node = shader->graph->output();
 		if(output_node->input("Displacement")->link != NULL) {
-			features |= NODE_FEATURE_BUMP;
+			requested_features->nodes_features |= NODE_FEATURE_BUMP;
 		}
 	}
 }

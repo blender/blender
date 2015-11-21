@@ -43,6 +43,7 @@ CCL_NAMESPACE_BEGIN
 
 class Device;
 class DeviceScene;
+class DeviceRequestedFeatures;
 class Mesh;
 class Progress;
 class Scene;
@@ -168,8 +169,7 @@ public:
 
 	/* Selective nodes compilation. */
 	void get_requested_features(Scene *scene,
-	                            int& max_group,
-	                            int& features);
+	                            DeviceRequestedFeatures *requested_features);
 
 protected:
 	ShaderManager();
@@ -183,8 +183,7 @@ protected:
 	size_t beckmann_table_offset;
 
 	void get_requested_graph_features(ShaderGraph *graph,
-	                                  int& max_group,
-	                                  int& features);
+	                                  DeviceRequestedFeatures *requested_features);
 };
 
 CCL_NAMESPACE_END

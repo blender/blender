@@ -180,7 +180,7 @@ CCL_NAMESPACE_BEGIN
 #  define __KERNEL_DEBUG__
 #endif
 
-/* Scene-based selective featrues compilation/ */
+/* Scene-based selective featrues compilation. */
 #ifdef __NO_CAMERA_MOTION__
 #  undef __CAMERA_MOTION__
 #endif
@@ -189,6 +189,9 @@ CCL_NAMESPACE_BEGIN
 #endif
 #ifdef __NO_HAIR__
 #  undef __HAIR__
+#endif
+#ifdef __NO_SUBSURFACE__
+#  undef __SUBSURFACE__
 #endif
 
 /* Random Numbers */

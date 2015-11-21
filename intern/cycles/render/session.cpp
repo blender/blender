@@ -619,8 +619,7 @@ DeviceRequestedFeatures Session::get_requested_device_features()
 		requested_features.max_closure = get_max_closure_count();
 		scene->shader_manager->get_requested_features(
 		        scene,
-		        requested_features.max_nodes_group,
-		        requested_features.nodes_features);
+		        &requested_features);
 	}
 
 	/* This features are not being tweaked as often as shaders,
