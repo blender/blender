@@ -27,12 +27,18 @@
 #include "util_debug.h"
 #include "util_logging.h"
 #include "util_map.h"
+#include "util_md5.h"
 #include "util_opengl.h"
 #include "util_path.h"
 #include "util_string.h"
 #include "util_system.h"
 #include "util_types.h"
 #include "util_time.h"
+
+/* use feature-adaptive kernel compilation.
+ * Requires CUDA toolkit to be installed and currently only works on Linux.
+ */
+/* #define KERNEL_USE_ADAPTIVE */
 
 CCL_NAMESPACE_BEGIN
 
@@ -221,10 +227,20 @@ public:
 		string kernel_path = path_get("kernel");
 		string md5 = path_files_md5_hash(kernel_path);
 
+#ifdef KERNEL_USE_ADAPTIVE
+		string feature_build_options = requested_features.get_build_options();
+		string device_md5 = util_md5_string(feature_build_options);
+		cubin = string_printf("cycles_kernel_%s_sm%d%d_%s.cubin",
+		                      device_md5.c_str(),
+		                      major, minor,
+		                      md5.c_str());
+#else
 		if(requested_features.experimental)
 			cubin = string_printf("cycles_kernel_experimental_sm%d%d_%s.cubin", major, minor, md5.c_str());
 		else
 			cubin = string_printf("cycles_kernel_sm%d%d_%s.cubin", major, minor, md5.c_str());
+#endif
+
 		cubin = path_user_get(path_join("cache", cubin));
 		VLOG(1) << "Testing for locally compiled kernel " << cubin;
 		/* if exists already, use it */
@@ -280,8 +296,13 @@ public:
 			"-DNVCC -D__KERNEL_CUDA_VERSION__=%d",
 			nvcc, major, minor, machine, kernel.c_str(), cubin.c_str(), include.c_str(), cuda_version);
 
-		if(requested_features.experimental)
+#ifdef KERNEL_USE_ADAPTIVE
+		command += " " + feature_build_options;
+#else
+		if(requested_features.experimental) {
 			command += " -D__KERNEL_EXPERIMENTAL__";
+		}
+#endif
 
 		if(getenv("CYCLES_CUDA_EXTRA_CFLAGS")) {
 			command += string(" ") + getenv("CYCLES_CUDA_EXTRA_CFLAGS");
