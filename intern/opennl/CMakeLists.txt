@@ -51,7 +51,7 @@ set(INC_SYS
 )
 
 set(SRC
-	intern/opennl.c
+	intern/opennl.cpp
 	superlu/get_perm_c.c
 	superlu/heap_relax_snode.c
 	superlu/lsame.c

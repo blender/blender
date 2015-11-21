@@ -59,7 +59,7 @@
 /* Assertions */
 
 
-static void __nl_assertion_failed(char* cond, char* file, int line) {
+static void __nl_assertion_failed(const char* cond, const char* file, int line) {
 	fprintf(
 		stderr, 
 		"OpenNL assertion failed: %s, file:%s, line:%d\n",
@@ -69,7 +69,7 @@ static void __nl_assertion_failed(char* cond, char* file, int line) {
 }
 
 static void __nl_range_assertion_failed(
-	double x, double min_val, double max_val, char* file, int line
+	double x, double min_val, double max_val, const char* file, int line
 ) {
 	fprintf(
 		stderr, 
@@ -79,7 +79,7 @@ static void __nl_range_assertion_failed(
 	abort();
 }
 
-static void __nl_should_not_have_reached(char* file, int line) {
+static void __nl_should_not_have_reached(const char* file, int line) {
 	fprintf(
 		stderr, 
 		"OpenNL should not have reached this point: file:%s, line:%d\n",
@@ -95,9 +95,9 @@ static void __nl_should_not_have_reached(char* file, int line) {
 	}														   \
 } 
 
-#define __nl_range_assert(x,min_val,max_val) {				  \
-	if(((x) < (min_val)) || ((x) > (max_val))) {				\
-		__nl_range_assertion_failed(x, min_val, max_val,		\
+#define __nl_range_assert(x,max_val) {						  \
+	if(((x) > (max_val))) {										\
+		__nl_range_assertion_failed(x, 0.0, max_val,			\
 			__FILE__, __LINE__								  \
 		);													 \
 	}														   \
@@ -611,32 +611,6 @@ static void __nlTransition(NLenum from_state, NLenum to_state) {
 /************************************************************************************/
 /* Get/Set parameters */
 
-void nlSolverParameterf(NLenum pname, NLdouble param) {
-	__nlCheckState(__NL_STATE_INITIAL);
-	switch(pname) {
-	case NL_NB_VARIABLES: {
-		__nl_assert(param > 0);
-		__nlCurrentContext->nb_variables = (NLuint)param;
-	} break;
-	case NL_NB_ROWS: {
-		__nl_assert(param > 0);
-		__nlCurrentContext->nb_rows = (NLuint)param;
-	} break;
-	case NL_LEAST_SQUARES: {
-		__nlCurrentContext->least_squares = (NLboolean)param;
-	} break;
-	case NL_SYMMETRIC: {
-		__nlCurrentContext->symmetric = (NLboolean)param;		
-	} break;
-	case NL_NB_RIGHT_HAND_SIDES: {
-		__nlCurrentContext->nb_rhs = (NLuint)param;
-	} break;
-	default: {
-		__nl_assert_not_reached;
-	} break;
-	}
-}
-
 void nlSolverParameteri(NLenum pname, NLint param) {
 	__nlCheckState(__NL_STATE_INITIAL);
 	switch(pname) {
@@ -661,91 +635,6 @@ void nlSolverParameteri(NLenum pname, NLint param) {
 		__nl_assert_not_reached;
 	} break;
 	}
-}
-
-void nlGetBooleanv(NLenum pname, NLboolean* params) {
-	switch(pname) {
-	case NL_LEAST_SQUARES: {
-		*params = __nlCurrentContext->least_squares;
-	} break;
-	case NL_SYMMETRIC: {
-		*params = __nlCurrentContext->symmetric;
-	} break;
-	default: {
-		__nl_assert_not_reached;
-	} break;
-	}
-}
-
-void nlGetFloatv(NLenum pname, NLdouble* params) {
-	switch(pname) {
-	case NL_NB_VARIABLES: {
-		*params = (NLdouble)(__nlCurrentContext->nb_variables);
-	} break;
-	case NL_NB_ROWS: {
-		*params = (NLdouble)(__nlCurrentContext->nb_rows);
-	} break;
-	case NL_LEAST_SQUARES: {
-		*params = (NLdouble)(__nlCurrentContext->least_squares);
-	} break;
-	case NL_SYMMETRIC: {
-		*params = (NLdouble)(__nlCurrentContext->symmetric);
-	} break;
-	case NL_ERROR: {
-		*params = (NLdouble)(__nlCurrentContext->error);
-	} break;
-	default: {
-		__nl_assert_not_reached;
-	} break;
-	}
-}
-
-void nlGetIntergerv(NLenum pname, NLint* params) {
-	switch(pname) {
-	case NL_NB_VARIABLES: {
-		*params = (NLint)(__nlCurrentContext->nb_variables);
-	} break;
-	case NL_NB_ROWS: {
-		*params = (NLint)(__nlCurrentContext->nb_rows);
-	} break;
-	case NL_LEAST_SQUARES: {
-		*params = (NLint)(__nlCurrentContext->least_squares);
-	} break;
-	case NL_SYMMETRIC: {
-		*params = (NLint)(__nlCurrentContext->symmetric);
-	} break;
-	default: {
-		__nl_assert_not_reached;
-	} break;
-	}
-}
-
-/************************************************************************************/
-/* Enable / Disable */
-
-void nlEnable(NLenum pname) {
-	switch(pname) {
-	default: {
-		__nl_assert_not_reached;
-	}
-	}
-}
-
-void nlDisable(NLenum pname) {
-	switch(pname) {
-	default: {
-		__nl_assert_not_reached;
-	}
-	}
-}
-
-NLboolean nlIsEnabled(NLenum pname) {
-	switch(pname) {
-	default: {
-		__nl_assert_not_reached;
-	}
-	}
-	return NL_FALSE;
 }
 
 /************************************************************************************/
@@ -773,12 +662,6 @@ void nlUnlockVariable(NLuint index) {
 	__nlCheckState(__NL_STATE_SYSTEM);
 	__nl_parano_range_assert(index, 0, __nlCurrentContext->nb_variables - 1);
 	__nlCurrentContext->variable[index].locked = NL_FALSE;
-}
-
-NLboolean nlVariableIsLocked(NLuint index) {
-	__nl_assert(__nlCurrentContext->state != __NL_STATE_INITIAL);
-	__nl_parano_range_assert(index, 0, __nlCurrentContext->nb_variables - 1);
-	return __nlCurrentContext->variable[index].locked;
 }
 
 /************************************************************************************/
@@ -953,8 +836,8 @@ void nlMatrixAdd(NLuint row, NLuint col, NLdouble value)
 			row = context->variable[row].index;
 		col = context->variable[col].index;
 		
-		__nl_range_assert(row, 0, context->m - 1);
-		__nl_range_assert(col, 0, context->n - 1);
+		__nl_range_assert(row, context->m - 1);
+		__nl_range_assert(col, context->n - 1);
 
 		__nlSparseMatrixAdd(M, row, col, value);
 	}
@@ -968,13 +851,13 @@ void nlRightHandSideAdd(NLuint rhsindex, NLuint index, NLdouble value)
 	__nlCheckState(__NL_STATE_MATRIX);
 
 	if(context->least_squares) {
-		__nl_range_assert(index, 0, context->m - 1);
+		__nl_range_assert(index, context->m - 1);
 		b[rhsindex*context->m + index] += value;
 	}
 	else {
 		if(!context->variable[index].locked) {
 			index = context->variable[index].index;
-			__nl_range_assert(index, 0, context->m - 1);
+			__nl_range_assert(index, context->m - 1);
 
 			b[rhsindex*context->m + index] += value;
 		}
@@ -989,13 +872,13 @@ void nlRightHandSideSet(NLuint rhsindex, NLuint index, NLdouble value)
 	__nlCheckState(__NL_STATE_MATRIX);
 
 	if(context->least_squares) {
-		__nl_range_assert(index, 0, context->m - 1);
+		__nl_range_assert(index, context->m - 1);
 		b[rhsindex*context->m + index] = value;
 	}
 	else {
 		if(!context->variable[index].locked) {
 			index = context->variable[index].index;
-			__nl_range_assert(index, 0, context->m - 1);
+			__nl_range_assert(index, context->m - 1);
 
 			b[rhsindex*context->m + index] = value;
 		}
@@ -1189,7 +1072,7 @@ void nlPrintMatrix(void) {
 	NLuint m = context->m;
 	NLuint n = context->n;
 	__NLRowColumn* Ri = NULL;
-	double *value = malloc(sizeof(*value)*(n+m));
+	double *value = (double*)malloc(sizeof(*value)*(n+m));
 
 	printf("A:\n");
 	for(i=0; i<m; i++) {
@@ -1205,7 +1088,7 @@ void nlPrintMatrix(void) {
 	}
 
 	for(k=0; k<context->nb_rhs; k++) {
-		printf("b (%d):\n", k);
+		printf("b (%u):\n", k);
 		for(i=0; i<n; i++)
 			printf("%f ", b[context->n*k + i]);
 		printf("\n");
@@ -1226,7 +1109,7 @@ void nlPrintMatrix(void) {
 		}
 
 		for(k=0; k<context->nb_rhs; k++) {
-			printf("Mtb (%d):\n", k);
+			printf("Mtb (%u):\n", k);
 			for(i=0; i<n; i++)
 				printf("%f ", context->Mtb[context->n*k + i]);
 			printf("\n");

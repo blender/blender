@@ -57,16 +57,8 @@ extern "C" {
 
 typedef unsigned int	NLenum;
 typedef unsigned char	NLboolean;
-typedef unsigned int	NLbitfield;
-typedef void			NLvoid;
-typedef signed char		NLbyte;		/* 1-byte signed */
-typedef short			NLshort;	/* 2-byte signed */
 typedef int				NLint;		/* 4-byte signed */
-typedef unsigned char	NLubyte;	/* 1-byte unsigned */
-typedef unsigned short	NLushort;	/* 2-byte unsigned */
 typedef unsigned int	NLuint;		/* 4-byte unsigned */
-typedef int				NLsizei;	/* 4-byte signed */
-typedef float			NLfloat;	/* single precision float */
 typedef double			NLdouble;	/* double precision float */
 
 typedef void* NLContext;
@@ -100,16 +92,7 @@ NLContext nlGetCurrent(void);
 
 /* State get/set */
 
-void nlSolverParameterf(NLenum pname, NLdouble param);
 void nlSolverParameteri(NLenum pname, NLint param);
-
-void nlGetBooleanv(NLenum pname, NLboolean* params);
-void nlGetFloatv(NLenum pname, NLdouble* params);
-void nlGetIntergerv(NLenum pname, NLint* params);
-
-void nlEnable(NLenum pname);
-void nlDisable(NLenum pname);
-NLboolean nlIsEnabled(NLenum pname);
 
 /* Variables */
 
@@ -117,7 +100,6 @@ void nlSetVariable(NLuint rhsindex, NLuint index, NLdouble value);
 NLdouble nlGetVariable(NLuint rhsindex, NLuint index);
 void nlLockVariable(NLuint index);
 void nlUnlockVariable(NLuint index);
-NLboolean nlVariableIsLocked(NLuint index);
 
 /* Begin/End */
 
