@@ -185,21 +185,21 @@ public:
 		cuda_assert(cuCtxDestroy(cuContext));
 	}
 
-	bool support_device(bool /*experimental*/)
+	bool support_device(const DeviceRequestedFeatures& /*requested_features*/)
 	{
 		int major, minor;
 		cuDeviceComputeCapability(&major, &minor, cuDevId);
-		
+
 		/* We only support sm_20 and above */
 		if(major < 2) {
 			cuda_error_message(string_printf("CUDA device supported only with compute capability 2.0 or up, found %d.%d.", major, minor));
 			return false;
 		}
-		
+
 		return true;
 	}
 
-	string compile_kernel(bool experimental)
+	string compile_kernel(const DeviceRequestedFeatures& requested_features)
 	{
 		/* compute cubin name */
 		int major, minor;
@@ -207,7 +207,7 @@ public:
 		string cubin;
 
 		/* attempt to use kernel provided with blender */
-		if(experimental)
+		if(requested_features.experimental)
 			cubin = path_get(string_printf("lib/kernel_experimental_sm_%d%d.cubin", major, minor));
 		else
 			cubin = path_get(string_printf("lib/kernel_sm_%d%d.cubin", major, minor));
@@ -221,7 +221,7 @@ public:
 		string kernel_path = path_get("kernel");
 		string md5 = path_files_md5_hash(kernel_path);
 
-		if(experimental)
+		if(requested_features.experimental)
 			cubin = string_printf("cycles_kernel_experimental_sm%d%d_%s.cubin", major, minor, md5.c_str());
 		else
 			cubin = string_printf("cycles_kernel_sm%d%d_%s.cubin", major, minor, md5.c_str());
@@ -279,8 +279,8 @@ public:
 			"-o \"%s\" --ptxas-options=\"-v\" --use_fast_math -I\"%s\" "
 			"-DNVCC -D__KERNEL_CUDA_VERSION__=%d",
 			nvcc, major, minor, machine, kernel.c_str(), cubin.c_str(), include.c_str(), cuda_version);
-		
-		if(experimental)
+
+		if(requested_features.experimental)
 			command += " -D__KERNEL_EXPERIMENTAL__";
 
 		if(getenv("CYCLES_CUDA_EXTRA_CFLAGS")) {
@@ -314,13 +314,13 @@ public:
 		/* check if cuda init succeeded */
 		if(cuContext == 0)
 			return false;
-		
+
 		/* check if GPU is supported */
-		if(!support_device(requested_features.experimental))
+		if(!support_device(requested_features))
 			return false;
 
 		/* get kernel */
-		string cubin = compile_kernel(requested_features.experimental);
+		string cubin = compile_kernel(requested_features);
 
 		if(cubin == "")
 			return false;
