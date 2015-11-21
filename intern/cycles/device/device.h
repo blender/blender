@@ -125,6 +125,34 @@ public:
 		         use_baking == requested_features.use_baking);
 	}
 
+	/* Convert the requested features structure to a build options,
+	 * which could then be passed to compilers.
+	 */
+	string get_build_options(void) const
+	{
+		string build_options = "";
+		if(experimental) {
+			build_options += "-D__KERNEL_EXPERIMENTAL__ ";
+		}
+		build_options += "-D__NODES_MAX_GROUP__=" +
+			string_printf("%d", max_nodes_group);
+		build_options += " -D__NODES_FEATURES__=" +
+			string_printf("%d", nodes_features);
+		build_options += string_printf(" -D__MAX_CLOSURE__=%d", max_closure);
+		if(!use_hair) {
+			build_options += " -D__NO_HAIR__";
+		}
+		if(!use_object_motion) {
+			build_options += " -D__NO_OBJECT_MOTION__";
+		}
+		if(!use_camera_motion) {
+			build_options += " -D__NO_CAMERA_MOTION__";
+		}
+		if(!use_baking) {
+			build_options += " -D__NO_BAKING__";
+		}
+		return build_options;
+	}
 };
 
 std::ostream& operator <<(std::ostream &os,
