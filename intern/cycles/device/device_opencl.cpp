@@ -1385,7 +1385,7 @@ public:
 protected:
 	string kernel_build_options(const string *debug_src = NULL)
 	{
-		string build_options = " -cl-fast-relaxed-math ";
+		string build_options = "-cl-fast-relaxed-math ";
 
 		if(platform_name == "NVIDIA CUDA") {
 			build_options += "-D__KERNEL_OPENCL_NVIDIA__ "
@@ -1555,9 +1555,9 @@ protected:
 	{
 		string build_options = "";
 		if(requested_features.experimental) {
-			build_options += " -D__KERNEL_EXPERIMENTAL__";
+			build_options += "-D__KERNEL_EXPERIMENTAL__ ";
 		}
-		build_options += " -D__NODES_MAX_GROUP__=" +
+		build_options += "-D__NODES_MAX_GROUP__=" +
 			string_printf("%d", requested_features.max_nodes_group);
 		build_options += " -D__NODES_FEATURES__=" +
 			string_printf("%d", requested_features.nodes_features);
