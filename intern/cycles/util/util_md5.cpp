@@ -373,5 +373,12 @@ string MD5Hash::get_hex()
 	return string(buf);
 }
 
+string util_md5_string(const string& str)
+{
+	MD5Hash md5;
+	md5.append((uint8_t*)str.c_str(), str.size());
+	return md5.get_hex();
+}
+
 CCL_NAMESPACE_END
 

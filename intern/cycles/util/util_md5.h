@@ -53,6 +53,8 @@ protected:
 	uint8_t buf[64]; /* accumulate block */
 };
 
+string util_md5_string(const string& str);
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_MD5_H__ */
