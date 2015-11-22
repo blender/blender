@@ -2768,9 +2768,8 @@ if(WITH_CPP11)
 	endif()
 endif()
 
-if(MSVC)
-	# Visual Studio has all standards it supports available by default
-else()
+# Visual Studio has all standards it supports available by default
+if(CMAKE_COMPILER_IS_GNUCC)
 	# Use C99 + GNU extensions, works with GCC, Clang, ICC
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 endif()
