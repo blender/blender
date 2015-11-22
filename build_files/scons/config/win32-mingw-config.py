@@ -202,7 +202,7 @@ REL_CFLAGS = []
 REL_CXXFLAGS = []
 REL_CCFLAGS = ['-O2']
 
-C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement', '-Wstrict-prototypes']
+C_WARN = ['-Wno-char-subscripts', '-Wvla', '-Wstrict-prototypes']
 
 CC_WARN = [ '-Wall' ]
 

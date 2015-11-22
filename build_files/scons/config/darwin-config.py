@@ -248,7 +248,7 @@ REL_CXXFLAGS = []
 REL_CCFLAGS = ['-O2']
 
 CC_WARN = ['-Wall']
-C_WARN = ['-Wno-char-subscripts', '-Wpointer-arith', '-Wcast-align', '-Wdeclaration-after-statement', '-Wno-unknown-pragmas', '-Wstrict-prototypes']
+C_WARN = ['-Wno-char-subscripts', '-Wpointer-arith', '-Wcast-align', '-Wvla', '-Wno-unknown-pragmas', '-Wstrict-prototypes']
 CXX_WARN = ['-Wno-invalid-offsetof', '-Wno-sign-compare']
 
 ##FIX_STUBS_WARNINGS = -Wno-unused

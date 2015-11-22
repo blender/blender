@@ -197,7 +197,7 @@ REL_CXXFLAGS = []
 REL_CCFLAGS = ['-O2', '-ftree-vectorize']
 
 # NOTE: C_WARN seems to get ignored - at least -Wno-char-subscripts doesn't work!
-C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement', '-Wstrict-prototypes']
+C_WARN = ['-Wno-char-subscripts', '-Wvla', '-Wstrict-prototypes']
 
 CC_WARN = [ '-Wall', '-Wno-char-subscripts' ]
 

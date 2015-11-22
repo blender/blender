@@ -498,6 +498,13 @@ if env['WITH_BF_CPP11']:
     else:
         env['CXXFLAGS'].append('-std=c++11')
 
+if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+    # Visual Studio has all standards it supports available by default
+    pass
+else:
+    # Use C99 + GNU extensions, works with GCC, Clang, ICC
+    env['CFLAGS'].append('-std=gnu99')
+
 #check for additional debug libnames
 
 if env.has_key('BF_DEBUG_LIBS'):

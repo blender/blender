@@ -30,6 +30,9 @@
  */
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#  ifdef __GNUC__
+#    pragma GCC diagnostic ignored "-Wvla"
+#  endif
 #  define USE_DYNSIZE
 #endif
 

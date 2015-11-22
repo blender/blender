@@ -254,7 +254,7 @@ REL_CFLAGS = []
 REL_CXXFLAGS = []
 REL_CCFLAGS = ['-O2']
 
-C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement', '-Wunused-parameter', '-Wstrict-prototypes', '-Werror=declaration-after-statement', '-Werror=implicit-function-declaration', '-Werror=return-type']
+C_WARN = ['-Wno-char-subscripts', '-Wvla', '-Wunused-parameter', '-Wstrict-prototypes', '-Werror=vla', '-Werror=implicit-function-declaration', '-Werror=return-type']
 CC_WARN = ['-Wall']
 CXX_WARN = ['-Wno-invalid-offsetof', '-Wno-sign-compare']
 

@@ -2055,7 +2055,7 @@ static PyObject *Matrix_richcmpr(PyObject *a, PyObject *b, int op)
 
 static Py_hash_t Matrix_hash(MatrixObject *self)
 {
-	float mat[SQUARE(MATRIX_MAX_DIM)];
+	float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
 
 	if (BaseMath_ReadCallback(self) == -1)
 		return -1;
