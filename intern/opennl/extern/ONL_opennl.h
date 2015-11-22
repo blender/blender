@@ -42,8 +42,6 @@
 #define NL_PARANOID
 */
 
-#define NL_USE_SUPERLU
-
 #ifndef nlOPENNL_H
 #define nlOPENNL_H
 

@@ -51,9 +51,11 @@
 #endif
 #endif
 
-/* SuperLU includes */
-#include <ssp_defs.h>
-#include <util.h>
+#include <Eigen/Sparse>
+#include <iostream>
+
+typedef Eigen::SparseMatrix<double, Eigen::ColMajor> EigenSparseMatrix;
+typedef Eigen::SparseLU<EigenSparseMatrix> EigenSparseSolver;
 
 /************************************************************************************/
 /* Assertions */
@@ -316,24 +318,6 @@ static void __nlSparseMatrixClear( __NLSparseMatrix* M) {
 	__NL_CLEAR_ARRAY(NLdouble, M->diag, M->diag_size);	
 }
 
-/* Returns the number of non-zero coefficients */
-static NLuint __nlSparseMatrixNNZ( __NLSparseMatrix* M) {
-	NLuint nnz = 0;
-	NLuint i;
-	if(M->storage & __NL_ROWS) {
-		for(i = 0; i<M->m; i++) {
-			nnz += M->row[i].size;
-		}
-	} else if (M->storage & __NL_COLUMNS) {
-		for(i = 0; i<M->n; i++) {
-			nnz += M->column[i].size;
-		}
-	} else {
-		__nl_assert_not_reached;
-	}
-	return nnz;
-}
-
 /************************************************************************************/
 /* SparseMatrix x Vector routines, internal helper routines */
 
@@ -523,12 +507,9 @@ typedef struct {
 	NLdouble			error;
 	__NLMatrixFunc	matrix_vector_prod;
 
-	struct __NLSuperLUContext {
-		NLboolean alloc_slu;
-		SuperMatrix L, U;
-		NLint *perm_c, *perm_r;
-		SuperLUStat_t stat;
-	} slu;
+	struct __NLEigenContext {
+		EigenSparseSolver *sparse_solver;
+	} eigen;
 } __NLContext;
 
 static __NLContext* __nlCurrentContext = NULL;
@@ -547,7 +528,7 @@ NLContext nlNewContext(void) {
 	return result;
 }
 
-static void __nlFree_SUPERLU(__NLContext *context);
+static void __nlFree_EIGEN(__NLContext *context);
 
 void nlDeleteContext(NLContext context_in) {
 	__NLContext* context = (__NLContext*)(context_in);
@@ -581,8 +562,8 @@ void nlDeleteContext(NLContext context_in) {
 	if(context->alloc_x) {
 		__NL_DELETE_ARRAY(context->x);
 	}
-	if (context->slu.alloc_slu) {
-		__nlFree_SUPERLU(context);
+	if (context->eigen.sparse_solver) {
+		__nlFree_EIGEN(context);
 	}
 
 #ifdef NL_PARANOID
@@ -914,31 +895,15 @@ void nlEnd(NLenum prim) {
 }
 
 /************************************************************************/
-/* SuperLU wrapper */
+/* Eigen wrapper */
 
-/* Note: SuperLU is difficult to call, but it is worth it.	*/
+/* Note: Eigen is difficult to call, but it is worth it.	*/
 /* Here is a driver inspired by A. Sheffer's "cow flattener". */
-static NLboolean __nlFactorize_SUPERLU(__NLContext *context, NLint *permutation) {
+static NLboolean __nlFactorize_EIGEN(__NLContext *context, NLint *permutation) {
 
 	/* OpenNL Context */
 	__NLSparseMatrix* M = (context->least_squares)? &context->MtM: &context->M;
 	NLuint n = context->n;
-	NLuint nnz = __nlSparseMatrixNNZ(M); /* number of non-zero coeffs */
-
-	/*if(n > 10)
-		n = 10;*/
-
-	/* Compressed Row Storage matrix representation */
-	NLint	*xa		= __NL_NEW_ARRAY(NLint, n+1);
-	NLdouble	*rhs	= __NL_NEW_ARRAY(NLdouble, n);
-	NLdouble	*a		= __NL_NEW_ARRAY(NLdouble, nnz);
-	NLint	*asub	= __NL_NEW_ARRAY(NLint, nnz);
-	NLint	*etree	= __NL_NEW_ARRAY(NLint, n);
-
-	/* SuperLU variables */
-	SuperMatrix At, AtP;
-	NLint info, panel_size, relax;
-	superlu_options_t options;
 
 	/* Temporary variables */
 	NLuint i, jj, count;
@@ -946,121 +911,57 @@ static NLboolean __nlFactorize_SUPERLU(__NLContext *context, NLint *permutation)
 	__nl_assert(!(M->storage & __NL_SYMMETRIC));
 	__nl_assert(M->storage & __NL_ROWS);
 	__nl_assert(M->m == M->n);
-	
+
 	/* Convert M to compressed column format */
+	EigenSparseMatrix A(M->m, M->n);
+
 	for(i=0, count=0; i<n; i++) {
 		__NLRowColumn *Ri = M->row + i;
-		xa[i] = count;
 
-		for(jj=0; jj<Ri->size; jj++, count++) {
-			a[count] = Ri->coeff[jj].value;
-			asub[count] = Ri->coeff[jj].index;
-		}
+		for(jj=0; jj<Ri->size; jj++, count++)
+			A.insert(i, Ri->coeff[jj].index) = Ri->coeff[jj].value;
 	}
-	xa[n] = nnz;
+
+	A.makeCompressed();
 
 	/* Free M, don't need it anymore at this point */
 	__nlSparseMatrixClear(M);
 
-	/* Create superlu A matrix transposed */
-	sCreate_CompCol_Matrix(
-		&At, n, n, nnz, a, asub, xa, 
-		SLU_NC,		/* Colum wise, no supernode */
-		SLU_S,		/* doubles */ 
-		SLU_GE		/* general storage */
-	);
+	/* Performance Sparse LU factorization */
+	EigenSparseSolver *sparse_solver = new EigenSparseSolver();
+	context->eigen.sparse_solver = sparse_solver;
 
-	/* Set superlu options */
-	set_default_options(&options);
-	options.ColPerm = MY_PERMC;
-	options.Fact = DOFACT;
+	sparse_solver->analyzePattern(A);
+	sparse_solver->factorize(A);
 
-	StatInit(&(context->slu.stat));
-
-	panel_size = sp_ienv(1); /* sp_ienv give us the defaults */
-	relax = sp_ienv(2);
-
-	/* Compute permutation and permuted matrix */
-	context->slu.perm_r = __NL_NEW_ARRAY(NLint, n);
-	context->slu.perm_c = __NL_NEW_ARRAY(NLint, n);
-
-	if ((permutation == NULL) || (*permutation == -1)) {
-		get_perm_c(3, &At, context->slu.perm_c);
-
-		if (permutation)
-			memcpy(permutation, context->slu.perm_c, sizeof(NLint)*n);
-	}
-	else
-		memcpy(context->slu.perm_c, permutation, sizeof(NLint)*n);
-
-	sp_preorder(&options, &At, context->slu.perm_c, etree, &AtP);
-
-	/* Decompose into L and U */
-	sgstrf(&options, &AtP, relax, panel_size,
-		etree, NULL, 0, context->slu.perm_c, context->slu.perm_r,
-		&(context->slu.L), &(context->slu.U), &(context->slu.stat), &info);
-
-	/* Cleanup */
-
-	Destroy_SuperMatrix_Store(&At);
-	Destroy_CompCol_Permuted(&AtP);
-
-	__NL_DELETE_ARRAY(etree);
-	__NL_DELETE_ARRAY(xa);
-	__NL_DELETE_ARRAY(rhs);
-	__NL_DELETE_ARRAY(a);
-	__NL_DELETE_ARRAY(asub);
-
-	context->slu.alloc_slu = NL_TRUE;
-
-	return (info == 0);
+	return (sparse_solver->info() == Eigen::Success);
 }
 
-static NLboolean __nlInvert_SUPERLU(__NLContext *context) {
+static NLboolean __nlInvert_EIGEN(__NLContext *context) {
 
 	/* OpenNL Context */
 	NLdouble* b = (context->least_squares)? context->Mtb: context->b;
 	NLdouble* x = context->x;
 	NLuint n = context->n, j;
 
-	/* SuperLU variables */
-	SuperMatrix B;
-	NLint info = 0;
-
+	/* Solve each right hand side */
 	for(j=0; j<context->nb_rhs; j++, b+=n, x+=n) {
-		/* Create superlu array for B */
-		sCreate_Dense_Matrix(
-			&B, n, 1, b, n, 
-			SLU_DN, /* Fortran-type column-wise storage */
-			SLU_S,  /* doubles						  */
-			SLU_GE  /* general						  */
-		);
+		Eigen::Map<Eigen::VectorXd> eigen_b(b, n);
 
-		/* Forward/Back substitution to compute x */
-		sgstrs(TRANS, &(context->slu.L), &(context->slu.U),
-			context->slu.perm_c, context->slu.perm_r, &B,
-			&(context->slu.stat), &info);
+		Eigen::VectorXd eigen_x = context->eigen.sparse_solver->solve(eigen_b);
+		for (NLuint i = 0; i < n; i++)
+			x[i] = eigen_x[i];
 
-		if(info == 0)
-			memcpy(x, ((DNformat*)B.Store)->nzval, sizeof(*x)*n);
-
-		Destroy_SuperMatrix_Store(&B);
+		if (context->eigen.sparse_solver->info() != Eigen::Success)
+			return false;
 	}
 
-	return (info == 0);
+	return true;
 }
 
-static void __nlFree_SUPERLU(__NLContext *context) {
-
-	Destroy_SuperNode_Matrix(&(context->slu.L));
-	Destroy_CompCol_Matrix(&(context->slu.U));
-
-	StatFree(&(context->slu.stat));
-
-	__NL_DELETE_ARRAY(context->slu.perm_r);
-	__NL_DELETE_ARRAY(context->slu.perm_c);
-
-	context->slu.alloc_slu = NL_FALSE;
+static void __nlFree_EIGEN(__NLContext *context) {
+	delete context->eigen.sparse_solver;
+	context->eigen.sparse_solver = NULL;
 }
 
 void nlPrintMatrix(void) {
@@ -1129,10 +1030,10 @@ NLboolean nlSolveAdvanced(NLint *permutation, NLboolean solveAgain) {
 	__nlCheckState(__NL_STATE_SYSTEM_CONSTRUCTED);
 
 	if (!__nlCurrentContext->solve_again)
-		result = __nlFactorize_SUPERLU(__nlCurrentContext, permutation);
+		result = __nlFactorize_EIGEN(__nlCurrentContext, permutation);
 
 	if (result) {
-		result = __nlInvert_SUPERLU(__nlCurrentContext);
+		result = __nlInvert_EIGEN(__nlCurrentContext);
 
 		if (result) {
 			__nlVectorToVariables();
