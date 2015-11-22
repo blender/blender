@@ -283,9 +283,9 @@ static void initLaplacianMatrix(LaplacianSystem *sys)
 			sys->delta[idv[0]][1] -= v3[1] * w3;
 			sys->delta[idv[0]][2] -= v3[2] * w3;
 
-			nlMatrixAdd(idv[0], idv[1], -w2);
-			nlMatrixAdd(idv[0], idv[2], -w3);
-			nlMatrixAdd(idv[0], idv[0], w2 + w3);
+			nlMatrixAdd(sys->context, idv[0], idv[1], -w2);
+			nlMatrixAdd(sys->context, idv[0], idv[2], -w3);
+			nlMatrixAdd(sys->context, idv[0], idv[0], w2 + w3);
 		}
 	}
 }
@@ -338,9 +338,9 @@ static void rotateDifferentialCoordinates(LaplacianSystem *sys)
 		beta = dot_v3v3(uij, di);
 		gamma = dot_v3v3(e2, di);
 
-		pi[0] = nlGetVariable(0, i);
-		pi[1] = nlGetVariable(1, i);
-		pi[2] = nlGetVariable(2, i);
+		pi[0] = nlGetVariable(sys->context, 0, i);
+		pi[1] = nlGetVariable(sys->context, 1, i);
+		pi[2] = nlGetVariable(sys->context, 2, i);
 		zero_v3(ni);
 		num_fni = 0;
 		num_fni = sys->ringf_map[i].count;
@@ -349,9 +349,9 @@ static void rotateDifferentialCoordinates(LaplacianSystem *sys)
 			fidn = sys->ringf_map[i].indices;
 			vin = sys->tris[fidn[fi]];
 			for (j = 0; j < 3; j++) {
-				vn[j][0] = nlGetVariable(0, vin[j]);
-				vn[j][1] = nlGetVariable(1, vin[j]);
-				vn[j][2] = nlGetVariable(2, vin[j]);
+				vn[j][0] = nlGetVariable(sys->context, 0, vin[j]);
+				vn[j][1] = nlGetVariable(sys->context, 1, vin[j]);
+				vn[j][2] = nlGetVariable(sys->context, 2, vin[j]);
 				if (vin[j] == sys->unit_verts[i]) {
 					copy_v3_v3(pj, vn[j]);
 				}
@@ -372,14 +372,14 @@ static void rotateDifferentialCoordinates(LaplacianSystem *sys)
 		fni[2] = alpha * ni[2] + beta * uij[2] + gamma * e2[2];
 
 		if (len_squared_v3(fni) > FLT_EPSILON) {
-			nlRightHandSideSet(0, i, fni[0]);
-			nlRightHandSideSet(1, i, fni[1]);
-			nlRightHandSideSet(2, i, fni[2]);
+			nlRightHandSideSet(sys->context, 0, i, fni[0]);
+			nlRightHandSideSet(sys->context, 1, i, fni[1]);
+			nlRightHandSideSet(sys->context, 2, i, fni[2]);
 		}
 		else {
-			nlRightHandSideSet(0, i, sys->delta[i][0]);
-			nlRightHandSideSet(1, i, sys->delta[i][1]);
-			nlRightHandSideSet(2, i, sys->delta[i][2]);
+			nlRightHandSideSet(sys->context, 0, i, sys->delta[i][0]);
+			nlRightHandSideSet(sys->context, 1, i, sys->delta[i][1]);
+			nlRightHandSideSet(sys->context, 2, i, sys->delta[i][2]);
 		}
 	}
 }
@@ -395,71 +395,70 @@ static void laplacianDeformPreview(LaplacianSystem *sys, float (*vertexCos)[3])
 #endif
 
 	if (!sys->is_matrix_computed) {
-		nlNewContext();
-		sys->context = nlGetCurrent();
+		sys->context = nlNewContext();
 
-		nlSolverParameteri(NL_NB_VARIABLES, n);
-		nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
-		nlSolverParameteri(NL_NB_ROWS, n + na);
-		nlSolverParameteri(NL_NB_RIGHT_HAND_SIDES, 3);
-		nlBegin(NL_SYSTEM);
+		nlSolverParameteri(sys->context, NL_NB_VARIABLES, n);
+		nlSolverParameteri(sys->context, NL_LEAST_SQUARES, NL_TRUE);
+		nlSolverParameteri(sys->context, NL_NB_ROWS, n + na);
+		nlSolverParameteri(sys->context, NL_NB_RIGHT_HAND_SIDES, 3);
+		nlBegin(sys->context, NL_SYSTEM);
 		for (i = 0; i < n; i++) {
-			nlSetVariable(0, i, sys->co[i][0]);
-			nlSetVariable(1, i, sys->co[i][1]);
-			nlSetVariable(2, i, sys->co[i][2]);
+			nlSetVariable(sys->context, 0, i, sys->co[i][0]);
+			nlSetVariable(sys->context, 1, i, sys->co[i][1]);
+			nlSetVariable(sys->context, 2, i, sys->co[i][2]);
 		}
 		for (i = 0; i < na; i++) {
 			vid = sys->index_anchors[i];
-			nlSetVariable(0, vid, vertexCos[vid][0]);
-			nlSetVariable(1, vid, vertexCos[vid][1]);
-			nlSetVariable(2, vid, vertexCos[vid][2]);
+			nlSetVariable(sys->context, 0, vid, vertexCos[vid][0]);
+			nlSetVariable(sys->context, 1, vid, vertexCos[vid][1]);
+			nlSetVariable(sys->context, 2, vid, vertexCos[vid][2]);
 		}
-		nlBegin(NL_MATRIX);
+		nlBegin(sys->context, NL_MATRIX);
 
 		initLaplacianMatrix(sys);
 		computeImplictRotations(sys);
 
 		for (i = 0; i < n; i++) {
-			nlRightHandSideSet(0, i, sys->delta[i][0]);
-			nlRightHandSideSet(1, i, sys->delta[i][1]);
-			nlRightHandSideSet(2, i, sys->delta[i][2]);
+			nlRightHandSideSet(sys->context, 0, i, sys->delta[i][0]);
+			nlRightHandSideSet(sys->context, 1, i, sys->delta[i][1]);
+			nlRightHandSideSet(sys->context, 2, i, sys->delta[i][2]);
 		}
 		for (i = 0; i < na; i++) {
 			vid = sys->index_anchors[i];
-			nlRightHandSideSet(0, n + i, vertexCos[vid][0]);
-			nlRightHandSideSet(1, n + i, vertexCos[vid][1]);
-			nlRightHandSideSet(2, n + i, vertexCos[vid][2]);
-			nlMatrixAdd(n + i, vid, 1.0f);
+			nlRightHandSideSet(sys->context, 0, n + i, vertexCos[vid][0]);
+			nlRightHandSideSet(sys->context, 1, n + i, vertexCos[vid][1]);
+			nlRightHandSideSet(sys->context, 2, n + i, vertexCos[vid][2]);
+			nlMatrixAdd(sys->context, n + i, vid, 1.0f);
 		}
-		nlEnd(NL_MATRIX);
-		nlEnd(NL_SYSTEM);
-		if (nlSolve(NL_TRUE)) {
+		nlEnd(sys->context, NL_MATRIX);
+		nlEnd(sys->context, NL_SYSTEM);
+		if (nlSolve(sys->context, NL_TRUE)) {
 			sys->has_solution = true;
 
 			for (j = 1; j <= sys->repeat; j++) {
-				nlBegin(NL_SYSTEM);
-				nlBegin(NL_MATRIX);
+				nlBegin(sys->context, NL_SYSTEM);
+				nlBegin(sys->context, NL_MATRIX);
 				rotateDifferentialCoordinates(sys);
 
 				for (i = 0; i < na; i++) {
 					vid = sys->index_anchors[i];
-					nlRightHandSideSet(0, n + i, vertexCos[vid][0]);
-					nlRightHandSideSet(1, n + i, vertexCos[vid][1]);
-					nlRightHandSideSet(2, n + i, vertexCos[vid][2]);
+					nlRightHandSideSet(sys->context, 0, n + i, vertexCos[vid][0]);
+					nlRightHandSideSet(sys->context, 1, n + i, vertexCos[vid][1]);
+					nlRightHandSideSet(sys->context, 2, n + i, vertexCos[vid][2]);
 				}
 
-				nlEnd(NL_MATRIX);
-				nlEnd(NL_SYSTEM);
-				if (!nlSolve(NL_FALSE)) {
+				nlEnd(sys->context, NL_MATRIX);
+				nlEnd(sys->context, NL_SYSTEM);
+				if (!nlSolve(sys->context, NL_FALSE)) {
 					sys->has_solution = false;
 					break;
 				}
 			}
 			if (sys->has_solution) {
 				for (vid = 0; vid < sys->total_verts; vid++) {
-					vertexCos[vid][0] = nlGetVariable(0, vid);
-					vertexCos[vid][1] = nlGetVariable(1, vid);
-					vertexCos[vid][2] = nlGetVariable(2, vid);
+					vertexCos[vid][0] = nlGetVariable(sys->context, 0, vid);
+					vertexCos[vid][1] = nlGetVariable(sys->context, 1, vid);
+					vertexCos[vid][2] = nlGetVariable(sys->context, 2, vid);
 				}
 			}
 			else {
@@ -474,51 +473,49 @@ static void laplacianDeformPreview(LaplacianSystem *sys, float (*vertexCos)[3])
 
 	}
 	else if (sys->has_solution) {
-		nlMakeCurrent(sys->context);
-
-		nlBegin(NL_SYSTEM);
-		nlBegin(NL_MATRIX);
+		nlBegin(sys->context, NL_SYSTEM);
+		nlBegin(sys->context, NL_MATRIX);
 
 		for (i = 0; i < n; i++) {
-			nlRightHandSideSet(0, i, sys->delta[i][0]);
-			nlRightHandSideSet(1, i, sys->delta[i][1]);
-			nlRightHandSideSet(2, i, sys->delta[i][2]);
+			nlRightHandSideSet(sys->context, 0, i, sys->delta[i][0]);
+			nlRightHandSideSet(sys->context, 1, i, sys->delta[i][1]);
+			nlRightHandSideSet(sys->context, 2, i, sys->delta[i][2]);
 		}
 		for (i = 0; i < na; i++) {
 			vid = sys->index_anchors[i];
-			nlRightHandSideSet(0, n + i, vertexCos[vid][0]);
-			nlRightHandSideSet(1, n + i, vertexCos[vid][1]);
-			nlRightHandSideSet(2, n + i, vertexCos[vid][2]);
-			nlMatrixAdd(n + i, vid, 1.0f);
+			nlRightHandSideSet(sys->context, 0, n + i, vertexCos[vid][0]);
+			nlRightHandSideSet(sys->context, 1, n + i, vertexCos[vid][1]);
+			nlRightHandSideSet(sys->context, 2, n + i, vertexCos[vid][2]);
+			nlMatrixAdd(sys->context, n + i, vid, 1.0f);
 		}
 
-		nlEnd(NL_MATRIX);
-		nlEnd(NL_SYSTEM);
-		if (nlSolve(NL_FALSE)) {
+		nlEnd(sys->context, NL_MATRIX);
+		nlEnd(sys->context, NL_SYSTEM);
+		if (nlSolve(sys->context, NL_FALSE)) {
 			sys->has_solution = true;
 			for (j = 1; j <= sys->repeat; j++) {
-				nlBegin(NL_SYSTEM);
-				nlBegin(NL_MATRIX);
+				nlBegin(sys->context, NL_SYSTEM);
+				nlBegin(sys->context, NL_MATRIX);
 				rotateDifferentialCoordinates(sys);
 
 				for (i = 0; i < na; i++) {
 					vid = sys->index_anchors[i];
-					nlRightHandSideSet(0, n + i, vertexCos[vid][0]);
-					nlRightHandSideSet(1, n + i, vertexCos[vid][1]);
-					nlRightHandSideSet(2, n + i, vertexCos[vid][2]);
+					nlRightHandSideSet(sys->context, 0, n + i, vertexCos[vid][0]);
+					nlRightHandSideSet(sys->context, 1, n + i, vertexCos[vid][1]);
+					nlRightHandSideSet(sys->context, 2, n + i, vertexCos[vid][2]);
 				}
-				nlEnd(NL_MATRIX);
-				nlEnd(NL_SYSTEM);
-				if (!nlSolve(NL_FALSE)) {
+				nlEnd(sys->context, NL_MATRIX);
+				nlEnd(sys->context, NL_SYSTEM);
+				if (!nlSolve(sys->context, NL_FALSE)) {
 					sys->has_solution = false;
 					break;
 				}
 			}
 			if (sys->has_solution) {
 				for (vid = 0; vid < sys->total_verts; vid++) {
-					vertexCos[vid][0] = nlGetVariable(0, vid);
-					vertexCos[vid][1] = nlGetVariable(1, vid);
-					vertexCos[vid][2] = nlGetVariable(2, vid);
+					vertexCos[vid][0] = nlGetVariable(sys->context, 0, vid);
+					vertexCos[vid][1] = nlGetVariable(sys->context, 1, vid);
+					vertexCos[vid][2] = nlGetVariable(sys->context, 2, vid);
 				}
 			}
 			else {

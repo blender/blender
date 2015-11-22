@@ -48,7 +48,7 @@ void laplacian_add_triangle(LaplacianSystem *sys, int v1, int v2, int v3);
 void laplacian_begin_solve(LaplacianSystem *sys, int index);
 void laplacian_add_right_hand_side(LaplacianSystem *sys, int v, float value);
 int laplacian_system_solve(LaplacianSystem *sys);
-float laplacian_system_get_solution(int v);
+float laplacian_system_get_solution(LaplacianSystem *sys, int v);
 
 /* Heat Weighting */
 

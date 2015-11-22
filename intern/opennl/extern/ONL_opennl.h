@@ -77,35 +77,33 @@ typedef struct NLContext NLContext;
 
 NLContext *nlNewContext(void);
 void nlDeleteContext(NLContext *context);
-void nlMakeCurrent(NLContext *context);
-NLContext *nlGetCurrent(void);
 
 /* State get/set */
 
-void nlSolverParameteri(NLenum pname, NLint param);
+void nlSolverParameteri(NLContext *context, NLenum pname, NLint param);
 
 /* Variables */
 
-void nlSetVariable(NLuint rhsindex, NLuint index, NLdouble value);
-NLdouble nlGetVariable(NLuint rhsindex, NLuint index);
-void nlLockVariable(NLuint index);
-void nlUnlockVariable(NLuint index);
+void nlSetVariable(NLContext *context, NLuint rhsindex, NLuint index, NLdouble value);
+NLdouble nlGetVariable(NLContext *context, NLuint rhsindex, NLuint index);
+void nlLockVariable(NLContext *context, NLuint index);
+void nlUnlockVariable(NLContext *context, NLuint index);
 
 /* Begin/End */
 
-void nlBegin(NLenum primitive);
-void nlEnd(NLenum primitive);
+void nlBegin(NLContext *context, NLenum primitive);
+void nlEnd(NLContext *context, NLenum primitive);
 
 /* Setting elements in matrix/vector */
 
-void nlMatrixAdd(NLuint row, NLuint col, NLdouble value);
-void nlRightHandSideAdd(NLuint rhsindex, NLuint index, NLdouble value);
-void nlRightHandSideSet(NLuint rhsindex, NLuint index, NLdouble value);
+void nlMatrixAdd(NLContext *context, NLuint row, NLuint col, NLdouble value);
+void nlRightHandSideAdd(NLContext *context, NLuint rhsindex, NLuint index, NLdouble value);
+void nlRightHandSideSet(NLContext *context, NLuint rhsindex, NLuint index, NLdouble value);
 
 /* Solve */
 
-void nlPrintMatrix(void);
-NLboolean nlSolve(NLboolean solveAgain);
+void nlPrintMatrix(NLContext *context);
+NLboolean nlSolve(NLContext *context, NLboolean solveAgain);
 
 #ifdef __cplusplus
 }

@@ -29,19 +29,20 @@
  *	 levy@loria.fr
  *
  *	 ISA Project
- *	 LORIA, INRIA Lorraine, 
+ *	 LORIA, INRIA Lorraine,
  *	 Campus Scientifique, BP 239
- *	 54506 VANDOEUVRE LES NANCY CEDEX 
+ *	 54506 VANDOEUVRE LES NANCY CEDEX
  *	 FRANCE
  *
  *  Note that the GNU General Public License does not permit incorporating
- *  the Software into proprietary programs. 
+ *  the Software into proprietary programs.
  */
 
 #include "ONL_opennl.h"
 
 #include <Eigen/Sparse>
 
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
@@ -100,22 +101,16 @@ struct NLContext {
 	NLboolean solve_again;
 };
 
-static NLContext* __nlCurrentContext = NULL;
-
 NLContext *nlNewContext(void)
 {
 	NLContext* result = new NLContext();
 	result->state = NL_STATE_INITIAL;
 	result->nb_rhs = 1;
-	nlMakeCurrent(result);
 	return result;
 }
 
 void nlDeleteContext(NLContext *context)
 {
-	if(__nlCurrentContext == context)
-		__nlCurrentContext = NULL;
-
 	context->M.resize(0, 0);
 	context->MtM.resize(0, 0);
 	context->b.clear();
@@ -129,46 +124,36 @@ void nlDeleteContext(NLContext *context)
 	delete context;
 }
 
-void nlMakeCurrent(NLContext *context)
+static void __nlCheckState(NLContext *context, NLenum state)
 {
-	__nlCurrentContext = context;
+	assert(context->state == state);
 }
 
-NLContext *nlGetCurrent(void)
+static void __nlTransition(NLContext *context, NLenum from_state, NLenum to_state)
 {
-	return __nlCurrentContext;
-}
-
-static void __nlCheckState(NLenum state)
-{
-	assert(__nlCurrentContext->state == state);
-}
-
-static void __nlTransition(NLenum from_state, NLenum to_state)
-{
-	__nlCheckState(from_state);
-	__nlCurrentContext->state = to_state;
+	__nlCheckState(context, from_state);
+	context->state = to_state;
 }
 
 /* Get/Set parameters */
 
-void nlSolverParameteri(NLenum pname, NLint param)
+void nlSolverParameteri(NLContext *context, NLenum pname, NLint param)
 {
-	__nlCheckState(NL_STATE_INITIAL);
+	__nlCheckState(context, NL_STATE_INITIAL);
 	switch(pname) {
 	case NL_NB_VARIABLES: {
 		assert(param > 0);
-		__nlCurrentContext->nb_variables = (NLuint)param;
+		context->nb_variables = (NLuint)param;
 	} break;
 	case NL_NB_ROWS: {
 		assert(param > 0);
-		__nlCurrentContext->nb_rows = (NLuint)param;
+		context->nb_rows = (NLuint)param;
 	} break;
 	case NL_LEAST_SQUARES: {
-		__nlCurrentContext->least_squares = (NLboolean)param;
+		context->least_squares = (NLboolean)param;
 	} break;
 	case NL_NB_RIGHT_HAND_SIDES: {
-		__nlCurrentContext->nb_rhs = (NLuint)param;
+		context->nb_rhs = (NLuint)param;
 	} break;
 	default: {
 		assert(0);
@@ -178,35 +163,34 @@ void nlSolverParameteri(NLenum pname, NLint param)
 
 /* Get/Set Lock/Unlock variables */
 
-void nlSetVariable(NLuint rhsindex, NLuint index, NLdouble value)
+void nlSetVariable(NLContext *context, NLuint rhsindex, NLuint index, NLdouble value)
 {
-	__nlCheckState(NL_STATE_SYSTEM);
-	__nlCurrentContext->variable[index].value[rhsindex] = value;	
+	__nlCheckState(context, NL_STATE_SYSTEM);
+	context->variable[index].value[rhsindex] = value;
 }
 
-NLdouble nlGetVariable(NLuint rhsindex, NLuint index)
+NLdouble nlGetVariable(NLContext *context, NLuint rhsindex, NLuint index)
 {
-	assert(__nlCurrentContext->state != NL_STATE_INITIAL);
-	return __nlCurrentContext->variable[index].value[rhsindex];
+	assert(context->state != NL_STATE_INITIAL);
+	return context->variable[index].value[rhsindex];
 }
 
-void nlLockVariable(NLuint index)
+void nlLockVariable(NLContext *context, NLuint index)
 {
-	__nlCheckState(NL_STATE_SYSTEM);
-	__nlCurrentContext->variable[index].locked = true;
+	__nlCheckState(context, NL_STATE_SYSTEM);
+	context->variable[index].locked = true;
 }
 
-void nlUnlockVariable(NLuint index)
+void nlUnlockVariable(NLContext *context, NLuint index)
 {
-	__nlCheckState(NL_STATE_SYSTEM);
-	__nlCurrentContext->variable[index].locked = false;
+	__nlCheckState(context, NL_STATE_SYSTEM);
+	context->variable[index].locked = false;
 }
 
 /* System construction */
 
-static void __nlVariablesToVector()
+static void __nlVariablesToVector(NLContext *context)
 {
-	NLContext *context = __nlCurrentContext;
 	NLuint i, j, nb_rhs;
 
 	nb_rhs= context->nb_rhs;
@@ -220,9 +204,8 @@ static void __nlVariablesToVector()
 	}
 }
 
-static void __nlVectorToVariables()
+static void __nlVectorToVariables(NLContext *context)
 {
-	NLContext *context = __nlCurrentContext;
 	NLuint i, j, nb_rhs;
 
 	nb_rhs= context->nb_rhs;
@@ -236,31 +219,30 @@ static void __nlVectorToVariables()
 	}
 }
 
-static void __nlBeginSystem()
+static void __nlBeginSystem(NLContext *context)
 {
-	assert(__nlCurrentContext->nb_variables > 0);
+	assert(context->nb_variables > 0);
 
-	if (__nlCurrentContext->solve_again)
-		__nlTransition(NL_STATE_SYSTEM_SOLVED, NL_STATE_SYSTEM);
+	if (context->solve_again)
+		__nlTransition(context, NL_STATE_SYSTEM_SOLVED, NL_STATE_SYSTEM);
 	else {
-		__nlTransition(NL_STATE_INITIAL, NL_STATE_SYSTEM);
+		__nlTransition(context, NL_STATE_INITIAL, NL_STATE_SYSTEM);
 
-		__nlCurrentContext->variable.resize(__nlCurrentContext->nb_variables);
+		context->variable.resize(context->nb_variables);
 	}
 }
 
-static void __nlEndSystem()
+static void __nlEndSystem(NLContext *context)
 {
-	__nlTransition(NL_STATE_MATRIX_CONSTRUCTED, NL_STATE_SYSTEM_CONSTRUCTED);	
+	__nlTransition(context, NL_STATE_MATRIX_CONSTRUCTED, NL_STATE_SYSTEM_CONSTRUCTED);
 }
 
-static void __nlBeginMatrix()
+static void __nlBeginMatrix(NLContext *context)
 {
 	NLuint i;
 	NLuint m = 0, n = 0;
-	NLContext *context = __nlCurrentContext;
 
-	__nlTransition(NL_STATE_SYSTEM, NL_STATE_MATRIX);
+	__nlTransition(context, NL_STATE_SYSTEM, NL_STATE_MATRIX);
 
 	if (!context->solve_again) {
 		for(i=0; i<context->nb_variables; i++) {
@@ -274,6 +256,10 @@ static void __nlBeginMatrix()
 
 		context->m = m;
 		context->n = n;
+
+		/* reserve reasonable estimate */
+		context->Mtriplets.clear();
+		context->Mtriplets.reserve(std::max(m, n)*3);
 
 		context->b.resize(context->nb_rhs);
 		context->x.resize(context->nb_rhs);
@@ -289,18 +275,17 @@ static void __nlBeginMatrix()
 			context->b[i].setZero(context->m);
 	}
 
-	__nlVariablesToVector();
+	__nlVariablesToVector(context);
 }
 
-static void __nlEndMatrixRHS(NLuint rhs)
+static void __nlEndMatrixRHS(NLContext *context, NLuint rhs)
 {
-	NLContext *context = __nlCurrentContext;
 	NLVariable *variable;
 	NLuint i, j;
 
 	EigenVectorX& b = context->b[rhs];
 
-	for(i=0; i<__nlCurrentContext->nb_variables; i++) {
+	for(i=0; i<context->nb_variables; i++) {
 		variable = &(context->variable[i]);
 
 		if(variable->locked) {
@@ -316,12 +301,10 @@ static void __nlEndMatrixRHS(NLuint rhs)
 		context->Mtb[rhs] = context->M.transpose() * b;
 }
 
-static void __nlEndMatrix()
+static void __nlEndMatrix(NLContext *context)
 {
-	NLContext *context = __nlCurrentContext;
+	__nlTransition(context, NL_STATE_MATRIX, NL_STATE_MATRIX_CONSTRUCTED);
 
-	__nlTransition(NL_STATE_MATRIX, NL_STATE_MATRIX_CONSTRUCTED);	
-	
 	if(!context->solve_again) {
 		context->M.resize(context->m, context->n);
 		context->M.setFromTriplets(context->Mtriplets.begin(), context->Mtriplets.end());
@@ -337,14 +320,12 @@ static void __nlEndMatrix()
 	}
 
 	for (NLuint rhs=0; rhs<context->nb_rhs; rhs++)
-		__nlEndMatrixRHS(rhs);
+		__nlEndMatrixRHS(context, rhs);
 }
 
-void nlMatrixAdd(NLuint row, NLuint col, NLdouble value)
+void nlMatrixAdd(NLContext *context, NLuint row, NLuint col, NLdouble value)
 {
-	NLContext *context = __nlCurrentContext;
-
-	__nlCheckState(NL_STATE_MATRIX);
+	__nlCheckState(context, NL_STATE_MATRIX);
 
 	if(context->solve_again)
 		return;
@@ -368,11 +349,9 @@ void nlMatrixAdd(NLuint row, NLuint col, NLdouble value)
 	}
 }
 
-void nlRightHandSideAdd(NLuint rhsindex, NLuint index, NLdouble value)
+void nlRightHandSideAdd(NLContext *context, NLuint rhsindex, NLuint index, NLdouble value)
 {
-	NLContext *context = __nlCurrentContext;
-
-	__nlCheckState(NL_STATE_MATRIX);
+	__nlCheckState(context, NL_STATE_MATRIX);
 
 	if(context->least_squares) {
 		context->b[rhsindex][index] += value;
@@ -385,11 +364,9 @@ void nlRightHandSideAdd(NLuint rhsindex, NLuint index, NLdouble value)
 	}
 }
 
-void nlRightHandSideSet(NLuint rhsindex, NLuint index, NLdouble value)
+void nlRightHandSideSet(NLContext *context, NLuint rhsindex, NLuint index, NLdouble value)
 {
-	NLContext *context = __nlCurrentContext;
-
-	__nlCheckState(NL_STATE_MATRIX);
+	__nlCheckState(context, NL_STATE_MATRIX);
 
 	if(context->least_squares) {
 		context->b[rhsindex][index] = value;
@@ -402,14 +379,14 @@ void nlRightHandSideSet(NLuint rhsindex, NLuint index, NLdouble value)
 	}
 }
 
-void nlBegin(NLenum prim)
+void nlBegin(NLContext *context, NLenum prim)
 {
 	switch(prim) {
 	case NL_SYSTEM: {
-		__nlBeginSystem();
+		__nlBeginSystem(context);
 	} break;
 	case NL_MATRIX: {
-		__nlBeginMatrix();
+		__nlBeginMatrix(context);
 	} break;
 	default: {
 		assert(0);
@@ -417,14 +394,14 @@ void nlBegin(NLenum prim)
 	}
 }
 
-void nlEnd(NLenum prim)
+void nlEnd(NLContext *context, NLenum prim)
 {
 	switch(prim) {
 	case NL_SYSTEM: {
-		__nlEndSystem();
+		__nlEndSystem(context);
 	} break;
 	case NL_MATRIX: {
-		__nlEndMatrix();
+		__nlEndMatrix(context);
 	} break;
 	default: {
 		assert(0);
@@ -432,10 +409,8 @@ void nlEnd(NLenum prim)
 	}
 }
 
-void nlPrintMatrix(void)
+void nlPrintMatrix(NLContext *context)
 {
-	NLContext *context = __nlCurrentContext;
-
 	std::cout << "A:" << context->M << std::endl;
 
 	for(NLuint rhs=0; rhs<context->nb_rhs; rhs++)
@@ -447,14 +422,13 @@ void nlPrintMatrix(void)
 
 /* Solving */
 
-NLboolean nlSolve(NLboolean solveAgain)
+NLboolean nlSolve(NLContext *context, NLboolean solveAgain)
 {
-	NLContext *context = __nlCurrentContext;
 	NLboolean result = true;
 
-	__nlCheckState(NL_STATE_SYSTEM_CONSTRUCTED);
+	__nlCheckState(context, NL_STATE_SYSTEM_CONSTRUCTED);
 
-	if (!__nlCurrentContext->solve_again) {
+	if (!context->solve_again) {
 		EigenSparseMatrix& M = (context->least_squares)? context->MtM: context->M;
 
 		assert(M.rows() == M.cols());
@@ -486,12 +460,12 @@ NLboolean nlSolve(NLboolean solveAgain)
 		}
 
 		if (result) {
-			__nlVectorToVariables();
+			__nlVectorToVariables(context);
 
 			if (solveAgain)
-				__nlCurrentContext->solve_again = true;
+				context->solve_again = true;
 
-			__nlTransition(NL_STATE_SYSTEM_CONSTRUCTED, NL_STATE_SYSTEM_SOLVED);
+			__nlTransition(context, NL_STATE_SYSTEM_CONSTRUCTED, NL_STATE_SYSTEM_SOLVED);
 		}
 	}
 

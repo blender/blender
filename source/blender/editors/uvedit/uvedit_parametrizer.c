@@ -2471,16 +2471,17 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 	PEdge *e;
 	int i, j, ninterior = sys->ninterior, nvar = 2 * sys->ninterior;
 	PBool success;
+	NLContext *context;
 
-	nlNewContext();
-	nlSolverParameteri(NL_NB_VARIABLES, nvar);
+	context = nlNewContext();
+	nlSolverParameteri(context, NL_NB_VARIABLES, nvar);
 
-	nlBegin(NL_SYSTEM);
+	nlBegin(context, NL_SYSTEM);
 
-	nlBegin(NL_MATRIX);
+	nlBegin(context, NL_MATRIX);
 
 	for (i = 0; i < nvar; i++)
-		nlRightHandSideAdd(0, i, sys->bInterior[i]);
+		nlRightHandSideAdd(context, 0, i, sys->bInterior[i]);
 
 	for (f = chart->faces; f; f = f->nextlink) {
 		float wi1, wi2, wi3, b, si, beta[3], j2[3][3], W[3][3];
@@ -2526,8 +2527,8 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 			sys->J2dt[e2->u.id][0] = j2[1][0] = p_abf_compute_sin_product(sys, v1, e2->u.id) * wi2;
 			sys->J2dt[e3->u.id][0] = j2[2][0] = p_abf_compute_sin_product(sys, v1, e3->u.id) * wi3;
 
-			nlRightHandSideAdd(0, v1->u.id, j2[0][0] * beta[0]);
-			nlRightHandSideAdd(0, ninterior + v1->u.id, j2[1][0] * beta[1] + j2[2][0] * beta[2]);
+			nlRightHandSideAdd(context, 0, v1->u.id, j2[0][0] * beta[0]);
+			nlRightHandSideAdd(context, 0, ninterior + v1->u.id, j2[1][0] * beta[1] + j2[2][0] * beta[2]);
 
 			row1[0] = j2[0][0] * W[0][0];
 			row2[0] = j2[0][0] * W[1][0];
@@ -2546,8 +2547,8 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 			sys->J2dt[e2->u.id][1] = j2[1][1] = 1.0f * wi2;
 			sys->J2dt[e3->u.id][1] = j2[2][1] = p_abf_compute_sin_product(sys, v2, e3->u.id) * wi3;
 
-			nlRightHandSideAdd(0, v2->u.id, j2[1][1] * beta[1]);
-			nlRightHandSideAdd(0, ninterior + v2->u.id, j2[0][1] * beta[0] + j2[2][1] * beta[2]);
+			nlRightHandSideAdd(context, 0, v2->u.id, j2[1][1] * beta[1]);
+			nlRightHandSideAdd(context, 0, ninterior + v2->u.id, j2[0][1] * beta[0] + j2[2][1] * beta[2]);
 
 			row1[1] = j2[1][1] * W[0][1];
 			row2[1] = j2[1][1] * W[1][1];
@@ -2566,8 +2567,8 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 			sys->J2dt[e2->u.id][2] = j2[1][2] = p_abf_compute_sin_product(sys, v3, e2->u.id) * wi2;
 			sys->J2dt[e3->u.id][2] = j2[2][2] = 1.0f * wi3;
 
-			nlRightHandSideAdd(0, v3->u.id, j2[2][2] * beta[2]);
-			nlRightHandSideAdd(0, ninterior + v3->u.id, j2[0][2] * beta[0] + j2[1][2] * beta[1]);
+			nlRightHandSideAdd(context, 0, v3->u.id, j2[2][2] * beta[2]);
+			nlRightHandSideAdd(context, 0, ninterior + v3->u.id, j2[0][2] * beta[0] + j2[1][2] * beta[1]);
 
 			row1[2] = j2[2][2] * W[0][2];
 			row2[2] = j2[2][2] * W[1][2];
@@ -2591,29 +2592,29 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 					continue;
 
 				if (i == 0)
-					nlMatrixAdd(r, c, j2[0][i] * row1[j]);
+					nlMatrixAdd(context, r, c, j2[0][i] * row1[j]);
 				else
-					nlMatrixAdd(r + ninterior, c, j2[0][i] * row1[j]);
+					nlMatrixAdd(context, r + ninterior, c, j2[0][i] * row1[j]);
 
 				if (i == 1)
-					nlMatrixAdd(r, c, j2[1][i] * row2[j]);
+					nlMatrixAdd(context, r, c, j2[1][i] * row2[j]);
 				else
-					nlMatrixAdd(r + ninterior, c, j2[1][i] * row2[j]);
+					nlMatrixAdd(context, r + ninterior, c, j2[1][i] * row2[j]);
 
 
 				if (i == 2)
-					nlMatrixAdd(r, c, j2[2][i] * row3[j]);
+					nlMatrixAdd(context, r, c, j2[2][i] * row3[j]);
 				else
-					nlMatrixAdd(r + ninterior, c, j2[2][i] * row3[j]);
+					nlMatrixAdd(context, r + ninterior, c, j2[2][i] * row3[j]);
 			}
 		}
 	}
 
-	nlEnd(NL_MATRIX);
+	nlEnd(context, NL_MATRIX);
 
-	nlEnd(NL_SYSTEM);
+	nlEnd(context, NL_SYSTEM);
 
-	success = nlSolve(NL_FALSE);
+	success = nlSolve(context, NL_FALSE);
 
 	if (success) {
 		for (f = chart->faces; f; f = f->nextlink) {
@@ -2624,24 +2625,24 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 			pre[0] = pre[1] = pre[2] = 0.0;
 
 			if (v1->flag & PVERT_INTERIOR) {
-				float x = nlGetVariable(0, v1->u.id);
-				float x2 = nlGetVariable(0, ninterior + v1->u.id);
+				float x = nlGetVariable(context, 0, v1->u.id);
+				float x2 = nlGetVariable(context, 0, ninterior + v1->u.id);
 				pre[0] += sys->J2dt[e1->u.id][0] * x;
 				pre[1] += sys->J2dt[e2->u.id][0] * x2;
 				pre[2] += sys->J2dt[e3->u.id][0] * x2;
 			}
 
 			if (v2->flag & PVERT_INTERIOR) {
-				float x = nlGetVariable(0, v2->u.id);
-				float x2 = nlGetVariable(0, ninterior + v2->u.id);
+				float x = nlGetVariable(context, 0, v2->u.id);
+				float x2 = nlGetVariable(context, 0, ninterior + v2->u.id);
 				pre[0] += sys->J2dt[e1->u.id][1] * x2;
 				pre[1] += sys->J2dt[e2->u.id][1] * x;
 				pre[2] += sys->J2dt[e3->u.id][1] * x2;
 			}
 
 			if (v3->flag & PVERT_INTERIOR) {
-				float x = nlGetVariable(0, v3->u.id);
-				float x2 = nlGetVariable(0, ninterior + v3->u.id);
+				float x = nlGetVariable(context, 0, v3->u.id);
+				float x2 = nlGetVariable(context, 0, ninterior + v3->u.id);
 				pre[0] += sys->J2dt[e1->u.id][2] * x2;
 				pre[1] += sys->J2dt[e2->u.id][2] * x2;
 				pre[2] += sys->J2dt[e3->u.id][2] * x;
@@ -2672,12 +2673,12 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 		}
 
 		for (i = 0; i < ninterior; i++) {
-			sys->lambdaPlanar[i] += (float)nlGetVariable(0, i);
-			sys->lambdaLength[i] += (float)nlGetVariable(0, ninterior + i);
+			sys->lambdaPlanar[i] += (float)nlGetVariable(context, 0, i);
+			sys->lambdaLength[i] += (float)nlGetVariable(context, 0, ninterior + i);
 		}
 	}
 
-	nlDeleteContext(nlGetCurrent());
+	nlDeleteContext(context);
 
 	return success;
 }
@@ -3003,11 +3004,12 @@ static void p_chart_extrema_verts(PChart *chart, PVert **pin1, PVert **pin2)
 
 static void p_chart_lscm_load_solution(PChart *chart)
 {
+	NLContext *context = chart->u.lscm.context;
 	PVert *v;
 
 	for (v = chart->verts; v; v = v->nextlink) {
-		v->uv[0] = nlGetVariable(0, 2 * v->u.id);
-		v->uv[1] = nlGetVariable(0, 2 * v->u.id + 1);
+		v->uv[0] = nlGetVariable(context, 0, 2 * v->u.id);
+		v->uv[1] = nlGetVariable(context, 0, 2 * v->u.id + 1);
 	}
 }
 
@@ -3062,17 +3064,16 @@ static void p_chart_lscm_begin(PChart *chart, PBool live, PBool abf)
 		for (v = chart->verts; v; v = v->nextlink)
 			v->u.id = id++;
 
-		nlNewContext();
-		nlSolverParameteri(NL_NB_VARIABLES, 2 * chart->nverts);
-		nlSolverParameteri(NL_NB_ROWS, 2 * chart->nfaces);
-		nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
-
-		chart->u.lscm.context = nlGetCurrent();
+		chart->u.lscm.context = nlNewContext();
+		nlSolverParameteri(chart->u.lscm.context, NL_NB_VARIABLES, 2 * chart->nverts);
+		nlSolverParameteri(chart->u.lscm.context, NL_NB_ROWS, 2 * chart->nfaces);
+		nlSolverParameteri(chart->u.lscm.context, NL_LEAST_SQUARES, NL_TRUE);
 	}
 }
 
 static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
 {
+	NLContext *context = chart->u.lscm.context;
 	PVert *v, *pin1 = chart->u.lscm.pin1, *pin2 = chart->u.lscm.pin2;
 	PFace *f;
 	float *alpha = chart->u.lscm.abf_alpha;
@@ -3080,9 +3081,7 @@ static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
 	bool flip_faces;
 	int row;
 
-	nlMakeCurrent(chart->u.lscm.context);
-
-	nlBegin(NL_SYSTEM);
+	nlBegin(context, NL_SYSTEM);
 
 #if 0
 	/* TODO: make loading pins work for simplify/complexify. */
@@ -3093,25 +3092,25 @@ static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
 			p_vert_load_pin_select_uvs(handle, v);  /* reload for live */
 
 	if (chart->u.lscm.pin1) {
-		nlLockVariable(2 * pin1->u.id);
-		nlLockVariable(2 * pin1->u.id + 1);
-		nlLockVariable(2 * pin2->u.id);
-		nlLockVariable(2 * pin2->u.id + 1);
+		nlLockVariable(context, 2 * pin1->u.id);
+		nlLockVariable(context, 2 * pin1->u.id + 1);
+		nlLockVariable(context, 2 * pin2->u.id);
+		nlLockVariable(context, 2 * pin2->u.id + 1);
 
-		nlSetVariable(0, 2 * pin1->u.id, pin1->uv[0]);
-		nlSetVariable(0, 2 * pin1->u.id + 1, pin1->uv[1]);
-		nlSetVariable(0, 2 * pin2->u.id, pin2->uv[0]);
-		nlSetVariable(0, 2 * pin2->u.id + 1, pin2->uv[1]);
+		nlSetVariable(context, 0, 2 * pin1->u.id, pin1->uv[0]);
+		nlSetVariable(context, 0, 2 * pin1->u.id + 1, pin1->uv[1]);
+		nlSetVariable(context, 0, 2 * pin2->u.id, pin2->uv[0]);
+		nlSetVariable(context, 0, 2 * pin2->u.id + 1, pin2->uv[1]);
 	}
 	else {
 		/* set and lock the pins */
 		for (v = chart->verts; v; v = v->nextlink) {
 			if (v->flag & PVERT_PIN) {
-				nlLockVariable(2 * v->u.id);
-				nlLockVariable(2 * v->u.id + 1);
+				nlLockVariable(context, 2 * v->u.id);
+				nlLockVariable(context, 2 * v->u.id + 1);
 
-				nlSetVariable(0, 2 * v->u.id, v->uv[0]);
-				nlSetVariable(0, 2 * v->u.id + 1, v->uv[1]);
+				nlSetVariable(context, 0, 2 * v->u.id, v->uv[0]);
+				nlSetVariable(context, 0, 2 * v->u.id + 1, v->uv[1]);
 			}
 		}
 	}
@@ -3138,7 +3137,7 @@ static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
 
 	/* construct matrix */
 
-	nlBegin(NL_MATRIX);
+	nlBegin(context, NL_MATRIX);
 
 	row = 0;
 	for (f = chart->faces; f; f = f->nextlink) {
@@ -3186,44 +3185,26 @@ static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
 		cosine = cosf(a1) * ratio;
 		sine = sina1 * ratio;
 
-#if 0
-		nlBegin(NL_ROW);
-		nlCoefficient(2 * v1->u.id,   cosine - 1.0);
-		nlCoefficient(2 * v1->u.id + 1, -sine);
-		nlCoefficient(2 * v2->u.id,   -cosine);
-		nlCoefficient(2 * v2->u.id + 1, sine);
-		nlCoefficient(2 * v3->u.id,   1.0);
-		nlEnd(NL_ROW);
-
-		nlBegin(NL_ROW);
-		nlCoefficient(2 * v1->u.id,   sine);
-		nlCoefficient(2 * v1->u.id + 1, cosine - 1.0);
-		nlCoefficient(2 * v2->u.id,   -sine);
-		nlCoefficient(2 * v2->u.id + 1, -cosine);
-		nlCoefficient(2 * v3->u.id + 1, 1.0);
-		nlEnd(NL_ROW);
-#else
-		nlMatrixAdd(row, 2 * v1->u.id,   cosine - 1.0f);
-		nlMatrixAdd(row, 2 * v1->u.id + 1, -sine);
-		nlMatrixAdd(row, 2 * v2->u.id,   -cosine);
-		nlMatrixAdd(row, 2 * v2->u.id + 1, sine);
-		nlMatrixAdd(row, 2 * v3->u.id,   1.0);
+		nlMatrixAdd(context, row, 2 * v1->u.id,   cosine - 1.0f);
+		nlMatrixAdd(context, row, 2 * v1->u.id + 1, -sine);
+		nlMatrixAdd(context, row, 2 * v2->u.id,   -cosine);
+		nlMatrixAdd(context, row, 2 * v2->u.id + 1, sine);
+		nlMatrixAdd(context, row, 2 * v3->u.id,   1.0);
 		row++;
 
-		nlMatrixAdd(row, 2 * v1->u.id,   sine);
-		nlMatrixAdd(row, 2 * v1->u.id + 1, cosine - 1.0f);
-		nlMatrixAdd(row, 2 * v2->u.id,   -sine);
-		nlMatrixAdd(row, 2 * v2->u.id + 1, -cosine);
-		nlMatrixAdd(row, 2 * v3->u.id + 1, 1.0);
+		nlMatrixAdd(context, row, 2 * v1->u.id,   sine);
+		nlMatrixAdd(context, row, 2 * v1->u.id + 1, cosine - 1.0f);
+		nlMatrixAdd(context, row, 2 * v2->u.id,   -sine);
+		nlMatrixAdd(context, row, 2 * v2->u.id + 1, -cosine);
+		nlMatrixAdd(context, row, 2 * v3->u.id + 1, 1.0);
 		row++;
-#endif
 	}
 
-	nlEnd(NL_MATRIX);
+	nlEnd(context, NL_MATRIX);
 
-	nlEnd(NL_SYSTEM);
+	nlEnd(context, NL_SYSTEM);
 
-	if (nlSolve(NL_TRUE)) {
+	if (nlSolve(context, NL_TRUE)) {
 		p_chart_lscm_load_solution(chart);
 		return P_TRUE;
 	}

@@ -300,16 +300,16 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
 
 			/* Is ring if number of faces == number of edges around vertice*/
 			if (sys->numNeEd[l_curr->v] == sys->numNeFa[l_curr->v] && sys->zerola[l_curr->v] == 0) {
-				nlMatrixAdd(l_curr->v, l_next->v, sys->fweights[l_curr_index][2] * sys->vweights[l_curr->v]);
-				nlMatrixAdd(l_curr->v, l_prev->v, sys->fweights[l_curr_index][1] * sys->vweights[l_curr->v]);
+				nlMatrixAdd(sys->context, l_curr->v, l_next->v, sys->fweights[l_curr_index][2] * sys->vweights[l_curr->v]);
+				nlMatrixAdd(sys->context, l_curr->v, l_prev->v, sys->fweights[l_curr_index][1] * sys->vweights[l_curr->v]);
 			}
 			if (sys->numNeEd[l_next->v] == sys->numNeFa[l_next->v] && sys->zerola[l_next->v] == 0) {
-				nlMatrixAdd(l_next->v, l_curr->v, sys->fweights[l_curr_index][2] * sys->vweights[l_next->v]);
-				nlMatrixAdd(l_next->v, l_prev->v, sys->fweights[l_curr_index][0] * sys->vweights[l_next->v]);
+				nlMatrixAdd(sys->context, l_next->v, l_curr->v, sys->fweights[l_curr_index][2] * sys->vweights[l_next->v]);
+				nlMatrixAdd(sys->context, l_next->v, l_prev->v, sys->fweights[l_curr_index][0] * sys->vweights[l_next->v]);
 			}
 			if (sys->numNeEd[l_prev->v] == sys->numNeFa[l_prev->v] && sys->zerola[l_prev->v] == 0) {
-				nlMatrixAdd(l_prev->v, l_curr->v, sys->fweights[l_curr_index][1] * sys->vweights[l_prev->v]);
-				nlMatrixAdd(l_prev->v, l_next->v, sys->fweights[l_curr_index][0] * sys->vweights[l_prev->v]);
+				nlMatrixAdd(sys->context, l_prev->v, l_curr->v, sys->fweights[l_curr_index][1] * sys->vweights[l_prev->v]);
+				nlMatrixAdd(sys->context, l_prev->v, l_next->v, sys->fweights[l_curr_index][0] * sys->vweights[l_prev->v]);
 			}
 		}
 	}
@@ -323,8 +323,8 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
 		    sys->zerola[idv1] == 0 &&
 		    sys->zerola[idv2] == 0)
 		{
-			nlMatrixAdd(idv1, idv2, sys->eweights[i] * sys->vlengths[idv1]);
-			nlMatrixAdd(idv2, idv1, sys->eweights[i] * sys->vlengths[idv2]);
+			nlMatrixAdd(sys->context, idv1, idv2, sys->eweights[i] * sys->vlengths[idv1]);
+			nlMatrixAdd(sys->context, idv2, idv1, sys->eweights[i] * sys->vlengths[idv2]);
 		}
 	}
 }
@@ -342,13 +342,13 @@ static void validate_solution(LaplacianSystem *sys, short flag, float lambda, fl
 		if (sys->zerola[i] == 0) {
 			lam = sys->numNeEd[i] == sys->numNeFa[i] ? (lambda >= 0.0f ? 1.0f : -1.0f) : (lambda_border >= 0.0f ? 1.0f : -1.0f);
 			if (flag & MOD_LAPLACIANSMOOTH_X) {
-				sys->vertexCos[i][0] += lam * ((float)nlGetVariable(0, i) - sys->vertexCos[i][0]);
+				sys->vertexCos[i][0] += lam * ((float)nlGetVariable(sys->context, 0, i) - sys->vertexCos[i][0]);
 			}
 			if (flag & MOD_LAPLACIANSMOOTH_Y) {
-				sys->vertexCos[i][1] += lam * ((float)nlGetVariable(1, i) - sys->vertexCos[i][1]);
+				sys->vertexCos[i][1] += lam * ((float)nlGetVariable(sys->context, 1, i) - sys->vertexCos[i][1]);
 			}
 			if (flag & MOD_LAPLACIANSMOOTH_Z) {
-				sys->vertexCos[i][2] += lam * ((float)nlGetVariable(2, i) - sys->vertexCos[i][2]);
+				sys->vertexCos[i][2] += lam * ((float)nlGetVariable(sys->context, 2, i) - sys->vertexCos[i][2]);
 			}
 		}
 	}
@@ -390,21 +390,20 @@ static void laplaciansmoothModifier_do(
 	modifier_opennl_lock();
 #endif
 
-	nlNewContext();
-	sys->context = nlGetCurrent();
-	nlSolverParameteri(NL_NB_VARIABLES, numVerts);
-	nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
-	nlSolverParameteri(NL_NB_ROWS, numVerts);
-	nlSolverParameteri(NL_NB_RIGHT_HAND_SIDES, 3);
+	sys->context = nlNewContext();
+	nlSolverParameteri(sys->context, NL_NB_VARIABLES, numVerts);
+	nlSolverParameteri(sys->context, NL_LEAST_SQUARES, NL_TRUE);
+	nlSolverParameteri(sys->context, NL_NB_ROWS, numVerts);
+	nlSolverParameteri(sys->context, NL_NB_RIGHT_HAND_SIDES, 3);
 
 	init_laplacian_matrix(sys);
 
 	for (iter = 0; iter < smd->repeat; iter++) {
-		nlBegin(NL_SYSTEM);
+		nlBegin(sys->context, NL_SYSTEM);
 		for (i = 0; i < numVerts; i++) {
-			nlSetVariable(0, i, vertexCos[i][0]);
-			nlSetVariable(1, i, vertexCos[i][1]);
-			nlSetVariable(2, i, vertexCos[i][2]);
+			nlSetVariable(sys->context, 0, i, vertexCos[i][0]);
+			nlSetVariable(sys->context, 1, i, vertexCos[i][1]);
+			nlSetVariable(sys->context, 2, i, vertexCos[i][2]);
 			if (iter == 0) {
 				add_v3_v3(sys->vert_centroid, vertexCos[i]);
 			}
@@ -413,12 +412,12 @@ static void laplaciansmoothModifier_do(
 			mul_v3_fl(sys->vert_centroid, 1.0f / (float)numVerts);
 		}
 
-		nlBegin(NL_MATRIX);
+		nlBegin(sys->context, NL_MATRIX);
 		dv = dvert;
 		for (i = 0; i < numVerts; i++) {
-			nlRightHandSideSet(0, i, vertexCos[i][0]);
-			nlRightHandSideSet(1, i, vertexCos[i][1]);
-			nlRightHandSideSet(2, i, vertexCos[i][2]);
+			nlRightHandSideSet(sys->context, 0, i, vertexCos[i][0]);
+			nlRightHandSideSet(sys->context, 1, i, vertexCos[i][1]);
+			nlRightHandSideSet(sys->context, 2, i, vertexCos[i][2]);
 			if (iter == 0) {
 				if (dv) {
 					wpaint = defvert_find_weight(dv, defgrp_index);
@@ -435,10 +434,10 @@ static void laplaciansmoothModifier_do(
 						w = sys->vlengths[i];
 						sys->vlengths[i] = (w == 0.0f) ? 0.0f : -fabsf(smd->lambda_border) * wpaint * 2.0f / w;
 						if (sys->numNeEd[i] == sys->numNeFa[i]) {
-							nlMatrixAdd(i, i,  1.0f + fabsf(smd->lambda) * wpaint);
+							nlMatrixAdd(sys->context, i, i,  1.0f + fabsf(smd->lambda) * wpaint);
 						}
 						else {
-							nlMatrixAdd(i, i,  1.0f + fabsf(smd->lambda_border) * wpaint * 2.0f);
+							nlMatrixAdd(sys->context, i, i,  1.0f + fabsf(smd->lambda_border) * wpaint * 2.0f);
 						}
 					}
 					else {
@@ -448,15 +447,15 @@ static void laplaciansmoothModifier_do(
 						sys->vlengths[i] = (w == 0.0f) ? 0.0f : -fabsf(smd->lambda_border) * wpaint * 2.0f / w;
 
 						if (sys->numNeEd[i] == sys->numNeFa[i]) {
-							nlMatrixAdd(i, i,  1.0f + fabsf(smd->lambda) * wpaint / (4.0f * sys->ring_areas[i]));
+							nlMatrixAdd(sys->context, i, i,  1.0f + fabsf(smd->lambda) * wpaint / (4.0f * sys->ring_areas[i]));
 						}
 						else {
-							nlMatrixAdd(i, i,  1.0f + fabsf(smd->lambda_border) * wpaint * 2.0f);
+							nlMatrixAdd(sys->context, i, i,  1.0f + fabsf(smd->lambda_border) * wpaint * 2.0f);
 						}
 					}
 				}
 				else {
-					nlMatrixAdd(i, i, 1.0f);
+					nlMatrixAdd(sys->context, i, i, 1.0f);
 				}
 			}
 		}
@@ -465,10 +464,10 @@ static void laplaciansmoothModifier_do(
 			fill_laplacian_matrix(sys);
 		}
 
-		nlEnd(NL_MATRIX);
-		nlEnd(NL_SYSTEM);
+		nlEnd(sys->context, NL_MATRIX);
+		nlEnd(sys->context, NL_SYSTEM);
 
-		if (nlSolve(NL_TRUE)) {
+		if (nlSolve(sys->context, NL_TRUE)) {
 			validate_solution(sys, smd->flag, smd->lambda, smd->lambda_border);
 		}
 	}
