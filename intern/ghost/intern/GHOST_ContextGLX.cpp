@@ -94,7 +94,7 @@ GHOST_ContextGLX::~GHOST_ContextGLX()
 
 		if (m_context != None) {
 			if (m_window != 0 && m_context == ::glXGetCurrentContext())
-				::glXMakeCurrent(m_display, m_window, NULL);
+				::glXMakeCurrent(m_display, None, NULL);
 
 			if (m_context != s_sharedContext || s_sharedCount == 1) {
 				assert(s_sharedCount > 0);
@@ -308,6 +308,8 @@ const bool GLXEW_ARB_create_context_robustness =
 	GHOST_TSuccess success;
 
 	if (m_context != NULL) {
+		const unsigned char *version;
+
 		if (!s_sharedContext)
 			s_sharedContext = m_context;
 
@@ -325,7 +327,16 @@ const bool GLXEW_ARB_create_context_robustness =
 		/* re initialize to get the extensions properly */
 		initContextGLXEW();
 
-		success = GHOST_kSuccess;
+		version = glGetString(GL_VERSION);
+
+		if (version[0] < '2' || ((version[0] == '2') &&  (version[2] < '1'))) {
+			fprintf(stderr, "Error! Blender requires OpenGL 2.1 to run.\n");
+			fflush(stderr);
+			/* ugly, but we get crashes unless a whole bunch of systems are patched. */
+			exit(0);
+		}
+		else
+			success = GHOST_kSuccess;
 	}
 	else {
 		/* freeing well clean up the context initialized above */
