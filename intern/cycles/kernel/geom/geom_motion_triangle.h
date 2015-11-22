@@ -358,8 +358,17 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals *kg, Intersection
  * multiple hits we pick a single random primitive as the intersection point. */
 
 #ifdef __SUBSURFACE__
-ccl_device_inline void motion_triangle_intersect_subsurface(KernelGlobals *kg, Intersection *isect_array,
-	float3 P, float3 dir, float time, int object, int triAddr, float tmax, uint *num_hits, uint *lcg_state, int max_hits)
+ccl_device_inline void motion_triangle_intersect_subsurface(
+        KernelGlobals *kg,
+        SubsurfaceIntersection *ss_isect,
+        float3 P,
+        float3 dir,
+        float time,
+        int object,
+        int triAddr,
+        float tmax,
+        uint *lcg_state,
+        int max_hits)
 {
 	/* primitive index for vertex location lookup */
 	int prim = kernel_tex_fetch(__prim_index, triAddr);
@@ -373,30 +382,34 @@ ccl_device_inline void motion_triangle_intersect_subsurface(KernelGlobals *kg, I
 	float t, u, v;
 
 	if(ray_triangle_intersect_uv(P, dir, tmax, verts[2], verts[0], verts[1], &u, &v, &t)) {
-		(*num_hits)++;
+		ss_isect->num_hits++;
 
 		int hit;
 
-		if(*num_hits <= max_hits) {
-			hit = *num_hits - 1;
+		if(ss_isect->num_hits <= max_hits) {
+			hit = ss_isect->num_hits - 1;
 		}
 		else {
 			/* reservoir sampling: if we are at the maximum number of
 			 * hits, randomly replace element or skip it */
-			hit = lcg_step_uint(lcg_state) % *num_hits;
+			hit = lcg_step_uint(lcg_state) % ss_isect->num_hits;
 
 			if(hit >= max_hits)
 				return;
 		}
 
 		/* record intersection */
-		Intersection *isect = &isect_array[hit];
+		Intersection *isect = &ss_isect->hits[hit];
 		isect->t = t;
 		isect->u = u;
 		isect->v = v;
 		isect->prim = triAddr;
 		isect->object = object;
 		isect->type = PRIMITIVE_MOTION_TRIANGLE;
+
+		/* Record geometric normal. */
+		ss_isect->Ng[hit] = normalize(cross(verts[1] - verts[0],
+		                                    verts[2] - verts[0]));
 	}
 }
 #endif

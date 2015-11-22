@@ -26,9 +26,9 @@
  *
  */
 
-ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
+ccl_device void BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
                                              const Ray *ray,
-                                             Intersection *isect_array,
+                                             SubsurfaceIntersection *ss_isect,
                                              int subsurface_object,
                                              uint *lcg_state,
                                              int max_hits)
@@ -55,7 +55,8 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 	float3 idir = bvh_inverse_direction(dir);
 	int object = OBJECT_NONE;
 	float isect_t = ray->t;
-	uint num_hits = 0;
+
+	ss_isect->num_hits = 0;
 
 #if BVH_FEATURE(BVH_MOTION)
 	Transform ob_itfm;
@@ -63,7 +64,7 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 
 #ifndef __KERNEL_SSE41__
 	if(!isfinite(P.x)) {
-		return 0;
+		return;
 	}
 #endif
 
@@ -226,7 +227,15 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 								if(tri_object != subsurface_object) {
 									continue;
 								}
-								triangle_intersect_subsurface(kg, &isect_precalc, isect_array, P, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
+								triangle_intersect_subsurface(kg,
+								                              &isect_precalc,
+								                              ss_isect,
+								                              P,
+								                              object,
+								                              primAddr,
+								                              isect_t,
+								                              lcg_state,
+								                              max_hits);
 							}
 							break;
 						}
@@ -240,7 +249,16 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 								if(tri_object != subsurface_object) {
 									continue;
 								}
-								motion_triangle_intersect_subsurface(kg, isect_array, P, dir, ray->time, object, primAddr, isect_t, &num_hits, lcg_state, max_hits);
+								motion_triangle_intersect_subsurface(kg,
+								                                     ss_isect,
+								                                     P,
+								                                     dir,
+								                                     ray->time,
+								                                     object,
+								                                     primAddr,
+								                                     isect_t,
+								                                     lcg_state,
+								                                     max_hits);
 							}
 							break;
 						}
@@ -321,6 +339,4 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 		}
 #endif  /* FEATURE(BVH_INSTANCING) */
 	} while(nodeAddr != ENTRYPOINT_SENTINEL);
-
-	return num_hits;
 }

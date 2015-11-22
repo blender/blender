@@ -520,6 +520,18 @@ typedef ccl_addr_space struct Intersection {
 #endif
 } Intersection;
 
+/* Subsurface Intersection result */
+
+struct SubsurfaceIntersection
+{
+	Ray ray;
+	float3 weight[BSSRDF_MAX_HITS];
+
+	int num_hits;
+	struct Intersection hits[BSSRDF_MAX_HITS];
+	float3 Ng[BSSRDF_MAX_HITS];
+};
+
 /* Primitives */
 
 typedef enum PrimitiveType {

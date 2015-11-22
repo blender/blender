@@ -179,19 +179,23 @@ ccl_device float3 subsurface_color_pow(float3 color, float exponent)
 	return color;
 }
 
-ccl_device void subsurface_color_bump_blur(KernelGlobals *kg, ShaderData *out_sd, ShaderData *in_sd, int state_flag, float3 *eval, float3 *N)
+ccl_device void subsurface_color_bump_blur(KernelGlobals *kg,
+                                           ShaderData *sd,
+                                           int state_flag,
+                                           float3 *eval,
+                                           float3 *N)
 {
 	/* average color and texture blur at outgoing point */
 	float texture_blur;
-	float3 out_color = shader_bssrdf_sum(out_sd, NULL, &texture_blur);
+	float3 out_color = shader_bssrdf_sum(sd, NULL, &texture_blur);
 
 	/* do we have bump mapping? */
-	bool bump = (out_sd->flag & SD_HAS_BSSRDF_BUMP) != 0;
+	bool bump = (sd->flag & SD_HAS_BSSRDF_BUMP) != 0;
 
 	if(bump || texture_blur > 0.0f) {
 		/* average color and normal at incoming point */
-		shader_eval_surface(kg, in_sd, 0.0f, state_flag, SHADER_CONTEXT_SSS);
-		float3 in_color = shader_bssrdf_sum(in_sd, (bump)? N: NULL, NULL);
+		shader_eval_surface(kg, sd, 0.0f, state_flag, SHADER_CONTEXT_SSS);
+		float3 in_color = shader_bssrdf_sum(sd, (bump)? N: NULL, NULL);
 
 		/* we simply divide out the average color and multiply with the average
 		 * of the other one. we could try to do this per closure but it's quite
@@ -206,14 +210,23 @@ ccl_device void subsurface_color_bump_blur(KernelGlobals *kg, ShaderData *out_sd
 	}
 }
 
-/* subsurface scattering step, from a point on the surface to other nearby points on the same object */
-ccl_device int subsurface_scatter_multi_step(KernelGlobals *kg, ShaderData *sd, ShaderData bssrdf_sd[BSSRDF_MAX_HITS],
-	int state_flag, ShaderClosure *sc, uint *lcg_state, float disk_u, float disk_v, bool all)
+/* Subsurface scattering step, from a point on the surface to other
+ * nearby points on the same object.
+ */
+ccl_device int subsurface_scatter_multi_intersect(
+        KernelGlobals *kg,
+        SubsurfaceIntersection* ss_isect,
+        ShaderData *sd,
+        ShaderClosure *sc,
+        uint *lcg_state,
+        float disk_u,
+        float disk_v,
+        bool all)
 {
 	/* pick random axis in local frame and point on disk */
 	float3 disk_N, disk_T, disk_B;
 	float pick_pdf_N, pick_pdf_T, pick_pdf_B;
-	
+
 	disk_N = sd->Ng;
 	make_orthonormals(disk_N, &disk_T, &disk_B);
 
@@ -259,57 +272,77 @@ ccl_device int subsurface_scatter_multi_step(KernelGlobals *kg, ShaderData *sd, 
 	float3 disk_P = (disk_r*cosf(phi)) * disk_T + (disk_r*sinf(phi)) * disk_B;
 
 	/* create ray */
-	Ray ray;
-	ray.P = sd->P + disk_N*disk_height + disk_P;
-	ray.D = -disk_N;
-	ray.t = 2.0f*disk_height;
-	ray.dP = sd->dP;
-	ray.dD = differential3_zero();
-	ray.time = sd->time;
+	Ray *ray = &ss_isect->ray;
+	ray->P = sd->P + disk_N*disk_height + disk_P;
+	ray->D = -disk_N;
+	ray->t = 2.0f*disk_height;
+	ray->dP = sd->dP;
+	ray->dD = differential3_zero();
+	ray->time = sd->time;
 
 	/* intersect with the same object. if multiple intersections are found it
 	 * will use at most BSSRDF_MAX_HITS hits, a random subset of all hits */
-	Intersection isect[BSSRDF_MAX_HITS];
-	uint num_hits = scene_intersect_subsurface(kg, &ray, isect, sd->object, lcg_state, BSSRDF_MAX_HITS);
-
-	/* evaluate bssrdf */
-	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
-	int num_eval_hits = min(num_hits, BSSRDF_MAX_HITS);
+	scene_intersect_subsurface(kg,
+	                           ray,
+	                           ss_isect,
+	                           sd->object,
+	                           lcg_state,
+	                           BSSRDF_MAX_HITS);
+	/* TODO(sergey): Investigate whether scene_intersect_subsurface() could
+	 * indeed return more than BSSRDF_MAX_HITS hits.
+	 */
+	int num_eval_hits = min(ss_isect->num_hits, BSSRDF_MAX_HITS);
 
 	for(int hit = 0; hit < num_eval_hits; hit++) {
-		ShaderData *bsd = &bssrdf_sd[hit];
-
-		/* setup new shading point */
-		*bsd = *sd;
-		shader_setup_from_subsurface(kg, bsd, &isect[hit], &ray);
+		/* Quickly retrieve P and Ng without setting up ShaderData. */
+		float3 hit_P = ray->P + ss_isect->hits[hit].t * ray->D;
+		float3 hit_Ng = ss_isect->Ng[hit];
+		if(ss_isect->hits[hit].object != OBJECT_NONE) {
+			object_normal_transform(kg, sd, &hit_Ng);
+		}
 
 		/* probability densities for local frame axes */
-		float pdf_N = pick_pdf_N * fabsf(dot(disk_N, bsd->Ng));
-		float pdf_T = pick_pdf_T * fabsf(dot(disk_T, bsd->Ng));
-		float pdf_B = pick_pdf_B * fabsf(dot(disk_B, bsd->Ng));
-		
+		float pdf_N = pick_pdf_N * fabsf(dot(disk_N, hit_Ng));
+		float pdf_T = pick_pdf_T * fabsf(dot(disk_T, hit_Ng));
+		float pdf_B = pick_pdf_B * fabsf(dot(disk_B, hit_Ng));
+
 		/* multiple importance sample between 3 axes, power heuristic
 		 * found to be slightly better than balance heuristic */
 		float mis_weight = power_heuristic_3(pdf_N, pdf_T, pdf_B);
 
 		/* real distance to sampled point */
-		float r = len(bsd->P - sd->P);
+		float r = len(hit_P - sd->P);
 
 		/* evaluate */
 		float w = mis_weight / pdf_N;
-		if(num_hits > BSSRDF_MAX_HITS)
-			w *= num_hits/(float)BSSRDF_MAX_HITS;
-		eval = subsurface_scatter_eval(bsd, sc, disk_r, r, all) * w;
+		if(ss_isect->num_hits > BSSRDF_MAX_HITS)
+			w *= ss_isect->num_hits/(float)BSSRDF_MAX_HITS;
+		float3 eval = subsurface_scatter_eval(sd, sc, disk_r, r, all) * w;
 
-		/* optionally blur colors and bump mapping */
-		float3 N = bsd->N;
-		subsurface_color_bump_blur(kg, sd, bsd, state_flag, &eval, &N);
-
-		/* setup diffuse bsdf */
-		subsurface_scatter_setup_diffuse_bsdf(bsd, eval, true, N);
+		ss_isect->weight[hit] = eval;
 	}
 
 	return num_eval_hits;
+}
+
+ccl_device void subsurface_scatter_multi_setup(KernelGlobals *kg,
+                                               SubsurfaceIntersection* ss_isect,
+                                               int hit,
+                                               ShaderData *sd,
+                                               int state_flag,
+                                               ShaderClosure *sc,
+                                               bool all)
+{
+	/* Setup new shading point. */
+	shader_setup_from_subsurface(kg, sd, &ss_isect->hits[hit], &ss_isect->ray);
+
+	/* Optionally blur colors and bump mapping. */
+	float3 weight = ss_isect->weight[hit];
+	float3 N = sd->N;
+	subsurface_color_bump_blur(kg, sd, state_flag, &weight, &N);
+
+	/* Setup diffuse BSDF. */
+	subsurface_scatter_setup_diffuse_bsdf(sd, weight, true, N);
 }
 
 /* subsurface scattering step, from a point on the surface to another nearby point on the same object */
@@ -317,12 +350,11 @@ ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd,
 	int state_flag, ShaderClosure *sc, uint *lcg_state, float disk_u, float disk_v, bool all)
 {
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
-	uint num_hits = 0;
 
 	/* pick random axis in local frame and point on disk */
 	float3 disk_N, disk_T, disk_B;
 	float pick_pdf_N, pick_pdf_T, pick_pdf_B;
-	
+
 	disk_N = sd->Ng;
 	make_orthonormals(disk_N, &disk_T, &disk_B);
 
@@ -368,21 +400,21 @@ ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd,
 
 	/* intersect with the same object. if multiple intersections are
 	 * found it will randomly pick one of them */
-	Intersection isect;
-	num_hits = scene_intersect_subsurface(kg, &ray, &isect, sd->object, lcg_state, 1);
+	SubsurfaceIntersection ss_isect;
+	scene_intersect_subsurface(kg, &ray, &ss_isect, sd->object, lcg_state, 1);
 
 	/* evaluate bssrdf */
-	if(num_hits > 0) {
+	if(ss_isect.num_hits > 0) {
 		float3 origP = sd->P;
 
 		/* setup new shading point */
-		shader_setup_from_subsurface(kg, sd, &isect, &ray);
+		shader_setup_from_subsurface(kg, sd, &ss_isect.hits[0], &ray);
 
 		/* probability densities for local frame axes */
 		float pdf_N = pick_pdf_N * fabsf(dot(disk_N, sd->Ng));
 		float pdf_T = pick_pdf_T * fabsf(dot(disk_T, sd->Ng));
 		float pdf_B = pick_pdf_B * fabsf(dot(disk_B, sd->Ng));
-		
+
 		/* multiple importance sample between 3 axes, power heuristic
 		 * found to be slightly better than balance heuristic */
 		float mis_weight = power_heuristic_3(pdf_N, pdf_T, pdf_B);
@@ -391,16 +423,16 @@ ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd,
 		float r = len(sd->P - origP);
 
 		/* evaluate */
-		float w = (mis_weight * num_hits) / pdf_N;
+		float w = (mis_weight * ss_isect.num_hits) / pdf_N;
 		eval = subsurface_scatter_eval(sd, sc, disk_r, r, all) * w;
 	}
 
 	/* optionally blur colors and bump mapping */
 	float3 N = sd->N;
-	subsurface_color_bump_blur(kg, sd, sd, state_flag, &eval, &N);
+	subsurface_color_bump_blur(kg, sd, state_flag, &eval, &N);
 
 	/* setup diffuse bsdf */
-	subsurface_scatter_setup_diffuse_bsdf(sd, eval, (num_hits > 0), N);
+	subsurface_scatter_setup_diffuse_bsdf(sd, eval, (ss_isect.num_hits > 0), N);
 }
 
 CCL_NAMESPACE_END

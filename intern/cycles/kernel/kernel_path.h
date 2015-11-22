@@ -338,10 +338,16 @@ ccl_device bool kernel_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd
 	if(sc) {
 		uint lcg_state = lcg_state_init(rng, state, 0x68bc21eb);
 
-		ShaderData bssrdf_sd[BSSRDF_MAX_HITS];
+		SubsurfaceIntersection ss_isect;
 		float bssrdf_u, bssrdf_v;
 		path_state_rng_2D(kg, rng, state, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
-		int num_hits = subsurface_scatter_multi_step(kg, sd, bssrdf_sd, state->flag, sc, &lcg_state, bssrdf_u, bssrdf_v, false);
+		int num_hits = subsurface_scatter_multi_intersect(kg,
+		                                                  &ss_isect,
+		                                                  sd,
+		                                                  sc,
+		                                                  &lcg_state,
+		                                                  bssrdf_u, bssrdf_v,
+		                                                  false);
 #ifdef __VOLUME__
 		Ray volume_ray = *ray;
 		bool need_update_volume_stack = kernel_data.integrator.use_volumes &&
@@ -350,15 +356,26 @@ ccl_device bool kernel_path_subsurface_scatter(KernelGlobals *kg, ShaderData *sd
 
 		/* compute lighting with the BSDF closure */
 		for(int hit = 0; hit < num_hits; hit++) {
+			/* NOTE: We reuse the existing ShaderData, we assume the path
+			 * integration loop stops when this function returns true.
+			 */
+			subsurface_scatter_multi_setup(kg,
+			                               &ss_isect,
+			                               hit,
+			                               sd,
+			                               state->flag,
+			                               sc,
+			                               false);
+
 			float3 tp = *throughput;
 			PathState hit_state = *state;
 			Ray hit_ray = *ray;
 
 			hit_state.rng_offset += PRNG_BOUNCE_NUM;
-			
-			kernel_path_surface_connect_light(kg, rng, &bssrdf_sd[hit], tp, state, L);
 
-			if(kernel_path_surface_bounce(kg, rng, &bssrdf_sd[hit], &tp, &hit_state, L, &hit_ray)) {
+			kernel_path_surface_connect_light(kg, rng, sd, tp, state, L);
+
+			if(kernel_path_surface_bounce(kg, rng, sd, &tp, &hit_state, L, &hit_ray)) {
 #ifdef __LAMP_MIS__
 				hit_state.ray_t = 0.0f;
 #endif

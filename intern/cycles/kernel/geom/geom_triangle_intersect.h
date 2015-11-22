@@ -204,12 +204,11 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 ccl_device_inline void triangle_intersect_subsurface(
         KernelGlobals *kg,
         const IsectPrecalc *isect_precalc,
-        Intersection *isect_array,
+        SubsurfaceIntersection *ss_isect,
         float3 P,
         int object,
         int triAddr,
         float tmax,
-        uint *num_hits,
         uint *lcg_state,
         int max_hits)
 {
@@ -272,29 +271,36 @@ ccl_device_inline void triangle_intersect_subsurface(
 	/* Normalize U, V, W, and T. */
 	const float inv_det = 1.0f / det;
 
-	(*num_hits)++;
+	ss_isect->num_hits++;
 	int hit;
 
-	if(*num_hits <= max_hits) {
-		hit = *num_hits - 1;
+	if(ss_isect->num_hits <= max_hits) {
+		hit = ss_isect->num_hits - 1;
 	}
 	else {
 		/* reservoir sampling: if we are at the maximum number of
 		 * hits, randomly replace element or skip it */
-		hit = lcg_step_uint(lcg_state) % *num_hits;
+		hit = lcg_step_uint(lcg_state) % ss_isect->num_hits;
 
 		if(hit >= max_hits)
 			return;
 	}
 
 	/* record intersection */
-	Intersection *isect = &isect_array[hit];
+	Intersection *isect = &ss_isect->hits[hit];
 	isect->prim = triAddr;
 	isect->object = object;
 	isect->type = PRIMITIVE_TRIANGLE;
 	isect->u = U * inv_det;
 	isect->v = V * inv_det;
 	isect->t = T * inv_det;
+
+	/* Record geometric normal. */
+	/* TODO(sergey): Use float4_to_float3() on just an edges. */
+	const float3 v0 = float4_to_float3(tri_a);
+	const float3 v1 = float4_to_float3(tri_b);
+	const float3 v2 = float4_to_float3(tri_c);
+	ss_isect->Ng[hit] = normalize(cross(v1 - v0, v2 - v0));
 }
 #endif
 

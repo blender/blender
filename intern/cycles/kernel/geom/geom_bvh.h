@@ -255,38 +255,81 @@ ccl_device_intersect bool scene_intersect(KernelGlobals *kg, const Ray *ray, con
 }
 
 #ifdef __SUBSURFACE__
-ccl_device_intersect uint scene_intersect_subsurface(KernelGlobals *kg, const Ray *ray, Intersection *isect, int subsurface_object, uint *lcg_state, int max_hits)
+ccl_device_intersect void scene_intersect_subsurface(KernelGlobals *kg,
+                                                     const Ray *ray,
+                                                     SubsurfaceIntersection *ss_isect,
+                                                     int subsurface_object,
+                                                     uint *lcg_state,
+                                                     int max_hits)
 {
 #ifdef __OBJECT_MOTION__
 	if(kernel_data.bvh.have_motion) {
 #ifdef __HAIR__
-		if(kernel_data.bvh.have_curves)
-			return bvh_intersect_subsurface_hair_motion(kg, ray, isect, subsurface_object, lcg_state, max_hits);
+		if(kernel_data.bvh.have_curves) {
+			return bvh_intersect_subsurface_hair_motion(kg,
+			                                            ray,
+			                                            ss_isect,
+			                                            subsurface_object,
+			                                            lcg_state,
+			                                            max_hits);
+		}
 #endif /* __HAIR__ */
 
-		return bvh_intersect_subsurface_motion(kg, ray, isect, subsurface_object, lcg_state, max_hits);
+		return bvh_intersect_subsurface_motion(kg,
+		                                       ray,
+		                                       ss_isect,
+		                                       subsurface_object,
+		                                       lcg_state,
+		                                       max_hits);
 	}
 #endif /* __OBJECT_MOTION__ */
 
-#ifdef __HAIR__ 
-	if(kernel_data.bvh.have_curves)
-		return bvh_intersect_subsurface_hair(kg, ray, isect, subsurface_object, lcg_state, max_hits);
+#ifdef __HAIR__
+	if(kernel_data.bvh.have_curves) {
+		return bvh_intersect_subsurface_hair(kg,
+		                                     ray,
+		                                     ss_isect,
+		                                     subsurface_object,
+		                                     lcg_state,
+		                                     max_hits);
+	}
 #endif /* __HAIR__ */
 
 #ifdef __KERNEL_CPU__
 
 #ifdef __INSTANCING__
-	if(kernel_data.bvh.have_instancing)
-		return bvh_intersect_subsurface_instancing(kg, ray, isect, subsurface_object, lcg_state, max_hits);
+	if(kernel_data.bvh.have_instancing) {
+		return bvh_intersect_subsurface_instancing(kg,
+		                                           ray,
+		                                           ss_isect,
+		                                           subsurface_object,
+		                                           lcg_state,
+		                                           max_hits);
+	}
 #endif /* __INSTANCING__ */
 
-	return bvh_intersect_subsurface(kg, ray, isect, subsurface_object, lcg_state, max_hits);
+	return bvh_intersect_subsurface(kg,
+	                                ray,
+	                                ss_isect,
+	                                subsurface_object,
+	                                lcg_state,
+	                                max_hits);
 #else /* __KERNEL_CPU__ */
 
 #ifdef __INSTANCING__
-	return bvh_intersect_subsurface_instancing(kg, ray, isect, subsurface_object, lcg_state, max_hits);
+	return bvh_intersect_subsurface_instancing(kg,
+	                                           ray,
+	                                           ss_isect,
+	                                           subsurface_object,
+	                                           lcg_state,
+	                                           max_hits);
 #else
-	return bvh_intersect_subsurface(kg, ray, isect, subsurface_object, lcg_state, max_hits);
+	return bvh_intersect_subsurface(kg,
+	                                ray,
+	                                ss_isect,
+	                                subsurface_object,
+	                                lcg_state,
+	                                max_hits);
 #endif /* __INSTANCING__ */
 
 #endif /* __KERNEL_CPU__ */
