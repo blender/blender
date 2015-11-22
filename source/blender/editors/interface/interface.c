@@ -2827,10 +2827,11 @@ void ui_but_update(uiBut *but)
 				/* only needed for menus in popup blocks that don't recreate buttons on redraw */
 				if (but->block->flag & UI_BLOCK_LOOP) {
 					if (but->rnaprop && (RNA_property_type(but->rnaprop) == PROP_ENUM)) {
-						int value = RNA_property_enum_get(&but->rnapoin, but->rnaprop);
+						int value_enum = RNA_property_enum_get(&but->rnapoin, but->rnaprop);
 						const char *buf;
-						if (RNA_property_enum_name_gettexted(but->block->evil_C,
-						                                     &but->rnapoin, but->rnaprop, value, &buf))
+						if (RNA_property_enum_name_gettexted(
+						        but->block->evil_C,
+						        &but->rnapoin, but->rnaprop, value_enum, &buf))
 						{
 							size_t slen = strlen(buf);
 							ui_but_string_free_internal(but);
