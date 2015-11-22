@@ -520,18 +520,6 @@ typedef ccl_addr_space struct Intersection {
 #endif
 } Intersection;
 
-/* Subsurface Intersection result */
-
-struct SubsurfaceIntersection
-{
-	Ray ray;
-	float3 weight[BSSRDF_MAX_HITS];
-
-	int num_hits;
-	struct Intersection hits[BSSRDF_MAX_HITS];
-	float3 Ng[BSSRDF_MAX_HITS];
-};
-
 /* Primitives */
 
 typedef enum PrimitiveType {
@@ -763,6 +751,30 @@ typedef struct PathState {
 	VolumeStack volume_stack[VOLUME_STACK_SIZE];
 #endif
 } PathState;
+
+/* Subsurface */
+
+/* Struct to gather multiple SSS hits. */
+struct SubsurfaceIntersection
+{
+	Ray ray;
+	float3 weight[BSSRDF_MAX_HITS];
+
+	int num_hits;
+	Intersection hits[BSSRDF_MAX_HITS];
+	float3 Ng[BSSRDF_MAX_HITS];
+};
+
+/* Struct to gather SSS indirect rays and delay tracing them. */
+struct SubsurfaceIndirectRays
+{
+	bool need_update_volume_stack;
+	PathState state;
+
+	int num_rays;
+	Ray rays[BSSRDF_MAX_HITS];
+	float3 throughputs[BSSRDF_MAX_HITS];
+};
 
 /* Constant Kernel Data
  *
