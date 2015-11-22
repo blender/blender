@@ -448,6 +448,12 @@ ccl_device bool kernel_path_subsurface_scatter(
 
 	/* do bssrdf scatter step if we picked a bssrdf closure */
 	if(sc) {
+		/* We should never have two consecutive BSSRDF bounces,
+		 * the second one should be converted to a diffuse BSDF to
+		 * avoid this.
+		 */
+		kernel_assert(ss_indirect->num_rays == 0);
+
 		uint lcg_state = lcg_state_init(rng, state, 0x68bc21eb);
 
 		SubsurfaceIntersection ss_isect;
@@ -510,50 +516,44 @@ ccl_device bool kernel_path_subsurface_scatter(
 	return false;
 }
 
-/* Trace subsurface indirect rays separately after the path loop, to reduce
- * GPU stack memory usage. this way ShaderData and other data structures
- * used during the loop are not needed during kernel_path_indirect.
- */
-ccl_device void kernel_path_subsurface_scatter_indirect(
+ccl_device void kernel_path_subsurface_setup_indirect(
         KernelGlobals *kg,
+        SubsurfaceIndirectRays *ss_indirect,
         PathRadiance *L,
         PathState *state,
-        RNG *rng,
+        Ray *orig_ray,
         Ray *ray,
-        SubsurfaceIndirectRays *ss_indirect)
+        float3 *throughput)
 {
-	for (int i = 0; i < ss_indirect->num_rays; i++) {
-		Ray *indirect_ray = &ss_indirect->rays[i];
-		float3 indirect_throughput = ss_indirect->throughputs[i];
+	/* Setup state, ray and throughput for indirect SSS rays. */
+	ss_indirect->num_rays--;
 
-		*state = ss_indirect->state;
+	Ray *indirect_ray = &ss_indirect->rays[ss_indirect->num_rays];
+
+	*state = ss_indirect->state;
+	*throughput = ss_indirect->throughputs[ss_indirect->num_rays];
 
 #ifdef __VOLUME__
-		if(ss_indirect->need_update_volume_stack) {
-			/* TODO(sergey): Single assignment per scatter. */
-			Ray volume_ray = *ray;
+	if(ss_indirect->need_update_volume_stack) {
+		Ray volume_ray = *orig_ray;
 
-			/* Setup ray from previous surface point to the new one. */
-			volume_ray.D = normalize_len(indirect_ray->P - volume_ray.P,
-			                             &volume_ray.t);
+		/* Setup ray from previous surface point to the new one. */
+		volume_ray.D = normalize_len(indirect_ray->P - volume_ray.P,
+		                             &volume_ray.t);
 
-			kernel_volume_stack_update_for_subsurface(
-			        kg,
-			        &volume_ray,
-			        state->volume_stack);
-
-		}
+		kernel_volume_stack_update_for_subsurface(kg,
+		                                          &volume_ray,
+		                                          state->volume_stack);
+	}
 #endif
 
-		/* Note that this modifies state. */
-		kernel_path_indirect(kg, rng, indirect_ray, indirect_throughput, state->num_samples, state, L);
+	*ray = *indirect_ray;
 
-		/* For render passes, sum and reset indirect light pass variables
-		 * for the next samples.
-		 */
-		path_radiance_sum_indirect(L);
-		path_radiance_reset_indirect(L);
-	}
+	/* For render passes, sum and reset indirect light pass variables
+	 * for the next samples.
+	 */
+	path_radiance_sum_indirect(L);
+	path_radiance_reset_indirect(L);
 }
 #endif
 
@@ -577,6 +577,14 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 #ifdef __SUBSURFACE__
 	SubsurfaceIndirectRays ss_indirect;
 	ss_indirect.num_rays = 0;
+
+	/* TODO(sergey): Avoid having explicit copy of the pre-subsurface scatter
+	 * ray by storing an updated version of state in the ss_indirect which will
+	 * be updated to the new volume stack.
+	 */
+	Ray ss_orig_ray;
+
+	for(;;) {
 #endif
 
 	/* path iteration */
@@ -825,6 +833,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 			                                  &throughput,
 			                                  &ss_indirect))
 			{
+				ss_orig_ray = ray;
 				break;
 			}
 		}
@@ -839,16 +848,21 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 	}
 
 #ifdef __SUBSURFACE__
-	/* Trace indirect subsurface afterwards to reduce GPU stack size.
-	 * note that this modifies state.
-	 */
-	if (ss_indirect.num_rays) {
-		kernel_path_subsurface_scatter_indirect(kg,
-		                                        &L,
-		                                        &state,
-		                                        rng,
-		                                        &ray,
-		                                        &ss_indirect);
+		/* Trace indirect subsurface rays by restarting the loop. this uses less
+		 * stack memory than invoking kernel_path_indirect.
+		 */
+		if(ss_indirect.num_rays) {
+			kernel_path_subsurface_setup_indirect(kg,
+			                                      &ss_indirect,
+			                                      &L,
+			                                      &state,
+			                                      &ss_orig_ray,
+			                                      &ray,
+			                                      &throughput);
+		}
+		else {
+			break;
+		}
 	}
 #endif
 

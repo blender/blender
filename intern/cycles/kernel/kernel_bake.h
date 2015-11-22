@@ -74,7 +74,22 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 			                                  &throughput,
 			                                  &ss_indirect))
 			{
-				kernel_path_subsurface_scatter_indirect(kg, &L_sample, &state, &rng, &ray, &ss_indirect);
+				while(ss_indirect.num_rays) {
+					kernel_path_subsurface_setup_indirect(kg,
+					                                      &ss_indirect,
+					                                      &L_sample,
+					                                      &state,
+					                                      &ray,
+					                                      &ray,
+					                                      &throughput);
+					kernel_path_indirect(kg,
+					                     &rng,
+					                     &ray,
+					                     throughput,
+					                     state.num_samples,
+					                     &state,
+					                     &L_sample);
+				}
 				is_sss_sample = true;
 			}
 		}
