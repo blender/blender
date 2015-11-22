@@ -461,7 +461,6 @@ class USERPREF_PT_system(Panel):
 
         col.label(text="Anisotropic Filtering")
         col.prop(system, "anisotropic_filter", text="")
-        col.prop(system, "use_vertex_buffer_objects")
 
         col.separator()
 

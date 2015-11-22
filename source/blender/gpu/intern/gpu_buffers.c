@@ -209,10 +209,7 @@ static void gpu_buffer_pool_delete_last(GPUBufferPool *pool)
 		return;
 
 	/* delete the buffer's data */
-	if (last->use_vbo)
-		glDeleteBuffers(1, &last->id);
-	else
-		MEM_freeN(last->pointer);
+	glDeleteBuffers(1, &last->id);
 
 	/* delete the buffer and remove from pool */
 	MEM_freeN(last);
@@ -273,7 +270,7 @@ void GPU_global_buffer_pool_free_unused(void)
  *
  * Thread-unsafe version for internal usage only.
  */
-static GPUBuffer *gpu_buffer_alloc_intern(size_t size, bool use_VBO)
+static GPUBuffer *gpu_buffer_alloc_intern(size_t size)
 {
 	GPUBufferPool *pool;
 	GPUBuffer *buf;
@@ -298,11 +295,6 @@ static GPUBuffer *gpu_buffer_alloc_intern(size_t size, bool use_VBO)
 	 * twice as big */
 	for (i = 0; i < pool->totbuf; i++) {
 		bufsize = pool->buffers[i]->size;
-
-		/* only return a buffer that matches the VBO preference */
-		if (pool->buffers[i]->use_vbo != use_VBO) {
-			 continue;
-		}
 		
 		/* check for an exact size match */
 		if (bufsize == size) {
@@ -332,45 +324,19 @@ static GPUBuffer *gpu_buffer_alloc_intern(size_t size, bool use_VBO)
 	/* no acceptable buffer found in the pool, create a new one */
 	buf = MEM_callocN(sizeof(GPUBuffer), "GPUBuffer");
 	buf->size = size;
-	buf->use_vbo = use_VBO;
 
-	if (use_VBO) {
-		/* create a new VBO and initialize it to the requested
-		 * size */
-		glGenBuffers(1, &buf->id);
-		glBindBuffer(GL_ARRAY_BUFFER, buf->id);
-		glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-	}
-	else {
-		static int time = 0;
-
-		buf->pointer = MEM_mallocN(size, "GPUBuffer.pointer");
-
-		time++;
-		/* purpose of this seems to be dealing with
-		 * out-of-memory errors? looks a bit iffy to me
-		 * though, at least on Linux I expect malloc() would
-		 * just overcommit. --nicholas */
-		while (!buf->pointer && pool->totbuf > 0) {
-			gpu_buffer_pool_delete_last(pool);
-			buf->pointer = MEM_mallocN(size, "GPUBuffer.pointer");
-		}
-		if (!buf->pointer) {
-			MEM_freeN(buf);
-			return NULL;
-		}
-	}
+	glGenBuffers(1, &buf->id);
+	glBindBuffer(GL_ARRAY_BUFFER, buf->id);
+	glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	return buf;
 }
 
 /* Same as above, but safe for threading. */
-GPUBuffer *GPU_buffer_alloc(size_t size, bool force_vertex_arrays)
+GPUBuffer *GPU_buffer_alloc(size_t size)
 {
 	GPUBuffer *buffer;
-	bool use_VBOs = !(U.gameflags & USER_DISABLE_VBO) && !force_vertex_arrays;
-	/* TODO: remove USER_DISABLE_VBO from user prefs */
 
 	if (size == 0) {
 		/* Early out, no lock needed in this case. */
@@ -378,7 +344,7 @@ GPUBuffer *GPU_buffer_alloc(size_t size, bool force_vertex_arrays)
 	}
 
 	BLI_mutex_lock(&buffer_mutex);
-	buffer = gpu_buffer_alloc_intern(size, use_VBOs);
+	buffer = gpu_buffer_alloc_intern(size);
 	BLI_mutex_unlock(&buffer_mutex);
 
 	return buffer;
@@ -453,8 +419,6 @@ void GPU_buffer_multires_free(bool force)
 		if (mres_glob_buffer) {
 			if (mres_glob_buffer->id)
 				glDeleteBuffers(1, &mres_glob_buffer->id);
-			else if (mres_glob_buffer->pointer)
-				MEM_freeN(mres_glob_buffer->pointer);
 			MEM_freeN(mres_glob_buffer);
 		}
 	}
@@ -503,7 +467,7 @@ void GPU_drawobject_free(DerivedMesh *dm)
 	dm->drawObject = NULL;
 }
 
-static GPUBuffer *gpu_try_realloc(GPUBufferPool *pool, GPUBuffer *buffer, size_t size, bool use_VBOs)
+static GPUBuffer *gpu_try_realloc(GPUBufferPool *pool, GPUBuffer *buffer, size_t size)
 {
 	/* try freeing an entry from the pool
 	 * and reallocating the buffer */
@@ -513,7 +477,7 @@ static GPUBuffer *gpu_try_realloc(GPUBufferPool *pool, GPUBuffer *buffer, size_t
 
 	while (pool->totbuf && !buffer) {
 		gpu_buffer_pool_delete_last(pool);
-		buffer = gpu_buffer_alloc_intern(size, use_VBOs);
+		buffer = gpu_buffer_alloc_intern(size);
 	}
 
 	return buffer;
@@ -530,8 +494,6 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 	const GPUBufferTypeSettings *ts = &gpu_buffer_type_settings[type];
 	GLenum target = ts->gl_buffer_type;
 	size_t size = gpu_buffer_size_from_type(dm, type);
-	bool use_VBOs = !(U.gameflags & USER_DISABLE_VBO);
-	/* TODO: remove USER_DISABLE_VBO from user prefs */
 	GLboolean uploaded;
 
 	pool = gpu_get_global_buffer_pool();
@@ -539,7 +501,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 	BLI_mutex_lock(&buffer_mutex);
 
 	/* alloc a GPUBuffer; fall back to legacy mode on failure */
-	if (!(buffer = gpu_buffer_alloc_intern(size, use_VBOs))) {
+	if (!(buffer = gpu_buffer_alloc_intern(size))) {
 		BLI_mutex_unlock(&buffer_mutex);
 		return NULL;
 	}
@@ -552,56 +514,34 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 		mat_orig_to_new[object->materials[i].mat_nr] = i;
 	}
 
-	if (use_VBOs) {
-		bool success = false;
+	/* bind the buffer and discard previous data,
+	 * avoids stalling gpu */
+	glBindBuffer(target, buffer->id);
+	glBufferData(target, buffer->size, NULL, GL_STATIC_DRAW);
 
-		while (!success) {
-			/* bind the buffer and discard previous data,
-			 * avoids stalling gpu */
-			glBindBuffer(target, buffer->id);
-			glBufferData(target, buffer->size, NULL, GL_STATIC_DRAW);
+	/* attempt to map the buffer */
+	if (!(varray = glMapBuffer(target, GL_WRITE_ONLY))) {
+		buffer = gpu_try_realloc(pool, buffer, size);
 
-			/* attempt to map the buffer */
-			if (!(varray = glMapBuffer(target, GL_WRITE_ONLY))) {
-				buffer = gpu_try_realloc(pool, buffer, size, true);
-
-				/* allocation still failed; fall back
-				 * to legacy mode */
-				if (!(buffer && (varray = glMapBuffer(target, GL_WRITE_ONLY)))) {
-					use_VBOs = false;
-					success = true;
-				}
-			}
-			else {
-				success = true;
-			}
-		}
-
-		/* check legacy fallback didn't happen */
-		if (use_VBOs) {
-			uploaded = GL_FALSE;
-			/* attempt to upload the data to the VBO */
-			while (uploaded == GL_FALSE) {
-				dm->copy_gpu_data(dm, type, varray, mat_orig_to_new, user);
-				/* glUnmapBuffer returns GL_FALSE if
-				 * the data store is corrupted; retry
-				 * in that case */
-				uploaded = glUnmapBuffer(target);
-			}
-		}
-		glBindBuffer(target, 0);
-	}
-	if (!use_VBOs) {
-		/* VBO not supported, use vertex array fallback */
-		if (!buffer || !buffer->pointer) {
-			buffer = gpu_try_realloc(pool, buffer, size, false);
-		}
-		
-		if (buffer) {
-			varray = buffer->pointer;
-			dm->copy_gpu_data(dm, type, varray, mat_orig_to_new, user);
+		/* allocation still failed; unfortunately we need to exit */
+		if (!(buffer && (varray = glMapBuffer(target, GL_WRITE_ONLY)))) {
+			if (buffer)
+				gpu_buffer_free_intern(buffer);
+			return NULL;
 		}
 	}
+
+	uploaded = GL_FALSE;
+
+	/* attempt to upload the data to the VBO */
+	while (uploaded == GL_FALSE) {
+		dm->copy_gpu_data(dm, type, varray, mat_orig_to_new, user);
+		/* glUnmapBuffer returns GL_FALSE if
+		 * the data store is corrupted; retry
+		 * in that case */
+		uploaded = glUnmapBuffer(target);
+	}
+	glBindBuffer(target, 0);
 
 	MEM_freeN(mat_orig_to_new);
 
@@ -703,13 +643,8 @@ void GPU_vertex_setup(DerivedMesh *dm)
 		return;
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	if (dm->drawObject->points->use_vbo) {
-		glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->points->id);
-		glVertexPointer(3, GL_FLOAT, 0, 0);
-	}
-	else {
-		glVertexPointer(3, GL_FLOAT, 0, dm->drawObject->points->pointer);
-	}
+	glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->points->id);
+	glVertexPointer(3, GL_FLOAT, 0, 0);
 	
 	GLStates |= GPU_BUFFER_VERTEX_STATE;
 }
@@ -720,13 +655,8 @@ void GPU_normal_setup(DerivedMesh *dm)
 		return;
 
 	glEnableClientState(GL_NORMAL_ARRAY);
-	if (dm->drawObject->normals->use_vbo) {
-		glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->normals->id);
-		glNormalPointer(GL_SHORT, 4 * sizeof(short), 0);
-	}
-	else {
-		glNormalPointer(GL_SHORT, 4 * sizeof(short), dm->drawObject->normals->pointer);
-	}
+	glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->normals->id);
+	glNormalPointer(GL_SHORT, 4 * sizeof(short), 0);
 
 	GLStates |= GPU_BUFFER_NORMAL_STATE;
 }
@@ -737,13 +667,8 @@ void GPU_uv_setup(DerivedMesh *dm)
 		return;
 
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	if (dm->drawObject->uv->use_vbo) {
-		glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->uv->id);
-		glTexCoordPointer(2, GL_FLOAT, 0, 0);
-	}
-	else {
-		glTexCoordPointer(2, GL_FLOAT, 0, dm->drawObject->uv->pointer);
-	}
+	glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->uv->id);
+	glTexCoordPointer(2, GL_FLOAT, 0, 0);
 
 	GLStates |= GPU_BUFFER_TEXCOORD_UNIT_0_STATE;
 }
@@ -754,21 +679,12 @@ void GPU_texpaint_uv_setup(DerivedMesh *dm)
 		return;
 
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	if (dm->drawObject->uv_tex->use_vbo) {
-		glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->uv_tex->id);
-		glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), 0);
-		glClientActiveTexture(GL_TEXTURE2);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), BUFFER_OFFSET(2 * sizeof(float)));
-		glClientActiveTexture(GL_TEXTURE0);
-	}
-	else {
-		glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), dm->drawObject->uv_tex->pointer);
-		glClientActiveTexture(GL_TEXTURE2);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), (char *)dm->drawObject->uv_tex->pointer + 2 * sizeof(float));
-		glClientActiveTexture(GL_TEXTURE0);
-	}
+	glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->uv_tex->id);
+	glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), 0);
+	glClientActiveTexture(GL_TEXTURE2);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(float), BUFFER_OFFSET(2 * sizeof(float)));
+	glClientActiveTexture(GL_TEXTURE0);
 
 	GLStates |= GPU_BUFFER_TEXCOORD_UNIT_0_STATE | GPU_BUFFER_TEXCOORD_UNIT_2_STATE;
 }
@@ -800,13 +716,8 @@ void GPU_color_setup(DerivedMesh *dm, int colType)
 		return;
 
 	glEnableClientState(GL_COLOR_ARRAY);
-	if (dm->drawObject->colors->use_vbo) {
-		glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->colors->id);
-		glColorPointer(3, GL_UNSIGNED_BYTE, 0, 0);
-	}
-	else {
-		glColorPointer(3, GL_UNSIGNED_BYTE, 0, dm->drawObject->colors->pointer);
-	}
+	glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->colors->id);
+	glColorPointer(3, GL_UNSIGNED_BYTE, 0, 0);
 
 	GLStates |= GPU_BUFFER_COLOR_STATE;
 }
@@ -814,13 +725,8 @@ void GPU_color_setup(DerivedMesh *dm, int colType)
 void GPU_buffer_bind_as_color(GPUBuffer *buffer)
 {
 	glEnableClientState(GL_COLOR_ARRAY);
-	if (buffer->use_vbo) {
-		glBindBuffer(GL_ARRAY_BUFFER, buffer->id);
-		glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0);
-	}
-	else {
-		glColorPointer(4, GL_UNSIGNED_BYTE, 0, buffer->pointer);
-	}
+	glBindBuffer(GL_ARRAY_BUFFER, buffer->id);
+	glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0);
 
 	GLStates |= GPU_BUFFER_COLOR_STATE;
 }
@@ -835,20 +741,12 @@ void GPU_edge_setup(DerivedMesh *dm)
 		return;
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	if (dm->drawObject->points->use_vbo) {
-		glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->points->id);
-		glVertexPointer(3, GL_FLOAT, 0, 0);
-	}
-	else {
-		glVertexPointer(3, GL_FLOAT, 0, dm->drawObject->points->pointer);
-	}
+	glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->points->id);
+	glVertexPointer(3, GL_FLOAT, 0, 0);
 	
-	GLStates |= GPU_BUFFER_VERTEX_STATE;
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dm->drawObject->edges->id);
 
-	if (dm->drawObject->edges->use_vbo)
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dm->drawObject->edges->id);
-
-	GLStates |= GPU_BUFFER_ELEMENT_STATE;
+	GLStates |= (GPU_BUFFER_VERTEX_STATE | GPU_BUFFER_ELEMENT_STATE);
 }
 
 void GPU_uvedge_setup(DerivedMesh *dm)
@@ -857,13 +755,8 @@ void GPU_uvedge_setup(DerivedMesh *dm)
 		return;
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	if (dm->drawObject->uvedges->use_vbo) {
-		glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->uvedges->id);
-		glVertexPointer(2, GL_FLOAT, 0, 0);
-	}
-	else {
-		glVertexPointer(2, GL_FLOAT, 0, dm->drawObject->uvedges->pointer);
-	}
+	glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->uvedges->id);
+	glVertexPointer(2, GL_FLOAT, 0, 0);
 	
 	GLStates |= GPU_BUFFER_VERTEX_STATE;
 }
@@ -873,10 +766,7 @@ void GPU_triangle_setup(struct DerivedMesh *dm)
 	if (!gpu_buffer_setup_common(dm, GPU_BUFFER_TRIANGLES))
 		return;
 
-	if (dm->drawObject->triangles->use_vbo) {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dm->drawObject->triangles->id);
-	}
-
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dm->drawObject->triangles->id);
 	GLStates |= GPU_BUFFER_ELEMENT_STATE;
 }
 
@@ -914,8 +804,7 @@ void GPU_interleaved_attrib_setup(GPUBuffer *buffer, GPUAttrib data[], int numda
 {
 	int i;
 	int elementsize;
-	intptr_t offset = 0;
-	char *basep;
+	size_t offset = 0;
 
 	for (i = 0; i < MAX_GPU_ATTRIB_DATA; i++) {
 		if (attribData[i].index != -1) {
@@ -929,18 +818,12 @@ void GPU_interleaved_attrib_setup(GPUBuffer *buffer, GPUAttrib data[], int numda
 	else
 		elementsize = element_size;
 
-	if (buffer->use_vbo) {
-		glBindBuffer(GL_ARRAY_BUFFER, buffer->id);
-		basep = NULL;
-	}
-	else {
-		basep = buffer->pointer;
-	}
+	glBindBuffer(GL_ARRAY_BUFFER, buffer->id);
 	
 	for (i = 0; i < numdata; i++) {
 		glEnableVertexAttribArray(data[i].index);
 		glVertexAttribPointer(data[i].index, data[i].size, data[i].type,
-		                         GL_FALSE, elementsize, (void *)(basep + offset));
+		                         GL_FALSE, elementsize, BUFFER_OFFSET(offset));
 		offset += data[i].size * GPU_typesize(data[i].type);
 		
 		attribData[i].index = data[i].index;
@@ -1025,75 +908,58 @@ static int gpu_binding_type_gl[] =
 void *GPU_buffer_lock(GPUBuffer *buffer, GPUBindingType binding)
 {
 	float *varray;
+	int bindtypegl;
 
 	if (!buffer)
 		return 0;
 
-	if (buffer->use_vbo) {
-		int bindtypegl = gpu_binding_type_gl[binding];
-		glBindBuffer(bindtypegl, buffer->id);
-		varray = glMapBuffer(bindtypegl, GL_WRITE_ONLY);
-		return varray;
-	}
-	else {
-		return buffer->pointer;
-	}
+	bindtypegl = gpu_binding_type_gl[binding];
+	glBindBuffer(bindtypegl, buffer->id);
+	varray = glMapBuffer(bindtypegl, GL_WRITE_ONLY);
+	return varray;
 }
 
 void *GPU_buffer_lock_stream(GPUBuffer *buffer, GPUBindingType binding)
 {
 	float *varray;
+	int bindtypegl;
 
 	if (!buffer)
 		return 0;
 
-	if (buffer->use_vbo) {
-		int bindtypegl = gpu_binding_type_gl[binding];
-		glBindBuffer(bindtypegl, buffer->id);
-		/* discard previous data, avoid stalling gpu */
-		glBufferData(bindtypegl, buffer->size, 0, GL_STREAM_DRAW);
-		varray = glMapBuffer(bindtypegl, GL_WRITE_ONLY);
-		return varray;
-	}
-	else {
-		return buffer->pointer;
-	}
+	bindtypegl = gpu_binding_type_gl[binding];
+	glBindBuffer(bindtypegl, buffer->id);
+	/* discard previous data, avoid stalling gpu */
+	glBufferData(bindtypegl, buffer->size, 0, GL_STREAM_DRAW);
+	varray = glMapBuffer(bindtypegl, GL_WRITE_ONLY);
+	return varray;
 }
 
-void GPU_buffer_unlock(GPUBuffer *buffer, GPUBindingType binding)
+void GPU_buffer_unlock(GPUBuffer *UNUSED(buffer), GPUBindingType binding)
 {
-	if (buffer->use_vbo) {
-		int bindtypegl = gpu_binding_type_gl[binding];
-		/* note: this operation can fail, could return
+	int bindtypegl = gpu_binding_type_gl[binding];
+	/* note: this operation can fail, could return
 		 * an error code from this function? */
-		glUnmapBuffer(bindtypegl);
-		glBindBuffer(bindtypegl, 0);
-	}
+	glUnmapBuffer(bindtypegl);
+	glBindBuffer(bindtypegl, 0);
 }
 
 void GPU_buffer_bind(GPUBuffer *buffer, GPUBindingType binding)
 {
-	if (buffer->use_vbo) {
-		int bindtypegl = gpu_binding_type_gl[binding];
-		glBindBuffer(bindtypegl, buffer->id);
-	}
+	int bindtypegl = gpu_binding_type_gl[binding];
+	glBindBuffer(bindtypegl, buffer->id);
 }
 
-void GPU_buffer_unbind(GPUBuffer *buffer, GPUBindingType binding)
+void GPU_buffer_unbind(GPUBuffer *UNUSED(buffer), GPUBindingType binding)
 {
-	if (buffer->use_vbo) {
-		int bindtypegl = gpu_binding_type_gl[binding];
-		glBindBuffer(bindtypegl, 0);
-	}
+	int bindtypegl = gpu_binding_type_gl[binding];
+	glBindBuffer(bindtypegl, 0);
 }
 
 /* used for drawing edges */
-void GPU_buffer_draw_elements(GPUBuffer *elements, unsigned int mode, int start, int count)
+void GPU_buffer_draw_elements(GPUBuffer *UNUSED(elements), unsigned int mode, int start, int count)
 {
-	glDrawElements(mode, count, GL_UNSIGNED_INT,
-	               (elements->use_vbo ?
-	                (void *)(start * sizeof(unsigned int)) :
-	                ((int *)elements->pointer) + start));
+	glDrawElements(mode, count, GL_UNSIGNED_INT, BUFFER_OFFSET(start * sizeof(unsigned int)));
 }
 
 
@@ -1236,7 +1102,7 @@ void GPU_update_mesh_pbvh_buffers(
 		/* Build VBO */
 		if (buffers->vert_buf)
 			GPU_buffer_free(buffers->vert_buf);
-		buffers->vert_buf = GPU_buffer_alloc(sizeof(VertexBufferFormat) * totelem, false);
+		buffers->vert_buf = GPU_buffer_alloc(sizeof(VertexBufferFormat) * totelem);
 		vert_data = GPU_buffer_lock(buffers->vert_buf, GPU_BINDING_ARRAY);
 
 		if (vert_data) {
@@ -1377,7 +1243,7 @@ GPU_PBVH_Buffers *GPU_build_mesh_pbvh_buffers(
 	 * shading requires separate vertex normals so an index buffer is
 	 * can't be used there. */
 	if (buffers->smooth)
-		buffers->index_buf = GPU_buffer_alloc(sizeof(unsigned short) * tottri * 3, false);
+		buffers->index_buf = GPU_buffer_alloc(sizeof(unsigned short) * tottri * 3);
 
 	if (buffers->index_buf) {
 		/* Fill the triangle buffer */
@@ -1529,8 +1395,7 @@ void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, CCGElem **grids,
         type_ *tri_data;                                                \
         int offset = 0;                                                 \
         int i, j, k;                                                    \
-        buffer_ = GPU_buffer_alloc(sizeof(type_) * (tot_quad_) * 6,     \
-                                  false);                               \
+        buffer_ = GPU_buffer_alloc(sizeof(type_) * (tot_quad_) * 6);    \
                                                                         \
         /* Fill the buffer */                                           \
         tri_data = GPU_buffer_lock(buffer_, GPU_BINDING_INDEX);         \
@@ -1608,7 +1473,7 @@ static GPUBuffer *gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned
 #define FILL_FAST_BUFFER(type_) \
 { \
 	type_ *buffer; \
-	buffers->index_buf_fast = GPU_buffer_alloc(sizeof(type_) * 6 * totgrid, false); \
+	buffers->index_buf_fast = GPU_buffer_alloc(sizeof(type_) * 6 * totgrid); \
 	buffer = GPU_buffer_lock(buffers->index_buf_fast, GPU_BINDING_INDEX); \
 	if (buffer) { \
 		int i; \
@@ -1679,7 +1544,7 @@ GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
 
 	/* Build coord/normal VBO */
 	if (buffers->index_buf)
-		buffers->vert_buf = GPU_buffer_alloc(sizeof(VertexBufferFormat) * totgrid * key->grid_area, false);
+		buffers->vert_buf = GPU_buffer_alloc(sizeof(VertexBufferFormat) * totgrid * key->grid_area);
 
 	if (GLEW_ARB_draw_elements_base_vertex /* 3.2 */) {
 		int i;
@@ -1688,8 +1553,7 @@ GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
 		for (i = 0; i < totgrid; i++) {
 			buffers->baseelemarray[i] = buffers->tot_quad * 6;
 			buffers->baseelemarray[i + totgrid] = i * key->grid_area;
-			buffers->baseindex[i] = buffers->index_buf && !buffers->index_buf->use_vbo ?
-			                                      buffers->index_buf->pointer : NULL;
+			buffers->baseindex[i] = NULL;
 		}
 	}
 
@@ -1821,7 +1685,7 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 	/* Initialize vertex buffer */
 	if (buffers->vert_buf)
 		GPU_buffer_free(buffers->vert_buf);
-	buffers->vert_buf = GPU_buffer_alloc(sizeof(VertexBufferFormat) * totvert, false);
+	buffers->vert_buf = GPU_buffer_alloc(sizeof(VertexBufferFormat) * totvert);
 
 	/* Fill vertex buffer */
 	vert_data = GPU_buffer_lock(buffers->vert_buf, GPU_BINDING_ARRAY);
@@ -1904,7 +1768,7 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 			GPU_buffer_free(buffers->index_buf);
 		buffers->index_buf = GPU_buffer_alloc((use_short ?
 		                                      sizeof(unsigned short) :
-		                                      sizeof(unsigned int)) * 3 * tottri, false);
+		                                      sizeof(unsigned int)) * 3 * tottri);
 
 		/* Fill triangle index buffer */
 		tri_data = GPU_buffer_lock(buffers->index_buf, GPU_BINDING_INDEX);
@@ -2005,18 +1869,11 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 
 		GPU_buffer_bind(buffers->vert_buf, GPU_BINDING_ARRAY);
 
-		if (!buffers->vert_buf->use_vbo)
-			base = (char *)buffers->vert_buf->pointer;
-
 		if (do_fast) {
 			GPU_buffer_bind(buffers->index_buf_fast, GPU_BINDING_INDEX);
-			if (!buffers->index_buf_fast->use_vbo)
-				index_base = buffers->index_buf_fast->pointer;
 		}
 		else if (buffers->index_buf) {
 			GPU_buffer_bind(buffers->index_buf, GPU_BINDING_INDEX);
-			if (!buffers->index_buf->use_vbo)
-				index_base = buffers->index_buf->pointer;
 		}
 
 		if (wireframe)

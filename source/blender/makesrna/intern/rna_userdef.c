@@ -161,25 +161,6 @@ static void rna_userdef_language_update(Main *UNUSED(bmain), Scene *UNUSED(scene
 	UI_reinit_font();
 }
 
-static void update_cb(PBVHNode *node, void *UNUSED(rebuild))
-{
-	BKE_pbvh_node_mark_rebuild_draw(node);
-}
-
-static void rna_userdef_vbo_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
-{
-	Object *ob;
-	
-	for (ob = bmain->object.first; ob; ob = ob->id.next) {
-		GPU_drawobject_free(ob->derivedFinal);
-
-		if (ob->sculpt && ob->sculpt->pbvh) {
-			BKE_pbvh_search_callback(ob->sculpt->pbvh, NULL, NULL, update_cb, NULL);
-		}
-	}
-	GPU_buffer_multires_free(false);
-}
-
 static void rna_userdef_show_manipulator_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	UserDef *userdef = (UserDef *)ptr->data;
@@ -4161,13 +4142,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "image_draw_method");
 	RNA_def_property_ui_text(prop, "Image Draw Method", "Method used for displaying images on the screen");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
-	prop = RNA_def_property(srna, "use_vertex_buffer_objects", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_VBO);
-	RNA_def_property_ui_text(prop, "VBOs",
-	                         "Use Vertex Buffer Objects (or Vertex Arrays, if unsupported) for viewport rendering");
-	/* this isn't essential but nice to check if VBO draws any differently */
-	RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_vbo_update");
 
 	prop = RNA_def_property(srna, "anisotropic_filter", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "anisotropic_filter");

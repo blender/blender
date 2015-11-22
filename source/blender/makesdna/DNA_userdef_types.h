@@ -754,7 +754,7 @@ typedef enum eOpenGL_RenderingOptions {
 	/* USER_DISABLE_SOUND		= (1 << 1), */ /* deprecated, don't use without checking for */
 	                                     /* backwards compatibilty in do_versions! */
 	USER_DISABLE_MIPMAP		= (1 << 2),
-	USER_DISABLE_VBO		= (1 << 3),
+	/* USER_DISABLE_VBO		= (1 << 3), */ /* DEPRECATED we always use vertex buffers now */
 	/* USER_DISABLE_AA			= (1 << 4), */ /* DEPRECATED */
 } eOpenGL_RenderingOptions;
 

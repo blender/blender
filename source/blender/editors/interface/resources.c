@@ -1939,10 +1939,6 @@ void init_userdef_do_versions(void)
 		if (U.audiorate == 0)
 			U.audiorate = 44100;
 	}
-
-	if (!USER_VERSION_ATLEAST(250, 3)) {
-		U.gameflags |= USER_DISABLE_VBO;
-	}
 	
 	if (!USER_VERSION_ATLEAST(250, 8)) {
 		wmKeyMap *km;

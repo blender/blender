@@ -253,10 +253,6 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 	
 	bgl::InitExtensions(true);
 
-	// VBO code for derived mesh is not compatible with BGE (couldn't find why), so disable
-	int disableVBO = (U.gameflags & USER_DISABLE_VBO);
-	U.gameflags |= USER_DISABLE_VBO;
-
 	// Globals to be carried on over blender files
 	GlobalSettings gs;
 	gs.matmode= startscene->gm.matmode;
@@ -676,9 +672,6 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 	
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 	
-	if (!disableVBO)
-		U.gameflags &= ~USER_DISABLE_VBO;
-
 	if (bfd) BLO_blendfiledata_free(bfd);
 
 	BLI_strncpy(G.main->name, oldsce, sizeof(G.main->name));

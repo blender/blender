@@ -2808,9 +2808,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	CCG_key_top_level(&key, ss);
 	ccgdm_pbvh_update(ccgdm);
 
-	/* workaround for NVIDIA GPUs on Mac not supporting vertex arrays + interleaved formats, see T43342 */
-	if ((GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_ANY) && (U.gameflags & USER_DISABLE_VBO)) ||
-	        setDrawOptions != NULL)
+	if (setDrawOptions != NULL)
 	{
 		const float (*lnors)[3] = dm->getLoopDataArray(dm, CD_NORMAL);
 		DMVertexAttribs attribs = {{{NULL}}};
@@ -3029,11 +3027,8 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 
 		/* part two, generate and fill the arrays with the data */
 		if (max_element_size > 0) {
-			buffer = GPU_buffer_alloc(max_element_size * dm->drawObject->tot_loop_verts, false);
+			buffer = GPU_buffer_alloc(max_element_size * dm->drawObject->tot_loop_verts);
 
-			if (buffer == NULL) {
-				buffer = GPU_buffer_alloc(max_element_size * dm->drawObject->tot_loop_verts, true);
-			}
 			varray = GPU_buffer_lock_stream(buffer, GPU_BINDING_ARRAY);
 			if (varray == NULL) {
 				GPU_buffers_unbind();
