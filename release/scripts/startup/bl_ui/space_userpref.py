@@ -174,7 +174,6 @@ class USERPREF_PT_interface(Panel):
         if sys.platform[:3] == "win":
             col.label("Warnings")
             col.prop(view, "use_quit_dialog")
-            col.prop(view, "use_gl_warn_support")
 
         row.separator()
         row.separator()

@@ -70,7 +70,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
         GHOST_TUns32 height,
         GHOST_TWindowState state,
         GHOST_TDrawingContextType type,
-        bool wantStereoVisual, bool warnOld,
+        bool wantStereoVisual,
         GHOST_TUns16 wantNumOfAASamples,
         GHOST_TEmbedderWindowID parentwindowhwnd,
         bool is_debug)
@@ -98,13 +98,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 	
 	versionInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
 	
-#if !defined(WITH_GL_EGL)
-	if (!warnOld)
-		GHOST_ContextWGL::unSetWarningOld();
-#else
-	(void)(warnOld);
-#endif
-
 	if (!GetVersionEx((OSVERSIONINFO *)&versionInfo)) {
 		versionInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 		if (GetVersionEx((OSVERSIONINFO *)&versionInfo)) {

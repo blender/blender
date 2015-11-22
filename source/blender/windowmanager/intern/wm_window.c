@@ -404,9 +404,6 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 		glSettings.flags |= GHOST_glDebugContext;
 	}
 
-	if (!(U.uiflag2 & USER_OPENGL_NO_WARN_SUPPORT))
-		glSettings.flags |= GHOST_glWarnSupport;
-
 	wm_get_screensize(&scr_w, &scr_h);
 	posy = (scr_h - win->posy - win->sizey);
 	

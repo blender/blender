@@ -48,7 +48,6 @@ HGLRC GHOST_ContextWGL::s_sharedHGLRC = NULL;
 int   GHOST_ContextWGL::s_sharedCount = 0;
 
 bool GHOST_ContextWGL::s_singleContextMode = false;
-bool GHOST_ContextWGL::s_warn_old = false;
 
 
 /* Intel video-cards don't work fine with multiple contexts and
@@ -918,27 +917,25 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 	reportContextString("Version",  m_dummyVersion,  version);
 #endif
 
-	if (!s_warn_old) {
-		if ((strcmp(vendor, "Microsoft Corporation") == 0 ||
-		    strcmp(renderer, "GDI Generic") == 0) && version[0] == '1' && version[2] == '1')
-		{
-			MessageBox(m_hWnd, "Your system does not use 3D hardware acceleration.\n"
-			                   "Such systems can cause stability problems in Blender and they are unsupported.\n\n"
-			                   "This may be caused by:\n"
-			                   "* A missing or faulty graphics driver installation.\n"
-			                   "  Blender needs a graphics card driver to work correctly.\n"
-			                   "* Accessing Blender through a remote connection.\n"
-			                   "* Using Blender through a virtual machine.\n\n"
-			                   "Disable this message in <User Preferences - Interface - Warn On Deprecated OpenGL>",
-			                   "Blender - Can't detect 3D hardware accelerated Driver!", MB_OK | MB_ICONWARNING);
-		}
-		else if (version[0] == '1' && version[2] < '4') {
-			MessageBox(m_hWnd, "The OpenGL version provided by your graphics driver version is too low\n"
-			                   "Blender requires version 1.4 and may not work correctly\n\n"
-			                   "Disable this message in <User Preferences - Interface - Warn On Deprecated OpenGL>",
-			                   "Blender - Unsupported Graphics Driver!", MB_OK | MB_ICONWARNING);
-		}
-		s_warn_old = true;
+	if ((strcmp(vendor, "Microsoft Corporation") == 0 ||
+	     strcmp(renderer, "GDI Generic") == 0) && version[0] == '1' && version[2] == '1')
+	{
+		MessageBox(m_hWnd, "Your system does not use 3D hardware acceleration.\n"
+		                   "Blender requires a graphics driver with OpenGL 2.1 support.\n\n"
+		                   "This may be caused by:\n"
+		                   "* A missing or faulty graphics driver installation.\n"
+		                   "  Blender needs a graphics card driver to work correctly.\n"
+		                   "* Accessing Blender through a remote connection.\n"
+		                   "* Using Blender through a virtual machine.\n\n",
+		                   "The program will now close\n"
+		                   "Blender - Can't detect 3D hardware accelerated Driver!", MB_OK | MB_ICONERROR);
+		exit(0);
+	}
+	else if (version[0] < '2' || (version[0] == '2' && version[2] < '1')) {
+		MessageBox(m_hWnd, "Blender requires a graphics driver with OpenGL 2.1 support\n"
+		                   "The program will now close\n",
+		                   "Blender - Unsupported Graphics Driver!", MB_OK | MB_ICONERROR);
+		exit(0);
 	}
 
 	return GHOST_kSuccess;
