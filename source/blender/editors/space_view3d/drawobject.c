@@ -8093,7 +8093,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			}
 
 			/* don't show smoke before simulation starts, this could be made an option in the future */
-			if (smd->domain->fluid && CFRA >= smd->domain->point_cache[0]->startframe) {
+			if (sds->fluid && CFRA >= sds->point_cache[0]->startframe) {
 				float p0[3], p1[3];
 
 				/* get view vector */
@@ -8112,21 +8112,15 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				p1[2] = (sds->p0[2] + sds->cell_size[2] * sds->res_max[2] + sds->obj_shift_f[2]) * fabsf(ob->size[2]);
 
 				if (!sds->wt || !(sds->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
-					smd->domain->tex = NULL;
+					sds->tex = NULL;
 					GPU_create_smoke(smd, 0);
-					draw_smoke_volume(sds, ob, sds->tex,
-					                  p0, p1,
-					                  sds->res, sds->dx, sds->scale * sds->maxres,
-					                  viewnormal, sds->tex_shadow, sds->tex_flame);
+					draw_smoke_volume(sds, ob, p0, p1, sds->res, viewnormal);
 					GPU_free_smoke(smd);
 				}
 				else if (sds->wt && (sds->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
 					sds->tex = NULL;
 					GPU_create_smoke(smd, 1);
-					draw_smoke_volume(sds, ob, sds->tex,
-					                  p0, p1,
-					                  sds->res_wt, sds->dx, sds->scale * sds->maxres,
-					                  viewnormal, sds->tex_shadow, sds->tex_flame);
+					draw_smoke_volume(sds, ob, p0, p1, sds->res_wt, viewnormal);
 					GPU_free_smoke(smd);
 				}
 
