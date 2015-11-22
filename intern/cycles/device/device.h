@@ -103,6 +103,9 @@ public:
 	/* Use subsurface scattering materials. */
 	bool use_subsurface;
 
+	/* Use branched integrator. */
+	bool use_integrator_branched;
+
 	DeviceRequestedFeatures()
 	{
 		/* TODO(sergey): Find more meaningful defaults. */
@@ -115,6 +118,7 @@ public:
 		use_camera_motion = false;
 		use_baking = false;
 		use_subsurface = false;
+		use_integrator_branched = false;
 	}
 
 	bool modified(const DeviceRequestedFeatures& requested_features)
@@ -127,7 +131,8 @@ public:
 		         use_object_motion == requested_features.use_object_motion &&
 		         use_camera_motion == requested_features.use_camera_motion &&
 		         use_baking == requested_features.use_baking &&
-		         use_subsurface == requested_features.use_subsurface);
+		         use_subsurface == requested_features.use_subsurface &&
+		         use_integrator_branched == requested_features.use_integrator_branched);
 	}
 
 	/* Convert the requested features structure to a build options,
@@ -158,6 +163,9 @@ public:
 		}
 		if(!use_subsurface) {
 			build_options += " -D__NO_SUBSURFACE__";
+		}
+		if(!use_integrator_branched) {
+			build_options += " -D__NO_BRANCHED_PATH__";
 		}
 		return build_options;
 	}

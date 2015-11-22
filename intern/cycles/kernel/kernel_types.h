@@ -193,6 +193,9 @@ CCL_NAMESPACE_BEGIN
 #ifdef __NO_SUBSURFACE__
 #  undef __SUBSURFACE__
 #endif
+#ifdef __NO_BRANCHED_PATH__
+#  undef __BRANCHED_PATH__
+#endif
 
 /* Random Numbers */
 
