@@ -142,11 +142,6 @@ typedef struct  SB_thread_context {
 		int tot;
 } SB_thread_context;
 
-#define NLF_BUILD  1
-#if 0
-#  define NLF_SOLVE  2
-#endif
-
 #define MID_PRESERVE 1
 
 #define SOFTGOALSNAP  0.999f
@@ -1841,7 +1836,7 @@ static void dfdv_goal(int ia, int ic, float factor)
 	for (i=0;i<3;i++) nlMatrixAdd(ia+i, ic+i, factor);
 }
 */
-static void sb_spring_force(Object *ob, int bpi, BodySpring *bs, float iks, float UNUSED(forcetime), int nl_flags)
+static void sb_spring_force(Object *ob, int bpi, BodySpring *bs, float iks, float UNUSED(forcetime))
 {
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint  *bp1, *bp2;
@@ -1915,23 +1910,6 @@ static void sb_spring_force(Object *ob, int bpi, BodySpring *bs, float iks, floa
 	projvel = dot_v3v3(dir, dvel);
 	kd     *= absvel * projvel;
 	madd_v3_v3fl(bp1->force, dir, -kd);
-
-	/* do jacobian stuff if needed */
-	if (nl_flags & NLF_BUILD) {
-		//int op =3*sb->totpoint;
-		//float mvel = -forcetime*kd;
-		//float mpos = -forcetime*forcefactor;
-		/* depending on my pos */
-		// dfdx_spring(ia, ia, op, dir, bs->len, distance, -mpos);
-		/* depending on my vel */
-		// dfdv_goal(ia, ia, mvel); // well that ignores geometie
-		if (bp2->goal < SOFTGOALSNAP) {  /* omit this bp when it snaps */
-			/* depending on other pos */
-			// dfdx_spring(ia, ic, op, dir, bs->len, distance, mpos);
-			/* depending on other vel */
-			// dfdv_goal(ia, ia, -mvel); // well that ignores geometie
-		}
-	}
 }
 
 
@@ -2131,8 +2109,8 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 								bp->choke = bs->cf;
 
 						}
-						// sb_spring_force(Object *ob, int bpi, BodySpring *bs, float iks, float forcetime, int nl_flags)
-						sb_spring_force(ob, ilast-bb, bs, iks, forcetime, 0);
+						// sb_spring_force(Object *ob, int bpi, BodySpring *bs, float iks, float forcetime)
+						sb_spring_force(ob, ilast-bb, bs, iks, forcetime);
 					}/* loop springs */
 				}/* existing spring list */
 			}/*any edges*/
@@ -2204,7 +2182,7 @@ static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float t
 	MEM_freeN(sb_threads);
 }
 
-static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, float timenow, int UNUSED(nl_flags))
+static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, float timenow)
 {
 /* rule we never alter free variables :bp->vec bp->pos in here !
  * this will ruin adaptive stepsize AKA heun! (BM)
@@ -2249,11 +2227,11 @@ static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, fl
 }
 
 
-static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, float timenow, int nl_flags)
+static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, float timenow)
 {
 	/* redirection to the new threaded Version */
 	if (!(G.debug_value & 0x10)) { // 16
-		softbody_calc_forcesEx(scene, ob, forcetime, timenow, nl_flags);
+		softbody_calc_forcesEx(scene, ob, forcetime, timenow);
 		return;
 	}
 	else {
@@ -2277,17 +2255,6 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 		float fieldfactor = -1.0f, windfactor  = 0.25f;
 		float tune = sb->ballstiff;
 		int a, b,  do_deflector, do_selfcollision, do_springcollision, do_aero;
-
-
-		/* jacobian
-		NLboolean success;
-
-		if (nl_flags) {
-		nlBegin(NL_SYSTEM);
-		nlBegin(NL_MATRIX);
-		}
-		*/
-
 
 		if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
 			copy_v3_v3(gravity, scene->physics_settings.gravity);
@@ -2315,26 +2282,6 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 		for (a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 			/* clear forces  accumulator */
 			bp->force[0] = bp->force[1] = bp->force[2] = 0.0;
-			if (nl_flags & NLF_BUILD) {
-				//int ia =3*(sb->totpoint-a);
-				//int op =3*sb->totpoint;
-				/* dF/dV = v */
-				/* jacobioan
-				nlMatrixAdd(op+ia, ia, -forcetime);
-				nlMatrixAdd(op+ia+1, ia+1, -forcetime);
-				nlMatrixAdd(op+ia+2, ia+2, -forcetime);
-
-				nlMatrixAdd(ia, ia, 1);
-				nlMatrixAdd(ia+1, ia+1, 1);
-				nlMatrixAdd(ia+2, ia+2, 1);
-
-				nlMatrixAdd(op+ia, op+ia, 1);
-				nlMatrixAdd(op+ia+1, op+ia+1, 1);
-				nlMatrixAdd(op+ia+2, op+ia+2, 1);
-				*/
-
-
-			}
 
 			/* naive ball self collision */
 			/* needs to be done if goal snaps or not */
@@ -2377,30 +2324,6 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 							madd_v3_v3fl(bp->force, def, f * (1.0f - sb->balldamp));
 							madd_v3_v3fl(bp->force, dvel, sb->balldamp);
 
-							if (nl_flags & NLF_BUILD) {
-								//int ia =3*(sb->totpoint-a);
-								//int ic =3*(sb->totpoint-c);
-								//int op =3*sb->totpoint;
-								//float mvel = forcetime*sb->nodemass*sb->balldamp;
-								//float mpos = forcetime*tune*(1.0f-sb->balldamp);
-								/*some quick and dirty entries to the jacobian*/
-								//dfdx_goal(ia, ia, op, mpos);
-								//dfdv_goal(ia, ia, mvel);
-								/* exploit force(a, b) == -force(b, a) part1/2 */
-								//dfdx_goal(ic, ic, op, mpos);
-								//dfdv_goal(ic, ic, mvel);
-
-
-								/*TODO sit down an X-out the true jacobian entries*/
-								/*well does not make to much sense because the eigenvalues
-								of the jacobian go negative; and negative eigenvalues
-								on a complex iterative system z(n+1)=A * z(n)
-								give imaginary roots in the charcateristic polynom
-								--> solutions that to z(t)=u(t)* exp ( i omega t) --> oscilations we don't want here
-								where u(t) is a unknown amplitude function (worst case rising fast)
-								*/
-							}
-
 							/* exploit force(a, b) == -force(b, a) part2/2 */
 							sub_v3_v3v3(dvel, velcenter, obp->vec);
 							mul_v3_fl(dvel, (_final_mass(ob, bp)+_final_mass(ob, obp))/2.0f);
@@ -2426,14 +2349,6 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 					bp->force[1]+= -ks*(auxvect[1]);
 					bp->force[2]+= -ks*(auxvect[2]);
 
-					if (nl_flags & NLF_BUILD) {
-						//int ia =3*(sb->totpoint-a);
-						//int op =3*(sb->totpoint);
-						/* depending on my pos */
-						//dfdx_goal(ia, ia, op, ks*forcetime);
-					}
-
-
 					/* calulate damping forces generated by goals*/
 					sub_v3_v3v3(velgoal, bp->origS, bp->origE);
 					kd = sb->goalfrict * sb_fric_force_scale(ob);
@@ -2443,12 +2358,6 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 						bp->force[0]-= kd * (auxvect[0]);
 						bp->force[1]-= kd * (auxvect[1]);
 						bp->force[2]-= kd * (auxvect[2]);
-						if (nl_flags & NLF_BUILD) {
-							//int ia =3*(sb->totpoint-a);
-							normalize_v3(auxvect);
-							/* depending on my vel */
-							//dfdv_goal(ia, ia, kd*forcetime);
-						}
 
 					}
 					else {
@@ -2493,15 +2402,6 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 					bp->force[1]-= bp->vec[1]*kd;
 					bp->force[2]-= bp->vec[2]*kd;
 					/* friction in media done */
-					if (nl_flags & NLF_BUILD) {
-						//int ia =3*(sb->totpoint-a);
-						/* da/dv =  */
-
-						//					nlMatrixAdd(ia, ia, forcetime*kd);
-						//					nlMatrixAdd(ia+1, ia+1, forcetime*kd);
-						//					nlMatrixAdd(ia+2, ia+2, forcetime*kd);
-					}
-
 				}
 				/* +++cached collision targets */
 				bp->choke = 0.0f;
@@ -2512,7 +2412,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 					kd = 1.0f;
 
 					if (sb_deflect_face(ob, bp->pos, facenormal, defforce, &cf, timenow, vel, &intrusion)) {
-						if ((!nl_flags)&&(intrusion < 0.0f)) {
+						if (intrusion < 0.0f) {
 							if (G.debug_value & 0x01) { // 17 we did check for bit 0x10 before
 								/*fixing bug [17428] this forces adaptive step size to tiny steps
 								in some situations .. keeping G.debug_value==17 option for old files 'needing' the bug
@@ -2542,13 +2442,6 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 							madd_v3_v3fl(bp->force, cfforce, -cf * 50.0f);
 						}
 						madd_v3_v3fl(bp->force, defforce, kd);
-						if (nl_flags & NLF_BUILD) {
-							// int ia =3*(sb->totpoint-a);
-							// int op =3*sb->totpoint;
-							//dfdx_goal(ia, ia, op, mpos); // don't do unless you know
-							//dfdv_goal(ia, ia, -cf);
-
-						}
 
 					}
 
@@ -2566,9 +2459,9 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 									bp->choke = bs->cf;
 
 							}
-							// sb_spring_force(Object *ob, int bpi, BodySpring *bs, float iks, float forcetime, int nl_flags)
+							// sb_spring_force(Object *ob, int bpi, BodySpring *bs, float iks, float forcetime)
 							// rather remove nl_falgs from code .. will make things a lot cleaner
-							sb_spring_force(ob, sb->totpoint-a, bs, iks, forcetime, 0);
+							sb_spring_force(ob, sb->totpoint-a, bs, iks, forcetime);
 						}/* loop springs */
 					}/* existing spring list */
 				}/*any edges*/
@@ -2579,76 +2472,6 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 
 		/* finally add forces caused by face collision */
 		if (ob->softflag & OB_SB_FACECOLL) scan_for_ext_face_forces(ob, timenow);
-
-		/* finish matrix and solve */
-#if (0) // remove onl linking for now .. still i am not sure .. the jacobian can be useful .. so keep that BM
-		if (nl_flags & NLF_SOLVE) {
-			//double sct, sst=PIL_check_seconds_timer();
-			for (a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-				int iv =3*(sb->totpoint-a);
-				int ip =3*(2*sb->totpoint-a);
-				int n;
-				for (n=0;n<3;n++) {nlRightHandSideSet(0, iv+n, bp->force[0+n]);}
-				for (n=0;n<3;n++) {nlRightHandSideSet(0, ip+n, bp->vec[0+n]);}
-			}
-			nlEnd(NL_MATRIX);
-			nlEnd(NL_SYSTEM);
-
-			if ((G.debug_value == 32) && (nl_flags & NLF_BUILD)) {
-				printf("####MEE#####\n");
-				nlPrintMatrix();
-			}
-
-			success= nlSolveAdvanced(NULL, 1);
-
-			// nlPrintMatrix(); /* for debug purpose .. anyhow cropping B vector looks like working */
-			if (success) {
-				float f;
-				int index =0;
-				/* for debug purpose .. anyhow cropping B vector looks like working */
-				if (G.debug_value ==32)
-					for (a=2*sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-						f=nlGetVariable(0, index);
-						printf("(%f ", f);index++;
-						f=nlGetVariable(0, index);
-						printf("%f ", f);index++;
-						f=nlGetVariable(0, index);
-						printf("%f)", f);index++;
-					}
-
-					index =0;
-					for (a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-						f=nlGetVariable(0, index);
-						bp->impdv[0] = f; index++;
-						f=nlGetVariable(0, index);
-						bp->impdv[1] = f; index++;
-						f=nlGetVariable(0, index);
-						bp->impdv[2] = f; index++;
-					}
-					/*
-					for (a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-					f=nlGetVariable(0, index);
-					bp->impdx[0] = f; index++;
-					f=nlGetVariable(0, index);
-					bp->impdx[1] = f; index++;
-					f=nlGetVariable(0, index);
-					bp->impdx[2] = f; index++;
-					}
-					*/
-			}
-			else {
-				printf("Matrix inversion failed\n");
-				for (a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-					copy_v3_v3(bp->impdv, bp->force);
-				}
-
-			}
-
-			//sct=PIL_check_seconds_timer();
-			//if (sct-sst > 0.01f) printf(" implicit solver time %f %s \r", sct-sst, ob->id.name);
-		}
-		/* cleanup */
-#endif
 		pdEndEffectors(&do_effector);
 	}
 }
@@ -3683,12 +3506,12 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 
 			sb->scratch->flag &= ~SBF_DOFUZZY;
 			/* do predictive euler step */
-			softbody_calc_forces(scene, ob, forcetime, timedone/dtime, 0);
+			softbody_calc_forces(scene, ob, forcetime, timedone/dtime);
 
 			softbody_apply_forces(ob, forcetime, 1, NULL, mid_flags);
 
 			/* crop new slope values to do averaged slope step */
-			softbody_calc_forces(scene, ob, forcetime, timedone/dtime, 0);
+			softbody_calc_forces(scene, ob, forcetime, timedone/dtime);
 
 			softbody_apply_forces(ob, forcetime, 2, &err, mid_flags);
 			softbody_apply_goalsnap(ob);
