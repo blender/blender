@@ -193,7 +193,7 @@ typedef struct PChart {
 
 	union PChartUnion {
 		struct PChartLscm {
-			NLContext context;
+			NLContext *context;
 			float *abf_alpha;
 			PVert *pin1, *pin2;
 		} lscm;
@@ -2613,7 +2613,7 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 
 	nlEnd(NL_SYSTEM);
 
-	success = nlSolve();
+	success = nlSolve(NL_FALSE);
 
 	if (success) {
 		for (f = chart->faces; f; f = f->nextlink) {
@@ -3223,7 +3223,7 @@ static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
 
 	nlEnd(NL_SYSTEM);
 
-	if (nlSolveAdvanced(NULL, NL_TRUE)) {
+	if (nlSolve(NL_TRUE)) {
 		p_chart_lscm_load_solution(chart);
 		return P_TRUE;
 	}

@@ -399,7 +399,6 @@ static void laplacianDeformPreview(LaplacianSystem *sys, float (*vertexCos)[3])
 		sys->context = nlGetCurrent();
 
 		nlSolverParameteri(NL_NB_VARIABLES, n);
-		nlSolverParameteri(NL_SYMMETRIC, NL_FALSE);
 		nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
 		nlSolverParameteri(NL_NB_ROWS, n + na);
 		nlSolverParameteri(NL_NB_RIGHT_HAND_SIDES, 3);
@@ -434,7 +433,7 @@ static void laplacianDeformPreview(LaplacianSystem *sys, float (*vertexCos)[3])
 		}
 		nlEnd(NL_MATRIX);
 		nlEnd(NL_SYSTEM);
-		if (nlSolveAdvanced(NULL, NL_TRUE)) {
+		if (nlSolve(NL_TRUE)) {
 			sys->has_solution = true;
 
 			for (j = 1; j <= sys->repeat; j++) {
@@ -451,7 +450,7 @@ static void laplacianDeformPreview(LaplacianSystem *sys, float (*vertexCos)[3])
 
 				nlEnd(NL_MATRIX);
 				nlEnd(NL_SYSTEM);
-				if (!nlSolveAdvanced(NULL, NL_FALSE)) {
+				if (!nlSolve(NL_FALSE)) {
 					sys->has_solution = false;
 					break;
 				}
@@ -495,7 +494,7 @@ static void laplacianDeformPreview(LaplacianSystem *sys, float (*vertexCos)[3])
 
 		nlEnd(NL_MATRIX);
 		nlEnd(NL_SYSTEM);
-		if (nlSolveAdvanced(NULL, NL_FALSE)) {
+		if (nlSolve(NL_FALSE)) {
 			sys->has_solution = true;
 			for (j = 1; j <= sys->repeat; j++) {
 				nlBegin(NL_SYSTEM);
@@ -510,7 +509,7 @@ static void laplacianDeformPreview(LaplacianSystem *sys, float (*vertexCos)[3])
 				}
 				nlEnd(NL_MATRIX);
 				nlEnd(NL_SYSTEM);
-				if (!nlSolveAdvanced(NULL, NL_FALSE)) {
+				if (!nlSolve(NL_FALSE)) {
 					sys->has_solution = false;
 					break;
 				}

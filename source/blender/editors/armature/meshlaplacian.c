@@ -64,7 +64,7 @@ static void error(const char *str) { printf("error: %s\n", str); }
 /************************** Laplacian System *****************************/
 
 struct LaplacianSystem {
-	NLContext context;  /* opennl context */
+	NLContext *context;  /* opennl context */
 
 	int totvert, totface;
 
@@ -341,7 +341,7 @@ int laplacian_system_solve(LaplacianSystem *sys)
 
 	//nlPrintMatrix();
 
-	return nlSolveAdvanced(NULL, NL_TRUE);
+	return nlSolve(NL_TRUE);
 }
 
 float laplacian_system_get_solution(int v)
@@ -1438,7 +1438,7 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
 		nlEnd(NL_MATRIX);
 		nlEnd(NL_SYSTEM);
 
-		if (nlSolveAdvanced(NULL, NL_TRUE)) {
+		if (nlSolve(NL_TRUE)) {
 			for (z = 0; z < mdb->size; z++)
 				for (y = 0; y < mdb->size; y++)
 					for (x = 0; x < mdb->size; x++)

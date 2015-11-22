@@ -551,7 +551,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 	nlEnd(NL_MATRIX);
 	nlEnd(NL_SYSTEM);
 
-	if (nlSolveAdvanced(NULL, NL_TRUE) ) {
+	if (nlSolve(NL_TRUE) ) {
 		validate_solution(sys, usex, usey, usez, preserve_volume);
 	}
 

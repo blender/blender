@@ -2628,7 +2628,7 @@ int weightToHarmonic(EditMesh *em, EdgeIndex *indexed_edges)
 
 	nlEnd(NL_SYSTEM);
 
-	success = nlSolveAdvanced(NULL, NL_TRUE);
+	success = nlSolve(NL_TRUE);
 
 	if (success) {
 		rval = 1;

@@ -468,7 +468,7 @@ static void laplaciansmoothModifier_do(
 		nlEnd(NL_MATRIX);
 		nlEnd(NL_SYSTEM);
 
-		if (nlSolveAdvanced(NULL, NL_TRUE)) {
+		if (nlSolve(NL_TRUE)) {
 			validate_solution(sys, smd->flag, smd->lambda, smd->lambda_border);
 		}
 	}

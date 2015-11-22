@@ -37,19 +37,12 @@
  *  the Software into proprietary programs. 
  */
 
-/*
-#define NL_DEBUG
-#define NL_PARANOID
-*/
-
 #ifndef nlOPENNL_H
 #define nlOPENNL_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define NL_VERSION_0_0 1
 
 /* Datatypes */
 
@@ -59,7 +52,7 @@ typedef int				NLint;		/* 4-byte signed */
 typedef unsigned int	NLuint;		/* 4-byte unsigned */
 typedef double			NLdouble;	/* double precision float */
 
-typedef void* NLContext;
+typedef struct NLContext NLContext;
 
 /* Constants */
 
@@ -76,17 +69,16 @@ typedef void* NLContext;
 #define NL_SOLVER              0x100
 #define NL_NB_VARIABLES        0x101
 #define NL_LEAST_SQUARES       0x102
-#define NL_SYMMETRIC           0x106
 #define NL_ERROR               0x108
 #define NL_NB_ROWS             0x110
 #define NL_NB_RIGHT_HAND_SIDES 0x112 /* 4 max */
 
 /* Contexts */
 
-NLContext nlNewContext(void);
-void nlDeleteContext(NLContext context);
-void nlMakeCurrent(NLContext context);
-NLContext nlGetCurrent(void);
+NLContext *nlNewContext(void);
+void nlDeleteContext(NLContext *context);
+void nlMakeCurrent(NLContext *context);
+NLContext *nlGetCurrent(void);
 
 /* State get/set */
 
@@ -113,8 +105,7 @@ void nlRightHandSideSet(NLuint rhsindex, NLuint index, NLdouble value);
 /* Solve */
 
 void nlPrintMatrix(void);
-NLboolean nlSolve(void);
-NLboolean nlSolveAdvanced(NLint *permutation, NLboolean solveAgain);
+NLboolean nlSolve(NLboolean solveAgain);
 
 #ifdef __cplusplus
 }
