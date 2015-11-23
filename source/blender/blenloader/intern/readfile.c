@@ -2783,8 +2783,6 @@ static void lib_node_do_versions_group_indices(bNode *gnode)
  * typedefs */
 static void lib_verify_nodetree(Main *main, int UNUSED(open))
 {
-	bNodeTree *ntree;
-	
 	/* this crashes blender on undo/redo */
 #if 0
 		if (open == 1) {
@@ -2811,9 +2809,10 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 		 * we have set the NTREE_DO_VERSIONS_GROUP_EXPOSE_2_56_2 flag, so at this point we can do the
 		 * actual group node updates.
 		 */
-		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next) {
-			if (ntree->flag & NTREE_DO_VERSIONS_GROUP_EXPOSE_2_56_2)
+		for (bNodeTree *ntree = main->nodetree.first; ntree; ntree = ntree->id.next) {
+			if (ntree->flag & NTREE_DO_VERSIONS_GROUP_EXPOSE_2_56_2) {
 				has_old_groups = 1;
+			}
 		}
 		
 		if (has_old_groups) {
@@ -2830,8 +2829,9 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 			} FOREACH_NODETREE_END
 		}
 		
-		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next)
+		for (bNodeTree *ntree = main->nodetree.first; ntree; ntree = ntree->id.next) {
 			ntree->flag &= ~NTREE_DO_VERSIONS_GROUP_EXPOSE_2_56_2;
+		}
 	}
 	
 	{
@@ -2937,7 +2937,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 	}
 	
 	/* verify all group user nodes */
-	for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next) {
+	for (bNodeTree *ntree = main->nodetree.first; ntree; ntree = ntree->id.next) {
 		ntreeVerifyNodes(main, &ntree->id);
 	}
 	

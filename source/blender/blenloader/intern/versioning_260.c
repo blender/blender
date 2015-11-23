@@ -1864,7 +1864,6 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 
 	if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 5)) {
 		Scene *scene;
-		Image *image;
 		Tex *tex;
 
 		for (scene = main->scene.first; scene; scene = scene->id.next) {
@@ -1904,7 +1903,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 
-		for (image = main->image.first; image; image = image->id.next) {
+		for (Image *image = main->image.first; image; image = image->id.next) {
 			if (image->flag & IMA_DO_PREMUL) {
 				image->alpha_mode = IMA_ALPHA_STRAIGHT;
 			}
@@ -1915,7 +1914,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 
 		for (tex = main->tex.first; tex; tex = tex->id.next) {
 			if (tex->type == TEX_IMAGE && (tex->imaflag & TEX_USEALPHA) == 0) {
-				image = blo_do_versions_newlibadr(fd, tex->id.lib, tex->ima);
+				Image *image = blo_do_versions_newlibadr(fd, tex->id.lib, tex->ima);
 
 				if (image && (image->flag & IMA_DO_PREMUL) == 0)
 					image->flag |= IMA_IGNORE_ALPHA;

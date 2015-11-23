@@ -3396,7 +3396,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
                           void *inarray, RawPropertyType intype, int inlen, int set)
 {
 	StructRNA *ptype;
-	PointerRNA itemptr;
+	PointerRNA itemptr_base;
 	PropertyRNA *itemprop, *iprop;
 	PropertyType itemtype = 0;
 	RawArray in;
@@ -3411,8 +3411,8 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 	ptype = RNA_property_pointer_type(ptr, prop);
 
 	/* try to get item property pointer */
-	RNA_pointer_create(NULL, ptype, NULL, &itemptr);
-	itemprop = RNA_struct_find_property(&itemptr, propname);
+	RNA_pointer_create(NULL, ptype, NULL, &itemptr_base);
+	itemprop = RNA_struct_find_property(&itemptr_base, propname);
 
 	if (itemprop) {
 		/* we have item property pointer */
@@ -3427,7 +3427,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 		}
 
 		/* check item array */
-		itemlen = RNA_property_array_length(&itemptr, itemprop);
+		itemlen = RNA_property_array_length(&itemptr_base, itemprop);
 
 		/* dynamic array? need to get length per item */
 		if (itemprop->getlength) {
@@ -4222,7 +4222,7 @@ static bool rna_path_parse(PointerRNA *ptr, const char *path,
 		*r_index = index;
 
 	if (prop_elem && (prop_elem->ptr.data != curptr.data || prop_elem->prop != prop || prop_elem->index != index)) {
-		PropertyElemRNA *prop_elem = MEM_mallocN(sizeof(PropertyElemRNA), __func__);
+		prop_elem = MEM_mallocN(sizeof(PropertyElemRNA), __func__);
 		prop_elem->ptr = curptr;
 		prop_elem->prop = prop;
 		prop_elem->index = index;
@@ -4505,12 +4505,12 @@ static char *rna_idp_path(PointerRNA *ptr, IDProperty *haystack, IDProperty *nee
 						break;
 					}
 					else {
-						int i;
+						int j;
 						link.name = iter->name;
-						for (i = 0; i < iter->len; i++, array++) {
+						for (j = 0; j < iter->len; j++, array++) {
 							PointerRNA child_ptr;
-							if (RNA_property_collection_lookup_int(ptr, prop, i, &child_ptr)) {
-								link.index = i;
+							if (RNA_property_collection_lookup_int(ptr, prop, j, &child_ptr)) {
+								link.index = j;
 								if ((path = rna_idp_path(&child_ptr, array, needle, &link))) {
 									break;
 								}
@@ -5459,7 +5459,6 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, in
 {
 	int type = RNA_property_type(prop);
 	int len = RNA_property_array_length(ptr, prop);
-	int i;
 
 	DynStr *dynstr = BLI_dynstr_new();
 	char *cstring;
@@ -5481,7 +5480,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, in
 
 					RNA_property_boolean_get_array(ptr, prop, buf);
 					BLI_dynstr_append(dynstr, "(");
-					for (i = 0; i < len; i++) {
+					for (int i = 0; i < len; i++) {
 						BLI_dynstr_appendf(dynstr, i ? ", %s" : "%s", bool_as_py_string(buf[i]));
 					}
 					if (len == 1)
@@ -5507,7 +5506,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, in
 
 					RNA_property_int_get_array(ptr, prop, buf);
 					BLI_dynstr_append(dynstr, "(");
-					for (i = 0; i < len; i++) {
+					for (int i = 0; i < len; i++) {
 						BLI_dynstr_appendf(dynstr, i ? ", %d" : "%d", buf[i]);
 					}
 					if (len == 1)
@@ -5533,7 +5532,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, in
 
 					RNA_property_float_get_array(ptr, prop, buf);
 					BLI_dynstr_append(dynstr, "(");
-					for (i = 0; i < len; i++) {
+					for (int i = 0; i < len; i++) {
 						BLI_dynstr_appendf(dynstr, i ? ", %g" : "%g", buf[i]);
 					}
 					if (len == 1)

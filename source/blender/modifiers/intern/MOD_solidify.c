@@ -694,9 +694,9 @@ static DerivedMesh *applyModifier(
 			INIT_VERT_ARRAY_OFFSETS(false);
 
 			for (i_orig = 0; i_orig < i_end; i_orig++, mv++) {
-				const unsigned int i = do_shell_align ? i_orig : new_vert_arr[i_orig];
-				if (vert_accum[i]) { /* zero if unselected */
-					madd_v3_v3fl(mv->co, vert_nors[i], ofs_new * (vert_angles[i] / vert_accum[i]));
+				const unsigned int i_other = do_shell_align ? i_orig : new_vert_arr[i_orig];
+				if (vert_accum[i_other]) { /* zero if unselected */
+					madd_v3_v3fl(mv->co, vert_nors[i_other], ofs_new * (vert_angles[i_other] / vert_accum[i_other]));
 				}
 			}
 		}
@@ -709,9 +709,9 @@ static DerivedMesh *applyModifier(
 			INIT_VERT_ARRAY_OFFSETS(true);
 
 			for (i_orig = 0; i_orig < i_end; i_orig++, mv++) {
-				const unsigned int i = do_shell_align ? i_orig : new_vert_arr[i_orig];
-				if (vert_accum[i]) { /* zero if unselected */
-					madd_v3_v3fl(mv->co, vert_nors[i], ofs_orig * (vert_angles[i] / vert_accum[i]));
+				const unsigned int i_other = do_shell_align ? i_orig : new_vert_arr[i_orig];
+				if (vert_accum[i_other]) { /* zero if unselected */
+					madd_v3_v3fl(mv->co, vert_nors[i_other], ofs_orig * (vert_angles[i_other] / vert_accum[i_other]));
 				}
 			}
 		}

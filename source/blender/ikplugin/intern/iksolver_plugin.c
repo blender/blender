@@ -242,7 +242,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 	float goal[4][4], goalinv[4][4];
 	float irest_basis[3][3], full_basis[3][3];
 	float end_pose[4][4], world_pose[4][4];
-	float length, basis[3][3], rest_basis[3][3], start[3], *ikstretch = NULL;
+	float basis[3][3], rest_basis[3][3], start[3], *ikstretch = NULL;
 	float resultinf = 0.0f;
 	int a, flag, hasstretch = 0, resultblend = 0;
 	bPoseChannel *pchan;
@@ -258,6 +258,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 	iktree = MEM_mallocN(sizeof(void *) * tree->totchannel, "ik tree");
 
 	for (a = 0; a < tree->totchannel; a++) {
+		float length;
 		pchan = tree->pchan[a];
 		bone = pchan->bone;
 
@@ -335,9 +336,9 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 		IK_SetStiffness(seg, IK_Z, pchan->stiffness[2]);
 
 		if (tree->stretch && (pchan->ikstretch > 0.0f)) {
-			const float ikstretch = pchan->ikstretch * pchan->ikstretch;
+			const float ikstretch_sq = SQUARE(pchan->ikstretch);
 			/* this function does its own clamping */
-			IK_SetStiffness(seg, IK_TRANS_Y, 1.0f - ikstretch);
+			IK_SetStiffness(seg, IK_TRANS_Y, 1.0f - ikstretch_sq);
 			IK_SetLimit(seg, IK_TRANS_Y, IK_STRETCH_STIFF_MIN, IK_STRETCH_STIFF_MAX);
 		}
 	}

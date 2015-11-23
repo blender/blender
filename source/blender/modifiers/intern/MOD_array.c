@@ -509,8 +509,8 @@ static DerivedMesh *arrayModifier_doArray(
 #endif
 
 			if (amd->curve_ob->curve_cache && amd->curve_ob->curve_cache->path) {
-				float scale = mat4_to_scale(amd->curve_ob->obmat);
-				length = scale * amd->curve_ob->curve_cache->path->totdist;
+				float scale_fac = mat4_to_scale(amd->curve_ob->obmat);
+				length = scale_fac * amd->curve_ob->curve_cache->path->totdist;
 			}
 		}
 	}

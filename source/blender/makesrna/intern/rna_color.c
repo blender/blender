@@ -195,9 +195,8 @@ static char *rna_ColorRamp_path(PointerRNA *ptr)
 			
 			case ID_LS:
 			{
-				char *path = BKE_linestyle_path_to_color_ramp((FreestyleLineStyle *)id, (ColorBand *)ptr->data);
-				if (path)
-					return path;
+				/* may be NULL */
+				path = BKE_linestyle_path_to_color_ramp((FreestyleLineStyle *)id, (ColorBand *)ptr->data);
 				break;
 			}
 			

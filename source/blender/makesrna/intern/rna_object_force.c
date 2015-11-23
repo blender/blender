@@ -164,7 +164,7 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 	PointCache *cache = (PointCache *)ptr->data;
 	PTCacheID *pid = NULL, *pid2 = NULL;
 	ListBase pidlist;
-	int new_name = 1;
+	bool use_new_name = true;
 
 	if (!ob)
 		return;
@@ -194,11 +194,11 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 			else if (cache->name[0] != '\0' && STREQ(cache->name, pid->cache->name)) {
 				/*TODO: report "name exists" to user */
 				BLI_strncpy(cache->name, cache->prev_name, sizeof(cache->name));
-				new_name = 0;
+				use_new_name = false;
 			}
 		}
 
-		if (new_name) {
+		if (use_new_name) {
 			if (pid2 && cache->flag & PTCACHE_DISK_CACHE) {
 				char old_name[80];
 				char new_name[80];
