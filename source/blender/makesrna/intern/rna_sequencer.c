@@ -844,10 +844,8 @@ static char *rna_SequenceColorBalance_path(PointerRNA *ptr)
 		}
 		else {
 			/* path to modifier */
-			char name_esc[(sizeof(seq->name) - 2) * 2];
 			char name_esc_smd[sizeof(smd->name) * 2];
 
-			BLI_strescape(name_esc, seq->name + 2, sizeof(name_esc));
 			BLI_strescape(name_esc_smd, smd->name, sizeof(name_esc_smd));
 			return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].modifiers[\"%s\"].color_balance",
 			                    name_esc, name_esc_smd);
