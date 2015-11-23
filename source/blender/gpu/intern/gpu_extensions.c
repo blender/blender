@@ -1654,7 +1654,7 @@ static void shader_print_errors(const char *task, const char *log, const char **
 	fprintf(stderr, "%s\n", log);
 }
 
-static const char *gpu_shader_version()
+static const char *gpu_shader_version(void)
 {
 	if (GLEW_VERSION_3_2) {
 		if (GLEW_ARB_compatibility) {
