@@ -2632,7 +2632,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 	BezTriple *bezt, *prevbezt;
 	BPoint *bp;
 	BevList *bl, *blnew, *blnext;
-	BevPoint *bevp, *bevp2, *bevp1 = NULL, *bevp0;
+	BevPoint *bevp2, *bevp1 = NULL, *bevp0;
 	const float treshold = 0.00001f;
 	float min, inp;
 	float *seglen = NULL;
@@ -2681,6 +2681,8 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 			bl->charidx = nu->charidx;
 		}
 		else {
+			BevPoint *bevp;
+
 			if (for_render && cu->resolu_ren != 0)
 				resolu = cu->resolu_ren;
 			else
@@ -3012,6 +3014,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 		bl = bev->first;
 		while (bl) {
 			if (bl->poly > 0) {
+				BevPoint *bevp;
 
 				min = 300000.0;
 				bevp = bl->bevpoints;

@@ -2577,7 +2577,6 @@ static void tracking_dopesheet_calc_coverage(MovieTracking *tracking)
 	int frames, start_frame = INT_MAX, end_frame = -INT_MAX;
 	int *per_frame_counter;
 	int prev_coverage, last_segment_frame;
-	int i;
 
 	/* find frame boundaries */
 	for (track = tracksbase->first; track; track = track->next) {
@@ -2592,9 +2591,7 @@ static void tracking_dopesheet_calc_coverage(MovieTracking *tracking)
 
 	/* find per-frame markers count */
 	for (track = tracksbase->first; track; track = track->next) {
-		int i;
-
-		for (i = 0; i < track->markersnr; i++) {
+		for (int i = 0; i < track->markersnr; i++) {
 			MovieTrackingMarker *marker = &track->markers[i];
 
 			/* TODO: perhaps we need to add check for non-single-frame track here */
@@ -2611,7 +2608,7 @@ static void tracking_dopesheet_calc_coverage(MovieTracking *tracking)
 	if (!per_frame_counter[0])
 		prev_coverage = TRACKING_COVERAGE_OK;
 
-	for (i = 1; i < frames; i++) {
+	for (int i = 1; i < frames; i++) {
 		int coverage = coverage_from_count(per_frame_counter[i]);
 
 		/* means only disabled tracks in the end, could be ignored */

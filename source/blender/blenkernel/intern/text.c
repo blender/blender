@@ -2115,7 +2115,7 @@ void txt_do_undo(Text *text)
 {
 	int op = text->undo_buf[text->undo_pos];
 	int prev_flags;
-	unsigned int linep, i;
+	unsigned int linep;
 	unsigned int uchar;
 	unsigned int curln, selln;
 	unsigned short curc, selc;
@@ -2184,6 +2184,8 @@ void txt_do_undo(Text *text)
 			break;
 
 		case UNDO_DBLOCK:
+		{
+			int i;
 			/* length of the string in the buffer */
 			linep = txt_undo_read_uint32(text->undo_buf, &text->undo_pos);
 
@@ -2213,8 +2215,10 @@ void txt_do_undo(Text *text)
 			text->undo_pos--;
 			
 			break;
-
+		}
 		case UNDO_IBLOCK:
+		{
+			int i;
 			/* length of the string in the buffer */
 			linep = txt_undo_read_uint32(text->undo_buf, &text->undo_pos);
 			
@@ -2252,6 +2256,7 @@ void txt_do_undo(Text *text)
 			
 			text->undo_pos--;
 			break;
+		}
 		case UNDO_INDENT:
 		case UNDO_COMMENT:
 		case UNDO_DUPLICATE:

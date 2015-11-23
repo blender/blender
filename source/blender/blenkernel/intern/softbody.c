@@ -2254,7 +2254,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 		float iks, ks, kd, gravity[3] = {0.0f, 0.0f, 0.0f};
 		float fieldfactor = -1.0f, windfactor  = 0.25f;
 		float tune = sb->ballstiff;
-		int a, b,  do_deflector, do_selfcollision, do_springcollision, do_aero;
+		int do_deflector, do_selfcollision, do_springcollision, do_aero;
 
 		if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
 			copy_v3_v3(gravity, scene->physics_settings.gravity);
@@ -2279,7 +2279,8 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 			do_deflector = sb_detect_aabb_collisionCached(defforce, ob->lay, ob, timenow);
 		}
 
-		for (a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+		bp = sb->bpoint;
+		for (int a = sb->totpoint; a > 0; a--, bp++) {
 			/* clear forces  accumulator */
 			bp->force[0] = bp->force[1] = bp->force[2] = 0.0;
 
@@ -2451,7 +2452,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 				/* +++springs */
 				if (ob->softflag & OB_SB_EDGES) {
 					if (sb->bspring) { /* spring list exists at all ? */
-						for (b=bp->nofsprings;b>0;b--) {
+						for (int b = bp->nofsprings; b > 0; b--) {
 							bs = sb->bspring + bp->springs[b-1];
 							if (do_springcollision || do_aero) {
 								add_v3_v3(bp->force, bs->ext_force);

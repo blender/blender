@@ -582,7 +582,6 @@ void DM_update_tessface_data(DerivedMesh *dm)
 
 void DM_generate_tangent_tessface_data(DerivedMesh *dm, bool generate)
 {
-	int i;
 	MFace *mf, *mface = dm->getTessFaceArray(dm);
 	MPoly *mp = dm->getPolyArray(dm);
 	MLoop *ml = dm->getLoopArray(dm);
@@ -602,9 +601,10 @@ void DM_generate_tangent_tessface_data(DerivedMesh *dm, bool generate)
 		return;
 
 	if (generate) {
-		for (i = 0; i < ldata->totlayer; i++) {
-			if (ldata->layers[i].type == CD_TANGENT)
+		for (int i = 0; i < ldata->totlayer; i++) {
+			if (ldata->layers[i].type == CD_TANGENT) {
 				CustomData_add_layer_named(fdata, CD_TANGENT, CD_CALLOC, NULL, totface, ldata->layers[i].name);
+			}
 		}
 		CustomData_bmesh_update_active_layers(fdata, pdata, ldata);
 	}

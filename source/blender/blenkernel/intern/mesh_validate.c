@@ -171,10 +171,10 @@ static int search_poly_cmp(const void *v1, const void *v2)
 		return sp1->invalid ? (sp2->invalid ? 0 : 1) : -1;
 	/* Else, sort on first non-equal verts (remember verts of valid polys are sorted). */
 	for (idx = 0; idx < max_idx; idx++) {
-		const int v1 = sp1->verts[idx];
-		const int v2 = sp2->verts[idx];
-		if (v1 != v2) {
-			return (v1 > v2) ? 1 : -1;
+		const int v1_i = sp1->verts[idx];
+		const int v2_i = sp2->verts[idx];
+		if (v1_i != v2_i) {
+			return (v1_i > v2_i) ? 1 : -1;
 		}
 	}
 	return sp1->numverts > sp2->numverts ? 1 : sp1->numverts < sp2->numverts ? -1 : 0;

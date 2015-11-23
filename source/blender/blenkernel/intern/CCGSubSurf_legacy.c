@@ -322,15 +322,16 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 	}
 }
 
-static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
-                                        CCGVert **effectedV, CCGEdge **effectedE, CCGFace **effectedF,
-                                        int numEffectedV, int numEffectedE, int numEffectedF, int curLvl)
+static void ccgSubSurf__calcSubdivLevel(
+        CCGSubSurf *ss,
+        CCGVert **effectedV, CCGEdge **effectedE, CCGFace **effectedF,
+        const int numEffectedV, const int numEffectedE, const int numEffectedF, const int curLvl)
 {
-	int subdivLevels = ss->subdivLevels;
+	const int subdivLevels = ss->subdivLevels;
+	const int nextLvl = curLvl + 1;
 	int edgeSize = ccg_edgesize(curLvl);
 	int gridSize = ccg_gridsize(curLvl);
-	int nextLvl = curLvl + 1;
-	int ptrIdx, cornerIdx, i;
+	int ptrIdx, i;
 	int vertDataSize = ss->meshIFC.vertDataSize;
 	float *q = ss->q, *r = ss->r;
 
@@ -524,7 +525,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 			VertDataAdd(nCo, r, ss);
 		}
 		else {
-			int cornerIdx = (1 + (1 << (curLvl))) - 2;
+			const int cornerIdx = (1 + (1 << (curLvl))) - 2;
 			int numEdges = 0, numFaces = 0;
 
 			VertDataZero(q, ss);
@@ -683,8 +684,6 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 
 #pragma omp parallel private(ptrIdx) if (numEffectedF * edgeSize * edgeSize * 4 >= CCG_OMP_LIMIT)
 	{
-		float *q, *r;
-
 #pragma omp critical
 		{
 			q = MEM_mallocN(ss->meshIFC.vertDataSize, "CCGSubsurf q");
@@ -792,7 +791,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 	/* copy down */
 	edgeSize = ccg_edgesize(nextLvl);
 	gridSize = ccg_gridsize(nextLvl);
-	cornerIdx = gridSize - 1;
+	const int cornerIdx = gridSize - 1;
 
 #pragma omp parallel for private(i) if (numEffectedF * edgeSize * edgeSize * 4 >= CCG_OMP_LIMIT)
 	for (i = 0; i < numEffectedE; i++) {

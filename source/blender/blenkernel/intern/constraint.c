@@ -2730,8 +2730,8 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 				float hard = min_ff(bulge, bulge_max);
 				
 				float range = bulge_max - 1.0f;
-				float scale = (range > 0.0f) ? 1.0f / range : 0.0f;
-				float soft = 1.0f + range * atanf((bulge - 1.0f) * scale) / (float)M_PI_2;
+				float scale_fac = (range > 0.0f) ? 1.0f / range : 0.0f;
+				float soft = 1.0f + range * atanf((bulge - 1.0f) * scale_fac) / (float)M_PI_2;
 				
 				bulge = interpf(soft, hard, data->bulge_smooth);
 			}
@@ -2742,8 +2742,8 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 				float hard = max_ff(bulge, bulge_min);
 				
 				float range = 1.0f - bulge_min;
-				float scale = (range > 0.0f) ? 1.0f / range : 0.0f;
-				float soft = 1.0f - range * atanf((1.0f - bulge) * scale) / (float)M_PI_2;
+				float scale_fac = (range > 0.0f) ? 1.0f / range : 0.0f;
+				float soft = 1.0f - range * atanf((1.0f - bulge) * scale_fac) / (float)M_PI_2;
 				
 				bulge = interpf(soft, hard, data->bulge_smooth);
 			}

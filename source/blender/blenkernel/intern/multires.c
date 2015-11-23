@@ -1855,7 +1855,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 	Multires *mr = me->mr;
 	MVert *vsrc, *vdst;
 	unsigned int src, dst;
-	int st = multires_side_tot[totlvl - 1] - 1;
+	int st_last = multires_side_tot[totlvl - 1] - 1;
 	int extedgelen = multires_side_tot[totlvl] - 2;
 	int *vvmap; // inorder for dst, map to src
 	int crossedgelen;
@@ -1901,7 +1901,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 		int sides = lvl1->faces[i].v[3] ? 4 : 3;
 
 		vvmap[dst] = src + lvl1->totedge + i;
-		dst += 1 + sides * (st - 1) * st;
+		dst += 1 + sides * (st_last - 1) * st_last;
 	}
 
 
@@ -1943,7 +1943,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 				lvl = lvl->next;
 			}
 
-			dst += sides * (st - 1) * st;
+			dst += sides * (st_last - 1) * st_last;
 
 			if (sides == 4) ++totquad;
 			else ++tottri;
@@ -1967,7 +1967,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 		dst = 0;
 		for (j = 0; j < lvl1->totface; ++j) {
 			int sides = lvl1->faces[j].v[3] ? 4 : 3;
-			int ldst = dst + 1 + sides * (st - 1);
+			int ldst = dst + 1 + sides * (st_last - 1);
 
 			for (s = 0; s < sides; ++s) {
 				int st2 = multires_side_tot[totlvl - 1] - 2;
@@ -1984,7 +1984,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 				                        find_old_edge(emap[0], lvl1->edges, cv, nv)->mid,
 				                        st2, st4);
 
-				ldst += (st - 1) * (st - 1);
+				ldst += (st_last - 1) * (st_last - 1);
 			}
 
 

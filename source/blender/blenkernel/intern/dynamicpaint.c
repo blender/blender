@@ -2536,11 +2536,11 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface)
 
 		/*	Generate surface adjacency data. */
 		{
-			int i, cursor = 0;
+			int cursor = 0;
 
 			/* Create a temporary array of final indexes (before unassigned
 			 *  pixels have been dropped) */
-			for (i = 0; i < w * h; i++) {
+			for (int i = 0; i < w * h; i++) {
 				if (tempPoints[i].tri_index != -1) {
 					final_index[i] = cursor;
 					cursor++;
@@ -2556,13 +2556,13 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface)
 				for (ty = 0; ty < h; ty++) {
 					int tx;
 					for (tx = 0; tx < w; tx++) {
-						int i, index = tx + w * ty;
+						int index = tx + w * ty;
 
 						if (tempPoints[index].tri_index != -1) {
 							ed->n_index[final_index[index]] = n_pos;
 							ed->n_num[final_index[index]] = 0;
 
-							for (i = 0; i < 8; i++) {
+							for (int i = 0; i < 8; i++) {
 
 								/* Try to find a neighboring pixel in defined direction
 								 *  If not found, -1 is returned */
@@ -3628,7 +3628,6 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
                                        float timescale)
 {
 	ParticleSettings *part = psys->part;
-	ParticleData *pa = NULL;
 	PaintSurfaceData *sData = surface->data;
 	PaintBakeData *bData = sData->bData;
 	VolumeGrid *grid = bData->grid; 
@@ -3654,7 +3653,8 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 	tree = BLI_kdtree_new(psys->totpart);
 
 	/* loop through particles and insert valid ones	to the tree	*/
-	for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++) {
+	p = 0;
+	for (ParticleData *pa = psys->particles; p < psys->totpart; p++, pa++) {
 
 		/* Proceed only if particle is active	*/
 		if (pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN) == 0) continue;

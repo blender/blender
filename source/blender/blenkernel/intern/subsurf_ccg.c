@@ -2729,8 +2729,8 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGKey key;
 	GPUVertexAttribs gattribs;
-	int a, b, do_draw, new_matnr;
-	DMFlagMat *faceFlags = ccgdm->faceFlags;
+	int a, b;
+	const DMFlagMat *faceFlags = ccgdm->faceFlags;
 	unsigned char *varray;
 	size_t max_element_size = 0;
 	int tot_loops = 0;
@@ -2741,8 +2741,6 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 
 #ifdef WITH_OPENSUBDIV
 	if (ccgdm->useGpuBackend) {
-		CCGSubSurf *ss = ccgdm->ss;
-		const DMFlagMat *faceFlags = ccgdm->faceFlags;
 		const int level = ccgSubSurf_getSubdivisionLevels(ss);
 		const int face_side = 1 << level;
 		const int grid_side = 1 << (level - 1);
@@ -2763,6 +2761,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 			                                              : num_face_verts * grid_patches;
 			int new_matnr;
 			bool new_draw_smooth;
+
 			if (faceFlags) {
 				new_draw_smooth = (faceFlags[i].flag & ME_SMOOTH);
 				new_matnr = (faceFlags[i].mat_nr + 1);
@@ -2817,7 +2816,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		DMVertexAttribs attribs = {{{NULL}}};
 		int i;
 		int matnr = -1;
-		do_draw = 0;
+		int do_draw = 0;
 
 #define PASSATTRIB(dx, dy, vert) {                                            \
 	if (attribs.totorco)                                                      \
@@ -2836,6 +2835,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 			int origIndex = ccgDM_getFaceMapIndex(ss, f);
 
 			int numVerts = ccgSubSurf_getFaceNumVerts(f);
+			int new_matnr;
 
 			if (faceFlags) {
 				drawSmooth = (lnors || (faceFlags[index].flag & ME_SMOOTH));
@@ -2982,6 +2982,9 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 
 		/* part one, check what attributes are needed per material */
 		for (a = 0; a < tot_active_mat; a++) {
+			int new_matnr;
+			int do_draw;
+
 			new_matnr = dm->drawObject->materials[a].mat_nr;
 
 			/* map from original material index to new
@@ -3044,12 +3047,12 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 
 			for (a = 0; a < totpoly; a++) {
 				CCGFace *f = ccgdm->faceMap[a].face;
-				int index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
+				int orig_index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
 				int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(f);
 				int i;
 
 				if (faceFlags) {
-					i = mat_orig_to_new[faceFlags[index].mat_nr];
+					i = mat_orig_to_new[faceFlags[orig_index].mat_nr];
 				}
 				else {
 					i = mat_orig_to_new[0];
@@ -3128,6 +3131,9 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		}
 
 		for (a = 0; a < tot_active_mat; a++) {
+			int new_matnr;
+			int do_draw;
+
 			new_matnr = dm->drawObject->materials[a].mat_nr;
 
 			do_draw = setMaterial(new_matnr + 1, &gattribs);
@@ -3175,7 +3181,7 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm,
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
 	const float (*lnors)[3] = dm->getLoopDataArray(dm, CD_NORMAL);
-	int a, i, numVerts, matnr, new_matnr, totface;
+	int a, i, numVerts, matnr, totface;
 
 #ifdef WITH_OPENSUBDIV
 	if (ccgdm->useGpuBackend) {
@@ -3221,6 +3227,7 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm,
 		int S, x, y, drawSmooth;
 		int index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
 		int origIndex = ccgDM_getFaceMapIndex(ss, f);
+		int new_matnr;
 		
 		numVerts = ccgSubSurf_getFaceNumVerts(f);
 
@@ -3426,7 +3433,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 			CCGFace *f = ccgdm->faceMap[polyindex].face;
 			int numVerts = ccgSubSurf_getFaceNumVerts(f);
 			int index = ccgDM_getFaceMapIndex(ss, f);
-			int origIndex = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
+			int orig_index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(f));
 			int mat_nr;
 			int facequads = numVerts * gridFaces * gridFaces;
 			int actualFace = ccgdm->faceMap[polyindex].startFace;
@@ -3437,7 +3444,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 			}
 
 			if (faceFlags) {
-				mat_nr = faceFlags[origIndex].mat_nr;
+				mat_nr = faceFlags[orig_index].mat_nr;
 			}
 			else {
 				mat_nr = 0;
@@ -3554,7 +3561,6 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 
 #ifdef WITH_OPENSUBDIV
 	if (ccgdm->useGpuBackend) {
-		DMFlagMat *faceFlags = ccgdm->faceFlags;
 		int new_matnr;
 		bool draw_smooth, do_draw = true;
 		if (setDrawOptions == NULL) {

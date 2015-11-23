@@ -148,8 +148,8 @@ struct SmokeModifierData;
 // timestep default value for nice appearance 0.1f
 #define DT_DEFAULT 0.1f
 
-#define ADD_IF_LOWER_POS(a, b) (MIN2((a) + (b), MAX2((a), (b))))
-#define ADD_IF_LOWER_NEG(a, b) (MAX2((a) + (b), MIN2((a), (b))))
+#define ADD_IF_LOWER_POS(a, b) (min_ff((a) + (b), max_ff((a), (b))))
+#define ADD_IF_LOWER_NEG(a, b) (max_ff((a) + (b), min_ff((a), (b))))
 #define ADD_IF_LOWER(a, b) (((b) > 0) ? ADD_IF_LOWER_POS((a), (b)) : ADD_IF_LOWER_NEG((a), (b)))
 
 #else /* WITH_SMOKE */
@@ -1238,7 +1238,7 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 		float solid = sfs->particle_size * 0.5f;
 		float smooth = 0.5f; /* add 0.5 cells of linear falloff to reduce aliasing */
 		int hires_multiplier = 1;
-		int i, z;
+		int z;
 		KDTree *tree;
 
 		sim.scene = scene;
@@ -1358,7 +1358,7 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 			const float hr_smooth = smooth * powf(hr, 1.0f / 3.0f);
 
 			/* setup loop bounds */
-			for (i = 0; i < 3; i++) {
+			for (int i = 0; i < 3; i++) {
 				min[i] = em->min[i] * hires_multiplier;
 				max[i] = em->max[i] * hires_multiplier;
 				res[i] = em->res[i] * hires_multiplier;
@@ -1732,10 +1732,11 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 
 static void adjustDomainResolution(SmokeDomainSettings *sds, int new_shift[3], EmissionMap *emaps, unsigned int numflowobj, float dt)
 {
+	const int block_size = sds->amplify + 1;
 	int min[3] = {32767, 32767, 32767}, max[3] = {-32767, -32767, -32767}, res[3];
 	int total_cells = 1, res_changed = 0, shift_changed = 0;
 	float min_vel[3], max_vel[3];
-	int x, y, z, i;
+	int x, y, z;
 	float *density = smoke_get_density(sds->fluid);
 	float *fuel = smoke_get_fuel(sds->fluid);
 	float *bigdensity = smoke_turbulence_get_density(sds->wt);
@@ -1743,7 +1744,6 @@ static void adjustDomainResolution(SmokeDomainSettings *sds, int new_shift[3], E
 	float *vx = smoke_get_velocity_x(sds->fluid);
 	float *vy = smoke_get_velocity_y(sds->fluid);
 	float *vz = smoke_get_velocity_z(sds->fluid);
-	int block_size = sds->amplify + 1;
 	int wt_res[3];
 
 	if (sds->flags & MOD_SMOKE_HIGHRES && sds->wt) {
@@ -1810,8 +1810,7 @@ static void adjustDomainResolution(SmokeDomainSettings *sds, int new_shift[3], E
 			}
 
 	/* also apply emission maps */
-	for (i = 0; i < numflowobj; i++)
-	{
+	for (int i = 0; i < numflowobj; i++) {
 		EmissionMap *em = &emaps[i];
 
 		for (x = em->min[0]; x < em->max[0]; x++)
@@ -1838,7 +1837,7 @@ static void adjustDomainResolution(SmokeDomainSettings *sds, int new_shift[3], E
 	mul_v3_fl(max_vel, 1.0f / sds->dx);
 	clampBoundsInDomain(sds, min, max, min_vel, max_vel, sds->adapt_margin + 1, dt);
 
-	for (i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++) {
 		/* calculate new resolution */
 		res[i] = max[i] - min[i];
 		total_cells *= res[i];
@@ -1938,7 +1937,6 @@ static void adjustDomainResolution(SmokeDomainSettings *sds, int new_shift[3], E
 						n_vz[index_new] = o_vz[index_old];
 
 						if (sds->flags & MOD_SMOKE_HIGHRES && turb_old) {
-							int block_size = sds->amplify + 1;
 							int i, j, k;
 							/* old grid index */
 							int xx_o = xo * block_size;

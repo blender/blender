@@ -3838,19 +3838,19 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 
 			/* try to estimate correct velocity */
 			if (vel) {
-				ParticleKey tstate;
+				ParticleKey tstate_tmp;
 				float length = len_v3(state->vel);
 
 				if (t >= 0.001f) {
-					tstate.time = t - 0.001f;
-					psys_get_particle_on_path(sim, p, &tstate, 0);
-					sub_v3_v3v3(state->vel, state->co, tstate.co);
+					tstate_tmp.time = t - 0.001f;
+					psys_get_particle_on_path(sim, p, &tstate_tmp, 0);
+					sub_v3_v3v3(state->vel, state->co, tstate_tmp.co);
 					normalize_v3(state->vel);
 				}
 				else {
-					tstate.time = t + 0.001f;
-					psys_get_particle_on_path(sim, p, &tstate, 0);
-					sub_v3_v3v3(state->vel, tstate.co, state->co);
+					tstate_tmp.time = t + 0.001f;
+					psys_get_particle_on_path(sim, p, &tstate_tmp, 0);
+					sub_v3_v3v3(state->vel, tstate_tmp.co, state->co);
 					normalize_v3(state->vel);
 				}
 

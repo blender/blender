@@ -691,10 +691,10 @@ static int ptcache_smoke_read_old(PTCacheFile *pf, void *smoke_v)
 	SmokeDomainSettings *sds = smd->domain;
 	
 	if (sds->fluid) {
-		size_t res = sds->res[0]*sds->res[1]*sds->res[2];
+		const size_t res = sds->res[0] * sds->res[1] * sds->res[2];
+		const unsigned int out_len = (unsigned int)res * sizeof(float);
 		float dt, dx, *dens, *heat, *heatold, *vx, *vy, *vz;
 		unsigned char *obstacles;
-		unsigned int out_len = (unsigned int)res * sizeof(float);
 		float *tmp_array = MEM_callocN(out_len, "Smoke old cache tmp");
 
 		int fluid_fields = smoke_get_data_flags(sds);
@@ -733,13 +733,10 @@ static int ptcache_smoke_read_old(PTCacheFile *pf, void *smoke_v)
 		MEM_freeN(tmp_array);
 
 		if (pf->data_types & (1<<BPHYS_DATA_SMOKE_HIGH) && sds->wt) {
-			int res = sds->res[0]*sds->res[1]*sds->res[2];
 			int res_big, res_big_array[3];
-			float *dens, *tcu, *tcv, *tcw;
-			unsigned int out_len = sizeof(float)*(unsigned int)res;
+			float *tcu, *tcv, *tcw;
 			unsigned int out_len_big;
 			unsigned char *tmp_array_big;
-
 			smoke_turbulence_get_res(sds->wt, res_big_array);
 			res_big = res_big_array[0]*res_big_array[1]*res_big_array[2];
 			out_len_big = sizeof(float) * (unsigned int)res_big;
