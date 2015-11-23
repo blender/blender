@@ -29,9 +29,10 @@ getopt \
 ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,\
 force-all,force-python,force-numpy,force-boost,force-ocio,force-openexr,force-oiio,force-llvm,force-osl,force-osd,\
 force-ffmpeg,force-opencollada,\
+build-all,build-python,build-numpy,build-boost,build-ocio,build-openexr,build-oiio,build-llvm,build-osl,build-osd,\
+build-ffmpeg,build-opencollada,\
 skip-python,skip-numpy,skip-boost,skip-ocio,skip-openexr,skip-oiio,skip-llvm,skip-osl,skip-osd,\
-skip-ffmpeg,skip-opencollada,\
-required-numpy: \
+skip-ffmpeg,skip-opencollada\
 -- "$@" \
 )
 
@@ -118,6 +119,52 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
         It may not always work as expected (some libs are actually checked out from a git rev...), yet it might help
         to fix some build issues (like LLVM mismatch with the version used by your graphic system).
 
+    --build-all
+        Force the build of all possible libraries.
+
+    --build-python
+        Force the build of Python.
+
+    --build-numpy
+        Force the build of NumPy.
+
+    --build-boost
+        Force the build of Boost.
+
+    --build-ocio
+        Force the build of OpenColorIO.
+
+    --build-openexr
+        Force the build of OpenEXR.
+
+    --build-oiio
+        Force the build of OpenImageIO.
+
+    --build-llvm
+        Force the build of LLVM.
+
+    --build-osl
+        Force the build of OpenShadingLanguage.
+
+    --build-osd
+        Force the build of OpenSubdiv.
+
+    --build-opencollada
+        Force the build of OpenCOLLADA.
+
+    --build-ffmpeg
+        Force the build of FFMpeg.
+
+    Note about the --build-foo options:
+        * They force the script to prefer building dependencies rather than using available packages.
+          This may make things simpler and allow working around some distribution bugs, but on the other hand it will
+          use much more space on your hard drive.
+        * Please be careful with the Blender building options if you have both 'official' dev packages and
+          install_deps' built ones on your system, by default CMake will prefer official packages, which may lead to
+          linking issues. Please ensure your CMake configuration always uses all correct library paths.
+        * If the “force-built” library is a dependency of others, it will force the build
+          of those libraries as well (e.g. --build-boost also implies --build-oiio and --build-osl...).
+
     --force-all
         Force the rebuild of all built libraries.
 
@@ -191,11 +238,7 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
         Unconditionally skip OpenCOLLADA installation/building.
 
     --skip-ffmpeg
-        Unconditionally skip FFMpeg installation/building.
-
-    --required-numpy
-        Use this in case your distro features a valid python package, but no matching Numpy one.
-        It will force compilation of both python and numpy\""
+        Unconditionally skip FFMpeg installation/building.\""
 
 ##### Main Vars #####
 
@@ -205,22 +248,25 @@ SUDO="sudo"
 
 PYTHON_VERSION="3.4.0"
 PYTHON_VERSION_MIN="3.4"
+PYTHON_FORCE_BUILD=false
 PYTHON_FORCE_REBUILD=false
 PYTHON_SKIP=false
 
 NUMPY_VERSION="1.8.1"
 NUMPY_VERSION_MIN="1.8"
+NUMPY_FORCE_BUILD=false
 NUMPY_FORCE_REBUILD=false
 NUMPY_SKIP=false
-NUMPY_REQUIRED=false
 
 BOOST_VERSION="1.51.0"
 BOOST_VERSION_MIN="1.49"
+BOOST_FORCE_BUILD=false
 BOOST_FORCE_REBUILD=false
 BOOST_SKIP=false
 
 OCIO_VERSION="1.0.9"
 OCIO_VERSION_MIN="1.0"
+OCIO_FORCE_BUILD=false
 OCIO_FORCE_REBUILD=false
 OCIO_SKIP=false
 
@@ -228,6 +274,7 @@ OPENEXR_VERSION="2.2.0"
 OPENEXR_VERSION_MIN="2.0.1"
 ILMBASE_VERSION="2.2.0"
 ILMBASE_VERSION_MIN="2.2"
+OPENEXR_FORCE_BUILD=false
 OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
 _with_built_openexr=false
@@ -235,34 +282,40 @@ _with_built_openexr=false
 OIIO_VERSION="1.4.16"
 OIIO_VERSION_MIN="1.4.0"
 OIIO_VERSION_MAX="1.5.0"  # Not supported by current OSL...
+OIIO_FORCE_BUILD=false
 OIIO_FORCE_REBUILD=false
 OIIO_SKIP=false
 
 LLVM_VERSION="3.4"
 LLVM_VERSION_MIN="3.4"
 LLVM_VERSION_FOUND=""
+LLVM_FORCE_BUILD=false
 LLVM_FORCE_REBUILD=false
 LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
 OSL_VERSION="1.5.11"
 OSL_VERSION_MIN=$OSL_VERSION
+OSL_FORCE_BUILD=false
 OSL_FORCE_REBUILD=false
 OSL_SKIP=false
 
 # OpenSubdiv needs to be compiled for now
 OSD_VERSION="3.0.2"
 OSD_VERSION_MIN=$OSD_VERSION
+OSD_FORCE_BUILD=false
 OSD_FORCE_REBUILD=false
 OSD_SKIP=false
 
 # Version??
 OPENCOLLADA_VERSION="1.3"
+OPENCOLLADA_FORCE_BUILD=true  # no package!
 OPENCOLLADA_FORCE_REBUILD=false
 OPENCOLLADA_SKIP=false
 
 FFMPEG_VERSION="2.1.5"
 FFMPEG_VERSION_MIN="2.1.5"
+FFMPEG_FORCE_BUILD=false
 FFMPEG_FORCE_REBUILD=false
 FFMPEG_SKIP=false
 _ffmpeg_list_sep=";"
@@ -402,10 +455,64 @@ while true; do
       OSL_VERSION_MIN=$OSL_VERSION
       shift; shift; continue
     ;;
-  --ver-osd)
+    --ver-osd)
       OSD_VERSION="$2"
       OSD_VERSION_MIN=$OSD_VERSION
       shift; shift; continue
+    ;;
+    --build-all)
+      PYTHON_FORCE_BUILD=true
+      NUMPY_FORCE_BUILD=true
+      BOOST_FORCE_BUILD=true
+      OCIO_FORCE_BUILD=true
+      OPENEXR_FORCE_BUILD=true
+      OIIO_FORCE_BUILD=true
+      LLVM_FORCE_BUILD=true
+      OSL_FORCE_BUILD=true
+      OSD_FORCE_BUILD=true
+      OPENCOLLADA_FORCE_BUILD=true
+      FFMPEG_FORCE_BUILD=true
+      shift; continue
+    ;;
+    --build-python)
+      PYTHON_FORCE_BUILD=true
+      NUMPY_FORCE_BUILD=true
+      shift; continue
+    ;;
+    --build-numpy)
+      PYTHON_FORCE_BUILD=true
+      NUMPY_FORCE_BUILD=true
+      shift; continue
+    ;;
+    --build-boost)
+      BOOST_FORCE_BUILD=true; shift; continue
+    ;;
+    --build-ocio)
+      OCIO_FORCE_BUILD=true; shift; continue
+    ;;
+    --build-openexr)
+      OPENEXR_FORCE_BUILD=true; shift; continue
+    ;;
+    --build-oiio)
+      OIIO_FORCE_BUILD=true
+      shift; continue
+    ;;
+    --build-llvm)
+      LLVM_FORCE_BUILD=true
+      OSL_FORCE_BUILD=true
+      shift; continue
+    ;;
+    --build-osl)
+      OSL_FORCE_BUILD=true; shift; continue
+    ;;
+    --build-osd)
+      OSD_FORCE_BUILD=true; shift; continue
+    ;;
+    --build-opencollada)
+      OPENCOLLADA_FORCE_BUILD=true; shift; continue
+    ;;
+    --build-ffmpeg)
+      FFMPEG_FORCE_BUILD=true; shift; continue
     ;;
     --force-all)
       PYTHON_FORCE_REBUILD=true
@@ -492,9 +599,6 @@ while true; do
     --skip-ffmpeg)
       FFMPEG_SKIP=true; shift; continue
     ;;
-    --required-numpy)
-      NUMPY_REQUIRED=true; shift; continue
-    ;;
     --)
       # no more arguments to parse
       break
@@ -517,7 +621,7 @@ fi
 
 
 # This has to be done here, because user might force some versions...
-PYTHON_SOURCE=( "http://python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz" )
+PYTHON_SOURCE=( "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz" )
 NUMPY_SOURCE=( "http://sourceforge.net/projects/numpy/files/NumPy/$NUMPY_VERSION/numpy-$NUMPY_VERSION.tar.gz" )
 
 _boost_version_nodots=`echo "$BOOST_VERSION" | sed -r 's/\./_/g'`
@@ -584,6 +688,7 @@ DEPS_SPECIFIC_INFO="\"BUILDABLE DEPENDENCIES:
 
 The following libraries will probably not all be available as packages in your distribution
 (install_deps will by default try to install packages, and fall back to building missing ones).
+You can force install_deps to build those with '--build-all' or relevant 'build-foo' options, see '--help' message.
 You may also want to build them yourself (optional ones are [between brackets]):
 
     * Python $PYTHON_VERSION_MIN (from $PYTHON_SOURCE).
@@ -2146,14 +2251,19 @@ install_DEB() {
     fi
   fi
 
+
   PRINT ""
+  _do_compile_python=false
   if $PYTHON_SKIP; then
-    WARNING "Skipping Python installation, as requested..."
+    WARNING "Skipping Python/NumPy installation, as requested..."
+  elif [ "$PYTHON_FORCE_BUILD" = true ]; then
+    INFO "Forced Python/NumPy building, as requested..."
+    _do_compile_python=true
   else
-    _do_compile=false
     check_package_DEB python$PYTHON_VERSION_MIN-dev
     if [ $? -eq 0 ]; then
       install_packages_DEB python$PYTHON_VERSION_MIN-dev
+      clean_Python
       PRINT ""
       if $NUMPY_SKIP; then
         WARNING "Skipping NumPy installation, as requested..."
@@ -2161,35 +2271,33 @@ install_DEB() {
         check_package_DEB python3-numpy
         if [ $? -eq 0 ]; then
           install_packages_DEB python3-numpy
-        elif $NUMPY_REQUIRED; then
-          WARNING "Valid python package but no valid numpy package!" \
-                 "    Building both Python and Numpy from sources!"
-          _do_compile=true
         else
           WARNING "Sorry, using python package but no valid numpy package available!" \
-                  "    Use --required-numpy to force building of both Python and numpy."
+                  "    Use --build-numpy to force building of both Python and NumPy."
         fi
       fi
     else
-      _do_compile=true
-    fi
-
-    if $_do_compile; then
-      compile_Python
-      PRINT ""
-      if $NUMPY_SKIP; then
-        WARNING "Skipping NumPy installation, as requested..."
-      else
-        compile_Numpy
-      fi
-    else
-      clean_Python
+      _do_compile_python=true
     fi
   fi
+
+  if $_do_compile_python; then
+    compile_Python
+    PRINT ""
+    if $NUMPY_SKIP; then
+      WARNING "Skipping NumPy installation, as requested..."
+    else
+      compile_Numpy
+    fi
+  fi
+
 
   PRINT ""
   if $BOOST_SKIP; then
     WARNING "Skipping Boost installation, as requested..."
+  elif [ "$BOOST_FORCE_BUILD" = true ]; then
+    INFO "Forced Boost building, as requested..."
+    compile_Boost
   else
     check_package_version_ge_DEB libboost-dev $BOOST_VERSION_MIN
     if [ $? -eq 0 ]; then
@@ -2211,9 +2319,13 @@ install_DEB() {
     fi
   fi
 
+
   PRINT ""
   if $OCIO_SKIP; then
     WARNING "Skipping OpenColorIO installation, as requested..."
+  elif [ "$OCIO_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenColorIO building, as requested..."
+    compile_OCIO
   else
     # XXX Always force build of own OCIO, until linux distro guys update their package to default libyaml-cpp ver (0.5)!
     #check_package_version_ge_DEB libopencolorio-dev $OCIO_VERSION_MIN
@@ -2225,9 +2337,13 @@ install_DEB() {
     #fi
   fi
 
+
   PRINT ""
   if $OPENEXR_SKIP; then
-    WARNING "Skipping OpenEXR installation, as requested..."
+    WARNING "Skipping ILMBase/OpenEXR installation, as requested..."
+  elif [ "$OPENEXR_FORCE_BUILD" = true ]; then
+    INFO "Forced ILMBase/OpenEXR building, as requested..."
+    compile_OPENEXR
   else
     check_package_version_ge_DEB libopenexr-dev $OPENEXR_VERSION_MIN
     if [ $? -eq 0 ]; then
@@ -2240,9 +2356,13 @@ install_DEB() {
     fi
   fi
 
+
   PRINT ""
   if $OIIO_SKIP; then
     WARNING "Skipping OpenImageIO installation, as requested..."
+  elif [ "$OIIO_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenImageIO building, as requested..."
+    compile_OIIO
   else
     check_package_version_ge_lt_DEB libopenimageio-dev $OIIO_VERSION_MIN $OIIO_VERSION_MAX
     if [ $? -eq 0 -a $_with_built_openexr == false ]; then
@@ -2253,11 +2373,15 @@ install_DEB() {
     fi
   fi
 
-  have_llvm=false
 
   PRINT ""
+  have_llvm=false
+  _do_compile_llvm=false
   if $LLVM_SKIP; then
     WARNING "Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+  elif [ "$LLVM_FORCE_BUILD" = true ]; then
+    INFO "Forced LLVM building, as requested..."
+    _do_compile_llvm=true
   else
     check_package_DEB llvm-$LLVM_VERSION-dev
     if [ $? -eq 0 ]; then
@@ -2273,24 +2397,37 @@ install_DEB() {
         LLVM_VERSION_FOUND=""  # Using default one, no need to specify it!
         clean_LLVM
       else
-        install_packages_DEB libffi-dev
-        # LLVM can't find the debian ffi header dir
-        _FFI_INCLUDE_DIR=`dpkg -L libffi-dev | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
-        PRINT ""
-        compile_LLVM
-        have_llvm=true
-        LLVM_VERSION_FOUND=$LLVM_VERSION
+        _do_compile_llvm=true
       fi
     fi
   fi
 
+  if [ "$_do_compile_llvm" = true ]; then
+    install_packages_DEB libffi-dev
+    # LLVM can't find the debian ffi header dir
+    _FFI_INCLUDE_DIR=`dpkg -L libffi-dev | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
+    PRINT ""
+    compile_LLVM
+    have_llvm=true
+    LLVM_VERSION_FOUND=$LLVM_VERSION
+  fi
+
+
   PRINT ""
+  _do_compile_osl=false
   if $OSL_SKIP; then
     WARNING "Skipping OpenShadingLanguage installation, as requested..."
+  elif [ "$OSL_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenShadingLanguage building, as requested..."
+    _do_compile_osl=true
   else
+      # No package currently!
+    _do_compile_osl=true
+  fi
+
+  if [ "$_do_compile_osl" = true ]; then
     if $have_llvm; then
       install_packages_DEB flex bison libtbb-dev
-      # No package currently!
       PRINT ""
       compile_OSL
     else
@@ -2298,13 +2435,22 @@ install_DEB() {
     fi
   fi
 
+
   PRINT ""
+  _do_compile_osd=false
   if $OSD_SKIP; then
     WARNING "Skipping OpenSubdiv installation, as requested..."
+  elif [ "$OSD_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenSubdiv building, as requested..."
+    _do_compile_osd=true
   else
+      # No package currently!
+    _do_compile_osd=true
+  fi
+
+  if [ "$_do_compile_osd" = true ]; then
     if $have_llvm; then
       install_packages_DEB flex bison libtbb-dev
-      # No package currently!
       PRINT ""
       compile_OSD
     else
@@ -2312,11 +2458,21 @@ install_DEB() {
     fi
   fi
 
+
   if $WITH_OPENCOLLADA; then
+    _do_compile_collada=false
     PRINT ""
     if $OPENCOLLADA_SKIP; then
       WARNING "Skipping OpenCOLLADA installation, as requested..."
+    elif [ "$OPENCOLLADA_FORCE_BUILD" = true ]; then
+      INFO "Forced OpenCollada building, as requested..."
+      _do_compile_collada=true
     else
+        # No package currently!
+      _do_compile_collada=true
+    fi
+
+    if [ "$_do_compile_collada" = true ]; then
       install_packages_DEB libpcre3-dev
       # Find path to libxml shared lib...
       _XML2_LIB=`dpkg -L libxml2-dev | grep -e ".*/libxml2.so"`
@@ -2326,9 +2482,13 @@ install_DEB() {
     fi
   fi
 
+
   PRINT ""
   if $FFMPEG_SKIP; then
     WARNING "Skipping FFMpeg installation, as requested..."
+  elif [ "$FFMPEG_FORCE_BUILD" = true ]; then
+    INFO "Forced FFMpeg building, as requested..."
+    compile_FFmpeg
   else
 #    XXX Debian features libav packages as ffmpeg, those are not really compatible with blender code currently :/
 #        So for now, always build our own ffmpeg.
@@ -2617,14 +2777,19 @@ install_RPM() {
     install_packages_RPM libspnav-devel
   fi
 
+
   PRINT ""
+  _do_compile_python=false
   if $PYTHON_SKIP; then
     WARNING "Skipping Python installation, as requested..."
+  elif [ "$PYTHON_FORCE_BUILD" = true ]; then
+    INFO "Forced Python/NumPy building, as requested..."
+    _do_compile_python=true
   else
-    _do_compile=false
     check_package_version_match_RPM python3-devel $PYTHON_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_RPM python3-devel
+      clean_Python
       PRINT ""
       if $NUMPY_SKIP; then
         WARNING "Skipping NumPy installation, as requested..."
@@ -2632,35 +2797,33 @@ install_RPM() {
         check_package_version_ge_RPM python3-numpy $NUMPY_VERSION_MIN
         if [ $? -eq 0 ]; then
           install_packages_RPM python3-numpy
-        elif $NUMPY_REQUIRED; then
-          WARNING "Valid python package but no valid numpy package!" \
-                  "    Building both Python and Numpy from sources!"
-          _do_compile=true
         else
           WARNING "Sorry, using python package but no valid numpy package available!" \
-                  "    Use --required-numpy to force building of both Python and numpy."
+                  "    Use --build-numpy to force building of both Python and NumPy."
         fi
       fi
     else
-      _do_compile=true
-    fi
-
-    if $_do_compile; then
-      compile_Python
-      PRINT ""
-      if $NUMPY_SKIP; then
-        WARNING "Skipping NumPy installation, as requested..."
-      else
-        compile_Numpy
-      fi
-    else
-      clean_Python
+      _do_compile_python=true
     fi
   fi
+
+  if $_do_compile_python; then
+    compile_Python
+    PRINT ""
+    if $NUMPY_SKIP; then
+      WARNING "Skipping NumPy installation, as requested..."
+    else
+      compile_Numpy
+    fi
+  fi
+
 
   PRINT ""
   if $BOOST_SKIP; then
     WARNING "Skipping Boost installation, as requested..."
+  elif [ "$BOOST_FORCE_BUILD" = true ]; then
+    INFO "Forced Boost building, as requested..."
+    compile_Boost
   else
     check_package_version_ge_RPM boost-devel $BOOST_VERSION
     if [ $? -eq 0 ]; then
@@ -2671,9 +2834,13 @@ install_RPM() {
     fi
   fi
 
+
   PRINT ""
   if $OCIO_SKIP; then
     WARNING "Skipping OpenColorIO installation, as requested..."
+  elif [ "$OCIO_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenColorIO building, as requested..."
+    compile_OCIO
   else
     # XXX Always force build of own OCIO, until linux distro guys update their package to default libyaml-cpp ver (0.5)!
     #check_package_version_ge_RPM OpenColorIO-devel $OCIO_VERSION_MIN
@@ -2687,7 +2854,10 @@ install_RPM() {
 
   PRINT ""
   if $OPENEXR_SKIP; then
-    WARNING "Skipping OpenEXR installation, as requested..."
+    WARNING "Skipping ILMBase/OpenEXR installation, as requested..."
+  elif [ "$OPENEXR_FORCE_BUILD" = true ]; then
+    INFO "Forced ILMBase/OpenEXR building, as requested..."
+    compile_OPENEXR
   else
     check_package_version_ge_RPM $OPENEXR_DEV $OPENEXR_VERSION_MIN
     if [ $? -eq 0 ]; then
@@ -2703,6 +2873,9 @@ install_RPM() {
   PRINT ""
   if $OIIO_SKIP; then
     WARNING "Skipping OpenImageIO installation, as requested..."
+  elif [ "$OIIO_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenImageIO building, as requested..."
+    compile_OIIO
   else
     check_package_version_ge_lt_RPM OpenImageIO-devel $OIIO_VERSION_MIN $OIIO_VERSION_MAX
     if [ $? -eq 0 -a $_with_built_openexr == false ]; then
@@ -2713,11 +2886,15 @@ install_RPM() {
     fi
   fi
 
-  have_llvm=false
 
   PRINT ""
+  have_llvm=false
+  _do_compile_llvm=false
   if $LLVM_SKIP; then
     WARNING "Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+  elif [ "$LLVM_FORCE_BUILD" = true ]; then
+    INFO "Forced LLVM building, as requested..."
+    _do_compile_llvm=true
   else
     # Problem compiling with LLVM 3.2 so match version 3.1 ...
     check_package_version_match_RPM llvm $LLVM_VERSION
@@ -2734,22 +2911,35 @@ install_RPM() {
       #
       # Better to compile it than use minimum version from repo...
       #
-      install_packages_RPM libffi-devel
-      # LLVM can't find the fedora ffi header dir...
-      _FFI_INCLUDE_DIR=`rpm -ql libffi-devel | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
-      PRINT ""
-      compile_LLVM
-      have_llvm=true
-      LLVM_VERSION_FOUND=$LLVM_VERSION
+      _do_compile_llvm=true
     fi
   fi
 
+  if [ "$_do_compile_llvm" = true ]; then
+    install_packages_RPM libffi-devel
+    # LLVM can't find the fedora ffi header dir...
+    _FFI_INCLUDE_DIR=`rpm -ql libffi-devel | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
+    PRINT ""
+    compile_LLVM
+    have_llvm=true
+    LLVM_VERSION_FOUND=$LLVM_VERSION
+  fi
+
+
   PRINT ""
+  _do_compile_osl=true
   if $OSL_SKIP; then
     WARNING "Skipping OpenShadingLanguage installation, as requested..."
+  elif [ "$OSL_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenShadingLanguage building, as requested..."
+    _do_compile_osl=true
   else
+    # No package currently!
+    _do_compile_osl=true
+  fi
+
+  if [ "$_do_compile_osl" = true ]; then
     if $have_llvm; then
-      # No package currently!
       install_packages_RPM flex bison
       if [ $RPM = "FEDORA" -o $RPM = "RHEL" ]; then
         install_packages_RPM tbb-devel
@@ -2761,12 +2951,21 @@ install_RPM() {
     fi
   fi
 
+
   PRINT ""
+  _do_compile_osd=false
   if $OSD_SKIP; then
     WARNING "Skipping OpenSubdiv installation, as requested..."
+  elif [ "$OSD_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenSubdiv building, as requested..."
+    _do_compile_osd=true
   else
+    # No package currently!
+    _do_compile_osd=true
+  fi
+
+  if [ "$_do_compile_osd" = true ]; then
     if $have_llvm; then
-      # No package currently!
       install_packages_RPM flex bison
       if [ $RPM = "FEDORA" -o $RPM = "RHEL" ]; then
         install_packages_RPM tbb-devel
@@ -2778,23 +2977,36 @@ install_RPM() {
     fi
   fi
 
+
   if $WITH_OPENCOLLADA; then
     PRINT ""
+    _do_compile_collada=false
     if $OPENCOLLADA_SKIP; then
       WARNING "Skipping OpenCOLLADA installation, as requested..."
+    elif [ "$OPENCOLLADA_FORCE_BUILD" = true ]; then
+      INFO "Forced OpenCollada building, as requested..."
+      _do_compile_collada=true
     else
+      # No package...
+      _do_compile_collada=true
+    fi
+
+    if [ "$_do_compile_collada" = true ]; then
       install_packages_RPM pcre-devel
       # Find path to libxml shared lib...
       _XML2_LIB=`rpm -ql libxml2-devel | grep -e ".*/libxml2.so"`
-      # No package...
       PRINT ""
       compile_OpenCOLLADA
     fi
   fi
 
+
   PRINT ""
   if $FFMPEG_SKIP; then
     WARNING "Skipping FFMpeg installation, as requested..."
+  elif [ "$FFMPEG_FORCE_BUILD" = true ]; then
+    INFO "Forced FFMpeg building, as requested..."
+    compile_FFmpeg
   else
     check_package_version_ge_RPM ffmpeg $FFMPEG_VERSION_MIN
     if [ $? -eq 0 ]; then
@@ -2954,14 +3166,19 @@ install_ARCH() {
     fi
   fi
 
+
   PRINT ""
+  _do_compile_python=false
   if $PYTHON_SKIP; then
     WARNING "Skipping Python installation, as requested..."
+  elif [ "$PYTHON_FORCE_BUILD" = true ]; then
+    INFO "Forced Python/NumPy building, as requested..."
+    _do_compile_python=true
   else
-    _do_compile=false
     check_package_version_ge_ARCH python $PYTHON_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_ARCH python
+      clean_Python
       PRINT ""
       if $WITH_NUMPY; then
         if $NUMPY_SKIP; then
@@ -2970,36 +3187,34 @@ install_ARCH() {
           check_package_version_ge_ARCH python-numpy $NUMPY_VERSION_MIN
           if [ $? -eq 0 ]; then
             install_packages_ARCH python-numpy
-        elif $NUMPY_REQUIRED; then
-          WARNING "Valid python package but no valid numpy package!" \
-                  "    Building both Python and Numpy from sources!"
-          _do_compile=true
         else
           WARNING "Sorry, using python package but no valid numpy package available!" \
-                  "    Use --required-numpy to force building of both Python and numpy."
+                  "    Use --build-numpy to force building of both Python and NumPy."
           fi
         fi
       fi
     else
-      _do_compile=true
-    fi
-
-    if $_do_compile; then
-      compile_Python
-      PRINT ""
-      if $NUMPY_SKIP; then
-        WARNING "Skipping NumPy installation, as requested..."
-      else
-        compile_Numpy
-      fi
-    else
-      clean_Python
+      _do_compile_python=true
     fi
   fi
+
+  if $_do_compile_python; then
+    compile_Python
+    PRINT ""
+    if $NUMPY_SKIP; then
+      WARNING "Skipping NumPy installation, as requested..."
+    else
+      compile_Numpy
+    fi
+  fi
+
 
   PRINT ""
   if $BOOST_SKIP; then
     WARNING "Skipping Boost installation, as requested..."
+  elif [ "$BOOST_FORCE_BUILD" = true ]; then
+    INFO "Forced Boost building, as requested..."
+    compile_Boost
   else
     check_package_version_ge_ARCH boost $BOOST_VERSION_MIN
     if [ $? -eq 0 ]; then
@@ -3011,8 +3226,12 @@ install_ARCH() {
   fi
 
   PRINT ""
+  _do_compile_ocio=false
   if $OCIO_SKIP; then
     WARNING "Skipping OpenColorIO installation, as requested..."
+  elif [ "$OCIO_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenColorIO building, as requested..."
+    _do_compile_ocio=true
   else
     # XXX Always force build of own OCIO, until linux distro guys update their package to default libyaml-cpp ver (0.5)!
     #check_package_version_ge_ARCH opencolorio $OCIO_VERSION_MIN
@@ -3020,14 +3239,22 @@ install_ARCH() {
       #install_packages_ARCH opencolorio yaml-cpp tinyxml
       #clean_OCIO
     #else
-      install_packages_ARCH yaml-cpp tinyxml
-      compile_OCIO
+      _do_compile_ocio=true
     #fi
   fi
 
+  if [ "$_do_compile_ocio" = true ]; then
+    install_packages_ARCH yaml-cpp tinyxml
+    compile_OCIO
+  fi
+
+
   PRINT ""
   if $OPENEXR_SKIP; then
-    WARNING "Skipping OpenEXR installation, as requested..."
+    WARNING "Skipping ILMBase/OpenEXR installation, as requested..."
+  elif [ "$OPENEXR_FORCE_BUILD" = true ]; then
+    INFO "Forced ILMBase/OpenEXR building, as requested..."
+    compile_OPENEXR
   else
     check_package_version_ge_ARCH openexr $OPENEXR_VERSION_MIN
     if [ $? -eq 0 ]; then
@@ -3040,9 +3267,13 @@ install_ARCH() {
     fi
   fi
 
+
   PRINT ""
   if $OIIO_SKIP; then
     WARNING "Skipping OpenImageIO installation, as requested..."
+  elif [ "$OIIO_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenImageIO building, as requested..."
+    compile_OIIO
   else
     check_package_version_ge_lt_ARCH openimageio $OIIO_VERSION_MIN $OIIO_VERSION_MAX
     if [ $? -eq 0 ]; then
@@ -3053,11 +3284,15 @@ install_ARCH() {
     fi
   fi
 
-  have_llvm=false
 
   PRINT ""
+  have_llvm=false
+  _do_compile_llvm=false
   if $LLVM_SKIP; then
     WARNING "Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+  elif [ "$LLVM_FORCE_BUILD" = true ]; then
+    INFO "Forced LLVM building, as requested..."
+    _do_compile_llvm=true
   else
     check_package_version_ge_ARCH llvm $LLVM_VERSION_MIN
     if [ $? -eq 0 ]; then
@@ -3067,44 +3302,66 @@ install_ARCH() {
       LLVM_VERSION_FOUND=$LLVM_VERSION
       clean_LLVM
     else
-      install_packages_ARCH libffi
-      # LLVM can't find the arch ffi header dir...
-      _FFI_INCLUDE_DIR=`pacman -Ql libffi | grep -e ".*/ffi.h" | awk '{print $2}' | sed -r 's/(.*)\/ffi.h/\1/'`
-      # LLVM 3.1 needs python2 to build and arch defaults to python3
-      _PYTHON2_BIN="/usr/bin/python2"
-      PRINT ""
-      compile_LLVM
-      have_llvm=true
-      LLVM_VERSION_FOUND=$LLVM_VERSION
+      _do_compile_llvm=true
     fi
   fi
 
+  if [ "$_do_compile_llvm" = true ]; then
+    install_packages_ARCH libffi
+    # LLVM can't find the arch ffi header dir...
+    _FFI_INCLUDE_DIR=`pacman -Ql libffi | grep -e ".*/ffi.h" | awk '{print $2}' | sed -r 's/(.*)\/ffi.h/\1/'`
+    # LLVM 3.1 needs python2 to build and arch defaults to python3
+    _PYTHON2_BIN="/usr/bin/python2"
+    PRINT ""
+    compile_LLVM
+    have_llvm=true
+    LLVM_VERSION_FOUND=$LLVM_VERSION
+  fi
+
+
   PRINT ""
+  _do_compile_osl=false
   if $OSL_SKIP; then
     WARNING "Skipping OpenShadingLanguage installation, as requested..."
+  elif [ "$OSL_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenShadingLanguage building, as requested..."
+    _do_compile_osl=true
   else
+    check_package_version_ge_ARCH openshadinglanguage $OSL_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_ARCH openshadinglanguage
+      clean_OSL
+    else
+      _do_compile_osl=true
+    fi
+  fi
+
+  if [ "$_do_compile_osl" = true ]; then
     if $have_llvm; then
-      check_package_version_ge_ARCH openshadinglanguage $OSL_VERSION_MIN
-      if [ $? -eq 0 ]; then
-        install_packages_ARCH openshadinglanguage
-        clean_OSL
-      else
-        #XXX Note: will fail to build with LLVM 3.2! 
-        install_packages_ARCH intel-tbb
-        PRINT ""
-        compile_OSL
-      fi
+      #XXX Note: will fail to build with LLVM 3.2! 
+      install_packages_ARCH intel-tbb
+      PRINT ""
+      compile_OSL
     else
       WARNING "No LLVM available, cannot build OSL!"
     fi
   fi
 
+
   PRINT ""
+  _do_compile_osd=false
   if $OSD_SKIP; then
     WARNING "Skipping OpenSubdiv installation, as requested..."
+  elif [ "$OSD_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenSubdiv building, as requested..."
+    _do_compile_osd=true
   else
+    # No package currently? Just build for now!
+    _do_compile_osd=true
+  fi
+
+  if [ "$_do_compile_osd" = true ]; then
     if $have_llvm; then
-      # No package currently? Just build for now!
       install_packages_ARCH intel-tbb
       PRINT ""
       compile_OSD
@@ -3113,28 +3370,41 @@ install_ARCH() {
     fi
   fi
 
+
   if $WITH_OPENCOLLADA; then
     PRINT ""
+    _do_compile_collada=false
     if $OPENCOLLADA_SKIP; then
       WARNING "Skipping OpenCOLLADA installation, as requested..."
+    elif [ "$OPENCOLLADA_FORCE_BUILD" = true ]; then
+      INFO "Forced OpenCollada building, as requested..."
+      _do_compile_collada=true
     else
       check_package_ARCH opencollada
       if [ $? -eq 0 ]; then
         install_packages_ARCH opencollada
         clean_OpenCOLLADA
       else
-        install_packages_ARCH pcre
-        PRINT ""
-        compile_OpenCOLLADA
+        _do_compile_collada=true
       fi
-    # Find path to libxml shared lib...
-    _XML2_LIB=`pacman -Ql libxml2 | grep -e ".*/libxml2.so$" | gawk '{print $2}'`
+    fi
+
+    if [ "$_do_compile_collada" = true ]; then
+      install_packages_ARCH pcre
+      # Find path to libxml shared lib...
+      _XML2_LIB=`pacman -Ql libxml2 | grep -e ".*/libxml2.so$" | gawk '{print $2}'`
+      PRINT ""
+      compile_OpenCOLLADA
     fi
   fi
+
 
   PRINT ""
   if $FFMPEG_SKIP; then
     WARNING "Skipping FFMpeg installation, as requested..."
+  elif [ "$FFMPEG_FORCE_BUILD" = true ]; then
+    INFO "Forced FFMpeg building, as requested..."
+    compile_FFmpeg
   else
     check_package_version_ge_ARCH ffmpeg $FFMPEG_VERSION_MIN
     if [ $? -eq 0 ]; then
@@ -3146,6 +3416,179 @@ install_ARCH() {
   fi
 }
 
+
+#### Install on other distro (very limited!) ####
+
+install_OTHER() {
+  PRINT ""
+  WARNING "Attempt to build main dependencies for other linux distributions."
+  PRINT ""
+  PRINT "`eval _echo "$COMMON_INFO"`"
+  PRINT ""
+
+  ERROR "Failed to detect distribution type."
+  PRINT ""
+  PRINT "Your distribution is not supported by this script, you'll have to install dependencies and"
+  PRINT "dev packages yourself. However, this script can still attempt to build main (complex) libraries for you,"
+  PRINT "if you use '--build-foo' options (you can try '--build-all' one first)."
+  PRINT ""
+  PRINT "Quite obviously, it assumes dependencies from those libraries are already available, otherwise please"
+  PRINT "install them (you can also use error messages printed out by build process to find missing libraries...)."
+  PRINT ""
+  PRINT "`eval _echo "$DEPS_COMMON_INFO"`"
+  PRINT ""
+  PRINT "`eval _echo "$DEPS_SPECIFIC_INFO"`"
+  PRINT ""
+
+  read -p "Do you want to continue (Y/n)?"
+  [ "$(echo ${REPLY:=Y} | tr [:upper:] [:lower:])" != "y" ] && exit
+
+  PRINT ""
+  _do_compile_python=false
+  if $PYTHON_SKIP; then
+    WARNING "Skipping Python/NumPy installation, as requested..."
+  elif [ "$PYTHON_FORCE_BUILD" = true ]; then
+    INFO "Forced Python/NumPy building, as requested..."
+    _do_compile_python=true
+  fi
+
+  if $_do_compile_python; then
+    compile_Python
+    PRINT ""
+    if $NUMPY_SKIP; then
+      WARNING "Skipping NumPy installation, as requested..."
+    else
+      compile_Numpy
+    fi
+  fi
+
+
+  PRINT ""
+  if $BOOST_SKIP; then
+    WARNING "Skipping Boost installation, as requested..."
+  elif [ "$BOOST_FORCE_BUILD" = true ]; then
+    INFO "Forced Boost building, as requested..."
+    compile_Boost
+  fi
+
+
+  PRINT ""
+  if $OCIO_SKIP; then
+    WARNING "Skipping OpenColorIO installation, as requested..."
+  elif [ "$OCIO_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenColorIO building, as requested..."
+    compile_OCIO
+  fi
+
+
+  PRINT ""
+  if $OPENEXR_SKIP; then
+    WARNING "Skipping ILMBase/OpenEXR installation, as requested..."
+  elif [ "$OPENEXR_FORCE_BUILD" = true ]; then
+    INFO "Forced ILMBase/OpenEXR building, as requested..."
+    compile_OPENEXR
+  fi
+
+
+  PRINT ""
+  if $OIIO_SKIP; then
+    WARNING "Skipping OpenImageIO installation, as requested..."
+  elif [ "$OIIO_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenImageIO building, as requested..."
+    compile_OIIO
+  fi
+
+
+  PRINT ""
+  have_llvm=false
+  _do_compile_llvm=false
+  if $LLVM_SKIP; then
+    WARNING "Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+  elif [ "$LLVM_FORCE_BUILD" = true ]; then
+    INFO "Forced LLVM building, as requested..."
+    _do_compile_llvm=true
+  fi
+
+  if [ "$_do_compile_llvm" = true ]; then
+    install_packages_DEB libffi-dev
+    # LLVM can't find the debian ffi header dir
+    _FFI_INCLUDE_DIR=`dpkg -L libffi-dev | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
+    PRINT ""
+    compile_LLVM
+    have_llvm=true
+    LLVM_VERSION_FOUND=$LLVM_VERSION
+  fi
+
+
+  PRINT ""
+  _do_compile_osl=false
+  if $OSL_SKIP; then
+    WARNING "Skipping OpenShadingLanguage installation, as requested..."
+  elif [ "$OSL_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenShadingLanguage building, as requested..."
+    _do_compile_osl=true
+  fi
+
+  if [ "$_do_compile_osl" = true ]; then
+    if $have_llvm; then
+      install_packages_DEB flex bison libtbb-dev
+      PRINT ""
+      compile_OSL
+    else
+      WARNING "No LLVM available, cannot build OSL!"
+    fi
+  fi
+
+
+  PRINT ""
+  _do_compile_osd=false
+  if $OSD_SKIP; then
+    WARNING "Skipping OpenSubdiv installation, as requested..."
+  elif [ "$OSD_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenSubdiv building, as requested..."
+    _do_compile_osd=true
+  fi
+
+  if [ "$_do_compile_osd" = true ]; then
+    if $have_llvm; then
+      install_packages_DEB flex bison libtbb-dev
+      PRINT ""
+      compile_OSD
+    else
+      WARNING "No LLVM available, cannot build OSD!"
+    fi
+  fi
+
+
+  if $WITH_OPENCOLLADA; then
+    _do_compile_collada=false
+    PRINT ""
+    if $OPENCOLLADA_SKIP; then
+      WARNING "Skipping OpenCOLLADA installation, as requested..."
+    elif [ "$OPENCOLLADA_FORCE_BUILD" = true ]; then
+      INFO "Forced OpenCollada building, as requested..."
+      _do_compile_collada=true
+    fi
+
+    if [ "$_do_compile_collada" = true ]; then
+      install_packages_DEB libpcre3-dev
+      # Find path to libxml shared lib...
+      _XML2_LIB=`dpkg -L libxml2-dev | grep -e ".*/libxml2.so"`
+      # No package
+      PRINT ""
+      compile_OpenCOLLADA
+    fi
+  fi
+
+
+  PRINT ""
+  if $FFMPEG_SKIP; then
+    WARNING "Skipping FFMpeg installation, as requested..."
+  elif [ "$FFMPEG_FORCE_BUILD" = true ]; then
+    INFO "Forced FFMpeg building, as requested..."
+    compile_FFmpeg
+  fi
+}
 
 #### Printing User Info ####
 
@@ -3222,6 +3665,9 @@ print_info() {
   PRINT "The same goes for install_deps itself, if you encounter issues, please first erase everything in $SRC and $INST"
   PRINT "(provided obviously you did not add anything yourself in those dirs!), and run install_deps.sh again!"
   PRINT "Often, changes in the libs built by this script, or in your distro package, cannot be handled simply, so..."
+  PRINT ""
+  PRINT "You may also try to use the '--build-foo' options to bypass your distribution's packages"
+  PRINT "for some troublesome/buggy libraries..."
   PRINT ""
   PRINT ""
   PRINT "Ran with:"
@@ -3419,16 +3865,8 @@ elif [ -f /etc/redhat-release -o /etc/SuSE-release ]; then
   DISTRO="RPM"
   install_RPM
 else
-  ERROR "Failed to detect distribution type."
-  PRINT ""
-  PRINT "Your distribution is not supported by this script, you'll have to install dependencies and"
-  PRINT "dev packages yourself."
-  PRINT ""
-  PRINT "`eval _echo "$DEPS_COMMON_INFO"`"
-  PRINT ""
-  PRINT "`eval _echo "$DEPS_SPECIFIC_INFO"`"
-  PRINT ""
-  exit 1
+  DISTRO="OTHER"
+  install_OTHER
 fi
 
 print_info | tee $INFO_PATH/BUILD_NOTES.txt
