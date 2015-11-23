@@ -16,10 +16,16 @@ uniform sampler2D cocbuffer;
 #endif
 
 /* initial uv coordinate */
-in vec2 uvcoord[1];
-out vec2 particlecoord;
-out vec4 color;
-
+#if __VERSION__ < 130
+  varying in vec2 uvcoord[1];
+  varying out vec2 particlecoord;
+  varying out vec4 color;
+  #define textureLod texture2DLod
+#else
+  in vec2 uvcoord[1];
+  out vec2 particlecoord;
+  out vec4 color;
+#endif
 
 #define M_PI 3.1415926535897932384626433832795
 
