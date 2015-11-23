@@ -202,7 +202,7 @@ static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char
 			default:
 			{
 				const char *idname;
-				if (RNA_enum_id_from_value(id_type_items, GS(data->name), &idname) == 0)
+				if (RNA_enum_id_from_value(rna_enum_id_type_items, GS(data->name), &idname) == 0)
 					idname = "UNKNOWN";
 
 				BKE_reportf(reports, RPT_ERROR, "ID type '%s' is not valid for an object", idname);
@@ -1117,7 +1117,7 @@ void RNA_def_main_lamps(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a new lamp to the main database");
 	parm = RNA_def_string(func, "name", "Lamp", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_enum(func, "type", lamp_type_items, 0, "Type", "The type of texture to add");
+	parm = RNA_def_enum(func, "type", rna_enum_lamp_type_items, 0, "Type", "The type of texture to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm = RNA_def_pointer(func, "lamp", "Lamp", "", "New lamp data-block");
@@ -1305,7 +1305,7 @@ void RNA_def_main_curves(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a new curve to the main database");
 	parm = RNA_def_string(func, "name", "Curve", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_enum(func, "type", object_type_curve_items, 0, "Type", "The type of curve to add");
+	parm = RNA_def_enum(func, "type", rna_enum_object_type_curve_items, 0, "Type", "The type of curve to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm = RNA_def_pointer(func, "curve", "Curve", "", "New curve data-block");
@@ -1414,7 +1414,7 @@ void RNA_def_main_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a new texture to the main database");
 	parm = RNA_def_string(func, "name", "Texture", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_enum(func, "type", texture_type_items, 0, "Type", "The type of texture to add");
+	parm = RNA_def_enum(func, "type", rna_enum_texture_type_items, 0, "Type", "The type of texture to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm = RNA_def_pointer(func, "texture", "Texture", "", "New texture data-block");
@@ -1451,7 +1451,7 @@ void RNA_def_main_brushes(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a new brush to the main database");
 	parm = RNA_def_string(func, "name", "Brush", 0, "", "New name for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_enum(func, "mode", object_mode_items, OB_MODE_TEXTURE_PAINT, "", "Paint Mode for the new brush");
+	parm = RNA_def_enum(func, "mode", rna_enum_object_mode_items, OB_MODE_TEXTURE_PAINT, "", "Paint Mode for the new brush");
 	/* return type */
 	parm = RNA_def_pointer(func, "brush", "Brush", "", "New brush data-block");
 	RNA_def_function_return(func, parm);

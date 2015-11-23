@@ -56,7 +56,7 @@ static EnumPropertyItem beztriple_handle_type_items[] = {
 };
 #endif
 		
-EnumPropertyItem keyframe_handle_type_items[] = {
+EnumPropertyItem rna_enum_keyframe_handle_type_items[] = {
 	{HD_FREE, "FREE", 0, "Free", ""},
 	{HD_VECT, "VECTOR", 0, "Vector", ""},
 	{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
@@ -65,7 +65,7 @@ EnumPropertyItem keyframe_handle_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem beztriple_interpolation_mode_items[] = {
+EnumPropertyItem rna_enum_beztriple_interpolation_mode_items[] = {
 	/* interpolation */
 	{0, "", 0, N_("Interpolation"), "Standard transitions between keyframes"},
 	{BEZT_IPO_CONST, "CONSTANT", ICON_IPO_CONSTANT, "Constant", "No interpolation, value of A gets held until B is encountered"},

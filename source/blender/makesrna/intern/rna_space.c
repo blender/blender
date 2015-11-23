@@ -60,7 +60,7 @@
 #include "RNA_enum_types.h"
 
 
-EnumPropertyItem space_type_items[] = {
+EnumPropertyItem rna_enum_space_type_items[] = {
 	/* empty must be here for python, is skipped for UI */
 	{SPACE_EMPTY, "EMPTY", ICON_NONE, "Empty", ""},
 	{SPACE_VIEW3D, "VIEW_3D", ICON_VIEW3D, "3D View", "3D viewport"},
@@ -175,7 +175,7 @@ static EnumPropertyItem autosnap_items[] = {
 };
 #endif
 
-EnumPropertyItem viewport_shade_items[] = {
+EnumPropertyItem rna_enum_viewport_shade_items[] = {
 	{OB_BOUNDBOX, "BOUNDBOX", ICON_BBOX, "Bounding Box", "Display the object's local bounding boxes only"},
 	{OB_WIRE, "WIREFRAME", ICON_WIRE, "Wireframe", "Display the object as wire edges"},
 	{OB_SOLID, "SOLID", ICON_SOLID, "Solid", "Display the object solid, lit with default OpenGL lights"},
@@ -186,7 +186,7 @@ EnumPropertyItem viewport_shade_items[] = {
 };
 
 
-EnumPropertyItem clip_editor_mode_items[] = {
+EnumPropertyItem rna_enum_clip_editor_mode_items[] = {
 	{SC_MODE_TRACKING, "TRACKING", ICON_ANIM_DATA, "Tracking", "Show tracking and solving tools"},
 	{SC_MODE_MASKEDIT, "MASK", ICON_MOD_MASK, "Mask", "Show mask editing tools"},
 	{0, NULL, 0, NULL, NULL}
@@ -232,7 +232,7 @@ static EnumPropertyItem fileselectparams_recursion_level_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem file_sort_items[] = {
+EnumPropertyItem rna_enum_file_sort_items[] = {
 	{FILE_SORT_ALPHA, "FILE_SORT_ALPHA", ICON_SORTALPHA, "Sort alphabetically", "Sort the file list alphabetically"},
 	{FILE_SORT_EXTENSION, "FILE_SORT_EXTENSION", ICON_SORTBYEXT, "Sort by extension", "Sort the file list by extension/type"},
 	{FILE_SORT_TIME, "FILE_SORT_TIME", ICON_SORTTIME, "Sort by time", "Sort files by modification time"},
@@ -698,14 +698,14 @@ static EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(bContext *UNUSED(C
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
 
-	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_BOUNDBOX);
-	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_WIRE);
-	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_SOLID);
-	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_TEXTURE);
-	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_MATERIAL);
+	RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_BOUNDBOX);
+	RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_WIRE);
+	RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_SOLID);
+	RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_TEXTURE);
+	RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_MATERIAL);
 	
 	if (type && type->view_draw)
-		RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_RENDER);
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_RENDER);
 
 	RNA_enum_item_end(&item, &totitem);
 	*r_free = true;
@@ -1863,7 +1863,7 @@ static void rna_def_space(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "spacetype");
-	RNA_def_property_enum_items(prop, space_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_space_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Type", "Space data type");
 
@@ -2395,7 +2395,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "viewport_shade", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "drawtype");
-	RNA_def_property_enum_items(prop, viewport_shade_items);
+	RNA_def_property_enum_items(prop, rna_enum_viewport_shade_items);
 	RNA_def_property_enum_funcs(prop, "rna_SpaceView3D_viewport_shade_get", NULL,
 	                            "rna_SpaceView3D_viewport_shade_itemf");
 	RNA_def_property_ui_text(prop, "Viewport Shading", "Method to display/shade objects in the 3D View");
@@ -3863,7 +3863,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "sort_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "sort");
-	RNA_def_property_enum_items(prop, file_sort_items);
+	RNA_def_property_enum_items(prop, rna_enum_file_sort_items);
 	RNA_def_property_ui_text(prop, "Sort", "");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
@@ -4203,7 +4203,7 @@ static void rna_def_space_node(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem texture_type_items[] = {
+	static EnumPropertyItem texture_id_type_items[] = {
 		{SNODE_TEX_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Edit texture nodes from Object"},
 		{SNODE_TEX_WORLD, "WORLD", ICON_WORLD_DATA, "World", "Edit texture nodes from World"},
 		{SNODE_TEX_BRUSH, "BRUSH", ICON_BRUSH_DATA, "Brush", "Edit texture nodes from Brush"},
@@ -4256,7 +4256,7 @@ static void rna_def_space_node(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "texture_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "texfrom");
-	RNA_def_property_enum_items(prop, texture_type_items);
+	RNA_def_property_enum_items(prop, texture_id_type_items);
 	RNA_def_property_ui_text(prop, "Texture Type", "Type of data to take texture from");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
 
@@ -4493,7 +4493,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	/* mode */
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
-	RNA_def_property_enum_items(prop, clip_editor_mode_items);
+	RNA_def_property_enum_items(prop, rna_enum_clip_editor_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Editing context being displayed");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, "rna_SpaceClipEditor_clip_mode_update");
 

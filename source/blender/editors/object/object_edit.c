@@ -1506,13 +1506,13 @@ static void UNUSED_FUNCTION(image_aspect) (Scene *scene, View3D *v3d)
 
 static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	EnumPropertyItem *input = object_mode_items;
+	EnumPropertyItem *input = rna_enum_object_mode_items;
 	EnumPropertyItem *item = NULL;
 	Object *ob;
 	int totitem = 0;
 
 	if (!C) /* needed for docs */
-		return object_mode_items;
+		return rna_enum_object_mode_items;
 
 	ob = CTX_data_active_object(C);
 	if (ob) {
@@ -1680,7 +1680,7 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag = 0; /* no register/undo here, leave it to operators being called */
 	
-	ot->prop = RNA_def_enum(ot->srna, "mode", object_mode_items, OB_MODE_OBJECT, "Mode", "");
+	ot->prop = RNA_def_enum(ot->srna, "mode", rna_enum_object_mode_items, OB_MODE_OBJECT, "Mode", "");
 	RNA_def_enum_funcs(ot->prop, object_mode_set_itemsf);
 	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 
@@ -1738,7 +1738,7 @@ void OBJECT_OT_game_property_new(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_enum(ot->srna, "type", gameproperty_type_items, GPROP_FLOAT, "Type", "Type of game property to add");
+	RNA_def_enum(ot->srna, "type", rna_enum_gameproperty_type_items, GPROP_FLOAT, "Type", "Type of game property to add");
 	RNA_def_string(ot->srna, "name", NULL, MAX_NAME, "Name", "Name of the game property to add");
 }
 

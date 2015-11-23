@@ -36,7 +36,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 
-EnumPropertyItem region_type_items[] = {
+EnumPropertyItem rna_enum_region_type_items[] = {
 	{RGN_TYPE_WINDOW, "WINDOW", 0, "Window", ""},
 	{RGN_TYPE_HEADER, "HEADER", 0, "Header", ""},
 	{RGN_TYPE_CHANNELS, "CHANNELS", 0, "Channels", ""},
@@ -127,7 +127,7 @@ static EnumPropertyItem *rna_Area_type_itemf(bContext *UNUSED(C), PointerRNA *UN
                                              PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	/* +1 to skip SPACE_EMPTY */
-	return space_type_items + 1;
+	return rna_enum_space_type_items + 1;
 }
 
 static int rna_Area_type_get(PointerRNA *ptr)
@@ -239,7 +239,7 @@ static void rna_def_area(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "spacetype");
-	RNA_def_property_enum_items(prop, space_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_space_type_items);
 	RNA_def_property_enum_default(prop, SPACE_VIEW3D);
 	RNA_def_property_enum_funcs(prop, "rna_Area_type_get", "rna_Area_type_set", "rna_Area_type_itemf");
 	RNA_def_property_ui_text(prop, "Editor Type", "Current editor type for this area");
@@ -334,7 +334,7 @@ static void rna_def_region(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "regiontype");
-	RNA_def_property_enum_items(prop, region_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_region_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Region Type", "Type of this region");
 

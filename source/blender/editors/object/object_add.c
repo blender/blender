@@ -116,7 +116,7 @@
 /* this is an exact copy of the define in rna_lamp.c
  * kept here because of linking order.
  * Icons are only defined here */
-EnumPropertyItem lamp_type_items[] = {
+EnumPropertyItem rna_enum_lamp_type_items[] = {
 	{LA_LOCAL, "POINT", ICON_LAMP_POINT, "Point", "Omnidirectional point light source"},
 	{LA_SUN, "SUN", ICON_LAMP_SUN, "Sun", "Constant direction parallel ray light source"},
 	{LA_SPOT, "SPOT", ICON_LAMP_SPOT, "Spot", "Directional cone light source"},
@@ -482,7 +482,7 @@ void OBJECT_OT_add(wmOperatorType *ot)
 
 	/* properties */
 	ED_object_add_unit_props(ot);
-	RNA_def_enum(ot->srna, "type", object_type_items, 0, "Type", "");
+	RNA_def_enum(ot->srna, "type", rna_enum_object_type_items, 0, "Type", "");
 
 	ED_object_add_generic_props(ot, true);
 }
@@ -668,7 +668,7 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ot->prop = RNA_def_enum(ot->srna, "type", metaelem_type_items, 0, "Primitive", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_metaelem_type_items, 0, "Primitive", "");
 
 	ED_object_add_unit_props(ot);
 	ED_object_add_generic_props(ot, true);
@@ -815,7 +815,7 @@ void OBJECT_OT_empty_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", object_empty_drawtype_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_object_empty_drawtype_items, 0, "Type", "");
 
 	ED_object_add_unit_props(ot);
 	ED_object_add_generic_props(ot, false);
@@ -951,7 +951,7 @@ void OBJECT_OT_lamp_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", lamp_type_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_lamp_type_items, 0, "Type", "");
 	RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_LAMP);
 
 	ED_object_add_unit_props(ot);
@@ -2186,7 +2186,7 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 
 	/* to give to transform */
 	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data");
-	prop = RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
+	prop = RNA_def_enum(ot->srna, "mode", rna_enum_transform_mode_types, TFM_TRANSLATION, "Mode", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 

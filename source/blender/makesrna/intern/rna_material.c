@@ -54,7 +54,7 @@ static EnumPropertyItem prop_texture_coordinates_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem ramp_blend_items[] = {
+EnumPropertyItem rna_enum_ramp_blend_items[] = {
 	{MA_RAMP_BLEND, "MIX", 0, "Mix", ""},
 	{MA_RAMP_ADD, "ADD", 0, "Add", ""},
 	{MA_RAMP_MULT, "MULTIPLY", 0, "Multiply", ""},
@@ -953,13 +953,13 @@ static void rna_def_material_colors(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "diffuse_ramp_blend", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampblend_col");
-	RNA_def_property_enum_items(prop, ramp_blend_items);
+	RNA_def_property_enum_items(prop, rna_enum_ramp_blend_items);
 	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "Blending method of the ramp and the diffuse color");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop = RNA_def_property(srna, "specular_ramp_blend", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampblend_spec");
-	RNA_def_property_enum_items(prop, ramp_blend_items);
+	RNA_def_property_enum_items(prop, rna_enum_ramp_blend_items);
 	RNA_def_property_ui_text(prop, "Specular Ramp Blend", "Blending method of the ramp and the specular color");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 

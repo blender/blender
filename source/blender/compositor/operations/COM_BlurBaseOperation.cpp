@@ -118,7 +118,7 @@ float *BlurBaseOperation::make_dist_fac_inverse(float rad, int size, int falloff
 	for (i = -size; i <= size; i++) {
 		val = 1.0f - fabsf((float)i * fac);
 
-		/* keep in sync with proportional_falloff_curve_only_items */
+		/* keep in sync with rna_enum_proportional_falloff_curve_only_items */
 		switch (falloff) {
 			case PROP_SMOOTH:
 				/* ease - gives less hard lines for dilate/erode feather */

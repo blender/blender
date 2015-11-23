@@ -835,8 +835,8 @@ void GRAPH_OT_paste(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_enum(ot->srna, "offset", keyframe_paste_offset_items, KEYFRAME_PASTE_OFFSET_CFRA_START, "Offset", "Paste time offset of keys");
-	RNA_def_enum(ot->srna, "merge", keyframe_paste_merge_items, KEYFRAME_PASTE_MERGE_MIX, "Type", "Method of merging pasted keys and existing");
+	RNA_def_enum(ot->srna, "offset", rna_enum_keyframe_paste_offset_items, KEYFRAME_PASTE_OFFSET_CFRA_START, "Offset", "Paste time offset of keys");
+	RNA_def_enum(ot->srna, "merge", rna_enum_keyframe_paste_merge_items, KEYFRAME_PASTE_MERGE_MIX, "Type", "Method of merging pasted keys and existing");
 	prop = RNA_def_boolean(ot->srna, "flipped", false, "Flipped", "Paste keyframes from mirrored bones if they exist");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
@@ -898,7 +898,7 @@ void GRAPH_OT_duplicate(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* to give to transform */
-	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
+	RNA_def_enum(ot->srna, "mode", rna_enum_transform_mode_types, TFM_TRANSLATION, "Mode", "");
 }
 
 /* ******************** Delete Keyframes Operator ************************* */
@@ -1541,7 +1541,7 @@ void GRAPH_OT_interpolation_type(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop = RNA_def_enum(ot->srna, "type", beztriple_interpolation_mode_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_beztriple_interpolation_mode_items, 0, "Type", "");
 }
 
 /* ******************** Set Easing Operator *********************** */
@@ -1607,7 +1607,7 @@ void GRAPH_OT_easing_type(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop = RNA_def_enum(ot->srna, "type", beztriple_interpolation_easing_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_beztriple_interpolation_easing_items, 0, "Type", "");
 }
 
 /* ******************** Set Handle-Type Operator *********************** */
@@ -1683,7 +1683,7 @@ void GRAPH_OT_handle_type(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop = RNA_def_enum(ot->srna, "type", keyframe_handle_type_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_keyframe_handle_type_items, 0, "Type", "");
 }
 
 /* ************************************************************************** */
@@ -2299,7 +2299,7 @@ static EnumPropertyItem *graph_fmodifier_itemf(bContext *C, PointerRNA *UNUSED(p
 	int i = 0;
 
 	if (C == NULL) {
-		return fmodifier_type_items;
+		return rna_enum_fmodifier_type_items;
 	}
 
 	/* start from 1 to skip the 'Invalid' modifier type */
@@ -2311,8 +2311,8 @@ static EnumPropertyItem *graph_fmodifier_itemf(bContext *C, PointerRNA *UNUSED(p
 		if (fmi == NULL)
 			continue;
 
-		index = RNA_enum_from_value(fmodifier_type_items, fmi->type);
-		RNA_enum_item_add(&item, &totitem, &fmodifier_type_items[index]);
+		index = RNA_enum_from_value(rna_enum_fmodifier_type_items, fmi->type);
+		RNA_enum_item_add(&item, &totitem, &rna_enum_fmodifier_type_items[index]);
 	}
 
 	RNA_enum_item_end(&item, &totitem);
@@ -2390,7 +2390,7 @@ void GRAPH_OT_fmodifier_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* id-props */
-	prop = RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
+	prop = RNA_def_enum(ot->srna, "type", rna_enum_fmodifier_type_items, 0, "Type", "");
 	RNA_def_enum_funcs(prop, graph_fmodifier_itemf);
 	ot->prop = prop;
 

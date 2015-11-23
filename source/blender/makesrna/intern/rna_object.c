@@ -60,7 +60,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-EnumPropertyItem object_mode_items[] = {
+EnumPropertyItem rna_enum_object_mode_items[] = {
 	{OB_MODE_OBJECT, "OBJECT", ICON_OBJECT_DATAMODE, "Object Mode", ""},
 	{OB_MODE_EDIT, "EDIT", ICON_EDITMODE_HLT, "Edit Mode", ""},
 	{OB_MODE_POSE, "POSE", ICON_POSE_HLT, "Pose Mode", ""},
@@ -72,7 +72,7 @@ EnumPropertyItem object_mode_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem object_empty_drawtype_items[] = {
+EnumPropertyItem rna_enum_object_empty_drawtype_items[] = {
 	{OB_PLAINAXES, "PLAIN_AXES", 0, "Plain Axes", ""},
 	{OB_ARROWS, "ARROWS", 0, "Arrows", ""},
 	{OB_SINGLE_ARROW, "SINGLE_ARROW", 0, "Single Arrow", ""},
@@ -118,7 +118,7 @@ static EnumPropertyItem collision_bounds_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem metaelem_type_items[] = {
+EnumPropertyItem rna_enum_metaelem_type_items[] = {
 	{MB_BALL, "BALL", ICON_META_BALL, "Ball", ""},
 	{MB_TUBE, "CAPSULE", ICON_META_CAPSULE, "Capsule", ""},
 	{MB_PLANE, "PLANE", ICON_META_PLANE, "Plane", ""},
@@ -132,7 +132,7 @@ EnumPropertyItem metaelem_type_items[] = {
 #define OBTYPE_CU_SURF {OB_SURF, "SURFACE", 0, "Surface", ""}
 #define OBTYPE_CU_FONT {OB_FONT, "FONT", 0, "Font", ""}
 
-EnumPropertyItem object_type_items[] = {
+EnumPropertyItem rna_enum_object_type_items[] = {
 	{OB_MESH, "MESH", 0, "Mesh", ""},
 	OBTYPE_CU_CURVE,
 	OBTYPE_CU_SURF,
@@ -149,14 +149,14 @@ EnumPropertyItem object_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem object_type_curve_items[] = {
+EnumPropertyItem rna_enum_object_type_curve_items[] = {
 	OBTYPE_CU_CURVE,
 	OBTYPE_CU_SURF,
 	OBTYPE_CU_FONT,
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem object_axis_items[] = {
+EnumPropertyItem rna_enum_object_axis_items[] = {
 	{OB_POSX, "POS_X", 0, "+X", ""},
 	{OB_POSY, "POS_Y", 0, "+Y", ""},
 	{OB_POSZ, "POS_Z", 0, "+Z", ""},
@@ -167,7 +167,7 @@ EnumPropertyItem object_axis_items[] = {
 };
 
 /* for general use (not just object) */
-EnumPropertyItem object_axis_unsigned_items[] = {
+EnumPropertyItem rna_enum_object_axis_unsigned_items[] = {
 	{0, "X", 0, "X", ""},
 	{1, "Y", 0, "Y", ""},
 	{2, "Z", 0, "Z", ""},
@@ -1958,7 +1958,7 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new", "rna_Object_constraints_new");
 	RNA_def_function_ui_description(func, "Add a new constraint to this object");
 	/* object to add */
-	parm = RNA_def_enum(func, "type", constraint_type_items, 1, "", "Constraint type to add");
+	parm = RNA_def_enum(func, "type", rna_enum_constraint_type_items, 1, "", "Constraint type to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm = RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint");
@@ -2009,7 +2009,7 @@ static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the modifier");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* modifier to add */
-	parm = RNA_def_enum(func, "type", modifier_type_items, 1, "", "Modifier type to add");
+	parm = RNA_def_enum(func, "type", rna_enum_object_modifier_type_items, 1, "", "Modifier type to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm = RNA_def_pointer(func, "modifier", "Modifier", "", "Newly created modifier");
@@ -2224,13 +2224,13 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, object_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_object_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Type", "Type of Object");
 
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
-	RNA_def_property_enum_items(prop, object_mode_items);
+	RNA_def_property_enum_items(prop, rna_enum_object_mode_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Mode", "Object interaction mode");
 
@@ -2294,7 +2294,7 @@ static void rna_def_object(BlenderRNA *brna)
 	 *      since some other tools still refer to this */
 	prop = RNA_def_property(srna, "track_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "trackflag");
-	RNA_def_property_enum_items(prop, object_axis_items);
+	RNA_def_property_enum_items(prop, rna_enum_object_axis_items);
 	RNA_def_property_ui_text(prop, "Track Axis",
 	                         "Axis that points in 'forward' direction (applies to DupliFrame when "
 	                         "parent 'Follow' is enabled)");
@@ -2533,7 +2533,7 @@ static void rna_def_object(BlenderRNA *brna)
 	/* empty */
 	prop = RNA_def_property(srna, "empty_draw_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "empty_drawtype");
-	RNA_def_property_enum_items(prop, object_empty_drawtype_items);
+	RNA_def_property_enum_items(prop, rna_enum_object_empty_drawtype_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Object_empty_draw_type_set", NULL);
 	RNA_def_property_ui_text(prop, "Empty Display Type", "Viewport display style for empties");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);

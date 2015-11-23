@@ -64,7 +64,7 @@
 
 #include "RE_render_ext.h"
 
-EnumPropertyItem node_socket_in_out_items[] = {
+EnumPropertyItem rna_enum_node_socket_in_out_items[] = {
 	{ SOCK_IN, "IN", 0, "Input", "" },
 	{ SOCK_OUT, "OUT", 0, "Output", "" },
 	{ 0, NULL, 0, NULL, NULL }
@@ -104,14 +104,14 @@ static EnumPropertyItem node_chunksize_items[] = {
 #define DEF_ICON_BLANK_SKIP
 #define DEF_ICON(name) {ICON_##name, (#name), 0, (#name), ""},
 #define DEF_VICO(name)
-EnumPropertyItem node_icon_items[] = {
+EnumPropertyItem rna_enum_node_icon_items[] = {
 #include "UI_icons.h"
 	{0, NULL, 0, NULL, NULL}};
 #undef DEF_ICON_BLANK_SKIP
 #undef DEF_ICON
 #undef DEF_VICO
 
-EnumPropertyItem node_math_items[] = {
+EnumPropertyItem rna_enum_node_math_items[] = {
 	{NODE_MATH_ADD,     "ADD",          0, "Add",          ""},
 	{NODE_MATH_SUB,     "SUBTRACT",     0, "Subtract",     ""},
 	{NODE_MATH_MUL,     "MULTIPLY",     0, "Multiply",     ""},
@@ -134,7 +134,7 @@ EnumPropertyItem node_math_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem node_vec_math_items[] = {
+EnumPropertyItem rna_enum_node_vec_math_items[] = {
 	{0, "ADD",           0, "Add",           ""},
 	{1, "SUBTRACT",      0, "Subtract",      ""},
 	{2, "AVERAGE",       0, "Average",       ""},
@@ -144,7 +144,7 @@ EnumPropertyItem node_vec_math_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem node_filter_items[] = {
+EnumPropertyItem rna_enum_node_filter_items[] = {
 	{0, "SOFTEN",  0, "Soften",  ""},
 	{1, "SHARPEN", 0, "Sharpen", ""},
 	{2, "LAPLACE", 0, "Laplace", ""},
@@ -3234,7 +3234,7 @@ static void def_math(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "operation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
-	RNA_def_property_enum_items(prop, node_math_items);
+	RNA_def_property_enum_items(prop, rna_enum_node_math_items);
 	RNA_def_property_ui_text(prop, "Operation", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -3250,7 +3250,7 @@ static void def_vector_math(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "operation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
-	RNA_def_property_enum_items(prop, node_vec_math_items);
+	RNA_def_property_enum_items(prop, rna_enum_node_vec_math_items);
 	RNA_def_property_ui_text(prop, "Operation", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
@@ -3315,7 +3315,7 @@ static void def_mix_rgb(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
-	RNA_def_property_enum_items(prop, ramp_blend_items);
+	RNA_def_property_enum_items(prop, rna_enum_ramp_blend_items);
 	RNA_def_property_ui_text(prop, "Blend Type", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 	
@@ -4389,7 +4389,7 @@ static void def_cmp_filter(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
-	RNA_def_property_enum_items(prop, node_filter_items);
+	RNA_def_property_enum_items(prop, rna_enum_node_filter_items);
 	RNA_def_property_ui_text(prop, "Filter Type", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
@@ -4783,7 +4783,7 @@ static void def_cmp_dilate_erode(StructRNA *srna)
 	/* CMP_NODE_DILATEERODE_DISTANCE_FEATHER only */
 	prop = RNA_def_property(srna, "falloff", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "falloff");
-	RNA_def_property_enum_items(prop, proportional_falloff_curve_only_items);
+	RNA_def_property_enum_items(prop, rna_enum_proportional_falloff_curve_only_items);
 	RNA_def_property_ui_text(prop, "Falloff", "Falloff type the feather");
 	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
@@ -6445,7 +6445,7 @@ static void def_cmp_keying(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "feather_falloff", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "feather_falloff");
-	RNA_def_property_enum_items(prop, proportional_falloff_curve_only_items);
+	RNA_def_property_enum_items(prop, rna_enum_proportional_falloff_curve_only_items);
 	RNA_def_property_ui_text(prop, "Feather Falloff", "Falloff type the feather");
 	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
@@ -7626,7 +7626,7 @@ static void rna_def_node(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "bl_icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "typeinfo->ui_icon");
-	RNA_def_property_enum_items(prop, node_icon_items);
+	RNA_def_property_enum_items(prop, rna_enum_node_icon_items);
 	RNA_def_property_enum_default(prop, ICON_NODE);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 	RNA_def_property_ui_text(prop, "Icon", "The node icon");
@@ -8005,7 +8005,7 @@ static void rna_def_nodetree(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "bl_icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "typeinfo->ui_icon");
-	RNA_def_property_enum_items(prop, node_icon_items);
+	RNA_def_property_enum_items(prop, rna_enum_node_icon_items);
 	RNA_def_property_enum_default(prop, ICON_NODETREE);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 	RNA_def_property_ui_text(prop, "Icon", "The node tree icon");

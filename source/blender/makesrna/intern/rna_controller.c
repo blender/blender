@@ -40,7 +40,7 @@
 
 #include "WM_types.h"
 
-EnumPropertyItem controller_type_items[] = {
+EnumPropertyItem rna_enum_controller_type_items[] = {
 	{CONT_LOGIC_AND, "LOGIC_AND", 0, "And", "Logic And"},
 	{CONT_LOGIC_OR, "LOGIC_OR", 0, "Or", "Logic Or"},
 	{CONT_LOGIC_NAND, "LOGIC_NAND", 0, "Nand", "Logic Nand"},
@@ -213,7 +213,7 @@ void RNA_def_controller(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Controller_type_set", NULL);
-	RNA_def_property_enum_items(prop, controller_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_controller_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 

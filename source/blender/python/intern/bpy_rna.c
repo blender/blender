@@ -920,7 +920,7 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
 
 	type = RNA_property_type(self->prop);
 
-	if (RNA_enum_id_from_value(property_type_items, type, &type_id) == 0) {
+	if (RNA_enum_id_from_value(rna_enum_property_type_items, type, &type_id) == 0) {
 		PyErr_SetString(PyExc_RuntimeError, "could not use property type, internal error"); /* should never happen */
 		return NULL;
 	}

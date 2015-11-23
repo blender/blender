@@ -49,7 +49,7 @@
 
 /* XXX: this RNA enum define is currently duplicated for objects,
  * since there is some text here which is not applicable */
-EnumPropertyItem posebone_rotmode_items[] = {
+EnumPropertyItem rna_enum_posebone_rotmode_items[] = {
 	{ROT_MODE_QUAT, "QUATERNION", 0, "Quaternion (WXYZ)", "No Gimbal Lock (default)"},
 	{ROT_MODE_XYZ, "XYZ", 0, "XYZ Euler", "XYZ Rotation Order (prone to Gimbal Lock)"},
 	{ROT_MODE_XZY, "XZY", 0, "XZY Euler", "XZY Rotation Order (prone to Gimbal Lock)"},
@@ -63,7 +63,7 @@ EnumPropertyItem posebone_rotmode_items[] = {
 };
 
 /* Bone and Group Color Sets */
-EnumPropertyItem color_sets_items[] = {
+EnumPropertyItem rna_enum_color_sets_items[] = {
 	{0, "DEFAULT", 0, "Default Colors", ""},
 	{1, "THEME01", 0, "01 - Theme Color Set", ""},
 	{2, "THEME02", 0, "02 - Theme Color Set", ""},
@@ -675,7 +675,7 @@ void rna_def_actionbone_group_common(StructRNA *srna, int update_flag, const cha
 	/* color set + colors */
 	prop = RNA_def_property(srna, "color_set", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "customCol");
-	RNA_def_property_enum_items(prop, color_sets_items);
+	RNA_def_property_enum_items(prop, rna_enum_color_sets_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_ActionGroup_colorset_set", NULL);
 	RNA_def_property_ui_text(prop, "Color Set", "Custom color set to use");
 	RNA_def_property_update(prop, update_flag, update_cb);
@@ -760,7 +760,7 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 	parm = RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint");
 	RNA_def_function_return(func, parm);
 	/* constraint to add */
-	parm = RNA_def_enum(func, "type", constraint_type_items, 1, "", "Constraint type to add");
+	parm = RNA_def_enum(func, "type", rna_enum_constraint_type_items, 1, "", "Constraint type to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func = RNA_def_function(srna, "remove", "rna_PoseChannel_constraints_remove");
@@ -865,7 +865,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "rotation_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rotmode");
-	RNA_def_property_enum_items(prop, posebone_rotmode_items); /* XXX move to using a single define of this someday */
+	RNA_def_property_enum_items(prop, rna_enum_posebone_rotmode_items); /* XXX move to using a single define of this someday */
 	RNA_def_property_enum_funcs(prop, NULL, "rna_PoseChannel_rotation_mode_set", NULL);
 	/* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");

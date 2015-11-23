@@ -1317,15 +1317,15 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 
 		/* reset the icon */
 		if (mode == OB_MODE_SCULPT) {
-			items = brush_sculpt_tool_items;
+			items = rna_enum_brush_sculpt_tool_items;
 			tool = br->sculpt_tool;
 		}
 		else if (mode == OB_MODE_VERTEX_PAINT) {
-			items = brush_vertex_tool_items;
+			items = rna_enum_brush_vertex_tool_items;
 			tool = br->vertexpaint_tool;
 		}
 		else if (mode == OB_MODE_TEXTURE_PAINT) {
-			items = brush_image_tool_items;
+			items = rna_enum_brush_image_tool_items;
 			tool = br->imagepaint_tool;
 		}
 

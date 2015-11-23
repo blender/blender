@@ -2427,7 +2427,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
 	RNA_def_property_float_array_default(prop, default_color);
 	RNA_def_boolean(ot->srna, "alpha", 1, "Alpha", "Create an image with an alpha channel");
-	RNA_def_enum(ot->srna, "generated_type", image_generated_type_items, IMA_GENTYPE_BLANK,
+	RNA_def_enum(ot->srna, "generated_type", rna_enum_image_generated_type_items, IMA_GENTYPE_BLANK,
 	             "Generated Type", "Fill the image with a grid for UV map testing");
 	RNA_def_boolean(ot->srna, "float", 0, "32 bit Float", "Create image with 32 bit floating point bit depth");
 	prop = RNA_def_enum(ot->srna, "gen_context", gen_context_items, 0, "Gen Context", "Generation context");
@@ -2718,7 +2718,7 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "method", unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack");
+	RNA_def_enum(ot->srna, "method", rna_enum_unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack");
 	RNA_def_string(ot->srna, "id", NULL, MAX_ID_NAME - 2, "Image Name", "Image datablock name to unpack"); /* XXX, weark!, will fail with library, name collisions */
 }
 

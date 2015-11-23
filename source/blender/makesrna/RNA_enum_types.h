@@ -35,127 +35,161 @@ struct bNodeSocketType;
 
 /* Types */
 
-extern EnumPropertyItem id_type_items[];
-
 /* use in cases where only dynamic types are used */
 extern EnumPropertyItem DummyRNA_NULL_items[];
 extern EnumPropertyItem DummyRNA_DEFAULT_items[];
 
-extern EnumPropertyItem object_mode_items[];
-extern EnumPropertyItem object_empty_drawtype_items[];
-extern EnumPropertyItem metaelem_type_items[];
+/* all others should follow 'rna_enum_*_items' naming */
+extern EnumPropertyItem rna_enum_id_type_items[];
 
-extern EnumPropertyItem proportional_falloff_items[];
-extern EnumPropertyItem proportional_falloff_curve_only_items[];
-extern EnumPropertyItem proportional_editing_items[];
-extern EnumPropertyItem snap_target_items[];
-extern EnumPropertyItem snap_element_items[];
-extern EnumPropertyItem snap_node_element_items[];
-extern EnumPropertyItem mesh_select_mode_items[];
-extern EnumPropertyItem mesh_delimit_mode_items[];
-extern EnumPropertyItem space_type_items[];
-extern EnumPropertyItem region_type_items[];
-extern EnumPropertyItem modifier_type_items[];
-extern EnumPropertyItem constraint_type_items[];
-extern EnumPropertyItem boidrule_type_items[];
-extern EnumPropertyItem sequence_modifier_type_items[];
+extern EnumPropertyItem rna_enum_object_mode_items[];
+extern EnumPropertyItem rna_enum_object_empty_drawtype_items[];
+extern EnumPropertyItem rna_enum_metaelem_type_items[];
 
-extern EnumPropertyItem modifier_triangulate_quad_method_items[];
-extern EnumPropertyItem modifier_triangulate_ngon_method_items[];
+extern EnumPropertyItem rna_enum_proportional_falloff_items[];
+extern EnumPropertyItem rna_enum_proportional_falloff_curve_only_items[];
+extern EnumPropertyItem rna_enum_proportional_editing_items[];
+extern EnumPropertyItem rna_enum_snap_target_items[];
+extern EnumPropertyItem rna_enum_snap_element_items[];
+extern EnumPropertyItem rna_enum_snap_node_element_items[];
+extern EnumPropertyItem rna_enum_mesh_select_mode_items[];
+extern EnumPropertyItem rna_enum_mesh_delimit_mode_items[];
+extern EnumPropertyItem rna_enum_space_type_items[];
+extern EnumPropertyItem rna_enum_region_type_items[];
+extern EnumPropertyItem rna_enum_object_modifier_type_items[];
+extern EnumPropertyItem rna_enum_constraint_type_items[];
+extern EnumPropertyItem rna_enum_boidrule_type_items[];
+extern EnumPropertyItem rna_enum_sequence_modifier_type_items[];
 
-extern EnumPropertyItem image_type_items[];
-extern EnumPropertyItem image_color_mode_items[];
-extern EnumPropertyItem image_color_depth_items[];
-extern EnumPropertyItem image_generated_type_items[];
+extern EnumPropertyItem rna_enum_modifier_triangulate_quad_method_items[];
+extern EnumPropertyItem rna_enum_modifier_triangulate_ngon_method_items[];
 
-extern EnumPropertyItem normal_space_items[];
-extern EnumPropertyItem normal_swizzle_items[];
-extern EnumPropertyItem bake_save_mode_items[];
+extern EnumPropertyItem rna_enum_image_type_items[];
+extern EnumPropertyItem rna_enum_image_color_mode_items[];
+extern EnumPropertyItem rna_enum_image_color_depth_items[];
+extern EnumPropertyItem rna_enum_image_generated_type_items[];
 
-extern EnumPropertyItem views_format_items[];
-extern EnumPropertyItem views_format_multilayer_items[];
-extern EnumPropertyItem views_format_multiview_items[];
-extern EnumPropertyItem stereo3d_display_items[];
-extern EnumPropertyItem stereo3d_anaglyph_type_items[];
-extern EnumPropertyItem stereo3d_interlace_type_items[];
+extern EnumPropertyItem rna_enum_normal_space_items[];
+extern EnumPropertyItem rna_enum_normal_swizzle_items[];
+extern EnumPropertyItem rna_enum_bake_save_mode_items[];
 
-extern EnumPropertyItem exr_codec_items[];
-extern EnumPropertyItem color_sets_items[];
+extern EnumPropertyItem rna_enum_views_format_items[];
+extern EnumPropertyItem rna_enum_views_format_multilayer_items[];
+extern EnumPropertyItem rna_enum_views_format_multiview_items[];
+extern EnumPropertyItem rna_enum_stereo3d_display_items[];
+extern EnumPropertyItem rna_enum_stereo3d_anaglyph_type_items[];
+extern EnumPropertyItem rna_enum_stereo3d_interlace_type_items[];
 
-extern EnumPropertyItem beztriple_keyframe_type_items[];
-extern EnumPropertyItem beztriple_interpolation_mode_items[];
-extern EnumPropertyItem beztriple_interpolation_easing_items[];
-extern EnumPropertyItem keyframe_handle_type_items[];
+extern EnumPropertyItem rna_enum_exr_codec_items[];
+extern EnumPropertyItem rna_enum_color_sets_items[];
 
-extern EnumPropertyItem keyblock_type_items[];
+extern EnumPropertyItem rna_enum_beztriple_keyframe_type_items[];
+extern EnumPropertyItem rna_enum_beztriple_interpolation_mode_items[];
+extern EnumPropertyItem rna_enum_beztriple_interpolation_easing_items[];
+extern EnumPropertyItem rna_enum_keyframe_handle_type_items[];
 
-extern EnumPropertyItem keyingset_path_grouping_items[];
-extern EnumPropertyItem keying_flag_items[];
+extern EnumPropertyItem rna_enum_keyblock_type_items[];
 
-extern EnumPropertyItem keyframe_paste_offset_items[];
-extern EnumPropertyItem keyframe_paste_merge_items[];
+extern EnumPropertyItem rna_enum_keyingset_path_grouping_items[];
+extern EnumPropertyItem rna_enum_keying_flag_items[];
 
-extern EnumPropertyItem fmodifier_type_items[];
+extern EnumPropertyItem rna_enum_keyframe_paste_offset_items[];
+extern EnumPropertyItem rna_enum_keyframe_paste_merge_items[];
 
-extern EnumPropertyItem nla_mode_extend_items[];
-extern EnumPropertyItem nla_mode_blend_items[];
+extern EnumPropertyItem rna_enum_fmodifier_type_items[];
 
-extern EnumPropertyItem motionpath_bake_location_items[];
+extern EnumPropertyItem rna_enum_nla_mode_extend_items[];
+extern EnumPropertyItem rna_enum_nla_mode_blend_items[];
 
-extern EnumPropertyItem event_value_items[];
-extern EnumPropertyItem event_type_items[];
-extern EnumPropertyItem operator_return_items[];
+extern EnumPropertyItem rna_enum_motionpath_bake_location_items[];
 
-extern EnumPropertyItem brush_sculpt_tool_items[];
-extern EnumPropertyItem brush_vertex_tool_items[];
-extern EnumPropertyItem brush_image_tool_items[];
+extern EnumPropertyItem rna_enum_event_value_items[];
+extern EnumPropertyItem rna_enum_event_type_items[];
+extern EnumPropertyItem rna_enum_operator_return_items[];
 
-extern EnumPropertyItem symmetrize_direction_items[];
+extern EnumPropertyItem rna_enum_brush_sculpt_tool_items[];
+extern EnumPropertyItem rna_enum_brush_vertex_tool_items[];
+extern EnumPropertyItem rna_enum_brush_image_tool_items[];
 
-extern EnumPropertyItem texture_type_items[];
+extern EnumPropertyItem rna_enum_symmetrize_direction_items[];
 
-extern EnumPropertyItem lamp_type_items[];
+extern EnumPropertyItem rna_enum_texture_type_items[];
 
-extern EnumPropertyItem unpack_method_items[];
+extern EnumPropertyItem rna_enum_lamp_type_items[];
 
-extern EnumPropertyItem object_type_items[];
+extern EnumPropertyItem rna_enum_unpack_method_items[];
 
-extern EnumPropertyItem object_type_curve_items[];
+extern EnumPropertyItem rna_enum_object_type_items[];
 
-extern EnumPropertyItem rigidbody_object_type_items[];
-extern EnumPropertyItem rigidbody_object_shape_items[];
-extern EnumPropertyItem rigidbody_constraint_type_items[];
+extern EnumPropertyItem rna_enum_object_type_curve_items[];
 
-extern EnumPropertyItem object_axis_items[];
-extern EnumPropertyItem object_axis_unsigned_items[];
+extern EnumPropertyItem rna_enum_rigidbody_object_type_items[];
+extern EnumPropertyItem rna_enum_rigidbody_object_shape_items[];
+extern EnumPropertyItem rna_enum_rigidbody_constraint_type_items[];
 
-extern EnumPropertyItem controller_type_items[];
+extern EnumPropertyItem rna_enum_object_axis_items[];
+extern EnumPropertyItem rna_enum_object_axis_unsigned_items[];
 
-extern EnumPropertyItem render_pass_type_items[];
-extern EnumPropertyItem render_pass_debug_type_items[];
+extern EnumPropertyItem rna_enum_controller_type_items[];
 
-extern EnumPropertyItem keymap_propvalue_items[];
+extern EnumPropertyItem rna_enum_render_pass_type_items[];
+extern EnumPropertyItem rna_enum_render_pass_debug_type_items[];
 
-extern EnumPropertyItem operator_context_items[];
+extern EnumPropertyItem rna_enum_keymap_propvalue_items[];
 
-extern EnumPropertyItem wm_report_items[];
+extern EnumPropertyItem rna_enum_operator_context_items[];
 
-extern EnumPropertyItem transform_mode_types[];
+extern EnumPropertyItem rna_enum_wm_report_items[];
 
-extern EnumPropertyItem posebone_rotmode_items[];
+extern EnumPropertyItem rna_enum_transform_mode_types[];
 
-extern EnumPropertyItem property_type_items[];
-extern EnumPropertyItem property_subtype_items[];
-extern EnumPropertyItem property_unit_items[];
+extern EnumPropertyItem rna_enum_posebone_rotmode_items[];
 
-extern EnumPropertyItem gameproperty_type_items[];
+extern EnumPropertyItem rna_enum_property_type_items[];
+extern EnumPropertyItem rna_enum_property_subtype_items[];
+extern EnumPropertyItem rna_enum_property_unit_items[];
 
-extern EnumPropertyItem viewport_shade_items[];
+extern EnumPropertyItem rna_enum_gameproperty_type_items[];
 
-extern EnumPropertyItem navigation_mode_items[];
+extern EnumPropertyItem rna_enum_viewport_shade_items[];
 
-extern EnumPropertyItem file_sort_items[];
+extern EnumPropertyItem rna_enum_navigation_mode_items[];
 
+extern EnumPropertyItem rna_enum_file_sort_items[];
+
+extern EnumPropertyItem rna_enum_node_socket_in_out_items[];
+extern EnumPropertyItem rna_enum_node_icon_items[];
+
+extern EnumPropertyItem rna_enum_node_math_items[];
+extern EnumPropertyItem rna_enum_node_vec_math_items[];
+extern EnumPropertyItem rna_enum_node_filter_items[];
+
+extern EnumPropertyItem rna_enum_ramp_blend_items[];
+
+extern EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[];
+
+extern EnumPropertyItem rna_enum_clip_editor_mode_items[];
+
+extern EnumPropertyItem rna_enum_icon_items[];
+extern EnumPropertyItem rna_enum_uilist_layout_type_items[];
+
+extern EnumPropertyItem rna_enum_linestyle_color_modifier_type_items[];
+extern EnumPropertyItem rna_enum_linestyle_alpha_modifier_type_items[];
+extern EnumPropertyItem rna_enum_linestyle_thickness_modifier_type_items[];
+extern EnumPropertyItem rna_enum_linestyle_geometry_modifier_type_items[];
+
+extern EnumPropertyItem rna_enum_window_cursor_items[];
+
+extern EnumPropertyItem rna_enum_dt_method_vertex_items[];
+extern EnumPropertyItem rna_enum_dt_method_edge_items[];
+extern EnumPropertyItem rna_enum_dt_method_loop_items[];
+extern EnumPropertyItem rna_enum_dt_method_poly_items[];
+extern EnumPropertyItem rna_enum_dt_mix_mode_items[];
+extern EnumPropertyItem rna_enum_dt_layers_select_src_items[];
+extern EnumPropertyItem rna_enum_dt_layers_select_dst_items[];
+
+
+/* API calls */
 int rna_node_tree_type_to_enum(struct bNodeTreeType *typeinfo);
 int rna_node_tree_idname_to_enum(const char *idname);
 struct bNodeTreeType *rna_node_tree_type_from_enum(int value);
@@ -170,37 +204,6 @@ int rna_node_socket_type_to_enum(struct bNodeSocketType *typeinfo);
 int rna_node_socket_idname_to_enum(const char *idname);
 struct bNodeSocketType *rna_node_socket_type_from_enum(int value);
 EnumPropertyItem *rna_node_socket_type_itemf(void *data, int (*poll)(void *data, struct bNodeSocketType *), bool *r_free);
-
-extern EnumPropertyItem node_socket_in_out_items[];
-extern EnumPropertyItem node_icon_items[];
-
-extern EnumPropertyItem node_math_items[];
-extern EnumPropertyItem node_vec_math_items[];
-extern EnumPropertyItem node_filter_items[];
-
-extern EnumPropertyItem ramp_blend_items[];
-
-extern EnumPropertyItem prop_dynamicpaint_type_items[];
-
-extern EnumPropertyItem clip_editor_mode_items[];
-
-extern EnumPropertyItem icon_items[];
-extern EnumPropertyItem uilist_layout_type_items[];
-
-extern EnumPropertyItem linestyle_color_modifier_type_items[];
-extern EnumPropertyItem linestyle_alpha_modifier_type_items[];
-extern EnumPropertyItem linestyle_thickness_modifier_type_items[];
-extern EnumPropertyItem linestyle_geometry_modifier_type_items[];
-
-extern EnumPropertyItem window_cursor_items[];
-
-extern EnumPropertyItem DT_method_vertex_items[];
-extern EnumPropertyItem DT_method_edge_items[];
-extern EnumPropertyItem DT_method_loop_items[];
-extern EnumPropertyItem DT_method_poly_items[];
-extern EnumPropertyItem DT_mix_mode_items[];
-extern EnumPropertyItem DT_layers_select_src_items[];
-extern EnumPropertyItem DT_layers_select_dst_items[];
 
 struct bContext;
 struct PointerRNA;

@@ -974,7 +974,7 @@ static void rna_def_mask_layer(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "falloff", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "falloff");
-	RNA_def_property_enum_items(prop, proportional_falloff_curve_only_items);
+	RNA_def_property_enum_items(prop, rna_enum_proportional_falloff_curve_only_items);
 	RNA_def_property_ui_text(prop, "Falloff", "Falloff type the feather");
 	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
 	RNA_def_property_update(prop, NC_MASK | NA_EDITED, NULL);

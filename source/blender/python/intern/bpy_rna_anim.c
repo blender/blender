@@ -171,7 +171,7 @@ static int pyrna_struct_keyframe_parse(
 
 	/* flag may be null (no option currently for remove keyframes e.g.). */
 	if (options) {
-		if (pyoptions && (pyrna_set_to_enum_bitfield(keying_flag_items, pyoptions, options, error_prefix) == -1)) {
+		if (pyoptions && (pyrna_set_to_enum_bitfield(rna_enum_keying_flag_items, pyoptions, options, error_prefix) == -1)) {
 			return -1;
 		}
 

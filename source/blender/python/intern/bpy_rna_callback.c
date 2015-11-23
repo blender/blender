@@ -215,7 +215,7 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
 		if (pyrna_enum_value_from_id(region_draw_mode_items, cb_event_str, &cb_event, "bpy_struct.callback_add()") == -1) {
 			return NULL;
 		}
-		else if (pyrna_enum_value_from_id(region_type_items, cb_regiontype_str, &cb_regiontype, "bpy_struct.callback_add()") == -1) {
+		else if (pyrna_enum_value_from_id(rna_enum_region_type_items, cb_regiontype_str, &cb_regiontype, "bpy_struct.callback_add()") == -1) {
 			return NULL;
 		}
 		else {
@@ -278,7 +278,7 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
 		customdata = ED_region_draw_cb_customdata(handle);
 		Py_DECREF((PyObject *)customdata);
 
-		if (pyrna_enum_value_from_id(region_type_items, cb_regiontype_str, &cb_regiontype, "bpy_struct.callback_remove()") == -1) {
+		if (pyrna_enum_value_from_id(rna_enum_region_type_items, cb_regiontype_str, &cb_regiontype, "bpy_struct.callback_remove()") == -1) {
 			return NULL;
 		}
 		else {

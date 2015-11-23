@@ -457,7 +457,7 @@ static void rna_def_keyboard_sensor(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "key", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "key");
-	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_event_type_items);
 	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Sensor_keyboard_key_set", NULL);
 	RNA_def_property_ui_text(prop, "Key",  "");
@@ -466,7 +466,7 @@ static void rna_def_keyboard_sensor(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "modifier_key_1", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "qual");
-	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_event_type_items);
 	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Sensor_keyboard_modifier_set", NULL);
 	RNA_def_property_ui_text(prop, "Modifier Key", "Modifier key code");
@@ -474,7 +474,7 @@ static void rna_def_keyboard_sensor(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "modifier_key_2", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "qual2");
-	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_event_type_items);
 	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Sensor_keyboard_modifier2_set", NULL);
 	RNA_def_property_ui_text(prop, "Second Modifier Key", "Modifier key code");

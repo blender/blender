@@ -791,7 +791,7 @@ static void edit_node_properties(wmOperatorType *ot)
 	/* XXX could node be a context pointer? */
 	RNA_def_string(ot->srna, "node", NULL, MAX_NAME, "Node", "");
 	RNA_def_int(ot->srna, "socket", 0, 0, MAX_SOCKET, "Socket", "", 0, MAX_SOCKET);
-	RNA_def_enum(ot->srna, "in_out", node_socket_in_out_items, SOCK_IN, "Socket Side", "");
+	RNA_def_enum(ot->srna, "in_out", rna_enum_node_socket_in_out_items, SOCK_IN, "Socket Side", "");
 }
 
 static int edit_node_invoke_properties(bContext *C, wmOperator *op)
@@ -2251,7 +2251,7 @@ void NODE_OT_tree_socket_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "in_out", node_socket_in_out_items, SOCK_IN, "Socket Type", "");
+	RNA_def_enum(ot->srna, "in_out", rna_enum_node_socket_in_out_items, SOCK_IN, "Socket Type", "");
 }
 
 /********************** Remove interface socket operator *********************/

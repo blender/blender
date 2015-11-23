@@ -46,7 +46,7 @@
 #include "ED_object.h"
 
 /* please keep the names in sync with constraint.c */
-EnumPropertyItem constraint_type_items[] = {
+EnumPropertyItem rna_enum_constraint_type_items[] = {
 	{0, "", 0, N_("Motion Tracking"), ""},
 	{CONSTRAINT_TYPE_CAMERASOLVER, "CAMERA_SOLVER", ICON_CONSTRAINT_DATA, "Camera Solver", ""},
 	{CONSTRAINT_TYPE_FOLLOWTRACK,  "FOLLOW_TRACK", ICON_CONSTRAINT_DATA, "Follow Track", ""},
@@ -1646,19 +1646,19 @@ static void rna_def_constraint_transform(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "map_to_x_from", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "map[0]");
-	RNA_def_property_enum_items(prop, object_axis_unsigned_items);
+	RNA_def_property_enum_items(prop, rna_enum_object_axis_unsigned_items);
 	RNA_def_property_ui_text(prop, "Map To X From", "The source axis constrained object's X axis uses");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "map_to_y_from", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "map[1]");
-	RNA_def_property_enum_items(prop, object_axis_unsigned_items);
+	RNA_def_property_enum_items(prop, rna_enum_object_axis_unsigned_items);
 	RNA_def_property_ui_text(prop, "Map To Y From", "The source axis constrained object's Y axis uses");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "map_to_z_from", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "map[2]");
-	RNA_def_property_enum_items(prop, object_axis_unsigned_items);
+	RNA_def_property_enum_items(prop, rna_enum_object_axis_unsigned_items);
 	RNA_def_property_ui_text(prop, "Map To Z From", "The source axis constrained object's Z axis uses");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
@@ -2199,7 +2199,7 @@ static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "project_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "projAxis");
-	RNA_def_property_enum_items(prop, object_axis_items);
+	RNA_def_property_enum_items(prop, rna_enum_object_axis_items);
 	RNA_def_property_ui_text(prop, "Project Axis", "Axis constrain to");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
@@ -2603,7 +2603,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, constraint_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_constraint_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 
 	prop = RNA_def_property(srna, "owner_space", PROP_ENUM, PROP_NONE);

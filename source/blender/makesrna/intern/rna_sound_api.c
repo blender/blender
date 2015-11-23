@@ -67,7 +67,7 @@ void RNA_api_sound(StructRNA *srna)
 	func = RNA_def_function(srna, "unpack", "rna_Sound_unpack");
 	RNA_def_function_ui_description(func, "Unpack the sound to the samples filename");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_MAIN);
-	RNA_def_enum(func, "method", unpack_method_items, PF_USE_LOCAL, "method", "How to unpack");
+	RNA_def_enum(func, "method", rna_enum_unpack_method_items, PF_USE_LOCAL, "method", "How to unpack");
 }
 
 #endif

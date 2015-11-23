@@ -904,12 +904,12 @@ static void wm_user_modal_keymap_set_items(wmWindowManager *wm, wmKeyMap *km)
 const char *WM_key_event_string(const short type, const bool compact)
 {
 	EnumPropertyItem *it;
-	const int i = RNA_enum_from_value(event_type_items, (int)type);
+	const int i = RNA_enum_from_value(rna_enum_event_type_items, (int)type);
 
 	if (i == -1) {
 		return "";
 	}
-	it = &event_type_items[i];
+	it = &rna_enum_event_type_items[i];
 
 	/* We first try enum items' description (abused as shortname here), and fall back to usual name if empty. */
 	if (compact && it->description[0]) {

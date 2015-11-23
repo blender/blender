@@ -1505,7 +1505,7 @@ BoidRule *boid_new_rule(int type)
 
 	rule->type = type;
 	rule->flag |= BOIDRULE_IN_AIR|BOIDRULE_ON_LAND;
-	BLI_strncpy(rule->name, boidrule_type_items[type-1].name, sizeof(rule->name));
+	BLI_strncpy(rule->name, rna_enum_boidrule_type_items[type-1].name, sizeof(rule->name));
 
 	return rule;
 }

@@ -89,7 +89,7 @@ static EnumPropertyItem DT_layer_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-/* Note: DT_layers_select_src_items enum is from rna_modifier.c */
+/* Note: rna_enum_dt_layers_select_src_items enum is from rna_modifier.c */
 static EnumPropertyItem *dt_layers_select_src_itemf(
         bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
@@ -99,18 +99,18 @@ static EnumPropertyItem *dt_layers_select_src_itemf(
 	const int data_type = RNA_enum_get(ptr, "data_type");
 
 	if (!C) {  /* needed for docs and i18n tools */
-		return DT_layers_select_src_items;
+		return rna_enum_dt_layers_select_src_items;
 	}
 
-	RNA_enum_items_add_value(&item, &totitem, DT_layers_select_src_items, DT_LAYERS_ACTIVE_SRC);
-	RNA_enum_items_add_value(&item, &totitem, DT_layers_select_src_items, DT_LAYERS_ALL_SRC);
+	RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_ACTIVE_SRC);
+	RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_ALL_SRC);
 
 	if (data_type == DT_TYPE_MDEFORMVERT) {
 		Object *ob_src = CTX_data_active_object(C);
 
 		if (BKE_object_pose_armature_get(ob_src)) {
-			RNA_enum_items_add_value(&item, &totitem, DT_layers_select_src_items, DT_LAYERS_VGROUP_SRC_BONE_SELECT);
-			RNA_enum_items_add_value(&item, &totitem, DT_layers_select_src_items, DT_LAYERS_VGROUP_SRC_BONE_DEFORM);
+			RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_VGROUP_SRC_BONE_SELECT);
+			RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_VGROUP_SRC_BONE_DEFORM);
 		}
 
 		if (ob_src) {
@@ -182,7 +182,7 @@ static EnumPropertyItem *dt_layers_select_src_itemf(
 	return item;
 }
 
-/* Note: DT_layers_select_dst_items enum is from rna_modifier.c */
+/* Note: rna_enum_dt_layers_select_dst_items enum is from rna_modifier.c */
 static EnumPropertyItem *dt_layers_select_dst_itemf(
         bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
@@ -192,14 +192,14 @@ static EnumPropertyItem *dt_layers_select_dst_itemf(
 	const int layers_select_src = RNA_enum_get(ptr, "layers_select_src");
 
 	if (!C) {  /* needed for docs and i18n tools */
-		return DT_layers_select_dst_items;
+		return rna_enum_dt_layers_select_dst_items;
 	}
 
 	if (layers_select_src == DT_LAYERS_ACTIVE_SRC || layers_select_src >= 0) {
-		RNA_enum_items_add_value(&item, &totitem, DT_layers_select_dst_items, DT_LAYERS_ACTIVE_DST);
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_layers_select_dst_items, DT_LAYERS_ACTIVE_DST);
 	}
-	RNA_enum_items_add_value(&item, &totitem, DT_layers_select_dst_items, DT_LAYERS_NAME_DST);
-	RNA_enum_items_add_value(&item, &totitem, DT_layers_select_dst_items, DT_LAYERS_INDEX_DST);
+	RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_layers_select_dst_items, DT_LAYERS_NAME_DST);
+	RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_layers_select_dst_items, DT_LAYERS_INDEX_DST);
 
 	/* No 'specific' to-layers here, since we may transfer to several objects at once! */
 
@@ -229,7 +229,7 @@ static EnumPropertyItem *dt_layers_select_itemf(bContext *C, PointerRNA *ptr, Pr
 	}
 }
 
-/* Note: DT_mix_mode_items enum is from rna_modifier.c */
+/* Note: rna_enum_dt_mix_mode_items enum is from rna_modifier.c */
 static EnumPropertyItem *dt_mix_mode_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
@@ -239,24 +239,24 @@ static EnumPropertyItem *dt_mix_mode_itemf(bContext *C, PointerRNA *ptr, Propert
 	bool support_advanced_mixing, support_threshold;
 
 	if (!C) {  /* needed for docs and i18n tools */
-		return DT_mix_mode_items;
+		return rna_enum_dt_mix_mode_items;
 	}
 
-	RNA_enum_items_add_value(&item, &totitem, DT_mix_mode_items, CDT_MIX_TRANSFER);
+	RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_mix_mode_items, CDT_MIX_TRANSFER);
 
 	BKE_object_data_transfer_get_dttypes_capacity(dtdata_type, &support_advanced_mixing, &support_threshold);
 
 	if (support_threshold) {
-		RNA_enum_items_add_value(&item, &totitem, DT_mix_mode_items, CDT_MIX_REPLACE_ABOVE_THRESHOLD);
-		RNA_enum_items_add_value(&item, &totitem, DT_mix_mode_items, CDT_MIX_REPLACE_BELOW_THRESHOLD);
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_mix_mode_items, CDT_MIX_REPLACE_ABOVE_THRESHOLD);
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_mix_mode_items, CDT_MIX_REPLACE_BELOW_THRESHOLD);
 	}
 
 	if (support_advanced_mixing) {
 		RNA_enum_item_add_separator(&item, &totitem);
-		RNA_enum_items_add_value(&item, &totitem, DT_mix_mode_items, CDT_MIX_MIX);
-		RNA_enum_items_add_value(&item, &totitem, DT_mix_mode_items, CDT_MIX_ADD);
-		RNA_enum_items_add_value(&item, &totitem, DT_mix_mode_items, CDT_MIX_SUB);
-		RNA_enum_items_add_value(&item, &totitem, DT_mix_mode_items, CDT_MIX_MUL);
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_mix_mode_items, CDT_MIX_MIX);
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_mix_mode_items, CDT_MIX_ADD);
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_mix_mode_items, CDT_MIX_SUB);
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_mix_mode_items, CDT_MIX_MUL);
 	}
 
 	RNA_enum_item_end(&item, &totitem);
@@ -562,13 +562,13 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_create", true, "Create Data", "Add data layers on destination meshes if needed");
 
 	/* Mapping methods. */
-	RNA_def_enum(ot->srna, "vert_mapping", DT_method_vertex_items, MREMAP_MODE_VERT_NEAREST, "Vertex Mapping",
+	RNA_def_enum(ot->srna, "vert_mapping", rna_enum_dt_method_vertex_items, MREMAP_MODE_VERT_NEAREST, "Vertex Mapping",
 	             "Method used to map source vertices to destination ones");
-	RNA_def_enum(ot->srna, "edge_mapping", DT_method_edge_items, MREMAP_MODE_EDGE_NEAREST, "Edge Mapping",
+	RNA_def_enum(ot->srna, "edge_mapping", rna_enum_dt_method_edge_items, MREMAP_MODE_EDGE_NEAREST, "Edge Mapping",
 	             "Method used to map source edges to destination ones");
-	RNA_def_enum(ot->srna, "loop_mapping", DT_method_loop_items, MREMAP_MODE_LOOP_NEAREST_POLYNOR,
+	RNA_def_enum(ot->srna, "loop_mapping", rna_enum_dt_method_loop_items, MREMAP_MODE_LOOP_NEAREST_POLYNOR,
 	             "Face Corner Mapping", "Method used to map source faces' corners to destination ones");
-	RNA_def_enum(ot->srna, "poly_mapping", DT_method_poly_items, MREMAP_MODE_POLY_NEAREST, "Face Mapping",
+	RNA_def_enum(ot->srna, "poly_mapping", rna_enum_dt_method_poly_items, MREMAP_MODE_POLY_NEAREST, "Face Mapping",
 	             "Method used to map source faces to destination ones");
 
 	/* Mapping options and filtering. */
@@ -593,15 +593,15 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
 	RNA_def_property_subtype(prop, PROP_FACTOR);
 
 	/* How to handle multi-layers types of data. */
-	prop = RNA_def_enum(ot->srna, "layers_select_src", DT_layers_select_src_items, DT_LAYERS_ACTIVE_SRC,
+	prop = RNA_def_enum(ot->srna, "layers_select_src", rna_enum_dt_layers_select_src_items, DT_LAYERS_ACTIVE_SRC,
 	                    "Source Layers Selection", "Which layers to transfer, in case of multi-layers types");
 	RNA_def_property_enum_funcs_runtime(prop, NULL, NULL, dt_layers_select_itemf);
 
-	prop = RNA_def_enum(ot->srna, "layers_select_dst", DT_layers_select_dst_items, DT_LAYERS_ACTIVE_DST,
+	prop = RNA_def_enum(ot->srna, "layers_select_dst", rna_enum_dt_layers_select_dst_items, DT_LAYERS_ACTIVE_DST,
 	                    "Destination Layers Matching", "How to match source and destination layers");
 	RNA_def_property_enum_funcs_runtime(prop, NULL, NULL, dt_layers_select_itemf);
 
-	prop = RNA_def_enum(ot->srna, "mix_mode", DT_mix_mode_items, CDT_MIX_TRANSFER, "Mix Mode",
+	prop = RNA_def_enum(ot->srna, "mix_mode", rna_enum_dt_mix_mode_items, CDT_MIX_TRANSFER, "Mix Mode",
 	                   "How to affect destination elements with source values");
 	RNA_def_property_enum_funcs_runtime(prop, NULL, NULL, dt_mix_mode_itemf);
 	RNA_def_float(ot->srna, "mix_factor", 1.0f, 0.0f, 1.0f, "Mix Factor",
@@ -719,11 +719,11 @@ void OBJECT_OT_datalayout_transfer(wmOperatorType *ot)
 	                "Also delete some data layers from destination if necessary, so that it matches exactly source");
 
 	/* How to handle multi-layers types of data. */
-	prop = RNA_def_enum(ot->srna, "layers_select_src", DT_layers_select_src_items, DT_LAYERS_ACTIVE_SRC,
+	prop = RNA_def_enum(ot->srna, "layers_select_src", rna_enum_dt_layers_select_src_items, DT_LAYERS_ACTIVE_SRC,
 	                    "Source Layers Selection", "Which layers to transfer, in case of multi-layers types");
 	RNA_def_property_enum_funcs_runtime(prop, NULL, NULL, dt_layers_select_src_itemf);
 
-	prop = RNA_def_enum(ot->srna, "layers_select_dst", DT_layers_select_dst_items, DT_LAYERS_ACTIVE_DST,
+	prop = RNA_def_enum(ot->srna, "layers_select_dst", rna_enum_dt_layers_select_dst_items, DT_LAYERS_ACTIVE_DST,
 	                    "Destination Layers Matching", "How to match source and destination layers");
 	RNA_def_property_enum_funcs_runtime(prop, NULL, NULL, dt_layers_select_dst_itemf);
 }

@@ -191,7 +191,7 @@ static void mesh_operator_edgering_props(wmOperatorType *ot, const int cuts_defa
 	              "Profile Factor", "How much intermediary new edges are shrunk/expanded", -2.0f, 2.0f);
 
 	prop = RNA_def_property(ot->srna, "profile_shape", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, proportional_falloff_curve_only_items);
+	RNA_def_property_enum_items(prop, rna_enum_proportional_falloff_curve_only_items);
 	RNA_def_property_enum_default(prop, PROP_SMOOTH);
 	RNA_def_property_ui_text(prop, "Profile Shape", "Shape of the profile");
 	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
@@ -3850,9 +3850,9 @@ void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_enum(ot->srna, "quad_method", modifier_triangulate_quad_method_items, MOD_TRIANGULATE_QUAD_BEAUTY,
+	RNA_def_enum(ot->srna, "quad_method", rna_enum_modifier_triangulate_quad_method_items, MOD_TRIANGULATE_QUAD_BEAUTY,
 	             "Quad Method", "Method for splitting the quads into triangles");
-	RNA_def_enum(ot->srna, "ngon_method", modifier_triangulate_ngon_method_items, MOD_TRIANGULATE_NGON_BEAUTY,
+	RNA_def_enum(ot->srna, "ngon_method", rna_enum_modifier_triangulate_ngon_method_items, MOD_TRIANGULATE_NGON_BEAUTY,
 	             "Polygon Method", "Method for splitting the polygons into triangles");
 }
 
@@ -4203,7 +4203,7 @@ void MESH_OT_dissolve_limited(wmOperatorType *ot)
 	RNA_def_property_float_default(prop, DEG2RADF(5.0f));
 	RNA_def_boolean(ot->srna, "use_dissolve_boundaries", false, "All Boundaries",
 	                "Dissolve all vertices inbetween face boundaries");
-	RNA_def_enum_flag(ot->srna, "delimit", mesh_delimit_mode_items, BMO_DELIM_NORMAL, "Delimit",
+	RNA_def_enum_flag(ot->srna, "delimit", rna_enum_mesh_delimit_mode_items, BMO_DELIM_NORMAL, "Delimit",
 	                  "Delimit dissolve operation");
 }
 
@@ -5452,7 +5452,7 @@ void MESH_OT_symmetrize(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ot->prop = RNA_def_enum(ot->srna, "direction", symmetrize_direction_items,
+	ot->prop = RNA_def_enum(ot->srna, "direction", rna_enum_symmetrize_direction_items,
 	                        BMO_SYMMETRIZE_NEGATIVE_X,
 	                        "Direction", "Which sides to copy from and to");
 	RNA_def_float(ot->srna, "threshold", 1e-4f, 0.0f, 10.0f, "Threshold", "", 1e-5f, 0.1f);
@@ -5576,7 +5576,7 @@ void MESH_OT_symmetry_snap(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ot->prop = RNA_def_enum(ot->srna, "direction", symmetrize_direction_items,
+	ot->prop = RNA_def_enum(ot->srna, "direction", rna_enum_symmetrize_direction_items,
 	                        BMO_SYMMETRIZE_NEGATIVE_X,
 	                        "Direction", "Which sides to copy from and to");
 	RNA_def_float(ot->srna, "threshold", 0.05f, 0.0f, 10.0f, "Threshold", "", 1e-4f, 1.0f);

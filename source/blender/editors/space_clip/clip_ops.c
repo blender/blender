@@ -1401,7 +1401,7 @@ void CLIP_OT_mode_set(wmOperatorType *ot)
 	ot->poll = ED_space_clip_poll;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "mode", clip_editor_mode_items, SC_MODE_TRACKING, "Mode", "");
+	RNA_def_enum(ot->srna, "mode", rna_enum_clip_editor_mode_items, SC_MODE_TRACKING, "Mode", "");
 }
 
 /********************** NDOF operator *********************/

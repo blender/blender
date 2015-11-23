@@ -46,7 +46,7 @@
 #include "rna_internal.h"  /* own include */
 
 /* confusingm 2 enums mixed up here */
-EnumPropertyItem window_cursor_items[] = {
+EnumPropertyItem rna_enum_window_cursor_items[] = {
 	{CURSOR_STD, "DEFAULT", 0, "Default", ""},
 	{CURSOR_NONE, "NONE", 0, "None", ""},
 	{CURSOR_WAIT, "WAIT", 0, "Wait", ""},
@@ -353,7 +353,7 @@ static void rna_generic_op_invoke(FunctionRNA *func, int flag)
 	}
 
 	if (flag & WM_GEN_INVOKE_RETURN) {
-		parm = RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", "");
+		parm = RNA_def_enum_flag(func, "result", rna_enum_operator_return_items, OPERATOR_CANCELLED, "result", "");
 		RNA_def_function_return(func, parm);
 	}
 }
@@ -372,13 +372,13 @@ void RNA_api_window(StructRNA *srna)
 
 	func = RNA_def_function(srna, "cursor_set", "WM_cursor_set");
 	parm = RNA_def_property(func, "cursor", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(parm, window_cursor_items);
+	RNA_def_property_enum_items(parm, rna_enum_window_cursor_items);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_function_ui_description(func, "Set the cursor");
 
 	func = RNA_def_function(srna, "cursor_modal_set", "WM_cursor_modal_set");
 	parm = RNA_def_property(func, "cursor", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(parm, window_cursor_items);
+	RNA_def_property_enum_items(parm, rna_enum_window_cursor_items);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_function_ui_description(func, "Set the cursor, so the previous cursor can be restored");
 
@@ -468,7 +468,7 @@ void RNA_api_wm(StructRNA *srna)
 	parm = RNA_def_string(func, "title", NULL, 0, "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(parm, icon_items);
+	RNA_def_property_enum_items(parm, rna_enum_icon_items);
 	/* return */
 	parm = RNA_def_pointer(func, "menu", "UIPopupMenu", "", "");
 	RNA_def_property_flag(parm, PROP_RNAPTR | PROP_NEVER_NULL);
@@ -486,7 +486,7 @@ void RNA_api_wm(StructRNA *srna)
 	parm = RNA_def_string(func, "title", NULL, 0, "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(parm, icon_items);
+	RNA_def_property_enum_items(parm, rna_enum_icon_items);
 	parm = RNA_def_pointer(func, "event", "Event", "", "");
 	RNA_def_property_flag(parm, PROP_RNAPTR | PROP_NEVER_NULL);
 	/* return */
@@ -508,7 +508,7 @@ void RNA_api_operator(StructRNA *srna)
 
 	/* utility, not for registering */
 	func = RNA_def_function(srna, "report", "rna_Operator_report");
-	parm = RNA_def_enum_flag(func, "type", wm_report_items, 0, "Type", "");
+	parm = RNA_def_enum_flag(func, "type", rna_enum_wm_report_items, 0, "Type", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_string(func, "message", NULL, 0, "Report Message", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -532,7 +532,7 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
 	/* better name? */
-	parm = RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", "");
+	parm = RNA_def_enum_flag(func, "result", rna_enum_operator_return_items, OPERATOR_CANCELLED, "result", "");
 	RNA_def_function_return(func, parm);
 
 	/* check */
@@ -555,7 +555,7 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
 	/* better name? */
-	parm = RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", "");
+	parm = RNA_def_enum_flag(func, "result", rna_enum_operator_return_items, OPERATOR_CANCELLED, "result", "");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "modal", NULL); /* same as invoke */
@@ -567,7 +567,7 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
 	/* better name? */
-	parm = RNA_def_enum_flag(func, "result", operator_return_items, OPERATOR_CANCELLED, "result", "");
+	parm = RNA_def_enum_flag(func, "result", rna_enum_operator_return_items, OPERATOR_CANCELLED, "result", "");
 	RNA_def_function_return(func, parm);
 
 	/* draw */
@@ -592,7 +592,7 @@ void RNA_api_macro(StructRNA *srna)
 
 	/* utility, not for registering */
 	func = RNA_def_function(srna, "report", "rna_Operator_report");
-	parm = RNA_def_enum_flag(func, "type", wm_report_items, 0, "Type", "");
+	parm = RNA_def_enum_flag(func, "type", rna_enum_wm_report_items, 0, "Type", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_string(func, "message", NULL, 0, "Report Message", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -662,16 +662,16 @@ void RNA_api_keymapitems(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_string(func, "idname", NULL, 0, "Operator Identifier", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_enum(func, "type", event_type_items, 0, "Type", "");
+	parm = RNA_def_enum(func, "type", rna_enum_event_type_items, 0, "Type", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_enum(func, "value", event_value_items, 0, "Value", "");
+	parm = RNA_def_enum(func, "value", rna_enum_event_value_items, 0, "Value", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_boolean(func, "any", 0, "Any", "");
 	RNA_def_boolean(func, "shift", 0, "Shift", "");
 	RNA_def_boolean(func, "ctrl", 0, "Ctrl", "");
 	RNA_def_boolean(func, "alt", 0, "Alt", "");
 	RNA_def_boolean(func, "oskey", 0, "OS Key", "");
-	RNA_def_enum(func, "key_modifier", event_type_items, 0, "Key Modifier", "");
+	RNA_def_enum(func, "key_modifier", rna_enum_event_type_items, 0, "Key Modifier", "");
 	RNA_def_boolean(func, "head", 0, "At Head", 
 	                "Force item to be added at start (not end) of key map so that "
 	                "it doesn't get blocked by an existing key map item");
@@ -682,16 +682,16 @@ void RNA_api_keymapitems(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_string(func, "propvalue", NULL, 0, "Property Value", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_enum(func, "type", event_type_items, 0, "Type", "");
+	parm = RNA_def_enum(func, "type", rna_enum_event_type_items, 0, "Type", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_enum(func, "value", event_value_items, 0, "Value", "");
+	parm = RNA_def_enum(func, "value", rna_enum_event_value_items, 0, "Value", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_boolean(func, "any", 0, "Any", "");
 	RNA_def_boolean(func, "shift", 0, "Shift", "");
 	RNA_def_boolean(func, "ctrl", 0, "Ctrl", "");
 	RNA_def_boolean(func, "alt", 0, "Alt", "");
 	RNA_def_boolean(func, "oskey", 0, "OS Key", "");
-	RNA_def_enum(func, "key_modifier", event_type_items, 0, "Key Modifier", "");
+	RNA_def_enum(func, "key_modifier", rna_enum_event_type_items, 0, "Key Modifier", "");
 	parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item");
 	RNA_def_function_return(func, parm);
 	
@@ -717,8 +717,8 @@ void RNA_api_keymaps(StructRNA *srna)
 	func = RNA_def_function(srna, "new", "rna_keymap_new"); /* add_keymap */
 	parm = RNA_def_string(func, "name", NULL, 0, "Name", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_enum(func, "space_type", space_type_items, SPACE_EMPTY, "Space Type", "");
-	RNA_def_enum(func, "region_type", region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
+	RNA_def_enum(func, "space_type", rna_enum_space_type_items, SPACE_EMPTY, "Space Type", "");
+	RNA_def_enum(func, "region_type", rna_enum_region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
 	RNA_def_boolean(func, "modal", 0, "Modal", "");
 	parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Added key map");
 	RNA_def_function_return(func, parm);
@@ -732,8 +732,8 @@ void RNA_api_keymaps(StructRNA *srna)
 	func = RNA_def_function(srna, "find", "rna_keymap_find"); /* find_keymap */
 	parm = RNA_def_string(func, "name", NULL, 0, "Name", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_enum(func, "space_type", space_type_items, SPACE_EMPTY, "Space Type", "");
-	RNA_def_enum(func, "region_type", region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
+	RNA_def_enum(func, "space_type", rna_enum_space_type_items, SPACE_EMPTY, "Space Type", "");
+	RNA_def_enum(func, "region_type", rna_enum_region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
 	parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Corresponding key map");
 	RNA_def_function_return(func, parm);
 

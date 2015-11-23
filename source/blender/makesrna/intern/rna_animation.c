@@ -45,7 +45,7 @@
 #include "ED_keyframing.h"
 
 /* exported for use in API */
-EnumPropertyItem keyingset_path_grouping_items[] = {
+EnumPropertyItem rna_enum_keyingset_path_grouping_items[] = {
 	{KSP_GROUP_NAMED, "NAMED", 0, "Named Group", ""},
 	{KSP_GROUP_NONE, "NONE", 0, "None", ""},
 	{KSP_GROUP_KSNAME, "KEYINGSET", 0, "Keying Set Name", ""},
@@ -55,7 +55,7 @@ EnumPropertyItem keyingset_path_grouping_items[] = {
 /* It would be cool to get rid of this 'INSERTKEY_' prefix in 'py strings' values, but it would break existing
  * exported keyingset... :/
  */
-EnumPropertyItem keying_flag_items[] = {
+EnumPropertyItem rna_enum_keying_flag_items[] = {
 	{INSERTKEY_NEEDED, "INSERTKEY_NEEDED", 0, "Only Needed",
 	                   "Only insert keyframes where they're needed in the relevant F-Curves"},
 	{INSERTKEY_MATRIX, "INSERTKEY_VISUAL", 0, "Visual Keying",
@@ -652,7 +652,7 @@ static void rna_def_keyingset_info(BlenderRNA *brna)
 	 */
 	prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "keyingflag");
-	RNA_def_property_enum_items(prop, keying_flag_items);
+	RNA_def_property_enum_items(prop, rna_enum_keying_flag_items);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
 	RNA_def_property_ui_text(prop, "Options",  "Keying Set options to use when inserting keyframes");
 	
@@ -710,7 +710,7 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "idtype");
-	RNA_def_property_enum_items(prop, id_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_id_type_items);
 	RNA_def_property_enum_default(prop, ID_OB);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_ksPath_id_type_set", NULL);
 	RNA_def_property_ui_text(prop, "ID Type", "Type of ID-block that can be used");
@@ -724,7 +724,7 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 	/* Grouping */
 	prop = RNA_def_property(srna, "group_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "groupmode");
-	RNA_def_property_enum_items(prop, keyingset_path_grouping_items);
+	RNA_def_property_enum_items(prop, rna_enum_keyingset_path_grouping_items);
 	RNA_def_property_ui_text(prop, "Grouping Method", "Method used to define which Group-name to use");
 	RNA_def_property_update(prop, NC_SCENE | ND_KEYINGSET | NA_EDITED, NULL); /* XXX: maybe a bit too noisy */
 	
@@ -789,7 +789,7 @@ static void rna_def_keyingset_paths(BlenderRNA *brna, PropertyRNA *cprop)
 	            "The index of the destination property (i.e. axis of Location/Rotation/etc.), "
 	            "or -1 for the entire array", 0, INT_MAX);
 	/* grouping */
-	RNA_def_enum(func, "group_method", keyingset_path_grouping_items, KSP_GROUP_KSNAME,
+	RNA_def_enum(func, "group_method", rna_enum_keyingset_path_grouping_items, KSP_GROUP_KSNAME,
 	             "Grouping Method", "Method used to define which Group-name to use");
 	RNA_def_string(func, "group_name", NULL, 64, "Group Name",
 	               "Name of Action Group to assign destination to (only if grouping mode is to use this name)");
@@ -984,14 +984,14 @@ static void rna_def_animdata(BlenderRNA *brna)
 	/* Active Action Settings */
 	prop = RNA_def_property(srna, "action_extrapolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "act_extendmode");
-	RNA_def_property_enum_items(prop, nla_mode_extend_items);
+	RNA_def_property_enum_items(prop, rna_enum_nla_mode_extend_items);
 	RNA_def_property_ui_text(prop, "Action Extrapolation",
 	                         "Action to take for gaps past the Active Action's range (when evaluating with NLA)");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, NULL);
 	
 	prop = RNA_def_property(srna, "action_blend_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "act_blendmode");
-	RNA_def_property_enum_items(prop, nla_mode_blend_items);
+	RNA_def_property_enum_items(prop, rna_enum_nla_mode_blend_items);
 	RNA_def_property_ui_text(prop, "Action Blending",
 	                         "Method used for combining Active Action's result with result of NLA stack");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_NLA, NULL); /* this will do? */

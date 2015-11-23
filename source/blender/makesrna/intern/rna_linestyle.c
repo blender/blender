@@ -39,7 +39,7 @@
 #include "WM_types.h"
 #include "WM_api.h"
 
-EnumPropertyItem linestyle_color_modifier_type_items[] = {
+EnumPropertyItem rna_enum_linestyle_color_modifier_type_items[] = {
 	{LS_MODIFIER_ALONG_STROKE, "ALONG_STROKE", ICON_MODIFIER, "Along Stroke", ""},
 	{LS_MODIFIER_CREASE_ANGLE, "CREASE_ANGLE", ICON_MODIFIER, "Crease Angle", ""},
 	{LS_MODIFIER_CURVATURE_3D, "CURVATURE_3D", ICON_MODIFIER, "Curvature 3D", ""},
@@ -51,7 +51,7 @@ EnumPropertyItem linestyle_color_modifier_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem linestyle_alpha_modifier_type_items[] = {
+EnumPropertyItem rna_enum_linestyle_alpha_modifier_type_items[] = {
 	{LS_MODIFIER_ALONG_STROKE, "ALONG_STROKE", ICON_MODIFIER, "Along Stroke", ""},
 	{LS_MODIFIER_CREASE_ANGLE, "CREASE_ANGLE", ICON_MODIFIER, "Crease Angle", ""},
 	{LS_MODIFIER_CURVATURE_3D, "CURVATURE_3D", ICON_MODIFIER, "Curvature 3D", ""},
@@ -63,7 +63,7 @@ EnumPropertyItem linestyle_alpha_modifier_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem linestyle_thickness_modifier_type_items[] = {
+EnumPropertyItem rna_enum_linestyle_thickness_modifier_type_items[] = {
 	{LS_MODIFIER_ALONG_STROKE, "ALONG_STROKE", ICON_MODIFIER, "Along Stroke", ""},
 	{LS_MODIFIER_CALLIGRAPHY, "CALLIGRAPHY", ICON_MODIFIER, "Calligraphy", ""},
 	{LS_MODIFIER_CREASE_ANGLE, "CREASE_ANGLE", ICON_MODIFIER, "Crease Angle", ""},
@@ -76,7 +76,7 @@ EnumPropertyItem linestyle_thickness_modifier_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem linestyle_geometry_modifier_type_items[] = {
+EnumPropertyItem rna_enum_linestyle_geometry_modifier_type_items[] = {
 	{LS_MODIFIER_2D_OFFSET, "2D_OFFSET", ICON_MODIFIER, "2D Offset", ""},
 	{LS_MODIFIER_2D_TRANSFORM, "2D_TRANSFORM", ICON_MODIFIER, "2D Transform", ""},
 	{LS_MODIFIER_BACKBONE_STRETCHER, "BACKBONE_STRETCHER", ICON_MODIFIER, "Backbone Stretcher", ""},
@@ -574,8 +574,9 @@ static void rna_def_linestyle_mtex(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_LineStyle_update");
 }
 
-static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modifier_type_items,
-                                         const char *set_name_func, const bool blend, const bool color)
+static void rna_def_modifier_type_common(
+        StructRNA *srna, EnumPropertyItem *modifier_type_items,
+        const char *set_name_func, const bool blend, const bool color)
 {
 	PropertyRNA *prop;
 
@@ -587,8 +588,8 @@ static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modi
 		{LS_VALUE_MULT, "MULTIPLY", 0, "Multiply", ""},
 		{LS_VALUE_DIV, "DIVIDE", 0, "Divide", ""},
 		{LS_VALUE_DIFF, "DIFFERENCE", 0, "Difference", ""},
-		{LS_VALUE_MIN, "MININUM", 0, "Minimum", ""}, 
-		{LS_VALUE_MAX, "MAXIMUM", 0, "Maximum", ""}, 
+		{LS_VALUE_MIN, "MININUM", 0, "Minimum", ""},
+		{LS_VALUE_MAX, "MAXIMUM", 0, "Maximum", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -608,7 +609,7 @@ static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modi
 	if (blend) {
 		prop = RNA_def_property(srna, "blend", PROP_ENUM, PROP_NONE);
 		RNA_def_property_enum_sdna(prop, NULL, "modifier.blend");
-		RNA_def_property_enum_items(prop, (color) ? ramp_blend_items : value_blend_items);
+		RNA_def_property_enum_items(prop, (color) ? rna_enum_ramp_blend_items : value_blend_items);
 		RNA_def_property_ui_text(prop, "Blend", "Specify how the modifier value is blended into the base value");
 		RNA_def_property_update(prop, NC_LINESTYLE, "rna_LineStyle_update");
 
@@ -631,25 +632,25 @@ static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modi
 
 static void rna_def_color_modifier(StructRNA *srna)
 {
-	rna_def_modifier_type_common(srna, linestyle_color_modifier_type_items,
+	rna_def_modifier_type_common(srna, rna_enum_linestyle_color_modifier_type_items,
 	                             "rna_LineStyleColorModifier_name_set", true, true);
 }
 
 static void rna_def_alpha_modifier(StructRNA *srna)
 {
-	rna_def_modifier_type_common(srna, linestyle_alpha_modifier_type_items,
+	rna_def_modifier_type_common(srna, rna_enum_linestyle_alpha_modifier_type_items,
 	                             "rna_LineStyleAlphaModifier_name_set", true, false);
 }
 
 static void rna_def_thickness_modifier(StructRNA *srna)
 {
-	rna_def_modifier_type_common(srna, linestyle_thickness_modifier_type_items,
+	rna_def_modifier_type_common(srna, rna_enum_linestyle_thickness_modifier_type_items,
 	                             "rna_LineStyleThicknessModifier_name_set", true, false);
 }
 
 static void rna_def_geometry_modifier(StructRNA *srna)
 {
-	rna_def_modifier_type_common(srna, linestyle_geometry_modifier_type_items,
+	rna_def_modifier_type_common(srna, rna_enum_linestyle_geometry_modifier_type_items,
 	                             "rna_LineStyleGeometryModifier_name_set", false, false);
 }
 
@@ -1447,7 +1448,7 @@ static void rna_def_freestyle_color_modifiers(BlenderRNA *brna, PropertyRNA *cpr
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_string(func, "name", "ColorModifier", 0, "", "New name for the color modifier (not unique)");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_enum(func, "type", linestyle_color_modifier_type_items, 0, "", "Color modifier type to add");
+	parm = RNA_def_enum(func, "type", rna_enum_linestyle_color_modifier_type_items, 0, "", "Color modifier type to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "modifier", "LineStyleColorModifier", "", "Newly added color modifier");
 	RNA_def_function_return(func, parm);
@@ -1476,7 +1477,7 @@ static void rna_def_freestyle_alpha_modifiers(BlenderRNA *brna, PropertyRNA *cpr
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_string(func, "name", "AlphaModifier", 0, "", "New name for the alpha modifier (not unique)");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_enum(func, "type", linestyle_alpha_modifier_type_items, 0, "", "Alpha modifier type to add");
+	parm = RNA_def_enum(func, "type", rna_enum_linestyle_alpha_modifier_type_items, 0, "", "Alpha modifier type to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "modifier", "LineStyleAlphaModifier", "", "Newly added alpha modifier");
 	RNA_def_function_return(func, parm);
@@ -1505,7 +1506,7 @@ static void rna_def_freestyle_thickness_modifiers(BlenderRNA *brna, PropertyRNA 
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_string(func, "name", "ThicknessModifier", 0, "", "New name for the thickness modifier (not unique)");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_enum(func, "type", linestyle_thickness_modifier_type_items, 0, "", "Thickness modifier type to add");
+	parm = RNA_def_enum(func, "type", rna_enum_linestyle_thickness_modifier_type_items, 0, "", "Thickness modifier type to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "modifier", "LineStyleThicknessModifier", "", "Newly added thickness modifier");
 	RNA_def_function_return(func, parm);
@@ -1534,7 +1535,7 @@ static void rna_def_freestyle_geometry_modifiers(BlenderRNA *brna, PropertyRNA *
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_string(func, "name", "GeometryModifier", 0, "", "New name for the geometry modifier (not unique)");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_enum(func, "type", linestyle_geometry_modifier_type_items, 0, "", "Geometry modifier type to add");
+	parm = RNA_def_enum(func, "type", rna_enum_linestyle_geometry_modifier_type_items, 0, "", "Geometry modifier type to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "modifier", "LineStyleGeometryModifier", "", "Newly added geometry modifier");
 	RNA_def_function_return(func, parm);

@@ -96,7 +96,7 @@ void SEQUENCER_OT_strip_modifier_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	prop = RNA_def_enum(ot->srna, "type", sequence_modifier_type_items, seqModifierType_ColorBalance, "Type", "");
+	prop = RNA_def_enum(ot->srna, "type", rna_enum_sequence_modifier_type_items, seqModifierType_ColorBalance, "Type", "");
 	ot->prop = prop;
 }
 

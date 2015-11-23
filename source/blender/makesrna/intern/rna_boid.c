@@ -48,7 +48,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-EnumPropertyItem boidrule_type_items[] = {
+EnumPropertyItem rna_enum_boidrule_type_items[] = {
 	{eBoidRuleType_Goal, "GOAL", 0, "Goal", "Go to assigned object or loudest assigned signal source"},
 	{eBoidRuleType_Avoid, "AVOID", 0, "Avoid", "Get away from assigned object or loudest assigned signal source"},
 	{eBoidRuleType_AvoidCollision, "AVOID_COLLISION", 0, "Avoid Collision",
@@ -432,7 +432,7 @@ static void rna_def_boidrule(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, boidrule_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_boidrule_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 	
 	/* flags */

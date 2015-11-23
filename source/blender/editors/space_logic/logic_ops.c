@@ -447,7 +447,7 @@ static void LOGIC_OT_controller_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 	
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", controller_type_items, CONT_LOGIC_AND, "Type", "Type of controller to add");
+	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_controller_type_items, CONT_LOGIC_AND, "Type", "Type of controller to add");
 	prop = RNA_def_string(ot->srna, "name", NULL, MAX_NAME, "Name", "Name of the Controller to add");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	prop = RNA_def_string(ot->srna, "object", NULL, MAX_NAME, "Object", "Name of the Object to add the Controller to");

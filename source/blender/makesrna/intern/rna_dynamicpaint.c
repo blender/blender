@@ -45,7 +45,7 @@
 
 #include "WM_types.h"
 
-EnumPropertyItem prop_dynamicpaint_type_items[] = {
+EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
 	{MOD_DYNAMICPAINT_TYPE_CANVAS, "CANVAS", 0, "Canvas", ""},
 	{MOD_DYNAMICPAINT_TYPE_BRUSH, "BRUSH", 0, "Brush", ""},
 	{0, NULL, 0, NULL, NULL}

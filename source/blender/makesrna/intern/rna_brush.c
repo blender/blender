@@ -62,7 +62,7 @@ static EnumPropertyItem sculpt_stroke_method_items[] = {
 };
 
 
-EnumPropertyItem brush_sculpt_tool_items[] = {
+EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
 	{SCULPT_TOOL_BLOB, "BLOB", ICON_BRUSH_BLOB, "Blob", ""},
 	{SCULPT_TOOL_CLAY, "CLAY", ICON_BRUSH_CLAY, "Clay", ""},
 	{SCULPT_TOOL_CLAY_STRIPS, "CLAY_STRIPS", ICON_BRUSH_CLAY_STRIPS, "Clay Strips", ""},
@@ -86,7 +86,7 @@ EnumPropertyItem brush_sculpt_tool_items[] = {
 };
 
 
-EnumPropertyItem brush_vertex_tool_items[] = {
+EnumPropertyItem rna_enum_brush_vertex_tool_items[] = {
 	{PAINT_BLEND_MIX, "MIX", ICON_BRUSH_MIX, "Mix", "Use mix blending mode while painting"},
 	{PAINT_BLEND_ADD, "ADD", ICON_BRUSH_ADD, "Add", "Use add blending mode while painting"},
 	{PAINT_BLEND_SUB, "SUB", ICON_BRUSH_SUBTRACT, "Subtract", "Use subtract blending mode while painting"},
@@ -97,7 +97,7 @@ EnumPropertyItem brush_vertex_tool_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 	
-EnumPropertyItem brush_image_tool_items[] = {
+EnumPropertyItem rna_enum_brush_image_tool_items[] = {
 	{PAINT_TOOL_DRAW, "DRAW", ICON_BRUSH_TEXDRAW, "Draw", ""},
 	{PAINT_TOOL_SOFTEN, "SOFTEN", ICON_BRUSH_SOFTEN, "Soften", ""},
 	{PAINT_TOOL_SMEAR, "SMEAR", ICON_BRUSH_SMEAR, "Smear", ""},
@@ -861,19 +861,19 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop = RNA_def_property(srna, "sculpt_tool", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, brush_sculpt_tool_items);
+	RNA_def_property_enum_items(prop, rna_enum_brush_sculpt_tool_items);
 	RNA_def_property_ui_text(prop, "Sculpt Tool", "");
 	RNA_def_property_update(prop, 0, "rna_Brush_sculpt_tool_update");
 
 	prop = RNA_def_property(srna, "vertex_tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "vertexpaint_tool");
-	RNA_def_property_enum_items(prop, brush_vertex_tool_items);
+	RNA_def_property_enum_items(prop, rna_enum_brush_vertex_tool_items);
 	RNA_def_property_ui_text(prop, "Blending mode", "Brush blending mode");
 	RNA_def_property_update(prop, 0, "rna_Brush_vertex_tool_update");
 	
 	prop = RNA_def_property(srna, "image_tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "imagepaint_tool");
-	RNA_def_property_enum_items(prop, brush_image_tool_items);
+	RNA_def_property_enum_items(prop, rna_enum_brush_image_tool_items);
 	RNA_def_property_ui_text(prop, "Image Paint Tool", "");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, "rna_Brush_imagepaint_tool_update");
 

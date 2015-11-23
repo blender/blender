@@ -181,7 +181,7 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting everything first");
-	ot->prop = RNA_def_enum(ot->srna, "type", object_type_items, 1, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_object_type_items, 1, "Type", "");
 }
 
 /*********************** Selection by Links *********************/

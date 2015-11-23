@@ -60,7 +60,7 @@ typedef struct EffectInfo {
 	int inputs;
 } EffectInfo;
 
-EnumPropertyItem sequence_modifier_type_items[] = {
+EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
 	{seqModifierType_ColorBalance, "COLOR_BALANCE", ICON_NONE, "Color Balance", ""},
 	{seqModifierType_Curves, "CURVES", ICON_NONE, "Curves", ""},
 	{seqModifierType_HueCorrect, "HUE_CORRECT", ICON_NONE, "Hue Correct", ""},
@@ -1357,7 +1357,7 @@ static void rna_def_sequence_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the modifier");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* modifier to add */
-	parm = RNA_def_enum(func, "type", sequence_modifier_type_items, seqModifierType_ColorBalance, "", "Modifier type to add");
+	parm = RNA_def_enum(func, "type", rna_enum_sequence_modifier_type_items, seqModifierType_ColorBalance, "", "Modifier type to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm = RNA_def_pointer(func, "modifier", "SequenceModifier", "", "Newly created modifier");
@@ -1847,7 +1847,7 @@ static void rna_def_image(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "views_format", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "views_format");
-	RNA_def_property_enum_items(prop, views_format_items);
+	RNA_def_property_enum_items(prop, rna_enum_views_format_items);
 	RNA_def_property_ui_text(prop, "Views Format", "Mode to load image views");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Sequence_views_format_update");
 
@@ -1956,7 +1956,7 @@ static void rna_def_movie(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "views_format", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "views_format");
-	RNA_def_property_enum_items(prop, views_format_items);
+	RNA_def_property_enum_items(prop, rna_enum_views_format_items);
 	RNA_def_property_ui_text(prop, "Views Format", "Mode to load movie views");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Sequence_views_format_update");
 
@@ -2435,7 +2435,7 @@ static void rna_def_modifier(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_enum_items(prop, sequence_modifier_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_sequence_modifier_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
 

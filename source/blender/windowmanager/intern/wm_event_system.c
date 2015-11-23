@@ -559,8 +559,8 @@ void WM_event_print(const wmEvent *event)
 		const char *type_id = unknown;
 		const char *val_id = unknown;
 
-		RNA_enum_identifier(event_type_items, event->type, &type_id);
-		RNA_enum_identifier(event_value_items, event->val, &val_id);
+		RNA_enum_identifier(rna_enum_event_type_items, event->type, &type_id);
+		RNA_enum_identifier(rna_enum_event_value_items, event->val, &val_id);
 
 		printf("wmEvent  type:%d / %s, val:%d / %s,\n"
 		       "         shift:%d, ctrl:%d, alt:%d, oskey:%d, keymodifier:%d,\n"

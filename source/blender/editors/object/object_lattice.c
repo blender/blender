@@ -308,7 +308,7 @@ void LATTICE_OT_select_mirror(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "axis", object_axis_unsigned_items, 0, "Axis", "");
+	RNA_def_enum(ot->srna, "axis", rna_enum_object_axis_unsigned_items, 0, "Axis", "");
 
 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }

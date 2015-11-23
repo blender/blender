@@ -36,7 +36,7 @@
 
 #include "rna_internal.h"
 
-EnumPropertyItem property_type_items[] = {
+EnumPropertyItem rna_enum_property_type_items[] = {
 	{PROP_BOOLEAN, "BOOLEAN", 0, "Boolean", ""},
 	{PROP_INT, "INT", 0, "Integer", ""},
 	{PROP_FLOAT, "FLOAT", 0, "Float", ""},
@@ -50,7 +50,7 @@ EnumPropertyItem property_type_items[] = {
 /* XXX Keep in sync with bpy_props.c's property_subtype_xxx_items ???
  *     Currently it is not...
  */
-EnumPropertyItem property_subtype_items[] = {
+EnumPropertyItem rna_enum_property_subtype_items[] = {
 	{PROP_NONE, "NONE", 0, "None", ""},
 
 	/* strings */
@@ -90,7 +90,7 @@ EnumPropertyItem property_subtype_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem property_unit_items[] = {
+EnumPropertyItem rna_enum_property_unit_items[] = {
 	{PROP_UNIT_NONE, "NONE", 0, "None", ""},
 	{PROP_UNIT_LENGTH, "LENGTH", 0, "Length", ""},
 	{PROP_UNIT_AREA, "AREA", 0, "Area", ""},
@@ -1138,7 +1138,7 @@ static void rna_def_property(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_enum_items(prop, property_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_property_type_items);
 	RNA_def_property_enum_funcs(prop, "rna_Property_type_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Type", "Data type of the property");
 
@@ -1156,13 +1156,13 @@ static void rna_def_property(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "unit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_enum_items(prop, property_unit_items);
+	RNA_def_property_enum_items(prop, rna_enum_property_unit_items);
 	RNA_def_property_enum_funcs(prop, "rna_Property_unit_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Unit", "Type of units for this property");
 
 	prop = RNA_def_property(srna, "icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_enum_items(prop, icon_items);
+	RNA_def_property_enum_items(prop, rna_enum_icon_items);
 	RNA_def_property_enum_funcs(prop, "rna_Property_icon_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Icon", "Icon of the item");
 
@@ -1452,7 +1452,7 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 
 	prop = RNA_def_property(srna, "icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_enum_items(prop, icon_items);
+	RNA_def_property_enum_items(prop, rna_enum_icon_items);
 	RNA_def_property_enum_funcs(prop, "rna_EnumPropertyItem_icon_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Icon", "Icon of the item");
 }

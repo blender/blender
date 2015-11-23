@@ -476,26 +476,26 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 			paint = &toolsettings->sculpt->paint;
 			tool_offset = offsetof(Brush, sculpt_tool);
 			tool = RNA_enum_get(op->ptr, "sculpt_tool");
-			RNA_enum_name_from_value(brush_sculpt_tool_items, tool, &tool_name);
+			RNA_enum_name_from_value(rna_enum_brush_sculpt_tool_items, tool, &tool_name);
 			break;
 		case OB_MODE_VERTEX_PAINT:
 			paint = &toolsettings->vpaint->paint;
 			tool_offset = offsetof(Brush, vertexpaint_tool);
 			tool = RNA_enum_get(op->ptr, "vertex_paint_tool");
-			RNA_enum_name_from_value(brush_vertex_tool_items, tool, &tool_name);
+			RNA_enum_name_from_value(rna_enum_brush_vertex_tool_items, tool, &tool_name);
 			break;
 		case OB_MODE_WEIGHT_PAINT:
 			paint = &toolsettings->wpaint->paint;
 			/* vertexpaint_tool is used for weight paint mode */
 			tool_offset = offsetof(Brush, vertexpaint_tool);
 			tool = RNA_enum_get(op->ptr, "weight_paint_tool");
-			RNA_enum_name_from_value(brush_vertex_tool_items, tool, &tool_name);
+			RNA_enum_name_from_value(rna_enum_brush_vertex_tool_items, tool, &tool_name);
 			break;
 		case OB_MODE_TEXTURE_PAINT:
 			paint = &toolsettings->imapaint.paint;
 			tool_offset = offsetof(Brush, imagepaint_tool);
 			tool = RNA_enum_get(op->ptr, "texture_paint_tool");
-			RNA_enum_name_from_value(brush_image_tool_items, tool, &tool_name);
+			RNA_enum_name_from_value(rna_enum_brush_image_tool_items, tool, &tool_name);
 			break;
 		default:
 			/* invalid paint mode */
@@ -532,10 +532,10 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
 
 	/* props */
 	RNA_def_enum(ot->srna, "paint_mode", paint_mode_items, OB_MODE_ACTIVE, "Paint Mode", "");
-	RNA_def_enum(ot->srna, "sculpt_tool", brush_sculpt_tool_items, 0, "Sculpt Tool", "");
-	RNA_def_enum(ot->srna, "vertex_paint_tool", brush_vertex_tool_items, 0, "Vertex Paint Tool", "");
-	RNA_def_enum(ot->srna, "weight_paint_tool", brush_vertex_tool_items, 0, "Weight Paint Tool", "");
-	RNA_def_enum(ot->srna, "texture_paint_tool", brush_image_tool_items, 0, "Texture Paint Tool", "");
+	RNA_def_enum(ot->srna, "sculpt_tool", rna_enum_brush_sculpt_tool_items, 0, "Sculpt Tool", "");
+	RNA_def_enum(ot->srna, "vertex_paint_tool", rna_enum_brush_vertex_tool_items, 0, "Vertex Paint Tool", "");
+	RNA_def_enum(ot->srna, "weight_paint_tool", rna_enum_brush_vertex_tool_items, 0, "Weight Paint Tool", "");
+	RNA_def_enum(ot->srna, "texture_paint_tool", rna_enum_brush_image_tool_items, 0, "Texture Paint Tool", "");
 
 	prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "Toggle between two brushes rather than cycling");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);

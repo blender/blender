@@ -43,7 +43,7 @@
 #include "WM_types.h"
 
 /* see WM_types.h */
-EnumPropertyItem operator_context_items[] = {
+EnumPropertyItem rna_enum_operator_context_items[] = {
 	{WM_OP_INVOKE_DEFAULT, "INVOKE_DEFAULT", 0, "Invoke Default", ""},
 	{WM_OP_INVOKE_REGION_WIN, "INVOKE_REGION_WIN", 0, "Invoke Region Window", ""},
 	{WM_OP_INVOKE_REGION_CHANNELS, "INVOKE_REGION_CHANNELS", 0, "Invoke Region Channels", ""},
@@ -59,7 +59,7 @@ EnumPropertyItem operator_context_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem uilist_layout_type_items[] = {
+EnumPropertyItem rna_enum_uilist_layout_type_items[] = {
 	{UILST_LAYOUT_DEFAULT, "DEFAULT", 0, "Default Layout", "Use the default, multi-rows layout"},
 	{UILST_LAYOUT_COMPACT, "COMPACT", 0, "Compact Layout", "Use the compact, single-row layout"},
 	{UILST_LAYOUT_GRID, "GRID", 0, "Grid Layout", "Use the grid-based layout"},
@@ -886,7 +886,7 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_active_get", "rna_UILayout_active_set");
 	
 	prop = RNA_def_property(srna, "operator_context", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, operator_context_items);
+	RNA_def_property_enum_items(prop, rna_enum_operator_context_items);
 	RNA_def_property_enum_funcs(prop, "rna_UILayout_op_context_get", "rna_UILayout_op_context_set", NULL);
 	
 	prop = RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
@@ -996,13 +996,13 @@ static void rna_def_panel(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "bl_space_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->space_type");
-	RNA_def_property_enum_items(prop, space_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_space_type_items);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 	RNA_def_property_ui_text(prop, "Space type", "The space where the panel is going to be used in");
 	
 	prop = RNA_def_property(srna, "bl_region_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->region_type");
-	RNA_def_property_enum_items(prop, region_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_region_type_items);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 	RNA_def_property_ui_text(prop, "Region Type", "The region where the panel is going to be used in");
 
@@ -1052,7 +1052,7 @@ static void rna_def_uilist(BlenderRNA *brna)
 
 	/* Data */
 	prop = RNA_def_property(srna, "layout_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, uilist_layout_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_uilist_layout_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	/* Filter options */
@@ -1187,7 +1187,7 @@ static void rna_def_header(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "bl_space_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->space_type");
-	RNA_def_property_enum_items(prop, space_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_space_type_items);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 	RNA_def_property_ui_text(prop, "Space type", "The space where the header is going to be used in");
 

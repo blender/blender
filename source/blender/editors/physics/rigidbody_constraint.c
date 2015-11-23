@@ -153,7 +153,7 @@ void RIGIDBODY_OT_constraint_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", rigidbody_constraint_type_items, RBC_TYPE_FIXED, "Rigid Body Constraint Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_rigidbody_constraint_type_items, RBC_TYPE_FIXED, "Rigid Body Constraint Type", "");
 }
 
 /* ************ Remove Rigid Body Constraint ************** */

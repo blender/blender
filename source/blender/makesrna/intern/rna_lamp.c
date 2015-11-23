@@ -166,7 +166,7 @@ static void rna_Lamp_use_nodes_update(bContext *C, PointerRNA *ptr)
 
 #else
 /* Don't define icons here, so they don't show up in the Lamp UI (properties Editor) - DingTo */
-EnumPropertyItem lamp_type_items[] = {
+EnumPropertyItem rna_enum_lamp_type_items[] = {
 	{LA_LOCAL, "POINT", 0, "Point", "Omnidirectional point light source"},
 	{LA_SUN, "SUN", 0, "Sun", "Constant direction parallel ray light source"},
 	{LA_SPOT, "SPOT", 0, "Spot", "Directional cone light source"},
@@ -250,7 +250,7 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "sky_blend_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "skyblendtype");
-	RNA_def_property_enum_items(prop, ramp_blend_items);
+	RNA_def_property_enum_items(prop, rna_enum_ramp_blend_items);
 	RNA_def_property_ui_text(prop, "Sky Blend Mode", "Blend mode for combining sun sky with world sky");
 	RNA_def_property_update(prop, 0, "rna_Lamp_sky_update");
 	
@@ -347,7 +347,7 @@ static void rna_def_lamp(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_LAMP_DATA);
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, lamp_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_lamp_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Type of Lamp");
 	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_LAMP);
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");

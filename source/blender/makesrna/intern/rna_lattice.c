@@ -323,19 +323,19 @@ static void rna_def_lattice(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "interpolation_type_u", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "typeu");
-	RNA_def_property_enum_items(prop, keyblock_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_keyblock_type_items);
 	RNA_def_property_ui_text(prop, "Interpolation Type U", "");
 	RNA_def_property_update(prop, 0, "rna_Lattice_update_data_editlatt");
 
 	prop = RNA_def_property(srna, "interpolation_type_v", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "typev");
-	RNA_def_property_enum_items(prop, keyblock_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_keyblock_type_items);
 	RNA_def_property_ui_text(prop, "Interpolation Type V", "");
 	RNA_def_property_update(prop, 0, "rna_Lattice_update_data_editlatt");
 
 	prop = RNA_def_property(srna, "interpolation_type_w", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "typew");
-	RNA_def_property_enum_items(prop, keyblock_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_keyblock_type_items);
 	RNA_def_property_ui_text(prop, "Interpolation Type W", "");
 	RNA_def_property_update(prop, 0, "rna_Lattice_update_data_editlatt");
 

@@ -202,7 +202,7 @@ void DPAINT_OT_type_toggle(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	prop = RNA_def_enum(ot->srna, "type", prop_dynamicpaint_type_items, MOD_DYNAMICPAINT_TYPE_CANVAS, "Type", "");
+	prop = RNA_def_enum(ot->srna, "type", rna_enum_prop_dynamicpaint_type_items, MOD_DYNAMICPAINT_TYPE_CANVAS, "Type", "");
 	ot->prop = prop;
 }
 

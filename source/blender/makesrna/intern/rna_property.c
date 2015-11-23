@@ -42,7 +42,7 @@
 
 #include "WM_types.h"
 
-EnumPropertyItem gameproperty_type_items[] = {
+EnumPropertyItem rna_enum_gameproperty_type_items[] = {
 	{GPROP_BOOL, "BOOL", 0, "Boolean", "Boolean Property"},
 	{GPROP_INT, "INT", 0, "Integer", "Integer Property"},
 	{GPROP_FLOAT, "FLOAT", 0, "Float", "Floating-Point Property"},
@@ -130,7 +130,7 @@ void RNA_def_gameproperty(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, gameproperty_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_gameproperty_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 	RNA_def_property_enum_funcs(prop, NULL, "rna_GameProperty_type_set", NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);

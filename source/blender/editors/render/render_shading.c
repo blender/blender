@@ -1103,7 +1103,7 @@ void SCENE_OT_freestyle_color_modifier_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", linestyle_color_modifier_type_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_linestyle_color_modifier_type_items, 0, "Type", "");
 }
 
 static int freestyle_alpha_modifier_add_exec(bContext *C, wmOperator *op)
@@ -1143,7 +1143,7 @@ void SCENE_OT_freestyle_alpha_modifier_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", linestyle_alpha_modifier_type_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_linestyle_alpha_modifier_type_items, 0, "Type", "");
 }
 
 static int freestyle_thickness_modifier_add_exec(bContext *C, wmOperator *op)
@@ -1183,7 +1183,7 @@ void SCENE_OT_freestyle_thickness_modifier_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", linestyle_thickness_modifier_type_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_linestyle_thickness_modifier_type_items, 0, "Type", "");
 }
 
 static int freestyle_geometry_modifier_add_exec(bContext *C, wmOperator *op)
@@ -1223,7 +1223,7 @@ void SCENE_OT_freestyle_geometry_modifier_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", linestyle_geometry_modifier_type_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_linestyle_geometry_modifier_type_items, 0, "Type", "");
 }
 
 static int freestyle_get_modifier_type(PointerRNA *ptr)

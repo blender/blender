@@ -1285,7 +1285,7 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 	prop = RNA_def_enum(ot->srna, "display_type", file_display_items, display, "Display Type", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
-	prop = RNA_def_enum(ot->srna, "sort_method", file_sort_items, sort, "File sorting mode", "");
+	prop = RNA_def_enum(ot->srna, "sort_method", rna_enum_file_sort_items, sort, "File sorting mode", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
 }
@@ -5233,11 +5233,11 @@ static void WM_OT_stereo3d_set(wmOperatorType *ot)
 	ot->check = wm_stereo3d_set_check;
 	ot->cancel = wm_stereo3d_set_cancel;
 
-	prop = RNA_def_enum(ot->srna, "display_mode", stereo3d_display_items, S3D_DISPLAY_ANAGLYPH, "Display Mode", "");
+	prop = RNA_def_enum(ot->srna, "display_mode", rna_enum_stereo3d_display_items, S3D_DISPLAY_ANAGLYPH, "Display Mode", "");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-	prop = RNA_def_enum(ot->srna, "anaglyph_type", stereo3d_anaglyph_type_items, S3D_ANAGLYPH_REDCYAN, "Anaglyph Type", "");
+	prop = RNA_def_enum(ot->srna, "anaglyph_type", rna_enum_stereo3d_anaglyph_type_items, S3D_ANAGLYPH_REDCYAN, "Anaglyph Type", "");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-	prop = RNA_def_enum(ot->srna, "interlace_type", stereo3d_interlace_type_items, S3D_INTERLACE_ROW, "Interlace Type", "");
+	prop = RNA_def_enum(ot->srna, "interlace_type", rna_enum_stereo3d_interlace_type_items, S3D_INTERLACE_ROW, "Interlace Type", "");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "use_interlace_swap", false, "Swap Left/Right",
 	                       "Swap left and right stereo channels");

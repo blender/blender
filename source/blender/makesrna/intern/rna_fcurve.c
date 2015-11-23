@@ -48,7 +48,7 @@
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
 
-EnumPropertyItem fmodifier_type_items[] = {
+EnumPropertyItem rna_enum_fmodifier_type_items[] = {
 	{FMODIFIER_TYPE_NULL, "NULL", 0, "Invalid", ""},
 	{FMODIFIER_TYPE_GENERATOR, "GENERATOR", 0, "Generator",
 	                           "Generate a curve using a factorized or expanded polynomial"},
@@ -69,7 +69,7 @@ EnumPropertyItem fmodifier_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem beztriple_keyframe_type_items[] = {
+EnumPropertyItem rna_enum_beztriple_keyframe_type_items[] = {
 	{BEZT_KEYTYPE_KEYFRAME, "KEYFRAME", 0, "Keyframe", "Normal keyframe - e.g. for key poses"},
 	{BEZT_KEYTYPE_BREAKDOWN, "BREAKDOWN", 0, "Breakdown", "A breakdown pose - e.g. for transitions between key poses"},
 	{BEZT_KEYTYPE_EXTREME, "EXTREME", 0, "Extreme", "An 'extreme' pose, or some other purpose as needed"},
@@ -77,7 +77,7 @@ EnumPropertyItem beztriple_keyframe_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem beztriple_interpolation_easing_items[] =  {
+EnumPropertyItem rna_enum_beztriple_interpolation_easing_items[] =  {
 	/* XXX: auto-easing is currently using a placeholder icon... */
 	{BEZT_IPO_EASE_AUTO, "AUTO", ICON_IPO_EASE_IN_OUT, "Automatic Easing",
 	                     "Easing type is chosen automatically based on what the type of interpolation used "
@@ -1293,7 +1293,7 @@ static void rna_def_fmodifier(BlenderRNA *brna)
 	/* type */
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_enum_items(prop, fmodifier_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_fmodifier_type_items);
 	RNA_def_property_ui_text(prop, "Type", "F-Curve Modifier Type");
 	
 	/* settings */
@@ -1420,7 +1420,7 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "idtype");
-	RNA_def_property_enum_items(prop, id_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_id_type_items);
 	RNA_def_property_enum_default(prop, ID_OB);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_DriverTarget_id_type_set", NULL);
 	RNA_def_property_editable_func(prop, "rna_DriverTarget_id_type_editable");
@@ -1638,19 +1638,19 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
 	/* Enums */
 	prop = RNA_def_property(srna, "handle_left_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "h1");
-	RNA_def_property_enum_items(prop, keyframe_handle_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_keyframe_handle_type_items);
 	RNA_def_property_ui_text(prop, "Left Handle Type", "Handle types");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME_PROP, NULL);
 	
 	prop = RNA_def_property(srna, "handle_right_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "h2");
-	RNA_def_property_enum_items(prop, keyframe_handle_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_keyframe_handle_type_items);
 	RNA_def_property_ui_text(prop, "Right Handle Type", "Handle types");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME_PROP, NULL);
 	
 	prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ipo");
-	RNA_def_property_enum_items(prop, beztriple_interpolation_mode_items);
+	RNA_def_property_enum_items(prop, rna_enum_beztriple_interpolation_mode_items);
 	RNA_def_property_ui_text(prop, "Interpolation",
 	                         "Interpolation method to use for segment of the F-Curve from "
 	                         "this Keyframe until the next Keyframe");
@@ -1658,14 +1658,14 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "hide");
-	RNA_def_property_enum_items(prop, beztriple_keyframe_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_beztriple_keyframe_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Type of keyframe (for visual purposes only)");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME_PROP, NULL);
 	
 	
 	prop = RNA_def_property(srna, "easing", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "easing");
-	RNA_def_property_enum_items(prop, beztriple_interpolation_easing_items);
+	RNA_def_property_enum_items(prop, rna_enum_beztriple_interpolation_easing_items);
 	RNA_def_property_ui_text(prop, "Easing", 
 	                         "Which ends of the segment between this and the next keyframe easing "
 	                         "interpolation is applied to");
@@ -1737,7 +1737,7 @@ static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_pointer(func, "fmodifier", "FModifier", "", "New fmodifier");
 	RNA_def_function_return(func, parm);
 	/* object to add */
-	parm = RNA_def_enum(func, "type", fmodifier_type_items, 1, "", "Constraint type to add");
+	parm = RNA_def_enum(func, "type", rna_enum_fmodifier_type_items, 1, "", "Constraint type to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func = RNA_def_function(srna, "remove", "rna_FCurve_modifiers_remove");

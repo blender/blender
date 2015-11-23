@@ -43,7 +43,7 @@
 
 /* Which part of bone(s) get baked */
 // TODO: icons?
-EnumPropertyItem motionpath_bake_location_items[] = {
+EnumPropertyItem rna_enum_motionpath_bake_location_items[] = {
 	{MOTIONPATH_BAKE_HEADS, "HEADS", 0, "Heads", "Calculate bone paths from heads"},
 	{0, "TAILS", 0, "Tails", "Calculate bone paths from tails"},
 	//{MOTIONPATH_BAKE_CENTERS, "CENTROID", 0, "Centers", "Calculate bone paths from center of mass"},
@@ -269,7 +269,7 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "bake_location", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "path_bakeflag");
-	RNA_def_property_enum_items(prop, motionpath_bake_location_items);
+	RNA_def_property_enum_items(prop, rna_enum_motionpath_bake_location_items);
 	RNA_def_property_ui_text(prop, "Bake Location", "When calculating Bone Paths, use Head or Tips");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
 	

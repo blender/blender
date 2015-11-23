@@ -85,7 +85,7 @@ static EnumPropertyItem property_flag_enum_items[] = {
 "   :type options: set\n" \
 
 /* subtypes */
-/* XXX Keep in sync with rna_rna.c's property_subtype_items ???
+/* XXX Keep in sync with rna_rna.c's rna_enum_property_subtype_items ???
  *     Currently it is not...
  */
 static EnumPropertyItem property_subtype_string_items[] = {
@@ -1304,7 +1304,7 @@ static int icon_id_from_name(const char *name)
 	int id;
 
 	if (name[0]) {
-		for (item = icon_items, id = 0; item->identifier; item++, id++) {
+		for (item = rna_enum_icon_items, id = 0; item->identifier; item++, id++) {
 			if (STREQ(item->name, name)) {
 				return item->value;
 			}
@@ -2376,7 +2376,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 		BPY_PROPDEF_SUBTYPE_CHECK(FloatProperty, property_flag_items, property_subtype_number_items);
 
-		if (pyunit && RNA_enum_value_from_id(property_unit_items, pyunit, &unit) == 0) {
+		if (pyunit && RNA_enum_value_from_id(rna_enum_property_unit_items, pyunit, &unit) == 0) {
 			PyErr_Format(PyExc_TypeError, "FloatProperty(unit='%s'): invalid unit", pyunit);
 			return NULL;
 		}
@@ -2489,7 +2489,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 
 		BPY_PROPDEF_SUBTYPE_CHECK(FloatVectorProperty, property_flag_items, property_subtype_array_items);
 
-		if (pyunit && RNA_enum_value_from_id(property_unit_items, pyunit, &unit) == 0) {
+		if (pyunit && RNA_enum_value_from_id(rna_enum_property_unit_items, pyunit, &unit) == 0) {
 			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(unit='%s'): invalid unit", pyunit);
 			return NULL;
 		}

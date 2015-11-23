@@ -588,7 +588,7 @@ static char *rna_ShapeKeyPoint_path(PointerRNA *ptr)
 
 #else
 
-EnumPropertyItem keyblock_type_items[] = {
+EnumPropertyItem rna_enum_keyblock_type_items[] = {
 	{KEY_LINEAR, "KEY_LINEAR", 0, "Linear", ""},
 	{KEY_CARDINAL, "KEY_CARDINAL", 0, "Cardinal", ""},
 	{KEY_CATMULL_ROM, "KEY_CATMULL_ROM", 0, "Catmull-Rom", ""},
@@ -698,7 +698,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, keyblock_type_items);
+	RNA_def_property_enum_items(prop, rna_enum_keyblock_type_items);
 	RNA_def_property_ui_text(prop, "Interpolation", "Interpolation type for absolute shape keys");
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 

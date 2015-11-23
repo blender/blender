@@ -47,7 +47,7 @@
 /* enum of ID-block types
  * NOTE: need to keep this in line with the other defines for these
  */
-EnumPropertyItem id_type_items[] = {
+EnumPropertyItem rna_enum_id_type_items[] = {
 	{ID_AC, "ACTION", ICON_ACTION, "Action", ""},
 	{ID_AR, "ARMATURE", ICON_ARMATURE_DATA, "Armature", ""},
 	{ID_BR, "BRUSH", ICON_BRUSH_DATA, "Brush", ""},
