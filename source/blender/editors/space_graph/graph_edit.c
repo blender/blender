@@ -354,7 +354,6 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
 		FPoint *fpt;
 		float unitFac, offset;
 		int cfra;
-		SpaceIpo *sipo = (SpaceIpo *) ac->sl;
 		short mapping_flag = ANIM_get_normalization_flags(ac);
 		
 		/* disable driver so that it don't muck up the sampling process */

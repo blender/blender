@@ -1905,7 +1905,7 @@ static void drawcamera_stereo3d(
         Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, const Camera *cam,
         float vec[4][3], float drawsize, const float scale[3])
 {
-	int i, j;
+	int i;
 	float obmat[4][4];
 	float vec_lr[2][4][3];
 	const float fac = (cam->stereo.pivot == CAM_S3D_PIVOT_CENTER) ? 2.0f : 1.0f;
@@ -1938,7 +1938,7 @@ static void drawcamera_stereo3d(
 			        ((BKE_camera_multiview_shift_x(&scene->r, ob, names[i]) - cam->shiftx) *
 			         (drawsize * scale[0] * fac));
 
-			for (j = 0; j < 4; j++) {
+			for (int j = 0; j < 4; j++) {
 				vec_lr[i][j][0] += shift_x;
 			}
 		}
@@ -1956,7 +1956,7 @@ static void drawcamera_stereo3d(
 
 		/* convergence plane */
 		if (is_stereo3d_plane || is_stereo3d_volume) {
-			for (j = 0; j < 4; j++) {
+			for (int j = 0; j < 4; j++) {
 				mul_m4_v3(obmat, vec_lr[i][j]);
 			}
 		}
@@ -5101,7 +5101,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	bool select = (ob->flag & SELECT) != 0, create_cdata = false, need_v = false;
 	GLint polygonmode[2];
 	char numstr[32];
-	size_t numstr_len;
 	unsigned char tcol[4] = {0, 0, 0, 255};
 
 /* 1. */
@@ -5605,8 +5604,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			if (part->draw & PART_DRAW_HAIR_GRID) {
 				ClothModifierData *clmd = psys->clmd;
 				if (clmd) {
-					float *a = clmd->hair_grid_min;
-					float *b = clmd->hair_grid_max;
+					float *gmin = clmd->hair_grid_min;
+					float *gmax = clmd->hair_grid_max;
 					int *res = clmd->hair_grid_res;
 					int i;
 					
@@ -5620,20 +5619,20 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					else
 						UI_ThemeColor(TH_WIRE);
 					glBegin(GL_LINES);
-					glVertex3f(a[0], a[1], a[2]); glVertex3f(b[0], a[1], a[2]);
-					glVertex3f(b[0], a[1], a[2]); glVertex3f(b[0], b[1], a[2]);
-					glVertex3f(b[0], b[1], a[2]); glVertex3f(a[0], b[1], a[2]);
-					glVertex3f(a[0], b[1], a[2]); glVertex3f(a[0], a[1], a[2]);
+					glVertex3f(gmin[0], gmin[1], gmin[2]); glVertex3f(gmax[0], gmin[1], gmin[2]);
+					glVertex3f(gmax[0], gmin[1], gmin[2]); glVertex3f(gmax[0], gmax[1], gmin[2]);
+					glVertex3f(gmax[0], gmax[1], gmin[2]); glVertex3f(gmin[0], gmax[1], gmin[2]);
+					glVertex3f(gmin[0], gmax[1], gmin[2]); glVertex3f(gmin[0], gmin[1], gmin[2]);
 					
-					glVertex3f(a[0], a[1], b[2]); glVertex3f(b[0], a[1], b[2]);
-					glVertex3f(b[0], a[1], b[2]); glVertex3f(b[0], b[1], b[2]);
-					glVertex3f(b[0], b[1], b[2]); glVertex3f(a[0], b[1], b[2]);
-					glVertex3f(a[0], b[1], b[2]); glVertex3f(a[0], a[1], b[2]);
+					glVertex3f(gmin[0], gmin[1], gmax[2]); glVertex3f(gmax[0], gmin[1], gmax[2]);
+					glVertex3f(gmax[0], gmin[1], gmax[2]); glVertex3f(gmax[0], gmax[1], gmax[2]);
+					glVertex3f(gmax[0], gmax[1], gmax[2]); glVertex3f(gmin[0], gmax[1], gmax[2]);
+					glVertex3f(gmin[0], gmax[1], gmax[2]); glVertex3f(gmin[0], gmin[1], gmax[2]);
 					
-					glVertex3f(a[0], a[1], a[2]); glVertex3f(a[0], a[1], b[2]);
-					glVertex3f(b[0], a[1], a[2]); glVertex3f(b[0], a[1], b[2]);
-					glVertex3f(a[0], b[1], a[2]); glVertex3f(a[0], b[1], b[2]);
-					glVertex3f(b[0], b[1], a[2]); glVertex3f(b[0], b[1], b[2]);
+					glVertex3f(gmin[0], gmin[1], gmin[2]); glVertex3f(gmin[0], gmin[1], gmax[2]);
+					glVertex3f(gmax[0], gmin[1], gmin[2]); glVertex3f(gmax[0], gmin[1], gmax[2]);
+					glVertex3f(gmin[0], gmax[1], gmin[2]); glVertex3f(gmin[0], gmax[1], gmax[2]);
+					glVertex3f(gmax[0], gmax[1], gmin[2]); glVertex3f(gmax[0], gmax[1], gmax[2]);
 					glEnd();
 					
 					if (select)
@@ -5643,25 +5642,25 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					glEnable(GL_BLEND);
 					glBegin(GL_LINES);
 					for (i = 1; i < res[0] - 1; ++i) {
-						float f = interpf(b[0], a[0], (float)i / (float)(res[0] - 1));
-						glVertex3f(f, a[1], a[2]); glVertex3f(f, b[1], a[2]);
-						glVertex3f(f, b[1], a[2]); glVertex3f(f, b[1], b[2]);
-						glVertex3f(f, b[1], b[2]); glVertex3f(f, a[1], b[2]);
-						glVertex3f(f, a[1], b[2]); glVertex3f(f, a[1], a[2]);
+						float f = interpf(gmax[0], gmin[0], (float)i / (float)(res[0] - 1));
+						glVertex3f(f, gmin[1], gmin[2]); glVertex3f(f, gmax[1], gmin[2]);
+						glVertex3f(f, gmax[1], gmin[2]); glVertex3f(f, gmax[1], gmax[2]);
+						glVertex3f(f, gmax[1], gmax[2]); glVertex3f(f, gmin[1], gmax[2]);
+						glVertex3f(f, gmin[1], gmax[2]); glVertex3f(f, gmin[1], gmin[2]);
 					}
 					for (i = 1; i < res[1] - 1; ++i) {
-						float f = interpf(b[1], a[1], (float)i / (float)(res[1] - 1));
-						glVertex3f(a[0], f, a[2]); glVertex3f(b[0], f, a[2]);
-						glVertex3f(b[0], f, a[2]); glVertex3f(b[0], f, b[2]);
-						glVertex3f(b[0], f, b[2]); glVertex3f(a[0], f, b[2]);
-						glVertex3f(a[0], f, b[2]); glVertex3f(a[0], f, a[2]);
+						float f = interpf(gmax[1], gmin[1], (float)i / (float)(res[1] - 1));
+						glVertex3f(gmin[0], f, gmin[2]); glVertex3f(gmax[0], f, gmin[2]);
+						glVertex3f(gmax[0], f, gmin[2]); glVertex3f(gmax[0], f, gmax[2]);
+						glVertex3f(gmax[0], f, gmax[2]); glVertex3f(gmin[0], f, gmax[2]);
+						glVertex3f(gmin[0], f, gmax[2]); glVertex3f(gmin[0], f, gmin[2]);
 					}
 					for (i = 1; i < res[2] - 1; ++i) {
-						float f = interpf(b[2], a[2], (float)i / (float)(res[2] - 1));
-						glVertex3f(a[0], a[1], f); glVertex3f(b[0], a[1], f);
-						glVertex3f(b[0], a[1], f); glVertex3f(b[0], b[1], f);
-						glVertex3f(b[0], b[1], f); glVertex3f(a[0], b[1], f);
-						glVertex3f(a[0], b[1], f); glVertex3f(a[0], a[1], f);
+						float f = interpf(gmax[2], gmin[2], (float)i / (float)(res[2] - 1));
+						glVertex3f(gmin[0], gmin[1], f); glVertex3f(gmax[0], gmin[1], f);
+						glVertex3f(gmax[0], gmin[1], f); glVertex3f(gmax[0], gmax[1], f);
+						glVertex3f(gmax[0], gmax[1], f); glVertex3f(gmin[0], gmax[1], f);
+						glVertex3f(gmin[0], gmax[1], f); glVertex3f(gmin[0], gmin[1], f);
 					}
 					glEnd();
 					glDisable(GL_BLEND);
@@ -5713,7 +5712,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 			for (a = 0, pa = psys->particles; a < totpart; a++, pa++) {
 				float vec_txt[3];
-				numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%i", a);
+				size_t numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%i", a);
 				/* use worldspace because object matrix is already applied */
 				mul_v3_m4v3(vec_txt, ob->imat, cache[a]->co);
 				view3d_cached_text_draw_add(vec_txt, numstr, numstr_len,
@@ -5916,16 +5915,16 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 		if (pset->selectmode == SCE_SELECT_POINT) {
 			float *pd = NULL, *pdata = NULL;
 			float *cd = NULL, *cdata = NULL;
-			int totkeys = 0;
+			int totkeys_visible = 0;
 
 			for (i = 0, point = edit->points; i < totpoint; i++, point++)
 				if (!(point->flag & PEP_HIDE))
-					totkeys += point->totkey;
+					totkeys_visible += point->totkey;
 
-			if (totkeys) {
+			if (totkeys_visible) {
 				if (edit->points && !(edit->points->keys->flag & PEK_USE_WCO))
-					pd = pdata = MEM_callocN(totkeys * 3 * sizeof(float), "particle edit point data");
-				cd = cdata = MEM_callocN(totkeys * (timed ? 4 : 3) * sizeof(float), "particle edit color data");
+					pd = pdata = MEM_callocN(totkeys_visible * 3 * sizeof(float), "particle edit point data");
+				cd = cdata = MEM_callocN(totkeys_visible * (timed ? 4 : 3) * sizeof(float), "particle edit color data");
 			}
 
 			for (i = 0, point = edit->points; i < totpoint; i++, point++) {

@@ -859,7 +859,6 @@ static void knife_cut_face(KnifeTool_OpData *kcd, BMFace *f, ListBase *hits)
 static void knife_add_cut(KnifeTool_OpData *kcd)
 {
 	int i;
-	KnifeLineHit *lh;
 	GHash *facehits;
 	BMFace *f;
 	Ref *r;
@@ -877,7 +876,7 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
 	/* make facehits: map face -> list of linehits touching it */
 	facehits = BLI_ghash_ptr_new("knife facehits");
 	for (i = 0; i < kcd->totlinehit; i++) {
-		lh = &kcd->linehits[i];
+		KnifeLineHit *lh = &kcd->linehits[i];
 		if (lh->f) {
 			add_hit_to_facehits(kcd, facehits, lh->f, lh);
 		}
@@ -908,15 +907,14 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
 
 
 	if (kcd->prev.bmface) {
-		KnifeLineHit *lh;
 		/* was "in face" but now we have a KnifeVert it is snapped to */
-		lh = &kcd->linehits[kcd->totlinehit - 1];
+		KnifeLineHit *lh = &kcd->linehits[kcd->totlinehit - 1];
 		kcd->prev.vert = lh->v;
 		kcd->prev.bmface = NULL;
 	}
 
 	if (kcd->is_drag_hold) {
-		lh = &kcd->linehits[kcd->totlinehit - 1];
+		KnifeLineHit *lh = &kcd->linehits[kcd->totlinehit - 1];
 		linehit_to_knifepos(&kcd->prev, lh);
 	}
 

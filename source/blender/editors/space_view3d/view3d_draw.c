@@ -3494,11 +3494,11 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 
 	{
 		CameraParams params;
-		Object *camera = BKE_camera_multiview_render(scene, v3d.camera, viewname);
+		Object *view_camera = BKE_camera_multiview_render(scene, v3d.camera, viewname);
 
 		BKE_camera_params_init(&params);
-		BKE_camera_params_from_object(&params, camera);
-		BKE_camera_multiview_params(&scene->r, &params, camera, viewname);
+		BKE_camera_params_from_object(&params, view_camera);
+		BKE_camera_multiview_params(&scene->r, &params, view_camera, viewname);
 		BKE_camera_params_compute_viewplane(&params, width, height, scene->r.xasp, scene->r.yasp);
 		BKE_camera_params_compute_matrix(&params);
 

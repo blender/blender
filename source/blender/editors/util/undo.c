@@ -461,8 +461,6 @@ static int get_undo_system(bContext *C)
 		}
 	}
 	else {
-		Object *obact = CTX_data_active_object(C);
-		
 		if (obact) {
 			if (obact->mode & OB_MODE_PARTICLE_EDIT)
 				return UNDOSYSTEM_PARTICLE;

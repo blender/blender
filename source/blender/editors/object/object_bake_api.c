@@ -584,7 +584,6 @@ static int bake(
 
 	size_t num_pixels;
 	int tot_materials;
-	int i;
 
 	RE_bake_engine_set_engine_parameters(re, bmain, scene);
 
@@ -641,7 +640,7 @@ static int bake(
 
 		num_pixels = (size_t)width * (size_t)height * bake_images.size;
 
-		for (i = 0; i < bake_images.size; i++) {
+		for (int i = 0; i < bake_images.size; i++) {
 			bake_images.data[i].width = width;
 			bake_images.data[i].height = height;
 			bake_images.data[i].offset = (is_split_materials ? num_pixels : 0);
@@ -650,8 +649,9 @@ static int bake(
 
 		if (!is_split_materials) {
 			/* saving a single image */
-			for (i = 0; i < tot_materials; i++)
+			for (int i = 0; i < tot_materials; i++) {
 				bake_images.lookup[i] = 0;
+			}
 		}
 	}
 
@@ -890,7 +890,7 @@ cage_cleanup:
 	}
 	else {
 		/* save the results */
-		for (i = 0; i < bake_images.size; i++) {
+		for (int i = 0; i < bake_images.size; i++) {
 			BakeImage *bk_image = &bake_images.data[i];
 
 			if (is_save_internal) {

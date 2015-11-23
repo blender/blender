@@ -2438,7 +2438,7 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	PointerRNA nodeptr = CTX_data_pointer_get_type(C, "node", &RNA_ShaderNodeScript);
-	bNodeTree *ntree = NULL;
+	bNodeTree *ntree_base = NULL;
 	bNode *node = NULL;
 	RenderEngine *engine;
 	RenderEngineType *type;
@@ -2451,17 +2451,17 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 
 	/* get node */
 	if (nodeptr.data) {
-		ntree = nodeptr.id.data;
+		ntree_base = nodeptr.id.data;
 		node = nodeptr.data;
 	}
 	else if (snode && snode->edittree) {
-		ntree = snode->edittree;
+		ntree_base = snode->edittree;
 		node = nodeGetActive(snode->edittree);
 	}
 
 	if (node) {
 		/* update single node */
-		type->update_script_node(engine, ntree, node);
+		type->update_script_node(engine, ntree_base, node);
 
 		found = true;
 	}

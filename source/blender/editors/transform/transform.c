@@ -6441,13 +6441,12 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t, bool use_even, bool f
 	BMesh *bm = em->bm;
 	BMIter iter;
 	BMEdge *e;
-	BMVert *v;
 	TransDataEdgeSlideVert *sv_array;
 	int sv_tot;
 	int *sv_table;  /* BMVert -> sv_array index */
 	EdgeSlideData *sld = MEM_callocN(sizeof(*sld), "sld");
 	float mval[2] = {(float)t->mval[0], (float)t->mval[1]};
-	int i, j, loop_nr;
+	int loop_nr;
 	bool use_btree_disp = false;
 	View3D *v3d = NULL;
 	RegionView3D *rv3d = NULL;
@@ -6468,35 +6467,39 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t, bool use_even, bool f
 		t->flag |= T_ALT_TRANSFORM;
 
 	/* ensure valid selection */
-	j = 0;
-	BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-			float len_sq_max = -1.0f;
-			BMIter iter2;
-			BM_ITER_ELEM (e, &iter2, v, BM_EDGES_OF_VERT) {
-				if (!BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-					float len_sq = BM_edge_calc_length_squared(e);
-					if (len_sq > len_sq_max) {
-						len_sq_max = len_sq;
-						v->e = e;
+	{
+		int i = 0, j = 0;
+		BMVert *v;
+
+		BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+				float len_sq_max = -1.0f;
+				BMIter iter2;
+				BM_ITER_ELEM (e, &iter2, v, BM_EDGES_OF_VERT) {
+					if (!BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+						float len_sq = BM_edge_calc_length_squared(e);
+						if (len_sq > len_sq_max) {
+							len_sq_max = len_sq;
+							v->e = e;
+						}
 					}
 				}
-			}
 
-			if (len_sq_max != -1.0f) {
-				j++;
+				if (len_sq_max != -1.0f) {
+					j++;
+				}
 			}
+			BM_elem_index_set(v, i); /* set_inline */
 		}
-		BM_elem_index_set(v, i); /* set_inline */
+		bm->elem_index_dirty &= ~BM_VERT;
+
+		if (!j) {
+			return false;
+		}
+
+		sv_tot = j;
 	}
-	bm->elem_index_dirty &= ~BM_VERT;
 
-	if (!j) {
-		return false;
-	}
-
-
-	sv_tot = j;
 	BLI_assert(sv_tot != 0);
 	/* over alloc */
 	sv_array = MEM_callocN(sizeof(TransDataEdgeSlideVert) * bm->totvertsel, "sv_array");
@@ -6506,20 +6509,24 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t, bool use_even, bool f
 
 	sv_table = MEM_mallocN(sizeof(*sv_table) * bm->totvert, __func__);
 
-	j = 0;
-	BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-		sv_table[i] = -1;
-		if ((v->e != NULL) && (BM_elem_flag_test(v, BM_ELEM_SELECT))) {
-			if (BM_elem_flag_test(v->e, BM_ELEM_SELECT) == 0) {
-				TransDataEdgeSlideVert *sv;
-				sv = &sv_array[j];
-				sv->v = v;
-				copy_v3_v3(sv->v_co_orig, v->co);
-				sv->v_side[0] = BM_edge_other_vert(v->e, v);
-				sub_v3_v3v3(sv->dir_side[0], sv->v_side[0]->co, v->co);
-				sv->loop_nr = 0;
-				sv_table[i] = j;
-				j += 1;
+	{
+		int i = 0, j = 0;
+		BMVert *v;
+
+		BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+			sv_table[i] = -1;
+			if ((v->e != NULL) && (BM_elem_flag_test(v, BM_ELEM_SELECT))) {
+				if (BM_elem_flag_test(v->e, BM_ELEM_SELECT) == 0) {
+					TransDataEdgeSlideVert *sv;
+					sv = &sv_array[j];
+					sv->v = v;
+					copy_v3_v3(sv->v_co_orig, v->co);
+					sv->v_side[0] = BM_edge_other_vert(v->e, v);
+					sub_v3_v3v3(sv->dir_side[0], sv->v_side[0]->co, v->co);
+					sv->loop_nr = 0;
+					sv_table[i] = j;
+					j += 1;
+				}
 			}
 		}
 	}
@@ -6529,14 +6536,15 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t, bool use_even, bool f
 	if (sv_tot != bm->totvert) {
 		const int sv_tot_nowire = sv_tot;
 		TransDataEdgeSlideVert *sv_iter = sv_array;
-		int i;
-		for (i = 0; i < sv_tot_nowire; i++, sv_iter++) {
+
+		for (int i = 0; i < sv_tot_nowire; i++, sv_iter++) {
 			BMIter eiter;
 			BM_ITER_ELEM (e, &eiter, sv_iter->v, BM_EDGES_OF_VERT) {
 				/* walk over wire */
 				TransDataEdgeSlideVert *sv_end = NULL;
 				BMEdge *e_step = e;
 				BMVert *v = sv_iter->v;
+				int j;
 
 				j = sv_tot;
 

@@ -2132,7 +2132,6 @@ static bool tag_localizable_looper(void *UNUSED(user_data), ID **id_pointer, con
 static void tag_localizable_objects(bContext *C, const int mode)
 {
 	Main *bmain = CTX_data_main(C);
-	Object *object;
 
 	BKE_main_id_tag_all(bmain, false);
 
@@ -2156,7 +2155,7 @@ static void tag_localizable_objects(bContext *C, const int mode)
 	/* Also forbid making objects local if other library objects are using
 	 * them for modifiers or constraints.
 	 */
-	for (object = bmain->object.first; object; object = object->id.next) {
+	for (Object *object = bmain->object.first; object; object = object->id.next) {
 		if ((object->id.flag & LIB_DOIT) == 0) {
 			BKE_library_foreach_ID_link(&object->id, tag_localizable_looper, NULL, IDWALK_READONLY);
 		}

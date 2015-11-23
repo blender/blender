@@ -1718,7 +1718,7 @@ static void vgroup_smooth_subset(
 {
 	const float ifac = 1.0f - fac;
 	MDeformVert **dvert_array = NULL;
-	int i, dvert_tot = 0;
+	int dvert_tot = 0;
 	int *vgroup_subset_map = BLI_array_alloca(vgroup_subset_map, subset_count);
 	float *vgroup_subset_weights = BLI_array_alloca(vgroup_subset_weights, subset_count);
 	const bool use_mirror = (ob->type == OB_MESH) ? (((Mesh *)ob->data)->editflag & ME_EDIT_MIRROR_X) != 0 : false;
@@ -1768,7 +1768,7 @@ static void vgroup_smooth_subset(
 
 	/* initialize used verts */
 	if (bm) {
-		for (i = 0; i < dvert_tot; i++) {
+		for (int i = 0; i < dvert_tot; i++) {
 			BMVert *v = BM_vert_at_index(bm, i);
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 				BMIter eiter;
@@ -1786,7 +1786,7 @@ static void vgroup_smooth_subset(
 		}
 	}
 	else {
-		for (i = 0; i < dvert_tot; i++) {
+		for (int i = 0; i < dvert_tot; i++) {
 			MVert *v = &me->mvert[i];
 			if (v->flag & SELECT) {
 				int j;

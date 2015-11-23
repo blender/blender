@@ -1256,8 +1256,7 @@ static int edbm_select_similar_region_exec(bContext *C, wmOperator *op)
 			LinkData *link;
 			while ((link = BLI_pophead(&faces_regions))) {
 				BMFace *f, **faces = link->data;
-				unsigned int i = 0;
-				while ((f = faces[i++])) {
+				while ((f = *(faces++))) {
 					BM_face_select_set(bm, f, true);
 				}
 				MEM_freeN(faces);

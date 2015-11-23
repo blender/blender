@@ -459,7 +459,6 @@ static bool paintcurve_point_select(bContext *C, wmOperator *op, const int loc[2
 	Paint *p = BKE_paint_get_active_from_context(C);
 	Brush *br = p->brush;
 	PaintCurve *pc;
-	PaintCurvePoint *pcp;
 	int i;
 	const float loc_fl[2] = {UNPACK2(loc)};
 
@@ -470,11 +469,12 @@ static bool paintcurve_point_select(bContext *C, wmOperator *op, const int loc[2
 
 	paintcurve_undo_begin(C, op, pc);
 
-	pcp = pc->points;
-
 	if (toggle) {
+		PaintCurvePoint *pcp;
 		char select = 0;
 		bool selected = false;
+
+		pcp = pc->points;
 
 		for (i = 0; i < pc->tot_points; i++) {
 			if (pcp[i].bez.f1 || pcp[i].bez.f2 || pcp[i].bez.f3) {

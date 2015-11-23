@@ -2452,7 +2452,6 @@ static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, P
 		MovieTrackingObject *object;
 		uiLayout *col;
 		PointerRNA tracking_ptr;
-		NodeTrackPosData *data = node->storage;
 
 		RNA_pointer_create(&clip->id, &RNA_MovieTracking, tracking, &tracking_ptr);
 

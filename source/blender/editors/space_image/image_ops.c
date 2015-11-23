@@ -1220,7 +1220,7 @@ static int image_open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 	const char *path = U.textudir;
 	Image *ima = NULL;
 	Scene *scene = CTX_data_scene(C);
-	PropertyRNA *prop;
+
 	if (sima) {
 		ima = sima->image;
 	}
@@ -1260,6 +1260,7 @@ static int image_open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 	image_open_init(C, op);
 
 	/* show multiview save options only if scene has multiviews */
+	PropertyRNA *prop;
 	prop = RNA_struct_find_property(op->ptr, "show_multiview");
 	RNA_property_boolean_set(op->ptr, prop, (scene->r.scemode & R_MULTIVIEW) != 0);
 
@@ -2300,10 +2301,11 @@ static int image_new_exec(bContext *C, wmOperator *op)
 				SpaceLink *sl;
 				for (sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_IMAGE) {
-						SpaceImage *sima = (SpaceImage *)sl;
+						SpaceImage *sima_other = (SpaceImage *)sl;
 						
-						if (!sima->pin)
-							ED_space_image_set(sima, scene, scene->obedit, ima);
+						if (!sima_other->pin) {
+							ED_space_image_set(sima_other, scene, scene->obedit, ima);
+						}
 					}
 				}
 			}

@@ -447,8 +447,6 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 // can be inlined if necessary
 static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, Object *ob)
 {
-	int a = 0;
-	
 	if (outliner_animdata_test(ob->adt))
 		outliner_add_element(soops, &te->subtree, ob, te, TSE_ANIM_DATA, 0);
 	
@@ -464,13 +462,13 @@ static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, Tree
 	if (ob->pose) {
 		bArmature *arm = ob->data;
 		bPoseChannel *pchan;
-		TreeElement *ten;
 		TreeElement *tenla = outliner_add_element(soops, &te->subtree, ob, te, TSE_POSE_BASE, 0);
 		
 		tenla->name = IFACE_("Pose");
 		
 		/* channels undefined in editmode, but we want the 'tenla' pose icon itself */
 		if ((arm->edbo == NULL) && (ob->mode & OB_MODE_POSE)) {
+			TreeElement *ten;
 			int a = 0, const_index = 1000;    /* ensure unique id for bone constraints */
 			
 			for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next, a++) {
@@ -522,21 +520,22 @@ static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, Tree
 		/* Pose Groups */
 		if (ob->pose->agroups.first) {
 			bActionGroup *agrp;
-			TreeElement *ten;
-			TreeElement *tenla = outliner_add_element(soops, &te->subtree, ob, te, TSE_POSEGRP_BASE, 0);
+			TreeElement *ten_bonegrp = outliner_add_element(soops, &te->subtree, ob, te, TSE_POSEGRP_BASE, 0);
 			int a = 0;
-			
-			tenla->name = IFACE_("Bone Groups");
+
+			ten_bonegrp->name = IFACE_("Bone Groups");
 			for (agrp = ob->pose->agroups.first; agrp; agrp = agrp->next, a++) {
-				ten = outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_POSEGRP, a);
+				TreeElement *ten;
+				ten = outliner_add_element(soops, &ten_bonegrp->subtree, ob, ten_bonegrp, TSE_POSEGRP, a);
 				ten->name = agrp->name;
 				ten->directdata = agrp;
 			}
 		}
 	}
 	
-	for (a = 0; a < ob->totcol; a++)
+	for (int a = 0; a < ob->totcol; a++) {
 		outliner_add_element(soops, &te->subtree, ob->mat[a], te, 0, a);
+	}
 	
 	if (ob->constraints.first) {
 		//Object *target;
@@ -544,6 +543,7 @@ static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, Tree
 		TreeElement *ten;
 		TreeElement *tenla = outliner_add_element(soops, &te->subtree, ob, te, TSE_CONSTRAINT_BASE, 0);
 		//char *str;
+		int a;
 		
 		tenla->name = IFACE_("Constraints");
 		for (con = ob->constraints.first, a = 0; con; con = con->next, a++) {
@@ -562,34 +562,34 @@ static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, Tree
 	
 	if (ob->modifiers.first) {
 		ModifierData *md;
-		TreeElement *temod = outliner_add_element(soops, &te->subtree, ob, te, TSE_MODIFIER_BASE, 0);
+		TreeElement *ten_mod = outliner_add_element(soops, &te->subtree, ob, te, TSE_MODIFIER_BASE, 0);
 		int index;
 		
-		temod->name = IFACE_("Modifiers");
+		ten_mod->name = IFACE_("Modifiers");
 		for (index = 0, md = ob->modifiers.first; md; index++, md = md->next) {
-			TreeElement *te = outliner_add_element(soops, &temod->subtree, ob, temod, TSE_MODIFIER, index);
-			te->name = md->name;
-			te->directdata = md;
+			TreeElement *ten = outliner_add_element(soops, &ten_mod->subtree, ob, ten_mod, TSE_MODIFIER, index);
+			ten->name = md->name;
+			ten->directdata = md;
 			
 			if (md->type == eModifierType_Lattice) {
-				outliner_add_element(soops, &te->subtree, ((LatticeModifierData *) md)->object, te, TSE_LINKED_OB, 0);
+				outliner_add_element(soops, &ten->subtree, ((LatticeModifierData *) md)->object, ten, TSE_LINKED_OB, 0);
 			}
 			else if (md->type == eModifierType_Curve) {
-				outliner_add_element(soops, &te->subtree, ((CurveModifierData *) md)->object, te, TSE_LINKED_OB, 0);
+				outliner_add_element(soops, &ten->subtree, ((CurveModifierData *) md)->object, ten, TSE_LINKED_OB, 0);
 			}
 			else if (md->type == eModifierType_Armature) {
-				outliner_add_element(soops, &te->subtree, ((ArmatureModifierData *) md)->object, te, TSE_LINKED_OB, 0);
+				outliner_add_element(soops, &ten->subtree, ((ArmatureModifierData *) md)->object, ten, TSE_LINKED_OB, 0);
 			}
 			else if (md->type == eModifierType_Hook) {
-				outliner_add_element(soops, &te->subtree, ((HookModifierData *) md)->object, te, TSE_LINKED_OB, 0);
+				outliner_add_element(soops, &ten->subtree, ((HookModifierData *) md)->object, ten, TSE_LINKED_OB, 0);
 			}
 			else if (md->type == eModifierType_ParticleSystem) {
-				TreeElement *ten;
 				ParticleSystem *psys = ((ParticleSystemModifierData *) md)->psys;
+				TreeElement *ten_psys;
 				
-				ten = outliner_add_element(soops, &te->subtree, ob, te, TSE_LINKED_PSYS, 0);
-				ten->directdata = psys;
-				ten->name = psys->part->id.name + 2;
+				ten_psys = outliner_add_element(soops, &ten_psys->subtree, ob, ten_psys, TSE_LINKED_PSYS, 0);
+				ten_psys->directdata = psys;
+				ten_psys->name = psys->part->id.name + 2;
 			}
 		}
 	}
@@ -599,6 +599,7 @@ static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, Tree
 		bDeformGroup *defgroup;
 		TreeElement *ten;
 		TreeElement *tenla = outliner_add_element(soops, &te->subtree, ob, te, TSE_DEFGROUP_BASE, 0);
+		int a;
 		
 		tenla->name = IFACE_("Vertex Groups");
 		for (defgroup = ob->defbase.first, a = 0; defgroup; defgroup = defgroup->next, a++) {
@@ -1571,7 +1572,6 @@ static int outliner_filter_tree(SpaceOops *soops, ListBase *lb)
 void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 {
 	Base *base;
-	Object *ob;
 	TreeElement *te = NULL, *ten;
 	TreeStoreElem *tselem;
 	int show_opened = !soops->treestore || !BLI_mempool_count(soops->treestore); /* on first view, we open scenes */
@@ -1596,7 +1596,9 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	outliner_storage_cleanup(soops);
 	
 	/* clear ob id.new flags */
-	for (ob = mainvar->object.first; ob; ob = ob->id.next) ob->id.newid = NULL;
+	for (Object *ob = mainvar->object.first; ob; ob = ob->id.next) {
+		ob->id.newid = NULL;
+	}
 	
 	/* options */
 	if (soops->outlinevis == SO_LIBRARIES) {
