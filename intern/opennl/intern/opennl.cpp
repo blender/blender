@@ -77,6 +77,24 @@ typedef struct {
 #define NL_STATE_SYSTEM_SOLVED      5
 
 struct NLContext {
+   NLContext()
+   {
+      state = NL_STATE_INITIAL;
+      n = 0;
+      m = 0;
+      sparse_solver = NULL;
+      nb_variables = 0;
+      nb_rhs = 1;
+      nb_rows = 0;
+      least_squares = false;
+      solve_again = false;
+   }
+
+   ~NLContext()
+   {
+      delete sparse_solver;
+   }
+
 	NLenum state;
 
 	NLuint n;
@@ -103,24 +121,11 @@ struct NLContext {
 
 NLContext *nlNewContext(void)
 {
-	NLContext* result = new NLContext();
-	result->state = NL_STATE_INITIAL;
-	result->nb_rhs = 1;
-	return result;
+	return new NLContext();
 }
 
 void nlDeleteContext(NLContext *context)
 {
-	context->M.resize(0, 0);
-	context->MtM.resize(0, 0);
-	context->b.clear();
-	context->Mtb.clear();
-	context->x.clear();
-	context->variable.clear();
-
-	delete context->sparse_solver;
-	context->sparse_solver = NULL;
-
 	delete context;
 }
 
