@@ -708,7 +708,8 @@ def main(context,
          island_margin,
          projection_limit,
          user_area_weight,
-         use_aspect
+         use_aspect,
+         stretch_to_bounds,
          ):
     global USER_FILL_HOLES
     global USER_FILL_HOLES_QUALITY
@@ -733,7 +734,7 @@ def main(context,
     USER_PROJECTION_LIMIT = projection_limit
     USER_ONLY_SELECTED_FACES = True
     USER_SHARE_SPACE = 1 # Only for hole filling.
-    USER_STRETCH_ASPECT = 1 # Only for hole filling.
+    USER_STRETCH_ASPECT = stretch_to_bounds
     USER_ISLAND_MARGIN = island_margin # Only for hole filling.
     USER_FILL_HOLES = 0
     USER_FILL_HOLES_QUALITY = 50 # Only for hole filling.
@@ -1031,8 +1032,7 @@ def main(context,
     '',\
     'UV Layout',\
     ('Share Tex Space', USER_SHARE_SPACE, 'Objects Share texture space, map all objects into 1 uvmap.'),\
-    ('Stretch to bounds', USER_STRETCH_ASPECT, 'Stretch the final output to texture bounds.'),\
-*	('Island Margin:', USER_ISLAND_MARGIN, 0.0, 0.5, ''),\
+    ('Island Margin:', USER_ISLAND_MARGIN, 0.0, 0.5, ''),\
     'Fill in empty areas',\
     ('Fill Holes', USER_FILL_HOLES, 'Fill in empty areas reduced texture waistage (slow).'),\
     ('Fill Quality:', USER_FILL_HOLES_QUALITY, 1, 100, 'Depends on fill holes, how tightly to fill UV holes, (higher is slower)'),\
@@ -1073,6 +1073,11 @@ class SmartProject(Operator):
             description="Map UVs taking image aspect ratio into account",
             default=True
             )
+    stretch_to_bounds = BoolProperty(
+            name="Stretch to UV Bounds",
+            description="Stretch the final output to texture bounds",
+            default=True,
+            )
 
     @classmethod
     def poll(cls, context):
@@ -1083,7 +1088,8 @@ class SmartProject(Operator):
              self.island_margin,
              self.angle_limit,
              self.user_area_weight,
-             self.use_aspect
+             self.use_aspect,
+             self.stretch_to_bounds
              )
         return {'FINISHED'}
 
