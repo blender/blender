@@ -301,15 +301,16 @@ bool GPU_bicubic_bump_support(void)
 
 bool GPU_geometry_shader_support(void)
 {
-	return GLEW_VERSION_3_2 || GLEW_EXT_geometry_shader4;
+	/* in GL 3.2 geometry shaders are fully supported
+	 * core profile clashes with our other shaders so accept compatibility only
+	 * other GL versions can use EXT_geometry_shader4 if available
+	 */
+	return (GLEW_VERSION_3_2 && GLEW_ARB_compatibility) || GLEW_EXT_geometry_shader4;
 }
 
 static bool GPU_geometry_shader_support_via_extension(void)
 {
-	/* in GL 3.2 geometry shaders are fully supported
-	 * GL < 3.2 can use EXT_geometry_shader4 if available
-	 */
-	return !GLEW_VERSION_3_2 && GLEW_EXT_geometry_shader4;
+	return GLEW_EXT_geometry_shader4 && !(GLEW_VERSION_3_2 && GLEW_ARB_compatibility);
 }
 
 bool GPU_instanced_drawing_support(void)
@@ -1656,15 +1657,27 @@ static void shader_print_errors(const char *task, const char *log, const char **
 static const char *gpu_shader_version()
 {
 	if (GLEW_VERSION_3_2) {
-		return "#version 150 compatibility\n";
-		/* highest version that is widely supported
-		 * gives us native geometry shaders!
-		 * use compatibility profile so we can continue using builtin shader input/output names
-		 */
+		if (GLEW_ARB_compatibility) {
+			return "#version 150 compatibility\n";
+			/* highest version that is widely supported
+			 * gives us native geometry shaders!
+			 * use compatibility profile so we can continue using builtin shader input/output names
+			 */
+		}
+		else {
+			return "#version 130\n";
+			/* latest version that is compatible with existing shaders */
+		}
 	}
 	else if (GLEW_VERSION_3_1) {
-		return "#version 140\n";
-		/* also need the ARB_compatibility extension, handled below */
+		if (GLEW_ARB_compatibility) {
+			return "#version 140\n";
+			/* also need the ARB_compatibility extension, handled below */
+		}
+		else {
+			return "#version 130\n";
+			/* latest version that is compatible with existing shaders */
+		}
 	}
 	else if (GLEW_VERSION_3_0) {
 		return "#version 130\n";
@@ -1694,7 +1707,7 @@ static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH], 
 		strcat(defines, "#extension GL_EXT_geometry_shader4: enable\n");
 	}
 
-	if (GLEW_VERSION_3_1 && !GLEW_VERSION_3_2) {
+	if (GLEW_VERSION_3_1 && !GLEW_VERSION_3_2 && GLEW_ARB_compatibility) {
 		strcat(defines, "#extension GL_ARB_compatibility: enable\n");
 	}
 
