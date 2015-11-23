@@ -2774,7 +2774,7 @@ if(WITH_CPP11)
 endif()
 
 # Visual Studio has all standards it supports available by default
-if(CMAKE_COMPILER_IS_GNUCC)
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "Intel")
 	# Use C99 + GNU extensions, works with GCC, Clang, ICC
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 endif()
