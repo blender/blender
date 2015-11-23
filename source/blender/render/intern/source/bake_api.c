@@ -444,7 +444,6 @@ static TriTessFace *mesh_calc_tri_tessface(
 
 			if (calculate_normal) {
 				if (lt->poly != mpoly_prev) {
-					const MPoly *mp = &me->mpoly[lt->poly];
 					BKE_mesh_calc_poly_normal(mp, &me->mloop[mp->loopstart], me->mvert, no);
 					mpoly_prev = lt->poly;
 				}

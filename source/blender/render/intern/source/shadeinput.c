@@ -1131,7 +1131,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 
 					float obwinmat[4][4], winmat[4][4], ho1[4], ho2[4], ho3[4];
 					float Zmulx, Zmuly;
-					float hox, hoy, l, dl, u, v;
+					float hox, hoy, l_proj, dl_proj, u_proj, v_proj;
 					float s00, s01, s10, s11, detsh;
 
 					/* old globals, localized now */
@@ -1161,12 +1161,12 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 					/* recalc u and v again */
 					hox = x / Zmulx - 1.0f;
 					hoy = y / Zmuly - 1.0f;
-					u = (hox - ho3[0] / ho3[3]) * s11 - (hoy - ho3[1] / ho3[3]) * s10;
-					v = (hoy - ho3[1] / ho3[3]) * s00 - (hox - ho3[0] / ho3[3]) * s01;
-					l = 1.0f + u + v;
+					u_proj = (hox - ho3[0] / ho3[3]) * s11 - (hoy - ho3[1] / ho3[3]) * s10;
+					v_proj = (hoy - ho3[1] / ho3[3]) * s00 - (hox - ho3[0] / ho3[3]) * s01;
+					l_proj = 1.0f + u_proj + v_proj;
 
-					suv->uv[0] = l * s3[0] - u * s1[0] - v * s2[0];
-					suv->uv[1] = l * s3[1] - u * s1[1] - v * s2[1];
+					suv->uv[0] = l_proj * s3[0] - u_proj * s1[0] - v_proj * s2[0];
+					suv->uv[1] = l_proj * s3[1] - u_proj * s1[1] - v_proj * s2[1];
 					suv->uv[2] = 0.0f;
 
 					if (shi->osatex) {
@@ -1176,12 +1176,12 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 						dyuv[0] =  -s10 / Zmuly;
 						dyuv[1] =  s00 / Zmuly;
 
-						dl = dxuv[0] + dxuv[1];
-						suv->dxuv[0] = dl * s3[0] - dxuv[0] * s1[0] - dxuv[1] * s2[0];
-						suv->dxuv[1] = dl * s3[1] - dxuv[0] * s1[1] - dxuv[1] * s2[1];
-						dl = dyuv[0] + dyuv[1];
-						suv->dyuv[0] = dl * s3[0] - dyuv[0] * s1[0] - dyuv[1] * s2[0];
-						suv->dyuv[1] = dl * s3[1] - dyuv[0] * s1[1] - dyuv[1] * s2[1];
+						dl_proj = dxuv[0] + dxuv[1];
+						suv->dxuv[0] = dl_proj * s3[0] - dxuv[0] * s1[0] - dxuv[1] * s2[0];
+						suv->dxuv[1] = dl_proj * s3[1] - dxuv[0] * s1[1] - dxuv[1] * s2[1];
+						dl_proj = dyuv[0] + dyuv[1];
+						suv->dyuv[0] = dl_proj * s3[0] - dyuv[0] * s1[0] - dyuv[1] * s2[0];
+						suv->dyuv[1] = dl_proj * s3[1] - dyuv[0] * s1[1] - dyuv[1] * s2[1];
 					}
 				}
 				else {

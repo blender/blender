@@ -287,12 +287,12 @@ static int compress_deepsamples(DeepSample *dsample, int tot, float epsilon)
 	return newtot;
 }
 
-static float deep_alpha(Render *re, int obinr, int facenr, int strand)
+static float deep_alpha(Render *re, int obinr, int facenr, bool use_strand)
 {
 	ObjectInstanceRen *obi= &re->objectinstance[obinr];
 	Material *ma;
 
-	if (strand) {
+	if (use_strand) {
 		StrandRen *strand= RE_findOrAddStrand(obi->obr, facenr-1);
 		ma= strand->buffer->ma;
 	}

@@ -2384,7 +2384,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 
 	/* garbage collection */
 	while (rectfs->first) {
-		RenderView *rv = rectfs->first;
+		rv = rectfs->first;
 		BLI_remlink(rectfs, rv);
 		MEM_freeN(rv);
 	}

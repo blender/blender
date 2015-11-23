@@ -1382,20 +1382,20 @@ ObjectInstanceRen *RE_addRenderInstance(
 	if (par && dob) {
 		const ParticleSystem *psys = dob->particle_system;
 		if (psys) {
-			int index;
+			int part_index;
 			if (obi->index < psys->totpart) {
-				index = obi->index;
+				part_index = obi->index;
 			}
 			else if (psys->child) {
-				index = psys->child[obi->index - psys->totpart].parent;
+				part_index = psys->child[obi->index - psys->totpart].parent;
 			}
 			else {
-				index = -1;
+				part_index = -1;
 			}
 
-			if (index >= 0) {
-				const ParticleData *p = &psys->particles[index];
-				obi->part_index = index;
+			if (part_index >= 0) {
+				const ParticleData *p = &psys->particles[part_index];
+				obi->part_index = part_index;
 				obi->part_size = p->size;
 				obi->part_age = RE_GetStats(re)->cfra - p->time;
 				obi->part_lifetime = p->lifetime;

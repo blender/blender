@@ -750,7 +750,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, con
 			d= shade_by_transmission(&isec, &shi, &shr);
 		
 		if (depth>0) {
-			float fr, fg, fb, f, f1;
+			float fr, fg, fb, f1;
 
 			if ((shi.mat->mode_l & MA_TRANSP) && shr.alpha < 1.0f && (shi.mat->mode_l & (MA_ZTRANSP | MA_RAYTRANSP))) {
 				float nf, f, refract[3], tracol[4];
@@ -810,9 +810,11 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, con
 
 				col[3]= f1*tracol[3] + f;
 			}
-			else 
+			else {
 				col[3]= 1.0f;
+			}
 
+			float f;
 			if (shi.mat->mode_l & MA_RAYMIRROR) {
 				f= shi.ray_mirror;
 				if (f!=0.0f) f*= fresnel_fac(shi.view, shi.vn, shi.mat->fresnel_mir_i, shi.mat->fresnel_mir);

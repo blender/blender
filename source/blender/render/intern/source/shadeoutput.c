@@ -1188,12 +1188,10 @@ float lamp_get_visibility(LampRen *lar, const float co[3], float lv[3], float *d
 		return 1.0f;
 	}
 	else {
-		float visifac= 1.0f, t;
+		float visifac= 1.0f;
 		
 		sub_v3_v3v3(lv, co, lar->co);
-		*dist = len_v3(lv);
-		t = 1.0f / (*dist);
-		mul_v3_fl(lv, t);
+		mul_v3_fl(lv, 1.0f / (*dist = len_v3(lv)));
 		
 		/* area type has no quad or sphere option */
 		if (lar->type==LA_AREA) {
@@ -1241,7 +1239,7 @@ float lamp_get_visibility(LampRen *lar, const float co[3], float lv[3], float *d
 			
 			if (visifac > 0.0f) {
 				if (lar->type==LA_SPOT) {
-					float inpr;
+					float inpr, t;
 					
 					if (lar->mode & LA_SQUARE) {
 						if (dot_v3v3(lv, lar->vec) > 0.0f) {

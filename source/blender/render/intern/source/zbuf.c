@@ -4238,15 +4238,15 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 					if (pa->fullresult.first) {
 						for (a=0; a<R.osa; a++) {
 							alpha= samp_shr[a].combined[3];
-							if (alpha!=0.0f) {
-								RenderLayer *rl= ssamp.rlpp[a];
+							if (alpha != 0.0f) {
+								RenderLayer *rl_other = ssamp.rlpp[a];
 
-								float *rect = RE_RenderLayerGetPass(rl, SCE_PASS_COMBINED, R.viewname);
+								float *rect = RE_RenderLayerGetPass(rl_other , SCE_PASS_COMBINED, R.viewname);
 								addAlphaOverFloat(rect + 4 * od, samp_shr[a].combined);
 				
-								add_transp_passes(rl, od, &samp_shr[a], alpha);
+								add_transp_passes(rl_other , od, &samp_shr[a], alpha);
 								if (addpassflag & SCE_PASS_VECTOR)
-									add_transp_speed(rl, od, samp_shr[a].winspeed, alpha, rdrect);
+									add_transp_speed(rl_other , od, samp_shr[a].winspeed, alpha, rdrect);
 							}
 						}
 					}

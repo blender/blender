@@ -3684,7 +3684,7 @@ void RE_sample_material_color(
 	MVert *mvert;
 	MLoop *mloop;
 	const MLoopTri *mlooptri;
-	float uv[3], normal[3];
+	float normal[3];
 	ShadeInput shi = {NULL};
 	Render re = {NULL};
 
@@ -3712,6 +3712,7 @@ void RE_sample_material_color(
 		mul_m4_v3(ob->imat, shi.co);
 		/* orco coordinates */
 		{
+			float uv[2];
 			float l;
 			/* Get generated UV */
 			textured_face_generate_uv(normal, shi.co, mvert[v1].co, mvert[v2].co, mvert[v3].co, uv);
