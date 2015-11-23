@@ -1029,14 +1029,14 @@ static bool GPU_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x,
 
 		/* float rectangles are already continuous in memory so we can use IMB_scaleImBuf */
 		if (frect) {
-			ImBuf *ibuf = IMB_allocFromBuffer(NULL, frect, w, h);
-			IMB_scaleImBuf(ibuf, rectw, recth);
+			ImBuf *ibuf_scale = IMB_allocFromBuffer(NULL, frect, w, h);
+			IMB_scaleImBuf(ibuf_scale, rectw, recth);
 
 			glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, rectw, recth, GL_RGBA,
-			                GL_FLOAT, ibuf->rect_float);
+			                GL_FLOAT, ibuf_scale->rect_float);
 
-			IMB_freeImBuf(ibuf);
+			IMB_freeImBuf(ibuf_scale);
 		}
 		/* byte images are not continuous in memory so do manual interpolation */
 		else {

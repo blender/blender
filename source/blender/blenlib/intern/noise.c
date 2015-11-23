@@ -452,7 +452,7 @@ float BLI_turbulence1(float noisesize, float x, float y, float z, int nr)
 
 /* ********************* FROM PERLIN HIMSELF: ******************** */
 
-static const char p[512 + 2] = {
+static const char g_perlin_data_ub[512 + 2] = {
 	0xA2, 0xA0, 0x19, 0x3B, 0xF8, 0xEB, 0xAA, 0xEE, 0xF3, 0x1C, 0x67, 0x28,
 	0x1D, 0xED, 0x0,  0xDE, 0x95, 0x2E, 0xDC, 0x3F, 0x3A, 0x82, 0x35, 0x4D,
 	0x6C, 0xBA, 0x36, 0xD0, 0xF6, 0xC,  0x79, 0x32, 0xD1, 0x59, 0xF4, 0x8,
@@ -499,7 +499,7 @@ static const char p[512 + 2] = {
 };
 
 
-static const float g[512 + 2][3] = {
+static const float g_perlin_data_v3[512 + 2][3] = {
 	{0.33783, 0.715698, -0.611206},
 	{-0.944031, -0.326599, -0.045624},
 	{-0.101074, -0.416443, -0.903503},
@@ -1028,6 +1028,8 @@ static const float g[512 + 2][3] = {
 
 static float noise3_perlin(float vec[3])
 {
+	const char *p       = g_perlin_data_ub;
+	const float (*g)[3] = g_perlin_data_v3;
 	int bx0, bx1, by0, by1, bz0, bz1, b00, b10, b01, b11;
 	float rx0, rx1, ry0, ry1, rz0, rz1, sx, sy, sz, a, b, c, d, t, u, v;
 	const float *q;

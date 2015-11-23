@@ -554,9 +554,10 @@ ImBuf *imb_loadtarga(const unsigned char *mem, size_t mem_size, int flags, char 
 {
 	TARGA tga;
 	struct ImBuf *ibuf;
-	int col, count, size;
-	unsigned int *rect, *cmap = NULL /*, mincol = 0*/, maxcol = 0;
-	uchar *cp = (uchar *) &col;
+	int count, size;
+	unsigned int *rect, *cmap = NULL /*, mincol = 0*/, cmap_max = 0;
+	int32_t cp_data;
+	uchar *cp = (uchar *) &cp_data;
 
 	if (checktarga(&tga, mem) == 0) {
 		return NULL;
@@ -579,10 +580,10 @@ ImBuf *imb_loadtarga(const unsigned char *mem, size_t mem_size, int flags, char 
 	if (tga.mapsize) {
 		/* load color map */
 		/*mincol = tga.maporig;*/ /*UNUSED*/
-		maxcol = tga.mapsize;
-		cmap = MEM_callocN(sizeof(unsigned int) * maxcol, "targa cmap");
+		cmap_max = tga.mapsize;
+		cmap = MEM_callocN(sizeof(unsigned int) * cmap_max, "targa cmap");
 
-		for (count = 0; count < maxcol; count++) {
+		for (count = 0; count < cmap_max; count++) {
 			switch (tga.mapbits >> 3) {
 				case 4:
 					cp[0] = mem[3];
@@ -603,14 +604,16 @@ ImBuf *imb_loadtarga(const unsigned char *mem, size_t mem_size, int flags, char 
 					mem += 2;
 					break;
 				case 1:
-					col = *mem++;
+					cp_data = *mem++;
 					break;
 			}
-			cmap[count] = col;
+			cmap[count] = cp_data;
 		}
 		
 		size = 0;
-		for (col = maxcol - 1; col > 0; col >>= 1) size++;
+		for (int cmap_index = cmap_max - 1; cmap_index > 0; cmap_index >>= 1) {
+			size++;
+		}
 		ibuf->planes = size;
 
 		if (tga.mapbits != 32) {    /* set alpha bits  */
@@ -655,14 +658,17 @@ ImBuf *imb_loadtarga(const unsigned char *mem, size_t mem_size, int flags, char 
 		/* apply color map */
 		rect = ibuf->rect;
 		for (size = ibuf->x * ibuf->y; size > 0; --size, ++rect) {
-			col = *rect;
-			if (col >= 0 && col < maxcol) *rect = cmap[col];
+			int cmap_index = *rect;
+			if (cmap_index >= 0 && cmap_index < cmap_max) {
+				*rect = cmap[cmap_index];
+			}
 		}
 
 		MEM_freeN(cmap);
 	}
 	
 	if (tga.pixsize == 16) {
+		unsigned int col;
 		rect = ibuf->rect;
 		for (size = ibuf->x * ibuf->y; size > 0; --size, ++rect) {
 			col = *rect;
