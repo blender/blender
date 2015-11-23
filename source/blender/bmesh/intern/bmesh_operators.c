@@ -1911,7 +1911,6 @@ error:
 	fprintf(stderr, "         ");
 	{
 		int pos = (int)(fmt - ofmt);
-		int i;
 		for (i = 0; i < pos; i++) {
 			fprintf(stderr, " ");
 		}

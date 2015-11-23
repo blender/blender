@@ -123,7 +123,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		for (sf_vert = sf_ctx.fillvertbase.first, i = 0; sf_vert; sf_vert = sf_vert->next, i++) {
 			BMVert *v = sf_vert->tmp.p;
 			BMIter eiter;
-			BMEdge *e, *e_pair[2];
+			BMEdge *e_pair[2];
 			unsigned int e_index = 0;
 
 			nors[i].value = -1.0f;

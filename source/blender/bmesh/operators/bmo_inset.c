@@ -571,7 +571,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 	BMVert *v;
 	BMEdge *e;
 	BMFace *f;
-	int i, j, k;
+	int i, k;
 
 	if (use_interpolate) {
 		interp_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
@@ -722,7 +722,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 	 * here but don't do this since we will be splitting them off (iterating stuff you modify is bad juju)
 	 * instead loop over edges then their verts */
 	for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
-		for (j = 0; j < 2; j++) {
+		for (int j = 0; j < 2; j++) {
 			v = (j == 0) ? es->e_new->v1 : es->e_new->v2;
 
 			/* end confusing part - just pretend this is a typical loop on verts */
@@ -1004,6 +1004,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 	/* create faces */
 	for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
 		BMVert *varr[4] = {NULL};
+		int j;
 		/* get the verts in the correct order */
 		BM_edge_ordered_verts_ex(es->e_new, &varr[1], &varr[0], es->l);
 #if 0

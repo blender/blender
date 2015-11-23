@@ -728,7 +728,6 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, bool do_tessface)
 		Object *ob;
 		ModifierData *md;
 		BMVert **vertMap = NULL;
-		int i, j;
 
 		for (ob = G.main->object.first; ob; ob = ob->id.next) {
 			if ((ob->parent) && (ob->parent->data == me) && ELEM(ob->partype, PARVERT1, PARVERT3)) {
