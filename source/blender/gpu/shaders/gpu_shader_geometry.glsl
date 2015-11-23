@@ -1,12 +1,18 @@
 uniform int PrimitiveIdBase;
 uniform int osd_active_uv_offset;
 
-varying vec3 varnormal;
-varying vec3 varposition;
+#if __VERSION__ >= 150
+  layout(lines_adjacency) in;
+  layout(triangle_strip, max_vertices = 4) out;
+#endif
 
 in block {
 	VertexData v;
 } inpt[4];
+
+/* compatibility */
+out vec3 varnormal;
+out vec3 varposition;
 
 uniform bool osd_flat_shading;
 uniform int osd_fvar_count;
