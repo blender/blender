@@ -23,20 +23,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/* ***** Vertex shader ***** */
-
-#extension GL_EXT_geometry_shader4 : enable
-#extension GL_ARB_gpu_shader5 : enable
-#extension GL_ARB_explicit_attrib_location : require
-#extension GL_ARB_uniform_buffer_object : require
-
 struct VertexData {
 	vec4 position;
 	vec3 normal;
 	vec2 uv;
 };
 
-#ifdef VERTEX_SHADER
+#ifdef VERTEX_SHADER // ---------------------
 
 in vec3 normal;
 in vec4 position;
@@ -52,24 +45,32 @@ void main()
 {
 	outpt.v.position = modelViewMatrix * position;
 	outpt.v.normal = normalize(normalMatrix * normal);
+
+#if __VERSION__ < 140
 	/* Some compilers expects gl_Position to be written.
 	 * It's not needed once we explicitly switch to GLSL 1.40 or above.
 	 */
 	gl_Position = outpt.v.position;
+#endif
 }
 
-#endif  /* VERTEX_SHADER */
+#elif defined GEOMETRY_SHADER // ---------------------
 
-/* ***** geometry shader ***** */
-#ifdef GEOMETRY_SHADER
-
-#ifndef GLSL_COMPAT_WORKAROUND
-layout(lines_adjacency) in;
-#ifndef WIREFRAME
-layout(triangle_strip, max_vertices = 4) out;
+#if __VERSION__ >= 150
+  layout(lines_adjacency) in;
+  #ifdef WIREFRAME
+    layout(line_strip, max_vertices = 8) out;
+  #else
+    layout(triangle_strip, max_vertices = 4) out;
+  #endif
 #else
-layout(line_strip, max_vertices = 8) out;
+  #extension GL_EXT_geometry_shader4: require
+  /* application provides input/output layout info */
 #endif
+
+#if __VERSION__ < 140
+  #extension GL_ARB_uniform_buffer_object: require
+  #extension GL_ARB_texture_buffer_object: require
 #endif
 
 uniform mat4 modelViewMatrix;
@@ -188,10 +189,7 @@ void main()
 	EndPrimitive();
 }
 
-#endif  /* GEOMETRY_SHADER */
-
-/* ***** Fragment shader ***** */
-#ifdef FRAGMENT_SHADER
+#elif defined FRAGMENT_SHADER // ---------------------
 
 #define MAX_LIGHTS 8
 #define NUM_SOLID_LIGHTS 3
@@ -330,4 +328,4 @@ void main()
 #endif
 }
 
-#endif  // FRAGMENT_SHADER
+#endif // ---------------------

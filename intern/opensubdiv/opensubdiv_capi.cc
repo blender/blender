@@ -296,9 +296,8 @@ const struct OpenSubdiv_TopologyRefinerDescr *openSubdiv_getGLMeshTopologyRefine
 int openSubdiv_supportGPUDisplay(void)
 {
 	// TODO: simplify extension check once Blender adopts GL 3.2
-	return GLEW_VERSION_4_0 || (
-	       GLEW_EXT_geometry_shader4 && // ARB version core in 3.2
-	       GLEW_ARB_gpu_shader5 && // written against 3.2, core in 4.0
-	       GLEW_ARB_uniform_buffer_object // core in 3.1
-	       );
+	return (GLEW_VERSION_3_2 && GLEW_ARB_compatibility) ||
+	       (GLEW_VERSION_3_1 && GLEW_ARB_compatibility && GLEW_EXT_geometry_shader4) ||
+	       (GLEW_VERSION_3_0 && GLEW_EXT_geometry_shader4 && GLEW_ARB_uniform_buffer_object && GLEW_ARB_texture_buffer_object);
+	/* also ARB_explicit_attrib_location? */
 }
