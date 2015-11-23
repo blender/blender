@@ -34,11 +34,17 @@ struct Material;
 struct FreestyleConfig;
 struct FreestyleLineStyle;
 
-extern struct Scene *freestyle_scene;
-extern float freestyle_viewpoint[3];
-extern float freestyle_mv[4][4];
-extern float freestyle_proj[4][4];
-extern int freestyle_viewport[4];
+struct FreestyleGlobals {
+	struct Scene *scene;
+
+	/* camera information */
+	float viewpoint[3];
+	float mv[4][4];
+	float proj[4][4];
+	int viewport[4];
+};
+
+extern struct FreestyleGlobals g_freestyle;
 
 /* Rendering */
 void FRS_initialize(void);

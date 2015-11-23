@@ -41,10 +41,10 @@ void GridHelpers::getDefaultViewProscenium(real viewProscenium[4])
 	// borderZone describes a blank border outside the proscenium, but still inside the image area.
 	// Only intended for exposing possible artifacts along or outside the proscenium edge during debugging.
 	const real borderZone = 0.0;
-	viewProscenium[0] = freestyle_viewport[2] * (borderZone - bufferZone);
-	viewProscenium[1] = freestyle_viewport[2] * (1.0f - borderZone + bufferZone);
-	viewProscenium[2] = freestyle_viewport[3] * (borderZone - bufferZone);
-	viewProscenium[3] = freestyle_viewport[3] * (1.0f - borderZone + bufferZone);
+	viewProscenium[0] = g_freestyle.viewport[2] * (borderZone - bufferZone);
+	viewProscenium[1] = g_freestyle.viewport[2] * (1.0f - borderZone + bufferZone);
+	viewProscenium[2] = g_freestyle.viewport[3] * (borderZone - bufferZone);
+	viewProscenium[3] = g_freestyle.viewport[3] * (1.0f - borderZone + bufferZone);
 }
 
 GridHelpers::Transform::~Transform ()

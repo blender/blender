@@ -74,12 +74,13 @@ static char Freestyle_getCurrentScene___doc__[] =
 
 static PyObject *Freestyle_getCurrentScene(PyObject * /*self*/)
 {
-	if (!freestyle_scene) {
+	Scene *scene = g_freestyle.scene;
+	if (!scene) {
 		PyErr_SetString(PyExc_TypeError, "current scene not available");
 		return NULL;
 	}
 	PointerRNA ptr_scene;
-	RNA_pointer_create(&freestyle_scene->id, &RNA_Scene, freestyle_scene, &ptr_scene);
+	RNA_pointer_create(&scene->id, &RNA_Scene, scene, &ptr_scene);
 	return pyrna_struct_CreatePyObject(&ptr_scene);
 }
 
