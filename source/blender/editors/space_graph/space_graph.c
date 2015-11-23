@@ -284,6 +284,8 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 		glVertex2fv(vec);
 		glEnd(); // GL_LINE_STRIP
 		glDisable(GL_BLEND);
+
+		glLineWidth(1.0);
 	}
 	
 	/* current frame or vertical component of vertical component of the cursor */
@@ -306,6 +308,8 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 		glVertex2fv(vec);
 		glEnd(); // GL_LINE_STRIP
 		glDisable(GL_BLEND);
+
+		glLineWidth(1.0);
 	}
 	else {
 		/* current frame */
