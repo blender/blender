@@ -26,7 +26,7 @@ ARGS=$( \
 getopt \
 -o s:i:t:h \
 --long source:,install:,tmp:,info:,threads:,help,show-deps,no-sudo,with-all,with-opencollada,\
-ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,\
+ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,ver-osd:,\
 force-all,force-python,force-numpy,force-boost,force-ocio,force-openexr,force-oiio,force-llvm,force-osl,force-osd,\
 force-ffmpeg,force-opencollada,\
 build-all,build-python,build-numpy,build-boost,build-ocio,build-openexr,build-oiio,build-llvm,build-osl,build-osd,\
@@ -114,6 +114,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --ver-osl=<ver>
         Force version of OSL library.
+
+    --ver-osd=<ver>
+        Force version of OSD library.
 
     Note about the --ver-foo options:
         It may not always work as expected (some libs are actually checked out from a git rev...), yet it might help
@@ -437,7 +440,6 @@ while true; do
     --ver-ocio)
       OCIO_VERSION="$2"
       OCIO_VERSION_MIN=$OCIO_VERSION
-      echo $OCIO_VERSION
       shift; shift; continue
     ;;
     --ver-oiio)
@@ -494,13 +496,10 @@ while true; do
       OPENEXR_FORCE_BUILD=true; shift; continue
     ;;
     --build-oiio)
-      OIIO_FORCE_BUILD=true
-      shift; continue
+      OIIO_FORCE_BUILD=true; shift; continue
     ;;
     --build-llvm)
-      LLVM_FORCE_BUILD=true
-      OSL_FORCE_BUILD=true
-      shift; continue
+      LLVM_FORCE_BUILD=true; shift; continue
     ;;
     --build-osl)
       OSL_FORCE_BUILD=true; shift; continue
@@ -546,13 +545,10 @@ while true; do
       OPENEXR_FORCE_REBUILD=true; shift; continue
     ;;
     --force-oiio)
-      OIIO_FORCE_REBUILD=true
-      shift; continue
+      OIIO_FORCE_REBUILD=true; shift; continue
     ;;
     --force-llvm)
-      LLVM_FORCE_REBUILD=true
-      OSL_FORCE_REBUILD=true
-      shift; continue
+      LLVM_FORCE_REBUILD=true; shift; continue
     ;;
     --force-osl)
       OSL_FORCE_REBUILD=true; shift; continue
@@ -1052,7 +1048,9 @@ compile_Boost() {
     INFO "Building Boost-$BOOST_VERSION"
 
     # Rebuild dependecies as well!
+    OIIO_FORCE_BUILD=true
     OIIO_FORCE_REBUILD=true
+    OSL_FORCE_BUILD=true
     OSL_FORCE_REBUILD=true
 
     prepare_opt
@@ -1212,6 +1210,7 @@ compile_ILMBASE() {
     INFO "Building ILMBase-$ILMBASE_VERSION"
 
     # Rebuild dependecies as well!
+    OPENEXR_FORCE_BUILD=true
     OPENEXR_FORCE_REBUILD=true
 
     prepare_opt
@@ -1302,8 +1301,8 @@ compile_OPENEXR() {
     INFO "Building OpenEXR-$OPENEXR_VERSION"
 
     # Rebuild dependecies as well!
+    OIIO_FORCE_BUILD=true
     OIIO_FORCE_REBUILD=true
-    OSL_FORCE_REBUILD=true
 
     prepare_opt
 
@@ -1412,6 +1411,7 @@ compile_OIIO() {
     INFO "Building OpenImageIO-$OIIO_VERSION"
 
     # Rebuild dependecies as well!
+    OSL_FORCE_BUILD=true
     OSL_FORCE_REBUILD=true
 
     prepare_opt
@@ -1539,6 +1539,10 @@ compile_LLVM() {
   if [ ! -d $_inst ]; then
     INFO "Building LLVM-$LLVM_VERSION (CLANG included!)"
 
+    # Rebuild dependecies as well!
+    OSL_FORCE_BUILD=true
+    OSL_FORCE_REBUILD=true
+
     prepare_opt
 
     if [ ! -d $_src -o true ]; then
@@ -1596,9 +1600,6 @@ compile_LLVM() {
     fi
 
     magic_compile_set llvm-$LLVM_VERSION $llvm_magic
-
-    # Rebuild dependecies as well!
-    OSL_FORCE_REBUILD=true
 
     cd $CWD
     INFO "Done compiling LLVM-$LLVM_VERSION (CLANG included)!"
@@ -2449,13 +2450,9 @@ install_DEB() {
   fi
 
   if [ "$_do_compile_osd" = true ]; then
-    if [ "$have_llvm" = true ]; then
-      install_packages_DEB flex bison libtbb-dev
-      PRINT ""
-      compile_OSD
-    else
-      WARNING "No LLVM available, cannot build OSD!"
-    fi
+    install_packages_DEB flex bison libtbb-dev
+    PRINT ""
+    compile_OSD
   fi
 
 
@@ -2965,16 +2962,12 @@ install_RPM() {
   fi
 
   if [ "$_do_compile_osd" = true ]; then
-    if [ "$have_llvm" = true ]; then
-      install_packages_RPM flex bison
-      if [ "$RPM" = "FEDORA" -o "$RPM" = "RHEL" ]; then
-        install_packages_RPM tbb-devel
-      fi
-      PRINT ""
-      compile_OSD
-    else
-      WARNING "No LLVM available, cannot build OSD!"
+    install_packages_RPM flex bison
+    if [ "$RPM" = "FEDORA" -o "$RPM" = "RHEL" ]; then
+      install_packages_RPM tbb-devel
     fi
+    PRINT ""
+    compile_OSD
   fi
 
 
@@ -3361,13 +3354,9 @@ install_ARCH() {
   fi
 
   if [ "$_do_compile_osd" = true ]; then
-    if [ "$have_llvm" = true ]; then
-      install_packages_ARCH intel-tbb
-      PRINT ""
-      compile_OSD
-    else
-      WARNING "No LLVM available, cannot build OSD!"
-    fi
+    install_packages_ARCH intel-tbb
+    PRINT ""
+    compile_OSD
   fi
 
 
@@ -3550,13 +3539,9 @@ install_OTHER() {
   fi
 
   if [ "$_do_compile_osd" = true ]; then
-    if [ "$have_llvm" = true ]; then
-      install_packages_DEB flex bison libtbb-dev
-      PRINT ""
-      compile_OSD
-    else
-      WARNING "No LLVM available, cannot build OSD!"
-    fi
+    install_packages_DEB flex bison libtbb-dev
+    PRINT ""
+    compile_OSD
   fi
 
 
