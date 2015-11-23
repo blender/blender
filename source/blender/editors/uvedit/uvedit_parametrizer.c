@@ -4180,11 +4180,11 @@ static void p_add_ngon(ParamHandle *handle, ParamKey key, int nverts,
                        ParamBool *pin, ParamBool *select, const float normal[3])
 {
 	int *boundary = BLI_array_alloca(boundary, nverts);
-	int i;
 
 	/* boundary vertex indexes */
-	for (i = 0; i < nverts; i++)
+	for (int i = 0; i < nverts; i++) {
 		boundary[i] = i;
+	}
 
 	while (nverts > 2) {
 		float minangle = FLT_MAX;
