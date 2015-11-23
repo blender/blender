@@ -25,7 +25,7 @@
 ARGS=$( \
 getopt \
 -o s:i:t:h \
---long source:,install:,tmp:,info:,threads:,help,no-sudo,with-all,with-opencollada,\
+--long source:,install:,tmp:,info:,threads:,help,show-deps,no-sudo,with-all,with-opencollada,\
 ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,\
 force-all,force-python,force-numpy,force-boost,force-ocio,force-openexr,force-oiio,force-llvm,force-osl,force-osd,\
 force-ffmpeg,force-opencollada,\
@@ -71,6 +71,9 @@ Use --help to show all available options!\""
 ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     -h, --help
         Show this message and exit.
+
+    --show-deps
+        Show main dependencies of Blender (including officially supported versions) and exit.
 
     -s <path>, --source=<path>
         Use a specific path where to store downloaded libraries sources (defaults to '\$SRC').
@@ -196,6 +199,8 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
 ##### Main Vars #####
 
+DO_SHOW_DEPS=false
+
 SUDO="sudo"
 
 PYTHON_VERSION="3.4.0"
@@ -222,6 +227,7 @@ OCIO_SKIP=false
 OPENEXR_VERSION="2.2.0"
 OPENEXR_VERSION_MIN="2.0.1"
 ILMBASE_VERSION="2.2.0"
+ILMBASE_VERSION_MIN="2.2"
 OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
 _with_built_openexr=false
@@ -358,6 +364,10 @@ while true; do
       PRINT "`eval _echo "$ARGUMENTS_INFO"`"
       PRINT ""
       exit 0
+    ;;
+    --show-deps)
+      # We have to defer...
+      DO_SHOW_DEPS=true; shift; continue
     ;;
     --no-sudo)
       PRINT ""
@@ -509,8 +519,10 @@ fi
 # This has to be done here, because user might force some versions...
 PYTHON_SOURCE=( "http://python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz" )
 NUMPY_SOURCE=( "http://sourceforge.net/projects/numpy/files/NumPy/$NUMPY_VERSION/numpy-$NUMPY_VERSION.tar.gz" )
+
 _boost_version_nodots=`echo "$BOOST_VERSION" | sed -r 's/\./_/g'`
 BOOST_SOURCE=( "http://sourceforge.net/projects/boost/files/boost/$BOOST_VERSION/boost_$_boost_version_nodots.tar.bz2/download" )
+BOOST_BUILD_MODULES="--with-system --with-filesystem --with-thread --with-regex --with-locale --with-date_time"
 
 OCIO_SOURCE=( "https://github.com/imageworks/OpenColorIO/tarball/v$OCIO_VERSION" )
 
@@ -527,6 +539,7 @@ OIIO_SOURCE_REPO_UID="c9e67275a0b248ead96152f6d2221cc0c0f278a4"
 
 LLVM_SOURCE=( "http://llvm.org/releases/$LLVM_VERSION/llvm-$LLVM_VERSION.src.tar.gz" )
 LLVM_CLANG_SOURCE=( "http://llvm.org/releases/$LLVM_VERSION/clang-$LLVM_VERSION.src.tar.gz" "http://llvm.org/releases/$LLVM_VERSION/cfe-$LLVM_VERSION.src.tar.gz" )
+
 OSL_USE_REPO=true
 #~ OSL_SOURCE=( "https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz" )
 OSL_SOURCE=( "https://github.com/Nazg-Gul/OpenShadingLanguage/archive/Release-1.5.11.tar.gz" )
@@ -548,7 +561,55 @@ OSD_SOURCE_REPO_BRANCH="dev"
 
 OPENCOLLADA_SOURCE=( "https://github.com/KhronosGroup/OpenCOLLADA.git" )
 OPENCOLLADA_REPO_UID="3335ac164e68b2512a40914b14c74db260e6ff7d"
+OPENCOLLADA_REPO_BRANCH="master"
+
 FFMPEG_SOURCE=( "http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2" )
+
+
+
+#### Show Dependencies ####
+
+# Need those to be after we defined versions...
+DEPS_COMMON_INFO="\"COMMON DEPENDENCIES:
+
+Those libraries should be available as packages in all recent distributions (optional ones are [between brackets]):
+
+    * Basics of dev environment (cmake or scons, gcc, svn , git, ...).
+    * libjpeg, libpng, libtiff, [libopenjpeg], [libopenal].
+    * libx11, libxcursor, libxi, libxrandr, libxinerama (and other libx... as needed).
+    * libsqlite3, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp.
+    * libsdl1.2, libglew, libglewmx.\""
+
+DEPS_SPECIFIC_INFO="\"BUILDABLE DEPENDENCIES:
+
+The following libraries will probably not all be available as packages in your distribution
+(install_deps will by default try to install packages, and fall back to building missing ones).
+You may also want to build them yourself (optional ones are [between brackets]):
+
+    * Python $PYTHON_VERSION_MIN (from $PYTHON_SOURCE).
+    * [NumPy $NUMPY_VERSION_MIN] (from $NUMPY_SOURCE).
+    * Boost $BOOST_VERSION_MIN (from $BOOST_SOURCE, modules: $BOOST_BUILD_MODULES).
+    * [FFMpeg $FFMPEG_VERSION_MIN (needs libvorbis, libogg, libtheora, libx264, libmp3lame, libxvidcore, libvpx, ...)] (from $FFMPEG_SOURCE).
+    * [OpenColorIO $OCIO_VERSION_MIN] (from $OCIO_SOURCE).
+    * ILMBase $ILMBASE_VERSION_MIN (from $ILMBASE_SOURCE).
+    * OpenEXR $OPENEXR_VERSION_MIN (from $OPENEXR_SOURCE).
+    * OpenImageIO $OIIO_VERSION_MIN (from $OIIO_SOURCE).
+    * [LLVM $LLVM_VERSION_MIN (with clang)] (from $LLVM_SOURCE, and $LLVM_CLANG_SOURCE).
+    * [OpenShadingLanguage $OSL_VERSION_MIN] (from $OSL_SOURCE_REPO, branch $OSL_SOURCE_REPO_BRANCH, commit $OSL_SOURCE_REPO_UID).
+    * [OpenSubDiv $OSD_VERSION_MIN] (from $OSD_SOURCE_REPO, branch $OSD_SOURCE_REPO_BRANCH, commit $OSD_SOURCE_REPO_UID).
+    * [OpenCollada] (from $OPENCOLLADA_SOURCE, branch $OPENCOLLADA_REPO_BRANCH, commit $OPENCOLLADA_REPO_UID).\""
+
+if [ "$DO_SHOW_DEPS" = true ]; then
+  PRINT ""
+  PRINT "Blender dependencies (libraries needed to build it):"
+  PRINT ""
+  PRINT "`eval _echo "$DEPS_COMMON_INFO"`"
+  PRINT ""
+  PRINT "`eval _echo "$DEPS_SPECIFIC_INFO"`"
+  PRINT ""
+  exit 0
+fi
+
 
 
 ##### Generic Helpers #####
@@ -902,7 +963,7 @@ compile_Boost() {
     if [ ! -f $_src/b2 ]; then
       ./bootstrap.sh
     fi
-    ./b2 -j$THREADS -a --with-system --with-filesystem --with-thread --with-regex --with-locale --with-date_time \
+    ./b2 -j$THREADS -a $BOOST_BUILD_MODULES \
          --prefix=$_inst --disable-icu boost.locale.icu=off install
     ./b2 --clean
 
@@ -1695,7 +1756,7 @@ compile_OpenCOLLADA() {
     cd $_src
 
     # XXX For now, always update from latest repo...
-    git pull origin master
+    git pull origin $OPENCOLLADA_REPO_BRANCH
 
     # Stick to same rev as windows' libs...
     git checkout $OPENCOLLADA_REPO_UID
@@ -3361,23 +3422,11 @@ else
   ERROR "Failed to detect distribution type."
   PRINT ""
   PRINT "Your distribution is not supported by this script, you'll have to install dependencies and"
-  PRINT "dev packages yourself (list non-exhaustive, but should cover most needs):"
-  PRINT "    * Basics of dev environment (cmake or scons, gcc, svn , git, ...)."
-  PRINT "    * Python$PYTHON_VERSION_MIN, numpy."
-  PRINT "    * libboost$BOOST_VERSION_MIN (locale, filesystem, regex, system, thread, wave)."
-  PRINT "    * libjpeg, libpng, libtiff, libopenjpeg, libopenal."
-  PRINT "    * ffmpeg (with libvorbis, libogg, libtheora, libx264, libmp3lame, libxvidcore, libvpx, ...)."
-  PRINT "    * libx11, libxcursor, libxi, libxrandr, libxinerama (and other libx... as needed)."
-  PRINT "    * libsqlite3, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp."
-  PRINT "    * libsdl1.2, libglew, libglewmx."
-  PRINT "    * libopencolorio$OCIO_VERSION_MIN, libopenexr$OPENEXR_VERSION_MIN, libopenimageio$OIIO_VERSION_MIN."
-  PRINT "    * llvm-$LLVM_VERSION (with clang)."
+  PRINT "dev packages yourself."
   PRINT ""
-  PRINT "Most of up-listed packages are available in recent distributions. The following are likely not,"
-  PRINT "you'll have to build them (they are all optional, though):"
-  PRINT "    * OpenShadingLanguage (from https://github.com/Nazg-Gul/OpenShadingLanguage.git, branch blender-fixes, commit 22ee5ea298fd215430dfbd160b5aefd507f06db0)."
-  PRINT "    * OpenSubDiv (from https://github.com/PixarAnimationStudios/OpenSubdiv.git, branch dev, commit 404659fffa659da075d1c9416e4fc939139a84ee)."
-  PRINT "    * OpenCollada (from https://github.com/KhronosGroup/OpenCOLLADA.git, branch master, commit 3335ac164e68b2512a40914b14c74db260e6ff7d)."
+  PRINT "`eval _echo "$DEPS_COMMON_INFO"`"
+  PRINT ""
+  PRINT "`eval _echo "$DEPS_SPECIFIC_INFO"`"
   PRINT ""
   exit 1
 fi
