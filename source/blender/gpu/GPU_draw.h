@@ -63,7 +63,7 @@ void GPU_state_init(void);
  * - first the state is initialized by a particular object and
  *   it's materials
  * - after this, materials can be quickly enabled by their number,
- *   GPU_enable_material returns 0 if drawing should be skipped
+ *   GPU_object_material_bind returns 0 if drawing should be skipped
  * - after drawing, the material must be disabled again */
 
 void GPU_begin_object_materials(struct View3D *v3d, struct RegionView3D *rv3d, 
@@ -71,8 +71,8 @@ void GPU_begin_object_materials(struct View3D *v3d, struct RegionView3D *rv3d,
 void GPU_end_object_materials(void);
 bool GPU_object_materials_check(void);
 
-int GPU_enable_material(int nr, void *attribs);
-void GPU_disable_material(void);
+int GPU_object_material_bind(int nr, void *attribs);
+void GPU_object_material_unbind(void);
 
 void GPU_begin_dupli_object(struct DupliObject *dob);
 void GPU_end_dupli_object(void);

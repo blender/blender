@@ -1414,7 +1414,7 @@ static struct GPUMaterialState {
 	int totmat;
 
 	/* set when called inside GPU_begin_object_materials / GPU_end_object_materials
-	 * otherwise calling GPU_enable_material returns zero */
+	 * otherwise calling GPU_object_material_bind returns zero */
 	bool is_enabled;
 
 	Material **gmatbuf;
@@ -1668,7 +1668,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	}
 
 	/* let's start with a clean state */
-	GPU_disable_material();
+	GPU_object_material_unbind();
 }
 
 static int GPU_get_particle_info(GPUParticleInfo *pi)
@@ -1701,7 +1701,7 @@ static int GPU_get_particle_info(GPUParticleInfo *pi)
 		return 0;
 }
 
-int GPU_enable_material(int nr, void *attribs)
+int GPU_object_material_bind(int nr, void *attribs)
 {
 	GPUVertexAttribs *gattribs = attribs;
 	GPUMaterial *gpumat;
@@ -1824,7 +1824,7 @@ int GPU_get_material_alpha_blend(void)
 	return GMS.lastalphablend;
 }
 
-void GPU_disable_material(void)
+void GPU_object_material_unbind(void)
 {
 	GMS.lastmatnr = -1;
 	GMS.lastretval = 1;
@@ -1868,7 +1868,7 @@ bool GPU_object_materials_check(void)
 
 void GPU_end_object_materials(void)
 {
-	GPU_disable_material();
+	GPU_object_material_unbind();
 
 	GMS.is_enabled = false;
 

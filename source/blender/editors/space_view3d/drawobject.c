@@ -3797,16 +3797,16 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 			/* use the cageDM since it always overlaps the editmesh faces */
 			glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 			cageDM->drawMappedFaces(cageDM, draw_em_fancy__setFaceOpts,
-			                        GPU_enable_material, NULL, me->edit_btmesh, DM_DRAW_SKIP_HIDDEN);
+			                        GPU_object_material_bind, NULL, me->edit_btmesh, DM_DRAW_SKIP_HIDDEN);
 			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		}
 		else if (check_object_draw_texture(scene, v3d, dt)) {
 			if (draw_glsl_material(scene, ob, v3d, dt)) {
 				glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
 
-				finalDM->drawMappedFacesGLSL(finalDM, GPU_enable_material,
+				finalDM->drawMappedFacesGLSL(finalDM, GPU_object_material_bind,
 				                             draw_em_fancy__setGLSLFaceOpts, em);
-				GPU_disable_material();
+				GPU_object_material_unbind();
 
 				glFrontFace(GL_CCW);
 			}
@@ -3821,7 +3821,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 
 			glEnable(GL_LIGHTING);
 			glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
-			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, GPU_enable_material, NULL, me->edit_btmesh, DM_DRAW_SKIP_HIDDEN);
+			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, GPU_object_material_bind, NULL, me->edit_btmesh, DM_DRAW_SKIP_HIDDEN);
 
 			glFrontFace(GL_CCW);
 			glDisable(GL_LIGHTING);
@@ -3985,7 +3985,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 	if (dt > OB_WIRE) {
 		glDepthMask(1);
 		ED_view3d_polygon_offset(rv3d, 0.0);
-		GPU_disable_material();
+		GPU_object_material_unbind();
 	}
 #if 0  /* currently not needed */
 	else if (use_occlude_wire) {
@@ -4008,9 +4008,9 @@ static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 		 * drawFacesSolid() doesn't draw the transparent faces */
 		if (ob->dtx & OB_DRAWTRANSP) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
+			dm->drawFacesSolid(dm, NULL, 0, GPU_object_material_bind);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			GPU_disable_material();
+			GPU_object_material_unbind();
 		}
 		else {
 			dm->drawEdges(dm, 0, 1);
@@ -4120,18 +4120,18 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 					}
 				}
 
-				GPU_enable_material(1, &gattribs);
+				GPU_object_material_bind(1, &gattribs);
 				dm->drawFacesSolid(dm, fpl, fast, NULL);
 				draw_loose = false;
 			}
 			else
-				dm->drawFacesGLSL(dm, GPU_enable_material);
+				dm->drawFacesGLSL(dm, GPU_object_material_bind);
 
 #if 0 /* XXX */
 			if (BKE_bproperty_object_get(ob, "Text"))
 				draw_mesh_text(ob, 1);
 #endif
-			GPU_disable_material();
+			GPU_object_material_unbind();
 
 			glFrontFace(GL_CCW);
 
@@ -4155,7 +4155,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		if (draw_flags & DRAW_MODIFIERS_PREVIEW) {
 			/* for object selection draws no shade */
 			if (dflag & (DRAW_PICKING | DRAW_CONSTCOLOR)) {
-				dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
+				dm->drawFacesSolid(dm, NULL, 0, GPU_object_material_bind);
 			}
 			else {
 				const float spec[4] = {0.47f, 0.47f, 0.47f, 0.47f};
@@ -4173,7 +4173,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				/* materials arent compatible with vertex colors */
 				GPU_end_object_materials();
 
-				GPU_enable_material(0, NULL);
+				GPU_object_material_bind(0, NULL);
 				
 				/* set default spec */
 				glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
@@ -4187,7 +4187,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				glDisable(GL_COLOR_MATERIAL);
 				glDisable(GL_LIGHTING);
 
-				GPU_disable_material();
+				GPU_object_material_unbind();
 			}
 		}
 		else {
@@ -4220,12 +4220,12 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 					}
 				}
 
-				dm->drawFacesSolid(dm, fpl, fast, GPU_enable_material);
+				dm->drawFacesSolid(dm, fpl, fast, GPU_object_material_bind);
 			}
 			else
-				dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
+				dm->drawFacesSolid(dm, NULL, 0, GPU_object_material_bind);
 
-			GPU_disable_material();
+			GPU_object_material_unbind();
 
 			glFrontFace(GL_CCW);
 			glDisable(GL_LIGHTING);
@@ -4588,7 +4588,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 			case DL_SURF:
 
 				if (dl->index) {
-					GPU_enable_material(dl->col + 1, (use_glsl) ? &gattribs : NULL);
+					GPU_object_material_bind(dl->col + 1, (use_glsl) ? &gattribs : NULL);
 
 					if (dl->rt & CU_SMOOTH) glShadeModel(GL_SMOOTH);
 					else glShadeModel(GL_FLAT);
@@ -4602,7 +4602,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 				break;
 
 			case DL_INDEX3:
-				GPU_enable_material(dl->col + 1, (use_glsl) ? &gattribs : NULL);
+				GPU_object_material_bind(dl->col + 1, (use_glsl) ? &gattribs : NULL);
 
 				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
 
@@ -4622,7 +4622,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 				break;
 
 			case DL_INDEX4:
-				GPU_enable_material(dl->col + 1, (use_glsl) ? &gattribs : NULL);
+				GPU_object_material_bind(dl->col + 1, (use_glsl) ? &gattribs : NULL);
 
 				glEnableClientState(GL_NORMAL_ARRAY);
 				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
@@ -4667,11 +4667,11 @@ static bool drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, 
 
 		if (!glsl) {
 			glEnable(GL_LIGHTING);
-			dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
+			dm->drawFacesSolid(dm, NULL, 0, GPU_object_material_bind);
 			glDisable(GL_LIGHTING);
 		}
 		else
-			dm->drawFacesGLSL(dm, GPU_enable_material);
+			dm->drawFacesGLSL(dm, GPU_object_material_bind);
 
 		GPU_end_object_materials();
 	}
@@ -7938,10 +7938,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 					}
 					else {
 						if (dt > OB_WIRE)
-							GPU_enable_material(0, NULL);  /* we use default material */
+							GPU_object_material_bind(0, NULL);  /* we use default material */
 						empty_object = draw_armature(scene, v3d, ar, base, dt, dflag, ob_wire_col, false);
 						if (dt > OB_WIRE)
-							GPU_disable_material();
+							GPU_object_material_unbind();
 					}
 				}
 				break;
@@ -8540,7 +8540,7 @@ static void bbs_mesh_solid_verts(Scene *scene, Object *ob)
 
 	DM_update_materials(dm, ob);
 
-	dm->drawMappedFaces(dm, bbs_mesh_solid_hide2__setDrawOpts, GPU_enable_material, NULL, me, DM_DRAW_SKIP_HIDDEN);
+	dm->drawMappedFaces(dm, bbs_mesh_solid_hide2__setDrawOpts, GPU_object_material_bind, NULL, me, DM_DRAW_SKIP_HIDDEN);
 
 	bbs_obmode_mesh_verts(ob, dm, 1);
 	bm_vertoffs = me->totvert + 1;
@@ -8676,11 +8676,11 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 		glEnable(GL_LIGHTING);
 		
 		if (dm) {
-			dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
+			dm->drawFacesSolid(dm, NULL, 0, GPU_object_material_bind);
 			GPU_end_object_materials();
 		}
 		else if (edm)
-			edm->drawMappedFaces(edm, NULL, GPU_enable_material, NULL, NULL, 0);
+			edm->drawMappedFaces(edm, NULL, GPU_object_material_bind, NULL, NULL, 0);
 		
 		glDisable(GL_LIGHTING);
 	}
