@@ -1167,6 +1167,10 @@ void BlenderSync::sync_world(bool update_all)
 
 			background->visibility = visibility;
 		}
+		else {
+			background->ao_factor = 0.0f;
+			background->ao_distance = FLT_MAX;
+		}
 
 		shader->set_graph(graph);
 		shader->tag_update(scene);
