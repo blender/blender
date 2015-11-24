@@ -45,6 +45,7 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
+#include "ED_view3d.h"
 #include "ED_space_api.h"
 
 #include "BLF_api.h"
@@ -55,84 +56,7 @@
 
 #include "view3d_intern.h"  /* own include */
 
-
-/* -------------------------------------------------------------------- */
-/* Snapping (could be own function) */
-/* NOTE - this is not very nice use of transform snapping */
-#include "ED_transform.h"
-
 #define MVAL_MAX_PX_DIST 12.0f
-
-/**
- * Convenience function for performing snapping.
- *
- * \param C  Context.
- * \param r_co  hit location.
- * \param r_no  hit normal (optional).
- * \param co_ss  Screenspace coordinate.
- * \param use_depth  Snap to the closest element, use when using more than one snap type.
- * \param use_obedit  Use editmode cage.
- * \param use_vert  Snap to verts.
- * \param use_edge  Snap to edges.
- * \param use_face  Snap to faces.
- * \return Snap success
- */
-static bool ED_view3d_snap_co(bContext *C, float r_co[3], float r_no[3], const float co_ss[2],
-                              bool use_depth, bool use_obedit,
-                              bool use_vert, bool use_edge, bool use_face)
-{
-	float dist_px = MVAL_MAX_PX_DIST;  /* snap dist */
-	float r_no_dummy[3];
-	float ray_dist = TRANSFORM_DIST_MAX_RAY;
-	bool ret = false;
-	float *r_no_ptr = r_no ? r_no : r_no_dummy;
-
-	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	ARegion *ar = CTX_wm_region(C);
-	struct Object *obedit = use_obedit ? CTX_data_edit_object(C) : NULL;
-
-	BLI_assert(use_vert || use_edge || use_face);
-
-	/* try snap edge, then face if it fails */
-	if (use_vert) {
-		ret |= snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_VERTEX,
-		                     co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL);
-	}
-	if (use_edge && (ret == false || use_depth)) {
-		if (use_depth == false) ray_dist = TRANSFORM_DIST_MAX_RAY;
-		ret |= snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_EDGE,
-		                     co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL);
-	}
-	if (use_face && (ret == false || use_depth)) {
-		if (use_depth == false) ray_dist = TRANSFORM_DIST_MAX_RAY;
-		ret |= snapObjectsEx(scene, NULL, v3d, ar, obedit, SCE_SNAP_MODE_FACE,
-		                     co_ss, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL);
-	}
-
-	return ret;
-}
-
-static bool ED_view3d_snap_ray(bContext *C, float r_co[3],
-                               const float ray_start[3], const float ray_normal[3])
-{
-	float dist_px = MVAL_MAX_PX_DIST;  /* snap dist */
-	float r_no_dummy[3];
-	float ray_dist = TRANSFORM_DIST_MAX_RAY;
-	bool ret;
-
-	Scene *scene = CTX_data_scene(C);
-	struct Object *obedit = CTX_data_edit_object(C);
-
-	/* try snap edge, then face if it fails */
-	ret = snapObjectsRayEx(scene, NULL, NULL, NULL, obedit, SCE_SNAP_MODE_FACE,
-	                       NULL, NULL,
-	                       ray_start, ray_normal, &ray_dist,
-	                       NULL, &dist_px, r_co, r_no_dummy, SNAP_ALL);
-
-	return ret;
-}
-/* done snapping */
 
 
 /* -------------------------------------------------------------------- */
@@ -722,6 +646,7 @@ static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, cons
                                         const bool do_thickness, const bool do_snap)
 {
 	const float eps_bias = 0.0002f;
+	const float dist_px = MVAL_MAX_PX_DIST * U.pixelsize;  /* snap dist */
 	RulerItem *ruler_item = ruler_item_active_get(ruler_info);
 
 	ruler_info->snap_flag &= ~RULER_SNAP_OK;
@@ -732,6 +657,8 @@ static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, cons
 		copy_v3_v3(co, ruler_info->drag_start_co);
 		view3d_ruler_item_project(ruler_info, co, mval);
 		if (do_thickness && ruler_item->co_index != 1) {
+			Scene *scene = CTX_data_scene(C);
+			View3D *v3d = ruler_info->sa->spacedata.first;
 			const float mval_fl[2] = {UNPACK2(mval)};
 			float ray_normal[3];
 			float ray_start[3];
@@ -739,24 +666,35 @@ static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, cons
 
 			co_other = ruler_item->co[ruler_item->co_index == 0 ? 2 : 0];
 
-			if (ED_view3d_snap_co(C, co, ray_normal, mval_fl, true, false,
-			                      false, false, true))
+			if (ED_view3d_snap_from_region(
+			        scene, v3d, ruler_info->ar,
+			        mval_fl, dist_px,
+			        true, false,
+			        false, false, true,
+			        co, ray_normal))
 			{
 				negate_v3(ray_normal);
 				/* add some bias */
 				madd_v3_v3v3fl(ray_start, co, ray_normal, eps_bias);
-				ED_view3d_snap_ray(C, co_other,
-				                   ray_start, ray_normal);
+				ED_view3d_snap_from_ray(
+				        scene,
+				        ray_start, ray_normal,
+				        co_other);
 			}
 		}
 		else if (do_snap) {
+			Scene *scene = CTX_data_scene(C);
+			View3D *v3d = ruler_info->sa->spacedata.first;
 			const float mval_fl[2] = {UNPACK2(mval)};
-			View3D *v3d = CTX_wm_view3d(C);
 			bool use_depth = (v3d->drawtype >= OB_SOLID);
-			bool is_hit = ED_view3d_snap_co(C, co, NULL, mval_fl, use_depth, false,
-			                                true, true, use_depth);
 
-			if (is_hit) {
+			if (ED_view3d_snap_from_region(
+			        scene, v3d, ruler_info->ar,
+			        mval_fl, dist_px,
+			        use_depth, false,
+			        true, true, use_depth,
+			        co, NULL))
+			{
 				ruler_info->snap_flag |= RULER_SNAP_OK;
 			}
 		}

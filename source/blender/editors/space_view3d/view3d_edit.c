@@ -5147,3 +5147,82 @@ void ED_view3D_lock_clear(View3D *v3d)
 	v3d->ob_centre_cursor = false;
 	v3d->flag2 &= ~V3D_LOCK_CAMERA;
 }
+
+/**
+ * Convenience function for snap ray-casting.
+ *
+ * Given a ray, cast it into the scene (snapping to faces).
+ *
+ * \return Snap success
+ */
+bool ED_view3d_snap_from_ray(
+        Scene *scene,
+        const float ray_start[3], const float ray_normal[3],
+        float r_co[3])
+{
+	float r_no_dummy[3];
+	float ray_dist = TRANSFORM_DIST_MAX_RAY;
+	bool ret;
+
+	struct Object *obedit = scene->obedit;
+
+	/* try snap edge, then face if it fails */
+	ret = snapObjectsRayEx(
+	        scene, NULL, NULL, NULL, obedit, SCE_SNAP_MODE_FACE,
+	        NULL, NULL,
+	        ray_start, ray_normal, &ray_dist,
+	        NULL, NULL, r_co, r_no_dummy, SNAP_ALL);
+
+	return ret;
+}
+
+/**
+ * Convenience function for performing snapping.
+ *
+ * Given a 2D region value, snap to vert/edge/face.
+ *
+ * \param mval: Screenspace coordinate.
+ * \param dist_px: Maximum distance to snap (in pixels).
+ * \param use_depth: Snap to the closest element, use when using more than one snap type.
+ * \param use_obedit: Use editmode cage.
+ * \param use_vert: Snap to verts.
+ * \param use_edge: Snap to edges.
+ * \param use_face: Snap to faces.
+ * \param r_co: hit location.
+ * \param r_no: hit normal (optional).
+ * \return Snap success
+ */
+bool ED_view3d_snap_from_region(
+        Scene *scene, View3D *v3d, ARegion *ar,
+        const float mval[2], float dist_px,
+        bool use_depth, bool use_obedit,
+        bool use_vert, bool use_edge, bool use_face,
+        float r_co[3], float r_no[3])
+{
+	float r_no_dummy[3];
+	float ray_dist = TRANSFORM_DIST_MAX_RAY;
+	bool is_hit = false;
+	float *r_no_ptr = r_no ? r_no : r_no_dummy;
+
+	struct Object *obedit = use_obedit ? scene->obedit : NULL;
+	const int  elem_type[3] = {SCE_SNAP_MODE_VERTEX, SCE_SNAP_MODE_EDGE, SCE_SNAP_MODE_FACE};
+	const bool elem_test[3] = {use_vert, use_edge, use_face};
+
+	BLI_assert(use_vert || use_edge || use_face);
+
+	for (int i = 0; i < 3; i++) {
+		if (elem_test[i] && (is_hit == false || use_depth)) {
+			if (use_depth == false) {
+				ray_dist = TRANSFORM_DIST_MAX_RAY;
+			}
+			if (snapObjectsEx(
+			        scene, NULL, v3d, ar, obedit, elem_type[i],
+			        mval, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL))
+			{
+				is_hit = true;
+			}
+		}
+	}
+
+	return is_hit;
+}
