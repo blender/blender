@@ -3832,9 +3832,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 
 static void rna_def_userdef_system(BlenderRNA *brna)
 {
-	FunctionRNA *func;
 	PropertyRNA *prop;
-	PropertyRNA *parm;
 	StructRNA *srna;
 
 	static EnumPropertyItem gl_texture_clamp_items[] = {
