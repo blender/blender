@@ -32,7 +32,6 @@ USE_QUIET = (os.environ.get("QUIET", None) is not None)
 CHECKER_IGNORE_PREFIX = [
     "extern",
     "intern/moto",
-    "blender/intern/opennl",
     ]
 
 CHECKER_BIN = "cppcheck"

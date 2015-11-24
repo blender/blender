@@ -37,7 +37,6 @@ SConscript(['string/SConscript',
             'itasc/SConscript',
             'eigen/SConscript',
             'opencolorio/SConscript',
-            'opennl/SConscript',
             'mikktspace/SConscript',
             'smoke/SConscript',
             'raskter/SConscript'])

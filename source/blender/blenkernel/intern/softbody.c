@@ -81,7 +81,6 @@ variables on the UI for now
 #include "BKE_scene.h"
 
 #include  "PIL_time.h"
-// #include  "ONL_opennl.h" remove linking to ONL for now
 
 /* callbacks for errors and interrupts and some goo */
 static int (*SB_localInterruptCallBack)(void) = NULL;
@@ -1811,14 +1810,14 @@ static void dfdx_spring(int ia, int ic, int op, float dir[3], float L, float len
 			for (j=0;j<3;j++) {
 				delta_ij = (i==j ? (1.0f): (0.0f));
 				m=factor*(dir[i]*dir[j] + (1-L/len)*(delta_ij - dir[i]*dir[j]));
-				nlMatrixAdd(ia+i, op+ic+j, m);
+				EIG_linear_solver_matrix_add(ia+i, op+ic+j, m);
 			}
 	}
 	else {
 		for (i=0;i<3;i++)
 			for (j=0;j<3;j++) {
 				m=factor*dir[i]*dir[j];
-				nlMatrixAdd(ia+i, op+ic+j, m);
+				EIG_linear_solver_matrix_add(ia+i, op+ic+j, m);
 			}
 	}
 }
@@ -1827,13 +1826,13 @@ static void dfdx_spring(int ia, int ic, int op, float dir[3], float L, float len
 static void dfdx_goal(int ia, int ic, int op, float factor)
 {
 	int i;
-	for (i=0;i<3;i++) nlMatrixAdd(ia+i, op+ic+i, factor);
+	for (i=0;i<3;i++) EIG_linear_solver_matrix_add(ia+i, op+ic+i, factor);
 }
 
 static void dfdv_goal(int ia, int ic, float factor)
 {
 	int i;
-	for (i=0;i<3;i++) nlMatrixAdd(ia+i, ic+i, factor);
+	for (i=0;i<3;i++) EIG_linear_solver_matrix_add(ia+i, ic+i, factor);
 }
 */
 static void sb_spring_force(Object *ob, int bpi, BodySpring *bs, float iks, float UNUSED(forcetime))

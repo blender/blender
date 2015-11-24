@@ -74,10 +74,6 @@ if(WITH_BULLET)
 	add_subdirectory(rigidbody)
 endif()
 
-if(WITH_OPENNL)
-	add_subdirectory(opennl)
-endif()
-
 if(WITH_OPENSUBDIV)
 	add_subdirectory(opensubdiv)
 endif()

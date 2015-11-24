@@ -37,6 +37,7 @@ set(INC
 	../render/extern/include
 	../../../intern/elbeem/extern
 	../../../intern/guardedalloc
+	../../../intern/eigen
 )
 
 set(INC_SYS
@@ -142,13 +143,6 @@ endif()
 
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
-if(WITH_OPENNL)
-	add_definitions(-DWITH_OPENNL)
-	list(APPEND INC_SYS
-		../../../intern/opennl/extern
-	)
 endif()
 
 if(WITH_OPENSUBDIV)

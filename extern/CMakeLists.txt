@@ -30,10 +30,6 @@ add_subdirectory(rangetree)
 add_subdirectory(wcwidth)
 add_subdirectory(libmv)
 
-if(WITH_OPENNL)
-	add_subdirectory(colamd)
-endif()
-
 if(WITH_BULLET)
 	if(NOT WITH_SYSTEM_BULLET)
 		add_subdirectory(bullet2)

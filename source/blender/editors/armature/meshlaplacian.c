@@ -46,11 +46,9 @@
 #include "ED_mesh.h"
 #include "ED_armature.h"
 
+#include "eigen_capi.h"
+
 #include "meshlaplacian.h"
-
-#ifdef WITH_OPENNL
-
-#include "ONL_opennl.h"
 
 /* ************* XXX *************** */
 static void waitcursor(int UNUSED(val)) {}
@@ -64,7 +62,7 @@ static void error(const char *str) { printf("error: %s\n", str); }
 /************************** Laplacian System *****************************/
 
 struct LaplacianSystem {
-	NLContext *context;  /* opennl context */
+	LinearSolver *context;  /* linear solver */
 
 	int totvert, totface;
 
@@ -76,7 +74,7 @@ struct LaplacianSystem {
 
 	int areaweights;        /* use area in cotangent weights? */
 	int storeweights;       /* store cotangent weights in fweights */
-	int nlbegun;            /* nlBegin(NL_SYSTEM/NL_MATRIX) done */
+	bool variablesdone;     /* variables set in linear system */
 
 	EdgeHash *edgehash;     /* edge hash for construction */
 
@@ -182,18 +180,18 @@ static void laplacian_triangle_weights(LaplacianSystem *sys, int f, int i1, int 
 	t2 = cotangent_tri_weight_v3(v2, v3, v1) / laplacian_edge_count(sys->edgehash, i3, i1);
 	t3 = cotangent_tri_weight_v3(v3, v1, v2) / laplacian_edge_count(sys->edgehash, i1, i2);
 
-	nlMatrixAdd(sys->context, i1, i1, (t2 + t3) * varea[i1]);
-	nlMatrixAdd(sys->context, i2, i2, (t1 + t3) * varea[i2]);
-	nlMatrixAdd(sys->context, i3, i3, (t1 + t2) * varea[i3]);
+	EIG_linear_solver_matrix_add(sys->context, i1, i1, (t2 + t3) * varea[i1]);
+	EIG_linear_solver_matrix_add(sys->context, i2, i2, (t1 + t3) * varea[i2]);
+	EIG_linear_solver_matrix_add(sys->context, i3, i3, (t1 + t2) * varea[i3]);
 
-	nlMatrixAdd(sys->context, i1, i2, -t3 * varea[i1]);
-	nlMatrixAdd(sys->context, i2, i1, -t3 * varea[i2]);
+	EIG_linear_solver_matrix_add(sys->context, i1, i2, -t3 * varea[i1]);
+	EIG_linear_solver_matrix_add(sys->context, i2, i1, -t3 * varea[i2]);
 
-	nlMatrixAdd(sys->context, i2, i3, -t1 * varea[i2]);
-	nlMatrixAdd(sys->context, i3, i2, -t1 * varea[i3]);
+	EIG_linear_solver_matrix_add(sys->context, i2, i3, -t1 * varea[i2]);
+	EIG_linear_solver_matrix_add(sys->context, i3, i2, -t1 * varea[i3]);
 
-	nlMatrixAdd(sys->context, i3, i1, -t2 * varea[i3]);
-	nlMatrixAdd(sys->context, i1, i3, -t2 * varea[i1]);
+	EIG_linear_solver_matrix_add(sys->context, i3, i1, -t2 * varea[i3]);
+	EIG_linear_solver_matrix_add(sys->context, i1, i3, -t2 * varea[i1]);
 
 	if (sys->storeweights) {
 		sys->fweights[f][0] = t1 * varea[i1];
@@ -218,11 +216,11 @@ static LaplacianSystem *laplacian_system_construct_begin(int totvert, int totfac
 	sys->areaweights = 1;
 	sys->storeweights = 0;
 
-	/* create opennl context */
-	sys->context = nlNewContext();
-	nlSolverParameteri(sys->context, NL_NB_VARIABLES, totvert);
+	/* create linear solver */
 	if (lsq)
-		nlSolverParameteri(sys->context, NL_LEAST_SQUARES, NL_TRUE);
+		sys->context = EIG_linear_least_squares_solver_new(0, totvert, 1);
+	else
+		sys->context = EIG_linear_solver_new(0, totvert, 1);
 
 	return sys;
 }
@@ -272,7 +270,7 @@ static void laplacian_system_construct_end(LaplacianSystem *sys)
 
 		/* for heat weighting */
 		if (sys->heat.H)
-			nlMatrixAdd(sys->context, a, a, sys->heat.H[a]);
+			EIG_linear_solver_matrix_add(sys->context, a, a, sys->heat.H[a]);
 	}
 
 	if (sys->storeweights)
@@ -301,7 +299,7 @@ static void laplacian_system_delete(LaplacianSystem *sys)
 	if (sys->faces) MEM_freeN(sys->faces);
 	if (sys->fweights) MEM_freeN(sys->fweights);
 
-	nlDeleteContext(sys->context);
+	EIG_linear_solver_delete(sys->context);
 	MEM_freeN(sys);
 }
 
@@ -309,42 +307,37 @@ void laplacian_begin_solve(LaplacianSystem *sys, int index)
 {
 	int a;
 
-	if (!sys->nlbegun) {
-		nlBegin(sys->context, NL_SYSTEM);
-
+	if (!sys->variablesdone) {
 		if (index >= 0) {
 			for (a = 0; a < sys->totvert; a++) {
 				if (sys->vpinned[a]) {
-					nlSetVariable(sys->context, 0, a, sys->verts[a][index]);
-					nlLockVariable(sys->context, a);
+					EIG_linear_solver_variable_set(sys->context, 0, a, sys->verts[a][index]);
+					EIG_linear_solver_variable_lock(sys->context, a);
 				}
 			}
 		}
 
-		nlBegin(sys->context, NL_MATRIX);
-		sys->nlbegun = 1;
+		sys->variablesdone = true;
 	}
 }
 
 void laplacian_add_right_hand_side(LaplacianSystem *sys, int v, float value)
 {
-	nlRightHandSideAdd(sys->context, 0, v, value);
+	EIG_linear_solver_right_hand_side_add(sys->context, 0, v, value);
 }
 
 int laplacian_system_solve(LaplacianSystem *sys)
 {
-	nlEnd(sys->context, NL_MATRIX);
-	nlEnd(sys->context, NL_SYSTEM);
-	sys->nlbegun = 0;
+	sys->variablesdone = false;
 
-	//nlPrintMatrix(sys->context, );
+	//EIG_linear_solver_print_matrix(sys->context, );
 
-	return nlSolve(sys->context, NL_TRUE);
+	return EIG_linear_solver_solve(sys->context);
 }
 
 float laplacian_system_get_solution(LaplacianSystem *sys, int v)
 {
-	return nlGetVariable(sys->context, 0, v);
+	return EIG_linear_solver_variable_get(sys->context, 0, v);
 }
 
 /************************* Heat Bone Weighting ******************************/
@@ -1284,7 +1277,7 @@ static float meshdeform_boundary_total_weight(MeshDeformBind *mdb, int x, int y,
 	return totweight;
 }
 
-static void meshdeform_matrix_add_cell(MeshDeformBind *mdb, NLContext *context, int x, int y, int z)
+static void meshdeform_matrix_add_cell(MeshDeformBind *mdb, LinearSolver *context, int x, int y, int z)
 {
 	MDefBoundIsect *isect;
 	float weight, totweight;
@@ -1294,7 +1287,7 @@ static void meshdeform_matrix_add_cell(MeshDeformBind *mdb, NLContext *context, 
 	if (mdb->tag[acenter] == MESHDEFORM_TAG_EXTERIOR)
 		return;
 
-	nlMatrixAdd(context, mdb->varidx[acenter], mdb->varidx[acenter], 1.0f);
+	EIG_linear_solver_matrix_add(context, mdb->varidx[acenter], mdb->varidx[acenter], 1.0f);
 	
 	totweight = meshdeform_boundary_total_weight(mdb, x, y, z);
 	for (i = 1; i <= 6; i++) {
@@ -1305,12 +1298,12 @@ static void meshdeform_matrix_add_cell(MeshDeformBind *mdb, NLContext *context, 
 		isect = mdb->boundisect[acenter][i - 1];
 		if (!isect) {
 			weight = (1.0f / mdb->width[0]) / totweight;
-			nlMatrixAdd(context, mdb->varidx[acenter], mdb->varidx[a], -weight);
+			EIG_linear_solver_matrix_add(context, mdb->varidx[acenter], mdb->varidx[a], -weight);
 		}
 	}
 }
 
-static void meshdeform_matrix_add_rhs(MeshDeformBind *mdb, NLContext *context, int x, int y, int z, int cagevert)
+static void meshdeform_matrix_add_rhs(MeshDeformBind *mdb, LinearSolver *context, int x, int y, int z, int cagevert)
 {
 	MDefBoundIsect *isect;
 	float rhs, weight, totweight;
@@ -1331,7 +1324,7 @@ static void meshdeform_matrix_add_rhs(MeshDeformBind *mdb, NLContext *context, i
 		if (isect) {
 			weight = (1.0f / isect->len) / totweight;
 			rhs = weight * meshdeform_boundary_phi(mdb, isect, cagevert);
-			nlRightHandSideAdd(context, 0, mdb->varidx[acenter], rhs);
+			EIG_linear_solver_right_hand_side_add(context, 0, mdb->varidx[acenter], rhs);
 		}
 	}
 }
@@ -1386,7 +1379,7 @@ static void meshdeform_matrix_add_exterior_phi(MeshDeformBind *mdb, int x, int y
 
 static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind *mdb)
 {
-	NLContext *context;
+	LinearSolver *context;
 	float vec[3], gridvec[3];
 	int a, b, x, y, z, totvar;
 	char message[256];
@@ -1403,15 +1396,8 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
 
 	progress_bar(0, "Starting mesh deform solve");
 
-	/* setup opennl solver */
-	context = nlNewContext();
-
-	nlSolverParameteri(context, NL_NB_VARIABLES, totvar);
-	nlSolverParameteri(context, NL_NB_ROWS, totvar);
-	nlSolverParameteri(context, NL_NB_RIGHT_HAND_SIDES, 1);
-
-	nlBegin(context, NL_SYSTEM);
-	nlBegin(context, NL_MATRIX);
+	/* setup linear solver */
+	context = EIG_linear_solver_new(totvar, totvar, 1);
 
 	/* build matrix */
 	for (z = 0; z < mdb->size; z++)
@@ -1421,21 +1407,13 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
 
 	/* solve for each cage vert */
 	for (a = 0; a < mdb->totcagevert; a++) {
-		if (a != 0) {
-			nlBegin(context, NL_SYSTEM);
-			nlBegin(context, NL_MATRIX);
-		}
-
 		/* fill in right hand side and solve */
 		for (z = 0; z < mdb->size; z++)
 			for (y = 0; y < mdb->size; y++)
 				for (x = 0; x < mdb->size; x++)
 					meshdeform_matrix_add_rhs(mdb, context, x, y, z, a);
 
-		nlEnd(context, NL_MATRIX);
-		nlEnd(context, NL_SYSTEM);
-
-		if (nlSolve(context, NL_TRUE)) {
+		if (EIG_linear_solver_solve(context)) {
 			for (z = 0; z < mdb->size; z++)
 				for (y = 0; y < mdb->size; y++)
 					for (x = 0; x < mdb->size; x++)
@@ -1448,7 +1426,7 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
 
 			for (b = 0; b < mdb->size3; b++) {
 				if (mdb->tag[b] != MESHDEFORM_TAG_EXTERIOR)
-					mdb->phi[b] = nlGetVariable(context, 0, mdb->varidx[b]);
+					mdb->phi[b] = EIG_linear_solver_variable_get(context, 0, mdb->varidx[b]);
 				mdb->totalphi[b] += mdb->phi[b];
 			}
 
@@ -1502,7 +1480,7 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
 	/* free */
 	MEM_freeN(mdb->varidx);
 
-	nlDeleteContext(context);
+	EIG_linear_solver_delete(context);
 }
 
 static void harmonic_coordinates_bind(Scene *UNUSED(scene), MeshDeformModifierData *mmd, MeshDeformBind *mdb)
@@ -1705,13 +1683,3 @@ void mesh_deform_bind(Scene *scene, MeshDeformModifierData *mmd, float *vertexco
 	waitcursor(0);
 }
 
-#else  /* WITH_OPENNL */
-
-#ifdef __GNUC__
-#  pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-
-void mesh_deform_bind(Scene *scene, MeshDeformModifierData *mmd, float *vertexcos, int totvert, float cagemat[4][4]) {}
-void *modifier_mdef_compact_influences_link_kludge = modifier_mdef_compact_influences;
-
-#endif  /* WITH_OPENNL */

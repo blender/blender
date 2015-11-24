@@ -31,9 +31,9 @@ sources = env.Glob('*.c')
 
 incs = [
     '#/intern/guardedalloc',
+    '#/intern/eigen',
     env['BF_GLEW_INC'],
     '#/intern/glew-mx',
-    '#/intern/opennl/extern',
     '../include',
     '../../blenkernel',
     '../../blenlib',

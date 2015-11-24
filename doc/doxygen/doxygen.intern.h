@@ -38,7 +38,7 @@
  *  \ingroup intern
  */
 
-/** \defgroup opennl opennl
+/** \defgroup eigen eigen
  *  \ingroup intern
  */
 

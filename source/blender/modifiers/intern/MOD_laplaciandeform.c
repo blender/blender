@@ -42,6 +42,7 @@
 
 #include "MOD_util.h"
 
+#include "eigen_capi.h"
 
 enum {
 	LAPDEFORM_SYSTEM_NOT_CHANGE = 0,
@@ -53,10 +54,6 @@ enum {
 	LAPDEFORM_SYSTEM_CHANGE_EDGES,
 	LAPDEFORM_SYSTEM_CHANGE_NOT_VALID_GROUP,
 };
-
-#ifdef WITH_OPENNL
-
-#include "ONL_opennl.h"
 
 typedef struct LaplacianSystem {
 	bool is_matrix_computed;
@@ -75,7 +72,7 @@ typedef struct LaplacianSystem {
 	int *unit_verts;			/* Unit vectors of projected edges onto the plane orthogonal to n */
 	int *ringf_indices;			/* Indices of faces per vertex */
 	int *ringv_indices;			/* Indices of neighbors(vertex) per vertex */
-	NLContext *context;			/* System for solve general implicit rotations */
+	LinearSolver *context;			/* System for solve general implicit rotations */
 	MeshElemMap *ringf_map;		/* Map of faces per vertex */
 	MeshElemMap *ringv_map;		/* Map of vertex per vertex */
 } LaplacianSystem;
@@ -134,7 +131,7 @@ static void deleteLaplacianSystem(LaplacianSystem *sys)
 	MEM_SAFE_FREE(sys->ringv_map);
 
 	if (sys->context) {
-		nlDeleteContext(sys->context);
+		EIG_linear_solver_delete(sys->context);
 	}
 	MEM_SAFE_FREE(sys);
 }
@@ -283,9 +280,9 @@ static void initLaplacianMatrix(LaplacianSystem *sys)
 			sys->delta[idv[0]][1] -= v3[1] * w3;
 			sys->delta[idv[0]][2] -= v3[2] * w3;
 
-			nlMatrixAdd(sys->context, idv[0], idv[1], -w2);
-			nlMatrixAdd(sys->context, idv[0], idv[2], -w3);
-			nlMatrixAdd(sys->context, idv[0], idv[0], w2 + w3);
+			EIG_linear_solver_matrix_add(sys->context, idv[0], idv[1], -w2);
+			EIG_linear_solver_matrix_add(sys->context, idv[0], idv[2], -w3);
+			EIG_linear_solver_matrix_add(sys->context, idv[0], idv[0], w2 + w3);
 		}
 	}
 }
@@ -338,9 +335,9 @@ static void rotateDifferentialCoordinates(LaplacianSystem *sys)
 		beta = dot_v3v3(uij, di);
 		gamma = dot_v3v3(e2, di);
 
-		pi[0] = nlGetVariable(sys->context, 0, i);
-		pi[1] = nlGetVariable(sys->context, 1, i);
-		pi[2] = nlGetVariable(sys->context, 2, i);
+		pi[0] = EIG_linear_solver_variable_get(sys->context, 0, i);
+		pi[1] = EIG_linear_solver_variable_get(sys->context, 1, i);
+		pi[2] = EIG_linear_solver_variable_get(sys->context, 2, i);
 		zero_v3(ni);
 		num_fni = 0;
 		num_fni = sys->ringf_map[i].count;
@@ -349,9 +346,9 @@ static void rotateDifferentialCoordinates(LaplacianSystem *sys)
 			fidn = sys->ringf_map[i].indices;
 			vin = sys->tris[fidn[fi]];
 			for (j = 0; j < 3; j++) {
-				vn[j][0] = nlGetVariable(sys->context, 0, vin[j]);
-				vn[j][1] = nlGetVariable(sys->context, 1, vin[j]);
-				vn[j][2] = nlGetVariable(sys->context, 2, vin[j]);
+				vn[j][0] = EIG_linear_solver_variable_get(sys->context, 0, vin[j]);
+				vn[j][1] = EIG_linear_solver_variable_get(sys->context, 1, vin[j]);
+				vn[j][2] = EIG_linear_solver_variable_get(sys->context, 2, vin[j]);
 				if (vin[j] == sys->unit_verts[i]) {
 					copy_v3_v3(pj, vn[j]);
 				}
@@ -372,14 +369,14 @@ static void rotateDifferentialCoordinates(LaplacianSystem *sys)
 		fni[2] = alpha * ni[2] + beta * uij[2] + gamma * e2[2];
 
 		if (len_squared_v3(fni) > FLT_EPSILON) {
-			nlRightHandSideSet(sys->context, 0, i, fni[0]);
-			nlRightHandSideSet(sys->context, 1, i, fni[1]);
-			nlRightHandSideSet(sys->context, 2, i, fni[2]);
+			EIG_linear_solver_right_hand_side_add(sys->context, 0, i, fni[0]);
+			EIG_linear_solver_right_hand_side_add(sys->context, 1, i, fni[1]);
+			EIG_linear_solver_right_hand_side_add(sys->context, 2, i, fni[2]);
 		}
 		else {
-			nlRightHandSideSet(sys->context, 0, i, sys->delta[i][0]);
-			nlRightHandSideSet(sys->context, 1, i, sys->delta[i][1]);
-			nlRightHandSideSet(sys->context, 2, i, sys->delta[i][2]);
+			EIG_linear_solver_right_hand_side_add(sys->context, 0, i, sys->delta[i][0]);
+			EIG_linear_solver_right_hand_side_add(sys->context, 1, i, sys->delta[i][1]);
+			EIG_linear_solver_right_hand_side_add(sys->context, 2, i, sys->delta[i][2]);
 		}
 	}
 }
@@ -390,75 +387,59 @@ static void laplacianDeformPreview(LaplacianSystem *sys, float (*vertexCos)[3])
 	n = sys->total_verts;
 	na = sys->total_anchors;
 
-#ifdef OPENNL_THREADING_HACK
-	modifier_opennl_lock();
-#endif
-
 	if (!sys->is_matrix_computed) {
-		sys->context = nlNewContext();
+		sys->context = EIG_linear_least_squares_solver_new(n + na, n, 3);
 
-		nlSolverParameteri(sys->context, NL_NB_VARIABLES, n);
-		nlSolverParameteri(sys->context, NL_LEAST_SQUARES, NL_TRUE);
-		nlSolverParameteri(sys->context, NL_NB_ROWS, n + na);
-		nlSolverParameteri(sys->context, NL_NB_RIGHT_HAND_SIDES, 3);
-		nlBegin(sys->context, NL_SYSTEM);
 		for (i = 0; i < n; i++) {
-			nlSetVariable(sys->context, 0, i, sys->co[i][0]);
-			nlSetVariable(sys->context, 1, i, sys->co[i][1]);
-			nlSetVariable(sys->context, 2, i, sys->co[i][2]);
+			EIG_linear_solver_variable_set(sys->context, 0, i, sys->co[i][0]);
+			EIG_linear_solver_variable_set(sys->context, 1, i, sys->co[i][1]);
+			EIG_linear_solver_variable_set(sys->context, 2, i, sys->co[i][2]);
 		}
 		for (i = 0; i < na; i++) {
 			vid = sys->index_anchors[i];
-			nlSetVariable(sys->context, 0, vid, vertexCos[vid][0]);
-			nlSetVariable(sys->context, 1, vid, vertexCos[vid][1]);
-			nlSetVariable(sys->context, 2, vid, vertexCos[vid][2]);
+			EIG_linear_solver_variable_set(sys->context, 0, vid, vertexCos[vid][0]);
+			EIG_linear_solver_variable_set(sys->context, 1, vid, vertexCos[vid][1]);
+			EIG_linear_solver_variable_set(sys->context, 2, vid, vertexCos[vid][2]);
 		}
-		nlBegin(sys->context, NL_MATRIX);
 
 		initLaplacianMatrix(sys);
 		computeImplictRotations(sys);
 
 		for (i = 0; i < n; i++) {
-			nlRightHandSideSet(sys->context, 0, i, sys->delta[i][0]);
-			nlRightHandSideSet(sys->context, 1, i, sys->delta[i][1]);
-			nlRightHandSideSet(sys->context, 2, i, sys->delta[i][2]);
+			EIG_linear_solver_right_hand_side_add(sys->context, 0, i, sys->delta[i][0]);
+			EIG_linear_solver_right_hand_side_add(sys->context, 1, i, sys->delta[i][1]);
+			EIG_linear_solver_right_hand_side_add(sys->context, 2, i, sys->delta[i][2]);
 		}
 		for (i = 0; i < na; i++) {
 			vid = sys->index_anchors[i];
-			nlRightHandSideSet(sys->context, 0, n + i, vertexCos[vid][0]);
-			nlRightHandSideSet(sys->context, 1, n + i, vertexCos[vid][1]);
-			nlRightHandSideSet(sys->context, 2, n + i, vertexCos[vid][2]);
-			nlMatrixAdd(sys->context, n + i, vid, 1.0f);
+			EIG_linear_solver_right_hand_side_add(sys->context, 0, n + i, vertexCos[vid][0]);
+			EIG_linear_solver_right_hand_side_add(sys->context, 1, n + i, vertexCos[vid][1]);
+			EIG_linear_solver_right_hand_side_add(sys->context, 2, n + i, vertexCos[vid][2]);
+			EIG_linear_solver_matrix_add(sys->context, n + i, vid, 1.0f);
 		}
-		nlEnd(sys->context, NL_MATRIX);
-		nlEnd(sys->context, NL_SYSTEM);
-		if (nlSolve(sys->context, NL_TRUE)) {
+		if (EIG_linear_solver_solve(sys->context)) {
 			sys->has_solution = true;
 
 			for (j = 1; j <= sys->repeat; j++) {
-				nlBegin(sys->context, NL_SYSTEM);
-				nlBegin(sys->context, NL_MATRIX);
 				rotateDifferentialCoordinates(sys);
 
 				for (i = 0; i < na; i++) {
 					vid = sys->index_anchors[i];
-					nlRightHandSideSet(sys->context, 0, n + i, vertexCos[vid][0]);
-					nlRightHandSideSet(sys->context, 1, n + i, vertexCos[vid][1]);
-					nlRightHandSideSet(sys->context, 2, n + i, vertexCos[vid][2]);
+					EIG_linear_solver_right_hand_side_add(sys->context, 0, n + i, vertexCos[vid][0]);
+					EIG_linear_solver_right_hand_side_add(sys->context, 1, n + i, vertexCos[vid][1]);
+					EIG_linear_solver_right_hand_side_add(sys->context, 2, n + i, vertexCos[vid][2]);
 				}
 
-				nlEnd(sys->context, NL_MATRIX);
-				nlEnd(sys->context, NL_SYSTEM);
-				if (!nlSolve(sys->context, NL_FALSE)) {
+				if (!EIG_linear_solver_solve(sys->context)) {
 					sys->has_solution = false;
 					break;
 				}
 			}
 			if (sys->has_solution) {
 				for (vid = 0; vid < sys->total_verts; vid++) {
-					vertexCos[vid][0] = nlGetVariable(sys->context, 0, vid);
-					vertexCos[vid][1] = nlGetVariable(sys->context, 1, vid);
-					vertexCos[vid][2] = nlGetVariable(sys->context, 2, vid);
+					vertexCos[vid][0] = EIG_linear_solver_variable_get(sys->context, 0, vid);
+					vertexCos[vid][1] = EIG_linear_solver_variable_get(sys->context, 1, vid);
+					vertexCos[vid][2] = EIG_linear_solver_variable_get(sys->context, 2, vid);
 				}
 			}
 			else {
@@ -473,49 +454,40 @@ static void laplacianDeformPreview(LaplacianSystem *sys, float (*vertexCos)[3])
 
 	}
 	else if (sys->has_solution) {
-		nlBegin(sys->context, NL_SYSTEM);
-		nlBegin(sys->context, NL_MATRIX);
-
 		for (i = 0; i < n; i++) {
-			nlRightHandSideSet(sys->context, 0, i, sys->delta[i][0]);
-			nlRightHandSideSet(sys->context, 1, i, sys->delta[i][1]);
-			nlRightHandSideSet(sys->context, 2, i, sys->delta[i][2]);
+			EIG_linear_solver_right_hand_side_add(sys->context, 0, i, sys->delta[i][0]);
+			EIG_linear_solver_right_hand_side_add(sys->context, 1, i, sys->delta[i][1]);
+			EIG_linear_solver_right_hand_side_add(sys->context, 2, i, sys->delta[i][2]);
 		}
 		for (i = 0; i < na; i++) {
 			vid = sys->index_anchors[i];
-			nlRightHandSideSet(sys->context, 0, n + i, vertexCos[vid][0]);
-			nlRightHandSideSet(sys->context, 1, n + i, vertexCos[vid][1]);
-			nlRightHandSideSet(sys->context, 2, n + i, vertexCos[vid][2]);
-			nlMatrixAdd(sys->context, n + i, vid, 1.0f);
+			EIG_linear_solver_right_hand_side_add(sys->context, 0, n + i, vertexCos[vid][0]);
+			EIG_linear_solver_right_hand_side_add(sys->context, 1, n + i, vertexCos[vid][1]);
+			EIG_linear_solver_right_hand_side_add(sys->context, 2, n + i, vertexCos[vid][2]);
+			EIG_linear_solver_matrix_add(sys->context, n + i, vid, 1.0f);
 		}
 
-		nlEnd(sys->context, NL_MATRIX);
-		nlEnd(sys->context, NL_SYSTEM);
-		if (nlSolve(sys->context, NL_FALSE)) {
+		if (EIG_linear_solver_solve(sys->context)) {
 			sys->has_solution = true;
 			for (j = 1; j <= sys->repeat; j++) {
-				nlBegin(sys->context, NL_SYSTEM);
-				nlBegin(sys->context, NL_MATRIX);
 				rotateDifferentialCoordinates(sys);
 
 				for (i = 0; i < na; i++) {
 					vid = sys->index_anchors[i];
-					nlRightHandSideSet(sys->context, 0, n + i, vertexCos[vid][0]);
-					nlRightHandSideSet(sys->context, 1, n + i, vertexCos[vid][1]);
-					nlRightHandSideSet(sys->context, 2, n + i, vertexCos[vid][2]);
+					EIG_linear_solver_right_hand_side_add(sys->context, 0, n + i, vertexCos[vid][0]);
+					EIG_linear_solver_right_hand_side_add(sys->context, 1, n + i, vertexCos[vid][1]);
+					EIG_linear_solver_right_hand_side_add(sys->context, 2, n + i, vertexCos[vid][2]);
 				}
-				nlEnd(sys->context, NL_MATRIX);
-				nlEnd(sys->context, NL_SYSTEM);
-				if (!nlSolve(sys->context, NL_FALSE)) {
+				if (!EIG_linear_solver_solve(sys->context)) {
 					sys->has_solution = false;
 					break;
 				}
 			}
 			if (sys->has_solution) {
 				for (vid = 0; vid < sys->total_verts; vid++) {
-					vertexCos[vid][0] = nlGetVariable(sys->context, 0, vid);
-					vertexCos[vid][1] = nlGetVariable(sys->context, 1, vid);
-					vertexCos[vid][2] = nlGetVariable(sys->context, 2, vid);
+					vertexCos[vid][0] = EIG_linear_solver_variable_get(sys->context, 0, vid);
+					vertexCos[vid][1] = EIG_linear_solver_variable_get(sys->context, 1, vid);
+					vertexCos[vid][2] = EIG_linear_solver_variable_get(sys->context, 2, vid);
 				}
 			}
 			else {
@@ -526,10 +498,6 @@ static void laplacianDeformPreview(LaplacianSystem *sys, float (*vertexCos)[3])
 			sys->has_solution = false;
 		}
 	}
-
-#ifdef OPENNL_THREADING_HACK
-	modifier_opennl_unlock();
-#endif
 }
 
 static bool isValidVertexGroup(LaplacianDeformModifierData *lmd, Object *ob, DerivedMesh *dm)
@@ -720,15 +688,6 @@ static void LaplacianDeformModifier_do(
 	}
 }
 
-#else  /* WITH_OPENNL */
-static void LaplacianDeformModifier_do(
-        LaplacianDeformModifierData *lmd, Object *ob, DerivedMesh *dm,
-        float (*vertexCos)[3], int numVerts)
-{
-	UNUSED_VARS(lmd, ob, dm, vertexCos, numVerts);
-}
-#endif  /* WITH_OPENNL */
-
 static void initData(ModifierData *md)
 {
 	LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
@@ -792,12 +751,10 @@ static void deformVertsEM(
 static void freeData(ModifierData *md)
 {
 	LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
-#ifdef WITH_OPENNL
 	LaplacianSystem *sys = (LaplacianSystem *)lmd->cache_system;
 	if (sys) {
 		deleteLaplacianSystem(sys);
 	}
-#endif
 	MEM_SAFE_FREE(lmd->vertexco);
 	lmd->total_verts = 0;
 }

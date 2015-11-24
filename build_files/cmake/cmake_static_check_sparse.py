@@ -25,7 +25,6 @@
 CHECKER_IGNORE_PREFIX = [
     "extern",
     "intern/moto",
-    "blender/intern/opennl",
     ]
 
 CHECKER_BIN = "sparse"

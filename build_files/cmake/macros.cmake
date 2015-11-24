@@ -596,7 +596,6 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		ge_phys_bullet
 		bf_intern_smoke
 		extern_lzma
-		extern_colamd
 		ge_logic_ketsji
 		extern_recastnavigation
 		ge_logic
@@ -696,10 +695,6 @@ function(SETUP_BLENDER_SORTED_LIBS)
 
 	if(WITH_INTERNATIONAL)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_locale)
-	endif()
-
-	if(WITH_OPENNL)
-		list_insert_after(BLENDER_SORTED_LIBS "bf_render" "bf_intern_opennl")
 	endif()
 
 	if(WITH_BULLET)

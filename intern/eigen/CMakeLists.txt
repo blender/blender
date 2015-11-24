@@ -35,9 +35,11 @@ set(SRC
 	eigen_capi.h
 
 	intern/eigenvalues.cc
+	intern/linear_solver.cc
 	intern/svd.cc
 
 	intern/eigenvalues.h
+	intern/linear_solver.h
 	intern/svd.h
 )
 

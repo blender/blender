@@ -51,12 +51,10 @@
 #include "ED_armature.h"
 #include "ED_mesh.h"
 
+#include "eigen_capi.h"
 
 #include "armature_intern.h"
-
-#ifdef WITH_OPENNL
-#  include "meshlaplacian.h"
-#endif
+#include "meshlaplacian.h"
 
 #if 0
 #include "reeb.h"
@@ -401,12 +399,8 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 	if (heat) {
 		const char *error = NULL;
 
-#ifdef WITH_OPENNL
 		heat_bone_weighting(ob, mesh, verts, numbones, dgrouplist, dgroupflip,
 		                    root, tip, selected, &error);
-#else
-		error = "Built without OpenNL";
-#endif
 		if (error) {
 			BKE_report(reports, RPT_WARNING, error);
 		}

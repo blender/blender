@@ -555,7 +555,6 @@ else:
 
 # TODO, make optional (as with CMake)
 env['CPPFLAGS'].append('-DWITH_AVI')
-env['CPPFLAGS'].append('-DWITH_OPENNL')
 
 if env['OURPLATFORM'] not in ('win32-vc', 'win64-vc'):
     env['CPPFLAGS'].append('-DHAVE_STDBOOL_H')

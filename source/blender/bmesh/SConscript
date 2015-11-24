@@ -40,9 +40,9 @@ incs = [
     '../makesdna',
     '../blenkernel',
     '#/intern/guardedalloc',
+    '#/intern/eigen',
     '#/extern/bullet2/src',
     '#/extern/rangetree',
-    '#/intern/opennl/extern'
     ]
 
 defs = []

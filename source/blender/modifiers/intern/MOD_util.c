@@ -55,10 +55,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#ifdef OPENNL_THREADING_HACK
-#include "BLI_threads.h"
-#endif
-
 void modifier_init_texture(const Scene *scene, Tex *tex)
 {
 	if (!tex)
@@ -232,23 +228,6 @@ void modifier_get_vgroup(Object *ob, DerivedMesh *dm, const char *name, MDeformV
 			*dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 	}
 }
-
-
-#ifdef OPENNL_THREADING_HACK
-
-static ThreadMutex opennl_context_mutex = BLI_MUTEX_INITIALIZER;
-
-void modifier_opennl_lock(void)
-{
-	BLI_mutex_lock(&opennl_context_mutex);
-}
-
-void modifier_opennl_unlock(void)
-{
-	BLI_mutex_unlock(&opennl_context_mutex);
-}
-
-#endif
 
 
 /* only called by BKE_modifier.h/modifier.c */

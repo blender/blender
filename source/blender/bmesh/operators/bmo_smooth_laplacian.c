@@ -28,17 +28,14 @@
 
 #include "MEM_guardedalloc.h"
 
-
 #include "BLI_math.h"
+
+#include "eigen_capi.h"
 
 
 #include "bmesh.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */
-
-#ifdef WITH_OPENNL
-
-#include "ONL_opennl.h"
 
 // #define SMOOTH_LAPLACIAN_AREA_FACTOR 4.0f  /* UNUSED */
 // #define SMOOTH_LAPLACIAN_EDGE_FACTOR 2.0f  /* UNUSED */
@@ -59,7 +56,7 @@ struct BLaplacianSystem {
 	/* Pointers to data*/
 	BMesh *bm;
 	BMOperator *op;
-	NLContext *context;
+	LinearSolver *context;
 
 	/*Data*/
 	float min_area;
@@ -92,7 +89,7 @@ static void delete_laplacian_system(LaplacianSystem *sys)
 	delete_void_pointer(sys->vweights);
 	delete_void_pointer(sys->zerola);
 	if (sys->context) {
-		nlDeleteContext(sys->context);
+		EIG_linear_solver_delete(sys->context);
 	}
 	sys->bm = NULL;
 	sys->op = NULL;
@@ -333,9 +330,9 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
 					w4 = w4 / 4.0f;
 
 					if (!vert_is_boundary(vf[j]) && sys->zerola[idv1] == 0) {
-						nlMatrixAdd(sys->context, idv1, idv2, w2 * sys->vweights[idv1]);
-						nlMatrixAdd(sys->context, idv1, idv3, w3 * sys->vweights[idv1]);
-						nlMatrixAdd(sys->context, idv1, idv4, w4 * sys->vweights[idv1]);
+						EIG_linear_solver_matrix_add(sys->context, idv1, idv2, w2 * sys->vweights[idv1]);
+						EIG_linear_solver_matrix_add(sys->context, idv1, idv3, w3 * sys->vweights[idv1]);
+						EIG_linear_solver_matrix_add(sys->context, idv1, idv4, w4 * sys->vweights[idv1]);
 					}
 				}
 			}
@@ -346,16 +343,16 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
 				/* Is ring if number of faces == number of edges around vertice*/
 				i = BM_elem_index_get(f);
 				if (!vert_is_boundary(vf[0]) && sys->zerola[idv1] == 0) {
-					nlMatrixAdd(sys->context, idv1, idv2, sys->fweights[i][2] * sys->vweights[idv1]);
-					nlMatrixAdd(sys->context, idv1, idv3, sys->fweights[i][1] * sys->vweights[idv1]);
+					EIG_linear_solver_matrix_add(sys->context, idv1, idv2, sys->fweights[i][2] * sys->vweights[idv1]);
+					EIG_linear_solver_matrix_add(sys->context, idv1, idv3, sys->fweights[i][1] * sys->vweights[idv1]);
 				}
 				if (!vert_is_boundary(vf[1]) && sys->zerola[idv2] == 0) {
-					nlMatrixAdd(sys->context, idv2, idv1, sys->fweights[i][2] * sys->vweights[idv2]);
-					nlMatrixAdd(sys->context, idv2, idv3, sys->fweights[i][0] * sys->vweights[idv2]);
+					EIG_linear_solver_matrix_add(sys->context, idv2, idv1, sys->fweights[i][2] * sys->vweights[idv2]);
+					EIG_linear_solver_matrix_add(sys->context, idv2, idv3, sys->fweights[i][0] * sys->vweights[idv2]);
 				}
 				if (!vert_is_boundary(vf[2]) && sys->zerola[idv3] == 0) {
-					nlMatrixAdd(sys->context, idv3, idv1, sys->fweights[i][1] * sys->vweights[idv3]);
-					nlMatrixAdd(sys->context, idv3, idv2, sys->fweights[i][0] * sys->vweights[idv3]);
+					EIG_linear_solver_matrix_add(sys->context, idv3, idv1, sys->fweights[i][1] * sys->vweights[idv3]);
+					EIG_linear_solver_matrix_add(sys->context, idv3, idv2, sys->fweights[i][0] * sys->vweights[idv3]);
 				}
 			}
 		}
@@ -368,8 +365,8 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
 			idv2 = BM_elem_index_get(e->v2);
 			if (sys->zerola[idv1] == 0 && sys->zerola[idv2] == 0) {
 				i = BM_elem_index_get(e);
-				nlMatrixAdd(sys->context, idv1, idv2, sys->eweights[i] * sys->vlengths[idv1]);
-				nlMatrixAdd(sys->context, idv2, idv1, sys->eweights[i] * sys->vlengths[idv2]);
+				EIG_linear_solver_matrix_add(sys->context, idv1, idv2, sys->eweights[i] * sys->vlengths[idv1]);
+				EIG_linear_solver_matrix_add(sys->context, idv2, idv1, sys->eweights[i] * sys->vlengths[idv2]);
 			}
 		}
 	}
@@ -434,12 +431,12 @@ static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez
 		idv2 = BM_elem_index_get(e->v2);
 		vi1 = e->v1->co;
 		vi2 =  e->v2->co;
-		ve1[0] = nlGetVariable(sys->context, 0, idv1);
-		ve1[1] = nlGetVariable(sys->context, 1, idv1);
-		ve1[2] = nlGetVariable(sys->context, 2, idv1);
-		ve2[0] = nlGetVariable(sys->context, 0, idv2);
-		ve2[1] = nlGetVariable(sys->context, 1, idv2);
-		ve2[2] = nlGetVariable(sys->context, 2, idv2);
+		ve1[0] = EIG_linear_solver_variable_get(sys->context, 0, idv1);
+		ve1[1] = EIG_linear_solver_variable_get(sys->context, 1, idv1);
+		ve1[2] = EIG_linear_solver_variable_get(sys->context, 2, idv1);
+		ve2[0] = EIG_linear_solver_variable_get(sys->context, 0, idv2);
+		ve2[1] = EIG_linear_solver_variable_get(sys->context, 1, idv2);
+		ve2[2] = EIG_linear_solver_variable_get(sys->context, 2, idv2);
 		leni = len_v3v3(vi1, vi2);
 		lene = len_v3v3(ve1, ve2);
 		if (lene > leni * SMOOTH_LAPLACIAN_MAX_EDGE_PERCENTAGE || lene < leni * SMOOTH_LAPLACIAN_MIN_EDGE_PERCENTAGE) {
@@ -455,13 +452,13 @@ static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez
 		m_vertex_id = BM_elem_index_get(v);
 		if (sys->zerola[m_vertex_id] == 0) {
 			if (usex) {
-				v->co[0] =  nlGetVariable(sys->context, 0, m_vertex_id);
+				v->co[0] =  EIG_linear_solver_variable_get(sys->context, 0, m_vertex_id);
 			}
 			if (usey) {
-				v->co[1] =  nlGetVariable(sys->context, 1, m_vertex_id);
+				v->co[1] =  EIG_linear_solver_variable_get(sys->context, 1, m_vertex_id);
 			}
 			if (usez) {
-				v->co[2] =  nlGetVariable(sys->context, 2, m_vertex_id);
+				v->co[2] =  EIG_linear_solver_variable_get(sys->context, 2, m_vertex_id);
 			}
 		}
 	}
@@ -501,32 +498,24 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 	preserve_volume = BMO_slot_bool_get(op->slots_in, "preserve_volume");
 
 
-	sys->context = nlNewContext();
+	sys->context = EIG_linear_least_squares_solver_new(bm->totvert, bm->totvert, 3);
 
-	nlSolverParameteri(sys->context, NL_NB_VARIABLES, bm->totvert);
-	nlSolverParameteri(sys->context, NL_LEAST_SQUARES, NL_TRUE);
-	nlSolverParameteri(sys->context, NL_NB_ROWS, bm->totvert);
-	nlSolverParameteri(sys->context, NL_NB_RIGHT_HAND_SIDES, 3);
-
-	nlBegin(sys->context, NL_SYSTEM);
 	for (i = 0; i < bm->totvert; i++) {
-		nlLockVariable(sys->context, i);
+		EIG_linear_solver_variable_lock(sys->context, i);
 	}
 	BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
 		m_vertex_id = BM_elem_index_get(v);
-		nlUnlockVariable(sys->context, m_vertex_id);
-		nlSetVariable(sys->context, 0, m_vertex_id, v->co[0]);
-		nlSetVariable(sys->context, 1, m_vertex_id, v->co[1]);
-		nlSetVariable(sys->context, 2, m_vertex_id, v->co[2]);
+		EIG_linear_solver_variable_set(sys->context, 0, m_vertex_id, v->co[0]);
+		EIG_linear_solver_variable_set(sys->context, 1, m_vertex_id, v->co[1]);
+		EIG_linear_solver_variable_set(sys->context, 2, m_vertex_id, v->co[2]);
 	}
 
-	nlBegin(sys->context, NL_MATRIX);
 	init_laplacian_matrix(sys);
 	BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
 		m_vertex_id = BM_elem_index_get(v);
-		nlRightHandSideAdd(sys->context, 0, m_vertex_id, v->co[0]);
-		nlRightHandSideAdd(sys->context, 1, m_vertex_id, v->co[1]);
-		nlRightHandSideAdd(sys->context, 2, m_vertex_id, v->co[2]);
+		EIG_linear_solver_right_hand_side_add(sys->context, 0, m_vertex_id, v->co[0]);
+		EIG_linear_solver_right_hand_side_add(sys->context, 1, m_vertex_id, v->co[1]);
+		EIG_linear_solver_right_hand_side_add(sys->context, 2, m_vertex_id, v->co[2]);
 		i = m_vertex_id;
 		if (sys->zerola[i] == 0) {
 			w = sys->vweights[i] * sys->ring_areas[i];
@@ -535,34 +524,22 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 			sys->vlengths[i] = (w == 0.0f) ? 0.0f : -lambda_border  * 2.0f / w;
 
 			if (!vert_is_boundary(v)) {
-				nlMatrixAdd(sys->context, i, i,  1.0f + lambda_factor / (4.0f * sys->ring_areas[i]));
+				EIG_linear_solver_matrix_add(sys->context, i, i,  1.0f + lambda_factor / (4.0f * sys->ring_areas[i]));
 			}
 			else {
-				nlMatrixAdd(sys->context, i, i,  1.0f + lambda_border * 2.0f);
+				EIG_linear_solver_matrix_add(sys->context, i, i,  1.0f + lambda_border * 2.0f);
 			}
 		}
 		else {
-			nlMatrixAdd(sys->context, i, i, 1.0f);
+			EIG_linear_solver_matrix_add(sys->context, i, i, 1.0f);
 		}
 	}
 	fill_laplacian_matrix(sys);
 
-	nlEnd(sys->context, NL_MATRIX);
-	nlEnd(sys->context, NL_SYSTEM);
-
-	if (nlSolve(sys->context, NL_TRUE) ) {
+	if (EIG_linear_solver_solve(sys->context) ) {
 		validate_solution(sys, usex, usey, usez, preserve_volume);
 	}
 
 	delete_laplacian_system(sys);
 }
 
-#else  /* WITH_OPENNL */
-
-#ifdef __GNUC__
-#  pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-
-void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op) {}
-
-#endif  /* WITH_OPENNL */

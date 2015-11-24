@@ -2497,7 +2497,7 @@ int weightFromLoc(EditMesh *em, int axis)
 	return 1;
 }
 
-static void addTriangle(NLContext *context, EditVert *v1, EditVert *v2, EditVert *v3, int e1, int e2, int e3)
+static void addTriangle(LinearSolver *context, EditVert *v1, EditVert *v2, EditVert *v3, int e1, int e2, int e3)
 {
 	/* Angle opposite e1 */
 	float t1 = cotangent_tri_weight_v3(v1->co, v2->co, v3->co) / e2;
@@ -2512,23 +2512,23 @@ static void addTriangle(NLContext *context, EditVert *v1, EditVert *v2, EditVert
 	int i2 = indexData(v2);
 	int i3 = indexData(v3);
 	
-	nlMatrixAdd(context, i1, i1, t2 + t3);
-	nlMatrixAdd(context, i2, i2, t1 + t3);
-	nlMatrixAdd(context, i3, i3, t1 + t2);
+	EIG_linear_solver_matrix_add(context, i1, i1, t2 + t3);
+	EIG_linear_solver_matrix_add(context, i2, i2, t1 + t3);
+	EIG_linear_solver_matrix_add(context, i3, i3, t1 + t2);
 
-	nlMatrixAdd(context, i1, i2, -t3);
-	nlMatrixAdd(context, i2, i1, -t3);
+	EIG_linear_solver_matrix_add(context, i1, i2, -t3);
+	EIG_linear_solver_matrix_add(context, i2, i1, -t3);
 
-	nlMatrixAdd(context, i2, i3, -t1);
-	nlMatrixAdd(context, i3, i2, -t1);
+	EIG_linear_solver_matrix_add(context, i2, i3, -t1);
+	EIG_linear_solver_matrix_add(context, i3, i2, -t1);
 
-	nlMatrixAdd(context, i3, i1, -t2);
-	nlMatrixAdd(context, i1, i3, -t2);
+	EIG_linear_solver_matrix_add(context, i3, i1, -t2);
+	EIG_linear_solver_matrix_add(context, i1, i3, -t2);
 }
 
 int weightToHarmonic(EditMesh *em, EdgeIndex *indexed_edges)
 {
-	NLContext *context;
+	LinearSolver *context;
 	NLboolean success;
 	EditVert *eve;
 	EditEdge *eed;
@@ -2542,14 +2542,10 @@ int weightToHarmonic(EditMesh *em, EdgeIndex *indexed_edges)
 		totvert++;
 	}
 
-	/* Solve with openNL */
+	/* Solve */
 	
-	context = nlNewContext();
+	context = EIG_linear_solver_new(, 0, totvert, 1);
 
-	nlSolverParameteri(context, NL_NB_VARIABLES, totvert);
-
-	nlBegin(context, NL_SYSTEM);
-	
 	/* Find local extrema */
 	for (index = 0, eve = em->verts.first; eve; index++, eve = eve->next) {
 		if (eve->h == 0) {
@@ -2583,8 +2579,8 @@ int weightToHarmonic(EditMesh *em, EdgeIndex *indexed_edges)
 			if (maximum || minimum) {
 				float w = weightData(eve);
 				eve->f1 = 0;
-				nlSetVariable(context, 0, index, w);
-				nlLockVariable(context, index);
+				EIG_linear_solver_variable_set(context, 0, index, w);
+				EIG_linear_solver_variable_lock(context, index);
 			}
 			else {
 				eve->f1 = 1;
@@ -2592,8 +2588,6 @@ int weightToHarmonic(EditMesh *em, EdgeIndex *indexed_edges)
 		}
 	}
 	
-	nlBegin(context, NL_MATRIX);
-
 	/* Zero edge weight */
 	for (eed = em->edges.first; eed; eed = eed->next) {
 		eed->tmp.l = 0;
@@ -2625,23 +2619,19 @@ int weightToHarmonic(EditMesh *em, EdgeIndex *indexed_edges)
 		}
 	}
 	
-	nlEnd(context, NL_MATRIX);
-
-	nlEnd(context, NL_SYSTEM);
-
-	success = nlSolve(context, NL_TRUE);
+	success = EIG_linear_solver_solve(context);
 
 	if (success) {
 		rval = 1;
 		for (index = 0, eve = em->verts.first; eve; index++, eve = eve->next) {
-			weightSetData(eve, nlGetVariable(context, 0, index));
+			weightSetData(eve, EIG_linear_solver_variable_get(context, 0, index));
 		}
 	}
 	else {
 		rval = 0;
 	}
 
-	nlDeleteContext(context);
+	EIG_linear_solver_delete(context);
 
 	return rval;
 }

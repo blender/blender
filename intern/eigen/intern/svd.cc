@@ -48,7 +48,7 @@ using Eigen::MatrixXf;
 using Eigen::VectorXf;
 using Eigen::Map;
 
-void EG3_svd_square_matrix(const int size, const float *matrix, float *r_U, float *r_S, float *r_V)
+void EIG_svd_square_matrix(const int size, const float *matrix, float *r_U, float *r_S, float *r_V)
 {
 	/* Since our matrix is squared, we can use thinU/V. */
 	unsigned int flags = (r_U ? ComputeThinU : 0) | (r_V ? ComputeThinV : 0);

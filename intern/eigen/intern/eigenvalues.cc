@@ -45,7 +45,7 @@ using Eigen::Map;
 
 using Eigen::Success;
 
-bool EG3_self_adjoint_eigen_solve(const int size, const float *matrix, float *r_eigen_values, float *r_eigen_vectors)
+bool EIG_self_adjoint_eigen_solve(const int size, const float *matrix, float *r_eigen_values, float *r_eigen_vectors)
 {
 	SelfAdjointEigenSolver<MatrixXf> eigen_solver;
 
