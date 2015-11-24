@@ -565,9 +565,9 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id, eDepsNode
 				add_relation(camera_key, constraint_op_key, DEPSREL_TYPE_TRANSFORM, cti->name);
 			}
 
-			/* tracker <-> constraints */
-			// FIXME: actually motionclip dependency on results of motionclip block here...
-			//dag_add_relation(dag, scenenode, node, DAG_RL_SCENE, "Scene Relation");
+			/* TODO(sergey): This is more a TimeSource -> MovieClip -> Constraint dependency chain. */
+			TimeSourceKey time_src_key;
+			add_relation(time_src_key, constraint_op_key, DEPSREL_TYPE_TIME, "[TimeSrc -> Animation]");
 		}
 		else if (cti->get_constraint_targets) {
 			ListBase targets = {NULL, NULL};
