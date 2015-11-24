@@ -829,10 +829,11 @@ static char *code_generate_geometry(ListBase *nodes, bool use_opensubdiv)
 			for (input = node->inputs.first; input; input = input->next) {
 				if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
 					if (input->attribtype == CD_MTFACE) {
-						BLI_dynstr_appendf(ds, "%s %s var%d;\n",
+						BLI_dynstr_appendf(ds, "%s %s var%d%s;\n",
 						                   GLEW_VERSION_3_0 ? "in" : "varying",
 						                   GPU_DATATYPE_STR[input->type],
-						                   input->attribid);
+						                   input->attribid,
+						                   GLEW_VERSION_3_0 ? "[]" : "");
 						BLI_dynstr_appendf(ds, "uniform int fvar%d_offset;\n",
 						                   input->attribid);
 					}
