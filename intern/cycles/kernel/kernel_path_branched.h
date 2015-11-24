@@ -187,9 +187,6 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 					    kg,
 					    &volume_ray,
 					    hit_state.volume_stack);
-
-					/* Move volume ray forward. */
-					volume_ray.P = P;
 				}
 #endif
 
