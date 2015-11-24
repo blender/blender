@@ -3,9 +3,9 @@ BF_INSTALLDIR = '../blender-install/linux-glibc211-i686'
 BF_NUMJOBS = 4
 
 # Python configuration
-BF_PYTHON_VERSION = '3.4'
+BF_PYTHON_VERSION = '3.5'
 BF_PYTHON_ABI_FLAGS = 'm'
-BF_PYTHON = '/opt/lib/python-3.4'
+BF_PYTHON = '/opt/lib/python-3.5'
 WITH_BF_PYTHON_INSTALL_NUMPY = True
 WITH_BF_PYTHON_INSTALL_REQUESTS = True
 
