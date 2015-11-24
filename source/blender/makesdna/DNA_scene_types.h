@@ -1133,6 +1133,10 @@ typedef struct UnifiedPaintSettings {
 	char draw_anchored;
 	char do_linear_conversion;
 
+	/* store last location of stroke or whether the mesh was hit. Valid only while stroke is active */
+	float last_location[3];
+	int last_hit;
+
 	float anchored_initial_mouse[2];
 
 	/* radius of brush, premultiplied with pressure.
