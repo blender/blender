@@ -144,6 +144,7 @@ bool BKE_boundbox_ray_hit_check(
 void BKE_boundbox_calc_center_aabb(const struct BoundBox *bb, float r_cent[3]);
 void BKE_boundbox_calc_size_aabb(const struct BoundBox *bb, float r_size[3]);
 void BKE_boundbox_minmax(const struct BoundBox *bb, float obmat[4][4], float r_min[3], float r_max[3]);
+void BKE_boundbox_scale(struct BoundBox *bb_dst, const struct BoundBox *bb_src, float scale);
 struct BoundBox *BKE_boundbox_ensure_minimum_dimensions(
         struct BoundBox *bb, struct BoundBox *bb_temp, const float epsilon);
 

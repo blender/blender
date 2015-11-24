@@ -1546,6 +1546,13 @@ static bool snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMes
 				 * Threshold is rather high, but seems to be needed to get good behavior, see T46099. */
 				bb = BKE_boundbox_ensure_minimum_dimensions(bb, &bb_temp, 1e-1f);
 
+				/* Exact value here is arbitrary (ideally we would scale in pixel-space based on 'r_dist_px'),
+				 * scale up so we can snap against verts & edges on the boundbox, see T46816. */
+				if (ELEM(snap_mode, SCE_SNAP_MODE_VERTEX, SCE_SNAP_MODE_EDGE)) {
+					BKE_boundbox_scale(&bb_temp, bb, 1.0f + 1e-1f);
+					bb = &bb_temp;
+				}
+
 				if (!BKE_boundbox_ray_hit_check(bb, ray_start_local, ray_normal_local, &len_diff)) {
 					return retval;
 				}
