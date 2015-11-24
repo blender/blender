@@ -313,10 +313,7 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 
 			/* render fire slice */
 			if (use_fire) {
-				if (GLEW_VERSION_1_4)
-					glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE);
-				else
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE);
 
 				GPU_program_parameter_4f(smoke_program, 2, 1.0, 0.0, 0.0, 0.0);
 				glBegin(GL_POLYGON);
@@ -332,10 +329,7 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 			}
 
 			/* render smoke slice */
-			if (GLEW_VERSION_1_4)
-				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-			else
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 			GPU_program_parameter_4f(smoke_program, 2, -1.0, 0.0, 0.0, 0.0);
 			glBegin(GL_POLYGON);

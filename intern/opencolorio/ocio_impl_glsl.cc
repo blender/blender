@@ -221,8 +221,8 @@ static bool ensureCurveMappingAllocated(OCIO_GLSLDrawState *state, OCIO_CurveMap
 /* Detect if we can support GLSL drawing */
 bool OCIOImpl::supportGLSLDraw()
 {
-	/* GLSL and GL_RGB16F_ARB */
-	return GLEW_VERSION_2_0 && (GLEW_VERSION_3_0 || GLEW_ARB_texture_float);
+	/* uses GL_RGB16F_ARB */
+	return GLEW_VERSION_3_0 || GLEW_ARB_texture_float;
 }
 
 static bool supportGLSL13()

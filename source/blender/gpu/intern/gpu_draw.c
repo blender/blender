@@ -438,10 +438,7 @@ static void gpu_set_alpha_blend(GPUBlendMode alphablend)
 		glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 
 		/* for OpenGL render we use the alpha channel, this makes alpha blend correct */
-		if (GLEW_VERSION_1_4)
-			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-		else
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		
 		/* if U.glalphaclip == 1.0, some cards go bonkers...
 		 * turn off alpha test in this case */
