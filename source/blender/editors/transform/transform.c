@@ -4406,6 +4406,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 	}
 	else {
 		headerTranslation(t, t->values, str);
+		copy_v3_v3(value_final, t->values);
 	}
 
 	/* don't use 't->values' now on */
