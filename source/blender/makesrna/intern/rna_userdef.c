@@ -381,11 +381,6 @@ static void rna_UserDef_viewport_lights_update(Main *bmain, Scene *scene, Pointe
 	rna_userdef_update(bmain, scene, ptr);
 }
 
-static int rna_Scene_GPU_selection_supported(UserDef *UNUSED(U))
-{
-	return GPU_select_query_check_support();
-}
-
 static void rna_userdef_autosave_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	wmWindowManager *wm = bmain->wm.first;
@@ -4218,11 +4213,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "text_render", USER_TEXT_DISABLE_AA);
 	RNA_def_property_ui_text(prop, "Text Anti-aliasing", "Draw user interface text anti-aliased");
 	RNA_def_property_update(prop, 0, "rna_userdef_text_update");
-
-	func = RNA_def_function(srna, "is_occlusion_query_supported", "rna_Scene_GPU_selection_supported");
-	parm = RNA_def_boolean(func, "is_supported", 0, "Occlusion Query Support",
-	                       "Check if GPU supports Occlusion Queries");
-	RNA_def_function_return(func, parm);
 
 	prop = RNA_def_property(srna, "select_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "gpu_select_method");

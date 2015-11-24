@@ -451,10 +451,9 @@ class USERPREF_PT_system(Panel):
         col.prop(system, "use_gpu_mipmap")
         col.prop(system, "use_16bit_textures")
 
-        if system.is_occlusion_query_supported():
-            col.separator()
-            col.label(text="Selection")
-            col.prop(system, "select_method", text="")
+        col.separator()
+        col.label(text="Selection")
+        col.prop(system, "select_method", text="")
 
         col.separator()
 

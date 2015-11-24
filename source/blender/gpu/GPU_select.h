@@ -52,10 +52,7 @@ bool GPU_select_load_id(unsigned int id);
  * if dopass is true, we will do a second pass with occlusion queries to get the closest hit */
 unsigned int GPU_select_end(void);
 
-/* does the GPU support occlusion queries? */
-bool GPU_select_query_check_support(void);
-
-/* is occlusion query supported and user activated? */
+/* has user activated? */
 bool GPU_select_query_check_active(void);
 
 #endif

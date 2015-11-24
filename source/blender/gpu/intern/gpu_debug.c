@@ -457,7 +457,7 @@ void GPU_state_print(void)
 	gpu_state_print_fl(GL_FOG_INDEX);
 	gpu_state_print_fl(GL_FOG_MODE);
 	gpu_state_print_fl(GL_FOG_START);
-	gpu_state_print_fl(GL_FRAGMENT_PROGRAM_ARB);
+	gpu_state_print_fl(GL_FRAGMENT_PROGRAM_ARB); /* TODO: remove ARB program support */
 	gpu_state_print_fl(GL_FRAGMENT_SHADER_DERIVATIVE_HINT);
 	gpu_state_print_fl(GL_FRONT_FACE);
 	gpu_state_print_fl(GL_GENERATE_MIPMAP_HINT);
@@ -560,7 +560,6 @@ void GPU_state_print(void)
 	gpu_state_print_fl(GL_MODELVIEW_MATRIX);
 	gpu_state_print_fl(GL_MODELVIEW_STACK_DEPTH);
 	gpu_state_print_fl(GL_MULTISAMPLE);
-	gpu_state_print_fl(GL_MULTISAMPLE_ARB);
 	gpu_state_print_fl(GL_NAME_STACK_DEPTH);
 	gpu_state_print_fl(GL_NORMALIZE);
 	gpu_state_print_fl(GL_NORMAL_ARRAY);
@@ -686,7 +685,6 @@ void GPU_state_print(void)
 	gpu_state_print_fl(GL_TEXTURE_COORD_ARRAY_STRIDE);
 	gpu_state_print_fl(GL_TEXTURE_COORD_ARRAY_TYPE);
 	gpu_state_print_fl(GL_TEXTURE_CUBE_MAP);
-	gpu_state_print_fl(GL_TEXTURE_CUBE_MAP_ARB);
 	gpu_state_print_fl(GL_TEXTURE_GEN_Q);
 	gpu_state_print_fl(GL_TEXTURE_GEN_R);
 	gpu_state_print_fl(GL_TEXTURE_GEN_S);

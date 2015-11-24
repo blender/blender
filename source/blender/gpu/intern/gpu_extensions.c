@@ -283,11 +283,6 @@ bool GPU_non_power_of_two_support(void)
 	return !GG.npotdisabled;
 }
 
-bool GPU_vertex_buffer_support(void)
-{
-	return true;
-}
-
 bool GPU_display_list_support(void)
 {
 	return !GG.dlistsdisabled;
@@ -1780,7 +1775,7 @@ void GPU_program_unbind(GPUProgram *program)
 
 GPUProgram *GPU_program_shader_create(GPUProgramType type, const char *code)
 {
-	/* TODO(merwin): remove ARB shader support (recode smoke shader in GLSL) */
+	/* TODO(merwin): remove ARB program support (recode smoke shader in GLSL) */
 
 	GPUProgram *program;
 	GLint error_pos, is_native;

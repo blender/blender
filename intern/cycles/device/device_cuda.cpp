@@ -928,13 +928,13 @@ public:
 			else
 				offset *= sizeof(uint8_t);
 
-			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pmem.cuPBO);
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pmem.cuPBO);
 			glBindTexture(GL_TEXTURE_2D, pmem.cuTexId);
 			if(mem.data_type == TYPE_HALF)
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_HALF_FLOAT, (void*)offset);
 			else
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)offset);
-			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 			
 			glEnable(GL_TEXTURE_2D);
 			

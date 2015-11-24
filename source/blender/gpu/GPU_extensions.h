@@ -61,7 +61,6 @@ void GPU_extensions_disable(void);
 
 bool GPU_glsl_support(void);
 bool GPU_non_power_of_two_support(void);
-bool GPU_vertex_buffer_support(void);
 bool GPU_display_list_support(void);
 bool GPU_bicubic_bump_support(void);
 bool GPU_geometry_shader_support(void);
@@ -195,7 +194,7 @@ typedef enum GPUProgramType {
 	GPU_PROGRAM_TYPE_FRAGMENT = 0
 } GPUProgramType;
 
-
+/* TODO: remove ARB program support (recode smoke shader in GLSL) */
 GPUProgram *GPU_program_shader_create(GPUProgramType type, const char *code);
 void GPU_program_free(GPUProgram *program);
 void GPU_program_parameter_4f(GPUProgram *program, unsigned int location, float x, float y, float z, float w);

@@ -1226,7 +1226,7 @@ static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const B
 		if (attribs->orco.gl_texco)
 			glTexCoord3fv(orco);
 		else
-			glVertexAttrib3fvARB(attribs->orco.gl_index, orco);
+			glVertexAttrib3fv(attribs->orco.gl_index, orco);
 	}
 	for (i = 0; i < attribs->tottface; i++) {
 		const float *uv;
@@ -1242,7 +1242,7 @@ static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const B
 		if (attribs->tface[i].gl_texco)
 			glTexCoord2fv(uv);
 		else
-			glVertexAttrib2fvARB(attribs->tface[i].gl_index, uv);
+			glVertexAttrib2fv(attribs->tface[i].gl_index, uv);
 	}
 	for (i = 0; i < attribs->totmcol; i++) {
 		GLubyte col[4];
@@ -1253,7 +1253,7 @@ static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const B
 		else {
 			col[0] = 0; col[1] = 0; col[2] = 0; col[3] = 0;
 		}
-		glVertexAttrib4ubvARB(attribs->mcol[i].gl_index, col);
+		glVertexAttrib4ubv(attribs->mcol[i].gl_index, col);
 	}
 	if (attribs->tottang) {
 		const float *tang;
@@ -1263,7 +1263,7 @@ static void emdm_pass_attrib_vertex_glsl(const DMVertexAttribs *attribs, const B
 		else {
 			tang = zero;
 		}
-		glVertexAttrib4fvARB(attribs->tang.gl_index, tang);
+		glVertexAttrib4fv(attribs->tang.gl_index, tang);
 	}
 }
 
