@@ -26,10 +26,10 @@ BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg bz2'
 #bz2 is a standard osx dynlib
 
-BF_PYTHON_VERSION = '3.4'
+BF_PYTHON_VERSION = '3.5'
 WITH_OSX_STATICPYTHON = True
 
-# python 3.4 uses precompiled libraries in bf svn /lib by default
+# python 3.5 uses precompiled libraries in bf svn /lib by default
 BF_PYTHON = LIBDIR + '/python'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}m'
 # BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
