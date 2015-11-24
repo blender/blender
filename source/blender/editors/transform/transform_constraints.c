@@ -150,7 +150,7 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3])
 
 	/* autovalues is operator param, use that directly but not if snapping is forced */
 	if (t->flag & T_AUTOVALUES && (t->tsnap.status & SNAP_FORCED) == 0) {
-		mul_v3_m3v3(vec, t->con.imtx, t->auto_values);
+		copy_v3_v3(vec, t->auto_values);
 		constraintAutoValues(t, vec);
 		/* inverse transformation at the end */
 	}

@@ -1890,6 +1890,9 @@ static void drawTransformPixel(const struct bContext *UNUSED(C), ARegion *ar, vo
 	}
 }
 
+/**
+ * \see #initTransform which reads values from the operator.
+ */
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -1906,10 +1909,6 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		float values[4];
 
 		copy_v4_v4(values, (t->flag & T_AUTOVALUES) ? t->auto_values : t->values);
-
-		if (t->con.mode & CON_APPLY) {
-			mul_m3_v3(t->con.imtx, values);
-		}
 
 		if (RNA_property_array_check(prop)) {
 			RNA_property_float_set_array(op->ptr, prop, values);
@@ -2044,6 +2043,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 /**
  * \note  caller needs to free 't' on a 0 return
  * \warning  \a event might be NULL (when tweaking from redo panel)
+ * \see #saveTransform which writes these values back.
  */
 bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event, int mode)
 {
@@ -2351,10 +2351,6 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		}
 		else {
 			values[0] = RNA_float_get(op->ptr, "value");
-		}
-
-		if (t->con.mode & CON_APPLY) {
-			mul_m3_v3(t->con.mtx, values);
 		}
 
 		copy_v4_v4(t->values, values);
@@ -3398,36 +3394,36 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3])
 static void applyResize(TransInfo *t, const int mval[2])
 {
 	TransData *td;
-	float size[3], mat[3][3];
-	float ratio;
+	float mat[3][3];
 	int i;
 	char str[MAX_INFO_LEN];
 
-	/* for manipulator, center handle, the scaling can't be done relative to center */
-	if ((t->flag & T_USES_MANIPULATOR) && t->con.mode == 0) {
-		ratio = 1.0f - ((t->mouse.imval[0] - mval[0]) + (t->mouse.imval[1] - mval[1])) / 100.0f;
+	if (t->flag & T_AUTOVALUES) {
+		copy_v3_v3(t->values, t->auto_values);
 	}
 	else {
-		ratio = t->values[0];
+		float ratio;
+
+		/* for manipulator, center handle, the scaling can't be done relative to center */
+		if ((t->flag & T_USES_MANIPULATOR) && t->con.mode == 0) {
+			ratio = 1.0f - ((t->mouse.imval[0] - mval[0]) + (t->mouse.imval[1] - mval[1])) / 100.0f;
+		}
+		else {
+			ratio = t->values[0];
+		}
+
+		copy_v3_fl(t->values, ratio);
+
+		snapGridIncrement(t, t->values);
+
+		if (applyNumInput(&t->num, t->values)) {
+			constraintNumInput(t, t->values);
+		}
+
+		applySnapping(t, t->values);
 	}
 	
-	copy_v3_fl(size, ratio);
-	
-	snapGridIncrement(t, size);
-	
-	if (applyNumInput(&t->num, size)) {
-		constraintNumInput(t, size);
-	}
-	
-	applySnapping(t, size);
-	
-	if (t->flag & T_AUTOVALUES) {
-		copy_v3_v3(size, t->auto_values);
-	}
-	
-	copy_v3_v3(t->values, size);
-	
-	size_to_mat3(mat, size);
+	size_to_mat3(mat, t->values);
 	
 	if (t->con.applySize) {
 		t->con.applySize(t, NULL, mat);
@@ -3435,7 +3431,7 @@ static void applyResize(TransInfo *t, const int mval[2])
 	
 	copy_m3_m3(t->mat, mat);    // used in manipulator
 	
-	headerResize(t, size, str);
+	headerResize(t, t->values, str);
 	
 	for (i = 0, td = t->data; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
@@ -3448,8 +3444,8 @@ static void applyResize(TransInfo *t, const int mval[2])
 	}
 	
 	/* evil hack - redo resize if cliping needed */
-	if (t->flag & T_CLIP_UV && clipUVTransform(t, size, 1)) {
-		size_to_mat3(mat, size);
+	if (t->flag & T_CLIP_UV && clipUVTransform(t, t->values, 1)) {
+		size_to_mat3(mat, t->values);
 		
 		if (t->con.applySize)
 			t->con.applySize(t, NULL, mat);
@@ -4380,36 +4376,45 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 	}
 }
 
-/* uses t->vec to store actual translation in */
 static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 {
 	char str[MAX_INFO_LEN];
+	float value_final[3];
+
+	if (t->flag & T_AUTOVALUES) {
+		copy_v3_v3(t->values, t->auto_values);
+	}
+	else {
+		if ((t->con.mode & CON_APPLY) == 0) {
+			snapGridIncrement(t, t->values);
+		}
+
+		if (applyNumInput(&t->num, t->values)) {
+			removeAspectRatio(t, t->values);
+		}
+
+		applySnapping(t, t->values);
+	}
 
 	if (t->con.mode & CON_APPLY) {
 		float pvec[3] = {0.0f, 0.0f, 0.0f};
-		float tvec[3];
-		if (applyNumInput(&t->num, t->values)) {
-			removeAspectRatio(t, t->values);
-		}
-		applySnapping(t, t->values);
-		t->con.applyVec(t, NULL, t->values, tvec, pvec);
-		copy_v3_v3(t->values, tvec);
+		t->con.applyVec(t, NULL, t->values, value_final, pvec);
 		headerTranslation(t, pvec, str);
+
+		/* only so we have re-usable value with redo, see T46741. */
+		mul_v3_m3v3(t->values, t->con.imtx, value_final);
 	}
 	else {
-		snapGridIncrement(t, t->values);
-		if (applyNumInput(&t->num, t->values)) {
-			removeAspectRatio(t, t->values);
-		}
-		applySnapping(t, t->values);
 		headerTranslation(t, t->values, str);
 	}
 
-	applyTranslationValue(t, t->values);
+	/* don't use 't->values' now on */
+
+	applyTranslationValue(t, value_final);
 
 	/* evil hack - redo translation if clipping needed */
-	if (t->flag & T_CLIP_UV && clipUVTransform(t, t->values, 0)) {
-		applyTranslationValue(t, t->values);
+	if (t->flag & T_CLIP_UV && clipUVTransform(t, value_final, 0)) {
+		applyTranslationValue(t, value_final);
 
 		/* In proportional edit it can happen that */
 		/* vertices in the radius of the brush end */
