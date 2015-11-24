@@ -684,10 +684,12 @@ static void ccgSubSurf__calcSubdivLevel(
 
 #pragma omp parallel private(ptrIdx) if (numEffectedF * edgeSize * edgeSize * 4 >= CCG_OMP_LIMIT)
 	{
+		float *q_thread, *r_thread;
+
 #pragma omp critical
 		{
-			q = MEM_mallocN(ss->meshIFC.vertDataSize, "CCGSubsurf q");
-			r = MEM_mallocN(ss->meshIFC.vertDataSize, "CCGSubsurf r");
+			q_thread = MEM_mallocN(ss->meshIFC.vertDataSize, "CCGSubsurf q");
+			r_thread = MEM_mallocN(ss->meshIFC.vertDataSize, "CCGSubsurf r");
 		}
 
 #pragma omp for schedule(static)
@@ -700,20 +702,20 @@ static void ccgSubSurf__calcSubdivLevel(
 			 * - old interior edge points
 			 * - new interior face midpoints
 			 */
-			VertDataZero(q, ss);
+			VertDataZero(q_thread, ss);
 			for (S = 0; S < f->numVerts; S++) {
-				VertDataAdd(q, FACE_getIFCo(f, nextLvl, S, 1, 1), ss);
+				VertDataAdd(q_thread, FACE_getIFCo(f, nextLvl, S, 1, 1), ss);
 			}
-			VertDataMulN(q, 1.0f / f->numVerts, ss);
-			VertDataZero(r, ss);
+			VertDataMulN(q_thread, 1.0f / f->numVerts, ss);
+			VertDataZero(r_thread, ss);
 			for (S = 0; S < f->numVerts; S++) {
-				VertDataAdd(r, FACE_getIECo(f, curLvl, S, 1), ss);
+				VertDataAdd(r_thread, FACE_getIECo(f, curLvl, S, 1), ss);
 			}
-			VertDataMulN(r, 1.0f / f->numVerts, ss);
+			VertDataMulN(r_thread, 1.0f / f->numVerts, ss);
 
 			VertDataMulN((float *)FACE_getCenterData(f), f->numVerts - 2.0f, ss);
-			VertDataAdd((float *)FACE_getCenterData(f), q, ss);
-			VertDataAdd((float *)FACE_getCenterData(f), r, ss);
+			VertDataAdd((float *)FACE_getCenterData(f), q_thread, ss);
+			VertDataAdd((float *)FACE_getCenterData(f), r_thread, ss);
 			VertDataMulN((float *)FACE_getCenterData(f), 1.0f / f->numVerts, ss);
 
 			for (S = 0; S < f->numVerts; S++) {
@@ -729,14 +731,14 @@ static void ccgSubSurf__calcSubdivLevel(
 						const float *co = FACE_getIFCo(f, curLvl, S, x, y);
 						float *nCo = FACE_getIFCo(f, nextLvl, S, fx, fy);
 						
-						VertDataAvg4(q,
+						VertDataAvg4(q_thread,
 						             FACE_getIFCo(f, nextLvl, S, fx - 1, fy - 1),
 						             FACE_getIFCo(f, nextLvl, S, fx + 1, fy - 1),
 						             FACE_getIFCo(f, nextLvl, S, fx + 1, fy + 1),
 						             FACE_getIFCo(f, nextLvl, S, fx - 1, fy + 1),
 						             ss);
 
-						VertDataAvg4(r,
+						VertDataAvg4(r_thread,
 						             FACE_getIFCo(f, nextLvl, S, fx - 1, fy + 0),
 						             FACE_getIFCo(f, nextLvl, S, fx + 1, fy + 0),
 						             FACE_getIFCo(f, nextLvl, S, fx + 0, fy - 1),
@@ -744,9 +746,9 @@ static void ccgSubSurf__calcSubdivLevel(
 						             ss);
 
 						VertDataCopy(nCo, co, ss);
-						VertDataSub(nCo, q, ss);
+						VertDataSub(nCo, q_thread, ss);
 						VertDataMulN(nCo, 0.25f, ss);
-						VertDataAdd(nCo, r, ss);
+						VertDataAdd(nCo, r_thread, ss);
 					}
 				}
 
@@ -760,13 +762,13 @@ static void ccgSubSurf__calcSubdivLevel(
 					const float *co = FACE_getIECo(f, curLvl, S, x);
 					float *nCo = FACE_getIECo(f, nextLvl, S, fx);
 					
-					VertDataAvg4(q,
+					VertDataAvg4(q_thread,
 					             FACE_getIFCo(f, nextLvl, (S + 1) % f->numVerts, 1, fx - 1),
 					             FACE_getIFCo(f, nextLvl, (S + 1) % f->numVerts, 1, fx + 1),
 					             FACE_getIFCo(f, nextLvl, S, fx + 1, +1),
 					             FACE_getIFCo(f, nextLvl, S, fx - 1, +1), ss);
 
-					VertDataAvg4(r,
+					VertDataAvg4(r_thread,
 					             FACE_getIECo(f, nextLvl, S, fx - 1),
 					             FACE_getIECo(f, nextLvl, S, fx + 1),
 					             FACE_getIFCo(f, nextLvl, (S + 1) % f->numVerts, 1, fx),
@@ -774,17 +776,17 @@ static void ccgSubSurf__calcSubdivLevel(
 					             ss);
 
 					VertDataCopy(nCo, co, ss);
-					VertDataSub(nCo, q, ss);
+					VertDataSub(nCo, q_thread, ss);
 					VertDataMulN(nCo, 0.25f, ss);
-					VertDataAdd(nCo, r, ss);
+					VertDataAdd(nCo, r_thread, ss);
 				}
 			}
 		}
 
 #pragma omp critical
 		{
-			MEM_freeN(q);
-			MEM_freeN(r);
+			MEM_freeN(q_thread);
+			MEM_freeN(r_thread);
 		}
 	}
 
