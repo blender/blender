@@ -1008,7 +1008,7 @@ static void rna_def_constraint_same_volume(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "volume", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_range(prop, 0.001, 100.f);
+	RNA_def_property_range(prop, 0.001f, 100.0f);
 	RNA_def_property_ui_text(prop, "Volume", "Volume of the bone at rest");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
@@ -1088,7 +1088,6 @@ static void rna_def_constraint_minmax(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_range(prop, -1000.0, 1000.0f);
 	RNA_def_property_ui_range(prop, -100.0f, 100.0f, 1, -1);
 	RNA_def_property_ui_text(prop, "Offset", "Offset of floor from object origin");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
@@ -1360,7 +1359,7 @@ static void rna_def_constraint_stretch_to(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "rest_length", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "orglength");
-	RNA_def_property_range(prop, 0.0, 1000.f);
+	RNA_def_property_range(prop, 0.0f, 1000.0f);
 	RNA_def_property_ui_range(prop, 0, 100.0f, 10, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_ui_text(prop, "Original Length", "Length at rest position");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
@@ -1928,37 +1927,37 @@ static void rna_def_constraint_location_limit(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "min_x", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "xmin");
-	RNA_def_property_range(prop, -1000.0, 1000.f);
+	RNA_def_property_ui_range(prop, -1000.0f, 1000.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Minimum X", "Lowest X value to allow");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "min_y", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "ymin");
-	RNA_def_property_range(prop, -1000.0, 1000.f);
+	RNA_def_property_ui_range(prop, -1000.0f, 1000.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Minimum Y", "Lowest Y value to allow");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "min_z", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "zmin");
-	RNA_def_property_range(prop, -1000.0, 1000.f);
+	RNA_def_property_ui_range(prop, -1000.0f, 1000.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Minimum Z", "Lowest Z value to allow");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "max_x", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "xmax");
-	RNA_def_property_range(prop, -1000.0, 1000.f);
+	RNA_def_property_ui_range(prop, -1000.0f, 1000.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Maximum X", "Highest X value to allow");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "max_y", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "ymax");
-	RNA_def_property_range(prop, -1000.0, 1000.f);
+	RNA_def_property_ui_range(prop, -1000.0f, 1000.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Maximum Y", "Highest Y value to allow");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "max_z", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "zmax");
-	RNA_def_property_range(prop, -1000.0, 1000.f);
+	RNA_def_property_ui_range(prop, -1000.0f, 1000.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Maximum Z", "Highest Z value to allow");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
@@ -2143,7 +2142,7 @@ static void rna_def_constraint_distance_limit(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "dist");
-	RNA_def_property_range(prop, 0.0, 100.f);
+	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Distance", "Radius of limiting sphere");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
@@ -2193,7 +2192,8 @@ static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "dist");
-	RNA_def_property_range(prop, 0.0, 100.f);
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Distance", "Distance to Target");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
@@ -2211,7 +2211,8 @@ static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "project_limit", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "projLimit");
-	RNA_def_property_range(prop, 0.0, 100.f);
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Project Distance", "Limit the distance used for projection (zero disables)");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 }
