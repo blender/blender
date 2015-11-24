@@ -44,6 +44,7 @@ incs = [
     '#source/blender/blenkernel',
     '#source/blender/gpu',
     '#source/blender/makesdna',
+    '#source/blender/imbuf',
     ]
 
 defs = []

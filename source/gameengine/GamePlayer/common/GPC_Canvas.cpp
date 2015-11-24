@@ -30,31 +30,14 @@
  */
 
 
-#ifndef NOPNG
-#ifdef WIN32
-#include "png.h"
-#else
-#include <png.h>
-#endif
-#endif // NOPNG
-
 #include "RAS_IPolygonMaterial.h"
 #include "GPC_Canvas.h"
-
-#include "BLI_path_util.h"
-#include "BLI_string.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
-#include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_image.h"
-
-extern "C" {
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-}
+#include "MEM_guardedalloc.h"
 
 
 GPC_Canvas::GPC_Canvas(
@@ -164,37 +147,22 @@ MakeScreenShot(
 	const char* filename
 ) {
 	// copy image data
-	unsigned char *pixels = new unsigned char[GetWidth() * GetHeight() * 4];
+	unsigned int dumpsx = GetWidth();
+	unsigned int dumpsy = GetHeight();
+	unsigned int *pixels = (unsigned int *)MEM_mallocN(sizeof(int) * dumpsx * dumpsy, "pixels");
 
 	if (!pixels) {
 		std::cout << "Cannot allocate pixels array" << std::endl;
 		return;
 	}
 
-	glReadPixels(0, 0, GetWidth(), GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	glReadPixels(0, 0, dumpsx, dumpsy, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
 	// initialize image file format data
-	ImageFormatData im_format;
-	BKE_imformat_defaults(&im_format);
+	ImageFormatData *im_format = (ImageFormatData *)MEM_mallocN(sizeof(ImageFormatData), "im_format");
+	BKE_imformat_defaults(im_format);
 
-	// create file path 
-	char path[FILE_MAX];
-	BLI_strncpy(path, filename, sizeof(path));
-	BLI_path_abs(path, G.main->name);
-	BLI_path_frame(path, m_frame, 0);
-	m_frame++;
-	BKE_image_path_ensure_ext_from_imtype(path, im_format.imtype);
-
-	// create and save imbuf 
-	ImBuf *ibuf = IMB_allocImBuf(GetWidth(), GetHeight(), 24, 0);
-	ibuf->rect = (unsigned int*)pixels;
-
-	BKE_imbuf_write_as(ibuf, path, &im_format, false);
-
-	ibuf->rect = NULL;
-	IMB_freeImBuf(ibuf);
-
-	// clean up
-	delete [] (pixels);
+	/* save_screenshot() frees dumprect and im_format */
+	save_screenshot(filename, dumpsx, dumpsy, pixels, im_format);
 }
 

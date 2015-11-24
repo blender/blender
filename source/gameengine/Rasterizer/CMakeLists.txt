@@ -31,6 +31,7 @@ set(INC
 	../../blender/makesdna
 	../../blender/blenlib
 	../../blender/blenkernel
+	../../blender/imbuf
 	../../../intern/container
 	../../../intern/glew-mx
 	../../../intern/guardedalloc
@@ -53,6 +54,7 @@ set(SRC
 	RAS_Polygon.cpp
 	RAS_TexVert.cpp
 	RAS_texmatrix.cpp
+	RAS_ICanvas.cpp
 
 	RAS_2DFilterManager.h
 	RAS_BucketManager.h
