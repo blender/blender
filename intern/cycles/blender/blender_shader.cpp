@@ -1188,7 +1188,8 @@ void BlenderSync::sync_world(bool update_all)
 	else
 		background->transparent = b_scene.render().alpha_mode() == BL::RenderSettings::alpha_mode_TRANSPARENT;
 
-	background->use = render_layer.use_background;
+	background->use_shader = render_layer.use_background_shader;
+	background->use_ao = render_layer.use_background_ao;
 
 	if(background->modified(prevbackground))
 		background->tag_update(scene);

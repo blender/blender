@@ -33,7 +33,8 @@ Background::Background()
 	ao_factor = 0.0f;
 	ao_distance = FLT_MAX;
 
-	use = true;
+	use_shader = true;
+	use_ao = false;
 
 	visibility = PATH_RAY_ALL_VISIBILITY;
 	shader = 0;
@@ -53,7 +54,7 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	
 	device_free(device, dscene);
 
-	if(use)
+	if(use_shader)
 		shader = scene->default_background;
 	else
 		shader = scene->default_empty;
@@ -61,8 +62,14 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	/* set shader index and transparent option */
 	KernelBackground *kbackground = &dscene->data.background;
 
-	kbackground->ao_factor = ao_factor;
-	kbackground->ao_distance = ao_distance;
+	if(use_ao) {
+		kbackground->ao_factor = ao_factor;
+		kbackground->ao_distance = ao_distance;
+	}
+	else {
+		kbackground->ao_factor = 0.0f;
+		kbackground->ao_distance = FLT_MAX;
+	}
 
 	kbackground->transparent = transparent;
 	kbackground->surface_shader = scene->shader_manager->get_shader_id(shader);
@@ -100,7 +107,8 @@ void Background::device_free(Device * /*device*/, DeviceScene * /*dscene*/)
 bool Background::modified(const Background& background)
 {
 	return !(transparent == background.transparent &&
-		use == background.use &&
+		use_shader == background.use_shader &&
+		use_ao == background.use_ao &&
 		ao_factor == background.ao_factor &&
 		ao_distance == background.ao_distance &&
 		visibility == background.visibility);

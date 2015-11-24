@@ -150,7 +150,8 @@ private:
 		: scene_layer(0), layer(0),
 		  holdout_layer(0), exclude_layer(0),
 		  material_override(PointerRNA_NULL),
-		  use_background(true),
+		  use_background_shader(true),
+		  use_background_ao(true),
 		  use_surfaces(true),
 		  use_hair(true),
 		  use_viewport_visibility(false),
@@ -164,7 +165,8 @@ private:
 		uint holdout_layer;
 		uint exclude_layer;
 		BL::Material material_override;
-		bool use_background;
+		bool use_background_shader;
+		bool use_background_ao;
 		bool use_surfaces;
 		bool use_hair;
 		bool use_viewport_visibility;

@@ -30,7 +30,8 @@ public:
 	float ao_factor;
 	float ao_distance;
 
-	bool use;
+	bool use_shader;
+	bool use_ao;
 
 	uint visibility;
 	uint shader;

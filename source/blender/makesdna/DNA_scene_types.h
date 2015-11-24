@@ -204,7 +204,8 @@ typedef struct SceneRenderLayer {
 #define SCE_LAY_SKY		16
 #define SCE_LAY_STRAND	32
 #define SCE_LAY_FRS		64
-	/* flags between 128 and 0x8000 are set to 1 already, for future options */
+#define SCE_LAY_AO		128
+	/* flags between 256 and 0x8000 are set to 1 already, for future options */
 
 #define SCE_LAY_ALL_Z		0x8000
 #define SCE_LAY_XOR			0x10000
