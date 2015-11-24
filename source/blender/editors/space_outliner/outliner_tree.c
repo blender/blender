@@ -587,7 +587,7 @@ static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, Tree
 				ParticleSystem *psys = ((ParticleSystemModifierData *) md)->psys;
 				TreeElement *ten_psys;
 				
-				ten_psys = outliner_add_element(soops, &ten_psys->subtree, ob, ten_psys, TSE_LINKED_PSYS, 0);
+				ten_psys = outliner_add_element(soops, &ten->subtree, ob, te, TSE_LINKED_PSYS, 0);
 				ten_psys->directdata = psys;
 				ten_psys->name = psys->part->id.name + 2;
 			}
