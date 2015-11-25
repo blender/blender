@@ -575,9 +575,15 @@ size_t BLI_task_pool_tasks_done(TaskPool *pool)
  * - Chunk iterations to reduce number of spin locks.
  */
 
+/* Allows to avoid using malloc for userdata_chunk in tasks, when small enough. */
+#define MALLOCA(_size) ((_size) <= 8192) ? alloca((_size)) : MEM_mallocN((_size), __func__)
+#define MALLOCA_FREE(_mem, _size) if (((_mem) != NULL) && ((_size) > 8192)) MEM_freeN((_mem))
+
 typedef struct ParallelRangeState {
 	int start, stop;
 	void *userdata;
+	void *userdata_chunk;
+	size_t userdata_chunk_size;
 	TaskParallelRangeFunc func;
 
 	int iter;
@@ -608,17 +614,45 @@ static void parallel_range_func(
 {
 	ParallelRangeState * __restrict state = BLI_task_pool_userdata(pool);
 	int iter, count;
+
+	const bool use_userdata_chunk = (state->userdata_chunk_size != 0) && (state->userdata_chunk != NULL);
+	void *userdata_chunk = use_userdata_chunk ? MALLOCA(state->userdata_chunk_size) : NULL;
+
 	while (parallel_range_next_iter_get(state, &iter, &count)) {
 		int i;
+
+		if (use_userdata_chunk) {
+			memcpy(userdata_chunk, state->userdata_chunk, state->userdata_chunk_size);
+		}
+
 		for (i = 0; i < count; ++i) {
-			state->func(state->userdata, iter + i);
+			state->func(state->userdata, userdata_chunk, iter + i);
 		}
 	}
+
+	MALLOCA_FREE(userdata_chunk, state->userdata_chunk_size);
 }
 
+/**
+ * This function allows to parallelized for loops in a similar way to OpenMP's 'parallel for' statement.
+ *
+ * \param start First index to process.
+ * \param stop Index to stop looping (excluded).
+ * \param userdata Common userdata passed to all instances of \a func.
+ * \param userdata_chunk Optional, each instance of looping chunks will get a copy of this data
+ *                       (similar to OpenMP's firstprivate).
+ * \param userdata_chunk_size Memory size of \a userdata_chunk.
+ * \param func Callback function.
+ * \param range_threshold Minimum size of processed range to start using tasks
+ *                        (below this, loop is done in main thread only).
+ * \param use_dynamic_scheduling If \a true, the whole range is divided in a lot of small chunks (of size 32 currently),
+ *                               otehrwise whole range is split in a few big chunks (num_threads * 2 chunks currently).
+ */
 void BLI_task_parallel_range_ex(
         int start, int stop,
         void *userdata,
+        void *userdata_chunk,
+        const size_t userdata_chunk_size,
         TaskParallelRangeFunc func,
         const int range_threshold,
         const bool use_dynamic_scheduling)
@@ -634,9 +668,19 @@ void BLI_task_parallel_range_ex(
 	 * do everything from the main thread.
 	 */
 	if (stop - start < range_threshold) {
-		for (i = start; i < stop; ++i) {
-			func(userdata, i);
+		const bool use_userdata_chunk = (userdata_chunk_size != 0) && (userdata_chunk != NULL);
+		void *userdata_chunk_local = NULL;
+
+		if (use_userdata_chunk) {
+			userdata_chunk_local = MALLOCA(userdata_chunk_size);
+			memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
 		}
+
+		for (i = start; i < stop; ++i) {
+			func(userdata, userdata_chunk_local, i);
+		}
+
+		MALLOCA_FREE(userdata_chunk_local, userdata_chunk_size);
 		return;
 	}
 
@@ -654,6 +698,8 @@ void BLI_task_parallel_range_ex(
 	state.start = start;
 	state.stop = stop;
 	state.userdata = userdata;
+	state.userdata_chunk = userdata_chunk;
+	state.userdata_chunk_size = userdata_chunk_size;
 	state.func = func;
 	state.iter = start;
 	if (use_dynamic_scheduling) {
@@ -676,10 +722,18 @@ void BLI_task_parallel_range_ex(
 	BLI_spin_end(&state.lock);
 }
 
+/**
+ * A simpler version of \a BLI_task_parallel_range_ex, which does not use \a use_dynamic_scheduling,
+ * has a \a range_threshold of 64, and does not handle 'firstprivate'-like \a userdata_chunk.
+ */
 void BLI_task_parallel_range(
         int start, int stop,
         void *userdata,
         TaskParallelRangeFunc func)
 {
-	BLI_task_parallel_range_ex(start, stop, userdata, func, 64, false);
+	BLI_task_parallel_range_ex(start, stop, userdata, NULL, 0, func, 64, false);
 }
+
+#undef MALLOCA
+#undef MALLOCA_FREE
+
