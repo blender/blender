@@ -701,7 +701,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 			}
 
 			if (ret == NULL) {
-				printf("PyC_InlineRun error, line:%d\n", __LINE__);
+				printf("%s error, line:%d\n", __func__, __LINE__);
 				PyErr_Print();
 				PyErr_Clear();
 
@@ -775,7 +775,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 						Py_DECREF(ret);
 					}
 					else {
-						printf("PyC_InlineRun error on arg '%d', line:%d\n", i, __LINE__);
+						printf("%s error on arg '%d', line:%d\n", __func__, i, __LINE__);
 						PyC_ObSpit("failed converting:", item_new);
 						PyErr_Print();
 						PyErr_Clear();
@@ -786,11 +786,11 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 				va_end(vargs);
 			}
 			else {
-				printf("PyC_InlineRun error, 'values' not a list, line:%d\n", __LINE__);
+				printf("%s error, 'values' not a list, line:%d\n", __func__, __LINE__);
 			}
 		}
 		else {
-			printf("PyC_InlineRun error line:%d\n", __LINE__);
+			printf("%s error line:%d\n", __func__, __LINE__);
 			PyErr_Print();
 			PyErr_Clear();
 		}
