@@ -940,14 +940,10 @@ void BM_face_triangulate(
 			if (l_new->radial_next != l_new) {
 				BMLoop *l_iter = l_new->radial_next;
 				do {
-					if (UNLIKELY(l_new->prev->v == l_iter->prev->v)) {
-						if (UNLIKELY(i == last_tri)) {
-							/* Because we swap last f_new with f at the end... */
-							BLI_linklist_prepend(r_faces_double, f);
-						}
-						else {
-							BLI_linklist_prepend(r_faces_double, f_new);
-						}
+					if (UNLIKELY((l_iter->f->len == 3) && (l_new->prev->v == l_iter->prev->v))) {
+						/* Check the last tri because we swap last f_new with f at the end... */
+						BLI_linklist_prepend(r_faces_double, (i != last_tri) ? f_new : f);
+						break;
 					}
 				} while ((l_iter = l_iter->radial_next) != l_new);
 			}
