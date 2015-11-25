@@ -582,12 +582,13 @@ void ShaderGraph::constant_fold(set<ShaderNode*>& done, ShaderNode *node)
 	}
 
 	/* Then fold self. */
-	foreach(ShaderOutput *sock, node->outputs) {
+	foreach(ShaderOutput *output, node->outputs) {
 		float3 optimized_value = make_float3(0.0f, 0.0f, 0.0f);
 
-		if(node->constant_fold(sock, &optimized_value)) {
-			/* Apply optimized value to connected sockets */
-			foreach(ShaderInput *in, sock->links) {
+		if(node->constant_fold(output, &optimized_value)) {
+			/* Apply optimized value to connected sockets. */
+			vector<ShaderInput*> links(output->links);
+			foreach(ShaderInput *in, links) {
 				in->value = optimized_value;
 				disconnect(in);
 			}
