@@ -528,9 +528,11 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 			find_dependencies(cl1deps, done, cl1in);
 			find_dependencies(cl2deps, done, cl2in);
 
+			ShaderNodeIDComparator node_id_comp;
 			set_intersection(cl1deps.begin(), cl1deps.end(),
 			                 cl2deps.begin(), cl2deps.end(),
-			                 std::inserter(shareddeps, shareddeps.begin()));
+			                 std::inserter(shareddeps, shareddeps.begin()),
+			                 node_id_comp);
 
 			/* it's possible some nodes are not shared between this mix node
 			 * inputs, but still needed to be always executed, this mainly
@@ -542,10 +544,12 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 					find_dependencies(rootdeps, done, in, node);
 					set_intersection(rootdeps.begin(), rootdeps.end(),
 					                 cl1deps.begin(), cl1deps.end(),
-					                 std::inserter(shareddeps, shareddeps.begin()));
+					                 std::inserter(shareddeps, shareddeps.begin()),
+					                 node_id_comp);
 					set_intersection(rootdeps.begin(), rootdeps.end(),
 					                 cl2deps.begin(), cl2deps.end(),
-					                 std::inserter(shareddeps, shareddeps.begin()));
+					                 std::inserter(shareddeps, shareddeps.begin()),
+					                 node_id_comp);
 				}
 			}
 
