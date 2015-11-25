@@ -196,7 +196,7 @@ void EMBM_project_snap_verts(struct bContext *C, struct ARegion *ar, struct BMEd
 
 
 /* editface.c */
-void paintface_flush_flags(struct Object *ob);
+void paintface_flush_flags(struct Object *ob, short flag);
 bool paintface_mouse_select(struct bContext *C, struct Object *ob, const int mval[2], bool extend, bool deselect, bool toggle);
 int  do_paintface_box_select(struct ViewContext *vc, struct rcti *rect, bool select, bool extend);
 void paintface_deselect_all_visible(struct Object *ob, int action, bool flush_flags);

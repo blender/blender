@@ -784,7 +784,7 @@ static void do_lasso_select_paintface(ViewContext *vc, const int mcords[][2], sh
 
 	EDBM_backbuf_free();
 
-	paintface_flush_flags(ob);
+	paintface_flush_flags(ob, SELECT);
 }
 
 #if 0
@@ -2462,7 +2462,7 @@ static void paint_facesel_circle_select(ViewContext *vc, const bool select, cons
 	if (bbsel) {
 		edbm_backbuf_check_and_select_tfaces(me, select);
 		EDBM_backbuf_free();
-		paintface_flush_flags(ob);
+		paintface_flush_flags(ob, SELECT);
 	}
 }
 
