@@ -283,6 +283,7 @@ struct Render *RE_NewRender(const char *name) RET_NULL
 void RE_SwapResult(struct Render *re, struct RenderResult **rr) RET_NONE
 void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene, struct SceneRenderLayer *srl, struct Object *camera_override, unsigned int lay_override, int frame, const bool write_still) RET_NONE
 bool RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, const char imtype, float layout[12]) RET_ZERO
+void RE_cache_point_density(struct Scene *scene, struct PointDensity *pd, const bool use_render_params) RET_NONE
 
 /* rna */
 float *ED_view3d_cursor3d_get(struct Scene *scene, struct View3D *v3d) RET_NULL
