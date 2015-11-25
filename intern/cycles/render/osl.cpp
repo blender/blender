@@ -702,7 +702,7 @@ void OSLCompiler::find_dependencies(ShaderNodeSet& dependencies, ShaderInput *in
 {
 	ShaderNode *node = (input->link)? input->link->parent: NULL;
 
-	if(node) {
+	if(node != NULL && dependencies.find(node) == dependencies.end()) {
 		foreach(ShaderInput *in, node->inputs)
 			if(!node_skip_input(node, in))
 				find_dependencies(dependencies, in);

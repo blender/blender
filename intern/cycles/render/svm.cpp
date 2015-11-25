@@ -373,7 +373,11 @@ void SVMCompiler::find_dependencies(ShaderNodeSet& dependencies,
 {
 	ShaderNode *node = (input->link)? input->link->parent: NULL;
 
-	if(node && done.find(node) == done.end() && node != skip_node) {
+	if(node != NULL &&
+	   done.find(node) == done.end() &&
+	   node != skip_node &&
+	   dependencies.find(node) == dependencies.end())
+	{
 		foreach(ShaderInput *in, node->inputs)
 			if(!node_skip_input(node, in))
 				find_dependencies(dependencies, done, in, skip_node);
