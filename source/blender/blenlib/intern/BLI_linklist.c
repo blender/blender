@@ -41,7 +41,7 @@
 
 #include "BLI_strict_flags.h"
 
-int BLI_linklist_count(LinkNode *list)
+int BLI_linklist_count(const LinkNode *list)
 {
 	int len;
 
@@ -51,7 +51,7 @@ int BLI_linklist_count(LinkNode *list)
 	return len;
 }
 
-int BLI_linklist_index(LinkNode *list, void *ptr)
+int BLI_linklist_index(const LinkNode *list, void *ptr)
 {
 	int index;
 	

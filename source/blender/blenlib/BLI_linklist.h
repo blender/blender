@@ -58,8 +58,8 @@ typedef struct LinkNodePair {
 	LinkNode *list, *last_node;
 } LinkNodePair;
 
-int       BLI_linklist_count(LinkNode *list) ATTR_WARN_UNUSED_RESULT;
-int       BLI_linklist_index(LinkNode *list, void *ptr)  ATTR_WARN_UNUSED_RESULT;
+int       BLI_linklist_count(const LinkNode *list) ATTR_WARN_UNUSED_RESULT;
+int       BLI_linklist_index(const LinkNode *list, void *ptr)  ATTR_WARN_UNUSED_RESULT;
 
 LinkNode *BLI_linklist_find(LinkNode *list, int index) ATTR_WARN_UNUSED_RESULT;
 
