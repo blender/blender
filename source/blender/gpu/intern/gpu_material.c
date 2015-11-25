@@ -2278,9 +2278,6 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 	GLint lastbindcode;
 	int i, liblen, fraglen;
 
-	if (!GPU_glsl_support())
-		return NULL;
-
 	/* TODO(sergey): How to detemine whether we need OSD or not here? */
 	mat = GPU_material_from_blender(scene, ma, false);
 	pass = (mat)? mat->pass: NULL;

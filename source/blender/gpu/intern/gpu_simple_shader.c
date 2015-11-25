@@ -173,29 +173,10 @@ static GPUShader *gpu_simple_shader(int options)
 
 void GPU_simple_shader_bind(int options)
 {
-	if (GPU_glsl_support()) {
-		GPUShader *shader = gpu_simple_shader(options);
+	GPUShader *shader = gpu_simple_shader(options);
 
-		if (shader)
-			GPU_shader_bind(shader);
-	}
-	else {
-		// XXX where does this fit, depends on ortho/persp?
-
-		if (options & GPU_SHADER_LIGHTING)
-			glEnable(GL_LIGHTING);
-
-		if (options & GPU_SHADER_TWO_SIDED)
-			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-
-		if (options & GPU_SHADER_OVERRIDE_DIFFUSE) {
-			glEnable(GL_COLOR_MATERIAL);
-			glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-		}
-
-		if (options & GPU_SHADER_TEXTURE_2D)
-			glEnable(GL_TEXTURE_2D);
-	}
+	if (shader)
+		GPU_shader_bind(shader);
 
 	/* temporary hack, should be solved outside of this file */
 	GPU_MATERIAL_STATE.need_normals = (options & GPU_SHADER_LIGHTING);
@@ -203,15 +184,7 @@ void GPU_simple_shader_bind(int options)
 
 void GPU_simple_shader_unbind(void)
 {
-	if (GPU_glsl_support()) {
-		GPU_shader_unbind();
-	}
-	else {
-		glDisable(GL_LIGHTING);
-		glDisable(GL_COLOR_MATERIAL);
-		glDisable(GL_TEXTURE_2D);
-		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
-	}
+	GPU_shader_unbind();
 }
 
 /* Material Colors */

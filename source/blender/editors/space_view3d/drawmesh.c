@@ -1151,7 +1151,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		Mesh *me = ob->data;
 		TexMatCallback data = {scene, ob, me, dm};
 		bool (*set_face_cb)(void *, int);
-		bool glsl, picking = (G.f & G_PICKSEL) != 0;
+		bool picking = (G.f & G_PICKSEL) != 0;
 		
 		/* face hiding callback depending on mode */
 		if (ob == scene->obedit)
@@ -1162,7 +1162,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 			set_face_cb = NULL;
 
 		/* test if we can use glsl */
-		glsl = (v3d->drawtype == OB_MATERIAL) && GPU_glsl_support() && !picking;
+		bool glsl = (v3d->drawtype == OB_MATERIAL) && !picking;
 
 		GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
 

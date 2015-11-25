@@ -289,8 +289,6 @@ static bool check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
 
 bool draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, const char dt)
 {
-	if (!GPU_glsl_support())
-		return false;
 	if (G.f & G_PICKSEL)
 		return false;
 	if (!check_object_draw_texture(scene, v3d, dt))

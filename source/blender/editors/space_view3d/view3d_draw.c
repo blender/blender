@@ -2969,17 +2969,16 @@ void ED_view3d_draw_offscreen_init(Scene *scene, View3D *v3d)
 static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
 {
 	if (scene->world && (v3d->flag3 & V3D_SHOW_WORLD)) {
-		bool glsl = GPU_glsl_support() && BKE_scene_use_new_shading_nodes(scene) && scene->world->nodetree && scene->world->use_nodes;
+		bool glsl = BKE_scene_use_new_shading_nodes(scene) && scene->world->nodetree && scene->world->use_nodes;
 		
 		if (glsl) {
 			RegionView3D *rv3d = ar->regiondata;
 			GPUMaterial *gpumat = GPU_material_world(scene, scene->world);
-			bool material_not_bound;
 
 			/* calculate full shader for background */
 			GPU_material_bind(gpumat, 1, 1, 1.0, false, rv3d->viewmat, rv3d->viewinv, rv3d->viewcamtexcofac, (v3d->scenelock != 0));
 			
-			material_not_bound = !GPU_material_bound(gpumat);
+			bool material_not_bound = !GPU_material_bound(gpumat);
 
 			if (material_not_bound) {
 				glMatrixMode(GL_PROJECTION);
@@ -3023,7 +3022,7 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
 #define VIEWGRAD_RES_Y 16
 
 			GLubyte grid_col[VIEWGRAD_RES_X][VIEWGRAD_RES_Y][4];
-			static float   grid_pos[VIEWGRAD_RES_X][VIEWGRAD_RES_Y][3];
+			static float grid_pos[VIEWGRAD_RES_X][VIEWGRAD_RES_Y][3];
 			static GLushort indices[VIEWGRAD_RES_X - 1][VIEWGRAD_RES_X - 1][4];
 			static bool buf_calculated = false;
 
