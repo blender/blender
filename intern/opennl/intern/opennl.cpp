@@ -57,17 +57,28 @@ typedef Eigen::Triplet<double> EigenTriplet;
 
 /* NLContext data structure */
 
-typedef struct {
+struct NLCoeff {
+	NLCoeff()
+	{
+		index = 0;
+		value = 0.0;
+	}
 	NLuint index;
 	NLdouble value;
-} NLCoeff;
+};
 
-typedef struct {
+struct NLVariable {
+	NLVariable()
+	{
+		memset(value, 0, sizeof(value));
+		locked = false;
+		index = 0;
+	}
 	NLdouble value[4];
 	NLboolean locked;
 	NLuint index;
 	std::vector<NLCoeff> a;
-} NLVariable;
+};
 
 #define NL_STATE_INITIAL            0
 #define NL_STATE_SYSTEM             1
@@ -340,7 +351,9 @@ void nlMatrixAdd(NLContext *context, NLuint row, NLuint col, NLdouble value)
 		if(!context->least_squares)
 			row = context->variable[row].index;
 
-		NLCoeff coeff = {row, value};
+		NLCoeff coeff;
+		coeff.index = row;
+		coeff.value = value;
 		context->variable[col].a.push_back(coeff);
 	}
 	else {
