@@ -17,12 +17,12 @@ uniform sampler2D cocbuffer;
 
 /* initial uv coordinate */
 #if __VERSION__ < 130
-  varying in vec2 uvcoord[1];
+  varying in vec2 uvcoord[];
   varying out vec2 particlecoord;
   varying out vec4 color;
   #define textureLod texture2DLod
 #else
-  in vec2 uvcoord[1];
+  in vec2 uvcoord[];
   out vec2 particlecoord;
   out vec4 color;
 #endif

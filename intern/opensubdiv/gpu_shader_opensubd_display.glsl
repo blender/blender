@@ -81,7 +81,7 @@ uniform int osd_active_uv_offset;
 
 in block {
 	VertexData v;
-} inpt[4];
+} inpt[];
 
 #define INTERP_FACE_VARYING_2(result, fvarOffset, tessCoord)  \
 	{ \

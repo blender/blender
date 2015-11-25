@@ -8,7 +8,7 @@ uniform int osd_active_uv_offset;
 
 in block {
 	VertexData v;
-} inpt[4];
+} inpt[];
 
 /* compatibility */
 out vec3 varnormal;
