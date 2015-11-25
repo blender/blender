@@ -4160,7 +4160,7 @@ bool VectorMathNode::constant_fold(ShaderOutput *socket, float3 *optimized_value
 			optimized_value->x = value;
 			return true;
 		}
-		else if (socket == output("Vector")) {
+		else if(socket == output("Vector")) {
 			*optimized_value = vector;
 			return true;
 		}
