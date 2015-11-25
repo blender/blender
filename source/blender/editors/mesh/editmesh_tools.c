@@ -3818,12 +3818,20 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	const int quad_method = RNA_enum_get(op->ptr, "quad_method");
 	const int ngon_method = RNA_enum_get(op->ptr, "ngon_method");
+	BMOIter oiter;
+	BMFace *f;
 
 	EDBM_op_init(em, &bmop, op, "triangulate faces=%hf quad_method=%i ngon_method=%i", BM_ELEM_SELECT, quad_method, ngon_method);
 	BMO_op_exec(em->bm, &bmop);
 
 	/* select the output */
 	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
+
+	/* remove the doubles */
+	BMO_ITER (f, &oiter, bmop.slots_out, "face_map_double.out", BM_FACE) {
+		BM_face_kill(em->bm, f);
+	}
+
 	EDBM_selectmode_flush(em);
 
 	if (!EDBM_op_finish(em, &bmop, op, true)) {
