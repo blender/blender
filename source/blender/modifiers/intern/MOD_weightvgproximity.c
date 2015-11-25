@@ -33,6 +33,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_task.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -52,7 +53,7 @@
 #include "MEM_guardedalloc.h"
 #include "MOD_weightvg_util.h"
 
-// #define USE_TIMEIT
+//#define USE_TIMEIT
 
 #ifdef USE_TIMEIT
 #  include "PIL_time.h"
@@ -66,6 +67,67 @@
 /* Util macro. */
 #define OUT_OF_MEMORY() ((void)printf("WeightVGProximity: Out of memory.\n"))
 
+typedef struct Vert2GeomData {
+	/* Read-only data */
+	float (*v_cos)[3];
+
+	const SpaceTransform *loc2trgt;
+
+	BVHTreeFromMesh *treeData[3];
+
+	/* Write data, but not needing locking (two different threads will never write same index). */
+	float *dist[3];
+} Vert2GeomData;
+
+/* Data which is localized to each computed chunk (i.e. thread-safe, and with continous subset of index range). */
+typedef struct Vert2GeomDataChunk {
+	/* Read-only data */
+	float last_hit_co[3][3];
+	bool is_init[3];
+} Vert2GeomDataChunk;
+
+/**
+ * Callback used by BLI_task 'for loop' helper.
+ */
+static void vert2geom_task_cb(void *userdata, void *userdata_chunk, int iter)
+{
+	Vert2GeomData *data = userdata;
+	Vert2GeomDataChunk *data_chunk = userdata_chunk;
+
+	float tmp_co[3];
+	int i;
+
+	/* Convert the vertex to tree coordinates. */
+	copy_v3_v3(tmp_co, data->v_cos[iter]);
+	BLI_space_transform_apply(data->loc2trgt, tmp_co);
+
+	for (i = 0; i < ARRAY_SIZE(data->dist); i++) {
+		if (data->dist[i]) {
+			BVHTreeNearest nearest = {0};
+
+			/* Note that we use local proximity heuristics (to reduce the nearest search).
+			 *
+			 * If we already had an hit before in same chunk of tasks (i.e. previous vertex by index),
+			 * we assume this vertex is going to have a close hit to that other vertex, so we can initiate
+			 * the "nearest.dist" with the expected value to that last hit.
+			 * This will lead in pruning of the search tree.
+			 */
+			nearest.dist_sq = data_chunk->is_init[i] ? len_squared_v3v3(tmp_co, data_chunk->last_hit_co[i]) : FLT_MAX;
+			nearest.index = -1;
+
+			/* Compute and store result. If invalid (-1 idx), keep FLT_MAX dist. */
+			BLI_bvhtree_find_nearest(data->treeData[i]->tree, tmp_co, &nearest,
+									 data->treeData[i]->nearest_callback, data->treeData[i]);
+			data->dist[i][iter] = sqrtf(nearest.dist_sq);
+
+			if (nearest.index != -1) {
+				copy_v3_v3(data_chunk->last_hit_co[i], nearest.co);
+				data_chunk->is_init[i] = true;
+			}
+		}
+	}
+}
+
 /**
  * Find nearest vertex and/or edge and/or face, for each vertex (adapted from shrinkwrap.c).
  */
@@ -73,13 +135,12 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
                                    float *dist_v, float *dist_e, float *dist_f,
                                    DerivedMesh *target, const SpaceTransform *loc2trgt)
 {
-	int i;
+	Vert2GeomData data = {0};
+	Vert2GeomDataChunk data_chunk = {0};
+
 	BVHTreeFromMesh treeData_v = {NULL};
 	BVHTreeFromMesh treeData_e = {NULL};
 	BVHTreeFromMesh treeData_f = {NULL};
-	BVHTreeNearest nearest_v   = {0};
-	BVHTreeNearest nearest_e   = {0};
-	BVHTreeNearest nearest_f   = {0};
 
 	if (dist_v) {
 		/* Create a bvh-tree of the given target's verts. */
@@ -106,45 +167,16 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
 		}
 	}
 
-	/* Setup nearest. */
-	nearest_v.index = nearest_e.index = nearest_f.index = -1;
-	/*nearest_v.dist  = nearest_e.dist  = nearest_f.dist  = FLT_MAX;*/
-	/* Find the nearest vert/edge/face. */
-#pragma omp parallel for default(shared) private(i) firstprivate(nearest_v, nearest_e, nearest_f) \
-                         schedule(static) if (numVerts > 10000)
-	for (i = 0; i < numVerts; i++) {
-		float tmp_co[3];
+	data.v_cos = v_cos;
+	data.loc2trgt = loc2trgt;
+	data.treeData[0] = &treeData_v;
+	data.treeData[1] = &treeData_e;
+	data.treeData[2] = &treeData_f;
+	data.dist[0] = dist_v;
+	data.dist[1] = dist_e;
+	data.dist[2] = dist_f;
 
-		/* Convert the vertex to tree coordinates. */
-		copy_v3_v3(tmp_co, v_cos[i]);
-		BLI_space_transform_apply(loc2trgt, tmp_co);
-
-		/* Use local proximity heuristics (to reduce the nearest search).
-		 *
-		 * If we already had an hit before, we assume this vertex is going to have a close hit to
-		 * that other vertex, so we can initiate the "nearest.dist" with the expected value to that
-		 * last hit.
-		 * This will lead in pruning of the search tree.
-		 */
-		if (dist_v) {
-			nearest_v.dist_sq = nearest_v.index != -1 ? len_squared_v3v3(tmp_co, nearest_v.co) : FLT_MAX;
-			/* Compute and store result. If invalid (-1 idx), keep FLT_MAX dist. */
-			BLI_bvhtree_find_nearest(treeData_v.tree, tmp_co, &nearest_v, treeData_v.nearest_callback, &treeData_v);
-			dist_v[i] = sqrtf(nearest_v.dist_sq);
-		}
-		if (dist_e) {
-			nearest_e.dist_sq = nearest_e.index != -1 ? len_squared_v3v3(tmp_co, nearest_e.co) : FLT_MAX;
-			/* Compute and store result. If invalid (-1 idx), keep FLT_MAX dist. */
-			BLI_bvhtree_find_nearest(treeData_e.tree, tmp_co, &nearest_e, treeData_e.nearest_callback, &treeData_e);
-			dist_e[i] = sqrtf(nearest_e.dist_sq);
-		}
-		if (dist_f) {
-			nearest_f.dist_sq = nearest_f.index != -1 ? len_squared_v3v3(tmp_co, nearest_f.co) : FLT_MAX;
-			/* Compute and store result. If invalid (-1 idx), keep FLT_MAX dist. */
-			BLI_bvhtree_find_nearest(treeData_f.tree, tmp_co, &nearest_f, treeData_f.nearest_callback, &treeData_f);
-			dist_f[i] = sqrtf(nearest_f.dist_sq);
-		}
-	}
+	BLI_task_parallel_range_ex(0, numVerts, &data, &data_chunk, sizeof(data_chunk), vert2geom_task_cb, 10000, false);
 
 	if (dist_v)
 		free_bvhtree_from_mesh(&treeData_v);
