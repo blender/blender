@@ -15,9 +15,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor: 
- *		Jeroen Bakker 
- *		Monique Dewanchand
+ * Contributor(s): Jeroen Bakker
+ *                 Monique Dewanchand
+ *                 Sergey Sharybin
  */
 
 #include "COM_AntiAliasOperation.h"
@@ -31,76 +31,122 @@ extern "C" {
 }
 
 
+/* An implementation of the Scale3X edge-extrapolation algorithm.
+ *
+ * Code from GIMP plugin, based on code from Adam D. Moss (adam@gimp.org)
+ * licensed by the MIT license.
+ */
+static int extrapolate9(float *E0, float *E1, float *E2,
+                        float *E3, float *E4, float *E5,
+                        float *E6, float *E7, float *E8,
+                        const float *A, const float *B, const float *C,
+                        const float *D, const float *E, const float *F,
+                        const float *G, const float *H, const float *I)
+{
+#define PEQ(X,Y) (fabsf(*X - *Y) < 1e-3f)
+#define PCPY(DST,SRC) do{*DST = *SRC;}while(0)
+	if ((!PEQ(B,H)) && (!PEQ(D,F))) {
+		if (PEQ(D,B)) PCPY(E0,D); else PCPY(E0,E);
+		if ((PEQ(D,B) && !PEQ(E,C)) || (PEQ(B,F) && !PEQ(E,A)))
+			PCPY(E1,B); else PCPY(E1,E);
+		if (PEQ(B,F)) PCPY(E2,F); else PCPY(E2,E);
+		if ((PEQ(D,B) && !PEQ(E,G)) || (PEQ(D,H) && !PEQ(E,A)))
+			PCPY(E3,D); else PCPY(E3,E);
+		PCPY(E4,E);
+		if ((PEQ(B,F) && !PEQ(E,I)) || (PEQ(H,F) && !PEQ(E,C)))
+			PCPY(E5,F); else PCPY(E5,E);
+		if (PEQ(D,H)) PCPY(E6,D); else PCPY(E6,E);
+		if ((PEQ(D,H) && !PEQ(E,I)) || (PEQ(H,F) && !PEQ(E,G)))
+			PCPY(E7,H); else PCPY(E7,E);
+		if (PEQ(H,F)) PCPY(E8,F); else PCPY(E8,E);
+		return 1;
+	}
+	else {
+		return 0;
+	}
+#undef PEQ
+#undef PCPY
+}
+
 AntiAliasOperation::AntiAliasOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
 	this->m_valueReader = NULL;
-	this->m_buffer = NULL;
 	this->setComplex(true);
 }
+
 void AntiAliasOperation::initExecution()
 {
 	this->m_valueReader = this->getInputSocketReader(0);
-	NodeOperation::initMutex();
 }
 
-void AntiAliasOperation::executePixel(float output[4], int x, int y, void * /*data*/)
+void AntiAliasOperation::executePixel(float output[4],
+                                      int x, int y,
+                                      void *data)
 {
-	if (y < 0 || (unsigned int)y >= this->m_height || x < 0 || (unsigned int)x >= this->m_width) {
+	MemoryBuffer *input_buffer = (MemoryBuffer *)data;
+	const int buffer_width = input_buffer->getWidth(),
+	          buffer_height = input_buffer->getHeight();
+	if (y < 0 || y >= buffer_height || x < 0 || x >= buffer_width) {
 		output[0] = 0.0f;
 	}
 	else {
-		int offset = y * this->m_width + x;
-		output[0] = this->m_buffer[offset] / 255.0f;
+		const float *buffer = input_buffer->getBuffer();
+		const float *row_curr = &buffer[y * buffer_width];
+		if (x == 0 || x == buffer_width - 1 ||
+		    y == 0 || y == buffer_height - 1)
+		{
+			output[0] = row_curr[x];
+			return;
+		}
+		const float *row_prev = &buffer[(y - 1) * buffer_width],
+		            *row_next = &buffer[(y + 1) * buffer_width];
+		float ninepix[9];
+		if (extrapolate9(&ninepix[0], &ninepix[1], &ninepix[2],
+		                 &ninepix[3], &ninepix[4], &ninepix[5],
+		                 &ninepix[6], &ninepix[7], &ninepix[8],
+		                 &row_prev[x - 1], &row_prev[x], &row_prev[x + 1],
+		                 &row_curr[x - 1], &row_curr[x], &row_curr[x + 1],
+		                 &row_next[x - 1], &row_next[x], &row_next[x + 1]))
+		{
+			/* Some rounding magic to so make weighting correct with the
+			 * original coefficients.
+			 */
+			unsigned char result = ((3*ninepix[0] + 5*ninepix[1] + 3*ninepix[2] +
+			                         5*ninepix[3] + 6*ninepix[4] + 5*ninepix[5] +
+			                         3*ninepix[6] + 5*ninepix[7] + 3*ninepix[8]) * 255.0f +
+			                        19.0f) / 38.0f;
+			output[0] = result / 255.0f;
+		}
+		else {
+			output[0] = row_curr[x];
+		}
 	}
-	
 }
 
 void AntiAliasOperation::deinitExecution()
 {
 	this->m_valueReader = NULL;
-	if (this->m_buffer) {
-		MEM_freeN(this->m_buffer);
-	}
-	NodeOperation::deinitMutex();
 }
 
-bool AntiAliasOperation::determineDependingAreaOfInterest(rcti * /*input*/, ReadBufferOperation *readOperation, rcti *output)
+bool AntiAliasOperation::determineDependingAreaOfInterest(
+        rcti *input,
+        ReadBufferOperation *readOperation,
+        rcti *output)
 {
 	rcti imageInput;
-	if (this->m_buffer) {
-		return false;
-	}
-	else {
-		NodeOperation *operation = getInputOperation(0);
-		imageInput.xmax = operation->getWidth();
-		imageInput.xmin = 0;
-		imageInput.ymax = operation->getHeight();
-		imageInput.ymin = 0;
-		if (operation->determineDependingAreaOfInterest(&imageInput, readOperation, output) ) {
-			return true;
-		}
-	}
-	return false;
+	NodeOperation *operation = getInputOperation(0);
+	imageInput.xmax = input->xmax + 1;
+	imageInput.xmin = input->xmin - 1;
+	imageInput.ymax = input->ymax + 1;
+	imageInput.ymin = input->ymin - 1;
+	return operation->determineDependingAreaOfInterest(&imageInput,
+	                                                   readOperation,
+	                                                   output);
 }
 
 void *AntiAliasOperation::initializeTileData(rcti *rect)
 {
-	if (this->m_buffer) { return this->m_buffer; }
-	lockMutex();
-	if (this->m_buffer == NULL) {
-		MemoryBuffer *tile = (MemoryBuffer *)this->m_valueReader->initializeTileData(rect);
-		int size = tile->getHeight() * tile->getWidth();
-		float *input = tile->getBuffer();
-		char *valuebuffer = (char *)MEM_mallocN(sizeof(char) * size, __func__);
-		for (int i = 0; i < size; i++) {
-			float in = input[i];
-			valuebuffer[i] = FTOCHAR(in);
-		}
-		antialias_tagbuf(tile->getWidth(), tile->getHeight(), valuebuffer);
-		this->m_buffer = valuebuffer;
-	}
-	unlockMutex();
-	return this->m_buffer;
+	return getInputOperation(0)->initializeTileData(rect);
 }
