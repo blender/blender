@@ -1019,24 +1019,17 @@ struct GPU_PBVH_Buffers {
 	float diffuse_color[4];
 };
 
-typedef enum {
-	VBO_ENABLED,
-	VBO_DISABLED
-} VBO_State;
-
-static void gpu_colors_enable(VBO_State vbo_state)
+static void gpu_colors_enable()
 {
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 	glEnable(GL_COLOR_MATERIAL);
-	if (vbo_state == VBO_ENABLED)
-		glEnableClientState(GL_COLOR_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
 }
 
-static void gpu_colors_disable(VBO_State vbo_state)
+static void gpu_colors_disable()
 {
 	glDisable(GL_COLOR_MATERIAL);
-	if (vbo_state == VBO_ENABLED)
-		glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
 }
 
 static float gpu_color_from_mask(float mask)
@@ -1864,7 +1857,7 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 		glEnableClientState(GL_VERTEX_ARRAY);
 		if (!wireframe) {
 			glEnableClientState(GL_NORMAL_ARRAY);
-			gpu_colors_enable(VBO_ENABLED);
+			gpu_colors_enable();
 		}
 
 		GPU_buffer_bind(buffers->vert_buf, GPU_BINDING_ARRAY);
@@ -1943,7 +1936,7 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 		glDisableClientState(GL_VERTEX_ARRAY);
 		if (!wireframe) {
 			glDisableClientState(GL_NORMAL_ARRAY);
-			gpu_colors_disable(VBO_ENABLED);
+			gpu_colors_disable();
 		}
 	}
 }
