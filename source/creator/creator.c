@@ -1505,7 +1505,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 		}
 	}
 	else {
-		/* failed to load file, stop processing arguments */
+		/* failed to load file, stop processing arguments if running in background mode */
 		if (G.background) {
 			/* Set is_break if running in the background mode so
 			 * blender will return non-zero exit code which then
@@ -1513,8 +1513,14 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 			 * good or bad things are.
 			 */
 			G.is_break = true;
+			return -1;
 		}
-		return -1;
+
+		/* Just pretend a file was loaded, so the user can press Save and it'll save at the filename from the CLI. */
+		BLI_strncpy(G.main->name, filename, FILE_MAX);
+		G.relbase_valid = true;
+		G.save_over = true;
+		printf("... opened default scene instead; saving will write to %s\n", filename);
 	}
 
 	G.file_loaded = 1;
