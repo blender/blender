@@ -192,11 +192,11 @@ ShaderGraph *ShaderGraph::copy()
 	ShaderGraph *newgraph = new ShaderGraph();
 
 	/* copy nodes */
-	set<ShaderNode*> nodes_all;
+	ShaderNodeSet nodes_all;
 	foreach(ShaderNode *node, nodes)
 		nodes_all.insert(node);
 
-	map<ShaderNode*, ShaderNode*> nodes_copy;
+	ShaderNodeMap nodes_copy;
 	copy_nodes(nodes_all, nodes_copy);
 
 	/* add nodes (in same order, so output is still first) */
@@ -301,7 +301,7 @@ void ShaderGraph::finalize(Scene *scene,
 	}
 }
 
-void ShaderGraph::find_dependencies(set<ShaderNode*>& dependencies, ShaderInput *input)
+void ShaderGraph::find_dependencies(ShaderNodeSet& dependencies, ShaderInput *input)
 {
 	/* find all nodes that this input depends on directly and indirectly */
 	ShaderNode *node = (input->link)? input->link->parent: NULL;
@@ -314,7 +314,7 @@ void ShaderGraph::find_dependencies(set<ShaderNode*>& dependencies, ShaderInput 
 	}
 }
 
-void ShaderGraph::copy_nodes(set<ShaderNode*>& nodes, map<ShaderNode*, ShaderNode*>& nnodemap)
+void ShaderGraph::copy_nodes(ShaderNodeSet& nodes, ShaderNodeMap& nnodemap)
 {
 	/* copy a set of nodes, and the links between them. the assumption is
 	 * made that all nodes that inputs are linked to are in the set too. */
@@ -719,14 +719,14 @@ void ShaderGraph::refine_bump_nodes()
 	foreach(ShaderNode *node, nodes) {
 		if(node->name == ustring("bump") && node->input("Height")->link) {
 			ShaderInput *bump_input = node->input("Height");
-			set<ShaderNode*> nodes_bump;
+			ShaderNodeSet nodes_bump;
 
 			/* make 2 extra copies of the subgraph defined in Bump input */
-			map<ShaderNode*, ShaderNode*> nodes_dx;
-			map<ShaderNode*, ShaderNode*> nodes_dy;
+			ShaderNodeMap nodes_dx;
+			ShaderNodeMap nodes_dy;
 
 			/* find dependencies for the given input */
-			find_dependencies(nodes_bump, bump_input );
+			find_dependencies(nodes_bump, bump_input);
 
 			copy_nodes(nodes_bump, nodes_dx);
 			copy_nodes(nodes_bump, nodes_dy);
@@ -785,13 +785,13 @@ void ShaderGraph::bump_from_displacement()
 		return;
 	
 	/* find dependencies for the given input */
-	set<ShaderNode*> nodes_displace;
+	ShaderNodeSet nodes_displace;
 	find_dependencies(nodes_displace, displacement_in);
 
 	/* copy nodes for 3 bump samples */
-	map<ShaderNode*, ShaderNode*> nodes_center;
-	map<ShaderNode*, ShaderNode*> nodes_dx;
-	map<ShaderNode*, ShaderNode*> nodes_dy;
+	ShaderNodeMap nodes_center;
+	ShaderNodeMap nodes_dx;
+	ShaderNodeMap nodes_dy;
 
 	copy_nodes(nodes_displace, nodes_center);
 	copy_nodes(nodes_displace, nodes_dx);

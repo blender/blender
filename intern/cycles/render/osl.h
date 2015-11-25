@@ -21,6 +21,7 @@
 #include "util_string.h"
 #include "util_thread.h"
 
+#include "graph.h"
 #include "shader.h"
 
 #ifdef WITH_OSL
@@ -149,8 +150,8 @@ private:
 	string compatible_name(ShaderNode *node, ShaderInput *input);
 	string compatible_name(ShaderNode *node, ShaderOutput *output);
 
-	void find_dependencies(set<ShaderNode*>& dependencies, ShaderInput *input);
-	void generate_nodes(const set<ShaderNode*>& nodes);
+	void find_dependencies(ShaderNodeSet& dependencies, ShaderInput *input);
+	void generate_nodes(const ShaderNodeSet& nodes);
 #endif
 
 	void *shadingsys;

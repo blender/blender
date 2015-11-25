@@ -112,35 +112,36 @@ protected:
 	struct StackBackup {
 		Stack stack;
 		vector<int> offsets;
-		set<ShaderNode*> done;
+		ShaderNodeSet done;
 	};
 
-	void stack_backup(StackBackup& backup, set<ShaderNode*>& done);
-	void stack_restore(StackBackup& backup, set<ShaderNode*>& done);
+	void stack_backup(StackBackup& backup, ShaderNodeSet& done);
+	void stack_restore(StackBackup& backup, ShaderNodeSet& done);
 
 	void stack_clear_temporary(ShaderNode *node);
 	int stack_size(ShaderSocketType type);
-	void stack_clear_users(ShaderNode *node, set<ShaderNode*>& done);
+	void stack_clear_users(ShaderNode *node, ShaderNodeSet& done);
 
 	bool node_skip_input(ShaderNode *node, ShaderInput *input);
 
 	/* single closure */
-	void find_dependencies(set<ShaderNode*>& dependencies,
-	                       const set<ShaderNode*>& done,
+	void find_dependencies(ShaderNodeSet& dependencies,
+	                       const ShaderNodeSet& done,
 	                       ShaderInput *input,
 	                       ShaderNode *skip_node = NULL);
-	void generate_node(ShaderNode *node, set<ShaderNode*>& done);
-	void generate_closure_node(ShaderNode *node, set<ShaderNode*>& done);
+	void generate_node(ShaderNode *node, ShaderNodeSet& done);
+	void generate_closure_node(ShaderNode *node, ShaderNodeSet& done);
 	void generated_shared_closure_nodes(ShaderNode *root_node, ShaderNode *node,
-	                                    set<ShaderNode*>& done,
-		set<ShaderNode*>& closure_done, const set<ShaderNode*>& shared);
-	void generate_svm_nodes(const set<ShaderNode*>& nodes, set<ShaderNode*>& done);
+	                                    ShaderNodeSet& done,
+	                                    ShaderNodeSet& closure_done,
+	                                    const ShaderNodeSet& shared);
+	void generate_svm_nodes(const ShaderNodeSet& nodes, ShaderNodeSet& done);
 
 	/* multi closure */
 	void generate_multi_closure(ShaderNode *root_node,
 	                            ShaderNode *node,
-	                            set<ShaderNode*>& done,
-	                            set<ShaderNode*>& closure_done);
+	                            ShaderNodeSet& done,
+	                            ShaderNodeSet& closure_done);
 
 	/* compile */
 	void compile_type(Shader *shader, ShaderGraph *graph, ShaderType type);
