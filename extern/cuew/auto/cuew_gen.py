@@ -276,7 +276,11 @@ def parse_files():
                 if line[0].isspace() and line.lstrip().startswith("#define"):
                     line = line[12:-1]
                     token = line.split()
-                    if len(token) == 2 and token[1].endswith("_v2"):
+                    if len(token) == 2 and (token[1].endswith("_v2") or
+                                            token[1].endswith("_v2)")):
+                        if token[1].startswith('__CUDA_API_PTDS') or \
+                           token[1].startswith('__CUDA_API_PTSZ'):
+                            token[1] = token[1][16:-1]
                         DEFINES_V2.append(token)
 
         v = FuncDefVisitor()
@@ -560,7 +564,8 @@ def print_implementation():
         if error in CUDA_ERRORS:
             str = CUDA_ERRORS[error]
         else:
-            str = error[11:]
+            temp = error[11:].replace('_', ' ')
+            str = temp[0] + temp[1:].lower()
         print("    case %s: return \"%s\";" % (error, str))
 
     print("    default: return \"Unknown CUDA error value\";")

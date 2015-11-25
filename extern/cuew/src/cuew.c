@@ -36,7 +36,7 @@
 
 typedef HMODULE DynamicLibrary;
 
-#  define dynamic_library_open(path)         LoadLibrary(path)
+#  define dynamic_library_open(path)         LoadLibraryA(path)
 #  define dynamic_library_close(lib)         FreeLibrary(lib)
 #  define dynamic_library_find(lib, symbol)  GetProcAddress(lib, symbol)
 #else
@@ -70,6 +70,11 @@ tcuDeviceTotalMem_v2 *cuDeviceTotalMem_v2;
 tcuDeviceGetAttribute *cuDeviceGetAttribute;
 tcuDeviceGetProperties *cuDeviceGetProperties;
 tcuDeviceComputeCapability *cuDeviceComputeCapability;
+tcuDevicePrimaryCtxRetain *cuDevicePrimaryCtxRetain;
+tcuDevicePrimaryCtxRelease *cuDevicePrimaryCtxRelease;
+tcuDevicePrimaryCtxSetFlags *cuDevicePrimaryCtxSetFlags;
+tcuDevicePrimaryCtxGetState *cuDevicePrimaryCtxGetState;
+tcuDevicePrimaryCtxReset *cuDevicePrimaryCtxReset;
 tcuCtxCreate_v2 *cuCtxCreate_v2;
 tcuCtxDestroy_v2 *cuCtxDestroy_v2;
 tcuCtxPushCurrent_v2 *cuCtxPushCurrent_v2;
@@ -77,6 +82,7 @@ tcuCtxPopCurrent_v2 *cuCtxPopCurrent_v2;
 tcuCtxSetCurrent *cuCtxSetCurrent;
 tcuCtxGetCurrent *cuCtxGetCurrent;
 tcuCtxGetDevice *cuCtxGetDevice;
+tcuCtxGetFlags *cuCtxGetFlags;
 tcuCtxSynchronize *cuCtxSynchronize;
 tcuCtxSetLimit *cuCtxSetLimit;
 tcuCtxGetLimit *cuCtxGetLimit;
@@ -97,9 +103,9 @@ tcuModuleGetFunction *cuModuleGetFunction;
 tcuModuleGetGlobal_v2 *cuModuleGetGlobal_v2;
 tcuModuleGetTexRef *cuModuleGetTexRef;
 tcuModuleGetSurfRef *cuModuleGetSurfRef;
-tcuLinkCreate *cuLinkCreate;
-tcuLinkAddData *cuLinkAddData;
-tcuLinkAddFile *cuLinkAddFile;
+tcuLinkCreate_v2 *cuLinkCreate_v2;
+tcuLinkAddData_v2 *cuLinkAddData_v2;
+tcuLinkAddFile_v2 *cuLinkAddFile_v2;
 tcuLinkComplete *cuLinkComplete;
 tcuLinkDestroy *cuLinkDestroy;
 tcuMemGetInfo_v2 *cuMemGetInfo_v2;
@@ -120,7 +126,7 @@ tcuIpcOpenEventHandle *cuIpcOpenEventHandle;
 tcuIpcGetMemHandle *cuIpcGetMemHandle;
 tcuIpcOpenMemHandle *cuIpcOpenMemHandle;
 tcuIpcCloseMemHandle *cuIpcCloseMemHandle;
-tcuMemHostRegister *cuMemHostRegister;
+tcuMemHostRegister_v2 *cuMemHostRegister_v2;
 tcuMemHostUnregister *cuMemHostUnregister;
 tcuMemcpy *cuMemcpy;
 tcuMemcpyPeer *cuMemcpyPeer;
@@ -168,6 +174,7 @@ tcuMipmappedArrayGetLevel *cuMipmappedArrayGetLevel;
 tcuMipmappedArrayDestroy *cuMipmappedArrayDestroy;
 tcuPointerGetAttribute *cuPointerGetAttribute;
 tcuPointerSetAttribute *cuPointerSetAttribute;
+tcuPointerGetAttributes *cuPointerGetAttributes;
 tcuStreamCreate *cuStreamCreate;
 tcuStreamCreateWithPriority *cuStreamCreateWithPriority;
 tcuStreamGetPriority *cuStreamGetPriority;
@@ -198,6 +205,10 @@ tcuLaunch *cuLaunch;
 tcuLaunchGrid *cuLaunchGrid;
 tcuLaunchGridAsync *cuLaunchGridAsync;
 tcuParamSetTexRef *cuParamSetTexRef;
+tcuOccupancyMaxActiveBlocksPerMultiprocessor *cuOccupancyMaxActiveBlocksPerMultiprocessor;
+tcuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags *cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags;
+tcuOccupancyMaxPotentialBlockSize *cuOccupancyMaxPotentialBlockSize;
+tcuOccupancyMaxPotentialBlockSizeWithFlags *cuOccupancyMaxPotentialBlockSizeWithFlags;
 tcuTexRefSetArray *cuTexRefSetArray;
 tcuTexRefSetMipmappedArray *cuTexRefSetMipmappedArray;
 tcuTexRefSetAddress_v2 *cuTexRefSetAddress_v2;
@@ -240,14 +251,14 @@ tcuGraphicsUnregisterResource *cuGraphicsUnregisterResource;
 tcuGraphicsSubResourceGetMappedArray *cuGraphicsSubResourceGetMappedArray;
 tcuGraphicsResourceGetMappedMipmappedArray *cuGraphicsResourceGetMappedMipmappedArray;
 tcuGraphicsResourceGetMappedPointer_v2 *cuGraphicsResourceGetMappedPointer_v2;
-tcuGraphicsResourceSetMapFlags *cuGraphicsResourceSetMapFlags;
+tcuGraphicsResourceSetMapFlags_v2 *cuGraphicsResourceSetMapFlags_v2;
 tcuGraphicsMapResources *cuGraphicsMapResources;
 tcuGraphicsUnmapResources *cuGraphicsUnmapResources;
 tcuGetExportTable *cuGetExportTable;
 
 tcuGraphicsGLRegisterBuffer *cuGraphicsGLRegisterBuffer;
 tcuGraphicsGLRegisterImage *cuGraphicsGLRegisterImage;
-tcuGLGetDevices *cuGLGetDevices;
+tcuGLGetDevices_v2 *cuGLGetDevices_v2;
 tcuGLCtxCreate_v2 *cuGLCtxCreate_v2;
 tcuGLInit *cuGLInit;
 tcuGLRegisterBufferObject *cuGLRegisterBufferObject;
@@ -328,6 +339,11 @@ int cuewInit(void) {
   CUDA_LIBRARY_FIND(cuDeviceGetAttribute);
   CUDA_LIBRARY_FIND(cuDeviceGetProperties);
   CUDA_LIBRARY_FIND(cuDeviceComputeCapability);
+  CUDA_LIBRARY_FIND(cuDevicePrimaryCtxRetain);
+  CUDA_LIBRARY_FIND(cuDevicePrimaryCtxRelease);
+  CUDA_LIBRARY_FIND(cuDevicePrimaryCtxSetFlags);
+  CUDA_LIBRARY_FIND(cuDevicePrimaryCtxGetState);
+  CUDA_LIBRARY_FIND(cuDevicePrimaryCtxReset);
   CUDA_LIBRARY_FIND(cuCtxCreate_v2);
   CUDA_LIBRARY_FIND(cuCtxDestroy_v2);
   CUDA_LIBRARY_FIND(cuCtxPushCurrent_v2);
@@ -335,6 +351,7 @@ int cuewInit(void) {
   CUDA_LIBRARY_FIND(cuCtxSetCurrent);
   CUDA_LIBRARY_FIND(cuCtxGetCurrent);
   CUDA_LIBRARY_FIND(cuCtxGetDevice);
+  CUDA_LIBRARY_FIND(cuCtxGetFlags);
   CUDA_LIBRARY_FIND(cuCtxSynchronize);
   CUDA_LIBRARY_FIND(cuCtxSetLimit);
   CUDA_LIBRARY_FIND(cuCtxGetLimit);
@@ -355,9 +372,9 @@ int cuewInit(void) {
   CUDA_LIBRARY_FIND(cuModuleGetGlobal_v2);
   CUDA_LIBRARY_FIND(cuModuleGetTexRef);
   CUDA_LIBRARY_FIND(cuModuleGetSurfRef);
-  CUDA_LIBRARY_FIND(cuLinkCreate);
-  CUDA_LIBRARY_FIND(cuLinkAddData);
-  CUDA_LIBRARY_FIND(cuLinkAddFile);
+  CUDA_LIBRARY_FIND(cuLinkCreate_v2);
+  CUDA_LIBRARY_FIND(cuLinkAddData_v2);
+  CUDA_LIBRARY_FIND(cuLinkAddFile_v2);
   CUDA_LIBRARY_FIND(cuLinkComplete);
   CUDA_LIBRARY_FIND(cuLinkDestroy);
   CUDA_LIBRARY_FIND(cuMemGetInfo_v2);
@@ -378,7 +395,7 @@ int cuewInit(void) {
   CUDA_LIBRARY_FIND(cuIpcGetMemHandle);
   CUDA_LIBRARY_FIND(cuIpcOpenMemHandle);
   CUDA_LIBRARY_FIND(cuIpcCloseMemHandle);
-  CUDA_LIBRARY_FIND(cuMemHostRegister);
+  CUDA_LIBRARY_FIND(cuMemHostRegister_v2);
   CUDA_LIBRARY_FIND(cuMemHostUnregister);
   CUDA_LIBRARY_FIND(cuMemcpy);
   CUDA_LIBRARY_FIND(cuMemcpyPeer);
@@ -426,6 +443,7 @@ int cuewInit(void) {
   CUDA_LIBRARY_FIND(cuMipmappedArrayDestroy);
   CUDA_LIBRARY_FIND(cuPointerGetAttribute);
   CUDA_LIBRARY_FIND(cuPointerSetAttribute);
+  CUDA_LIBRARY_FIND(cuPointerGetAttributes);
   CUDA_LIBRARY_FIND(cuStreamCreate);
   CUDA_LIBRARY_FIND(cuStreamCreateWithPriority);
   CUDA_LIBRARY_FIND(cuStreamGetPriority);
@@ -456,6 +474,10 @@ int cuewInit(void) {
   CUDA_LIBRARY_FIND(cuLaunchGrid);
   CUDA_LIBRARY_FIND(cuLaunchGridAsync);
   CUDA_LIBRARY_FIND(cuParamSetTexRef);
+  CUDA_LIBRARY_FIND(cuOccupancyMaxActiveBlocksPerMultiprocessor);
+  CUDA_LIBRARY_FIND(cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags);
+  CUDA_LIBRARY_FIND(cuOccupancyMaxPotentialBlockSize);
+  CUDA_LIBRARY_FIND(cuOccupancyMaxPotentialBlockSizeWithFlags);
   CUDA_LIBRARY_FIND(cuTexRefSetArray);
   CUDA_LIBRARY_FIND(cuTexRefSetMipmappedArray);
   CUDA_LIBRARY_FIND(cuTexRefSetAddress_v2);
@@ -498,14 +520,14 @@ int cuewInit(void) {
   CUDA_LIBRARY_FIND(cuGraphicsSubResourceGetMappedArray);
   CUDA_LIBRARY_FIND(cuGraphicsResourceGetMappedMipmappedArray);
   CUDA_LIBRARY_FIND(cuGraphicsResourceGetMappedPointer_v2);
-  CUDA_LIBRARY_FIND(cuGraphicsResourceSetMapFlags);
+  CUDA_LIBRARY_FIND(cuGraphicsResourceSetMapFlags_v2);
   CUDA_LIBRARY_FIND(cuGraphicsMapResources);
   CUDA_LIBRARY_FIND(cuGraphicsUnmapResources);
   CUDA_LIBRARY_FIND(cuGetExportTable);
 
   CUDA_LIBRARY_FIND(cuGraphicsGLRegisterBuffer);
   CUDA_LIBRARY_FIND(cuGraphicsGLRegisterImage);
-  CUDA_LIBRARY_FIND(cuGLGetDevices);
+  CUDA_LIBRARY_FIND(cuGLGetDevices_v2);
   CUDA_LIBRARY_FIND(cuGLCtxCreate_v2);
   CUDA_LIBRARY_FIND(cuGLInit);
   CUDA_LIBRARY_FIND(cuGLRegisterBufferObject);
@@ -528,10 +550,10 @@ const char *cuewErrorString(CUresult result) {
     case CUDA_ERROR_OUT_OF_MEMORY: return "Out of memory";
     case CUDA_ERROR_NOT_INITIALIZED: return "Driver not initialized";
     case CUDA_ERROR_DEINITIALIZED: return "Driver deinitialized";
-    case CUDA_ERROR_PROFILER_DISABLED: return "PROFILER_DISABLED";
-    case CUDA_ERROR_PROFILER_NOT_INITIALIZED: return "PROFILER_NOT_INITIALIZED";
-    case CUDA_ERROR_PROFILER_ALREADY_STARTED: return "PROFILER_ALREADY_STARTED";
-    case CUDA_ERROR_PROFILER_ALREADY_STOPPED: return "PROFILER_ALREADY_STOPPED";
+    case CUDA_ERROR_PROFILER_DISABLED: return "Profiler disabled";
+    case CUDA_ERROR_PROFILER_NOT_INITIALIZED: return "Profiler not initialized";
+    case CUDA_ERROR_PROFILER_ALREADY_STARTED: return "Profiler already started";
+    case CUDA_ERROR_PROFILER_ALREADY_STOPPED: return "Profiler already stopped";
     case CUDA_ERROR_NO_DEVICE: return "No CUDA-capable device available";
     case CUDA_ERROR_INVALID_DEVICE: return "Invalid device";
     case CUDA_ERROR_INVALID_IMAGE: return "Invalid kernel image";
@@ -548,37 +570,38 @@ const char *cuewErrorString(CUresult result) {
     case CUDA_ERROR_NOT_MAPPED_AS_POINTER: return "Mapped resource not available for access as a pointer";
     case CUDA_ERROR_ECC_UNCORRECTABLE: return "Uncorrectable ECC error detected";
     case CUDA_ERROR_UNSUPPORTED_LIMIT: return "CUlimit not supported by device";
-    case CUDA_ERROR_CONTEXT_ALREADY_IN_USE: return "CONTEXT_ALREADY_IN_USE";
-    case CUDA_ERROR_PEER_ACCESS_UNSUPPORTED: return "PEER_ACCESS_UNSUPPORTED";
-    case CUDA_ERROR_INVALID_PTX: return "INVALID_PTX";
+    case CUDA_ERROR_CONTEXT_ALREADY_IN_USE: return "Context already in use";
+    case CUDA_ERROR_PEER_ACCESS_UNSUPPORTED: return "Peer access unsupported";
+    case CUDA_ERROR_INVALID_PTX: return "Invalid ptx";
+    case CUDA_ERROR_INVALID_GRAPHICS_CONTEXT: return "Invalid graphics context";
     case CUDA_ERROR_INVALID_SOURCE: return "Invalid source";
     case CUDA_ERROR_FILE_NOT_FOUND: return "File not found";
     case CUDA_ERROR_SHARED_OBJECT_SYMBOL_NOT_FOUND: return "Link to a shared object failed to resolve";
     case CUDA_ERROR_SHARED_OBJECT_INIT_FAILED: return "Shared object initialization failed";
-    case CUDA_ERROR_OPERATING_SYSTEM: return "OPERATING_SYSTEM";
+    case CUDA_ERROR_OPERATING_SYSTEM: return "Operating system";
     case CUDA_ERROR_INVALID_HANDLE: return "Invalid handle";
     case CUDA_ERROR_NOT_FOUND: return "Not found";
     case CUDA_ERROR_NOT_READY: return "CUDA not ready";
-    case CUDA_ERROR_ILLEGAL_ADDRESS: return "ILLEGAL_ADDRESS";
+    case CUDA_ERROR_ILLEGAL_ADDRESS: return "Illegal address";
     case CUDA_ERROR_LAUNCH_OUT_OF_RESOURCES: return "Launch exceeded resources";
     case CUDA_ERROR_LAUNCH_TIMEOUT: return "Launch exceeded timeout";
     case CUDA_ERROR_LAUNCH_INCOMPATIBLE_TEXTURING: return "Launch with incompatible texturing";
-    case CUDA_ERROR_PEER_ACCESS_ALREADY_ENABLED: return "PEER_ACCESS_ALREADY_ENABLED";
-    case CUDA_ERROR_PEER_ACCESS_NOT_ENABLED: return "PEER_ACCESS_NOT_ENABLED";
-    case CUDA_ERROR_PRIMARY_CONTEXT_ACTIVE: return "PRIMARY_CONTEXT_ACTIVE";
-    case CUDA_ERROR_CONTEXT_IS_DESTROYED: return "CONTEXT_IS_DESTROYED";
-    case CUDA_ERROR_ASSERT: return "ASSERT";
-    case CUDA_ERROR_TOO_MANY_PEERS: return "TOO_MANY_PEERS";
-    case CUDA_ERROR_HOST_MEMORY_ALREADY_REGISTERED: return "HOST_MEMORY_ALREADY_REGISTERED";
-    case CUDA_ERROR_HOST_MEMORY_NOT_REGISTERED: return "HOST_MEMORY_NOT_REGISTERED";
-    case CUDA_ERROR_HARDWARE_STACK_ERROR: return "HARDWARE_STACK_ERROR";
-    case CUDA_ERROR_ILLEGAL_INSTRUCTION: return "ILLEGAL_INSTRUCTION";
-    case CUDA_ERROR_MISALIGNED_ADDRESS: return "MISALIGNED_ADDRESS";
-    case CUDA_ERROR_INVALID_ADDRESS_SPACE: return "INVALID_ADDRESS_SPACE";
-    case CUDA_ERROR_INVALID_PC: return "INVALID_PC";
+    case CUDA_ERROR_PEER_ACCESS_ALREADY_ENABLED: return "Peer access already enabled";
+    case CUDA_ERROR_PEER_ACCESS_NOT_ENABLED: return "Peer access not enabled";
+    case CUDA_ERROR_PRIMARY_CONTEXT_ACTIVE: return "Primary context active";
+    case CUDA_ERROR_CONTEXT_IS_DESTROYED: return "Context is destroyed";
+    case CUDA_ERROR_ASSERT: return "Assert";
+    case CUDA_ERROR_TOO_MANY_PEERS: return "Too many peers";
+    case CUDA_ERROR_HOST_MEMORY_ALREADY_REGISTERED: return "Host memory already registered";
+    case CUDA_ERROR_HOST_MEMORY_NOT_REGISTERED: return "Host memory not registered";
+    case CUDA_ERROR_HARDWARE_STACK_ERROR: return "Hardware stack error";
+    case CUDA_ERROR_ILLEGAL_INSTRUCTION: return "Illegal instruction";
+    case CUDA_ERROR_MISALIGNED_ADDRESS: return "Misaligned address";
+    case CUDA_ERROR_INVALID_ADDRESS_SPACE: return "Invalid address space";
+    case CUDA_ERROR_INVALID_PC: return "Invalid pc";
     case CUDA_ERROR_LAUNCH_FAILED: return "Launch failed";
-    case CUDA_ERROR_NOT_PERMITTED: return "NOT_PERMITTED";
-    case CUDA_ERROR_NOT_SUPPORTED: return "NOT_SUPPORTED";
+    case CUDA_ERROR_NOT_PERMITTED: return "Not permitted";
+    case CUDA_ERROR_NOT_SUPPORTED: return "Not supported";
     case CUDA_ERROR_UNKNOWN: return "Unknown error";
     default: return "Unknown CUDA error value";
   }
@@ -686,7 +709,7 @@ int cuewCompilerVersion(void) {
 
   while (!feof(pipe)) {
     if (fgets(buf, sizeof(buf), pipe) != NULL) {
-      strncat(output, buf, sizeof(output) - strlen(output) - 1 );
+      strncat(output, buf, sizeof(output) - strlen(output) - 1);
     }
   }
 
