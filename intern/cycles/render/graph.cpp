@@ -297,7 +297,7 @@ void ShaderGraph::finalize(Scene *scene,
 		finalized = true;
 	}
 	else if(do_simplify) {
-		simplify_nodes(scene);
+		simplify_settings(scene);
 	}
 }
 
@@ -562,11 +562,44 @@ void ShaderGraph::remove_unneeded_nodes()
 	}
 }
 
+/* Step 2: Constant folding.
+ * Try to constant fold some nodes, and pipe result directly to
+ * the input socket of connected nodes.
+ */
+void ShaderGraph::constant_fold(set<ShaderNode*>& done, ShaderNode *node)
+{
+	/* Only fold each node once. */
+	if(done.find(node) != done.end())
+		return;
+
+	done.insert(node);
+
+	/* Fold nodes connected to inputs first. */
+	foreach(ShaderInput *in, node->inputs) {
+		if(in->link) {
+			constant_fold(done, in->link->parent);
+		}
+	}
+
+	/* Then fold self. */
+	foreach(ShaderOutput *sock, node->outputs) {
+		float3 optimized_value = make_float3(0.0f, 0.0f, 0.0f);
+
+		if(node->constant_fold(sock, &optimized_value)) {
+			/* Apply optimized value to connected sockets */
+			foreach(ShaderInput *in, sock->links) {
+				in->value = optimized_value;
+				disconnect(in);
+			}
+		}
+	}
+}
+
 /* Step 3: Simplification.*/
-void ShaderGraph::simplify_nodes(Scene *scene)
+void ShaderGraph::simplify_settings(Scene *scene)
 {
 	foreach(ShaderNode *node, nodes) {
-		node->optimize(scene);
+		node->simplify_settings(scene);
 	}
 }
 
@@ -607,10 +640,11 @@ void ShaderGraph::clean(Scene *scene)
 	remove_unneeded_nodes();
 
 	/* 2: Constant folding. */
-	/* TODO(dingto): Implement */
+	set<ShaderNode*> done;
+	constant_fold(done, output());
 
 	/* 3: Simplification. */
-	simplify_nodes(scene);
+	simplify_settings(scene);
 
 	/* 4: De-duplication. */
 	/* TODO(dingto): Implement */
