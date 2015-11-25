@@ -715,6 +715,21 @@ static void particle_system_minmax(Scene *scene,
 	}
 }
 
+void RE_cache_point_density(Scene *scene,
+                            PointDensity *pd,
+                            const bool use_render_params)
+{
+	float mat[4][4];
+	/* Same matricies/resolution as dupli_render_particle_set(). */
+	unit_m4(mat);
+	BLI_mutex_lock(&sample_mutex);
+	cache_pointdensity_ex(scene, pd, mat, mat, 1, 1, use_render_params);
+	BLI_mutex_unlock(&sample_mutex);
+}
+
+/* NOTE 1: Requires RE_cache_point_density() to be called first.
+ * NOTE 2: Frees point density structure after sampling.
+ */
 void RE_sample_point_density(Scene *scene,
                              PointDensity *pd,
                              const int resolution,
@@ -724,7 +739,11 @@ void RE_sample_point_density(Scene *scene,
 	const size_t resolution2 = resolution * resolution;
 	Object *object = pd->object;
 	size_t x, y, z;
-	float min[3], max[3], dim[3], mat[4][4];
+	float min[3], max[3], dim[3];
+
+	/* TODO(sergey): Implement some sort of assert() that point density
+	 * was cached already.
+	 */
 
 	if (object == NULL) {
 		sample_dummy_point_density(resolution, values);
@@ -766,11 +785,7 @@ void RE_sample_point_density(Scene *scene,
 		return;
 	}
 
-	/* Same matricies/resolution as dupli_render_particle_set(). */
-	unit_m4(mat);
-
 	BLI_mutex_lock(&sample_mutex);
-	cache_pointdensity_ex(scene, pd, mat, mat, 1, 1, use_render_params);
 	for (z = 0; z < resolution; ++z) {
 		for (y = 0; y < resolution; ++y) {
 			for (x = 0; x < resolution; ++x) {

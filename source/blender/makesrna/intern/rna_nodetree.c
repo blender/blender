@@ -3016,6 +3016,39 @@ static int point_density_color_source_from_shader(NodeShaderTexPointDensity *sha
 	}
 }
 
+void rna_ShaderNodePointDensity_density_cache(bNode *self,
+                                              Scene *scene,
+                                              int settings)
+{
+	NodeShaderTexPointDensity *shader_point_density = self->storage;
+	PointDensity *pd = &shader_point_density->pd;
+	if (scene == NULL) {
+		return;
+	}
+
+	/* Create PointDensity structure from node for sampling. */
+	memset(pd, 0, sizeof(*pd));
+	BKE_texture_pointdensity_init_data(pd);
+	pd->object = (Object *)self->id;
+	pd->radius = shader_point_density->radius;
+	if (shader_point_density->point_source == SHD_POINTDENSITY_SOURCE_PSYS) {
+		pd->source = TEX_PD_PSYS;
+		pd->psys = shader_point_density->particle_system;
+		pd->psys_cache_space = TEX_PD_OBJECTSPACE;
+	}
+	else {
+		BLI_assert(shader_point_density->point_source == SHD_POINTDENSITY_SOURCE_OBJECT);
+		pd->source = TEX_PD_OBJECT;
+		pd->ob_cache_space = TEX_PD_OBJECTSPACE;
+	}
+	pd->color_source = point_density_color_source_from_shader(shader_point_density);
+
+	/* Single-threaded sampling of the voxel domain. */
+	RE_cache_point_density(scene,
+	                       pd,
+	                       settings == 1);
+}
+
 void rna_ShaderNodePointDensity_density_calc(bNode *self,
                                              Scene *scene,
                                              int settings,
@@ -3023,7 +3056,7 @@ void rna_ShaderNodePointDensity_density_calc(bNode *self,
                                              float **values)
 {
 	NodeShaderTexPointDensity *shader_point_density = self->storage;
-	PointDensity pd;
+	PointDensity *pd = &shader_point_density->pd;
 
 	if (scene == NULL) {
 		*length = 0;
@@ -3038,30 +3071,14 @@ void rna_ShaderNodePointDensity_density_calc(bNode *self,
 		*values = MEM_mallocN(sizeof(float) * (*length), "point density dynamic array");
 	}
 
-	/* Create PointDensity structure from node for sampling. */
-	BKE_texture_pointdensity_init_data(&pd);
-	pd.object = (Object *)self->id;
-	pd.radius = shader_point_density->radius;
-	if (shader_point_density->point_source == SHD_POINTDENSITY_SOURCE_PSYS) {
-		pd.source = TEX_PD_PSYS;
-		pd.psys = shader_point_density->particle_system;
-		pd.psys_cache_space = TEX_PD_OBJECTSPACE;
-	}
-	else {
-		BLI_assert(shader_point_density->point_source == SHD_POINTDENSITY_SOURCE_OBJECT);
-		pd.source = TEX_PD_OBJECT;
-		pd.ob_cache_space = TEX_PD_OBJECTSPACE;
-	}
-	pd.color_source = point_density_color_source_from_shader(shader_point_density);
-
 	/* Single-threaded sampling of the voxel domain. */
-	RE_sample_point_density(scene, &pd,
+	RE_sample_point_density(scene, pd,
 	                        shader_point_density->resolution,
 	                        settings == 1,
 	                        *values);
 
 	/* We're done, time to clean up. */
-	BKE_texture_pointdensity_free_data(&pd);
+	BKE_texture_pointdensity_free_data(pd);
 }
 
 #else
@@ -3992,6 +4009,11 @@ static void def_sh_tex_pointdensity(StructRNA *srna)
 	RNA_def_property_enum_items(prop, color_source_items);
 	RNA_def_property_ui_text(prop, "Color Source", "Data to derive color results from");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	func = RNA_def_function(srna, "cache_point_density", "rna_ShaderNodePointDensity_density_cache");
+	RNA_def_function_ui_description(func, "Cache point density data for later calculation");
+	RNA_def_pointer(func, "scene", "Scene", "", "");
+	RNA_def_enum(func, "settings", calc_mode_items, 1, "", "Calculate density for rendering");
 
 	func = RNA_def_function(srna, "calc_point_density", "rna_ShaderNodePointDensity_density_calc");
 	RNA_def_function_ui_description(func, "Calculate point density");

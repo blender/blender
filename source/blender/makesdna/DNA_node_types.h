@@ -807,6 +807,7 @@ typedef struct NodeShaderTexPointDensity {
 	short interpolation;
 	short color_source;
 	short pad2;
+	PointDensity pd;
 } NodeShaderTexPointDensity;
 
 /* TEX_output */
