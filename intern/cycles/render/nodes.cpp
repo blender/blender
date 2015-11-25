@@ -4478,6 +4478,7 @@ void OSLScriptNode::compile(SVMCompiler& /*compiler*/)
 
 void OSLScriptNode::compile(OSLCompiler& compiler)
 {
+#if OSL_LIBRARY_VERSION_CODE < 10701
 	/* XXX fix for #36790:
 	 * point and normal parameters are reflected as generic SOCK_VECTOR sockets
 	 * on the node. Socket fixed input values need to be copied explicitly here for
@@ -4497,6 +4498,7 @@ void OSLScriptNode::compile(OSLCompiler& compiler)
 			}
 		}
 	}
+#endif
 
 	if(!filepath.empty())
 		compiler.add(this, filepath.c_str(), true);

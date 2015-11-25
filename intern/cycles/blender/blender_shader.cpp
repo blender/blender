@@ -107,6 +107,32 @@ static ShaderSocketType convert_socket_type(BL::NodeSocket b_socket)
 	}
 }
 
+#ifdef WITH_OSL
+static ShaderSocketType convert_osl_socket_type(OSL::OSLQuery& query,
+                                                BL::NodeSocket b_socket)
+{
+	ShaderSocketType socket_type = convert_socket_type(b_socket);
+#if OSL_LIBRARY_VERSION_CODE < 10701
+	(void) query;
+#else
+	if(socket_type == SHADER_SOCKET_VECTOR) {
+		/* TODO(sergey): Do we need compatible_name() here? */
+		const OSL::OSLQuery::Parameter *param = query.getparam(b_socket.name());
+		assert(param != NULL);
+		if(param != NULL) {
+			if(param->type.vecsemantics == TypeDesc::POINT) {
+				socket_type = SHADER_SOCKET_POINT;
+			}
+			else if(param->type.vecsemantics == TypeDesc::NORMAL) {
+				socket_type = SHADER_SOCKET_NORMAL;
+			}
+		}
+	}
+#endif
+	return socket_type;
+}
+#endif  /* WITH_OSL */
+
 static void set_default_value(ShaderInput *input, BL::NodeSocket b_sock, BL::BlendData b_data, BL::ID b_id)
 {
 	/* copy values for non linked inputs */
@@ -508,6 +534,23 @@ static ShaderNode *add_node(Scene *scene,
 			BL::ShaderNodeScript b_script_node(b_node);
 			OSLScriptNode *script_node = new OSLScriptNode();
 
+			OSLShaderManager *manager = (OSLShaderManager*)scene->shader_manager;
+			string bytecode_hash = b_script_node.bytecode_hash();
+
+			/* Gather additional information from the shader, such as
+			 * input/output type info needed for proper node construction.
+			 */
+			OSL::OSLQuery query;
+#if OSL_LIBRARY_VERSION_CODE >= 10701
+			if(!bytecode_hash.empty()) {
+				query.open_bytecode(b_script_node.bytecode());
+			}
+			else {
+				!OSLShaderManager::osl_query(query, b_script_node.filepath());
+			}
+			/* TODO(sergey): Add proper query info error parsing. */
+#endif
+
 			/* Generate inputs/outputs from node sockets
 			 *
 			 * Note: the node sockets are generated from OSL parameters,
@@ -520,7 +563,7 @@ static ShaderNode *add_node(Scene *scene,
 			for(b_script_node.inputs.begin(b_input); b_input != b_script_node.inputs.end(); ++b_input) {
 				script_node->input_names.push_back(ustring(b_input->name()));
 				ShaderInput *input = script_node->add_input(script_node->input_names.back().c_str(),
-				                                            convert_socket_type(*b_input));
+				                                            convert_osl_socket_type(query, *b_input));
 				set_default_value(input, *b_input, b_data, b_ntree);
 			}
 
@@ -529,13 +572,10 @@ static ShaderNode *add_node(Scene *scene,
 			for(b_script_node.outputs.begin(b_output); b_output != b_script_node.outputs.end(); ++b_output) {
 				script_node->output_names.push_back(ustring(b_output->name()));
 				script_node->add_output(script_node->output_names.back().c_str(),
-				                        convert_socket_type(*b_output));
+				                        convert_osl_socket_type(query, *b_output));
 			}
 
 			/* load bytecode or filepath */
-			OSLShaderManager *manager = (OSLShaderManager*)scene->shader_manager;
-			string bytecode_hash = b_script_node.bytecode_hash();
-
 			if(!bytecode_hash.empty()) {
 				/* loaded bytecode if not already done */
 				if(!manager->shader_test_loaded(bytecode_hash))
