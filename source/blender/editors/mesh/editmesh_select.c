@@ -1259,7 +1259,7 @@ static int edbm_select_similar_region_exec(bContext *C, wmOperator *op)
 				while ((f = *(faces++))) {
 					BM_face_select_set(bm, f, true);
 				}
-				MEM_freeN(faces);
+				MEM_freeN(link->data);
 				MEM_freeN(link);
 
 				changed = true;
