@@ -513,6 +513,13 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args,
 			return NULL;
 		}
 	}
+	else {
+		if (BM_loop_is_adjacent(l_a, l_b)) {
+			PyErr_SetString(PyExc_ValueError,
+			                "face_split(...): verts are adjacent in the face");
+			return NULL;
+		}
+	}
 
 	/* --- main function body --- */
 	bm = py_face->bm;
