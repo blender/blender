@@ -287,8 +287,8 @@ void RAS_OpenGLLight::Update()
 		for (int i=0; i<4; i++)
 			for (int j=0; j<4; j++, dobmat++)
 				obmat[i][j] = (float)*dobmat;
-
-		GPU_lamp_update(lamp, m_layer, 0, obmat);
+		int hide = kxlight->GetVisible() ? 0 : 1;
+		GPU_lamp_update(lamp, m_layer, hide, obmat);
 		GPU_lamp_update_colors(lamp, m_color[0], m_color[1],
 			m_color[2], m_energy);
 		GPU_lamp_update_distance(lamp, m_distance, m_att1, m_att2);
