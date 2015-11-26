@@ -999,7 +999,8 @@ bool BM_mesh_intersect(
 				const float fac = line_point_factor_v3(vi->co, e->v1->co, e->v2->co);
 
 				if (BM_vert_in_edge(e, v_prev)) {
-					v_prev = BM_edge_split(bm, e, v_prev, NULL, CLAMPIS(fac, 0.0f, 1.0f));
+					BMEdge *e_split;
+					v_prev = BM_edge_split(bm, e, v_prev, &e_split, CLAMPIS(fac, 0.0f, 1.0f));
 					BLI_assert(BM_vert_in_edge(e, v_end));
 
 					if (!BM_edge_exists(v_prev, vi) &&
@@ -1013,7 +1014,7 @@ bool BM_mesh_intersect(
 					}
 					v_prev = vi;
 					if (is_wire) {
-						BLI_gset_insert(s.wire_edges, e);
+						BLI_gset_insert(s.wire_edges, e_split);
 					}
 				}
 			}
