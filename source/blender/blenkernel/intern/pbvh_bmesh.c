@@ -1245,8 +1245,8 @@ static bool pbvh_bmesh_collapse_short_edges(
 
 	while (!BLI_heap_is_empty(eq_ctx->q->heap)) {
 		BMVert **pair = BLI_heap_popmin(eq_ctx->q->heap);
-		BLI_mempool_free(eq_ctx->pool, pair);
 		BMVert *v1 = pair[0], *v2 = pair[1];
+		BLI_mempool_free(eq_ctx->pool, pair);
 		pair = NULL;
 
 		/* Check the verts still exist */
