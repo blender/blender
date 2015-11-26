@@ -43,22 +43,22 @@ static int extrapolate9(float *E0, float *E1, float *E2,
                         const float *D, const float *E, const float *F,
                         const float *G, const float *H, const float *I)
 {
-#define PEQ(X,Y) (fabsf(*X - *Y) < 1e-3f)
-#define PCPY(DST,SRC) do{*DST = *SRC;}while(0)
-	if ((!PEQ(B,H)) && (!PEQ(D,F))) {
-		if (PEQ(D,B)) PCPY(E0,D); else PCPY(E0,E);
-		if ((PEQ(D,B) && !PEQ(E,C)) || (PEQ(B,F) && !PEQ(E,A)))
-			PCPY(E1,B); else PCPY(E1,E);
-		if (PEQ(B,F)) PCPY(E2,F); else PCPY(E2,E);
-		if ((PEQ(D,B) && !PEQ(E,G)) || (PEQ(D,H) && !PEQ(E,A)))
-			PCPY(E3,D); else PCPY(E3,E);
-		PCPY(E4,E);
-		if ((PEQ(B,F) && !PEQ(E,I)) || (PEQ(H,F) && !PEQ(E,C)))
-			PCPY(E5,F); else PCPY(E5,E);
-		if (PEQ(D,H)) PCPY(E6,D); else PCPY(E6,E);
-		if ((PEQ(D,H) && !PEQ(E,I)) || (PEQ(H,F) && !PEQ(E,G)))
-			PCPY(E7,H); else PCPY(E7,E);
-		if (PEQ(H,F)) PCPY(E8,F); else PCPY(E8,E);
+#define PEQ(X, Y) (fabsf(*X - *Y) < 1e-3f)
+#define PCPY(DST, SRC) do { *DST = *SRC; } while (0)
+	if ((!PEQ(B, H)) && (!PEQ(D, F))) {
+		if (PEQ(D, B)) PCPY(E0, D); else PCPY(E0, E);
+		if ((PEQ(D, B) && !PEQ(E, C)) || (PEQ(B, F) && !PEQ(E, A)))
+			PCPY(E1, B); else PCPY(E1, E);
+		if (PEQ(B, F)) PCPY(E2, F); else PCPY(E2, E);
+		if ((PEQ(D, B) && !PEQ(E, G)) || (PEQ(D, H) && !PEQ(E, A)))
+			PCPY(E3, D); else PCPY(E3, E);
+		PCPY(E4, E);
+		if ((PEQ(B, F) && !PEQ(E, I)) || (PEQ(H, F) && !PEQ(E, C)))
+			PCPY(E5, F); else PCPY(E5, E);
+		if (PEQ(D, H)) PCPY(E6, D); else PCPY(E6, E);
+		if ((PEQ(D, H) && !PEQ(E, I)) || (PEQ(H, F) && !PEQ(E, G)))
+			PCPY(E7, H); else PCPY(E7, E);
+		if (PEQ(H, F)) PCPY(E8, F); else PCPY(E8, E);
 		return 1;
 	}
 	else {
@@ -113,9 +113,9 @@ void AntiAliasOperation::executePixel(float output[4],
 			/* Some rounding magic to so make weighting correct with the
 			 * original coefficients.
 			 */
-			unsigned char result = ((3*ninepix[0] + 5*ninepix[1] + 3*ninepix[2] +
-			                         5*ninepix[3] + 6*ninepix[4] + 5*ninepix[5] +
-			                         3*ninepix[6] + 5*ninepix[7] + 3*ninepix[8]) * 255.0f +
+			unsigned char result = ((3 * ninepix[0] + 5 * ninepix[1] + 3 * ninepix[2] +
+			                         5 * ninepix[3] + 6 * ninepix[4] + 5 * ninepix[5] +
+			                         3 * ninepix[6] + 5 * ninepix[7] + 3 * ninepix[8]) * 255.0f +
 			                        19.0f) / 38.0f;
 			output[0] = result / 255.0f;
 		}

@@ -534,8 +534,7 @@ static bool sculpt_get_brush_geometry(
 	mouse[0] = x;
 	mouse[1] = y;
 
-	if (vc->obact->sculpt && vc->obact->sculpt->pbvh)
-	{
+	if (vc->obact->sculpt && vc->obact->sculpt->pbvh) {
 		if (!ups->stroke_active) {
 			hit = sculpt_stroke_get_location(C, location, mouse);
 		}

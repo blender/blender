@@ -117,7 +117,7 @@ static void vert2geom_task_cb(void *userdata, void *userdata_chunk, int iter)
 
 			/* Compute and store result. If invalid (-1 idx), keep FLT_MAX dist. */
 			BLI_bvhtree_find_nearest(data->treeData[i]->tree, tmp_co, &nearest,
-									 data->treeData[i]->nearest_callback, data->treeData[i]);
+			                         data->treeData[i]->nearest_callback, data->treeData[i]);
 			data->dist[i][iter] = sqrtf(nearest.dist_sq);
 
 			if (nearest.index != -1) {

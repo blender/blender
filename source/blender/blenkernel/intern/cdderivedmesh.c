@@ -898,8 +898,7 @@ static void cdDM_drawMappedFacesGLSL(
 
 	glShadeModel(GL_SMOOTH);
 
-	if (setDrawOptions != NULL)
-	{
+	if (setDrawOptions != NULL) {
 		DMVertexAttribs attribs;
 		DEBUG_VBO("Using legacy code. cdDM_drawMappedFacesGLSL\n");
 		memset(&attribs, 0, sizeof(attribs));

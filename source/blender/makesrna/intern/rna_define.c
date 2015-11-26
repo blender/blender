@@ -1315,7 +1315,7 @@ void RNA_def_property_ui_icon(PropertyRNA *prop, int icon, bool consecutive)
  * The values hare are a little confusing:
  *
  * \param step: Used as the value to increase/decrease when clicking on number buttons,
- * \as well as scaling mouse input for click-dragging number buttons.
+ * as well as scaling mouse input for click-dragging number buttons.
  * For floats this is (step * UI_PRECISION_FLOAT_SCALE), why? - nobody knows.
  * For ints, whole values are used.
  *

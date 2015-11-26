@@ -2810,8 +2810,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	CCG_key_top_level(&key, ss);
 	ccgdm_pbvh_update(ccgdm);
 
-	if (setDrawOptions != NULL)
-	{
+	if (setDrawOptions != NULL) {
 		const float (*lnors)[3] = dm->getLoopDataArray(dm, CD_NORMAL);
 		DMVertexAttribs attribs = {{{NULL}}};
 		int i;
