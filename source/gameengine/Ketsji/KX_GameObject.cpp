@@ -3736,8 +3736,9 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 
 	RayCastData rayData(propName, false, (1 << OB_MAX_COL_MASKS) - 1);
 	KX_RayCast::Callback<KX_GameObject, RayCastData> callback(this, spc, &rayData);
-	if (KX_RayCast::RayTest(pe, fromPoint, toPoint, callback))
+	if (KX_RayCast::RayTest(pe, fromPoint, toPoint, callback) && rayData.m_hitObject) {
 		return rayData.m_hitObject->GetProxy();
+	}
 	
 	Py_RETURN_NONE;
 }
@@ -3883,8 +3884,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	RayCastData rayData(propName, xray, mask);
 	KX_RayCast::Callback<KX_GameObject, RayCastData> callback(this, spc, &rayData, face, (poly == 2));
 
-	if (KX_RayCast::RayTest(pe, fromPoint, toPoint, callback))
-	{
+	if (KX_RayCast::RayTest(pe, fromPoint, toPoint, callback) && rayData.m_hitObject) {
 		PyObject *returnValue = (poly == 2) ? PyTuple_New(5) : (poly) ? PyTuple_New(4) : PyTuple_New(3);
 		if (returnValue) { // unlikely this would ever fail, if it does python sets an error
 			PyTuple_SET_ITEM(returnValue, 0, rayData.m_hitObject->GetProxy());
