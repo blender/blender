@@ -98,7 +98,7 @@ void BKE_pbvh_raycast(
         bool original);
 
 bool BKE_pbvh_node_raycast(
-        PBVH *bvh, PBVHNode *node, float (*origco)[3], int use_origco,
+        PBVH *bvh, PBVHNode *node, float (*origco)[3], bool use_origco,
         const float ray_start[3], const float ray_normal[3],
         float *dist);
 
@@ -210,7 +210,7 @@ void BKE_pbvh_bmesh_after_stroke(PBVH *bvh);
 
 void BKE_pbvh_update(PBVH *bvh, int flags, float (*face_nors)[3]);
 void BKE_pbvh_redraw_BB(PBVH *bvh, float bb_min[3], float bb_max[3]);
-void BKE_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***r_gridfaces, int *r_totface);
+void BKE_pbvh_get_grid_updates(PBVH *bvh, bool clear, void ***r_gridfaces, int *r_totface);
 void BKE_pbvh_grids_update(PBVH *bvh, struct CCGElem **grid_elems,
                            void **gridfaces,
                            struct DMFlagMat *flagmats, unsigned int **grid_hidden);

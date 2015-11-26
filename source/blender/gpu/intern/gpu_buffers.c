@@ -28,8 +28,7 @@
 /** \file blender/gpu/intern/gpu_buffers.c
  *  \ingroup gpu
  *
- * Mesh drawing using OpenGL VBO (Vertex Buffer Objects),
- * with fall-back to vertex arrays.
+ * Mesh drawing using OpenGL VBO (Vertex Buffer Objects)
  */
 
 #include <limits.h>
@@ -101,7 +100,6 @@ const GPUBufferTypeSettings gpu_buffer_type_settings[] = {
 
 #define BUFFER_OFFSET(n) ((GLubyte *)NULL + (n))
 
-/* -1 - undefined, 0 - vertex arrays, 1 - VBOs */
 static GPUBufferState GLStates = 0;
 static GPUAttrib attribData[MAX_GPU_ATTRIB_DATA] = { { -1, 0, 0 } };
 
@@ -864,10 +862,9 @@ void GPU_buffers_unbind(void)
 	}
 	if (GLStates & GPU_BUFFER_COLOR_STATE)
 		glDisableClientState(GL_COLOR_ARRAY);
-	if (GLStates & GPU_BUFFER_ELEMENT_STATE) {
-		/* not guaranteed we used VBOs but in that case it's just a no-op */
+	if (GLStates & GPU_BUFFER_ELEMENT_STATE)
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	}
+
 	GLStates &= ~(GPU_BUFFER_VERTEX_STATE | GPU_BUFFER_NORMAL_STATE |
 	              GPU_BUFFER_TEXCOORD_UNIT_0_STATE | GPU_BUFFER_TEXCOORD_UNIT_2_STATE |
 	              GPU_BUFFER_COLOR_STATE | GPU_BUFFER_ELEMENT_STATE);
@@ -881,7 +878,6 @@ void GPU_buffers_unbind(void)
 	}
 	attribData[0].index = -1;
 
-	/* not guaranteed we used VBOs but in that case it's just a no-op */
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -1004,15 +1000,15 @@ struct GPU_PBVH_Buffers {
 	BLI_bitmap * const *grid_hidden;
 	const int *grid_indices;
 	int totgrid;
-	int has_hidden;
+	bool has_hidden;
 
-	int use_bmesh;
+	bool use_bmesh;
 
 	unsigned int tot_tri, tot_quad;
 
 	/* The PBVH ensures that either all faces in the node are
 	 * smooth-shaded or all faces are flat-shaded */
-	int smooth;
+	bool smooth;
 
 	bool show_diffuse_color;
 	bool use_matcaps;
@@ -1283,10 +1279,10 @@ void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, CCGElem **grids,
 
 	buffers->show_diffuse_color = show_diffuse_color;
 	buffers->use_matcaps = GPU_material_use_matcaps_get();
+	buffers->smooth = grid_flag_mats[grid_indices[0]].flag & ME_SMOOTH;
 
 	/* Build VBO */
 	if (buffers->vert_buf) {
-		int smooth = grid_flag_mats[grid_indices[0]].flag & ME_SMOOTH;
 		const int has_mask = key->has_mask;
 		float diffuse_color[4] = {0.8f, 0.8f, 0.8f, 1.0f};
 
@@ -1311,7 +1307,7 @@ void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, CCGElem **grids,
 						CCGElem *elem = CCG_grid_elem(key, grid, x, y);
 						
 						copy_v3_v3(vd->co, CCG_elem_co(key, elem));
-						if (smooth) {
+						if (buffers->smooth) {
 							normal_float_to_short_v3(vd->no, CCG_elem_no(key, elem));
 
 							if (has_mask) {
@@ -1323,7 +1319,7 @@ void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, CCGElem **grids,
 					}
 				}
 				
-				if (!smooth) {
+				if (!buffers->smooth) {
 					/* for flat shading, recalc normals and set the last vertex of
 					 * each triangle in the index buffer to have the flat normal as
 					 * that is what opengl will use */
@@ -1375,8 +1371,6 @@ void GPU_update_grid_pbvh_buffers(GPU_PBVH_Buffers *buffers, CCGElem **grids,
 	buffers->totgrid = totgrid;
 	buffers->grid_flag_mats = grid_flag_mats;
 	buffers->gridkey = *key;
-
-	buffers->smooth = grid_flag_mats[grid_indices[0]].flag & ME_SMOOTH;
 
 	//printf("node updated %p\n", buffers);
 }
@@ -1518,7 +1512,7 @@ GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
 
 	if (totquad == fully_visible_totquad) {
 		buffers->index_buf = gpu_get_grid_buffer(gridsize, &buffers->index_type, &buffers->tot_quad);
-		buffers->has_hidden = 0;
+		buffers->has_hidden = false;
 	}
 	else {
 		buffers->tot_quad = totquad;
@@ -1532,7 +1526,7 @@ GPU_PBVH_Buffers *GPU_build_grid_pbvh_buffers(int *grid_indices, int totgrid,
 			FILL_QUAD_BUFFER(unsigned int, totquad, buffers->index_buf);
 		}
 
-		buffers->has_hidden = 1;
+		buffers->has_hidden = true;
 	}
 
 	/* Build coord/normal VBO */
@@ -1812,7 +1806,7 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 	}
 }
 
-GPU_PBVH_Buffers *GPU_build_bmesh_pbvh_buffers(int smooth_shading)
+GPU_PBVH_Buffers *GPU_build_bmesh_pbvh_buffers(bool smooth_shading)
 {
 	GPU_PBVH_Buffers *buffers;
 
