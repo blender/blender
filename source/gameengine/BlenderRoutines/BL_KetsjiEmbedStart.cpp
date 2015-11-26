@@ -677,6 +677,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 	BLI_strncpy(G.main->name, oldsce, sizeof(G.main->name));
 
 #ifdef WITH_PYTHON
+	PyDict_Clear(pyGlobalDict);
 	Py_DECREF(pyGlobalDict);
 
 	// Release Python's GIL
