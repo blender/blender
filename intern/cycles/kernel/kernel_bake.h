@@ -77,7 +77,6 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 				while(ss_indirect.num_rays) {
 					kernel_path_subsurface_setup_indirect(kg,
 					                                      &ss_indirect,
-					                                      &L_sample,
 					                                      &state,
 					                                      &ray,
 					                                      &ray,
@@ -89,6 +88,12 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 					                     state.num_samples,
 					                     &state,
 					                     &L_sample);
+
+					/* For render passes, sum and reset indirect light pass variables
+					 * for the next samples.
+					 */
+					path_radiance_sum_indirect(&L_sample);
+					path_radiance_reset_indirect(&L_sample);
 				}
 				is_sss_sample = true;
 			}

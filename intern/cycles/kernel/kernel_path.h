@@ -519,7 +519,6 @@ ccl_device bool kernel_path_subsurface_scatter(
 ccl_device void kernel_path_subsurface_setup_indirect(
         KernelGlobals *kg,
         SubsurfaceIndirectRays *ss_indirect,
-        PathRadiance *L,
         PathState *state,
         Ray *orig_ray,
         Ray *ray,
@@ -548,12 +547,6 @@ ccl_device void kernel_path_subsurface_setup_indirect(
 #endif
 
 	*ray = *indirect_ray;
-
-	/* For render passes, sum and reset indirect light pass variables
-	 * for the next samples.
-	 */
-	path_radiance_sum_indirect(L);
-	path_radiance_reset_indirect(L);
 }
 #endif
 
@@ -584,7 +577,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 	 */
 	Ray ss_orig_ray;
 
-	for(;;) {
+	for(int ss_indirect_iter = 0; ; ss_indirect_iter++) {
 #endif
 
 	/* path iteration */
@@ -848,13 +841,20 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 	}
 
 #ifdef __SUBSURFACE__
+		if(ss_indirect_iter != 0) {
+			/* For render passes, sum and reset indirect light pass variables
+			 * for the next samples.
+			 */
+			path_radiance_sum_indirect(&L);
+			path_radiance_reset_indirect(&L);
+		}
+
 		/* Trace indirect subsurface rays by restarting the loop. this uses less
 		 * stack memory than invoking kernel_path_indirect.
 		 */
 		if(ss_indirect.num_rays) {
 			kernel_path_subsurface_setup_indirect(kg,
 			                                      &ss_indirect,
-			                                      &L,
 			                                      &state,
 			                                      &ss_orig_ray,
 			                                      &ray,
