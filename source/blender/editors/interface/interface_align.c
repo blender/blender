@@ -164,11 +164,16 @@ static void block_align_proximity_compute(ButAlign *butal, ButAlign *butal_other
 			if (delta < max_delta) {
 				/* We are only interested in neighbors that are at least as close as already found ones. */
 				if (delta <= butal->dists[side]) {
-					if (delta < butal->dists[side]) {
-						/* We found a closer neighbor.
+					{
+						/* We found an as close or closer neighbor.
 						 * If both buttons are alignable, we set them as each other neighbors.
 						 * Else, we have an unalignable one, we need to reset the others matching neighbor to NULL
-						 * if its 'proximity distance' is really lower with current one. */
+						 * if its 'proximity distance' is really lower with current one.
+						 *
+						 * NOTE: We cannot only execute that piece of code in case we found a **closer** neighbor,
+						 *       due to the limited way we represent neighbors (buttons only know **one** neighbor
+						 *       on each side, when they can actually have several ones), it would prevent
+						 *       some buttons to be properly 'neighborly-initialized'. */
 						if (butal_can_align && butal_other_can_align) {
 							butal->neighbors[side] = butal_other;
 							butal_other->neighbors[side_opp] = butal;
@@ -181,6 +186,7 @@ static void block_align_proximity_compute(ButAlign *butal, ButAlign *butal_other
 						}
 						butal->dists[side] = butal_other->dists[side_opp] = delta;
 					}
+
 					if (butal_can_align && butal_other_can_align) {
 						const int side_s1 = SIDE1(side);
 						const int side_s2 = SIDE2(side);
