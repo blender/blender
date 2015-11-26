@@ -95,7 +95,7 @@ void   BLI_ghash_flag_clear(GHash *gh, unsigned int flag);
 
 GHashIterator *BLI_ghashIterator_new(GHash *gh) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 
-unsigned       BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh);
+void           BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh);
 void           BLI_ghashIterator_free(GHashIterator *ghi);
 void           BLI_ghashIterator_step(GHashIterator *ghi);
 
@@ -116,15 +116,15 @@ BLI_INLINE bool   BLI_ghashIterator_done(GHashIterator *ghi)       { return !ghi
 #  define _gh_Entry void
 #endif
 
-#define GHASH_ITER(gh_iter_, ghash_)                \
-   for (BLI_ghashIterator_init(&gh_iter_, ghash_);  \
-        BLI_ghashIterator_done(&gh_iter_) == false; \
-        BLI_ghashIterator_step(&gh_iter_))
+#define GHASH_ITER(gh_iter_, ghash_) \
+	for (BLI_ghashIterator_init(&gh_iter_, ghash_); \
+	     BLI_ghashIterator_done(&gh_iter_) == false; \
+	     BLI_ghashIterator_step(&gh_iter_))
 
-#define GHASH_ITER_INDEX(gh_iter_, ghash_, i_)                   \
-   for (unsigned i_ = BLI_ghashIterator_init(&gh_iter_, ghash_); \
-        BLI_ghashIterator_done(&gh_iter_) == false;              \
-        BLI_ghashIterator_step(&gh_iter_), i_++)
+#define GHASH_ITER_INDEX(gh_iter_, ghash_, i_) \
+	for (BLI_ghashIterator_init(&gh_iter_, ghash_), i_ = 0; \
+	     BLI_ghashIterator_done(&gh_iter_) == false; \
+	     BLI_ghashIterator_step(&gh_iter_), i_++)
 
 /** \name Callbacks for GHash
  *
@@ -243,21 +243,21 @@ GSet *BLI_gset_pair_new(const char *info) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 
 /* rely on inline api for now */
 BLI_INLINE GSetIterator *BLI_gsetIterator_new(GSet *gs) { return (GSetIterator *)BLI_ghashIterator_new((GHash *)gs); }
-BLI_INLINE unsigned BLI_gsetIterator_init(GSetIterator *gsi, GSet *gs) { BLI_ghashIterator_init((GHashIterator *)gsi, (GHash *)gs); return 0; }
+BLI_INLINE void BLI_gsetIterator_init(GSetIterator *gsi, GSet *gs) { BLI_ghashIterator_init((GHashIterator *)gsi, (GHash *)gs); }
 BLI_INLINE void BLI_gsetIterator_free(GSetIterator *gsi) { BLI_ghashIterator_free((GHashIterator *)gsi); }
 BLI_INLINE void *BLI_gsetIterator_getKey(GSetIterator *gsi) { return BLI_ghashIterator_getKey((GHashIterator *)gsi); }
 BLI_INLINE void BLI_gsetIterator_step(GSetIterator *gsi) { BLI_ghashIterator_step((GHashIterator *)gsi); }
 BLI_INLINE bool BLI_gsetIterator_done(GSetIterator *gsi) { return BLI_ghashIterator_done((GHashIterator *)gsi); }
 
-#define GSET_ITER(gs_iter_, gset_)                 \
-   for (BLI_gsetIterator_init(&gs_iter_, gset_);   \
-        BLI_gsetIterator_done(&gs_iter_) == false; \
-        BLI_gsetIterator_step(&gs_iter_))
+#define GSET_ITER(gs_iter_, gset_) \
+	for (BLI_gsetIterator_init(&gs_iter_, gset_); \
+	     BLI_gsetIterator_done(&gs_iter_) == false; \
+	     BLI_gsetIterator_step(&gs_iter_))
 
-#define GSET_ITER_INDEX(gs_iter_, gset_, i_)                   \
-   for (unsigned i_ = BLI_gsetIterator_init(&gs_iter_, gset_); \
-        BLI_gsetIterator_done(&gs_iter_) == false;             \
-        BLI_gsetIterator_step(&gs_iter_), i_++)
+#define GSET_ITER_INDEX(gs_iter_, gset_, i_) \
+	for (BLI_gsetIterator_init(&gs_iter_, gset_), i_ = 0; \
+	     BLI_gsetIterator_done(&gs_iter_) == false; \
+	     BLI_gsetIterator_step(&gs_iter_), i_++)
 
 
 /* For testing, debugging only */

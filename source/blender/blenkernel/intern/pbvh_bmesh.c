@@ -264,6 +264,7 @@ static bool pbvh_bmesh_node_limit_ensure(PBVH *bvh, int node_index)
 	BBC *bbc_array = MEM_mallocN(sizeof(BBC) * bm_faces_size, "BBC");
 
 	GSetIterator gs_iter;
+	int i;
 	GSET_ITER_INDEX (gs_iter, bm_faces, i) {
 		BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
 		BBC *bbc = &bbc_array[i];

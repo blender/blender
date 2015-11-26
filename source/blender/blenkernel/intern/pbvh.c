@@ -1244,6 +1244,7 @@ void BKE_pbvh_get_grid_updates(PBVH *bvh, bool clear, void ***r_gridfaces, int *
 	void **faces = MEM_mallocN(sizeof(*faces) * tot, "PBVH Grid Faces");
 
 	GSetIterator gs_iter;
+	int i;
 	GSET_ITER_INDEX (gs_iter, face_set, i) {
 		faces[i] = BLI_gsetIterator_getKey(&gs_iter);
 	}

@@ -934,7 +934,7 @@ GHashIterator *BLI_ghashIterator_new(GHash *gh)
  * \param ghi The GHashIterator to initialize.
  * \param gh The GHash to iterate over.
  */
-unsigned BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh)
+void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh)
 {
 	ghi->gh = gh;
 	ghi->curEntry = NULL;
@@ -947,7 +947,6 @@ unsigned BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh)
 			ghi->curEntry = ghi->gh->buckets[ghi->curBucket];
 		} while (!ghi->curEntry);
 	}
-	return 0;
 }
 
 /**
