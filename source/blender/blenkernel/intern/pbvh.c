@@ -954,8 +954,9 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 	 *   can only update vertices marked with ME_VERT_PBVH_UPDATE.
 	 */
 
+	int n;
 #pragma omp parallel for private(n) schedule(static) if (totnode > PBVH_OMP_LIMIT)
-	for (int n = 0; n < totnode; n++) {
+	for (n = 0; n < totnode; n++) {
 		PBVHNode *node = nodes[n];
 
 		if ((node->flag & PBVH_UpdateNormals)) {
@@ -1004,7 +1005,7 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 	}
 
 #pragma omp parallel for private(n) schedule(static) if (totnode > PBVH_OMP_LIMIT)
-	for (int n = 0; n < totnode; n++) {
+	for (n = 0; n < totnode; n++) {
 		PBVHNode *node = nodes[n];
 
 		if (node->flag & PBVH_UpdateNormals) {
@@ -1036,8 +1037,9 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag)
 {
 	/* update BB, redraw flag */
+	int n;
 #pragma omp parallel for private(n) schedule(static) if (totnode > PBVH_OMP_LIMIT)
-	for (int n = 0; n < totnode; n++) {
+	for (n = 0; n < totnode; n++) {
 		PBVHNode *node = nodes[n];
 
 		if ((flag & PBVH_UpdateBB) && (node->flag & PBVH_UpdateBB))
