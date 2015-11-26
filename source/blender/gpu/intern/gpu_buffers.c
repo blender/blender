@@ -1015,14 +1015,14 @@ struct GPU_PBVH_Buffers {
 	float diffuse_color[4];
 };
 
-static void gpu_colors_enable()
+static void gpu_colors_enable(void)
 {
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 	glEnable(GL_COLOR_MATERIAL);
 	glEnableClientState(GL_COLOR_ARRAY);
 }
 
-static void gpu_colors_disable()
+static void gpu_colors_disable(void)
 {
 	glDisable(GL_COLOR_MATERIAL);
 	glDisableClientState(GL_COLOR_ARRAY);
