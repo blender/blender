@@ -1344,7 +1344,7 @@ bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, cha
 	while ((slash = (char *)BLI_last_slash(r_dir))) {
 		char tc = *slash;
 		*slash = '\0';
-		if (BLO_has_bfile_extension(r_dir)) {
+		if (BLO_has_bfile_extension(r_dir) && BLI_is_file(r_dir)) {
 			break;
 		}
 
