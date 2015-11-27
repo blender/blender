@@ -1761,7 +1761,7 @@ void BLI_join_dirfile(char *__restrict dst, const size_t maxlen, const char *__r
 	}
 
 	/* inline BLI_add_slash */
-	if ((dirlen > 0) && (dst[dirlen - 1] != SEP)) {
+	if ((dirlen > 0) && !ELEM(dst[dirlen - 1], SEP, ALTSEP)) {
 		dst[dirlen++] = SEP;
 		dst[dirlen] = '\0';
 	}
