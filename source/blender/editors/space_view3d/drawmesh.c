@@ -1235,13 +1235,14 @@ void draw_mesh_paint_weight_faces(DerivedMesh *dm, const bool use_light,
                                   void *facemask_cb, void *user_data)
 {
 	DMSetMaterial setMaterial = GPU_object_materials_check() ? GPU_object_material_bind : NULL;
+	int flags = DM_DRAW_USE_COLORS;
 
 	if (use_light) {
 		draw_mesh_paint_light_begin();
+		flags |= DM_DRAW_NEED_NORMALS;
 	}
 
-	dm->drawMappedFaces(dm, (DMSetDrawOptions)facemask_cb, setMaterial, NULL, user_data,
-	                    DM_DRAW_USE_COLORS);
+	dm->drawMappedFaces(dm, (DMSetDrawOptions)facemask_cb, setMaterial, NULL, user_data, flags);
 
 	if (use_light) {
 		draw_mesh_paint_light_end();
@@ -1253,17 +1254,20 @@ void draw_mesh_paint_vcolor_faces(DerivedMesh *dm, const bool use_light,
                                   const Mesh *me)
 {
 	DMSetMaterial setMaterial = GPU_object_materials_check() ? GPU_object_material_bind : NULL;
+	int flags = 0;
 
 	if (use_light) {
 		draw_mesh_paint_light_begin();
+		flags |= DM_DRAW_NEED_NORMALS;
 	}
 
 	if (me->mloopcol) {
-		dm->drawMappedFaces(dm, facemask_cb, setMaterial, NULL, user_data, DM_DRAW_USE_COLORS);
+		dm->drawMappedFaces(dm, facemask_cb, setMaterial, NULL, user_data,
+		                    DM_DRAW_USE_COLORS | flags);
 	}
 	else {
 		glColor3f(1.0f, 1.0f, 1.0f);
-		dm->drawMappedFaces(dm, facemask_cb, setMaterial, NULL, user_data, 0);
+		dm->drawMappedFaces(dm, facemask_cb, setMaterial, NULL, user_data, flags);
 	}
 
 	if (use_light) {

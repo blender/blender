@@ -151,7 +151,8 @@ typedef enum DMDrawFlag {
 	DM_DRAW_USE_TEXPAINT_UV     = (1 << 3),
 	DM_DRAW_SKIP_HIDDEN         = (1 << 4),
 	DM_DRAW_SKIP_SELECT         = (1 << 5),
-	DM_DRAW_SELECT_USE_EDITMODE = (1 << 6)
+	DM_DRAW_SELECT_USE_EDITMODE = (1 << 6),
+	DM_DRAW_NEED_NORMALS        = (1 << 7)
 } DMDrawFlag;
 
 typedef enum DMForeachFlag {

@@ -3797,7 +3797,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 			/* use the cageDM since it always overlaps the editmesh faces */
 			glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 			cageDM->drawMappedFaces(cageDM, draw_em_fancy__setFaceOpts,
-			                        GPU_object_material_bind, NULL, me->edit_btmesh, DM_DRAW_SKIP_HIDDEN);
+			                        GPU_object_material_bind, NULL, me->edit_btmesh, DM_DRAW_SKIP_HIDDEN | DM_DRAW_NEED_NORMALS);
 			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		}
 		else if (check_object_draw_texture(scene, v3d, dt)) {
@@ -3821,7 +3821,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 
 			glEnable(GL_LIGHTING);
 			glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
-			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, GPU_object_material_bind, NULL, me->edit_btmesh, DM_DRAW_SKIP_HIDDEN);
+			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, GPU_object_material_bind, NULL, me->edit_btmesh, DM_DRAW_SKIP_HIDDEN | DM_DRAW_NEED_NORMALS);
 
 			glFrontFace(GL_CCW);
 			glDisable(GL_LIGHTING);
@@ -4183,7 +4183,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				glEnable(GL_LIGHTING);
 				glEnable(GL_COLOR_MATERIAL);
 
-				dm->drawMappedFaces(dm, NULL, NULL, NULL, NULL, DM_DRAW_USE_COLORS);
+				dm->drawMappedFaces(dm, NULL, NULL, NULL, NULL, DM_DRAW_USE_COLORS | DM_DRAW_NEED_NORMALS);
 				glDisable(GL_COLOR_MATERIAL);
 				glDisable(GL_LIGHTING);
 
@@ -8680,8 +8680,8 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 			GPU_end_object_materials();
 		}
 		else if (edm)
-			edm->drawMappedFaces(edm, NULL, GPU_object_material_bind, NULL, NULL, 0);
-		
+			edm->drawMappedFaces(edm, NULL, GPU_object_material_bind, NULL, NULL, DM_DRAW_NEED_NORMALS);
+
 		glDisable(GL_LIGHTING);
 	}
 

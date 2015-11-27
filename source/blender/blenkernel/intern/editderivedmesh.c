@@ -732,8 +732,7 @@ static void emDM_drawMappedFaces(
 	const int lasttri = tottri - 1; /* compare agasint this a lot */
 	DMDrawOption draw_option;
 	int i, flush;
-	const int skip_normals = !glIsEnabled(GL_LIGHTING); /* could be passed as an arg */
-
+	const int skip_normals = !(flag & DM_DRAW_NEED_NORMALS);
 	const float (*lnors)[3] = dm->getLoopDataArray(dm, CD_NORMAL);
 	MLoopCol *lcol[3] = {NULL} /* , dummylcol = {0} */;
 	unsigned char(*color_vert_array)[4] = em->derivedVertColor;
@@ -755,7 +754,8 @@ static void emDM_drawMappedFaces(
 	}
 	if (has_vcol_preview || has_fcol_preview) {
 		flag |= DM_DRAW_ALWAYS_SMOOTH;
-		glDisable(GL_LIGHTING);  /* grr */
+		/* weak, this logic should really be moved higher up */
+		setMaterial = NULL;
 	}
 
 	if (bmdm->vertexCos) {
