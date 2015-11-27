@@ -150,10 +150,14 @@ static void bm_face_calc_poly_center_mean_vertex_cos(
 /**
  * For tools that insist on using triangles, ideally we would cache this data.
  *
- * \param r_loops  Store face loop pointers, (f->len)
- * \param r_index  Store triangle triples, indices into \a r_loops,  ((f->len - 2) * 3)
+ * \param use_fixed_quad: When true, always split quad along (0 -> 2) regardless of concave corners,
+ * (as done in #BM_mesh_calc_tessellation).
+ * \param r_loops: Store face loop pointers, (f->len)
+ * \param r_index: Store triangle triples, indices into \a r_loops,  `((f->len - 2) * 3)`
  */
-void BM_face_calc_tessellation(const BMFace *f, BMLoop **r_loops, unsigned int (*r_index)[3])
+void BM_face_calc_tessellation(
+        const BMFace *f, const bool use_fixed_quad,
+        BMLoop **r_loops, unsigned int (*r_index)[3])
 {
 	BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
 	BMLoop *l_iter;
@@ -167,7 +171,7 @@ void BM_face_calc_tessellation(const BMFace *f, BMLoop **r_loops, unsigned int (
 		r_index[0][1] = 1;
 		r_index[0][2] = 2;
 	}
-	else if (f->len == 4) {
+	else if (f->len == 4 && use_fixed_quad) {
 		*r_loops++ = (l_iter = l_first);
 		*r_loops++ = (l_iter = l_iter->next);
 		*r_loops++ = (l_iter = l_iter->next);
@@ -199,6 +203,46 @@ void BM_face_calc_tessellation(const BMFace *f, BMLoop **r_loops, unsigned int (
 		/* complete the loop */
 		BLI_polyfill_calc((const float (*)[2])projverts, f->len, -1, r_index);
 	}
+}
+
+/**
+ * Return a point inside the face.
+ */
+void BM_face_calc_point_in_face(const BMFace *f, float r_co[3])
+{
+	const BMLoop *l_tri[3];
+
+	if (f->len == 3) {
+		const BMLoop *l = BM_FACE_FIRST_LOOP(f);
+		ARRAY_SET_ITEMS(l_tri, l, l->next, l->prev);
+	}
+	else {
+		/* tessellation here seems overkill when in many cases this will be the center,
+		 * but without this we can't be sure the point is inside a concave face. */
+		const int tottri = f->len - 2;
+		BMLoop **loops = BLI_array_alloca(loops, f->len);
+		unsigned int  (*index)[3] = BLI_array_alloca(index, tottri);
+		int j;
+		int j_best = 0;  /* use as fallback when unset */
+		float area_best  = -1.0f;
+
+		BM_face_calc_tessellation(f, false, loops, index);
+
+		for (j = 0; j < tottri; j++) {
+			const float *p1 = loops[index[j][0]]->v->co;
+			const float *p2 = loops[index[j][1]]->v->co;
+			const float *p3 = loops[index[j][2]]->v->co;
+			const float area = area_squared_tri_v3(p1, p2, p3);
+			if (area > area_best) {
+				j_best = j;
+				area_best = area;
+			}
+		}
+
+		ARRAY_SET_ITEMS(l_tri, loops[index[j_best][0]], loops[index[j_best][1]], loops[index[j_best][2]]);
+	}
+
+	mid_v3_v3v3v3(r_co, l_tri[0]->v->co, l_tri[1]->v->co, l_tri[2]->v->co);
 }
 
 /**

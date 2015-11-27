@@ -3341,43 +3341,6 @@ void MESH_OT_knife_tool(wmOperatorType *ot)
 /* Knife tool as a utility function
  * that can be used for internal slicing operations */
 
-/**
- * Return a point inside the face.
- *
- * tessellation here seems way overkill,
- * but without this its very hard to know of a point is inside the face
- */
-static void edbm_mesh_knife_face_point(BMFace *f, float r_cent[3])
-{
-	const int tottri = f->len - 2;
-	BMLoop **loops = BLI_array_alloca(loops, f->len);
-	unsigned int  (*index)[3] = BLI_array_alloca(index, tottri);
-	int j;
-	int j_best = 0;  /* use as fallback when unset */
-	float area_best  = -1.0f;
-
-	BM_face_calc_tessellation(f, loops, index);
-
-	for (j = 0; j < tottri; j++) {
-		const float *p1 = loops[index[j][0]]->v->co;
-		const float *p2 = loops[index[j][1]]->v->co;
-		const float *p3 = loops[index[j][2]]->v->co;
-		float area;
-
-		area = area_squared_tri_v3(p1, p2, p3);
-		if (area > area_best) {
-			j_best = j;
-			area_best = area;
-		}
-	}
-
-	mid_v3_v3v3v3(
-	        r_cent,
-	        loops[index[j_best][0]]->v->co,
-	        loops[index[j_best][1]]->v->co,
-	        loops[index[j_best][2]]->v->co);
-}
-
 static bool edbm_mesh_knife_point_isect(LinkNode *polys, const float cent_ss[2])
 {
 	LinkNode *p = polys;
@@ -3495,7 +3458,7 @@ void EDBM_mesh_knife(bContext *C, LinkNode *polys, bool use_tag, bool cut_throug
 					BMIter fiter;
 					BM_ITER_ELEM (f, &fiter, e, BM_FACES_OF_EDGE) {
 						float cent[3], cent_ss[2];
-						edbm_mesh_knife_face_point(f, cent);
+						BM_face_calc_point_in_face(f, cent);
 						knife_project_v2(kcd, cent, cent_ss);
 						if (edbm_mesh_knife_point_isect(polys, cent_ss)) {
 							BM_elem_flag_enable(f, BM_ELEM_TAG);
@@ -3531,7 +3494,7 @@ void EDBM_mesh_knife(bContext *C, LinkNode *polys, bool use_tag, bool cut_throug
 
 						if (found) {
 							float cent[3], cent_ss[2];
-							edbm_mesh_knife_face_point(f, cent);
+							BM_face_calc_point_in_face(f, cent);
 							knife_project_v2(kcd, cent, cent_ss);
 							if ((kcd->cut_through || point_is_visible(kcd, cent, cent_ss, &mats, (BMElem *)f)) &&
 							    edbm_mesh_knife_point_isect(polys, cent_ss))

@@ -2299,7 +2299,7 @@ static void bm_mesh_calc_volume_face(const BMFace *f, float *r_vol)
 	unsigned int (*index)[3] = BLI_array_alloca(index, tottri);
 	int j;
 
-	BM_face_calc_tessellation(f, loops, index);
+	BM_face_calc_tessellation(f, false, loops, index);
 
 	for (j = 0; j < tottri; j++) {
 		const float *p1 = loops[index[j][0]]->v->co;
