@@ -9,6 +9,7 @@ global:
 	*;
 	*_boost*;
 local:
+	*default_error_condition*;
 	*llvm*;
 	*LLVM*;
 	decodeInstruction;
