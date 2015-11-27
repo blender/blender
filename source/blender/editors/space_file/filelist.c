@@ -2444,6 +2444,7 @@ static void filelist_readjob_do(
 		bool is_lib = do_lib;
 
 		char *subdir;
+		char rel_subdir[FILE_MAX_LIBEXTRA];
 		int recursion_level;
 		bool skip_currpar;
 
@@ -2454,6 +2455,14 @@ static void filelist_readjob_do(
 
 		BLI_stack_discard(todo_dirs);
 
+		/* ARRRG! We have to be very careful *not to use* common BLI_path_util helpers over entry->relpath itself
+		 * (nor any path containing it), since it may actually be a datablock name inside .blend file,
+		 * which can have slashes and backslashes! See T46827.
+		 * Note that in the end, this means we 'cache' valid relative subdir once here, this is actually better. */
+		BLI_strncpy(rel_subdir, subdir, sizeof(rel_subdir));
+		BLI_cleanup_dir(root, rel_subdir);
+		BLI_path_rel(rel_subdir, root);
+
 		if (do_lib) {
 			nbr_entries = filelist_readjob_list_lib(subdir, &entries, skip_currpar);
 		}
@@ -2463,8 +2472,7 @@ static void filelist_readjob_do(
 		}
 
 		for (entry = entries.first; entry; entry = entry->next) {
-			BLI_join_dirfile(dir, sizeof(dir), subdir, entry->relpath);
-			BLI_cleanup_file(root, dir);
+			BLI_join_dirfile(dir, sizeof(dir), rel_subdir, entry->relpath);
 
 			/* Generate our entry uuid. Abusing uuid as an uint32, shall be more than enough here,
 			 * things would crash way before we overflow that counter!
@@ -2473,10 +2481,9 @@ static void filelist_readjob_do(
 			 * remain consistent about threading! */
 			*((uint32_t *)entry->uuid) = atomic_add_uint32((uint32_t *)filelist->filelist_intern.curr_uuid, 1);
 
-			BLI_path_rel(dir, root);
 			/* Only thing we change in direntry here, so we need to free it first. */
 			MEM_freeN(entry->relpath);
-			entry->relpath = BLI_strdup(dir + 2);  /* + 2 to remove '//' added by BLI_path_rel */
+			entry->relpath = BLI_strdup(dir + 2);  /* + 2 to remove '//' added by BLI_path_rel to rel_subdir */
 			entry->name = BLI_strdup(fileentry_uiname(root, entry->relpath, entry->typeflag, dir));
 
 			/* Here we decide whether current filedirentry is to be listed too, or not. */
