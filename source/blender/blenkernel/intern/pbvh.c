@@ -1682,6 +1682,7 @@ void BKE_pbvh_node_draw(PBVHNode *node, void *data_v)
 #if 0
 	/* XXX: Just some quick code to show leaf nodes in different colors */
 	float col[3];
+	float spec[3] = {0.0f, 0.0f, 0.0f};
 
 	if (0) { //is_partial) {
 		col[0] = (rand() / (float)RAND_MAX); col[1] = col[2] = 0.6;
@@ -1691,8 +1692,8 @@ void BKE_pbvh_node_draw(PBVHNode *node, void *data_v)
 		for (int i = 0; i < 3; ++i)
 			col[i] = (rand() / (float)RAND_MAX) * 0.3 + 0.7;
 	}
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, col);
 
+	GPU_simple_shader_colors(col, spec, 0, 1.0f);
 	glColor3f(1, 0, 0);
 #endif
 

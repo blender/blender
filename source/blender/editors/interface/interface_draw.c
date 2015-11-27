@@ -1219,26 +1219,22 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 {
 	static GLuint displist = 0;
-	float diff[4], diffn[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+	float diffuse[3] = {1.0f, 1.0f, 1.0f};
 	float size;
 	
-	/* store stuff */
-	glGetMaterialfv(GL_FRONT, GL_DIFFUSE, diff);
-
 	/* backdrop */
 	glColor3ubv((unsigned char *)wcol->inner);
 	UI_draw_roundbox_corner_set(UI_CNR_ALL);
 	UI_draw_roundbox_gl_mode(GL_POLYGON, rect->xmin, rect->ymin, rect->xmax, rect->ymax, 5.0f);
 	
 	/* sphere color */
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, diffn);
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 	
 	/* setup lights */
 	GPULightData light = {0};
 	light.type = GPU_LIGHT_SUN;
-	copy_v3_v3(light.diffuse, diffn);
+	copy_v3_v3(light.diffuse, diffuse);
 	zero_v3(light.specular);
 	ui_but_v3_get(but, light.direction);
 
@@ -1246,8 +1242,10 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 	for (int a = 1; a < 8; a++)
 		GPU_simple_shader_light_set(a, NULL);
 
-	glEnable(GL_LIGHTING);
-	
+	/* setup shader */
+	GPU_simple_shader_colors(diffuse, NULL, 0, 1.0f);
+	GPU_simple_shader_bind(GPU_SHADER_LIGHTING);
+
 	/* transform to button */
 	glPushMatrix();
 	glTranslatef(rect->xmin + 0.5f * BLI_rcti_size_x(rect), rect->ymin + 0.5f * BLI_rcti_size_y(rect), 0.0f);
@@ -1278,10 +1276,9 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 	glCallList(displist);
 
 	/* restore */
+	GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
 	GPU_default_lights();
-	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, diff); 
 	
 	/* AA circle */
 	glEnable(GL_BLEND);

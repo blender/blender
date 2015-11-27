@@ -3309,9 +3309,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 	float winmat[4][4];
 
 	if (own_ofs) {
-		/* state changes make normal drawing go weird otherwise */
-		glPushAttrib(GL_LIGHTING_BIT);
-
 		/* bind */
 		ofs = GPU_offscreen_create(sizex, sizey, full_samples ? 0 : samples, err_out);
 		if (ofs == NULL) {

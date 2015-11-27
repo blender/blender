@@ -89,6 +89,7 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_select.h"
+#include "GPU_simple_shader.h"
 
 #include "ED_mesh.h"
 #include "ED_particle.h"
@@ -1692,8 +1693,6 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 		         v3d->bundle_size / 0.05f / camera_size[2]);
 
 		if (v3d->drawtype == OB_WIRE) {
-			glDisable(GL_LIGHTING);
-
 			if ((dflag & DRAW_CONSTCOLOR) == 0) {
 				if (selected && (track->flag & TRACK_CUSTOMCOLOR) == 0) {
 					glColor3ubv(ob_wire_col);
@@ -1704,8 +1703,6 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 			}
 
 			drawaxes(0.05f, v3d->bundle_drawtype);
-
-			glEnable(GL_LIGHTING);
 		}
 		else if (v3d->drawtype > OB_WIRE) {
 			if (v3d->bundle_drawtype == OB_EMPTY_SPHERE) {
@@ -1716,13 +1713,11 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 					}
 
 					glLineWidth(2.0f);
-					glDisable(GL_LIGHTING);
 					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 					draw_bundle_sphere();
 
 					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-					glEnable(GL_LIGHTING);
 					glLineWidth(1.0f);
 				}
 
@@ -1734,8 +1729,6 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 				draw_bundle_sphere();
 			}
 			else {
-				glDisable(GL_LIGHTING);
-
 				if ((dflag & DRAW_CONSTCOLOR) == 0) {
 					if (selected) {
 						glColor3ubv(ob_wire_col);
@@ -1747,8 +1740,6 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 				}
 
 				drawaxes(0.05f, v3d->bundle_drawtype);
-
-				glEnable(GL_LIGHTING);
 			}
 		}
 
@@ -1776,7 +1767,6 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 				MovieReconstructedCamera *camera = reconstruction->cameras;
 				int a = 0;
 
-				glDisable(GL_LIGHTING);
 				UI_ThemeColor(TH_CAMERA_PATH);
 				glLineWidth(2.0f);
 
@@ -1787,7 +1777,6 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 				glEnd();
 
 				glLineWidth(1.0f);
-				glEnable(GL_LIGHTING);
 			}
 		}
 	}
@@ -1811,9 +1800,9 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 	if (v3d->flag2 & V3D_RENDER_OVERRIDE)
 		return;
 
-	glEnable(GL_LIGHTING);
-	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-	glEnable(GL_COLOR_MATERIAL);
+	GPU_simple_shader_colors(NULL, NULL, 0, 1.0f);
+	GPU_simple_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
+
 	glShadeModel(GL_SMOOTH);
 
 	tracking_object = tracking->objects.first;
@@ -1826,8 +1815,7 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 
 	/* restore */
 	glShadeModel(GL_FLAT);
-	glDisable(GL_COLOR_MATERIAL);
-	glDisable(GL_LIGHTING);
+	GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
 
 	if ((dflag & DRAW_CONSTCOLOR) == 0) {
 		glColor3ubv(ob_wire_col);
@@ -2135,7 +2123,6 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	BKE_camera_view_frame_ex(scene, cam, cam->drawsize, is_view, scale,
 	                         asp, shift, &drawsize, vec);
 
-	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
 
 	/* camera frame */
@@ -3815,17 +3802,12 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 			}
 		}
 		else {
-			/* 3 floats for position,
-			 * 3 for normal and times two because the faces may actually be quads instead of triangles */
-			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, (me->flag & ME_TWOSIDED) ? GL_TRUE : GL_FALSE);
-
-			glEnable(GL_LIGHTING);
 			glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
 			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, GPU_object_material_bind, NULL, me->edit_btmesh, DM_DRAW_SKIP_HIDDEN | DM_DRAW_NEED_NORMALS);
 
 			glFrontFace(GL_CCW);
-			glDisable(GL_LIGHTING);
-			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
+
+			GPU_object_material_unbind();
 		}
 
 		/* Setup for drawing wire over, disable zbuffer
@@ -4004,13 +3986,13 @@ static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 		glLineWidth(UI_GetThemeValuef(TH_OUTLINE_WIDTH) * 2.0f);
 		glDepthMask(0);
 
-		/* if transparent, we cannot draw the edges for solid select... edges have no material info.
-		 * drawFacesSolid() doesn't draw the transparent faces */
+		/* if transparent, we cannot draw the edges for solid select... edges
+		 * have no material info. GPU_object_material_visible will skip the
+		 * transparent faces */
 		if (ob->dtx & OB_DRAWTRANSP) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			dm->drawFacesSolid(dm, NULL, 0, GPU_object_material_bind);
+			dm->drawFacesSolid(dm, NULL, 0, GPU_object_material_visible);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			GPU_object_material_unbind();
 		}
 		else {
 			dm->drawEdges(dm, 0, 1);
@@ -4156,9 +4138,10 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			/* for object selection draws no shade */
 			if (dflag & (DRAW_PICKING | DRAW_CONSTCOLOR)) {
 				dm->drawFacesSolid(dm, NULL, 0, GPU_object_material_bind);
+				GPU_object_material_unbind();
 			}
 			else {
-				const float spec[4] = {0.47f, 0.47f, 0.47f, 0.47f};
+				const float specular[3] = {0.47f, 0.47f, 0.47f};
 
 				/* draw outline */
 				if ((v3d->flag & V3D_SELECT_OUTLINE) &&
@@ -4173,21 +4156,13 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				/* materials arent compatible with vertex colors */
 				GPU_end_object_materials();
 
-				GPU_object_material_bind(0, NULL);
-				
-				/* set default spec */
-				glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
-				glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
-				/* diffuse */
-				glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-				glEnable(GL_LIGHTING);
-				glEnable(GL_COLOR_MATERIAL);
+				/* set default specular */
+				GPU_simple_shader_colors(NULL, specular, 35, 1.0f);
+				GPU_simple_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
 
 				dm->drawMappedFaces(dm, NULL, NULL, NULL, NULL, DM_DRAW_USE_COLORS | DM_DRAW_NEED_NORMALS);
-				glDisable(GL_COLOR_MATERIAL);
-				glDisable(GL_LIGHTING);
 
-				GPU_object_material_unbind();
+				GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
 			}
 		}
 		else {
@@ -4202,9 +4177,6 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				draw_mesh_object_outline(v3d, ob, dm);
 			}
 
-			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, (me->flag & ME_TWOSIDED) ? GL_TRUE : GL_FALSE);
-
-			glEnable(GL_LIGHTING);
 			glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
 
 			if (ob->sculpt && (p = BKE_paint_get_active(scene))) {
@@ -4225,12 +4197,9 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			else
 				dm->drawFacesSolid(dm, NULL, 0, GPU_object_material_bind);
 
-			GPU_object_material_unbind();
-
 			glFrontFace(GL_CCW);
-			glDisable(GL_LIGHTING);
 
-			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
+			GPU_object_material_unbind();
 
 			if (!ob->sculpt && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 				if ((dflag & DRAW_CONSTCOLOR) == 0) {
@@ -4534,7 +4503,6 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 	
 	if (lb == NULL) return;
 
-	glEnable(GL_LIGHTING);
 	glEnableClientState(GL_VERTEX_ARRAY);
 
 	if (ob->type == OB_MBALL) {  /* mball always smooth shaded */
@@ -4551,8 +4519,6 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 				if (ob->type == OB_SURF) {
 					int nr;
 
-					glDisable(GL_LIGHTING);
-
 					if ((dflag & DRAW_CONSTCOLOR) == 0)
 						glColor3ubv(ob_wire_col);
 
@@ -4563,15 +4529,11 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 					for (nr = dl->nr; nr; nr--, data += 3)
 						glVertex3fv(data);
 					glEnd();
-
-					glEnable(GL_LIGHTING);
 				}
 				break;
 			case DL_POLY:
 				if (ob->type == OB_SURF) {
 					int nr;
-
-					glDisable(GL_LIGHTING);
 
 					/* for some reason glDrawArrays crashes here in half of the platforms (not osx) */
 					//glVertexPointer(3, GL_FLOAT, 0, dl->verts);
@@ -4581,8 +4543,6 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 					for (nr = dl->nr; nr; nr--, data += 3)
 						glVertex3fv(data);
 					glEnd();
-
-					glEnable(GL_LIGHTING);
 				}
 				break;
 			case DL_SURF:
@@ -4637,8 +4597,9 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glShadeModel(GL_FLAT);
-	glDisable(GL_LIGHTING);
 	glFrontFace(GL_CCW);
+
+	GPU_object_material_unbind();
 }
 
 static void drawCurveDMWired(Object *ob)
@@ -4665,11 +4626,8 @@ static bool drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, 
 		int glsl = draw_glsl_material(scene, ob, v3d, dt);
 		GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
 
-		if (!glsl) {
-			glEnable(GL_LIGHTING);
+		if (!glsl)
 			dm->drawFacesSolid(dm, NULL, 0, GPU_object_material_bind);
-			glDisable(GL_LIGHTING);
-		}
 		else
 			dm->drawFacesGLSL(dm, GPU_object_material_bind);
 
@@ -5503,19 +5461,10 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					glEnableClientState(GL_COLOR_ARRAY);
 			}
 
-			glEnable(GL_LIGHTING);
-			glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-			glEnable(GL_COLOR_MATERIAL);
+			// XXX test
+			GPU_simple_shader_colors(NULL, NULL, 0.0f, 1.0f);
+			GPU_simple_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
 		}
-#if 0
-		else {
-			glDisableClientState(GL_NORMAL_ARRAY);
-
-			glDisable(GL_COLOR_MATERIAL);
-			glDisable(GL_LIGHTING);
-			UI_ThemeColor(TH_WIRE);
-		}
-#endif
 
 		if (totchild && (part->draw & PART_DRAW_PARENT) == 0)
 			totpart = 0;
@@ -5546,8 +5495,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			if (part->draw & PART_DRAW_GUIDE_HAIRS) {
 				DerivedMesh *hair_dm = psys->hair_out_dm;
 				
-				glDisable(GL_LIGHTING);
-				glDisable(GL_COLOR_MATERIAL);
 				glDisableClientState(GL_NORMAL_ARRAY);
 				glDisableClientState(GL_COLOR_ARRAY);
 				
@@ -5591,8 +5538,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					glEnd();
 				}
 				
-				glEnable(GL_LIGHTING);
-				glEnable(GL_COLOR_MATERIAL);
 				glEnableClientState(GL_NORMAL_ARRAY);
 				if ((dflag & DRAW_CONSTCOLOR) == 0)
 					if (part->draw_col == PART_DRAW_COL_MAT)
@@ -5607,8 +5552,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					int *res = clmd->hair_grid_res;
 					int i;
 					
-					glDisable(GL_LIGHTING);
-					glDisable(GL_COLOR_MATERIAL);
 					glDisableClientState(GL_NORMAL_ARRAY);
 					glDisableClientState(GL_COLOR_ARRAY);
 					
@@ -5663,8 +5606,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					glEnd();
 					glDisable(GL_BLEND);
 					
-					glEnable(GL_LIGHTING);
-					glEnable(GL_COLOR_MATERIAL);
 					glEnableClientState(GL_NORMAL_ARRAY);
 					if ((dflag & DRAW_CONSTCOLOR) == 0)
 						if (part->draw_col == PART_DRAW_COL_MAT)
@@ -5695,7 +5636,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		if (1) { //ob_dt > OB_WIRE) {
 			if (part->draw_col == PART_DRAW_COL_MAT)
 				glDisableClientState(GL_COLOR_ARRAY);
-			glDisable(GL_COLOR_MATERIAL);
+			GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
 		}
 
 		if (cdata2) {
@@ -5756,11 +5697,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		if (pdd->ndata && ob_dt > OB_WIRE) {
 			glEnableClientState(GL_NORMAL_ARRAY);
 			glNormalPointer(GL_FLOAT, 0, pdd->ndata);
-			glEnable(GL_LIGHTING);
-		}
-		else {
-			glDisableClientState(GL_NORMAL_ARRAY);
-			glDisable(GL_LIGHTING);
+			GPU_simple_shader_colors(NULL, NULL, 0.0f, 1.0f);
+			GPU_simple_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
 		}
 
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
@@ -5792,7 +5730,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 /* 7. */
 	
-	glDisable(GL_LIGHTING);
+	GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
@@ -5867,14 +5805,10 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
 
-	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-	glEnable(GL_COLOR_MATERIAL);
 	glShadeModel(GL_SMOOTH);
 
-	if (pset->brushtype == PE_BRUSH_WEIGHT) {
+	if (pset->brushtype == PE_BRUSH_WEIGHT)
 		glLineWidth(2.0f);
-		glDisable(GL_LIGHTING);
-	}
 
 	cache = edit->pathcache;
 	for (i = 0, point = edit->points; i < totpoint; i++, point++) {
@@ -5987,8 +5921,6 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 	}
 
 	glDisable(GL_BLEND);
-	glDisable(GL_LIGHTING);
-	glDisable(GL_COLOR_MATERIAL);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
@@ -8664,7 +8596,6 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 		}
 		
 		glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
-		glEnable(GL_LIGHTING);
 		
 		if (dm) {
 			dm->drawFacesSolid(dm, NULL, 0, GPU_object_material_bind);
@@ -8673,7 +8604,7 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 		else if (edm)
 			edm->drawMappedFaces(edm, NULL, GPU_object_material_bind, NULL, NULL, DM_DRAW_NEED_NORMALS);
 
-		glDisable(GL_LIGHTING);
+		GPU_object_material_unbind();
 	}
 
 	if (edm) edm->release(edm);

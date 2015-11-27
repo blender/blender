@@ -73,6 +73,7 @@ bool GPU_object_materials_check(void);
 
 int GPU_object_material_bind(int nr, void *attribs);
 void GPU_object_material_unbind(void);
+int GPU_object_material_visible(int nr, void *attribs);
 
 void GPU_begin_dupli_object(struct DupliObject *dob);
 void GPU_end_dupli_object(void);
