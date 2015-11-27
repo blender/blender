@@ -49,6 +49,7 @@
 
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
@@ -1427,6 +1428,7 @@ static struct GPUMaterialState {
 	float (*gviewcamtexcofac);
 
 	bool backface_culling;
+	bool two_sided_lighting;
 
 	GPUBlendMode *alphablend;
 	GPUBlendMode alphablend_fixed[FIXEDMAT];
@@ -1566,6 +1568,10 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GMS.use_matcaps = use_matcap;
 
 	GMS.backface_culling = (v3d->flag2 & V3D_BACKFACE_CULLING) != 0;
+
+	GMS.two_sided_lighting = false;
+	if (ob && ob->type == OB_MESH)
+		GMS.two_sided_lighting = (((Mesh*)ob->data)->flag & ME_TWOSIDED) != 0;
 
 	GMS.gob = ob;
 	GMS.gscene = scene;
@@ -1878,6 +1884,7 @@ void GPU_end_object_materials(void)
 	GMS.matbuf = NULL;
 	GMS.gmatbuf = NULL;
 	GMS.alphablend = NULL;
+	GMS.two_sided_lighting = false;
 
 	/* resetting the texture matrix after the scaling needed for tiled textures */
 	if (GTS.tilemode) {
