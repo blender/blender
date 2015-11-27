@@ -199,7 +199,7 @@ IF(PYTHONLIBSUNIX_FOUND)
   )
 
   # we need this for installation
-  # XXX No more valid with debian-like py3.4 packages...
+  # XXX No more valid with debian-like py3.5 packages...
 #  GET_FILENAME_COMPONENT(PYTHON_LIBPATH ${PYTHON_LIBRARY} PATH)
 
   # not required for build, just used when bundling Python.

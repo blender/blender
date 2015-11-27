@@ -811,8 +811,8 @@ set(PLATFORM_LINKFLAGS_DEBUG "")
 # On Unix:
 #   cmake ../blender \
 #         -D PYTHON_VERSION=3.5 \
-#         -D PYTHON_INCLUDE_DIR=/opt/py34/include/python3.5d \
-#         -D PYTHON_LIBRARY=/opt/py34/lib/libpython3.5d.so
+#         -D PYTHON_INCLUDE_DIR=/opt/py35/include/python3.5d \
+#         -D PYTHON_LIBRARY=/opt/py35/lib/libpython3.5d.so
 #
 # On Macs:
 #   cmake ../blender \
@@ -896,10 +896,10 @@ if(UNIX AND NOT APPLE)
 	# else values are set below for all platforms
 
 	if(WITH_PYTHON)
-		# No way to set py34. remove for now.
+		# No way to set py35, remove for now.
 		# find_package(PythonLibs)
 
-		# Use our own instead, since wothout py is such a rare case,
+		# Use our own instead, since without py is such a rare case,
 		# require this package
 		# XXX Linking errors with debian static python :/
 #		find_package_wrapper(PythonLibsUnix REQUIRED)
