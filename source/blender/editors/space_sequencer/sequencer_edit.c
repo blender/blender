@@ -2517,7 +2517,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 #if 1
 		BKE_sequence_tx_set_final_left(ms->parseq, ms->disp_range[0]);
 		BKE_sequence_tx_set_final_right(ms->parseq, ms->disp_range[1]);
-		BKE_sequence_single_fix(seq);
+		BKE_sequence_single_fix(ms->parseq);
 		BKE_sequence_calc(scene, ms->parseq);
 #else
 		if (BKE_sequence_test_overlap(ed->seqbasep, ms->parseq))
