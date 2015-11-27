@@ -87,6 +87,7 @@ CCL_NAMESPACE_BEGIN
 /* Experimental on GPU */
 #ifdef __KERNEL_EXPERIMENTAL__
 #define __SUBSURFACE__
+#define __SUBSURFACE_DELAYED_INDIRECT__
 #define __CMJ__
 #endif
 

@@ -74,6 +74,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 			                                  &throughput,
 			                                  &ss_indirect))
 			{
+#  ifdef __SUBSURFACE_DELAYED_INDIRECT__
 				while(ss_indirect.num_rays) {
 					kernel_path_subsurface_setup_indirect(kg,
 					                                      &ss_indirect,
@@ -90,6 +91,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 					                     &state,
 					                     &L_sample);
 				}
+#  endif  /* __SUBSURFACE_DELAYED_INDIRECT__ */
 				is_sss_sample = true;
 			}
 		}
