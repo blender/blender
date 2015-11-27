@@ -1138,6 +1138,8 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	if (ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
 	else glFrontFace(GL_CCW);
 
+	Mesh *me = ob->data;
+
 	if ((v3d->flag2 & V3D_SHADELESS_TEX) &&
 	    ((v3d->drawtype == OB_TEXTURE) || (ob->mode & OB_MODE_TEXTURE_PAINT)))
 	{
@@ -1145,52 +1147,51 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	}
 	else {
 		glEnable(GL_LIGHTING);
+		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, (me->flag & ME_TWOSIDED) ? GL_TRUE : GL_FALSE);
 	}
 
-	{
-		Mesh *me = ob->data;
-		TexMatCallback data = {scene, ob, me, dm};
-		bool (*set_face_cb)(void *, int);
-		bool picking = (G.f & G_PICKSEL) != 0;
-		
-		/* face hiding callback depending on mode */
-		if (ob == scene->obedit)
-			set_face_cb = tex_mat_set_face_editmesh_cb;
-		else if (draw_flags & DRAW_FACE_SELECT)
-			set_face_cb = tex_mat_set_face_mesh_cb;
-		else
-			set_face_cb = NULL;
+	TexMatCallback data = {scene, ob, me, dm};
+	bool (*set_face_cb)(void *, int);
+	bool picking = (G.f & G_PICKSEL) != 0;
+	
+	/* face hiding callback depending on mode */
+	if (ob == scene->obedit)
+		set_face_cb = tex_mat_set_face_editmesh_cb;
+	else if (draw_flags & DRAW_FACE_SELECT)
+		set_face_cb = tex_mat_set_face_mesh_cb;
+	else
+		set_face_cb = NULL;
 
-		/* test if we can use glsl */
-		bool glsl = (v3d->drawtype == OB_MATERIAL) && !picking;
+	/* test if we can use glsl */
+	bool glsl = (v3d->drawtype == OB_MATERIAL) && !picking;
 
-		GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
+	GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
 
-		if (glsl || picking) {
-			/* draw glsl or solid */
-			dm->drawMappedFacesMat(dm,
-			                       tex_mat_set_material_cb,
-			                       set_face_cb, &data);
-		}
-		else {
-			float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-
-			/* draw textured */
-			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, zero);
-			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, zero);
-			glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 0);
-
-			dm->drawMappedFacesMat(dm,
-			                       tex_mat_set_texture_cb,
-			                       set_face_cb, &data);
-		}
-
-		GPU_end_object_materials();
+	if (glsl || picking) {
+		/* draw glsl or solid */
+		dm->drawMappedFacesMat(dm,
+							   tex_mat_set_material_cb,
+							   set_face_cb, &data);
 	}
+	else {
+		float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+		/* draw textured */
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, zero);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, zero);
+		glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 0);
+
+		dm->drawMappedFacesMat(dm,
+							   tex_mat_set_texture_cb,
+							   set_face_cb, &data);
+	}
+
+	GPU_end_object_materials();
 
 	/* reset opengl state */
 	glDisable(GL_COLOR_MATERIAL);
 	glDisable(GL_TEXTURE_2D);
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
 	glDisable(GL_LIGHTING);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glFrontFace(GL_CCW);
