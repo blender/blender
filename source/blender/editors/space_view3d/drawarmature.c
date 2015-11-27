@@ -61,6 +61,7 @@
 #include "ED_armature.h"
 #include "ED_keyframes_draw.h"
 
+#include "GPU_simple_shader.h"
 
 #include "UI_resources.h"
 
@@ -884,8 +885,7 @@ static void draw_sphere_bone(const short dt, int armflag, int boneflag, short co
 
 	if (dt == OB_SOLID) {
 		/* set up solid drawing */
-		glEnable(GL_COLOR_MATERIAL);
-		glEnable(GL_LIGHTING);
+		GPU_simple_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
 		
 		gluQuadricDrawStyle(qobj, GLU_FILL); 
 		glShadeModel(GL_SMOOTH);
@@ -967,8 +967,7 @@ static void draw_sphere_bone(const short dt, int armflag, int boneflag, short co
 	/* restore */
 	if (dt == OB_SOLID) {
 		glShadeModel(GL_FLAT);
-		glDisable(GL_LIGHTING);
-		glDisable(GL_COLOR_MATERIAL);
+		GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
 	}
 	
 	glPopMatrix();
@@ -1166,8 +1165,7 @@ static void draw_b_bone(const short dt, int armflag, int boneflag, short constfl
 	
 	/* set up solid drawing */
 	if (dt > OB_WIRE) {
-		glEnable(GL_COLOR_MATERIAL);
-		glEnable(GL_LIGHTING);
+		GPU_simple_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
 		
 		if (armflag & ARM_POSEMODE)
 			set_pchan_glColor(PCHAN_COLOR_SOLID, boneflag, constflag);
@@ -1177,8 +1175,7 @@ static void draw_b_bone(const short dt, int armflag, int boneflag, short constfl
 		draw_b_bone_boxes(OB_SOLID, pchan, xwidth, length, zwidth);
 		
 		/* disable solid drawing */
-		glDisable(GL_COLOR_MATERIAL);
-		glDisable(GL_LIGHTING);
+		GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
 	}
 	else {
 		/* wire */
@@ -1297,8 +1294,7 @@ static void draw_bone(const short dt, int armflag, int boneflag, short constflag
 
 	/* set up solid drawing */
 	if (dt > OB_WIRE) {
-		glEnable(GL_COLOR_MATERIAL);
-		glEnable(GL_LIGHTING);
+		GPU_simple_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
 		UI_ThemeColor(TH_BONE_SOLID);
 	}
 	
@@ -1352,8 +1348,7 @@ static void draw_bone(const short dt, int armflag, int boneflag, short constflag
 
 	/* disable solid drawing */
 	if (dt > OB_WIRE) {
-		glDisable(GL_COLOR_MATERIAL);
-		glDisable(GL_LIGHTING);
+		GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
 	}
 }
 
@@ -2602,13 +2597,20 @@ bool draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 
 	if (v3d->flag2 & V3D_RENDER_OVERRIDE)
 		return true;
-	
-	if (dt > OB_WIRE && !ELEM(arm->drawtype, ARM_LINE, ARM_WIRE)) {
+
+	if (dt > OB_WIRE) {
 		/* we use color for solid lighting */
-		const float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, white);
-		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-		glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);  /* only for lighting... */
+		if (ELEM(arm->drawtype, ARM_LINE, ARM_WIRE)) {
+			const float diffuse[3] = {0.64f, 0.64f, 0.64f};
+			const float specular[3] = {0.5f, 0.5f, 0.5f};
+			GPU_simple_shader_colors(diffuse, specular, 35, 1.0f);
+		}
+		else {
+			const float diffuse[3] = {1.0f, 1.0f, 1.0f};
+			const float specular[3] = {1.0f, 1.0f, 1.0f};
+			GPU_simple_shader_colors(diffuse, specular, 35, 1.0f);
+			glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);  /* only for lighting... */
+		}
 	}
 	
 	/* arm->flag is being used to detect mode... */

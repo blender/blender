@@ -7937,11 +7937,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 						draw_bounding_volume(ob, ob->boundtype);
 					}
 					else {
-						if (dt > OB_WIRE)
-							GPU_object_material_bind(0, NULL);  /* we use default material */
 						empty_object = draw_armature(scene, v3d, ar, base, dt, dflag, ob_wire_col, false);
-						if (dt > OB_WIRE)
-							GPU_object_material_unbind();
 					}
 				}
 				break;
@@ -8665,11 +8661,6 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 		if (dm) {
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
 			GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
-		}
-		else {
-			glEnable(GL_COLOR_MATERIAL);
-			UI_ThemeColor(TH_BONE_SOLID);
-			glDisable(GL_COLOR_MATERIAL);
 		}
 		
 		glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
