@@ -525,6 +525,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 		if (!(buffer && (varray = glMapBuffer(target, GL_WRITE_ONLY)))) {
 			if (buffer)
 				gpu_buffer_free_intern(buffer);
+			BLI_mutex_unlock(&buffer_mutex);
 			return NULL;
 		}
 	}
