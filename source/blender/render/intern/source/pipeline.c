@@ -3358,7 +3358,6 @@ bool RE_WriteRenderViewsMovie(
 	if (is_mono || (scene->r.im_format.views_format == R_IMF_VIEWS_INDIVIDUAL)) {
 		int view_id;
 		for (view_id = 0; view_id < totvideos; view_id++) {
-			bool do_free = false;
 			const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, view_id);
 			ImBuf *ibuf = render_result_rect_to_ibuf(rr, &scene->r, view_id);
 
@@ -3368,12 +3367,6 @@ bool RE_WriteRenderViewsMovie(
 			ok &= mh->append_movie(movie_ctx_arr[view_id], rd, preview ? scene->r.psfra : scene->r.sfra, scene->r.cfra,
 			                       (int *) ibuf->rect, ibuf->x, ibuf->y, suffix, reports);
 
-			if (do_free) {
-				MEM_freeN(ibuf->rect);
-				ibuf->rect = NULL;
-				ibuf->mall &= ~IB_rect;
-			}
-
 			/* imbuf knows which rects are not part of ibuf */
 			IMB_freeImBuf(ibuf);
 		}
@@ -3382,7 +3375,6 @@ bool RE_WriteRenderViewsMovie(
 	else { /* R_IMF_VIEWS_STEREO_3D */
 		const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
 		ImBuf *ibuf_arr[3] = {NULL};
-		bool do_free[2] = {false, false};
 		int i;
 
 		BLI_assert((totvideos == 1) && (scene->r.im_format.views_format == R_IMF_VIEWS_STEREO_3D));
@@ -3401,12 +3393,6 @@ bool RE_WriteRenderViewsMovie(
 		                      ibuf_arr[2]->x, ibuf_arr[2]->y, "", reports);
 
 		for (i = 0; i < 2; i++) {
-			if (do_free[i]) {
-				MEM_freeN(ibuf_arr[i]->rect);
-				ibuf_arr[i]->rect = NULL;
-				ibuf_arr[i]->mall &= ~IB_rect;
-			}
-
 			/* imbuf knows which rects are not part of ibuf */
 			IMB_freeImBuf(ibuf_arr[i]);
 		}
