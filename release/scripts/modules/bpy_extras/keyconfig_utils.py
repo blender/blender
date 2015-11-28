@@ -122,8 +122,9 @@ KM_HIERARCHY = [
         ('Clip Editor', 'CLIP_EDITOR', 'WINDOW', []),
         ('Clip Graph Editor', 'CLIP_EDITOR', 'WINDOW', []),
         ('Clip Dopesheet Editor', 'CLIP_EDITOR', 'WINDOW', []),
-        ('Mask Editing', 'EMPTY', 'WINDOW', []),  # image (reverse order, UVEdit before Image
         ]),
+
+    ('Mask Editing', 'EMPTY', 'WINDOW', []),
 
     ('View3D Gesture Circle', 'EMPTY', 'WINDOW', []),
     ('Gesture Straight Line', 'EMPTY', 'WINDOW', []),
