@@ -1093,7 +1093,6 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	float viewrect[2];
 	float col[3];
 	GLuint texid;
-	GLuint last_texid;
 	void *display_buffer;
 	void *cache_handle = NULL;
 	const bool is_imbuf = ED_space_sequencer_check_show_imbuf(sseq);
@@ -1291,7 +1290,6 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 
-	last_texid = glaGetOneInteger(GL_TEXTURE_2D);
 	glEnable(GL_TEXTURE_2D);
 	glGenTextures(1, (GLuint *)&texid);
 
@@ -1366,7 +1364,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	}
 	glEnd();
 
-	glBindTexture(GL_TEXTURE_2D, last_texid);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glDisable(GL_TEXTURE_2D);
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->flag & SEQ_USE_ALPHA)
 		glDisable(GL_BLEND);

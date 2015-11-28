@@ -2275,7 +2275,6 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 	GPUMaterial *mat;
 	GPUInputUniform *uniform;
 	GPUInputAttribute *attribute;
-	GLint lastbindcode;
 	int i, liblen, fraglen;
 
 	/* TODO(sergey): How to detemine whether we need OSD or not here? */
@@ -2310,12 +2309,11 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 				case GPU_TEX2D:
 					if (GPU_texture_opengl_bindcode(input->tex)) {
 						uniform->type = GPU_DYNAMIC_SAMPLER_2DBUFFER;
-						glGetIntegerv(GL_TEXTURE_BINDING_2D, &lastbindcode);
 						glBindTexture(GL_TEXTURE_2D, GPU_texture_opengl_bindcode(input->tex));
 						uniform->texsize = GPU_texture_opengl_width(input->tex) * GPU_texture_opengl_height(input->tex);
 						uniform->texpixels = MEM_mallocN(uniform->texsize*4, "RGBApixels");
 						glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, uniform->texpixels); 
-						glBindTexture(GL_TEXTURE_2D, lastbindcode);
+						glBindTexture(GL_TEXTURE_2D, 0);
 					}
 					break;
 

@@ -436,13 +436,6 @@ void glutil_draw_lined_arc(float start, float angle, float radius, int nsegments
 	glEnd();
 }
 
-int glaGetOneInteger(int param)
-{
-	GLint i;
-	glGetIntegerv(param, &i);
-	return i;
-}
-
 float glaGetOneFloat(int param)
 {
 	GLfloat v;
@@ -474,7 +467,6 @@ static int get_cached_work_texture(int *r_w, int *r_h)
 	static int tex_h = 256;
 
 	if (texid == -1) {
-		GLint ltexid = glaGetOneInteger(GL_TEXTURE_2D);
 		unsigned char *tbuf;
 
 		glGenTextures(1, (GLuint *)&texid);
@@ -488,7 +480,7 @@ static int get_cached_work_texture(int *r_w, int *r_h)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tbuf);
 		MEM_freeN(tbuf);
 
-		glBindTexture(GL_TEXTURE_2D, ltexid);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
 	*r_w = tex_w;
@@ -501,8 +493,6 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 	unsigned char *uc_rect = (unsigned char *) rect;
 	const float *f_rect = (float *)rect;
 	float xzoom = glaGetOneFloat(GL_ZOOM_X), yzoom = glaGetOneFloat(GL_ZOOM_Y);
-	int ltexid = glaGetOneInteger(GL_TEXTURE_2D);
-	int lrowlength = glaGetOneInteger(GL_UNPACK_ROW_LENGTH);
 	int subpart_x, subpart_y, tex_w, tex_h;
 	int seamless, offset_x, offset_y, nsubparts_x, nsubparts_y;
 	int texid = get_cached_work_texture(&tex_w, &tex_h);
@@ -617,8 +607,8 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 		}
 	}
 
-	glBindTexture(GL_TEXTURE_2D, ltexid);
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, lrowlength);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	
 #ifdef __APPLE__
 	/* workaround for os x 10.5/10.6 driver bug (above) */
@@ -674,8 +664,6 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
 	draw_h = min_ii(img_h - off_y, ceil((scissor[3] - rast_y) / yzoom));
 
 	if (draw_w > 0 && draw_h > 0) {
-		int old_row_length = glaGetOneInteger(GL_UNPACK_ROW_LENGTH);
-
 		/* Don't use safe RasterPos (slower) if we can avoid it. */
 		if (rast_x >= 0 && rast_y >= 0) {
 			glRasterPos2f(rast_x, rast_y);
@@ -706,7 +694,7 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
 			}
 		}
 		
-		glPixelStorei(GL_UNPACK_ROW_LENGTH,  old_row_length);
+		glPixelStorei(GL_UNPACK_ROW_LENGTH,  0);
 	}
 }
 
