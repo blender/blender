@@ -116,7 +116,7 @@ BMFace *BM_face_create_quad_tri(
  */
 void BM_face_copy_shared(
         BMesh *bm, BMFace *f,
-        BMElemFilterFunc filter_fn, void *user_data)
+        BMLoopFilterFunc filter_fn, void *user_data)
 {
 	BMLoop *l_first;
 	BMLoop *l_iter;
@@ -149,7 +149,7 @@ void BM_face_copy_shared(
 			for (j = 0; j < 2; j++) {
 				BLI_assert(l_dst[j]->v == l_src[j]->v);
 				if (BM_ELEM_API_FLAG_TEST(l_dst[j], _FLAG_OVERLAP) == 0) {
-					if ((filter_fn == NULL) || filter_fn((BMElem *)l_src[j], user_data)) {
+					if ((filter_fn == NULL) || filter_fn(l_src[j], user_data)) {
 						bm_loop_attrs_copy(bm, bm, l_src[j], l_dst[j]);
 						BM_ELEM_API_FLAG_ENABLE(l_dst[j], _FLAG_OVERLAP);
 					}

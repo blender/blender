@@ -38,7 +38,7 @@ BMFace *BM_face_create_quad_tri(
 
 void BM_face_copy_shared(
         BMesh *bm, BMFace *f,
-        BMElemFilterFunc filter_fn, void *user_data);
+        BMLoopFilterFunc filter_fn, void *user_data);
 
 BMFace *BM_face_create_ngon(
         BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, const int len,

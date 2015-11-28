@@ -53,9 +53,9 @@ static bool bm_loop_is_all_radial_tag(BMLoop *l)
 /**
  * Callback to run on source-loops for #BM_face_copy_shared
  */
-static bool bm_loop_is_face_untag(BMElem *ele, void *UNUSED(user_data))
+static bool bm_loop_is_face_untag(const BMLoop *l, void *UNUSED(user_data))
 {
-	return (BM_elem_flag_test(((BMLoop *)ele)->f, BM_ELEM_TAG) == 0);
+	return (BM_elem_flag_test(l->f, BM_ELEM_TAG) == 0);
 }
 
 /**

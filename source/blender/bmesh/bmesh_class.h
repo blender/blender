@@ -309,7 +309,11 @@ enum {
 struct BPy_BMGeneric;
 extern void bpy_bm_generic_invalidate(struct BPy_BMGeneric *self);
 
-typedef bool (*BMElemFilterFunc)(BMElem *, void *user_data);
+typedef bool (*BMElemFilterFunc)(const BMElem *, void *user_data);
+typedef bool (*BMVertFilterFunc)(const BMVert *, void *user_data);
+typedef bool (*BMEdgeFilterFunc)(const BMEdge *, void *user_data);
+typedef bool (*BMFaceFilterFunc)(const BMFace *, void *user_data);
+typedef bool (*BMLoopFilterFunc)(const BMLoop *, void *user_data);
 
 /* defines */
 #define BM_ELEM_CD_SET_INT(ele, offset, f) { CHECK_TYPE_NONCONST(ele); \
