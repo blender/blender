@@ -486,7 +486,7 @@ void BLF_rotation_default(float angle)
 	}
 }
 
-static void blf_draw_gl__start(FontBLF *font, GLint *mode, GLint *param)
+static void blf_draw_gl__start(FontBLF *font, GLint *mode)
 {
 	/*
 	 * The pixmap alignment hack is handle
@@ -523,19 +523,10 @@ static void blf_draw_gl__start(FontBLF *font, GLint *mode, GLint *param)
 
 	/* always bind the texture for the first glyph */
 	font->tex_bind_state = -1;
-
-	/* Save the current parameter to restore it later. */
-	glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, param);
-	if (*param != GL_MODULATE)
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 }
 
-static void blf_draw_gl__end(GLint mode, GLint param)
+static void blf_draw_gl__end(GLint mode)
 {
-	/* and restore the original value. */
-	if (param != GL_MODULATE)
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, param);
-
 	glMatrixMode(GL_TEXTURE);
 	glPopMatrix();
 
@@ -554,19 +545,19 @@ void BLF_draw_ex(
         struct ResultBLF *r_info)
 {
 	FontBLF *font = blf_get(fontid);
-	GLint mode, param;
+	GLint mode;
 
 	BLF_RESULT_CHECK_INIT(r_info);
 
 	if (font && font->glyph_cache) {
-		blf_draw_gl__start(font, &mode, &param);
+		blf_draw_gl__start(font, &mode);
 		if (font->flags & BLF_WORD_WRAP) {
 			blf_font_draw__wrap(font, str, len, r_info);
 		}
 		else {
 			blf_font_draw(font, str, len, r_info);
 		}
-		blf_draw_gl__end(mode, param);
+		blf_draw_gl__end(mode);
 	}
 }
 void BLF_draw(int fontid, const char *str, size_t len)
@@ -579,12 +570,12 @@ void BLF_draw_ascii_ex(
         struct ResultBLF *r_info)
 {
 	FontBLF *font = blf_get(fontid);
-	GLint mode, param;
+	GLint mode;
 
 	BLF_RESULT_CHECK_INIT(r_info);
 
 	if (font && font->glyph_cache) {
-		blf_draw_gl__start(font, &mode, &param);
+		blf_draw_gl__start(font, &mode);
 		if (font->flags & BLF_WORD_WRAP) {
 			/* use non-ascii draw function for word-wrap */
 			blf_font_draw__wrap(font, str, len, r_info);
@@ -592,7 +583,7 @@ void BLF_draw_ascii_ex(
 		else {
 			blf_font_draw_ascii(font, str, len, r_info);
 		}
-		blf_draw_gl__end(mode, param);
+		blf_draw_gl__end(mode);
 	}
 }
 void BLF_draw_ascii(int fontid, const char *str, size_t len)
@@ -603,13 +594,13 @@ void BLF_draw_ascii(int fontid, const char *str, size_t len)
 int BLF_draw_mono(int fontid, const char *str, size_t len, int cwidth)
 {
 	FontBLF *font = blf_get(fontid);
-	GLint mode, param;
+	GLint mode;
 	int columns = 0;
 
 	if (font && font->glyph_cache) {
-		blf_draw_gl__start(font, &mode, &param);
+		blf_draw_gl__start(font, &mode);
 		columns = blf_font_draw_mono(font, str, len, cwidth);
-		blf_draw_gl__end(mode, param);
+		blf_draw_gl__end(mode);
 	}
 
 	return columns;

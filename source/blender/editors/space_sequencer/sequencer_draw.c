@@ -1289,7 +1289,6 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		}
 	}
 
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 
 	last_texid = glaGetOneInteger(GL_TEXTURE_2D);

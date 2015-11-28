@@ -805,8 +805,6 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *rect, float *frect, int
 
 	if (GLEW_EXT_texture_filter_anisotropic)
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, GPU_get_anisotropic());
-	/* set to modulate with vertex color */
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 	if (ibuf)
 		IMB_freeImBuf(ibuf);
@@ -847,8 +845,6 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf)
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
-
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 	if (GLEW_EXT_texture_filter_anisotropic)
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, GPU_get_anisotropic());
@@ -2044,11 +2040,15 @@ static void gpu_multisample(bool enable)
 #endif
 }
 
-/* Default OpenGL State */
+/* Default OpenGL State
+ *
+ * This is called on startup, for opengl offscreen render and to restore state
+ * for the game engine. Generally we should always return to this state when
+ * temporarily modifying the state for drawing, though that are (undocumented)
+ * exceptions that we should try to get rid of. */
 
 void GPU_state_init(void)
 {
-	/* also called when doing opengl rendering and in the game engine */
 	float mat_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
 	float mat_specular[] = { 0.5, 0.5, 0.5, 1.0 };
 	int a, x, y;

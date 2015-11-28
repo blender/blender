@@ -1083,7 +1083,6 @@ static void draw_plane_marker_image(Scene *scene,
 				glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
 			}
 
-			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			glColor4f(1.0, 1.0, 1.0, plane_track->image_opacity);
 
 			last_texid = glaGetOneInteger(GL_TEXTURE_2D);
