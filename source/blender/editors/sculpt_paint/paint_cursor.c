@@ -59,6 +59,8 @@
 
 #include "ED_view3d.h"
 
+#include "GPU_simple_shader.h"
+
 #include "UI_resources.h"
 
 #include "paint_intern.h"
@@ -334,7 +336,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 		target->old_col = col;
 	}
 
-	glEnable(GL_TEXTURE_2D);
+	GPU_simple_shader_bind(GPU_SHADER_TEXTURE_2D | GPU_SHADER_USE_COLOR);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -457,7 +459,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 			MEM_freeN(buffer);
 	}
 
-	glEnable(GL_TEXTURE_2D);
+	GPU_simple_shader_bind(GPU_SHADER_TEXTURE_2D | GPU_SHADER_USE_COLOR);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -793,6 +795,7 @@ static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
 	}
 
 	glPopAttrib();
+	GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
 }
 
 

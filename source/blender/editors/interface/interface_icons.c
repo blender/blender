@@ -34,6 +34,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "GPU_extensions.h"
+#include "GPU_simple_shader.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -1122,7 +1123,7 @@ static void icon_draw_texture(
 	y1 = iy * icongltex.invh;
 	y2 = (iy + ih) * icongltex.invh;
 
-	glEnable(GL_TEXTURE_2D);
+	GPU_simple_shader_bind(GPU_SHADER_TEXTURE_2D | GPU_SHADER_USE_COLOR);
 	glBindTexture(GL_TEXTURE_2D, icongltex.id);
 
 	/* sharper downscaling, has no effect when scale matches with a mip level */
@@ -1145,7 +1146,7 @@ static void icon_draw_texture(
 	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, 0.0f);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glDisable(GL_TEXTURE_2D);
+	GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
 }
 
 /* Drawing size for preview images */
