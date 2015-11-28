@@ -27,15 +27,11 @@ KM_HIERARCHY = [
     ('Window', 'EMPTY', 'WINDOW', []),  # file save, window change, exit
     ('Screen', 'EMPTY', 'WINDOW', [     # full screen, undo, screenshot
         ('Screen Editing', 'EMPTY', 'WINDOW', []),    # re-sizing, action corners
+        ('Header', 'EMPTY', 'WINDOW', []),            # header stuff (per region)
         ]),
 
     ('View2D', 'EMPTY', 'WINDOW', []),    # view 2d navigation (per region)
     ('View2D Buttons List', 'EMPTY', 'WINDOW', []),  # view 2d with buttons navigation
-    ('Header', 'EMPTY', 'WINDOW', []),    # header stuff (per region)
-
-    ('Grease Pencil', 'EMPTY', 'WINDOW', [  # grease pencil stuff (per region)
-        ('Grease Pencil Stroke Edit Mode', 'EMPTY', 'WINDOW', []),
-        ]),
 
     ('3D View', 'VIEW_3D', 'WINDOW', [  # view 3d navigation and generic stuff (select, transform)
         ('Object Mode', 'EMPTY', 'WINDOW', []),
@@ -73,10 +69,6 @@ KM_HIERARCHY = [
         ('3D View Generic', 'VIEW_3D', 'WINDOW', []),    # toolbar and properties
         ]),
 
-    ('Frames', 'EMPTY', 'WINDOW', []),    # frame navigation (per region)
-    ('Markers', 'EMPTY', 'WINDOW', []),    # markers (per region)
-    ('Animation', 'EMPTY', 'WINDOW', []),    # frame change on click, preview range (per region)
-    ('Animation Channels', 'EMPTY', 'WINDOW', []),
     ('Graph Editor', 'GRAPH_EDITOR', 'WINDOW', [
         ('Graph Editor Generic', 'GRAPH_EDITOR', 'WINDOW', []),
         ]),
@@ -85,15 +77,15 @@ KM_HIERARCHY = [
         ('NLA Channels', 'NLA_EDITOR', 'WINDOW', []),
         ('NLA Generic', 'NLA_EDITOR', 'WINDOW', []),
         ]),
+    ('Timeline', 'TIMELINE', 'WINDOW', []),
 
     ('Image', 'IMAGE_EDITOR', 'WINDOW', [
-        ('UV Editor', 'EMPTY', 'WINDOW', []),  # image (reverse order, UVEdit before Image
+        ('UV Editor', 'EMPTY', 'WINDOW', []),  # image (reverse order, UVEdit before Image)
         ('Image Paint', 'EMPTY', 'WINDOW', []),  # image and view3d
         ('UV Sculpt', 'EMPTY', 'WINDOW', []),
         ('Image Generic', 'IMAGE_EDITOR', 'WINDOW', []),
         ]),
 
-    ('Timeline', 'TIMELINE', 'WINDOW', []),
     ('Outliner', 'OUTLINER', 'WINDOW', []),
 
     ('Node Editor', 'NODE_EDITOR', 'WINDOW', [
@@ -124,7 +116,14 @@ KM_HIERARCHY = [
         ('Clip Dopesheet Editor', 'CLIP_EDITOR', 'WINDOW', []),
         ]),
 
+    ('Grease Pencil', 'EMPTY', 'WINDOW', [  # grease pencil stuff (per region)
+        ('Grease Pencil Stroke Edit Mode', 'EMPTY', 'WINDOW', []),
+        ]),
     ('Mask Editing', 'EMPTY', 'WINDOW', []),
+    ('Frames', 'EMPTY', 'WINDOW', []),    # frame navigation (per region)
+    ('Markers', 'EMPTY', 'WINDOW', []),    # markers (per region)
+    ('Animation', 'EMPTY', 'WINDOW', []),    # frame change on click, preview range (per region)
+    ('Animation Channels', 'EMPTY', 'WINDOW', []),
 
     ('View3D Gesture Circle', 'EMPTY', 'WINDOW', []),
     ('Gesture Straight Line', 'EMPTY', 'WINDOW', []),
