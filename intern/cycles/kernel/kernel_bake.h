@@ -65,7 +65,6 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 		if((is_combined || is_sss_sample) && (sd->flag & SD_BSSRDF)) {
 			/* when mixing BSSRDF and BSDF closures we should skip BSDF lighting if scattering was successful */
 			SubsurfaceIndirectRays ss_indirect;
-			Ray orig_ray = ray;
 			kernel_path_subsurface_init_indirect(&ss_indirect);
 			if(kernel_path_subsurface_scatter(kg,
 			                                  sd,
@@ -79,7 +78,6 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 				while(ss_indirect.num_rays) {
 					kernel_path_subsurface_setup_indirect(kg,
 					                                      &ss_indirect,
-					                                      &orig_ray,
 					                                      &state,
 					                                      &ray,
 					                                      &L_sample,

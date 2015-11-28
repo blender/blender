@@ -511,6 +511,20 @@ ccl_device bool kernel_path_subsurface_scatter(
 				hit_state->ray_t = 0.0f;
 #endif
 
+#ifdef __VOLUME__
+				if(ss_indirect->need_update_volume_stack) {
+					Ray volume_ray = *ray;
+					/* Setup ray from previous surface point to the new one. */
+					volume_ray.D = normalize_len(hit_ray->P - volume_ray.P,
+					                             &volume_ray.t);
+
+					kernel_volume_stack_update_for_subsurface(
+					    kg,
+					    &volume_ray,
+					    hit_state->volume_stack);
+				}
+#endif
+
 				ss_indirect->num_rays++;
 			}
 			else {
@@ -545,7 +559,6 @@ ccl_device void kernel_path_subsurface_accum_indirect(
 ccl_device void kernel_path_subsurface_setup_indirect(
         KernelGlobals *kg,
         SubsurfaceIndirectRays *ss_indirect,
-        const Ray *orig_ray,
         PathState *state,
         Ray *ray,
         PathRadiance *L,
@@ -561,20 +574,6 @@ ccl_device void kernel_path_subsurface_setup_indirect(
 
 	Ray *indirect_ray = &ss_indirect->rays[ss_indirect->num_rays];
 	PathRadiance *indirect_L = &ss_indirect->L[ss_indirect->num_rays];
-
-#ifdef __VOLUME__
-	if(ss_indirect->need_update_volume_stack) {
-		Ray volume_ray = *orig_ray;
-
-		/* Setup ray from previous surface point to the new one. */
-		volume_ray.D = normalize_len(indirect_ray->P - volume_ray.P,
-		                             &volume_ray.t);
-
-		kernel_volume_stack_update_for_subsurface(kg,
-		                                          &volume_ray,
-		                                          state->volume_stack);
-	}
-#endif  /* __VOLUME__ */
 
 	*state = ss_indirect->state[ss_indirect->num_rays];
 	*ray = *indirect_ray;
@@ -606,12 +605,6 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 #ifdef __SUBSURFACE__
 	SubsurfaceIndirectRays ss_indirect;
 	kernel_path_subsurface_init_indirect(&ss_indirect);
-
-	/* TODO(sergey): Avoid having explicit copy of the pre-subsurface scatter
-	 * ray by storing an updated version of state in the ss_indirect which will
-	 * be updated to the new volume stack.
-	 */
-	Ray ss_orig_ray;
 
 	for(;;) {
 #endif
@@ -862,7 +855,6 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 			                                  &throughput,
 			                                  &ss_indirect))
 			{
-				ss_orig_ray = ray;
 				break;
 			}
 		}
@@ -885,7 +877,6 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 		if(ss_indirect.num_rays) {
 			kernel_path_subsurface_setup_indirect(kg,
 			                                      &ss_indirect,
-			                                      &ss_orig_ray,
 			                                      &state,
 			                                      &ray,
 			                                      &L,
