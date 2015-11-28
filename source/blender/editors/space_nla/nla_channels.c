@@ -268,7 +268,7 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, float x, int channe
 		{
 			AnimData *adt = BKE_animdata_from_id(ale->id);
 			
-			/* button area... */
+			/* button region... */
 			if (x >= (v2d->cur.xmax - NLACHANNEL_BUTTON_WIDTH)) {
 				if (nlaedit_is_tweakmode_on(ac) == 0) {
 					/* 'push-down' action - only usable when not in TweakMode */

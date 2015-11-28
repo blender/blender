@@ -66,8 +66,8 @@ static SpaceLink *userpref_new(const bContext *UNUSED(C))
 	ar->regiontype = RGN_TYPE_HEADER;
 	ar->alignment = RGN_ALIGN_BOTTOM;
 
-	/* main area */
-	ar = MEM_callocN(sizeof(ARegion), "main area for userpref");
+	/* main region */
+	ar = MEM_callocN(sizeof(ARegion), "main region for userpref");
 
 	BLI_addtail(&spref->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
@@ -101,7 +101,7 @@ static SpaceLink *userpref_duplicate(SpaceLink *sl)
 
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void userpref_main_area_init(wmWindowManager *wm, ARegion *ar)
+static void userpref_main_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	/* do not use here, the properties changed in userprefs do a system-wide refresh, then scroller jumps back */
 	/*	ar->v2d.flag &= ~V2D_IS_INITIALISED; */
@@ -111,7 +111,7 @@ static void userpref_main_area_init(wmWindowManager *wm, ARegion *ar)
 	ED_region_panels_init(wm, ar);
 }
 
-static void userpref_main_area_draw(const bContext *C, ARegion *ar)
+static void userpref_main_region_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_panels(C, ar, NULL, -1, true);
 }
@@ -126,17 +126,17 @@ static void userpref_keymap(struct wmKeyConfig *UNUSED(keyconf))
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void userpref_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void userpref_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
 
-static void userpref_header_area_draw(const bContext *C, ARegion *ar)
+static void userpref_header_region_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_header(C, ar);
 }
 
-static void userpref_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
+static void userpref_main_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
 {
 	/* context changes */
 }
@@ -171,9 +171,9 @@ void ED_spacetype_userpref(void)
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype userpref region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->init = userpref_main_area_init;
-	art->draw = userpref_main_area_draw;
-	art->listener = userpref_main_area_listener;
+	art->init = userpref_main_region_init;
+	art->draw = userpref_main_region_draw;
+	art->listener = userpref_main_region_listener;
 	art->keymapflag = ED_KEYMAP_UI;
 
 	BLI_addhead(&st->regiontypes, art);
@@ -184,8 +184,8 @@ void ED_spacetype_userpref(void)
 	art->prefsizey = HEADERY;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
 	art->listener = userpref_header_listener;
-	art->init = userpref_header_area_init;
-	art->draw = userpref_header_area_draw;
+	art->init = userpref_header_region_init;
+	art->draw = userpref_header_region_draw;
 
 	BLI_addhead(&st->regiontypes, art);
 

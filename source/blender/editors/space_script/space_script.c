@@ -78,8 +78,8 @@ static SpaceLink *script_new(const bContext *UNUSED(C))
 	ar->regiontype = RGN_TYPE_HEADER;
 	ar->alignment = RGN_ALIGN_BOTTOM;
 	
-	/* main area */
-	ar = MEM_callocN(sizeof(ARegion), "main area for script");
+	/* main region */
+	ar = MEM_callocN(sizeof(ARegion), "main region for script");
 	
 	BLI_addtail(&sscript->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
@@ -125,7 +125,7 @@ static SpaceLink *script_duplicate(SpaceLink *sl)
 
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void script_main_area_init(wmWindowManager *wm, ARegion *ar)
+static void script_main_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 	
@@ -136,7 +136,7 @@ static void script_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
-static void script_main_area_draw(const bContext *C, ARegion *ar)
+static void script_main_region_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceScript *sscript = (SpaceScript *)CTX_wm_space_data(C);
@@ -166,17 +166,17 @@ static void script_main_area_draw(const bContext *C, ARegion *ar)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void script_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void script_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
 
-static void script_header_area_draw(const bContext *C, ARegion *ar)
+static void script_header_region_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_header(C, ar);
 }
 
-static void script_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
+static void script_main_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
 {
 	/* context changes */
 	// XXX - Todo, need the ScriptSpace accessible to get the python script to run.
@@ -202,9 +202,9 @@ void ED_spacetype_script(void)
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype script region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->init = script_main_area_init;
-	art->draw = script_main_area_draw;
-	art->listener = script_main_area_listener;
+	art->init = script_main_region_init;
+	art->draw = script_main_region_draw;
+	art->listener = script_main_region_listener;
 	art->keymapflag = ED_KEYMAP_VIEW2D |   ED_KEYMAP_UI | ED_KEYMAP_FRAMES; // XXX need to further test this ED_KEYMAP_UI is needed for button interaction
 
 	BLI_addhead(&st->regiontypes, art);
@@ -215,8 +215,8 @@ void ED_spacetype_script(void)
 	art->prefsizey = HEADERY;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
 	
-	art->init = script_header_area_init;
-	art->draw = script_header_area_draw;
+	art->init = script_header_region_init;
+	art->draw = script_header_region_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

@@ -816,7 +816,7 @@ static void draw_image_paint_helpers(const bContext *C, ARegion *ar, Scene *scen
 	}
 }
 
-/* draw main image area */
+/* draw main image region */
 
 void draw_image_main(const bContext *C, ARegion *ar)
 {

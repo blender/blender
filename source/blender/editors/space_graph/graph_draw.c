@@ -964,7 +964,7 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	glDisable(GL_BLEND);
 }
 
-/* This is called twice from space_graph.c -> graph_main_area_draw()
+/* This is called twice from space_graph.c -> graph_main_region_draw()
  * Unselected then selected F-Curves are drawn so that they do not occlude each other.
  */
 void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid *grid, short sel)

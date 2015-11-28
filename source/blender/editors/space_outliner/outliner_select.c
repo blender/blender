@@ -315,7 +315,7 @@ static eOLDrawState tree_element_active_texture(
 	
 	/*tselem = TREESTORE(te);*/ /*UNUSED*/
 	
-	/* find buttons area (note, this is undefined really still, needs recode in blender) */
+	/* find buttons region (note, this is undefined really still, needs recode in blender) */
 	/* XXX removed finding sbuts */
 	
 	/* where is texture linked to? */

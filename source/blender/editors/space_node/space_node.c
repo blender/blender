@@ -333,8 +333,8 @@ static SpaceLink *node_new(const bContext *UNUSED(C))
 
 	ar->flag = RGN_FLAG_HIDDEN;
 
-	/* main area */
-	ar = MEM_callocN(sizeof(ARegion), "main area for node");
+	/* main region */
+	ar = MEM_callocN(sizeof(ARegion), "main region for node");
 
 	BLI_addtail(&snode->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
@@ -586,7 +586,7 @@ static SpaceLink *node_duplicate(SpaceLink *sl)
 
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void node_buttons_area_init(wmWindowManager *wm, ARegion *ar)
+static void node_buttons_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 
@@ -596,13 +596,13 @@ static void node_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
-static void node_buttons_area_draw(const bContext *C, ARegion *ar)
+static void node_buttons_region_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_panels(C, ar, NULL, -1, true);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void node_toolbar_area_init(wmWindowManager *wm, ARegion *ar)
+static void node_toolbar_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 
@@ -612,7 +612,7 @@ static void node_toolbar_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
-static void node_toolbar_area_draw(const bContext *C, ARegion *ar)
+static void node_toolbar_region_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_panels(C, ar, NULL, -1, true);
 }
@@ -634,8 +634,8 @@ static void node_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 	
 }
 
-/* Initialize main area, setting handlers. */
-static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
+/* Initialize main region, setting handlers. */
+static void node_main_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 	ListBase *lb;
@@ -655,7 +655,7 @@ static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_dropbox_handler(&ar->handlers, lb);
 }
 
-static void node_main_area_draw(const bContext *C, ARegion *ar)
+static void node_main_region_draw(const bContext *C, ARegion *ar)
 {
 	drawnodespace(C, ar);
 }
@@ -722,12 +722,12 @@ static void node_dropboxes(void)
 
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void node_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void node_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
 
-static void node_header_area_draw(const bContext *C, ARegion *ar)
+static void node_header_region_draw(const bContext *C, ARegion *ar)
 {
 	/* find and set the context */
 	snode_set_context(C);
@@ -735,7 +735,7 @@ static void node_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
-/* used for header + main area */
+/* used for header + main region */
 static void node_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
@@ -844,8 +844,8 @@ void ED_spacetype_node(void)
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype node region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->init = node_main_area_init;
-	art->draw = node_main_area_draw;
+	art->init = node_main_region_init;
+	art->draw = node_main_region_draw;
 	art->listener = node_region_listener;
 	art->cursor = node_cursor;
 	art->event_cursor = true;
@@ -859,8 +859,8 @@ void ED_spacetype_node(void)
 	art->prefsizey = HEADERY;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
 	art->listener = node_region_listener;
-	art->init = node_header_area_init;
-	art->draw = node_header_area_draw;
+	art->init = node_header_region_init;
+	art->draw = node_header_region_draw;
 
 	BLI_addhead(&st->regiontypes, art);
 
@@ -870,8 +870,8 @@ void ED_spacetype_node(void)
 	art->prefsizex = 180; // XXX
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
 	art->listener = node_region_listener;
-	art->init = node_buttons_area_init;
-	art->draw = node_buttons_area_draw;
+	art->init = node_buttons_region_init;
+	art->draw = node_buttons_region_draw;
 	BLI_addhead(&st->regiontypes, art);
 
 	node_buttons_register(art);
@@ -883,8 +883,8 @@ void ED_spacetype_node(void)
 	art->prefsizey = 50; /* XXX */
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
 	art->listener = node_region_listener;
-	art->init = node_toolbar_area_init;
-	art->draw = node_toolbar_area_draw;
+	art->init = node_toolbar_region_init;
+	art->draw = node_toolbar_region_draw;
 	BLI_addhead(&st->regiontypes, art);
 	
 	node_toolbar_register(art);

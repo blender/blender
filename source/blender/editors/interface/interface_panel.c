@@ -1648,7 +1648,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 
 	/* Secondary theme colors */
 	unsigned char theme_col_tab_outline[3];
-	unsigned char theme_col_tab_divider[3];  /* line that divides tabs from the main area */
+	unsigned char theme_col_tab_divider[3];  /* line that divides tabs from the main region */
 	unsigned char theme_col_tab_highlight[3];
 	unsigned char theme_col_tab_highlight_inactive[3];
 

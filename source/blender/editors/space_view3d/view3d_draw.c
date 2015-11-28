@@ -2223,7 +2223,7 @@ void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 {
 	int x, y, w, h;
 	rcti r;
-	/* clamp rect by area */
+	/* clamp rect by region */
 
 	r.xmin = 0;
 	r.xmax = ar->winx - 1;
@@ -2703,7 +2703,7 @@ void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float view
 }
 
 /**
- * Shared by #ED_view3d_draw_offscreen and #view3d_main_area_draw_objects
+ * Shared by #ED_view3d_draw_offscreen and #view3d_main_region_draw_objects
  *
  * \note \a C and \a grid_unit will be NULL when \a draw_offscreen is set.
  * \note Drawing lamps and opengl render uses this, so dont do grease pencil or view widgets here.
@@ -2902,7 +2902,7 @@ static void view3d_draw_objects(
 	}
 }
 
-static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[4][4], float winmat[4][4])
+static void view3d_main_region_setup_view(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[4][4], float winmat[4][4])
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -2966,7 +2966,7 @@ void ED_view3d_draw_offscreen_init(Scene *scene, View3D *v3d)
 /*
  * Function to clear the view
  */
-static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
+static void view3d_main_region_clear(Scene *scene, View3D *v3d, ARegion *ar)
 {
 	if (scene->world && (v3d->flag3 & V3D_SHOW_WORLD)) {
 		bool glsl = BKE_scene_use_new_shading_nodes(scene) && scene->world->nodetree && scene->world->use_nodes;
@@ -3223,7 +3223,7 @@ void ED_view3d_draw_offscreen(
 	if ((viewname != NULL && viewname[0] != '\0') && (viewmat == NULL) && rv3d->persp == RV3D_CAMOB && v3d->camera)
 		view3d_stereo3d_setup_offscreen(scene, v3d, ar, winmat, viewname);
 	else
-		view3d_main_area_setup_view(scene, v3d, ar, viewmat, winmat);
+		view3d_main_region_setup_view(scene, v3d, ar, viewmat, winmat);
 
 	/* framebuffer fx needed, we need to draw offscreen first */
 	if (v3d->fx_settings.fx_flag && fx) {
@@ -3242,7 +3242,7 @@ void ED_view3d_draw_offscreen(
 
 	/* clear opengl buffers */
 	if (do_sky) {
-		view3d_main_area_clear(scene, v3d, ar);
+		view3d_main_region_clear(scene, v3d, ar);
 	}
 	else {
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -3573,7 +3573,7 @@ void ED_scene_draw_fps(Scene *scene, const rcti *rect)
 #endif
 }
 
-static bool view3d_main_area_do_render_draw(Scene *scene)
+static bool view3d_main_region_do_render_draw(Scene *scene)
 {
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
 
@@ -3587,7 +3587,7 @@ bool ED_view3d_calc_render_border(Scene *scene, View3D *v3d, ARegion *ar, rcti *
 	bool use_border;
 
 	/* test if there is a 3d view rendering */
-	if (v3d->drawtype != OB_RENDER || !view3d_main_area_do_render_draw(scene))
+	if (v3d->drawtype != OB_RENDER || !view3d_main_region_do_render_draw(scene))
 		return false;
 
 	/* test if there is a border render */
@@ -3621,7 +3621,7 @@ bool ED_view3d_calc_render_border(Scene *scene, View3D *v3d, ARegion *ar, rcti *
 	return true;
 }
 
-static bool view3d_main_area_draw_engine(const bContext *C, Scene *scene,
+static bool view3d_main_region_draw_engine(const bContext *C, Scene *scene,
                                          ARegion *ar, View3D *v3d,
                                          bool clip_border, const rcti *border_rect)
 {
@@ -3649,7 +3649,7 @@ static bool view3d_main_area_draw_engine(const bContext *C, Scene *scene,
 	}
 
 	/* setup view matrices */
-	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
+	view3d_main_region_setup_view(scene, v3d, ar, NULL, NULL);
 
 	/* background draw */
 	ED_region_pixelspace(ar);
@@ -3689,7 +3689,7 @@ static bool view3d_main_area_draw_engine(const bContext *C, Scene *scene,
 	return true;
 }
 
-static void view3d_main_area_draw_engine_info(View3D *v3d, RegionView3D *rv3d, ARegion *ar, bool render_border)
+static void view3d_main_region_draw_engine_info(View3D *v3d, RegionView3D *rv3d, ARegion *ar, bool render_border)
 {
 	float fill_color[4] = {0.0f, 0.0f, 0.0f, 0.25f};
 
@@ -3698,7 +3698,7 @@ static void view3d_main_area_draw_engine_info(View3D *v3d, RegionView3D *rv3d, A
 	
 	if (render_border) {
 		/* draw darkened background color. no alpha because border render does
-		 * partial redraw and will not redraw the area behind this info bar */
+		 * partial redraw and will not redraw the region behind this info bar */
 		float alpha = 1.0f - fill_color[3];
 		Camera *camera = ED_view3d_camera_data_get(v3d, rv3d);
 
@@ -3745,7 +3745,7 @@ static bool view3d_stereo3d_active(const bContext *C, Scene *scene, View3D *v3d,
  * we have no winmatrix (i.e., projection matrix) defined at that time.
  * Since the camera and the camera shift are needed for the winmat calculation
  * we do a small hack to replace it temporarily so we don't need to change the
- * view3d)main_area_setup_view() code to account for that.
+ * view3d)main_region_setup_view() code to account for that.
  */
 static void view3d_stereo3d_setup(Scene *scene, View3D *v3d, ARegion *ar)
 {
@@ -3773,7 +3773,7 @@ static void view3d_stereo3d_setup(Scene *scene, View3D *v3d, ARegion *ar)
 		data->shiftx = BKE_camera_multiview_shift_x(&scene->r, v3d->camera, viewname);
 
 		BKE_camera_multiview_view_matrix(&scene->r, v3d->camera, is_left, viewmat);
-		view3d_main_area_setup_view(scene, v3d, ar, viewmat, NULL);
+		view3d_main_region_setup_view(scene, v3d, ar, viewmat, NULL);
 
 		data->shiftx = shiftx;
 		BLI_unlock_thread(LOCK_VIEW3D);
@@ -3787,7 +3787,7 @@ static void view3d_stereo3d_setup(Scene *scene, View3D *v3d, ARegion *ar)
 		v3d->camera = camera;
 
 		BKE_camera_multiview_view_matrix(&scene->r, camera, false, viewmat);
-		view3d_main_area_setup_view(scene, v3d, ar, viewmat, NULL);
+		view3d_main_region_setup_view(scene, v3d, ar, viewmat, NULL);
 
 		v3d->camera = view_ob;
 		BLI_unlock_thread(LOCK_VIEW3D);
@@ -3803,14 +3803,14 @@ static void view3d_stereo3d_setup_offscreen(Scene *scene, View3D *v3d, ARegion *
 		const bool is_left = STREQ(viewname, STEREO_LEFT_NAME);
 
 		BKE_camera_multiview_view_matrix(&scene->r, v3d->camera, is_left, viewmat);
-		view3d_main_area_setup_view(scene, v3d, ar, viewmat, winmat);
+		view3d_main_region_setup_view(scene, v3d, ar, viewmat, winmat);
 	}
 	else { /* SCE_VIEWS_FORMAT_MULTIVIEW */
 		float viewmat[4][4];
 		Object *camera = BKE_camera_multiview_render(scene, v3d->camera, viewname);
 
 		BKE_camera_multiview_view_matrix(&scene->r, camera, false, viewmat);
-		view3d_main_area_setup_view(scene, v3d, ar, viewmat, winmat);
+		view3d_main_region_setup_view(scene, v3d, ar, viewmat, winmat);
 	}
 }
 
@@ -3828,7 +3828,7 @@ static void update_lods(Scene *scene, float camera_pos[3])
 }
 #endif
 
-static void view3d_main_area_draw_objects(const bContext *C, Scene *scene, View3D *v3d,
+static void view3d_main_region_draw_objects(const bContext *C, Scene *scene, View3D *v3d,
                                           ARegion *ar, const char **grid_unit)
 {
 	RegionView3D *rv3d = ar->regiondata;
@@ -3851,7 +3851,7 @@ static void view3d_main_area_draw_objects(const bContext *C, Scene *scene, View3
 	if (view3d_stereo3d_active(C, scene, v3d, rv3d))
 		view3d_stereo3d_setup(scene, v3d, ar);
 	else
-		view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
+		view3d_main_region_setup_view(scene, v3d, ar, NULL, NULL);
 
 	rv3d->rflag &= ~RV3D_IS_GAME_ENGINE;
 #ifdef WITH_GAMEENGINE
@@ -3881,7 +3881,7 @@ static void view3d_main_area_draw_objects(const bContext *C, Scene *scene, View3
 	}
 	
 	/* clear the background */
-	view3d_main_area_clear(scene, v3d, ar);
+	view3d_main_region_clear(scene, v3d, ar);
 
 	/* enables anti-aliasing for 3D view drawing */
 	if (U.ogl_multisamples != USER_MULTISAMPLE_NONE) {
@@ -3948,7 +3948,7 @@ static bool is_cursor_visible(Scene *scene)
 	return true;
 }
 
-static void view3d_main_area_draw_info(const bContext *C, Scene *scene,
+static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
                                        ARegion *ar, View3D *v3d,
                                        const char *grid_unit, bool render_border)
 {
@@ -3997,7 +3997,7 @@ static void view3d_main_area_draw_info(const bContext *C, Scene *scene,
 	}
 
 	if (rv3d->render_engine) {
-		view3d_main_area_draw_engine_info(v3d, rv3d, ar, render_border);
+		view3d_main_region_draw_engine_info(v3d, rv3d, ar, render_border);
 		return;
 	}
 
@@ -4026,7 +4026,7 @@ static void view3d_main_area_draw_info(const bContext *C, Scene *scene,
 	}
 }
 
-void view3d_main_area_draw(const bContext *C, ARegion *ar)
+void view3d_main_region_draw(const bContext *C, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -4040,8 +4040,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	clip_border = (render_border && !BLI_rcti_compare(&ar->drawrct, &border_rect));
 
 	/* draw viewport using opengl */
-	if (v3d->drawtype != OB_RENDER || !view3d_main_area_do_render_draw(scene) || clip_border) {
-		view3d_main_area_draw_objects(C, scene, v3d, ar, &grid_unit);
+	if (v3d->drawtype != OB_RENDER || !view3d_main_region_do_render_draw(scene) || clip_border) {
+		view3d_main_region_draw_objects(C, scene, v3d, ar, &grid_unit);
 		
 #ifdef DEBUG_DRAW
 		bl_debug_draw();
@@ -4054,9 +4054,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* draw viewport using external renderer */
 	if (v3d->drawtype == OB_RENDER)
-		view3d_main_area_draw_engine(C, scene, ar, v3d, clip_border, &border_rect);
+		view3d_main_region_draw_engine(C, scene, ar, v3d, clip_border, &border_rect);
 	
-	view3d_main_area_draw_info(C, scene, ar, v3d, grid_unit, render_border);
+	view3d_main_region_draw_info(C, scene, ar, v3d, grid_unit, render_border);
 
 	v3d->flag |= V3D_INVALID_BACKBUF;
 }

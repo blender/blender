@@ -384,8 +384,8 @@ static SpaceLink *view3d_new(const bContext *C)
 	ar->alignment = RGN_ALIGN_RIGHT;
 	ar->flag = RGN_FLAG_HIDDEN;
 	
-	/* main area */
-	ar = MEM_callocN(sizeof(ARegion), "main area for view3d");
+	/* main region */
+	ar = MEM_callocN(sizeof(ARegion), "main region for view3d");
 	
 	BLI_addtail(&v3d->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
@@ -482,7 +482,7 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
+static void view3d_main_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *lb;
 	wmKeyMap *keymap;
@@ -567,7 +567,7 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	
 }
 
-static void view3d_main_area_exit(wmWindowManager *wm, ARegion *ar)
+static void view3d_main_region_exit(wmWindowManager *wm, ARegion *ar)
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -715,7 +715,7 @@ static void view3d_dropboxes(void)
 
 
 /* type callback, not region itself */
-static void view3d_main_area_free(ARegion *ar)
+static void view3d_main_region_free(ARegion *ar)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	
@@ -746,7 +746,7 @@ static void view3d_main_area_free(ARegion *ar)
 }
 
 /* copy regiondata */
-static void *view3d_main_area_duplicate(void *poin)
+static void *view3d_main_region_duplicate(void *poin)
 {
 	if (poin) {
 		RegionView3D *rv3d = poin, *new;
@@ -799,7 +799,7 @@ static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, Scene *scene
 	}
 }
 
-static void view3d_main_area_listener(bScreen *sc, ScrArea *sa, ARegion *ar, wmNotifier *wmn)
+static void view3d_main_region_listener(bScreen *sc, ScrArea *sa, ARegion *ar, wmNotifier *wmn)
 {
 	Scene *scene = sc->scene;
 	View3D *v3d = sa->spacedata.first;
@@ -1025,7 +1025,7 @@ static void view3d_main_area_listener(bScreen *sc, ScrArea *sa, ARegion *ar, wmN
 }
 
 /* concept is to retrieve cursor type context-less */
-static void view3d_main_area_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion *UNUSED(ar))
+static void view3d_main_region_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion *UNUSED(ar))
 {
 	Scene *scene = win->screen->scene;
 
@@ -1038,7 +1038,7 @@ static void view3d_main_area_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion 
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void view3d_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void view3d_header_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap = WM_keymap_find(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, 0);
 	
@@ -1047,12 +1047,12 @@ static void view3d_header_area_init(wmWindowManager *wm, ARegion *ar)
 	ED_region_header_init(ar);
 }
 
-static void view3d_header_area_draw(const bContext *C, ARegion *ar)
+static void view3d_header_region_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_header(C, ar);
 }
 
-static void view3d_header_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
+static void view3d_header_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -1083,7 +1083,7 @@ static void view3d_header_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void view3d_buttons_area_init(wmWindowManager *wm, ARegion *ar)
+static void view3d_buttons_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 
@@ -1093,12 +1093,12 @@ static void view3d_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
-static void view3d_buttons_area_draw(const bContext *C, ARegion *ar)
+static void view3d_buttons_region_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_panels(C, ar, NULL, -1, true);
 }
 
-static void view3d_buttons_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
+static void view3d_buttons_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -1189,7 +1189,7 @@ static void view3d_buttons_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void view3d_tools_area_init(wmWindowManager *wm, ARegion *ar)
+static void view3d_tools_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 	
@@ -1199,12 +1199,12 @@ static void view3d_tools_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
-static void view3d_tools_area_draw(const bContext *C, ARegion *ar)
+static void view3d_tools_region_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_panels(C, ar, CTX_data_mode_string(C), -1, true);
 }
 
-static void view3d_props_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
+static void view3d_props_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -1223,7 +1223,7 @@ static void view3d_props_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa),
 	}
 }
 
-/*area (not region) level listener*/
+/* area (not region) level listener */
 static void space_view3d_listener(bScreen *UNUSED(sc), ScrArea *sa, struct wmNotifier *wmn)
 {
 	View3D *v3d = sa->spacedata.first;
@@ -1424,13 +1424,13 @@ void ED_spacetype_view3d(void)
 	art = MEM_callocN(sizeof(ARegionType), "spacetype view3d main region");
 	art->regionid = RGN_TYPE_WINDOW;
 	art->keymapflag = ED_KEYMAP_GPENCIL;
-	art->draw = view3d_main_area_draw;
-	art->init = view3d_main_area_init;
-	art->exit = view3d_main_area_exit;
-	art->free = view3d_main_area_free;
-	art->duplicate = view3d_main_area_duplicate;
-	art->listener = view3d_main_area_listener;
-	art->cursor = view3d_main_area_cursor;
+	art->draw = view3d_main_region_draw;
+	art->init = view3d_main_region_init;
+	art->exit = view3d_main_region_exit;
+	art->free = view3d_main_region_free;
+	art->duplicate = view3d_main_region_duplicate;
+	art->listener = view3d_main_region_listener;
+	art->cursor = view3d_main_region_cursor;
 	art->lock = 1;   /* can become flag, see BKE_spacedata_draw_locks */
 	BLI_addhead(&st->regiontypes, art);
 	
@@ -1439,9 +1439,9 @@ void ED_spacetype_view3d(void)
 	art->regionid = RGN_TYPE_UI;
 	art->prefsizex = 180; /* XXX */
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
-	art->listener = view3d_buttons_area_listener;
-	art->init = view3d_buttons_area_init;
-	art->draw = view3d_buttons_area_draw;
+	art->listener = view3d_buttons_region_listener;
+	art->init = view3d_buttons_region_init;
+	art->draw = view3d_buttons_region_draw;
 	BLI_addhead(&st->regiontypes, art);
 
 	view3d_buttons_register(art);
@@ -1452,9 +1452,9 @@ void ED_spacetype_view3d(void)
 	art->prefsizex = 160; /* XXX */
 	art->prefsizey = 50; /* XXX */
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
-	art->listener = view3d_buttons_area_listener;
-	art->init = view3d_tools_area_init;
-	art->draw = view3d_tools_area_draw;
+	art->listener = view3d_buttons_region_listener;
+	art->init = view3d_tools_region_init;
+	art->draw = view3d_tools_region_draw;
 	BLI_addhead(&st->regiontypes, art);
 	
 #if 0
@@ -1468,9 +1468,9 @@ void ED_spacetype_view3d(void)
 	art->prefsizex = 0;
 	art->prefsizey = 120;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
-	art->listener = view3d_props_area_listener;
-	art->init = view3d_tools_area_init;
-	art->draw = view3d_tools_area_draw;
+	art->listener = view3d_props_region_listener;
+	art->init = view3d_tools_region_init;
+	art->draw = view3d_tools_region_draw;
 	BLI_addhead(&st->regiontypes, art);
 	
 	view3d_tool_props_register(art);
@@ -1481,9 +1481,9 @@ void ED_spacetype_view3d(void)
 	art->regionid = RGN_TYPE_HEADER;
 	art->prefsizey = HEADERY;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
-	art->listener = view3d_header_area_listener;
-	art->init = view3d_header_area_init;
-	art->draw = view3d_header_area_draw;
+	art->listener = view3d_header_region_listener;
+	art->init = view3d_header_region_init;
+	art->draw = view3d_header_region_draw;
 	BLI_addhead(&st->regiontypes, art);
 	
 	BKE_spacetype_register(st);

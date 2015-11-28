@@ -80,8 +80,8 @@ static SpaceLink *text_new(const bContext *UNUSED(C))
 	ar->regiontype = RGN_TYPE_HEADER;
 	ar->alignment = RGN_ALIGN_BOTTOM;
 	
-	/* main area */
-	ar = MEM_callocN(sizeof(ARegion), "main area for text");
+	/* main region */
+	ar = MEM_callocN(sizeof(ARegion), "main region for text");
 	
 	BLI_addtail(&stext->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
@@ -404,7 +404,7 @@ static int text_context(const bContext *C, const char *member, bContextDataResul
 /********************* main region ********************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void text_main_area_init(wmWindowManager *wm, ARegion *ar)
+static void text_main_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 	ListBase *lb;
@@ -423,7 +423,7 @@ static void text_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_dropbox_handler(&ar->handlers, lb);
 }
 
-static void text_main_area_draw(const bContext *C, ARegion *ar)
+static void text_main_region_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceText *st = CTX_wm_space_text(C);
@@ -511,12 +511,12 @@ static void text_dropboxes(void)
 /****************** header region ******************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void text_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void text_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
 
-static void text_header_area_draw(const bContext *C, ARegion *ar)
+static void text_header_region_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_header(C, ar);
 }
@@ -524,7 +524,7 @@ static void text_header_area_draw(const bContext *C, ARegion *ar)
 /****************** properties region ******************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void text_properties_area_init(wmWindowManager *wm, ARegion *ar)
+static void text_properties_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 
@@ -537,7 +537,7 @@ static void text_properties_area_init(wmWindowManager *wm, ARegion *ar)
 
 }
 
-static void text_properties_area_draw(const bContext *C, ARegion *ar)
+static void text_properties_region_draw(const bContext *C, ARegion *ar)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	
@@ -578,8 +578,8 @@ void ED_spacetype_text(void)
 	/* regions: main window */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype text region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->init = text_main_area_init;
-	art->draw = text_main_area_draw;
+	art->init = text_main_region_init;
+	art->draw = text_main_region_draw;
 	art->cursor = text_cursor;
 	art->event_cursor = true;
 
@@ -591,8 +591,8 @@ void ED_spacetype_text(void)
 	art->prefsizex = UI_COMPACT_PANEL_WIDTH;
 	art->keymapflag = ED_KEYMAP_UI;
 	
-	art->init = text_properties_area_init;
-	art->draw = text_properties_area_draw;
+	art->init = text_properties_region_init;
+	art->draw = text_properties_region_draw;
 	BLI_addhead(&st->regiontypes, art);
 
 	/* regions: header */
@@ -601,8 +601,8 @@ void ED_spacetype_text(void)
 	art->prefsizey = HEADERY;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
 	
-	art->init = text_header_area_init;
-	art->draw = text_header_area_draw;
+	art->init = text_header_region_init;
+	art->draw = text_header_region_draw;
 
 	BLI_addhead(&st->regiontypes, art);
 

@@ -1316,7 +1316,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 	}
 }
 
-/*********************** main area drawing *************************/
+/*********************** main region drawing *************************/
 
 void draw_text_main(SpaceText *st, ARegion *ar)
 {

@@ -582,7 +582,7 @@ static int image_context(const bContext *C, const char *member, bContextDataResu
 /************************** main region ***************************/
 
 /* sets up the fields of the View2D from zoom and offset */
-static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar)
+static void image_main_region_set_view2d(SpaceImage *sima, ARegion *ar)
 {
 	Image *ima = ED_space_image(sima);
 	float x1, y1, w, h;
@@ -635,7 +635,7 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
+static void image_main_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 	
@@ -670,7 +670,7 @@ static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 }
 
-static void image_main_area_draw(const bContext *C, ARegion *ar)
+static void image_main_region_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceImage *sima = CTX_wm_space_image(C);
@@ -704,7 +704,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 		sima->iuser.scene = scene;
 
 	/* we set view2d from own zoom and offset each time */
-	image_main_area_set_view2d(sima, ar);
+	image_main_region_set_view2d(sima, ar);
 
 	/* we draw image in pixelspace */
 	draw_image_main(C, ar);
@@ -793,7 +793,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 #endif
 }
 
-static void image_main_area_listener(bScreen *UNUSED(sc), ScrArea *sa, ARegion *ar, wmNotifier *wmn)
+static void image_main_region_listener(bScreen *UNUSED(sc), ScrArea *sa, ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -821,7 +821,7 @@ static void image_main_area_listener(bScreen *UNUSED(sc), ScrArea *sa, ARegion *
 /* *********************** buttons region ************************ */
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void image_buttons_area_init(wmWindowManager *wm, ARegion *ar)
+static void image_buttons_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 
@@ -832,12 +832,12 @@ static void image_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
-static void image_buttons_area_draw(const bContext *C, ARegion *ar)
+static void image_buttons_region_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_panels(C, ar, NULL, -1, true);
 }
 
-static void image_buttons_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
+static void image_buttons_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -873,7 +873,7 @@ static void image_buttons_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa)
 /* *********************** scopes region ************************ */
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void image_tools_area_init(wmWindowManager *wm, ARegion *ar)
+static void image_tools_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 	
@@ -884,7 +884,7 @@ static void image_tools_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
-static void image_tools_area_draw(const bContext *C, ARegion *ar)
+static void image_tools_region_draw(const bContext *C, ARegion *ar)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
@@ -910,7 +910,7 @@ static void image_tools_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, NULL, -1, true);
 }
 
-static void image_tools_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
+static void image_tools_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -946,17 +946,17 @@ static void image_tools_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), 
 /************************* header region **************************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void image_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void image_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
 
-static void image_header_area_draw(const bContext *C, ARegion *ar)
+static void image_header_region_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_header(C, ar);
 }
 
-static void image_header_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
+static void image_header_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -1005,9 +1005,9 @@ void ED_spacetype_image(void)
 	art = MEM_callocN(sizeof(ARegionType), "spacetype image region");
 	art->regionid = RGN_TYPE_WINDOW;
 	art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_GPENCIL;
-	art->init = image_main_area_init;
-	art->draw = image_main_area_draw;
-	art->listener = image_main_area_listener;
+	art->init = image_main_region_init;
+	art->draw = image_main_region_draw;
+	art->listener = image_main_region_listener;
 
 	BLI_addhead(&st->regiontypes, art);
 	
@@ -1016,9 +1016,9 @@ void ED_spacetype_image(void)
 	art->regionid = RGN_TYPE_UI;
 	art->prefsizex = 220; // XXX
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
-	art->listener = image_buttons_area_listener;
-	art->init = image_buttons_area_init;
-	art->draw = image_buttons_area_draw;
+	art->listener = image_buttons_region_listener;
+	art->init = image_buttons_region_init;
+	art->draw = image_buttons_region_draw;
 	BLI_addhead(&st->regiontypes, art);
 
 	ED_uvedit_buttons_register(art);
@@ -1029,9 +1029,9 @@ void ED_spacetype_image(void)
 	art->regionid = RGN_TYPE_TOOLS;
 	art->prefsizex = 220; // XXX
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
-	art->listener = image_tools_area_listener;
-	art->init = image_tools_area_init;
-	art->draw = image_tools_area_draw;
+	art->listener = image_tools_region_listener;
+	art->init = image_tools_region_init;
+	art->draw = image_tools_region_draw;
 	BLI_addhead(&st->regiontypes, art);
 
 	/* regions: header */
@@ -1039,9 +1039,9 @@ void ED_spacetype_image(void)
 	art->regionid = RGN_TYPE_HEADER;
 	art->prefsizey = HEADERY;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
-	art->listener = image_header_area_listener;
-	art->init = image_header_area_init;
-	art->draw = image_header_area_draw;
+	art->listener = image_header_region_listener;
+	art->init = image_header_region_init;
+	art->draw = image_header_region_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

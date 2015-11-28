@@ -62,7 +62,7 @@
 
 #include "outliner_intern.h"
 
-static void outliner_main_area_init(wmWindowManager *wm, ARegion *ar)
+static void outliner_main_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *lb;
 	wmKeyMap *keymap;
@@ -266,7 +266,7 @@ static void outliner_dropboxes(void)
 	WM_dropbox_add(lb, "OUTLINER_OT_group_link", outliner_group_link_poll, outliner_group_link_copy);
 }
 
-static void outliner_main_area_draw(const bContext *C, ARegion *ar)
+static void outliner_main_region_draw(const bContext *C, ARegion *ar)
 {
 	View2D *v2d = &ar->v2d;
 	View2DScrollers *scrollers;
@@ -287,12 +287,12 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 }
 
 
-static void outliner_main_area_free(ARegion *UNUSED(ar))
+static void outliner_main_region_free(ARegion *UNUSED(ar))
 {
 	
 }
 
-static void outliner_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
+static void outliner_main_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -399,21 +399,21 @@ static void outliner_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa)
 /* ************************ header outliner area region *********************** */
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void outliner_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void outliner_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
 
-static void outliner_header_area_draw(const bContext *C, ARegion *ar)
+static void outliner_header_region_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_header(C, ar);
 }
 
-static void outliner_header_area_free(ARegion *UNUSED(ar))
+static void outliner_header_region_free(ARegion *UNUSED(ar))
 {
 }
 
-static void outliner_header_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
+static void outliner_header_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
@@ -445,8 +445,8 @@ static SpaceLink *outliner_new(const bContext *UNUSED(C))
 	ar->regiontype = RGN_TYPE_HEADER;
 	ar->alignment = RGN_ALIGN_BOTTOM;
 	
-	/* main area */
-	ar = MEM_callocN(sizeof(ARegion), "main area for outliner");
+	/* main region */
+	ar = MEM_callocN(sizeof(ARegion), "main region for outliner");
 	
 	BLI_addtail(&soutliner->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
@@ -508,10 +508,10 @@ void ED_spacetype_outliner(void)
 	art->regionid = RGN_TYPE_WINDOW;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
 	
-	art->init = outliner_main_area_init;
-	art->draw = outliner_main_area_draw;
-	art->free = outliner_main_area_free;
-	art->listener = outliner_main_area_listener;
+	art->init = outliner_main_region_init;
+	art->draw = outliner_main_region_draw;
+	art->free = outliner_main_region_free;
+	art->listener = outliner_main_region_listener;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */
@@ -520,10 +520,10 @@ void ED_spacetype_outliner(void)
 	art->prefsizey = HEADERY;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
 	
-	art->init = outliner_header_area_init;
-	art->draw = outliner_header_area_draw;
-	art->free = outliner_header_area_free;
-	art->listener = outliner_header_area_listener;
+	art->init = outliner_header_region_init;
+	art->draw = outliner_header_region_draw;
+	art->free = outliner_header_region_free;
+	art->listener = outliner_header_region_listener;
 	BLI_addhead(&st->regiontypes, art);
 	
 	BKE_spacetype_register(st);

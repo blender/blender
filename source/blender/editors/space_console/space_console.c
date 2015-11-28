@@ -74,8 +74,8 @@ static SpaceLink *console_new(const bContext *UNUSED(C))
 	ar->alignment = RGN_ALIGN_BOTTOM;
 	
 	
-	/* main area */
-	ar = MEM_callocN(sizeof(ARegion), "main area for text");
+	/* main region */
+	ar = MEM_callocN(sizeof(ARegion), "main region for text");
 	
 	BLI_addtail(&sconsole->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
@@ -129,7 +129,7 @@ static SpaceLink *console_duplicate(SpaceLink *sl)
 
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void console_main_area_init(wmWindowManager *wm, ARegion *ar)
+static void console_main_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 	ListBase *lb;
@@ -219,7 +219,7 @@ static void console_dropboxes(void)
 
 /* ************* end drop *********** */
 
-static void console_main_area_draw(const bContext *C, ARegion *ar)
+static void console_main_region_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceConsole *sc = CTX_wm_space_console(C);
@@ -362,17 +362,17 @@ static void console_keymap(struct wmKeyConfig *keyconf)
 /****************** header region ******************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void console_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void console_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
 
-static void console_header_area_draw(const bContext *C, ARegion *ar)
+static void console_header_region_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_header(C, ar);
 }
 
-static void console_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
+static void console_main_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	// SpaceInfo *sinfo = sa->spacedata.first;
 
@@ -408,10 +408,10 @@ void ED_spacetype_console(void)
 	art->regionid = RGN_TYPE_WINDOW;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
 
-	art->init = console_main_area_init;
-	art->draw = console_main_area_draw;
+	art->init = console_main_region_init;
+	art->draw = console_main_region_draw;
 	art->cursor = console_cursor;
-	art->listener = console_main_area_listener;
+	art->listener = console_main_region_listener;
 	
 	
 
@@ -423,8 +423,8 @@ void ED_spacetype_console(void)
 	art->prefsizey = HEADERY;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
 	
-	art->init = console_header_area_init;
-	art->draw = console_header_area_draw;
+	art->init = console_header_region_init;
+	art->draw = console_header_region_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 

@@ -77,8 +77,8 @@ static SpaceLink *info_new(const bContext *UNUSED(C))
 	ar->regiontype = RGN_TYPE_HEADER;
 	ar->alignment = RGN_ALIGN_BOTTOM;
 	
-	/* main area */
-	ar = MEM_callocN(sizeof(ARegion), "main area for info");
+	/* main region */
+	ar = MEM_callocN(sizeof(ARegion), "main region for info");
 	
 	BLI_addtail(&sinfo->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
@@ -123,7 +123,7 @@ static SpaceLink *info_duplicate(SpaceLink *sl)
 
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void info_main_area_init(wmWindowManager *wm, ARegion *ar)
+static void info_main_region_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 
@@ -145,7 +145,7 @@ static void info_textview_update_rect(const bContext *C, ARegion *ar)
 	UI_view2d_totRect_set(v2d, ar->winx - 1, info_textview_height(sinfo, ar, CTX_wm_reports(C)));
 }
 
-static void info_main_area_draw(const bContext *C, ARegion *ar)
+static void info_main_region_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceInfo *sinfo = CTX_wm_space_info(C);
@@ -226,17 +226,17 @@ static void info_keymap(struct wmKeyConfig *keyconf)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void info_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
+static void info_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
 
-static void info_header_area_draw(const bContext *C, ARegion *ar)
+static void info_header_region_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_header(C, ar);
 }
 
-static void info_main_area_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
+static void info_main_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
 {
 	// SpaceInfo *sinfo = sa->spacedata.first;
 
@@ -329,9 +329,9 @@ void ED_spacetype_info(void)
 	art->regionid = RGN_TYPE_WINDOW;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
 
-	art->init = info_main_area_init;
-	art->draw = info_main_area_draw;
-	art->listener = info_main_area_listener;
+	art->init = info_main_region_init;
+	art->draw = info_main_region_draw;
+	art->listener = info_main_region_listener;
 
 	BLI_addhead(&st->regiontypes, art);
 	
@@ -342,8 +342,8 @@ void ED_spacetype_info(void)
 	
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
 	art->listener = info_header_listener;
-	art->init = info_header_area_init;
-	art->draw = info_header_area_draw;
+	art->init = info_header_region_init;
+	art->draw = info_header_region_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 	
