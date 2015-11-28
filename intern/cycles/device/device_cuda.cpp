@@ -304,8 +304,9 @@ public:
 		}
 #endif
 
-		if(getenv("CYCLES_CUDA_EXTRA_CFLAGS")) {
-			command += string(" ") + getenv("CYCLES_CUDA_EXTRA_CFLAGS");
+		const char* extra_cflags = getenv("CYCLES_CUDA_EXTRA_CFLAGS");
+		if(extra_cflags) {
+			command += string(" ") + string(extra_cflags);
 		}
 
 #ifdef WITH_CYCLES_DEBUG
