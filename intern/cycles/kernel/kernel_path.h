@@ -448,13 +448,21 @@ ccl_device bool kernel_path_subsurface_scatter(
 
 	/* do bssrdf scatter step if we picked a bssrdf closure */
 	if(sc) {
-		/* We should never have two consecutive BSSRDF bounces,
-		 * the second one should be converted to a diffuse BSDF to
-		 * avoid this.
-		 */
-		kernel_assert(ss_indirect->num_rays == 0);
-
 		uint lcg_state = lcg_state_init(rng, state, 0x68bc21eb);
+
+		/* If indirect ray hits BSSRDF we replace it with diffuse BSDF. */
+		if(ss_indirect->num_rays) {
+			float bssrdf_u, bssrdf_v;
+			path_state_rng_2D(kg, rng, state, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
+			subsurface_scatter_step(kg,
+			                        sd,
+			                        state->flag,
+			                        sc,
+			                        &lcg_state,
+			                        bssrdf_u, bssrdf_v,
+			                        false);
+			return false;
+		}
 
 		SubsurfaceIntersection ss_isect;
 		float bssrdf_u, bssrdf_v;
