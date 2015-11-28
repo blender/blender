@@ -3664,6 +3664,9 @@ print_info() {
 
   _buildargs=""
 
+  _1="-D PYTHON_VERSION=$PYTHON_VERSION_MIN"
+  PRINT "  $_1"
+  _buildargs="$_buildargs $_1"
   if [ -d $INST/python-$PYTHON_VERSION_MIN ]; then
     _1="-D PYTHON_ROOT_DIR=$INST/python-$PYTHON_VERSION_MIN"
     PRINT "  $_1"
@@ -3758,6 +3761,7 @@ print_info() {
   PRINT ""
   PRINT "If you're using SCons add this to your user-config:"
 
+  PRINT "BF_PYTHON_VERSION = $PYTHON_VERSION_MIN"
   if [ -d $INST/python-$PYTHON_VERSION_MIN ]; then
     PRINT "BF_PYTHON = '$INST/python-$PYTHON_VERSION_MIN'"
     PRINT "BF_PYTHON_ABI_FLAGS = 'm'"
