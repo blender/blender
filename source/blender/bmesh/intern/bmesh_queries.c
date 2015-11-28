@@ -2339,8 +2339,7 @@ float BM_mesh_calc_volume(BMesh *bm, bool is_signed)
  *        (or when hflag_test is set, the number of flagged faces).
  * \param r_group_index  index, length pairs into \a r_groups_array, size of return value
  *        int pairs: (array_start, array_length).
- * \param filter_fn  Filter the edges or verts we step over (depends on \a htype_step)
- *        as to which types we deal with.
+ * \param filter_fn  Filter the edge-loops or vert-loops we step over (depends on \a htype_step).
  * \param user_data  Optional user data for \a filter_fn, can be NULL.
  * \param hflag_test  Optional flag to test faces,
  *        use to exclude faces from the calculation, 0 for all faces.
@@ -2350,7 +2349,7 @@ float BM_mesh_calc_volume(BMesh *bm, bool is_signed)
  */
 int BM_mesh_calc_face_groups(
         BMesh *bm, int *r_groups_array, int (**r_group_index)[2],
-        BMElemFilterFunc filter_fn, void *user_data,
+        BMLoopFilterFunc filter_fn, void *user_data,
         const char hflag_test, const char htype_step)
 {
 #ifdef DEBUG
@@ -2443,7 +2442,7 @@ int BM_mesh_calc_face_groups(
 				do {
 					BMLoop *l_radial_iter = l_iter->radial_next;
 					if ((l_radial_iter != l_iter) &&
-					    ((filter_fn == NULL) || filter_fn((BMElem *)l_iter->e, user_data)))
+					    ((filter_fn == NULL) || filter_fn(l_iter, user_data)))
 					{
 						do {
 							BMFace *f_other = l_radial_iter->f;
@@ -2461,7 +2460,7 @@ int BM_mesh_calc_face_groups(
 				/* search for other faces */
 				l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 				do {
-					if ((filter_fn == NULL) || filter_fn((BMElem *)l_iter->v, user_data)) {
+					if ((filter_fn == NULL) || filter_fn(l_iter, user_data)) {
 						BMLoop *l_other;
 						BM_ITER_ELEM (l_other, &liter, l_iter, BM_LOOPS_OF_LOOP) {
 							BMFace *f_other = l_other->f;
@@ -2508,7 +2507,7 @@ int BM_mesh_calc_face_groups(
  */
 int BM_mesh_calc_edge_groups(
         BMesh *bm, int *r_groups_array, int (**r_group_index)[2],
-        BMElemFilterFunc filter_fn, void *user_data,
+        BMVertFilterFunc filter_fn, void *user_data,
         const char hflag_test)
 {
 #ifdef DEBUG
@@ -2597,7 +2596,7 @@ int BM_mesh_calc_edge_groups(
 
 			/* search for other edges */
 			BM_ITER_ELEM (v, &viter, e, BM_VERTS_OF_EDGE) {
-				if ((filter_fn == NULL) || filter_fn((BMElem *)v, user_data)) {
+				if ((filter_fn == NULL) || filter_fn(v, user_data)) {
 					BMEdge *e_other;
 					BM_ITER_ELEM (e_other, &eiter, v, BM_EDGES_OF_VERT) {
 						if (BM_elem_flag_test(e_other, BM_ELEM_TAG) == false) {

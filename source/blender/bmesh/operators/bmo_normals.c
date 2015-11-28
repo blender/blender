@@ -41,9 +41,9 @@
 #define FACE_FLIP	(1 << 1)
 #define FACE_TEMP	(1 << 2)
 
-static bool bmo_recalc_normal_edge_filter_cb(const BMElem *ele, void *UNUSED(user_data))
+static bool bmo_recalc_normal_loop_filter_cb(const BMLoop *l, void *UNUSED(user_data))
 {
-	return BM_edge_is_manifold((const BMEdge *)ele);
+	return BM_edge_is_manifold(l->e);
 }
 
 /**
@@ -229,7 +229,7 @@ static void bmo_recalc_face_normals_array(BMesh *bm, BMFace **faces, const int f
 		do {
 			BMLoop *l_other = l_iter->radial_next;
 
-			if ((l_other != l_iter) && bmo_recalc_normal_edge_filter_cb((const BMElem *)l_iter->e, NULL)) {
+			if ((l_other != l_iter) && bmo_recalc_normal_loop_filter_cb(l_iter, NULL)) {
 				if (!BMO_elem_flag_test(bm, l_other->f, FACE_TEMP)) {
 					BMO_elem_flag_enable(bm, l_other->f, FACE_TEMP);
 					BMO_elem_flag_set(bm, l_other->f, FACE_FLIP, (l_other->v == l_iter->v) != flip_state);
@@ -264,9 +264,10 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 	BMFace **faces_grp = MEM_mallocN(sizeof(*faces_grp) * bm->totface, __func__);
 
 	int (*group_index)[2];
-	const int group_tot = BM_mesh_calc_face_groups(bm, groups_array, &group_index,
-	                                               bmo_recalc_normal_edge_filter_cb, NULL,
-	                                               0, BM_EDGE);
+	const int group_tot = BM_mesh_calc_face_groups(
+	        bm, groups_array, &group_index,
+	        bmo_recalc_normal_loop_filter_cb, NULL,
+	        0, BM_EDGE);
 	int i;
 
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "faces", BM_FACE, FACE_FLAG);

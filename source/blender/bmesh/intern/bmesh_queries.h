@@ -175,12 +175,12 @@ float BM_mesh_calc_volume(BMesh *bm, bool is_signed) ATTR_WARN_UNUSED_RESULT ATT
 
 int   BM_mesh_calc_face_groups(
         BMesh *bm, int *r_groups_array, int (**r_group_index)[2],
-        BMElemFilterFunc filter_fn, void *user_data,
+        BMLoopFilterFunc filter_fn, void *user_data,
         const char hflag_test, const char htype_step)
         ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2, 3);
 int   BM_mesh_calc_edge_groups(
         BMesh *bm, int *r_groups_array, int (**r_group_index)[2],
-        BMElemFilterFunc filter_fn, void *user_data,
+        BMVertFilterFunc filter_fn, void *user_data,
         const char hflag_test)
         ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2, 3);
 
