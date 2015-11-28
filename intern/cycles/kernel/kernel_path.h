@@ -522,6 +522,13 @@ ccl_device bool kernel_path_subsurface_scatter(
 	return false;
 }
 
+ccl_device_inline void kernel_path_subsurface_init_indirect(
+        SubsurfaceIndirectRays *ss_indirect)
+{
+	ss_indirect->tracing = false;
+	ss_indirect->num_rays = 0;
+}
+
 ccl_device void kernel_path_subsurface_accum_indirect(
         SubsurfaceIndirectRays *ss_indirect,
         PathRadiance *L)
@@ -598,8 +605,7 @@ ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample,
 
 #ifdef __SUBSURFACE__
 	SubsurfaceIndirectRays ss_indirect;
-	ss_indirect.tracing = false;
-	ss_indirect.num_rays = 0;
+	kernel_path_subsurface_init_indirect(&ss_indirect);
 
 	/* TODO(sergey): Avoid having explicit copy of the pre-subsurface scatter
 	 * ray by storing an updated version of state in the ss_indirect which will
