@@ -155,7 +155,7 @@ BLI_INLINE unsigned int ghash_entryhash(GHash *gh, const Entry *e)
 }
 
 /**
- * Get the bucket-hash for an already-computed full hash.
+ * Get the bucket-index for an already-computed full hash.
  */
 BLI_INLINE unsigned int ghash_bucket_index(GHash *gh, const unsigned int hash)
 {
@@ -175,7 +175,6 @@ static void ghash_buckets_resize(GHash *gh, const unsigned int nbuckets)
 	Entry **buckets_new;
 	const unsigned int nbuckets_old = gh->nbuckets;
 	unsigned int i;
-	Entry *e;
 
 	BLI_assert((gh->nbuckets != nbuckets) || !gh->buckets);
 //	printf("%s: %d -> %d\n", __func__, nbuckets_old, nbuckets);
@@ -191,8 +190,7 @@ static void ghash_buckets_resize(GHash *gh, const unsigned int nbuckets)
 	if (buckets_old) {
 		if (nbuckets > nbuckets_old) {
 			for (i = 0; i < nbuckets_old; i++) {
-				Entry *e_next;
-				for (e = buckets_old[i]; e; e = e_next) {
+				for (Entry *e = buckets_old[i], *e_next; e; e = e_next) {
 					const unsigned hash = ghash_entryhash(gh, e);
 					const unsigned bucket_index = ghash_bucket_index(gh, hash);
 					e_next = e->next;
@@ -204,8 +202,7 @@ static void ghash_buckets_resize(GHash *gh, const unsigned int nbuckets)
 		else {
 			for (i = 0; i < nbuckets_old; i++) {
 #ifdef GHASH_USE_MODULO_BUCKETS
-				Entry *e_next;
-				for (e = buckets_old[i]; e; e = e_next) {
+				for (Entry *e = buckets_old[i], *e_next; e; e = e_next) {
 					const unsigned hash = ghash_entryhash(gh, e);
 					const unsigned bucket_index = ghash_bucket_index(gh, hash);
 					e_next = e->next;
@@ -217,6 +214,7 @@ static void ghash_buckets_resize(GHash *gh, const unsigned int nbuckets)
 				 * will go in same new bucket (i & new_mask)! */
 				const unsigned bucket_index = ghash_bucket_index(gh, i);
 				BLI_assert(!buckets_old[i] || (bucket_index == ghash_bucket_index(gh, ghash_entryhash(gh, buckets_old[i]))));
+				Entry *e;
 				for (e = buckets_old[i]; e && e->next; e = e->next);
 				if (e) {
 					e->next = buckets_new[bucket_index];
@@ -376,7 +374,7 @@ BLI_INLINE Entry *ghash_lookup_entry_ex(
 
 /**
  * Internal lookup function, returns previous entry of target one too.
- * Takes hash and bucket_index arguments to avoid calling #ghash_keyhash and #ghash_bucket_index multiple times.
+ * Takes bucket_index argument to avoid calling #ghash_keyhash and #ghash_bucket_index multiple times.
  * Useful when modifying buckets somehow (like removing an entry...).
  */
 BLI_INLINE Entry *ghash_lookup_entry_prev_ex(
