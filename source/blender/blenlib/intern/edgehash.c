@@ -162,6 +162,27 @@ BLI_INLINE EdgeEntry *edgehash_lookup_entry_ex(
 }
 
 /**
+ * Internal lookup function, returns previous entry of target one too.
+ * Takes bucket_index argument to avoid calling #edgehash_bucket_index multiple times.
+ * Useful when modifying buckets somehow (like removing an entry...).
+ */
+BLI_INLINE EdgeEntry *edgehash_lookup_entry_prev_ex(
+        EdgeHash *eh, unsigned int v0, unsigned int v1,
+        EdgeEntry **r_e_prev, const unsigned int bucket_index)
+{
+	BLI_assert(v0 < v1);
+	for (EdgeEntry *e_prev = NULL, *e = eh->buckets[bucket_index]; e; e = e->next) {
+		if (UNLIKELY(v0 == e->v0 && v1 == e->v1)) {
+			*r_e_prev = e_prev;
+			return e;
+		}
+	}
+
+	*r_e_prev = NULL;
+	return NULL;
+}
+
+/**
  * Internal lookup function. Only wraps #edgehash_lookup_entry_ex
  */
 BLI_INLINE EdgeEntry *edgehash_lookup_entry(EdgeHash *eh, unsigned int v0, unsigned int v1)
@@ -282,38 +303,35 @@ BLI_INLINE void edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, 
 /**
  * Remove the entry and return it, caller must free from eh->epool.
  */
-static EdgeEntry *edgehash_remove_ex(
+BLI_INLINE EdgeEntry *edgehash_remove_ex(
         EdgeHash *eh, unsigned int v0, unsigned int v1,
         EdgeHashFreeFP valfreefp,
         const unsigned int bucket_index)
 {
-	EdgeEntry *e;
-	EdgeEntry *e_prev = NULL;
+	EdgeEntry *e_prev;
+	EdgeEntry *e = edgehash_lookup_entry_prev_ex(eh, v0, v1, &e_prev, bucket_index);
 
 	BLI_assert(v0 < v1);
 
-	for (e = eh->buckets[bucket_index]; e; e = e->next) {
-		if (UNLIKELY(v0 == e->v0 && v1 == e->v1)) {
-			EdgeEntry *e_next = e->next;
+	if (e) {
+		EdgeEntry *e_next = e->next;
 
-			if (valfreefp) {
-				valfreefp(e->val);
-			}
-
-			if (e_prev) {
-				e_prev->next = e_next;
-			}
-			else {
-				eh->buckets[bucket_index] = e_next;
-			}
-
-			eh->nentries--;
-			return e;
+		if (valfreefp) {
+			valfreefp(e->val);
 		}
-		e_prev = e;
+
+		if (e_prev) {
+			e_prev->next = e_next;
+		}
+		else {
+			eh->buckets[bucket_index] = e_next;
+		}
+
+		eh->nentries--;
+		return e;
 	}
 
-	return NULL;
+	return e;
 }
 
 /**

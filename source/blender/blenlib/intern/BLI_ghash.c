@@ -378,13 +378,12 @@ BLI_INLINE Entry *ghash_lookup_entry_ex(
  * Useful when modifying buckets somehow (like removing an entry...).
  */
 BLI_INLINE Entry *ghash_lookup_entry_prev_ex(
-        GHash *gh, const void *key, Entry **r_e_prev, const unsigned int bucket_index)
+        GHash *gh, const void *key,
+        Entry **r_e_prev, const unsigned int bucket_index)
 {
-	Entry *e, *e_prev = NULL;
-
 	/* If we do not store GHash, not worth computing it for each entry here!
 	 * Typically, comparison function will be quicker, and since it's needed in the end anyway... */
-	for (e = gh->buckets[bucket_index]; e; e_prev = e, e = e->next) {
+	for (Entry *e_prev = NULL, *e = gh->buckets[bucket_index]; e; e_prev = e, e = e->next) {
 		if (UNLIKELY(gh->cmpfp(key, e->key) == false)) {
 			*r_e_prev = e_prev;
 			return e;
