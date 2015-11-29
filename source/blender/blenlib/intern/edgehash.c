@@ -283,8 +283,10 @@ BLI_INLINE void edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, 
 /**
  * Remove the entry and return it, caller must free from eh->epool.
  */
-static EdgeEntry *edgehash_remove_ex(EdgeHash *eh, unsigned int v0, unsigned int v1, EdgeHashFreeFP valfreefp,
-                                     unsigned int hash)
+static EdgeEntry *edgehash_remove_ex(
+        EdgeHash *eh, unsigned int v0, unsigned int v1,
+        EdgeHashFreeFP valfreefp,
+        unsigned int hash)
 {
 	EdgeEntry *e;
 	EdgeEntry *e_prev = NULL;
@@ -295,10 +297,16 @@ static EdgeEntry *edgehash_remove_ex(EdgeHash *eh, unsigned int v0, unsigned int
 		if (UNLIKELY(v0 == e->v0 && v1 == e->v1)) {
 			EdgeEntry *e_next = e->next;
 
-			if (valfreefp) valfreefp(e->val);
+			if (valfreefp) {
+				valfreefp(e->val);
+			}
 
-			if (e_prev) e_prev->next = e_next;
-			else   eh->buckets[hash] = e_next;
+			if (e_prev) {
+				e_prev->next = e_next;
+			}
+			else {
+				eh->buckets[hash] = e_next;
+			}
 
 			eh->nentries--;
 			return e;

@@ -487,7 +487,8 @@ BLI_INLINE void ghash_insert(GHash *gh, void *key, void *val)
 }
 
 BLI_INLINE bool ghash_insert_safe(
-        GHash *gh, void *key, void *val, const bool override, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
+        GHash *gh, void *key, void *val, const bool override,
+        GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
 	const unsigned int hash = ghash_keyhash(gh, key);
 	const unsigned int bucket_index = ghash_bucket_index(gh, hash);
@@ -497,8 +498,12 @@ BLI_INLINE bool ghash_insert_safe(
 
 	if (e) {
 		if (override) {
-			if (keyfreefp) keyfreefp(e->e.key);
-			if (valfreefp) valfreefp(e->val);
+			if (keyfreefp) {
+				keyfreefp(e->e.key);
+			}
+			if (valfreefp) {
+				valfreefp(e->val);
+			}
 			e->e.key = key;
 			e->val = val;
 		}
@@ -510,7 +515,9 @@ BLI_INLINE bool ghash_insert_safe(
 	}
 }
 
-BLI_INLINE bool ghash_insert_safe_keyonly(GHash *gh, void *key, const bool override, GHashKeyFreeFP keyfreefp)
+BLI_INLINE bool ghash_insert_safe_keyonly(
+        GHash *gh, void *key, const bool override,
+        GHashKeyFreeFP keyfreefp)
 {
 	const unsigned int hash = ghash_keyhash(gh, key);
 	const unsigned int bucket_index = ghash_bucket_index(gh, hash);
@@ -520,7 +527,9 @@ BLI_INLINE bool ghash_insert_safe_keyonly(GHash *gh, void *key, const bool overr
 
 	if (e) {
 		if (override) {
-			if (keyfreefp) keyfreefp(e->key);
+			if (keyfreefp) {
+				keyfreefp(e->key);
+			}
 			e->key = key;
 		}
 		return false;
@@ -535,7 +544,8 @@ BLI_INLINE bool ghash_insert_safe_keyonly(GHash *gh, void *key, const bool overr
  * Remove the entry and return it, caller must free from gh->entrypool.
  */
 static Entry *ghash_remove_ex(
-        GHash *gh, const void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp,
+        GHash *gh, const void *key,
+        GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp,
         const unsigned int bucket_index)
 {
 	Entry *e_prev;
@@ -544,11 +554,19 @@ static Entry *ghash_remove_ex(
 	BLI_assert(!valfreefp || !(gh->flag & GHASH_FLAG_IS_GSET));
 
 	if (e) {
-		if (keyfreefp) keyfreefp(e->key);
-		if (valfreefp) valfreefp(((GHashEntry *)e)->val);
+		if (keyfreefp) {
+			keyfreefp(e->key);
+		}
+		if (valfreefp) {
+			valfreefp(((GHashEntry *)e)->val);
+		}
 
-		if (e_prev) e_prev->next = e->next;
-		else gh->buckets[bucket_index] = e->next;
+		if (e_prev) {
+			e_prev->next = e->next;
+		}
+		else {
+			gh->buckets[bucket_index] = e->next;
+		}
 
 		ghash_buckets_contract(gh, --gh->nentries, false, false);
 	}
@@ -559,7 +577,9 @@ static Entry *ghash_remove_ex(
 /**
  * Run free callbacks for freeing entries.
  */
-static void ghash_free_cb(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
+static void ghash_free_cb(
+        GHash *gh,
+        GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
 	unsigned int i;
 
@@ -570,8 +590,12 @@ static void ghash_free_cb(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP va
 		Entry *e;
 
 		for (e = gh->buckets[i]; e; e = e->next) {
-			if (keyfreefp) keyfreefp(e->key);
-			if (valfreefp) valfreefp(((GHashEntry *)e)->val);
+			if (keyfreefp) {
+				keyfreefp(e->key);
+			}
+			if (valfreefp) {
+				valfreefp(((GHashEntry *)e)->val);
+			}
 		}
 	}
 }
