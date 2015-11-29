@@ -277,7 +277,7 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
 	G.is_break = false;
 #endif
 
-	BKE_image_backup_render(scene, BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result"));
+	BKE_image_backup_render(scene, BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result"), false);
 
 	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene_owner, "Compositing",
 	                     WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS, WM_JOB_TYPE_COMPOSITE);

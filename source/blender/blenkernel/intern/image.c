@@ -2923,7 +2923,7 @@ bool BKE_image_is_openexr(struct Image *ima)
 	return false;
 }
 
-void BKE_image_backup_render(Scene *scene, Image *ima)
+void BKE_image_backup_render(Scene *scene, Image *ima, bool free_current_slot)
 {
 	/* called right before rendering, ima->renders contains render
 	 * result pointers for everything but the current render */
@@ -2931,13 +2931,18 @@ void BKE_image_backup_render(Scene *scene, Image *ima)
 	int slot = ima->render_slot, last = ima->last_render_slot;
 
 	if (slot != last) {
-		if (ima->renders[slot]) {
-			RE_FreeRenderResult(ima->renders[slot]);
-			ima->renders[slot] = NULL;
-		}
-
 		ima->renders[last] = NULL;
 		RE_SwapResult(re, &ima->renders[last]);
+
+		if (ima->renders[slot]) {
+			if (free_current_slot) {
+				RE_FreeRenderResult(ima->renders[slot]);
+				ima->renders[slot] = NULL;
+			}
+			else {
+				RE_SwapResult(re, &ima->renders[slot]);
+			}
+		}
 	}
 
 	ima->last_render_slot = slot;

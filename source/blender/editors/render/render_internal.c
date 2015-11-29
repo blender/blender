@@ -311,7 +311,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 
 	ima = BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
-	BKE_image_backup_render(scene, ima);
+	BKE_image_backup_render(scene, ima, true);
 
 	/* cleanup sequencer caches before starting user triggered render.
 	 * otherwise, invalidated cache entries can make their way into
@@ -956,7 +956,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	/* get a render result image, and make sure it is empty */
 	ima = BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
-	BKE_image_backup_render(rj->scene, ima);
+	BKE_image_backup_render(rj->scene, ima, true);
 	rj->image = ima;
 
 	/* setup new render */
