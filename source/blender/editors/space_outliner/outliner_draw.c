@@ -434,6 +434,7 @@ static void restrictbutton_gr_restrict_view(bContext *C, void *poin, void *poin2
 {
 	restrictbutton_gr_restrict_flag(poin, poin2, OB_RESTRICT_VIEW);
 	WM_event_add_notifier(C, NC_GROUP, NULL);
+	DAG_id_type_tag(CTX_data_main(C), ID_OB);
 }
 static void restrictbutton_gr_restrict_select(bContext *C, void *poin, void *poin2)
 {
