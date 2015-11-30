@@ -41,7 +41,8 @@ def rna_idprop_ui_del(item):
 
 def rna_idprop_ui_prop_update(item, prop):
     prop_rna = item.path_resolve("[\"%s\"]" % prop.replace("\"", "\\\""), False)
-    prop_rna.update()
+    if isinstance(prop_rna, bpy.types.bpy_prop):
+        prop_rna.update()
 
 
 def rna_idprop_ui_prop_get(item, prop, create=True):
