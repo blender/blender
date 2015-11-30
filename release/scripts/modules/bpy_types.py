@@ -21,8 +21,8 @@
 from _bpy import types as bpy_types
 import _bpy
 
-StructRNA = bpy_types.Struct.__bases__[0]
-StructMetaPropGroup = _bpy.StructMetaPropGroup
+StructRNA = bpy_types.bpy_struct
+StructMetaPropGroup = bpy_types.bpy_struct_meta_idprop
 # StructRNA = bpy_types.Struct
 
 bpy_types.BlendDataLibraries.load = _bpy._library_load

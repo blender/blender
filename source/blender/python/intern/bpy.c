@@ -320,9 +320,6 @@ void BPy_init_modules(void)
 	/* needs to be first so bpy_types can run */
 	PyModule_AddObject(mod, "types", BPY_rna_types());
 
-	/* metaclass for idprop types, bpy_types.py needs access */
-	PyModule_AddObject(mod, "StructMetaPropGroup", (PyObject *)&pyrna_struct_meta_idprop_Type);
-
 	/* needs to be first so bpy_types can run */
 	BPY_library_module(mod);
 
