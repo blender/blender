@@ -2186,6 +2186,32 @@ static void ui_but_drop(bContext *C, const wmEvent *event, uiBut *but, uiHandleB
 
 /* ******************* copy and paste ********************  */
 
+static void ui_but_copy_data_path(uiBut *but, const bool full_path)
+{
+	char *id_path;
+
+	if (but->rnapoin.id.data == NULL) {
+		return;
+	}
+
+	if (full_path) {
+		if (but->rnaprop) {
+			id_path = RNA_path_full_property_py_ex(&but->rnapoin, but->rnaprop, but->rnaindex, true);
+		}
+		else {
+			id_path = RNA_path_full_struct_py(&but->rnapoin);
+		}
+	}
+	else {
+		id_path = RNA_path_from_ID_to_property(&but->rnapoin, but->rnaprop);
+	}
+
+	if (id_path) {
+		WM_clipboard_text_set(id_path, false);
+		MEM_freeN(id_path);
+	}
+}
+
 /* c = copy, v = paste */
 static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data, char mode)
 {
@@ -6838,6 +6864,12 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 					but = labelbut;
 					data = but->active;
 				}
+			}
+
+			/* special case, copy-data-path */
+			if ((event->type == CKEY) && event->shift) {
+				ui_but_copy_data_path(but, event->alt != 0);
+				return WM_UI_HANDLER_BREAK;
 			}
 
 			ui_but_copy_paste(C, but, data, (event->type == CKEY) ? 'c' : 'v');
