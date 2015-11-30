@@ -113,6 +113,15 @@ WITH_BF_STATICFFTW3 = True
 WITH_BF_JACK = True
 WITH_BF_JACK_DYNLOAD = True
 
+# SndFile
+WITH_BF_SNDFILE = True
+WITH_BF_STATICSNDFILE = True
+BF_SNDFILE = '/usr'
+BF_SNDFILE_INC = '${BF_SNDFILE}/include/sndfile'
+BF_SNDFILE_LIB = 'sndfile'
+BF_SNDFILE_LIBPATH = '${BF_SNDFILE}/lib'
+BF_SNDFILE_LIB_STATIC = '${BF_SNDFILE}/lib/libsndfile.a ${BF_OGG}/lib/libvorbis.a ${BF_OGG}/lib/libFLAC.a ${BF_OGG}/lib/libvorbisenc.a ${BF_OGG}/lib/libogg.a'
+
 # Cycles
 WITH_BF_CYCLES = True
 WITH_BF_CYCLES_CUDA_BINARIES = False
