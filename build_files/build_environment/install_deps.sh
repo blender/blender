@@ -2209,6 +2209,13 @@ install_DEB() {
   PRINT ""
   install_packages_DEB $_packages
 
+  PRINT""
+  SNDFILE_DEV="libsndfile1-dev"
+  check_package_DEB $SNDFILE_DEV
+  if [ $? -eq 0 ]; then
+    install_packages_DEB $SNDFILE_DEV
+  fi
+
   PRINT ""
   X264_DEV="libx264-dev"
   check_package_version_ge_DEB $X264_DEV $X264_VERSION_MIN
@@ -2762,6 +2769,13 @@ install_RPM() {
     fi
   fi
 
+  PRINT""
+  SNDFILE_DEV="libsndfile-devel"
+  check_package_RPM $SNDFILE_DEV
+  if [ $? -eq 0 ]; then
+    install_packages_RMP $SNDFILE_DEV
+  fi
+
   if [ "$WITH_ALL" = true ]; then
     PRINT ""
     VPX_DEV="libvpx-devel"
@@ -3124,6 +3138,13 @@ install_ARCH() {
 
   PRINT ""
   install_packages_ARCH $_packages
+
+  PRINT""
+  SNDFILE_DEV="libsndfile"
+  check_package_ARCH $SNDFILE_DEV
+  if [ $? -eq 0 ]; then
+    install_packages_ARCH $SNDFILE_DEV
+  fi
 
   PRINT ""
   X264_DEV="x264"
@@ -3664,6 +3685,10 @@ print_info() {
 
   _buildargs=""
 
+  _1="-D WITH_CODEC_SNDFILE=ON"
+  PRINT "  $_1"
+  _buildargs="$_buildargs $_1"
+
   _1="-D PYTHON_VERSION=$PYTHON_VERSION_MIN"
   PRINT "  $_1"
   _buildargs="$_buildargs $_1"
@@ -3760,6 +3785,8 @@ print_info() {
 
   PRINT ""
   PRINT "If you're using SCons add this to your user-config:"
+
+  PRINT "WITH_BF_SNDFILE = true"
 
   PRINT "BF_PYTHON_VERSION = $PYTHON_VERSION_MIN"
   if [ -d $INST/python-$PYTHON_VERSION_MIN ]; then
