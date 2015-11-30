@@ -973,6 +973,7 @@ char *RNA_path_resolve_from_type_to_property(
 
 char *RNA_path_full_ID_py(struct ID *id);
 char *RNA_path_full_struct_py(struct PointerRNA *ptr);
+char *RNA_path_full_property_py_ex(PointerRNA *ptr, PropertyRNA *prop, int index, bool use_fallback);
 char *RNA_path_full_property_py(struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
 char *RNA_path_struct_property_py(struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
 char *RNA_path_property_py(struct PointerRNA *ptr, struct PropertyRNA *prop, int index);

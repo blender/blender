@@ -4719,11 +4719,12 @@ char *RNA_path_full_struct_py(struct PointerRNA *ptr)
  * Get the ID.struct.property as a python representation, eg:
  *   bpy.data.foo["bar"].some_struct.some_prop[10]
  */
-char *RNA_path_full_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
+char *RNA_path_full_property_py_ex(PointerRNA *ptr, PropertyRNA *prop, int index, bool use_fallback)
 {
 	char *id_path;
 	const char *data_delim;
-	char *data_path;
+	const char *data_path;
+	bool  data_path_free;
 
 	char *ret;
 
@@ -4735,8 +4736,23 @@ char *RNA_path_full_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 	id_path = RNA_path_full_ID_py(ptr->id.data);
 
 	data_path = RNA_path_from_ID_to_property(ptr, prop);
+	if (data_path) {
+		data_delim = (data_path[0] == '[') ? "" : ".";
+		data_path_free = true;
+	}
+	else {
+		if (use_fallback) {
+			/* fuzzy fallback. be explicit in our ignoranc. */
+			data_path = RNA_property_identifier(prop);
+			data_delim = " ... ";
+		}
+		else {
+			data_delim = ".";
 
-	data_delim = (data_path && data_path[0] == '[') ? "" : ".";
+		}
+		data_path_free = false;
+	}
+
 
 	if ((index == -1) || (RNA_property_array_check(prop) == false)) {
 		ret = BLI_sprintfN("%s%s%s",
@@ -4747,11 +4763,16 @@ char *RNA_path_full_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 		                   id_path, data_delim, data_path, index);
 	}
 	MEM_freeN(id_path);
-	if (data_path) {
-		MEM_freeN(data_path);
+	if (data_path_free) {
+		MEM_freeN((void *)data_path);
 	}
 
 	return ret;
+}
+
+char *RNA_path_full_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
+{
+	return RNA_path_full_property_py_ex(ptr, prop, index, false);
 }
 
 /**

@@ -534,33 +534,18 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 		if (but->rnapoin.id.data) {
 			/* this could get its own 'BUT_GET_...' type */
-			PointerRNA *ptr = &but->rnapoin;
-			PropertyRNA *prop = but->rnaprop;
-			ID *id = ptr->id.data;
-
-			char *id_path;
-			char *data_path = NULL;
 
 			/* never fails */
-			id_path = RNA_path_full_ID_py(id);
+			char *id_path;
 
-			if (ptr->data && prop) {
-				data_path = RNA_path_from_ID_to_property(ptr, prop);
+			if (but->rnaprop) {
+				id_path = RNA_path_full_property_py_ex(&but->rnapoin, but->rnaprop, but->rnaindex, true);
+			}
+			else {
+				id_path = RNA_path_full_struct_py(&but->rnapoin);
 			}
 
-			if (data_path) {
-				const char *data_delim = (data_path[0] == '[') ? "" : ".";
-				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]),
-				             "%s%s%s",  /* no need to translate */
-				             id_path, data_delim, data_path);
-				MEM_freeN(data_path);
-			}
-			else if (prop) {
-				/* can't find the path. be explicit in our ignorance "..." */
-				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]),
-				             "%s ... %s",  /* no need to translate */
-				             id_path, rna_prop.strinfo ? rna_prop.strinfo : RNA_property_identifier(prop));
-			}
+			BLI_strncat_utf8(data->lines[data->totline], id_path, sizeof(data->lines[0]));
 			MEM_freeN(id_path);
 
 			data->format[data->totline].style = UI_TIP_STYLE_MONO;
