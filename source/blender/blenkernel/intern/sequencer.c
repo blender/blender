@@ -4419,7 +4419,7 @@ bool BKE_sequence_base_shuffle_ex(ListBase *seqbasep, Sequence *test, Scene *evi
 	test->machine += channel_delta;
 	BKE_sequence_calc(evil_scene, test);
 	while (BKE_sequence_test_overlap(seqbasep, test)) {
-		if ((channel_delta > 0) ? (test->machine >= MAXSEQ) : (test->machine <= 1)) {
+		if ((channel_delta > 0) ? (test->machine >= MAXSEQ) : (test->machine < 1)) {
 			break;
 		}
 
