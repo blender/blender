@@ -326,7 +326,7 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float(ot->srna, "offset", 2.0f, 0.0f, 1e12f, "Offset", "", 0.0f, 100.0f);
+	RNA_def_float_distance(ot->srna, "offset", 2.0f, 0.0f, 1e12f, "Offset", "", 0.0f, 100.0f);
 	RNA_def_int(ot->srna, "steps", 10, 0, 1000000, "Steps", "", 0, 180);
 }
 

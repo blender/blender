@@ -2357,8 +2357,8 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_float(ot->srna, "threshold", 1e-4f, 1e-6f, 50.0f, "Merge Distance",
-	              "Minimum distance between elements to merge", 1e-5f, 10.0f);
+	RNA_def_float_distance(ot->srna, "threshold", 1e-4f, 1e-6f, 50.0f, "Merge Distance",
+	                       "Minimum distance between elements to merge", 1e-5f, 10.0f);
 	RNA_def_boolean(ot->srna, "use_unselected", false, "Unselected", "Merge selected to other unselected vertices");
 }
 
@@ -2608,7 +2608,7 @@ void MESH_OT_solidify(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	prop = RNA_def_float(ot->srna, "thickness", 0.01f, -1e4f, 1e4f, "Thickness", "", -10.0f, 10.0f);
+	prop = RNA_def_float_distance(ot->srna, "thickness", 0.01f, -1e4f, 1e4f, "Thickness", "", -10.0f, 10.0f);
 	RNA_def_property_ui_range(prop, -10.0, 10.0, 0.1, 4);
 }
 
@@ -3783,7 +3783,6 @@ static int edbm_poke_face_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_poke(wmOperatorType *ot)
 {
-
 	static EnumPropertyItem poke_center_modes[] = {
 		{BMOP_POKE_MEAN_WEIGHTED, "MEAN_WEIGHTED", 0, "Weighted Mean", "Weighted Mean Face Center"},
 		{BMOP_POKE_MEAN, "MEAN", 0, "Mean", "Mean Face Center"},
@@ -3803,7 +3802,7 @@ void MESH_OT_poke(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_float(ot->srna, "offset", 0.0f, -1e3f, 1e3f, "Poke Offset", "Poke Offset", -1.0f, 1.0f);
+	RNA_def_float_distance(ot->srna, "offset", 0.0f, -1e3f, 1e3f, "Poke Offset", "Poke Offset", -1.0f, 1.0f);
 	RNA_def_boolean(ot->srna, "use_relative_offset", false, "Offset Relative", "Scale the offset by surrounding geometry");
 	RNA_def_enum(ot->srna, "center_mode", poke_center_modes, BMOP_POKE_MEAN_WEIGHTED,
 	             "Poke Center", "Poke Face Center Calculation");
@@ -4255,8 +4254,8 @@ void MESH_OT_dissolve_degenerate(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_float(ot->srna, "threshold", 1e-4f, 1e-6f, 50.0f,  "Merge Distance",
-	              "Minimum distance between elements to merge", 1e-5f, 10.0f);
+	RNA_def_float_distance(ot->srna, "threshold", 1e-4f, 1e-6f, 50.0f,  "Merge Distance",
+	                       "Minimum distance between elements to merge", 1e-5f, 10.0f);
 }
 
 
@@ -5252,10 +5251,10 @@ void MESH_OT_wireframe(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_even_offset", true, "Offset Even", "Scale the offset to give more even thickness");
 	RNA_def_boolean(ot->srna, "use_relative_offset", false, "Offset Relative", "Scale the offset by surrounding geometry");
 	RNA_def_boolean(ot->srna, "use_replace", true, "Replace", "Remove original faces");
-	prop = RNA_def_float(ot->srna, "thickness", 0.01f, 0.0f, 1e4f, "Thickness", "", 0.0f, 10.0f);
+	prop = RNA_def_float_distance(ot->srna, "thickness", 0.01f, 0.0f, 1e4f, "Thickness", "", 0.0f, 10.0f);
 	/* use 1 rather then 10 for max else dragging the button moves too far */
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 4);
-	RNA_def_float(ot->srna, "offset", 0.01f, 0.0f, 1e4f, "Offset", "", 0.0f, 10.0f);
+	RNA_def_float_distance(ot->srna, "offset", 0.01f, 0.0f, 1e4f, "Offset", "", 0.0f, 10.0f);
 	RNA_def_boolean(ot->srna, "use_crease", false, "Crease", "Crease hub edges for improved subsurf");
 	prop = RNA_def_float(ot->srna, "crease_weight", 0.01f, 0.0f, 1e3f, "Crease weight", "", 0.0f, 1.0f);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 2);
@@ -5587,7 +5586,7 @@ void MESH_OT_symmetry_snap(struct wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "direction", rna_enum_symmetrize_direction_items,
 	                        BMO_SYMMETRIZE_NEGATIVE_X,
 	                        "Direction", "Which sides to copy from and to");
-	RNA_def_float(ot->srna, "threshold", 0.05f, 0.0f, 10.0f, "Threshold", "", 1e-4f, 1.0f);
+	RNA_def_float_distance(ot->srna, "threshold", 0.05f, 0.0f, 10.0f, "Threshold", "", 1e-4f, 1.0f);
 	RNA_def_float(ot->srna, "factor", 0.5f, 0.0f, 1.0f, "Factor", "", 0.0f, 1.0f);
 	RNA_def_boolean(ot->srna, "use_center", true, "Center", "Snap mid verts to the axis center");
 }

@@ -165,7 +165,7 @@ void MESH_OT_intersect(struct wmOperatorType *ot)
 	/* props */
 	RNA_def_enum(ot->srna, "mode", isect_mode_items, ISECT_SEL_UNSEL, "Source", "");
 	RNA_def_boolean(ot->srna, "use_separate", true, "Separate", "");
-	RNA_def_float(ot->srna, "threshold", 0.000001f, 0.0, 0.01, "Merge threshold", "", 0.0, 0.001);
+	RNA_def_float_distance(ot->srna, "threshold", 0.000001f, 0.0, 0.01, "Merge threshold", "", 0.0, 0.001);
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

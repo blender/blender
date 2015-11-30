@@ -261,10 +261,7 @@ static void view_align_update(struct Main *UNUSED(main), struct Scene *UNUSED(sc
 
 void ED_object_add_unit_props(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
-	prop = RNA_def_float(ot->srna, "radius", 1.0f, 0.0, OBJECT_ADD_SIZE_MAXF, "Radius", "", 0.001, 100.00);
-	RNA_def_property_subtype(prop, PROP_DISTANCE);
+	RNA_def_float_distance(ot->srna, "radius", 1.0f, 0.0, OBJECT_ADD_SIZE_MAXF, "Radius", "", 0.001, 100.00);
 }
 
 void ED_object_add_generic_props(wmOperatorType *ot, bool do_editmode)

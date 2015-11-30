@@ -2875,6 +2875,18 @@ PropertyRNA *RNA_def_float_rotation(StructOrFunctionRNA *cont_, const char *iden
 	return prop;
 }
 
+PropertyRNA *RNA_def_float_distance(StructOrFunctionRNA *cont_, const char *identifier,
+                                    float default_value, float hardmin, float hardmax, const char *ui_name,
+                                    const char *ui_description, float softmin, float softmax)
+{
+	PropertyRNA *prop = RNA_def_float(cont_, identifier, default_value,
+	                                  hardmin, hardmax, ui_name, ui_description,
+	                                  softmin, softmax);
+	RNA_def_property_subtype(prop, PROP_DISTANCE);
+
+	return prop;
+}
+
 PropertyRNA *RNA_def_float_array(StructOrFunctionRNA *cont_, const char *identifier, int len,
                                  const float *default_value, float hardmin, float hardmax, const char *ui_name,
                                  const char *ui_description, float softmin, float softmax)

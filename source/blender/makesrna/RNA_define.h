@@ -100,6 +100,8 @@ PropertyRNA *RNA_def_float_color(StructOrFunctionRNA *cont, const char *identifi
 PropertyRNA *RNA_def_float_matrix(StructOrFunctionRNA *cont, const char *identifier, int rows, int columns, const float *default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
 PropertyRNA *RNA_def_float_rotation(StructOrFunctionRNA *cont, const char *identifier, int len, const float *default_value,
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
+PropertyRNA *RNA_def_float_distance(StructOrFunctionRNA *cont, const char *identifier, float default_value,
+	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
 PropertyRNA *RNA_def_float_array(StructOrFunctionRNA *cont, const char *identifier, int len, const float *default_value,
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
 
