@@ -382,7 +382,6 @@ ccl_device_inline float3 triangle_refine_subsurface(KernelGlobals *kg,
 	float3 D = ray->D;
 	float t = isect->t;
 
-#ifdef __INTERSECTION_REFINE__
 	if(isect->object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
 		Transform tfm = ccl_fetch(sd, ob_itfm);
@@ -399,6 +398,7 @@ ccl_device_inline float3 triangle_refine_subsurface(KernelGlobals *kg,
 
 	P = P + D*t;
 
+#ifdef __INTERSECTION_REFINE__
 	const float4 tri_a = kernel_tex_fetch(__tri_woop, isect->prim*TRI_NODE_SIZE+0),
 	             tri_b = kernel_tex_fetch(__tri_woop, isect->prim*TRI_NODE_SIZE+1),
 	             tri_c = kernel_tex_fetch(__tri_woop, isect->prim*TRI_NODE_SIZE+2);
@@ -410,6 +410,7 @@ ccl_device_inline float3 triangle_refine_subsurface(KernelGlobals *kg,
 	float rt = dot(edge2, qvec) / dot(edge1, pvec);
 
 	P = P + D*rt;
+#endif  /* __INTERSECTION_REFINE__ */
 
 	if(isect->object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
@@ -424,9 +425,6 @@ ccl_device_inline float3 triangle_refine_subsurface(KernelGlobals *kg,
 	}
 
 	return P;
-#else
-	return P + D*t;
-#endif
 }
 
 #undef IDX
