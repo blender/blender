@@ -290,6 +290,103 @@ void OUTLINER_OT_item_rename(wmOperatorType *ot)
 	ot->poll = ED_operator_outliner_active;
 }
 
+/* Library delete --------------------------------------------------- */
+
+static void lib_delete(bContext *C, TreeElement *te, TreeStoreElem *tselem, ReportList *reports)
+{
+	Library *lib = (Library *)tselem->id;
+	ListBase *lbarray[MAX_LIBARRAY];
+	int a;
+
+	BLI_assert(te->idcode == ID_LI && lib != NULL);
+	UNUSED_VARS_NDEBUG(te);
+
+	/* We simply set all ID from given lib (including lib itself) to zero user count.
+	 * It is not possible to do a proper cleanup without a save/reload in current master. */
+	a = set_listbasepointers(CTX_data_main(C), lbarray);
+	while (a--) {
+		ListBase *lb = lbarray[a];
+		ID *id;
+
+		for (id = lb->first; id; id = id->next) {
+			if (id->lib == lib) {
+				id_fake_user_clear(id);
+				id->us = 0;
+			}
+		}
+	}
+
+	BKE_reportf(reports, RPT_WARNING,
+	            "Please save and reload .blend file to complete deletion of '%s' library",
+	            ((Library *)tselem->id)->filepath);
+}
+
+void lib_delete_cb(
+        bContext *C, Scene *UNUSED(scene), TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+{
+	lib_delete(C, te, tselem, CTX_wm_reports(C));
+}
+
+static int outliner_lib_delete_invoke_do(bContext *C, ReportList *reports, TreeElement *te, const float mval[2])
+{
+	if (mval[1] > te->ys && mval[1] < te->ys + UI_UNIT_Y) {
+		TreeStoreElem *tselem = TREESTORE(te);
+
+		if (te->idcode == ID_LI && tselem->id) {
+			if (((Library *)tselem->id)->parent) {
+				BKE_reportf(reports, RPT_ERROR_INVALID_INPUT,
+				            "Cannot delete indirectly linked library '%s'", ((Library *)tselem->id)->filepath);
+				return OPERATOR_CANCELLED;
+			}
+
+			lib_delete(C, te, tselem, reports);
+			return OPERATOR_FINISHED;
+		}
+	}
+	else {
+		for (te = te->subtree.first; te; te = te->next) {
+			int ret;
+			if ((ret = outliner_lib_delete_invoke_do(C, reports, te, mval))) {
+				return ret;
+			}
+		}
+	}
+
+	return 0;
+}
+
+static int outliner_lib_delete_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	ARegion *ar = CTX_wm_region(C);
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	TreeElement *te;
+	float fmval[2];
+
+	BLI_assert(ar && soops);
+
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+
+	for (te = soops->tree.first; te; te = te->next) {
+		int ret;
+
+		if ((ret = outliner_lib_delete_invoke_do(C, op->reports, te, fmval))) {
+			return ret;
+		}
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+void OUTLINER_OT_lib_delete(wmOperatorType *ot)
+{
+	ot->name = "Delete Library";
+	ot->idname = "OUTLINER_OT_lib_delete";
+	ot->description = "Delete the library under cursorn (needs a save/reload)";
+
+	ot->invoke = outliner_lib_delete_invoke;
+	ot->poll = ED_operator_outliner_active;
+}
+
 /* ************************************************************** */
 /* Setting Toggling Operators */
 

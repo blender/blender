@@ -119,6 +119,7 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 					case ID_MA: case ID_TE: case ID_IP: case ID_IM:
 					case ID_SO: case ID_KE: case ID_WO: case ID_AC:
 					case ID_NLA: case ID_TXT: case ID_GR: case ID_LS:
+					case ID_LI:
 						if (*idlevel == 0) *idlevel = idcode;
 						else if (*idlevel != idcode) *idlevel = -1;
 						break;
@@ -846,7 +847,7 @@ enum {
 	OL_OP_TOGVIS,
 	OL_OP_TOGSEL,
 	OL_OP_TOGREN,
-	OL_OP_RENAME
+	OL_OP_RENAME,
 };
 
 static EnumPropertyItem prop_object_op_types[] = {
@@ -1242,6 +1243,88 @@ void OUTLINER_OT_id_operation(wmOperatorType *ot)
 	ot->flag = 0;
 	
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_id_op_types, 0, "ID data Operation", "");
+}
+
+/* **************************************** */
+
+typedef enum eOutlinerLibOpTypes {
+	OL_LIB_INVALID = 0,
+
+	OL_LIB_RENAME,
+	OL_LIB_DELETE,
+} eOutlinerLibOpTypes;
+
+static EnumPropertyItem outliner_lib_op_type_items[] = {
+	{OL_LIB_RENAME, "RENAME", 0, "Rename", ""},
+    {OL_LIB_DELETE, "DELETE", 0, "Delete", "Delete this library and all its item from Blender (needs a save/reload)"},
+	{0, NULL, 0, NULL, NULL}
+
+};
+
+static int outliner_lib_operation_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
+	eOutlinerIdOpTypes event;
+
+	/* check for invalid states */
+	if (soops == NULL)
+		return OPERATOR_CANCELLED;
+
+	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
+
+	event = RNA_enum_get(op->ptr, "type");
+
+	switch (event) {
+		case OL_LIB_RENAME:
+		{
+			/* rename */
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, item_rename_cb);
+
+			WM_event_add_notifier(C, NC_ID | NA_EDITED, NULL);
+			ED_undo_push(C, "Rename");
+			break;
+		}
+		case OL_LIB_DELETE:
+		{
+			/* delete */
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, lib_delete_cb);
+
+			WM_event_add_notifier(C, NC_ID | NA_EDITED, NULL);
+			/* Note: no undo possible here really, not 100% sure why... Probably because of library optimisations
+			 *       in undo/redo process? */
+			/* ED_undo_push(C, "Rename"); */
+			break;
+		}
+		default:
+			/* invalid - unhandled */
+			break;
+	}
+
+	/* wrong notifier still... */
+	WM_event_add_notifier(C, NC_ID | NA_EDITED, NULL);
+
+	/* XXX: this is just so that outliner is always up to date */
+	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_OUTLINER, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+
+void OUTLINER_OT_lib_operation(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Outliner Library Operation";
+	ot->idname = "OUTLINER_OT_lib_operation";
+	ot->description = "";
+
+	/* callbacks */
+	ot->invoke = WM_menu_invoke;
+	ot->exec = outliner_lib_operation_exec;
+	ot->poll = ED_operator_outliner_active;
+
+	ot->prop = RNA_def_enum(ot->srna, "type", outliner_lib_op_type_items, 0, "Library Operation", "");
 }
 
 /* **************************************** */
@@ -1703,10 +1786,17 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 				BKE_report(reports, RPT_WARNING, "Mixed selection");
 			}
 			else {
-				if (idlevel == ID_GR)
-					WM_operator_name_call(C, "OUTLINER_OT_group_operation", WM_OP_INVOKE_REGION_WIN, NULL);
-				else
-					WM_operator_name_call(C, "OUTLINER_OT_id_operation", WM_OP_INVOKE_REGION_WIN, NULL);
+				switch (idlevel) {
+					case ID_GR:
+						WM_operator_name_call(C, "OUTLINER_OT_group_operation", WM_OP_INVOKE_REGION_WIN, NULL);
+						break;
+					case ID_LI:
+						WM_operator_name_call(C, "OUTLINER_OT_lib_operation", WM_OP_INVOKE_REGION_WIN, NULL);
+						break;
+					default:
+						WM_operator_name_call(C, "OUTLINER_OT_id_operation", WM_OP_INVOKE_REGION_WIN, NULL);
+						break;
+				}
 			}
 		}
 		else if (datalevel) {
