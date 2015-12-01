@@ -5942,6 +5942,10 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 		}
 
 		EDBM_automerge(t->scene, t->obedit, true, hflag);
+
+		if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
+			EDBM_select_flush(em);
+		}
 	}
 }
 

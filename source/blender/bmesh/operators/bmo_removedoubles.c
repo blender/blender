@@ -126,6 +126,21 @@ static void remdoubles_createface(BMesh *bm, BMFace *f, BMOpSlot *slot_targetmap
 				continue;
 			}
 
+			/* low level selection, not essential but means we can keep
+			 * edge selection valid on auto-merge for example. */
+			if ((BM_elem_flag_test(l->e, BM_ELEM_SELECT)   == true) &&
+			    (BM_elem_flag_test(e_new, BM_ELEM_SELECT) == false))
+			{
+				BM_elem_flag_disable(l->e, BM_ELEM_SELECT);
+				BM_elem_flag_merge_into(e_new, e_new, l->e);
+				BM_elem_flag_enable(e_new, BM_ELEM_SELECT);
+				/* bm->totedgesel remains valid */
+			}
+			else {
+				BM_elem_flag_merge_into(e_new, e_new, l->e);
+			}
+
+
 			STACK_PUSH(edges, e_new);
 			STACK_PUSH(loops, l);
 		}
