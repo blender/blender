@@ -35,6 +35,7 @@
 
 struct ARegion;
 struct Header;
+struct ID;
 struct ListBase;
 struct Menu;
 struct Panel;
