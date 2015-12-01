@@ -45,13 +45,14 @@
 
 #include "textview.h"
 
-static void console_font_begin(TextViewContext *sc)
+static void console_font_begin(const int font_id, const int lheight)
 {
 	/* 0.875 is based on: 16 pixels lines get 14 pixel text */
-	BLF_size(blf_mono_font, 0.875 * sc->lheight, 72);
+	BLF_size(font_id, 0.875 * lheight, 72);
 }
 
 typedef struct ConsoleDrawContext {
+	int font_id;
 	int cwidth;
 	int lheight;
 	int lofs; /* text vertical offset */
@@ -123,7 +124,6 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 	int tot_lines;            /* total number of lines for wrapping */
 	int *offsets;             /* offsets of line beginnings for wrapping */
 	int y_next;
-	const int mono = blf_mono_font;
 
 	str_len = console_wrap_offsets(str, str_len, cdc->console_width, &tot_lines, &offsets);
 	y_next = cdc->xy[1] + cdc->lheight * tot_lines;
@@ -189,8 +189,8 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 		glColor3ubv(fg);
 
 		/* last part needs no clipping */
-		BLF_position(mono, cdc->xy[0], cdc->lofs + cdc->xy[1], 0);
-		BLF_draw_mono(mono, s, len, cdc->cwidth);
+		BLF_position(cdc->font_id, cdc->xy[0], cdc->lofs + cdc->xy[1], 0);
+		BLF_draw_mono(cdc->font_id, s, len, cdc->cwidth);
 
 		if (cdc->sel[0] != cdc->sel[1]) {
 			console_step_sel(cdc, -initial_offset);
@@ -205,8 +205,8 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 			len = offsets[i] - offsets[i - 1];
 			s = str + offsets[i - 1];
 
-			BLF_position(mono, cdc->xy[0], cdc->lofs + cdc->xy[1], 0);
-			BLF_draw_mono(mono, s, len, cdc->cwidth);
+			BLF_position(cdc->font_id, cdc->xy[0], cdc->lofs + cdc->xy[1], 0);
+			BLF_draw_mono(cdc->font_id, s, len, cdc->cwidth);
 			
 			if (cdc->sel[0] != cdc->sel[1]) {
 				console_step_sel(cdc, len);
@@ -236,8 +236,8 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 
 		glColor3ubv(fg);
 
-		BLF_position(mono, cdc->xy[0], cdc->lofs + cdc->xy[1], 0);
-		BLF_draw_mono(mono, str, str_len, cdc->cwidth);
+		BLF_position(cdc->font_id, cdc->xy[0], cdc->lofs + cdc->xy[1], 0);
+		BLF_draw_mono(cdc->font_id, str, str_len, cdc->cwidth);
 		
 		if (cdc->sel[0] != cdc->sel[1]) {
 			int isel[2];
@@ -272,9 +272,9 @@ int textview_draw(TextViewContext *tvc, const int draw, int mval[2], void **mous
 	int xy[2], y_prev;
 	int sel[2] = {-1, -1}; /* defaults disabled */
 	unsigned char fg[3], bg[3];
-	const int mono = blf_mono_font;
+	const int font_id = blf_mono_font;
 
-	console_font_begin(tvc);
+	console_font_begin(font_id, tvc->lheight);
 
 	xy[0] = x_orig; xy[1] = y_orig;
 
@@ -285,10 +285,11 @@ int textview_draw(TextViewContext *tvc, const int draw, int mval[2], void **mous
 		*pos_pick = 0;
 
 	/* constants for the sequencer context */
-	cdc.cwidth = (int)BLF_fixed_width(mono);
+	cdc.font_id = font_id;
+	cdc.cwidth = (int)BLF_fixed_width(font_id);
 	assert(cdc.cwidth > 0);
 	cdc.lheight = tvc->lheight;
-	cdc.lofs = -BLF_descender(mono);
+	cdc.lofs = -BLF_descender(font_id);
 	/* note, scroll bar must be already subtracted () */
 	cdc.console_width = (tvc->winx - (CONSOLE_DRAW_MARGIN * 2)) / cdc.cwidth;
 	/* avoid divide by zero on small windows */
