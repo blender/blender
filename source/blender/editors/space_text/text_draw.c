@@ -67,7 +67,7 @@ typedef struct TextDrawContext {
 static void text_draw_context_init(const SpaceText *st, TextDrawContext *tdc)
 {
 	tdc->font_id = blf_mono_font;
-	tdc->cwidth = st->cwidth;
+	tdc->cwidth = 0;
 	tdc->lheight_dpi = st->lheight_dpi;
 }
 
@@ -1398,9 +1398,11 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 		lineno++;
 	}
 
+
 	text_font_begin(&tdc);
-	st->cwidth = BLF_fixed_width(tdc.font_id);
-	st->cwidth = MAX2(st->cwidth, (char)1);
+
+	tdc.cwidth = max_ii((int)BLF_fixed_width(tdc.font_id), 1);
+	st->cwidth = tdc.cwidth;
 
 	/* draw line numbers background */
 	if (st->showlinenrs) {
