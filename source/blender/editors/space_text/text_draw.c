@@ -1347,8 +1347,6 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	int i, x, y, winx, linecount = 0, lineno = 0;
 	int wraplinecount = 0, wrap_skip = 0;
 	int margin_column_x;
-	/* don't draw lines below this */
-	const int clip_min_y = -(int)(st->lheight_dpi - 1);
 
 	/* if no text, nothing to do */
 	if (!text)
@@ -1356,6 +1354,10 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 
 	/* dpi controlled line height and font size */
 	st->lheight_dpi = (U.widget_unit * st->lheight) / 20;
+
+	/* don't draw lines below this */
+	const int clip_min_y = -(int)(st->lheight_dpi - 1);
+
 	st->viewlines = (st->lheight_dpi) ? (int)(ar->winy - clip_min_y) / (st->lheight_dpi + TXT_LINE_SPACING) : 0;
 	
 	text_draw_context_init(st, &tdc);
