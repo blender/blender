@@ -154,7 +154,7 @@ char *bc_CustomData_get_active_layer_name(const CustomData *data, int type)
 DocumentExporter::DocumentExporter(const ExportSettings *export_settings) : export_settings(export_settings) {
 }
 
-static COLLADABU::NativeString make_temp_filepath(char *name, char *extension)
+static COLLADABU::NativeString make_temp_filepath(const char *name, const char *extension)
 {
 	char tempfile[FILE_MAX];
 	const char *tempdir = BKE_tempdir_session();
