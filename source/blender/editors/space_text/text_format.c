@@ -73,7 +73,7 @@ static void flatten_string_append(FlattenString *fs, const char *c, int accum, i
 	fs->pos += len;
 }
 
-int flatten_string(SpaceText *st, FlattenString *fs, const char *in)
+int flatten_string(const SpaceText *st, FlattenString *fs, const char *in)
 {
 	int r, i, total = 0;
 
