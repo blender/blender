@@ -859,12 +859,12 @@ void ED_uvedit_live_unwrap(Scene *scene, Object *obedit)
 static void uv_map_transform_center(Scene *scene, View3D *v3d, float *result, 
                                     Object *ob, BMEditMesh *em)
 {
-	int around = (v3d) ? v3d->around : V3D_CENTER;
+	const int around = (v3d) ? v3d->around : V3D_AROUND_CENTER_BOUNDS;
 
 	/* only operates on the edit object - this is all that's needed now */
 
 	switch (around) {
-		case V3D_CENTER: /* bounding box center */
+		case V3D_AROUND_CENTER_BOUNDS: /* bounding box center */
 		{
 			BMFace *efa;
 			BMLoop *l;
@@ -883,15 +883,15 @@ static void uv_map_transform_center(Scene *scene, View3D *v3d, float *result,
 			mid_v3_v3v3(result, min, max);
 			break;
 		}
-		case V3D_CURSOR:  /* cursor center */
+		case V3D_AROUND_CURSOR:  /* cursor center */
 		{
 			const float *curs = ED_view3d_cursor3d_get(scene, v3d);
 			/* shift to objects world */
 			sub_v3_v3v3(result, curs, ob->obmat[3]);
 			break;
 		}
-		case V3D_LOCAL:     /* object center */
-		case V3D_CENTROID:  /* multiple objects centers, only one object here*/
+		case V3D_AROUND_LOCAL_ORIGINS:  /* object center */
+		case V3D_AROUND_CENTER_MEAN:    /* multiple objects centers, only one object here*/
 		default:
 			zero_v3(result);
 			break;

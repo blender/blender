@@ -342,7 +342,7 @@ static SpaceLink *view3d_new(const bContext *C)
 
 	v3d->twflag |= U.tw_flag & V3D_USE_MANIPULATOR;
 	v3d->twtype = V3D_MANIP_TRANSLATE;
-	v3d->around = V3D_CENTROID;
+	v3d->around = V3D_AROUND_CENTER_MEAN;
 	
 	v3d->bundle_size = 0.2f;
 	v3d->bundle_drawtype = OB_PLAINAXES;

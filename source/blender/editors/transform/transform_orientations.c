@@ -591,7 +591,7 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 	Base *base;
 	Object *ob = OBACT;
 	int result = ORIENTATION_NONE;
-	const bool activeOnly = (around == V3D_ACTIVE);
+	const bool activeOnly = (around == V3D_AROUND_ACTIVE);
 
 	zero_v3(normal);
 	zero_v3(plane);
@@ -854,7 +854,7 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 							/* exception */
 							if (flag) {
 								float tvec[3];
-								if ((around == V3D_LOCAL) ||
+								if ((around == V3D_AROUND_LOCAL_ORIGINS) ||
 								    ELEM(flag, SEL_F2, SEL_F1 | SEL_F3, SEL_F1 | SEL_F2 | SEL_F3))
 								{
 									BKE_nurb_bezt_calc_normal(nu, bezt, tvec);
@@ -1044,8 +1044,8 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 
 int getTransformOrientation(const bContext *C, float normal[3], float plane[3])
 {
-	/* dummy value, not V3D_ACTIVE and not V3D_LOCAL */
-	short around = V3D_CENTER;
+	/* dummy value, not V3D_AROUND_ACTIVE and not V3D_AROUND_LOCAL_ORIGINS */
+	short around = V3D_AROUND_CENTER_BOUNDS;
 
 	return getTransformOrientation_ex(C, normal, plane, around);
 }

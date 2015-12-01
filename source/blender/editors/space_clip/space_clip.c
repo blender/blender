@@ -250,7 +250,7 @@ static SpaceLink *clip_new(const bContext *C)
 	sc->zoom = 1.0f;
 	sc->path_length = 20;
 	sc->scopes.track_preview_height = 120;
-	sc->around = V3D_LOCAL;
+	sc->around = V3D_AROUND_LOCAL_ORIGINS;
 
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for clip");
@@ -1213,7 +1213,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *ar)
 	}
 
 	show_cursor |= sc->mode == SC_MODE_MASKEDIT;
-	show_cursor |= sc->around == V3D_CURSOR;
+	show_cursor |= sc->around == V3D_AROUND_CURSOR;
 
 	if (show_cursor) {
 		glPushMatrix();

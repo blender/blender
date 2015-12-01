@@ -700,7 +700,7 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 	}
 	else {
 		/* If there's no selection, lastofs is unmodified and last value since static */
-		is_set = calculateTransformCenter(C, V3D_CENTROID, lastofs, NULL);
+		is_set = calculateTransformCenter(C, V3D_AROUND_CENTER_MEAN, lastofs, NULL);
 	}
 
 	copy_v3_v3(r_dyn_ofs, lastofs);
@@ -3757,7 +3757,7 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
 			float twmat[3][3];
 
 			/* same as transform manipulator when normal is set */
-			ED_getTransformOrientationMatrix(C, twmat, V3D_ACTIVE);
+			ED_getTransformOrientationMatrix(C, twmat, V3D_AROUND_ACTIVE);
 
 			mat3_to_quat(obact_quat, twmat);
 			invert_qt_normalized(obact_quat);

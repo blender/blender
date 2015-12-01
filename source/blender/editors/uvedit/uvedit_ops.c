@@ -727,7 +727,7 @@ static bool uvedit_center(Scene *scene, Image *ima, Object *obedit, float cent[2
 {
 	bool changed = false;
 	
-	if (mode == V3D_CENTER) {  /* bounding box */
+	if (mode == V3D_AROUND_CENTER_BOUNDS) {  /* bounding box */
 		float min[2], max[2];
 		if (ED_uvedit_minmax(scene, ima, obedit, min, max)) {
 			mid_v2_v2v2(cent, min, max);

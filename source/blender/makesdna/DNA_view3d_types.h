@@ -315,11 +315,18 @@ typedef struct View3D {
 #define V3D_SHOW_WORLD			(1 << 0)
 
 /* View3D->around */
-#define V3D_CENTER		 0
-#define V3D_CENTROID	 3
-#define V3D_CURSOR		 1
-#define V3D_LOCAL		 2
-#define V3D_ACTIVE		 4
+enum {
+	/* center of the bounding box */
+	V3D_AROUND_CENTER_BOUNDS	= 0,
+	/* center from the sum of all points divided by the total */
+	V3D_AROUND_CENTER_MEAN		= 3,
+	/* pivot around the 2D/3D cursor */
+	V3D_AROUND_CURSOR			= 1,
+	/* pivot around each items own origin */
+	V3D_AROUND_LOCAL_ORIGINS	= 2,
+	/* pivot around the active items origin */
+	V3D_AROUND_ACTIVE			= 4,
+};
 
 /*View3D types (only used in tools, not actually saved)*/
 #define V3D_VIEW_STEPLEFT		 1

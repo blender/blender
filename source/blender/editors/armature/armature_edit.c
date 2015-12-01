@@ -156,7 +156,7 @@ void ED_armature_origin_set(Scene *scene, Object *ob, float cursor[3], int cente
 		mul_m4_v3(ob->imat, cent);
 	}
 	else {
-		if (around == V3D_CENTROID) {
+		if (around == V3D_AROUND_CENTER_MEAN) {
 			int total = 0;
 			zero_v3(cent);
 			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {

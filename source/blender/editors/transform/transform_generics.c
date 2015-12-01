@@ -1212,13 +1212,13 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		
 		/* bend always uses the cursor */
 		if (t->mode == TFM_BEND) {
-			t->around = V3D_CURSOR;
+			t->around = V3D_AROUND_CURSOR;
 		}
 
 		t->current_orientation = v3d->twmode;
 
 		/* exceptional case */
-		if (t->around == V3D_LOCAL) {
+		if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
 			if (ELEM(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL)) {
 				const bool use_island = transdata_check_local_islands(t, t->around);
 
@@ -1274,7 +1274,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	else if (t->spacetype == SPACE_NODE) {
 		// XXX for now, get View2D from the active region
 		t->view = &ar->v2d;
-		t->around = V3D_CENTER;
+		t->around = V3D_AROUND_CENTER_BOUNDS;
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		SpaceIpo *sipo = sa->spacedata.first;
@@ -1300,7 +1300,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		else {
 			t->view = NULL;
 		}
-		t->around = V3D_CENTER;
+		t->around = V3D_AROUND_CENTER_BOUNDS;
 	}
 
 	if (op && ((prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) &&
@@ -1771,13 +1771,13 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 void calculateCenter(TransInfo *t)
 {
 	switch (t->around) {
-		case V3D_CENTER:
+		case V3D_AROUND_CENTER_BOUNDS:
 			calculateCenterBound(t, t->center);
 			break;
-		case V3D_CENTROID:
+		case V3D_AROUND_CENTER_MEAN:
 			calculateCenterMedian(t, t->center);
 			break;
-		case V3D_CURSOR:
+		case V3D_AROUND_CURSOR:
 			if (ELEM(t->spacetype, SPACE_IMAGE, SPACE_CLIP))
 				calculateCenterCursor2D(t, t->center);
 			else if (t->spacetype == SPACE_IPO)
@@ -1785,11 +1785,11 @@ void calculateCenter(TransInfo *t)
 			else
 				calculateCenterCursor(t, t->center);
 			break;
-		case V3D_LOCAL:
+		case V3D_AROUND_LOCAL_ORIGINS:
 			/* Individual element center uses median center for helpline and such */
 			calculateCenterMedian(t, t->center);
 			break;
-		case V3D_ACTIVE:
+		case V3D_AROUND_ACTIVE:
 		{
 			if (calculateCenterActive(t, false, t->center)) {
 				/* pass */
