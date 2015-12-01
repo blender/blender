@@ -545,6 +545,7 @@ typedef struct UserDef {
 	char author[80];	/* author name for file formats supporting it */
 
 	char font_path_ui[1024];
+	char font_path_ui_mono[1024];
 
 	int compute_device_type;
 	int compute_device_id;

@@ -527,6 +527,7 @@ class USERPREF_PT_system(Panel):
 
         column.separator()
         column.prop(system, "font_path_ui")
+        column.prop(system, "font_path_ui_mono")
 
         if bpy.app.build_options.international:
             column.prop(system, "use_international_fonts")

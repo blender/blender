@@ -410,6 +410,11 @@ void uiStyleInit(void)
 		BLF_unload_id(font->blf_id);
 	}
 
+	if (blf_mono_font != -1) {
+		BLF_unload_id(blf_mono_font);
+		blf_mono_font = -1;
+	}
+
 	font = U.uifonts.first;
 
 	/* default builtin */
@@ -498,14 +503,17 @@ void uiStyleInit(void)
 	}
 
 	/* reload */
-	BLF_unload("monospace");
-	blf_mono_font = -1;
 	blf_mono_font_render = -1;
 #endif
 
 	/* XXX, this should be moved into a style, but for now best only load the monospaced font once. */
-	if (blf_mono_font == -1)
+	BLI_assert(blf_mono_font == -1);
+	if (U.font_path_ui_mono[0]) {
+		blf_mono_font = BLF_load_unique(U.font_path_ui_mono);
+	}
+	if (blf_mono_font == -1) {
 		blf_mono_font = BLF_load_mem_unique("monospace", monofont_ttf, monofont_size);
+	}
 
 	BLF_size(blf_mono_font, 12 * U.pixelsize, 72);
 	

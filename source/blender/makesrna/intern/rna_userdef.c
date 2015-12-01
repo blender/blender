@@ -4000,6 +4000,11 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Interface Font", "Path to interface font");
 	RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_language_update");
 
+	prop = RNA_def_property(srna, "font_path_ui_mono", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_string_sdna(prop, NULL, "font_path_ui_mono");
+	RNA_def_property_ui_text(prop, "Monospace Font", "Path to interface monospace Font");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_language_update");
+
 	prop = RNA_def_property(srna, "scrollback", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "scrollback");
 	RNA_def_property_range(prop, 32, 32768);
