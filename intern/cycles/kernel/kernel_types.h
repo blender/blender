@@ -761,7 +761,7 @@ struct SubsurfaceIntersection
 	float3 weight[BSSRDF_MAX_HITS];
 
 	int num_hits;
-	Intersection hits[BSSRDF_MAX_HITS];
+	struct Intersection hits[BSSRDF_MAX_HITS];
 	float3 Ng[BSSRDF_MAX_HITS];
 };
 
@@ -771,12 +771,12 @@ struct SubsurfaceIndirectRays
 	bool need_update_volume_stack;
 	bool tracing;
 	PathState state[BSSRDF_MAX_HITS];
-	PathRadiance direct_L;
+	struct PathRadiance direct_L;
 
 	int num_rays;
-	Ray rays[BSSRDF_MAX_HITS];
+	struct Ray rays[BSSRDF_MAX_HITS];
 	float3 throughputs[BSSRDF_MAX_HITS];
-	PathRadiance L[BSSRDF_MAX_HITS];
+	struct PathRadiance L[BSSRDF_MAX_HITS];
 };
 
 /* Constant Kernel Data
