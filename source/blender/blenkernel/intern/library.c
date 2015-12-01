@@ -192,7 +192,9 @@ void id_us_min(ID *id)
 		const int limit = ID_FAKE_USERS(id);
 		if (id->us <= limit) {
 			printf("ID user decrement error: %s (from '%s')\n", id->name, id->lib ? id->lib->filepath : "[Main]");
-			BLI_assert(0);
+			/* We cannot assert here, because of how we 'delete' datablocks currently (setting their usercount to zero),
+			 * this is weak but it's how it works for now. */
+			/* BLI_assert(0); */
 			id->us = limit;
 		}
 		else {
