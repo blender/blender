@@ -177,7 +177,11 @@ void color3ubv_from_seq(Scene *curscene, Sequence *seq, unsigned char col[3])
 			blendcol[0] = blendcol[1] = blendcol[2] = 128;
 			if (seq->flag & SEQ_MUTE) UI_GetColorPtrBlendShade3ubv(col, blendcol, col, 0.5, 20);
 			break;
-		
+
+		case SEQ_TYPE_TEXT:
+			UI_GetThemeColor3ubv(TH_SEQ_TEXT, col);
+			break;
+
 		default:
 			col[0] = 10; col[1] = 255; col[2] = 40;
 			break;

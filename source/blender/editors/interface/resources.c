@@ -492,6 +492,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->transition; break;
 				case TH_SEQ_META:
 					cp = ts->meta; break;
+				case TH_SEQ_TEXT:
+					cp = ts->text_strip; break;
 				case TH_SEQ_PREVIEW:
 					cp = ts->preview_back; break;
 
@@ -1062,6 +1064,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tseq.effect,     169, 84, 124, 255);
 	rgba_char_args_set(btheme->tseq.transition, 162, 95, 111, 255);
 	rgba_char_args_set(btheme->tseq.meta,   109, 145, 131, 255);
+	rgba_char_args_set(btheme->tseq.text_strip,   162, 151, 0, 255);
 	rgba_char_args_set(btheme->tseq.preview_back,   0, 0, 0, 255);
 	rgba_char_args_set(btheme->tseq.grid,   64, 64, 64, 255);
 
@@ -2665,6 +2668,13 @@ void init_userdef_do_versions(void)
 			rgba_char_args_set(btheme->tclip.gp_vertex, 0, 0, 0, 255);
 			rgba_char_args_set(btheme->tclip.gp_vertex_select, 255, 133, 0, 255);
 			btheme->tclip.gp_vertex_size = 3;
+		}
+	}
+
+	if (!USER_VERSION_ATLEAST(276, 3)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			rgba_char_args_set(btheme->tseq.text_strip, 162, 151, 0, 255);
 		}
 	}
 
