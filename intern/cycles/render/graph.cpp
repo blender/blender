@@ -22,8 +22,36 @@
 #include "util_algorithm.h"
 #include "util_debug.h"
 #include "util_foreach.h"
+#include "util_queue.h"
 
 CCL_NAMESPACE_BEGIN
+
+namespace {
+
+bool check_node_inputs_has_links(const ShaderNode *node)
+{
+	foreach(const ShaderInput *in, node->inputs) {
+		if(in->link) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool check_node_inputs_traversed(const ShaderNode *node,
+                                 const ShaderNodeSet& done)
+{
+	foreach(const ShaderInput *in, node->inputs) {
+		if(in->link) {
+			if(done.find(in->link->parent) == done.end()) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+}  /* namespace */
 
 /* Input and Output */
 
@@ -566,31 +594,50 @@ void ShaderGraph::remove_unneeded_nodes()
  * Try to constant fold some nodes, and pipe result directly to
  * the input socket of connected nodes.
  */
-void ShaderGraph::constant_fold(set<ShaderNode*>& done, ShaderNode *node)
+void ShaderGraph::constant_fold()
 {
-	/* Only fold each node once. */
-	if(done.find(node) != done.end())
-		return;
+	ShaderNodeSet done, scheduled;
+	queue<ShaderNode*> traverse_queue;
 
-	done.insert(node);
-
-	/* Fold nodes connected to inputs first. */
-	foreach(ShaderInput *in, node->inputs) {
-		if(in->link) {
-			constant_fold(done, in->link->parent);
+	/* Schedule nodes which doesn't have any dependencies. */
+	foreach(ShaderNode *node, nodes) {
+		if(!check_node_inputs_has_links(node)) {
+			traverse_queue.push(node);
+			scheduled.insert(node);
 		}
 	}
 
-	/* Then fold self. */
-	foreach(ShaderOutput *output, node->outputs) {
-		float3 optimized_value = make_float3(0.0f, 0.0f, 0.0f);
-
-		if(node->constant_fold(output, &optimized_value)) {
-			/* Apply optimized value to connected sockets. */
-			vector<ShaderInput*> links(output->links);
-			foreach(ShaderInput *in, links) {
-				in->value = optimized_value;
-				disconnect(in);
+	while(!traverse_queue.empty()) {
+		ShaderNode *node = traverse_queue.front();
+		traverse_queue.pop();
+		done.insert(node);
+		foreach(ShaderOutput *output, node->outputs) {
+			/* Schedule node which was depending on the value,
+			 * when possible. Do it before disconnect.
+			 */
+			foreach(ShaderInput *input, output->links) {
+				if(scheduled.find(input->parent) != scheduled.end()) {
+					/* Node might be not yet optimized but scheduled already
+					 * by other dependencies. No need to re-schedule it.
+					 */
+					continue;
+				}
+				/* Schedule node if its inputs are fully done. */
+				if(check_node_inputs_traversed(input->parent, done)) {
+					traverse_queue.push(input->parent);
+					scheduled.insert(input->parent);
+				}
+			}
+			/* Optimize current node. */
+			float3 optimized_value = make_float3(0.0f, 0.0f, 0.0f);
+			if(node->constant_fold(output, &optimized_value)) {
+				/* Apply optimized value to connected sockets. */
+				vector<ShaderInput*> links(output->links);
+				foreach(ShaderInput *input, links) {
+					/* Assign value and disconnect the optimizedinput. */
+					input->value = optimized_value;
+					disconnect(input);
+				}
 			}
 		}
 	}
@@ -641,8 +688,7 @@ void ShaderGraph::clean(Scene *scene)
 	remove_unneeded_nodes();
 
 	/* 2: Constant folding. */
-	set<ShaderNode*> done;
-	constant_fold(done, output());
+	constant_fold();
 
 	/* 3: Simplification. */
 	simplify_settings(scene);

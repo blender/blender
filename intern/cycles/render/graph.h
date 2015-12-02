@@ -316,7 +316,7 @@ protected:
 	void break_cycles(ShaderNode *node, vector<bool>& visited, vector<bool>& on_stack);
 	void clean(Scene *scene);
 	void simplify_settings(Scene *scene);
-	void constant_fold(set<ShaderNode*>& visited, ShaderNode *node);
+	void constant_fold();
 	void bump_from_displacement();
 	void refine_bump_nodes();
 	void default_inputs(bool do_osl);
