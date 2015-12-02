@@ -137,31 +137,28 @@ static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, int previe
 	}
 }
 
-static void rna_Scene_ray_cast(Scene *scene, float ray_start[3], float ray_end[3],
-                               int *r_success, Object **r_ob, float r_obmat[16],
-                               float r_location[3], float r_normal[3])
+static void rna_Scene_ray_cast(
+        Scene *scene, float origin[3], float direction[3], float ray_dist,
+        int *r_success, float r_location[3], float r_normal[3], int *r_index,
+        Object **r_ob, float r_obmat[16])
 {
-	float ray_nor[3];
-	float ray_dist;
-
-	sub_v3_v3v3(ray_nor, ray_end, ray_start);
-	ray_dist = normalize_v3(ray_nor);
+	normalize_v3(direction);
 
 	if (snapObjectsRayEx(
 	        scene, NULL, NULL, NULL, NULL,
 	        NULL, SNAP_ALL, SCE_SNAP_MODE_FACE,
-	        ray_start, ray_nor, &ray_dist,
-	        r_location, r_normal, NULL, NULL,
+	        origin, direction, &ray_dist,
+	        r_location, r_normal, NULL, r_index,
 	        r_ob, (float(*)[4])r_obmat))
 	{
 		*r_success = true;
 	}
 	else {
+		*r_success = false;
+
 		unit_m4((float(*)[4])r_obmat);
 		zero_v3(r_location);
 		zero_v3(r_normal);
-
-		*r_success = false;
 	}
 }
 
@@ -231,17 +228,14 @@ void RNA_api_scene(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Cast a ray onto in object space");
 
 	/* ray start and end */
-	parm = RNA_def_float_vector(func, "start", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
+	parm = RNA_def_float_vector(func, "origin", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_float_vector(func, "end", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
+	parm = RNA_def_float_vector(func, "direction", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_float(func, "distance", FLT_MAX, 0.0, FLT_MAX, "", "Maximum distance", 0.0, FLT_MAX);
 
 	/* return location and normal */
 	parm = RNA_def_boolean(func, "result", 0, "", "");
-	RNA_def_function_output(func, parm);
-	parm = RNA_def_pointer(func, "object", "Object", "", "Ray cast object");
-	RNA_def_function_output(func, parm);
-	parm = RNA_def_float_matrix(func, "matrix", 4, 4, NULL, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
 	RNA_def_function_output(func, parm);
 	parm = RNA_def_float_vector(func, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location",
 	                            "The hit location of this ray cast", -1e4, 1e4);
@@ -250,6 +244,12 @@ void RNA_api_scene(StructRNA *srna)
 	parm = RNA_def_float_vector(func, "normal", 3, NULL, -FLT_MAX, FLT_MAX, "Normal",
 	                            "The face normal at the ray cast hit location", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
+	RNA_def_function_output(func, parm);
+	parm = RNA_def_int(func, "index", 0, 0, 0, "", "The face index, -1 when original data isn't available", 0, 0);
+	RNA_def_function_output(func, parm);
+	parm = RNA_def_pointer(func, "object", "Object", "", "Ray cast object");
+	RNA_def_function_output(func, parm);
+	parm = RNA_def_float_matrix(func, "matrix", 4, 4, NULL, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
 	RNA_def_function_output(func, parm);
 
 #ifdef WITH_COLLADA

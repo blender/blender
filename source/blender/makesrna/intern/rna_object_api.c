@@ -315,8 +315,10 @@ static int dm_looptri_to_poly_index(DerivedMesh *dm, const MLoopTri *lt)
 	return index_mp_to_orig ? index_mp_to_orig[lt->poly] : lt->poly;
 }
 
-static void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], float ray_end[3],
-                                float r_location[3], float r_normal[3], int *index)
+static void rna_Object_ray_cast(
+        Object *ob, ReportList *reports,
+        float origin[3], float direction[3], float distance,
+        int *r_success, float r_location[3], float r_normal[3], int *r_index)
 {
 	BVHTreeFromMesh treeData = {NULL};
 	
@@ -331,33 +333,41 @@ static void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start
 	/* may fail if the mesh has no faces, in that case the ray-cast misses */
 	if (treeData.tree != NULL) {
 		BVHTreeRayHit hit;
-		float ray_nor[3], dist;
-		sub_v3_v3v3(ray_nor, ray_end, ray_start);
 
-		dist = hit.dist = normalize_v3(ray_nor);
 		hit.index = -1;
+		hit.dist = distance;
 		
-		if (BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_nor, 0.0f, &hit,
+		normalize_v3(direction);
+
+
+		if (BLI_bvhtree_ray_cast(treeData.tree, origin, direction, 0.0f, &hit,
 		                         treeData.raycast_callback, &treeData) != -1)
 		{
-			if (hit.dist <= dist) {
+			if (hit.dist <= distance) {
+				*r_success = true;
+
 				copy_v3_v3(r_location, hit.co);
 				copy_v3_v3(r_normal, hit.no);
-				*index = dm_looptri_to_poly_index(ob->derivedFinal, &treeData.looptri[hit.index]);
-				free_bvhtree_from_mesh(&treeData);
-				return;
+				*r_index = dm_looptri_to_poly_index(ob->derivedFinal, &treeData.looptri[hit.index]);
+
+				goto finally;
 			}
 		}
 	}
 
+	*r_success = false;
+
 	zero_v3(r_location);
 	zero_v3(r_normal);
-	*index = -1;
+	*r_index = -1;
+
+finally:
 	free_bvhtree_from_mesh(&treeData);
 }
 
-static void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, float point_co[3], float max_dist,
-                                             float n_location[3], float n_normal[3], int *index)
+static void rna_Object_closest_point_on_mesh(
+        Object *ob, ReportList *reports, float origin[3], float distance,
+        int *r_success, float r_location[3], float r_normal[3], int *r_index)
 {
 	BVHTreeFromMesh treeData = {NULL};
 	
@@ -379,20 +389,26 @@ static void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, fl
 		BVHTreeNearest nearest;
 
 		nearest.index = -1;
-		nearest.dist_sq = max_dist * max_dist;
+		nearest.dist_sq = distance * distance;
 
-		if (BLI_bvhtree_find_nearest(treeData.tree, point_co, &nearest, treeData.nearest_callback, &treeData) != -1) {
-			copy_v3_v3(n_location, nearest.co);
-			copy_v3_v3(n_normal, nearest.no);
-			*index = dm_looptri_to_poly_index(ob->derivedFinal, &treeData.looptri[nearest.index]);
-			free_bvhtree_from_mesh(&treeData);
-			return;
+		if (BLI_bvhtree_find_nearest(treeData.tree, origin, &nearest, treeData.nearest_callback, &treeData) != -1) {
+			*r_success = true;
+
+			copy_v3_v3(r_location, nearest.co);
+			copy_v3_v3(r_normal, nearest.no);
+			*r_index = dm_looptri_to_poly_index(ob->derivedFinal, &treeData.looptri[nearest.index]);
+
+			goto finally;
 		}
 	}
 
-	zero_v3(n_location);
-	zero_v3(n_normal);
-	*index = -1;
+	*r_success = false;
+
+	zero_v3(r_location);
+	zero_v3(r_normal);
+	*r_index = -1;
+
+finally:
 	free_bvhtree_from_mesh(&treeData);
 }
 
@@ -593,12 +609,15 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	
 	/* ray start and end */
-	parm = RNA_def_float_vector(func, "start", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
+	parm = RNA_def_float_vector(func, "origin", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_float_vector(func, "end", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
+	parm = RNA_def_float_vector(func, "direction", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_float(func, "distance", FLT_MAX, 0.0, FLT_MAX, "", "Maximum distance", 0.0, FLT_MAX);
 
 	/* return location and normal */
+	parm = RNA_def_boolean(func, "result", 0, "", "");
+	RNA_def_function_output(func, parm);
 	parm = RNA_def_float_vector(func, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location",
 	                            "The hit location of this ray cast", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
@@ -607,8 +626,7 @@ void RNA_api_object(StructRNA *srna)
 	                            "The face normal at the ray cast hit location", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
 	RNA_def_function_output(func, parm);
-	
-	parm = RNA_def_int(func, "index", 0, 0, 0, "", "The face index, -1 when no intersection is found", 0, 0);
+	parm = RNA_def_int(func, "index", 0, 0, 0, "", "The face index, -1 when original data isn't available", 0, 0);
 	RNA_def_function_output(func, parm);
 
 	/* Nearest Point */
@@ -617,12 +635,14 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
 	/* location of point for test and max distance */
-	parm = RNA_def_float_vector(func, "point", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
+	parm = RNA_def_float_vector(func, "origin", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* default is sqrt(FLT_MAX) */
-	RNA_def_float(func, "max_dist", 1.844674352395373e+19, 0.0, FLT_MAX, "", "", 0.0, FLT_MAX);
+	RNA_def_float(func, "distance", 1.844674352395373e+19, 0.0, FLT_MAX, "", "Maximum distance", 0.0, FLT_MAX);
 
 	/* return location and normal */
+	parm = RNA_def_boolean(func, "result", 0, "", "");
+	RNA_def_function_output(func, parm);
 	parm = RNA_def_float_vector(func, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location",
 	                            "The location on the object closest to the point", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
@@ -632,7 +652,7 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
 	RNA_def_function_output(func, parm);
 
-	parm = RNA_def_int(func, "index", 0, 0, 0, "", "The face index, -1 when no closest point is found", 0, 0);
+	parm = RNA_def_int(func, "index", 0, 0, 0, "", "The face index, -1 when original data isn't available", 0, 0);
 	RNA_def_function_output(func, parm);
 
 	/* View */
