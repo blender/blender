@@ -389,9 +389,7 @@ void AUD_FFMPEGReader::seek(int position)
 							int length = AUD_DEFAULT_BUFFER_SIZE;
 							AUD_Buffer buffer(length * AUD_SAMPLE_SIZE(m_specs));
 							bool eos;
-							for(int len = position - m_position;
-								length == AUD_DEFAULT_BUFFER_SIZE;
-								len -= AUD_DEFAULT_BUFFER_SIZE)
+							for(int len = position - m_position; len > 0; len -= AUD_DEFAULT_BUFFER_SIZE)
 							{
 								if(len < AUD_DEFAULT_BUFFER_SIZE)
 									length = len;
