@@ -5168,10 +5168,11 @@ bool ED_view3d_snap_from_ray(
 
 	/* try snap edge, then face if it fails */
 	ret = snapObjectsRayEx(
-	        scene, NULL, NULL, NULL, obedit, SCE_SNAP_MODE_FACE,
-	        NULL, NULL,
+	        scene, NULL, NULL, NULL, obedit,
+	        NULL, SNAP_ALL, SCE_SNAP_MODE_FACE,
 	        ray_start, ray_normal, &ray_dist,
-	        NULL, NULL, r_co, r_no_dummy, SNAP_ALL);
+	        r_co, r_no_dummy, NULL,
+	        NULL, NULL);
 
 	return ret;
 }
@@ -5216,8 +5217,10 @@ bool ED_view3d_snap_from_region(
 				ray_dist = TRANSFORM_DIST_MAX_RAY;
 			}
 			if (snapObjectsEx(
-			        scene, NULL, v3d, ar, obedit, elem_type[i],
-			        mval, &dist_px, r_co, r_no_ptr, &ray_dist, SNAP_ALL))
+			        scene, v3d, ar, NULL, obedit,
+			        mval, SNAP_ALL, elem_type[i],
+			        &ray_dist,
+			        r_co, r_no_ptr, &dist_px))
 			{
 				is_hit = true;
 			}

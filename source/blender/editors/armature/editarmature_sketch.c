@@ -982,7 +982,7 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 
 		mvalf[0] = dd->mval[0];
 		mvalf[1] = dd->mval[1];
-		peelObjectsContext(C, &sketch->depth_peels, mvalf, SNAP_ALL);
+		peelObjectsContext(C, mvalf, SNAP_ALL, &sketch->depth_peels);
 
 		if (stk->nb_points > 0 && stk->points[stk->nb_points - 1].type == PT_CONTINUOUS) {
 			last_p = stk->points[stk->nb_points - 1].p;
@@ -1086,7 +1086,9 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 		mval[1] = dd->mval[1];
 
 		/* try to snap to closer object */
-		found = snapObjectsContext(C, mval, &dist_px, vec, no, SNAP_NOT_SELECTED);
+		found = snapObjectsContext(
+		        C, mval, SNAP_NOT_SELECTED,
+		        vec, no, &dist_px);
 		if (found == 1) {
 			pt->type = dd->type;
 			pt->mode = PT_SNAP;

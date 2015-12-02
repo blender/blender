@@ -4975,7 +4975,9 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			const float mval[2] = {UNPACK2(event->mval)};
 			float no_dummy[3];
 			float dist_px_dummy;
-			snapObjectsContext(C, mval, &dist_px_dummy, location, no_dummy, SNAP_NOT_OBEDIT);
+			snapObjectsContext(
+			        C, mval, SNAP_NOT_OBEDIT,
+			        location, no_dummy, &dist_px_dummy);
 		}
 
 		RNA_float_set_array(op->ptr, "location", location);

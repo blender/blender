@@ -403,7 +403,6 @@ static void walk_navigation_mode_set(bContext *C, wmOperator *op, WalkInfo *walk
  */
 static bool walk_floor_distance_get(bContext *C, RegionView3D *rv3d, WalkInfo *walk, const float dvec[3], float *r_distance)
 {
-	float dummy_dist_px = 0;
 	float ray_normal[3] = {0, 0, -1}; /* down */
 	float ray_start[3];
 	float r_location[3];
@@ -418,10 +417,12 @@ static bool walk_floor_distance_get(bContext *C, RegionView3D *rv3d, WalkInfo *w
 	mul_v3_v3fl(dvec_tmp, dvec, walk->grid);
 	add_v3_v3(ray_start, dvec_tmp);
 
-	ret = snapObjectsRayEx(CTX_data_scene(C), NULL, NULL, NULL, NULL, SCE_SNAP_MODE_FACE,
-	                       NULL, NULL,
-	                       ray_start, ray_normal, r_distance,
-	                       NULL, &dummy_dist_px, r_location, r_normal, SNAP_ALL);
+	ret = snapObjectsRayEx(
+	        CTX_data_scene(C), NULL, NULL, NULL, NULL,
+	        NULL, SNAP_ALL, SCE_SNAP_MODE_FACE,
+	        ray_start, ray_normal, r_distance,
+	        r_location, r_normal, NULL,
+	        NULL, NULL);
 
 	/* artifically scale the distance to the scene size */
 	*r_distance /= walk->grid;
@@ -435,7 +436,6 @@ static bool walk_floor_distance_get(bContext *C, RegionView3D *rv3d, WalkInfo *w
  */
 static bool walk_ray_cast(bContext *C, RegionView3D *rv3d, WalkInfo *walk, float r_location[3], float r_normal[3], float *ray_distance)
 {
-	float dummy_dist_px = 0;
 	float ray_normal[3] = {0, 0, 1}; /* forward */
 	float ray_start[3];
 	float mat[3][3]; /* 3x3 copy of the view matrix so we can move along the view axis */
@@ -451,10 +451,12 @@ static bool walk_ray_cast(bContext *C, RegionView3D *rv3d, WalkInfo *walk, float
 	mul_v3_fl(ray_normal, -1);
 	normalize_v3(ray_normal);
 
-	ret = snapObjectsRayEx(CTX_data_scene(C), NULL, NULL, NULL, NULL, SCE_SNAP_MODE_FACE,
-	                       NULL, NULL,
-	                       ray_start, ray_normal, ray_distance,
-	                       NULL, &dummy_dist_px, r_location, r_normal, SNAP_ALL);
+	ret = snapObjectsRayEx(
+	        CTX_data_scene(C), NULL, NULL, NULL, NULL,
+	        NULL, SNAP_ALL, SCE_SNAP_MODE_FACE,
+	        ray_start, ray_normal, ray_distance,
+	        r_location, r_normal, NULL,
+	        NULL, NULL);
 
 
 	/* dot is positive if both rays are facing the same direction */

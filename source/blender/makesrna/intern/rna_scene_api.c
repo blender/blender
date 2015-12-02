@@ -141,17 +141,18 @@ static void rna_Scene_ray_cast(Scene *scene, float ray_start[3], float ray_end[3
                                int *r_success, Object **r_ob, float r_obmat[16],
                                float r_location[3], float r_normal[3])
 {
-	float dummy_dist_px = 0;
 	float ray_nor[3];
 	float ray_dist;
 
 	sub_v3_v3v3(ray_nor, ray_end, ray_start);
 	ray_dist = normalize_v3(ray_nor);
 
-	if (snapObjectsRayEx(scene, NULL, NULL, NULL, NULL, SCE_SNAP_MODE_FACE,
-	                     r_ob, (float(*)[4])r_obmat,
-	                     ray_start, ray_nor, &ray_dist,
-	                     NULL, &dummy_dist_px, r_location, r_normal, SNAP_ALL))
+	if (snapObjectsRayEx(
+	        scene, NULL, NULL, NULL, NULL,
+	        NULL, SNAP_ALL, SCE_SNAP_MODE_FACE,
+	        ray_start, ray_nor, &ray_dist,
+	        r_location, r_normal, NULL,
+	        r_ob, (float(*)[4])r_obmat))
 	{
 		*r_success = true;
 	}
