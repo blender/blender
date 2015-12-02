@@ -170,7 +170,6 @@ class AddPresetBase:
                 return {'CANCELLED'}
 
             try:
-                raise PermissionError("wefwe")
                 if hasattr(self, "remove"):
                     self.remove(context, filepath)
                 else:
