@@ -5171,7 +5171,7 @@ bool ED_view3d_snap_from_ray(
 	        scene, NULL, NULL, NULL, obedit,
 	        NULL, SNAP_ALL, SCE_SNAP_MODE_FACE,
 	        ray_start, ray_normal, &ray_dist,
-	        r_co, r_no_dummy, NULL,
+	        r_co, r_no_dummy, NULL, NULL,
 	        NULL, NULL);
 
 	return ret;

@@ -151,7 +151,7 @@ static void rna_Scene_ray_cast(Scene *scene, float ray_start[3], float ray_end[3
 	        scene, NULL, NULL, NULL, NULL,
 	        NULL, SNAP_ALL, SCE_SNAP_MODE_FACE,
 	        ray_start, ray_nor, &ray_dist,
-	        r_location, r_normal, NULL,
+	        r_location, r_normal, NULL, NULL,
 	        r_ob, (float(*)[4])r_obmat))
 	{
 		*r_success = true;

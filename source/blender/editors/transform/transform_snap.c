@@ -1523,11 +1523,17 @@ static bool snapCurve(
 	return retval;
 }
 
+static int dm_looptri_to_poly_index(DerivedMesh *dm, const MLoopTri *lt)
+{
+	const int *index_mp_to_orig = dm->getPolyDataArray(dm, CD_ORIGINDEX);
+	return index_mp_to_orig ? index_mp_to_orig[lt->poly] : lt->poly;
+}
+
 static bool snapDerivedMesh(
         ARegion *ar, Object *ob, DerivedMesh *dm, BMEditMesh *em, float obmat[4][4],
         const float mval[2], const short snap_to, bool do_bb,
         const float ray_start[3], const float ray_normal[3], const float ray_origin[3], float *ray_depth,
-        float r_loc[3], float r_no[3], float *r_dist_px)
+        float r_loc[3], float r_no[3], float *r_dist_px, int *r_index)
 {
 	bool retval = false;
 	const bool do_ray_start_correction = (
@@ -1653,6 +1659,10 @@ static bool snapDerivedMesh(
 						normalize_v3(r_no);
 
 						retval = true;
+
+						if (r_index) {
+							*r_index = dm_looptri_to_poly_index(dm, &treeData.looptri[hit.index]);
+						}
 					}
 				}
 				free_bvhtree_from_mesh(&treeData);
@@ -1897,7 +1907,7 @@ static bool snapObject(
         const float mval[2], const short snap_to,
         const float ray_start[3], const float ray_normal[3], const float ray_origin[3], float *ray_depth,
         /* return args */
-        float r_loc[3], float r_no[3], float *r_dist_px,
+        float r_loc[3], float r_no[3], float *r_dist_px, int *r_index,
         Object **r_ob, float r_obmat[4][4])
 {
 	bool retval = false;
@@ -1928,7 +1938,7 @@ static bool snapObject(
 		retval = snapDerivedMesh(
 		        ar, ob, dm, em, obmat, mval, snap_to, do_bb,
 		        ray_start, ray_normal, ray_origin, ray_depth,
-		        r_loc, r_no, r_dist_px);
+		        r_loc, r_no, r_dist_px, r_index);
 
 		dm->release(dm);
 	}
@@ -1972,7 +1982,7 @@ static bool snapObjectsRay(
         const float mval[2], SnapSelect snap_select, const short snap_to,
         const float ray_start[3], const float ray_normal[3], const float ray_origin[3], float *ray_depth,
         /* return args */
-        float r_loc[3], float r_no[3], float *r_dist_px,
+        float r_loc[3], float r_no[3], float *r_dist_px, int *r_index,
         Object **r_ob, float r_obmat[4][4])
 {
 	Base *base;
@@ -1985,7 +1995,7 @@ static bool snapObjectsRay(
 		        scene, ar, ob, ob->obmat, true,
 		        mval, snap_to,
 		        ray_start, ray_normal, ray_origin, ray_depth,
-		        r_loc, r_no, r_dist_px, r_ob, r_obmat);
+		        r_loc, r_no, r_dist_px, r_index, r_ob, r_obmat);
 	}
 
 	/* Need an exception for particle edit because the base is flagged with BA_HAS_RECALC_DATA
@@ -2000,7 +2010,7 @@ static bool snapObjectsRay(
 		        scene, ar, ob, ob->obmat, false,
 		        mval, snap_to,
 		        ray_start, ray_normal, ray_origin, ray_depth,
-		        r_loc, r_no, r_dist_px, r_ob, r_obmat);
+		        r_loc, r_no, r_dist_px, r_index, r_ob, r_obmat);
 	}
 
 	for (base = FIRSTBASE; base != NULL; base = base->next) {
@@ -2032,7 +2042,7 @@ static bool snapObjectsRay(
 					        scene, ar, dupli_snap, dupli_ob->mat, use_obedit_dupli,
 					        mval, snap_to,
 					        ray_start, ray_normal, ray_origin, ray_depth,
-					        r_loc, r_no, r_dist_px, r_ob, r_obmat);
+					        r_loc, r_no, r_dist_px, r_index, r_ob, r_obmat);
 				}
 				
 				free_object_duplilist(lb);
@@ -2042,7 +2052,7 @@ static bool snapObjectsRay(
 			        scene, ar, ob_snap, ob->obmat, use_obedit,
 			        mval, snap_to,
 			        ray_start, ray_normal, ray_origin, ray_depth,
-			        r_loc, r_no, r_dist_px, r_ob, r_obmat);
+			        r_loc, r_no, r_dist_px, r_index, r_ob, r_obmat);
 		}
 	}
 	
@@ -2052,7 +2062,7 @@ static bool snapObjects(
         Scene *scene, View3D *v3d, ARegion *ar, Base *base_act, Object *obedit,
         const float mval[2], SnapSelect snap_select, const short snap_to,
         float *ray_depth,
-        float r_loc[3], float r_no[3], float *r_dist_px)
+        float r_loc[3], float r_no[3], float *r_dist_px, int *r_index)
 {
 	float ray_start[3], ray_normal[3], ray_orgigin[3];
 
@@ -2064,7 +2074,7 @@ static bool snapObjects(
 	        scene, v3d, ar, base_act, obedit,
 	        mval, snap_select, snap_to,
 	        ray_start, ray_normal, ray_orgigin, ray_depth,
-	        r_loc, r_no, r_dist_px, NULL, NULL);
+	        r_loc, r_no, r_dist_px, r_index, NULL, NULL);
 }
 
 bool snapObjectsTransform(
@@ -2087,7 +2097,7 @@ bool snapObjectsTransform(
 	        t->scene, t->view, t->ar, base_act, obedit,
 	        mval, snap_select, t->scene->toolsettings->snap_mode,
 	        &ray_dist,
-	        r_loc, r_no, r_dist_px);
+	        r_loc, r_no, r_dist_px, NULL);
 }
 
 bool snapObjectsContext(
@@ -2105,7 +2115,7 @@ bool snapObjectsContext(
 	        scene, v3d, ar, scene->basact, obedit,
 	        mval, snap_select, scene->toolsettings->snap_mode,
 	        &ray_dist,
-	        r_loc, r_no, r_dist_px);
+	        r_loc, r_no, r_dist_px, NULL);
 }
 
 bool snapObjectsEx(
@@ -2118,20 +2128,20 @@ bool snapObjectsEx(
 	        scene, v3d, ar, base_act, obedit,
 	        mval, snap_select, snap_to,
 	        ray_depth,
-	        r_loc, r_no, r_dist_px);
+	        r_loc, r_no, r_dist_px, NULL);
 }
 bool snapObjectsRayEx(
         Scene *scene, View3D *v3d, ARegion *ar, Base *base_act, Object *obedit,
         const float mval[2], SnapSelect snap_select, const short snap_to,
         const float ray_start[3], const float ray_normal[3], float *ray_depth,
-        float r_loc[3], float r_no[3], float *r_dist_px,
+        float r_loc[3], float r_no[3], float *r_dist_px, int *r_index,
         Object **r_ob, float r_obmat[4][4])
 {
 	return snapObjectsRay(
 	        scene, v3d, ar, base_act, obedit,
 	        mval, snap_select, snap_to,
 	        ray_start, ray_normal, ray_start, ray_depth,
-	        r_loc, r_no, r_dist_px,
+	        r_loc, r_no, r_dist_px, r_index,
 	        r_ob, r_obmat);
 }
 

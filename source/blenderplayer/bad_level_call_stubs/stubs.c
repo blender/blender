@@ -516,7 +516,7 @@ bool snapObjectsRayEx(
         struct Scene *scene, struct View3D *v3d, struct ARegion *ar, struct Base *base_act, struct Object *obedit,
         const float mval[2], SnapSelect snap_select, short snap_mode,
         const float ray_start[3], const float ray_normal[3], float *ray_dist,
-        float r_loc[3], float r_no[3], float *r_dist_px,
+        float r_loc[3], float r_no[3], float *r_dist_px, int *r_index,
         struct Object **r_ob, float r_obmat[4][4]) RET_ZERO
 
 void ED_lattice_editlatt_make(struct Object *obedit) RET_NONE

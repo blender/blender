@@ -421,7 +421,7 @@ static bool walk_floor_distance_get(bContext *C, RegionView3D *rv3d, WalkInfo *w
 	        CTX_data_scene(C), NULL, NULL, NULL, NULL,
 	        NULL, SNAP_ALL, SCE_SNAP_MODE_FACE,
 	        ray_start, ray_normal, r_distance,
-	        r_location, r_normal, NULL,
+	        r_location, r_normal, NULL, NULL,
 	        NULL, NULL);
 
 	/* artifically scale the distance to the scene size */
@@ -455,7 +455,7 @@ static bool walk_ray_cast(bContext *C, RegionView3D *rv3d, WalkInfo *walk, float
 	        CTX_data_scene(C), NULL, NULL, NULL, NULL,
 	        NULL, SNAP_ALL, SCE_SNAP_MODE_FACE,
 	        ray_start, ray_normal, ray_distance,
-	        r_location, r_normal, NULL,
+	        r_location, r_normal, NULL, NULL,
 	        NULL, NULL);
 
 

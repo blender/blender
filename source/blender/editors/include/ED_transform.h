@@ -205,7 +205,7 @@ bool snapObjectsRayEx(
         const float mval[2], SnapSelect snap_select, short snap_mode,
         const float ray_start[3], const float ray_normal[3], float *ray_depth,
         /* return args */
-        float r_loc[3], float r_no[3], float *r_dist_px,
+        float r_loc[3], float r_no[3], float *r_dist_px, int *r_index,
         struct Object **r_ob, float r_obmat[4][4]);
 
 bool snapNodesTransform(
