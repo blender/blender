@@ -136,6 +136,9 @@ if builder.find('scons') != -1:
 else:
     # CMake
     if 'win' in builder:
+        build_dir = os.path.join('..', 'build', builder)
+        os.chdir(build_dir)
+
         files = [f for f in os.listdir('.') if os.path.isfile(f) and f.endswith('.zip')]
         for f in files:
             os.remove(f)
