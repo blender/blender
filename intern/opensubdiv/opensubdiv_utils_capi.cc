@@ -66,8 +66,7 @@ int openSubdiv_getAvailableEvaluators(void)
 #endif  /* OPENSUBDIV_HAS_OPENCL */
 
 #ifdef OPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK
-	if (GLEW_VERSION_3_0 || GLEW_ARB_texture_buffer_object) {
-		// TODO(merwin): remove extension check once Blender moves to 3.2 core
+	if (GLEW_VERSION_4_1) {
 		flags |= OPENSUBDIV_EVALUATOR_GLSL_TRANSFORM_FEEDBACK;
 	}
 #endif  /* OPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK */
