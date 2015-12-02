@@ -339,6 +339,23 @@ ccl_device_inline void path_radiance_reset_indirect(PathRadiance *L)
 #endif
 }
 
+ccl_device_inline void path_radiance_copy_indirect(PathRadiance *L,
+                                                   const PathRadiance *L_src)
+{
+#ifdef __PASSES__
+	if(L->use_light_pass) {
+		L->path_diffuse = L_src->path_diffuse;
+		L->path_glossy = L_src->path_glossy;
+		L->path_transmission = L_src->path_transmission;
+		L->path_subsurface = L_src->path_subsurface;
+		L->path_scatter = L_src->path_scatter;
+
+		L->direct_emission = L_src->direct_emission;
+		L->indirect = L_src->indirect;
+	}
+#endif
+}
+
 ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg, PathRadiance *L)
 {
 	float3 L_sum;
