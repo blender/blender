@@ -1864,7 +1864,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 				km = WM_keymap_find_all(C, "NLA Editor", sl->spacetype, 0);
 				break;
 			case SPACE_IMAGE:
-				km = WM_keymap_find_all(C, "UV Editor", sl->spacetype, 0);
+				km = WM_keymap_find_all(C, "UV Editor", 0, 0);
 				break;
 			case SPACE_NODE:
 				km = WM_keymap_find_all(C, "Node Editor", sl->spacetype, 0);
