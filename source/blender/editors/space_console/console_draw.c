@@ -68,21 +68,6 @@ static void console_line_color(unsigned char fg[3], int type)
 	}
 }
 
-typedef struct ConsoleDrawContext {
-	int cwidth;
-	int lheight;
-	int console_width;
-	int ymin, ymax;
-#if 0 /* used by textview, may use later */
-	int winx;
-	int *xy; // [2]
-	int *sel; // [2]
-	int *pos_pick;  /* bottom of view == 0, top of file == combine chars, end of line is lower then start. */
-	int *mval; // [2]
-	int draw;
-#endif
-} ConsoleDrawContext;
-
 void console_scrollback_prompt_begin(struct SpaceConsole *sc, ConsoleLine *cl_dummy)
 {
 	/* fake the edit line being in the scroll buffer */
