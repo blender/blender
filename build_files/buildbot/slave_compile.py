@@ -65,6 +65,7 @@ if 'cmake' in builder:
             cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=ppc')
 
     elif builder.startswith('win'):
+        install_dir = None
         if builder.startswith('win64'):
             cmake_options.append(['-G', '"Visual Studio 12 2013 Win64"'])
         elif builder.startswith('win32'):
