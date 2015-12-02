@@ -242,6 +242,13 @@ static void bm_decim_build_edge_cost_single(
 		BLI_heap_remove(eheap, eheap_table[BM_elem_index_get(e)]);
 	}
 
+	if (UNLIKELY(vweights &&
+	             ((vweights[BM_elem_index_get(e->v1)] == 0.0f) ||
+	              (vweights[BM_elem_index_get(e->v2)] == 0.0f))))
+	{
+		goto clear;
+	}
+
 	/* check we can collapse, some edges we better not touch */
 	if (BM_edge_is_boundary(e)) {
 		if (e->l->f->len == 3) {
