@@ -31,43 +31,121 @@ if len(sys.argv) < 2:
 builder = sys.argv[1]
 
 # we run from build/ directory
-blender_dir = '../blender.git'
+blender_dir = os.path.join('..', 'blender.git')
 
 if 'cmake' in builder:
     # cmake
 
-    # set build options
+    # Some fine-tuning configuration
+    blender_dir = os.path.join('..', blender_dir)
+    build_dir = os.path.abspath(os.path.join('..', 'build', builder))
+    install_dir = os.path.abspath(os.path.join('..', 'install', builder))
+    targets = ['blender']
+
+    chroot_name = None  # If not None command will be delegated to that chroot
+    build_cubins = True  # Whether to build Cycles CUDA kernels
+    remove_cache = False  # Remove CMake cache to be sure config is totally up-to-date
+    remove_install_dir = False  # Remove installation folder before building
+
+    # Config file to be used (relative to blender's sources root)
+    cmake_config_file = "build_files/cmake/config/blender_full.cmake"
+    cmake_player_config_file = None
+    cmake_cuda_config_file = None
+
+    # Set build options.
     cmake_options = ['-DCMAKE_BUILD_TYPE:STRING=Release']
 
-    if builder.endswith('mac_x86_64_cmake'):
-        cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64')
-    elif builder.endswith('mac_i386_cmake'):
-        cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=i386')
-    elif builder.endswith('mac_ppc_cmake'):
-        cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=ppc')
+    if builder.startswith('mac'):
+        # Set up OSX architecture
+        if builder.endswith('x86_64_cmake'):
+            cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64')
+        elif builder.endswith('i386_cmake'):
+            cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=i386')
+        elif builder.endswith('ppc_cmake'):
+            cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=ppc')
 
-    if 'win64' in builder:
-        cmake_options.append(['-G', '"Visual Studio 12 2013 Win64"'])
-    elif 'win32' in builder:
-        cmake_options.append(['-G', '"Visual Studio 12 2013"'])
+    elif builder.startswith('win'):
+        if builder.startwith('win64'):
+            cmake_options.append(['-G', '"Visual Studio 12 2013 Win64"'])
+        elif builder.startswith('win32'):
+            cmake_options.append(['-G', '"Visual Studio 12 2013"'])
+            build_cubins = False
 
-    cmake_options.append("-C../blender.git/build_files/cmake/config/blender_full.cmake")
-    if 'win32' not in builder:
-        cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=1")
+    elif builder.startswith('linux'):
+        remove_cache = True
+        remove_install_dir = True
+        cmake_config_file = "build_files/buildbot/config/blender_linux.cmake"
+        cmake_player_config_file = "build_files/buildbot/config/blender_player_linux.cmake"
+        cmake_cuda_config_file = "build_files/buildbot/config/blender_cuda_linux.cmake"
+        if builder.endswith('x86_64_cmake'):
+            chroot_name = 'buildbot_squeeze_x86_64'
+            build_cubins = False
+            targets = ['player', 'blender']
+        elif builder.endswith('i386_cmake'):
+            chroot_name = 'buildbot_squeeze_i686'
+            build_cubins = False
+            targets = ['player', 'blender']
+
+    cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=%d" % (build_cubins))
+
+    if install_dir:
+        cmake_options.append("-DCMAKE_INSTALL_PREFIX=%s" % (install_dir))
+
+    cmake_options.append("-C" + os.path.join(blender_dir, cmake_config_file))
+
+    # Prepare chroot command prefix if needed
+
+    if chroot_name:
+        chroot_prefix = ['schroot', '-c', chroot_name, '--']
     else:
-        cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=0")
-    # configure and make
-    retcode = subprocess.call(['cmake', blender_dir] + cmake_options)
-    if retcode != 0:
-        sys.exit(retcode)
+        chroot_prefix = []
 
-    if 'win32' in builder:
-        retcode = subprocess.call(['msbuild', 'INSTALL.vcxproj', '/Property:PlatformToolset=v120_xp', '/p:Configuration=Release'])
-    elif 'win64' in builder:
-        retcode = subprocess.call(['msbuild', 'INSTALL.vcxproj', '/p:Configuration=Release'])
-    else:
-        retcode = subprocess.call(['make', '-s', '-j4', 'install'])
-    sys.exit(retcode)
+    # Make sure no garbage remained from the previous run
+    # (only do it if builder requested this)
+    if remove_install_dir:
+        if os.path.isdir(install_dir):
+            shutil.rmtree(install_dir)
+
+    for target in targets:
+        print("Building target %s" % (target))
+        # Construct build directory name based on the target
+        target_build_dir = build_dir
+        if target != 'blender':
+            target_build_dir += '_' + target
+        # Make sure build directory exists and enter it
+        if not os.path.isdir(target_build_dir):
+            os.mkdir(target_build_dir)
+        os.chdir(target_build_dir)
+        # Tweaking CMake options to respect the target
+        target_cmake_options = cmake_options[:]
+        if target == 'player':
+            target_cmake_options.append("-C" + os.path.join(blender_dir, cmake_player_config_file))
+        elif target == 'cuda':
+            target_cmake_options.append("-C" + os.path.join(blender_dir, cmake_cuda_config_file))
+        # Configure the build
+        print("CMake options:")
+        print(target_cmake_options)
+        if remove_cache and os.path.exists('CMakeCache.txt'):
+            print("Removing CMake cache")
+            os.remove('CMakeCache.txt')
+        retcode = subprocess.call(chroot_prefix + ['cmake', blender_dir] + target_cmake_options)
+        if retcode != 0:
+            print('Condifuration FAILED!')
+            sys.exit(retcode)
+
+        if 'win32' in builder:
+            command = ['msbuild', 'INSTALL.vcxproj', '/Property:PlatformToolset=v120_xp', '/p:Configuration=Release']
+        elif 'win64' in builder:
+            command = ['msbuild', 'INSTALL.vcxproj', '/p:Configuration=Release']
+        else:
+            command = chroot_prefix + ['make', '-s', '-j2', 'install']
+
+        print("Executing command:")
+        print(command)
+        retcode = subprocess.call(command)
+
+        if retcode != 0:
+            sys.exit(retcode)
 else:
     python_bin = 'python'
     if builder.find('linux') != -1:

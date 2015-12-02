@@ -79,6 +79,11 @@ else()
 			TARGETS blenderplayer
 			DESTINATION bin
 		)
+	else()
+		install(
+			TARGETS blenderplayer
+			DESTINATION "."
+		)
 	endif()
 endif()
 

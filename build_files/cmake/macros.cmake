@@ -103,6 +103,23 @@ macro(file_list_suffix
 
 endmacro()
 
+if(UNIX AND NOT APPLE)
+	macro(find_package_static)
+		set(_cmake_find_library_suffixes_back ${CMAKE_FIND_LIBRARY_SUFFIXES})
+		set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+		find_package(${ARGV})
+		set(CMAKE_FIND_LIBRARY_SUFFIXES ${_cmake_find_library_suffixes_back})
+		unset(_cmake_find_library_suffixes_back)
+	endmacro()
+
+	macro(find_library_static)
+		set(_cmake_find_library_suffixes_back ${CMAKE_FIND_LIBRARY_SUFFIXES})
+		set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+		find_library(${ARGV})
+		set(CMAKE_FIND_LIBRARY_SUFFIXES ${_cmake_find_library_suffixes_back})
+		unset(_cmake_find_library_suffixes_back)
+	endmacro()
+endif()
 
 function(target_link_libraries_optimized
 	TARGET
@@ -451,6 +468,11 @@ function(setup_liblinks
 	endif()
 	if(WIN32 AND NOT UNIX)
 		target_link_libraries(${target} ${PTHREADS_LIBRARIES})
+	endif()
+	if(UNIX AND NOT APPLE)
+		if(WITH_OPENMP_STATIC)
+			target_link_libraries(${target} ${OpenMP_LIBRARIES})
+		endif()
 	endif()
 
 	# We put CLEW and CUEW here because OPENSUBDIV_LIBRARIES dpeends on them..
