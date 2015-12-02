@@ -137,6 +137,7 @@ struct wmWindowManager;
 #if 1
 #if defined(__GNUC__)
 #  pragma GCC diagnostic error "-Wmissing-prototypes"
+#  pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
 #include "../../intern/cycles/blender/CCL_api.h"
