@@ -631,7 +631,7 @@ void ShaderGraph::break_cycles(ShaderNode *node, vector<bool>& visited, vector<b
 void ShaderGraph::clean(Scene *scene)
 {
 	/* Graph simplification:
-	 *  1: Remove unnecesarry nodes
+	 *  1: Remove unnecessary nodes
 	 *  2: Constant folding
 	 *  3: Simplification
 	 *  4: De-duplication

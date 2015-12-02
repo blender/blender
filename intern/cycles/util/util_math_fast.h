@@ -247,7 +247,7 @@ ccl_device float fast_sinpif(float x)
 	 * The basic idea of this approximation starts with the coarse approximation:
 	 *      sin(pi*x) ~= f(x) =  4 * (x - x * abs(x))
 	 *
-	 * This approximation always _over_ estimates the target. On the otherhand,
+	 * This approximation always _over_ estimates the target. On the other hand,
 	 * the curve:
 	 *      sin(pi*x) ~= f(x) * abs(f(x)) / 4
 	 *

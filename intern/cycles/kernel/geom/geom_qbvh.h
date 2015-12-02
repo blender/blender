@@ -19,7 +19,7 @@ struct QBVHStackItem {
 	float dist;
 };
 
-/* TOOD(sergey): Investigate if using instrinsics helps for both
+/* TOOD(sergey): Investigate if using intrinsics helps for both
  * stack item swap and float comparison.
  */
 ccl_device_inline void qbvh_item_swap(QBVHStackItem *__restrict a,

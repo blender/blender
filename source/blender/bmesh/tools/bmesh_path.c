@@ -316,10 +316,10 @@ static float facetag_cut_cost(BMFace *f_a, BMFace *f_b, BMEdge *e)
 		float ix_e[3], ix_f[3], f;
 		isect_line_line_v3(e->v1->co, e->v2->co, f_a_cent, f_b_cent, ix_e, ix_f);
 		f = line_point_factor_v3(ix_e, e->v1->co, e->v2->co);
-		if (f < 0.0) {
+		if (f < 0.0f) {
 			copy_v3_v3(e_cent, e->v1->co);
 		}
-		else if (f > 1.0) {
+		else if (f > 1.0f) {
 			copy_v3_v3(e_cent, e->v2->co);
 		}
 		else {

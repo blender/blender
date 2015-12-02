@@ -136,7 +136,7 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
                                    DerivedMesh *target, const SpaceTransform *loc2trgt)
 {
 	Vert2GeomData data = {0};
-	Vert2GeomDataChunk data_chunk = {0};
+	Vert2GeomDataChunk data_chunk = {{{0}}};
 
 	BVHTreeFromMesh treeData_v = {NULL};
 	BVHTreeFromMesh treeData_e = {NULL};
