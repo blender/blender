@@ -445,7 +445,7 @@ static void cdDM_drawFacesSolid(
 
 	if (cddm->pbvh) {
 		if (cddm->pbvh_draw && BKE_pbvh_has_faces(cddm->pbvh)) {
-			float (*face_nors)[3] = CustomData_get_layer(&dm->faceData, CD_NORMAL);
+			float (*face_nors)[3] = CustomData_get_layer(&dm->polyData, CD_NORMAL);
 
 			BKE_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors,
 			              setMaterial, false, false);
