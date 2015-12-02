@@ -2,7 +2,7 @@ import bpy
 from bpy_extras import view3d_utils
 
 
-def main(context, event, ray_max=1000.0):
+def main(context, event):
     """Run this function on left mouse, execute the ray cast"""
     # get the context arguments
     scene = context.scene
@@ -14,7 +14,7 @@ def main(context, event, ray_max=1000.0):
     view_vector = view3d_utils.region_2d_to_vector_3d(region, rv3d, coord)
     ray_origin = view3d_utils.region_2d_to_origin_3d(region, rv3d, coord)
 
-    ray_target = ray_origin + (view_vector * ray_max)
+    ray_target = ray_origin + view_vector
 
     def visible_objects_and_duplis():
         """Loop over (object, matrix) pairs (mesh only)"""
@@ -39,17 +39,18 @@ def main(context, event, ray_max=1000.0):
         matrix_inv = matrix.inverted()
         ray_origin_obj = matrix_inv * ray_origin
         ray_target_obj = matrix_inv * ray_target
+        ray_direction_obj = ray_target_obj - ray_origin_obj
 
         # cast the ray
-        hit, normal, face_index = obj.ray_cast(ray_origin_obj, ray_target_obj)
+        success, location, normal, face_index = obj.ray_cast(ray_origin_obj, ray_direction_obj)
 
-        if face_index != -1:
-            return hit, normal, face_index
+        if success:
+            return location, normal, face_index
         else:
             return None, None, None
 
     # cast rays and find the closest object
-    best_length_squared = ray_max * ray_max
+    best_length_squared = -1.0
     best_obj = None
 
     for obj, matrix in visible_objects_and_duplis():
@@ -59,7 +60,7 @@ def main(context, event, ray_max=1000.0):
                 hit_world = matrix * hit
                 scene.cursor_location = hit_world
                 length_squared = (hit_world - ray_origin).length_squared
-                if length_squared < best_length_squared:
+                if best_obj is None or length_squared < best_length_squared:
                     best_length_squared = length_squared
                     best_obj = obj
 
