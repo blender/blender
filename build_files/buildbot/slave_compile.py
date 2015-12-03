@@ -76,11 +76,12 @@ if 'cmake' in builder:
         remove_cache = True
         remove_install_dir = True
         cmake_config_file = "build_files/buildbot/config/blender_linux.cmake"
-        cmake_player_config_file = "build_files/buildbot/config/blender_player_linux.cmake"
-        cmake_cuda_config_file = "build_files/buildbot/config/blender_cuda_linux.cmake"
+        cmake_player_config_file = "build_files/buildbot/config/blender_linux_player.cmake"
+        # Currently unused
+        # cmake_cuda_config_file = "build_files/buildbot/config/blender_linux_cuda.cmake"
         if builder.endswith('x86_64_cmake'):
             chroot_name = 'buildbot_squeeze_x86_64'
-            build_cubins = False
+            build_cubins = True
             targets = ['player', 'blender']
         elif builder.endswith('i386_cmake'):
             chroot_name = 'buildbot_squeeze_i686'
