@@ -44,6 +44,8 @@ bool    ED_editors_flush_edits(const struct bContext *C, bool for_render);
 
 void ED_spacedata_id_unref(struct SpaceLink *sl, const struct ID *id);
 
+void    ED_OT_flush_edits(struct wmOperatorType *ot);
+
 /* ************** Undo ************************ */
 
 /* undo.c */

@@ -344,3 +344,23 @@ void ED_spacedata_id_unref(struct SpaceLink *sl, const ID *id)
 			break;
 	}
 }
+
+static int ed_flush_edits_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	ED_editors_flush_edits(C, false);
+	return OPERATOR_FINISHED;
+}
+
+void ED_OT_flush_edits(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Flush Edits";
+	ot->description = "Flush edit data from active editing modes";
+	ot->idname = "ED_OT_flush_edits";
+
+	/* api callbacks */
+	ot->exec = ed_flush_edits_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_INTERNAL;
+}
