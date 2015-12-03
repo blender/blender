@@ -150,8 +150,6 @@ if 'cmake' in builder:
             sys.exit(retcode)
 else:
     python_bin = 'python'
-    if builder.find('linux') != -1:
-        python_bin = '/opt/lib/python-2.7/bin/python2.7'
 
     # scons
     os.chdir(blender_dir)
@@ -171,108 +169,46 @@ else:
     buildbot_dir = os.path.dirname(os.path.realpath(__file__))
     config_dir = os.path.join(buildbot_dir, 'config')
 
-    if builder.find('linux') != -1:
-        configs = []
-        if builder.endswith('linux_glibc211_x86_64_scons'):
-            configs = ['user-config-player-glibc211-x86_64.py',
-                       'user-config-cuda-glibc211-x86_64.py',
-                       'user-config-glibc211-x86_64.py'
-                       ]
-            chroot_name = 'buildbot_squeeze_x86_64'
-            cuda_chroot = 'buildbot_squeeze_x86_64'
-        elif builder.endswith('linux_glibc211_i386_scons'):
-            configs = ['user-config-player-glibc211-i686.py',
-                       'user-config-cuda-glibc211-i686.py',
-                       'user-config-glibc211-i686.py']
-            chroot_name = 'buildbot_squeeze_i686'
+    if builder.find('win') != -1:
+        bitness = '32'
 
-            # use 64bit cuda toolkit, so there'll be no memory limit issues
-            cuda_chroot = 'buildbot_squeeze_x86_64'
+        if builder.find('win64') != -1:
+            bitness = '64'
 
-        # Compilation will happen inside of chroot environment
-        prog_scons_cmd = ['schroot', '-c', chroot_name, '--'] + scons_cmd
-        cuda_scons_cmd = ['schroot', '-c', cuda_chroot, '--'] + scons_cmd
-
-        common_options = ['BF_INSTALLDIR=' + install_dir] + scons_options
-
-        for config in configs:
-            config_fpath = os.path.join(config_dir, config)
-
-            scons_options = []
-
-            if config.find('player') != -1:
-                scons_options.append('BF_BUILDDIR=%s_player' % (build_dir))
-            elif config.find('cuda') != -1:
-                scons_options.append('BF_BUILDDIR=%s_cuda' % (build_dir))
-            else:
-                scons_options.append('BF_BUILDDIR=%s' % (build_dir))
-
-            scons_options += common_options
-
-            if config.find('player') != -1:
-                scons_options.append('blenderplayer')
-                cur_scons_cmd = prog_scons_cmd
-            elif config.find('cuda') != -1:
-                scons_options.append('cudakernels')
-                cur_scons_cmd = cuda_scons_cmd
-
-                if config.find('i686') != -1:
-                    scons_options.append('BF_BITNESS=32')
-                elif config.find('x86_64') != -1:
-                    scons_options.append('BF_BITNESS=64')
-            else:
-                scons_options.append('blender')
-                cur_scons_cmd = prog_scons_cmd
-
-            scons_options.append('BF_CONFIG=' + config_fpath)
-
-            retcode = subprocess.call(cur_scons_cmd + scons_options)
-            if retcode != 0:
-                print('Error building rules with config ' + config)
-                sys.exit(retcode)
-
-        sys.exit(0)
-    else:
-        if builder.find('win') != -1:
-            bitness = '32'
-
-            if builder.find('win64') != -1:
-                bitness = '64'
-
-            scons_options.append('BF_INSTALLDIR=' + install_dir)
-            scons_options.append('BF_BUILDDIR=' + build_dir)
-            scons_options.append('BF_BITNESS=' + bitness)
-            scons_options.append('WITH_BF_CYCLES_CUDA_BINARIES=True')
+        scons_options.append('BF_INSTALLDIR=' + install_dir)
+        scons_options.append('BF_BUILDDIR=' + build_dir)
+        scons_options.append('BF_BITNESS=' + bitness)
+        scons_options.append('WITH_BF_CYCLES_CUDA_BINARIES=True')
+        scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc.exe')
+        if builder.find('mingw') != -1:
+            scons_options.append('BF_TOOLSET=mingw')
+        if builder.endswith('vc2013'):
+            scons_options.append('MSVS_VERSION=12.0')
+            scons_options.append('MSVC_VERSION=12.0')
+            scons_options.append('WITH_BF_CYCLES_CUDA_BINARIES=1')
             scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc.exe')
-            if builder.find('mingw') != -1:
-                scons_options.append('BF_TOOLSET=mingw')
-            if builder.endswith('vc2013'):
-                scons_options.append('MSVS_VERSION=12.0')
-                scons_options.append('MSVC_VERSION=12.0')
-                scons_options.append('WITH_BF_CYCLES_CUDA_BINARIES=1')
-                scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc.exe')
-            scons_options.append('BF_NUMJOBS=1')
+        scons_options.append('BF_NUMJOBS=1')
 
-        elif builder.find('mac') != -1:
-            if builder.find('x86_64') != -1:
-                config = 'user-config-mac-x86_64.py'
-            else:
-                config = 'user-config-mac-i386.py'
+    elif builder.find('mac') != -1:
+        if builder.find('x86_64') != -1:
+            config = 'user-config-mac-x86_64.py'
+        else:
+            config = 'user-config-mac-i386.py'
 
-            scons_options.append('BF_CONFIG=' + os.path.join(config_dir, config))
+        scons_options.append('BF_CONFIG=' + os.path.join(config_dir, config))
 
-        if builder.find('win') != -1:
-            if not os.path.exists(install_dir):
-                os.makedirs(install_dir)
-            if builder.endswith('vc2013'):
-                dlls = ('msvcp120.dll', 'msvcr120.dll', 'vcomp120.dll')
-            if builder.find('win64') == -1:
-                dlls_path = '..\\..\\..\\redist\\x86'
-            else:
-                dlls_path = '..\\..\\..\\redist\\amd64'
-            for dll in dlls:
-                shutil.copyfile(os.path.join(dlls_path, dll), os.path.join(install_dir, dll))
+    if builder.find('win') != -1:
+        if not os.path.exists(install_dir):
+            os.makedirs(install_dir)
+        if builder.endswith('vc2013'):
+            dlls = ('msvcp120.dll', 'msvcr120.dll', 'vcomp120.dll')
+        if builder.find('win64') == -1:
+            dlls_path = '..\\..\\..\\redist\\x86'
+        else:
+            dlls_path = '..\\..\\..\\redist\\amd64'
+        for dll in dlls:
+            shutil.copyfile(os.path.join(dlls_path, dll), os.path.join(install_dir, dll))
 
-        retcode = subprocess.call([python_bin, 'scons/scons.py'] + scons_options)
+    retcode = subprocess.call([python_bin, 'scons/scons.py'] + scons_options)
 
-        sys.exit(retcode)
+    sys.exit(retcode)

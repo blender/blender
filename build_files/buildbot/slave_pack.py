@@ -84,8 +84,6 @@ def create_tar_bz2(src, dest, package_name):
 # scons does own packaging
 if builder.find('scons') != -1:
     python_bin = 'python'
-    if builder.find('linux') != -1:
-        python_bin = '/opt/lib/python-2.7/bin/python2.7'
 
     os.chdir('../blender.git')
     scons_options = ['BF_QUICK=slnt', 'BUILDBOT_BRANCH=' + branch, 'buildslave', 'BF_FANCY=False']
@@ -93,71 +91,33 @@ if builder.find('scons') != -1:
     buildbot_dir = os.path.dirname(os.path.realpath(__file__))
     config_dir = os.path.join(buildbot_dir, 'config')
 
-    if builder.find('linux') != -1:
-        scons_options += ['WITH_BF_NOBLENDER=True', 'WITH_BF_PLAYER=False',
-                          'BF_BUILDDIR=' + build_dir,
-                          'BF_INSTALLDIR=' + install_dir,
-                          'WITHOUT_BF_INSTALL=True']
+    if builder.find('win') != -1:
+        bitness = '32'
 
-        config = None
-        bits = None
+        if builder.find('win64') != -1:
+            bitness = '64'
 
-        if builder.endswith('linux_glibc211_x86_64_scons'):
-            config = 'user-config-glibc211-x86_64.py'
-            chroot_name = 'buildbot_squeeze_x86_64'
-            bits = 64
-        elif builder.endswith('linux_glibc211_i386_scons'):
-            config = 'user-config-glibc211-i686.py'
-            chroot_name = 'buildbot_squeeze_i686'
-            bits = 32
+        scons_options.append('BF_INSTALLDIR=' + install_dir)
+        scons_options.append('BF_BUILDDIR=' + build_dir)
+        scons_options.append('BF_BITNESS=' + bitness)
+        scons_options.append('WITH_BF_CYCLES_CUDA_BINARIES=True')
+        scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc.exe')
+        if builder.find('mingw') != -1:
+            scons_options.append('BF_TOOLSET=mingw')
+        if builder.endswith('vc2013'):
+            scons_options.append('MSVS_VERSION=12.0')
+            scons_options.append('MSVC_VERSION=12.0')
 
-        if config is not None:
-            config_fpath = os.path.join(config_dir, config)
-            scons_options.append('BF_CONFIG=' + config_fpath)
+    elif builder.find('mac') != -1:
+        if builder.find('x86_64') != -1:
+            config = 'user-config-mac-x86_64.py'
+        else:
+            config = 'user-config-mac-i386.py'
 
-        blender = os.path.join(install_dir, 'blender')
-        blenderplayer = os.path.join(install_dir, 'blenderplayer')
-        subprocess.call(['schroot', '-c', chroot_name, '--', 'strip', '--strip-all', blender, blenderplayer])
+        scons_options.append('BF_CONFIG=' + os.path.join(config_dir, config))
 
-        extra = "/home/sources/release-builder/extra/"
-        mesalibs = os.path.join(extra, 'mesalibs%d.tar.bz2' % bits)
-        software_gl = os.path.join(extra, 'blender-softwaregl')
-
-        os.system('tar -xpf %s -C %s' % (mesalibs, install_dir))
-        os.system('cp %s %s' % (software_gl, install_dir))
-        os.system('chmod 755 %s' % (os.path.join(install_dir, 'blender-softwaregl')))
-
-        retcode = subprocess.call(['schroot', '-c', chroot_name, '--', python_bin, 'scons/scons.py'] + scons_options)
-
-        sys.exit(retcode)
-    else:
-        if builder.find('win') != -1:
-            bitness = '32'
-
-            if builder.find('win64') != -1:
-                bitness = '64'
-
-            scons_options.append('BF_INSTALLDIR=' + install_dir)
-            scons_options.append('BF_BUILDDIR=' + build_dir)
-            scons_options.append('BF_BITNESS=' + bitness)
-            scons_options.append('WITH_BF_CYCLES_CUDA_BINARIES=True')
-            scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc.exe')
-            if builder.find('mingw') != -1:
-                scons_options.append('BF_TOOLSET=mingw')
-            if builder.endswith('vc2013'):
-                scons_options.append('MSVS_VERSION=12.0')
-                scons_options.append('MSVC_VERSION=12.0')
-
-        elif builder.find('mac') != -1:
-            if builder.find('x86_64') != -1:
-                config = 'user-config-mac-x86_64.py'
-            else:
-                config = 'user-config-mac-i386.py'
-
-            scons_options.append('BF_CONFIG=' + os.path.join(config_dir, config))
-
-        retcode = subprocess.call([python_bin, 'scons/scons.py'] + scons_options)
-        sys.exit(retcode)
+    retcode = subprocess.call([python_bin, 'scons/scons.py'] + scons_options)
+    sys.exit(retcode)
 else:
     # CMake
     if 'win' in builder:
