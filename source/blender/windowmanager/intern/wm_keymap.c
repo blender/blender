@@ -1298,17 +1298,12 @@ char *WM_key_event_operator_string(
 	return NULL;
 }
 
-int WM_key_event_operator_id(
+wmKeyMapItem *WM_key_event_operator(
         const bContext *C, const char *opname, int opcontext,
         IDProperty *properties, const bool is_hotkey,
         wmKeyMap **r_keymap)
 {
-	wmKeyMapItem *kmi = wm_keymap_item_find(C, opname, opcontext, properties, is_hotkey, true, r_keymap);
-	
-	if (kmi)
-		return kmi->id;
-	else
-		return 0;
+	return wm_keymap_item_find(C, opname, opcontext, properties, is_hotkey, true, r_keymap);
 }
 
 int WM_keymap_item_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
