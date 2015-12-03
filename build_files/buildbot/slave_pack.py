@@ -36,6 +36,10 @@ builder = sys.argv[1]
 # Never write branch if it is master.
 branch = sys.argv[2] if (len(sys.argv) >= 3 and sys.argv[2] != 'master') else ''
 
+blender_dir = os.path.join('..', 'blender.git')
+build_dir = os.path.join('..', 'build', builder)
+install_dir = os.path.join('..', 'install', builder)
+
 upload_filename = None  # Name of the archive to be uploaded
                         # (this is the name of archive which will appear on the
                         # download page)
@@ -65,8 +69,6 @@ if builder.find('scons') != -1:
 
     buildbot_dir = os.path.dirname(os.path.realpath(__file__))
     config_dir = os.path.join(buildbot_dir, 'config')
-    build_dir = os.path.join('..', 'build', builder)
-    install_dir = os.path.join('..', 'install', builder)
 
     if builder.find('linux') != -1:
         scons_options += ['WITH_BF_NOBLENDER=True', 'WITH_BF_PLAYER=False',
@@ -136,7 +138,6 @@ if builder.find('scons') != -1:
 else:
     # CMake
     if 'win' in builder:
-        build_dir = os.path.join('..', 'build', builder)
         os.chdir(build_dir)
 
         files = [f for f in os.listdir('.') if os.path.isfile(f) and f.endswith('.zip')]
@@ -171,9 +172,6 @@ else:
             sys.exit(1)
 
     elif builder.startswith('linux_'):
-        blender_dir = os.path.join('..', 'blender.git')
-        build_dir = os.path.join('..', 'build', builder)
-        install_dir = os.path.join('..', 'install', builder)
 
         blender = os.path.join(install_dir, 'blender')
         blenderplayer = os.path.join(install_dir, 'blenderplayer')
