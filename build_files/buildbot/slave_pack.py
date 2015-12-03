@@ -39,6 +39,7 @@ branch = sys.argv[2] if (len(sys.argv) >= 3 and sys.argv[2] != 'master') else ''
 blender_dir = os.path.join('..', 'blender.git')
 build_dir = os.path.join('..', 'build', builder)
 install_dir = os.path.join('..', 'install', builder)
+buildbot_upload_zip = os.path.join(os.path.dirname(install_dir), "buildbot_upload.zip")
 
 upload_filename = None  # Name of the archive to be uploaded
                         # (this is the name of archive which will appear on the
@@ -165,10 +166,9 @@ else:
         os.rename(result_file, "{}.zip".format(builderified_name))
         # create zip file
         try:
-            upload_zip = os.path.join("..", "install", "buildbot_upload.zip")
-            if os.path.exists(upload_zip):
-                os.remove(upload_zip)
-            z = zipfile.ZipFile(upload_zip, "w", compression=zipfile.ZIP_STORED)
+            if os.path.exists(buildbot_upload_zip):
+                os.remove(buildbot_upload_zip)
+            z = zipfile.ZipFile(buildbot_upload_zip, "w", compression=zipfile.ZIP_STORED)
             z.write("{}.zip".format(builderified_name))
             z.close()
             sys.exit(retcode)
@@ -270,7 +270,7 @@ if upload_filepath is None:
 
 # create zip file
 try:
-    upload_zip = os.path.join(os.path.dirname(install_dir), "buildbot_upload.zip")
+    upload_zip = os.path.join(buildbot_upload_zip)
     if os.path.exists(upload_zip):
         os.remove(upload_zip)
     z = zipfile.ZipFile(upload_zip, "w", compression=zipfile.ZIP_STORED)
