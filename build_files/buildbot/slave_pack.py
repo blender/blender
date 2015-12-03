@@ -221,7 +221,7 @@ else:
             upload_filename = branch + "-" + upload_filename
 
         print("Creating .tar.bz2 archive")
-        os.system('tar -C../install -cjf %s.tar.bz2 %s' % (builder, builder))
+        os.system('tar -C../install -cjf ../install/%s.tar.bz2 %s' % (builder, builder))
         upload_filepath = install_dir + '.tar.bz2'
 
 
@@ -265,7 +265,7 @@ if upload_filepath is None:
 
 # create zip file
 try:
-    upload_zip = "buildbot_upload.zip"
+    upload_zip = os.path.join(os.path.dirname(install_dir), "buildbot_upload.zip")
     if os.path.exists(upload_zip):
         os.remove(upload_zip)
     z = zipfile.ZipFile(upload_zip, "w", compression=zipfile.ZIP_STORED)
