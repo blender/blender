@@ -2355,7 +2355,9 @@ static bool point_in_slice(const float p[3], const float v1[3], const float l1[3
 
 	sub_v3_v3v3(rp, p, v1);
 	h = dot_v3v3(q, rp) / dot_v3v3(q, q);
-	return (h < 0.0f || h > 1.0f) ? false : true;
+	/* note: when 'h' is nan/-nan, this check returns false
+	 * without explicit check - covering the degenerate case */
+	return (h >= 0.0f && h <= 1.0f);
 }
 
 #if 0
