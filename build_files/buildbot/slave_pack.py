@@ -60,7 +60,7 @@ def parse_header_file(filename, define):
 
 # Make sure install directory always exists
 if not os.path.exists(install_dir):
-    os.makesirs(install_dir)
+    os.makedirs(install_dir)
 
 
 # scons does own packaging
