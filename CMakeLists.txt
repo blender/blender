@@ -2468,7 +2468,7 @@ if(WITH_OPENMP)
 			# since they're passed to the linker as well.
 			add_definitions("${OpenMP_C_FLAGS}")
 
-			find_library_static(OpenMP_LIBRARIES gomp)
+			find_library_static(OpenMP_LIBRARIES gomp ${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES})
 		endif()
 	else()
 		set(WITH_OPENMP OFF)
