@@ -145,7 +145,7 @@ else:
 
         # Get version information
         blender_version = int(parse_header_file(blender_h, 'BLENDER_VERSION'))
-        blender_version = "%d.%d" % (blender_version / 100, blender_version % 100)
+        blender_version = "%d.%d" % (blender_version // 100, blender_version % 100)
         blender_hash = parse_header_file(buildinfo_h, 'BUILD_HASH')[1:-1]
         blender_glibc = builder.split('_')[1]
 
