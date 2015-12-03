@@ -177,12 +177,17 @@ else:
             sys.exit(1)
 
     elif builder.startswith('linux_'):
-
         blender = os.path.join(install_dir, 'blender')
         blenderplayer = os.path.join(install_dir, 'blenderplayer')
 
         buildinfo_h = os.path.join(build_dir, "source", "creator", "buildinfo.h")
         blender_h = os.path.join(blender_dir, "source", "blender", "blenkernel", "BKE_blender.h")
+
+        # Get version information
+        blender_version = int(parse_header_file(blender_h, 'BLENDER_VERSION'))
+        blender_version = "%d.%d" % (blender_version / 100, blender_version % 100)
+        blender_hash = parse_header_file(buildinfo_h, 'BUILD_HASH')[1:-1]
+        blender_glibc = builder.split('_')[1]
 
         if builder.endswith('x86_64_cmake'):
             chroot_name = 'buildbot_squeeze_x86_64'
@@ -198,6 +203,11 @@ else:
         chroot_prefix = ['schroot', '-c', chroot_name, '--']
         subprocess.call(chroot_prefix + ['strip', '--strip-all', blender, blenderplayer])
 
+        print("Stripping python...")
+        py_target = os.path.join(install_dir, blender_version)
+        subprocess.call(chroot_prefix + ['find', py_target, '-iname', '*.so', '-exec', 'strip', '-s', '{}', ';'])
+        sys.exit(0)
+
         # Copy all specific files which are too specific to be copied by
         # the CMake rules themselves
         print("Copying extra scripts and libs...")
@@ -212,12 +222,7 @@ else:
         os.system('cp -r %s %s' % (icons, install_dir))
         os.system('chmod 755 %s' % (os.path.join(install_dir, 'blender-softwaregl')))
 
-        # Get version information for the archive name
-        blender_version = int(parse_header_file(blender_h, 'BLENDER_VERSION'))
-        blender_version = "%d.%d" % (blender_version / 100, blender_version % 100)
-        blender_hash = parse_header_file(buildinfo_h, 'BUILD_HASH')[1:-1]
-        blender_glibc = builder.split('_')[1]
-
+        # Construct archive name
         upload_filename = 'blender-%s-%s-linux-%s-%s.tar.bz2' % (blender_version,
                                                                  blender_hash,
                                                                  blender_glibc,
