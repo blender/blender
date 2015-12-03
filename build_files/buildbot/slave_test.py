@@ -41,7 +41,7 @@ if "cmake" in builder:
 
     if builder.endswith('x86_64_cmake'):
         chroot_name = 'buildbot_squeeze_x86_64'
-    elif builder.endswith('i686_cmake'):
+    elif builder.endswith('i386_cmake'):
         chroot_name = 'buildbot_squeeze_i686'
     if chroot_name:
         chroot_prefix = ['schroot', '-c', chroot_name, '--']
