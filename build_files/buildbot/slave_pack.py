@@ -165,7 +165,7 @@ else:
         os.rename(result_file, "{}.zip".format(builderified_name))
         # create zip file
         try:
-            upload_zip = "../install/buildbot_upload.zip"
+            upload_zip = os.path.join("..", "install", "buildbot_upload.zip")
             if os.path.exists(upload_zip):
                 os.remove(upload_zip)
             z = zipfile.ZipFile(upload_zip, "w", compression=zipfile.ZIP_STORED)
