@@ -39,7 +39,7 @@ branch = sys.argv[2] if (len(sys.argv) >= 3 and sys.argv[2] != 'master') else ''
 blender_dir = os.path.join('..', 'blender.git')
 build_dir = os.path.join('..', 'build', builder)
 install_dir = os.path.join('..', 'install', builder)
-buildbot_upload_zip = os.path.join(os.path.dirname(install_dir), "buildbot_upload.zip")
+buildbot_upload_zip = os.path.abspath(os.path.join(os.path.dirname(install_dir), "buildbot_upload.zip"))
 
 upload_filename = None  # Name of the archive to be uploaded
                         # (this is the name of archive which will appear on the
