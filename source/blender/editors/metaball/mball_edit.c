@@ -665,6 +665,11 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 
 /*  ************* undo for MetaBalls ************* */
 
+typedef struct UndoMBall {
+	ListBase editelems;
+	int lastelem_index;
+} UndoMBall;
+
 /* free all MetaElems from ListBase */
 static void freeMetaElemlist(ListBase *lb)
 {
@@ -678,58 +683,61 @@ static void freeMetaElemlist(ListBase *lb)
 }
 
 
-static void undoMball_to_editMball(void *lbu, void *lbe, void *UNUSED(obe))
+static void undoMball_to_editMball(void *umb_v, void *mb_v, void *UNUSED(obdata))
 {
-	ListBase *lb = lbu;
-	ListBase *editelems = lbe;
-	MetaElem *ml, *newml;
-	
-	freeMetaElemlist(editelems);
+	MetaBall *mb = mb_v;
+	UndoMBall *umb = umb_v;
+
+	freeMetaElemlist(mb->editelems);
+	mb->lastelem = NULL;
 
 	/* copy 'undo' MetaElems to 'edit' MetaElems */
-	ml = lb->first;
-	while (ml) {
-		newml = MEM_dupallocN(ml);
-		BLI_addtail(editelems, newml);
-		ml = ml->next;
+	int index = 0;
+	for (MetaElem *ml_undo = umb->editelems.first; ml_undo; ml_undo = ml_undo->next, index += 1) {
+		MetaElem *ml_edit = MEM_dupallocN(ml_undo);
+		BLI_addtail(mb->editelems, ml_edit);
+		if (index == umb->lastelem_index) {
+			mb->lastelem = ml_edit;
+		}
 	}
 	
 }
 
-static void *editMball_to_undoMball(void *lbe, void *UNUSED(obe))
+static void *editMball_to_undoMball(void *mb_v, void *UNUSED(obdata))
 {
-	ListBase *editelems = lbe;
-	ListBase *lb;
-	MetaElem *ml, *newml;
+	MetaBall *mb = mb_v;
+	UndoMBall *umb;
 
 	/* allocate memory for undo ListBase */
-	lb = MEM_callocN(sizeof(ListBase), "listbase undo");
+	umb = MEM_callocN(sizeof(UndoMBall), __func__);
+	umb->lastelem_index = -1;
 	
 	/* copy contents of current ListBase to the undo ListBase */
-	ml = editelems->first;
-	while (ml) {
-		newml = MEM_dupallocN(ml);
-		BLI_addtail(lb, newml);
-		ml = ml->next;
+	int index = 0;
+	for (MetaElem *ml_edit = mb->editelems->first; ml_edit; ml_edit = ml_edit->next, index += 1) {
+		MetaElem *ml_undo = MEM_dupallocN(ml_edit);
+		BLI_addtail(&umb->editelems, ml_undo);
+		if (ml_edit == mb->lastelem) {
+			umb->lastelem_index = index;
+		}
 	}
 	
-	return lb;
+	return umb;
 }
 
 /* free undo ListBase of MetaElems */
-static void free_undoMball(void *lbv)
+static void free_undoMball(void *umb_v)
 {
-	ListBase *lb = lbv;
+	UndoMBall *umb = umb_v;
 	
-	freeMetaElemlist(lb);
-	MEM_freeN(lb);
+	freeMetaElemlist(&umb->editelems);
+	MEM_freeN(umb);
 }
 
-static ListBase *metaball_get_editelems(Object *ob)
+static MetaBall *metaball_get_obdata(Object *ob)
 {
 	if (ob && ob->type == OB_MBALL) {
-		struct MetaBall *mb = (struct MetaBall *)ob->data;
-		return mb->editelems;
+		return ob->data;
 	}
 	return NULL;
 }
@@ -738,7 +746,7 @@ static ListBase *metaball_get_editelems(Object *ob)
 static void *get_data(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	return metaball_get_editelems(obedit);
+	return metaball_get_obdata(obedit);
 }
 
 /* this is undo system for MetaBalls */
