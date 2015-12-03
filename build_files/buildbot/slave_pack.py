@@ -91,24 +91,7 @@ if builder.find('scons') != -1:
     buildbot_dir = os.path.dirname(os.path.realpath(__file__))
     config_dir = os.path.join(buildbot_dir, 'config')
 
-    if builder.find('win') != -1:
-        bitness = '32'
-
-        if builder.find('win64') != -1:
-            bitness = '64'
-
-        scons_options.append('BF_INSTALLDIR=' + install_dir)
-        scons_options.append('BF_BUILDDIR=' + build_dir)
-        scons_options.append('BF_BITNESS=' + bitness)
-        scons_options.append('WITH_BF_CYCLES_CUDA_BINARIES=True')
-        scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc.exe')
-        if builder.find('mingw') != -1:
-            scons_options.append('BF_TOOLSET=mingw')
-        if builder.endswith('vc2013'):
-            scons_options.append('MSVS_VERSION=12.0')
-            scons_options.append('MSVC_VERSION=12.0')
-
-    elif builder.find('mac') != -1:
+    if builder.find('mac') != -1:
         if builder.find('x86_64') != -1:
             config = 'user-config-mac-x86_64.py'
         else:

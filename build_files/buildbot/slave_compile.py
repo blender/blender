@@ -169,45 +169,13 @@ else:
     buildbot_dir = os.path.dirname(os.path.realpath(__file__))
     config_dir = os.path.join(buildbot_dir, 'config')
 
-    if builder.find('win') != -1:
-        bitness = '32'
-
-        if builder.find('win64') != -1:
-            bitness = '64'
-
-        scons_options.append('BF_INSTALLDIR=' + install_dir)
-        scons_options.append('BF_BUILDDIR=' + build_dir)
-        scons_options.append('BF_BITNESS=' + bitness)
-        scons_options.append('WITH_BF_CYCLES_CUDA_BINARIES=True')
-        scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc.exe')
-        if builder.find('mingw') != -1:
-            scons_options.append('BF_TOOLSET=mingw')
-        if builder.endswith('vc2013'):
-            scons_options.append('MSVS_VERSION=12.0')
-            scons_options.append('MSVC_VERSION=12.0')
-            scons_options.append('WITH_BF_CYCLES_CUDA_BINARIES=1')
-            scons_options.append('BF_CYCLES_CUDA_NVCC=nvcc.exe')
-        scons_options.append('BF_NUMJOBS=1')
-
-    elif builder.find('mac') != -1:
+    if builder.find('mac') != -1:
         if builder.find('x86_64') != -1:
             config = 'user-config-mac-x86_64.py'
         else:
             config = 'user-config-mac-i386.py'
 
         scons_options.append('BF_CONFIG=' + os.path.join(config_dir, config))
-
-    if builder.find('win') != -1:
-        if not os.path.exists(install_dir):
-            os.makedirs(install_dir)
-        if builder.endswith('vc2013'):
-            dlls = ('msvcp120.dll', 'msvcr120.dll', 'vcomp120.dll')
-        if builder.find('win64') == -1:
-            dlls_path = '..\\..\\..\\redist\\x86'
-        else:
-            dlls_path = '..\\..\\..\\redist\\amd64'
-        for dll in dlls:
-            shutil.copyfile(os.path.join(dlls_path, dll), os.path.join(install_dir, dll))
 
     retcode = subprocess.call([python_bin, 'scons/scons.py'] + scons_options)
 
