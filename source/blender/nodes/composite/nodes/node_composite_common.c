@@ -51,6 +51,7 @@ void register_node_type_cmp_group(void)
 	ntype.type = NODE_GROUP;
 	ntype.poll = cmp_node_poll_default;
 	ntype.poll_instance = node_group_poll_instance;
+	ntype.insert_link = node_insert_link_default;
 	ntype.update_internal_links = node_update_internal_links_default;
 	ntype.ext.srna = RNA_struct_find("CompositorNodeGroup");
 	BLI_assert(ntype.ext.srna != NULL);

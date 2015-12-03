@@ -206,6 +206,8 @@ typedef struct bNodeType {
 	/* can this node be added to a node tree */
 	int (*poll_instance)(struct bNode *node, struct bNodeTree *nodetree);
 	
+	/* optional handling of link insertion */
+	void (*insert_link)(struct bNodeTree *ntree, struct bNode *node, struct bNodeLink *link);
 	/* Update the internal links list, for muting and disconnect operators. */
 	void (*update_internal_links)(struct bNodeTree *, struct bNode *node);
 	

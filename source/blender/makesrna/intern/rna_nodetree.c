@@ -1182,6 +1182,24 @@ static void rna_Node_update_reg(bNodeTree *ntree, bNode *node)
 	RNA_parameter_list_free(&list);
 }
 
+static void rna_Node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
+{
+	extern FunctionRNA rna_Node_insert_link_func;
+
+	PointerRNA ptr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create((ID *)ntree, node->typeinfo->ext.srna, node, &ptr);
+	func = &rna_Node_insert_link_func;
+
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "link", &link);
+	node->typeinfo->ext.call(NULL, &ptr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
+
 static void rna_Node_init(const bContext *C, PointerRNA *ptr)
 {
 	extern FunctionRNA rna_Node_init_func;
@@ -1384,12 +1402,13 @@ static bNodeType *rna_Node_register_base(Main *bmain, ReportList *reports, Struc
 	nt->poll = (have_function[0]) ? rna_Node_poll : NULL;
 	nt->poll_instance = (have_function[1]) ? rna_Node_poll_instance : rna_Node_poll_instance_default;
 	nt->updatefunc = (have_function[2]) ? rna_Node_update_reg : NULL;
-	nt->initfunc_api = (have_function[3]) ? rna_Node_init : NULL;
-	nt->copyfunc_api = (have_function[4]) ? rna_Node_copy : NULL;
-	nt->freefunc_api = (have_function[5]) ? rna_Node_free : NULL;
-	nt->draw_buttons = (have_function[6]) ? rna_Node_draw_buttons : NULL;
-	nt->draw_buttons_ex = (have_function[7]) ? rna_Node_draw_buttons_ext : NULL;
-	nt->labelfunc = (have_function[8]) ? rna_Node_draw_label : NULL;
+	nt->insert_link = (have_function[3]) ? rna_Node_insert_link : NULL;
+	nt->initfunc_api = (have_function[4]) ? rna_Node_init : NULL;
+	nt->copyfunc_api = (have_function[5]) ? rna_Node_copy : NULL;
+	nt->freefunc_api = (have_function[6]) ? rna_Node_free : NULL;
+	nt->draw_buttons = (have_function[7]) ? rna_Node_draw_buttons : NULL;
+	nt->draw_buttons_ex = (have_function[8]) ? rna_Node_draw_buttons_ext : NULL;
+	nt->labelfunc = (have_function[9]) ? rna_Node_draw_label : NULL;
 	
 	/* sanitize size values in case not all have been registered */
 	if (nt->maxwidth < nt->minwidth)
@@ -7705,6 +7724,13 @@ static void rna_def_node(BlenderRNA *brna)
 	func = RNA_def_function(srna, "update", NULL);
 	RNA_def_function_ui_description(func, "Update on editor changes");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
+	
+	/* insert_link */
+	func = RNA_def_function(srna, "insert_link", NULL);
+	RNA_def_function_ui_description(func, "Handle creation of a link to or from the node");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_REGISTER_OPTIONAL);
+	parm = RNA_def_pointer(func, "link", "NodeLink", "Link", "Node link that will be inserted");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	
 	/* init */
 	func = RNA_def_function(srna, "init", NULL);

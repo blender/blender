@@ -29,8 +29,6 @@
  *  \ingroup spnode
  */
 
-#include <ctype.h>
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_node_types.h"
@@ -420,7 +418,6 @@ static void node_link_update_header(bContext *C, bNodeLinkDrag *UNUSED(nldrag))
 #undef HEADER_LENGTH
 }
 
-/* update link_count fields to avoid repeated link counting */
 static int node_count_links(bNodeTree *ntree, bNodeSocket *sock)
 {
 	bNodeLink *link;
@@ -434,64 +431,13 @@ static int node_count_links(bNodeTree *ntree, bNodeSocket *sock)
 	return count;
 }
 
-/* test if two sockets are interchangeable
- * XXX this could be made into a tree-type callback for flexibility
- */
-static bool node_link_socket_match(bNodeSocket *a, bNodeSocket *b)
-{
-	/* tests if alphabetic prefix matches
-	 * this allows for imperfect matches, such as numeric suffixes,
-	 * like Color1/Color2
-	 */
-	int prefix_len = 0;
-	char *ca = a->name, *cb = b->name;
-	for (; *ca != '\0' && *cb != '\0'; ++ca, ++cb) {
-		/* end of common prefix? */
-		if (*ca != *cb) {
-			/* prefix delimited by non-alphabetic char */
-			if (isalpha(*ca) || isalpha(*cb))
-				return false;
-			break;
-		}
-		++prefix_len;
-	}
-	return prefix_len > 0;
-}
-
-/* find an eligible socket for linking */
-static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree, bNode *node, bNodeSocket *cur, bool use_swap)
-{
-	int cur_link_count = node_count_links(ntree, cur);
-	if (cur_link_count <= cur->limit) {
-		/* current socket is fine, use it */
-		return cur;
-	}
-	else if (use_swap) {
-		/* link swapping: try to find a free slot with a matching name */
-		
-		bNodeSocket *first = cur->in_out == SOCK_IN ? node->inputs.first : node->outputs.first;
-		bNodeSocket *sock;
-		
-		sock = cur->next ? cur->next : first; /* wrap around the list end */
-		while (sock != cur) {
-			if (!nodeSocketIsHidden(sock) && node_link_socket_match(sock, cur)) {
-				int link_count = node_count_links(ntree, sock);
-				/* take +1 into account since we would add a new link */
-				if (link_count + 1 <= sock->limit)
-					return sock; /* found a valid free socket we can swap to */
-			}
-			
-			sock = sock->next ? sock->next : first; /* wrap around the list end */
-		}
-	}
-	return NULL;
-}
-
-static void node_remove_extra_links(SpaceNode *snode, bNodeLink *link, bool use_swap)
+static void node_remove_extra_links(SpaceNode *snode, bNodeLink *link)
 {
 	bNodeTree *ntree = snode->edittree;
 	bNodeSocket *from = link->fromsock, *to = link->tosock;
 	bNodeLink *tlink, *tlink_next;
+	int to_count = node_count_links(ntree, to);
+	int from_count = node_count_links(ntree, from);
 	
 	for (tlink = ntree->links.first; tlink; tlink = tlink_next) {
 		tlink_next = tlink->next;
@@ -499,28 +445,18 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeLink *link, bool use_
 			continue;
 		
 		if (tlink && tlink->fromsock == from) {
-			bNodeSocket *new_from = node_find_linkable_socket(ntree, tlink->fromnode, from, use_swap);
-			if (new_from && new_from != from) {
-				/* redirect existing link */
-				tlink->fromsock = new_from;
-			}
-			else if (!new_from) {
-				/* no possible replacement, remove tlink */
+			if (from_count > from->limit) {
 				nodeRemLink(ntree, tlink);
 				tlink = NULL;
+				--from_count;
 			}
 		}
 		
 		if (tlink && tlink->tosock == to) {
-			bNodeSocket *new_to = node_find_linkable_socket(ntree, tlink->tonode, to, use_swap);
-			if (new_to && new_to != to) {
-				/* redirect existing link */
-				tlink->tosock = new_to;
-			}
-			else if (!new_to) {
-				/* no possible replacement, remove tlink */
+			if (to_count > to->limit) {
 				nodeRemLink(ntree, tlink);
 				tlink = NULL;
+				--to_count;
 			}
 		}
 	}
@@ -537,6 +473,14 @@ static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
 		bNodeLink *link = linkdata->data;
 		
 		if (apply_links && link->tosock && link->fromsock) {
+			/* before actually adding the link,
+			 * let nodes perform special link insertion handling
+			 */
+			if (link->fromnode->typeinfo->insert_link)
+				link->fromnode->typeinfo->insert_link(ntree, link->fromnode, link);
+			if (link->tonode->typeinfo->insert_link)
+				link->tonode->typeinfo->insert_link(ntree, link->tonode, link);
+			
 			/* add link to the node tree */
 			BLI_addtail(&ntree->links, link);
 			
@@ -546,7 +490,7 @@ static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
 			link->tonode->update |= NODE_UPDATE;
 			
 			/* we might need to remove a link */
-			node_remove_extra_links(snode, link, true);
+			node_remove_extra_links(snode, link);
 		}
 		else
 			nodeRemLink(ntree, link);
@@ -1746,7 +1690,7 @@ void ED_node_link_insert(ScrArea *sa)
 			
 			link->tonode = select;
 			link->tosock = best_input;
-			node_remove_extra_links(snode, link, false);
+			node_remove_extra_links(snode, link);
 			link->flag &= ~NODE_LINKFLAG_HILITE;
 			
 			nodeAddLink(snode->edittree, select, best_output, node, sockto);

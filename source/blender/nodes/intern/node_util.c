@@ -29,6 +29,7 @@
  *  \ingroup nodes
  */
 
+#include <ctype.h>
 #include <limits.h>
 #include <string.h>
 
@@ -109,6 +110,95 @@ void node_filter_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int m
 	const char *name;
 	RNA_enum_name(rna_enum_node_filter_items, node->custom1, &name);
 	BLI_strncpy(label, IFACE_(name), maxlen);
+}
+
+
+/*** Link Insertion ***/
+
+/* test if two sockets are interchangeable */
+static bool node_link_socket_match(bNodeSocket *a, bNodeSocket *b)
+{
+	/* tests if alphabetic prefix matches
+	 * this allows for imperfect matches, such as numeric suffixes,
+	 * like Color1/Color2
+	 */
+	int prefix_len = 0;
+	char *ca = a->name, *cb = b->name;
+	for (; *ca != '\0' && *cb != '\0'; ++ca, ++cb) {
+		/* end of common prefix? */
+		if (*ca != *cb) {
+			/* prefix delimited by non-alphabetic char */
+			if (isalpha(*ca) || isalpha(*cb))
+				return false;
+			break;
+		}
+		++prefix_len;
+	}
+	return prefix_len > 0;
+}
+
+static int node_count_links(bNodeTree *ntree, bNodeSocket *sock)
+{
+	bNodeLink *link;
+	int count = 0;
+	for (link = ntree->links.first; link; link = link->next) {
+		if (link->fromsock == sock)
+			++count;
+		if (link->tosock == sock)
+			++count;
+	}
+	return count;
+}
+
+/* find an eligible socket for linking */
+static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree, bNode *node, bNodeSocket *cur)
+{
+	/* link swapping: try to find a free slot with a matching name */
+	
+	bNodeSocket *first = cur->in_out == SOCK_IN ? node->inputs.first : node->outputs.first;
+	bNodeSocket *sock;
+	
+	sock = cur->next ? cur->next : first; /* wrap around the list end */
+	while (sock != cur) {
+		if (!nodeSocketIsHidden(sock) && node_link_socket_match(sock, cur)) {
+			int link_count = node_count_links(ntree, sock);
+			/* take +1 into account since we would add a new link */
+			if (link_count + 1 <= sock->limit)
+				return sock; /* found a valid free socket we can swap to */
+		}
+		
+		sock = sock->next ? sock->next : first; /* wrap around the list end */
+	}
+	return NULL;
+}
+
+void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
+{
+	bNodeSocket *sock = link->tosock;
+	bNodeLink *tlink, *tlink_next;
+	
+	/* inputs can have one link only, outputs can have unlimited links */
+	if (node != link->tonode)
+		return;
+	
+	for (tlink = ntree->links.first; tlink; tlink = tlink_next) {
+		bNodeSocket *new_sock;
+		tlink_next = tlink->next;
+		
+		if (sock != tlink->tosock)
+			continue;
+		
+		new_sock = node_find_linkable_socket(ntree, node, sock);
+		if (new_sock && new_sock != sock) {
+			/* redirect existing link */
+			tlink->tosock = new_sock;
+		}
+		else if (!new_sock) {
+			/* no possible replacement, remove tlink */
+			nodeRemLink(ntree, tlink);
+			tlink = NULL;
+		}
+	}
 }
 
 

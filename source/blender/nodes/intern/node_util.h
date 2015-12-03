@@ -76,6 +76,9 @@ void node_math_label(struct bNodeTree *ntree, struct bNode *node, char *label, i
 void node_vect_math_label(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
 void node_filter_label(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
 
+
+/*** Link Handling */
+void node_insert_link_default(struct bNodeTree *ntree, struct bNode *node, struct bNodeLink *link);
 void node_update_internal_links_default(struct bNodeTree *ntree, struct bNode *node);
 
 float node_socket_get_float(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *sock);

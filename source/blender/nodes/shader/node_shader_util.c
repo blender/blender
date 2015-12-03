@@ -47,6 +47,7 @@ void sh_node_type_base(struct bNodeType *ntype, int type, const char *name, shor
 	node_type_base(ntype, type, name, nclass, flag);
 	
 	ntype->poll = sh_node_poll_default;
+	ntype->insert_link = node_insert_link_default;
 	ntype->update_internal_links = node_update_internal_links_default;
 }
 
