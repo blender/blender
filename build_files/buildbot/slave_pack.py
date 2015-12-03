@@ -58,6 +58,11 @@ def parse_header_file(filename, define):
     return None
 
 
+# Make sure install directory always exists
+if not os.path.exists(install_dir):
+    os.makesirs(install_dir)
+
+
 # scons does own packaging
 if builder.find('scons') != -1:
     python_bin = 'python'
