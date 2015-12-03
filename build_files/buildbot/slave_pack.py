@@ -206,7 +206,6 @@ else:
         print("Stripping python...")
         py_target = os.path.join(install_dir, blender_version)
         subprocess.call(chroot_prefix + ['find', py_target, '-iname', '*.so', '-exec', 'strip', '-s', '{}', ';'])
-        sys.exit(0)
 
         # Copy all specific files which are too specific to be copied by
         # the CMake rules themselves
