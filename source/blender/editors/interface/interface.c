@@ -1046,6 +1046,10 @@ static bool ui_but_event_property_operator_string(const bContext *C, uiBut *but,
 						/* dopesheet filtering options... */
 						data_path = BLI_sprintfN("space_data.dopesheet.%s", RNA_property_identifier(but->rnaprop));
 					}
+					else if (RNA_struct_is_a(but->rnapoin.type, &RNA_FileSelectParams)) {
+						/* Filebrowser options... */
+						data_path = BLI_sprintfN("space_data.params.%s", RNA_property_identifier(but->rnaprop));
+					}
 				}
 			}
 			else if (GS(id->name) == ID_SCE) {
