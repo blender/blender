@@ -35,6 +35,10 @@ blender_dir = '../blender.git'
 if "cmake" in builder:
     # cmake
 
+    if "linux" in builder:
+        print("Automated tests are still DISABLED!")
+        sys.exit(0)
+
     build_dir = os.path.abspath(os.path.join('..', 'build', builder))
     chroot_name = None
     chroot_prefix = []
