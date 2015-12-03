@@ -2401,22 +2401,15 @@ bool isect_point_tri_v3(const float p[3], const float v1[3], const float v2[3], 
                         float r_vi[3])
 {
 	if (isect_point_tri_prism_v3(p, v1, v2, v3)) {
-		float no[3], n1[3], n2[3];
+		float plane[4];
+		float no[3];
 
 		/* Could use normal_tri_v3, but doesn't have to be unit-length */
-		sub_v3_v3v3(n1, v1, v2);
-		sub_v3_v3v3(n2, v2, v3);
-		cross_v3_v3v3(no, n1, n2);
+		cross_tri_v3(no, v1, v2, v3);
+		BLI_assert(len_squared_v3(no) != 0.0f);
 
-		if (LIKELY(len_squared_v3(no) != 0.0f)) {
-			float plane[4];
-			plane_from_point_normal_v3(plane, v1, no);
-			closest_to_plane_v3(r_vi, plane, p);
-		}
-		else {
-			/* degenerate */
-			copy_v3_v3(r_vi, p);
-		}
+		plane_from_point_normal_v3(plane, v1, no);
+		closest_to_plane_v3(r_vi, plane, p);
 
 		return true;
 	}
