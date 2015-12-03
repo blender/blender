@@ -64,6 +64,23 @@ if not os.path.exists(install_dir):
     os.makedirs(install_dir)
 
 
+def create_tar_bz2(src, dest, package_name):
+    # One extra to remove leading os.sep when cleaning root for package_root
+    ln = len(src) + 1
+    flist = list()
+
+    # Create list of tuples containing file and archive name
+    for root, dirs, files in os.walk(src):
+        package_root = os.path.join(package_name, root[ln:])
+        flist.extend([(os.path.join(root, file), os.path.join(package_root, file)) for file in files])
+
+    import tarfile
+    package = tarfile.open(dest, 'w:bz2')
+    for entry in flist:
+        package.add(entry[0], entry[1], recursive=False)
+    package.close()
+
+
 # scons does own packaging
 if builder.find('scons') != -1:
     python_bin = 'python'
@@ -222,16 +239,18 @@ else:
         os.system('chmod 755 %s' % (os.path.join(install_dir, 'blender-softwaregl')))
 
         # Construct archive name
-        upload_filename = 'blender-%s-%s-linux-%s-%s.tar.bz2' % (blender_version,
-                                                                 blender_hash,
-                                                                 blender_glibc,
-                                                                 blender_arch)
+        package_name = 'blender-%s-%s-linux-%s-%s' % (blender_version,
+                                                      blender_hash,
+                                                      blender_glibc,
+                                                      blender_arch)
         if branch != '':
-            upload_filename = branch + "-" + upload_filename
+            package_name = branch + "-" + package_name
+
+        upload_filename = package_name + ".tar.bz2"
 
         print("Creating .tar.bz2 archive")
-        os.system('tar -C../install -cjf ../install/%s.tar.bz2 %s' % (builder, builder))
         upload_filepath = install_dir + '.tar.bz2'
+        create_tar_bz2(install_dir, upload_filepath, package_name)
 
 
 if upload_filepath is None:
