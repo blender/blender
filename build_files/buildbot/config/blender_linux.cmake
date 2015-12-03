@@ -2,6 +2,10 @@
 
 include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/config/blender_full.cmake")
 
+# Default to only build Blender, not the player
+set(WITH_BLENDER             ON  CACHE BOOL "" FORCE)
+set(WITH_PLAYER              OFF CACHE BOOL "" FORCE)
+
 # ######## Linux-specific build options ########
 # Options which are specific to Linux-only platforms
 set(WITH_DOC_MANPAGE         OFF CACHE BOOL "" FORCE)
