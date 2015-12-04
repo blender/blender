@@ -7728,7 +7728,7 @@ static void rna_def_node(BlenderRNA *brna)
 	/* insert_link */
 	func = RNA_def_function(srna, "insert_link", NULL);
 	RNA_def_function_ui_description(func, "Handle creation of a link to or from the node");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "link", "NodeLink", "Link", "Node link that will be inserted");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	
