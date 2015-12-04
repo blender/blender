@@ -262,7 +262,9 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
 		for (x = 0; x < xtot; x++) {
 			vec[0] = ((x * xtot_inv2) - 1.0f) * dia;
 			mul_v3_m4v3(tvec, mat, vec);
-			varr[i++] = BM_vert_create(bm, tvec, NULL, BM_CREATE_NOP);
+			varr[i] = BM_vert_create(bm, tvec, NULL, BM_CREATE_NOP);
+			BMO_elem_flag_enable(bm, varr[i], VERT_MARK);
+			i++;
 		}
 	}
 
