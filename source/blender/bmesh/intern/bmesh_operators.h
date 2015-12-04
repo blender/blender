@@ -141,6 +141,14 @@ void BM_mesh_esubdivide(
         const short use_only_quads,
         const int seed);
 
+void BM_mesh_calc_uvs_grid(BMesh *bm, const unsigned int x_segments, const unsigned int y_segments, const short oflag);
+void BM_mesh_calc_uvs_sphere(BMesh *bm, const short oflag);
+void BM_mesh_calc_uvs_circle(BMesh *bm, float mat[4][4], const float radius, const short oflag);
+void BM_mesh_calc_uvs_cone(
+        BMesh *bm, float mat[4][4],
+        const float radius_top, const float radius_bottom, const int segments, const bool cap_ends, const short oflag);
+void BM_mesh_calc_uvs_cube(BMesh *bm, const short oflag);
+
 #include "intern/bmesh_operator_api_inline.h"
 
 #endif /* __BMESH_OPERATORS_H__ */

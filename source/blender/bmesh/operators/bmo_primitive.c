@@ -30,6 +30,10 @@
 
 #include "BLI_math.h"
 
+#include "BKE_customdata.h"
+
+#include "DNA_meshdata_types.h"
+
 #include "bmesh.h"
 #include "intern/bmesh_operators_private.h"
 
@@ -235,6 +239,7 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
 	const unsigned int ytot = max_ii(2, BMO_slot_int_get(op->slots_in, "y_segments"));
 	const float xtot_inv2 = 2.0f / (xtot - 1);
 	const float ytot_inv2 = 2.0f / (ytot - 1);
+	const bool calc_uvs = BMO_slot_bool_get(op->slots_in, "calc_uvs");
 
 	BMVert **varr;
 	BMVert *vquad[4];
@@ -265,17 +270,86 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
 
 	for (y = 1; y < ytot; y++) {
 		for (x = 1; x < xtot; x++) {
+			BMFace *f;
+
 			vquad[0] = varr[XY(x - 1, y - 1)];
 			vquad[1] = varr[XY(x,     y - 1)];
 			vquad[2] = varr[XY(x,         y)];
 			vquad[3] = varr[XY(x - 1,     y)];
 
-			BM_face_create_verts(bm, vquad, 4, NULL, BM_CREATE_NOP, true);
+			f = BM_face_create_verts(bm, vquad, 4, NULL, BM_CREATE_NOP, true);
+			if (calc_uvs) {
+				BMO_elem_flag_enable(bm, f, FACE_MARK);
+			}
 		}
 	}
 
 #undef XY
 
+	if (calc_uvs) {
+		BM_mesh_calc_uvs_grid(bm, xtot, ytot, FACE_MARK);
+	}
+}
+
+/**
+ * Fills first available UVmap with grid-like UVs for all faces OpFlag-ged by given flag.
+ *
+ * \param bm The BMesh to operate on
+ * \param x_segments The x-resolution of the grid
+ * \param y_segments The y-resolution of the grid
+ * \param oflag The flag to check faces with.
+ */
+void BM_mesh_calc_uvs_grid(BMesh *bm, const unsigned int x_segments, const unsigned int y_segments, const short oflag)
+{
+	BMFace *f;
+	BMLoop *l;
+	BMIter iter, liter;
+
+	const float dx = 1.0f / (float)(x_segments - 1);
+	const float dy = 1.0f / (float)(y_segments - 1);
+	float x = 0.0f;
+	float y = 0.0f;
+
+	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+
+	int loop_index;
+
+	BLI_assert(cd_loop_uv_offset != -1);
+
+	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+		if (!BMO_elem_flag_test(bm, f, oflag))
+			continue;
+
+		BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, loop_index) {
+			MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+
+			switch (loop_index) {
+				case 0:
+					x += dx;
+					break;
+				case 1:
+					y += dy;
+					break;
+				case 2:
+					x -= dx;
+					break;
+				case 3:
+					y -= dy;
+					break;
+				default:
+					break;
+			}
+
+			luv->uv[0] = x;
+			luv->uv[1] = y;
+		}
+
+		x += dx;
+		if (x >= 1.0f) {
+			x = 0.0f;
+			y += dy;
+		}
+	}
 }
 
 void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
@@ -283,6 +357,7 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 	const float dia = BMO_slot_float_get(op->slots_in, "diameter");
 	const int seg = BMO_slot_int_get(op->slots_in, "u_segments");
 	const int tot = BMO_slot_int_get(op->slots_in, "v_segments");
+	const bool calc_uvs = BMO_slot_bool_get(op->slots_in, "calc_uvs");
 
 	BMOperator bmop, prevop;
 	BMVert *eve, *preveve;
@@ -358,6 +433,31 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 		BMO_op_callf(bm, op->flag, "remove_doubles verts=%fv dist=%f", VERT_MARK, min_ff(len, len2) / 3.0f);
 	}
 
+	if (calc_uvs) {
+		BMFace *f;
+		BMLoop *l;
+		BMIter fiter, liter;
+
+		/* We cannot tag faces for UVs computing above, so we have to do it now, based on all its vertices
+		 * being tagged. */
+		BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+			bool valid = true;
+
+			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+				if (!BMO_elem_flag_test(bm, l->v, VERT_MARK)) {
+					valid = false;
+					break;
+				}
+			}
+
+			if (valid) {
+				BMO_elem_flag_enable(bm, f, FACE_MARK);
+			}
+		}
+
+		BM_mesh_calc_uvs_sphere(bm, FACE_MARK);
+	}
+
 	/* and now do imat */
 	BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BMO_elem_flag_test(bm, eve, VERT_MARK)) {
@@ -373,6 +473,7 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 	const float dia = BMO_slot_float_get(op->slots_in, "diameter");
 	const float dia_div = dia / 200.0f;
 	const int subdiv = BMO_slot_int_get(op->slots_in, "subdivisions");
+	const bool calc_uvs = BMO_slot_bool_get(op->slots_in, "calc_uvs");
 
 	BMVert *eva[12];
 	BMVert *v;
@@ -431,6 +532,30 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		BMO_op_finish(bm, &bmop);
 	}
 
+	if (calc_uvs) {
+		BMFace *f;
+		BMIter fiter;
+
+		/* We cannot tag faces for UVs computing above, so we have to do it now, based on all its vertices
+		 * being tagged. */
+		BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+			bool valid = true;
+
+			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+				if (!BMO_elem_flag_test(bm, l->v, VERT_MARK)) {
+					valid = false;
+					break;
+				}
+			}
+
+			if (valid) {
+				BMO_elem_flag_enable(bm, f, FACE_MARK);
+			}
+		}
+
+		BM_mesh_calc_uvs_sphere(bm, FACE_MARK);
+	}
+
 	/* must transform after because of sphere subdivision */
 	BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
 		if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
@@ -439,6 +564,75 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);
+}
+
+static void bm_mesh_calc_uvs_sphere_face(BMFace *f, float mat_rot[3][3], const int cd_loop_uv_offset)
+{
+	float *uvs[4];
+	BMLoop *l;
+	BMIter iter;
+	float dx;
+	int loop_index, loop_index_max_x;
+
+	BLI_assert(f->len <= 4);
+
+	BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, loop_index) {
+		MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+		float vco[3];
+
+		mul_v3_m3v3(vco, mat_rot, l->v->co);
+		map_to_sphere(&luv->uv[0], &luv->uv[1], vco[0], vco[1], vco[2]);
+
+		uvs[loop_index] = luv->uv;
+	}
+
+	/* Fix awkwardly-wrapping UVs */
+	loop_index_max_x = 0;
+	for (loop_index = 1; loop_index < f->len; loop_index++) {
+		if (uvs[loop_index][0] > uvs[loop_index_max_x][0]) {
+			loop_index_max_x = loop_index;
+		}
+	}
+
+	for (loop_index = 0; loop_index < f->len; loop_index++) {
+		if (loop_index != loop_index_max_x) {
+			dx = uvs[loop_index_max_x][0] - uvs[loop_index][0];
+			if (dx > 0.5f) {
+				uvs[loop_index][0] += 1.0f;
+			}
+		}
+	}
+}
+
+/**
+ * Fills first available UVmap with spherical projected UVs for all faces OpFlag-ged by given flag.
+ *
+ * \param bm The BMesh to operate on
+ * \param oflag The flag to check faces with.
+ */
+void BM_mesh_calc_uvs_sphere(BMesh *bm, const short oflag)
+{
+	BMFace *f;
+	BMIter iter;
+
+	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+
+	/* We apply a 'magic' rotationto vcos before mapping them to sphere,
+	 * those values seem to give best results for both ico and uv sphere projections. */
+	float mat_rot[3][3];
+	const float axis[3] = {0.806f, 0.329f, 0.491f};
+	const float angle = DEG2RADF(120.0f);
+
+	axis_angle_to_mat3(mat_rot, axis, angle);
+
+	BLI_assert(cd_loop_uv_offset != -1); /* caller is responsible for giving us UVs */
+
+	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+		if (!BMO_elem_flag_test(bm, f, oflag))
+			continue;
+
+		bm_mesh_calc_uvs_sphere_face(f, mat_rot, cd_loop_uv_offset);
+	}
 }
 
 void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
@@ -498,6 +692,7 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 	const int segs = BMO_slot_int_get(op->slots_in, "segments");
 	const bool cap_ends = BMO_slot_bool_get(op->slots_in, "cap_ends");
 	const bool cap_tris = BMO_slot_bool_get(op->slots_in, "cap_tris");
+	const bool calc_uvs = BMO_slot_bool_get(op->slots_in, "calc_uvs");
 
 	BMVert *v1, *lastv1 = NULL, *cent1, *firstv1 = NULL;
 	float vec[3], mat[4][4], phi, phid;
@@ -555,6 +750,10 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 		
 		f = BM_face_create_quad_tri(bm, cent1, v1, firstv1, NULL, NULL, BM_CREATE_NOP);
 		BMO_elem_flag_enable(bm, f, FACE_NEW);
+
+		if (calc_uvs) {
+			BM_mesh_calc_uvs_circle(bm, mat, dia, FACE_NEW);
+		}
 	}
 	
 	if (!cap_tris) {
@@ -564,9 +763,54 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);
 }
 
+/**
+ * Fills first available UVmap with 2D projected UVs for all faces OpFlag-ged by given flag.
+ *
+ * \param bm The BMesh to operate on.
+ * \param mat The transform matrix applied to the created circle.
+ * \param radius The size of the circle.
+ * \param oflag The flag to check faces with.
+ */
+void BM_mesh_calc_uvs_circle(BMesh *bm, float mat[4][4], const float radius, const short oflag)
+{
+	BMFace *f;
+	BMLoop *l;
+	BMIter fiter, liter;
+
+	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+
+	const float uv_scale = 0.5f / radius;
+	const float uv_center = 0.5f;
+
+	float inv_mat[4][4];
+
+	BLI_assert(cd_loop_uv_offset != -1);  /* caller must ensure we have UVs already */
+
+	invert_m4_m4(inv_mat, mat);
+
+	BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+		if (!BMO_elem_flag_test(bm, f, oflag))
+			continue;
+
+		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+			MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+
+			float uv_vco[3];
+			copy_v3_v3(uv_vco, l->v->co);
+			/* transform back into the unit circle flat on the Z-axis */
+			mul_m4_v3(inv_mat, uv_vco);
+
+			/* then just take those coords for UVs */
+			luv->uv[0] = uv_center + uv_scale * uv_vco[0];
+			luv->uv[1] = uv_center + uv_scale * uv_vco[1];
+		}
+	}
+}
+
 void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 {
 	BMVert *v1, *v2, *lastv1 = NULL, *lastv2 = NULL, *cent1, *cent2, *firstv1, *firstv2;
+	BMFace *f;
 	float vec[3], mat[4][4], phi, phid;
 	float dia1 = BMO_slot_float_get(op->slots_in, "diameter1");
 	float dia2 = BMO_slot_float_get(op->slots_in, "diameter2");
@@ -574,6 +818,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 	int segs = BMO_slot_int_get(op->slots_in, "segments");
 	const bool cap_ends = BMO_slot_bool_get(op->slots_in, "cap_ends");
 	const bool cap_tris = BMO_slot_bool_get(op->slots_in, "cap_tris");
+	const bool calc_uvs = BMO_slot_bool_get(op->slots_in, "calc_uvs");
 	int a;
 	
 	if (!segs)
@@ -620,14 +865,23 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 
 		if (a) {
 			if (cap_ends) {
-				BMFace *f;
-				
 				f = BM_face_create_quad_tri(bm, cent1, lastv1, v1, NULL, NULL, BM_CREATE_NOP);
+				if (calc_uvs) {
+					BMO_elem_flag_enable(bm, f, FACE_MARK);
+				}
 				BMO_elem_flag_enable(bm, f, FACE_NEW);
+
 				f = BM_face_create_quad_tri(bm, cent2, v2, lastv2, NULL, NULL, BM_CREATE_NOP);
+				if (calc_uvs) {
+					BMO_elem_flag_enable(bm, f, FACE_MARK);
+				}
 				BMO_elem_flag_enable(bm, f, FACE_NEW);
 			}
-			BM_face_create_quad_tri(bm, lastv1, lastv2, v2, v1, NULL, BM_CREATE_NOP);
+
+			f = BM_face_create_quad_tri(bm, lastv1, lastv2, v2, v1, NULL, BM_CREATE_NOP);
+			if (calc_uvs) {
+				BMO_elem_flag_enable(bm, f, FACE_MARK);
+			}
 		}
 		else {
 			firstv1 = v1;
@@ -642,22 +896,141 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 		return;
 
 	if (cap_ends) {
-		BMFace *f;
-		
 		f = BM_face_create_quad_tri(bm, cent1, v1, firstv1, NULL, NULL, BM_CREATE_NOP);
+		if (calc_uvs) {
+			BMO_elem_flag_enable(bm, f, FACE_MARK);
+		}
 		BMO_elem_flag_enable(bm, f, FACE_NEW);
+
 		f = BM_face_create_quad_tri(bm, cent2, firstv2, v2, NULL, NULL, BM_CREATE_NOP);
+		if (calc_uvs) {
+			BMO_elem_flag_enable(bm, f, FACE_MARK);
+		}
 		BMO_elem_flag_enable(bm, f, FACE_NEW);
 	}
-	
+
+	f = BM_face_create_quad_tri(bm, v1, v2, firstv2, firstv1, NULL, BM_CREATE_NOP);
+	if (calc_uvs) {
+		BMO_elem_flag_enable(bm, f, FACE_MARK);
+	}
+
+	if (calc_uvs) {
+		BM_mesh_calc_uvs_cone(bm, mat, dia2, dia1, segs, cap_ends, FACE_MARK);
+	}
+
 	if (!cap_tris) {
 		BMO_op_callf(bm, op->flag, "dissolve_faces faces=%ff", FACE_NEW);
 	}
 	
-	BM_face_create_quad_tri(bm, v1, v2, firstv2, firstv1, NULL, BM_CREATE_NOP);
-
 	BMO_op_callf(bm, op->flag, "remove_doubles verts=%fv dist=%f", VERT_MARK, 0.000001);
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);
+}
+
+/**
+ * Fills first available UVmap with cylinder/cone-like UVs for all faces OpFlag-ged by given flag.
+ *
+ * \param bm The BMesh to operate on.
+ * \param mat The transform matrix applied to the created cone/cylinder.
+ * \param radius_top The size of the top end of the cone/cylynder.
+ * \param radius_bottom The size of the bottom end of the cone/cylynder.
+ * \param segments The number of subdivisions in the sides of the cone/cylinder.
+ * \param cap_ends Whether the ends of the cone/cylinder are filled or not.
+ * \param oflag The flag to check faces with.
+ */
+void BM_mesh_calc_uvs_cone(
+        BMesh *bm, float mat[4][4],
+        const float radius_top, const float radius_bottom, const int segments, const bool cap_ends, const short oflag)
+{
+	BMFace *f;
+	BMLoop *l;
+	BMIter fiter, liter;
+	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+
+	const float uv_width = 1.0f / (float)segments;
+	const float uv_height = cap_ends ? 0.5f : 1.0f;
+
+	/* Note that all this allows us to handle all cases (real cone, truncated cone, with or without ends capped)
+	 * with a single common code. */
+	const float uv_center_y = cap_ends ? 0.25f : 0.5f;
+	const float uv_center_x_top = cap_ends ? 0.25f : 0.5f;
+	const float uv_center_x_bottom = cap_ends ? 0.75f : 0.5f;
+	const float uv_radius = cap_ends ? 0.24f : 0.5f;
+
+	/* Using the opposite's end uv_scale as fallback allows us to handle 'real cone' case. */
+	const float uv_scale_top = (radius_top != 0.0f) ? (uv_radius / radius_top) :
+	                                                  ((radius_bottom != 0.0f) ? (uv_radius / radius_bottom) : uv_radius);
+	const float uv_scale_bottom = (radius_bottom != 0.0f) ? (uv_radius / radius_bottom) :
+	                                                        uv_scale_top;
+
+	float local_up[3] = {0.0f, 0.0f, 1.0f};
+
+	float x, y;
+	float inv_mat[4][4];
+	int loop_index;
+
+	mul_mat3_m4_v3(mat, local_up);  /* transform the upvector like we did the cone itself, without location. */
+	normalize_v3(local_up);  /* remove global scaling... */
+
+	invert_m4_m4(inv_mat, mat);
+
+	BLI_assert(cd_loop_uv_offset != -1); /* caller is responsible for ensuring the mesh has UVs */
+
+	x = 0.0f;
+	y = 1.0f - uv_height;
+
+	BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+		if (!BMO_elem_flag_test(bm, f, oflag))
+			continue;
+
+		if (f->len == 4 && radius_top && radius_bottom) {
+			/* side face - so unwrap it in a rectangle */
+			BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, loop_index) {
+				MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+
+				switch (loop_index) {
+					case 0:
+						x += uv_width;
+						break;
+					case 1:
+						y += uv_height;
+						break;
+					case 2:
+						x -= uv_width;
+						break;
+					case 3:
+						y -= uv_height;
+						break;
+					default:
+						break;
+				}
+
+				luv->uv[0] = x;
+				luv->uv[1] = y;
+			}
+
+			x += uv_width;
+		}
+		else {
+			/* top or bottom face - so unwrap it by transforming back to a circle and using the X/Y coords */
+			BM_face_normal_update(f);
+
+			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+				MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+				float uv_vco[3];
+
+				mul_v3_m4v3(uv_vco, inv_mat, l->v->co);
+
+				if (dot_v3v3(f->no, local_up) > 0.0f) { /* if this is a top face of the cone */
+					luv->uv[0] = uv_center_x_top + uv_vco[0] * uv_scale_top;
+					luv->uv[1] = uv_center_y + uv_vco[1] * uv_scale_top;
+				}
+				else {
+					luv->uv[0] = uv_center_x_bottom + uv_vco[0] * uv_scale_bottom;
+					luv->uv[1] = uv_center_y + uv_vco[1] * uv_scale_bottom;
+				}
+			}
+		}
+	}
 }
 
 void bmo_create_cube_exec(BMesh *bm, BMOperator *op)
@@ -665,6 +1038,7 @@ void bmo_create_cube_exec(BMesh *bm, BMOperator *op)
 	BMVert *verts[8];
 	float mat[4][4];
 	float off = BMO_slot_float_get(op->slots_in, "size") / 2.0f;
+	const bool calc_uvs = BMO_slot_bool_get(op->slots_in, "calc_uvs");
 	int i, x, y, z;
 	const char faces[6][4] = {
 		{1, 3, 2, 0},
@@ -693,6 +1067,7 @@ void bmo_create_cube_exec(BMesh *bm, BMOperator *op)
 	}
 
 	for (i = 0; i < ARRAY_SIZE(faces); i++) {
+		BMFace *f;
 		BMVert *quad[4] = {
 		    verts[faces[i][0]],
 		    verts[faces[i][1]],
@@ -700,8 +1075,82 @@ void bmo_create_cube_exec(BMesh *bm, BMOperator *op)
 		    verts[faces[i][3]],
 		};
 
-		BM_face_create_verts(bm, quad, 4, NULL, BM_CREATE_NOP, true);
+		f = BM_face_create_verts(bm, quad, 4, NULL, BM_CREATE_NOP, true);
+		if (calc_uvs) {
+			BMO_elem_flag_enable(bm, f, FACE_MARK);
+		}
+	}
+
+	if (calc_uvs) {
+		BM_mesh_calc_uvs_cube(bm, FACE_MARK);
 	}
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);
+}
+
+/**
+ * Fills first available UVmap with cube-like UVs for all faces OpFlag-ged by given flag.
+ *
+ * \note Expects tagged faces to be six quads...
+ *
+ * \param bm The BMesh to operate on.
+ * \param oflag The flag to check faces with.
+ */
+void BM_mesh_calc_uvs_cube(BMesh *bm, const short oflag)
+{
+	BMFace *f;
+	BMLoop *l;
+	BMIter fiter, liter;
+	const float width = 0.25f;
+
+	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+
+	float x = 0.375f;
+	float y = 0.0f;
+
+	int loop_index;
+
+	BLI_assert(cd_loop_uv_offset != -1); /* the caller can ensure that we have UVs */
+
+	BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+		if (!BMO_elem_flag_test(bm, f, oflag)) {
+			continue;
+		}
+
+		BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, loop_index) {
+			MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+
+			luv->uv[0] = x;
+			luv->uv[1] = y;
+
+			switch (loop_index) {
+				case 0:
+					x += width;
+					break;
+				case 1:
+					y += width;
+					break;
+				case 2:
+					x -= width;
+					break;
+				case 3:
+					y -= width;
+					break;
+				default:
+					break;
+			}
+		}
+
+		if (y >= 0.75f && x > 0.125f) {
+			x = 0.125f;
+			y = 0.5f;
+		}
+		else if (x <= 0.125f) {
+			x = 0.625f;
+			y = 0.5f;
+		}
+		else {
+			y += 0.25f;
+		}
+	}
 }

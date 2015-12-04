@@ -290,6 +290,11 @@ void ED_object_add_generic_props(wmOperatorType *ot, bool do_editmode)
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
+void ED_object_add_mesh_props(wmOperatorType *ot)
+{
+	RNA_def_boolean(ot->srna, "calc_uvs", false, "Generate UVs", "Generate a default UV map");
+}
+
 bool ED_object_add_generic_get_opts(bContext *C, wmOperator *op, const char view_align_axis,
                                     float loc[3], float rot[3],
                                     bool *enter_editmode, unsigned int *layer, bool *is_view_aligned)
