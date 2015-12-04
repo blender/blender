@@ -220,8 +220,13 @@ static ShaderNode *add_node(Scene *scene,
 	/* existing blender nodes */
 	if(b_node.is_a(&RNA_ShaderNodeRGBCurve)) {
 		BL::ShaderNodeRGBCurve b_curve_node(b_node);
+		BL::CurveMapping mapping(b_curve_node.mapping());
 		RGBCurvesNode *curves = new RGBCurvesNode();
-		curvemapping_color_to_array(b_curve_node.mapping(), curves->curves, RAMP_TABLE_SIZE, true);
+		curvemapping_color_to_array(mapping,
+		                            curves->curves,
+		                            RAMP_TABLE_SIZE,
+		                            true);
+		curvemapping_minmax(mapping, true, &curves->min_x, &curves->max_x);
 		node = curves;
 	}
 	if(b_node.is_a(&RNA_ShaderNodeVectorCurve)) {
