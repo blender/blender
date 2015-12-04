@@ -469,6 +469,8 @@ static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
 	bNodeLinkDrag *nldrag = op->customdata;
 	LinkData *linkdata;
 	
+	/* avoid updates while applying links */
+	ntree->is_updating = true;
 	for (linkdata = nldrag->links.first; linkdata; linkdata = linkdata->next) {
 		bNodeLink *link = linkdata->data;
 		
@@ -495,6 +497,7 @@ static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
 		else
 			nodeRemLink(ntree, link);
 	}
+	ntree->is_updating = false;
 	
 	ntreeUpdateTree(CTX_data_main(C), ntree);
 	snode_notify(C, snode);
