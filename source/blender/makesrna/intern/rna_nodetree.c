@@ -1349,7 +1349,7 @@ static bNodeType *rna_Node_register_base(Main *bmain, ReportList *reports, Struc
 	PointerRNA dummyptr;
 	FunctionRNA *func;
 	PropertyRNA *parm;
-	int have_function[9];
+	int have_function[10];
 
 	/* setup dummy node & node type to store static properties in */
 	memset(&dummynt, 0, sizeof(bNodeType));
