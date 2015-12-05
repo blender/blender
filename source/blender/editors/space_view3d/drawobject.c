@@ -89,7 +89,7 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_select.h"
-#include "GPU_simple_shader.h"
+#include "GPU_basic_shader.h"
 
 #include "ED_mesh.h"
 #include "ED_particle.h"
@@ -1800,8 +1800,8 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 	if (v3d->flag2 & V3D_RENDER_OVERRIDE)
 		return;
 
-	GPU_simple_shader_colors(NULL, NULL, 0, 1.0f);
-	GPU_simple_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
+	GPU_basic_shader_colors(NULL, NULL, 0, 1.0f);
+	GPU_basic_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
 
 	glShadeModel(GL_SMOOTH);
 
@@ -1815,7 +1815,7 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 
 	/* restore */
 	glShadeModel(GL_FLAT);
-	GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
+	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 
 	if ((dflag & DRAW_CONSTCOLOR) == 0) {
 		glColor3ubv(ob_wire_col);
@@ -4157,12 +4157,12 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				GPU_end_object_materials();
 
 				/* set default specular */
-				GPU_simple_shader_colors(NULL, specular, 35, 1.0f);
-				GPU_simple_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
+				GPU_basic_shader_colors(NULL, specular, 35, 1.0f);
+				GPU_basic_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
 
 				dm->drawMappedFaces(dm, NULL, NULL, NULL, NULL, DM_DRAW_USE_COLORS | DM_DRAW_NEED_NORMALS);
 
-				GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
+				GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 			}
 		}
 		else {
@@ -5462,8 +5462,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			}
 
 			// XXX test
-			GPU_simple_shader_colors(NULL, NULL, 0.0f, 1.0f);
-			GPU_simple_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
+			GPU_basic_shader_colors(NULL, NULL, 0.0f, 1.0f);
+			GPU_basic_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
 		}
 
 		if (totchild && (part->draw & PART_DRAW_PARENT) == 0)
@@ -5636,7 +5636,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		if (1) { //ob_dt > OB_WIRE) {
 			if (part->draw_col == PART_DRAW_COL_MAT)
 				glDisableClientState(GL_COLOR_ARRAY);
-			GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
+			GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 		}
 
 		if (cdata2) {
@@ -5697,8 +5697,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		if (pdd->ndata && ob_dt > OB_WIRE) {
 			glEnableClientState(GL_NORMAL_ARRAY);
 			glNormalPointer(GL_FLOAT, 0, pdd->ndata);
-			GPU_simple_shader_colors(NULL, NULL, 0.0f, 1.0f);
-			GPU_simple_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
+			GPU_basic_shader_colors(NULL, NULL, 0.0f, 1.0f);
+			GPU_basic_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
 		}
 
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
@@ -5730,7 +5730,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 /* 7. */
 	
-	GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
+	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);

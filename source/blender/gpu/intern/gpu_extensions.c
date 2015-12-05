@@ -49,7 +49,7 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_compositing.h"
-#include "GPU_simple_shader.h"
+#include "GPU_basic_shader.h"
 
 #include "intern/gpu_private.h"
 
@@ -256,12 +256,12 @@ void gpu_extensions_init(void)
 
 
 	GPU_invalid_tex_init();
-	GPU_simple_shaders_init();
+	GPU_basic_shaders_init();
 }
 
 void gpu_extensions_exit(void)
 {
-	GPU_simple_shaders_exit();
+	GPU_basic_shaders_exit();
 	GPU_invalid_tex_free();
 }
 

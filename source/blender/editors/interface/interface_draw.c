@@ -56,7 +56,7 @@
 #include "BLF_api.h"
 
 #include "GPU_draw.h"
-#include "GPU_simple_shader.h"
+#include "GPU_basic_shader.h"
 
 #include "UI_interface.h"
 
@@ -1238,13 +1238,13 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 	zero_v3(light.specular);
 	ui_but_v3_get(but, light.direction);
 
-	GPU_simple_shader_light_set(0, &light);
+	GPU_basic_shader_light_set(0, &light);
 	for (int a = 1; a < 8; a++)
-		GPU_simple_shader_light_set(a, NULL);
+		GPU_basic_shader_light_set(a, NULL);
 
 	/* setup shader */
-	GPU_simple_shader_colors(diffuse, NULL, 0, 1.0f);
-	GPU_simple_shader_bind(GPU_SHADER_LIGHTING);
+	GPU_basic_shader_colors(diffuse, NULL, 0, 1.0f);
+	GPU_basic_shader_bind(GPU_SHADER_LIGHTING);
 
 	/* transform to button */
 	glPushMatrix();
@@ -1276,7 +1276,7 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 	glCallList(displist);
 
 	/* restore */
-	GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
+	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 	GPU_default_lights();
 	glDisable(GL_CULL_FACE);
 	

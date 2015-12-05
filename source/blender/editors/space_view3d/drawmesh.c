@@ -63,7 +63,7 @@
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
 #include "GPU_material.h"
-#include "GPU_simple_shader.h"
+#include "GPU_basic_shader.h"
 
 #include "RE_engine.h"
 
@@ -384,11 +384,11 @@ static bool set_draw_settings_cached(int clearcache, MTexPoly *texface, Material
 			float specular[3];
 			mul_v3_v3fl(specular, &ma->specr, ma->spec);
 
-			GPU_simple_shader_colors(NULL, specular, ma->har, 0.0f);
-			GPU_simple_shader_bind(options);
+			GPU_basic_shader_colors(NULL, specular, ma->har, 0.0f);
+			GPU_basic_shader_bind(options);
 		}
 		else {
-			GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
+			GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 		}
 
 		c_lit = lit;
@@ -529,7 +529,7 @@ static void draw_textured_end(void)
 
 	glShadeModel(GL_FLAT);
 	glDisable(GL_CULL_FACE);
-	GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
+	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 
 	/* XXX, bad patch - GPU_default_lights() calls
 	 * glLightfv(GL_POSITION, ...) which
@@ -1077,15 +1077,15 @@ static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
 			if (data->two_sided_lighting)
 				options |= GPU_SHADER_TWO_SIDED;
 
-			GPU_simple_shader_colors(diffuse, NULL, 0, 0.0f);
-			GPU_simple_shader_bind(options);
+			GPU_basic_shader_colors(diffuse, NULL, 0, 0.0f);
+			GPU_basic_shader_bind(options);
 
 			return;
 		}
 	}
 
 	/* disable texture material */
-	GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
+	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 
 	if (data->shadeless) {
 		glColor3f(1.0f, 1.0f, 1.0f);
@@ -1188,7 +1188,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 
 	/* reset opengl state */
 	GPU_end_object_materials();
-	GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
+	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -1210,13 +1210,13 @@ static void draw_mesh_paint_light_begin(void)
 {
 	/* get material diffuse color from vertex colors but set default spec */
 	const float specular[3] = {0.47f, 0.47f, 0.47f};
-	GPU_simple_shader_colors(NULL, specular, 35, 1.0f);
-	GPU_simple_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
+	GPU_basic_shader_colors(NULL, specular, 35, 1.0f);
+	GPU_basic_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_USE_COLOR);
 }
 
 static void draw_mesh_paint_light_end(void)
 {
-	GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
+	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 }
 
 void draw_mesh_paint_weight_faces(DerivedMesh *dm, const bool use_light,

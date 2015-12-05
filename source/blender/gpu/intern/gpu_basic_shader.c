@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/intern/gpu_simple_shader.c
+/** \file blender/gpu/intern/gpu_basic_shader.c
  *  \ingroup gpu
  *
  * GLSL shaders to replace fixed function OpenGL materials and lighting. These
@@ -48,7 +48,7 @@
 #include "BLI_utildefines.h"
 
 #include "GPU_extensions.h"
-#include "GPU_simple_shader.h"
+#include "GPU_basic_shader.h"
 
 /* State */
 
@@ -66,12 +66,12 @@ static struct {
 
 /* Init / exit */
 
-void GPU_simple_shaders_init(void)
+void GPU_basic_shaders_init(void)
 {
 	memset(&GPU_MATERIAL_STATE, 0, sizeof(GPU_MATERIAL_STATE));
 }
 
-void GPU_simple_shaders_exit(void)
+void GPU_basic_shaders_exit(void)
 {
 	int i;
 	
@@ -117,11 +117,11 @@ static int detect_options()
 }
 #endif
 
-static GPUShader *gpu_simple_shader(int options)
+static GPUShader *gpu_basic_shader(int options)
 {
 	/* glsl code */
-	extern char datatoc_gpu_shader_simple_vert_glsl[];
-	extern char datatoc_gpu_shader_simple_frag_glsl[];
+	extern char datatoc_gpu_shader_basic_vert_glsl[];
+	extern char datatoc_gpu_shader_basic_frag_glsl[];
 	GPUShader *shader;
 
 	/* detect if we can do faster lighting for solid draw mode */
@@ -149,8 +149,8 @@ static GPUShader *gpu_simple_shader(int options)
 			strcat(defines, "#define USE_SCENE_LIGHTING\n");
 
 		shader = GPU_shader_create(
-			datatoc_gpu_shader_simple_vert_glsl,
-			datatoc_gpu_shader_simple_frag_glsl,
+			datatoc_gpu_shader_basic_vert_glsl,
+			datatoc_gpu_shader_basic_frag_glsl,
 			NULL,
 			NULL,
 			defines, 0, 0, 0);
@@ -171,11 +171,11 @@ static GPUShader *gpu_simple_shader(int options)
 
 /* Bind / unbind */
 
-void GPU_simple_shader_bind(int options)
+void GPU_basic_shader_bind(int options)
 {
 	if (USE_GLSL) {
 		if (options) {
-			GPUShader *shader = gpu_simple_shader(options);
+			GPUShader *shader = gpu_basic_shader(options);
 
 			if (shader)
 				GPU_shader_bind(shader);
@@ -215,16 +215,16 @@ void GPU_simple_shader_bind(int options)
 	GPU_MATERIAL_STATE.bound_options = options;
 }
 
-int GPU_simple_shader_bound_options(void)
+int GPU_basic_shader_bound_options(void)
 {
 	/* ideally this should disappear, anything that uses this is making fragile
-	 * assumptions that the simple shader is bound and not another shader */
+	 * assumptions that the basic shader is bound and not another shader */
 	return GPU_MATERIAL_STATE.bound_options;
 }
 
 /* Material Colors */
 
-void GPU_simple_shader_colors(const float diffuse[3], const float specular[3],
+void GPU_basic_shader_colors(const float diffuse[3], const float specular[3],
 	int shininess, float alpha)
 {
 	float gl_diffuse[4], gl_specular[4];
@@ -246,7 +246,7 @@ void GPU_simple_shader_colors(const float diffuse[3], const float specular[3],
 	glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, CLAMPIS(shininess, 1, 128));
 }
 
-void GPU_simple_shader_light_set(int light_num, GPULightData *light)
+void GPU_basic_shader_light_set(int light_num, GPULightData *light)
 {
 	int light_bit = (1 << light_num);
 
@@ -320,7 +320,7 @@ void GPU_simple_shader_light_set(int light_num, GPULightData *light)
 	}
 }
 
-void GPU_simple_shader_light_set_viewer(bool local)
+void GPU_basic_shader_light_set_viewer(bool local)
 {
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, (local)? GL_TRUE: GL_FALSE);
 }

@@ -48,7 +48,7 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 
-#include "GPU_simple_shader.h"
+#include "GPU_basic_shader.h"
 
 #include "UI_interface.h"
 
@@ -590,7 +590,7 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, subpart_h, 1, 1, format, GL_UNSIGNED_BYTE, &uc_rect[(((size_t)subpart_y) * offset_y + subpart_h - 1) * img_w * components + (subpart_x * offset_x + subpart_w - 1) * components]);
 			}
 
-			GPU_simple_shader_bind(GPU_SHADER_TEXTURE_2D | GPU_SHADER_USE_COLOR);
+			GPU_basic_shader_bind(GPU_SHADER_TEXTURE_2D | GPU_SHADER_USE_COLOR);
 			glBegin(GL_QUADS);
 			glTexCoord2f((float)(0 + offset_left) / tex_w, (float)(0 + offset_bot) / tex_h);
 			glVertex2f(rast_x + (float)offset_left * xzoom, rast_y + (float)offset_bot * yzoom);
@@ -604,7 +604,7 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 			glTexCoord2f((float)(0 + offset_left) / tex_w, (float)(subpart_h - offset_top) / tex_h);
 			glVertex2f(rast_x + (float)offset_left * xzoom, rast_y + (float)(subpart_h - offset_top) * yzoom * scaleY);
 			glEnd();
-			GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
+			GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 		}
 	}
 

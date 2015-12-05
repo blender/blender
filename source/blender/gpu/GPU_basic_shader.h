@@ -25,12 +25,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file GPU_simple_shader.h
+/** \file GPU_basic_shader.h
  *  \ingroup gpu
  */
 
-#ifndef __GPU_SIMPLE_SHADER_H__
-#define __GPU_SIMPLE_SHADER_H__
+#ifndef __GPU_BASIC_SHADER_H__
+#define __GPU_BASIC_SHADER_H__
 
 #include "BLI_utildefines.h"
 
@@ -40,7 +40,7 @@ extern "C" {
 
 /* Fixed Function Shader */
 
-typedef enum GPUSimpleShaderOption {
+typedef enum GPUBasicShaderOption {
 	GPU_SHADER_USE_COLOR =        (1<<0),   /* use glColor, for lighting it replaces diffuse */
 	GPU_SHADER_LIGHTING =         (1<<1),   /* use lighting */
 	GPU_SHADER_TWO_SIDED =        (1<<2),   /* flip normals towards viewer */
@@ -49,15 +49,15 @@ typedef enum GPUSimpleShaderOption {
 	GPU_SHADER_SOLID_LIGHTING =   (1<<4),   /* use faster lighting (set automatically) */
 	GPU_SHADER_OPTIONS_NUM = 5,
 	GPU_SHADER_OPTION_COMBINATIONS = (1<<GPU_SHADER_OPTIONS_NUM)
-} GPUSimpleShaderOption;
+} GPUBasicShaderOption;
 
-void GPU_simple_shaders_init(void);
-void GPU_simple_shaders_exit(void);
+void GPU_basic_shaders_init(void);
+void GPU_basic_shaders_exit(void);
 
-void GPU_simple_shader_bind(int options);
-int GPU_simple_shader_bound_options(void);
+void GPU_basic_shader_bind(int options);
+int GPU_basic_shader_bound_options(void);
 
-void GPU_simple_shader_colors(const float diffuse[3], const float specular[3],
+void GPU_basic_shader_colors(const float diffuse[3], const float specular[3],
 	int shininess, float alpha);
 
 /* Fixed Function Lighting */
@@ -85,8 +85,8 @@ typedef struct GPULightData {
 	float spot_exponent;
 } GPULightData;
 
-void GPU_simple_shader_light_set(int light_num, GPULightData *light);
-void GPU_simple_shader_light_set_viewer(bool local);
+void GPU_basic_shader_light_set(int light_num, GPULightData *light);
+void GPU_basic_shader_light_set_viewer(bool local);
 
 #ifdef __cplusplus
 }

@@ -57,7 +57,7 @@
 
 #include "GPU_buffers.h"
 #include "GPU_draw.h"
-#include "GPU_simple_shader.h"
+#include "GPU_basic_shader.h"
 
 #include "bmesh.h"
 
@@ -1844,8 +1844,8 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 			glEnableClientState(GL_COLOR_ARRAY);
 
 			/* weak inspection of bound options, should not be necessary ideally */
-			bound_options = GPU_simple_shader_bound_options();
-			GPU_simple_shader_bind(bound_options | GPU_SHADER_USE_COLOR);
+			bound_options = GPU_basic_shader_bound_options();
+			GPU_basic_shader_bind(bound_options | GPU_SHADER_USE_COLOR);
 		}
 
 		GPU_buffer_bind(buffers->vert_buf, GPU_BINDING_ARRAY);
@@ -1925,7 +1925,7 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 		if (!wireframe) {
 			glDisableClientState(GL_NORMAL_ARRAY);
 			glDisableClientState(GL_COLOR_ARRAY);
-			GPU_simple_shader_bind(bound_options);
+			GPU_basic_shader_bind(bound_options);
 		}
 	}
 }

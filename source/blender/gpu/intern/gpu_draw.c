@@ -79,7 +79,7 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"
-#include "GPU_simple_shader.h"
+#include "GPU_basic_shader.h"
 
 #include "PIL_time.h"
 
@@ -1715,12 +1715,12 @@ int GPU_object_material_bind(int nr, void *attribs)
 		float diffuse[3], specular[3];
 		mul_v3_v3fl(diffuse, &defmaterial.r, defmaterial.ref + defmaterial.emit);
 		mul_v3_v3fl(specular, &defmaterial.specr, defmaterial.spec);
-		GPU_simple_shader_colors(diffuse, specular, 35, 1.0f);
+		GPU_basic_shader_colors(diffuse, specular, 35, 1.0f);
 
 		if (GMS.two_sided_lighting)
-			GPU_simple_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_TWO_SIDED);
+			GPU_basic_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_TWO_SIDED);
 		else
-			GPU_simple_shader_bind(GPU_SHADER_LIGHTING);
+			GPU_basic_shader_bind(GPU_SHADER_LIGHTING);
 
 		return 0;
 	}
@@ -1797,13 +1797,13 @@ int GPU_object_material_bind(int nr, void *attribs)
 		}
 		else {
 			/* or do fixed function opengl material */
-			GPU_simple_shader_colors(GMS.matbuf[nr].diff,
+			GPU_basic_shader_colors(GMS.matbuf[nr].diff,
 				GMS.matbuf[nr].spec, GMS.matbuf[nr].hard, GMS.matbuf[nr].alpha);
 
 			if (GMS.two_sided_lighting)
-				GPU_simple_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_TWO_SIDED);
+				GPU_basic_shader_bind(GPU_SHADER_LIGHTING | GPU_SHADER_TWO_SIDED);
 			else
-				GPU_simple_shader_bind(GPU_SHADER_LIGHTING);
+				GPU_basic_shader_bind(GPU_SHADER_LIGHTING);
 		}
 
 		/* set (alpha) blending mode */
@@ -1866,7 +1866,7 @@ void GPU_object_material_unbind(void)
 		GMS.gboundmat = NULL;
 	}
 	else
-		GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
+		GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 
 	GPU_set_material_alpha_blend(GPU_BLEND_SOLID);
 }
@@ -1949,7 +1949,7 @@ int GPU_default_lights(void)
 		U.light[2].spec[3] = 1.0;
 	}
 
-	GPU_simple_shader_light_set_viewer(false);
+	GPU_basic_shader_light_set_viewer(false);
 
 	for (a = 0; a < 8; a++) {
 		if (a < 3 && U.light[a].flag) {
@@ -1961,12 +1961,12 @@ int GPU_default_lights(void)
 			copy_v3_v3(light.diffuse, U.light[a].col);
 			copy_v3_v3(light.specular, U.light[a].spec);
 
-			GPU_simple_shader_light_set(a, &light);
+			GPU_basic_shader_light_set(a, &light);
 
 			count++;
 		}
 		else
-			GPU_simple_shader_light_set(a, NULL);
+			GPU_basic_shader_light_set(a, NULL);
 	}
 
 	return count;
@@ -1980,11 +1980,11 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[4][
 	
 	/* disable all lights */
 	for (count = 0; count < 8; count++)
-		GPU_simple_shader_light_set(count, NULL);
+		GPU_basic_shader_light_set(count, NULL);
 	
 	/* view direction for specular is not computed correct by default in
 	 * opengl, so we set the settings ourselfs */
-	GPU_simple_shader_light_set_viewer(!ortho);
+	GPU_basic_shader_light_set_viewer(!ortho);
 
 	count = 0;
 
@@ -2031,7 +2031,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[4][
 				light.type = GPU_LIGHT_POINT;
 		}
 		
-		GPU_simple_shader_light_set(count, &light);
+		GPU_basic_shader_light_set(count, &light);
 		
 		glPopMatrix();
 		
@@ -2152,7 +2152,7 @@ void GPU_state_init(void)
 
 	gpu_multisample(false);
 
-	GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
+	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 }
 
 #ifdef WITH_OPENSUBDIV

@@ -1693,7 +1693,7 @@ void BKE_pbvh_node_draw(PBVHNode *node, void *data_v)
 			col[i] = (rand() / (float)RAND_MAX) * 0.3 + 0.7;
 	}
 
-	GPU_simple_shader_colors(col, spec, 0, 1.0f);
+	GPU_basic_shader_colors(col, spec, 0, 1.0f);
 	glColor3f(1, 0, 0);
 #endif
 

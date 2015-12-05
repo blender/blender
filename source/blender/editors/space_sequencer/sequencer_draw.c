@@ -58,7 +58,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "GPU_simple_shader.h"
+#include "GPU_basic_shader.h"
 
 #include "ED_anim_api.h"
 #include "ED_gpencil.h"
@@ -1296,7 +1296,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 
-	GPU_simple_shader_bind(GPU_SHADER_TEXTURE_2D | GPU_SHADER_USE_COLOR);
+	GPU_basic_shader_bind(GPU_SHADER_TEXTURE_2D | GPU_SHADER_USE_COLOR);
 	glGenTextures(1, (GLuint *)&texid);
 
 	glBindTexture(GL_TEXTURE_2D, texid);
@@ -1371,7 +1371,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	glEnd();
 
 	glBindTexture(GL_TEXTURE_2D, 0);
-	GPU_simple_shader_bind(GPU_SHADER_USE_COLOR);
+	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->flag & SEQ_USE_ALPHA)
 		glDisable(GL_BLEND);
 	glDeleteTextures(1, &texid);
