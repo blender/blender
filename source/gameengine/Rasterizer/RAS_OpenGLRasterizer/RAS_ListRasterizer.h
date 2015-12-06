@@ -60,7 +60,6 @@ public:
 	virtual ~RAS_ListRasterizer();
 
 	virtual void	IndexPrimitives(class RAS_MeshSlot& ms);
-	virtual void	IndexPrimitivesMulti(class RAS_MeshSlot& ms);
 
 	virtual bool	Init();
 	virtual void	Exit();

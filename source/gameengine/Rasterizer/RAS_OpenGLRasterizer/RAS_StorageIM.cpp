@@ -59,16 +59,6 @@ void RAS_StorageIM::Exit()
 {
 }
 
-void RAS_StorageIM::IndexPrimitives(RAS_MeshSlot& ms)
-{
-	IndexPrimitivesInternal(ms, false);
-}
-
-void RAS_StorageIM::IndexPrimitivesMulti(class RAS_MeshSlot& ms)
-{
-	IndexPrimitivesInternal(ms, true);
-}
-
 void RAS_StorageIM::TexCoord(const RAS_TexVert &tv)
 {
 	int unit;
@@ -206,15 +196,17 @@ static DMDrawOption CheckTexDM(MTexPoly *mtexpoly, const bool has_mcol, int matn
 	return DM_DRAW_OPTION_SKIP;
 }
 
-void RAS_StorageIM::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
-{ 
+
+
+void RAS_StorageIM::IndexPrimitives(RAS_MeshSlot& ms)
+{
 	bool obcolor = ms.m_bObjectColor;
 	bool wireframe = m_drawingmode <= RAS_IRasterizer::KX_WIREFRAME;
 	MT_Vector4& rgba = ms.m_RGBAcolor;
 	RAS_MeshSlot::iterator it;
 
 	if (ms.m_pDerivedMesh) {
-		// mesh data is in derived mesh, 
+		// mesh data is in derived mesh,
 		current_bucket = ms.m_bucket;
 		current_polymat = current_bucket->GetPolyMaterial();
 		current_ms = &ms;
@@ -229,7 +221,7 @@ void RAS_StorageIM::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 			this->SetCullFace(false);
 
 		if (current_polymat->GetFlag() & RAS_BLENDERGLSL) {
-			// GetMaterialIndex return the original mface material index, 
+			// GetMaterialIndex return the original mface material index,
 			// increment by 1 to match what derived mesh is doing
 			current_blmat_nr = current_polymat->GetMaterialIndex()+1;
 			// For GLSL we need to retrieve the GPU material attribute
@@ -255,7 +247,7 @@ void RAS_StorageIM::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 	for (ms.begin(it); !ms.end(it); ms.next(it)) {
 		RAS_TexVert *vertex;
 		size_t i, j, numvert;
-		
+
 		numvert = it.array->m_type;
 
 		if (it.array->m_type == RAS_DisplayArray::LINE) {
@@ -294,10 +286,7 @@ void RAS_StorageIM::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 
 						glNormal3fv(vertex->getNormal());
 
-						if (multi)
-							TexCoord(*vertex);
-						else
-							glTexCoord2fv(vertex->getUV(0));
+						TexCoord(*vertex);
 					}
 
 					glVertex3fv(vertex->getXYZ());

@@ -186,7 +186,6 @@ public:
 	virtual void SwapBuffers();
 
 	virtual void IndexPrimitives(class RAS_MeshSlot &ms);
-	virtual void IndexPrimitivesMulti(class RAS_MeshSlot &ms);
 	virtual void IndexPrimitives_3DText(class RAS_MeshSlot &ms, class RAS_IPolyMaterial *polymat);
 
 	virtual void SetProjectionMatrix(MT_CmMatrix4x4 &mat);

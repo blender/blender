@@ -41,7 +41,6 @@ public:
 	virtual void	Exit();
 
 	virtual void	IndexPrimitives(RAS_MeshSlot& ms);
-	virtual void	IndexPrimitivesMulti(class RAS_MeshSlot& ms);
 
 	virtual void	SetDrawingMode(int drawingmode){m_drawingmode=drawingmode;};
 
@@ -55,8 +54,6 @@ protected:
 
 	void	TexCoord(const RAS_TexVert &tv);
 	void	SetCullFace(bool enable);
-
-	void	IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi);
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

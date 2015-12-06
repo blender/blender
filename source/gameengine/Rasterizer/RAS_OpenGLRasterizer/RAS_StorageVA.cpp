@@ -56,68 +56,7 @@ void RAS_StorageVA::Exit()
 {
 }
 
-void RAS_StorageVA::IndexPrimitives(RAS_MeshSlot& ms)
-{
-	static const GLsizei stride = sizeof(RAS_TexVert);
-	bool wireframe = m_drawingmode <= RAS_IRasterizer::KX_WIREFRAME;
-	RAS_MeshSlot::iterator it;
-	GLenum drawmode;
-
-	if (!wireframe)
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-
-	// use glDrawElements to draw each vertexarray
-	for (ms.begin(it); !ms.end(it); ms.next(it)) {
-		if (it.totindex == 0)
-			continue;
-
-		// drawing mode
-		if (it.array->m_type == RAS_DisplayArray::TRIANGLE)
-			drawmode = GL_TRIANGLES;
-		else if (it.array->m_type == RAS_DisplayArray::QUAD)
-			drawmode = GL_QUADS;
-		else
-			drawmode = GL_LINES;
-
-		// colors
-		if (drawmode != GL_LINES && !wireframe) {
-			if (ms.m_bObjectColor) {
-				const MT_Vector4& rgba = ms.m_RGBAcolor;
-
-				glDisableClientState(GL_COLOR_ARRAY);
-				glColor4d(rgba[0], rgba[1], rgba[2], rgba[3]);
-			}
-			else {
-				glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-				glEnableClientState(GL_COLOR_ARRAY);
-			}
-		}
-		else
-			glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-
-		glVertexPointer(3, GL_FLOAT, stride, it.vertex->getXYZ());
-		glNormalPointer(GL_FLOAT, stride, it.vertex->getNormal());
-		if (!wireframe) {
-			glTexCoordPointer(2, GL_FLOAT, stride, it.vertex->getUV(0));
-			if (glIsEnabled(GL_COLOR_ARRAY))
-				glColorPointer(4, GL_UNSIGNED_BYTE, stride, it.vertex->getRGBA());
-		}
-
-		// here the actual drawing takes places
-		glDrawElements(drawmode, it.totindex, GL_UNSIGNED_SHORT, it.index);
-	}
-	
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	if (!wireframe) {
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_COLOR_ARRAY);
-	}
-}
-
-void RAS_StorageVA::IndexPrimitivesMulti(class RAS_MeshSlot& ms)
+void RAS_StorageVA::IndexPrimitives(class RAS_MeshSlot& ms)
 {
 	static const GLsizei stride = sizeof(RAS_TexVert);
 	bool wireframe = m_drawingmode <= RAS_IRasterizer::KX_WIREFRAME, use_color_array = true;

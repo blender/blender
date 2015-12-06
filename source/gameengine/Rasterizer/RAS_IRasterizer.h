@@ -267,7 +267,6 @@ public:
 	 * IndexPrimitives: Renders primitives from mesh slot.
 	 */
 	virtual void IndexPrimitives(class RAS_MeshSlot &ms) = 0;
-	virtual void IndexPrimitivesMulti(class RAS_MeshSlot &ms) = 0;
 
 	/**
 	 * IndexPrimitives_3DText will render text into the polygons.

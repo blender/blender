@@ -44,7 +44,6 @@ public:
 	virtual void	Exit()=0;
 
 	virtual void	IndexPrimitives(RAS_MeshSlot& ms)=0;
-	virtual void	IndexPrimitivesMulti(RAS_MeshSlot& ms)=0;
 
 	virtual void	SetDrawingMode(int drawingmode)=0;
 

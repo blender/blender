@@ -740,14 +740,6 @@ void RAS_OpenGLRasterizer::IndexPrimitives(RAS_MeshSlot& ms)
 		m_storage->IndexPrimitives(ms);
 }
 
-void RAS_OpenGLRasterizer::IndexPrimitivesMulti(RAS_MeshSlot& ms)
-{
-	if (ms.m_pDerivedMesh)
-		m_failsafe_storage->IndexPrimitivesMulti(ms);
-	else
-		m_storage->IndexPrimitivesMulti(ms);
-}
-
 void RAS_OpenGLRasterizer::SetProjectionMatrix(MT_CmMatrix4x4 &mat)
 {
 	glMatrixMode(GL_PROJECTION);
