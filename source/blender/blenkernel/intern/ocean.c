@@ -41,6 +41,7 @@
 #include "BLI_math.h"
 #include "BLI_path_util.h"
 #include "BLI_rand.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -494,231 +495,296 @@ void BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i, int j)
 	BLI_rw_mutex_unlock(&oc->oceanmutex);
 }
 
+typedef struct OceanSimulateData {
+	Ocean *o;
+	float t;
+	float scale;
+	float chop_amount;
+} OceanSimulateData;
+
+static void ocean_compute_htilda_cb(void *userdata, void *UNUSED(userdata_chunk), int i)
+{
+	OceanSimulateData *osd = userdata;
+	const Ocean *o = osd->o;
+	const float scale = osd->scale;
+	const float t = osd->t;
+
+	int j;
+
+	/* note the <= _N/2 here, see the fftw doco about the mechanics of the complex->real fft storage */
+	for (j = 0; j <= o->_N / 2; ++j) {
+		fftw_complex exp_param1;
+		fftw_complex exp_param2;
+		fftw_complex conj_param;
+
+		init_complex(exp_param1, 0.0, omega(o->_k[i * (1 + o->_N / 2) + j], o->_depth) * t);
+		init_complex(exp_param2, 0.0, -omega(o->_k[i * (1 + o->_N / 2) + j], o->_depth) * t);
+		exp_complex(exp_param1, exp_param1);
+		exp_complex(exp_param2, exp_param2);
+		conj_complex(conj_param, o->_h0_minus[i * o->_N + j]);
+
+		mul_complex_c(exp_param1, o->_h0[i * o->_N + j], exp_param1);
+		mul_complex_c(exp_param2, conj_param, exp_param2);
+
+		add_comlex_c(o->_htilda[i * (1 + o->_N / 2) + j], exp_param1, exp_param2);
+		mul_complex_f(o->_fft_in[i * (1 + o->_N / 2) + j], o->_htilda[i * (1 + o->_N / 2) + j], scale);
+	}
+}
+
+static void ocean_compute_displacement_y(TaskPool *pool, void *UNUSED(taskdata), int UNUSED(threadid))
+{
+	OceanSimulateData *osd = BLI_task_pool_userdata(pool);
+	const Ocean *o = osd->o;
+
+	fftw_execute(o->_disp_y_plan);
+}
+
+static void ocean_compute_displacement_x(TaskPool *pool, void *UNUSED(taskdata), int UNUSED(threadid))
+{
+	OceanSimulateData *osd = BLI_task_pool_userdata(pool);
+	const Ocean *o = osd->o;
+	const float scale = osd->scale;
+	const float chop_amount = osd->chop_amount;
+	int i, j;
+
+	for (i = 0; i < o->_M; ++i) {
+		for (j = 0; j <= o->_N / 2; ++j) {
+			fftw_complex mul_param;
+			fftw_complex minus_i;
+
+			init_complex(minus_i, 0.0, -1.0);
+			init_complex(mul_param, -scale, 0);
+			mul_complex_f(mul_param, mul_param, chop_amount);
+			mul_complex_c(mul_param, mul_param, minus_i);
+			mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
+			mul_complex_f(mul_param, mul_param,
+			              ((o->_k[i * (1 + o->_N / 2) + j] == 0.0f) ?
+			               0.0f :
+			               o->_kx[i] / o->_k[i * (1 + o->_N / 2) + j]));
+			init_complex(o->_fft_in_x[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
+		}
+	}
+	fftw_execute(o->_disp_x_plan);
+}
+
+static void ocean_compute_displacement_z(TaskPool *pool, void *UNUSED(taskdata), int UNUSED(threadid))
+{
+	OceanSimulateData *osd = BLI_task_pool_userdata(pool);
+	const Ocean *o = osd->o;
+	const float scale = osd->scale;
+	const float chop_amount = osd->chop_amount;
+	int i, j;
+
+	for (i = 0; i < o->_M; ++i) {
+		for (j = 0; j <= o->_N / 2; ++j) {
+			fftw_complex mul_param;
+			fftw_complex minus_i;
+
+			init_complex(minus_i, 0.0, -1.0);
+			init_complex(mul_param, -scale, 0);
+			mul_complex_f(mul_param, mul_param, chop_amount);
+			mul_complex_c(mul_param, mul_param, minus_i);
+			mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
+			mul_complex_f(mul_param, mul_param,
+			              ((o->_k[i * (1 + o->_N / 2) + j] == 0.0f) ?
+			               0.0f :
+			               o->_kz[j] / o->_k[i * (1 + o->_N / 2) + j]));
+			init_complex(o->_fft_in_z[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
+		}
+	}
+	fftw_execute(o->_disp_z_plan);
+}
+
+static void ocean_compute_jacobian_jxx(TaskPool *pool, void *UNUSED(taskdata), int UNUSED(threadid))
+{
+	OceanSimulateData *osd = BLI_task_pool_userdata(pool);
+	const Ocean *o = osd->o;
+	const float chop_amount = osd->chop_amount;
+	int i, j;
+
+	for (i = 0; i < o->_M; ++i) {
+		for (j = 0; j <= o->_N / 2; ++j) {
+			fftw_complex mul_param;
+
+			/* init_complex(mul_param, -scale, 0); */
+			init_complex(mul_param, -1, 0);
+
+			mul_complex_f(mul_param, mul_param, chop_amount);
+			mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
+			mul_complex_f(mul_param, mul_param,
+			              ((o->_k[i * (1 + o->_N / 2) + j] == 0.0f) ?
+			               0.0f :
+			               o->_kx[i] * o->_kx[i] / o->_k[i * (1 + o->_N / 2) + j]));
+			init_complex(o->_fft_in_jxx[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
+		}
+	}
+	fftw_execute(o->_Jxx_plan);
+
+	for (i = 0; i < o->_M; ++i) {
+		for (j = 0; j < o->_N; ++j) {
+			o->_Jxx[i * o->_N + j] += 1.0;
+		}
+	}
+}
+
+static void ocean_compute_jacobian_jzz(TaskPool *pool, void *UNUSED(taskdata), int UNUSED(threadid))
+{
+	OceanSimulateData *osd = BLI_task_pool_userdata(pool);
+	const Ocean *o = osd->o;
+	const float chop_amount = osd->chop_amount;
+	int i, j;
+
+	for (i = 0; i < o->_M; ++i) {
+		for (j = 0; j <= o->_N / 2; ++j) {
+			fftw_complex mul_param;
+
+			/* init_complex(mul_param, -scale, 0); */
+			init_complex(mul_param, -1, 0);
+
+			mul_complex_f(mul_param, mul_param, chop_amount);
+			mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
+			mul_complex_f(mul_param, mul_param,
+			              ((o->_k[i * (1 + o->_N / 2) + j] == 0.0f) ?
+			               0.0f :
+			               o->_kz[j] * o->_kz[j] / o->_k[i * (1 + o->_N / 2) + j]));
+			init_complex(o->_fft_in_jzz[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
+		}
+	}
+	fftw_execute(o->_Jzz_plan);
+
+	for (i = 0; i < o->_M; ++i) {
+		for (j = 0; j < o->_N; ++j) {
+			o->_Jzz[i * o->_N + j] += 1.0;
+		}
+	}
+}
+
+static void ocean_compute_jacobian_jxz(TaskPool *pool, void *UNUSED(taskdata), int UNUSED(threadid))
+{
+	OceanSimulateData *osd = BLI_task_pool_userdata(pool);
+	const Ocean *o = osd->o;
+	const float chop_amount = osd->chop_amount;
+	int i, j;
+
+	for (i = 0; i < o->_M; ++i) {
+		for (j = 0; j <= o->_N / 2; ++j) {
+			fftw_complex mul_param;
+
+			/* init_complex(mul_param, -scale, 0); */
+			init_complex(mul_param, -1, 0);
+
+			mul_complex_f(mul_param, mul_param, chop_amount);
+			mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
+			mul_complex_f(mul_param, mul_param,
+			              ((o->_k[i * (1 + o->_N / 2) + j] == 0.0f) ?
+			               0.0f :
+			               o->_kx[i] * o->_kz[j] / o->_k[i * (1 + o->_N / 2) + j]));
+			init_complex(o->_fft_in_jxz[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
+		}
+	}
+	fftw_execute(o->_Jxz_plan);
+}
+
+static void ocean_compute_normal_x(TaskPool *pool, void *UNUSED(taskdata), int UNUSED(threadid))
+{
+	OceanSimulateData *osd = BLI_task_pool_userdata(pool);
+	const Ocean *o = osd->o;
+	int i, j;
+
+	for (i = 0; i < o->_M; ++i) {
+		for (j = 0; j <= o->_N / 2; ++j) {
+			fftw_complex mul_param;
+
+			init_complex(mul_param, 0.0, -1.0);
+			mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
+			mul_complex_f(mul_param, mul_param, o->_kx[i]);
+			init_complex(o->_fft_in_nx[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
+		}
+	}
+	fftw_execute(o->_N_x_plan);
+}
+
+static void ocean_compute_normal_z(TaskPool *pool, void *UNUSED(taskdata), int UNUSED(threadid))
+{
+	OceanSimulateData *osd = BLI_task_pool_userdata(pool);
+	const Ocean *o = osd->o;
+	int i, j;
+
+	for (i = 0; i < o->_M; ++i) {
+		for (j = 0; j <= o->_N / 2; ++j) {
+			fftw_complex mul_param;
+
+			init_complex(mul_param, 0.0, -1.0);
+			mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
+			mul_complex_f(mul_param, mul_param, o->_kz[i]);
+			init_complex(o->_fft_in_nz[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
+		}
+	}
+	fftw_execute(o->_N_z_plan);
+}
+
 void BKE_ocean_simulate(struct Ocean *o, float t, float scale, float chop_amount)
 {
-	int i, j;
+	TaskScheduler *scheduler = BLI_task_scheduler_get();
+	TaskPool *pool;
+
+	OceanSimulateData osd;
 
 	scale *= o->normalize_factor;
 
+	osd.o = o;
+	osd.t = t;
+	osd.scale = scale;
+	osd.chop_amount = chop_amount;
+
+	pool = BLI_task_pool_create(scheduler, &osd);
+
 	BLI_rw_mutex_lock(&o->oceanmutex, THREAD_LOCK_WRITE);
 
+	/* Note about multi-threading here: we have to run a first set of computations (htilda one) before we can run
+	 * all others, since they all depend on it.
+	 * So we make a first parallelized forloop run for htilda, and then pack all other computations into
+	 * a set of parallel tasks.
+	 * This is not optimal in all cases, but remains reasonably simple and should be OK most of the time. */
+
 	/* compute a new htilda */
-#pragma omp parallel for private(i, j)
-	for (i = 0; i < o->_M; ++i) {
-		/* note the <= _N/2 here, see the fftw doco about the mechanics of the complex->real fft storage */
-		for (j = 0; j <= o->_N / 2; ++j) {
-			fftw_complex exp_param1;
-			fftw_complex exp_param2;
-			fftw_complex conj_param;
+	BLI_task_parallel_range(0, o->_M, &osd, ocean_compute_htilda_cb);
 
-
-			init_complex(exp_param1, 0.0, omega(o->_k[i * (1 + o->_N / 2) + j], o->_depth) * t);
-			init_complex(exp_param2, 0.0, -omega(o->_k[i * (1 + o->_N / 2) + j], o->_depth) * t);
-			exp_complex(exp_param1, exp_param1);
-			exp_complex(exp_param2, exp_param2);
-			conj_complex(conj_param, o->_h0_minus[i * o->_N + j]);
-
-			mul_complex_c(exp_param1, o->_h0[i * o->_N + j], exp_param1);
-			mul_complex_c(exp_param2, conj_param, exp_param2);
-
-			add_comlex_c(o->_htilda[i * (1 + o->_N / 2) + j], exp_param1, exp_param2);
-			mul_complex_f(o->_fft_in[i * (1 + o->_N / 2) + j], o->_htilda[i * (1 + o->_N / 2) + j], scale);
-		}
+	if (o->_do_disp_y) {
+		BLI_task_pool_push(pool, ocean_compute_displacement_y, NULL, false, TASK_PRIORITY_HIGH);
 	}
 
-#pragma omp parallel sections private(i, j)
-	{
+	if (o->_do_chop) {
+		BLI_task_pool_push(pool, ocean_compute_displacement_x, NULL, false, TASK_PRIORITY_HIGH);
+		BLI_task_pool_push(pool, ocean_compute_displacement_z, NULL, false, TASK_PRIORITY_HIGH);
+	}
 
-#pragma omp section
-		{
-			if (o->_do_disp_y) {
-				/* y displacement */
-				fftw_execute(o->_disp_y_plan);
-			}
-		} /* section 1 */
+	if (o->_do_jacobian) {
+		BLI_task_pool_push(pool, ocean_compute_jacobian_jxx, NULL, false, TASK_PRIORITY_HIGH);
+		BLI_task_pool_push(pool, ocean_compute_jacobian_jzz, NULL, false, TASK_PRIORITY_HIGH);
+		BLI_task_pool_push(pool, ocean_compute_jacobian_jxz, NULL, false, TASK_PRIORITY_HIGH);
+	}
 
-#pragma omp section
-		{
-			if (o->_do_chop) {
-				/* x displacement */
-				for (i = 0; i < o->_M; ++i) {
-					for (j = 0; j <= o->_N / 2; ++j) {
-						fftw_complex mul_param;
-						fftw_complex minus_i;
-
-						init_complex(minus_i, 0.0, -1.0);
-						init_complex(mul_param, -scale, 0);
-						mul_complex_f(mul_param, mul_param, chop_amount);
-						mul_complex_c(mul_param, mul_param, minus_i);
-						mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
-						mul_complex_f(mul_param, mul_param,
-						              ((o->_k[i * (1 + o->_N / 2) + j] == 0.0f) ?
-						               0.0f :
-						               o->_kx[i] / o->_k[i * (1 + o->_N / 2) + j]));
-						init_complex(o->_fft_in_x[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
-					}
-				}
-				fftw_execute(o->_disp_x_plan);
-			}
-		} /* section 2 */
-
-#pragma omp section
-		{
-			if (o->_do_chop) {
-				/* z displacement */
-				for (i = 0; i < o->_M; ++i) {
-					for (j = 0; j <= o->_N / 2; ++j) {
-						fftw_complex mul_param;
-						fftw_complex minus_i;
-
-						init_complex(minus_i, 0.0, -1.0);
-						init_complex(mul_param, -scale, 0);
-						mul_complex_f(mul_param, mul_param, chop_amount);
-						mul_complex_c(mul_param, mul_param, minus_i);
-						mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
-						mul_complex_f(mul_param, mul_param,
-						              ((o->_k[i * (1 + o->_N / 2) + j] == 0.0f) ?
-						               0.0f :
-						               o->_kz[j] / o->_k[i * (1 + o->_N / 2) + j]));
-						init_complex(o->_fft_in_z[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
-					}
-				}
-				fftw_execute(o->_disp_z_plan);
-			}
-		} /* section 3 */
-
-#pragma omp section
-		{
-			if (o->_do_jacobian) {
-				/* Jxx */
-				for (i = 0; i < o->_M; ++i) {
-					for (j = 0; j <= o->_N / 2; ++j) {
-						fftw_complex mul_param;
-
-						/* init_complex(mul_param, -scale, 0); */
-						init_complex(mul_param, -1, 0);
-
-						mul_complex_f(mul_param, mul_param, chop_amount);
-						mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
-						mul_complex_f(mul_param, mul_param,
-						              ((o->_k[i * (1 + o->_N / 2) + j] == 0.0f) ?
-						               0.0f :
-						               o->_kx[i] * o->_kx[i] / o->_k[i * (1 + o->_N / 2) + j]));
-						init_complex(o->_fft_in_jxx[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
-					}
-				}
-				fftw_execute(o->_Jxx_plan);
-
-				for (i = 0; i < o->_M; ++i) {
-					for (j = 0; j < o->_N; ++j) {
-						o->_Jxx[i * o->_N + j] += 1.0;
-					}
-				}
-			}
-		} /* section 4 */
-
-#pragma omp section
-		{
-			if (o->_do_jacobian) {
-				/* Jzz */
-				for (i = 0; i < o->_M; ++i) {
-					for (j = 0; j <= o->_N / 2; ++j) {
-						fftw_complex mul_param;
-
-						/* init_complex(mul_param, -scale, 0); */
-						init_complex(mul_param, -1, 0);
-
-						mul_complex_f(mul_param, mul_param, chop_amount);
-						mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
-						mul_complex_f(mul_param, mul_param,
-						              ((o->_k[i * (1 + o->_N / 2) + j] == 0.0f) ?
-						               0.0f :
-						               o->_kz[j] * o->_kz[j] / o->_k[i * (1 + o->_N / 2) + j]));
-						init_complex(o->_fft_in_jzz[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
-					}
-				}
-				fftw_execute(o->_Jzz_plan);
-				for (i = 0; i < o->_M; ++i) {
-					for (j = 0; j < o->_N; ++j) {
-						o->_Jzz[i * o->_N + j] += 1.0;
-					}
-				}
-			}
-		} /* section 5 */
-
-#pragma omp section
-		{
-			if (o->_do_jacobian) {
-				/* Jxz */
-				for (i = 0; i < o->_M; ++i) {
-					for (j = 0; j <= o->_N / 2; ++j) {
-						fftw_complex mul_param;
-
-						/* init_complex(mul_param, -scale, 0); */
-						init_complex(mul_param, -1, 0);
-
-						mul_complex_f(mul_param, mul_param, chop_amount);
-						mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
-						mul_complex_f(mul_param, mul_param,
-						              ((o->_k[i * (1 + o->_N / 2) + j] == 0.0f) ?
-						               0.0f :
-						               o->_kx[i] * o->_kz[j] / o->_k[i * (1 + o->_N / 2) + j]));
-						init_complex(o->_fft_in_jxz[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
-					}
-				}
-				fftw_execute(o->_Jxz_plan);
-			}
-		} /* section 6 */
-
-#pragma omp section
-		{
-			/* fft normals */
-			if (o->_do_normals) {
-				for (i = 0; i < o->_M; ++i) {
-					for (j = 0; j <= o->_N / 2; ++j) {
-						fftw_complex mul_param;
-
-						init_complex(mul_param, 0.0, -1.0);
-						mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
-						mul_complex_f(mul_param, mul_param, o->_kx[i]);
-						init_complex(o->_fft_in_nx[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
-					}
-				}
-				fftw_execute(o->_N_x_plan);
-
-			}
-		} /* section 7 */
-
-#pragma omp section
-		{
-			if (o->_do_normals) {
-				for (i = 0; i < o->_M; ++i) {
-					for (j = 0; j <= o->_N / 2; ++j) {
-						fftw_complex mul_param;
-
-						init_complex(mul_param, 0.0, -1.0);
-						mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
-						mul_complex_f(mul_param, mul_param, o->_kz[i]);
-						init_complex(o->_fft_in_nz[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
-					}
-				}
-				fftw_execute(o->_N_z_plan);
+	if (o->_do_normals) {
+		BLI_task_pool_push(pool, ocean_compute_normal_x, NULL, false, TASK_PRIORITY_HIGH);
+		BLI_task_pool_push(pool, ocean_compute_normal_z, NULL, false, TASK_PRIORITY_HIGH);
 
 #if 0
-				for (i = 0; i < o->_M; ++i) {
-					for (j = 0; j < o->_N; ++j) {
-						o->_N_y[i * o->_N + j] = 1.0f / scale;
-					}
-				}
-				(MEM01)
-#endif
-				o->_N_y = 1.0f / scale;
+		for (i = 0; i < o->_M; ++i) {
+			for (j = 0; j < o->_N; ++j) {
+				o->_N_y[i * o->_N + j] = 1.0f / scale;
 			}
-		} /* section 8 */
+		}
+		(MEM01)
+#endif
+		o->_N_y = 1.0f / scale;
+	}
 
-	} /* omp sections */
+	BLI_task_pool_work_and_wait(pool);
 
 	BLI_rw_mutex_unlock(&o->oceanmutex);
+
+	BLI_task_pool_free(pool);
 }
 
 static void set_height_normalize_factor(struct Ocean *oc)
