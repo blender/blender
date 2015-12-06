@@ -617,7 +617,7 @@ void ShaderGraph::constant_fold()
 			 */
 			foreach(ShaderInput *input, output->links) {
 				if(scheduled.find(input->parent) != scheduled.end()) {
-					/* Node might be not yet optimized but scheduled already
+					/* Node might not be optimized yet but scheduled already
 					 * by other dependencies. No need to re-schedule it.
 					 */
 					continue;

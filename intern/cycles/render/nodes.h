@@ -485,12 +485,16 @@ class ValueNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(ValueNode)
 
+	bool constant_fold(ShaderOutput *socket, float3 *optimized_value);
+
 	float value;
 };
 
 class ColorNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(ColorNode)
+
+	bool constant_fold(ShaderOutput *socket, float3 *optimized_value);
 
 	float3 value;
 };

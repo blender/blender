@@ -3177,6 +3177,13 @@ ValueNode::ValueNode()
 	add_output("Value", SHADER_SOCKET_FLOAT);
 }
 
+bool ValueNode::constant_fold(ShaderOutput *socket, float3 *optimized_value)
+{
+	*optimized_value = make_float3(value, value, value);
+
+	return true;
+}
+
 void ValueNode::compile(SVMCompiler& compiler)
 {
 	ShaderOutput *val_out = output("Value");
@@ -3199,6 +3206,13 @@ ColorNode::ColorNode()
 	value = make_float3(0.0f, 0.0f, 0.0f);
 
 	add_output("Color", SHADER_SOCKET_COLOR);
+}
+
+bool ColorNode::constant_fold(ShaderOutput *socket, float3 *optimized_value)
+{
+	*optimized_value = value;
+
+	return true;
 }
 
 void ColorNode::compile(SVMCompiler& compiler)
