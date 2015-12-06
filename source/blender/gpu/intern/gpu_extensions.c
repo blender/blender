@@ -312,7 +312,6 @@ bool GPU_bicubic_bump_support(void)
 	return GLEW_VERSION_4_0 || (GLEW_ARB_texture_query_lod && GLEW_VERSION_3_0);
 }
 
-
 bool GPU_geometry_shader_support(void)
 {
 	/* in GL 3.2 geometry shaders are fully supported
@@ -584,9 +583,6 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, const f
 	int r_width;
 	bool rescale = false;
 
-	if (!GLEW_VERSION_1_2)
-		return NULL;
-
 	tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
 	tex->w = tex->w_orig = w;
 	tex->h = tex->h_orig = h;
@@ -805,7 +801,6 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
 	return tex;
-
 }
 
 GPUTexture *GPU_texture_create_1D(int w, const float *fpixels, char err_out[256])
@@ -2136,7 +2131,7 @@ void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUText
 		fprintf(stderr, "Not enough texture slots.\n");
 		return;
 	}
-		
+
 	if (tex->number == -1)
 		return;
 
