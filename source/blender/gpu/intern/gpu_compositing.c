@@ -304,7 +304,7 @@ bool GPU_fx_compositor_initialize_passes(
 
 	fx->effects = 0;
 
-	if (!GPU_non_power_of_two_support() || !GLEW_EXT_framebuffer_object)
+	if (!GLEW_EXT_framebuffer_object)
 		return false;
 
 	if (!fx_settings) {
@@ -1082,12 +1082,12 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 			{
 				int invrendertargetdim_uniform, color_uniform, depth_uniform, dof_uniform;
 				int viewvecs_uniform;
-				float invrendertargetdim[2] = {1.0f / GPU_texture_opengl_width(fx->dof_near_coc_blurred_buffer),
-				                               1.0f / GPU_texture_opengl_height(fx->dof_near_coc_blurred_buffer)};
+				float invrendertargetdim[2] = {1.0f / GPU_texture_width(fx->dof_near_coc_blurred_buffer),
+				                               1.0f / GPU_texture_height(fx->dof_near_coc_blurred_buffer)};
 				float tmp = invrendertargetdim[0];
 				invrendertargetdim[0] = 0.0f;
 
-				dof_params[2] = GPU_texture_opengl_width(fx->dof_near_coc_blurred_buffer) / (scale_camera * fx_dof->sensor);
+				dof_params[2] = GPU_texture_width(fx->dof_near_coc_blurred_buffer) / (scale_camera * fx_dof->sensor);
 
 				dof_uniform = GPU_shader_get_uniform(dof_shader_pass2, "dof_params");
 				invrendertargetdim_uniform = GPU_shader_get_uniform(dof_shader_pass2, "invrendertargetdim");
@@ -1174,8 +1174,8 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 			{
 				int near_coc_downsampled;
 				int invrendertargetdim_uniform;
-				float invrendertargetdim[2] = {1.0f / GPU_texture_opengl_width(fx->dof_near_coc_blurred_buffer),
-				                               1.0f / GPU_texture_opengl_height(fx->dof_near_coc_blurred_buffer)};
+				float invrendertargetdim[2] = {1.0f / GPU_texture_width(fx->dof_near_coc_blurred_buffer),
+				                               1.0f / GPU_texture_height(fx->dof_near_coc_blurred_buffer)};
 
 				near_coc_downsampled = GPU_shader_get_uniform(dof_shader_pass4, "colorbuffer");
 				invrendertargetdim_uniform = GPU_shader_get_uniform(dof_shader_pass4, "invrendertargetdim");

@@ -627,7 +627,7 @@ static void init_internal_icons(void)
 		}
 
 		/* we only use a texture for cards with non-power of two */
-		if (GPU_non_power_of_two_support()) {
+		if (GPU_full_non_power_of_two_support()) {
 			glGenTextures(1, &icongltex.id);
 
 			if (icongltex.id) {

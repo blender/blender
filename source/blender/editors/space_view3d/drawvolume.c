@@ -135,9 +135,9 @@ static GPUTexture *create_flame_spectrum_texture(void)
 
 void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
                        const float min[3], const float max[3],
-	                   const int res[3], const float viewnormal[3])
+	                   const float viewnormal[3])
 {
-	GPUTexture *tex_spec;
+	GPUTexture *tex_spec = NULL;
 	GPUProgram *smoke_program;
 	const int progtype = (sds->active_fields & SM_ACTIVE_COLORS) ? GPU_PROGRAM_SMOKE_COLORED
 	                                                             : GPU_PROGRAM_SMOKE;
@@ -152,7 +152,6 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	float d /*, d0 */ /* UNUSED */, dd, ds;
 	float (*points)[3] = NULL;
 	int numpoints = 0;
-	float cor[3] = {1.0f, 1.0f, 1.0f};
 	int gl_depth = 0, gl_blend = 0;
 
 	const bool use_fire = (sds->active_fields & SM_ACTIVE_FIRE) != 0;
@@ -171,6 +170,7 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	};
 
 	const float size[3] = { max[0] - min[0], max[1] - min[1], max[2] - min[2] };
+	const float invsize[3] = { 1.0f / size[0], 1.0f / size[1], 1.0f / size[2] };
 
 	/* edges have the form edges[n][0][xyz] + t*edges[n][1][xyz] */
 	const float edges[12][2][3] = {
@@ -257,16 +257,6 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 		GPU_texture_bind(tex_spec, 3);
 	}
 
-	if (!GPU_non_power_of_two_support()) {
-		cor[0] = (float)res[0] / (float)power_of_2_max_u(res[0]);
-		cor[1] = (float)res[1] / (float)power_of_2_max_u(res[1]);
-		cor[2] = (float)res[2] / (float)power_of_2_max_u(res[2]);
-	}
-
-	cor[0] /= size[0];
-	cor[1] /= size[1];
-	cor[2] /= size[2];
-
 	/* our slices are defined by the plane equation a*x + b*y +c*z + d = 0
 	 * (a,b,c), the plane normal, are given by viewdir
 	 * d is the parameter along the view direction. the first d is given by
@@ -318,9 +308,9 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 				GPU_program_parameter_4f(smoke_program, 2, 1.0, 0.0, 0.0, 0.0);
 				glBegin(GL_POLYGON);
 				for (i = 0; i < numpoints; i++) {
-					glTexCoord3d((points[i][0] - min[0]) * cor[0],
-					             (points[i][1] - min[1]) * cor[1],
-					             (points[i][2] - min[2]) * cor[2]);
+					glTexCoord3d((points[i][0] - min[0]) * invsize[0],
+					             (points[i][1] - min[1]) * invsize[1],
+					             (points[i][2] - min[2]) * invsize[2]);
 					glVertex3f(points[i][0] * ob_sizei[0],
 					           points[i][1] * ob_sizei[1],
 					           points[i][2] * ob_sizei[2]);
@@ -334,9 +324,9 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 			GPU_program_parameter_4f(smoke_program, 2, -1.0, 0.0, 0.0, 0.0);
 			glBegin(GL_POLYGON);
 			for (i = 0; i < numpoints; i++) {
-				glTexCoord3d((points[i][0] - min[0]) * cor[0],
-				             (points[i][1] - min[1]) * cor[1],
-				             (points[i][2] - min[2]) * cor[2]);
+				glTexCoord3d((points[i][0] - min[0]) * invsize[0],
+				             (points[i][1] - min[1]) * invsize[1],
+				             (points[i][2] - min[2]) * invsize[2]);
 				glVertex3f(points[i][0] * ob_sizei[0],
 				           points[i][1] * ob_sizei[1],
 				           points[i][2] * ob_sizei[2]);

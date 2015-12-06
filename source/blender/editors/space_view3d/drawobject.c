@@ -8039,13 +8039,13 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				if (!sds->wt || !(sds->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
 					sds->tex = NULL;
 					GPU_create_smoke(smd, 0);
-					draw_smoke_volume(sds, ob, p0, p1, sds->res, viewnormal);
+					draw_smoke_volume(sds, ob, p0, p1, viewnormal);
 					GPU_free_smoke(smd);
 				}
 				else if (sds->wt && (sds->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
 					sds->tex = NULL;
 					GPU_create_smoke(smd, 1);
-					draw_smoke_volume(sds, ob, p0, p1, sds->res_wt, viewnormal);
+					draw_smoke_volume(sds, ob, p0, p1, viewnormal);
 					GPU_free_smoke(smd);
 				}
 

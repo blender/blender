@@ -195,7 +195,6 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 	wmDrawData *drawdata;
 	wmDrawTriple *triple;
 	float halfx, halfy, ratiox, ratioy;
-	int x, y, offx, offy;
 	float alpha = 1.0f;
 	int view;
 	int soffx;
@@ -217,43 +216,39 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 
 		glEnable(triple->target);
 
-		for (y = 0, offy = 0; y < triple->ny; offy += triple->y[y], y++) {
-			for (x = 0, offx = 0; x < triple->nx; offx += triple->x[x], x++) {
-				const int sizex = triple->x[x];
-				const int sizey = triple->y[y];
+		const int sizex = triple->x;
+		const int sizey = triple->y;
 
-				/* wmOrtho for the screen has this same offset */
-				ratiox = sizex;
-				ratioy = sizey;
-				halfx = GLA_PIXEL_OFS;
-				halfy = GLA_PIXEL_OFS;
+		/* wmOrtho for the screen has this same offset */
+		ratiox = sizex;
+		ratioy = sizey;
+		halfx = GLA_PIXEL_OFS;
+		halfy = GLA_PIXEL_OFS;
 
-				/* texture rectangle has unnormalized coordinates */
-				if (triple->target == GL_TEXTURE_2D) {
-					ratiox /= triple->x[x];
-					ratioy /= triple->y[y];
-					halfx /= triple->x[x];
-					halfy /= triple->y[y];
-				}
-
-				glBindTexture(triple->target, triple->bind[x + y * triple->nx]);
-
-				glColor4f(1.0f, 1.0f, 1.0f, alpha);
-				glBegin(GL_QUADS);
-				glTexCoord2f(halfx, halfy);
-				glVertex2f(soffx + (offx * 0.5f), offy);
-
-				glTexCoord2f(ratiox + halfx, halfy);
-				glVertex2f(soffx + ((offx + sizex) * 0.5f), offy);
-
-				glTexCoord2f(ratiox + halfx, ratioy + halfy);
-				glVertex2f(soffx + ((offx + sizex) * 0.5f), offy + sizey);
-
-				glTexCoord2f(halfx, ratioy + halfy);
-				glVertex2f(soffx + (offx * 0.5f), offy + sizey);
-				glEnd();
-			}
+		/* texture rectangle has unnormalized coordinates */
+		if (triple->target == GL_TEXTURE_2D) {
+			ratiox /= triple->x;
+			ratioy /= triple->y;
+			halfx /= triple->x;
+			halfy /= triple->y;
 		}
+
+		glBindTexture(triple->target, triple->bind);
+
+		glColor4f(1.0f, 1.0f, 1.0f, alpha);
+		glBegin(GL_QUADS);
+		glTexCoord2f(halfx, halfy);
+		glVertex2f(soffx, 0);
+
+		glTexCoord2f(ratiox + halfx, halfy);
+		glVertex2f(soffx + (sizex * 0.5f), 0);
+
+		glTexCoord2f(ratiox + halfx, ratioy + halfy);
+		glVertex2f(soffx + (sizex * 0.5f), sizey);
+
+		glTexCoord2f(halfx, ratioy + halfy);
+		glVertex2f(soffx, sizey);
+		glEnd();
 
 		glBindTexture(triple->target, 0);
 		glDisable(triple->target);
@@ -266,7 +261,6 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 	wmDrawData *drawdata;
 	wmDrawTriple *triple;
 	float halfx, halfy, ratiox, ratioy;
-	int x, y, offx, offy;
 	float alpha = 1.0f;
 	int view;
 	int soffy;
@@ -284,43 +278,39 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 
 		glEnable(triple->target);
 
-		for (y = 0, offy = 0; y < triple->ny; offy += triple->y[y], y++) {
-			for (x = 0, offx = 0; x < triple->nx; offx += triple->x[x], x++) {
-				const int sizex = triple->x[x];
-				const int sizey = triple->y[y];
+		const int sizex = triple->x;
+		const int sizey = triple->y;
 
-				/* wmOrtho for the screen has this same offset */
-				ratiox = sizex;
-				ratioy = sizey;
-				halfx = GLA_PIXEL_OFS;
-				halfy = GLA_PIXEL_OFS;
+		/* wmOrtho for the screen has this same offset */
+		ratiox = sizex;
+		ratioy = sizey;
+		halfx = GLA_PIXEL_OFS;
+		halfy = GLA_PIXEL_OFS;
 
-				/* texture rectangle has unnormalized coordinates */
-				if (triple->target == GL_TEXTURE_2D) {
-					ratiox /= triple->x[x];
-					ratioy /= triple->y[y];
-					halfx /= triple->x[x];
-					halfy /= triple->y[y];
-				}
-
-				glBindTexture(triple->target, triple->bind[x + y * triple->nx]);
-
-				glColor4f(1.0f, 1.0f, 1.0f, alpha);
-				glBegin(GL_QUADS);
-				glTexCoord2f(halfx, halfy);
-				glVertex2f(offx, soffy + (offy * 0.5f));
-
-				glTexCoord2f(ratiox + halfx, halfy);
-				glVertex2f(offx + sizex, soffy + (offy * 0.5f));
-
-				glTexCoord2f(ratiox + halfx, ratioy + halfy);
-				glVertex2f(offx + sizex, soffy + ((offy + sizey) * 0.5f));
-
-				glTexCoord2f(halfx, ratioy + halfy);
-				glVertex2f(offx, soffy + ((offy + sizey) * 0.5f));
-				glEnd();
-			}
+		/* texture rectangle has unnormalized coordinates */
+		if (triple->target == GL_TEXTURE_2D) {
+			ratiox /= triple->x;
+			ratioy /= triple->y;
+			halfx /= triple->x;
+			halfy /= triple->y;
 		}
+
+		glBindTexture(triple->target, triple->bind);
+
+		glColor4f(1.0f, 1.0f, 1.0f, alpha);
+		glBegin(GL_QUADS);
+		glTexCoord2f(halfx, halfy);
+		glVertex2f(0, soffy);
+
+		glTexCoord2f(ratiox + halfx, halfy);
+		glVertex2f(sizex, soffy);
+
+		glTexCoord2f(ratiox + halfx, ratioy + halfy);
+		glVertex2f(sizex, soffy + (sizey * 0.5f));
+
+		glTexCoord2f(halfx, ratioy + halfy);
+		glVertex2f(0, soffy + (sizey * 0.5f));
+		glEnd();
 
 		glBindTexture(triple->target, 0);
 		glDisable(triple->target);

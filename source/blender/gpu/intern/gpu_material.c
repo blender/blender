@@ -2310,7 +2310,7 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 					if (GPU_texture_opengl_bindcode(input->tex)) {
 						uniform->type = GPU_DYNAMIC_SAMPLER_2DBUFFER;
 						glBindTexture(GL_TEXTURE_2D, GPU_texture_opengl_bindcode(input->tex));
-						uniform->texsize = GPU_texture_opengl_width(input->tex) * GPU_texture_opengl_height(input->tex);
+						uniform->texsize = GPU_texture_width(input->tex) * GPU_texture_height(input->tex);
 						uniform->texpixels = MEM_mallocN(uniform->texsize*4, "RGBApixels");
 						glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, uniform->texpixels); 
 						glBindTexture(GL_TEXTURE_2D, 0);

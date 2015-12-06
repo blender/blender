@@ -355,67 +355,15 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
 	}
 }
 
-#if 0
-/******************** draw damage ************************/
-/* - not implemented                                      */
-
-static void wm_method_draw_damage(bContext *C, wmWindow *win)
-{
-	wm_method_draw_all(C, win);
-}
-#endif
-
 /****************** draw triple buffer ********************/
 /* - area regions are written into a texture, without any */
 /*   of the overlapping menus, brushes, gestures. these   */
 /*   are redrawn each time.                               */
-/*                                                        */
-/* - if non-power of two textures are supported, that is  */
-/*   used. if not, multiple smaller ones are used, with   */
-/*   worst case wasted space being 23.4% for 3x3 textures */
-
-static void split_width(int x, int n, int *splitx, int *nx)
-{
-	int a, newnx, waste;
-
-	/* if already power of two just use it */
-	if (is_power_of_2_i(x)) {
-		splitx[0] = x;
-		(*nx)++;
-		return;
-	}
-
-	if (n == 1) {
-		/* last part, we have to go larger */
-		splitx[0] = power_of_2_max_i(x);
-		(*nx)++;
-	}
-	else {
-		/* two or more parts to go, use smaller part */
-		splitx[0] = power_of_2_min_i(x);
-		newnx = ++(*nx);
-		split_width(x - splitx[0], n - 1, splitx + 1, &newnx);
-
-		for (waste = 0, a = 0; a < n; a++)
-			waste += splitx[a];
-
-		/* if we waste more space or use the same amount,
-		 * revert deeper splits and just use larger */
-		if (waste >= power_of_2_max_i(x)) {
-			splitx[0] = power_of_2_max_i(x);
-			memset(splitx + 1, 0, sizeof(int) * (n - 1));
-		}
-		else
-			*nx = newnx;
-	}
-}
 
 static void wm_draw_triple_free(wmDrawTriple *triple)
 {
 	if (triple) {
-
-		glDeleteTextures(triple->nx * triple->ny, triple->bind);
-
+		glDeleteTextures(1, &triple->bind);
 		MEM_freeN(triple);
 	}
 }
@@ -434,66 +382,49 @@ static int wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 	const int winsize_y = WM_window_pixels_y(win);
 
 	GLint maxsize;
-	int x, y;
 
 	/* compute texture sizes */
 	if (GLEW_ARB_texture_rectangle || GLEW_NV_texture_rectangle || GLEW_EXT_texture_rectangle) {
 		triple->target = GL_TEXTURE_RECTANGLE_ARB;
-		triple->nx = 1;
-		triple->ny = 1;
-		triple->x[0] = winsize_x;
-		triple->y[0] = winsize_y;
-	}
-	else if (GPU_non_power_of_two_support()) {
-		triple->target = GL_TEXTURE_2D;
-		triple->nx = 1;
-		triple->ny = 1;
-		triple->x[0] = winsize_x;
-		triple->y[0] = winsize_y;
 	}
 	else {
 		triple->target = GL_TEXTURE_2D;
-		triple->nx = 0;
-		triple->ny = 0;
-		split_width(winsize_x, MAX_N_TEX, triple->x, &triple->nx);
-		split_width(winsize_y, MAX_N_TEX, triple->y, &triple->ny);
 	}
 
-	/* generate texture names */
-	glGenTextures(triple->nx * triple->ny, triple->bind);
+	triple->x = winsize_x;
+	triple->y = winsize_y;
 
-	if (!triple->bind[0]) {
+	/* generate texture names */
+	glGenTextures(1, &triple->bind);
+
+	if (!triple->bind) {
 		/* not the typical failure case but we handle it anyway */
 		printf("WM: failed to allocate texture for triple buffer drawing (glGenTextures).\n");
 		return 0;
 	}
 
-	for (y = 0; y < triple->ny; y++) {
-		for (x = 0; x < triple->nx; x++) {
-			/* proxy texture is only guaranteed to test for the cases that
-			 * there is only one texture in use, which may not be the case */
-			maxsize = GPU_max_texture_size();
+	/* proxy texture is only guaranteed to test for the cases that
+	 * there is only one texture in use, which may not be the case */
+	maxsize = GPU_max_texture_size();
 
-			if (triple->x[x] > maxsize || triple->y[y] > maxsize) {
-				glBindTexture(triple->target, 0);
-				printf("WM: failed to allocate texture for triple buffer drawing "
-				       "(texture too large for graphics card).\n");
-				return 0;
-			}
+	if (triple->x > maxsize || triple->y > maxsize) {
+		glBindTexture(triple->target, 0);
+		printf("WM: failed to allocate texture for triple buffer drawing "
+			   "(texture too large for graphics card).\n");
+		return 0;
+	}
 
-			/* setup actual texture */
-			glBindTexture(triple->target, triple->bind[x + y * triple->nx]);
-			glTexImage2D(triple->target, 0, GL_RGB8, triple->x[x], triple->y[y], 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-			glTexParameteri(triple->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(triple->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glBindTexture(triple->target, 0);
+	/* setup actual texture */
+	glBindTexture(triple->target, triple->bind);
+	glTexImage2D(triple->target, 0, GL_RGB8, triple->x, triple->y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(triple->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(triple->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glBindTexture(triple->target, 0);
 
-			/* not sure if this works everywhere .. */
-			if (glGetError() == GL_OUT_OF_MEMORY) {
-				printf("WM: failed to allocate texture for triple buffer drawing (out of memory).\n");
-				return 0;
-			}
-		}
+	/* not sure if this works everywhere .. */
+	if (glGetError() == GL_OUT_OF_MEMORY) {
+		printf("WM: failed to allocate texture for triple buffer drawing (out of memory).\n");
+		return 0;
 	}
 
 	return 1;
@@ -501,51 +432,43 @@ static int wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 
 void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 {
-	const int winsize_x = WM_window_pixels_x(win);
-	const int winsize_y = WM_window_pixels_y(win);
+	const int sizex = WM_window_pixels_x(win);
+	const int sizey = WM_window_pixels_y(win);
 
 	float halfx, halfy, ratiox, ratioy;
-	int x, y, sizex, sizey, offx, offy;
 
 	glEnable(triple->target);
 
-	for (y = 0, offy = 0; y < triple->ny; offy += triple->y[y], y++) {
-		for (x = 0, offx = 0; x < triple->nx; offx += triple->x[x], x++) {
-			sizex = (x == triple->nx - 1) ? winsize_x - offx : triple->x[x];
-			sizey = (y == triple->ny - 1) ? winsize_y - offy : triple->y[y];
+	/* wmOrtho for the screen has this same offset */
+	ratiox = sizex;
+	ratioy = sizey;
+	halfx = GLA_PIXEL_OFS;
+	halfy = GLA_PIXEL_OFS;
 
-			/* wmOrtho for the screen has this same offset */
-			ratiox = sizex;
-			ratioy = sizey;
-			halfx = GLA_PIXEL_OFS;
-			halfy = GLA_PIXEL_OFS;
-
-			/* texture rectangle has unnormalized coordinates */
-			if (triple->target == GL_TEXTURE_2D) {
-				ratiox /= triple->x[x];
-				ratioy /= triple->y[y];
-				halfx /= triple->x[x];
-				halfy /= triple->y[y];
-			}
-
-			glBindTexture(triple->target, triple->bind[x + y * triple->nx]);
-
-			glColor4f(1.0f, 1.0f, 1.0f, alpha);
-			glBegin(GL_QUADS);
-			glTexCoord2f(halfx, halfy);
-			glVertex2f(offx, offy);
-
-			glTexCoord2f(ratiox + halfx, halfy);
-			glVertex2f(offx + sizex, offy);
-
-			glTexCoord2f(ratiox + halfx, ratioy + halfy);
-			glVertex2f(offx + sizex, offy + sizey);
-
-			glTexCoord2f(halfx, ratioy + halfy);
-			glVertex2f(offx, offy + sizey);
-			glEnd();
-		}
+	/* texture rectangle has unnormalized coordinates */
+	if (triple->target == GL_TEXTURE_2D) {
+		ratiox /= triple->x;
+		ratioy /= triple->y;
+		halfx /= triple->x;
+		halfy /= triple->y;
 	}
+
+	glBindTexture(triple->target, triple->bind);
+
+	glColor4f(1.0f, 1.0f, 1.0f, alpha);
+	glBegin(GL_QUADS);
+	glTexCoord2f(halfx, halfy);
+	glVertex2f(0, 0);
+
+	glTexCoord2f(ratiox + halfx, halfy);
+	glVertex2f(sizex, 0);
+
+	glTexCoord2f(ratiox + halfx, ratioy + halfy);
+	glVertex2f(sizex, sizey);
+
+	glTexCoord2f(halfx, ratioy + halfy);
+	glVertex2f(0, sizey);
+	glEnd();
 
 	glBindTexture(triple->target, 0);
 	glDisable(triple->target);
@@ -553,20 +476,11 @@ void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 
 static void wm_triple_copy_textures(wmWindow *win, wmDrawTriple *triple)
 {
-	const int winsize_x = WM_window_pixels_x(win);
-	const int winsize_y = WM_window_pixels_y(win);
+	const int sizex = WM_window_pixels_x(win);
+	const int sizey = WM_window_pixels_y(win);
 
-	int x, y, sizex, sizey, offx, offy;
-
-	for (y = 0, offy = 0; y < triple->ny; offy += triple->y[y], y++) {
-		for (x = 0, offx = 0; x < triple->nx; offx += triple->x[x], x++) {
-			sizex = (x == triple->nx - 1) ? winsize_x - offx : triple->x[x];
-			sizey = (y == triple->ny - 1) ? winsize_y - offy : triple->y[y];
-
-			glBindTexture(triple->target, triple->bind[x + y * triple->nx]);
-			glCopyTexSubImage2D(triple->target, 0, 0, 0, offx, offy, sizex, sizey);
-		}
-	}
+	glBindTexture(triple->target, triple->bind);
+	glCopyTexSubImage2D(triple->target, 0, 0, 0, 0, 0, sizex, sizey);
 
 	glBindTexture(triple->target, 0);
 }

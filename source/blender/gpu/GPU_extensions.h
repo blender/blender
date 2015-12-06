@@ -61,7 +61,7 @@ void GPU_extensions_disable(void);
 
 bool GPU_legacy_support(void);
 bool GPU_glsl_support(void);
-bool GPU_non_power_of_two_support(void);
+bool GPU_full_non_power_of_two_support(void);
 bool GPU_display_list_support(void);
 bool GPU_bicubic_bump_support(void);
 bool GPU_geometry_shader_support(void);
@@ -107,9 +107,7 @@ bool GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver);
  * - always returns unsigned char RGBA textures
  * - if texture with non square dimensions is created, depending on the
  *   graphics card capabilities the texture may actually be stored in a
- *   larger texture with power of two dimensions. the actual dimensions
- *   may be queried with GPU_texture_opengl_width/height. GPU_texture_coord_2f
- *   calls glTexCoord2f with the coordinates adjusted for this.
+ *   larger texture with power of two dimensions.
  * - can use reference counting:
  *     - reference counter after GPU_texture_create is 1
  *     - GPU_texture_ref increases by one
@@ -151,8 +149,8 @@ void GPU_texture_filter_mode(GPUTexture *tex, bool compare, bool use_filter);
 GPUFrameBuffer *GPU_texture_framebuffer(GPUTexture *tex);
 
 int GPU_texture_target(const GPUTexture *tex);
-int GPU_texture_opengl_width(const GPUTexture *tex);
-int GPU_texture_opengl_height(const GPUTexture *tex);
+int GPU_texture_width(const GPUTexture *tex);
+int GPU_texture_height(const GPUTexture *tex);
 int GPU_texture_opengl_bindcode(const GPUTexture *tex);
 
 /* GPU Framebuffer

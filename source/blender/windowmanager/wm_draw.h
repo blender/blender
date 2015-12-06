@@ -34,13 +34,9 @@
 
 #include "GPU_glew.h"
 
-
-#define MAX_N_TEX 3
-
 typedef struct wmDrawTriple {
-	GLuint bind[MAX_N_TEX * MAX_N_TEX];
-	int x[MAX_N_TEX], y[MAX_N_TEX];
-	int nx, ny;
+	GLuint bind;
+	int x, y;
 	GLenum target;
 } wmDrawTriple;
 

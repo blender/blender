@@ -730,7 +730,7 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *rect, float *frect, int
 	/* scale if not a power of two. this is not strictly necessary for newer
 	 * GPUs (OpenGL version >= 2.0) since they support non-power-of-two-textures 
 	 * Then don't bother scaling for hardware that supports NPOT textures! */
-	if ((!GPU_non_power_of_two_support() && !is_power_of_2_resolution(rectw, recth)) ||
+	if ((!GPU_full_non_power_of_two_support() && !is_power_of_2_resolution(rectw, recth)) ||
 		is_over_resolution_limit(rectw, recth)) {
 		rectw = smaller_power_of_2_limit(rectw);
 		recth = smaller_power_of_2_limit(recth);
@@ -1000,7 +1000,7 @@ void GPU_paint_set_mipmap(bool mipmap)
 /* check if image has been downscaled and do scaled partial update */
 static bool GPU_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x, int y, int w, int h)
 {
-	if ((!GPU_non_power_of_two_support() && !is_power_of_2_resolution(ibuf->x, ibuf->y)) ||
+	if ((!GPU_full_non_power_of_two_support() && !is_power_of_2_resolution(ibuf->x, ibuf->y)) ||
 	    is_over_resolution_limit(ibuf->x, ibuf->y))
 	{
 		int x_limit = smaller_power_of_2_limit(ibuf->x);

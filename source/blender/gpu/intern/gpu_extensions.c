@@ -293,9 +293,10 @@ bool GPU_glsl_support(void)
 	return true;
 }
 
-bool GPU_non_power_of_two_support(void)
+bool GPU_full_non_power_of_two_support(void)
 {
-	/* always supported on full GL but still relevant for OpenGL ES */
+	/* always supported on full GL but still relevant for OpenGL ES 2.0 where
+	 * NPOT textures can't use mipmaps or repeat wrap mode */
 	return true;
 }
 
@@ -384,7 +385,6 @@ static void GPU_print_framebuffer_error(GLenum status, char err_out[256])
 
 struct GPUTexture {
 	int w, h;           /* width/height */
-	int w_orig, h_orig; /* width/height (before power of 2 is applied) */
 	int number;         /* number for multitexture binding */
 	int refcount;       /* reference count */
 	GLenum target;      /* GL_TEXTURE_* */
@@ -395,7 +395,6 @@ struct GPUTexture {
 	GPUFrameBuffer *fb; /* GPUFramebuffer this texture is attached to */
 	int fb_attachment;  /* slot the texture is attached to */
 	int depth;          /* is a depth texture? if 3D how deep? */
-	int depth_orig;     /* depth (before power of 2 is applied) */
 };
 
 static unsigned char *GPU_texture_convert_pixels(int length, const float *fpixels)
@@ -439,13 +438,13 @@ static GPUTexture *GPU_texture_create_nD(
 	}
 
 	tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
-	tex->w = tex->w_orig = w;
-	tex->h = tex->h_orig = h;
+	tex->w = w;
+	tex->h = h;
 	tex->number = -1;
 	tex->refcount = 1;
 	tex->target = (n == 1) ? GL_TEXTURE_1D : (samples ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D);
 	tex->target_base = (n == 1) ? GL_TEXTURE_1D : GL_TEXTURE_2D;
-	tex->depth = tex->depth_orig = depth;
+	tex->depth = depth;
 	tex->fb_attachment = -1;
 
 	glGenTextures(1, &tex->bindcode);
@@ -463,7 +462,7 @@ static GPUTexture *GPU_texture_create_nD(
 		return NULL;
 	}
 
-	if (!GPU_non_power_of_two_support()) {
+	if (!GPU_full_non_power_of_two_support()) {
 		tex->w = power_of_2_max_i(tex->w);
 		tex->h = power_of_2_max_i(tex->h);
 	}
@@ -587,9 +586,9 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, const f
 	bool rescale = false;
 
 	tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
-	tex->w = tex->w_orig = w;
-	tex->h = tex->h_orig = h;
-	tex->depth = tex->depth_orig = depth;
+	tex->w = w;
+	tex->h = h;
+	tex->depth = depth;
 	tex->number = -1;
 	tex->refcount = 1;
 	tex->target = GL_TEXTURE_3D;
@@ -602,12 +601,6 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, const f
 			(int)glGetError());
 		GPU_texture_free(tex);
 		return NULL;
-	}
-
-	if (!GPU_non_power_of_two_support()) {
-		tex->w = power_of_2_max_i(tex->w);
-		tex->h = power_of_2_max_i(tex->h);
-		tex->depth = power_of_2_max_i(tex->depth);
 	}
 
 	tex->number = 0;
@@ -687,18 +680,7 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, const f
 	}
 	else {
 		if (fpixels) {
-			if (!GPU_non_power_of_two_support() && (w != tex->w || h != tex->h || depth != tex->depth)) {
-				/* clear first to avoid unitialized pixels */
-				float *zero= MEM_callocN(sizeof(float)*tex->w*tex->h*tex->depth, "zero");
-				glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, NULL);
-				glTexSubImage3D(tex->target, 0, 0, 0, 0, tex->w, tex->h, tex->depth, GL_INTENSITY, GL_FLOAT, zero);
-				glTexSubImage3D(tex->target, 0, 0, 0, 0, w, h, depth, format, type, fpixels);
-				MEM_freeN(zero);
-			}
-			else {
-				glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, fpixels);
-			}
-
+			glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, fpixels);
 			GPU_ASSERT_NO_GL_ERRORS("3D glTexSubImage3D");
 		}
 	}
@@ -752,8 +734,8 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, bool is_data,
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_BORDER, &border);
 
-		tex->w = tex->w_orig = w - border;
-		tex->h = tex->h_orig = h - border;
+		tex->w = w - border;
+		tex->h = h - border;
 	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -797,8 +779,8 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
 		
-		tex->w = tex->w_orig = w;
-		tex->h = tex->h_orig = h;
+		tex->w = w;
+		tex->h = h;
 	}
 	
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -1065,12 +1047,12 @@ int GPU_texture_target(const GPUTexture *tex)
 	return tex->target;
 }
 
-int GPU_texture_opengl_width(const GPUTexture *tex)
+int GPU_texture_width(const GPUTexture *tex)
 {
 	return tex->w;
 }
 
-int GPU_texture_opengl_height(const GPUTexture *tex)
+int GPU_texture_height(const GPUTexture *tex)
 {
 	return tex->h;
 }
@@ -1226,7 +1208,7 @@ void GPU_texture_bind_as_framebuffer(GPUTexture *tex)
 	}
 
 	/* push matrices and set default viewport and matrix */
-	glViewport(0, 0, tex->w_orig, tex->h_orig);
+	glViewport(0, 0, tex->w, tex->h);
 	GG.currentfb = tex->fb->object;
 
 	glMatrixMode(GL_PROJECTION);
@@ -1264,7 +1246,7 @@ void GPU_framebuffer_slots_bind(GPUFrameBuffer *fb, int slot)
 	glReadBuffer(GL_COLOR_ATTACHMENT0_EXT + slot);
 
 	/* push matrices and set default viewport and matrix */
-	glViewport(0, 0, fb->colortex[slot]->w_orig, fb->colortex[slot]->h_orig);
+	glViewport(0, 0, fb->colortex[slot]->w, fb->colortex[slot]->h);
 	GG.currentfb = fb->object;
 
 	glMatrixMode(GL_PROJECTION);
@@ -1294,7 +1276,7 @@ void GPU_framebuffer_bind_no_save(GPUFrameBuffer *fb, int slot)
 	glReadBuffer(GL_COLOR_ATTACHMENT0_EXT + slot);
 
 	/* push matrices and set default viewport and matrix */
-	glViewport(0, 0, fb->colortex[slot]->w_orig, fb->colortex[slot]->h_orig);
+	glViewport(0, 0, fb->colortex[slot]->w, fb->colortex[slot]->h);
 	GG.currentfb = fb->object;
 	GG.currentfb = fb->object;
 }
@@ -1354,8 +1336,8 @@ void GPU_framebuffer_restore(void)
 
 void GPU_framebuffer_blur(GPUFrameBuffer *fb, GPUTexture *tex, GPUFrameBuffer *blurfb, GPUTexture *blurtex)
 {
-	const float scaleh[2] = {1.0f / blurtex->w_orig, 0.0f};
-	const float scalev[2] = {0.0f, 1.0f / tex->h_orig};
+	const float scaleh[2] = {1.0f / blurtex->w, 0.0f};
+	const float scalev[2] = {0.0f, 1.0f / tex->h};
 
 	GPUShader *blur_shader = GPU_shader_get_builtin_shader(GPU_SHADER_SEP_GAUSSIAN_BLUR);
 	int scale_uniform, texture_source_uniform;
@@ -1379,7 +1361,7 @@ void GPU_framebuffer_blur(GPUFrameBuffer *fb, GPUTexture *tex, GPUFrameBuffer *b
 	GPU_shader_bind(blur_shader);
 	GPU_shader_uniform_vector(blur_shader, scale_uniform, 2, 1, scaleh);
 	GPU_shader_uniform_texture(blur_shader, texture_source_uniform, tex);
-	glViewport(0, 0, blurtex->w_orig, blurtex->h_orig);
+	glViewport(0, 0, blurtex->w, blurtex->h);
 
 	/* Peparing to draw quad */
 	glMatrixMode(GL_MODELVIEW);
@@ -1408,7 +1390,7 @@ void GPU_framebuffer_blur(GPUFrameBuffer *fb, GPUTexture *tex, GPUFrameBuffer *b
 	
 	GG.currentfb = fb->object;
 	
-	glViewport(0, 0, tex->w_orig, tex->h_orig);
+	glViewport(0, 0, tex->w, tex->h);
 	GPU_shader_uniform_vector(blur_shader, scale_uniform, 2, 1, scalev);
 	GPU_shader_uniform_texture(blur_shader, texture_source_uniform, blurtex);
 	GPU_texture_bind(blurtex, 0);
@@ -1523,8 +1505,8 @@ void GPU_offscreen_unbind(GPUOffScreen *ofs, bool restore)
 
 void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels)
 {
-	const int w = ofs->color->w_orig;
-	const int h = ofs->color->h_orig;
+	const int w = ofs->color->w;
+	const int h = ofs->color->h;
 
 	if (ofs->color->target == GL_TEXTURE_2D_MULTISAMPLE) {
 		/* For a multi-sample texture,
@@ -1602,12 +1584,12 @@ finally:
 
 int GPU_offscreen_width(const GPUOffScreen *ofs)
 {
-	return ofs->color->w_orig;
+	return ofs->color->w;
 }
 
 int GPU_offscreen_height(const GPUOffScreen *ofs)
 {
-	return ofs->color->h_orig;
+	return ofs->color->h;
 }
 
 int GPU_offscreen_color_texture(const GPUOffScreen *ofs)
