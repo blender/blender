@@ -144,6 +144,8 @@ int openSubdiv_getAvailableEvaluators(void);
 void openSubdiv_init(void);
 void openSubdiv_cleanup(void);
 
+extern bool GPU_legacy_support(void);
+
 #ifdef __cplusplus
 }
 #endif

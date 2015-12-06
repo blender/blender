@@ -186,23 +186,11 @@ void transpose_m3(float mat[3][3])
 
 GLuint compileShader(GLenum shaderType,
                      const char *section,
+                     const char *version,
                      const char *define)
 {
 	char sdefine[64];
 	sprintf(sdefine, "#define %s\n", section);
-
-	const char *version;
-	if (GLEW_VERSION_3_2 && GLEW_ARB_compatibility) {
-		version = "#version 150 compatibility\n";
-	}
-	else if (GLEW_VERSION_3_1 && GLEW_ARB_compatibility) {
-		version = "#version 140\n"
-		          "#extension GL_ARB_compatibility: enable\n";
-	}
-	else if (GLEW_VERSION_3_0) {
-		version = "#version 130\n";
-		/* minimum supported for OpenSubdiv */
-	}
 
 	const char *sources[] = {
 		version,
@@ -230,22 +218,25 @@ GLuint compileShader(GLenum shaderType,
 	return shader;
 }
 
-GLuint linkProgram(const char *define)
+GLuint linkProgram(const char *version, const char *define)
 {
 	GLuint vertexShader = compileShader(GL_VERTEX_SHADER,
 	                                    "VERTEX_SHADER",
+	                                    version,
 	                                    define);
 	if (vertexShader == 0) {
 		return 0;
 	}
 	GLuint geometryShader = compileShader(GL_GEOMETRY_SHADER,
 	                                      "GEOMETRY_SHADER",
+	                                      version,
 	                                      define);
 	if (geometryShader == 0) {
 		return 0;
 	}
 	GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER,
 	                                      "FRAGMENT_SHADER",
+	                                      version,
 	                                      define);
 	if (fragmentShader == 0) {
 		return 0;
@@ -261,7 +252,7 @@ GLuint linkProgram(const char *define)
 	glBindAttribLocation(program, 1, "normal");
 
 
-	if (!(GLEW_VERSION_3_2 && GLEW_ARB_compatibility)) {
+	if (!GLEW_VERSION_3_2) {
 		/* provide input/output layout info */
 		glProgramParameteriEXT(program,
 		                       GL_GEOMETRY_INPUT_TYPE_EXT,
@@ -381,11 +372,31 @@ bool openSubdiv_osdGLDisplayInit(void)
 	static bool need_init = true;
 	static bool init_success = false;
 	if (need_init) {
-		g_flat_fill_solid_program = linkProgram("#define FLAT_SHADING\n");
-		g_flat_fill_texture2d_program = linkProgram("#define USE_TEXTURE_2D\n#define FLAT_SHADING\n");
-		g_smooth_fill_solid_program = linkProgram("#define SMOOTH_SHADING\n");
-		g_smooth_fill_texture2d_program = linkProgram("#define USE_TEXTURE_2D\n#define SMOOTH_SHADING\n");
-		g_wireframe_program = linkProgram("#define WIREFRAME\n");
+
+		if (!openSubdiv_supportGPUDisplay()) {
+			return false;
+		}
+
+		const char *version = "";
+		if (GLEW_VERSION_3_2) {
+			version = "#version 150 compatibility\n";
+		}
+		else if (GLEW_VERSION_3_1) {
+			version = "#version 140\n"
+			          "#extension GL_ARB_compatibility: enable\n";
+		}
+		else {
+			version = "#version 130\n";
+			/* minimum supported for OpenSubdiv */
+		}
+
+		fprintf(stderr, version);
+
+		g_flat_fill_solid_program = linkProgram(version, "#define FLAT_SHADING\n");
+		g_flat_fill_texture2d_program = linkProgram(version, "#define USE_TEXTURE_2D\n#define FLAT_SHADING\n");
+		g_smooth_fill_solid_program = linkProgram(version, "#define SMOOTH_SHADING\n");
+		g_smooth_fill_texture2d_program = linkProgram(version, "#define USE_TEXTURE_2D\n#define SMOOTH_SHADING\n");
+		g_wireframe_program = linkProgram(version, "#define WIREFRAME\n");
 
 		glGenBuffers(1, &g_lighting_ub);
 		glBindBuffer(GL_UNIFORM_BUFFER, g_lighting_ub);

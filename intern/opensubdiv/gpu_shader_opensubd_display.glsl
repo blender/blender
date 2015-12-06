@@ -70,7 +70,8 @@ void main()
 
 #if __VERSION__ < 140
   #extension GL_ARB_uniform_buffer_object: require
-  #extension GL_ARB_texture_buffer_object: require
+  #extension GL_ARB_texture_buffer_object: enable
+  #extension GL_EXT_texture_buffer_object: enable
 #endif
 
 uniform mat4 modelViewMatrix;
