@@ -479,9 +479,10 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 	if (omd->flag & MOD_OCEAN_GENERATE_FOAM) {
 		if (CustomData_number_of_layers(&dm->loopData, CD_MLOOPCOL) < MAX_MCOL) {
 			const int num_polys = dm->getNumPolys(dm);
+			const int num_loops = dm->getNumLoops(dm);
 			MLoop *mloops = dm->getLoopArray(dm);
 			MLoopCol *mloopcols = CustomData_add_layer_named(
-			                          &dm->loopData, CD_MLOOPCOL, CD_CALLOC, NULL, num_polys * 4, omd->foamlayername);
+			                          &dm->loopData, CD_MLOOPCOL, CD_CALLOC, NULL, num_loops, omd->foamlayername);
 
 			if (mloopcols) { /* unlikely to fail */
 				MPoly *mpolys = dm->getPolyArray(dm);
