@@ -47,15 +47,16 @@
 
 #include "RAS_OpenGLLight.h"
 
-#include "RAS_StorageIM.h"
 #include "RAS_StorageVA.h"
 #include "RAS_StorageVBO.h"
 
 #include "GPU_draw.h"
 #include "GPU_material.h"
+#include "GPU_extensions.h"
 
 extern "C"{
 	#include "BLF_api.h"
+	#include "BKE_DerivedMesh.h"
 }
 
 
@@ -83,7 +84,7 @@ static GLuint right_eye_vinterlace_mask[32];
  */
 static GLuint hinterlace_mask[33];
 
-RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas, int storage)
+RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas, RAS_STORAGE_TYPE storage)
 	:RAS_IRasterizer(canvas),
 	m_2DCanvas(canvas),
 	m_fogenabled(false),
@@ -122,22 +123,15 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas, int storage)
 
 	m_prevafvalue = GPU_get_anisotropic();
 
-	if (m_storage_type == RAS_VBO /*|| m_storage_type == RAS_AUTO_STORAGE && GLEW_ARB_vertex_buffer_object*/)
-	{
+	if (m_storage_type == RAS_VBO /*|| m_storage_type == RAS_AUTO_STORAGE && GLEW_ARB_vertex_buffer_object*/) {
 		m_storage = new RAS_StorageVBO(&m_texco_num, m_texco, &m_attrib_num, m_attrib, m_attrib_layer);
-		m_failsafe_storage = new RAS_StorageIM(&m_texco_num, m_texco, &m_attrib_num, m_attrib, m_attrib_layer);
-		m_storage_type = RAS_VBO;
 	}
-	else if ((m_storage_type == RAS_VA) || (m_storage_type == RAS_AUTO_STORAGE && GLEW_VERSION_1_1))
-	{
+	else if ((m_storage_type == RAS_VA) || (m_storage_type == RAS_AUTO_STORAGE)) {
 		m_storage = new RAS_StorageVA(&m_texco_num, m_texco, &m_attrib_num, m_attrib, m_attrib_layer);
-		m_failsafe_storage = new RAS_StorageIM(&m_texco_num, m_texco, &m_attrib_num, m_attrib, m_attrib_layer);
-		m_storage_type = RAS_VA;
 	}
-	else
-	{
-		m_storage = m_failsafe_storage = new RAS_StorageIM(&m_texco_num, m_texco, &m_attrib_num, m_attrib, m_attrib_layer);
-		m_storage_type = RAS_IMMEDIATE;
+	else {
+		printf("Unknown rasterizer storage type, falling back to vertex arrays\n");
+		m_storage = new RAS_StorageVA(&m_texco_num, m_texco, &m_attrib_num, m_attrib, m_attrib_layer);
 	}
 
 	glGetIntegerv(GL_MAX_LIGHTS, (GLint *) &m_numgllights);
@@ -151,8 +145,6 @@ RAS_OpenGLRasterizer::~RAS_OpenGLRasterizer()
 {
 	// Restore the previous AF value
 	GPU_set_anisotropic(m_prevafvalue);
-	if (m_failsafe_storage && m_failsafe_storage != m_storage)
-		delete m_failsafe_storage;
 
 	if (m_storage)
 		delete m_storage;
@@ -321,9 +313,6 @@ void RAS_OpenGLRasterizer::SetDrawingMode(int drawingmode)
 		glDisable(GL_CULL_FACE);
 
 	m_storage->SetDrawingMode(drawingmode);
-	if (m_failsafe_storage && m_failsafe_storage != m_storage) {
-		m_failsafe_storage->SetDrawingMode(drawingmode);
-	}
 }
 
 int RAS_OpenGLRasterizer::GetDrawingMode()
@@ -735,9 +724,97 @@ void RAS_OpenGLRasterizer::SetAttrib(TexCoGen coords, int unit, int layer)
 void RAS_OpenGLRasterizer::IndexPrimitives(RAS_MeshSlot& ms)
 {
 	if (ms.m_pDerivedMesh)
-		m_failsafe_storage->IndexPrimitives(ms);
+		DrawDerivedMesh(ms);
 	else
 		m_storage->IndexPrimitives(ms);
+}
+
+// Code for hooking into Blender's mesh drawing for derived meshes.
+// If/when we use more of Blender's drawing code, we may be able to
+// clean this up
+static bool current_wireframe;
+static RAS_MaterialBucket *current_bucket;
+static RAS_IPolyMaterial *current_polymat;
+static RAS_MeshSlot *current_ms;
+static RAS_MeshObject *current_mesh;
+static int current_blmat_nr;
+static GPUVertexAttribs current_gpu_attribs;
+static Image *current_image;
+static int CheckMaterialDM(int matnr, void *attribs)
+{
+	// only draw the current material
+	if (matnr != current_blmat_nr)
+		return 0;
+	GPUVertexAttribs *gattribs = (GPUVertexAttribs *)attribs;
+	if (gattribs)
+		memcpy(gattribs, &current_gpu_attribs, sizeof(GPUVertexAttribs));
+	return 1;
+}
+
+static DMDrawOption CheckTexDM(MTexPoly *mtexpoly, const bool has_mcol, int matnr)
+{
+
+	// index is the original face index, retrieve the polygon
+	if (matnr == current_blmat_nr &&
+		(mtexpoly == NULL || mtexpoly->tpage == current_image)) {
+		// must handle color.
+		if (current_wireframe)
+			return DM_DRAW_OPTION_NO_MCOL;
+		if (current_ms->m_bObjectColor) {
+			MT_Vector4& rgba = current_ms->m_RGBAcolor;
+			glColor4d(rgba[0], rgba[1], rgba[2], rgba[3]);
+			// don't use mcol
+			return DM_DRAW_OPTION_NO_MCOL;
+		}
+		if (!has_mcol) {
+			// we have to set the color from the material
+			unsigned char rgba[4];
+			current_polymat->GetMaterialRGBAColor(rgba);
+			glColor4ubv((const GLubyte *)rgba);
+			return DM_DRAW_OPTION_NO_MCOL;
+		}
+		return DM_DRAW_OPTION_NORMAL;
+	}
+	return DM_DRAW_OPTION_SKIP;
+}
+
+void RAS_OpenGLRasterizer::DrawDerivedMesh(class RAS_MeshSlot &ms)
+{
+	// mesh data is in derived mesh,
+	current_bucket = ms.m_bucket;
+	current_polymat = current_bucket->GetPolyMaterial();
+	current_ms = &ms;
+	current_mesh = ms.m_mesh;
+	current_wireframe = m_drawingmode <= RAS_IRasterizer::KX_WIREFRAME;
+	// MCol *mcol = (MCol*)ms.m_pDerivedMesh->getFaceDataArray(ms.m_pDerivedMesh, CD_MCOL); /* UNUSED */
+
+	// handle two-side
+	if (current_polymat->GetDrawingMode() & RAS_IRasterizer::KX_BACKCULL)
+		this->SetCullFace(true);
+	else
+		this->SetCullFace(false);
+
+	if (current_polymat->GetFlag() & RAS_BLENDERGLSL) {
+		// GetMaterialIndex return the original mface material index,
+		// increment by 1 to match what derived mesh is doing
+		current_blmat_nr = current_polymat->GetMaterialIndex()+1;
+		// For GLSL we need to retrieve the GPU material attribute
+		Material* blmat = current_polymat->GetBlenderMaterial();
+		Scene* blscene = current_polymat->GetBlenderScene();
+		if (!current_wireframe && blscene && blmat)
+			GPU_material_vertex_attributes(GPU_material_from_blender(blscene, blmat, false), &current_gpu_attribs);
+		else
+			memset(&current_gpu_attribs, 0, sizeof(current_gpu_attribs));
+		// DM draw can mess up blending mode, restore at the end
+		int current_blend_mode = GPU_get_material_alpha_blend();
+		ms.m_pDerivedMesh->drawFacesGLSL(ms.m_pDerivedMesh, CheckMaterialDM);
+		GPU_set_material_alpha_blend(current_blend_mode);
+	} else {
+		//ms.m_pDerivedMesh->drawMappedFacesTex(ms.m_pDerivedMesh, CheckTexfaceDM, mcol);
+		current_blmat_nr = current_polymat->GetMaterialIndex();
+		current_image = current_polymat->GetBlenderImage();
+		ms.m_pDerivedMesh->drawFacesTex(ms.m_pDerivedMesh, CheckTexDM, NULL, NULL, DM_DRAW_USE_ACTIVE_UV);
+	}
 }
 
 void RAS_OpenGLRasterizer::SetProjectionMatrix(MT_CmMatrix4x4 &mat)

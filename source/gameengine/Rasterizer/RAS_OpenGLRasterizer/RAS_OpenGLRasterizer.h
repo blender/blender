@@ -56,7 +56,6 @@ class RAS_OpenGLLight;
 
 enum RAS_STORAGE_TYPE	{
 	RAS_AUTO_STORAGE,
-	RAS_IMMEDIATE,
 	RAS_VA,
 	RAS_VBO,
 };
@@ -139,11 +138,10 @@ protected:
 	 * Examples of concrete strategies: Vertex Arrays, VBOs, Immediate Mode*/
 	int m_storage_type;
 	RAS_IStorage *m_storage;
-	RAS_IStorage *m_failsafe_storage; /* So derived mesh can use immediate mode */
 
 public:
 	double GetTime();
-	RAS_OpenGLRasterizer(RAS_ICanvas *canv, int storage=RAS_AUTO_STORAGE);
+	RAS_OpenGLRasterizer(RAS_ICanvas *canv, RAS_STORAGE_TYPE storage);
 	virtual ~RAS_OpenGLRasterizer();
 
 	/*enum DrawType
@@ -187,6 +185,7 @@ public:
 
 	virtual void IndexPrimitives(class RAS_MeshSlot &ms);
 	virtual void IndexPrimitives_3DText(class RAS_MeshSlot &ms, class RAS_IPolyMaterial *polymat);
+	virtual void DrawDerivedMesh(class RAS_MeshSlot &ms);
 
 	virtual void SetProjectionMatrix(MT_CmMatrix4x4 &mat);
 	virtual void SetProjectionMatrix(const MT_Matrix4x4 &mat);

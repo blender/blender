@@ -122,7 +122,7 @@ bool RAS_ListSlot::End()
 
 
 
-RAS_ListRasterizer::RAS_ListRasterizer(RAS_ICanvas* canvas, bool lock, int storage)
+RAS_ListRasterizer::RAS_ListRasterizer(RAS_ICanvas* canvas, bool lock, RAS_STORAGE_TYPE storage)
 :	RAS_OpenGLRasterizer(canvas, storage)
 {
 }

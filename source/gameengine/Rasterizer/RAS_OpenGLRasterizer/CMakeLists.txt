@@ -53,7 +53,6 @@ set(SRC
 	RAS_ListRasterizer.cpp
 	RAS_OpenGLLight.cpp
 	RAS_OpenGLRasterizer.cpp
-	RAS_StorageIM.cpp
 	RAS_StorageVA.cpp
 	RAS_StorageVBO.cpp
 
@@ -62,7 +61,6 @@ set(SRC
 	RAS_ListRasterizer.h
 	RAS_OpenGLLight.h
 	RAS_OpenGLRasterizer.h
-	RAS_StorageIM.h
 	RAS_StorageVA.h
 	RAS_StorageVBO.h
 )
