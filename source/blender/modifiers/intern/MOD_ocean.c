@@ -37,6 +37,7 @@
 
 #include "BLI_math.h"
 #include "BLI_math_inline.h"
+#include "BLI_task.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
@@ -265,125 +266,142 @@ static void dm_get_bounds(DerivedMesh *dm, float *sx, float *sy, float *ox, floa
 
 #ifdef WITH_OCEANSIM
 
-#ifdef _OPENMP
-#define OMP_MIN_RES 18
-#endif
+typedef struct GenerateOceanGeometryData {
+	MVert *mverts;
+	MPoly *mpolys;
+	MLoop *mloops;
+	int *origindex;
+	MLoopUV *mloopuvs;
+
+	int res_x, res_y;
+	int rx, ry;
+	float ox, oy;
+	float sx, sy;
+	float ix, iy;
+} GenerateOceanGeometryData;
+
+static void generate_ocean_geometry_vertices(void *userdata, void *UNUSED(userdata_chunk), int y)
+{
+	GenerateOceanGeometryData *gogd = userdata;
+	int x;
+
+	for (x = 0; x <= gogd->res_x; x++) {
+		const int i = y * (gogd->res_x + 1) + x;
+		float *co = gogd->mverts[i].co;
+		co[0] = gogd->ox + (x * gogd->sx);
+		co[1] = gogd->oy + (y * gogd->sy);
+		co[2] = 0.0f;
+	}
+}
+
+static void generate_ocean_geometry_polygons(void *userdata, void *UNUSED(userdata_chunk), int y)
+{
+	GenerateOceanGeometryData *gogd = userdata;
+	int x;
+
+	for (x = 0; x < gogd->res_x; x++) {
+		const int fi = y * gogd->res_x + x;
+		const int vi = y * (gogd->res_x + 1) + x;
+		MPoly *mp = &gogd->mpolys[fi];
+		MLoop *ml = &gogd->mloops[fi * 4];
+
+		ml->v = vi;
+		ml++;
+		ml->v = vi + 1;
+		ml++;
+		ml->v = vi + 1 + gogd->res_x + 1;
+		ml++;
+		ml->v = vi + gogd->res_x + 1;
+		ml++;
+
+		mp->loopstart = fi * 4;
+		mp->totloop = 4;
+
+		mp->flag |= ME_SMOOTH;
+
+		/* generated geometry does not map to original faces */
+		gogd->origindex[fi] = ORIGINDEX_NONE;
+	}
+}
+
+static void generate_ocean_geometry_uvs(void *userdata, void *UNUSED(userdata_chunk), int y)
+{
+	GenerateOceanGeometryData *gogd = userdata;
+	int x;
+
+	for (x = 0; x < gogd->res_x; x++) {
+		const int i = y * gogd->res_x + x;
+		MLoopUV *luv = &gogd->mloopuvs[i * 4];
+
+		luv->uv[0] = x * gogd->ix;
+		luv->uv[1] = y * gogd->iy;
+		luv++;
+
+		luv->uv[0] = (x + 1) * gogd->ix;
+		luv->uv[1] = y * gogd->iy;
+		luv++;
+
+		luv->uv[0] = (x + 1) * gogd->ix;
+		luv->uv[1] = (y + 1) * gogd->iy;
+		luv++;
+
+		luv->uv[0] = x * gogd->ix;
+		luv->uv[1] = (y + 1) * gogd->iy;
+		luv++;
+	}
+}
 
 static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 {
 	DerivedMesh *result;
 
-	MVert *mverts;
-	MPoly *mpolys;
-	MLoop *mloops;
-	int *origindex;
+	GenerateOceanGeometryData gogd;
 
-	int cdlayer;
+	int num_verts;
+	int num_faces;
 
-	const int rx = omd->resolution * omd->resolution;
-	const int ry = omd->resolution * omd->resolution;
-	const int res_x = rx * omd->repeat_x;
-	const int res_y = ry * omd->repeat_y;
+	gogd.rx = omd->resolution * omd->resolution;
+	gogd.ry = omd->resolution * omd->resolution;
+	gogd.res_x = gogd.rx * omd->repeat_x;
+	gogd.res_y = gogd.ry * omd->repeat_y;
 
-	const int num_verts = (res_x + 1) * (res_y + 1);
-	/* const int num_edges = (res_x * res_y * 2) + res_x + res_y; */ /* UNUSED BMESH */
-	const int num_faces = res_x * res_y;
+	num_verts = (gogd.res_x + 1) * (gogd.res_y + 1);
+	num_faces = gogd.res_x * gogd.res_y;
 
-	float sx = omd->size * omd->spatial_size;
-	float sy = omd->size * omd->spatial_size;
-	const float ox = -sx / 2.0f;
-	const float oy = -sy / 2.0f;
+	gogd.sx = omd->size * omd->spatial_size;
+	gogd.sy = omd->size * omd->spatial_size;
+	gogd.ox = -gogd.sx / 2.0f;
+	gogd.oy = -gogd.sy / 2.0f;
 
-	float ix, iy;
-
-	int x, y;
-
-	sx /= rx;
-	sy /= ry;
+	gogd.sx /= gogd.rx;
+	gogd.sy /= gogd.ry;
 
 	result = CDDM_new(num_verts, 0, 0, num_faces * 4, num_faces);
 
-	mverts = CDDM_get_verts(result);
-	mpolys = CDDM_get_polys(result);
-	mloops = CDDM_get_loops(result);
+	gogd.mverts = CDDM_get_verts(result);
+	gogd.mpolys = CDDM_get_polys(result);
+	gogd.mloops = CDDM_get_loops(result);
 
-	origindex = CustomData_get_layer(&result->polyData, CD_ORIGINDEX);
+	gogd.origindex = CustomData_get_layer(&result->polyData, CD_ORIGINDEX);
 
 	/* create vertices */
-#pragma omp parallel for private(x, y) if (rx > OMP_MIN_RES)
-	for (y = 0; y <= res_y; y++) {
-		for (x = 0; x <= res_x; x++) {
-			const int i = y * (res_x + 1) + x;
-			float *co = mverts[i].co;
-			co[0] = ox + (x * sx);
-			co[1] = oy + (y * sy);
-			co[2] = 0;
-		}
-	}
+	BLI_task_parallel_range(0, gogd.res_y + 1, &gogd, generate_ocean_geometry_vertices);
 
 	/* create faces */
-#pragma omp parallel for private(x, y) if (rx > OMP_MIN_RES)
-	for (y = 0; y < res_y; y++) {
-		for (x = 0; x < res_x; x++) {
-			const int fi = y * res_x + x;
-			const int vi = y * (res_x + 1) + x;
-			MPoly *mp = &mpolys[fi];
-			MLoop *ml = &mloops[fi * 4];
-
-			ml->v = vi;
-			ml++;
-			ml->v = vi + 1;
-			ml++;
-			ml->v = vi + 1 + res_x + 1;
-			ml++;
-			ml->v = vi + res_x + 1;
-			ml++;
-
-			mp->loopstart = fi * 4;
-			mp->totloop = 4;
-
-			mp->flag |= ME_SMOOTH;
-
-			/* generated geometry does not map to original faces */
-			origindex[fi] = ORIGINDEX_NONE;
-		}
-	}
+	BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_polygons);
 
 	CDDM_calc_edges(result);
 
 	/* add uvs */
-	cdlayer = CustomData_number_of_layers(&result->loopData, CD_MLOOPUV);
-	if (cdlayer < MAX_MTFACE) {
-		MLoopUV *mloopuvs = CustomData_add_layer(&result->loopData, CD_MLOOPUV, CD_CALLOC, NULL, num_faces * 4);
+	if (CustomData_number_of_layers(&result->loopData, CD_MLOOPUV) < MAX_MTFACE) {
+		gogd.mloopuvs = CustomData_add_layer(&result->loopData, CD_MLOOPUV, CD_CALLOC, NULL, num_faces * 4);
 		CustomData_add_layer(&result->polyData, CD_MTEXPOLY, CD_CALLOC, NULL, num_faces);
 
-		if (mloopuvs) { /* unlikely to fail */
-			ix = 1.0 / rx;
-			iy = 1.0 / ry;
-#pragma omp parallel for private(x, y) if (rx > OMP_MIN_RES)
-			for (y = 0; y < res_y; y++) {
-				for (x = 0; x < res_x; x++) {
-					const int i = y * res_x + x;
-					MLoopUV *luv = &mloopuvs[i * 4];
+		if (gogd.mloopuvs) { /* unlikely to fail */
+			gogd.ix = 1.0 / gogd.rx;
+			gogd.iy = 1.0 / gogd.ry;
 
-					luv->uv[0] = x * ix;
-					luv->uv[1] = y * iy;
-					luv++;
-
-					luv->uv[0] = (x + 1) * ix;
-					luv->uv[1] = y * iy;
-					luv++;
-
-					luv->uv[0] = (x + 1) * ix;
-					luv->uv[1] = (y + 1) * iy;
-					luv++;
-
-					luv->uv[0] = x * ix;
-					luv->uv[1] = (y + 1) * iy;
-					luv++;
-
-				}
-			}
+			BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_uvs);
 		}
 	}
 
@@ -478,12 +496,9 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 				float foam;
 
 				for (i = 0, mp = mpolys; i < num_faces; i++, mp++) {
-					j = mp->totloop - 1;
+					j = mp->totloop;
 
-					/* highly unlikely */
-					if (j <= 0) continue;
-
-					do {
+					while (j--) {
 						const float *co = mverts[mloops[mp->loopstart + j].v].co;
 						const float u = OCEAN_CO(size_co_inv, co[0]);
 						const float v = OCEAN_CO(size_co_inv, co[1]);
@@ -502,7 +517,7 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 						mlcol->r = mlcol->g = mlcol->b = (char)(foam * 255);
 						/* This needs to be set (render engine uses) */
 						mlcol->a = 255;
-					} while (j--);
+					}
 				}
 			}
 		}
