@@ -59,6 +59,7 @@ typedef struct GPUProgram GPUProgram;
 
 void GPU_extensions_disable(void);
 
+bool GPU_legacy_support(void);
 bool GPU_glsl_support(void);
 bool GPU_non_power_of_two_support(void);
 bool GPU_display_list_support(void);

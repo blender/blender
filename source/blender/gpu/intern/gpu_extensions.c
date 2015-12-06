@@ -265,6 +265,27 @@ void gpu_extensions_exit(void)
 	GPU_invalid_tex_free();
 }
 
+bool GPU_legacy_support(void)
+{
+	// return whether or not current GL context is compatible with legacy OpenGL
+
+	if (GLEW_VERSION_3_2) {
+		static GLint profile = 0;
+
+		if (profile == 0) {
+			glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
+		}
+
+		return profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT;
+	}
+	else if (GLEW_VERSION_3_1) {
+		return GLEW_ARB_compatibility;
+	}
+	else {
+		return true;
+	}
+}
+
 bool GPU_glsl_support(void)
 {
 	/* always supported, still queried by game engine */
@@ -298,12 +319,12 @@ bool GPU_geometry_shader_support(void)
 	 * core profile clashes with our other shaders so accept compatibility only
 	 * other GL versions can use EXT_geometry_shader4 if available
 	 */
-	return (GLEW_VERSION_3_2 && GLEW_ARB_compatibility) || GLEW_EXT_geometry_shader4;
+	return (GLEW_VERSION_3_2 && GPU_legacy_support()) || GLEW_EXT_geometry_shader4;
 }
 
 static bool GPU_geometry_shader_support_via_extension(void)
 {
-	return GLEW_EXT_geometry_shader4 && !(GLEW_VERSION_3_2 && GLEW_ARB_compatibility);
+	return GLEW_EXT_geometry_shader4 && !(GLEW_VERSION_3_2 && GPU_legacy_support());
 }
 
 bool GPU_instanced_drawing_support(void)
@@ -1646,7 +1667,7 @@ static void shader_print_errors(const char *task, const char *log, const char **
 static const char *gpu_shader_version(void)
 {
 	if (GLEW_VERSION_3_2) {
-		if (GLEW_ARB_compatibility) {
+		if (GPU_legacy_support()) {
 			return "#version 150 compatibility\n";
 			/* highest version that is widely supported
 			 * gives us native geometry shaders!
