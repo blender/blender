@@ -189,26 +189,57 @@ static PyObject *py_kdtree_balance(PyKDTree *self)
 	Py_RETURN_NONE;
 }
 
+struct PyKDTree_NearestData {
+	PyObject *py_filter;
+	bool is_error;
+};
+
+static int py_find_nearest_cb(void *user_data, int index, const float co[3], float dist_sq)
+{
+	UNUSED_VARS(co, dist_sq);
+
+	struct PyKDTree_NearestData *data = user_data;
+
+	PyObject *py_args = PyTuple_New(1);
+	PyTuple_SET_ITEM(py_args, 0, PyLong_FromLong(index));
+	PyObject *result = PyObject_CallObject(data->py_filter, py_args);
+	Py_DECREF(py_args);
+
+	if (result) {
+		bool use_node;
+		int ok = PyC_ParseBool(result, &use_node);
+		Py_DECREF(result);
+		if (ok) {
+			return (int)use_node;
+		}
+	}
+
+	data->is_error = true;
+	return -1;
+}
+
 PyDoc_STRVAR(py_kdtree_find_doc,
-".. method:: find(co)\n"
+".. method:: find(co, filter=None)\n"
 "\n"
 "   Find nearest point to ``co``.\n"
 "\n"
 "   :arg co: 3d coordinates.\n"
 "   :type co: float triplet\n"
+"   :arg filter: function which takes an index and returns True for indices to include in the search.\n"
+"   :type filter: callable\n"
 "   :return: Returns (:class:`Vector`, index, distance).\n"
 "   :rtype: :class:`tuple`\n"
 );
 static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs)
 {
-	PyObject *py_co;
+	PyObject *py_co, *py_filter = NULL;
 	float co[3];
 	KDTreeNearest nearest;
-	const char *keywords[] = {"co", NULL};
+	const char *keywords[] = {"co", "filter", NULL};
 
 	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwargs, (char *) "O:find", (char **)keywords,
-	        &py_co))
+	        args, kwargs, (char *) "O|O:find", (char **)keywords,
+	        &py_co, &py_filter))
 	{
 		return NULL;
 	}
@@ -221,10 +252,26 @@ static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs
 		return NULL;
 	}
 
-
 	nearest.index = -1;
 
-	BLI_kdtree_find_nearest(self->obj, co, &nearest);
+	if (py_filter == NULL) {
+		BLI_kdtree_find_nearest(self->obj, co, &nearest);
+	}
+	else {
+		struct PyKDTree_NearestData data = {0};
+
+		data.py_filter = py_filter;
+		data.is_error = false;
+
+		BLI_kdtree_find_nearest_cb(
+		        self->obj, co,
+		        py_find_nearest_cb, &data,
+		        &nearest);
+
+		if (data.is_error) {
+			return NULL;
+		}
+	}
 
 	return kdtree_nearest_to_py_and_check(&nearest);
 }
