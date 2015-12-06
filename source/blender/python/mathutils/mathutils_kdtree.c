@@ -104,7 +104,10 @@ static int PyKDTree__tp_init(PyKDTree *self, PyObject *args, PyObject *kwargs)
 	unsigned int maxsize;
 	const char *keywords[] = {"size", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "I:KDTree", (char **)keywords, &maxsize)) {
+	if (!PyArg_ParseTupleAndKeywords(
+	        args, kwargs, "I:KDTree", (char **)keywords,
+	        &maxsize))
+	{
 		return -1;
 	}
 
@@ -144,8 +147,9 @@ static PyObject *py_kdtree_insert(PyKDTree *self, PyObject *args, PyObject *kwar
 	int index;
 	const char *keywords[] = {"co", "index", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, (char *) "Oi:insert", (char **)keywords,
-	                                 &py_co, &index))
+	if (!PyArg_ParseTupleAndKeywords(
+	        args, kwargs, (char *) "Oi:insert", (char **)keywords,
+	        &py_co, &index))
 	{
 		return NULL;
 	}
@@ -202,8 +206,9 @@ static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs
 	KDTreeNearest nearest;
 	const char *keywords[] = {"co", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, (char *) "O:find", (char **)keywords,
-	                                 &py_co))
+	if (!PyArg_ParseTupleAndKeywords(
+	        args, kwargs, (char *) "O:find", (char **)keywords,
+	        &py_co))
 	{
 		return NULL;
 	}
@@ -246,8 +251,9 @@ static PyObject *py_kdtree_find_n(PyKDTree *self, PyObject *args, PyObject *kwar
 	int i, found;
 	const char *keywords[] = {"co", "n", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, (char *) "OI:find_n", (char **)keywords,
-	                                 &py_co, &n))
+	if (!PyArg_ParseTupleAndKeywords(
+	        args, kwargs, (char *) "OI:find_n", (char **)keywords,
+	        &py_co, &n))
 	{
 		return NULL;
 	}
@@ -303,8 +309,9 @@ static PyObject *py_kdtree_find_range(PyKDTree *self, PyObject *args, PyObject *
 
 	const char *keywords[] = {"co", "radius", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, (char *) "Of:find_range", (char **)keywords,
-	                                 &py_co, &radius))
+	if (!PyArg_ParseTupleAndKeywords(
+	        args, kwargs, (char *) "Of:find_range", (char **)keywords,
+	        &py_co, &radius))
 	{
 		return NULL;
 	}
