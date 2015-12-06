@@ -74,9 +74,9 @@
 #endif
 
 #include "GPU_draw.h"
-#include "GPU_extensions.h"
 #include "GPU_glew.h"
 #include "GPU_buffers.h"
+#include "GPU_shader.h"
 
 #include "CCGSubSurf.h"
 

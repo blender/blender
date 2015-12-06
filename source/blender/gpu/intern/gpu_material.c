@@ -61,7 +61,10 @@
 #include "IMB_imbuf_types.h"
 
 #include "GPU_extensions.h"
+#include "GPU_framebuffer.h"
 #include "GPU_material.h"
+#include "GPU_shader.h"
+#include "GPU_texture.h"
 
 #include "gpu_codegen.h"
 

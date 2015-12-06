@@ -55,7 +55,7 @@
 
 #include "BLI_sys_types.h" // for intptr_t support
 
-#include "GPU_extensions.h"
+#include "GPU_texture.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

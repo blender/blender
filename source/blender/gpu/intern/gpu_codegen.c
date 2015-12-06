@@ -42,9 +42,11 @@
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 
+#include "GPU_extensions.h"
 #include "GPU_glew.h"
 #include "GPU_material.h"
-#include "GPU_extensions.h"
+#include "GPU_shader.h"
+#include "GPU_texture.h"
 
 #include "BLI_sys_types.h" /* for intptr_t support */
 

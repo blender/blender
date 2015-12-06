@@ -46,16 +46,19 @@ set(INC_SYS
 )
 
 set(SRC
+	intern/gpu_basic_shader.c
 	intern/gpu_buffers.c
 	intern/gpu_codegen.c
-	intern/gpu_draw.c
-	intern/gpu_extensions.c
-	intern/gpu_init_exit.c
-	intern/gpu_material.c
-	intern/gpu_basic_shader.c
-	intern/gpu_select.c
 	intern/gpu_compositing.c
 	intern/gpu_debug.c
+	intern/gpu_draw.c
+	intern/gpu_extensions.c
+	intern/gpu_framebuffer.c
+	intern/gpu_init_exit.c
+	intern/gpu_material.c
+	intern/gpu_select.c
+	intern/gpu_shader.c
+	intern/gpu_texture.c
 
 	shaders/gpu_program_smoke_frag.glsl
 	shaders/gpu_program_smoke_color_frag.glsl
@@ -78,16 +81,19 @@ set(SRC
 	shaders/gpu_shader_vsm_store_vert.glsl
 	shaders/gpu_shader_fx_depth_resolve.glsl
 
+	GPU_basic_shader.h
 	GPU_buffers.h
-	GPU_draw.h
+	GPU_compositing.h
 	GPU_debug.h
+	GPU_draw.h
 	GPU_extensions.h
+	GPU_framebuffer.h
 	GPU_glew.h
 	GPU_init_exit.h
 	GPU_material.h
-	GPU_basic_shader.h
 	GPU_select.h
-	GPU_compositing.h
+	GPU_shader.h
+	GPU_texture.h
 	intern/gpu_codegen.h
 	intern/gpu_private.h
 )

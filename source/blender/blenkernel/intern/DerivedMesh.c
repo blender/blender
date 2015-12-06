@@ -74,8 +74,8 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm);
 #include "BLI_sys_types.h" /* for intptr_t support */
 
 #include "GPU_buffers.h"
-#include "GPU_extensions.h"
 #include "GPU_glew.h"
+#include "GPU_shader.h"
 
 #ifdef WITH_OPENSUBDIV
 #  include "DNA_userdef_types.h"

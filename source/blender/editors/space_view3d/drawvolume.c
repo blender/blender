@@ -46,7 +46,8 @@
 
 #include "BIF_gl.h"
 
-#include "GPU_extensions.h"
+#include "GPU_shader.h"
+#include "GPU_texture.h"
 
 #include "view3d_intern.h"  // own include
 

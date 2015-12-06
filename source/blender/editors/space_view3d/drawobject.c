@@ -87,9 +87,9 @@
 #include "BIF_glutil.h"
 
 #include "GPU_draw.h"
-#include "GPU_extensions.h"
 #include "GPU_select.h"
 #include "GPU_basic_shader.h"
+#include "GPU_shader.h"
 
 #include "ED_mesh.h"
 #include "ED_particle.h"

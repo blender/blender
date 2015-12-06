@@ -47,10 +47,12 @@
 #include "DNA_camera_types.h"
 #include "DNA_gpu_types.h"
 
-#include "GPU_extensions.h"
 #include "GPU_compositing.h"
-
+#include "GPU_extensions.h"
+#include "GPU_framebuffer.h"
 #include "GPU_glew.h"
+#include "GPU_shader.h"
+#include "GPU_texture.h"
 
 #include "MEM_guardedalloc.h"
 

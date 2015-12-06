@@ -42,13 +42,12 @@
  * - Optimize for case where no texture matrix is used.
  */
 
-#include "GPU_glew.h"
-
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "GPU_extensions.h"
 #include "GPU_basic_shader.h"
+#include "GPU_glew.h"
+#include "GPU_shader.h"
 
 /* State */
 

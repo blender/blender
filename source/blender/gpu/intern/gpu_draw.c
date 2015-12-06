@@ -75,11 +75,13 @@
 #include "BKE_subsurf.h"
 #include "BKE_DerivedMesh.h"
 
+#include "GPU_basic_shader.h"
 #include "GPU_buffers.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"
-#include "GPU_basic_shader.h"
+#include "GPU_shader.h"
+#include "GPU_texture.h"
 
 #include "PIL_time.h"
 

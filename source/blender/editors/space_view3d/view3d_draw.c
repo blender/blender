@@ -96,8 +96,8 @@
 #include "UI_resources.h"
 
 #include "GPU_draw.h"
+#include "GPU_framebuffer.h"
 #include "GPU_material.h"
-#include "GPU_extensions.h"
 #include "GPU_compositing.h"
 
 #include "view3d_intern.h"  /* own include */

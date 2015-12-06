@@ -55,8 +55,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_extensions.h"
 #include "GPU_glew.h"
+#include "GPU_shader.h"
 
 extern GLubyte stipple_quarttone[128]; /* glutil.c, bad level data */
 

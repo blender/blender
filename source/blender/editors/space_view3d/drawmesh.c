@@ -60,10 +60,10 @@
 
 #include "UI_resources.h"
 
-#include "GPU_extensions.h"
 #include "GPU_draw.h"
 #include "GPU_material.h"
 #include "GPU_basic_shader.h"
+#include "GPU_shader.h"
 
 #include "RE_engine.h"
 

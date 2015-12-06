@@ -51,8 +51,9 @@
 #include "RAS_StorageVBO.h"
 
 #include "GPU_draw.h"
-#include "GPU_material.h"
 #include "GPU_extensions.h"
+#include "GPU_material.h"
+#include "GPU_shader.h"
 
 extern "C"{
 	#include "BLF_api.h"

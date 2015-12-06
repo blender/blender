@@ -69,9 +69,9 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "GPU_extensions.h"
 #include "GPU_glew.h"
 #include "GPU_compositing.h"
+#include "GPU_framebuffer.h"
 
 
 #include "render_intern.h"

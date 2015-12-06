@@ -37,8 +37,8 @@
 
 #include "ED_screen.h"
 
-#include "GPU_extensions.h"
 #include "GPU_compositing.h"
+#include "GPU_framebuffer.h"
 
 #include "../mathutils/mathutils.h"
 
