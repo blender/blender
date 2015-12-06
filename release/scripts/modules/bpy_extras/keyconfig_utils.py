@@ -163,13 +163,12 @@ def _export_properties(prefix, properties, kmi_id, lines=None):
 
     def string_value(value):
         if isinstance(value, str) or isinstance(value, bool) or isinstance(value, float) or isinstance(value, int):
-            result = repr(value)
+            return repr(value)
         elif getattr(value, '__len__', False):
             return repr(list(value))
-        else:
-            print("Export key configuration: can't write ", value)
 
-        return result
+        print("Export key configuration: can't write ", value)
+        return ""
 
     for pname in properties.bl_rna.properties.keys():
         if pname != "rna_type":
