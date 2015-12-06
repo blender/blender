@@ -448,7 +448,6 @@ int BLI_kdtree_range_search__normal(
         KDTreeNearest **r_nearest, float range)
 {
 	const KDTreeNode *nodes = tree->nodes;
-	const KDTreeNode *root;
 	unsigned int *stack, defaultstack[KD_STACK_INIT];
 	KDTreeNearest *foundstack = NULL;
 	float range_sq = range * range, dist_sq;
@@ -464,27 +463,7 @@ int BLI_kdtree_range_search__normal(
 	stack = defaultstack;
 	totstack = KD_STACK_INIT;
 
-	root = &nodes[tree->root];
-
-	if (co[root->d] + range < root->co[root->d]) {
-		if (root->left != KD_NODE_UNSET)
-			stack[cur++] = root->left;
-	}
-	else if (co[root->d] - range > root->co[root->d]) {
-		if (root->right != KD_NODE_UNSET)
-			stack[cur++] = root->right;
-	}
-	else {
-		dist_sq = squared_distance(root->co, co, nor);
-		if (dist_sq <= range_sq) {
-			add_in_range(&foundstack, &totfoundstack, found++, root->index, dist_sq, root->co);
-		}
-
-		if (root->left != KD_NODE_UNSET)
-			stack[cur++] = root->left;
-		if (root->right != KD_NODE_UNSET)
-			stack[cur++] = root->right;
-	}
+	stack[cur++] = tree->root;
 
 	while (cur--) {
 		const KDTreeNode *node = &nodes[stack[cur]];
@@ -538,7 +517,7 @@ void BLI_kdtree_range_search_cb(
         bool (*search_cb)(void *user_data, int index, const float co[3], float dist_sq), void *user_data)
 {
 	const KDTreeNode *nodes = tree->nodes;
-	const KDTreeNode *root;
+
 	unsigned int *stack, defaultstack[KD_STACK_INIT];
 	float range_sq = range * range, dist_sq;
 	unsigned int totstack, cur = 0;
@@ -553,29 +532,7 @@ void BLI_kdtree_range_search_cb(
 	stack = defaultstack;
 	totstack = KD_STACK_INIT;
 
-	root = &nodes[tree->root];
-
-	if (co[root->d] + range < root->co[root->d]) {
-		if (root->left != KD_NODE_UNSET)
-			stack[cur++] = root->left;
-	}
-	else if (co[root->d] - range > root->co[root->d]) {
-		if (root->right != KD_NODE_UNSET)
-			stack[cur++] = root->right;
-	}
-	else {
-		dist_sq = len_squared_v3v3(root->co, co);
-		if (dist_sq <= range_sq) {
-			if (search_cb(user_data, root->index, root->co, dist_sq) == false) {
-				goto finally;
-			}
-		}
-
-		if (root->left != KD_NODE_UNSET)
-			stack[cur++] = root->left;
-		if (root->right != KD_NODE_UNSET)
-			stack[cur++] = root->right;
-	}
+	stack[cur++] = tree->root;
 
 	while (cur--) {
 		const KDTreeNode *node = &nodes[stack[cur]];
