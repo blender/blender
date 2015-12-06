@@ -626,7 +626,7 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 		        m_wantNumOfAASamples,
 		        m_hWnd,
 		        m_hDC,
-		        WGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+		        WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 		        3, 2,
 		        GHOST_OPENGL_WGL_CONTEXT_FLAGS,
 		        GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
@@ -646,8 +646,14 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 		        m_wantNumOfAASamples,
 		        m_hWnd,
 		        m_hDC,
+#if 1
 		        0, // profile bit
-		        0, 0,
+		        2, 1, // GL version requested
+#else
+		        // switch to this for Blender 2.8 development
+		        WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+		        3, 2,
+#endif
 		        GHOST_OPENGL_WGL_CONTEXT_FLAGS,
 		        GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
 #else
@@ -684,8 +690,14 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 		        m_wantNumOfAASamples,
 		        m_hWnd,
 		        m_hDC,
+#if 1
 		        0, // profile bit
-		        0, 0,
+		        2, 1, // GL version requested
+#else
+		        // switch to this for Blender 2.8 development
+		        EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT,
+		        3, 2,
+#endif
 		        GHOST_OPENGL_EGL_CONTEXT_FLAGS,
 		        GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
 		        EGL_OPENGL_API);
