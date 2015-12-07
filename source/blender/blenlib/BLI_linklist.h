@@ -91,5 +91,7 @@ LinkNode *BLI_linklist_sort_r(LinkNode *list, int (*cmp)(void *, const void *, c
 
 #define BLI_linklist_prepend_alloca(listp, ptr) \
 	BLI_linklist_prepend_nlink(listp, ptr, alloca(sizeof(LinkNode)))
+#define BLI_linklist_append_alloca(list_pair, ptr) \
+	BLI_linklist_append_nlink(list_pair, ptr, alloca(sizeof(LinkNode)))
 
 #endif  /* __BLI_LINKLIST_H__ */
