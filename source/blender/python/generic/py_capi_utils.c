@@ -38,8 +38,10 @@
 
 #include "python_utildefines.h"
 
+#ifndef MATH_STANDALONE
 /* only for BLI_strncpy_wchar_from_utf8, should replace with py funcs but too late in release now */
 #include "BLI_string_utf8.h"
+#endif
 
 #ifdef _WIN32
 #include "BLI_path_util.h"  /* BLI_setenv() */
@@ -198,6 +200,27 @@ void PyC_List_Fill(PyObject *list, PyObject *value)
 		Py_INCREF(value);
 	}
 }
+
+/**
+ * Use with PyArg_ParseTuple's "O&" formatting.
+ */
+int PyC_ParseBool(PyObject *o, void *p)
+{
+	bool *bool_p = p;
+	long value;
+	if (((value = PyLong_AsLong(o)) == -1) || !ELEM(value, 0, 1)) {
+		PyErr_Format(PyExc_ValueError,
+		             "expected a bool or int (0/1), got %s",
+		             Py_TYPE(o)->tp_name);
+		return 0;
+	}
+
+	*bool_p = value ? true : false;
+	return 1;
+}
+
+
+#ifndef MATH_STANDALONE
 
 /* for debugging */
 void PyC_ObSpit(const char *name, PyObject *var)
@@ -1016,20 +1039,4 @@ int PyC_RunString_AsNumber(const char *expr, double *value, const char *filename
 	return error_ret;
 }
 
-/**
- * Use with PyArg_ParseTuple's "O&" formatting.
- */
-int PyC_ParseBool(PyObject *o, void *p)
-{
-	bool *bool_p = p;
-	long value;
-	if (((value = PyLong_AsLong(o)) == -1) || !ELEM(value, 0, 1)) {
-		PyErr_Format(PyExc_ValueError,
-		             "expected a bool or int (0/1), got %s",
-		             Py_TYPE(o)->tp_name);
-		return 0;
-	}
-
-	*bool_p = value ? true : false;
-	return 1;
-}
+#endif  /* #ifndef MATH_STANDALONE */

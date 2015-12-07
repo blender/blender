@@ -1569,6 +1569,7 @@ void mat4_decompose(float loc[3], float quat[4], float size[3], float wmat[4][4]
  *
  * See https://en.wikipedia.org/wiki/Polar_decomposition for more.
  */
+#ifndef MATH_STANDALONE
 void mat3_polar_decompose(float mat3[3][3], float r_U[3][3], float r_P[3][3])
 {
 	/* From svd decomposition (M = WSV*), we have:
@@ -1586,7 +1587,7 @@ void mat3_polar_decompose(float mat3[3][3], float r_U[3][3], float r_P[3][3])
 	mul_m3_m3m3(r_U, W, Vt);
 	mul_m3_series(r_P, V, S, Vt);
 }
-
+#endif
 
 void scale_m3_fl(float m[3][3], float scale)
 {
@@ -1727,6 +1728,8 @@ void blend_m4_m4m4(float out[4][4], float dst[4][4], float src[4][4], const floa
 	loc_quat_size_to_mat4(out, floc, fquat, fsize);
 }
 
+/* for builds without Eigen */
+#ifndef MATH_STANDALONE
 /**
  * A polar-decomposition-based interpolation between matrix A and matrix B.
  *
@@ -1795,6 +1798,7 @@ void interp_m4_m4m4(float R[4][4], float A[4][4], float B[4][4], const float t)
 	copy_m4_m3(R, R3);
 	copy_v3_v3(R[3], loc);
 }
+#endif  /* MATH_STANDALONE */
 
 bool is_negative_m3(float mat[3][3])
 {
