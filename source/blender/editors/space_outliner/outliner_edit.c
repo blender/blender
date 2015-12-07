@@ -381,7 +381,7 @@ void OUTLINER_OT_lib_delete(wmOperatorType *ot)
 {
 	ot->name = "Delete Library";
 	ot->idname = "OUTLINER_OT_lib_delete";
-	ot->description = "Delete the library under cursorn (needs a save/reload)";
+	ot->description = "Delete the library under cursor (needs a save/reload)";
 
 	ot->invoke = outliner_lib_delete_invoke;
 	ot->poll = ED_operator_outliner_active;
