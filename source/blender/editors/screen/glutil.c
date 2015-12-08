@@ -137,7 +137,7 @@ const GLubyte stipple_diag_stripes_neg[128] = {
 
 const GLubyte stipple_checker_8px[128] = {
 	255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0,
-	255,  0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0,
+	255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0,
 	0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255,
 	0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255,
 	255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0,
@@ -180,32 +180,20 @@ void fdrawbezier(float vec[4][3])
 
 void fdrawline(float x1, float y1, float x2, float y2)
 {
-	float v[2];
-	
-	glBegin(GL_LINE_STRIP);
-	v[0] = x1; v[1] = y1;
-	glVertex2fv(v);
-	v[0] = x2; v[1] = y2;
-	glVertex2fv(v);
+	glBegin(GL_LINES);
+	glVertex2f(x1, y1);
+	glVertex2f(x2, y2);
 	glEnd();
 }
 
 void fdrawbox(float x1, float y1, float x2, float y2)
 {
-	float v[2];
+	glBegin(GL_LINE_LOOP);
 	
-	glBegin(GL_LINE_STRIP);
-	
-	v[0] = x1; v[1] = y1;
-	glVertex2fv(v);
-	v[0] = x1; v[1] = y2;
-	glVertex2fv(v);
-	v[0] = x2; v[1] = y2;
-	glVertex2fv(v);
-	v[0] = x2; v[1] = y1;
-	glVertex2fv(v);
-	v[0] = x1; v[1] = y1;
-	glVertex2fv(v);
+	glVertex2f(x1, y1);
+	glVertex2f(x1, y2);
+	glVertex2f(x2, y2);
+	glVertex2f(x2, y1);
 	
 	glEnd();
 }
@@ -226,13 +214,9 @@ void fdrawcheckerboard(float x1, float y1, float x2, float y2)
 
 void sdrawline(int x1, int y1, int x2, int y2)
 {
-	int v[2];
-	
-	glBegin(GL_LINE_STRIP);
-	v[0] = x1; v[1] = y1;
-	glVertex2iv(v);
-	v[0] = x2; v[1] = y2;
-	glVertex2iv(v);
+	glBegin(GL_LINES);
+	glVertex2i(x1, y1);
+	glVertex2i(x2, y2);
 	glEnd();
 }
 
@@ -248,13 +232,9 @@ void sdrawline(int x1, int y1, int x2, int y2)
 
 static void sdrawtripoints(int x1, int y1, int x2, int y2)
 {
-	int v[2];
-	v[0] = x1; v[1] = y1;
-	glVertex2iv(v);
-	v[0] = x1; v[1] = y2;
-	glVertex2iv(v);
-	v[0] = x2; v[1] = y1;
-	glVertex2iv(v);
+	glVertex2i(x1, y1);
+	glVertex2i(x1, y2);
+	glVertex2i(x2, y1);
 }
 
 void sdrawtri(int x1, int y1, int x2, int y2)
@@ -274,20 +254,12 @@ void sdrawtrifill(int x1, int y1, int x2, int y2)
 
 void sdrawbox(int x1, int y1, int x2, int y2)
 {
-	int v[2];
+	glBegin(GL_LINE_LOOP);
 	
-	glBegin(GL_LINE_STRIP);
-	
-	v[0] = x1; v[1] = y1;
-	glVertex2iv(v);
-	v[0] = x1; v[1] = y2;
-	glVertex2iv(v);
-	v[0] = x2; v[1] = y2;
-	glVertex2iv(v);
-	v[0] = x2; v[1] = y1;
-	glVertex2iv(v);
-	v[0] = x1; v[1] = y1;
-	glVertex2iv(v);
+	glVertex2i(x1, y1);
+	glVertex2i(x1, y2);
+	glVertex2i(x2, y2);
+	glVertex2i(x2, y1);
 	
 	glEnd();
 }
