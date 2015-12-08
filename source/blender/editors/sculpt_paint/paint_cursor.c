@@ -326,7 +326,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 		GLenum internalformat = col ? GL_RGBA8 : GL_ALPHA8;
 
 		if (!init || (target->old_col != col)) {
-			glTexImage2D(GL_TEXTURE_2D, 0, format, size, size, 0, format, GL_UNSIGNED_BYTE, buffer);
+			glTexImage2D(GL_TEXTURE_2D, 0, internalformat, size, size, 0, format, GL_UNSIGNED_BYTE, buffer);
 		}
 		else {
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, size, format, GL_UNSIGNED_BYTE, buffer);
