@@ -484,17 +484,19 @@ static GPUTexture *GPU_texture_create_nD(
 				case GPU_HDR_NONE:
 					internalformat = GL_RGBA8;
 					break;
+				/* the following formats rely on ARB_texture_float or OpenGL 3.0 */
 				case GPU_HDR_HALF_FLOAT:
-					internalformat = GL_RGBA16F;
+					internalformat = GL_RGBA16F_ARB;
 					break;
 				case GPU_HDR_FULL_FLOAT:
-					internalformat = GL_RGBA32F;
+					internalformat = GL_RGBA32F_ARB;
 					break;
 				default:
 					break;
 			}
 		}
 		else if (components == 2) {
+			/* these formats rely on ARB_texture_rg or OpenGL 3.0 */
 			format = GL_RG;
 			switch (hdr_type) {
 				case GPU_HDR_NONE:
@@ -615,11 +617,11 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, const f
 	type = GL_FLOAT;
 	if (channels == 4) {
 		format = GL_RGBA;
-		internalformat = GL_RGBA;
+		internalformat = GL_RGBA8;
 	}
 	else {
 		format = GL_RED;
-		internalformat = GL_INTENSITY;
+		internalformat = GL_INTENSITY8;
 	}
 
 	/* 3D textures are quite heavy, test if it's possible to create them first */
@@ -1542,7 +1544,7 @@ void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels)
 		}
 
 		glBindTexture(GL_TEXTURE_2D, tex_blit);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, type, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, type, 0);
 
 #ifdef USE_FBO_CTX_SWITCH
 		/* read from multi-sample buffer */
