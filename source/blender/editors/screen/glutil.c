@@ -482,9 +482,10 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, zoomfilter);
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && 0
+	/* [merwin] disable this workaround and see if anyone is affected. If not scrap it! Also at end of this function */
 	/* workaround for os x 10.5/10.6 driver bug: http://lists.apple.com/archives/Mac-opengl/2008/Jul/msg00117.html */
-	glPixelZoom(1.f, 1.f);
+	glPixelZoom(1.0f, 1.0f);
 #endif
 	
 	/* setup seamless 2=on, 0=off */
@@ -583,7 +584,7 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	
-#ifdef __APPLE__
+#if defined(__APPLE__) && 0
 	/* workaround for os x 10.5/10.6 driver bug (above) */
 	glPixelZoom(xzoom, yzoom);
 #endif
