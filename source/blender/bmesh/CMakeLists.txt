@@ -112,6 +112,8 @@ set(SRC
 	intern/bmesh_operators_private.h
 	intern/bmesh_polygon.c
 	intern/bmesh_polygon.h
+	intern/bmesh_polygon_edgenet.c
+	intern/bmesh_polygon_edgenet.h
 	intern/bmesh_private.h
 	intern/bmesh_queries.c
 	intern/bmesh_queries.h

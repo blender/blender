@@ -27,13 +27,14 @@
  *  \ingroup bmesh
  */
 
-#include <stdio.h>
-
 bool BM_vert_dissolve(BMesh *bm, BMVert *v);
 
 bool BM_disk_dissolve(BMesh *bm, BMVert *v);
 
 BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e, const bool do_del);
+
+
+/** see: bmesh_polygon_edgenet.h for #BM_face_split_edgenet */
 
 BMFace *BM_face_split(
         BMesh *bm, BMFace *f,
@@ -46,11 +47,6 @@ BMFace *BM_face_split_n(
         BMLoop *l_a, BMLoop *l_b,
         float cos[][3], int n,
 BMLoop **r_l, BMEdge *example);
-
-bool BM_face_split_edgenet(
-        BMesh *bm, BMFace *f,
-        BMEdge **edge_net, const int edge_net_len,
-        BMFace ***r_face_arr, int *r_face_arr_len);
 
 BMEdge *BM_vert_collapse_faces(
         BMesh *bm, BMEdge *e_kill, BMVert *v_kill, float fac,
