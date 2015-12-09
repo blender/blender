@@ -2938,7 +2938,7 @@ install_RPM() {
 
 
   PRINT ""
-  _do_compile_osl=true
+  _do_compile_osl=false
   if [ "$OSL_SKIP" = true ]; then
     WARNING "Skipping OpenShadingLanguage installation, as requested..."
   elif [ "$OSL_FORCE_BUILD" = true ]; then
