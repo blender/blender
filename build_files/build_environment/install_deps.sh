@@ -3687,11 +3687,11 @@ print_info() {
 
   _1="-D WITH_CODEC_SNDFILE=ON"
   PRINT "  $_1"
-  _buildargs="$_buildargs $_1"
+  _buildargs="$_buildargs -U *SNDFILE* $_1"
 
   _1="-D PYTHON_VERSION=$PYTHON_VERSION_MIN"
   PRINT "  $_1"
-  _buildargs="$_buildargs $_1"
+  _buildargs="$_buildargs -U *PYTHON* $_1"
   if [ -d $INST/python-$PYTHON_VERSION_MIN ]; then
     _1="-D PYTHON_ROOT_DIR=$INST/python-$PYTHON_VERSION_MIN"
     PRINT "  $_1"
@@ -3703,25 +3703,25 @@ print_info() {
     _2="-D Boost_NO_SYSTEM_PATHS=ON"
     PRINT "  $_1"
     PRINT "  $_2"
-    _buildargs="$_buildargs $_1 $_2"
+    _buildargs="$_buildargs -U *BOOST* -U *Boost* $_1 $_2"
   fi
 
   if [ -d $INST/ocio ]; then
     _1="-D OPENCOLORIO_ROOT_DIR=$INST/ocio"
     PRINT "  $_1"
-    _buildargs="$_buildargs $_1"
+    _buildargs="$_buildargs -U *OPENCOLORIO* $_1"
   fi
 
   if [ -d $INST/openexr ]; then
     _1="-D OPENEXR_ROOT_DIR=$INST/openexr"
     PRINT "  $_1"
-    _buildargs="$_buildargs $_1"
+    _buildargs="$_buildargs -U *OPENEXR* $_1"
   fi
 
   if [ -d $INST/oiio ]; then
     _1="-D OPENIMAGEIO_ROOT_DIR=$INST/oiio"
     PRINT "  $_1"
-    _buildargs="$_buildargs $_1"
+    _buildargs="$_buildargs -U *OPENIMAGEIO* $_1"
   fi
 
   if [ "$OSL_SKIP" = false ]; then
@@ -3731,7 +3731,7 @@ print_info() {
     PRINT "  $_1"
     PRINT "  $_2"
     PRINT "  $_3"
-    _buildargs="$_buildargs $_1 $_2 $_3"
+    _buildargs="$_buildargs -U *LLVM* -U *CYCLES* $_1 $_2 $_3"
     if [ -d $INST/osl ]; then
       _1="-D CYCLES_OSL=$INST/osl"
       PRINT "  $_1"
@@ -3757,13 +3757,13 @@ print_info() {
     _2="-D OPENSUBDIV_ROOT_DIR=$INST/osd"
     PRINT "  $_1"
     PRINT "  $_2"
-    _buildargs="$_buildargs $_1 $_2"
+    _buildargs="$_buildargs -U *OPENSUBDIV* $_1 $_2"
   fi
 
   if [ "$WITH_OPENCOLLADA" = true ]; then
     _1="-D WITH_OPENCOLLADA=ON"
     PRINT "  $_1"
-    _buildargs="$_buildargs $_1"
+    _buildargs="$_buildargs -U *COLLADA* $_1"
   fi
 
   if [ "$FFMPEG_SKIP" = false ]; then
@@ -3771,7 +3771,7 @@ print_info() {
     _2="-D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;rt;`print_info_ffmpeglink`'"
     PRINT "  $_1"
     PRINT "  $_2"
-    _buildargs="$_buildargs $_1 $_2"
+    _buildargs="$_buildargs -U *FFMPEG* $_1 $_2"
     if [ -d $INST/ffmpeg ]; then
       _1="-D FFMPEG=$INST/ffmpeg"
       PRINT "  $_1"
