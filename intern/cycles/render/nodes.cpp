@@ -3177,10 +3177,10 @@ ValueNode::ValueNode()
 	add_output("Value", SHADER_SOCKET_FLOAT);
 }
 
-bool ValueNode::constant_fold(ShaderOutput *socket, float3 *optimized_value)
+bool ValueNode::constant_fold(ShaderOutput * /*socket*/,
+                              float3 *optimized_value)
 {
 	*optimized_value = make_float3(value, value, value);
-
 	return true;
 }
 
@@ -3208,10 +3208,10 @@ ColorNode::ColorNode()
 	add_output("Color", SHADER_SOCKET_COLOR);
 }
 
-bool ColorNode::constant_fold(ShaderOutput *socket, float3 *optimized_value)
+bool ColorNode::constant_fold(ShaderOutput * /*socket*/,
+                              float3 *optimized_value)
 {
 	*optimized_value = value;
-
 	return true;
 }
 
