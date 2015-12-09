@@ -731,7 +731,7 @@ download() {
   done
 
   if [ $error -eq 1 ]; then
-    ERROR "wget could not find $1, or could not write it to $2, exiting"
+    ERROR "wget could not find ${sources[@]}, or could not write it to $2, exiting"
     exit 1
   fi
 }
