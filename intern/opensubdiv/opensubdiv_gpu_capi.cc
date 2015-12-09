@@ -390,8 +390,6 @@ bool openSubdiv_osdGLDisplayInit(void)
 			/* minimum supported for OpenSubdiv */
 		}
 
-		fprintf(stderr, version);
-
 		g_flat_fill_solid_program = linkProgram(version, "#define FLAT_SHADING\n");
 		g_flat_fill_texture2d_program = linkProgram(version, "#define USE_TEXTURE_2D\n#define FLAT_SHADING\n");
 		g_smooth_fill_solid_program = linkProgram(version, "#define SMOOTH_SHADING\n");
