@@ -1527,7 +1527,7 @@ clean_LLVM() {
 
 compile_LLVM() {
   # To be changed each time we make edits that would modify the compiled result!
-  llvm_magic=2
+  llvm_magic=3
   _init_llvm
 
   # Clean install if needed!
@@ -1700,7 +1700,7 @@ compile_OSL() {
     if [ ! -z $LLVM_VERSION_FOUND ]; then
       cmake_d="$cmake_d -D LLVM_VERSION=$LLVM_VERSION_FOUND"
       if [ -d $INST/llvm ]; then
-        cmake_d="$cmake_d -D LLVM_ROOT_DIR=$INST/llvm"
+        cmake_d="$cmake_d -D LLVM_DIRECTORY=$INST/llvm"
         cmake_d="$cmake_d -D LLVM_STATIC=ON"
       fi
     fi
