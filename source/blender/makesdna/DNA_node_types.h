@@ -503,7 +503,8 @@ enum {
 };
 
 enum {
-	CMP_NODEFLAG_BLUR_VARIABLE_SIZE = (1 << 0)
+	CMP_NODEFLAG_BLUR_VARIABLE_SIZE = (1 << 0),
+	CMP_NODEFLAG_BLUR_EXTEND_BOUNDS = (1 << 1),
 };
 
 typedef struct NodeFrame {

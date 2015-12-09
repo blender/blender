@@ -39,6 +39,7 @@ BlurBaseOperation::BlurBaseOperation(DataType data_type) : NodeOperation()
 	memset(&m_data, 0, sizeof(NodeBlurData));
 	this->m_size = 1.0f;
 	this->m_sizeavailable = false;
+	this->m_extend_bounds = false;
 }
 void BlurBaseOperation::initExecution()
 {
@@ -172,5 +173,16 @@ void BlurBaseOperation::updateSize()
 		this->getInputSocketReader(1)->readSampled(result, 0, 0, COM_PS_NEAREST);
 		this->m_size = result[0];
 		this->m_sizeavailable = true;
+	}
+}
+
+void BlurBaseOperation::determineResolution(unsigned int resolution[2],
+                                            unsigned int preferredResolution[2])
+{
+	NodeOperation::determineResolution(resolution,
+	                                   preferredResolution);
+	if (this->m_extend_bounds) {
+		resolution[0] += 2 * this->m_size * m_data.sizex;
+		resolution[1] += 2 * this->m_size * m_data.sizey;
 	}
 }

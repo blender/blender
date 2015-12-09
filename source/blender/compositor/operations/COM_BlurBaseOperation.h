@@ -55,6 +55,8 @@ protected:
 	float m_size;
 	bool m_sizeavailable;
 
+	bool m_extend_bounds;
+
 public:
 	/**
 	 * Initialize the execution
@@ -69,5 +71,10 @@ public:
 	void setData(const NodeBlurData *data);
 
 	void setSize(float size) { this->m_size = size; this->m_sizeavailable = true; }
+
+	void setExtendBounds(bool extend_bounds) { this->m_extend_bounds = extend_bounds; }
+
+	void determineResolution(unsigned int resolution[2],
+	                         unsigned int preferredResolution[2]);
 };
 #endif

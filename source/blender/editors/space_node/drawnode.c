@@ -1374,6 +1374,7 @@ static void node_composit_buts_blur(uiLayout *layout, bContext *UNUSED(C), Point
 		uiItemR(col, ptr, "size_x", 0, IFACE_("X"), ICON_NONE);
 		uiItemR(col, ptr, "size_y", 0, IFACE_("Y"), ICON_NONE);
 	}
+	uiItemR(col, ptr, "use_extended_bounds", 0, NULL, ICON_NONE);
 }
 
 static void node_composit_buts_dblur(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -2207,6 +2208,7 @@ static void node_composit_buts_bokehblur(uiLayout *layout, bContext *UNUSED(C), 
 	uiItemR(layout, ptr, "use_variable_size", 0, NULL, ICON_NONE);
 	// uiItemR(layout, ptr, "f_stop", 0, NULL, ICON_NONE);  // UNUSED
 	uiItemR(layout, ptr, "blur_max", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "use_extended_bounds", 0, NULL, ICON_NONE);
 }
 
 static void node_composit_backdrop_viewer(SpaceNode *snode, ImBuf *backdrop, bNode *node, int x, int y)

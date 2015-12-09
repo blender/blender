@@ -37,6 +37,7 @@ private:
 	float m_bokehMidX;
 	float m_bokehMidY;
 	float m_bokehDimension;
+	bool m_extend_bounds;
 public:
 	BokehBlurOperation();
 
@@ -64,5 +65,10 @@ public:
 	                   MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
 	                   MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
 	                   list<cl_kernel> *clKernelsToCleanUp);
+
+	void setExtendBounds(bool extend_bounds) { this->m_extend_bounds = extend_bounds; }
+
+	void determineResolution(unsigned int resolution[2],
+	                         unsigned int preferredResolution[2]);
 };
 #endif

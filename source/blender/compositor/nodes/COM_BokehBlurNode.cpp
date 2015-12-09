@@ -41,6 +41,7 @@ void BokehBlurNode::convertToOperations(NodeConverter &converter, const Composit
 	NodeInput *inputSizeSocket = this->getInputSocket(2);
 
 	bool connectedSizeSocket = inputSizeSocket->isLinked();
+	const bool extend_bounds = (b_node->custom1 & CMP_NODEFLAG_BLUR_EXTEND_BOUNDS) != 0;
 
 	if ((b_node->custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE) && connectedSizeSocket) {
 		VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
@@ -58,6 +59,7 @@ void BokehBlurNode::convertToOperations(NodeConverter &converter, const Composit
 	else {
 		BokehBlurOperation *operation = new BokehBlurOperation();
 		operation->setQuality(context.getQuality());
+		operation->setExtendBounds(extend_bounds);
 		
 		converter.addOperation(operation);
 		converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));

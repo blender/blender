@@ -43,6 +43,8 @@ BokehBlurOperation::BokehBlurOperation() : NodeOperation()
 	this->m_inputProgram = NULL;
 	this->m_inputBokehProgram = NULL;
 	this->m_inputBoundingBoxReader = NULL;
+
+	this->m_extend_bounds = false;
 }
 
 void *BokehBlurOperation::initializeTileData(rcti * /*rect*/)
@@ -224,5 +226,17 @@ void BokehBlurOperation::updateSize()
 		this->m_size = result[0];
 		CLAMP(this->m_size, 0.0f, 10.0f);
 		this->m_sizeavailable = true;
+	}
+}
+
+void BokehBlurOperation::determineResolution(unsigned int resolution[2],
+                                             unsigned int preferredResolution[2])
+{
+	NodeOperation::determineResolution(resolution,
+	                                   preferredResolution);
+	if (this->m_extend_bounds) {
+		const float max_dim = max(resolution[0], resolution[1]);
+		resolution[0] += 2 * this->m_size * max_dim / 100.0f;
+		resolution[1] += 2 * this->m_size * max_dim / 100.0f;
 	}
 }
