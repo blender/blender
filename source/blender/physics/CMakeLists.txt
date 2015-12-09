@@ -31,11 +31,10 @@ set(INC
 	../imbuf
 	../makesdna
 	../../../intern/guardedalloc
-	../../../extern/Eigen3
 )
 
 set(INC_SYS
-
+	../../../extern/Eigen3
 )
 
 set(SRC

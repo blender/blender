@@ -30,12 +30,12 @@ set(INC
 	../../../intern/guardedalloc
 	../../../intern/atomic
 	../../../extern/wcwidth
-	../../../extern/Eigen3
 )
 
 set(INC_SYS
 	${ZLIB_INCLUDE_DIRS}
 	${FREETYPE_INCLUDE_DIRS}
+	../../../extern/Eigen3
 )
 
 set(SRC
