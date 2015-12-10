@@ -32,6 +32,9 @@
 #  pragma GCC diagnostic ignored "-Wlogical-op"
 #endif
 
+#ifdef __EIGEN3_SVD_C_API_CC__  /* quiet warning */
+#endif
+
 #include <Eigen/Core>
 #include <Eigen/SVD>
 
