@@ -158,7 +158,7 @@ static bool ghash_insert_link(
 	}
 	else {
 		ls_base = *ls_base_p;
-		if (use_test && (BLI_linklist_index(ls_base->list, key) != -1)) {
+		if (use_test && (BLI_linklist_index(ls_base->list, val) != -1)) {
 			return false;
 		}
 	}
