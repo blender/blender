@@ -294,7 +294,7 @@ struct hypot_impl
     RealScalar _x = abs(x);
     RealScalar _y = abs(y);
     RealScalar p = (max)(_x, _y);
-    if(p==RealScalar(0)) return 0;
+    if(p==RealScalar(0)) return RealScalar(0);
     RealScalar q = (min)(_x, _y);
     RealScalar qp = q/p;
     return p * sqrt(RealScalar(1) + qp*qp);

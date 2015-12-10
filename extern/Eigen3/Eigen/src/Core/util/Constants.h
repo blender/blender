@@ -433,6 +433,19 @@ struct MatrixXpr {};
 /** The type used to identify an array expression */
 struct ArrayXpr {};
 
+namespace internal {
+  /** \internal
+  * Constants for comparison functors
+  */
+  enum ComparisonName {
+    cmp_EQ = 0,
+    cmp_LT = 1,
+    cmp_LE = 2,
+    cmp_UNORD = 3,
+    cmp_NEQ = 4
+  };
+}
+
 } // end namespace Eigen
 
 #endif // EIGEN_CONSTANTS_H

@@ -260,16 +260,16 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
       eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
       // Initialize with the determinant of the row matrix
       Scalar det = Scalar(1.);
-      //Note that the diagonal blocks of U are stored in supernodes,
+      // Note that the diagonal blocks of U are stored in supernodes,
       // which are available in the  L part :)
       for (Index j = 0; j < this->cols(); ++j)
       {
         for (typename SCMatrix::InnerIterator it(m_Lstore, j); it; ++it)
         {
-          if(it.row() < j) continue;
-          if(it.row() == j)
+          if(it.index() == j)
           {
-            det *= (std::abs)(it.value());
+            using std::abs;
+            det *= abs(it.value());
             break;
           }
         }
@@ -296,7 +296,8 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
            if(it.row() < j) continue;
            if(it.row() == j)
            {
-             det += (std::log)((std::abs)(it.value()));
+             using std::log; using std::abs;
+             det += log(abs(it.value()));
              break;
            }
          }
@@ -304,21 +305,64 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
        return det;
      }
 
-     /** \returns A number representing the sign of the determinant
-       *
-       * \sa absDeterminant(), logAbsDeterminant()
-       */
-     Scalar signDeterminant()
-     {
-       eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
-       return Scalar(m_detPermR);
-     }
+    /** \returns A number representing the sign of the determinant
+      *
+      * \sa absDeterminant(), logAbsDeterminant()
+      */
+    Scalar signDeterminant()
+    {
+      eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
+      // Initialize with the determinant of the row matrix
+      Index det = 1;
+      // Note that the diagonal blocks of U are stored in supernodes,
+      // which are available in the  L part :)
+      for (Index j = 0; j < this->cols(); ++j)
+      {
+        for (typename SCMatrix::InnerIterator it(m_Lstore, j); it; ++it)
+        {
+          if(it.index() == j)
+          {
+            if(it.value()<0)
+              det = -det;
+            else if(it.value()==0)
+              return 0;
+            break;
+          }
+        }
+      }
+      return det * m_detPermR * m_detPermC;
+    }
+    
+    /** \returns The determinant of the matrix.
+      *
+      * \sa absDeterminant(), logAbsDeterminant()
+      */
+    Scalar determinant()
+    {
+      eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
+      // Initialize with the determinant of the row matrix
+      Scalar det = Scalar(1.);
+      // Note that the diagonal blocks of U are stored in supernodes,
+      // which are available in the  L part :)
+      for (Index j = 0; j < this->cols(); ++j)
+      {
+        for (typename SCMatrix::InnerIterator it(m_Lstore, j); it; ++it)
+        {
+          if(it.index() == j)
+          {
+            det *= it.value();
+            break;
+          }
+        }
+      }
+      return det * Scalar(m_detPermR * m_detPermC);
+    }
 
   protected:
     // Functions 
     void initperfvalues()
     {
-      m_perfv.panel_size = 1;
+      m_perfv.panel_size = 16;
       m_perfv.relax = 1; 
       m_perfv.maxsuper = 128; 
       m_perfv.rowblk = 16; 
@@ -346,8 +390,8 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
     // values for performance 
     internal::perfvalues<Index> m_perfv; 
     RealScalar m_diagpivotthresh; // Specifies the threshold used for a diagonal entry to be an acceptable pivot
-    Index m_nnzL, m_nnzU; // Nonzeros in L and U factors 
-    Index m_detPermR; // Determinant of the coefficient matrix
+    Index m_nnzL, m_nnzU; // Nonzeros in L and U factors
+    Index m_detPermR, m_detPermC; // Determinants of the permutation matrices
   private:
     // Disable copy constructor 
     SparseLU (const SparseLU& );
@@ -623,7 +667,8 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
       }
       
       // Update the determinant of the row permutation matrix
-      if (pivrow != jj) m_detPermR *= -1;
+      // FIXME: the following test is not correct, we should probably take iperm_c into account and pivrow is not directly the row pivot.
+      if (pivrow != jj) m_detPermR = -m_detPermR;
 
       // Prune columns (0:jj-1) using column jj
       Base::pruneL(jj, m_perm_r.indices(), pivrow, nseg, segrep, repfnz_k, xprune, m_glu); 
@@ -638,10 +683,13 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
     jcol += panel_size;  // Move to the next panel
   } // end for -- end elimination 
   
+  m_detPermR = m_perm_r.determinant();
+  m_detPermC = m_perm_c.determinant();
+  
   // Count the number of nonzeros in factors 
   Base::countnz(n, m_nnzL, m_nnzU, m_glu); 
   // Apply permutation  to the L subscripts 
-  Base::fixupL(n, m_perm_r.indices(), m_glu); 
+  Base::fixupL(n, m_perm_r.indices(), m_glu);
   
   // Create supernode matrix L 
   m_Lstore.setInfos(m, n, m_glu.lusup, m_glu.xlusup, m_glu.lsub, m_glu.xlsub, m_glu.supno, m_glu.xsup); 
@@ -701,8 +749,8 @@ struct SparseLUMatrixUReturnType : internal::no_assignment_operator
       }
       else
       {
-        Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(m_mapL.valuePtr()[luptr]), nsupc, nsupc, OuterStride<>(lda) );
-        Map< Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > U (&(X(fsupc,0)), nsupc, nrhs, OuterStride<>(n) );
+        Map<const Matrix<Scalar,Dynamic,Dynamic, ColMajor>, 0, OuterStride<> > A( &(m_mapL.valuePtr()[luptr]), nsupc, nsupc, OuterStride<>(lda) );
+        Map< Matrix<Scalar,Dynamic,Dynamic, ColMajor>, 0, OuterStride<> > U (&(X(fsupc,0)), nsupc, nrhs, OuterStride<>(n) );
         U = A.template triangularView<Upper>().solve(U);
       }
 

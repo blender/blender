@@ -76,7 +76,8 @@ template<typename _MatrixType> class ColPivHouseholderQR
         m_colsTranspositions(),
         m_temp(),
         m_colSqNorms(),
-        m_isInitialized(false) {}
+        m_isInitialized(false),
+        m_usePrescribedThreshold(false) {}
 
     /** \brief Default Constructor with memory preallocation
       *
@@ -383,6 +384,12 @@ template<typename _MatrixType> class ColPivHouseholderQR
     }
 
   protected:
+    
+    static void check_template_parameters()
+    {
+      EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
+    }
+    
     MatrixType m_qr;
     HCoeffsType m_hCoeffs;
     PermutationType m_colsPermutation;
@@ -421,6 +428,8 @@ typename MatrixType::RealScalar ColPivHouseholderQR<MatrixType>::logAbsDetermina
 template<typename MatrixType>
 ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const MatrixType& matrix)
 {
+  check_template_parameters();
+  
   using std::abs;
   Index rows = matrix.rows();
   Index cols = matrix.cols();
@@ -462,20 +471,10 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
     // we store that back into our table: it can't hurt to correct our table.
     m_colSqNorms.coeffRef(biggest_col_index) = biggest_col_sq_norm;
 
-    // if the current biggest column is smaller than epsilon times the initial biggest column,
-    // terminate to avoid generating nan/inf values.
-    // Note that here, if we test instead for "biggest == 0", we get a failure every 1000 (or so)
-    // repetitions of the unit test, with the result of solve() filled with large values of the order
-    // of 1/(size*epsilon).
-    if(biggest_col_sq_norm < threshold_helper * RealScalar(rows-k))
-    {
+    // Track the number of meaningful pivots but do not stop the decomposition to make
+    // sure that the initial matrix is properly reproduced. See bug 941.
+    if(m_nonzero_pivots==size && biggest_col_sq_norm < threshold_helper * RealScalar(rows-k))
       m_nonzero_pivots = k;
-      m_hCoeffs.tail(size-k).setZero();
-      m_qr.bottomRightCorner(rows-k,cols-k)
-          .template triangularView<StrictlyLower>()
-          .setZero();
-      break;
-    }
 
     // apply the transposition to the columns
     m_colsTranspositions.coeffRef(k) = biggest_col_index;
@@ -504,7 +503,7 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
   }
 
   m_colsPermutation.setIdentity(PermIndexType(cols));
-  for(PermIndexType k = 0; k < m_nonzero_pivots; ++k)
+  for(PermIndexType k = 0; k < size/*m_nonzero_pivots*/; ++k)
     m_colsPermutation.applyTranspositionOnTheRight(k, PermIndexType(m_colsTranspositions.coeff(k)));
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
@@ -554,13 +553,15 @@ struct solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
 
 } // end namespace internal
 
-/** \returns the matrix Q as a sequence of householder transformations */
+/** \returns the matrix Q as a sequence of householder transformations.
+  * You can extract the meaningful part only by using:
+  * \code qr.householderQ().setLength(qr.nonzeroPivots()) \endcode*/
 template<typename MatrixType>
 typename ColPivHouseholderQR<MatrixType>::HouseholderSequenceType ColPivHouseholderQR<MatrixType>
   ::householderQ() const
 {
   eigen_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
-  return HouseholderSequenceType(m_qr, m_hCoeffs.conjugate()).setLength(m_nonzero_pivots);
+  return HouseholderSequenceType(m_qr, m_hCoeffs.conjugate());
 }
 
 /** \return the column-pivoting Householder QR decomposition of \c *this.

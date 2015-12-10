@@ -69,7 +69,7 @@ struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Upper,RowMajor>
       for(int i=lhs.rows()-1 ; i>=0 ; --i)
       {
         Scalar tmp = other.coeff(i,col);
-        Scalar l_ii = 0;
+        Scalar l_ii(0);
         typename Lhs::InnerIterator it(lhs, i);
         while(it && it.index()<i)
           ++it;

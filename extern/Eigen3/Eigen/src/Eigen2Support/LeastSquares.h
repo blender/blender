@@ -147,7 +147,6 @@ void fitHyperplane(int numPoints,
 
   // compute the covariance matrix
   CovMatrixType covMat = CovMatrixType::Zero(size, size);
-  VectorType remean = VectorType::Zero(size);
   for(int i = 0; i < numPoints; ++i)
   {
     VectorType diff = (*(points[i]) - mean).conjugate();

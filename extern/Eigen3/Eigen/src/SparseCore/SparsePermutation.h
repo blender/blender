@@ -61,7 +61,7 @@ struct permut_sparsematrix_product_retval
         for(Index j=0; j<m_matrix.outerSize(); ++j)
         {
           Index jp = m_permutation.indices().coeff(j);
-          sizes[((Side==OnTheLeft) ^ Transposed) ? jp : j] = m_matrix.innerVector(((Side==OnTheRight) ^ Transposed) ? jp : j).size();
+          sizes[((Side==OnTheLeft) ^ Transposed) ? jp : j] = m_matrix.innerVector(((Side==OnTheRight) ^ Transposed) ? jp : j).nonZeros();
         }
         tmp.reserve(sizes);
         for(Index j=0; j<m_matrix.outerSize(); ++j)

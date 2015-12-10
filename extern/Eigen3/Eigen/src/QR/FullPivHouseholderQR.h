@@ -368,6 +368,12 @@ template<typename _MatrixType> class FullPivHouseholderQR
     RealScalar maxPivot() const { return m_maxpivot; }
 
   protected:
+    
+    static void check_template_parameters()
+    {
+      EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
+    }
+    
     MatrixType m_qr;
     HCoeffsType m_hCoeffs;
     IntDiagSizeVectorType m_rows_transpositions;
@@ -407,6 +413,8 @@ typename MatrixType::RealScalar FullPivHouseholderQR<MatrixType>::logAbsDetermin
 template<typename MatrixType>
 FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(const MatrixType& matrix)
 {
+  check_template_parameters();
+  
   using std::abs;
   Index rows = matrix.rows();
   Index cols = matrix.cols();

@@ -109,7 +109,7 @@ class NaturalOrdering
   * \class COLAMDOrdering
   *
   * Functor computing the \em column \em approximate \em minimum \em degree ordering 
-  * The matrix should be in column-major format
+  * The matrix should be in column-major and \b compressed format (see SparseMatrix::makeCompressed()).
   */
 template<typename Index>
 class COLAMDOrdering
@@ -118,10 +118,14 @@ class COLAMDOrdering
     typedef PermutationMatrix<Dynamic, Dynamic, Index> PermutationType; 
     typedef Matrix<Index, Dynamic, 1> IndexVector;
     
-    /** Compute the permutation vector form a sparse matrix */
+    /** Compute the permutation vector \a perm form the sparse matrix \a mat
+      * \warning The input sparse matrix \a mat must be in compressed mode (see SparseMatrix::makeCompressed()).
+      */
     template <typename MatrixType>
     void operator() (const MatrixType& mat, PermutationType& perm)
     {
+      eigen_assert(mat.isCompressed() && "COLAMDOrdering requires a sparse matrix in compressed mode. Call .makeCompressed() before passing it to COLAMDOrdering");
+      
       Index m = mat.rows();
       Index n = mat.cols();
       Index nnz = mat.nonZeros();
@@ -132,12 +136,12 @@ class COLAMDOrdering
       Index stats [COLAMD_STATS];
       internal::colamd_set_defaults(knobs);
       
-      Index info;
       IndexVector p(n+1), A(Alen); 
       for(Index i=0; i <= n; i++)   p(i) = mat.outerIndexPtr()[i];
       for(Index i=0; i < nnz; i++)  A(i) = mat.innerIndexPtr()[i];
       // Call Colamd routine to compute the ordering 
-      info = internal::colamd(m, n, Alen, A.data(), p.data(), knobs, stats); 
+      Index info = internal::colamd(m, n, Alen, A.data(), p.data(), knobs, stats); 
+      EIGEN_UNUSED_VARIABLE(info);
       eigen_assert( info && "COLAMD failed " );
       
       perm.resize(n);

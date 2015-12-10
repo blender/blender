@@ -135,7 +135,7 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
   */
 template<typename Derived>
 template<int RowFactor, int ColFactor>
-inline const Replicate<Derived,RowFactor,ColFactor>
+const Replicate<Derived,RowFactor,ColFactor>
 DenseBase<Derived>::replicate() const
 {
   return Replicate<Derived,RowFactor,ColFactor>(derived());
@@ -150,7 +150,7 @@ DenseBase<Derived>::replicate() const
   * \sa VectorwiseOp::replicate(), DenseBase::replicate<int,int>(), class Replicate
   */
 template<typename Derived>
-inline const Replicate<Derived,Dynamic,Dynamic>
+const typename DenseBase<Derived>::ReplicateReturnType
 DenseBase<Derived>::replicate(Index rowFactor,Index colFactor) const
 {
   return Replicate<Derived,Dynamic,Dynamic>(derived(),rowFactor,colFactor);

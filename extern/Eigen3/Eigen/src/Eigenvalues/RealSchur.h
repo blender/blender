@@ -234,7 +234,7 @@ template<typename _MatrixType> class RealSchur
     typedef Matrix<Scalar,3,1> Vector3s;
 
     Scalar computeNormOfT();
-    Index findSmallSubdiagEntry(Index iu, const Scalar& norm);
+    Index findSmallSubdiagEntry(Index iu);
     void splitOffTwoRows(Index iu, bool computeU, const Scalar& exshift);
     void computeShift(Index iu, Index iter, Scalar& exshift, Vector3s& shiftInfo);
     void initFrancisQRStep(Index il, Index iu, const Vector3s& shiftInfo, Index& im, Vector3s& firstHouseholderVector);
@@ -286,7 +286,7 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::computeFromHessenberg(const HessMa
   {
     while (iu >= 0)
     {
-      Index il = findSmallSubdiagEntry(iu, norm);
+      Index il = findSmallSubdiagEntry(iu);
 
       // Check for convergence
       if (il == iu) // One root found
@@ -343,16 +343,14 @@ inline typename MatrixType::Scalar RealSchur<MatrixType>::computeNormOfT()
 
 /** \internal Look for single small sub-diagonal element and returns its index */
 template<typename MatrixType>
-inline typename MatrixType::Index RealSchur<MatrixType>::findSmallSubdiagEntry(Index iu, const Scalar& norm)
+inline typename MatrixType::Index RealSchur<MatrixType>::findSmallSubdiagEntry(Index iu)
 {
   using std::abs;
   Index res = iu;
   while (res > 0)
   {
     Scalar s = abs(m_matT.coeff(res-1,res-1)) + abs(m_matT.coeff(res,res));
-    if (s == 0.0)
-      s = norm;
-    if (abs(m_matT.coeff(res,res-1)) < NumTraits<Scalar>::epsilon() * s)
+    if (abs(m_matT.coeff(res,res-1)) <= NumTraits<Scalar>::epsilon() * s)
       break;
     res--;
   }
@@ -457,9 +455,7 @@ inline void RealSchur<MatrixType>::initFrancisQRStep(Index il, Index iu, const V
     const Scalar lhs = m_matT.coeff(im,im-1) * (abs(v.coeff(1)) + abs(v.coeff(2)));
     const Scalar rhs = v.coeff(0) * (abs(m_matT.coeff(im-1,im-1)) + abs(Tmm) + abs(m_matT.coeff(im+1,im+1)));
     if (abs(lhs) < NumTraits<Scalar>::epsilon() * rhs)
-    {
       break;
-    }
   }
 }
 

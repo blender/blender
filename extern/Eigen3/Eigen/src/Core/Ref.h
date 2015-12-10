@@ -101,14 +101,15 @@ struct traits<Ref<_PlainObjectType, _Options, _StrideType> >
   template<typename Derived> struct match {
     enum {
       HasDirectAccess = internal::has_direct_access<Derived>::ret,
-      StorageOrderMatch = PlainObjectType::IsVectorAtCompileTime || ((PlainObjectType::Flags&RowMajorBit)==(Derived::Flags&RowMajorBit)),
+      StorageOrderMatch = PlainObjectType::IsVectorAtCompileTime || Derived::IsVectorAtCompileTime || ((PlainObjectType::Flags&RowMajorBit)==(Derived::Flags&RowMajorBit)),
       InnerStrideMatch = int(StrideType::InnerStrideAtCompileTime)==int(Dynamic)
                       || int(StrideType::InnerStrideAtCompileTime)==int(Derived::InnerStrideAtCompileTime)
                       || (int(StrideType::InnerStrideAtCompileTime)==0 && int(Derived::InnerStrideAtCompileTime)==1),
       OuterStrideMatch = Derived::IsVectorAtCompileTime
                       || int(StrideType::OuterStrideAtCompileTime)==int(Dynamic) || int(StrideType::OuterStrideAtCompileTime)==int(Derived::OuterStrideAtCompileTime),
       AlignmentMatch = (_Options!=Aligned) || ((PlainObjectType::Flags&AlignedBit)==0) || ((traits<Derived>::Flags&AlignedBit)==AlignedBit),
-      MatchAtCompileTime = HasDirectAccess && StorageOrderMatch && InnerStrideMatch && OuterStrideMatch && AlignmentMatch
+      ScalarTypeMatch = internal::is_same<typename PlainObjectType::Scalar, typename Derived::Scalar>::value,
+      MatchAtCompileTime = HasDirectAccess && StorageOrderMatch && InnerStrideMatch && OuterStrideMatch && AlignmentMatch && ScalarTypeMatch
     };
     typedef typename internal::conditional<MatchAtCompileTime,internal::true_type,internal::false_type>::type type;
   };
@@ -172,8 +173,12 @@ protected:
     }
     else
       ::new (static_cast<Base*>(this)) Base(expr.data(), expr.rows(), expr.cols());
-    ::new (&m_stride) StrideBase(StrideType::OuterStrideAtCompileTime==0?0:expr.outerStride(),
-                                 StrideType::InnerStrideAtCompileTime==0?0:expr.innerStride());    
+    
+    if(Expression::IsVectorAtCompileTime && (!PlainObjectType::IsVectorAtCompileTime) && ((Expression::Flags&RowMajorBit)!=(PlainObjectType::Flags&RowMajorBit)))
+      ::new (&m_stride) StrideBase(expr.innerStride(), StrideType::InnerStrideAtCompileTime==0?0:1);
+    else
+      ::new (&m_stride) StrideBase(StrideType::OuterStrideAtCompileTime==0?0:expr.outerStride(),
+                                   StrideType::InnerStrideAtCompileTime==0?0:expr.innerStride());    
   }
 
   StrideBase m_stride;
@@ -183,7 +188,11 @@ protected:
 template<typename PlainObjectType, int Options, typename StrideType> class Ref
   : public RefBase<Ref<PlainObjectType, Options, StrideType> >
 {
+  private:
     typedef internal::traits<Ref> Traits;
+    template<typename Derived>
+    inline Ref(const PlainObjectBase<Derived>& expr,
+               typename internal::enable_if<bool(Traits::template match<Derived>::MatchAtCompileTime),Derived>::type* = 0);
   public:
 
     typedef RefBase<Ref> Base;
@@ -195,17 +204,20 @@ template<typename PlainObjectType, int Options, typename StrideType> class Ref
     inline Ref(PlainObjectBase<Derived>& expr,
                typename internal::enable_if<bool(Traits::template match<Derived>::MatchAtCompileTime),Derived>::type* = 0)
     {
-      Base::construct(expr);
+      EIGEN_STATIC_ASSERT(static_cast<bool>(Traits::template match<Derived>::MatchAtCompileTime), STORAGE_LAYOUT_DOES_NOT_MATCH);
+      Base::construct(expr.derived());
     }
     template<typename Derived>
     inline Ref(const DenseBase<Derived>& expr,
-               typename internal::enable_if<bool(internal::is_lvalue<Derived>::value&&bool(Traits::template match<Derived>::MatchAtCompileTime)),Derived>::type* = 0,
-               int = Derived::ThisConstantIsPrivateInPlainObjectBase)
+               typename internal::enable_if<bool(Traits::template match<Derived>::MatchAtCompileTime),Derived>::type* = 0)
     #else
     template<typename Derived>
     inline Ref(DenseBase<Derived>& expr)
     #endif
     {
+      EIGEN_STATIC_ASSERT(static_cast<bool>(internal::is_lvalue<Derived>::value), THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY);
+      EIGEN_STATIC_ASSERT(static_cast<bool>(Traits::template match<Derived>::MatchAtCompileTime), STORAGE_LAYOUT_DOES_NOT_MATCH);
+      enum { THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY = Derived::ThisConstantIsPrivateInPlainObjectBase};
       Base::construct(expr.const_cast_derived());
     }
 
@@ -224,12 +236,22 @@ template<typename TPlainObjectType, int Options, typename StrideType> class Ref<
     EIGEN_DENSE_PUBLIC_INTERFACE(Ref)
 
     template<typename Derived>
-    inline Ref(const DenseBase<Derived>& expr)
+    inline Ref(const DenseBase<Derived>& expr,
+               typename internal::enable_if<bool(Traits::template match<Derived>::ScalarTypeMatch),Derived>::type* = 0)
     {
 //      std::cout << match_helper<Derived>::HasDirectAccess << "," << match_helper<Derived>::OuterStrideMatch << "," << match_helper<Derived>::InnerStrideMatch << "\n";
 //      std::cout << int(StrideType::OuterStrideAtCompileTime) << " - " << int(Derived::OuterStrideAtCompileTime) << "\n";
 //      std::cout << int(StrideType::InnerStrideAtCompileTime) << " - " << int(Derived::InnerStrideAtCompileTime) << "\n";
       construct(expr.derived(), typename Traits::template match<Derived>::type());
+    }
+    
+    inline Ref(const Ref& other) : Base(other) {
+      // copy constructor shall not copy the m_object, to avoid unnecessary malloc and copy
+    }
+
+    template<typename OtherRef>
+    inline Ref(const RefBase<OtherRef>& other) {
+      construct(other.derived(), typename Traits::template match<OtherRef>::type());
     }
 
   protected:

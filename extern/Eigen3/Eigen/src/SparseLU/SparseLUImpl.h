@@ -21,6 +21,8 @@ class SparseLUImpl
 {
   public:
     typedef Matrix<Scalar,Dynamic,1> ScalarVector;
+    typedef Matrix<Scalar,Dynamic,Dynamic,ColMajor> ScalarMatrix;
+    typedef Map<ScalarMatrix, 0,  OuterStride<> > MappedMatrixBlock;
     typedef Matrix<Index,Dynamic,1> IndexVector; 
     typedef typename ScalarVector::RealScalar RealScalar; 
     typedef Ref<Matrix<Scalar,Dynamic,1> > BlockScalarVector;

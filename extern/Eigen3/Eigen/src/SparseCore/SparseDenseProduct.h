@@ -19,7 +19,10 @@ template<typename Lhs, typename Rhs, int InnerSize> struct SparseDenseProductRet
 
 template<typename Lhs, typename Rhs> struct SparseDenseProductReturnType<Lhs,Rhs,1>
 {
-  typedef SparseDenseOuterProduct<Lhs,Rhs,false> Type;
+  typedef typename internal::conditional<
+    Lhs::IsRowMajor,
+    SparseDenseOuterProduct<Rhs,Lhs,true>,
+    SparseDenseOuterProduct<Lhs,Rhs,false> >::type Type;
 };
 
 template<typename Lhs, typename Rhs, int InnerSize> struct DenseSparseProductReturnType
@@ -29,7 +32,10 @@ template<typename Lhs, typename Rhs, int InnerSize> struct DenseSparseProductRet
 
 template<typename Lhs, typename Rhs> struct DenseSparseProductReturnType<Lhs,Rhs,1>
 {
-  typedef SparseDenseOuterProduct<Rhs,Lhs,true> Type;
+  typedef typename internal::conditional<
+    Rhs::IsRowMajor,
+    SparseDenseOuterProduct<Rhs,Lhs,true>,
+    SparseDenseOuterProduct<Lhs,Rhs,false> >::type Type;
 };
 
 namespace internal {
@@ -114,17 +120,30 @@ class SparseDenseOuterProduct<Lhs,Rhs,Transpose>::InnerIterator : public _LhsNes
     typedef typename SparseDenseOuterProduct::Index Index;
   public:
     EIGEN_STRONG_INLINE InnerIterator(const SparseDenseOuterProduct& prod, Index outer)
-      : Base(prod.lhs(), 0), m_outer(outer), m_factor(prod.rhs().coeff(outer))
-    {
-    }
+      : Base(prod.lhs(), 0), m_outer(outer), m_factor(get(prod.rhs(), outer, typename internal::traits<Rhs>::StorageKind() ))
+    { }
 
     inline Index outer() const { return m_outer; }
-    inline Index row() const { return Transpose ? Base::row() : m_outer; }
-    inline Index col() const { return Transpose ? m_outer : Base::row(); }
+    inline Index row() const { return Transpose ? m_outer : Base::index(); }
+    inline Index col() const { return Transpose ? Base::index() : m_outer; }
 
     inline Scalar value() const { return Base::value() * m_factor; }
 
   protected:
+    static Scalar get(const _RhsNested &rhs, Index outer, Dense = Dense())
+    {
+      return rhs.coeff(outer);
+    }
+    
+    static Scalar get(const _RhsNested &rhs, Index outer, Sparse = Sparse())
+    {
+      typename Traits::_RhsNested::InnerIterator it(rhs, outer);
+      if (it && it.index()==0)
+        return it.value();
+      
+      return Scalar(0);
+    }
+    
     Index m_outer;
     Scalar m_factor;
 };
@@ -161,7 +180,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, R
         typename Res::Scalar tmp(0);
         for(LhsInnerIterator it(lhs,j); it ;++it)
           tmp += it.value() * rhs.coeff(it.index(),c);
-        res.coeffRef(j,c) = alpha * tmp;
+        res.coeffRef(j,c) += alpha * tmp;
       }
     }
   }
@@ -286,15 +305,6 @@ class DenseTimeSparseProduct
   private:
     DenseTimeSparseProduct& operator=(const DenseTimeSparseProduct&);
 };
-
-// sparse * dense
-template<typename Derived>
-template<typename OtherDerived>
-inline const typename SparseDenseProductReturnType<Derived,OtherDerived>::Type
-SparseMatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
-{
-  return typename SparseDenseProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
-}
 
 } // end namespace Eigen
 

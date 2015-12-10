@@ -11,7 +11,7 @@
 #ifndef EIGEN_STDDEQUE_H
 #define EIGEN_STDDEQUE_H
 
-#include "Eigen/src/StlSupport/details.h"
+#include "details.h"
 
 // Define the explicit instantiation (e.g. necessary for the Intel compiler)
 #if defined(__INTEL_COMPILER) || defined(__GNUC__)

@@ -298,6 +298,13 @@ template<typename _MatrixType> class EigenSolver
     void doComputeEigenvectors();
 
   protected:
+    
+    static void check_template_parameters()
+    {
+      EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
+      EIGEN_STATIC_ASSERT(!NumTraits<Scalar>::IsComplex, NUMERIC_TYPE_MUST_BE_REAL);
+    }
+    
     MatrixType m_eivec;
     EigenvalueType m_eivalues;
     bool m_isInitialized;
@@ -364,6 +371,8 @@ template<typename MatrixType>
 EigenSolver<MatrixType>& 
 EigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvectors)
 {
+  check_template_parameters();
+  
   using std::sqrt;
   using std::abs;
   eigen_assert(matrix.cols() == matrix.rows());

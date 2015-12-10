@@ -78,7 +78,7 @@ cholmod_sparse viewAsCholmod(SparseMatrix<_Scalar,_Options,_Index>& mat)
   {
     res.itype = CHOLMOD_INT;
   }
-  else if (internal::is_same<_Index,UF_long>::value)
+  else if (internal::is_same<_Index,SuiteSparse_long>::value)
   {
     res.itype = CHOLMOD_LONG;
   }
@@ -395,7 +395,7 @@ class CholmodSimplicialLLT : public CholmodBase<_MatrixType, _UpLo, CholmodSimpl
     CholmodSimplicialLLT(const MatrixType& matrix) : Base()
     {
       init();
-      compute(matrix);
+      Base::compute(matrix);
     }
 
     ~CholmodSimplicialLLT() {}
@@ -442,7 +442,7 @@ class CholmodSimplicialLDLT : public CholmodBase<_MatrixType, _UpLo, CholmodSimp
     CholmodSimplicialLDLT(const MatrixType& matrix) : Base()
     {
       init();
-      compute(matrix);
+      Base::compute(matrix);
     }
 
     ~CholmodSimplicialLDLT() {}
@@ -487,7 +487,7 @@ class CholmodSupernodalLLT : public CholmodBase<_MatrixType, _UpLo, CholmodSuper
     CholmodSupernodalLLT(const MatrixType& matrix) : Base()
     {
       init();
-      compute(matrix);
+      Base::compute(matrix);
     }
 
     ~CholmodSupernodalLLT() {}
@@ -534,7 +534,7 @@ class CholmodDecomposition : public CholmodBase<_MatrixType, _UpLo, CholmodDecom
     CholmodDecomposition(const MatrixType& matrix) : Base()
     {
       init();
-      compute(matrix);
+      Base::compute(matrix);
     }
 
     ~CholmodDecomposition() {}

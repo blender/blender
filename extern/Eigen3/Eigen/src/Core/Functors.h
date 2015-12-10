@@ -259,6 +259,47 @@ template<> struct functor_traits<scalar_boolean_or_op> {
   };
 };
 
+/** \internal
+  * \brief Template functors for comparison of two scalars
+  * \todo Implement packet-comparisons
+  */
+template<typename Scalar, ComparisonName cmp> struct scalar_cmp_op;
+
+template<typename Scalar, ComparisonName cmp>
+struct functor_traits<scalar_cmp_op<Scalar, cmp> > {
+  enum {
+    Cost = NumTraits<Scalar>::AddCost,
+    PacketAccess = false
+  };
+};
+
+template<ComparisonName Cmp, typename Scalar>
+struct result_of<scalar_cmp_op<Scalar, Cmp>(Scalar,Scalar)> {
+  typedef bool type;
+};
+
+
+template<typename Scalar> struct scalar_cmp_op<Scalar, cmp_EQ> {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_cmp_op)
+  EIGEN_STRONG_INLINE bool operator()(const Scalar& a, const Scalar& b) const {return a==b;}
+};
+template<typename Scalar> struct scalar_cmp_op<Scalar, cmp_LT> {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_cmp_op)
+  EIGEN_STRONG_INLINE bool operator()(const Scalar& a, const Scalar& b) const {return a<b;}
+};
+template<typename Scalar> struct scalar_cmp_op<Scalar, cmp_LE> {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_cmp_op)
+  EIGEN_STRONG_INLINE bool operator()(const Scalar& a, const Scalar& b) const {return a<=b;}
+};
+template<typename Scalar> struct scalar_cmp_op<Scalar, cmp_UNORD> {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_cmp_op)
+  EIGEN_STRONG_INLINE bool operator()(const Scalar& a, const Scalar& b) const {return !(a<=b || b<=a);}
+};
+template<typename Scalar> struct scalar_cmp_op<Scalar, cmp_NEQ> {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_cmp_op)
+  EIGEN_STRONG_INLINE bool operator()(const Scalar& a, const Scalar& b) const {return a!=b;}
+};
+
 // unary functors:
 
 /** \internal
@@ -589,7 +630,7 @@ struct linspaced_op_impl<Scalar,true>
 
   template<typename Index>
   EIGEN_STRONG_INLINE const Packet packetOp(Index i) const
-  { return internal::padd(m_lowPacket, pmul(m_stepPacket, padd(pset1<Packet>(i),m_interPacket))); }
+  { return internal::padd(m_lowPacket, pmul(m_stepPacket, padd(pset1<Packet>(Scalar(i)),m_interPacket))); }
 
   const Scalar m_low;
   const Scalar m_step;
@@ -609,7 +650,7 @@ template <typename Scalar, bool RandomAccess> struct functor_traits< linspaced_o
 template <typename Scalar, bool RandomAccess> struct linspaced_op
 {
   typedef typename packet_traits<Scalar>::type Packet;
-  linspaced_op(const Scalar& low, const Scalar& high, DenseIndex num_steps) : impl((num_steps==1 ? high : low), (num_steps==1 ? Scalar() : (high-low)/(num_steps-1))) {}
+  linspaced_op(const Scalar& low, const Scalar& high, DenseIndex num_steps) : impl((num_steps==1 ? high : low), (num_steps==1 ? Scalar() : (high-low)/Scalar(num_steps-1))) {}
 
   template<typename Index>
   EIGEN_STRONG_INLINE const Scalar operator() (Index i) const { return impl(i); }

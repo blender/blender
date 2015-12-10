@@ -247,8 +247,9 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, NoUnrolling>
   }
 };
 
-template<typename Func, typename Derived>
-struct redux_impl<Func, Derived, SliceVectorizedTraversal, NoUnrolling>
+// NOTE: for SliceVectorizedTraversal we simply bypass unrolling
+template<typename Func, typename Derived, int Unrolling>
+struct redux_impl<Func, Derived, SliceVectorizedTraversal, Unrolling>
 {
   typedef typename Derived::Scalar Scalar;
   typedef typename packet_traits<Scalar>::type PacketScalar;

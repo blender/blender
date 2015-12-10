@@ -102,7 +102,7 @@ void SparseLUImpl<Scalar,Index>::panel_bmod(const Index m, const Index w, const 
     if(nsupc >= 2)
     { 
       Index ldu = internal::first_multiple<Index>(u_rows, PacketSize);
-      Map<Matrix<Scalar,Dynamic,Dynamic>, Aligned,  OuterStride<> > U(tempv.data(), u_rows, u_cols, OuterStride<>(ldu));
+      Map<ScalarMatrix, Aligned,  OuterStride<> > U(tempv.data(), u_rows, u_cols, OuterStride<>(ldu));
       
       // gather U
       Index u_col = 0;
@@ -136,17 +136,17 @@ void SparseLUImpl<Scalar,Index>::panel_bmod(const Index m, const Index w, const 
       Index lda = glu.xlusup(fsupc+1) - glu.xlusup(fsupc);
       no_zeros = (krep - u_rows + 1) - fsupc;
       luptr += lda * no_zeros + no_zeros;
-      Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A(glu.lusup.data()+luptr, u_rows, u_rows, OuterStride<>(lda) );
+      MappedMatrixBlock A(glu.lusup.data()+luptr, u_rows, u_rows, OuterStride<>(lda) );
       U = A.template triangularView<UnitLower>().solve(U);
       
       // update
       luptr += u_rows;
-      Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > B(glu.lusup.data()+luptr, nrow, u_rows, OuterStride<>(lda) );
+      MappedMatrixBlock B(glu.lusup.data()+luptr, nrow, u_rows, OuterStride<>(lda) );
       eigen_assert(tempv.size()>w*ldu + nrow*w + 1);
       
       Index ldl = internal::first_multiple<Index>(nrow, PacketSize);
       Index offset = (PacketSize-internal::first_aligned(B.data(), PacketSize)) % PacketSize;
-      Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > L(tempv.data()+w*ldu+offset, nrow, u_cols, OuterStride<>(ldl));
+      MappedMatrixBlock L(tempv.data()+w*ldu+offset, nrow, u_cols, OuterStride<>(ldl));
       
       L.setZero();
       internal::sparselu_gemm<Scalar>(L.rows(), L.cols(), B.cols(), B.data(), B.outerStride(), U.data(), U.outerStride(), L.data(), L.outerStride());

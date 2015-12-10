@@ -162,11 +162,11 @@ Index SparseLUImpl<Scalar,Index>::column_bmod(const Index jcol, const Index nseg
     // points to the beginning of jcol in snode L\U(jsupno) 
     ufirst = glu.xlusup(jcol) + d_fsupc; 
     Index lda = glu.xlusup(jcol+1) - glu.xlusup(jcol);
-    Map<Matrix<Scalar,Dynamic,Dynamic>, 0,  OuterStride<> > A( &(glu.lusup.data()[luptr]), nsupc, nsupc, OuterStride<>(lda) ); 
+    MappedMatrixBlock A( &(glu.lusup.data()[luptr]), nsupc, nsupc, OuterStride<>(lda) );
     VectorBlock<ScalarVector> u(glu.lusup, ufirst, nsupc); 
     u = A.template triangularView<UnitLower>().solve(u); 
     
-    new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > ( &(glu.lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(lda) ); 
+    new (&A) MappedMatrixBlock ( &(glu.lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(lda) );
     VectorBlock<ScalarVector> l(glu.lusup, ufirst+nsupc, nrow); 
     l.noalias() -= A * u;
     

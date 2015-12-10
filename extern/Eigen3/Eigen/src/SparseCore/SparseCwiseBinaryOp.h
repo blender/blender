@@ -73,7 +73,8 @@ class CwiseBinaryOpImpl<BinaryOp,Lhs,Rhs,Sparse>::InnerIterator
     typedef internal::sparse_cwise_binary_op_inner_iterator_selector<
       BinaryOp,Lhs,Rhs, InnerIterator> Base;
 
-    EIGEN_STRONG_INLINE InnerIterator(const CwiseBinaryOpImpl& binOp, Index outer)
+    // NOTE: we have to prefix Index by "typename Lhs::" to avoid an ICE with VC11
+    EIGEN_STRONG_INLINE InnerIterator(const CwiseBinaryOpImpl& binOp, typename Lhs::Index outer)
       : Base(binOp.derived(),outer)
     {}
 };
@@ -313,10 +314,10 @@ SparseMatrixBase<Derived>::operator+=(const SparseMatrixBase<OtherDerived>& othe
 
 template<typename Derived>
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE
+EIGEN_STRONG_INLINE const typename SparseMatrixBase<Derived>::template CwiseProductDenseReturnType<OtherDerived>::Type
 SparseMatrixBase<Derived>::cwiseProduct(const MatrixBase<OtherDerived> &other) const
 {
-  return EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE(derived(), other.derived());
+  return typename CwiseProductDenseReturnType<OtherDerived>::Type(derived(), other.derived());
 }
 
 } // end namespace Eigen

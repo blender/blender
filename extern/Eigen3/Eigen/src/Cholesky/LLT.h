@@ -174,6 +174,12 @@ template<typename _MatrixType, int _UpLo> class LLT
     LLT rankUpdate(const VectorType& vec, const RealScalar& sigma = 1);
 
   protected:
+    
+    static void check_template_parameters()
+    {
+      EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
+    }
+    
     /** \internal
       * Used to compute and store L
       * The strict upper part is not used and even not initialized.
@@ -283,7 +289,7 @@ template<typename Scalar> struct llt_inplace<Scalar, Lower>
         return k;
       mat.coeffRef(k,k) = x = sqrt(x);
       if (k>0 && rs>0) A21.noalias() -= A20 * A10.adjoint();
-      if (rs>0) A21 *= RealScalar(1)/x;
+      if (rs>0) A21 /= x;
     }
     return -1;
   }
@@ -384,6 +390,8 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,Upper>
 template<typename MatrixType, int _UpLo>
 LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const MatrixType& a)
 {
+  check_template_parameters();
+  
   eigen_assert(a.rows()==a.cols());
   const Index size = a.rows();
   m_matrix.resize(size, size);

@@ -250,6 +250,35 @@ class PermutationBase : public EigenBase<Derived>
     template<typename Other> friend
     inline PlainPermutationType operator*(const Transpose<PermutationBase<Other> >& other, const PermutationBase& perm)
     { return PlainPermutationType(internal::PermPermProduct, other.eval(), perm); }
+    
+    /** \returns the determinant of the permutation matrix, which is either 1 or -1 depending on the parity of the permutation.
+      *
+      * This function is O(\c n) procedure allocating a buffer of \c n booleans.
+      */
+    Index determinant() const
+    {
+      Index res = 1;
+      Index n = size();
+      Matrix<bool,RowsAtCompileTime,1,0,MaxRowsAtCompileTime> mask(n);
+      mask.fill(false);
+      Index r = 0;
+      while(r < n)
+      {
+        // search for the next seed
+        while(r<n && mask[r]) r++;
+        if(r>=n)
+          break;
+        // we got one, let's follow it until we are back to the seed
+        Index k0 = r++;
+        mask.coeffRef(k0) = true;
+        for(Index k=indices().coeff(k0); k!=k0; k=indices().coeff(k))
+        {
+          mask.coeffRef(k) = true;
+          res = -res;
+        }
+      }
+      return res;
+    }
 
   protected:
 
@@ -555,7 +584,10 @@ struct permut_matrix_product_retval
       const Index n = Side==OnTheLeft ? rows() : cols();
       // FIXME we need an is_same for expression that is not sensitive to constness. For instance
       // is_same_xpr<Block<const Matrix>, Block<Matrix> >::value should be true.
-      if(is_same<MatrixTypeNestedCleaned,Dest>::value && extract_data(dst) == extract_data(m_matrix))
+      if(    is_same<MatrixTypeNestedCleaned,Dest>::value
+          && blas_traits<MatrixTypeNestedCleaned>::HasUsableDirectAccess
+          && blas_traits<Dest>::HasUsableDirectAccess
+          && extract_data(dst) == extract_data(m_matrix))
       {
         // apply the permutation inplace
         Matrix<bool,PermutationType::RowsAtCompileTime,1,0,PermutationType::MaxRowsAtCompileTime> mask(m_permutation.size());

@@ -159,13 +159,11 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     Derived& operator=(const ReturnByValue<OtherDerived>& other);
 
-#ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename ProductDerived, typename Lhs, typename Rhs>
     Derived& lazyAssign(const ProductBase<ProductDerived, Lhs,Rhs>& other);
 
     template<typename MatrixPower, typename Lhs, typename Rhs>
     Derived& lazyAssign(const MatrixPowerProduct<MatrixPower, Lhs,Rhs>& other);
-#endif // not EIGEN_PARSED_BY_DOXYGEN
 
     template<typename OtherDerived>
     Derived& operator+=(const MatrixBase<OtherDerived>& other);
@@ -215,7 +213,7 @@ template<typename Derived> class MatrixBase
 
     typedef Diagonal<Derived> DiagonalReturnType;
     DiagonalReturnType diagonal();
-	typedef typename internal::add_const<Diagonal<const Derived> >::type ConstDiagonalReturnType;
+    typedef typename internal::add_const<Diagonal<const Derived> >::type ConstDiagonalReturnType;
     ConstDiagonalReturnType diagonal() const;
 
     template<int Index> struct DiagonalIndexReturnType { typedef Diagonal<Derived,Index> Type; };
@@ -223,16 +221,12 @@ template<typename Derived> class MatrixBase
 
     template<int Index> typename DiagonalIndexReturnType<Index>::Type diagonal();
     template<int Index> typename ConstDiagonalIndexReturnType<Index>::Type diagonal() const;
+    
+    typedef Diagonal<Derived,DynamicIndex> DiagonalDynamicIndexReturnType;
+    typedef typename internal::add_const<Diagonal<const Derived,DynamicIndex> >::type ConstDiagonalDynamicIndexReturnType;
 
-    // Note: The "MatrixBase::" prefixes are added to help MSVC9 to match these declarations with the later implementations.
-    // On the other hand they confuse MSVC8...
-    #if (defined _MSC_VER) && (_MSC_VER >= 1500) // 2008 or later
-    typename MatrixBase::template DiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index);
-    typename MatrixBase::template ConstDiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index) const;
-    #else
-    typename DiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index);
-    typename ConstDiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index) const;
-    #endif
+    DiagonalDynamicIndexReturnType diagonal(Index index);
+    ConstDiagonalDynamicIndexReturnType diagonal(Index index) const;
 
     #ifdef EIGEN2_SUPPORT
     template<unsigned int Mode> typename internal::eigen2_part_return_type<Derived, Mode>::type part();
@@ -445,6 +439,15 @@ template<typename Derived> class MatrixBase
     void applyOnTheLeft(Index p, Index q, const JacobiRotation<OtherScalar>& j);
     template<typename OtherScalar>
     void applyOnTheRight(Index p, Index q, const JacobiRotation<OtherScalar>& j);
+
+///////// SparseCore module /////////
+
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE const typename SparseMatrixBase<OtherDerived>::template CwiseProductDenseReturnType<Derived>::Type
+    cwiseProduct(const SparseMatrixBase<OtherDerived> &other) const
+    {
+      return other.cwiseProduct(derived());
+    }
 
 ///////// MatrixFunctions module /////////
 

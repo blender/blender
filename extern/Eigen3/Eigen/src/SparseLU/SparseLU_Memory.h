@@ -153,8 +153,8 @@ Index SparseLUImpl<Scalar,Index>::memInit(Index m, Index n, Index annz, Index lw
 {
   Index& num_expansions = glu.num_expansions; //No memory expansions so far
   num_expansions = 0;
-  glu.nzumax = glu.nzlumax = (std::min)(fillratio * annz / n, m) * n; // estimated number of nonzeros in U 
-  glu.nzlmax = (std::max)(Index(4), fillratio) * annz / 4; // estimated  nnz in L factor
+  glu.nzumax = glu.nzlumax = (std::min)(fillratio * (annz+1) / n, m) * n; // estimated number of nonzeros in U 
+  glu.nzlmax = (std::max)(Index(4), fillratio) * (annz+1) / 4; // estimated  nnz in L factor
   // Return the estimated size to the user if necessary
   Index tempSpace;
   tempSpace = (2*panel_size + 4 + LUNoMarker) * m * sizeof(Index) + (panel_size + 1) * m * sizeof(Scalar);

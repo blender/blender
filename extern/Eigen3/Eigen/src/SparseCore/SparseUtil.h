@@ -67,7 +67,6 @@ const int InnerRandomAccessPattern  = 0x2 | CoherentAccessPattern;
 const int OuterRandomAccessPattern  = 0x4 | CoherentAccessPattern;
 const int RandomAccessPattern       = 0x8 | OuterRandomAccessPattern | InnerRandomAccessPattern;
 
-template<typename Derived> class SparseMatrixBase;
 template<typename _Scalar, int _Flags = 0, typename _Index = int>  class SparseMatrix;
 template<typename _Scalar, int _Flags = 0, typename _Index = int>  class DynamicSparseMatrix;
 template<typename _Scalar, int _Flags = 0, typename _Index = int>  class SparseVector;
@@ -84,8 +83,10 @@ template<typename Lhs, typename Rhs>        class DenseTimeSparseProduct;
 template<typename Lhs, typename Rhs, bool Transpose> class SparseDenseOuterProduct;
 
 template<typename Lhs, typename Rhs> struct SparseSparseProductReturnType;
-template<typename Lhs, typename Rhs, int InnerSize = internal::traits<Lhs>::ColsAtCompileTime> struct DenseSparseProductReturnType;
-template<typename Lhs, typename Rhs, int InnerSize = internal::traits<Lhs>::ColsAtCompileTime> struct SparseDenseProductReturnType;
+template<typename Lhs, typename Rhs,
+         int InnerSize = EIGEN_SIZE_MIN_PREFER_FIXED(internal::traits<Lhs>::ColsAtCompileTime,internal::traits<Rhs>::RowsAtCompileTime)> struct DenseSparseProductReturnType;         
+template<typename Lhs, typename Rhs,
+         int InnerSize = EIGEN_SIZE_MIN_PREFER_FIXED(internal::traits<Lhs>::ColsAtCompileTime,internal::traits<Rhs>::RowsAtCompileTime)> struct SparseDenseProductReturnType;
 template<typename MatrixType,int UpLo> class SparseSymmetricPermutationProduct;
 
 namespace internal {

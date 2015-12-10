@@ -124,3 +124,20 @@ cwiseQuotient(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
 {
   return CwiseBinaryOp<internal::scalar_quotient_op<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
 }
+
+typedef CwiseBinaryOp<internal::scalar_cmp_op<Scalar,internal::cmp_EQ>, const Derived, const ConstantReturnType> CwiseScalarEqualReturnType;
+
+/** \returns an expression of the coefficient-wise == operator of \c *this and a scalar \a s
+  *
+  * \warning this performs an exact comparison, which is generally a bad idea with floating-point types.
+  * In order to check for equality between two vectors or matrices with floating-point coefficients, it is
+  * generally a far better idea to use a fuzzy comparison as provided by isApprox() and
+  * isMuchSmallerThan().
+  *
+  * \sa cwiseEqual(const MatrixBase<OtherDerived> &) const
+  */
+inline const CwiseScalarEqualReturnType
+cwiseEqual(const Scalar& s) const
+{
+  return CwiseScalarEqualReturnType(derived(), Derived::Constant(rows(), cols(), s), internal::scalar_cmp_op<Scalar,internal::cmp_EQ>());
+}

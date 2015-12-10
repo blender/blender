@@ -65,10 +65,10 @@ class DiagonalPreconditioner
       {
         typename MatType::InnerIterator it(mat,j);
         while(it && it.index()!=j) ++it;
-        if(it && it.index()==j)
+        if(it && it.index()==j && it.value()!=Scalar(0))
           m_invdiag(j) = Scalar(1)/it.value();
         else
-          m_invdiag(j) = 0;
+          m_invdiag(j) = Scalar(1);
       }
       m_isInitialized = true;
       return *this;

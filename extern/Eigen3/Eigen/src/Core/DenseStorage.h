@@ -24,6 +24,14 @@ namespace internal {
 
 struct constructor_without_unaligned_array_assert {};
 
+template<typename T, int Size> void check_static_allocation_size()
+{
+  // if EIGEN_STACK_ALLOCATION_LIMIT is defined to 0, then no limit
+  #if EIGEN_STACK_ALLOCATION_LIMIT
+  EIGEN_STATIC_ASSERT(Size * sizeof(T) <= EIGEN_STACK_ALLOCATION_LIMIT, OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG);
+  #endif
+}
+
 /** \internal
   * Static array. If the MatrixOrArrayOptions require auto-alignment, the array will be automatically aligned:
   * to 16 bytes boundary if the total size is a multiple of 16 bytes.
@@ -38,12 +46,12 @@ struct plain_array
 
   plain_array() 
   { 
-    EIGEN_STATIC_ASSERT(Size * sizeof(T) <= 128 * 128 * 8, OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG);
+    check_static_allocation_size<T,Size>();
   }
 
   plain_array(constructor_without_unaligned_array_assert) 
   { 
-    EIGEN_STATIC_ASSERT(Size * sizeof(T) <= 128 * 128 * 8, OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG);
+    check_static_allocation_size<T,Size>();
   }
 };
 
@@ -76,12 +84,12 @@ struct plain_array<T, Size, MatrixOrArrayOptions, 16>
   plain_array() 
   { 
     EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(0xf);
-    EIGEN_STATIC_ASSERT(Size * sizeof(T) <= 128 * 128 * 8, OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG);
+    check_static_allocation_size<T,Size>();
   }
 
   plain_array(constructor_without_unaligned_array_assert) 
   { 
-    EIGEN_STATIC_ASSERT(Size * sizeof(T) <= 128 * 128 * 8, OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG);
+    check_static_allocation_size<T,Size>();
   }
 };
 
@@ -114,33 +122,41 @@ template<typename T, int Size, int _Rows, int _Cols, int _Options> class DenseSt
 {
     internal::plain_array<T,Size,_Options> m_data;
   public:
-    inline DenseStorage() {}
-    inline DenseStorage(internal::constructor_without_unaligned_array_assert)
+    DenseStorage() {}
+    DenseStorage(internal::constructor_without_unaligned_array_assert)
       : m_data(internal::constructor_without_unaligned_array_assert()) {}
-    inline DenseStorage(DenseIndex,DenseIndex,DenseIndex) {}
-    inline void swap(DenseStorage& other) { std::swap(m_data,other.m_data); }
-    static inline DenseIndex rows(void) {return _Rows;}
-    static inline DenseIndex cols(void) {return _Cols;}
-    inline void conservativeResize(DenseIndex,DenseIndex,DenseIndex) {}
-    inline void resize(DenseIndex,DenseIndex,DenseIndex) {}
-    inline const T *data() const { return m_data.array; }
-    inline T *data() { return m_data.array; }
+    DenseStorage(const DenseStorage& other) : m_data(other.m_data) {}
+    DenseStorage& operator=(const DenseStorage& other)
+    {
+      if (this != &other) m_data = other.m_data;
+      return *this;
+    }
+    DenseStorage(DenseIndex,DenseIndex,DenseIndex) {}
+    void swap(DenseStorage& other) { std::swap(m_data,other.m_data); }
+    static DenseIndex rows(void) {return _Rows;}
+    static DenseIndex cols(void) {return _Cols;}
+    void conservativeResize(DenseIndex,DenseIndex,DenseIndex) {}
+    void resize(DenseIndex,DenseIndex,DenseIndex) {}
+    const T *data() const { return m_data.array; }
+    T *data() { return m_data.array; }
 };
 
 // null matrix
 template<typename T, int _Rows, int _Cols, int _Options> class DenseStorage<T, 0, _Rows, _Cols, _Options>
 {
   public:
-    inline DenseStorage() {}
-    inline DenseStorage(internal::constructor_without_unaligned_array_assert) {}
-    inline DenseStorage(DenseIndex,DenseIndex,DenseIndex) {}
-    inline void swap(DenseStorage& ) {}
-    static inline DenseIndex rows(void) {return _Rows;}
-    static inline DenseIndex cols(void) {return _Cols;}
-    inline void conservativeResize(DenseIndex,DenseIndex,DenseIndex) {}
-    inline void resize(DenseIndex,DenseIndex,DenseIndex) {}
-    inline const T *data() const { return 0; }
-    inline T *data() { return 0; }
+    DenseStorage() {}
+    DenseStorage(internal::constructor_without_unaligned_array_assert) {}
+    DenseStorage(const DenseStorage&) {}
+    DenseStorage& operator=(const DenseStorage&) { return *this; }
+    DenseStorage(DenseIndex,DenseIndex,DenseIndex) {}
+    void swap(DenseStorage& ) {}
+    static DenseIndex rows(void) {return _Rows;}
+    static DenseIndex cols(void) {return _Cols;}
+    void conservativeResize(DenseIndex,DenseIndex,DenseIndex) {}
+    void resize(DenseIndex,DenseIndex,DenseIndex) {}
+    const T *data() const { return 0; }
+    T *data() { return 0; }
 };
 
 // more specializations for null matrices; these are necessary to resolve ambiguities
@@ -160,18 +176,29 @@ template<typename T, int Size, int _Options> class DenseStorage<T, Size, Dynamic
     DenseIndex m_rows;
     DenseIndex m_cols;
   public:
-    inline DenseStorage() : m_rows(0), m_cols(0) {}
-    inline DenseStorage(internal::constructor_without_unaligned_array_assert)
+    DenseStorage() : m_rows(0), m_cols(0) {}
+    DenseStorage(internal::constructor_without_unaligned_array_assert)
       : m_data(internal::constructor_without_unaligned_array_assert()), m_rows(0), m_cols(0) {}
-    inline DenseStorage(DenseIndex, DenseIndex nbRows, DenseIndex nbCols) : m_rows(nbRows), m_cols(nbCols) {}
-    inline void swap(DenseStorage& other)
+    DenseStorage(const DenseStorage& other) : m_data(other.m_data), m_rows(other.m_rows), m_cols(other.m_cols) {}
+    DenseStorage& operator=(const DenseStorage& other)
+    {
+      if (this != &other)
+      {
+        m_data = other.m_data;
+        m_rows = other.m_rows;
+        m_cols = other.m_cols;
+      }
+      return *this;
+    }
+    DenseStorage(DenseIndex, DenseIndex nbRows, DenseIndex nbCols) : m_rows(nbRows), m_cols(nbCols) {}
+    void swap(DenseStorage& other)
     { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); std::swap(m_cols,other.m_cols); }
-    inline DenseIndex rows() const {return m_rows;}
-    inline DenseIndex cols() const {return m_cols;}
-    inline void conservativeResize(DenseIndex, DenseIndex nbRows, DenseIndex nbCols) { m_rows = nbRows; m_cols = nbCols; }
-    inline void resize(DenseIndex, DenseIndex nbRows, DenseIndex nbCols) { m_rows = nbRows; m_cols = nbCols; }
-    inline const T *data() const { return m_data.array; }
-    inline T *data() { return m_data.array; }
+    DenseIndex rows() const {return m_rows;}
+    DenseIndex cols() const {return m_cols;}
+    void conservativeResize(DenseIndex, DenseIndex nbRows, DenseIndex nbCols) { m_rows = nbRows; m_cols = nbCols; }
+    void resize(DenseIndex, DenseIndex nbRows, DenseIndex nbCols) { m_rows = nbRows; m_cols = nbCols; }
+    const T *data() const { return m_data.array; }
+    T *data() { return m_data.array; }
 };
 
 // dynamic-size matrix with fixed-size storage and fixed width
@@ -180,17 +207,27 @@ template<typename T, int Size, int _Cols, int _Options> class DenseStorage<T, Si
     internal::plain_array<T,Size,_Options> m_data;
     DenseIndex m_rows;
   public:
-    inline DenseStorage() : m_rows(0) {}
-    inline DenseStorage(internal::constructor_without_unaligned_array_assert)
+    DenseStorage() : m_rows(0) {}
+    DenseStorage(internal::constructor_without_unaligned_array_assert)
       : m_data(internal::constructor_without_unaligned_array_assert()), m_rows(0) {}
-    inline DenseStorage(DenseIndex, DenseIndex nbRows, DenseIndex) : m_rows(nbRows) {}
-    inline void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
-    inline DenseIndex rows(void) const {return m_rows;}
-    inline DenseIndex cols(void) const {return _Cols;}
-    inline void conservativeResize(DenseIndex, DenseIndex nbRows, DenseIndex) { m_rows = nbRows; }
-    inline void resize(DenseIndex, DenseIndex nbRows, DenseIndex) { m_rows = nbRows; }
-    inline const T *data() const { return m_data.array; }
-    inline T *data() { return m_data.array; }
+    DenseStorage(const DenseStorage& other) : m_data(other.m_data), m_rows(other.m_rows) {}
+    DenseStorage& operator=(const DenseStorage& other)
+    {
+      if (this != &other)
+      {
+        m_data = other.m_data;
+        m_rows = other.m_rows;
+      }
+      return *this;
+    }
+    DenseStorage(DenseIndex, DenseIndex nbRows, DenseIndex) : m_rows(nbRows) {}
+    void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
+    DenseIndex rows(void) const {return m_rows;}
+    DenseIndex cols(void) const {return _Cols;}
+    void conservativeResize(DenseIndex, DenseIndex nbRows, DenseIndex) { m_rows = nbRows; }
+    void resize(DenseIndex, DenseIndex nbRows, DenseIndex) { m_rows = nbRows; }
+    const T *data() const { return m_data.array; }
+    T *data() { return m_data.array; }
 };
 
 // dynamic-size matrix with fixed-size storage and fixed height
@@ -199,17 +236,27 @@ template<typename T, int Size, int _Rows, int _Options> class DenseStorage<T, Si
     internal::plain_array<T,Size,_Options> m_data;
     DenseIndex m_cols;
   public:
-    inline DenseStorage() : m_cols(0) {}
-    inline DenseStorage(internal::constructor_without_unaligned_array_assert)
+    DenseStorage() : m_cols(0) {}
+    DenseStorage(internal::constructor_without_unaligned_array_assert)
       : m_data(internal::constructor_without_unaligned_array_assert()), m_cols(0) {}
-    inline DenseStorage(DenseIndex, DenseIndex, DenseIndex nbCols) : m_cols(nbCols) {}
-    inline void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
-    inline DenseIndex rows(void) const {return _Rows;}
-    inline DenseIndex cols(void) const {return m_cols;}
-    inline void conservativeResize(DenseIndex, DenseIndex, DenseIndex nbCols) { m_cols = nbCols; }
-    inline void resize(DenseIndex, DenseIndex, DenseIndex nbCols) { m_cols = nbCols; }
-    inline const T *data() const { return m_data.array; }
-    inline T *data() { return m_data.array; }
+    DenseStorage(const DenseStorage& other) : m_data(other.m_data), m_cols(other.m_cols) {}
+    DenseStorage& operator=(const DenseStorage& other)
+    {
+      if (this != &other)
+      {
+        m_data = other.m_data;
+        m_cols = other.m_cols;
+      }
+      return *this;
+    }
+    DenseStorage(DenseIndex, DenseIndex, DenseIndex nbCols) : m_cols(nbCols) {}
+    void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
+    DenseIndex rows(void) const {return _Rows;}
+    DenseIndex cols(void) const {return m_cols;}
+    void conservativeResize(DenseIndex, DenseIndex, DenseIndex nbCols) { m_cols = nbCols; }
+    void resize(DenseIndex, DenseIndex, DenseIndex nbCols) { m_cols = nbCols; }
+    const T *data() const { return m_data.array; }
+    T *data() { return m_data.array; }
 };
 
 // purely dynamic matrix.
@@ -219,18 +266,35 @@ template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynam
     DenseIndex m_rows;
     DenseIndex m_cols;
   public:
-    inline DenseStorage() : m_data(0), m_rows(0), m_cols(0) {}
-    inline DenseStorage(internal::constructor_without_unaligned_array_assert)
+    DenseStorage() : m_data(0), m_rows(0), m_cols(0) {}
+    DenseStorage(internal::constructor_without_unaligned_array_assert)
        : m_data(0), m_rows(0), m_cols(0) {}
-    inline DenseStorage(DenseIndex size, DenseIndex nbRows, DenseIndex nbCols)
+    DenseStorage(DenseIndex size, DenseIndex nbRows, DenseIndex nbCols)
       : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size)), m_rows(nbRows), m_cols(nbCols)
     { EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN }
-    inline ~DenseStorage() { internal::conditional_aligned_delete_auto<T,(_Options&DontAlign)==0>(m_data, m_rows*m_cols); }
-    inline void swap(DenseStorage& other)
+#ifdef EIGEN_HAVE_RVALUE_REFERENCES
+    DenseStorage(DenseStorage&& other)
+      : m_data(std::move(other.m_data))
+      , m_rows(std::move(other.m_rows))
+      , m_cols(std::move(other.m_cols))
+    {
+      other.m_data = nullptr;
+    }
+    DenseStorage& operator=(DenseStorage&& other)
+    {
+      using std::swap;
+      swap(m_data, other.m_data);
+      swap(m_rows, other.m_rows);
+      swap(m_cols, other.m_cols);
+      return *this;
+    }
+#endif
+    ~DenseStorage() { internal::conditional_aligned_delete_auto<T,(_Options&DontAlign)==0>(m_data, m_rows*m_cols); }
+    void swap(DenseStorage& other)
     { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); std::swap(m_cols,other.m_cols); }
-    inline DenseIndex rows(void) const {return m_rows;}
-    inline DenseIndex cols(void) const {return m_cols;}
-    inline void conservativeResize(DenseIndex size, DenseIndex nbRows, DenseIndex nbCols)
+    DenseIndex rows(void) const {return m_rows;}
+    DenseIndex cols(void) const {return m_cols;}
+    void conservativeResize(DenseIndex size, DenseIndex nbRows, DenseIndex nbCols)
     {
       m_data = internal::conditional_aligned_realloc_new_auto<T,(_Options&DontAlign)==0>(m_data, size, m_rows*m_cols);
       m_rows = nbRows;
@@ -250,8 +314,11 @@ template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynam
       m_rows = nbRows;
       m_cols = nbCols;
     }
-    inline const T *data() const { return m_data; }
-    inline T *data() { return m_data; }
+    const T *data() const { return m_data; }
+    T *data() { return m_data; }
+  private:
+    DenseStorage(const DenseStorage&);
+    DenseStorage& operator=(const DenseStorage&);
 };
 
 // matrix with dynamic width and fixed height (so that matrix has dynamic size).
@@ -260,15 +327,30 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
     T *m_data;
     DenseIndex m_cols;
   public:
-    inline DenseStorage() : m_data(0), m_cols(0) {}
-    inline DenseStorage(internal::constructor_without_unaligned_array_assert) : m_data(0), m_cols(0) {}
-    inline DenseStorage(DenseIndex size, DenseIndex, DenseIndex nbCols) : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size)), m_cols(nbCols)
+    DenseStorage() : m_data(0), m_cols(0) {}
+    DenseStorage(internal::constructor_without_unaligned_array_assert) : m_data(0), m_cols(0) {}
+    DenseStorage(DenseIndex size, DenseIndex, DenseIndex nbCols) : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size)), m_cols(nbCols)
     { EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN }
-    inline ~DenseStorage() { internal::conditional_aligned_delete_auto<T,(_Options&DontAlign)==0>(m_data, _Rows*m_cols); }
-    inline void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
-    static inline DenseIndex rows(void) {return _Rows;}
-    inline DenseIndex cols(void) const {return m_cols;}
-    inline void conservativeResize(DenseIndex size, DenseIndex, DenseIndex nbCols)
+#ifdef EIGEN_HAVE_RVALUE_REFERENCES
+    DenseStorage(DenseStorage&& other)
+      : m_data(std::move(other.m_data))
+      , m_cols(std::move(other.m_cols))
+    {
+      other.m_data = nullptr;
+    }
+    DenseStorage& operator=(DenseStorage&& other)
+    {
+      using std::swap;
+      swap(m_data, other.m_data);
+      swap(m_cols, other.m_cols);
+      return *this;
+    }
+#endif
+    ~DenseStorage() { internal::conditional_aligned_delete_auto<T,(_Options&DontAlign)==0>(m_data, _Rows*m_cols); }
+    void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
+    static DenseIndex rows(void) {return _Rows;}
+    DenseIndex cols(void) const {return m_cols;}
+    void conservativeResize(DenseIndex size, DenseIndex, DenseIndex nbCols)
     {
       m_data = internal::conditional_aligned_realloc_new_auto<T,(_Options&DontAlign)==0>(m_data, size, _Rows*m_cols);
       m_cols = nbCols;
@@ -286,8 +368,11 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
       }
       m_cols = nbCols;
     }
-    inline const T *data() const { return m_data; }
-    inline T *data() { return m_data; }
+    const T *data() const { return m_data; }
+    T *data() { return m_data; }
+  private:
+    DenseStorage(const DenseStorage&);
+    DenseStorage& operator=(const DenseStorage&);
 };
 
 // matrix with dynamic height and fixed width (so that matrix has dynamic size).
@@ -296,15 +381,30 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
     T *m_data;
     DenseIndex m_rows;
   public:
-    inline DenseStorage() : m_data(0), m_rows(0) {}
-    inline DenseStorage(internal::constructor_without_unaligned_array_assert) : m_data(0), m_rows(0) {}
-    inline DenseStorage(DenseIndex size, DenseIndex nbRows, DenseIndex) : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size)), m_rows(nbRows)
+    DenseStorage() : m_data(0), m_rows(0) {}
+    DenseStorage(internal::constructor_without_unaligned_array_assert) : m_data(0), m_rows(0) {}
+    DenseStorage(DenseIndex size, DenseIndex nbRows, DenseIndex) : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size)), m_rows(nbRows)
     { EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN }
-    inline ~DenseStorage() { internal::conditional_aligned_delete_auto<T,(_Options&DontAlign)==0>(m_data, _Cols*m_rows); }
-    inline void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
-    inline DenseIndex rows(void) const {return m_rows;}
-    static inline DenseIndex cols(void) {return _Cols;}
-    inline void conservativeResize(DenseIndex size, DenseIndex nbRows, DenseIndex)
+#ifdef EIGEN_HAVE_RVALUE_REFERENCES
+    DenseStorage(DenseStorage&& other)
+      : m_data(std::move(other.m_data))
+      , m_rows(std::move(other.m_rows))
+    {
+      other.m_data = nullptr;
+    }
+    DenseStorage& operator=(DenseStorage&& other)
+    {
+      using std::swap;
+      swap(m_data, other.m_data);
+      swap(m_rows, other.m_rows);
+      return *this;
+    }
+#endif
+    ~DenseStorage() { internal::conditional_aligned_delete_auto<T,(_Options&DontAlign)==0>(m_data, _Cols*m_rows); }
+    void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
+    DenseIndex rows(void) const {return m_rows;}
+    static DenseIndex cols(void) {return _Cols;}
+    void conservativeResize(DenseIndex size, DenseIndex nbRows, DenseIndex)
     {
       m_data = internal::conditional_aligned_realloc_new_auto<T,(_Options&DontAlign)==0>(m_data, size, m_rows*_Cols);
       m_rows = nbRows;
@@ -322,8 +422,11 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
       }
       m_rows = nbRows;
     }
-    inline const T *data() const { return m_data; }
-    inline T *data() { return m_data; }
+    const T *data() const { return m_data; }
+    T *data() { return m_data; }
+  private:
+    DenseStorage(const DenseStorage&);
+    DenseStorage& operator=(const DenseStorage&);
 };
 
 } // end namespace Eigen

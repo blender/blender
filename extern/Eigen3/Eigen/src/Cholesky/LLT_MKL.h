@@ -60,7 +60,7 @@ template<> struct mkl_llt<EIGTYPE> \
     lda = m.outerStride(); \
 \
     info = LAPACKE_##MKLPREFIX##potrf( matrix_order, uplo, size, (MKLTYPE*)a, lda ); \
-    info = (info==0) ? Success : NumericalIssue; \
+    info = (info==0) ? -1 : info>0 ? info-1 : size; \
     return info; \
   } \
 }; \

@@ -125,19 +125,22 @@ void parallelize_gemm(const Functor& func, Index rows, Index cols, bool transpos
   if(transpose)
     std::swap(rows,cols);
 
-  Index blockCols = (cols / threads) & ~Index(0x3);
-  Index blockRows = (rows / threads) & ~Index(0x7);
-  
   GemmParallelInfo<Index>* info = new GemmParallelInfo<Index>[threads];
 
-  #pragma omp parallel for schedule(static,1) num_threads(threads)
-  for(Index i=0; i<threads; ++i)
+  #pragma omp parallel num_threads(threads)
   {
+    Index i = omp_get_thread_num();
+    // Note that the actual number of threads might be lower than the number of request ones.
+    Index actual_threads = omp_get_num_threads();
+    
+    Index blockCols = (cols / actual_threads) & ~Index(0x3);
+    Index blockRows = (rows / actual_threads) & ~Index(0x7);
+    
     Index r0 = i*blockRows;
-    Index actualBlockRows = (i+1==threads) ? rows-r0 : blockRows;
+    Index actualBlockRows = (i+1==actual_threads) ? rows-r0 : blockRows;
 
     Index c0 = i*blockCols;
-    Index actualBlockCols = (i+1==threads) ? cols-c0 : blockCols;
+    Index actualBlockCols = (i+1==actual_threads) ? cols-c0 : blockCols;
 
     info[i].rhs_start = c0;
     info[i].rhs_length = actualBlockCols;

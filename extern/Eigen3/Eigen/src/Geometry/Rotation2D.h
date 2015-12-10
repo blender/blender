@@ -60,6 +60,9 @@ public:
 
   /** Construct a 2D counter clock wise rotation from the angle \a a in radian. */
   inline Rotation2D(const Scalar& a) : m_angle(a) {}
+  
+  /** Default constructor wihtout initialization. The represented rotation is undefined. */
+  Rotation2D() {}
 
   /** \returns the rotation angle */
   inline Scalar angle() const { return m_angle; }
@@ -81,10 +84,10 @@ public:
   /** Applies the rotation to a 2D vector */
   Vector2 operator* (const Vector2& vec) const
   { return toRotationMatrix() * vec; }
-
+  
   template<typename Derived>
   Rotation2D& fromRotationMatrix(const MatrixBase<Derived>& m);
-  Matrix2 toRotationMatrix(void) const;
+  Matrix2 toRotationMatrix() const;
 
   /** \returns the spherical interpolation between \c *this and \a other using
     * parameter \a t. It is in fact equivalent to a linear interpolation.

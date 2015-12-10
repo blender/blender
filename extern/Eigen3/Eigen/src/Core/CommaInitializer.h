@@ -43,6 +43,17 @@ struct CommaInitializer
     m_xpr.block(0, 0, other.rows(), other.cols()) = other;
   }
 
+  /* Copy/Move constructor which transfers ownership. This is crucial in 
+   * absence of return value optimization to avoid assertions during destruction. */
+  // FIXME in C++11 mode this could be replaced by a proper RValue constructor
+  inline CommaInitializer(const CommaInitializer& o)
+  : m_xpr(o.m_xpr), m_row(o.m_row), m_col(o.m_col), m_currentBlockRows(o.m_currentBlockRows) {
+    // Mark original object as finished. In absence of R-value references we need to const_cast:
+    const_cast<CommaInitializer&>(o).m_row = m_xpr.rows();
+    const_cast<CommaInitializer&>(o).m_col = m_xpr.cols();
+    const_cast<CommaInitializer&>(o).m_currentBlockRows = 0;
+  }
+
   /* inserts a scalar value in the target matrix */
   CommaInitializer& operator,(const Scalar& s)
   {

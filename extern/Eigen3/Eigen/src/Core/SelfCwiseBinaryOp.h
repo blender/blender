@@ -180,15 +180,9 @@ inline Derived& DenseBase<Derived>::operator*=(const Scalar& other)
 template<typename Derived>
 inline Derived& DenseBase<Derived>::operator/=(const Scalar& other)
 {
-  typedef typename internal::conditional<NumTraits<Scalar>::IsInteger,
-                                        internal::scalar_quotient_op<Scalar>,
-                                        internal::scalar_product_op<Scalar> >::type BinOp;
   typedef typename Derived::PlainObject PlainObject;
-  SelfCwiseBinaryOp<BinOp, Derived, typename PlainObject::ConstantReturnType> tmp(derived());
-  Scalar actual_other;
-  if(NumTraits<Scalar>::IsInteger)  actual_other = other;
-  else                              actual_other = Scalar(1)/other;
-  tmp = PlainObject::Constant(rows(),cols(), actual_other);
+  SelfCwiseBinaryOp<internal::scalar_quotient_op<Scalar>, Derived, typename PlainObject::ConstantReturnType> tmp(derived());
+  tmp = PlainObject::Constant(rows(),cols(), other);
   return derived();
 }
 

@@ -63,7 +63,7 @@
 // Currently, let's include it only on unix systems:
 #if defined(__unix__) || defined(__unix)
   #include <unistd.h>
-  #if ((defined __QNXNTO__) || (defined _GNU_SOURCE) || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))) && (defined _POSIX_ADVISORY_INFO) && (_POSIX_ADVISORY_INFO > 0)
+  #if ((defined __QNXNTO__) || (defined _GNU_SOURCE) || (defined __PGI) || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))) && (defined _POSIX_ADVISORY_INFO) && (_POSIX_ADVISORY_INFO > 0)
     #define EIGEN_HAS_POSIX_MEMALIGN 1
   #endif
 #endif
@@ -272,12 +272,12 @@ inline void* aligned_realloc(void *ptr, size_t new_size, size_t old_size)
   // The defined(_mm_free) is just here to verify that this MSVC version
   // implements _mm_malloc/_mm_free based on the corresponding _aligned_
   // functions. This may not always be the case and we just try to be safe.
-  #if defined(_MSC_VER) && defined(_mm_free)
+  #if defined(_MSC_VER) && (!defined(_WIN32_WCE)) && defined(_mm_free)
     result = _aligned_realloc(ptr,new_size,16);
   #else
     result = generic_aligned_realloc(ptr,new_size,old_size);
   #endif
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && (!defined(_WIN32_WCE))
   result = _aligned_realloc(ptr,new_size,16);
 #else
   result = handmade_aligned_realloc(ptr,new_size,old_size);
@@ -417,6 +417,8 @@ template<typename T, bool Align> inline T* conditional_aligned_realloc_new(T* pt
 
 template<typename T, bool Align> inline T* conditional_aligned_new_auto(size_t size)
 {
+  if(size==0)
+    return 0; // short-cut. Also fixes Bug 884
   check_size_for_overflow<T>(size);
   T *result = reinterpret_cast<T*>(conditional_aligned_malloc<Align>(sizeof(T)*size));
   if(NumTraits<T>::RequireInitialization)
@@ -464,9 +466,8 @@ template<typename T, bool Align> inline void conditional_aligned_delete_auto(T *
 template<typename Scalar, typename Index>
 static inline Index first_aligned(const Scalar* array, Index size)
 {
-  enum { PacketSize = packet_traits<Scalar>::size,
-         PacketAlignedMask = PacketSize-1
-  };
+  static const Index PacketSize = packet_traits<Scalar>::size;
+  static const Index PacketAlignedMask = PacketSize-1;
 
   if(PacketSize==1)
   {
@@ -522,7 +523,7 @@ template<typename T> struct smart_copy_helper<T,false> {
 // you can overwrite Eigen's default behavior regarding alloca by defining EIGEN_ALLOCA
 // to the appropriate stack allocation function
 #ifndef EIGEN_ALLOCA
-  #if (defined __linux__)
+  #if (defined __linux__) || (defined __APPLE__) || (defined alloca)
     #define EIGEN_ALLOCA alloca
   #elif defined(_MSC_VER)
     #define EIGEN_ALLOCA _alloca
@@ -612,7 +613,6 @@ template<typename T> class aligned_stack_memory_handler
       void* operator new(size_t size, const std::nothrow_t&) throw() { \
         try { return Eigen::internal::conditional_aligned_malloc<NeedsToAlign>(size); } \
         catch (...) { return 0; } \
-        return 0; \
       }
   #else
     #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
@@ -777,9 +777,9 @@ namespace internal {
 
 #ifdef EIGEN_CPUID
 
-inline bool cpuid_is_vendor(int abcd[4], const char* vendor)
+inline bool cpuid_is_vendor(int abcd[4], const int vendor[3])
 {
-  return abcd[1]==(reinterpret_cast<const int*>(vendor))[0] && abcd[3]==(reinterpret_cast<const int*>(vendor))[1] && abcd[2]==(reinterpret_cast<const int*>(vendor))[2];
+  return abcd[1]==vendor[0] && abcd[3]==vendor[1] && abcd[2]==vendor[2];
 }
 
 inline void queryCacheSizes_intel_direct(int& l1, int& l2, int& l3)
@@ -921,13 +921,16 @@ inline void queryCacheSizes(int& l1, int& l2, int& l3)
 {
   #ifdef EIGEN_CPUID
   int abcd[4];
+  const int GenuineIntel[] = {0x756e6547, 0x49656e69, 0x6c65746e};
+  const int AuthenticAMD[] = {0x68747541, 0x69746e65, 0x444d4163};
+  const int AMDisbetter_[] = {0x69444d41, 0x74656273, 0x21726574}; // "AMDisbetter!"
 
   // identify the CPU vendor
   EIGEN_CPUID(abcd,0x0,0);
   int max_std_funcs = abcd[1];
-  if(cpuid_is_vendor(abcd,"GenuineIntel"))
+  if(cpuid_is_vendor(abcd,GenuineIntel))
     queryCacheSizes_intel(l1,l2,l3,max_std_funcs);
-  else if(cpuid_is_vendor(abcd,"AuthenticAMD") || cpuid_is_vendor(abcd,"AMDisbetter!"))
+  else if(cpuid_is_vendor(abcd,AuthenticAMD) || cpuid_is_vendor(abcd,AMDisbetter_))
     queryCacheSizes_amd(l1,l2,l3);
   else
     // by default let's use Intel's API

@@ -14,7 +14,7 @@
 /** 
   * \defgroup SparseCore_Module SparseCore module
   *
-  * This module provides a sparse matrix representation, and basic associatd matrix manipulations
+  * This module provides a sparse matrix representation, and basic associated matrix manipulations
   * and operations.
   *
   * See the \ref TutorialSparse "Sparse tutorial"

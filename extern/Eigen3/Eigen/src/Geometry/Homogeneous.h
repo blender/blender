@@ -79,7 +79,7 @@ template<typename MatrixType,int _Direction> class Homogeneous
     {
       if(  (int(Direction)==Vertical   && row==m_matrix.rows())
         || (int(Direction)==Horizontal && col==m_matrix.cols()))
-        return 1;
+        return Scalar(1);
       return m_matrix.coeff(row, col);
     }
 

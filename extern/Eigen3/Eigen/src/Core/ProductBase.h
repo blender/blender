@@ -85,7 +85,14 @@ class ProductBase : public MatrixBase<Derived>
 
   public:
 
+#ifndef EIGEN_NO_MALLOC
+    typedef typename Base::PlainObject BasePlainObject;
+    typedef Matrix<Scalar,RowsAtCompileTime==1?1:Dynamic,ColsAtCompileTime==1?1:Dynamic,BasePlainObject::Options> DynPlainObject;
+    typedef typename internal::conditional<(BasePlainObject::SizeAtCompileTime==Dynamic) || (BasePlainObject::SizeAtCompileTime*int(sizeof(Scalar)) < int(EIGEN_STACK_ALLOCATION_LIMIT)),
+                                           BasePlainObject, DynPlainObject>::type PlainObject;
+#else
     typedef typename Base::PlainObject PlainObject;
+#endif
 
     ProductBase(const Lhs& a_lhs, const Rhs& a_rhs)
       : m_lhs(a_lhs), m_rhs(a_rhs)
@@ -180,7 +187,12 @@ namespace internal {
 template<typename Lhs, typename Rhs, int Mode, int N, typename PlainObject>
 struct nested<GeneralProduct<Lhs,Rhs,Mode>, N, PlainObject>
 {
-  typedef PlainObject const& type;
+  typedef typename GeneralProduct<Lhs,Rhs,Mode>::PlainObject const& type;
+};
+template<typename Lhs, typename Rhs, int Mode, int N, typename PlainObject>
+struct nested<const GeneralProduct<Lhs,Rhs,Mode>, N, PlainObject>
+{
+  typedef typename GeneralProduct<Lhs,Rhs,Mode>::PlainObject const& type;
 };
 }
 

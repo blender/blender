@@ -51,8 +51,8 @@ class CompressedStorage
     CompressedStorage& operator=(const CompressedStorage& other)
     {
       resize(other.size());
-      memcpy(m_values, other.m_values, m_size * sizeof(Scalar));
-      memcpy(m_indices, other.m_indices, m_size * sizeof(Index));
+      internal::smart_copy(other.m_values,  other.m_values  + m_size, m_values);
+      internal::smart_copy(other.m_indices, other.m_indices + m_size, m_indices);
       return *this;
     }
 
@@ -83,10 +83,10 @@ class CompressedStorage
         reallocate(m_size);
     }
 
-    void resize(size_t size, float reserveSizeFactor = 0)
+    void resize(size_t size, double reserveSizeFactor = 0)
     {
       if (m_allocatedSize<size)
-        reallocate(size + size_t(reserveSizeFactor*size));
+        reallocate(size + size_t(reserveSizeFactor*double(size)));
       m_size = size;
     }
 

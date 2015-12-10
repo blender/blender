@@ -50,18 +50,3 @@ cwiseSqrt() const { return derived(); }
 inline const CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived>
 cwiseInverse() const { return derived(); }
 
-/** \returns an expression of the coefficient-wise == operator of \c *this and a scalar \a s
-  *
-  * \warning this performs an exact comparison, which is generally a bad idea with floating-point types.
-  * In order to check for equality between two vectors or matrices with floating-point coefficients, it is
-  * generally a far better idea to use a fuzzy comparison as provided by isApprox() and
-  * isMuchSmallerThan().
-  *
-  * \sa cwiseEqual(const MatrixBase<OtherDerived> &) const
-  */
-inline const CwiseUnaryOp<std::binder1st<std::equal_to<Scalar> >, const Derived>
-cwiseEqual(const Scalar& s) const
-{
-  return CwiseUnaryOp<std::binder1st<std::equal_to<Scalar> >,const Derived>
-          (derived(), std::bind1st(std::equal_to<Scalar>(), s));
-}

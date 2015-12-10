@@ -112,9 +112,9 @@ struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
   * This class allows to solve for A.x = b sparse linear problems using a conjugate gradient algorithm.
   * The sparse matrix A must be selfadjoint. The vectors x and b can be either dense or sparse.
   *
-  * \tparam _MatrixType the type of the sparse matrix A, can be a dense or a sparse matrix.
-  * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
-  *               or Upper. Default is Lower.
+  * \tparam _MatrixType the type of the matrix A, can be a dense or a sparse matrix.
+  * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower,
+  *               Upper, or Lower|Upper in which the full matrix entries will be considered. Default is Lower.
   * \tparam _Preconditioner the type of the preconditioner. Default is DiagonalPreconditioner
   *
   * The maximal number of iterations and tolerance value can be controlled via the setMaxIterations()
@@ -137,20 +137,7 @@ struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
   * \endcode
   * 
   * By default the iterations start with x=0 as an initial guess of the solution.
-  * One can control the start using the solveWithGuess() method. Here is a step by
-  * step execution example starting with a random guess and printing the evolution
-  * of the estimated error:
-  * * \code
-  * x = VectorXd::Random(n);
-  * cg.setMaxIterations(1);
-  * int i = 0;
-  * do {
-  *   x = cg.solveWithGuess(b,x);
-  *   std::cout << i << " : " << cg.error() << std::endl;
-  *   ++i;
-  * } while (cg.info()!=Success && i<100);
-  * \endcode
-  * Note that such a step by step excution is slightly slower.
+  * One can control the start using the solveWithGuess() method.
   * 
   * \sa class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
   */
@@ -189,7 +176,8 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  ConjugateGradient(const MatrixType& A) : Base(A) {}
+  template<typename MatrixDerived>
+  explicit ConjugateGradient(const EigenBase<MatrixDerived>& A) : Base(A.derived()) {}
 
   ~ConjugateGradient() {}
   
@@ -213,6 +201,10 @@ public:
   template<typename Rhs,typename Dest>
   void _solveWithGuess(const Rhs& b, Dest& x) const
   {
+    typedef typename internal::conditional<UpLo==(Lower|Upper),
+                                           const MatrixType&,
+                                           SparseSelfAdjointView<const MatrixType, UpLo>
+                                          >::type MatrixWrapperType;
     m_iterations = Base::maxIterations();
     m_error = Base::m_tolerance;
 
@@ -222,8 +214,7 @@ public:
       m_error = Base::m_tolerance;
 
       typename Dest::ColXpr xj(x,j);
-      internal::conjugate_gradient(mp_matrix->template selfadjointView<UpLo>(), b.col(j), xj,
-                                   Base::m_preconditioner, m_iterations, m_error);
+      internal::conjugate_gradient(MatrixWrapperType(*mp_matrix), b.col(j), xj, Base::m_preconditioner, m_iterations, m_error);
     }
 
     m_isInitialized = true;
@@ -234,7 +225,7 @@ public:
   template<typename Rhs,typename Dest>
   void _solve(const Rhs& b, Dest& x) const
   {
-    x.setOnes();
+    x.setZero();
     _solveWithGuess(b,x);
   }
 

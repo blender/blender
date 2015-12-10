@@ -48,7 +48,7 @@ void apply_block_householder_on_the_left(MatrixType& mat, const VectorsType& vec
   typedef typename MatrixType::Index Index;
   enum { TFactorSize = MatrixType::ColsAtCompileTime };
   Index nbVecs = vectors.cols();
-  Matrix<typename MatrixType::Scalar, TFactorSize, TFactorSize> T(nbVecs,nbVecs);
+  Matrix<typename MatrixType::Scalar, TFactorSize, TFactorSize, ColMajor> T(nbVecs,nbVecs);
   make_block_householder_triangular_factor(T, vectors, hCoeffs);
 
   const TriangularView<const VectorsType, UnitLower>& V(vectors);

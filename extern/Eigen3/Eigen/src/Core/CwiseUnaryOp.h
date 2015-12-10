@@ -47,7 +47,7 @@ struct traits<CwiseUnaryOp<UnaryOp, XprType> >
     Flags = _XprTypeNested::Flags & (
       HereditaryBits | LinearAccessBit | AlignedBit
       | (functor_traits<UnaryOp>::PacketAccess ? PacketAccessBit : 0)),
-    CoeffReadCost = _XprTypeNested::CoeffReadCost + functor_traits<UnaryOp>::Cost
+    CoeffReadCost = EIGEN_ADD_COST(_XprTypeNested::CoeffReadCost, functor_traits<UnaryOp>::Cost)
   };
 };
 }

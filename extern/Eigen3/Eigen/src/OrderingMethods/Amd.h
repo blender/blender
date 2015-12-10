@@ -137,22 +137,27 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
     degree[i] = len[i];                 // degree of node i
   }
   mark = internal::cs_wclear<Index>(0, 0, w, n);         /* clear w */
-  elen[n] = -2;                         /* n is a dead element */
-  Cp[n] = -1;                           /* n is a root of assembly tree */
-  w[n] = 0;                             /* n is a dead element */
   
   /* --- Initialize degree lists ------------------------------------------ */
   for(i = 0; i < n; i++)
   {
+    bool has_diag = false;
+    for(p = Cp[i]; p<Cp[i+1]; ++p)
+      if(Ci[p]==i)
+      {
+        has_diag = true;
+        break;
+      }
+   
     d = degree[i];
-    if(d == 0)                         /* node i is empty */
+    if(d == 1 && has_diag)           /* node i is empty */
     {
       elen[i] = -2;                 /* element i is dead */
       nel++;
       Cp[i] = -1;                   /* i is a root of assembly tree */
       w[i] = 0;
     }
-    else if(d > dense)                 /* node i is dense */
+    else if(d > dense || !has_diag)  /* node i is dense or has no structural diagonal element */
     {
       nv[i] = 0;                    /* absorb i into element n */
       elen[i] = -1;                 /* node i is dead */
@@ -167,6 +172,10 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
       head[d] = i;
     }
   }
+  
+  elen[n] = -2;                         /* n is a dead element */
+  Cp[n] = -1;                           /* n is a root of assembly tree */
+  w[n] = 0;                             /* n is a dead element */
   
   while (nel < n)                         /* while (selecting pivots) do */
   {

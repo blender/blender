@@ -11,7 +11,7 @@
 #ifndef EIGEN_STDVECTOR_H
 #define EIGEN_STDVECTOR_H
 
-#include "Eigen/src/StlSupport/details.h"
+#include "details.h"
 
 /**
  * This section contains a convenience MACRO which allows an easy specialization of

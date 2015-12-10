@@ -232,7 +232,7 @@ EIGEN_DONT_INLINE void outer_product_selector_run(const ProductType& prod, Dest&
   // FIXME not very good if rhs is real and lhs complex while alpha is real too
   const Index cols = dest.cols();
   for (Index j=0; j<cols; ++j)
-    func(dest.col(j), prod.rhs().coeff(j) * prod.lhs());
+    func(dest.col(j), prod.rhs().coeff(0,j) * prod.lhs());
 }
 
 // Row major
@@ -243,7 +243,7 @@ EIGEN_DONT_INLINE void outer_product_selector_run(const ProductType& prod, Dest&
   // FIXME not very good if lhs is real and rhs complex while alpha is real too
   const Index rows = dest.rows();
   for (Index i=0; i<rows; ++i)
-    func(dest.row(i), prod.lhs().coeff(i) * prod.rhs());
+    func(dest.row(i), prod.lhs().coeff(i,0) * prod.rhs());
 }
 
 template<typename Lhs, typename Rhs>
@@ -257,7 +257,7 @@ template<typename Lhs, typename Rhs>
 class GeneralProduct<Lhs, Rhs, OuterProduct>
   : public ProductBase<GeneralProduct<Lhs,Rhs,OuterProduct>, Lhs, Rhs>
 {
-    template<typename T> struct IsRowMajor : internal::conditional<(int(T::Flags)&RowMajorBit), internal::true_type, internal::false_type>::type {};
+    template<typename T> struct is_row_major : internal::conditional<(int(T::Flags)&RowMajorBit), internal::true_type, internal::false_type>::type {};
     
   public:
     EIGEN_PRODUCT_PUBLIC_INTERFACE(GeneralProduct)
@@ -281,22 +281,22 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
     
     template<typename Dest>
     inline void evalTo(Dest& dest) const {
-      internal::outer_product_selector_run(*this, dest, set(), IsRowMajor<Dest>());
+      internal::outer_product_selector_run(*this, dest, set(), is_row_major<Dest>());
     }
     
     template<typename Dest>
     inline void addTo(Dest& dest) const {
-      internal::outer_product_selector_run(*this, dest, add(), IsRowMajor<Dest>());
+      internal::outer_product_selector_run(*this, dest, add(), is_row_major<Dest>());
     }
 
     template<typename Dest>
     inline void subTo(Dest& dest) const {
-      internal::outer_product_selector_run(*this, dest, sub(), IsRowMajor<Dest>());
+      internal::outer_product_selector_run(*this, dest, sub(), is_row_major<Dest>());
     }
 
     template<typename Dest> void scaleAndAddTo(Dest& dest, const Scalar& alpha) const
     {
-      internal::outer_product_selector_run(*this, dest, adds(alpha), IsRowMajor<Dest>());
+      internal::outer_product_selector_run(*this, dest, adds(alpha), is_row_major<Dest>());
     }
 };
 

@@ -56,7 +56,7 @@ EIGEN_DONT_INLINE void LU_kernel_bmod<SegSizeAtCompileTime>::run(const int segsi
   // Dense triangular solve -- start effective triangle
   luptr += lda * no_zeros + no_zeros; 
   // Form Eigen matrix and vector 
-  Map<Matrix<Scalar,SegSizeAtCompileTime,SegSizeAtCompileTime>, 0, OuterStride<> > A( &(lusup.data()[luptr]), segsize, segsize, OuterStride<>(lda) );
+  Map<Matrix<Scalar,SegSizeAtCompileTime,SegSizeAtCompileTime, ColMajor>, 0, OuterStride<> > A( &(lusup.data()[luptr]), segsize, segsize, OuterStride<>(lda) );
   Map<Matrix<Scalar,SegSizeAtCompileTime,1> > u(tempv.data(), segsize);
   
   u = A.template triangularView<UnitLower>().solve(u); 
@@ -65,7 +65,7 @@ EIGEN_DONT_INLINE void LU_kernel_bmod<SegSizeAtCompileTime>::run(const int segsi
   luptr += segsize;
   const Index PacketSize = internal::packet_traits<Scalar>::size;
   Index ldl = internal::first_multiple(nrow, PacketSize);
-  Map<Matrix<Scalar,Dynamic,SegSizeAtCompileTime>, 0, OuterStride<> > B( &(lusup.data()[luptr]), nrow, segsize, OuterStride<>(lda) );
+  Map<Matrix<Scalar,Dynamic,SegSizeAtCompileTime, ColMajor>, 0, OuterStride<> > B( &(lusup.data()[luptr]), nrow, segsize, OuterStride<>(lda) );
   Index aligned_offset = internal::first_aligned(tempv.data()+segsize, PacketSize);
   Index aligned_with_B_offset = (PacketSize-internal::first_aligned(B.data(), PacketSize))%PacketSize;
   Map<Matrix<Scalar,Dynamic,1>, 0, OuterStride<> > l(tempv.data()+segsize+aligned_offset+aligned_with_B_offset, nrow, OuterStride<>(ldl) );

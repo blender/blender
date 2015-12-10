@@ -39,7 +39,6 @@ bool bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
   int maxIters = iters;
 
   int n = mat.cols();
-  x = precond.solve(x);
   VectorType r  = rhs - mat * x;
   VectorType r0 = r;
   
@@ -61,6 +60,7 @@ bool bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
   VectorType s(n), t(n);
 
   RealScalar tol2 = tol*tol;
+  RealScalar eps2 = NumTraits<Scalar>::epsilon()*NumTraits<Scalar>::epsilon();
   int i = 0;
   int restarts = 0;
 
@@ -69,7 +69,7 @@ bool bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
     Scalar rho_old = rho;
 
     rho = r0.dot(r);
-    if (internal::isMuchSmallerThan(rho,r0_sqnorm))
+    if (abs(rho) < eps2*r0_sqnorm)
     {
       // The new residual vector became too orthogonal to the arbitrarily choosen direction r0
       // Let's restart with a new r0:
@@ -142,7 +142,7 @@ struct traits<BiCGSTAB<_MatrixType,_Preconditioner> >
   * SparseMatrix<double> A(n,n);
   * // fill A and b
   * BiCGSTAB<SparseMatrix<double> > solver;
-  * solver(A);
+  * solver.compute(A);
   * x = solver.solve(b);
   * std::cout << "#iterations:     " << solver.iterations() << std::endl;
   * std::cout << "estimated error: " << solver.error()      << std::endl;
@@ -151,20 +151,7 @@ struct traits<BiCGSTAB<_MatrixType,_Preconditioner> >
   * \endcode
   * 
   * By default the iterations start with x=0 as an initial guess of the solution.
-  * One can control the start using the solveWithGuess() method. Here is a step by
-  * step execution example starting with a random guess and printing the evolution
-  * of the estimated error:
-  * * \code
-  * x = VectorXd::Random(n);
-  * solver.setMaxIterations(1);
-  * int i = 0;
-  * do {
-  *   x = solver.solveWithGuess(b,x);
-  *   std::cout << i << " : " << solver.error() << std::endl;
-  *   ++i;
-  * } while (solver.info()!=Success && i<100);
-  * \endcode
-  * Note that such a step by step excution is slightly slower.
+  * One can control the start using the solveWithGuess() method.
   * 
   * \sa class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
   */
@@ -199,7 +186,8 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  BiCGSTAB(const MatrixType& A) : Base(A) {}
+  template<typename MatrixDerived>
+  explicit BiCGSTAB(const EigenBase<MatrixDerived>& A) : Base(A.derived()) {}
 
   ~BiCGSTAB() {}
   

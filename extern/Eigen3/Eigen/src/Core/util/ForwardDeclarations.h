@@ -235,6 +235,9 @@ template<typename Scalar> class Rotation2D;
 template<typename Scalar> class AngleAxis;
 template<typename Scalar,int Dim> class Translation;
 
+// Sparse module:
+template<typename Derived> class SparseMatrixBase;
+
 #ifdef EIGEN2_SUPPORT
 template<typename Derived, int _Dim> class eigen2_RotationBase;
 template<typename Lhs, typename Rhs> class eigen2_Cross;

@@ -23,7 +23,14 @@ namespace Eigen {
   * This class can be extended with the help of the plugin mechanism described on the page
   * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_SPARSEMATRIXBASE_PLUGIN.
   */
-template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
+template<typename Derived> class SparseMatrixBase
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+  : public internal::special_scalar_op_base<Derived,typename internal::traits<Derived>::Scalar,
+                                            typename NumTraits<typename internal::traits<Derived>::Scalar>::Real,
+                                            EigenBase<Derived> >
+#else
+  : public EigenBase<Derived>
+#endif // not EIGEN_PARSED_BY_DOXYGEN
 {
   public:
 
@@ -36,7 +43,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
                      >::type PacketReturnType;
 
     typedef SparseMatrixBase StorageBaseType;
-    typedef EigenBase<Derived> Base;
     
     template<typename OtherDerived>
     Derived& operator=(const EigenBase<OtherDerived> &other)
@@ -132,6 +138,9 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     inline Derived& derived() { return *static_cast<Derived*>(this); }
     inline Derived& const_cast_derived() const
     { return *static_cast<Derived*>(const_cast<SparseMatrixBase*>(this)); }
+
+    typedef internal::special_scalar_op_base<Derived, Scalar, RealScalar, EigenBase<Derived> > Base;
+    using Base::operator*;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::SparseMatrixBase
@@ -317,20 +326,18 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     Derived& operator*=(const Scalar& other);
     Derived& operator/=(const Scalar& other);
 
-    #define EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE \
-      CwiseBinaryOp< \
-        internal::scalar_product_op< \
-          typename internal::scalar_product_traits< \
-            typename internal::traits<Derived>::Scalar, \
-            typename internal::traits<OtherDerived>::Scalar \
-          >::ReturnType \
-        >, \
-        const Derived, \
-        const OtherDerived \
-      >
+    template<typename OtherDerived> struct CwiseProductDenseReturnType {
+      typedef CwiseBinaryOp<internal::scalar_product_op<typename internal::scalar_product_traits<
+                                                          typename internal::traits<Derived>::Scalar,
+                                                          typename internal::traits<OtherDerived>::Scalar
+                                                        >::ReturnType>,
+                            const Derived,
+                            const OtherDerived
+                          > Type;
+    };
 
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE
+    EIGEN_STRONG_INLINE const typename CwiseProductDenseReturnType<OtherDerived>::Type
     cwiseProduct(const MatrixBase<OtherDerived> &other) const;
 
     // sparse * sparse
@@ -358,7 +365,8 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     /** sparse * dense (returns a dense object unless it is an outer product) */
     template<typename OtherDerived>
     const typename SparseDenseProductReturnType<Derived,OtherDerived>::Type
-    operator*(const MatrixBase<OtherDerived> &other) const;
+    operator*(const MatrixBase<OtherDerived> &other) const
+    { return typename SparseDenseProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived()); }
     
      /** \returns an expression of P H P^-1 where H is the matrix represented by \c *this */
     SparseSymmetricPermutationProduct<Derived,Upper|Lower> twistedBy(const PermutationMatrix<Dynamic,Dynamic,Index>& perm) const
@@ -403,8 +411,10 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     const ConstInnerVectorReturnType innerVector(Index outer) const;
 
     // set of inner-vectors
-    Block<Derived,Dynamic,Dynamic,true> innerVectors(Index outerStart, Index outerSize);
-    const Block<const Derived,Dynamic,Dynamic,true> innerVectors(Index outerStart, Index outerSize) const;
+    typedef Block<Derived,Dynamic,Dynamic,true> InnerVectorsReturnType;
+    typedef Block<const Derived,Dynamic,Dynamic,true> ConstInnerVectorsReturnType;
+    InnerVectorsReturnType innerVectors(Index outerStart, Index outerSize);
+    const ConstInnerVectorsReturnType innerVectors(Index outerStart, Index outerSize) const;
 
     /** \internal use operator= */
     template<typename DenseDerived>

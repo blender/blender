@@ -158,6 +158,7 @@ class SparseVector
       
       Index inner = IsColVector ? row : col;
       Index outer = IsColVector ? col : row;
+      EIGEN_ONLY_USED_FOR_DEBUG(outer);
       eigen_assert(outer==0);
       return insert(inner);
     }

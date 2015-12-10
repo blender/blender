@@ -29,6 +29,11 @@ struct traits<ArrayWrapper<ExpressionType> >
   : public traits<typename remove_all<typename ExpressionType::Nested>::type >
 {
   typedef ArrayXpr XprKind;
+  // Let's remove NestByRefBit
+  enum {
+    Flags0 = traits<typename remove_all<typename ExpressionType::Nested>::type >::Flags,
+    Flags = Flags0 & ~NestByRefBit
+  };
 };
 }
 
@@ -149,6 +154,11 @@ struct traits<MatrixWrapper<ExpressionType> >
  : public traits<typename remove_all<typename ExpressionType::Nested>::type >
 {
   typedef MatrixXpr XprKind;
+  // Let's remove NestByRefBit
+  enum {
+    Flags0 = traits<typename remove_all<typename ExpressionType::Nested>::type >::Flags,
+    Flags = Flags0 & ~NestByRefBit
+  };
 };
 }
 
