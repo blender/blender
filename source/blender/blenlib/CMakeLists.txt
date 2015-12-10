@@ -29,13 +29,13 @@ set(INC
 	../makesdna
 	../../../intern/guardedalloc
 	../../../intern/atomic
+	../../../intern/eigen
 	../../../extern/wcwidth
 )
 
 set(INC_SYS
 	${ZLIB_INCLUDE_DIRS}
 	${FREETYPE_INCLUDE_DIRS}
-	../../../extern/Eigen3
 )
 
 set(SRC

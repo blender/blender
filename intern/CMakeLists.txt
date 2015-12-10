@@ -32,6 +32,7 @@ add_subdirectory(opencolorio)
 add_subdirectory(mikktspace)
 add_subdirectory(raskter)
 add_subdirectory(glew-mx)
+add_subdirectory(eigen)
 
 if(WITH_AUDASPACE)
 	add_subdirectory(audaspace)

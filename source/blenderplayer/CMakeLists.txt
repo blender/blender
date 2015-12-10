@@ -171,12 +171,12 @@ endif()
 		bf_intern_opencolorio
 		bf_intern_opennl
 		bf_intern_glew_mx
+		bf_intern_eigen
 		extern_rangetree
 		extern_wcwidth
 		extern_libmv
 		extern_glog
 		extern_sdlew
-		extern_eigen3
 	)
 
 	if(WITH_MOD_CLOTH_ELTOPO)

@@ -24,10 +24,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __EIGEN3_C_API_H__
-#define __EIGEN3_C_API_H__
+#ifndef __EIGEN_C_API_H__
+#define __EIGEN_C_API_H__
 
 #include "intern/eigenvalues.h"
 #include "intern/svd.h"
 
-#endif  /* __EIGEN3_C_API_H__ */
+#endif  /* __EIGEN_C_API_H__ */

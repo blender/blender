@@ -10,9 +10,6 @@ IGNORE = (
     "/ik_glut_test/",
 
     # specific source files
-    "extern/Eigen2/Eigen/src/Cholesky/CholeskyInstantiations.cpp",
-    "extern/Eigen2/Eigen/src/Core/CoreInstantiations.cpp",
-    "extern/Eigen2/Eigen/src/QR/QrInstantiations.cpp",
     "extern/bullet2/src/BulletCollision/CollisionDispatch/btBox2dBox2dCollisionAlgorithm.cpp",
     "extern/bullet2/src/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.cpp",
     "extern/bullet2/src/BulletCollision/CollisionDispatch/btInternalEdgeUtility.cpp",

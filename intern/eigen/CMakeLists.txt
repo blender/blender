@@ -28,10 +28,11 @@ set(INC
 )
 
 set(INC_SYS
+	${EIGEN3_INCLUDE_DIRS}
 )
 
 set(SRC
-	eigen3_capi.h
+	eigen_capi.h
 
 	intern/eigenvalues.cc
 	intern/svd.cc
@@ -40,4 +41,4 @@ set(SRC
 	intern/svd.h
 )
 
-blender_add_lib(extern_eigen3 "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_intern_eigen "${SRC}" "${INC}" "${INC_SYS}")

@@ -34,7 +34,7 @@
 
 #include "BLI_strict_flags.h"
 
-#include "eigen3_capi.h"
+#include "eigen_capi.h"
 
 /********************************** Eigen Solvers *********************************/
 
