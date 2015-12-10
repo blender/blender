@@ -30,13 +30,9 @@
  *  \ingroup iksolver
  */
 
+#pragma once
 
-#ifndef __IK_QSEGMENT_H__
-#define __IK_QSEGMENT_H__
-
-#include "MT_Vector3.h"
-#include "MT_Transform.h"
-#include "MT_Matrix4x4.h"
+#include "IK_Math.h"
 #include "IK_QJacobian.h"
 
 #include <vector>
@@ -50,8 +46,7 @@
  * Here we define the local coordinates of a joint as
  * local_transform = 
  * translate(tr1) * rotation(A) * rotation(q) * translate(0,length,0)
- * We use the standard moto column ordered matrices. You can read
- * this as:
+ * You can read this as:
  * - first translate by (0,length,0)
  * - multiply by the rotation matrix derived from the current
  * angle parameterization q.
@@ -73,10 +68,10 @@ public:
 	// length: length of this segment
 
 	void SetTransform(
-		const MT_Vector3& start,
-		const MT_Matrix3x3& rest_basis,
-		const MT_Matrix3x3& basis,
-		const MT_Scalar length
+		const Vector3d& start,
+		const Matrix3d& rest_basis,
+		const Matrix3d& basis,
+		const double length
 	);
 
 	// tree structure access
@@ -109,22 +104,22 @@ public:
 	{ m_DoF_id = dof_id; }
 
 	// the max distance of the end of this bone from the local origin.
-	const MT_Scalar MaxExtension() const
+	const double MaxExtension() const
 	{ return m_max_extension; }
 
 	// the change in rotation and translation w.r.t. the rest pose
-	MT_Matrix3x3 BasisChange() const;
-	MT_Vector3 TranslationChange() const;
+	Matrix3d BasisChange() const;
+	Vector3d TranslationChange() const;
 
 	// the start and end of the segment
-	const MT_Point3 &GlobalStart() const
+	const Vector3d GlobalStart() const
 	{ return m_global_start; }
 
-	const MT_Point3 &GlobalEnd() const
-	{ return m_global_transform.getOrigin(); }
+	const Vector3d GlobalEnd() const
+	{ return m_global_transform.translation(); }
 
 	// the global transformation at the end of the segment
-	const MT_Transform &GlobalTransform() const
+	const Affine3d &GlobalTransform() const
 	{ return m_global_transform; }
 
 	// is a translational segment?
@@ -139,38 +134,38 @@ public:
 	{ m_locked[0] = m_locked[1] = m_locked[2] = false; }
 
 	// per dof joint weighting
-	MT_Scalar Weight(int dof) const
+	double Weight(int dof) const
 	{ return m_weight[dof]; }
 
-	void ScaleWeight(int dof, MT_Scalar scale)
+	void ScaleWeight(int dof, double scale)
 	{ m_weight[dof] *= scale; }
 
 	// recursively update the global coordinates of this segment, 'global'
 	// is the global transformation from the parent segment
-	void UpdateTransform(const MT_Transform &global);
+	void UpdateTransform(const Affine3d &global);
 
 	// get axis from rotation matrix for derivative computation
-	virtual MT_Vector3 Axis(int dof) const=0;
+	virtual Vector3d Axis(int dof) const=0;
 
 	// update the angles using the dTheta's computed using the jacobian matrix
-	virtual bool UpdateAngle(const IK_QJacobian&, MT_Vector3&, bool*)=0;
-	virtual void Lock(int, IK_QJacobian&, MT_Vector3&) {}
+	virtual bool UpdateAngle(const IK_QJacobian&, Vector3d&, bool*)=0;
+	virtual void Lock(int, IK_QJacobian&, Vector3d&) {}
 	virtual void UpdateAngleApply()=0;
 
 	// set joint limits
-	virtual void SetLimit(int, MT_Scalar, MT_Scalar) {}
+	virtual void SetLimit(int, double, double) {}
 
 	// set joint weights (per axis)
-	virtual void SetWeight(int, MT_Scalar) {}
+	virtual void SetWeight(int, double) {}
 
-	virtual void SetBasis(const MT_Matrix3x3& basis) { m_basis = basis; }
+	virtual void SetBasis(const Matrix3d& basis) { m_basis = basis; }
 
 	// functions needed for pole vector constraint
-	void PrependBasis(const MT_Matrix3x3& mat);
+	void PrependBasis(const Matrix3d& mat);
 	void Reset();
 
 	// scale
-	virtual void Scale(MT_Scalar scale);
+	virtual void Scale(double scale);
 
 protected:
 
@@ -188,28 +183,28 @@ protected:
 
 	// full transform = 
 	// start * rest_basis * basis * translation
-	MT_Vector3 m_start;
-	MT_Matrix3x3 m_rest_basis;
-	MT_Matrix3x3 m_basis;
-	MT_Vector3 m_translation;
+	Vector3d m_start;
+	Matrix3d m_rest_basis;
+	Matrix3d m_basis;
+	Vector3d m_translation;
 
 	// original basis
-	MT_Matrix3x3 m_orig_basis;
-	MT_Vector3 m_orig_translation;
+	Matrix3d m_orig_basis;
+	Vector3d m_orig_translation;
 
 	// maximum extension of this segment
-	MT_Scalar m_max_extension;
+	double m_max_extension;
 
 	// accumulated transformations starting from root
-	MT_Point3 m_global_start;
-	MT_Transform m_global_transform;
+	Vector3d m_global_start;
+	Affine3d m_global_transform;
 
 	// number degrees of freedom, (first) id of this segments DOF's
 	int m_num_DoF, m_DoF_id;
 
 	bool m_locked[3];
 	bool m_translational;
-	MT_Scalar m_weight[3];
+	double m_weight[3];
 };
 
 class IK_QSphericalSegment : public IK_QSegment
@@ -217,23 +212,23 @@ class IK_QSphericalSegment : public IK_QSegment
 public:
 	IK_QSphericalSegment();
 
-	MT_Vector3 Axis(int dof) const;
+	Vector3d Axis(int dof) const;
 
-	bool UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& delta, bool *clamp);
-	void Lock(int dof, IK_QJacobian& jacobian, MT_Vector3& delta);
+	bool UpdateAngle(const IK_QJacobian &jacobian, Vector3d& delta, bool *clamp);
+	void Lock(int dof, IK_QJacobian& jacobian, Vector3d& delta);
 	void UpdateAngleApply();
 
-	bool ComputeClampRotation(MT_Vector3& clamp);
+	bool ComputeClampRotation(Vector3d& clamp);
 
-	void SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax);
-	void SetWeight(int axis, MT_Scalar weight);
+	void SetLimit(int axis, double lmin, double lmax);
+	void SetWeight(int axis, double weight);
 
 private:
-	MT_Matrix3x3 m_new_basis;
+	Matrix3d m_new_basis;
 	bool m_limit_x, m_limit_y, m_limit_z;
-	MT_Scalar m_min[2], m_max[2];
-	MT_Scalar m_min_y, m_max_y, m_max_x, m_max_z, m_offset_x, m_offset_z;
-	MT_Scalar m_locked_ax, m_locked_ay, m_locked_az;
+	double m_min[2], m_max[2];
+	double m_min_y, m_max_y, m_max_x, m_max_z, m_offset_x, m_offset_z;
+	double m_locked_ax, m_locked_ay, m_locked_az;
 };
 
 class IK_QNullSegment : public IK_QSegment
@@ -241,11 +236,11 @@ class IK_QNullSegment : public IK_QSegment
 public:
 	IK_QNullSegment();
 
-	bool UpdateAngle(const IK_QJacobian&, MT_Vector3&, bool*) { return false; }
+	bool UpdateAngle(const IK_QJacobian&, Vector3d&, bool*) { return false; }
 	void UpdateAngleApply() {}
 
-	MT_Vector3 Axis(int) const { return MT_Vector3(0, 0, 0); }
-	void SetBasis(const MT_Matrix3x3&) { m_basis.setIdentity(); }
+	Vector3d Axis(int) const { return Vector3d(0, 0, 0); }
+	void SetBasis(const Matrix3d&) { m_basis.setIdentity(); }
 };
 
 class IK_QRevoluteSegment : public IK_QSegment
@@ -254,21 +249,21 @@ public:
 	// axis: the axis of the DoF, in range 0..2
 	IK_QRevoluteSegment(int axis);
 
-	MT_Vector3 Axis(int dof) const;
+	Vector3d Axis(int dof) const;
 
-	bool UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& delta, bool *clamp);
-	void Lock(int dof, IK_QJacobian& jacobian, MT_Vector3& delta);
+	bool UpdateAngle(const IK_QJacobian &jacobian, Vector3d& delta, bool *clamp);
+	void Lock(int dof, IK_QJacobian& jacobian, Vector3d& delta);
 	void UpdateAngleApply();
 
-	void SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax);
-	void SetWeight(int axis, MT_Scalar weight);
-	void SetBasis(const MT_Matrix3x3& basis);
+	void SetLimit(int axis, double lmin, double lmax);
+	void SetWeight(int axis, double weight);
+	void SetBasis(const Matrix3d& basis);
 
 private:
 	int m_axis;
-	MT_Scalar m_angle, m_new_angle;
+	double m_angle, m_new_angle;
 	bool m_limit;
-	MT_Scalar m_min, m_max;
+	double m_min, m_max;
 };
 
 class IK_QSwingSegment : public IK_QSegment
@@ -277,21 +272,21 @@ public:
 	// XZ DOF, uses one direct rotation
 	IK_QSwingSegment();
 
-	MT_Vector3 Axis(int dof) const;
+	Vector3d Axis(int dof) const;
 
-	bool UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& delta, bool *clamp);
-	void Lock(int dof, IK_QJacobian& jacobian, MT_Vector3& delta);
+	bool UpdateAngle(const IK_QJacobian &jacobian, Vector3d& delta, bool *clamp);
+	void Lock(int dof, IK_QJacobian& jacobian, Vector3d& delta);
 	void UpdateAngleApply();
 
-	void SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax);
-	void SetWeight(int axis, MT_Scalar weight);
-	void SetBasis(const MT_Matrix3x3& basis);
+	void SetLimit(int axis, double lmin, double lmax);
+	void SetWeight(int axis, double weight);
+	void SetBasis(const Matrix3d& basis);
 
 private:
-	MT_Matrix3x3 m_new_basis;
+	Matrix3d m_new_basis;
 	bool m_limit_x, m_limit_z;
-	MT_Scalar m_min[2], m_max[2];
-	MT_Scalar m_max_x, m_max_z, m_offset_x, m_offset_z;
+	double m_min[2], m_max[2];
+	double m_max_x, m_max_z, m_offset_x, m_offset_z;
 };
 
 class IK_QElbowSegment : public IK_QSegment
@@ -301,24 +296,24 @@ public:
 	// X or Z, then rotate around Y (twist)
 	IK_QElbowSegment(int axis);
 
-	MT_Vector3 Axis(int dof) const;
+	Vector3d Axis(int dof) const;
 
-	bool UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& delta, bool *clamp);
-	void Lock(int dof, IK_QJacobian& jacobian, MT_Vector3& delta);
+	bool UpdateAngle(const IK_QJacobian &jacobian, Vector3d& delta, bool *clamp);
+	void Lock(int dof, IK_QJacobian& jacobian, Vector3d& delta);
 	void UpdateAngleApply();
 
-	void SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax);
-	void SetWeight(int axis, MT_Scalar weight);
-	void SetBasis(const MT_Matrix3x3& basis);
+	void SetLimit(int axis, double lmin, double lmax);
+	void SetWeight(int axis, double weight);
+	void SetBasis(const Matrix3d& basis);
 
 private:
 	int m_axis;
 
-	MT_Scalar m_twist, m_angle, m_new_twist, m_new_angle;
-	MT_Scalar m_cos_twist, m_sin_twist;
+	double m_twist, m_angle, m_new_twist, m_new_angle;
+	double m_cos_twist, m_sin_twist;
 
 	bool m_limit, m_limit_twist;
-	MT_Scalar m_min, m_max, m_min_twist, m_max_twist;
+	double m_min, m_max, m_min_twist, m_max_twist;
 };
 
 class IK_QTranslateSegment : public IK_QSegment
@@ -329,23 +324,21 @@ public:
 	IK_QTranslateSegment(int axis1, int axis2);
 	IK_QTranslateSegment();
 
-	MT_Vector3 Axis(int dof) const;
+	Vector3d Axis(int dof) const;
 
-	bool UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& delta, bool *clamp);
-	void Lock(int, IK_QJacobian&, MT_Vector3&);
+	bool UpdateAngle(const IK_QJacobian &jacobian, Vector3d& delta, bool *clamp);
+	void Lock(int, IK_QJacobian&, Vector3d&);
 	void UpdateAngleApply();
 
-	void SetWeight(int axis, MT_Scalar weight);
-	void SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax);
+	void SetWeight(int axis, double weight);
+	void SetLimit(int axis, double lmin, double lmax);
 
-	void Scale(MT_Scalar scale);
+	void Scale(double scale);
 
 private:
 	int m_axis[3];
 	bool m_axis_enabled[3], m_limit[3];
-	MT_Vector3 m_new_translation;
-	MT_Scalar m_min[3], m_max[3];
+	Vector3d m_new_translation;
+	double m_min[3], m_max[3];
 };
-
-#endif
 

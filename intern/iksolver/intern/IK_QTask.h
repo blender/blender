@@ -30,13 +30,9 @@
  *  \ingroup iksolver
  */
 
+#pragma once
 
-#ifndef __IK_QTASK_H__
-#define __IK_QTASK_H__
-
-#include "MT_Vector3.h"
-#include "MT_Transform.h"
-#include "MT_Matrix4x4.h"
+#include "IK_Math.h"
 #include "IK_QJacobian.h"
 #include "IK_QSegment.h"
 
@@ -66,19 +62,19 @@ public:
 	bool Active() const
 	{ return m_active; }
 
-	MT_Scalar Weight() const
+	double Weight() const
 	{ return m_weight*m_weight; }
 
-	void SetWeight(MT_Scalar weight)
+	void SetWeight(double weight)
 	{ m_weight = sqrt(weight); }
 
 	virtual void ComputeJacobian(IK_QJacobian& jacobian)=0;
 
-	virtual MT_Scalar Distance() const=0;
+	virtual double Distance() const=0;
 
 	virtual bool PositionTask() const { return false; }
 
-	virtual void Scale(MT_Scalar) {}
+	virtual void Scale(double) {}
 
 protected:
 	int m_id;
@@ -86,7 +82,7 @@ protected:
 	bool m_primary;
 	bool m_active;
 	const IK_QSegment *m_segment;
-	MT_Scalar m_weight;
+	double m_weight;
 };
 
 class IK_QPositionTask : public IK_QTask
@@ -95,19 +91,19 @@ public:
 	IK_QPositionTask(
 		bool primary,
 		const IK_QSegment *segment,
-		const MT_Vector3& goal
+		const Vector3d& goal
 	);
 
 	void ComputeJacobian(IK_QJacobian& jacobian);
 
-	MT_Scalar Distance() const;
+	double Distance() const;
 
 	bool PositionTask() const { return true; }
-	void Scale(MT_Scalar scale) { m_goal *= scale; m_clamp_length *= scale; }
+	void Scale(double scale) { m_goal *= scale; m_clamp_length *= scale; }
 
 private:
-	MT_Vector3 m_goal;
-	MT_Scalar m_clamp_length;
+	Vector3d m_goal;
+	double m_clamp_length;
 };
 
 class IK_QOrientationTask : public IK_QTask
@@ -116,15 +112,15 @@ public:
 	IK_QOrientationTask(
 		bool primary,
 		const IK_QSegment *segment,
-		const MT_Matrix3x3& goal
+		const Matrix3d& goal
 	);
 
-	MT_Scalar Distance() const { return m_distance; }
+	double Distance() const { return m_distance; }
 	void ComputeJacobian(IK_QJacobian& jacobian);
 
 private:
-	MT_Matrix3x3 m_goal;
-	MT_Scalar m_distance;
+	Matrix3d m_goal;
+	double m_distance;
 };
 
 
@@ -134,24 +130,22 @@ public:
 	IK_QCenterOfMassTask(
 		bool primary,
 		const IK_QSegment *segment,
-		const MT_Vector3& center
+		const Vector3d& center
 	);
 
 	void ComputeJacobian(IK_QJacobian& jacobian);
 
-	MT_Scalar Distance() const;
+	double Distance() const;
 
-	void Scale(MT_Scalar scale) { m_goal_center *= scale; m_distance *= scale; }
+	void Scale(double scale) { m_goal_center *= scale; m_distance *= scale; }
 
 private:
-	MT_Scalar ComputeTotalMass(const IK_QSegment *segment);
-	MT_Vector3 ComputeCenter(const IK_QSegment *segment);
-	void JacobianSegment(IK_QJacobian& jacobian, MT_Vector3& center, const IK_QSegment *segment);
+	double ComputeTotalMass(const IK_QSegment *segment);
+	Vector3d ComputeCenter(const IK_QSegment *segment);
+	void JacobianSegment(IK_QJacobian& jacobian, Vector3d& center, const IK_QSegment *segment);
 
-	MT_Vector3 m_goal_center;
-	MT_Scalar m_total_mass_inv;
-	MT_Scalar m_distance;
+	Vector3d m_goal_center;
+	double m_total_mass_inv;
+	double m_distance;
 };
-
-#endif
 

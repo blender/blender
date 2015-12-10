@@ -104,14 +104,14 @@ void IK_QJacobian::ArmMatrices(int dof, int task_size)
 	}
 }
 
-void IK_QJacobian::SetBetas(int id, int, const MT_Vector3& v)
+void IK_QJacobian::SetBetas(int id, int, const Vector3d& v)
 {
 	m_beta[id + 0] = v.x();
 	m_beta[id + 1] = v.y();
 	m_beta[id + 2] = v.z();
 }
 
-void IK_QJacobian::SetDerivatives(int id, int dof_id, const MT_Vector3& v, MT_Scalar norm_weight)
+void IK_QJacobian::SetDerivatives(int id, int dof_id, const Vector3d& v, double norm_weight)
 {
 	m_jacobian[id + 0][dof_id] = v.x() * m_weight_sqrt[dof_id];
 	m_jacobian[id + 1][dof_id] = v.y() * m_weight_sqrt[dof_id];
@@ -143,7 +143,7 @@ void IK_QJacobian::Invert()
 
 bool IK_QJacobian::ComputeNullProjection()
 {
-	MT_Scalar epsilon = 1e-10;
+	double epsilon = 1e-10;
 	
 	// compute null space projection based on V
 	int i, j, rank = 0;
@@ -230,8 +230,8 @@ void IK_QJacobian::InvertSDLS()
 	// DLS. The SDLS damps individual singular values, instead of using a single
 	// damping term.
 
-	MT_Scalar max_angle_change = MT_PI / 4.0;
-	MT_Scalar epsilon = 1e-10;
+	double max_angle_change = M_PI / 4.0;
+	double epsilon = 1e-10;
 	int i, j;
 
 	m_d_theta = 0;
@@ -240,7 +240,7 @@ void IK_QJacobian::InvertSDLS()
 	for (i = 0; i < m_dof; i++) {
 		m_norm[i] = 0.0;
 		for (j = 0; j < m_task_size; j += 3) {
-			MT_Scalar n = 0.0;
+			double n = 0.0;
 			n += m_jacobian[j][i] * m_jacobian[j][i];
 			n += m_jacobian[j + 1][i] * m_jacobian[j + 1][i];
 			n += m_jacobian[j + 2][i] * m_jacobian[j + 2][i];
@@ -252,9 +252,9 @@ void IK_QJacobian::InvertSDLS()
 		if (m_svd_w[i] <= epsilon)
 			continue;
 
-		MT_Scalar wInv = 1.0 / m_svd_w[i];
-		MT_Scalar alpha = 0.0;
-		MT_Scalar N = 0.0;
+		double wInv = 1.0 / m_svd_w[i];
+		double alpha = 0.0;
+		double N = 0.0;
 
 		// compute alpha and N
 		for (j = 0; j < m_svd_u.num_rows(); j += 3) {
@@ -264,7 +264,7 @@ void IK_QJacobian::InvertSDLS()
 
 			// note: for 1 end effector, N will always be 1, since U is
 			// orthogonal, .. so could be optimized
-			MT_Scalar tmp;
+			double tmp;
 			tmp = m_svd_u[j][i] * m_svd_u[j][i];
 			tmp += m_svd_u[j + 1][i] * m_svd_u[j + 1][i];
 			tmp += m_svd_u[j + 2][i] * m_svd_u[j + 2][i];
@@ -273,19 +273,19 @@ void IK_QJacobian::InvertSDLS()
 		alpha *= wInv;
 
 		// compute M, dTheta and max_dtheta
-		MT_Scalar M = 0.0;
-		MT_Scalar max_dtheta = 0.0, abs_dtheta;
+		double M = 0.0;
+		double max_dtheta = 0.0, abs_dtheta;
 
 		for (j = 0; j < m_d_theta.size(); j++) {
-			MT_Scalar v = m_svd_v[j][i];
-			M += MT_abs(v) * m_norm[j];
+			double v = m_svd_v[j][i];
+			M += fabs(v) * m_norm[j];
 
 			// compute tmporary dTheta's
 			m_d_theta_tmp[j] = v * alpha;
 
 			// find largest absolute dTheta
 			// multiply with weight to prevent unnecessary damping
-			abs_dtheta = MT_abs(m_d_theta_tmp[j]) * m_weight_sqrt[j];
+			abs_dtheta = fabs(m_d_theta_tmp[j]) * m_weight_sqrt[j];
 			if (abs_dtheta > max_dtheta)
 				max_dtheta = abs_dtheta;
 		}
@@ -293,18 +293,18 @@ void IK_QJacobian::InvertSDLS()
 		M *= wInv;
 
 		// compute damping term and damp the dTheta's
-		MT_Scalar gamma = max_angle_change;
+		double gamma = max_angle_change;
 		if (N < M)
 			gamma *= N / M;
 
-		MT_Scalar damp = (gamma < max_dtheta) ? gamma / max_dtheta : 1.0;
+		double damp = (gamma < max_dtheta) ? gamma / max_dtheta : 1.0;
 
 		for (j = 0; j < m_d_theta.size(); j++) {
 			// slight hack: we do 0.80*, so that if there is some oscillation,
 			// the system can still converge (for joint limits). also, it's
 			// better to go a little to slow than to far
 			
-			MT_Scalar dofdamp = damp / m_weight[j];
+			double dofdamp = damp / m_weight[j];
 			if (dofdamp > 1.0) dofdamp = 1.0;
 			
 			m_d_theta[j] += 0.80 * dofdamp * m_d_theta_tmp[j];
@@ -315,19 +315,19 @@ void IK_QJacobian::InvertSDLS()
 	}
 
 	// weight + prevent from doing angle updates with angles > max_angle_change
-	MT_Scalar max_angle = 0.0, abs_angle;
+	double max_angle = 0.0, abs_angle;
 
 	for (j = 0; j < m_dof; j++) {
 		m_d_theta[j] *= m_weight[j];
 
-		abs_angle = MT_abs(m_d_theta[j]);
+		abs_angle = fabs(m_d_theta[j]);
 
 		if (abs_angle > max_angle)
 			max_angle = abs_angle;
 	}
 	
 	if (max_angle > max_angle_change) {
-		MT_Scalar damp = (max_angle_change) / (max_angle_change + max_angle);
+		double damp = (max_angle_change) / (max_angle_change + max_angle);
 
 		for (j = 0; j < m_dof; j++)
 			m_d_theta[j] *= damp;
@@ -353,12 +353,12 @@ void IK_QJacobian::InvertDLS()
 	// find the smallest non-zero W value, anything below epsilon is
 	// treated as zero
 
-	MT_Scalar epsilon = 1e-10;
-	MT_Scalar max_angle_change = 0.1;
-	MT_Scalar x_length = sqrt(TNT::dot_prod(m_beta, m_beta));
+	double epsilon = 1e-10;
+	double max_angle_change = 0.1;
+	double x_length = sqrt(TNT::dot_prod(m_beta, m_beta));
 
 	int i, j;
-	MT_Scalar w_min = MT_INFINITY;
+	double w_min = std::numeric_limits<double>::max();
 
 	for (i = 0; i < m_svd_w.size(); i++) {
 		if (m_svd_w[i] > epsilon && m_svd_w[i] < w_min)
@@ -367,8 +367,8 @@ void IK_QJacobian::InvertDLS()
 	
 	// compute lambda damping term
 
-	MT_Scalar d = x_length / max_angle_change;
-	MT_Scalar lambda;
+	double d = x_length / max_angle_change;
+	double lambda;
 
 	if (w_min <= d / 2)
 		lambda = d / 2;
@@ -393,7 +393,7 @@ void IK_QJacobian::InvertDLS()
 
 	for (i = 0; i < m_svd_w.size(); i++) {
 		if (m_svd_w[i] > epsilon) {
-			MT_Scalar wInv = m_svd_w[i] / (m_svd_w[i] * m_svd_w[i] + lambda);
+			double wInv = m_svd_w[i] / (m_svd_w[i] * m_svd_w[i] + lambda);
 
 			// compute V*Winv*Ut*Beta
 			m_svd_u_beta[i] *= wInv;
@@ -407,7 +407,7 @@ void IK_QJacobian::InvertDLS()
 		m_d_theta[j] *= m_weight[j];
 }
 
-void IK_QJacobian::Lock(int dof_id, MT_Scalar delta)
+void IK_QJacobian::Lock(int dof_id, double delta)
 {
 	int i;
 
@@ -420,18 +420,18 @@ void IK_QJacobian::Lock(int dof_id, MT_Scalar delta)
 	m_d_theta[dof_id] = 0.0;
 }
 
-MT_Scalar IK_QJacobian::AngleUpdate(int dof_id) const
+double IK_QJacobian::AngleUpdate(int dof_id) const
 {
 	return m_d_theta[dof_id];
 }
 
-MT_Scalar IK_QJacobian::AngleUpdateNorm() const
+double IK_QJacobian::AngleUpdateNorm() const
 {
 	int i;
-	MT_Scalar mx = 0.0, dtheta_abs;
+	double mx = 0.0, dtheta_abs;
 
 	for (i = 0; i < m_d_theta.size(); i++) {
-		dtheta_abs = MT_abs(m_d_theta[i] * m_d_norm_weight[i]);
+		dtheta_abs = fabs(m_d_theta[i] * m_d_norm_weight[i]);
 		if (dtheta_abs > mx)
 			mx = dtheta_abs;
 	}
@@ -439,7 +439,7 @@ MT_Scalar IK_QJacobian::AngleUpdateNorm() const
 	return mx;
 }
 
-void IK_QJacobian::SetDoFWeight(int dof, MT_Scalar weight)
+void IK_QJacobian::SetDoFWeight(int dof, double weight)
 {
 	m_weight[dof] = weight;
 	m_weight_sqrt[dof] = sqrt(weight);

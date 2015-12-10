@@ -32,192 +32,6 @@
 
 
 #include "IK_QSegment.h"
-#include <cmath>
-
-// Utility functions
-
-static MT_Matrix3x3 RotationMatrix(MT_Scalar sine, MT_Scalar cosine, int axis)
-{
-	if (axis == 0)
-		return MT_Matrix3x3(1.0, 0.0, 0.0,
-		                    0.0, cosine, -sine,
-		                    0.0, sine, cosine);
-	else if (axis == 1)
-		return MT_Matrix3x3(cosine, 0.0, sine,
-		                    0.0, 1.0, 0.0,
-		                    -sine, 0.0, cosine);
-	else
-		return MT_Matrix3x3(cosine, -sine, 0.0,
-		                    sine, cosine, 0.0,
-		                    0.0, 0.0, 1.0);
-}
-
-static MT_Matrix3x3 RotationMatrix(MT_Scalar angle, int axis)
-{
-	return RotationMatrix(sin(angle), cos(angle), axis);
-}
-
-
-static MT_Scalar EulerAngleFromMatrix(const MT_Matrix3x3& R, int axis)
-{
-	MT_Scalar t = sqrt(R[0][0] * R[0][0] + R[0][1] * R[0][1]);
-
-	if (t > 16.0 * MT_EPSILON) {
-		if      (axis == 0) return -atan2(R[1][2], R[2][2]);
-		else if (axis == 1) return  atan2(-R[0][2], t);
-		else                return -atan2(R[0][1], R[0][0]);
-	}
-	else {
-		if      (axis == 0) return -atan2(-R[2][1], R[1][1]);
-		else if (axis == 1) return  atan2(-R[0][2], t);
-		else                return 0.0f;
-	}
-}
-
-static MT_Scalar safe_acos(MT_Scalar f)
-{
-	if (f <= -1.0)
-		return MT_PI;
-	else if (f >= 1.0)
-		return 0.0;
-	else
-		return acos(f);
-}
-
-static MT_Scalar ComputeTwist(const MT_Matrix3x3& R)
-{
-	// qy and qw are the y and w components of the quaternion from R
-	MT_Scalar qy = R[0][2] - R[2][0];
-	MT_Scalar qw = R[0][0] + R[1][1] + R[2][2] + 1;
-
-	MT_Scalar tau = 2.0 * atan2(qy, qw);
-
-	return tau;
-}
-
-static MT_Matrix3x3 ComputeTwistMatrix(MT_Scalar tau)
-{
-	return RotationMatrix(tau, 1);
-}
-
-static void RemoveTwist(MT_Matrix3x3& R)
-{
-	// compute twist parameter
-	MT_Scalar tau = ComputeTwist(R);
-
-	// compute twist matrix
-	MT_Matrix3x3 T = ComputeTwistMatrix(tau);
-
-	// remove twist
-	R = R * T.transposed();
-}
-
-static MT_Vector3 SphericalRangeParameters(const MT_Matrix3x3& R)
-{
-	// compute twist parameter
-	MT_Scalar tau = ComputeTwist(R);
-
-	// compute swing parameters
-	MT_Scalar num = 2.0 * (1.0 + R[1][1]);
-
-	// singularity at pi
-	if (MT_abs(num) < MT_EPSILON)
-		// TODO: this does now rotation of size pi over z axis, but could
-		// be any axis, how to deal with this i'm not sure, maybe don't
-		// enforce limits at all then
-		return MT_Vector3(0.0, tau, 1.0);
-
-	num = 1.0 / sqrt(num);
-	MT_Scalar ax = -R[2][1] * num;
-	MT_Scalar az =  R[0][1] * num;
-
-	return MT_Vector3(ax, tau, az);
-}
-
-static MT_Matrix3x3 ComputeSwingMatrix(MT_Scalar ax, MT_Scalar az)
-{
-	// length of (ax, 0, az) = sin(theta/2)
-	MT_Scalar sine2 = ax * ax + az * az;
-	MT_Scalar cosine2 = sqrt((sine2 >= 1.0) ? 0.0 : 1.0 - sine2);
-
-	// compute swing matrix
-	MT_Matrix3x3 S(MT_Quaternion(ax, 0.0, az, -cosine2));
-
-	return S;
-}
-
-static MT_Vector3 MatrixToAxisAngle(const MT_Matrix3x3& R)
-{
-	MT_Vector3 delta = MT_Vector3(R[2][1] - R[1][2],
-	                              R[0][2] - R[2][0],
-	                              R[1][0] - R[0][1]);
-
-	MT_Scalar c = safe_acos((R[0][0] + R[1][1] + R[2][2] - 1) / 2);
-	MT_Scalar l = delta.length();
-	
-	if (!MT_fuzzyZero(l))
-		delta *= c / l;
-	
-	return delta;
-}
-
-static bool EllipseClamp(MT_Scalar& ax, MT_Scalar& az, MT_Scalar *amin, MT_Scalar *amax)
-{
-	MT_Scalar xlim, zlim, x, z;
-
-	if (ax < 0.0) {
-		x = -ax;
-		xlim = -amin[0];
-	}
-	else {
-		x = ax;
-		xlim = amax[0];
-	}
-
-	if (az < 0.0) {
-		z = -az;
-		zlim = -amin[1];
-	}
-	else {
-		z = az;
-		zlim = amax[1];
-	}
-
-	if (MT_fuzzyZero(xlim) || MT_fuzzyZero(zlim)) {
-		if (x <= xlim && z <= zlim)
-			return false;
-
-		if (x > xlim)
-			x = xlim;
-		if (z > zlim)
-			z = zlim;
-	}
-	else {
-		MT_Scalar invx = 1.0 / (xlim * xlim);
-		MT_Scalar invz = 1.0 / (zlim * zlim);
-
-		if ((x * x * invx + z * z * invz) <= 1.0)
-			return false;
-
-		if (MT_fuzzyZero(x)) {
-			x = 0.0;
-			z = zlim;
-		}
-		else {
-			MT_Scalar rico = z / x;
-			MT_Scalar old_x = x;
-			x = sqrt(1.0 / (invx + invz * rico * rico));
-			if (old_x < 0.0)
-				x = -x;
-			z = rico * x;
-		}
-	}
-
-	ax = (ax < 0.0) ? -x : x;
-	az = (az < 0.0) ? -z : z;
-
-	return true;
-}
 
 // IK_QSegment
 
@@ -230,10 +44,10 @@ IK_QSegment::IK_QSegment(int num_DoF, bool translational)
 
 	m_max_extension = 0.0;
 
-	m_start = MT_Vector3(0, 0, 0);
+	m_start = Vector3d(0, 0, 0);
 	m_rest_basis.setIdentity();
 	m_basis.setIdentity();
-	m_translation = MT_Vector3(0, 0, 0);
+	m_translation = Vector3d(0, 0, 0);
 
 	m_orig_basis = m_basis;
 	m_orig_translation = m_translation;
@@ -252,13 +66,13 @@ void IK_QSegment::Reset()
 }
 
 void IK_QSegment::SetTransform(
-    const MT_Vector3& start,
-    const MT_Matrix3x3& rest_basis,
-    const MT_Matrix3x3& basis,
-    const MT_Scalar length
+    const Vector3d& start,
+    const Matrix3d& rest_basis,
+    const Matrix3d& basis,
+    const double length
     )
 {
-	m_max_extension = start.length() + length;	
+	m_max_extension = start.norm() + length;	
 
 	m_start = start;
 	m_rest_basis = rest_basis;
@@ -266,16 +80,16 @@ void IK_QSegment::SetTransform(
 	m_orig_basis = basis;
 	SetBasis(basis);
 
-	m_translation = MT_Vector3(0, length, 0);
+	m_translation = Vector3d(0, length, 0);
 	m_orig_translation = m_translation;
 }
 
-MT_Matrix3x3 IK_QSegment::BasisChange() const
+Matrix3d IK_QSegment::BasisChange() const
 {
-	return m_orig_basis.transposed() * m_basis;
+	return m_orig_basis.transpose() * m_basis;
 }
 
-MT_Vector3 IK_QSegment::TranslationChange() const
+Vector3d IK_QSegment::TranslationChange() const
 {
 	return m_translation - m_orig_translation;
 }
@@ -327,13 +141,13 @@ void IK_QSegment::RemoveChild(IK_QSegment *child)
 	}
 }
 
-void IK_QSegment::UpdateTransform(const MT_Transform& global)
+void IK_QSegment::UpdateTransform(const Affine3d& global)
 {
 	// compute the global transform at the end of the segment
-	m_global_start = global.getOrigin() + global.getBasis() * m_start;
+	m_global_start = global.translation() + global.linear() * m_start;
 
-	m_global_transform.setOrigin(m_global_start);
-	m_global_transform.setBasis(global.getBasis() * m_rest_basis * m_basis);
+	m_global_transform.translation() = m_global_start;
+	m_global_transform.linear() = global.linear() * m_rest_basis * m_basis;
 	m_global_transform.translate(m_translation);
 
 	// update child transforms
@@ -341,18 +155,18 @@ void IK_QSegment::UpdateTransform(const MT_Transform& global)
 		seg->UpdateTransform(m_global_transform);
 }
 
-void IK_QSegment::PrependBasis(const MT_Matrix3x3& mat)
+void IK_QSegment::PrependBasis(const Matrix3d& mat)
 {
 	m_basis = m_rest_basis.inverse() * mat * m_rest_basis * m_basis;
 }
 
-void IK_QSegment::Scale(MT_Scalar scale)
+void IK_QSegment::Scale(double scale)
 {
 	m_start *= scale;
 	m_translation *= scale;
 	m_orig_translation *= scale;
 	m_global_start *= scale;
-	m_global_transform.getOrigin() *= scale;
+	m_global_transform.translation() *= scale;
 	m_max_extension *= scale;
 }
 
@@ -363,19 +177,19 @@ IK_QSphericalSegment::IK_QSphericalSegment()
 {
 }
 
-MT_Vector3 IK_QSphericalSegment::Axis(int dof) const
+Vector3d IK_QSphericalSegment::Axis(int dof) const
 {
-	return m_global_transform.getBasis().getColumn(dof);
+	return m_global_transform.linear().col(dof);
 }
 
-void IK_QSphericalSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
+void IK_QSphericalSegment::SetLimit(int axis, double lmin, double lmax)
 {
 	if (lmin > lmax)
 		return;
 	
 	if (axis == 1) {
-		lmin = MT_clamp(lmin, -MT_PI, MT_PI);
-		lmax = MT_clamp(lmax, -MT_PI, MT_PI);
+		lmin = Clamp(lmin, -M_PI, M_PI);
+		lmax = Clamp(lmax, -M_PI, M_PI);
 
 		m_min_y = lmin;
 		m_max_y = lmax;
@@ -384,8 +198,8 @@ void IK_QSphericalSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 	}
 	else {
 		// clamp and convert to axis angle parameters
-		lmin = MT_clamp(lmin, -MT_PI, MT_PI);
-		lmax = MT_clamp(lmax, -MT_PI, MT_PI);
+		lmin = Clamp(lmin, -M_PI, M_PI);
+		lmax = Clamp(lmax, -M_PI, M_PI);
 
 		lmin = sin(lmin * 0.5);
 		lmax = sin(lmax * 0.5);
@@ -403,17 +217,17 @@ void IK_QSphericalSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 	}
 }
 
-void IK_QSphericalSegment::SetWeight(int axis, MT_Scalar weight)
+void IK_QSphericalSegment::SetWeight(int axis, double weight)
 {
 	m_weight[axis] = weight;
 }
 
-bool IK_QSphericalSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& delta, bool *clamp)
+bool IK_QSphericalSegment::UpdateAngle(const IK_QJacobian &jacobian, Vector3d& delta, bool *clamp)
 {
 	if (m_locked[0] && m_locked[1] && m_locked[2])
 		return false;
 
-	MT_Vector3 dq;
+	Vector3d dq;
 	dq.x() = jacobian.AngleUpdate(m_DoF_id);
 	dq.y() = jacobian.AngleUpdate(m_DoF_id + 1);
 	dq.z() = jacobian.AngleUpdate(m_DoF_id + 2);
@@ -421,27 +235,27 @@ bool IK_QSphericalSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3&
 	// Directly update the rotation matrix, with Rodrigues' rotation formula,
 	// to avoid singularities and allow smooth integration.
 
-	MT_Scalar theta = dq.length();
+	double theta = dq.norm();
 
-	if (!MT_fuzzyZero(theta)) {
-		MT_Vector3 w = dq * (1.0 / theta);
+	if (!FuzzyZero(theta)) {
+		Vector3d w = dq * (1.0 / theta);
 
-		MT_Scalar sine = sin(theta);
-		MT_Scalar cosine = cos(theta);
-		MT_Scalar cosineInv = 1 - cosine;
+		double sine = sin(theta);
+		double cosine = cos(theta);
+		double cosineInv = 1 - cosine;
 
-		MT_Scalar xsine = w.x() * sine;
-		MT_Scalar ysine = w.y() * sine;
-		MT_Scalar zsine = w.z() * sine;
+		double xsine = w.x() * sine;
+		double ysine = w.y() * sine;
+		double zsine = w.z() * sine;
 
-		MT_Scalar xxcosine = w.x() * w.x() * cosineInv;
-		MT_Scalar xycosine = w.x() * w.y() * cosineInv;
-		MT_Scalar xzcosine = w.x() * w.z() * cosineInv;
-		MT_Scalar yycosine = w.y() * w.y() * cosineInv;
-		MT_Scalar yzcosine = w.y() * w.z() * cosineInv;
-		MT_Scalar zzcosine = w.z() * w.z() * cosineInv;
+		double xxcosine = w.x() * w.x() * cosineInv;
+		double xycosine = w.x() * w.y() * cosineInv;
+		double xzcosine = w.x() * w.z() * cosineInv;
+		double yycosine = w.y() * w.y() * cosineInv;
+		double yzcosine = w.y() * w.z() * cosineInv;
+		double zzcosine = w.z() * w.z() * cosineInv;
 
-		MT_Matrix3x3 M(
+		Matrix3d M = CreateMatrix(
 		    cosine + xxcosine, -zsine + xycosine, ysine + xzcosine,
 		    zsine + xycosine, cosine + yycosine, -xsine + yzcosine,
 		    -ysine + xzcosine, xsine + yzcosine, cosine + zzcosine);
@@ -455,7 +269,7 @@ bool IK_QSphericalSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3&
 	if (m_limit_y == false && m_limit_x == false && m_limit_z == false)
 		return false;
 
-	MT_Vector3 a = SphericalRangeParameters(m_new_basis);
+	Vector3d a = SphericalRangeParameters(m_new_basis);
 
 	if (m_locked[0])
 		a.x() = m_locked_ax;
@@ -464,7 +278,7 @@ bool IK_QSphericalSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3&
 	if (m_locked[2])
 		a.z() = m_locked_az;
 
-	MT_Scalar ax = a.x(), ay = a.y(), az = a.z();
+	double ax = a.x(), ay = a.y(), az = a.z();
 
 	clamp[0] = clamp[1] = clamp[2] =  false;
 	
@@ -512,7 +326,7 @@ bool IK_QSphericalSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3&
 	
 	m_new_basis = ComputeSwingMatrix(ax, az) * ComputeTwistMatrix(ay);
 
-	delta = MatrixToAxisAngle(m_basis.transposed() * m_new_basis);
+	delta = MatrixToAxisAngle(m_basis.transpose() * m_new_basis);
 
 	if (!(m_locked[0] || m_locked[2]) && (clamp[0] || clamp[2])) {
 		m_locked_ax = ax;
@@ -525,7 +339,7 @@ bool IK_QSphericalSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3&
 	return true;
 }
 
-void IK_QSphericalSegment::Lock(int dof, IK_QJacobian& jacobian, MT_Vector3& delta)
+void IK_QSphericalSegment::Lock(int dof, IK_QJacobian& jacobian, Vector3d& delta)
 {
 	if (dof == 1) {
 		m_locked[1] = true;
@@ -557,7 +371,7 @@ IK_QRevoluteSegment::IK_QRevoluteSegment(int axis)
 {
 }
 
-void IK_QRevoluteSegment::SetBasis(const MT_Matrix3x3& basis)
+void IK_QRevoluteSegment::SetBasis(const Matrix3d& basis)
 {
 	if (m_axis == 1) {
 		m_angle = ComputeTwist(basis);
@@ -569,12 +383,12 @@ void IK_QRevoluteSegment::SetBasis(const MT_Matrix3x3& basis)
 	}
 }
 
-MT_Vector3 IK_QRevoluteSegment::Axis(int) const
+Vector3d IK_QRevoluteSegment::Axis(int) const
 {
-	return m_global_transform.getBasis().getColumn(m_axis);
+	return m_global_transform.linear().col(m_axis);
 }
 
-bool IK_QRevoluteSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& delta, bool *clamp)
+bool IK_QRevoluteSegment::UpdateAngle(const IK_QJacobian &jacobian, Vector3d& delta, bool *clamp)
 {
 	if (m_locked[0])
 		return false;
@@ -599,7 +413,7 @@ bool IK_QRevoluteSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& 
 	return true;
 }
 
-void IK_QRevoluteSegment::Lock(int, IK_QJacobian& jacobian, MT_Vector3& delta)
+void IK_QRevoluteSegment::Lock(int, IK_QJacobian& jacobian, Vector3d& delta)
 {
 	m_locked[0] = true;
 	jacobian.Lock(m_DoF_id, delta[0]);
@@ -611,14 +425,14 @@ void IK_QRevoluteSegment::UpdateAngleApply()
 	m_basis = RotationMatrix(m_angle, m_axis);
 }
 
-void IK_QRevoluteSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
+void IK_QRevoluteSegment::SetLimit(int axis, double lmin, double lmax)
 {
 	if (lmin > lmax || m_axis != axis)
 		return;
 	
 	// clamp and convert to axis angle parameters
-	lmin = MT_clamp(lmin, -MT_PI, MT_PI);
-	lmax = MT_clamp(lmax, -MT_PI, MT_PI);
+	lmin = Clamp(lmin, -M_PI, M_PI);
+	lmax = Clamp(lmax, -M_PI, M_PI);
 
 	m_min = lmin;
 	m_max = lmax;
@@ -626,7 +440,7 @@ void IK_QRevoluteSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 	m_limit = true;
 }
 
-void IK_QRevoluteSegment::SetWeight(int axis, MT_Scalar weight)
+void IK_QRevoluteSegment::SetWeight(int axis, double weight)
 {
 	if (axis == m_axis)
 		m_weight[0] = weight;
@@ -639,23 +453,23 @@ IK_QSwingSegment::IK_QSwingSegment()
 {
 }
 
-void IK_QSwingSegment::SetBasis(const MT_Matrix3x3& basis)
+void IK_QSwingSegment::SetBasis(const Matrix3d& basis)
 {
 	m_basis = basis;
 	RemoveTwist(m_basis);
 }
 
-MT_Vector3 IK_QSwingSegment::Axis(int dof) const
+Vector3d IK_QSwingSegment::Axis(int dof) const
 {
-	return m_global_transform.getBasis().getColumn((dof == 0) ? 0 : 2);
+	return m_global_transform.linear().col((dof == 0) ? 0 : 2);
 }
 
-bool IK_QSwingSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& delta, bool *clamp)
+bool IK_QSwingSegment::UpdateAngle(const IK_QJacobian &jacobian, Vector3d& delta, bool *clamp)
 {
 	if (m_locked[0] && m_locked[1])
 		return false;
 
-	MT_Vector3 dq;
+	Vector3d dq;
 	dq.x() = jacobian.AngleUpdate(m_DoF_id);
 	dq.y() = 0.0;
 	dq.z() = jacobian.AngleUpdate(m_DoF_id + 1);
@@ -663,23 +477,23 @@ bool IK_QSwingSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& del
 	// Directly update the rotation matrix, with Rodrigues' rotation formula,
 	// to avoid singularities and allow smooth integration.
 
-	MT_Scalar theta = dq.length();
+	double theta = dq.norm();
 
-	if (!MT_fuzzyZero(theta)) {
-		MT_Vector3 w = dq * (1.0 / theta);
+	if (!FuzzyZero(theta)) {
+		Vector3d w = dq * (1.0 / theta);
 
-		MT_Scalar sine = sin(theta);
-		MT_Scalar cosine = cos(theta);
-		MT_Scalar cosineInv = 1 - cosine;
+		double sine = sin(theta);
+		double cosine = cos(theta);
+		double cosineInv = 1 - cosine;
 
-		MT_Scalar xsine = w.x() * sine;
-		MT_Scalar zsine = w.z() * sine;
+		double xsine = w.x() * sine;
+		double zsine = w.z() * sine;
 
-		MT_Scalar xxcosine = w.x() * w.x() * cosineInv;
-		MT_Scalar xzcosine = w.x() * w.z() * cosineInv;
-		MT_Scalar zzcosine = w.z() * w.z() * cosineInv;
+		double xxcosine = w.x() * w.x() * cosineInv;
+		double xzcosine = w.x() * w.z() * cosineInv;
+		double zzcosine = w.z() * w.z() * cosineInv;
 
-		MT_Matrix3x3 M(
+		Matrix3d M = CreateMatrix(
 		    cosine + xxcosine, -zsine, xzcosine,
 		    zsine, cosine, -xsine,
 		    xzcosine, xsine, cosine + zzcosine);
@@ -694,8 +508,8 @@ bool IK_QSwingSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& del
 	if (m_limit_x == false && m_limit_z == false)
 		return false;
 
-	MT_Vector3 a = SphericalRangeParameters(m_new_basis);
-	MT_Scalar ax = 0, az = 0;
+	Vector3d a = SphericalRangeParameters(m_new_basis);
+	double ax = 0, az = 0;
 
 	clamp[0] = clamp[1] = false;
 	
@@ -732,13 +546,13 @@ bool IK_QSwingSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& del
 
 	m_new_basis = ComputeSwingMatrix(ax, az);
 
-	delta = MatrixToAxisAngle(m_basis.transposed() * m_new_basis);
+	delta = MatrixToAxisAngle(m_basis.transpose() * m_new_basis);
 	delta[1] = delta[2]; delta[2] = 0.0;
 
 	return true;
 }
 
-void IK_QSwingSegment::Lock(int, IK_QJacobian& jacobian, MT_Vector3& delta)
+void IK_QSwingSegment::Lock(int, IK_QJacobian& jacobian, Vector3d& delta)
 {
 	m_locked[0] = m_locked[1] = true;
 	jacobian.Lock(m_DoF_id, delta[0]);
@@ -750,20 +564,20 @@ void IK_QSwingSegment::UpdateAngleApply()
 	m_basis = m_new_basis;
 }
 
-void IK_QSwingSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
+void IK_QSwingSegment::SetLimit(int axis, double lmin, double lmax)
 {
 	if (lmin > lmax)
 		return;
 	
 	// clamp and convert to axis angle parameters
-	lmin = MT_clamp(lmin, -MT_PI, MT_PI);
-	lmax = MT_clamp(lmax, -MT_PI, MT_PI);
+	lmin = Clamp(lmin, -M_PI, M_PI);
+	lmax = Clamp(lmax, -M_PI, M_PI);
 
 	lmin = sin(lmin * 0.5);
 	lmax = sin(lmax * 0.5);
 
 	// put center of ellispe in the middle between min and max
-	MT_Scalar offset = 0.5 * (lmin + lmax);
+	double offset = 0.5 * (lmin + lmax);
 	//lmax = lmax - offset;
 
 	if (axis == 0) {
@@ -784,7 +598,7 @@ void IK_QSwingSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 	}
 }
 
-void IK_QSwingSegment::SetWeight(int axis, MT_Scalar weight)
+void IK_QSwingSegment::SetWeight(int axis, double weight)
 {
 	if (axis == 0)
 		m_weight[0] = weight;
@@ -800,7 +614,7 @@ IK_QElbowSegment::IK_QElbowSegment(int axis)
 {
 }
 
-void IK_QElbowSegment::SetBasis(const MT_Matrix3x3& basis)
+void IK_QElbowSegment::SetBasis(const Matrix3d& basis)
 {
 	m_basis = basis;
 
@@ -811,22 +625,22 @@ void IK_QElbowSegment::SetBasis(const MT_Matrix3x3& basis)
 	m_basis = RotationMatrix(m_angle, m_axis) * ComputeTwistMatrix(m_twist);
 }
 
-MT_Vector3 IK_QElbowSegment::Axis(int dof) const
+Vector3d IK_QElbowSegment::Axis(int dof) const
 {
 	if (dof == 0) {
-		MT_Vector3 v;
+		Vector3d v;
 		if (m_axis == 0)
-			v = MT_Vector3(m_cos_twist, 0, m_sin_twist);
+			v = Vector3d(m_cos_twist, 0, m_sin_twist);
 		else
-			v = MT_Vector3(-m_sin_twist, 0, m_cos_twist);
+			v = Vector3d(-m_sin_twist, 0, m_cos_twist);
 
-		return m_global_transform.getBasis() * v;
+		return m_global_transform.linear() * v;
 	}
 	else
-		return m_global_transform.getBasis().getColumn(1);
+		return m_global_transform.linear().col(1);
 }
 
-bool IK_QElbowSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& delta, bool *clamp)
+bool IK_QElbowSegment::UpdateAngle(const IK_QJacobian &jacobian, Vector3d& delta, bool *clamp)
 {
 	if (m_locked[0] && m_locked[1])
 		return false;
@@ -870,7 +684,7 @@ bool IK_QElbowSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& del
 	return (clamp[0] || clamp[1]);
 }
 
-void IK_QElbowSegment::Lock(int dof, IK_QJacobian& jacobian, MT_Vector3& delta)
+void IK_QElbowSegment::Lock(int dof, IK_QJacobian& jacobian, Vector3d& delta)
 {
 	if (dof == 0) {
 		m_locked[0] = true;
@@ -890,20 +704,20 @@ void IK_QElbowSegment::UpdateAngleApply()
 	m_sin_twist = sin(m_twist);
 	m_cos_twist = cos(m_twist);
 
-	MT_Matrix3x3 A = RotationMatrix(m_angle, m_axis);
-	MT_Matrix3x3 T = RotationMatrix(m_sin_twist, m_cos_twist, 1);
+	Matrix3d A = RotationMatrix(m_angle, m_axis);
+	Matrix3d T = RotationMatrix(m_sin_twist, m_cos_twist, 1);
 
 	m_basis = A * T;
 }
 
-void IK_QElbowSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
+void IK_QElbowSegment::SetLimit(int axis, double lmin, double lmax)
 {
 	if (lmin > lmax)
 		return;
 
 	// clamp and convert to axis angle parameters
-	lmin = MT_clamp(lmin, -MT_PI, MT_PI);
-	lmax = MT_clamp(lmax, -MT_PI, MT_PI);
+	lmin = Clamp(lmin, -M_PI, M_PI);
+	lmax = Clamp(lmax, -M_PI, M_PI);
 
 	if (axis == 1) {
 		m_min_twist = lmin;
@@ -917,7 +731,7 @@ void IK_QElbowSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 	}
 }
 
-void IK_QElbowSegment::SetWeight(int axis, MT_Scalar weight)
+void IK_QElbowSegment::SetWeight(int axis, double weight)
 {
 	if (axis == m_axis)
 		m_weight[0] = weight;
@@ -963,16 +777,16 @@ IK_QTranslateSegment::IK_QTranslateSegment()
 	m_limit[0] = m_limit[1] = m_limit[2] = false;
 }
 
-MT_Vector3 IK_QTranslateSegment::Axis(int dof) const
+Vector3d IK_QTranslateSegment::Axis(int dof) const
 {
-	return m_global_transform.getBasis().getColumn(m_axis[dof]);
+	return m_global_transform.linear().col(m_axis[dof]);
 }
 
-bool IK_QTranslateSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& delta, bool *clamp)
+bool IK_QTranslateSegment::UpdateAngle(const IK_QJacobian &jacobian, Vector3d& delta, bool *clamp)
 {
 	int dof_id = m_DoF_id, dof = 0, i, clamped = false;
 
-	MT_Vector3 dx(0.0, 0.0, 0.0);
+	Vector3d dx(0.0, 0.0, 0.0);
 
 	for (i = 0; i < 3; i++) {
 		if (!m_axis_enabled[i]) {
@@ -1011,13 +825,13 @@ void IK_QTranslateSegment::UpdateAngleApply()
 	m_translation = m_new_translation;
 }
 
-void IK_QTranslateSegment::Lock(int dof, IK_QJacobian& jacobian, MT_Vector3& delta)
+void IK_QTranslateSegment::Lock(int dof, IK_QJacobian& jacobian, Vector3d& delta)
 {
 	m_locked[dof] = true;
 	jacobian.Lock(m_DoF_id + dof, delta[dof]);
 }
 
-void IK_QTranslateSegment::SetWeight(int axis, MT_Scalar weight)
+void IK_QTranslateSegment::SetWeight(int axis, double weight)
 {
 	int i;
 
@@ -1026,7 +840,7 @@ void IK_QTranslateSegment::SetWeight(int axis, MT_Scalar weight)
 			m_weight[i] = weight;
 }
 
-void IK_QTranslateSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
+void IK_QTranslateSegment::SetLimit(int axis, double lmin, double lmax)
 {
 	if (lmax < lmin)
 		return;
@@ -1036,7 +850,7 @@ void IK_QTranslateSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 	m_limit[axis] = true;
 }
 
-void IK_QTranslateSegment::Scale(MT_Scalar scale)
+void IK_QTranslateSegment::Scale(double scale)
 {
 	int i;
 

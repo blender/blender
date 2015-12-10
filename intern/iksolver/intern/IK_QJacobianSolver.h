@@ -30,10 +30,7 @@
  *  \ingroup iksolver
  */
 
-
-#ifndef __IK_QJACOBIANSOLVER_H__
-
-#define __IK_QJACOBIANSOLVER_H__
+#pragma once
 
 /**
  * @author Laurence Bourn
@@ -43,8 +40,7 @@
 #include <vector>
 #include <list>
 
-#include "MT_Vector3.h"
-#include "MT_Transform.h"
+#include "IK_Math.h"
 #include "IK_QJacobian.h"
 #include "IK_QSegment.h"
 #include "IK_QTask.h"
@@ -56,8 +52,8 @@ public:
 	~IK_QJacobianSolver() {}
 
 	// setup pole vector constraint
-	void SetPoleVectorConstraint(IK_QSegment *tip, MT_Vector3& goal,
-		MT_Vector3& polegoal, float poleangle, bool getangle);
+	void SetPoleVectorConstraint(IK_QSegment *tip, Vector3d& goal,
+		Vector3d& polegoal, float poleangle, bool getangle);
 	float GetPoleAngle() { return m_poleangle; }
 
 	// call setup once before solving, if it fails don't solve
@@ -67,17 +63,17 @@ public:
 	bool Solve(
 		IK_QSegment *root,
 		std::list<IK_QTask*> tasks,
-		const MT_Scalar tolerance,
+		const double tolerance,
 		const int max_iterations
 	);
 
 private:
 	void AddSegmentList(IK_QSegment *seg);
-	bool UpdateAngles(MT_Scalar& norm);
+	bool UpdateAngles(double& norm);
 	void ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTask*>& tasks);
 
-	MT_Scalar ComputeScale();
-	void Scale(MT_Scalar scale, std::list<IK_QTask*>& tasks);
+	double ComputeScale();
+	void Scale(double scale, std::list<IK_QTask*>& tasks);
 
 private:
 
@@ -88,15 +84,13 @@ private:
 
 	std::vector<IK_QSegment*> m_segments;
 
-	MT_Transform m_rootmatrix;
+	Affine3d m_rootmatrix;
 
 	bool m_poleconstraint;
 	bool m_getpoleangle;
-	MT_Vector3 m_goal;
-	MT_Vector3 m_polegoal;
+	Vector3d m_goal;
+	Vector3d m_polegoal;
 	float m_poleangle;
 	IK_QSegment *m_poletip;
 };
-
-#endif
 

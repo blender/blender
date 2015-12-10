@@ -154,19 +154,19 @@ void IK_SetTransform(IK_Segment *seg, float start[3], float rest[][3], float bas
 {
 	IK_QSegment *qseg = (IK_QSegment *)seg;
 
-	MT_Vector3 mstart(start);
-	// convert from blender column major to moto row major
-	MT_Matrix3x3 mbasis(basis[0][0], basis[1][0], basis[2][0],
-	                    basis[0][1], basis[1][1], basis[2][1],
-	                    basis[0][2], basis[1][2], basis[2][2]);
-	MT_Matrix3x3 mrest(rest[0][0], rest[1][0], rest[2][0],
-	                   rest[0][1], rest[1][1], rest[2][1],
-	                   rest[0][2], rest[1][2], rest[2][2]);
-	MT_Scalar mlength(length);
+	Vector3d mstart(start[0], start[1], start[2]);
+	// convert from blender column major
+	Matrix3d mbasis = CreateMatrix(basis[0][0], basis[1][0], basis[2][0],
+	                               basis[0][1], basis[1][1], basis[2][1],
+	                               basis[0][2], basis[1][2], basis[2][2]);
+	Matrix3d mrest = CreateMatrix(rest[0][0], rest[1][0], rest[2][0],
+	                              rest[0][1], rest[1][1], rest[2][1],
+	                              rest[0][2], rest[1][2], rest[2][2]);
+	double mlength(length);
 
 	if (qseg->Composite()) {
-		MT_Vector3 cstart(0, 0, 0);
-		MT_Matrix3x3 cbasis;
+		Vector3d cstart(0, 0, 0);
+		Matrix3d cbasis;
 		cbasis.setIdentity();
 		
 		qseg->SetTransform(mstart, mrest, mbasis, 0.0);
@@ -205,7 +205,7 @@ void IK_SetStiffness(IK_Segment *seg, IK_SegmentAxis axis, float stiffness)
 		stiffness = (1.0 - IK_STRETCH_STIFF_EPS);
 
 	IK_QSegment *qseg = (IK_QSegment *)seg;
-	MT_Scalar weight = 1.0f - stiffness;
+	double weight = 1.0f - stiffness;
 
 	if (axis >= IK_TRANS_X) {
 		if (!qseg->Translational()) {
@@ -230,18 +230,18 @@ void IK_GetBasisChange(IK_Segment *seg, float basis_change[][3])
 	if (qseg->Translational() && qseg->Composite())
 		qseg = qseg->Composite();
 
-	const MT_Matrix3x3& change = qseg->BasisChange();
+	const Matrix3d& change = qseg->BasisChange();
 
-	// convert from moto row major to blender column major
-	basis_change[0][0] = (float)change[0][0];
-	basis_change[1][0] = (float)change[0][1];
-	basis_change[2][0] = (float)change[0][2];
-	basis_change[0][1] = (float)change[1][0];
-	basis_change[1][1] = (float)change[1][1];
-	basis_change[2][1] = (float)change[1][2];
-	basis_change[0][2] = (float)change[2][0];
-	basis_change[1][2] = (float)change[2][1];
-	basis_change[2][2] = (float)change[2][2];
+	// convert to blender column major
+	basis_change[0][0] = (float)change(0, 0);
+	basis_change[1][0] = (float)change(0, 1);
+	basis_change[2][0] = (float)change(0, 2);
+	basis_change[0][1] = (float)change(1, 0);
+	basis_change[1][1] = (float)change(1, 1);
+	basis_change[2][1] = (float)change(1, 2);
+	basis_change[0][2] = (float)change(2, 0);
+	basis_change[1][2] = (float)change(2, 1);
+	basis_change[2][2] = (float)change(2, 2);
 }
 
 void IK_GetTranslationChange(IK_Segment *seg, float *translation_change)
@@ -251,7 +251,7 @@ void IK_GetTranslationChange(IK_Segment *seg, float *translation_change)
 	if (!qseg->Translational() && qseg->Composite())
 		qseg = qseg->Composite();
 	
-	const MT_Vector3& change = qseg->TranslationChange();
+	const Vector3d& change = qseg->TranslationChange();
 
 	translation_change[0] = (float)change[0];
 	translation_change[1] = (float)change[1];
@@ -296,7 +296,7 @@ void IK_SolverAddGoal(IK_Solver *solver, IK_Segment *tip, float goal[3], float w
 	if (qtip->Composite())
 		qtip = qtip->Composite();
 
-	MT_Vector3 pos(goal);
+	Vector3d pos(goal[0], goal[1], goal[2]);
 
 	IK_QTask *ee = new IK_QPositionTask(true, qtip, pos);
 	ee->SetWeight(weight);
@@ -315,10 +315,10 @@ void IK_SolverAddGoalOrientation(IK_Solver *solver, IK_Segment *tip, float goal[
 	if (qtip->Composite())
 		qtip = qtip->Composite();
 
-	// convert from blender column major to moto row major
-	MT_Matrix3x3 rot(goal[0][0], goal[1][0], goal[2][0],
-	                 goal[0][1], goal[1][1], goal[2][1],
-	                 goal[0][2], goal[1][2], goal[2][2]);
+	// convert from blender column major
+	Matrix3d rot = CreateMatrix(goal[0][0], goal[1][0], goal[2][0],
+	                            goal[0][1], goal[1][1], goal[2][1],
+	                            goal[0][2], goal[1][2], goal[2][2]);
 
 	IK_QTask *orient = new IK_QOrientationTask(true, qtip, rot);
 	orient->SetWeight(weight);
@@ -337,8 +337,8 @@ void IK_SolverSetPoleVectorConstraint(IK_Solver *solver, IK_Segment *tip, float 
 	if (qtip->Composite())
 		qtip = qtip->Composite();
 
-	MT_Vector3 qgoal(goal);
-	MT_Vector3 qpolegoal(polegoal);
+	Vector3d qgoal(goal[0], goal[1], goal[2]);
+	Vector3d qpolegoal(polegoal[0], polegoal[1], polegoal[2]);
 
 	qsolver->solver.SetPoleVectorConstraint(
 	    qtip, qgoal, qpolegoal, poleangle, getangle);
@@ -363,8 +363,8 @@ static void IK_SolverAddCenterOfMass(IK_Solver *solver, IK_Segment *root, float 
 	IK_QSolver *qsolver = (IK_QSolver *)solver;
 	IK_QSegment *qroot = (IK_QSegment *)root;
 
-	// convert from blender column major to moto row major
-	MT_Vector3 center(goal);
+	// convert from blender column major
+	Vector3d center(goal);
 
 	IK_QTask *com = new IK_QCenterOfMassTask(true, qroot, center);
 	com->SetWeight(weight);
@@ -382,7 +382,7 @@ int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations)
 	IK_QSegment *root = qsolver->root;
 	IK_QJacobianSolver& jacobian = qsolver->solver;
 	std::list<IK_QTask *>& tasks = qsolver->tasks;
-	MT_Scalar tol = tolerance;
+	double tol = tolerance;
 
 	if (!jacobian.Setup(root, tasks))
 		return 0;

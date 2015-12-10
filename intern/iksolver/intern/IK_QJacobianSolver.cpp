@@ -32,8 +32,8 @@
 
 
 #include <stdio.h>
+
 #include "IK_QJacobianSolver.h"
-#include "MT_Quaternion.h"
 
 //#include "analyze.h"
 IK_QJacobianSolver::IK_QJacobianSolver()
@@ -43,10 +43,10 @@ IK_QJacobianSolver::IK_QJacobianSolver()
 	m_rootmatrix.setIdentity();
 }
 
-MT_Scalar IK_QJacobianSolver::ComputeScale()
+double IK_QJacobianSolver::ComputeScale()
 {
 	std::vector<IK_QSegment *>::iterator seg;
-	MT_Scalar length = 0.0f;
+	double length = 0.0f;
 
 	for (seg = m_segments.begin(); seg != m_segments.end(); seg++)
 		length += (*seg)->MaxExtension();
@@ -57,7 +57,7 @@ MT_Scalar IK_QJacobianSolver::ComputeScale()
 		return 1.0 / length;
 }
 
-void IK_QJacobianSolver::Scale(MT_Scalar scale, std::list<IK_QTask *>& tasks)
+void IK_QJacobianSolver::Scale(double scale, std::list<IK_QTask *>& tasks)
 {
 	std::list<IK_QTask *>::iterator task;
 	std::vector<IK_QSegment *>::iterator seg;
@@ -68,7 +68,7 @@ void IK_QJacobianSolver::Scale(MT_Scalar scale, std::list<IK_QTask *>& tasks)
 	for (seg = m_segments.begin(); seg != m_segments.end(); seg++)
 		(*seg)->Scale(scale);
 	
-	m_rootmatrix.getOrigin() *= scale;
+	m_rootmatrix.translation() *= scale;
 	m_goal *= scale;
 	m_polegoal *= scale;
 }
@@ -102,7 +102,7 @@ bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask *>& tasks)
 	// compute task id's and assing weights to task
 	int primary_size = 0, primary = 0;
 	int secondary_size = 0, secondary = 0;
-	MT_Scalar primary_weight = 0.0, secondary_weight = 0.0;
+	double primary_weight = 0.0, secondary_weight = 0.0;
 	std::list<IK_QTask *>::iterator task;
 
 	for (task = tasks.begin(); task != tasks.end(); task++) {
@@ -122,15 +122,15 @@ bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask *>& tasks)
 		}
 	}
 
-	if (primary_size == 0 || MT_fuzzyZero(primary_weight))
+	if (primary_size == 0 || FuzzyZero(primary_weight))
 		return false;
 
 	m_secondary_enabled = (secondary > 0);
 	
 	// rescale weights of tasks to sum up to 1
-	MT_Scalar primary_rescale = 1.0 / primary_weight;
-	MT_Scalar secondary_rescale;
-	if (MT_fuzzyZero(secondary_weight))
+	double primary_rescale = 1.0 / primary_weight;
+	double secondary_rescale;
+	if (FuzzyZero(secondary_weight))
 		secondary_rescale = 0.0;
 	else
 		secondary_rescale = 1.0 / secondary_weight;
@@ -159,7 +159,7 @@ bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask *>& tasks)
 	return true;
 }
 
-void IK_QJacobianSolver::SetPoleVectorConstraint(IK_QSegment *tip, MT_Vector3& goal, MT_Vector3& polegoal, float poleangle, bool getangle)
+void IK_QJacobianSolver::SetPoleVectorConstraint(IK_QSegment *tip, Vector3d& goal, Vector3d& polegoal, float poleangle, bool getangle)
 {
 	m_poleconstraint = true;
 	m_poletip = tip;
@@ -167,27 +167,6 @@ void IK_QJacobianSolver::SetPoleVectorConstraint(IK_QSegment *tip, MT_Vector3& g
 	m_polegoal = polegoal;
 	m_poleangle = (getangle) ? 0.0f : poleangle;
 	m_getpoleangle = getangle;
-}
-
-static MT_Scalar safe_acos(MT_Scalar f)
-{
-	// acos that does not return NaN with rounding errors
-	if (f <= -1.0) return MT_PI;
-	else if (f >= 1.0) return 0.0;
-	else return acos(f);
-}
-
-static MT_Vector3 normalize(const MT_Vector3& v)
-{
-	// a sane normalize function that doesn't give (1, 0, 0) in case
-	// of a zero length vector, like MT_Vector3.normalize
-	MT_Scalar len = v.length();
-	return MT_fuzzyZero(len) ?  MT_Vector3(0, 0, 0) : v / len;
-}
-
-static float angle(const MT_Vector3& v1, const MT_Vector3& v2)
-{
-	return safe_acos(v1.dot(v2));
 }
 
 void IK_QJacobianSolver::ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTask *>& tasks)
@@ -215,37 +194,38 @@ void IK_QJacobianSolver::ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTa
 	// get positions and rotations
 	root->UpdateTransform(m_rootmatrix);
 
-	const MT_Vector3 rootpos = root->GlobalStart();
-	const MT_Vector3 endpos = m_poletip->GlobalEnd();
-	const MT_Matrix3x3& rootbasis = root->GlobalTransform().getBasis();
+	const Vector3d rootpos = root->GlobalStart();
+	const Vector3d endpos = m_poletip->GlobalEnd();
+	const Matrix3d& rootbasis = root->GlobalTransform().linear();
 
 	// construct "lookat" matrices (like gluLookAt), based on a direction and
 	// an up vector, with the direction going from the root to the end effector
 	// and the up vector going from the root to the pole constraint position.
-	MT_Vector3 dir = normalize(endpos - rootpos);
-	MT_Vector3 rootx = rootbasis.getColumn(0);
-	MT_Vector3 rootz = rootbasis.getColumn(2);
-	MT_Vector3 up = rootx * cos(m_poleangle) + rootz *sin(m_poleangle);
+	Vector3d dir = normalize(endpos - rootpos);
+	Vector3d rootx = rootbasis.col(0);
+	Vector3d rootz = rootbasis.col(2);
+	Vector3d up = rootx * cos(m_poleangle) + rootz *sin(m_poleangle);
 
 	// in post, don't rotate towards the goal but only correct the pole up
-	MT_Vector3 poledir = (m_getpoleangle) ? dir : normalize(m_goal - rootpos);
-	MT_Vector3 poleup = normalize(m_polegoal - rootpos);
+	Vector3d poledir = (m_getpoleangle) ? dir : normalize(m_goal - rootpos);
+	Vector3d poleup = normalize(m_polegoal - rootpos);
 
-	MT_Matrix3x3 mat, polemat;
+	Matrix3d mat, polemat;
 
-	mat[0] = normalize(MT_cross(dir, up));
-	mat[1] = MT_cross(mat[0], dir);
-	mat[2] = -dir;
+	mat.row(0) = normalize(dir.cross(up));
+	mat.row(1) = mat.row(0).cross(dir);
+	mat.row(2) = -dir;
 
-	polemat[0] = normalize(MT_cross(poledir, poleup));
-	polemat[1] = MT_cross(polemat[0], poledir);
-	polemat[2] = -poledir;
+	polemat.row(0) = normalize(poledir.cross(poleup));
+	polemat.row(1) = polemat.row(0).cross(poledir);
+	polemat.row(2) = -poledir;
 
 	if (m_getpoleangle) {
 		// we compute the pole angle that to rotate towards the target
-		m_poleangle = angle(mat[1], polemat[1]);
+		m_poleangle = angle(mat.row(1), polemat.row(1));
 
-		if (rootz.dot(mat[1] * cos(m_poleangle) + mat[0] * sin(m_poleangle)) > 0.0)
+		double dt = rootz.dot(mat.row(1) * cos(m_poleangle) + mat.row(0) * sin(m_poleangle));
+		if (dt > 0.0)
 			m_poleangle = -m_poleangle;
 
 		// solve again, with the pole angle we just computed
@@ -257,18 +237,20 @@ void IK_QJacobianSolver::ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTa
 		// desired rotation based on the pole vector constraint. we use
 		// transpose instead of inverse because we have orthogonal matrices
 		// anyway, and in case of a singular matrix we don't get NaN's.
-		MT_Transform trans(MT_Point3(0, 0, 0), polemat.transposed() * mat);
+		Affine3d trans;
+		trans.linear() = polemat.transpose() * mat;
+		trans.translation() = Vector3d(0, 0, 0);
 		m_rootmatrix = trans * m_rootmatrix;
 	}
 }
 
-bool IK_QJacobianSolver::UpdateAngles(MT_Scalar& norm)
+bool IK_QJacobianSolver::UpdateAngles(double& norm)
 {
 	// assing each segment a unique id for the jacobian
 	std::vector<IK_QSegment *>::iterator seg;
 	IK_QSegment *qseg, *minseg = NULL;
-	MT_Scalar minabsdelta = 1e10, absdelta;
-	MT_Vector3 delta, mindelta;
+	double minabsdelta = 1e10, absdelta;
+	Vector3d delta, mindelta;
 	bool locked = false, clamp[3];
 	int i, mindof = 0;
 
@@ -280,9 +262,9 @@ bool IK_QJacobianSolver::UpdateAngles(MT_Scalar& norm)
 		if (qseg->UpdateAngle(m_jacobian, delta, clamp)) {
 			for (i = 0; i < qseg->NumberOfDoF(); i++) {
 				if (clamp[i] && !qseg->Locked(i)) {
-					absdelta = MT_abs(delta[i]);
+					absdelta = fabs(delta[i]);
 
-					if (absdelta < MT_EPSILON) {
+					if (absdelta < IK_EPSILON) {
 						qseg->Lock(i, m_jacobian, delta);
 						locked = true;
 					}
@@ -320,7 +302,7 @@ bool IK_QJacobianSolver::UpdateAngles(MT_Scalar& norm)
 bool IK_QJacobianSolver::Solve(
     IK_QSegment *root,
     std::list<IK_QTask *> tasks,
-    const MT_Scalar,
+    const double,
     const int max_iterations
     )
 {
@@ -349,7 +331,7 @@ bool IK_QJacobianSolver::Solve(
 				(*task)->ComputeJacobian(m_jacobian_sub);
 		}
 
-		MT_Scalar norm = 0.0;
+		double norm = 0.0;
 
 		do {
 			// invert jacobian
@@ -372,7 +354,7 @@ bool IK_QJacobianSolver::Solve(
 			(*seg)->UnLock();
 
 		// compute angle update norm
-		MT_Scalar maxnorm = m_jacobian.AngleUpdateNorm();
+		double maxnorm = m_jacobian.AngleUpdateNorm();
 		if (maxnorm > norm)
 			norm = maxnorm;
 
@@ -384,7 +366,7 @@ bool IK_QJacobianSolver::Solve(
 	}
 
 	if (m_poleconstraint)
-		root->PrependBasis(m_rootmatrix.getBasis());
+		root->PrependBasis(m_rootmatrix.linear());
 
 	Scale(1.0f / scale, tasks);
 

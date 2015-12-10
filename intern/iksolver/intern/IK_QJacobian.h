@@ -31,39 +31,36 @@
  *  \ingroup iksolver
  */
 
-
-#ifndef __IK_QJACOBIAN_H__
-
-#define __IK_QJACOBIAN_H__
+#pragma once
 
 #include "TNT/cmat.h"
 #include <vector>
-#include "MT_Vector3.h"
+#include "IK_Math.h"
 
 class IK_QJacobian
 {
 public:
-	typedef TNT::Matrix<MT_Scalar> TMatrix;
-	typedef TNT::Vector<MT_Scalar> TVector;
+	typedef TNT::Matrix<double> TMatrix;
+	typedef TNT::Vector<double> TVector;
 
 	IK_QJacobian();
 	~IK_QJacobian();
 
 	// Call once to initialize
 	void ArmMatrices(int dof, int task_size);
-	void SetDoFWeight(int dof, MT_Scalar weight);
+	void SetDoFWeight(int dof, double weight);
 
 	// Iteratively called
-	void SetBetas(int id, int size, const MT_Vector3& v);
-	void SetDerivatives(int id, int dof_id, const MT_Vector3& v, MT_Scalar norm_weight);
+	void SetBetas(int id, int size, const Vector3d& v);
+	void SetDerivatives(int id, int dof_id, const Vector3d& v, double norm_weight);
 
 	void Invert();
 
-	MT_Scalar AngleUpdate(int dof_id) const;
-	MT_Scalar AngleUpdateNorm() const;
+	double AngleUpdate(int dof_id) const;
+	double AngleUpdateNorm() const;
 
 	// DoF locking for inner clamping loop
-	void Lock(int dof_id, MT_Scalar delta);
+	void Lock(int dof_id, double delta);
 
 	// Secondary task
 	bool ComputeNullProjection();
@@ -106,7 +103,7 @@ private:
 	bool m_sdls;
 	TVector m_norm;
 	TVector m_d_theta_tmp;
-	MT_Scalar m_min_damp;
+	double m_min_damp;
 
 	// null space task vector
 	TVector m_alpha;
@@ -115,6 +112,4 @@ private:
 	TVector m_weight;
 	TVector m_weight_sqrt;
 };
-
-#endif
 

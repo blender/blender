@@ -29,7 +29,7 @@ set(INC
 )
 
 set(INC_SYS
-	../moto/include
+	${EIGEN3_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -38,14 +38,12 @@ set(SRC
 	intern/IK_QSegment.cpp
 	intern/IK_QTask.cpp
 	intern/IK_Solver.cpp
-	intern/MT_ExpMap.cpp
 
 	extern/IK_solver.h
 	intern/IK_QJacobian.h
 	intern/IK_QJacobianSolver.h
 	intern/IK_QSegment.h
 	intern/IK_QTask.h
-	intern/MT_ExpMap.h
 	intern/TNT/cholesky.h
 	intern/TNT/cmat.h
 	intern/TNT/fcscmat.h
