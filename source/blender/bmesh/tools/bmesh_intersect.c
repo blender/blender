@@ -147,21 +147,20 @@ static bool ghash_insert_link(
         GHash *gh, void *key, void *val, bool use_test,
         MemArena *mem_arena)
 {
+	void           **ls_base_p;
 	struct LinkBase *ls_base;
 	LinkNode *ls;
 
-	ls_base = BLI_ghash_lookup(gh, key);
-
-	if (ls_base) {
+	if (!BLI_ghash_ensure_p(gh, key, &ls_base_p)) {
+		ls_base = *ls_base_p = BLI_memarena_alloc(mem_arena, sizeof(*ls_base));
+		ls_base->list     = NULL;
+		ls_base->list_len = 0;
+	}
+	else {
+		ls_base = *ls_base_p;
 		if (use_test && (BLI_linklist_index(ls_base->list, key) != -1)) {
 			return false;
 		}
-	}
-	else {
-		ls_base = BLI_memarena_alloc(mem_arena, sizeof(*ls_base));
-		ls_base->list     = NULL;
-		ls_base->list_len = 0;
-		BLI_ghash_insert(gh, key, ls_base);
 	}
 
 	ls = BLI_memarena_alloc(mem_arena, sizeof(*ls));
