@@ -90,7 +90,9 @@ extern "C" {
 #endif
 
 /* defines for using ISO C++ conformant names */
-#define snprintf _snprintf
+#if !defined(_MSC_VER) || _MSC_VER < 1900
+#  define snprintf _snprintf
+#endif
 
 #if defined(_MSC_VER) || (defined(FREE_WINDOWS) && !defined(FREE_WINDOWS64))
 #  define	R_OK	4
