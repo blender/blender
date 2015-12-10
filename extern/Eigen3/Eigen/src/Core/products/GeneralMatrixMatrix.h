@@ -140,8 +140,14 @@ static void run(Index rows, Index cols, Index depth,
       // Release all the sub blocks B'_j of B' for the current thread,
       // i.e., we simply decrement the number of users by 1
       for(Index j=0; j<threads; ++j)
+      {
         #pragma omp atomic
+#if defined(_MSC_VER) && _MSC_VER >= 1900
+		(info[j].users) -= 1;
+#else
         --(info[j].users);
+#endif
+      }
     }
   }
   else
