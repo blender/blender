@@ -33,16 +33,11 @@
 
 #pragma once
 
-#include "TNT/cmat.h"
-#include <vector>
 #include "IK_Math.h"
 
 class IK_QJacobian
 {
 public:
-	typedef TNT::Matrix<double> TMatrix;
-	typedef TNT::Vector<double> TVector;
-
 	IK_QJacobian();
 	~IK_QJacobian();
 
@@ -65,7 +60,7 @@ public:
 	// Secondary task
 	bool ComputeNullProjection();
 
-	void Restrict(TVector& d_theta, TMatrix& null);
+	void Restrict(VectorXd& d_theta, MatrixXd& nullspace);
 	void SubTask(IK_QJacobian& jacobian);
 
 private:
@@ -77,39 +72,35 @@ private:
 	bool m_transpose;
 
 	// the jacobian matrix and it's null space projector
-	TMatrix m_jacobian, m_jacobian_tmp;
-	TMatrix m_null;
+	MatrixXd m_jacobian, m_jacobian_tmp;
+	MatrixXd m_nullspace;
 
 	/// the vector of intermediate betas
-	TVector m_beta;
+	VectorXd m_beta;
 
 	/// the vector of computed angle changes
-	TVector m_d_theta;
-	TVector m_d_norm_weight;
+	VectorXd m_d_theta;
+	VectorXd m_d_norm_weight;
 
 	/// space required for SVD computation
+	VectorXd m_svd_w;
+	MatrixXd m_svd_v;
+	MatrixXd m_svd_u;
 
-	TVector m_svd_w;
-	TMatrix m_svd_v;
-	TMatrix m_svd_u;
-    TVector m_work1;
-    TVector m_work2;
-
-	TMatrix m_svd_u_t;
-	TVector m_svd_u_beta;
+	VectorXd m_svd_u_beta;
 
 	// space required for SDLS
 
 	bool m_sdls;
-	TVector m_norm;
-	TVector m_d_theta_tmp;
+	VectorXd m_norm;
+	VectorXd m_d_theta_tmp;
 	double m_min_damp;
 
 	// null space task vector
-	TVector m_alpha;
+	VectorXd m_alpha;
 
 	// dof weighting
-	TVector m_weight;
-	TVector m_weight_sqrt;
+	VectorXd m_weight;
+	VectorXd m_weight_sqrt;
 };
 

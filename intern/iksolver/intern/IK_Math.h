@@ -33,9 +33,11 @@
 
 #include <cmath>
 
-using Eigen::Matrix3d;
-using Eigen::Vector3d;
 using Eigen::Affine3d;
+using Eigen::Matrix3d;
+using Eigen::MatrixXd;
+using Eigen::Vector3d;
+using Eigen::VectorXd;
 
 static const double IK_EPSILON = 1e-20;
 

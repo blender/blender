@@ -32,7 +32,6 @@
 
 
 #include "IK_QJacobian.h"
-#include "TNT/svd.h"
 
 IK_QJacobian::IK_QJacobian()
 	: m_sdls(true), m_min_damp(1.0)
@@ -48,59 +47,51 @@ void IK_QJacobian::ArmMatrices(int dof, int task_size)
 	m_dof = dof;
 	m_task_size = task_size;
 
-	m_jacobian.newsize(task_size, dof);
-	m_jacobian = 0;
+	m_jacobian.resize(task_size, dof);
+	m_jacobian.setZero();
 
-	m_alpha.newsize(dof);
-	m_alpha = 0;
+	m_alpha.resize(dof);
+	m_alpha.setZero();
 
-	m_null.newsize(dof, dof);
+	m_nullspace.resize(dof, dof);
 
-	m_d_theta.newsize(dof);
-	m_d_theta_tmp.newsize(dof);
-	m_d_norm_weight.newsize(dof);
+	m_d_theta.resize(dof);
+	m_d_theta_tmp.resize(dof);
+	m_d_norm_weight.resize(dof);
 
-	m_norm.newsize(dof);
-	m_norm = 0.0;
+	m_norm.resize(dof);
+	m_norm.setZero();
 
-	m_beta.newsize(task_size);
+	m_beta.resize(task_size);
 
-	m_weight.newsize(dof);
-	m_weight_sqrt.newsize(dof);
-	m_weight = 1.0;
-	m_weight_sqrt = 1.0;
+	m_weight.resize(dof);
+	m_weight_sqrt.resize(dof);
+	m_weight.setOnes();
+	m_weight_sqrt.setOnes();
 
 	if (task_size >= dof) {
 		m_transpose = false;
 
-		m_jacobian_tmp.newsize(task_size, dof);
+		m_jacobian_tmp.resize(task_size, dof);
 
-		m_svd_u.newsize(task_size, dof);
-		m_svd_v.newsize(dof, dof);
-		m_svd_w.newsize(dof);
+		m_svd_u.resize(task_size, dof);
+		m_svd_v.resize(dof, dof);
+		m_svd_w.resize(dof);
 
-		m_work1.newsize(task_size);
-		m_work2.newsize(dof);
-
-		m_svd_u_t.newsize(dof, task_size);
-		m_svd_u_beta.newsize(dof);
+		m_svd_u_beta.resize(dof);
 	}
 	else {
 		// use the SVD of the transpose jacobian, it works just as well
 		// as the original, and often allows using smaller matrices.
 		m_transpose = true;
 
-		m_jacobian_tmp.newsize(dof, task_size);
+		m_jacobian_tmp.resize(dof, task_size);
 
-		m_svd_u.newsize(task_size, task_size);
-		m_svd_v.newsize(dof, task_size);
-		m_svd_w.newsize(task_size);
+		m_svd_u.resize(task_size, task_size);
+		m_svd_v.resize(dof, task_size);
+		m_svd_w.resize(task_size);
 
-		m_work1.newsize(dof);
-		m_work2.newsize(task_size);
-
-		m_svd_u_t.newsize(task_size, task_size);
-		m_svd_u_beta.newsize(task_size);
+		m_svd_u_beta.resize(task_size);
 	}
 }
 
@@ -113,9 +104,9 @@ void IK_QJacobian::SetBetas(int id, int, const Vector3d& v)
 
 void IK_QJacobian::SetDerivatives(int id, int dof_id, const Vector3d& v, double norm_weight)
 {
-	m_jacobian[id + 0][dof_id] = v.x() * m_weight_sqrt[dof_id];
-	m_jacobian[id + 1][dof_id] = v.y() * m_weight_sqrt[dof_id];
-	m_jacobian[id + 2][dof_id] = v.z() * m_weight_sqrt[dof_id];
+	m_jacobian(id + 0, dof_id) = v.x() * m_weight_sqrt[dof_id];
+	m_jacobian(id + 1, dof_id) = v.y() * m_weight_sqrt[dof_id];
+	m_jacobian(id + 2, dof_id) = v.z() * m_weight_sqrt[dof_id];
 
 	m_d_norm_weight[dof_id] = norm_weight;
 }
@@ -125,14 +116,18 @@ void IK_QJacobian::Invert()
 	if (m_transpose) {
 		// SVD will decompose Jt into V*W*Ut with U,V orthogonal and W diagonal,
 		// so J = U*W*Vt and Jinv = V*Winv*Ut
-		TNT::transpose(m_jacobian, m_jacobian_tmp);
-		TNT::SVD(m_jacobian_tmp, m_svd_v, m_svd_w, m_svd_u, m_work1, m_work2);
+		Eigen::JacobiSVD<MatrixXd> svd(m_jacobian.transpose(), Eigen::ComputeThinU | Eigen::ComputeThinV);
+		m_svd_u = svd.matrixV();
+		m_svd_w = svd.singularValues();
+		m_svd_v = svd.matrixU();
 	}
 	else {
 		// SVD will decompose J into U*W*Vt with U,V orthogonal and W diagonal,
 		// so Jinv = V*Winv*Ut
-		m_jacobian_tmp = m_jacobian;
-		TNT::SVD(m_jacobian_tmp, m_svd_u, m_svd_w, m_svd_v, m_work1, m_work2);
+		Eigen::JacobiSVD<MatrixXd> svd(m_jacobian, Eigen::ComputeThinU | Eigen::ComputeThinV);
+		m_svd_u = svd.matrixU();
+		m_svd_w = svd.singularValues();
+		m_svd_v = svd.matrixV();
 	}
 
 	if (m_sdls)
@@ -154,26 +149,24 @@ bool IK_QJacobian::ComputeNullProjection()
 	if (rank < m_task_size)
 		return false;
 
-	TMatrix basis(m_svd_v.num_rows(), rank);
-	TMatrix basis_t(rank, m_svd_v.num_rows());
+	MatrixXd basis(m_svd_v.rows(), rank);
 	int b = 0;
 
 	for (i = 0; i < m_svd_w.size(); i++)
 		if (m_svd_w[i] > epsilon) {
-			for (j = 0; j < m_svd_v.num_rows(); j++)
-				basis[j][b] = m_svd_v[j][i];
+			for (j = 0; j < m_svd_v.rows(); j++)
+				basis(j, b) = m_svd_v(j, i);
 			b++;
 		}
 	
-	TNT::transpose(basis, basis_t);
-	TNT::matmult(m_null, basis, basis_t);
+	m_nullspace = basis * basis.transpose();
 
-	for (i = 0; i < m_null.num_rows(); i++)
-		for (j = 0; j < m_null.num_cols(); j++)
+	for (i = 0; i < m_nullspace.rows(); i++)
+		for (j = 0; j < m_nullspace.cols(); j++)
 			if (i == j)
-				m_null[i][j] = 1.0 - m_null[i][j];
+				m_nullspace(i, j) = 1.0 - m_nullspace(i, j);
 			else
-				m_null[i][j] = -m_null[i][j];
+				m_nullspace(i, j) = -m_nullspace(i, j);
 	
 	return true;
 }
@@ -184,7 +177,7 @@ void IK_QJacobian::SubTask(IK_QJacobian& jacobian)
 		return;
 
 	// restrict lower priority jacobian
-	jacobian.Restrict(m_d_theta, m_null);
+	jacobian.Restrict(m_d_theta, m_nullspace);
 
 	// add angle update from lower priority
 	jacobian.Invert();
@@ -197,19 +190,15 @@ void IK_QJacobian::SubTask(IK_QJacobian& jacobian)
 		m_d_theta[i] = m_d_theta[i] + /*m_min_damp * */ jacobian.AngleUpdate(i);
 }
 
-void IK_QJacobian::Restrict(TVector& d_theta, TMatrix& null)
+void IK_QJacobian::Restrict(VectorXd& d_theta, MatrixXd& nullspace)
 {
 	// subtract part already moved by higher task from beta
-	TVector beta_sub(m_beta.size());
-
-	TNT::matmult(beta_sub, m_jacobian, d_theta);
-	m_beta = m_beta - beta_sub;
+	m_beta = m_beta - m_jacobian * d_theta;
 
 	// note: should we be using the norm of the unrestricted jacobian for SDLS?
 	
 	// project jacobian on to null space of higher priority task
-	TMatrix jacobian_copy(m_jacobian);
-	TNT::matmult(m_jacobian, jacobian_copy, null);
+	m_jacobian = m_jacobian * nullspace;
 }
 
 void IK_QJacobian::InvertSDLS()
@@ -234,16 +223,16 @@ void IK_QJacobian::InvertSDLS()
 	double epsilon = 1e-10;
 	int i, j;
 
-	m_d_theta = 0;
+	m_d_theta.setZero();
 	m_min_damp = 1.0;
 
 	for (i = 0; i < m_dof; i++) {
 		m_norm[i] = 0.0;
 		for (j = 0; j < m_task_size; j += 3) {
 			double n = 0.0;
-			n += m_jacobian[j][i] * m_jacobian[j][i];
-			n += m_jacobian[j + 1][i] * m_jacobian[j + 1][i];
-			n += m_jacobian[j + 2][i] * m_jacobian[j + 2][i];
+			n += m_jacobian(j, i) * m_jacobian(j, i);
+			n += m_jacobian(j + 1, i) * m_jacobian(j + 1, i);
+			n += m_jacobian(j + 2, i) * m_jacobian(j + 2, i);
 			m_norm[i] += sqrt(n);
 		}
 	}
@@ -257,17 +246,17 @@ void IK_QJacobian::InvertSDLS()
 		double N = 0.0;
 
 		// compute alpha and N
-		for (j = 0; j < m_svd_u.num_rows(); j += 3) {
-			alpha += m_svd_u[j][i] * m_beta[j];
-			alpha += m_svd_u[j + 1][i] * m_beta[j + 1];
-			alpha += m_svd_u[j + 2][i] * m_beta[j + 2];
+		for (j = 0; j < m_svd_u.rows(); j += 3) {
+			alpha += m_svd_u(j, i) * m_beta[j];
+			alpha += m_svd_u(j + 1, i) * m_beta[j + 1];
+			alpha += m_svd_u(j + 2, i) * m_beta[j + 2];
 
 			// note: for 1 end effector, N will always be 1, since U is
 			// orthogonal, .. so could be optimized
 			double tmp;
-			tmp = m_svd_u[j][i] * m_svd_u[j][i];
-			tmp += m_svd_u[j + 1][i] * m_svd_u[j + 1][i];
-			tmp += m_svd_u[j + 2][i] * m_svd_u[j + 2][i];
+			tmp = m_svd_u(j, i) * m_svd_u(j, i);
+			tmp += m_svd_u(j + 1, i) * m_svd_u(j + 1, i);
+			tmp += m_svd_u(j + 2, i) * m_svd_u(j + 2, i);
 			N += sqrt(tmp);
 		}
 		alpha *= wInv;
@@ -277,7 +266,7 @@ void IK_QJacobian::InvertSDLS()
 		double max_dtheta = 0.0, abs_dtheta;
 
 		for (j = 0; j < m_d_theta.size(); j++) {
-			double v = m_svd_v[j][i];
+			double v = m_svd_v(j, i);
 			M += fabs(v) * m_norm[j];
 
 			// compute tmporary dTheta's
@@ -355,7 +344,7 @@ void IK_QJacobian::InvertDLS()
 
 	double epsilon = 1e-10;
 	double max_angle_change = 0.1;
-	double x_length = sqrt(TNT::dot_prod(m_beta, m_beta));
+	double x_length = sqrt(m_beta.dot(m_beta));
 
 	int i, j;
 	double w_min = std::numeric_limits<double>::max();
@@ -386,10 +375,9 @@ void IK_QJacobian::InvertDLS()
 	// rather than matrix*matrix products
 
 	// compute Ut*Beta
-	TNT::transpose(m_svd_u, m_svd_u_t);
-	TNT::matmult(m_svd_u_beta, m_svd_u_t, m_beta);
+	m_svd_u_beta = m_svd_u.transpose() * m_beta;
 
-	m_d_theta = 0.0;
+	m_d_theta.setZero();
 
 	for (i = 0; i < m_svd_w.size(); i++) {
 		if (m_svd_w[i] > epsilon) {
@@ -399,7 +387,7 @@ void IK_QJacobian::InvertDLS()
 			m_svd_u_beta[i] *= wInv;
 
 			for (j = 0; j < m_d_theta.size(); j++)
-				m_d_theta[j] += m_svd_v[j][i] * m_svd_u_beta[i];
+				m_d_theta[j] += m_svd_v(j, i) * m_svd_u_beta[i];
 		}
 	}
 
@@ -412,8 +400,8 @@ void IK_QJacobian::Lock(int dof_id, double delta)
 	int i;
 
 	for (i = 0; i < m_task_size; i++) {
-		m_beta[i] -= m_jacobian[i][dof_id] * delta;
-		m_jacobian[i][dof_id] = 0.0;
+		m_beta[i] -= m_jacobian(i, dof_id) * delta;
+		m_jacobian(i, dof_id) = 0.0;
 	}
 
 	m_norm[dof_id] = 0.0; // unneeded
