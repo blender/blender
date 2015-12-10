@@ -163,7 +163,7 @@ set(SRC
 )
 
 if(MSVC)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX /wd4101")
 endif()
 
 if(WITH_BULLET)
