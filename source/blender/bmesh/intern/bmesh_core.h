@@ -58,6 +58,8 @@ BMFace *BM_face_create_verts(
 void    BM_face_edges_kill(BMesh *bm, BMFace *f);
 void    BM_face_verts_kill(BMesh *bm, BMFace *f);
 
+void    BM_face_kill_loose(BMesh *bm, BMFace *f);
+
 void    BM_face_kill(BMesh *bm, BMFace *f);
 void    BM_edge_kill(BMesh *bm, BMEdge *e);
 void    BM_vert_kill(BMesh *bm, BMVert *v);

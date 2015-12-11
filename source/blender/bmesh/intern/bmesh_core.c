@@ -823,6 +823,66 @@ void BM_face_kill(BMesh *bm, BMFace *f)
 
 	bm_kill_only_face(bm, f);
 }
+
+/**
+ * A version of #BM_face_kill which removes edges and verts
+ * which have no remaining connected geometry.
+ */
+void BM_face_kill_loose(BMesh *bm, BMFace *f)
+{
+#ifdef USE_BMESH_HOLES
+	BMLoopList *ls, *ls_next;
+#endif
+
+	BM_CHECK_ELEMENT(f);
+
+#ifdef USE_BMESH_HOLES
+	for (ls = f->loops.first; ls; ls = ls_next)
+#else
+	if (f->l_first)
+#endif
+	{
+		BMLoop *l_iter, *l_next, *l_first;
+
+#ifdef USE_BMESH_HOLES
+		ls_next = ls->next;
+		l_iter = l_first = ls->first;
+#else
+		l_iter = l_first = f->l_first;
+#endif
+
+		do {
+			BMEdge *e;
+			l_next = l_iter->next;
+
+			e = l_iter->e;
+			bmesh_radial_loop_remove(l_iter, e);
+			bm_kill_only_loop(bm, l_iter);
+
+			if (e->l == NULL) {
+				BMVert *v1 = e->v1, *v2 = e->v2;
+
+				bmesh_disk_edge_remove(e, e->v1);
+				bmesh_disk_edge_remove(e, e->v2);
+				bm_kill_only_edge(bm, e);
+
+				if (v1->e == NULL) {
+					bm_kill_only_vert(bm, v1);
+				}
+				if (v2->e == NULL) {
+					bm_kill_only_vert(bm, v2);
+				}
+			}
+		} while ((l_iter = l_next) != l_first);
+
+#ifdef USE_BMESH_HOLES
+		BLI_mempool_free(bm->looplistpool, ls);
+#endif
+	}
+
+	bm_kill_only_face(bm, f);
+}
+
 /**
  * kills \a e and all faces that use it.
  */
