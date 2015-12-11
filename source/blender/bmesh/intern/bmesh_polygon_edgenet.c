@@ -631,6 +631,8 @@ struct EdgeGroupIsland {
 	 * the lower vertex is connected to the first edge */
 	struct {
 		BMVert *min, *max;
+		/* used for sorting only */
+		float min_axis;
 	} vert_span;
 };
 
@@ -638,8 +640,9 @@ static int group_min_cmp_fn(const void *p1, const void *p2)
 {
 	const struct EdgeGroupIsland *g1 = *(struct EdgeGroupIsland **)p1;
 	const struct EdgeGroupIsland *g2 = *(struct EdgeGroupIsland **)p2;
-	const float f1 = g1->vert_span.min->co[SORT_AXIS];
-	const float f2 = g2->vert_span.min->co[SORT_AXIS];
+	/* min->co[SORT_AXIS] hasn't been applied yet */
+	const float f1 = g1->vert_span.min_axis;
+	const float f2 = g2->vert_span.min_axis;
 
 	if (f1 < f2) return -1;
 	if (f1 > f2) return  1;
@@ -1022,6 +1025,9 @@ bool BM_face_split_edgenet_connect_islands(
 	 * other per-group data.
 	 */
 
+	float axis_mat[3][3];
+	axis_dominant_v3_to_m3(axis_mat, f->no);
+
 #define VERT_IN_ARRAY BM_ELEM_INTERNAL_TAG
 
 	struct EdgeGroupIsland **group_arr = BLI_memarena_alloc(mem_arena, sizeof(*group_arr) * group_arr_len);
@@ -1037,6 +1043,8 @@ bool BM_face_split_edgenet_connect_islands(
 			/* init with *any* different verts */
 			g->vert_span.min = ((BMEdge *)edge_links->link)->v1;
 			g->vert_span.max = ((BMEdge *)edge_links->link)->v2;
+			float min_axis =  FLT_MAX;
+			float max_axis = -FLT_MAX;
 
 			do {
 				BMEdge *e = edge_links->link;
@@ -1045,16 +1053,26 @@ bool BM_face_split_edgenet_connect_islands(
 				for (int j = 0; j < 2; j++) {
 					BMVert *v_iter = (&e->v1)[j];
 					BLI_assert(v_iter->head.htype == BM_VERT);
-					const float axis_value = v_iter->co[SORT_AXIS];
+					/* ideally we could use 'v_iter->co[SORT_AXIS]' here,
+					 * but we need to sort the groups before setting the vertex array order */
+#if SORT_AXIS == 0
+					const float axis_value = dot_m3_v3_row_x(axis_mat, v_iter->co);
+#else
+					const float axis_value = dot_m3_v3_row_y(axis_mat, v_iter->co);
+#endif
 
-					if (axis_value < g->vert_span.min->co[SORT_AXIS]) {
+					if (axis_value < min_axis) {
 						g->vert_span.min = v_iter;
+						min_axis = axis_value;
 					}
-					if (axis_value > g->vert_span.max->co[SORT_AXIS]) {
+					if (axis_value > max_axis ) {
 						g->vert_span.max = v_iter;
+						max_axis  = axis_value;
 					}
 				}
 			} while ((edge_links = edge_links->next));
+
+			g->vert_span.min_axis = min_axis;
 
 			g->has_prev_edge = false;
 
@@ -1074,8 +1092,6 @@ bool BM_face_split_edgenet_connect_islands(
 	float (*vert_coords_backup)[3] = BLI_memarena_alloc(mem_arena, sizeof(*vert_coords_backup) * vert_arr_len);
 
 	{
-		float axis_mat[3][3];
-		axis_dominant_v3_to_m3(axis_mat, f->no);
 		/* relative location, for higher precision calculations */
 		const float f_co_ref[3] = {UNPACK3(BM_FACE_FIRST_LOOP(f)->v->co)};
 
