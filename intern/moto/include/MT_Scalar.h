@@ -51,7 +51,6 @@
 #include <float.h>
 
 #include "MT_random.h"
-#include "NM_Scalar.h"
 
 typedef double MT_Scalar; //this should be float !
 
