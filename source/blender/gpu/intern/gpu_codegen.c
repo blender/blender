@@ -1000,18 +1000,21 @@ void GPU_pass_bind(GPUPass *pass, double time, int mipmap)
 
 	GPU_shader_bind(shader);
 
-	/* now bind the textures */
+	/* create the textures */
 	for (input = inputs->first; input; input = input->next) {
 		if (input->ima)
 			input->tex = GPU_texture_from_blender(input->ima, input->iuser, input->image_isdata, time, mipmap);
 		else if (input->prv)
 			input->tex = GPU_texture_from_preview(input->prv, mipmap);
+	}
 
+	/* bind the textures, in second loop so texture binding during
+	 * create doesn't overwrite already bound textures */
+	for (input = inputs->first; input; input = input->next) {
 		if (input->tex && input->bindtex) {
 			GPU_texture_bind(input->tex, input->texid);
 			GPU_shader_uniform_texture(shader, input->shaderloc, input->tex);
 		}
-			
 	}
 }
 
