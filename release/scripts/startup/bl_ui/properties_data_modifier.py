@@ -156,6 +156,15 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Object:")
         col.prop(md, "object", text="")
 
+        layout.prop(md, "use_bmesh")
+        if md.use_bmesh:
+            box = layout.box()
+            box.label("BMesh Options:")
+            box.prop(md, "use_bmesh_separate")
+            box.prop(md, "use_bmesh_dissolve")
+            box.prop(md, "use_bmesh_connect_regions")
+            box.prop(md, "threshold")
+
     def BUILD(self, layout, ob, md):
         split = layout.split()
 
