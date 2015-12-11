@@ -250,7 +250,6 @@ static int edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
 void MESH_OT_intersect_boolean(struct wmOperatorType *ot)
 {
 	static EnumPropertyItem isect_boolean_operation_items[] = {
-		{BMESH_ISECT_BOOLEAN_NONE, "NONE", 0, "None", ""},
 		{BMESH_ISECT_BOOLEAN_ISECT, "INTERSECT", 0, "Intersect", ""},
 		{BMESH_ISECT_BOOLEAN_UNION, "UNION", 0, "Union", ""},
 		{BMESH_ISECT_BOOLEAN_DIFFERENCE, "DIFFERENCE", 0, "Difference", ""},
