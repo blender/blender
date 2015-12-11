@@ -39,11 +39,8 @@ set(SRC
 	MEM_Allocator.h
 	MEM_CacheLimiter.h
 	MEM_CacheLimiterC-Api.h
-	MEM_NonCopyable.h
-	MEM_RefCountPtr.h
 	MEM_RefCounted.h
 	MEM_RefCountedC-Api.h
-	MEM_SmartPtr.h
 )
 
 blender_add_lib(bf_intern_memutil "${SRC}" "${INC}" "${INC_SYS}")
