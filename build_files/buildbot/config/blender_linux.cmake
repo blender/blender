@@ -63,7 +63,11 @@ set(OPENAL_LIBRARY
 )
 
 # OpenCollada libraries
-set(OPENCOLLADA_UTF_LIBRARY   "" CACHE STRING "" FORCE)
+set(OPENCOLLADA_UTF_LIBRARY   ""                   CACHE STRING "" FORCE)
+set(PCRE_INCLUDE_DIR          "/usr/include"       CACHE STRING "" FORCE)
+set(PCRE_LIBRARY              "/usr/lib/libpcre.a" CACHE STRING "" FORCE)
+set(XML2_INCLUDE_DIR          "/usr/include"       CACHE STRING "" FORCE)
+set(XML2_LIBRARY              "/usr/lib/libxml2.a" CACHE STRING "" FORCE)
 
 # OpenColorIO libraries
 set(OPENCOLORIO_ROOT_DIR      "/opt/lib/ocio" CACHE STRING "" FORCE)
