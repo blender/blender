@@ -451,6 +451,13 @@ bool BM_face_split_edgenet(
 				BLI_array_append(face_arr, f_new);
 				copy_v3_v3(f_new->no, f->no);
 
+				/* warning, normally don't do this,
+				 * its needed for mesh intersection - which tracks face-sides based on selection */
+				f_new->head.hflag = f->head.hflag;
+				if (f->head.hflag & BM_ELEM_SELECT) {
+					bm->totfacesel++;
+				}
+
 				BM_ELEM_API_FLAG_ENABLE(f_new, FACE_NET);
 
 				/* add new verts to keep finding loops for

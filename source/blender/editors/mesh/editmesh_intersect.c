@@ -49,10 +49,6 @@
 
 #include "tools/bmesh_intersect.h"
 
-
-/* -------------------------------------------------------------------- */
-/* Cut intersections into geometry */
-
 /**
  * Compare selected with its self.
  */
@@ -75,6 +71,23 @@ static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
 		return -1;
 	}
 	else if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+/**
+ * A flipped version of #bm_face_isect_pair
+ * use for boolean 'difference', which depends on order.
+ */
+static int bm_face_isect_pair_swap(BMFace *f, void *UNUSED(user_data))
+{
+	if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+		return -1;
+	}
+	else if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
 		return 0;
 	}
 	else {
@@ -82,17 +95,39 @@ static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
 	}
 }
 
+/**
+ * Use for intersect and boolean.
+ */
+static void edbm_intersect_select(BMEditMesh *em)
+{
+	BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
+
+	if (em->bm->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
+		BMIter iter;
+		BMEdge *e;
+
+		BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
+			if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+				BM_edge_select_set(em->bm, e, true);
+			}
+		}
+	}
+
+	EDBM_mesh_normals_update(em);
+	EDBM_update_generic(em, true, true);
+
+}
+
+/* -------------------------------------------------------------------- */
+/* Cut intersections into geometry */
+
+/** \name Simple Intersect (self-intersect)
+ * \{
+ */
+
 enum {
 	ISECT_SEL           = 0,
 	ISECT_SEL_UNSEL     = 1,
-};
-
-static EnumPropertyItem isect_mode_items[] = {
-	{ISECT_SEL, "SELECT", 0, "Self Intersect",
-	 "Self intersect selected faces"},
-	{ISECT_SEL_UNSEL, "SELECT_UNSELECT", 0, "Selected/Unselected",
-	 "Intersect selected with unselected faces"},
-	{0, NULL, 0, NULL, NULL}
 };
 
 static int edbm_intersect_exec(bContext *C, wmOperator *op)
@@ -123,26 +158,13 @@ static int edbm_intersect_exec(bContext *C, wmOperator *op)
 	        bm,
 	        em->looptris, em->tottri,
 	        test_fn, NULL,
-	        use_self, use_separate, true,
+	        use_self, use_separate, true, true,
+	        -1,
 	        eps);
 
 
 	if (has_isect) {
-		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
-
-		if (em->bm->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
-			BMIter iter;
-			BMEdge *e;
-
-			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-				if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
-					BM_edge_select_set(bm, e, true);
-				}
-			}
-		}
-
-		EDBM_mesh_normals_update(em);
-		EDBM_update_generic(em, true, true);
+		edbm_intersect_select(em);
 	}
 	else {
 		BKE_report(op->reports, RPT_WARNING, "No intersections found");
@@ -153,6 +175,14 @@ static int edbm_intersect_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_intersect(struct wmOperatorType *ot)
 {
+	static EnumPropertyItem isect_mode_items[] = {
+		{ISECT_SEL, "SELECT", 0, "Self Intersect",
+		 "Self intersect selected faces"},
+		{ISECT_SEL_UNSEL, "SELECT_UNSELECT", 0, "Selected/Unselected",
+		 "Intersect selected with unselected faces"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	/* identifiers */
 	ot->name = "Intersect";
 	ot->description = "Cut an intersection into faces";
@@ -171,10 +201,84 @@ void MESH_OT_intersect(struct wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+/* Boolean (a kind of intersect) */
+
+/** \name Boolean Intersect
+ *
+ * \note internally this is nearly exactly the same as 'MESH_OT_intersect',
+ * however from a user perspective they are quite different, so expose as different tools.
+ *
+ * \{
+ */
+
+static int edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	BMesh *bm = em->bm;
+	const int boolean_operation = RNA_enum_get(op->ptr, "operation");
+	bool use_swap = RNA_boolean_get(op->ptr, "use_swap");
+	const float eps = RNA_float_get(op->ptr, "threshold");
+	int (*test_fn)(BMFace *, void *);
+	bool has_isect;
+
+	test_fn = use_swap ? bm_face_isect_pair_swap : bm_face_isect_pair;
+
+	has_isect = BM_mesh_intersect(
+	        bm,
+	        em->looptris, em->tottri,
+	        test_fn, NULL,
+	        false, false, true, true,
+	        boolean_operation,
+	        eps);
+
+
+	if (has_isect) {
+		edbm_intersect_select(em);
+	}
+	else {
+		BKE_report(op->reports, RPT_WARNING, "No intersections found");
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_intersect_boolean(struct wmOperatorType *ot)
+{
+	static EnumPropertyItem isect_boolean_operation_items[] = {
+		{BMESH_ISECT_BOOLEAN_NONE, "NONE", 0, "None", ""},
+		{BMESH_ISECT_BOOLEAN_ISECT, "INTERSECT", 0, "Intersect", ""},
+		{BMESH_ISECT_BOOLEAN_UNION, "UNION", 0, "Union", ""},
+		{BMESH_ISECT_BOOLEAN_DIFFERENCE, "DIFFERENCE", 0, "Difference", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name = "Boolean Intersect";
+	ot->description = "Cut solid geometry from selected to unselected";
+	ot->idname = "MESH_OT_intersect_boolean";
+
+	/* api callbacks */
+	ot->exec = edbm_intersect_boolean_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* props */
+	RNA_def_enum(ot->srna, "operation", isect_boolean_operation_items, BMESH_ISECT_BOOLEAN_DIFFERENCE, "Boolean", "");
+	RNA_def_boolean(ot->srna, "use_swap", false, "Swap", "Use with difference intersection to swap which side is kept");
+	RNA_def_float_distance(ot->srna, "threshold", 0.000001f, 0.0, 0.01, "Merge threshold", "", 0.0, 0.001);
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /* Face Split by Edges */
-
 
 /** \name Face/Edge Split
  * \{ */

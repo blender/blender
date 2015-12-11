@@ -50,6 +50,7 @@
 #endif
 
 #include "BLI_kdopbvh.h"
+#include "BLI_buffer.h"
 
 #include "bmesh.h"
 #include "bmesh_intersect.h"  /* own include */
@@ -78,6 +79,11 @@
 /* use accelerated overlap check */
 #define USE_BVH
 
+// #define USE_BOOLEAN_RAYCAST_DRAW
+
+#ifdef USE_BOOLEAN_RAYCAST_DRAW
+/* insert bl_debug_draw_quad_clear... here */
+#endif
 
 static void tri_v3_scale(
         float v1[3], float v2[3], float v3[3],
@@ -270,6 +276,8 @@ static void face_edges_split(
 			edge_arr = edge_arr_holes;  /* owned by the arena */
 		}
 	}
+#else
+	UNUSED_VARS(use_island_connect, mem_arena_edgenet);
 #endif
 
 	BM_face_split_edgenet(bm, f, edge_arr, (int)edge_arr_len, NULL, NULL);
@@ -482,6 +490,35 @@ static BMVert *bm_isect_edge_tri(
 	*r_side = IX_NONE;
 
 	return NULL;
+}
+
+struct LoopFilterWrap {
+	int (*test_fn)(BMFace *f, void *user_data);
+	void *user_data;
+};
+
+static bool bm_loop_filter_fn(const BMLoop *l, void *user_data)
+{
+	if (BM_elem_flag_test(l->e, BM_ELEM_TAG)) {
+		return false;
+	}
+
+	if (l->radial_next != l) {
+		struct LoopFilterWrap *data = user_data;
+		BMLoop *l_iter = l->radial_next;
+		const int face_side = data->test_fn(l->f, data->user_data);
+		do {
+			const int face_side_other = data->test_fn(l_iter->f, data->user_data);
+			if (UNLIKELY(face_side_other == -1)) {
+				/* pass */
+			}
+			else if (face_side_other != face_side) {
+				return false;
+			}
+		} while ((l_iter = l_iter->radial_next) != l);
+		return true;
+	}
+	return false;
 }
 
 /**
@@ -797,23 +834,143 @@ static void bm_isect_tri_tri(
 	}
 }
 
+#ifdef USE_BVH
+
+struct RaycastData {
+	const float **looptris;
+	BLI_Buffer *z_buffer;
+};
+
+#ifdef USE_KDOPBVH_WATERTIGHT
+static const struct IsectRayPrecalc isect_precalc_x = {1, 2, 0, 0, 0, 1};
+#endif
+
+static void raycast_callback(void *userdata,
+                             int index,
+                             const BVHTreeRay *ray,
+                             BVHTreeRayHit *UNUSED(hit))
+{
+	struct RaycastData *raycast_data = userdata;
+	const float **looptris = raycast_data->looptris;
+	const float *v0 = looptris[index * 3 + 0];
+	const float *v1 = looptris[index * 3 + 1];
+	const float *v2 = looptris[index * 3 + 2];
+	float dist;
+
+	if (
+#ifdef USE_KDOPBVH_WATERTIGHT
+		isect_ray_tri_watertight_v3(ray->origin, &isect_precalc_x, v0, v1, v2, &dist, NULL))
+#else
+	    isect_ray_tri_epsilon_v3(ray->origin, ray->direction, v0, v1, v2, &dist, NULL, FLT_EPSILON))
+#endif
+	{
+		if (dist >= 0.0f) {
+#ifdef USE_DUMP
+			printf("%s:\n", __func__);
+			print_v3("  origin", ray->origin);
+			print_v3("  direction", ray->direction);
+			printf("  dist %f\n", dist);
+			print_v3("  v0", v0);
+			print_v3("  v1", v1);
+			print_v3("  v2", v2);
+#endif
+
+#ifdef USE_DUMP
+			printf("%s: Adding depth %f\n", __func__, depth);
+#endif
+			BLI_buffer_append(raycast_data->z_buffer, float, dist);
+		}
+	}
+}
+
+static int isect_bvhtree_point_v3(
+        BVHTree *tree,
+        const float **looptris,
+        const float co[3])
+{
+	BLI_buffer_declare_static(float, z_buffer, BLI_BUFFER_NOP, 64);
+
+	struct RaycastData raycast_data = {
+		looptris,
+		&z_buffer,
+	};
+	BVHTreeRayHit hit = {0};
+	float dir[3] = {1.0f, 0.0f, 0.0f};
+
+	/* Need to initialize hit even tho it's not used.
+	 * This is to make it so kdotree believes we didn't intersect anything and
+	 * keeps calling the intersect callback.
+	 */
+	hit.index = -1;
+	hit.dist = FLT_MAX;
+
+	BLI_bvhtree_ray_cast(tree,
+	                     co, dir,
+	                     0.0f,
+	                     &hit,
+	                     raycast_callback,
+	                     &raycast_data);
+
+#ifdef USE_DUMP
+	printf("%s: Total intersections: %d\n", __func__, raycast_data.num_isect);
+#endif
+
+	int num_isect;
+
+	if (z_buffer.count == 0) {
+		num_isect = 0;
+	}
+	else if (z_buffer.count == 1) {
+		num_isect = 1;
+	}
+	else {
+		/* 2 or more */
+		const float eps = FLT_EPSILON * 10;
+		num_isect = 1;  /* always count first */
+
+		qsort(z_buffer.data, z_buffer.count, sizeof(float), BLI_sortutil_cmp_float);
+
+		const float *depth_arr = z_buffer.data;
+		float        depth_last = depth_arr[0];
+
+		for (unsigned int i = 1; i < z_buffer.count; i++) {
+			if (depth_arr[i] - depth_last > eps) {
+				depth_last = depth_arr[i];
+				num_isect++;
+			}
+		}
+
+		BLI_buffer_free(&z_buffer);
+	}
+
+
+	//	return (num_isect & 1) == 1;
+	return num_isect;
+}
+
+#endif  /* USE_BVH */
+
 /**
  * Intersect tessellated faces
  * leaving the resulting edges tagged.
  *
- * \param test_fn: Return value: -1: skip, 0: tree_a, 1: tree_b (use_self == false)
- * \param use_island_connect: Create edges connecting face to isolated edge-regions so cuts can be made.
+ * \param test_fn Return value: -1: skip, 0: tree_a, 1: tree_b (use_self == false)
+ * \param boolean_mode -1: no-boolean, 0: intersection... see #BMESH_ISECT_BOOLEAN_ISECT.
  */
 bool BM_mesh_intersect(
         BMesh *bm,
         struct BMLoop *(*looptris)[3], const int looptris_tot,
         int (*test_fn)(BMFace *f, void *user_data), void *user_data,
-        const bool use_self, const bool use_separate, const bool use_island_connect,
+        const bool use_self, const bool use_separate, const bool use_dissolve, const bool use_island_connect,
+        const int boolean_mode,
         const float eps)
 {
 	struct ISectState s;
 	bool has_isect;
 	const int totface_orig = bm->totface;
+
+	/* needed for boolean, since cutting up faces moves the loops within the face */
+	const float **looptri_coords = NULL;
 
 #ifdef USE_BVH
 	BVHTree *tree_a, *tree_b;
@@ -821,6 +978,10 @@ bool BM_mesh_intersect(
 	BVHTreeOverlap *overlap;
 #else
 	int i_a, i_b;
+#endif
+
+#ifdef USE_BOOLEAN_RAYCAST_DRAW
+	bl_debug_draw_quad_clear();
 #endif
 
 	s.bm = bm;
@@ -864,12 +1025,30 @@ bool BM_mesh_intersect(
 	        0);
 
 #ifdef USE_DISSOLVE
-	BM_mesh_elem_hflag_disable_all(bm, BM_EDGE | BM_VERT, BM_ELEM_TAG, false);
+	if (use_dissolve) {
+		BM_mesh_elem_hflag_disable_all(bm, BM_EDGE | BM_VERT, BM_ELEM_TAG, false);
+	}
+#else
+	UNUSED_VARS(use_dissolve);
 #endif
 
 #ifdef USE_DUMP
 	printf("data = [\n");
 #endif
+
+	if (boolean_mode != BMESH_ISECT_BOOLEAN_NONE) {
+		/* keep original geometrty for raycast callbacks */
+		float **cos;
+		int i, j;
+
+		cos = MEM_mallocN((size_t)looptris_tot * sizeof(*looptri_coords) * 3, __func__);
+		for (i = 0, j = 0; i < looptris_tot; i++) {
+			cos[j++] = looptris[i][0]->v->co;
+			cos[j++] = looptris[i][1]->v->co;
+			cos[j++] = looptris[i][2]->v->co;
+		}
+		looptri_coords = (const float **)cos;
+	}
 
 #ifdef USE_BVH
 	{
@@ -932,9 +1111,13 @@ bool BM_mesh_intersect(
 		}
 		MEM_freeN(overlap);
 	}
-	BLI_bvhtree_free(tree_a);
-	if (tree_a != tree_b) {
-		BLI_bvhtree_free(tree_b);
+
+	if (boolean_mode == BMESH_ISECT_BOOLEAN_NONE) {
+		/* no booleans, just free immediate */
+		BLI_bvhtree_free(tree_a);
+		if (tree_a != tree_b) {
+			BLI_bvhtree_free(tree_b);
+		}
 	}
 
 #else
@@ -1050,7 +1233,7 @@ bool BM_mesh_intersect(
 
 	/* important to handle before edgenet */
 #ifdef USE_DISSOLVE
-	{
+	if (use_dissolve && (boolean_mode == BMESH_ISECT_BOOLEAN_NONE)) {
 		/* first pass */
 		BMVert *(*splice_ls)[2];
 		STACK_DECLARE(splice_ls);
@@ -1299,6 +1482,8 @@ bool BM_mesh_intersect(
 
 		BLI_memarena_free(mem_arena_edgenet);
 	}
+#else
+	UNUSED_VARS(use_island_connect);
 #endif  /* USE_NET */
 	(void)totface_orig;
 
@@ -1315,9 +1500,161 @@ bool BM_mesh_intersect(
 
 		BM_mesh_edgesplit(bm, false, true, false);
 	}
+	else if (boolean_mode != BMESH_ISECT_BOOLEAN_NONE) {
+		GSetIterator gs_iter;
+
+		/* no need to clear for boolean */
+
+		GSET_ITER (gs_iter, s.wire_edges) {
+			BMEdge *e = BLI_gsetIterator_getKey(&gs_iter);
+			BM_elem_flag_enable(e, BM_ELEM_TAG);
+		}
+	}
 #else
 	(void)use_separate;
 #endif  /* USE_SEPARATE */
+
+	if ((boolean_mode != BMESH_ISECT_BOOLEAN_NONE)) {
+			BVHTree *tree_pair[2] = {tree_a, tree_b};
+
+		/* group vars */
+		int *groups_array;
+		int (*group_index)[2];
+		int group_tot;
+		int i;
+		BMFace **ftable;
+
+		BM_mesh_elem_table_ensure(bm, BM_FACE);
+		ftable = bm->ftable;
+
+		/* wrap the face-test callback to make it into an edge-loop delimiter */
+		struct LoopFilterWrap user_data_wrap = {
+			.test_fn = test_fn,
+			.user_data = user_data,
+		};
+
+		groups_array = MEM_mallocN(sizeof(*groups_array) * (size_t)bm->totface, __func__);
+		group_tot = BM_mesh_calc_face_groups(
+		        bm, groups_array, &group_index,
+		        bm_loop_filter_fn, &user_data_wrap,
+		        0, BM_EDGE);
+
+#ifdef USE_DUMP
+		printf("%s: Total face-groups: %d\n", __func__, group_tot);
+#endif
+
+		/* Check if island is inside/outside */
+		for (i = 0; i < group_tot; i++) {
+			int fg     = group_index[i][0];
+			int fg_end = group_index[i][1] + fg;
+			bool do_remove, do_flip;
+
+			{
+				/* for now assyme this is an OK face to test with (not degenerate!) */
+				BMFace *f = ftable[groups_array[fg]];
+				float co[3];
+				int hits;
+				int side = test_fn(f, user_data) == 0;
+
+				// BM_face_calc_center_mean(f, co);
+				BM_face_calc_point_in_face(f, co);
+
+				hits = isect_bvhtree_point_v3(tree_pair[side], looptri_coords, co);
+
+				switch (boolean_mode) {
+					case BMESH_ISECT_BOOLEAN_ISECT:
+						do_remove = ((hits & 1) != 1);
+						do_flip = false;
+						break;
+					case BMESH_ISECT_BOOLEAN_UNION:
+						do_remove = ((hits & 1) == 1);
+						do_flip = false;
+						break;
+					case BMESH_ISECT_BOOLEAN_DIFFERENCE:
+						do_remove = ((hits & 1) == 1) == side;
+						do_flip = (side == 0);
+						break;
+				}
+
+#ifdef USE_BOOLEAN_RAYCAST_DRAW
+				{
+					unsigned int colors[4] = {0x00000000, 0xffffffff, 0xff000000, 0x0000ff};
+					float co_other[3] = {UNPACK3(co)};
+					co_other[0] += 1000.0f;
+					bl_debug_color_set(colors[(hits & 1) == 1]);
+					bl_debug_draw_edge_add(co, co_other);
+				}
+#endif
+
+			}
+
+			if (do_remove) {
+				for (; fg != fg_end; fg++) {
+					/* postpone killing the face since we access below, mark instead */
+					// BM_face_kill_loose(bm, ftable[groups_array[fg]]);
+					ftable[groups_array[fg]]->mat_nr = -1;
+				}
+			}
+			else if (do_flip) {
+				for (; fg != fg_end; fg++) {
+					BM_face_normal_flip(bm, ftable[groups_array[fg]]);
+				}
+			}
+		}
+
+		MEM_freeN(groups_array);
+		MEM_freeN(group_index);
+
+#ifdef USE_DISSOLVE
+		/* We have dissolve code above, this is alternative logic,
+		 * we need to do it after the boolean is executed. */
+		if (use_dissolve) {
+			LinkNode *node;
+			for (node = s.vert_dissolve; node; node = node->next) {
+				BMVert *v = node->link;
+				if (BM_vert_is_edge_pair(v)) {
+					/* we wont create degenerate faces from this */
+					bool ok = true;
+
+					/* would we create a 2-sided-face?
+					 * if so, don't dissolve this since we may */
+					if (v->e->l) {
+						BMLoop *l_iter = v->e->l;
+						do {
+							if (l_iter->f->len == 3) {
+								ok = false;
+								break;
+							}
+						} while ((l_iter = l_iter->radial_next) != v->e->l);
+					}
+
+					if (ok) {
+						BM_vert_collapse_edge(bm, v->e, v, true, false);
+					}
+				}
+			}
+		}
+#endif
+
+		{
+			int tot = bm->totface;
+			for (i = 0; i < tot; i++) {
+				if (ftable[i]->mat_nr == -1) {
+					BM_face_kill_loose(bm, ftable[i]);
+				}
+			}
+		}
+	}
+
+	if (boolean_mode != BMESH_ISECT_BOOLEAN_NONE) {
+		MEM_freeN(looptri_coords);
+
+		/* no booleans, just free immediate */
+		BLI_bvhtree_free(tree_a);
+		if (tree_a != tree_b) {
+			BLI_bvhtree_free(tree_b);
+		}
+	}
 
 	has_isect = (BLI_ghash_size(s.face_edges) != 0);
 
