@@ -123,7 +123,7 @@ static int edbm_intersect_exec(bContext *C, wmOperator *op)
 	        bm,
 	        em->looptris, em->tottri,
 	        test_fn, NULL,
-	        use_self, use_separate,
+	        use_self, use_separate, true,
 	        eps);
 
 

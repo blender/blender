@@ -70,6 +70,8 @@
 #define USE_SEPARATE
 /* remove verts created by intersecting triangles */
 #define USE_DISSOLVE
+/* detect isolated holes and fill them */
+#define USE_NET_ISLAND_CONNECT
 
 /* strict asserts that may fail in practice (handy for debugging cases which should succeed) */
 // #define USE_PARANOID
@@ -230,12 +232,13 @@ static void face_edges_add(
 
 #ifdef USE_NET
 static void face_edges_split(
-        BMesh *bm,
-        BMFace *f,
-        struct LinkBase *e_ls_base)
+        BMesh *bm, BMFace *f, struct LinkBase *e_ls_base,
+        bool use_island_connect,
+        MemArena *mem_arena_edgenet)
 {
 	unsigned int i;
-	BMEdge **edge_arr = BLI_array_alloca(edge_arr, e_ls_base->list_len);
+	unsigned int edge_arr_len = e_ls_base->list_len;
+	BMEdge **edge_arr = BLI_array_alloca(edge_arr, edge_arr_len);
 	LinkNode *node;
 	BLI_assert(f->head.htype == BM_FACE);
 
@@ -248,7 +251,28 @@ static void face_edges_split(
 	printf("# %s: %d %u\n", __func__, BM_elem_index_get(f), e_ls_base->list_len);
 #endif
 
-	BM_face_split_edgenet(bm, f, edge_arr, (int)e_ls_base->list_len, NULL, NULL);
+#ifdef USE_NET_ISLAND_CONNECT
+	if (use_island_connect) {
+		unsigned int edge_arr_holes_len;
+		BMEdge **edge_arr_holes;
+		if (BM_face_split_edgenet_connect_islands(
+		        bm, f,
+		        edge_arr, edge_arr_len,
+		        mem_arena_edgenet,
+		        &edge_arr_holes, &edge_arr_holes_len))
+		{
+			/* newly created wire edges need to be tagged */
+			for (i = edge_arr_len; i < edge_arr_holes_len; i++) {
+				BM_elem_flag_enable(edge_arr_holes[i], BM_ELEM_TAG);
+			}
+
+			edge_arr_len = edge_arr_holes_len;
+			edge_arr = edge_arr_holes;  /* owned by the arena */
+		}
+	}
+#endif
+
+	BM_face_split_edgenet(bm, f, edge_arr, (int)edge_arr_len, NULL, NULL);
 }
 #endif
 
@@ -777,13 +801,14 @@ static void bm_isect_tri_tri(
  * Intersect tessellated faces
  * leaving the resulting edges tagged.
  *
- * \param test_fn Return value: -1: skip, 0: tree_a, 1: tree_b (use_self == false)
+ * \param test_fn: Return value: -1: skip, 0: tree_a, 1: tree_b (use_self == false)
+ * \param use_island_connect: Create edges connecting face to isolated edge-regions so cuts can be made.
  */
 bool BM_mesh_intersect(
         BMesh *bm,
         struct BMLoop *(*looptris)[3], const int looptris_tot,
         int (*test_fn)(BMFace *f, void *user_data), void *user_data,
-        const bool use_self, const bool use_separate,
+        const bool use_self, const bool use_separate, const bool use_island_connect,
         const float eps)
 {
 	struct ISectState s;
@@ -978,7 +1003,7 @@ bool BM_mesh_intersect(
 			}
 
 #ifdef USE_DUMP
-			printf("# SPLITTING EDGE: %d, %d\n", e_index, v_ls_base->list_len);
+			printf("# SPLITTING EDGE: %d, %d\n", BM_elem_index_get(e), v_ls_base->list_len);
 #endif
 			/* intersect */
 			is_wire = BLI_gset_haskey(s.wire_edges,  e);
@@ -1249,6 +1274,8 @@ bool BM_mesh_intersect(
 		GHashIterator gh_iter;
 		BMFace **faces;
 
+		MemArena *mem_arena_edgenet = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+
 		faces = bm->ftable;
 
 		GHASH_ITER (gh_iter, s.face_edges) {
@@ -1265,8 +1292,12 @@ bool BM_mesh_intersect(
 
 			BLI_assert(BM_elem_index_get(f) == f_index);
 
-			face_edges_split(bm, f, e_ls_base);
+			face_edges_split(bm, f, e_ls_base, use_island_connect, mem_arena_edgenet);
+
+			BLI_memarena_clear(mem_arena_edgenet);
 		}
+
+		BLI_memarena_free(mem_arena_edgenet);
 	}
 #endif  /* USE_NET */
 	(void)totface_orig;

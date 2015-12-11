@@ -29,7 +29,7 @@ bool BM_mesh_intersect(
         BMesh *bm,
         struct BMLoop *(*looptris)[3], const int looptris_tot,
         int (*test_fn)(BMFace *f, void *user_data), void *user_data,
-        const bool use_self, const bool use_separate,
+        const bool use_self, const bool use_separate, const bool use_island_connect,
         const float eps);
 
 #endif /* __BMESH_INTERSECT_H__ */
