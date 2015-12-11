@@ -1633,7 +1633,9 @@ static void harmonic_coordinates_bind(Scene *UNUSED(scene), MeshDeformModifierDa
 	free_bvhtree_from_mesh(&mdb->bvhdata);
 }
 
-void mesh_deform_bind(Scene *scene, MeshDeformModifierData *mmd, float *vertexcos, int totvert, float cagemat[4][4])
+void mesh_deform_bind(
+        Scene *scene, MeshDeformModifierData *mmd, DerivedMesh *cagedm,
+        float *vertexcos, int totvert, float cagemat[4][4])
 {
 	MeshDeformBind mdb;
 	MVert *mvert;
@@ -1648,7 +1650,7 @@ void mesh_deform_bind(Scene *scene, MeshDeformModifierData *mmd, float *vertexco
 	mdb.vertexcos = MEM_callocN(sizeof(float) * 3 * totvert, "MeshDeformCos");
 	mdb.totvert = totvert;
 	
-	mdb.cagedm = mesh_create_derived_no_deform(scene, mmd->object, NULL, CD_MASK_BAREMESH);
+	mdb.cagedm = cagedm;
 	mdb.totcagevert = mdb.cagedm->getNumVerts(mdb.cagedm);
 	mdb.cagecos = MEM_callocN(sizeof(*mdb.cagecos) * mdb.totcagevert, "MeshDeformBindCos");
 	copy_m4_m4(mdb.cagemat, cagemat);
@@ -1673,7 +1675,6 @@ void mesh_deform_bind(Scene *scene, MeshDeformModifierData *mmd, float *vertexco
 		mul_m4_v3(mmd->object->obmat, mmd->bindcagecos + a * 3);
 
 	/* free */
-	mdb.cagedm->release(mdb.cagedm);
 	MEM_freeN(mdb.vertexcos);
 
 	/* compact weights */
@@ -1682,4 +1683,3 @@ void mesh_deform_bind(Scene *scene, MeshDeformModifierData *mmd, float *vertexco
 	end_progress_bar();
 	waitcursor(0);
 }
-
