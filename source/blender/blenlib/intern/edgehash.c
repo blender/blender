@@ -171,7 +171,7 @@ BLI_INLINE EdgeEntry *edgehash_lookup_entry_prev_ex(
         EdgeEntry **r_e_prev, const unsigned int bucket_index)
 {
 	BLI_assert(v0 < v1);
-	for (EdgeEntry *e_prev = NULL, *e = eh->buckets[bucket_index]; e; e = e->next) {
+	for (EdgeEntry *e_prev = NULL, *e = eh->buckets[bucket_index]; e; e_prev = e, e = e->next) {
 		if (UNLIKELY(v0 == e->v0 && v1 == e->v1)) {
 			*r_e_prev = e_prev;
 			return e;
