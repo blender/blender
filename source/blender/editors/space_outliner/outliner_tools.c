@@ -1292,8 +1292,8 @@ static int outliner_lib_operation_exec(bContext *C, wmOperator *op)
 			outliner_do_libdata_operation(C, scene, soops, &soops->tree, lib_delete_cb);
 
 			WM_event_add_notifier(C, NC_ID | NA_EDITED, NULL);
-			/* Note: no undo possible here really, not 100% sure why... Probably because of library optimisations
-			 *       in undo/redo process? */
+			/* Note: no undo possible here really, not 100% sure why...
+			 * Probably because of library optimizations in undo/redo process? */
 			/* ED_undo_push(C, "Rename"); */
 			break;
 		}

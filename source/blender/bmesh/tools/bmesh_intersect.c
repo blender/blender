@@ -859,10 +859,11 @@ static void raycast_callback(void *userdata,
 
 	if (
 #ifdef USE_KDOPBVH_WATERTIGHT
-		isect_ray_tri_watertight_v3(ray->origin, &isect_precalc_x, v0, v1, v2, &dist, NULL))
+	    isect_ray_tri_watertight_v3(ray->origin, &isect_precalc_x, v0, v1, v2, &dist, NULL)
 #else
-	    isect_ray_tri_epsilon_v3(ray->origin, ray->direction, v0, v1, v2, &dist, NULL, FLT_EPSILON))
+	    isect_ray_tri_epsilon_v3(ray->origin, ray->direction, v0, v1, v2, &dist, NULL, FLT_EPSILON)
 #endif
+	    )
 	{
 		if (dist >= 0.0f) {
 #ifdef USE_DUMP
@@ -1516,7 +1517,7 @@ bool BM_mesh_intersect(
 #endif  /* USE_SEPARATE */
 
 	if ((boolean_mode != BMESH_ISECT_BOOLEAN_NONE)) {
-			BVHTree *tree_pair[2] = {tree_a, tree_b};
+		BVHTree *tree_pair[2] = {tree_a, tree_b};
 
 		/* group vars */
 		int *groups_array;

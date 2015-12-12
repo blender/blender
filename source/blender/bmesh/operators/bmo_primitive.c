@@ -933,8 +933,8 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
  *
  * \param bm The BMesh to operate on.
  * \param mat The transform matrix applied to the created cone/cylinder.
- * \param radius_top The size of the top end of the cone/cylynder.
- * \param radius_bottom The size of the bottom end of the cone/cylynder.
+ * \param radius_top The size of the top end of the cone/cylinder.
+ * \param radius_bottom The size of the bottom end of the cone/cylinder.
  * \param segments The number of subdivisions in the sides of the cone/cylinder.
  * \param cap_ends Whether the ends of the cone/cylinder are filled or not.
  * \param oflag The flag to check faces with.

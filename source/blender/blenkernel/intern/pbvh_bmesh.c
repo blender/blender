@@ -785,8 +785,8 @@ static void long_edge_queue_face_add(
 			const float len_sq = BM_edge_calc_length_squared(l_iter->e);
 			if (len_sq > eq_ctx->q->limit_len_squared) {
 				long_edge_queue_edge_add_recursive(
-						  eq_ctx, l_iter->radial_next, l_iter,
-						  len_sq, eq_ctx->q->limit_len);
+				        eq_ctx, l_iter->radial_next, l_iter,
+				        len_sq, eq_ctx->q->limit_len);
 			}
 #else
 			long_edge_queue_edge_add(eq_ctx, l_iter->e);

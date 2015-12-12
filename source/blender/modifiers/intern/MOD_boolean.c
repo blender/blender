@@ -201,7 +201,8 @@ static DerivedMesh *applyModifier_bmesh(
 			DM_to_bmesh_ex(dm_other, bm, true);
 			DM_to_bmesh_ex(dm, bm, true);
 
-			if (1) {
+			/* main bmesh intersection setup */
+			{
 				/* create tessface & intersect */
 				const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
 				int tottri;

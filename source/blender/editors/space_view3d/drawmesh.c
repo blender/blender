@@ -1174,14 +1174,14 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	if (glsl || picking) {
 		/* draw glsl or solid */
 		dm->drawMappedFacesMat(dm,
-							   tex_mat_set_material_cb,
-							   set_face_cb, &data);
+		                       tex_mat_set_material_cb,
+		                       set_face_cb, &data);
 	}
 	else {
 		/* draw textured */
 		dm->drawMappedFacesMat(dm,
-							   tex_mat_set_texture_cb,
-							   set_face_cb, &data);
+		                       tex_mat_set_texture_cb,
+		                       set_face_cb, &data);
 	}
 
 	GPU_end_object_materials();
