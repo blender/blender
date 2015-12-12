@@ -103,16 +103,19 @@ private:
 	bool				m_bInitialized;
 	int					m_activecam;
 	bool				m_bFixedTime;
+	bool				m_useExternalClock;
 	
 	
 	bool				m_firstframe;
 	int					m_currentFrame;
 
-	double				m_frameTime;//discrete timestamp of the 'game logic frame'
-	double				m_clockTime;//current time
-	double				m_previousClockTime;//previous clock time
-	double				m_previousAnimTime; //the last time animations were updated
+	double				m_frameTime; // current logic game time
+	double				m_clockTime; // game time for the next rendering step
+	double				m_previousClockTime; // game time of the previous rendering step
+	double				m_previousAnimTime; //game time when the animations were last updated
 	double				m_remainingTime;
+	double				m_timescale; // time scaling parameter. if > 1.0, time goes faster than real-time. If < 1.0, times goes slower than real-time.
+	double				m_previousRealTime;
 
 	static int				m_maxLogicFrame;	/* maximum number of consecutive logic frame */
 	static int				m_maxPhysicsFrame;	/* maximum number of consecutive physics frame */
@@ -297,15 +300,37 @@ public:
 	bool GetUseFixedTime(void) const;
 
 	/**
-	 * Returns current render frame clock time
+	 * Sets if the BGE relies on a external clock or its own internal clock
+	 */
+	void SetUseExternalClock(bool bUseExternalClock);
+
+	/**
+	 * Returns if we rely on an external clock
+	 * \return Current setting
+	 */
+	bool GetUseExternalClock(void) const;
+
+	/**
+	 * Returns next render frame game time
 	 */
 	double GetClockTime(void) const;
+
 	/**
-	 * Returns current logic frame clock time
+	 * Set the next render frame game time. It will impact also frame time, as
+	 * this one is derived from clocktime
+	 */
+	void SetClockTime(double externalClockTime);
+
+	/**
+	 * Returns current logic frame game time
 	 */
 	double GetFrameTime(void) const;
 
+	/**
+	 * Returns the real (system) time
+	 */
 	double GetRealTime(void) const;
+
 	/**
 	 * Returns the difference between the local time of the scene (when it
 	 * was running and not suspended) and the "curtime"
@@ -360,6 +385,16 @@ public:
 	 * Gets the last estimated average framerate
 	 */
 	static double GetAverageFrameRate();
+
+	/**
+	 * Gets the time scale multiplier 
+	 */
+	double GetTimeScale() const;
+
+	/**
+	 * Sets the time scale multiplier
+	 */
+	void SetTimeScale(double scale);
 
 	static void SetExitKey(short key);
 

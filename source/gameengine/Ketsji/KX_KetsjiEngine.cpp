@@ -128,6 +128,7 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_bInitialized(false),
 	m_activecam(0),
 	m_bFixedTime(false),
+	m_useExternalClock(false),
 	
 	m_firstframe(true),
 	
@@ -135,6 +136,8 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_clockTime(0.f),
 	m_previousClockTime(0.f),
 	m_previousAnimTime(0.f),
+	m_timescale(1.0f),
+	m_previousRealTime(0.0f),
 
 
 	m_exitcode(KX_EXIT_REQUEST_NO_REQUEST),
@@ -411,6 +414,7 @@ void KX_KetsjiEngine::StartEngine(bool clearIpo)
 	m_clockTime = m_kxsystem->GetTimeInSeconds();
 	m_frameTime = m_kxsystem->GetTimeInSeconds();
 	m_previousClockTime = m_kxsystem->GetTimeInSeconds();
+	m_previousRealTime = m_kxsystem->GetTimeInSeconds();
 
 	m_firstframe = true;
 	m_bInitialized = true;
@@ -554,7 +558,7 @@ void KX_KetsjiEngine::EndFrame()
 
 bool KX_KetsjiEngine::NextFrame()
 {
-	double timestep = 1.0/m_ticrate;
+	double timestep =  m_timescale / m_ticrate;
 	double framestep = timestep;
 	//	static hidden::Clock sClock;
 
@@ -563,12 +567,43 @@ bool KX_KetsjiEngine::NextFrame()
 	//float dt = sClock.getTimeMicroseconds() * 0.000001f;
 	//sClock.reset();
 
-	if (m_bFixedTime) {
-		m_clockTime += timestep;
-	}
-	else {
-		// m_clockTime += dt;
-		m_clockTime = m_kxsystem->GetTimeInSeconds();
+	/*
+	 * Clock advancement. There is basically three case:
+	 *   - m_useExternalClock is true, the user is responsible to advance the time
+	 *   manually using setClockTime, so here, we do not do anything.
+	 *   - m_useExternalClock is false, m_bFixedTime is true, we advance for one
+	 *   timestep, which already handle the time scaling parameter
+	 *   - m_useExternalClock is false, m_bFixedTime is false, we consider how much
+	 *   time has elapsed since last call and we scale this time by the time
+	 *   scaling parameter. If m_timescale is 1.0 (default value), the clock
+	 *   corresponds to the computer clock.
+	 *
+	 * Once clockTime has been computed, we will compute how many logic frames
+	 * will be executed before the next rendering phase (which will occur at "clockTime").
+	 * The game time elapsing between two logic frames (called framestep)
+	 * depends on several variables:
+	 *   - ticrate 
+	 *   - max_physic_frame
+	 *   - max_logic_frame
+	 * XXX The logic over computation framestep is definitively not clear (and
+	 * I'm not even sure it is correct). If needed frame is strictly greater
+	 * than max_physics_frame, we are doing a jump in game time, but keeping
+	 * framestep = 1 / ticrate, while if frames is greater than
+	 * max_logic_frame, we increase framestep.
+	 *
+	 * XXX render.fps is not considred anywhere.
+	 */
+	if (!m_useExternalClock) {
+		if (m_bFixedTime) {
+			m_clockTime += timestep;
+		}
+		else {
+			double current_time = m_kxsystem->GetTimeInSeconds();
+			double dt = current_time - m_previousRealTime;
+			m_previousRealTime = current_time;
+			// m_clockTime += dt;
+			m_clockTime += dt * m_timescale;
+		}
 	}
 	
 	double deltatime = m_clockTime - m_frameTime;
@@ -579,16 +614,14 @@ bool KX_KetsjiEngine::NextFrame()
 		return false;
 	}
 
-
 	// Compute the number of logic frames to do each update (fixed tic bricks)
-	int frames =int(deltatime*m_ticrate+1e-6);
+	int frames = int(deltatime * m_ticrate / m_timescale + 1e-6);
 //	if (frames>1)
 //		printf("****************************************");
 //	printf("dt = %f, deltatime = %f, frames = %d\n",dt, deltatime,frames);
 	
 //	if (!frames)
 //		PIL_sleep_ms(1);
-	
 	KX_SceneList::iterator sceneit;
 	
 	if (frames>m_maxPhysicsFrame)
@@ -1756,6 +1789,10 @@ void KX_KetsjiEngine::SetUseFixedTime(bool bUseFixedTime)
 	m_bFixedTime = bUseFixedTime;
 }
 
+void KX_KetsjiEngine::SetUseExternalClock(bool useExternalClock)
+{
+	m_useExternalClock = useExternalClock;
+}
 
 void	KX_KetsjiEngine::SetAnimRecordMode(bool animation_record, int startFrame)
 {
@@ -1783,6 +1820,11 @@ bool KX_KetsjiEngine::GetUseFixedTime(void) const
 	return m_bFixedTime;
 }
 
+bool KX_KetsjiEngine::GetUseExternalClock(void) const
+{
+	return m_useExternalClock;
+}
+
 double KX_KetsjiEngine::GetSuspendedDelta()
 {
 	return m_suspendeddelta;
@@ -1796,6 +1838,16 @@ double KX_KetsjiEngine::GetTicRate()
 void KX_KetsjiEngine::SetTicRate(double ticrate)
 {
 	m_ticrate = ticrate;
+}
+
+double KX_KetsjiEngine::GetTimeScale() const
+{
+	return m_timescale;
+}
+
+void KX_KetsjiEngine::SetTimeScale(double timescale)
+{
+	m_timescale = timescale;
 }
 
 int KX_KetsjiEngine::GetMaxLogicFrame()
@@ -1836,6 +1888,11 @@ double KX_KetsjiEngine::GetAnimFrameRate()
 double KX_KetsjiEngine::GetClockTime(void) const
 {
 	return m_clockTime;
+}
+
+void KX_KetsjiEngine::SetClockTime(double externalClockTime)
+{
+	m_clockTime = externalClockTime;
 }
 
 double KX_KetsjiEngine::GetFrameTime(void) const

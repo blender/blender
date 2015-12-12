@@ -378,6 +378,76 @@ General functions
 
    Render next frame (if Python has control)
 
+**********************
+Time related functions
+**********************
+
+.. function:: getClockTime()
+
+    Get the current BGE render time, in seconds. The BGE render time is the
+    simulation time corresponding to the next scene that will be rendered.
+
+    :rtype: double
+
+.. function:: getFrameTime()
+
+    Get the current BGE frame time, in seconds. The BGE frame time is the
+    simulation time corresponding to the current call of the logic system.
+    Generally speaking, it is what the user is interested in.
+
+    :rtype: double
+
+.. function:: getRealTime()
+
+    Get the number of real (system-clock) seconds elapsed since the beginning
+    of the simulation.
+
+    :rtype: double
+
+.. function:: getTimeScale()
+
+    Get the time multiplier between real-time and simulation time. The default
+    value is 1.0. A value greater than 1.0 means that the simulation is going
+    faster than real-time, a value lower than 1.0 means that the simulation is
+    going slower than real-time.
+
+    :rtype: double
+
+.. function:: setTimeScale(time_scale)
+
+    Set the time multiplier between real-time and simulation time. A value
+    greater than 1.0 means that the simulation is going faster than real-time,
+    a value lower than 1.0 means that the simulation is going slower than
+    real-time. Note that a too large value may lead to some physics
+    instabilities.
+
+    :arg time_scale: The new time multiplier.
+
+.. function:: getUseExternalClock()
+
+    Get if the BGE use the inner BGE clock, or rely or on an external
+    clock. The default is to use the inner BGE clock.
+
+    :rtype: bool
+
+.. function:: setUseExternalClock(use_external_clock)
+
+    Set if the BGE use the inner BGE clock, or rely or on an external
+    clock. If the user selects the use of an external clock, he should call
+    regularly the setClockTime method.
+
+    :arg use_external_clock: the new setting
+
+.. function:: setClockTime(new_time)
+
+    Set the next value of the simulation clock. It is preferable to use this
+    method from a custom main function in python, as calling it in the logic
+    block can easily lead to a blocked system (if the time does not advance
+    enough to run at least the next logic step).
+
+    :arg new_time: the next value of the BGE clock (in second).
+    
+
 *****************
 Utility functions
 *****************
