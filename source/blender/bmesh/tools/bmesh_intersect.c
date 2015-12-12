@@ -1560,6 +1560,7 @@ bool BM_mesh_intersect(
 					continue;
 				}
 				BLI_assert(ELEM(side, 0, 1));
+				side = !side;
 
 				// BM_face_calc_center_mean(f, co);
 				BM_face_calc_point_in_face(f, co);

@@ -852,7 +852,7 @@ static int bm_face_split_edgenet_find_connection(
 	 * so return a fall-back vertex in that case.
 	 */
 
-	const float dir[3] = {[SORT_AXIS] = direction_sign ? 1.0 : -1.0f};
+	const float dir[3] = {[SORT_AXIS] = direction_sign ? 1.0f : -1.0f};
 	BMEdge *e_hit = test_edges_isect_2d_ray(args, v_origin, dir);
 	BMVert *v_other = NULL;
 
