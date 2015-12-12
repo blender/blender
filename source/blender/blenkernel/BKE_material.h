@@ -51,6 +51,7 @@ void test_object_materials(struct Main *bmain, struct ID *id);
 void BKE_material_resize_object(struct Object *ob, const short totcol, bool do_id_user);
 void BKE_material_init(struct Material *ma);
 void BKE_material_remap_object(struct Object *ob, const unsigned int *remap);
+void BKE_material_remap_object_calc(struct  Object *ob_dst, struct Object *ob_src, short *remap_src_to_dst);
 struct Material *BKE_material_add(struct Main *bmain, const char *name);
 struct Material *BKE_material_copy(struct Material *ma);
 struct Material *localize_material(struct Material *ma);
