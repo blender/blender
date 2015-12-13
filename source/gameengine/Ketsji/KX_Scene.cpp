@@ -1557,9 +1557,9 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty,KX_Camera* cam, int
 		planes[5].setValue(cplanes[3].getValue());	// bottom
 		CullingInfo info(layer);
 
-		double mvmat[16] = {0};
+		float mvmat[16] = {0};
 		cam->GetModelviewMatrix().getValue(mvmat);
-		double pmat[16] = {0};
+		float pmat[16] = {0};
 		cam->GetProjectionMatrix().getValue(pmat);
 
 		dbvt_culling = m_physicsEnvironment->CullingTest(PhysicsCullingCallback,&info,planes,5,m_dbvt_occlusion_res,

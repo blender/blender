@@ -194,7 +194,10 @@ void KX_FontObject::DrawFontText()
 
 	/* Get a working copy of the OpenGLMatrix to use */
 	double mat[16];
-	memcpy(mat, this->GetOpenGLMatrix(), sizeof(double)*16);
+	float *origmat = GetOpenGLMatrix();
+	for (unsigned short i = 0; i < 16; ++i) {
+		mat[i] = (double)origmat[i];
+	}
 
 	/* Account for offset */
 	MT_Vector3 offset = this->NodeGetWorldOrientation() * m_offset * this->NodeGetWorldScaling();

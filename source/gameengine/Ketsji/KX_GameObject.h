@@ -175,7 +175,7 @@ public:
 	 * side effect of storing the result internally. The
 	 * memory for the matrix remains the property of this class.
 	 */ 
-		double *
+		float *
 	GetOpenGLMatrix(
 	);
 

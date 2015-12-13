@@ -422,7 +422,7 @@ public:
 	/**
 	 * Render Tools
 	 */
-	virtual void applyTransform(double *oglmatrix, int drawingmode) = 0;
+	virtual void applyTransform(float *oglmatrix, int drawingmode) = 0;
 
 	/**
 	 * Renders 2D boxes.

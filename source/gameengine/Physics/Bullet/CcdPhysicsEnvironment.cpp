@@ -1472,7 +1472,7 @@ struct OcclusionBuffer
 		m[15] = btScalar(m1[3] * m2[12] + m1[7] * m2[13] + m1[11] * m2[14] + m1[15] * m2[15]);
 	}
 
-	void setup(int size, const int *view, double modelview[16], double projection[16])
+	void setup(int size, const int *view, float modelview[16], float projection[16])
 	{
 		m_initialized = false;
 		m_occlusion = false;
@@ -1519,7 +1519,7 @@ struct OcclusionBuffer
 		m_occlusion = false;
 	}
 
-	void SetModelMatrix(double *fl)
+	void SetModelMatrix(float *fl)
 	{
 		CMmat4mul(m_mtc,m_wtc,fl);
 		if (!m_initialized) {
@@ -1969,7 +1969,7 @@ struct	DbvtCullingCallback : btDbvt::ICollide
 			KX_GameObject* gameobj = KX_GameObject::GetClientObject(info);
 			if (gameobj && gameobj->GetOccluder())
 			{
-				double* fl = gameobj->GetOpenGLMatrixPtr()->getPointer();
+				float *fl = gameobj->GetOpenGLMatrixPtr()->getPointer();
 				// this will create the occlusion buffer if not already done
 				// and compute the transformation from model local space to clip space
 				m_ocb->SetModelMatrix(fl);
@@ -2010,7 +2010,7 @@ struct	DbvtCullingCallback : btDbvt::ICollide
 };
 
 static OcclusionBuffer gOcb;
-bool CcdPhysicsEnvironment::CullingTest(PHY_CullingCallback callback, void* userData, MT_Vector4 *planes, int nplanes, int occlusionRes, const int *viewport, double modelview[16], double projection[16])
+bool CcdPhysicsEnvironment::CullingTest(PHY_CullingCallback callback, void* userData, MT_Vector4 *planes, int nplanes, int occlusionRes, const int *viewport, float modelview[16], float projection[16])
 {
 	if (!m_cullingTree)
 		return false;

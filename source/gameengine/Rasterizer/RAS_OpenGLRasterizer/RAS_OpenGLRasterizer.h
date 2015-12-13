@@ -301,13 +301,13 @@ public:
 	void RenderText2D(RAS_TEXT_RENDER_MODE mode, const char *text,
 	                  int xco, int yco, int width, int height);
 
-	void applyTransform(double *oglmatrix, int objectdrawmode);
+	void applyTransform(float *oglmatrix, int objectdrawmode);
 
 	void PushMatrix();
 	void PopMatrix();
 
 	/// \see KX_RayCast
-	bool RayHit(struct KX_ClientObjectInfo *client, class KX_RayCast *result, double *oglmatrix);
+	bool RayHit(struct KX_ClientObjectInfo *client, class KX_RayCast *result, float *oglmatrix);
 	/// \see KX_RayCast
 	bool NeedRayCast(struct KX_ClientObjectInfo *, void *UNUSED(data)) { return true; }
 

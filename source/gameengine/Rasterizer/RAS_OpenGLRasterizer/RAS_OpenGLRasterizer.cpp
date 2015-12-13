@@ -371,8 +371,8 @@ void RAS_OpenGLRasterizer::FlushDebugShapes(SCA_IScene *scene)
 		glColor4f(debugShapes[i].m_color[0], debugShapes[i].m_color[1], debugShapes[i].m_color[2], 1.0f);
 		const MT_Scalar *fromPtr = &debugShapes[i].m_pos.x();
 		const MT_Scalar *toPtr= &debugShapes[i].m_param.x();
-		glVertex3dv(fromPtr);
-		glVertex3dv(toPtr);
+		glVertex3fv(fromPtr);
+		glVertex3fv(toPtr);
 	}
 	glEnd();
 
@@ -408,7 +408,7 @@ void RAS_OpenGLRasterizer::FlushDebugShapes(SCA_IScene *scene)
 			pos = pos*tr;
 			pos += debugShapes[i].m_pos;
 			const MT_Scalar* posPtr = &pos.x();
-			glVertex3dv(posPtr);
+			glVertex3fv(posPtr);
 		}
 		glEnd();
 	}
@@ -823,8 +823,8 @@ void RAS_OpenGLRasterizer::DrawDerivedMesh(class RAS_MeshSlot &ms)
 void RAS_OpenGLRasterizer::SetProjectionMatrix(MT_CmMatrix4x4 &mat)
 {
 	glMatrixMode(GL_PROJECTION);
-	double* matrix = &mat(0, 0);
-	glLoadMatrixd(matrix);
+	float* matrix = &mat(0, 0);
+	glLoadMatrixf(matrix);
 
 	m_camortho = (mat(3, 3) != 0.0);
 }
@@ -832,11 +832,11 @@ void RAS_OpenGLRasterizer::SetProjectionMatrix(MT_CmMatrix4x4 &mat)
 void RAS_OpenGLRasterizer::SetProjectionMatrix(const MT_Matrix4x4 & mat)
 {
 	glMatrixMode(GL_PROJECTION);
-	double matrix[16];
+	float matrix[16];
 	/* Get into argument. Looks a bit dodgy, but it's ok. */
 	mat.getValue(matrix);
 	/* Internally, MT_Matrix4x4 uses doubles (MT_Scalar). */
-	glLoadMatrixd(matrix);
+	glLoadMatrixf(matrix);
 
 	m_camortho= (mat[3][3] != 0.0);
 }
@@ -852,7 +852,7 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 	bool 
 ) {
 	MT_Matrix4x4 result;
-	double mat[16];
+	float mat[16];
 
 	// correction for stereo
 	if (Stereo())
@@ -891,7 +891,7 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 	glLoadIdentity();
 	glFrustum(left, right, bottom, top, frustnear, frustfar);
 		
-	glGetDoublev(GL_PROJECTION_MATRIX, mat);
+	glGetFloatv(GL_PROJECTION_MATRIX, mat);
 	result.setValue(mat);
 
 	return result;
@@ -906,14 +906,14 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetOrthoMatrix(
 	float frustfar
 ) {
 	MT_Matrix4x4 result;
-	double mat[16];
+	float mat[16];
 
 	// stereo is meaning less for orthographic, disable it
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(left, right, bottom, top, frustnear, frustfar);
 		
-	glGetDoublev(GL_PROJECTION_MATRIX, mat);
+	glGetFloatv(GL_PROJECTION_MATRIX, mat);
 	result.setValue(mat);
 
 	return result;
@@ -974,7 +974,7 @@ void RAS_OpenGLRasterizer::SetViewMatrix(const MT_Matrix4x4 &mat,
 	m_viewmatrix.getValue(glviewmat);
 
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixd(glviewmat);
+	glLoadMatrixf(glviewmat);
 	m_campos = pos;
 }
 
@@ -1287,7 +1287,7 @@ void RAS_OpenGLRasterizer::RemoveLight(RAS_ILightObject* lightobject)
 		m_lights.erase(lit);
 }
 
-bool RAS_OpenGLRasterizer::RayHit(struct KX_ClientObjectInfo *client, KX_RayCast *result, double *oglmatrix)
+bool RAS_OpenGLRasterizer::RayHit(struct KX_ClientObjectInfo *client, KX_RayCast *result, float *oglmatrix)
 {
 	if (result->m_hitMesh) {
 
@@ -1301,14 +1301,14 @@ bool RAS_OpenGLRasterizer::RayHit(struct KX_ClientObjectInfo *client, KX_RayCast
 		left = (dir.cross(resultnormal)).safe_normalized();
 		// for the up vector, we take the 'resultnormal' returned by the physics
 
-		double maat[16] = {left[0],         left[1],         left[2],         0,
+		float maat[16] = {left[0],         left[1],         left[2],         0,
 			               dir[0],          dir[1],          dir[2],          0,
 				           resultnormal[0], resultnormal[1], resultnormal[2], 0,
 					       0,               0,               0,               1};
 
-		glTranslated(oglmatrix[12],oglmatrix[13],oglmatrix[14]);
+		glTranslatef(oglmatrix[12],oglmatrix[13],oglmatrix[14]);
 		//glMultMatrixd(oglmatrix);
-		glMultMatrixd(maat);
+		glMultMatrixf(maat);
 		return true;
 	}
 	else {
@@ -1316,7 +1316,7 @@ bool RAS_OpenGLRasterizer::RayHit(struct KX_ClientObjectInfo *client, KX_RayCast
 	}
 }
 
-void RAS_OpenGLRasterizer::applyTransform(double* oglmatrix,int objectdrawmode )
+void RAS_OpenGLRasterizer::applyTransform(float* oglmatrix,int objectdrawmode )
 {
 	/* FIXME:
 	blender: intern/moto/include/MT_Vector3.inl:42: MT_Vector3 operator/(const
@@ -1369,13 +1369,13 @@ void RAS_OpenGLRasterizer::applyTransform(double* oglmatrix,int objectdrawmode )
 		dir  *= size[1];
 		up   *= size[2];
 
-		double maat[16] = {left[0], left[1], left[2], 0,
+		float maat[16] = {left[0], left[1], left[2], 0,
 		                   dir[0],  dir[1],  dir[2],  0,
 		                   up[0],   up[1],   up[2],   0,
 		                   0,       0,       0,       1};
 
 		glTranslatef(objpos[0],objpos[1],objpos[2]);
-		glMultMatrixd(maat);
+		glMultMatrixf(maat);
 
 	}
 	else {
@@ -1399,11 +1399,11 @@ void RAS_OpenGLRasterizer::applyTransform(double* oglmatrix,int objectdrawmode )
 			if (!physics_controller && parent)
 				physics_controller = parent->GetPhysicsController();
 
-			KX_RayCast::Callback<RAS_OpenGLRasterizer, double> callback(this, physics_controller, oglmatrix);
+			KX_RayCast::Callback<RAS_OpenGLRasterizer, float> callback(this, physics_controller, oglmatrix);
 			if (!KX_RayCast::RayTest(physics_environment, frompoint, topoint, callback))
 			{
 				// couldn't find something to cast the shadow on...
-				glMultMatrixd(oglmatrix);
+				glMultMatrixf(oglmatrix);
 			}
 			else
 			{ // we found the "ground", but the cast matrix doesn't take
@@ -1415,7 +1415,7 @@ void RAS_OpenGLRasterizer::applyTransform(double* oglmatrix,int objectdrawmode )
 		{
 
 			// 'normal' object
-			glMultMatrixd(oglmatrix);
+			glMultMatrixf(oglmatrix);
 		}
 	}
 }

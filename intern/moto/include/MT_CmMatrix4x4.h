@@ -55,7 +55,7 @@ class MT_CmMatrix4x4
 public :
 
 	MT_CmMatrix4x4(
-		const float value[4][4]
+		const MT_Scalar value[4][4]
 	);
 
 	MT_CmMatrix4x4(
@@ -63,7 +63,7 @@ public :
 
 
 	MT_CmMatrix4x4(
-		const double value[16]
+		const MT_Scalar value[16]
 	);
 
 	MT_CmMatrix4x4(
@@ -85,19 +85,19 @@ public :
 		const MT_CmMatrix4x4 & other
 	);
 
-		double*
+		MT_Scalar*
 	getPointer(
 	);
 
 	const
-		double*
+		MT_Scalar*
 	getPointer(
 	) const;
 
 		void
 	setElem(
 		int pos,
-		double newvalue
+		MT_Scalar newvalue
 	);
 
 		MT_Vector3
@@ -121,7 +121,7 @@ public :
 		const MT_Vector3 & v
 	);
 
-		double&
+		MT_Scalar&
 	operator (
 	) (int row,int col)	{ return m_V[col][row]; }
 
@@ -139,8 +139,8 @@ public :
 protected:
 	union
 	{
-		double m_V[4][4];
-		double m_Vflat[16];
+		MT_Scalar m_V[4][4];
+		MT_Scalar m_Vflat[16];
 	};
 };
 

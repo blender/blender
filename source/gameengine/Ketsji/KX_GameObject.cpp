@@ -700,10 +700,10 @@ void KX_GameObject::ApplyRotation(const MT_Vector3& drot,bool local)
 /**
  * GetOpenGL Matrix, returns an OpenGL 'compatible' matrix
  */
-double*	KX_GameObject::GetOpenGLMatrix()
+float *KX_GameObject::GetOpenGLMatrix()
 {
 	// todo: optimize and only update if necessary
-	double* fl = m_OpenGL_4x4Matrix.getPointer();
+	float *fl = m_OpenGL_4x4Matrix.getPointer();
 	if (GetSGNode()) {
 		MT_Transform trans;
 	
@@ -742,7 +742,7 @@ void KX_GameObject::AddMeshUser()
 		m_meshes[i]->AddMeshUser(this, &m_meshSlots, GetDeformer());
 	}
 	// set the part of the mesh slot that never change
-	double* fl = GetOpenGLMatrixPtr()->getPointer();
+	float *fl = GetOpenGLMatrixPtr()->getPointer();
 
 	SG_QList::iterator<RAS_MeshSlot> mit(m_meshSlots);
 //	RAS_MeshSlot* ms;
@@ -2768,7 +2768,7 @@ PyObject *KX_GameObject::pyattr_get_localTransform(void *self_v, const KX_PYATTR
 {
 	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
 
-	double mat[16];
+	float mat[16];
 
 	MT_Transform trans;
 	

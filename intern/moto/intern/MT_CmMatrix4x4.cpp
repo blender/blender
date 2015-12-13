@@ -42,7 +42,7 @@ MT_CmMatrix4x4::MT_CmMatrix4x4()
 
 
 
-MT_CmMatrix4x4::MT_CmMatrix4x4(const float value[4][4])
+MT_CmMatrix4x4::MT_CmMatrix4x4(const MT_Scalar value[4][4])
 {
 	for (int i=0;i<4;i++)
 	{
@@ -53,7 +53,7 @@ MT_CmMatrix4x4::MT_CmMatrix4x4(const float value[4][4])
 
 
 
-MT_CmMatrix4x4::MT_CmMatrix4x4(const double value[16])
+MT_CmMatrix4x4::MT_CmMatrix4x4(const MT_Scalar value[16])
 {
 	for (int i=0;i<16;i++)
 		m_Vflat[i] = value[i];
@@ -148,21 +148,21 @@ void MT_CmMatrix4x4::SetMatrix(const MT_CmMatrix4x4& other)
 
 
 
-double*	MT_CmMatrix4x4::getPointer()
+MT_Scalar*	MT_CmMatrix4x4::getPointer()
 {
 	return &m_V[0][0];
 }
 
 
 
-const double* MT_CmMatrix4x4::getPointer() const
+const MT_Scalar* MT_CmMatrix4x4::getPointer() const
 {
 	return &m_V[0][0];
 }	
 
 
 
-void MT_CmMatrix4x4::setElem(int pos,double newvalue)
+void MT_CmMatrix4x4::setElem(int pos,MT_Scalar newvalue)
 {
 	m_Vflat[pos] = newvalue;
 }	

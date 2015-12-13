@@ -128,7 +128,7 @@ public:
 	void*					m_clientObj;
 	RAS_Deformer*			m_pDeformer;
 	DerivedMesh*			m_pDerivedMesh;
-	double*					m_OpenGLMatrix;
+	float*					m_OpenGLMatrix;
 	// visibility
 	bool					m_bVisible;
 	bool					m_bCulled;

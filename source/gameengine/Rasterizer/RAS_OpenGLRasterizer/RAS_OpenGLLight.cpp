@@ -262,7 +262,7 @@ void RAS_OpenGLLight::Update()
 		// lights don't get their openGL matrix updated, do it now
 		if (kxlight->GetSGNode()->IsDirty())
 			kxlight->GetOpenGLMatrix();
-		double *dobmat = kxlight->GetOpenGLMatrixPtr()->getPointer();
+		float *dobmat = kxlight->GetOpenGLMatrixPtr()->getPointer();
 
 		for (int i=0; i<4; i++)
 			for (int j=0; j<4; j++, dobmat++)
