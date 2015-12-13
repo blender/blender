@@ -329,8 +329,8 @@ const bool GLXEW_ARB_create_context_robustness =
 
 		version = glGetString(GL_VERSION);
 
-		if (version[0] < '2' || ((version[0] == '2') &&  (version[2] < '1'))) {
-			fprintf(stderr, "Error! Blender requires OpenGL 2.1 to run.\n");
+		if (!version || version[0] < '2' || ((version[0] == '2') &&  (version[2] < '1'))) {
+			fprintf(stderr, "Error! Blender requires OpenGL 2.1 to run. Try updating your drivers.\n");
 			fflush(stderr);
 			/* ugly, but we get crashes unless a whole bunch of systems are patched. */
 			exit(0);
