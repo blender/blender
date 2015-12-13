@@ -550,7 +550,7 @@ static short mirror_gpf_cframe(bGPDframe *gpf, Scene *scene)
 	return 0;
 }
 
-static short mirror_gpf_yaxis(bGPDframe *gpf, Scene *scene)
+static short mirror_gpf_yaxis(bGPDframe *gpf, Scene *UNUSED(scene))
 {
 	int diff;
 	
@@ -562,7 +562,7 @@ static short mirror_gpf_yaxis(bGPDframe *gpf, Scene *scene)
 	return 0;
 }
 
-static short mirror_gpf_xaxis(bGPDframe *gpf, Scene *scene)
+static short mirror_gpf_xaxis(bGPDframe *gpf, Scene *UNUSED(scene))
 {
 	int diff;
 	
