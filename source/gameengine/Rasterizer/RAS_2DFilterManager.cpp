@@ -495,10 +495,10 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 
 			glBegin(GL_QUADS);
 				glColor4f(1.f, 1.f, 1.f, 1.f);
-				glTexCoord2f(1.0, 1.0);	glMultiTexCoord2fARB(GL_TEXTURE3_ARB, canvascoord[1], canvascoord[3]); glVertex2f(1,1);
-				glTexCoord2f(0.0, 1.0);	glMultiTexCoord2fARB(GL_TEXTURE3_ARB, canvascoord[0], canvascoord[3]); glVertex2f(-1,1);
-				glTexCoord2f(0.0, 0.0);	glMultiTexCoord2fARB(GL_TEXTURE3_ARB, canvascoord[0], canvascoord[2]); glVertex2f(-1,-1);
-				glTexCoord2f(1.0, 0.0);	glMultiTexCoord2fARB(GL_TEXTURE3_ARB, canvascoord[1], canvascoord[2]); glVertex2f(1,-1);
+				glTexCoord2f(1.0f, 1.0f);	glMultiTexCoord2fARB(GL_TEXTURE3_ARB, canvascoord[1], canvascoord[3]); glVertex2f(1.0f,1.0f);
+				glTexCoord2f(0.0f, 1.0f);	glMultiTexCoord2fARB(GL_TEXTURE3_ARB, canvascoord[0], canvascoord[3]); glVertex2f(-1.0f,1.0f);
+				glTexCoord2f(0.0f, 0.0f);	glMultiTexCoord2fARB(GL_TEXTURE3_ARB, canvascoord[0], canvascoord[2]); glVertex2f(-1.0f,-1.0f);
+				glTexCoord2f(1.0f, 0.0f);	glMultiTexCoord2fARB(GL_TEXTURE3_ARB, canvascoord[1], canvascoord[2]); glVertex2f(1.0f,-1.0f);
 			glEnd();
 		}
 	}

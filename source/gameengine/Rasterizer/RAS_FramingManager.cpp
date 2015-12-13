@@ -283,14 +283,14 @@ ComputeFrustum(
 			switch (sensor_fit) {
 				case RAS_SENSORFIT_HOR:
 				{
-					x_scale = 1.0;
+					x_scale = 1.0f;
 					y_scale = float(viewport.GetHeight()) / float(viewport.GetWidth());
 					break;
 				}
 				case RAS_SENSORFIT_VERT:
 				{
 					x_scale = float(viewport.GetWidth()) / float(viewport.GetHeight());
-					y_scale = 1.0;
+					y_scale = 1.0f;
 					break;
 				}
 				case RAS_SENSORFIT_AUTO:
@@ -377,14 +377,14 @@ RAS_FramingManager::
 			switch (sensor_fit) {
 				case RAS_SENSORFIT_HOR:
 				{
-					x_scale = 1.0;
+					x_scale = 1.0f;
 					y_scale = float(viewport.GetHeight()) / float(viewport.GetWidth());
 					break;
 				}
 				case RAS_SENSORFIT_VERT:
 				{
 					x_scale = float(viewport.GetWidth()) / float(viewport.GetHeight());
-					y_scale = 1.0;
+					y_scale = 1.0f;
 					break;
 				}
 				case RAS_SENSORFIT_AUTO:

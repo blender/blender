@@ -62,10 +62,10 @@ void  RAS_IPolyMaterial::Initialize(
 	m_polymatid = m_newpolymatid++;
 	m_flag = 0;
 	m_multimode = 0;
-	m_shininess = 35.0;
-	m_specular.setValue(0.5,0.5,0.5);
-	m_specularity = 1.0;
-	m_diffuse.setValue(0.5,0.5,0.5);
+	m_shininess = 35.0f;
+	m_specular.setValue(0.5f,0.5f,0.5f);
+	m_specularity = 1.0f;
+	m_diffuse.setValue(0.5f,0.5f,0.5f);
 	m_drawingmode = ConvertFaceMode(game, image);
 }
 
@@ -85,10 +85,10 @@ RAS_IPolyMaterial::RAS_IPolyMaterial()
 		m_flag(0),
 		m_multimode(0)
 {
-	m_shininess = 35.0;
-	m_specular = MT_Vector3(0.5,0.5,0.5);
-	m_specularity = 1.0;
-	m_diffuse = MT_Vector3(0.5,0.5,0.5);
+	m_shininess = 35.0f;
+	m_specular = MT_Vector3(0.5f,0.5f,0.5f);
+	m_specularity = 1.0f;
+	m_diffuse = MT_Vector3(0.5f,0.5f,0.5f);
 }
 
 RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
@@ -113,10 +113,10 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 		m_flag(0),
 		m_multimode(0)
 {
-	m_shininess = 35.0;
-	m_specular = MT_Vector3(0.5,0.5,0.5);
-	m_specularity = 1.0;
-	m_diffuse = MT_Vector3(0.5,0.5,0.5);
+	m_shininess = 35.0f;
+	m_specular = MT_Vector3(0.5f,0.5f,0.5f);
+	m_specularity = 1.0f;
+	m_diffuse = MT_Vector3(0.5f,0.5f,0.5f);
 }
 
 

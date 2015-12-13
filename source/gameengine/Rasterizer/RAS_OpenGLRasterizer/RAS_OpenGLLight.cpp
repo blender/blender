@@ -100,13 +100,13 @@ bool RAS_OpenGLLight::ApplyFixedFunctionLighting(KX_Scene *kxscene, int oblayer,
 		//vec[0] = base->object->obmat[2][0];
 		//vec[1] = base->object->obmat[2][1];
 		//vec[2] = base->object->obmat[2][2];
-		vec[3] = 0.0;
+		vec[3] = 0.0f;
 		glLightfv((GLenum)(GL_LIGHT0+slot), GL_POSITION, vec);
 	}
 	else {
-		//vec[3] = 1.0;
+		//vec[3] = 1.0f;
 		glLightfv((GLenum)(GL_LIGHT0+slot), GL_POSITION, vec);
-		glLightf((GLenum)(GL_LIGHT0+slot), GL_CONSTANT_ATTENUATION, 1.0);
+		glLightf((GLenum)(GL_LIGHT0+slot), GL_CONSTANT_ATTENUATION, 1.0f);
 		glLightf((GLenum)(GL_LIGHT0+slot), GL_LINEAR_ATTENUATION, m_att1/m_distance);
 		// without this next line it looks backward compatible.
 		//attennuation still is acceptable
@@ -124,30 +124,30 @@ bool RAS_OpenGLLight::ApplyFixedFunctionLighting(KX_Scene *kxscene, int oblayer,
 			glLightf((GLenum)(GL_LIGHT0+slot), GL_SPOT_EXPONENT, 128.0f * m_spotblend);
 		}
 		else {
-			glLightf((GLenum)(GL_LIGHT0+slot), GL_SPOT_CUTOFF, 180.0);
+			glLightf((GLenum)(GL_LIGHT0+slot), GL_SPOT_CUTOFF, 180.0f);
 		}
 	}
 
 	if (m_nodiffuse) {
-		vec[0] = vec[1] = vec[2] = vec[3] = 0.0;
+		vec[0] = vec[1] = vec[2] = vec[3] = 0.0f;
 	}
 	else {
 		vec[0] = m_energy*m_color[0];
 		vec[1] = m_energy*m_color[1];
 		vec[2] = m_energy*m_color[2];
-		vec[3] = 1.0;
+		vec[3] = 1.0f;
 	}
 
 	glLightfv((GLenum)(GL_LIGHT0+slot), GL_DIFFUSE, vec);
 	if (m_nospecular)
 	{
-		vec[0] = vec[1] = vec[2] = vec[3] = 0.0;
+		vec[0] = vec[1] = vec[2] = vec[3] = 0.0f;
 	}
 	else if (m_nodiffuse) {
 		vec[0] = m_energy*m_color[0];
 		vec[1] = m_energy*m_color[1];
 		vec[2] = m_energy*m_color[2];
-		vec[3] = 1.0;
+		vec[3] = 1.0f;
 	}
 
 	glLightfv((GLenum)(GL_LIGHT0+slot), GL_SPECULAR, vec);

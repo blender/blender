@@ -66,10 +66,10 @@ const MT_Point3& RAS_TexVert::xyz()
 void RAS_TexVert::SetRGBA(const MT_Vector4& rgba)
 {
 	unsigned char *colp = (unsigned char*) &m_rgba;
-	colp[0] = (unsigned char) (rgba[0] * 255.0);
-	colp[1] = (unsigned char) (rgba[1] * 255.0);
-	colp[2] = (unsigned char) (rgba[2] * 255.0);
-	colp[3] = (unsigned char) (rgba[3] * 255.0);
+	colp[0] = (unsigned char) (rgba[0] * 255.0f);
+	colp[1] = (unsigned char) (rgba[1] * 255.0f);
+	colp[2] = (unsigned char) (rgba[2] * 255.0f);
+	colp[3] = (unsigned char) (rgba[3] * 255.0f);
 }
 
 
@@ -153,12 +153,12 @@ unsigned int RAS_TexVert::getUnit() const
 
 void RAS_TexVert::Transform(const MT_Matrix4x4& mat, const MT_Matrix4x4& nmat)
 {
-	SetXYZ((mat * MT_Vector4(m_localxyz[0], m_localxyz[1], m_localxyz[2], 1.0)).getValue());
-	SetNormal((nmat * MT_Vector4(m_normal[0], m_normal[1], m_normal[2], 1.0)).getValue());
-	SetTangent((nmat * MT_Vector4(m_tangent[0], m_tangent[1], m_tangent[2], 1.0)).getValue());
+	SetXYZ((mat * MT_Vector4(m_localxyz[0], m_localxyz[1], m_localxyz[2], 1.0f)).getValue());
+	SetNormal((nmat * MT_Vector4(m_normal[0], m_normal[1], m_normal[2], 1.0f)).getValue());
+	SetTangent((nmat * MT_Vector4(m_tangent[0], m_tangent[1], m_tangent[2], 1.0f)).getValue());
 }
 
 void RAS_TexVert::TransformUV(int index, const MT_Matrix4x4& mat)
 {
-	SetUV(index, (mat * MT_Vector4(m_uvs[index][0], m_uvs[index][1], 0.0, 1.0)).getValue());
+	SetUV(index, (mat * MT_Vector4(m_uvs[index][0], m_uvs[index][1], 0.0f, 1.0f)).getValue());
 }

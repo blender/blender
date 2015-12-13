@@ -282,7 +282,7 @@ void RAS_BucketManager::OptimizeBuckets(MT_Scalar distance)
 {
 	BucketList::iterator bit;
 	
-	distance = 10.0;
+	distance = 10.0f;
 
 	for (bit = m_SolidBuckets.begin(); bit != m_SolidBuckets.end(); ++bit)
 		(*bit)->Optimize(distance);

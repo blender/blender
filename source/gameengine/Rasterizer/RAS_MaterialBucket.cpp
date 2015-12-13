@@ -58,7 +58,7 @@ RAS_MeshSlot::RAS_MeshSlot() : SG_QList()
 	m_bVisible = false;
 	m_bCulled = true;
 	m_bObjectColor = false;
-	m_RGBAcolor = MT_Vector4(0.0, 0.0, 0.0, 0.0);
+	m_RGBAcolor = MT_Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 	m_DisplayList = NULL;
 	m_bDisplayList = true;
 	m_joinSlot = NULL;
