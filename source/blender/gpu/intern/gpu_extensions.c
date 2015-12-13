@@ -206,7 +206,8 @@ void gpu_extensions_init(void)
 	         strstr(version, "4.0.0 - Build 9.18.10.3186") ||
 	         strstr(version, "4.0.0 - Build 9.18.10.3165") ||
 	         strstr(version, "3.1.0 - Build 9.17.10.3347") ||
-	         strstr(version, "3.1.0 - Build 9.17.10.4101")))
+	         strstr(version, "3.1.0 - Build 9.17.10.4101") ||
+	         strstr(version, "3.3.0 - Build 8.15.10.2618")))
 	{
 		GG.dfdyfactors[0] = -1.0;
 		GG.dfdyfactors[1] = 1.0;
