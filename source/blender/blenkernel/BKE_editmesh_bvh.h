@@ -68,6 +68,7 @@ struct BMFace  *BKE_bmbvh_ray_cast_filter(
 
 /* find a vert closest to co in a sphere of radius dist_max */
 struct BMVert  *BKE_bmbvh_find_vert_closest(BMBVHTree *tree, const float co[3], const float dist_max);
+struct BMFace  *BKE_bmbvh_find_face_closest(BMBVHTree *tree, const float co[3], const float dist_max);
 
 struct BVHTreeOverlap *BKE_bmbvh_overlap(const BMBVHTree *bmtree_a, const BMBVHTree *bmtree_b, unsigned int *r_overlap_tot);
 

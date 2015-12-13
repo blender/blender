@@ -439,6 +439,60 @@ BMVert *BKE_bmbvh_find_vert_closest(BMBVHTree *bmtree, const float co[3], const 
 	return NULL;
 }
 
+struct FaceSearchUserData {
+	/* from the bmtree */
+	const BMLoop *(*looptris)[3];
+	const float (*cos_cage)[3];
+
+	/* from the hit */
+	float dist_max_sq;
+};
+
+static void bmbvh_find_face_closest_cb(void *userdata, int index, const float co[3], BVHTreeNearest *hit)
+{
+	struct FaceSearchUserData *bmcb_data = userdata;
+	const BMLoop **ltri = bmcb_data->looptris[index];
+	const float dist_max_sq = bmcb_data->dist_max_sq;
+
+	const float *tri_cos[3];
+
+	bmbvh_tri_from_face(tri_cos, ltri, bmcb_data->cos_cage);
+
+	float co_close[3];
+	closest_on_tri_to_point_v3(co_close, co, UNPACK3(tri_cos));
+	const float dist_sq = len_squared_v3v3(co, co_close);
+	if (dist_sq < hit->dist_sq && dist_sq < dist_max_sq) {
+		/* XXX, normal ignores cage */
+		copy_v3_v3(hit->no, ltri[0]->f->no);
+		hit->dist_sq = dist_sq;
+		hit->index = index;
+	}
+}
+
+struct BMFace *BKE_bmbvh_find_face_closest(BMBVHTree *bmtree, const float co[3], const float dist_max)
+{
+	BVHTreeNearest hit;
+	struct FaceSearchUserData bmcb_data;
+	const float dist_max_sq = dist_max * dist_max;
+
+	if (bmtree->cos_cage) BLI_assert(!(bmtree->bm->elem_index_dirty & BM_VERT));
+
+	hit.dist_sq = dist_max_sq;
+	hit.index = -1;
+
+	bmcb_data.looptris = (const BMLoop *(*)[3])bmtree->looptris;
+	bmcb_data.cos_cage = (const float (*)[3])bmtree->cos_cage;
+	bmcb_data.dist_max_sq = dist_max_sq;
+
+	BLI_bvhtree_find_nearest(bmtree->tree, co, &hit, bmbvh_find_face_closest_cb, &bmcb_data);
+	if (hit.index != -1) {
+		BMLoop **ltri = bmtree->looptris[hit.index];
+		return ltri[0]->f;
+	}
+
+	return NULL;
+}
+
 /* -------------------------------------------------------------------- */
 /* BKE_bmbvh_overlap */
 
