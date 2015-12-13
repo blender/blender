@@ -549,9 +549,10 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
 
 	/* copy keyframes */
 	if (ac.datatype == ANIMCONT_GPENCIL) {
-		/* FIXME... */
-		BKE_report(op->reports, RPT_ERROR, "Keyframe pasting is not available for grease pencil mode");
-		return OPERATOR_CANCELLED;
+		if (ED_gpencil_anim_copybuf_copy(&ac) == false) {
+			/* Nothing got copied - An error about this should be been logged already */
+			return OPERATOR_CANCELLED;
+		}
 	}
 	else if (ac.datatype == ANIMCONT_MASK) {
 		/* FIXME... */
@@ -599,7 +600,13 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
 	ac.reports = op->reports;
 	
 	/* paste keyframes */
-	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
+	if (ac.datatype == ANIMCONT_GPENCIL) {
+		if (ED_gpencil_anim_copybuf_paste(&ac, offset_mode) == false) {
+			/* An error occurred - Reports should have been fired already */
+			return OPERATOR_CANCELLED;
+		}
+	}
+	else if (ac.datatype == ANIMCONT_MASK) {
 		/* FIXME... */
 		BKE_report(op->reports, RPT_ERROR, "Keyframe pasting is not available for grease pencil or mask mode");
 		return OPERATOR_CANCELLED;

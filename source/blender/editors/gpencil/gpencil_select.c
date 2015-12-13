@@ -67,10 +67,15 @@
 static int gpencil_select_poll(bContext *C)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	bGPDlayer *gpl = gpencil_layer_getactive(gpd);
 	
-	/* only if there's an active layer with an active frame */
-	return (gpl && gpl->actframe);
+	/* we just need some visible strokes, and to be in editmode */
+	if ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE)) {
+		/* TODO: include a check for visible strokes? */
+		if (gpd->layers.first)
+			return true;
+	}
+	
+	return false;
 }
 
 /* ********************************************** */

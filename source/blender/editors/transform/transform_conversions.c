@@ -7767,45 +7767,7 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 			 */
 			// XXX: should this be allowed when framelock is enabled?
 			if (gpf->framenum != cfra) {
-				bGPDframe *new_frame = gpencil_frame_duplicate(gpf);
-				bGPDframe *gf;
-				bool found = false;
-				
-				/* Find frame to insert it before */
-				for (gf = gpf->next; gf; gf = gf->next) {
-					if (gf->framenum > cfra) {
-						/* Add it here */
-						BLI_insertlinkbefore(&gpl->frames, gf, new_frame);
-						
-						found = true;
-						break;
-					}
-					else if (gf->framenum == cfra) {
-						/* This only happens when we're editing with framelock on...
-						 * - Delete the new frame and don't do anything else here...
-						 */
-						//printf("GP Frame convert to TransData - Copy aborted for frame %d -> %d\n", gpf->framenum, gf->framenum);
-						free_gpencil_strokes(new_frame);
-						MEM_freeN(new_frame);
-						new_frame = NULL;
-						
-						found = true;
-						break;
-					}
-				}
-				
-				if (found == false) {
-					/* Add new frame to the end */
-					BLI_addtail(&gpl->frames, new_frame);
-				}
-				
-				/* Edit the new frame instead, if it did get created + added */
-				if (new_frame) {
-					// TODO: tag this one as being "newly created" so that we can remove it if the edit is cancelled
-					new_frame->framenum = cfra;
-					
-					gpf = new_frame;
-				}
+				gpf = gpencil_frame_addcopy(gpl, cfra);
 			}
 			
 			/* Loop over strokes, adding TransData for points as needed... */
@@ -7930,7 +7892,8 @@ void createTransData(bContext *C, TransInfo *t)
 		}
 	}
 	else if (t->options & CTX_GPENCIL_STROKES) {
-		t->flag |= T_POINTS; // XXX...
+		t->options |= CTX_GPENCIL_STROKES;
+		t->flag |= T_POINTS;
 		createTransGPencil(C, t);
 		
 		if (t->data && (t->flag & T_PROP_EDIT)) {

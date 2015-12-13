@@ -37,12 +37,14 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -272,6 +274,8 @@ static int calc_manipulator_stats(const bContext *C)
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
 	Object *ob = OBACT;
+	bGPdata *gpd = CTX_data_gpencil_data(C);
+	const bool is_gp_edit = ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
 	int a, totsel = 0;
 
 	/* transform widget matrix */
@@ -282,8 +286,32 @@ static int calc_manipulator_stats(const bContext *C)
 	/* transform widget centroid/center */
 	INIT_MINMAX(scene->twmin, scene->twmax);
 	zero_v3(scene->twcent);
-
-	if (obedit) {
+	
+	if (is_gp_edit) {
+		CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+		{
+			/* we're only interested in selected points here... */
+			if (gps->flag & GP_STROKE_SELECT) {
+				bGPDspoint *pt;
+				int i;
+				
+				/* Change selection status of all points, then make the stroke match */
+				for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+					if (pt->flag & GP_SPOINT_SELECT) {
+						calc_tw_center(scene, &pt->x);
+						totsel++;
+					}
+				}
+			}
+		}
+		CTX_DATA_END;
+		
+		/* selection center */
+		if (totsel) {
+			mul_v3_fl(scene->twcent, 1.0f / (float)totsel);   /* centroid! */
+		}
+	}
+	else if (obedit) {
 		ob = obedit;
 		if ((ob->lay & v3d->lay) == 0) return 0;
 
@@ -546,7 +574,7 @@ static int calc_manipulator_stats(const bContext *C)
 	}
 
 	/* global, local or normal orientation? */
-	if (ob && totsel) {
+	if (ob && totsel && !is_gp_edit) {
 
 		switch (v3d->twmode) {
 		
@@ -1595,9 +1623,12 @@ void BIF_draw_manipulator(const bContext *C)
 			case V3D_AROUND_CENTER_BOUNDS:
 			case V3D_AROUND_ACTIVE:
 			{
-				Object *ob;
+				bGPdata *gpd = CTX_data_gpencil_data(C);
+ 				Object *ob = OBACT;
+				
 				if (((v3d->around == V3D_AROUND_ACTIVE) && (scene->obedit == NULL)) &&
-				    ((ob = OBACT) && !(ob->mode & OB_MODE_POSE)))
+				    ((gpd == NULL) || !(gpd->flag & GP_DATA_STROKE_EDITMODE)) &&
+				    (!(ob->mode & OB_MODE_POSE)))
 				{
 					copy_v3_v3(rv3d->twmat[3], ob->obmat[3]);
 				}

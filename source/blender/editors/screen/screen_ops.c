@@ -2204,7 +2204,6 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
-	bGPdata *gpd = CTX_data_gpencil_data(C);
 	bDopeSheet ads = {NULL};
 	DLRBT_Tree keys;
 	ActKeyColumn *ak;
@@ -2229,11 +2228,12 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	
 	/* populate tree with keyframe nodes */
 	scene_to_keylist(&ads, scene, &keys, NULL);
+	gpencil_to_keylist(&ads, scene->gpd, &keys);
 
-	if (ob)
+	if (ob) {
 		ob_to_keylist(&ads, ob, &keys, NULL);
-	
-	gpencil_to_keylist(&ads, gpd, &keys);
+		gpencil_to_keylist(&ads, ob->gpd, &keys);
+	}
 	
 	{
 		Mask *mask = CTX_data_edit_mask(C);

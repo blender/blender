@@ -44,10 +44,14 @@
 
 #include "BKE_fcurve.h"
 #include "BKE_gpencil.h"
+#include "BKE_report.h"
 
+#include "ED_anim_api.h"
 #include "ED_gpencil.h"
 #include "ED_keyframes_edit.h"
 #include "ED_markers.h"
+
+#include "WM_api.h"
 
 /* ***************************************** */
 /* NOTE ABOUT THIS FILE:
@@ -268,7 +272,7 @@ void ED_gplayer_frames_keytype_set(bGPDlayer *gpl, short type)
 	}
 }
 
-#if 0 // XXX disabled until grease pencil code stabilises again
+
 /* -------------------------------------- */
 /* Copy and Paste Tools */
 /* - The copy/paste buffer currently stores a set of GP_Layers, with temporary
@@ -280,118 +284,155 @@ void ED_gplayer_frames_keytype_set(bGPDlayer *gpl, short type)
  */
 
 /* globals for copy/paste data (like for other copy/paste buffers) */
-ListBase gpcopybuf = {NULL, NULL};
-static int gpcopy_firstframe = 999999999;
+ListBase gp_anim_copybuf = {NULL, NULL};
+static int gp_anim_copy_firstframe =  999999999;
+static int gp_anim_copy_lastframe  = -999999999;
+static int gp_anim_copy_cfra       =  0;
+
 
 /* This function frees any MEM_calloc'ed copy/paste buffer data */
-void free_gpcopybuf()
+void ED_gpencil_anim_copybuf_free(void)
 {
-	free_gpencil_layers(&gpcopybuf);
+	free_gpencil_layers(&gp_anim_copybuf);
+	BLI_listbase_clear(&gp_anim_copybuf);
 	
-	BLI_listbase_clear(&gpcopybuf);
-	gpcopy_firstframe = 999999999;
+	gp_anim_copy_firstframe =  999999999;
+	gp_anim_copy_lastframe  = -999999999;
+	gp_anim_copy_cfra       =  0;
 }
+
 
 /* This function adds data to the copy/paste buffer, freeing existing data first
  * Only the selected GP-layers get their selected keyframes copied.
+ *
+ * Returns whether the copy operation was successful or not
  */
-void copy_gpdata()
+bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
 {
-	ListBase act_data = {NULL, NULL};
-	bActListElem *ale;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
 	int filter;
-	void *data;
-	short datatype;
+	
+	Scene *scene = ac->scene;
+	
 	
 	/* clear buffer first */
-	free_gpcopybuf();
-	
-	/* get data */
-	data = get_action_context(&datatype);
-	if (data == NULL) return;
-	if (datatype != ACTCONT_GPENCIL) return;
+	ED_gpencil_anim_copybuf_free();
 	
 	/* filter data */
-	filter = (ACTFILTER_VISIBLE | ACTFILTER_SEL);
-	actdata_filter(&act_data, filter, data, datatype);
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
-	/* assume that each of these is an ipo-block */
-	for (ale = act_data.first; ale; ale = ale->next) {
-		bGPDlayer *gpls, *gpln;
-		bGPDframe *gpf, *gpfn;
-		
-		/* get new layer to put into buffer */
-		gpls = (bGPDlayer *)ale->data;
-		gpln = MEM_callocN(sizeof(bGPDlayer), "GPCopyPasteLayer");
-		
-		BLI_listbase_clear(&gpln->frames);
-		BLI_strncpy(gpln->info, gpls->info, sizeof(gpln->info));
-		
-		BLI_addtail(&gpcopybuf, gpln);
+	/* assume that each of these is a GP layer */
+	for (ale = anim_data.first; ale; ale = ale->next) {
+		ListBase copied_frames = {NULL, NULL};
+		bGPDlayer *gpl = (bGPDlayer *)ale->data;
+		bGPDframe *gpf;
 		
 		/* loop over frames, and copy only selected frames */
-		for (gpf = gpls->frames.first; gpf; gpf = gpf->next) {
+		for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
 			/* if frame is selected, make duplicate it and its strokes */
 			if (gpf->flag & GP_FRAME_SELECT) {
-				/* add frame to buffer */
-				gpfn = gpencil_frame_duplicate(gpf);
-				BLI_addtail(&gpln->frames, gpfn);
+				/* make a copy of this frame */
+				bGPDframe *new_frame = gpencil_frame_duplicate(gpf);
+				BLI_addtail(&copied_frames, new_frame);
 				
-				/* check if this is the earliest frame encountered so far */
-				if (gpf->framenum < gpcopy_firstframe)
-					gpcopy_firstframe = gpf->framenum;
+				/* extend extents for keyframes encountered */
+				if (gpf->framenum  < gp_anim_copy_firstframe)
+					gp_anim_copy_firstframe = gpf->framenum; 
+				if (gpf->framenum > gp_anim_copy_lastframe)
+					gp_anim_copy_lastframe = gpf->framenum;
 			}
+		}
+		
+		/* create a new layer in buffer if there were keyframes here */
+		if (BLI_listbase_is_empty(&copied_frames) == false) {
+			bGPDlayer *new_layer = MEM_callocN(sizeof(bGPDlayer), "GPCopyPasteLayer");
+			BLI_addtail(&gp_anim_copybuf, new_layer);
+			
+			/* move over copied frames */
+			BLI_movelisttolist(&new_layer->frames, &copied_frames);
+			BLI_assert(copied_frames.first == NULL);
+			
+			/* make a copy of the layer's name - for name-based matching later... */
+			BLI_strncpy(new_layer->info, gpl->info, sizeof(new_layer->info));
 		}
 	}
 	
-	/* check if anything ended up in the buffer */
-	if (ELEM(NULL, gpcopybuf.first, gpcopybuf.last))
-		error("Nothing copied to buffer");
+	/* in case 'relative' paste method is used */
+	gp_anim_copy_cfra = CFRA;
 	
-	/* free temp memory */
-	BLI_freelistN(&act_data);
+	/* clean up */
+	ANIM_animdata_freelist(&anim_data);
+	
+	/* check if anything ended up in the buffer */
+	if (ELEM(NULL, gp_anim_copybuf.first, gp_anim_copybuf.last)) {
+		BKE_report(ac->reports, RPT_ERROR, "No keyframes copied to keyframes copy/paste buffer");
+		return false;
+	}
+	
+	/* report success */
+	return true;
 }
 
-void paste_gpdata(Scene *scene)
+
+/* Pastes keyframes from buffer, and reports success */
+bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
 {
-	ListBase act_data = {NULL, NULL};
-	bActListElem *ale;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
 	int filter;
-	void *data;
-	short datatype;
 	
-	const int offset = (CFRA - gpcopy_firstframe);
-	short no_name = 0;
+	Scene *scene = ac->scene;
+	bool no_name = false;
+	int offset = 0;
 	
 	/* check if buffer is empty */
-	if (ELEM(NULL, gpcopybuf.first, gpcopybuf.last)) {
-		error("No data in buffer to paste");
-		return;
+	if (BLI_listbase_is_empty(&gp_anim_copybuf)) {
+		BKE_report(ac->reports, RPT_ERROR, "No data in buffer to paste");
+		return false;
 	}
-	/* check if single channel in buffer (disregard names if so)  */
-	if (gpcopybuf.first == gpcopybuf.last)
-		no_name = 1;
 	
-	/* get data */
-	data = get_action_context(&datatype);
-	if (data == NULL) return;
-	if (datatype != ACTCONT_GPENCIL) return;
+	/* check if single channel in buffer (disregard names if so)  */
+	if (gp_anim_copybuf.first == gp_anim_copybuf.last) {
+		no_name = true;
+	}
+	
+	/* methods of offset (eKeyPasteOffset) */
+	switch (offset_mode) {
+		case KEYFRAME_PASTE_OFFSET_CFRA_START:
+			offset = (CFRA - gp_anim_copy_firstframe);
+			break;
+		case KEYFRAME_PASTE_OFFSET_CFRA_END:
+			offset = (CFRA - gp_anim_copy_lastframe);
+			break;
+		case KEYFRAME_PASTE_OFFSET_CFRA_RELATIVE:
+			offset = (CFRA - gp_anim_copy_cfra);
+			break;
+		case KEYFRAME_PASTE_OFFSET_NONE:
+			offset = 0;
+			break;
+	}
+
 	
 	/* filter data */
-	filter = (ACTFILTER_VISIBLE | ACTFILTER_SEL | ACTFILTER_FOREDIT);
-	actdata_filter(&act_data, filter, data, datatype);
+	// TODO: try doing it with selection, then without selection imits
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* from selected channels */
-	for (ale = act_data.first; ale; ale = ale->next) {
+	for (ale = anim_data.first; ale; ale = ale->next) {
 		bGPDlayer *gpld = (bGPDlayer *)ale->data;
 		bGPDlayer *gpls = NULL;
 		bGPDframe *gpfs, *gpf;
 		
+		
 		/* find suitable layer from buffer to use to paste from */
-		for (gpls = gpcopybuf.first; gpls; gpls = gpls->next) {
+		for (gpls = gp_anim_copybuf.first; gpls; gpls = gpls->next) {
 			/* check if layer name matches */
-			if ((no_name) || STREQ(gpls->info, gpld->info))
+			if ((no_name) || STREQ(gpls->info, gpld->info)) {
 				break;
+			}
 		}
 		
 		/* this situation might occur! */
@@ -407,58 +448,21 @@ void paste_gpdata(Scene *scene)
 			gpf = gpencil_layer_getframe(gpld, gpfs->framenum, 1);
 			if (gpf) {
 				bGPDstroke *gps, *gpsn;
-				ScrArea *sa;
 				
-				/* get area that gp-data comes from */
-				//sa = gpencil_data_findowner((bGPdata *)ale->owner);
-				sa = NULL;
-				
-				/* this should be the right frame... as it may be a pre-existing frame,
+				/* This should be the right frame... as it may be a pre-existing frame,
 				 * must make sure that only compatible stroke types get copied over
-				 *	- we cannot just add a duplicate frame, as that would cause errors
-				 *	- need to check for compatible types to minimize memory usage (copying 'junk' over)
+				 *	- We cannot just add a duplicate frame, as that would cause errors
+				 *  - For now, we don't check if the types will be compatible since we
+				 *    don't have enough info to do so. Instead, we simply just paste,
+				 *    af it works, it will show up.
 				 */
 				for (gps = gpfs->strokes.first; gps; gps = gps->next) {
-					short stroke_ok;
+					/* make a copy of stroke, then of its points array */
+					gpsn = MEM_dupallocN(gps);
+					gpsn->points = MEM_dupallocN(gps->points);
 					
-					/* if there's an area, check that it supports this type of stroke */
-					if (sa) {
-						stroke_ok = 0;
-						
-						/* check if spacetype supports this type of stroke
-						 *	- NOTE: must sync this with gp_paint_initstroke() in gpencil.c
-						 */
-						switch (sa->spacetype) {
-							case SPACE_VIEW3D: /* 3D-View: either screen-aligned or 3d-space */
-								if ((gps->flag == 0) || (gps->flag & GP_STROKE_3DSPACE))
-									stroke_ok = 1;
-								break;
-							
-							case SPACE_NODE: /* Nodes Editor: either screen-aligned or view-aligned */
-							case SPACE_IMAGE: /* Image Editor: either screen-aligned or view\image-aligned */
-							case SPACE_CLIP: /* Image Editor: either screen-aligned or view\image-aligned */
-								if ((gps->flag == 0) || (gps->flag & GP_STROKE_2DSPACE))
-									stroke_ok = 1;
-								break;
-							
-							case SPACE_SEQ: /* Sequence Editor: either screen-aligned or view-aligned */
-								if ((gps->flag == 0) || (gps->flag & GP_STROKE_2DIMAGE))
-									stroke_ok = 1;
-								break;
-						}
-					}
-					else
-						stroke_ok = 1;
-					
-					/* if stroke is ok, we make a copy of this stroke and add to frame */
-					if (stroke_ok) {
-						/* make a copy of stroke, then of its points array */
-						gpsn = MEM_dupallocN(gps);
-						gpsn->points = MEM_dupallocN(gps->points);
-						
-						/* append stroke to frame */
-						BLI_addtail(&gpf->strokes, gpsn);
-					}
+					/* append stroke to frame */
+					BLI_addtail(&gpf->strokes, gpsn);				
 				}
 				
 				/* if no strokes (i.e. new frame) added, free gpf */
@@ -471,13 +475,10 @@ void paste_gpdata(Scene *scene)
 		}
 	}
 	
-	/* free temp memory */
-	BLI_freelistN(&act_data);
-	
-	/* undo and redraw stuff */
-	BIF_undo_push("Paste Grease Pencil Frames");
+	/* clean up */
+	ANIM_animdata_freelist(&anim_data);
+	return true;
 }
-#endif /* XXX disabled until Grease Pencil code stabilises again... */
 
 /* -------------------------------------- */
 /* Snap Tools */

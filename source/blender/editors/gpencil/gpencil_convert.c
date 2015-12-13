@@ -77,6 +77,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "ED_gpencil.h"
@@ -106,9 +107,9 @@ enum {
 
 /* RNA enum define */
 static EnumPropertyItem prop_gpencil_convertmodes[] = {
-	{GP_STROKECONVERT_PATH, "PATH", 0, "Path", ""},
-	{GP_STROKECONVERT_CURVE, "CURVE", 0, "Bezier Curve", ""},
-	{GP_STROKECONVERT_POLY, "POLY", 0, "Polygon Curve", ""},
+	{GP_STROKECONVERT_PATH, "PATH", ICON_CURVE_PATH, "Path", "Animation path"},
+	{GP_STROKECONVERT_CURVE, "CURVE", ICON_CURVE_BEZCURVE, "Bezier Curve", "Smooth Bezier curve"},
+	{GP_STROKECONVERT_POLY, "POLY", ICON_MESH_DATA, "Polygon Curve", "Bezier curve with straight-line segments (vector handles)"},
 	{0, NULL, 0, NULL, NULL}
 };
 

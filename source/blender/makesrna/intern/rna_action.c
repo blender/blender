@@ -495,6 +495,14 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Display Grease Pencil", "Include visualization of Grease Pencil related animation data and frames");
 	RNA_def_property_ui_icon(prop, ICON_GREASEPENCIL, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+	
+	/* GPencil Mode Settings */
+	prop = RNA_def_property(srna, "show_gpencil_3d_only", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_GP_3DONLY);
+	RNA_def_property_ui_text(prop, "Active Scene Only", 
+	                         "Only show Grease Pencil datablocks used as part of the active scene");
+	RNA_def_property_ui_icon(prop, ICON_SCENE_DATA, 0);
+	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 }
 
 static void rna_def_action_group(BlenderRNA *brna)

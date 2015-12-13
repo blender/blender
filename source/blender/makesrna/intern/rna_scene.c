@@ -2057,11 +2057,19 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		 "unless the active object already has Grease Pencil data (i.e. for old files)"},
 		{GP_TOOL_SOURCE_OBJECT, "OBJECT", 0, "Object",
 		 "Grease Pencil data-blocks attached to the active object are used "
-		 "(required using pre 2.73 add-ons, e.g. BSurfaces)"},
+		 "(required when using pre 2.73 add-ons, e.g. BSurfaces)"},
 		{0, NULL, 0, NULL, NULL}
 	};
-
-
+	
+	static EnumPropertyItem gpencil_stroke_placement_items[] = {
+		{GP_PROJECT_VIEWSPACE, "CURSOR", 0, "Cursor", "Draw stroke at the 3D cursor"},
+		{0, "VIEW", 0, "View", "Stick stroke to the view "}, /* weird, GP_PROJECT_VIEWALIGN is inverted */
+		{GP_PROJECT_VIEWSPACE | GP_PROJECT_DEPTH_VIEW, "SURFACE", 0, "Surface", "Stick stroke to surfaces"},
+		{GP_PROJECT_VIEWSPACE | GP_PROJECT_DEPTH_STROKE, "STROKE", 0, "Stroke", "Stick stroke to other strokes"},
+		{0, NULL, 0, NULL, NULL}
+	};
+	
+	
 	srna = RNA_def_struct(brna, "ToolSettings", NULL);
 	RNA_def_struct_path_func(srna, "rna_ToolSettings_path");
 	RNA_def_struct_ui_text(srna, "Tool Settings", "");
@@ -2269,11 +2277,18 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
 	/* Grease Pencil */
-	prop = RNA_def_property(srna, "use_grease_pencil_sessions", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_gpencil_continuous_drawing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gpencil_flags", GP_TOOL_FLAG_PAINTSESSIONS_ON);
-	RNA_def_property_ui_text(prop, "Use Sketching Sessions",
+	RNA_def_property_ui_text(prop, "Use Continuous Drawing",
 	                         "Allow drawing multiple strokes at a time with Grease Pencil");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* xxx: need toolbar to be redrawn... */
+	
+	prop = RNA_def_property(srna, "use_gpencil_additive_drawing", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gpencil_flags", GP_TOOL_FLAG_RETAIN_LAST);
+	RNA_def_property_ui_text(prop, "Use Additive Drawing",
+	                         "When creating new frames, the strokes from the previous/active frame "
+	                         "are included as the basis for the new one");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 	
 	prop = RNA_def_property(srna, "grease_pencil_source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_src");
@@ -2281,6 +2296,45 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Grease Pencil Source",
 	                         "Datablock where active Grease Pencil data is found from");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
+	
+	prop = RNA_def_property(srna, "gpencil_sculpt", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "gp_sculpt");
+	RNA_def_property_struct_type(prop, "GPencilSculptSettings");
+	RNA_def_property_ui_text(prop, "Grease Pencil Sculpt", "");
+	
+	/* Grease Pencil - 3D View Stroke Placement */
+	prop = RNA_def_property(srna, "gpencil_stroke_placement_view3d", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_v3d_align");
+	RNA_def_property_enum_items(prop, gpencil_stroke_placement_items);
+	RNA_def_property_ui_text(prop, "Stroke Placement (3D View)", "");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
+	
+	prop = RNA_def_property(srna, "use_gpencil_stroke_endpoints", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gpencil_v3d_align", GP_PROJECT_DEPTH_STROKE_ENDPOINTS);
+	RNA_def_property_ui_text(prop, "Only Endpoints", "Only use the first and last parts of the stroke for snapping");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
+	
+	/* Grease Pencil - 2D Views Stroke Placement */
+	prop = RNA_def_property(srna, "gpencil_stroke_placement_view2d", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_v2d_align");
+	RNA_def_property_enum_items(prop, gpencil_stroke_placement_items);
+	RNA_def_property_ui_text(prop, "Stroke Placement (2D View)", "");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
+
+	/* Grease Pencil - Sequencer Preview Stroke Placement */
+	prop = RNA_def_property(srna, "gpencil_stroke_placement_sequencer_preview", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_seq_align");
+	RNA_def_property_enum_items(prop, gpencil_stroke_placement_items);
+	RNA_def_property_ui_text(prop, "Stroke Placement (Sequencer Preview)", "");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
+	
+	/* Grease Pencil - Image Editor Stroke Placement */
+	prop = RNA_def_property(srna, "gpencil_stroke_placement_image_editor", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_ima_align");
+	RNA_def_property_enum_items(prop, gpencil_stroke_placement_items);
+	RNA_def_property_ui_text(prop, "Stroke Placement (Image Editor)", "");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
+
 	
 	/* Auto Keying */
 	prop = RNA_def_property(srna, "use_keyframe_insert_auto", PROP_BOOLEAN, PROP_NONE);

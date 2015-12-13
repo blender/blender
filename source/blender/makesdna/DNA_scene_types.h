@@ -911,6 +911,7 @@ typedef enum StereoViews {
 	STEREO_MONO_ID = 3,
 } StereoViews;
 
+/* *************************************************************** */
 /* Markers */
 
 typedef struct TimeMarker {	
@@ -1041,6 +1042,7 @@ typedef struct Sculpt {
 typedef struct UvSculpt {
 	Paint paint;
 } UvSculpt;
+
 /* ------------------------------------------- */
 /* Vertex Paint */
 
@@ -1065,6 +1067,65 @@ enum {
 	// VP_MIRROR_X  = (1 << 5),  /* deprecated in 2.5x use (me->editflag & ME_EDIT_MIRROR_X) */
 	VP_ONLYVGROUP   = (1 << 7)   /* weight paint only */
 };
+
+/* ------------------------------------------- */
+/* GPencil Stroke Sculpting */
+
+/* Brush types */
+typedef enum eGP_EditBrush_Types {
+	GP_EDITBRUSH_TYPE_SMOOTH    = 0,
+	GP_EDITBRUSH_TYPE_THICKNESS = 1,
+	GP_EDITBRUSH_TYPE_GRAB      = 2,
+	GP_EDITBRUSH_TYPE_PUSH      = 3,
+	GP_EDITBRUSH_TYPE_TWIST     = 4,
+	GP_EDITBRUSH_TYPE_PINCH     = 5,
+	GP_EDITBRUSH_TYPE_RANDOMISE = 6,
+	GP_EDITBRUSH_TYPE_SUBDIVIDE = 7,
+	GP_EDITBRUSH_TYPE_SIMPLIFY  = 8,
+	GP_EDITBRUSH_TYPE_CLONE     = 9,
+	
+	/* !!! Update GP_EditBrush_Data brush[###]; below !!! */
+	TOT_GP_EDITBRUSH_TYPES
+} eGP_EditBrush_Types;
+
+
+/* Settings for a GPencil Stroke Sculpting Brush */
+typedef struct GP_EditBrush_Data {
+	short size;             /* radius of brush */
+	short flag;             /* eGP_EditBrush_Flag */
+	float strength;         /* strength of effect */
+} GP_EditBrush_Data;
+
+/* GP_EditBrush_Data.flag */
+typedef enum eGP_EditBrush_Flag {
+	/* invert the effect of the brush */
+	GP_EDITBRUSH_FLAG_INVERT       = (1 << 0),
+	/* adjust strength using pen pressure */
+	GP_EDITBRUSH_FLAG_USE_PRESSURE = (1 << 1),
+	
+	/* strength of brush falls off with distance from cursor */
+	GP_EDITBRUSH_FLAG_USE_FALLOFF  = (1 << 2),
+	
+	/* smooth brush affects pressure values as well */
+	GP_EDITBRUSH_FLAG_SMOOTH_PRESSURE  = (1 << 3)
+} eGP_EditBrush_Flag;
+
+
+
+/* GPencil Stroke Sculpting Settings */
+typedef struct GP_BrushEdit_Settings {
+	GP_EditBrush_Data brush[10];  /* TOT_GP_EDITBRUSH_TYPES */
+	void *paintcursor;            /* runtime */
+	
+	int brushtype;                /* eGP_EditBrush_Types */
+	int flag;                     /* eGP_BrushEdit_SettingsFlag */
+} GP_BrushEdit_Settings;
+
+/* GP_BrushEdit_Settings.flag */
+typedef enum eGP_BrushEdit_SettingsFlag {
+	/* only affect selected points */
+	GP_BRUSHEDIT_FLAG_SELECT_MASK = (1 << 0)
+} eGP_BrushEdit_SettingsFlag;
 
 /* *************************************************************** */
 /* Transform Orientations */
@@ -1172,6 +1233,10 @@ typedef enum {
 	UNIFIED_PAINT_BRUSH_ALPHA_PRESSURE  = (1 << 4)
 } UnifiedPaintSettingsFlags;
 
+/* *************************************************************** */
+/* Stats */
+
+/* Stats for Meshes */
 typedef struct MeshStatVis {
 	char type;
 	char _pad1[2];
@@ -1228,7 +1293,13 @@ typedef struct ToolSettings {
 	char gpencil_flags;		/* flags/options for how the tool works */
 	char gpencil_src;		/* for main 3D view Grease Pencil, where data comes from */
 
-	char pad[4];
+	char gpencil_v3d_align; /* stroke placement settings: 3D View */
+	char gpencil_v2d_align; /*                          : General 2D Editor */
+	char gpencil_seq_align; /*                          : Sequencer Preview */
+	char gpencil_ima_align; /*                          : Image Editor */
+	
+	/* Grease Pencil Sculpt */
+	struct GP_BrushEdit_Settings gp_sculpt;
 
 	/* Image Paint (8 byttse aligned please!) */
 	struct ImagePaintSettings imapaint;
@@ -1917,13 +1988,34 @@ typedef enum ImagePaintMode {
 #define EDGE_MODE_TAG_FREESTYLE			5
 
 /* toolsettings->gpencil_flags */
-#define GP_TOOL_FLAG_PAINTSESSIONS_ON	(1<<0)
+typedef enum eGPencil_Flags {
+	/* "Continuous Drawing" - The drawing operator enters a mode where multiple strokes can be drawn */
+	GP_TOOL_FLAG_PAINTSESSIONS_ON       = (1 << 0),
+	/* When creating new frames, the last frame gets used as the basis for the new one */
+	GP_TOOL_FLAG_RETAIN_LAST            = (1 << 1),
+} eGPencil_Flags;
 
 /* toolsettings->gpencil_src */
 typedef enum eGPencil_Source_3D {
 	GP_TOOL_SOURCE_SCENE    = 0,
 	GP_TOOL_SOURCE_OBJECT   = 1
 } eGPencil_Source_3d;
+
+/* toolsettings->gpencil_*_align - Stroke Placement mode flags */
+typedef enum eGPencil_Placement_Flags {
+	/* New strokes are added in viewport/data space (i.e. not screen space) */
+	GP_PROJECT_VIEWSPACE    = (1 << 0),
+	
+	/* Viewport space, but relative to render canvas (Sequencer Preview Only) */
+	GP_PROJECT_CANVAS       = (1 << 1),
+	
+	/* Project into the screen's Z values */
+	GP_PROJECT_DEPTH_VIEW	= (1 << 2),
+	GP_PROJECT_DEPTH_STROKE = (1 << 3),
+	
+	/* "Use Endpoints" */
+	GP_PROJECT_DEPTH_STROKE_ENDPOINTS = (1 << 4),
+} eGPencil_Placement_Flags;
 
 /* toolsettings->particle flag */
 #define PE_KEEP_LENGTHS			1

@@ -40,6 +40,7 @@ set(INC_SYS
 set(SRC
 	drawgpencil.c
 	editaction_gpencil.c
+	gpencil_brush.c
 	gpencil_convert.c
 	gpencil_data.c
 	gpencil_edit.c

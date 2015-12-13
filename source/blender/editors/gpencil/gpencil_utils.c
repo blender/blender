@@ -51,7 +51,9 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
+#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "ED_gpencil.h"
@@ -76,8 +78,6 @@ bGPdata **ED_gpencil_data_get_pointers_direct(ID *screen_id, Scene *scene, ScrAr
 		
 		switch (sa->spacetype) {
 			case SPACE_VIEW3D: /* 3D-View */
-			case SPACE_TIME:   /* Timeline - XXX: this is a hack to get it to show GP keyframes for 3D view */
-			case SPACE_ACTION: /* DepeSheet - XXX: this is a hack to get the keyframe jump operator to take GP Keyframes into account */
 			{
 				BLI_assert(scene && ELEM(scene->toolsettings->gpencil_src,
 				                         GP_TOOL_SOURCE_SCENE, GP_TOOL_SOURCE_OBJECT));
@@ -212,6 +212,45 @@ bGPdata *ED_gpencil_data_get_active_v3d(Scene *scene, View3D *v3d)
 }
 
 /* ******************************************************** */
+/* Keyframe Indicator Checks */
+
+/* Check whether there's an active GP keyframe on the current frame */
+bool ED_gpencil_has_keyframe_v3d(Scene *scene, Object *ob, int cfra)
+{
+	/* just check both for now... */
+	// XXX: this could get confusing (e.g. if only on the object, but other places don't show this)
+	if (scene->gpd) {
+		bGPDlayer *gpl = gpencil_layer_getactive(scene->gpd);
+		if (gpl) {
+			if (gpl->actframe) {
+				// XXX: assumes that frame has been fetched already
+				return (gpl->actframe->framenum == cfra);
+			}
+			else {
+				/* XXX: disabled as could be too much of a penalty */
+				/* return BKE_gpencil_layer_find_frame(gpl, cfra); */
+			}
+		}
+	}
+	
+	if (ob && ob->gpd) {
+		bGPDlayer *gpl = gpencil_layer_getactive(ob->gpd);
+		if (gpl) {
+			if (gpl->actframe) {
+				// XXX: assumes that frame has been fetched already
+				return (gpl->actframe->framenum == cfra);
+			}
+			else {
+				/* XXX: disabled as could be too much of a penalty */
+				/* return BKE_gpencil_layer_find_frame(gpl, cfra); */
+			}
+		}
+	}
+	
+	return false;
+}
+
+/* ******************************************************** */
 /* Poll Callbacks */
 
 /* poll callback for adding data/layers - special */
@@ -229,6 +268,92 @@ int gp_active_layer_poll(bContext *C)
 	
 	return (gpl != NULL);
 }
+
+/* ******************************************************** */
+/* Dynamic Enums of GP Layers */
+/* NOTE: These include an option to create a new layer and use that... */
+
+/* Just existing layers */
+EnumPropertyItem *ED_gpencil_layers_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	bGPdata *gpd = CTX_data_gpencil_data(C);
+	bGPDlayer *gpl;
+	EnumPropertyItem *item = NULL, item_tmp = {0};
+	int totitem = 0;
+	int i = 0;
+	
+	if (ELEM(NULL, C, gpd)) {
+		return DummyRNA_DEFAULT_items;
+	}
+	
+	/* Existing layers */
+	for (gpl = gpd->layers.first; gpl; gpl = gpl->next, i++) {
+		item_tmp.identifier = gpl->info;
+		item_tmp.name = gpl->info;
+		item_tmp.value = i;
+		
+		if (gpl->flag & GP_LAYER_ACTIVE)
+			item_tmp.icon = ICON_GREASEPENCIL;
+		else 
+			item_tmp.icon = ICON_NONE;
+		
+		RNA_enum_item_add(&item, &totitem, &item_tmp);
+	}
+	
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
+}
+
+/* Existing + Option to add/use new layer */
+EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	bGPdata *gpd = CTX_data_gpencil_data(C);
+	bGPDlayer *gpl;
+	EnumPropertyItem *item = NULL, item_tmp = {0};
+	int totitem = 0;
+	int i = 0;
+	
+	if (ELEM(NULL, C, gpd)) {
+		return DummyRNA_DEFAULT_items;
+	}
+	
+	/* Create new layer */
+	/* TODO: have some way of specifying that we don't want this? */
+	{
+		/* active Keying Set */
+		item_tmp.identifier = "__CREATE__";
+		item_tmp.name = "New Layer";
+		item_tmp.value = -1;
+		item_tmp.icon = ICON_ZOOMIN;
+		RNA_enum_item_add(&item, &totitem, &item_tmp);
+		
+		/* separator */
+		RNA_enum_item_add_separator(&item, &totitem);
+	}
+	
+	/* Existing layers */
+	for (gpl = gpd->layers.first, i = 0; gpl; gpl = gpl->next, i++) {
+		item_tmp.identifier = gpl->info;
+		item_tmp.name = gpl->info;
+		item_tmp.value = i;
+		
+		if (gpl->flag & GP_LAYER_ACTIVE)
+			item_tmp.icon = ICON_GREASEPENCIL;
+		else 
+			item_tmp.icon = ICON_NONE;
+		
+		RNA_enum_item_add(&item, &totitem, &item_tmp);
+	}
+	
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
+
+	return item;
+}
+
+
 
 /* ******************************************************** */
 /* Brush Tool Core */
@@ -369,6 +494,39 @@ void gp_point_to_xy(GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
 			*r_x = (int)((pt->x / 100) * BLI_rctf_size_x(subrect)) + subrect->xmin;
 			*r_y = (int)((pt->y / 100) * BLI_rctf_size_y(subrect)) + subrect->ymin;
 		}
+	}
+}
+
+/* Project screenspace coordinates to 3D-space
+ * NOTE: We include this as a utility function, since the standard method
+ *       involves quite a few steps, which are invariably always the same
+ *       for all GPencil operations. So, it's nicer to just centralise these.
+ * WARNING: Assumes that it is getting called in a 3D view only
+ */
+bool gp_point_xy_to_3d(GP_SpaceConversion *gsc, Scene *scene, const float screen_co[2], float r_out[3])
+{
+	View3D *v3d = gsc->sa->spacedata.first;
+	RegionView3D *rv3d = gsc->ar->regiondata;
+	float *rvec = ED_view3d_cursor3d_get(scene, v3d);
+	float ref[3] = {rvec[0], rvec[1], rvec[2]};
+	float zfac = ED_view3d_calc_zfac(rv3d, rvec, NULL);
+	
+	float mval_f[2], mval_prj[2];
+	float dvec[3];
+	
+	copy_v2_v2(mval_f, screen_co);
+	
+	if (ED_view3d_project_float_global(gsc->ar, ref, mval_prj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+		sub_v2_v2v2(mval_f, mval_prj, mval_f);
+		ED_view3d_win_to_delta(gsc->ar, mval_f, dvec, zfac);
+		sub_v3_v3v3(r_out, rvec, dvec);
+		
+		return true;
+	}
+	else {
+		zero_v3(r_out);
+		
+		return false;
 	}
 }
 

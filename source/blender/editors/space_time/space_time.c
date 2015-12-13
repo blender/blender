@@ -349,14 +349,16 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
-	bGPdata *gpd = CTX_data_gpencil_data(C);
 	View2D *v2d = &ar->v2d;
 	bool onlysel = ((scene->flag & SCE_KEYS_NO_SELONLY) == 0);
 	
-	/* draw grease pencil keyframes (if available) */
-	if (gpd) {
-		UI_ThemeColor(TH_TIME_GP_KEYFRAME);
-		time_draw_idblock_keyframes(v2d, (ID *)gpd, onlysel);
+	/* draw grease pencil keyframes (if available) */	
+	UI_ThemeColor(TH_TIME_GP_KEYFRAME);
+	if (scene->gpd) {
+		time_draw_idblock_keyframes(v2d, (ID *)scene->gpd, onlysel);
+	}
+	if (ob && ob->gpd) {
+		time_draw_idblock_keyframes(v2d, (ID *)ob->gpd, onlysel);
 	}
 	
 	/* draw scene keyframes first 

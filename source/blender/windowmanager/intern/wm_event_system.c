@@ -1538,8 +1538,24 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 			if (ISKEYBOARD(winevent->type) && (winevent->ascii || winevent->utf8_buf[0])) return 1; 
 		}
 
-	if (kmitype != KM_ANY)
-		if (winevent->type != kmitype) return 0;
+	if (kmitype != KM_ANY) {
+		if (ELEM(kmitype, TABLET_STYLUS, TABLET_ERASER)) {
+			const wmTabletData *wmtab = winevent->tablet_data;
+			
+			if (wmtab == NULL)
+				return 0;
+			else if (winevent->type != LEFTMOUSE) /* tablet events can occur on hover + keypress */
+				return 0;
+			else if ((kmitype == TABLET_STYLUS) && (wmtab->Active != EVT_TABLET_STYLUS))
+				return 0;
+			else if ((kmitype == TABLET_ERASER) && (wmtab->Active != EVT_TABLET_ERASER))
+				return 0;
+		}
+		else {
+			if (winevent->type != kmitype)
+				return 0;
+		}
+	}
 	
 	if (kmi->val != KM_ANY)
 		if (winevent->val != kmi->val) return 0;

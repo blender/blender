@@ -202,6 +202,9 @@ int WM_keymap_map_type_get(wmKeyMapItem *kmi)
 	if (kmi->type == KM_TEXTINPUT) {
 		return KMI_TYPE_TEXTINPUT;
 	}
+	if (ELEM(kmi->type, TABLET_STYLUS, TABLET_ERASER)) {
+		return KMI_TYPE_MOUSE;
+	}
 	return KMI_TYPE_KEYBOARD;
 }
 

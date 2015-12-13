@@ -46,6 +46,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_group_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
@@ -1509,6 +1510,7 @@ static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *UNUSED(
 	EnumPropertyItem *input = rna_enum_object_mode_items;
 	EnumPropertyItem *item = NULL;
 	Object *ob;
+	bGPdata *gpd;
 	int totitem = 0;
 
 	if (!C) /* needed for docs */
@@ -1536,6 +1538,14 @@ static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *UNUSED(
 		/* We need at least this one! */
 		RNA_enum_items_add_value(&item, &totitem, input, OB_MODE_OBJECT);
 	}
+	
+	/* On top of all the rest, GPencil Stroke Edit Mode
+	 * is available if there's a valid gp datablock...
+	 */
+	gpd = CTX_data_gpencil_data(C);
+	if (gpd) {
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_object_mode_items, OB_MODE_GPENCIL);
+	}
 
 	RNA_enum_item_end(&item, &totitem);
 
@@ -1560,6 +1570,8 @@ static const char *object_mode_op_string(int mode)
 		return "PARTICLE_OT_particle_edit_toggle";
 	if (mode == OB_MODE_POSE)
 		return "OBJECT_OT_posemode_toggle";
+	if (mode == OB_MODE_GPENCIL)
+		return "GPENCIL_OT_editmode_toggle";
 	return NULL;
 }
 
@@ -1571,6 +1583,8 @@ static bool object_mode_compat_test(Object *ob, ObjectMode mode)
 	if (ob) {
 		if (mode == OB_MODE_OBJECT)
 			return true;
+		else if (mode == OB_MODE_GPENCIL)
+			return true; /* XXX: assume this is the case for now... */
 
 		switch (ob->type) {
 			case OB_MESH:
@@ -1625,13 +1639,45 @@ bool ED_object_mode_compat_set(bContext *C, Object *ob, int mode, ReportList *re
 	return ok;
 }
 
+static int object_mode_set_poll(bContext *C)
+{
+	/* Since Grease Pencil editmode is also handled here,
+	 * we have a special exception for allowing this operator
+	 * to still work in that case when there's no active object
+	 * so that users can exit editmode this way as per normal.
+	 */
+	if (ED_operator_object_active_editable(C))
+		return true;
+	else
+		return (CTX_data_gpencil_data(C) != NULL);
+}
+
 static int object_mode_set_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_active_object(C);
+	bGPdata *gpd = CTX_data_gpencil_data(C);
 	ObjectMode mode = RNA_enum_get(op->ptr, "mode");
 	ObjectMode restore_mode = (ob) ? ob->mode : OB_MODE_OBJECT;
 	const bool toggle = RNA_boolean_get(op->ptr, "toggle");
-
+	
+	if (gpd) {
+		/* GP Mode is not bound to a specific object. Therefore,
+		 * we don't want it to be actually saved on any objects,
+		 * as weirdness can happen if you select other objects,
+		 * or load old files.
+		 *
+		 * Instead, we use the following 2 rules to ensure that
+		 * the mode selector works as expected:
+		 *  1) If there's no object, we want to enter editmode.
+		 *     (i.e. with no object, we're in object mode)
+		 *  2) Otherwise, exit stroke editmode, so that we can
+		 *     enter another mode...
+		 */
+		if (!ob || (gpd->flag & GP_DATA_STROKE_EDITMODE)) {
+			WM_operator_name_call(C, "GPENCIL_OT_editmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+		}
+	}
+	
 	if (!ob || !object_mode_compat_test(ob, mode))
 		return OPERATOR_PASS_THROUGH;
 
@@ -1675,7 +1721,7 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = object_mode_set_exec;
 	
-	ot->poll = ED_operator_object_active_editable;
+	ot->poll = object_mode_set_poll; //ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag = 0; /* no register/undo here, leave it to operators being called */

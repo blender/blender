@@ -132,7 +132,7 @@ bGPDframe *gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
 	bGPDframe *gpf = NULL, *gf = NULL;
 	short state = 0;
 	
-	/* error checking (neg frame only if they are not allowed in Blender!) */
+	/* error checking */
 	if (gpl == NULL)
 		return NULL;
 		
@@ -178,6 +178,61 @@ bGPDframe *gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
 	return gpf;
 }
 
+/* add a copy of the active gp-frame to the given layer */
+bGPDframe *gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
+{
+	bGPDframe *new_frame, *gpf;
+	bool found = false;
+	
+	/* Error checking/handling */
+	if (gpl == NULL) {
+		/* no layer */
+		return NULL;
+	}
+	else if (gpl->actframe == NULL) {
+		/* no active frame, so just create a new one from scratch */
+		return gpencil_frame_addnew(gpl, cframe);
+	}
+	
+	/* Create a copy of the frame */
+	new_frame = gpencil_frame_duplicate(gpl->actframe);
+	
+	/* Find frame to insert it before */
+	for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+		if (gpf->framenum > cframe) {
+			/* Add it here */
+			BLI_insertlinkbefore(&gpl->frames, gpf, new_frame);
+			
+			found = true;
+			break;
+		}
+		else if (gpf->framenum == cframe) {
+			/* This only happens when we're editing with framelock on...
+			 * - Delete the new frame and don't do anything else here...
+			 */
+			free_gpencil_strokes(new_frame);
+			MEM_freeN(new_frame);
+			new_frame = NULL;
+			
+			found = true;
+			break;
+		}
+	}
+	
+	if (found == false) {
+		/* Add new frame to the end */
+		BLI_addtail(&gpl->frames, new_frame);
+	}
+	
+	/* Ensure that frame is set up correctly, and return it */
+	if (new_frame) {
+		new_frame->framenum = cframe;
+		gpl->actframe = new_frame;
+	}
+	
+	return new_frame;
+}
+
 /* add a new gp-layer and make it the active layer */
 bGPDlayer *gpencil_layer_addnew(bGPdata *gpd, const char *name, int setactive)
 {
@@ -196,6 +251,13 @@ bGPDlayer *gpencil_layer_addnew(bGPdata *gpd, const char *name, int setactive)
 	/* set basic settings */
 	copy_v4_v4(gpl->color, U.gpencil_new_layer_col);
 	gpl->thickness = 3;
+	
+	/* onion-skinning settings */
+	gpl->flag |= (GP_LAYER_GHOST_PREVCOL | GP_LAYER_GHOST_NEXTCOL);
+	
+	ARRAY_SET_ITEMS(gpl->gcolor_prev, 0.145098f, 0.419608f, 0.137255f); /* green */
+	ARRAY_SET_ITEMS(gpl->gcolor_next, 0.125490f, 0.082353f, 0.529412f); /* blue */
+	
 	
 	/* auto-name */
 	BLI_strncpy(gpl->info, name, sizeof(gpl->info));
@@ -387,7 +449,7 @@ bGPDframe *BKE_gpencil_layer_find_frame(bGPDlayer *gpl, int cframe)
  *	- this sets the layer's actframe var (if allowed to)
  *	- extension beyond range (if first gp-frame is after all frame in interest and cannot add)
  */
-bGPDframe *gpencil_layer_getframe(bGPDlayer *gpl, int cframe, short addnew)
+bGPDframe *gpencil_layer_getframe(bGPDlayer *gpl, int cframe, eGP_GetFrame_Mode addnew)
 {
 	bGPDframe *gpf = NULL;
 	short found = 0;
@@ -425,6 +487,8 @@ bGPDframe *gpencil_layer_getframe(bGPDlayer *gpl, int cframe, short addnew)
 			if (addnew) {
 				if ((found) && (gpf->framenum == cframe))
 					gpl->actframe = gpf;
+				else if (addnew == GP_GETFRAME_ADD_COPY)
+					gpl->actframe = gpencil_frame_addcopy(gpl, cframe);
 				else
 					gpl->actframe = gpencil_frame_addnew(gpl, cframe);
 			}
@@ -445,6 +509,8 @@ bGPDframe *gpencil_layer_getframe(bGPDlayer *gpl, int cframe, short addnew)
 			if (addnew) {
 				if ((found) && (gpf->framenum == cframe))
 					gpl->actframe = gpf;
+				else if (addnew == GP_GETFRAME_ADD_COPY)
+					gpl->actframe = gpencil_frame_addcopy(gpl, cframe);
 				else
 					gpl->actframe = gpencil_frame_addnew(gpl, cframe);
 			}

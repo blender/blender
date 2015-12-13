@@ -47,6 +47,7 @@ void BKE_gpencil_free(struct bGPdata *gpd);
 void gpencil_stroke_sync_selection(struct bGPDstroke *gps);
 
 struct bGPDframe *gpencil_frame_addnew(struct bGPDlayer *gpl, int cframe);
+struct bGPDframe *gpencil_frame_addcopy(struct bGPDlayer *gpl, int cframe);
 struct bGPDlayer *gpencil_layer_addnew(struct bGPdata *gpd, const char *name, int setactive);
 struct bGPdata *gpencil_data_addnew(const char name[]);
 
@@ -56,9 +57,24 @@ struct bGPdata *gpencil_data_duplicate(struct bGPdata *gpd, bool internal_copy);
 
 void gpencil_frame_delete_laststroke(struct bGPDlayer *gpl, struct bGPDframe *gpf);
 
+
+/* How gpencil_layer_getframe() should behave when there
+ * is no existing GP-Frame on the frame requested.
+ */
+typedef enum eGP_GetFrame_Mode {
+	/* Use the preceeding gp-frame (i.e. don't add anything) */
+	GP_GETFRAME_USE_PREV  = 0,
+	
+	/* Add a new empty/blank frame */
+	GP_GETFRAME_ADD_NEW   = 1,
+	/* Make a copy of the active frame */
+	GP_GETFRAME_ADD_COPY  = 2
+} eGP_GetFrame_Mode;
+
+struct bGPDframe *gpencil_layer_getframe(struct bGPDlayer *gpl, int cframe, eGP_GetFrame_Mode addnew);
 struct bGPDframe *BKE_gpencil_layer_find_frame(struct bGPDlayer *gpl, int cframe);
-struct bGPDframe *gpencil_layer_getframe(struct bGPDlayer *gpl, int cframe, short addnew);
 bool gpencil_layer_delframe(struct bGPDlayer *gpl, struct bGPDframe *gpf);
+
 struct bGPDlayer *gpencil_layer_getactive(struct bGPdata *gpd);
 void gpencil_layer_setactive(struct bGPdata *gpd, struct bGPDlayer *active);
 void gpencil_layer_delete(struct bGPdata *gpd, struct bGPDlayer *gpl);

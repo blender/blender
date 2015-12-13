@@ -1166,6 +1166,7 @@ static void gp_draw_data_all(Scene *scene, bGPdata *gpd, int offsx, int offsy, i
 /* draw grease-pencil sketches to specified 2d-view that uses ibuf corrections */
 void ED_gpencil_draw_2dimage(const bContext *C)
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
@@ -1218,6 +1219,13 @@ void ED_gpencil_draw_2dimage(const bContext *C)
 			break;
 	}
 	
+	if (ED_screen_animation_playing(wm)) {
+		/* don't show onionskins during animation playback/scrub (i.e. it obscures the poses)
+		 * OpenGL Renders (i.e. final output), or depth buffer (i.e. not real strokes)
+		 */
+		dflag |= GP_DRAWDATA_NO_ONIONS;
+	}
+	
 	
 	/* draw it! */
 	gp_draw_data_all(scene, gpd, offsx, offsy, sizex, sizey, CFRA, dflag, sa->spacetype);
@@ -1228,6 +1236,7 @@ void ED_gpencil_draw_2dimage(const bContext *C)
  * second time with onlyv2d=0 for screen-aligned strokes */
 void ED_gpencil_draw_view2d(const bContext *C, bool onlyv2d)
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
@@ -1246,6 +1255,8 @@ void ED_gpencil_draw_view2d(const bContext *C, bool onlyv2d)
 	
 	/* draw it! */
 	if (onlyv2d) dflag |= (GP_DRAWDATA_ONLYV2D | GP_DRAWDATA_NOSTATUS);
+	if (ED_screen_animation_playing(wm)) dflag |= GP_DRAWDATA_NO_ONIONS;
+	
 	gp_draw_data_all(scene, gpd, 0, 0, ar->winx, ar->winy, CFRA, dflag, sa->spacetype);
 	
 	/* draw status text (if in screen/pixel-space) */
@@ -1257,7 +1268,7 @@ void ED_gpencil_draw_view2d(const bContext *C, bool onlyv2d)
 /* draw grease-pencil sketches to specified 3d-view assuming that matrices are already set correctly
  * Note: this gets called twice - first time with only3d=1 to draw 3d-strokes,
  * second time with only3d=0 for screen-aligned strokes */
-void ED_gpencil_draw_view3d(Scene *scene, View3D *v3d, ARegion *ar, bool only3d)
+void ED_gpencil_draw_view3d(wmWindowManager *wm, Scene *scene, View3D *v3d, ARegion *ar, bool only3d)
 {
 	bGPdata *gpd;
 	int dflag = 0;
@@ -1300,13 +1311,15 @@ void ED_gpencil_draw_view3d(Scene *scene, View3D *v3d, ARegion *ar, bool only3d)
 		dflag |= GP_DRAWDATA_NOSTATUS;
 	}
 	
+	if ((wm == NULL) || ED_screen_animation_playing(wm)) {
+		/* don't show onionskins during animation playback/scrub (i.e. it obscures the poses)
+		 * OpenGL Renders (i.e. final output), or depth buffer (i.e. not real strokes)
+		 */
+		dflag |= GP_DRAWDATA_NO_ONIONS;
+	}
+	
 	/* draw it! */
 	gp_draw_data_all(scene, gpd, offsx, offsy, winx, winy, CFRA, dflag, v3d->spacetype);
-	
-	/* draw status text (if in screen/pixel-space) */
-	if (only3d == false) {
-		gp_draw_status_text(gpd, ar);
-	}
 }
 
 void ED_gpencil_draw_ex(Scene *scene, bGPdata *gpd, int winx, int winy, const int cfra, const char spacetype)

@@ -403,7 +403,6 @@ static bool find_prev_next_keyframes(struct bContext *C, int *nextfra, int *prev
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
-	bGPdata *gpd = CTX_data_gpencil_data(C);
 	Mask *mask = CTX_data_edit_mask(C);
 	bDopeSheet ads = {NULL};
 	DLRBT_Tree keys;
@@ -425,11 +424,12 @@ static bool find_prev_next_keyframes(struct bContext *C, int *nextfra, int *prev
 
 	/* populate tree with keyframe nodes */
 	scene_to_keylist(&ads, scene, &keys, NULL);
+	gpencil_to_keylist(&ads, scene->gpd, &keys);
 
-	if (ob)
+	if (ob) {
 		ob_to_keylist(&ads, ob, &keys, NULL);
-
-	gpencil_to_keylist(&ads, gpd, &keys);
+		gpencil_to_keylist(&ads, ob->gpd, &keys);
+	}
 
 	if (mask) {
 		MaskLayer *masklay = BKE_mask_layer_active(mask);

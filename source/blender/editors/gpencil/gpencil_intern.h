@@ -44,6 +44,10 @@ struct ARegion;
 struct View2D;
 struct wmOperatorType;
 
+struct PointerRNA;
+struct PropertyRNA;
+struct EnumPropertyItem;
+
 
 /* ***************************************************** */
 /* Internal API */
@@ -96,11 +100,36 @@ void gp_point_conversion_init(struct bContext *C, GP_SpaceConversion *r_gsc);
 void gp_point_to_xy(GP_SpaceConversion *settings, struct bGPDstroke *gps, struct bGPDspoint *pt,
                     int *r_x, int *r_y);
 
+/**
+ * Convert a screenspace point to a 3D Grease Pencil coordinate.
+ *
+ * For use with editing tools where it is easier to perform the operations in 2D,
+ * and then later convert the transformed points back to 3D.
+ *
+ * \param screeN_co    The screenspace 2D coordinates to convert to 
+ * \param[out] r_out  The resulting 3D coordinates of the input point
+ */
+bool gp_point_xy_to_3d(GP_SpaceConversion *gsc, struct Scene *scene, const float screen_co[2], float r_out[3]);
+
 /* Poll Callbacks ------------------------------------ */
 /* gpencil_utils.c */
 
 int gp_add_poll(struct bContext *C);
 int gp_active_layer_poll(struct bContext *C);
+
+/* Copy/Paste Buffer --------------------------------- */
+/* gpencil_edit.c */
+
+extern ListBase gp_strokes_copypastebuf;
+
+/* Stroke Editing ------------------------------------ */
+
+void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke *next_stroke, int tag_flags);
+
+/* Layers Enums -------------------------------------- */
+
+struct EnumPropertyItem *ED_gpencil_layers_enum_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
+struct EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
 
 /* ***************************************************** */
 /* Operator Defines */
@@ -119,6 +148,8 @@ typedef enum eGPencil_PaintModes {
 
 /* stroke editing ----- */
 
+void GPENCIL_OT_editmode_toggle(struct wmOperatorType *ot);
+
 void GPENCIL_OT_select(struct wmOperatorType *ot);
 void GPENCIL_OT_select_all(struct wmOperatorType *ot);
 void GPENCIL_OT_select_circle(struct wmOperatorType *ot);
@@ -135,6 +166,19 @@ void GPENCIL_OT_dissolve(struct wmOperatorType *ot);
 void GPENCIL_OT_copy(struct wmOperatorType *ot);
 void GPENCIL_OT_paste(struct wmOperatorType *ot);
 
+void GPENCIL_OT_move_to_layer(struct wmOperatorType *ot);
+void GPENCIL_OT_layer_change(struct wmOperatorType *ot);
+
+void GPENCIL_OT_snap_to_grid(struct wmOperatorType *ot);
+void GPENCIL_OT_snap_to_cursor(struct wmOperatorType *ot);
+void GPENCIL_OT_snap_cursor_to_selected(struct wmOperatorType *ot);
+void GPENCIL_OT_snap_cursor_to_center(struct wmOperatorType *ot);
+
+
+/* stroke sculpting -- */
+
+void GPENCIL_OT_brush_paint(struct wmOperatorType *ot);
+
 /* buttons editing --- */
 
 void GPENCIL_OT_data_add(struct wmOperatorType *ot);
@@ -147,6 +191,11 @@ void GPENCIL_OT_layer_duplicate(struct wmOperatorType *ot);
 
 void GPENCIL_OT_hide(struct wmOperatorType *ot);
 void GPENCIL_OT_reveal(struct wmOperatorType *ot);
+
+void GPENCIL_OT_lock_all(struct wmOperatorType *ot);
+void GPENCIL_OT_unlock_all(struct wmOperatorType *ot);
+
+void GPENCIL_OT_layer_isolate(struct wmOperatorType *ot);
 
 void GPENCIL_OT_active_frame_delete(struct wmOperatorType *ot);
 

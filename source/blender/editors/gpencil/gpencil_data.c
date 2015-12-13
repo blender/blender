@@ -59,12 +59,14 @@
 #include "BKE_screen.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "ED_gpencil.h"
 
@@ -442,6 +444,222 @@ void GPENCIL_OT_reveal(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ***************** Lock/Unlock All Layers ************************ */
+
+static int gp_lock_all_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDlayer *gpl;
+	
+	/* sanity checks */
+	if (gpd == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* make all layers non-editable */
+	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+		gpl->flag |= GP_LAYER_LOCKED;
+	}
+	
+	/* notifiers */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_lock_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Lock All Layers";
+	ot->idname = "GPENCIL_OT_lock_all";
+	ot->description = "Lock all Grease Pencil layers to prevent them from being accidentally modified";
+	
+	/* callbacks */
+	ot->exec = gp_lock_all_exec;
+	ot->poll = gp_reveal_poll; /* XXX: could use dedicated poll later */
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* -------------------------- */
+
+static int gp_unlock_all_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDlayer *gpl;
+	
+	/* sanity checks */
+	if (gpd == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* make all layers editable again */
+	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+		gpl->flag &= ~GP_LAYER_LOCKED;
+	}
+	
+	/* notifiers */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_unlock_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Unlock All Layers";
+	ot->idname = "GPENCIL_OT_unlock_all";
+	ot->description = "unlock all Grease Pencil layers so that they can be edited";
+	
+	/* callbacks */
+	ot->exec = gp_unlock_all_exec;
+	ot->poll = gp_reveal_poll; /* XXX: could use dedicated poll later */
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ********************** Isolate Layer **************************** */
+
+static int gp_isolate_layer_exec(bContext *C, wmOperator *op)
+{
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDlayer *layer = gpencil_layer_getactive(gpd);
+	bGPDlayer *gpl;
+	int flags = GP_LAYER_LOCKED;
+	bool isolate = false;
+	
+	if (RNA_boolean_get(op->ptr, "affect_visibility"))
+		flags |= GP_LAYER_HIDE;
+		
+	if (ELEM(NULL, gpd, layer)) {
+		BKE_report(op->reports, RPT_ERROR, "No active layer to isolate");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* Test whether to isolate or clear all flags */
+	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+		/* Skip if this is the active layer */
+		if (gpl == layer)
+			continue;
+		
+		/* If the flags aren't set, that means that the layer is
+		 * not alone, so we have some layers to isolate still
+		 */
+		if ((gpl->flag & flags) == 0) {
+			isolate = true;
+			break;
+		}
+	}
+	
+	/* Set/Clear flags as appropriate */
+	/* TODO: Include onionskinning on this list? */
+	if (isolate) {
+		/* Set flags on all "other" layers */
+		for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+			if (gpl == layer)
+				continue;
+			else
+				gpl->flag |= flags;
+		}
+	}
+	else {
+		/* Clear flags - Restore everything else */
+		for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+			gpl->flag &= ~flags;
+		}
+	}
+	
+	/* notifiers */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_layer_isolate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Isolate Layer";
+	ot->idname = "GPENCIL_OT_layer_isolate";
+	ot->description = "Toggle whether the active layer is the only one that can be edited and/or visible";
+	
+	/* callbacks */
+	ot->exec = gp_isolate_layer_exec;
+	ot->poll = gp_active_layer_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "affect_visibility", false, "Affect Visibility",
+	                "In addition to toggling the editability, also affect the visibility");
+}
+
+/* ********************** Change Layer ***************************** */
+
+static int gp_layer_change_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(evt))
+{
+	uiPopupMenu *pup;
+	uiLayout *layout;
+	
+	/* call the menu, which will call this operator again, hence the canceled */
+	pup = UI_popup_menu_begin(C, op->type->name, ICON_NONE);
+	layout = UI_popup_menu_layout(pup);
+	uiItemsEnumO(layout, "GPENCIL_OT_layer_change", "layer");
+	UI_popup_menu_end(C, pup);
+	
+	return OPERATOR_INTERFACE;
+}
+
+static int gp_layer_change_exec(bContext *C, wmOperator *op)
+{
+	bGPdata *gpd = CTX_data_gpencil_data(C);
+	bGPDlayer *gpl = NULL;
+	int layer_num = RNA_enum_get(op->ptr, "layer");
+	
+	/* Get layer or create new one */
+	if (layer_num == -1) {
+		/* Create layer */
+		gpl = gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true);
+	}
+	else {
+		/* Try to get layer */
+		gpl = BLI_findlink(&gpd->layers, layer_num);
+		
+		if (gpl == NULL) {
+			BKE_reportf(op->reports, RPT_ERROR, "Cannot change to non-existent layer (index = %d)", layer_num);
+			return OPERATOR_CANCELLED;
+		}
+	}
+	
+	/* Set active layer */
+	gpencil_layer_setactive(gpd, gpl);
+	
+	/* updates */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_layer_change(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Change Layer";
+	ot->idname = "GPENCIL_OT_layer_change";
+	ot->description = "Change active Grease Pencil layer";
+	
+	/* callbacks */
+	ot->invoke = gp_layer_change_invoke;
+	ot->exec = gp_layer_change_exec;
+	ot->poll = gp_active_layer_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* gp layer to use (dynamic enum) */
+	ot->prop = RNA_def_enum(ot->srna, "layer", DummyRNA_DEFAULT_items, 0, "Grease Pencil Layer", "");
+	RNA_def_enum_funcs(ot->prop, ED_gpencil_layers_with_new_enum_itemf);
 }
 
 /* ************************************************ */

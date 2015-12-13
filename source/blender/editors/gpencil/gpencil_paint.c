@@ -77,7 +77,33 @@
 /* ******************************************* */
 /* 'Globals' and Defines */
 
-/* Temporary 'Stroke' Operation data */
+/* values for tGPsdata->status */
+typedef enum eGPencil_PaintStatus {
+	GP_STATUS_IDLING = 0,   /* stroke isn't in progress yet */
+	GP_STATUS_PAINTING,     /* a stroke is in progress */
+	GP_STATUS_ERROR,        /* something wasn't correctly set up */
+	GP_STATUS_DONE          /* painting done */
+} eGPencil_PaintStatus;
+
+/* Return flags for adding points to stroke buffer */
+typedef enum eGP_StrokeAdd_Result {
+	GP_STROKEADD_INVALID    = -2,       /* error occurred - insufficient info to do so */
+	GP_STROKEADD_OVERFLOW   = -1,       /* error occurred - cannot fit any more points */
+	GP_STROKEADD_NORMAL,                /* point was successfully added */
+	GP_STROKEADD_FULL                   /* cannot add any more points to buffer */
+} eGP_StrokeAdd_Result;
+
+/* Runtime flags */
+typedef enum eGPencil_PaintFlags {
+	GP_PAINTFLAG_FIRSTRUN       = (1 << 0),    /* operator just started */
+	GP_PAINTFLAG_STROKEADDED    = (1 << 1),
+	GP_PAINTFLAG_V3D_ERASER_DEPTH = (1 << 2)
+} eGPencil_PaintFlags;
+
+
+/* Temporary 'Stroke' Operation data
+ *   "p" = op->customdata
+ */
 typedef struct tGPsdata {
 	Scene *scene;       /* current scene from context */
 	
@@ -95,17 +121,19 @@ typedef struct tGPsdata {
 	bGPDlayer *gpl;     /* layer we're working on */
 	bGPDframe *gpf;     /* frame we're working on */
 	
-	short status;       /* current status of painting */
-	short paintmode;    /* mode for painting */
+	char *align_flag;   /* projection-mode flags (toolsettings - eGPencil_Placement_Flags) */
+	
+	eGPencil_PaintStatus status;     /* current status of painting */
+	eGPencil_PaintModes  paintmode;  /* mode for painting */
+	eGPencil_PaintFlags  flags;      /* flags that can get set during runtime (eGPencil_PaintFlags) */
+	
+	short radius;       /* radius of influence for eraser */
 	
 	int mval[2];        /* current mouse-position */
 	int mvalo[2];       /* previous recorded mouse-position */
 	
 	float pressure;     /* current stylus pressure */
 	float opressure;    /* previous stylus pressure */
-	
-	short radius;       /* radius of influence for eraser */
-	short flags;        /* flags that can get set during runtime */
 	
 	/* These need to be doubles, as (at least under unix) they are in seconds since epoch,
 	 * float (and its 7 digits precision) is definitively not enough here!
@@ -123,29 +151,6 @@ typedef struct tGPsdata {
 	
 	void *erasercursor; /* radial cursor data for drawing eraser */
 } tGPsdata;
-
-/* values for tGPsdata->status */
-enum {
-	GP_STATUS_IDLING = 0,   /* stroke isn't in progress yet */
-	GP_STATUS_PAINTING,     /* a stroke is in progress */
-	GP_STATUS_ERROR,        /* something wasn't correctly set up */
-	GP_STATUS_DONE          /* painting done */
-};
-
-/* Return flags for adding points to stroke buffer */
-enum {
-	GP_STROKEADD_INVALID    = -2,       /* error occurred - insufficient info to do so */
-	GP_STROKEADD_OVERFLOW   = -1,       /* error occurred - cannot fit any more points */
-	GP_STROKEADD_NORMAL,                /* point was successfully added */
-	GP_STROKEADD_FULL                   /* cannot add any more points to buffer */
-};
-
-/* Runtime flags */
-enum {
-	GP_PAINTFLAG_FIRSTRUN       = (1 << 0),    /* operator just started */
-	GP_PAINTFLAG_STROKEADDED    = (1 << 1),
-	GP_PAINTFLAG_V3D_ERASER_DEPTH = (1 << 2)
-};
 
 /* ------ */
 
@@ -204,7 +209,7 @@ static int gpencil_draw_poll(bContext *C)
 static bool gpencil_project_check(tGPsdata *p)
 {
 	bGPdata *gpd = p->gpd;
-	return ((gpd->sbuffer_sflag & GP_STROKE_3DSPACE) && (p->gpd->flag & (GP_DATA_DEPTH_VIEW | GP_DATA_DEPTH_STROKE)));
+	return ((gpd->sbuffer_sflag & GP_STROKE_3DSPACE) && (*p->align_flag & (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE)));
 }
 
 /* ******************************************* */
@@ -736,112 +741,6 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 
 /* --- 'Eraser' for 'Paint' Tool ------ */
 
-/* eraser tool - remove segment from stroke/split stroke (after lasso inside) */
-static short gp_stroke_eraser_splitdel(bGPDframe *gpf, bGPDstroke *gps, int i)
-{
-	bGPDspoint *pt_tmp = gps->points;
-	bGPDstroke *gsn = NULL;
-	
-	/* if stroke only had two points, get rid of stroke */
-	if (gps->totpoints == 2) {
-		/* free stroke points, then stroke */
-		MEM_freeN(pt_tmp);
-		BLI_freelinkN(&gpf->strokes, gps);
-
-		/* nothing left in stroke, so stop */
-		return 1;
-	}
-	
-	/* if last segment, just remove segment from the stroke */
-	else if (i == gps->totpoints - 2) {
-		/* allocate new points array, and assign most of the old stroke there */
-		gps->totpoints--;
-		gps->points = MEM_mallocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
-		memcpy(gps->points, pt_tmp, sizeof(bGPDspoint) * gps->totpoints);
-		
-		/* free temp buffer */
-		MEM_freeN(pt_tmp);
-		
-		/* nothing left in stroke, so stop */
-		return 1;
-	}
-	
-	/* if first segment, just remove segment from the stroke */
-	else if (i == 0) {
-		/* allocate new points array, and assign most of the old stroke there */
-		gps->totpoints--;
-		gps->points = MEM_mallocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
-		memcpy(gps->points, pt_tmp + 1, sizeof(bGPDspoint) * gps->totpoints);
-		
-		/* We must adjust timings!
-		 * Each point's timing data is a delta from stroke's inittime, so as we erase the first
-		 * point of the stroke, we have to offset this inittime and all remaining points' delta values.
-		 * This way we get a new stroke with exactly the same timing as if user had started drawing from
-		 * the second point...
-		 */
-		{
-			bGPDspoint *pts;
-			float delta = pt_tmp[1].time;
-			int j;
-			
-			gps->inittime += (double)delta;
-			
-			pts = gps->points;
-			for (j = 0; j < gps->totpoints; j++, pts++) {
-				pts->time -= delta;
-			}
-		}
-		
-		/* free temp buffer */
-		MEM_freeN(pt_tmp);
-		
-		/* no break here, as there might still be stuff to remove in this stroke */
-		return 0;
-	}
-	
-	/* segment occurs in 'middle' of stroke, so split */
-	else {
-		/* duplicate stroke, and assign 'later' data to that stroke */
-		gsn = MEM_dupallocN(gps);
-		gsn->prev = gsn->next = NULL;
-		BLI_insertlinkafter(&gpf->strokes, gps, gsn);
-		
-		gsn->totpoints = gps->totpoints - i;
-		gsn->points = MEM_mallocN(sizeof(bGPDspoint) * gsn->totpoints, "gp_stroke_points");
-		memcpy(gsn->points, pt_tmp + i, sizeof(bGPDspoint) * gsn->totpoints);
-		
-		/* We must adjust timings of this new stroke!
-		 * Each point's timing data is a delta from stroke's inittime, so as we erase the first
-		 * point of the stroke, we have to offset this inittime and all remaing points' delta values.
-		 * This way we get a new stroke with exactly the same timing as if user had started drawing from
-		 * the second point...
-		 */
-		{
-			bGPDspoint *pts;
-			float delta = pt_tmp[i].time;
-			int j;
-			
-			gsn->inittime += (double)delta;
-			
-			pts = gsn->points;
-			for (j = 0; j < gsn->totpoints; j++, pts++) {
-				pts->time -= delta;
-			}
-		}
-		
-		/* adjust existing stroke  */
-		gps->totpoints = i;
-		gps->points = MEM_mallocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
-		memcpy(gps->points, pt_tmp, sizeof(bGPDspoint) * gps->totpoints);
-		
-		/* free temp buffer */
-		MEM_freeN(pt_tmp);
-		
-		/* nothing left in stroke, so stop */
-		return 1;
-	}
-}
-
 /* which which point is infront (result should only be used for comparison) */
 static float view3d_point_depth(const RegionView3D *rv3d, const float co[3])
 {
@@ -853,6 +752,7 @@ static float view3d_point_depth(const RegionView3D *rv3d, const float co[3])
 	}
 }
 
+/* only erase stroke points that are visible */
 static bool gp_stroke_eraser_is_occluded(tGPsdata *p, const bGPDspoint *pt, const int x, const int y)
 {
 	if ((p->sa->spacetype == SPACE_VIEW3D) &&
@@ -874,15 +774,33 @@ static bool gp_stroke_eraser_is_occluded(tGPsdata *p, const bGPDspoint *pt, cons
 	return false;
 }
 
+/* apply a falloff effect to brush strength, based on distance */
+static float gp_stroke_eraser_calc_influence(tGPsdata *p, const int mval[2], const int radius, const int co[2])
+{
+	/* Linear Falloff... */
+	float distance = (float)len_v2v2_int(mval, co);
+	float fac;
+	
+	CLAMP(distance, 0.0f, (float)radius);
+	fac = 1.0f - (distance / (float)radius);
+	
+	/* Control this further using pen pressure */
+	fac *= p->pressure;
+	
+	/* Return influence factor computed here */
+	return fac;
+}
 
 /* eraser tool - evaluation per stroke */
 /* TODO: this could really do with some optimization (KD-Tree/BVH?) */
 static void gp_stroke_eraser_dostroke(tGPsdata *p,
+                                      bGPDlayer *gpl, bGPDframe *gpf, bGPDstroke *gps,
                                       const int mval[2], const int mvalo[2],
-                                      short rad, const rcti *rect, bGPDframe *gpf, bGPDstroke *gps)
+                                      const int radius, const rcti *rect)
 {
 	bGPDspoint *pt1, *pt2;
-	int x0 = 0, y0 = 0, x1 = 0, y1 = 0;
+	int pc1[2] = {0};
+	int pc2[2] = {0};
 	int i;
 	
 	if (gps->totpoints == 0) {
@@ -892,48 +810,93 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 		BLI_freelinkN(&gpf->strokes, gps);
 	}
 	else if (gps->totpoints == 1) {
-		gp_point_to_xy(&p->gsc, gps, gps->points, &x0, &y0);
+		gp_point_to_xy(&p->gsc, gps, gps->points, &pc1[0], &pc1[1]);
 		
 		/* do boundbox check first */
-		if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) {
+		if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
 			/* only check if point is inside */
-			if (((x0 - mval[0]) * (x0 - mval[0]) + (y0 - mval[1]) * (y0 - mval[1])) <= rad * rad) {
+			if (len_v2v2_int(mval, pc1) <= radius) {
 				/* free stroke */
+				// XXX: pressure sensitive eraser should apply here too?
 				MEM_freeN(gps->points);
 				BLI_freelinkN(&gpf->strokes, gps);
 			}
 		}
 	}
 	else {
-		/* loop over the points in the stroke, checking for intersections
-		 *  - an intersection will require the stroke to be split
+		/* Pressure threshold at which stroke should be culled: Calculated as pressure value
+		 * below which we would have invisible strokes
+		 */
+		const float cull_thresh = (gpl->thickness) ?  1.0f / ((float)gpl->thickness)  : 1.0f;
+		
+		/* Amount to decrease the pressure of each point with each stroke */
+		// TODO: Fetch from toolsettings, or compute based on thickness instead?
+		const float strength = 0.1f;
+		
+		/* Perform culling? */
+		bool do_cull = false;
+		
+		
+		/* Clear Tags
+		 *
+		 * Note: It's better this way, as we are sure that
+		 * we don't miss anything, though things will be
+		 * slightly slower as a result
+		 */
+		for (i = 0; i < gps->totpoints; i++) {
+			bGPDspoint *pt = &gps->points[i];
+			pt->flag &= ~GP_SPOINT_TAG;
+		}
+		
+		/* First Pass: Loop over the points in the stroke
+		 *   1) Thin out parts of the stroke under the brush
+		 *   2) Tag "too thin" parts for removal (in second pass)
 		 */
 		for (i = 0; (i + 1) < gps->totpoints; i++) {
 			/* get points to work with */
 			pt1 = gps->points + i;
 			pt2 = gps->points + i + 1;
 			
-			gp_point_to_xy(&p->gsc, gps, pt1, &x0, &y0);
-			gp_point_to_xy(&p->gsc, gps, pt2, &x1, &y1);
+			gp_point_to_xy(&p->gsc, gps, pt1, &pc1[0], &pc1[1]);
+			gp_point_to_xy(&p->gsc, gps, pt2, &pc2[0], &pc2[1]);
 			
-			/* check that point segment of the boundbox of the eraser stroke */
-			if (((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) ||
-			    ((!ELEM(V2D_IS_CLIPPED, x1, y1)) && BLI_rcti_isect_pt(rect, x1, y1)))
+			/* Check that point segment of the boundbox of the eraser stroke */
+			if (((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
+			    ((!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1])) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1])))
 			{
-				/* check if point segment of stroke had anything to do with
+				/* Check if point segment of stroke had anything to do with
 				 * eraser region  (either within stroke painted, or on its lines)
 				 *  - this assumes that linewidth is irrelevant
 				 */
-				if (gp_stroke_inside_circle(mval, mvalo, rad, x0, y0, x1, y1)) {
-					if ((gp_stroke_eraser_is_occluded(p, pt1, x0, y0) == false) ||
-					    (gp_stroke_eraser_is_occluded(p, pt2, x1, y1) == false))
+				if (gp_stroke_inside_circle(mval, mvalo, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
+					if ((gp_stroke_eraser_is_occluded(p, pt1, pc1[0], pc1[1]) == false) ||
+					    (gp_stroke_eraser_is_occluded(p, pt2, pc2[0], pc2[1]) == false))
 					{
-						/* if function returns true, break this loop (as no more point to check) */
-						if (gp_stroke_eraser_splitdel(gpf, gps, i))
-							break;
+						/* Point is affected: */
+						/* 1) Adjust thickness
+						 *  - Influence of eraser falls off with distance from the middle of the eraser
+						 *  - Second point gets less influence, as it might get hit again in the next segment
+						 */
+						pt1->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc1) * strength;
+						pt2->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc2) * strength / 2.0f;
+						
+						/* 2) Tag any point with overly low influence for removal in the next pass */
+						if (pt1->pressure < cull_thresh) {
+							pt1->flag |= GP_SPOINT_TAG;
+							do_cull = true;
+						}
+						if (pt2->pressure < cull_thresh) {
+							pt2->flag |= GP_SPOINT_TAG;
+							do_cull = true;
+						}
 					}
 				}
 			}
+		}
+		
+		/* Second Pass: Remove any points that are tagged */
+		if (do_cull) {
+			gp_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_TAG);
 		}
 	}
 }
@@ -941,7 +904,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 /* erase strokes which fall under the eraser strokes */
 static void gp_stroke_doeraser(tGPsdata *p)
 {
-	bGPDframe *gpf = p->gpf;
+	bGPDlayer *gpl;
 	bGPDstroke *gps, *gpn;
 	rcti rect;
 	
@@ -960,10 +923,32 @@ static void gp_stroke_doeraser(tGPsdata *p)
 		}
 	}
 	
-	/* loop over strokes, checking segments for intersections */
-	for (gps = gpf->strokes.first; gps; gps = gpn) {
-		gpn = gps->next;
-		gp_stroke_eraser_dostroke(p, p->mval, p->mvalo, p->radius, &rect, gpf, gps);
+	/* loop over all layers too, since while it's easy to restrict editing to
+	 * only a subset of layers, it is harder to perform the same erase operation
+	 * on multiple layers...
+	 */
+	for (gpl = p->gpd->layers.first; gpl; gpl = gpl->next) {
+		bGPDframe *gpf = gpl->actframe;
+		
+		/* only affect layer if it's editable (and visible) */
+		if (gpl->flag & (GP_LAYER_HIDE | GP_LAYER_LOCKED)) {
+			continue;
+		}
+		else if (gpf == NULL) {
+			continue;
+		}
+		
+		/* loop over strokes, checking segments for intersections */
+		for (gps = gpf->strokes.first; gps; gps = gpn) {
+			gpn = gps->next;
+			
+			/* Not all strokes in the datablock may be valid in the current editor/context
+			 * (e.g. 2D space strokes in the 3D view, if the same datablock is shared)
+			 */
+			if (ED_gpencil_stroke_can_use_direct(p->sa, gps)) {
+				gp_stroke_eraser_dostroke(p, gpl, gpf, gps, p->mval, p->mvalo, p->radius, &rect);
+			}
+		}
 	}
 }
 
@@ -1001,6 +986,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 	bGPdata **gpd_ptr = NULL;
 	ScrArea *curarea = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	
 	/* make sure the active view (at the starting time) is a 3d-view */
 	if (curarea == NULL) {
@@ -1030,6 +1016,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 			/* CAUTION: If this is the "toolbar", then this will change on the first stroke */
 			p->sa = curarea;
 			p->ar = ar;
+			p->align_flag = &ts->gpencil_v3d_align;
 			
 			if (ar->regiondata == NULL) {
 				p->status = GP_STATUS_ERROR;
@@ -1047,6 +1034,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 			p->sa = curarea;
 			p->ar = ar;
 			p->v2d = &ar->v2d;
+			p->align_flag = &ts->gpencil_v2d_align;
 			break;
 		}
 		case SPACE_SEQ:
@@ -1057,6 +1045,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 			p->sa = curarea;
 			p->ar = ar;
 			p->v2d = &ar->v2d;
+			p->align_flag = &ts->gpencil_seq_align;
 			
 			/* check that gpencil data is allowed to be drawn */
 			if (sseq->mainb == SEQ_DRAW_SEQUENCE) {
@@ -1075,6 +1064,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 			p->sa = curarea;
 			p->ar = ar;
 			p->v2d = &ar->v2d;
+			p->align_flag = &ts->gpencil_ima_align;
 			break;
 		}
 		case SPACE_CLIP:
@@ -1091,6 +1081,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 			p->sa = curarea;
 			p->ar = ar;
 			p->v2d = &ar->v2d;
+			p->align_flag = &ts->gpencil_v2d_align;
 			
 			invert_m4_m4(p->imat, sc->unistabmat);
 			
@@ -1167,6 +1158,12 @@ static tGPsdata *gp_session_initpaint(bContext *C)
 	
 	gp_session_initdata(C, p);
 	
+	/* radius for eraser circle is defined in userprefs now */
+	/* NOTE: we do this here, so that if we exit immediately,
+	 *       erase size won't get lost
+	 */
+	p->radius = U.gp_eraser;
+	
 	/* return context data for running paint operator */
 	return p;
 }
@@ -1194,8 +1191,10 @@ static void gp_session_cleanup(tGPsdata *p)
 }
 
 /* init new stroke */
-static void gp_paint_initstroke(tGPsdata *p, short paintmode)
+static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode)
 {
+	Scene *scene = p->scene;
+	
 	/* get active layer (or add a new one if non-existent) */
 	p->gpl = gpencil_layer_getactive(p->gpd);
 	if (p->gpl == NULL) {
@@ -1212,15 +1211,61 @@ static void gp_paint_initstroke(tGPsdata *p, short paintmode)
 	}
 	
 	/* get active frame (add a new one if not matching frame) */
-	p->gpf = gpencil_layer_getframe(p->gpl, p->scene->r.cfra, 1);
-	if (p->gpf == NULL) {
-		p->status = GP_STATUS_ERROR;
-		if (G.debug & G_DEBUG)
-			printf("Error: No frame created (gpencil_paint_init)\n");
-		return;
+	if (paintmode == GP_PAINTMODE_ERASER) {
+		/* Eraser mode:
+		 * 1) Add new frames to all frames that we might touch,
+		 * 2) Ensure that p->gpf refers to the frame used for the active layer
+		 *    (to avoid problems with other tools which expect it to exist)
+		 */
+		bGPDlayer *gpl;
+		for (gpl = p->gpd->layers.first; gpl; gpl = gpl->next) {
+			/* Skip if layer not editable */
+			if (gpl->flag & (GP_LAYER_HIDE | GP_LAYER_LOCKED))
+				continue;
+			
+			/* Add a new frame if needed (and based off the active frame,
+			 * as we need some existing strokes to erase)
+			 */
+			gpl->actframe = gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_ADD_COPY);
+			
+			/* XXX: we omit GP_FRAME_PAINT here for now,
+			 * as it is only really useful for doing
+			 * paintbuffer drawing
+			 */
+		}
+		
+		/* Ensure this gets set... */
+		p->gpf = p->gpl->actframe;
+		
+		if (p->gpf == NULL) {
+			p->status = GP_STATUS_ERROR;
+			//if (G.debug & G_DEBUG)
+				printf("Error: No frame created (gpencil_paint_init)\n");
+			return;
+		}
 	}
-	else
-		p->gpf->flag |= GP_FRAME_PAINT;
+	else {
+		/* Drawing Modes - Add a new frame if needed on the active layer */
+		ToolSettings *ts = p->scene->toolsettings;
+		short add_frame_mode;
+		
+		if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST)
+			add_frame_mode = GP_GETFRAME_ADD_COPY;
+		else
+			add_frame_mode = GP_GETFRAME_ADD_NEW;
+			
+		p->gpf = gpencil_layer_getframe(p->gpl, CFRA, add_frame_mode);
+		
+		if (p->gpf == NULL) {
+			p->status = GP_STATUS_ERROR;
+			if (G.debug & G_DEBUG)
+				printf("Error: No frame created (gpencil_paint_init)\n");
+			return;
+		}
+		else {
+			p->gpf->flag |= GP_FRAME_PAINT;
+		}
+	}
 	
 	/* set 'eraser' for this stroke if using eraser */
 	p->paintmode = paintmode;
@@ -1251,7 +1296,7 @@ static void gp_paint_initstroke(tGPsdata *p, short paintmode)
 	
 	/* when drawing in the camera view, in 2D space, set the subrect */
 	p->subrect = NULL;
-	if (!(p->gpd->flag & GP_DATA_VIEWALIGN)) {
+	if ((*p->align_flag & GP_PROJECT_VIEWSPACE) == 0) {
 		if (p->sa->spacetype == SPACE_VIEW3D) {
 			View3D *v3d = p->sa->spacedata.first;
 			RegionView3D *rv3d = p->ar->regiondata;
@@ -1279,7 +1324,7 @@ static void gp_paint_initstroke(tGPsdata *p, short paintmode)
 	
 	
 	/* check if points will need to be made in view-aligned space */
-	if (p->gpd->flag & GP_DATA_VIEWALIGN) {
+	if (*p->align_flag & GP_PROJECT_VIEWSPACE) {
 		switch (p->sa->spacetype) {
 			case SPACE_VIEW3D:
 			{
@@ -1308,7 +1353,7 @@ static void gp_paint_initstroke(tGPsdata *p, short paintmode)
 				if (ELEM(NULL, sima, sima->image)) {
 					/* make strokes be drawn in screen space */
 					p->gpd->sbuffer_sflag &= ~GP_STROKE_2DSPACE;
-					p->gpd->flag &= ~GP_DATA_VIEWALIGN;
+					*(p->align_flag) &= ~GP_PROJECT_VIEWSPACE;
 				}
 				else {
 					p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
@@ -1417,6 +1462,17 @@ static void gpencil_draw_toggle_eraser_cursor(bContext *C, tGPsdata *p, short en
 	}
 }
 
+/* Check if tablet eraser is being used (when processing events) */
+static bool gpencil_is_tablet_eraser_active(const wmEvent *event)
+{
+	if (event->tablet_data) {
+		const wmTabletData *wmtab = event->tablet_data;
+		return (wmtab->Active == EVT_TABLET_ERASER);
+	}
+	
+	return false;
+}
+
 /* ------------------------------- */
 
 
@@ -1467,7 +1523,7 @@ static void gpencil_draw_cancel(bContext *C, wmOperator *op)
 static int gpencil_draw_init(bContext *C, wmOperator *op)
 {
 	tGPsdata *p;
-	int paintmode = RNA_enum_get(op->ptr, "mode");
+	eGPencil_PaintModes paintmode = RNA_enum_get(op->ptr, "mode");
 	
 	/* check context */
 	p = op->customdata = gp_session_initpaint(C);
@@ -1483,9 +1539,6 @@ static int gpencil_draw_init(bContext *C, wmOperator *op)
 		gpencil_draw_exit(C, op);
 		return 0;
 	}
-	
-	/* radius for eraser circle is defined in userprefs now */
-	p->radius = U.gp_eraser;
 	
 	/* everything is now setup ok */
 	return 1;
@@ -1527,6 +1580,10 @@ static void gpencil_draw_status_indicators(tGPsdata *p)
 					break;
 				case GP_PAINTMODE_DRAW:
 					ED_area_headerprint(p->sa, IFACE_("Grease Pencil Freehand Session: Hold and drag LMB to draw | "
+					                                  "ESC/Enter to end"));
+					break;
+				case GP_PAINTMODE_DRAW_POLY:
+					ED_area_headerprint(p->sa, IFACE_("Grease Pencil Poly Session: LMB click to place next stroke vertex | "
 					                                  "ESC/Enter to end"));
 					break;
 				
@@ -1622,9 +1679,6 @@ static void gpencil_draw_apply_event(wmOperator *op, const wmEvent *event)
 		
 		tablet = (wmtab->Active != EVT_TABLET_NONE);
 		p->pressure = wmtab->Pressure;
-		
-		/* if (wmtab->Active == EVT_TABLET_ERASER) */
-		/* TODO... this should get caught by the keymaps which call drawing in the first place */
 	}
 	else
 		p->pressure = 1.0f;
@@ -1819,7 +1873,6 @@ static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
 	/* we may need to set up paint env again if we're resuming */
 	/* XXX: watch it with the paintmode! in future,
 	 *      it'd be nice to allow changing paint-mode when in sketching-sessions */
-	/* XXX: with tablet events, we may event want to check for eraser here, for nicer tablet support */
 	
 	if (gp_session_initdata(C, p))
 		gp_paint_initstroke(p, p->paintmode);
@@ -2008,13 +2061,13 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				/* Switch paintmode (temporarily if need be) based on which button was used
 				 * NOTE: This is to make it more convenient to erase strokes when using drawing sessions
 				 */
-				if (event->type == LEFTMOUSE) {
-					/* restore drawmode to default */
-					p->paintmode = RNA_enum_get(op->ptr, "mode");
-				}
-				else if (event->type == RIGHTMOUSE) {
+				if ((event->type == RIGHTMOUSE) || gpencil_is_tablet_eraser_active(event)) {
 					/* turn on eraser */
 					p->paintmode = GP_PAINTMODE_ERASER;
+				}
+				else if (event->type == LEFTMOUSE) {
+					/* restore drawmode to default */
+					p->paintmode = RNA_enum_get(op->ptr, "mode");
 				}
 				
 				gpencil_draw_toggle_eraser_cursor(C, p, p->paintmode == GP_PAINTMODE_ERASER);

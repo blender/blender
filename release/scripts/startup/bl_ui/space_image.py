@@ -28,6 +28,7 @@ from bl_ui.properties_paint_common import (
 from bl_ui.properties_grease_pencil_common import (
         GreasePencilDrawingToolsPanel,
         GreasePencilStrokeEditPanel,
+        GreasePencilStrokeSculptPanel,
         GreasePencilDataPanel,
         )
 from bpy.app.translations import pgettext_iface as iface_
@@ -1189,6 +1190,11 @@ class IMAGE_PT_tools_grease_pencil_draw(GreasePencilDrawingToolsPanel, Panel):
 
 # Grease Pencil stroke editing tools
 class IMAGE_PT_tools_grease_pencil_edit(GreasePencilStrokeEditPanel, Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+
+
+# Grease Pencil stroke sculpting tools
+class IMAGE_PT_tools_grease_pencil_sculpt(GreasePencilStrokeSculptPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
 
 

@@ -91,6 +91,51 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 				sculpt->flags |= SCULPT_DYNTOPO_COLLAPSE;
 				sculpt->detail_size = 12;
 			}
+			
+			if (ts->gp_sculpt.brush[0].size == 0) {
+				GP_BrushEdit_Settings *gset = &ts->gp_sculpt;
+				GP_EditBrush_Data *brush;
+				
+				brush = &gset->brush[GP_EDITBRUSH_TYPE_SMOOTH];
+				brush->size = 25;
+				brush->strength = 0.3f;
+				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_SMOOTH_PRESSURE;
+				
+				brush = &gset->brush[GP_EDITBRUSH_TYPE_THICKNESS];
+				brush->size = 25;
+				brush->strength = 0.5f;
+				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				
+				brush = &gset->brush[GP_EDITBRUSH_TYPE_GRAB];
+				brush->size = 50;
+				brush->strength = 0.3f;
+				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				
+				brush = &gset->brush[GP_EDITBRUSH_TYPE_PUSH];
+				brush->size = 25;
+				brush->strength = 0.3f;
+				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				
+				brush = &gset->brush[GP_EDITBRUSH_TYPE_TWIST];
+				brush->size = 50;
+				brush->strength = 0.3f; // XXX?
+				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				
+				brush = &gset->brush[GP_EDITBRUSH_TYPE_PINCH];
+				brush->size = 50;
+				brush->strength = 0.5f; // XXX?
+				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				
+				brush = &gset->brush[GP_EDITBRUSH_TYPE_RANDOMISE];
+				brush->size = 25;
+				brush->strength = 0.5f;
+				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+			}
+			
+			ts->gpencil_v3d_align = GP_PROJECT_VIEWSPACE;
+			ts->gpencil_v2d_align = GP_PROJECT_VIEWSPACE;
+			ts->gpencil_seq_align = GP_PROJECT_VIEWSPACE;
+			ts->gpencil_ima_align = GP_PROJECT_VIEWSPACE;
 		}
 
 		scene->gm.lodflag |= SCE_LOD_USE_HYST;

@@ -34,6 +34,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "BLI_utildefines.h"
 
@@ -287,6 +288,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	PointerRNA v3dptr, toolsptr, sceneptr;
 	Object *ob = OBACT;
 	Object *obedit = CTX_data_edit_object(C);
+	bGPdata *gpd = CTX_data_gpencil_data(C);
 	uiBlock *block;
 	uiLayout *row;
 	bool is_paint = false;
@@ -303,7 +305,10 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	UI_block_emboss_set(block, UI_EMBOSS);
 	
 	/* mode */
-	if (ob) {
+	if ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE)) {
+		modeselect = OB_MODE_GPENCIL;
+	}
+	else if (ob) {
 		modeselect = ob->mode;
 		is_paint = ELEM(ob->mode, OB_MODE_SCULPT, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT, OB_MODE_TEXTURE_PAINT);
 	}

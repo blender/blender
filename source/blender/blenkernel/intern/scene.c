@@ -750,6 +750,53 @@ void BKE_scene_init(Scene *sce)
 	copy_v2_fl2(sce->safe_areas.action_center, 15.0f / 100.0f, 5.0f / 100.0f);
 
 	sce->preview = NULL;
+	
+	/* GP Sculpt brushes */
+	{
+		GP_BrushEdit_Settings *gset = &sce->toolsettings->gp_sculpt;
+		GP_EditBrush_Data *gp_brush;
+		
+		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_SMOOTH];
+		gp_brush->size = 25;
+		gp_brush->strength = 0.3f;
+		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_SMOOTH_PRESSURE;
+		
+		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_THICKNESS];
+		gp_brush->size = 25;
+		gp_brush->strength = 0.5f;
+		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+		
+		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_GRAB];
+		gp_brush->size = 50;
+		gp_brush->strength = 0.3f;
+		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+		
+		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_PUSH];
+		gp_brush->size = 25;
+		gp_brush->strength = 0.3f;
+		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+		
+		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_TWIST];
+		gp_brush->size = 50;
+		gp_brush->strength = 0.3f; // XXX?
+		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+		
+		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_PINCH];
+		gp_brush->size = 50;
+		gp_brush->strength = 0.5f; // XXX?
+		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+		
+		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_RANDOMISE];
+		gp_brush->size = 25;
+		gp_brush->strength = 0.5f;
+		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+	}
+	
+	/* GP Stroke Placement */
+	sce->toolsettings->gpencil_v3d_align = GP_PROJECT_VIEWSPACE;
+	sce->toolsettings->gpencil_v2d_align = GP_PROJECT_VIEWSPACE;
+	sce->toolsettings->gpencil_seq_align = GP_PROJECT_VIEWSPACE;
+	sce->toolsettings->gpencil_ima_align = GP_PROJECT_VIEWSPACE;
 }
 
 Scene *BKE_scene_add(Main *bmain, const char *name)

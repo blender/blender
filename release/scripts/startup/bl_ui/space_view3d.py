@@ -118,6 +118,14 @@ class VIEW3D_HT_header(Header):
             row.operator("pose.paste", text="", icon='PASTEDOWN').flipped = False
             row.operator("pose.paste", text="", icon='PASTEFLIPDOWN').flipped = True
 
+        # GPencil
+        if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
+            row = layout.row(align=True)
+            row.operator("gpencil.copy", text="", icon='COPYDOWN')
+            row.operator("gpencil.paste", text="", icon='PASTEDOWN')
+
+            layout.prop(context.gpencil_data, "use_onion_skinning", text="Onion Skins", icon='PARTICLE_PATH') # XXX: icon
+
 
 class VIEW3D_MT_editor_menus(Menu):
     bl_space_type = 'VIEW3D_MT_editor_menus'
@@ -131,11 +139,14 @@ class VIEW3D_MT_editor_menus(Menu):
         obj = context.active_object
         mode_string = context.mode
         edit_object = context.edit_object
+        gp_edit = context.gpencil_data and context.gpencil_data.use_stroke_edit_mode
 
         layout.menu("VIEW3D_MT_view")
 
         # Select Menu
-        if mode_string in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
+        if gp_edit:
+            layout.menu("VIEW3D_MT_select_gpencil")
+        elif mode_string in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
             mesh = obj.data
             if mesh.use_paint_mask:
                 layout.menu("VIEW3D_MT_select_paint_mask")
@@ -144,7 +155,9 @@ class VIEW3D_MT_editor_menus(Menu):
         elif mode_string != 'SCULPT':
             layout.menu("VIEW3D_MT_select_%s" % mode_string.lower())
 
-        if mode_string == 'OBJECT':
+        if gp_edit:
+            pass
+        elif mode_string == 'OBJECT':
             layout.menu("INFO_MT_add", text="Add")
         elif mode_string == 'EDIT_MESH':
             layout.menu("INFO_MT_mesh_add", text="Add")
@@ -157,7 +170,9 @@ class VIEW3D_MT_editor_menus(Menu):
         elif mode_string == 'EDIT_ARMATURE':
             layout.menu("INFO_MT_edit_armature_add", text="Add")
 
-        if edit_object:
+        if gp_edit:
+            layout.menu("VIEW3D_MT_edit_gpencil")
+        elif edit_object:
             layout.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
         elif obj:
             if mode_string != 'PAINT_TEXTURE':
@@ -881,6 +896,27 @@ class VIEW3D_MT_select_edit_armature(Menu):
 
         layout.operator_menu_enum("armature.select_similar", "type", text="Similar")
         layout.operator("object.select_pattern", text="Select Pattern...")
+
+
+class VIEW3D_MT_select_gpencil(Menu):
+    bl_label = "Select"
+    
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("gpencil.select_border")
+        layout.operator("gpencil.select_circle")
+
+        layout.separator()
+
+        layout.operator("gpencil.select_all", text="(De)select All").action = 'TOGGLE'
+        layout.operator("gpencil.select_all", text="Inverse").action = 'INVERT'
+        layout.operator("gpencil.select_linked", text="Linked")
+
+        layout.separator()
+
+        layout.operator("gpencil.select_more")
+        layout.operator("gpencil.select_less")
 
 
 class VIEW3D_MT_select_paint_mask(Menu):
@@ -2820,6 +2856,81 @@ class VIEW3D_MT_edit_armature_delete(Menu):
         layout.separator()
 
         layout.operator("armature.dissolve", text="Dissolve")
+
+
+# ********** GPencil Stroke Edit menu **********
+
+
+class VIEW3D_MT_edit_gpencil(Menu):
+    bl_label = "GPencil"
+    
+    def draw(self, context):
+        toolsettings = context.tool_settings
+
+        layout = self.layout
+
+        layout.operator("ed.undo")
+        layout.operator("ed.redo")
+        layout.operator("ed.undo_history")
+
+        layout.separator()
+
+        layout.operator("gpencil.brush_paint", text="Sculpt Strokes").wait_for_input = True
+        layout.prop_menu_enum(toolsettings.gpencil_sculpt, "tool", text="Sculpt Brush")
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_edit_gpencil_transform")
+        layout.operator("transform.mirror", text="Mirror")
+        layout.menu("GPENCIL_MT_snap")
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_object_animation")   # NOTE: provides keyingset access...
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_edit_gpencil_delete")
+        layout.operator("gpencil.duplicate_move", text="Duplicate")
+
+        layout.separator()
+
+        layout.operator("gpencil.copy", text="Copy")
+        layout.operator("gpencil.paste", text="Paste")
+
+        layout.separator()
+
+        layout.prop_menu_enum(toolsettings, "proportional_edit")
+        layout.prop_menu_enum(toolsettings, "proportional_edit_falloff")
+
+        layout.separator()
+
+        layout.operator("gpencil.reveal")
+        layout.operator("gpencil.hide", text="Show Active Layer Only").unselected = True
+        layout.operator("gpencil.hide", text="Hide Active Layer").unselected = False
+
+        layout.separator()
+
+        layout.operator_menu_enum("gpencil.move_to_layer", "layer", text="Move to Layer")
+        layout.operator_menu_enum("gpencil.convert", "type", text="Convert to Geometry...")
+
+
+class VIEW3D_MT_edit_gpencil_transform(Menu):
+    bl_label = "Transform"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("transform.translate")
+        layout.operator("transform.rotate")
+        layout.operator("transform.resize", text="Scale")
+
+        layout.separator()
+
+        layout.operator("transform.bend", text="Bend")
+        layout.operator("transform.shear", text="Shear")
+        layout.operator("transform.tosphere", text="To Sphere")
+        layout.operator("transform.transform", text="Shrink Fatten").mode = 'GPENCIL_SHRINKFATTEN'
 
 
 # ********** Panel **********

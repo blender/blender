@@ -259,6 +259,8 @@ extern StructRNA RNA_GPencilFrame;
 extern StructRNA RNA_GPencilLayer;
 extern StructRNA RNA_GPencilStroke;
 extern StructRNA RNA_GPencilStrokePoint;
+extern StructRNA RNA_GPencilSculptSettings;
+extern StructRNA RNA_GPencilSculptBrush;
 extern StructRNA RNA_GameBooleanProperty;
 extern StructRNA RNA_GameFloatProperty;
 extern StructRNA RNA_GameIntProperty;

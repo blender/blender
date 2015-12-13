@@ -929,7 +929,7 @@ short paste_animedit_keys(bAnimContext *ac, ListBase *anim_data,
 		return -1;
 	}
 	
-	/* mathods of offset */
+	/* methods of offset */
 	switch (offset_mode) {
 		case KEYFRAME_PASTE_OFFSET_CFRA_START:
 			offset = (float)(CFRA - animcopy_firstframe);
