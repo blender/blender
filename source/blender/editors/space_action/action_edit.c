@@ -55,6 +55,7 @@
 
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
+#include "BKE_gpencil.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_key.h"
@@ -657,7 +658,7 @@ static EnumPropertyItem prop_actkeys_insertkey_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-/* this function is responsible for snapping keyframes to frame-times */
+/* this function is responsible for inserting new keyframes */
 static void insert_action_keys(bAnimContext *ac, short mode) 
 {
 	ListBase anim_data = {NULL, NULL};
@@ -700,10 +701,45 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 			insert_keyframe(reports, ale->id, NULL, ((fcu->grp) ? (fcu->grp->name) : (NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
 		else
 			insert_vert_fcurve(fcu, cfra, fcu->curval, 0);
-
+		
 		ale->update |= ANIM_UPDATE_DEFAULT;
 	}
+	
+	ANIM_animdata_update(ac, &anim_data);
+	ANIM_animdata_freelist(&anim_data);
+}
 
+/* this function is for inserting new grease pencil frames */
+static void insert_gpencil_keys(bAnimContext *ac, short mode)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	Scene *scene = ac->scene;
+	ToolSettings *ts = scene->toolsettings;
+	eGP_GetFrame_Mode add_frame_mode;
+	
+	/* filter data */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+	if (mode == 2) filter |= ANIMFILTER_SEL;
+	
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	
+	/* add a copy or a blank frame? */
+	if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST)
+		add_frame_mode = GP_GETFRAME_ADD_COPY; /* XXX: actframe may not be what we want? */
+	else
+		add_frame_mode = GP_GETFRAME_ADD_NEW;
+	
+	
+	/* insert gp frames */
+	for (ale = anim_data.first; ale; ale = ale->next) {
+		bGPDlayer *gpl = (bGPDlayer *)ale->data;
+		gpencil_layer_getframe(gpl, CFRA, add_frame_mode);
+	}
+	
 	ANIM_animdata_update(ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);
 }
@@ -718,14 +754,22 @@ static int actkeys_insertkey_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
+		
+	if (ac.datatype == ANIMCONT_MASK) {
+		BKE_report(op->reports, RPT_ERROR, "Insert Keyframes is not yet implemented for this mode");
 		return OPERATOR_CANCELLED;
+	}
 		
 	/* what channels to affect? */
 	mode = RNA_enum_get(op->ptr, "type");
 	
 	/* insert keyframes */
-	insert_action_keys(&ac, mode);
+	if (ac.datatype == ANIMCONT_GPENCIL) {
+		insert_gpencil_keys(&ac, mode);
+	}
+	else {
+		insert_action_keys(&ac, mode);
+	}
 
 	/* set notifier that keyframes have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, NULL);
