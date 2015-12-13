@@ -985,7 +985,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 
 static void rna_def_gpencil_sculpt(BlenderRNA *brna)
 {
-	static EnumPropertyItem prop_direction_items[]= {
+	static EnumPropertyItem prop_direction_items[] = {
 		{0, "ADD", 0, "Add", "Add effect of brush"},
 		{GP_EDITBRUSH_FLAG_INVERT, "SUBTRACT", 0, "Subtract", "Subtract effect of brush"},
 		{0, NULL, 0, NULL, NULL}};

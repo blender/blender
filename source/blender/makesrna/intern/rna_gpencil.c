@@ -58,7 +58,7 @@ static void rna_GPencil_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 }
 
-static void rna_GPencil_editmode_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+static void rna_GPencil_editmode_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	/* Notify all places where GPencil data lives that the editing state is different */
 	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);

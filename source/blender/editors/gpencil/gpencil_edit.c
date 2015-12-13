@@ -84,7 +84,7 @@ static int gpencil_editmode_toggle_poll(bContext *C)
 	return ED_gpencil_data_get_active(C) != NULL;
 }
 
-static int gpencil_editmode_toggle_exec(bContext *C, wmOperator *op)
+static int gpencil_editmode_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	
@@ -1020,7 +1020,7 @@ static int gp_snap_poll(bContext *C)
 
 /* --------------------------------- */
 
-static int gp_snap_to_grid(bContext *C, wmOperator *op)
+static int gp_snap_to_grid(bContext *C, wmOperator *UNUSED(op))
 {
 	RegionView3D *rv3d = CTX_wm_region_data(C);
 	float gridf = rv3d->gridview;
@@ -1129,7 +1129,7 @@ void GPENCIL_OT_snap_to_cursor(wmOperatorType *ot)
 
 /* ------------------------------- */
 
-static int gp_snap_cursor_to_sel(bContext *C, wmOperator *op)
+static int gp_snap_cursor_to_sel(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);

@@ -25,7 +25,7 @@
  * Brush based operators for editing Grease Pencil strokes
  */
 
-/** \file blender/editors/gpencil/gpencil_edit.c
+/** \file blender/editors/gpencil/gpencil_brush.c
  *  \ingroup edgpencil
  */
 
@@ -602,10 +602,10 @@ static bool gp_brush_twist_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
 	
 #if 0
 	printf("C: %d %d | P: %d %d -> t: %f %f -> r: %f %f x %f -> %f %f\n",
-			gso->mval[0], gso->mval[1], co[0], co[1],
-			tco[0], tco[1],
-			rco[0], rco[1], angle,
-			nco[0], nco[1]);
+	       gso->mval[0], gso->mval[1], co[0], co[1],
+	       tco[0], tco[1],
+	       rco[0], rco[1], angle,
+	       nco[0], nco[1]);
 #endif
 	
 	/* convert to dataspace */
@@ -833,7 +833,7 @@ static void gp_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
 }
 
 /* Move newly-added strokes around - "Stamp" mode of the Clone brush */
-static void gp_brush_clone_adjust(bContext *C, tGP_BrushEditData *gso)
+static void gp_brush_clone_adjust(tGP_BrushEditData *gso)
 {
 	tGPSB_CloneBrushData *data = gso->customdata;
 	size_t snum;
@@ -885,7 +885,7 @@ static bool gpsculpt_brush_apply_clone(bContext *C, tGP_BrushEditData *gso)
 		/* Stamp or Continous Mode */
 		if (1 /*gso->brush->mode == GP_EDITBRUSH_CLONE_MODE_STAMP*/) {
 			/* Stamp - Proceed to translate the newly added strokes */
-			gp_brush_clone_adjust(C, gso);
+			gp_brush_clone_adjust(gso);
 		}
 		else {
 			/* Continuous - Just keep pasting everytime we move */
@@ -957,7 +957,7 @@ static void gpsculpt_brush_header_set(bContext *C, tGP_BrushEditData *gso)
 	BLI_snprintf(str, sizeof(str),
 	             IFACE_("GPencil Sculpt: %s Stroke  | LMB to paint | RMB/Escape to Exit"
 	                    " | Ctrl to Invert Action | Wheel Up/Down for Size "
-						" | Shift-Wheel Up/Down for Strength"),
+	                    " | Shift-Wheel Up/Down for Strength"),
 	             (brush_name) ? brush_name : "<?>");
 	
 	ED_area_headerprint(CTX_wm_area(C), str);
@@ -1119,7 +1119,7 @@ static void gpsculpt_brush_init_stroke(tGP_BrushEditData *gso)
 	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 		/* only editable and visible layers are considered */
 		if ((gpl->flag & (GP_LAYER_HIDE | GP_LAYER_LOCKED)) == 0 &&
-			(gpl->actframe != NULL))
+		    (gpl->actframe != NULL))
 		{
 			bGPDframe *gpf = gpl->actframe;
 			
