@@ -7,11 +7,11 @@ GEN_INLINE MT_Quaternion MT_Matrix3x3::getRotation() const {
    
     MT_Scalar trace = m_el[0][0] + m_el[1][1] + m_el[2][2];
     
-    if (trace > 0.0) 
+    if (trace > 0.0f) 
     {
-        MT_Scalar s = sqrt(trace + MT_Scalar(1.0));
-        result[3] = s * MT_Scalar(0.5);
-        s = MT_Scalar(0.5) / s;
+        MT_Scalar s = sqrt(trace + MT_Scalar(1.0f));
+        result[3] = s * MT_Scalar(0.5f);
+        s = MT_Scalar(0.5f) / s;
         
         result[0] = (m_el[2][1] - m_el[1][2]) * s;
         result[1] = (m_el[0][2] - m_el[2][0]) * s;
@@ -28,11 +28,11 @@ GEN_INLINE MT_Quaternion MT_Matrix3x3::getRotation() const {
         int j = next[i];  
         int k = next[j];
         
-        MT_Scalar s = sqrt(m_el[i][i] - m_el[j][j] - m_el[k][k] + MT_Scalar(1.0));
+        MT_Scalar s = sqrt(m_el[i][i] - m_el[j][j] - m_el[k][k] + MT_Scalar(1.0f));
         
-        result[i] = s * MT_Scalar(0.5);
+        result[i] = s * MT_Scalar(0.5f);
         
-        s = MT_Scalar(0.5) / s;
+        s = MT_Scalar(0.5f) / s;
         
         result[3] = (m_el[k][j] - m_el[j][k]) * s;
         result[j] = (m_el[j][i] + m_el[i][j]) * s;
@@ -80,7 +80,7 @@ GEN_INLINE MT_Matrix3x3 MT_Matrix3x3::inverse() const {
     MT_Vector3 co(cofac(1, 1, 2, 2), cofac(1, 2, 2, 0), cofac(1, 0, 2, 1));
     MT_Scalar det = MT_dot((*this)[0], co);
     MT_assert(!MT_fuzzyZero2(det));
-    MT_Scalar s = MT_Scalar(1.0) / det;
+    MT_Scalar s = MT_Scalar(1.0f) / det;
     return 
         MT_Matrix3x3(co[0] * s, cofac(0, 2, 2, 1) * s, cofac(0, 1, 1, 2) * s,
                      co[1] * s, cofac(0, 0, 2, 2) * s, cofac(0, 2, 1, 0) * s,

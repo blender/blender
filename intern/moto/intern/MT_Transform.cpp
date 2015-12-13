@@ -68,7 +68,7 @@ void MT_Transform::setValue(const double *m) {
 void MT_Transform::getValue(float *m) const {
     m_basis.getValue(m);
     m_origin.getValue(&m[12]);
-    m[15] = 1.0;
+    m[15] = 1.0f;
 }
 
 void MT_Transform::getValue(double *m) const {
@@ -101,7 +101,7 @@ void MT_Transform::scale(MT_Scalar x, MT_Scalar y, MT_Scalar z) {
 
 void MT_Transform::setIdentity() {
     m_basis.setIdentity();
-    m_origin.setValue(MT_Scalar(0.0), MT_Scalar(0.0), MT_Scalar(0.0));
+    m_origin.setValue(MT_Scalar(0.0f), MT_Scalar(0.0f), MT_Scalar(0.0f));
     m_type = IDENTITY;
 }
 

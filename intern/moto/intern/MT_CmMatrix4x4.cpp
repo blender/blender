@@ -179,28 +179,28 @@ MT_CmMatrix4x4 MT_CmMatrix4x4::Perspective(
 	MT_CmMatrix4x4 mat;
 	
 	// Column 0
-	mat(0, 0) = -(2.0*inNear)			/ (inRight-inLeft);
-	mat(1, 0) = 0;
-	mat(2, 0) = 0;
-	mat(3, 0) = 0;
+	mat(0, 0) = -(2.0f*inNear)			/ (inRight-inLeft);
+	mat(1, 0) = 0.0f;
+	mat(2, 0) = 0.0f;
+	mat(3, 0) = 0.0f;
 
 	// Column 1
-	mat(0, 1) = 0;
-	mat(1, 1) = (2.0*inNear)			/ (inTop-inBottom);
-	mat(2, 1) = 0;
-	mat(3, 1) = 0;
+	mat(0, 1) = 0.0f;
+	mat(1, 1) = (2.0f*inNear)			/ (inTop-inBottom);
+	mat(2, 1) = 0.0f;
+	mat(3, 1) = 0.0f;
 
 	// Column 2
 	mat(0, 2) =  (inRight+inLeft)		/ (inRight-inLeft);
 	mat(1, 2) =  (inTop+inBottom)		/ (inTop-inBottom);
 	mat(2, 2) = -(inFar+inNear)			/ (inFar-inNear);
-	mat(3, 2) = -1;
+	mat(3, 2) = -1.0f;
 
 	// Column 3
-	mat(0, 3) = 0;
-	mat(1, 3) = 0;
-	mat(2, 3) = -(2.0*inFar*inNear)		/ (inFar-inNear);
-	mat(3, 3) = 0;
+	mat(0, 3) = 0.0f;
+	mat(1, 3) = 0.0f;
+	mat(2, 3) = -(2.0f*inFar*inNear)		/ (inFar-inNear);
+	mat(3, 3) = 0.0f;
 
 	return mat;
 }

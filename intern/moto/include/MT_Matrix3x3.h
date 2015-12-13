@@ -132,14 +132,14 @@ public:
     void setRotation(const MT_Quaternion& q) {
         MT_Scalar d = q.length2();
         MT_assert(!MT_fuzzyZero2(d));
-        MT_Scalar s = MT_Scalar(2.0) / d;
+        MT_Scalar s = MT_Scalar(2.0f) / d;
         MT_Scalar xs = q[0] * s,   ys = q[1] * s,   zs = q[2] * s;
         MT_Scalar wx = q[3] * xs,  wy = q[3] * ys,  wz = q[3] * zs;
         MT_Scalar xx = q[0] * xs,  xy = q[0] * ys,  xz = q[0] * zs;
         MT_Scalar yy = q[1] * ys,  yz = q[1] * zs,  zz = q[2] * zs;
-        setValue(MT_Scalar(1.0) - (yy + zz), xy - wz        ,         xz + wy,
-                 xy + wz        , MT_Scalar(1.0) - (xx + zz),         yz - wx,
-                 xz - wy        , yz + wx,         MT_Scalar(1.0) - (xx + yy));
+        setValue(MT_Scalar(1.0f) - (yy + zz), xy - wz        ,         xz + wy,
+                 xy + wz        , MT_Scalar(1.0f) - (xx + zz),         yz - wx,
+                 xz - wy        , yz + wx,         MT_Scalar(1.0f) - (xx + yy));
     }
     
 	/**
@@ -169,19 +169,19 @@ public:
 
 	void getEuler(MT_Scalar& yaw, MT_Scalar& pitch, MT_Scalar& roll) const
 		{			
-			if (m_el[2][0] != -1.0 && m_el[2][0] != 1.0) {
+			if (m_el[2][0] != -1.0f && m_el[2][0] != 1.0f) {
 				pitch = MT_Scalar(-asin(m_el[2][0]));
 				yaw = MT_Scalar(atan2(m_el[2][1] / cos(pitch), m_el[2][2] / cos(pitch)));
 				roll = MT_Scalar(atan2(m_el[1][0] / cos(pitch), m_el[0][0] / cos(pitch)));				
 			}
 			else {
 				roll = MT_Scalar(0);
-				if (m_el[2][0] == -1.0) {
-					pitch = MT_PI / 2.0;
+				if (m_el[2][0] == -1.0f) {
+					pitch = (float)MT_PI / 2.0f;
 					yaw = MT_Scalar(atan2(m_el[0][1], m_el[0][2]));
 				}
 				else {
-					pitch = - MT_PI / 2.0;
+					pitch = (float)-MT_PI / 2.0f;
 					yaw = MT_Scalar(atan2(m_el[0][1], m_el[0][2]));
 				}
 			}
@@ -200,15 +200,15 @@ public:
     }
     
     void setIdentity() { 
-        setValue(MT_Scalar(1.0), MT_Scalar(0.0), MT_Scalar(0.0), 
-                 MT_Scalar(0.0), MT_Scalar(1.0), MT_Scalar(0.0), 
-                 MT_Scalar(0.0), MT_Scalar(0.0), MT_Scalar(1.0)); 
+        setValue(MT_Scalar(1.0f), MT_Scalar(0.0f), MT_Scalar(0.0f), 
+                 MT_Scalar(0.0f), MT_Scalar(1.0f), MT_Scalar(0.0f), 
+                 MT_Scalar(0.0f), MT_Scalar(0.0f), MT_Scalar(1.0f)); 
     }
     
     void getValue(float *m) const {
-        *m++ = (float) m_el[0][0]; *m++ = (float) m_el[1][0]; *m++ = (float) m_el[2][0]; *m++ = (float) 0.0;
-        *m++ = (float) m_el[0][1]; *m++ = (float) m_el[1][1]; *m++ = (float) m_el[2][1]; *m++ = (float) 0.0;
-        *m++ = (float) m_el[0][2]; *m++ = (float) m_el[1][2]; *m++ = (float) m_el[2][2]; *m   = (float) 0.0;
+        *m++ = (float) m_el[0][0]; *m++ = (float) m_el[1][0]; *m++ = (float) m_el[2][0]; *m++ = (float) 0.0f;
+        *m++ = (float) m_el[0][1]; *m++ = (float) m_el[1][1]; *m++ = (float) m_el[2][1]; *m++ = (float) 0.0f;
+        *m++ = (float) m_el[0][2]; *m++ = (float) m_el[1][2]; *m++ = (float) m_el[2][2]; *m   = (float) 0.0f;
     }
 
     void getValue(double *m) const {

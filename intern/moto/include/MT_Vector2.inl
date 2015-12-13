@@ -17,7 +17,7 @@ GEN_INLINE MT_Vector2& MT_Vector2::operator*=(MT_Scalar s) {
 
 GEN_INLINE MT_Vector2& MT_Vector2::operator/=(MT_Scalar s) {
     MT_assert(!MT_fuzzyZero(s));
-    return *this *= 1.0 / s;
+    return *this *= 1.0f / s;
 }
 
 GEN_INLINE MT_Vector2 operator+(const MT_Vector2& v1, const MT_Vector2& v2) {
@@ -40,7 +40,7 @@ GEN_INLINE MT_Vector2 operator*(MT_Scalar s, const MT_Vector2& v) { return v * s
 
 GEN_INLINE MT_Vector2 operator/(const MT_Vector2& v, MT_Scalar s) {
     MT_assert(!MT_fuzzyZero(s));
-    return v * (1.0 / s);
+    return v * (1.0f / s);
 }
 
 GEN_INLINE MT_Scalar MT_Vector2::dot(const MT_Vector2& vv) const {

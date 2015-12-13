@@ -29,8 +29,8 @@ GEN_INLINE MT_Quaternion MT_Quaternion::inverse() const {
 //       pg. 124-132
 GEN_INLINE MT_Quaternion MT_Quaternion::random() {
     MT_Scalar x0 = MT_random();
-    MT_Scalar r1 = sqrt(MT_Scalar(1.0) - x0), r2 = sqrt(x0);
-    MT_Scalar t1 = MT_2_PI * MT_random(), t2 = MT_2_PI * MT_random();
+    MT_Scalar r1 = sqrt(MT_Scalar(1.0f) - x0), r2 = sqrt(x0);
+    MT_Scalar t1 = (float)MT_2_PI * MT_random(), t2 = (float)MT_2_PI * MT_random();
     MT_Scalar c1 = cos(t1), s1 = sin(t1);
     MT_Scalar c2 = cos(t2), s2 = sin(t2);
     return MT_Quaternion(s1 * r1, c1 * r1, s2 * r2, c2 * r2);
@@ -63,11 +63,11 @@ GEN_INLINE MT_Quaternion operator*(const MT_Vector3& w, const MT_Quaternion& q)
 GEN_INLINE MT_Scalar MT_Quaternion::angle(const MT_Quaternion& q) const 
 {
 	MT_Scalar s = sqrt(length2() * q.length2());
-	assert(s != MT_Scalar(0.0));
+	assert(s != MT_Scalar(0.0f));
 	
 	s = dot(q) / s;
 	
-	s = MT_clamp(s, -1.0, 1.0);
+	s = MT_clamp(s, -1.0f, 1.0f);
 	
 	return acos(s);
 }
@@ -76,21 +76,21 @@ GEN_INLINE MT_Quaternion MT_Quaternion::slerp(const MT_Quaternion& q, const MT_S
 {
 	MT_Scalar d, s0, s1;
 	MT_Scalar s = dot(q);
-	bool neg = (s < 0.0);
+	bool neg = (s < 0.0f);
 
 	if (neg)
 		s = -s;
-	if ((1.0 - s) > 0.0001) 
+	if ((1.0f - s) > 0.0001f)
 	{
 		MT_Scalar theta = acos(s);
-		d = MT_Scalar(1.0) / sin(theta);
-		s0 = sin((MT_Scalar(1.0) - t) * theta);
+		d = MT_Scalar(1.0f) / sin(theta);
+		s0 = sin((MT_Scalar(1.0f) - t) * theta);
 		s1 = sin(t * theta);
 	}
 	else
 	{
-		d = MT_Scalar(1.0);
-		s0 = MT_Scalar(1.0) - t;
+		d = MT_Scalar(1.0f);
+		s0 = MT_Scalar(1.0f) - t;
 		s1 = t;
 	}
 	if (neg)

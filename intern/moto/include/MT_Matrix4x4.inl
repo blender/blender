@@ -11,14 +11,14 @@ GEN_INLINE void MT_Matrix4x4::invert()  {
 	for (i=1; i < 4; i++) m_el[0][i] /= m_el[0][0];
 	for (i=1; i < 4; i++)  { 
 		for (j=i; j < 4; j++)  { // do a column of L
-			MT_Scalar sum = 0.0;
+			MT_Scalar sum = 0.0f;
 			for (k = 0; k < i; k++)  
 				sum += m_el[j][k] * m_el[k][i];
 			m_el[j][i] -= sum;
 		}
 		if (i == 3) continue;
 		for (j=i+1; j < 4; j++)  {  // do a row of U
-			MT_Scalar sum = 0.0;
+			MT_Scalar sum = 0.0f;
 			for (k = 0; k < i; k++)
 				sum += m_el[i][k]*m_el[k][j];
 			m_el[i][j] = 
@@ -27,9 +27,9 @@ GEN_INLINE void MT_Matrix4x4::invert()  {
 	}
 	for (i = 0; i < 4; i++ )  // invert L
 		for (j = i; j < 4; j++ )  {
-			MT_Scalar x = 1.0;
+			MT_Scalar x = 1.0f;
 			if ( i != j ) {
-				x = 0.0;
+				x = 0.0f;
 				for (k = i; k < j; k++ ) 
 					x -= m_el[j][k]*m_el[k][i];
 			}
@@ -38,16 +38,16 @@ GEN_INLINE void MT_Matrix4x4::invert()  {
 	for (i = 0; i < 4; i++ )   // invert U
 		for (j = i; j < 4; j++ )  {
 			if ( i == j ) continue;
-			MT_Scalar sum = 0.0;
+			MT_Scalar sum = 0.0f;
 			for (k = i; k < j; k++ )
-				sum += m_el[k][j]*( (i==k) ? 1.0 : m_el[i][k] );
+				sum += m_el[k][j]*( (i==k) ? 1.0f : m_el[i][k] );
 			m_el[i][j] = -sum;
 		}
 	for (i = 0; i < 4; i++ )   // final inversion
 		for (j = 0; j < 4; j++ )  {
-			MT_Scalar sum = 0.0;
+			MT_Scalar sum = 0.0f;
 			for (k = ((i>j)?i:j); k < 4; k++ )  
-				sum += ((j==k)?1.0:m_el[j][k])*m_el[k][i];
+				sum += ((j==k)?1.0f:m_el[j][k])*m_el[k][i];
 			m_el[j][i] = sum;
 		}
 }

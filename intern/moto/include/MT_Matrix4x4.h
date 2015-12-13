@@ -86,7 +86,7 @@ public:
 			basis[0][0],basis[0][1],basis[0][2],origin[0],
 			basis[1][0],basis[1][1],basis[1][2],origin[1],
 			basis[2][0],basis[2][1],basis[2][2],origin[2],
-			MT_Scalar(0),MT_Scalar(0),MT_Scalar(0),MT_Scalar(1)
+			MT_Scalar(0.0f),MT_Scalar(0.0f),MT_Scalar(0.0f),MT_Scalar(1.0f)
 		);
 	}
 		
@@ -157,10 +157,10 @@ public:
 	 * Set this matrix to I.
 	 */
     void setIdentity() { 
-        setValue(MT_Scalar(1.0), MT_Scalar(0.0), MT_Scalar(0.0), MT_Scalar(0.0),
-                 MT_Scalar(0.0), MT_Scalar(1.0), MT_Scalar(0.0), MT_Scalar(0.0),
-                 MT_Scalar(0.0), MT_Scalar(0.0), MT_Scalar(1.0), MT_Scalar(0.0),
-			     MT_Scalar(0.0), MT_Scalar(0.0), MT_Scalar(0.0), MT_Scalar(1.0)); 
+        setValue(MT_Scalar(1.0f), MT_Scalar(0.0f), MT_Scalar(0.0f), MT_Scalar(0.0f),
+                 MT_Scalar(0.0f), MT_Scalar(1.0f), MT_Scalar(0.0f), MT_Scalar(0.0f),
+                 MT_Scalar(0.0f), MT_Scalar(0.0f), MT_Scalar(1.0f), MT_Scalar(0.0f),
+			     MT_Scalar(0.0f), MT_Scalar(0.0f), MT_Scalar(0.0f), MT_Scalar(1.0f)); 
     }
 
 	/**
