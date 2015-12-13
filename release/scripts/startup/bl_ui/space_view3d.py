@@ -3005,7 +3005,12 @@ class VIEW3D_PT_view3d_cursor(Panel):
         layout = self.layout
 
         view = context.space_data
-        layout.column().prop(view, "cursor_location", text="Location")
+
+        layout.prop(view, "lock_cursor_location")
+
+        col = layout.column()
+        col.active = not view.lock_cursor_location
+        col.prop(view, "cursor_location", text="Location")
 
 
 class VIEW3D_PT_view3d_name(Panel):
