@@ -936,9 +936,8 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	{
-		Scene *scene;
-		for (scene = main->scene.first; scene; scene = scene->id.next) {
+	if (!MAIN_VERSION_ATLEAST(main, 276, 4)) {
+		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 			ToolSettings *ts = scene->toolsettings;
 			
 			if (ts->gp_sculpt.brush[0].size == 0) {
@@ -1011,6 +1010,24 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				ts->gpencil_seq_align = GP_PROJECT_VIEWSPACE;
 				ts->gpencil_ima_align = GP_PROJECT_VIEWSPACE;
 			}
+		}
+		
+		for (bGPdata *gpd = main->gpencil.first; gpd; gpd = gpd->id.next) {
+			bool enabled = false;
+			
+			/* Ensure that the datablock's onionskinning toggle flag
+			 * stays in sync with the status of the actual layers
+			 */
+			for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+				if (gpl->flag & GP_LAYER_ONIONSKIN) {
+					enabled = true;
+				}
+			}
+			
+			if (enabled)
+				gpd->flag |= GP_DATA_SHOW_ONIONSKINS;
+			else
+				gpd->flag &= ~GP_DATA_SHOW_ONIONSKINS;
 		}
 	}
 }
