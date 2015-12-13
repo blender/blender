@@ -706,7 +706,7 @@ static bool gp_brush_randomise_apply(tGP_BrushEditData *gso, bGPDstroke *gps, in
  *   by placing the midpoint of the buffer strokes under the cursor now
  *
  * - Otherwise, in:
- *   "Stamp Mode" - Move the newly pasted strokes so that their center
+ *   "Stamp Mode" - Move the newly pasted strokes so that their center follows the cursor
  *   "Continuous" - Repeatedly just paste new copies for where the brush is now
  */
 
