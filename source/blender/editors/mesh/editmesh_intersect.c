@@ -27,10 +27,13 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
+#include "BLI_memarena.h"
+#include "BLI_stack.h"
 #include "BLI_buffer.h"
+#include "BLI_kdopbvh.h"
 #include "BLI_linklist_stack.h"
 
-
+#include "BKE_editmesh_bvh.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_editmesh.h"
@@ -48,6 +51,10 @@
 #include "mesh_intern.h"  /* own include */
 
 #include "tools/bmesh_intersect.h"
+
+
+/* detect isolated holes and fill them */
+#define USE_NET_ISLAND_CONNECT
 
 /**
  * Compare selected with its self.
@@ -366,6 +373,72 @@ static void bm_face_split_by_edges(
 	}
 }
 
+#ifdef USE_NET_ISLAND_CONNECT
+
+struct LinkBase {
+	LinkNode    *list;
+	unsigned int list_len;
+};
+
+static void ghash_insert_face_edge_link(
+        GHash *gh, BMFace *f_key, BMEdge *e_val,
+        MemArena *mem_arena)
+{
+	void           **ls_base_p;
+	struct LinkBase *ls_base;
+	LinkNode *ls;
+
+	if (!BLI_ghash_ensure_p(gh, f_key, &ls_base_p)) {
+		ls_base = *ls_base_p = BLI_memarena_alloc(mem_arena, sizeof(*ls_base));
+		ls_base->list     = NULL;
+		ls_base->list_len = 0;
+	}
+	else {
+		ls_base = *ls_base_p;
+	}
+
+	ls = BLI_memarena_alloc(mem_arena, sizeof(*ls));
+	ls->next = ls_base->list;
+	ls->link = e_val;
+	ls_base->list = ls;
+	ls_base->list_len += 1;
+}
+
+static void bm_face_split_by_edges_island_connect(
+        BMesh *bm, BMFace *f,
+        LinkNode *e_link, const int e_link_len,
+        MemArena *mem_arena_edgenet)
+{
+	BMEdge **edge_arr = BLI_memarena_alloc(mem_arena_edgenet, sizeof(BMEdge **) * e_link_len);
+	int edge_arr_len = 0;
+
+	while (e_link) {
+		edge_arr[edge_arr_len++] = e_link->link;
+		e_link = e_link->next;
+	}
+
+	{
+		unsigned int edge_arr_holes_len;
+		BMEdge **edge_arr_holes;
+		if (BM_face_split_edgenet_connect_islands(
+		        bm, f,
+		        edge_arr, e_link_len,
+		        mem_arena_edgenet,
+		        &edge_arr_holes, &edge_arr_holes_len))
+		{
+			edge_arr_len = edge_arr_holes_len;
+			edge_arr = edge_arr_holes;  /* owned by the arena */
+		}
+	}
+
+	BM_face_split_edgenet(
+	        bm, f, edge_arr, edge_arr_len,
+	        NULL, NULL);
+}
+
+#endif  /* USE_NET_ISLAND_CONNECT */
+
+
 static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -485,8 +558,75 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 		BLI_buffer_free(&edge_net_temp_buf);
 	}
 
+#ifdef USE_NET_ISLAND_CONNECT
+	/* before overwriting edge index values, collect edges left untouched */
+	BLI_Stack *edges_loose = BLI_stack_new(sizeof(BMEdge * ), __func__);
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+		if (BM_elem_index_get(e) == -1 && BM_edge_is_wire(e)) {
+			BLI_stack_push(edges_loose, &e);
+		}
+	}
+#endif
+
 	EDBM_mesh_normals_update(em);
 	EDBM_update_generic(em, true, true);
+
+
+#ifdef USE_NET_ISLAND_CONNECT
+	/* we may have remaining isolated regions remaining,
+	 * these will need to have connecting edges created */
+	if (!BLI_stack_is_empty(edges_loose)) {
+		GHash *face_edge_map = BLI_ghash_ptr_new(__func__);
+
+		MemArena *mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+
+		{
+			BMBVHTree *bmbvh = BKE_bmbvh_new(bm, em->looptris, em->tottri, BMBVH_RESPECT_SELECT, NULL, NULL);
+
+			while (!BLI_stack_is_empty(edges_loose)) {
+				BLI_stack_pop(edges_loose, &e);
+				float e_center[3];
+				mid_v3_v3v3(e_center, e->v1->co, e->v2->co);
+
+				f = BKE_bmbvh_find_face_closest(bmbvh, e_center, FLT_MAX);
+				if (f) {
+					ghash_insert_face_edge_link(face_edge_map, f, e, mem_arena);
+				}
+			}
+
+			BKE_bmbvh_free(bmbvh);
+		}
+
+		{
+			MemArena *mem_arena_edgenet = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+
+			GHashIterator gh_iter;
+
+			GHASH_ITER(gh_iter, face_edge_map) {
+				f = BLI_ghashIterator_getKey(&gh_iter);
+				struct LinkBase *e_ls_base = BLI_ghashIterator_getValue(&gh_iter);
+
+				bm_face_split_by_edges_island_connect(
+				        bm, f,
+				        e_ls_base->list, e_ls_base->list_len,
+				        mem_arena_edgenet);
+
+				BLI_memarena_clear(mem_arena_edgenet);
+			}
+
+			BLI_memarena_free(mem_arena_edgenet);
+		}
+
+		BLI_memarena_free(mem_arena);
+
+		BLI_ghash_free(face_edge_map, NULL, NULL);
+
+		EDBM_mesh_normals_update(em);
+		EDBM_update_generic(em, true, true);
+	}
+
+	BLI_stack_free(edges_loose);
+#endif  /* USE_NET_ISLAND_CONNECT */
 
 	return OPERATOR_FINISHED;
 }
