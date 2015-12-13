@@ -27,7 +27,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
-#include "BLI_array.h"
+#include "BLI_buffer.h"
 #include "BLI_linklist_stack.h"
 
 
@@ -282,11 +282,11 @@ void MESH_OT_intersect_boolean(struct wmOperatorType *ot)
 /** \name Face/Edge Split
  * \{ */
 
-static void bm_face_split_by_edges(BMesh *bm, BMFace *f, const char hflag)
+static void bm_face_split_by_edges(
+        BMesh *bm, BMFace *f, const char hflag,
+        /* reusable memory buffer */
+        BLI_Buffer *edge_net_temp_buf)
 {
-	BMEdge **edge_net = NULL;
-	BLI_array_declare(edge_net);
-
 	const int f_index = BM_elem_index_get(f);
 
 	BMLoop *l_iter;
@@ -301,6 +301,7 @@ static void bm_face_split_by_edges(BMesh *bm, BMFace *f, const char hflag)
 	BLI_SMALLSTACK_DECLARE(vert_stack, BMVert *);
 	BLI_SMALLSTACK_DECLARE(vert_stack_next, BMVert *);
 
+	BLI_assert(edge_net_temp_buf->count == 0);
 
 	/* collect all edges */
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
@@ -316,7 +317,7 @@ static void bm_face_split_by_edges(BMesh *bm, BMFace *f, const char hflag)
 				v->e = e;
 
 				BLI_SMALLSTACK_PUSH(vert_stack, v);
-				BLI_array_append(edge_net, e);
+				BLI_buffer_append(edge_net_temp_buf, BMEdge *, e);
 			}
 		}
 	} while ((l_iter = l_iter->next) != l_first);
@@ -337,7 +338,7 @@ static void bm_face_split_by_edges(BMesh *bm, BMFace *f, const char hflag)
 				v_next = BM_edge_other_vert(e_next, v);
 				BM_elem_index_set(e_next, f_index);
 				BLI_SMALLSTACK_PUSH(vert_stack_next, v_next);
-				BLI_array_append(edge_net, e_next);
+				BLI_buffer_append(edge_net_temp_buf, BMEdge *, e_next);
 			}
 		}
 
@@ -346,8 +347,11 @@ static void bm_face_split_by_edges(BMesh *bm, BMFace *f, const char hflag)
 		}
 	}
 
-	BM_face_split_edgenet(bm, f, edge_net, BLI_array_count(edge_net), &face_arr, &face_arr_len);
-	BLI_array_free(edge_net);
+	BM_face_split_edgenet(
+	        bm, f, edge_net_temp_buf->data, edge_net_temp_buf->count,
+	        &face_arr, &face_arr_len);
+
+	BLI_buffer_empty(edge_net_temp_buf);
 
 	if (face_arr_len) {
 		int i;
@@ -470,11 +474,15 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 
 	bm->elem_index_dirty |= BM_EDGE;
 
+	{
+		BLI_buffer_declare_static(BMEdge **, edge_net_temp_buf, 0, 128);
 
-	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-		if (BM_elem_flag_test(f, hflag)) {
-			bm_face_split_by_edges(bm, f, hflag);
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+			if (BM_elem_flag_test(f, hflag)) {
+				bm_face_split_by_edges(bm, f, hflag, &edge_net_temp_buf);
+			}
 		}
+		BLI_buffer_free(&edge_net_temp_buf);
 	}
 
 	EDBM_mesh_normals_update(em);
