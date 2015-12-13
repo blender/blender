@@ -963,8 +963,10 @@ bool BM_mesh_intersect(
         const float eps)
 {
 	struct ISectState s;
-	bool has_isect;
 	const int totface_orig = bm->totface;
+
+	/* use to check if we made any changes */
+	bool has_edit_isect = false, has_edit_boolean = false;
 
 	/* needed for boolean, since cutting up faces moves the loops within the face */
 	const float **looptri_coords = NULL;
@@ -1603,6 +1605,8 @@ bool BM_mesh_intersect(
 					BM_face_normal_flip(bm, ftable[groups_array[fg]]);
 				}
 			}
+
+			has_edit_boolean |= (do_flip || do_remove);
 		}
 
 		MEM_freeN(groups_array);
@@ -1659,7 +1663,7 @@ bool BM_mesh_intersect(
 		}
 	}
 
-	has_isect = (BLI_ghash_size(s.face_edges) != 0);
+	has_edit_isect = (BLI_ghash_size(s.face_edges) != 0);
 
 	/* cleanup */
 	BLI_ghash_free(s.edgetri_cache, NULL, NULL);
@@ -1670,5 +1674,5 @@ bool BM_mesh_intersect(
 
 	BLI_memarena_free(s.mem_arena);
 
-	return has_isect || (totface_orig != bm->totface);
+	return (has_edit_isect || has_edit_boolean);
 }
