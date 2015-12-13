@@ -267,11 +267,6 @@ static void face_edges_split(
 		        mem_arena_edgenet,
 		        &edge_arr_holes, &edge_arr_holes_len))
 		{
-			/* newly created wire edges need to be tagged */
-			for (i = edge_arr_len; i < edge_arr_holes_len; i++) {
-				BM_elem_flag_enable(edge_arr_holes[i], BM_ELEM_TAG);
-			}
-
 			edge_arr_len = edge_arr_holes_len;
 			edge_arr = edge_arr_holes;  /* owned by the arena */
 		}
