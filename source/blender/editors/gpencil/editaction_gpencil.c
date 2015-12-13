@@ -535,7 +535,6 @@ void ED_gplayer_snap_frames(bGPDlayer *gpl, Scene *scene, short mode)
 	}
 }
 
-#if 0 /* XXX disabled until grease pencil code stabilises again */
 /* -------------------------------------- */
 /* Mirror Tools */
 
@@ -545,7 +544,7 @@ static short mirror_gpf_cframe(bGPDframe *gpf, Scene *scene)
 	
 	if (gpf->flag & GP_FRAME_SELECT) {
 		diff = CFRA - gpf->framenum;
-		gpf->framenum = CFRA;
+		gpf->framenum = CFRA + diff;
 	}
 	
 	return 0;
@@ -567,6 +566,7 @@ static short mirror_gpf_xaxis(bGPDframe *gpf, Scene *scene)
 {
 	int diff;
 	
+	/* NOTE: since we can't really do this, we just do the same as for yaxis... */
 	if (gpf->flag & GP_FRAME_SELECT) {
 		diff = -gpf->framenum;
 		gpf->framenum = diff;
@@ -617,19 +617,20 @@ static short mirror_gpf_marker(bGPDframe *gpf, Scene *scene)
 
 
 /* mirror selected gp-frames on... */
-void mirror_gplayer_frames(bGPDlayer *gpl, Scene *scene, short mode)
+// TODO: mirror over a specific time
+void ED_gplayer_mirror_frames(bGPDlayer *gpl, Scene *scene, short mode)
 {
 	switch (mode) {
-		case 1: /* mirror over current frame */
+		case MIRROR_KEYS_CURFRAME: /* mirror over current frame */
 			ED_gplayer_frames_looper(gpl, scene, mirror_gpf_cframe);
 			break;
-		case 2: /* mirror over frame 0 */
+		case MIRROR_KEYS_YAXIS: /* mirror over frame 0 */
 			ED_gplayer_frames_looper(gpl, scene, mirror_gpf_yaxis);
 			break;
-		case 3: /* mirror over value 0 */
+		case MIRROR_KEYS_XAXIS: /* mirror over value 0 */
 			ED_gplayer_frames_looper(gpl, scene, mirror_gpf_xaxis);
 			break;
-		case 4: /* mirror over marker */
+		case MIRROR_KEYS_MARKER: /* mirror over marker */
 			mirror_gpf_marker(NULL, NULL);
 			ED_gplayer_frames_looper(gpl, scene, mirror_gpf_marker);
 			mirror_gpf_marker(NULL, NULL);
@@ -641,4 +642,3 @@ void mirror_gplayer_frames(bGPDlayer *gpl, Scene *scene, short mode)
 }
 
 /* ***************************************** */
-#endif // XXX disabled until Grease Pencil code stabilises again...

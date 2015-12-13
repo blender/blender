@@ -1693,16 +1693,21 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 		
-		if (adt) {
+		if (ale->type == ANIMTYPE_GPLAYER) {
+			ED_gplayer_mirror_frames(ale->data, ac->scene, mode);
+		}
+		else if (ale->type == ANIMTYPE_MASKLAYER) {
+			/* TODO */
+		}
+		else if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
-		//else if (ale->type == ACTTYPE_GPLAYER)
-		//	snap_gplayer_frames(ale->data, mode);
-		else 
+		else {
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-
+		}
+		
 		ale->update |= ANIM_UPDATE_DEFAULT;
 	}
 
@@ -1720,10 +1725,6 @@ static int actkeys_mirror_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-		
-	/* XXX... */
-	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
-		return OPERATOR_PASS_THROUGH;
 		
 	/* get mirroring mode */
 	mode = RNA_enum_get(op->ptr, "type");
