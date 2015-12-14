@@ -345,50 +345,18 @@ static bool font_paste_utf8(bContext *C, const char *str, const size_t str_len)
 static int paste_from_file(bContext *C, ReportList *reports, const char *filename)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	FILE *fp;
 	char *strp;
-	int filelen;
+	size_t filelen;
 	int retval;
 
-	fp = BLI_fopen(filename, "r");
-
-	if (!fp) {
+	strp = BLI_file_read_as_mem(filename, 1, &filelen);
+	if (strp == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Failed to open file '%s'", filename);
 		return OPERATOR_CANCELLED;
 	}
+	strp[filelen] = 0;
 
-	fseek(fp, 0L, SEEK_END);
-
-	errno = 0;
-	filelen = ftell(fp);
-	if (filelen == -1) {
-		goto fail;
-	}
-
-	if (filelen <= MAXTEXT) {
-		strp = MEM_mallocN(filelen + 4, "tempstr");
-
-		fseek(fp, 0L, SEEK_SET);
-
-		/* fread() instead of read(), because windows read() converts text
-		 * to DOS \r\n linebreaks, causing double linebreaks in the 3d text */
-		errno = 0;
-		filelen = fread(strp, 1, filelen, fp);
-		if (filelen == -1) {
-			MEM_freeN(strp);
-			goto fail;
-		}
-
-		strp[filelen] = 0;
-	}
-	else {
-		strp = NULL;
-	}
-
-	fclose(fp);
-
-
-	if (strp && font_paste_utf8(C, strp, filelen)) {
+	if (font_paste_utf8(C, strp, filelen)) {
 		text_update_edited(C, obedit, FO_EDIT);
 		retval = OPERATOR_FINISHED;
 
@@ -398,18 +366,9 @@ static int paste_from_file(bContext *C, ReportList *reports, const char *filenam
 		retval = OPERATOR_CANCELLED;
 	}
 
-	if (strp) {
-		MEM_freeN(strp);
-	}
+	MEM_freeN(strp);
 
 	return retval;
-
-
-	/* failed to seek or read */
-fail:
-	BKE_reportf(reports, RPT_ERROR, "Failed to read file '%s', %s", filename, strerror(errno));
-	fclose(fp);
-	return OPERATOR_CANCELLED;
 }
 
 static int paste_from_file_exec(bContext *C, wmOperator *op)

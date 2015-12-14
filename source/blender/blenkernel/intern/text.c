@@ -152,17 +152,28 @@ static void init_undo_text(Text *text)
 	text->undo_buf = MEM_mallocN(text->undo_len, "undo buf");
 }
 
+/**
+ * \note caller must handle `undo_buf` and `compiled` members.
+ */
+void BKE_text_free_lines(Text *text)
+{
+	for (TextLine *tmp = text->lines.first, *tmp_next; tmp; tmp = tmp_next) {
+		tmp_next = tmp->next;
+		MEM_freeN(tmp->line);
+		if (tmp->format) {
+			MEM_freeN(tmp->format);
+		}
+		MEM_freeN(tmp);
+	}
+
+	BLI_listbase_clear(&text->lines);
+
+	text->curl = text->sell = NULL;
+}
+
 void BKE_text_free(Text *text)
 {
-	TextLine *tmp;
-
-	for (tmp = text->lines.first; tmp; tmp = tmp->next) {
-		MEM_freeN(tmp->line);
-		if (tmp->format)
-			MEM_freeN(tmp->format);
-	}
-	
-	BLI_freelistN(&text->lines);
+	BKE_text_free_lines(text);
 
 	if (text->name) MEM_freeN(text->name);
 	MEM_freeN(text->undo_buf);
@@ -339,63 +350,40 @@ static void text_from_buf(Text *text, const unsigned char *buffer, const int len
 
 bool BKE_text_reload(Text *text)
 {
-	FILE *fp;
-	int len;
 	unsigned char *buffer;
-	TextLine *tmp;
-	char str[FILE_MAX];
+	size_t buffer_len;
+	char filepath_abs[FILE_MAX];
 	BLI_stat_t st;
 
 	if (!text->name) {
 		return false;
 	}
 
-	BLI_strncpy(str, text->name, FILE_MAX);
-	BLI_path_abs(str, G.main->name);
+	BLI_strncpy(filepath_abs, text->name, FILE_MAX);
+	BLI_path_abs(filepath_abs, G.main->name);
 	
-	fp = BLI_fopen(str, "r");
-	if (fp == NULL) {
-		return false;
-	}
-	fseek(fp, 0L, SEEK_END);
-	len = ftell(fp);
-	fseek(fp, 0L, SEEK_SET);
-	if (UNLIKELY(len == -1)) {
-		fclose(fp);
+	buffer = BLI_file_read_as_mem(filepath_abs, 0, &buffer_len);
+	if (buffer == NULL) {
 		return false;
 	}
 
 	/* free memory: */
-
-	for (tmp = text->lines.first; tmp; tmp = tmp->next) {
-		MEM_freeN(tmp->line);
-		if (tmp->format) MEM_freeN(tmp->format);
-	}
-	
-	BLI_freelistN(&text->lines);
-
-	BLI_listbase_clear(&text->lines);
-	text->curl = text->sell = NULL;
+	BKE_text_free_lines(text);
+	txt_make_dirty(text);
 
 	/* clear undo buffer */
 	MEM_freeN(text->undo_buf);
 	init_undo_text(text);
 
-	buffer = MEM_mallocN(len, "text_buffer");
-	/* under windows fread can return less than len bytes because
-	 * of CR stripping */
-	len = fread(buffer, 1, len, fp);
 
-	fclose(fp);
-
-	if (BLI_stat(str, &st) != -1) {
+	if (BLI_stat(filepath_abs, &st) != -1) {
 		text->mtime = st.st_mtime;
 	}
 	else {
 		text->mtime = 0;
 	}
 
-	text_from_buf(text, buffer, len);
+	text_from_buf(text, buffer, buffer_len);
 
 	MEM_freeN(buffer);
 	return true;
@@ -403,31 +391,22 @@ bool BKE_text_reload(Text *text)
 
 Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const bool is_internal)
 {
-	FILE *fp;
-	int len;
 	unsigned char *buffer;
+	size_t buffer_len;
 	Text *ta;
-	char str[FILE_MAX];
+	char filepath_abs[FILE_MAX];
 	BLI_stat_t st;
 
-	BLI_strncpy(str, file, FILE_MAX);
+	BLI_strncpy(filepath_abs, file, FILE_MAX);
 	if (relpath) /* can be NULL (bg mode) */
-		BLI_path_abs(str, relpath);
+		BLI_path_abs(filepath_abs, relpath);
 	
-	fp = BLI_fopen(str, "r");
-	if (fp == NULL) {
-		return NULL;
+	buffer = BLI_file_read_as_mem(filepath_abs, 0, &buffer_len);
+	if (buffer == NULL) {
+		return false;
 	}
 
-	fseek(fp, 0L, SEEK_END);
-	len = ftell(fp);
-	fseek(fp, 0L, SEEK_SET);
-	if (UNLIKELY(len == -1)) {
-		fclose(fp);
-		return NULL;
-	}
-
-	ta = BKE_libblock_alloc(bmain, ID_TXT, BLI_path_basename(str));
+	ta = BKE_libblock_alloc(bmain, ID_TXT, BLI_path_basename(filepath_abs));
 
 	BLI_listbase_clear(&ta->lines);
 	ta->curl = ta->sell = NULL;
@@ -445,22 +424,15 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
 
 	/* clear undo buffer */
 	init_undo_text(ta);
-	
-	buffer = MEM_mallocN(len, "text_buffer");
-	/* under windows fread can return less than len bytes because
-	 * of CR stripping */
-	len = fread(buffer, 1, len, fp);
 
-	fclose(fp);
-
-	if (BLI_stat(str, &st) != -1) {
+	if (BLI_stat(filepath_abs, &st) != -1) {
 		ta->mtime = st.st_mtime;
 	}
 	else {
 		ta->mtime = 0;
 	}
 	
-	text_from_buf(ta, buffer, len);
+	text_from_buf(ta, buffer, buffer_len);
 	
 	MEM_freeN(buffer);
 

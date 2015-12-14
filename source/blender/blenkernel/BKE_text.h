@@ -41,6 +41,7 @@ struct Main;
 struct Text;
 struct TextLine;
 
+void			BKE_text_free_lines	(struct Text *text);
 void			BKE_text_free		(struct Text *text);
 void 			txt_set_undostate	(int u);
 int 			txt_get_undostate	(void);
