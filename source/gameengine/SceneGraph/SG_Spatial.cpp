@@ -43,18 +43,18 @@ SG_Spatial(
 ): 
 
 	SG_IObject(clientobj,clientinfo,callbacks),
-	m_localPosition(0.0,0.0,0.0),
-	m_localRotation(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0),
-	m_localScaling(1.f,1.f,1.f),
+	m_localPosition(0.0f,0.0f,0.0f),
+	m_localRotation(1.0f,0.0f,0.0f,0.0f,1.0f,0.0f,0.0f,0.0f,1.0f),
+	m_localScaling(1.0f,1.0f,1.0f),
 	
-	m_worldPosition(0.0,0.0,0.0),
-	m_worldRotation(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0),
-	m_worldScaling(1.f,1.f,1.f),
+	m_worldPosition(0.0f,0.0f,0.0f),
+	m_worldRotation(1.0f,0.0f,0.0f,0.0f,1.0f,0.0f,0.0f,0.0f,1.0f),
+	m_worldScaling(1.0f,1.0f,1.0f),
 
 	m_parent_relation (NULL),
 	
-	m_bbox(MT_Point3(-1.0, -1.0, -1.0), MT_Point3(1.0, 1.0, 1.0)),
-	m_radius(1.0),
+	m_bbox(MT_Point3(-1.0f, -1.0f, -1.0f), MT_Point3(1.0f, 1.0f, 1.0f)),
+	m_radius(1.0f),
 	m_modified(false),
 	m_ogldirty(false)
 {
