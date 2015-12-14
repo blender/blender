@@ -267,12 +267,23 @@ class SEQUENCER_MT_change(Menu):
 
     def draw(self, context):
         layout = self.layout
+        strip = act_strip(context)
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator_menu_enum("sequencer.change_effect_input", "swap")
         layout.operator_menu_enum("sequencer.change_effect_type", "type")
-        layout.operator("sequencer.change_path", text="Path/Files")
+        prop = layout.operator("sequencer.change_path", text="Path/Files")
+
+        if strip:
+            stype = strip.type
+
+            if stype == 'IMAGE':
+                prop.filter_image = True;
+            elif stype == 'MOVIE':
+                prop.filter_movie = True;
+            elif stype == 'SOUND':
+                prop.filter_sound = True;
 
 
 class SEQUENCER_MT_frame(Menu):
