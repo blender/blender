@@ -786,7 +786,7 @@ void BKE_scene_init(Scene *sce)
 		gp_brush->strength = 0.5f; // XXX?
 		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
 		
-		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_RANDOMISE];
+		gp_brush = &gset->brush[GP_EDITBRUSH_TYPE_RANDOMIZE];
 		gp_brush->size = 25;
 		gp_brush->strength = 0.5f;
 		gp_brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;

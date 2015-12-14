@@ -408,6 +408,7 @@ class SpellChecker:
         # Blender terms
         "audaspace",
         "bbone",
+        "bmesh",
         "breakdowner",
         "bspline",
         "bweight",

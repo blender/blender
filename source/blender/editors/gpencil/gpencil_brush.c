@@ -632,10 +632,10 @@ static bool gp_brush_twist_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
 
 
 /* ----------------------------------------------- */
-/* Randomise Brush */
+/* Randomize Brush */
 
 /* Apply some random jitter to the point */
-static bool gp_brush_randomise_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
+static bool gp_brush_randomize_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
                                      const int radius, const int co[2])
 {
 	bGPDspoint *pt = gps->points + i;
@@ -1257,7 +1257,7 @@ static bool gpsculpt_brush_apply_standard(bContext *C, tGP_BrushEditData *gso)
 			break;
 		}
 		
-		case GP_EDITBRUSH_TYPE_RANDOMISE: /* Random jitter */
+		case GP_EDITBRUSH_TYPE_RANDOMIZE: /* Random jitter */
 		{
 			/* compute the displacement vector for the cursor (in data space) */
 			gp_brush_grab_calc_dvec(gso);
@@ -1321,14 +1321,14 @@ static bool gpsculpt_brush_apply_standard(bContext *C, tGP_BrushEditData *gso)
 				break;
 			}
 			
-			case GP_EDITBRUSH_TYPE_RANDOMISE: /* Apply jitter */
+			case GP_EDITBRUSH_TYPE_RANDOMIZE: /* Apply jitter */
 			{
-				changed |= gpsculpt_brush_do_stroke(gso, gps, gp_brush_randomise_apply);
+				changed |= gpsculpt_brush_do_stroke(gso, gps, gp_brush_randomize_apply);
 				break;
 			}
 			
 			default:
-				printf("ERROR: Unknown type of GPencil Sculpt brush - %d\n", gso->brush_type);
+				printf("ERROR: Unknown type of GPencil Sculpt brush - %u\n", gso->brush_type);
 				break;
 		}
 	}

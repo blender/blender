@@ -67,7 +67,7 @@ EnumPropertyItem rna_enum_gpencil_sculpt_brush_items[] = {
 	{GP_EDITBRUSH_TYPE_PUSH, "PUSH", 0, "Push", "Move points out of the way, as if combing them"},
 	{GP_EDITBRUSH_TYPE_TWIST, "TWIST", 0, "Twist", "Rotate points around the midpoint of the brush"},
 	{GP_EDITBRUSH_TYPE_PINCH, "PINCH", 0, "Pinch", "Pull points towards the midpoint of the brush"},
-	{GP_EDITBRUSH_TYPE_RANDOMISE, "RANDOMISE", 0, "Randomise", "Introduce jitter/randomness into strokes"},
+	{GP_EDITBRUSH_TYPE_RANDOMIZE, "RANDOMIZE", 0, "Randomize", "Introduce jitter/randomness into strokes"},
 	//{GP_EDITBRUSH_TYPE_SUBDIVIDE, "SUBDIVIDE", 0, "Subdivide", "Increase point density for higher resolution strokes when zoomed in"},
 	//{GP_EDITBRUSH_TYPE_SIMPLIFY, "SIMPLIFY", 0, "Simplify", "Reduce density of stroke points"},
 	{GP_EDITBRUSH_TYPE_CLONE, "CLONE", 0, "Clone", "Paste copies of the strokes stored on the clipboard"},

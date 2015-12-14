@@ -510,7 +510,7 @@ void GPENCIL_OT_unlock_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Unlock All Layers";
 	ot->idname = "GPENCIL_OT_unlock_all";
-	ot->description = "unlock all Grease Pencil layers so that they can be edited";
+	ot->description = "Unlock all Grease Pencil layers so that they can be edited";
 	
 	/* callbacks */
 	ot->exec = gp_unlock_all_exec;

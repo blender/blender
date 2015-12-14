@@ -408,7 +408,7 @@ class GPENCIL_PIE_sculpt(Menu):
         row = pie.row()
         row.prop_enum(settings, "tool", value='SMOOTH')
         row.prop_enum(settings, "tool", value='THICKNESS')
-        row.prop_enum(settings, "tool", value='RANDOMISE')
+        row.prop_enum(settings, "tool", value='RANDOMIZE')
 
 
 ###############################
