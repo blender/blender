@@ -157,7 +157,7 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	m_savedCollisionFlags = 0;
 	m_savedCollisionFilterGroup = 0;
 	m_savedCollisionFilterMask = 0;
-	m_savedMass = 0.0;
+	m_savedMass = 0.0f;
 	m_savedDyna = false;
 	m_suspended = false;
 	
@@ -280,7 +280,7 @@ bool CcdPhysicsController::CreateSoftbody()
 	rbci.m_friction = m_cci.m_friction;
 	rbci.m_restitution = m_cci.m_restitution;
 	
-	btVector3 p(0,0,0);// = getOrigin();
+	btVector3 p(0.0f,0.0f,0.0f);// = getOrigin();
 	//btSoftBody*	psb=btSoftBodyHelpers::CreateRope(worldInfo,	btVector3(-10,0,i*0.25),btVector3(10,0,i*0.25),	16,1+2);
 	btSoftBody* psb  = 0;
 	btSoftBodyWorldInfo& worldInfo = m_cci.m_physicsEnv->GetDynamicsWorld()->getWorldInfo();
@@ -1095,7 +1095,7 @@ void	CcdPhysicsController::SuspendDynamics(bool ghost)
 		m_savedCollisionFilterMask = handle->m_collisionFilterMask;
 		m_suspended = true;
 		GetPhysicsEnvironment()->UpdateCcdPhysicsController(this,
-			0.0,
+			0.0f,
 			btCollisionObject::CF_STATIC_OBJECT|((ghost)?btCollisionObject::CF_NO_CONTACT_RESPONSE:(m_savedCollisionFlags&btCollisionObject::CF_NO_CONTACT_RESPONSE)),
 			btBroadphaseProxy::StaticFilter,
 			btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::StaticFilter);
@@ -1561,9 +1561,9 @@ void    CcdPhysicsController::AddCompoundChild(PHY_IPhysicsController* child)
 	rootBody->getMotionState()->getWorldTransform(rootTrans);
 	childBody->getMotionState()->getWorldTransform(childTrans);
 	btVector3 rootScale = rootShape->getLocalScaling();
-	rootScale[0] = 1.0/rootScale[0];
-	rootScale[1] = 1.0/rootScale[1];
-	rootScale[2] = 1.0/rootScale[2];
+	rootScale[0] = 1.0f/rootScale[0];
+	rootScale[1] = 1.0f/rootScale[1];
+	rootScale[2] = 1.0f/rootScale[2];
 	// relative scale = child_scale/parent_scale
 	btVector3 relativeScale = childShape->getLocalScaling()*rootScale;
 	btMatrix3x3 rootRotInverse = rootTrans.getBasis().transpose();

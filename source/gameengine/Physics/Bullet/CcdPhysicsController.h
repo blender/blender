@@ -72,8 +72,8 @@ public:
 
 	CcdShapeConstructionInfo() :
 		m_shapeType(PHY_SHAPE_NONE),
-		m_radius(1.0),
-		m_height(1.0),
+		m_radius(1.0f),
+		m_height(1.0f),
 		m_halfExtend(0.f,0.f,0.f),
 		m_childScale(1.0f,1.0f,1.0f),
 		m_userData(NULL),

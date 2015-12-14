@@ -598,7 +598,7 @@ void	CcdPhysicsEnvironment::UpdateCcdPhysicsController(CcdPhysicsController* ctr
 	btCollisionObject* obj = ctrl->GetCollisionObject();
 	if (obj)
 	{
-		btVector3 inertia(0.0,0.0,0.0);
+		btVector3 inertia(0.0f,0.0f,0.0f);
 		m_dynamicsWorld->removeCollisionObject(obj);
 		obj->setCollisionFlags(newCollisionFlags);
 		if (body)
@@ -861,7 +861,7 @@ void	CcdPhysicsEnvironment::ProcessFhSprings(double curTime,float interval)
 							lspot -= hit_object->getCenterOfMassPosition();
 							btVector3 rel_vel = cl_object->getLinearVelocity() - hit_object->getVelocityInLocalPoint(lspot);
 							btScalar rel_vel_ray = ray_dir.dot(rel_vel);
-							btScalar spring_extent = 1.0 - distance / hitObjShapeProps.m_fh_distance; 
+							btScalar spring_extent = 1.0f - distance / hitObjShapeProps.m_fh_distance;
 
 							btScalar i_spring = spring_extent * hitObjShapeProps.m_fh_spring;
 							btScalar i_damp =   rel_vel_ray * hitObjShapeProps.m_fh_damping;
@@ -889,7 +889,7 @@ void	CcdPhysicsEnvironment::ProcessFhSprings(double curTime,float interval)
 							if (rel_vel_lateral > SIMD_EPSILON) {
 								btScalar friction_factor = hit_object->getFriction();//cl_object->getFriction();
 
-								btScalar max_friction = friction_factor * btMax(btScalar(0.0), i_spring);
+								btScalar max_friction = friction_factor * btMax(btScalar(0.0f), i_spring);
 								
 								btScalar rel_mom_lateral = rel_vel_lateral / cl_object->getInvMass();
 								
@@ -2803,7 +2803,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 				btTransform frameInB;
 				
 				btVector3 axis1(axis1X,axis1Y,axis1Z), axis2(axis2X,axis2Y,axis2Z);
-				if (axis1.length() == 0.0)
+				if (axis1.length() == 0.0f)
 				{
 					btPlaneSpace1( axisInA, axis1, axis2 );
 				}
@@ -2877,7 +2877,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 				btTransform frameInB;
 				
 				btVector3 axis1(axis1X,axis1Y,axis1Z), axis2(axis2X,axis2Y,axis2Z);
-				if (axis1.length() == 0.0)
+				if (axis1.length() == 0.0f)
 				{
 					btPlaneSpace1( axisInA, axis1, axis2 );
 				}
@@ -2955,7 +2955,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 				btTransform frameInB;
 				
 				btVector3 axis1(axis1X,axis1Y,axis1Z), axis2(axis2X,axis2Y,axis2Z);
-				if (axis1.length() == 0.0)
+				if (axis1.length() == 0.0f)
 				{
 					btPlaneSpace1( axisInA, axis1, axis2 );
 				}
@@ -2984,7 +2984,7 @@ int			CcdPhysicsEnvironment::CreateConstraint(class PHY_IPhysicsController* ctrl
 				btTransform frameInB;
 				
 				btVector3 axis1(axis1X,axis1Y,axis1Z), axis2(axis2X,axis2Y,axis2Z);
-				if (axis1.length() == 0.0)
+				if (axis1.length() == 0.0f)
 				{
 					btPlaneSpace1( axisInA, axis1, axis2 );
 				}
@@ -3149,7 +3149,7 @@ struct	BlenderDebugDraw : public btIDebugDraw
 	virtual void	drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,float distance,int lifeTime,const btVector3& color)
 	{
 		drawLine(PointOnB, PointOnB + normalOnB, color);
-		drawSphere(PointOnB, 0.1, color);
+		drawSphere(PointOnB, 0.1f, color);
 	}
 
 	virtual void	setDebugMode(int debugMode)
@@ -3289,7 +3289,7 @@ void CcdPhysicsEnvironment::ConvertObject(KX_GameObject *gameobj, RAS_MeshObject
 			ci.m_margin = 0.f;
 			ci.m_gamesoftFlag = OB_BSB_BENDING_CONSTRAINTS | OB_BSB_SHAPE_MATCHING | OB_BSB_AERO_VPOINT;
 
-			ci.m_soft_linStiff = 0.5;
+			ci.m_soft_linStiff = 0.5f;
 			ci.m_soft_angStiff = 1.f;	/* angular stiffness 0..1 */
 			ci.m_soft_volume = 1.f;	  /* volume preservation 0..1 */
 
@@ -3300,7 +3300,7 @@ void CcdPhysicsEnvironment::ConvertObject(KX_GameObject *gameobj, RAS_MeshObject
 
 			ci.m_soft_kSRHR_CL = 0.1f;
 			ci.m_soft_kSKHR_CL = 1.f;
-			ci.m_soft_kSSHR_CL = 0.5;
+			ci.m_soft_kSSHR_CL = 0.5f;
 			ci.m_soft_kSR_SPLT_CL = 0.5f;
 
 			ci.m_soft_kSK_SPLT_CL = 0.5f;
@@ -3358,8 +3358,8 @@ void CcdPhysicsEnvironment::ConvertObject(KX_GameObject *gameobj, RAS_MeshObject
 	BoundBox *bb= BKE_object_boundbox_get(blenderobject);
 	if (bb==NULL)
 	{
-		bounds_center[0] = bounds_center[1] = bounds_center[2] = 0.0;
-		bounds_extends[0] = bounds_extends[1] = bounds_extends[2] = 1.0;
+		bounds_center[0] = bounds_center[1] = bounds_center[2] = 0.0f;
+		bounds_extends[0] = bounds_extends[1] = bounds_extends[2] = 1.0f;
 	}
 	else
 	{
@@ -3398,7 +3398,7 @@ void CcdPhysicsEnvironment::ConvertObject(KX_GameObject *gameobj, RAS_MeshObject
 			        2.f * bounds_extends[1],
 			        2.f * bounds_extends[2]);
 
-			shapeInfo->m_halfExtend /= 2.0;
+			shapeInfo->m_halfExtend /= 2.0f;
 			shapeInfo->m_halfExtend = shapeInfo->m_halfExtend.absolute();
 			shapeInfo->m_shapeType = PHY_SHAPE_BOX;
 			bm = shapeInfo->CreateBulletShape(ci.m_margin);
@@ -3504,9 +3504,9 @@ void CcdPhysicsEnvironment::ConvertObject(KX_GameObject *gameobj, RAS_MeshObject
 				SG_Node* parentNode = parent->GetSGNode();
 				// relative transform
 				MT_Vector3 parentScale = parentNode->GetWorldScaling();
-				parentScale[0] = MT_Scalar(1.0)/parentScale[0];
-				parentScale[1] = MT_Scalar(1.0)/parentScale[1];
-				parentScale[2] = MT_Scalar(1.0)/parentScale[2];
+				parentScale[0] = MT_Scalar(1.0f)/parentScale[0];
+				parentScale[1] = MT_Scalar(1.0f)/parentScale[1];
+				parentScale[2] = MT_Scalar(1.0f)/parentScale[2];
 				MT_Vector3 relativeScale = gameNode->GetWorldScaling() * parentScale;
 				MT_Matrix3x3 parentInvRot = parentNode->GetWorldOrientation().transposed();
 				MT_Vector3 relativePos = parentInvRot*((gameNode->GetWorldPosition()-parentNode->GetWorldPosition())*parentScale);
