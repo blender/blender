@@ -446,15 +446,16 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 	BMesh *bm = em->bm;
 	const char hflag = BM_ELEM_TAG;
 
-	BMVert *v;
 	BMEdge *e;
-	BMFace *f;
 	BMIter iter;
 
 	BLI_SMALLSTACK_DECLARE(loop_stack, BMLoop *);
 
-	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-		BM_elem_flag_disable(v, hflag);
+	{
+		BMVert *v;
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+			BM_elem_flag_disable(v, hflag);
+		}
 	}
 
 	/* edge index is set to -1 then used to assosiate them with faces */
@@ -471,19 +472,27 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 		BM_elem_index_set(e, -1);  /* set_dirty */
 	}
+	bm->elem_index_dirty |= BM_EDGE;
 
-	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-		if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-			BM_elem_flag_enable(f, hflag);
-		}
-		else {
-			BM_elem_flag_disable(f, hflag);
+	{
+		BMFace *f;
+		int i;
+		BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
+			if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+				BM_elem_flag_enable(f, hflag);
+			}
+			else {
+				BM_elem_flag_disable(f, hflag);
+			}
+			BM_elem_index_set(f, i);  /* set_ok */
 		}
 	}
+	bm->elem_index_dirty &= ~BM_FACE;
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(e, hflag)) {
 			BMIter viter;
+			BMVert *v;
 			BM_ITER_ELEM (v, &viter, e, BM_VERTS_OF_EDGE) {
 				BMIter liter;
 				BMLoop *l;
@@ -545,9 +554,8 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	bm->elem_index_dirty |= BM_EDGE;
-
 	{
+		BMFace *f;
 		BLI_buffer_declare_static(BMEdge **, edge_net_temp_buf, 0, 128);
 
 		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
@@ -588,7 +596,7 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 				float e_center[3];
 				mid_v3_v3v3(e_center, e->v1->co, e->v2->co);
 
-				f = BKE_bmbvh_find_face_closest(bmbvh, e_center, FLT_MAX);
+				BMFace *f = BKE_bmbvh_find_face_closest(bmbvh, e_center, FLT_MAX);
 				if (f) {
 					ghash_insert_face_edge_link(face_edge_map, f, e, mem_arena);
 				}
@@ -603,7 +611,7 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 			GHashIterator gh_iter;
 
 			GHASH_ITER(gh_iter, face_edge_map) {
-				f = BLI_ghashIterator_getKey(&gh_iter);
+				BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
 				struct LinkBase *e_ls_base = BLI_ghashIterator_getValue(&gh_iter);
 
 				bm_face_split_by_edges_island_connect(
