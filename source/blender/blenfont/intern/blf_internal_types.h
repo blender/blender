@@ -194,7 +194,7 @@ typedef struct FontBLF {
 	/* Multiplied this matrix with the current one before
 	 * draw the text! see blf_draw__start.
 	 */
-	double m[16];
+	float m[16];
 
 	/* clipping rectangle. */
 	rctf clip_rec;

@@ -1504,7 +1504,7 @@ void RAS_OpenGLRasterizer::RenderBox2D(int xco,
 
 void RAS_OpenGLRasterizer::RenderText3D(
         int fontid, const char *text, int size, int dpi,
-        const float color[4], const double mat[16], float aspect)
+        const float color[4], const float mat[16], float aspect)
 {
 	/* gl prepping */
 	DisableForText();

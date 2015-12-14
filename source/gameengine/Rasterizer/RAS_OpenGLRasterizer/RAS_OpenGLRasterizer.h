@@ -297,7 +297,7 @@ public:
 
 	void RenderBox2D(int xco, int yco, int width, int height, float percentage);
 	void RenderText3D(int fontid, const char *text, int size, int dpi,
-	                  const float color[4], const double mat[16], float aspect);
+	                  const float color[4], const float mat[16], float aspect);
 	void RenderText2D(RAS_TEXT_RENDER_MODE mode, const char *text,
 	                  int xco, int yco, int width, int height);
 

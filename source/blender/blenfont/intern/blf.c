@@ -384,7 +384,7 @@ void BLF_aspect(int fontid, float x, float y, float z)
 	}
 }
 
-void BLF_matrix(int fontid, const double m[16])
+void BLF_matrix(int fontid, const float m[16])
 {
 	FontBLF *font = blf_get(fontid);
 
@@ -511,7 +511,7 @@ static void blf_draw_gl__start(FontBLF *font, GLint *mode)
 	glPushMatrix();
 
 	if (font->flags & BLF_MATRIX)
-		glMultMatrixd((GLdouble *)&font->m);
+		glMultMatrixf(font->m);
 
 	glTranslate3fv(font->pos);
 
