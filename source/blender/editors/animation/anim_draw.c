@@ -181,11 +181,17 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 	/* abort if rendering - we may get some race condition issues... */
 	if (G.is_rendering) return NULL;
 	
-	/* handling depends on the type of animation-context we've got */
-	if (ale) {
-		/* NLA Control Curves occur on NLA strips, and shouldn't be subjected to this kind of mapping */
-		if (ale->type != ANIMTYPE_NLACURVE)
-			return ale->adt;
+	/* apart from strictly keyframe-related contexts, this shouldn't even happen */
+	// XXX: nla and channel here may not be necessary...
+	if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_SHAPEKEY, ANIMCONT_DOPESHEET,
+	                       ANIMCONT_FCURVES, ANIMCONT_NLA, ANIMCONT_CHANNEL))
+	{
+		/* handling depends on the type of animation-context we've got */
+		if (ale) {
+			/* NLA Control Curves occur on NLA strips, and shouldn't be subjected to this kind of mapping */
+			if (ale->type != ANIMTYPE_NLACURVE)
+				return ale->adt;
+		}
 	}
 	
 	/* cannot handle... */
