@@ -181,7 +181,7 @@ bool isect_line_line_strict_v3(
         float vi[3], float *r_lambda);
 
 bool isect_ray_plane_v3(
-        const float p1[3], const float d[3],
+        const float ray_origin[3], const float ray_direction[3],
         const float plane[4],
         float *r_lambda, const bool clip);
 
@@ -206,15 +206,15 @@ bool isect_line_tri_epsilon_v3(
         const float v0[3], const float v1[3], const float v2[3],
         float *r_lambda, float r_uv[2], const float epsilon);
 bool isect_ray_tri_v3(
-        const float p1[3], const float d[3],
+        const float ray_origin[3], const float ray_direction[3],
         const float v0[3], const float v1[3], const float v2[3],
         float *r_lambda, float r_uv[2]);
 bool isect_ray_tri_threshold_v3(
-        const float p1[3], const float d[3],
+        const float ray_origin[3], const float ray_direction[3],
         const float v0[3], const float v1[3], const float v2[3],
         float *r_lambda, float r_uv[2], const float threshold);
 bool isect_ray_tri_epsilon_v3(
-        const float p1[3], const float d[3],
+        const float ray_origin[3], const float ray_direction[3],
         const float v0[3], const float v1[3], const float v2[3],
         float *r_lambda, float r_uv[2], const float epsilon);
 bool isect_tri_tri_epsilon_v3(
@@ -233,20 +233,20 @@ struct IsectRayPrecalc {
 };
 
 void isect_ray_tri_watertight_v3_precalc(
-        struct IsectRayPrecalc *isect_precalc, const float dir[3]);
+        struct IsectRayPrecalc *isect_precalc, const float ray_direction[3]);
 bool isect_ray_tri_watertight_v3(
-        const float P[3], const struct IsectRayPrecalc *isect_precalc,
+        const float ray_origin[3], const struct IsectRayPrecalc *isect_precalc,
         const float v0[3], const float v1[3], const float v2[3],
         float *r_dist, float r_uv[2]);
 /* slower version which calculates IsectRayPrecalc each time */
 bool isect_ray_tri_watertight_v3_simple(
-        const float P[3], const float dir[3],
+        const float ray_origin[3], const float ray_direction[3],
         const float v0[3], const float v1[3], const float v2[3],
         float *r_lambda, float r_uv[2]);
 
 bool isect_ray_seg_v2(
-        const float p1[3], const float d[3],
-        const float v0[3], const float v1[3],
+        const float ray_origin[2], const float ray_direction[2],
+        const float v0[2], const float v1[2],
         float *r_lambda, float *r_u);
 
 /* point in polygon */
@@ -259,19 +259,20 @@ int  isect_point_tri_v2(const float pt[2], const float v1[2], const float v2[2],
 bool isect_point_tri_v2_cw(const float pt[2], const float v1[2], const float v2[2], const float v3[2]);
 int  isect_point_tri_v2_int(const int x1, const int y1, const int x2, const int y2, const int a, const int b);
 bool isect_point_tri_prism_v3(const float p[3], const float v1[3], const float v2[3], const float v3[3]);
-bool isect_point_tri_v3(const float p[3], const float v1[3], const float v2[3], const float v3[3],
-                        float r_vi[3]);
+bool isect_point_tri_v3(
+        const float p[3], const float v1[3], const float v2[3], const float v3[3],
+        float r_isect_co[3]);
 
 /* axis-aligned bounding box */
 bool isect_aabb_aabb_v3(const float min1[3], const float max1[3], const float min2[3], const float max2[3]);
 
 typedef struct {
-	float ray_start[3];
+	float ray_origin[3];
 	float ray_inv_dir[3];
 	int sign[3];
 } IsectRayAABBData;
 
-void isect_ray_aabb_initialize(IsectRayAABBData *data, const float ray_start[3], const float ray_direction[3]);
+void isect_ray_aabb_initialize(IsectRayAABBData *data, const float ray_origin[3], const float ray_direction[3]);
 bool isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3], const float bb_max[3], float *tmin);
 
 /* other */

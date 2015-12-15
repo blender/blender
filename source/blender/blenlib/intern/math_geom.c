@@ -1215,7 +1215,7 @@ bool isect_line_tri_epsilon_v3(
  * return non zero if it does
  */
 bool isect_ray_tri_v3(
-        const float p1[3], const float d[3],
+        const float ray_origin[3], const float ray_direction[3],
         const float v0[3], const float v1[3], const float v2[3],
         float *r_lambda, float r_uv[2])
 {
@@ -1228,19 +1228,19 @@ bool isect_ray_tri_v3(
 	sub_v3_v3v3(e1, v1, v0);
 	sub_v3_v3v3(e2, v2, v0);
 
-	cross_v3_v3v3(p, d, e2);
+	cross_v3_v3v3(p, ray_direction, e2);
 	a = dot_v3v3(e1, p);
 	if ((a > -epsilon) && (a < epsilon)) return false;
 	f = 1.0f / a;
 
-	sub_v3_v3v3(s, p1, v0);
+	sub_v3_v3v3(s, ray_origin, v0);
 
 	u = f * dot_v3v3(s, p);
 	if ((u < 0.0f) || (u > 1.0f)) return false;
 
 	cross_v3_v3v3(q, s, e1);
 
-	v = f * dot_v3v3(d, q);
+	v = f * dot_v3v3(ray_direction, q);
 	if ((v < 0.0f) || ((u + v) > 1.0f)) return false;
 
 	*r_lambda = f * dot_v3v3(e2, q);
@@ -1256,24 +1256,24 @@ bool isect_ray_tri_v3(
 
 /**
  * if clip is nonzero, will only return true if lambda is >= 0.0
- * (i.e. intersection point is along positive d)
+ * (i.e. intersection point is along positive \a ray_direction)
  *
  * \note #line_plane_factor_v3() shares logic.
  */
 bool isect_ray_plane_v3(
-        const float p1[3], const float d[3],
+        const float ray_origin[3], const float ray_direction[3],
         const float plane[4],
         float *r_lambda, const bool clip)
 {
 	float h[3], plane_co[3];
 	float dot;
 
-	dot = dot_v3v3(plane, d);
+	dot = dot_v3v3(plane, ray_direction);
 	if (dot == 0.0f) {
 		return false;
 	}
 	mul_v3_v3fl(plane_co, plane, (-plane[3] / len_squared_v3(plane)));
-	sub_v3_v3v3(h, p1, plane_co);
+	sub_v3_v3v3(h, ray_origin, plane_co);
 	*r_lambda = -dot_v3v3(plane, h) / dot;
 	if (clip && (*r_lambda < 0.0f)) {
 		return false;
@@ -1282,9 +1282,9 @@ bool isect_ray_plane_v3(
 }
 
 bool isect_ray_tri_epsilon_v3(
-        const float p1[3], const float d[3],
+        const float ray_origin[3], const float ray_direction[3],
         const float v0[3], const float v1[3], const float v2[3],
-        float *r_lambda, float uv[2], const float epsilon)
+        float *r_lambda, float r_uv[2], const float epsilon)
 {
 	float p[3], s[3], e1[3], e2[3], q[3];
 	float a, f, u, v;
@@ -1292,50 +1292,50 @@ bool isect_ray_tri_epsilon_v3(
 	sub_v3_v3v3(e1, v1, v0);
 	sub_v3_v3v3(e2, v2, v0);
 
-	cross_v3_v3v3(p, d, e2);
+	cross_v3_v3v3(p, ray_direction, e2);
 	a = dot_v3v3(e1, p);
 	if (a == 0.0f) return false;
 	f = 1.0f / a;
 
-	sub_v3_v3v3(s, p1, v0);
+	sub_v3_v3v3(s, ray_origin, v0);
 
 	u = f * dot_v3v3(s, p);
 	if ((u < -epsilon) || (u > 1.0f + epsilon)) return false;
 
 	cross_v3_v3v3(q, s, e1);
 
-	v = f * dot_v3v3(d, q);
+	v = f * dot_v3v3(ray_direction, q);
 	if ((v < -epsilon) || ((u + v) > 1.0f + epsilon)) return false;
 
 	*r_lambda = f * dot_v3v3(e2, q);
 	if ((*r_lambda < 0.0f)) return false;
 
-	if (uv) {
-		uv[0] = u;
-		uv[1] = v;
+	if (r_uv) {
+		r_uv[0] = u;
+		r_uv[1] = v;
 	}
 
 	return true;
 }
 
-void isect_ray_tri_watertight_v3_precalc(struct IsectRayPrecalc *isect_precalc, const float dir[3])
+void isect_ray_tri_watertight_v3_precalc(struct IsectRayPrecalc *isect_precalc, const float ray_direction[3])
 {
 	float inv_dir_z;
 
 	/* Calculate dimension where the ray direction is maximal. */
-	int kz = axis_dominant_v3_single(dir);
+	int kz = axis_dominant_v3_single(ray_direction);
 	int kx = (kz != 2) ? (kz + 1) : 0;
 	int ky = (kx != 2) ? (kx + 1) : 0;
 
 	/* Swap kx and ky dimensions to preserve winding direction of triangles. */
-	if (dir[kz] < 0.0f) {
+	if (ray_direction[kz] < 0.0f) {
 		SWAP(int, kx, ky);
 	}
 
 	/* Calculate the shear constants. */
-	inv_dir_z = 1.0f / dir[kz];
-	isect_precalc->sx = dir[kx] * inv_dir_z;
-	isect_precalc->sy = dir[ky] * inv_dir_z;
+	inv_dir_z = 1.0f / ray_direction[kz];
+	isect_precalc->sx = ray_direction[kx] * inv_dir_z;
+	isect_precalc->sy = ray_direction[ky] * inv_dir_z;
 	isect_precalc->sz = inv_dir_z;
 
 	/* Store the dimensions. */
@@ -1345,7 +1345,7 @@ void isect_ray_tri_watertight_v3_precalc(struct IsectRayPrecalc *isect_precalc, 
 }
 
 bool isect_ray_tri_watertight_v3(
-        const float p[3], const struct IsectRayPrecalc *isect_precalc,
+        const float ray_origin[3], const struct IsectRayPrecalc *isect_precalc,
         const float v0[3], const float v1[3], const float v2[3],
         float *r_lambda, float r_uv[2])
 {
@@ -1357,9 +1357,9 @@ bool isect_ray_tri_watertight_v3(
 	const float sz = isect_precalc->sz;
 
 	/* Calculate vertices relative to ray origin. */
-	const float a[3] = {v0[0] - p[0], v0[1] - p[1], v0[2] - p[2]};
-	const float b[3] = {v1[0] - p[0], v1[1] - p[1], v1[2] - p[2]};
-	const float c[3] = {v2[0] - p[0], v2[1] - p[1], v2[2] - p[2]};
+	const float a[3] = {v0[0] - ray_origin[0], v0[1] - ray_origin[1], v0[2] - ray_origin[2]};
+	const float b[3] = {v1[0] - ray_origin[0], v1[1] - ray_origin[1], v1[2] - ray_origin[2]};
+	const float c[3] = {v2[0] - ray_origin[0], v2[1] - ray_origin[1], v2[2] - ray_origin[2]};
 
 	const float a_kx = a[kx], a_ky = a[ky], a_kz = a[kz];
 	const float b_kx = b[kx], b_ky = b[ky], b_kz = b[kz];
@@ -1423,13 +1423,13 @@ bool isect_ray_tri_watertight_v3(
 }
 
 bool isect_ray_tri_watertight_v3_simple(
-        const float P[3], const float dir[3],
+        const float ray_origin[3], const float ray_direction[3],
         const float v0[3], const float v1[3], const float v2[3],
         float *r_lambda, float r_uv[2])
 {
 	struct IsectRayPrecalc isect_precalc;
-	isect_ray_tri_watertight_v3_precalc(&isect_precalc, dir);
-	return isect_ray_tri_watertight_v3(P, &isect_precalc, v0, v1, v2, r_lambda, r_uv);
+	isect_ray_tri_watertight_v3_precalc(&isect_precalc, ray_direction);
+	return isect_ray_tri_watertight_v3(ray_origin, &isect_precalc, v0, v1, v2, r_lambda, r_uv);
 }
 
 #if 0  /* UNUSED */
@@ -1438,7 +1438,7 @@ bool isect_ray_tri_watertight_v3_simple(
  * so rays slightly outside the triangle to be considered as intersecting.
  */
 bool isect_ray_tri_threshold_v3(
-        const float p1[3], const float d[3],
+        const float ray_origin[3], const float ray_direction[3],
         const float v0[3], const float v1[3], const float v2[3],
         float *r_lambda, float r_uv[2], const float threshold)
 {
@@ -1450,19 +1450,19 @@ bool isect_ray_tri_threshold_v3(
 	sub_v3_v3v3(e1, v1, v0);
 	sub_v3_v3v3(e2, v2, v0);
 
-	cross_v3_v3v3(p, d, e2);
+	cross_v3_v3v3(p, ray_direction, e2);
 	a = dot_v3v3(e1, p);
 	if ((a > -epsilon) && (a < epsilon)) return false;
 	f = 1.0f / a;
 
-	sub_v3_v3v3(s, p1, v0);
+	sub_v3_v3v3(s, ray_origin, v0);
 
 	cross_v3_v3v3(q, s, e1);
 	*r_lambda = f * dot_v3v3(e2, q);
 	if ((*r_lambda < 0.0f)) return false;
 
 	u = f * dot_v3v3(s, p);
-	v = f * dot_v3v3(d, q);
+	v = f * dot_v3v3(ray_direction, q);
 
 	if (u > 0 && v > 0 && u + v > 1) {
 		float t = (u + v - 1) / 2;
@@ -1497,25 +1497,25 @@ bool isect_ray_tri_threshold_v3(
 
 
 bool isect_ray_seg_v2(
-        const float p1[3], const float d[3],
-        const float v0[3], const float v1[3],
+        const float ray_origin[2], const float ray_direction[2],
+        const float v0[2], const float v1[2],
         float *r_lambda, float *r_u)
 {
 	float v0_local[2], v1_local[2];
-	sub_v2_v2v2(v0_local, v0, p1);
-	sub_v2_v2v2(v1_local, v1, p1);
+	sub_v2_v2v2(v0_local, v0, ray_origin);
+	sub_v2_v2v2(v1_local, v1, ray_origin);
 
 	float s10[2];
 	float det;
 
 	sub_v2_v2v2(s10, v1_local, v0_local);
 
-	det = cross_v2v2(d, s10);
+	det = cross_v2v2(ray_direction, s10);
 	if (det != 0.0f) {
 		const float v = cross_v2v2(v0_local, v1_local);
-		float p[2] = {(d[0] * v) / det, (d[1] * v) / det};
+		float p[2] = {(ray_direction[0] * v) / det, (ray_direction[1] * v) / det};
 
-		const float t = (dot_v2v2(p, d) / dot_v2v2(d, d));
+		const float t = (dot_v2v2(p, ray_direction) / dot_v2v2(ray_direction, ray_direction));
 		if ((t >= 0.0f) == 0) {
 			return false;
 		}
@@ -1559,7 +1559,7 @@ bool isect_point_planes_v3(float (*planes)[4], int totplane, const float p[3])
 /**
  * Intersect line/plane.
  *
- * \param out The intersection point.
+ * \param r_isect_co The intersection point.
  * \param l1 The first point of the line.
  * \param l2 The second point of the line.
  * \param plane_co A point on the plane to intersect with.
@@ -1567,9 +1567,10 @@ bool isect_point_planes_v3(float (*planes)[4], int totplane, const float p[3])
  *
  * \note #line_plane_factor_v3() shares logic.
  */
-bool isect_line_plane_v3(float out[3],
-                         const float l1[3], const float l2[3],
-                         const float plane_co[3], const float plane_no[3])
+bool isect_line_plane_v3(
+        float r_isect_co[3],
+        const float l1[3], const float l2[3],
+        const float plane_co[3], const float plane_no[3])
 {
 	float u[3], h[3];
 	float dot;
@@ -1580,7 +1581,7 @@ bool isect_line_plane_v3(float out[3],
 
 	if (fabsf(dot) > FLT_EPSILON) {
 		float lambda = -dot_v3v3(plane_no, h) / dot;
-		madd_v3_v3v3fl(out, l1, u, lambda);
+		madd_v3_v3v3fl(r_isect_co, l1, u, lambda);
 		return true;
 	}
 	else {
@@ -2185,9 +2186,9 @@ bool isect_aabb_aabb_v3(const float min1[3], const float max1[3], const float mi
 	        min2[0] < max1[0] && min2[1] < max1[1] && min2[2] < max1[2]);
 }
 
-void isect_ray_aabb_initialize(IsectRayAABBData *data, const float ray_start[3], const float ray_direction[3])
+void isect_ray_aabb_initialize(IsectRayAABBData *data, const float ray_origin[3], const float ray_direction[3])
 {
-	copy_v3_v3(data->ray_start, ray_start);
+	copy_v3_v3(data->ray_origin, ray_origin);
 
 	data->ray_inv_dir[0] = 1.0f / ray_direction[0];
 	data->ray_inv_dir[1] = 1.0f / ray_direction[1];
@@ -2203,16 +2204,15 @@ bool isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3],
                     const float bb_max[3], float *tmin_out)
 {
 	float bbox[2][3];
-	float tmin, tmax, tymin, tymax, tzmin, tzmax;
 
 	copy_v3_v3(bbox[0], bb_min);
 	copy_v3_v3(bbox[1], bb_max);
 
-	tmin = (bbox[data->sign[0]][0] - data->ray_start[0]) * data->ray_inv_dir[0];
-	tmax = (bbox[1 - data->sign[0]][0] - data->ray_start[0]) * data->ray_inv_dir[0];
+	float tmin = (bbox[data->sign[0]][0] - data->ray_origin[0]) * data->ray_inv_dir[0];
+	float tmax = (bbox[1 - data->sign[0]][0] - data->ray_origin[0]) * data->ray_inv_dir[0];
 
-	tymin = (bbox[data->sign[1]][1] - data->ray_start[1]) * data->ray_inv_dir[1];
-	tymax = (bbox[1 - data->sign[1]][1] - data->ray_start[1]) * data->ray_inv_dir[1];
+	const float tymin = (bbox[data->sign[1]][1] - data->ray_origin[1]) * data->ray_inv_dir[1];
+	const float tymax = (bbox[1 - data->sign[1]][1] - data->ray_origin[1]) * data->ray_inv_dir[1];
 
 	if ((tmin > tymax) || (tymin > tmax))
 		return false;
@@ -2223,8 +2223,8 @@ bool isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3],
 	if (tymax < tmax)
 		tmax = tymax;
 
-	tzmin = (bbox[data->sign[2]][2] - data->ray_start[2]) * data->ray_inv_dir[2];
-	tzmax = (bbox[1 - data->sign[2]][2] - data->ray_start[2]) * data->ray_inv_dir[2];
+	const float tzmin = (bbox[data->sign[2]][2] - data->ray_origin[2]) * data->ray_inv_dir[2];
+	const float tzmax = (bbox[1 - data->sign[2]][2] - data->ray_origin[2]) * data->ray_inv_dir[2];
 
 	if ((tmin > tzmax) || (tzmin > tmax))
 		return false;
@@ -2442,8 +2442,9 @@ bool isect_point_tri_prism_v3(const float p[3], const float v1[3], const float v
  * \return True when \a p is inside the triangle.
  * \note Its up to the caller to check the distance between \a p and \a r_vi against an error margin.
  */
-bool isect_point_tri_v3(const float p[3], const float v1[3], const float v2[3], const float v3[3],
-                        float r_vi[3])
+bool isect_point_tri_v3(
+        const float p[3], const float v1[3], const float v2[3], const float v3[3],
+        float r_isect_co[3])
 {
 	if (isect_point_tri_prism_v3(p, v1, v2, v3)) {
 		float plane[4];
@@ -2454,7 +2455,7 @@ bool isect_point_tri_v3(const float p[3], const float v1[3], const float v2[3], 
 		BLI_assert(len_squared_v3(no) != 0.0f);
 
 		plane_from_point_normal_v3(plane, v1, no);
-		closest_to_plane_v3(r_vi, plane, p);
+		closest_to_plane_v3(r_isect_co, plane, p);
 
 		return true;
 	}
