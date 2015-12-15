@@ -51,6 +51,42 @@ bool check_node_inputs_traversed(const ShaderNode *node,
 	return true;
 }
 
+bool check_node_inputs_equals(const ShaderNode *node_a,
+                              const ShaderNode *node_b)
+{
+	if(node_a->inputs.size() != node_b->inputs.size()) {
+		/* Happens with BSDF closure nodes which are currently sharing the same
+		 * name for all the BSDF types, making it impossible to filter out
+		 * incompatible nodes.
+		 */
+		return false;
+	}
+	for(int i = 0; i < node_a->inputs.size(); ++i) {
+		ShaderInput *input_a = node_a->inputs[i],
+		            *input_b = node_b->inputs[i];
+		assert(strcmp(input_a->name, input_b->name) == 0);
+		if(input_a->link == NULL && input_b->link == NULL) {
+			/* Unconnected inputs are expected to have the same value. */
+			if(input_a->value != input_b->value) {
+				return false;
+			}
+		}
+		else if(input_a->link != NULL && input_b->link != NULL) {
+			/* Expect links are to come from the same exact socket. */
+			if(input_a->link != input_b->link) {
+				return false;
+			}
+		}
+		else {
+			/* One socket has a link and another has not, inputs can't be
+			 * considered equal.
+			 */
+			return false;
+		}
+	}
+	return true;
+}
+
 }  /* namespace */
 
 /* Input and Output */
@@ -365,6 +401,7 @@ void ShaderGraph::copy_nodes(ShaderNodeSet& nodes, ShaderNodeMap& nnodemap)
 		}
 	}
 }
+
 /* Graph simplification */
 /* ******************** */
 
@@ -620,11 +657,82 @@ void ShaderGraph::constant_fold()
 	}
 }
 
-/* Step 3: Simplification.*/
+/* Step 3: Simplification. */
 void ShaderGraph::simplify_settings(Scene *scene)
 {
 	foreach(ShaderNode *node, nodes) {
 		node->simplify_settings(scene);
+	}
+}
+
+/* Step 4: Deduplicate nodes with same settings. */
+void ShaderGraph::deduplicate_nodes()
+{
+	/* NOTES:
+	 * - Deduplication happens for nodes which has same exact settings and same
+	 *   exact input links configuration (either connected to same output or has
+	 *   the same exact default value).
+	 * - Deduplication happens in the bottom-top manner, so we know for fact that
+	 *   all traversed nodes are either can not be deduplicated at all or were
+	 *   already deduplicated.
+	 */
+
+	ShaderNodeSet done, scheduled;
+	queue<ShaderNode*> traverse_queue;
+
+	/* Schedule nodes which doesn't have any dependencies. */
+	foreach(ShaderNode *node, nodes) {
+		if(!check_node_inputs_has_links(node)) {
+			traverse_queue.push(node);
+			scheduled.insert(node);
+		}
+	}
+
+	while(!traverse_queue.empty()) {
+		ShaderNode *node = traverse_queue.front();
+		traverse_queue.pop();
+		done.insert(node);
+		/* Schedule the nodes which were depending on the current node. */
+		foreach(ShaderOutput *output, node->outputs) {
+			foreach(ShaderInput *input, output->links) {
+				if(scheduled.find(input->parent) != scheduled.end()) {
+					/* Node might not be optimized yet but scheduled already
+					 * by other dependencies. No need to re-schedule it.
+					 */
+					continue;
+				}
+				/* Schedule node if its inputs are fully done. */
+				if(check_node_inputs_traversed(input->parent, done)) {
+					traverse_queue.push(input->parent);
+					scheduled.insert(input->parent);
+				}
+			}
+		}
+		/* Try to merge this node with another one. */
+		foreach(ShaderNode *other_node, done) {
+			if(node == other_node) {
+				/* Don't merge with self. */
+				continue;
+			}
+			if(node->name != other_node->name) {
+				/* Can only de-duplicate nodes of the same type. */
+				continue;
+			}
+			if(!check_node_inputs_equals(node, other_node)) {
+				/* Node inputs are different, can't merge them, */
+				continue;
+			}
+			if(!node->equals(other_node)) {
+				/* Node settings are different. */
+				continue;
+			}
+			/* TODO(sergey): Consider making it an utility function. */
+			for(int i = 0; i < node->outputs.size(); ++i) {
+				vector<ShaderInput*> inputs = node->outputs[i]->links;
+				relink(node->inputs, inputs, other_node->outputs[i]);
+			}
+			break;
+		}
 	}
 }
 
@@ -671,7 +779,7 @@ void ShaderGraph::clean(Scene *scene)
 	simplify_settings(scene);
 
 	/* 4: De-duplication. */
-	/* TODO(dingto): Implement */
+	deduplicate_nodes();
 
 	/* we do two things here: find cycles and break them, and remove unused
 	 * nodes that don't feed into the output. how cycles are broken is

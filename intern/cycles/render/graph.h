@@ -238,6 +238,21 @@ public:
 	 * nodes group.
 	 */
 	virtual int get_feature() { return bump == SHADER_BUMP_NONE ? 0 : NODE_FEATURE_BUMP; }
+
+	/* Check whether settings of the node equals to another one.
+	 *
+	 * This is mainly used to check whether two nodes can be merged
+	 * together. Meaning, runtime stuff like node id and unbound slots
+	 * will be ignored for comparison.
+	 *
+	 * NOTE: If some node can't be de-duplicated for whatever reason it
+	 * is to be handled in the subclass.
+	 */
+	virtual bool equals(const ShaderNode *other)
+	{
+		return name == other->name &&
+		       bump == other->bump;
+	}
 };
 
 
@@ -311,13 +326,16 @@ protected:
 	void copy_nodes(ShaderNodeSet& nodes, ShaderNodeMap& nnodemap);
 
 	void break_cycles(ShaderNode *node, vector<bool>& visited, vector<bool>& on_stack);
-	void clean(Scene *scene);
-	void simplify_settings(Scene *scene);
-	void constant_fold();
 	void bump_from_displacement();
 	void refine_bump_nodes();
 	void default_inputs(bool do_osl);
 	void transform_multi_closure(ShaderNode *node, ShaderOutput *weight_out, bool volume);
+
+	/* Graph simplification routines. */
+	void clean(Scene *scene);
+	void constant_fold();
+	void simplify_settings(Scene *scene);
+	void deduplicate_nodes();
 };
 
 CCL_NAMESPACE_END
