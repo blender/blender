@@ -436,6 +436,123 @@ static void bm_face_split_by_edges_island_connect(
 	        NULL, NULL);
 }
 
+/**
+ * Check if \a v_pivot should be spliced into an existing edge.
+ *
+ * Detect one of 3 cases:
+ *
+ * - \a v_pivot is shared by 2+ edges from different faces.
+ *   in this case return the closest edge shared by all faces.
+ *
+ * - \a v_pivot is an end-point of an edge which has no other edges connected.
+ *   in this case return the closest edge in \a f_a to the \a v_pivot.
+ *
+ * - \a v_pivot has only edges from the same face connected,
+ *   in this case return NULL. This is the most common case - no action is needed.
+ *
+ * \return the edge to be split.
+ *
+ * \note Currently we don't snap to verts or split chains by verts on-edges.
+ */
+static BMEdge *bm_face_split_edge_find(
+        BMEdge *e_a, BMFace *f_a, BMVert *v_pivot, BMFace **ftable, const int ftable_len,
+        float r_v_pivot_co[3], float *r_v_pivot_fac)
+{
+	const int f_a_index = BM_elem_index_get(e_a);
+	bool found_other_self = false;
+	int  found_other_face = 0;
+	BLI_SMALLSTACK_DECLARE(face_stack, BMFace *);
+
+	/* loop over surrounding edges to check if we're part of a chain or a delimiter vertex */
+	BMEdge *e_b = v_pivot->e;
+	do {
+		if (e_b != e_a) {
+			const int f_b_index = BM_elem_index_get(e_b);
+			if (f_b_index == f_a_index) {
+				/* not an endpoint */
+				found_other_self = true;
+			}
+			else if (f_b_index != -1) {
+				BLI_assert(f_b_index < ftable_len);
+				UNUSED_VARS_NDEBUG(ftable_len);
+
+				/* 'v_pivot' spans 2+ faces,
+				 * tag to ensure we pick an edge that includes this face */
+				BMFace *f_b = ftable[f_b_index];
+				if (!BM_elem_flag_test(f_b, BM_ELEM_INTERNAL_TAG)) {
+					BM_elem_flag_enable(f_b, BM_ELEM_INTERNAL_TAG);
+					BLI_SMALLSTACK_PUSH(face_stack, f_b);
+					found_other_face++;
+				}
+			}
+		}
+	} while ((e_b = BM_DISK_EDGE_NEXT(e_b, v_pivot)) != v_pivot->e);
+
+	BMEdge *e_split = NULL;
+
+	/* if we have no others or the other edge is outside this face,
+	 * we're an endpoint to connect to a boundary */
+	if ((found_other_self == false) || found_other_face) {
+
+		BMLoop *l_iter, *l_first;
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f_a);
+		float dist_best_sq = FLT_MAX;
+
+		do {
+			float v_pivot_co_test[3];
+			float v_pivot_fac = line_point_factor_v3(v_pivot->co, l_iter->e->v1->co, l_iter->e->v2->co);
+			CLAMP(v_pivot_fac, 0.0f, 1.0f);
+			interp_v3_v3v3(v_pivot_co_test, l_iter->e->v1->co, l_iter->e->v2->co, v_pivot_fac);
+
+			float dist_test_sq = len_squared_v3v3(v_pivot_co_test, v_pivot->co);
+			if ((dist_test_sq < dist_best_sq) || (e_split == NULL)) {
+				bool ok = true;
+
+				if (UNLIKELY(BM_edge_exists(v_pivot, l_iter->e->v1) ||
+				             BM_edge_exists(v_pivot, l_iter->e->v2)))
+				{
+					/* very unlikley but will cause complications splicing the verts together,
+					 * so just skip this case */
+					ok = false;
+				}
+				else if (found_other_face) {
+					/* double check that _all_ the faces used by v_pivot's edges are attached to this edge
+					 * otherwise don't attempt the split since it will give non-deterministic results */
+					BMLoop *l_radial_iter = l_iter->radial_next;
+					int other_face_shared = 0;
+					if (l_radial_iter != l_iter) {
+						do {
+							if (BM_elem_flag_test(l_radial_iter->f, BM_ELEM_INTERNAL_TAG)) {
+								other_face_shared++;
+							}
+						} while ((l_radial_iter = l_radial_iter->radial_next) != l_iter);
+					}
+					if (other_face_shared != found_other_face) {
+						ok = false;
+					}
+				}
+
+				if (ok) {
+					e_split = l_iter->e;
+					dist_best_sq = dist_test_sq;
+					copy_v3_v3(r_v_pivot_co, v_pivot_co_test);
+					*r_v_pivot_fac = v_pivot_fac;
+				}
+			}
+		} while ((l_iter = l_iter->next) != l_first);
+	}
+
+	{
+		/* reset the flag, for future use */
+		BMFace *f;
+		while ((f = BLI_SMALLSTACK_POP(face_stack))) {
+			BM_elem_flag_disable(f, BM_ELEM_INTERNAL_TAG);
+		}
+	}
+
+	return e_split;
+}
+
 #endif  /* USE_NET_ISLAND_CONNECT */
 
 
@@ -484,6 +601,7 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 			else {
 				BM_elem_flag_disable(f, hflag);
 			}
+			BM_elem_flag_disable(f, BM_ELEM_INTERNAL_TAG);
 			BM_elem_index_set(f, i);  /* set_ok */
 		}
 	}
@@ -570,7 +688,7 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 	/* before overwriting edge index values, collect edges left untouched */
 	BLI_Stack *edges_loose = BLI_stack_new(sizeof(BMEdge * ), __func__);
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-		if (BM_elem_index_get(e) == -1 && BM_edge_is_wire(e)) {
+		if (BM_elem_flag_test(e, BM_ELEM_SELECT) && BM_edge_is_wire(e)) {
 			BLI_stack_push(edges_loose, &e);
 		}
 	}
@@ -588,8 +706,14 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 
 		MemArena *mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 
+		BM_mesh_elem_index_ensure(bm, BM_FACE);
+
 		{
 			BMBVHTree *bmbvh = BKE_bmbvh_new(bm, em->looptris, em->tottri, BMBVH_RESPECT_SELECT, NULL, NULL);
+
+			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+				BM_elem_index_set(e, -1);  /* set_dirty */
+			}
 
 			while (!BLI_stack_is_empty(edges_loose)) {
 				BLI_stack_pop(edges_loose, &e);
@@ -599,11 +723,57 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 				BMFace *f = BKE_bmbvh_find_face_closest(bmbvh, e_center, FLT_MAX);
 				if (f) {
 					ghash_insert_face_edge_link(face_edge_map, f, e, mem_arena);
+					BM_elem_index_set(e, BM_elem_index_get(f));  /* set_dirty */
 				}
 			}
 
 			BKE_bmbvh_free(bmbvh);
 		}
+
+		bm->elem_index_dirty |= BM_EDGE;
+
+		BM_mesh_elem_table_ensure(bm, BM_FACE);
+
+		/* detect edges chains that span faces
+		 * and splice vertices into the closest edges */
+		{
+			GHashIterator gh_iter;
+
+			GHASH_ITER(gh_iter, face_edge_map) {
+				BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
+				struct LinkBase *e_ls_base = BLI_ghashIterator_getValue(&gh_iter);
+				LinkNode *e_link = e_ls_base->list;
+
+				do {
+					e = e_link->link;
+
+					for (int j = 0; j < 2; j++) {
+						BMVert *v_pivot = (&e->v1)[j];
+						/* checking that \a v_pivot isn't in the face
+						 * prevents attempting to splice the same vertex into an edge from multiple faces */
+						if (!BM_vert_in_face(v_pivot, f)) {
+							float v_pivot_co[3];
+							float v_pivot_fac;
+							BMEdge *e_split = bm_face_split_edge_find(
+							        e, f, v_pivot, bm->ftable, bm->totface,
+							        v_pivot_co, &v_pivot_fac);
+
+							if (e_split) {
+								BMEdge *e_new;
+								BMVert *v_new = BM_edge_split(bm, e_split, e_split->v1, &e_new, v_pivot_fac);
+								if (v_new) {
+									/* we _know_ these don't share an edge */
+									BM_vert_splice(bm, v_pivot, v_new);
+									BM_elem_index_set(e_new, BM_elem_index_get(e_split));
+								}
+							}
+						}
+					}
+
+				} while ((e_link = e_link->next));
+			}
+		}
+
 
 		{
 			MemArena *mem_arena_edgenet = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
