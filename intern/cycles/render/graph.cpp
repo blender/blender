@@ -100,7 +100,7 @@ ShaderInput *ShaderNode::input(const char *name)
 		if(strcmp(socket->name, name) == 0)
 			return socket;
 	}
-	assert(!"Requested shader input does not exist");
+
 	return NULL;
 }
 
@@ -109,7 +109,7 @@ ShaderOutput *ShaderNode::output(const char *name)
 	foreach(ShaderOutput *socket, outputs)
 		if(strcmp(socket->name, name) == 0)
 			return socket;
-	assert(!"Requested shader output does not exist");
+
 	return NULL;
 }
 
