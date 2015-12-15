@@ -1213,9 +1213,9 @@ static int sb_detect_face_collisionCached(float face_v1[3], float face_v2[3], fl
 					sub_v3_v3v3(edge2, nv3, nv2);
 					cross_v3_v3v3(d_nvect, edge2, edge1);
 					normalize_v3(d_nvect);
-					if (isect_line_tri_v3(nv1, nv2, face_v1, face_v2, face_v3, &t, NULL) ||
-					    isect_line_tri_v3(nv2, nv3, face_v1, face_v2, face_v3, &t, NULL) ||
-					    isect_line_tri_v3(nv3, nv1, face_v1, face_v2, face_v3, &t, NULL) )
+					if (isect_line_segment_tri_v3(nv1, nv2, face_v1, face_v2, face_v3, &t, NULL) ||
+					    isect_line_segment_tri_v3(nv2, nv3, face_v1, face_v2, face_v3, &t, NULL) ||
+					    isect_line_segment_tri_v3(nv3, nv1, face_v1, face_v2, face_v3, &t, NULL) )
 					{
 						madd_v3_v3fl(force, d_nvect, -0.5f);
 						*damp=tune*ob->pd->pdef_sbdamp;
@@ -1396,7 +1396,7 @@ static int sb_detect_edge_collisionCached(float edge_v1[3], float edge_v2[3], fl
 
 					cross_v3_v3v3(d_nvect, edge2, edge1);
 					normalize_v3(d_nvect);
-					if ( isect_line_tri_v3(edge_v1, edge_v2, nv1, nv2, nv3, &t, NULL)) {
+					if (isect_line_segment_tri_v3(edge_v1, edge_v2, nv1, nv2, nv3, &t, NULL)) {
 						float v1[3], v2[3];
 						float intrusiondepth, i1, i2;
 						sub_v3_v3v3(v1, edge_v1, nv2);

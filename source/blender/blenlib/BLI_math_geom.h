@@ -186,8 +186,9 @@ bool isect_ray_plane_v3(
         float *r_lambda, const bool clip);
 
 bool isect_point_planes_v3(float (*planes)[4], int totplane, const float p[3]);
-bool isect_line_plane_v3(float out[3], const float l1[3], const float l2[3],
-                         const float plane_co[3], const float plane_no[3]) ATTR_WARN_UNUSED_RESULT;
+bool isect_line_plane_v3(
+        float r_isect_co[3], const float l1[3], const float l2[3],
+        const float plane_co[3], const float plane_no[3]) ATTR_WARN_UNUSED_RESULT;
 
 bool isect_plane_plane_plane_v3(
         const float plane_a[4], const float plane_b[4], const float plane_c[4],
@@ -197,14 +198,18 @@ bool isect_plane_plane_v3(
         float r_isect_co[3], float r_isect_no[3]) ATTR_WARN_UNUSED_RESULT;
 
 /* line/ray triangle */
-bool isect_line_tri_v3(
+bool isect_line_segment_tri_v3(
         const float p1[3], const float p2[3],
         const float v0[3], const float v1[3], const float v2[3],
         float *r_lambda, float r_uv[2]);
-bool isect_line_tri_epsilon_v3(
+bool isect_line_segment_tri_epsilon_v3(
         const float p1[3], const float p2[3],
         const float v0[3], const float v1[3], const float v2[3],
         float *r_lambda, float r_uv[2], const float epsilon);
+bool isect_axial_line_segment_tri_v3(
+        const int axis, const float p1[3], const float p2[3],
+        const float v0[3], const float v1[3], const float v2[3], float *r_lambda);
+
 bool isect_ray_tri_v3(
         const float ray_origin[3], const float ray_direction[3],
         const float v0[3], const float v1[3], const float v2[3],
@@ -278,9 +283,6 @@ bool isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3], const f
 /* other */
 bool isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const float radius,
                                   const float v0[3], const float v1[3], const float v2[3], float *r_lambda, float ipoint[3]);
-
-bool isect_axial_line_tri_v3(const int axis, const float co1[3], const float co2[3],
-                             const float v0[3], const float v1[3], const float v2[3], float *r_lambda);
 
 bool clip_segment_v3_plane(float p1[3], float p2[3], const float plane[4]);
 bool clip_segment_v3_plane_n(float p1[3], float p2[3], float plane_array[][4], const int plane_tot);

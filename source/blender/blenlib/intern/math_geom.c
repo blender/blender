@@ -1131,7 +1131,7 @@ int isect_point_quad_v2(const float pt[2], const float v1[2], const float v2[2],
  * test if the line starting at p1 ending at p2 intersects the triangle v0..v2
  * return non zero if it does
  */
-bool isect_line_tri_v3(
+bool isect_line_segment_tri_v3(
         const float p1[3], const float p2[3],
         const float v0[3], const float v1[3], const float v2[3],
         float *r_lambda, float r_uv[2])
@@ -1170,8 +1170,8 @@ bool isect_line_tri_v3(
 	return true;
 }
 
-/* like isect_line_tri_v3, but allows epsilon tolerance around triangle */
-bool isect_line_tri_epsilon_v3(
+/* like isect_line_segment_tri_v3, but allows epsilon tolerance around triangle */
+bool isect_line_segment_tri_epsilon_v3(
         const float p1[3], const float p2[3],
         const float v0[3], const float v1[3], const float v2[3],
         float *r_lambda, float r_uv[2], const float epsilon)
@@ -2002,8 +2002,9 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const fl
 	return found_by_sweep;
 }
 
-bool isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3],
-                             const float v0[3], const float v1[3], const float v2[3], float *r_lambda)
+bool isect_axial_line_segment_tri_v3(
+        const int axis, const float p1[3], const float p2[3],
+        const float v0[3], const float v1[3], const float v2[3], float *r_lambda)
 {
 	const float epsilon = 0.000001f;
 	float p[3], e1[3], e2[3];
@@ -2011,7 +2012,7 @@ bool isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3
 	int a0 = axis, a1 = (axis + 1) % 3, a2 = (axis + 2) % 3;
 
 #if 0
-	return isect_line_tri_v3(p1, p2, v0, v1, v2, lambda);
+	return isect_line_segment_tri_v3(p1, p2, v0, v1, v2, lambda);
 
 	/* first a simple bounding box test */
 	if (min_fff(v0[a1], v1[a1], v2[a1]) > p1[a1]) return false;

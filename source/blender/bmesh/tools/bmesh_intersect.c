@@ -344,7 +344,7 @@ static enum ISectType intersect_line_tri(
 
 	/* check ray isn't planar with tri */
 	if (fabsf(dot_v3v3(p_dir, t_nor)) >= e->eps) {
-		if (isect_line_tri_epsilon_v3(p0, p1, t_cos[0], t_cos[1], t_cos[2], &fac, NULL, 0.0f)) {
+		if (isect_line_segment_tri_epsilon_v3(p0, p1, t_cos[0], t_cos[1], t_cos[2], &fac, NULL, 0.0f)) {
 			if ((fac >= e->eps_margin) && (fac <= 1.0f - e->eps_margin)) {
 				interp_v3_v3v3(r_ix, p0, p1, fac);
 				if (min_fff(len_squared_v3v3(t_cos[0], r_ix),

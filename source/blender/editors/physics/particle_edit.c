@@ -3416,7 +3416,7 @@ static int particle_intersect_dm(Scene *scene, Object *ob, DerivedMesh *dm,
 			}
 		}
 		else {
-			if (isect_line_tri_v3(co1, co2, v1, v2, v3, &cur_d, cur_uv)) {
+			if (isect_line_segment_tri_v3(co1, co2, v1, v2, v3, &cur_d, cur_uv)) {
 				if (cur_d<*min_d) {
 					*min_d=cur_d;
 					min_w[0] = 1.0f - cur_uv[0] - cur_uv[1];
@@ -3430,7 +3430,7 @@ static int particle_intersect_dm(Scene *scene, Object *ob, DerivedMesh *dm,
 				}
 			}
 			if (mface->v4) {
-				if (isect_line_tri_v3(co1, co2, v1, v3, v4, &cur_d, cur_uv)) {
+				if (isect_line_segment_tri_v3(co1, co2, v1, v3, v4, &cur_d, cur_uv)) {
 					if (cur_d<*min_d) {
 						*min_d=cur_d;
 						min_w[0] = 1.0f - cur_uv[0] - cur_uv[1];
