@@ -101,21 +101,20 @@ static inline void curvemapping_color_to_array(BL::CurveMapping cumap,
                                                bool rgb_curve)
 {
 	float min_x = 0.0f, max_x = 1.0f;
-	/* TODO(sergey): Vector curve mapping is still clipping to 0..1. */
-	if(rgb_curve) {
-		/* TODO(sergey): There is no easy way to automatically guess what is
-		 * the range to be used here for the case when mapping is applied on
-		 * top of another mapping (i.e. R curve applied on top of common
-		 * one).
-		 *
-		 * Using largest possible range form all curves works correct for the
-		 * cases like vector curves and should be good enough heuristic for
-		 * the color curves as well.
-		 *
-		 * There might be some better estimations here tho.
-		 */
-		curvemapping_minmax(cumap, rgb_curve, &min_x, &max_x);
-	}
+
+	/* TODO(sergey): There is no easy way to automatically guess what is
+	 * the range to be used here for the case when mapping is applied on
+	 * top of another mapping (i.e. R curve applied on top of common
+	 * one).
+	 *
+	 * Using largest possible range form all curves works correct for the
+	 * cases like vector curves and should be good enough heuristic for
+	 * the color curves as well.
+	 *
+	 * There might be some better estimations here tho.
+	 */
+	curvemapping_minmax(cumap, rgb_curve, &min_x, &max_x);
+
 	const float range_x = max_x - min_x;
 
 	cumap.update();

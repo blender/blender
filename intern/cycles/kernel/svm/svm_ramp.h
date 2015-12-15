@@ -101,18 +101,26 @@ ccl_device void svm_node_rgb_curves(KernelGlobals *kg, ShaderData *sd, float *st
 
 ccl_device void svm_node_vector_curves(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
 {
-	uint fac_offset = node.y;
-	uint color_offset = node.z;
-	uint out_offset = node.w;
+	uint fac_offset, color_offset, out_offset;
+	decode_node_uchar4(node.y,
+	                   &fac_offset,
+	                   &color_offset,
+	                   &out_offset,
+	                   NULL);
 
 	float fac = stack_load_float(stack, fac_offset);
 	float3 color = stack_load_float3(stack, color_offset);
 
-	float r = rgb_ramp_lookup(kg, *offset, (color.x + 1.0f)*0.5f, true, false).x;
-	float g = rgb_ramp_lookup(kg, *offset, (color.y + 1.0f)*0.5f, true, false).y;
-	float b = rgb_ramp_lookup(kg, *offset, (color.z + 1.0f)*0.5f, true, false).z;
+	const float min_x = __int_as_float(node.z),
+	            max_x = __int_as_float(node.w);
+	const float range_x = max_x - min_x;
+	color = (color - make_float3(min_x, min_x, min_x)) / range_x;
 
-	color = (1.0f - fac)*color + fac*make_float3(r*2.0f - 1.0f, g*2.0f - 1.0f, b*2.0f - 1.0f);
+	float r = rgb_ramp_lookup(kg, *offset, color.x, true, true).x;
+	float g = rgb_ramp_lookup(kg, *offset, color.y, true, true).y;
+	float b = rgb_ramp_lookup(kg, *offset, color.z, true, true).z;
+
+	color = (1.0f - fac)*color + fac*make_float3(r, g, b);
 	stack_store_float3(stack, out_offset, color);
 
 	*offset += RAMP_TABLE_SIZE;

@@ -100,6 +100,19 @@ def mapping_node_order_flip(node):
         node.rotation = quat.to_euler('XYZ')
 
 
+def vector_curve_node_remap(node):
+    """
+    Remap values of vector curve node from normalized to absolute values
+    """
+    from mathutils import Vector
+    if node.bl_idname == 'ShaderNodeVectorCurve':
+        node.mapping.use_clip = False
+        for curve in node.mapping.curves:
+            for point in curve.points:
+                point.location.x = (point.location.x * 2.0) - 1.0
+                point.location.y = (point.location.y - 0.5) * 2.0
+        node.mapping.update()
+
 @persistent
 def do_versions(self):
     # We don't modify startup file because it assumes to
@@ -140,3 +153,6 @@ def do_versions(self):
     # Euler order was ZYX in previous versions.
     if bpy.data.version <= (2, 73, 4):
         foreach_cycles_node(mapping_node_order_flip)
+
+    if bpy.data.version <= (2, 76, 5):
+        foreach_cycles_node(vector_curve_node_remap)

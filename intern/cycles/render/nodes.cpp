@@ -4443,6 +4443,9 @@ VectorCurvesNode::VectorCurvesNode()
 	add_input("Fac", SHADER_SOCKET_FLOAT);
 	add_input("Vector", SHADER_SOCKET_VECTOR);
 	add_output("Vector", SHADER_SOCKET_VECTOR);
+
+	min_x = 0.0f;
+	max_x = 1.0f;
 }
 
 void VectorCurvesNode::compile(SVMCompiler& compiler)
@@ -4455,7 +4458,12 @@ void VectorCurvesNode::compile(SVMCompiler& compiler)
 	compiler.stack_assign(vector_in);
 	compiler.stack_assign(vector_out);
 
-	compiler.add_node(NODE_VECTOR_CURVES, fac_in->stack_offset, vector_in->stack_offset, vector_out->stack_offset);
+	compiler.add_node(NODE_VECTOR_CURVES,
+	                  compiler.encode_uchar4(fac_in->stack_offset,
+	                                         vector_in->stack_offset,
+	                                         vector_out->stack_offset),
+	                  __float_as_int(min_x),
+	                  __float_as_int(max_x));
 	compiler.add_array(curves, RAMP_TABLE_SIZE);
 }
 
@@ -4470,6 +4478,8 @@ void VectorCurvesNode::compile(OSLCompiler& compiler)
 	}
 
 	compiler.parameter_color_array("ramp", ramp, RAMP_TABLE_SIZE);
+	compiler.parameter("min_x", min_x);
+	compiler.parameter("max_x", max_x);
 	compiler.add(this, "node_vector_curves");
 }
 

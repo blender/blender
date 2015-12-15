@@ -946,6 +946,7 @@ public:
 	virtual bool equals(const ShaderNode * /*other*/) { return false; }
 
 	float4 curves[RAMP_TABLE_SIZE];
+	float min_x, max_x;
 };
 
 class RGBRampNode : public ShaderNode {
