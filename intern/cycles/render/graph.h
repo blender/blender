@@ -190,9 +190,6 @@ public:
 	ShaderInput *add_input(const char *name, ShaderSocketType type, ShaderInput::DefaultValue value, int usage=ShaderInput::USE_ALL);
 	ShaderOutput *add_output(const char *name, ShaderSocketType type);
 
-	ShaderInput *get_input(const char *name);
-	ShaderOutput *get_output(const char *name);
-
 	virtual ShaderNode *clone() const = 0;
 	virtual void attributes(Shader *shader, AttributeRequestSet *attributes);
 	virtual void compile(SVMCompiler& compiler) = 0;

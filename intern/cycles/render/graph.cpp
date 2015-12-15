@@ -96,10 +96,11 @@ ShaderNode::~ShaderNode()
 
 ShaderInput *ShaderNode::input(const char *name)
 {
-	foreach(ShaderInput *socket, inputs)
+	foreach(ShaderInput *socket, inputs) {
 		if(strcmp(socket->name, name) == 0)
 			return socket;
-
+	}
+	assert(!"Requested shader input does not exist");
 	return NULL;
 }
 
@@ -108,7 +109,7 @@ ShaderOutput *ShaderNode::output(const char *name)
 	foreach(ShaderOutput *socket, outputs)
 		if(strcmp(socket->name, name) == 0)
 			return socket;
-
+	assert(!"Requested shader output does not exist");
 	return NULL;
 }
 
@@ -143,30 +144,6 @@ ShaderOutput *ShaderNode::add_output(const char *name, ShaderSocketType type)
 	ShaderOutput *output = new ShaderOutput(this, name, type);
 	outputs.push_back(output);
 	return output;
-}
-
-ShaderInput *ShaderNode::get_input(const char *name)
-{
-	foreach(ShaderInput *input, inputs) {
-		if(strcmp(input->name, name) == 0)
-			return input;
-	}
-
-	/* Should never happen. */
-	assert(!"No Shader Input!");
-	return NULL;
-}
-
-ShaderOutput *ShaderNode::get_output(const char *name)
-{
-	foreach(ShaderOutput *output, outputs) {
-		if(strcmp(output->name, name) == 0)
-			return output;
-	}
-
-	/* Should never happen. */
-	assert(!"No Shader Output!");
-	return NULL;
 }
 
 void ShaderNode::attributes(Shader *shader, AttributeRequestSet *attributes)
