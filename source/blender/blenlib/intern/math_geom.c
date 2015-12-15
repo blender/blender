@@ -350,16 +350,16 @@ void closest_to_line_segment_v2(float r_close[2], const float p[2], const float 
 }
 
 /* point closest to v1 on line v2-v3 in 3D */
-void closest_to_line_segment_v3(float r_close[3], const float v1[3], const float v2[3], const float v3[3])
+void closest_to_line_segment_v3(float r_close[3], const float p[3], const float l1[3], const float l2[3])
 {
 	float lambda, cp[3];
 
-	lambda = closest_to_line_v3(cp, v1, v2, v3);
+	lambda = closest_to_line_v3(cp, p, l1, l2);
 
 	if (lambda <= 0.0f)
-		copy_v3_v3(r_close, v2);
+		copy_v3_v3(r_close, l1);
 	else if (lambda >= 1.0f)
-		copy_v3_v3(r_close, v3);
+		copy_v3_v3(r_close, l2);
 	else
 		copy_v3_v3(r_close, cp);
 }
@@ -2245,26 +2245,26 @@ bool isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3],
 /* find closest point to p on line through (l1, l2) and return lambda,
  * where (0 <= lambda <= 1) when cp is in the line segment (l1, l2)
  */
-float closest_to_line_v3(float cp[3], const float p[3], const float l1[3], const float l2[3])
+float closest_to_line_v3(float r_close[3], const float p[3], const float l1[3], const float l2[3])
 {
 	float h[3], u[3], lambda;
 	sub_v3_v3v3(u, l2, l1);
 	sub_v3_v3v3(h, p, l1);
 	lambda = dot_v3v3(u, h) / dot_v3v3(u, u);
-	cp[0] = l1[0] + u[0] * lambda;
-	cp[1] = l1[1] + u[1] * lambda;
-	cp[2] = l1[2] + u[2] * lambda;
+	r_close[0] = l1[0] + u[0] * lambda;
+	r_close[1] = l1[1] + u[1] * lambda;
+	r_close[2] = l1[2] + u[2] * lambda;
 	return lambda;
 }
 
-float closest_to_line_v2(float cp[2], const float p[2], const float l1[2], const float l2[2])
+float closest_to_line_v2(float r_close[2], const float p[2], const float l1[2], const float l2[2])
 {
 	float h[2], u[2], lambda;
 	sub_v2_v2v2(u, l2, l1);
 	sub_v2_v2v2(h, p, l1);
 	lambda = dot_v2v2(u, h) / dot_v2v2(u, u);
-	cp[0] = l1[0] + u[0] * lambda;
-	cp[1] = l1[1] + u[1] * lambda;
+	r_close[0] = l1[0] + u[0] * lambda;
+	r_close[1] = l1[1] + u[1] * lambda;
 	return lambda;
 }
 
