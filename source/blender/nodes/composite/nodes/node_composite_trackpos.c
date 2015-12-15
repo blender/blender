@@ -36,6 +36,8 @@
 static bNodeSocketTemplate cmp_node_trackpos_out[] = {
 	{	SOCK_FLOAT,		0,	N_("X")},
 	{	SOCK_FLOAT,		0,	N_("Y")},
+	{	SOCK_FLOAT,		0,	N_("Speed X")},
+	{	SOCK_FLOAT,		0,	N_("Speed Y")},
 	{	-1, 0, ""	}
 };
 

@@ -45,6 +45,7 @@ TrackPositionOperation::TrackPositionOperation() : NodeOperation()
 	this->m_axis = 0;
 	this->m_position = CMP_TRACKPOS_ABSOLUTE;
 	this->m_relativeFrame = 0;
+	this->m_speed_output = false;
 }
 
 void TrackPositionOperation::initExecution()
@@ -78,7 +79,16 @@ void TrackPositionOperation::initExecution()
 
 			copy_v2_v2(this->m_markerPos, marker->pos);
 
-			if (this->m_position == CMP_TRACKPOS_RELATIVE_START) {
+			if (this->m_speed_output) {
+				marker = BKE_tracking_marker_get(track, clip_framenr - 1);
+				if ((marker->flag & MARKER_DISABLED) == 0) {
+					copy_v2_v2(this->m_relativePos, marker->pos);
+				}
+				else {
+					copy_v2_v2(this->m_relativePos, this->m_markerPos);
+				}
+			}
+			else if (this->m_position == CMP_TRACKPOS_RELATIVE_START) {
 				int i;
 
 				for (i = 0; i < track->markersnr; i++) {

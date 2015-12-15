@@ -44,6 +44,8 @@ void TrackPositionNode::convertToOperations(NodeConverter &converter, const Comp
 	
 	NodeOutput *outputX = this->getOutputSocket(0);
 	NodeOutput *outputY = this->getOutputSocket(1);
+	NodeOutput *outputSpeedX = this->getOutputSocket(2);
+	NodeOutput *outputSpeedY = this->getOutputSocket(3);
 
 	int frame_number;
 	if (editorNode->custom1 == CMP_TRACKPOS_ABSOLUTE_FRAME) {
@@ -62,7 +64,7 @@ void TrackPositionNode::convertToOperations(NodeConverter &converter, const Comp
 	operationX->setPosition(editorNode->custom1);
 	operationX->setRelativeFrame(editorNode->custom2);
 	converter.addOperation(operationX);
-	
+
 	TrackPositionOperation *operationY = new TrackPositionOperation();
 	operationY->setMovieClip(clip);
 	operationY->setTrackingObject(trackpos_data->tracking_object);
@@ -72,7 +74,31 @@ void TrackPositionNode::convertToOperations(NodeConverter &converter, const Comp
 	operationY->setPosition(editorNode->custom1);
 	operationY->setRelativeFrame(editorNode->custom2);
 	converter.addOperation(operationY);
-	
+
+	TrackPositionOperation *operationSpeedX = new TrackPositionOperation();
+	operationSpeedX->setMovieClip(clip);
+	operationSpeedX->setTrackingObject(trackpos_data->tracking_object);
+	operationSpeedX->setTrackName(trackpos_data->track_name);
+	operationSpeedX->setFramenumber(frame_number);
+	operationSpeedX->setAxis(0);
+	operationSpeedX->setPosition(editorNode->custom1);
+	operationSpeedX->setRelativeFrame(editorNode->custom2);
+	operationSpeedX->setSpeedOutput(true);
+	converter.addOperation(operationSpeedX);
+
+	TrackPositionOperation *operationSpeedY = new TrackPositionOperation();
+	operationSpeedY->setMovieClip(clip);
+	operationSpeedY->setTrackingObject(trackpos_data->tracking_object);
+	operationSpeedY->setTrackName(trackpos_data->track_name);
+	operationSpeedY->setFramenumber(frame_number);
+	operationSpeedY->setAxis(1);
+	operationSpeedY->setPosition(editorNode->custom1);
+	operationSpeedY->setRelativeFrame(editorNode->custom2);
+	operationSpeedY->setSpeedOutput(true);
+	converter.addOperation(operationSpeedY);
+
 	converter.mapOutputSocket(outputX, operationX->getOutputSocket());
 	converter.mapOutputSocket(outputY, operationY->getOutputSocket());
+	converter.mapOutputSocket(outputSpeedX, operationSpeedX->getOutputSocket());
+	converter.mapOutputSocket(outputSpeedY, operationSpeedY->getOutputSocket());
 }
