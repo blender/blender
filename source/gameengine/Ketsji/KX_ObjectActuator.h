@@ -161,9 +161,9 @@ public:
 			m_bitLocalFlag.ZeroDLoc = MT_fuzzyZero(m_dloc);
 			m_bitLocalFlag.ZeroDRot = MT_fuzzyZero(m_drot);
 			m_bitLocalFlag.ZeroLinearVelocity = MT_fuzzyZero(m_linear_velocity);
-			m_linear_length2 = (m_bitLocalFlag.ZeroLinearVelocity) ? 0.0 : m_linear_velocity.length2();
+			m_linear_length2 = (m_bitLocalFlag.ZeroLinearVelocity) ? 0.0f : m_linear_velocity.length2();
 			m_bitLocalFlag.ZeroAngularVelocity = MT_fuzzyZero(m_angular_velocity);
-			m_angular_length2 = (m_bitLocalFlag.ZeroAngularVelocity) ? 0.0 : m_angular_velocity.length2();
+			m_angular_length2 = (m_bitLocalFlag.ZeroAngularVelocity) ? 0.0f : m_angular_velocity.length2();
 		}
 	virtual bool Update();
 

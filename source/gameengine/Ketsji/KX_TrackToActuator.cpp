@@ -131,7 +131,7 @@ static void Mat3ToEulOld(MT_Matrix3x3 mat, float eul[3])
 	else {
 		eul[0] = atan2f(-mat[2][1], mat[1][1]);
 		eul[1] = atan2f(-mat[0][2], cy);
-		eul[2] = 0.0;
+		eul[2] = 0.0f;
 	}
 }
 
@@ -196,8 +196,8 @@ static float basis_cross(int n, int m)
 static MT_Matrix3x3 vectomat(MT_Vector3 vec, short axis, short upflag, short threedimup)
 {
 	MT_Matrix3x3 mat;
-	MT_Vector3 y(MT_Scalar(0.0), MT_Scalar(1.0), MT_Scalar(0.0));
-	MT_Vector3 z(MT_Scalar(0.0), MT_Scalar(0.0), MT_Scalar(1.0)); /* world Z axis is the global up axis */
+	MT_Vector3 y(MT_Scalar(0.0f), MT_Scalar(1.0f), MT_Scalar(0.0f));
+	MT_Vector3 z(MT_Scalar(0.0f), MT_Scalar(0.0f), MT_Scalar(1.0f)); /* world Z axis is the global up axis */
 	MT_Vector3 proj;
 	MT_Vector3 right;
 	MT_Scalar mul;
@@ -208,7 +208,7 @@ static MT_Matrix3x3 vectomat(MT_Vector3 vec, short axis, short upflag, short thr
 
 	/* if 2D doesn't move the up vector */
 	if (!threedimup){
-		vec.setValue(MT_Scalar(vec[0]), MT_Scalar(vec[1]), MT_Scalar(0.0));
+		vec.setValue(MT_Scalar(vec[0]), MT_Scalar(vec[1]), MT_Scalar(0.0f));
 		vec = (vec - z.dot(vec)*z).safe_normalized_vec(z);
 	}
 

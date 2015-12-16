@@ -302,7 +302,7 @@ void KX_ObstacleSimulation::DrawObstacles()
 	if (!m_enableVisualization)
 		return;
 	static const MT_Vector3 bluecolor(0,0,1);
-	static const MT_Vector3 normal(0.0, 0.0, 1.0);
+	static const MT_Vector3 normal(0.0f, 0.0f, 1.0f);
 	static const int SECTORS_NUM = 32;
 	for (size_t i=0; i<m_obstacles.size(); i++)
 	{
@@ -362,7 +362,7 @@ static bool filterObstacle(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavM
 
 	//filter obstacles by position
 	MT_Point3 p = nearestPointToObstacle(activeObst->m_pos, otherObst);
-	if ( fabs(activeObst->m_pos.z() - p.z()) > levelHeight)
+	if ( fabsf(activeObst->m_pos.z() - p.z()) > levelHeight)
 		return false;
 
 	return true;
@@ -459,14 +459,14 @@ void KX_ObstacleSimulationTOI_rays::sampleRVO(KX_Obstacle* activeObst, KX_NavMes
 	{
 		// Calculate sample velocity
 		const float ndir = ((float)iter/(float)m_maxSamples) - aoff;
-		const float dir = odir+ndir*M_PI*2;
+		const float dir = odir+ndir*(float)M_PI*2.0f;
 		MT_Vector2 svel;
 		svel.x() = cosf(dir) * vmax;
 		svel.y() = sinf(dir) * vmax;
 
 		// Find min time of impact and exit amongst all obstacles.
 		float tmin = m_maxToi;
-		float tmine = 0;
+		float tmine = 0.0f;
 		for (int i = 0; i < nobs; ++i)
 		{
 			KX_Obstacle* ob = m_obstacles[i];

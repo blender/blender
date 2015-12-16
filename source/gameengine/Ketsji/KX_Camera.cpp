@@ -318,21 +318,21 @@ void KX_Camera::ExtractFrustumSphere()
 	MT_Matrix4x4 clip_camcs_matrix = m_projection_matrix;
 	clip_camcs_matrix.invert();
 
-	if (m_projection_matrix[3][3] == MT_Scalar(0.0))
+	if (m_projection_matrix[3][3] == MT_Scalar(0.0f))
 	{
 		// frustrum projection
 		// detect which of the corner of the far clipping plane is the farthest to the origin
 		MT_Vector4 nfar;    // far point in device normalized coordinate
 		MT_Point3 farpoint; // most extreme far point in camera coordinate
 		MT_Point3 nearpoint;// most extreme near point in camera coordinate
-		MT_Point3 farcenter(0.0, 0.0, 0.0);// center of far cliping plane in camera coordinate
-		MT_Scalar F=-1.0, N; // square distance of far and near point to origin
+		MT_Point3 farcenter(0.0f, 0.0f, 0.0f);// center of far cliping plane in camera coordinate
+		MT_Scalar F=-1.0f, N; // square distance of far and near point to origin
 		MT_Scalar f, n;     // distance of far and near point to z axis. f is always > 0 but n can be < 0
 		MT_Scalar e, s;     // far and near clipping distance (<0)
 		MT_Scalar c;        // slope of center line = distance of far clipping center to z axis / far clipping distance
 		MT_Scalar z;        // projection of sphere center on z axis (<0)
 		// tmp value
-		MT_Vector4 npoint(1.0, 1.0, 1.0, 1.0);
+		MT_Vector4 npoint(1.0f, 1.0f, 1.0f, 1.0f);
 		MT_Vector4 hpoint;
 		MT_Point3 point;
 		MT_Scalar len;
@@ -354,9 +354,9 @@ void KX_Camera::ExtractFrustumSphere()
 			farcenter += point;
 		}
 		// the far center is the average of the far clipping points
-		farcenter *= 0.25;
+		farcenter *= 0.25f;
 		// the extreme near point is the opposite point on the near clipping plane
-		nfar.setValue(-nfar[0], -nfar[1], -1.0, 1.0);
+		nfar.setValue(-nfar[0], -nfar[1], -1.0f, 1.0f);
 		nfar = clip_camcs_matrix*nfar;
 		nearpoint.setValue(nfar[0]/nfar[3], nfar[1]/nfar[3], nfar[2]/nfar[3]);
 		// this is a frustrum projection
@@ -373,7 +373,7 @@ void KX_Camera::ExtractFrustumSphere()
 		n = f*s/e - MT_Point2(nearpoint[0]-farxy[0], nearpoint[1]-farxy[1]).length();
 		c = MT_Point2(farcenter[0], farcenter[1]).length()/e;
 		// the big formula, it simplifies to (F-N)/(2(e-s)) for the symmetric case
-		z = (F-N)/(2.0*(e-s+c*(f-n)));
+		z = (F-N)/(2.0f*(e-s+c*(f-n)));
 		m_frustum_center = MT_Point3(farcenter[0]*z/e, farcenter[1]*z/e, z);
 		m_frustum_radius = m_frustum_center.distance(farpoint);
 	}
@@ -381,7 +381,7 @@ void KX_Camera::ExtractFrustumSphere()
 	{
 		// orthographic projection
 		// The most extreme points on the near and far plane. (normalized device coords)
-		MT_Vector4 hnear(1.0, 1.0, 1.0, 1.0), hfar(-1.0, -1.0, -1.0, 1.0);
+		MT_Vector4 hnear(1.0f, 1.0f, 1.0f, 1.0f), hfar(-1.0f, -1.0f, -1.0f, 1.0f);
 		
 		// Transform to hom camera local space
 		hnear = clip_camcs_matrix*hnear;
@@ -392,12 +392,12 @@ void KX_Camera::ExtractFrustumSphere()
 		MT_Point3 farpoint(hfar[0]/hfar[3], hfar[1]/hfar[3], hfar[2]/hfar[3]);
 		
 		// just use mediant point
-		m_frustum_center = (farpoint + nearpoint)*0.5;
+		m_frustum_center = (farpoint + nearpoint)*0.5f;
 		m_frustum_radius = m_frustum_center.distance(farpoint);
 	}
 	// Transform to world space.
 	m_frustum_center = GetCameraToWorld()(m_frustum_center);
-	m_frustum_radius /= fabs(NodeGetWorldScaling()[NodeGetWorldScaling().closestAxis()]);
+	m_frustum_radius /= fabsf(NodeGetWorldScaling()[NodeGetWorldScaling().closestAxis()]);
 	
 	m_set_frustum_center = true;
 }
@@ -408,7 +408,7 @@ bool KX_Camera::PointInsideFrustum(const MT_Point3& x)
 	
 	for ( unsigned int i = 0; i < 6 ; i++ )
 	{
-		if (m_planes[i][0] * x[0] + m_planes[i][1] * x[1] + m_planes[i][2] * x[2] + m_planes[i][3] < 0.0)
+		if (m_planes[i][0] * x[0] + m_planes[i][1] * x[1] + m_planes[i][2] * x[2] + m_planes[i][3] < 0.0f)
 			return false;
 	}
 	return true;
@@ -426,7 +426,7 @@ int KX_Camera::BoxInsideFrustum(const MT_Point3 *box)
 		// 8 box vertices.
 		for (unsigned int v = 0; v < 8 ; v++)
 		{
-			if (m_planes[p][0] * box[v][0] + m_planes[p][1] * box[v][1] + m_planes[p][2] * box[v][2] + m_planes[p][3] < 0.0)
+			if (m_planes[p][0] * box[v][0] + m_planes[p][1] * box[v][1] + m_planes[p][2] * box[v][2] + m_planes[p][3] < 0.0f)
 				behindCount++;
 		}
 		
@@ -463,7 +463,7 @@ int KX_Camera::SphereInsideFrustum(const MT_Point3& center, const MT_Scalar &rad
 	for (p = 0; p < 6; p++)
 	{
 		distance = m_planes[p][0]*center[0] + m_planes[p][1]*center[1] + m_planes[p][2]*center[2] + m_planes[p][3];
-		if (fabs(distance) <= radius)
+		if (fabsf(distance) <= radius)
 			intersect = INTERSECT;
 		else if (distance < -radius)
 			return OUTSIDE;
@@ -781,7 +781,7 @@ PyObject *KX_Camera::pyattr_get_fov(void *self_v, const KX_PYATTRIBUTE_DEF *attr
 
 	float lens = self->m_camdata.m_lens;
 	float width = self->m_camdata.m_sensor_x;
-	float fov = 2.0 * atan(0.5 * width / lens);
+	float fov = 2.0f * atanf(0.5f * width / lens);
 
 	return PyFloat_FromDouble(fov * MT_DEGS_PER_RAD);
 }
@@ -790,14 +790,14 @@ int KX_Camera::pyattr_set_fov(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, P
 {
 	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	float fov = PyFloat_AsDouble(value);
-	if (fov <= 0.0) {
+	if (fov <= 0.0f) {
 		PyErr_SetString(PyExc_AttributeError, "camera.fov = float: KX_Camera, expected a float greater than zero");
 		return PY_SET_ATTR_FAIL;
 	}
 
 	fov *= MT_RADS_PER_DEG;
 	float width = self->m_camdata.m_sensor_x;
-	float lens = width / (2.0 * tan(0.5 * fov));
+	float lens = width / (2.0f * tanf(0.5f * fov));
 	
 	self->m_camdata.m_lens= lens;
 	self->m_set_projection_matrix = false;
@@ -1065,7 +1065,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, getScreenPosition,
 	vect[0] =  (win[0] - viewport[0]) / viewport[2];
 	vect[1] =  (win[1] - viewport[1]) / viewport[3];
 
-	vect[1] = 1.0 - vect[1]; //to follow Blender window coordinate system (Top-Down)
+	vect[1] = 1.0f - vect[1]; //to follow Blender window coordinate system (Top-Down)
 
 	PyObject *ret = PyTuple_New(2);
 	if (ret) {

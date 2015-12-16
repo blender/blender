@@ -188,9 +188,9 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 		int axis, sign;
 
 		if (m_posDampTime) {
-			filter = m_posDampTime/(1.0+m_posDampTime);
+			filter = m_posDampTime/(1.0f+m_posDampTime);
 		} else {
-			filter = 0.0;
+			filter = 0.0f;
 		}
 		switch (m_locrot) {
 		case KX_ACT_CONSTRAINT_ORIX:
@@ -232,10 +232,10 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 				if (MT_fuzzyZero2(zaxis.length2())) {
 					// direction and refDirection are identical,
 					// choose any other direction to define plane
-					if (direction[0] < 0.9999)
-						zaxis = m_refDirVector.cross(MT_Vector3(1.0,0.0,0.0));
+					if (direction[0] < 0.9999f)
+						zaxis = m_refDirVector.cross(MT_Vector3(1.0f,0.0f,0.0f));
 					else
-						zaxis = m_refDirVector.cross(MT_Vector3(0.0,1.0,0.0));
+						zaxis = m_refDirVector.cross(MT_Vector3(0.0f,1.0f,0.0f));
 				}
 				MT_Vector3 yaxis = zaxis.cross(m_refDirVector);
 				yaxis.normalize();
@@ -251,7 +251,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 				refDirection = m_refDirVector;
 			}
 			// apply damping on the direction
-			direction = filter*direction + (1.0-filter)*refDirection;
+			direction = filter*direction + (1.0f-filter)*refDirection;
 			obj->AlignAxisToVect(direction, axis);
 			result = true;
 			goto CHECK_TIME;
@@ -312,22 +312,22 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 			} else {
 				switch (m_locrot) {
 				case KX_ACT_CONSTRAINT_DIRPX:
-					direction = MT_Vector3(1.0,0.0,0.0);
+					direction = MT_Vector3(1.0f,0.0f,0.0f);
 					break;
 				case KX_ACT_CONSTRAINT_DIRPY:
-					direction = MT_Vector3(0.0,1.0,0.0);
+					direction = MT_Vector3(0.0f,1.0f,0.0f);
 					break;
 				case KX_ACT_CONSTRAINT_DIRPZ:
-					direction = MT_Vector3(0.0,0.0,1.0);
+					direction = MT_Vector3(0.0f,0.0f,1.0f);
 					break;
 				case KX_ACT_CONSTRAINT_DIRNX:
-					direction = MT_Vector3(-1.0,0.0,0.0);
+					direction = MT_Vector3(-1.0f,0.0f,0.0f);
 					break;
 				case KX_ACT_CONSTRAINT_DIRNY:
-					direction = MT_Vector3(0.0,-1.0,0.0);
+					direction = MT_Vector3(0.0f,-1.0f,0.0f);
 					break;
 				case KX_ACT_CONSTRAINT_DIRNZ:
-					direction = MT_Vector3(0.0,0.0,-1.0);
+					direction = MT_Vector3(0.0f,0.0f,-1.0f);
 					break;
 				}
 			}
@@ -361,11 +361,11 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 						MT_Scalar rotFilter;
 						// apply damping on the direction
 						if (m_rotDampTime) {
-							rotFilter = m_rotDampTime/(1.0+m_rotDampTime);
+							rotFilter = m_rotDampTime/(1.0f+m_rotDampTime);
 						} else {
 							rotFilter = filter;
 						}
-						newnormal = rotFilter*normal - (1.0-rotFilter)*newnormal;
+						newnormal = rotFilter*normal - (1.0f-rotFilter)*newnormal;
 						obj->AlignAxisToVect((sign)?-newnormal:newnormal, axis);
 						if (m_option & KX_ACT_CONSTRAINT_LOCAL) {
 							direction = newnormal;
@@ -374,7 +374,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 					}
 					if (m_option & KX_ACT_CONSTRAINT_DISTANCE) {
 						if (m_posDampTime) {
-							newdistance = filter*(position-callback.m_hitPoint).length()+(1.0-filter)*m_minimumBound;
+							newdistance = filter*(position-callback.m_hitPoint).length()+(1.0f-filter)*m_minimumBound;
 						} else {
 							newdistance = m_minimumBound;
 						}
@@ -410,37 +410,37 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 				normal[0] = -rotation[0][0];
 				normal[1] = -rotation[1][0];
 				normal[2] = -rotation[2][0];
-				direction = MT_Vector3(1.0,0.0,0.0);
+				direction = MT_Vector3(1.0f,0.0f,0.0f);
 				break;
 			case KX_ACT_CONSTRAINT_FHPY:
 				normal[0] = -rotation[0][1];
 				normal[1] = -rotation[1][1];
 				normal[2] = -rotation[2][1];
-				direction = MT_Vector3(0.0,1.0,0.0);
+				direction = MT_Vector3(0.0f,1.0f,0.0f);
 				break;
 			case KX_ACT_CONSTRAINT_FHPZ:
 				normal[0] = -rotation[0][2];
 				normal[1] = -rotation[1][2];
 				normal[2] = -rotation[2][2];
-				direction = MT_Vector3(0.0,0.0,1.0);
+				direction = MT_Vector3(0.0f,0.0f,1.0f);
 				break;
 			case KX_ACT_CONSTRAINT_FHNX:
 				normal[0] = rotation[0][0];
 				normal[1] = rotation[1][0];
 				normal[2] = rotation[2][0];
-				direction = MT_Vector3(-1.0,0.0,0.0);
+				direction = MT_Vector3(-1.0f,0.0f,0.0f);
 				break;
 			case KX_ACT_CONSTRAINT_FHNY:
 				normal[0] = rotation[0][1];
 				normal[1] = rotation[1][1];
 				normal[2] = rotation[2][1];
-				direction = MT_Vector3(0.0,-1.0,0.0);
+				direction = MT_Vector3(0.0f,-1.0f,0.0f);
 				break;
 			case KX_ACT_CONSTRAINT_FHNZ:
 				normal[0] = rotation[0][2];
 				normal[1] = rotation[1][2];
 				normal[2] = rotation[2][2];
-				direction = MT_Vector3(0.0,0.0,-1.0);
+				direction = MT_Vector3(0.0f,0.0f,-1.0f);
 				break;
 			}
 			normal.normalize();
@@ -475,7 +475,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 					MT_Vector3 velocityHitPoint = m_hitObject->GetVelocity(relativeHitPoint);
 					MT_Vector3 relativeVelocity = spc->GetLinearVelocity() - velocityHitPoint;
 					MT_Scalar relativeVelocityRay = direction.dot(relativeVelocity);
-					MT_Scalar springExtent = 1.0 - distance/m_minimumBound;
+					MT_Scalar springExtent = 1.0f - distance/m_minimumBound;
 					// Fh force is stored in m_maximum
 					MT_Scalar springForce = springExtent * m_maximumBound;
 					// damping is stored in m_refDirection [0] = damping, [1] = rot damping
@@ -520,7 +520,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 			}
 			result = true;
 			if (m_posDampTime) {
-				newposition = filter*position + (1.0-filter)*newposition;
+				newposition = filter*position + (1.0f-filter)*newposition;
 			}
 			obj->NodeSetLocalPosition(newposition);
 			goto CHECK_TIME;

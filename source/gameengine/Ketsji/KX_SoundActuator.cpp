@@ -379,7 +379,7 @@ PyObject *KX_SoundActuator::pyattr_get_3d_property(void *self, const struct KX_P
 {
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	const char* prop = attrdef->m_name;
-	float result_value = 0.0;
+	float result_value = 0.0f;
 
 	if (!strcmp(prop, "volume_maximum")) {
 		result_value = actuator->m_3d.max_gain;
@@ -416,7 +416,7 @@ PyObject *KX_SoundActuator::pyattr_get_3d_property(void *self, const struct KX_P
 PyObject *KX_SoundActuator::pyattr_get_audposition(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
-	float position = 0.0;
+	float position = 0.0f;
 
 	if (actuator->m_handle)
 		position = AUD_Handle_getPosition(actuator->m_handle);
@@ -459,7 +459,7 @@ int KX_SoundActuator::pyattr_set_3d_property(void *self, const struct KX_PYATTRI
 {
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	const char* prop = attrdef->m_name;
-	float prop_value = 0.0;
+	float prop_value = 0.0f;
 
 	if (!PyArg_Parse(value, "f", &prop_value))
 		return PY_SET_ATTR_FAIL;
@@ -519,7 +519,7 @@ int KX_SoundActuator::pyattr_set_audposition(void *self, const struct KX_PYATTRI
 {
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 
-	float position = 1.0;
+	float position = 1.0f;
 	if (!PyArg_Parse(value, "f", &position))
 		return PY_SET_ATTR_FAIL;
 
@@ -530,7 +530,7 @@ int KX_SoundActuator::pyattr_set_audposition(void *self, const struct KX_PYATTRI
 
 int KX_SoundActuator::pyattr_set_gain(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	float gain = 1.0;
+	float gain = 1.0f;
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	if (!PyArg_Parse(value, "f", &gain))
 		return PY_SET_ATTR_FAIL;
@@ -544,7 +544,7 @@ int KX_SoundActuator::pyattr_set_gain(void *self, const struct KX_PYATTRIBUTE_DE
 
 int KX_SoundActuator::pyattr_set_pitch(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	float pitch = 1.0;
+	float pitch = 1.0f;
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	if (!PyArg_Parse(value, "f", &pitch))
 		return PY_SET_ATTR_FAIL;

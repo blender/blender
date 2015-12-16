@@ -231,8 +231,8 @@ int KX_LightObject::pyattr_set_distance(void *self_v, const KX_PYATTRIBUTE_DEF *
 
 	if (PyFloat_Check(value)) {
 		float val = PyFloat_AsDouble(value);
-		if (val < 0.01)
-			val = 0.01;
+		if (val < 0.01f)
+			val = 0.01f;
 		else if (val > 5000.f)
 			val = 5000.f;
 
@@ -326,13 +326,13 @@ int KX_LightObject::pyattr_set_spotsize(void *self_v, const KX_PYATTRIBUTE_DEF *
 	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
 
 	if (PyFloat_Check(value)) {
-		float val = PyFloat_AsDouble(value);
-		if (val < 0.f)
-			val = 0.f;
-		else if (val > 180.f)
-			val = 180.f;
+		double val = PyFloat_AsDouble(value);
+		if (val < 0.0)
+			val = 0.0;
+		else if (val > 180.0)
+			val = 180.0;
 
-		self->m_lightobj->m_spotsize = DEG2RAD(val);
+		self->m_lightobj->m_spotsize = (float)DEG2RAD(val);
 		return PY_SET_ATTR_SUCCESS;
 	}
 
@@ -350,7 +350,7 @@ int KX_LightObject::pyattr_set_spotblend(void *self_v, const KX_PYATTRIBUTE_DEF 
 	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
 
 	if (PyFloat_Check(value)) {
-		float val = PyFloat_AsDouble(value);
+		float val = (float)PyFloat_AsDouble(value);
 		if (val < 0.f)
 			val = 0.f;
 		else if (val > 1.f)

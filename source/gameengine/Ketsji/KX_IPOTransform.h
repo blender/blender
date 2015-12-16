@@ -38,12 +38,12 @@
 class KX_IPOTransform {
 public:
 	KX_IPOTransform() :
-		m_position(0.0, 0.0, 0.0),
-		m_eulerAngles(0.0, 0.0, 0.0),
-		m_scaling(1.0, 1.0, 1.0),
-		m_deltaPosition(0.0, 0.0, 0.0),
-		m_deltaEulerAngles(0.0, 0.0, 0.0),
-		m_deltaScaling(0.0, 0.0, 0.0)
+		m_position(0.0f, 0.0f, 0.0f),
+		m_eulerAngles(0.0f, 0.0f, 0.0f),
+		m_scaling(1.0f, 1.0f, 1.0f),
+		m_deltaPosition(0.0f, 0.0f, 0.0f),
+		m_deltaEulerAngles(0.0f, 0.0f, 0.0f),
+		m_deltaScaling(0.0f, 0.0f, 0.0f)
 		{}
 
 	MT_Transform         GetTransform() const {
@@ -69,9 +69,9 @@ public:
 	void SetScaling(const MT_Vector3& scaling)  { m_scaling = scaling;	}
 	
 	void ClearDeltaStuff() { 
-		m_deltaPosition.setValue(0.0, 0.0, 0.0);
-		m_deltaEulerAngles.setValue(0.0, 0.0, 0.0);
-		m_deltaScaling.setValue(0.0, 0.0, 0.0);
+		m_deltaPosition.setValue(0.0f, 0.0f, 0.0f);
+		m_deltaEulerAngles.setValue(0.0f, 0.0f, 0.0f);
+		m_deltaScaling.setValue(0.0f, 0.0f, 0.0f);
 	}
 
 protected:

@@ -143,12 +143,12 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_exitcode(KX_EXIT_REQUEST_NO_REQUEST),
 	m_exitstring(""),
 
-	m_cameraZoom(1.0),
+	m_cameraZoom(1.0f),
 	
 	m_overrideCam(false),
 	m_overrideCamUseOrtho(false),
-	m_overrideCamNear(0.0),
-	m_overrideCamFar(0.0),
+	m_overrideCamNear(0.0f),
+	m_overrideCamFar(0.0f),
 	m_overrideCamZoom(1.0f),
 
 	m_stereo(false),
@@ -170,9 +170,9 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_hideCursor(false),
 
 	m_overrideFrameColor(false),
-	m_overrideFrameColorR(0.0),
-	m_overrideFrameColorG(0.0),
-	m_overrideFrameColorB(0.0),
+	m_overrideFrameColorR(0.0f),
+	m_overrideFrameColorG(0.0f),
+	m_overrideFrameColorB(0.0f),
 
 	m_usedome(false)
 {
@@ -529,8 +529,8 @@ void KX_KetsjiEngine::EndFrame()
 	for (int i = tc_first; i < tc_numCategories; ++i) {
 		double time = m_logger->GetAverage((KX_TimeCategory)i);
 		PyObject *val = PyTuple_New(2);
-		PyTuple_SetItem(val, 0, PyFloat_FromDouble(time*1000.f));
-		PyTuple_SetItem(val, 1, PyFloat_FromDouble(time/tottime * 100.f));
+		PyTuple_SetItem(val, 0, PyFloat_FromDouble(time*1000.0));
+		PyTuple_SetItem(val, 1, PyFloat_FromDouble(time/tottime * 100.0));
 
 		PyDict_SetItemString(m_pyprofiledict, m_profileLabels[i], val);
 		Py_DECREF(val);
@@ -607,7 +607,7 @@ bool KX_KetsjiEngine::NextFrame()
 	}
 	
 	double deltatime = m_clockTime - m_frameTime;
-	if (deltatime<0.f)
+	if (deltatime<0.0)
 	{
 		// We got here too quickly, which means there is nothing todo, just return and don't render.
 		// Not sure if this is the best fix, but it seems to stop the jumping framerate issue (#33088)
@@ -1379,8 +1379,8 @@ void KX_KetsjiEngine::PostProcessScene(KX_Scene* scene)
 			activecam->NodeSetLocalOrientation(camtrans.getBasis());
 			activecam->NodeUpdateGS(0);
 		} else {
-			activecam->NodeSetLocalPosition(MT_Point3(0.0, 0.0, 0.0));
-			activecam->NodeSetLocalOrientation(MT_Vector3(0.0, 0.0, 0.0));
+			activecam->NodeSetLocalPosition(MT_Point3(0.0f, 0.0f, 0.0f));
+			activecam->NodeSetLocalOrientation(MT_Vector3(0.0f, 0.0f, 0.0f));
 			activecam->NodeUpdateGS(0);
 		}
 
@@ -1445,7 +1445,7 @@ void KX_KetsjiEngine::RenderDebugProperties()
 		                            m_canvas->GetWidth() /* RdV, TODO ?? */,
 		                            m_canvas->GetHeight() /* RdV, TODO ?? */);
 		
-		debugtxt.Format("%5.1fms (%.1ffps)", tottime * 1000.f, 1.0/tottime);
+		debugtxt.Format("%5.1fms (%.1ffps)", tottime * 1000.0f, 1.0f/tottime);
 		m_rasterizer->RenderText2D(RAS_IRasterizer::RAS_TEXT_PADDED,
 		                            debugtxt.ReadPtr(),
 		                            xcoord + const_xindent + profile_indent,
@@ -1468,14 +1468,14 @@ void KX_KetsjiEngine::RenderDebugProperties()
 
 			double time = m_logger->GetAverage((KX_TimeCategory)j);
 
-			debugtxt.Format("%5.2fms | %d%%", time*1000.f, (int)(time/tottime * 100.f));
+			debugtxt.Format("%5.2fms | %d%%", (float)time*1000.f, (int)((float)time/tottime * 100.f));
 			m_rasterizer->RenderText2D(RAS_IRasterizer::RAS_TEXT_PADDED,
 			                            debugtxt.ReadPtr(),
 			                            xcoord + const_xindent + profile_indent, ycoord,
 			                            m_canvas->GetWidth(),
 			                            m_canvas->GetHeight());
 
-			m_rasterizer->RenderBox2D(xcoord + (int)(2.2 * profile_indent), ycoord, m_canvas->GetWidth(), m_canvas->GetHeight(), time/tottime);
+			m_rasterizer->RenderBox2D(xcoord + (int)(2.2f * profile_indent), ycoord, m_canvas->GetWidth(), m_canvas->GetHeight(), (float)time/tottime);
 			ycoord += const_ysize;
 		}
 	}

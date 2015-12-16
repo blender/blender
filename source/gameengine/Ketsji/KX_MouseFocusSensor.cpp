@@ -314,15 +314,15 @@ bool KX_MouseFocusSensor::ParentObjectHasFocusCamera(KX_Camera *cam)
 	 *	The actual z coordinates used don't have to be exact just infront and 
 	 *	behind of the near and far clip planes.
 	 */ 
-	frompoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0,
-						1.0 - (2 * (m_y_inv - y_lb) / height),
-						-1.0,
-						1.0 );
+	frompoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0f,
+						1.0f - (2 * (m_y_inv - y_lb) / height),
+						-1.0f,
+						1.0f );
 	
-	topoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0,
-						1.0 - (2 * (m_y_inv-y_lb) / height),
-						1.0,
-						1.0 );
+	topoint.setValue(	(2 * (m_x-x_lb) / width) - 1.0f,
+						1.0f - (2 * (m_y_inv-y_lb) / height),
+						1.0f,
+						1.0f );
 	
 	/* camera to world  */
 	MT_Matrix4x4 camcs_wcs_matrix = MT_Matrix4x4(cam->GetCameraToWorld());

@@ -83,11 +83,11 @@
 
 #include "BLI_math.h"
 
-static MT_Point3 dummy_point= MT_Point3(0.0, 0.0, 0.0);
-static MT_Vector3 dummy_scaling = MT_Vector3(1.0, 1.0, 1.0);
-static MT_Matrix3x3 dummy_orientation = MT_Matrix3x3(1.0, 0.0, 0.0,
-                                                     0.0, 1.0, 0.0,
-                                                     0.0, 0.0, 1.0);
+static MT_Point3 dummy_point= MT_Point3(0.0f, 0.0f, 0.0f);
+static MT_Vector3 dummy_scaling = MT_Vector3(1.0f, 1.0f, 1.0f);
+static MT_Matrix3x3 dummy_orientation = MT_Matrix3x3(1.0f, 0.0f, 0.0f,
+                                                     0.0f, 1.0f, 0.0f,
+                                                     0.0f, 0.0f, 1.0f);
 
 KX_GameObject::KX_GameObject(
         void* sgReplicationInfo,
@@ -101,7 +101,7 @@ KX_GameObject::KX_GameObject(
       m_pBlenderGroupObject(NULL),
       m_bUseObjectColor(false),
       m_bIsNegativeScaling(false),
-      m_objectColor(1.0, 1.0, 1.0, 1.0),
+      m_objectColor(1.0f, 1.0f, 1.0f, 1.0f),
       m_bVisible(true),
       m_bCulled(true),
       m_bOccluder(false),
@@ -354,9 +354,9 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj, bool addToCom
 			m_pPhysicsController->SuspendDynamics(ghost);
 		}
 		// Set us to our new scale, position, and orientation
-		scale2[0] = 1.0/scale2[0];
-		scale2[1] = 1.0/scale2[1];
-		scale2[2] = 1.0/scale2[2];
+		scale2[0] = 1.0f/scale2[0];
+		scale2[1] = 1.0f/scale2[1];
+		scale2[2] = 1.0f/scale2[2];
 		scale1 = scale1 * scale2;
 		MT_Matrix3x3 invori = obj->NodeGetWorldOrientation().inverse();
 		MT_Vector3 newpos = invori*(NodeGetWorldPosition()-obj->NodeGetWorldPosition())*scale2;
@@ -711,7 +711,7 @@ float *KX_GameObject::GetOpenGLMatrix()
 		trans.setBasis(GetSGNode()->GetWorldOrientation());
 	
 		MT_Vector3 scaling = GetSGNode()->GetWorldScaling();
-		m_bIsNegativeScaling = ((scaling[0] < 0.0) ^ (scaling[1] < 0.0) ^ (scaling[2] < 0.0)) ? true : false;
+		m_bIsNegativeScaling = ((scaling[0] < 0.0f) ^ (scaling[1] < 0.0f) ^ (scaling[2] < 0.0f)) ? true : false;
 		trans.scale(scaling[0], scaling[1], scaling[2]);
 		trans.getValue(fl);
 		GetSGNode()->ClearDirty();
@@ -1214,12 +1214,12 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 	{
 		case 0: //x axis
 			ori.setValue(orimat[0][2], orimat[1][2], orimat[2][2]); //pivot axis
-			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON) //is the vector parallel to the pivot?
+			if (MT_abs(vect.dot(ori)) > 1.0f-3.0f*MT_EPSILON) //is the vector parallel to the pivot?
 				ori.setValue(orimat[0][1], orimat[1][1], orimat[2][1]); //change the pivot!
 			if (fac == 1.0f) {
 				x = vect;
 			} else {
-				x = (vect * fac) + ((orimat * MT_Vector3(1.0, 0.0, 0.0)) * (1.0f - fac));
+				x = (vect * fac) + ((orimat * MT_Vector3(1.0f, 0.0f, 0.0f)) * (1.0f - fac));
 				len = x.length();
 				if (MT_fuzzyZero(len)) x = vect;
 				else x /= len;
@@ -1229,12 +1229,12 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 			break;
 		case 1: //y axis
 			ori.setValue(orimat[0][0], orimat[1][0], orimat[2][0]);
-			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON)
+			if (MT_abs(vect.dot(ori)) > 1.0f-3.0f*MT_EPSILON)
 				ori.setValue(orimat[0][2], orimat[1][2], orimat[2][2]);
 			if (fac == 1.0f) {
 				y = vect;
 			} else {
-				y = (vect * fac) + ((orimat * MT_Vector3(0.0, 1.0, 0.0)) * (1.0f - fac));
+				y = (vect * fac) + ((orimat * MT_Vector3(0.0f, 1.0f, 0.0f)) * (1.0f - fac));
 				len = y.length();
 				if (MT_fuzzyZero(len)) y = vect;
 				else y /= len;
@@ -1244,12 +1244,12 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 			break;
 		case 2: //z axis
 			ori.setValue(orimat[0][1], orimat[1][1], orimat[2][1]);
-			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON)
+			if (MT_abs(vect.dot(ori)) > 1.0f-3.0f*MT_EPSILON)
 				ori.setValue(orimat[0][0], orimat[1][0], orimat[2][0]);
 			if (fac == 1.0f) {
 				z = vect;
 			} else {
-				z = (vect * fac) + ((orimat * MT_Vector3(0.0, 0.0, 1.0)) * (1.0f - fac));
+				z = (vect * fac) + ((orimat * MT_Vector3(0.0f, 0.0f, 1.0f)) * (1.0f - fac));
 				len = z.length();
 				if (MT_fuzzyZero(len)) z = vect;
 				else z /= len;
@@ -1284,12 +1284,12 @@ MT_Scalar KX_GameObject::GetMass()
 	{
 		return m_pPhysicsController->GetMass();
 	}
-	return 0.0;
+	return 0.0f;
 }
 
 MT_Vector3 KX_GameObject::GetLocalInertia()
 {
-	MT_Vector3 local_inertia(0.0,0.0,0.0);
+	MT_Vector3 local_inertia(0.0f,0.0f,0.0f);
 	if (m_pPhysicsController)
 	{
 		local_inertia = m_pPhysicsController->GetLocalInertia();
@@ -1299,7 +1299,7 @@ MT_Vector3 KX_GameObject::GetLocalInertia()
 
 MT_Vector3 KX_GameObject::GetLinearVelocity(bool local)
 {
-	MT_Vector3 velocity(0.0,0.0,0.0), locvel;
+	MT_Vector3 velocity(0.0f,0.0f,0.0f), locvel;
 	MT_Matrix3x3 ori;
 	if (m_pPhysicsController)
 	{
@@ -1318,7 +1318,7 @@ MT_Vector3 KX_GameObject::GetLinearVelocity(bool local)
 
 MT_Vector3 KX_GameObject::GetAngularVelocity(bool local)
 {
-	MT_Vector3 velocity(0.0,0.0,0.0), locvel;
+	MT_Vector3 velocity(0.0f,0.0f,0.0f), locvel;
 	MT_Matrix3x3 ori;
 	if (m_pPhysicsController)
 	{
@@ -1341,7 +1341,7 @@ MT_Vector3 KX_GameObject::GetVelocity(const MT_Point3& point)
 	{
 		return m_pPhysicsController->GetVelocity(point);
 	}
-	return MT_Vector3(0.0,0.0,0.0);
+	return MT_Vector3(0.0f,0.0f,0.0f);
 }
 
 // scenegraph node stuff
@@ -1468,9 +1468,9 @@ void KX_GameObject::NodeSetWorldPosition(const MT_Point3& trans)
 		{ 
 			return; 
 		}
-		scale[0] = 1.0/scale[0];
-		scale[1] = 1.0/scale[1];
-		scale[2] = 1.0/scale[2];
+		scale[0] = 1.0f/scale[0];
+		scale[1] = 1.0f/scale[1];
+		scale[2] = 1.0f/scale[2];
 		MT_Matrix3x3 invori = parent->GetWorldOrientation().inverse();
 		MT_Vector3 newpos = invori*(trans-parent->GetWorldPosition())*scale;
 		NodeSetLocalPosition(MT_Point3(newpos[0],newpos[1],newpos[2]));
@@ -2421,7 +2421,7 @@ PyObject *KX_GameObject::pyattr_get_life(void *self_v, const KX_PYATTRIBUTE_DEF 
 
 	CValue *life = self->GetProperty("::timebomb");
 	if (life)
-		// this convert the timebomb seconds to frames, hard coded 50.0 (assuming 50fps)
+		// this convert the timebomb seconds to frames, hard coded 50.0f (assuming 50fps)
 		// value hardcoded in KX_Scene::AddReplicaObject()
 		return PyFloat_FromDouble(life->GetNumber() * 50.0);
 	else
@@ -2432,7 +2432,7 @@ PyObject *KX_GameObject::pyattr_get_mass(void *self_v, const KX_PYATTRIBUTE_DEF 
 {
 	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
 	PHY_IPhysicsController *spc = self->GetPhysicsController();
-	return PyFloat_FromDouble(spc ? spc->GetMass() : 0.0);
+	return PyFloat_FromDouble(spc ? spc->GetMass() : 0.0f);
 }
 
 int KX_GameObject::pyattr_set_mass(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -2440,7 +2440,7 @@ int KX_GameObject::pyattr_set_mass(void *self_v, const KX_PYATTRIBUTE_DEF *attrd
 	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
 	PHY_IPhysicsController *spc = self->GetPhysicsController();
 	MT_Scalar val = PyFloat_AsDouble(value);
-	if (val < 0.0) { /* also accounts for non float */
+	if (val < 0.0f) { /* also accounts for non float */
 		PyErr_SetString(PyExc_AttributeError, "gameOb.mass = float: KX_GameObject, expected a float zero or above");
 		return PY_SET_ATTR_FAIL;
 	}
@@ -2476,7 +2476,7 @@ int KX_GameObject::pyattr_set_lin_vel_min(void *self_v, const KX_PYATTRIBUTE_DEF
 	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
 	PHY_IPhysicsController *spc = self->GetPhysicsController();
 	MT_Scalar val = PyFloat_AsDouble(value);
-	if (val < 0.0) { /* also accounts for non float */
+	if (val < 0.0f) { /* also accounts for non float */
 		PyErr_SetString(PyExc_AttributeError, "gameOb.linVelocityMin = float: KX_GameObject, expected a float zero or above");
 		return PY_SET_ATTR_FAIL;
 	}
@@ -2499,7 +2499,7 @@ int KX_GameObject::pyattr_set_lin_vel_max(void *self_v, const KX_PYATTRIBUTE_DEF
 	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
 	PHY_IPhysicsController *spc = self->GetPhysicsController();
 	MT_Scalar val = PyFloat_AsDouble(value);
-	if (val < 0.0) { /* also accounts for non float */
+	if (val < 0.0f) { /* also accounts for non float */
 		PyErr_SetString(PyExc_AttributeError, "gameOb.linVelocityMax = float: KX_GameObject, expected a float zero or above");
 		return PY_SET_ATTR_FAIL;
 	}
@@ -2976,7 +2976,7 @@ PyObject *KX_GameObject::pyattr_get_timeOffset(void *self_v, const KX_PYATTRIBUT
 	if (self->GetSGNode() && (sg_parent = self->GetSGNode()->GetSGParent()) != NULL && sg_parent->IsSlowParent()) {
 		return PyFloat_FromDouble(static_cast<KX_SlowParentRelation *>(sg_parent->GetParentRelation())->GetTimeOffset());
 	} else {
-		return PyFloat_FromDouble(0.0);
+		return PyFloat_FromDouble(0.0f);
 	}
 }
 
@@ -2986,7 +2986,7 @@ int KX_GameObject::pyattr_set_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF 
 	if (self->GetSGNode()) {
 		MT_Scalar val = PyFloat_AsDouble(value);
 		SG_Node *sg_parent= self->GetSGNode()->GetSGParent();
-		if (val < 0.0) { /* also accounts for non float */
+		if (val < 0.0f) { /* also accounts for non float */
 			PyErr_SetString(PyExc_AttributeError, "gameOb.timeOffset = float: KX_GameObject, expected a float zero or above");
 			return PY_SET_ATTR_FAIL;
 		}
@@ -3366,7 +3366,7 @@ PyObject *KX_GameObject::PySetOcclusion(PyObject *args)
 PyObject *KX_GameObject::PyGetVelocity(PyObject *args)
 {
 	// only can get the velocity if we have a physics object connected to us...
-	MT_Point3 point(0.0,0.0,0.0);
+	MT_Point3 point(0.0f,0.0f,0.0f);
 	PyObject *pypos = NULL;
 	
 	if (!PyArg_ParseTuple(args, "|O:getVelocity", &pypos) || (pypos && !PyVecTo(pypos, point)))
@@ -3386,7 +3386,7 @@ PyObject *KX_GameObject::PyGetReactionForce()
 	return PyObjectFrom(dummy_point);
 #endif
 	
-	return Py_BuildValue("fff", 0.0, 0.0, 0.0);
+	return Py_BuildValue("fff", 0.0f, 0.0f, 0.0f);
 	
 }
 
@@ -3619,8 +3619,8 @@ KX_PYMETHODDEF_DOC_O(KX_GameObject, getVectTo,
 	if (MT_fuzzyZero(distance))
 	{
 		//cout << "getVectTo() Error: Null vector!\n";
-		locToDir = toDir = MT_Vector3(0.0,0.0,0.0);
-		distance = 0.0;
+		locToDir = toDir = MT_Vector3(0.0f,0.0f,0.0f);
+		distance = 0.0f;
 	} else {
 		toDir.normalize();
 		locToDir = toDir * NodeGetWorldOrientation();

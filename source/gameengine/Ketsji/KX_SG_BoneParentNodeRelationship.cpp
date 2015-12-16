@@ -89,7 +89,7 @@ UpdateChildCoordinates(
 			{
 				// Get the child's transform, and the bone matrix.
 				MT_Matrix4x4 child_transform ( 
-					MT_Transform(child_pos + MT_Vector3(0.0, armature->GetBoneLength(m_bone), 0.0), 
+					MT_Transform(child_pos + MT_Vector3(0.0f, armature->GetBoneLength(m_bone), 0.0f), 
 						child_rotation.scaled(
 							child_scale[0], 
 							child_scale[1], 
@@ -107,7 +107,7 @@ UpdateChildCoordinates(
 				child_w_rotation.setValue(child_transform[0][0], child_transform[0][1], child_transform[0][2], 
 					child_transform[1][0], child_transform[1][1], child_transform[1][2], 
 					child_transform[2][0], child_transform[2][1], child_transform[2][2]);
-				child_w_rotation.scale(1.0/child_w_scale[0], 1.0/child_w_scale[1], 1.0/child_w_scale[2]);
+				child_w_rotation.scale(1.0f/child_w_scale[0], 1.0f/child_w_scale[1], 1.0f/child_w_scale[2]);
 					
 				child_w_pos = MT_Point3(child_transform[0][3], child_transform[1][3], child_transform[2][3]);
 					

@@ -400,19 +400,19 @@ void KX_Dome::GLDrawWarpQuads(void)
 
 				glColor3f(warp.nodes[i][j+1].i, warp.nodes[i][j+1].i, warp.nodes[i][j+1].i);
 				glTexCoord2f((warp.nodes[i][j+1].u * uv_width), (warp.nodes[i][j+1].v * uv_height));
-				glVertex3f(warp.nodes[i][j+1].x, warp.nodes[i][j+1].y,0.0);
+				glVertex3f(warp.nodes[i][j+1].x, warp.nodes[i][j+1].y,0.0f);
 
 				glColor3f(warp.nodes[i+1][j+1].i, warp.nodes[i+1][j+1].i, warp.nodes[i+1][j+1].i);
 				glTexCoord2f((warp.nodes[i+1][j+1].u * uv_width), (warp.nodes[i+1][j+1].v * uv_height));
-				glVertex3f(warp.nodes[i+1][j+1].x, warp.nodes[i+1][j+1].y,0.0);
+				glVertex3f(warp.nodes[i+1][j+1].x, warp.nodes[i+1][j+1].y,0.0f);
 
 				glColor3f(warp.nodes[i+1][j].i, warp.nodes[i+1][j].i, warp.nodes[i+1][j].i);
 				glTexCoord2f((warp.nodes[i+1][j].u * uv_width), (warp.nodes[i+1][j].v * uv_height));
-				glVertex3f(warp.nodes[i+1][j].x, warp.nodes[i+1][j].y,0.0);
+				glVertex3f(warp.nodes[i+1][j].x, warp.nodes[i+1][j].y,0.0f);
 
 				glColor3f(warp.nodes[i][j].i, warp.nodes[i][j].i, warp.nodes[i][j].i);
 				glTexCoord2f((warp.nodes[i][j].u * uv_width), (warp.nodes[i][j].v * uv_height));
-				glVertex3f(warp.nodes[i][j].x, warp.nodes[i][j].y,0.0);
+				glVertex3f(warp.nodes[i][j].x, warp.nodes[i][j].y,0.0f);
 			}
 		}
 		glEnd();
@@ -428,19 +428,19 @@ void KX_Dome::GLDrawWarpQuads(void)
 
 				glColor3f(warp.nodes[i][j].i,warp.nodes[i][j].i,warp.nodes[i][j].i);
 				glTexCoord2f((warp.nodes[i][j].u * uv_width), (warp.nodes[i][j].v * uv_height));
-				glVertex3f(warp.nodes[i][j].x,warp.nodes[i][j].y,0.0);
+				glVertex3f(warp.nodes[i][j].x,warp.nodes[i][j].y,0.0f);
 
 				glColor3f(warp.nodes[i2][j].i,warp.nodes[i2][j].i,warp.nodes[i2][j].i);
 				glTexCoord2f((warp.nodes[i2][j].u * uv_width), (warp.nodes[i2][j].v * uv_height));
-				glVertex3f(warp.nodes[i2][j].x,warp.nodes[i2][j].y,0.0);
+				glVertex3f(warp.nodes[i2][j].x,warp.nodes[i2][j].y,0.0f);
 
 				glColor3f(warp.nodes[i2][j+1].i,warp.nodes[i2][j+1].i,warp.nodes[i2][j+1].i);
 				glTexCoord2f((warp.nodes[i2][j+1].u * uv_width), (warp.nodes[i2][j+1].v * uv_height));
-				glVertex3f(warp.nodes[i2][j+1].x,warp.nodes[i2][j+1].y,0.0);
+				glVertex3f(warp.nodes[i2][j+1].x,warp.nodes[i2][j+1].y,0.0f);
 
 				glColor3f(warp.nodes[i2][j+1].i,warp.nodes[i2][j+1].i,warp.nodes[i2][j+1].i);
 				glTexCoord2f((warp.nodes[i2][j+1].u * uv_width), (warp.nodes[i2][j+1].v * uv_height));
-				glVertex3f(warp.nodes[i2][j+1].x,warp.nodes[i2][j+1].y,0.0);
+				glVertex3f(warp.nodes[i2][j+1].x,warp.nodes[i2][j+1].y,0.0f);
 
 			}
 		}
@@ -551,42 +551,42 @@ void KX_Dome::CreateMeshDome180(void)
 
 	//creating faces for the env mapcube 180deg Dome
 	// Top Face - just a triangle
-	cubetop[0].verts[0][0] = -M_SQRT2 / 2.0;
-	cubetop[0].verts[0][1] = 0.0;
-	cubetop[0].verts[0][2] = 0.5;
+	cubetop[0].verts[0][0] = (float)(-M_SQRT2) / 2.0f;
+	cubetop[0].verts[0][1] = 0.0f;
+	cubetop[0].verts[0][2] = 0.5f;
 	cubetop[0].u[0] = 0.0;
 	cubetop[0].v[0] = uv_ratio;
 
-	cubetop[0].verts[1][0] = 0.0;
-	cubetop[0].verts[1][1] = M_SQRT2 / 2.0;
-	cubetop[0].verts[1][2] = 0.5;
+	cubetop[0].verts[1][0] = 0.0f;
+	cubetop[0].verts[1][1] = (float)M_SQRT2 / 2.0f;
+	cubetop[0].verts[1][2] = 0.5f;
 	cubetop[0].u[1] = 0.0;
 	cubetop[0].v[1] = 0.0;
 
-	cubetop[0].verts[2][0] = M_SQRT2 / 2.0;
-	cubetop[0].verts[2][1] = 0.0;
-	cubetop[0].verts[2][2] = 0.5;
+	cubetop[0].verts[2][0] = (float)M_SQRT2 / 2.0f;
+	cubetop[0].verts[2][1] = 0.0f;
+	cubetop[0].verts[2][2] = 0.5f;
 	cubetop[0].u[2] = uv_ratio;
 	cubetop[0].v[2] = 0.0;
 
 	nfacestop = 1;
 
 	/* Bottom face - just a triangle */
-	cubebottom[0].verts[0][0] = -M_SQRT2 / 2.0;
-	cubebottom[0].verts[0][1] = 0.0;
-	cubebottom[0].verts[0][2] = -0.5;
+	cubebottom[0].verts[0][0] = (float)(-M_SQRT2) / 2.0f;
+	cubebottom[0].verts[0][1] = 0.0f;
+	cubebottom[0].verts[0][2] = -0.5f;
 	cubebottom[0].u[0] = uv_ratio;
 	cubebottom[0].v[0] = 0.0;
 
-	cubebottom[0].verts[1][0] = M_SQRT2 / 2.0;
+	cubebottom[0].verts[1][0] = (float)M_SQRT2 / 2.0f;
 	cubebottom[0].verts[1][1] = 0;
-	cubebottom[0].verts[1][2] = -0.5;
+	cubebottom[0].verts[1][2] = -0.5f;
 	cubebottom[0].u[1] = 0.0;
 	cubebottom[0].v[1] = uv_ratio;
 
-	cubebottom[0].verts[2][0] = 0.0;
-	cubebottom[0].verts[2][1] = M_SQRT2 / 2.0;
-	cubebottom[0].verts[2][2] = -0.5;
+	cubebottom[0].verts[2][0] = 0.0f;
+	cubebottom[0].verts[2][1] = (float)M_SQRT2 / 2.0f;
+	cubebottom[0].verts[2][2] = -0.5f;
 	cubebottom[0].u[2] = 0.0;
 	cubebottom[0].v[2] = 0.0;
 
@@ -594,80 +594,80 @@ void KX_Dome::CreateMeshDome180(void)
 	
 	/* Left face - two triangles */
 	
-	cubeleft[0].verts[0][0] = -M_SQRT2 / 2.0;
-	cubeleft[0].verts[0][1] = 0.0;
-	cubeleft[0].verts[0][2] = -0.5;
+	cubeleft[0].verts[0][0] = (float)(-M_SQRT2) / 2.0f;
+	cubeleft[0].verts[0][1] = 0.0f;
+	cubeleft[0].verts[0][2] = -0.5f;
 	cubeleft[0].u[0] = 0.0;
 	cubeleft[0].v[0] = 0.0;
 
-	cubeleft[0].verts[1][0] = 0.0;
-	cubeleft[0].verts[1][1] = M_SQRT2 / 2.0;
-	cubeleft[0].verts[1][2] = -0.5;
+	cubeleft[0].verts[1][0] = 0.0f;
+	cubeleft[0].verts[1][1] = (float)M_SQRT2 / 2.0f;
+	cubeleft[0].verts[1][2] = -0.5f;
 	cubeleft[0].u[1] = uv_ratio;
 	cubeleft[0].v[1] = 0.0;
 
-	cubeleft[0].verts[2][0] = -M_SQRT2 / 2.0;
-	cubeleft[0].verts[2][1] = 0.0;
-	cubeleft[0].verts[2][2] = 0.5;
+	cubeleft[0].verts[2][0] = (float)(-M_SQRT2) / 2.0f;
+	cubeleft[0].verts[2][1] = 0.0f;
+	cubeleft[0].verts[2][2] = 0.5f;
 	cubeleft[0].u[2] = 0.0;
 	cubeleft[0].v[2] = uv_ratio;
 
 	//second triangle
-	cubeleft[1].verts[0][0] = -M_SQRT2 / 2.0;
-	cubeleft[1].verts[0][1] = 0.0;
-	cubeleft[1].verts[0][2] = 0.5;
+	cubeleft[1].verts[0][0] = (float)(-M_SQRT2) / 2.0f;
+	cubeleft[1].verts[0][1] = 0.0f;
+	cubeleft[1].verts[0][2] = 0.5f;
 	cubeleft[1].u[0] = 0.0;
 	cubeleft[1].v[0] = uv_ratio;
 
-	cubeleft[1].verts[1][0] = 0.0;
-	cubeleft[1].verts[1][1] = M_SQRT2 / 2.0;
-	cubeleft[1].verts[1][2] = -0.5;
+	cubeleft[1].verts[1][0] = 0.0f;
+	cubeleft[1].verts[1][1] = (float)M_SQRT2 / 2.0f;
+	cubeleft[1].verts[1][2] = -0.5f;
 	cubeleft[1].u[1] = uv_ratio;
 	cubeleft[1].v[1] = 0.0;
 
-	cubeleft[1].verts[2][0] = 0.0;
-	cubeleft[1].verts[2][1] = M_SQRT2 / 2.0;
-	cubeleft[1].verts[2][2] = 0.5;
+	cubeleft[1].verts[2][0] = 0.0f;
+	cubeleft[1].verts[2][1] = (float)M_SQRT2 / 2.0f;
+	cubeleft[1].verts[2][2] = 0.5f;
 	cubeleft[1].u[2] = uv_ratio;
 	cubeleft[1].v[2] = uv_ratio;
 
 	nfacesleft = 2;
 	
 	/* Right face - two triangles */
-	cuberight[0].verts[0][0] = 0.0;
-	cuberight[0].verts[0][1] = M_SQRT2 / 2.0;
-	cuberight[0].verts[0][2] = -0.5;
+	cuberight[0].verts[0][0] = 0.0f;
+	cuberight[0].verts[0][1] = (float)M_SQRT2 / 2.0f;
+	cuberight[0].verts[0][2] = -0.5f;
 	cuberight[0].u[0] = 0.0;
 	cuberight[0].v[0] = 0.0;
 
-	cuberight[0].verts[1][0] = M_SQRT2 / 2.0;
-	cuberight[0].verts[1][1] = 0.0;
-	cuberight[0].verts[1][2] = -0.5;
+	cuberight[0].verts[1][0] = (float)M_SQRT2 / 2.0f;
+	cuberight[0].verts[1][1] = 0.0f;
+	cuberight[0].verts[1][2] = -0.5f;
 	cuberight[0].u[1] = uv_ratio;
 	cuberight[0].v[1] = 0.0;
 
-	cuberight[0].verts[2][0] = M_SQRT2 / 2.0;
-	cuberight[0].verts[2][1] = 0.0;
-	cuberight[0].verts[2][2] = 0.5;
+	cuberight[0].verts[2][0] = (float)M_SQRT2 / 2.0f;
+	cuberight[0].verts[2][1] = 0.0f;
+	cuberight[0].verts[2][2] = 0.5f;
 	cuberight[0].u[2] = uv_ratio;
 	cuberight[0].v[2] = uv_ratio;
 
 	//second triangle
-	cuberight[1].verts[0][0] = 0.0;
-	cuberight[1].verts[0][1] = M_SQRT2 / 2.0;
-	cuberight[1].verts[0][2] = -0.5;
+	cuberight[1].verts[0][0] = 0.0f;
+	cuberight[1].verts[0][1] = (float)M_SQRT2 / 2.0f;
+	cuberight[1].verts[0][2] = -0.5f;
 	cuberight[1].u[0] = 0.0;
 	cuberight[1].v[0] = 0.0;
 
-	cuberight[1].verts[1][0] = M_SQRT2 / 2.0;
-	cuberight[1].verts[1][1] = 0.0;
-	cuberight[1].verts[1][2] = 0.5;
+	cuberight[1].verts[1][0] = (float)M_SQRT2 / 2.0f;
+	cuberight[1].verts[1][1] = 0.0f;
+	cuberight[1].verts[1][2] = 0.5f;
 	cuberight[1].u[1] = uv_ratio;
 	cuberight[1].v[1] = uv_ratio;
 
-	cuberight[1].verts[2][0] = 0.0;
-	cuberight[1].verts[2][1] = M_SQRT2 / 2.0;
-	cuberight[1].verts[2][2] = 0.5;
+	cuberight[1].verts[2][0] = 0.0f;
+	cuberight[1].verts[2][1] = (float)M_SQRT2 / 2.0f;
+	cuberight[1].verts[2][2] = 0.5f;
 	cuberight[1].u[2] = 0.0;
 	cuberight[1].v[2] = uv_ratio;
 
@@ -728,10 +728,10 @@ void KX_Dome::CreateMeshDome250(void)
 	float uv_height, uv_base;
 	float verts_height;
 
-	float rad_ang = m_angle * MT_PI / 180.0;
+	float rad_ang = m_angle * MT_PI / 180.0f;
 	float uv_ratio = (float)(m_buffersize-1) / m_imagesize;
 
-	m_radangle = m_angle * M_PI/180.0;//calculates the radians angle, used for flattening
+	m_radangle = m_angle * (float)M_PI/180.0f;//calculates the radians angle, used for flattening
 	/*
 	 * verts_height is the exactly needed height of the cube faces (not always 1.0).
 	 * When we want some horizontal information (e.g. for horizontal 220deg domes) we don't need to create and tessellate the whole cube.
@@ -746,207 +746,207 @@ void KX_Dome::CreateMeshDome250(void)
 	 * Once we take the tangent of that angle, you have the verts coordinate corresponding to the verts on the side faces.
 	 * Then we need to multiply it by sqrt(2.0) to get the coordinate of the verts on the diagonal of the original cube.
 	 */
-	verts_height = tanf((rad_ang / 2.0f) - (float)(MT_PI / 2.0)) * (float)M_SQRT2;
+	verts_height = tanf((rad_ang / 2.0f) - (MT_PI / 2.0f)) * (float)M_SQRT2;
 
 	uv_height = uv_ratio * (       (verts_height / 2.0f) + 0.5f);
-	uv_base   = uv_ratio * (1.0 - ((verts_height / 2.0f) + 0.5f));
+	uv_base   = uv_ratio * (1.0f - ((verts_height / 2.0f) + 0.5f));
 	
 	//creating faces for the env mapcube 180deg Dome
 	// Front Face - 2 triangles
-	cubefront[0].verts[0][0] =-1.0;
-	cubefront[0].verts[0][1] = 1.0;
-	cubefront[0].verts[0][2] =-1.0;
+	cubefront[0].verts[0][0] =-1.0f;
+	cubefront[0].verts[0][1] = 1.0f;
+	cubefront[0].verts[0][2] =-1.0f;
 	cubefront[0].u[0] = 0.0;
 	cubefront[0].v[0] = 0.0;
 
-	cubefront[0].verts[1][0] = 1.0;
-	cubefront[0].verts[1][1] = 1.0;
-	cubefront[0].verts[1][2] = 1.0;
+	cubefront[0].verts[1][0] = 1.0f;
+	cubefront[0].verts[1][1] = 1.0f;
+	cubefront[0].verts[1][2] = 1.0f;
 	cubefront[0].u[1] = uv_ratio;
 	cubefront[0].v[1] = uv_ratio;
 
-	cubefront[0].verts[2][0] =-1.0;
-	cubefront[0].verts[2][1] = 1.0;
-	cubefront[0].verts[2][2] = 1.0;
+	cubefront[0].verts[2][0] =-1.0f;
+	cubefront[0].verts[2][1] = 1.0f;
+	cubefront[0].verts[2][2] = 1.0f;
 	cubefront[0].u[2] = 0.0;
 	cubefront[0].v[2] = uv_ratio;
 
 	//second triangle
-	cubefront[1].verts[0][0] = 1.0;
-	cubefront[1].verts[0][1] = 1.0;
-	cubefront[1].verts[0][2] = 1.0;
+	cubefront[1].verts[0][0] = 1.0f;
+	cubefront[1].verts[0][1] = 1.0f;
+	cubefront[1].verts[0][2] = 1.0f;
 	cubefront[1].u[0] = uv_ratio;
 	cubefront[1].v[0] = uv_ratio;
 
-	cubefront[1].verts[1][0] =-1.0;
-	cubefront[1].verts[1][1] = 1.0;
-	cubefront[1].verts[1][2] =-1.0;
+	cubefront[1].verts[1][0] =-1.0f;
+	cubefront[1].verts[1][1] = 1.0f;
+	cubefront[1].verts[1][2] =-1.0f;
 	cubefront[1].u[1] = 0.0;
 	cubefront[1].v[1] = 0.0;
 
-	cubefront[1].verts[2][0] = 1.0;
-	cubefront[1].verts[2][1] = 1.0;
-	cubefront[1].verts[2][2] =-1.0;
+	cubefront[1].verts[2][0] = 1.0f;
+	cubefront[1].verts[2][1] = 1.0f;
+	cubefront[1].verts[2][2] =-1.0f;
 	cubefront[1].u[2] = uv_ratio;
 	cubefront[1].v[2] = 0.0;
 
 	nfacesfront = 2;
 
 	// Left Face - 2 triangles
-	cubeleft[0].verts[0][0] =-1.0;
-	cubeleft[0].verts[0][1] = 1.0;
-	cubeleft[0].verts[0][2] =-1.0;
+	cubeleft[0].verts[0][0] =-1.0f;
+	cubeleft[0].verts[0][1] = 1.0f;
+	cubeleft[0].verts[0][2] =-1.0f;
 	cubeleft[0].u[0] = uv_ratio;
 	cubeleft[0].v[0] = 0.0;
 
-	cubeleft[0].verts[1][0] =-1.0;
+	cubeleft[0].verts[1][0] =-1.0f;
 	cubeleft[0].verts[1][1] =-verts_height;
-	cubeleft[0].verts[1][2] = 1.0;
+	cubeleft[0].verts[1][2] = 1.0f;
 	cubeleft[0].u[1] = uv_base;
 	cubeleft[0].v[1] = uv_ratio;
 
-	cubeleft[0].verts[2][0] =-1.0;
+	cubeleft[0].verts[2][0] =-1.0f;
 	cubeleft[0].verts[2][1] =-verts_height;
-	cubeleft[0].verts[2][2] =-1.0;
+	cubeleft[0].verts[2][2] =-1.0f;
 	cubeleft[0].u[2] = uv_base;
 	cubeleft[0].v[2] = 0.0;
 
 	//second triangle
-	cubeleft[1].verts[0][0] =-1.0;
+	cubeleft[1].verts[0][0] =-1.0f;
 	cubeleft[1].verts[0][1] =-verts_height;
-	cubeleft[1].verts[0][2] = 1.0;
+	cubeleft[1].verts[0][2] = 1.0f;
 	cubeleft[1].u[0] = uv_base;
 	cubeleft[1].v[0] = uv_ratio;
 
-	cubeleft[1].verts[1][0] =-1.0;
-	cubeleft[1].verts[1][1] = 1.0;
-	cubeleft[1].verts[1][2] =-1.0;
+	cubeleft[1].verts[1][0] =-1.0f;
+	cubeleft[1].verts[1][1] = 1.0f;
+	cubeleft[1].verts[1][2] =-1.0f;
 	cubeleft[1].u[1] = uv_ratio;
 	cubeleft[1].v[1] = 0.0;
 
-	cubeleft[1].verts[2][0] =-1.0;
-	cubeleft[1].verts[2][1] = 1.0;
-	cubeleft[1].verts[2][2] = 1.0;
+	cubeleft[1].verts[2][0] =-1.0f;
+	cubeleft[1].verts[2][1] = 1.0f;
+	cubeleft[1].verts[2][2] = 1.0f;
 	cubeleft[1].u[2] = uv_ratio;
 	cubeleft[1].v[2] = uv_ratio;
 
 	nfacesleft = 2;
 
 	// right Face - 2 triangles
-	cuberight[0].verts[0][0] = 1.0;
-	cuberight[0].verts[0][1] = 1.0;
-	cuberight[0].verts[0][2] = 1.0;
+	cuberight[0].verts[0][0] = 1.0f;
+	cuberight[0].verts[0][1] = 1.0f;
+	cuberight[0].verts[0][2] = 1.0f;
 	cuberight[0].u[0] = 0.0;
 	cuberight[0].v[0] = uv_ratio;
 
-	cuberight[0].verts[1][0] = 1.0;
+	cuberight[0].verts[1][0] = 1.0f;
 	cuberight[0].verts[1][1] =-verts_height;
-	cuberight[0].verts[1][2] =-1.0;
+	cuberight[0].verts[1][2] =-1.0f;
 	cuberight[0].u[1] = uv_height;
 	cuberight[0].v[1] = 0.0;
 
-	cuberight[0].verts[2][0] = 1.0;
+	cuberight[0].verts[2][0] = 1.0f;
 	cuberight[0].verts[2][1] =-verts_height;
-	cuberight[0].verts[2][2] = 1.0;
+	cuberight[0].verts[2][2] = 1.0f;
 	cuberight[0].u[2] = uv_height;
 	cuberight[0].v[2] = uv_ratio;
 
 	//second triangle
-	cuberight[1].verts[0][0] = 1.0;
+	cuberight[1].verts[0][0] = 1.0f;
 	cuberight[1].verts[0][1] =-verts_height;
-	cuberight[1].verts[0][2] =-1.0;
+	cuberight[1].verts[0][2] =-1.0f;
 	cuberight[1].u[0] = uv_height;
 	cuberight[1].v[0] = 0.0;
 
-	cuberight[1].verts[1][0] = 1.0;
-	cuberight[1].verts[1][1] = 1.0;
-	cuberight[1].verts[1][2] = 1.0;
+	cuberight[1].verts[1][0] = 1.0f;
+	cuberight[1].verts[1][1] = 1.0f;
+	cuberight[1].verts[1][2] = 1.0f;
 	cuberight[1].u[1] = 0.0;
 	cuberight[1].v[1] = uv_ratio;
 
-	cuberight[1].verts[2][0] = 1.0;
-	cuberight[1].verts[2][1] = 1.0;
-	cuberight[1].verts[2][2] =-1.0;
+	cuberight[1].verts[2][0] = 1.0f;
+	cuberight[1].verts[2][1] = 1.0f;
+	cuberight[1].verts[2][2] =-1.0f;
 	cuberight[1].u[2] = 0.0;
 	cuberight[1].v[2] = 0.0;
 
 	nfacesright = 2;
 
 	// top Face - 2 triangles
-	cubetop[0].verts[0][0] =-1.0;
-	cubetop[0].verts[0][1] = 1.0;
-	cubetop[0].verts[0][2] = 1.0;
+	cubetop[0].verts[0][0] =-1.0f;
+	cubetop[0].verts[0][1] = 1.0f;
+	cubetop[0].verts[0][2] = 1.0f;
 	cubetop[0].u[0] = 0.0;
 	cubetop[0].v[0] = 0.0;
 
-	cubetop[0].verts[1][0] = 1.0;
+	cubetop[0].verts[1][0] = 1.0f;
 	cubetop[0].verts[1][1] =-verts_height;
-	cubetop[0].verts[1][2] = 1.0;
+	cubetop[0].verts[1][2] = 1.0f;
 	cubetop[0].u[1] = uv_ratio;
 	cubetop[0].v[1] = uv_height;
 
-	cubetop[0].verts[2][0] =-1.0;
+	cubetop[0].verts[2][0] =-1.0f;
 	cubetop[0].verts[2][1] =-verts_height;
-	cubetop[0].verts[2][2] = 1.0;
+	cubetop[0].verts[2][2] = 1.0f;
 	cubetop[0].u[2] = 0.0;
 	cubetop[0].v[2] = uv_height;
 
 	//second triangle
-	cubetop[1].verts[0][0] = 1.0;
+	cubetop[1].verts[0][0] = 1.0f;
 	cubetop[1].verts[0][1] =-verts_height;
-	cubetop[1].verts[0][2] = 1.0;
+	cubetop[1].verts[0][2] = 1.0f;
 	cubetop[1].u[0] = uv_ratio;
 	cubetop[1].v[0] = uv_height;
 
-	cubetop[1].verts[1][0] =-1.0;
-	cubetop[1].verts[1][1] = 1.0;
-	cubetop[1].verts[1][2] = 1.0;
+	cubetop[1].verts[1][0] =-1.0f;
+	cubetop[1].verts[1][1] = 1.0f;
+	cubetop[1].verts[1][2] = 1.0f;
 	cubetop[1].u[1] = 0.0;
 	cubetop[1].v[1] = 0.0;
 
-	cubetop[1].verts[2][0] = 1.0;
-	cubetop[1].verts[2][1] = 1.0;
-	cubetop[1].verts[2][2] = 1.0;
+	cubetop[1].verts[2][0] = 1.0f;
+	cubetop[1].verts[2][1] = 1.0f;
+	cubetop[1].verts[2][2] = 1.0f;
 	cubetop[1].u[2] = uv_ratio;
 	cubetop[1].v[2] = 0.0;
 
 	nfacestop = 2;
 
 	// bottom Face - 2 triangles
-	cubebottom[0].verts[0][0] =-1.0;
+	cubebottom[0].verts[0][0] =-1.0f;
 	cubebottom[0].verts[0][1] =-verts_height;
-	cubebottom[0].verts[0][2] =-1.0;
+	cubebottom[0].verts[0][2] =-1.0f;
 	cubebottom[0].u[0] = 0.0;
 	cubebottom[0].v[0] = uv_base;
 
-	cubebottom[0].verts[1][0] = 1.0;
-	cubebottom[0].verts[1][1] = 1.0;
-	cubebottom[0].verts[1][2] =-1.0;
+	cubebottom[0].verts[1][0] = 1.0f;
+	cubebottom[0].verts[1][1] = 1.0f;
+	cubebottom[0].verts[1][2] =-1.0f;
 	cubebottom[0].u[1] = uv_ratio;
 	cubebottom[0].v[1] = uv_ratio;
 
-	cubebottom[0].verts[2][0] =-1.0;
-	cubebottom[0].verts[2][1] = 1.0;
-	cubebottom[0].verts[2][2] =-1.0;
+	cubebottom[0].verts[2][0] =-1.0f;
+	cubebottom[0].verts[2][1] = 1.0f;
+	cubebottom[0].verts[2][2] =-1.0f;
 	cubebottom[0].u[2] = 0.0;
 	cubebottom[0].v[2] = uv_ratio;
 
 	//second triangle
-	cubebottom[1].verts[0][0] = 1.0;
-	cubebottom[1].verts[0][1] = 1.0;
-	cubebottom[1].verts[0][2] =-1.0;
+	cubebottom[1].verts[0][0] = 1.0f;
+	cubebottom[1].verts[0][1] = 1.0f;
+	cubebottom[1].verts[0][2] =-1.0f;
 	cubebottom[1].u[0] = uv_ratio;
 	cubebottom[1].v[0] = uv_ratio;
 
-	cubebottom[1].verts[1][0] =-1.0;
+	cubebottom[1].verts[1][0] =-1.0f;
 	cubebottom[1].verts[1][1] =-verts_height;
-	cubebottom[1].verts[1][2] =-1.0;
+	cubebottom[1].verts[1][2] =-1.0f;
 	cubebottom[1].u[1] = 0.0;
 	cubebottom[1].v[1] = uv_base;
 
-	cubebottom[1].verts[2][0] = 1.0;
+	cubebottom[1].verts[2][0] = 1.0f;
 	cubebottom[1].verts[2][1] =-verts_height;
-	cubebottom[1].verts[2][2] =-1.0;
+	cubebottom[1].verts[2][2] =-1.0f;
 	cubebottom[1].u[2] = uv_ratio;
 	cubebottom[1].v[2] = uv_base;
 
@@ -1012,80 +1012,80 @@ void KX_Dome::CreateMeshPanorama(void)
 	float uv_ratio = (float)(m_buffersize-1) / m_imagesize;
 
 	/* Top face - two triangles */
-	cubetop[0].verts[0][0] = -M_SQRT2;
-	cubetop[0].verts[0][1] = 0.0;
-	cubetop[0].verts[0][2] = 1.0;
+	cubetop[0].verts[0][0] = (float)(-M_SQRT2);
+	cubetop[0].verts[0][1] = 0.0f;
+	cubetop[0].verts[0][2] = 1.0f;
 	cubetop[0].u[0] = 0.0;
 	cubetop[0].v[0] = uv_ratio;
 
-	cubetop[0].verts[1][0] = 0.0;
-	cubetop[0].verts[1][1] = M_SQRT2;
-	cubetop[0].verts[1][2] = 1.0;
+	cubetop[0].verts[1][0] = 0.0f;
+	cubetop[0].verts[1][1] = (float)M_SQRT2;
+	cubetop[0].verts[1][2] = 1.0f;
 	cubetop[0].u[1] = 0.0;
 	cubetop[0].v[1] = 0.0;
 
 	//second triangle
-	cubetop[0].verts[2][0] = M_SQRT2;
-	cubetop[0].verts[2][1] = 0.0;
-	cubetop[0].verts[2][2] = 1.0;
+	cubetop[0].verts[2][0] = (float)M_SQRT2;
+	cubetop[0].verts[2][1] = 0.0f;
+	cubetop[0].verts[2][2] = 1.0f;
 	cubetop[0].u[2] = uv_ratio;
 	cubetop[0].v[2] = 0.0;
 
-	cubetop[1].verts[0][0] = M_SQRT2;
-	cubetop[1].verts[0][1] = 0.0;
-	cubetop[1].verts[0][2] = 1.0;
+	cubetop[1].verts[0][0] = (float)M_SQRT2;
+	cubetop[1].verts[0][1] = 0.0f;
+	cubetop[1].verts[0][2] = 1.0f;
 	cubetop[1].u[0] = uv_ratio;
 	cubetop[1].v[0] = 0.0;
 
-	cubetop[1].verts[1][0] = 0.0;
-	cubetop[1].verts[1][1] = -M_SQRT2;
-	cubetop[1].verts[1][2] = 1.0;
+	cubetop[1].verts[1][0] = 0.0f;
+	cubetop[1].verts[1][1] = (float)(-M_SQRT2);
+	cubetop[1].verts[1][2] = 1.0f;
 	cubetop[1].u[1] = uv_ratio;
 	cubetop[1].v[1] = uv_ratio;
 
-	cubetop[1].verts[2][0] = -M_SQRT2;
-	cubetop[1].verts[2][1] = 0.0;
-	cubetop[1].verts[2][2] = 1.0;
+	cubetop[1].verts[2][0] = (float)(-M_SQRT2);
+	cubetop[1].verts[2][1] = 0.0f;
+	cubetop[1].verts[2][2] = 1.0f;
 	cubetop[1].u[2] = 0.0;
 	cubetop[1].v[2] = uv_ratio;
 
 	nfacestop = 2;
 
 	/* Bottom face - two triangles */
-	cubebottom[0].verts[0][0] = -M_SQRT2;
-	cubebottom[0].verts[0][1] = 0.0;
-	cubebottom[0].verts[0][2] = -1.0;
+	cubebottom[0].verts[0][0] = (float)(-M_SQRT2);
+	cubebottom[0].verts[0][1] = 0.0f;
+	cubebottom[0].verts[0][2] = -1.0f;
 	cubebottom[0].u[0] = uv_ratio;
 	cubebottom[0].v[0] = 0.0;
 
-	cubebottom[0].verts[1][0] = M_SQRT2;
-	cubebottom[0].verts[1][1] = 0.0;
-	cubebottom[0].verts[1][2] = -1.0;
+	cubebottom[0].verts[1][0] = (float)M_SQRT2;
+	cubebottom[0].verts[1][1] = 0.0f;
+	cubebottom[0].verts[1][2] = -1.0f;
 	cubebottom[0].u[1] = 0.0;
 	cubebottom[0].v[1] = uv_ratio;
 
-	cubebottom[0].verts[2][0] = 0.0;
-	cubebottom[0].verts[2][1] = M_SQRT2;
-	cubebottom[0].verts[2][2] = -1.0;
+	cubebottom[0].verts[2][0] = 0.0f;
+	cubebottom[0].verts[2][1] = (float)M_SQRT2;
+	cubebottom[0].verts[2][2] = -1.0f;
 	cubebottom[0].u[2] = 0.0;
 	cubebottom[0].v[2] = 0.0;
 
 	//second triangle
-	cubebottom[1].verts[0][0] = M_SQRT2;
-	cubebottom[1].verts[0][1] = 0.0;
-	cubebottom[1].verts[0][2] = -1.0;
+	cubebottom[1].verts[0][0] = (float)M_SQRT2;
+	cubebottom[1].verts[0][1] = 0.0f;
+	cubebottom[1].verts[0][2] = -1.0f;
 	cubebottom[1].u[0] = 0.0;
 	cubebottom[1].v[0] = uv_ratio;
 
-	cubebottom[1].verts[1][0] = -M_SQRT2;
-	cubebottom[1].verts[1][1] = 0.0;
-	cubebottom[1].verts[1][2] = -1.0;
+	cubebottom[1].verts[1][0] = (float)(-M_SQRT2);
+	cubebottom[1].verts[1][1] = 0.0f;
+	cubebottom[1].verts[1][2] = -1.0f;
 	cubebottom[1].u[1] = uv_ratio;
 	cubebottom[1].v[1] = 0.0;
 
-	cubebottom[1].verts[2][0] = 0.0;
-	cubebottom[1].verts[2][1] = -M_SQRT2;
-	cubebottom[1].verts[2][2] = -1.0;
+	cubebottom[1].verts[2][0] = 0.0f;
+	cubebottom[1].verts[2][1] = (float)(-M_SQRT2);
+	cubebottom[1].verts[2][2] = -1.0f;
 	cubebottom[1].u[2] = uv_ratio;
 	cubebottom[1].v[2] = uv_ratio;
 
@@ -1093,40 +1093,40 @@ void KX_Dome::CreateMeshPanorama(void)
 
 	/* Left Back (135deg) face - two triangles */
 
-	cubeleftback[0].verts[0][0] = 0;
-	cubeleftback[0].verts[0][1] = -M_SQRT2;
-	cubeleftback[0].verts[0][2] = -1.0;
-	cubeleftback[0].u[0] = 0;
-	cubeleftback[0].v[0] = 0;
+	cubeleftback[0].verts[0][0] = 0.0f;
+	cubeleftback[0].verts[0][1] = (float)(-M_SQRT2);
+	cubeleftback[0].verts[0][2] = -1.0f;
+	cubeleftback[0].u[0] = 0.0;
+	cubeleftback[0].v[0] = 0.0;
 
-	cubeleftback[0].verts[1][0] = -M_SQRT2;
-	cubeleftback[0].verts[1][1] = 0;
-	cubeleftback[0].verts[1][2] = -1.0;
+	cubeleftback[0].verts[1][0] = (float)(-M_SQRT2);
+	cubeleftback[0].verts[1][1] = 0.0f;
+	cubeleftback[0].verts[1][2] = -1.0f;
 	cubeleftback[0].u[1] = uv_ratio;
-	cubeleftback[0].v[1] = 0;
+	cubeleftback[0].v[1] = 0.0;
 
-	cubeleftback[0].verts[2][0] = 0;
-	cubeleftback[0].verts[2][1] = -M_SQRT2;
-	cubeleftback[0].verts[2][2] = 1.0;
-	cubeleftback[0].u[2] = 0;
+	cubeleftback[0].verts[2][0] = 0.0f;
+	cubeleftback[0].verts[2][1] = (float)(-M_SQRT2);
+	cubeleftback[0].verts[2][2] = 1.0f;
+	cubeleftback[0].u[2] = 0.0;
 	cubeleftback[0].v[2] = uv_ratio;
 
 	//second triangle
-	cubeleftback[1].verts[0][0] = 0;
-	cubeleftback[1].verts[0][1] = -M_SQRT2;
-	cubeleftback[1].verts[0][2] = 1.0;
-	cubeleftback[1].u[0] = 0;
+	cubeleftback[1].verts[0][0] = 0.0f;
+	cubeleftback[1].verts[0][1] = (float)(-M_SQRT2);
+	cubeleftback[1].verts[0][2] = 1.0f;
+	cubeleftback[1].u[0] = 0.0;
 	cubeleftback[1].v[0] = uv_ratio;
 
-	cubeleftback[1].verts[1][0] = -M_SQRT2;
-	cubeleftback[1].verts[1][1] = 0;
-	cubeleftback[1].verts[1][2] = -1.0;
+	cubeleftback[1].verts[1][0] = (float)(-M_SQRT2);
+	cubeleftback[1].verts[1][1] = 0.0f;
+	cubeleftback[1].verts[1][2] = -1.0f;
 	cubeleftback[1].u[1] = uv_ratio;
-	cubeleftback[1].v[1] = 0;
+	cubeleftback[1].v[1] = 0.0;
 
-	cubeleftback[1].verts[2][0] = -M_SQRT2;
-	cubeleftback[1].verts[2][1] = 0;
-	cubeleftback[1].verts[2][2] = 1.0;
+	cubeleftback[1].verts[2][0] = (float)(-M_SQRT2);
+	cubeleftback[1].verts[2][1] = 0.0f;
+	cubeleftback[1].verts[2][2] = 1.0f;
 	cubeleftback[1].u[2] = uv_ratio;
 	cubeleftback[1].v[2] = uv_ratio;
 
@@ -1134,121 +1134,121 @@ void KX_Dome::CreateMeshPanorama(void)
 
 	/* Left face - two triangles */
 	
-	cubeleft[0].verts[0][0] = -M_SQRT2;
-	cubeleft[0].verts[0][1] = 0;
-	cubeleft[0].verts[0][2] = -1.0;
-	cubeleft[0].u[0] = 0;
-	cubeleft[0].v[0] = 0;
+	cubeleft[0].verts[0][0] = (float)(-M_SQRT2);
+	cubeleft[0].verts[0][1] = 0.0f;
+	cubeleft[0].verts[0][2] = -1.0f;
+	cubeleft[0].u[0] = 0.0;
+	cubeleft[0].v[0] = 0.0;
 
-	cubeleft[0].verts[1][0] = 0;
-	cubeleft[0].verts[1][1] = M_SQRT2;
-	cubeleft[0].verts[1][2] = -1.0;
+	cubeleft[0].verts[1][0] = 0.0f;
+	cubeleft[0].verts[1][1] = (float)M_SQRT2;
+	cubeleft[0].verts[1][2] = -1.0f;
 	cubeleft[0].u[1] = uv_ratio;
-	cubeleft[0].v[1] = 0;
+	cubeleft[0].v[1] = 0.0;
 
-	cubeleft[0].verts[2][0] = -M_SQRT2;
-	cubeleft[0].verts[2][1] = 0;
-	cubeleft[0].verts[2][2] = 1.0;
-	cubeleft[0].u[2] = 0;
+	cubeleft[0].verts[2][0] = (float)(-M_SQRT2);
+	cubeleft[0].verts[2][1] = 0.0f;
+	cubeleft[0].verts[2][2] = 1.0f;
+	cubeleft[0].u[2] = 0.0;
 	cubeleft[0].v[2] = uv_ratio;
 
 	//second triangle
-	cubeleft[1].verts[0][0] = -M_SQRT2;
-	cubeleft[1].verts[0][1] = 0;
-	cubeleft[1].verts[0][2] = 1.0;
-	cubeleft[1].u[0] = 0;
+	cubeleft[1].verts[0][0] = (float)(-M_SQRT2);
+	cubeleft[1].verts[0][1] = 0.0f;
+	cubeleft[1].verts[0][2] = 1.0f;
+	cubeleft[1].u[0] = 0.0;
 	cubeleft[1].v[0] = uv_ratio;
 
-	cubeleft[1].verts[1][0] = 0;
-	cubeleft[1].verts[1][1] = M_SQRT2;
-	cubeleft[1].verts[1][2] = -1.0;
+	cubeleft[1].verts[1][0] = 0.0f;
+	cubeleft[1].verts[1][1] = (float)M_SQRT2;
+	cubeleft[1].verts[1][2] = -1.0f;
 	cubeleft[1].u[1] = uv_ratio;
-	cubeleft[1].v[1] = 0;
+	cubeleft[1].v[1] = 0.0;
 
-	cubeleft[1].verts[2][0] = 0;
-	cubeleft[1].verts[2][1] = M_SQRT2;
-	cubeleft[1].verts[2][2] = 1.0;
+	cubeleft[1].verts[2][0] = 0.0f;
+	cubeleft[1].verts[2][1] = (float)M_SQRT2;
+	cubeleft[1].verts[2][2] = 1.0f;
 	cubeleft[1].u[2] = uv_ratio;
 	cubeleft[1].v[2] = uv_ratio;
 
 	nfacesleft = 2;
 	
 	/* Right face - two triangles */
-	cuberight[0].verts[0][0] = 0;
-	cuberight[0].verts[0][1] = M_SQRT2;
-	cuberight[0].verts[0][2] = -1.0;
-	cuberight[0].u[0] = 0;
-	cuberight[0].v[0] = 0;
+	cuberight[0].verts[0][0] = 0.0f;
+	cuberight[0].verts[0][1] = (float)M_SQRT2;
+	cuberight[0].verts[0][2] = -1.0f;
+	cuberight[0].u[0] = 0.0;
+	cuberight[0].v[0] = 0.0;
 
-	cuberight[0].verts[1][0] = M_SQRT2;
-	cuberight[0].verts[1][1] = 0;
-	cuberight[0].verts[1][2] = -1.0;
+	cuberight[0].verts[1][0] = (float)M_SQRT2;
+	cuberight[0].verts[1][1] = 0.0f;
+	cuberight[0].verts[1][2] = -1.0f;
 	cuberight[0].u[1] = uv_ratio;
-	cuberight[0].v[1] = 0;
+	cuberight[0].v[1] = 0.0;
 
-	cuberight[0].verts[2][0] = M_SQRT2;
-	cuberight[0].verts[2][1] = 0;
-	cuberight[0].verts[2][2] = 1.0;
+	cuberight[0].verts[2][0] = (float)M_SQRT2;
+	cuberight[0].verts[2][1] = 0.0f;
+	cuberight[0].verts[2][2] = 1.0f;
 	cuberight[0].u[2] = uv_ratio;
 	cuberight[0].v[2] = uv_ratio;
 
 	//second triangle
-	cuberight[1].verts[0][0] = 0;
-	cuberight[1].verts[0][1] = M_SQRT2;
-	cuberight[1].verts[0][2] = -1.0;
-	cuberight[1].u[0] = 0;
-	cuberight[1].v[0] = 0;
+	cuberight[1].verts[0][0] = 0.0f;
+	cuberight[1].verts[0][1] = (float)M_SQRT2;
+	cuberight[1].verts[0][2] = -1.0f;
+	cuberight[1].u[0] = 0.0;
+	cuberight[1].v[0] = 0.0;
 
-	cuberight[1].verts[1][0] = M_SQRT2;
-	cuberight[1].verts[1][1] = 0;
-	cuberight[1].verts[1][2] = 1.0;
+	cuberight[1].verts[1][0] = (float)M_SQRT2;
+	cuberight[1].verts[1][1] = 0.0f;
+	cuberight[1].verts[1][2] = 1.0f;
 	cuberight[1].u[1] = uv_ratio;
 	cuberight[1].v[1] = uv_ratio;
 
-	cuberight[1].verts[2][0] = 0;
-	cuberight[1].verts[2][1] = M_SQRT2;
-	cuberight[1].verts[2][2] = 1.0;
-	cuberight[1].u[2] = 0;
+	cuberight[1].verts[2][0] = 0.0f;
+	cuberight[1].verts[2][1] = (float)M_SQRT2;
+	cuberight[1].verts[2][2] = 1.0f;
+	cuberight[1].u[2] = 0.0f;
 	cuberight[1].v[2] = uv_ratio;
 
 	nfacesright = 2;
 	
 	/* Right Back  (-135deg) face - two triangles */
-	cuberightback[0].verts[0][0] = M_SQRT2;
-	cuberightback[0].verts[0][1] = 0;
-	cuberightback[0].verts[0][2] = -1.0;
-	cuberightback[0].u[0] = 0;
-	cuberightback[0].v[0] = 0;
+	cuberightback[0].verts[0][0] = (float)M_SQRT2;
+	cuberightback[0].verts[0][1] = 0.0f;
+	cuberightback[0].verts[0][2] = -1.0f;
+	cuberightback[0].u[0] = 0.0;
+	cuberightback[0].v[0] = 0.0;
 
-	cuberightback[0].verts[1][0] = 0;
-	cuberightback[0].verts[1][1] = -M_SQRT2;
-	cuberightback[0].verts[1][2] = -1.0;
+	cuberightback[0].verts[1][0] = 0.0f;
+	cuberightback[0].verts[1][1] = (float)(-M_SQRT2);
+	cuberightback[0].verts[1][2] = -1.0f;
 	cuberightback[0].u[1] = uv_ratio;
-	cuberightback[0].v[1] = 0;
+	cuberightback[0].v[1] = 0.0;
 
-	cuberightback[0].verts[2][0] = 0;
-	cuberightback[0].verts[2][1] = -M_SQRT2;
-	cuberightback[0].verts[2][2] = 1.0;
+	cuberightback[0].verts[2][0] = 0.0f;
+	cuberightback[0].verts[2][1] = (float)(-M_SQRT2);
+	cuberightback[0].verts[2][2] = 1.0f;
 	cuberightback[0].u[2] = uv_ratio;
 	cuberightback[0].v[2] = uv_ratio;
 
 	//second triangle
-	cuberightback[1].verts[0][0] = M_SQRT2;
-	cuberightback[1].verts[0][1] = 0;
-	cuberightback[1].verts[0][2] = -1.0;
-	cuberightback[1].u[0] = 0;
-	cuberightback[1].v[0] = 0;
+	cuberightback[1].verts[0][0] = (float)M_SQRT2;
+	cuberightback[1].verts[0][1] = 0.0f;
+	cuberightback[1].verts[0][2] = -1.0f;
+	cuberightback[1].u[0] = 0.0;
+	cuberightback[1].v[0] = 0.0;
 
-	cuberightback[1].verts[1][0] = 0;
-	cuberightback[1].verts[1][1] = -M_SQRT2;
-	cuberightback[1].verts[1][2] = 1.0;
+	cuberightback[1].verts[1][0] = 0.0f;
+	cuberightback[1].verts[1][1] = (float)(-M_SQRT2);
+	cuberightback[1].verts[1][2] = 1.0f;
 	cuberightback[1].u[1] = uv_ratio;
 	cuberightback[1].v[1] = uv_ratio;
 
-	cuberightback[1].verts[2][0] = M_SQRT2;
-	cuberightback[1].verts[2][1] = 0;
-	cuberightback[1].verts[2][2] = 1.0;
-	cuberightback[1].u[2] = 0;
+	cuberightback[1].verts[2][0] = (float)M_SQRT2;
+	cuberightback[1].verts[2][1] = 0.0f;
+	cuberightback[1].verts[2][2] = 1.0f;
+	cuberightback[1].u[2] = 0.0;
 	cuberightback[1].v[2] = uv_ratio;
 
 	nfacesrightback = 2;
@@ -1328,13 +1328,13 @@ void KX_Dome::FlattenDome(MT_Vector3 verts[3])
 		phi = atan2(verts[i][2], verts[i][0]);
 
 		verts[i][0] = r * cos(phi);
-		verts[i][1] = 0;
+		verts[i][1] = 0.0f;
 		verts[i][2] = r * sin(phi);
 
 		if (r > 1.0) {
 		//round the border
 			verts[i][0] = cos(phi);
-			verts[i][1] = -3.0;
+			verts[i][1] = -3.0f;
 			verts[i][2] = sin(phi);
 		}
 	}
@@ -1355,7 +1355,7 @@ void KX_Dome::FlattenPanorama(MT_Vector3 verts[3])
 			edge=true;
 
 		verts[i][0] = phi / MT_PI;
-		verts[i][1] = 0;
+		verts[i][1] = 0.0f;
 
 		theta = asin(verts[i][2]);
 		verts[i][2] = theta / MT_PI;
@@ -1364,15 +1364,15 @@ void KX_Dome::FlattenPanorama(MT_Vector3 verts[3])
 		bool right=false;
 
 		for (i=0;i<3;i++) {
-			if (fmod(verts[i][0],1.0) > 0.0) {
+			if (fmodf(verts[i][0],1.0f) > 0.0f) {
 				right=true;
 				break;
 			}
 		}
 		if (right) {
 			for (i=0;i<3;i++) {
-				if (verts[i][0] < 0.0)
-					verts[i][0] *= -1.0;
+				if (verts[i][0] < 0.0f)
+					verts[i][0] *= -1.0f;
 			}
 		}
 	}
@@ -1438,8 +1438,8 @@ void KX_Dome::CalculateFrustum(KX_Camera *cam)
 	// manually creating a 90deg Field of View Frustum 
 
 	// the original formula:
-	top = tan(fov*3.14159/360.0) * near [for fov in degrees]
-	fov*0.5 = arctan ((top-bottom)*0.5 / near) [for fov in radians]
+	top = tan(fov*3.14159f/30.0f)) * near [for fov in degrees]
+	fov*0.5f = arctan ((top-bottom)*0.5f / near) [for fov in radians]
 	bottom = -top
 	left = aspect * bottom
 	right = aspect * top
@@ -1447,7 +1447,7 @@ void KX_Dome::CalculateFrustum(KX_Camera *cam)
 	// the equivalent GLU call is:
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(90.0,1.0,cam->GetCameraNear(),cam->GetCameraFar());
+	gluPerspective(90.0f,1.0f,cam->GetCameraNear(),cam->GetCameraFar());
 #endif
 
 	RAS_FrameFrustum m_frustrum; //90 deg. Frustum
@@ -1455,7 +1455,7 @@ void KX_Dome::CalculateFrustum(KX_Camera *cam)
 	m_frustrum.camnear = cam->GetCameraNear();
 	m_frustrum.camfar = cam->GetCameraFar();
 
-//	float top = tan(90.0*MT_PI/360.0) * m_frustrum.camnear;
+//	float top = tan(90.0f*MT_PI/360.0f) * m_frustrum.camnear;
 	float top = m_frustrum.camnear; // for deg = 90deg, tan = 1
 
 	m_frustrum.x1 = -top;
@@ -1485,90 +1485,90 @@ void KX_Dome::CalculateCameraOrientation()
 		|| m_mode == DOME_TRUNCATED_REAR)) {
 
 		m_locRot[0] = MT_Matrix3x3( // 90deg - Top
-						c, -s, 0.0,
-						0.0,0.0, -1.0,
-						s, c, 0.0);
+						c, -s, 0.0f,
+						0.0f,0.0f, -1.0f,
+						s, c, 0.0f);
 
 		m_locRot[1] = MT_Matrix3x3( // 90deg - Bottom
-						-s, c, 0.0,
-						0.0,0.0, 1.0,
-						s, c, 0.0);
+						-s, c, 0.0f,
+						0.0f,0.0f, 1.0f,
+						s, c, 0.0f);
 
 		m_locRot[2] = MT_Matrix3x3( // 45deg - Left
-						c, 0.0, s,
-						0, 1.0, 0.0,
-						-s, 0.0, c);
+						c, 0.0f, s,
+						0, 1.0f, 0.0f,
+						-s, 0.0f, c);
 
 		m_locRot[3] = MT_Matrix3x3( // 45deg - Right
-						c, 0.0, -s,
-						0.0, 1.0, 0.0,
-						s, 0.0, c);
+						c, 0.0f, -s,
+						0.0f, 1.0f, 0.0f,
+						s, 0.0f, c);
 
 	} else if (m_mode == DOME_ENVMAP || (m_angle > 180 && (m_mode == DOME_FISHEYE
 		|| m_mode == DOME_TRUNCATED_FRONT 
 		|| m_mode == DOME_TRUNCATED_REAR))) {
 
 		m_locRot[0] = MT_Matrix3x3( // 90deg - Top
-						 1.0, 0.0, 0.0,
-						 0.0, 0.0,-1.0,
-						 0.0, 1.0, 0.0);
+						 1.0f, 0.0f, 0.0f,
+						 0.0f, 0.0f,-1.0f,
+						 0.0f, 1.0f, 0.0f);
 
 		m_locRot[1] = MT_Matrix3x3( // 90deg - Bottom
-						 1.0, 0.0, 0.0,
-						 0.0, 0.0, 1.0,
-						 0.0,-1.0, 0.0);
+						 1.0f, 0.0f, 0.0f,
+						 0.0f, 0.0f, 1.0f,
+						 0.0f,-1.0f, 0.0f);
 
 		m_locRot[2] = MT_Matrix3x3( // -90deg - Left
-						 0.0, 0.0, 1.0,
-						 0.0, 1.0, 0.0,
-						 -1.0, 0.0, 0.0);
+						 0.0f, 0.0f, 1.0f,
+						 0.0f, 1.0f, 0.0f,
+						 -1.0f, 0.0f, 0.0f);
 
 		m_locRot[3] = MT_Matrix3x3( // 90deg - Right
-						 0.0, 0.0,-1.0,
-						 0.0, 1.0, 0.0,
-						 1.0, 0.0, 0.0);
+						 0.0f, 0.0f,-1.0f,
+						 0.0f, 1.0f, 0.0f,
+						 1.0f, 0.0f, 0.0f);
 						
 		m_locRot[4] = MT_Matrix3x3( // 0deg - Front
-						1.0, 0.0, 0.0,
-						0.0, 1.0, 0.0,
-						0.0, 0.0, 1.0);
+						1.0f, 0.0f, 0.0f,
+						0.0f, 1.0f, 0.0f,
+						0.0f, 0.0f, 1.0f);
 
 		m_locRot[5] = MT_Matrix3x3( // 180deg - Back - USED for ENVMAP only
-						-1.0, 0.0, 0.0,
-						 0.0, 1.0, 0.0,
-						 0.0, 0.0,-1.0);
+						-1.0f, 0.0f, 0.0f,
+						 0.0f, 1.0f, 0.0f,
+						 0.0f, 0.0f,-1.0f);
 
 	} else if (m_mode == DOME_PANORAM_SPH) {
 
 		m_locRot[0] = MT_Matrix3x3( // Top 
-						c, s, 0.0,
-						0.0,0.0, -1.0,
-						-s, c, 0.0);
+						c, s, 0.0f,
+						0.0f,0.0f, -1.0f,
+						-s, c, 0.0f);
 
 		m_locRot[1] = MT_Matrix3x3( // Bottom
-						c, s, 0.0,
-						0.0, 0.0, 1.0,
-						s, -c, 0.0);
+						c, s, 0.0f,
+						0.0f, 0.0f, 1.0f,
+						s, -c, 0.0f);
 
 		m_locRot[2] = MT_Matrix3x3( // 45deg - Left
-						-s, 0.0, c,
-						0, 1.0, 0.0,
-						-c, 0.0, -s);
+						-s, 0.0f, c,
+						0, 1.0f, 0.0f,
+						-c, 0.0f, -s);
 
 		m_locRot[3] = MT_Matrix3x3( // 45deg - Right
-						c, 0.0, s,
-						0, 1.0, 0.0,
-						-s, 0.0, c);
+						c, 0.0f, s,
+						0, 1.0f, 0.0f,
+						-s, 0.0f, c);
 
 		m_locRot[4] = MT_Matrix3x3( // 135deg - LeftBack
-						-s, 0.0, -c,
-						0.0, 1.0, 0.0,
-						c, 0.0, -s);
+						-s, 0.0f, -c,
+						0.0f, 1.0f, 0.0f,
+						c, 0.0f, -s);
 
 		m_locRot[5] = MT_Matrix3x3( // 135deg - RightBack
-						c, 0.0, -s,
-						0.0, 1.0, 0.0,
-						s, 0.0, c);
+						c, 0.0f, -s,
+						0.0f, 1.0f, 0.0f,
+						s, 0.0f, c);
 	}
 
 	// rotating the camera in horizontal axis
@@ -1579,9 +1579,9 @@ void KX_Dome::CalculateCameraOrientation()
 		s = sin(tiltdeg);
 
 		MT_Matrix3x3 tilt_mat = MT_Matrix3x3(
-		1.0, 0.0, 0.0,
-		0.0, c, -s,
-		0.0, s,  c
+		1.0f, 0.0f, 0.0f,
+		0.0f, c, -s,
+		0.0f, s,  c
 		);
 
 		for (i =0;i<6;i++)
@@ -1667,11 +1667,11 @@ void KX_Dome::DrawEnvMap(void)
 	float ortho_width, ortho_height;
 
 	if (warp.usemesh)
-		glOrtho((-1.0), 1.0, (-0.66), 0.66, -20.0, 10.0); //stretch the image to reduce resolution lost
+		glOrtho((-1.0), 1.0, (-0.66), 0.66, 0.0, 0.0); //stretch the image to reduce resolution lost
 
 	else {
 		if (can_width/3 <= can_height/2) {
-			ortho_width = 1.0;
+			ortho_width = 1.0f;
 			ortho_height = (float)can_height/can_width;
 		}
 		else {
@@ -1679,14 +1679,14 @@ void KX_Dome::DrawEnvMap(void)
 			ortho_width = (float)can_width/can_height * ortho_height;
 		}
 		
-		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0, 10.0);
+		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0f, 10.0f);
 	}
 
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(0.0,0.0,1.0, 0.0,0.0,0.0, 0.0,1.0,0.0);
+	gluLookAt(0.0f,0.0f,1.0f, 0.0f,0.0f,0.0f, 0.0f,1.0f,0.0f);
 
 	glPolygonMode(GL_FRONT, GL_FILL);
 	glShadeModel(GL_SMOOTH);
@@ -1694,7 +1694,7 @@ void KX_Dome::DrawEnvMap(void)
 	glDisable(GL_DEPTH_TEST);
 
 	glEnable(GL_TEXTURE_2D);
-	glColor3f(1.0,1.0,1.0);
+	glColor3f(1.0f,1.0f,1.0f);
 
 	float uv_ratio = (float)(m_buffersize-1) / m_imagesize;
 	double onebythree = 1.0f / 3;
@@ -1704,11 +1704,11 @@ void KX_Dome::DrawEnvMap(void)
 	glBegin(GL_QUADS);
 		glTexCoord2f(uv_ratio,uv_ratio);
 		glVertex3f( onebythree, 0.0f, 3.0f);
-		glTexCoord2f(0.0,uv_ratio);
+		glTexCoord2f(0.0f,uv_ratio);
 		glVertex3f(-onebythree, 0.0f, 3.0f);
-		glTexCoord2f(0.0,0.0);
+		glTexCoord2f(0.0f,0.0f);
 		glVertex3f(-onebythree,-2 * onebythree, 3.0f);
-		glTexCoord2f(uv_ratio,0.0);
+		glTexCoord2f(uv_ratio,0.0f);
 		glVertex3f(onebythree,-2 * onebythree, 3.0f);
 	glEnd();
 
@@ -1717,11 +1717,11 @@ void KX_Dome::DrawEnvMap(void)
 	glBegin(GL_QUADS);
 		glTexCoord2f(uv_ratio,uv_ratio);
 		glVertex3f(-onebythree, 0.0f, 3.0f);
-		glTexCoord2f(0.0,uv_ratio);
+		glTexCoord2f(0.0f,uv_ratio);
 		glVertex3f(-1.0f, 0.0f, 3.0f);
-		glTexCoord2f(0.0,0.0);
+		glTexCoord2f(0.0f,0.0f);
 		glVertex3f(-1.0f,-2 * onebythree, 3.0f);
-		glTexCoord2f(uv_ratio,0.0);
+		glTexCoord2f(uv_ratio,0.0f);
 		glVertex3f(-onebythree,-2 * onebythree, 3.0f);
 	glEnd();
 
@@ -1730,11 +1730,11 @@ void KX_Dome::DrawEnvMap(void)
 	glBegin(GL_QUADS);
 		glTexCoord2f(uv_ratio,uv_ratio);
 		glVertex3f(-onebythree, 2 * onebythree, 3.0f);
-		glTexCoord2f(0.0,uv_ratio);
+		glTexCoord2f(0.0f,uv_ratio);
 		glVertex3f(-1.0f, 2 * onebythree, 3.0f);
-		glTexCoord2f(0.0,0.0);
+		glTexCoord2f(0.0f,0.0f);
 		glVertex3f(-1.0f, 0.0f, 3.0f);
-		glTexCoord2f(uv_ratio,0.0);
+		glTexCoord2f(uv_ratio,0.0f);
 		glVertex3f(-onebythree, 0.0f, 3.0f);
 	glEnd();
 
@@ -1743,11 +1743,11 @@ void KX_Dome::DrawEnvMap(void)
 	glBegin(GL_QUADS);
 		glTexCoord2f(uv_ratio,uv_ratio);
 		glVertex3f( 1.0f, 2 * onebythree, 3.0f);
-		glTexCoord2f(0.0,uv_ratio);
+		glTexCoord2f(0.0f,uv_ratio);
 		glVertex3f( onebythree, 2 * onebythree, 3.0f);
-		glTexCoord2f(0.0,0.0);
+		glTexCoord2f(0.0f,0.0f);
 		glVertex3f( onebythree, 0.0f, 3.0f);
-		glTexCoord2f(uv_ratio,0.0);
+		glTexCoord2f(uv_ratio,0.0f);
 		glVertex3f(1.0f, 0.0f, 3.0f);
 	glEnd();
 
@@ -1756,11 +1756,11 @@ void KX_Dome::DrawEnvMap(void)
 	glBegin(GL_QUADS);
 		glTexCoord2f(uv_ratio,uv_ratio);
 		glVertex3f( 1.0f, 0.0f, 3.0f);
-		glTexCoord2f(0.0,uv_ratio);
+		glTexCoord2f(0.0f,uv_ratio);
 		glVertex3f( onebythree, 0.0f, 3.0f);
-		glTexCoord2f(0.0,0.0);
+		glTexCoord2f(0.0f,0.0f);
 		glVertex3f( onebythree,-2 * onebythree, 3.0f);
-		glTexCoord2f(uv_ratio,0.0);
+		glTexCoord2f(uv_ratio,0.0f);
 		glVertex3f(1.0f, -2 * onebythree, 3.0f);
 	glEnd();
 
@@ -1769,11 +1769,11 @@ void KX_Dome::DrawEnvMap(void)
 	glBegin(GL_QUADS);
 		glTexCoord2f(uv_ratio,uv_ratio);
 		glVertex3f( onebythree, 2 * onebythree, 3.0f);
-		glTexCoord2f(0.0,uv_ratio);
+		glTexCoord2f(0.0f,uv_ratio);
 		glVertex3f(-onebythree, 2 * onebythree, 3.0f);
-		glTexCoord2f(0.0,0.0);
+		glTexCoord2f(0.0f,0.0f);
 		glVertex3f(-onebythree, 0.0f, 3.0f);
-		glTexCoord2f(uv_ratio,0.0);
+		glTexCoord2f(uv_ratio,0.0f);
 		glVertex3f(onebythree, 0.0f, 3.0f);
 	glEnd();
 
@@ -1798,40 +1798,40 @@ void KX_Dome::DrawDomeFisheye(void)
 
 	if (m_mode == DOME_FISHEYE) {
 		if (warp.usemesh)
-			glOrtho((-1.0), 1.0, (-1.0), 1.0, -20.0, 10.0); //stretch the image to reduce resolution lost
+			glOrtho((-1.0f), 1.0f, (-1.0f), 1.0f, -20.0f, 10.0f); //stretch the image to reduce resolution lost
 
 		else {
 			if (can_width < can_height) {
-				ortho_width = 1.0;
+				ortho_width = 1.0f;
 				ortho_height = (float)can_height/can_width;
 			}
 			else {
 				ortho_width = (float)can_width/can_height;
-				ortho_height = 1.0;
+				ortho_height = 1.0f;
 			}
 			
-			glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0, 10.0);
+			glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0f, 10.0f);
 		}
 	}
 	else if (m_mode == DOME_TRUNCATED_FRONT)
 	{
-		ortho_width = 1.0;
+		ortho_width = 1.0f;
 		ortho_height = 2.0f * ((float)can_height / can_width) - 1.0f;
 
-		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_width, -20.0, 10.0);
+		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_width, -20.0f, 10.0f);
 	}
 	else { //m_mode == DOME_TRUNCATED_REAR
-		ortho_width = 1.0;
+		ortho_width = 1.0f;
 		ortho_height = 2.0f * ((float)can_height / can_width) - 1.0f;
 
-		glOrtho((-ortho_width), ortho_width, (-ortho_width), ortho_height, -20.0, 10.0);
+		glOrtho((-ortho_width), ortho_width, (-ortho_width), ortho_height, -20.0f, 10.0f);
 	}
 
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(0.0,-1.0,0.0, 0.0,0.0,0.0, 0.0,0.0,1.0);
+	gluLookAt(0.0f,-1.0f,0.0f, 0.0f,0.0f,0.0f, 0.0f,0.0f,1.0f);
 
 	if (m_drawingmode == RAS_IRasterizer::KX_WIREFRAME)
 		glPolygonMode(GL_FRONT, GL_LINE);
@@ -1843,7 +1843,7 @@ void KX_Dome::DrawDomeFisheye(void)
 	glDisable(GL_DEPTH_TEST);
 
 	glEnable(GL_TEXTURE_2D);
-	glColor3f(1.0,1.0,1.0);
+	glColor3f(1.0f,1.0f,1.0f);
 
 	if (dlistSupported) {
 		for (i=0;i<m_numfaces;i++) {
@@ -1890,16 +1890,16 @@ void KX_Dome::DrawPanorama(void)
 	int can_width = m_viewport.GetRight();
 	int can_height = m_viewport.GetTop();
 
-	float ortho_height = 1.0;
-	float ortho_width = 1.0;
+	float ortho_height = 1.0f;
+	float ortho_width = 1.0f;
 
 	if (warp.usemesh)
-		glOrtho((-1.0), 1.0, (-0.5), 0.5, -20.0, 10.0); //stretch the image to reduce resolution lost
+		glOrtho((-1.0f), 1.0f, (-0.5f), 0.5f, -20.0f, 10.0f); //stretch the image to reduce resolution lost
 
 	else {
 		//using all the screen
 		if ((can_width / 2) <= (can_height)) {
-			ortho_width = 1.0;
+			ortho_width = 1.0f;
 			ortho_height = (float)can_height/can_width;
 		}
 		else {
@@ -1907,14 +1907,14 @@ void KX_Dome::DrawPanorama(void)
 			ortho_height = 0.5f;
 		}
 		
-		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0, 10.0);
+		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0f, 10.0f);
 	}
 
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(0.0,-1.0,0.0, 0.0,0.0,0.0, 0.0,0.0,1.0);
+	gluLookAt(0.0f,-1.0f,0.0f, 0.0f,0.0f,0.0f, 0.0f,0.0f,1.0f);
 
 	if (m_drawingmode == RAS_IRasterizer::KX_WIREFRAME)
 		glPolygonMode(GL_FRONT, GL_LINE);
@@ -1926,7 +1926,7 @@ void KX_Dome::DrawPanorama(void)
 	glDisable(GL_DEPTH_TEST);
 
 	glEnable(GL_TEXTURE_2D);
-	glColor3f(1.0,1.0,1.0);
+	glColor3f(1.0f,1.0f,1.0f);
 
 	if (dlistSupported) {
 		for (i=0;i<m_numfaces;i++) {
@@ -1975,14 +1975,14 @@ void KX_Dome::DrawDomeWarped(void)
 
 	double screen_ratio = can_width/ (double) can_height;
 
-	glOrtho(-screen_ratio,screen_ratio,-1.0,1.0,-20.0,10.0);
+	glOrtho(-screen_ratio,screen_ratio,-1.0f,1.0f,-20.0f,10.0f);
 
 
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(0.0, 0.0, 1.0, 0.0,0.0,0.0, 0.0,1.0,0.0);
+	gluLookAt(0.0f, 0.0f, 1.0f, 0.0f,0.0f,0.0f, 0.0f,1.0f,0.0f);
 
 	if (m_drawingmode == RAS_IRasterizer::KX_WIREFRAME)
 		glPolygonMode(GL_FRONT, GL_LINE);
@@ -1994,7 +1994,7 @@ void KX_Dome::DrawDomeWarped(void)
 	glDisable(GL_DEPTH_TEST);
 
 	glEnable(GL_TEXTURE_2D);
-	glColor3f(1.0,1.0,1.0);
+	glColor3f(1.0f,1.0f,1.0f);
 
 	if (dlistSupported) {
 		glBindTexture(GL_TEXTURE_2D, domefacesId[m_numfaces]);
@@ -2036,7 +2036,7 @@ void KX_Dome::RenderDomeFrame(KX_Scene* scene, KX_Camera* cam, int i)
 
 	MT_Transform camtrans(cam->GetWorldToCamera());
 	MT_Matrix4x4 viewmat(camtrans);
-	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldOrientation(), cam->NodeGetWorldPosition(), 1.0);
+	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldOrientation(), cam->NodeGetWorldPosition(), 1.0f);
 	cam->SetModelviewMatrix(viewmat);
 
 	// restore the original orientation

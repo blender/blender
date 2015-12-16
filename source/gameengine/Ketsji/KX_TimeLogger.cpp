@@ -109,7 +109,7 @@ double KX_TimeLogger::GetAverage(void) const
 		for (unsigned int i = 1; i < numMeasurements; i++) {
 			avg += m_measurements[i];
 		}
-		avg /= (float)numMeasurements - 1;
+		avg /= (double)numMeasurements - 1.0;
 	}
 
 	return avg;

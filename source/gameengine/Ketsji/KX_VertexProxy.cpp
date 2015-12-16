@@ -198,7 +198,7 @@ PyObject *KX_VertexProxy::pyattr_get_color(void *self_v, const KX_PYATTRIBUTE_DE
 	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	const unsigned char *colp = self->m_vertex->getRGBA();
 	MT_Vector4 color(colp[0], colp[1], colp[2], colp[3]);
-	color /= 255.0;
+	color /= 255.0f;
 	return PyObjectFrom(color);
 }
 
@@ -321,7 +321,7 @@ int KX_VertexProxy::pyattr_set_r(void *self_v, const struct KX_PYATTRIBUTE_DEF *
 		float val = PyFloat_AsDouble(value);
 		unsigned int icol = *((const unsigned int *)self->m_vertex->getRGBA());
 		unsigned char *cp = (unsigned char*) &icol;
-		val *= 255.0;
+		val *= 255.0f;
 		cp[0] = (unsigned char) val;
 		self->m_vertex->SetRGBA(icol);
 		self->m_mesh->SetMeshModified(true);
@@ -338,7 +338,7 @@ int KX_VertexProxy::pyattr_set_g(void *self_v, const struct KX_PYATTRIBUTE_DEF *
 		float val = PyFloat_AsDouble(value);
 		unsigned int icol = *((const unsigned int *)self->m_vertex->getRGBA());
 		unsigned char *cp = (unsigned char*) &icol;
-		val *= 255.0;
+		val *= 255.0f;
 		cp[1] = (unsigned char) val;
 		self->m_vertex->SetRGBA(icol);
 		self->m_mesh->SetMeshModified(true);
@@ -355,7 +355,7 @@ int KX_VertexProxy::pyattr_set_b(void *self_v, const struct KX_PYATTRIBUTE_DEF *
 		float val = PyFloat_AsDouble(value);
 		unsigned int icol = *((const unsigned int *)self->m_vertex->getRGBA());
 		unsigned char *cp = (unsigned char*) &icol;
-		val *= 255.0;
+		val *= 255.0f;
 		cp[2] = (unsigned char) val;
 		self->m_vertex->SetRGBA(icol);
 		self->m_mesh->SetMeshModified(true);
@@ -372,7 +372,7 @@ int KX_VertexProxy::pyattr_set_a(void *self_v, const struct KX_PYATTRIBUTE_DEF *
 		float val = PyFloat_AsDouble(value);
 		unsigned int icol = *((const unsigned int *)self->m_vertex->getRGBA());
 		unsigned char *cp = (unsigned char*) &icol;
-		val *= 255.0;
+		val *= 255.0f;
 		cp[3] = (unsigned char) val;
 		self->m_vertex->SetRGBA(icol);
 		self->m_mesh->SetMeshModified(true);

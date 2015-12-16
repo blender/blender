@@ -685,7 +685,7 @@ void BL_Texture::setTexEnv(BL_Material *mat, bool modulate)
 					glTexEnvf(	GL_TEXTURE_ENV, op1,		blend_operand);
 			} break;
 	}
-	glTexEnvf(	GL_TEXTURE_ENV, GL_RGB_SCALE_ARB,	1.0);
+	glTexEnvf(	GL_TEXTURE_ENV, GL_RGB_SCALE_ARB,	1.0f);
 
 	glEndList();
 }

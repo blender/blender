@@ -103,11 +103,11 @@ bool KX_RayCast::RayTest(PHY_IPhysicsEnvironment* physics_environment, const MT_
 		// but it would require some change in Bullet.
 		prevpoint = callback.m_hitPoint;
 		/* We add 0.001 of fudge, so that if the margin && radius == 0.0, we don't endless loop. */
-		MT_Scalar marg = 0.001 + hit_controller->GetMargin();
+		MT_Scalar marg = 0.001f + hit_controller->GetMargin();
 		marg *= 2.f;
 		/* Calculate the other side of this object */
 		MT_Scalar h = MT_abs(todir.dot(callback.m_hitNormal));
-		if (h <= 0.01)
+		if (h <= 0.01f)
 			// the normal is almost orthogonal to the ray direction, cannot compute the other side
 			break;
 		marg /= h; 

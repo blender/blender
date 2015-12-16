@@ -200,7 +200,7 @@ void KX_FontObject::DrawFontText()
 	mat[12] += offset[0]; mat[13] += offset[1]; mat[14] += offset[2];
 
 	/* Orient the spacing vector */
-	MT_Vector3 spacing = MT_Vector3(0, m_fsize*m_line_spacing, 0);
+	MT_Vector3 spacing = MT_Vector3(0.0f, m_fsize*m_line_spacing, 0.0f);
 	spacing = this->NodeGetWorldOrientation() * spacing * this->NodeGetWorldScaling()[1];
 
 	/* Draw each line, taking spacing into consideration */
