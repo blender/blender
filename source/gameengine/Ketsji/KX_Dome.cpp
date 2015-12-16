@@ -1476,9 +1476,9 @@ void KX_Dome::CalculateCameraOrientation()
  * Uses 6 cameras for angles up to 360deg
  */
 	int i;
-	float deg45 = MT_PI / 4;
-	MT_Scalar c = cos(deg45);
-	MT_Scalar s = sin(deg45);
+	float deg45 = MT_PI / 4.0f;
+	MT_Scalar c = cosf(deg45);
+	MT_Scalar s = sinf(deg45);
 
 	if (m_angle <= 180 && (m_mode == DOME_FISHEYE 
 		|| m_mode == DOME_TRUNCATED_FRONT
@@ -1575,8 +1575,8 @@ void KX_Dome::CalculateCameraOrientation()
 	if (m_tilt)
 	{
 		float tiltdeg = ((m_tilt % 360) * 2 * MT_PI) / 360;
-		c = cos(tiltdeg);
-		s = sin(tiltdeg);
+		c = cosf(tiltdeg);
+		s = sinf(tiltdeg);
 
 		MT_Matrix3x3 tilt_mat = MT_Matrix3x3(
 		1.0f, 0.0f, 0.0f,

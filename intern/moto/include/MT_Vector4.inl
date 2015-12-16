@@ -48,7 +48,7 @@ GEN_INLINE MT_Scalar MT_Vector4::dot(const MT_Vector4& v) const {
 }
 
 GEN_INLINE MT_Scalar MT_Vector4::length2() const { return MT_dot(*this, *this); }
-GEN_INLINE MT_Scalar MT_Vector4::length() const { return sqrt(length2()); }
+GEN_INLINE MT_Scalar MT_Vector4::length() const { return sqrtf(length2()); }
 
 GEN_INLINE MT_Vector4 MT_Vector4::absolute() const {
     return MT_Vector4(MT_abs(m_co[0]), MT_abs(m_co[1]), MT_abs(m_co[2]), MT_abs(m_co[3]));

@@ -39,12 +39,12 @@ void KX_OrientationInterpolator::Execute(float currentTime) const
 	MT_Vector3 eul(m_ipos[0]->GetValue(currentTime),
 				   m_ipos[1]->GetValue(currentTime),
 				   m_ipos[2]->GetValue(currentTime));
-	MT_Scalar ci = cos(eul[0]); 
-	MT_Scalar cj = cos(eul[1]); 
-	MT_Scalar ch = cos(eul[2]);
-	MT_Scalar si = sin(eul[0]); 
-	MT_Scalar sj = sin(eul[1]); 
-	MT_Scalar sh = sin(eul[2]);
+	MT_Scalar ci = cosf(eul[0]);
+	MT_Scalar cj = cosf(eul[1]);
+	MT_Scalar ch = cosf(eul[2]);
+	MT_Scalar si = sinf(eul[0]);
+	MT_Scalar sj = sinf(eul[1]);
+	MT_Scalar sh = sinf(eul[2]);
 	MT_Scalar cc = ci*ch; 
 	MT_Scalar cs = ci*sh; 
 	MT_Scalar sc = si*ch; 

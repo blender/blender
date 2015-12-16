@@ -70,18 +70,18 @@ public:
     void setRotation(const MT_Vector3& axis, MT_Scalar mt_angle) {
         MT_Scalar d = axis.length();
         MT_assert(!MT_fuzzyZero(d));
-        MT_Scalar s = sin(mt_angle * MT_Scalar(0.5f)) / d;
+        MT_Scalar s = sinf(mt_angle * MT_Scalar(0.5f)) / d;
         setValue(axis[0] * s, axis[1] * s, axis[2] * s, 
-                 cos(mt_angle * MT_Scalar(0.5f)));
+                 cosf(mt_angle * MT_Scalar(0.5f)));
     }
 
     void setEuler(MT_Scalar yaw, MT_Scalar pitch, MT_Scalar roll) {
-        MT_Scalar cosYaw = cos(yaw * MT_Scalar(0.5f));
-        MT_Scalar sinYaw = sin(yaw * MT_Scalar(0.5f));
-        MT_Scalar cosPitch = cos(pitch * MT_Scalar(0.5f));
-        MT_Scalar sinPitch = sin(pitch * MT_Scalar(0.5f));
-        MT_Scalar cosRoll = cos(roll * MT_Scalar(0.5f));
-        MT_Scalar sinRoll = sin(roll * MT_Scalar(0.5f));
+        MT_Scalar cosYaw = cosf(yaw * MT_Scalar(0.5f));
+        MT_Scalar sinYaw = sinf(yaw * MT_Scalar(0.5f));
+        MT_Scalar cosPitch = cosf(pitch * MT_Scalar(0.5f));
+        MT_Scalar sinPitch = sinf(pitch * MT_Scalar(0.5f));
+        MT_Scalar cosRoll = cosf(roll * MT_Scalar(0.5f));
+        MT_Scalar sinRoll = sinf(roll * MT_Scalar(0.5f));
         setValue(cosRoll * sinPitch * cosYaw + sinRoll * cosPitch * sinYaw,
                  cosRoll * cosPitch * sinYaw - sinRoll * sinPitch * cosYaw,
                  sinRoll * cosPitch * cosYaw - cosRoll * sinPitch * sinYaw,

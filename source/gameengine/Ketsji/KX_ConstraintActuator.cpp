@@ -96,10 +96,10 @@ KX_ConstraintActuator::KX_ConstraintActuator(SCA_IObject *gameobj,
 				m_refDirection[2] /= len;
 				m_refDirVector /= len;
 			}
-			m_minimumBound = cos(minBound);
-			m_maximumBound = cos(maxBound);
-			m_minimumSine = sin(minBound);
-			m_maximumSine = sin(maxBound);
+			m_minimumBound = cosf(minBound);
+			m_maximumBound = cosf(maxBound);
+			m_minimumSine = sinf(minBound);
+			m_maximumSine = sinf(maxBound);
 		}
 		break;
 	default:

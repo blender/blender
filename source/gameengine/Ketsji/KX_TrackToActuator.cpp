@@ -92,12 +92,12 @@ static MT_Matrix3x3 EulToMat3(float eul[3])
 	MT_Matrix3x3 mat;
 	float ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
 	
-	ci = cos(eul[0]); 
-	cj = cos(eul[1]); 
-	ch = cos(eul[2]);
-	si = sin(eul[0]); 
-	sj = sin(eul[1]); 
-	sh = sin(eul[2]);
+	ci = cosf(eul[0]);
+	cj = cosf(eul[1]);
+	ch = cosf(eul[2]);
+	si = sinf(eul[0]);
+	sj = sinf(eul[1]);
+	sh = sinf(eul[2]);
 	cc = ci*ch; 
 	cs = ci*sh; 
 	sc = si*ch; 

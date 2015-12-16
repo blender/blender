@@ -48,7 +48,7 @@ GEN_INLINE MT_Scalar MT_Vector2::dot(const MT_Vector2& vv) const {
 }
 
 GEN_INLINE MT_Scalar MT_Vector2::length2() const { return dot(*this); }
-GEN_INLINE MT_Scalar MT_Vector2::length() const { return sqrt(length2()); }
+GEN_INLINE MT_Scalar MT_Vector2::length() const { return sqrtf(length2()); }
 
 GEN_INLINE MT_Vector2 MT_Vector2::absolute() const {
     return MT_Vector2(MT_abs(m_co[0]), MT_abs(m_co[1]));
@@ -68,9 +68,9 @@ GEN_INLINE MT_Vector2 MT_Vector2::scaled(MT_Scalar xx, MT_Scalar yy) const {
 }
 
 GEN_INLINE MT_Scalar MT_Vector2::angle(const MT_Vector2& vv) const {
-    MT_Scalar s = sqrt(length2() * vv.length2());
+    MT_Scalar s = sqrtf(length2() * vv.length2());
     MT_assert(!MT_fuzzyZero(s));
-    return acos(dot(vv) / s);
+    return acosf(dot(vv) / s);
 }
 
 

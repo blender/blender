@@ -151,12 +151,12 @@ public:
 	 **/
 
 	void setEuler(const MT_Vector3& euler) {
-		MT_Scalar ci = cos(euler[0]); 
-		MT_Scalar cj = cos(euler[1]); 
-		MT_Scalar ch = cos(euler[2]);
-		MT_Scalar si = sin(euler[0]); 
-		MT_Scalar sj = sin(euler[1]); 
-		MT_Scalar sh = sin(euler[2]);
+		MT_Scalar ci = cosf(euler[0]);
+		MT_Scalar cj = cosf(euler[1]);
+		MT_Scalar ch = cosf(euler[2]);
+		MT_Scalar si = sinf(euler[0]);
+		MT_Scalar sj = sinf(euler[1]);
+		MT_Scalar sh = sinf(euler[2]);
 		MT_Scalar cc = ci * ch; 
 		MT_Scalar cs = ci * sh; 
 		MT_Scalar sc = si * ch; 
@@ -170,19 +170,19 @@ public:
 	void getEuler(MT_Scalar& yaw, MT_Scalar& pitch, MT_Scalar& roll) const
 		{			
 			if (m_el[2][0] != -1.0f && m_el[2][0] != 1.0f) {
-				pitch = MT_Scalar(-asin(m_el[2][0]));
-				yaw = MT_Scalar(atan2(m_el[2][1] / cos(pitch), m_el[2][2] / cos(pitch)));
-				roll = MT_Scalar(atan2(m_el[1][0] / cos(pitch), m_el[0][0] / cos(pitch)));				
+				pitch = MT_Scalar(-asinf(m_el[2][0]));
+				yaw = MT_Scalar(atan2f(m_el[2][1] / cosf(pitch), m_el[2][2] / cosf(pitch)));
+				roll = MT_Scalar(atan2f(m_el[1][0] / cosf(pitch), m_el[0][0] / cosf(pitch)));
 			}
 			else {
 				roll = MT_Scalar(0);
 				if (m_el[2][0] == -1.0f) {
 					pitch = (float)MT_PI / 2.0f;
-					yaw = MT_Scalar(atan2(m_el[0][1], m_el[0][2]));
+					yaw = MT_Scalar(atan2f(m_el[0][1], m_el[0][2]));
 				}
 				else {
 					pitch = (float)-MT_PI / 2.0f;
-					yaw = MT_Scalar(atan2(m_el[0][1], m_el[0][2]));
+					yaw = MT_Scalar(atan2f(m_el[0][1], m_el[0][2]));
 				}
 			}
 		}

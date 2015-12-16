@@ -9,7 +9,7 @@ GEN_INLINE MT_Quaternion MT_Matrix3x3::getRotation() const {
     
     if (trace > 0.0f) 
     {
-        MT_Scalar s = sqrt(trace + MT_Scalar(1.0f));
+        MT_Scalar s = sqrtf(trace + MT_Scalar(1.0f));
         result[3] = s * MT_Scalar(0.5f);
         s = MT_Scalar(0.5f) / s;
         
@@ -28,7 +28,7 @@ GEN_INLINE MT_Quaternion MT_Matrix3x3::getRotation() const {
         int j = next[i];  
         int k = next[j];
         
-        MT_Scalar s = sqrt(m_el[i][i] - m_el[j][j] - m_el[k][k] + MT_Scalar(1.0f));
+        MT_Scalar s = sqrtf(m_el[i][i] - m_el[j][j] - m_el[k][k] + MT_Scalar(1.0f));
         
         result[i] = s * MT_Scalar(0.5f);
         

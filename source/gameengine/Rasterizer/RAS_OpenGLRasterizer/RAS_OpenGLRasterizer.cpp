@@ -404,7 +404,7 @@ void RAS_OpenGLRasterizer::FlushDebugShapes(SCA_IScene *scene)
 		for (int j = 0; j<n; j++)
 		{
 			MT_Scalar theta = j*(float)M_PI*2/n;
-			MT_Vector3 pos(cos(theta) * rad, sin(theta) * rad, 0.0f);
+			MT_Vector3 pos(cosf(theta) * rad, sinf(theta) * rad, 0.0f);
 			pos = pos*tr;
 			pos += debugShapes[i].m_pos;
 			const MT_Scalar* posPtr = &pos.x();

@@ -294,7 +294,7 @@ void KX_Camera::NormalizeClipPlanes()
 	
 	for (unsigned int p = 0; p < 6; p++)
 	{
-		MT_Scalar factor = sqrt(m_planes[p][0]*m_planes[p][0] + m_planes[p][1]*m_planes[p][1] + m_planes[p][2]*m_planes[p][2]);
+		MT_Scalar factor = sqrtf(m_planes[p][0]*m_planes[p][0] + m_planes[p][1]*m_planes[p][1] + m_planes[p][2]*m_planes[p][2]);
 		if (!MT_fuzzyZero(factor))
 			m_planes[p] /= factor;
 	}
