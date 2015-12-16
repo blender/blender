@@ -84,6 +84,9 @@ void    BM_vert_separate(
 void BM_vert_separate_hflag(
         BMesh *bm, BMVert *v, const char hflag, const bool copy_select,
         BMVert ***r_vout, int *r_vout_len);
+void BM_vert_separate_wire_hflag(
+        BMesh *bm, BMVert *v_dst, BMVert *v_src,
+        const char hflag);
 
 /* EULER API - For modifying structure */
 BMFace *bmesh_sfme(
