@@ -604,12 +604,11 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 	Image *ima = ob->data;
 	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, ob->iuser, NULL);
 
-	float scale, ofs_x, ofs_y, sca_x, sca_y;
-	int ima_x, ima_y;
-
 	if (ibuf && (ibuf->rect == NULL) && (ibuf->rect_float != NULL)) {
 		IMB_rect_from_float(ibuf);
 	}
+
+	int ima_x, ima_y;
 
 	/* Get the buffer dimensions so we can fallback to fake ones */
 	if (ibuf && ibuf->rect) {
@@ -621,35 +620,28 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 		ima_y = 1;
 	}
 
+	float sca_x = 1.0f;
+	float sca_y = 1.0f;
+
 	/* Get the image aspect even if the buffer is invalid */
 	if (ima) {
 		if (ima->aspx > ima->aspy) {
-			sca_x = 1.0f;
 			sca_y = ima->aspy / ima->aspx;
 		}
 		else if (ima->aspx < ima->aspy) {
 			sca_x = ima->aspx / ima->aspy;
-			sca_y = 1.0f;
 		}
-		else {
-			sca_x = 1.0f;
-			sca_y = 1.0f;
-		}
-	}
-	else {
-		sca_x = 1.0f;
-		sca_y = 1.0f;
 	}
 
 	/* Calculate the scale center based on object's origin */
-	ofs_x = ob->ima_ofs[0] * ima_x;
-	ofs_y = ob->ima_ofs[1] * ima_y;
+	float ofs_x = ob->ima_ofs[0] * ima_x;
+	float ofs_y = ob->ima_ofs[1] * ima_y;
 
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 
 	/* Calculate Image scale */
-	scale = (ob->empty_drawsize / max_ff((float)ima_x * sca_x, (float)ima_y * sca_y));
+	float scale = ob->empty_drawsize / max_ff((float)ima_x * sca_x, (float)ima_y * sca_y);
 
 	/* Set the object scale */
 	glScalef(scale * sca_x, scale * sca_y, 1.0f);
@@ -659,7 +651,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 		int zoomfilter = (U.gameflags & USER_DISABLE_MIPMAP ) ? GL_NEAREST : GL_LINEAR;
 		/* Setup GL params */
 		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		if (use_clip) {
 			glEnable(GL_ALPHA_TEST);
@@ -693,7 +685,6 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 	glVertex2f(ofs_x, ofs_y + ima_y);
 	glEnd();
 
-
 	/* Reset GL settings */
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
@@ -701,23 +692,22 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 	BKE_image_release_ibuf(ima, ibuf, NULL);
 }
 
-static void circball_array_fill(float verts[CIRCLE_RESOL][3], const float cent[3], float rad, float tmat[4][4])
+static void circball_array_fill(float verts[CIRCLE_RESOL][3], const float cent[3], float rad, const float tmat[4][4])
 {
 	float vx[3], vy[3];
 	float *viter = (float *)verts;
-	unsigned int a;
 
 	mul_v3_v3fl(vx, tmat[0], rad);
 	mul_v3_v3fl(vy, tmat[1], rad);
 
-	for (a = 0; a < CIRCLE_RESOL; a++, viter += 3) {
+	for (unsigned int a = 0; a < CIRCLE_RESOL; a++, viter += 3) {
 		viter[0] = cent[0] + sinval[a] * vx[0] + cosval[a] * vy[0];
 		viter[1] = cent[1] + sinval[a] * vx[1] + cosval[a] * vy[1];
 		viter[2] = cent[2] + sinval[a] * vx[2] + cosval[a] * vy[2];
 	}
 }
 
-void drawcircball(int mode, const float cent[3], float rad, float tmat[4][4])
+void drawcircball(int mode, const float cent[3], float rad, const float tmat[4][4])
 {
 	float verts[CIRCLE_RESOL][3];
 
@@ -744,7 +734,6 @@ static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, const float co[3],
 	
 	if (special_color) {
 		if (selstate == ACTIVE || selstate == SELECT) glColor4ub(0x88, 0xFF, 0xFF, 155);
-
 		else glColor4ub(0x55, 0xCC, 0xCC, 155);
 	}
 	else {
@@ -1084,8 +1073,6 @@ static void spotvolume(float lvec[3], float vvec[3], const float inp)
 	mul_m3_v3(mat2, lvec);
 	mul_m3_m3m3(mat2, mat1, mat4);
 	mul_m3_v3(mat2, vvec);
-
-	return;
 }
 
 static void draw_spot_cone(Lamp *la, float x, float z)
@@ -1103,11 +1090,8 @@ static void draw_spot_cone(Lamp *la, float x, float z)
 		glVertex3f(z, z, 0);
 	}
 	else {
-		float angle;
-		int a;
-
-		for (a = 0; a < 33; a++) {
-			angle = a * M_PI * 2 / (33 - 1);
+		for (int a = 0; a < 33; a++) {
+			float angle = a * M_PI * 2 / (33 - 1);
 			glVertex3f(z * cosf(angle), z * sinf(angle), 0);
 		}
 	}
@@ -1765,13 +1749,12 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 
 			if (reconstruction->camnr) {
 				MovieReconstructedCamera *camera = reconstruction->cameras;
-				int a = 0;
 
 				UI_ThemeColor(TH_CAMERA_PATH);
 				glLineWidth(2.0f);
 
 				glBegin(GL_LINE_STRIP);
-				for (a = 0; a < reconstruction->camnr; a++, camera++) {
+				for (int a = 0; a < reconstruction->camnr; a++, camera++) {
 					glVertex3fv(camera->mat[3]);
 				}
 				glEnd();
@@ -1891,7 +1874,6 @@ static void drawcamera_stereo3d(
         Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, const Camera *cam,
         float vec[4][3], float drawsize, const float scale[3])
 {
-	int i;
 	float obmat[4][4];
 	float vec_lr[2][4][3];
 	const float fac = (cam->stereo.pivot == CAM_S3D_PIVOT_CENTER) ? 2.0f : 1.0f;
@@ -1908,7 +1890,7 @@ static void drawcamera_stereo3d(
 
 	glPushMatrix();
 
-	for (i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; i++) {
 		ob = BKE_camera_multiview_render(scene, ob, names[i]);
 		cam_lr[i] = ob->data;
 
@@ -1975,7 +1957,7 @@ static void drawcamera_stereo3d(
 
 		mid_v3_v3v3(axis_center, origin[0], origin[1]);
 
-		for (i = 0; i < 4; i++) {
+		for (int i = 0; i < 4; i++) {
 			mid_v3_v3v3(world_plane[i], vec_lr[0][i], vec_lr[1][i]);
 			sub_v3_v3v3(local_plane[i], world_plane[i], axis_center);
 		}
@@ -1983,7 +1965,7 @@ static void drawcamera_stereo3d(
 		mid_v3_v3v3(screen_center, world_plane[0], world_plane[2]);
 		offset = cam->stereo.convergence_distance / len_v3v3(screen_center, axis_center);
 
-		for (i = 0; i < 4; i++) {
+		for (int i = 0; i < 4; i++) {
 			mul_v3_fl(local_plane[i], offset);
 			add_v3_v3(local_plane[i], axis_center);
 		}
@@ -2010,15 +1992,13 @@ static void drawcamera_stereo3d(
 	if (is_stereo3d_volume) {
 		float screen_center[3];
 		float near_plane[4][3], far_plane[4][3];
-		float offset;
-		int j;
 
-		for (i = 0; i < 2; i++) {
+		for (int i = 0; i < 2; i++) {
 			mid_v3_v3v3(screen_center, vec_lr[i][0], vec_lr[i][2]);
 
-			offset = len_v3v3(screen_center, origin[i]);
+			float offset = len_v3v3(screen_center, origin[i]);
 
-			for (j = 0; j < 4; j++) {
+			for (int j = 0; j < 4; j++) {
 				sub_v3_v3v3(near_plane[j], vec_lr[i][j], origin[i]);
 				mul_v3_fl(near_plane[j], cam_lr[i]->clipsta / offset);
 				add_v3_v3(near_plane[j], origin[i]);
@@ -2066,8 +2046,6 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	Object *ob = base->object;
 	float tvec[3];
 	float vec[4][3], asp[2], shift[2], scale[3];
-	int i;
-	float drawsize;
 	MovieClip *clip = BKE_object_movieclip_get(scene, base->object, false);
 
 	const bool is_active = (ob == v3d->camera);
@@ -2120,6 +2098,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 		scale[2] = 1.0f / len_v3(ob->obmat[2]);
 	}
 
+	float drawsize;
 	BKE_camera_view_frame_ex(scene, cam, cam->drawsize, is_view, scale,
 	                         asp, shift, &drawsize, vec);
 
@@ -2160,7 +2139,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	/* draw an outline arrow for inactive cameras and filled
 	 * for active cameras. We actually draw both outline+filled
 	 * for active cameras so the wire can be seen side-on */
-	for (i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; i++) {
 		if (i == 0) glBegin(GL_LINE_LOOP);
 		else if (i == 1 && is_active) glBegin(GL_TRIANGLES);
 		else break;
@@ -2223,15 +2202,14 @@ static void drawspeaker(Scene *UNUSED(scene), View3D *UNUSED(v3d), RegionView3D 
                         Object *UNUSED(ob), int UNUSED(flag))
 {
 	float vec[3];
-	int i, j;
 
 	glEnable(GL_BLEND);
 
-	for (j = 0; j < 3; j++) {
+	for (int j = 0; j < 3; j++) {
 		vec[2] = 0.25f * j - 0.125f;
 
 		glBegin(GL_LINE_LOOP);
-		for (i = 0; i < 16; i++) {
+		for (int i = 0; i < 16; i++) {
 			vec[0] = cosf((float)M_PI * i / 8.0f) * (j == 0 ? 0.5f : 0.25f);
 			vec[1] = sinf((float)M_PI * i / 8.0f) * (j == 0 ? 0.5f : 0.25f);
 			glVertex3fv(vec);
@@ -2239,11 +2217,11 @@ static void drawspeaker(Scene *UNUSED(scene), View3D *UNUSED(v3d), RegionView3D 
 		glEnd();
 	}
 
-	for (j = 0; j < 4; j++) {
+	for (int j = 0; j < 4; j++) {
 		vec[0] = (((j + 1) % 2) * (j - 1)) * 0.5f;
 		vec[1] = ((j % 2) * (j - 2)) * 0.5f;
 		glBegin(GL_LINE_STRIP);
-		for (i = 0; i < 3; i++) {
+		for (int i = 0; i < 3; i++) {
 			if (i == 1) {
 				vec[0] *= 0.5f;
 				vec[1] *= 0.5f;
@@ -2262,7 +2240,6 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, BPoint *actbp, short s
 {
 	BPoint *bp = lt->def;
 	const float *co = dl ? dl->verts : NULL;
-	int u, v, w;
 
 	const int color = sel ? TH_VERTEX_SELECT : TH_VERTEX;
 	UI_ThemeColor(color);
@@ -2270,11 +2247,11 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, BPoint *actbp, short s
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	bglBegin(GL_POINTS);
 
-	for (w = 0; w < lt->pntsw; w++) {
+	for (int w = 0; w < lt->pntsw; w++) {
 		int wxt = (w == 0 || w == lt->pntsw - 1);
-		for (v = 0; v < lt->pntsv; v++) {
+		for (int v = 0; v < lt->pntsv; v++) {
 			int vxt = (v == 0 || v == lt->pntsv - 1);
-			for (u = 0; u < lt->pntsu; u++, bp++, co += 3) {
+			for (int u = 0; u < lt->pntsu; u++, bp++, co += 3) {
 				int uxt = (u == 0 || u == lt->pntsu - 1);
 				if (!(lt->flag & LT_OUTSIDE) || uxt || vxt || wxt) {
 					if (bp->hide == 0) {
@@ -2706,6 +2683,7 @@ static DMDrawOption draw_dm_edges_sel__setDrawOptions(void *userData, int index)
 		return DM_DRAW_OPTION_SKIP;
 	}
 }
+
 static void draw_dm_edges_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol,
                               unsigned char *selCol, unsigned char *actCol, BMEdge *eed_act)
 {
@@ -2921,11 +2899,11 @@ static void draw_dm_edges_sharp(BMEditMesh *em, DerivedMesh *dm)
 
 #ifdef WITH_FREESTYLE
 
-static int draw_dm_test_freestyle_edge_mark(BMesh *bm, BMEdge *eed)
+static bool draw_dm_test_freestyle_edge_mark(BMesh *bm, BMEdge *eed)
 {
 	FreestyleEdge *fed = CustomData_bmesh_get(&bm->edata, eed->head.data, CD_FREESTYLE_EDGE);
 	if (!fed)
-		return 0;
+		return false;
 	return (fed->flag & FREESTYLE_EDGE_MARK) != 0;
 }
 
@@ -2945,11 +2923,11 @@ static void draw_dm_edges_freestyle(BMEditMesh *em, DerivedMesh *dm)
 	dm->drawMappedEdges(dm, draw_dm_edges_freestyle__setDrawOptions, em->bm);
 }
 
-static int draw_dm_test_freestyle_face_mark(BMesh *bm, BMFace *efa)
+static bool draw_dm_test_freestyle_face_mark(BMesh *bm, BMFace *efa)
 {
 	FreestyleFace *ffa = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_FREESTYLE_FACE);
 	if (!ffa)
-		return 0;
+		return false;
 	return (ffa->flag & FREESTYLE_FACE_MARK) != 0;
 }
 
@@ -3191,25 +3169,22 @@ static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit,
                                 RegionView3D *rv3d)
 {
 	ToolSettings *ts = scene->toolsettings;
-	int sel;
 
 	if (v3d->zbuf) glDepthMask(0);  /* disable write in zbuffer, zbuf select */
 
-	for (sel = 0; sel < 2; sel++) {
+	for (int sel = 0; sel < 2; sel++) {
 		unsigned char col[4], fcol[4];
-		int pass;
 
 		UI_GetThemeColor3ubv(sel ? TH_VERTEX_SELECT : TH_VERTEX, col);
 		UI_GetThemeColor3ubv(sel ? TH_FACE_DOT : TH_WIRE_EDIT, fcol);
 
-		for (pass = 0; pass < 2; pass++) {
+		for (int pass = 0; pass < 2; pass++) {
 			float size = UI_GetThemeValuef(TH_VERTEX_SIZE);
 			float fsize = UI_GetThemeValuef(TH_FACEDOT_SIZE);
 
 			if (pass == 0) {
 				if (v3d->zbuf && !(v3d->flag & V3D_ZBUF_SELECT)) {
 					glDisable(GL_DEPTH_TEST);
-
 					glEnable(GL_BLEND);
 				}
 				else {
@@ -3252,7 +3227,6 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
                                 BMEdge *eed_act)
 {
 	ToolSettings *ts = scene->toolsettings;
-	int pass;
 	unsigned char wireCol[4], selCol[4], actCol[4];
 
 	/* since this function does transparent... */
@@ -3265,7 +3239,7 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 	if (sel_only)
 		wireCol[3] = 0;
 
-	for (pass = 0; pass < 2; pass++) {
+	for (int pass = 0; pass < 2; pass++) {
 		/* show wires in transparent when no zbuf clipping for select */
 		if (pass == 0) {
 			if (v3d->zbuf && (v3d->flag & V3D_ZBUF_SELECT) == 0) {
@@ -3343,7 +3317,6 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 	/* allow for displaying shape keys and deform mods */
 	DerivedMesh *dm = EDBM_mesh_deform_dm_get(em);
 	BMIter iter;
-	int i;
 
 	/* make the precision of the display value proportionate to the gridsize */
 
@@ -3499,8 +3472,7 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 	if (me->drawflag & ME_DRAWEXTRA_FACEAREA) {
 		/* would be nice to use BM_face_calc_area, but that is for 2d faces
 		 * so instead add up tessellation triangle areas */
-		BMFace *f;
-		int n;
+		BMFace *f = NULL;
 
 #define DRAW_EM_MEASURE_STATS_FACEAREA()                                                 \
 	if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {                                          \
@@ -3523,11 +3495,10 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 			BM_mesh_elem_index_ensure(em->bm, BM_VERT);
 		}
 
-		f = NULL;
 		area = 0.0;
 		zero_v3(vmid);
-		n = 0;
-		for (i = 0; i < em->tottri; i++) {
+		int n = 0;
+		for (int i = 0; i < em->tottri; i++) {
 			BMLoop **l = em->looptris[i];
 			if (f && l[0]->f != f) {
 				DRAW_EM_MEASURE_STATS_FACEAREA();
@@ -3592,7 +3563,6 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 					      BM_elem_flag_test(loop->prev->v, BM_ELEM_SELECT) ||
 					      BM_elem_flag_test(loop->next->v, BM_ELEM_SELECT))))
 					{
-						float angle;
 						float v2_local[3];
 
 						/* lazy init center calc */
@@ -3633,7 +3603,7 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 							mul_mat3_m4_v3(ob->obmat, v3);
 						}
 
-						angle = angle_v3v3v3(v1, v2, v3);
+						float angle = angle_v3v3v3(v1, v2, v3);
 
 						numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%.3f", is_rad ? angle : RAD2DEGF(angle));
 						interp_v3_v3v3(fvec, vmid, v2_local, 0.8f);
@@ -3651,7 +3621,6 @@ static void draw_em_indices(BMEditMesh *em)
 	BMEdge *e;
 	BMFace *f;
 	BMVert *v;
-	int i;
 	char numstr[32];
 	size_t numstr_len;
 	float pos[3];
@@ -3661,7 +3630,7 @@ static void draw_em_indices(BMEditMesh *em)
 	BMesh *bm = em->bm;
 
 	/* For now, reuse appropriate theme colors from stats text colors */
-	i = 0;
+	int i = 0;
 	if (em->selectmode & SCE_SELECT_VERTEX) {
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -3703,12 +3672,11 @@ static void draw_em_indices(BMEditMesh *em)
 static DMDrawOption draw_em_fancy__setFaceOpts(void *userData, int index)
 {
 	BMEditMesh *em = userData;
-	BMFace *efa;
 
 	if (UNLIKELY(index >= em->bm->totface))
 		return DM_DRAW_OPTION_NORMAL;
 
-	efa = BM_face_at_index(em->bm, index);
+	BMFace *efa = BM_face_at_index(em->bm, index);
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		return DM_DRAW_OPTION_NORMAL;
 	}
@@ -3720,12 +3688,11 @@ static DMDrawOption draw_em_fancy__setFaceOpts(void *userData, int index)
 static DMDrawOption draw_em_fancy__setGLSLFaceOpts(void *userData, int index)
 {
 	BMEditMesh *em = userData;
-	BMFace *efa;
 
 	if (UNLIKELY(index >= em->bm->totface))
 		return DM_DRAW_OPTION_NORMAL;
 
-	efa = BM_face_at_index(em->bm, index);
+	BMFace *efa = BM_face_at_index(em->bm, index);
 
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		return DM_DRAW_OPTION_NORMAL;
@@ -4279,13 +4246,12 @@ static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3
 	Object *obedit = scene->obedit;
 	Mesh *me = ob->data;
 	BMEditMesh *em = me->edit_btmesh;
-	int i;
 	bool do_alpha_after = false, drawlinked = false, retval = false;
 
 	/* If we are drawing shadows and any of the materials don't cast a shadow,
 	 * then don't draw the object */
 	if (v3d->flag2 & V3D_RENDER_SHADOW) {
-		for (i = 0; i < ob->totcol; ++i) {
+		for (int i = 0; i < ob->totcol; ++i) {
 			Material *ma = give_current_material(ob, i);
 			if (ma && !(ma->mode2 & MA_CASTSHADOW)) {
 				return true;
@@ -4387,16 +4353,12 @@ static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3
  */
 static bool drawDispListwire_ex(ListBase *dlbase, unsigned int dl_type_mask)
 {
-	DispList *dl;
-	int parts, nr;
-	const float *data;
-
-	if (dlbase == NULL) return 1;
+	if (dlbase == NULL) return true;
 	
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	for (dl = dlbase->first; dl; dl = dl->next) {
+	for (DispList *dl = dlbase->first; dl; dl = dl->next) {
 		if (dl->parts == 0 || dl->nr == 0) {
 			continue;
 		}
@@ -4405,7 +4367,8 @@ static bool drawDispListwire_ex(ListBase *dlbase, unsigned int dl_type_mask)
 			continue;
 		}
 		
-		data = dl->verts;
+		const float *data = dl->verts;
+		int parts;
 
 		switch (dl->type) {
 			case DL_SEGM:
@@ -4435,7 +4398,7 @@ static bool drawDispListwire_ex(ListBase *dlbase, unsigned int dl_type_mask)
 						glDrawArrays(GL_LINE_STRIP, parts * dl->nr, dl->nr);
 				}
 
-				for (nr = 0; nr < dl->nr; nr++) {
+				for (int nr = 0; nr < dl->nr; nr++) {
 					int ofs = 3 * dl->nr;
 
 					data = (dl->verts) + 3 * nr;
@@ -4496,10 +4459,7 @@ static bool index3_nors_incr = true;
 static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
                               const unsigned char ob_wire_col[4], const bool use_glsl)
 {
-	DispList *dl;
 	GPUVertexAttribs gattribs;
-	const float *data;
-	const float *ndata;
 	
 	if (lb == NULL) return;
 
@@ -4509,16 +4469,14 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 		glShadeModel(GL_SMOOTH);
 	}
 	
-	dl = lb->first;
+	DispList *dl = lb->first;
 	while (dl) {
-		data = dl->verts;
-		ndata = dl->nors;
+		const float *data = dl->verts;
+		const float *ndata = dl->nors;
 
 		switch (dl->type) {
 			case DL_SEGM:
 				if (ob->type == OB_SURF) {
-					int nr;
-
 					if ((dflag & DRAW_CONSTCOLOR) == 0)
 						glColor3ubv(ob_wire_col);
 
@@ -4526,21 +4484,19 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 					// glDrawArrays(GL_LINE_STRIP, 0, dl->nr);
 
 					glBegin(GL_LINE_STRIP);
-					for (nr = dl->nr; nr; nr--, data += 3)
+					for (int nr = dl->nr; nr; nr--, data += 3)
 						glVertex3fv(data);
 					glEnd();
 				}
 				break;
 			case DL_POLY:
 				if (ob->type == OB_SURF) {
-					int nr;
-
 					/* for some reason glDrawArrays crashes here in half of the platforms (not osx) */
 					//glVertexPointer(3, GL_FLOAT, 0, dl->verts);
 					//glDrawArrays(GL_LINE_LOOP, 0, dl->nr);
 
 					glBegin(GL_LINE_LOOP);
-					for (nr = dl->nr; nr; nr--, data += 3)
+					for (int nr = dl->nr; nr; nr--, data += 3)
 						glVertex3fv(data);
 					glEnd();
 				}
@@ -4548,7 +4504,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 			case DL_SURF:
 
 				if (dl->index) {
-					GPU_object_material_bind(dl->col + 1, (use_glsl) ? &gattribs : NULL);
+					GPU_object_material_bind(dl->col + 1, use_glsl ? &gattribs : NULL);
 
 					if (dl->rt & CU_SMOOTH) glShadeModel(GL_SMOOTH);
 					else glShadeModel(GL_FLAT);
@@ -4623,7 +4579,7 @@ static bool drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, 
 	glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
 
 	if (dt > OB_WIRE && dm->getNumPolys(dm)) {
-		int glsl = draw_glsl_material(scene, ob, v3d, dt);
+		bool glsl = draw_glsl_material(scene, ob, v3d, dt);
 		GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
 
 		if (!glsl)
@@ -4961,7 +4917,6 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 				pdd->cd += 12;
 			}
 
-
 			copy_v3_v3(bb->vec, state->co);
 			copy_v3_v3(bb->vel, state->vel);
 
@@ -5098,9 +5053,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	}
 
 	if (select) {
-		select = 0;
+		select = false;
 		if (psys_get_current(ob) == psys)
-			select = 1;
+			select = true;
 	}
 
 	psys->flag |= PSYS_DRAWING;
@@ -5934,11 +5889,10 @@ static void ob_draw_RE_motion(float com[3], float rotscale[3][3], float itw, flo
 {
 	float tr[3][3];
 	float root[3], tip[3];
-	float tw, th;
 	/* take a copy for not spoiling original */
 	copy_m3_m3(tr, rotscale);
-	tw = itw * drw_size;
-	th = ith * drw_size;
+	float tw = itw * drw_size;
+	float th = ith * drw_size;
 
 	glColor4ub(0x7F, 0x00, 0x00, 155);
 	glBegin(GL_LINES);
@@ -6096,27 +6050,25 @@ static void ob_draw_RE_motion(float com[3], float rotscale[3][3], float itw, flo
 
 static void drawhandlesN(Nurb *nu, const char sel, const bool hide_handles)
 {
-	BezTriple *bezt;
-	const float *fp;
-	int a;
-
 	if (nu->hide || hide_handles) return;
 
 	glBegin(GL_LINES);
 
 	if (nu->type == CU_BEZIER) {
 
+		const float *fp;
+
 #define TH_HANDLE_COL_TOT ((TH_HANDLE_SEL_FREE - TH_HANDLE_FREE) + 1)
 		/* use MIN2 when indexing to ensure newer files don't read outside the array */
 		unsigned char handle_cols[TH_HANDLE_COL_TOT][3];
 		const int basecol = sel ? TH_HANDLE_SEL_FREE : TH_HANDLE_FREE;
 
-		for (a = 0; a < TH_HANDLE_COL_TOT; a++) {
+		for (int a = 0; a < TH_HANDLE_COL_TOT; a++) {
 			UI_GetThemeColor3ubv(basecol + a, handle_cols[a]);
 		}
 
-		bezt = nu->bezt;
-		a = nu->pntsu;
+		BezTriple *bezt = nu->bezt;
+		int a = nu->pntsu;
 		while (a--) {
 			if (bezt->hide == 0) {
 				if ((bezt->f2 & SELECT) == sel) {
@@ -6156,10 +6108,6 @@ static void drawhandlesN(Nurb *nu, const char sel, const bool hide_handles)
 
 static void drawhandlesN_active(Nurb *nu)
 {
-	BezTriple *bezt;
-	const float *fp;
-	int a;
-
 	if (nu->hide) return;
 
 	UI_ThemeColor(TH_ACTIVE_SPLINE);
@@ -6168,11 +6116,11 @@ static void drawhandlesN_active(Nurb *nu)
 	glBegin(GL_LINES);
 
 	if (nu->type == CU_BEZIER) {
-		bezt = nu->bezt;
-		a = nu->pntsu;
+		BezTriple *bezt = nu->bezt;
+		int a = nu->pntsu;
 		while (a--) {
 			if (bezt->hide == 0) {
-				fp = bezt->vec[0];
+				const float *fp = bezt->vec[0];
 
 				glVertex3fv(fp);
 				glVertex3fv(fp + 3);
@@ -6191,27 +6139,20 @@ static void drawhandlesN_active(Nurb *nu)
 
 static void drawvertsN(Nurb *nu, const char sel, const bool hide_handles, const void *vert)
 {
-	BezTriple *bezt;
-	BPoint *bp;
-	float size;
-	int a, color;
-
 	if (nu->hide) return;
 
-	if (sel) color = TH_VERTEX_SELECT;
-	else color = TH_VERTEX;
+	const int color = sel ? TH_VERTEX_SELECT : TH_VERTEX;
 
 	UI_ThemeColor(color);
 
-	size = UI_GetThemeValuef(TH_VERTEX_SIZE);
-	glPointSize(size);
+	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	
 	bglBegin(GL_POINTS);
 	
 	if (nu->type == CU_BEZIER) {
 
-		bezt = nu->bezt;
-		a = nu->pntsu;
+		BezTriple *bezt = nu->bezt;
+		int a = nu->pntsu;
 		while (a--) {
 			if (bezt->hide == 0) {
 				if (sel == 1 && bezt == vert) {
@@ -6238,8 +6179,8 @@ static void drawvertsN(Nurb *nu, const char sel, const bool hide_handles, const 
 		}
 	}
 	else {
-		bp = nu->bp;
-		a = nu->pntsu * nu->pntsv;
+		BPoint *bp = nu->bp;
+		int a = nu->pntsu * nu->pntsv;
 		while (a--) {
 			if (bp->hide == 0) {
 				if (bp == vert) {
@@ -6261,18 +6202,15 @@ static void drawvertsN(Nurb *nu, const char sel, const bool hide_handles, const 
 
 static void editnurb_draw_active_poly(Nurb *nu)
 {
-	BPoint *bp;
-	int a, b;
-
 	UI_ThemeColor(TH_ACTIVE_SPLINE);
 	glLineWidth(2);
 
-	bp = nu->bp;
-	for (b = 0; b < nu->pntsv; b++) {
+	BPoint *bp = nu->bp;
+	for (int b = 0; b < nu->pntsv; b++) {
 		if (nu->flagu & 1) glBegin(GL_LINE_LOOP);
 		else glBegin(GL_LINE_STRIP);
 
-		for (a = 0; a < nu->pntsu; a++, bp++) {
+		for (int a = 0; a < nu->pntsu; a++, bp++) {
 			glVertex3fv(bp->vec);
 		}
 
@@ -6285,19 +6223,16 @@ static void editnurb_draw_active_poly(Nurb *nu)
 
 static void editnurb_draw_active_nurbs(Nurb *nu)
 {
-	BPoint *bp, *bp1;
-	int a, b, ofs;
-
 	UI_ThemeColor(TH_ACTIVE_SPLINE);
 	glLineWidth(2);
 
 	glBegin(GL_LINES);
-	bp = nu->bp;
-	for (b = 0; b < nu->pntsv; b++) {
-		bp1 = bp;
+	BPoint *bp = nu->bp;
+	for (int b = 0; b < nu->pntsv; b++) {
+		BPoint *bp1 = bp;
 		bp++;
 
-		for (a = nu->pntsu - 1; a > 0; a--, bp++) {
+		for (int a = nu->pntsu - 1; a > 0; a--, bp++) {
 			if (bp->hide == 0 && bp1->hide == 0) {
 				glVertex3fv(bp->vec);
 				glVertex3fv(bp1->vec);
@@ -6308,11 +6243,11 @@ static void editnurb_draw_active_nurbs(Nurb *nu)
 
 	if (nu->pntsv > 1) {    /* surface */
 
-		ofs = nu->pntsu;
-		for (b = 0; b < nu->pntsu; b++) {
-			bp1 = nu->bp + b;
+		int ofs = nu->pntsu;
+		for (int b = 0; b < nu->pntsu; b++) {
+			BPoint *bp1 = nu->bp + b;
 			bp = bp1 + ofs;
-			for (a = nu->pntsv - 1; a > 0; a--, bp += ofs) {
+			for (int a = nu->pntsv - 1; a > 0; a--, bp += ofs) {
 				if (bp->hide == 0 && bp1->hide == 0) {
 					glVertex3fv(bp->vec);
 					glVertex3fv(bp1->vec);
@@ -6330,13 +6265,12 @@ static void editnurb_draw_active_nurbs(Nurb *nu)
 
 static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 {
-	Nurb *nu;
 	BPoint *bp, *bp1;
-	int a, b, ofs, index;
+	int a, b;
 	Curve *cu = ob->data;
 
-	index = 0;
-	nu = nurb;
+	int index = 0;
+	Nurb *nu = nurb;
 	while (nu) {
 		if (nu->hide == 0) {
 			switch (nu->type) {
@@ -6400,7 +6334,7 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 					}
 					if (nu->pntsv > 1) {    /* surface */
 
-						ofs = nu->pntsu;
+						int ofs = nu->pntsu;
 						for (b = 0; b < nu->pntsu; b++) {
 							bp1 = nu->bp + b;
 							bp = bp1 + ofs;
@@ -6433,7 +6367,6 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 								bp1 = bp;
 							}
 						}
-
 					}
 					break;
 			}
@@ -6452,10 +6385,8 @@ static void draw_editnurb(
 	Object *ob = base->object;
 	Curve *cu = ob->data;
 	Nurb *nu;
-	BevList *bl;
 	const void *vert = BKE_curve_vert_active_get(cu);
 	const bool hide_handles = (cu->drawflag & CU_HIDE_HANDLES) != 0;
-	int index;
 	unsigned char wire_col[3];
 
 	/* DispList */
@@ -6465,14 +6396,13 @@ static void draw_editnurb(
 	drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 
 	/* for shadows only show solid faces */
-	if (v3d->flag2 & V3D_RENDER_SHADOW) {
+	if (v3d->flag2 & V3D_RENDER_SHADOW)
 		return;
-	}
 
 	if (v3d->zbuf) glDepthFunc(GL_ALWAYS);
 	
 	/* first non-selected and active handles */
-	index = 0;
+	int index = 0;
 	for (nu = nurb; nu; nu = nu->next) {
 		if (nu->type == CU_BEZIER) {
 			if (index == cu->actnu && !hide_handles)
@@ -6497,6 +6427,7 @@ static void draw_editnurb(
 	/* direction vectors for 3d curve paths
 	 * when at its lowest, don't render normals */
 	if ((cu->flag & CU_3D) && (ts->normalsize > 0.0015f) && (cu->drawflag & CU_HIDE_NORMALS) == 0) {
+		BevList *bl;
 		for (bl = ob->curve_cache->bev.first, nu = nurb; nu && bl; bl = bl->next, nu = nu->next) {
 			BevPoint *bevp = bl->bevpoints;
 			int nr = bl->nr;
@@ -6566,7 +6497,7 @@ static void draw_editfont(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *b
 	Curve *cu = ob->data;
 	EditFont *ef = cu->editfont;
 	float vec1[3], vec2[3];
-	int i, selstart, selend;
+	int selstart, selend;
 
 	draw_editfont_textcurs(rv3d, ef->textcurs);
 
@@ -6597,7 +6528,7 @@ static void draw_editfont(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *b
 	}
 
 	setlinestyle(3);
-	for (i = 0; i < cu->totbox; i++) {
+	for (int i = 0; i < cu->totbox; i++) {
 		if (cu->tb[i].w != 0.0f) {
 			UI_ThemeColor(i == (cu->actbox - 1) ? TH_ACTIVE : TH_WIRE);
 			vec1[0] = cu->xof + cu->tb[i].x;
@@ -6625,7 +6556,7 @@ static void draw_editfont(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *b
 
 		cpack(0xffffff);
 		set_inverted_drawing(1);
-		for (i = 0; i <= seltot; i++) {
+		for (int i = 0; i <= seltot; i++) {
 			EditFontSelBox *sb = &ef->selboxes[i];
 			float tvec[3];
 
@@ -6810,15 +6741,12 @@ static void drawspiral(const float cent[3], float rad, float tmat[4][4], int sta
  * all required matrices have been set (used for drawing empties) */
 static void drawcircle_size(float size)
 {
-	float x, y;
-	short degrees;
-
 	glBegin(GL_LINE_LOOP);
 
 	/* coordinates are: cos(degrees * 11.25) = x, sin(degrees * 11.25) = y, 0.0f = z */
-	for (degrees = 0; degrees < CIRCLE_RESOL; degrees++) {
-		x = cosval[degrees];
-		y = sinval[degrees];
+	for (short degrees = 0; degrees < CIRCLE_RESOL; degrees++) {
+		float x = cosval[degrees];
+		float y = sinval[degrees];
 		
 		glVertex3f(x * size, 0.0f, y * size);
 	}
@@ -6877,12 +6805,11 @@ static bool drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
                       const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Object *ob = base->object;
-	MetaBall *mb;
 	MetaElem *ml;
 	float imat[4][4];
 	int code = 1;
 	
-	mb = ob->data;
+	MetaBall *mb = ob->data;
 
 	if (mb->editelems) {
 		if ((G.f & G_PICKSEL) == 0) {
@@ -7283,14 +7210,13 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	glDepthMask(0);
 	
 	if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
-		DerivedMesh *dm;
 		bool has_faces = false;
 
 #ifdef SEQUENCER_DAG_WORKAROUND
 		ensure_curve_cache(scene, ob);
 #endif
 
-		dm = ob->derivedFinal;
+		DerivedMesh *dm = ob->derivedFinal;
 		if (dm) {
 			DM_update_materials(dm, ob);
 		}
@@ -7366,12 +7292,10 @@ static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, const 
 /* should be called in view space */
 static void draw_hooks(Object *ob)
 {
-	ModifierData *md;
-	float vec[3];
-	
-	for (md = ob->modifiers.first; md; md = md->next) {
+	for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
 		if (md->type == eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData *) md;
+			float vec[3];
 
 			mul_v3_m4v3(vec, ob->obmat, hmd->cent);
 
@@ -7397,13 +7321,12 @@ static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data,
                                   const short dflag, const unsigned char ob_wire_col[4])
 {
 	const char *axis_str[3] = {"px", "py", "pz"};
-	int axis;
 	float mat[4][4];
 
 	eul_to_mat4(mat, &data->axX);
 	glLineWidth(4.0f);
 	setlinestyle(2);
-	for (axis = 0; axis < 3; axis++) {
+	for (int axis = 0; axis < 3; axis++) {
 		float dir[3] = {0, 0, 0};
 		float v[3];
 
@@ -7574,8 +7497,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	unsigned int col = 0;
 	unsigned char _ob_wire_col[4];            /* dont initialize this */
 	const unsigned char *ob_wire_col = NULL;  /* dont initialize this, use NULL crashes as a way to find invalid use */
-	short dtx;
-	char  dt;
 	bool zbufoff = false, is_paint = false, empty_object = false;
 	const bool is_obact = (ob == OBACT);
 	const bool render_override = (v3d->flag2 & V3D_RENDER_OVERRIDE) != 0;
@@ -7699,11 +7620,11 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	}
 
 	/* maximum drawtype */
-	dt = v3d->drawtype;
+	char dt = v3d->drawtype;
 	if (dt == OB_RENDER) dt = OB_SOLID;
 	dt = MIN2(dt, ob->dt);
 	if (v3d->zbuf == 0 && dt > OB_WIRE) dt = OB_WIRE;
-	dtx = 0;
+	short dtx = 0;
 
 
 	/* faceselect exception: also draw solid when (dt == wire), except in editmode */
@@ -8569,7 +8490,6 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 {
 	Mesh *me = ob->data;
 	DerivedMesh *dm = NULL, *edm = NULL;
-	int glsl;
 	
 	if (ob->mode & OB_MODE_EDIT) {
 		edm = editbmesh_get_derived_base(ob, me->edit_btmesh);
@@ -8591,7 +8511,7 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 			draw_mesh_object_outline(v3d, ob, dm ? dm : edm);
 
 		if (dm) {
-			glsl = draw_glsl_material(scene, ob, v3d, dt);
+			bool glsl = draw_glsl_material(scene, ob, v3d, dt);
 			GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
 		}
 		
