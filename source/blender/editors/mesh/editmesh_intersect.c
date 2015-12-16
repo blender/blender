@@ -423,6 +423,7 @@ static void bm_face_split_by_edges_island_connect(
 		if (BM_face_split_edgenet_connect_islands(
 		        bm, f,
 		        edge_arr, e_link_len,
+		        true,
 		        mem_arena_edgenet,
 		        &edge_arr_holes, &edge_arr_holes_len))
 		{

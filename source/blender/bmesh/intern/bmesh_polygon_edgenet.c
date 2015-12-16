@@ -606,6 +606,10 @@ bool BM_face_split_edgenet(
  *
  * \{ */
 
+
+#define USE_PARTIAL_CONNECT
+
+
 #define VERT_IS_VALID BM_ELEM_INTERNAL_TAG
 
 /* can be X or Y */
@@ -685,8 +689,10 @@ static void bvhtree_test_edges_isect_2d_vert_cb(
 	if (edge_isect_verts_point_2d(e, data->v_origin, data->v_other, co_isect)) {
 		const float t = line_point_factor_v2(co_isect, data->v_origin->co, data->v_other->co);
 		const float dist_new = data->dist_orig * t;
-		/* avoid float precision issues, possible this is greater */
-		if (LIKELY(dist_new < hit->dist)) {
+		/* avoid float precision issues, possible this is greater,
+		 * check anove zero to allow some overlap
+		 * (and needed for partial-connect which will overlap vertices) */
+		if (LIKELY((dist_new < hit->dist) && (dist_new > 0.0f))) {
 			/* v1/v2 will both be in the same group */
 			if (v1_index <  (int)data->vert_range[0] ||
 			    v1_index >= (int)data->vert_range[1])
@@ -707,8 +713,10 @@ static void bvhtree_test_edges_isect_2d_ray_cb(
 	/* direction is normalized, so this will be the distance */
 	float dist_new;
 	if (isect_ray_seg_v2(data->v_origin->co, ray->direction, e->v1->co, e->v2->co, &dist_new, NULL)) {
-		/* avoid float precision issues, possible this is greater */
-		if (LIKELY(dist_new < hit->dist)) {
+		/* avoid float precision issues, possible this is greater,
+		 * check anove zero to allow some overlap
+		 * (and needed for partial-connect which will overlap vertices) */
+		if (LIKELY(dist_new < hit->dist && (dist_new > 0.0f))) {
 			if (e->v1 != data->v_origin && e->v2 != data->v_origin) {
 				const int v1_index = BM_elem_index_get(e->v1);
 				/* v1/v2 will both be in the same group */
@@ -909,15 +917,188 @@ static int bm_face_split_edgenet_find_connection(
 	return v_other ? BM_elem_index_get(v_other) : -1;
 }
 
+
+/**
+ * Support for connecting islands that have single-edge connections.
+ * This options is not very optimal (however its not needed for booleans either).
+ */
+#ifdef USE_PARTIAL_CONNECT
+
+/**
+ * Split vertices which are part of a partial connection
+ * (only a single vertex connecting an island).
+ *
+ * \note All edges and vertices must have their #BM_ELEM_INTERNAL_TAG flag enabled.
+ * This function leaves all the flags set as well.
+ *
+ */
+static BMVert *bm_face_split_edgenet_partial_connect(BMesh *bm, BMVert *v_delimit)
+{
+	/* -------------------------------------------------------------------- */
+	/* Initial check that we may be a delimiting vert (keep this fast) */
+
+	/* initial check - see if we have 3+ flagged edges attached to 'v_delimit'
+	 * if not, we can early exit */
+	LinkNode *e_delimit_list = NULL;
+	unsigned int e_delimit_list_len = 0;
+
+#define EDGE_NOT_IN_STACK  BM_ELEM_INTERNAL_TAG
+#define VERT_NOT_IN_STACK  BM_ELEM_INTERNAL_TAG
+
+#define FOREACH_VERT_EDGE(v_, e_, body_) { \
+	BMEdge *e_ = v_->e; \
+	do { body_ } while ((e_ = BM_DISK_EDGE_NEXT(e_, v_)) != v_->e); \
+} ((void)0)
+
+	/* start with face edges, since we need to split away wire-only edges */
+	BMEdge *e_face_init = NULL;
+
+	FOREACH_VERT_EDGE(v_delimit, e_iter, {
+		if (BM_elem_flag_test(e_iter, EDGE_NOT_IN_STACK)) {
+			BLI_assert(BM_elem_flag_test(BM_edge_other_vert(e_iter, v_delimit), VERT_NOT_IN_STACK));
+			BLI_linklist_prepend_alloca(&e_delimit_list, e_iter);
+			e_delimit_list_len++;
+			if (e_iter->l != NULL) {
+				e_face_init = e_iter;
+			}
+		}
+	});
+
+	/* skip typical edge-chain verts */
+	if (LIKELY(e_delimit_list_len <= 2)) {
+		return NULL;
+	}
+
+
+	/* -------------------------------------------------------------------- */
+	/* Complicated stuff starts now! */
+
+
+	/* Store connected vertices for restoring the flag */
+	LinkNode *vert_stack = NULL;
+	BLI_linklist_prepend_alloca(&vert_stack, v_delimit);
+	BM_elem_flag_disable(v_delimit, VERT_NOT_IN_STACK);
+
+	/* Walk the net... */
+	{
+		BLI_SMALLSTACK_DECLARE(search, BMVert *);
+		BMVert *v_other = BM_edge_other_vert(e_face_init ? e_face_init : v_delimit->e, v_delimit);
+
+		BLI_SMALLSTACK_PUSH(search, v_other);
+		BM_elem_flag_disable(v_other, VERT_NOT_IN_STACK);
+
+		while ((v_other = BLI_SMALLSTACK_POP(search))) {
+			BLI_assert(BM_elem_flag_test(v_other, VERT_NOT_IN_STACK) == false);
+			BLI_linklist_prepend_alloca(&vert_stack, v_other);
+			BMEdge *e_iter = v_other->e;
+			do {
+				BMVert *v_step = BM_edge_other_vert(e_iter, v_other);
+				if (BM_elem_flag_test(e_iter, EDGE_NOT_IN_STACK)) {
+					if (BM_elem_flag_test(v_step, VERT_NOT_IN_STACK)) {
+						BM_elem_flag_disable(v_step, VERT_NOT_IN_STACK);
+						BLI_SMALLSTACK_PUSH(search, v_step);
+					}
+				}
+			} while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v_other)) != v_other->e);
+		}
+	}
+
+	/* Detect if this is a delimiter by checking if we didn't walk any of edges connected to 'v_delimit' */
+	bool is_delimit = false;
+	FOREACH_VERT_EDGE(v_delimit, e_iter, {
+		BMVert *v_step = BM_edge_other_vert(e_iter, v_delimit);
+		if (BM_elem_flag_test(v_step, VERT_NOT_IN_STACK)) {
+			is_delimit = true;  /* if one vertex is valid - we have a mix */
+		}
+		else {
+			/* match the vertex flag (only for edges around 'v_delimit') */
+			BM_elem_flag_disable(e_iter, EDGE_NOT_IN_STACK);
+		}
+	});
+
+#undef FOREACH_VERT_EDGE
+
+	/* Execute the split */
+	BMVert *v_split = NULL;
+	if (is_delimit) {
+		v_split = BM_vert_create(bm, v_delimit->co, NULL, 0);
+		BM_vert_separate_wire_hflag(bm, v_split, v_delimit, EDGE_NOT_IN_STACK);
+		BM_elem_flag_enable(v_split, VERT_NOT_IN_STACK);
+
+		BLI_assert(v_delimit->e != NULL);
+		BLI_assert(v_split->e != NULL);
+	}
+
+	/* Restore flags */
+	do {
+		BM_elem_flag_enable((BMVert *)vert_stack->link, VERT_NOT_IN_STACK);
+	} while ((vert_stack = vert_stack->next));
+
+	do {
+		BM_elem_flag_enable((BMEdge *)e_delimit_list->link, EDGE_NOT_IN_STACK);
+	} while ((e_delimit_list = e_delimit_list->next));
+
+#undef EDGE_NOT_IN_STACK
+#undef VERT_NOT_IN_STACK
+
+	return v_split;
+}
+
+
+/**
+ * Check if creating a connection between 2 edges will later overlap when splicing vertices back together.
+ */
+static bool bm_vert_partial_connect_check_overlap(
+        BMVert **vert_arr, const int *remap,
+        const int v_a_index, const int v_b_index)
+{
+	int v_a_remap = remap[v_a_index];
+	int v_b_remap = remap[v_b_index];
+
+	if (v_a_remap == -1 && v_b_remap == -1) {
+		return false;
+	}
+	else if (UNLIKELY((v_a_remap == v_b_index) || (v_b_remap == v_a_index))) {
+		/* connected to eachother */
+		return true;
+	}
+	else {
+		/* check that creating an edge here will overlap an existing edge
+		 * once adjacent vertices are spliced together. */
+		const int v_pair[2] = {v_a_index, v_b_index};
+		for (int i = 0; i < 2; i++) {
+			BMVert *v = vert_arr[v_pair[i]];
+			BMEdge *e_iter = v->e;
+			do {
+				BMVert *v_step = BM_edge_other_vert(e_iter, v);
+				const int v_step_index = BM_elem_index_get(v_step);
+				if (remap[v_step_index] == v_pair[!i]) {
+					return true;
+				}
+			} while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v)) != v->e);
+		}
+	}
+
+	return false;
+}
+
+
+#endif  /* USE_PARTIAL_CONNECT */
+
+
+
 /**
  * For when the edge-net has holes in it-this connects them.
  *
+ * \param use_partial_connect: Support for handling islands connected by only a single edge,
+ * \note that this is quite slow so avoid using where possible.
  * \param mem_arena: Avoids many small allocs & should be cleared after each use.
  * take care since \a r_edge_net_new is stored in \a r_edge_net_new.
  */
 bool BM_face_split_edgenet_connect_islands(
         BMesh *bm,
         BMFace *f, BMEdge **edge_net_init, const unsigned int edge_net_init_len,
+        bool use_partial_connect,
         MemArena *mem_arena,
         BMEdge ***r_edge_net_new, unsigned int *r_edge_net_new_len)
 {
@@ -958,6 +1139,48 @@ bool BM_face_split_edgenet_connect_islands(
 		BM_elem_flag_enable(edge_arr[i]->v1, VERT_NOT_IN_STACK);
 		BM_elem_flag_enable(edge_arr[i]->v2, VERT_NOT_IN_STACK);
 	}
+
+
+
+#ifdef USE_PARTIAL_CONNECT
+	/* Split-out delimiting vertices */
+	struct TempVertPair {
+		struct TempVertPair *next;
+		BMVert *v_temp;
+		BMVert *v_orig;
+	};
+
+	struct {
+		struct TempVertPair *list;
+		unsigned int len;
+		int *remap;  /* temp -> orig mapping */
+	} temp_vert_pairs = {NULL};
+
+	if (use_partial_connect) {
+		for (unsigned int i = 0; i < edge_net_init_len; i++) {
+			for (unsigned j = 0; j < 2; j++) {
+				BMVert *v_delimit = (&edge_arr[i]->v1)[j];
+				BMVert *v_other;
+
+				/* note, remapping will _never_ map a vertex to an already mapped vertex */
+				while (UNLIKELY((v_other = bm_face_split_edgenet_partial_connect(bm, v_delimit)))) {
+					struct TempVertPair *tvp = BLI_memarena_alloc(mem_arena, sizeof(*tvp));
+					tvp->next = temp_vert_pairs.list;
+					tvp->v_orig = v_delimit;
+					tvp->v_temp = v_other;
+					temp_vert_pairs.list = tvp;
+					temp_vert_pairs.len++;
+				}
+			}
+		}
+
+		if (temp_vert_pairs.len == 0) {
+			use_partial_connect = false;
+		}
+	}
+#endif  /* USE_PARTIAL_CONNECT */
+
+
 
 	unsigned int group_arr_len = 0;
 	LinkNode *group_head = NULL;
@@ -1150,6 +1373,23 @@ bool BM_face_split_edgenet_connect_islands(
 	}
 	BLI_bvhtree_balance(bvhtree);
 
+
+
+#ifdef USE_PARTIAL_CONNECT
+	if (use_partial_connect) {
+		/* needs to be done once the vertex indices have been written into */
+		temp_vert_pairs.remap = BLI_memarena_alloc(mem_arena, sizeof(*temp_vert_pairs.remap) * vert_arr_len);
+		copy_vn_i(temp_vert_pairs.remap, vert_arr_len, -1);
+
+		struct TempVertPair *tvp = temp_vert_pairs.list;
+		do {
+			temp_vert_pairs.remap[BM_elem_index_get(tvp->v_temp)] = BM_elem_index_get(tvp->v_orig);
+		} while ((tvp = tvp->next));
+	}
+#endif  /* USE_PARTIAL_CONNECT */
+
+
+
 	/* Create connections between groups */
 
 	/* may be an over-alloc, but not by much */
@@ -1195,11 +1435,19 @@ bool BM_face_split_edgenet_connect_islands(
 
 				/* only for degenerate geometry */
 				if (index_other != -1) {
-					BMVert *v_end = vert_arr[index_other];
+#ifdef USE_PARTIAL_CONNECT
+					if ((use_partial_connect == false) ||
+					    (bm_vert_partial_connect_check_overlap(
+					         vert_arr, temp_vert_pairs.remap,
+					         BM_elem_index_get(v_origin), index_other) == false))
+#endif
+					{
+						BMVert *v_end = vert_arr[index_other];
 
-					edge_net_new[edge_net_new_index] = BM_edge_create(bm, v_origin, v_end, NULL, 0);
-					edge_net_new_index++;
-					args.edge_arr_new_len++;
+						edge_net_new[edge_net_new_index] = BM_edge_create(bm, v_origin, v_end, NULL, 0);
+						edge_net_new_index++;
+						args.edge_arr_new_len++;
+					}
 				}
 			}
 
@@ -1211,11 +1459,18 @@ bool BM_face_split_edgenet_connect_islands(
 
 				/* only for degenerate geometry */
 				if (index_other != -1) {
-					BMVert *v_end = vert_arr[index_other];
-
-					edge_net_new[edge_net_new_index] = BM_edge_create(bm, v_origin, v_end, NULL, 0);
-					edge_net_new_index++;
-					args.edge_arr_new_len++;
+#ifdef USE_PARTIAL_CONNECT
+					if ((use_partial_connect == false) ||
+					    (bm_vert_partial_connect_check_overlap(
+					         vert_arr, temp_vert_pairs.remap,
+					         BM_elem_index_get(v_origin), index_other) == false))
+#endif
+					{
+						BMVert *v_end = vert_arr[index_other];
+						edge_net_new[edge_net_new_index] = BM_edge_create(bm, v_origin, v_end, NULL, 0);
+						edge_net_new_index++;
+						args.edge_arr_new_len++;
+					}
 
 					/* tell the 'next' group it doesn't need to create its own back-link */
 					unsigned int g_index_other = verts_group_table[index_other];
@@ -1239,6 +1494,21 @@ bool BM_face_split_edgenet_connect_islands(
 	}
 
 finally:
+
+#ifdef USE_PARTIAL_CONNECT
+	/* don't free 'vert_temp_pair_list', its part of the arena */
+	if (use_partial_connect) {
+		struct TempVertPair *tvp = temp_vert_pairs.list;
+		do {
+			/* we must _never_ create connections here
+			 * (inface the islands can't have a connection at all) */
+			BLI_assert(BM_edge_exists(tvp->v_orig, tvp->v_temp) == NULL);
+			BM_vert_splice(bm, tvp->v_orig, tvp->v_temp);
+		} while ((tvp = tvp->next));
+	}
+#endif
+
+
 	for (unsigned int i = 0; i < edge_arr_len; i++) {
 		BM_elem_flag_disable(edge_arr[i], EDGE_NOT_IN_STACK);
 		BM_elem_flag_disable(edge_arr[i]->v1, VERT_NOT_IN_STACK);

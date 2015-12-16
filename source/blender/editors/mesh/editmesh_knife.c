@@ -2332,6 +2332,7 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMFace *f, ListBase *kfe
 		if (BM_face_split_edgenet_connect_islands(
 		        bm, f,
 		        edge_array, edge_array_len,
+		        true,
 		        kcd->edgenet.arena,
 		        &edge_array_holes, &edge_array_holes_len))
 		{
