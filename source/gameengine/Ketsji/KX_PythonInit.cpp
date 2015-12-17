@@ -197,8 +197,12 @@ void KX_RasterizerDrawDebugCircle(const MT_Vector3& center, const MT_Scalar radi
 
 #ifdef WITH_PYTHON
 
-static PyObject *gp_OrigPythonSysPath= NULL;
-static PyObject *gp_OrigPythonSysModules= NULL;
+
+static struct {
+	PyObject *path;
+	PyObject *meta_path;
+	PyObject *modules;
+} gp_sys_backup = {NULL};
 
 /* Macro for building the keyboard translation */
 //#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, PyLong_FromLong(SCA_IInputDevice::KX_##name))
@@ -1907,11 +1911,12 @@ PyMODINIT_FUNC initGameLogicPythonBinding()
 	return m;
 }
 
-/* Explanation of 
+/**
+ * Explanation of
  * 
- * - backupPySysObjects()		: stores sys.path in gp_OrigPythonSysPath
- * - initPySysObjects(main)	: initializes the blendfile and library paths
- * - restorePySysObjects()		: restores sys.path from gp_OrigPythonSysPath
+ * - backupPySysObjects()       : stores sys.path in #gp_sys_backup
+ * - initPySysObjects(main)     : initializes the blendfile and library paths
+ * - restorePySysObjects()      : restores sys.path from #gp_sys_backup
  * 
  * These exist so the current blend dir "//" can always be used to import modules from.
  * the reason we need a few functions for this is that python is not only used by the game engine
@@ -1928,16 +1933,21 @@ PyMODINIT_FUNC initGameLogicPythonBinding()
  */
 static void backupPySysObjects(void)
 {
-	PyObject *sys_path= PySys_GetObject("path"); /* should never fail */
-	PyObject *sys_mods= PySys_GetObject("modules"); /* should never fail */
+	PyObject *sys_path      = PySys_GetObject("path");
+	PyObject *sys_meta_path = PySys_GetObject("meta_path");
+	PyObject *sys_mods      = PySys_GetObject("modules");
 	
 	/* paths */
-	Py_XDECREF(gp_OrigPythonSysPath); /* just in case its set */
-	gp_OrigPythonSysPath = PyList_GetSlice(sys_path, 0, INT_MAX); /* copy the list */
+	Py_XDECREF(gp_sys_backup.path); /* just in case its set */
+	gp_sys_backup.path = PyList_GetSlice(sys_path, 0, INT_MAX); /* copy the list */
 	
+	/* meta_paths */
+	Py_XDECREF(gp_sys_backup.meta_path); /* just in case its set */
+	gp_sys_backup.meta_path = PyList_GetSlice(sys_meta_path, 0, INT_MAX); /* copy the list */
+
 	/* modules */
-	Py_XDECREF(gp_OrigPythonSysModules); /* just in case its set */
-	gp_OrigPythonSysModules = PyDict_Copy(sys_mods); /* copy the list */
+	Py_XDECREF(gp_sys_backup.modules); /* just in case its set */
+	gp_sys_backup.modules = PyDict_Copy(sys_mods); /* copy the dict */
 	
 }
 
@@ -1967,15 +1977,17 @@ static void initPySysObjects__append(PyObject *sys_path, const char *filename)
 }
 static void initPySysObjects(Main *maggie)
 {
-	PyObject *sys_path= PySys_GetObject("path"); /* should never fail */
+	PyObject *sys_path      = PySys_GetObject("path");
+	PyObject *sys_meta_path = PySys_GetObject("meta_path");
 	
-	if (gp_OrigPythonSysPath==NULL) {
+	if (gp_sys_backup.path == NULL) {
 		/* backup */
 		backupPySysObjects();
 	}
 	else {
 		/* get the original sys path when the BGE started */
-		PyList_SetSlice(sys_path, 0, INT_MAX, gp_OrigPythonSysPath);
+		PyList_SetSlice(sys_path, 0, INT_MAX, gp_sys_backup.path);
+		PyList_SetSlice(sys_meta_path, 0, INT_MAX, gp_sys_backup.meta_path);
 	}
 	
 	Library *lib= (Library *)maggie->library.first;
@@ -1995,22 +2007,30 @@ static void initPySysObjects(Main *maggie)
 
 static void restorePySysObjects(void)
 {
-	if (gp_OrigPythonSysPath==NULL)
+	if (gp_sys_backup.path == NULL) {
 		return;
-	
-	PyObject *sys_path= PySys_GetObject("path"); /* should never fail */
-	PyObject *sys_mods= PySys_GetObject("modules"); /* should never fail */
+	}
+
+	/* will never fail */
+	PyObject *sys_path      = PySys_GetObject("path");
+	PyObject *sys_meta_path = PySys_GetObject("meta_path");
+	PyObject *sys_mods      = PySys_GetObject("modules");
 
 	/* paths */
-	PyList_SetSlice(sys_path, 0, INT_MAX, gp_OrigPythonSysPath);
-	Py_DECREF(gp_OrigPythonSysPath);
-	gp_OrigPythonSysPath= NULL;
+	PyList_SetSlice(sys_path, 0, INT_MAX, gp_sys_backup.path);
+	Py_DECREF(gp_sys_backup.path);
+	gp_sys_backup.path = NULL;
+
+	/* meta_path */
+	PyList_SetSlice(sys_meta_path, 0, INT_MAX, gp_sys_backup.meta_path);
+	Py_DECREF(gp_sys_backup.meta_path);
+	gp_sys_backup.meta_path = NULL;
 	
 	/* modules */
 	PyDict_Clear(sys_mods);
-	PyDict_Update(sys_mods, gp_OrigPythonSysModules);
-	Py_DECREF(gp_OrigPythonSysModules);
-	gp_OrigPythonSysModules= NULL;
+	PyDict_Update(sys_mods, gp_sys_backup.modules);
+	Py_DECREF(gp_sys_backup.modules);
+	gp_sys_backup.modules = NULL;
 	
 	
 //	fprintf(stderr, "\nRestore Path: %d ", PyList_GET_SIZE(sys_path));
