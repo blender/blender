@@ -253,7 +253,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, Panel):
         layout.enabled = particle_panel_enabled(context, psys) and (psys is None or not psys.has_multiple_caches)
 
         row = layout.row()
-        row.active = part.distribution != 'GRID'
+        row.active = part.emit_from == 'VERT' or part.distribution != 'GRID'
         row.prop(part, "count")
 
         if part.type == 'HAIR':
