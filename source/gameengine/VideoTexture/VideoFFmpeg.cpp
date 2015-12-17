@@ -34,7 +34,10 @@
 // INT64_C fix for some linux machines (C99ism)
 #ifndef __STDC_CONSTANT_MACROS
 #define __STDC_CONSTANT_MACROS
+#ifdef  __STDC_CONSTANT_MACROS  /* quiet warning */
 #endif
+#endif
+
 #include <stdint.h>
 
 
