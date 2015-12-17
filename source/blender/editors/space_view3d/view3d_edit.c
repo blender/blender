@@ -4679,21 +4679,9 @@ static int view3d_cursor3d_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
 	return OPERATOR_FINISHED;
 }
 
-static int view3d_cursor3d_poll(bContext *C)
-{
-	if (ED_operator_region_view3d_active(C)) {
-		View3D *v3d = CTX_wm_view3d(C);
-		
-		/* only if not locked */
-		if ((v3d->flag & V3D_LOCK_CURSOR) == 0)
-			return true;
-	}
-	
-	return false;
-}
-
 void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 {
+
 	/* identifiers */
 	ot->name = "Set 3D Cursor";
 	ot->description = "Set the location of the 3D cursor";
@@ -4701,7 +4689,8 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->invoke = view3d_cursor3d_invoke;
-	ot->poll = view3d_cursor3d_poll;
+
+	ot->poll = ED_operator_region_view3d_active;
 
 	/* flags */
 //	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;

@@ -250,7 +250,6 @@ typedef struct View3D {
 #define V3D_DISPBGPICS		2
 #define V3D_HIDE_HELPLINES	4
 #define V3D_INVALID_BACKBUF	8
-#define V3D_LOCK_CURSOR		16
 
 #define V3D_ALIGN			1024
 #define V3D_SELECT_OUTLINE	2048
