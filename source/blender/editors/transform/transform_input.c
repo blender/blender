@@ -298,6 +298,7 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 				mi->apply = InputAngle;
 			}
 			else {
+				calcSpringFactor(mi);
 				mi->apply = InputAngleSpring;
 			}
 			t->helpline = HLP_ANGLE;
