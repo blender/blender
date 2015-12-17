@@ -1216,6 +1216,43 @@ bool BM_face_share_edge_check(BMFace *f1, BMFace *f2)
 }
 
 /**
+ *  Counts the number of verts two faces share (if any).
+ */
+int BM_face_share_vert_count(BMFace *f_a, BMFace *f_b)
+{
+	BMLoop *l_iter;
+	BMLoop *l_first;
+	int count = 0;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f_a);
+	do {
+		if (BM_vert_in_face(l_iter->v, f_b)) {
+			count++;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
+
+	return count;
+}
+
+/**
+ *  Returns true if the faces share a vert.
+ */
+bool BM_face_share_vert_check(BMFace *f_a, BMFace *f_b)
+{
+	BMLoop *l_iter;
+	BMLoop *l_first;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f_a);
+	do {
+		if (BM_vert_in_face(l_iter->v, f_b)) {
+			return true;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
+
+	return false;
+}
+
+/**
  * Test if e1 shares any faces with e2
  */
 bool BM_edge_share_face_check(BMEdge *e1, BMEdge *e2)
