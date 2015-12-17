@@ -404,6 +404,16 @@ static void ghash_insert_face_edge_link(
 	ls_base->list_len += 1;
 }
 
+static int bm_edge_sort_length_cb(const void *e_a_v, const void *e_b_v)
+{
+	const float val_a = -BM_edge_calc_length_squared(*((BMEdge **)e_a_v));
+	const float val_b = -BM_edge_calc_length_squared(*((BMEdge **)e_b_v));
+
+	if      (val_a > val_b) return  1;
+	else if (val_a < val_b) return -1;
+	else                    return  0;
+}
+
 static void bm_face_split_by_edges_island_connect(
         BMesh *bm, BMFace *f,
         LinkNode *e_link, const int e_link_len,
@@ -435,6 +445,27 @@ static void bm_face_split_by_edges_island_connect(
 	BM_face_split_edgenet(
 	        bm, f, edge_arr, edge_arr_len,
 	        NULL, NULL);
+
+	for (int i = e_link_len; i < edge_arr_len; i++) {
+		BM_edge_select_set(bm, edge_arr[i], true);
+	}
+
+	if (e_link_len != edge_arr_len) {
+		/* connecting partial islands can add redundant edges
+		 * sort before removal to give deterministic outcome */
+		qsort(edge_arr, edge_arr_len - e_link_len, sizeof(*edge_arr), bm_edge_sort_length_cb);
+		for (int i = e_link_len; i < edge_arr_len; i++) {
+			BMFace *f_pair[2];
+			if (BM_edge_face_pair(edge_arr[i], &f_pair[0], &f_pair[1])) {
+				if (BM_face_share_vert_count(f_pair[0], f_pair[1]) == 2) {
+					BMFace *f_new = BM_faces_join(bm, f_pair, 2, true);
+					if (f_new) {
+						BM_face_select_set(bm, f_new, true);
+					}
+				}
+			}
+		}
+	}
 }
 
 /**
