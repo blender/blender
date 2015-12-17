@@ -1046,40 +1046,21 @@ static BMVert *bm_face_split_edgenet_partial_connect(BMesh *bm, BMVert *v_delimi
 
 
 /**
- * Check if creating a connection between 2 edges will later overlap when splicing vertices back together.
+ * Check if connecting vertices would cause an edge with duplicate verts.
  */
 static bool bm_vert_partial_connect_check_overlap(
-        BMVert **vert_arr, const int *remap,
+        const int *remap,
         const int v_a_index, const int v_b_index)
 {
-	int v_a_remap = remap[v_a_index];
-	int v_b_remap = remap[v_b_index];
-
-	if (v_a_remap == -1 && v_b_remap == -1) {
-		return false;
-	}
-	else if (UNLIKELY((v_a_remap == v_b_index) || (v_b_remap == v_a_index))) {
-		/* connected to eachother */
+	/* connected to eachother */
+	if (UNLIKELY((remap[v_a_index] == v_b_index) ||
+	             (remap[v_b_index] == v_a_index)))
+	{
 		return true;
 	}
 	else {
-		/* check that creating an edge here will overlap an existing edge
-		 * once adjacent vertices are spliced together. */
-		const int v_pair[2] = {v_a_index, v_b_index};
-		for (int i = 0; i < 2; i++) {
-			BMVert *v = vert_arr[v_pair[i]];
-			BMEdge *e_iter = v->e;
-			do {
-				BMVert *v_step = BM_edge_other_vert(e_iter, v);
-				const int v_step_index = BM_elem_index_get(v_step);
-				if (remap[v_step_index] == v_pair[!i]) {
-					return true;
-				}
-			} while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v)) != v->e);
-		}
+		return false;
 	}
-
-	return false;
 }
 
 
@@ -1438,13 +1419,16 @@ bool BM_face_split_edgenet_connect_islands(
 #ifdef USE_PARTIAL_CONNECT
 					if ((use_partial_connect == false) ||
 					    (bm_vert_partial_connect_check_overlap(
-					         vert_arr, temp_vert_pairs.remap,
+					         temp_vert_pairs.remap,
 					         BM_elem_index_get(v_origin), index_other) == false))
 #endif
 					{
 						BMVert *v_end = vert_arr[index_other];
 
 						edge_net_new[edge_net_new_index] = BM_edge_create(bm, v_origin, v_end, NULL, 0);
+#ifdef USE_PARTIAL_CONNECT
+						BM_elem_index_set(edge_net_new[edge_net_new_index], edge_net_new_index);
+#endif
 						edge_net_new_index++;
 						args.edge_arr_new_len++;
 					}
@@ -1462,12 +1446,15 @@ bool BM_face_split_edgenet_connect_islands(
 #ifdef USE_PARTIAL_CONNECT
 					if ((use_partial_connect == false) ||
 					    (bm_vert_partial_connect_check_overlap(
-					         vert_arr, temp_vert_pairs.remap,
+					         temp_vert_pairs.remap,
 					         BM_elem_index_get(v_origin), index_other) == false))
 #endif
 					{
 						BMVert *v_end = vert_arr[index_other];
 						edge_net_new[edge_net_new_index] = BM_edge_create(bm, v_origin, v_end, NULL, 0);
+#ifdef USE_PARTIAL_CONNECT
+						BM_elem_index_set(edge_net_new[edge_net_new_index], edge_net_new_index);
+#endif
 						edge_net_new_index++;
 						args.edge_arr_new_len++;
 					}
@@ -1505,6 +1492,21 @@ finally:
 			BLI_assert(BM_edge_exists(tvp->v_orig, tvp->v_temp) == NULL);
 			BM_vert_splice(bm, tvp->v_orig, tvp->v_temp);
 		} while ((tvp = tvp->next));
+
+		/* Remove edges which have become doubles since splicing vertices together,
+		 * its less trouble then detecting future-doubles on edge-creation. */
+		for (unsigned int i = edge_net_init_len; i < edge_net_new_len; i++) {
+			while (BM_edge_find_double(edge_net_new[i])) {
+				BM_edge_kill(bm, edge_net_new[i]);
+				edge_net_new_len--;
+				if (i == edge_net_new_len) {
+					break;
+				}
+				edge_net_new[i] = edge_net_new[edge_net_new_len];
+			}
+		}
+
+		*r_edge_net_new_len = edge_net_new_len;
 	}
 #endif
 
