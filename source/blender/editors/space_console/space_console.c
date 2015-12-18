@@ -372,17 +372,29 @@ static void console_header_region_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
-static void console_main_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar, wmNotifier *wmn)
+static void console_main_region_listener(bScreen *UNUSED(sc), ScrArea *sa, ARegion *ar, wmNotifier *wmn)
 {
 	// SpaceInfo *sinfo = sa->spacedata.first;
 
 	/* context changes */
 	switch (wmn->category) {
 		case NC_SPACE:
-			if (wmn->data == ND_SPACE_CONSOLE) { /* generic redraw request */
-				ED_region_tag_redraw(ar);
+		{
+			if (wmn->data == ND_SPACE_CONSOLE) {
+				if (wmn->action == NA_EDITED) {
+					if ((wmn->reference && sa) && (wmn->reference == sa->spacedata.first)) {
+						/* we've modified the geometry (font size), re-calculate rect */
+						console_textview_update_rect(wmn->reference, ar);
+						ED_region_tag_redraw(ar);
+					}
+				}
+				else {
+					/* generic redraw request */
+					ED_region_tag_redraw(ar);
+				}
 			}
 			break;
+		}
 	}
 }
 

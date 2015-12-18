@@ -49,6 +49,8 @@ ConsoleLine *console_scrollback_add_str(struct SpaceConsole *sc, char *str, bool
 
 ConsoleLine *console_history_verify(const struct bContext *C);
 
+void console_textview_update_rect(SpaceConsole *sc, ARegion *ar);
+
 void CONSOLE_OT_move(struct wmOperatorType *ot);
 void CONSOLE_OT_delete(struct wmOperatorType *ot);
 void CONSOLE_OT_insert(struct wmOperatorType *ot);

@@ -63,7 +63,7 @@ static void console_scroll_bottom(ARegion *ar)
 	v2d->cur.ymax = (float)v2d->winy;
 }
 
-static void console_textview_update_rect(SpaceConsole *sc, ARegion *ar)
+void console_textview_update_rect(SpaceConsole *sc, ARegion *ar)
 {
 	View2D *v2d = &ar->v2d;
 
