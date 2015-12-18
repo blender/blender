@@ -464,6 +464,7 @@ void ED_keymap_proportional_cycle(struct wmKeyConfig *UNUSED(keyconf), struct wm
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_enum", OKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.proportional_edit_falloff");
+	RNA_boolean_set(kmi->ptr, "wrap", true);
 }
 
 void ED_keymap_proportional_obmode(struct wmKeyConfig *UNUSED(keyconf), struct wmKeyMap *keymap)

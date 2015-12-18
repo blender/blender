@@ -43,6 +43,12 @@ rna_reverse_prop = BoolProperty(
         default=False,
         )
 
+rna_wrap_prop = BoolProperty(
+        name="Wrap",
+        description="Wrap back to the first/last values",
+        default=False,
+        )
+
 rna_relative_prop = BoolProperty(
         name="Relative",
         description="Apply relative to the current value (delta)",
@@ -399,6 +405,7 @@ class WM_OT_context_cycle_int(Operator):
 
     data_path = rna_path_prop
     reverse = rna_reverse_prop
+    wrap = rna_wrap_prop
 
     def execute(self, context):
         data_path = self.data_path
@@ -413,14 +420,15 @@ class WM_OT_context_cycle_int(Operator):
 
         exec("context.%s = value" % data_path)
 
-        if value != eval("context.%s" % data_path):
-            # relies on rna clamping integers out of the range
-            if self.reverse:
-                value = (1 << 31) - 1
-            else:
-                value = -1 << 31
+        if self.wrap:
+            if value != eval("context.%s" % data_path):
+                # relies on rna clamping integers out of the range
+                if self.reverse:
+                    value = (1 << 31) - 1
+                else:
+                    value = -1 << 31
 
-            exec("context.%s = value" % data_path)
+                exec("context.%s = value" % data_path)
 
         return operator_path_undo_return(context, data_path)
 
@@ -433,6 +441,7 @@ class WM_OT_context_cycle_enum(Operator):
 
     data_path = rna_path_prop
     reverse = rna_reverse_prop
+    wrap = rna_wrap_prop
 
     def execute(self, context):
         data_path = self.data_path
@@ -460,15 +469,18 @@ class WM_OT_context_cycle_enum(Operator):
         enums = rna_struct.properties[rna_prop_str].enum_items.keys()
         orig_index = enums.index(orig_value)
 
-        # Have the info we need, advance to the next item
+        # Have the info we need, advance to the next item.
+        #
+        # When wrap's disabled we may set the value to its self,
+        # this is done to ensure update callbacks run.
         if self.reverse:
             if orig_index == 0:
-                advance_enum = enums[-1]
+                advance_enum = enums[-1] if self.wrap else enums[0]
             else:
                 advance_enum = enums[orig_index - 1]
         else:
             if orig_index == len(enums) - 1:
-                advance_enum = enums[0]
+                advance_enum = enums[0] if self.wrap else enums[-1]
             else:
                 advance_enum = enums[orig_index + 1]
 
