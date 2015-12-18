@@ -1029,5 +1029,11 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			else
 				gpd->flag &= ~GP_DATA_SHOW_ONIONSKINS;
 		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "Object", "unsigned char", "max_jumps")) {
+			for (Object *ob = main->object.first; ob; ob = ob->id.next) {
+				ob->max_jumps = 1;
+			}
+		}
 	}
 }
