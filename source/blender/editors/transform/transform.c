@@ -2038,6 +2038,10 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			RNA_property_boolean_set(op->ptr, prop, (t->flag & T_ALT_TRANSFORM) != 0);
 		}
 	}
+
+	if ((prop = RNA_struct_find_property(op->ptr, "correct_uv"))) {
+		RNA_property_boolean_set(op->ptr, prop, (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) != 0);
+	}
 }
 
 /**
