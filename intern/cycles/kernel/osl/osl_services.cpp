@@ -35,6 +35,7 @@
 #include "osl_shader.h"
 
 #include "util_foreach.h"
+#include "util_logging.h"
 #include "util_string.h"
 
 #include "kernel_compat_cpu.h"
@@ -124,6 +125,8 @@ OSLRenderServices::OSLRenderServices()
 
 OSLRenderServices::~OSLRenderServices()
 {
+	VLOG(2) << "OSL texture system stats:\n"
+	        << osl_ts->getstats();
 #ifdef WITH_PTEX
 	ptex_cache->release();
 #endif
