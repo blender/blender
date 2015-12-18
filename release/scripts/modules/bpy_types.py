@@ -34,8 +34,10 @@ class Context(StructRNA):
     def copy(self):
         from types import BuiltinMethodType
         new_context = {}
-        generic_attrs = (list(StructRNA.__dict__.keys()) +
-                         ["bl_rna", "rna_type", "copy"])
+        generic_attrs = (
+            *StructRNA.__dict__.keys(),
+            "bl_rna", "rna_type", "copy",
+            )
         for attr in dir(self):
             if not (attr.startswith("_") or attr in generic_attrs):
                 value = getattr(self, attr)
