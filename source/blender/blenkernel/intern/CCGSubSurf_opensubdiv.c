@@ -44,6 +44,7 @@
 #include "opensubdiv_converter_capi.h"
 
 #include "GL/glew.h"
+#include "GPU_extensions.h"
 
 #define OSD_LOG if (false) printf
 
@@ -987,7 +988,7 @@ void ccgSubSurf__delete_pending(void)
 
 void BKE_subsurf_osd_init(void)
 {
-	openSubdiv_init();
+	openSubdiv_init(GPU_legacy_support());
 	BLI_spin_init(&delete_spin);
 }
 
