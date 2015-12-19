@@ -684,8 +684,6 @@ static void TRANSFORM_OT_rotate(struct wmOperatorType *ot)
 
 static void TRANSFORM_OT_tilt(struct wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name = "Tilt";
 	/* optionals - 
@@ -702,8 +700,7 @@ static void TRANSFORM_OT_tilt(struct wmOperatorType *ot)
 	ot->cancel = transform_cancel;
 	ot->poll   = ED_operator_editcurve_3d;
 
-	prop = RNA_def_float(ot->srna, "value", 0.0, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);
-	RNA_def_property_subtype(prop, PROP_ANGLE);
+	RNA_def_float_rotation(ot->srna, "value", 0, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);
 
 	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP);
 }
