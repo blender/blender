@@ -9464,7 +9464,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 						block->pie_data.flags |= UI_PIE_ANIMATION_FINISHED;
 					}
 
-					for (uiBut *but = block->buttons.first; but; but = but->next) {
+					for (but = block->buttons.first; but; but = but->next) {
 						if (but->pie_dir != UI_RADIAL_NONE) {
 							float vec[2];
 							float center[2];
@@ -9503,7 +9503,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 				}
 
 				if (len_sq < 1.0f) {
-					uiBut *but = ui_but_find_active_in_region(menu->region);
+					but = ui_but_find_active_in_region(menu->region);
 
 					if (but) {
 						return ui_but_pie_menu_apply(C, menu, but, true);
@@ -9529,7 +9529,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 					block->pie_data.flags |= UI_PIE_CLICK_STYLE;
 				}
 				else {
-					uiBut *but = ui_but_find_active_in_region(menu->region);
+					but = ui_but_find_active_in_region(menu->region);
 
 					if (but && (U.pie_menu_confirm > 0) &&
 						(dist >= U.pie_menu_threshold + U.pie_menu_confirm))
@@ -9619,7 +9619,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 					if ((event->val  == KM_PRESS || event->val == KM_DBL_CLICK) &&
 						!IS_EVENT_MOD(event, shift, ctrl, oskey))
 					{
-						for (uiBut *but = block->buttons.first; but; but = but->next) {
+						for (but = block->buttons.first; but; but = but->next) {
 							if (but->menu_key == event->type) {
 								ui_but_pie_button_activate(C, but, menu);
 							}
@@ -9641,7 +9641,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 				CASE_NUM_TO_DIR(8, UI_RADIAL_N);
 				CASE_NUM_TO_DIR(9, UI_RADIAL_NE);
 				{
-					uiBut *but = ui_block_pie_dir_activate(block, event, num_dir);
+					but = ui_block_pie_dir_activate(block, event, num_dir);
 					retval = ui_but_pie_button_activate(C, but, menu);
 					break;
 				}
