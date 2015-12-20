@@ -103,7 +103,7 @@ if builder.find('scons') != -1:
     sys.exit(retcode)
 else:
     # CMake
-    if 'win' in builder:
+    if 'win' in builder or 'mac' in builder:
         os.chdir(build_dir)
 
         files = [f for f in os.listdir('.') if os.path.isfile(f) and f.endswith('.zip')]

@@ -35,7 +35,7 @@ blender_dir = '../blender.git'
 if "cmake" in builder:
     # cmake
 
-    if "linux" in builder:
+    if "linux" in builder or 'mac' in builder:
         print("Automated tests are still DISABLED!")
         sys.exit(0)
 

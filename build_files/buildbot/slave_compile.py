@@ -56,6 +56,8 @@ if 'cmake' in builder:
     cmake_options = ['-DCMAKE_BUILD_TYPE:STRING=Release']
 
     if builder.startswith('mac'):
+        remove_cache = True
+        install_dir = None
         # Set up OSX architecture
         if builder.endswith('x86_64_cmake'):
             cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64')
