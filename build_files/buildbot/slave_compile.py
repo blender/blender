@@ -59,11 +59,11 @@ if 'cmake' in builder:
         remove_cache = True
         install_dir = None
         # Set up OSX architecture
-        if builder.endswith('x86_64_cmake'):
+        if builder.endswith('x86_64_10_6_cmake'):
             cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64')
-        elif builder.endswith('i386_cmake'):
+        elif builder.endswith('i386_10_6_cmake'):
             cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=i386')
-        elif builder.endswith('ppc_cmake'):
+        elif builder.endswith('ppc_10_6_cmake'):
             cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=ppc')
 
     elif builder.startswith('win'):
