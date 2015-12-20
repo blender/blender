@@ -62,6 +62,7 @@ if 'cmake' in builder:
         if builder.endswith('x86_64_10_6_cmake'):
             cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64')
         elif builder.endswith('i386_10_6_cmake'):
+            build_cubins = False
             cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=i386')
             # Some special options to disable usupported features
             cmake_options.append("-DWITH_CYCLES_OSL=OFF")
