@@ -54,5 +54,5 @@ if "cmake" in builder:
     retcode = subprocess.call(chroot_prefix + ['ctest', '--output-on-failure'])
     sys.exit(retcode)
 else:
-    # scons
-    pass
+    print("Unknown building system")
+    sys.exit(1)

@@ -157,34 +157,5 @@ if 'cmake' in builder:
         if retcode != 0:
             sys.exit(retcode)
 else:
-    python_bin = 'python'
-
-    # scons
-    os.chdir(blender_dir)
-    scons_cmd = [python_bin, 'scons/scons.py']
-    scons_options = ['BF_FANCY=False']
-
-    # We're using the same rules as release builder, so tweak
-    # build and install dirs
-    build_dir = os.path.join('..', 'build', builder)
-    install_dir = os.path.join('..', 'install', builder)
-
-    # Clean install directory so we'll be sure there's no
-    # residual libs and files remained from the previous install.
-    if os.path.isdir(install_dir):
-        shutil.rmtree(install_dir)
-
-    buildbot_dir = os.path.dirname(os.path.realpath(__file__))
-    config_dir = os.path.join(buildbot_dir, 'config')
-
-    if builder.find('mac') != -1:
-        if builder.find('x86_64') != -1:
-            config = 'user-config-mac-x86_64.py'
-        else:
-            config = 'user-config-mac-i386.py'
-
-        scons_options.append('BF_CONFIG=' + os.path.join(config_dir, config))
-
-    retcode = subprocess.call([python_bin, 'scons/scons.py'] + scons_options)
-
-    sys.exit(retcode)
+    print("Unknown building system")
+    sys.exit(1)
