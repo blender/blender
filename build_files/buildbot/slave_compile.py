@@ -53,22 +53,23 @@ if 'cmake' in builder:
     cmake_cuda_config_file = None
 
     # Set build options.
-    cmake_options = ['-DCMAKE_BUILD_TYPE:STRING=Release']
+    cmake_options = []
+    cmake_extra_options = ['-DCMAKE_BUILD_TYPE:STRING=Release']
 
     if builder.startswith('mac'):
         remove_cache = True
         install_dir = None
         # Set up OSX architecture
         if builder.endswith('x86_64_10_6_cmake'):
-            cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64')
+            cmake_extra_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64')
         elif builder.endswith('i386_10_6_cmake'):
             build_cubins = False
-            cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=i386')
+            cmake_extra_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=i386')
             # Some special options to disable usupported features
-            cmake_options.append("-DWITH_CYCLES_OSL=OFF")
-            cmake_options.append("-DWITH_OPENCOLLADA=OFF")
+            cmake_extra_options.append("-DWITH_CYCLES_OSL=OFF")
+            cmake_extra_options.append("-DWITH_OPENCOLLADA=OFF")
         elif builder.endswith('ppc_10_6_cmake'):
-            cmake_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=ppc')
+            cmake_extra_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=ppc')
 
     elif builder.startswith('win'):
         install_dir = None
@@ -94,12 +95,13 @@ if 'cmake' in builder:
             build_cubins = False
             targets = ['player', 'blender']
 
+    cmake_options.append("-C" + os.path.join(blender_dir, cmake_config_file))
     cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=%d" % (build_cubins))
 
     if install_dir:
         cmake_options.append("-DCMAKE_INSTALL_PREFIX=%s" % (install_dir))
 
-    cmake_options.append("-C" + os.path.join(blender_dir, cmake_config_file))
+    cmake_options += cmake_extra_options
 
     # Prepare chroot command prefix if needed
 
