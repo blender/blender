@@ -119,6 +119,15 @@ else:
         blender_full_version = '.'.join(blender_version[0:2])
         git_hash = tokens[2].split('.')[1]
         platform = builder.split('_')[0]
+        if platform == 'mac':
+            # Special exception for OSX
+            platform = 'OSX-10.6-'
+            if builder.endswith('x86_64_10_6_cmake'):
+                platform += 'x86_64'
+            elif builder.endswith('i386_10_6_cmake'):
+                platform += 'i386'
+            elif builder.endswith('ppc_10_6_cmake'):
+                platform += 'ppc'
         builderified_name = 'blender-{}-{}-{}'.format(blender_full_version, git_hash, platform)
         if branch != '':
             builderified_name = branch + "-" + builderified_name
