@@ -1796,7 +1796,7 @@ void DepsgraphRelationBuilder::build_nodetree(ID *owner, bNodeTree *ntree)
 				bNodeTree *group_ntree = (bNodeTree *)bnode->id;
 				if ((group_ntree->id.flag & LIB_DOIT) == 0) {
 					build_nodetree(owner, group_ntree);
-					group_ntree->flag |= LIB_DOIT;
+					group_ntree->id.flag |= LIB_DOIT;
 				}
 				OperationKey group_parameters_key(&group_ntree->id,
 				                                  DEPSNODE_TYPE_PARAMETERS,
