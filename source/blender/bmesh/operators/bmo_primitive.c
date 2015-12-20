@@ -78,10 +78,6 @@ static const short icoface[20][3] = {
 	{10, 9, 11}
 };
 
-/* HACK: these can also be found in cmoview.tga.c, but are here so that they can be found by linker
- * this hack is only used so that scons & mingw + split-sources hack works
- * ------------------------------- start copied code */
-/* these are not the monkeys you are looking for */
 static const int monkeyo = 4;
 static const int monkeynv = 271;
 static const int monkeynf = 250;

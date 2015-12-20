@@ -9532,7 +9532,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 					but = ui_but_find_active_in_region(menu->region);
 
 					if (but && (U.pie_menu_confirm > 0) &&
-						(dist >= U.pie_menu_threshold + U.pie_menu_confirm))
+					    (dist >= U.pie_menu_threshold + U.pie_menu_confirm))
 					{
 						if (but)
 							return ui_but_pie_menu_apply(C, menu, but, true);
@@ -9559,7 +9559,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 
 						/* here instead, we use the offset location to account for the initial direction timeout */
 						if ((U.pie_menu_confirm > 0) &&
-							(dist >= U.pie_menu_threshold + U.pie_menu_confirm))
+						    (dist >= U.pie_menu_threshold + U.pie_menu_confirm))
 						{
 							block->pie_data.flags |= UI_PIE_GESTURE_END_WAIT;
 							copy_v2_v2(block->pie_data.last_pos, event_xy);
@@ -9617,7 +9617,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 				case ZKEY:
 				{
 					if ((event->val  == KM_PRESS || event->val == KM_DBL_CLICK) &&
-						!IS_EVENT_MOD(event, shift, ctrl, oskey))
+					    !IS_EVENT_MOD(event, shift, ctrl, oskey))
 					{
 						for (but = block->buttons.first; but; but = but->next) {
 							if (but->menu_key == event->type) {
