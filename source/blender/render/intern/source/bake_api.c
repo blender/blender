@@ -645,6 +645,7 @@ void RE_bake_pixels_populate(
 	/* initialize all pixel arrays so we know which ones are 'blank' */
 	for (i = 0; i < num_pixels; i++) {
 		pixel_array[i].primitive_id = -1;
+		pixel_array[i].object_id = 0;
 	}
 
 	for (i = 0; i < bake_images->size; i++) {
