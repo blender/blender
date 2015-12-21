@@ -130,7 +130,8 @@ bool   BLI_file_older(const char *file1, const char *file2) ATTR_WARN_UNUSED_RES
 
 /* read ascii file as lines, empty list if reading fails */
 struct LinkNode *BLI_file_read_as_lines(const char *file) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-void  *BLI_file_read_as_mem(const char *filepath, size_t pad_bytes, size_t *r_size);
+void  *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *r_size);
+void  *BLI_file_read_binary_as_mem(const char *filepath, size_t pad_bytes, size_t *r_size);
 void   BLI_file_free_lines(struct LinkNode *lines);
 
 /* this weirdo pops up in two places ... */

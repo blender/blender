@@ -349,7 +349,7 @@ static int paste_from_file(bContext *C, ReportList *reports, const char *filenam
 	size_t filelen;
 	int retval;
 
-	strp = BLI_file_read_as_mem(filename, 1, &filelen);
+	strp = BLI_file_read_text_as_mem(filename, 1, &filelen);
 	if (strp == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Failed to open file '%s'", filename);
 		return OPERATOR_CANCELLED;

@@ -362,7 +362,7 @@ bool BKE_text_reload(Text *text)
 	BLI_strncpy(filepath_abs, text->name, FILE_MAX);
 	BLI_path_abs(filepath_abs, G.main->name);
 	
-	buffer = BLI_file_read_as_mem(filepath_abs, 0, &buffer_len);
+	buffer = BLI_file_read_text_as_mem(filepath_abs, 0, &buffer_len);
 	if (buffer == NULL) {
 		return false;
 	}
@@ -401,7 +401,7 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
 	if (relpath) /* can be NULL (bg mode) */
 		BLI_path_abs(filepath_abs, relpath);
 	
-	buffer = BLI_file_read_as_mem(filepath_abs, 0, &buffer_len);
+	buffer = BLI_file_read_text_as_mem(filepath_abs, 0, &buffer_len);
 	if (buffer == NULL) {
 		return false;
 	}
