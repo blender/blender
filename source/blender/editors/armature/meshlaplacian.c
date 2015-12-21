@@ -576,7 +576,7 @@ static void heat_laplacian_create(LaplacianSystem *sys)
 static void heat_system_free(LaplacianSystem *sys)
 {
 	BLI_bvhtree_free(sys->heat.bvhtree);
-	MEM_freeN(sys->heat.vltree);
+	MEM_freeN((void *)sys->heat.vltree);
 	MEM_freeN((void *)sys->heat.mlooptri);
 
 	MEM_freeN(sys->heat.mindist);

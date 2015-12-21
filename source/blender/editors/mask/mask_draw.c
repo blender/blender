@@ -669,7 +669,7 @@ typedef struct ThreadedMaskRasterizeData {
 	int num_scanlines;
 } ThreadedMaskRasterizeData;
 
-static void mask_rasterize_func(TaskPool *pool, void *taskdata, int UNUSED(threadid))
+static void mask_rasterize_func(TaskPool * __restrict pool, void *taskdata, int UNUSED(threadid))
 {
 	ThreadedMaskRasterizeState *state = (ThreadedMaskRasterizeState *) BLI_task_pool_userdata(pool);
 	ThreadedMaskRasterizeData *data = (ThreadedMaskRasterizeData *) taskdata;

@@ -1472,7 +1472,7 @@ static void scene_update_all_bases(EvaluationContext *eval_ctx, Scene *scene, Sc
 	}
 }
 
-static void scene_update_object_func(TaskPool *pool, void *taskdata, int threadid)
+static void scene_update_object_func(TaskPool * __restrict pool, void *taskdata, int threadid)
 {
 /* Disable print for now in favor of summary statistics at the end of update. */
 #define PRINT if (false) printf

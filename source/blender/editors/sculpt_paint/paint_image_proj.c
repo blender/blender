@@ -3638,7 +3638,7 @@ static void project_paint_build_proj_ima(
 		projIma->partRedrawRect =  BLI_memarena_alloc(arena, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
 		memset(projIma->partRedrawRect, 0, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
 		projIma->undoRect = (volatile void **) BLI_memarena_alloc(arena, size);
-		memset(projIma->undoRect, 0, size);
+		memset((void *)projIma->undoRect, 0, size);
 		projIma->maskRect = BLI_memarena_alloc(arena, size);
 		memset(projIma->maskRect, 0, size);
 		projIma->valid = BLI_memarena_alloc(arena, size);

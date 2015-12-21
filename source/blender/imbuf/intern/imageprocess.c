@@ -324,7 +324,7 @@ void nearest_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, in
 
 /*********************** Threaded image processing *************************/
 
-static void processor_apply_func(TaskPool *pool, void *taskdata, int UNUSED(threadid))
+static void processor_apply_func(TaskPool * __restrict pool, void *taskdata, int UNUSED(threadid))
 {
 	void (*do_thread) (void *) = (void (*) (void *)) BLI_task_pool_userdata(pool);
 	do_thread(taskdata);

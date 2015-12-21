@@ -107,7 +107,7 @@ void BLI_buffer_resize(BLI_Buffer *buffer, const size_t new_count)
  * - Ignored (malloc'd)
  * - Cleared (when BLI_BUFFER_USE_CALLOC is set)
  */
-void BLI_buffer_reinit(BLI_Buffer *buffer, size_t new_count)
+void BLI_buffer_reinit(BLI_Buffer *buffer, const size_t new_count)
 {
 	if (UNLIKELY(new_count > buffer->alloc_count)) {
 		if ((buffer->flag & BLI_BUFFER_USE_STATIC) == 0) {

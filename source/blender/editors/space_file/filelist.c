@@ -1058,7 +1058,7 @@ static void filelist_intern_free(FileListIntern *filelist_intern)
 	MEM_SAFE_FREE(filelist_intern->filtered);
 }
 
-static void filelist_cache_preview_runf(TaskPool *pool, void *taskdata, int UNUSED(threadid))
+static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdata, int UNUSED(threadid))
 {
 	FileListEntryCache *cache = BLI_task_pool_userdata(pool);
 	FileListEntryPreview *preview = taskdata;
@@ -1094,7 +1094,7 @@ static void filelist_cache_preview_runf(TaskPool *pool, void *taskdata, int UNUS
 //	printf("%s: End (%d)...\n", __func__, threadid);
 }
 
-static void filelist_cache_preview_freef(TaskPool *UNUSED(pool), void *taskdata, int UNUSED(threadid))
+static void filelist_cache_preview_freef(TaskPool * __restrict UNUSED(pool), void *taskdata, int UNUSED(threadid))
 {
 	FileListEntryPreview *preview = taskdata;
 

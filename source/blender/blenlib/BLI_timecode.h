@@ -39,7 +39,7 @@ size_t BLI_timecode_string_from_time(
         ATTR_NONNULL();
 
 size_t BLI_timecode_string_from_time_simple(
-        char *str, size_t maxlen, const double time_seconds)
+        char *str, const size_t maxlen, const double time_seconds)
         ATTR_NONNULL();
 
 size_t BLI_timecode_string_from_time_seconds(

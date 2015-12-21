@@ -937,7 +937,7 @@ static void loop_split_worker_do(
 	}
 }
 
-static void loop_split_worker(TaskPool *UNUSED(pool), void *taskdata, int UNUSED(threadid))
+static void loop_split_worker(TaskPool * __restrict UNUSED(pool), void *taskdata, int UNUSED(threadid))
 {
 	LoopSplitTaskDataCommon *common_data = taskdata;
 	LoopSplitTaskData *data_buff;
@@ -1116,7 +1116,7 @@ static void loop_split_generator_do(LoopSplitTaskDataCommon *common_data, const 
 #endif
 }
 
-static void loop_split_generator(TaskPool *UNUSED(pool), void *taskdata, int UNUSED(threadid))
+static void loop_split_generator(TaskPool * __restrict UNUSED(pool), void *taskdata, int UNUSED(threadid))
 {
 	LoopSplitTaskDataCommon *common_data = taskdata;
 

@@ -196,13 +196,13 @@ bool snapObjectsContext(
 /* taks args for all settings */
 bool snapObjectsEx(
         struct Scene *scene, struct View3D *v3d, struct ARegion *ar, struct Base *base_act, struct Object *obedit,
-        const float mval[2], SnapSelect snap_select, short snap_mode,
+        const float mval[2], SnapSelect snap_select, const short snap_mode,
         float *ray_depth,
         /* return args */
         float r_loc[3], float r_no[3], float *r_dist_px);
 bool snapObjectsRayEx(
         struct Scene *scene, struct View3D *v3d, struct ARegion *ar, struct Base *base_act, struct Object *obedit,
-        const float mval[2], SnapSelect snap_select, short snap_mode,
+        const float mval[2], SnapSelect snap_select, const short snap_mode,
         const float ray_start[3], const float ray_normal[3], float *ray_depth,
         /* return args */
         float r_loc[3], float r_no[3], float *r_dist_px, int *r_index,

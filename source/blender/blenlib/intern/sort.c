@@ -40,6 +40,10 @@
 
 #include "BLI_sort.h"
 
+#ifdef min  /* for msvc */
+#  undef min
+#endif
+
 /* note: modified to use glibc arg order for callback */
 /* **** qsort based on FreeBSD source (libkern\qsort.c) **** */
 BLI_INLINE char	*med3(char *, char *, char *, BLI_sort_cmp_t, void *);

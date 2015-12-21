@@ -2092,7 +2092,7 @@ void BKE_render_result_stamp_info(Scene *scene, Object *camera, struct RenderRes
 
 void BKE_stamp_info_callback(void *data, struct StampData *stamp_data, StampCallback callback, bool noskip)
 {
-	if (!callback || !stamp_data) {
+	if ((callback == NULL) || (stamp_data == NULL)) {
 		return;
 	}
 

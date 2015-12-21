@@ -779,7 +779,7 @@ static unsigned char *prefetch_thread_next_frame(
 	return mem;
 }
 
-static void prefetch_task_func(TaskPool *pool, void *task_data, int UNUSED(threadid))
+static void prefetch_task_func(TaskPool * __restrict pool, void *task_data, int UNUSED(threadid))
 {
 	PrefetchQueue *queue = (PrefetchQueue *)BLI_task_pool_userdata(pool);
 	MovieClip *clip = (MovieClip *)task_data;

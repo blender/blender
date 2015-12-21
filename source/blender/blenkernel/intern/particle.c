@@ -2327,7 +2327,7 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 		child_keys->segments = -1;
 }
 
-static void exec_child_path_cache(TaskPool *UNUSED(pool), void *taskdata, int UNUSED(threadid))
+static void exec_child_path_cache(TaskPool * __restrict UNUSED(pool), void *taskdata, int UNUSED(threadid))
 {
 	ParticleTask *task = taskdata;
 	ParticleThreadContext *ctx = task->ctx;

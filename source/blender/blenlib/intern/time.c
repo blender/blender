@@ -33,8 +33,9 @@
 #include "PIL_time.h"
 
 #ifdef WIN32
-
+#ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x501 /* Windows XP or newer */
+#endif
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 

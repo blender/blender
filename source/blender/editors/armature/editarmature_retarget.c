@@ -82,7 +82,7 @@ static RigGraph *GLOBAL_RIGG = NULL;
 
 /*******************************************************************************************************/
 
-void exec_retargetArctoArc(TaskPool *pool, void *taskdata, int threadid);
+void exec_retargetArctoArc(TaskPool * __restrict pool, void *taskdata, int threadid);
 
 static void RIG_calculateEdgeAngles(RigEdge *edge_first, RigEdge *edge_second);
 float rollBoneByQuat(EditBone *bone, float old_up_axis[3], float qrot[4]);
@@ -2143,7 +2143,7 @@ static void retargetArctoArc(bContext *C, RigGraph *rigg, RigArc *iarc, RigNode 
 	BLI_task_pool_push(rigg->task_pool, exec_retargetArctoArc, p, true, TASK_PRIORITY_HIGH);
 }
 
-void exec_retargetArctoArc(TaskPool *UNUSED(pool), void *taskdata, int UNUSED(threadid))
+void exec_retargetArctoArc(TaskPool * __restrict UNUSED(pool), void *taskdata, int UNUSED(threadid))
 {
 	RetargetParam *p = (RetargetParam *)taskdata;
 	RigGraph *rigg = p->rigg;
