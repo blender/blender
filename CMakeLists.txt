@@ -2738,6 +2738,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
 		"/w34062"  # switch statement contains 'default' but no 'case' labels
 		# disable:
 		"/wd4018"  # signed/unsigned mismatch
+		"/wd4146"  # unary minus operator applied to unsigned type, result still unsigned
 		"/wd4065"  # switch statement contains 'default' but no 'case' labels
 		"/wd4127"  # conditional expression is constant
 		"/wd4181"  # qualifier applied to reference type; ignored
