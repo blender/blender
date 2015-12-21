@@ -2252,9 +2252,9 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		}
 		else if (mode == 'c') {
 			/* Get many decimal places, then strip trailing zeros.
-			 * note: too high values start to give strange results (6 or so is ok) */
+			 * note: too high values start to give strange results */
 			char buf_copy[UI_MAX_DRAW_STR];
-			ui_but_string_get_ex(but, buf_copy, sizeof(buf_copy), 6);
+			ui_but_string_get_ex(but, buf_copy, sizeof(buf_copy), UI_PRECISION_FLOAT_MAX);
 			BLI_str_rstrip_float_zero(buf_copy, '\0');
 
 			WM_clipboard_text_set(buf_copy, 0);
