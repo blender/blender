@@ -51,7 +51,6 @@ set(SRC
 	intern/filter.c
 	intern/imageprocess.c
 	intern/indexer.c
-	intern/indexer_dv.c
 	intern/iris.c
 	intern/jpeg.c
 	intern/metadata.c
