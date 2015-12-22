@@ -21,6 +21,45 @@
 
 CCL_NAMESPACE_BEGIN
 
+namespace {
+
+class TileComparator {
+public:
+	TileComparator(TileOrder order, int2 center)
+	 :  order_(order),
+	    center_(center)
+	{}
+
+	bool operator()(Tile &a, Tile &b)
+	{
+		switch(order_) {
+			case TILE_CENTER:
+			{
+				float2 dist_a = make_float2(center_.x - (a.x + a.w/2),
+				                            center_.y - (a.y + a.h/2));
+				float2 dist_b = make_float2(center_.x - (b.x + b.w/2),
+				                            center_.y - (b.y + b.h/2));
+				return dot(dist_a, dist_a) < dot(dist_b, dist_b);
+			}
+			case TILE_LEFT_TO_RIGHT:
+				return (a.x == b.x)? (a.y < b.y): (a.x < b.x);
+			case TILE_RIGHT_TO_LEFT:
+				return (a.x == b.x)? (a.y < b.y): (a.x > b.x);
+			case TILE_TOP_TO_BOTTOM:
+				return (a.y == b.y)? (a.x < b.x): (a.y > b.y);
+			case TILE_BOTTOM_TO_TOP:
+			default:
+				return (a.y == b.y)? (a.x < b.x): (a.y < b.y);
+		}
+	}
+
+protected:
+	TileOrder order_;
+	int2 center_;
+};
+
+}  /* namespace */
+
 TileManager::TileManager(bool progressive_, int num_samples_, int2 tile_size_, int start_resolution_,
                          bool preserve_tile_device_, bool background_, TileOrder tile_order_, int num_devices_)
 {
@@ -50,8 +89,8 @@ void TileManager::reset(BufferParams& params_, int num_samples_)
 
 	if(start_resolution != INT_MAX) {
 		while(w*h > start_resolution*start_resolution) {
-			w = max(1, w/2); 
-			h = max(1, h/2); 
+			w = max(1, w/2);
+			h = max(1, h/2);
 
 			divider *= 2;
 		}
@@ -73,74 +112,59 @@ void TileManager::set_samples(int num_samples_)
 	num_samples = num_samples_;
 }
 
-/* splits image into tiles and assigns equal amount of tiles to every render device */
-void TileManager::gen_tiles_global()
+/* If sliced is false, splits image into tiles and assigns equal amount of tiles to every render device.
+ * If sliced is true, slice image into as much pieces as how many devices are rendering this image. */
+int TileManager::gen_tiles(bool sliced)
 {
 	int resolution = state.resolution_divider;
 	int image_w = max(1, params.width/resolution);
 	int image_h = max(1, params.height/resolution);
-
-	state.tiles.clear();
-
-	int tile_w = (tile_size.x >= image_w)? 1: (image_w + tile_size.x - 1)/tile_size.x;
-	int tile_h = (tile_size.y >= image_h)? 1: (image_h + tile_size.y - 1)/tile_size.y;
-
-	int num_logical_devices = preserve_tile_device? num_devices: 1;
-	int num = min(image_h, num_logical_devices);
-	int tile_index = 0;
-
-	int tiles_per_device = (tile_w * tile_h + num - 1) / num;
-	int cur_device = 0, cur_tiles = 0;
-
-	for(int tile_y = 0; tile_y < tile_h; tile_y++) {
-		for(int tile_x = 0; tile_x < tile_w; tile_x++, tile_index++) {
-			int x = tile_x * tile_size.x;
-			int y = tile_y * tile_size.y;
-			int w = (tile_x == tile_w-1)? image_w - x: tile_size.x;
-			int h = (tile_y == tile_h-1)? image_h - y: tile_size.y;
-
-			state.tiles.push_back(Tile(tile_index, x, y, w, h, cur_device));
-			cur_tiles++;
-
-			if(cur_tiles == tiles_per_device) {
-				cur_tiles = 0;
-				cur_device++;
-			}
-		}
-	}
-}
-
-/* slices image into as much pieces as how many devices are rendering this image */
-void TileManager::gen_tiles_sliced()
-{
-	int resolution = state.resolution_divider;
-	int image_w = max(1, params.width/resolution);
-	int image_h = max(1, params.height/resolution);
+	int2 center = make_int2(image_w/2, image_h/2);
 
 	state.tiles.clear();
 
 	int num_logical_devices = preserve_tile_device? num_devices: 1;
 	int num = min(image_h, num_logical_devices);
+	int slice_num = sliced? num: 1;
 	int tile_index = 0;
 
-	for(int device = 0; device < num; device++) {
-		int device_y = (image_h/num)*device;
-		int device_h = (device == num-1)? image_h - device*(image_h/num): image_h/num;
+	state.tiles.resize(num);
+	vector<list<Tile> >::iterator tile_list = state.tiles.begin();
+
+	for(int slice = 0; slice < slice_num; slice++) {
+		int slice_y = (image_h/slice_num)*slice;
+		int slice_h = (slice == slice_num-1)? image_h - slice*(image_h/slice_num): image_h/slice_num;
 
 		int tile_w = (tile_size.x >= image_w)? 1: (image_w + tile_size.x - 1)/tile_size.x;
-		int tile_h = (tile_size.y >= device_h)? 1: (device_h + tile_size.y - 1)/tile_size.y;
+		int tile_h = (tile_size.y >= slice_h)? 1: (slice_h + tile_size.y - 1)/tile_size.y;
+
+		int tiles_per_device = (tile_w * tile_h + num - 1) / num;
+		int cur_device = 0, cur_tiles = 0;
 
 		for(int tile_y = 0; tile_y < tile_h; tile_y++) {
 			for(int tile_x = 0; tile_x < tile_w; tile_x++, tile_index++) {
 				int x = tile_x * tile_size.x;
 				int y = tile_y * tile_size.y;
 				int w = (tile_x == tile_w-1)? image_w - x: tile_size.x;
-				int h = (tile_y == tile_h-1)? device_h - y: tile_size.y;
+				int h = (tile_y == tile_h-1)? slice_h - y: tile_size.y;
 
-				state.tiles.push_back(Tile(tile_index, x, y + device_y, w, h, device));
+				tile_list->push_back(Tile(tile_index, x, y + slice_y, w, h, sliced? slice: cur_device));
+
+				if(!sliced) {
+					cur_tiles++;
+
+					if(cur_tiles == tiles_per_device) {
+						tile_list->sort(TileComparator(tile_order, center));
+						tile_list++;
+						cur_tiles = 0;
+						cur_device++;
+					}
+				}
 			}
 		}
 	}
+
+	return tile_index;
 }
 
 void TileManager::set_tiles()
@@ -149,12 +173,7 @@ void TileManager::set_tiles()
 	int image_w = max(1, params.width/resolution);
 	int image_h = max(1, params.height/resolution);
 
-	if(background)
-		gen_tiles_global();
-	else
-		gen_tiles_sliced();
-
-	state.num_tiles = state.tiles.size();
+	state.num_tiles = gen_tiles(!background);
 
 	state.buffer.width = image_w;
 	state.buffer.height = image_h;
@@ -165,90 +184,18 @@ void TileManager::set_tiles()
 	state.buffer.full_height = max(1, params.full_height/resolution);
 }
 
-list<Tile>::iterator TileManager::next_viewport_tile(int device)
-{
-	list<Tile>::iterator iter;
-
-	int logical_device = preserve_tile_device? device: 0;
-
-	for(iter = state.tiles.begin(); iter != state.tiles.end(); iter++) {
-		if(iter->device == logical_device && iter->rendering == false)
-		return iter;
-	}
-
-	return state.tiles.end();
-}
-
-list<Tile>::iterator TileManager::next_background_tile(int device, TileOrder tile_order)
-{
-	list<Tile>::iterator iter, best = state.tiles.end();
-
-	int resolution = state.resolution_divider;
-	int logical_device = preserve_tile_device? device: 0;
-
-	int64_t cordx = max(1, params.width/resolution);
-	int64_t cordy = max(1, params.height/resolution);
-	int64_t mindist = INT_MAX;
-	
-	int64_t centx = cordx / 2, centy = cordy / 2;
-
-	for(iter = state.tiles.begin(); iter != state.tiles.end(); iter++) {
-		if(iter->device == logical_device && iter->rendering == false) {
-			Tile &cur_tile = *iter;
-			
-			int64_t distx = cordx;
-			int64_t disty = cordy;
-			
-			switch(tile_order) {
-				case TILE_CENTER:
-					distx = centx - (cur_tile.x + (cur_tile.w / 2));
-					disty = centy - (cur_tile.y + (cur_tile.h / 2));
-					distx = (int64_t)sqrt((double)(distx * distx + disty * disty));
-					break;
-				case TILE_RIGHT_TO_LEFT:
-					distx = cordx - cur_tile.x;
-					break;
-				case TILE_LEFT_TO_RIGHT:
-					distx = cordx + cur_tile.x;	
-					break;
-				case TILE_TOP_TO_BOTTOM:
-					distx = cordx - cur_tile.y;
-					break;
-				case TILE_BOTTOM_TO_TOP:
-					distx = cordx + cur_tile.y;
-					break; 
-				default:
-					break;
-			}
-
-			if(distx < mindist) {
-				best = iter;
-				mindist = distx;
-			}
-		}
-	}
-
-	return best;
-}
-
 bool TileManager::next_tile(Tile& tile, int device)
 {
-	list<Tile>::iterator tile_it;
-	
-	if(background)
-		tile_it = next_background_tile(device, tile_order);
-	else
-		tile_it = next_viewport_tile(device);
+	int logical_device = preserve_tile_device? device: 0;
+	assert(logical_device < state.tiles.size());
 
-	if(tile_it != state.tiles.end()) {
-		tile_it->rendering = true;
-		tile = *tile_it;
-		state.num_rendered_tiles++;
+	if(state.tiles[logical_device].empty())
+		return false;
 
-		return true;
-	}
-
-	return false;
+	tile = state.tiles[logical_device].front();
+	state.tiles[logical_device].pop_front();
+	state.num_rendered_tiles++;
+	return true;
 }
 
 bool TileManager::done()
