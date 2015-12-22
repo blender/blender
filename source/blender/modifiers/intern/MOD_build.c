@@ -106,15 +106,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	edgeMap = MEM_mallocN(sizeof(*edgeMap) * numEdge_src, "build modifier edgeMap");
 	faceMap = MEM_mallocN(sizeof(*faceMap) * numPoly_src, "build modifier faceMap");
 
-#pragma omp parallel sections if (numVert_src + numEdge_src + numPoly_src >= BKE_MESH_OMP_LIMIT)
-	{
-#pragma omp section
-		{ range_vn_i(vertMap, numVert_src, 0); }
-#pragma omp section
-		{ range_vn_i(edgeMap, numEdge_src, 0); }
-#pragma omp section
-		{ range_vn_i(faceMap, numPoly_src, 0); }
-	}
+	range_vn_i(vertMap, numVert_src, 0);
+	range_vn_i(edgeMap, numEdge_src, 0);
+	range_vn_i(faceMap, numPoly_src, 0);
 
 	frac = (BKE_scene_frame_get(md->scene) - bmd->start) / bmd->length;
 	CLAMP(frac, 0.0f, 1.0f);
