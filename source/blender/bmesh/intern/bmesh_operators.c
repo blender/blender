@@ -97,12 +97,12 @@ void BMO_op_flag_disable(BMesh *UNUSED(bm), BMOperator *op, const int op_flag)
  */
 void BMO_push(BMesh *bm, BMOperator *UNUSED(op))
 {
-	bm->stackdepth++;
+	bm->toolflag_index++;
 
 	BLI_assert(bm->totflags > 0);
 
 	/* add flag layer, if appropriate */
-	if (bm->stackdepth > 1)
+	if (bm->toolflag_index > 0)
 		bmo_flag_layer_alloc(bm);
 	else
 		bmo_flag_layer_clear(bm);
@@ -117,10 +117,10 @@ void BMO_push(BMesh *bm, BMOperator *UNUSED(op))
  */
 void BMO_pop(BMesh *bm)
 {
-	if (bm->stackdepth > 1)
+	if (bm->toolflag_index > 0)
 		bmo_flag_layer_free(bm);
 
-	bm->stackdepth--;
+	bm->toolflag_index--;
 }
 
 
@@ -214,11 +214,11 @@ void BMO_op_exec(BMesh *bm, BMOperator *op)
 
 	BMO_push(bm, op);
 
-	if (bm->stackdepth == 2)
+	if (bm->toolflag_index == 1)
 		bmesh_edit_begin(bm, op->type_flag);
 	op->exec(bm, op);
 	
-	if (bm->stackdepth == 2)
+	if (bm->toolflag_index == 1)
 		bmesh_edit_end(bm, op->type_flag);
 	
 	BMO_pop(bm);

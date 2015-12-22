@@ -217,7 +217,7 @@ typedef struct BMesh {
 	/* operator api stuff (must be all NULL or all alloc'd) */
 	struct BLI_mempool *vtoolflagpool, *etoolflagpool, *ftoolflagpool;
 
-	int stackdepth;
+	int toolflag_index;
 	struct BMOperator *currentop;
 	
 	CustomData vdata, edata, ldata, pdata;

@@ -41,38 +41,38 @@
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2)
 BLI_INLINE short _bmo_elem_flag_test(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
-	return oflags[bm->stackdepth - 1].f & oflag;
+	return oflags[bm->toolflag_index].f & oflag;
 }
 
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2)
 BLI_INLINE bool _bmo_elem_flag_test_bool(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
-	return (oflags[bm->stackdepth - 1].f & oflag) != 0;
+	return (oflags[bm->toolflag_index].f & oflag) != 0;
 }
 
 ATTR_NONNULL(1, 2)
 BLI_INLINE void _bmo_elem_flag_enable(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
-	oflags[bm->stackdepth - 1].f |= oflag;
+	oflags[bm->toolflag_index].f |= oflag;
 }
 
 ATTR_NONNULL(1, 2)
 BLI_INLINE void _bmo_elem_flag_disable(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
-	oflags[bm->stackdepth - 1].f &= (short)~oflag;
+	oflags[bm->toolflag_index].f &= (short)~oflag;
 }
 
 ATTR_NONNULL(1, 2)
 BLI_INLINE void _bmo_elem_flag_set(BMesh *bm, BMFlagLayer *oflags, const short oflag, int val)
 {
-	if (val) oflags[bm->stackdepth - 1].f |= oflag;
-	else     oflags[bm->stackdepth - 1].f &= (short)~oflag;
+	if (val) oflags[bm->toolflag_index].f |= oflag;
+	else     oflags[bm->toolflag_index].f &= (short)~oflag;
 }
 
 ATTR_NONNULL(1, 2)
 BLI_INLINE void _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const short oflag)
 {
-	oflags[bm->stackdepth - 1].f ^= oflag;
+	oflags[bm->toolflag_index].f ^= oflag;
 }
 
 ATTR_NONNULL(1, 2)
