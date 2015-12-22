@@ -191,7 +191,7 @@ void MESH_OT_intersect(struct wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name = "Intersect";
+	ot->name = "Intersect (Knife)";
 	ot->description = "Cut an intersection into faces";
 	ot->idname = "MESH_OT_intersect";
 
@@ -264,7 +264,7 @@ void MESH_OT_intersect_boolean(struct wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name = "Boolean Intersect";
+	ot->name = "Intersect (Boolean)";
 	ot->description = "Cut solid geometry from selected to unselected";
 	ot->idname = "MESH_OT_intersect_boolean";
 
@@ -845,8 +845,8 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 void MESH_OT_face_split_by_edges(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Split by Edges";
-	ot->description = "Split faces by loose edges";
+	ot->name = "Weld Edges into Faces";
+	ot->description = "Weld loose edges into faces (splitting them into new faces)";
 	ot->idname = "MESH_OT_face_split_by_edges";
 
 	/* api callbacks */
