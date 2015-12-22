@@ -3752,6 +3752,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 			glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 			cageDM->drawMappedFaces(cageDM, draw_em_fancy__setFaceOpts,
 			                        GPU_object_material_bind, NULL, me->edit_btmesh, DM_DRAW_SKIP_HIDDEN | DM_DRAW_NEED_NORMALS);
+			GPU_object_material_unbind();
 			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		}
 		else if (check_object_draw_texture(scene, v3d, dt)) {
