@@ -138,6 +138,9 @@ struct SmoothView3DStore {
 
 	bool to_camera;
 
+	bool use_dyn_ofs;
+	float dyn_ofs[3];
+
 	/* When smooth-view is enabled, store the 'rv3d->view' here,
 	 * assign back when the view motion is completed. */
 	char org_view;
@@ -210,6 +213,17 @@ void ED_view3d_smooth_view_ex(
 		sms.dst.dist = *sview->dist;
 	if (sview->lens)
 		sms.dst.lens = *sview->lens;
+
+	if (sview->dyn_ofs) {
+		BLI_assert(sview->ofs  == NULL);
+		BLI_assert(sview->quat != NULL);
+
+		copy_v3_v3(sms.dyn_ofs, sview->dyn_ofs);
+		sms.use_dyn_ofs = true;
+
+		/* calcualte the final destination offset */
+		view3d_orbit_apply_dyn_ofs(sms.dst.ofs, sms.src.ofs, sms.src.quat, sms.dst.quat, sms.dyn_ofs);
+	}
 
 	if (sview->camera) {
 		sms.dst.dist = ED_view3d_offset_distance(sview->camera->obmat, sview->ofs, VIEW3D_DIST_FALLBACK);
@@ -380,8 +394,14 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const w
 
 		step_inv = 1.0f - step;
 
-		interp_v3_v3v3(rv3d->ofs,      sms->src.ofs,  sms->dst.ofs,  step);
 		interp_qt_qtqt(rv3d->viewquat, sms->src.quat, sms->dst.quat, step);
+
+		if (sms->use_dyn_ofs) {
+			view3d_orbit_apply_dyn_ofs(rv3d->ofs, sms->src.ofs, sms->src.quat, rv3d->viewquat, sms->dyn_ofs);
+		}
+		else {
+			interp_v3_v3v3(rv3d->ofs, sms->src.ofs,  sms->dst.ofs,  step);
+		}
 		
 		rv3d->dist = sms->dst.dist * step + sms->src.dist * step_inv;
 		v3d->lens  = sms->dst.lens * step + sms->src.lens * step_inv;

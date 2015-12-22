@@ -106,6 +106,10 @@ void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
 
 void view3d_boxview_copy(ScrArea *sa, ARegion *ar);
 
+void view3d_orbit_apply_dyn_ofs(
+        float r_ofs[3], const float ofs_old[3], const float viewquat_old[4],
+        const float viewquat_new[4], const float dyn_ofs[3]);
+
 void view3d_ndof_fly(
         const struct wmNDOFMotionData *ndof,
         struct View3D *v3d, struct RegionView3D *rv3d,
@@ -211,6 +215,8 @@ bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const struct BoundBox *bb);
 typedef struct V3D_SmoothParams {
 	struct Object *camera_old, *camera;
 	const float *ofs, *quat, *dist, *lens;
+	/* alternate rotation center (ofs = must be NULL) */
+	const float *dyn_ofs;
 } V3D_SmoothParams;
 
 void ED_view3d_smooth_view_ex(
