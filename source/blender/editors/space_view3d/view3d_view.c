@@ -268,17 +268,8 @@ void ED_view3d_smooth_view_ex(
 			 * the angle between quats 
 			 * this means small rotations wont lag */
 			if (sview->quat && !sview->ofs && !sview->dist) {
-				float vec1[3] = {0, 0, 1}, vec2[3] = {0, 0, 1};
-				float q1[4], q2[4];
-
-				invert_qt_qt_normalized(q1, sms.dst.quat);
-				invert_qt_qt_normalized(q2, sms.src.quat);
-
-				mul_qt_v3(q1, vec1);
-				mul_qt_v3(q2, vec2);
-
 				/* scale the time allowed by the rotation */
-				sms.time_allowed *= (double)angle_v3v3(vec1, vec2) / M_PI; /* 180deg == 1.0 */
+				sms.time_allowed *= (double)angle_normalized_qtqt(sms.dst.quat, sms.src.quat) / M_PI; /* 180deg == 1.0 */
 			}
 
 			/* ensure it shows correct */
