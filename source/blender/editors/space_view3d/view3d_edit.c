@@ -2880,14 +2880,16 @@ static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 
 	if (rv3d->persp == RV3D_CAMOB && !ED_view3d_camera_lock_check(v3d, rv3d)) {
 		rv3d->persp = RV3D_PERSP;
-		ED_view3d_smooth_view(C, v3d, ar, v3d->camera, NULL,
-		                      new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL,
-		                      smooth_viewtx);
+		ED_view3d_smooth_view(
+		        C, v3d, ar, smooth_viewtx,
+		        &(const V3D_SmoothParams){
+		            .camera_old=v3d->camera, .ofs = new_ofs,
+		            .dist = ok_dist ? &new_dist : NULL});
 	}
 	else {
-		ED_view3d_smooth_view(C, v3d, ar, NULL, NULL,
-		                      new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL,
-		                      smooth_viewtx);
+		ED_view3d_smooth_view(
+		        C, v3d, ar, smooth_viewtx,
+		        &(const V3D_SmoothParams){.ofs = new_ofs, .dist = ok_dist ? &new_dist : NULL});
 	}
 
 	/* smooth view does viewlock RV3D_BOXVIEW copy */
@@ -3196,10 +3198,10 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
 		/* non camera center */
 		float new_ofs[3];
 		negate_v3_v3(new_ofs, ED_view3d_cursor3d_get(scene, v3d));
-		ED_view3d_smooth_view(C, v3d, ar, NULL, NULL,
-		                      new_ofs, NULL, NULL, NULL,
-		                      smooth_viewtx);
-		
+		ED_view3d_smooth_view(
+		        C, v3d, ar, smooth_viewtx,
+		        &(const V3D_SmoothParams){.ofs = new_ofs});
+
 		/* smooth view does viewlock RV3D_BOXVIEW copy */
 	}
 	
@@ -3243,9 +3245,9 @@ static int viewcenter_pick_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 			ED_view3d_win_to_3d_int(ar, new_ofs, event->mval, new_ofs);
 		}
 		negate_v3(new_ofs);
-		ED_view3d_smooth_view(C, v3d, ar, NULL, NULL,
-		                      new_ofs, NULL, NULL, NULL,
-		                      smooth_viewtx);
+		ED_view3d_smooth_view(
+		        C, v3d, ar, smooth_viewtx,
+		        &(const V3D_SmoothParams){.ofs = new_ofs});
 	}
 
 	return OPERATOR_FINISHED;
@@ -3628,9 +3630,9 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	/* clamp after because we may have been zooming out */
 	CLAMP(new_dist, dist_range[0], dist_range[1]);
 
-	ED_view3d_smooth_view(C, v3d, ar, NULL, NULL,
-	                      new_ofs, NULL, &new_dist, NULL,
-	                      smooth_viewtx);
+	ED_view3d_smooth_view(
+	        C, v3d, ar, smooth_viewtx,
+	        &(const V3D_SmoothParams){.ofs = new_ofs, .dist = &new_dist});
 
 	if (rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(CTX_wm_area(C), ar);
@@ -3785,9 +3787,9 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
 
 	if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
 		/* to camera */
-		ED_view3d_smooth_view(C, v3d, ar, v3d->camera, NULL,
-		                      rv3d->ofs, quat, NULL, NULL,
-		                      smooth_viewtx);
+		ED_view3d_smooth_view(
+		        C, v3d, ar, smooth_viewtx,
+		        &(const V3D_SmoothParams){.camera_old = v3d->camera, .ofs = rv3d->ofs, .quat = quat});
 	}
 	else if (orig_persp == RV3D_CAMOB && v3d->camera) {
 		/* from camera */
@@ -3799,15 +3801,15 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
 		/* so we animate _from_ the camera location */
 		ED_view3d_from_object(v3d->camera, rv3d->ofs, NULL, &rv3d->dist, NULL);
 
-		ED_view3d_smooth_view(C, v3d, ar, NULL, NULL,
-		                      ofs, quat, &dist, NULL,
-		                      smooth_viewtx);
+		ED_view3d_smooth_view(
+		        C, v3d, ar, smooth_viewtx,
+		        &(const V3D_SmoothParams){.ofs = ofs, .quat = quat, .dist = &dist});
 	}
 	else {
 		/* no camera involved */
-		ED_view3d_smooth_view(C, v3d, ar, NULL, NULL,
-		                      NULL, quat, NULL, NULL,
-		                      smooth_viewtx);
+		ED_view3d_smooth_view(
+		        C, v3d, ar, smooth_viewtx,
+		        &(const V3D_SmoothParams){.quat = quat});
 	}
 }
 
@@ -3896,9 +3898,11 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 				/* finally do snazzy view zooming */
 				rv3d->persp = RV3D_CAMOB;
-				ED_view3d_smooth_view(C, v3d, ar, NULL, v3d->camera,
-				                      rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens,
-				                      smooth_viewtx);
+				ED_view3d_smooth_view(
+				        C, v3d, ar, smooth_viewtx,
+				        &(const V3D_SmoothParams){
+				            .camera = v3d->camera, .ofs = rv3d->ofs, .quat = rv3d->viewquat,
+				            .dist = &rv3d->dist, .lens = &v3d->lens});
 
 			}
 			else {
@@ -4031,9 +4035,9 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 				smooth_viewtx = 0;
 			}
 
-			ED_view3d_smooth_view(C, v3d, ar, NULL, NULL,
-			                      ofs_new_pt, quat_new, NULL, NULL,
-			                      smooth_viewtx);
+			ED_view3d_smooth_view(
+			        C, v3d, ar, smooth_viewtx,
+			        &(const V3D_SmoothParams){.ofs = ofs_new_pt, .quat = quat_new});
 
 			return OPERATOR_FINISHED;
 		}
@@ -4198,9 +4202,9 @@ static int viewroll_exec(bContext *C, wmOperator *op)
 		negate_v3(mousevec);
 		view_roll_angle(ar, quat_new, rv3d->viewquat, mousevec, angle);
 
-		ED_view3d_smooth_view(C, v3d, ar, NULL, NULL,
-		                      NULL, quat_new, NULL, NULL,
-		                      smooth_viewtx);
+		ED_view3d_smooth_view(
+		        C, v3d, ar, smooth_viewtx,
+		        &(const V3D_SmoothParams){.quat = quat_new});
 
 		viewops_data_free(C, op);
 		return OPERATOR_FINISHED;
