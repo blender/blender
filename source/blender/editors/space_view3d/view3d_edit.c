@@ -1221,7 +1221,6 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	/* makes op->customdata */
 	viewops_data_alloc(C, op);
-	viewops_data_create(C, op, event);
 	vod = op->customdata;
 
 	/* poll should check but in some cases fails, see poll func for details */
@@ -1238,6 +1237,8 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		 */
 		ED_region_tag_redraw(vod->ar);
 	}
+
+	viewops_data_create(C, op, event);
 
 	if (ELEM(event->type, MOUSEPAN, MOUSEROTATE)) {
 		/* Rotate direction we keep always same */
