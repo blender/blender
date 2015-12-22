@@ -4099,7 +4099,6 @@ bool MathNode::constant_fold(ShaderOutput *socket, float3 *optimized_value)
 	ShaderInput *value2_in = input("Value2");
 
 	if(socket == output("Value")) {
-		/* Optimize math node without links to a single value. */
 		if(value1_in->link == NULL && value2_in->link == NULL) {
 			optimized_value->x = svm_math((NodeMath)type_enum[type],
 			                              value1_in->value.x,
@@ -4179,7 +4178,6 @@ bool VectorMathNode::constant_fold(ShaderOutput *socket, float3 *optimized_value
 	float value;
 	float3 vector;
 
-	/* Optimize vector math node without links to a single value node. */
 	if(vector1_in->link == NULL && vector2_in->link == NULL) {
 		svm_vector_math(&value,
 						&vector,
