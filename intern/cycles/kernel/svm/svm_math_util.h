@@ -166,5 +166,17 @@ ccl_device float3 svm_math_blackbody_color(float t) {
 	return make_float3(4.70366907f, 0.0f, 0.0f);
 }
 
+ccl_device_inline float3 svm_math_gamma_color(float3 color, float gamma)
+{
+	if(color.x > 0.0f)
+		color.x = powf(color.x, gamma);
+	if(color.y > 0.0f)
+		color.y = powf(color.y, gamma);
+	if(color.z > 0.0f)
+		color.z = powf(color.z, gamma);
+
+	return color;
+}
+
 CCL_NAMESPACE_END
 

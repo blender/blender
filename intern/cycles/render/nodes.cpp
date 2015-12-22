@@ -3516,6 +3516,23 @@ GammaNode::GammaNode()
 	add_output("Color", SHADER_SOCKET_COLOR);
 }
 
+bool GammaNode::constant_fold(ShaderOutput *socket, float3 *optimized_value)
+{
+	ShaderInput *color_in = input("Color");
+	ShaderInput *gamma_in = input("Gamma");
+
+	if(socket == output("Color")) {
+		if(color_in->link == NULL && gamma_in->link == NULL) {
+			*optimized_value = svm_math_gamma_color(color_in->value,
+			                                        gamma_in->value.x);
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void GammaNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *color_in = input("Color");

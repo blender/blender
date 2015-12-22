@@ -557,6 +557,9 @@ public:
 class GammaNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(GammaNode)
+
+	bool constant_fold(ShaderOutput *socket, float3 *optimized_value);
+
 	virtual int get_group() { return NODE_GROUP_LEVEL_1; }
 };
 
