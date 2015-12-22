@@ -4104,6 +4104,10 @@ static void viewroll_apply(ViewOpsData *vod, int x, int UNUSED(y))
 	if (angle != 0.0f)
 		view_roll_angle(vod->ar, vod->rv3d->viewquat, vod->oldquat, vod->mousevec, angle);
 
+	if (vod->use_dyn_ofs) {
+		view3d_orbit_apply_dyn_ofs(vod->rv3d->ofs, vod->ofs, vod->oldquat, vod->rv3d->viewquat, vod->dyn_ofs);
+	}
+
 	if (vod->rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(vod->sa, vod->ar);
 
@@ -4205,9 +4209,18 @@ static int viewroll_exec(bContext *C, wmOperator *op)
 		negate_v3(mousevec);
 		view_roll_angle(ar, quat_new, rv3d->viewquat, mousevec, angle);
 
+		const float *dyn_ofs_pt = NULL;
+		float dyn_ofs[3];
+		if (U.uiflag & USER_ORBIT_SELECTION) {
+			if (view3d_orbit_calc_center(C, dyn_ofs)) {
+				negate_v3(dyn_ofs);
+				dyn_ofs_pt = dyn_ofs;
+			}
+		}
+
 		ED_view3d_smooth_view(
 		        C, v3d, ar, smooth_viewtx,
-		        &(const V3D_SmoothParams){.quat = quat_new});
+		        &(const V3D_SmoothParams){.quat = quat_new, .dyn_ofs = dyn_ofs_pt});
 
 		viewops_data_free(C, op);
 		return OPERATOR_FINISHED;
