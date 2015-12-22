@@ -73,15 +73,13 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot 
 
 #define ELE_DEL		1
 #define EDGE_COL	2
-#define FACE_MARK	2
 
 /**
  * helper function for bmo_weld_verts_exec so we can use stack memory
  */
-static void remdoubles_createface(BMesh *bm, BMFace *f, BMOpSlot *slot_targetmap)
+static BMFace *remdoubles_createface(BMesh *bm, BMFace *f, BMOpSlot *slot_targetmap)
 {
 	BMIter liter;
-	BMFace *f_new;
 	BMEdge *e_new;
 
 	BMLoop *l;
@@ -157,7 +155,7 @@ static void remdoubles_createface(BMesh *bm, BMFace *f, BMOpSlot *slot_targetmap
 			v2 = BMO_slot_map_elem_get(slot_targetmap, v2);
 		}
 
-		f_new = BM_face_create_ngon(bm, v1, v2, edges, STACK_SIZE(edges), f, BM_CREATE_NO_DOUBLE);
+		BMFace *f_new = BM_face_create_ngon(bm, v1, v2, edges, STACK_SIZE(edges), f, BM_CREATE_NO_DOUBLE);
 		BLI_assert(f_new != f);
 
 		if (f_new) {
@@ -166,6 +164,11 @@ static void remdoubles_createface(BMesh *bm, BMFace *f, BMOpSlot *slot_targetmap
 				BM_elem_attrs_copy(bm, bm, loops[i], l);
 			}
 		}
+
+		return f_new;
+	}
+	else {
+		return NULL;
 	}
 }
 
@@ -220,32 +223,37 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	/* BMESH_TODO, stop abusing face index here */
-	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-		BM_elem_index_set(f, 0); /* set_dirty! */
-		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-			if (BMO_elem_flag_test(bm, l->v, ELE_DEL)) {
-				BMO_elem_flag_enable(bm, f, FACE_MARK | ELE_DEL);
-			}
-			if (BMO_elem_flag_test(bm, l->e, EDGE_COL)) {
-				BM_elem_index_set(f, BM_elem_index_get(f) + 1); /* set_dirty! */
-			}
-		}
-	}
-	bm->elem_index_dirty |= BM_FACE | BM_LOOP;
-
 	/* faces get "modified" by creating new faces here, then at the
 	 * end the old faces are deleted */
 	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-		if (!BMO_elem_flag_test(bm, f, FACE_MARK))
-			continue;
+		bool vert_delete = false;
+		int  edge_collapse = 0;
 
-		if (f->len - BM_elem_index_get(f) < 3) {
-			BMO_elem_flag_enable(bm, f, ELE_DEL);
-			continue;
+		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+			if (BMO_elem_flag_test(bm, l->v, ELE_DEL)) {
+				vert_delete = true;
+			}
+			if (BMO_elem_flag_test(bm, l->e, EDGE_COL)) {
+				edge_collapse++;
+			}
 		}
 
-		remdoubles_createface(bm, f, slot_targetmap);
+		if (vert_delete) {
+			BMO_elem_flag_enable(bm, f, ELE_DEL);
+
+			if (f->len - edge_collapse >= 3) {
+				BMFace *f_new = remdoubles_createface(bm, f, slot_targetmap);
+
+				/* do this so we don't need to return a list of created faces */
+				if (f_new) {
+					bmesh_face_swap_data(f_new, f);
+					SWAP(BMFlagLayer *, f->oflags, f_new->oflags);
+					BMO_elem_flag_disable(bm, f, ELE_DEL);
+
+					BM_face_kill(bm, f_new);
+				}
+			}
+		}
 	}
 
 	BMO_mesh_delete_oflag_context(bm, ELE_DEL, DEL_ONLYTAGGED);
