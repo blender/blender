@@ -341,12 +341,16 @@ void closest_to_line_segment_v2(float r_close[2], const float p[2], const float 
 
 	lambda = closest_to_line_v2(cp, p, l1, l2);
 
-	if (lambda <= 0.0f)
+	/* flip checks for !finite case (when segment is a point) */
+	if (!(lambda > 0.0f)) {
 		copy_v2_v2(r_close, l1);
-	else if (lambda >= 1.0f)
+	}
+	else if (!(lambda < 1.0f)) {
 		copy_v2_v2(r_close, l2);
-	else
+	}
+	else {
 		copy_v2_v2(r_close, cp);
+	}
 }
 
 /* point closest to v1 on line v2-v3 in 3D */
@@ -356,12 +360,16 @@ void closest_to_line_segment_v3(float r_close[3], const float p[3], const float 
 
 	lambda = closest_to_line_v3(cp, p, l1, l2);
 
-	if (lambda <= 0.0f)
+	/* flip checks for !finite case (when segment is a point) */
+	if (!(lambda > 0.0f)) {
 		copy_v3_v3(r_close, l1);
-	else if (lambda >= 1.0f)
+	}
+	else if (!(lambda < 1.0f)) {
 		copy_v3_v3(r_close, l2);
-	else
+	}
+	else {
 		copy_v3_v3(r_close, cp);
+	}
 }
 
 /**
