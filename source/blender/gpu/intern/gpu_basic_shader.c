@@ -205,10 +205,15 @@ void GPU_basic_shader_bind(int options)
 			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
 		}
 
-		if (options & GPU_SHADER_TEXTURE_2D)
+		if (options & GPU_SHADER_TEXTURE_2D) {
+			GLint env_mode = (options & (GPU_SHADER_USE_COLOR|GPU_SHADER_LIGHTING)) ? GL_MODULATE : GL_REPLACE;
 			glEnable(GL_TEXTURE_2D);
-		else if (bound_options & GPU_SHADER_TEXTURE_2D)
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, env_mode);
+		}
+		else if (bound_options & GPU_SHADER_TEXTURE_2D) {
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			glDisable(GL_TEXTURE_2D);
+		}
 	}
 
 	GPU_MATERIAL_STATE.bound_options = options;
