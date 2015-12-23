@@ -35,31 +35,27 @@ typedef struct {
 enum {
 	BLI_BUFFER_NOP        = 0,
 	BLI_BUFFER_USE_STATIC = (1 << 0),
-	BLI_BUFFER_USE_CALLOC = (1 << 1),  /* ensure the array is always calloc'd */
 };
 
 #define BLI_buffer_declare_static(type_, name_, flag_, static_count_) \
 	char name_ ## user;  /* warn for free only */ \
 	type_ name_ ## _static_[static_count_]; \
 	BLI_Buffer name_ = { \
-	/* clear the static memory if this is a calloc'd array */ \
-	((void)((flag_ & BLI_BUFFER_USE_CALLOC) ? \
-	          memset(name_ ## _static_, 0, sizeof(name_ ## _static_)) : NULL \
-	), /* memset-end */ \
-	                    name_ ## _static_), \
-	                    sizeof(type_), \
-	                    0, \
-	                    static_count_, \
-	                    BLI_BUFFER_USE_STATIC | flag_}
+	        (name_ ## _static_), \
+	        sizeof(type_), \
+	        0, \
+	        static_count_, \
+	        BLI_BUFFER_USE_STATIC | (flag_)}
 
 /* never use static*/
 #define BLI_buffer_declare(type_, name_, flag_) \
 	bool name_ ## user;  /* warn for free only */ \
-	BLI_Buffer name_ = {NULL, \
-	                    sizeof(type_), \
-	                    0, \
-	                    0, \
-	                    flag_}
+	BLI_Buffer name_ = { \
+	        NULL, \
+	        sizeof(type_), \
+	        0, \
+	        0, \
+	        (flag_)}
 
 #define BLI_buffer_at(buffer_, type_, index_) ( \
 	(((type_ *)(buffer_)->data)[ \
