@@ -128,6 +128,7 @@ int TileManager::gen_tiles(bool sliced)
 	int slice_num = sliced? num: 1;
 	int tile_index = 0;
 
+	state.tiles.clear();
 	state.tiles.resize(num);
 	vector<list<Tile> >::iterator tile_list = state.tiles.begin();
 
@@ -187,12 +188,11 @@ void TileManager::set_tiles()
 bool TileManager::next_tile(Tile& tile, int device)
 {
 	int logical_device = preserve_tile_device? device: 0;
-	assert(logical_device < state.tiles.size());
 
-	if(state.tiles[logical_device].empty())
+	if((logical_device >= state.tiles.size()) || state.tiles[logical_device].empty())
 		return false;
 
-	tile = state.tiles[logical_device].front();
+	tile = Tile(state.tiles[logical_device].front());
 	state.tiles[logical_device].pop_front();
 	state.num_rendered_tiles++;
 	return true;
