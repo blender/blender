@@ -2339,7 +2339,7 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
 /************************ Select Linked Operator *************************/
 
 /* so we can have last-used default depend on selection mode (rare exception!) */
-#define USE_LINKED_SELECT_DEFULT_HACK
+#define USE_LINKED_SELECT_DEFAULT_HACK
 
 struct DelimitData {
 	int cd_loop_type;
@@ -2391,7 +2391,7 @@ static bool select_linked_delimit_test(
 	return false;
 }
 
-#ifdef USE_LINKED_SELECT_DEFULT_HACK
+#ifdef USE_LINKED_SELECT_DEFAULT_HACK
 /**
  * Gets the default from the operator fallback to own last-used value
  * (selected based on mode)
@@ -2477,7 +2477,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 	BMIter iter;
 	BMWalker walker;
 
-#ifdef USE_LINKED_SELECT_DEFULT_HACK
+#ifdef USE_LINKED_SELECT_DEFAULT_HACK
 	int delimit = select_linked_delimit_default_from_op(op, em);
 #else
 	int delimit = RNA_enum_get(op->ptr, "delimit");
@@ -2639,7 +2639,7 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 
 	prop = RNA_def_enum_flag(ot->srna, "delimit", rna_enum_mesh_delimit_mode_items, BMO_DELIM_SEAM, "Delimit",
 	                         "Delimit selected region");
-#ifdef USE_LINKED_SELECT_DEFULT_HACK
+#ifdef USE_LINKED_SELECT_DEFAULT_HACK
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 #else
 	UNUSED_VARS(prop);
@@ -2789,7 +2789,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 		return OPERATOR_CANCELLED;
 	}
 
-#ifdef USE_LINKED_SELECT_DEFULT_HACK
+#ifdef USE_LINKED_SELECT_DEFAULT_HACK
 	int delimit = select_linked_delimit_default_from_op(op, em);
 #else
 	int delimit = RNA_enum_get(op->ptr, "delimit");
@@ -2850,7 +2850,7 @@ static int edbm_select_linked_pick_exec(bContext *C, wmOperator *op)
 		efa = BM_face_at_index_find_or_table(bm, index);
 	}
 
-#ifdef USE_LINKED_SELECT_DEFULT_HACK
+#ifdef USE_LINKED_SELECT_DEFAULT_HACK
 	int delimit = select_linked_delimit_default_from_op(op, em);
 #else
 	int delimit = RNA_enum_get(op->ptr, "delimit");
@@ -2883,7 +2883,7 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
 	prop = RNA_def_enum_flag(ot->srna, "delimit", rna_enum_mesh_delimit_mode_items, BMO_DELIM_SEAM, "Delimit",
 	                         "Delimit selected region");
-#ifdef USE_LINKED_SELECT_DEFULT_HACK
+#ifdef USE_LINKED_SELECT_DEFAULT_HACK
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 #endif
 
