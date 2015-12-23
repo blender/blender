@@ -1007,7 +1007,7 @@ static BMVert *bm_face_split_edgenet_partial_connect(BMesh *bm, BMVert *v_delimi
 	bool is_delimit = false;
 	FOREACH_VERT_EDGE(v_delimit, e_iter, {
 		BMVert *v_step = BM_edge_other_vert(e_iter, v_delimit);
-		if (BM_elem_flag_test(v_step, VERT_NOT_IN_STACK)) {
+		if (BM_elem_flag_test(v_step, VERT_NOT_IN_STACK) && BM_edge_is_wire(e_iter)) {
 			is_delimit = true;  /* if one vertex is valid - we have a mix */
 		}
 		else {
