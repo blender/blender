@@ -123,7 +123,7 @@ void BLI_buffer_reinit(BLI_Buffer *buffer, const size_t new_count)
 			buffer->alloc_count = new_count;
 		}
 
-		buffer->data = buffer_alloc(buffer, new_count);
+		buffer->data = buffer_alloc(buffer, buffer->alloc_count);
 	}
 	else {
 		if (buffer->flag & BLI_BUFFER_USE_CALLOC) {
