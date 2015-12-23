@@ -40,7 +40,7 @@ struct Image;
 struct ImageUser;
 struct PreviewImage;
 	
-typedef struct GPUFrameBuffer GPUFrameBuffer;
+struct GPUFrameBuffer;
 typedef struct GPUTexture GPUTexture;
 
 /* GPU Texture
@@ -87,9 +87,9 @@ int GPU_texture_bound_number(GPUTexture *tex);
 
 void GPU_texture_filter_mode(GPUTexture *tex, bool compare, bool use_filter);
 
-GPUFrameBuffer *GPU_texture_framebuffer(GPUTexture *tex);
+struct GPUFrameBuffer *GPU_texture_framebuffer(GPUTexture *tex);
 int GPU_texture_framebuffer_attachment(GPUTexture *tex);
-void GPU_texture_framebuffer_set(GPUTexture *tex, GPUFrameBuffer *fb, int attachment);
+void GPU_texture_framebuffer_set(GPUTexture *tex, struct GPUFrameBuffer *fb, int attachment);
 
 int GPU_texture_target(const GPUTexture *tex);
 int GPU_texture_width(const GPUTexture *tex);

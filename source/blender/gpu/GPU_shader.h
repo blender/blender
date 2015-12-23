@@ -38,7 +38,7 @@ extern "C" {
 
 typedef struct GPUShader GPUShader;
 typedef struct GPUProgram GPUProgram;
-typedef struct GPUTexture GPUTexture;
+struct GPUTexture;
 
 /* Builtin/Non-generated shaders */
 typedef enum GPUProgramType {
@@ -81,7 +81,7 @@ void GPU_shader_uniform_vector(GPUShader *shader, int location, int length,
 void GPU_shader_uniform_vector_int(GPUShader *shader, int location, int length,
 	int arraysize, const int *value);
 
-void GPU_shader_uniform_texture(GPUShader *shader, int location, GPUTexture *tex);
+void GPU_shader_uniform_texture(GPUShader *shader, int location, struct GPUTexture *tex);
 void GPU_shader_uniform_int(GPUShader *shader, int location, int value);
 void GPU_shader_geometry_stage_primitive_io(GPUShader *shader, int input, int output, int number);
 

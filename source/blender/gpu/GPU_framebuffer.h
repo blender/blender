@@ -38,7 +38,7 @@ extern "C" {
 
 typedef struct GPUFrameBuffer GPUFrameBuffer;
 typedef struct GPUOffScreen GPUOffScreen;
-typedef struct GPUTexture GPUTexture;
+struct GPUTexture;
 
 /* GPU Framebuffer
  * - this is a wrapper for an OpenGL framebuffer object (FBO). in practice
@@ -47,13 +47,13 @@ typedef struct GPUTexture GPUTexture;
  * - after any of the GPU_framebuffer_* functions, GPU_framebuffer_restore must
  *   be called before rendering to the window framebuffer again */
 
-void GPU_texture_bind_as_framebuffer(GPUTexture *tex);
+void GPU_texture_bind_as_framebuffer(struct GPUTexture *tex);
 
 GPUFrameBuffer *GPU_framebuffer_create(void);
-int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, char err_out[256]);
-void GPU_framebuffer_texture_detach(GPUTexture *tex);
+int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, struct GPUTexture *tex, int slot, char err_out[256]);
+void GPU_framebuffer_texture_detach(struct GPUTexture *tex);
 void GPU_framebuffer_slots_bind(GPUFrameBuffer *fb, int slot);
-void GPU_framebuffer_texture_unbind(GPUFrameBuffer *fb, GPUTexture *tex);
+void GPU_framebuffer_texture_unbind(GPUFrameBuffer *fb, struct GPUTexture *tex);
 void GPU_framebuffer_free(GPUFrameBuffer *fb);
 bool GPU_framebuffer_check_valid(GPUFrameBuffer *fb, char err_out[256]);
 
@@ -62,7 +62,7 @@ void GPU_framebuffer_bind_no_save(GPUFrameBuffer *fb, int slot);
 bool GPU_framebuffer_bound(GPUFrameBuffer *fb);
 
 void GPU_framebuffer_restore(void);
-void GPU_framebuffer_blur(GPUFrameBuffer *fb, GPUTexture *tex, GPUFrameBuffer *blurfb, GPUTexture *blurtex);
+void GPU_framebuffer_blur(GPUFrameBuffer *fb, struct GPUTexture *tex, GPUFrameBuffer *blurfb, struct GPUTexture *blurtex);
 
 /* GPU OffScreen
  * - wrapper around framebuffer and texture for simple offscreen drawing
