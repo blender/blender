@@ -305,7 +305,7 @@ class INFO_MT_help(Menu):
         layout.separator()
 
         layout.operator("wm.url_open", text="Blender Website", icon='URL').url = "http://www.blender.org"
-        layout.operator("wm.url_open", text="Blender e-Shop", icon='URL').url = "http://www.blender.org/e-shop"
+        layout.operator("wm.url_open", text="Blender Store", icon='URL').url = "https://store.blender.org"
         layout.operator("wm.url_open", text="Developer Community", icon='URL').url = "http://www.blender.org/get-involved/"
         layout.operator("wm.url_open", text="User Community", icon='URL').url = "http://www.blender.org/community/user-community"
         layout.separator()
