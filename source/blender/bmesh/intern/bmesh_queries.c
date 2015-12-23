@@ -775,6 +775,28 @@ bool BM_vert_is_edge_pair(const BMVert *v)
 }
 
 /**
+ * Access a verts 2 connected edges.
+ *
+ * \return true when only 2 verts are found.
+ */
+bool BM_vert_edge_pair(BMVert *v, BMEdge **r_e_a, BMEdge **r_e_b)
+{
+	BMEdge *e_a = v->e;
+	if (e_a) {
+		BMEdge *e_b = BM_DISK_EDGE_NEXT(e_a, v);
+		if ((e_b != e_a) && (BM_DISK_EDGE_NEXT(e_b, v) == e_a)) {
+			*r_e_a = e_a;
+			*r_e_b = e_b;
+			return true;
+		}
+	}
+
+	*r_e_a = NULL;
+	*r_e_b = NULL;
+	return false;
+}
+
+/**
  *	Returns the number of edges around this vertex.
  */
 int BM_vert_edge_count(const BMVert *v)
