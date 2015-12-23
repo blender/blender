@@ -544,7 +544,7 @@ static unsigned int bm_mesh_elems_select_get_n__internal(
 		if (i == 0) {
 			/* pass */
 		}
-		else {
+		else if (i == n) {
 			return i;
 		}
 	}
