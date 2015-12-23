@@ -1610,6 +1610,8 @@ void BIF_draw_manipulator(const bContext *C)
 
 	if (!(v3d->twflag & V3D_USE_MANIPULATOR)) return;
 
+	if ((v3d->twtype & (V3D_MANIP_TRANSLATE | V3D_MANIP_ROTATE | V3D_MANIP_SCALE)) == 0) return;
+
 	{
 		v3d->twflag &= ~V3D_DRAW_MANIPULATOR;
 
