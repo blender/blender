@@ -768,8 +768,8 @@ bool BM_vert_is_edge_pair(const BMVert *v)
 {
 	const BMEdge *e = v->e;
 	if (e) {
-		const BMDiskLink *dl = bmesh_disk_edge_link_from_vert(e, v);
-		return (dl->next == dl->prev);
+		BMEdge *e_other = BM_DISK_EDGE_NEXT(e, v);
+		return ((e_other != e) && (BM_DISK_EDGE_NEXT(e_other, v) == e));
 	}
 	return false;
 }
