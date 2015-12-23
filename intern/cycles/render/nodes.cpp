@@ -1621,6 +1621,56 @@ ConvertNode::ConvertNode(ShaderSocketType from_, ShaderSocketType to_, bool auto
 		assert(0);
 }
 
+bool ConvertNode::constant_fold(ShaderOutput *socket, float3 *optimized_value)
+{
+	ShaderInput *in = inputs[0];
+	float3 value = in->value;
+
+	/* TODO(DingTo): conversion from/to int is not supported yet, don't fold in that case */
+
+	if(socket == outputs[0] && in->link == NULL) {
+		if(from == SHADER_SOCKET_FLOAT) {
+			if(to == SHADER_SOCKET_INT)
+			/* float to int */
+				return false;
+			else
+			/* float to float3 */
+				*optimized_value = make_float3(value.x, value.x, value.x);
+		}
+		else if(from == SHADER_SOCKET_INT) {
+			if(to == SHADER_SOCKET_FLOAT)
+			/* int to float */
+				return false;
+			else
+			/* int to vector/point/normal */
+				return false;
+		}
+		else if(to == SHADER_SOCKET_FLOAT) {
+			if(from == SHADER_SOCKET_COLOR)
+			/* color to float */
+				optimized_value->x = linear_rgb_to_gray(value);
+			else
+			/* vector/point/normal to float */
+				optimized_value->x = average(value);
+		}
+		else if(to == SHADER_SOCKET_INT) {
+			if(from == SHADER_SOCKET_COLOR)
+			/* color to int */
+				return false;
+			else
+			/* vector/point/normal to int */
+				return false;
+		}
+		else {
+			*optimized_value = value;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
 void ConvertNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *in = inputs[0];

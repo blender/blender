@@ -252,6 +252,8 @@ public:
 	ConvertNode(ShaderSocketType from, ShaderSocketType to, bool autoconvert = false);
 	SHADER_NODE_BASE_CLASS(ConvertNode)
 
+	bool constant_fold(ShaderOutput *socket, float3 *optimized_value);
+
 	ShaderSocketType from, to;
 };
 
