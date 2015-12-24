@@ -44,6 +44,7 @@
 
 
 #define STACK_SIZE(stack)           ((void)stack, (_##stack##_index))
+#define STACK_CLEAR(stack)          {(void)stack;  _##stack##_index = 0; } ((void)0)
 /** add item to stack */
 #define STACK_PUSH(stack, val)      ((void)stack, _STACK_SIZETEST(stack, 1),  ((stack)[(_##stack##_index)++] = val))
 #define STACK_PUSH_RET(stack)       ((void)stack, _STACK_SIZETEST(stack, 1),  ((stack)[(_##stack##_index)++]))
@@ -63,26 +64,26 @@
 		if (--_##stack##_index != _i) { \
 			stack[_i] = stack[_##stack##_index]; \
 		} \
-	} (void)0
+	} ((void)0)
 #define STACK_DISCARD(stack, n) \
 	{ \
 		const unsigned int _n = n; \
 		BLI_assert(_##stack##_index >= _n); \
 		(void)stack; \
 		_##stack##_index -= _n; \
-	} (void)0
+	} ((void)0)
 #ifdef __GNUC__
 #define STACK_SWAP(stack_a, stack_b) { \
 	SWAP(typeof(stack_a), stack_a, stack_b); \
 	SWAP(unsigned int, _##stack_a##_index, _##stack_b##_index); \
 	_STACK_SWAP_TOTALLOC(stack_a, stack_b); \
-	} (void)0
+	} ((void)0)
 #else
 #define STACK_SWAP(stack_a, stack_b) { \
 	SWAP(void *, stack_a, stack_b); \
 	SWAP(unsigned int, _##stack_a##_index, _##stack_b##_index); \
 	_STACK_SWAP_TOTALLOC(stack_a, stack_b); \
-	} (void)0
+	} ((void)0)
 #endif
 
 #endif  /* __BLI_STACKDEFINES_H__ */
