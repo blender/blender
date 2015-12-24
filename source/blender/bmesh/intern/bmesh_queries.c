@@ -2094,26 +2094,13 @@ bool BM_face_exists_multi_edge(BMEdge **earr, int len)
 {
 	BMVert **varr = BLI_array_alloca(varr, len);
 
-	bool ok;
-	int i, i_next;
-
 	/* first check if verts have edges, if not we can bail out early */
-	ok = true;
-	for (i = len - 1, i_next = 0; i_next < len; (i = i_next++)) {
-		if (!(varr[i] = BM_edge_share_vert(earr[i], earr[i_next]))) {
-			ok = false;
-			break;
-		}
-	}
-
-	if (ok == false) {
+	if (!BM_verts_from_edges(varr, earr, len)) {
 		BMESH_ASSERT(0);
 		return false;
 	}
 
-	ok = BM_face_exists_multi(varr, earr, len);
-
-	return ok;
+	return BM_face_exists_multi(varr, earr, len);
 }
 
 

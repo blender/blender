@@ -29,6 +29,8 @@
 
 struct BMAllocTemplate;
 
+bool BM_verts_from_edges(BMVert **vert_arr, BMEdge **edge_arr, const int len);
+
 bool BM_edges_from_verts(BMEdge **edge_arr, BMVert **vert_arr, const int len);
 void BM_edges_from_verts_ensure(BMesh *bm, BMEdge **edge_arr, BMVert **vert_arr, const int len);
 

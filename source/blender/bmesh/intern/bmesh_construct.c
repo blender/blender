@@ -46,10 +46,29 @@
 
 #define SELECT 1
 
+
+/**
+ * Fill in a vertex array from an edge array.
+ *
+ * \returns false if any verts aren't found.
+ */
+bool BM_verts_from_edges(BMVert **vert_arr, BMEdge **edge_arr, const int len)
+{
+	int i, i_prev = len - 1;
+	for (i = 0; i < len; i++) {
+		vert_arr[i] = BM_edge_share_vert(edge_arr[i_prev], edge_arr[i]);
+		if (vert_arr[i] == NULL) {
+			return false;
+		}
+		i_prev = i;
+	}
+	return true;
+}
+
 /**
  * Fill in an edge array from a vertex array (connected polygon loop).
  *
- * \returns false if any edges aren't found .
+ * \returns false if any edges aren't found.
  */
 bool BM_edges_from_verts(BMEdge **edge_arr, BMVert **vert_arr, const int len)
 {
