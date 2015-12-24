@@ -525,41 +525,75 @@ BMFace *BM_face_create_verts(
 int bmesh_elem_check(void *element, const char htype)
 {
 	BMHeader *head = element;
-	int err = 0;
+	enum {
+		IS_NULL                                     = (1 << 0),
+		IS_WRONG_TYPE                               = (1 << 1),
+
+		IS_VERT_WRONG_EDGE_TYPE                     = (1 << 2),
+
+		IS_EDGE_NULL_DISK_LINK                      = (1 << 3),
+		IS_EDGE_WRONG_LOOP_TYPE                     = (1 << 4),
+		IS_EDGE_WRONG_FACE_TYPE                     = (1 << 5),
+		IS_EDGE_NULL_RADIAL_LINK                    = (1 << 6),
+		IS_EDGE_ZERO_FACE_LENGTH                    = (1 << 7),
+
+		IS_LOOP_WRONG_FACE_TYPE                     = (1 << 8),
+		IS_LOOP_WRONG_EDGE_TYPE                     = (1 << 9),
+		IS_LOOP_WRONG_VERT_TYPE                     = (1 << 10),
+		IS_LOOP_VERT_NOT_IN_EDGE                    = (1 << 11),
+		IS_LOOP_NULL_CYCLE_LINK                     = (1 << 12),
+		IS_LOOP_ZERO_FACE_LENGTH                    = (1 << 13),
+		IS_LOOP_WRONG_FACE_LENGTH                   = (1 << 14),
+		IS_LOOP_WRONG_RADIAL_LENGTH                 = (1 << 15),
+
+		IS_FACE_NULL_LOOP                           = (1 << 16),
+		IS_FACE_WRONG_LOOP_FACE                     = (1 << 17),
+		IS_FACE_NULL_EDGE                           = (1 << 18),
+		IS_FACE_NULL_VERT                           = (1 << 19),
+		IS_FACE_LOOP_VERT_NOT_IN_EDGE               = (1 << 20),
+		IS_FACE_LOOP_WRONG_RADIAL_LENGTH            = (1 << 21),
+		IS_FACE_LOOP_WRONG_DISK_LENGTH              = (1 << 22),
+		IS_FACE_WRONG_LENGTH                        = (1 << 23),
+	} err = 0;
 
 	if (!element)
-		return (1 << 0);
+		return IS_NULL;
 
 	if (head->htype != htype)
-		return (1 << 1);
+		return IS_WRONG_TYPE;
 	
 	switch (htype) {
 		case BM_VERT:
 		{
 			BMVert *v = element;
 			if (v->e && v->e->head.htype != BM_EDGE) {
-				err |= (1 << 2);
+				err |= IS_VERT_WRONG_EDGE_TYPE;
 			}
 			break;
 		}
 		case BM_EDGE:
 		{
 			BMEdge *e = element;
-			if (e->l && e->l->head.htype != BM_LOOP)
-				err |= (1 << 3);
-			if (e->l && e->l->f->head.htype != BM_FACE)
-				err |= (1 << 4);
 			if (e->v1_disk_link.prev == NULL ||
 			    e->v2_disk_link.prev == NULL ||
 			    e->v1_disk_link.next == NULL ||
 			    e->v2_disk_link.next == NULL)
 			{
-				err |= (1 << 5);
+				err |= IS_EDGE_NULL_DISK_LINK;
 			}
-			if (e->l && (e->l->radial_next == NULL || e->l->radial_prev == NULL))
-				err |= (1 << 6);
-			if (e->l && e->l->f->len <= 0)
-				err |= (1 << 7);
+
+			if (e->l && e->l->head.htype != BM_LOOP) {
+				err |= IS_EDGE_WRONG_LOOP_TYPE;
+			}
+			if (e->l && e->l->f->head.htype != BM_FACE) {
+				err |= IS_EDGE_WRONG_FACE_TYPE;
+			}
+			if (e->l && (e->l->radial_next == NULL || e->l->radial_prev == NULL)) {
+				err |= IS_EDGE_NULL_RADIAL_LINK;
+			}
+			if (e->l && e->l->f->len <= 0) {
+				err |= IS_EDGE_ZERO_FACE_LENGTH;
+			}
 			break;
 		}
 		case BM_LOOP:
@@ -567,21 +601,26 @@ int bmesh_elem_check(void *element, const char htype)
 			BMLoop *l = element, *l2;
 			int i;
 
-			if (l->f->head.htype != BM_FACE)
-				err |= (1 << 8);
-			if (l->e->head.htype != BM_EDGE)
-				err |= (1 << 9);
-			if (l->v->head.htype != BM_VERT)
-				err |= (1 << 10);
+			if (l->f->head.htype != BM_FACE) {
+				err |= IS_LOOP_WRONG_FACE_TYPE;
+			}
+			if (l->e->head.htype != BM_EDGE) {
+				err |= IS_LOOP_WRONG_EDGE_TYPE;
+			}
+			if (l->v->head.htype != BM_VERT) {
+				err |= IS_LOOP_WRONG_VERT_TYPE;
+			}
 			if (!BM_vert_in_edge(l->e, l->v)) {
 				fprintf(stderr, "%s: fatal bmesh error (vert not in edge)! (bmesh internal error)\n", __func__);
-				err |= (1 << 11);
+				err |= IS_LOOP_VERT_NOT_IN_EDGE;
 			}
 
-			if (l->radial_next == NULL || l->radial_prev == NULL)
-				err |= (1 << 12);
-			if (l->f->len <= 0)
-				err |= (1 << 13);
+			if (l->radial_next == NULL || l->radial_prev == NULL) {
+				err |= IS_LOOP_NULL_CYCLE_LINK;
+			}
+			if (l->f->len <= 0) {
+				err |= IS_LOOP_ZERO_FACE_LENGTH;
+			}
 
 			/* validate boundary loop -- invalid for hole loops, of course,
 			 * but we won't be allowing those for a while yet */
@@ -595,11 +634,13 @@ int bmesh_elem_check(void *element, const char htype)
 				i++;
 			} while ((l2 = l2->next) != l);
 
-			if (i != l->f->len || l2 != l)
-				err |= (1 << 14);
+			if (i != l->f->len || l2 != l) {
+				err |= IS_LOOP_WRONG_FACE_LENGTH;
+			}
 
-			if (!bmesh_radial_validate(bmesh_radial_length(l), l))
-				err |= (1 << 15);
+			if (!bmesh_radial_validate(bmesh_radial_length(l), l)) {
+				err |= IS_LOOP_WRONG_RADIAL_LENGTH;
+			}
 
 			break;
 		}
@@ -616,36 +657,43 @@ int bmesh_elem_check(void *element, const char htype)
 			if (!f->l_first)
 #endif
 			{
-				err |= (1 << 16);
+				err |= IS_FACE_NULL_LOOP;
 			}
 			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 			do {
 				if (l_iter->f != f) {
 					fprintf(stderr, "%s: loop inside one face points to another! (bmesh internal error)\n", __func__);
-					err |= (1 << 17);
+					err |= IS_FACE_WRONG_LOOP_FACE;
 				}
 
-				if (!l_iter->e)
-					err |= (1 << 18);
-				if (!l_iter->v)
-					err |= (1 << 19);
+				if (!l_iter->e) {
+					err |= IS_FACE_NULL_EDGE;
+				}
+				if (!l_iter->v) {
+					err |= IS_FACE_NULL_VERT;
+				}
 				if (l_iter->e && l_iter->v) {
-					if (!BM_vert_in_edge(l_iter->e, l_iter->v) || !BM_vert_in_edge(l_iter->e, l_iter->next->v)) {
-						err |= (1 << 20);
+					if (!BM_vert_in_edge(l_iter->e, l_iter->v) ||
+					    !BM_vert_in_edge(l_iter->e, l_iter->next->v))
+					{
+						err |= IS_FACE_LOOP_VERT_NOT_IN_EDGE;
 					}
 
-					if (!bmesh_radial_validate(bmesh_radial_length(l_iter), l_iter))
-						err |= (1 << 21);
+					if (!bmesh_radial_validate(bmesh_radial_length(l_iter), l_iter)) {
+						err |= IS_FACE_LOOP_WRONG_RADIAL_LENGTH;
+					}
 
-					if (!bmesh_disk_count(l_iter->v) || !bmesh_disk_count(l_iter->next->v))
-						err |= (1 << 22);
+					if (!bmesh_disk_count(l_iter->v) || !bmesh_disk_count(l_iter->next->v)) {
+						err |= IS_FACE_LOOP_WRONG_DISK_LENGTH;
+					}
 				}
 
 				len++;
 			} while ((l_iter = l_iter->next) != l_first);
 
-			if (len != f->len)
-				err |= (1 << 23);
+			if (len != f->len) {
+				err |= IS_FACE_WRONG_LENGTH;
+			}
 			break;
 		}
 		default:
