@@ -1570,7 +1570,7 @@ class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
     @classmethod
     def poll(cls, context):
         settings = cls.paint_settings(context)
-        return settings
+        return (settings is not None) and (not isinstance(settings, bpy.types.ParticleEdit))
 
     def draw(self, context):
         layout = self.layout
