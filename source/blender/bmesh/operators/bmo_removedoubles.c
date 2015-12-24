@@ -73,104 +73,113 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot 
 
 #define ELE_DEL		1
 #define EDGE_COL	2
+#define VERT_IN_FACE	4
 
 /**
  * helper function for bmo_weld_verts_exec so we can use stack memory
  */
 static BMFace *remdoubles_createface(BMesh *bm, BMFace *f, BMOpSlot *slot_targetmap)
 {
-	BMIter liter;
 	BMEdge *e_new;
 
-	BMLoop *l;
-
-	BMEdge **edges = BLI_array_alloca(edges, f->len);
-	BMLoop **loops = BLI_array_alloca(loops, f->len);
+	BMEdge **edges = BLI_array_alloca(edges, f->len);  /* new ordered edges */
+	BMVert **verts = BLI_array_alloca(verts, f->len);  /* new ordered verts */
+	BMLoop **loops = BLI_array_alloca(loops, f->len);  /* original ordered loops to copy attrs into the new face */
 
 	STACK_DECLARE(edges);
 	STACK_DECLARE(loops);
+	STACK_DECLARE(verts);
 
 	STACK_INIT(edges, f->len);
 	STACK_INIT(loops, f->len);
+	STACK_INIT(verts, f->len);
 
-	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-		BMVert *v1 = l->v;
-		BMVert *v2 = l->next->v;
 
-		const bool is_del_v1 = BMO_elem_flag_test_bool(bm, v1, ELE_DEL);
-		const bool is_del_v2 = BMO_elem_flag_test_bool(bm, v2, ELE_DEL);
+	{
+#define LOOP_MAP_VERT_INIT(l_init, v_map, is_del) \
+		v_map = l_init->v; \
+		is_del = BMO_elem_flag_test_bool(bm, v_map, ELE_DEL); \
+		if (is_del) { \
+			v_map = BMO_slot_map_elem_get(slot_targetmap, v_map); \
+		} ((void)0)
 
-		/* only search for a new edge if one of the verts is mapped */
-		if (is_del_v1 || is_del_v2) {
-			if (is_del_v1)
-				v1 = BMO_slot_map_elem_get(slot_targetmap, v1);
-			if (is_del_v2)
-				v2 = BMO_slot_map_elem_get(slot_targetmap, v2);
 
-			e_new = (v1 != v2) ? BM_edge_exists(v1, v2) : NULL;
-		}
-		else {
-			e_new = l->e;
-		}
+		BMLoop *l_first, *l_curr, *l_next;
+		BMVert *v_curr;
+		bool is_del_v_curr;
 
-		if (e_new) {
-			unsigned int i;
-			for (i = 0; i < STACK_SIZE(edges); i++) {
-				if (edges[i] == e_new) {
-					break;
-				}
+		l_curr = l_first = BM_FACE_FIRST_LOOP(f);
+		LOOP_MAP_VERT_INIT(l_curr, v_curr, is_del_v_curr);
+
+		do {
+			BMVert *v_next;
+			bool is_del_v_next;
+
+			l_next = l_curr->next;
+			LOOP_MAP_VERT_INIT(l_next, v_next, is_del_v_next);
+
+			/* only search for a new edge if one of the verts is mapped */
+			if ((is_del_v_curr || is_del_v_next) == 0) {
+				e_new = l_curr->e;
 			}
-			if (UNLIKELY(i != STACK_SIZE(edges))) {
-				continue;
-			}
-
-			/* low level selection, not essential but means we can keep
-			 * edge selection valid on auto-merge for example. */
-			if ((BM_elem_flag_test(l->e, BM_ELEM_SELECT)   == true) &&
-			    (BM_elem_flag_test(e_new, BM_ELEM_SELECT) == false))
-			{
-				BM_elem_flag_disable(l->e, BM_ELEM_SELECT);
-				BM_elem_flag_merge_into(e_new, e_new, l->e);
-				BM_elem_flag_enable(e_new, BM_ELEM_SELECT);
-				/* bm->totedgesel remains valid */
+			else if (v_curr == v_next) {
+				e_new = NULL;  /* skip */
 			}
 			else {
-				BM_elem_flag_merge_into(e_new, e_new, l->e);
+				e_new = BM_edge_exists(v_curr, v_next);
+				BLI_assert(e_new);  /* never fails */
 			}
 
+			if (e_new) {
+				if (UNLIKELY(BMO_elem_flag_test(bm, v_curr, VERT_IN_FACE))) {
+					/* we can't make the face, bail out */
+					STACK_CLEAR(edges);
+					goto finally;
+				}
+				BMO_elem_flag_enable(bm, v_curr, VERT_IN_FACE);
 
-			STACK_PUSH(edges, e_new);
-			STACK_PUSH(loops, l);
+				STACK_PUSH(edges, e_new);
+				STACK_PUSH(loops, l_curr);
+				STACK_PUSH(verts, v_curr);
+			}
+
+			v_curr = v_next;
+			is_del_v_curr = is_del_v_next;
+		} while ((l_curr = l_next) != l_first);
+
+#undef LOOP_MAP_VERT_INIT
+
+	}
+
+finally:
+	{
+		unsigned int i;
+		for (i = 0; i < STACK_SIZE(verts); i++) {
+			BMO_elem_flag_disable(bm, verts[i], VERT_IN_FACE);
 		}
 	}
 
 	if (STACK_SIZE(edges) >= 3) {
-		BMVert *v1 = loops[0]->v;
-		BMVert *v2 = loops[1]->v;
+		if (!BM_face_exists(verts, STACK_SIZE(edges), NULL)) {
+			BMFace *f_new = BM_face_create(bm, verts, edges, STACK_SIZE(edges), f, BM_CREATE_NOP);
+			BLI_assert(f_new != f);
 
-		if (BMO_elem_flag_test(bm, v1, ELE_DEL)) {
-			v1 = BMO_slot_map_elem_get(slot_targetmap, v1);
-		}
-		if (BMO_elem_flag_test(bm, v2, ELE_DEL)) {
-			v2 = BMO_slot_map_elem_get(slot_targetmap, v2);
-		}
+			if (f_new) {
+				unsigned int i = 0;
+				BMLoop *l_iter, *l_first;
+				l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);
+				do {
+					BM_elem_attrs_copy(bm, bm, loops[i], l_iter);
+				} while (i++, (l_iter = l_iter->next) != l_first);
 
-		BMFace *f_new = BM_face_create_ngon(bm, v1, v2, edges, STACK_SIZE(edges), f, BM_CREATE_NO_DOUBLE);
-		BLI_assert(f_new != f);
-
-		if (f_new) {
-			unsigned int i;
-			BM_ITER_ELEM_INDEX (l, &liter, f_new, BM_LOOPS_OF_FACE, i) {
-				BM_elem_attrs_copy(bm, bm, loops[i], l);
+				return f_new;
 			}
 		}
+	}
 
-		return f_new;
-	}
-	else {
-		return NULL;
-	}
+	return NULL;
 }
+
 
 /**
  * \note with 'targetmap', multiple 'keys' are currently supported, though no callers should be using.
@@ -216,7 +225,21 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 				BMO_elem_flag_enable(bm, e, EDGE_COL);
 			}
 			else if (!BM_edge_exists(v1, v2)) {
-				BM_edge_create(bm, v1, v2, e, BM_CREATE_NOP);
+				BMEdge *e_new = BM_edge_create(bm, v1, v2, e, BM_CREATE_NOP);
+
+				/* low level selection, not essential but means we can keep
+				 * edge selection valid on auto-merge for example. */
+				if ((BM_elem_flag_test(e, BM_ELEM_SELECT)   == true) &&
+				    (BM_elem_flag_test(e_new, BM_ELEM_SELECT) == false))
+				{
+					BM_elem_flag_disable(e, BM_ELEM_SELECT);
+					BM_elem_flag_merge_into(e_new, e_new, e);
+					BM_elem_flag_enable(e_new, BM_ELEM_SELECT);
+					/* bm->totedgesel remains valid */
+				}
+				else {
+					BM_elem_flag_merge_into(e_new, e_new, e);
+				}
 			}
 
 			BMO_elem_flag_enable(bm, e, ELE_DEL);
