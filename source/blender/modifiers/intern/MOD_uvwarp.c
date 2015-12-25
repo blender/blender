@@ -31,6 +31,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
+#include "BLI_task.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"  /* BKE_pose_channel_find_name */
@@ -98,9 +99,51 @@ static void matrix_from_obj_pchan(float mat[4][4], Object *ob, const char *bonen
 	}
 }
 
-#ifdef _OPENMP
-#  define OMP_LIMIT 1000
-#endif
+typedef struct UVWarpData {
+	MPoly *mpoly;
+	MLoop *mloop;
+	MLoopUV *mloopuv;
+
+	MDeformVert *dvert;
+	int defgrp_index;
+
+	float (*warp_mat)[4];
+	int axis_u;
+	int axis_v;
+} UVWarpData;
+
+static void uv_warp_compute(void *userdata, void *UNUSED(userdata_chunk), int i)
+{
+	const UVWarpData *data = userdata;
+
+	const MPoly *mp = &data->mpoly[i];
+	const MLoop *ml = &data->mloop[mp->loopstart];
+	MLoopUV *mluv = &data->mloopuv[mp->loopstart];
+
+	const MDeformVert *dvert = data->dvert;
+	const int defgrp_index = data->defgrp_index;
+
+	float (*warp_mat)[4] = data->warp_mat;
+	const int axis_u = data->axis_u;
+	const int axis_v = data->axis_v;
+
+	int l;
+
+	if (dvert) {
+		for (l = 0; l < mp->totloop; l++, ml++, mluv++) {
+			float uv[2];
+			const float weight = defvert_find_weight(&dvert[ml->v], defgrp_index);
+
+			uv_warp_from_mat4_pair(uv, mluv->uv, warp_mat, axis_u, axis_v);
+			interp_v2_v2v2(mluv->uv, mluv->uv, uv, weight);
+		}
+	}
+	else {
+		for (l = 0; l < mp->totloop; l++, ml++, mluv++) {
+			uv_warp_from_mat4_pair(mluv->uv, mluv->uv, warp_mat, axis_u, axis_v);
+		}
+	}
+}
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   DerivedMesh *dm,
@@ -164,33 +207,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	mloopuv = CustomData_duplicate_referenced_layer_named(&dm->loopData, CD_MLOOPUV, uvname, numLoops);
 	modifier_get_vgroup(ob, dm, umd->vgroup_name, &dvert, &defgrp_index);
 
-	if (dvert) {
-#pragma omp parallel for if (numPolys > OMP_LIMIT)
-		for (i = 0; i < numPolys; i++) {
-			float uv[2];
-			MPoly *mp     = &mpoly[i];
-			MLoop *ml     = &mloop[mp->loopstart];
-			MLoopUV *mluv = &mloopuv[mp->loopstart];
-			int l;
-			for (l = 0; l < mp->totloop; l++, ml++, mluv++) {
-				const float weight = defvert_find_weight(&dvert[ml->v], defgrp_index);
-				uv_warp_from_mat4_pair(uv, mluv->uv, warp_mat, axis_u, axis_v);
-				interp_v2_v2v2(mluv->uv, mluv->uv, uv, weight);
-			}
-		}
-	}
-	else {
-#pragma omp parallel for if (numPolys > OMP_LIMIT)
-		for (i = 0; i < numPolys; i++) {
-			MPoly *mp     = &mpoly[i];
-			// MLoop *ml     = &mloop[mp->loopstart];
-			MLoopUV *mluv = &mloopuv[mp->loopstart];
-			int l;
-			for (l = 0; l < mp->totloop; l++, /* ml++, */ mluv++) {
-				uv_warp_from_mat4_pair(mluv->uv, mluv->uv, warp_mat, axis_u, axis_v);
-			}
-		}
-	}
+	UVWarpData data = {.mpoly = mpoly, .mloop = mloop, .mloopuv = mloopuv,
+	                   .dvert = dvert, .defgrp_index = defgrp_index,
+	                   .warp_mat = warp_mat, .axis_u = axis_u, .axis_v = axis_v};
+	BLI_task_parallel_range_ex(0, numPolys, &data, NULL, 0, uv_warp_compute, 1000, false);
 
 	dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
 
