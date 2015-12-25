@@ -524,7 +524,6 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 	{
 		const int num_verts = dm->getNumVerts(dm);
 
-		/* #pragma omp parallel for private(i, ocr) if (omd->resolution > OMP_MIN_RES) */
 		for (i = 0; i < num_verts; i++) {
 			float *vco = mverts[i].co;
 			const float u = OCEAN_CO(size_co_inv, vco[0]);
