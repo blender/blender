@@ -355,7 +355,6 @@ public:
 	SHADER_NODE_CLASS(SubsurfaceScatteringNode)
 	bool has_surface_bssrdf() { return true; }
 	bool has_bssrdf_bump();
-	bool has_spatial_varying() { return true; }
 
 	static ShaderEnum falloff_enum;
 };
