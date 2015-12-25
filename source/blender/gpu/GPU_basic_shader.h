@@ -47,9 +47,26 @@ typedef enum GPUBasicShaderOption {
 	GPU_SHADER_TEXTURE_2D =       (1<<3),   /* use 2D texture to replace diffuse color */
 
 	GPU_SHADER_SOLID_LIGHTING =   (1<<4),   /* use faster lighting (set automatically) */
-	GPU_SHADER_OPTIONS_NUM = 5,
+	GPU_SHADER_STIPPLE =          (1<<5),   /* use stipple */
+	GPU_SHADER_OPTIONS_NUM = 6,
 	GPU_SHADER_OPTION_COMBINATIONS = (1<<GPU_SHADER_OPTIONS_NUM)
 } GPUBasicShaderOption;
+
+/* Keep these in sync with gpu_shader_basic_frag.glsl */
+typedef enum GPUBasicShaderStipple {
+	GPU_SHADER_STIPPLE_HALFTONE                        = 0,
+	GPU_SHADER_STIPPLE_QUARTTONE                       = 1,
+	GPU_SHADER_STIPPLE_CHECKER_8PX                     = 2,
+	GPU_SHADER_STIPPLE_HEXAGON                         = 3,
+	GPU_SHADER_STIPPLE_DIAG_STRIPES                    = 4,
+	GPU_SHADER_STIPPLE_DIAG_STRIPES_SWAP               = 5,
+	GPU_SHADER_STIPPLE_S3D_INTERLACE_ROW               = 6,
+	GPU_SHADER_STIPPLE_S3D_INTERLACE_ROW_SWAP          = 7,
+	GPU_SHADER_STIPPLE_S3D_INTERLACE_COLUMN            = 8,
+	GPU_SHADER_STIPPLE_S3D_INTERLACE_COLUMN_SWAP       = 9,
+	GPU_SHADER_STIPPLE_S3D_INTERLACE_CHECKER           = 10,
+	GPU_SHADER_STIPPLE_S3D_INTERLACE_CHECKER_SWAP      = 11
+} GPUBasicShaderStipple;
 
 void GPU_basic_shaders_init(void);
 void GPU_basic_shaders_exit(void);
@@ -87,6 +104,7 @@ typedef struct GPULightData {
 
 void GPU_basic_shader_light_set(int light_num, GPULightData *light);
 void GPU_basic_shader_light_set_viewer(bool local);
+void GPU_basic_shader_stipple(GPUBasicShaderStipple stipple_id);
 
 #ifdef __cplusplus
 }

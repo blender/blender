@@ -57,6 +57,8 @@
 
 #include "interface_intern.h"
 
+#include "GPU_basic_shader.h"
+
 #ifdef WITH_INPUT_IME
 #  include "WM_types.h"
 #endif
@@ -660,14 +662,14 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 				glDrawArrays(GL_POLYGON, 0, wtb->totvert);
 
 				/* light checkers */
-				glEnable(GL_POLYGON_STIPPLE);
+				GPU_basic_shader_bind(GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
 				glColor4ub(UI_ALPHA_CHECKER_LIGHT, UI_ALPHA_CHECKER_LIGHT, UI_ALPHA_CHECKER_LIGHT, 255);
-				glPolygonStipple(stipple_checker_8px);
+				GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_CHECKER_8PX);
 
 				glVertexPointer(2, GL_FLOAT, 0, wtb->inner_v);
 				glDrawArrays(GL_POLYGON, 0, wtb->totvert);
 
-				glDisable(GL_POLYGON_STIPPLE);
+				GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 
 				/* alpha fill */
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

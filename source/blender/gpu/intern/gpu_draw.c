@@ -2085,9 +2085,6 @@ void GPU_state_init(void)
 {
 	float mat_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
 	float mat_specular[] = { 0.5, 0.5, 0.5, 1.0 };
-	int a, x, y;
-	GLubyte pat[32 * 32];
-	const GLubyte *patc = pat;
 	
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_specular);
@@ -2134,16 +2131,6 @@ void GPU_state_init(void)
 	glPixelTransferi(GL_DEPTH_BIAS, 0);
 	glPixelTransferi(GL_DEPTH_SCALE, 1);
 	glDepthRange(0.0, 1.0);
-	
-	a = 0;
-	for (x = 0; x < 32; x++) {
-		for (y = 0; y < 4; y++) {
-			if (x & 1) pat[a++] = 0x88;
-			else pat[a++] = 0x22;
-		}
-	}
-
-	glPolygonStipple(patc);
 
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();

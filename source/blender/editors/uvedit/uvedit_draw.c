@@ -65,6 +65,8 @@
 
 #include "uvedit_intern.h"
 
+#include "GPU_basic_shader.h"
+
 /* use editmesh tessface */
 #define USE_EDBM_LOOPTRIS
 
@@ -637,8 +639,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 					if (tf == activetf) {
 						/* only once */
-						glEnable(GL_POLYGON_STIPPLE);
-						glPolygonStipple(stipple_quarttone);
+						GPU_basic_shader_bind(GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
+						GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_QUARTTONE);
 						UI_ThemeColor4(TH_EDITMESH_ACTIVE);
 					}
 					else {
@@ -650,7 +652,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 					glEnd();
 
 					if (tf == activetf) {
-						glDisable(GL_POLYGON_STIPPLE);
+						GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 					}
 				}
 				else {
@@ -713,8 +715,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			UI_ThemeColor4(TH_EDITMESH_ACTIVE);
 
-			glEnable(GL_POLYGON_STIPPLE);
-			glPolygonStipple(stipple_quarttone);
+			GPU_basic_shader_bind(GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
+			GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_QUARTTONE);
 
 			glBegin(GL_POLYGON);
 			BM_ITER_ELEM (l, &liter, activef, BM_LOOPS_OF_FACE) {
@@ -723,7 +725,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			}
 			glEnd();
 
-			glDisable(GL_POLYGON_STIPPLE);
+			GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 			glDisable(GL_BLEND);
 		}
 	}

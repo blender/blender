@@ -53,6 +53,7 @@
 #include "ED_screen.h"
 
 #include "GPU_glew.h"
+#include "GPU_basic_shader.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -82,76 +83,48 @@ static void wm_method_draw_stereo3d_pageflip(wmWindow *win)
 	glDrawBuffer(GL_BACK);
 }
 
-static GLuint left_interlace_mask[32];
-static GLuint right_interlace_mask[32];
 static enum eStereo3dInterlaceType interlace_prev_type = -1;
 static char interlace_prev_swap = -1;
-
-static void wm_interlace_masks_create(wmWindow *win)
-{
-	GLuint pattern;
-	char i;
-	bool swap = (win->stereo3d_format->flag & S3D_INTERLACE_SWAP) != 0;
-	enum eStereo3dInterlaceType interlace_type = win->stereo3d_format->interlace_type;
-
-	if (interlace_prev_type == interlace_type && interlace_prev_swap == swap)
-		return;
-
-	switch (interlace_type) {
-		case S3D_INTERLACE_ROW:
-			pattern = 0x00000000;
-			pattern = swap ? ~pattern : pattern;
-			for (i = 0; i < 32; i += 2) {
-				left_interlace_mask[i] = pattern;
-				right_interlace_mask[i] = ~pattern;
-			}
-			for (i = 1; i < 32; i += 2) {
-				left_interlace_mask[i] = ~pattern;
-				right_interlace_mask[i] = pattern;
-			}
-			break;
-		case S3D_INTERLACE_COLUMN:
-			pattern = 0x55555555;
-			pattern = swap ? ~pattern : pattern;
-			for (i = 0; i < 32; i++) {
-				left_interlace_mask[i] = pattern;
-				right_interlace_mask[i] = ~pattern;
-			}
-			break;
-		case S3D_INTERLACE_CHECKERBOARD:
-		default:
-			pattern = 0x55555555;
-			pattern = swap ? ~pattern : pattern;
-			for (i = 0; i < 32; i += 2) {
-				left_interlace_mask[i] = pattern;
-				right_interlace_mask[i] = ~pattern;
-			}
-			for (i = 1; i < 32; i += 2) {
-				left_interlace_mask[i] = ~pattern;
-				right_interlace_mask[i] = pattern;
-			}
-			break;
-	}
-	interlace_prev_type = interlace_type;
-	interlace_prev_swap = swap;
-}
 
 static void wm_method_draw_stereo3d_interlace(wmWindow *win)
 {
 	wmDrawData *drawdata;
 	int view;
-
-	wm_interlace_masks_create(win);
+	bool flag;
+	bool swap = (win->stereo3d_format->flag & S3D_INTERLACE_SWAP) != 0;
+	enum eStereo3dInterlaceType interlace_type = win->stereo3d_format->interlace_type;
 
 	for (view = 0; view < 2; view ++) {
+		flag = swap ? !view : view;
 		drawdata = BLI_findlink(&win->drawdata, (view * 2) + 1);
-
-		glEnable(GL_POLYGON_STIPPLE);
-		glPolygonStipple(view ? (GLubyte *) right_interlace_mask : (GLubyte *) left_interlace_mask);
+		GPU_basic_shader_bind(GPU_SHADER_STIPPLE);
+		switch (interlace_type) {
+			case S3D_INTERLACE_ROW:
+				if (flag)
+					GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_S3D_INTERLACE_ROW_SWAP);
+				else
+					GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_S3D_INTERLACE_ROW);
+				break;
+			case S3D_INTERLACE_COLUMN:
+				if (flag)
+					GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_S3D_INTERLACE_COLUMN_SWAP);
+				else
+					GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_S3D_INTERLACE_COLUMN);
+				break;
+			case S3D_INTERLACE_CHECKERBOARD:
+			default:
+				if (flag)
+					GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_S3D_INTERLACE_CHECKER_SWAP);
+				else
+					GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_S3D_INTERLACE_CHECKER);
+				break;
+		}
 
 		wm_triple_draw_textures(win, drawdata->triple, 1.0f);
-		glDisable(GL_POLYGON_STIPPLE);
+		GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 	}
+	interlace_prev_type = interlace_type;
+	interlace_prev_swap = swap;
 }
 
 static void wm_method_draw_stereo3d_anaglyph(wmWindow *win)

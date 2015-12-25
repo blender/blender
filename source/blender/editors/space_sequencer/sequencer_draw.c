@@ -281,14 +281,14 @@ static void drawseqwave(const bContext *C, SpaceSeq *sseq, Scene *scene, Sequenc
 static void drawmeta_stipple(int value)
 {
 	if (value) {
-		glEnable(GL_POLYGON_STIPPLE);
-		glPolygonStipple(stipple_halftone);
+		GPU_basic_shader_bind(GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
+		GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_HALFTONE);
 		
 		glEnable(GL_LINE_STIPPLE);
 		glLineStipple(1, 0x8888);
 	}
 	else {
-		glDisable(GL_POLYGON_STIPPLE);
+		GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 		glDisable(GL_LINE_STIPPLE);
 	}
 }
@@ -586,8 +586,8 @@ void draw_shadedstrip(Sequence *seq, unsigned char col[3], float x1, float y1, f
 	float ymid1, ymid2;
 	
 	if (seq->flag & SEQ_MUTE) {
-		glEnable(GL_POLYGON_STIPPLE);
-		glPolygonStipple(stipple_halftone);
+		GPU_basic_shader_bind(GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
+		GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_HALFTONE);
 	}
 	
 	ymid1 = (y2 - y1) * 0.25f + y1;
@@ -634,7 +634,7 @@ void draw_shadedstrip(Sequence *seq, unsigned char col[3], float x1, float y1, f
 	glEnd();
 	
 	if (seq->flag & SEQ_MUTE) {
-		glDisable(GL_POLYGON_STIPPLE);
+		GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 	}
 }
 
@@ -801,32 +801,32 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 
 	/* draw lock */
 	if (seq->flag & SEQ_LOCK) {
-		glEnable(GL_POLYGON_STIPPLE);
+		GPU_basic_shader_bind(GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
 		glEnable(GL_BLEND);
 
 		/* light stripes */
 		glColor4ub(255, 255, 255, 32);
-		glPolygonStipple(stipple_diag_stripes_pos);
+		GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_DIAG_STRIPES);
 		glRectf(x1, y1, x2, y2);
 
 		/* dark stripes */
 		glColor4ub(0, 0, 0, 32);
-		glPolygonStipple(stipple_diag_stripes_neg);
+		GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_DIAG_STRIPES_SWAP);
 		glRectf(x1, y1, x2, y2);
 
-		glDisable(GL_POLYGON_STIPPLE);
+		GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 		glDisable(GL_BLEND);
 	}
 
 	if (!BKE_sequence_is_valid_check(seq)) {
-		glEnable(GL_POLYGON_STIPPLE);
+		GPU_basic_shader_bind(GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
 
 		/* panic! */
 		glColor4ub(255, 0, 0, 255);
-		glPolygonStipple(stipple_diag_stripes_pos);
+		GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_DIAG_STRIPES);
 		glRectf(x1, y1, x2, y2);
 
-		glDisable(GL_POLYGON_STIPPLE);
+		GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 	}
 
 	color3ubv_from_seq(scene, seq, col);

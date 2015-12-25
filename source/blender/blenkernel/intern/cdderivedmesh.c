@@ -59,14 +59,13 @@
 #include "GPU_draw.h"
 #include "GPU_glew.h"
 #include "GPU_shader.h"
+#include "GPU_basic_shader.h"
 
 #include "WM_api.h"
 
 #include <string.h>
 #include <limits.h>
 #include <math.h>
-
-extern GLubyte stipple_quarttone[128]; /* glutil.c, bad level data */
 
 typedef struct {
 	DerivedMesh dm;
@@ -768,8 +767,8 @@ static void cdDM_drawMappedFaces(
 					}
 
 					if (draw_option == DM_DRAW_OPTION_STIPPLE) {
-						glEnable(GL_POLYGON_STIPPLE);
-						glPolygonStipple(stipple_quarttone);
+						GPU_basic_shader_bind(GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
+						GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_QUARTTONE);
 					}
 
 					/* Goal is to draw as long of a contiguous triangle
@@ -798,7 +797,7 @@ static void cdDM_drawMappedFaces(
 						start_element = tot_element;
 
 						if (draw_option == DM_DRAW_OPTION_STIPPLE)
-							glDisable(GL_POLYGON_STIPPLE);
+							GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 					}
 					else {
 						tot_drawn += tot_tri_verts;

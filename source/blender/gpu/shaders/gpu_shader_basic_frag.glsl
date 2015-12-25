@@ -12,6 +12,20 @@
 #define NUM_SOLID_LIGHTS 3
 #define NUM_SCENE_LIGHTS 8
 
+/* Keep these in sync with GPU_basic_shader.h */
+#define STIPPLE_HALFTONE                               0
+#define STIPPLE_QUARTTONE                              1
+#define STIPPLE_CHECKER_8PX                            2
+#define STIPPLE_HEXAGON                                3
+#define STIPPLE_DIAG_STRIPES                           4
+#define STIPPLE_DIAG_STRIPES_SWAP                      5
+#define STIPPLE_S3D_INTERLACE_ROW                      6
+#define STIPPLE_S3D_INTERLACE_ROW_SWAP                 7
+#define STIPPLE_S3D_INTERLACE_COLUMN                   8
+#define STIPPLE_S3D_INTERLACE_COLUMN_SWAP              9
+#define STIPPLE_S3D_INTERLACE_CHECKERBOARD             10
+#define STIPPLE_S3D_INTERLACE_CHECKERBOARD_SWAP        11
+
 #if defined(USE_SOLID_LIGHTING) || defined(USE_SCENE_LIGHTING)
 varying vec3 varying_normal;
 
@@ -29,8 +43,90 @@ varying vec2 varying_texture_coord;
 uniform sampler2D texture_map;
 #endif
 
+#ifdef USE_STIPPLE
+uniform int stipple_id;
+#endif
+
 void main()
 {
+#if defined(USE_STIPPLE)
+        /* We have to use mod function and integer casting.
+         * This can be optimized further with the bitwise operations
+         * when GLSL 1.3 is supported. */
+        if (stipple_id == STIPPLE_HALFTONE ||
+            stipple_id == STIPPLE_S3D_INTERLACE_CHECKERBOARD ||
+            stipple_id == STIPPLE_S3D_INTERLACE_CHECKERBOARD_SWAP)
+        {
+            int result = int(mod(gl_FragCoord.x + gl_FragCoord.y, 2));
+            bool dis = result == 0;
+            if (stipple_id == STIPPLE_S3D_INTERLACE_CHECKERBOARD_SWAP)
+                dis = !dis;
+            if (dis)
+                discard;
+        }
+        else if (stipple_id == STIPPLE_QUARTTONE) {
+            int mody = int(mod(gl_FragCoord.y, 4));
+            int modx = int(mod(gl_FragCoord.x, 4));
+            if (mody == 0) {
+                if (modx != 2)
+                    discard;
+            }
+            else if (mody == 2){
+                if (modx != 0)
+                    discard;
+            }
+            else
+                discard;
+        }
+        else if (stipple_id == STIPPLE_CHECKER_8PX) {
+            int result = int(mod(int(gl_FragCoord.x)/8 + int(gl_FragCoord.y)/8, 2));
+            if (result != 0)
+                discard;
+        }
+        else if (stipple_id == STIPPLE_DIAG_STRIPES) {
+            int mody = int(mod(gl_FragCoord.y, 16));
+            int modx = int(mod(gl_FragCoord.x, 16));
+            if ((16 - modx > mody && mody > 8 - modx) || mody > 24 - modx)
+                discard;
+        }
+        else if (stipple_id == STIPPLE_DIAG_STRIPES_SWAP) {
+            int mody = int(mod(gl_FragCoord.y, 16));
+            int modx = int(mod(gl_FragCoord.x, 16));
+            if (!((16 - modx > mody && mody > 8 - modx) || mody > 24 - modx))
+                discard;
+        }
+        else if (stipple_id == STIPPLE_S3D_INTERLACE_ROW || stipple_id == STIPPLE_S3D_INTERLACE_ROW_SWAP) {
+            int result = int(mod(gl_FragCoord.y, 2));
+            bool dis = result == 0;
+            if (stipple_id == STIPPLE_S3D_INTERLACE_ROW_SWAP)
+                dis = !dis;
+            if (dis)
+                discard;
+        }
+        else if (stipple_id == STIPPLE_S3D_INTERLACE_COLUMN || stipple_id == STIPPLE_S3D_INTERLACE_COLUMN_SWAP) {
+            int result = int(mod(gl_FragCoord.x, 2));
+            bool dis = result != 0;
+            if (stipple_id == STIPPLE_S3D_INTERLACE_COLUMN_SWAP)
+                dis = !dis;
+            if (dis)
+                discard;
+        }
+        else if (stipple_id == STIPPLE_HEXAGON) {
+            int mody = int(mod(gl_FragCoord.y, 2));
+            int modx = int(mod(gl_FragCoord.x, 4));
+            if (mody != 0) {
+                if (modx != 1)
+                    discard;
+            }
+            else {
+                if (modx != 3)
+                    discard;
+            }
+        }
+
+
+#endif
+
 #if defined(USE_SOLID_LIGHTING) || defined(USE_SCENE_LIGHTING)
 	/* compute normal */
 	vec3 N = normalize(varying_normal);

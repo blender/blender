@@ -77,6 +77,7 @@
 #include "GPU_glew.h"
 #include "GPU_buffers.h"
 #include "GPU_shader.h"
+#include "GPU_basic_shader.h"
 
 #include "CCGSubSurf.h"
 
@@ -86,8 +87,6 @@
 
 /* assumes MLoop's are layed out 4 for each poly, in order */
 #define USE_LOOP_LAYOUT_FAST
-
-extern GLubyte stipple_quarttone[128]; /* glutil.c, bad level data */
 
 static ThreadRWMutex loops_cache_rwlock = BLI_RWLOCK_INITIALIZER;
 static ThreadRWMutex origindex_cache_rwlock = BLI_RWLOCK_INITIALIZER;
@@ -3652,8 +3651,8 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 
 			if (draw_option != DM_DRAW_OPTION_SKIP) {
 				if (draw_option == DM_DRAW_OPTION_STIPPLE) {
-					glEnable(GL_POLYGON_STIPPLE);
-					glPolygonStipple(stipple_quarttone);
+					GPU_basic_shader_bind(GPU_SHADER_STIPPLE | GPU_SHADER_USE_COLOR);
+					GPU_basic_shader_stipple(GPU_SHADER_STIPPLE_QUARTTONE);
 				}
 
 				/* no need to set shading mode to flat because
@@ -3752,7 +3751,7 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 					}
 				}
 				if (draw_option == DM_DRAW_OPTION_STIPPLE)
-					glDisable(GL_POLYGON_STIPPLE);
+					GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 			}
 		}
 	}
