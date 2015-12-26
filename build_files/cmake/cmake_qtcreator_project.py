@@ -55,7 +55,7 @@ def quote_define(define):
         return define
 
 
-def create_qtc_project_main():
+def create_qtc_project_main(name):
     files = list(source_list(SOURCE_DIR, filename_check=is_project_file))
     files_rel = [os.path.relpath(f, start=PROJECT_DIR) for f in files]
     files_rel.sort()
@@ -63,7 +63,7 @@ def create_qtc_project_main():
     # --- qtcreator specific, simple format
     if SIMPLE_PROJECTFILE:
         # --- qtcreator specific, simple format
-        PROJECT_NAME = "Blender"
+        PROJECT_NAME = name or "Blender"
         FILE_NAME = PROJECT_NAME.lower()
         with open(os.path.join(PROJECT_DIR, "%s.files" % FILE_NAME), 'w') as f:
             f.write("\n".join(files_rel))
@@ -91,11 +91,8 @@ def create_qtc_project_main():
                         for f in files_rel if is_c_header(f)))
         includes.sort()
 
-        if 0:
-            PROJECT_NAME = "Blender"
-        else:
-            # be tricky, get the project name from CMake if we can!
-            PROJECT_NAME = project_name_get()
+        # be tricky, get the project name from CMake if we can!
+        PROJECT_NAME = name or project_name_get()
 
         FILE_NAME = PROJECT_NAME.lower()
         with open(os.path.join(PROJECT_DIR, "%s.files" % FILE_NAME), 'w') as f:
@@ -127,17 +124,14 @@ def create_qtc_project_main():
     # --- end
 
 
-def create_qtc_project_python():
+def create_qtc_project_python(name):
     files = list(source_list(SOURCE_DIR, filename_check=is_py))
     files_rel = [os.path.relpath(f, start=PROJECT_DIR) for f in files]
     files_rel.sort()
 
     # --- qtcreator specific, simple format
-    if 0:
-        PROJECT_NAME = "Blender_Python"
-    else:
-        # be tricky, get the project name from git if we can!
-        PROJECT_NAME = project_name_get() + "_Python"
+    # be tricky, get the project name from git if we can!
+    PROJECT_NAME = (name or project_name_get()) + "_Python"
 
     FILE_NAME = PROJECT_NAME.lower()
     with open(os.path.join(PROJECT_DIR, "%s.files" % FILE_NAME), 'w') as f:
@@ -155,9 +149,30 @@ def create_qtc_project_python():
     print("Python project file written to:  %r" % qtc_prj)
 
 
+def argparse_create():
+    import argparse
+
+    parser = argparse.ArgumentParser(
+            description="This script generates Qt Creator project files for Blender",
+            )
+
+    parser.add_argument(
+            "-n", "--name",
+            dest="name",
+            metavar='NAME', type=str,
+            help="Override default project name (\"Blender\")",
+            )
+
+    return parser
+
+
 def main():
-    create_qtc_project_main()
-    create_qtc_project_python()
+    parser = argparse_create()
+    args = parser.parse_args()
+    name = args.name
+
+    create_qtc_project_main(name)
+    create_qtc_project_python(name)
 
 
 if __name__ == "__main__":
