@@ -8,6 +8,7 @@ include/ceres/cost_function_to_functor.h
 include/ceres/covariance.h
 include/ceres/crs_matrix.h
 include/ceres/dynamic_autodiff_cost_function.h
+include/ceres/dynamic_cost_function_to_functor.h
 include/ceres/dynamic_numeric_diff_cost_function.h
 include/ceres/fpclassify.h
 include/ceres/gradient_checker.h
@@ -30,6 +31,7 @@ include/ceres/local_parameterization.h
 include/ceres/loss_function.h
 include/ceres/normal_prior.h
 include/ceres/numeric_diff_cost_function.h
+include/ceres/numeric_diff_options.h
 include/ceres/ordered_groups.h
 include/ceres/problem.h
 include/ceres/rotation.h
@@ -61,8 +63,6 @@ internal/ceres/block_structure.cc
 internal/ceres/block_structure.h
 internal/ceres/callbacks.cc
 internal/ceres/callbacks.h
-internal/ceres/canonical_views_clustering.cc
-internal/ceres/canonical_views_clustering.h
 internal/ceres/c_api.cc
 internal/ceres/casts.h
 internal/ceres/cgnr_linear_operator.h
@@ -85,7 +85,6 @@ internal/ceres/corrector.h
 internal/ceres/covariance.cc
 internal/ceres/covariance_impl.cc
 internal/ceres/covariance_impl.h
-internal/ceres/cxsparse.cc
 internal/ceres/cxsparse.h
 internal/ceres/dense_jacobian_writer.h
 internal/ceres/dense_normal_cholesky_solver.cc
@@ -114,6 +113,7 @@ internal/ceres/generated/partitioned_matrix_view_2_2_4.cc
 internal/ceres/generated/partitioned_matrix_view_2_2_d.cc
 internal/ceres/generated/partitioned_matrix_view_2_3_3.cc
 internal/ceres/generated/partitioned_matrix_view_2_3_4.cc
+internal/ceres/generated/partitioned_matrix_view_2_3_6.cc
 internal/ceres/generated/partitioned_matrix_view_2_3_9.cc
 internal/ceres/generated/partitioned_matrix_view_2_3_d.cc
 internal/ceres/generated/partitioned_matrix_view_2_4_3.cc
@@ -133,6 +133,7 @@ internal/ceres/generated/schur_eliminator_2_2_4.cc
 internal/ceres/generated/schur_eliminator_2_2_d.cc
 internal/ceres/generated/schur_eliminator_2_3_3.cc
 internal/ceres/generated/schur_eliminator_2_3_4.cc
+internal/ceres/generated/schur_eliminator_2_3_6.cc
 internal/ceres/generated/schur_eliminator_2_3_9.cc
 internal/ceres/generated/schur_eliminator_2_3_d.cc
 internal/ceres/generated/schur_eliminator_2_4_3.cc
@@ -155,6 +156,7 @@ internal/ceres/gradient_problem_evaluator.h
 internal/ceres/gradient_problem_solver.cc
 internal/ceres/graph_algorithms.h
 internal/ceres/graph.h
+internal/ceres/householder_vector.h
 internal/ceres/implicit_schur_complement.cc
 internal/ceres/implicit_schur_complement.h
 internal/ceres/integral_types.h
@@ -221,8 +223,6 @@ internal/ceres/schur_jacobi_preconditioner.cc
 internal/ceres/schur_jacobi_preconditioner.h
 internal/ceres/scratch_evaluate_preparer.cc
 internal/ceres/scratch_evaluate_preparer.h
-internal/ceres/single_linkage_clustering.cc
-internal/ceres/single_linkage_clustering.h
 internal/ceres/small_blas.h
 internal/ceres/solver.cc
 internal/ceres/solver_utils.cc
@@ -236,7 +236,6 @@ internal/ceres/split.h
 internal/ceres/stl_util.h
 internal/ceres/stringprintf.cc
 internal/ceres/stringprintf.h
-internal/ceres/suitesparse.cc
 internal/ceres/suitesparse.h
 internal/ceres/triplet_sparse_matrix.cc
 internal/ceres/triplet_sparse_matrix.h
@@ -247,10 +246,7 @@ internal/ceres/trust_region_preprocessor.h
 internal/ceres/trust_region_strategy.cc
 internal/ceres/trust_region_strategy.h
 internal/ceres/types.cc
-internal/ceres/visibility_based_preconditioner.cc
 internal/ceres/visibility_based_preconditioner.h
-internal/ceres/visibility.cc
-internal/ceres/visibility.h
 internal/ceres/wall_time.cc
 internal/ceres/wall_time.h
 config/ceres/internal/config.h
