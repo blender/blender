@@ -150,7 +150,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   ModifierApplyFlag UNUSED(flag))
 {
 	UVWarpModifierData *umd = (UVWarpModifierData *) md;
-	int i, numPolys, numLoops;
+	int numPolys, numLoops;
 	MPoly *mpoly;
 	MLoop *mloop;
 	MLoopUV *mloopuv;

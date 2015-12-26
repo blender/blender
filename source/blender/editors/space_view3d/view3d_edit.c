@@ -2883,7 +2883,7 @@ static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 		ED_view3d_smooth_view(
 		        C, v3d, ar, smooth_viewtx,
 		        &(const V3D_SmoothParams){
-		            .camera_old=v3d->camera, .ofs = new_ofs,
+		            .camera_old = v3d->camera, .ofs = new_ofs,
 		            .dist = ok_dist ? &new_dist : NULL});
 	}
 	else {
