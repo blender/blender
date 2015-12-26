@@ -623,17 +623,20 @@ elseif(WIN32)
 	if(WITH_PYTHON)
 		string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 
-		install(
-			FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.dll ${LIBDIR}/python/lib/sqlite3.dll
-			DESTINATION "."
-			CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
-		)
+		# MinGW TODO: This bit of Python configuration diverges from MSVC
+		if(NOT CMAKE_COMPILER_IS_GNUCC)
+			install(
+				FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.dll ${LIBDIR}/python/lib/sqlite3.dll
+				DESTINATION "."
+				CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+			)
 
-		install(
-			FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}_d.dll ${LIBDIR}/python/lib/sqlite3_d.dll
-			DESTINATION "."
-			CONFIGURATIONS Debug
-		)
+			install(
+				FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}_d.dll ${LIBDIR}/python/lib/sqlite3_d.dll
+				DESTINATION "."
+				CONFIGURATIONS Debug
+			)
+		endif()
 
 		if(WITH_PYTHON_INSTALL)
 			# note, as far as python is concerned 'RelWithDebInfo' is not debug since its without debug flags.
@@ -793,13 +796,30 @@ elseif(WIN32)
 				${LIBDIR}/openal/lib/OpenAL32.dll
 			DESTINATION "."
 		)
+		# MinGW TODO: Need to update to a newer OpenAL version
+		# which does not depend on wrap_oal.dll
+		if(CMAKE_COMPILER_IS_GNUCC)
+			install(
+				FILES
+					${LIBDIR}/openal/lib/wrap_oal.dll
+				DESTINATION "."
+			)
+		endif()
 	endif()
 
 	if(WITH_SDL)
-		install(
-			FILES ${LIBDIR}/sdl/lib/SDL2.dll
-			DESTINATION "."
-		)
+		#MinGW TODO: Update to SDL2
+		if(NOT CMAKE_COMPILER_IS_GNUCC)
+			install(
+				FILES ${LIBDIR}/sdl/lib/SDL2.dll
+				DESTINATION "."
+			)
+		else()
+			install(
+				FILES ${LIBDIR}/sdl/lib/SDL.dll
+				DESTINATION "."
+			)
+		endif()
 	endif()
 	
 	if(WITH_SYSTEM_AUDASPACE)
