@@ -683,7 +683,7 @@ int bmesh_elem_check(void *element, const char htype)
 						err |= IS_FACE_LOOP_WRONG_RADIAL_LENGTH;
 					}
 
-					if (!bmesh_disk_count(l_iter->v) || !bmesh_disk_count(l_iter->next->v)) {
+					if (bmesh_disk_count_ex(l_iter->v, 2) < 2) {
 						err |= IS_FACE_LOOP_WRONG_DISK_LENGTH;
 					}
 				}
@@ -937,9 +937,6 @@ void BM_face_kill_loose(BMesh *bm, BMFace *f)
 void BM_edge_kill(BMesh *bm, BMEdge *e)
 {
 
-	bmesh_disk_edge_remove(e, e->v1);
-	bmesh_disk_edge_remove(e, e->v2);
-
 	if (e->l) {
 		BMLoop *l = e->l, *lnext, *startl = e->l;
 
@@ -957,6 +954,9 @@ void BM_edge_kill(BMesh *bm, BMEdge *e)
 			l = lnext;
 		} while (l != startl);
 	}
+
+	bmesh_disk_edge_remove(e, e->v1);
+	bmesh_disk_edge_remove(e, e->v2);
 	
 	bm_kill_only_edge(bm, e);
 }
