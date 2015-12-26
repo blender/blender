@@ -553,7 +553,10 @@ int bmesh_elem_check(void *element, const char htype)
 		IS_FACE_LOOP_VERT_NOT_IN_EDGE               = (1 << 20),
 		IS_FACE_LOOP_WRONG_RADIAL_LENGTH            = (1 << 21),
 		IS_FACE_LOOP_WRONG_DISK_LENGTH              = (1 << 22),
-		IS_FACE_WRONG_LENGTH                        = (1 << 23),
+		IS_FACE_LOOP_DUPE_LOOP                      = (1 << 23),
+		IS_FACE_LOOP_DUPE_VERT                      = (1 << 24),
+		IS_FACE_LOOP_DUPE_EDGE                      = (1 << 25),
+		IS_FACE_WRONG_LENGTH                        = (1 << 26),
 	} err = 0;
 
 	if (!element)
@@ -688,7 +691,37 @@ int bmesh_elem_check(void *element, const char htype)
 					}
 				}
 
+				/* check for duplicates */
+				if (BM_ELEM_API_FLAG_TEST(l_iter, _FLAG_ELEM_CHECK)) {
+					err |= IS_FACE_LOOP_DUPE_LOOP;
+				}
+				BM_ELEM_API_FLAG_ENABLE(l_iter, _FLAG_ELEM_CHECK);
+				if (l_iter->v) {
+					if (BM_ELEM_API_FLAG_TEST(l_iter->v, _FLAG_ELEM_CHECK)) {
+						err |= IS_FACE_LOOP_DUPE_VERT;
+					}
+					BM_ELEM_API_FLAG_ENABLE(l_iter->v, _FLAG_ELEM_CHECK);
+				}
+				if (l_iter->e) {
+					if (BM_ELEM_API_FLAG_TEST(l_iter->e, _FLAG_ELEM_CHECK)) {
+						err |= IS_FACE_LOOP_DUPE_EDGE;
+					}
+					BM_ELEM_API_FLAG_ENABLE(l_iter->e, _FLAG_ELEM_CHECK);
+				}
+
 				len++;
+			} while ((l_iter = l_iter->next) != l_first);
+
+			/* cleanup duplicates flag */
+			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+			do {
+				BM_ELEM_API_FLAG_DISABLE(l_iter, _FLAG_ELEM_CHECK);
+				if (l_iter->v) {
+					BM_ELEM_API_FLAG_DISABLE(l_iter->v, _FLAG_ELEM_CHECK);
+				}
+				if (l_iter->e) {
+					BM_ELEM_API_FLAG_DISABLE(l_iter->e, _FLAG_ELEM_CHECK);
+				}
 			} while ((l_iter = l_iter->next) != l_first);
 
 			if (len != f->len) {
