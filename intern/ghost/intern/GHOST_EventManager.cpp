@@ -106,11 +106,10 @@ void GHOST_EventManager::dispatchEvent(GHOST_IEvent *event)
 void GHOST_EventManager::dispatchEvent()
 {
 	GHOST_IEvent *event = m_events.back();
+	m_events.pop_back();
+	m_handled_events.push_back(event);
 
 	dispatchEvent(event);
-
-	m_events.pop_back();
-	delete event;
 }
 
 
@@ -119,6 +118,8 @@ void GHOST_EventManager::dispatchEvents()
 	while (!m_events.empty()) {
 		dispatchEvent();
 	}
+
+	disposeEvents();
 }
 
 
@@ -213,6 +214,12 @@ void GHOST_EventManager::removeTypeEvents(GHOST_TEventType type, GHOST_IWindow *
 
 void GHOST_EventManager::disposeEvents()
 {
+	while (m_handled_events.empty() == false) {
+		GHOST_ASSERT(m_handled_events[0], "invalid event");
+		delete m_handled_events[0];
+		m_handled_events.pop_front();
+	}
+
 	while (m_events.empty() == false) {
 		GHOST_ASSERT(m_events[0], "invalid event");
 		delete m_events[0];

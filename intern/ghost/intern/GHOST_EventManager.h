@@ -146,6 +146,7 @@ protected:
 	
 	/** The event stack. */
 	std::deque<GHOST_IEvent *> m_events;
+	std::deque<GHOST_IEvent *> m_handled_events;
 
 	/** A vector with event consumers. */
 	typedef std::vector<GHOST_IEventConsumer *> TConsumerVector;
