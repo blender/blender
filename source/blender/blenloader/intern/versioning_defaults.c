@@ -229,6 +229,13 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 		if (br) {
 			br->ob_mode &= ~OB_MODE_TEXTURE_PAINT;
 		}
+
+		/* rename twist brush to rotate brush to match rotate tool */
+		br = (Brush *)BKE_libblock_find_name_ex(bmain, ID_BR, "Twist");
+		if (br)
+		{
+			rename_id(&br->id, "Rotate");
+		}
 	}
 }
 
