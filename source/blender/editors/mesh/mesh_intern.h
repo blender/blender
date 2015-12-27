@@ -36,6 +36,7 @@
 
 struct BMEditMesh;
 struct BMOperator;
+struct BMElem;
 struct EnumPropertyItem;
 struct bContext;
 struct wmKeyConfig;
@@ -74,6 +75,11 @@ void EDBM_stats_update(struct BMEditMesh *em);
 
 int  EDBM_view3d_poll(struct bContext *C);
 
+int            EDBM_elem_to_index_any(struct BMEditMesh *em, struct BMElem *ele);
+int            EDBM_elem_to_index_any_selectmode(
+        struct BMEditMesh *em,
+        struct BMVert *eve, struct BMEdge *eed, struct BMFace *efa);
+struct BMElem *EDBM_elem_from_index_any(struct BMEditMesh *em, int index);
 
 /* *** editmesh_add.c *** */
 void MESH_OT_primitive_plane_add(struct wmOperatorType *ot);

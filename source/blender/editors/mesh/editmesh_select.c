@@ -2798,21 +2798,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	edbm_select_linked_pick_ex(em, eve, eed, efa, sel, delimit);
 
 	/* to support redo */
-	if ((em->selectmode & SCE_SELECT_VERTEX) && eve) {
-		BM_mesh_elem_index_ensure(bm, BM_VERT);
-		index = BM_elem_index_get(eve);
-	}
-	else if ((em->selectmode & SCE_SELECT_EDGE) && eed) {
-		BM_mesh_elem_index_ensure(bm, BM_EDGE);
-		index = BM_elem_index_get(eed) + bm->totvert;
-	}
-	else if ((em->selectmode & SCE_SELECT_FACE) && efa) {
-		BM_mesh_elem_index_ensure(bm, BM_FACE);
-		index = BM_elem_index_get(efa) + bm->totvert + bm->totedge;
-	}
-	else {
-		index = -1;
-	}
+	index = EDBM_elem_to_index_any_selectmode(em, eve, eed, efa);
 
 	RNA_int_set(op->ptr, "index", index);
 
@@ -2838,16 +2824,17 @@ static int edbm_select_linked_pick_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (index < bm->totvert) {
-		eve = BM_vert_at_index_find_or_table(bm, index);
-	}
-	else if (index < (bm->totvert + bm->totedge)) {
-		index -= bm->totvert;
-		eed = BM_edge_at_index_find_or_table(bm, index);
-	}
-	else if (index < (bm->totvert + bm->totedge + bm->totface)) {
-		index -= (bm->totvert + bm->totedge);
-		efa = BM_face_at_index_find_or_table(bm, index);
+	BMElem *ele = EDBM_elem_from_index_any(em, index);
+	switch (ele->head.htype) {
+		case BM_VERT:
+			eve = (BMVert *)ele;
+			break;
+		case BM_EDGE:
+			eed = (BMEdge *)ele;
+			break;
+		case BM_FACE:
+			efa = (BMFace *)ele;
+			break;
 	}
 
 #ifdef USE_LINKED_SELECT_DEFAULT_HACK
