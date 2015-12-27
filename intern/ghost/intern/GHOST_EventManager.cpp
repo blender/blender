@@ -116,10 +116,6 @@ void GHOST_EventManager::dispatchEvent()
 
 void GHOST_EventManager::dispatchEvents()
 {
-	if (m_events.empty()) {
-		return;
-	}
-
 	while (!m_events.empty()) {
 		dispatchEvent();
 	}
