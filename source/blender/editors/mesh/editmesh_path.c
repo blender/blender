@@ -63,7 +63,8 @@
 
 struct PathSelectParams {
 	bool track_active;  /* ensure the active element is the last selected item (handy for picking) */
-	bool topology_distance;
+	bool use_topology_distance;
+	bool use_face_step;
 	char edge_mode;
 	struct CheckerIntervalParams interval_params;
 };
@@ -71,7 +72,10 @@ struct PathSelectParams {
 static void path_select_properties(wmOperatorType *ot)
 {
 	RNA_def_boolean(
-	        ot->srna, "topology_distance", false, "Topology Distance",
+	        ot->srna, "use_face_step", false, "Face Stepping",
+	        "Traverse connected faces (includes diagonals and edge-rings)");
+	RNA_def_boolean(
+	        ot->srna, "use_topology_distance", false, "Topology Distance",
 	        "Find the minimum number of steps, ignoring spatial distance");
 	WM_operator_properties_checker_interval(ot, true);
 }
@@ -80,7 +84,8 @@ static void path_select_params_from_op(wmOperator *op, struct PathSelectParams *
 {
 	op_params->edge_mode = EDGE_MODE_SELECT;
 	op_params->track_active = false;
-	op_params->topology_distance = RNA_boolean_get(op->ptr, "topology_distance");
+	op_params->use_face_step = RNA_boolean_get(op->ptr, "use_face_step");
+	op_params->use_topology_distance = RNA_boolean_get(op->ptr, "use_topology_distance");
 	WM_operator_properties_checker_interval_from_op(op, &op_params->interval_params);
 }
 
@@ -121,7 +126,11 @@ static void mouse_mesh_shortest_path_vert(
 
 	if (v_act && (v_act != v_dst)) {
 		if ((path = BM_mesh_calc_path_vert(
-		         bm, v_act, v_dst, !op_params->topology_distance,
+		         bm, v_act, v_dst,
+		         &(const struct BMCalcPathParams) {
+		             .use_topology_distance = op_params->use_topology_distance,
+		             .use_step_face = op_params->use_face_step,
+		         },
 		         verttag_filter_cb, &user_data)))
 		{
 			if (op_params->track_active) {
@@ -292,7 +301,11 @@ static void mouse_mesh_shortest_path_edge(
 
 	if (e_act && (e_act != e_dst)) {
 		if ((path = BM_mesh_calc_path_edge(
-		         bm, e_act, e_dst, !op_params->topology_distance,
+		         bm, e_act, e_dst,
+		         &(const struct BMCalcPathParams) {
+		             .use_topology_distance = op_params->use_topology_distance,
+		             .use_step_face = op_params->use_face_step,
+		         },
 		         edgetag_filter_cb, &user_data)))
 		{
 			if (op_params->track_active) {
@@ -417,7 +430,11 @@ static void mouse_mesh_shortest_path_face(
 	if (f_act) {
 		if (f_act != f_dst) {
 			if ((path = BM_mesh_calc_path_face(
-			         bm, f_act, f_dst, !op_params->topology_distance,
+			         bm, f_act, f_dst,
+			         &(const struct BMCalcPathParams) {
+			             .use_topology_distance = op_params->use_topology_distance,
+			             .use_step_face = op_params->use_face_step,
+			         },
 			         facetag_filter_cb, &user_data)))
 			{
 				if (op_params->track_active) {

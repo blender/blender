@@ -67,34 +67,65 @@ static float step_cost_3_v3(const float v1[3], const float v2[3], const float v3
 /* -------------------------------------------------------------------- */
 /* BM_mesh_calc_path_vert */
 
-static void verttag_add_adjacent(Heap *heap, BMVert *v_a, BMVert **verts_prev, float *cost, const bool use_length)
+static void verttag_add_adjacent(
+        Heap *heap, BMVert *v_a, BMVert **verts_prev, float *cost,
+        const struct BMCalcPathParams *params)
 {
-	BMIter eiter;
-	BMEdge *e;
-	BMVert *v_b;
-
 	const int v_a_index = BM_elem_index_get(v_a);
 
-	/* loop over faces of face, but do so by first looping over loops */
-	BM_ITER_ELEM (e, &eiter, v_a, BM_EDGES_OF_VERT) {
-		v_b = BM_edge_other_vert(e, v_a);
-		if (!BM_elem_flag_test(v_b, BM_ELEM_TAG)) {
-			/* we know 'f_b' is not visited, check it out! */
-			const int v_b_index = BM_elem_index_get(v_b);
-			const float cost_cut = use_length ? len_v3v3(v_a->co, v_b->co) : 1.0f;
-			const float cost_new = cost[v_a_index] + cost_cut;
+	{
+		BMIter eiter;
+		BMEdge *e;
+		/* loop over faces of face, but do so by first looping over loops */
+		BM_ITER_ELEM (e, &eiter, v_a, BM_EDGES_OF_VERT) {
+			BMVert *v_b = BM_edge_other_vert(e, v_a);
+			if (!BM_elem_flag_test(v_b, BM_ELEM_TAG)) {
+				/* we know 'v_b' is not visited, check it out! */
+				const int v_b_index = BM_elem_index_get(v_b);
+				const float cost_cut = params->use_topology_distance ?
+				        1.0f : len_v3v3(v_a->co, v_b->co);
+				const float cost_new = cost[v_a_index] + cost_cut;
 
-			if (cost[v_b_index] > cost_new) {
-				cost[v_b_index] = cost_new;
-				verts_prev[v_b_index] = v_a;
-				BLI_heap_insert(heap, cost_new, v_b);
+				if (cost[v_b_index] > cost_new) {
+					cost[v_b_index] = cost_new;
+					verts_prev[v_b_index] = v_a;
+					BLI_heap_insert(heap, cost_new, v_b);
+				}
+			}
+		}
+	}
+
+	if (params->use_step_face) {
+		BMIter liter;
+		BMLoop *l;
+		/* loop over faces of face, but do so by first looping over loops */
+		BM_ITER_ELEM (l, &liter, v_a, BM_LOOPS_OF_VERT) {
+			if (l->f->len > 3) {
+				/* skip loops on adjacent edges */
+				BMLoop *l_iter = l->next->next;
+				do {
+					BMVert *v_b = l_iter->v;
+					if (!BM_elem_flag_test(v_b, BM_ELEM_TAG)) {
+						/* we know 'v_b' is not visited, check it out! */
+						const int v_b_index = BM_elem_index_get(v_b);
+						const float cost_cut = params->use_topology_distance ?
+						        1.0f : len_v3v3(v_a->co, v_b->co);
+						const float cost_new = cost[v_a_index] + cost_cut;
+
+						if (cost[v_b_index] > cost_new) {
+							cost[v_b_index] = cost_new;
+							verts_prev[v_b_index] = v_a;
+							BLI_heap_insert(heap, cost_new, v_b);
+						}
+					}
+				} while ((l_iter = l_iter->next) != l->prev);
 			}
 		}
 	}
 }
 
 LinkNode *BM_mesh_calc_path_vert(
-        BMesh *bm, BMVert *v_src, BMVert *v_dst, const bool use_length,
+        BMesh *bm, BMVert *v_src, BMVert *v_dst, const struct BMCalcPathParams *params,
         bool (*test_fn)(BMVert *, void *user_data), void *user_data)
 {
 	LinkNode *path = NULL;
@@ -152,7 +183,7 @@ LinkNode *BM_mesh_calc_path_vert(
 
 		if (!BM_elem_flag_test(v, BM_ELEM_TAG)) {
 			BM_elem_flag_enable(v, BM_ELEM_TAG);
-			verttag_add_adjacent(heap, v, verts_prev, cost, use_length);
+			verttag_add_adjacent(heap, v, verts_prev, cost, params);
 		}
 	}
 
@@ -175,52 +206,107 @@ LinkNode *BM_mesh_calc_path_vert(
 /* BM_mesh_calc_path_edge */
 
 
-static float edgetag_cut_cost(BMEdge *e1, BMEdge *e2, BMVert *v)
+static float edgetag_cut_cost_vert(BMEdge *e_a, BMEdge *e_b, BMVert *v)
 {
-	BMVert *v1 = BM_edge_other_vert(e1, v);
-	BMVert *v2 = BM_edge_other_vert(e2, v);
+	BMVert *v1 = BM_edge_other_vert(e_a, v);
+	BMVert *v2 = BM_edge_other_vert(e_b, v);
 	return step_cost_3_v3(v1->co, v->co, v2->co);
 }
 
-static void edgetag_add_adjacent(Heap *heap, BMEdge *e1, BMEdge **edges_prev, float *cost, const bool use_length)
+static float edgetag_cut_cost_face(BMEdge *e_a, BMEdge *e_b, BMFace *f)
 {
-	BMIter viter;
-	BMVert *v;
+	float e_a_cent[3], e_b_cent[3], f_cent[3];
 
-	BMIter eiter;
-	BMEdge *e2;
+	mid_v3_v3v3(e_a_cent, e_a->v1->co, e_a->v1->co);
+	mid_v3_v3v3(e_b_cent, e_b->v1->co, e_b->v1->co);
 
-	const int e1_index = BM_elem_index_get(e1);
+	BM_face_calc_center_mean_weighted(f, f_cent);
 
-	BM_ITER_ELEM (v, &viter, e1, BM_VERTS_OF_EDGE) {
+	return step_cost_3_v3(e_a_cent, e_b_cent, f_cent);
+}
 
-		/* don't walk over previous vertex */
-		if ((edges_prev[e1_index]) &&
-		    (BM_vert_in_edge(edges_prev[e1_index], v)))
-		{
-			continue;
-		}
+static void edgetag_add_adjacent(
+        Heap *heap, BMEdge *e_a, BMEdge **edges_prev, float *cost,
+        const struct BMCalcPathParams *params)
+{
+	const int e_a_index = BM_elem_index_get(e_a);
 
-		BM_ITER_ELEM (e2, &eiter, v, BM_EDGES_OF_VERT) {
-			if (!BM_elem_flag_test(e2, BM_ELEM_TAG)) {
-				/* we know 'e2' is not visited, check it out! */
-				const int e2_index = BM_elem_index_get(e2);
-				const float cost_cut = use_length ? edgetag_cut_cost(e1, e2, v) : 1.0f;
-				const float cost_new = cost[e1_index] + cost_cut;
+	/* unlike vert/face, stepping faces disables scanning connected edges
+	 * and only steps over faces (selecting a ring of edges instead of a loop) */
+	if (params->use_step_face == false) {
+		BMIter viter;
+		BMVert *v;
 
-				if (cost[e2_index] > cost_new) {
-					cost[e2_index] = cost_new;
-					edges_prev[e2_index] = e1;
-					BLI_heap_insert(heap, cost_new, e2);
+		BMIter eiter;
+		BMEdge *e_b;
+
+		BM_ITER_ELEM (v, &viter, e_a, BM_VERTS_OF_EDGE) {
+
+			/* don't walk over previous vertex */
+			if ((edges_prev[e_a_index]) &&
+			    (BM_vert_in_edge(edges_prev[e_a_index], v)))
+			{
+				continue;
+			}
+
+			BM_ITER_ELEM (e_b, &eiter, v, BM_EDGES_OF_VERT) {
+				if (!BM_elem_flag_test(e_b, BM_ELEM_TAG)) {
+					/* we know 'e_b' is not visited, check it out! */
+					const int e_b_index = BM_elem_index_get(e_b);
+					const float cost_cut = params->use_topology_distance ?
+					        1.0f : edgetag_cut_cost_vert(e_a, e_b, v);
+					const float cost_new = cost[e_a_index] + cost_cut;
+
+					if (cost[e_b_index] > cost_new) {
+						cost[e_b_index] = cost_new;
+						edges_prev[e_b_index] = e_a;
+						BLI_heap_insert(heap, cost_new, e_b);
+					}
 				}
 			}
 		}
+	}
+	else {
+		BMLoop *l_first, *l_iter;
+
+		l_iter = l_first = e_a->l;
+		do {
+			BMLoop *l_cycle_iter, *l_cycle_end;
+
+			l_cycle_iter = l_iter->next;
+			l_cycle_end = l_iter;
+
+			/* good, but we need to allow this otherwise paths may fail to connect at all */
+#if 0
+			if (l_iter->f->len > 3) {
+				l_cycle_iter = l_cycle_iter->next;
+				l_cycle_end = l_cycle_end->prev;
+			}
+#endif
+
+			do {
+				BMEdge *e_b = l_cycle_iter->e;
+				if (!BM_elem_flag_test(e_b, BM_ELEM_TAG)) {
+					/* we know 'e_b' is not visited, check it out! */
+					const int e_b_index = BM_elem_index_get(e_b);
+					const float cost_cut = params->use_topology_distance ?
+					        1.0f : edgetag_cut_cost_face(e_a, e_b, l_iter->f);
+					const float cost_new = cost[e_a_index] + cost_cut;
+
+					if (cost[e_b_index] > cost_new) {
+						cost[e_b_index] = cost_new;
+						edges_prev[e_b_index] = e_a;
+						BLI_heap_insert(heap, cost_new, e_b);
+					}
+				}
+			} while ((l_cycle_iter = l_cycle_iter->next) != l_cycle_end);
+		} while ((l_iter = l_iter->radial_next) != l_first);
 	}
 }
 
 
 LinkNode *BM_mesh_calc_path_edge(
-        BMesh *bm, BMEdge *e_src, BMEdge *e_dst, const bool use_length,
+        BMesh *bm, BMEdge *e_src, BMEdge *e_dst, const struct BMCalcPathParams *params,
         bool (*filter_fn)(BMEdge *, void *user_data), void *user_data)
 {
 	LinkNode *path = NULL;
@@ -278,7 +364,7 @@ LinkNode *BM_mesh_calc_path_edge(
 
 		if (!BM_elem_flag_test(e, BM_ELEM_TAG)) {
 			BM_elem_flag_enable(e, BM_ELEM_TAG);
-			edgetag_add_adjacent(heap, e, edges_prev, cost, use_length);
+			edgetag_add_adjacent(heap, e, edges_prev, cost, params);
 		}
 	}
 
@@ -300,7 +386,7 @@ LinkNode *BM_mesh_calc_path_edge(
 /* -------------------------------------------------------------------- */
 /* BM_mesh_calc_path_face */
 
-static float facetag_cut_cost(BMFace *f_a, BMFace *f_b, BMEdge *e)
+static float facetag_cut_cost_edge(BMFace *f_a, BMFace *f_b, BMEdge *e)
 {
 	float f_a_cent[3];
 	float f_b_cent[3];
@@ -331,40 +417,82 @@ static float facetag_cut_cost(BMFace *f_a, BMFace *f_b, BMEdge *e)
 	return step_cost_3_v3(f_a_cent, e_cent, f_b_cent);
 }
 
-static void facetag_add_adjacent(Heap *heap, BMFace *f_a, BMFace **faces_prev, float *cost, const bool use_length)
+static float facetag_cut_cost_vert(BMFace *f_a, BMFace *f_b, BMVert *v)
 {
-	BMIter liter;
-	BMLoop *l_a;
-	BMFace *f_b;
+	float f_a_cent[3];
+	float f_b_cent[3];
 
+	BM_face_calc_center_mean_weighted(f_a, f_a_cent);
+	BM_face_calc_center_mean_weighted(f_b, f_b_cent);
+
+	return step_cost_3_v3(f_a_cent, v->co, f_b_cent);
+}
+
+static void facetag_add_adjacent(
+        Heap *heap, BMFace *f_a, BMFace **faces_prev, float *cost,
+        const struct BMCalcPathParams *params)
+{
 	const int f_a_index = BM_elem_index_get(f_a);
 
 	/* loop over faces of face, but do so by first looping over loops */
-	BM_ITER_ELEM (l_a, &liter, f_a, BM_LOOPS_OF_FACE) {
-		BMLoop *l_first;
-		BMLoop *l_iter;
+	{
+		BMIter liter;
+		BMLoop *l_a;
 
-		l_iter = l_first = l_a;
-		do {
-			f_b = l_iter->f;
-			if (!BM_elem_flag_test(f_b, BM_ELEM_TAG)) {
-				/* we know 'f_b' is not visited, check it out! */
-				const int f_b_index = BM_elem_index_get(f_b);
-				const float cost_cut = use_length ? facetag_cut_cost(f_a, f_b, l_iter->e) : 1.0f;
-				const float cost_new = cost[f_a_index] + cost_cut;
+		BM_ITER_ELEM (l_a, &liter, f_a, BM_LOOPS_OF_FACE) {
+			BMLoop *l_first, *l_iter;
 
-				if (cost[f_b_index] > cost_new) {
-					cost[f_b_index] = cost_new;
-					faces_prev[f_b_index] = f_a;
-					BLI_heap_insert(heap, cost_new, f_b);
+			l_iter = l_first = l_a;
+			do {
+				BMFace *f_b = l_iter->f;
+				if (!BM_elem_flag_test(f_b, BM_ELEM_TAG)) {
+					/* we know 'f_b' is not visited, check it out! */
+					const int f_b_index = BM_elem_index_get(f_b);
+					const float cost_cut = params->use_topology_distance ?
+					        1.0f : facetag_cut_cost_edge(f_a, f_b, l_iter->e);
+					const float cost_new = cost[f_a_index] + cost_cut;
+
+					if (cost[f_b_index] > cost_new) {
+						cost[f_b_index] = cost_new;
+						faces_prev[f_b_index] = f_a;
+						BLI_heap_insert(heap, cost_new, f_b);
+					}
+				}
+			} while ((l_iter = l_iter->radial_next) != l_first);
+		}
+	}
+
+	if (params->use_step_face) {
+		BMIter liter;
+		BMLoop *l_a;
+
+		BM_ITER_ELEM (l_a, &liter, f_a, BM_LOOPS_OF_FACE) {
+			BMIter litersub;
+			BMLoop *l_b;
+			BM_ITER_ELEM (l_b, &litersub, l_a->v, BM_LOOPS_OF_VERT) {
+				if ((l_a != l_b) && !BM_loop_share_edge_check(l_a, l_b)) {
+					BMFace *f_b = l_b->f;
+					if (!BM_elem_flag_test(f_b, BM_ELEM_TAG)) {
+						/* we know 'f_b' is not visited, check it out! */
+						const int f_b_index = BM_elem_index_get(f_b);
+						const float cost_cut = params->use_topology_distance ?
+						        1.0f : facetag_cut_cost_vert(f_a, f_b, l_a->v);
+						const float cost_new = cost[f_a_index] + cost_cut;
+
+						if (cost[f_b_index] > cost_new) {
+							cost[f_b_index] = cost_new;
+							faces_prev[f_b_index] = f_a;
+							BLI_heap_insert(heap, cost_new, f_b);
+						}
+					}
 				}
 			}
-		} while ((l_iter = l_iter->radial_next) != l_first);
+		}
 	}
 }
 
 LinkNode *BM_mesh_calc_path_face(
-        BMesh *bm, BMFace *f_src, BMFace *f_dst, const bool use_length,
+        BMesh *bm, BMFace *f_src, BMFace *f_dst, const struct BMCalcPathParams *params,
         bool (*test_fn)(BMFace *, void *user_data), void *user_data)
 {
 	LinkNode *path = NULL;
@@ -422,7 +550,7 @@ LinkNode *BM_mesh_calc_path_face(
 
 		if (!BM_elem_flag_test(f, BM_ELEM_TAG)) {
 			BM_elem_flag_enable(f, BM_ELEM_TAG);
-			facetag_add_adjacent(heap, f, faces_prev, cost, use_length);
+			facetag_add_adjacent(heap, f, faces_prev, cost, params);
 		}
 	}
 
