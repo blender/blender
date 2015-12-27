@@ -24,28 +24,14 @@
 
 r"""
 Example Linux usage:
- python ~/blender-git/blender/build_files/cmake/cmake_qtcreator_project.py ~/blender-git/cmake
+ python ~/blender-git/blender/build_files/cmake/cmake_qtcreator_project.py --build-dir ~/blender-git/cmake
 
 Example Win32 usage:
- c:\Python32\python.exe c:\blender_dev\blender\build_files\cmake\cmake_qtcreator_project.py c:\blender_dev\cmake_build
+ c:\Python32\python.exe c:\blender_dev\blender\build_files\cmake\cmake_qtcreator_project.py --build-dir c:\blender_dev\cmake_build
 """
 
-from project_info import (
-        SIMPLE_PROJECTFILE,
-        SOURCE_DIR,
-        # CMAKE_DIR,
-        PROJECT_DIR,
-        source_list,
-        is_project_file,
-        is_c_header,
-        is_py,
-        cmake_advanced_info,
-        cmake_compiler_defines,
-        project_name_get,
-        )
 
 import os
-import sys
 
 
 def quote_define(define):
@@ -56,6 +42,19 @@ def quote_define(define):
 
 
 def create_qtc_project_main(name):
+    from project_info import (
+            SIMPLE_PROJECTFILE,
+            SOURCE_DIR,
+            # CMAKE_DIR,
+            PROJECT_DIR,
+            source_list,
+            is_project_file,
+            is_c_header,
+            cmake_advanced_info,
+            cmake_compiler_defines,
+            project_name_get,
+            )
+
     files = list(source_list(SOURCE_DIR, filename_check=is_project_file))
     files_rel = [os.path.relpath(f, start=PROJECT_DIR) for f in files]
     files_rel.sort()
@@ -116,7 +115,7 @@ def create_qtc_project_main(name):
                     f.write("\n")
 
             defines_final = [("#define %s %s" % (item[0], quote_define(item[1]))) for item in defines]
-            if sys.platform != "win32":
+            if os.name != "nt":
                 defines_final += cmake_compiler_defines()
             f.write("\n".join(defines_final))
 
@@ -125,6 +124,15 @@ def create_qtc_project_main(name):
 
 
 def create_qtc_project_python(name):
+    from project_info import (
+            SOURCE_DIR,
+            # CMAKE_DIR,
+            PROJECT_DIR,
+            source_list,
+            is_py,
+            project_name_get,
+            )
+
     files = list(source_list(SOURCE_DIR, filename_check=is_py))
     files_rel = [os.path.relpath(f, start=PROJECT_DIR) for f in files]
     files_rel.sort()
@@ -161,6 +169,15 @@ def argparse_create():
             dest="name",
             metavar='NAME', type=str,
             help="Override default project name (\"Blender\")",
+            required=False,
+            )
+
+    parser.add_argument(
+            "-b", "--build-dir",
+            dest="build_dir",
+            metavar='BUILD_DIR', type=str,
+            help="Specify the build path (or fallback to the $PWD)",
+            required=False,
             )
 
     return parser
@@ -170,6 +187,10 @@ def main():
     parser = argparse_create()
     args = parser.parse_args()
     name = args.name
+
+    import project_info
+    if not project_info.init(args.build_dir):
+        return
 
     create_qtc_project_main(name)
     create_qtc_project_python(name)

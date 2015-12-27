@@ -23,11 +23,9 @@
 # <pep8 compliant>
 
 """
-Example Win32 usage:
- c:\Python32\python.exe c:\blender_dev\blender\build_files\cmake\cmake_qtcreator_project.py c:\blender_dev\cmake_build
+Module for accessing project file data for Blender.
 
-Example Linux usage:
- python ~/blenderSVN/blender/build_files/cmake/cmake_qtcreator_project.py ~/blenderSVN/cmake
+Before use, call init(cmake_build_dir).
 """
 
 __all__ = (
@@ -42,6 +40,7 @@ __all__ = (
     "cmake_advanced_info",
     "cmake_compiler_defines",
     "project_name_get"
+    "init",
 )
 
 
@@ -61,19 +60,26 @@ SOURCE_DIR = abspath(SOURCE_DIR)
 
 SIMPLE_PROJECTFILE = False
 
-# get cmake path
-CMAKE_DIR = sys.argv[-1]
-
-if not exists(join(CMAKE_DIR, "CMakeCache.txt")):
-    CMAKE_DIR = os.getcwd()
-if not exists(join(CMAKE_DIR, "CMakeCache.txt")):
-    print("CMakeCache.txt not found in %r or %r\n    Pass CMake build dir as an argument, or run from that dir, aborting" % (CMAKE_DIR, os.getcwd()))
-    sys.exit(1)
+# must initialize from 'init'
+CMAKE_DIR = None
 
 
-# could be either.
-# PROJECT_DIR = SOURCE_DIR
-PROJECT_DIR = CMAKE_DIR
+def init(cmake_path):
+    global CMAKE_DIR, PROJECT_DIR
+
+    # get cmake path
+    cmake_path = cmake_path or ""
+
+    if (not cmake_path) or (not exists(join(cmake_path, "CMakeCache.txt"))):
+        cmake_path = os.getcwd()
+    if not exists(join(cmake_path, "CMakeCache.txt")):
+        print("CMakeCache.txt not found in %r or %r\n"
+              "    Pass CMake build dir as an argument, or run from that dir, aborting" %
+              (cmake_path, os.getcwd()))
+        return False
+
+    PROJECT_DIR = CMAKE_DIR = cmake_path
+    return True
 
 
 def source_list(path, filename_check=None):

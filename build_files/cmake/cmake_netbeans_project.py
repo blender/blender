@@ -29,6 +29,13 @@ Example linux usage
 Windows not supported so far
 """
 
+import sys
+
+# until we have arg parsing
+import project_info
+if not project_info.init(sys.argv[-1]):
+    sys.exit(1)
+
 from project_info import (
         SIMPLE_PROJECTFILE,
         SOURCE_DIR,
