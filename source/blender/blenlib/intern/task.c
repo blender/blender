@@ -706,8 +706,10 @@ void BLI_task_parallel_range_ex(
 		state.chunk_size = 32;
 	}
 	else {
-		state.chunk_size = (stop - start) / (num_tasks);
+		state.chunk_size = max_ii(1, (stop - start) / (num_tasks));
 	}
+
+	num_tasks = max_ii(1, (stop - start) / state.chunk_size);
 
 	for (i = 0; i < num_tasks; i++) {
 		BLI_task_pool_push(task_pool,
