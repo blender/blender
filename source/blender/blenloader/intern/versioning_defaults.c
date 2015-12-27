@@ -234,7 +234,7 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 		br = (Brush *)BKE_libblock_find_name_ex(bmain, ID_BR, "Twist");
 		if (br)
 		{
-			rename_id(&br->id, "Rotate");
+			BKE_rename_id(bmain, &br->id, "Rotate");
 		}
 	}
 }

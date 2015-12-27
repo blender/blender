@@ -109,7 +109,7 @@ void BKE_main_id_clear_newpoins(struct Main *bmain);
 
 void BKE_main_lib_objects_recalc_all(struct Main *bmain);
 
-void rename_id(struct ID *id, const char *name);
+void BKE_rename_id(struct Main *bmain, struct ID *id, const char *name);
 void name_uiprefix_id(char *name, const struct ID *id);
 void test_idbutton(char *name);
 

@@ -1831,12 +1831,14 @@ void test_idbutton(char *name)
 /**
  * Sets the name of a block to name, suitably adjusted for uniqueness.
  */
-void rename_id(ID *id, const char *name)
+void BKE_rename_id(Main *bmain, ID *id, const char *name)
 {
 	ListBase *lb;
 
-	BLI_strncpy(id->name + 2, name, sizeof(id->name) - 2);
-	lb = which_libbase(G.main, GS(id->name));
+	if (!bmain)
+		bmain = G.main;
+
+	lb = which_libbase(bmain, GS(id->name));
 	
 	new_id(lb, id, name);
 }
