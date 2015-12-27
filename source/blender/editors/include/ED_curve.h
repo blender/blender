@@ -71,7 +71,6 @@ bool ED_curve_select_check(struct Curve *cu, struct EditNurb *editnurb);
 void ED_curve_deselect_all(struct EditNurb *editnurb);
 void ED_curve_select_all(struct EditNurb *editnurb);
 void ED_curve_select_swap(struct EditNurb *editnurb, bool hide_handles);
-bool ED_curve_select_nth(struct Curve *cu, int nth, int skip, int offset);
 
 /* editfont.h */
 void    undo_push_font(struct bContext *C, const char *name);

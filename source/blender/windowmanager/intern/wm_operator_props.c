@@ -31,6 +31,7 @@
 #include "DNA_space_types.h"
 
 #include "BLI_rect.h"
+#include "BLI_math_base.h"
 
 #include "UI_resources.h"
 
@@ -247,4 +248,35 @@ void WM_operator_properties_gesture_straightline(wmOperatorType *ot, int cursor)
 		                   "Cursor", "Mouse cursor style to use during the modal operator", 0, INT_MAX);
 		RNA_def_property_flag(prop, PROP_HIDDEN);
 	}
+}
+
+/**
+ * \param nth_can_disable: Enable if we want to be able to select no interval at all.
+ */
+void WM_operator_properties_checker_interval(wmOperatorType *ot, bool nth_can_disable)
+{
+	const int nth_default = nth_can_disable ? 1 : 2;
+	const int nth_min =  min_ii(nth_default, 2);
+	RNA_def_int(ot->srna, "nth", nth_default, nth_min, INT_MAX, "Nth Selection", "", nth_min, 100);
+	RNA_def_int(ot->srna, "skip", 1, 1, INT_MAX, "Skip", "", 1, 100);
+	RNA_def_int(ot->srna, "offset", 0, INT_MIN, INT_MAX, "Offset", "", -100, 100);
+}
+
+void WM_operator_properties_checker_interval_from_op(
+        struct wmOperator *op, struct CheckerIntervalParams *op_params)
+{
+	const int nth = RNA_int_get(op->ptr, "nth") - 1;
+	const int skip = RNA_int_get(op->ptr, "skip");
+	int offset = RNA_int_get(op->ptr, "offset");
+
+	op_params->nth = nth;
+	op_params->skip = skip;
+	op_params->offset = mod_i(offset, nth + skip);  /* so input of offset zero ends up being (nth - 1) */
+}
+
+bool WM_operator_properties_checker_interval_test(
+        const struct CheckerIntervalParams *op_params, int depth)
+{
+	return ((op_params->nth == 0) ||
+	        ((op_params->offset + depth) % (op_params->skip + op_params->nth) >= op_params->skip));
 }
