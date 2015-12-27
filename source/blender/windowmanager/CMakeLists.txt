@@ -62,6 +62,7 @@ set(SRC
 	intern/wm_init_exit.c
 	intern/wm_jobs.c
 	intern/wm_keymap.c
+	intern/wm_operator_props.c
 	intern/wm_operators.c
 	intern/wm_subwindow.c
 	intern/wm_window.c

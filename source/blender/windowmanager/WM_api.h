@@ -281,17 +281,6 @@ void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring
 void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot);
 void        WM_operator_properties_clear(struct PointerRNA *ptr);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
-void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type, short action, short flag, short display, short sort);
-void        WM_operator_properties_border(struct wmOperatorType *ot);
-void        WM_operator_properties_border_to_rcti(struct wmOperator *op, struct rcti *rect);
-void        WM_operator_properties_border_to_rctf(struct wmOperator *op, rctf *rect);
-void		WM_operator_properties_gesture_border(struct wmOperatorType *ot, bool extend);
-void        WM_operator_properties_mouse_select(struct wmOperatorType *ot);
-void		WM_operator_properties_gesture_straightline(struct wmOperatorType *ot, int cursor);
-void		WM_operator_properties_select_all(struct wmOperatorType *ot);
-void		WM_operator_properties_select_action(struct wmOperatorType *ot, int default_action);
-void		WM_operator_properties_select_action_simple(struct wmOperatorType *ot, int default_action);
-void        WM_operator_properties_select_random(struct wmOperatorType *ot);
 
 bool        WM_operator_check_ui_enabled(const struct bContext *C, const char *idname);
 wmOperator *WM_operator_last_redo(const struct bContext *C);
@@ -299,6 +288,21 @@ ID         *WM_operator_drop_load_path(struct bContext *C, struct wmOperator *op
 
 bool        WM_operator_last_properties_init(struct wmOperator *op);
 bool        WM_operator_last_properties_store(struct wmOperator *op);
+
+
+/* wm_operator_props.c */
+void        WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type, short action, short flag, short display, short sort);
+void        WM_operator_properties_border(struct wmOperatorType *ot);
+void        WM_operator_properties_border_to_rcti(struct wmOperator *op, struct rcti *rect);
+void        WM_operator_properties_border_to_rctf(struct wmOperator *op, rctf *rect);
+void        WM_operator_properties_gesture_border(struct wmOperatorType *ot, bool extend);
+void        WM_operator_properties_mouse_select(struct wmOperatorType *ot);
+void        WM_operator_properties_gesture_straightline(struct wmOperatorType *ot, int cursor);
+void        WM_operator_properties_select_all(struct wmOperatorType *ot);
+void        WM_operator_properties_select_action(struct wmOperatorType *ot, int default_action);
+void        WM_operator_properties_select_action_simple(struct wmOperatorType *ot, int default_action);
+void        WM_operator_properties_select_random(struct wmOperatorType *ot);
+
 
 /* MOVE THIS SOMEWHERE ELSE */
 #define	SEL_TOGGLE		0
