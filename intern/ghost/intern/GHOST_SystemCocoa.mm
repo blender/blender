@@ -442,10 +442,8 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 				
 				[windowMenu addItemWithTitle:@"Zoom" action:@selector(performZoom:) keyEquivalent:@""];
 				
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060 // make it build with  10.6 deployment target, but as it is not available in 10.6, it will get weaklinked
 				menuItem = [windowMenu addItemWithTitle:@"Enter Full Screen" action:@selector(toggleFullScreen:) keyEquivalent:@"f" ];
 				[menuItem setKeyEquivalentModifierMask:NSControlKeyMask | NSCommandKeyMask];
-#endif
 
 				menuItem = [windowMenu addItemWithTitle:@"Close" action:@selector(performClose:) keyEquivalent:@"w"];
 				[menuItem setKeyEquivalentModifierMask:NSCommandKeyMask];

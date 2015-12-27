@@ -41,11 +41,6 @@
 
 #include <Cocoa/Cocoa.h>
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= 1050
-   //Use of the SetSystemUIMode function (64bit compatible)
-#  include <Carbon/Carbon.h>
-#endif
-
 #include <sys/sysctl.h>
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED < 1070
@@ -132,14 +127,10 @@ enum {
 
 - (void)windowDidResize:(NSNotification *)notification
 {
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 	//if (![[notification object] inLiveResize]) {
 		//Send event only once, at end of resize operation (when user has released mouse button)
-#endif
 		systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, associatedWindow);
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 	//}
-#endif
 	/* Live resize, send event, gets handled in wm_window.c. Needed because live resize runs in a modal loop, not letting main loop run */
 	 if ([[notification object] inLiveResize]) {
 		systemCocoa->dispatchEvents();
@@ -608,19 +599,15 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	
 	[m_window setAcceptsMouseMovedEvents:YES];
 	
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 	NSView *view = [m_window contentView];
 	[view setAcceptsTouchEvents:YES];
-#endif
 	
 	[m_window registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
 	                                   NSStringPboardType, NSTIFFPboardType, nil]];
 	
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 	if (state != GHOST_kWindowStateFullScreen) {
 		[m_window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
 	}
-#endif
 	
 	if (state == GHOST_kWindowStateFullScreen)
 		setState(GHOST_kWindowStateFullScreen);
@@ -859,7 +846,6 @@ GHOST_TWindowState GHOST_WindowCocoa::getState() const
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	GHOST_TWindowState state;
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 	NSUInteger masks = [m_window styleMask];
 
 	if (masks & NSFullScreenWindowMask) {
@@ -871,9 +857,7 @@ GHOST_TWindowState GHOST_WindowCocoa::getState() const
 			state = GHOST_kWindowStateNormal;
 		}
 	}
-	else
-#endif
-	if (m_fullScreen) {
+	else if (m_fullScreen) {
 		state = GHOST_kWindowStateFullScreen;
 	} 
 	else if ([m_window isMiniaturized]) {
@@ -988,7 +972,6 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 		
 		case GHOST_kWindowStateFullScreen:
 		{
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 			NSUInteger masks = [m_window styleMask];
 
 			if (!m_fullScreen && !(masks & NSFullScreenWindowMask)) {
@@ -996,9 +979,6 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 					[m_window toggleFullScreen:nil];
 					break;
 				}
-#else
-			if (!m_fullScreen) {
-#endif
 				NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 			
 				/* This status change needs to be done before Cocoa call to enter fullscreen mode
@@ -1006,12 +986,9 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				 * doesn't know view/window difference. */
 				m_fullScreen = true;
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 				/* Disable toggle for Lion style fullscreen */
 				[m_window setCollectionBehavior:NSWindowCollectionBehaviorDefault];
-#endif
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 				//10.6 provides Cocoa functions to autoshow menu bar, and to change a window style
 				//Hide menu & dock if on primary screen. else only menu
 				if ([[m_window screen] isEqual:[[NSScreen screens] objectAtIndex:0]]) {
@@ -1021,38 +998,6 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				[m_window setStyleMask:NSBorderlessWindowMask];
 				[m_window setFrame:[[m_window screen] frame] display:YES];
 				[m_window makeFirstResponder:m_openGLView];
-#else
-				//With 10.5, we need to create a new window to change its style to borderless
-				//Hide menu & dock if needed
-				if ([[m_window screen] isEqual:[[NSScreen screens] objectAtIndex:0]]) {
-					//Cocoa function in 10.5 does not allow to set the menu bar in auto-show mode [NSMenu setMenuBarVisible:NO];
-					//One of the very few 64bit compatible Carbon function
-					SetSystemUIMode(kUIModeAllHidden,kUIOptionAutoShowMenuBar);
-				}
-				//Create a fullscreen borderless window
-				CocoaWindow *tmpWindow = [[CocoaWindow alloc]
-				                          initWithContentRect:[[m_window screen] frame]
-				                          styleMask:NSBorderlessWindowMask
-				                          backing:NSBackingStoreBuffered
-				                          defer:YES];
-				//Copy current window parameters
-				[tmpWindow setTitle:[m_window title]];
-				[tmpWindow setRepresentedFilename:[m_window representedFilename]];
-				[tmpWindow setAcceptsMouseMovedEvents:YES];
-				[tmpWindow setDelegate:[m_window delegate]];
-				[tmpWindow setSystemAndWindowCocoa:[m_window systemCocoa] windowCocoa:this];
-				[tmpWindow registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
-				                                    NSStringPboardType, NSTIFFPboardType, nil]];
-				
-				//Assign the openGL view to the new window
-				[tmpWindow setContentView:m_openGLView];
-				
-				//Show the new window
-				[tmpWindow makeKeyAndOrderFront:m_openGLView];
-				//Close and release old window
-				[m_window close];
-				m_window = tmpWindow;
-#endif
 			
 				//Tell WM of view new size
 				m_systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, this);
@@ -1064,25 +1009,19 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 		case GHOST_kWindowStateNormal:
 		default:
 			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 			NSUInteger masks = [m_window styleMask];
 
 			if (masks & NSFullScreenWindowMask) {
 				// Lion style fullscreen
 				[m_window toggleFullScreen:nil];
 			}
-			else
-#endif
-			if (m_fullScreen) {
+			else if (m_fullScreen) {
 				m_fullScreen = false;
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 				/* Enable toggle for into Lion style fullscreen */
 				[m_window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-#endif
 
 				//Exit fullscreen
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 				//Show again menu & dock if needed
 				if ([[m_window screen] isEqual:[NSScreen mainScreen]]) {
 					[NSApp setPresentationOptions:NSApplicationPresentationDefault];
@@ -1092,39 +1031,6 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				[m_window setFrame:[[m_window screen] visibleFrame] display:YES];
 				//TODO for 10.6 only : window title is forgotten after the style change
 				[m_window makeFirstResponder:m_openGLView];
-#else
-				//With 10.5, we need to create a new window to change its style to borderless
-				//Show menu & dock if needed
-				if ([[m_window screen] isEqual:[NSScreen mainScreen]]) {
-					//Cocoa function in 10.5 does not allow to set the menu bar in auto-show mode [NSMenu setMenuBarVisible:YES];
-					SetSystemUIMode(kUIModeNormal, 0); //One of the very few 64bit compatible Carbon function
-				}
-				//Create a fullscreen borderless window
-				CocoaWindow *tmpWindow = [[CocoaWindow alloc]
-				                          initWithContentRect:[[m_window screen] frame]
-				                                    styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
-				                                      backing:NSBackingStoreBuffered
-				                                        defer:YES];
-				//Copy current window parameters
-				[tmpWindow setTitle:[m_window title]];
-				[tmpWindow setRepresentedFilename:[m_window representedFilename]];
-				[tmpWindow setAcceptsMouseMovedEvents:YES];
-				[tmpWindow setDelegate:[m_window delegate]];
-				[tmpWindow setSystemAndWindowCocoa:[m_window systemCocoa] windowCocoa:this];
-				[tmpWindow registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
-				                                    NSStringPboardType, NSTIFFPboardType, nil]];
-				//Forbid to resize the window below the blender defined minimum one
-				[tmpWindow setContentMinSize:NSMakeSize(320, 240)];
-				
-				//Assign the openGL view to the new window
-				[tmpWindow setContentView:m_openGLView];
-				
-				//Show the new window
-				[tmpWindow makeKeyAndOrderFront:nil];
-				//Close and release old window
-				[m_window close];
-				m_window = tmpWindow;
-#endif
 			
 				//Tell WM of view new size
 				m_systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, this);

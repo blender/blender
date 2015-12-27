@@ -509,56 +509,6 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 #else
 #ifdef __APPLE__
 	{
-#if (MAC_OS_X_VERSION_MIN_REQUIRED <= 1050)
-		OSErr err = noErr;
-		int i;
-		const char *home;
-		
-		/* loop through all the OS X Volumes, and add them to the SYSTEM section */
-		for (i = 1; err != nsvErr; i++) {
-			FSRef dir;
-			unsigned char path[FILE_MAX];
-			
-			err = FSGetVolumeInfo(kFSInvalidVolumeRefNum, i, NULL, kFSVolInfoNone, NULL, NULL, &dir);
-			if (err != noErr)
-				continue;
-			
-			FSRefMakePath(&dir, path, FILE_MAX);
-			if (!STREQ((char *)path, "/home") && !STREQ((char *)path, "/net")) {
-				/* /net and /home are meaningless on OSX, home folders are stored in /Users */
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, NULL, FS_INSERT_SORTED);
-			}
-		}
-
-		/* As 10.4 doesn't provide proper API to retrieve the favorite places,
-		 * assume they are the standard ones 
-		 * TODO : replace hardcoded paths with proper BKE_appdir_folder_id calls */
-		home = getenv("HOME");
-		if (read_bookmarks && home) {
-			BLI_snprintf(line, sizeof(line), "%s/", home);
-			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, FS_INSERT_SORTED);
-			BLI_snprintf(line, sizeof(line), "%s/Desktop/", home);
-			if (BLI_exists(line)) {
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, FS_INSERT_SORTED);
-			}
-			BLI_snprintf(line, sizeof(line), "%s/Documents/", home);
-			if (BLI_exists(line)) {
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, FS_INSERT_SORTED);
-			}
-			BLI_snprintf(line, sizeof(line), "%s/Pictures/", home);
-			if (BLI_exists(line)) {
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, FS_INSERT_SORTED);
-			}
-			BLI_snprintf(line, sizeof(line), "%s/Music/", home);
-			if (BLI_exists(line)) {
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, FS_INSERT_SORTED);
-			}
-			BLI_snprintf(line, sizeof(line), "%s/Movies/", home);
-			if (BLI_exists(line)) {
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, line, NULL, FS_INSERT_SORTED);
-			}
-		}
-#else /* OSX 10.6+ */
 		/* Get mounted volumes better method OSX 10.6 and higher, see: */
 		/*https://developer.apple.com/library/mac/#documentation/CoreFOundation/Reference/CFURLRef/Reference/reference.html*/
 		/* we get all volumes sorted including network and do not relay on user-defined finder visibility, less confusing */
@@ -622,7 +572,6 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 			CFRelease(pathesArray);
 			CFRelease(list);
 		}
-#endif /* OSX 10.6+ */
 	}
 #else
 	/* unix */

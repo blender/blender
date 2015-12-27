@@ -80,8 +80,7 @@ void free_qtcomponentdata(void);
 void makeqtstring(struct RenderData *rd, char *string, bool preview);		//for playanim.c
 
 
-
-#if (MAC_OS_X_VERSION_MIN_REQUIRED >= 1050 && __LP64__)
+#ifdef __APPLE__
 //Include the quicktime codec types constants that are missing in QTKitDefines.h
 enum {
 	kRawCodecType						= 'raw ',
