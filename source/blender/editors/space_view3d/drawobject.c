@@ -663,13 +663,12 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 
 		/* Draw the Image on the screen */
 		glaDrawPixelsTex(ofs_x, ofs_y, ima_x, ima_y, GL_RGBA, GL_UNSIGNED_BYTE, zoomfilter, ibuf->rect);
-		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 
 		glDisable(GL_BLEND);
 
 		if (use_clip) {
 			glDisable(GL_ALPHA_TEST);
-			glAlphaFunc(GL_GREATER, 0.0f);
+			glAlphaFunc(GL_ALWAYS, 0.0f);
 		}
 	}
 
@@ -686,7 +685,6 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 	glEnd();
 
 	/* Reset GL settings */
-	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 
 	BKE_image_release_ibuf(ima, ibuf, NULL);

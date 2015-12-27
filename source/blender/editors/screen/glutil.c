@@ -351,8 +351,6 @@ static int get_cached_work_texture(int *r_w, int *r_h)
 	static int tex_h = 256;
 
 	if (texid == -1) {
-		unsigned char *tbuf;
-
 		glGenTextures(1, (GLuint *)&texid);
 
 		glBindTexture(GL_TEXTURE_2D, texid);
@@ -360,9 +358,7 @@ static int get_cached_work_texture(int *r_w, int *r_h)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		tbuf = MEM_callocN(tex_w * tex_h * 4, "tbuf");
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tbuf);
-		MEM_freeN(tbuf);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
