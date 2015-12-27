@@ -651,7 +651,7 @@ void BKE_scene_init(Scene *sce)
 	}
 	pset->brush[PE_BRUSH_CUT].strength = 100;
 
-	sce->r.ffcodecdata.audio_mixrate = 44100;
+	sce->r.ffcodecdata.audio_mixrate = 48000;
 	sce->r.ffcodecdata.audio_volume = 1.0f;
 	sce->r.ffcodecdata.audio_bitrate = 192;
 	sce->r.ffcodecdata.audio_channels = 2;

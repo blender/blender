@@ -50,9 +50,9 @@
 /// Returns the bigger of the two values.
 #define AUD_MAX(a, b) (((a) > (b)) ? (a) : (b))
 
-// 5 sec * 44100 samples/sec * 4 bytes/sample * 6 channels
+// 5 sec * 48000 samples/sec * 4 bytes/sample * 6 channels
 /// The size by which a buffer should be resized if the final extent is unknown.
-#define AUD_BUFFER_RESIZE_BYTES 5292000
+#define AUD_BUFFER_RESIZE_BYTES 5760000
 
 /// The default playback buffer size of a device.
 #define AUD_DEFAULT_BUFFER_SIZE 1024

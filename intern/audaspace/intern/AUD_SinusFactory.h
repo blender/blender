@@ -59,7 +59,7 @@ public:
 	 * \param sampleRate The target sample rate for playback.
 	 */
 	AUD_SinusFactory(float frequency,
-					 AUD_SampleRate sampleRate = AUD_RATE_44100);
+					 AUD_SampleRate sampleRate = AUD_RATE_48000);
 
 	/**
 	 * Returns the frequency of the sine wave.

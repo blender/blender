@@ -128,7 +128,7 @@ Factory_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 }
 
 PyDoc_STRVAR(M_aud_Factory_sine_doc,
-			 "sine(frequency, rate=44100)\n\n"
+			 "sine(frequency, rate=48000)\n\n"
 			 "Creates a sine factory which plays a sine wave.\n\n"
 			 ":arg frequency: The frequency of the sine wave in Hz.\n"
 			 ":type frequency: float\n"
@@ -142,7 +142,7 @@ static PyObject *
 Factory_sine(PyTypeObject* type, PyObject *args)
 {
 	float frequency;
-	double rate = 44100;
+	double rate = 48000;
 
 	if(!PyArg_ParseTuple(args, "f|d:sine", &frequency, &rate))
 		return NULL;
@@ -2115,7 +2115,7 @@ Device_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 	static const char *kwlist[] = {"type", "rate", "channels", "format", "buffer_size", "name", NULL};
 	int device;
-	double rate = AUD_RATE_44100;
+	double rate = AUD_RATE_48000;
 	int channels = AUD_CHANNELS_STEREO;
 	int format = AUD_FORMAT_FLOAT32;
 	int buffersize = AUD_DEFAULT_BUFFER_SIZE;

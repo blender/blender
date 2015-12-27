@@ -1418,7 +1418,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		}
 
 		for (sce = main->scene.first; sce; sce = sce->id.next) {
-			sce->audio.mixrate = 44100;
+			sce->audio.mixrate = 48000;
 			sce->audio.flag |= AUDIO_SCRUB;
 			sce->r.mode |= R_ENVMAP;
 		}
@@ -2219,7 +2219,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		}
 		for (sce = main->scene.first; sce; sce = sce->id.next) {
 			if (sce->audio.mixrate == 0)
-				sce->audio.mixrate = 44100;
+				sce->audio.mixrate = 48000;
 
 			if (sce->r.xparts <2 )
 				sce->r.xparts = 4;

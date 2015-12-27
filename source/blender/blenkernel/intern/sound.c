@@ -227,7 +227,7 @@ void BKE_sound_init(struct Main *bmain)
 		buffersize = 1024;
 
 	if (specs.rate < AUD_RATE_8000)
-		specs.rate = AUD_RATE_44100;
+		specs.rate = AUD_RATE_48000;
 
 	if (specs.format <= AUD_FORMAT_INVALID)
 		specs.format = AUD_FORMAT_S16;

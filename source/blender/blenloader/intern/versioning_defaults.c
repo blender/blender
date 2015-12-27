@@ -60,6 +60,9 @@ void BLO_update_defaults_userpref_blend(void)
 
 	U.versions = 1;
 	U.savetime = 2;
+
+	/* default from T47064 */
+	U.audiorate = 48000;
 }
 
 /**
@@ -140,6 +143,8 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 
 		scene->gm.lodflag |= SCE_LOD_USE_HYST;
 		scene->gm.scehysteresis = 10;
+
+		scene->r.ffcodecdata.audio_mixrate = 48000;
 	}
 
 	for (linestyle = bmain->linestyle.first; linestyle; linestyle = linestyle->id.next) {

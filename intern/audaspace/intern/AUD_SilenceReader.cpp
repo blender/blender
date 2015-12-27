@@ -59,7 +59,7 @@ int AUD_SilenceReader::getPosition() const
 AUD_Specs AUD_SilenceReader::getSpecs() const
 {
 	AUD_Specs specs;
-	specs.rate = AUD_RATE_44100;
+	specs.rate = AUD_RATE_48000;
 	specs.channels = AUD_CHANNELS_MONO;
 	return specs;
 }

@@ -1571,7 +1571,7 @@ void WM_main_playanim(int argc, const char **argv)
 	{
 		AUD_DeviceSpecs specs;
 
-		specs.rate = AUD_RATE_44100;
+		specs.rate = AUD_RATE_48000;
 		specs.format = AUD_FORMAT_S16;
 		specs.channels = AUD_CHANNELS_STEREO;
 

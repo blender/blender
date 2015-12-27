@@ -1940,7 +1940,7 @@ void init_userdef_do_versions(void)
 		if (U.audioformat == 0)
 			U.audioformat = 0x24;
 		if (U.audiorate == 0)
-			U.audiorate = 44100;
+			U.audiorate = 48000;
 	}
 	
 	if (!USER_VERSION_ATLEAST(250, 8)) {

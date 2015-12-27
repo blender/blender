@@ -48,7 +48,7 @@ AUD_SDLDevice::AUD_SDLDevice(AUD_DeviceSpecs specs, int buffersize)
 	if(specs.format == AUD_FORMAT_INVALID)
 		specs.format = AUD_FORMAT_S16;
 	if(specs.rate == AUD_RATE_INVALID)
-		specs.rate = AUD_RATE_44100;
+		specs.rate = AUD_RATE_48000;
 
 	m_specs = specs;
 
