@@ -1319,7 +1319,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 			case ID_GR:
 				tselem_draw_icon_uibut(&arg, ICON_GROUP); break;
 			case ID_LI:
-				if (tselem->id->flag & LIB_MISSING) {
+				if (tselem->id->tag & LIB_TAG_MISSING) {
 					tselem_draw_icon_uibut(&arg, ICON_LIBRARY_DATA_BROKEN);
 				}
 				else if (((Library *)tselem->id)->parent) {
@@ -1563,10 +1563,10 @@ static void outliner_draw_tree_element(
 		
 		if (tselem->type == 0 && tselem->id->lib) {
 			glPixelTransferf(GL_ALPHA_SCALE, 0.5f);
-			if (tselem->id->flag & LIB_MISSING) {
+			if (tselem->id->tag & LIB_TAG_MISSING) {
 				UI_icon_draw((float)startx + offsx, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_BROKEN);
 			}
-			else if (tselem->id->flag & LIB_INDIRECT) {
+			else if (tselem->id->tag & LIB_TAG_INDIRECT) {
 				UI_icon_draw((float)startx + offsx, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_INDIRECT);
 			}
 			else {

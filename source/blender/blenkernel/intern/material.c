@@ -1312,13 +1312,13 @@ void material_drivers_update(Scene *scene, Material *ma, float ctime)
 	//	printf("material_drivers_update(%s, %s)\n", scene->id.name, ma->id.name);
 	
 	/* Prevent infinite recursion by checking (and tagging the material) as having been visited already
-	 * (see BKE_scene_update_tagged()). This assumes ma->id.flag & LIB_DOIT isn't set by anything else
+	 * (see BKE_scene_update_tagged()). This assumes ma->id.tag & LIB_TAG_DOIT isn't set by anything else
 	 * in the meantime... [#32017]
 	 */
-	if (ma->id.flag & LIB_DOIT)
+	if (ma->id.tag & LIB_TAG_DOIT)
 		return;
 
-	ma->id.flag |= LIB_DOIT;
+	ma->id.tag |= LIB_TAG_DOIT;
 	
 	/* material itself */
 	if (ma->adt && ma->adt->drivers.first) {
@@ -1330,7 +1330,7 @@ void material_drivers_update(Scene *scene, Material *ma, float ctime)
 		material_node_drivers_update(scene, ma->nodetree, ctime);
 	}
 
-	ma->id.flag &= ~LIB_DOIT;
+	ma->id.tag &= ~LIB_TAG_DOIT;
 }
 
 bool object_remove_material_slot(Object *ob)

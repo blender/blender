@@ -123,10 +123,10 @@ static void update_depsgraph_flow_coll_object(DagForest *forest,
                                               Object *object2)
 {
 	SmokeModifierData *smd;
-	if ((object2->id.flag & LIB_DOIT) == 0) {
+	if ((object2->id.tag & LIB_TAG_DOIT) == 0) {
 		return;
 	}
-	object2->id.flag &= ~LIB_DOIT;
+	object2->id.tag &= ~LIB_TAG_DOIT;
 	smd = (SmokeModifierData *)modifiers_findByType(object2, eModifierType_Smoke);
 	if (smd && (((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow) ||
 	            ((smd->type & MOD_SMOKE_TYPE_COLL) && smd->coll)))
@@ -153,10 +153,10 @@ static void update_depsgraph_field_source_object(DagForest *forest,
                                                  Object *object,
                                                  Object *object2)
 {
-	if ((object2->id.flag & LIB_DOIT) == 0) {
+	if ((object2->id.tag & LIB_TAG_DOIT) == 0) {
 		return;
 	}
-	object2->id.flag &= ~LIB_DOIT;
+	object2->id.tag &= ~LIB_TAG_DOIT;
 	if (object2->pd && object2->pd->forcefield == PFIELD_SMOKEFLOW && object2->pd->f_source == object) {
 		DagNode *node2 = dag_get_node(forest, object2);
 		dag_add_relation(forest, obNode, node2, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Field Source Object");
@@ -233,10 +233,10 @@ static void update_depsgraph_flow_coll_object_new(struct DepsNodeHandle *node,
                                                   Object *object2)
 {
 	SmokeModifierData *smd;
-	if ((object2->id.flag & LIB_DOIT) == 0) {
+	if ((object2->id.tag & LIB_TAG_DOIT) == 0) {
 		return;
 	}
-	object2->id.flag &= ~LIB_DOIT;
+	object2->id.tag &= ~LIB_TAG_DOIT;
 	smd = (SmokeModifierData *)modifiers_findByType(object2, eModifierType_Smoke);
 	if (smd && (((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow) ||
 	            ((smd->type & MOD_SMOKE_TYPE_COLL) && smd->coll)))
@@ -262,10 +262,10 @@ static void update_depsgraph_field_source_object_new(struct DepsNodeHandle *node
                                                      Object *object,
                                                      Object *object2)
 {
-	if ((object2->id.flag & LIB_DOIT) == 0) {
+	if ((object2->id.tag & LIB_TAG_DOIT) == 0) {
 		return;
 	}
-	object2->id.flag &= ~LIB_DOIT;
+	object2->id.tag &= ~LIB_TAG_DOIT;
 	if (object2->pd && object2->pd->forcefield == PFIELD_SMOKEFLOW && object2->pd->f_source == object) {
 		DEG_add_object_relation(node, object2, DEG_OB_COMP_TRANSFORM, "Field Source Object");
 		DEG_add_object_relation(node, object2, DEG_OB_COMP_GEOMETRY, "Field Source Object");

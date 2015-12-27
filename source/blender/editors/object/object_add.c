@@ -1159,12 +1159,12 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* delete has to handle all open scenes */
-	BKE_main_id_flag_listbase(&bmain->scene, LIB_DOIT, 1);
+	BKE_main_id_flag_listbase(&bmain->scene, LIB_TAG_DOIT, 1);
 	for (win = wm->windows.first; win; win = win->next) {
 		scene = win->screen->scene;
 		
-		if (scene->id.flag & LIB_DOIT) {
-			scene->id.flag &= ~LIB_DOIT;
+		if (scene->id.tag & LIB_TAG_DOIT) {
+			scene->id.tag &= ~LIB_TAG_DOIT;
 			
 			DAG_relations_tag_update(bmain);
 
@@ -1545,7 +1545,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 			/* flag data thats not been edited (only needed for !keep_original) */
 			if (ob->data) {
-				((ID *)ob->data)->flag |= LIB_DOIT;
+				((ID *)ob->data)->tag |= LIB_TAG_DOIT;
 			}
 
 			/* possible metaball basis is not in this scene */
@@ -1791,7 +1791,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 		if (!keep_original && (ob->flag & OB_DONE)) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-			((ID *)ob->data)->flag &= ~LIB_DOIT; /* flag not to convert this datablock again */
+			((ID *)ob->data)->tag &= ~LIB_TAG_DOIT; /* flag not to convert this datablock again */
 		}
 	}
 	CTX_DATA_END;

@@ -232,12 +232,12 @@ static bool group_object_cyclic_check_internal(Object *object, Group *group)
 {
 	if (object->dup_group) {
 		Group *dup_group = object->dup_group;
-		if ((dup_group->id.flag & LIB_DOIT) == 0) {
+		if ((dup_group->id.tag & LIB_TAG_DOIT) == 0) {
 			/* Cycle already exists in groups, let's prevent further crappyness */
 			return true;
 		}
 		/* flag the object to identify cyclic dependencies in further dupli groups */
-		dup_group->id.flag &= ~LIB_DOIT;
+		dup_group->id.tag &= ~LIB_TAG_DOIT;
 
 		if (dup_group == group)
 			return true;
@@ -251,7 +251,7 @@ static bool group_object_cyclic_check_internal(Object *object, Group *group)
 		}
 
 		/* un-flag the object, it's allowed to have the same group multiple times in parallel */
-		dup_group->id.flag |= LIB_DOIT;
+		dup_group->id.tag |= LIB_TAG_DOIT;
 	}
 
 	return false;

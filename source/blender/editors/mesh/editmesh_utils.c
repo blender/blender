@@ -113,7 +113,7 @@ void EDBM_redo_state_free(BMBackup *backup, BMEditMesh *em, int recalctess)
  * see: [#31811] */
 void EDBM_mesh_ensure_valid_dm_hack(Scene *scene, BMEditMesh *em)
 {
-	if ((((ID *)em->ob->data)->flag & LIB_ID_RECALC) ||
+	if ((((ID *)em->ob->data)->tag & LIB_TAG_ID_RECALC) ||
 	    (em->ob->recalc & OB_RECALC_DATA))
 	{
 		/* since we may not have done selection flushing */

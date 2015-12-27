@@ -421,7 +421,7 @@ static bool bake_object_check(Object *ob, ReportList *reports)
 			return false;
 		}
 
-		image->id.flag |= LIB_DOIT;
+		image->id.tag |= LIB_TAG_DOIT;
 	}
 	return true;
 }
@@ -478,7 +478,7 @@ static void bake_images_clear(Main *bmain, const bool is_tangent)
 {
 	Image *image;
 	for (image = bmain->image.first; image; image = image->id.next) {
-		if ((image->id.flag & LIB_DOIT) != 0) {
+		if ((image->id.tag & LIB_TAG_DOIT) != 0) {
 			RE_bake_ibuf_clear(image, is_tangent);
 		}
 	}
@@ -497,7 +497,7 @@ static void build_image_lookup(Main *bmain, Object *ob, BakeImages *bake_images)
 		Image *image;
 		ED_object_get_active_image(ob, i + 1, &image, NULL, NULL, NULL);
 
-		if ((image->id.flag & LIB_DOIT)) {
+		if ((image->id.tag & LIB_TAG_DOIT)) {
 			for (j = 0; j < i; j++) {
 				if (bake_images->data[j].image == image) {
 					bake_images->lookup[i] = j;
@@ -508,7 +508,7 @@ static void build_image_lookup(Main *bmain, Object *ob, BakeImages *bake_images)
 		else {
 			bake_images->lookup[i] = tot_images;
 			bake_images->data[tot_images].image = image;
-			image->id.flag |= LIB_DOIT;
+			image->id.tag |= LIB_TAG_DOIT;
 			tot_images++;
 		}
 	}

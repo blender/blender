@@ -1539,11 +1539,11 @@ static void object_simplify_update(Object *ob)
 	ModifierData *md;
 	ParticleSystem *psys;
 
-	if ((ob->id.flag & LIB_DOIT) == 0) {
+	if ((ob->id.tag & LIB_TAG_DOIT) == 0) {
 		return;
 	}
 
-	ob->id.flag &= ~LIB_DOIT;
+	ob->id.tag &= ~LIB_TAG_DOIT;
 
 	for (md = ob->modifiers.first; md; md = md->next) {
 		if (ELEM(md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem)) {

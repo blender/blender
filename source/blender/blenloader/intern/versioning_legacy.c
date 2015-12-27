@@ -589,7 +589,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		/* tex->extend and tex->imageflag have changed: */
 		Tex *tex = main->tex.first;
 		while (tex) {
-			if (tex->id.flag & LIB_NEED_LINK) {
+			if (tex->id.tag & LIB_TAG_NEED_LINK) {
 
 				if (tex->extend == 0) {
 					if (tex->xrepeat || tex->yrepeat) {
@@ -3043,7 +3043,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				part->id.lib = ob->id.lib;
 
 				part->id.us--;
-				part->id.flag |= (ob->id.flag & LIB_NEED_LINK);
+				part->id.tag |= (ob->id.tag & LIB_TAG_NEED_LINK);
 
 				psys->totpart = 0;
 				psys->flag = PSYS_CURRENT;

@@ -1828,7 +1828,7 @@ static size_t animdata_filter_ds_linestyle(bAnimContext *ac, ListBase *anim_data
 	for (srl = sce->r.layers.first; srl; srl = srl->next) {
 		for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
 			if (lineset->linestyle) {
-				lineset->linestyle->id.flag |= LIB_DOIT;
+				lineset->linestyle->id.tag |= LIB_TAG_DOIT;
 			}
 		}
 	}
@@ -1845,11 +1845,11 @@ static size_t animdata_filter_ds_linestyle(bAnimContext *ac, ListBase *anim_data
 			size_t tmp_items = 0;
 
 			if ((linestyle == NULL) ||
-			    !(linestyle->id.flag & LIB_DOIT))
+			    !(linestyle->id.tag & LIB_TAG_DOIT))
 			{
 				continue;
 			}
-			linestyle->id.flag &= ~LIB_DOIT;
+			linestyle->id.tag &= ~LIB_TAG_DOIT;
 			
 			/* add scene-level animation channels */
 			BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_LS_SCED(linestyle))

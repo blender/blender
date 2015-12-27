@@ -963,12 +963,12 @@ Main *BKE_undo_get_main(Scene **r_scene)
 void BKE_copybuffer_begin(Main *bmain)
 {
 	/* set all id flags to zero; */
-	BKE_main_id_flag_all(bmain, LIB_NEED_EXPAND | LIB_DOIT, false);
+	BKE_main_id_flag_all(bmain, LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT, false);
 }
 
 void BKE_copybuffer_tag_ID(ID *id)
 {
-	id->flag |= LIB_NEED_EXPAND | LIB_DOIT;
+	id->tag |= LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT;
 }
 
 static void copybuffer_doit(void *UNUSED(handle), Main *UNUSED(bmain), void *vid)
@@ -976,8 +976,8 @@ static void copybuffer_doit(void *UNUSED(handle), Main *UNUSED(bmain), void *vid
 	if (vid) {
 		ID *id = vid;
 		/* only tag for need-expand if not done, prevents eternal loops */
-		if ((id->flag & LIB_DOIT) == 0)
-			id->flag |= LIB_NEED_EXPAND | LIB_DOIT;
+		if ((id->tag & LIB_TAG_DOIT) == 0)
+			id->tag |= LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT;
 	}
 }
 
@@ -1006,7 +1006,7 @@ int BKE_copybuffer_save(const char *filename, ReportList *reports)
 		
 		for (id = lb2->first; id; id = nextid) {
 			nextid = id->next;
-			if (id->flag & LIB_DOIT) {
+			if (id->tag & LIB_TAG_DOIT) {
 				BLI_remlink(lb2, id);
 				BLI_addtail(lb1, id);
 			}
@@ -1033,7 +1033,7 @@ int BKE_copybuffer_save(const char *filename, ReportList *reports)
 	MEM_freeN(mainb);
 	
 	/* set id flag to zero; */
-	BKE_main_id_flag_all(G.main, LIB_NEED_EXPAND | LIB_DOIT, false);
+	BKE_main_id_flag_all(G.main, LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT, false);
 	
 	if (path_list_backup) {
 		BKE_bpath_list_restore(G.main, path_list_flag, path_list_backup);
@@ -1064,8 +1064,8 @@ int BKE_copybuffer_paste(bContext *C, const char *libname, ReportList *reports)
 	/* tag everything, all untagged data can be made local
 	 * its also generally useful to know what is new
 	 *
-	 * take extra care BKE_main_id_flag_all(bmain, LIB_LINK_TAG, false) is called after! */
-	BKE_main_id_flag_all(bmain, LIB_PRE_EXISTING, true);
+	 * take extra care BKE_main_id_flag_all(bmain, LIB_TAG_PRE_EXISTING, false) is called after! */
+	BKE_main_id_flag_all(bmain, LIB_TAG_PRE_EXISTING, true);
 	
 	/* here appending/linking starts */
 	mainl = BLO_library_link_begin(bmain, &bh, libname);
@@ -1084,7 +1084,7 @@ int BKE_copybuffer_paste(bContext *C, const char *libname, ReportList *reports)
 	
 	/* important we unset, otherwise these object wont
 	 * link into other scenes from this blend file */
-	BKE_main_id_flag_all(bmain, LIB_PRE_EXISTING, false);
+	BKE_main_id_flag_all(bmain, LIB_TAG_PRE_EXISTING, false);
 	
 	/* recreate dependency graph to include new objects */
 	DAG_relations_tag_update(bmain);

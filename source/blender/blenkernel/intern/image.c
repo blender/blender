@@ -1136,14 +1136,14 @@ void BKE_image_free_all_textures(void)
 #endif
 
 	for (ima = G.main->image.first; ima; ima = ima->id.next)
-		ima->id.flag &= ~LIB_DOIT;
+		ima->id.tag &= ~LIB_TAG_DOIT;
 
 	for (tex = G.main->tex.first; tex; tex = tex->id.next)
 		if (tex->ima)
-			tex->ima->id.flag |= LIB_DOIT;
+			tex->ima->id.tag |= LIB_TAG_DOIT;
 
 	for (ima = G.main->image.first; ima; ima = ima->id.next) {
-		if (ima->cache && (ima->id.flag & LIB_DOIT)) {
+		if (ima->cache && (ima->id.tag & LIB_TAG_DOIT)) {
 #ifdef CHECK_FREED_SIZE
 			uintptr_t old_size = image_mem_size(ima);
 #endif

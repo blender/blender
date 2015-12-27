@@ -198,7 +198,7 @@ Object *bc_get_assigned_armature(Object *ob)
 // returns NULL if no ancestor is selected
 // IMPORTANT: This function expects that
 // all exported objects have set:
-// ob->id.flag & LIB_DOIT
+// ob->id.tag & LIB_TAG_DOIT
 Object *bc_get_highest_selected_ancestor_or_self(LinkNode *export_set, Object *ob) 
 {
 	Object *ancestor = ob;
@@ -237,17 +237,17 @@ bool bc_has_object_type(LinkNode *export_set, short obtype)
 
 int bc_is_marked(Object *ob)
 {
-	return ob && (ob->id.flag & LIB_DOIT);
+	return ob && (ob->id.tag & LIB_TAG_DOIT);
 }
 
 void bc_remove_mark(Object *ob)
 {
-	ob->id.flag &= ~LIB_DOIT;
+	ob->id.tag &= ~LIB_TAG_DOIT;
 }
 
 void bc_set_mark(Object *ob)
 {
-	ob->id.flag |= LIB_DOIT;
+	ob->id.tag |= LIB_TAG_DOIT;
 }
 
 // Use bubble sort algorithm for sorting the export set

@@ -206,7 +206,7 @@ static void deg_graph_build_finalize(Depsgraph *graph)
 			stack.push(node);
 		}
 		IDDepsNode *id_node = node->owner->owner;
-		id_node->id->flag |= LIB_DOIT;
+		id_node->id->tag |= LIB_TAG_DOIT;
 	}
 
 	while (!stack.empty()) {
@@ -249,11 +249,11 @@ static void deg_graph_build_finalize(Depsgraph *graph)
 			 * update tag.
 			 */
 			ID *id = id_node->id;
-			if (id->flag & LIB_ID_RECALC_ALL &&
-			    id->flag & LIB_DOIT)
+			if (id->tag & LIB_TAG_ID_RECALC_ALL &&
+			    id->tag & LIB_TAG_DOIT)
 			{
 				id_node->tag_update(graph);
-				id->flag &= ~LIB_DOIT;
+				id->tag &= ~LIB_TAG_DOIT;
 			}
 		}
 	}

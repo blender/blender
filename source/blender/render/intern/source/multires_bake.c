@@ -1189,20 +1189,20 @@ static void count_images(MultiresBakeRender *bkr)
 	totpoly = dm->getNumPolys(dm);
 
 	for (a = 0; a < totpoly; a++)
-		mtexpoly[a].tpage->id.flag &= ~LIB_DOIT;
+		mtexpoly[a].tpage->id.tag &= ~LIB_TAG_DOIT;
 
 	for (a = 0; a < totpoly; a++) {
 		Image *ima = mtexpoly[a].tpage;
-		if ((ima->id.flag & LIB_DOIT) == 0) {
+		if ((ima->id.tag & LIB_TAG_DOIT) == 0) {
 			LinkData *data = BLI_genericNodeN(ima);
 			BLI_addtail(&bkr->image, data);
 			bkr->tot_image++;
-			ima->id.flag |= LIB_DOIT;
+			ima->id.tag |= LIB_TAG_DOIT;
 		}
 	}
 
 	for (a = 0; a < totpoly; a++)
-		mtexpoly[a].tpage->id.flag &= ~LIB_DOIT;
+		mtexpoly[a].tpage->id.tag &= ~LIB_TAG_DOIT;
 }
 
 static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
@@ -1234,7 +1234,7 @@ static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 
 		BKE_image_release_ibuf(ima, ibuf, NULL);
 
-		ima->id.flag |= LIB_DOIT;
+		ima->id.tag |= LIB_TAG_DOIT;
 	}
 }
 

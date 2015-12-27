@@ -317,7 +317,7 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, const string &name)
 	if (!id_node) {
 		DepsNodeFactory *factory = DEG_get_node_factory(DEPSNODE_TYPE_ID_REF);
 		id_node = (IDDepsNode *)factory->create_node(id, "", name);
-		id->flag |= LIB_DOIT;
+		id->tag |= LIB_TAG_DOIT;
 		/* register */
 		this->id_hash[id] = id_node;
 	}

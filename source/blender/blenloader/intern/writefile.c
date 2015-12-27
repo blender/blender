@@ -2897,7 +2897,7 @@ static void write_libraries(WriteData *wd, Main *main)
 			found_one = false;
 			while (tot--) {
 				for (id= lbarray[tot]->first; id; id= id->next) {
-					if (id->us>0 && (id->flag & LIB_EXTERN)) {
+					if (id->us > 0 && (id->tag & LIB_TAG_EXTERN)) {
 						found_one = true;
 						break;
 					}
@@ -2922,7 +2922,7 @@ static void write_libraries(WriteData *wd, Main *main)
 			
 			while (a--) {
 				for (id= lbarray[a]->first; id; id= id->next) {
-					if (id->us>0 && (id->flag & LIB_EXTERN)) {
+					if (id->us > 0 && (id->tag & LIB_TAG_EXTERN)) {
 						if (!BKE_idcode_is_linkable(GS(id->name))) {
 							printf("ERROR: write file: datablock '%s' from lib '%s' is not linkable "
 							       "but is flagged as directly linked", id->name, main->curlib->filepath);

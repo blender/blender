@@ -1438,18 +1438,18 @@ RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene *kx_scene,
 		/* ensure all materials are tagged */
 		for (int i = 0; i < mesh->totcol; i++) {
 			if (mesh->mat[i])
-				mesh->mat[i]->id.flag &= ~LIB_DOIT;
+				mesh->mat[i]->id.tag &= ~LIB_TAG_DOIT;
 		}
 
 		for (int i = 0; i < mesh->totcol; i++) {
 			Material *mat_old = mesh->mat[i];
 
 			/* if its tagged its a replaced material */
-			if (mat_old && (mat_old->id.flag & LIB_DOIT) == 0) {
+			if (mat_old && (mat_old->id.tag & LIB_TAG_DOIT) == 0) {
 				Material *mat_old = mesh->mat[i];
 				Material *mat_new = BKE_material_copy(mat_old);
 
-				mat_new->id.flag |= LIB_DOIT;
+				mat_new->id.tag |= LIB_TAG_DOIT;
 				id_us_min(&mat_old->id);
 
 				BLI_remlink(&G.main->mat, mat_new); // BKE_material_copy uses G.main, and there is no BKE_material_copy_ex

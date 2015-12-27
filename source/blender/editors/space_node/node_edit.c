@@ -1317,15 +1317,15 @@ static int node_read_renderlayers_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* first tag scenes unread */
 	for (scene = bmain->scene.first; scene; scene = scene->id.next)
-		scene->id.flag |= LIB_DOIT;
+		scene->id.tag |= LIB_TAG_DOIT;
 
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (node->type == CMP_NODE_R_LAYERS) {
 			ID *id = node->id;
-			if (id->flag & LIB_DOIT) {
+			if (id->tag & LIB_TAG_DOIT) {
 				RE_ReadRenderResult(curscene, (Scene *)id);
 				ntreeCompositTagRender((Scene *)id);
-				id->flag &= ~LIB_DOIT;
+				id->tag &= ~LIB_TAG_DOIT;
 			}
 		}
 	}

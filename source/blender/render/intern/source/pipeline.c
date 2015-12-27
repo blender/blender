@@ -2013,7 +2013,7 @@ static void tag_scenes_for_render(Render *re)
 #endif
 	
 	for (sce = re->main->scene.first; sce; sce = sce->id.next) {
-		sce->id.flag &= ~LIB_DOIT;
+		sce->id.tag &= ~LIB_TAG_DOIT;
 #ifdef DEPSGRAPH_WORKAROUND_HACK
 		tag_dependend_objects_for_render(sce, renderlay);
 #endif
@@ -2022,7 +2022,7 @@ static void tag_scenes_for_render(Render *re)
 #ifdef WITH_FREESTYLE
 	if (re->freestyle_bmain) {
 		for (sce = re->freestyle_bmain->scene.first; sce; sce = sce->id.next) {
-			sce->id.flag &= ~LIB_DOIT;
+			sce->id.tag &= ~LIB_TAG_DOIT;
 #ifdef DEPSGRAPH_WORKAROUND_HACK
 			tag_dependend_objects_for_render(sce, renderlay);
 #endif
@@ -2031,7 +2031,7 @@ static void tag_scenes_for_render(Render *re)
 #endif
 
 	if (RE_GetCamera(re) && composite_needs_render(re->scene, 1)) {
-		re->scene->id.flag |= LIB_DOIT;
+		re->scene->id.tag |= LIB_TAG_DOIT;
 #ifdef DEPSGRAPH_WORKAROUND_HACK
 		tag_dependend_objects_for_render(re->scene, renderlay);
 #endif
@@ -2039,7 +2039,7 @@ static void tag_scenes_for_render(Render *re)
 	
 	if (re->scene->nodetree == NULL) return;
 	
-	/* check for render-layers nodes using other scenes, we tag them LIB_DOIT */
+	/* check for render-layers nodes using other scenes, we tag them LIB_TAG_DOIT */
 	for (node = re->scene->nodetree->nodes.first; node; node = node->next) {
 		node->flag &= ~NODE_TEST;
 		if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
@@ -2060,11 +2060,11 @@ static void tag_scenes_for_render(Render *re)
 				}
 
 				if (node->id != (ID *)re->scene) {
-					if ((node->id->flag & LIB_DOIT) == 0) {
+					if ((node->id->tag & LIB_TAG_DOIT) == 0) {
 						Scene *scene = (Scene *) node->id;
 						if (render_scene_has_layers_to_render(scene)) {
 							node->flag |= NODE_TEST;
-							node->id->flag |= LIB_DOIT;
+							node->id->tag |= LIB_TAG_DOIT;
 #ifdef DEPSGRAPH_WORKAROUND_HACK
 							tag_dependend_objects_for_render(scene, renderlay);
 #endif
@@ -2283,7 +2283,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			
 		tag_scenes_for_render(re);
 		for (sce = re->main->scene.first; sce; sce = sce->id.next) {
-			if (sce->id.flag & LIB_DOIT) {
+			if (sce->id.tag & LIB_TAG_DOIT) {
 				re1 = RE_GetRender(sce->id.name);
 
 				if (re1 && (re1->r.scemode & R_FULL_SAMPLE)) {
@@ -2408,12 +2408,12 @@ void RE_MergeFullSample(Render *re, Main *bmain, Scene *sce, bNodeTree *ntree)
 	
 	/* tag scenes unread */
 	for (scene = re->main->scene.first; scene; scene = scene->id.next)
-		scene->id.flag |= LIB_DOIT;
+		scene->id.tag |= LIB_TAG_DOIT;
 	
 #ifdef WITH_FREESTYLE
 	if (re->freestyle_bmain) {
 		for (scene = re->freestyle_bmain->scene.first; scene; scene = scene->id.next)
-			scene->id.flag &= ~LIB_DOIT;
+			scene->id.tag &= ~LIB_TAG_DOIT;
 	}
 #endif
 
@@ -2422,18 +2422,18 @@ void RE_MergeFullSample(Render *re, Main *bmain, Scene *sce, bNodeTree *ntree)
 			Scene *nodescene = (Scene *)node->id;
 			
 			if (nodescene == NULL) nodescene = sce;
-			if (nodescene->id.flag & LIB_DOIT) {
+			if (nodescene->id.tag & LIB_TAG_DOIT) {
 				nodescene->r.mode |= R_OSA; /* render struct needs tables */
 				RE_ReadRenderResult(sce, nodescene);
-				nodescene->id.flag &= ~LIB_DOIT;
+				nodescene->id.tag &= ~LIB_TAG_DOIT;
 			}
 		}
 	}
 	
 	/* own render result should be read/allocated */
-	if (re->scene->id.flag & LIB_DOIT) {
+	if (re->scene->id.tag & LIB_TAG_DOIT) {
 		RE_ReadRenderResult(re->scene, re->scene);
-		re->scene->id.flag &= ~LIB_DOIT;
+		re->scene->id.tag &= ~LIB_TAG_DOIT;
 	}
 	
 	/* and now we can draw (result is there) */

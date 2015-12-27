@@ -768,9 +768,9 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 	for (tob = bmain->object.first; tob; tob = tob->id.next) {
 		if (tob->data)
-			((ID *)tob->data)->flag &= ~LIB_DOIT;
+			((ID *)tob->data)->tag &= ~LIB_TAG_DOIT;
 		if (tob->dup_group)
-			((ID *)tob->dup_group)->flag &= ~LIB_DOIT;
+			((ID *)tob->dup_group)->tag &= ~LIB_TAG_DOIT;
 	}
 
 	for (ctx_ob = ctx_data_list.first;
@@ -791,7 +791,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			
 			if (ob->data == NULL) {
 				/* special support for dupligroups */
-				if ((ob->transflag & OB_DUPLIGROUP) && ob->dup_group && (ob->dup_group->id.flag & LIB_DOIT) == 0) {
+				if ((ob->transflag & OB_DUPLIGROUP) && ob->dup_group && (ob->dup_group->id.tag & LIB_TAG_DOIT) == 0) {
 					if (ob->dup_group->id.lib) {
 						tot_lib_error++;
 					}
@@ -812,7 +812,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						add_v3_v3(ob->dup_group->dupli_ofs, cent);
 
 						tot_change++;
-						ob->dup_group->id.flag |= LIB_DOIT;
+						ob->dup_group->id.tag |= LIB_TAG_DOIT;
 						do_inverse_offset = true;
 					}
 				}
@@ -833,7 +833,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				BKE_mesh_translate(me, cent_neg, 1);
 
 				tot_change++;
-				me->id.flag |= LIB_DOIT;
+				me->id.tag |= LIB_TAG_DOIT;
 				do_inverse_offset = true;
 			}
 			else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
@@ -851,7 +851,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				BKE_curve_translate(cu, cent_neg, 1);
 
 				tot_change++;
-				cu->id.flag |= LIB_DOIT;
+				cu->id.tag |= LIB_TAG_DOIT;
 				do_inverse_offset = true;
 
 				if (obedit) {
@@ -885,7 +885,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					cu->yof = cu->yof - (cent[1] / cu->fsize);
 
 					tot_change++;
-					cu->id.flag |= LIB_DOIT;
+					cu->id.tag |= LIB_TAG_DOIT;
 					do_inverse_offset = true;
 				}
 			}
@@ -906,7 +906,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					ED_armature_origin_set(scene, ob, cursor, centermode, around);
 
 					tot_change++;
-					arm->id.flag |= LIB_DOIT;
+					arm->id.tag |= LIB_TAG_DOIT;
 					/* do_inverse_offset = true; */ /* docenter_armature() handles this */
 
 					BKE_object_where_is_calc(scene, ob);
@@ -929,7 +929,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				BKE_mball_translate(mb, cent_neg);
 
 				tot_change++;
-				mb->id.flag |= LIB_DOIT;
+				mb->id.tag |= LIB_TAG_DOIT;
 				do_inverse_offset = true;
 
 				if (obedit) {
@@ -950,7 +950,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				BKE_lattice_translate(lt, cent_neg, 1);
 
 				tot_change++;
-				lt->id.flag |= LIB_DOIT;
+				lt->id.tag |= LIB_TAG_DOIT;
 				do_inverse_offset = true;
 			}
 
@@ -1011,7 +1011,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	BLI_freelistN(&ctx_data_list);
 
 	for (tob = bmain->object.first; tob; tob = tob->id.next)
-		if (tob->data && (((ID *)tob->data)->flag & LIB_DOIT))
+		if (tob->data && (((ID *)tob->data)->tag & LIB_TAG_DOIT))
 			DAG_id_tag_update(&tob->id, OB_RECALC_OB | OB_RECALC_DATA);
 
 	if (tot_change) {

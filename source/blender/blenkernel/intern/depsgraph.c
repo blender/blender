@@ -398,13 +398,13 @@ static void dag_add_shader_nodetree_driver_relations(DagForest *dag, DagNode *no
 static void dag_add_material_driver_relations(DagForest *dag, DagNode *node, Material *ma)
 {
 	/* Prevent infinite recursion by checking (and tagging the material) as having been visited 
-	 * already (see build_dag()). This assumes ma->id.flag & LIB_DOIT isn't set by anything else
+	 * already (see build_dag()). This assumes ma->id.tag & LIB_TAG_DOIT isn't set by anything else
 	 * in the meantime... [#32017]
 	 */
-	if (ma->id.flag & LIB_DOIT)
+	if (ma->id.tag & LIB_TAG_DOIT)
 		return;
 
-	ma->id.flag |= LIB_DOIT;
+	ma->id.tag |= LIB_TAG_DOIT;
 	
 	/* material itself */
 	if (ma->adt)
@@ -418,20 +418,20 @@ static void dag_add_material_driver_relations(DagForest *dag, DagNode *node, Mat
 	if (ma->nodetree)
 		dag_add_shader_nodetree_driver_relations(dag, node, ma->nodetree);
 
-	ma->id.flag &= ~LIB_DOIT;
+	ma->id.tag &= ~LIB_TAG_DOIT;
 }
 
 /* recursive handling for lamp drivers */
 static void dag_add_lamp_driver_relations(DagForest *dag, DagNode *node, Lamp *la)
 {
 	/* Prevent infinite recursion by checking (and tagging the lamp) as having been visited 
-	 * already (see build_dag()). This assumes la->id.flag & LIB_DOIT isn't set by anything else
+	 * already (see build_dag()). This assumes la->id.tag & LIB_TAG_DOIT isn't set by anything else
 	 * in the meantime... [#32017]
 	 */
-	if (la->id.flag & LIB_DOIT)
+	if (la->id.tag & LIB_TAG_DOIT)
 		return;
 
-	la->id.flag |= LIB_DOIT;
+	la->id.tag |= LIB_TAG_DOIT;
 	
 	/* lamp itself */
 	if (la->adt)
@@ -445,7 +445,7 @@ static void dag_add_lamp_driver_relations(DagForest *dag, DagNode *node, Lamp *l
 	if (la->nodetree)
 		dag_add_shader_nodetree_driver_relations(dag, node, la->nodetree);
 
-	la->id.flag &= ~LIB_DOIT;
+	la->id.tag &= ~LIB_TAG_DOIT;
 }
 
 static void check_and_create_collision_relation(DagForest *dag, Object *ob, DagNode *node, Object *ob1, int skip_forcefield, bool no_collision)
@@ -903,10 +903,10 @@ static void build_dag_group(DagForest *dag, DagNode *scenenode, Main *bmain, Sce
 {
 	GroupObject *go;
 
-	if (group->id.flag & LIB_DOIT)
+	if (group->id.tag & LIB_TAG_DOIT)
 		return;
 	
-	group->id.flag |= LIB_DOIT;
+	group->id.tag |= LIB_TAG_DOIT;
 
 	for (go = group->gobject.first; go; go = go->next) {
 		build_dag_object(dag, scenenode, bmain, scene, go->ob, mask);
@@ -932,7 +932,7 @@ DagForest *build_dag(Main *bmain, Scene *sce, short mask)
 		sce->theDag = dag;
 	}
 	
-	/* clear "LIB_DOIT" flag from all materials, to prevent infinite recursion problems later [#32017] */
+	/* clear "LIB_TAG_DOIT" flag from all materials, to prevent infinite recursion problems later [#32017] */
 	BKE_main_id_tag_idcode(bmain, ID_MA, false);
 	BKE_main_id_tag_idcode(bmain, ID_LA, false);
 	BKE_main_id_tag_idcode(bmain, ID_GR, false);
@@ -1402,15 +1402,15 @@ static void scene_sort_groups(Main *bmain, Scene *sce)
 	
 	/* test; are group objects all in this scene? */
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
-		ob->id.flag &= ~LIB_DOIT;
+		ob->id.tag &= ~LIB_TAG_DOIT;
 		ob->id.newid = NULL; /* newid abuse for GroupObject */
 	}
 	for (base = sce->base.first; base; base = base->next)
-		base->object->id.flag |= LIB_DOIT;
+		base->object->id.tag |= LIB_TAG_DOIT;
 	
 	for (group = bmain->group.first; group; group = group->id.next) {
 		for (go = group->gobject.first; go; go = go->next) {
-			if ((go->ob->id.flag & LIB_DOIT) == 0)
+			if ((go->ob->id.tag & LIB_TAG_DOIT) == 0)
 				break;
 		}
 		/* this group is entirely in this scene */
@@ -1481,7 +1481,7 @@ static bool check_object_tagged_for_update(Object *object)
 
 	if (ELEM(object->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
 		ID *data_id = object->data;
-		return (data_id->flag & (LIB_ID_RECALC_DATA | LIB_ID_RECALC)) != 0;
+		return (data_id->tag & (LIB_TAG_ID_RECALC_DATA | LIB_TAG_ID_RECALC)) != 0;
 	}
 
 	return false;
@@ -1729,13 +1729,13 @@ void DAG_scene_free(Scene *sce)
 
 static void lib_id_recalc_tag(Main *bmain, ID *id)
 {
-	id->flag |= LIB_ID_RECALC;
+	id->tag |= LIB_TAG_ID_RECALC;
 	DAG_id_type_tag(bmain, GS(id->name));
 }
 
 static void lib_id_recalc_data_tag(Main *bmain, ID *id)
 {
-	id->flag |= LIB_ID_RECALC_DATA;
+	id->tag |= LIB_TAG_ID_RECALC_DATA;
 	DAG_id_type_tag(bmain, GS(id->name));
 }
 
@@ -2262,10 +2262,10 @@ static void dag_group_update_flags(Main *bmain, Scene *scene, Group *group, cons
 {
 	GroupObject *go;
 
-	if (group->id.flag & LIB_DOIT)
+	if (group->id.tag & LIB_TAG_DOIT)
 		return;
 	
-	group->id.flag |= LIB_DOIT;
+	group->id.tag |= LIB_TAG_DOIT;
 
 	for (go = group->gobject.first; go; go = go->next) {
 		if (do_time)
@@ -2301,7 +2301,7 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const b
 			dag_object_time_update_flags(bmain, sce_iter, ob);
 		}
 
-		/* recursively tag groups with LIB_DOIT, and update flags for objects */
+		/* recursively tag groups with LIB_TAG_DOIT, and update flags for objects */
 		if (ob->dup_group)
 			dag_group_update_flags(bmain, scene, ob->dup_group, do_time);
 	}
@@ -2324,12 +2324,12 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const b
 
 	/* and store the info in groupobject */
 	for (group = bmain->group.first; group; group = group->id.next) {
-		if (group->id.flag & LIB_DOIT) {
+		if (group->id.tag & LIB_TAG_DOIT) {
 			for (go = group->gobject.first; go; go = go->next) {
 				go->recalc = go->ob->recalc;
 				// printf("ob %s recalc %d\n", go->ob->id.name, go->recalc);
 			}
-			group->id.flag &= ~LIB_DOIT;
+			group->id.tag &= ~LIB_TAG_DOIT;
 		}
 	}
 
@@ -2356,14 +2356,14 @@ static void dag_current_scene_layers(Main *bmain, ListBase *lb)
 	/* if we have a windowmanager, look into windows */
 	if ((wm = bmain->wm.first)) {
 		
-		BKE_main_id_flag_listbase(&bmain->scene, LIB_DOIT, 1);
+		BKE_main_id_flag_listbase(&bmain->scene, LIB_TAG_DOIT, 1);
 
 		for (win = wm->windows.first; win; win = win->next) {
 			if (win->screen && win->screen->scene->theDag) {
 				Scene *scene = win->screen->scene;
 				DagSceneLayer *dsl;
 
-				if (scene->id.flag & LIB_DOIT) {
+				if (scene->id.tag & LIB_TAG_DOIT) {
 					dsl = MEM_mallocN(sizeof(DagSceneLayer), "dag scene layer");
 
 					BLI_addtail(lb, dsl);
@@ -2371,7 +2371,7 @@ static void dag_current_scene_layers(Main *bmain, ListBase *lb)
 					dsl->scene = scene;
 					dsl->layer = BKE_screen_visible_layers(win->screen, scene);
 
-					scene->id.flag &= ~LIB_DOIT;
+					scene->id.tag &= ~LIB_TAG_DOIT;
 				}
 				else {
 					/* It is possible that multiple windows shares the same scene
@@ -2413,20 +2413,20 @@ static void dag_group_on_visible_update(Scene *scene, Group *group)
 {
 	GroupObject *go;
 
-	if (group->id.flag & LIB_DOIT)
+	if (group->id.tag & LIB_TAG_DOIT)
 		return;
 	
-	group->id.flag |= LIB_DOIT;
+	group->id.tag |= LIB_TAG_DOIT;
 
 	for (go = group->gobject.first; go; go = go->next) {
 		if (ELEM(go->ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
 			go->ob->recalc |= OB_RECALC_DATA;
-			go->ob->id.flag |= LIB_DOIT;
+			go->ob->id.tag |= LIB_TAG_DOIT;
 			lib_id_recalc_tag(G.main, &go->ob->id);
 		}
 		if (go->ob->proxy_from) {
 			go->ob->recalc |= OB_RECALC_OB;
-			go->ob->id.flag |= LIB_DOIT;
+			go->ob->id.tag |= LIB_TAG_DOIT;
 			lib_id_recalc_tag(G.main, &go->ob->id);
 		}
 
@@ -2749,7 +2749,7 @@ void DAG_ids_flush_tagged(Main *bmain)
 		 * looping over all ID's in case there are no tags */
 		if (id && bmain->id_tag_update[id->name[0]]) {
 			for (; id; id = id->next) {
-				if (id->flag & (LIB_ID_RECALC | LIB_ID_RECALC_DATA)) {
+				if (id->tag & (LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA)) {
 					
 					for (dsl = listbase.first; dsl; dsl = dsl->next)
 						dag_id_flush_update(bmain, dsl->scene, id);
@@ -2874,13 +2874,13 @@ void DAG_ids_clear_recalc(Main *bmain)
 		 * looping over all ID's in case there are no tags */
 		if (id && bmain->id_tag_update[id->name[0]]) {
 			for (; id; id = id->next) {
-				if (id->flag & (LIB_ID_RECALC | LIB_ID_RECALC_DATA))
-					id->flag &= ~(LIB_ID_RECALC | LIB_ID_RECALC_DATA);
+				if (id->tag & (LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA))
+					id->tag &= ~(LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA);
 
 				/* some ID's contain semi-datablock nodetree */
 				ntree = ntreeFromID(id);
-				if (ntree && (ntree->id.flag & (LIB_ID_RECALC | LIB_ID_RECALC_DATA)))
-					ntree->id.flag &= ~(LIB_ID_RECALC | LIB_ID_RECALC_DATA);
+				if (ntree && (ntree->id.tag & (LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA)))
+					ntree->id.tag &= ~(LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA);
 			}
 		}
 	}

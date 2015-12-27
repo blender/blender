@@ -265,12 +265,12 @@ static void lamp_node_drivers_update(Scene *scene, bNodeTree *ntree, float ctime
 void lamp_drivers_update(Scene *scene, Lamp *la, float ctime)
 {
 	/* Prevent infinite recursion by checking (and tagging the lamp) as having been visited already
-	 * (see BKE_scene_update_tagged()). This assumes la->id.flag & LIB_DOIT isn't set by anything else
+	 * (see BKE_scene_update_tagged()). This assumes la->id.tag & LIB_TAG_DOIT isn't set by anything else
 	 * in the meantime... [#32017] */
-	if (la->id.flag & LIB_DOIT)
+	if (la->id.tag & LIB_TAG_DOIT)
 		return;
 
-	la->id.flag |= LIB_DOIT;
+	la->id.tag |= LIB_TAG_DOIT;
 	
 	/* lamp itself */
 	if (la->adt && la->adt->drivers.first)
@@ -280,6 +280,6 @@ void lamp_drivers_update(Scene *scene, Lamp *la, float ctime)
 	if (la->nodetree)
 		lamp_node_drivers_update(scene, la->nodetree, ctime);
 
-	la->id.flag &= ~LIB_DOIT;
+	la->id.tag &= ~LIB_TAG_DOIT;
 }
 

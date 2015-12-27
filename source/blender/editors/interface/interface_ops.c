@@ -358,7 +358,7 @@ bool UI_context_copy_to_selected_list(
 					Object *ob = link->ptr.id.data;
 					if (ob->data) {
 						ID *id_data = ob->data;
-						id_data->flag |= LIB_DOIT;
+						id_data->tag |= LIB_TAG_DOIT;
 					}
 				}
 
@@ -368,7 +368,7 @@ bool UI_context_copy_to_selected_list(
 					link_next = link->next;
 
 					if ((id_data == NULL) ||
-					    (id_data->flag & LIB_DOIT) == 0 ||
+					    (id_data->tag & LIB_TAG_DOIT) == 0 ||
 					    (id_data->lib) ||
 					    (GS(id_data->name) != id_code))
 					{
@@ -381,7 +381,7 @@ bool UI_context_copy_to_selected_list(
 					}
 
 					if (id_data) {
-						id_data->flag &= ~LIB_DOIT;
+						id_data->tag &= ~LIB_TAG_DOIT;
 					}
 				}
 			}

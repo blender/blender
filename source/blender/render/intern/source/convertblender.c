@@ -3956,7 +3956,7 @@ static void add_lightgroup(Render *re, Group *group, int exclusive)
 {
 	GroupObject *go, *gol;
 	
-	group->id.flag &= ~LIB_DOIT;
+	group->id.tag &= ~LIB_TAG_DOIT;
 
 	/* it's a bit too many loops in loops... but will survive */
 	/* note that 'exclusive' will remove it from the global list */
@@ -3995,12 +3995,12 @@ static void set_material_lightgroups(Render *re)
 		return;
 	
 	for (group= re->main->group.first; group; group=group->id.next)
-		group->id.flag |= LIB_DOIT;
+		group->id.tag |= LIB_TAG_DOIT;
 	
 	/* it's a bit too many loops in loops... but will survive */
 	/* hola! materials not in use...? */
 	for (ma= re->main->mat.first; ma; ma=ma->id.next) {
-		if (ma->group && (ma->group->id.flag & LIB_DOIT))
+		if (ma->group && (ma->group->id.tag & LIB_TAG_DOIT))
 			add_lightgroup(re, ma->group, ma->mode & MA_GROUP_NOLAY);
 	}
 }

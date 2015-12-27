@@ -123,12 +123,16 @@ typedef struct ID {
 	struct Library *lib;
 	char name[66]; /* MAX_ID_NAME */
 	/**
-	 * LIB_... flags report on status of the datablock this ID belongs
-	 * to.
+	 * LIB_... flags report on status of the datablock this ID belongs to (persistent, saved to and read from .blend).
 	 */
 	short flag;
+	/**
+	 * LIB_TAG_... tags (runtime only, cleared at read time).
+	 */
+	short tag;
+	short pad_s1;
 	int us;
-	int icon_id, pad2;
+	int icon_id;
 	IDProperty *properties;
 } ID;
 
@@ -261,7 +265,7 @@ typedef struct PreviewImage {
 
 #define ID_BLEND_PATH(_bmain, _id) ((_id)->lib ? (_id)->lib->filepath : (_bmain)->name)
 
-#define ID_MISSING(_id) (((_id)->flag & LIB_MISSING) != 0)
+#define ID_MISSING(_id) (((_id)->tag & LIB_TAG_MISSING) != 0)
 
 #ifdef GS
 #  undef GS
@@ -272,31 +276,56 @@ typedef struct PreviewImage {
 #define ID_NEW_US(a)	if (      (a)->id.newid)       { (a) = (void *)(a)->id.newid;       (a)->id.us++; }
 #define ID_NEW_US2(a)	if (((ID *)a)->newid)          { (a) = ((ID  *)a)->newid;     ((ID *)a)->us++;    }
 
-/* id->flag: set first 8 bits always at zero while reading */
+/* id->flag (persitent). */
 enum {
-	LIB_LOCAL           = 0,
-	LIB_EXTERN          = 1 << 0,
-	LIB_INDIRECT        = 1 << 1,
-	LIB_NEED_EXPAND     = 1 << 3,
-	LIB_TESTEXT         = (LIB_NEED_EXPAND | LIB_EXTERN),
-	LIB_TESTIND         = (LIB_NEED_EXPAND | LIB_INDIRECT),
-	LIB_READ            = 1 << 4,
-	LIB_NEED_LINK       = 1 << 5,
-	/* tag datablock as a place-holder (because the real one could not be linked from its library e.g.). */
-	LIB_MISSING         = 1 << 6,
-
-	LIB_NEW             = 1 << 8,
 	LIB_FAKEUSER        = 1 << 9,
-	/* free test flag */
-	LIB_DOIT            = 1 << 10,
-	/* tag existing data before linking so we know what is new */
-	LIB_PRE_EXISTING    = 1 << 11,
-	/* runtime */
-	LIB_ID_RECALC       = 1 << 12,
-	LIB_ID_RECALC_DATA  = 1 << 13,
-	LIB_ANIM_NO_RECALC  = 1 << 14,
+};
 
-	LIB_ID_RECALC_ALL   = (LIB_ID_RECALC | LIB_ID_RECALC_DATA),
+/**
+ * id->tag (runtime-only).
+ *
+ * Those flags belong to three different categories, which have different expected handling in code:
+ *
+ *   - RESET_BEFORE_USE: piece of code that wants to use such flag has to ensure they are properly 'reset' first.
+ *   - RESET_AFTER_USE: piece of code that wants to use such flag has to ensure they are properly 'reset' after usage
+ *                      (though 'lifetime' of those flags is a bit fuzzy, e.g. _RECALC ones are reset on depsgraph
+ *                       evaluation...).
+ *   - RESET_NEVER: those flags are 'status' one, and never actually need any reset (except on initialization
+ *                  during .blend file reading).
+ */
+enum {
+	/* RESET_NEVER Datablock is from current .blend file. */
+	LIB_TAG_LOCAL           = 0,
+	/* RESET_NEVER Datablock is from a library, but is used (linked) directly by current .blend file. */
+	LIB_TAG_EXTERN          = 1 << 0,
+	/* RESET_NEVER Datablock is from a library, and is only used (linked) inderectly through other libraries. */
+	LIB_TAG_INDIRECT        = 1 << 1,
+
+	/* RESET_AFTER_USE Three flags used internally in readfile.c, to mark IDs needing to be read (only done once). */
+	LIB_TAG_NEED_EXPAND     = 1 << 3,
+	LIB_TAG_TESTEXT         = (LIB_TAG_NEED_EXPAND | LIB_TAG_EXTERN),
+	LIB_TAG_TESTIND         = (LIB_TAG_NEED_EXPAND | LIB_TAG_INDIRECT),
+	/* RESET_AFTER_USE Flag used internally in readfile.c, to mark IDs needing to be linked from a library. */
+	LIB_TAG_READ            = 1 << 4,
+	/* RESET_AFTER_USE */
+	LIB_TAG_NEED_LINK       = 1 << 5,
+
+	/* RESET_NEVER tag datablock as a place-holder (because the real one could not be linked from its library e.g.). */
+	LIB_TAG_MISSING         = 1 << 6,
+
+	/* RESET_AFTER_USE tag newly duplicated/copied IDs. */
+	LIB_TAG_NEW             = 1 << 8,
+	/* RESET_BEFORE_USE free test flag.
+     * TODO make it a RESET_AFTER_USE too. */
+	LIB_TAG_DOIT            = 1 << 10,
+	/* RESET_AFTER_USE tag existing data before linking so we know what is new. */
+	LIB_TAG_PRE_EXISTING    = 1 << 11,
+
+	/* RESET_AFTER_USE, used by update code (depsgraph). */
+	LIB_TAG_ID_RECALC       = 1 << 12,
+	LIB_TAG_ID_RECALC_DATA  = 1 << 13,
+	LIB_TAG_ANIM_NO_RECALC  = 1 << 14,
+	LIB_TAG_ID_RECALC_ALL   = (LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA),
 };
 
 /* To filter ID types (filter_id) */

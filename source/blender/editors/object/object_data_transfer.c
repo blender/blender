@@ -304,11 +304,11 @@ static void data_transfer_exec_preprocess_objects(
 			/* Do not transfer to linked data, not supported. */
 			BKE_reportf(op->reports, RPT_WARNING, "Skipping object '%s', linked data '%s' cannot be modified",
 			            ob->id.name + 2, me->id.name + 2);
-			me->id.flag &= ~LIB_DOIT;
+			me->id.tag &= ~LIB_TAG_DOIT;
 			continue;
 		}
 
-		me->id.flag |= LIB_DOIT;
+		me->id.tag |= LIB_TAG_DOIT;
 	}
 }
 
@@ -326,8 +326,8 @@ static bool data_transfer_exec_is_object_valid(
 	}
 
 	me = ob_dst->data;
-	if (me->id.flag & LIB_DOIT) {
-		me->id.flag &= ~LIB_DOIT;
+	if (me->id.tag & LIB_TAG_DOIT) {
+		me->id.tag &= ~LIB_TAG_DOIT;
 		return true;
 	}
 	else if (me->id.lib == NULL) {

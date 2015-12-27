@@ -55,6 +55,7 @@
 #include "DNA_genfile.h"
 
 #include "BKE_colortools.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
@@ -1033,6 +1034,19 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		if (!DNA_struct_elem_find(fd->filesdna, "Object", "unsigned char", "max_jumps")) {
 			for (Object *ob = main->object.first; ob; ob = ob->id.next) {
 				ob->max_jumps = 1;
+			}
+		}
+	}
+	if (!MAIN_VERSION_ATLEAST(main, 276, 5)) {
+		ListBase *lbarray[MAX_LIBARRAY];
+		int a;
+
+		/* Important to clear all non-persistent flags from older versions here, otherwise they could collide
+		 * with any new persistent flag we may add in the future. */
+		a = set_listbasepointers(main, lbarray);
+		while (a--) {
+			for (ID *id = lbarray[a]->first; id; id = id->next) {
+				id->flag &= LIB_FAKEUSER;
 			}
 		}
 	}

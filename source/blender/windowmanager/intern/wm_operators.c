@@ -2624,8 +2624,8 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	/* tag everything, all untagged data can be made local
 	 * its also generally useful to know what is new
 	 *
-	 * take extra care BKE_main_id_flag_all(bmain, LIB_PRE_EXISTING, false) is called after! */
-	BKE_main_id_flag_all(bmain, LIB_PRE_EXISTING, true);
+	 * take extra care BKE_main_id_flag_all(bmain, LIB_TAG_PRE_EXISTING, false) is called after! */
+	BKE_main_id_flag_all(bmain, LIB_TAG_PRE_EXISTING, true);
 
 	/* We define our working data...
 	 * Note that here, each item 'uses' one library, and only one. */
@@ -2705,7 +2705,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
 	/* important we unset, otherwise these object wont
 	 * link into other scenes from this blend file */
-	BKE_main_id_flag_all(bmain, LIB_PRE_EXISTING, false);
+	BKE_main_id_flag_all(bmain, LIB_TAG_PRE_EXISTING, false);
 
 	/* recreate dependency graph to include new objects */
 	DAG_scene_relations_rebuild(bmain, scene);
@@ -4832,11 +4832,11 @@ static bool previews_id_ensure_callback(void *todo_v, ID **idptr, int UNUSED(cd_
 	PreviewsIDEnsureStack *todo = todo_v;
 	ID *id = *idptr;
 
-	if (id && (id->flag & LIB_DOIT)) {
+	if (id && (id->tag & LIB_TAG_DOIT)) {
 		if (ELEM(GS(id->name), ID_MA, ID_TE, ID_IM, ID_WO, ID_LA)) {
 			previews_id_ensure(todo->C, todo->scene, id);
 		}
-		id->flag &= ~LIB_DOIT;  /* Tag the ID as done in any case. */
+		id->tag &= ~LIB_TAG_DOIT;  /* Tag the ID as done in any case. */
 		BLI_LINKSTACK_PUSH(todo->id_stack, id);
 	}
 
@@ -4852,8 +4852,8 @@ static int previews_ensure_exec(bContext *C, wmOperator *UNUSED(op))
 	ID *id;
 	int i;
 
-	/* We use LIB_DOIT to check whether we have already handled a given ID or not. */
-	BKE_main_id_flag_all(bmain, LIB_DOIT, true);
+	/* We use LIB_TAG_DOIT to check whether we have already handled a given ID or not. */
+	BKE_main_id_flag_all(bmain, LIB_TAG_DOIT, true);
 
 	BLI_LINKSTACK_INIT(preview_id_stack.id_stack);
 

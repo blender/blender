@@ -1802,7 +1802,7 @@ void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
 	/* set object type and link to data */
 	ob->type = target->type;
 	ob->data = target->data;
-	id_us_plus((ID *)ob->data);     /* ensures lib data becomes LIB_EXTERN */
+	id_us_plus((ID *)ob->data);     /* ensures lib data becomes LIB_TAG_EXTERN */
 	
 	/* copy material and index information */
 	ob->actcol = ob->totcol = 0;
@@ -3795,13 +3795,13 @@ static Object *obrel_armature_find(Object *ob)
 
 static bool obrel_list_test(Object *ob)
 {
-	return ob && !(ob->id.flag & LIB_DOIT);
+	return ob && !(ob->id.tag & LIB_TAG_DOIT);
 }
 
 static void obrel_list_add(LinkNode **links, Object *ob)
 {
 	BLI_linklist_prepend(links, ob);
-	ob->id.flag |= LIB_DOIT;
+	ob->id.tag |= LIB_TAG_DOIT;
 }
 
 /*
@@ -3819,7 +3819,7 @@ LinkNode *BKE_object_relational_superset(struct Scene *scene, eObjectSet objectS
 
 	/* Remove markers from all objects */
 	for (base = scene->base.first; base; base = base->next) {
-		base->object->id.flag &= ~LIB_DOIT;
+		base->object->id.tag &= ~LIB_TAG_DOIT;
 	}
 
 	/* iterate over all selected and visible objects */

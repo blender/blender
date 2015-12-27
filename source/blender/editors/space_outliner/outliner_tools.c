@@ -408,7 +408,7 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te,
 static void id_local_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te),
                         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	if (tselem->id->lib && (tselem->id->flag & LIB_EXTERN)) {
+	if (tselem->id->lib && (tselem->id->tag & LIB_TAG_EXTERN)) {
 		/* if the ID type has no special local function,
 		 * just clear the lib */
 		if (id_make_local(tselem->id, false) == false) {

@@ -1757,8 +1757,8 @@ static void prepare_mesh_for_viewport_render(Main *bmain, Scene *scene)
 	if (obedit) {
 		Mesh *mesh = obedit->data;
 		if ((obedit->type == OB_MESH) &&
-		    ((obedit->id.flag & LIB_ID_RECALC_ALL) ||
-		     (mesh->id.flag & LIB_ID_RECALC_ALL)))
+		    ((obedit->id.tag & LIB_TAG_ID_RECALC_ALL) ||
+		     (mesh->id.tag & LIB_TAG_ID_RECALC_ALL)))
 		{
 			if (check_rendered_viewport_visible(bmain)) {
 				BMesh *bm = mesh->edit_btmesh->bm;
@@ -1801,7 +1801,7 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 
 	/* removed calls to quick_cache, see pointcache.c */
 	
-	/* clear "LIB_DOIT" flag from all materials, to prevent infinite recursion problems later 
+	/* clear "LIB_TAG_DOIT" flag from all materials, to prevent infinite recursion problems later
 	 * when trying to find materials with drivers that need evaluating [#32017] 
 	 */
 	BKE_main_id_tag_idcode(bmain, ID_MA, false);
@@ -1960,7 +1960,7 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 	}
 #endif
 
-	/* clear "LIB_DOIT" flag from all materials, to prevent infinite recursion problems later 
+	/* clear "LIB_TAG_DOIT" flag from all materials, to prevent infinite recursion problems later
 	 * when trying to find materials with drivers that need evaluating [#32017] 
 	 */
 	BKE_main_id_tag_idcode(bmain, ID_MA, false);

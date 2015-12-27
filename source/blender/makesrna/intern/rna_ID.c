@@ -934,24 +934,24 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_ID_fake_user_set");
 
 	prop = RNA_def_property(srna, "tag", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_DOIT);
+	RNA_def_property_boolean_sdna(prop, NULL, "tag", LIB_TAG_DOIT);
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	RNA_def_property_ui_text(prop, "Tag",
 	                         "Tools can use this to tag data for their own purposes "
 	                         "(initial state is undefined)");
 
 	prop = RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_ID_RECALC);
+	RNA_def_property_boolean_sdna(prop, NULL, "tag", LIB_TAG_ID_RECALC);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Is Updated", "Datablock is tagged for recalculation");
 
 	prop = RNA_def_property(srna, "is_updated_data", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_ID_RECALC_DATA);
+	RNA_def_property_boolean_sdna(prop, NULL, "tag", LIB_TAG_ID_RECALC_DATA);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Is Updated Data", "Datablock data is tagged for recalculation");
 
 	prop = RNA_def_property(srna, "is_library_indirect", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_INDIRECT);
+	RNA_def_property_boolean_sdna(prop, NULL, "tag", LIB_TAG_INDIRECT);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Is Indirect", "Is this ID block linked indirectly");
 

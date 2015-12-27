@@ -392,7 +392,7 @@ static void outliner_add_line_styles(SpaceOops *soops, ListBase *lb, Scene *sce,
 		for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
 			FreestyleLineStyle *linestyle = lineset->linestyle;
 			if (linestyle) {
-				linestyle->id.flag |= LIB_DOIT;
+				linestyle->id.tag |= LIB_TAG_DOIT;
 			}
 		}
 	}
@@ -400,9 +400,9 @@ static void outliner_add_line_styles(SpaceOops *soops, ListBase *lb, Scene *sce,
 		for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
 			FreestyleLineStyle *linestyle = lineset->linestyle;
 			if (linestyle) {
-				if (!(linestyle->id.flag & LIB_DOIT))
+				if (!(linestyle->id.tag & LIB_TAG_DOIT))
 					continue;
-				linestyle->id.flag &= ~LIB_DOIT;
+				linestyle->id.tag &= ~LIB_TAG_DOIT;
 				outliner_add_element(soops, lb, linestyle, te, 0, 0);
 			}
 		}
@@ -1630,7 +1630,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 			lib = (Library *)tselem->id;
 			if (lib && lib->parent) {
 				par = (TreeElement *)lib->parent->id.newid;
-				if (tselem->id->flag & LIB_INDIRECT) {
+				if (tselem->id->tag & LIB_TAG_INDIRECT) {
 					/* Only remove from 'first level' if lib is not also directly used. */
 					BLI_remlink(&soops->tree, ten);
 					BLI_addtail(&par->subtree, ten);

@@ -786,7 +786,7 @@ static void clean_viewport_memory(Main *bmain, Scene *scene, int renderlay)
 	Base *base;
 
 	for (object = bmain->object.first; object; object = object->id.next) {
-		object->id.flag |= LIB_DOIT;
+		object->id.tag |= LIB_TAG_DOIT;
 	}
 
 	for (SETLOOPER(scene, sce_iter, base)) {
@@ -794,16 +794,16 @@ static void clean_viewport_memory(Main *bmain, Scene *scene, int renderlay)
 			continue;
 		}
 		if (RE_allow_render_generic_object(base->object)) {
-			base->object->id.flag &= ~LIB_DOIT;
+			base->object->id.tag &= ~LIB_TAG_DOIT;
 		}
 	}
 
 	for (SETLOOPER(scene, sce_iter, base)) {
 		object = base->object;
-		if ((object->id.flag & LIB_DOIT) == 0) {
+		if ((object->id.tag & LIB_TAG_DOIT) == 0) {
 			continue;
 		}
-		object->id.flag &= ~LIB_DOIT;
+		object->id.tag &= ~LIB_TAG_DOIT;
 
 		BKE_object_free_derived_caches(object);
 	}

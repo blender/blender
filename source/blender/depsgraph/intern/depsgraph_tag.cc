@@ -76,13 +76,13 @@ namespace {
 
 void lib_id_recalc_tag(Main *bmain, ID *id)
 {
-	id->flag |= LIB_ID_RECALC;
+	id->tag |= LIB_TAG_ID_RECALC;
 	DEG_id_type_tag(bmain, GS(id->name));
 }
 
 void lib_id_recalc_data_tag(Main *bmain, ID *id)
 {
-	id->flag |= LIB_ID_RECALC_DATA;
+	id->tag |= LIB_TAG_ID_RECALC_DATA;
 	DEG_id_type_tag(bmain, GS(id->name));
 }
 
@@ -412,16 +412,16 @@ void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 	wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
 	int old_layers = graph->layers;
 	if (wm != NULL) {
-		BKE_main_id_flag_listbase(&bmain->scene, LIB_DOIT, true);
+		BKE_main_id_flag_listbase(&bmain->scene, LIB_TAG_DOIT, true);
 		graph->layers = 0;
 		for (wmWindow *win = (wmWindow *)wm->windows.first;
 		     win != NULL;
 		     win = (wmWindow *)win->next)
 		{
 			Scene *scene = win->screen->scene;
-			if (scene->id.flag & LIB_DOIT) {
+			if (scene->id.tag & LIB_TAG_DOIT) {
 				graph->layers |= BKE_screen_visible_layers(win->screen, scene);
-				scene->id.flag &= ~LIB_DOIT;
+				scene->id.tag &= ~LIB_TAG_DOIT;
 			}
 		}
 	}
@@ -443,7 +443,7 @@ void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 			OperationDepsNode *node = *it;
 			IDDepsNode *id_node = node->owner->owner;
 			ID *id = id_node->id;
-			if ((id->flag & LIB_ID_RECALC_ALL) != 0 ||
+			if ((id->tag & LIB_TAG_ID_RECALC_ALL) != 0 ||
 			    (id_node->layers & scene->lay_updated) == 0)
 			{
 				id_node->tag_update(graph);
@@ -455,7 +455,7 @@ void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 			 */
 			if (GS(id->name) == ID_OB) {
 				Object *object = (Object *)id;
-				if ((id->flag & LIB_ID_RECALC_ALL) == 0 &&
+				if ((id->tag & LIB_TAG_ID_RECALC_ALL) == 0 &&
 				    (object->recalc & OB_RECALC_ALL) != 0)
 				{
 					id_node->tag_update(graph);
@@ -531,12 +531,12 @@ void DEG_ids_clear_recalc(Main *bmain)
 		 */
 		if (id && bmain->id_tag_update[(unsigned char)id->name[0]]) {
 			for (; id; id = (ID *)id->next) {
-				id->flag &= ~(LIB_ID_RECALC | LIB_ID_RECALC_DATA);
+				id->tag &= ~(LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA);
 
 				/* Some ID's contain semi-datablock nodetree */
 				ntree = ntreeFromID(id);
 				if (ntree != NULL) {
-					ntree->id.flag &= ~(LIB_ID_RECALC | LIB_ID_RECALC_DATA);
+					ntree->id.tag &= ~(LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA);
 				}
 			}
 		}

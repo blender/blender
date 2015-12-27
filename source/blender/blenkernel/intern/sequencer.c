@@ -3402,16 +3402,16 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context, Sequence *s
 				if (seq->scene && (context->scene != seq->scene)) {
 #ifdef USE_SCENE_RECURSIVE_HACK
 					/* weak recusrive check, same as T32017 */
-					if (seq->scene->id.flag & LIB_DOIT) {
+					if (seq->scene->id.tag & LIB_TAG_DOIT) {
 						break;
 					}
-					seq->scene->id.flag |= LIB_DOIT;
+					seq->scene->id.tag |= LIB_TAG_DOIT;
 #endif
 
 					ibuf = do_render_strip_seqbase(context, seq, nr, use_preprocess);
 
 #ifdef USE_SCENE_RECURSIVE_HACK
-					seq->scene->id.flag &= ~LIB_DOIT;
+					seq->scene->id.tag &= ~LIB_TAG_DOIT;
 #endif
 				}
 			}

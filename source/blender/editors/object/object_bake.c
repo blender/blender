@@ -267,7 +267,7 @@ static void clear_single_image(Image *image, ClearFlag flag)
 	const float disp_alpha[4] = {0.5f, 0.5f, 0.5f, 0.0f};
 	const float disp_solid[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 
-	if ((image->id.flag & LIB_DOIT) == 0) {
+	if ((image->id.tag & LIB_TAG_DOIT) == 0) {
 		ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
 
 		if (flag == CLEAR_TANGENT_NORMAL)
@@ -277,7 +277,7 @@ static void clear_single_image(Image *image, ClearFlag flag)
 		else
 			IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
 
-		image->id.flag |= LIB_DOIT;
+		image->id.tag |= LIB_TAG_DOIT;
 
 		BKE_image_release_ibuf(image, ibuf, NULL);
 	}
@@ -288,7 +288,7 @@ static void clear_images_poly(MTexPoly *mtpoly, int totpoly, ClearFlag flag)
 	int a;
 
 	for (a = 0; a < totpoly; a++) {
-		mtpoly[a].tpage->id.flag &= ~LIB_DOIT;
+		mtpoly[a].tpage->id.tag &= ~LIB_TAG_DOIT;
 	}
 
 	for (a = 0; a < totpoly; a++) {
@@ -296,7 +296,7 @@ static void clear_images_poly(MTexPoly *mtpoly, int totpoly, ClearFlag flag)
 	}
 
 	for (a = 0; a < totpoly; a++) {
-		mtpoly[a].tpage->id.flag &= ~LIB_DOIT;
+		mtpoly[a].tpage->id.tag &= ~LIB_TAG_DOIT;
 	}
 }
 
@@ -670,7 +670,7 @@ static void finish_bake_internal(BakeRender *bkr)
 		Mesh *me;
 		BLI_assert(BLI_thread_is_main());
 		for (me = G.main->mesh.first; me; me = me->id.next) {
-			if (me->id.flag & LIB_DOIT) {
+			if (me->id.tag & LIB_TAG_DOIT) {
 				DAG_id_tag_update(&me->id, OB_RECALC_DATA);
 				BKE_mesh_tessface_clear(me);
 			}

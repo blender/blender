@@ -1959,7 +1959,7 @@ static void single_mat_users(Scene *scene, const int flag, const bool do_texture
 			for (a = 1; a <= ob->totcol; a++) {
 				ma = give_current_material(ob, a);
 				if (ma) {
-					/* do not test for LIB_NEW: this functions guaranteed delivers single_users! */
+					/* do not test for LIB_TAG_NEW: this functions guaranteed delivers single_users! */
 
 					if (ma->id.us > 1) {
 						man = BKE_material_copy(ma);
@@ -2010,14 +2010,14 @@ static void do_single_tex_user(Tex **from)
 
 static void single_tex_users_expand(Main *bmain)
 {
-	/* only when 'parent' blocks are LIB_NEW */
+	/* only when 'parent' blocks are LIB_TAG_NEW */
 	Material *ma;
 	Lamp *la;
 	World *wo;
 	int b;
 
 	for (ma = bmain->mat.first; ma; ma = ma->id.next) {
-		if (ma->id.flag & LIB_NEW) {
+		if (ma->id.tag & LIB_TAG_NEW) {
 			for (b = 0; b < MAX_MTEX; b++) {
 				if (ma->mtex[b] && ma->mtex[b]->tex) {
 					do_single_tex_user(&(ma->mtex[b]->tex));
@@ -2027,7 +2027,7 @@ static void single_tex_users_expand(Main *bmain)
 	}
 
 	for (la = bmain->lamp.first; la; la = la->id.next) {
-		if (la->id.flag & LIB_NEW) {
+		if (la->id.tag & LIB_TAG_NEW) {
 			for (b = 0; b < MAX_MTEX; b++) {
 				if (la->mtex[b] && la->mtex[b]->tex) {
 					do_single_tex_user(&(la->mtex[b]->tex));
@@ -2037,7 +2037,7 @@ static void single_tex_users_expand(Main *bmain)
 	}
 
 	for (wo = bmain->world.first; wo; wo = wo->id.next) {
-		if (wo->id.flag & LIB_NEW) {
+		if (wo->id.tag & LIB_TAG_NEW) {
 			for (b = 0; b < MAX_MTEX; b++) {
 				if (wo->mtex[b] && wo->mtex[b]->tex) {
 					do_single_tex_user(&(wo->mtex[b]->tex));
@@ -2049,7 +2049,7 @@ static void single_tex_users_expand(Main *bmain)
 
 static void single_mat_users_expand(Main *bmain)
 {
-	/* only when 'parent' blocks are LIB_NEW */
+	/* only when 'parent' blocks are LIB_TAG_NEW */
 	Object *ob;
 	Mesh *me;
 	Curve *cu;
@@ -2058,24 +2058,24 @@ static void single_mat_users_expand(Main *bmain)
 	int a;
 
 	for (ob = bmain->object.first; ob; ob = ob->id.next)
-		if (ob->id.flag & LIB_NEW)
+		if (ob->id.tag & LIB_TAG_NEW)
 			new_id_matar(ob->mat, ob->totcol);
 
 	for (me = bmain->mesh.first; me; me = me->id.next)
-		if (me->id.flag & LIB_NEW)
+		if (me->id.tag & LIB_TAG_NEW)
 			new_id_matar(me->mat, me->totcol);
 
 	for (cu = bmain->curve.first; cu; cu = cu->id.next)
-		if (cu->id.flag & LIB_NEW)
+		if (cu->id.tag & LIB_TAG_NEW)
 			new_id_matar(cu->mat, cu->totcol);
 
 	for (mb = bmain->mball.first; mb; mb = mb->id.next)
-		if (mb->id.flag & LIB_NEW)
+		if (mb->id.tag & LIB_TAG_NEW)
 			new_id_matar(mb->mat, mb->totcol);
 
 	/* material imats  */
 	for (ma = bmain->mat.first; ma; ma = ma->id.next)
-		if (ma->id.flag & LIB_NEW)
+		if (ma->id.tag & LIB_TAG_NEW)
 			for (a = 0; a < MAX_MTEX; a++)
 				if (ma->mtex[a])
 					ID_NEW(ma->mtex[a]->object);
@@ -2126,7 +2126,7 @@ enum {
 static bool tag_localizable_looper(void *UNUSED(user_data), ID **id_pointer, const int UNUSED(cd_flag))
 {
 	if (*id_pointer) {
-		(*id_pointer)->flag &= ~LIB_DOIT;
+		(*id_pointer)->tag &= ~LIB_TAG_DOIT;
 	}
 	return true;
 }
@@ -2137,19 +2137,19 @@ static void tag_localizable_objects(bContext *C, const int mode)
 
 	BKE_main_id_tag_all(bmain, false);
 
-	/* Set LIB_DOIT flag for all selected objects, so next we can check whether
+	/* Set LIB_TAG_DOIT flag for all selected objects, so next we can check whether
 	 * object is gonna to become local or not.
 	 */
 	CTX_DATA_BEGIN (C, Object *, object, selected_objects)
 	{
-		object->id.flag |= LIB_DOIT;
+		object->id.tag |= LIB_TAG_DOIT;
 
 		/* If data is also gonna to become local, mark data we're interested in
 		 * as gonna-to-be-local.
 		 */
 		if (mode == MAKE_LOCAL_SELECT_OBDATA && object->data) {
 			ID *data_id = (ID *) object->data;
-			data_id->flag |= LIB_DOIT;
+			data_id->tag |= LIB_TAG_DOIT;
 		}
 	}
 	CTX_DATA_END;
@@ -2158,12 +2158,12 @@ static void tag_localizable_objects(bContext *C, const int mode)
 	 * them for modifiers or constraints.
 	 */
 	for (Object *object = bmain->object.first; object; object = object->id.next) {
-		if ((object->id.flag & LIB_DOIT) == 0) {
+		if ((object->id.tag & LIB_TAG_DOIT) == 0) {
 			BKE_library_foreach_ID_link(&object->id, tag_localizable_looper, NULL, IDWALK_READONLY);
 		}
 		if (object->data) {
 			ID *data_id = (ID *) object->data;
-			if ((data_id->flag & LIB_DOIT) == 0) {
+			if ((data_id->tag & LIB_TAG_DOIT) == 0) {
 				BKE_library_foreach_ID_link(data_id, tag_localizable_looper, NULL, IDWALK_READONLY);
 			}
 		}
@@ -2230,7 +2230,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 	{
-		if ((ob->id.flag & LIB_DOIT) == 0) {
+		if ((ob->id.tag & LIB_TAG_DOIT) == 0) {
 			continue;
 		}
 
@@ -2250,7 +2250,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 	{
-		if ((ob->id.flag & LIB_DOIT) == 0) {
+		if ((ob->id.tag & LIB_TAG_DOIT) == 0) {
 			continue;
 		}
 
@@ -2283,7 +2283,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	if (mode == MAKE_LOCAL_SELECT_OBDATA_MATERIAL) {
 		CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 		{
-			if ((ob->id.flag & LIB_DOIT) == 0) {
+			if ((ob->id.tag & LIB_TAG_DOIT) == 0) {
 				continue;
 			}
 

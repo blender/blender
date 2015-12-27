@@ -354,7 +354,7 @@ static void make_duplis_frames(const DupliContext *ctx)
 
 	/* special flag to avoid setting recalc flags to notify the depsgraph of
 	 * updates, as this is not a permanent change to the object */
-	ob->id.flag |= LIB_ANIM_NO_RECALC;
+	ob->id.tag |= LIB_TAG_ANIM_NO_RECALC;
 
 	for (scene->r.cfra = ob->dupsta; scene->r.cfra <= dupend; scene->r.cfra++) {
 		int ok = 1;
