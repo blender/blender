@@ -1275,6 +1275,16 @@ bool BM_face_share_vert_check(BMFace *f_a, BMFace *f_b)
 }
 
 /**
+ * Returns true when 2 loops share an edge (are adjacent in the face-fan)
+ */
+bool BM_loop_share_edge_check(BMLoop *l_a, BMLoop *l_b)
+{
+	BLI_assert(l_a->v == l_b->v);
+	return (ELEM(l_a->e, l_b->e, l_b->prev->e) ||
+	        ELEM(l_b->e, l_a->e, l_a->prev->e));
+}
+
+/**
  * Test if e1 shares any faces with e2
  */
 bool BM_edge_share_face_check(BMEdge *e1, BMEdge *e2)
