@@ -230,11 +230,11 @@ int GHOST_ProcessEvents(GHOST_SystemHandle systemhandle, int waitForEvent)
 
 
 
-int GHOST_DispatchEvents(GHOST_SystemHandle systemhandle)
+void GHOST_DispatchEvents(GHOST_SystemHandle systemhandle)
 {
 	GHOST_ISystem *system = (GHOST_ISystem *) systemhandle;
 	
-	return (int) system->dispatchEvents();
+	system->dispatchEvents();
 }
 
 

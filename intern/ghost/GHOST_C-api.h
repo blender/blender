@@ -263,9 +263,8 @@ extern int GHOST_ProcessEvents(GHOST_SystemHandle systemhandle, int waitForEvent
 /**
  * Retrieves events from the queue and send them to the event consumers.
  * \param systemhandle The handle to the system
- * \return Indication of the presence of events.
  */
-extern int GHOST_DispatchEvents(GHOST_SystemHandle systemhandle);
+extern void GHOST_DispatchEvents(GHOST_SystemHandle systemhandle);
 
 /**
  * Adds the given event consumer to our list.

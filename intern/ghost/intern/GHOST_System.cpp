@@ -214,23 +214,20 @@ bool GHOST_System::getFullScreen(void)
 }
 
 
-bool GHOST_System::dispatchEvents()
+void GHOST_System::dispatchEvents()
 {
-	bool handled = false;
-
 #ifdef WITH_INPUT_NDOF
 	// NDOF Motion event is sent only once per dispatch, so do it now:
 	if (m_ndofManager) {
-		handled |= m_ndofManager->sendMotionEvent();
+		m_ndofManager->sendMotionEvent();
 	}
 #endif
 
 	if (m_eventManager) {
-		handled |= m_eventManager->dispatchEvents();
+		m_eventManager->dispatchEvents();
 	}
 
 	m_timerManager->fireTimers(getMilliSeconds());
-	return handled;
 }
 
 

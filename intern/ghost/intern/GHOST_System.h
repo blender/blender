@@ -190,9 +190,8 @@ public:
 	/**
 	 * Dispatches all the events on the stack.
 	 * The event stack will be empty afterwards.
-	 * \return Indication as to whether any of the consumers handled the events.
 	 */
-	bool dispatchEvents();
+	void dispatchEvents();
 
 	/**
 	 * Adds the given event consumer to our list.

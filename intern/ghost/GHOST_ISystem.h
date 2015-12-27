@@ -319,9 +319,8 @@ public:
 
 	/**
 	 * Retrieves events from the queue and send them to the event consumers.
-	 * \return Indication of the presence of events.
 	 */
-	virtual bool dispatchEvents() = 0;
+	virtual void dispatchEvents() = 0;
 
 	/**
 	 * Adds the given event consumer to our list.

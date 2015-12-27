@@ -78,16 +78,6 @@ GHOST_TUns32 GHOST_EventManager::getNumEvents(GHOST_TEventType type)
 }
 
 
-GHOST_IEvent *GHOST_EventManager::peekEvent()
-{
-	GHOST_IEvent *event = NULL;
-	if (m_events.empty() == false) {
-		event = m_events.back();
-	}
-	return event;
-}
-
-
 GHOST_TSuccess GHOST_EventManager::pushEvent(GHOST_IEvent *event)
 {
 	GHOST_TSuccess success;
@@ -103,52 +93,36 @@ GHOST_TSuccess GHOST_EventManager::pushEvent(GHOST_IEvent *event)
 }
 
 
-bool GHOST_EventManager::dispatchEvent(GHOST_IEvent *event)
+void GHOST_EventManager::dispatchEvent(GHOST_IEvent *event)
 {
-	bool handled;
-	if (event) {
-		handled = true;
-		TConsumerVector::iterator iter;
-		for (iter = m_consumers.begin(); iter != m_consumers.end(); ++iter) {
-			if ((*iter)->processEvent(event)) {
-				handled = false;
-			}
-		}
+	TConsumerVector::iterator iter;
+
+	for (iter = m_consumers.begin(); iter != m_consumers.end(); ++iter) {
+		(*iter)->processEvent(event);
 	}
-	else {
-		handled = false;
-	}
-	return handled;
 }
 
 
-bool GHOST_EventManager::dispatchEvent()
+void GHOST_EventManager::dispatchEvent()
 {
-	GHOST_IEvent *event = popEvent();
-	bool handled = false;
-	if (event) {
-		handled = dispatchEvent(event);
-		delete event;
-	}
-	return handled;
+	GHOST_IEvent *event = m_events.back();
+
+	dispatchEvent(event);
+
+	m_events.pop_back();
+	delete event;
 }
 
 
-bool GHOST_EventManager::dispatchEvents()
+void GHOST_EventManager::dispatchEvents()
 {
-	bool handled;
-	if (getNumEvents()) {
-		handled = true;
-		while (getNumEvents()) {
-			if (!dispatchEvent()) {
-				handled = false;
-			}
-		}
+	if (m_events.empty()) {
+		return;
 	}
-	else {
-		handled = false;
+
+	while (!m_events.empty()) {
+		dispatchEvent();
 	}
-	return handled;
 }
 
 
@@ -238,16 +212,6 @@ void GHOST_EventManager::removeTypeEvents(GHOST_TEventType type, GHOST_IWindow *
 			++iter;
 		}
 	}
-}
-
-
-GHOST_IEvent *GHOST_EventManager::popEvent()
-{
-	GHOST_IEvent *event = peekEvent();
-	if (event) {
-		m_events.pop_back();
-	}
-	return event;
 }
 
 
