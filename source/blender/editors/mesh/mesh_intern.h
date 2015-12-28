@@ -75,10 +75,10 @@ void EDBM_stats_update(struct BMEditMesh *em);
 
 int  EDBM_view3d_poll(struct bContext *C);
 
-int            EDBM_elem_to_index_any(struct BMEditMesh *em, struct BMElem *ele);
-int            EDBM_elem_to_index_any_selectmode(
+struct BMElem *EDBM_elem_from_selectmode(
         struct BMEditMesh *em,
         struct BMVert *eve, struct BMEdge *eed, struct BMFace *efa);
+int            EDBM_elem_to_index_any(struct BMEditMesh *em, struct BMElem *ele);
 struct BMElem *EDBM_elem_from_index_any(struct BMEditMesh *em, int index);
 
 /* *** editmesh_add.c *** */

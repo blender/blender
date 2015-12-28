@@ -2648,10 +2648,7 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 
 static int edbm_select_linked_pick_exec(bContext *C, wmOperator *op);
 
-static void edbm_select_linked_pick_ex(
-        BMEditMesh *em,
-        BMVert *eve, BMEdge *eed, BMFace *efa,
-        bool sel, int delimit)
+static void edbm_select_linked_pick_ex(BMEditMesh *em, BMElem *ele, bool sel, int delimit)
 {
 	BMesh *bm = em->bm;
 	BMWalker walker;
@@ -2664,7 +2661,8 @@ static void edbm_select_linked_pick_ex(
 
 	/* Note: logic closely matches 'edbm_select_linked_exec', keep in sync */
 
-	if ((em->selectmode & SCE_SELECT_VERTEX) && eve) {
+	if (ele->head.htype == BM_VERT) {
+		BMVert *eve = (BMVert *)ele;
 
 		BMW_init(&walker, bm, delimit ? BMW_LOOP_SHELL_WIRE : BMW_VERT_SHELL,
 		         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
@@ -2696,7 +2694,8 @@ static void edbm_select_linked_pick_ex(
 
 		EDBM_selectmode_flush(em);
 	}
-	else if ((em->selectmode & SCE_SELECT_EDGE) && eed) {
+	else if (ele->head.htype == BM_EDGE) {
+		BMEdge *eed = (BMEdge *)ele;
 
 		BMW_init(&walker, bm, delimit ? BMW_LOOP_SHELL_WIRE : BMW_VERT_SHELL,
 		         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
@@ -2728,7 +2727,8 @@ static void edbm_select_linked_pick_ex(
 
 		EDBM_selectmode_flush(em);
 	}
-	else if ((em->selectmode & SCE_SELECT_FACE) && efa) {
+	else if (ele->head.htype == BM_FACE) {
+		BMFace *efa = (BMFace *)ele;
 
 		BMW_init(&walker, bm, BMW_ISLAND,
 		         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
@@ -2795,10 +2795,13 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	int delimit = RNA_enum_get(op->ptr, "delimit");
 #endif
 
-	edbm_select_linked_pick_ex(em, eve, eed, efa, sel, delimit);
+	BMElem *ele = EDBM_elem_from_selectmode(em, eve, eed, efa);
+
+	edbm_select_linked_pick_ex(em, ele, sel, delimit);
 
 	/* to support redo */
-	index = EDBM_elem_to_index_any_selectmode(em, eve, eed, efa);
+	BM_mesh_elem_index_ensure(bm, ele->head.htype);
+	index = EDBM_elem_to_index_any(em, ele);
 
 	RNA_int_set(op->ptr, "index", index);
 
@@ -2814,9 +2817,6 @@ static int edbm_select_linked_pick_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 	int index;
-	BMVert *eve = NULL;
-	BMEdge *eed = NULL;
-	BMFace *efa = NULL;
 	const bool sel = !RNA_boolean_get(op->ptr, "deselect");
 
 	index = RNA_int_get(op->ptr, "index");
@@ -2825,17 +2825,6 @@ static int edbm_select_linked_pick_exec(bContext *C, wmOperator *op)
 	}
 
 	BMElem *ele = EDBM_elem_from_index_any(em, index);
-	switch (ele->head.htype) {
-		case BM_VERT:
-			eve = (BMVert *)ele;
-			break;
-		case BM_EDGE:
-			eed = (BMEdge *)ele;
-			break;
-		case BM_FACE:
-			efa = (BMFace *)ele;
-			break;
-	}
 
 #ifdef USE_LINKED_SELECT_DEFAULT_HACK
 	int delimit = select_linked_delimit_default_from_op(op, em);
@@ -2843,7 +2832,7 @@ static int edbm_select_linked_pick_exec(bContext *C, wmOperator *op)
 	int delimit = RNA_enum_get(op->ptr, "delimit");
 #endif
 
-	edbm_select_linked_pick_ex(em, eve, eed, efa, sel, delimit);
+	edbm_select_linked_pick_ex(em, ele, sel, delimit);
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
 

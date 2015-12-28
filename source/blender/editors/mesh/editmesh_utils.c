@@ -1431,6 +1431,23 @@ int EDBM_view3d_poll(bContext *C)
 	return 0;
 }
 
+BMElem *EDBM_elem_from_selectmode(BMEditMesh *em, BMVert *eve, BMEdge *eed, BMFace *efa)
+{
+	BMElem *ele = NULL;
+
+	if ((em->selectmode & SCE_SELECT_VERTEX) && eve) {
+		ele = (BMElem *)eve;
+	}
+	else if ((em->selectmode & SCE_SELECT_EDGE) && eed) {
+		ele = (BMElem *)eed;
+	}
+	else if ((em->selectmode & SCE_SELECT_FACE) && efa) {
+		ele = (BMElem *)efa;
+	}
+
+	return ele;
+}
+
 /**
  * Used when we want to store a single index for any vert/edge/face.
  *
@@ -1458,24 +1475,6 @@ int EDBM_elem_to_index_any(BMEditMesh *em, BMElem *ele)
 
 	return index;
 }
-
-int EDBM_elem_to_index_any_selectmode(BMEditMesh *em, BMVert *eve, BMEdge *eed, BMFace *efa)
-{
-	BMElem *ele = NULL;
-
-	if ((em->selectmode & SCE_SELECT_VERTEX) && eve) {
-		ele = (BMElem *)eve;
-	}
-	else if ((em->selectmode & SCE_SELECT_EDGE) && eed) {
-		ele = (BMElem *)eed;
-	}
-	else if ((em->selectmode & SCE_SELECT_FACE) && efa) {
-		ele = (BMElem *)efa;
-	}
-
-	return ele ? EDBM_elem_to_index_any(em, ele) : -1;
-}
-
 
 BMElem *EDBM_elem_from_index_any(BMEditMesh *em, int index)
 {

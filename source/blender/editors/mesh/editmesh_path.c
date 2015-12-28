@@ -572,6 +572,7 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 	}
 
 	/* to support redo */
+	BM_mesh_elem_index_ensure(em->bm, ele_dst->head.htype);
 	int index = EDBM_elem_to_index_any(em, ele_dst);
 
 	RNA_int_set(op->ptr, "index", index);
