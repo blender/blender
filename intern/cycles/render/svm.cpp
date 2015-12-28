@@ -763,6 +763,11 @@ void SVMCompiler::compile(Scene *scene,
 	global_svm_nodes[index*2 + 0].w = global_svm_nodes.size();
 	global_svm_nodes[index*2 + 1].w = global_svm_nodes.size();
 	global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
+
+	/* TODO(sergey): Consider making it more generic compile report. */
+	VLOG(1) << "Statistics for compiled shader " << shader->name << ":";
+	VLOG(1) << "  Number of SVM nodes: " << global_svm_nodes.size();
+	VLOG(1) << "  Maximum stack usage: " << max_stack_use;
 }
 
 CCL_NAMESPACE_END
