@@ -314,7 +314,7 @@ static void buttons_texture_modifier_foreach(void *userData, Object *ob, Modifie
 	prop = RNA_struct_find_property(&ptr, propname);
 
 	buttons_texture_user_property_add(users, &ob->id, ptr, prop,
-	                                  "Modifiers", RNA_struct_ui_icon(ptr.type), md->name);
+	                                  N_("Modifiers"), RNA_struct_ui_icon(ptr.type), md->name);
 }
 
 static void buttons_texture_users_from_context(ListBase *users, const bContext *C, SpaceButs *sbuts)
@@ -366,13 +366,13 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 	BLI_listbase_clear(users);
 
 	if (ma && !limited_mode)
-		buttons_texture_users_find_nodetree(users, &ma->id, ma->nodetree, "Material");
+		buttons_texture_users_find_nodetree(users, &ma->id, ma->nodetree, N_("Material"));
 	if (la && !limited_mode)
-		buttons_texture_users_find_nodetree(users, &la->id, la->nodetree, "Lamp");
+		buttons_texture_users_find_nodetree(users, &la->id, la->nodetree, N_("Lamp"));
 	if (wrld && !limited_mode)
-		buttons_texture_users_find_nodetree(users, &wrld->id, wrld->nodetree, "World");
+		buttons_texture_users_find_nodetree(users, &wrld->id, wrld->nodetree, N_("World"));
 	if (linestyle && !limited_mode)
-		buttons_texture_users_find_nodetree(users, &linestyle->id, linestyle->nodetree, "Line Style");
+		buttons_texture_users_find_nodetree(users, &linestyle->id, linestyle->nodetree, N_("Line Style"));
 
 	if (ob) {
 		ParticleSystem *psys = psys_get_current(ob);
@@ -394,8 +394,8 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 					RNA_pointer_create(&psys->part->id, &RNA_ParticleSettingsTextureSlot, mtex, &ptr);
 					prop = RNA_struct_find_property(&ptr, "texture");
 
-					buttons_texture_user_property_add(users, &psys->part->id, ptr, prop,
-					                                  "Particles", RNA_struct_ui_icon(&RNA_ParticleSettings), psys->name);
+					buttons_texture_user_property_add(users, &psys->part->id, ptr, prop, N_("Particles"),
+					                                  RNA_struct_ui_icon(&RNA_ParticleSettings), psys->name);
 				}
 			}
 		}
@@ -409,7 +409,7 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 			prop = RNA_struct_find_property(&ptr, "texture");
 
 			buttons_texture_user_property_add(users, &ob->id, ptr, prop,
-			                                  "Fields", ICON_FORCE_TEXTURE, "Texture Field");
+			                                  N_("Fields"), ICON_FORCE_TEXTURE, IFACE_("Texture Field"));
 		}
 	}
 
@@ -423,14 +423,14 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 		prop = RNA_struct_find_property(&ptr, "texture");
 
 		buttons_texture_user_property_add(users, &brush->id, ptr, prop,
-		                                  "Brush", ICON_BRUSH_DATA, "Brush");
+		                                  N_("Brush"), ICON_BRUSH_DATA, IFACE_("Brush"));
 
 		/* mask texture */
 		RNA_pointer_create(&brush->id, &RNA_BrushTextureSlot, &brush->mask_mtex, &ptr);
 		prop = RNA_struct_find_property(&ptr, "texture");
 
 		buttons_texture_user_property_add(users, &brush->id, ptr, prop,
-		                                  "Brush", ICON_BRUSH_DATA, "Brush Mask");
+		                                  N_("Brush"), ICON_BRUSH_DATA, IFACE_("Brush Mask"));
 	}
 }
 
@@ -563,7 +563,7 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void *UNUS
 
 		/* add label per category */
 		if (!last_category || !STREQ(last_category, user->category)) {
-			uiItemL(layout, user->category, ICON_NONE);
+			uiItemL(layout, IFACE_(user->category), ICON_NONE);
 			but = block->buttons.last;
 			but->drawflag = UI_BUT_TEXT_LEFT;
 		}
@@ -681,7 +681,7 @@ void uiTemplateTextureShow(uiLayout *layout, bContext *C, PointerRNA *ptr, Prope
 		uiBut *but;
 		
 		but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_BUTS, 0, 0, UI_UNIT_X, UI_UNIT_Y,
-		                   NULL, 0.0, 0.0, 0.0, 0.0, "Show texture in texture tab");
+		                   NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Show texture in texture tab"));
 		UI_but_func_set(but, template_texture_show, user->ptr.data, user->prop);
 	}
 }

@@ -556,6 +556,7 @@ set(INC
 	.
 	../blenkernel
 	../blenlib
+	../blentranslation
 	../imbuf
 	../makesdna
 	../makesrna
@@ -573,6 +574,10 @@ set(INC_SYS
 )
 
 add_definitions(-DWITH_FREESTYLE)
+
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
+endif()
 
 if(WIN32)
 	list(APPEND INC_SYS

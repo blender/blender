@@ -54,6 +54,8 @@ extern "C" {
 #include "BKE_text.h"
 #include "BKE_context.h"
 
+#include "BLT_translation.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_callbacks.h"
@@ -284,7 +286,7 @@ static bool test_edge_type_conditions(struct edge_type_condition *conditions,
 static void prepare(Render *re, SceneRenderLayer *srl)
 {
 	// load mesh
-	re->i.infostr = "Freestyle: Mesh loading";
+	re->i.infostr = TIP_("Freestyle: Mesh loading");
 	re->stats_draw(re->sdh, &re->i);
 	re->i.infostr = NULL;
 	if (controller->LoadMesh(re, srl)) // returns if scene cannot be loaded or if empty
@@ -467,7 +469,7 @@ static void prepare(Render *re, SceneRenderLayer *srl)
 		return;
 
 	// compute view map
-	re->i.infostr = "Freestyle: View map creation";
+	re->i.infostr = TIP_("Freestyle: View map creation");
 	re->stats_draw(re->sdh, &re->i);
 	re->i.infostr = NULL;
 	controller->ComputeViewMap();
@@ -622,7 +624,7 @@ Render *FRS_do_stroke_rendering(Render *re, SceneRenderLayer *srl, int render)
 		// render and composite Freestyle result
 		if (controller->_ViewMap) {
 			// render strokes
-			re->i.infostr = "Freestyle: Stroke rendering";
+			re->i.infostr = TIP_("Freestyle: Stroke rendering");
 			re->stats_draw(re->sdh, &re->i);
 			re->i.infostr = NULL;
 			g_freestyle.scene = re->scene;
