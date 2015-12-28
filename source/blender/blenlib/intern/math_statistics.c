@@ -30,11 +30,65 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_task.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_strict_flags.h"
 
 /********************************** Covariance Matrices *********************************/
+
+typedef struct CovarianceData {
+	const float *cos_vn;
+	const float *center;
+	float *r_covmat;
+	float covfac;
+	int n;
+	int nbr_cos_vn;
+} CovarianceData;
+
+static void covariance_m_vn_ex_task_cb(void *userdata, void *UNUSED(userdata_chunk), int a)
+{
+	CovarianceData *data = userdata;
+	const float *cos_vn = data->cos_vn;
+	const float *center = data->center;
+	float *r_covmat = data->r_covmat;
+	const int n = data->n;
+	const int nbr_cos_vn = data->nbr_cos_vn;
+
+	int k;
+
+	/* Covariance matrices are always symetrical, so we can compute only one half of it,
+	 * and mirror it to the other half (at the end of the func).
+	 *
+	 * This allows using a flat loop of n*n with same results as imbricated one over half the matrix:
+	 *
+	 *     for (i = 0; i < n; i++) {
+	 *         for (j = i; j < n; j++) {
+	 *             ...
+	 *         }
+	 *      }
+	 */
+	const int i = a / n;
+	const int j = a % n;
+	if (j < i)
+		return;
+
+	if (center) {
+		for (k = 0; k < nbr_cos_vn; k++) {
+			r_covmat[a] += (cos_vn[k * n + i] - center[i]) * (cos_vn[k * n + j] - center[j]);
+		}
+	}
+	else {
+		for (k = 0; k < nbr_cos_vn; k++) {
+			r_covmat[a] += cos_vn[k * n + i] * cos_vn[k * n + j];
+		}
+	}
+	r_covmat[a] *= data->covfac;
+	if (j != i) {
+		/* Mirror result to other half... */
+		r_covmat[j * n + i] = r_covmat[a];
+	}
+}
 
 /**
  * \brief Compute the covariance matrix of given set of nD coordinates.
@@ -60,28 +114,17 @@ void BLI_covariance_m_vn_ex(
 
 	memset(r_covmat, 0, sizeof(*r_covmat) * (size_t)(n * n));
 
-#pragma omp parallel for default(shared) private(i, j, k) schedule(static) if ((nbr_cos_vn * n) >= 10000)
-	for (i = 0; i < n; i++) {
-		for (j = i; j < n; j++) {
-			r_covmat[i * n + j] = 0.0f;
-			if (center) {
-				for (k = 0; k < nbr_cos_vn; k++) {
-					r_covmat[i * n + j] += (cos_vn[k * n + i] - center[i]) * (cos_vn[k * n + j] - center[j]);
-				}
-			}
-			else {
-				for (k = 0; k < nbr_cos_vn; k++) {
-					r_covmat[i * n + j] += cos_vn[k * n + i] * cos_vn[k * n + j];
-				}
-			}
-			r_covmat[i * n + j] *= covfac;
-		}
+	CovarianceData data = {
+		.cos_vn = cos_vn, .center = center, .r_covmat = r_covmat,
+	    .covfac = covfac, .n = n, .nbr_cos_vn = nbr_cos_vn,
+	};
+
+	if ((nbr_cos_vn * n * n) >= 10000) {
+		BLI_task_parallel_range_ex(0, n * n, &data, NULL, 0, covariance_m_vn_ex_task_cb, 0, false);
 	}
-	/* Covariance matrices are always symetrical, so we can compute only one half of it (as done above),
-	 * and copy it to the other half! */
-	for (i = 1; i < n; i++) {
-		for (j = 0; j < i; j++) {
-			r_covmat[i * n + j] = r_covmat[j * n + i];
+	else {
+		for (k = 0; k < n * n; k++) {
+			covariance_m_vn_ex_task_cb(&data, NULL, k);
 		}
 	}
 }
