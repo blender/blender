@@ -1503,7 +1503,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 						SequenceModifierData *smd;
 						ColorBalanceModifierData *cbmd;
 
-						smd = BKE_sequence_modifier_new(seq, NULL, seqModifierType_ColorBalance);
+						smd = BKE_sequence_modifier_new(seq, NULL, seqModifierType_ColorBalance, scene);
 						cbmd = (ColorBalanceModifierData *) smd;
 
 						cbmd->color_balance = *strip->color_balance;

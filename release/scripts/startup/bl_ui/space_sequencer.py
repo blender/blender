@@ -1125,7 +1125,9 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
                     col = box.column()
                     col.prop(mod, "bright")
                     col.prop(mod, "contrast")
-
+                elif mod.type == 'WHITE_BALANCE':
+                    col = box.column()
+                    col.prop(mod, "white_value")
 
 class SEQUENCER_PT_grease_pencil(GreasePencilDataPanel, SequencerButtonsPanel_Output, Panel):
     bl_space_type = 'SEQUENCE_EDITOR'

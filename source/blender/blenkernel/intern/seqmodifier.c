@@ -42,12 +42,14 @@
 #include "BLT_translation.h"
 
 #include "DNA_sequence_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_sequencer.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.h"
 
 static SequenceModifierTypeInfo *modifiersTypes[NUM_SEQUENCE_MODIFIER_TYPES];
 static bool modifierTypesInit = false;
@@ -171,6 +173,87 @@ static SequenceModifierTypeInfo seqModifier_ColorBalance = {
 	NULL,                                                  /* free_data */
 	NULL,                                                  /* copy_data */
 	colorBalance_apply                                     /* apply */
+};
+
+/* **** White Balance Modifier **** */
+
+static void whiteBalance_init_data(SequenceModifierData *smd)
+{
+	WhiteBalanceModifierData *cbmd = (WhiteBalanceModifierData *) smd;
+	copy_v3_fl(cbmd->white_value, 1.0f);
+}
+
+typedef struct WhiteBalanceThreadData {
+	struct ColorSpace* colorspace;
+	float white[3];
+} WhiteBalanceThreadData;
+
+static void whiteBalance_apply_threaded(int width, int height, unsigned char *rect, float *rect_float,
+                                        unsigned char *mask_rect, float *mask_rect_float, void *data_v)
+{
+	int x, y;
+	float multiplier[3];
+
+	WhiteBalanceThreadData *data = (WhiteBalanceThreadData *) data_v;
+
+	multiplier[0] = 1.0f/data->white[0];
+	multiplier[1] = 1.0f/data->white[1];
+	multiplier[2] = 1.0f/data->white[2];
+
+	for (y = 0; y < height; y++) {
+		for (x = 0; x < width; x++) {
+			int pixel_index = (y * width + x) * 4;
+			float result[3], mask[3] = {1.0f, 1.0f, 1.0f};
+
+			if (rect_float)
+				copy_v3_v3(result, rect_float + pixel_index);
+			else
+			{
+				straight_uchar_to_premul_float(result, rect + pixel_index);
+				IMB_colormanagement_colorspace_to_scene_linear_v3(result, data->colorspace);
+			}
+
+			mul_v3_v3(result, multiplier);
+
+			if (mask_rect_float)
+				copy_v3_v3(mask, mask_rect_float + pixel_index);
+			else if (mask_rect)
+				rgb_uchar_to_float(mask, mask_rect + pixel_index);
+
+			result[0] = result[0] * (1.0f - mask[0]) + result[0] * mask[0];
+			result[1] = result[1] * (1.0f - mask[1]) + result[1] * mask[1];
+			result[2] = result[2] * (1.0f - mask[2]) + result[2] * mask[2];
+
+			if (rect_float)
+				copy_v3_v3(rect_float + pixel_index, result);
+			else
+				IMB_colormanagement_scene_linear_to_colorspace_v3(result, data->colorspace);
+				premul_float_to_straight_uchar(rect + pixel_index, result);
+			}
+	}
+}
+
+static void whiteBalance_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
+{
+	WhiteBalanceThreadData data;
+	WhiteBalanceModifierData *wbmd = (WhiteBalanceModifierData *) smd;
+
+	copy_v3_v3(data.white, wbmd->white_value);
+	IMB_colormanagement_display_to_scene_linear_v3(data.white,
+	                                               IMB_colormanagement_display_get_named(wbmd->modifier.scene->display_settings.display_device));
+	data.colorspace = ibuf->rect_colorspace;
+
+	modifier_apply_threaded(ibuf, mask, whiteBalance_apply_threaded, &data);
+}
+
+static SequenceModifierTypeInfo seqModifier_WhiteBalance = {
+	CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "White Balance"),  /* name */
+	"WhiteBalanceModifierData",                            /* struct_name */
+	sizeof(WhiteBalanceModifierData),                      /* struct_size */
+	whiteBalance_init_data,                                /* init_data */
+	NULL,                                                  /* free_data */
+	NULL,                                                  /* copy_data */
+	whiteBalance_apply                                     /* apply */
 };
 
 /* **** Curves Modifier **** */
@@ -559,6 +642,7 @@ static void sequence_modifier_type_info_init(void)
 	INIT_TYPE(HueCorrect);
 	INIT_TYPE(BrightContrast);
 	INIT_TYPE(Mask);
+	INIT_TYPE(WhiteBalance);
 
 #undef INIT_TYPE
 }
@@ -573,7 +657,7 @@ const SequenceModifierTypeInfo *BKE_sequence_modifier_type_info_get(int type)
 	return modifiersTypes[type];
 }
 
-SequenceModifierData *BKE_sequence_modifier_new(Sequence *seq, const char *name, int type)
+SequenceModifierData *BKE_sequence_modifier_new(Sequence *seq, const char *name, int type, struct Scene *scene)
 {
 	SequenceModifierData *smd;
 	const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(type);
@@ -582,6 +666,7 @@ SequenceModifierData *BKE_sequence_modifier_new(Sequence *seq, const char *name,
 
 	smd->type = type;
 	smd->flag |= SEQUENCE_MODIFIER_EXPANDED;
+	smd->scene = scene;
 
 	if (!name || !name[0])
 		BLI_strncpy(smd->name, smti->name, sizeof(smd->name));

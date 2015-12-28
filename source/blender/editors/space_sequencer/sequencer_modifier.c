@@ -71,7 +71,7 @@ static int strip_modifier_add_exec(bContext *C, wmOperator *op)
 	Sequence *seq = BKE_sequencer_active_get(scene);
 	int type = RNA_enum_get(op->ptr, "type");
 
-	BKE_sequence_modifier_new(seq, NULL, type);
+	BKE_sequence_modifier_new(seq, NULL, type, scene);
 
 	BKE_sequence_invalidate_cache(scene, seq);
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);

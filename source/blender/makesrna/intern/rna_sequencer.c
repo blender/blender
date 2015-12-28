@@ -66,6 +66,7 @@ EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
 	{seqModifierType_HueCorrect, "HUE_CORRECT", ICON_NONE, "Hue Correct", ""},
 	{seqModifierType_BrightContrast, "BRIGHT_CONTRAST", ICON_NONE, "Bright/Contrast", ""},
 	{seqModifierType_Mask, "MASK", ICON_NONE, "Mask", ""},
+	{seqModifierType_WhiteBalance, "WHITE_BALANCE", ICON_NONE, "White Balance", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -955,6 +956,8 @@ static StructRNA *rna_SequenceModifier_refine(struct PointerRNA *ptr)
 			return &RNA_HueCorrectModifier;
 		case seqModifierType_BrightContrast:
 			return &RNA_BrightContrastModifier;
+		case seqModifierType_WhiteBalance:
+			return &RNA_WhiteBalanceModifier;
 		default:
 			return &RNA_SequenceModifier;
 	}
@@ -1043,7 +1046,7 @@ static SequenceModifierData *rna_Sequence_modifier_new(Sequence *seq, bContext *
 		Scene *scene = CTX_data_scene(C);
 		SequenceModifierData *smd;
 
-		smd = BKE_sequence_modifier_new(seq, name, type);
+		smd = BKE_sequence_modifier_new(seq, name, type, scene);
 
 		BKE_sequence_invalidate_cache_for_modifier(scene, seq);
 
@@ -2496,6 +2499,22 @@ static void rna_def_colorbalance_modifier(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
 }
 
+static void rna_def_whitebalance_modifier(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "WhiteBalanceModifier", "SequenceModifier");
+	RNA_def_struct_sdna(srna, "WhiteBalanceModifierData");
+	RNA_def_struct_ui_text(srna, "WhiteBalanceModifier", "White balance modifier for sequence strip");
+
+	prop = RNA_def_property(srna, "white_value", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_float_sdna(prop, NULL, "white_value");
+	RNA_def_property_ui_text(prop, "White value", "This color defines white in the strip");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
+}
+
 static void rna_def_curves_modifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2558,6 +2577,7 @@ static void rna_def_modifiers(BlenderRNA *brna)
 	rna_def_curves_modifier(brna);
 	rna_def_hue_modifier(brna);
 	rna_def_brightcontrast_modifier(brna);
+	rna_def_whitebalance_modifier(brna);
 }
 
 void RNA_def_sequencer(BlenderRNA *brna)

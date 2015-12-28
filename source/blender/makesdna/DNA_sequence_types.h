@@ -307,11 +307,12 @@ typedef struct SequenceModifierData {
 	int type, flag;
 	char name[64]; /* MAX_NAME */
 
-	/* mask input, either sequence or maks ID */
+	/* mask input, either sequence or mask ID */
 	int mask_input_type, pad;
 
 	struct Sequence *mask_sequence;
 	struct Mask     *mask_id;
+	struct Scene    *scene;
 } SequenceModifierData;
 
 typedef struct ColorBalanceModifierData {
@@ -343,6 +344,13 @@ typedef struct BrightContrastModifierData {
 typedef struct SequencerMaskModifierData {
 	SequenceModifierData modifier;
 } SequencerMaskModifierData;
+
+typedef struct WhiteBalanceModifierData {
+	SequenceModifierData modifier;
+
+	float white_value[3];
+	float pad;
+} WhiteBalanceModifierData;
 
 /* ***************** Scopes ****************** */
 
@@ -519,6 +527,7 @@ enum {
 	seqModifierType_HueCorrect     = 3,
 	seqModifierType_BrightContrast = 4,
 	seqModifierType_Mask           = 5,
+	seqModifierType_WhiteBalance   = 6,
 
 	NUM_SEQUENCE_MODIFIER_TYPES
 };

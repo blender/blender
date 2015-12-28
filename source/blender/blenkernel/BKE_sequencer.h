@@ -458,7 +458,7 @@ typedef struct SequenceModifierTypeInfo {
 
 const struct SequenceModifierTypeInfo *BKE_sequence_modifier_type_info_get(int type);
 
-struct SequenceModifierData *BKE_sequence_modifier_new(struct Sequence *seq, const char *name, int type);
+struct SequenceModifierData *BKE_sequence_modifier_new(struct Sequence *seq, const char *name, int type, struct Scene *scene);
 bool BKE_sequence_modifier_remove(struct Sequence *seq, struct SequenceModifierData *smd);
 void BKE_sequence_modifier_clear(struct Sequence *seq);
 void BKE_sequence_modifier_free(struct SequenceModifierData *smd);
