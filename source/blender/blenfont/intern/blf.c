@@ -55,7 +55,9 @@
 
 #include "IMB_colormanagement.h"
 
+#ifndef BLF_STANDALONE
 #include "GPU_basic_shader.h"
+#endif
 
 #include "blf_internal_types.h"
 #include "blf_internal.h"
@@ -498,7 +500,9 @@ static void blf_draw_gl__start(FontBLF *font, GLint *mode)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+#ifndef BLF_STANDALONE
 	GPU_basic_shader_bind(GPU_SHADER_TEXTURE_2D | GPU_SHADER_USE_COLOR);
+#endif
 
 	/* Save the current matrix mode. */
 	glGetIntegerv(GL_MATRIX_MODE, mode);
@@ -539,7 +543,9 @@ static void blf_draw_gl__end(GLint mode)
 	if (mode != GL_MODELVIEW)
 		glMatrixMode(mode);
 
+#ifndef BLF_STANDALONE
 	GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
+#endif
 	glDisable(GL_BLEND);
 }
 

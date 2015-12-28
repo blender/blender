@@ -79,6 +79,8 @@ if(UNIX AND NOT APPLE)
 endif()
 # for now... default to this
 add_definitions(-DWITH_GL_PROFILE_COMPAT)
+# BLF needs this to ignore GPU library
+add_definitions(-DBLF_STANDALONE)
 
 # ghost
 include(${CMAKE_SOURCE_DIR}/../CMakeLists.txt)
