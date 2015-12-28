@@ -825,7 +825,7 @@ static int copy_single_file(const char *from, const char *to)
 		ssize_t link_len;
 
 		/* get large enough buffer to read link content */
-		if (st.st_size < sizeof(buf)) {
+		if ((st.st_size + 1) < sizeof(buf)) {
 			link_buffer = buf;
 			need_free = 0;
 		}
@@ -843,7 +843,7 @@ static int copy_single_file(const char *from, const char *to)
 			return RecursiveOp_Callback_Error;
 		}
 
-		link_buffer[link_len] = 0;
+		link_buffer[link_len] = '\0';
 
 		if (symlink(link_buffer, to)) {
 			perror("symlink");

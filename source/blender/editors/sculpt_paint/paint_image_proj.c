@@ -5730,7 +5730,7 @@ static int texture_paint_add_texture_paint_slot_invoke(bContext *C, wmOperator *
 	BLI_assert(type != -1);
 
 	/* take the second letter to avoid the ID identifier */
-	BLI_snprintf(imagename, FILE_MAX, "%s %s", &ma->id.name[2], layer_type_items[type].name);
+	BLI_snprintf(imagename, sizeof(imagename), "%s %s", &ma->id.name[2], layer_type_items[type].name);
 
 	RNA_string_set(op->ptr, "name", imagename);
 	return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X, 5 * UI_UNIT_Y);
