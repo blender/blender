@@ -362,8 +362,11 @@ static GPUShader *gpu_basic_shader(int options)
 		
 		if (shader) {
 			/* set texture map to first texture unit */
-			if (options & GPU_SHADER_TEXTURE_2D)
+			if (options & GPU_SHADER_TEXTURE_2D) {
+				GPU_shader_bind(shader);
 				glUniform1i(GPU_shader_get_uniform(shader, "texture_map"), 0);
+				GPU_shader_unbind();
+			}
 
 			GPU_MATERIAL_STATE.cached_shaders[options] = shader;
 		}
