@@ -33,4 +33,5 @@ TEST(bmesh_core, BMVertCreate) {
 	EXPECT_FALSE(BM_elem_flag_test((BMElem *)bv3, BM_ELEM_SELECT));
 	EXPECT_EQ(1.5f, BM_elem_float_data_get(&bm->vdata, bv3, CD_PROP_FLT));
 	EXPECT_EQ(3, BM_mesh_elem_count(bm, BM_VERT));
+	BM_mesh_free(bm);
 }

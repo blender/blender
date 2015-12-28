@@ -116,6 +116,7 @@ static void  test_polyfill_topology(
 		EXPECT_EQ(true, ELEM((intptr_t)*p, 1, 2));
 	}
 
+	BLI_edgehashIterator_free(ehi);
 	BLI_edgehash_free(edgehash, NULL);
 }
 

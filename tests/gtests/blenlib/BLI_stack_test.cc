@@ -116,6 +116,8 @@ TEST(stack, Peek)
 	}
 
 	EXPECT_EQ(BLI_stack_is_empty(stack), true);
+
+	BLI_stack_free(stack);
 }
 
 /* Check that clearing the stack leaves in it a correct state. */

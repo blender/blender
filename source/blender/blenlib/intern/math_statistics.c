@@ -105,8 +105,6 @@ void BLI_covariance_m_vn_ex(
         const int n, const float *cos_vn, const int nbr_cos_vn, const float *center, const bool use_sample_correction,
         float *r_covmat)
 {
-	int i, j, k;
-
 	/* Note about that division: see https://en.wikipedia.org/wiki/Bessel%27s_correction.
 	 * In a nutshell, it must be 1 / (n - 1) for 'sample data', and 1 / n for 'population data'...
 	 */
@@ -123,7 +121,7 @@ void BLI_covariance_m_vn_ex(
 		BLI_task_parallel_range_ex(0, n * n, &data, NULL, 0, covariance_m_vn_ex_task_cb, 0, false);
 	}
 	else {
-		for (k = 0; k < n * n; k++) {
+		for (int k = 0; k < n * n; k++) {
 			covariance_m_vn_ex_task_cb(&data, NULL, k);
 		}
 	}
