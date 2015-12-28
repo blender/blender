@@ -2779,7 +2779,7 @@ public:
 			                PathState_coop,
 			                ray_state);
 
-/* TODO(segrey): Avoid map lookup here. */
+/* TODO(sergey): Avoid map lookup here. */
 #define KERNEL_TEX(type, ttype, name) \
 	set_kernel_arg_mem(ckPathTraceKernel_data_init, &start_arg_index, #name);
 #include "kernel_textures.h"
