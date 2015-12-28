@@ -51,24 +51,18 @@
 #include "BLI_strict_flags.h"
 #include "BLI_task.h"
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 /* used for iterative_raycast */
 // #define USE_SKIP_LINKS
 
 #define MAX_TREETYPE 32
 
-/* Setting zero so we can catch bugs in OpenMP/KDOPBVH.
+/* Setting zero so we can catch bugs in BLI_task/KDOPBVH.
  * TODO(sergey): Deduplicate the limits with PBVH from BKE.
  */
-#ifdef _OPENMP
-#  ifdef DEBUG
-#    define KDOPBVH_OMP_LIMIT 0
-#  else
-#    define KDOPBVH_OMP_LIMIT 1024
-#  endif
+#ifdef DEBUG
+#  define KDOPBVH_THREAD_LEAF_THRESHOLD 0
+#else
+#  define KDOPBVH_THREAD_LEAF_THRESHOLD 1024
 #endif
 
 typedef unsigned char axis_t;
@@ -880,7 +874,7 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 		cb_data.i = i;
 		cb_data.depth = depth;
 
-		if (num_leafs > KDOPBVH_OMP_LIMIT) {
+		if (num_leafs > KDOPBVH_THREAD_LEAF_THRESHOLD) {
 			BLI_task_parallel_range_ex(i, end_j, &cb_data, NULL, 0, non_recursive_bvh_div_nodes_task_cb, 0, false);
 		}
 		else {
@@ -1272,7 +1266,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(
 		data[j].thread = j;
 	}
 
-	if (tree1->totleaf > KDOPBVH_OMP_LIMIT) {
+	if (tree1->totleaf > KDOPBVH_THREAD_LEAF_THRESHOLD) {
 		BLI_task_parallel_range_ex(0, thread_num, data, NULL, 0, bvhtree_overlap_task_cb, 0, false);
 	}
 	else {
@@ -1403,7 +1397,7 @@ POP_HEAP_BODY(NodeDistance, NodeDistance_priority, heap, heap_size)
  * It may make sense to use this function if the callback queries are very slow.. or if its impossible
  * to get a nice heuristic
  *
- * this function uses "malloc/free" instead of the MEM_* because it intends to be openmp safe */
+ * this function uses "malloc/free" instead of the MEM_* because it intends to be thread safe */
 static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
 {
 	int i;
