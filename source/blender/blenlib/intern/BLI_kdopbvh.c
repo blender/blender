@@ -49,6 +49,7 @@
 #include "BLI_kdopbvh.h"
 #include "BLI_math.h"
 #include "BLI_strict_flags.h"
+#include "BLI_task.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -740,6 +741,81 @@ static void split_leafs(BVHNode **leafs_array, int *nth, int partitions, int spl
 	}
 }
 
+typedef struct BVHDivNodesData {
+	BVHTree *tree;
+	BVHNode *branches_array;
+	BVHNode **leafs_array;
+
+	int tree_type;
+	int tree_offset;
+
+	BVHBuildHelper *data;
+
+	int depth;
+	int i;
+	int first_of_next_level;
+} BVHDivNodesData;
+
+static void non_recursive_bvh_div_nodes_task_cb(void *userdata, void *UNUSED(userdata_chunk), int j)
+{
+	BVHDivNodesData *data = userdata;
+
+	int k;
+	const int parent_level_index = j - data->i;
+	BVHNode *parent = data->branches_array + j;
+	int nth_positions[MAX_TREETYPE + 1];
+	char split_axis;
+
+	int parent_leafs_begin = implicit_leafs_index(data->data, data->depth, parent_level_index);
+	int parent_leafs_end   = implicit_leafs_index(data->data, data->depth, parent_level_index + 1);
+
+	/* This calculates the bounding box of this branch
+	 * and chooses the largest axis as the axis to divide leafs */
+	refit_kdop_hull(data->tree, parent, parent_leafs_begin, parent_leafs_end);
+	split_axis = get_largest_axis(parent->bv);
+
+	/* Save split axis (this can be used on raytracing to speedup the query time) */
+	parent->main_axis = split_axis / 2;
+
+	/* Split the childs along the split_axis, note: its not needed to sort the whole leafs array
+	 * Only to assure that the elements are partitioned on a way that each child takes the elements
+	 * it would take in case the whole array was sorted.
+	 * Split_leafs takes care of that "sort" problem. */
+	nth_positions[0] = parent_leafs_begin;
+	nth_positions[data->tree_type] = parent_leafs_end;
+	for (k = 1; k < data->tree_type; k++) {
+		const int child_index = j * data->tree_type + data->tree_offset + k;
+		const int child_level_index = child_index - data->first_of_next_level; /* child level index */
+		nth_positions[k] = implicit_leafs_index(data->data, data->depth + 1, child_level_index);
+	}
+
+	split_leafs(data->leafs_array, nth_positions, data->tree_type, split_axis);
+
+	/* Setup children and totnode counters
+	 * Not really needed but currently most of BVH code relies on having an explicit children structure */
+	for (k = 0; k < data->tree_type; k++) {
+		const int child_index = j * data->tree_type + data->tree_offset + k;
+		const int child_level_index = child_index - data->first_of_next_level; /* child level index */
+
+		const int child_leafs_begin = implicit_leafs_index(data->data, data->depth + 1, child_level_index);
+		const int child_leafs_end   = implicit_leafs_index(data->data, data->depth + 1, child_level_index + 1);
+
+		if (child_leafs_end - child_leafs_begin > 1) {
+			parent->children[k] = data->branches_array + child_index;
+			parent->children[k]->parent = parent;
+		}
+		else if (child_leafs_end - child_leafs_begin == 1) {
+			parent->children[k] = data->leafs_array[child_leafs_begin];
+			parent->children[k]->parent = parent;
+		}
+		else {
+			break;
+		}
+
+		parent->totnode = (char)(k + 1);
+	}
+}
+
 /**
  * This functions builds an optimal implicit tree from the given leafs.
  * Where optimal stands for:
@@ -787,6 +863,12 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 
 	build_implicit_tree_helper(tree, &data);
 
+	BVHDivNodesData cb_data = {
+		.tree = tree, .branches_array = branches_array, .leafs_array = leafs_array,
+		.tree_type = tree_type, .tree_offset = tree_offset, .data = &data,
+	    .first_of_next_level = 0, .depth = 0, .i = 0,
+	};
+
 	/* Loop tree levels (log N) loops */
 	for (i = 1, depth = 1; i <= num_branches; i = i * tree_type + tree_offset, depth++) {
 		const int first_of_next_level = i * tree_type + tree_offset;
@@ -794,63 +876,16 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 		int j;
 
 		/* Loop all branches on this level */
+		cb_data.first_of_next_level = first_of_next_level;
+		cb_data.i = i;
+		cb_data.depth = depth;
 
-#pragma omp parallel for private(j) schedule(static) if (num_leafs > KDOPBVH_OMP_LIMIT)
-		for (j = i; j < end_j; j++) {
-			int k;
-			const int parent_level_index = j - i;
-			BVHNode *parent = branches_array + j;
-			int nth_positions[MAX_TREETYPE + 1];
-			char split_axis;
-
-			int parent_leafs_begin = implicit_leafs_index(&data, depth, parent_level_index);
-			int parent_leafs_end   = implicit_leafs_index(&data, depth, parent_level_index + 1);
-
-			/* This calculates the bounding box of this branch
-			 * and chooses the largest axis as the axis to divide leafs */
-			refit_kdop_hull(tree, parent, parent_leafs_begin, parent_leafs_end);
-			split_axis = get_largest_axis(parent->bv);
-
-			/* Save split axis (this can be used on raytracing to speedup the query time) */
-			parent->main_axis = split_axis / 2;
-
-			/* Split the childs along the split_axis, note: its not needed to sort the whole leafs array
-			 * Only to assure that the elements are partitioned on a way that each child takes the elements
-			 * it would take in case the whole array was sorted.
-			 * Split_leafs takes care of that "sort" problem. */
-			nth_positions[0] = parent_leafs_begin;
-			nth_positions[tree_type] = parent_leafs_end;
-			for (k = 1; k < tree_type; k++) {
-				int child_index = j * tree_type + tree_offset + k;
-				int child_level_index = child_index - first_of_next_level; /* child level index */
-				nth_positions[k] = implicit_leafs_index(&data, depth + 1, child_level_index);
-			}
-
-			split_leafs(leafs_array, nth_positions, tree_type, split_axis);
-
-
-			/* Setup children and totnode counters
-			 * Not really needed but currently most of BVH code relies on having an explicit children structure */
-			for (k = 0; k < tree_type; k++) {
-				int child_index = j * tree_type + tree_offset + k;
-				int child_level_index = child_index - first_of_next_level; /* child level index */
-
-				int child_leafs_begin = implicit_leafs_index(&data, depth + 1, child_level_index);
-				int child_leafs_end   = implicit_leafs_index(&data, depth + 1, child_level_index + 1);
-
-				if (child_leafs_end - child_leafs_begin > 1) {
-					parent->children[k] = branches_array + child_index;
-					parent->children[k]->parent = parent;
-				}
-				else if (child_leafs_end - child_leafs_begin == 1) {
-					parent->children[k] = leafs_array[child_leafs_begin];
-					parent->children[k]->parent = parent;
-				}
-				else {
-					break;
-				}
-
-				parent->totnode = (char)(k + 1);
+		if (num_leafs > KDOPBVH_OMP_LIMIT) {
+			BLI_task_parallel_range_ex(i, end_j, &cb_data, NULL, 0, non_recursive_bvh_div_nodes_task_cb, 0, false);
+		}
+		else {
+			for (j = i; j < end_j; j++) {
+				non_recursive_bvh_div_nodes_task_cb(&cb_data, NULL, j);
 			}
 		}
 	}
@@ -1172,6 +1207,23 @@ int BLI_bvhtree_overlap_thread_num(const BVHTree *tree)
 	return (int)MIN2(tree->tree_type, tree->nodes[tree->totleaf]->totnode);
 }
 
+static void bvhtree_overlap_task_cb(void *userdata, void *UNUSED(userdata_chunk), int j)
+{
+	BVHOverlapData_Thread *data = &((BVHOverlapData_Thread *)userdata)[j];
+	BVHOverlapData_Shared *data_shared = data->shared;
+
+	if (data_shared->callback) {
+		tree_overlap_traverse_cb(
+		            data, data_shared->tree1->nodes[data_shared->tree1->totleaf]->children[j],
+		            data_shared->tree2->nodes[data_shared->tree2->totleaf]);
+	}
+	else {
+		tree_overlap_traverse(
+		            data, data_shared->tree1->nodes[data_shared->tree1->totleaf]->children[j],
+		            data_shared->tree2->nodes[data_shared->tree2->totleaf]);
+	}
+}
+
 BVHTreeOverlap *BLI_bvhtree_overlap(
         const BVHTree *tree1, const BVHTree *tree2, unsigned int *r_overlap_tot,
         /* optional callback to test the overlap before adding (must be thread-safe!) */
@@ -1220,13 +1272,12 @@ BVHTreeOverlap *BLI_bvhtree_overlap(
 		data[j].thread = j;
 	}
 
-#pragma omp parallel for private(j) schedule(static)  if (tree1->totleaf > KDOPBVH_OMP_LIMIT)
-	for (j = 0; j < thread_num; j++) {
-		if (callback) {
-			tree_overlap_traverse_cb(&data[j], tree1->nodes[tree1->totleaf]->children[j], tree2->nodes[tree2->totleaf]);
-		}
-		else {
-			tree_overlap_traverse(&data[j], tree1->nodes[tree1->totleaf]->children[j], tree2->nodes[tree2->totleaf]);
+	if (tree1->totleaf > KDOPBVH_OMP_LIMIT) {
+		BLI_task_parallel_range_ex(0, thread_num, data, NULL, 0, bvhtree_overlap_task_cb, 0, false);
+	}
+	else {
+		for (j = 0; j < thread_num; j++) {
+			bvhtree_overlap_task_cb(data, NULL, j);
 		}
 	}
 	
