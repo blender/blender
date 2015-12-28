@@ -52,11 +52,27 @@ public:
 
 class SVMCompiler {
 public:
+	struct Summary {
+		Summary();
+
+		/* Number of SVM nodes shader was compiled into. */
+		int num_svm_nodes;
+
+		/* Peak stack usage during shader evaluation. */
+		int peak_stack_usage;
+
+		/* A full multiline description of the state of the compiler after
+		 * compilation.
+		 */
+		string full_report() const;
+	};
+
 	SVMCompiler(ShaderManager *shader_manager, ImageManager *image_manager);
 	void compile(Scene *scene,
 	             Shader *shader,
 	             vector<int4>& svm_nodes,
-	             int index);
+	             int index,
+	             Summary *summary = NULL);
 
 	void stack_assign(ShaderOutput *output);
 	void stack_assign(ShaderInput *input);

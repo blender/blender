@@ -76,9 +76,14 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		if(shader->use_mis && shader->has_surface_emission)
 			scene->light_manager->need_update = true;
 
+		SVMCompiler::Summary summary;
 		SVMCompiler compiler(scene->shader_manager, scene->image_manager);
 		compiler.background = ((int)i == scene->default_background);
-		compiler.compile(scene, shader, svm_nodes, i);
+		compiler.compile(scene, shader, svm_nodes, i, &summary);
+
+		VLOG(1) << "Compilation summary:\n"
+		        << "Shader name: " << shader->name << "\n"
+		        << summary.full_report();
 	}
 
 	dscene->svm_nodes.copy((uint4*)&svm_nodes[0], svm_nodes.size());
@@ -706,10 +711,12 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 void SVMCompiler::compile(Scene *scene,
                           Shader *shader,
                           vector<int4>& global_svm_nodes,
-                          int index)
+                          int index,
+                          Summary *summary)
 {
 	/* copy graph for shader with bump mapping */
 	ShaderNode *node = shader->graph->output();
+	int start_num_svm_nodes = global_svm_nodes.size();
 
 	if(node->input("Surface")->link && node->input("Displacement")->link)
 		if(!shader->graph_bump)
@@ -764,10 +771,27 @@ void SVMCompiler::compile(Scene *scene,
 	global_svm_nodes[index*2 + 1].w = global_svm_nodes.size();
 	global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
 
-	/* TODO(sergey): Consider making it more generic compile report. */
-	VLOG(1) << "Statistics for compiled shader " << shader->name << ":";
-	VLOG(1) << "  Number of SVM nodes: " << global_svm_nodes.size();
-	VLOG(1) << "  Maximum stack usage: " << max_stack_use;
+	/* Fill in summary information. */
+	if(summary != NULL) {
+		summary->peak_stack_usage = max_stack_use;
+		summary->num_svm_nodes = global_svm_nodes.size() - start_num_svm_nodes;
+	}
+}
+
+/* Compiler summary implementation. */
+
+SVMCompiler::Summary::Summary()
+	: num_svm_nodes(0),
+	  peak_stack_usage(0)
+{
+}
+
+string SVMCompiler::Summary::full_report() const
+{
+	string report = "";
+	report += string_printf("Number of SVM nodes: %d\n", num_svm_nodes);
+	report += string_printf("Peak stack usage:    %d", peak_stack_usage);
+	return report;
 }
 
 CCL_NAMESPACE_END
