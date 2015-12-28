@@ -2861,21 +2861,30 @@ bool BKE_image_is_stereo(Image *ima)
             BLI_findstring(&ima->views, STEREO_RIGHT_NAME, offsetof(ImageView, name)));
 }
 
-static void image_view_from_render_view(ImageView *iv_dst, RenderView *rv_src)
-{
-	BLI_strncpy(iv_dst->name, rv_src->name, sizeof(iv_dst->name));
-}
-
 static void image_init_multilayer_multiview(Image *ima, RenderResult *rr)
 {
+	/* update image views from render views, but only if they actually changed,
+	 * to avoid invalid memory access during render. ideally these should always
+	 * be acquired with a mutex along with the render result, but there are still
+	 * some places with just an image pointer that need to access views */
+	if (rr && BLI_listbase_count(&ima->views) == BLI_listbase_count(&rr->views)) {
+		ImageView *iv = ima->views.first;
+		RenderView *rv = rr->views.first;
+		bool modified = false;
+		for (; rv; rv = rv->next, iv = iv->next) {
+			modified |= !STREQ(rv->name, iv->name);
+		}
+		if (!modified)
+			return;
+	}
+
 	BKE_image_free_views(ima);
+
 	if (rr) {
-		RenderView *rv_src;
-		for (rv_src = rr->views.first; rv_src; rv_src = rv_src->next) {
-			ImageView *iv_dst;
-			iv_dst = MEM_callocN(sizeof(ImageView), "Viewer Image View");
-			image_view_from_render_view(iv_dst, rv_src);
-			BLI_addhead(&ima->views, iv_dst);
+		for (RenderView *rv = rr->views.first; rv; rv = rv->next) {
+			ImageView *iv = MEM_callocN(sizeof(ImageView), "Viewer Image View");
+			BLI_strncpy(iv->name, rv->name, sizeof(iv->name));
+			BLI_addtail(&ima->views, iv);
 		}
 	}
 }
