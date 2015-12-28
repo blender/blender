@@ -1809,21 +1809,23 @@ void BKE_library_make_local(Main *bmain, Library *lib, bool untagged_only)
 	}
 }
 
-
-void test_idbutton(char *name)
+/**
+ * Use after setting the ID's name
+ * When name exists: call 'new_id'
+ */
+void BLI_libblock_ensure_unique_name(Main *bmain, const char *name)
 {
-	/* called from buttons: when name already exists: call new_id */
 	ListBase *lb;
 	ID *idtest;
-	
 
-	lb = which_libbase(G.main, GS(name));
+
+	lb = which_libbase(bmain, GS(name));
 	if (lb == NULL) return;
 	
 	/* search for id */
 	idtest = BLI_findstring(lb, name + 2, offsetof(ID, name) + 2);
 
-	if (idtest && !new_id(lb, idtest, name + 2)) {
+	if (idtest && !new_id(lb, idtest, idtest->name + 2)) {
 		id_sort_by_name(lb, idtest);
 	}
 }
@@ -1831,15 +1833,9 @@ void test_idbutton(char *name)
 /**
  * Sets the name of a block to name, suitably adjusted for uniqueness.
  */
-void BKE_rename_id(Main *bmain, ID *id, const char *name)
+void BKE_libblock_rename(Main *bmain, ID *id, const char *name)
 {
-	ListBase *lb;
-
-	if (!bmain)
-		bmain = G.main;
-
-	lb = which_libbase(bmain, GS(id->name));
-	
+	ListBase *lb = which_libbase(bmain, GS(id->name));
 	new_id(lb, id, name);
 }
 
@@ -1847,7 +1843,7 @@ void BKE_rename_id(Main *bmain, ID *id, const char *name)
  * Returns in name the name of the block, with a 3-character prefix prepended
  * indicating whether it comes from a library, has a fake user, or no users.
  */
-void name_uiprefix_id(char *name, const ID *id)
+void BKE_id_ui_prefix(char name[MAX_ID_NAME + 1], const ID *id)
 {
 	name[0] = id->lib ? (ID_MISSING(id) ? 'M' : 'L') : ' ';
 	name[1] = (id->flag & LIB_FAKEUSER) ? 'F' : ((id->us == 0) ? '0' : ' ');

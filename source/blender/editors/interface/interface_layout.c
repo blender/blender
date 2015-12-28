@@ -1524,7 +1524,7 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, const char *s
 
 #if 0       /* this name is used for a string comparison and can't be modified, TODO */
 			/* if ever enabled, make name_ui be MAX_ID_NAME+1 */
-			name_uiprefix_id(name_ui, id);
+			BKE_id_ui_prefix(name_ui, id);
 #else
 			BLI_strncpy(name_ui, id->name + 2, sizeof(name_ui));
 #endif

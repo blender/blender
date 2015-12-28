@@ -654,7 +654,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 		for (std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end(); ++it) {
 			ob = *it;
 			std::string nodename = node->getName().size() ? node->getName() : node->getOriginalId();
-			BKE_rename_id(NULL, &ob->id, (char *)nodename.c_str());
+			BKE_libblock_rename(G.main, &ob->id, (char *)nodename.c_str());
 			object_map.insert(std::pair<COLLADAFW::UniqueId, Object *>(node->getUniqueId(), ob));
 			node_map[node->getUniqueId()] = node;
 

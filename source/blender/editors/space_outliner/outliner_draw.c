@@ -474,7 +474,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 		TreeElement *te = outliner_find_tree_element(&soops->tree, tselem);
 		
 		if (tselem->type == 0) {
-			test_idbutton(tselem->id->name);  // library.c, unique name and alpha sort
+			BLI_libblock_ensure_unique_name(G.main, tselem->id->name);
 			
 			switch (GS(tselem->id->name)) {
 				case ID_MA:
@@ -509,7 +509,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					defgroup_unique_name(te->directdata, (Object *)tselem->id); //	id = object
 					break;
 				case TSE_NLA_ACTION:
-					test_idbutton(tselem->id->name);
+					BLI_libblock_ensure_unique_name(G.main, tselem->id->name);
 					break;
 				case TSE_EBONE:
 				{

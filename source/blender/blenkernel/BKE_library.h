@@ -57,6 +57,16 @@ void *BKE_libblock_copy_nolib(struct ID *id, const bool do_action) ATTR_NONNULL(
 void *BKE_libblock_copy(struct ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void  BKE_libblock_copy_data(struct ID *id, const struct ID *id_from, const bool do_action);
 void  BKE_libblock_relink(struct ID *id);
+void  BKE_libblock_rename(struct Main *bmain, struct ID *id, const char *name) ATTR_NONNULL();
+void  BLI_libblock_ensure_unique_name(struct Main *bmain, const char *name) ATTR_NONNULL();
+
+void  BKE_libblock_free(struct Main *bmain, void *idv) ATTR_NONNULL();
+void  BKE_libblock_free_ex(struct Main *bmain, void *idv, bool do_id_user) ATTR_NONNULL();
+void  BKE_libblock_free_us(struct Main *bmain, void *idv) ATTR_NONNULL();
+void  BKE_libblock_free_data(struct Main *bmain, struct ID *id) ATTR_NONNULL();
+
+struct ID *BKE_libblock_find_name_ex(struct Main *bmain, const short type, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+struct ID *BKE_libblock_find_name(const short type, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 void BKE_id_lib_local_paths(struct Main *bmain, struct Library *lib, struct ID *id);
 void id_lib_extern(struct ID *id);
@@ -81,12 +91,6 @@ struct ListBase *which_libbase(struct Main *mainlib, short type);
 #define MAX_LIBARRAY    34
 int set_listbasepointers(struct Main *main, struct ListBase *lb[MAX_LIBARRAY]);
 
-void BKE_libblock_free(struct Main *bmain, void *idv);
-void BKE_libblock_free_ex(struct Main *bmain, void *idv, bool do_id_user);
-void BKE_libblock_free_us(struct Main *bmain, void *idv);
-void BKE_libblock_free_data(struct Main *bmain, struct ID *id);
-
-
 /* Main API */
 struct Main *BKE_main_new(void);
 void BKE_main_free(struct Main *mainvar);
@@ -109,14 +113,10 @@ void BKE_main_id_clear_newpoins(struct Main *bmain);
 
 void BKE_main_lib_objects_recalc_all(struct Main *bmain);
 
-void BKE_rename_id(struct Main *bmain, struct ID *id, const char *name);
-void name_uiprefix_id(char *name, const struct ID *id);
-void test_idbutton(char *name);
+/* (MAX_ID_NAME - 2) + 3 */
+void BKE_id_ui_prefix(char name[66 + 1], const struct ID *id);
 
 void BKE_library_make_local(struct Main *bmain, struct Library *lib, bool untagged_only);
-
-struct ID *BKE_libblock_find_name_ex(struct Main *bmain, const short type, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-struct ID *BKE_libblock_find_name(const short type, const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 typedef void (*BKE_library_free_window_manager_cb)(struct bContext *, struct wmWindowManager *);
 typedef void (*BKE_library_free_notifier_reference_cb)(const void *);

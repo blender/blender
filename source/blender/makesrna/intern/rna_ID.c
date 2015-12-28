@@ -93,6 +93,7 @@ EnumPropertyItem rna_enum_id_type_items[] = {
 #include "BKE_animsys.h"
 #include "BKE_material.h"
 #include "BKE_depsgraph.h"
+#include "BKE_global.h"  /* XXX, remove me */
 
 #include "WM_api.h"
 
@@ -113,7 +114,7 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
 {
 	ID *id = (ID *)ptr->data;
 	BLI_strncpy_utf8(id->name + 2, value, sizeof(id->name) - 2);
-	test_idbutton(id->name);
+	BLI_libblock_ensure_unique_name(G.main, id->name);
 }
 
 static int rna_ID_name_editable(PointerRNA *ptr)
