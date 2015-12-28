@@ -4297,7 +4297,7 @@ static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3
 
 		GPU_end_object_materials();
 
-		if (obedit != ob && finalDM)
+		if (obedit != ob)
 			finalDM->release(finalDM);
 	}
 	else {

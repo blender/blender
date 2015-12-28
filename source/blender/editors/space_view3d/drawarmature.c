@@ -119,11 +119,12 @@ static void set_pchan_colorset(Object *ob, bPoseChannel *pchan)
 		bcolor = &btheme->tarm[(color_index - 1)];
 	}
 	else if (color_index == -1) {
-		/* use the group's own custom color set */
-		bcolor = (grp) ? &grp->cs : NULL;
+		/* use the group's own custom color set (grp is always != NULL here) */
+		bcolor = &grp->cs;
 	}
-	else 
+	else {
 		bcolor = NULL;
+	}
 }
 
 /* This function is for brightening/darkening a given color (like UI_ThemeColorShade()) */
@@ -1435,7 +1436,8 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 					if (segcount == data->chainlen || segcount > 255) break;  /* 255 is weak */
 					parchan = parchan->parent;
 				}
-				if (parchan)  /* XXX revise the breaking conditions to only stop at the tail? */
+				/* Only draw line in case our chain is more than one bone long! */
+				if (parchan != pchan)  /* XXX revise the breaking conditions to only stop at the tail? */
 					glVertex3fv(parchan->pose_head);
 
 				glEnd();
