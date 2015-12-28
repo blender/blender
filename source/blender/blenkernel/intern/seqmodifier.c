@@ -184,7 +184,7 @@ static void whiteBalance_init_data(SequenceModifierData *smd)
 }
 
 typedef struct WhiteBalanceThreadData {
-	struct ColorSpace* colorspace;
+	struct ColorSpace *colorspace;
 	float white[3];
 } WhiteBalanceThreadData;
 
@@ -196,19 +196,19 @@ static void whiteBalance_apply_threaded(int width, int height, unsigned char *re
 
 	WhiteBalanceThreadData *data = (WhiteBalanceThreadData *) data_v;
 
-	multiplier[0] = 1.0f/data->white[0];
-	multiplier[1] = 1.0f/data->white[1];
-	multiplier[2] = 1.0f/data->white[2];
+	multiplier[0] = 1.0f / data->white[0];
+	multiplier[1] = 1.0f / data->white[1];
+	multiplier[2] = 1.0f / data->white[2];
 
 	for (y = 0; y < height; y++) {
 		for (x = 0; x < width; x++) {
 			int pixel_index = (y * width + x) * 4;
 			float result[3], mask[3] = {1.0f, 1.0f, 1.0f};
 
-			if (rect_float)
+			if (rect_float) {
 				copy_v3_v3(result, rect_float + pixel_index);
-			else
-			{
+			}
+			else {
 				straight_uchar_to_premul_float(result, rect + pixel_index);
 				IMB_colormanagement_colorspace_to_scene_linear_v3(result, data->colorspace);
 			}
@@ -228,8 +228,8 @@ static void whiteBalance_apply_threaded(int width, int height, unsigned char *re
 				copy_v3_v3(rect_float + pixel_index, result);
 			else
 				IMB_colormanagement_scene_linear_to_colorspace_v3(result, data->colorspace);
-				premul_float_to_straight_uchar(rect + pixel_index, result);
-			}
+			premul_float_to_straight_uchar(rect + pixel_index, result);
+		}
 	}
 }
 

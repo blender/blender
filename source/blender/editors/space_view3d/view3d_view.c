@@ -590,7 +590,7 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
 
 			ED_view3d_smooth_view(
 			        C, v3d, ar, smooth_viewtx,
-			        &(const V3D_SmoothParams){
+			        &(const V3D_SmoothParams) {
 			            .camera_old = camera_old, .camera = v3d->camera,
 			            .ofs = rv3d->ofs, .quat = rv3d->viewquat,
 			            .dist = &rv3d->dist, .lens = &v3d->lens});
@@ -1324,7 +1324,7 @@ static bool view3d_localview_init(
 
 				ED_view3d_smooth_view_ex(
 				        wm, win, sa, v3d, ar, smooth_viewtx,
-				            &(const V3D_SmoothParams){
+				            &(const V3D_SmoothParams) {
 				                .camera_old = camera_old,
 				                .ofs = ofs_new, .quat = rv3d->viewquat,
 				                .dist = ok_dist ? &dist_new : NULL, .lens = &v3d->lens});
@@ -1389,7 +1389,7 @@ static void restore_localviewdata(wmWindowManager *wm, wmWindow *win, Main *bmai
 				ED_view3d_smooth_view_ex(
 				        wm, win, sa,
 				        v3d, ar, smooth_viewtx,
-				        &(const V3D_SmoothParams){
+				        &(const V3D_SmoothParams) {
 				            .camera_old = camera_old_rv3d, .camera = camera_new_rv3d,
 				            .ofs = rv3d->localvd->ofs, .quat = rv3d->localvd->viewquat,
 				            .dist = &rv3d->localvd->dist});

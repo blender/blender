@@ -2882,14 +2882,14 @@ static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 		rv3d->persp = RV3D_PERSP;
 		ED_view3d_smooth_view(
 		        C, v3d, ar, smooth_viewtx,
-		        &(const V3D_SmoothParams){
+		        &(const V3D_SmoothParams) {
 		            .camera_old = v3d->camera, .ofs = new_ofs,
 		            .dist = ok_dist ? &new_dist : NULL});
 	}
 	else {
 		ED_view3d_smooth_view(
 		        C, v3d, ar, smooth_viewtx,
-		        &(const V3D_SmoothParams){.ofs = new_ofs, .dist = ok_dist ? &new_dist : NULL});
+		        &(const V3D_SmoothParams) {.ofs = new_ofs, .dist = ok_dist ? &new_dist : NULL});
 	}
 
 	/* smooth view does viewlock RV3D_BOXVIEW copy */
@@ -3200,7 +3200,7 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
 		negate_v3_v3(new_ofs, ED_view3d_cursor3d_get(scene, v3d));
 		ED_view3d_smooth_view(
 		        C, v3d, ar, smooth_viewtx,
-		        &(const V3D_SmoothParams){.ofs = new_ofs});
+		        &(const V3D_SmoothParams) {.ofs = new_ofs});
 
 		/* smooth view does viewlock RV3D_BOXVIEW copy */
 	}
@@ -3247,7 +3247,7 @@ static int viewcenter_pick_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 		negate_v3(new_ofs);
 		ED_view3d_smooth_view(
 		        C, v3d, ar, smooth_viewtx,
-		        &(const V3D_SmoothParams){.ofs = new_ofs});
+		        &(const V3D_SmoothParams) {.ofs = new_ofs});
 	}
 
 	return OPERATOR_FINISHED;
@@ -3632,7 +3632,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 
 	ED_view3d_smooth_view(
 	        C, v3d, ar, smooth_viewtx,
-	        &(const V3D_SmoothParams){.ofs = new_ofs, .dist = &new_dist});
+	        &(const V3D_SmoothParams) {.ofs = new_ofs, .dist = &new_dist});
 
 	if (rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(CTX_wm_area(C), ar);
@@ -3789,7 +3789,7 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
 		/* to camera */
 		ED_view3d_smooth_view(
 		        C, v3d, ar, smooth_viewtx,
-		        &(const V3D_SmoothParams){.camera_old = v3d->camera, .ofs = rv3d->ofs, .quat = quat});
+		        &(const V3D_SmoothParams) {.camera_old = v3d->camera, .ofs = rv3d->ofs, .quat = quat});
 	}
 	else if (orig_persp == RV3D_CAMOB && v3d->camera) {
 		/* from camera */
@@ -3803,7 +3803,7 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
 
 		ED_view3d_smooth_view(
 		        C, v3d, ar, smooth_viewtx,
-		        &(const V3D_SmoothParams){.ofs = ofs, .quat = quat, .dist = &dist});
+		        &(const V3D_SmoothParams) {.ofs = ofs, .quat = quat, .dist = &dist});
 	}
 	else {
 		/* rotate around selection */
@@ -3820,7 +3820,7 @@ static void axis_set_view(bContext *C, View3D *v3d, ARegion *ar,
 		/* no camera involved */
 		ED_view3d_smooth_view(
 		        C, v3d, ar, smooth_viewtx,
-		        &(const V3D_SmoothParams){.quat = quat, .dyn_ofs = dyn_ofs_pt});
+		        &(const V3D_SmoothParams) {.quat = quat, .dyn_ofs = dyn_ofs_pt});
 	}
 }
 
@@ -3911,7 +3911,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 				rv3d->persp = RV3D_CAMOB;
 				ED_view3d_smooth_view(
 				        C, v3d, ar, smooth_viewtx,
-				        &(const V3D_SmoothParams){
+				        &(const V3D_SmoothParams) {
 				            .camera = v3d->camera, .ofs = rv3d->ofs, .quat = rv3d->viewquat,
 				            .dist = &rv3d->dist, .lens = &v3d->lens});
 
@@ -4040,7 +4040,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 
 			ED_view3d_smooth_view(
 			        C, v3d, ar, smooth_viewtx,
-			        &(const V3D_SmoothParams){.quat = quat_new, .dyn_ofs = dyn_ofs_pt});
+			        &(const V3D_SmoothParams) {.quat = quat_new, .dyn_ofs = dyn_ofs_pt});
 
 			return OPERATOR_FINISHED;
 		}
@@ -4220,7 +4220,7 @@ static int viewroll_exec(bContext *C, wmOperator *op)
 
 		ED_view3d_smooth_view(
 		        C, v3d, ar, smooth_viewtx,
-		        &(const V3D_SmoothParams){.quat = quat_new, .dyn_ofs = dyn_ofs_pt});
+		        &(const V3D_SmoothParams) {.quat = quat_new, .dyn_ofs = dyn_ofs_pt});
 
 		viewops_data_free(C, op);
 		return OPERATOR_FINISHED;

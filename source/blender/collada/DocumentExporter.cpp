@@ -159,7 +159,7 @@ static COLLADABU::NativeString make_temp_filepath(const char *name, const char *
 	char tempfile[FILE_MAX];
 	const char *tempdir = BKE_tempdir_session();
 
-	if (name == NULL){
+	if (name == NULL) {
 		name = tmpnam(NULL);
 	}
 
