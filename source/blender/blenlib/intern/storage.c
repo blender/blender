@@ -320,10 +320,11 @@ void *BLI_file_read_text_as_mem(const char *filepath, size_t pad_bytes, size_t *
 		}
 
 		*r_size = filelen_read;
-	}
 
 finally:
-	fclose(fp);
+		fclose(fp);
+	}
+
 	return mem;
 }
 
@@ -353,10 +354,11 @@ void *BLI_file_read_binary_as_mem(const char *filepath, size_t pad_bytes, size_t
 		}
 
 		*r_size = filelen_read;
-	}
 
 finally:
-	fclose(fp);
+		fclose(fp);
+	}
+
 	return mem;
 }
 
