@@ -40,6 +40,7 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLT_translation.h"
 #include "PIL_time.h"
 #include "WM_api.h"
 #include "WM_types.h"
@@ -402,7 +403,7 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memo
 		this->m_bTree->progress(this->m_bTree->prh, progress);
 
 		char buf[128];
-		BLI_snprintf(buf, sizeof(buf), "Compositing | Tile %u-%u",
+		BLI_snprintf(buf, sizeof(buf), IFACE_("Compositing | Tile %u-%u"),
 		             this->m_chunksFinished,
 		             this->m_numberOfChunks);
 		this->m_bTree->stats_draw(this->m_bTree->sdh, buf);

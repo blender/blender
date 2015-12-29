@@ -286,7 +286,7 @@ static bool test_edge_type_conditions(struct edge_type_condition *conditions,
 static void prepare(Render *re, SceneRenderLayer *srl)
 {
 	// load mesh
-	re->i.infostr = TIP_("Freestyle: Mesh loading");
+	re->i.infostr = IFACE_("Freestyle: Mesh loading");
 	re->stats_draw(re->sdh, &re->i);
 	re->i.infostr = NULL;
 	if (controller->LoadMesh(re, srl)) // returns if scene cannot be loaded or if empty
@@ -469,7 +469,7 @@ static void prepare(Render *re, SceneRenderLayer *srl)
 		return;
 
 	// compute view map
-	re->i.infostr = TIP_("Freestyle: View map creation");
+	re->i.infostr = IFACE_("Freestyle: View map creation");
 	re->stats_draw(re->sdh, &re->i);
 	re->i.infostr = NULL;
 	controller->ComputeViewMap();
@@ -624,7 +624,7 @@ Render *FRS_do_stroke_rendering(Render *re, SceneRenderLayer *srl, int render)
 		// render and composite Freestyle result
 		if (controller->_ViewMap) {
 			// render strokes
-			re->i.infostr = TIP_("Freestyle: Stroke rendering");
+			re->i.infostr = IFACE_("Freestyle: Stroke rendering");
 			re->stats_draw(re->sdh, &re->i);
 			re->i.infostr = NULL;
 			g_freestyle.scene = re->scene;
