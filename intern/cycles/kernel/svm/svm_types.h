@@ -293,6 +293,11 @@ typedef enum NodeWaveType {
 	NODE_WAVE_RINGS
 } NodeWaveType;
 
+typedef enum NodeWaveProfiles {
+	NODE_WAVE_PROFILE_SIN,
+	NODE_WAVE_PROFILE_SAW,
+} NodeWaveProfile;
+
 typedef enum NodeSkyType {
 	NODE_SKY_OLD,
 	NODE_SKY_NEW

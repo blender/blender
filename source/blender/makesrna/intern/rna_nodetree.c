@@ -3858,6 +3858,12 @@ static void def_sh_tex_wave(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem prop_wave_profile_items[] = {
+		{SHD_WAVE_PROFILE_SIN, "SIN", 0, "Sine", "Use a standard sine profile"},
+		{SHD_WAVE_PROFILE_SAW, "SAW", 0, "Saw", "Use a sawtooth profile"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	PropertyRNA *prop;
 	
 	RNA_def_struct_sdna_from(srna, "NodeTexWave", "storage");
@@ -3867,6 +3873,12 @@ static void def_sh_tex_wave(StructRNA *srna)
 	RNA_def_property_enum_sdna(prop, NULL, "wave_type");
 	RNA_def_property_enum_items(prop, prop_wave_type_items);
 	RNA_def_property_ui_text(prop, "Wave Type", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "wave_profile", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "wave_profile");
+	RNA_def_property_enum_items(prop, prop_wave_profile_items);
+	RNA_def_property_ui_text(prop, "Wave Profile", "");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 

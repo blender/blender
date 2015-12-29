@@ -267,12 +267,15 @@ public:
 	virtual int get_group() { return NODE_GROUP_LEVEL_2; }
 
 	ustring type;
+	ustring profile;
 	static ShaderEnum type_enum;
+	static ShaderEnum profile_enum;
 
 	virtual bool equals(const ShaderNode *other) {
 		const WaveTextureNode *wave_node = (const WaveTextureNode*)other;
 		return TextureNode::equals(other) &&
-		       type == wave_node->type;
+		       type == wave_node->type &&
+		       profile == wave_node->profile;
 	}
 };
 

@@ -19,7 +19,7 @@
 
 /* Wave */
 
-float wave(point p, string type, float detail, float distortion, float dscale)
+float wave(point p, string type, string profile, float detail, float distortion, float dscale)
 {
 	float n = 0.0;
 
@@ -33,13 +33,23 @@ float wave(point p, string type, float detail, float distortion, float dscale)
 	if (distortion != 0.0) {
 		n = n + (distortion * noise_turbulence(p * dscale, detail, 0));
 	}
-	return 0.5 + 0.5 * sin(n);
+
+	if (profile == "Sine") {
+		return 0.5 + 0.5 * sin(n);
+	}
+	else {
+		/* Saw profile */
+		n /= M_2PI;
+		n -= (int) n;
+		return (n < 0.0)? n + 1.0: n;
+	}
 }
 
 shader node_wave_texture(
 	int use_mapping = 0,
 	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 	string Type = "Bands",
+	string Profile = "Sine",
 	float Scale = 5.0,
 	float Distortion = 0.0,
 	float Detail = 2.0,
@@ -53,7 +63,7 @@ shader node_wave_texture(
 	if (use_mapping)
 		p = transform(mapping, p);
 
-	Fac = wave(p * Scale, Type, Detail, Distortion, DetailScale);
+	Fac = wave(p * Scale, Type, Profile, Detail, Distortion, DetailScale);
 	Color = Fac;
 }
 

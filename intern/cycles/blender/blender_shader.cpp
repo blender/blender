@@ -718,6 +718,7 @@ static ShaderNode *add_node(Scene *scene,
 		BL::ShaderNodeTexWave b_wave_node(b_node);
 		WaveTextureNode *wave = new WaveTextureNode();
 		wave->type = WaveTextureNode::type_enum[(int)b_wave_node.wave_type()];
+		wave->profile = WaveTextureNode::profile_enum[(int)b_wave_node.wave_profile()];
 		get_tex_mapping(&wave->tex_mapping, b_wave_node.texture_mapping());
 		node = wave;
 	}

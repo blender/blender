@@ -1073,12 +1073,24 @@ static ShaderEnum wave_type_init()
 	return enm;
 }
 
+static ShaderEnum wave_profile_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("Sine", NODE_WAVE_PROFILE_SIN);
+	enm.insert("Saw", NODE_WAVE_PROFILE_SAW);
+
+	return enm;
+}
+
 ShaderEnum WaveTextureNode::type_enum = wave_type_init();
+ShaderEnum WaveTextureNode::profile_enum = wave_profile_init();
 
 WaveTextureNode::WaveTextureNode()
 : TextureNode("wave_texture")
 {
 	type = ustring("Bands");
+	profile = ustring("Sine");
 
 	add_input("Scale", SHADER_SOCKET_FLOAT, 1.0f);
 	add_input("Distortion", SHADER_SOCKET_FLOAT, 0.0f);
@@ -1120,7 +1132,8 @@ void WaveTextureNode::compile(SVMCompiler& compiler)
 
 	compiler.add_node(NODE_TEX_WAVE,
 		compiler.encode_uchar4(type_enum[type], color_out->stack_offset, fac_out->stack_offset, dscale_in->stack_offset),
-		compiler.encode_uchar4(vector_offset, scale_in->stack_offset, detail_in->stack_offset, distortion_in->stack_offset));
+		compiler.encode_uchar4(vector_offset, scale_in->stack_offset, detail_in->stack_offset, distortion_in->stack_offset),
+	        profile_enum[profile]);
 
 	compiler.add_node(
 		__float_as_int(scale_in->value.x),
@@ -1137,6 +1150,7 @@ void WaveTextureNode::compile(OSLCompiler& compiler)
 	tex_mapping.compile(compiler);
 
 	compiler.parameter("Type", type);
+	compiler.parameter("Profile", profile);
 
 	compiler.add(this, "node_wave_texture");
 }
