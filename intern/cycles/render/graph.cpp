@@ -676,7 +676,8 @@ void ShaderGraph::deduplicate_nodes()
 	 *   already deduplicated.
 	 */
 
-	ShaderNodeSet done, scheduled;
+	ShaderNodeSet scheduled;
+	map<ustring, ShaderNodeSet> done;
 	queue<ShaderNode*> traverse_queue;
 
 	/* Schedule nodes which doesn't have any dependencies. */
@@ -690,7 +691,7 @@ void ShaderGraph::deduplicate_nodes()
 	while(!traverse_queue.empty()) {
 		ShaderNode *node = traverse_queue.front();
 		traverse_queue.pop();
-		done.insert(node);
+		done[node->name].insert(node);
 		/* Schedule the nodes which were depending on the current node. */
 		foreach(ShaderOutput *output, node->outputs) {
 			foreach(ShaderInput *input, output->links) {
@@ -701,14 +702,14 @@ void ShaderGraph::deduplicate_nodes()
 					continue;
 				}
 				/* Schedule node if its inputs are fully done. */
-				if(check_node_inputs_traversed(input->parent, done)) {
+				if(check_node_inputs_traversed(input->parent, done[input->parent->name])) {
 					traverse_queue.push(input->parent);
 					scheduled.insert(input->parent);
 				}
 			}
 		}
 		/* Try to merge this node with another one. */
-		foreach(ShaderNode *other_node, done) {
+		foreach(ShaderNode *other_node, done[node->name]) {
 			if(node == other_node) {
 				/* Don't merge with self. */
 				continue;
