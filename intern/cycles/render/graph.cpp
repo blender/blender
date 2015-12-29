@@ -64,7 +64,6 @@ bool check_node_inputs_equals(const ShaderNode *node_a,
 	for(int i = 0; i < node_a->inputs.size(); ++i) {
 		ShaderInput *input_a = node_a->inputs[i],
 		            *input_b = node_b->inputs[i];
-		assert(strcmp(input_a->name, input_b->name) == 0);
 		if(input_a->link == NULL && input_b->link == NULL) {
 			/* Unconnected inputs are expected to have the same value. */
 			if(input_a->value != input_b->value) {
