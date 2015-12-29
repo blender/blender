@@ -154,11 +154,26 @@ protected:
 
 	/* Global state of the compiler accessible from the compilation routines. */
 	struct CompilerState {
+		CompilerState(ShaderGraph *graph);
+
+		/* ** Global state, used by various compilation steps. ** */
+
 		/* Set of nodes which were already compiled. */
 		ShaderNodeSet nodes_done;
 
 		/* Set of closures which were already compiled. */
 		ShaderNodeSet closure_done;
+
+		/* ** SVM nodes generation state ** */
+
+		/* Flag whether the node with corresponding ID was already compiled or
+		 * not. Array element with index i corresponds to a node with such if.
+		 *
+		 * TODO(sergey): This is actually a copy of nodes_done just in another
+		 * notation. We can de-duplicate this storage actually after switching
+		 * all areas to use this flags array.
+		 */
+		vector<bool> nodes_done_flag;
 	};
 
 	void stack_backup(StackBackup& backup, ShaderNodeSet& done);

@@ -415,24 +415,25 @@ void SVMCompiler::generate_svm_nodes(const ShaderNodeSet& nodes,
                                      CompilerState *state)
 {
 	ShaderNodeSet& done = state->nodes_done;
+	vector<bool>& done_flag = state->nodes_done_flag;
 
 	bool nodes_done;
-
 	do {
 		nodes_done = true;
 
 		foreach(ShaderNode *node, nodes) {
-			if(done.find(node) == done.end()) {
+			if(!done_flag[node->id]) {
 				bool inputs_done = true;
 
 				foreach(ShaderInput *input, node->inputs)
 					if(!node_skip_input(node, input))
-						if(input->link && done.find(input->link->parent) == done.end())
+						if(input->link && !done_flag[input->link->parent->id])
 							inputs_done = false;
 
 				if(inputs_done) {
 					generate_node(node, done);
 					done.insert(node);
+					done_flag[node->id] = true;
 				}
 				else
 					nodes_done = false;
@@ -697,7 +698,7 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 			}
 
 			if(generate) {
-				CompilerState state;
+				CompilerState state(graph);
 				generate_multi_closure(clin->link->parent,
 				                       clin->link->parent,
 				                       &state);
@@ -842,6 +843,17 @@ string SVMCompiler::Summary::full_report() const
 	report += string_printf("Total:               %f\n", time_total);
 
 	return report;
+}
+
+/* Global state of the compiler. */
+
+SVMCompiler::CompilerState::CompilerState(ShaderGraph *graph)
+{
+	int max_id = 0;
+	foreach(ShaderNode *node, graph->nodes) {
+		max_id = max(node->id, max_id);
+	}
+	nodes_done_flag.resize(max_id + 1, false);
 }
 
 CCL_NAMESPACE_END
