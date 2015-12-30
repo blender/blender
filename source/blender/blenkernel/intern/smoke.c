@@ -868,7 +868,7 @@ static void obstacles_from_derivedmesh(
 			    .velocityX = velocityX, .velocityY = velocityY, .velocityZ = velocityZ
 			};
 			BLI_task_parallel_range_ex(
-			            sds->res_min[2], sds->res_max[2], &data, NULL, 0, obstacles_from_derivedmesh_task_cb, 0, false);
+			            sds->res_min[2], sds->res_max[2], &data, NULL, 0, obstacles_from_derivedmesh_task_cb, true, false);
 		}
 		/* free bvh tree */
 		free_bvhtree_from_mesh(&treeData);
@@ -1476,7 +1476,7 @@ static void emit_from_particles(
 			    .solid = solid, .smooth = smooth, .hr_smooth = hr_smooth,
 			};
 
-			BLI_task_parallel_range_ex(min[2], max[2], &data, NULL, 0, emit_from_particles_task_cb, 0, false);
+			BLI_task_parallel_range_ex(min[2], max[2], &data, NULL, 0, emit_from_particles_task_cb, true, false);
 		}
 
 		if (sfs->flags & MOD_SMOKE_FLOW_USE_PART_SIZE) {
@@ -1801,7 +1801,7 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 			    .flow_center = flow_center, .min = min, .max = max, .res = res,
 			};
 
-			BLI_task_parallel_range_ex(min[2], max[2], &data, NULL, 0, emit_from_derivedmesh_task_cb, 0, false);
+			BLI_task_parallel_range_ex(min[2], max[2], &data, NULL, 0, emit_from_derivedmesh_task_cb, true, false);
 		}
 		/* free bvh tree */
 		free_bvhtree_from_mesh(&treeData);
@@ -2589,7 +2589,7 @@ static void update_effectors(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 		data.velocity_z = smoke_get_velocity_z(sds->fluid);
 		data.obstacle = smoke_get_obstacle(sds->fluid);
 
-		BLI_task_parallel_range_ex(0, sds->res[0], &data, NULL, 0, update_effectors_task_cb, 0, false);
+		BLI_task_parallel_range_ex(0, sds->res[0], &data, NULL, 0, update_effectors_task_cb, true, false);
 	}
 
 	pdEndEffectors(&effectors);

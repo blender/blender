@@ -117,14 +117,8 @@ void BLI_covariance_m_vn_ex(
 	    .covfac = covfac, .n = n, .nbr_cos_vn = nbr_cos_vn,
 	};
 
-	if ((nbr_cos_vn * n * n) >= 10000) {
-		BLI_task_parallel_range_ex(0, n * n, &data, NULL, 0, covariance_m_vn_ex_task_cb, 0, false);
-	}
-	else {
-		for (int k = 0; k < n * n; k++) {
-			covariance_m_vn_ex_task_cb(&data, NULL, k);
-		}
-	}
+	BLI_task_parallel_range_ex(
+	            0, n * n, &data, NULL, 0, covariance_m_vn_ex_task_cb, (nbr_cos_vn * n * n) >= 10000, false);
 }
 
 /**
