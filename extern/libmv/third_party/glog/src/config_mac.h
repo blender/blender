@@ -86,7 +86,7 @@
 #define HAVE_STRING_H
 
 /* Define to 1 if you have the <syscall.h> header file. */
-#define HAVE_SYSCALL_H
+/* #undef HAVE_SYSCALL_H */
 
 /* Define to 1 if you have the <syslog.h> header file. */
 #define HAVE_SYSLOG_H
@@ -104,13 +104,13 @@
 #define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <sys/ucontext.h> header file. */
-/* #undef HAVE_SYS_UCONTEXT_H */
+#define HAVE_SYS_UCONTEXT_H 1
 
 /* Define to 1 if you have the <sys/utsname.h> header file. */
 #define HAVE_SYS_UTSNAME_H
 
 /* Define to 1 if you have the <ucontext.h> header file. */
-#define HAVE_UCONTEXT_H
+/* #undef HAVE_UCONTEXT_H */
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
