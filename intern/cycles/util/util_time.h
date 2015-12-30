@@ -27,6 +27,26 @@ double time_dt();
 
 void time_sleep(double t);
 
+class scoped_timer {
+public:
+	scoped_timer(double *value) : value_(value)
+	{
+		if(value_ != NULL) {
+			time_start_ = time_dt();
+		}
+	}
+
+	~scoped_timer()
+	{
+		if(value_ != NULL) {
+			*value_ = time_dt() - time_start_;
+		}
+	}
+protected:
+	double *value_;
+	double time_start_;
+};
+
 CCL_NAMESPACE_END
 
 #endif

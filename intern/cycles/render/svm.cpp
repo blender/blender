@@ -727,31 +727,27 @@ void SVMCompiler::compile(Scene *scene,
 	ShaderNode *node = shader->graph->output();
 	int start_num_svm_nodes = global_svm_nodes.size();
 
-	const double time_total_start = time_dt();
-	double time_finalize = 0.0, time_finalize_bump = 0.0;
-	double time_generate_surface = 0.0,
-	       time_generate_bump = 0.0,
-	       time_generate_volume = 0.0,
-	       time_generate_displacement = 0.0;
+	const double time_start = time_dt();
 
 	if(node->input("Surface")->link && node->input("Displacement")->link)
 		if(!shader->graph_bump)
 			shader->graph_bump = shader->graph->copy();
 
 	/* finalize */
-	double time_start = time_dt();
-	shader->graph->finalize(scene,
-	                        false,
-	                        false,
-	                        shader->has_integrator_dependency);
-	time_finalize = time_dt() - time_start;
+	{
+		scoped_timer timer((summary != NULL)? &summary->time_finalize: NULL);
+		shader->graph->finalize(scene,
+		                        false,
+		                        false,
+		                        shader->has_integrator_dependency);
+	}
+
 	if(shader->graph_bump) {
-		time_start = time_dt();
+		scoped_timer timer((summary != NULL)? &summary->time_finalize_bump: NULL);
 		shader->graph_bump->finalize(scene,
 		                             true,
 		                             false,
 		                             shader->has_integrator_dependency);
-		time_finalize_bump = time_dt() - time_start;
 	}
 
 	current_shader = shader;
@@ -768,47 +764,42 @@ void SVMCompiler::compile(Scene *scene,
 	shader->has_integrator_dependency = false;
 
 	/* generate surface shader */
-	/* TODO(sergey): Add some utility to evaluate time of a scope. */
-	time_start = time_dt();
-	compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
-	global_svm_nodes[index*2 + 0].y = global_svm_nodes.size();
-	global_svm_nodes[index*2 + 1].y = global_svm_nodes.size();
-	global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
-	time_generate_surface = time_dt() - time_start;
+	{
+		scoped_timer timer((summary != NULL)? &summary->time_generate_surface: NULL);
+		compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
+		global_svm_nodes[index*2 + 0].y = global_svm_nodes.size();
+		global_svm_nodes[index*2 + 1].y = global_svm_nodes.size();
+		global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
+	}
 
 	if(shader->graph_bump) {
-		time_start = time_dt();
+		scoped_timer timer((summary != NULL)? &summary->time_generate_bump: NULL);
 		compile_type(shader, shader->graph_bump, SHADER_TYPE_SURFACE);
 		global_svm_nodes[index*2 + 1].y = global_svm_nodes.size();
 		global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
-		time_generate_bump = time_dt() - time_start;
 	}
 
 	/* generate volume shader */
-	time_start = time_dt();
-	compile_type(shader, shader->graph, SHADER_TYPE_VOLUME);
-	global_svm_nodes[index*2 + 0].z = global_svm_nodes.size();
-	global_svm_nodes[index*2 + 1].z = global_svm_nodes.size();
-	global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
-	time_generate_volume = time_dt() - time_start;
+	{
+		scoped_timer timer((summary != NULL)? &summary->time_generate_volume: NULL);
+		compile_type(shader, shader->graph, SHADER_TYPE_VOLUME);
+		global_svm_nodes[index*2 + 0].z = global_svm_nodes.size();
+		global_svm_nodes[index*2 + 1].z = global_svm_nodes.size();
+		global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
+	}
 
 	/* generate displacement shader */
-	time_start = time_dt();
-	compile_type(shader, shader->graph, SHADER_TYPE_DISPLACEMENT);
-	global_svm_nodes[index*2 + 0].w = global_svm_nodes.size();
-	global_svm_nodes[index*2 + 1].w = global_svm_nodes.size();
-	global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
-	time_generate_displacement = time_dt() - time_start;
+	{
+		scoped_timer timer((summary != NULL)? &summary->time_generate_displacement: NULL);
+		compile_type(shader, shader->graph, SHADER_TYPE_DISPLACEMENT);
+		global_svm_nodes[index*2 + 0].w = global_svm_nodes.size();
+		global_svm_nodes[index*2 + 1].w = global_svm_nodes.size();
+		global_svm_nodes.insert(global_svm_nodes.end(), svm_nodes.begin(), svm_nodes.end());
+	}
 
 	/* Fill in summary information. */
 	if(summary != NULL) {
-		summary->time_total = time_dt() - time_total_start;
-		summary->time_finalize = time_finalize;
-		summary->time_finalize_bump = time_finalize_bump;
-		summary->time_generate_surface = time_generate_surface;
-		summary->time_generate_bump = time_generate_bump;
-		summary->time_generate_volume = time_generate_volume;
-		summary->time_generate_displacement = time_generate_displacement;
+		summary->time_total = time_dt() - time_start;
 		summary->peak_stack_usage = max_stack_use;
 		summary->num_svm_nodes = global_svm_nodes.size() - start_num_svm_nodes;
 	}
