@@ -185,7 +185,7 @@ void ExecutionSystem::execute()
 	WorkScheduler::finish();
 	WorkScheduler::stop();
 
-	editingtree->stats_draw(editingtree->sdh, IFACE_("Compositing | Deinitializing execution"));
+	editingtree->stats_draw(editingtree->sdh, IFACE_("Compositing | De-initializing execution"));
 	for (index = 0; index < this->m_operations.size(); index++) {
 		NodeOperation *operation = this->m_operations[index];
 		operation->deinitExecution();
