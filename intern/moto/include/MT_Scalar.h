@@ -61,7 +61,7 @@ const MT_Scalar  MT_PI(3.14159265358979323846);
 const MT_Scalar  MT_2_PI(6.28318530717958623200);
 const MT_Scalar  MT_EPSILON(1.0e-10);
 const MT_Scalar  MT_EPSILON2(1.0e-20);
-const MT_Scalar  MT_INFINITY(1.0e50);
+const MT_Scalar  MT_INFINITY(1.0e38);
 
 inline int       MT_sign(MT_Scalar x) {
     return x < 0.0f ? -1 : x > 0.0f ? 1 : 0;
