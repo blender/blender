@@ -197,7 +197,7 @@ class CameraIntrinsics {
                                 double *normalized_x,
                                 double *normalized_y) const = 0;
 
-  // Distort an image using the current camera intrinsics
+  // Distort an image using the current camera instrinsics
   //
   // The distorted image is computed in output_buffer using samples from
   // input_buffer. Both buffers should be width x height x channels sized.
@@ -226,7 +226,7 @@ class CameraIntrinsics {
                      int channels,
                      PixelType *output_buffer);
 
-  // Undistort an image using the current camera intrinsics
+  // Undistort an image using the current camera instrinsics
   //
   // The undistorted image is computed in output_buffer using samples from
   // input_buffer. Both buffers should be width x height x channels sized.

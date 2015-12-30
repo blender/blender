@@ -1,4 +1,4 @@
-// Copyright (c) 2012 libmv authors.
+// Copyright (c) 2015 libmv authors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -62,32 +62,32 @@ struct ModalReprojectionError {
     : observed_x_(observed_x), observed_y_(observed_y),
       weight_(weight), bundle_(bundle) { }
 
+  // TODO(keir): This should support bundling focal length as well.
   template <typename T>
-  bool operator()(const T* quaternion,   // Rotation quaternion
-                  T* residuals) const {
-    T R[9];
-    ceres::QuaternionToRotation(quaternion, R);
-
+  bool operator()(const T* quaternion, T* residuals) const {
     // Convert bundle position from double to T.
-    T X[3];
-    X[0] = T(bundle_(0));
-    X[1] = T(bundle_(1));
-    X[2] = T(bundle_(2));
+    T X[3] = { T(bundle_(0)), T(bundle_(1)), T(bundle_(2)) };
 
-    // Compute projective coordinates: x = RX.
+    // Compute the point position in camera coordinates: x = RX.
     T x[3];
-    x[0] = R[0]*X[0] + R[3]*X[1] + R[6]*X[2];
-    x[1] = R[1]*X[0] + R[4]*X[1] + R[7]*X[2];
-    x[2] = R[2]*X[0] + R[5]*X[1] + R[8]*X[2];
 
-    // Compute normalized coordinates: x /= x[2].
+    // This flips the sense of the quaternion, to adhere to Blender conventions.
+    T quaternion_inverse[4] = {
+      quaternion[0],
+      -quaternion[1],
+      -quaternion[2],
+      -quaternion[3],
+    };
+    ceres::QuaternionRotatePoint(quaternion_inverse, X, x);
+
+    // Compute normalized coordinates by dividing out the depth.
     T xn = x[0] / x[2];
     T yn = x[1] / x[2];
 
-    // The error is the difference between reprojected
-    // and observed marker position.
-    residuals[0] = xn - T(observed_x_);
-    residuals[1] = yn - T(observed_y_);
+    // The error is the difference between reprojected and observed marker
+    // positions, weighted by the passed in weight.
+    residuals[0] = T(weight_) * (xn - T(observed_x_));
+    residuals[1] = T(weight_) * (yn - T(observed_y_));
 
     return true;
   }

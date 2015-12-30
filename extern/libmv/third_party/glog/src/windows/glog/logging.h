@@ -919,6 +919,9 @@ template <bool>
 struct CompileAssert {
 };
 struct CrashReason;
+
+// Returns true if FailureSignalHandler is installed.
+bool IsFailureSignalHandlerInstalled();
 }  // namespace glog_internal_namespace_
 
 #define GOOGLE_GLOG_COMPILE_ASSERT(expr, msg) \

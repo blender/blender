@@ -12,6 +12,10 @@
 /* Puts following code inside the Google namespace */
 #define _START_GOOGLE_NAMESPACE_ namespace google {
 
+#ifdef __MINGW32__
+#  define HAVE_SNPRINTF
+#endif
+
 /* Always the empty-string on non-windows systems. On windows, should be
    "__declspec(dllexport)". This way, when we compile the dll, we export our
    functions/classes. It's safe to define this here because config.h is only

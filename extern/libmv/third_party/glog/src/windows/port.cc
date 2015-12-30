@@ -36,7 +36,7 @@
 # error You should only be including windows/port.cc in a windows environment!
 #endif
 
-#include "config.h"
+#include "../config.h"
 #include <stdarg.h>    // for va_list, va_start, va_end
 #include <string.h>    // for strstr()
 #include <assert.h>
@@ -55,7 +55,7 @@ int safe_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
   return _vsnprintf(str, size-1, format, ap);
 }
 
-#ifndef __MINGW64__
+#ifndef HAVE_SNPRINTF
 int snprintf(char *str, size_t size, const char *format, ...) {
   va_list ap;
   va_start(ap, format);

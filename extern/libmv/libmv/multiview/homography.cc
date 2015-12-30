@@ -179,12 +179,8 @@ void GetNormalizedPoints(const Mat &original_points,
 class HomographySymmetricGeometricCostFunctor {
  public:
   HomographySymmetricGeometricCostFunctor(const Vec2 &x,
-                                          const Vec2 &y) {
-    xx_ = x(0);
-    xy_ = x(1);
-    yx_ = y(0);
-    yy_ = y(1);
-  }
+                                          const Vec2 &y)
+      : x_(x), y_(y) { }
 
   template<typename T>
   bool operator()(const T *homography_parameters, T *residuals) const {
@@ -193,8 +189,8 @@ class HomographySymmetricGeometricCostFunctor {
 
     Mat3 H(homography_parameters);
 
-    Vec3 x(T(xx_), T(xy_), T(1.0));
-    Vec3 y(T(yx_), T(yy_), T(1.0));
+    Vec3 x(T(x_(0)), T(x_(1)), T(1.0));
+    Vec3 y(T(y_(0)), T(y_(1)), T(1.0));
 
     Vec3 H_x = H * x;
     Vec3 Hinv_y = H.inverse() * y;
@@ -203,19 +199,18 @@ class HomographySymmetricGeometricCostFunctor {
     Hinv_y /= Hinv_y(2);
 
     // This is a forward error.
-    residuals[0] = H_x(0) - T(yx_);
-    residuals[1] = H_x(1) - T(yy_);
+    residuals[0] = H_x(0) - T(y_(0));
+    residuals[1] = H_x(1) - T(y_(1));
 
     // This is a backward error.
-    residuals[2] = Hinv_y(0) - T(xx_);
-    residuals[3] = Hinv_y(1) - T(xy_);
+    residuals[2] = Hinv_y(0) - T(x_(0));
+    residuals[3] = Hinv_y(1) - T(x_(1));
 
     return true;
   }
 
-  // TODO(sergey): Think of better naming.
-  double xx_, xy_;
-  double yx_, yy_;
+  const Vec2 x_;
+  const Vec2 y_;
 };
 
 // Termination checking callback used for homography estimation.

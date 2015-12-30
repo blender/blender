@@ -52,14 +52,6 @@
 #endif
 #include <vector>
 
-// Annoying stuff for windows -- makes sure clients can import these functions
-#ifndef GOOGLE_GLOG_DLL_DECL
-# if defined(_WIN32) && !defined(__CYGWIN__)
-#   define GOOGLE_GLOG_DLL_DECL  __declspec(dllimport)
-# else
-#   define GOOGLE_GLOG_DLL_DECL
-# endif
-#endif
 #if defined(_MSC_VER)
 #define GLOG_MSVC_PUSH_DISABLE_WARNING(n) __pragma(warning(push)) \
                                      __pragma(warning(disable:n))
@@ -67,6 +59,15 @@
 #else
 #define GLOG_MSVC_PUSH_DISABLE_WARNING(n)
 #define GLOG_MSVC_POP_WARNING()
+#endif
+
+// Annoying stuff for windows -- makes sure clients can import these functions
+#ifndef GOOGLE_GLOG_DLL_DECL
+# if defined(_WIN32) && !defined(__CYGWIN__)
+#   define GOOGLE_GLOG_DLL_DECL  __declspec(dllimport)
+# else
+#   define GOOGLE_GLOG_DLL_DECL
+# endif
 #endif
 
 // We care a lot about number of bits things take up.  Unfortunately,
@@ -133,14 +134,27 @@ typedef unsigned __int64 uint64;
 #ifndef GOOGLE_PREDICT_BRANCH_NOT_TAKEN
 #if 1
 #define GOOGLE_PREDICT_BRANCH_NOT_TAKEN(x) (__builtin_expect(x, 0))
-#define GOOGLE_PREDICT_FALSE(x) (__builtin_expect(x, 0))
-#define GOOGLE_PREDICT_TRUE(x) (__builtin_expect(!!(x), 1))
 #else
 #define GOOGLE_PREDICT_BRANCH_NOT_TAKEN(x) x
+#endif
+#endif
+
+#ifndef GOOGLE_PREDICT_FALSE
+#if 1
+#define GOOGLE_PREDICT_FALSE(x) (__builtin_expect(x, 0))
+#else
 #define GOOGLE_PREDICT_FALSE(x) x
+#endif
+#endif
+
+#ifndef GOOGLE_PREDICT_TRUE
+#if 1
+#define GOOGLE_PREDICT_TRUE(x) (__builtin_expect(!!(x), 1))
+#else
 #define GOOGLE_PREDICT_TRUE(x) x
 #endif
 #endif
+
 
 // Make a bunch of macros for logging.  The way to log things is to stream
 // things to LOG(<a particular severity level>).  E.g.,
@@ -351,6 +365,9 @@ DECLARE_int32(minloglevel);
 // default logging directory.
 DECLARE_string(log_dir);
 
+// Set the log file mode.
+DECLARE_int32(logfile_mode);
+
 // Sets the path of the directory into which to put additional links
 // to the log files.
 DECLARE_string(log_link);
@@ -546,7 +563,7 @@ class LogSink;  // defined below
 //   vector<string> *outvec;
 // The cast is to disambiguate NULL arguments.
 #define LOG_STRING(severity, outvec) \
-  LOG_TO_STRING_##severity(static_cast<vector<string>*>(outvec)).stream()
+  LOG_TO_STRING_##severity(static_cast<std::vector<std::string>*>(outvec)).stream()
 
 #define LOG_IF(severity, condition) \
   !(condition) ? (void) 0 : google::LogMessageVoidify() & LOG(severity)
@@ -631,7 +648,7 @@ void MakeCheckOpValueString(std::ostream* os, const unsigned char& v);
 // Build the error message string. Specify no inlining for code size.
 template <typename T1, typename T2>
 std::string* MakeCheckOpString(const T1& v1, const T2& v2, const char* exprtext)
-    __attribute__ ((noinline));
+    __attribute__((noinline));
 
 namespace base {
 namespace internal {
@@ -714,10 +731,10 @@ DEFINE_CHECK_OP_IMPL(Check_GT, > )
 // to reduce the overhead of CHECK statments by 2x.
 // Real DCHECK-heavy tests have seen 1.5x speedups.
 
-// The meaning of "string" might be different between now and 
+// The meaning of "string" might be different between now and
 // when this macro gets invoked (e.g., if someone is experimenting
 // with other string implementations that get defined after this
-// file is included).  Save the current meaning now and use it 
+// file is included).  Save the current meaning now and use it
 // in the macro.
 typedef std::string _Check_string;
 #define CHECK_OP_LOG(name, op, val1, val2, log)                         \
@@ -910,6 +927,9 @@ template <bool>
 struct CompileAssert {
 };
 struct CrashReason;
+
+// Returns true if FailureSignalHandler is installed.
+bool IsFailureSignalHandlerInstalled();
 }  // namespace glog_internal_namespace_
 
 #define GOOGLE_GLOG_COMPILE_ASSERT(expr, msg) \
@@ -1155,6 +1175,8 @@ public:
     char* str() const { return pbase(); }
 
   private:
+    LogStream(const LogStream&);
+    LogStream& operator=(const LogStream&);
     base_logging::LogStreamBuf streambuf_;
     int ctr_;  // Counter hack (for the LOG_EVERY_X() macro)
     LogStream *self_;  // Consistency check hack
@@ -1222,7 +1244,7 @@ public:
   void SendToSyslogAndLog();  // Actually dispatch to syslog and the logs
 
   // Call abort() or similar to perform LOG(FATAL) crash.
-  static void Fail() __attribute__ ((noreturn));
+  static void __attribute__((noreturn)) Fail();
 
   std::ostream& stream();
 
@@ -1270,7 +1292,7 @@ class GOOGLE_GLOG_DLL_DECL LogMessageFatal : public LogMessage {
  public:
   LogMessageFatal(const char* file, int line);
   LogMessageFatal(const char* file, int line, const CheckOpString& result);
-  ~LogMessageFatal() __attribute__ ((noreturn));
+  __attribute__((noreturn)) ~LogMessageFatal();
 };
 
 // A non-macro interface to the log facility; (useful
@@ -1574,7 +1596,7 @@ class GOOGLE_GLOG_DLL_DECL NullStreamFatal : public NullStream {
   NullStreamFatal() { }
   NullStreamFatal(const char* file, int line, const CheckOpString& result) :
       NullStream(file, line, result) { }
-  __attribute__ ((noreturn)) ~NullStreamFatal() { _exit(1); }
+  __attribute__((noreturn)) ~NullStreamFatal() throw () { _exit(1); }
 };
 
 // Install a signal handler that will dump signal information and a stack

@@ -1,3 +1,85 @@
+commit d249280fdf7c937fd6ebbc465508843a70aafd4c
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Dec 30 16:59:28 2015 +0500
+
+    Tweaks to Glog to support building on all platforms
+    
+    This makes it possible to compile Libmv on all platforms,
+    amount of hacks is lower, which could bring some warnings
+    up, but those are better be addressed via upstream which
+    is now rather active.
+
+commit 86c57750ddb857643fb5dd2c83b4953da83dd57d
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Dec 30 16:15:47 2015 +0500
+
+    Enable explicit Schur complement matrix by default
+    
+    Gives up to 2x speed up of camera solving process in average scene.
+    In the really huge one it might be slower, but that we need to investigate.
+
+commit d6c52a70b5a0664b7c74bda68f59a895fe8aa235
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Dec 30 16:13:03 2015 +0500
+
+    Fix one frame memory leak when tracking last frame
+
+commit 6e2ac41d25d5923b2a62c96d27d919a36eff9b48
+Author: Brecht Van Lommel <brechtvanlommel@gmail.com>
+Date:   Wed Dec 30 16:11:24 2015 +0500
+
+    Motion tracking not workig with Xcode 7 on OS X.
+    
+    Caused by use of the uninitialized shape_ variable in Resize().
+
+commit fc72ae06fb4ae559ac37d14d1b34d6669505cc86
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Dec 30 15:56:40 2015 +0500
+
+    Update GLog to latest upstream
+    
+    Should fix issues building with MSVC2015.
+
+commit d4b2d15bd3d195074b074331354de96a1b51042f
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Dec 30 16:01:10 2015 +0500
+
+    Fix wrong README file reference
+
+commit 2b4aa0b7720cae9a408284834559bea9960157ee
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon May 11 02:16:53 2015 -0700
+
+    Make README more informative for GitHub viewers
+    
+    Reviewers: sergey
+    
+    Reviewed By: sergey
+    
+    Differential Revision: https://developer.blender.org/D1295
+
+commit 514e4491aea655d20be047ed87f002fb7854d5c9
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon May 11 01:54:09 2015 -0700
+
+    Simplify the modal solver Ceres cost function
+    
+    Fix test by flipping the quaternion.
+    
+    Reviewers: sergey
+    
+    Reviewed By: sergey
+    
+    Projects: #libmv
+    
+    Differential Revision: https://developer.blender.org/D756
+
+commit e55fafd31f7d53d42af7c6b7df2eebe3c2568da9
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Dec 31 19:05:51 2014 +0500
+
+    Synchronize MSVC compilation fixes from Blender
+
 commit 7d6020d2ec42c6cb2749bc891186b4880d26d40b
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Wed Dec 31 15:32:07 2014 +0500
@@ -601,107 +683,3 @@ Date:   Wed Mar 26 17:44:09 2014 +0600
     Fix bad memory write in BA code when having zero-weighted tracks
     
     Issue was really stupid and caused by the wrong vector initialization.
-
-commit d14a372dfe09c7339f267c4904a541fbe2efec43
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Mar 21 16:02:41 2014 +0600
-
-    Attempt to fix compilation error with msvc2013
-
-commit 933531580b4dc4b65601d785cedc16506d615d7b
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Mar 20 23:07:34 2014 +0600
-
-    Compilation fixes for MinGW
-    
-    Many thanks to Antony Riakiotakis for the patch!
-
-commit f1aefcbf58fe04ea2967434f39f703bb486777c8
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Feb 27 16:21:19 2014 +0600
-
-    Implement separate BA step for tracks which have constant zero weight
-    
-    This is needed to minimize their reprojection error over the footage.
-    Without this extra step positions of such tracks were calculated by
-    algebraic intersection code only, which doesn't give best precision.
-
-commit bcf7f9470b2ea33cf89a31a72037ec03be631637
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Feb 27 14:16:42 2014 +0600
-
-    Avoid zero-sized problem when doing euclidean intersection
-    
-    Zero-sized problem might occur when intersecting track with
-    constant zero weight. For such tracks we'll just use result
-    of algebraic intersection.
-    
-    TODO: We probably need to have a separate BA step to adjust
-    positions of tracks with constant zero weight.
-
-commit f884bb20a93189b8210639f3de939c64177d66b3
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Feb 26 18:00:40 2014 +0600
-
-    Ignore zero weighted markers in keyframe selection
-    
-    It doesn't make sense to use zero-weighted tracks as a correspondences
-    in keyframe selection.
-    
-    Such tracks are not guaranteed to be tracked accurately because their
-    purpose is to add reference points in 3D space without affecting the
-    solution.
-
-commit 74db5175cdbcabe673b82eef59c88fb7f342c43f
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Feb 26 13:23:02 2014 +0600
-
-    Tweaks to make bundling into Blender warning-less
-    
-    Mainly issue i caused by conflicts in include directories,
-    so glog used to include config.h from gflags. It might be
-    fixed by splitting gflags/glog from Libmv in Blender build
-    system but that's not something fun to work on. Fixed by
-    making include directories  bit more explicit.
-    
-    Also solved no-previous-prototype warnings.
-
-commit bc4bc66af0115069562b79e837ccf4fd95c8f97e
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 21 14:55:13 2014 +0600
-
-    Raise epsilon used for model solver test
-    
-    It was too much small leading to false failure triggering
-    caused simply by precision issues.
-
-commit bf750590a6af4af3622c01fd1004c44da60484a7
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Feb 18 23:35:52 2014 +0600
-
-    Made it possible to link against Ceres installed on the system
-    
-    Main purpose of this is to get away from bundled Ceres library
-    which is not so trivial to re-bundle and takes some to do this
-    (not talking about CMake options conflicts and pollution).
-    
-    Enabled by setting WITH_SYSTEM_CERES=ON. Default paths to search
-    Ceres library:
-    
-    - /usr/local
-    - /sw
-    - /opt/local
-    - /opt/csw
-    - /opt/lib/ceres
-    
-    You might also specify Ceres root directory using CERES_ROOT_DIR
-    variable (both CMake and environment variables are supported).
-    
-    If your Ceres is build statically, you're to control all additional
-    libraries needed to link against using CMAKE_EXE_LINKER_FLAGS.
-
-commit c9156fbf80c86853806844b754b1e48f45c5ec11
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Feb 18 19:38:22 2014 +0600
-
-    Remove .orig file which was added by accident
