@@ -84,7 +84,7 @@ static void DebugWriteToStderr(const char* data, void *) {
   }
 }
 
-void DebugWriteToString(const char* data, void *arg) {
+static void DebugWriteToString(const char* data, void *arg) {
   reinterpret_cast<string*>(arg)->append(data);
 }
 
