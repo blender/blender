@@ -27,62 +27,17 @@
 #define __KERNEL_AVX__
 #define __KERNEL_AVX2__
 #endif
- 
+
 #include "util_optimization.h"
- 
+
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX2
-
-#include "kernel_compat_cpu.h"
-#include "kernel.h"
-#include "kernel_math.h"
-#include "kernel_types.h"
-#include "kernel_globals.h"
-#include "kernel_film.h"
-#include "kernel_path.h"
-#include "kernel_path_branched.h"
-#include "kernel_bake.h"
-
-CCL_NAMESPACE_BEGIN
-
-/* Path Tracing */
-
-void kernel_cpu_avx2_path_trace(KernelGlobals *kg, float *buffer, unsigned int *rng_state, int sample, int x, int y, int offset, int stride)
-{
-#ifdef __BRANCHED_PATH__
-	if(kernel_data.integrator.branched)
-		kernel_branched_path_trace(kg, buffer, rng_state, sample, x, y, offset, stride);
-	else
-#endif
-		kernel_path_trace(kg, buffer, rng_state, sample, x, y, offset, stride);
-}
-
-/* Film */
-
-void kernel_cpu_avx2_convert_to_byte(KernelGlobals *kg, uchar4 *rgba, float *buffer, float sample_scale, int x, int y, int offset, int stride)
-{
-	kernel_film_convert_to_byte(kg, rgba, buffer, sample_scale, x, y, offset, stride);
-}
-
-void kernel_cpu_avx2_convert_to_half_float(KernelGlobals *kg, uchar4 *rgba, float *buffer, float sample_scale, int x, int y, int offset, int stride)
-{
-	kernel_film_convert_to_half_float(kg, rgba, buffer, sample_scale, x, y, offset, stride);
-}
-
-/* Shader Evaluate */
-
-void kernel_cpu_avx2_shader(KernelGlobals *kg, uint4 *input, float4 *output, int type, int i, int offset, int sample)
-{
-	if(type >= SHADER_EVAL_BAKE)
-		kernel_bake_evaluate(kg, input, output, (ShaderEvalType)type, i, offset, sample);
-	else
-		kernel_shader_evaluate(kg, input, output, (ShaderEvalType)type, i, sample);
-}
-
-CCL_NAMESPACE_END
-#else
+#  include "kernel.h"
+#  define KERNEL_ARCH cpu_avx2
+#  include "kernel_cpu_impl.h"
+#else  /* WITH_CYCLES_OPTIMIZED_KERNEL_AVX2 */
 
 /* needed for some linkers in combination with scons making empty compilation unit in a library */
 void __dummy_function_cycles_avx2(void);
 void __dummy_function_cycles_avx2(void) {}
 
-#endif
+#endif  /* WITH_CYCLES_OPTIMIZED_KERNEL_AVX2 */

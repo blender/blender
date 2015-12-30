@@ -63,6 +63,9 @@ set(SRC_HEADERS
 	kernel_types.h
 	kernel_volume.h
 	kernel_work_stealing.h
+
+	kernels/cpu/kernel_cpu.h
+	kernels/cpu/kernel_cpu_impl.h
 )
 
 set(SRC_CLOSURE_HEADERS
