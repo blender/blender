@@ -29,7 +29,7 @@ CCL_NAMESPACE_BEGIN
 DeviceTask::DeviceTask(Type type_)
 : type(type_), x(0), y(0), w(0), h(0), rgba_byte(0), rgba_half(0), buffer(0),
   sample(0), num_samples(1),
-  shader_input(0), shader_output(0),
+  shader_input(0), shader_output(0), shader_output_luma(0),
   shader_eval_type(0), shader_x(0), shader_w(0)
 {
 	last_update_time = time_dt();

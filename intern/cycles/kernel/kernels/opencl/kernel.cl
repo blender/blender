@@ -61,6 +61,7 @@ __kernel void kernel_ocl_shader(
 	ccl_constant KernelData *data,
 	ccl_global uint4 *input,
 	ccl_global float4 *output,
+	ccl_global float *output_luma,
 
 #define KERNEL_TEX(type, ttype, name) \
 	ccl_global type *name,
@@ -78,8 +79,15 @@ __kernel void kernel_ocl_shader(
 
 	int x = sx + get_global_id(0);
 
-	if(x < sx + sw)
-		kernel_shader_evaluate(kg, input, output, (ShaderEvalType)type, x, sample);
+	if(x < sx + sw) {
+		kernel_shader_evaluate(kg,
+		                       input,
+		                       output,
+		                       output_luma,
+		                       (ShaderEvalType)type,
+		                       x,
+		                       sample);
+	}
 }
 
 __kernel void kernel_ocl_bake(

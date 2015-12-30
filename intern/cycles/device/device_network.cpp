@@ -648,6 +648,9 @@ protected:
 			if(task.shader_output)
 				task.shader_output = device_ptr_from_client_pointer(task.shader_output);
 
+			if(task.shader_output)luma)
+				task.shader_output_luma = device_ptr_from_client_pointer(task.shader_output_luma);
+
 
 			task.acquire_tile = function_bind(&DeviceServer::task_acquire_tile, this, _1, _2);
 			task.release_tile = function_bind(&DeviceServer::task_release_tile, this, _1);

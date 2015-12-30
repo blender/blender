@@ -453,7 +453,13 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 		output[i] += make_float4(out.x, out.y, out.z, 1.0f) * output_fac;
 }
 
-ccl_device void kernel_shader_evaluate(KernelGlobals *kg, ccl_global uint4 *input, ccl_global float4 *output, ShaderEvalType type, int i, int sample)
+ccl_device void kernel_shader_evaluate(KernelGlobals *kg,
+                                       ccl_global uint4 *input,
+                                       ccl_global float4 *output,
+                                       ccl_global float *output_luma,
+                                       ShaderEvalType type,
+                                       int i,
+                                       int sample)
 {
 	ShaderData sd;
 	uint4 in = input[i];
@@ -500,10 +506,22 @@ ccl_device void kernel_shader_evaluate(KernelGlobals *kg, ccl_global uint4 *inpu
 	}
 	
 	/* write output */
-	if(sample == 0)
-		output[i] = make_float4(out.x, out.y, out.z, 0.0f);
-	else
-		output[i] += make_float4(out.x, out.y, out.z, 0.0f);
+	if(sample == 0) {
+		if(output != NULL) {
+			output[i] = make_float4(out.x, out.y, out.z, 0.0f);
+		}
+		if(output_luma != NULL) {
+			output_luma[i] = average(out);
+		}
+	}
+	else {
+		if(output != NULL) {
+			output[i] += make_float4(out.x, out.y, out.z, 0.0f);
+		}
+		if(output_luma != NULL) {
+			output_luma[i] += average(out);
+		}
+	}
 }
 
 CCL_NAMESPACE_END

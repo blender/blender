@@ -99,12 +99,14 @@ void KERNEL_FUNCTION_FULL_NAME(convert_to_half_float)(KernelGlobals *kg,
 void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
                                        uint4 *input,
                                        float4 *output,
+                                       float *output_luma,
                                        int type,
                                        int i,
                                        int offset,
                                        int sample)
 {
 	if(type >= SHADER_EVAL_BAKE) {
+		kernel_assert(output_luma == NULL);
 		kernel_bake_evaluate(kg,
 		                     input,
 		                     output,
@@ -117,6 +119,7 @@ void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
 		kernel_shader_evaluate(kg,
 		                       input,
 		                       output,
+		                       output_luma,
 		                       (ShaderEvalType)type,
 		                       i,
 		                       sample);

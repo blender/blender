@@ -726,6 +726,7 @@ public:
 		CUfunction cuShader;
 		CUdeviceptr d_input = cuda_device_ptr(task.shader_input);
 		CUdeviceptr d_output = cuda_device_ptr(task.shader_output);
+		CUdeviceptr d_output_luma = cuda_device_ptr(task.shader_output_luma);
 
 		/* get kernel function */
 		if(task.shader_eval_type >= SHADER_EVAL_BAKE) {
@@ -747,13 +748,18 @@ public:
 				int shader_w = min(shader_chunk_size, end - shader_x);
 
 				/* pass in parameters */
-				void *args[] = {&d_input,
-								 &d_output,
-								 &task.shader_eval_type,
-								 &shader_x,
-								 &shader_w,
-								 &offset,
-								 &sample};
+				void *args[8];
+				int arg = 0;
+				args[arg++] = &d_input;
+				args[arg++] = &d_output;
+				if(task.shader_eval_type < SHADER_EVAL_BAKE) {
+					args[arg++] = &d_output_luma;
+				}
+				args[arg++] = &task.shader_eval_type;
+				args[arg++] = &shader_x;
+				args[arg++] = &shader_w;
+				args[arg++] = &offset;
+				args[arg++] = &sample;
 
 				/* launch kernel */
 				int threads_per_block;

@@ -343,7 +343,7 @@ public:
 #ifdef WITH_OSL
 		OSLShader::thread_init(&kg, &kernel_globals, &osl_globals);
 #endif
-		void(*shader_kernel)(KernelGlobals*, uint4*, float4*, int, int, int, int);
+		void(*shader_kernel)(KernelGlobals*, uint4*, float4*, float*, int, int, int, int);
 
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX2
 		if(system_cpu_support_avx2())
@@ -374,8 +374,14 @@ public:
 
 		for(int sample = 0; sample < task.num_samples; sample++) {
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++)
-				shader_kernel(&kg, (uint4*)task.shader_input, (float4*)task.shader_output,
-					task.shader_eval_type, x, task.offset, sample);
+				shader_kernel(&kg,
+				              (uint4*)task.shader_input,
+				              (float4*)task.shader_output,
+				              (float*)task.shader_output_luma,
+				              task.shader_eval_type,
+				              x,
+				              task.offset,
+				              sample);
 
 			if(task.get_cancel() || task_pool.canceled())
 				break;
