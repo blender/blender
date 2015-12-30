@@ -411,8 +411,11 @@ void SVMCompiler::generate_node(ShaderNode *node, ShaderNodeSet& done)
 	}
 }
 
-void SVMCompiler::generate_svm_nodes(const ShaderNodeSet& nodes, ShaderNodeSet& done)
+void SVMCompiler::generate_svm_nodes(const ShaderNodeSet& nodes,
+                                     CompilerState *state)
 {
+	ShaderNodeSet& done = state->nodes_done;
+
 	bool nodes_done;
 
 	do {
@@ -438,14 +441,15 @@ void SVMCompiler::generate_svm_nodes(const ShaderNodeSet& nodes, ShaderNodeSet& 
 	} while(!nodes_done);
 }
 
-void SVMCompiler::generate_closure_node(ShaderNode *node, ShaderNodeSet& done)
+void SVMCompiler::generate_closure_node(ShaderNode *node,
+                                        CompilerState *state)
 {
 	/* execute dependencies for closure */
 	foreach(ShaderInput *in, node->inputs) {
 		if(!node_skip_input(node, in) && in->link) {
 			ShaderNodeSet dependencies;
-			find_dependencies(dependencies, done, in);
-			generate_svm_nodes(dependencies, done);
+			find_dependencies(dependencies, state->nodes_done, in);
+			generate_svm_nodes(dependencies, state);
 		}
 	}
 
@@ -461,7 +465,7 @@ void SVMCompiler::generate_closure_node(ShaderNode *node, ShaderNodeSet& done)
 		mix_weight_offset = SVM_STACK_INVALID;
 
 	/* compile closure itself */
-	generate_node(node, done);
+	generate_node(node, state->nodes_done);
 
 	mix_weight_offset = SVM_STACK_INVALID;
 
@@ -480,32 +484,32 @@ void SVMCompiler::generate_closure_node(ShaderNode *node, ShaderNodeSet& done)
 
 void SVMCompiler::generated_shared_closure_nodes(ShaderNode *root_node,
                                                  ShaderNode *node,
-                                                 ShaderNodeSet& done,
-                                                 ShaderNodeSet& closure_done,
+                                                 CompilerState *state,
                                                  const ShaderNodeSet& shared)
 {
 	if(shared.find(node) != shared.end()) {
-		generate_multi_closure(root_node, node, done, closure_done);
+		generate_multi_closure(root_node, node, state);
 	}
 	else {
 		foreach(ShaderInput *in, node->inputs) {
 			if(in->type == SHADER_SOCKET_CLOSURE && in->link)
-				generated_shared_closure_nodes(root_node, in->link->parent,
-				                               done, closure_done, shared);
+				generated_shared_closure_nodes(root_node,
+				                               in->link->parent,
+				                               state,
+				                               shared);
 		}
 	}
 }
 
 void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
                                          ShaderNode *node,
-                                         ShaderNodeSet& done,
-                                         ShaderNodeSet& closure_done)
+                                         CompilerState *state)
 {
 	/* only generate once */
-	if(closure_done.find(node) != closure_done.end())
+	if(state->closure_done.find(node) != state->closure_done.end())
 		return;
 
-	closure_done.insert(node);
+	state->closure_done.insert(node);
 
 	if(node->name == ustring("mix_closure") || node->name == ustring("add_closure")) {
 		/* weighting is already taken care of in ShaderGraph::transform_multi_closure */
@@ -520,8 +524,8 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 		if(facin && facin->link) {
 			/* mix closure: generate instructions to compute mix weight */
 			ShaderNodeSet dependencies;
-			find_dependencies(dependencies, done, facin);
-			generate_svm_nodes(dependencies, done);
+			find_dependencies(dependencies, state->nodes_done, facin);
+			generate_svm_nodes(dependencies, state);
 
 			stack_assign(facin);
 
@@ -530,8 +534,8 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 			 * ensure that they only skip dependencies that are unique to them */
 			ShaderNodeSet cl1deps, cl2deps, shareddeps;
 
-			find_dependencies(cl1deps, done, cl1in);
-			find_dependencies(cl2deps, done, cl2in);
+			find_dependencies(cl1deps, state->nodes_done, cl1in);
+			find_dependencies(cl2deps, state->nodes_done, cl2in);
 
 			ShaderNodeIDComparator node_id_comp;
 			set_intersection(cl1deps.begin(), cl1deps.end(),
@@ -546,7 +550,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 			if(root_node != node) {
 				foreach(ShaderInput *in, root_node->inputs) {
 					ShaderNodeSet rootdeps;
-					find_dependencies(rootdeps, done, in, node);
+					find_dependencies(rootdeps, state->nodes_done, in, node);
 					set_intersection(rootdeps.begin(), rootdeps.end(),
 					                 cl1deps.begin(), cl1deps.end(),
 					                 std::inserter(shareddeps, shareddeps.begin()),
@@ -560,15 +564,19 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 
 			if(!shareddeps.empty()) {
 				if(cl1in->link) {
-					generated_shared_closure_nodes(root_node, cl1in->link->parent,
-					                               done, closure_done, shareddeps);
+					generated_shared_closure_nodes(root_node,
+					                               cl1in->link->parent,
+					                               state,
+					                               shareddeps);
 				}
 				if(cl2in->link) {
-					generated_shared_closure_nodes(root_node, cl2in->link->parent,
-					                               done, closure_done, shareddeps);
+					generated_shared_closure_nodes(root_node,
+					                               cl2in->link->parent,
+					                               state,
+					                               shareddeps);
 				}
 
-				generate_svm_nodes(shareddeps, done);
+				generate_svm_nodes(shareddeps, state);
 			}
 
 			/* generate instructions for input closure 1 */
@@ -577,7 +585,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 				svm_nodes.push_back(make_int4(NODE_JUMP_IF_ONE, 0, facin->stack_offset, 0));
 				int node_jump_skip_index = svm_nodes.size() - 1;
 
-				generate_multi_closure(root_node, cl1in->link->parent, done, closure_done);
+				generate_multi_closure(root_node, cl1in->link->parent, state);
 
 				/* fill in jump instruction location to be after closure */
 				svm_nodes[node_jump_skip_index].y = svm_nodes.size() - node_jump_skip_index - 1;
@@ -589,7 +597,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 				svm_nodes.push_back(make_int4(NODE_JUMP_IF_ZERO, 0, facin->stack_offset, 0));
 				int node_jump_skip_index = svm_nodes.size() - 1;
 
-				generate_multi_closure(root_node, cl2in->link->parent, done, closure_done);
+				generate_multi_closure(root_node, cl2in->link->parent, state);
 
 				/* fill in jump instruction location to be after closure */
 				svm_nodes[node_jump_skip_index].y = svm_nodes.size() - node_jump_skip_index - 1;
@@ -603,16 +611,16 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 			 * to skip closures here because was already optimized due to
 			 * fixed weight or add closure that always needs both */
 			if(cl1in->link)
-				generate_multi_closure(root_node, cl1in->link->parent, done, closure_done);
+				generate_multi_closure(root_node, cl1in->link->parent, state);
 			if(cl2in->link)
-				generate_multi_closure(root_node, cl2in->link->parent, done, closure_done);
+				generate_multi_closure(root_node, cl2in->link->parent, state);
 		}
 	}
 	else {
-		generate_closure_node(node, done);
+		generate_closure_node(node, state);
 	}
 
-	done.insert(node);
+	state->nodes_done.insert(node);
 }
 
 
@@ -689,9 +697,10 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 			}
 
 			if(generate) {
-				ShaderNodeSet done, closure_done;
-				generate_multi_closure(clin->link->parent, clin->link->parent,
-				                       done, closure_done);
+				CompilerState state;
+				generate_multi_closure(clin->link->parent,
+				                       clin->link->parent,
+				                       &state);
 			}
 		}
 
