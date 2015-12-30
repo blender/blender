@@ -235,5 +235,12 @@ KX_TouchEventManager::NewCollision::NewCollision(const NewCollision &to_copy)
 
 bool KX_TouchEventManager::NewCollision::operator<(const NewCollision &other) const
 {
-	return first < other.first || second < other.second || colldata < other.colldata;
+	//see strict weak ordering: https://support.microsoft.com/en-us/kb/949171
+	if (first == other.first) {
+		if (second == other.second) {
+			return colldata < other.colldata;
+		}
+		return second < other.second;
+	}
+	return first < other.first;
 }
