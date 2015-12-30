@@ -296,6 +296,8 @@ void BKE_mesh_remap_find_best_match_from_dm(
 	}
 
 	BLI_space_transform_global_from_matrices(r_space_transform, best_mat_dst, mat_src);
+
+	MEM_freeN(vcos_src);
 }
 
 /** \} */
