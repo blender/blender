@@ -51,6 +51,7 @@ void EIG_linear_solver_delete(LinearSolver *solver);
 void EIG_linear_solver_variable_set(LinearSolver *solver, int rhs, int index, double value);
 double EIG_linear_solver_variable_get(LinearSolver *solver, int rhs, int index);
 void EIG_linear_solver_variable_lock(LinearSolver *solver, int index);
+void EIG_linear_solver_variable_unlock(LinearSolver *solver, int index);
 
 /* Matrix (A) and right hand side (b) */
 

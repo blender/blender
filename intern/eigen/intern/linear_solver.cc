@@ -156,6 +156,14 @@ void EIG_linear_solver_variable_lock(LinearSolver *solver, int index)
 	}
 }
 
+void EIG_linear_solver_variable_unlock(LinearSolver *solver, int index)
+{
+	if (solver->variable[index].locked) {
+		assert(solver->state == LinearSolver::STATE_VARIABLES_CONSTRUCT);
+		solver->variable[index].locked = false;
+	}
+}
+
 static void linear_solver_variables_to_vector(LinearSolver *solver)
 {
 	int num_rhs = solver->num_rhs;
@@ -269,6 +277,10 @@ void EIG_linear_solver_right_hand_side_add(LinearSolver *solver, int rhs, int in
 
 bool EIG_linear_solver_solve(LinearSolver *solver)
 {
+	/* nothing to solve, perhaps all variables were locked */
+	if (solver->m == 0 || solver->n == 0)
+		return true;
+
 	bool result = true;
 
 	assert(solver->state != LinearSolver::STATE_VARIABLES_CONSTRUCT);

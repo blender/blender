@@ -505,6 +505,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 	}
 	BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
 		m_vertex_id = BM_elem_index_get(v);
+		EIG_linear_solver_variable_unlock(sys->context, m_vertex_id);
 		EIG_linear_solver_variable_set(sys->context, 0, m_vertex_id, v->co[0]);
 		EIG_linear_solver_variable_set(sys->context, 1, m_vertex_id, v->co[1]);
 		EIG_linear_solver_variable_set(sys->context, 2, m_vertex_id, v->co[2]);
