@@ -119,7 +119,7 @@ void BLI_task_parallel_range_ex(
         void *userdata_chunk,
         const size_t userdata_chunk_size,
         TaskParallelRangeFunc func,
-        const int range_threshold,
+        const bool use_threading,
         const bool use_dynamic_scheduling);
 void BLI_task_parallel_range(
         int start, int stop,

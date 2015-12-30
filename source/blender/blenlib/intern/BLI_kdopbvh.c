@@ -874,14 +874,9 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 		cb_data.i = i;
 		cb_data.depth = depth;
 
-		if (num_leafs > KDOPBVH_THREAD_LEAF_THRESHOLD) {
-			BLI_task_parallel_range_ex(i, end_j, &cb_data, NULL, 0, non_recursive_bvh_div_nodes_task_cb, 0, false);
-		}
-		else {
-			for (j = i; j < end_j; j++) {
-				non_recursive_bvh_div_nodes_task_cb(&cb_data, NULL, j);
-			}
-		}
+		BLI_task_parallel_range_ex(
+		            i, end_j, &cb_data, NULL, 0, non_recursive_bvh_div_nodes_task_cb,
+		            num_leafs > KDOPBVH_THREAD_LEAF_THRESHOLD, false);
 	}
 }
 
@@ -1266,14 +1261,9 @@ BVHTreeOverlap *BLI_bvhtree_overlap(
 		data[j].thread = j;
 	}
 
-	if (tree1->totleaf > KDOPBVH_THREAD_LEAF_THRESHOLD) {
-		BLI_task_parallel_range_ex(0, thread_num, data, NULL, 0, bvhtree_overlap_task_cb, 0, false);
-	}
-	else {
-		for (j = 0; j < thread_num; j++) {
-			bvhtree_overlap_task_cb(data, NULL, j);
-		}
-	}
+	BLI_task_parallel_range_ex(
+	            0, thread_num, data, NULL, 0, bvhtree_overlap_task_cb,
+	            tree1->totleaf > KDOPBVH_THREAD_LEAF_THRESHOLD, false);
 	
 	for (j = 0; j < thread_num; j++)
 		total += BLI_stack_count(data[j].overlap);

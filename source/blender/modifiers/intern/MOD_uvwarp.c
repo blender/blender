@@ -210,7 +210,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	UVWarpData data = {.mpoly = mpoly, .mloop = mloop, .mloopuv = mloopuv,
 	                   .dvert = dvert, .defgrp_index = defgrp_index,
 	                   .warp_mat = warp_mat, .axis_u = axis_u, .axis_v = axis_v};
-	BLI_task_parallel_range_ex(0, numPolys, &data, NULL, 0, uv_warp_compute, 1000, false);
+	BLI_task_parallel_range_ex(0, numPolys, &data, NULL, 0, uv_warp_compute, numPolys > 1000, false);
 
 	dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
 
