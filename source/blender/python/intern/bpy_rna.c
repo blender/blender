@@ -1303,27 +1303,32 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 				ret = PyUnicode_FromString(enum_item->identifier);
 			}
 			else {
-				const char *ptr_name = RNA_struct_name_get_alloc(ptr, NULL, 0, NULL);
+				RNA_property_enum_items(NULL, ptr, prop, &enum_item, NULL, &free);
 
-				/* prefer not fail silently in case of api errors, maybe disable it later */
-				printf("RNA Warning: Current value \"%d\" "
-				       "matches no enum in '%s', '%s', '%s'\n",
-				       val, RNA_struct_identifier(ptr->type),
-				       ptr_name, RNA_property_identifier(prop));
+				/* Do not print warning in case of DummyRNA_NULL_items, this one will never match any value... */
+				if (enum_item != DummyRNA_NULL_items) {
+					const char *ptr_name = RNA_struct_name_get_alloc(ptr, NULL, 0, NULL);
 
-#if 0           /* gives python decoding errors while generating docs :( */
-				char error_str[256];
-				BLI_snprintf(error_str, sizeof(error_str),
-				             "RNA Warning: Current value \"%d\" "
-				             "matches no enum in '%s', '%s', '%s'",
-				             val, RNA_struct_identifier(ptr->type),
-				             ptr_name, RNA_property_identifier(prop));
+					/* prefer not fail silently in case of api errors, maybe disable it later */
+					printf("RNA Warning: Current value \"%d\" "
+						   "matches no enum in '%s', '%s', '%s'\n",
+						   val, RNA_struct_identifier(ptr->type),
+						   ptr_name, RNA_property_identifier(prop));
 
-				PyErr_Warn(PyExc_RuntimeWarning, error_str);
+#if 0				/* gives python decoding errors while generating docs :( */
+					char error_str[256];
+					BLI_snprintf(error_str, sizeof(error_str),
+								 "RNA Warning: Current value \"%d\" "
+								 "matches no enum in '%s', '%s', '%s'",
+								 val, RNA_struct_identifier(ptr->type),
+								 ptr_name, RNA_property_identifier(prop));
+
+					PyErr_Warn(PyExc_RuntimeWarning, error_str);
 #endif
 
-				if (ptr_name)
-					MEM_freeN((void *)ptr_name);
+					if (ptr_name)
+						MEM_freeN((void *)ptr_name);
+				}
 
 				ret = PyUnicode_FromString("");
 			}
