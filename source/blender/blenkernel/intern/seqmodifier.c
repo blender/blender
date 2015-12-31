@@ -203,7 +203,7 @@ static void whiteBalance_apply_threaded(int width, int height, unsigned char *re
 	for (y = 0; y < height; y++) {
 		for (x = 0; x < width; x++) {
 			int pixel_index = (y * width + x) * 4;
-			float result[3], mask[3] = {1.0f, 1.0f, 1.0f};
+			float result[4], mask[3] = {1.0f, 1.0f, 1.0f};
 
 			if (rect_float) {
 				copy_v3_v3(result, rect_float + pixel_index);
