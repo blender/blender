@@ -1377,7 +1377,7 @@ static int run_python_file(int argc, const char **argv, void *data)
 		bool ok;
 		BPY_CTX_SETUP(ok = BPY_execute_filepath(C, filename, NULL));
 		if (!ok && python_exit_code_on_error) {
-			printf("\nError: script failed, file: '%s', exiting.\n", argv[1], python_exit_code_on_error);
+			printf("\nError: script failed, file: '%s', exiting with code %d.\n", argv[1], python_exit_code_on_error);
 			exit(python_exit_code_on_error);
 		}
 		return 1;
