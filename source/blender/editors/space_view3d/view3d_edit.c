@@ -4848,8 +4848,10 @@ bool ED_view3d_autodist(
 	bool depth_ok = false;
 
 	/* Get Z Depths, needed for perspective, nice for ortho */
-	bgl_get_mats(&mats);
 	ED_view3d_draw_depth(scene, ar, v3d, alphaoverride);
+
+	/* call after in case settings have been modified since last drawing, see: T47089 */
+	bgl_get_mats(&mats);
 
 	/* Attempt with low margin's first */
 	i = 0;
