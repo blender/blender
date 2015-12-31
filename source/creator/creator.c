@@ -454,8 +454,11 @@ static bool parse_int_relative_clamp(
 	}
 }
 
-static bool parse_int(
-        const char *str,
+/**
+ * No clamping, fails with any number outside the range.
+ */
+static bool parse_int_strict_range(
+        const char *str, const int min, const int max,
         int *r_value, const char **r_err_msg)
 {
 	char *str_end = NULL;
@@ -469,7 +472,7 @@ static bool parse_int(
 		*r_err_msg = msg;
 		return false;
 	}
-	else if ((errno == ERANGE) || ((value < INT_MIN || value > INT_MAX))) {
+	else if ((errno == ERANGE) || ((value < min || value > max))) {
 		static const char *msg = "exceeds range";
 		*r_err_msg = msg;
 		return false;
@@ -478,6 +481,13 @@ static bool parse_int(
 		*r_value = (int)value;
 		return true;
 	}
+}
+
+static bool parse_int(
+        const char *str,
+        int *r_value, const char **r_err_msg)
+{
+	return parse_int_strict_range(str, INT_MIN, INT_MAX, r_value, r_err_msg);
 }
 
 static bool parse_int_clamp(
@@ -1028,24 +1038,20 @@ static int set_image_type(int argc, const char **argv, void *data)
 static int set_threads(int argc, const char **argv, void *UNUSED(data))
 {
 	const char *arg_id = "-t / --threads";
+	const int min = 0, max = BLENDER_MAX_THREADS;
 	if (argc > 1) {
 		const char *err_msg = NULL;
 		int threads;
-		if (!parse_int(argv[1], &threads, &err_msg)) {
-			printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+		if (!parse_int_strict_range(argv[1], min, max, &threads, &err_msg)) {
+			printf("\nError: %s '%s %s', expected number in [%d..%d].\n", err_msg, arg_id, argv[1], min, max);
 			return 1;
 		}
 
-		if (threads >= 0 && threads <= BLENDER_MAX_THREADS) {
-			BLI_system_num_threads_override_set(threads);
-		}
-		else {
-			printf("Error, threads has to be in range 0-%d\n", BLENDER_MAX_THREADS);
-		}
+		BLI_system_num_threads_override_set(threads);
 		return 1;
 	}
 	else {
-		printf("\nError: you must specify a number of threads between 0 and %d '%s'.\n", BLENDER_MAX_THREADS, arg_id);
+		printf("\nError: you must specify a number of threads in [%d..%d] '%s'.\n", min, max, arg_id);
 		return 0;
 	}
 }
