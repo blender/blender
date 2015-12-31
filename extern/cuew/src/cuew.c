@@ -15,9 +15,7 @@
  */
 
 #ifdef _MSC_VER
-#  if _MSC_VER < 1900
-#    define snprintf _snprintf
-#  endif
+#  define snprintf _snprintf
 #  define popen _popen
 #  define pclose _pclose
 #  define _CRT_SECURE_NO_WARNINGS
@@ -51,14 +49,23 @@ typedef void* DynamicLibrary;
 #  define dynamic_library_find(lib, symbol)  dlsym(lib, symbol)
 #endif
 
-#define CUDA_LIBRARY_FIND_CHECKED(name) \
+#define _LIBRARY_FIND_CHECKED(lib, name) \
         name = (t##name *)dynamic_library_find(lib, #name); \
         assert(name);
 
-#define CUDA_LIBRARY_FIND(name) \
+#define _LIBRARY_FIND(lib, name) \
         name = (t##name *)dynamic_library_find(lib, #name);
 
-static DynamicLibrary lib;
+#define CUDA_LIBRARY_FIND_CHECKED(name) \
+        _LIBRARY_FIND_CHECKED(cuda_lib, name)
+#define CUDA_LIBRARY_FIND(name) _LIBRARY_FIND(cuda_lib, name)
+
+#define NVRTC_LIBRARY_FIND_CHECKED(name) \
+        _LIBRARY_FIND_CHECKED(nvrtc_lib, name)
+#define NVRTC_LIBRARY_FIND(name) _LIBRARY_FIND(nvrtc_lib, name)
+
+static DynamicLibrary cuda_lib;
+static DynamicLibrary nvrtc_lib;
 
 /* Function definitions. */
 tcuGetErrorString *cuGetErrorString;
@@ -271,12 +278,34 @@ tcuGLSetBufferObjectMapFlags *cuGLSetBufferObjectMapFlags;
 tcuGLMapBufferObjectAsync_v2 *cuGLMapBufferObjectAsync_v2;
 tcuGLUnmapBufferObjectAsync *cuGLUnmapBufferObjectAsync;
 
+tnvrtcGetErrorString *nvrtcGetErrorString;
+tnvrtcVersion *nvrtcVersion;
+tnvrtcCreateProgram *nvrtcCreateProgram;
+tnvrtcDestroyProgram *nvrtcDestroyProgram;
+tnvrtcCompileProgram *nvrtcCompileProgram;
+tnvrtcGetPTXSize *nvrtcGetPTXSize;
+tnvrtcGetPTX *nvrtcGetPTX;
+tnvrtcGetProgramLogSize *nvrtcGetProgramLogSize;
+tnvrtcGetProgramLog *nvrtcGetProgramLog;
+
+
+static DynamicLibrary dynamic_library_open_find(const char **paths) {
+  int i = 0;
+  while (paths[i] != NULL) {
+      DynamicLibrary lib = dynamic_library_open(paths[i]);
+      if (lib != NULL) {
+        return lib;
+      }
+      ++i;
+  }
+  return NULL;
+}
 
 static void cuewExit(void) {
-  if(lib != NULL) {
+  if(cuda_lib != NULL) {
     /*  Ignore errors. */
-    dynamic_library_close(lib);
-    lib = NULL;
+    dynamic_library_close(cuda_lib);
+    cuda_lib = NULL;
   }
 }
 
@@ -285,12 +314,21 @@ int cuewInit(void) {
   /* Library paths. */
 #ifdef _WIN32
   /* Expected in c:/windows/system or similar, no path needed. */
-  const char *path = "nvcuda.dll";
+  const char *cuda_paths[] = {"nvcuda.dll", NULL};
+  const char *nvrtc_paths[] = {"nvrtc.dll", NULL};
 #elif defined(__APPLE__)
   /* Default installation path. */
-  const char *path = "/usr/local/cuda/lib/libcuda.dylib";
+  const char *cuda_paths[] = {"/usr/local/cuda/lib/libcuda.dylib", NULL};
+  const char *nvrtc_paths[] = {"/usr/local/cuda/lib/libnvrtc.dylib", NULL};
 #else
-  const char *path = "libcuda.so";
+  const char *cuda_paths[] = {"libcuda.so", NULL};
+  const char *nvrtc_paths[] = {"libnvrtc.so",
+#  if defined(__x86_64__) || defined(_M_X64)
+                               "/usr/local/cuda/lib64/libnvrtc.so",
+#else
+                               "/usr/local/cuda/lib/libnvrtc.so",
+#endif
+                               NULL};
 #endif
   static int initialized = 0;
   static int result = 0;
@@ -309,9 +347,11 @@ int cuewInit(void) {
   }
 
   /* Load library. */
-  lib = dynamic_library_open(path);
+  cuda_lib = dynamic_library_open_find(cuda_paths);
+  nvrtc_lib = dynamic_library_open_find(nvrtc_paths);
 
-  if (lib == NULL) {
+  /* CUDA library is mandatory to have, while nvrtc might be missing. */
+  if (cuda_lib == NULL) {
     result = CUEW_ERROR_OPEN_FAILED;
     return result;
   }
@@ -540,6 +580,18 @@ int cuewInit(void) {
   CUDA_LIBRARY_FIND(cuGLMapBufferObjectAsync_v2);
   CUDA_LIBRARY_FIND(cuGLUnmapBufferObjectAsync);
 
+
+  if (nvrtc_lib != NULL) {
+    NVRTC_LIBRARY_FIND(nvrtcGetErrorString);
+    NVRTC_LIBRARY_FIND(nvrtcVersion);
+    NVRTC_LIBRARY_FIND(nvrtcCreateProgram);
+    NVRTC_LIBRARY_FIND(nvrtcDestroyProgram);
+    NVRTC_LIBRARY_FIND(nvrtcCompileProgram);
+    NVRTC_LIBRARY_FIND(nvrtcGetPTXSize);
+    NVRTC_LIBRARY_FIND(nvrtcGetPTX);
+    NVRTC_LIBRARY_FIND(nvrtcGetProgramLogSize);
+    NVRTC_LIBRARY_FIND(nvrtcGetProgramLog);
+  }
 
   result = CUEW_SUCCESS;
   return result;

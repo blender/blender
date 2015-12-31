@@ -51,7 +51,6 @@ extern "C" {
 #define CU_LAUNCH_PARAM_BUFFER_POINTER ((void*)0x01)
 #define CU_LAUNCH_PARAM_BUFFER_SIZE ((void*)0x02)
 #define CU_PARAM_TR_DEFAULT -1
-#define CUDAGL_H
 
 /* Functions which changed 3.1 -> 3.2 for 64 bit stuff,
  * the cuda library has both the old ones for compatibility and new
@@ -728,6 +727,19 @@ typedef enum CUGLmap_flags_enum {
   CU_GL_MAP_RESOURCE_FLAGS_WRITE_DISCARD = 0x02,
 } CUGLmap_flags;
 
+typedef enum  {
+  NVRTC_SUCCESS = 0,
+  NVRTC_ERROR_OUT_OF_MEMORY = 1,
+  NVRTC_ERROR_PROGRAM_CREATION_FAILURE = 2,
+  NVRTC_ERROR_INVALID_INPUT = 3,
+  NVRTC_ERROR_INVALID_PROGRAM = 4,
+  NVRTC_ERROR_INVALID_OPTION = 5,
+  NVRTC_ERROR_COMPILATION = 6,
+  NVRTC_ERROR_BUILTIN_OPERATION_FAILURE = 7,
+} nvrtcResult;
+
+typedef struct _nvrtcProgram* nvrtcProgram;
+
 #ifdef _WIN32
 #  define CUDAAPI __stdcall
 #  define CUDA_CB __stdcall
@@ -947,6 +959,16 @@ typedef CUresult CUDAAPI tcuGLSetBufferObjectMapFlags(GLuint buffer, unsigned Fl
 typedef CUresult CUDAAPI tcuGLMapBufferObjectAsync_v2(CUdeviceptr* dptr, size_t* size, GLuint buffer, CUstream hStream);
 typedef CUresult CUDAAPI tcuGLUnmapBufferObjectAsync(GLuint buffer, CUstream hStream);
 
+typedef const char* CUDAAPI tnvrtcGetErrorString(nvrtcResult result);
+typedef nvrtcResult CUDAAPI tnvrtcVersion(int* major, int* minor);
+typedef nvrtcResult CUDAAPI tnvrtcCreateProgram(nvrtcProgram* prog, const char* src, const char* name, int numHeaders, const char* headers, const char* includeNames);
+typedef nvrtcResult CUDAAPI tnvrtcDestroyProgram(nvrtcProgram* prog);
+typedef nvrtcResult CUDAAPI tnvrtcCompileProgram(nvrtcProgram prog, int numOptions, const char* options);
+typedef nvrtcResult CUDAAPI tnvrtcGetPTXSize(nvrtcProgram prog, size_t* ptxSizeRet);
+typedef nvrtcResult CUDAAPI tnvrtcGetPTX(nvrtcProgram prog, char* ptx);
+typedef nvrtcResult CUDAAPI tnvrtcGetProgramLogSize(nvrtcProgram prog, size_t* logSizeRet);
+typedef nvrtcResult CUDAAPI tnvrtcGetProgramLog(nvrtcProgram prog, char* log);
+
 
 /* Function declarations. */
 extern tcuGetErrorString *cuGetErrorString;
@@ -1158,6 +1180,16 @@ extern tcuGLUnregisterBufferObject *cuGLUnregisterBufferObject;
 extern tcuGLSetBufferObjectMapFlags *cuGLSetBufferObjectMapFlags;
 extern tcuGLMapBufferObjectAsync_v2 *cuGLMapBufferObjectAsync_v2;
 extern tcuGLUnmapBufferObjectAsync *cuGLUnmapBufferObjectAsync;
+
+extern tnvrtcGetErrorString *nvrtcGetErrorString;
+extern tnvrtcVersion *nvrtcVersion;
+extern tnvrtcCreateProgram *nvrtcCreateProgram;
+extern tnvrtcDestroyProgram *nvrtcDestroyProgram;
+extern tnvrtcCompileProgram *nvrtcCompileProgram;
+extern tnvrtcGetPTXSize *nvrtcGetPTXSize;
+extern tnvrtcGetPTX *nvrtcGetPTX;
+extern tnvrtcGetProgramLogSize *nvrtcGetProgramLogSize;
+extern tnvrtcGetProgramLog *nvrtcGetProgramLog;
 
 
 enum {
