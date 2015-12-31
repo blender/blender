@@ -458,7 +458,7 @@ static void wm_file_read_post(bContext *C, bool is_startup_file)
 		/* possible python hasn't been initialized */
 		if (CTX_py_init_get(C)) {
 			/* sync addons, these may have changed from the defaults */
-			BPY_string_exec(C, "__import__('addon_utils').reset_all()");
+			BPY_execute_string(C, "__import__('addon_utils').reset_all()");
 
 			BPY_python_reset(C);
 			addons_loaded = true;

@@ -79,7 +79,7 @@ int       PyC_FlagSet_ValueFromID(PyC_FlagSet *item, const char *identifier, int
 int       PyC_FlagSet_ToBitfield(PyC_FlagSet *items, PyObject *value, int *r_value, const char *error_prefix);
 PyObject *PyC_FlagSet_FromBitfield(PyC_FlagSet *items, int flag);
 
-int PyC_RunString_AsNumber(const char *expr, double *value, const char *filename);
+bool PyC_RunString_AsNumber(const char *expr, double *value, const char *filename);
 
 int PyC_ParseBool(PyObject *o, void *p);
 

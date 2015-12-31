@@ -424,8 +424,9 @@ typedef struct {
 } PyModuleObject;
 #endif
 
-static int python_script_exec(bContext *C, const char *fn, struct Text *text,
-                              struct ReportList *reports, const bool do_jump)
+static bool python_script_exec(
+        bContext *C, const char *fn, struct Text *text,
+        struct ReportList *reports, const bool do_jump)
 {
 	Main *bmain_old = CTX_data_main(C);
 	PyObject *main_mod = NULL;
@@ -543,13 +544,13 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text,
 }
 
 /* Can run a file or text block */
-int BPY_filepath_exec(bContext *C, const char *filepath, struct ReportList *reports)
+bool BPY_execute_filepath(bContext *C, const char *filepath, struct ReportList *reports)
 {
 	return python_script_exec(C, filepath, NULL, reports, false);
 }
 
 
-int BPY_text_exec(bContext *C, struct Text *text, struct ReportList *reports, const bool do_jump)
+bool BPY_execute_text(bContext *C, struct Text *text, struct ReportList *reports, const bool do_jump)
 {
 	return python_script_exec(C, NULL, text, reports, do_jump);
 }
@@ -572,24 +573,26 @@ void BPY_DECREF_RNA_INVALIDATE(void *pyob_ptr)
 	PyGILState_Release(gilstate);
 }
 
-/* return -1 on error, else 0 */
-int BPY_button_exec(bContext *C, const char *expr, double *value, const bool verbose)
+/**
+ * \return success
+ */
+bool BPY_execute_string_as_number(bContext *C, const char *expr, double *value, const bool verbose)
 {
 	PyGILState_STATE gilstate;
-	int error_ret = 0;
+	bool ok = true;
 
 	if (!value || !expr) return -1;
 
 	if (expr[0] == '\0') {
 		*value = 0.0;
-		return error_ret;
+		return ok;
 	}
 
 	bpy_context_set(C, &gilstate);
 
-	error_ret = PyC_RunString_AsNumber(expr, value, "<blender button>");
+	ok = PyC_RunString_AsNumber(expr, value, "<blender button>");
 
-	if (error_ret) {
+	if (ok == false) {
 		if (verbose) {
 			BPy_errors_to_report_ex(CTX_wm_reports(C), false, false);
 		}
@@ -600,21 +603,21 @@ int BPY_button_exec(bContext *C, const char *expr, double *value, const bool ver
 
 	bpy_context_clear(C, &gilstate);
 
-	return error_ret;
+	return ok;
 }
 
-int BPY_string_exec_ex(bContext *C, const char *expr, bool use_eval)
+bool BPY_execute_string_ex(bContext *C, const char *expr, bool use_eval)
 {
 	PyGILState_STATE gilstate;
 	PyObject *main_mod = NULL;
 	PyObject *py_dict, *retval;
-	int error_ret = 0;
+	bool ok = true;
 	Main *bmain_back; /* XXX, quick fix for release (Copy Settings crash), needs further investigation */
 
 	if (!expr) return -1;
 
 	if (expr[0] == '\0') {
-		return error_ret;
+		return ok;
 	}
 
 	bpy_context_set(C, &gilstate);
@@ -631,7 +634,7 @@ int BPY_string_exec_ex(bContext *C, const char *expr, bool use_eval)
 	bpy_import_main_set(bmain_back);
 
 	if (retval == NULL) {
-		error_ret = -1;
+		ok = false;
 
 		BPy_errors_to_report(CTX_wm_reports(C));
 	}
@@ -643,12 +646,12 @@ int BPY_string_exec_ex(bContext *C, const char *expr, bool use_eval)
 
 	bpy_context_clear(C, &gilstate);
 	
-	return error_ret;
+	return ok;
 }
 
-int BPY_string_exec(bContext *C, const char *expr)
+bool BPY_execute_string(bContext *C, const char *expr)
 {
-	return BPY_string_exec_ex(C, expr, true);
+	return BPY_execute_string_ex(C, expr, true);
 }
 
 void BPY_modules_load_user(bContext *C)

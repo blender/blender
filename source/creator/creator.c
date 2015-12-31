@@ -1365,7 +1365,7 @@ static int run_python_file(int argc, const char **argv, void *data)
 		BLI_strncpy(filename, argv[1], sizeof(filename));
 		BLI_path_cwd(filename, sizeof(filename));
 
-		BPY_CTX_SETUP(BPY_filepath_exec(C, filename, NULL));
+		BPY_CTX_SETUP(BPY_execute_filepath(C, filename, NULL));
 
 		return 1;
 	}
@@ -1391,7 +1391,7 @@ static int run_python_text(int argc, const char **argv, void *data)
 		struct Text *text = (struct Text *)BKE_libblock_find_name(ID_TXT, argv[1]);
 
 		if (text) {
-			BPY_CTX_SETUP(BPY_text_exec(C, text, NULL, false));
+			BPY_CTX_SETUP(BPY_execute_text(C, text, NULL, false));
 			return 1;
 		}
 		else {
@@ -1417,7 +1417,7 @@ static int run_python_expr(int argc, const char **argv, void *data)
 
 	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
 	if (argc > 1) {
-		BPY_CTX_SETUP(BPY_string_exec_ex(C, argv[1], false));
+		BPY_CTX_SETUP(BPY_execute_string_ex(C, argv[1], false));
 		return 1;
 	}
 	else {
@@ -1436,7 +1436,7 @@ static int run_python_console(int UNUSED(argc), const char **argv, void *data)
 #ifdef WITH_PYTHON
 	bContext *C = data;
 
-	BPY_CTX_SETUP(BPY_string_exec(C, "__import__('code').interact()"));
+	BPY_CTX_SETUP(BPY_execute_string(C, "__import__('code').interact()"));
 
 	return 0;
 #else
@@ -1462,7 +1462,7 @@ static int set_addons(int argc, const char **argv, void *data)
 		BLI_snprintf(str, slen, script_str, argv[1]);
 
 		BLI_assert(strlen(str) + 1 == slen);
-		BPY_CTX_SETUP(BPY_string_exec_ex(C, str, false));
+		BPY_CTX_SETUP(BPY_execute_string_ex(C, str, false));
 		free(str);
 #else
 		UNUSED_VARS(argv, data);

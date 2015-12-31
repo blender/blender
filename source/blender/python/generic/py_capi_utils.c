@@ -971,14 +971,14 @@ PyObject *PyC_FlagSet_FromBitfield(PyC_FlagSet *items, int flag)
 
 
 /**
- * \return -1 on error, else 0
+ * \return success
  *
  * \note it is caller's responsibility to acquire & release GIL!
  */
-int PyC_RunString_AsNumber(const char *expr, double *value, const char *filename)
+bool PyC_RunString_AsNumber(const char *expr, double *value, const char *filename)
 {
 	PyObject *py_dict, *mod, *retval;
-	int error_ret = 0;
+	bool ok = true;
 	PyObject *main_mod = NULL;
 
 	PyC_MainModule_Backup(&main_mod);
@@ -998,7 +998,7 @@ int PyC_RunString_AsNumber(const char *expr, double *value, const char *filename
 	retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict);
 
 	if (retval == NULL) {
-		error_ret = -1;
+		ok = false;
 	}
 	else {
 		double val;
@@ -1024,7 +1024,7 @@ int PyC_RunString_AsNumber(const char *expr, double *value, const char *filename
 		Py_DECREF(retval);
 
 		if (val == -1 && PyErr_Occurred()) {
-			error_ret = -1;
+			ok = false;
 		}
 		else if (!finite(val)) {
 			*value = 0.0;
@@ -1036,7 +1036,7 @@ int PyC_RunString_AsNumber(const char *expr, double *value, const char *filename
 
 	PyC_MainModule_Restore(main_mod);
 
-	return error_ret;
+	return ok;
 }
 
 #endif  /* #ifndef MATH_STANDALONE */

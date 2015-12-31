@@ -78,22 +78,22 @@ public:
 		BKE_reports_clear(reports);
 		char *fn = const_cast<char*>(filename.c_str());
 #if 0
-		int status = BPY_filepath_exec(_context, fn, reports);
+		bool ok = BPY_execute_filepath(_context, fn, reports);
 #else
-		int status;
+		bool ok;
 		Text *text = BKE_text_load(&_freestyle_bmain, fn, G.main->name);
 		if (text) {
-			status = BPY_text_exec(_context, text, reports, false);
+			ok = BPY_execute_text(_context, text, reports, false);
 			BKE_text_unlink(&_freestyle_bmain, text);
 			BKE_libblock_free(&_freestyle_bmain, text);
 		}
 		else {
 			BKE_reportf(reports, RPT_ERROR, "Cannot open file: %s", fn);
-			status = 0;
+			ok = false;
 		}
 #endif
 
-		if (status != 1) {
+		if (ok == false) {
 			cerr << "\nError executing Python script from PythonInterpreter::interpretFile" << endl;
 			cerr << "File: " << fn << endl;
 			cerr << "Errors: " << endl;
@@ -113,7 +113,7 @@ public:
 
 		BKE_reports_clear(reports);
 
-		if (BPY_string_exec(_context, str.c_str()) != 0) {
+		if (!BPY_execute_string(_context, str.c_str())) {
 			BPy_errors_to_report(reports);
 			cerr << "\nError executing Python script from PythonInterpreter::interpretString" << endl;
 			cerr << "Name: " << name << endl;
@@ -133,7 +133,7 @@ public:
 
 		BKE_reports_clear(reports);
 
-		if (!BPY_text_exec(_context, text, reports, false)) {
+		if (!BPY_execute_text(_context, text, reports, false)) {
 			cerr << "\nError executing Python script from PythonInterpreter::interpretText" << endl;
 			cerr << "Name: " << name << endl;
 			cerr << "Errors: " << endl;

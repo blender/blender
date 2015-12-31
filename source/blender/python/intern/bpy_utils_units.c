@@ -201,7 +201,7 @@ static PyObject *bpyunits_to_value(PyObject *UNUSED(self), PyObject *args, PyObj
 
 	bUnit_ReplaceString(str, (int)str_len, uref, scale, usys, ucat);
 
-	if (PyC_RunString_AsNumber(str, &result, "<bpy_units_api>") != 0) {
+	if (!PyC_RunString_AsNumber(str, &result, "<bpy_units_api>")) {
 		if (PyErr_Occurred()) {
 			PyErr_Print();
 			PyErr_Clear();
