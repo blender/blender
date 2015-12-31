@@ -44,6 +44,7 @@
 
 #include "BKE_camera.h"
 #include "BKE_global.h"
+#include "BKE_colortools.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
@@ -457,6 +458,7 @@ void RE_bake_engine_set_engine_parameters(Render *re, Main *bmain, Scene *scene)
 	 * not sure how to fix this yet -- dfelinto */
 	BLI_listbase_clear(&re->r.layers);
 	BLI_listbase_clear(&re->r.views);
+	curvemapping_copy_data(&re->r.mblur_shutter_curve, &scene->r.mblur_shutter_curve);
 }
 
 bool RE_bake_has_engine(Render *re)
