@@ -26,7 +26,7 @@
 #ifndef LIBMV_C_API_UTILDEFINES_H_
 #define LIBMV_C_API_UTILDEFINES_H_
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && _MSC_VER < 1900
 #  define __func__ __FUNCTION__
 #  define snprintf _snprintf
 #endif
