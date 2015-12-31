@@ -163,6 +163,9 @@ int TileManager::gen_tiles(bool sliced)
 				}
 			}
 		}
+		if(sliced) {
+			tile_list++;
+		}
 	}
 
 	return tile_index;
