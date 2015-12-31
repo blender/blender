@@ -43,7 +43,7 @@
 #include "windows_port.h"
 
 // These call the windows _vsnprintf, but always NUL-terminate.
-#if !defined(__MINGW32__) && !defined(__MINGW64__)  /* mingw already defines */
+#if !defined(__MINGW32__) && !defined(__MINGW64__) && !(defined(_MSC_VER) && _MSC_VER >= 1900)  /* mingw already defines */
 
 #ifdef _MSC_VER
 #  pragma warning(push)
@@ -68,4 +68,4 @@ int snprintf(char *str, size_t size, const char *format, ...) {
   return r;
 }
 
-#endif  /* #if !defined(__MINGW32__) && !defined(__MINGW64__) */
+#endif  /* #if !defined(__MINGW32__) && !defined(__MINGW64__) && !(defined(_MSC_VER) && _MSC_VER >= 1900) */

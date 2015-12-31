@@ -12,7 +12,7 @@
 /* Puts following code inside the Google namespace */
 #define _START_GOOGLE_NAMESPACE_ namespace google {
 
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || (defined(_MSC_VER) && (_MSC_VER >= 1900))
 #  define HAVE_SNPRINTF
 #endif
 

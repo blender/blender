@@ -1,3 +1,33 @@
+commit e0ef5b09203e3906a555e6c2010f25cb667da9cd
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Dec 31 16:15:59 2015 +0500
+
+    GLog: Solve some compilation warnings
+    
+    Those are actually sent to a pull-request, see
+    
+      https://github.com/google/glog/pull/81
+
+commit 2072b213d4d3a55d099a063ed1e7331cc773454e
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Dec 31 16:13:53 2015 +0500
+
+    Add Martijn Berger to the AUTHORS file
+
+commit 4dd0770d98d67896e4f936356e281f63d927410e
+Author: Martijn Berger <martijn.berger@gmail.com>
+Date:   Thu Dec 31 16:13:08 2015 +0500
+
+    Fix compilation error of Glog and Gflags with MSVC2015
+
+commit 2712f42be2ad79e7d3a6c9905f6d8d1e3b7133ac
+Author: Brecht Van Lommel <brechtvanlommel@gmail.com>
+Date:   Thu Dec 31 14:00:58 2015 +0500
+
+    Fix OS X (with 10.11 SDK) glog build errors due to using deprecated code.
+    
+    Some values are now restored to the ones from before the upgrade today.
+
 commit d249280fdf7c937fd6ebbc465508843a70aafd4c
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Wed Dec 30 16:59:28 2015 +0500
@@ -637,49 +667,3 @@ Date:   Mon Apr 14 00:01:32 2014 +0600
     Reviewed By: keir
     
     Differential Revision: https://developer.blender.org/D316
-
-commit 397c3d3ed46eb4967eb285c8369cc125bea4b132
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Apr 4 16:17:57 2014 +0600
-
-    Compilation error fix
-    
-    Not totally sure why this is needed, but multiview indeed
-    uses V3D library still, so it needs to be linked against it.
-    
-    Patc by Martijn Berger, thanks!
-
-commit 1c36279239cbffe152493106eb04e55df7ebd649
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Apr 4 14:03:43 2014 +0600
-
-    Upgrade Eigen to 3.2.1 version
-    
-    To main reasons for this:
-    - Probably this would solve strict compiler warnings
-    - It brings new stuff like sparse LU decomposition which
-      might be useful in the future.
-
-commit de698f442934f475478463445f78a00ea632e823
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Apr 3 15:08:26 2014 +0600
-
-    Fix compilation error when using make from the sources root
-    
-    - Don't force flann to be static. It's a general rule on linux
-      to have dynamic libraries for all the bits instead of having
-      statically-linked dynamic libraries.
-    
-    - Some weirdo stuff was happening around OpenExif, it was only
-      built on Apple, so don't link targets against this lib on
-      other platforms.
-    
-    - Some libraries were missing for qt-tracker.
-
-commit 901b146f28825d3e05f4157ca2a34ae00261b91a
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Mar 26 17:44:09 2014 +0600
-
-    Fix bad memory write in BA code when having zero-weighted tracks
-    
-    Issue was really stupid and caused by the wrong vector initialization.

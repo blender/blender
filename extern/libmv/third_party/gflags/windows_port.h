@@ -62,7 +62,7 @@
  * because they don't always NUL-terminate. :-(  We also can't use the
  * name vsnprintf, since windows defines that (but not snprintf (!)).
  */
-#if !defined(__MINGW32__) && !defined(__MINGW64__)  /* mingw already defines */
+#if !defined(__MINGW32__) && !defined(__MINGW64__) && !(_MSC_VER >= 1900)  /* mingw already defines */
 extern GFLAGS_DLL_DECL int snprintf(char *str, size_t size,
                                        const char *format, ...);
 extern int GFLAGS_DLL_DECL safe_vsnprintf(char *str, size_t size,
@@ -107,10 +107,12 @@ inline void setenv(const char* name, const char* value, int) {
 #define unlink   _unlink
 #endif
 
+#if !(_MSC_VER >= 1900)
 #define PRId32  "d"
 #define PRIu32  "u"
 #define PRId64  "I64d"
 #define PRIu64  "I64u"
+#endif
 
 #if !defined(__MINGW32__) && !defined(__MINGW64__)
 #define strtoq   _strtoi64
