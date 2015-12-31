@@ -111,6 +111,9 @@
 #include "mutex.h"
 #include "util.h"
 
+using namespace MUTEX_NAMESPACE;
+
+
 // Special flags, type 1: the 'recursive' flags.  They set another flag's val.
 DEFINE_string(flagfile,   "", "load flags from file");
 DEFINE_string(fromenv,    "", "set flags from the environment"

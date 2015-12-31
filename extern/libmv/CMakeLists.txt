@@ -277,6 +277,7 @@ if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
 		third_party/gflags/config.h
 		third_party/gflags/gflags/gflags_completions.h
 		third_party/gflags/gflags/gflags_declare.h
+		third_party/gflags/gflags/gflags_gflags.h
 		third_party/gflags/gflags/gflags.h
 		third_party/gflags/mutex.h
 		third_party/gflags/util.h

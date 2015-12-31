@@ -47,6 +47,8 @@
 //     5b) Trim most flag's descriptions to fit on a single terminal line
 
 
+#include "gflags_completions.h"
+
 #include "config.h"
 
 #include <stdio.h>

@@ -141,6 +141,7 @@ third_party/gflags/gflags.cc
 third_party/gflags/gflags_completions.cc
 third_party/gflags/gflags/gflags_completions.h
 third_party/gflags/gflags/gflags_declare.h
+third_party/gflags/gflags/gflags_gflags.h
 third_party/gflags/gflags/gflags.h
 third_party/gflags/gflags_reporting.cc
 third_party/gflags/mutex.h

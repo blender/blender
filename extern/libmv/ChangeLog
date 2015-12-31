@@ -1,3 +1,17 @@
+commit df7642b270e8e43685e9ffb404b59d7b226a9f60
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Dec 31 17:56:12 2015 +0500
+
+    Alternative fix for missing prototype for a couple of functions
+
+commit 08f685797b7d776cdaa579136c82b15ddc6ffb30
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Dec 31 17:33:05 2015 +0500
+
+    Update GFlags to the latest upstream version
+    
+    Makes it easier to synchronize some compiler/warning fixes.
+
 commit e0ef5b09203e3906a555e6c2010f25cb667da9cd
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Dec 31 16:15:59 2015 +0500
@@ -608,62 +622,3 @@ Date:   Thu Apr 17 16:26:12 2014 +0600
     CC: jta
     
     Differential Revision: https://developer.blender.org/D335
-
-commit 313252083f6dfa69a93c287bed81dec616503c1b
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Tue Apr 15 18:23:38 2014 +0600
-
-    Fix failure of the image transform linear test
-    
-    Mainly was caused by the flakyness of image rotation in cases
-    when image has even size. The test was expecting the transform
-    code to rotate the image around pixel corner, which isn't a
-    common behavior in image processing applications. Rotation
-    is usually done around the pixel center.
-    
-    So now made it so RotateImage() rotates the image around the
-    pixel center which gives 100% proper result for odd sized images
-    (i.e. center pixel stays untouched).
-    
-    Also made the tests to use odd image sizes which are more
-    predictable by the humans. We can use even sized images in the
-    tests as well but their result wouldn't be so much spectacular.
-    
-    Another issue with the tests was caused by RescaleImageTranslation
-    test which did expect things which are not happening in the
-    function.
-    
-    Reviewers: keir
-    
-    Reviewed By: keir
-    
-    Differential Revision: https://developer.blender.org/D463
-
-commit 80d6945bf5f996b97cd41df0e422afce5e10e7f9
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon Apr 14 00:01:32 2014 +0600
-
-    Unit tests for feature detector
-    
-    Currently covers only simplest cases with synthetic images.
-    Also at this point mainly Harris detector is being testes,
-    other detectors behaves a bit unexpected on synthetic images
-    and this is to be investigated further.
-    
-    Tests will be extended further later.
-    
-    Additional change:
-    
-    - Added constructor to Feature structure
-    - Added operator << for feature for easier debug dumps.
-    
-    TODO: Some tests are not giving the result which i was expected
-    to. This is to be investigated further by finding the reference
-    detector implementation. For until then keeping that tests
-    commented out.
-    
-    Reviewers: keir
-    
-    Reviewed By: keir
-    
-    Differential Revision: https://developer.blender.org/D316

@@ -94,7 +94,7 @@
 #endif
 
 
-namespace gflags {
+namespace GFLAGS_NAMESPACE {
 
 
 // --------------------------------------------------------------------
@@ -136,7 +136,7 @@ extern GFLAGS_DLL_DECL bool RegisterFlagValidator(const std::string* flag, bool 
 // Convenience macro for the registration of a flag validator
 #define DEFINE_validator(name, validator) \
     static const bool name##_validator_registered = \
-            gflags::RegisterFlagValidator(&FLAGS_##name, validator)
+            GFLAGS_NAMESPACE::RegisterFlagValidator(&FLAGS_##name, validator)
 
 
 // --------------------------------------------------------------------
@@ -442,7 +442,7 @@ class GFLAGS_DLL_DECL FlagRegisterer {
 extern GFLAGS_DLL_DECL const char kStrippedFlagHelp[];
 
 
-} // namespace gflags
+} // namespace GFLAGS_NAMESPACE
 
 
 #ifndef SWIG  // In swig, ignore the main flag declarations
@@ -450,7 +450,7 @@ extern GFLAGS_DLL_DECL const char kStrippedFlagHelp[];
 #if defined(STRIP_FLAG_HELP) && STRIP_FLAG_HELP > 0
 // Need this construct to avoid the 'defined but not used' warning.
 #define MAYBE_STRIPPED_HELP(txt) \
-   (false ? (txt) : gflags::kStrippedFlagHelp)
+   (false ? (txt) : GFLAGS_NAMESPACE::kStrippedFlagHelp)
 #else
 #define MAYBE_STRIPPED_HELP(txt) txt
 #endif
@@ -472,7 +472,7 @@ extern GFLAGS_DLL_DECL const char kStrippedFlagHelp[];
     /* We always want to export defined variables, dll or no */         \
     GFLAGS_DLL_DEFINE_FLAG type FLAGS_##name = FLAGS_nono##name;        \
     type FLAGS_no##name = FLAGS_nono##name;                             \
-    static gflags::FlagRegisterer o_##name( \
+    static GFLAGS_NAMESPACE::FlagRegisterer o_##name(                   \
       #name, #type, MAYBE_STRIPPED_HELP(help), __FILE__,                \
       &FLAGS_##name, &FLAGS_no##name);                                  \
   }                                                                     \
@@ -500,20 +500,20 @@ GFLAGS_DLL_DECL bool IsBoolFlag(bool from);
 #define DEFINE_bool(name, val, txt)                                     \
   namespace fLB {                                                       \
     typedef ::fLB::CompileAssert FLAG_##name##_value_is_not_a_bool[     \
-            (sizeof(::fLB::IsBoolFlag(val)) != sizeof(double)) ? 1 : -1]; \
+            (sizeof(::fLB::IsBoolFlag(val)) != sizeof(double))? 1: -1]; \
   }                                                                     \
   DEFINE_VARIABLE(bool, B, name, val, txt)
 
 #define DEFINE_int32(name, val, txt) \
-   DEFINE_VARIABLE(gflags::int32, I, \
+   DEFINE_VARIABLE(GFLAGS_NAMESPACE::int32, I, \
                    name, val, txt)
 
 #define DEFINE_int64(name, val, txt) \
-   DEFINE_VARIABLE(gflags::int64, I64, \
+   DEFINE_VARIABLE(GFLAGS_NAMESPACE::int64, I64, \
                    name, val, txt)
 
 #define DEFINE_uint64(name,val, txt) \
-   DEFINE_VARIABLE(gflags::uint64, U64, \
+   DEFINE_VARIABLE(GFLAGS_NAMESPACE::uint64, U64, \
                    name, val, txt)
 
 #define DEFINE_double(name, val, txt) \
@@ -554,7 +554,7 @@ inline clstring* dont_pass0toDEFINE_string(char *stringspot,
     clstring* const FLAGS_no##name = ::fLS::                                \
                                    dont_pass0toDEFINE_string(s_##name[0].s, \
                                                              val);          \
-    static gflags::FlagRegisterer o_##name(                       \
+    static GFLAGS_NAMESPACE::FlagRegisterer o_##name(                       \
         #name, "string", MAYBE_STRIPPED_HELP(txt), __FILE__,                \
         s_##name[0].s, new (s_##name[1].s) clstring(*FLAGS_no##name));      \
     extern GFLAGS_DLL_DEFINE_FLAG clstring& FLAGS_##name;                   \
@@ -564,5 +564,10 @@ inline clstring* dont_pass0toDEFINE_string(char *stringspot,
   using fLS::FLAGS_##name
 
 #endif  // SWIG
+
+
+// Import gflags library symbols into alternative/deprecated namespace(s)
+#include "gflags_gflags.h"
+
 
 #endif  // GFLAGS_GFLAGS_H_

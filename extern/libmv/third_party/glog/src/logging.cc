@@ -1677,7 +1677,8 @@ void LogToStderr() {
 namespace base {
 namespace internal {
 
-static bool GetExitOnDFatal() {
+bool GetExitOnDFatal();
+bool GetExitOnDFatal() {
   MutexLock l(&log_mutex);
   return exit_on_dfatal;
 }
@@ -1692,7 +1693,8 @@ static bool GetExitOnDFatal() {
 // and the stack trace is not recorded.  The LOG(FATAL) *will* still
 // exit the program.  Since this function is used only in testing,
 // these differences are acceptable.
-static void SetExitOnDFatal(bool value) {
+void SetExitOnDFatal(bool value);
+void SetExitOnDFatal(bool value) {
   MutexLock l(&log_mutex);
   exit_on_dfatal = value;
 }

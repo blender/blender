@@ -1,3 +1,13 @@
+* Tue Mar 24 2014 - Andreas Schuh <andreas.schuh.84@gmail.com>
+
+- gflags: version 2.1.2
+- Moved project to GitHub
+- Added GFLAGS_NAMESPACE definition to gflags_declare.h
+- Fixed issue 94: Keep "google" as primary namespace and import symbols into "gflags" namespace
+- Fixed issue 96: Fix binary ABI compatibility with gflags 2.0 using "google" as primary namespace
+- Fixed issue 97/101: Removed (patched) CMake modules and enabled C language instead
+- Fixed issue 103: Set CMake policy CMP0042 to silence warning regarding MACOS_RPATH setting
+
 * Sun Mar 20 2014 - Andreas Schuh <google-gflags@googlegroups.com>
 
 - gflags: version 2.1.1

@@ -88,9 +88,10 @@ typedef unsigned char uint8;
 
 // -- utility macros ---------------------------------------------------------
 
-template <bool> struct CompileAssert {};
+template <bool b> struct CompileAssert;
+template <> struct CompileAssert<true> {};
 #define COMPILE_ASSERT(expr, msg) \
-  typedef CompileAssert<(bool(expr))> msg[bool(expr) ? 1 : -1]
+  enum { assert_##msg = sizeof(CompileAssert<bool(expr)>) }
 
 // Returns the number of elements in an array.
 #define arraysize(arr) (sizeof(arr)/sizeof(*(arr)))
