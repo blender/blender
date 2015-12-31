@@ -194,6 +194,8 @@ static int print_version(int argc, const char **argv, void *data);
 /* Initialize callbacks for the modules that need them */
 static void setCallbacks(void); 
 
+static unsigned char python_exit_code_on_error = 0;
+
 #ifndef WITH_PYTHON_MODULE
 
 static bool use_crash_handler = true;
@@ -299,6 +301,7 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	BLI_argsPrintArgDoc(ba, "--python-text");
 	BLI_argsPrintArgDoc(ba, "--python-expr");
 	BLI_argsPrintArgDoc(ba, "--python-console");
+	BLI_argsPrintArgDoc(ba, "--python-exit-code");
 	BLI_argsPrintArgDoc(ba, "--addons");
 
 
@@ -1371,8 +1374,12 @@ static int run_python_file(int argc, const char **argv, void *data)
 		BLI_strncpy(filename, argv[1], sizeof(filename));
 		BLI_path_cwd(filename, sizeof(filename));
 
-		BPY_CTX_SETUP(BPY_execute_filepath(C, filename, NULL));
-
+		bool ok;
+		BPY_CTX_SETUP(ok = BPY_execute_filepath(C, filename, NULL));
+		if (!ok && python_exit_code_on_error) {
+			printf("\nError: script failed, file: '%s', exiting.\n", argv[1], python_exit_code_on_error);
+			exit(python_exit_code_on_error);
+		}
 		return 1;
 	}
 	else {
@@ -1395,15 +1402,22 @@ static int run_python_text(int argc, const char **argv, void *data)
 	if (argc > 1) {
 		/* Make the path absolute because its needed for relative linked blends to be found */
 		struct Text *text = (struct Text *)BKE_libblock_find_name(ID_TXT, argv[1]);
+		bool ok;
 
 		if (text) {
-			BPY_CTX_SETUP(BPY_execute_text(C, text, NULL, false));
-			return 1;
+			BPY_CTX_SETUP(ok = BPY_execute_text(C, text, NULL, false));
 		}
 		else {
 			printf("\nError: text block not found %s.\n", argv[1]);
-			return 1;
+			ok = false;
 		}
+
+		if (!ok && python_exit_code_on_error) {
+			printf("\nError: script failed, text: '%s', exiting.\n", argv[1]);
+			exit(python_exit_code_on_error);
+		}
+
+		return 1;
 	}
 	else {
 		printf("\nError: you must specify a text block after '%s'.\n", argv[0]);
@@ -1423,7 +1437,12 @@ static int run_python_expr(int argc, const char **argv, void *data)
 
 	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
 	if (argc > 1) {
-		BPY_CTX_SETUP(BPY_execute_string_ex(C, argv[1], false));
+		bool ok;
+		BPY_CTX_SETUP(ok = BPY_execute_string_ex(C, argv[1], false));
+		if (!ok && python_exit_code_on_error) {
+			printf("\nError: script failed, expr: '%s', exiting.\n", argv[1]);
+			exit(python_exit_code_on_error);
+		}
 		return 1;
 	}
 	else {
@@ -1450,6 +1469,27 @@ static int run_python_console(int UNUSED(argc), const char **argv, void *data)
 	printf("This blender was built without python support\n");
 	return 0;
 #endif /* WITH_PYTHON */
+}
+
+static int set_python_exit_code(int argc, const char **argv, void *UNUSED(data))
+{
+	const char *arg_id = "--python-exit-code";
+	if (argc > 1) {
+		const char *err_msg = NULL;
+		const int min = 0, max = 255;
+		int exit_code;
+		if (!parse_int_strict_range(argv[1], min, max, &exit_code, &err_msg)) {
+			printf("\nError: %s '%s %s', expected number in [%d..%d].\n", err_msg, arg_id, argv[1], min, max);
+			return 1;
+		}
+
+		python_exit_code_on_error = (unsigned char)exit_code;
+		return 1;
+	}
+	else {
+		printf("\nError: you must specify an exit code number '%s'.\n", arg_id);
+		return 0;
+	}
 }
 
 static int set_addons(int argc, const char **argv, void *data)
@@ -1682,6 +1722,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 4, NULL, "--python-text", "<name>\n\tRun the given Python script text block", run_python_text, C);
 	BLI_argsAdd(ba, 4, NULL, "--python-expr", "<expression>\n\tRun the given expression as a Python script", run_python_expr, C);
 	BLI_argsAdd(ba, 4, NULL, "--python-console", "\n\tRun blender with an interactive console", run_python_console, C);
+	BLI_argsAdd(ba, 4, NULL, "--python-exit-code", "\n\tSet the exit-code in [0..255] to exit if a Python exception is raised (only for scripts executed from the command line), zero disables.", set_python_exit_code, NULL);
 	BLI_argsAdd(ba, 4, NULL, "--addons", "\n\tComma separated list of addons (no spaces)", set_addons, C);
 
 	BLI_argsAdd(ba, 4, "-o", "--render-output", output_doc, set_output, C);
