@@ -2,10 +2,26 @@
 REM This batch file does an out-of-source CMake build in ../build_windows
 REM This is for users who like to configure & build Blender with a single command.
 
+setlocal ENABLEEXTENSIONS
 set BLENDER_DIR=%~dp0
 set BUILD_DIR=%BLENDER_DIR%..\build_windows
 set BUILD_TYPE=Release
 set BUILD_CMAKE_ARGS=
+
+REM Detect MSVC Installation
+if DEFINED VisualStudioVersion goto msvc_detect_finally
+set VALUE_NAME=ProductDir
+REM Check 64 bits
+set KEY_NAME="HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\12.0\Setup\VC"
+for /F "usebackq skip=2 tokens=1-2*" %%A IN (`REG QUERY %KEY_NAME% /v %VALUE_NAME% 2^>nul`) DO set MSVC_VC_DIR=%%C
+if DEFINED MSVC_VC_DIR goto msvc_detect_finally
+REM Check 32 bits
+set KEY_NAME="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\12.0\Setup\VC"
+for /F "usebackq skip=2 tokens=1-2*" %%A IN (`REG QUERY %KEY_NAME% /v %VALUE_NAME% 2^>nul`) DO set MSVC_VC_DIR=%%C
+if DEFINED MSVC_VC_DIR goto msvc_detect_finally
+:msvc_detect_finally
+if DEFINED MSVC_VC_DIR call "%MSVC_VC_DIR%\vcvarsall.bat"
+
 
 REM Sanity Checks
 where /Q msbuild
