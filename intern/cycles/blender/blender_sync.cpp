@@ -554,7 +554,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine,
 		params.tile_size = make_int2(tile_x, tile_y);
 	}
 
-	if(BlenderSession::headless == false) {
+	if((BlenderSession::headless == false) && background) {
 		params.tile_order = (TileOrder)RNA_enum_get(&cscene, "tile_order");
 	}
 	else {

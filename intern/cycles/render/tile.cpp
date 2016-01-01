@@ -155,7 +155,10 @@ int TileManager::gen_tiles(bool sliced)
 					cur_tiles++;
 
 					if(cur_tiles == tiles_per_device) {
-						tile_list->sort(TileComparator(tile_order, center));
+						/* Tiles are already generated in Bottom-to-Top order, so no sort is necessary in that case. */
+						if(tile_order != TILE_BOTTOM_TO_TOP) {
+							tile_list->sort(TileComparator(tile_order, center));
+						}
 						tile_list++;
 						cur_tiles = 0;
 						cur_device++;
