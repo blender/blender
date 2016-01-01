@@ -59,7 +59,7 @@ shader node_vector_curves(
 	float Fac = 0.0,
 	output vector VectorOut = vector(0.0, 0.0, 0.0))
 {
-	color c = (VectorIn - vector(min_x, min_x, min_x)) / (max_x - min_x);
+	vector c = (VectorIn - vector(min_x, min_x, min_x)) / (max_x - min_x);
 
 	VectorOut[0] = ramp_lookup(ramp, c[0], 0);
 	VectorOut[1] = ramp_lookup(ramp, c[1], 1);
