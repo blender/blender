@@ -40,7 +40,7 @@ if NOT "%1" == "" (
 		set BUILD_DIR=%BUILD_DIR%_lite
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
 		    -C"%BLENDER_DIR%\build_files\cmake\config\blender_lite.cmake"
-	) else if "%1" == "cycles_standalone" (
+	) else if "%1" == "cycles" (
 		set BUILD_DIR=%BUILD_DIR%_cycles
 		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
 		    -C"%BLENDER_DIR%\build_files\cmake\config\cycles_standalone.cmake"
@@ -84,9 +84,9 @@ cmake ^
 	%BUILD_CMAKE_ARGS%
 
 if %ERRORLEVEL% NEQ 0 (
-	ECHO "CMake Failed"
-	GOTO :EOF
-	)
+	echo "Configuration Failed"
+	goto EOF
+)
 
 msbuild ^
 	%BUILD_DIR%\Blender.sln ^
@@ -96,9 +96,9 @@ msbuild ^
 	/verbosity:minimal
 
 if %ERRORLEVEL% NEQ 0 (
-	ECHO "Build Failed"
-	GOTO :EOF
-	)
+	echo "Build Failed"
+	goto EOF
+)
 
 msbuild ^
 	%BUILD_DIR%\INSTALL.vcxproj ^
