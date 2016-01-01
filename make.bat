@@ -7,6 +7,27 @@ set BUILD_DIR=%BLENDER_DIR%..\build_windows
 set BUILD_TYPE=Release
 set BUILD_CMAKE_ARGS=
 
+REM Sanity Checks
+where /Q msbuild
+if %ERRORLEVEL% NEQ 0 (
+	echo Error: "MSBuild" command not in the PATH.
+	echo You must have MSVC installed and run this from the "Developer Command Prompt"
+	echo ^(available from Visual Studio's Start menu entry^), aborting!
+	goto EOF
+)
+where /Q cmake
+if %ERRORLEVEL% NEQ 0 (
+	echo Error: "CMake" command not in the PATH.
+	echo You must have CMake installed and added to your PATH, aborting!
+	goto EOF
+)
+if NOT EXIST %BLENDER_DIR%..\lib\nul (
+	echo Error: Path to libraries not found "%BLENDER_DIR%..\lib\"
+	echo This is needed for building, aborting!
+	goto EOF
+)
+
+
 :argv_loop
 if NOT "%1" == "" (
 
@@ -75,7 +96,9 @@ if "%PROCESSOR_ARCHITECTURE%" == "x86" (
 )
 
 set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -G "Visual Studio 12 2013 %WINDOWS_ARCH%"
-mkdir %BUILD_DIR%
+if NOT EXIST %BUILD_DIR%\nul (
+	mkdir %BUILD_DIR%
+)
 
 cmake ^
 	%BUILD_CMAKE_ARGS% ^
