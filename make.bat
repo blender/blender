@@ -59,6 +59,7 @@ if NOT "%1" == "" (
 		echo - bpy
 		echo.
 		echo Utilities ^(not associated with building^)
+		echo - clean
 		echo - update
 		goto EOF
 	)
@@ -95,6 +96,14 @@ if NOT "%1" == "" (
 		svn up ../lib/*
 		git pull --rebase
 		git submodule foreach git pull --rebase origin master
+		goto EOF
+	) else if "%1" == "clean" (
+		msbuild ^
+			%BUILD_DIR%\Blender.sln ^
+			/target:clean ^
+			/property:Configuration=%BUILD_TYPE% ^
+			/verbosity:minimal
+		echo Cleaned "%BUILD_DIR%"
 		goto EOF
 	) else (
 		echo Command "%1" unknown, aborting!
