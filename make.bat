@@ -125,15 +125,18 @@ if NOT EXIST %BUILD_DIR%\nul (
 	mkdir %BUILD_DIR%
 )
 
-cmake ^
-	%BUILD_CMAKE_ARGS% ^
-	-H%BLENDER_DIR% ^
-	-B%BUILD_DIR% ^
-	%BUILD_CMAKE_ARGS%
+REM Only configure on first run
+if NOT EXIST %BUILD_DIR%\Blender.sln (
+	cmake ^
+		%BUILD_CMAKE_ARGS% ^
+		-H%BLENDER_DIR% ^
+		-B%BUILD_DIR% ^
+		%BUILD_CMAKE_ARGS%
 
-if %ERRORLEVEL% NEQ 0 (
-	echo "Configuration Failed"
-	goto EOF
+	if %ERRORLEVEL% NEQ 0 (
+		echo "Configuration Failed"
+		goto EOF
+	)
 )
 
 msbuild ^
