@@ -560,21 +560,22 @@ static DMDrawOption draw_tface__set_draw_legacy(MTexPoly *mtexpoly, const bool h
 		glColor3ub(0xFF, 0x00, 0xFF);
 		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
 	}
-	else if (ma && (ma->shade_flag & MA_OBCOLOR)) {
-		glColor3ubv(Gtexdraw.obcol);
-		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
-	}
 	else if (!has_mcol) {
 		if (mtexpoly) {
 			glColor3f(1.0, 1.0, 1.0);
 		}
 		else {
 			if (ma) {
-				float col[3];
-				if (Gtexdraw.color_profile) linearrgb_to_srgb_v3_v3(col, &ma->r);
-				else copy_v3_v3(col, &ma->r);
-				
-				glColor3fv(col);
+				if (ma->shade_flag & MA_OBCOLOR) {
+					glColor3ubv(Gtexdraw.obcol);
+				}
+				else {
+					float col[3];
+					if (Gtexdraw.color_profile) linearrgb_to_srgb_v3_v3(col, &ma->r);
+					else copy_v3_v3(col, &ma->r);
+
+					glColor3fv(col);
+				}
 			}
 			else {
 				glColor3f(1.0, 1.0, 1.0);
