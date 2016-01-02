@@ -776,7 +776,7 @@ static DMDrawOption CheckTexDM(MTexPoly *mtexpoly, const bool has_mcol, int matn
 			unsigned char rgba[4];
 			current_polymat->GetMaterialRGBAColor(rgba);
 			glColor4ubv((const GLubyte *)rgba);
-			return DM_DRAW_OPTION_NO_MCOL;
+			return DM_DRAW_OPTION_NORMAL;
 		}
 		return DM_DRAW_OPTION_NORMAL;
 	}

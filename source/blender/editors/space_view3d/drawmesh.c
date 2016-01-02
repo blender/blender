@@ -167,7 +167,7 @@ static DMDrawOption draw_mesh_face_select__drawFaceOptsInv(void *userData, int i
 
 	MPoly *mpoly = &me->mpoly[index];
 	if (!(mpoly->flag & ME_HIDE) && !(mpoly->flag & ME_FACE_SEL))
-		return DM_DRAW_OPTION_NO_MCOL;  /* Don't set color */
+		return DM_DRAW_OPTION_NORMAL;
 	else
 		return DM_DRAW_OPTION_SKIP;
 }
@@ -580,7 +580,7 @@ static DMDrawOption draw_tface__set_draw_legacy(MTexPoly *mtexpoly, const bool h
 				glColor3f(1.0, 1.0, 1.0);
 			}
 		}
-		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
+		return DM_DRAW_OPTION_NORMAL; /* normal drawing (no mcols anyway, no need to turn off) */
 	}
 	else {
 		return DM_DRAW_OPTION_NORMAL; /* Set color from mcol */
