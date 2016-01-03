@@ -392,7 +392,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	if (but_tip.strinfo) {
 		BLI_strncpy(data->header, but_tip.strinfo, sizeof(data->lines[0]));
 		if (enum_label.strinfo) {
-			BLI_snprintf(data->header, sizeof(data->header), "%s:  ", but_tip.strinfo);
+			BLI_snprintf(data->header, sizeof(data->header), "%s: ", but_tip.strinfo);
 			BLI_strncpy(data->active_info, enum_label.strinfo, sizeof(data->lines[0]));
 		}
 		data->format[data->totline].style = UI_TIP_STYLE_HEADER;
@@ -616,7 +616,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		if (data->format[i].style == UI_TIP_STYLE_HEADER) {
 			w = BLF_width_ex(data->fstyle.uifont_id, data->header, sizeof(data->header), &info);
 			if (enum_label.strinfo) {
-				x_pos = info.width + (U.widget_unit / 2);
+				x_pos = info.width;
 				w = max_ii(w, x_pos + BLF_width(data->fstyle.uifont_id, data->active_info, sizeof(data->active_info)));
 			}
 		}

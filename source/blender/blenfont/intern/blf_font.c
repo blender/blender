@@ -721,11 +721,13 @@ static void blf_font_wrap_apply(
 		}
 		else if (UNLIKELY(g->c != ' ' && (g_prev ? g_prev->c == ' ' : false))) {
 			wrap.last[0] = i_curr;
-			wrap.last[1] = i;
+			wrap.last[1] = i_curr;
 		}
 
 		if (UNLIKELY(do_draw)) {
-			// printf("(%d..%d)  `%.*s`\n", wrap.start, wrap.last[0], (wrap.last[0] - wrap.start) - 1, &str[wrap.start]);
+			// printf("(%03d..%03d)  `%.*s`\n",
+			//        wrap.start, wrap.last[0], (wrap.last[0] - wrap.start) - 1, &str[wrap.start]);
+
 			callback(font, &str[wrap.start], (wrap.last[0] - wrap.start) - 1, pen_y, userdata);
 			wrap.start = wrap.last[0];
 			i = wrap.last[1];
@@ -740,7 +742,7 @@ static void blf_font_wrap_apply(
 		g_prev = g;
 	}
 
-	// printf("done! %d lines\n", lines);
+	// printf("done! lines: %d, width, %d\n", lines, pen_x_next);
 
 	if (r_info) {
 		r_info->lines = lines;
