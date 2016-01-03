@@ -1388,7 +1388,8 @@ class WM_OT_appconfig_activate(Operator):
 
 
 class WM_OT_sysinfo(Operator):
-    """Generate System Info"""
+    """Generate system info text, accessible from Blender's internal text editor"""
+
     bl_idname = "wm.sysinfo"
     bl_label = "System Info"
 
