@@ -2287,9 +2287,9 @@ public:
 		string clbin;
 		string clsrc, *debug_src = NULL;
 
-		string build_options = "-D__SPLIT_KERNEL__";
+		string build_options = "-D__SPLIT_KERNEL__ ";
 #ifdef __WORK_STEALING__
-		build_options += " -D__WORK_STEALING__";
+		build_options += "-D__WORK_STEALING__ ";
 #endif
 		build_options += requested_features.get_build_options();
 
