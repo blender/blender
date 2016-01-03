@@ -125,11 +125,21 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 
 	device_update_common(device, dscene, scene, progress);
 
-	/* greedyjit test
 	{
+		/* Perform greedyjit optimization.
+		 *
+		 * This might waste time on optimizing gorups which are never actually
+		 * used, but this prevents OSL from allocating data on TLS at render
+		 * time.
+		 *
+		 * This is much better for us because this way we aren't required to
+		 * stop task scheduler threads to make sure all TLS is clean and don't
+		 * have issues with TLS data free accessing freed memory if task scheduler
+		 * is being freed after the Session is freed.
+		 */
 		thread_scoped_lock lock(ss_shared_mutex);
 		ss->optimize_all_groups();
-	}*/
+	}
 }
 
 void OSLShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *scene)
@@ -195,7 +205,7 @@ void OSLShaderManager::shading_system_init()
 		ss_shared->attribute("lockgeom", 1);
 		ss_shared->attribute("commonspace", "world");
 		ss_shared->attribute("searchpath:shader", path_get("shader"));
-		//ss_shared->attribute("greedyjit", 1);
+		ss_shared->attribute("greedyjit", 1);
 
 		VLOG(1) << "Using shader search path: " << path_get("shader");
 
