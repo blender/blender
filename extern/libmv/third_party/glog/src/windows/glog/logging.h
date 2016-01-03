@@ -54,7 +54,7 @@
 
 // Annoying stuff for windows -- makes sure clients can import these functions
 #ifndef GOOGLE_GLOG_DLL_DECL
-# if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
+# if defined(_WIN32) && !defined(__CYGWIN__)
 #   define GOOGLE_GLOG_DLL_DECL  __declspec(dllimport)
 # else
 #   define GOOGLE_GLOG_DLL_DECL
@@ -75,13 +75,13 @@
 // Note: these commands below may look like "#if 1" or "#if 0", but
 // that's because they were constructed that way at ./configure time.
 // Look at logging.h.in to see how they're calculated (based on your config).
-#if 0
+#ifdef __MINGW32__
 #include <stdint.h>             // the normal place uint16_t is defined
 #endif
-#if 0
+#ifdef __MINGW32__
 #include <sys/types.h>          // the normal place u_int16_t is defined
 #endif
-#if 0
+#ifdef __MINGW32__
 #include <inttypes.h>           // a third place for uint16_t or u_int16_t
 #endif
 
@@ -92,9 +92,6 @@
 #ifdef __MINGW32__
 #  include <stdlib.h>
 #  include <unistd.h>
-#  include <stdint.h>             // the normal place uint16_t is defined
-#  include <sys/types.h>          // the normal place u_int16_t is defined
-#  include <inttypes.h>           // a third place for uint16_t or u_int16_t
 #  define _exit(x) exit(x)
 #endif
 

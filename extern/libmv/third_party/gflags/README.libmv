@@ -1,7 +1,7 @@
 Project: Google Flags
 URL: http://code.google.com/p/google-gflags/
 License: New BSD
-Upstream version: 2.1.1
+Upstream version: 2.2.0 (9db82895)
 Local modifications:
 
 - Flattened the tree and only included files needed for libmv.
@@ -15,4 +15,5 @@ Local modifications:
 
 - Removed attribute(unused) from FlagSaver.
 
-  TODO(keir): Import and use gflags for Windows from upstream.
+- Applied some modifications from fork https://github.com/Nazg-Gul/gflags.git
+  (see https://github.com/gflags/gflags/pull/129)

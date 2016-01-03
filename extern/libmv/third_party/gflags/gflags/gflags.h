@@ -86,7 +86,7 @@
 
 // We always want to export variables defined in user code
 #ifndef GFLAGS_DLL_DEFINE_FLAG
-#  if 0 && defined(_MSC_VER)
+#  ifdef _MSC_VER
 #    define GFLAGS_DLL_DEFINE_FLAG __declspec(dllexport)
 #  else
 #    define GFLAGS_DLL_DEFINE_FLAG

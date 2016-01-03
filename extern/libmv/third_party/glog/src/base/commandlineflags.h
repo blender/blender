@@ -48,7 +48,7 @@
 #ifndef BASE_COMMANDLINEFLAGS_H__
 #define BASE_COMMANDLINEFLAGS_H__
 
-#include "../config.h"
+#include "config.h"
 #include <string>
 #include <string.h>               // for memchr
 #include <stdlib.h>               // for getenv

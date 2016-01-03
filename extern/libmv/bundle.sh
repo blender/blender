@@ -16,9 +16,13 @@ git clone -b $BRANCH $repo $tmp/libmv
 
 git --git-dir $tmp/libmv/.git --work-tree $tmp/libmv log -n 50 > ChangeLog
 
-find libmv -type f -not -iwholename '*.svn*' -exec rm -rf {} \;
-find third_party -type f -not -iwholename '*.svn*' -not -iwholename '*third_party/ceres*' \
+find libmv -type f -exec rm -rf {} \;
+find third_party -type f \
+    -not -iwholename '*third_party/ceres*' \
+    -not -iwholename '*third_party/SConscript*' \
     -not -iwholename '*third_party/CMakeLists.txt*' \
+    -not -iwholename '*third_party/gflags/CMakeLists.txt*' \
+    -not -iwholename '*third_party/glog/CMakeLists.txt*' \
     -exec rm -rf {} \;
 
 cat "files.txt" | while read f; do
@@ -130,10 +134,28 @@ set(SRC
 	libmv-capi.h
 )
 
-if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
+TEST_SHARED_PTR_SUPPORT()
+if(SHARED_PTR_FOUND)
+	if(SHARED_PTR_TR1_MEMORY_HEADER)
+		add_definitions(-DCERES_TR1_MEMORY_HEADER)
+	endif()
+	if(SHARED_PTR_TR1_NAMESPACE)
+		add_definitions(-DCERES_TR1_SHARED_PTR)
+	endif()
+else()
+	message(FATAL_ERROR "Unable to find shared_ptr.")
+endif()
+
+add_definitions(-DGOOGLE_GLOG_DLL_DECL=)
+add_definitions(-DGFLAGS_DLL_DEFINE_FLAG=)
+add_definitions(-DGFLAGS_DLL_DECLARE_FLAG=)
+add_definitions(-DGFLAGS_DLL_DECL=)
+
+add_subdirectory(third_party)
+
+if(WITH_LIBMV)
 	list(APPEND INC
 		third_party/gflags
-		third_party/gflags/gflags
 		third_party/glog/src
 		third_party/ceres/include
 		third_party/ceres/config
@@ -146,37 +168,10 @@ if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
 		\${ZLIB_INCLUDE_DIRS}
 	)
 
-	if(WIN32)
-		list(APPEND INC
-			third_party/glog/src/windows
-		)
-
-		if(NOT MINGW)
-			list(APPEND INC
-				third_party/msinttypes
-			)
-		endif()
-	endif()
-
 	add_definitions(
 		-DWITH_LIBMV_GUARDED_ALLOC
-		-DGOOGLE_GLOG_DLL_DECL=
 		-DLIBMV_NO_FAST_DETECTOR=
 	)
-endif()
-
-if(WITH_LIBMV)
-	TEST_SHARED_PTR_SUPPORT()
-	if(SHARED_PTR_FOUND)
-		if(SHARED_PTR_TR1_MEMORY_HEADER)
-			add_definitions(-DCERES_TR1_MEMORY_HEADER)
-		endif()
-		if(SHARED_PTR_TR1_NAMESPACE)
-			add_definitions(-DCERES_TR1_SHARED_PTR)
-		endif()
-	else()
-		message(FATAL_ERROR "Unable to find shared_ptr.")
-	endif()
 
 	list(APPEND SRC
 		intern/autotrack.cc
@@ -222,58 +217,4 @@ else()
 endif()
 
 blender_add_lib(extern_libmv "\${SRC}" "\${INC}" "\${INC_SYS}")
-
-if(WITH_LIBMV)
-	add_subdirectory(third_party)
-endif()
-
-# make GLog a separate target, so it can be used for gtest as well.
-if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
-	# We compile GLog together with GFlag so we don't worry about
-	# adding extra lib to linker.
-	set(GLOG_SRC
-${third_gflags_sources}
-
-${third_gflags_headers}
-	)
-
-	if(WIN32)
-		list(APPEND GLOG_SRC
-			third_party/glog/src/logging.cc
-			third_party/glog/src/raw_logging.cc
-			third_party/glog/src/utilities.cc
-			third_party/glog/src/vlog_is_on.cc
-			third_party/glog/src/windows/port.cc
-
-			third_party/glog/src/utilities.h
-			third_party/glog/src/stacktrace_generic-inl.h
-			third_party/glog/src/stacktrace.h
-			third_party/glog/src/stacktrace_x86_64-inl.h
-			third_party/glog/src/base/googleinit.h
-			third_party/glog/src/base/mutex.h
-			third_party/glog/src/base/commandlineflags.h
-			third_party/glog/src/stacktrace_powerpc-inl.h
-			third_party/glog/src/stacktrace_x86-inl.h
-			third_party/glog/src/config.h
-			third_party/glog/src/stacktrace_libunwind-inl.h
-			third_party/glog/src/windows/glog/raw_logging.h
-			third_party/glog/src/windows/glog/vlog_is_on.h
-			third_party/glog/src/windows/glog/logging.h
-			third_party/glog/src/windows/glog/log_severity.h
-			third_party/glog/src/windows/port.h
-			third_party/glog/src/windows/config.h
-
-			third_party/gflags/windows_port.cc
-			third_party/gflags/windows_port.h
-		)
-	else()
-		list(APPEND GLOG_SRC
-${third_glog_sources}
-
-${third_glog_headers}
-		)
-	endif()
-
-	blender_add_lib(extern_glog "\${GLOG_SRC}" "\${INC}" "\${INC_SYS}")
-endif()
 EOF

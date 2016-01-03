@@ -41,7 +41,7 @@
 #ifndef CTEMPLATE_WINDOWS_PORT_H_
 #define CTEMPLATE_WINDOWS_PORT_H_
 
-#include "../config.h"
+#include "config.h"
 
 #ifdef _WIN32
 

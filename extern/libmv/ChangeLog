@@ -1,3 +1,25 @@
+commit d3537e3709fe11f42312e82cb1c9837c9e742385
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sun Jan 3 14:17:10 2016 +0500
+
+    GLog/GFlags: Reduce difference between upstream and bundled versions
+    
+    Several things here:
+    
+    - Re-bundled sources using own fork with pull-requests applied on the sources.
+    
+    - Got rid of changes around include "config.h", it was needed by Blender to
+      make it's include directories configuration to work. This could be addressed
+      differently from Blender side.
+    
+    - Moved some customization to defines set by CMakeLists.
+
+commit 1ec37bba2cfbbf0d6568429fa3035ee2164c23e6
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Jan 2 12:42:55 2016 +0500
+
+    GFlags linking errors fix for MSVC
+
 commit df7642b270e8e43685e9ffb404b59d7b226a9f60
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Dec 31 17:56:12 2015 +0500
@@ -585,40 +607,3 @@ Date:   Thu Apr 17 18:42:43 2014 +0600
     
     Should prevent accidents like that one happened recently
     with crashing Blender after Libmv re-integration.
-
-commit e1fe41b6604771ba769a9b15eb2f489fbf7af251
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Apr 17 17:52:23 2014 +0600
-
-    Fix offset array not being properly allocated
-    
-    We really do need unit test for buffer (un)distortion,
-    didn't notice this bug for until new Libmv has been
-    integrated into Blender.
-
-commit ee21415a353396df67ef21e82adaffab2a8d2a0a
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Apr 17 16:26:12 2014 +0600
-
-    Support multiple distortion models, including a new division model
-    
-    This commit makes it so CameraIntrinsics is no longer hardcoded
-    to use the traditional polynomial radial distortion model. Currently
-    the distortion code has generic logic which is shared between
-    different distortion models, but had no other models until now.
-    
-    This moves everything specific to the polynomial radial distortion
-    to a subclass PolynomialDistortionCameraIntrinsics(), and adds a
-    new division distortion model suitable for cameras such as the
-    GoPro which have much stronger distortion due to their fisheye lens.
-    
-    This also cleans up the internal API of CameraIntrinsics to make
-    it easier to understand and reduces old C-style code.
-    
-    Reviewers: keir
-    
-    Reviewed By: keir
-    
-    CC: jta
-    
-    Differential Revision: https://developer.blender.org/D335

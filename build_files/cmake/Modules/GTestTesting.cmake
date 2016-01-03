@@ -34,7 +34,8 @@ macro(BLENDER_SRC_GTEST_EX NAME SRC EXTRA_LIBS DO_ADD_TEST)
 		                      extern_gtest
 		                      # needed for glog
 		                      ${PTHREADS_LIBRARIES}
-		                      extern_glog)
+		                      extern_glog
+		                      extern_gflags)
 		set_target_properties(${NAME}_test PROPERTIES
 		                      RUNTIME_OUTPUT_DIRECTORY         "${TESTS_OUTPUT_DIR}"
 		                      RUNTIME_OUTPUT_DIRECTORY_RELEASE "${TESTS_OUTPUT_DIR}"
