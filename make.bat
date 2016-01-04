@@ -48,7 +48,7 @@ if NOT EXIST %BLENDER_DIR%..\lib\nul (
 if NOT "%1" == "" (
 
 	REM Help Message
-	if "%1" == "--help" (
+	if "%1" == "help" (
 		echo.
 		echo Convenience targets
 		echo - debug
@@ -103,7 +103,9 @@ if NOT "%1" == "" (
 			/target:clean ^
 			/property:Configuration=%BUILD_TYPE% ^
 			/verbosity:minimal
-		echo Cleaned "%BUILD_DIR%"
+		if %ERRORLEVEL% NEQ 0 (
+			echo Cleaned "%BUILD_DIR%"
+		)
 		goto EOF
 	) else (
 		echo Command "%1" unknown, aborting!
@@ -157,7 +159,8 @@ msbuild ^
 	/verbosity:minimal
 
 echo.
-echo Your build is complete at: "%BUILD_DIR%\bin\%BUILD_TYPE%"
+echo edit build configuration with: "%BUILD_DIR%\CMakeCache.txt" run make again to rebuild.
+echo Blender successfully built, run from: "%BUILD_DIR%\bin\%BUILD_TYPE%"
 echo.
 
 :EOF
