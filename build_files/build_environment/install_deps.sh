@@ -3710,6 +3710,7 @@ print_info() {
     _1="-D WITH_OPENCOLORIO=ON"
     _2="-D OPENCOLORIO_ROOT_DIR=$INST/ocio"
     PRINT "  $_1"
+    PRINT "  $_2"
     _buildargs="$_buildargs -U *OPENCOLORIO* $_1 $_2"
   fi
 
@@ -3723,6 +3724,7 @@ print_info() {
     _1="-D WITH_OPENIMAGEIO=ON"
     _2="-D OPENIMAGEIO_ROOT_DIR=$INST/oiio"
     PRINT "  $_1"
+    PRINT "  $_2"
     _buildargs="$_buildargs -U *OPENIMAGEIO* $_1 $_2"
   fi
 
