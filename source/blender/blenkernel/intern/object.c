@@ -364,10 +364,15 @@ void BKE_object_free_caches(Object *object)
 	for (md = object->modifiers.first; md != NULL; md = md->next) {
 		if (md->type == eModifierType_ParticleSystem) {
 			ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
-			if (psmd->dm != NULL) {
-				psmd->dm->needsFree = 1;
-				psmd->dm->release(psmd->dm);
-				psmd->dm = NULL;
+			if (psmd->dm_final != NULL) {
+				psmd->dm_final->needsFree = 1;
+				psmd->dm_final->release(psmd->dm_final);
+				psmd->dm_final = NULL;
+				if (psmd->dm_deformed != NULL) {
+					psmd->dm_deformed->needsFree = 1;
+					psmd->dm_deformed->release(psmd->dm_deformed);
+					psmd->dm_deformed = NULL;
+				}
 				psmd->flag |= eParticleSystemFlag_file_loaded;
 				update_flag |= OB_RECALC_DATA;
 			}

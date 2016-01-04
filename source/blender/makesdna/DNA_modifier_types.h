@@ -716,7 +716,8 @@ typedef struct ParticleSystemModifierData {
 	ModifierData modifier;
 
 	struct ParticleSystem *psys;
-	struct DerivedMesh *dm;
+	struct DerivedMesh *dm_final;  /* Final DM - its topology may differ from orig mesh. */
+	struct DerivedMesh *dm_deformed;  /* Deformed-onle DM - its topology is same as orig mesh one. */
 	int totdmvert, totdmedge, totdmface;
 	short flag, pad;
 } ParticleSystemModifierData;

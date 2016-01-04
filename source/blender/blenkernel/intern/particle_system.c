@@ -311,7 +311,7 @@ int psys_get_tot_child(Scene *scene, ParticleSystem *psys)
 /*			Distribution						*/
 /************************************************/
 
-void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
+void psys_calc_dmcache(Object *ob, DerivedMesh *dm_final, DerivedMesh *dm_deformed, ParticleSystem *psys)
 {
 	/* use for building derived mesh mapping info:
 	 *
@@ -324,13 +324,13 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 	PARTICLE_P;
 	
 	/* CACHE LOCATIONS */
-	if (!dm->deformedOnly) {
+	if (!dm_final->deformedOnly) {
 		/* Will use later to speed up subsurf/derivedmesh */
 		LinkNode *node, *nodedmelem, **nodearray;
 		int totdmelem, totelem, i, *origindex, *origindex_poly = NULL;
 
 		if (psys->part->from == PART_FROM_VERT) {
-			totdmelem= dm->getNumVerts(dm);
+			totdmelem= dm_final->getNumVerts(dm_final);
 
 			if (use_modifier_stack) {
 				totelem= totdmelem;
@@ -338,11 +338,11 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 			}
 			else {
 				totelem= me->totvert;
-				origindex= dm->getVertDataArray(dm, CD_ORIGINDEX);
+				origindex= dm_final->getVertDataArray(dm_final, CD_ORIGINDEX);
 			}
 		}
 		else { /* FROM_FACE/FROM_VOLUME */
-			totdmelem= dm->getNumTessFaces(dm);
+			totdmelem= dm_final->getNumTessFaces(dm_final);
 
 			if (use_modifier_stack) {
 				totelem= totdmelem;
@@ -350,20 +350,20 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 				origindex_poly= NULL;
 			}
 			else {
-				totelem= me->totpoly;
-				origindex= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+				totelem = dm_deformed->getNumTessFaces(dm_deformed);
+				origindex = dm_final->getTessFaceDataArray(dm_final, CD_ORIGINDEX);
 
 				/* for face lookups we need the poly origindex too */
-				origindex_poly= dm->getPolyDataArray(dm, CD_ORIGINDEX);
+				origindex_poly= dm_final->getPolyDataArray(dm_final, CD_ORIGINDEX);
 				if (origindex_poly == NULL) {
 					origindex= NULL;
 				}
 			}
 		}
-	
+
 		nodedmelem= MEM_callocN(sizeof(LinkNode)*totdmelem, "psys node elems");
 		nodearray= MEM_callocN(sizeof(LinkNode *)*totelem, "psys node array");
-		
+
 		for (i=0, node=nodedmelem; i<totdmelem; i++, node++) {
 			int origindex_final;
 			node->link = SET_INT_IN_POINTER(i);
@@ -392,7 +392,7 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 				}
 			}
 		}
-		
+
 		/* cache the verts/faces! */
 		LOOP_PARTICLES {
 			if (pa->num < 0) {
@@ -414,9 +414,7 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 						pa->num_dmcache = DMCACHE_NOTFOUND;
 				}
 				else { /* FROM_FACE/FROM_VOLUME */
-					/* Note that sometimes the pa->num is over the nodearray size, this is bad, maybe there is a better place to fix this,
-					 * but for now passing NULL is OK. every face will be searched for the particle so its slower - Campbell */
-					pa->num_dmcache= psys_particle_dm_face_lookup(ob, dm, pa->num, pa->fuv, pa->num < totelem ? nodearray[pa->num] : NULL);
+					pa->num_dmcache = psys_particle_dm_face_lookup(dm_final, dm_deformed, pa->num, pa->fuv, nodearray);
 				}
 			}
 		}
@@ -429,8 +427,9 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 		 * should know to use the num or num_dmcache, set the num_dmcache to
 		 * an invalid value, just in case */
 		
-		LOOP_PARTICLES
+		LOOP_PARTICLES {
 			pa->num_dmcache = DMCACHE_NOTFOUND;
+		}
 	}
 }
 
@@ -439,7 +438,7 @@ void psys_thread_context_init(ParticleThreadContext *ctx, ParticleSimulationData
 {
 	memset(ctx, 0, sizeof(ParticleThreadContext));
 	ctx->sim = *sim;
-	ctx->dm = ctx->sim.psmd->dm;
+	ctx->dm = ctx->sim.psmd->dm_final;
 	ctx->ma = give_current_material(sim->ob, sim->psys->part->omat);
 }
 
@@ -3054,7 +3053,7 @@ static void hair_create_input_dm(ParticleSimulationData *sim, int totpoint, int 
 		pa->hair_index = hair_index;
 		use_hair = psys_hair_use_simulation(pa, max_length);
 		
-		psys_mat_hair_to_object(sim->ob, sim->psmd->dm, psys->part->from, pa, hairmat);
+		psys_mat_hair_to_object(sim->ob, sim->psmd->dm_final, psys->part->from, pa, hairmat);
 		mul_m4_m4m4(root_mat, sim->ob->obmat, hairmat);
 		normalize_m4(root_mat);
 		
@@ -3209,7 +3208,7 @@ static void hair_step(ParticleSimulationData *sim, float cfra)
 
 	if (psys->recalc & PSYS_RECALC_RESET) {
 		/* need this for changing subsurf levels */
-		psys_calc_dmcache(sim->ob, sim->psmd->dm, psys);
+		psys_calc_dmcache(sim->ob, sim->psmd->dm_final, sim->psmd->dm_deformed, psys);
 
 		if (psys->clmd)
 			cloth_free_modifier(psys->clmd);
@@ -3256,7 +3255,7 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
 
 		if (pa->totkey) {
 			sub_v3_v3(key->co, root->co);
-			psys_vec_rot_to_face(sim->psmd->dm, pa, key->co);
+			psys_vec_rot_to_face(sim->psmd->dm_final, pa, key->co);
 		}
 
 		key->time = pa->state.time;
@@ -4064,11 +4063,11 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 			return;
 	}
 
-	if (!sim.psmd->dm)
+	if (!sim.psmd->dm_final)
 		return;
 
 	if (part->from != PART_FROM_VERT) {
-		DM_ensure_tessface(sim.psmd->dm);
+		DM_ensure_tessface(sim.psmd->dm_final);
 	}
 
 	/* execute drivers only, as animation has already been done */

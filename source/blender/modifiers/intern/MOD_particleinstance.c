@@ -351,7 +351,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 						ChildParticle *cpa = psys->child + (p - psys->totpart);
 						pa = psys->particles + cpa->parent;
 					}
-					psys_mat_hair_to_global(sim.ob, sim.psmd->dm, sim.psys->part->from, pa, hairmat);
+					psys_mat_hair_to_global(sim.ob, sim.psmd->dm_final, sim.psys->part->from, pa, hairmat);
 					copy_m3_m4(mat, hairmat);
 					/* to quaternion */
 					mat3_to_quat(frame, mat);

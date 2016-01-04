@@ -302,7 +302,7 @@ void psys_free_path_cache(struct ParticleSystem *psys, struct PTCacheEdit *edit)
 void psys_free(struct Object *ob, struct ParticleSystem *psys);
 
 void psys_render_set(struct Object *ob, struct ParticleSystem *psys, float viewmat[4][4], float winmat[4][4], int winx, int winy, int timeoffset);
-void psys_render_restore(struct Object *ob, struct ParticleSystem *psys);
+void psys_render_restore(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys);
 bool psys_render_simplify_params(struct ParticleSystem *psys, struct ChildParticle *cpa, float *params);
 
 void psys_interpolate_uvs(const struct MTFace *tface, int quad, const float w[4], float uvco[2]);
@@ -413,15 +413,15 @@ void psys_get_from_key(struct ParticleKey *key, float loc[3], float vel[3], floa
 
 /* BLI_bvhtree_ray_cast callback */
 void BKE_psys_collision_neartest_cb(void *userdata, int index, const struct BVHTreeRay *ray, struct BVHTreeRayHit *hit);
-void psys_particle_on_dm(struct DerivedMesh *dm, int from, int index, int index_dmcache,
+void psys_particle_on_dm(struct DerivedMesh *dm_final, int from, int index, int index_dmcache,
                          const float fw[4], float foffset, float vec[3], float nor[3], float utan[3], float vtan[3],
                          float orco[3], float ornor[3]);
 
 /* particle_system.c */
 void distribute_particles(struct ParticleSimulationData *sim, int from);
 void initialize_particle(struct ParticleSimulationData *sim, struct ParticleData *pa);
-void psys_calc_dmcache(struct Object *ob, struct DerivedMesh *dm, struct ParticleSystem *psys);
-int psys_particle_dm_face_lookup(struct Object *ob, struct DerivedMesh *dm, int index, const float fw[4], struct LinkNode *node);
+void psys_calc_dmcache(struct Object *ob, struct DerivedMesh *dm_final, struct DerivedMesh *dm_deformed, struct ParticleSystem *psys);
+int psys_particle_dm_face_lookup(struct DerivedMesh *dm_final, struct DerivedMesh *dm_deformed, int findex, const float fw[4], struct LinkNode **poly_nodes);
 
 void reset_particle(struct ParticleSimulationData *sim, struct ParticleData *pa, float dtime, float cfra);
 

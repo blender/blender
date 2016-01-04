@@ -632,12 +632,16 @@ static int mirrtopo_vert_sort(const void *v1, const void *v2)
 	return 0;
 }
 
-bool ED_mesh_mirrtopo_recalc_check(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_topo_store)
+bool ED_mesh_mirrtopo_recalc_check(Mesh *me, DerivedMesh *dm, const int ob_mode, MirrTopoStore_t *mesh_topo_store)
 {
 	int totvert;
 	int totedge;
 
-	if (me->edit_btmesh) {
+	if (dm) {
+		totvert = dm->getNumVerts(dm);
+		totedge = dm->getNumEdges(dm);
+	}
+	else if (me->edit_btmesh) {
 		totvert = me->edit_btmesh->bm->totvert;
 		totedge = me->edit_btmesh->bm->totedge;
 	}
@@ -659,11 +663,11 @@ bool ED_mesh_mirrtopo_recalc_check(Mesh *me, const int ob_mode, MirrTopoStore_t 
 
 }
 
-void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_topo_store,
+void ED_mesh_mirrtopo_init(Mesh *me, DerivedMesh *dm, const int ob_mode, MirrTopoStore_t *mesh_topo_store,
                            const bool skip_em_vert_array_init)
 {
-	MEdge *medge;
-	BMEditMesh *em = me->edit_btmesh;
+	MEdge *medge = NULL, *med;
+	BMEditMesh *em = dm ?  NULL : me->edit_btmesh;
 
 	/* editmode*/
 	BMEdge *eed;
@@ -692,7 +696,7 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 		totvert = em->bm->totvert;
 	}
 	else {
-		totvert = me->totvert;
+		totvert = dm ? dm->getNumVerts(dm) : me->totvert;
 	}
 
 	topo_hash = MEM_callocN(totvert * sizeof(MirrTopoHash_t), "TopoMirr");
@@ -708,10 +712,11 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 		}
 	}
 	else {
-		totedge = me->totedge;
+		totedge = dm ? dm->getNumEdges(dm) : me->totedge;
+		medge = dm ? dm->getEdgeArray(dm) : me->medge;
 
-		for (a = 0, medge = me->medge; a < me->totedge; a++, medge++) {
-			const unsigned int i1 = medge->v1, i2 = medge->v2;
+		for (a = 0, med = medge; a < totedge; a++, med++) {
+			const unsigned int i1 = med->v1, i2 = med->v2;
 			topo_hash[i1]++;
 			topo_hash[i2]++;
 		}
@@ -736,8 +741,8 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 			}
 		}
 		else {
-			for (a = 0, medge = me->medge; a < me->totedge; a++, medge++) {
-				const unsigned int i1 = medge->v1, i2 = medge->v2;
+			for (a = 0, med = medge; a < totedge; a++, med++) {
+				const unsigned int i1 = med->v1, i2 = med->v2;
 				topo_hash[i1] += topo_hash_prev[i2] * topo_pass;
 				topo_hash[i2] += topo_hash_prev[i1] * topo_pass;
 				tot_unique_edges += (topo_hash[i1] != topo_hash[i2]);
@@ -781,7 +786,6 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 			BM_mesh_elem_table_ensure(em->bm, BM_VERT);
 		}
 	}
-
 
 	for (a = 0; a < totvert; a++) {
 		topo_pairs[a].hash    = topo_hash[a];

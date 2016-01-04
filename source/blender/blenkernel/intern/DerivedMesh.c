@@ -43,6 +43,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_bitmap.h"
 #include "BLI_math.h"
@@ -3668,26 +3669,73 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm)
 
 void DM_init_origspace(DerivedMesh *dm)
 {
-	static float default_osf[4][2] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
+	const float default_osf[4][2] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
 
 	OrigSpaceLoop *lof_array = CustomData_get_layer(&dm->loopData, CD_ORIGSPACE_MLOOP);
-	OrigSpaceLoop *lof;
 	const int numpoly = dm->getNumPolys(dm);
 	// const int numloop = dm->getNumLoops(dm);
+	MVert *mv = dm->getVertArray(dm);
+	MLoop *ml = dm->getLoopArray(dm);
 	MPoly *mp = dm->getPolyArray(dm);
-	int i, j;
+	int i, j, k;
+
+	float (*vcos_2d)[2] = NULL;
+	BLI_array_staticdeclare(vcos_2d, 64);
 
 	for (i = 0; i < numpoly; i++, mp++) {
-		/* only quads/tri's for now */
+		OrigSpaceLoop *lof = lof_array + mp->loopstart;
+
 		if (mp->totloop == 3 || mp->totloop == 4) {
-			lof = lof_array + mp->loopstart;
 			for (j = 0; j < mp->totloop; j++, lof++) {
 				copy_v2_v2(lof->uv, default_osf[j]);
+			}
+		}
+		else {
+			MLoop *l = &ml[mp->loopstart];
+			float p_nor[3], co[3];
+			float mat[3][3];
+
+			float min[2] = {FLT_MAX, FLT_MAX}, max[2] = {FLT_MIN, FLT_MIN};
+			float translate[2], scale[2];
+
+			BKE_mesh_calc_poly_normal(mp, l, mv, p_nor);
+			axis_dominant_v3_to_m3(mat, p_nor);
+
+			BLI_array_empty(vcos_2d);
+			BLI_array_reserve(vcos_2d, mp->totloop);
+			for (j = 0; j < mp->totloop; j++, l++) {
+				mul_v3_m3v3(co, mat, mv[l->v].co);
+				copy_v2_v2(vcos_2d[j], co);
+
+				for (k = 0; k < 2; k++) {
+					if (co[k] > max[k])
+						max[k] = co[k];
+					else if (co[k] < min[k])
+						min[k] = co[k];
+				}
+			}
+
+			/* Brings min to (0, 0). */
+			negate_v2_v2(translate, min);
+
+			/* Scale will bring max to (1, 1). */
+			sub_v2_v2v2(scale, max, min);
+			if (scale[0] == 0.0f)
+				scale[0] = 1e-9f;
+			if (scale[1] == 0.0f)
+				scale[1] = 1e-9f;
+			invert_v2(scale);
+
+			/* Finally, transform all vcos_2d into ((0, 0), (1, 1)) square and assing them as origspace. */
+			for (j = 0; j < mp->totloop; j++, lof++) {
+				add_v2_v2v2(lof->uv, vcos_2d[j], translate);
+				mul_v2_v2(lof->uv, scale);
 			}
 		}
 	}
 
 	dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
+	BLI_array_free(vcos_2d);
 }
 
 

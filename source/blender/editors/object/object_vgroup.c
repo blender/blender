@@ -517,7 +517,7 @@ static void ED_mesh_defvert_mirror_update_ob(Object *ob, int def_nr, int vidx)
 	if (vidx == -1)
 		return;
 
-	vidx_mirr = mesh_get_x_mirror_vert(ob, vidx, use_topology);
+	vidx_mirr = mesh_get_x_mirror_vert(ob, NULL, vidx, use_topology);
 
 	if ((vidx_mirr) >= 0 && (vidx_mirr != vidx)) {
 		MDeformVert *dvert_src = &me->dvert[vidx];
@@ -2244,7 +2244,7 @@ void ED_vgroup_mirror(Object *ob,
 
 			for (vidx = 0, mv = me->mvert; vidx < me->totvert; vidx++, mv++) {
 				if ((mv->flag & ME_VERT_TMP_TAG) == 0) {
-					if ((vidx_mirr = mesh_get_x_mirror_vert(ob, vidx, use_topology)) != -1) {
+					if ((vidx_mirr = mesh_get_x_mirror_vert(ob, NULL, vidx, use_topology)) != -1) {
 						if (vidx != vidx_mirr) {
 							mv_mirr = &me->mvert[vidx_mirr];
 							if ((mv_mirr->flag & ME_VERT_TMP_TAG) == 0) {

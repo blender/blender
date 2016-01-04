@@ -415,8 +415,8 @@ void EDBM_mesh_free(BMEditMesh *em)
 	/* These tables aren't used yet, so it's not strictly necessary
 	 * to 'end' them (with 'e' param) but if someone tries to start
 	 * using them, having these in place will save a lot of pain */
-	ED_mesh_mirror_spatial_table(NULL, NULL, NULL, 'e');
-	ED_mesh_mirror_topo_table(NULL, 'e');
+	ED_mesh_mirror_spatial_table(NULL, NULL, NULL, NULL, 'e');
+	ED_mesh_mirror_topo_table(NULL, NULL, 'e');
 
 	BKE_editmesh_free(em);
 }
@@ -1140,7 +1140,7 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em, const int axis, const bool
 	BM_mesh_elem_index_ensure(bm, BM_VERT);
 
 	if (use_topology) {
-		ED_mesh_mirrtopo_init(me, -1, &mesh_topo_store, true);
+		ED_mesh_mirrtopo_init(me, NULL, -1, &mesh_topo_store, true);
 	}
 	else {
 		tree = BLI_kdtree_new(bm->totvert);

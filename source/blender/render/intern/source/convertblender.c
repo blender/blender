@@ -1392,16 +1392,16 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 	re->flag |= R_HALO;
 
-	RE_set_customdata_names(obr, &psmd->dm->faceData);
-	sd.totuv = CustomData_number_of_layers(&psmd->dm->faceData, CD_MTFACE);
-	sd.totcol = CustomData_number_of_layers(&psmd->dm->faceData, CD_MCOL);
+	RE_set_customdata_names(obr, &psmd->dm_final->faceData);
+	sd.totuv = CustomData_number_of_layers(&psmd->dm_final->faceData, CD_MTFACE);
+	sd.totcol = CustomData_number_of_layers(&psmd->dm_final->faceData, CD_MCOL);
 
 	if (ma->texco & TEXCO_UV && sd.totuv) {
 		sd.uvco = MEM_callocN(sd.totuv * 2 * sizeof(float), "particle_uvs");
 
 		if (ma->strand_uvname[0]) {
-			sd.override_uv = CustomData_get_named_layer_index(&psmd->dm->faceData, CD_MTFACE, ma->strand_uvname);
-			sd.override_uv -= CustomData_get_layer_index(&psmd->dm->faceData, CD_MTFACE);
+			sd.override_uv = CustomData_get_named_layer_index(&psmd->dm_final->faceData, CD_MTFACE, ma->strand_uvname);
+			sd.override_uv -= CustomData_get_layer_index(&psmd->dm_final->faceData, CD_MTFACE);
 		}
 	}
 	else
@@ -1412,15 +1412,15 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 /* 2.2 setup billboards */
 	if (part->ren_as == PART_DRAW_BB) {
-		int first_uv = CustomData_get_layer_index(&psmd->dm->faceData, CD_MTFACE);
+		int first_uv = CustomData_get_layer_index(&psmd->dm_final->faceData, CD_MTFACE);
 
-		bb.uv[0] = CustomData_get_named_layer_index(&psmd->dm->faceData, CD_MTFACE, psys->bb_uvname[0]);
+		bb.uv[0] = CustomData_get_named_layer_index(&psmd->dm_final->faceData, CD_MTFACE, psys->bb_uvname[0]);
 		if (bb.uv[0] < 0)
-			bb.uv[0] = CustomData_get_active_layer_index(&psmd->dm->faceData, CD_MTFACE);
+			bb.uv[0] = CustomData_get_active_layer_index(&psmd->dm_final->faceData, CD_MTFACE);
 
-		bb.uv[1] = CustomData_get_named_layer_index(&psmd->dm->faceData, CD_MTFACE, psys->bb_uvname[1]);
+		bb.uv[1] = CustomData_get_named_layer_index(&psmd->dm_final->faceData, CD_MTFACE, psys->bb_uvname[1]);
 
-		bb.uv[2] = CustomData_get_named_layer_index(&psmd->dm->faceData, CD_MTFACE, psys->bb_uvname[2]);
+		bb.uv[2] = CustomData_get_named_layer_index(&psmd->dm_final->faceData, CD_MTFACE, psys->bb_uvname[2]);
 
 		if (first_uv >= 0) {
 			bb.uv[0] -= first_uv;
@@ -1500,9 +1500,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				if (ma->amb != 0.0f)
 					do_surfacecache = true;
 
-			totface= psmd->dm->getNumTessFaces(psmd->dm);
-			index_mf_to_mpoly = psmd->dm->getTessFaceDataArray(psmd->dm, CD_ORIGINDEX);
-			index_mp_to_orig = psmd->dm->getPolyDataArray(psmd->dm, CD_ORIGINDEX);
+			totface= psmd->dm_final->getNumTessFaces(psmd->dm_final);
+			index_mf_to_mpoly = psmd->dm_final->getTessFaceDataArray(psmd->dm_final, CD_ORIGINDEX);
+			index_mp_to_orig = psmd->dm_final->getPolyDataArray(psmd->dm_final, CD_ORIGINDEX);
 			if (index_mf_to_mpoly == NULL) {
 				index_mp_to_orig = NULL;
 			}
@@ -1557,10 +1557,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			num= pa->num_dmcache;
 
 			if (num == DMCACHE_NOTFOUND)
-				if (pa->num < psmd->dm->getNumTessFaces(psmd->dm))
+				if (pa->num < psmd->dm_final->getNumTessFaces(psmd->dm_final))
 					num= pa->num;
 
-			get_particle_uvco_mcol(part->from, psmd->dm, pa->fuv, num, &sd);
+			get_particle_uvco_mcol(part->from, psmd->dm_final, pa->fuv, num, &sd);
 
 			pa_size = pa->size;
 
@@ -1611,17 +1611,17 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			/* get uvco & mcol */
 			if (part->childtype==PART_CHILD_FACES) {
-				get_particle_uvco_mcol(PART_FROM_FACE, psmd->dm, cpa->fuv, cpa->num, &sd);
+				get_particle_uvco_mcol(PART_FROM_FACE, psmd->dm_final, cpa->fuv, cpa->num, &sd);
 			}
 			else {
 				ParticleData *parent = psys->particles + cpa->parent;
 				num = parent->num_dmcache;
 
 				if (num == DMCACHE_NOTFOUND)
-					if (parent->num < psmd->dm->getNumTessFaces(psmd->dm))
+					if (parent->num < psmd->dm_final->getNumTessFaces(psmd->dm_final))
 						num = parent->num;
 
-				get_particle_uvco_mcol(part->from, psmd->dm, parent->fuv, num, &sd);
+				get_particle_uvco_mcol(part->from, psmd->dm_final, parent->fuv, num, &sd);
 			}
 
 			do_simplify = psys_render_simplify_params(psys, cpa, simplify);
@@ -1737,14 +1737,14 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 						sub_v3_v3v3(loc0, loc1, loc);
 						add_v3_v3v3(loc0, loc1, loc0);
 
-						particle_curve(re, obr, psmd->dm, ma, &sd, loc1, loc0, seed, pa_co);
+						particle_curve(re, obr, psmd->dm_final, ma, &sd, loc1, loc0, seed, pa_co);
 					}
 
 					sd.first = 0;
 					sd.time = time;
 
 					if (k)
-						particle_curve(re, obr, psmd->dm, ma, &sd, loc, loc1, seed, pa_co);
+						particle_curve(re, obr, psmd->dm_final, ma, &sd, loc, loc1, seed, pa_co);
 
 					copy_v3_v3(loc1, loc);
 				}
@@ -1803,7 +1803,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					pa_co[0] = (part->draw & PART_ABS_PATH_TIME) ? (ct-pa_birthtime)/(pa_dietime-pa_birthtime) : ct;
 					pa_co[1] = (float)i/(float)(trail_count-1);
 
-					particle_normal_ren(part->ren_as, part, re, obr, psmd->dm, ma, &sd, &bb, &state, seed, hasize, pa_co);
+					particle_normal_ren(part->ren_as, part, re, obr, psmd->dm_final, ma, &sd, &bb, &state, seed, hasize, pa_co);
 				}
 			}
 			else {
@@ -1839,7 +1839,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					bb.lifetime = pa_dietime-pa_birthtime;
 				}
 
-				particle_normal_ren(part->ren_as, part, re, obr, psmd->dm, ma, &sd, &bb, &state, seed, hasize, pa_co);
+				particle_normal_ren(part->ren_as, part, re, obr, psmd->dm_final, ma, &sd, &bb, &state, seed, hasize, pa_co);
 			}
 		}
 
@@ -1851,7 +1851,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	}
 
 	if (do_surfacecache)
-		strandbuf->surface= cache_strand_surface(re, obr, psmd->dm, mat, timeoffset);
+		strandbuf->surface= cache_strand_surface(re, obr, psmd->dm_final, mat, timeoffset);
 
 /* 4. clean up */
 #if 0  /* XXX old animation system */
@@ -4688,7 +4688,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 				psys->flag |= PSYS_USE_IMAT;
 			init_render_object_data(re, obr, timeoffset);
 			if (!(re->r.scemode & R_VIEWPORT_PREVIEW))
-				psys_render_restore(ob, psys);
+				psys_render_restore(re->scene, ob, psys);
 			psys->flag &= ~PSYS_USE_IMAT;
 
 			/* only add instance for objects that have not been used for dupli */
@@ -4888,7 +4888,7 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 				if (enable)
 					psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy, timeoffset);
 				else
-					psys_render_restore(ob, psys);
+					psys_render_restore(re->scene, ob, psys);
 			}
 		}
 

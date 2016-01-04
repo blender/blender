@@ -151,8 +151,8 @@ void ED_editors_exit(bContext *C)
 	}
 
 	/* global in meshtools... */
-	ED_mesh_mirror_spatial_table(NULL, NULL, NULL, 'e');
-	ED_mesh_mirror_topo_table(NULL, 'e');
+	ED_mesh_mirror_spatial_table(NULL, NULL, NULL, NULL, 'e');
+	ED_mesh_mirror_topo_table(NULL, NULL, 'e');
 }
 
 /* flush any temp data from object editing to DNA before writing files,

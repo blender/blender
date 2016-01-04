@@ -157,7 +157,7 @@ static void pointdensity_cache_psys(Scene *scene,
 	}
 
 	if ( !psys_check_enabled(ob, psys)) {
-		psys_render_restore(ob, psys);
+		psys_render_restore(scene, ob, psys);
 		return;
 	}
 
@@ -253,7 +253,7 @@ static void pointdensity_cache_psys(Scene *scene,
 	}
 
 	if (use_render_params) {
-		psys_render_restore(ob, psys);
+		psys_render_restore(scene, ob, psys);
 	}
 }
 
@@ -711,7 +711,7 @@ static void particle_system_minmax(Scene *scene,
 	}
 
 	if (use_render_params) {
-		psys_render_restore(object, psys);
+		psys_render_restore(scene, object, psys);
 	}
 }
 

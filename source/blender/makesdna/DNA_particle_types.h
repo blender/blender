@@ -109,6 +109,7 @@ typedef struct ParticleData {
 	float time, lifetime;	/* dietime is not nescessarily time+lifetime as	*/
 	float dietime;			/* particles can die unnaturally (collision)	*/
 
+	/* WARNING! Those two indices, when not affected to vertices, are for !!! TESSELLATED FACES !!!, not POLYGONS! */
 	int num;				/* index to vert/edge/face */
 	int num_dmcache;		/* index to derived mesh data (face) to avoid slow lookups */
 

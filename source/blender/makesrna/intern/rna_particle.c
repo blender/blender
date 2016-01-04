@@ -175,7 +175,7 @@ static void rna_ParticleHairKey_location_object_info(PointerRNA *ptr, ParticleSy
 	for (md = ob->modifiers.first; md; md = md->next) {
 		if (md->type == eModifierType_ParticleSystem) {
 			psmd = (ParticleSystemModifierData *) md;
-			if (psmd && psmd->dm && psmd->psys) {
+			if (psmd && psmd->dm_final && psmd->psys) {
 				psys = psmd->psys;
 				for (i = 0, pa = psys->particles; i < psys->totpart; i++, pa++) {
 					/* hairkeys are stored sequentially in memory, so we can
@@ -210,7 +210,7 @@ static void rna_ParticleHairKey_location_object_get(PointerRNA *ptr, float *valu
 		}
 		else {
 			float hairmat[4][4];
-			psys_mat_hair_to_object(ob, psmd->dm, psmd->psys->part->from, pa, hairmat);
+			psys_mat_hair_to_object(ob, psmd->dm_final, psmd->psys->part->from, pa, hairmat);
 			copy_v3_v3(values, hkey->co);
 			mul_m4_v3(hairmat, values);
 		}
@@ -240,7 +240,7 @@ static void rna_ParticleHairKey_location_object_set(PointerRNA *ptr, const float
 			float hairmat[4][4];
 			float imat[4][4];
 
-			psys_mat_hair_to_object(ob, psmd->dm, psmd->psys->part->from, pa, hairmat);
+			psys_mat_hair_to_object(ob, psmd->dm_final, psmd->psys->part->from, pa, hairmat);
 			invert_m4_m4(imat, hairmat);
 			copy_v3_v3(hkey->co, values);
 			mul_m4_v3(imat, hkey->co);
@@ -263,7 +263,7 @@ static void rna_ParticleHairKey_co_object(HairKey *hairkey, Object *object, Part
 		}
 		else {
 			float hairmat[4][4];
-			psys_mat_hair_to_object(object, modifier->dm, modifier->psys->part->from, particle, hairmat);
+			psys_mat_hair_to_object(object, modifier->dm_final, modifier->psys->part->from, particle, hairmat);
 			copy_v3_v3(n_co, hairkey->co);
 			mul_m4_v3(hairmat, n_co);
 		}
@@ -282,14 +282,14 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle, ReportList *repor
 	int num = particle->num_dmcache;
 	int from = modifier->psys->part->from;
 
-	if (!CustomData_has_layer(&modifier->dm->loopData, CD_MLOOPUV)) {
+	if (!CustomData_has_layer(&modifier->dm_final->loopData, CD_MLOOPUV)) {
 		BKE_report(reports, RPT_ERROR, "Mesh has no UV data");
 		return;
 	}
-	DM_ensure_tessface(modifier->dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+	DM_ensure_tessface(modifier->dm_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
 
 	if (num == DMCACHE_NOTFOUND)
-		if (particle->num < modifier->dm->getNumTessFaces(modifier->dm))
+		if (particle->num < modifier->dm_final->getNumTessFaces(modifier->dm_final))
 			num = particle->num;
 
 	/* get uvco */
@@ -299,8 +299,8 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle, ReportList *repor
 			MFace *mface;
 			MTFace *mtface;
 
-			mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
-			mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, 0);
+			mface = modifier->dm_final->getTessFaceData(modifier->dm_final, num, CD_MFACE);
+			mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm_final->faceData, CD_MTFACE, 0);
 
 			if (mface && mtface) {
 				mtface += num;
@@ -446,8 +446,8 @@ static int rna_ParticleSystem_tessfaceidx_on_emitter(ParticleSystem *particlesys
 	int totface;
 	int num = -1;
 
-	DM_ensure_tessface(modifier->dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
-	totface = modifier->dm->getNumTessFaces(modifier->dm);
+	DM_ensure_tessface(modifier->dm_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+	totface = modifier->dm_final->getNumTessFaces(modifier->dm_final);
 
 	/* 1. check that everything is ok & updated */
 	if (!particlesystem || !totface) {
@@ -475,9 +475,6 @@ static int rna_ParticleSystem_tessfaceidx_on_emitter(ParticleSystem *particlesys
 	/* 2. get matching face index. */
 	if (particle_no < totpart) {
 		num = (ELEM(particle->num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND)) ? particle->num : particle->num_dmcache;
-
-		if (num == DMCACHE_NOTFOUND)
-			num = particle->num;
 
 		if (ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
 			if (num != DMCACHE_NOTFOUND && num < totface) {
@@ -521,7 +518,7 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Rep
                                              ParticleSystemModifierData *modifier, ParticleData *particle,
                                              int particle_no, int uv_no, float r_uv[2])
 {
-	if (!CustomData_has_layer(&modifier->dm->loopData, CD_MLOOPUV)) {
+	if (!CustomData_has_layer(&modifier->dm_final->loopData, CD_MLOOPUV)) {
 		BKE_report(reports, RPT_ERROR, "Mesh has no UV data");
 		zero_v2(r_uv);
 		return;
@@ -538,8 +535,8 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Rep
 			zero_v2(r_uv);
 		}
 		else {
-			MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
-			MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, uv_no);
+			MFace *mface = modifier->dm_final->getTessFaceData(modifier->dm_final, num, CD_MFACE);
+			MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm_final->faceData, CD_MTFACE, uv_no);
 
 			psys_interpolate_uvs(&mtface[num], mface->v4, *fuv, r_uv);
 		}
@@ -550,7 +547,7 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, R
                                                ParticleSystemModifierData *modifier, ParticleData *particle,
                                                int particle_no, int vcol_no, float r_mcol[3])
 {
-	if (!CustomData_has_layer(&modifier->dm->loopData, CD_MLOOPCOL)) {
+	if (!CustomData_has_layer(&modifier->dm_final->loopData, CD_MLOOPCOL)) {
 		BKE_report(reports, RPT_ERROR, "Mesh has no VCol data");
 		zero_v3(r_mcol);
 		return;
@@ -567,8 +564,8 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, R
 			zero_v3(r_mcol);
 		}
 		else {
-			MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
-			MCol *mc = (MCol *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, vcol_no);
+			MFace *mface = modifier->dm_final->getTessFaceData(modifier->dm_final, num, CD_MFACE);
+			MCol *mc = (MCol *)CustomData_get_layer_n(&modifier->dm_final->faceData, CD_MCOL, vcol_no);
 			MCol mcol;
 
 			psys_interpolate_mcol(&mc[num * 4], mface->v4, *fuv, &mcol);
@@ -595,7 +592,7 @@ static void rna_ParticleSystem_set_resolution(ParticleSystem *particlesystem, Sc
 		ParticleSystemModifierData *psmd = psys_get_modifier(object, particlesystem);
 		
 		if (particlesystem->renderdata) {
-			psys_render_restore(object, particlesystem);
+			psys_render_restore(scene, object, particlesystem);
 		}
 		
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;

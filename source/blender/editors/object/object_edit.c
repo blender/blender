@@ -342,8 +342,8 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
 			me->edit_btmesh = NULL;
 		}
 		if (obedit->restore_mode & OB_MODE_WEIGHT_PAINT) {
-			ED_mesh_mirror_spatial_table(NULL, NULL, NULL, 'e');
-			ED_mesh_mirror_topo_table(NULL, 'e');
+			ED_mesh_mirror_spatial_table(NULL, NULL, NULL, NULL, 'e');
+			ED_mesh_mirror_topo_table(NULL, NULL, 'e');
 		}
 	}
 	else if (obedit->type == OB_ARMATURE) {

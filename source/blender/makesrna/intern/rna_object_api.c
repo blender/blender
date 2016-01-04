@@ -167,7 +167,7 @@ static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int e
 				if (enable)
 					psys_render_set(ob, psys, mat, mat, 1, 1, 0.f);
 				else
-					psys_render_restore(ob, psys);
+					psys_render_restore(scene, ob, psys);
 			}
 		}
 

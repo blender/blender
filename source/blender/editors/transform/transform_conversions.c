@@ -1865,7 +1865,7 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 		if (!(point->flag & PEP_TRANSFORM)) continue;
 
 		if (psys && !(psys->flag & PSYS_GLOBAL_HAIR))
-			psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, psys->particles + i, mat);
+			psys_mat_hair_to_global(ob, psmd->dm_final, psys->part->from, psys->particles + i, mat);
 
 		for (k = 0, key = point->keys; k < point->totkey; k++, key++) {
 			if (key->flag & PEK_USE_WCO) {
@@ -1939,7 +1939,7 @@ void flushTransParticles(TransInfo *t)
 		if (!(point->flag & PEP_TRANSFORM)) continue;
 
 		if (psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
-			psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, psys->particles + i, mat);
+			psys_mat_hair_to_global(ob, psmd->dm_final, psys->part->from, psys->particles + i, mat);
 			invert_m4_m4(imat, mat);
 
 			for (k = 0, key = point->keys; k < point->totkey; k++, key++) {
@@ -6280,7 +6280,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		if (t->obedit->type == OB_MESH) {
 			BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 			/* table needs to be created for each edit command, since vertices can move etc */
-			ED_mesh_mirror_spatial_table(t->obedit, em, NULL, 'e');
+			ED_mesh_mirror_spatial_table(t->obedit, em, NULL, NULL, 'e');
 		}
 	}
 	else if ((t->flag & T_POSE) && (t->poseobj)) {

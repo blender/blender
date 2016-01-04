@@ -412,7 +412,7 @@ bool ED_wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 					dw->weight = paintweight;
 
 					if (me->editflag & ME_EDIT_MIRROR_X) {  /* x mirror painting */
-						int j = mesh_get_x_mirror_vert(ob, vidx, topology);
+						int j = mesh_get_x_mirror_vert(ob, NULL, vidx, topology);
 						if (j >= 0) {
 							/* copy, not paint again */
 							if (vgroup_mirror != -1) {
@@ -1718,7 +1718,7 @@ static void do_weight_paint_vertex(
 
 	/* from now on we can check if mirrors enabled if this var is -1 and not bother with the flag */
 	if (me->editflag & ME_EDIT_MIRROR_X) {
-		index_mirr = mesh_get_x_mirror_vert(ob, index, topology);
+		index_mirr = mesh_get_x_mirror_vert(ob, NULL, index, topology);
 		vgroup_mirr = (wpi->vgroup_mirror != -1) ? wpi->vgroup_mirror : wpi->vgroup_active;
 
 		/* another possible error - mirror group _and_ active group are the same (which is fine),
@@ -1956,8 +1956,8 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		}
 
 		/* weight paint specific */
-		ED_mesh_mirror_spatial_table(NULL, NULL, NULL, 'e');
-		ED_mesh_mirror_topo_table(NULL, 'e');
+		ED_mesh_mirror_spatial_table(NULL, NULL, NULL, NULL, 'e');
+		ED_mesh_mirror_topo_table(NULL, NULL, 'e');
 
 		paint_cursor_delete_textures();
 	}
@@ -1972,7 +1972,7 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		BKE_paint_init(scene, ePaintWeight, PAINT_CURSOR_WEIGHT_PAINT);
 
 		/* weight paint specific */
-		ED_mesh_mirror_spatial_table(ob, NULL, NULL, 's');
+		ED_mesh_mirror_spatial_table(ob, NULL, NULL, NULL, 's');
 		ED_vgroup_sync_from_pose(ob);
 	}
 	

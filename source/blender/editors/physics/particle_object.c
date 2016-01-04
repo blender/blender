@@ -592,7 +592,7 @@ static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 			point++;
 		}
 
-		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
+		psys_mat_hair_to_global(ob, psmd->dm_final, psys->part->from, pa, hairmat);
 
 		for (k=0, key=pa->hair; k<pa->totkey; k++, key++) {
 			mul_m4_v3(hairmat, key->co);
@@ -676,7 +676,7 @@ static bool remap_hair_emitter(Scene *scene, Object *ob, ParticleSystem *psys,
 	float from_ob_imat[4][4], to_ob_imat[4][4];
 	float from_imat[4][4], to_imat[4][4];
 
-	if (!target_psmd->dm)
+	if (!target_psmd->dm_final)
 		return false;
 	if (!psys->part || psys->part->type != PART_HAIR)
 		return false;
@@ -690,15 +690,14 @@ static bool remap_hair_emitter(Scene *scene, Object *ob, ParticleSystem *psys,
 	invert_m4_m4(from_imat, from_mat);
 	invert_m4_m4(to_imat, to_mat);
 	
-	if (target_psmd->dm->deformedOnly) {
+	if (target_psmd->dm_final->deformedOnly) {
 		/* we don't want to mess up target_psmd->dm when converting to global coordinates below */
-		dm = target_psmd->dm;
+		dm = target_psmd->dm_final;
 	}
 	else {
-		/* warning: this rebuilds target_psmd->dm! */
-		dm = mesh_get_derived_deform(scene, target_ob, CD_MASK_BAREMESH | CD_MASK_MFACE);
+		dm = target_psmd->dm_deformed;
 	}
-	target_dm = target_psmd->dm;
+	target_dm = target_psmd->dm_final;
 	/* don't modify the original vertices */
 	dm = CDDM_copy(dm);
 
@@ -766,7 +765,7 @@ static bool remap_hair_emitter(Scene *scene, Object *ob, ParticleSystem *psys,
 			tpa->foffset = 0.0f;
 
 			tpa->num = nearest.index;
-			tpa->num_dmcache = psys_particle_dm_face_lookup(target_ob, target_dm, tpa->num, tpa->fuv, NULL);
+			tpa->num_dmcache = psys_particle_dm_face_lookup(target_dm, dm, tpa->num, tpa->fuv, NULL);
 		}
 		else {
 			me = &medge[nearest.index];
@@ -1066,9 +1065,9 @@ static bool copy_particle_systems_to_object(Scene *scene, Object *ob_from, Parti
 		modifier_unique_name(&ob_to->modifiers, (ModifierData *)psmd);
 		
 		psmd->psys = psys;
-		psmd->dm = CDDM_copy(final_dm);
-		CDDM_calc_normals(psmd->dm);
-		DM_ensure_tessface(psmd->dm);
+		psmd->dm_final = CDDM_copy(final_dm);
+		CDDM_calc_normals(psmd->dm_final);
+		DM_ensure_tessface(psmd->dm_final);
 		
 		if (psys_from->edit)
 			copy_particle_edit(scene, ob_to, psys, psys_from);

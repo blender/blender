@@ -131,10 +131,10 @@ static bool object_shape_key_mirror(bContext *C, Object *ob,
 			float *fp1, *fp2;
 			float tvec[3];
 
-			ED_mesh_mirror_spatial_table(ob, NULL, NULL, 's');
+			ED_mesh_mirror_spatial_table(ob, NULL, NULL, NULL, 's');
 
 			for (i1 = 0, mv = me->mvert; i1 < me->totvert; i1++, mv++) {
-				i2 = mesh_get_x_mirror_vert(ob, i1, use_topology);
+				i2 = mesh_get_x_mirror_vert(ob, NULL, i1, use_topology);
 				if (i2 == i1) {
 					fp1 = ((float *)kb->data) + i1 * 3;
 					fp1[0] = -fp1[0];
@@ -162,7 +162,7 @@ static bool object_shape_key_mirror(bContext *C, Object *ob,
 				}
 			}
 
-			ED_mesh_mirror_spatial_table(ob, NULL, NULL, 'e');
+			ED_mesh_mirror_spatial_table(ob, NULL, NULL, NULL, 'e');
 		}
 		else if (ob->type == OB_LATTICE) {
 			Lattice *lt = ob->data;
