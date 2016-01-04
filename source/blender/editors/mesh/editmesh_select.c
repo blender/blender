@@ -3791,57 +3791,6 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "threshold", 0.0001f, 0.000001f, 50.0f,  "Threshold", "", 0.00001f, 10.0f);
 }
 
-
-static int edbm_select_next_loop_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMFace *f;
-	BMVert *v;
-	BMIter iter;
-	
-	BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
-		BM_elem_flag_disable(v, BM_ELEM_TAG);
-	}
-	
-	BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
-		BMLoop *l;
-		BMIter liter;
-		
-		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-			if (BM_elem_flag_test(l->v, BM_ELEM_SELECT)) {
-				BM_elem_flag_enable(l->next->v, BM_ELEM_TAG);
-				BM_vert_select_set(em->bm, l->v, false);
-			}
-		}
-	}
-
-	BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
-		if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-			BM_vert_select_set(em->bm, v, true);
-		}
-	}
-
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_select_next_loop(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Select Next Loop";
-	ot->idname = "MESH_OT_select_next_loop";
-	ot->description = "Select next edge loop adjacent to a selected loop";
-
-	/* api callbacks */
-	ot->exec = edbm_select_next_loop_exec;
-	ot->poll = ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-
 static int edbm_region_to_loop_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
