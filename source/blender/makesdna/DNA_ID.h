@@ -313,6 +313,11 @@ enum {
 	/* RESET_NEVER tag datablock as a place-holder (because the real one could not be linked from its library e.g.). */
 	LIB_TAG_MISSING         = 1 << 6,
 
+	/* tag datablock has having an extra user. */
+	LIB_TAG_EXTRAUSER       = 1 << 2,
+	/* tag datablock has having actually increased usercount for the extra virtual user. */
+	LIB_TAG_EXTRAUSER_SET   = 1 << 7,
+
 	/* RESET_AFTER_USE tag newly duplicated/copied IDs. */
 	LIB_TAG_NEW             = 1 << 8,
 	/* RESET_BEFORE_USE free test flag.
