@@ -523,7 +523,12 @@ static void pbvh_build(PBVH *bvh, BB *cb, BBC *prim_bbc, int totprim)
 	build_sub(bvh, 0, cb, prim_bbc, 0, totprim);
 }
 
-/* Do a full rebuild with on Mesh data structure */
+/**
+ * Do a full rebuild with on Mesh data structure.
+ *
+ * \note Unlike mpoly/mloop/verts, looptri is **totally owned** by PBVH (which means it may rewrite it if needed,
+ *       see BKE_pbvh_apply_vertCos().
+ */
 void BKE_pbvh_build_mesh(
         PBVH *bvh, const MPoly *mpoly, const MLoop *mloop, MVert *verts,
         int totvert, struct CustomData *vdata,
@@ -1861,7 +1866,7 @@ void BKE_pbvh_apply_vertCos(PBVH *pbvh, float (*vertCos)[3])
 			/* unneeded deformation -- duplicate verts/faces to avoid this */
 
 			pbvh->verts   = MEM_dupallocN(pbvh->verts);
-			pbvh->looptri = MEM_dupallocN(pbvh->looptri);
+			/* No need to dupalloc pbvh->looptri, this one is 'totally owned' by pbvh, it's never some mesh data. */
 
 			pbvh->deformed = true;
 		}
