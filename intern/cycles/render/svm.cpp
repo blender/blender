@@ -622,6 +622,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 	}
 
 	state->nodes_done.insert(node);
+	state->nodes_done_flag[node->id] = true;
 }
 
 
