@@ -24,7 +24,7 @@
 
 set(INC
 	src
-	../gflags
+	../gflags/src
 )
 
 set(INC_SYS
@@ -85,5 +85,8 @@ else()
 		src/symbolize.h
 	)
 endif()
+
+add_definitions(${GFLAGS_DEFINES})
+add_definitions(${GLOG_DEFINES})
 
 blender_add_lib(extern_glog "${SRC}" "${INC}" "${INC_SYS}")

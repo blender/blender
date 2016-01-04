@@ -2586,6 +2586,21 @@ if(WITH_PYTHON_MODULE)
 endif()
 
 #-----------------------------------------------------------------------------
+# Configure GLog/GFlags
+
+if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
+	set(GLOG_DEFINES
+		-DGOOGLE_GLOG_DLL_DECL=
+	)
+
+	set(GFLAGS_DEFINES
+		-DGFLAGS_DLL_DEFINE_FLAG=
+		-DGFLAGS_DLL_DECLARE_FLAG=
+		-DGFLAGS_DLL_DECL=
+	)
+endif()
+
+#-----------------------------------------------------------------------------
 # Extra compile flags
 
 if(CMAKE_COMPILER_IS_GNUCC)

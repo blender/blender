@@ -19,10 +19,7 @@ git --git-dir $tmp/libmv/.git --work-tree $tmp/libmv log -n 50 > ChangeLog
 find libmv -type f -exec rm -rf {} \;
 find third_party -type f \
     -not -iwholename '*third_party/ceres*' \
-    -not -iwholename '*third_party/SConscript*' \
     -not -iwholename '*third_party/CMakeLists.txt*' \
-    -not -iwholename '*third_party/gflags/CMakeLists.txt*' \
-    -not -iwholename '*third_party/glog/CMakeLists.txt*' \
     -exec rm -rf {} \;
 
 cat "files.txt" | while read f; do
@@ -32,19 +29,11 @@ done
 
 rm -rf $tmp
 
-chmod 664 ./third_party/glog/src/windows/*.cc ./third_party/glog/src/windows/*.h ./third_party/glog/src/windows/glog/*.h
-
 sources=`find ./libmv -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep -v _test.cc | grep -v test_data_sets | sed -r 's/^\.\//\t\t/' | sort -d`
 headers=`find ./libmv -type f -iname '*.h' | grep -v test_data_sets | sed -r 's/^\.\//\t\t/' | sort -d`
 
-third_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep -v glog | grep -v gflags | grep -v ceres | sed -r 's/^\.\//\t\t/' | sort -d`
-third_headers=`find ./third_party -type f -iname '*.h' | grep -v glog | grep -v gflags | grep -v ceres | sed -r 's/^\.\//\t\t/' | sort -d`
-
-third_glog_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep glog | grep -v windows | sed -r 's/^\.\//\t\t\t/' | sort -d`
-third_glog_headers=`find ./third_party -type f -iname '*.h' | grep glog | grep -v windows | sed -r 's/^\.\//\t\t\t/' | sort -d`
-
-third_gflags_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep gflags | grep -v windows | sed -r 's/^\.\//\t\t/' | sort -d`
-third_gflags_headers=`find ./third_party -type f -iname '*.h' | grep gflags | grep -v windows | sed -r 's/^\.\//\t\t/' | sort -d`
+third_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep -v ceres | sed -r 's/^\.\//\t\t/' | sort -d`
+third_headers=`find ./third_party -type f -iname '*.h' | grep -v ceres | sed -r 's/^\.\//\t\t/' | sort -d`
 
 tests=`find ./libmv -type f -iname '*_test.cc' | sort -d | awk ' { name=gensub(".*/([A-Za-z_]+)_test.cc", "\\\\1", $1); printf("\t\tBLENDER_SRC_GTEST(\"libmv_%s\" \"%s\" \"libmv_test_dataset;extern_libmv;extern_ceres\")\n", name, $1) } '`
 
@@ -54,10 +43,6 @@ src=""
 win_src=""
 for x in $src_dir $src_third_dir; do
   t=""
-
-  if test  `echo "$x" | grep -c glog ` -eq 1; then
-    continue;
-  fi
 
   if stat $x/*.cpp > /dev/null 2>&1; then
     t="    src += env.Glob('`echo $x'/*.cpp'`')"
@@ -155,8 +140,8 @@ add_subdirectory(third_party)
 
 if(WITH_LIBMV)
 	list(APPEND INC
-		third_party/gflags
-		third_party/glog/src
+		../gflags
+		../glog/src
 		third_party/ceres/include
 		third_party/ceres/config
 		../../intern/guardedalloc

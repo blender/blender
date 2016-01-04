@@ -31,7 +31,7 @@ set(INC
 	include
 	internal
 	config
-	../gflags
+	../../../gflags/src
 	../../
 )
 
@@ -298,7 +298,7 @@ endif()
 
 if(WIN32)
 	list(APPEND INC
-		../glog/src/windows
+		../../../glog/src/windows
 	)
 
 	if(NOT MINGW)
@@ -308,7 +308,7 @@ if(WIN32)
 	endif()
 else()
 	list(APPEND INC
-		../glog/src
+		../../../glog/src
 	)
 endif()
 

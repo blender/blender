@@ -49,17 +49,15 @@ else()
 	message(FATAL_ERROR "Unable to find shared_ptr.")
 endif()
 
-add_definitions(-DGOOGLE_GLOG_DLL_DECL=)
-add_definitions(-DGFLAGS_DLL_DEFINE_FLAG=)
-add_definitions(-DGFLAGS_DLL_DECLARE_FLAG=)
-add_definitions(-DGFLAGS_DLL_DECL=)
+add_definitions(${GFLAGS_DEFINES})
+add_definitions(${GLOG_DEFINES})
 
 add_subdirectory(third_party)
 
 if(WITH_LIBMV)
 	list(APPEND INC
-		third_party/gflags
-		third_party/glog/src
+		../gflags/src
+		../glog/src
 		third_party/ceres/include
 		third_party/ceres/config
 		../../intern/guardedalloc

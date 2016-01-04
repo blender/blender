@@ -23,32 +23,34 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	.
-	gflags
+	src
+	src/gflags
 )
 
 set(INC_SYS
 )
 
 set(SRC
-	gflags.cc
-	gflags_completions.cc
-	gflags_reporting.cc
+	src/gflags.cc
+	src/gflags_completions.cc
+	src/gflags_reporting.cc
 
-	config.h
-	gflags/gflags_completions.h
-	gflags/gflags_declare.h
-	gflags/gflags_gflags.h
-	gflags/gflags.h
-	mutex.h
-	util.h
+	src/config.h
+	src/gflags/gflags_completions.h
+	src/gflags/gflags_declare.h
+	src/gflags/gflags_gflags.h
+	src/gflags/gflags.h
+	src/mutex.h
+	src/util.h
 )
 
 if(WIN32)
 	list(APPEND SRC
-		windows_port.cc
-		windows_port.h
+		src/windows_port.cc
+		src/windows_port.h
 	)
 endif()
+
+add_definitions(${GFLAGS_DEFINES})
 
 blender_add_lib(extern_gflags "${SRC}" "${INC}" "${INC_SYS}")
