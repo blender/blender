@@ -274,12 +274,34 @@
 // -std={c,gnu}++{0x,11} is passed.  The C++11 standard specifies a
 // value for __cplusplus, and recent versions of clang, gcc, and
 // probably other compilers set that too in C++11 mode.
-# if __GXX_EXPERIMENTAL_CXX0X__ || __cplusplus >= 201103L
+# if defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L
 // Compiling in at least C++11 mode.
 #  define GTEST_LANG_CXX11 1
 # else
 #  define GTEST_LANG_CXX11 0
 # endif
+#endif
+
+#ifndef GTEST_OS_WINDOWS
+#  define GTEST_OS_WINDOWS 0
+#endif
+#ifndef GTEST_OS_WINDOWS_MOBILE
+#  define GTEST_OS_WINDOWS_MOBILE 0
+#endif
+#ifndef GTEST_OS_LINUX_ANDROID
+#  define GTEST_OS_LINUX_ANDROID 0
+#endif
+#ifndef GTEST_OS_QNX
+#  define GTEST_OS_QNX 0
+#endif
+#ifndef GTEST_OS_SYMBIAN
+#  define GTEST_OS_SYMBIAN 0
+#endif
+#ifndef GTEST_OS_CYGWIN
+#  define GTEST_OS_CYGWIN 0
+#endif
+#ifndef GTEST_OS_SOLARIS
+#  define GTEST_OS_SOLARIS 0
 #endif
 
 // Brings in definitions for functions used in the testing::internal::posix
@@ -527,6 +549,8 @@
 // can build with clang but need to use gcc4.2's libstdc++).
 # if GTEST_LANG_CXX11 && (!defined(__GLIBCXX__) || __GLIBCXX__ > 20110325)
 #  define GTEST_ENV_HAS_STD_TUPLE_ 1
+# else
+#  define GTEST_ENV_HAS_STD_TUPLE_ 0
 # endif
 
 # if GTEST_ENV_HAS_TR1_TUPLE_ || GTEST_ENV_HAS_STD_TUPLE_
@@ -1823,7 +1847,7 @@ inline void Abort() { abort(); }
 // MSVC-based platforms.  We map the GTEST_SNPRINTF_ macro to the appropriate
 // function in order to achieve that.  We use macro definition here because
 // snprintf is a variadic function.
-#if _MSC_VER >= 1400 && !GTEST_OS_WINDOWS_MOBILE
+#if defined(_MSC_VER) && _MSC_VER >= 1400 && !GTEST_OS_WINDOWS_MOBILE
 // MSVC 2005 and above support variadic macros.
 # define GTEST_SNPRINTF_(buffer, size, format, ...) \
      _snprintf_s(buffer, size, size, format, __VA_ARGS__)
