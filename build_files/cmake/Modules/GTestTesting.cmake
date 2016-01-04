@@ -20,8 +20,8 @@ macro(BLENDER_SRC_GTEST_EX NAME SRC EXTRA_LIBS DO_ADD_TEST)
 		set(TEST_INC
 			${_current_include_directories}
 			${CMAKE_SOURCE_DIR}/tests/gtests
-			${CMAKE_SOURCE_DIR}/extern/libmv/third_party/glog/src
-			${CMAKE_SOURCE_DIR}/extern/libmv/third_party/gflags
+			${CMAKE_SOURCE_DIR}/extern/glog/src
+			${CMAKE_SOURCE_DIR}/extern/gflags/src
 			${CMAKE_SOURCE_DIR}/extern/gtest/include
 		)
 		unset(_current_include_directories)
