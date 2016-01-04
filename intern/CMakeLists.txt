@@ -27,6 +27,7 @@
 add_subdirectory(string)
 add_subdirectory(ghost)
 add_subdirectory(guardedalloc)
+add_subdirectory(libmv)
 add_subdirectory(memutil)
 add_subdirectory(opencolorio)
 add_subdirectory(mikktspace)

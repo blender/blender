@@ -49,7 +49,7 @@ if(WIN32)
 endif()
 
 if(WITH_LIBMV)
-	blender_include_dirs(../../extern/libmv)
+	blender_include_dirs(../../intern/libmv)
 	add_definitions(-DWITH_LIBMV)
 endif()
 

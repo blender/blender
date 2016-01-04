@@ -116,17 +116,17 @@ set(SRC
 	libmv-capi.h
 )
 
-add_definitions(\${GFLAGS_DEFINES})
-add_definitions(\${GLOG_DEFINES})
-add_definitions(\${CERES_DEFINES})
-
 if(WITH_LIBMV)
+	add_definitions(\${GFLAGS_DEFINES})
+	add_definitions(\${GLOG_DEFINES})
+	add_definitions(\${CERES_DEFINES})
+
 	list(APPEND INC
-		../gflags/src
-		../glog/src
-		third_party/ceres/include
-		third_party/ceres/config
-		../../intern/guardedalloc
+		../../extern/gflags/src
+		../../extern/glog/src
+		../../extern/ceres/include
+		../../extern/ceres/config
+		../guardedalloc
 	)
 
 	list(APPEND INC_SYS
@@ -183,5 +183,5 @@ else()
 	)
 endif()
 
-blender_add_lib(extern_libmv "\${SRC}" "\${INC}" "\${INC_SYS}")
+blender_add_lib(bf_intern_libmv "\${SRC}" "\${INC}" "\${INC_SYS}")
 EOF
