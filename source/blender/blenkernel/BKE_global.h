@@ -127,7 +127,7 @@ enum {
 	G_DEBUG_DEPSGRAPH = (1 << 8), /* depsgraph messages */
 	G_DEBUG_SIMDATA =   (1 << 9), /* sim debug data display */
 	G_DEBUG_GPU_MEM =   (1 << 10), /* gpu memory in status bar */
-	G_DEBUG_DEPSGRAPH_NO_THREADS = (1 << 11),  /* sinle threaded depsgraph */
+	G_DEBUG_DEPSGRAPH_NO_THREADS = (1 << 11),  /* single threaded depsgraph */
 	G_DEBUG_GPU =        (1 << 12), /* gpu debug */
 };
 
@@ -176,7 +176,7 @@ enum {
 #define G_FILE_HISTORY           (1 << 25)
 /* BMesh option to save as older mesh format */
 #define G_FILE_MESH_COMPAT       (1 << 26)
-/* On wrote, restore paths after editing them (G_FILE_RELATIVE_REMAP) */
+/* On write, restore paths after editing them (G_FILE_RELATIVE_REMAP) */
 #define G_FILE_SAVE_COPY         (1 << 27)
 
 #define G_FILE_FLAGS_RUNTIME (G_FILE_NO_UI | G_FILE_RELATIVE_REMAP | G_FILE_MESH_COMPAT | G_FILE_SAVE_COPY)
