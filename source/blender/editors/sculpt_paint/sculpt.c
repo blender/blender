@@ -414,57 +414,105 @@ static bool sculpt_stroke_is_dynamic_topology(
 
 /*** paint mesh ***/
 
+/* Single struct used by all BLI_task threaded callbacks, let's avoid adding 10's of those... */
+typedef struct SculptThreadedTaskData {
+	Sculpt *sd;
+	Object *ob;
+	Brush *brush;
+    PBVHNode **nodes;
+	int totnode;
+
+	/* Data specific to some callbacks. */
+	/* Note: even if only one or two of those are used at a time, keeping them separated, names help figuring out
+	 *       what it is, and memory overhead is ridiculous anyway... */
+	float flippedbstrength;
+	float angle;
+	float strength;
+	bool smooth_mask;
+	bool has_bm_orco;
+
+	SculptProjectVector *spvc;
+	float *offset;
+	float *grab_delta;
+	float *cono;
+	float *area_no;
+	float *area_no_sp;
+	float *area_co;
+	float (*mat)[4];
+	float (*vertCos)[3];
+
+	/* 0=towards view, 1=flipped */
+	float (*area_cos)[3];
+	float (*area_nos)[3];
+	int *count;
+
+	ThreadMutex mutex;
+} SculptThreadedTaskData;
+
+static void paint_mesh_restore_co_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
+{
+	SculptThreadedTaskData *data = userdata;
+	SculptSession *ss = data->ob->sculpt;
+
+	SculptUndoNode *unode;
+	SculptUndoType type = (data->brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK : SCULPT_UNDO_COORDS);
+
+	if (ss->bm) {
+		unode = sculpt_undo_push_node(data->ob, data->nodes[n], type);
+	}
+	else {
+		unode = sculpt_undo_get_node(data->nodes[n]);
+	}
+
+	if (unode) {
+		PBVHVertexIter vd;
+		SculptOrigVertData orig_data;
+
+		sculpt_orig_vert_data_unode_init(&orig_data, data->ob, unode);
+
+		BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+		{
+			sculpt_orig_vert_data_update(&orig_data, &vd);
+
+			if (orig_data.unode->type == SCULPT_UNDO_COORDS) {
+				copy_v3_v3(vd.co, orig_data.co);
+				if (vd.no)
+					copy_v3_v3_short(vd.no, orig_data.no);
+				else
+					normal_short_to_float_v3(vd.fno, orig_data.no);
+			}
+			else if (orig_data.unode->type == SCULPT_UNDO_MASK) {
+				*vd.mask = orig_data.mask;
+			}
+
+			if (vd.mvert)
+				vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+		}
+		BKE_pbvh_vertex_iter_end;
+
+		BKE_pbvh_node_mark_update(data->nodes[n]);
+	}
+}
+
 static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 {
 	SculptSession *ss = ob->sculpt;
-	const Brush *brush = BKE_paint_brush(&sd->paint);
+	Brush *brush = BKE_paint_brush(&sd->paint);
 
 	PBVHNode **nodes;
-	int n, totnode;
+	int totnode;
 
 	BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
-	/* Disable OpenMP when dynamic-topology is enabled. Otherwise, new
-	 * entries might be inserted by sculpt_undo_push_node() into the
-	 * GHash used internally by BM_log_original_vert_co() by a
-	 * different thread. [#33787] */
-#pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && !ss->bm && totnode > SCULPT_OMP_LIMIT)
-	for (n = 0; n < totnode; n++) {
-		SculptUndoNode *unode;
-		SculptUndoType type = (brush->sculpt_tool == SCULPT_TOOL_MASK ?
-		                       SCULPT_UNDO_MASK : SCULPT_UNDO_COORDS);
+	/* Disable OpenMP when dynamic-topology is enabled. Otherwise, new entries might be inserted by
+	 * sculpt_undo_push_node() into the GHash used internally by BM_log_original_vert_co() by a different thread.
+	 * See T33787. */
+	SculptThreadedTaskData data = {
+		.sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
+	};
 
-		if (ss->bm) {
-			unode = sculpt_undo_push_node(ob, nodes[n], type);
-		}
-		else {
-			unode = sculpt_undo_get_node(nodes[n]);
-		}
-		if (unode) {
-			PBVHVertexIter vd;
-			SculptOrigVertData orig_data;
-
-			sculpt_orig_vert_data_unode_init(&orig_data, ob, unode);
-		
-			BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
-			{
-				sculpt_orig_vert_data_update(&orig_data, &vd);
-
-				if (orig_data.unode->type == SCULPT_UNDO_COORDS) {
-					copy_v3_v3(vd.co, orig_data.co);
-					if (vd.no) copy_v3_v3_short(vd.no, orig_data.no);
-					else normal_short_to_float_v3(vd.fno, orig_data.no);
-				}
-				else if (orig_data.unode->type == SCULPT_UNDO_MASK) {
-					*vd.mask = orig_data.mask;
-				}
-				if (vd.mvert) vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-			}
-			BKE_pbvh_vertex_iter_end;
-
-			BKE_pbvh_node_mark_update(nodes[n]);
-		}
-	}
+	BLI_task_parallel_range_ex(0, totnode, &data, NULL, 0, paint_mesh_restore_co_task_cb,
+	                           ((sd->flags & SCULPT_USE_OPENMP) && !ss->bm && totnode > SCULPT_OMP_LIMIT), false);
 
 	if (nodes)
 		MEM_freeN(nodes);
@@ -771,25 +819,13 @@ static float calc_symmetry_feather(Sculpt *sd, StrokeCache *cache)
  * \note These are all _very_ similar, when changing one, check others.
  * \{ */
 
-typedef struct SculptCalcAreaData {
-	Sculpt *sd;
-	Object *ob;
-    PBVHNode **nodes;
-	int totnode;
-	bool has_bm_orco;
-
-	/* 0=towards view, 1=flipped */
-	float (*area_co)[3];
-	float (*area_no)[3];
-	int *count;
-
-	ThreadMutex mutex;
-} SculptCalcAreaData;
-
-static void calc_area_normal_and_centr_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
+static void calc_area_normal_and_center_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptCalcAreaData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
+	float (*area_nos)[3] = data->area_nos;
+	float (*area_cos)[3] = data->area_cos;
+
 	PBVHVertexIter vd;
 	SculptBrushTest test;
 	SculptUndoNode *unode;
@@ -812,9 +848,7 @@ static void calc_area_normal_and_centr_task_cb(void *userdata, void *UNUSED(user
 		int     orco_tris_num;
 		int i;
 
-		BKE_pbvh_node_get_bm_orco_data(
-		        data->nodes[n],
-		        &orco_tris, &orco_tris_num, &orco_coords);
+		BKE_pbvh_node_get_bm_orco_data(data->nodes[n], &orco_tris, &orco_tris_num, &orco_coords);
 
 		for (i = 0; i < orco_tris_num; i++) {
 			const float *co_tri[3] = {
@@ -833,9 +867,9 @@ static void calc_area_normal_and_centr_task_cb(void *userdata, void *UNUSED(user
 				normal_tri_v3(no, UNPACK3(co_tri));
 
 				flip_index = (dot_v3v3(ss->cache->view_normal, no) <= 0.0f);
-				if (data->area_co)
+				if (area_cos)
 					add_v3_v3(private_co[flip_index], co);
-				if (data->area_no)
+				if (area_nos)
 					add_v3_v3(private_no[flip_index], no);
 				private_count[flip_index] += 1;
 			}
@@ -880,9 +914,9 @@ static void calc_area_normal_and_centr_task_cb(void *userdata, void *UNUSED(user
 				}
 
 				flip_index = (dot_v3v3(ss->cache->view_normal, no) <= 0.0f);
-				if (data->area_co)
+				if (area_cos)
 					add_v3_v3(private_co[flip_index], co);
-				if (data->area_no)
+				if (area_nos)
 					add_v3_v3(private_no[flip_index], no);
 				private_count[flip_index] += 1;
 			}
@@ -893,15 +927,15 @@ static void calc_area_normal_and_centr_task_cb(void *userdata, void *UNUSED(user
 	BLI_mutex_lock(&data->mutex);
 
 	/* for flatten center */
-	if (data->area_co) {
-		add_v3_v3(data->area_co[0], private_co[0]);
-		add_v3_v3(data->area_co[1], private_co[1]);
+	if (area_cos) {
+		add_v3_v3(area_cos[0], private_co[0]);
+		add_v3_v3(area_cos[1], private_co[1]);
 	}
 
 	/* for area normal */
-	if (data->area_no) {
-		add_v3_v3(data->area_no[0], private_no[0]);
-		add_v3_v3(data->area_no[1], private_no[1]);
+	if (area_nos) {
+		add_v3_v3(area_nos[0], private_no[0]);
+		add_v3_v3(area_nos[1], private_no[1]);
 	}
 
 	/* weights */
@@ -922,25 +956,25 @@ static void calc_area_center(
 	int n;
 
 	/* 0=towards view, 1=flipped */
-	float area_co[2][3] = {{0.0f}};
+	float area_cos[2][3] = {{0.0f}};
 
 	int count[2] = {0};
 
-	SculptCalcAreaData data = {
-		.sd = sd, .ob = ob, .nodes = nodes, .totnode = totnode, .has_bm_orco = has_bm_orco,
-		.area_co = area_co, .area_no = NULL, .count = count,
+	SculptThreadedTaskData data = {
+		.sd = sd, .ob = ob, .nodes = nodes, .totnode = totnode,
+	    .has_bm_orco = has_bm_orco, .area_cos = area_cos, .area_nos = NULL, .count = count,
 	};
 	BLI_mutex_init(&data.mutex);
 
-	BLI_task_parallel_range_ex(0, totnode, &data, NULL, 0, calc_area_normal_and_centr_task_cb,
+	BLI_task_parallel_range_ex(0, totnode, &data, NULL, 0, calc_area_normal_and_center_task_cb,
 	                           ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT), false);
 
 	BLI_mutex_end(&data.mutex);
 
 	/* for flatten center */
-	for (n = 0; n < ARRAY_SIZE(area_co); n++) {
+	for (n = 0; n < ARRAY_SIZE(area_cos); n++) {
 		if (count[n] != 0) {
-			mul_v3_v3fl(r_area_co, area_co[n], 1.0f / count[n]);
+			mul_v3_v3fl(r_area_co, area_cos[n], 1.0f / count[n]);
 			break;
 		}
 	}
@@ -961,24 +995,24 @@ static void calc_area_normal(
 	int n;
 
 	/* 0=towards view, 1=flipped */
-	float area_no[2][3] = {{0.0f}};
+	float area_nos[2][3] = {{0.0f}};
 
 	int count[2] = {0};
 
-	SculptCalcAreaData data = {
-		.sd = sd, .ob = ob, .nodes = nodes, .totnode = totnode, .has_bm_orco = has_bm_orco,
-		.area_co = NULL, .area_no = area_no, .count = count,
+	SculptThreadedTaskData data = {
+		.sd = sd, .ob = ob, .nodes = nodes, .totnode = totnode,
+	    .has_bm_orco = has_bm_orco, .area_cos = NULL, .area_nos = area_nos, .count = count,
 	};
 	BLI_mutex_init(&data.mutex);
 
-	BLI_task_parallel_range_ex(0, totnode, &data, NULL, 0, calc_area_normal_and_centr_task_cb,
+	BLI_task_parallel_range_ex(0, totnode, &data, NULL, 0, calc_area_normal_and_center_task_cb,
 	                           ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT), false);
 
 	BLI_mutex_end(&data.mutex);
 
 	/* for area normal */
-	for (n = 0; n < ARRAY_SIZE(area_no); n++) {
-		if (normalize_v3_v3(r_area_no, area_no[n]) != 0.0f) {
+	for (n = 0; n < ARRAY_SIZE(area_nos); n++) {
+		if (normalize_v3_v3(r_area_no, area_nos[n]) != 0.0f) {
 			break;
 		}
 	}
@@ -997,26 +1031,26 @@ static void calc_area_normal_and_center(
 	int n;
 
 	/* 0=towards view, 1=flipped */
-	float area_co[2][3] = {{0.0f}};
-	float area_no[2][3] = {{0.0f}};
+	float area_cos[2][3] = {{0.0f}};
+	float area_nos[2][3] = {{0.0f}};
 
 	int count[2] = {0};
 
-	SculptCalcAreaData data = {
-		.sd = sd, .ob = ob, .nodes = nodes, .totnode = totnode, .has_bm_orco = has_bm_orco,
-		.area_co = area_co, .area_no = area_no, .count = count,
+	SculptThreadedTaskData data = {
+		.sd = sd, .ob = ob, .nodes = nodes, .totnode = totnode,
+	    .has_bm_orco = has_bm_orco, .area_cos = area_cos, .area_nos = area_nos, .count = count,
 	};
 	BLI_mutex_init(&data.mutex);
 
-	BLI_task_parallel_range_ex(0, totnode, &data, NULL, 0, calc_area_normal_and_centr_task_cb,
+	BLI_task_parallel_range_ex(0, totnode, &data, NULL, 0, calc_area_normal_and_center_task_cb,
 	                           ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT), false);
 
 	BLI_mutex_end(&data.mutex);
 
 	/* for flatten center */
-	for (n = 0; n < ARRAY_SIZE(area_co); n++) {
+	for (n = 0; n < ARRAY_SIZE(area_cos); n++) {
 		if (count[n] != 0) {
-			mul_v3_v3fl(r_area_co, area_co[n], 1.0f / count[n]);
+			mul_v3_v3fl(r_area_co, area_cos[n], 1.0f / count[n]);
 			break;
 		}
 	}
@@ -1025,8 +1059,8 @@ static void calc_area_normal_and_center(
 	}
 
 	/* for area normal */
-	for (n = 0; n < ARRAY_SIZE(area_no); n++) {
-		if (normalize_v3_v3(r_area_no, area_no[n]) != 0.0f) {
+	for (n = 0; n < ARRAY_SIZE(area_nos); n++) {
+		if (normalize_v3_v3(r_area_no, area_nos[n]) != 0.0f) {
 			break;
 		}
 	}
@@ -1521,31 +1555,6 @@ static float bmesh_neighbor_average_mask(BMVert *v, const int cd_vert_mask_offse
 	}
 }
 
-typedef struct SculptDoBrushData {
-	Sculpt *sd;
-	Object *ob;
-	Brush *brush;
-    PBVHNode **nodes;
-
-	/* Data specific to some brushes. */
-	/* Note: even only one or two of those are used at a time, keeping them separated, names help figuring out
-	 *       what it is, and memory overhead is ridiculous anyway... */
-	SculptProjectVector *spvc;
-	float flippedbstrength;
-	float angle;
-	float *offset;
-	float *grab_delta;
-	float *cono;
-	float *area_no;
-	float *area_no_sp;
-	float *area_co;
-	float (*mat)[4];
-	float strength;
-	bool smooth_mask;
-
-	ThreadMutex mutex;
-} SculptDoBrushData;
-
 /* Note: uses after-struct allocated mem to store actual cache... */
 typedef struct SculptDoBrushSmoothGridDataChunk {
 	size_t tmpgrid_size;
@@ -1553,7 +1562,7 @@ typedef struct SculptDoBrushSmoothGridDataChunk {
 
 static void do_smooth_brush_mesh_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Sculpt *sd = data->sd;
 	Brush *brush = data->brush;
@@ -1599,7 +1608,7 @@ static void do_smooth_brush_mesh_task_cb(void *userdata, void *UNUSED(userdata_c
 
 static void do_smooth_brush_bmesh_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Sculpt *sd = data->sd;
 	Brush *brush = data->brush;
@@ -1644,7 +1653,7 @@ static void do_smooth_brush_bmesh_task_cb(void *userdata, void *UNUSED(userdata_
 
 static void do_smooth_brush_multires_task_cb(void *userdata, void *userdata_chunk, int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptDoBrushSmoothGridDataChunk *data_chunk = userdata_chunk;
 	SculptSession *ss = data->ob->sculpt;
 	Sculpt *sd = data->sd;
@@ -1807,7 +1816,7 @@ static void smooth(
 	for (iteration = 0; iteration <= count; ++iteration) {
 		const float strength = (iteration != count) ? 1.0f : last;
 
-		SculptDoBrushData data = {
+		SculptThreadedTaskData data = {
 		    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 		    .smooth_mask = smooth_mask, .strength = strength,
 		};
@@ -1858,7 +1867,7 @@ static void do_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 
 static void do_mask_brush_draw_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Brush *brush = data->brush;
 	const float bstrength = ss->cache->bstrength;
@@ -1888,7 +1897,7 @@ static void do_mask_brush_draw(Sculpt *sd, Object *ob, PBVHNode **nodes, int tot
 	Brush *brush = BKE_paint_brush(&sd->paint);
 
 	/* threaded loop over nodes */
-	SculptDoBrushData data = {
+	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 	};
 
@@ -1913,7 +1922,7 @@ static void do_mask_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
 static void do_draw_brush_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Brush *brush = data->brush;
 	const float *offset = data->offset;
@@ -1954,7 +1963,7 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 	mul_v3_fl(offset, bstrength);
 
 	/* threaded loop over nodes */
-	SculptDoBrushData data = {
+	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 	    .offset = offset,
 	};
@@ -1965,7 +1974,7 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
 static void do_crease_brush_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Brush *brush = data->brush;
 	SculptProjectVector *spvc = data->spvc;
@@ -2040,7 +2049,7 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	sculpt_project_v3_cache_init(&spvc, ss->cache->sculpt_normal_symm);
 
 	/* threaded loop over nodes */
-	SculptDoBrushData data = {
+	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 	    .spvc = &spvc, .offset = offset, .flippedbstrength = flippedbstrength,
 	};
@@ -2051,7 +2060,7 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 
 static void do_pinch_brush_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Brush *brush = data->brush;
 
@@ -2085,7 +2094,7 @@ static void do_pinch_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 {
 	Brush *brush = BKE_paint_brush(&sd->paint);
 
-	SculptDoBrushData data = {
+	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 	};
 
@@ -2095,7 +2104,7 @@ static void do_pinch_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
 static void do_grab_brush_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Brush *brush = data->brush;
 	const float *grab_delta = data->grab_delta;
@@ -2146,7 +2155,7 @@ static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 		add_v3_v3(grab_delta, ss->cache->sculpt_normal_symm);
 	}
 
-	SculptDoBrushData data = {
+	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 	    .grab_delta = grab_delta,
 	};
@@ -2157,7 +2166,7 @@ static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
 static void do_nudge_brush_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Brush *brush = data->brush;
 	const float *cono = data->cono;
@@ -2198,7 +2207,7 @@ static void do_nudge_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 	cross_v3_v3v3(tmp, ss->cache->sculpt_normal_symm, grab_delta);
 	cross_v3_v3v3(cono, tmp, ss->cache->sculpt_normal_symm);
 
-	SculptDoBrushData data = {
+	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 	    .cono = cono,
 	};
@@ -2209,7 +2218,7 @@ static void do_nudge_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
 static void do_snake_hook_brush_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Brush *brush = data->brush;
 	const float *grab_delta = data->grab_delta;
@@ -2259,7 +2268,7 @@ static void do_snake_hook_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 		add_v3_v3(grab_delta, ss->cache->sculpt_normal_symm);
 	}
 
-	SculptDoBrushData data = {
+	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 	    .grab_delta = grab_delta,
 	};
@@ -2270,7 +2279,7 @@ static void do_snake_hook_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 
 static void do_thumb_brush_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Brush *brush = data->brush;
 	const float *cono = data->cono;
@@ -2316,7 +2325,7 @@ static void do_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 	cross_v3_v3v3(tmp, ss->cache->sculpt_normal_symm, grab_delta);
 	cross_v3_v3v3(cono, tmp, ss->cache->sculpt_normal_symm);
 
-	SculptDoBrushData data = {
+	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 	    .cono = cono,
 	};
@@ -2327,7 +2336,7 @@ static void do_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
 static void do_rotate_brush_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Brush *brush = data->brush;
 	const float angle = data->angle;
@@ -2374,7 +2383,7 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	static const int flip[8] = { 1, -1, -1, 1, -1, 1, 1, -1 };
 	const float angle = ss->cache->vertex_rotation * flip[ss->cache->mirror_symmetry_pass];
 
-	SculptDoBrushData data = {
+	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 	    .angle = angle,
 	};
@@ -2385,7 +2394,7 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 
 static void do_layer_brush_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Sculpt *sd = data->sd;
 	Brush *brush = data->brush;
@@ -2402,7 +2411,7 @@ static void do_layer_brush_task_cb(void *userdata, void *UNUSED(userdata_chunk),
 
 	sculpt_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
 
-	/* Why does this have to be threa-protected? */
+	/* Why does this have to be thread-protected? */
 	BLI_mutex_lock(&data->mutex);
 	layer_disp = BKE_pbvh_node_layer_disp_get(ss->pbvh, data->nodes[n]);
 	BLI_mutex_unlock(&data->mutex);
@@ -2454,7 +2463,7 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
 	mul_v3_v3v3(offset, ss->cache->scale, ss->cache->sculpt_normal_symm);
 
-	SculptDoBrushData data = {
+	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 	    .offset = offset,
 	};
@@ -2468,7 +2477,7 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
 static void do_inflate_brush_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Brush *brush = data->brush;
 
@@ -2507,7 +2516,7 @@ static void do_inflate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 {
 	Brush *brush = BKE_paint_brush(&sd->paint);
 
-	SculptDoBrushData data = {
+	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 	};
 
@@ -2642,7 +2651,7 @@ static float get_offset(Sculpt *sd, SculptSession *ss)
 
 static void do_flatten_brush_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Brush *brush = data->brush;
 	const float *area_no = data->area_no;
@@ -2703,7 +2712,7 @@ static void do_flatten_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 	mul_v3_fl(temp, displace);
 	add_v3_v3(area_co, temp);
 
-	SculptDoBrushData data = {
+	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 	    .area_no = area_no, .area_co = area_co,
 	};
@@ -2714,7 +2723,7 @@ static void do_flatten_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 
 static void do_clay_brush_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Brush *brush = data->brush;
 	const float *area_no = data->area_no;
@@ -2783,7 +2792,7 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
 	/* add_v3_v3v3(p, ss->cache->location, area_no); */
 
-	SculptDoBrushData data = {
+	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 	    .area_no = area_no, .area_co = area_co,
 	};
@@ -2794,7 +2803,7 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
 static void do_clay_strips_brush_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Brush *brush = data->brush;
 	float (*mat)[4] = data->mat;
@@ -2890,7 +2899,7 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 	mul_m4_m4m4(tmat, mat, scale);
 	invert_m4_m4(mat, tmat);
 
-	SculptDoBrushData data = {
+	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 	    .area_no_sp = area_no_sp, .area_co = area_co, .mat = mat,
 	};
@@ -2901,7 +2910,7 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 
 static void do_fill_brush_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Brush *brush = data->brush;
 	const float *area_no = data->area_no;
@@ -2966,7 +2975,7 @@ static void do_fill_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 	mul_v3_fl(temp, displace);
 	add_v3_v3(area_co, temp);
 
-	SculptDoBrushData data = {
+	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 	    .area_no = area_no, .area_co = area_co,
 	};
@@ -2977,7 +2986,7 @@ static void do_fill_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
 static void do_scrape_brush_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
 {
-	SculptDoBrushData *data = userdata;
+	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Brush *brush = data->brush;
 	const float *area_no = data->area_no;
@@ -3041,7 +3050,7 @@ static void do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	mul_v3_fl(temp, displace);
 	add_v3_v3(area_co, temp);
 
-	SculptDoBrushData data = {
+	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 	    .area_no = area_no, .area_co = area_co,
 	};
@@ -3050,13 +3059,41 @@ static void do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	                           ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT), false);
 }
 
+static void do_gravity_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
+{
+	SculptThreadedTaskData *data = userdata;
+	SculptSession *ss = data->ob->sculpt;
+	Brush *brush = data->brush;
+	float *offset = data->offset;
+
+	PBVHVertexIter vd;
+	SculptBrushTest test;
+	float (*proxy)[3];
+
+	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
+
+	sculpt_brush_test_init(ss, &test);
+
+	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+		if (sculpt_brush_test_sq(&test, vd.co)) {
+			const float fade = tex_strength(
+			                       ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f);
+
+			mul_v3_v3fl(proxy[vd.i], offset, fade);
+
+			if (vd.mvert)
+				vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+		}
+	}
+	BKE_pbvh_vertex_iter_end;
+}
+
 static void do_gravity(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float bstrength)
 {
 	SculptSession *ss = ob->sculpt;
 	Brush *brush = BKE_paint_brush(&sd->paint);
 
 	float offset[3]/*, area_no[3]*/;
-	int n;
 	float gravity_vector[3];
 
 	mul_v3_v3fl(gravity_vector, ss->cache->gravity_direction, -ss->cache->radius_squared);
@@ -3066,29 +3103,13 @@ static void do_gravity(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, fl
 	mul_v3_fl(offset, bstrength);
 
 	/* threaded loop over nodes */
-#pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
-	for (n = 0; n < totnode; n++) {
-		PBVHVertexIter vd;
-		SculptBrushTest test;
-		float (*proxy)[3];
+	SculptThreadedTaskData data = {
+	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
+	    .offset = offset,
+	};
 
-		proxy = BKE_pbvh_node_add_proxy(ss->pbvh, nodes[n])->co;
-
-		sculpt_brush_test_init(ss, &test);
-
-		BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
-			if (sculpt_brush_test_sq(&test, vd.co)) {
-				const float fade = tex_strength(ss, brush, vd.co, sqrtf(test.dist), vd.no,
-				                                vd.fno, vd.mask ? *vd.mask : 0.0f);
-
-				mul_v3_v3fl(proxy[vd.i], offset, fade);
-
-				if (vd.mvert)
-					vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-			}
-		}
-		BKE_pbvh_vertex_iter_end;
-	}
+	BLI_task_parallel_range_ex(0, totnode, &data, NULL, 0, do_gravity_task_cb,
+	                           ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT), false);
 }
 
 
@@ -3198,12 +3219,21 @@ static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush, Unified
 	}
 }
 
+static void do_brush_action_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
+{
+	SculptThreadedTaskData *data = userdata;
+
+	sculpt_undo_push_node(data->ob, data->nodes[n],
+	                      data->brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK : SCULPT_UNDO_COORDS);
+	BKE_pbvh_node_mark_update(data->nodes[n]);
+}
+
 static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups)
 {
 	SculptSession *ss = ob->sculpt;
 	SculptSearchSphereData data;
 	PBVHNode **nodes = NULL;
-	int n, totnode;
+	int totnode;
 
 	/* Build a list of all nodes that are potentially within the brush's area of influence */
 	data.ss = ss;
@@ -3216,13 +3246,12 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 	if (totnode) {
 		float location[3];
 
-#pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
-		for (n = 0; n < totnode; n++) {
-			sculpt_undo_push_node(ob, nodes[n],
-			                      brush->sculpt_tool == SCULPT_TOOL_MASK ?
-			                      SCULPT_UNDO_MASK : SCULPT_UNDO_COORDS);
-			BKE_pbvh_node_mark_update(nodes[n]);
-		}
+		SculptThreadedTaskData task_data = {
+			.sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
+		};
+
+		BLI_task_parallel_range_ex(0, totnode, &task_data, NULL, 0, do_brush_action_task_cb,
+								   ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT), false);
 
 		if (sculpt_brush_needs_normal(brush))
 			update_sculpt_normal(sd, ob, nodes, totnode);
@@ -3334,12 +3363,62 @@ static void sculpt_flush_pbvhvert_deform(Object *ob, PBVHVertexIter *vd)
 		copy_v3_v3(me->mvert[index].co, newco);
 }
 
+static void sculpt_combine_proxies_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
+{
+	SculptThreadedTaskData *data = userdata;
+	SculptSession *ss = data->ob->sculpt;
+	Sculpt *sd = data->sd;
+	Object *ob = data->ob;
+
+	/* these brushes start from original coordinates */
+	const bool use_orco = ELEM(data->brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_THUMB);
+
+	PBVHVertexIter vd;
+	PBVHProxyNode *proxies;
+	int proxy_count;
+	float (*orco)[3] = NULL;
+
+	if (use_orco && !ss->bm)
+		orco = sculpt_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COORDS)->co;
+
+	BKE_pbvh_node_get_proxies(data->nodes[n], &proxies, &proxy_count);
+
+	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+	{
+		float val[3];
+		int p;
+
+		if (use_orco) {
+			if (ss->bm) {
+				copy_v3_v3(val, BM_log_original_vert_co(ss->bm_log, vd.bm_vert));
+			}
+			else {
+				copy_v3_v3(val, orco[vd.i]);
+			}
+		}
+		else {
+			copy_v3_v3(val, vd.co);
+		}
+
+		for (p = 0; p < proxy_count; p++)
+			add_v3_v3(val, proxies[p].co[vd.i]);
+
+		sculpt_clip(sd, ss, vd.co, val);
+
+		if (ss->modifiers_active)
+			sculpt_flush_pbvhvert_deform(ob, &vd);
+	}
+	BKE_pbvh_vertex_iter_end;
+
+	BKE_pbvh_node_free_proxies(data->nodes[n]);
+}
+
 static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 {
 	SculptSession *ss = ob->sculpt;
 	Brush *brush = BKE_paint_brush(&sd->paint);
 	PBVHNode **nodes;
-	int totnode, n;
+	int totnode;
 
 	BKE_pbvh_gather_proxies(ss->pbvh, &nodes, &totnode);
 
@@ -3347,51 +3426,12 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 	if (ss->cache->supports_gravity ||
 	    (sculpt_tool_is_proxy_used(brush->sculpt_tool) == false))
 	{
-		/* these brushes start from original coordinates */
-		const bool use_orco = ELEM(brush->sculpt_tool, SCULPT_TOOL_GRAB,
-		                           SCULPT_TOOL_ROTATE, SCULPT_TOOL_THUMB);
+		SculptThreadedTaskData data = {
+			.sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
+		};
 
-#pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
-		for (n = 0; n < totnode; n++) {
-			PBVHVertexIter vd;
-			PBVHProxyNode *proxies;
-			int proxy_count;
-			float (*orco)[3] = NULL;
-
-			if (use_orco && !ss->bm)
-				orco = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS)->co;
-
-			BKE_pbvh_node_get_proxies(nodes[n], &proxies, &proxy_count);
-
-			BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
-			{
-				float val[3];
-				int p;
-
-				if (use_orco) {
-					if (ss->bm) {
-						copy_v3_v3(val,
-						           BM_log_original_vert_co(ss->bm_log,
-						           vd.bm_vert));
-					}
-					else
-						copy_v3_v3(val, orco[vd.i]);
-				}
-				else
-					copy_v3_v3(val, vd.co);
-
-				for (p = 0; p < proxy_count; p++)
-					add_v3_v3(val, proxies[p].co[vd.i]);
-
-				sculpt_clip(sd, ss, vd.co, val);
-
-				if (ss->modifiers_active)
-					sculpt_flush_pbvhvert_deform(ob, &vd);
-			}
-			BKE_pbvh_vertex_iter_end;
-
-			BKE_pbvh_node_free_proxies(nodes[n]);
-		}
+		BLI_task_parallel_range_ex(0, totnode, &data, NULL, 0, sculpt_combine_proxies_task_cb,
+								   ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT), false);
 	}
 
 	if (nodes)
@@ -3417,6 +3457,27 @@ static void sculpt_update_keyblock(Object *ob)
 	}
 }
 
+static void sculpt_flush_stroke_deform_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
+{
+	SculptThreadedTaskData *data = userdata;
+	SculptSession *ss = data->ob->sculpt;
+	Object *ob = data->ob;
+	float (*vertCos)[3] = data->vertCos;
+
+	PBVHVertexIter vd;
+
+	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+	{
+		sculpt_flush_pbvhvert_deform(ob, &vd);
+
+		if (vertCos) {
+			int index = vd.vert_indices[vd.i];
+			copy_v3_v3(vertCos[index], ss->orig_cos[index]);
+		}
+	}
+	BKE_pbvh_vertex_iter_end;
+}
+
 /* flush displacement from deformed PBVH to original layer */
 static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 {
@@ -3427,7 +3488,7 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 		/* this brushes aren't using proxies, so sculpt_combine_proxies() wouldn't
 		 * propagate needed deformation to original base */
 
-		int n, totnode;
+		int totnode;
 		Mesh *me = (Mesh *)ob->data;
 		PBVHNode **nodes;
 		float (*vertCos)[3] = NULL;
@@ -3439,26 +3500,18 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 			 * to deal with this we copy old coordinates over new ones
 			 * and then update coordinates for all vertices from BVH
 			 */
-			memcpy(vertCos, ss->orig_cos, 3 * sizeof(float) * me->totvert);
+			memcpy(vertCos, ss->orig_cos, sizeof(*vertCos) * me->totvert);
 		}
 
 		BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
-#pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
-		for (n = 0; n < totnode; n++) {
-			PBVHVertexIter vd;
+		SculptThreadedTaskData data = {
+			.sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
+		    .vertCos = vertCos,
+		};
 
-			BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
-			{
-				sculpt_flush_pbvhvert_deform(ob, &vd);
-
-				if (vertCos) {
-					int index = vd.vert_indices[vd.i];
-					copy_v3_v3(vertCos[index], ss->orig_cos[index]);
-				}
-			}
-			BKE_pbvh_vertex_iter_end;
-		}
+		BLI_task_parallel_range_ex(0, totnode, &data, NULL, 0, sculpt_flush_stroke_deform_task_cb,
+								   ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT), false);
 
 		if (vertCos) {
 			sculpt_vertcos_to_key(ob, ss->kb, vertCos);
