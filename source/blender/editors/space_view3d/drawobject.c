@@ -968,10 +968,10 @@ static void drawshadbuflimits(Lamp *la, float mat[4][4])
 	glEnd();
 
 	glPointSize(3.0);
-	bglBegin(GL_POINTS);
-	bglVertex3fv(sta);
-	bglVertex3fv(end);
-	bglEnd();
+	glBegin(GL_POINTS);
+	glVertex3fv(sta);
+	glVertex3fv(end);
+	glEnd();
 	glPointSize(1.0);
 }
 
@@ -2208,7 +2208,7 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, BPoint *actbp, short s
 	UI_ThemeColor(color);
 
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
-	bglBegin(GL_POINTS);
+	glBegin(GL_POINTS);
 
 	for (int w = 0; w < lt->pntsw; w++) {
 		int wxt = (w == 0 || w == lt->pntsw - 1);
@@ -2221,11 +2221,11 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, BPoint *actbp, short s
 						/* check for active BPoint and ensure selected */
 						if ((bp == actbp) && (bp->f1 & SELECT)) {
 							UI_ThemeColor(TH_ACTIVE_VERT);
-							bglVertex3fv(dl ? co : bp->vec);
+							glVertex3fv(dl ? co : bp->vec);
 							UI_ThemeColor(color);
 						}
 						else if ((bp->f1 & SELECT) == sel) {
-							bglVertex3fv(dl ? co : bp->vec);
+							glVertex3fv(dl ? co : bp->vec);
 						}
 					}
 				}
@@ -2233,7 +2233,7 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, BPoint *actbp, short s
 		}
 	}
 	
-	bglEnd();
+	glEnd();
 	glPointSize(1.0);
 }
 
@@ -2487,16 +2487,16 @@ static void draw_dm_face_centers__mapFunc(void *userData, int index, const float
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) &&
 	    (BM_elem_flag_test(efa, BM_ELEM_SELECT) == data->select))
 	{
-		bglVertex3fv(cent);
+		glVertex3fv(cent);
 	}
 }
 static void draw_dm_face_centers(BMEditMesh *em, DerivedMesh *dm, bool select)
 {
 	drawBMSelect_userData data = {em->bm, select};
 
-	bglBegin(GL_POINTS);
+	glBegin(GL_POINTS);
 	dm->foreachMappedFaceCenter(dm, draw_dm_face_centers__mapFunc, &data, DM_FOREACH_NOP);
-	bglEnd();
+	glEnd();
 }
 
 static void draw_dm_vert_normals__mapFunc(void *userData, int index, const float co[3], const float no_f[3], const short no_s[3])
@@ -2557,13 +2557,13 @@ static void draw_dm_verts__mapFunc(void *userData, int index, const float co[3],
 			const MVertSkin *vs = BM_ELEM_CD_GET_VOID_P(eve, data->cd_vskin_offset);
 			if (vs->flag & MVERT_SKIN_ROOT) {
 				float radius = (vs->radius[0] + vs->radius[1]) * 0.5f;
-				bglEnd();
+				glEnd();
 			
 				glColor4ubv(data->th_skin_root);
 				drawcircball(GL_LINES, co, radius, data->imat);
 
 				glColor4ubv(data->sel ? data->th_vertex_select : data->th_vertex);
-				bglBegin(GL_POINTS);
+				glBegin(GL_POINTS);
 			}
 		}
 
@@ -2571,19 +2571,19 @@ static void draw_dm_verts__mapFunc(void *userData, int index, const float co[3],
 		if (eve == data->eve_act) {
 			glColor4ubv(data->th_editmesh_active);
 			
-			bglEnd();
+			glEnd();
 			
 			glPointSize(data->th_vertex_size);
-			bglBegin(GL_POINTS);
-			bglVertex3fv(co);
-			bglEnd();
+			glBegin(GL_POINTS);
+			glVertex3fv(co);
+			glEnd();
 
 			glColor4ubv(data->sel ? data->th_vertex_select : data->th_vertex);
 			glPointSize(data->th_vertex_size);
-			bglBegin(GL_POINTS);
+			glBegin(GL_POINTS);
 		}
 		else {
-			bglVertex3fv(co);
+			glVertex3fv(co);
 		}
 	}
 }
@@ -2609,9 +2609,9 @@ static void draw_dm_verts(BMEditMesh *em, DerivedMesh *dm, const char sel, BMVer
 	mul_m4_m4m4(data.imat, rv3d->viewmat, em->ob->obmat);
 	invert_m4(data.imat);
 
-	bglBegin(GL_POINTS);
+	glBegin(GL_POINTS);
 	dm->foreachMappedVert(dm, draw_dm_verts__mapFunc, &data, DM_FOREACH_NOP);
-	bglEnd();
+	glEnd();
 }
 
 /* Draw edges with color set based on selection */
@@ -3083,7 +3083,7 @@ static void draw_dm_bweights__mapFunc(void *userData, int index, const float co[
 		const float bweight = BM_ELEM_CD_GET_FLOAT(eve, data->cd_layer_offset);
 		if (bweight != 0.0f) {
 			UI_ThemeColorBlend(TH_VERTEX, TH_VERTEX_SELECT, bweight);
-			bglVertex3fv(co);
+			glVertex3fv(co);
 		}
 	}
 }
@@ -3099,9 +3099,9 @@ static void draw_dm_bweights(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 
 		if (data.cd_layer_offset != -1) {
 			glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE) + 2);
-			bglBegin(GL_POINTS);
+			glBegin(GL_POINTS);
 			dm->foreachMappedVert(dm, draw_dm_bweights__mapFunc, &data, DM_FOREACH_NOP);
-			bglEnd();
+			glEnd();
 		}
 	}
 	else {
@@ -6111,7 +6111,7 @@ static void drawvertsN(Nurb *nu, const char sel, const bool hide_handles, const 
 
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	
-	bglBegin(GL_POINTS);
+	glBegin(GL_POINTS);
 	
 	if (nu->type == CU_BEZIER) {
 
@@ -6122,21 +6122,21 @@ static void drawvertsN(Nurb *nu, const char sel, const bool hide_handles, const 
 				if (sel == 1 && bezt == vert) {
 					UI_ThemeColor(TH_ACTIVE_VERT);
 
-					if (bezt->f2 & SELECT) bglVertex3fv(bezt->vec[1]);
+					if (bezt->f2 & SELECT) glVertex3fv(bezt->vec[1]);
 					if (!hide_handles) {
-						if (bezt->f1 & SELECT) bglVertex3fv(bezt->vec[0]);
-						if (bezt->f3 & SELECT) bglVertex3fv(bezt->vec[2]);
+						if (bezt->f1 & SELECT) glVertex3fv(bezt->vec[0]);
+						if (bezt->f3 & SELECT) glVertex3fv(bezt->vec[2]);
 					}
 
 					UI_ThemeColor(color);
 				}
 				else if (hide_handles) {
-					if ((bezt->f2 & SELECT) == sel) bglVertex3fv(bezt->vec[1]);
+					if ((bezt->f2 & SELECT) == sel) glVertex3fv(bezt->vec[1]);
 				}
 				else {
-					if ((bezt->f1 & SELECT) == sel) bglVertex3fv(bezt->vec[0]);
-					if ((bezt->f2 & SELECT) == sel) bglVertex3fv(bezt->vec[1]);
-					if ((bezt->f3 & SELECT) == sel) bglVertex3fv(bezt->vec[2]);
+					if ((bezt->f1 & SELECT) == sel) glVertex3fv(bezt->vec[0]);
+					if ((bezt->f2 & SELECT) == sel) glVertex3fv(bezt->vec[1]);
+					if ((bezt->f3 & SELECT) == sel) glVertex3fv(bezt->vec[2]);
 				}
 			}
 			bezt++;
@@ -6149,18 +6149,18 @@ static void drawvertsN(Nurb *nu, const char sel, const bool hide_handles, const 
 			if (bp->hide == 0) {
 				if (bp == vert) {
 					UI_ThemeColor(TH_ACTIVE_VERT);
-					bglVertex3fv(bp->vec);
+					glVertex3fv(bp->vec);
 					UI_ThemeColor(color);
 				}
 				else {
-					if ((bp->f1 & SELECT) == sel) bglVertex3fv(bp->vec);
+					if ((bp->f1 & SELECT) == sel) glVertex3fv(bp->vec);
 				}
 			}
 			bp++;
 		}
 	}
 	
-	bglEnd();
+	glEnd();
 	glPointSize(1.0);
 }
 
@@ -7265,9 +7265,9 @@ static void draw_hooks(Object *ob)
 			}
 
 			glPointSize(3.0);
-			bglBegin(GL_POINTS);
-			bglVertex3fv(vec);
-			bglEnd();
+			glBegin(GL_POINTS);
+			glVertex3fv(vec);
+			glEnd();
 			glPointSize(1.0);
 		}
 	}
@@ -7851,14 +7851,14 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				
 
 				// glPointSize(3.0);
-				bglBegin(GL_POINTS);
+				glBegin(GL_POINTS);
 
 				for (i = 0; i < scs->numpoints; i++)
 				{
-					bglVertex3fv(&scs->points[3 * i]);
+					glVertex3fv(&scs->points[3 * i]);
 				}
 
-				bglEnd();
+				glEnd();
 				glPointSize(1.0);
 
 				glMultMatrixf(ob->obmat);
@@ -8185,7 +8185,7 @@ static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, const floa
 
 	if (!(mv->flag & ME_HIDE)) {
 		WM_framebuffer_index_set(data->offset + index);
-		bglVertex3fv(co);
+		glVertex3fv(co);
 	}
 }
 
@@ -8197,9 +8197,9 @@ static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 	data.mvert = mvert;
 	data.offset = offset;
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
-	bglBegin(GL_POINTS);
+	glBegin(GL_POINTS);
 	dm->foreachMappedVert(dm, bbs_obmode_mesh_verts__mapFunc, &data, DM_FOREACH_NOP);
-	bglEnd();
+	glEnd();
 	glPointSize(1.0);
 }
 
@@ -8211,16 +8211,16 @@ static void bbs_mesh_verts__mapFunc(void *userData, int index, const float co[3]
 
 	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 		WM_framebuffer_index_set(data->offset + index);
-		bglVertex3fv(co);
+		glVertex3fv(co);
 	}
 }
 static void bbs_mesh_verts(BMEditMesh *em, DerivedMesh *dm, int offset)
 {
 	drawBMOffset_userData data = {em->bm, offset};
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
-	bglBegin(GL_POINTS);
+	glBegin(GL_POINTS);
 	dm->foreachMappedVert(dm, bbs_mesh_verts__mapFunc, &data, DM_FOREACH_NOP);
-	bglEnd();
+	glEnd();
 	glPointSize(1.0);
 }
 
@@ -8278,7 +8278,7 @@ static void bbs_mesh_solid__drawCenter(void *userData, int index, const float ce
 	if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		WM_framebuffer_index_set(index + 1);
 
-		bglVertex3fv(cent);
+		glVertex3fv(cent);
 	}
 }
 
@@ -8294,9 +8294,9 @@ static void bbs_mesh_solid_EM(BMEditMesh *em, Scene *scene, View3D *v3d,
 		if (check_ob_drawface_dot(scene, v3d, ob->dt)) {
 			glPointSize(UI_GetThemeValuef(TH_FACEDOT_SIZE));
 
-			bglBegin(GL_POINTS);
+			glBegin(GL_POINTS);
 			dm->foreachMappedFaceCenter(dm, bbs_mesh_solid__drawCenter, em->bm, DM_FOREACH_NOP);
-			bglEnd();
+			glEnd();
 		}
 
 	}

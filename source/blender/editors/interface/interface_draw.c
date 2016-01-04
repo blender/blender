@@ -1506,7 +1506,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	/* the points, use aspect to make them visible on edges */
 	cmp = cuma->curve;
 	glPointSize(3.0f);
-	bglBegin(GL_POINTS);
+	glBegin(GL_POINTS);
 	for (a = 0; a < cuma->totpoint; a++) {
 		if (cmp[a].flag & CUMA_SELECT)
 			UI_ThemeColor(TH_TEXT_HI);
@@ -1514,9 +1514,9 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 			UI_ThemeColor(TH_TEXT);
 		fac[0] = rect->xmin + zoomx * (cmp[a].x - offsx);
 		fac[1] = rect->ymin + zoomy * (cmp[a].y - offsy);
-		bglVertex2fv(fac);
+		glVertex2fv(fac);
 	}
-	bglEnd();
+	glEnd();
 	glPointSize(1.0f);
 	
 	/* restore scissortest */
