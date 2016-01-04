@@ -158,6 +158,7 @@ class SpellChecker:
         "ringnoise",
         "rolloff",
         "runtime",
+        "scanline",
         "screencast", "screenshot", "screenshots",
         "selfcollision",
         "shadowbuffer", "shadowbuffers",
