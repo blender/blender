@@ -3707,9 +3707,10 @@ print_info() {
   fi
 
   if [ -d $INST/ocio ]; then
-    _1="-D OPENCOLORIO_ROOT_DIR=$INST/ocio"
+    _1="-D WITH_OPENCOLORIO=ON"
+    _2="-D OPENCOLORIO_ROOT_DIR=$INST/ocio"
     PRINT "  $_1"
-    _buildargs="$_buildargs -U *OPENCOLORIO* $_1"
+    _buildargs="$_buildargs -U *OPENCOLORIO* $_1 $_2"
   fi
 
   if [ -d $INST/openexr ]; then
@@ -3719,9 +3720,10 @@ print_info() {
   fi
 
   if [ -d $INST/oiio ]; then
-    _1="-D OPENIMAGEIO_ROOT_DIR=$INST/oiio"
+    _1="-D WITH_OPENIMAGEIO=ON"
+    _2="-D OPENIMAGEIO_ROOT_DIR=$INST/oiio"
     PRINT "  $_1"
-    _buildargs="$_buildargs -U *OPENIMAGEIO* $_1"
+    _buildargs="$_buildargs -U *OPENIMAGEIO* $_1 $_2"
   fi
 
   if [ "$OSL_SKIP" = false ]; then
