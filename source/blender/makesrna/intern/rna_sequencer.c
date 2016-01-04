@@ -596,19 +596,6 @@ static PointerRNA rna_SequenceEditor_meta_stack_get(CollectionPropertyIterator *
 static void rna_Sequence_filepath_set(PointerRNA *ptr, const char *value)
 {
 	Sequence *seq = (Sequence *)(ptr->data);
-
-	if (seq->type == SEQ_TYPE_SOUND_RAM && seq->sound) {
-		/* for sound strips we need to update the sound as well.
-		 * arguably, this could load in a new sound rather than modify an existing one.
-		 * but while using the sequencer its most likely your not using the sound in the game engine too.
-		 */
-		PointerRNA id_ptr;
-		RNA_id_pointer_create((ID *)seq->sound, &id_ptr);
-		RNA_string_set(&id_ptr, "filepath", value);
-		BKE_sound_load(G.main, seq->sound);
-		BKE_sound_update_scene_sound(seq->scene_sound, seq->sound);
-	}
-
 	BLI_split_dirfile(value, seq->strip->dir, seq->strip->stripdata->name, sizeof(seq->strip->dir),
 	                  sizeof(seq->strip->stripdata->name));
 }
@@ -2034,6 +2021,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Sequence");
 
 	prop = RNA_def_property(srna, "sound", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Sound");
 	RNA_def_property_ui_text(prop, "Sound", "Sound data-block used by this sequence");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
@@ -2060,12 +2048,6 @@ static void rna_def_sound(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pan", "Playback panning of the sound (only for Mono sources)");
 	RNA_def_property_float_funcs(prop, NULL, "rna_Sequence_pan_set", NULL);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
-
-	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
-	RNA_def_property_ui_text(prop, "File", "");
-	RNA_def_property_string_funcs(prop, "rna_Sequence_filepath_get", "rna_Sequence_filepath_length",
-	                              "rna_Sequence_filepath_set");
-	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_filepath_update");
 
 	prop = RNA_def_property(srna, "show_waveform", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_AUDIO_DRAW_WAVEFORM);

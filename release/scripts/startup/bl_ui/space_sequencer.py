@@ -783,13 +783,10 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):
         strip = act_strip(context)
         sound = strip.sound
 
-        # TODO: add support to handle SOUND datablock in sequencer soundstrips... For now, hide this useless thing!
-        # layout.template_ID(strip, "sound", open="sound.open")
-
-        # layout.separator()
-        layout.prop(strip, "filepath", text="")
-
+        layout.template_ID(strip, "sound", open="sound.open")
         if sound is not None:
+            layout.prop(sound, "filepath", text="")
+
             row = layout.row()
             if sound.packed_file:
                 row.operator("sound.unpack", icon='PACKAGE', text="Unpack")
