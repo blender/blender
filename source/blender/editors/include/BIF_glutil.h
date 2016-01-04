@@ -185,8 +185,6 @@ void gla2DGetMap(gla2DDrawInfo *di, struct rctf *rect);
 void gla2DSetMap(gla2DDrawInfo *di, struct rctf *rect);
 #endif
 
-/* intel gfx cards frontbuffer problem */
-// void bglFlush(void); /* UNUSED */
 void set_inverted_drawing(int enable);
 void setlinestyle(int nr);
 

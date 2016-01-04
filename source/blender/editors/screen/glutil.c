@@ -814,17 +814,6 @@ void bglPolygonOffset(float viewdist, float dist)
 	}
 }
 
-#if 0 /* UNUSED */
-void bglFlush(void) 
-{
-	glFlush();
-#ifdef __APPLE__
-//	if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_OFFICIAL))
-// XXX		myswapbuffers(); //hack to get mac intel graphics to show frontbuffer
-#endif
-}
-#endif
-
 /* **** Color management helper functions for GLSL display/transform ***** */
 
 /* Draw given image buffer on a screen using GLSL for display transform */
