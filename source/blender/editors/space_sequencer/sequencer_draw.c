@@ -197,7 +197,7 @@ static void drawseqwave(const bContext *C, SpaceSeq *sseq, Scene *scene, Sequenc
 	 * x2 the end x value, same for y1 and y2
 	 * stepsize is width of a pixel.
 	 */
-	if ((sseq->flag & SEQ_ALL_WAVEFORMS) || (seq->flag & SEQ_AUDIO_DRAW_WAVEFORM)) {
+	if (seq->sound && ((sseq->flag & SEQ_ALL_WAVEFORMS) || (seq->flag & SEQ_AUDIO_DRAW_WAVEFORM))) {
 		int i, j, pos;
 		int length = floor((x2 - x1) / stepsize) + 1;
 		float ymid = (y1 + y2) / 2;
@@ -215,10 +215,10 @@ static void drawseqwave(const bContext *C, SpaceSeq *sseq, Scene *scene, Sequenc
 		}
 		
 		BLI_spin_lock(sound->spinlock);
-		if (!seq->sound->waveform) {
+		if (!sound->waveform) {
 			if (!(sound->flags & SOUND_FLAGS_WAVEFORM_LOADING)) {
 				/* prevent sounds from reloading */
-				seq->sound->flags |= SOUND_FLAGS_WAVEFORM_LOADING;
+				sound->flags |= SOUND_FLAGS_WAVEFORM_LOADING;
 				BLI_spin_unlock(sound->spinlock);
 				sequencer_preview_add_sound(C, seq);
 			}
@@ -229,7 +229,7 @@ static void drawseqwave(const bContext *C, SpaceSeq *sseq, Scene *scene, Sequenc
 		}
 		BLI_spin_unlock(sound->spinlock);
 		
-		waveform = seq->sound->waveform;
+		waveform = sound->waveform;
 
 		if (waveform->length == 0) {
 			/* BKE_sound_read_waveform() set an empty SoundWaveform data in case it cannot generate a valid one...
