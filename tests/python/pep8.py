@@ -37,7 +37,7 @@ import os
 # how many lines to read into the file, pep8 comment
 # should be directly after the license header, ~20 in most cases
 PEP8_SEEK_COMMENT = 40
-SKIP_PREFIX = "./tools", "./config", "./scons", "./extern"
+SKIP_PREFIX = "./tools", "./config", "./extern"
 SKIP_ADDONS = True
 FORCE_PEP8_ALL = False
 

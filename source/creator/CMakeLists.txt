@@ -524,7 +524,6 @@ if(UNIX AND NOT APPLE)
 			unset(_pypath_real)
 
 			# Copy the systems python into the install directory
-			# Scons copy in tools/Blender.py
 			# install(CODE "message(\"copying a subset of the systems python...\")")
 			install(
 				DIRECTORY ${PYTHON_LIBPATH}/python${PYTHON_VERSION}

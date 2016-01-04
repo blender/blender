@@ -11,7 +11,7 @@ endif()
 include(cmake/external_libs.cmake)
 
 # Build Flags
-# todo: refactor this code to match scons
+# todo: this code could be refactored a bit to avoid duplication
 # note: CXX_HAS_SSE is needed in case passing SSE flags fails altogether (gcc-arm)
 
 if(WITH_CYCLES_WERROR)

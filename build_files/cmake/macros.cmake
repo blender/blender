@@ -1209,7 +1209,7 @@ macro(blender_project_hack_post)
 		# MINGW workaround for -ladvapi32 being included which surprisingly causes
 		# string formatting of floats, eg: printf("%.*f", 3, value). to crash blender
 		# with a meaningless stack trace. by overriding this flag we ensure we only
-		# have libs we define and that cmake & scons builds match.
+		# have libs we define.
 		set(CMAKE_C_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
 		set(CMAKE_CXX_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
 		mark_as_advanced(

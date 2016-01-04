@@ -10,7 +10,3 @@
 	path = release/datafiles/locale
 	url = ../blender-translations.git
 	ignore = all
-[submodule "scons"]
-	path = scons
-	url = ../scons.git
-	ignore = all

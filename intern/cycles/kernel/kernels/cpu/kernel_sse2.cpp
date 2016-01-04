@@ -29,10 +29,5 @@
 #  include "kernel.h"
 #  define KERNEL_ARCH cpu_sse2
 #  include "kernel_cpu_impl.h"
-#else  /* WITH_CYCLES_OPTIMIZED_KERNEL_SSE2 */
-
-/* needed for some linkers in combination with scons making empty compilation unit in a library */
-void __dummy_function_cycles_sse2(void);
-void __dummy_function_cycles_sse2(void) {}
 
 #endif  /* WITH_CYCLES_OPTIMIZED_KERNEL_SSE2 */

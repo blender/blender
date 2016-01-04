@@ -674,7 +674,7 @@ DEPS_COMMON_INFO="\"COMMON DEPENDENCIES:
 
 Those libraries should be available as packages in all recent distributions (optional ones are [between brackets]):
 
-    * Basics of dev environment (cmake or scons, gcc, svn , git, ...).
+    * Basics of dev environment (cmake, gcc, svn , git, ...).
     * libjpeg, libpng, libtiff, [libopenjpeg], [libopenal].
     * libx11, libxcursor, libxi, libxrandr, libxinerama (and other libx... as needed).
     * libsqlite3, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp.
@@ -2126,7 +2126,7 @@ install_DEB() {
   OGG_DEV="libogg-dev"
   THEORA_DEV="libtheora-dev"
 
-  _packages="gawk cmake cmake-curses-gui scons build-essential libjpeg-dev libpng-dev \
+  _packages="gawk cmake cmake-curses-gui build-essential libjpeg-dev libpng-dev \
              libfreetype6-dev libx11-dev \
              libxcursor-dev libxi-dev wget libsqlite3-dev libxrandr-dev libxinerama-dev \
              libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV \
@@ -2685,7 +2685,7 @@ install_RPM() {
   OGG_DEV="libogg-devel"
   THEORA_DEV="libtheora-devel"
 
-  _packages="gcc gcc-c++ git make cmake scons libtiff-devel libjpeg-devel\
+  _packages="gcc gcc-c++ git make cmake libtiff-devel libjpeg-devel\
              libpng-devel libX11-devel libXi-devel libXcursor-devel libXrandr-devel libXinerama-devel \
              wget ncurses-devel readline-devel $OPENJPEG_DEV openal-soft-devel \
              glew-devel yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV patch \
@@ -3121,7 +3121,7 @@ install_ARCH() {
   OGG_DEV="libogg"
   THEORA_DEV="libtheora"
 
-  _packages="base-devel git scons cmake \
+  _packages="base-devel git cmake \
              libxi libxcursor libxrandr libxinerama glew libpng libtiff wget openal \
              $OPENJPEG_DEV $VORBIS_DEV $OGG_DEV $THEORA_DEV yasm sdl fftw \
              libxml2 yaml-cpp tinyxml"
@@ -3782,92 +3782,6 @@ print_info() {
   PRINT ""
   PRINT "Or even simpler, just run (in your blender-source dir):"
   PRINT "  make -j$THREADS BUILD_CMAKE_ARGS=\"$_buildargs\""
-
-  PRINT ""
-  PRINT "If you're using SCons add this to your user-config:"
-
-  PRINT "WITH_BF_SNDFILE = True"
-
-  PRINT "BF_PYTHON_VERSION = '$PYTHON_VERSION_MIN'"
-  if [ -d $INST/python-$PYTHON_VERSION_MIN ]; then
-    PRINT "BF_PYTHON = '$INST/python-$PYTHON_VERSION_MIN'"
-    PRINT "BF_PYTHON_ABI_FLAGS = 'm'"
-  fi
-
-  if [ "$OCIO_SKIP" = false ]; then
-    PRINT "WITH_BF_OCIO = True"
-    if [ -d $INST/ocio ]; then
-      PRINT "BF_OCIO = '$INST/ocio'"
-    fi
-  fi
-
-  if [ -d $INST/openexr ]; then
-    PRINT "BF_OPENEXR = '$INST/openexr'"
-
-    _ilm_libs_ext=""
-    #~ version_ge $OPENEXR_VERSION "2.1.0"
-    #~ if [ $? -eq 0 ]; then
-      #~ _ilm_libs_ext=`echo $OPENEXR_VERSION | sed -r 's/([0-9]+)\.([0-9]+).*/-\1_\2/'`
-    #~ fi
-    PRINT "BF_OPENEXR_LIB = 'Half IlmImf$_ilm_libs_ext Iex$_ilm_libs_ext Imath$_ilm_libs_ext '"
-    # BF_OPENEXR_LIB does not work, things like '-lIlmImf-2_1' do not suit ld.
-    # For now, hack around!!!
-    PRINT "BF_OPENEXR_LIB_STATIC = '\${BF_OPENEXR}/lib/libHalf.so \${BF_OPENEXR}/lib/libIlmImf$_ilm_libs_ext.so \${BF_OPENEXR}/lib/libIex$_ilm_libs_ext.so \${BF_OPENEXR}/lib/libImath$_ilm_libs_ext.so \${BF_OPENEXR}/lib/libIlmThread$_ilm_libs_ext.so'"
-    PRINT "WITH_BF_STATICOPENEXR = True"
-  fi
-
-  if [ "$OIIO_SKIP" = false ]; then
-    PRINT "WITH_BF_OIIO = True"
-    if [ -d $INST/oiio ]; then
-      PRINT "BF_OIIO = '$INST/oiio'"
-    fi
-  fi
-
-  PRINT "WITH_BF_CYCLES = True"
-
-  if [ -d $INST/osl ]; then
-    PRINT "BF_OSL = '$INST/osl'"
-  fi
-
-  if [ "$OSD_SKIP" = false ]; then
-    PRINT "WITH_BF_OPENSUBDIV = True"
-    if [ -d $INST/osd ]; then
-      PRINT "BF_OPENSUBDIV = '$INST/osd'"
-    fi
-  fi
-
-  if [ "$BOOST_SKIP" = false ]; then
-    PRINT "WITH_BF_BOOST = True"
-    if [ -d $INST/boost ]; then
-      PRINT "BF_BOOST = '$INST/boost'"
-    fi
-  fi
-
-  if [ "$WITH_OPENCOLLADA" = true ]; then
-    PRINT "WITH_BF_COLLADA = True"
-    if [ -d $INST/opencollada ]; then
-      PRINT "BF_OPENCOLLADA = '$INST/opencollada'"
-    fi
-  fi
-
-  if [ "$FFMPEG_SKIP" = false ]; then
-    _ffmpeg_list_sep=" "
-    if [ -d $INST/ffmpeg ]; then
-      PRINT "BF_FFMPEG = '$INST/ffmpeg'"
-    fi
-    PRINT "BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice `print_info_ffmpeglink`'"
-  fi
-
-  if [ "$WITH_ALL" = false ]; then
-    PRINT "WITH_BF_3DMOUSE = False"
-  # No libspacenav in official arch repos...
-  elif [ "$DISTRO" = "ARCH" ]; then
-    PRINT "WITH_BF_3DMOUSE = False"
-  fi
-
-  if [ "$WITH_OPENCOLLADA" = true ]; then
-    PRINT "LLIBS = [\""xml2"\", \""expat"\"] + LLIBS"
-  fi
 }
 
 #### "Main" ####

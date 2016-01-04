@@ -38,10 +38,8 @@ and add your extension so that your format gets recognized in the thumbnails.
 
 Step 6: 
 Alter the build process:
-For scons you need to edit blender/source/blender/imbuf/SConscript 
+For cmake you need to edit blender/source/blender/imbuf/CMakeLists.txt
 and add in your additional files to source_files.
-For msvp you need to edit blender/projectfiles/blender/imbuf/BL_imbuf.dsp
-and add in your additional files.
 If you have any external library info you will also need to add that 
 to the various build processes.
 

@@ -24,7 +24,6 @@ from os.path import splitext
 DEPRECATE_DAYS = 120
 
 SKIP_DIRS = ("extern",
-             "scons",
              "tests",  # not this dir
              )
 
