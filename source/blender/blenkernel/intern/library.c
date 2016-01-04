@@ -1799,7 +1799,7 @@ void BKE_library_make_local(Main *bmain, Library *lib, bool untagged_only, bool 
 				}
 
 				if (set_fake) {
-					if (!ELEM( GS(id->name), ID_OB, ID_GR)) {
+					if (!ELEM(GS(id->name), ID_OB, ID_GR)) {
 						/* do not set fake user on objects, groups (instancing) */
 						id_fake_user_set(id);
 					}

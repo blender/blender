@@ -1006,7 +1006,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		if (psys == NULL || psys->totpart == 0) return derivedData;
 		if (psys->part == NULL || psys->particles == NULL) return derivedData;
-		if (psmd->dm_final== NULL) return derivedData;
+		if (psmd->dm_final == NULL) return derivedData;
 
 		/* 1. find faces to be exploded if needed */
 		if (emd->facepa == NULL ||

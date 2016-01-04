@@ -106,8 +106,6 @@
 #if defined(__APPLE__) && defined _OPENMP
 #include <sys/sysctl.h>
 
-#include "BLI_threads.h"
-
 /* Query how many cores not counting HT aka physical cores we've got. */
 static int system_physical_thread_count(void)
 {
