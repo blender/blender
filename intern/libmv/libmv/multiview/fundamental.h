@@ -31,13 +31,6 @@ void ProjectionsFromFundamental(const Mat3 &F, Mat34 *P1, Mat34 *P2);
 void FundamentalFromProjections(const Mat34 &P1, const Mat34 &P2, Mat3 *F);
 
 /**
- * The normalized 8-point fundamental matrix solver.
- */
-double NormalizedEightPointSolver(const Mat &x1,
-                                  const Mat &x2,
-                                  Mat3 *F);
-
-/**
  * 7 points (minimal case, points coordinates must be normalized before):
  */
 double FundamentalFrom7CorrespondencesLinear(const Mat &x1,

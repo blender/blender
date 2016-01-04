@@ -95,7 +95,7 @@ int libmv_trackRegion(const libmv_TrackRegionOptions* options,
                       int image2_height,
                       const double* x1,
                       const double* y1,
-                      libmv_TrackRegionResult* result,
+                      libmv_TrackRegionResult* /*result*/,
                       double* x2,
                       double* y2) {
   double xx1[5], yy1[5];

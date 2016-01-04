@@ -1,3 +1,9 @@
+commit 7a676106720fb126a27ff010abdd8bb65d7e0d9a
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Jan 4 18:30:12 2016 +0500
+
+    Fix strict compiler warnings
+
 commit d3537e3709fe11f42312e82cb1c9837c9e742385
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Sun Jan 3 14:17:10 2016 +0500
@@ -595,15 +601,3 @@ Date:   Mon Apr 21 14:10:43 2014 +0600
     The assert didn't make any sense because ComputeBoundingBox()
     is intended to return bounding box in the following way:
     (xmin, xmax, ymin, ymax).
-
-commit 1d386b6775a71c499e9b8e4a288c0785c4937677
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Apr 17 18:42:43 2014 +0600
-
-    Add unit tests for buffer (un)distortion
-    
-    Currently only uses identity camera intrinsics just to
-    see whether lookup grids are properly allocated.
-    
-    Should prevent accidents like that one happened recently
-    with crashing Blender after Libmv re-integration.

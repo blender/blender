@@ -106,7 +106,7 @@ struct LibmvFrameAccessor : public FrameAccessor {
     release_image_callback_(cache_key);
   }
 
-  bool GetClipDimensions(int clip, int *width, int *height) {
+  bool GetClipDimensions(int /*clip*/, int * /*width*/, int * /*height*/) {
     return false;
   }
 
@@ -114,7 +114,7 @@ struct LibmvFrameAccessor : public FrameAccessor {
     return 1;
   }
 
-  int NumFrames(int clip) {
+  int NumFrames(int /*clip*/) {
     return 0;
   }
 

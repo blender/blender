@@ -1,4 +1,4 @@
-// Copyright (c) 2007, 2008 libmv authors.
+// Copyright (c) 2007, 2008_WIN32 libmv authors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -289,7 +289,7 @@ void MeanAndVarianceAlongRows(const Mat &A,
                               Vec *mean_pointer,
                               Vec *variance_pointer);
 
-#if _WIN32
+#if defined(_WIN32)
   // TODO(bomboze): un-#if this for both platforms once tested under Windows
   /* This solution was extensively discussed here
      http://forum.kde.org/viewtopic.php?f=74&t=61940 */
