@@ -1760,7 +1760,7 @@ void BKE_main_id_tag_all(struct Main *mainvar, const bool tag)
 
 /* if lib!=NULL, only all from lib local
  * bmain is almost certainly G.main */
-void BKE_library_make_local(Main *bmain, Library *lib, bool untagged_only)
+void BKE_library_make_local(Main *bmain, Library *lib, bool untagged_only, bool set_fake)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	ID *id, *idn;
@@ -1797,7 +1797,15 @@ void BKE_library_make_local(Main *bmain, Library *lib, bool untagged_only)
 						id->tag &= ~(LIB_TAG_EXTERN | LIB_TAG_INDIRECT | LIB_TAG_NEW);
 					}
 				}
+
+				if (set_fake) {
+					if (!ELEM( GS(id->name), ID_OB, ID_GR)) {
+						/* do not set fake user on objects, groups (instancing) */
+						id_fake_user_set(id);
+					}
+				}
 			}
+
 			id = idn;
 		}
 	}

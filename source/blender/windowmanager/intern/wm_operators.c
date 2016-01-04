@@ -2700,7 +2700,8 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
 	/* append, rather than linking */
 	if ((flag & FILE_LINK) == 0) {
-		BKE_library_make_local(bmain, NULL, true);
+		bool set_fake = RNA_boolean_get(op->ptr, "set_fake");
+		BKE_library_make_local(bmain, NULL, true, set_fake);
 	}
 
 	/* important we unset, otherwise these object wont
@@ -2779,6 +2780,7 @@ static void WM_OT_append(wmOperatorType *ot)
 		FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
 
 	wm_link_append_properties_common(ot, false);
+	RNA_def_boolean(ot->srna, "set_fake", false, "Fake User", "Set Fake User for appended items (except Objects and Groups)");
 }
 
 /* *************** recover last session **************** */
