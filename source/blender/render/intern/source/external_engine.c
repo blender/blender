@@ -515,6 +515,8 @@ bool RE_bake_engine(
 
 	BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);
 
+	curvemapping_free_data(&re->r.mblur_shutter_curve);
+
 	/* re->engine becomes zero if user changed active render engine during render */
 	if (!persistent_data || !re->engine) {
 		RE_engine_free(engine);
