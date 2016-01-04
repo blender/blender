@@ -71,7 +71,7 @@ void fdrawbezier(float vec[4][3])
 	
 	vec[2][0] = vec[3][0] - dist;
 	vec[2][1] = vec[3][1];
-	/* we can reuse the dist variable here to increment the GL curve eval amount*/
+	/* we can reuse the dist variable here to increment the GL curve eval amount */
 	dist = 1.0f / curve_res;
 	
 	cpack(0x0);
@@ -408,7 +408,7 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 		components = 4;
 	else if (format == GL_RGB)
 		components = 3;
-	else if (ELEM(format,  GL_LUMINANCE, GL_ALPHA))
+	else if (ELEM(format, GL_LUMINANCE, GL_ALPHA))
 		components = 1;
 	else {
 		BLI_assert(!"Incompatible format passed to glaDrawPixelsTexScaled");
@@ -427,7 +427,7 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, tex_w, tex_h, 0, format, GL_FLOAT, NULL);
 	}
 	else {
-		/* switch to 8bit RGBA for byte buffer  */
+		/* switch to 8bit RGBA for byte buffer */
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_w, tex_h, 0, format, GL_UNSIGNED_BYTE, NULL);
 	}
 
@@ -444,14 +444,14 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 			float rast_x = x + subpart_x * offset_x * xzoom;
 			float rast_y = y + subpart_y * offset_y * yzoom;
 			
-			/* check if we already got these because we always get 2 more when doing seamless*/
+			/* check if we already got these because we always get 2 more when doing seamless */
 			if (subpart_w <= seamless || subpart_h <= seamless)
 				continue;
 			
 			if (type == GL_FLOAT) {
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, subpart_w, subpart_h, format, GL_FLOAT, &f_rect[((size_t)subpart_y) * offset_y * img_w * components + subpart_x * offset_x * components]);
 				
-				/* add an extra border of pixels so linear looks ok at edges of full image. */
+				/* add an extra border of pixels so linear looks ok at edges of full image */
 				if (subpart_w < tex_w)
 					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, 0, 1, subpart_h, format, GL_FLOAT, &f_rect[((size_t)subpart_y) * offset_y * img_w * components + (subpart_x * offset_x + subpart_w - 1) * components]);
 				if (subpart_h < tex_h)
@@ -860,7 +860,7 @@ void bgl_get_mats(bglMats *mats)
  */
 void bglPolygonOffset(float viewdist, float dist)
 {
-	static float winmat[16], offset = 0.0;
+	static float winmat[16], offset = 0.0f;
 	
 	if (dist != 0.0f) {
 		float offs;
@@ -901,7 +901,6 @@ void bglPolygonOffset(float viewdist, float dist)
 		glMatrixMode(GL_MODELVIEW);
 	}
 	else {
-
 		glMatrixMode(GL_PROJECTION);
 		winmat[14] += offset;
 		offset = 0.0;
@@ -1000,8 +999,7 @@ void glaDrawImBuf_glsl(ImBuf *ibuf, float x, float y, int zoomfilter,
 		display_buffer = IMB_display_buffer_acquire(ibuf, view_settings, display_settings, &cache_handle);
 
 		if (display_buffer)
-			glaDrawPixelsAuto(x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE,
-			                  zoomfilter, display_buffer);
+			glaDrawPixelsAuto(x, y, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, zoomfilter, display_buffer);
 
 		IMB_display_buffer_release(cache_handle);
 	}
