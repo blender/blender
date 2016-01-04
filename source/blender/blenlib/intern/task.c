@@ -662,7 +662,11 @@ void BLI_task_parallel_range_ex(
 	ParallelRangeState state;
 	int i, num_threads, num_tasks;
 
-	BLI_assert(start < stop);
+	if (start == stop) {
+		return;
+	}
+
+	BLI_assert(start <= stop);
 
 	/* If it's not enough data to be crunched, don't bother with tasks at all,
 	 * do everything from the main thread.
