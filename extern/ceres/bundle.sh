@@ -124,8 +124,7 @@ set(INC
 	include
 	internal
 	config
-	../gflags
-	../../
+	../gflags/src
 )
 
 set(INC_SYS
@@ -150,17 +149,15 @@ if(WIN32)
 	list(APPEND INC
 		../glog/src/windows
 	)
-
-	if(NOT MINGW)
-		list(APPEND INC
-			../msinttypes
-		)
-	endif()
 else()
 	list(APPEND INC
 		../glog/src
 	)
 endif()
+
+add_definitions(\${GFLAGS_DEFINES})
+add_definitions(\${GLOG_DEFINES})
+add_definitions(\${CERES_DEFINES})
 
 add_definitions(
 	-DCERES_HAVE_PTHREAD

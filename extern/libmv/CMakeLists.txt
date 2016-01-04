@@ -37,22 +37,9 @@ set(SRC
 	libmv-capi.h
 )
 
-TEST_SHARED_PTR_SUPPORT()
-if(SHARED_PTR_FOUND)
-	if(SHARED_PTR_TR1_MEMORY_HEADER)
-		add_definitions(-DCERES_TR1_MEMORY_HEADER)
-	endif()
-	if(SHARED_PTR_TR1_NAMESPACE)
-		add_definitions(-DCERES_TR1_SHARED_PTR)
-	endif()
-else()
-	message(FATAL_ERROR "Unable to find shared_ptr.")
-endif()
-
 add_definitions(${GFLAGS_DEFINES})
 add_definitions(${GLOG_DEFINES})
-
-add_subdirectory(third_party)
+add_definitions(${CERES_DEFINES})
 
 if(WITH_LIBMV)
 	list(APPEND INC

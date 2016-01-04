@@ -17,10 +17,7 @@ git clone -b $BRANCH $repo $tmp/libmv
 git --git-dir $tmp/libmv/.git --work-tree $tmp/libmv log -n 50 > ChangeLog
 
 find libmv -type f -exec rm -rf {} \;
-find third_party -type f \
-    -not -iwholename '*third_party/ceres*' \
-    -not -iwholename '*third_party/CMakeLists.txt*' \
-    -exec rm -rf {} \;
+find third_party -type f -exec rm -rf {} \;
 
 cat "files.txt" | while read f; do
   mkdir -p `dirname $f`
@@ -32,13 +29,13 @@ rm -rf $tmp
 sources=`find ./libmv -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep -v _test.cc | grep -v test_data_sets | sed -r 's/^\.\//\t\t/' | sort -d`
 headers=`find ./libmv -type f -iname '*.h' | grep -v test_data_sets | sed -r 's/^\.\//\t\t/' | sort -d`
 
-third_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep -v ceres | sed -r 's/^\.\//\t\t/' | sort -d`
-third_headers=`find ./third_party -type f -iname '*.h' | grep -v ceres | sed -r 's/^\.\//\t\t/' | sort -d`
+third_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//\t\t/' | sort -d`
+third_headers=`find ./third_party -type f -iname '*.h' | sed -r 's/^\.\//\t\t/' | sort -d`
 
 tests=`find ./libmv -type f -iname '*_test.cc' | sort -d | awk ' { name=gensub(".*/([A-Za-z_]+)_test.cc", "\\\\1", $1); printf("\t\tBLENDER_SRC_GTEST(\"libmv_%s\" \"%s\" \"libmv_test_dataset;extern_libmv;extern_ceres\")\n", name, $1) } '`
 
 src_dir=`find ./libmv -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \; | sed -r 's/^\.\//\t\t/' | sort -d | uniq`
-src_third_dir=`find ./third_party -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \;  | grep -v ceres | sed -r 's/^\.\//\t\t/'  | sort -d | uniq`
+src_third_dir=`find ./third_party -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \;  | sed -r 's/^\.\//\t\t/'  | sort -d | uniq`
 src=""
 win_src=""
 for x in $src_dir $src_third_dir; do
@@ -119,28 +116,13 @@ set(SRC
 	libmv-capi.h
 )
 
-TEST_SHARED_PTR_SUPPORT()
-if(SHARED_PTR_FOUND)
-	if(SHARED_PTR_TR1_MEMORY_HEADER)
-		add_definitions(-DCERES_TR1_MEMORY_HEADER)
-	endif()
-	if(SHARED_PTR_TR1_NAMESPACE)
-		add_definitions(-DCERES_TR1_SHARED_PTR)
-	endif()
-else()
-	message(FATAL_ERROR "Unable to find shared_ptr.")
-endif()
-
-add_definitions(-DGOOGLE_GLOG_DLL_DECL=)
-add_definitions(-DGFLAGS_DLL_DEFINE_FLAG=)
-add_definitions(-DGFLAGS_DLL_DECLARE_FLAG=)
-add_definitions(-DGFLAGS_DLL_DECL=)
-
-add_subdirectory(third_party)
+add_definitions(\${GFLAGS_DEFINES})
+add_definitions(\${GLOG_DEFINES})
+add_definitions(\${CERES_DEFINES})
 
 if(WITH_LIBMV)
 	list(APPEND INC
-		../gflags
+		../gflags/src
 		../glog/src
 		third_party/ceres/include
 		third_party/ceres/config

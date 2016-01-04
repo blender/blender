@@ -2601,6 +2601,46 @@ if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
 endif()
 
 #-----------------------------------------------------------------------------
+# Configure Ceres
+
+if(WITH_LIBMV)
+	set(CERES_DEFINES)
+
+	TEST_SHARED_PTR_SUPPORT()
+	if(SHARED_PTR_FOUND)
+		if(SHARED_PTR_TR1_MEMORY_HEADER)
+			list(APPEND CERES_DEFINES -DCERES_TR1_MEMORY_HEADER)
+		endif()
+		if(SHARED_PTR_TR1_NAMESPACE)
+			list(APPEND CERES_DEFINES -DCERES_TR1_SHARED_PTR)
+		endif()
+	else()
+		message(FATAL_ERROR "Ceres: Unable to find shared_ptr.")
+	endif()
+
+	TEST_UNORDERED_MAP_SUPPORT()
+	if(HAVE_STD_UNORDERED_MAP_HEADER)
+		if(HAVE_UNORDERED_MAP_IN_STD_NAMESPACE)
+			list(APPEND CERES_DEFINES -DCERES_STD_UNORDERED_MAP)
+		else()
+			if(HAVE_UNORDERED_MAP_IN_TR1_NAMESPACE)
+				list(APPEND CERES_DEFINES -DCERES_STD_UNORDERED_MAP_IN_TR1_NAMESPACE)
+			else()
+				list(APPEND CERES_DEFINES -DCERES_NO_UNORDERED_MAP)
+				message(STATUS "Ceres: Replacing unordered_map/set with map/set (warning: slower!)")
+			endif()
+		endif()
+	else()
+		if(HAVE_UNORDERED_MAP_IN_TR1_NAMESPACE)
+			list(APPEND CERES_DEFINES -DCERES_TR1_UNORDERED_MAP)
+		else()
+			list(APPEND CERES_DEFINES -DCERES_NO_UNORDERED_MAP)
+			message(STATUS "Ceres: Replacing unordered_map/set with map/set (warning: slower!)")
+		endif()
+	endif()
+endif()
+
+#-----------------------------------------------------------------------------
 # Extra compile flags
 
 if(CMAKE_COMPILER_IS_GNUCC)

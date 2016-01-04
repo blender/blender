@@ -31,8 +31,7 @@ set(INC
 	include
 	internal
 	config
-	../../../gflags/src
-	../../
+	../gflags/src
 )
 
 set(INC_SYS
@@ -131,6 +130,7 @@ set(SRC
 	include/ceres/covariance.h
 	include/ceres/crs_matrix.h
 	include/ceres/dynamic_autodiff_cost_function.h
+	include/ceres/dynamic_cost_function_to_functor.h
 	include/ceres/dynamic_numeric_diff_cost_function.h
 	include/ceres/fpclassify.h
 	include/ceres/gradient_checker.h
@@ -153,6 +153,7 @@ set(SRC
 	include/ceres/loss_function.h
 	include/ceres/normal_prior.h
 	include/ceres/numeric_diff_cost_function.h
+	include/ceres/numeric_diff_options.h
 	include/ceres/ordered_groups.h
 	include/ceres/problem.h
 	include/ceres/rotation.h
@@ -200,6 +201,7 @@ set(SRC
 	internal/ceres/gradient_problem_evaluator.h
 	internal/ceres/graph_algorithms.h
 	internal/ceres/graph.h
+	internal/ceres/householder_vector.h
 	internal/ceres/implicit_schur_complement.h
 	internal/ceres/integral_types.h
 	internal/ceres/iterative_schur_complement_solver.h
@@ -298,19 +300,17 @@ endif()
 
 if(WIN32)
 	list(APPEND INC
-		../../../glog/src/windows
+		../glog/src/windows
 	)
-
-	if(NOT MINGW)
-		list(APPEND INC
-			../msinttypes
-		)
-	endif()
 else()
 	list(APPEND INC
-		../../../glog/src
+		../glog/src
 	)
 endif()
+
+add_definitions(${GFLAGS_DEFINES})
+add_definitions(${GLOG_DEFINES})
+add_definitions(${CERES_DEFINES})
 
 add_definitions(
 	-DCERES_HAVE_PTHREAD
