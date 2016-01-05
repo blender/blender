@@ -210,8 +210,7 @@ ShaderGraph::ShaderGraph()
 
 ShaderGraph::~ShaderGraph()
 {
-	foreach(ShaderNode *node, nodes)
-		delete node;
+	clear_nodes();
 }
 
 ShaderNode *ShaderGraph::add(ShaderNode *node)
@@ -240,7 +239,7 @@ ShaderGraph *ShaderGraph::copy()
 	copy_nodes(nodes_all, nodes_copy);
 
 	/* add nodes (in same order, so output is still first) */
-	newgraph->nodes.clear();
+	newgraph->clear_nodes();
 	foreach(ShaderNode *node, nodes)
 		newgraph->add(nodes_copy[node]);
 
@@ -352,6 +351,14 @@ void ShaderGraph::find_dependencies(ShaderNodeSet& dependencies, ShaderInput *in
 
 		dependencies.insert(node);
 	}
+}
+
+void ShaderGraph::clear_nodes()
+{
+	foreach(ShaderNode *node, nodes) {
+		delete node;
+	}
+	nodes.clear();
 }
 
 void ShaderGraph::copy_nodes(ShaderNodeSet& nodes, ShaderNodeMap& nnodemap)

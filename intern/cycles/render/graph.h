@@ -323,6 +323,7 @@ protected:
 	typedef pair<ShaderNode* const, ShaderNode*> NodePair;
 
 	void find_dependencies(ShaderNodeSet& dependencies, ShaderInput *input);
+	void clear_nodes();
 	void copy_nodes(ShaderNodeSet& nodes, ShaderNodeMap& nnodemap);
 
 	void break_cycles(ShaderNode *node, vector<bool>& visited, vector<bool>& on_stack);
