@@ -2469,7 +2469,7 @@ if(WITH_OPENMP)
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 		else()
 			# Typically avoid adding flags as defines but we can't
-			# ass OpenMP flags to the linker for static builds, meaning
+			# pass OpenMP flags to the linker for static builds, meaning
 			# we can't add any OpenMP related flags to CFLAGS variables
 			# since they're passed to the linker as well.
 			add_definitions("${OpenMP_C_FLAGS}")
