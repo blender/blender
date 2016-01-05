@@ -1248,7 +1248,9 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 				texres->ta += levf*(texr.ta - texres->ta);
 			}
 
-			alpha_clip_aniso(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, extflag, texres);
+			if (tex->texfilter != TXF_EWA) {
+				alpha_clip_aniso(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, extflag, texres);
+			}
 		}
 	}
 	else {	/* no mipmap */
@@ -1290,7 +1292,9 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 		}
 		else {
 			filterfunc(texres, ibuf, fx, fy, &AFD);
-			alpha_clip_aniso(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, extflag, texres);
+			if (tex->texfilter != TXF_EWA) {
+				alpha_clip_aniso(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, extflag, texres);
+			}
 		}
 	}
 
