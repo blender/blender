@@ -215,7 +215,7 @@ static void drawcube_size(float size);
 static void drawcircle_size(float size);
 static void draw_empty_sphere(float size);
 static void draw_empty_cone(float size);
-static void draw_box(float vec[8][3], bool solid);
+static void draw_box(const float vec[8][3], bool solid);
 
 static void ob_wire_color_blend_theme_id(const unsigned char ob_wire_col[4], const int theme_id, float fac)
 {
@@ -933,59 +933,24 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write, flo
  */
 static void drawcube_size(float size)
 {
-	glBegin(GL_LINE_STRIP);
-	glVertex3f(-size, -size, -size); glVertex3f(-size, -size, size);
-	glVertex3f(-size, size, size); glVertex3f(-size, size, -size);
+	const GLfloat pos[8][3] = {
+		{-size, -size, -size},
+		{-size, -size,  size},
+		{-size,  size, -size},
+		{-size,  size,  size},
+		{ size, -size, -size},
+		{ size, -size,  size},
+		{ size,  size, -size},
+		{ size,  size,  size}
+	};
 
-	glVertex3f(-size, -size, -size); glVertex3f(size, -size, -size);
-	glVertex3f(size, -size, size); glVertex3f(size, size, size);
+	const GLubyte indices[24] = {0,1,1,3,3,2,2,0,0,4,4,5,5,7,7,6,6,4,1,5,3,7,2,6};
 
-	glVertex3f(size, size, -size); glVertex3f(size, -size, -size);
-	glEnd();
-
-	glBegin(GL_LINE_STRIP);
-	glVertex3f(-size, -size, size); glVertex3f(size, -size, size);
-	glEnd();
-
-	glBegin(GL_LINE_STRIP);
-	glVertex3f(-size, size, size); glVertex3f(size, size, size);
-	glEnd();
-
-	glBegin(GL_LINE_STRIP);
-	glVertex3f(-size, size, -size); glVertex3f(size, size, -size);
-	glEnd();
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, pos);
+	glDrawRangeElements(GL_LINES, 0, 7, 24, GL_UNSIGNED_BYTE, indices);
+	glDisableClientState(GL_VERTEX_ARRAY);
 }
-
-/* this is an unused (old) cube-drawing function based on a given size */
-#if 0
-static void drawcube_size(const float size[3])
-{
-
-	glPushMatrix();
-	glScale3fv(size);
-	
-
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(cube[0]); glVertex3fv(cube[1]); glVertex3fv(cube[2]); glVertex3fv(cube[3]);
-	glVertex3fv(cube[0]); glVertex3fv(cube[4]); glVertex3fv(cube[5]); glVertex3fv(cube[6]);
-	glVertex3fv(cube[7]); glVertex3fv(cube[4]);
-	glEnd();
-
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(cube[1]); glVertex3fv(cube[5]);
-	glEnd();
-
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(cube[2]); glVertex3fv(cube[6]);
-	glEnd();
-
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(cube[3]); glVertex3fv(cube[7]);
-	glEnd();
-	
-	glPopMatrix();
-}
-#endif
 
 static void drawshadbuflimits(Lamp *la, float mat[4][4])
 {
@@ -997,7 +962,7 @@ static void drawshadbuflimits(Lamp *la, float mat[4][4])
 	madd_v3_v3v3fl(sta, mat[3], lavec, la->clipsta);
 	madd_v3_v3v3fl(end, mat[3], lavec, la->clipend);
 
-	glBegin(GL_LINE_STRIP);
+	glBegin(GL_LINES);
 	glVertex3fv(sta);
 	glVertex3fv(end);
 	glEnd();
@@ -1423,14 +1388,14 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 			interp_v3_v3v3(lvec_clip, vec, lvec, clipsta_fac);
 			interp_v3_v3v3(vvec_clip, vec, vvec, clipsta_fac);
 
-			glBegin(GL_LINE_STRIP);
+			glBegin(GL_LINES);
 			glVertex3fv(lvec_clip);
 			glVertex3fv(vvec_clip);
 			glEnd();
 		}
 		/* Else, draw spot direction (using distance as end limit, same as for Area lamp). */
 		else {
-			glBegin(GL_LINE_STRIP);
+			glBegin(GL_LINES);
 			glVertex3f(0.0, 0.0, -circrad);
 			glVertex3f(0.0, 0.0, -la->dist);
 			glEnd();
@@ -1439,7 +1404,7 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 	else if (ELEM(la->type, LA_HEMI, LA_SUN)) {
 		
 		/* draw the line from the circle along the dist */
-		glBegin(GL_LINE_STRIP);
+		glBegin(GL_LINES);
 		vec[2] = -circrad;
 		glVertex3fv(vec);
 		vec[2] = -la->dist;
@@ -1499,7 +1464,7 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 		else if (la->area_shape == LA_AREA_RECT)
 			fdrawbox(-la->area_size * 0.5f, -la->area_sizey * 0.5f, la->area_size * 0.5f, la->area_sizey * 0.5f);
 
-		glBegin(GL_LINE_STRIP);
+		glBegin(GL_LINES);
 		glVertex3f(0.0, 0.0, -circrad);
 		glVertex3f(0.0, 0.0, -la->dist);
 		glEnd();
@@ -1526,7 +1491,7 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 	if (vec[2] > 0) vec[2] -= circrad;
 	else vec[2] += circrad;
 	
-	glBegin(GL_LINE_STRIP);
+	glBegin(GL_LINES);
 	glVertex3fv(vec);
 	vec[2] = 0;
 	glVertex3fv(vec);
@@ -6308,7 +6273,8 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 									if ((bp->f1 & SELECT) && (bp1->f1 & SELECT)) {
 										UI_ThemeColor(TH_NURB_SEL_ULINE);
 
-										glBegin(GL_LINE_STRIP);
+										/* TODO: pull glBegin out of loop */
+										glBegin(GL_LINES);
 										glVertex3fv(bp->vec);
 										glVertex3fv(bp1->vec);
 										glEnd();
@@ -6321,7 +6287,7 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 									else {
 										UI_ThemeColor(TH_NURB_ULINE);
 
-										glBegin(GL_LINE_STRIP);
+										glBegin(GL_LINES);
 										glVertex3fv(bp->vec);
 										glVertex3fv(bp1->vec);
 										glEnd();
@@ -6343,7 +6309,8 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 										if ((bp->f1 & SELECT) && (bp1->f1 & SELECT)) {
 											UI_ThemeColor(TH_NURB_SEL_VLINE);
 
-											glBegin(GL_LINE_STRIP);
+											/* TODO: pull glBegin out of loop */
+											glBegin(GL_LINE);
 											glVertex3fv(bp->vec);
 											glVertex3fv(bp1->vec);
 											glEnd();
@@ -6356,7 +6323,7 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 										else {
 											UI_ThemeColor(TH_NURB_VLINE);
 
-											glBegin(GL_LINE_STRIP);
+											glBegin(GL_LINES);
 											glVertex3fv(bp->vec);
 											glVertex3fv(bp1->vec);
 											glEnd();
@@ -6519,7 +6486,7 @@ static void draw_editfont(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *b
 		vec1[1] += cu->linedist * cu->fsize;
 		vec2[1] -= cu->lines * cu->linedist * cu->fsize;
 		setlinestyle(3);
-		glBegin(GL_LINE_STRIP);
+		glBegin(GL_LINES);
 		glVertex2fv(vec1);
 		glVertex2fv(vec2);
 		glEnd();
@@ -7028,31 +6995,21 @@ static void draw_forcefield(Object *ob, RegionView3D *rv3d,
 	setlinestyle(0);
 }
 
-static void draw_box(float vec[8][3], bool solid)
+static void draw_box(const float vec[8][3], bool solid)
 {
-	if (!solid) {
-		glBegin(GL_LINE_STRIP);
-		glVertex3fv(vec[0]); glVertex3fv(vec[1]); glVertex3fv(vec[2]); glVertex3fv(vec[3]);
-		glVertex3fv(vec[0]); glVertex3fv(vec[4]); glVertex3fv(vec[5]); glVertex3fv(vec[6]);
-		glVertex3fv(vec[7]); glVertex3fv(vec[4]);
-		glEnd();
-
-		glBegin(GL_LINES);
-		glVertex3fv(vec[1]); glVertex3fv(vec[5]);
-		glVertex3fv(vec[2]); glVertex3fv(vec[6]);
-		glVertex3fv(vec[3]); glVertex3fv(vec[7]);
-		glEnd();
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, vec);
+	
+	if (solid) {
+		const GLubyte indices[24] = {0,1,2,3,7,6,5,4,4,5,1,0,3,2,6,7,3,7,4,0,1,5,6,2};
+		glDrawRangeElements(GL_QUADS, 0, 7, 24, GL_UNSIGNED_BYTE, indices);
 	}
 	else {
-		glBegin(GL_QUADS);
-		glVertex3fv(vec[0]); glVertex3fv(vec[1]); glVertex3fv(vec[2]); glVertex3fv(vec[3]);
-		glVertex3fv(vec[7]); glVertex3fv(vec[6]); glVertex3fv(vec[5]); glVertex3fv(vec[4]);
-		glVertex3fv(vec[4]); glVertex3fv(vec[5]); glVertex3fv(vec[1]); glVertex3fv(vec[0]);
-		glVertex3fv(vec[3]); glVertex3fv(vec[2]); glVertex3fv(vec[6]); glVertex3fv(vec[7]);
-		glVertex3fv(vec[3]); glVertex3fv(vec[7]); glVertex3fv(vec[4]); glVertex3fv(vec[0]);
-		glVertex3fv(vec[1]); glVertex3fv(vec[5]); glVertex3fv(vec[6]); glVertex3fv(vec[2]);
-		glEnd();
+		const GLubyte indices[24] = {0,1,1,2,2,3,3,0,0,4,4,5,5,6,6,7,7,4,1,5,2,6,3,7};
+		glDrawRangeElements(GL_LINES, 0, 7, 24, GL_UNSIGNED_BYTE, indices);
 	}
+
+	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 static void draw_bb_quadric(BoundBox *bb, char type, bool around_origin)

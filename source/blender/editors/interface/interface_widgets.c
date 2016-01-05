@@ -739,18 +739,18 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 		                               wcol->outline[1],
 		                               wcol->outline[2],
 		                               wcol->outline[3] / WIDGET_AA_JITTER};
+		unsigned char emboss[4];
 
 		widget_verts_to_triangle_strip(wtb, wtb->totvert, triangle_strip);
 
 		if (wtb->draw_emboss) {
 			widget_verts_to_triangle_strip_open(wtb, wtb->halfwayvert, triangle_strip_emboss);
+			UI_GetThemeColor4ubv(TH_WIDGET_EMBOSS, emboss);
 		}
 
 		glEnableClientState(GL_VERTEX_ARRAY);
 
 		for (j = 0; j < WIDGET_AA_JITTER; j++) {
-			unsigned char emboss[4];
-
 			glTranslate2fv(jit[j]);
 			
 			/* outline */
@@ -761,8 +761,6 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 			/* emboss bottom shadow */
 			if (wtb->draw_emboss) {
-				UI_GetThemeColor4ubv(TH_WIDGET_EMBOSS, emboss);
-
 				if (emboss[3]) {
 					glColor4ubv(emboss);
 					glVertexPointer(2, GL_FLOAT, 0, triangle_strip_emboss);
@@ -782,19 +780,17 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 		                               wcol->item[1],
 		                               wcol->item[2],
 		                               (unsigned char)((float)wcol->item[3] / WIDGET_AA_JITTER)};
+		glColor4ubv(tcol);
 
 		/* for each AA step */
 		for (j = 0; j < WIDGET_AA_JITTER; j++) {
 			glTranslate2fv(jit[j]);
 
-			if (wtb->tria1.tot) {
-				glColor4ubv(tcol);
+			if (wtb->tria1.tot)
 				widget_trias_draw(&wtb->tria1);
-			}
-			if (wtb->tria2.tot) {
-				glColor4ubv(tcol);
+
+			if (wtb->tria2.tot)
 				widget_trias_draw(&wtb->tria2);
-			}
 		
 			glTranslatef(-jit[j][0], -jit[j][1], 0.0f);
 		}
@@ -2623,12 +2619,12 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 static void ui_draw_separator(const rcti *rect,  uiWidgetColors *wcol)
 {
 	int y = rect->ymin + BLI_rcti_size_y(rect) / 2 - 1;
-	unsigned char col[4];
-	
-	col[0] = wcol->text[0];
-	col[1] = wcol->text[1];
-	col[2] = wcol->text[2];
-	col[3] = 30;
+	unsigned char col[4] = {
+		wcol->text[0],
+		wcol->text[1],
+		wcol->text[2],
+		30
+	};
 	
 	glEnable(GL_BLEND);
 	glColor4ubv(col);
