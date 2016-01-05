@@ -708,6 +708,20 @@ elseif(WIN32)
 				DESTINATION ${BLENDER_VERSION}/python/bin
 				CONFIGURATIONS Debug
 			)
+
+			# MinGW needs Python DLL
+			if(MINGW)
+				install(
+					FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.dll
+					DESTINATION "."
+					CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+				)
+				install(
+					FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}_d.dll
+					DESTINATION "."
+					CONFIGURATIONS Debug
+				)
+			endif()
 		endif()
 
 		unset(_PYTHON_VERSION_NO_DOTS)
