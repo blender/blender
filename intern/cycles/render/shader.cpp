@@ -386,7 +386,7 @@ void ShaderManager::device_update_common(Device *device,
 		shader_flag[i++] = flag;
 		shader_flag[i++] = shader->pass_id;
 
-		has_transparent_shadow |= (flag & SD_HAS_TRANSPARENT_SHADOW);
+		has_transparent_shadow = (flag & SD_HAS_TRANSPARENT_SHADOW) != 0;
 	}
 
 	device->tex_alloc("__shader_flag", dscene->shader_flag);
