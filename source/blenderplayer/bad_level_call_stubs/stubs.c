@@ -278,7 +278,6 @@ void RE_DataBase_GetView(struct Render *re, float mat[4][4]) RET_NONE
 int	externtex(struct MTex *mtex, const float vec[3], float *tin, float *tr, float *tg, float *tb, float *ta, const int thread, struct ImagePool *pool, const bool skip_load_image) RET_ZERO
 float texture_value_blend(float tex, float out, float fact, float facg, int blendtype) RET_ZERO
 void texture_rgb_blend(float in[3], const float tex[3], const float out[3], float fact, float facg, int blendtype) RET_NONE
-const unsigned char stipple_quarttone[128];
 double elbeemEstimateMemreq(int res, float sx, float sy, float sz, int refine, char *retstr) RET_ZERO
 struct Render *RE_NewRender(const char *name) RET_NULL
 void RE_SwapResult(struct Render *re, struct RenderResult **rr) RET_NONE
