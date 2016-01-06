@@ -858,8 +858,10 @@ bool OSLRenderServices::texture(ustring filename,
 	OSLThreadData *tdata = kg->osl_tdata;
 	OIIO::TextureSystem::Perthread *texture_thread_info =
 	       tdata->oiio_thread_info;
-	OIIO::TextureSystem::TextureHandle *texture_handle =
-	       ts->get_texture_handle(filename, texture_thread_info);
+	OIIO::TextureSystem::TextureHandle *texture_handle = NULL;
+	if(filename[0] != '@') {
+		texture_handle = ts->get_texture_handle(filename, texture_thread_info);
+	}
 	return texture(filename,
 	               texture_handle,
 	               texture_thread_info,
@@ -887,8 +889,10 @@ bool OSLRenderServices::texture3d(ustring filename,
 	OSLThreadData *tdata = kg->osl_tdata;
 	OIIO::TextureSystem::Perthread *texture_thread_info =
 	       tdata->oiio_thread_info;
-	OIIO::TextureSystem::TextureHandle *texture_handle =
-	       ts->get_texture_handle(filename, texture_thread_info);
+	OIIO::TextureSystem::TextureHandle *texture_handle = NULL;
+	if(filename[0] != '@') {
+		texture_handle = ts->get_texture_handle(filename, texture_thread_info);
+	}
 	return texture3d(filename,
 	                 texture_handle,
 	                 texture_thread_info,
