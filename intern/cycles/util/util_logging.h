@@ -43,6 +43,8 @@ public:
 
 #endif
 
+#define VLOG_ONCE(level, flag) if(!flag) flag = true, VLOG(level)
+
 struct float3;
 
 void util_logging_init(const char *argv0);

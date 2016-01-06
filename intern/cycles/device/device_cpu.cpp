@@ -181,6 +181,8 @@ public:
 
 	void thread_path_trace(DeviceTask& task)
 	{
+		static bool cpu_type_logged = false;
+
 		if(task_pool.canceled()) {
 			if(task.need_finish_queue == false)
 				return;
@@ -197,31 +199,44 @@ public:
 		void(*path_trace_kernel)(KernelGlobals*, float*, unsigned int*, int, int, int, int, int);
 
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX2
-		if(system_cpu_support_avx2())
+		if(system_cpu_support_avx2()) {
 			path_trace_kernel = kernel_cpu_avx2_path_trace;
+			VLOG_ONCE(1, cpu_type_logged) << "Path tracing using AVX2 kernel.";
+		}
 		else
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX
-		if(system_cpu_support_avx())
+		if(system_cpu_support_avx()) {
 			path_trace_kernel = kernel_cpu_avx_path_trace;
+			VLOG_ONCE(1, cpu_type_logged) << "Path tracing using AVX kernel.";
+		}
 		else
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE41
-		if(system_cpu_support_sse41())
+		if(system_cpu_support_sse41()) {
 			path_trace_kernel = kernel_cpu_sse41_path_trace;
+			VLOG_ONCE(1, cpu_type_logged) << "Path tracing using SSE4.1 kernel.";
+		}
 		else
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
-		if(system_cpu_support_sse3())
+		if(system_cpu_support_sse3()) {
 			path_trace_kernel = kernel_cpu_sse3_path_trace;
+			VLOG_ONCE(1, cpu_type_logged) << "Path tracing using SSE3 kernel.";
+		}
 		else
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
-		if(system_cpu_support_sse2())
+		if(system_cpu_support_sse2()) {
 			path_trace_kernel = kernel_cpu_sse2_path_trace;
+			VLOG_ONCE(1, cpu_type_logged) << "Path tracing using SSE2 kernel.";
+		}
 		else
 #endif
+		{
 			path_trace_kernel = kernel_cpu_path_trace;
+			VLOG_ONCE(1, cpu_type_logged) << "Path tracing using regular kernel.";
+		}
 		
 		while(task.acquire_tile(this, tile)) {
 			float *render_buffer = (float*)tile.buffer;
@@ -262,36 +277,50 @@ public:
 
 	void thread_film_convert(DeviceTask& task)
 	{
+		static bool cpu_type_logged = false;
 		float sample_scale = 1.0f/(task.sample + 1);
 
 		if(task.rgba_half) {
 			void(*convert_to_half_float_kernel)(KernelGlobals *, uchar4 *, float *, float, int, int, int, int);
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX2
-			if(system_cpu_support_avx2())
+			if(system_cpu_support_avx2()) {
 				convert_to_half_float_kernel = kernel_cpu_avx2_convert_to_half_float;
+				VLOG_ONCE(1, cpu_type_logged) << "Converting to half float using AVX2 kernel.";
+			}
 			else
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX
-			if(system_cpu_support_avx())
+			if(system_cpu_support_avx()) {
 				convert_to_half_float_kernel = kernel_cpu_avx_convert_to_half_float;
+				VLOG_ONCE(1, cpu_type_logged) << "Converting to half float using AVX kernel.";
+			}
 			else
 #endif	
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE41			
-			if(system_cpu_support_sse41())
+			if(system_cpu_support_sse41()) {
 				convert_to_half_float_kernel = kernel_cpu_sse41_convert_to_half_float;
+				VLOG_ONCE(1, cpu_type_logged) << "Converting to half float using SSE4.1 kernel.";
+			}
 			else
 #endif		
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE3		
-			if(system_cpu_support_sse3())
+			if(system_cpu_support_sse3()) {
 				convert_to_half_float_kernel = kernel_cpu_sse3_convert_to_half_float;
+				VLOG_ONCE(1, cpu_type_logged) << "Converting to half float using SSE3 kernel.";
+			}
 			else
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
-			if(system_cpu_support_sse2())
+			if(system_cpu_support_sse2()) {
 				convert_to_half_float_kernel = kernel_cpu_sse2_convert_to_half_float;
+				VLOG_ONCE(1, cpu_type_logged) << "Converting to half float using SSE2 kernel.";
+			}
 			else
 #endif
+			{
 				convert_to_half_float_kernel = kernel_cpu_convert_to_half_float;
+				VLOG_ONCE(1, cpu_type_logged) << "Converting to half float using regular kernel.";
+			}
 
 			for(int y = task.y; y < task.y + task.h; y++)
 				for(int x = task.x; x < task.x + task.w; x++)
@@ -301,31 +330,44 @@ public:
 		else {
 			void(*convert_to_byte_kernel)(KernelGlobals *, uchar4 *, float *, float, int, int, int, int);
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX2
-			if(system_cpu_support_avx2())
+			if(system_cpu_support_avx2()) {
 				convert_to_byte_kernel = kernel_cpu_avx2_convert_to_byte;
+				VLOG_ONCE(1, cpu_type_logged) << "Converting to byte using AVX2 kernel.";
+			}
 			else
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX
-			if(system_cpu_support_avx())
+			if(system_cpu_support_avx()) {
 				convert_to_byte_kernel = kernel_cpu_avx_convert_to_byte;
+				VLOG_ONCE(1, cpu_type_logged) << "Converting to byte using AVX kernel.";
+			}
 			else
 #endif		
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE41			
-			if(system_cpu_support_sse41())
+			if(system_cpu_support_sse41()) {
 				convert_to_byte_kernel = kernel_cpu_sse41_convert_to_byte;
+				VLOG_ONCE(1, cpu_type_logged) << "Converting to byte using SSE4.1 kernel.";
+			}
 			else
 #endif			
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
-			if(system_cpu_support_sse3())
+			if(system_cpu_support_sse3()) {
 				convert_to_byte_kernel = kernel_cpu_sse3_convert_to_byte;
+				VLOG_ONCE(1, cpu_type_logged) << "Converting to byte using SSE3 kernel.";
+			}
 			else
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
-			if(system_cpu_support_sse2())
+			if(system_cpu_support_sse2()) {
 				convert_to_byte_kernel = kernel_cpu_sse2_convert_to_byte;
+				VLOG_ONCE(1, cpu_type_logged) << "Converting to byte using SSE2 kernel.";
+			}
 			else
 #endif
+			{
 				convert_to_byte_kernel = kernel_cpu_convert_to_byte;
+				VLOG_ONCE(1, cpu_type_logged) << "Converting to byte using regular kernel.";
+			}
 
 			for(int y = task.y; y < task.y + task.h; y++)
 				for(int x = task.x; x < task.x + task.w; x++)
@@ -338,6 +380,7 @@ public:
 	void thread_shader(DeviceTask& task)
 	{
 		KernelGlobals kg = kernel_globals;
+		static bool cpu_type_logged = false;
 
 #ifdef WITH_OSL
 		OSLShader::thread_init(&kg, &kernel_globals, &osl_globals);
@@ -345,31 +388,44 @@ public:
 		void(*shader_kernel)(KernelGlobals*, uint4*, float4*, float*, int, int, int, int);
 
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX2
-		if(system_cpu_support_avx2())
+		if(system_cpu_support_avx2()) {
 			shader_kernel = kernel_cpu_avx2_shader;
+			VLOG_ONCE(1, cpu_type_logged) << "Shading using AVX2 kernel.";
+		}
 		else
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX
-		if(system_cpu_support_avx())
+		if(system_cpu_support_avx()) {
 			shader_kernel = kernel_cpu_avx_shader;
+			VLOG_ONCE(1, cpu_type_logged) << "Shading using AVX kernel.";
+		}
 		else
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE41			
-		if(system_cpu_support_sse41())
+		if(system_cpu_support_sse41()) {
 			shader_kernel = kernel_cpu_sse41_shader;
+			VLOG_ONCE(1, cpu_type_logged) << "Shading using SSE4.1 kernel.";
+		}
 		else
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
-		if(system_cpu_support_sse3())
+		if(system_cpu_support_sse3()) {
 			shader_kernel = kernel_cpu_sse3_shader;
+			VLOG_ONCE(1, cpu_type_logged) << "Shading using SSE3 kernel.";
+		}
 		else
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
-		if(system_cpu_support_sse2())
+		if(system_cpu_support_sse2()) {
 			shader_kernel = kernel_cpu_sse2_shader;
+			VLOG_ONCE(1, cpu_type_logged) << "Shading using SSE2 kernel.";
+		}
 		else
 #endif
+		{
 			shader_kernel = kernel_cpu_shader;
+			VLOG_ONCE(1, cpu_type_logged) << "Shading using regular kernel.";
+		}
 
 		for(int sample = 0; sample < task.num_samples; sample++) {
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++)
