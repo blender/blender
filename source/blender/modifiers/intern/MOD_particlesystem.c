@@ -36,6 +36,7 @@
 #include <stddef.h>
 
 #include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 
 #include "BLI_utildefines.h"
 
@@ -60,11 +61,11 @@ static void freeData(ModifierData *md)
 	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
 
 	if (psmd->dm_final) {
-		psmd->dm_final->needsFree = 1;
+		psmd->dm_final->needsFree = true;
 		psmd->dm_final->release(psmd->dm_final);
 		psmd->dm_final = NULL;
 		if (psmd->dm_deformed) {
-			psmd->dm_deformed->needsFree = 1;
+			psmd->dm_deformed->needsFree = true;
 			psmd->dm_deformed->release(psmd->dm_deformed);
 			psmd->dm_deformed = NULL;
 		}
@@ -105,7 +106,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	DerivedMesh *dm = derivedData;
 	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
 	ParticleSystem *psys = NULL;
-	int needsFree = 0;
+	bool needsFree = false;
 	/* float cfra = BKE_scene_frame_get(md->scene); */  /* UNUSED */
 
 	if (ob->particlesystem.first)
@@ -122,12 +123,12 @@ static void deformVerts(ModifierData *md, Object *ob,
 		if (!dm)
 			return;
 
-		needsFree = 1;
+		needsFree = true;
 	}
 
 	/* clear old dm */
 	if (psmd->dm_final) {
-		psmd->dm_final->needsFree = 1;
+		psmd->dm_final->needsFree = true;
 		psmd->dm_final->release(psmd->dm_final);
 		if (psmd->dm_deformed) {
 			psmd->dm_deformed->needsFree = 1;
@@ -150,25 +151,23 @@ static void deformVerts(ModifierData *md, Object *ob,
 	CDDM_calc_normals(psmd->dm_final);
 
 	if (needsFree) {
-		dm->needsFree = 1;
+		dm->needsFree = true;
 		dm->release(dm);
 	}
 
 	/* protect dm */
-	psmd->dm_final->needsFree = 0;
+	psmd->dm_final->needsFree = false;
 
 	DM_ensure_tessface(psmd->dm_final);
 
 	if (!psmd->dm_final->deformedOnly) {
 		/* XXX Think we can assume here that if current DM is not only-deformed, ob->deformedOnly has been set.
 		 *     This is awfully weak though. :| */
-		dm = ob->derivedDeform;
-		if (!dm) {
-			/* Can happen, e.g. when rendering from Edit mode... */
-			psmd->dm_deformed = get_dm(ob, NULL, NULL, vertexCos, false, true);
+		if (ob->derivedDeform) {
+			psmd->dm_deformed = CDDM_copy(ob->derivedDeform);
 		}
-		else {
-			psmd->dm_deformed = CDDM_copy(dm);
+		else {  /* Can happen in some cases, e.g. when rendering from Edit mode... */
+			psmd->dm_deformed = CDDM_from_mesh((Mesh *)ob->data);
 		}
 		DM_ensure_tessface(psmd->dm_deformed);
 	}
