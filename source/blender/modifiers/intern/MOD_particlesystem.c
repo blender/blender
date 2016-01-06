@@ -162,7 +162,12 @@ static void deformVerts(ModifierData *md, Object *ob,
 	if (!psmd->dm_final->deformedOnly) {
 		/* XXX Think we can assume here that if current DM is not only-deformed, ob->deformedOnly has been set.
 		 *     This is awfully weak though. :| */
-		psmd->dm_deformed = CDDM_copy(ob->derivedDeform);
+		dm = ob->derivedDeform;
+		if (!dm) {
+			/* Can happen, e.g. when rendering from Edit mode... */
+			dm = get_dm(ob, NULL, NULL, vertexCos, false, true);
+		}
+		psmd->dm_deformed = CDDM_copy(dm);
 		DM_ensure_tessface(psmd->dm_deformed);
 	}
 
