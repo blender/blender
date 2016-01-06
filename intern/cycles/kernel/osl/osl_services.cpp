@@ -1024,6 +1024,11 @@ bool OSLRenderServices::texture(ustring filename,
 			if(nchannels == 4)
 				result[3] = 1.0f;
 		}
+		/* This might be slow, but prevents error messages leak and
+		 * other nasty stuff happening.
+		 */
+		string err = ts->geterror();
+		(void)err;
 	}
 
 	return status;
@@ -1110,7 +1115,11 @@ bool OSLRenderServices::texture3d(ustring filename,
 			if(nchannels == 4)
 				result[3] = 1.0f;
 		}
-
+		/* This might be slow, but prevents error messages leak and
+		 * other nasty stuff happening.
+		 */
+		string err = ts->geterror();
+		(void)err;
 	}
 
 	return status;
