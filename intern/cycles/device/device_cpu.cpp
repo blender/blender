@@ -273,7 +273,6 @@ public:
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX
 			if(system_cpu_support_avx())
-				for(int y = task.y; y < task.y + task.h; y++)
 				convert_to_half_float_kernel = kernel_cpu_avx_convert_to_half_float;
 			else
 #endif	
