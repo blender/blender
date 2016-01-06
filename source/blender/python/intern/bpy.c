@@ -45,6 +45,7 @@
 #include "bpy_util.h"
 #include "bpy_rna.h"
 #include "bpy_app.h"
+#include "bpy_rna_id_collection.h"
 #include "bpy_props.h"
 #include "bpy_library.h"
 #include "bpy_operator.h"
@@ -322,6 +323,7 @@ void BPy_init_modules(void)
 
 	/* needs to be first so bpy_types can run */
 	BPY_library_module(mod);
+	BPY_rna_id_collection_module(mod);
 
 	bpy_import_test("bpy_types");
 	PyModule_AddObject(mod, "data", BPY_rna_module()); /* imports bpy_types by running this */

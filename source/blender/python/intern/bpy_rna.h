@@ -184,6 +184,11 @@ bool      pyrna_id_FromPyObject(PyObject *obj, struct ID **id);
 int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, int all_args, const char *error_prefix);
 PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
 
+unsigned int *pyrna_set_to_enum_bitmap(
+        struct EnumPropertyItem *items, PyObject *value,
+        int type_size, bool type_convert_sign,
+        int bitmap_size,
+        const char *error_prefix);
 PyObject *pyrna_enum_bitfield_to_py(struct EnumPropertyItem *items, int value);
 int pyrna_set_to_enum_bitfield(EnumPropertyItem *items, PyObject *value, int *r_value, const char *error_prefix);
 

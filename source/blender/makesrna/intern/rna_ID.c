@@ -90,6 +90,7 @@ EnumPropertyItem rna_enum_id_type_items[] = {
 #include "BKE_font.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
+#include "BKE_library_query.h"
 #include "BKE_animsys.h"
 #include "BKE_material.h"
 #include "BKE_depsgraph.h"
@@ -975,6 +976,14 @@ static void rna_def_ID(BlenderRNA *brna)
 	func = RNA_def_function(srna, "user_clear", "rna_ID_user_clear");
 	RNA_def_function_ui_description(func, "Clear the user count of a data-block so its not saved, "
 	                                "on reload the data will be removed");
+
+	func = RNA_def_function(srna, "user_of_id", "BKE_library_ID_use_ID");
+	RNA_def_function_ui_description(func, "Count the number of times that ID uses/references given one");
+	parm = RNA_def_pointer(func, "id", "ID", "", "ID to count usages");
+	RNA_def_property_flag(parm, PROP_NEVER_NULL);
+	parm = RNA_def_int(func, "count", 0, 0, INT_MAX,
+	                   "", "Number of usages/references of given id by current datablock", 0, INT_MAX);
+	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "animation_data_create", "rna_ID_animation_data_create");
 	RNA_def_function_flag(func, FUNC_USE_MAIN);

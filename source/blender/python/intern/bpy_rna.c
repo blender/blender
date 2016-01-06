@@ -37,6 +37,7 @@
 
 #include "RNA_types.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_dynstr.h"
 #include "BLI_string.h"
 #include "BLI_listbase.h"
@@ -1174,6 +1175,69 @@ static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *pr
 	}
 
 	return 0;
+}
+
+/**
+ * Takes a set of strings and map it to and array of booleans.
+ *
+ * Useful when the values aren't flags.
+ *
+ * \param type_convert_sign: Maps signed to unsuigned range,
+ * needed when we want to use the full range of a signed short/char.
+ */
+BLI_bitmap *pyrna_set_to_enum_bitmap(
+        EnumPropertyItem *items, PyObject *value,
+        int type_size, bool type_convert_sign,
+        int bitmap_size,
+        const char *error_prefix)
+{
+	/* set looping */
+	Py_ssize_t pos = 0;
+	Py_ssize_t hash = 0;
+	PyObject *key;
+
+	BLI_bitmap *bitmap = BLI_BITMAP_NEW(bitmap_size, __func__);
+
+	while (_PySet_NextEntry(value, &pos, &key, &hash)) {
+		const char *param = _PyUnicode_AsString(key);
+		if (param == NULL) {
+			PyErr_Format(PyExc_TypeError,
+			             "%.200s expected a string, not %.200s",
+			             error_prefix, Py_TYPE(key)->tp_name);
+			goto error;
+		}
+
+		int ret;
+		if (pyrna_enum_value_from_id(items, param, &ret, error_prefix) == -1) {
+			goto error;
+		}
+
+		int index = ret;
+
+		if (type_convert_sign) {
+			if (type_size == 2) {
+				union { signed short as_signed; unsigned short as_unsigned; } ret_convert;
+				ret_convert.as_signed = (signed short)ret;
+				index = (int)ret_convert.as_unsigned;
+			}
+			else if (type_size == 1) {
+				union { signed char as_signed; unsigned char as_unsigned; } ret_convert;
+				ret_convert.as_signed = (signed char)ret;
+				index = (int)ret_convert.as_unsigned;
+			}
+			else {
+				BLI_assert(0);
+			}
+		}
+		BLI_assert(index < bitmap_size);
+		BLI_BITMAP_ENABLE(bitmap, index);
+	}
+
+	return bitmap;
+
+error:
+	MEM_freeN(bitmap);
+	return NULL;
 }
 
 /* 'value' _must_ be a set type, error check before calling */

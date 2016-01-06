@@ -665,3 +665,49 @@ void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cd_flag)
 		id_us_ensure_real(id_dst);
 	}
 }
+
+/* ***** ID users iterator. ***** */
+typedef struct IDUsersIter {
+	ID *id;
+
+	ListBase *lb_array[MAX_LIBARRAY];
+	int lb_idx;
+
+	ID *curr_id;
+	int count;  /* Set by callback. */
+} IDUsersIter;
+
+static bool foreach_libblock_id_users_callback(void *user_data, ID **id_p, int UNUSED(cb_flag))
+{
+	IDUsersIter *iter = user_data;
+
+	if (*id_p && (*id_p == iter->id)) {
+		iter->count++;
+	}
+
+	return true;
+}
+
+/**
+ * Return the number of times given \a id_user uses/references \a id_used.
+ *
+ * \note This only checks for pointer references of an ID, shallow usages (like e.g. by RNA paths, as done
+ *       for FCurves) are not detected at all.
+ *
+ * \param id_user the ID which is supposed to use (reference) \a id_used.
+ * \param id_used the ID which is supposed to be used (referenced) by \a id_user.
+ * \return the number of direct usages/references of \a id_used by \a id_user.
+ */
+int BKE_library_ID_use_ID(ID *id_user, ID *id_used)
+{
+	IDUsersIter iter;
+
+	/* We do not care about iter.lb_array/lb_idx here... */
+	iter.id = id_used;
+	iter.curr_id = id_user;
+	iter.count = 0;
+
+	BKE_library_foreach_ID_link(iter.curr_id, foreach_libblock_id_users_callback, (void *)&iter, IDWALK_NOP);
+
+	return iter.count;
+}
