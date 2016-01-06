@@ -229,8 +229,8 @@ bool opencl_device_version_check(cl_device_id device,
 void opencl_get_usable_devices(vector<OpenCLPlatformDevice> *usable_devices)
 {
 	const bool force_all_platforms =
-	        (getenv("CYCLES_OPENCL_TEST") != NULL) ||
-	        (getenv("CYCLES_OPENCL_SPLIT_KERNEL_TEST")) != NULL;
+	        (getenv("CYCLES_OPENCL_MEGA_KERNEL_TEST") != NULL) ||
+	        (getenv("CYCLES_OPENCL_SPLIT_KERNEL_TEST") != NULL);
 	const cl_device_type device_type = opencl_device_type();
 	static bool first_time = true;
 #define FIRST_VLOG(severity) if(first_time) VLOG(severity)
