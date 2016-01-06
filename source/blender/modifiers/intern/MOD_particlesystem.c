@@ -165,9 +165,11 @@ static void deformVerts(ModifierData *md, Object *ob,
 		dm = ob->derivedDeform;
 		if (!dm) {
 			/* Can happen, e.g. when rendering from Edit mode... */
-			dm = get_dm(ob, NULL, NULL, vertexCos, false, true);
+			psmd->dm_deformed = get_dm(ob, NULL, NULL, vertexCos, false, true);
 		}
-		psmd->dm_deformed = CDDM_copy(dm);
+		else {
+			psmd->dm_deformed = CDDM_copy(dm);
+		}
 		DM_ensure_tessface(psmd->dm_deformed);
 	}
 
