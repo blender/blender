@@ -168,6 +168,7 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 				                               &ss_isect,
 				                               hit,
 				                               &bssrdf_sd,
+				                               state,
 				                               state->flag,
 				                               sc,
 				                               true);
@@ -288,7 +289,7 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 			VolumeSegment volume_segment;
 			ShaderData volume_sd;
 
-			shader_setup_from_volume(kg, &volume_sd, &volume_ray, state.bounce, state.transparent_bounce);
+			shader_setup_from_volume(kg, &volume_sd, &volume_ray);
 			kernel_volume_decoupled_record(kg, &state,
 				&volume_ray, &volume_sd, &volume_segment, heterogeneous);
 
@@ -440,8 +441,8 @@ ccl_device float4 kernel_branched_path_integrate(KernelGlobals *kg, RNG *rng, in
 
 		/* setup shading */
 		ShaderData sd;
-		shader_setup_from_ray(kg, &sd, &isect, &ray, state.bounce, state.transparent_bounce);
-		shader_eval_surface(kg, &sd, 0.0f, state.flag, SHADER_CONTEXT_MAIN);
+		shader_setup_from_ray(kg, &sd, &isect, &ray);
+		shader_eval_surface(kg, &sd, &state, 0.0f, state.flag, SHADER_CONTEXT_MAIN);
 		shader_merge_closures(&sd);
 
 		/* holdout */

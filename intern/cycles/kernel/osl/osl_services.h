@@ -170,6 +170,7 @@ public:
 	static ustring u_path_ray_length;
 	static ustring u_path_ray_depth;
 	static ustring u_path_transparent_depth;
+	static ustring u_path_transmission_depth;
 	static ustring u_trace;
 	static ustring u_hit;
 	static ustring u_hitdist;

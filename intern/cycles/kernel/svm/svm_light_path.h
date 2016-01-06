@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Light Path Node */
 
-ccl_device void svm_node_light_path(ShaderData *sd, float *stack, uint type, uint out_offset, int path_flag)
+ccl_device void svm_node_light_path(ShaderData *sd, ccl_addr_space PathState *state, float *stack, uint type, uint out_offset, int path_flag)
 {
 	float info = 0.0f;
 
@@ -33,8 +33,9 @@ ccl_device void svm_node_light_path(ShaderData *sd, float *stack, uint type, uin
 		case NODE_LP_volume_scatter: info = (path_flag & PATH_RAY_VOLUME_SCATTER)? 1.0f: 0.0f; break;
 		case NODE_LP_backfacing: info = (ccl_fetch(sd, flag) & SD_BACKFACING)? 1.0f: 0.0f; break;
 		case NODE_LP_ray_length: info = ccl_fetch(sd, ray_length); break;
-		case NODE_LP_ray_depth: info = (float)ccl_fetch(sd, ray_depth); break;
-		case NODE_LP_ray_transparent: info = (float)ccl_fetch(sd, transparent_depth); break;
+		case NODE_LP_ray_depth: info = (float)state->bounce; break;
+		case NODE_LP_ray_transparent: info = (float)state->transparent_bounce; break;
+		case NODE_LP_ray_transmission: info = (float)state->transmission_bounce; break;
 	}
 
 	stack_store_float(stack, out_offset, info);

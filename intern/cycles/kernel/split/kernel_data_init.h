@@ -94,12 +94,6 @@ ccl_device void kernel_data_init(
         ccl_global float *ray_length_sd,
         ccl_global float *ray_length_sd_DL_shadow,
 
-        ccl_global int *ray_depth_sd,
-        ccl_global int *ray_depth_sd_DL_shadow,
-
-        ccl_global int *transparent_depth_sd,
-        ccl_global int *transparent_depth_sd_DL_shadow,
-
         /* Ray differentials. */
         ccl_global differential3 *dP_sd,
         ccl_global differential3 *dP_sd_DL_shadow,
@@ -218,12 +212,6 @@ ccl_device void kernel_data_init(
 
 	sd->ray_length = ray_length_sd;
 	sd_DL_shadow->ray_length = ray_length_sd_DL_shadow;
-
-	sd->ray_depth = ray_depth_sd;
-	sd_DL_shadow->ray_depth = ray_depth_sd_DL_shadow;
-
-	sd->transparent_depth = transparent_depth_sd;
-	sd_DL_shadow->transparent_depth = transparent_depth_sd_DL_shadow;
 
 #ifdef __RAY_DIFFERENTIALS__
 	sd->dP = dP_sd;

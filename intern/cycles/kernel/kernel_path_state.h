@@ -168,5 +168,15 @@ ccl_device_inline float path_state_terminate_probability(KernelGlobals *kg, ccl_
 	return average(throughput); /* todo: try using max here */
 }
 
+/* TODO(DingTo): Find more meaningful name for this */
+ccl_device_inline void path_state_modify_bounce(ccl_addr_space PathState *state, bool increase)
+{
+	/* Modify bounce temporarily for shader eval */
+	if(increase)
+		state->bounce += 1;
+	else
+		state->bounce -= 1;
+}
+
 CCL_NAMESPACE_END
 

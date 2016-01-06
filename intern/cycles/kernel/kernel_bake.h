@@ -46,7 +46,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 
 	/* evaluate surface shader */
 	float rbsdf = path_state_rng_1D(kg, &rng, &state, PRNG_BSDF);
-	shader_eval_surface(kg, sd, rbsdf, state.flag, SHADER_CONTEXT_MAIN);
+	shader_eval_surface(kg, sd, &state, rbsdf, state.flag, SHADER_CONTEXT_MAIN);
 
 	/* TODO, disable the closures we won't need */
 
@@ -212,6 +212,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
                                      ShaderEvalType type, int i, int offset, int sample)
 {
 	ShaderData sd;
+	PathState state = {0};
 	uint4 in = input[i * 2];
 	uint4 diff = input[i * 2 + 1];
 
@@ -262,13 +263,11 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 	float3 I = Ng;
 	float t = 0.0f;
 	float time = TIME_INVALID;
-	int bounce = 0;
-	int transparent_bounce = 0;
 
 	/* light passes */
 	PathRadiance L;
 
-	shader_setup_from_sample(kg, &sd, P, Ng, I, shader, object, prim, u, v, t, time, bounce, transparent_bounce);
+	shader_setup_from_sample(kg, &sd, P, Ng, I, shader, object, prim, u, v, t, time);
 	sd.I = sd.N;
 
 	/* update differentials */
@@ -294,7 +293,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 		case SHADER_EVAL_NORMAL:
 		{
 			if((sd.flag & SD_HAS_BUMP)) {
-				shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
+				shader_eval_surface(kg, &sd, &state, 0.f, 0, SHADER_CONTEXT_MAIN);
 			}
 
 			/* compression: normal = (2 * color) - 1 */
@@ -308,33 +307,33 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 		}
 		case SHADER_EVAL_DIFFUSE_COLOR:
 		{
-			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
+			shader_eval_surface(kg, &sd, &state, 0.f, 0, SHADER_CONTEXT_MAIN);
 			out = shader_bsdf_diffuse(kg, &sd);
 			break;
 		}
 		case SHADER_EVAL_GLOSSY_COLOR:
 		{
-			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
+			shader_eval_surface(kg, &sd, &state, 0.f, 0, SHADER_CONTEXT_MAIN);
 			out = shader_bsdf_glossy(kg, &sd);
 			break;
 		}
 		case SHADER_EVAL_TRANSMISSION_COLOR:
 		{
-			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
+			shader_eval_surface(kg, &sd, &state, 0.f, 0, SHADER_CONTEXT_MAIN);
 			out = shader_bsdf_transmission(kg, &sd);
 			break;
 		}
 		case SHADER_EVAL_SUBSURFACE_COLOR:
 		{
 #ifdef __SUBSURFACE__
-			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
+			shader_eval_surface(kg, &sd, &state, 0.f, 0, SHADER_CONTEXT_MAIN);
 			out = shader_bsdf_subsurface(kg, &sd);
 #endif
 			break;
 		}
 		case SHADER_EVAL_EMISSION:
 		{
-			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_EMISSION);
+			shader_eval_surface(kg, &sd, &state, 0.f, 0, SHADER_CONTEXT_EMISSION);
 			out = shader_emissive_eval(kg, &sd);
 			break;
 		}
@@ -358,52 +357,52 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 		}
 		case SHADER_EVAL_DIFFUSE_DIRECT:
 		{
-			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
+			shader_eval_surface(kg, &sd, &state, 0.f, 0, SHADER_CONTEXT_MAIN);
 			out = safe_divide_color(L.direct_diffuse, shader_bsdf_diffuse(kg, &sd));
 			break;
 		}
 		case SHADER_EVAL_GLOSSY_DIRECT:
 		{
-			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
+			shader_eval_surface(kg, &sd, &state, 0.f, 0, SHADER_CONTEXT_MAIN);
 			out = safe_divide_color(L.direct_glossy, shader_bsdf_glossy(kg, &sd));
 			break;
 		}
 		case SHADER_EVAL_TRANSMISSION_DIRECT:
 		{
-			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
+			shader_eval_surface(kg, &sd, &state, 0.f, 0, SHADER_CONTEXT_MAIN);
 			out = safe_divide_color(L.direct_transmission, shader_bsdf_transmission(kg, &sd));
 			break;
 		}
 		case SHADER_EVAL_SUBSURFACE_DIRECT:
 		{
 #ifdef __SUBSURFACE__
-			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
+			shader_eval_surface(kg, &sd, &state, 0.f, 0, SHADER_CONTEXT_MAIN);
 			out = safe_divide_color(L.direct_subsurface, shader_bsdf_subsurface(kg, &sd));
 #endif
 			break;
 		}
 		case SHADER_EVAL_DIFFUSE_INDIRECT:
 		{
-			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
+			shader_eval_surface(kg, &sd, &state, 0.f, 0, SHADER_CONTEXT_MAIN);
 			out = safe_divide_color(L.indirect_diffuse, shader_bsdf_diffuse(kg, &sd));
 			break;
 		}
 		case SHADER_EVAL_GLOSSY_INDIRECT:
 		{
-			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
+			shader_eval_surface(kg, &sd, &state, 0.f, 0, SHADER_CONTEXT_MAIN);
 			out = safe_divide_color(L.indirect_glossy, shader_bsdf_glossy(kg, &sd));
 			break;
 		}
 		case SHADER_EVAL_TRANSMISSION_INDIRECT:
 		{
-			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
+			shader_eval_surface(kg, &sd, &state, 0.f, 0, SHADER_CONTEXT_MAIN);
 			out = safe_divide_color(L.indirect_transmission, shader_bsdf_transmission(kg, &sd));
 			break;
 		}
 		case SHADER_EVAL_SUBSURFACE_INDIRECT:
 		{
 #ifdef __SUBSURFACE__
-			shader_eval_surface(kg, &sd, 0.f, 0, SHADER_CONTEXT_MAIN);
+			shader_eval_surface(kg, &sd, &state, 0.f, 0, SHADER_CONTEXT_MAIN);
 			out = safe_divide_color(L.indirect_subsurface, shader_bsdf_subsurface(kg, &sd));
 #endif
 			break;
@@ -429,11 +428,11 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 #endif
 
 			/* setup shader data */
-			shader_setup_from_background(kg, &sd, &ray, 0, 0);
+			shader_setup_from_background(kg, &sd, &ray);
 
 			/* evaluate */
 			int flag = 0; /* we can't know which type of BSDF this is for */
-			out = shader_eval_background(kg, &sd, flag, SHADER_CONTEXT_MAIN);
+			out = shader_eval_background(kg, &sd, &state, flag, SHADER_CONTEXT_MAIN);
 			break;
 		}
 		default:
@@ -462,6 +461,7 @@ ccl_device void kernel_shader_evaluate(KernelGlobals *kg,
                                        int sample)
 {
 	ShaderData sd;
+	PathState state = {0};
 	uint4 in = input[i];
 	float3 out;
 
@@ -476,7 +476,7 @@ ccl_device void kernel_shader_evaluate(KernelGlobals *kg,
 
 		/* evaluate */
 		float3 P = sd.P;
-		shader_eval_displacement(kg, &sd, SHADER_CONTEXT_MAIN);
+		shader_eval_displacement(kg, &sd, &state, SHADER_CONTEXT_MAIN);
 		out = sd.P - P;
 	}
 	else { // SHADER_EVAL_BACKGROUND
@@ -498,11 +498,11 @@ ccl_device void kernel_shader_evaluate(KernelGlobals *kg,
 #endif
 
 		/* setup shader data */
-		shader_setup_from_background(kg, &sd, &ray, 0, 0);
+		shader_setup_from_background(kg, &sd, &ray);
 
 		/* evaluate */
 		int flag = 0; /* we can't know which type of BSDF this is for */
-		out = shader_eval_background(kg, &sd, flag, SHADER_CONTEXT_MAIN);
+		out = shader_eval_background(kg, &sd, &state, flag, SHADER_CONTEXT_MAIN);
 	}
 	
 	/* write output */

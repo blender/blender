@@ -1920,10 +1920,6 @@ public:
 	cl_mem time_sd_DL_shadow;
 	cl_mem ray_length_sd;
 	cl_mem ray_length_sd_DL_shadow;
-	cl_mem ray_depth_sd;
-	cl_mem ray_depth_sd_DL_shadow;
-	cl_mem transparent_depth_sd;
-	cl_mem transparent_depth_sd_DL_shadow;
 
 	/* Ray differentials. */
 	cl_mem dP_sd, dI_sd;
@@ -2073,10 +2069,6 @@ public:
 		time_sd_DL_shadow = NULL;
 		ray_length_sd = NULL;
 		ray_length_sd_DL_shadow = NULL;
-		ray_depth_sd = NULL;
-		ray_depth_sd_DL_shadow = NULL;
-		transparent_depth_sd = NULL;
-		transparent_depth_sd_DL_shadow = NULL;
 
 		/* Ray differentials. */
 		dP_sd = NULL;
@@ -2417,10 +2409,6 @@ public:
 		release_mem_object_safe(time_sd_DL_shadow);
 		release_mem_object_safe(ray_length_sd);
 		release_mem_object_safe(ray_length_sd_DL_shadow);
-		release_mem_object_safe(ray_depth_sd);
-		release_mem_object_safe(ray_depth_sd_DL_shadow);
-		release_mem_object_safe(transparent_depth_sd);
-		release_mem_object_safe(transparent_depth_sd_DL_shadow);
 
 		/* Ray differentials. */
 		release_mem_object_safe(dP_sd);
@@ -2619,10 +2607,6 @@ public:
 			time_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float));
 			ray_length_sd = mem_alloc(num_global_elements * sizeof(float));
 			ray_length_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(float));
-			ray_depth_sd = mem_alloc(num_global_elements * sizeof(int));
-			ray_depth_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(int));
-			transparent_depth_sd = mem_alloc(num_global_elements * sizeof(int));
-			transparent_depth_sd_DL_shadow = mem_alloc(num_global_elements * 2 * sizeof(int));
 
 			/* Ray differentials. */
 			dP_sd = mem_alloc(num_global_elements * sizeof(differential3));
@@ -2725,11 +2709,7 @@ public:
 			                time_sd,
 			                time_sd_DL_shadow,
 			                ray_length_sd,
-			                ray_length_sd_DL_shadow,
-			                ray_depth_sd,
-			                ray_depth_sd_DL_shadow,
-			                transparent_depth_sd,
-			                transparent_depth_sd_DL_shadow);
+			                ray_length_sd_DL_shadow);
 
 		/* Ray differentials. */
 		start_arg_index +=

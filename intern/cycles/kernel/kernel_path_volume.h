@@ -44,7 +44,7 @@ ccl_device void kernel_path_volume_connect_light(KernelGlobals *kg, RNG *rng,
 	if(ls.pdf == 0.0f)
 		return;
 	
-	if(direct_emission(kg, sd, &ls, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
+	if(direct_emission(kg, sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
 		/* trace shadow ray */
 		float3 shadow;
 
@@ -160,7 +160,7 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 				if(ls.pdf == 0.0f)
 					continue;
 
-				if(direct_emission(kg, sd, &ls, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
+				if(direct_emission(kg, sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
 					/* trace shadow ray */
 					float3 shadow;
 
@@ -211,7 +211,7 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 				if(ls.pdf == 0.0f)
 					continue;
 
-				if(direct_emission(kg, sd, &ls, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
+				if(direct_emission(kg, sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
 					/* trace shadow ray */
 					float3 shadow;
 
@@ -251,7 +251,7 @@ ccl_device void kernel_branched_path_volume_connect_light(KernelGlobals *kg, RNG
 			return;
 
 		/* sample random light */
-		if(direct_emission(kg, sd, &ls, &light_ray, &L_light, &is_lamp, state->bounce, state->transparent_bounce)) {
+		if(direct_emission(kg, sd, &ls, state, &light_ray, &L_light, &is_lamp)) {
 			/* trace shadow ray */
 			float3 shadow;
 

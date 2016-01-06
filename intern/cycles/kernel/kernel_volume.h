@@ -39,7 +39,7 @@ typedef struct VolumeShaderCoefficients {
 ccl_device bool volume_shader_extinction_sample(KernelGlobals *kg, ShaderData *sd, PathState *state, float3 P, float3 *extinction)
 {
 	sd->P = P;
-	shader_eval_volume(kg, sd, state->volume_stack, PATH_RAY_SHADOW, SHADER_CONTEXT_SHADOW);
+	shader_eval_volume(kg, sd, state, state->volume_stack, PATH_RAY_SHADOW, SHADER_CONTEXT_SHADOW);
 
 	if(!(sd->flag & (SD_ABSORPTION|SD_SCATTER)))
 		return false;
@@ -61,7 +61,7 @@ ccl_device bool volume_shader_extinction_sample(KernelGlobals *kg, ShaderData *s
 ccl_device bool volume_shader_sample(KernelGlobals *kg, ShaderData *sd, PathState *state, float3 P, VolumeShaderCoefficients *coeff)
 {
 	sd->P = P;
-	shader_eval_volume(kg, sd, state->volume_stack, state->flag, SHADER_CONTEXT_VOLUME);
+	shader_eval_volume(kg, sd, state, state->volume_stack, state->flag, SHADER_CONTEXT_VOLUME);
 
 	if(!(sd->flag & (SD_ABSORPTION|SD_SCATTER|SD_EMISSION)))
 		return false;
@@ -222,7 +222,7 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg, PathState 
 ccl_device_noinline void kernel_volume_shadow(KernelGlobals *kg, PathState *state, Ray *ray, float3 *throughput)
 {
 	ShaderData sd;
-	shader_setup_from_volume(kg, &sd, ray, state->bounce, state->transparent_bounce);
+	shader_setup_from_volume(kg, &sd, ray);
 
 	if(volume_stack_is_heterogeneous(kg, state->volume_stack))
 		kernel_volume_shadow_heterogeneous(kg, state, ray, &sd, throughput);
@@ -567,7 +567,7 @@ ccl_device_noinline VolumeIntegrateResult kernel_volume_integrate(KernelGlobals 
 	 * performance of rendering without volumes */
 	RNG tmp_rng = cmj_hash(*rng, state->rng_offset);
 
-	shader_setup_from_volume(kg, sd, ray, state->bounce, state->transparent_bounce);
+	shader_setup_from_volume(kg, sd, ray);
 
 	if(heterogeneous)
 		return kernel_volume_integrate_heterogeneous_distance(kg, state, ray, sd, L, throughput, &tmp_rng);
@@ -1008,7 +1008,7 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 
 		for(uint hit = 0; hit < num_hits; ++hit, ++isect) {
 			ShaderData sd;
-			shader_setup_from_ray(kg, &sd, isect, &volume_ray, 0, 0);
+			shader_setup_from_ray(kg, &sd, isect, &volume_ray);
 			if(sd.flag & SD_BACKFACING) {
 				/* If ray exited the volume and never entered to that volume
 				 * it means that camera is inside such a volume.
@@ -1048,7 +1048,7 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 		}
 
 		ShaderData sd;
-		shader_setup_from_ray(kg, &sd, &isect, &volume_ray, 0, 0);
+		shader_setup_from_ray(kg, &sd, &isect, &volume_ray);
 		if(sd.flag & SD_BACKFACING) {
 			/* If ray exited the volume and never entered to that volume
 			 * it means that camera is inside such a volume.
@@ -1162,7 +1162,7 @@ ccl_device void kernel_volume_stack_update_for_subsurface(KernelGlobals *kg,
 
 		for(uint hit = 0; hit < num_hits; ++hit, ++isect) {
 			ShaderData sd;
-			shader_setup_from_ray(kg, &sd, isect, &volume_ray, 0, 0);
+			shader_setup_from_ray(kg, &sd, isect, &volume_ray);
 			kernel_volume_stack_enter_exit(kg, &sd, stack);
 		}
 	}
@@ -1173,7 +1173,7 @@ ccl_device void kernel_volume_stack_update_for_subsurface(KernelGlobals *kg,
 	      scene_intersect_volume(kg, &volume_ray, &isect))
 	{
 		ShaderData sd;
-		shader_setup_from_ray(kg, &sd, &isect, &volume_ray, 0, 0);
+		shader_setup_from_ray(kg, &sd, &isect, &volume_ray);
 		kernel_volume_stack_enter_exit(kg, &sd, stack);
 
 		/* Move ray forward. */

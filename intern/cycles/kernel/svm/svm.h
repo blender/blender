@@ -187,7 +187,7 @@ CCL_NAMESPACE_BEGIN
 #define NODES_FEATURE(feature) ((__NODES_FEATURES__ & (feature)) != 0)
 
 /* Main Interpreter Loop */
-ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderType type, int path_flag)
+ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_addr_space PathState *state, ShaderType type, int path_flag)
 {
 	float stack[SVM_STACK_SIZE];
 	int offset = ccl_fetch(sd, shader) & SHADER_MASK;
@@ -335,7 +335,7 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, Shade
 				svm_node_brightness(sd, stack, node.y, node.z, node.w);
 				break;
 			case NODE_LIGHT_PATH:
-				svm_node_light_path(sd, stack, node.y, node.z, path_flag);
+				svm_node_light_path(sd, state, stack, node.y, node.z, path_flag);
 				break;
 			case NODE_OBJECT_INFO:
 				svm_node_object_info(kg, sd, stack, node.y, node.z);

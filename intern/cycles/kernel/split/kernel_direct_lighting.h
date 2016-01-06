@@ -90,8 +90,8 @@ ccl_device char kernel_direct_lighting(
 
 			BsdfEval L_light;
 			bool is_lamp;
-			if(direct_emission(kg, sd, &ls, &light_ray, &L_light, &is_lamp,
-			                   state->bounce, state->transparent_bounce, sd_DL))
+			if(direct_emission(kg, sd, &ls, state, &light_ray, &L_light, &is_lamp,
+			                   sd_DL))
 			{
 				/* Write intermediate data to global memory to access from
 				 * the next kernel.

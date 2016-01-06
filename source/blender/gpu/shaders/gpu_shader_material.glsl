@@ -2560,7 +2560,8 @@ void node_light_path(
 	out float is_transmission_ray,
 	out float ray_length,
 	out float ray_depth,
-	out float transparent_depth)
+	out float transparent_depth,
+	out float transmission_depth)
 {
 	is_camera_ray = 1.0;
 	is_shadow_ray = 0.0;
@@ -2572,6 +2573,7 @@ void node_light_path(
 	ray_length = 1.0;
 	ray_depth = 1.0;
 	transparent_depth = 1.0;
+	transmission_depth = 1.0;
 }
 
 void node_light_falloff(float strength, float tsmooth, out float quadratic, out float linear, out float constant)

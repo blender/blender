@@ -2893,6 +2893,7 @@ LightPathNode::LightPathNode()
 	add_output("Ray Length", SHADER_SOCKET_FLOAT);
 	add_output("Ray Depth", SHADER_SOCKET_FLOAT);
 	add_output("Transparent Depth", SHADER_SOCKET_FLOAT);
+	add_output("Transmission Depth", SHADER_SOCKET_FLOAT);
 }
 
 void LightPathNode::compile(SVMCompiler& compiler)
@@ -2964,6 +2965,12 @@ void LightPathNode::compile(SVMCompiler& compiler)
 	if(!out->links.empty()) {
 		compiler.stack_assign(out);
 		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_ray_transparent, out->stack_offset);
+	}
+
+	out = output("Transmission Depth");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_ray_transmission, out->stack_offset);
 	}
 }
 

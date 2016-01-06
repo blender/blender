@@ -60,12 +60,6 @@ __kernel void kernel_ocl_path_trace_data_init(
         ccl_global float *ray_length_sd,
         ccl_global float *ray_length_sd_DL_shadow,
 
-        ccl_global int *ray_depth_sd,
-        ccl_global int *ray_depth_sd_DL_shadow,
-
-        ccl_global int *transparent_depth_sd,
-        ccl_global int *transparent_depth_sd_DL_shadow,
-
         /* Ray differentials. */
         ccl_global differential3 *dP_sd,
         ccl_global differential3 *dP_sd_DL_shadow,
@@ -170,10 +164,6 @@ __kernel void kernel_ocl_path_trace_data_init(
 	                 time_sd_DL_shadow,
 	                 ray_length_sd,
 	                 ray_length_sd_DL_shadow,
-	                 ray_depth_sd,
-	                 ray_depth_sd_DL_shadow,
-	                 transparent_depth_sd,
-	                 transparent_depth_sd_DL_shadow,
 
 	                 /* Ray differentials. */
 	                 dP_sd,

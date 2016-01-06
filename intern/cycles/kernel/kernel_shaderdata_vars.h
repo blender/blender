@@ -53,12 +53,6 @@ SD_VAR(float, time)
 /* length of the ray being shaded */
 SD_VAR(float, ray_length)
 
-/* ray bounce depth */
-SD_VAR(int, ray_depth)
-
-/* ray transparent depth */
-SD_VAR(int, transparent_depth)
-
 #ifdef __RAY_DIFFERENTIALS__
 /* differential of P. these are orthogonal to Ng, not N */
 SD_VAR(differential3, dP)
@@ -93,6 +87,7 @@ SD_VAR(differential3, ray_dP)
 
 #ifdef __OSL__
 SD_VAR(struct KernelGlobals *, osl_globals)
+SD_VAR(struct PathState *, osl_path_state)
 #endif
 
 #undef SD_VAR
