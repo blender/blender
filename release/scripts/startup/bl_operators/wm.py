@@ -1388,15 +1388,31 @@ class WM_OT_appconfig_activate(Operator):
 
 
 class WM_OT_sysinfo(Operator):
-    """Generate system info text, accessible from Blender's internal text editor"""
+    """Generate system information, saved into a text file"""
 
     bl_idname = "wm.sysinfo"
-    bl_label = "System Info"
+    bl_label = "Save System Info"
+
+    filepath = StringProperty(
+            subtype='FILE_PATH',
+            options={'SKIP_SAVE'},
+            )
 
     def execute(self, context):
         import sys_info
-        sys_info.write_sysinfo(self)
+        sys_info.write_sysinfo(self.filepath)
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        import os
+
+        if not self.filepath:
+            self.filepath = os.path.join(
+                    os.path.expanduser("~"), "system-info.txt")
+
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
 
 
 class WM_OT_copy_prev_settings(Operator):
