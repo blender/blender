@@ -634,7 +634,9 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 	for (i = 0, fs = facesplit; i < totface; i++, fs++)
 		totfsplit += add_faces[*fs];
 	
-	splitdm = CDDM_from_template(dm, totesplit, 0, totface + totfsplit, 0, 0);
+	splitdm = CDDM_from_template_ex(
+	        dm, totesplit, 0, totface + totfsplit, 0, 0,
+	        CD_MASK_DERIVEDMESH | CD_MASK_FACECORNERS);
 	numlayer = CustomData_number_of_layers(&splitdm->faceData, CD_MTFACE);
 
 	/* copy new faces & verts (is it really this painful with custom data??) */
