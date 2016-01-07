@@ -363,7 +363,7 @@ static inline void set_enum(PointerRNA& ptr, const char *name, int value)
 
 static inline void set_enum(PointerRNA& ptr, const char *name, const string &identifier)
 {
-	RNA_enum_set_identifier(&ptr, name, identifier.c_str());
+	RNA_enum_set_identifier(NULL, &ptr, name, identifier.c_str());
 }
 
 static inline string get_string(PointerRNA& ptr, const char *name)
