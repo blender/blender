@@ -1782,7 +1782,7 @@ class WM_OT_addon_enable(Operator):
 
         err_str = ""
 
-        def err_cb():
+        def err_cb(ex):
             import traceback
             nonlocal err_str
             err_str = traceback.format_exc()
@@ -1826,7 +1826,7 @@ class WM_OT_addon_disable(Operator):
 
         err_str = ""
 
-        def err_cb():
+        def err_cb(ex):
             import traceback
             nonlocal err_str
             err_str = traceback.format_exc()

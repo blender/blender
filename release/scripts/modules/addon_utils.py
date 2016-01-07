@@ -259,8 +259,14 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
     """
     Enables an addon by name.
 
-    :arg module_name: The name of the addon and module.
+    :arg module_name: the name of the addon and module.
     :type module_name: string
+    :arg default_set: Set the user-preference.
+    :type default_set: bool
+    :arg persistent: Ensure the addon is enabled for the entire session (after loading new files).
+    :type persistent: bool
+    :arg handle_error: Called in the case of an error, taking an exception argument.
+    :type handle_error: function
     :return: the loaded module or None on failure.
     :rtype: module
     """
@@ -270,7 +276,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
     from bpy_restrict_state import RestrictBlend
 
     if handle_error is None:
-        def handle_error():
+        def handle_error(ex):
             import traceback
             traceback.print_exc()
 
@@ -286,10 +292,10 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             # in most cases the caller should 'check()' first.
             try:
                 mod.unregister()
-            except:
+            except Exception as ex:
                 print("Exception in module unregister(): %r" %
                       getattr(mod, "__file__", module_name))
-                handle_error()
+                handle_error(ex)
                 return None
 
         mod.__addon_enabled__ = False
@@ -301,8 +307,8 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
 
             try:
                 importlib.reload(mod)
-            except:
-                handle_error()
+            except Exception as ex:
+                handle_error(ex)
                 del sys.modules[module_name]
                 return None
             mod.__addon_enabled__ = False
@@ -329,7 +335,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             if type(ex) is ImportError and ex.name == module_name:
                 print("addon not found: %r" % module_name)
             else:
-                handle_error()
+                handle_error(ex)
 
             if default_set:
                 _addon_remove(module_name)
@@ -341,10 +347,10 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
         # 3) try run the modules register function
         try:
             mod.register()
-        except:
+        except Exception as ex:
             print("Exception in module register(): %r" %
                   getattr(mod, "__file__", module_name))
-            handle_error()
+            handle_error(ex)
             del sys.modules[module_name]
             if default_set:
                 _addon_remove(module_name)
@@ -366,11 +372,15 @@ def disable(module_name, *, default_set=False, handle_error=None):
 
     :arg module_name: The name of the addon and module.
     :type module_name: string
+    :arg default_set: Set the user-preference.
+    :type default_set: bool
+    :arg handle_error: Called in the case of an error, taking an exception argument.
+    :type handle_error: function
     """
     import sys
 
     if handle_error is None:
-        def handle_error():
+        def handle_error(ex):
             import traceback
             traceback.print_exc()
 
@@ -385,10 +395,10 @@ def disable(module_name, *, default_set=False, handle_error=None):
 
         try:
             mod.unregister()
-        except:
+        except Exception as ex:
             print("Exception in module unregister(): %r" %
                   getattr(mod, "__file__", module_name))
-            handle_error()
+            handle_error(ex)
     else:
         print("addon_utils.disable: %s not %s." %
               (module_name, "disabled" if mod is None else "loaded"))
