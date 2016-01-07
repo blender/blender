@@ -2193,7 +2193,7 @@ static void boundbox_armature(Object *ob)
 
 	if (ob->bb == NULL) {
 		ob->bb = MEM_mallocN(sizeof(BoundBox), "Armature boundbox");
-		ob->>bb->flag = 0;
+		ob->bb->flag = 0;
 	}
 	bb = ob->bb;
 
