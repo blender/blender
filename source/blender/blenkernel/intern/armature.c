@@ -2191,8 +2191,10 @@ static void boundbox_armature(Object *ob)
 	BoundBox *bb;
 	float min[3], max[3];
 
-	if (ob->bb == NULL)
+	if (ob->bb == NULL) {
 		ob->bb = MEM_mallocN(sizeof(BoundBox), "Armature boundbox");
+		ob->>bb->flag = 0;
+	}
 	bb = ob->bb;
 
 	INIT_MINMAX(min, max);
