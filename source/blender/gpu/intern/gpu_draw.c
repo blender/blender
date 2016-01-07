@@ -298,7 +298,11 @@ static void gpu_generate_mipmap(GLenum target)
 			glEnable(target);
 	}
 
-	glGenerateMipmapEXT(target);
+	/* TODO: simplify when we transition to GL >= 3 */
+	if (GLEW_VERSION_3_0 || GLEW_ARB_framebuffer_object)
+		glGenerateMipmap(target);
+	else if (GLEW_EXT_framebuffer_object)
+		glGenerateMipmapEXT(target);
 
 	if (is_ati && !target_enabled)
 		glDisable(target);
