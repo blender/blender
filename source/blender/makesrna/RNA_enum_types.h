@@ -116,6 +116,8 @@ extern EnumPropertyItem rna_enum_gpencil_sculpt_brush_items[];
 extern EnumPropertyItem rna_enum_axis_xy_items[];
 extern EnumPropertyItem rna_enum_axis_xyz_items[];
 
+extern EnumPropertyItem rna_enum_axis_flag_xyz_items[];
+
 extern EnumPropertyItem rna_enum_symmetrize_direction_items[];
 
 extern EnumPropertyItem rna_enum_texture_type_items[];

@@ -129,8 +129,9 @@ bool BMBVH_EdgeVisible(struct BMBVHTree *tree, struct BMEdge *e,
                        struct ARegion *ar, struct View3D *v3d, struct Object *obedit);
 
 /* editmesh_select.c */
-void EDBM_select_mirrored(struct BMEditMesh *em, bool extend,
-                          int *r_totmirr, int *r_totfail);
+void EDBM_select_mirrored(
+        struct BMEditMesh *em, const int axis, const bool extend,
+        int *r_totmirr, int *r_totfail);
 void EDBM_automerge(struct Scene *scene, struct Object *ob, bool update, const char hflag);
 
 bool EDBM_backbuf_border_init(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);

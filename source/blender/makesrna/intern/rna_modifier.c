@@ -268,6 +268,13 @@ EnumPropertyItem rna_enum_axis_xyz_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+EnumPropertyItem rna_enum_axis_flag_xyz_items[] = {
+	{(1 << 0), "X", 0, "X", ""},
+	{(1 << 1), "Y", 0, "Y", ""},
+	{(1 << 2), "Z", 0, "Z", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_particle_types.h"
@@ -4097,13 +4104,6 @@ static void rna_def_modifier_meshcache(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_flip_axis_flag_items[] = {
-		{(1 << 0), "X", 0, "X", ""},
-		{(1 << 1), "Y", 0, "Y", ""},
-		{(1 << 2), "Z", 0, "Z", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -4168,7 +4168,7 @@ static void rna_def_modifier_meshcache(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "flip_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "flip_axis");
-	RNA_def_property_enum_items(prop, prop_flip_axis_flag_items);
+	RNA_def_property_enum_items(prop, rna_enum_axis_flag_xyz_items);
 	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
 	RNA_def_property_ui_text(prop, "Flip Axis",  "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");

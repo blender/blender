@@ -74,8 +74,9 @@
 
 /* ****************************** MIRROR **************** */
 
-void EDBM_select_mirrored(BMEditMesh *em, bool extend,
-                          int *r_totmirr, int *r_totfail)
+void EDBM_select_mirrored(
+        BMEditMesh *em, const int axis, const bool extend,
+        int *r_totmirr, int *r_totfail)
 {
 	Mesh *me = (Mesh *)em->ob->data;
 	BMesh *bm = em->bm;
@@ -106,7 +107,7 @@ void EDBM_select_mirrored(BMEditMesh *em, bool extend,
 		}
 	}
 
-	EDBM_verts_mirror_cache_begin(em, 0, true, true, use_topology);
+	EDBM_verts_mirror_cache_begin(em, axis, true, true, use_topology);
 
 	if (!extend)
 		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
@@ -3019,12 +3020,18 @@ static int edbm_select_mirror_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	bool extend = RNA_boolean_get(op->ptr, "extend");
+	const int axis_flag = RNA_enum_get(op->ptr, "axis");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
 	if (em->bm->totvert && em->bm->totvertsel) {
 		int totmirr, totfail;
 
-		EDBM_select_mirrored(em, extend, &totmirr, &totfail);
+		for (int axis = 0; axis < 3; axis++) {
+			if ((1 << axis) & axis_flag) {
+				EDBM_select_mirrored(em, axis, extend, &totmirr, &totfail);
+			}
+		}
+
 		if (totmirr) {
 			EDBM_selectmode_flush(em);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
@@ -3051,6 +3058,8 @@ void MESH_OT_select_mirror(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
+	RNA_def_enum_flag(ot->srna, "axis", rna_enum_axis_flag_xyz_items, (1 << 0), "Axis", "");
+
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the existing selection");
 }
 

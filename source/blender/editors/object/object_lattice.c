@@ -246,21 +246,17 @@ void LATTICE_OT_select_random(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /* Select Mirror Operator */
 
-static int lattice_select_mirror_exec(bContext *C, wmOperator *op)
+static void ed_lattice_select_mirrored(Lattice *lt, const int axis, const bool extend)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
-	const bool extend = RNA_boolean_get(op->ptr, "extend");
-	const int axis = RNA_enum_get(op->ptr, "axis");
-	bool flip_uvw[3] = {false};
-	int tot, i;
+	const int tot = lt->pntsu * lt->pntsv * lt->pntsw;
+	int i;
 	BPoint *bp;
 	BLI_bitmap *selpoints;
 
-	tot = lt->pntsu * lt->pntsv * lt->pntsw;
-
+	bool flip_uvw[3] = {false};
 	flip_uvw[axis] = true;
 
+	/* we could flip this too */
 	if (!extend) {
 		lt->actbp = LT_ACTBP_NONE;
 	}
@@ -287,6 +283,20 @@ static int lattice_select_mirror_exec(bContext *C, wmOperator *op)
 
 
 	MEM_freeN(selpoints);
+}
+
+static int lattice_select_mirror_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
+	const int axis_flag = RNA_enum_get(op->ptr, "axis");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
+
+	for (int axis = 0; axis < 3; axis++) {
+		if ((1 << axis) & axis_flag) {
+			ed_lattice_select_mirrored(lt, axis, extend);
+		}
+	}
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
@@ -308,7 +318,7 @@ void LATTICE_OT_select_mirror(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "axis", rna_enum_axis_xyz_items, 0, "Axis", "");
+	RNA_def_enum_flag(ot->srna, "axis", rna_enum_axis_flag_xyz_items, (1 << 0), "Axis", "");
 
 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
