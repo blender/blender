@@ -272,6 +272,7 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
 		/* object that this is a proxy for */
 		// XXX: the way that proxies work needs to be completely reviewed!
 		if (ob->proxy) {
+			ob->proxy->proxy_from = ob;
 			build_object(scene, base, ob->proxy);
 		}
 
