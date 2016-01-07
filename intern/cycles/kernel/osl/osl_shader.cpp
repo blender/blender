@@ -330,8 +330,13 @@ void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, PathState *state
 	OSL::ShadingContext *octx = tdata->context[(int)ctx];
 	int shader = sd->shader & SHADER_MASK;
 
-	if(kg->osl->surface_state[shader])
+	if(kg->osl->surface_state[shader]) {
+#if OSL_LIBRARY_VERSION_CODE < 10600
 		ss->execute(*octx, *(kg->osl->surface_state[shader]), *globals);
+#else
+		ss->execute(octx, *(kg->osl->surface_state[shader]), *globals);
+#endif
+	}
 
 	/* flatten closure tree */
 	if(globals->Ci)
@@ -389,8 +394,13 @@ float3 OSLShader::eval_background(KernelGlobals *kg, ShaderData *sd, PathState *
 	OSL::ShaderGlobals *globals = &tdata->globals;
 	OSL::ShadingContext *octx = tdata->context[(int)ctx];
 
-	if(kg->osl->background_state)
+	if(kg->osl->background_state) {
+#if OSL_LIBRARY_VERSION_CODE < 10600
 		ss->execute(*octx, *(kg->osl->background_state), *globals);
+#else
+		ss->execute(octx, *(kg->osl->background_state), *globals);
+#endif
+	}
 
 	/* return background color immediately */
 	if(globals->Ci)
@@ -499,8 +509,13 @@ void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, PathState *state,
 	OSL::ShadingContext *octx = tdata->context[(int)ctx];
 	int shader = sd->shader & SHADER_MASK;
 
-	if(kg->osl->volume_state[shader])
+	if(kg->osl->volume_state[shader]) {
+#if OSL_LIBRARY_VERSION_CODE < 10600
 		ss->execute(*octx, *(kg->osl->volume_state[shader]), *globals);
+#else
+		ss->execute(octx, *(kg->osl->volume_state[shader]), *globals);
+#endif
+	}
 	
 	/* flatten closure tree */
 	if(globals->Ci)
@@ -524,8 +539,13 @@ void OSLShader::eval_displacement(KernelGlobals *kg, ShaderData *sd, ShaderConte
 	OSL::ShadingContext *octx = tdata->context[(int)ctx];
 	int shader = sd->shader & SHADER_MASK;
 
-	if(kg->osl->displacement_state[shader])
+	if(kg->osl->displacement_state[shader]) {
+#if OSL_LIBRARY_VERSION_CODE < 10600
 		ss->execute(*octx, *(kg->osl->displacement_state[shader]), *globals);
+#else
+		ss->execute(octx, *(kg->osl->displacement_state[shader]), *globals);
+#endif
+	}
 
 	/* get back position */
 	sd->P = TO_FLOAT3(globals->P);
