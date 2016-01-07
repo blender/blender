@@ -365,8 +365,9 @@ void GPU_set_anisotropic(float value)
 		GPU_free_images();
 
 		/* Clamp value to the maximum value the graphics card supports */
-		if (value > GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
-			value = GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
+		const float max = GPU_max_texture_anisotropy();
+		if (value > max)
+			value = max;
 
 		GTS.anisotropic = value;
 	}

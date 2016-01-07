@@ -84,6 +84,7 @@ static struct GPUGlobal {
 	float dfdyfactors[2]; /* workaround for different calculation of dfdy factors on GPUs. Some GPUs/drivers
 	                         calculate dfdy in shader differently when drawing to an offscreen buffer. First
 	                         number is factor on screen and second is off-screen */
+	float max_anisotropy;
 } GG = {1, 0};
 
 /* GPU Types */
@@ -110,6 +111,11 @@ int GPU_max_textures(void)
 	return GG.maxtextures;
 }
 
+float GPU_max_texture_anisotropy(void)
+{
+	return GG.max_anisotropy;
+}
+
 int GPU_max_color_texture_samples(void)
 {
 	return GG.samples_color_texture_max;
@@ -128,6 +134,11 @@ void gpu_extensions_init(void)
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &GG.maxtextures);
 
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &GG.maxtexsize);
+
+	if (GLEW_EXT_texture_filter_anisotropic)
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &GG.max_anisotropy);
+	else
+		GG.max_anisotropy = 1.0f;
 
 	GLint r, g, b;
 	glGetIntegerv(GL_RED_BITS, &r);
