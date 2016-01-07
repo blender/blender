@@ -44,13 +44,13 @@ std::ostream& operator <<(std::ostream &os,
 	/* TODO(sergey): Decode bitflag into list of names. */
 	os << "Nodes features: " << requested_features.nodes_features << std::endl;
 	os << "Use hair: "
-	   << bool_to_string(requested_features.use_hair)  << std::endl;
+	   << string_from_bool(requested_features.use_hair)  << std::endl;
 	os << "Use object motion: "
-	   << bool_to_string(requested_features.use_object_motion)  << std::endl;
+	   << string_from_bool(requested_features.use_object_motion)  << std::endl;
 	os << "Use camera motion: "
-	   << bool_to_string(requested_features.use_camera_motion)  << std::endl;
+	   << string_from_bool(requested_features.use_camera_motion)  << std::endl;
 	os << "Use Baking: "
-	   << bool_to_string(requested_features.use_baking)  << std::endl;
+	   << string_from_bool(requested_features.use_baking)  << std::endl;
 	return os;
 }
 

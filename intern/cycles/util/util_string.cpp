@@ -122,7 +122,7 @@ string string_remove_trademark(const string &s)
 	return string_strip(result);
 }
 
-string bool_to_string(bool var)
+string string_from_bool(bool var)
 {
 	if(var)
 		return "True";
