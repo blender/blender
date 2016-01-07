@@ -117,11 +117,8 @@ void GPU_render_text(
 		const float *v3 = v_quad[2];
 		const float *v4 = v_quad[3];
 		Image *ima = (Image *)mtexpoly->tpage;
-		ImBuf *first_ibuf;
 		const size_t textlen_st = textlen;
-		size_t index;
 		float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
-		float advance_tab;
 		
 		/* multiline */
 		float line_start = 0.0f, line_height;
@@ -143,14 +140,14 @@ void GPU_render_text(
 		glPushMatrix();
 		
 		/* get the tab width */
-		first_ibuf = BKE_image_get_first_ibuf(ima);
+		ImBuf *first_ibuf = BKE_image_get_first_ibuf(ima);
 		matrixGlyph(first_ibuf, ' ', &centerx, &centery,
 			&sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
 		
-		advance_tab = advance * 4; /* tab width could also be an option */
+		float advance_tab = advance * 4; /* tab width could also be an option */
 		
 		
-		for (index = 0; index < textlen_st; ) {
+		for (size_t index = 0; index < textlen_st; ) {
 			unsigned int character;
 			float uv[4][2];
 
@@ -382,9 +379,7 @@ float GPU_get_anisotropic(void)
 
 static void gpu_make_repbind(Image *ima)
 {
-	ImBuf *ibuf;
-	
-	ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 	if (ibuf == NULL)
 		return;
 
@@ -503,14 +498,12 @@ static void gpu_verify_reflection(Image *ima)
 
 int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, bool compare, bool mipmap, bool is_data)
 {
-	ImBuf *ibuf = NULL;
 	unsigned int *bind = NULL;
-	int rectw, recth, tpx = 0, tpy = 0, y;
-	unsigned int *tilerect = NULL, *rect = NULL;
-	float *ftilerect = NULL, *frect = NULL;
+	int tpx = 0, tpy = 0;
+	unsigned int *rect = NULL;
+	float *frect = NULL;
 	float *srgb_frect = NULL;
-	short texwindx, texwindy, texwinsx, texwinsy;
-	/* flag to determine whether high resolution format is used */
+	/* flag to determine whether deep format is used */
 	bool use_high_bit_depth = false, do_color_management = false;
 
 	/* initialize tile mode and number of repeats */
@@ -558,7 +551,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, bool compare, boo
 		return 0;
 
 	/* check if we have a valid image buffer */
-	ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
+	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
 
 	if (ibuf == NULL)
 		return 0;
@@ -598,14 +591,14 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, bool compare, boo
 		else bind = &ima->bindcode;
 		
 		if (*bind == 0) {
-			texwindx = ibuf->x / ima->xrep;
-			texwindy = ibuf->y / ima->yrep;
+			short texwindx = ibuf->x / ima->xrep;
+			short texwindy = ibuf->y / ima->yrep;
 			
 			if (GTS.tile >= ima->xrep * ima->yrep)
 				GTS.tile = ima->xrep * ima->yrep - 1;
 	
-			texwinsy = GTS.tile / ima->xrep;
-			texwinsx = GTS.tile - texwinsy * ima->xrep;
+			short texwinsy = GTS.tile / ima->xrep;
+			short texwinsx = GTS.tile - texwinsy * ima->xrep;
 	
 			texwinsx *= texwindx;
 			texwinsy *= texwindy;
@@ -633,7 +626,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, bool compare, boo
 	}
 	else {
 		/* regular image mode */
-		bind= &ima->bindcode;
+		bind = &ima->bindcode;
 
 		if (*bind == 0) {
 			tpx = ibuf->x;
@@ -662,19 +655,20 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, bool compare, boo
 		return *bind;
 	}
 
-	rectw = tpx;
-	recth = tpy;
+	const int rectw = tpx;
+	const int recth = tpy;
+
+	unsigned *tilerect = NULL;
+	float *ftilerect = NULL;
 
 	/* for tiles, copy only part of image into buffer */
 	if (GTS.tilemode) {
 		if (use_high_bit_depth) {
-			float *frectrow, *ftilerectrow;
-
 			ftilerect = MEM_mallocN(rectw*recth*sizeof(*ftilerect), "tilerect");
 
-			for (y = 0; y < recth; y++) {
-				frectrow = &frect[y * ibuf->x];
-				ftilerectrow = &ftilerect[y * rectw];
+			for (int y = 0; y < recth; y++) {
+				const float *frectrow = &frect[y * ibuf->x];
+				float *ftilerectrow = &ftilerect[y * rectw];
 
 				memcpy(ftilerectrow, frectrow, tpx * sizeof(*frectrow));
 			}
@@ -682,13 +676,11 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, bool compare, boo
 			frect = ftilerect;
 		}
 		else {
-			unsigned int *rectrow, *tilerectrow;
-
 			tilerect = MEM_mallocN(rectw*recth*sizeof(*tilerect), "tilerect");
 
-			for (y = 0; y < recth; y++) {
-				rectrow = &rect[y * ibuf->x];
-				tilerectrow = &tilerect[y * rectw];
+			for (int y = 0; y < recth; y++) {
+				const unsigned *rectrow = &rect[y * ibuf->x];
+				unsigned *tilerectrow = &tilerect[y * rectw];
 
 				memcpy(tilerectrow, rectrow, tpx * sizeof(*rectrow));
 			}
@@ -776,8 +768,6 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *rect, float *frect, int
 			gpu_generate_mipmap(GL_TEXTURE_2D);
 		}
 		else {
-			int i;
-
 			if (!ibuf) {
 				if (use_high_bit_depth) {
 					ibuf = IMB_allocFromBuffer(NULL, frect, tpx, tpy);
@@ -789,7 +779,7 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *rect, float *frect, int
 
 			IMB_makemipmap(ibuf, true);
 
-			for (i = 1; i < ibuf->miptot; i++) {
+			for (int i = 1; i < ibuf->miptot; i++) {
 				ImBuf *mip = ibuf->mipmap[i - 1];
 				if (use_high_bit_depth) {
 					if (GLEW_ARB_texture_float)
@@ -891,8 +881,6 @@ void GPU_create_gl_tex_compressed(unsigned int *bind, unsigned int *pix, int x, 
 	/* Fall back to uncompressed if DDS isn't enabled */
 	GPU_create_gl_tex(bind, pix, NULL, x, y, mipmap, 0, ima);
 #else
-
-
 	glGenTextures(1, (GLuint *)bind);
 	glBindTexture(GL_TEXTURE_2D, *bind);
 
@@ -918,15 +906,13 @@ static void gpu_verify_repeat(Image *ima)
 
 int GPU_set_tpage(MTexPoly *mtexpoly, int mipmap, int alphablend)
 {
-	Image *ima;
-	
 	/* check if we need to clear the state */
 	if (mtexpoly == NULL) {
 		GPU_clear_tpage(false);
 		return 0;
 	}
 
-	ima = mtexpoly->tpage;
+	Image *ima = mtexpoly->tpage;
 	GTS.lasttface = mtexpoly;
 
 	gpu_verify_alpha_blend(alphablend);
@@ -967,15 +953,13 @@ int GPU_set_tpage(MTexPoly *mtexpoly, int mipmap, int alphablend)
  * re-uploaded to OpenGL */
 void GPU_paint_set_mipmap(bool mipmap)
 {
-	Image *ima;
-	
 	if (!GTS.domipmap)
 		return;
 
 	GTS.texpaint = !mipmap;
 
 	if (mipmap) {
-		for (ima = G.main->image.first; ima; ima = ima->id.next) {
+		for (Image *ima = G.main->image.first; ima; ima = ima->id.next) {
 			if (ima->bindcode) {
 				if (ima->tpageflag & IMA_MIPMAP_COMPLETE) {
 					glBindTexture(GL_TEXTURE_2D, ima->bindcode);
@@ -991,7 +975,7 @@ void GPU_paint_set_mipmap(bool mipmap)
 
 	}
 	else {
-		for (ima = G.main->image.first; ima; ima = ima->id.next) {
+		for (Image *ima = G.main->image.first; ima; ima = ima->id.next) {
 			if (ima->bindcode) {
 				glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -1076,9 +1060,7 @@ static bool GPU_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x,
 
 void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, int h)
 {
-	ImBuf *ibuf;
-	
-	ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
+	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
 	
 	if (ima->repbind || (GPU_get_mipmap() && !GTS.gpu_mipmap) || !ima->bindcode || !ibuf ||
 		(w == 0) || (h == 0))
@@ -1157,9 +1139,7 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 
 void GPU_update_images_framechange(void)
 {
-	Image *ima;
-	
-	for (ima = G.main->image.first; ima; ima = ima->id.next) {
+	for (Image *ima = G.main->image.first; ima; ima = ima->id.next) {
 		if (ima->tpageflag & IMA_TWINANIM) {
 			if (ima->twend >= ima->xrep * ima->yrep)
 				ima->twend = ima->xrep * ima->yrep - 1;
@@ -1175,10 +1155,6 @@ void GPU_update_images_framechange(void)
 
 int GPU_update_image_time(Image *ima, double time)
 {
-	int	inc = 0;
-	float diff;
-	int	newframe;
-
 	if (!ima)
 		return 0;
 
@@ -1188,17 +1164,19 @@ int GPU_update_image_time(Image *ima, double time)
 	if (ima->lastupdate > (float)time)
 		ima->lastupdate = (float)time;
 
+	int inc = 0;
+
 	if (ima->tpageflag & IMA_TWINANIM) {
 		if (ima->twend >= ima->xrep * ima->yrep) ima->twend = ima->xrep * ima->yrep - 1;
 		
 		/* check: is the bindcode not in the array? Then free. (still to do) */
 		
-		diff = (float)((float)time - ima->lastupdate);
+		float diff = (float)((float)time - ima->lastupdate);
 		inc = (int)(diff * (float)ima->animspeed);
 
 		ima->lastupdate += ((float)inc / (float)ima->animspeed);
 
-		newframe = ima->lastframe + inc;
+		int newframe = ima->lastframe + inc;
 
 		if (newframe > (int)ima->twend) {
 			if (ima->twend - ima->twsta != 0)
@@ -1286,17 +1264,14 @@ static void gpu_queue_image_for_free(Image *ima)
 
 void GPU_free_unused_buffers(void)
 {
-	LinkNode *node;
-	Image *ima;
-
 	if (!BLI_thread_is_main())
 		return;
 
 	BLI_lock_thread(LOCK_OPENGL);
 
 	/* images */
-	for (node = image_free_queue; node; node = node->next) {
-		ima = node->link;
+	for (LinkNode *node = image_free_queue; node; node = node->next) {
+		Image *ima = node->link;
 
 		/* check in case it was freed in the meantime */
 		if (G.main && BLI_findindex(&G.main->image, ima) != -1)
@@ -1344,20 +1319,16 @@ void GPU_free_image(Image *ima)
 
 void GPU_free_images(void)
 {
-	Image *ima;
-
 	if (G.main)
-		for (ima = G.main->image.first; ima; ima = ima->id.next)
+		for (Image *ima = G.main->image.first; ima; ima = ima->id.next)
 			GPU_free_image(ima);
 }
 
 /* same as above but only free animated images */
 void GPU_free_images_anim(void)
 {
-	Image *ima;
-
 	if (G.main)
-		for (ima = G.main->image.first; ima; ima = ima->id.next)
+		for (Image *ima = G.main->image.first; ima; ima = ima->id.next)
 			if (BKE_image_is_animated(ima))
 				GPU_free_image(ima);
 }
@@ -1365,7 +1336,6 @@ void GPU_free_images_anim(void)
 
 void GPU_free_images_old(void)
 {
-	Image *ima;
 	static int lasttime = 0;
 	int ctime = (int)PIL_check_seconds_timer();
 
@@ -1382,7 +1352,7 @@ void GPU_free_images_old(void)
 
 	lasttime = ctime;
 
-	ima = G.main->image.first;
+	Image *ima = G.main->image.first;
 	while (ima) {
 		if ((ima->flag & IMA_NOCOLLECT) == 0 && ctime - ima->lastused > U.textimeout) {
 			/* If it's in GL memory, deallocate and set time tag to current time
@@ -1681,17 +1651,16 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 
 static int GPU_get_particle_info(GPUParticleInfo *pi)
 {
-	ParticleData *p;
 	DupliObject *dob = GMS.dob;
-	int ind;
 	if (dob->particle_system) {
+		int ind;
 		if (dob->persistent_id[0] < dob->particle_system->totpart)
 			ind = dob->persistent_id[0];
 		else {
 			ind = dob->particle_system->child[dob->persistent_id[0] - dob->particle_system->totpart].parent;
 		}
 		if (ind >= 0) {
-			p = &dob->particle_system->particles[ind];
+			ParticleData *p = &dob->particle_system->particles[ind];
 
 			pi->scalprops[0] = ind;
 			pi->scalprops[1] = GMS.gscene->r.cfra - p->time;
@@ -1712,8 +1681,6 @@ static int GPU_get_particle_info(GPUParticleInfo *pi)
 int GPU_object_material_bind(int nr, void *attribs)
 {
 	GPUVertexAttribs *gattribs = attribs;
-	GPUMaterial *gpumat;
-	GPUBlendMode alphablend;
 
 	/* no GPU_begin_object_materials, use default material */
 	if (!GMS.matbuf) {
@@ -1764,7 +1731,7 @@ int GPU_object_material_bind(int nr, void *attribs)
 
 	if (GMS.lastretval) {
 		/* for alpha pass, use alpha blend */
-		alphablend = GMS.alphablend[nr];
+		GPUBlendMode alphablend = GMS.alphablend[nr];
 
 		if (gattribs && GMS.gmatbuf[nr]) {
 			/* bind glsl material and get attributes */
@@ -1773,7 +1740,7 @@ int GPU_object_material_bind(int nr, void *attribs)
 
 			float auto_bump_scale;
 
-			gpumat = GPU_material_from_blender(GMS.gscene, mat, GMS.is_opensubdiv);
+			GPUMaterial *gpumat = GPU_material_from_blender(GMS.gscene, mat, GMS.is_opensubdiv);
 			GPU_material_vertex_attributes(gpumat, gattribs);
 
 			if (GMS.dob)
@@ -1831,7 +1798,7 @@ int GPU_object_material_visible(int nr, void *attribs)
 	if (gattribs)
 		memset(gattribs, 0, sizeof(*gattribs));
 
-	if (nr>=GMS.totmat)
+	if (nr >= GMS.totmat)
 		nr = 0;
 
 	if (GMS.use_alpha_pass) {
@@ -1933,8 +1900,6 @@ void GPU_end_object_materials(void)
 
 int GPU_default_lights(void)
 {
-	int a, count = 0;
-	
 	/* initialize */
 	if (U.light[0].flag == 0 && U.light[1].flag == 0 && U.light[2].flag == 0) {
 		U.light[0].flag = 1;
@@ -1958,7 +1923,9 @@ int GPU_default_lights(void)
 
 	GPU_basic_shader_light_set_viewer(false);
 
-	for (a = 0; a < 8; a++) {
+	int count = 0;
+
+	for (int a = 0; a < 8; a++) {
 		if (a < 3 && U.light[a].flag) {
 			GPULightData light = {0};
 
@@ -1981,28 +1948,24 @@ int GPU_default_lights(void)
 
 int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[4][4], int ortho)
 {
-	Base *base;
-	Lamp *la;
-	int count;
-	
 	/* disable all lights */
-	for (count = 0; count < 8; count++)
+	for (int count = 0; count < 8; count++)
 		GPU_basic_shader_light_set(count, NULL);
 	
 	/* view direction for specular is not computed correct by default in
 	 * opengl, so we set the settings ourselfs */
 	GPU_basic_shader_light_set_viewer(!ortho);
 
-	count = 0;
+	int count = 0;
 
-	for (base = scene->base.first; base; base = base->next) {
+	for (Base *base = scene->base.first; base; base = base->next) {
 		if (base->object->type != OB_LAMP)
 			continue;
 
 		if (!(base->lay & lay) || !(base->lay & ob->lay))
 			continue;
 
-		la = base->object->data;
+		Lamp *la = base->object->data;
 		
 		/* setup lamp transform */
 		glPushMatrix();
@@ -2156,13 +2119,11 @@ void GPU_state_init(void)
  */
 void GPU_draw_update_fvar_offset(DerivedMesh *dm)
 {
-	int i;
-
 	/* Sanity check to be sure we only do this for OpenSubdiv draw. */
 	BLI_assert(dm->type == DM_TYPE_CCGDM);
 	BLI_assert(GMS.is_opensubdiv);
 
-	for (i = 0; i < GMS.totmat; ++i) {
+	for (int i = 0; i < GMS.totmat; ++i) {
 		Material *material = GMS.gmatbuf[i];
 		GPUMaterial *gpu_material;
 
