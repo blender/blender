@@ -4688,7 +4688,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 				psys->flag |= PSYS_USE_IMAT;
 			init_render_object_data(re, obr, timeoffset);
 			if (!(re->r.scemode & R_VIEWPORT_PREVIEW))
-				psys_render_restore(re->scene, ob, psys);
+				psys_render_restore(ob, psys);
 			psys->flag &= ~PSYS_USE_IMAT;
 
 			/* only add instance for objects that have not been used for dupli */
@@ -4888,7 +4888,7 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 				if (enable)
 					psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy, timeoffset);
 				else
-					psys_render_restore(re->scene, ob, psys);
+					psys_render_restore(ob, psys);
 			}
 		}
 

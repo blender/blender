@@ -651,7 +651,7 @@ void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[4][4], floa
 		psys->recalc |= PSYS_RECALC_RESET;
 }
 
-void psys_render_restore(Scene *scene, Object *ob, ParticleSystem *psys)
+void psys_render_restore(Object *ob, ParticleSystem *psys)
 {
 	ParticleRenderData *data;
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);

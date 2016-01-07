@@ -592,7 +592,7 @@ static void rna_ParticleSystem_set_resolution(ParticleSystem *particlesystem, Sc
 		ParticleSystemModifierData *psmd = psys_get_modifier(object, particlesystem);
 		
 		if (particlesystem->renderdata) {
-			psys_render_restore(scene, object, particlesystem);
+			psys_render_restore(object, particlesystem);
 		}
 		
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
