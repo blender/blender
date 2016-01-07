@@ -177,10 +177,6 @@ static void makeAttribList(
 	// Pixel Format Attributes for the windowed NSOpenGLContext
 	attribs.push_back(NSOpenGLPFADoubleBuffer);
 
-	// Guarantees the back buffer contents to be valid after a call to NSOpenGLContext object's flushBuffer
-	// needed for 'Draw Overlap' drawing method
-	attribs.push_back(NSOpenGLPFABackingStore);
-
 	// Force software OpenGL, for debugging
 	/* XXX jwilkins: fixed this to work on Intel macs? useful feature for Windows and Linux too?
 	 * Maybe a command line flag is better... */
