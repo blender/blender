@@ -145,7 +145,7 @@ public:
 private:
 #ifdef WITH_OSL
 	string id(ShaderNode *node);
-	OSL::ShadingAttribStateRef compile_type(Shader *shader, ShaderGraph *graph, ShaderType type);
+	OSL::ShaderGroupRef compile_type(Shader *shader, ShaderGraph *graph, ShaderType type);
 	bool node_skip_input(ShaderNode *node, ShaderInput *input);
 	string compatible_name(ShaderNode *node, ShaderInput *input);
 	string compatible_name(ShaderNode *node, ShaderOutput *output);

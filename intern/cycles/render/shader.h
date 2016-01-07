@@ -118,10 +118,10 @@ public:
 
 #ifdef WITH_OSL
 	/* osl shading state references */
-	OSL::ShadingAttribStateRef osl_surface_ref;
-	OSL::ShadingAttribStateRef osl_surface_bump_ref;
-	OSL::ShadingAttribStateRef osl_volume_ref;
-	OSL::ShadingAttribStateRef osl_displacement_ref;
+	OSL::ShaderGroupRef osl_surface_ref;
+	OSL::ShaderGroupRef osl_surface_bump_ref;
+	OSL::ShaderGroupRef osl_volume_ref;
+	OSL::ShaderGroupRef osl_displacement_ref;
 #endif
 
 	Shader();

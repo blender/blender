@@ -765,13 +765,13 @@ void OSLCompiler::generate_nodes(const ShaderNodeSet& nodes)
 	} while(!nodes_done);
 }
 
-OSL::ShadingAttribStateRef OSLCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType type)
+OSL::ShaderGroupRef OSLCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType type)
 {
 	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
 
 	current_type = type;
 
-	OSL::ShadingAttribStateRef group = ss->ShaderGroupBegin(shader->name.c_str());
+	OSL::ShaderGroupRef group = ss->ShaderGroupBegin(shader->name.c_str());
 
 	ShaderNode *output = graph->output();
 	ShaderNodeSet dependencies;
@@ -850,8 +850,8 @@ void OSLCompiler::compile(Scene *scene, OSLGlobals *og, Shader *shader)
 			shader->has_surface = true;
 		}
 		else {
-			shader->osl_surface_ref = OSL::ShadingAttribStateRef();
-			shader->osl_surface_bump_ref = OSL::ShadingAttribStateRef();
+			shader->osl_surface_ref = OSL::ShaderGroupRef();
+			shader->osl_surface_bump_ref = OSL::ShaderGroupRef();
 		}
 
 		/* generate volume shader */
@@ -860,7 +860,7 @@ void OSLCompiler::compile(Scene *scene, OSLGlobals *og, Shader *shader)
 			shader->has_volume = true;
 		}
 		else
-			shader->osl_volume_ref = OSL::ShadingAttribStateRef();
+			shader->osl_volume_ref = OSL::ShaderGroupRef();
 
 		/* generate displacement shader */
 		if(shader->used && graph && output->input("Displacement")->link) {
@@ -868,7 +868,7 @@ void OSLCompiler::compile(Scene *scene, OSLGlobals *og, Shader *shader)
 			shader->has_displacement = true;
 		}
 		else
-			shader->osl_displacement_ref = OSL::ShadingAttribStateRef();
+			shader->osl_displacement_ref = OSL::ShaderGroupRef();
 	}
 
 	/* push state to array for lookup */
