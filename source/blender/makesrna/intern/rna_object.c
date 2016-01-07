@@ -167,14 +167,6 @@ EnumPropertyItem rna_enum_object_axis_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-/* for general use (not just object) */
-EnumPropertyItem rna_enum_object_axis_unsigned_items[] = {
-	{0, "X", 0, "X", ""},
-	{1, "Y", 0, "Y", ""},
-	{2, "Z", 0, "Z", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
 #ifdef RNA_RUNTIME
 
 #include "BLI_math.h"

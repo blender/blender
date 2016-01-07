@@ -5224,15 +5224,9 @@ static void def_cmp_splitviewer(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem axis_items[] = {
-		{0, "X",  0, "X",     ""},
-		{1, "Y",  0, "Y",     ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-	
 	prop = RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom2");
-	RNA_def_property_enum_items(prop, axis_items);
+	RNA_def_property_enum_items(prop, rna_enum_axis_xy_items);
 	RNA_def_property_ui_text(prop, "Axis", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 

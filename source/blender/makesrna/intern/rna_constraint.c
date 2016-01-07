@@ -1645,19 +1645,19 @@ static void rna_def_constraint_transform(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "map_to_x_from", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "map[0]");
-	RNA_def_property_enum_items(prop, rna_enum_object_axis_unsigned_items);
+	RNA_def_property_enum_items(prop, rna_enum_axis_xyz_items);
 	RNA_def_property_ui_text(prop, "Map To X From", "The source axis constrained object's X axis uses");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "map_to_y_from", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "map[1]");
-	RNA_def_property_enum_items(prop, rna_enum_object_axis_unsigned_items);
+	RNA_def_property_enum_items(prop, rna_enum_axis_xyz_items);
 	RNA_def_property_ui_text(prop, "Map To Y From", "The source axis constrained object's Y axis uses");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "map_to_z_from", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "map[2]");
-	RNA_def_property_enum_items(prop, rna_enum_object_axis_unsigned_items);
+	RNA_def_property_enum_items(prop, rna_enum_axis_xyz_items);
 	RNA_def_property_ui_text(prop, "Map To Z From", "The source axis constrained object's Z axis uses");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
