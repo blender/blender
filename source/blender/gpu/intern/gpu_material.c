@@ -185,20 +185,14 @@ static GPUMaterial *GPU_material_construct_begin(Material *ma)
 
 static void gpu_material_set_attrib_id(GPUMaterial *material)
 {
-	GPUVertexAttribs *attribs;
-	GPUShader *shader;
-	GPUPass *pass;
-	char name[32];
-	int a, b;
-
-	attribs = &material->attribs;
-	pass = material->pass;
+	GPUVertexAttribs *attribs = &material->attribs;
+	GPUPass *pass = material->pass;
 	if (!pass) {
 		attribs->totlayer = 0;
 		return;
 	}
 	
-	shader = GPU_pass_shader(pass);
+	GPUShader *shader = GPU_pass_shader(pass);
 	if (!shader) {
 		attribs->totlayer = 0;
 		return;
@@ -208,7 +202,9 @@ static void gpu_material_set_attrib_id(GPUMaterial *material)
 	 * in case the attrib does not get a valid index back, it was probably
 	 * removed by the glsl compiler by dead code elimination */
 
-	for (a = 0, b = 0; a < attribs->totlayer; a++) {
+	int b = 0;
+	for (int a = 0; a < attribs->totlayer; a++) {
+		char name[32];
 		BLI_snprintf(name, sizeof(name), "att%d", attribs->layer[a].attribid);
 		attribs->layer[a].glindex = GPU_shader_get_attribute(shader, name);
 
@@ -224,10 +220,7 @@ static void gpu_material_set_attrib_id(GPUMaterial *material)
 static int GPU_material_construct_end(GPUMaterial *material, const char *passname)
 {
 	if (material->outlink) {
-		GPUNodeLink *outlink;
-		GPUShader *shader;
-
-		outlink = material->outlink;
+		GPUNodeLink *outlink = material->outlink;
 		material->pass = GPU_generate_pass(&material->nodes, outlink,
 			&material->attribs, &material->builtins, material->type,
 			passname, material->is_opensubdiv);
@@ -237,7 +230,7 @@ static int GPU_material_construct_end(GPUMaterial *material, const char *passnam
 
 		gpu_material_set_attrib_id(material);
 		
-		shader = GPU_pass_shader(material->pass);
+		GPUShader *shader = GPU_pass_shader(material->pass);
 
 		if (material->builtins & GPU_VIEW_MATRIX)
 			material->viewmatloc = GPU_shader_get_uniform(shader, GPU_builtin_name(GPU_VIEW_MATRIX));
@@ -269,22 +262,20 @@ static int GPU_material_construct_end(GPUMaterial *material, const char *passnam
 
 void GPU_material_free(ListBase *gpumaterial)
 {
-	LinkData *link;
-	LinkData *nlink, *mlink, *next;
-
-	for (link = gpumaterial->first; link; link = link->next) {
+	for (LinkData *link = gpumaterial->first; link; link = link->next) {
 		GPUMaterial *material = link->data;
 
 		if (material->pass)
 			GPU_pass_free(material->pass);
 
-		for (nlink = material->lamps.first; nlink; nlink = nlink->next) {
+		for (LinkData *nlink = material->lamps.first; nlink; nlink = nlink->next) {
 			GPULamp *lamp = nlink->data;
 
 			if (material->ma) {
 				Material *ma = material->ma;
 				
-				for (mlink = lamp->materials.first; mlink; mlink = next) {
+				LinkData *next = NULL;
+				for (LinkData *mlink = lamp->materials.first; mlink; mlink = next) {
 					next = mlink->next;
 					if (mlink->data == ma)
 						BLI_freelinkN(&lamp->materials, mlink);
@@ -313,8 +304,6 @@ bool GPU_lamp_override_visible(GPULamp *lamp, SceneRenderLayer *srl, Material *m
 void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double time, int mipmap, float viewmat[4][4], float viewinv[4][4], float camerafactors[4], bool scenelock)
 {
 	if (material->pass) {
-		LinkData *nlink;
-		GPULamp *lamp;
 		GPUShader *shader = GPU_pass_shader(material->pass);
 		SceneRenderLayer *srl = scenelock ? BLI_findlink(&material->scene->r.layers, material->scene->r.actlay) : NULL;
 
@@ -323,8 +312,8 @@ void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double tim
 
 		/* handle layer lamps */
 		if (material->type == GPU_MATERIAL_TYPE_MESH) {
-			for (nlink = material->lamps.first; nlink; nlink = nlink->next) {
-				lamp = nlink->data;
+			for (LinkData *nlink = material->lamps.first; nlink; nlink = nlink->next) {
+				GPULamp *lamp = nlink->data;
 				
 				if (!lamp->hide && (lamp->lay & viewlay) && (!(lamp->mode & LA_LAYER) || (lamp->lay & oblay))
 				        && GPU_lamp_override_visible(lamp, srl, material->ma)) {
@@ -495,7 +484,7 @@ bool GPU_material_use_new_shading_nodes(GPUMaterial *mat)
 
 static GPUNodeLink *lamp_get_visibility(GPUMaterial *mat, GPULamp *lamp, GPUNodeLink **lv, GPUNodeLink **dist)
 {
-	GPUNodeLink *visifac, *inpr;
+	GPUNodeLink *visifac;
 
 	/* from get_lamp_visibility */
 	if (lamp->type == LA_SUN || lamp->type == LA_HEMI) {
@@ -539,6 +528,8 @@ static GPUNodeLink *lamp_get_visibility(GPUMaterial *mat, GPULamp *lamp, GPUNode
 			GPU_link(mat, "lamp_visibility_sphere", GPU_dynamic_uniform(&lamp->dist, GPU_DYNAMIC_LAMP_DISTANCE, lamp->ob), *dist, visifac, &visifac);
 
 		if (lamp->type == LA_SPOT) {
+			GPUNodeLink *inpr;
+
 			if (lamp->mode & LA_SQUARE) {
 				mat->dynproperty |= DYN_LAMP_VEC | DYN_LAMP_IMAT;
 				GPU_link(mat, "lamp_visibility_spot_square", GPU_dynamic_uniform(lamp->dynvec, GPU_DYNAMIC_LAMP_DYNVEC, lamp->ob), GPU_dynamic_uniform((float*)lamp->dynimat, GPU_DYNAMIC_LAMP_DYNIMAT, lamp->ob),
@@ -563,10 +554,10 @@ static GPUNodeLink *lamp_get_visibility(GPUMaterial *mat, GPULamp *lamp, GPUNode
 #if 0
 static void area_lamp_vectors(LampRen *lar)
 {
-	float xsize = 0.5f * lar->area_size, ysize = 0.5f * lar->area_sizey, multifac;
+	float xsize = 0.5f * lar->area_size, ysize = 0.5f * lar->area_sizey;
 
 	/* make it smaller, so area light can be multisampled */
-	multifac = 1.0f / sqrtf((float)lar->ray_totsamp);
+	float multifac = 1.0f / sqrtf((float)lar->ray_totsamp);
 	xsize *= multifac;
 	ysize *= multifac;
 
@@ -626,11 +617,11 @@ static void ramp_diffuse_result(GPUShadeInput *shi, GPUNodeLink **diff)
 {
 	Material *ma = shi->mat;
 	GPUMaterial *mat = shi->gpumat;
-	GPUNodeLink *fac;
 
 	if (!(mat->scene->gm.flag & GAME_GLSL_NO_RAMPS)) {
 		if (ma->ramp_col) {
 			if (ma->rampin_col==MA_RAMP_IN_RESULT) {
+				GPUNodeLink *fac;
 				GPU_link(mat, "ramp_rgbtobw", *diff, &fac);
 				
 				/* colorband + blend */
@@ -683,11 +674,11 @@ static void ramp_spec_result(GPUShadeInput *shi, GPUNodeLink **spec)
 {
 	Material *ma = shi->mat;
 	GPUMaterial *mat = shi->gpumat;
-	GPUNodeLink *fac;
 
 	if (!(mat->scene->gm.flag & GAME_GLSL_NO_RAMPS) &&
 	    ma->ramp_spec && ma->rampin_spec == MA_RAMP_IN_RESULT)
 	{
+		GPUNodeLink *fac;
 		GPU_link(mat, "ramp_rgbtobw", *spec, &fac);
 		
 		/* colorband + blend */
@@ -736,16 +727,14 @@ static void add_user_list(ListBase *list, void *data)
 
 static void shade_light_textures(GPUMaterial *mat, GPULamp *lamp, GPUNodeLink **rgb)
 {
-	GPUNodeLink *tex_rgb;
-	MTex *mtex = NULL;
-	int i;
-	float one = 1.f;
-
-	for (i = 0; i < MAX_MTEX; ++i) {
-		mtex = lamp->la->mtex[i];
+	for (int i = 0; i < MAX_MTEX; ++i) {
+		MTex *mtex = lamp->la->mtex[i];
 
 		if (mtex && mtex->tex->type & TEX_IMAGE && mtex->tex->ima) {
 			mat->dynproperty |= DYN_LAMP_PERSMAT;
+
+			const float one = 1.0f;
+			GPUNodeLink *tex_rgb;
 
 			GPU_link(mat, "shade_light_texture",
 				GPU_builtin(GPU_VIEW_POSITION),
@@ -761,17 +750,17 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 {
 	Material *ma = shi->mat;
 	GPUMaterial *mat = shi->gpumat;
-	GPUNodeLink *lv, *dist, *visifac, *is, *inp, *i, *vn, *view;
+	GPUNodeLink *lv, *dist, *is, *inp, *i;
 	GPUNodeLink *outcol, *specfac, *t, *shadfac = NULL, *lcol;
-	float one = 1.0f;
+	const float one = 1.0f;
 
 	if ((lamp->mode & LA_ONLYSHADOW) && !(ma->mode & MA_SHADOW))
 		return;
 	
-	vn = shi->vn;
-	view = shi->view;
+	GPUNodeLink *vn = shi->vn;
+	GPUNodeLink *view = shi->view;
 
-	visifac = lamp_get_visibility(mat, lamp, &lv, &dist);
+	GPUNodeLink *visifac = lamp_get_visibility(mat, lamp, &lv, &dist);
 
 #if 0
 	if (ma->mode & MA_TANGENT_V)
@@ -935,24 +924,21 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 static void material_lights(GPUShadeInput *shi, GPUShadeResult *shr)
 {
 	Base *base;
-	Object *ob;
 	Scene *sce_iter;
-	GPULamp *lamp;
 	
 	for (SETLOOPER(shi->gpumat->scene, sce_iter, base)) {
-		ob = base->object;
+		Object *ob = base->object;
 
 		if (ob->type == OB_LAMP) {
-			lamp = GPU_lamp_from_blender(shi->gpumat->scene, ob, NULL);
+			GPULamp *lamp = GPU_lamp_from_blender(shi->gpumat->scene, ob, NULL);
 			if (lamp)
 				shade_one_light(shi, shr, lamp);
 		}
 
 		if (ob->transflag & OB_DUPLI) {
-			DupliObject *dob;
 			ListBase *lb = object_duplilist(G.main->eval_ctx, shi->gpumat->scene, ob);
 			
-			for (dob = lb->first; dob; dob = dob->next) {
+			for (DupliObject *dob = lb->first; dob; dob = dob->next) {
 				Object *ob_iter = dob->ob;
 
 				if (ob_iter->type == OB_LAMP) {
@@ -960,7 +946,7 @@ static void material_lights(GPUShadeInput *shi, GPUShadeResult *shr)
 					copy_m4_m4(omat, ob_iter->obmat);
 					copy_m4_m4(ob_iter->obmat, dob->mat);
 
-					lamp = GPU_lamp_from_blender(shi->gpumat->scene, ob_iter, ob);
+					GPULamp *lamp = GPU_lamp_from_blender(shi->gpumat->scene, ob_iter, ob);
 					if (lamp)
 						shade_one_light(shi, shr, lamp);
 
@@ -1080,14 +1066,13 @@ static void do_material_tex(GPUShadeInput *shi)
 	GPUNodeLink *texco_norm, *texco_orco, *texco_object;
 	GPUNodeLink *texco_global, *texco_uv = NULL;
 	GPUNodeLink *newnor, *orn;
-	/*char *lastuvname = NULL;*/ /*UNUSED*/
-	float one = 1.0f, norfac, ofs[3];
-	int tex_nr, rgbnor, talpha;
+	const float one = 1.0f;
+	int rgbnor, talpha;
 	bool init_done = false;
 	int iBumpSpacePrev = 0; /* Not necessary, quieting gcc warning. */
 	GPUNodeLink *vNorg, *vNacc, *fPrevMagnitude;
 	int iFirstTimeNMap = 1;
-	int found_deriv_map = 0;
+	bool found_deriv_map = false;
 
 	GPU_link(mat, "set_value", GPU_uniform(&one), &stencil);
 
@@ -1102,10 +1087,10 @@ static void do_material_tex(GPUShadeInput *shi)
 	GPU_link(mat, "texco_global", GPU_builtin(GPU_INVERSE_VIEW_MATRIX),
 		GPU_builtin(GPU_VIEW_POSITION), &texco_global);
 
-	orn= texco_norm;
+	orn = texco_norm;
 
 	/* go over texture slots */
-	for (tex_nr = 0; tex_nr < MAX_MTEX; tex_nr++) {
+	for (int tex_nr = 0; tex_nr < MAX_MTEX; tex_nr++) {
 		/* separate tex switching */
 		if (ma->septex & (1 << tex_nr)) continue;
 		
@@ -1147,9 +1132,12 @@ static void do_material_tex(GPUShadeInput *shi)
 			if (mtex->size[0] != 1.0f || mtex->size[1] != 1.0f || mtex->size[2] != 1.0f)
 				GPU_link(mat, "mtex_mapping_size", texco, GPU_uniform(mtex->size), &texco);
 
-			ofs[0] = mtex->ofs[0] + 0.5f - 0.5f * mtex->size[0];
-			ofs[1] = mtex->ofs[1] + 0.5f - 0.5f * mtex->size[1];
-			ofs[2] = 0.0f;
+			const float ofs[3] = {
+				mtex->ofs[0] + 0.5f - 0.5f * mtex->size[0],
+				mtex->ofs[1] + 0.5f - 0.5f * mtex->size[1],
+				0.0f
+			};
+
 			if (ofs[0] != 0.0f || ofs[1] != 0.0f || ofs[2] != 0.0f)
 				GPU_link(mat, "mtex_mapping_ofs", texco, GPU_uniform(ofs), &texco);
 
@@ -1261,7 +1249,7 @@ static void do_material_tex(GPUShadeInput *shi)
 							newnor = tnor;
 						}
 						
-						norfac = min_ff(fabsf(mtex->norfac), 1.0f);
+						float norfac = min_ff(fabsf(mtex->norfac), 1.0f);
 						
 						if (norfac == 1.0f && !GPU_link_changed(stencil)) {
 							shi->vn = newnor;
@@ -1280,7 +1268,6 @@ static void do_material_tex(GPUShadeInput *shi)
 						/* ntap bumpmap image */
 						int iBumpSpace;
 						float ima_x, ima_y;
-						float hScale; 
 
 						float imag_tspace_dimension_x = 1024.0f; /* only used for texture space variant */
 						float aspect = 1.0f;
@@ -1288,16 +1275,16 @@ static void do_material_tex(GPUShadeInput *shi)
 						GPUNodeLink *vR1, *vR2;
 						GPUNodeLink *dBs, *dBt, *fDet;
 
-						hScale = 0.1; /* compatibility adjustment factor for all bumpspace types */
+						float hScale = 0.1f; /* compatibility adjustment factor for all bumpspace types */
 						if (mtex->texflag & MTEX_BUMP_TEXTURESPACE)
 							hScale = 13.0f; /* factor for scaling texspace bumps */
-						else if (found_deriv_map!=0)
+						else if (found_deriv_map)
 							hScale = 1.0f;
 
 						/* resolve texture resolution */
 						if ((mtex->texflag & MTEX_BUMP_TEXTURESPACE) || found_deriv_map) {
 							ImBuf *ibuf = BKE_image_acquire_ibuf(tex->ima, &tex->iuser, NULL);
-							ima_x = 512.0f; ima_y = 512.f; /* prevent calling textureSize, glsl 1.3 only */
+							ima_x = 512.0f; ima_y = 512.0f; /* prevent calling textureSize, glsl 1.3 only */
 							if (ibuf) {
 								ima_x = ibuf->x;
 								ima_y = ibuf->y;
@@ -1310,7 +1297,7 @@ static void do_material_tex(GPUShadeInput *shi)
 						 * normal in the renderer points inward which corresponds
 						 * to inverting the bump map. Should this ever change
 						 * this negate must be removed. */
-						norfac = -hScale * mtex->norfac;
+						float norfac = -hScale * mtex->norfac;
 						if (found_deriv_map) {
 							float fVirtDim = sqrtf(fabsf(ima_x * mtex->size[0] * ima_y * mtex->size[1]));
 							norfac /= MAX2(fVirtDim, FLT_EPSILON);
@@ -2276,22 +2263,18 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 	};
 
 	GPUShaderExport *shader = NULL;
-	GPUPass *pass;
 	GPUInput *input;
-	GPUMaterial *mat;
-	GPUInputUniform *uniform;
-	GPUInputAttribute *attribute;
-	int i, liblen, fraglen;
+	int liblen, fraglen;
 
-	/* TODO(sergey): How to detemine whether we need OSD or not here? */
-	mat = GPU_material_from_blender(scene, ma, false);
-	pass = (mat)? mat->pass: NULL;
+	/* TODO(sergey): How to determine whether we need OSD or not here? */
+	GPUMaterial *mat = GPU_material_from_blender(scene, ma, false);
+	GPUPass *pass = (mat)? mat->pass: NULL;
 
 	if (pass && pass->fragmentcode && pass->vertexcode) {
 		shader = MEM_callocN(sizeof(GPUShaderExport), "GPUShaderExport");
 
 		for (input = pass->inputs.first; input; input = input->next) {
-			uniform = MEM_callocN(sizeof(GPUInputUniform), "GPUInputUniform");
+			GPUInputUniform *uniform = MEM_callocN(sizeof(GPUInputUniform), "GPUInputUniform");
 
 			if (input->ima) {
 				/* image sampler uniform */
@@ -2375,9 +2358,9 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 		}
 
 		/* process builtin uniform */
-		for (i = 0; builtins[i].gputype; i++) {
+		for (int i = 0; builtins[i].gputype; i++) {
 			if (mat->builtins & builtins[i].gputype) {
-				uniform = MEM_callocN(sizeof(GPUInputUniform), "GPUInputUniform");
+				GPUInputUniform *uniform = MEM_callocN(sizeof(GPUInputUniform), "GPUInputUniform");
 				uniform->type = builtins[i].dynamictype;
 				uniform->datatype = builtins[i].datatype;
 				BLI_strncpy(uniform->varname, GPU_builtin_name(builtins[i].gputype), sizeof(uniform->varname));
@@ -2396,8 +2379,8 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 		shader->fragment[liblen + fraglen] = 0;
 
 		// export the attribute
-		for (i = 0; i < mat->attribs.totlayer; i++) {
-			attribute = MEM_callocN(sizeof(GPUInputAttribute), "GPUInputAttribute");
+		for (int i = 0; i < mat->attribs.totlayer; i++) {
+			GPUInputAttribute *attribute = MEM_callocN(sizeof(GPUInputAttribute), "GPUInputAttribute");
 			attribute->type = mat->attribs.layer[i].type;
 			attribute->number = mat->attribs.layer[i].glindex;
 			BLI_snprintf(attribute->varname, sizeof(attribute->varname), "att%d", mat->attribs.layer[i].attribid);
@@ -2434,12 +2417,10 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 
 void GPU_free_shader_export(GPUShaderExport *shader)
 {
-	GPUInputUniform *uniform;
-
 	if (shader == NULL)
 		return;
 
-	for (uniform = shader->uniforms.first; uniform; uniform = uniform->next)
+	for (GPUInputUniform *uniform = shader->uniforms.first; uniform; uniform = uniform->next)
 		if (uniform->texpixels)
 			MEM_freeN(uniform->texpixels);
 
