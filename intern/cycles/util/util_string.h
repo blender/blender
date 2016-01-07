@@ -44,6 +44,7 @@ void string_replace(string& haystack, const string& needle, const string& other)
 bool string_endswith(const string& s, const char *end);
 string string_strip(const string& s);
 string string_remove_trademark(const string& s);
+string bool_to_string(bool var);
 
 CCL_NAMESPACE_END
 
