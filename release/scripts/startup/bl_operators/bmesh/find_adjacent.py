@@ -179,16 +179,21 @@ def elems_depth_measure(ele_dst, ele_src, other_edges_over_cb):
         stack_new[:] = []
         depth += 1
 
-    return [vert_depths[v] for v in ele_dst_verts]
+    if not all_dst:
+        return [vert_depths[v] for v in ele_dst_verts]
+    else:
+        return None
 
 
 def find_next(ele_dst, ele_src):
     depth_src_a = elems_depth_measure(ele_dst, ele_src, other_edges_over_edge)
     depth_src_b = elems_depth_measure(ele_dst, ele_src, other_edges_over_face)
-    depth_src = tuple(zip(depth_src_a, depth_src_b))
 
-    if depth_src is None:
+    # path not found
+    if depth_src_a is None or depth_src_b is None:
         return []
+
+    depth_src = tuple(zip(depth_src_a, depth_src_b))
 
     candidates = elems_depth_search(ele_dst, depth_src_a, other_edges_over_edge)
     candidates = elems_depth_search(ele_dst, depth_src_b, other_edges_over_face, candidates)
