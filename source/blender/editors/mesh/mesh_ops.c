@@ -347,6 +347,10 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "MESH_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
+
+	WM_keymap_add_item(keymap, "MESH_OT_select_next_item", PADPLUSKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_select_prev_item", PADMINUS, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+
 	WM_keymap_add_item(keymap, "MESH_OT_select_non_manifold", MKEY, KM_PRESS, (KM_CTRL | KM_SHIFT | KM_ALT), 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
