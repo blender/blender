@@ -682,6 +682,21 @@ class VIEW3D_MT_edit_mesh_select_by_trait(Menu):
         layout.operator("mesh.select_ungrouped", text="Ungrouped Verts")
 
 
+class VIEW3D_MT_edit_mesh_select_more_less(Menu):
+    bl_label = "Select More/Less"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("mesh.select_more", text="More")
+        layout.operator("mesh.select_less", text="Less")
+
+        layout.separator()
+
+        layout.operator("mesh.select_next_item", text="Next Active")
+        layout.operator("mesh.select_prev_item", text="Previous Active")
+
+
 class VIEW3D_MT_select_edit_mesh(Menu):
     bl_label = "Select"
 
@@ -720,8 +735,7 @@ class VIEW3D_MT_select_edit_mesh(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.select_more", text="More")
-        layout.operator("mesh.select_less", text="Less")
+        layout.menu("VIEW3D_MT_edit_mesh_select_more_less")
 
         layout.separator()
 
