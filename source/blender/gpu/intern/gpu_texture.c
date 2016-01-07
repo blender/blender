@@ -248,9 +248,6 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, const f
 	GLenum type, format, internalformat;
 	void *pixels = NULL;
 
-	if (!GLEW_VERSION_1_2)
-		return NULL;
-
 	GPUTexture *tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
 	tex->w = w;
 	tex->h = h;
