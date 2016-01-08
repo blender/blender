@@ -837,29 +837,22 @@ static void track_mask_gpencil_layer_rasterize(int frame_width, int frame_height
 
 		while (stroke) {
 			bGPDspoint *stroke_points = stroke->points;
-			int *mask_points, *point;
-			int i;
-
 			if (stroke->flag & GP_STROKE_2DSPACE) {
+				int *mask_points, *point;
 				point = mask_points = MEM_callocN(2 * stroke->totpoints * sizeof(int),
 				                               "track mask rasterization points");
-
-				for (i = 0; i < stroke->totpoints; i++, point += 2) {
+				for (int i = 0; i < stroke->totpoints; i++, point += 2) {
 					point[0] = (stroke_points[i].x - marker->search_min[0]) * frame_width;
 					point[1] = (stroke_points[i].y - marker->search_min[1]) * frame_height;
 				}
-
 				/* TODO: add an option to control whether AA is enabled or not */
 				fill_poly_v2i_n(0, 0, mask_width, mask_height,
 				                (const int (*)[2])mask_points, stroke->totpoints,
 				                track_mask_set_pixel_cb, &data);
-
 				MEM_freeN(mask_points);
 			}
-
 			stroke = stroke->next;
 		}
-
 		frame = frame->next;
 	}
 }
