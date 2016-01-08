@@ -209,6 +209,9 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 
 	if ((prop = RNA_struct_find_property(op->ptr, "sound")) && RNA_property_boolean_get(op->ptr, prop))
 		seq_load->flag |= SEQ_LOAD_MOVIE_SOUND;
+	
+	if ((prop = RNA_struct_find_property(op->ptr, "use_framerate")) && RNA_property_boolean_get(op->ptr, prop))
+		seq_load->flag |= SEQ_LOAD_SYNC_FPS;
 
 	/* always use this for ops */
 	seq_load->flag |= SEQ_LOAD_FRAME_ADVANCE;
@@ -700,6 +703,7 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_FILES, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
 	RNA_def_boolean(ot->srna, "sound", true, "Sound", "Load sound with the movie");
+	RNA_def_boolean(ot->srna, "use_framerate", true, "Use Movie Framerate", "Use framerate from the movie to keep sound and video in sync");
 }
 
 /* add sound operator */

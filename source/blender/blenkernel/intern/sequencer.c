@@ -5249,6 +5249,11 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	seq->anim_preseek = IMB_anim_get_preseek(anim_arr[0]);
 	BLI_strncpy(seq->name + 2, "Movie", SEQ_NAME_MAXSTR - 2);
 	BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
+	
+	/* adjust scene's frame rate settings to match */
+	if (seq_load->flag & SEQ_LOAD_SYNC_FPS) {
+		IMB_anim_get_fps(anim_arr[0], &scene->r.frs_sec, &scene->r.frs_sec_base, true);
+	}
 
 	/* basic defaults */
 	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
