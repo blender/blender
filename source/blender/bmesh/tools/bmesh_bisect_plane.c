@@ -264,8 +264,18 @@ static void bm_face_bisect_verts(BMesh *bm, BMFace *f, const float plane[4], con
 					/* in fact this simple test is good enough,
 					 * test if the loops are adjacent */
 					if (found && !BM_loop_is_adjacent(l_a, l_b)) {
+						BMLoop *l_new;
 						BMFace *f_tmp;
-						f_tmp = BM_face_split(bm, face_split_arr[j], l_a, l_b, NULL, NULL, true);
+						f_tmp = BM_face_split(bm, face_split_arr[j], l_a, l_b, &l_new, NULL, true);
+
+						if (l_new) {
+							if (oflag_center) {
+								BMO_elem_flag_enable(bm, l_new->e,          oflag_center);
+								BMO_elem_flag_enable(bm, l_new->f,          oflag_center);
+								BMO_elem_flag_enable(bm, face_split_arr[j], oflag_center);
+							}
+						}
+
 						if (f_tmp) {
 							if (f_tmp != face_split_arr[j]) {
 								STACK_PUSH(face_split_arr, f_tmp);
