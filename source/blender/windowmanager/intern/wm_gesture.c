@@ -235,12 +235,15 @@ struct LassoFillData {
 	int width;
 };
 
-static void draw_filled_lasso_px_cb(int x, int y, void *user_data)
+static void draw_filled_lasso_px_cb(int x, int x_end, int y, void *user_data)
 {
 	struct LassoFillData *data = user_data;
 	unsigned char *col = (unsigned char *)&(data->px[(y * data->width) + x]);
-	col[0] = col[1] = col[2] = 0xff;
-	col[3] = 0x10;
+	do {
+		col[0] = col[1] = col[2] = 0xff;
+		col[3] = 0x10;
+		col += 4;
+	} while (++x != x_end);
 }
 
 static void draw_filled_lasso(wmWindow *win, wmGesture *gt)

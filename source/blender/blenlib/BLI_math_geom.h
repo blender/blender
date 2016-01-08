@@ -291,7 +291,7 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], bool (*callback)(int, int
 void fill_poly_v2i_n(
         const int xmin, const int ymin, const int xmax, const int ymax,
         const int polyXY[][2], const int polyCorners,
-        void (*callback)(int, int, void *), void *userData);
+        void (*callback)(int x, int x_end, int y, void *), void *userData);
 /****************************** Interpolation ********************************/
 
 /* tri or quad, d can be NULL */

@@ -315,10 +315,14 @@ static bool is_effected_lasso(LassoMaskData *data, float co[3])
 	return BLI_BITMAP_TEST_BOOL(data->px, scr_co_s[1] * data->width + scr_co_s[0]);
 }
 
-static void mask_lasso_px_cb(int x, int y, void *user_data)
+static void mask_lasso_px_cb(int x, int x_end, int y, void *user_data)
 {
 	struct LassoMaskData *data = user_data;
-	BLI_BITMAP_ENABLE(data->px, (y * data->width) + x);
+	int index     = (y * data->width) + x;
+	int index_end = (y * data->width) + x_end;
+	do {
+		BLI_BITMAP_ENABLE(data->px, index);
+	} while (++index != index_end);
 }
 
 static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)

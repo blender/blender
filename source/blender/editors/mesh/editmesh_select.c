@@ -249,10 +249,14 @@ struct LassoMaskData {
 	int width;
 };
 
-static void edbm_mask_lasso_px_cb(int x, int y, void *user_data)
+static void edbm_mask_lasso_px_cb(int x, int x_end, int y, void *user_data)
 {
 	struct LassoMaskData *data = user_data;
-	data->px[(y * data->width) + x] = true;
+	unsigned int *px = &data->px[(y * data->width) + x];
+	do {
+		*px = true;
+		px++;
+	} while (++x != x_end);
 }
 
 

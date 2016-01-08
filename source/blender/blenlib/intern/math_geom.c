@@ -2642,10 +2642,20 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], bool (*callback)(int, int
 	}
 }
 
+/**
+ * \param callback: Takes the x, y coords and x-span (\a x_end is not inclusive),
+ * note that \a x_end will always be greater than \a x, so we can use:
+ *
+ * \code{.c}
+ * do {
+ *     func(x, y);
+ * } while (++x != x_end);
+ * \endcode
+ */
 void fill_poly_v2i_n(
         const int xmin, const int ymin, const int xmax, const int ymax,
         const int verts[][2], const int nr,
-        void (*callback)(int, int, void *), void *userData)
+        void (*callback)(int x, int x_end, int y, void *), void *userData)
 {
 	/* originally by Darel Rex Finley, 2007 */
 
@@ -2686,9 +2696,18 @@ void fill_poly_v2i_n(
 			if (node_x[i + 1] >  xmin) {
 				if (node_x[i    ] < xmin) node_x[i    ] = xmin;
 				if (node_x[i + 1] > xmax) node_x[i + 1] = xmax;
+
+#if 0
+				/* for many x/y calls */
 				for (j = node_x[i]; j < node_x[i + 1]; j++) {
 					callback(j - xmin, pixel_y - ymin, userData);
 				}
+#else
+				/* for single call per x-span */
+				if (node_x[i] < node_x[i + 1]) {
+					callback(node_x[i] - xmin, node_x[i + 1] - xmin, pixel_y - ymin, userData);
+				}
+#endif
 			}
 		}
 	}

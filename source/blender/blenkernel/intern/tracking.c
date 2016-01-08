@@ -814,11 +814,14 @@ typedef struct TrackMaskSetPixelData {
 	int mask_height;
 } TrackMaskSetPixelData;
 
-static void track_mask_set_pixel_cb(int x, int y, void *user_data)
+static void track_mask_set_pixel_cb(int x, int x_end, int y, void *user_data)
 {
 	TrackMaskSetPixelData *data = (TrackMaskSetPixelData *)user_data;
-	size_t index = (size_t)y * data->mask_width + x;
-	data->mask[index] = 1.0f;
+	size_t index =     (size_t)y * data->mask_width + x;
+	size_t index_end = (size_t)y * data->mask_width + x_end;
+	do {
+		data->mask[index] = 1.0f;
+	} while (++index != index_end);
 }
 
 static void track_mask_gpencil_layer_rasterize(int frame_width, int frame_height,
