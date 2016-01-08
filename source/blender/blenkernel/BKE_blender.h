@@ -107,7 +107,7 @@ extern struct Main  *BKE_undo_get_main(struct Scene **r_scene);
 void BKE_copybuffer_begin(struct Main *bmain);
 void BKE_copybuffer_tag_ID(struct ID *id);
 int BKE_copybuffer_save(const char *filename, struct ReportList *reports);
-int BKE_copybuffer_paste(struct bContext *C, const char *libname, struct ReportList *reports);
+int BKE_copybuffer_paste(struct bContext *C, const char *libname, const short flag, struct ReportList *reports);
 
 #ifdef __cplusplus
 }

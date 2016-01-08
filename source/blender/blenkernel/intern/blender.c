@@ -52,6 +52,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
@@ -1044,10 +1045,11 @@ int BKE_copybuffer_save(const char *filename, ReportList *reports)
 }
 
 /* return success (1) */
-int BKE_copybuffer_paste(bContext *C, const char *libname, ReportList *reports)
+int BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, ReportList *reports)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	Main *mainl = NULL;
 	Library *lib;
 	BlendHandle *bh;
@@ -1070,9 +1072,9 @@ int BKE_copybuffer_paste(bContext *C, const char *libname, ReportList *reports)
 	/* here appending/linking starts */
 	mainl = BLO_library_link_begin(bmain, &bh, libname);
 	
-	BLO_library_link_all(mainl, bh);
+	BLO_library_link_all(mainl, bh, flag, scene, v3d);
 
-	BLO_library_link_end(mainl, &bh, 0, scene, CTX_wm_view3d(C));
+	BLO_library_link_end(mainl, &bh, flag, scene, v3d);
 	
 	/* mark all library linked objects to be updated */
 	BKE_main_lib_objects_recalc_all(bmain);

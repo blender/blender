@@ -9662,16 +9662,47 @@ static ID *link_named_part(Main *mainl, FileData *fd, const short idcode, const 
 	return id;
 }
 
+static void link_object_postprocess(ID *id, Scene *scene, View3D *v3d, const short flag)
+{
+	if (scene) {
+		Base *base;
+		Object *ob;
+
+		base = MEM_callocN(sizeof(Base), "app_nam_part");
+		BLI_addtail(&scene->base, base);
+
+		ob = (Object *)id;
+
+		/* link at active layer (view3d if available in context, else scene one */
+		if (flag & FILE_ACTIVELAY) {
+			ob->lay = BKE_screen_view3d_layer_active(v3d, scene);
+		}
+
+		ob->mode = OB_MODE_OBJECT;
+		base->lay = ob->lay;
+		base->object = ob;
+		base->flag = ob->flag;
+		ob->id.us++;
+
+		if (flag & FILE_AUTOSELECT) {
+			base->flag |= SELECT;
+			base->object->flag = base->flag;
+			/* do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level */
+		}
+	}
+}
+
 /**
  * Simple reader for copy/paste buffers.
  */
-void BLO_library_link_all(Main *mainl, BlendHandle *bh)
+void BLO_library_link_all(Main *mainl, BlendHandle *bh, const short flag, Scene *scene, View3D *v3d)
 {
 	FileData *fd = (FileData *)(bh);
 	BHead *bhead;
-	ID *id = NULL;
 	
 	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
+		ID *id = NULL;
+
 		if (bhead->code == ENDB)
 			break;
 		if (bhead->code == ID_OB)
@@ -9681,6 +9712,8 @@ void BLO_library_link_all(Main *mainl, BlendHandle *bh)
 			/* sort by name in list */
 			ListBase *lb = which_libbase(mainl, GS(id->name));
 			id_sort_by_name(lb, id);
+
+			link_object_postprocess(id, scene, v3d, flag);
 		}
 	}
 }
@@ -9692,32 +9725,7 @@ static ID *link_named_part_ex(
 	ID *id = link_named_part(mainl, fd, idcode, name);
 
 	if (id && (GS(id->name) == ID_OB)) {	/* loose object: give a base */
-		if (scene) {
-			Base *base;
-			Object *ob;
-
-			base = MEM_callocN(sizeof(Base), "app_nam_part");
-			BLI_addtail(&scene->base, base);
-
-			ob = (Object *)id;
-
-			/* link at active layer (view3d if available in context, else scene one */
-			if (flag & FILE_ACTIVELAY) {
-				ob->lay = BKE_screen_view3d_layer_active(v3d, scene);
-			}
-
-			ob->mode = OB_MODE_OBJECT;
-			base->lay = ob->lay;
-			base->object = ob;
-			base->flag = ob->flag;
-			ob->id.us++;
-
-			if (flag & FILE_AUTOSELECT) {
-				base->flag |= SELECT;
-				base->object->flag = base->flag;
-				/* do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level */
-			}
-		}
+		link_object_postprocess(id, scene, v3d, flag);
 	}
 	else if (id && (GS(id->name) == ID_GR)) {
 		/* tag as needing to be instantiated */

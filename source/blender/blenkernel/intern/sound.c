@@ -562,6 +562,7 @@ void BKE_sound_set_scene_sound_pitch(void *handle, float pitch, char animated)
 
 void BKE_sound_set_scene_sound_pan(void *handle, float pan, char animated)
 {
+	printf("%s\n", __func__);
 	AUD_SequenceEntry_setAnimationData(handle, AUD_AP_PANNING, sound_cfra, &pan, animated);
 }
 
