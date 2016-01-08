@@ -34,6 +34,7 @@
  */
 
 struct Bone;
+struct GHash;
 struct Main;
 struct bArmature;
 struct bPoseChannel;
@@ -72,6 +73,7 @@ extern "C" {
 
 struct bArmature *BKE_armature_add(struct Main *bmain, const char *name);
 struct bArmature *BKE_armature_from_object(struct Object *ob);
+int  BKE_armature_bonelist_count(struct ListBase *lb);
 void BKE_armature_bonelist_free(struct ListBase *lb);
 void BKE_armature_free(struct bArmature *arm);
 void BKE_armature_make_local(struct bArmature *arm);
@@ -84,7 +86,8 @@ bool BKE_pose_minmax(struct Object *ob, float r_min[3], float r_max[3], bool use
 
 int bone_autoside_name(char name[64], int strip_number, short axis, float head, float tail);
 
-struct Bone *BKE_armature_find_bone_name(struct bArmature *arm, const char *name);
+struct Bone  *BKE_armature_find_bone_name(struct bArmature *arm, const char *name);
+struct GHash *BKE_armature_bone_from_name_map(struct bArmature *arm);
 
 bool         BKE_armature_bone_flag_test_recursive(const struct Bone *bone, int flag);
 

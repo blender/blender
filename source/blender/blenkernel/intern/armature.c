@@ -38,7 +38,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
+#include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
@@ -89,6 +91,16 @@ bArmature *BKE_armature_from_object(Object *ob)
 	if (ob->type == OB_ARMATURE)
 		return (bArmature *)ob->data;
 	return NULL;
+}
+
+int BKE_armature_bonelist_count(ListBase *lb)
+{
+	int i = 0;
+	for (Bone *bone = lb->first; bone; bone = bone->next) {
+		i += 1 + BKE_armature_bonelist_count(&bone->childbase);
+	}
+
+	return i;
 }
 
 void BKE_armature_bonelist_free(ListBase *lb)
@@ -229,15 +241,15 @@ bArmature *BKE_armature_copy(bArmature *arm)
 	return newArm;
 }
 
-static Bone *get_named_bone_bonechildren(Bone *bone, const char *name)
+static Bone *get_named_bone_bonechildren(ListBase *lb, const char *name)
 {
 	Bone *curBone, *rbone;
 
-	if (STREQ(bone->name, name))
-		return bone;
+	for (curBone = lb->first; curBone; curBone = curBone->next) {
+		if (STREQ(curBone->name, name))
+			return curBone;
 
-	for (curBone = bone->childbase.first; curBone; curBone = curBone->next) {
-		rbone = get_named_bone_bonechildren(curBone, name);
+		rbone = get_named_bone_bonechildren(&curBone->childbase, name);
 		if (rbone)
 			return rbone;
 	}
@@ -246,21 +258,38 @@ static Bone *get_named_bone_bonechildren(Bone *bone, const char *name)
 }
 
 
-/* Walk the list until the bone is found */
+/**
+ * Walk the list until the bone is found (slow!),
+ * use #BKE_armature_bone_from_name_map for multiple lookups.
+ */
 Bone *BKE_armature_find_bone_name(bArmature *arm, const char *name)
 {
-	Bone *bone = NULL, *curBone;
-
 	if (!arm)
 		return NULL;
 
-	for (curBone = arm->bonebase.first; curBone; curBone = curBone->next) {
-		bone = get_named_bone_bonechildren(curBone, name);
-		if (bone)
-			return bone;
-	}
+	return get_named_bone_bonechildren(&arm->bonebase, name);
+}
 
-	return bone;
+static void armature_bone_from_name_insert_recursive(GHash *bone_hash, ListBase *lb)
+{
+	for (Bone *bone = lb->first; bone; bone = bone->next) {
+		BLI_ghash_insert(bone_hash, bone->name, bone);
+		armature_bone_from_name_insert_recursive(bone_hash, &bone->childbase);
+	}
+}
+
+/**
+ * Create a (name -> bone) map.
+ *
+ * \note typically #bPose.chanhash us used via #BKE_pose_channel_find_name
+ * this is for the cases we can't use pose channels.
+ */
+GHash *BKE_armature_bone_from_name_map(bArmature *arm)
+{
+	const int bones_count = BKE_armature_bonelist_count(&arm->bonebase);
+	GHash *bone_hash = BLI_ghash_str_new_ex(__func__, bones_count);
+	armature_bone_from_name_insert_recursive(bone_hash, &arm->bonebase);
+	return bone_hash;
 }
 
 bool BKE_armature_bone_flag_test_recursive(const Bone *bone, int flag)

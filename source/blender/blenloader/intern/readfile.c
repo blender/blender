@@ -3185,18 +3185,23 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 
 static void lib_link_pose(FileData *fd, Main *bmain, Object *ob, bPose *pose)
 {
-	bPoseChannel *pchan;
 	bArmature *arm = ob->data;
-	int rebuild = 0;
 	
 	if (!pose || !arm)
 		return;
 	
 	/* always rebuild to match proxy or lib changes, but on Undo */
-	if (fd->memfile == NULL)
-		if (ob->proxy || (ob->id.lib==NULL && arm->id.lib))
-			rebuild = 1;
-	
+	bool rebuild = false;
+
+	if (fd->memfile == NULL) {
+		if (ob->proxy || (ob->id.lib==NULL && arm->id.lib)) {
+			rebuild = true;
+		}
+	}
+
+	/* avoid string */
+	GHash *bone_hash = BKE_armature_bone_from_name_map(arm);
+
 	if (ob->proxy) {
 		/* sync proxy layer */
 		if (pose->proxy_layer)
@@ -3204,28 +3209,32 @@ static void lib_link_pose(FileData *fd, Main *bmain, Object *ob, bPose *pose)
 		
 		/* sync proxy active bone */
 		if (pose->proxy_act_bone[0]) {
-			Bone *bone = BKE_armature_find_bone_name(arm, pose->proxy_act_bone);
-			if (bone)
+			Bone *bone = BLI_ghash_lookup(bone_hash, pose->proxy_act_bone);
+			if (bone) {
 				arm->act_bone = bone;
+			}
 		}
 	}
-	
-	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
+
+	for (bPoseChannel *pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
 		lib_link_constraints(fd, (ID *)ob, &pchan->constraints);
-		
-		/* hurms... loop in a loop, but yah... later... (ton) */
-		pchan->bone = BKE_armature_find_bone_name(arm, pchan->name);
+
+		pchan->bone = BLI_ghash_lookup(bone_hash, pchan->name);
 		
 		pchan->custom = newlibadr_us(fd, arm->id.lib, pchan->custom);
-		if (pchan->bone == NULL)
-			rebuild= 1;
-		else if (ob->id.lib==NULL && arm->id.lib) {
+		if (UNLIKELY(pchan->bone == NULL)) {
+			rebuild = true;
+		}
+		else if ((ob->id.lib == NULL) && arm->id.lib) {
 			/* local pose selection copied to armature, bit hackish */
 			pchan->bone->flag &= ~BONE_SELECTED;
 			pchan->bone->flag |= pchan->selectflag;
 		}
 	}
+
+	BLI_ghash_free(bone_hash, NULL, NULL);
 	
+
 	if (rebuild) {
 		DAG_id_tag_update_ex(bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 		BKE_pose_tag_recalc(bmain, pose);
