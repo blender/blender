@@ -733,7 +733,7 @@ static void shade_light_textures(GPUMaterial *mat, GPULamp *lamp, GPUNodeLink **
 		if (mtex && mtex->tex->type & TEX_IMAGE && mtex->tex->ima) {
 			mat->dynproperty |= DYN_LAMP_PERSMAT;
 
-			const float one = 1.0f;
+			float one = 1.0f;
 			GPUNodeLink *tex_rgb;
 
 			GPU_link(mat, "shade_light_texture",
@@ -752,7 +752,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 	GPUMaterial *mat = shi->gpumat;
 	GPUNodeLink *lv, *dist, *is, *inp, *i;
 	GPUNodeLink *outcol, *specfac, *t, *shadfac = NULL, *lcol;
-	const float one = 1.0f;
+	float one = 1.0f;
 
 	if ((lamp->mode & LA_ONLYSHADOW) && !(ma->mode & MA_SHADOW))
 		return;
@@ -1066,7 +1066,7 @@ static void do_material_tex(GPUShadeInput *shi)
 	GPUNodeLink *texco_norm, *texco_orco, *texco_object;
 	GPUNodeLink *texco_global, *texco_uv = NULL;
 	GPUNodeLink *newnor, *orn;
-	const float one = 1.0f;
+	float one = 1.0f;
 	int rgbnor, talpha;
 	bool init_done = false;
 	int iBumpSpacePrev = 0; /* Not necessary, quieting gcc warning. */
@@ -1132,7 +1132,7 @@ static void do_material_tex(GPUShadeInput *shi)
 			if (mtex->size[0] != 1.0f || mtex->size[1] != 1.0f || mtex->size[2] != 1.0f)
 				GPU_link(mat, "mtex_mapping_size", texco, GPU_uniform(mtex->size), &texco);
 
-			const float ofs[3] = {
+			float ofs[3] = {
 				mtex->ofs[0] + 0.5f - 0.5f * mtex->size[0],
 				mtex->ofs[1] + 0.5f - 0.5f * mtex->size[1],
 				0.0f
