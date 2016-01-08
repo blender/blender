@@ -175,11 +175,10 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 					/* Remove all stored panels, we want to use defaults (order, open/closed) as defined by UI code here! */
 					BLI_freelistN(&ar->panels);
 
-					/* simple fix for 3d view properties scrollbar being not set to top */
-					if (ar->regiontype == RGN_TYPE_UI) {
-						float offset = ar->v2d.tot.ymax - ar->v2d.cur.ymax;
-						ar->v2d.cur.ymax += offset;
-						ar->v2d.cur.ymin += offset;
+					/* some toolbars have been saved as initialized,
+					 * we don't want them to have odd zoom-level or scrolling set, see: T47047 */
+					if (ELEM(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS, RGN_TYPE_TOOL_PROPS)) {
+						ar->v2d.flag &= ~V2D_IS_INITIALISED;
 					}
 				}
 			}

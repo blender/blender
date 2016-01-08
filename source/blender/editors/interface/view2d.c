@@ -211,7 +211,12 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 	uiStyle *style = UI_style_get();
 
 	do_init = (v2d->flag & V2D_IS_INITIALISED) == 0;
-		
+
+	/* initialize without scroll bars (interfears with zoom level see: T47047) */
+	if (do_init) {
+		v2d->scroll |= V2D_SCROLL_VERTICAL_FULLR | V2D_SCROLL_HORIZONTAL_FULLR;
+	}
+
 	/* see eView2D_CommonViewTypes in UI_view2d.h for available view presets */
 	switch (type) {
 		/* 'standard view' - optimum setup for 'standard' view behavior,
@@ -322,16 +327,15 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 
 			if (do_init) {
 				float panelzoom = (style) ? style->panelzoom : 1.0f;
-				float scrolw = (v2d->scroll & V2D_SCROLL_RIGHT) ? V2D_SCROLL_WIDTH : 0.0f;
 				
 				v2d->tot.xmin = 0.0f;
-				v2d->tot.xmax = winx - scrolw;
+				v2d->tot.xmax = winx;
 				
 				v2d->tot.ymax = 0.0f;
 				v2d->tot.ymin = -winy;
 				
 				v2d->cur.xmin = 0.0f;
-				v2d->cur.xmax = (winx) * panelzoom - scrolw;
+				v2d->cur.xmax = (winx) * panelzoom;
 				
 				v2d->cur.ymax = 0.0f;
 				v2d->cur.ymin = (-winy) * panelzoom;
