@@ -288,12 +288,11 @@ def select_prev(bm, report):
 
     ele.select_set(False)
 
-    for ele in reversed(bm.select_history):
-        break
-    else:
-        return True
+    for i, ele in enumerate(reversed(bm.select_history)):
+        if i == 1:
+            if type(ele) is bmesh.types.BMFace:
+                bm.faces.active = ele
+            break
 
-    if type(ele) is bmesh.types.BMFace:
-        bm.faces.active = ele
     return True
 
