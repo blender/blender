@@ -810,6 +810,8 @@ static int outliner_scroll_page_exec(bContext *C, wmOperator *op)
 
 void OUTLINER_OT_scroll_page(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Scroll Page";
 	ot->idname = "OUTLINER_OT_scroll_page";
@@ -820,7 +822,8 @@ void OUTLINER_OT_scroll_page(wmOperatorType *ot)
 	ot->poll = ED_operator_outliner_active;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "up", 0, "Up", "Scroll up one page");
+	prop = RNA_def_boolean(ot->srna, "up", 0, "Up", "Scroll up one page");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* Search ------------------------------------------------------- */
