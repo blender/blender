@@ -321,8 +321,8 @@ OPENCOLLADA_FORCE_BUILD=true  # no package!
 OPENCOLLADA_FORCE_REBUILD=false
 OPENCOLLADA_SKIP=false
 
-FFMPEG_VERSION="2.1.5"
-FFMPEG_VERSION_MIN="2.1.5"
+FFMPEG_VERSION="2.8.4"
+FFMPEG_VERSION_MIN="2.8.4"
 FFMPEG_FORCE_BUILD=false
 FFMPEG_FORCE_REBUILD=false
 FFMPEG_SKIP=false
@@ -1927,7 +1927,7 @@ clean_FFmpeg() {
 
 compile_FFmpeg() {
   # To be changed each time we make edits that would modify the compiled result!
-  ffmpeg_magic=3
+  ffmpeg_magic=4
   _init_ffmpeg
 
   # Clean install if needed!
@@ -1993,6 +1993,7 @@ compile_FFmpeg() {
         --disable-vaapi --disable-libfaac --disable-nonfree --enable-gpl \
         --disable-postproc --disable-librtmp --disable-libopencore-amrnb \
         --disable-libopencore-amrwb --disable-libdc1394 --disable-version3 --disable-outdev=sdl \
+        --disable-libxcb \
         --disable-outdev=xv \
         --disable-outdev=alsa --disable-indev=sdl --disable-indev=alsa --disable-indev=jack \
         --disable-indev=lavfi $extra
@@ -3788,7 +3789,7 @@ print_info() {
 
   if [ "$FFMPEG_SKIP" = false ]; then
     _1="-D WITH_CODEC_FFMPEG=ON"
-    _2="-D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;rt;`print_info_ffmpeglink`'"
+    _2="-D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;swresample;lzma;rt;`print_info_ffmpeglink`'"
     PRINT "  $_1"
     PRINT "  $_2"
     _buildargs="$_buildargs -U *FFMPEG* $_1 $_2"
