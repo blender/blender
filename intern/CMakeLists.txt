@@ -31,7 +31,6 @@ add_subdirectory(libmv)
 add_subdirectory(memutil)
 add_subdirectory(opencolorio)
 add_subdirectory(mikktspace)
-add_subdirectory(raskter)
 add_subdirectory(glew-mx)
 add_subdirectory(eigen)
 

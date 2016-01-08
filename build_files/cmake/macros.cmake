@@ -623,7 +623,6 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		cycles_kernel
 		cycles_util
 		cycles_subd
-		bf_intern_raskter
 		bf_intern_opencolorio
 		bf_intern_eigen
 		extern_rangetree
