@@ -64,8 +64,6 @@
 
 #include "RNA_access.h"
 
-#include "raskter.h"
-
 #include "libmv-capi.h"
 #include "tracking_private.h"
 
@@ -810,31 +808,51 @@ static bGPDlayer *track_mask_gpencil_layer_get(MovieTrackingTrack *track)
 	return NULL;
 }
 
+typedef struct TrackMaskSetPixelData {
+	float *mask;
+	int mask_width;
+	int mask_height;
+} TrackMaskSetPixelData;
+
+static void track_mask_set_pixel_cb(int x, int y, void *user_data)
+{
+	TrackMaskSetPixelData *data = (TrackMaskSetPixelData *)user_data;
+	size_t index = (size_t)y * data->mask_width + x;
+	data->mask[index] = 1.0f;
+}
+
 static void track_mask_gpencil_layer_rasterize(int frame_width, int frame_height,
                                                MovieTrackingMarker *marker, bGPDlayer *layer,
                                                float *mask, int mask_width, int mask_height)
 {
 	bGPDframe *frame = layer->frames.first;
+	TrackMaskSetPixelData data;
+
+	data.mask = mask;
+	data.mask_width = mask_width;
+	data.mask_height = mask_height;
 
 	while (frame) {
 		bGPDstroke *stroke = frame->strokes.first;
 
 		while (stroke) {
 			bGPDspoint *stroke_points = stroke->points;
-			float *mask_points, *fp;
+			int *mask_points, *point;
 			int i;
 
 			if (stroke->flag & GP_STROKE_2DSPACE) {
-				fp = mask_points = MEM_callocN(2 * stroke->totpoints * sizeof(float),
+				point = mask_points = MEM_callocN(2 * stroke->totpoints * sizeof(int),
 				                               "track mask rasterization points");
 
-				for (i = 0; i < stroke->totpoints; i++, fp += 2) {
-					fp[0] = (stroke_points[i].x - marker->search_min[0]) * frame_width / mask_width;
-					fp[1] = (stroke_points[i].y - marker->search_min[1]) * frame_height / mask_height;
+				for (i = 0; i < stroke->totpoints; i++, point += 2) {
+					point[0] = (stroke_points[i].x - marker->search_min[0]) * frame_width;
+					point[1] = (stroke_points[i].y - marker->search_min[1]) * frame_height;
 				}
 
 				/* TODO: add an option to control whether AA is enabled or not */
-				PLX_raskterize((float (*)[2])mask_points, stroke->totpoints, mask, mask_width, mask_height);
+				fill_poly_v2i_n(0, 0, mask_width, mask_height,
+				                (const int (*)[2])mask_points, stroke->totpoints,
+				                track_mask_set_pixel_cb, &data);
 
 				MEM_freeN(mask_points);
 			}
