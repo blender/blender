@@ -25,7 +25,7 @@
 ARGS=$( \
 getopt \
 -o s:i:t:h \
---long source:,install:,tmp:,info:,threads:,help,show-deps,no-sudo,with-all,with-opencollada,\
+--long source:,install:,tmp:,info:,threads:,help,show-deps,no-sudo,no-confirm,with-all,with-opencollada,\
 ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,ver-osd:,\
 force-all,force-python,force-numpy,force-boost,force-ocio,force-openexr,force-oiio,force-llvm,force-osl,force-osd,\
 force-ffmpeg,force-opencollada,\
@@ -93,6 +93,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --no-sudo
         Disable use of sudo (this script won't be able to do much though, will just print needed packages...).
+
+    --no-confirm
+        Disable any interaction with user (suitable for automated run).
 
     --with-all
         By default, a number of optional and not-so-often needed libraries are not installed.
@@ -248,6 +251,8 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 DO_SHOW_DEPS=false
 
 SUDO="sudo"
+
+NO_CONFIRM=false
 
 PYTHON_VERSION="3.5.1"
 PYTHON_VERSION_MIN="3.5"
@@ -430,6 +435,9 @@ while true; do
       WARNING "--no-sudo enabled, this script might not be able to do much..."
       PRINT ""
       SUDO=""; shift; continue
+    ;;
+    --no-confirm)
+      NO_CONFIRM=true; shift; continue
     ;;
     --with-all)
       WITH_ALL=true; shift; continue
@@ -2087,8 +2095,10 @@ install_DEB() {
   PRINT "`eval _echo "$COMMON_INFO"`"
   PRINT ""
 
-  read -p "Do you want to continue (Y/n)?"
-  [ "$(echo ${REPLY:=Y} | tr [:upper:] [:lower:])" != "y" ] && exit
+  if [ "$NO_CONFIRM" = false ]; then
+    read -p "Do you want to continue (Y/n)?"
+    [ "$(echo ${REPLY:=Y} | tr [:upper:] [:lower:])" != "y" ] && exit
+  fi
 
   if [ ! -z "`cat /etc/debian_version | grep ^6`"  ]; then
     if [ -z "`cat /etc/apt/sources.list | grep backports.debian.org`"  ]; then
@@ -2618,8 +2628,10 @@ install_RPM() {
   PRINT "`eval _echo "$COMMON_INFO"`"
   PRINT ""
 
-  read -p "Do you want to continue (Y/n)?"
-  [ "$(echo ${REPLY:=Y} | tr [:upper:] [:lower:])" != "y" ] && exit
+  if [ "$NO_CONFIRM" = false ]; then
+    read -p "Do you want to continue (Y/n)?"
+    [ "$(echo ${REPLY:=Y} | tr [:upper:] [:lower:])" != "y" ] && exit
+  fi
 
   # Enable non-free repositories for all flavours
   if [ ! $SUDO ]; then
@@ -3093,8 +3105,10 @@ install_ARCH() {
   PRINT "`eval _echo "$COMMON_INFO"`"
   PRINT ""
 
-  read -p "Do you want to continue (Y/n)?"
-  [ "$(echo ${REPLY:=Y} | tr [:upper:] [:lower:])" != "y" ] && exit
+  if [ "$NO_CONFIRM" = false ]; then
+    read -p "Do you want to continue (Y/n)?"
+    [ "$(echo ${REPLY:=Y} | tr [:upper:] [:lower:])" != "y" ] && exit
+  fi
 
   # Check for sudo...
   if [ $SUDO ]; then
@@ -3450,8 +3464,10 @@ install_OTHER() {
   PRINT "`eval _echo "$DEPS_SPECIFIC_INFO"`"
   PRINT ""
 
-  read -p "Do you want to continue (Y/n)?"
-  [ "$(echo ${REPLY:=Y} | tr [:upper:] [:lower:])" != "y" ] && exit
+  if [ "$NO_CONFIRM" = false ]; then
+    read -p "Do you want to continue (Y/n)?"
+    [ "$(echo ${REPLY:=Y} | tr [:upper:] [:lower:])" != "y" ] && exit
+  fi
 
   PRINT ""
   _do_compile_python=false
