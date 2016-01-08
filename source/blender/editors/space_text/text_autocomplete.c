@@ -447,9 +447,15 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 						texttool_suggest_select(texttool_suggest_first());
 					}
 					else {
-						while (sel && sel != texttool_suggest_last() && sel->next && scroll--) {
-							texttool_suggest_select(sel->next);
-							sel = sel->next;
+						while (sel && scroll--) {
+							if (sel != texttool_suggest_last() && sel->next) {
+								texttool_suggest_select(sel->next);
+								sel = sel->next;
+							}
+							else {
+								texttool_suggest_select(texttool_suggest_first());
+								sel = texttool_suggest_first();
+							}
 						}
 					}
 					text_pop_suggest_list();
@@ -471,9 +477,15 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 				}
 				else if (tools & TOOL_SUGG_LIST) {
 					SuggItem *sel = texttool_suggest_selected();
-					while (sel && sel != texttool_suggest_first() && sel->prev && scroll--) {
-						texttool_suggest_select(sel->prev);
-						sel = sel->prev;
+					while (sel && scroll--) {
+						if (sel != texttool_suggest_first() && sel->prev) {
+							texttool_suggest_select(sel->prev);
+							sel = sel->prev;
+						}
+						else {
+							texttool_suggest_select(texttool_suggest_last());
+							sel = texttool_suggest_last();
+						}
 					}
 					text_pop_suggest_list();
 					swallow = 1;
