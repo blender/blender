@@ -5131,7 +5131,8 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 
 	/* basic defaults */
 	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
-	seq->len = (int)ceil((double)info.length * FPS);
+	/* We add a very small negative offset here, because ceil(132.0) == 133.0, not nice with videos, see T47135. */
+	seq->len = (int)ceil((double)info.length * FPS - 1e-4);
 	strip->us = 1;
 
 	/* we only need 1 element to store the filename */
