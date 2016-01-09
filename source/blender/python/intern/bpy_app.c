@@ -54,6 +54,10 @@
 
 #include "UI_interface_icons.h"
 
+/* for notifiers */
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
@@ -269,6 +273,8 @@ static int bpy_app_debug_value_set(PyObject *UNUSED(self), PyObject *value, void
 	}
 	
 	G.debug_value = param;
+
+	WM_main_add_notifier(NC_WINDOW, NULL);
 
 	return 0;
 }
