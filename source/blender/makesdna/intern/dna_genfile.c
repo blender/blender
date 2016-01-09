@@ -1205,7 +1205,10 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 						}
 					}
 				}
-				else if (ELEM(spc[0], SDNA_TYPE_INT, SDNA_TYPE_FLOAT, SDNA_TYPE_LONG, SDNA_TYPE_ULONG)) {
+				else if (ELEM(spc[0], SDNA_TYPE_INT, SDNA_TYPE_FLOAT)) {
+					/* note, intentionally ignore long/ulong here these could be 4 or 8 bits,
+					 * but turns out we only used for runtime vars and
+					 * only once for a struct type thats no longer used. */
 
 					mul = DNA_elem_array_size(name);
 					cpo = cur;
