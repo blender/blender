@@ -4078,7 +4078,10 @@ void psys_get_dupli_texture(ParticleSystem *psys, ParticleSettings *part,
 
 	if (cpa) {
 		if ((part->childtype == PART_CHILD_FACES) && (psmd->dm_final != NULL)) {
-			mtface = CustomData_get_layer(&psmd->dm_final->faceData, CD_MTFACE);
+			CustomData *mtf_data = psmd->dm_final->getTessFaceDataLayout(psmd->dm_final);
+			const int uv_idx = CustomData_get_render_layer(mtf_data, CD_MTFACE);
+			mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
+
 			if (mtface) {
 				mface = psmd->dm_final->getTessFaceData(psmd->dm_final, cpa->num, CD_MFACE);
 				mtface += cpa->num;
@@ -4094,7 +4097,10 @@ void psys_get_dupli_texture(ParticleSystem *psys, ParticleSettings *part,
 	}
 
 	if ((part->from == PART_FROM_FACE) && (psmd->dm_final != NULL)) {
-		mtface = CustomData_get_layer(&psmd->dm_final->faceData, CD_MTFACE);
+		CustomData *mtf_data = psmd->dm_final->getTessFaceDataLayout(psmd->dm_final);
+		const int uv_idx = CustomData_get_render_layer(mtf_data, CD_MTFACE);
+		mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
+
 		num = pa->num_dmcache;
 
 		if (num == DMCACHE_NOTFOUND)

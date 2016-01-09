@@ -792,8 +792,10 @@ static void make_duplis_faces(const DupliContext *ctx)
 			fdd.dm = mesh_get_derived_final(scene, parent, dm_mask);
 
 		if (use_texcoords) {
+			CustomData *ml_data = fdd.dm->getLoopDataLayout(fdd.dm);
+			const int uv_idx = CustomData_get_render_layer(ml_data, CD_MLOOPUV);
 			fdd.orco = fdd.dm->getVertDataArray(fdd.dm, CD_ORCO);
-			fdd.mloopuv = fdd.dm->getLoopDataArray(fdd.dm, CD_MLOOPUV);
+			fdd.mloopuv = CustomData_get_layer_n(ml_data, CD_MLOOPUV, uv_idx);
 		}
 		else {
 			fdd.orco = NULL;
