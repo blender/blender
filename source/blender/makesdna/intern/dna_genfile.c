@@ -1168,10 +1168,10 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 			}
 		}
 		else {
-		  /* non-struct field type */
+			/* non-struct field type */
 			if (ispointer(name)) {
 				if (oldsdna->pointerlen == 8) {
-					
+
 					mul = DNA_elem_array_size(name);
 					cpo = cur;
 					while (mul--) {
@@ -1186,20 +1186,14 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 				}
 			}
 			else {
-				
-				if (spc[0] == SDNA_TYPE_SHORT ||
-				    spc[0] == SDNA_TYPE_USHORT)
-				{
-					
-					/* exception: variable called blocktype/ipowin: derived from ID_  */
+				if (ELEM(spc[0], SDNA_TYPE_SHORT, SDNA_TYPE_USHORT)) {
+
+					/* exception: variable called blocktype: derived from ID_  */
 					bool skip = false;
 					if (name[0] == 'b' && name[1] == 'l') {
 						if (strcmp(name, "blocktype") == 0) skip = true;
 					}
-					else if (name[0] == 'i' && name[1] == 'p') {
-						if (strcmp(name, "ipowin") == 0) skip = true;
-					}
-					
+
 					if (skip == false) {
 						mul = DNA_elem_array_size(name);
 						cpo = cur;
@@ -1211,11 +1205,7 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 						}
 					}
 				}
-				else if ( (spc[0] == SDNA_TYPE_INT    ||
-				           spc[0] == SDNA_TYPE_LONG   ||
-				           spc[0] == SDNA_TYPE_ULONG  ||
-				           spc[0] == SDNA_TYPE_FLOAT))
-				{
+				else if (ELEM(spc[0], SDNA_TYPE_INT, SDNA_TYPE_FLOAT, SDNA_TYPE_LONG, SDNA_TYPE_ULONG)) {
 
 					mul = DNA_elem_array_size(name);
 					cpo = cur;
@@ -1229,9 +1219,7 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 						cpo += 4;
 					}
 				}
-				else if ( (spc[0] == SDNA_TYPE_INT64) ||
-				          (spc[0] == SDNA_TYPE_UINT64))
-				{
+				else if (ELEM(spc[0], SDNA_TYPE_INT64, SDNA_TYPE_UINT64, SDNA_TYPE_DOUBLE)) {
 					mul = DNA_elem_array_size(name);
 					cpo = cur;
 					while (mul--) {
@@ -1243,7 +1231,6 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 						cpo += 8;
 					}
 				}
-				/* FIXME: no conversion for SDNA_TYPE_DOUBLE? */
 			}
 		}
 		cur += elen;

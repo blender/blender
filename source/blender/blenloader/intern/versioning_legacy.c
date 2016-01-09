@@ -1787,14 +1787,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			ma = ma->id.next;
 		}
 
-		/* this should have been done loooong before! */
-#if 0   /* deprecated in 2.5+ */
-		while (ob) {
-			if (ob->ipowin == 0)
-				ob->ipowin = ID_OB;
-			ob = ob->id.next;
-		}
-#endif
 		for (sc = main->screen.first; sc; sc = sc->id.next) {
 			ScrArea *sa;
 			for (sa = sc->areabase.first; sa; sa = sa->next) {
