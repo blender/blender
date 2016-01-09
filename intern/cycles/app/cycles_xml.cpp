@@ -513,6 +513,7 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 		else if(string_iequals(node.name(), "wave_texture")) {
 			WaveTextureNode *wave = new WaveTextureNode();
 			xml_read_enum(&wave->type, WaveTextureNode::type_enum, node, "type");
+			xml_read_enum(&wave->profile, WaveTextureNode::profile_enum, node, "profile");
 			snode = wave;
 		}
 		else if(string_iequals(node.name(), "normal")) {
