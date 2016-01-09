@@ -31,9 +31,7 @@ class scoped_timer {
 public:
 	scoped_timer(double *value) : value_(value)
 	{
-		if(value_ != NULL) {
-			time_start_ = time_dt();
-		}
+		time_start_ = time_dt();
 	}
 
 	~scoped_timer()
