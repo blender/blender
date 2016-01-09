@@ -92,6 +92,7 @@ enum_tile_order = (
     ('LEFT_TO_RIGHT', "Left to Right", "Render from left to right"),
     ('TOP_TO_BOTTOM', "Top to Bottom", "Render from top to bottom"),
     ('BOTTOM_TO_TOP', "Bottom to Top", "Render from bottom to top"),
+    ('HILBERT_SPIRAL', "Hilbert Spiral", "Render in a Hilbert Spiral"),
     )
 
 enum_use_layer_samples = (

@@ -47,7 +47,8 @@ enum TileOrder {
 	TILE_RIGHT_TO_LEFT = 1,
 	TILE_LEFT_TO_RIGHT = 2,
 	TILE_TOP_TO_BOTTOM = 3,
-	TILE_BOTTOM_TO_TOP = 4
+	TILE_BOTTOM_TO_TOP = 4,
+	TILE_HILBERT_SPIRAL = 5,
 };
 
 /* Tile Manager */
