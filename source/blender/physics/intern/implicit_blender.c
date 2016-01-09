@@ -60,55 +60,11 @@
 #  define CLOTH_OPENMP_LIMIT 512
 #endif
 
-#if 0  /* debug timing */
-#ifdef _WIN32
-#include <windows.h>
-static LARGE_INTEGER _itstart, _itend;
-static LARGE_INTEGER ifreq;
-static void itstart(void)
-{
-	static int first = 1;
-	if (first) {
-		QueryPerformanceFrequency(&ifreq);
-		first = 0;
-	}
-	QueryPerformanceCounter(&_itstart);
-}
-static void itend(void)
-{
-	QueryPerformanceCounter(&_itend);
-}
-double itval(void)
-{
-	return ((double)_itend.QuadPart -
-	        (double)_itstart.QuadPart)/((double)ifreq.QuadPart);
-}
-#else
-#include <sys/time.h>
-// intrinsics need better compile flag checking
-// #include <xmmintrin.h>
-// #include <pmmintrin.h>
-// #include <pthread.h>
+//#define DEBUG_TIME
 
-static struct timeval _itstart, _itend;
-static struct timezone itz;
-static void itstart(void)
-{
-	gettimeofday(&_itstart, &itz);
-}
-static void itend(void)
-{
-	gettimeofday(&_itend, &itz);
-}
-static double itval(void)
-{
-	double t1, t2;
-	t1 =  (double)_itstart.tv_sec + (double)_itstart.tv_usec/(1000*1000);
-	t2 =  (double)_itend.tv_sec + (double)_itend.tv_usec/(1000*1000);
-	return t2-t1;
-}
+#ifdef DEBUG_TIME
+#	include "PIL_time.h"
 #endif
-#endif  /* debug timing */
 
 static float I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 static float ZERO[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
@@ -989,7 +945,9 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
 	
 	delta0 = deltaNew * sqrt(conjgrad_epsilon);
 	
-	// itstart();
+#ifdef DEBUG_TIME
+	double start = PIL_check_seconds_timer();
+#endif
 	
 	while ((deltaNew > delta0) && (iterations < conjgrad_looplimit))
 	{
@@ -1016,9 +974,11 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
 		filter(p, S);
 		
 	}
-	
-	// itend();
-	// printf("cg_filtered_pre time: %f\n", (float)itval());
+
+#ifdef DEBUG_TIME
+	double end = PIL_check_seconds_timer();
+	printf("cg_filtered_pre time: %f\n", (float)(end - start));
+#endif
 	
 	del_lfvector(h);
 	del_lfvector(s);
@@ -1087,8 +1047,10 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
 	
 	delta0 = deltaNew * sqrt(conjgrad_epsilon);
 	*/
-	
-	// itstart();
+
+#ifdef DEBUG_TIME
+	double start = PIL_check_seconds_timer();
+#endif
 	
 	tol = (0.01*0.2);
 	
@@ -1117,10 +1079,12 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
 		filter(p, S);
 		
 	}
-	
-	// itend();
-	// printf("cg_filtered_pre time: %f\n", (float)itval());
-	
+
+#ifdef DEBUG_TIME
+	double end = PIL_check_seconds_timer();
+	printf("cg_filtered_pre time: %f\n", (float)(end - start));
+#endif
+
 	del_lfvector(btemp);
 	del_lfvector(bhat);
 	del_lfvector(h);
@@ -1149,13 +1113,17 @@ bool BPH_mass_spring_solve_velocities(Implicit_Data *data, float dt, ImplicitSol
 
 	add_lfvectorS_lfvectorS(data->B, data->F, dt, dFdXmV, (dt*dt), numverts);
 
-	// itstart();
+#ifdef DEBUG_TIME
+	double start = PIL_check_seconds_timer();
+#endif
 
 	cg_filtered(data->dV, data->A, data->B, data->z, data->S, result); /* conjugate gradient algorithm to solve Ax=b */
 	// cg_filtered_pre(id->dV, id->A, id->B, id->z, id->S, id->P, id->Pinv, id->bigI);
 
-	// itend();
-	// printf("cg_filtered calc time: %f\n", (float)itval());
+#ifdef DEBUG_TIME
+	double end = PIL_check_seconds_timer();
+	printf("cg_filtered calc time: %f\n", (float)(end - start));
+#endif
 
 	// advance velocities
 	add_lfvector_lfvector(data->Vnew, data->V, data->dV, numverts);

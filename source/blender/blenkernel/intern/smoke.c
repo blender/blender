@@ -90,56 +90,17 @@
 /* UNUSED so far, may be enabled later */
 /* #define USE_SMOKE_COLLISION_DM */
 
+//#define DEBUG_TIME
+
+#ifdef DEBUG_TIME
+#	include "PIL_time.h"
+#endif
+
 #include "smoke_API.h"
 
 #ifdef WITH_SMOKE
 
 static ThreadMutex object_update_lock = BLI_MUTEX_INITIALIZER;
-
-#ifdef _WIN32
-#include <time.h>
-#include <stdio.h>
-#include <conio.h>
-#include <windows.h>
-
-static LARGE_INTEGER liFrequency;
-static LARGE_INTEGER liStartTime;
-static LARGE_INTEGER liCurrentTime;
-
-static void tstart(void)
-{
-	QueryPerformanceFrequency(&liFrequency);
-	QueryPerformanceCounter(&liStartTime);
-}
-static void tend(void)
-{
-	QueryPerformanceCounter(&liCurrentTime);
-}
-static double UNUSED_FUNCTION(tval) (void)
-{
-	return ((double)( (liCurrentTime.QuadPart - liStartTime.QuadPart) * (double)1000.0 / (double)liFrequency.QuadPart));
-}
-#else
-#include <sys/time.h>
-static struct timeval _tstart, _tend;
-static struct timezone tz;
-static void tstart(void)
-{
-	gettimeofday(&_tstart, &tz);
-}
-static void tend(void)
-{
-	gettimeofday(&_tend, &tz);
-}
-
-static double UNUSED_FUNCTION(tval) (void)
-{
-	double t1, t2;
-	t1 = ( double ) _tstart.tv_sec * 1000 + ( double ) _tstart.tv_usec / (1000);
-	t2 = ( double ) _tend.tv_sec * 1000 + ( double ) _tend.tv_usec / (1000);
-	return t2 - t1;
-}
-#endif
 
 struct Object;
 struct Scene;
@@ -805,8 +766,6 @@ static void obstacles_from_derivedmesh(
 
 		float *vert_vel = NULL;
 		bool has_velocity = false;
-
-		tstart();
 
 		dm = CDDM_copy(scs->dm);
 		CDDM_calc_normals(dm);
@@ -2858,7 +2817,9 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 		if (framenr != scene->r.cfra)
 			return;
 
-		tstart();
+#ifdef DEBUG_TIME
+		double start = PIL_check_seconds_timer();
+#endif
 
 		/* if on second frame, write cache for first frame */
 		if ((int)smd->time == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact == 0)) {
@@ -2899,8 +2860,10 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 		if (framenr != startframe)
 			BKE_ptcache_write(&pid, framenr);
 
-		tend();
-		// printf ( "Frame: %d, Time: %f\n\n", (int)smd->time, (float) tval() );
+#ifdef DEBUG_TIME
+		double end = PIL_check_seconds_timer();
+		printf("Frame: %d, Time: %f\n\n", (int)smd->time, (float)(end - start));
+#endif
 	}
 }
 
