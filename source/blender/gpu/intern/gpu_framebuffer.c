@@ -44,7 +44,8 @@ static struct GPUFrameBufferGlobal {
 	GLuint currentfb;
 } GG = {0};
 
-/* Number of maximum output slots. We support 4 outputs for now (usually we wouldn't need more to preserve fill rate) */
+/* Number of maximum output slots.
+ * We support 4 outputs for now (usually we wouldn't need more to preserve fill rate) */
 #define GPU_FB_MAX_SLOTS 4
 
 struct GPUFrameBuffer {
@@ -102,8 +103,11 @@ GPUFrameBuffer *GPU_framebuffer_create(void)
 {
 	GPUFrameBuffer *fb;
 
-	if (!(GLEW_VERSION_3_0 || GLEW_ARB_framebuffer_object || (GLEW_EXT_framebuffer_object && GLEW_EXT_framebuffer_blit)))
+	if (!(GLEW_VERSION_3_0 || GLEW_ARB_framebuffer_object ||
+	      (GLEW_EXT_framebuffer_object && GLEW_EXT_framebuffer_blit)))
+	{
 		return NULL;
+	}
 	
 	fb = MEM_callocN(sizeof(GPUFrameBuffer), "GPUFrameBuffer");
 	glGenFramebuffersEXT(1, &fb->object);
@@ -368,7 +372,9 @@ void GPU_framebuffer_restore(void)
 	}
 }
 
-void GPU_framebuffer_blur(GPUFrameBuffer *fb, GPUTexture *tex, GPUFrameBuffer *blurfb, GPUTexture *blurtex)
+void GPU_framebuffer_blur(
+        GPUFrameBuffer *fb, GPUTexture *tex,
+        GPUFrameBuffer *blurfb, GPUTexture *blurtex)
 {
 	const float scaleh[2] = {1.0f / GPU_texture_width(blurtex), 0.0f};
 	const float scalev[2] = {0.0f, 1.0f / GPU_texture_height(tex)};

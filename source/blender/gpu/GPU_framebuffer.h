@@ -62,7 +62,9 @@ void GPU_framebuffer_bind_no_save(GPUFrameBuffer *fb, int slot);
 bool GPU_framebuffer_bound(GPUFrameBuffer *fb);
 
 void GPU_framebuffer_restore(void);
-void GPU_framebuffer_blur(GPUFrameBuffer *fb, struct GPUTexture *tex, GPUFrameBuffer *blurfb, struct GPUTexture *blurtex);
+void GPU_framebuffer_blur(
+        GPUFrameBuffer *fb, struct GPUTexture *tex,
+        GPUFrameBuffer *blurfb, struct GPUTexture *blurtex);
 
 /* GPU OffScreen
  * - wrapper around framebuffer and texture for simple offscreen drawing

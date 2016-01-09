@@ -579,23 +579,24 @@ static GPUBuffer **gpu_drawobject_buffer_from_type(GPUDrawObject *gdo, GPUBuffer
 /* get the amount of space to allocate for a buffer of a particular type */
 static size_t gpu_buffer_size_from_type(DerivedMesh *dm, GPUBufferType type)
 {
+	const int components = gpu_buffer_type_settings[type].num_components;
 	switch (type) {
 		case GPU_BUFFER_VERTEX:
-			return sizeof(float) * gpu_buffer_type_settings[type].num_components * (dm->drawObject->tot_loop_verts + dm->drawObject->tot_loose_point);
+			return sizeof(float) * components * (dm->drawObject->tot_loop_verts + dm->drawObject->tot_loose_point);
 		case GPU_BUFFER_NORMAL:
-			return sizeof(short) * gpu_buffer_type_settings[type].num_components * dm->drawObject->tot_loop_verts;
+			return sizeof(short) * components * dm->drawObject->tot_loop_verts;
 		case GPU_BUFFER_COLOR:
-			return sizeof(char) * gpu_buffer_type_settings[type].num_components * dm->drawObject->tot_loop_verts;
+			return sizeof(char) * components * dm->drawObject->tot_loop_verts;
 		case GPU_BUFFER_UV:
-			return sizeof(float) * gpu_buffer_type_settings[type].num_components * dm->drawObject->tot_loop_verts;
+			return sizeof(float) * components * dm->drawObject->tot_loop_verts;
 		case GPU_BUFFER_UV_TEXPAINT:
-			return sizeof(float) * gpu_buffer_type_settings[type].num_components * dm->drawObject->tot_loop_verts;
+			return sizeof(float) * components * dm->drawObject->tot_loop_verts;
 		case GPU_BUFFER_EDGE:
-			return sizeof(int) * gpu_buffer_type_settings[type].num_components * dm->drawObject->totedge;
+			return sizeof(int) * components * dm->drawObject->totedge;
 		case GPU_BUFFER_UVEDGE:
-			return sizeof(int) * gpu_buffer_type_settings[type].num_components * dm->drawObject->tot_loop_verts;
+			return sizeof(int) * components * dm->drawObject->tot_loop_verts;
 		case GPU_BUFFER_TRIANGLES:
-			return sizeof(int) * gpu_buffer_type_settings[type].num_components * dm->drawObject->tot_triangle_point;
+			return sizeof(int) * components * dm->drawObject->tot_triangle_point;
 		default:
 			return -1;
 	}
@@ -1780,8 +1781,8 @@ void GPU_update_bmesh_pbvh_buffers(GPU_PBVH_Buffers *buffers,
 
 			buffers->tot_tri = tottri;
 			buffers->index_type = (use_short ?
-								   GL_UNSIGNED_SHORT :
-								   GL_UNSIGNED_INT);
+			                       GL_UNSIGNED_SHORT :
+			                       GL_UNSIGNED_INT);
 		}
 		else {
 			/* Memory map failed */

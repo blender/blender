@@ -88,7 +88,6 @@
 #include "smoke_API.h"
 
 #ifdef WITH_OPENSUBDIV
-#  include "DNA_mesh_types.h"
 #  include "BKE_editmesh.h"
 
 #  include "gpu_codegen.h"
@@ -227,7 +226,7 @@ static bool is_power_of_2_resolution(int w, int h)
 
 static bool is_over_resolution_limit(int w, int h)
 {
-	int reslimit = (U.glreslimit != 0)?
+	int reslimit = (U.glreslimit != 0) ?
 		min_ii(U.glreslimit, GPU_max_texture_size()) :
 		GPU_max_texture_size();
 
@@ -236,7 +235,7 @@ static bool is_over_resolution_limit(int w, int h)
 
 static int smaller_power_of_2_limit(int num)
 {
-	int reslimit = (U.glreslimit != 0)?
+	int reslimit = (U.glreslimit != 0) ?
 		min_ii(U.glreslimit, GPU_max_texture_size()) :
 		GPU_max_texture_size();
 	/* take texture clamping into account */
@@ -390,10 +389,11 @@ static void gpu_make_repbind(Image *ima)
 		ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 	}
 
-	ima->totbind = ima->xrep*ima->yrep;
+	ima->totbind = ima->xrep * ima->yrep;
 
-	if (ima->totbind>1)
+	if (ima->totbind > 1) {
 		ima->repbind = MEM_callocN(sizeof(int) * ima->totbind, "repbind");
+	}
 
 	BKE_image_release_ibuf(ima, ibuf, NULL);
 }
@@ -508,7 +508,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, bool compare, boo
 
 	/* initialize tile mode and number of repeats */
 	GTS.ima = ima;
-	GTS.tilemode = (ima && (ima->tpageflag & (IMA_TILES|IMA_TWINANIM)));
+	GTS.tilemode = (ima && (ima->tpageflag & (IMA_TILES | IMA_TWINANIM)));
 	GTS.tileXRep = 0;
 	GTS.tileYRep = 0;
 
@@ -615,13 +615,15 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, bool compare, boo
 					IMB_buffer_float_unpremultiply(srgb_frect, ibuf->x, ibuf->y);
 					/* clamp buffer colors to 1.0 to avoid artifacts due to glu for hdr images */
 					IMB_buffer_float_clamp(srgb_frect, ibuf->x, ibuf->y);
-					frect = srgb_frect + texwinsy*ibuf->x + texwinsx;
+					frect = srgb_frect + texwinsy * ibuf->x + texwinsx;
 				}
-				else
-					frect = ibuf->rect_float + texwinsy*ibuf->x + texwinsx;
+				else {
+					frect = ibuf->rect_float + texwinsy * ibuf->x + texwinsx;
+				}
 			}
-			else
-				rect = ibuf->rect + texwinsy*ibuf->x + texwinsx;
+			else {
+				rect = ibuf->rect + texwinsy * ibuf->x + texwinsx;
+			}
 		}
 	}
 	else {
@@ -635,9 +637,10 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, bool compare, boo
 			if (use_high_bit_depth) {
 				if (do_color_management) {
 					frect = srgb_frect = MEM_mallocN(ibuf->x * ibuf->y * sizeof(*srgb_frect) * 4, "floar_buf_col_cor");
-					IMB_buffer_float_from_float(srgb_frect, ibuf->rect_float,
-							ibuf->channels, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, true,
-							ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+					IMB_buffer_float_from_float(
+					        srgb_frect, ibuf->rect_float,
+					        ibuf->channels, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, true,
+					        ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 					IMB_buffer_float_unpremultiply(srgb_frect, ibuf->x, ibuf->y);
 					/* clamp buffer colors to 1.0 to avoid artifacts due to glu for hdr images */
 					IMB_buffer_float_clamp(srgb_frect, ibuf->x, ibuf->y);
@@ -664,7 +667,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, bool compare, boo
 	/* for tiles, copy only part of image into buffer */
 	if (GTS.tilemode) {
 		if (use_high_bit_depth) {
-			ftilerect = MEM_mallocN(rectw*recth*sizeof(*ftilerect), "tilerect");
+			ftilerect = MEM_mallocN(rectw * recth * sizeof(*ftilerect), "tilerect");
 
 			for (int y = 0; y < recth; y++) {
 				const float *frectrow = &frect[y * ibuf->x];
@@ -676,7 +679,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, bool compare, boo
 			frect = ftilerect;
 		}
 		else {
-			tilerect = MEM_mallocN(rectw*recth*sizeof(*tilerect), "tilerect");
+			tilerect = MEM_mallocN(rectw * recth * sizeof(*tilerect), "tilerect");
 
 			for (int y = 0; y < recth; y++) {
 				const unsigned *rectrow = &rect[y * ibuf->x];
@@ -730,7 +733,8 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *rect, float *frect, int
 	 * GPUs (OpenGL version >= 2.0) since they support non-power-of-two-textures 
 	 * Then don't bother scaling for hardware that supports NPOT textures! */
 	if ((!GPU_full_non_power_of_two_support() && !is_power_of_2_resolution(rectw, recth)) ||
-		is_over_resolution_limit(rectw, recth)) {
+	    is_over_resolution_limit(rectw, recth))
+	{
 		rectw = smaller_power_of_2_limit(rectw);
 		recth = smaller_power_of_2_limit(recth);
 		
@@ -783,12 +787,15 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *rect, float *frect, int
 				ImBuf *mip = ibuf->mipmap[i - 1];
 				if (use_high_bit_depth) {
 					if (GLEW_ARB_texture_float)
-						glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA16F_ARB, mip->x, mip->y, 0, GL_RGBA, GL_FLOAT, mip->rect_float);
+						glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA16F_ARB, mip->x, mip->y,
+						             0, GL_RGBA, GL_FLOAT, mip->rect_float);
 					else
-						glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA16, mip->x, mip->y, 0, GL_RGBA, GL_FLOAT, mip->rect_float);
+						glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA16, mip->x, mip->y,
+						             0, GL_RGBA, GL_FLOAT, mip->rect_float);
 				}
 				else {
-					glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA8, mip->x, mip->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, mip->rect);
+					glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA8, mip->x, mip->y,
+					             0, GL_RGBA, GL_UNSIGNED_BYTE, mip->rect);
 				}
 			}
 		}
@@ -848,13 +855,13 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf)
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, GPU_get_anisotropic());
 
 	blocksize = (ibuf->dds_data.fourcc == FOURCC_DXT1) ? 8 : 16;
-	for (i = 0; i < ibuf->dds_data.nummipmaps && (width||height); ++i) {
+	for (i = 0; i < ibuf->dds_data.nummipmaps && (width || height); ++i) {
 		if (width == 0)
 			width = 1;
 		if (height == 0)
 			height = 1;
 
-		size = ((width+3)/4)*((height+3)/4)*blocksize;
+		size = ((width + 3) / 4) * ((height + 3) / 4) * blocksize;
 
 		glCompressedTexImage2D(GL_TEXTURE_2D, i, format, width, height,
 			0, size, ibuf->dds_data.data + offset);
@@ -874,7 +881,9 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf)
 #endif
 }
 
-void GPU_create_gl_tex_compressed(unsigned int *bind, unsigned int *pix, int x, int y, int mipmap, Image *ima, ImBuf *ibuf)
+void GPU_create_gl_tex_compressed(
+        unsigned int *bind, unsigned int *pix, int x, int y, int mipmap,
+        Image *ima, ImBuf *ibuf)
 {
 #ifndef WITH_DDS
 	(void)ibuf;
@@ -1063,7 +1072,7 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
 	
 	if (ima->repbind || (GPU_get_mipmap() && !GTS.gpu_mipmap) || !ima->bindcode || !ibuf ||
-		(w == 0) || (h == 0))
+	    (w == 0) || (h == 0))
 	{
 		/* these cases require full reload still */
 		GPU_free_image(ima);
@@ -1314,7 +1323,7 @@ void GPU_free_image(Image *ima)
 		ima->repbind = NULL;
 	}
 
-	ima->tpageflag &= ~(IMA_MIPMAP_COMPLETE|IMA_GLBIND_IS_DATA);
+	ima->tpageflag &= ~(IMA_MIPMAP_COMPLETE | IMA_GLBIND_IS_DATA);
 }
 
 void GPU_free_images(void)
@@ -1419,8 +1428,9 @@ static struct GPUMaterialState {
 } GMS = {NULL};
 
 /* fixed function material, alpha handed by caller */
-static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, const int gamma, const Object *ob, const int new_shading_nodes, 
-                                  const bool dimdown)
+static void gpu_material_to_fixed(
+        GPUMaterialFixed *smat, const Material *bmat, const int gamma, const Object *ob,
+        const int new_shading_nodes, const bool dimdown)
 {
 	if (bmat->mode & MA_SHLESS) {
 		copy_v3_v3(smat->diff, &bmat->r);
@@ -1489,7 +1499,9 @@ void GPU_end_dupli_object(void)
 	GMS.dob = NULL;
 }
 
-void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, Object *ob, bool glsl, bool *do_alpha_after)
+void GPU_begin_object_materials(
+        View3D *v3d, RegionView3D *rv3d, Scene *scene, Object *ob,
+        bool glsl, bool *do_alpha_after)
 {
 	Material *ma;
 	GPUMaterial *gpumat;
@@ -1546,13 +1558,13 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 
 	GMS.two_sided_lighting = false;
 	if (ob && ob->type == OB_MESH)
-		GMS.two_sided_lighting = (((Mesh*)ob->data)->flag & ME_TWOSIDED) != 0;
+		GMS.two_sided_lighting = (((Mesh *)ob->data)->flag & ME_TWOSIDED) != 0;
 
 	GMS.gob = ob;
 	GMS.gscene = scene;
 	GMS.is_opensubdiv = use_opensubdiv;
 	GMS.totmat = use_matcap ? 1 : ob->totcol + 1;  /* materials start from 1, default material is 0 */
-	GMS.glay = (v3d->localvd)? v3d->localvd->lay: v3d->lay; /* keep lamps visible in local view */
+	GMS.glay = (v3d->localvd) ? v3d->localvd->lay : v3d->lay; /* keep lamps visible in local view */
 	GMS.gscenelock = (v3d->scenelock != 0);
 	GMS.gviewmat = rv3d->viewmat;
 	GMS.gviewinv = rv3d->viewinv;
@@ -1614,7 +1626,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 			if (ma == NULL) ma = &defmaterial;
 
 			/* create glsl material if requested */
-			gpumat = glsl? GPU_material_from_blender(GMS.gscene, ma, GMS.is_opensubdiv): NULL;
+			gpumat = glsl ? GPU_material_from_blender(GMS.gscene, ma, GMS.is_opensubdiv) : NULL;
 
 			if (gpumat) {
 				/* do glsl only if creating it succeed, else fallback */
@@ -1627,7 +1639,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 
 				if (GMS.use_alpha_pass && ((ma->mode & MA_TRANSP) || (new_shading_nodes && ma->alpha != 1.0f))) {
 					GMS.matbuf[a].alpha = ma->alpha;
-					alphablend = (ma->alpha == 1.0f)? GPU_BLEND_SOLID: GPU_BLEND_ALPHA;
+					alphablend = (ma->alpha == 1.0f) ? GPU_BLEND_SOLID: GPU_BLEND_ALPHA;
 				}
 				else {
 					GMS.matbuf[a].alpha = 1.0f;
@@ -1746,7 +1758,9 @@ int GPU_object_material_bind(int nr, void *attribs)
 			if (GMS.dob)
 				GPU_get_particle_info(&partile_info);
 
-			GPU_material_bind(gpumat, GMS.gob->lay, GMS.glay, 1.0, !(GMS.gob->mode & OB_MODE_TEXTURE_PAINT), GMS.gviewmat, GMS.gviewinv, GMS.gviewcamtexcofac, GMS.gscenelock);
+			GPU_material_bind(
+			        gpumat, GMS.gob->lay, GMS.glay, 1.0, !(GMS.gob->mode & OB_MODE_TEXTURE_PAINT),
+			        GMS.gviewmat, GMS.gviewinv, GMS.gviewcamtexcofac, GMS.gscenelock);
 
 			auto_bump_scale = GMS.gob->derivedFinal != NULL ? GMS.gob->derivedFinal->auto_bump_scale : 1.0f;
 			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, GMS.gob->col, auto_bump_scale, &partile_info);
@@ -1755,7 +1769,7 @@ int GPU_object_material_bind(int nr, void *attribs)
 			/* for glsl use alpha blend mode, unless it's set to solid and
 			 * we are already drawing in an alpha pass */
 			if (mat->game.alpha_blend != GPU_BLEND_SOLID)
-				alphablend= mat->game.alpha_blend;
+				alphablend = mat->game.alpha_blend;
 
 			if (GMS.is_alpha_pass) glDepthMask(1);
 

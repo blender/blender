@@ -633,12 +633,17 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 	switch (shader) {
 		case GPU_SHADER_VSM_STORE:
 			if (!GG.shaders.vsm_store)
-				GG.shaders.vsm_store = GPU_shader_create(datatoc_gpu_shader_vsm_store_vert_glsl, datatoc_gpu_shader_vsm_store_frag_glsl, NULL, NULL, NULL, 0, 0, 0);
+				GG.shaders.vsm_store = GPU_shader_create(
+				        datatoc_gpu_shader_vsm_store_vert_glsl, datatoc_gpu_shader_vsm_store_frag_glsl,
+				        NULL, NULL, NULL, 0, 0, 0);
 			retval = GG.shaders.vsm_store;
 			break;
 		case GPU_SHADER_SEP_GAUSSIAN_BLUR:
 			if (!GG.shaders.sep_gaussian_blur)
-				GG.shaders.sep_gaussian_blur = GPU_shader_create(datatoc_gpu_shader_sep_gaussian_blur_vert_glsl, datatoc_gpu_shader_sep_gaussian_blur_frag_glsl, NULL, NULL, NULL, 0, 0, 0);
+				GG.shaders.sep_gaussian_blur = GPU_shader_create(
+				        datatoc_gpu_shader_sep_gaussian_blur_vert_glsl,
+				        datatoc_gpu_shader_sep_gaussian_blur_frag_glsl,
+				        NULL, NULL, NULL, 0, 0, 0);
 			retval = GG.shaders.sep_gaussian_blur;
 			break;
 	}
@@ -655,13 +660,17 @@ GPUProgram *GPU_shader_get_builtin_program(GPUBuiltinProgram program)
 
 	switch (program) {
 		case GPU_PROGRAM_SMOKE:
-			if (!GG.shaders.smoke)
-				GG.shaders.smoke = GPU_program_shader_create(GPU_PROGRAM_TYPE_FRAGMENT, datatoc_gpu_program_smoke_frag_glsl);
+			if (!GG.shaders.smoke) {
+				GG.shaders.smoke = GPU_program_shader_create(
+				        GPU_PROGRAM_TYPE_FRAGMENT, datatoc_gpu_program_smoke_frag_glsl);
+			}
 			retval = GG.shaders.smoke;
 			break;
 		case GPU_PROGRAM_SMOKE_COLORED:
-			if (!GG.shaders.smoke_colored)
-				GG.shaders.smoke_colored = GPU_program_shader_create(GPU_PROGRAM_TYPE_FRAGMENT, datatoc_gpu_program_smoke_color_frag_glsl);
+			if (!GG.shaders.smoke_colored) {
+				GG.shaders.smoke_colored = GPU_program_shader_create(
+				        GPU_PROGRAM_TYPE_FRAGMENT, datatoc_gpu_program_smoke_color_frag_glsl);
+			}
 			retval = GG.shaders.smoke_colored;
 			break;
 	}
@@ -730,7 +739,7 @@ GPUShader *GPU_shader_get_builtin_fx_shader(int effects, bool persp)
 			case GPU_SHADER_FX_DEPTH_OF_FIELD_HQ_PASS_TWO:
 				strcat(defines, "#define SECOND_PASS\n");
 				shader = GPU_shader_create(datatoc_gpu_shader_fx_dof_hq_vert_glsl, datatoc_gpu_shader_fx_dof_hq_frag_glsl, datatoc_gpu_shader_fx_dof_hq_geo_glsl, datatoc_gpu_shader_fx_lib_glsl,
-										   defines, GL_POINTS, GL_TRIANGLE_STRIP, 4);
+				                           defines, GL_POINTS, GL_TRIANGLE_STRIP, 4);
 				GG.shaders.fx_shaders[offset] = shader;
 				break;
 
@@ -741,6 +750,7 @@ GPUShader *GPU_shader_get_builtin_fx_shader(int effects, bool persp)
 
 			case GPU_SHADER_FX_DEPTH_RESOLVE:
 				GG.shaders.fx_shaders[offset] = GPU_shader_create(datatoc_gpu_shader_fx_vert_glsl, datatoc_gpu_shader_fx_depth_resolve_glsl, NULL, NULL, defines, 0, 0, 0);
+				break;
 		}
 	}
 

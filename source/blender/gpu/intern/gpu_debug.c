@@ -276,7 +276,9 @@ void GPU_string_marker(size_t length, const char *buf)
 #ifndef WITH_GLEW_ES
 #ifndef GLEW_ES_ONLY
 	if (GLEW_VERSION_4_3) {
-		glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, length, buf);
+		glDebugMessageInsert(
+		        GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 0,
+		        GL_DEBUG_SEVERITY_NOTIFICATION, length, buf);
 
 		return;
 	}
@@ -285,20 +287,26 @@ void GPU_string_marker(size_t length, const char *buf)
 
 	if (GLEW_KHR_debug) {
 #ifndef GLEW_ES_ONLY
-		glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, length, buf);
+		glDebugMessageInsert(
+		        GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 0,
+		        GL_DEBUG_SEVERITY_NOTIFICATION, length, buf);
 #endif
 		return;
 	}
 
 #ifndef GLEW_ES_ONLY
 	if (GLEW_ARB_debug_output) {
-		glDebugMessageInsertARB(GL_DEBUG_SOURCE_APPLICATION_ARB, GL_DEBUG_TYPE_OTHER_ARB, 0, GL_DEBUG_SEVERITY_LOW_ARB, length, buf);
+		glDebugMessageInsertARB(
+		        GL_DEBUG_SOURCE_APPLICATION_ARB, GL_DEBUG_TYPE_OTHER_ARB, 0,
+		        GL_DEBUG_SEVERITY_LOW_ARB, length, buf);
 
 		return;
 	}
 
 	if (GLEW_AMD_debug_output) {
-		glDebugMessageInsertAMD(GL_DEBUG_CATEGORY_APPLICATION_AMD, GL_DEBUG_SEVERITY_LOW_AMD, 0, length, buf);
+		glDebugMessageInsertAMD(
+		        GL_DEBUG_CATEGORY_APPLICATION_AMD, GL_DEBUG_SEVERITY_LOW_AMD, 0,
+		        length, buf);
 
 		return;
 	}

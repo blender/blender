@@ -337,7 +337,7 @@ static GPUShader *gpu_basic_shader(int options)
 
 	if (!shader && !GPU_MATERIAL_STATE.failed_shaders[options]) {
 		/* create shader if it doesn't exist yet */
-		char defines[64*GPU_SHADER_OPTIONS_NUM] = "";
+		char defines[64 * GPU_SHADER_OPTIONS_NUM] = "";
 
 		if (options & GPU_SHADER_USE_COLOR)
 			strcat(defines, "#define USE_COLOR\n");
@@ -415,7 +415,7 @@ void GPU_basic_shader_bind(int options)
 		}
 
 		if (options & GPU_SHADER_TEXTURE_2D) {
-			GLint env_mode = (options & (GPU_SHADER_USE_COLOR|GPU_SHADER_LIGHTING)) ? GL_MODULATE : GL_REPLACE;
+			GLint env_mode = (options & (GPU_SHADER_USE_COLOR | GPU_SHADER_LIGHTING)) ? GL_MODULATE : GL_REPLACE;
 			glEnable(GL_TEXTURE_2D);
 			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, env_mode);
 		}
@@ -476,7 +476,7 @@ void GPU_basic_shader_light_set(int light_num, GPULightData *light)
 	if (light) {
 		float position[4], diffuse[4], specular[4];
 
-		glEnable(GL_LIGHT0+light_num);
+		glEnable(GL_LIGHT0 + light_num);
 
 		/* position */
 		if (light->type == GPU_LIGHT_SUN) {
@@ -487,37 +487,37 @@ void GPU_basic_shader_light_set(int light_num, GPULightData *light)
 			copy_v3_v3(position, light->position);
 			position[3] = 1.0f;
 		}
-		glLightfv(GL_LIGHT0+light_num, GL_POSITION, position);
+		glLightfv(GL_LIGHT0 + light_num, GL_POSITION, position);
 
 		/* energy */
 		copy_v3_v3(diffuse, light->diffuse);
 		copy_v3_v3(specular, light->specular);
 		diffuse[3] = 1.0f;
 		specular[3] = 1.0f;
-		glLightfv(GL_LIGHT0+light_num, GL_DIFFUSE, diffuse);
-		glLightfv(GL_LIGHT0+light_num, GL_SPECULAR, specular);
+		glLightfv(GL_LIGHT0 + light_num, GL_DIFFUSE, diffuse);
+		glLightfv(GL_LIGHT0 + light_num, GL_SPECULAR, specular);
 
 		/* attenuation */
 		if (light->type == GPU_LIGHT_SUN) {
-			glLightf(GL_LIGHT0+light_num, GL_CONSTANT_ATTENUATION, 1.0f);
-			glLightf(GL_LIGHT0+light_num, GL_LINEAR_ATTENUATION, 0.0f);
-			glLightf(GL_LIGHT0+light_num, GL_QUADRATIC_ATTENUATION, 0.0f);
+			glLightf(GL_LIGHT0 + light_num, GL_CONSTANT_ATTENUATION, 1.0f);
+			glLightf(GL_LIGHT0 + light_num, GL_LINEAR_ATTENUATION, 0.0f);
+			glLightf(GL_LIGHT0 + light_num, GL_QUADRATIC_ATTENUATION, 0.0f);
 		}
 		else {
-			glLightf(GL_LIGHT0+light_num, GL_CONSTANT_ATTENUATION, light->constant_attenuation);
-			glLightf(GL_LIGHT0+light_num, GL_LINEAR_ATTENUATION, light->linear_attenuation);
-			glLightf(GL_LIGHT0+light_num, GL_QUADRATIC_ATTENUATION, light->quadratic_attenuation);
+			glLightf(GL_LIGHT0 + light_num, GL_CONSTANT_ATTENUATION, light->constant_attenuation);
+			glLightf(GL_LIGHT0 + light_num, GL_LINEAR_ATTENUATION, light->linear_attenuation);
+			glLightf(GL_LIGHT0 + light_num, GL_QUADRATIC_ATTENUATION, light->quadratic_attenuation);
 		}
 
 		/* spot */
-		glLightfv(GL_LIGHT0+light_num, GL_SPOT_DIRECTION, light->direction);
+		glLightfv(GL_LIGHT0 + light_num, GL_SPOT_DIRECTION, light->direction);
 		if (light->type == GPU_LIGHT_SPOT) {
-			glLightf(GL_LIGHT0+light_num, GL_SPOT_CUTOFF, light->spot_cutoff);
-			glLightf(GL_LIGHT0+light_num, GL_SPOT_EXPONENT, light->spot_exponent);
+			glLightf(GL_LIGHT0 + light_num, GL_SPOT_CUTOFF, light->spot_cutoff);
+			glLightf(GL_LIGHT0 + light_num, GL_SPOT_EXPONENT, light->spot_exponent);
 		}
 		else {
-			glLightf(GL_LIGHT0+light_num, GL_SPOT_CUTOFF, 180.0f);
-			glLightf(GL_LIGHT0+light_num, GL_SPOT_EXPONENT, 0.0f);
+			glLightf(GL_LIGHT0 + light_num, GL_SPOT_CUTOFF, 180.0f);
+			glLightf(GL_LIGHT0 + light_num, GL_SPOT_EXPONENT, 0.0f);
 		}
 
 		GPU_MATERIAL_STATE.lights_enabled |= light_bit;
@@ -529,18 +529,18 @@ void GPU_basic_shader_light_set(int light_num, GPULightData *light)
 			/* glsl shader needs these zero to skip them */
 			const float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-			glLightfv(GL_LIGHT0+light_num, GL_POSITION, zero);
-			glLightfv(GL_LIGHT0+light_num, GL_DIFFUSE, zero);
-			glLightfv(GL_LIGHT0+light_num, GL_SPECULAR, zero);
+			glLightfv(GL_LIGHT0 + light_num, GL_POSITION, zero);
+			glLightfv(GL_LIGHT0 + light_num, GL_DIFFUSE, zero);
+			glLightfv(GL_LIGHT0 + light_num, GL_SPECULAR, zero);
 		}
 
-		glDisable(GL_LIGHT0+light_num);
+		glDisable(GL_LIGHT0 + light_num);
 	}
 }
 
 void GPU_basic_shader_light_set_viewer(bool local)
 {
-	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, (local)? GL_TRUE: GL_FALSE);
+	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, (local) ? GL_TRUE: GL_FALSE);
 }
 
 void GPU_basic_shader_stipple(GPUBasicShaderStipple stipple_id)
@@ -549,46 +549,46 @@ void GPU_basic_shader_stipple(GPUBasicShaderStipple stipple_id)
 		glUniform1i(GPU_shader_get_uniform(gpu_basic_shader(GPU_MATERIAL_STATE.bound_options), "stipple_id"), stipple_id);
 	}
 	else {
-		switch(stipple_id) {
-		case GPU_SHADER_STIPPLE_HALFTONE:
-			glPolygonStipple(stipple_halftone);
-			return;
-		case GPU_SHADER_STIPPLE_QUARTTONE:
-			glPolygonStipple(stipple_quarttone);
-			return;
-		case GPU_SHADER_STIPPLE_CHECKER_8PX:
-			glPolygonStipple(stipple_checker_8px);
-			return;
-		case GPU_SHADER_STIPPLE_HEXAGON:
-			glPolygonStipple(stipple_hexagon);
-			return;
-		case GPU_SHADER_STIPPLE_DIAG_STRIPES_SWAP:
-			glPolygonStipple(stipple_diag_stripes_neg);
-			return;
-		case GPU_SHADER_STIPPLE_DIAG_STRIPES:
-			glPolygonStipple(stipple_diag_stripes_pos);
-			return;
-		case GPU_SHADER_STIPPLE_S3D_INTERLACE_ROW:
-			glPolygonStipple(stipple_interlace_row);
-			return;
-		case GPU_SHADER_STIPPLE_S3D_INTERLACE_ROW_SWAP:
-			glPolygonStipple(stipple_interlace_row_swap);
-			return;
-		case GPU_SHADER_STIPPLE_S3D_INTERLACE_COLUMN:
-			glPolygonStipple(stipple_interlace_column);
-			return;
-		case GPU_SHADER_STIPPLE_S3D_INTERLACE_COLUMN_SWAP:
-			glPolygonStipple(stipple_interlace_column_swap);
-			return;
-		case GPU_SHADER_STIPPLE_S3D_INTERLACE_CHECKER:
-			glPolygonStipple(stipple_interlace_checker);
-			return;
-		case GPU_SHADER_STIPPLE_S3D_INTERLACE_CHECKER_SWAP:
-			glPolygonStipple(stipple_interlace_checker_swap);
-			return;
-		default:
-			glPolygonStipple(stipple_hexagon);
-			return;
+		switch (stipple_id) {
+			case GPU_SHADER_STIPPLE_HALFTONE:
+				glPolygonStipple(stipple_halftone);
+				return;
+			case GPU_SHADER_STIPPLE_QUARTTONE:
+				glPolygonStipple(stipple_quarttone);
+				return;
+			case GPU_SHADER_STIPPLE_CHECKER_8PX:
+				glPolygonStipple(stipple_checker_8px);
+				return;
+			case GPU_SHADER_STIPPLE_HEXAGON:
+				glPolygonStipple(stipple_hexagon);
+				return;
+			case GPU_SHADER_STIPPLE_DIAG_STRIPES_SWAP:
+				glPolygonStipple(stipple_diag_stripes_neg);
+				return;
+			case GPU_SHADER_STIPPLE_DIAG_STRIPES:
+				glPolygonStipple(stipple_diag_stripes_pos);
+				return;
+			case GPU_SHADER_STIPPLE_S3D_INTERLACE_ROW:
+				glPolygonStipple(stipple_interlace_row);
+				return;
+			case GPU_SHADER_STIPPLE_S3D_INTERLACE_ROW_SWAP:
+				glPolygonStipple(stipple_interlace_row_swap);
+				return;
+			case GPU_SHADER_STIPPLE_S3D_INTERLACE_COLUMN:
+				glPolygonStipple(stipple_interlace_column);
+				return;
+			case GPU_SHADER_STIPPLE_S3D_INTERLACE_COLUMN_SWAP:
+				glPolygonStipple(stipple_interlace_column_swap);
+				return;
+			case GPU_SHADER_STIPPLE_S3D_INTERLACE_CHECKER:
+				glPolygonStipple(stipple_interlace_checker);
+				return;
+			case GPU_SHADER_STIPPLE_S3D_INTERLACE_CHECKER_SWAP:
+				glPolygonStipple(stipple_interlace_checker_swap);
+				return;
+			default:
+				glPolygonStipple(stipple_hexagon);
+				return;
 		}
 	}
 }

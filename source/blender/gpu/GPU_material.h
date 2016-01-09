@@ -214,8 +214,12 @@ void GPU_material_free(struct ListBase *gpumaterial);
 void GPU_materials_free(void);
 
 bool GPU_lamp_override_visible(GPULamp *lamp, struct SceneRenderLayer *srl, struct Material *ma);
-void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double time, int mipmap, float viewmat[4][4], float viewinv[4][4], float cameraborder[4], bool scenelock);
-void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[4][4], float obcol[4], float autobumpscale, GPUParticleInfo *pi);
+void GPU_material_bind(
+        GPUMaterial *material, int oblay, int viewlay, double time, int mipmap,
+        float viewmat[4][4], float viewinv[4][4], float cameraborder[4], bool scenelock);
+void GPU_material_bind_uniforms(
+        GPUMaterial *material, float obmat[4][4], float obcol[4],
+        float autobumpscale, GPUParticleInfo *pi);
 void GPU_material_unbind(GPUMaterial *material);
 bool GPU_material_bound(GPUMaterial *material);
 struct Scene *GPU_material_scene(GPUMaterial *material);
@@ -269,7 +273,8 @@ typedef struct GPUInputUniform {
 	struct Image *image;      /* when type=GPU_DYNAMIC_SAMPLER_2DIMAGE */
 	int texnumber;            /* when type=GPU_DYNAMIC_SAMPLER, texture number: 0.. */
 	unsigned char *texpixels; /* for internally generated texture, pixel data in RGBA format */
-	int texsize;              /* size in pixel of the texture in texpixels buffer: for 2D textures, this is S and T size (square texture) */
+	int texsize;              /* size in pixel of the texture in texpixels buffer:
+	                           * for 2D textures, this is S and T size (square texture) */
 } GPUInputUniform;
 
 typedef struct GPUInputAttribute {
@@ -307,7 +312,9 @@ void GPU_lamp_update_colors(GPULamp *lamp, float r, float g, float b, float ener
 void GPU_lamp_update_distance(GPULamp *lamp, float distance, float att1, float att2);
 void GPU_lamp_update_spot(GPULamp *lamp, float spotsize, float spotblend);
 int GPU_lamp_shadow_layer(GPULamp *lamp);
-GPUNodeLink *GPU_lamp_get_data(GPUMaterial *mat, GPULamp *lamp, GPUNodeLink **col, GPUNodeLink **lv, GPUNodeLink **dist, GPUNodeLink **shadow, GPUNodeLink **energy);
+GPUNodeLink *GPU_lamp_get_data(
+        GPUMaterial *mat, GPULamp *lamp,
+        GPUNodeLink **r_col, GPUNodeLink **r_lv, GPUNodeLink **r_dist, GPUNodeLink **r_shadow, GPUNodeLink **r_energy);
 
 /* World */
 void GPU_mist_update_enable(short enable);
@@ -334,4 +341,3 @@ void GPU_material_update_fvar_offset(GPUMaterial *gpu_material,
 #endif
 
 #endif /*__GPU_MATERIAL_H__*/
-

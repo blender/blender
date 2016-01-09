@@ -38,7 +38,6 @@
 #include "BLI_linklist.h"
 
 #include "BLI_rand.h"
-#include "BLI_listbase.h"
 
 #include "DNA_vec_types.h"
 #include "DNA_view3d_types.h"
@@ -79,7 +78,8 @@ struct GPUFX {
 	/* texture used for jittering for various effects */
 	GPUTexture *jitter_buffer;
 
-	/* all those buffers below have to coexist. Fortunately they are all quarter sized (1/16th of memory) of original framebuffer */
+	/* all those buffers below have to coexist.
+	 * Fortunately they are all quarter sized (1/16th of memory) of original framebuffer */
 	int dof_downsampled_w;
 	int dof_downsampled_h;
 
@@ -282,7 +282,7 @@ void GPU_fx_compositor_destroy(GPUFX *fx)
 
 static GPUTexture * create_jitter_texture(void)
 {
-	float jitter [64 * 64][2];
+	float jitter[64 * 64][2];
 	int i;
 
 	for (i = 0; i < 64 * 64; i++) {
@@ -396,7 +396,7 @@ bool GPU_fx_compositor_initialize_passes(
 	/* create textures for dof effect */
 	if (fx_flag & GPU_FX_FLAG_DOF) {
 		bool dof_high_quality = (fx_settings->dof->high_quality != 0) &&
-								GPU_geometry_shader_support() && GPU_instanced_drawing_support();
+		                        GPU_geometry_shader_support() && GPU_instanced_drawing_support();
 
 		/* cleanup buffers if quality setting has changed (no need to keep more buffers around than necessary ) */
 		if (dof_high_quality != fx->dof_high_quality)
@@ -407,7 +407,8 @@ bool GPU_fx_compositor_initialize_passes(
 			fx->dof_downsampled_h = h / 2;
 
 			if (!fx->dof_half_downsampled_near || !fx->dof_nearfar_coc || !fx->dof_near_blur ||
-			    !fx->dof_far_blur || !fx->dof_half_downsampled_far) {
+			    !fx->dof_far_blur || !fx->dof_half_downsampled_far)
+			{
 
 				if (!(fx->dof_half_downsampled_near = GPU_texture_create_2D(
 				      fx->dof_downsampled_w, fx->dof_downsampled_h, NULL, GPU_HDR_NONE, err_out)))
@@ -525,7 +526,7 @@ bool GPU_fx_compositor_initialize_passes(
 		glPushAttrib(GL_SCISSOR_BIT);
 		glEnable(GL_SCISSOR_TEST);
 		glScissor(scissor_rect->xmin - rect->xmin, scissor_rect->ymin - rect->ymin,
-				  w_sc, h_sc);
+		          w_sc, h_sc);
 		fx->restore_stencil = true;
 	}
 	else {
@@ -565,7 +566,9 @@ void GPU_fx_compositor_setup_XRay_pass(GPUFX *fx, bool do_xray)
 	char err_out[256];
 
 	if (do_xray) {
-		if (!fx->depth_buffer_xray && !(fx->depth_buffer_xray = GPU_texture_create_depth(fx->gbuffer_dim[0], fx->gbuffer_dim[1], err_out))) {
+		if (!fx->depth_buffer_xray &&
+		    !(fx->depth_buffer_xray = GPU_texture_create_depth(fx->gbuffer_dim[0], fx->gbuffer_dim[1], err_out)))
+		{
 			printf("%.256s\n", err_out);
 			cleanup_fx_gl_data(fx, true);
 			return;
@@ -644,7 +647,9 @@ void GPU_fx_compositor_XRay_resolve(GPUFX *fx)
 }
 
 
-bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, struct Scene *scene, struct GPUOffScreen *ofs)
+bool GPU_fx_do_composite_pass(
+        GPUFX *fx, float projmat[4][4], bool is_persp,
+        struct Scene *scene, struct GPUOffScreen *ofs)
 {
 	GPUTexture *src, *target;
 	int numslots = 0;
@@ -801,7 +806,8 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 		/* we want radius here for the aperture number  */
 		float aperture = 0.5f * scale_camera * fx_dof->focal_length / fx_dof->fstop;
 
-		dof_params[0] = aperture * fabsf(scale_camera * fx_dof->focal_length / ((fx_dof->focus_distance / scale) - scale_camera * fx_dof->focal_length));
+		dof_params[0] = aperture * fabsf(scale_camera * fx_dof->focal_length /
+		                                 ((fx_dof->focus_distance / scale) - scale_camera * fx_dof->focal_length));
 		dof_params[1] = fx_dof->focus_distance / scale;
 		dof_params[2] = fx->gbuffer_dim[0] / (scale_camera * fx_dof->sensor);
 		dof_params[3] = fx_dof->num_blades;
@@ -1018,9 +1024,12 @@ bool GPU_fx_do_composite_pass(GPUFX *fx, float projmat[4][4], bool is_persp, str
 		else {
 			GPUShader *dof_shader_pass1, *dof_shader_pass2, *dof_shader_pass3, *dof_shader_pass4, *dof_shader_pass5;
 
-			/* DOF effect has many passes but most of them are performed on a texture whose dimensions are 4 times less than the original
-			 * (16 times lower than original screen resolution). Technique used is not very exact but should be fast enough and is based
-			 * on "Practical Post-Process Depth of Field" see http://http.developer.nvidia.com/GPUGems3/gpugems3_ch28.html */
+			/* DOF effect has many passes but most of them are performed
+			 * on a texture whose dimensions are 4 times less than the original
+			 * (16 times lower than original screen resolution).
+			 * Technique used is not very exact but should be fast enough and is based
+			 * on "Practical Post-Process Depth of Field"
+			 * see http://http.developer.nvidia.com/GPUGems3/gpugems3_ch28.html */
 			dof_shader_pass1 = GPU_shader_get_builtin_fx_shader(GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_ONE, is_persp);
 			dof_shader_pass2 = GPU_shader_get_builtin_fx_shader(GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_TWO, is_persp);
 			dof_shader_pass3 = GPU_shader_get_builtin_fx_shader(GPU_SHADER_FX_DEPTH_OF_FIELD_PASS_THREE, is_persp);

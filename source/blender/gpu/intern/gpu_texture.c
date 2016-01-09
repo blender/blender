@@ -181,7 +181,7 @@ static GPUTexture *GPU_texture_create_nD(
 
 		if (fpixels && hdr_type == GPU_HDR_NONE) {
 			type = GL_UNSIGNED_BYTE;
-			pixels = GPU_texture_convert_pixels(w*h, fpixels);
+			pixels = GPU_texture_convert_pixels(w * h, fpixels);
 		}
 	}
 
@@ -192,9 +192,9 @@ static GPUTexture *GPU_texture_create_nD(
 			glTexSubImage1D(tex->target, 0, 0, w, format, type,
 				pixels ? pixels : fpixels);
 
-			if (tex->w > w)
-				GPU_glTexSubImageEmpty(tex->target, format, w, 0,
-					tex->w-w, 1);
+			if (tex->w > w) {
+				GPU_glTexSubImageEmpty(tex->target, format, w, 0, tex->w - w, 1);
+			}
 		}
 	}
 	else {
@@ -211,9 +211,9 @@ static GPUTexture *GPU_texture_create_nD(
 				format, type, pixels ? pixels : fpixels);
 
 			if (tex->w > w)
-				GPU_glTexSubImageEmpty(tex->target, format, w, 0, tex->w-w, tex->h);
+				GPU_glTexSubImageEmpty(tex->target, format, w, 0, tex->w - w, tex->h);
 			if (tex->h > h)
-				GPU_glTexSubImageEmpty(tex->target, format, 0, h, w, tex->h-h);
+				GPU_glTexSubImageEmpty(tex->target, format, 0, h, w, tex->h - h);
 		}
 	}
 
@@ -315,14 +315,15 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, const f
 	if (rescale && fpixels) {
 		/* FIXME: should these be floating point? */
 		const unsigned int xf = w / tex->w, yf = h / tex->h, zf = depth / tex->depth;
-		float *tex3d = MEM_mallocN(channels * sizeof(float)*tex->w*tex->h*tex->depth, "tex3d");
+		float *tex3d = MEM_mallocN(channels * sizeof(float) * tex->w * tex->h * tex->depth, "tex3d");
 
 		GPU_print_error_debug("You need to scale a 3D texture, feel the pain!");
 
 		for (unsigned k = 0; k < tex->depth; k++) {
 			for (unsigned j = 0; j < tex->h; j++) {
 				for (unsigned i = 0; i < tex->w; i++) {
-					/* obviously doing nearest filtering here, it's going to be slow in any case, let's not make it worse */
+					/* obviously doing nearest filtering here,
+					 * it's going to be slow in any case, let's not make it worse */
 					float xb = i * xf;
 					float yb = j * yf;
 					float zb = k * zf;
@@ -387,7 +388,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, bool is_data,
 	tex->target_base = GL_TEXTURE_2D;
 	tex->fromblender = 1;
 
-	ima->gputexture= tex;
+	ima->gputexture = tex;
 
 	if (!glIsTexture(tex->bindcode)) {
 		GPU_ASSERT_NO_GL_ERRORS("Blender Texture Not Loaded");
@@ -475,7 +476,8 @@ GPUTexture *GPU_texture_create_2D(int w, int h, const float *fpixels, GPUHDRType
 	
 	return tex;
 }
-GPUTexture *GPU_texture_create_2D_multisample(int w, int h, const float *fpixels, GPUHDRType hdr, int samples, char err_out[256])
+GPUTexture *GPU_texture_create_2D_multisample(
+        int w, int h, const float *fpixels, GPUHDRType hdr, int samples, char err_out[256])
 {
 	GPUTexture *tex = GPU_texture_create_nD(w, h, 2, fpixels, 0, hdr, 4, samples, err_out);
 

@@ -147,7 +147,7 @@ void gpu_extensions_init(void)
 	GG.colordepth = r + g + b; /* assumes same depth for RGB */
 
 	if (GLEW_VERSION_3_2 || GLEW_ARB_texture_multisample) {
-		glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES , &GG.samples_color_texture_max);
+		glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &GG.samples_color_texture_max);
 	}
 
 	const char *vendor = (const char *)glGetString(GL_VENDOR);
@@ -163,9 +163,10 @@ void gpu_extensions_init(void)
 		GG.driver = GPU_DRIVER_OFFICIAL;
 	}
 	else if (strstr(vendor, "Intel") ||
-	        /* src/mesa/drivers/dri/intel/intel_context.c */
-	        strstr(renderer, "Mesa DRI Intel") ||
-		strstr(renderer, "Mesa DRI Mobile Intel")) {
+	         /* src/mesa/drivers/dri/intel/intel_context.c */
+	         strstr(renderer, "Mesa DRI Intel") ||
+	         strstr(renderer, "Mesa DRI Mobile Intel"))
+	{
 		GG.device = GPU_DEVICE_INTEL;
 		GG.driver = GPU_DRIVER_OFFICIAL;
 	}
@@ -212,13 +213,13 @@ void gpu_extensions_init(void)
 		GG.dfdyfactors[0] = 1.0;
 		GG.dfdyfactors[1] = -1.0;
 	}
-	else if (GG.device == GPU_DEVICE_INTEL && GG.os == GPU_OS_WIN  &&
-	        (strstr(version, "4.0.0 - Build 10.18.10.3308") ||
-	         strstr(version, "4.0.0 - Build 9.18.10.3186") ||
-	         strstr(version, "4.0.0 - Build 9.18.10.3165") ||
-	         strstr(version, "3.1.0 - Build 9.17.10.3347") ||
-	         strstr(version, "3.1.0 - Build 9.17.10.4101") ||
-	         strstr(version, "3.3.0 - Build 8.15.10.2618")))
+	else if ((GG.device == GPU_DEVICE_INTEL) && (GG.os == GPU_OS_WIN) &&
+	         (strstr(version, "4.0.0 - Build 10.18.10.3308") ||
+	          strstr(version, "4.0.0 - Build 9.18.10.3186") ||
+	          strstr(version, "4.0.0 - Build 9.18.10.3165") ||
+	          strstr(version, "3.1.0 - Build 9.17.10.3347") ||
+	          strstr(version, "3.1.0 - Build 9.17.10.4101") ||
+	          strstr(version, "3.3.0 - Build 8.15.10.2618")))
 	{
 		GG.dfdyfactors[0] = -1.0;
 		GG.dfdyfactors[1] = 1.0;
