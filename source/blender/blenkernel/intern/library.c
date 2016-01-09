@@ -1672,7 +1672,7 @@ void id_clear_lib_data(Main *bmain, ID *id)
 	ntree = ntreeFromID(id);
 
 	if (ntree) {
-		ntree->id.lib = NULL;
+		ntreeMakeLocal(ntree);
 	}
 
 	if (GS(id->name) == ID_OB) {
