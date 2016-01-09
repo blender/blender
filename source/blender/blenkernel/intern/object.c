@@ -4124,9 +4124,9 @@ static void object_cacheIgnoreClear(Object *ob, int state)
  */
 bool BKE_object_modifier_update_subframe(Scene *scene, Object *ob, bool update_mesh,
                                          int parent_recursion, float frame,
-                                         ModifierType type)
+                                         int type)
 {
-	ModifierData *md = modifiers_findByType(ob, type);
+	ModifierData *md = modifiers_findByType(ob, (ModifierType)type);
 	bConstraint *con;
 
 	if (type == eModifierType_DynamicPaint) {

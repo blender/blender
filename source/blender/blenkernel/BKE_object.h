@@ -49,8 +49,6 @@ struct RigidBodyWorld;
 struct HookModifierData;
 struct ModifierData;
 
-enum ModifierType;
-
 void BKE_object_workob_clear(struct Object *workob);
 void BKE_object_workob_calc_parent(struct Scene *scene, struct Object *ob, struct Object *workob);
 
@@ -270,7 +268,7 @@ bool BKE_object_modifier_use_time(struct Object *ob, struct ModifierData *md);
 
 bool BKE_object_modifier_update_subframe(struct Scene *scene, struct Object *ob, bool update_mesh,
                                          int parent_recursion, float frame,
-                                         enum ModifierType type);
+                                         int type);
 
 #ifdef __cplusplus
 }
