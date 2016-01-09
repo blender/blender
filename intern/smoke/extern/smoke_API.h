@@ -99,9 +99,6 @@ void smoke_export(struct FLUID_3D *fluid, float *dt, float *dx, float **dens, fl
 void smoke_turbulence_export(struct WTURBULENCE *wt, float **dens, float **react, float **flame, float **fuel,
 							 float **r, float **g, float **b, float **tcu, float **tcv, float **tcw);
 
-/* flame spectrum */
-void flame_get_spectrum(unsigned char *spec, int width, float t1, float t2);
-
 /* data fields */
 int smoke_has_heat(struct FLUID_3D *fluid);
 int smoke_has_fuel(struct FLUID_3D *fluid);

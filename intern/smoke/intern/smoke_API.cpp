@@ -30,7 +30,6 @@
 
 #include "FLUID_3D.h"
 #include "WTURBULENCE.h"
-#include "spectrum.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -447,11 +446,6 @@ extern "C" unsigned char *smoke_get_obstacle_anim(FLUID_3D *fluid)
 extern "C" void smoke_turbulence_set_noise(WTURBULENCE *wt, int type, const char *noisefile_path)
 {
 	wt->setNoise(type, noisefile_path);
-}
-
-extern "C" void flame_get_spectrum(unsigned char *spec, int width, float t1, float t2)
-{
-	spectrum(t1, t2, width, spec);
 }
 
 extern "C" int smoke_has_heat(FLUID_3D *fluid)

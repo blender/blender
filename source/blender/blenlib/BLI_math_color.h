@@ -145,6 +145,8 @@ MINLINE void rgba_char_args_set(char col[4], const char r, const char g, const c
 MINLINE void rgba_char_args_test_set(char col[4], const char r, const char g, const char b, const char a);
 MINLINE void cpack_cpy_3ub(unsigned char r_col[3], const unsigned int pack);
 
+void blackbody_temperature_to_rgb_table(float *r_table, int width, float min, float max);
+
 /********* lift/gamma/gain / ASC-CDL conversion ***********/
 
 void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power);

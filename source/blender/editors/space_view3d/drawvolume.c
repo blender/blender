@@ -98,19 +98,19 @@ static GPUTexture *create_flame_spectrum_texture(void)
 
 	GPUTexture *tex;
 	int i, j, k;
-	unsigned char *spec_data = malloc(SPEC_WIDTH * 4 * sizeof(unsigned char));
-	float *spec_pixels = malloc(SPEC_WIDTH * 4 * 16 * 16 * sizeof(float));
+	float *spec_data = MEM_mallocN(SPEC_WIDTH * 4 * sizeof(float), "spec_data");
+	float *spec_pixels = MEM_mallocN(SPEC_WIDTH * 4 * 16 * 16 * sizeof(float), "spec_pixels");
 
-	flame_get_spectrum(spec_data, SPEC_WIDTH, 1500, 3000);
+	blackbody_temperature_to_rgb_table(spec_data, SPEC_WIDTH, 1500, 3000);
 
 	for (i = 0; i < 16; i++) {
 		for (j = 0; j < 16; j++) {
 			for (k = 0; k < SPEC_WIDTH; k++) {
 				int index = (j * SPEC_WIDTH * 16 + i * SPEC_WIDTH + k) * 4;
 				if (k >= FIRE_THRESH) {
-					spec_pixels[index] = ((float)spec_data[k * 4]) / 255.0f;
-					spec_pixels[index + 1] = ((float)spec_data[k * 4 + 1]) / 255.0f;
-					spec_pixels[index + 2] = ((float)spec_data[k * 4 + 2]) / 255.0f;
+					spec_pixels[index] = (spec_data[k * 4]);
+					spec_pixels[index + 1] = (spec_data[k * 4 + 1]);
+					spec_pixels[index + 2] = (spec_data[k * 4 + 2]);
 					spec_pixels[index + 3] = MAX_FIRE_ALPHA * (
 					        (k > FULL_ON_FIRE) ? 1.0f : (k - FIRE_THRESH) / ((float)FULL_ON_FIRE - FIRE_THRESH));
 				}
@@ -123,8 +123,8 @@ static GPUTexture *create_flame_spectrum_texture(void)
 
 	tex = GPU_texture_create_1D(SPEC_WIDTH, spec_pixels, NULL);
 
-	free(spec_data);
-	free(spec_pixels);
+	MEM_freeN(spec_data);
+	MEM_freeN(spec_pixels);
 
 #undef SPEC_WIDTH
 #undef FIRE_THRESH
