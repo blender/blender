@@ -854,7 +854,7 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke 
 			 * timings of these new strokes:
 			 *
 			 * Each point's timing data is a delta from stroke's inittime, so as we erase some points from
-			 * the start of the stroke, we have to offset this inittime and all remaing points' delta values.
+			 * the start of the stroke, we have to offset this inittime and all remaining points' delta values.
 			 * This way we get a new stroke with exactly the same timing as if user had started drawing from
 			 * the first non-removed point...
 			 */

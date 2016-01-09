@@ -212,7 +212,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 
 	do_init = (v2d->flag & V2D_IS_INITIALISED) == 0;
 
-	/* initialize without scroll bars (interfears with zoom level see: T47047) */
+	/* initialize without scroll bars (interferes with zoom level see: T47047) */
 	if (do_init) {
 		v2d->scroll |= V2D_SCROLL_VERTICAL_FULLR | V2D_SCROLL_HORIZONTAL_FULLR;
 	}

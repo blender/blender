@@ -302,7 +302,7 @@ ccl_device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, f
 		/* TODO(sergey): Currently single rolling shutter effect type only
 		 * where scanlines are acquired from top to bottom and whole scanline
 		 * is acquired at once (no delay in acquisition happens between pixels
-		 * of sinle scanline).
+		 * of single scanline).
 		 *
 		 * Might want to support more models in the future.
 		 */

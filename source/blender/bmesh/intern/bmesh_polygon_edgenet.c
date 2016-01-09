@@ -690,7 +690,7 @@ static void bvhtree_test_edges_isect_2d_vert_cb(
 		const float t = line_point_factor_v2(co_isect, data->v_origin->co, data->v_other->co);
 		const float dist_new = data->dist_orig * t;
 		/* avoid float precision issues, possible this is greater,
-		 * check anove zero to allow some overlap
+		 * check above zero to allow some overlap
 		 * (and needed for partial-connect which will overlap vertices) */
 		if (LIKELY((dist_new < hit->dist) && (dist_new > 0.0f))) {
 			/* v1/v2 will both be in the same group */
@@ -714,7 +714,7 @@ static void bvhtree_test_edges_isect_2d_ray_cb(
 	float dist_new;
 	if (isect_ray_seg_v2(data->v_origin->co, ray->direction, e->v1->co, e->v2->co, &dist_new, NULL)) {
 		/* avoid float precision issues, possible this is greater,
-		 * check anove zero to allow some overlap
+		 * check above zero to allow some overlap
 		 * (and needed for partial-connect which will overlap vertices) */
 		if (LIKELY(dist_new < hit->dist && (dist_new > 0.0f))) {
 			if (e->v1 != data->v_origin && e->v2 != data->v_origin) {
