@@ -4968,7 +4968,7 @@ Mask *BKE_sequencer_mask_get(Scene *scene)
 
 /* api like funcs for adding */
 
-static void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
+static void seq_load_apply(Main *bmain, Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
 {
 	if (seq) {
 		BLI_strncpy_utf8(seq->name + 2, seq_load->name, sizeof(seq->name) - 2);
@@ -4982,6 +4982,11 @@ static void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
 		if (seq_load->flag & SEQ_LOAD_REPLACE_SEL) {
 			seq_load->flag |= SELECT;
 			BKE_sequencer_active_set(scene, seq);
+		}
+
+		if (seq_load->flag & SEQ_LOAD_SOUND_MONO) {
+			seq->sound->flags |= SOUND_FLAGS_MONO;
+			BKE_sound_load(bmain, seq->sound);
 		}
 
 		if (seq_load->flag & SEQ_LOAD_SOUND_CACHE) {
@@ -5081,7 +5086,7 @@ Sequence *BKE_sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	seq->views_format = seq_load->views_format;
 	seq->flag |= seq_load->flag & SEQ_USE_VIEWS;
 
-	seq_load_apply(scene, seq, seq_load);
+	seq_load_apply(CTX_data_main(C), scene, seq, seq_load);
 
 	return seq;
 }
@@ -5147,7 +5152,7 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	/* last active name */
 	BLI_strncpy(ed->act_sounddir, strip->dir, FILE_MAXDIR);
 
-	seq_load_apply(scene, seq, seq_load);
+	seq_load_apply(bmain, scene, seq, seq_load);
 
 	return seq;
 }
@@ -5284,7 +5289,7 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	}
 
 	/* can be NULL */
-	seq_load_apply(scene, seq, seq_load);
+	seq_load_apply(CTX_data_main(C), scene, seq, seq_load);
 
 	MEM_freeN(anim_arr);
 	return seq;

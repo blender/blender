@@ -795,6 +795,8 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):
 
             row.prop(sound, "use_memory_cache")
 
+            layout.prop(sound, "use_mono")
+
         if st.waveform_draw_type == 'DEFAULT_WAVEFORMS':
             layout.prop(strip, "show_waveform")
 

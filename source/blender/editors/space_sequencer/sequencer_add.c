@@ -207,6 +207,9 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 	if ((prop = RNA_struct_find_property(op->ptr, "cache")) && RNA_property_boolean_get(op->ptr, prop))
 		seq_load->flag |= SEQ_LOAD_SOUND_CACHE;
 
+	if ((prop = RNA_struct_find_property(op->ptr, "mono")) && RNA_property_boolean_get(op->ptr, prop))
+		seq_load->flag |= SEQ_LOAD_SOUND_MONO;
+
 	if ((prop = RNA_struct_find_property(op->ptr, "sound")) && RNA_property_boolean_get(op->ptr, prop))
 		seq_load->flag |= SEQ_LOAD_MOVIE_SOUND;
 	
@@ -767,6 +770,7 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_FILES, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
 	RNA_def_boolean(ot->srna, "cache", false, "Cache", "Cache the sound in memory");
+	RNA_def_boolean(ot->srna, "mono", false, "Mono", "Merge all the sound's channels into one");
 }
 
 int sequencer_image_seq_get_minmax_frame(wmOperator *op, int sfra, int *r_minframe, int *r_numdigits)

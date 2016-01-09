@@ -188,7 +188,7 @@ static void SOUND_OT_open(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FILE_TYPE_FOLDER | FILE_TYPE_SOUND | FILE_TYPE_MOVIE, FILE_SPECIAL, FILE_OPENFILE,
 	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
 	RNA_def_boolean(ot->srna, "cache", false, "Cache", "Cache the sound in memory");
-	RNA_def_boolean(ot->srna, "mono", false, "Mono", "Mixdown the sound to mono");
+	RNA_def_boolean(ot->srna, "mono", false, "Mono", "Merge all the sound's channels into one");
 }
 
 static void SOUND_OT_open_mono(wmOperatorType *ot)

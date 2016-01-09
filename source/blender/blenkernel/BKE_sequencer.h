@@ -387,6 +387,7 @@ typedef struct SeqLoadInfo {
 #define SEQ_LOAD_MOVIE_SOUND    (1 << 2)
 #define SEQ_LOAD_SOUND_CACHE    (1 << 3)
 #define SEQ_LOAD_SYNC_FPS       (1 << 4)
+#define SEQ_LOAD_SOUND_MONO     (1 << 5)
 
 
 /* seq_dupli' flags */

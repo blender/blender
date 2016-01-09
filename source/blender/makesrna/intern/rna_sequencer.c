@@ -721,6 +721,14 @@ static void rna_Sequence_filepath_update(Main *bmain, Scene *UNUSED(scene), Poin
 	rna_Sequence_update(bmain, scene, ptr);
 }
 
+static void rna_Sequence_sound_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Sequence *seq = (Sequence *) ptr->data;
+
+	BKE_sound_update_scene_sound(seq->scene_sound, seq->sound);
+	rna_Sequence_update(bmain, scene, ptr);
+}
+
 static int seqproxy_seq_cmp_cb(Sequence *seq, void *arg_pt)
 {
 	SequenceSearchData *data = arg_pt;
@@ -2024,7 +2032,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Sound");
 	RNA_def_property_ui_text(prop, "Sound", "Sound data-block used by this sequence");
-	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_sound_update");
 
 	prop = RNA_def_property(srna, "volume", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "volume");
