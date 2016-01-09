@@ -1663,7 +1663,7 @@ void id_clear_lib_data(Main *bmain, ID *id)
 	id_fake_user_clear(id);
 
 	id->lib = NULL;
-	id->tag |= LIB_TAG_LOCAL;
+	id->tag &= ~(LIB_TAG_INDIRECT | LIB_TAG_EXTERN);
 	new_id(which_libbase(bmain, GS(id->name)), id, NULL);
 
 	/* internal bNodeTree blocks inside ID types below
