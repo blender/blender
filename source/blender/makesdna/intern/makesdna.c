@@ -65,7 +65,6 @@ static const char *includefiles[] = {
 
 	/* if you add files here, please add them at the end
 	 * of makesdna.c (this file) as well */
-
 	"DNA_listBase.h",
 	"DNA_vec_types.h",
 	"DNA_ID.h",
@@ -80,8 +79,6 @@ static const char *includefiles[] = {
 	"DNA_lamp_types.h",
 	"DNA_material_types.h",
 	"DNA_vfont_types.h",
-	/* if you add files here, please add them at the end
-	 * of makesdna.c (this file) as well */
 	"DNA_meta_types.h",
 	"DNA_curve_types.h",
 	"DNA_mesh_types.h",
@@ -99,8 +96,6 @@ static const char *includefiles[] = {
 	"DNA_userdef_types.h",
 	"DNA_screen_types.h",
 	"DNA_sdna_types.h",
-	// if you add files here, please add them at the end
-	// of makesdna.c (this file) as well
 	"DNA_fileglobal_types.h",
 	"DNA_sequence_types.h",
 	"DNA_effect_types.h",
@@ -122,8 +117,6 @@ static const char *includefiles[] = {
 	"DNA_particle_types.h",
 	"DNA_cloth_types.h",
 	"DNA_gpencil_types.h",
-	/* if you add files here, please add them at the end
-	 * of makesdna.c (this file) as well */
 	"DNA_windowmanager_types.h",
 	"DNA_anim_types.h",
 	"DNA_boid_types.h",
@@ -136,6 +129,7 @@ static const char *includefiles[] = {
 	"DNA_rigidbody_types.h",
 	"DNA_freestyle_types.h",
 	"DNA_linestyle_types.h",
+	/* see comment above before editing! */
 
 	/* empty string to indicate end of includefiles */
 	""
@@ -988,16 +982,18 @@ static int make_structDNA(const char *baseDirectory, FILE *file)
 	typelens_64 = MEM_callocN(sizeof(short) * maxnr, "typelens_64");
 	structs = MEM_callocN(sizeof(short *) * maxnr, "structs");
 
-	/* insertion of all known types */
-	/* watch it: uint is not allowed! use in structs an unsigned int */
-	/* watch it: sizes must match DNA_elem_type_size() */
+	/**
+	 * Insertion of all known types.
+	 *
+	 * \warning Order of function calls here must be aligned with #eSDNA_Type.
+	 * \warning uint is not allowed! use in structs an unsigned int.
+	 * \warning sizes must match #DNA_elem_type_size().
+	 */
 	add_type("char", 1);     /* SDNA_TYPE_CHAR */
 	add_type("uchar", 1);    /* SDNA_TYPE_UCHAR */
 	add_type("short", 2);    /* SDNA_TYPE_SHORT */
 	add_type("ushort", 2);   /* SDNA_TYPE_USHORT */
 	add_type("int", 4);      /* SDNA_TYPE_INT */
-	add_type("long", 4);     /* SDNA_TYPE_LONG */  /* maybe 4 or 8 bytes depending on platform, disallowed for now */
-	add_type("ulong", 4);    /* SDNA_TYPE_ULONG */
 	add_type("float", 4);    /* SDNA_TYPE_FLOAT */
 	add_type("double", 8);   /* SDNA_TYPE_DOUBLE */
 	add_type("int64_t", 8);  /* SDNA_TYPE_INT64 */

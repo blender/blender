@@ -48,17 +48,15 @@ typedef enum eSDNA_Type {
 	SDNA_TYPE_SHORT    = 2,
 	SDNA_TYPE_USHORT   = 3,
 	SDNA_TYPE_INT      = 4,
-	SDNA_TYPE_LONG     = 5,  /* deprecated (use as int) */
-	SDNA_TYPE_ULONG    = 6,  /* deprecated (use as int) */
-	SDNA_TYPE_FLOAT    = 7,
-	SDNA_TYPE_DOUBLE   = 8,
-	/* ,SDNA_TYPE_VOID = 9 */
-	SDNA_TYPE_INT64    = 10,
-	SDNA_TYPE_UINT64   = 11
+	SDNA_TYPE_FLOAT    = 5,
+	SDNA_TYPE_DOUBLE   = 6,
+	/* ,SDNA_TYPE_VOID = 7 */
+/* define so switch statements don't complain */
+#define SDNA_TYPE_VOID 7
+	SDNA_TYPE_INT64    = 8,
+	SDNA_TYPE_UINT64   = 9,
 } eSDNA_Type;
 
-/* define so switch statements don't complain */
-#define SDNA_TYPE_VOID 9
 
 struct SDNA *DNA_sdna_from_data(const void *data, const int datalen, bool do_endian_swap);
 void DNA_sdna_free(struct SDNA *sdna);
