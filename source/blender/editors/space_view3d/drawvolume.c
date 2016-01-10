@@ -327,7 +327,8 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	int shadow_location = GPU_shader_get_uniform(shader, "shadow_texture");
 	int flame_location = GPU_shader_get_uniform(shader, "flame_texture");
 	int actcol_location = GPU_shader_get_uniform(shader, "active_color");
-	int cellspace_location = GPU_shader_get_uniform(shader, "cell_spacing");
+	int stepsize_location = GPU_shader_get_uniform(shader, "step_size");
+	int densityscale_location = GPU_shader_get_uniform(shader, "density_scale");
 	int invsize_location = GPU_shader_get_uniform(shader, "invsize");
 	int ob_sizei_location = GPU_shader_get_uniform(shader, "ob_sizei");
 	int min_location = GPU_shader_get_uniform(shader, "min");
@@ -351,12 +352,14 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 		GPU_shader_uniform_texture(shader, spec_location, tex_spec);
 	}
 
-	float active_color[4] = { 0.7, 0.7, 0.7, 10.0 };
-	if ((sds->active_fields & SM_ACTIVE_COLORS) != 0)
-		copy_v3_v3(active_color, sds->active_color);
+	float active_color[3] = { 0.9, 0.9, 0.9 };
+	float density_scale = 10.0f;
+	if ((sds->active_fields & SM_ACTIVE_COLORS) == 0)
+		mul_v3_v3(active_color, sds->active_color);
 
-	GPU_shader_uniform_vector(shader, actcol_location, 4, 1, active_color);
-	GPU_shader_uniform_vector(shader, cellspace_location, 1, 1, &sds->dx);
+	GPU_shader_uniform_vector(shader, actcol_location, 3, 1, active_color);
+	GPU_shader_uniform_vector(shader, stepsize_location, 1, 1, &sds->dx);
+	GPU_shader_uniform_vector(shader, densityscale_location, 1, 1, &density_scale);
 	GPU_shader_uniform_vector(shader, min_location, 3, 1, min);
 	GPU_shader_uniform_vector(shader, ob_sizei_location, 3, 1, ob_sizei);
 	GPU_shader_uniform_vector(shader, invsize_location, 3, 1, invsize);
