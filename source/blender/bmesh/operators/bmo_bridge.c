@@ -367,10 +367,10 @@ static void bridge_loop_pair(
 					f = BM_face_create_verts(bm, v_arr, 4, NULL, BM_CREATE_NOP, true);
 
 					l_iter = BM_FACE_FIRST_LOOP(f);
-					if (l_b)      BM_elem_attrs_copy(bm, bm, l_b,      l_iter); l_iter = l_iter->next;
-					if (l_b_next) BM_elem_attrs_copy(bm, bm, l_b_next, l_iter); l_iter = l_iter->next;
-					if (l_a_next) BM_elem_attrs_copy(bm, bm, l_a_next, l_iter); l_iter = l_iter->next;
-					if (l_a)      BM_elem_attrs_copy(bm, bm, l_a,      l_iter);
+					if (l_b)      { BM_elem_attrs_copy(bm, bm, l_b,      l_iter); } l_iter = l_iter->next;
+					if (l_b_next) { BM_elem_attrs_copy(bm, bm, l_b_next, l_iter); } l_iter = l_iter->next;
+					if (l_a_next) { BM_elem_attrs_copy(bm, bm, l_a_next, l_iter); } l_iter = l_iter->next;
+					if (l_a)      { BM_elem_attrs_copy(bm, bm, l_a,      l_iter); }
 				}
 			}
 			else {
@@ -380,9 +380,9 @@ static void bridge_loop_pair(
 					f = BM_face_create_verts(bm, v_arr, 3, NULL, BM_CREATE_NOP, true);
 
 					l_iter = BM_FACE_FIRST_LOOP(f);
-					if (l_b)      BM_elem_attrs_copy(bm, bm, l_b,      l_iter); l_iter = l_iter->next;
-					if (l_a_next) BM_elem_attrs_copy(bm, bm, l_a_next, l_iter); l_iter = l_iter->next;
-					if (l_a)      BM_elem_attrs_copy(bm, bm, l_a,      l_iter);
+					if (l_b)      { BM_elem_attrs_copy(bm, bm, l_b,      l_iter); } l_iter = l_iter->next;
+					if (l_a_next) { BM_elem_attrs_copy(bm, bm, l_a_next, l_iter); } l_iter = l_iter->next;
+					if (l_a)      { BM_elem_attrs_copy(bm, bm, l_a,      l_iter); }
 				}
 			}
 
