@@ -351,8 +351,8 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 		GPU_shader_uniform_texture(shader, spec_location, tex_spec);
 	}
 
-	float active_color[4] = { 1.0, 1.0, 1.0, 10.0 };
-	if ((sds->active_fields & SM_ACTIVE_COLORS) == 0)
+	float active_color[4] = { 0.7, 0.7, 0.7, 10.0 };
+	if ((sds->active_fields & SM_ACTIVE_COLORS) != 0)
 		copy_v3_v3(active_color, sds->active_color);
 
 	GPU_shader_uniform_vector(shader, actcol_location, 4, 1, active_color);

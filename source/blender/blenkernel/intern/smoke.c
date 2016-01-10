@@ -2155,6 +2155,7 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 						active_fields |= SM_ACTIVE_COLOR_SET;
 					}
 					else if (!equals_v3v3(sds->active_color, sfs->color)) {
+						copy_v3_v3(sds->active_color, sfs->color);
 						active_fields |= SM_ACTIVE_COLORS;
 					}
 				}
@@ -2173,6 +2174,7 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 			active_fields |= SM_ACTIVE_COLOR_SET;
 		}
 		else if (!equals_v3v3(sds->active_color, sds->flame_smoke_color)) {
+			copy_v3_v3(sds->active_color, sds->flame_smoke_color);
 			active_fields |= SM_ACTIVE_COLORS;
 		}
 	}
