@@ -60,6 +60,20 @@ def use_cpu(context):
     return (device_type == 'NONE' or cscene.device == 'CPU')
 
 
+def use_opencl(context):
+    cscene = context.scene.cycles
+    device_type = context.user_preferences.system.compute_device_type
+
+    return (device_type == 'OPENCL' and cscene.device == 'GPU')
+
+
+def use_cuda(context):
+    cscene = context.scene.cycles
+    device_type = context.user_preferences.system.compute_device_type
+
+    return (device_type == 'CUDA' and cscene.device == 'GPU')
+
+
 def use_branched_path(context):
     cscene = context.scene.cycles
     device_type = context.user_preferences.system.compute_device_type
