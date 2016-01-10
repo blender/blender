@@ -37,20 +37,7 @@ extern "C" {
 #endif
 
 typedef struct GPUShader GPUShader;
-typedef struct GPUProgram GPUProgram;
 struct GPUTexture;
-
-/* Builtin/Non-generated shaders */
-typedef enum GPUProgramType {
-	GPU_PROGRAM_TYPE_FRAGMENT = 0
-} GPUProgramType;
-
-/* TODO: remove ARB program support (recode smoke shader in GLSL) */
-GPUProgram *GPU_program_shader_create(GPUProgramType type, const char *code);
-void GPU_program_free(GPUProgram *program);
-void GPU_program_parameter_4f(GPUProgram *program, unsigned int location, float x, float y, float z, float w);
-void GPU_program_bind(GPUProgram *);
-void GPU_program_unbind(GPUProgram *);
 
 /* GPU Shader
  * - only for fragment shaders now
@@ -97,15 +84,11 @@ int GPU_shader_get_attribute(GPUShader *shader, const char *name);
 typedef enum GPUBuiltinShader {
 	GPU_SHADER_VSM_STORE         = 0,
 	GPU_SHADER_SEP_GAUSSIAN_BLUR = 1,
+	GPU_SHADER_SMOKE             = 2,
+	GPU_SHADER_SMOKE_FIRE        = 3,
 } GPUBuiltinShader;
 
-typedef enum GPUBuiltinProgram {
-	GPU_PROGRAM_SMOKE         = 0,
-	GPU_PROGRAM_SMOKE_COLORED = 1,
-} GPUBuiltinProgram;
-
 GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader);
-GPUProgram *GPU_shader_get_builtin_program(GPUBuiltinProgram program);
 GPUShader *GPU_shader_get_builtin_fx_shader(int effects, bool persp);
 
 void GPU_shader_free_builtin_shaders(void);

@@ -46,8 +46,8 @@
 #define MAX_EXT_DEFINE_LENGTH 1024
 
 /* Non-generated shaders */
-extern char datatoc_gpu_program_smoke_frag_glsl[];
-extern char datatoc_gpu_program_smoke_color_frag_glsl[];
+extern char datatoc_gpu_shader_smoke_vert_glsl[];
+extern char datatoc_gpu_shader_smoke_frag_glsl[];
 extern char datatoc_gpu_shader_vsm_store_vert_glsl[];
 extern char datatoc_gpu_shader_vsm_store_frag_glsl[];
 extern char datatoc_gpu_shader_sep_gaussian_blur_vert_glsl[];
@@ -66,8 +66,8 @@ static struct GPUShadersGlobal {
 	struct {
 		GPUShader *vsm_store;
 		GPUShader *sep_gaussian_blur;
-		GPUProgram *smoke;
-		GPUProgram *smoke_colored;
+		GPUShader *smoke;
+		GPUShader *smoke_fire;
 		/* cache for shader fx. Those can exist in combinations so store them here */
 		GPUShader *fx_shaders[MAX_FX_SHADERS * 2];
 	} shaders;
@@ -84,11 +84,6 @@ struct GPUShader {
 
 	int totattrib;   /* total number of attributes */
 	int uniforms;    /* required uniforms */
-};
-
-struct GPUProgram {
-	GPUProgramType type;
-	GLuint prog;
 };
 
 static void shader_print_errors(const char *task, const char *log, const char **code, int totcode)
@@ -228,70 +223,6 @@ static void gpu_shader_standard_defines(char defines[MAX_DEFINE_LENGTH], bool us
 #endif
 
 	return;
-}
-
-void GPU_program_bind(GPUProgram *program)
-{
-	glEnable(program->type);
-	glBindProgramARB(program->type, program->prog);
-}
-
-void GPU_program_unbind(GPUProgram *program)
-{
-	glDisable(program->type);
-	glBindProgramARB(program->type, 0);
-}
-
-
-GPUProgram *GPU_program_shader_create(GPUProgramType type, const char *code)
-{
-	/* TODO(merwin): remove ARB program support (recode smoke shader in GLSL) */
-
-	GPUProgram *program;
-	GLint error_pos, is_native;
-
-	if (!(GLEW_ARB_fragment_program && type == GPU_PROGRAM_TYPE_FRAGMENT))
-		return NULL;
-
-	program = MEM_callocN(sizeof(GPUProgram), "GPUProgram");
-
-	switch (type) {
-		case GPU_PROGRAM_TYPE_FRAGMENT:
-			program->type = GL_FRAGMENT_PROGRAM_ARB;
-			break;
-	}
-
-	/* create the object and set its code string */
-	glGenProgramsARB(1, &program->prog);
-	glBindProgramARB(program->type, program->prog);
-
-	glProgramStringARB(program->type, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(code), code);
-
-	glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &error_pos);
-	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &is_native);
-	if ((error_pos == -1) && (is_native == 1)) {
-		return program;
-	}
-	else {
-		/* glGetError is set before that, clear it */
-		while (glGetError() != GL_NO_ERROR)
-			;
-		shader_print_errors("compile", (const char *)glGetString(GL_PROGRAM_ERROR_STRING_ARB), &code, 1);
-		MEM_freeN(program);
-	}
-
-	return NULL;
-}
-
-void GPU_program_free(GPUProgram *program)
-{
-	glDeleteProgramsARB(1, &program->prog);
-	MEM_freeN(program);
-}
-
-void GPU_program_parameter_4f(GPUProgram *program, unsigned int location, float x, float y, float z, float w)
-{
-	glProgramLocalParameter4fARB(program->type, location, x, y, z, w);
 }
 
 GPUShader *GPU_shader_create(const char *vertexcode,
@@ -646,37 +577,24 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 				        NULL, NULL, NULL, 0, 0, 0);
 			retval = GG.shaders.sep_gaussian_blur;
 			break;
+		case GPU_SHADER_SMOKE:
+			if (!GG.shaders.smoke)
+				GG.shaders.smoke = GPU_shader_create(
+				        datatoc_gpu_shader_smoke_vert_glsl, datatoc_gpu_shader_smoke_frag_glsl,
+				        NULL, NULL, NULL, 0, 0, 0);
+			retval = GG.shaders.smoke;
+			break;
+		case GPU_SHADER_SMOKE_FIRE:
+			if (!GG.shaders.smoke_fire)
+				GG.shaders.smoke_fire = GPU_shader_create(
+				        datatoc_gpu_shader_smoke_vert_glsl, datatoc_gpu_shader_smoke_frag_glsl,
+				        NULL, NULL, "#define USE_FIRE;\n", 0, 0, 0);
+			retval = GG.shaders.smoke_fire;
+			break;
 	}
 
 	if (retval == NULL)
 		printf("Unable to create a GPUShader for builtin shader: %u\n", shader);
-
-	return retval;
-}
-
-GPUProgram *GPU_shader_get_builtin_program(GPUBuiltinProgram program)
-{
-	GPUProgram *retval = NULL;
-
-	switch (program) {
-		case GPU_PROGRAM_SMOKE:
-			if (!GG.shaders.smoke) {
-				GG.shaders.smoke = GPU_program_shader_create(
-				        GPU_PROGRAM_TYPE_FRAGMENT, datatoc_gpu_program_smoke_frag_glsl);
-			}
-			retval = GG.shaders.smoke;
-			break;
-		case GPU_PROGRAM_SMOKE_COLORED:
-			if (!GG.shaders.smoke_colored) {
-				GG.shaders.smoke_colored = GPU_program_shader_create(
-				        GPU_PROGRAM_TYPE_FRAGMENT, datatoc_gpu_program_smoke_color_frag_glsl);
-			}
-			retval = GG.shaders.smoke_colored;
-			break;
-	}
-
-	if (retval == NULL)
-		printf("Unable to create a GPUProgram for builtin program: %u\n", program);
 
 	return retval;
 }
@@ -773,13 +691,13 @@ void GPU_shader_free_builtin_shaders(void)
 	}
 
 	if (GG.shaders.smoke) {
-		GPU_program_free(GG.shaders.smoke);
+		GPU_shader_free(GG.shaders.smoke);
 		GG.shaders.smoke = NULL;
 	}
 
-	if (GG.shaders.smoke_colored) {
-		GPU_program_free(GG.shaders.smoke_colored);
-		GG.shaders.smoke_colored = NULL;
+	if (GG.shaders.smoke_fire) {
+		GPU_shader_free(GG.shaders.smoke_fire);
+		GG.shaders.smoke_fire = NULL;
 	}
 
 	for (i = 0; i < 2 * MAX_FX_SHADERS; i++) {

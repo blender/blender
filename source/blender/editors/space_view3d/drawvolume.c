@@ -46,6 +46,7 @@
 
 #include "BIF_gl.h"
 
+#include "GPU_debug.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
@@ -59,35 +60,6 @@ struct GPUTexture;
 #  include "PIL_time.h"
 #  include "PIL_time_utildefines.h"
 #endif
-
-static int intersect_edges(float (*points)[3], float a, float b, float c, float d, const float edges[12][2][3])
-{
-	int i;
-	float t;
-	int numpoints = 0;
-
-	for (i = 0; i < 12; i++) {
-		t = -(a * edges[i][0][0] + b * edges[i][0][1] + c * edges[i][0][2] + d) /
-		     (a * edges[i][1][0] + b * edges[i][1][1] + c * edges[i][1][2]);
-		if ((t > 0) && (t < 1)) {
-			points[numpoints][0] = edges[i][0][0] + edges[i][1][0] * t;
-			points[numpoints][1] = edges[i][0][1] + edges[i][1][1] * t;
-			points[numpoints][2] = edges[i][0][2] + edges[i][1][2] * t;
-			numpoints++;
-		}
-	}
-	return numpoints;
-}
-
-static bool convex(const float p0[3], const float up[3], const float a[3], const float b[3])
-{
-	/* Vec3 va = a-p0, vb = b-p0; */
-	float va[3], vb[3], tmp[3];
-	sub_v3_v3v3(va, a, p0);
-	sub_v3_v3v3(vb, b, p0);
-	cross_v3_v3v3(tmp, va, vb);
-	return dot_v3v3(up, tmp) >= 0;
-}
 
 static GPUTexture *create_flame_spectrum_texture(void)
 {
@@ -134,14 +106,206 @@ static GPUTexture *create_flame_spectrum_texture(void)
 	return tex;
 }
 
+typedef struct VolumeSlicer {
+	float size[3];
+	float min[3];
+	float max[3];
+	float (*verts)[3];
+} VolumeSlicer;
+
+/* *************************** View Aligned Slicing ************************** */
+
+/* Code adapted from:
+ * "GPU-based Volume Rendering, Real-time Volume Graphics", AK Peters/CRC Press
+ */
+static int create_view_aligned_slices(VolumeSlicer *slicer,
+                                      const int num_slices,
+                                      const float view_dir[3])
+{
+	const int indices[] = { 0, 1, 2, 0, 2, 3, 0, 3, 4, 0, 4, 5 };
+
+	const float vertices[8][3] = {
+	    { slicer->min[0], slicer->min[1], slicer->min[2] },
+	    { slicer->max[0], slicer->min[1], slicer->min[2] },
+	    { slicer->max[0], slicer->max[1], slicer->min[2] },
+	    { slicer->min[0], slicer->max[1], slicer->min[2] },
+	    { slicer->min[0], slicer->min[1], slicer->max[2] },
+	    { slicer->max[0], slicer->min[1], slicer->max[2] },
+	    { slicer->max[0], slicer->max[1], slicer->max[2] },
+	    { slicer->min[0], slicer->max[1], slicer->max[2] }
+	};
+
+	const int edges[12][2] = {
+	    { 0, 1 }, { 1, 2 }, { 2, 3 },
+	    { 3, 0 }, { 0, 4 }, { 1, 5 },
+	    { 2, 6 }, { 3, 7 }, { 4, 5 },
+	    { 5, 6 }, { 6, 7 }, { 7, 4 }
+	};
+
+	const int edge_list[8][12] = {
+	    { 0, 1, 5, 6, 4, 8, 11, 9, 3, 7, 2, 10 },
+	    { 0, 4, 3, 11, 1, 2, 6, 7, 5, 9, 8, 10 },
+	    { 1, 5, 0, 8, 2, 3, 7, 4, 6, 10, 9, 11 },
+	    { 7, 11, 10, 8, 2, 6, 1, 9, 3, 0, 4, 5 },
+	    { 8, 5, 9, 1, 11, 10, 7, 6, 4, 3, 0, 2 },
+	    { 9, 6, 10, 2, 8, 11, 4, 7, 5, 0, 1, 3 },
+	    { 9, 8, 5, 4, 6, 1, 2, 0, 10, 7, 11, 3 },
+	    { 10, 9, 6, 5, 7, 2, 3, 1, 11, 4, 8, 0 }
+	};
+
+	/* find vertex that is the furthest from the view plane */
+	int max_index = 0;
+	float max_dist, min_dist;
+	min_dist = max_dist = dot_v3v3(view_dir, vertices[0]);
+
+	for (int i = 1; i < 8; i++) {
+		float dist = dot_v3v3(view_dir, vertices[i]);
+
+		if (dist > max_dist) {
+			max_dist = dist;
+			max_index = i;
+		}
+
+		if (dist < min_dist) {
+			min_dist = dist;
+		}
+	}
+
+	max_dist -= FLT_EPSILON;
+	min_dist += FLT_EPSILON;
+
+	/* start and direction vectors */
+	float vec_start[12][3], vec_dir[12][3];
+	/* lambda intersection values */
+	float lambda[12], lambda_inc[12];
+	float denom = 0.0f;
+
+	float plane_dist = min_dist;
+	float plane_dist_inc = (max_dist - min_dist) / (float)num_slices;
+
+	/* for all egdes */
+	for (int i = 0; i < 12; i++) {
+		copy_v3_v3(vec_start[i], vertices[edges[edge_list[max_index][i]][0]]);
+		copy_v3_v3(vec_dir[i],   vertices[edges[edge_list[max_index][i]][1]]);
+		sub_v3_v3(vec_dir[i], vec_start[i]);
+
+		denom = dot_v3v3(vec_dir[i], view_dir);
+
+		if (1.0f + denom != 1.0f) {
+			lambda_inc[i] = plane_dist_inc / denom;
+			lambda[i] = (plane_dist - dot_v3v3(vec_start[i], view_dir)) / denom;
+		}
+		else {
+			lambda[i] = -1.0f;
+			lambda_inc[i] = 0.0f;
+		}
+	}
+
+	float intersections[6][3];
+	float dL[12];
+	int num_points = 0;
+	/* find intersections for each slice, process them in back to front order */
+	for (int i = 0; i < num_slices; i++) {
+		for (int e = 0; e < 12; e++) {
+			dL[e] = lambda[e] + i * lambda_inc[e];
+		}
+
+		if ((dL[0] >= 0.0f) && (dL[0] < 1.0f)) {
+			madd_v3_v3v3fl(intersections[0], vec_start[0], vec_dir[0], dL[0]);
+		}
+		else if ((dL[1] >= 0.0f) && (dL[1] < 1.0f)) {
+			madd_v3_v3v3fl(intersections[0], vec_start[1], vec_dir[1], dL[1]);
+		}
+		else if ((dL[3] >= 0.0f) && (dL[3] < 1.0f)) {
+			madd_v3_v3v3fl(intersections[0], vec_start[3], vec_dir[3], dL[3]);
+		}
+		else continue;
+
+		if ((dL[2] >= 0.0f) && (dL[2] < 1.0f)) {
+			madd_v3_v3v3fl(intersections[1], vec_start[2], vec_dir[2], dL[2]);
+		}
+		else if ((dL[0] >= 0.0f) && (dL[0] < 1.0f)) {
+			madd_v3_v3v3fl(intersections[1], vec_start[0], vec_dir[0], dL[0]);
+		}
+		else if ((dL[1] >= 0.0f) && (dL[1] < 1.0f)) {
+			madd_v3_v3v3fl(intersections[1], vec_start[1], vec_dir[1], dL[1]);
+		}
+		else {
+			madd_v3_v3v3fl(intersections[1], vec_start[3], vec_dir[3], dL[3]);
+		}
+
+		if ((dL[4] >= 0.0f) && (dL[4] < 1.0f)) {
+			madd_v3_v3v3fl(intersections[2], vec_start[4], vec_dir[4], dL[4]);
+		}
+		else if ((dL[5] >= 0.0f) && (dL[5] < 1.0f)) {
+			madd_v3_v3v3fl(intersections[2], vec_start[5], vec_dir[5], dL[5]);
+		}
+		else {
+			madd_v3_v3v3fl(intersections[2], vec_start[7], vec_dir[7], dL[7]);
+		}
+
+		if ((dL[6] >= 0.0f) && (dL[6] < 1.0f)) {
+			madd_v3_v3v3fl(intersections[3], vec_start[6], vec_dir[6], dL[6]);
+		}
+		else if ((dL[4] >= 0.0f) && (dL[4] < 1.0f)) {
+			madd_v3_v3v3fl(intersections[3], vec_start[4], vec_dir[4], dL[4]);
+		}
+		else if ((dL[5] >= 0.0f) && (dL[5] < 1.0f)) {
+			madd_v3_v3v3fl(intersections[3], vec_start[5], vec_dir[5], dL[5]);
+		}
+		else {
+			madd_v3_v3v3fl(intersections[3], vec_start[7], vec_dir[7], dL[7]);
+		}
+
+		if ((dL[8] >= 0.0f) && (dL[8] < 1.0f)) {
+			madd_v3_v3v3fl(intersections[4], vec_start[8], vec_dir[8], dL[8]);
+		}
+		else if ((dL[9] >= 0.0f) && (dL[9] < 1.0f)) {
+			madd_v3_v3v3fl(intersections[4], vec_start[9], vec_dir[9], dL[9]);
+		}
+		else {
+			madd_v3_v3v3fl(intersections[4], vec_start[11], vec_dir[11], dL[11]);
+		}
+
+		if ((dL[10] >= 0.0f) && (dL[10] < 1.0f)) {
+			madd_v3_v3v3fl(intersections[5], vec_start[10], vec_dir[10], dL[10]);
+		}
+		else if ((dL[8] >= 0.0f) && (dL[8] < 1.0f)) {
+			madd_v3_v3v3fl(intersections[5], vec_start[8], vec_dir[8], dL[8]);
+		}
+		else if ((dL[9] >= 0.0f) && (dL[9] < 1.0f)) {
+			madd_v3_v3v3fl(intersections[5], vec_start[9], vec_dir[9], dL[9]);
+		}
+		else {
+			madd_v3_v3v3fl(intersections[5], vec_start[11], vec_dir[11], dL[11]);
+		}
+
+		for (int e = 0; e < 12; e++) {
+			copy_v3_v3(slicer->verts[num_points++], intersections[indices[e]]);
+		}
+	}
+
+	return num_points;
+}
+
 void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
                        const float min[3], const float max[3],
 	                   const float viewnormal[3])
 {
-	GPUTexture *tex_spec = NULL;
-	GPUProgram *smoke_program;
-	const int progtype = (sds->active_fields & SM_ACTIVE_COLORS) ? GPU_PROGRAM_SMOKE_COLORED
-	                                                             : GPU_PROGRAM_SMOKE;
+	if (!sds->tex || !sds->tex_shadow) {
+		fprintf(stderr, "Could not allocate 3D texture for volume rendering!\n");
+		return;
+	}
+
+	const bool use_fire = (sds->active_fields & SM_ACTIVE_FIRE) != 0;
+
+	GPUShader *shader = GPU_shader_get_builtin_shader(
+	                        (use_fire) ? GPU_SHADER_SMOKE_FIRE : GPU_SHADER_SMOKE);
+
+	if (!shader) {
+		fprintf(stderr, "Unable to create GLSL smoke shader.\n");
+		return;
+	}
 
 	const float ob_sizei[3] = {
 	    1.0f / fabsf(ob->size[0]),
@@ -149,203 +313,101 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	    1.0f / fabsf(ob->size[2])
 	};
 
-	int i, j, n, good_index;
-	float d /*, d0 */ /* UNUSED */, dd, ds;
-	float (*points)[3] = NULL;
-	int numpoints = 0;
-	int gl_depth = 0, gl_blend = 0;
-
-	const bool use_fire = (sds->active_fields & SM_ACTIVE_FIRE) != 0;
-
-	/* draw slices of smoke is adapted from c++ code authored
-	 * by: Johannes Schmid and Ingemar Rask, 2006, johnny@grob.org */
-	const float verts[8][3] = {
-		{ max[0], max[1], max[2] },
-	    { min[0], max[1], max[2] },
-	    { min[0], min[1], max[2] },
-	    { max[0], min[1], max[2] },
-		{ max[0], max[1], min[2] },
-	    { min[0], max[1], min[2] },
-	    { min[0], min[1], min[2] },
-	    { max[0], min[1], min[2] }
-	};
-
 	const float size[3] = { max[0] - min[0], max[1] - min[1], max[2] - min[2] };
 	const float invsize[3] = { 1.0f / size[0], 1.0f / size[1], 1.0f / size[2] };
-
-	/* edges have the form edges[n][0][xyz] + t*edges[n][1][xyz] */
-	const float edges[12][2][3] = {
-	    {{verts[4][0], verts[4][1], verts[4][2]}, {0.0f, 0.0f, size[2]}},
-		{{verts[5][0], verts[5][1], verts[5][2]}, {0.0f, 0.0f, size[2]}},
-		{{verts[6][0], verts[6][1], verts[6][2]}, {0.0f, 0.0f, size[2]}},
-		{{verts[7][0], verts[7][1], verts[7][2]}, {0.0f, 0.0f, size[2]}},
-
-		{{verts[3][0], verts[3][1], verts[3][2]}, {0.0f, size[1], 0.0f}},
-		{{verts[2][0], verts[2][1], verts[2][2]}, {0.0f, size[1], 0.0f}},
-		{{verts[6][0], verts[6][1], verts[6][2]}, {0.0f, size[1], 0.0f}},
-		{{verts[7][0], verts[7][1], verts[7][2]}, {0.0f, size[1], 0.0f}},
-
-		{{verts[1][0], verts[1][1], verts[1][2]}, {size[0], 0.0f, 0.0f}},
-		{{verts[2][0], verts[2][1], verts[2][2]}, {size[0], 0.0f, 0.0f}},
-		{{verts[6][0], verts[6][1], verts[6][2]}, {size[0], 0.0f, 0.0f}},
-		{{verts[5][0], verts[5][1], verts[5][2]}, {size[0], 0.0f, 0.0f}}
-	};
-
-	if (!sds->tex) {
-		printf("Could not allocate 3D texture for 3D View smoke drawing.\n");
-		return;
-	}
 
 #ifdef DEBUG_DRAW_TIME
 	TIMEIT_START(draw);
 #endif
 
-	// printf("size x: %f, y: %f, z: %f\n", size[0], size[1], size[2]);
-	// printf("min[2]: %f, max[2]: %f\n", min[2], max[2]);
+	/* setup smoke shader */
 
+	int soot_location = GPU_shader_get_uniform(shader, "soot_texture");
+	int spec_location = GPU_shader_get_uniform(shader, "spectrum_texture");
+	int shadow_location = GPU_shader_get_uniform(shader, "shadow_texture");
+	int flame_location = GPU_shader_get_uniform(shader, "flame_texture");
+	int actcol_location = GPU_shader_get_uniform(shader, "active_color");
+	int cellspace_location = GPU_shader_get_uniform(shader, "cell_spacing");
+	int invsize_location = GPU_shader_get_uniform(shader, "invsize");
+	int ob_sizei_location = GPU_shader_get_uniform(shader, "ob_sizei");
+	int min_location = GPU_shader_get_uniform(shader, "min");
+
+	GPU_shader_bind(shader);
+
+	GPU_texture_bind(sds->tex, 0);
+	GPU_shader_uniform_texture(shader, soot_location, sds->tex);
+
+	GPU_texture_bind(sds->tex_shadow, 1);
+	GPU_shader_uniform_texture(shader, shadow_location, sds->tex_shadow);
+
+	GPUTexture *tex_spec = NULL;
+
+	if (sds->tex_flame) {
+		GPU_texture_bind(sds->tex_flame, 2);
+		GPU_shader_uniform_texture(shader, flame_location, sds->tex_flame);
+
+		tex_spec = create_flame_spectrum_texture();
+		GPU_texture_bind(tex_spec, 3);
+		GPU_shader_uniform_texture(shader, spec_location, tex_spec);
+	}
+
+	float active_color[4] = { 1.0, 1.0, 1.0, 10.0 };
+	if ((sds->active_fields & SM_ACTIVE_COLORS) == 0)
+		copy_v3_v3(active_color, sds->active_color);
+
+	GPU_shader_uniform_vector(shader, actcol_location, 4, 1, active_color);
+	GPU_shader_uniform_vector(shader, cellspace_location, 1, 1, &sds->dx);
+	GPU_shader_uniform_vector(shader, min_location, 3, 1, min);
+	GPU_shader_uniform_vector(shader, ob_sizei_location, 3, 1, ob_sizei);
+	GPU_shader_uniform_vector(shader, invsize_location, 3, 1, invsize);
+
+	/* setup slicing information */
+
+	const int max_slices = 256;
+	const int max_points = max_slices * 12;
+
+	VolumeSlicer slicer;
+	copy_v3_v3(slicer.min, min);
+	copy_v3_v3(slicer.max, max);
+	copy_v3_v3(slicer.size, size);
+	slicer.verts = MEM_mallocN(sizeof(float) * 3 * max_points, "smoke_slice_vertices");
+
+	const int num_points = create_view_aligned_slices(&slicer, max_slices, viewnormal);
+
+	/* setup buffer and draw */
+
+	int gl_depth = 0, gl_blend = 0;
 	glGetBooleanv(GL_BLEND, (GLboolean *)&gl_blend);
 	glGetBooleanv(GL_DEPTH_TEST, (GLboolean *)&gl_depth);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-	/* find cube vertex that is closest to the viewer */
-	for (i = 0; i < 8; i++) {
-		float x = verts[i][0] - viewnormal[0] * size[0] * 0.5f;
-		float y = verts[i][1] - viewnormal[1] * size[1] * 0.5f;
-		float z = verts[i][2] - viewnormal[2] * size[2] * 0.5f;
+	GLuint vertex_buffer;
+	glGenBuffers(1, &vertex_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * num_points, &slicer.verts[0][0], GL_STATIC_DRAW);
 
-		if ((x >= min[0]) && (x <= max[0]) &&
-		    (y >= min[1]) && (y <= max[1]) &&
-		    (z >= min[2]) && (z <= max[2]))
-		{
-			break;
-		}
-	}
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, NULL);
 
-	if (i >= 8) {
-		/* fallback, avoid using buffer over-run */
-		i = 0;
-	}
+	glDrawArrays(GL_TRIANGLES, 0, num_points);
 
-	// printf("i: %d\n", i);
-	// printf("point %f, %f, %f\n", cv[i][0], cv[i][1], cv[i][2]);
-
-	smoke_program = GPU_shader_get_builtin_program(progtype);
-	if (smoke_program) {
-		GPU_program_bind(smoke_program);
-
-		/* cell spacing */
-		GPU_program_parameter_4f(smoke_program, 0, sds->dx, sds->dx, sds->dx, 1.0);
-		/* custom parameter for smoke style (higher = thicker) */
-		if (sds->active_fields & SM_ACTIVE_COLORS)
-			GPU_program_parameter_4f(smoke_program, 1, 1.0, 1.0, 1.0, 10.0);
-		else
-			GPU_program_parameter_4f(smoke_program, 1, sds->active_color[0], sds->active_color[1], sds->active_color[2], 10.0);
-	}
-	else
-		printf("Your gfx card does not support 3D View smoke drawing.\n");
-
-	GPU_texture_bind(sds->tex, 0);
-	if (sds->tex_shadow)
-		GPU_texture_bind(sds->tex_shadow, 1);
-	else
-		printf("No volume shadow\n");
-
-	if (sds->tex_flame) {
-		GPU_texture_bind(sds->tex_flame, 2);
-		tex_spec = create_flame_spectrum_texture();
-		GPU_texture_bind(tex_spec, 3);
-	}
-
-	/* our slices are defined by the plane equation a*x + b*y +c*z + d = 0
-	 * (a,b,c), the plane normal, are given by viewdir
-	 * d is the parameter along the view direction. the first d is given by
-	 * inserting previously found vertex into the plane equation */
-
-	/* d0 = (viewnormal[0]*cv[i][0] + viewnormal[1]*cv[i][1] + viewnormal[2]*cv[i][2]); */ /* UNUSED */
-	ds = (fabsf(viewnormal[0]) * size[0] + fabsf(viewnormal[1]) * size[1] + fabsf(viewnormal[2]) * size[2]);
-	dd = max_fff(sds->global_size[0], sds->global_size[1], sds->global_size[2]) / 128.f;
-	n = 0;
-	good_index = i;
-
-	// printf("d0: %f, dd: %f, ds: %f\n\n", d0, dd, ds);
-
-	points = MEM_callocN(sizeof(*points) * 12, "smoke_points_preview");
-
-	while (1) {
-		float p0[3], tmp_point[3];
-
-		if (dd * (float)n > ds)
-			break;
-
-		madd_v3_v3v3fl(tmp_point, verts[good_index], viewnormal, -dd * ((ds / dd) - (float)n));
-		d = dot_v3v3(tmp_point, viewnormal);
-
-		// printf("my d: %f\n", d);
-
-		/* intersect_edges returns the intersection points of all cube edges with
-		 * the given plane that lie within the cube */
-		numpoints = intersect_edges(points, viewnormal[0], viewnormal[1], viewnormal[2], -d, edges);
-
-		// printf("points: %d\n", numpoints);
-
-		if (numpoints > 2) {
-			copy_v3_v3(p0, points[0]);
-
-			/* sort points to get a convex polygon */
-			for (i = 1; i < numpoints - 1; i++) {
-				for (j = i + 1; j < numpoints; j++) {
-					if (!convex(p0, viewnormal, points[j], points[i])) {
-						swap_v3_v3(points[i], points[j]);
-					}
-				}
-			}
-
-			/* render fire slice */
-			if (use_fire) {
-				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE);
-
-				GPU_program_parameter_4f(smoke_program, 2, 1.0, 0.0, 0.0, 0.0);
-				glBegin(GL_POLYGON);
-				for (i = 0; i < numpoints; i++) {
-					glTexCoord3d((points[i][0] - min[0]) * invsize[0],
-					             (points[i][1] - min[1]) * invsize[1],
-					             (points[i][2] - min[2]) * invsize[2]);
-					glVertex3f(points[i][0] * ob_sizei[0],
-					           points[i][1] * ob_sizei[1],
-					           points[i][2] * ob_sizei[2]);
-				}
-				glEnd();
-			}
-
-			/* render smoke slice */
-			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-
-			GPU_program_parameter_4f(smoke_program, 2, -1.0, 0.0, 0.0, 0.0);
-			glBegin(GL_POLYGON);
-			for (i = 0; i < numpoints; i++) {
-				glTexCoord3d((points[i][0] - min[0]) * invsize[0],
-				             (points[i][1] - min[1]) * invsize[1],
-				             (points[i][2] - min[2]) * invsize[2]);
-				glVertex3f(points[i][0] * ob_sizei[0],
-				           points[i][1] * ob_sizei[1],
-				           points[i][2] * ob_sizei[2]);
-			}
-			glEnd();
-		}
-		n++;
-	}
+	glDisableClientState(GL_VERTEX_ARRAY);
 
 #ifdef DEBUG_DRAW_TIME
 	printf("Draw Time: %f\n", (float)TIMEIT_VALUE(draw));
 	TIMEIT_END(draw);
 #endif
 
-	GPU_texture_unbind(sds->tex);
+	/* cleanup */
 
-	if (sds->tex_shadow)
-		GPU_texture_unbind(sds->tex_shadow);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glDeleteBuffers(1, &vertex_buffer);
+
+	GPU_texture_unbind(sds->tex);
+	GPU_texture_unbind(sds->tex_shadow);
 
 	if (sds->tex_flame) {
 		GPU_texture_unbind(sds->tex_flame);
@@ -353,10 +415,9 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 		GPU_texture_free(tex_spec);
 	}
 
-	if (smoke_program)
-		GPU_program_unbind(smoke_program);
+	MEM_freeN(slicer.verts);
 
-	MEM_freeN(points);
+	GPU_shader_unbind();
 
 	if (!gl_blend) {
 		glDisable(GL_BLEND);
