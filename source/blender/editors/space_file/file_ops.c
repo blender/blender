@@ -1374,7 +1374,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 		}
 		else {
 			BLI_cleanup_dir(G.main->name, sfile->params->dir);
-			strcat(sfile->params->dir, file->relpath);
+			strncat(sfile->params->dir, file->relpath, sizeof(sfile->params->dir));
 			BLI_add_slash(sfile->params->dir);
 		}
 

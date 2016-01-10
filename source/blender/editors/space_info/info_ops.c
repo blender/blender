@@ -249,7 +249,7 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 	}
 
 	if (count == 1)
-		strcpy(title, IFACE_("Unpack 1 File"));
+		BLI_strncpy(title, IFACE_("Unpack 1 File"), sizeof(title));
 	else
 		BLI_snprintf(title, sizeof(title), IFACE_("Unpack %d Files"), count);
 	

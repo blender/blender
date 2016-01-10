@@ -10025,7 +10025,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 							printf("	relative lib: %s\n", mainptr->curlib->name);
 							printf("  enter a new path:\n");
 							
-							if (scanf("%s", newlib_path) > 0) {
+							if (scanf("%1023s", newlib_path) > 0) {  /* Warning, keep length in sync with FILE_MAX! */
 								BLI_strncpy(mainptr->curlib->name, newlib_path, sizeof(mainptr->curlib->name));
 								BLI_strncpy(mainptr->curlib->filepath, newlib_path, sizeof(mainptr->curlib->filepath));
 								BLI_cleanup_path(G.main->name, mainptr->curlib->filepath);
