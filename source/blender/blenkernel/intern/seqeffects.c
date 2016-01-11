@@ -860,9 +860,10 @@ static void do_add_effect_byte(float facf0, float facf1, int x, int y, unsigned 
 		x = xo;
 
 		while (x--) {
-			rt[0] = min_ii(cp1[0] + ((fac1 * cp2[0]) >> 8), 255);
-			rt[1] = min_ii(cp1[1] + ((fac1 * cp2[1]) >> 8), 255);
-			rt[2] = min_ii(cp1[2] + ((fac1 * cp2[2]) >> 8), 255);
+			const int m = fac1 * (int)cp2[3];
+			rt[0] = min_ii(cp1[0] + ((m * cp2[0]) >> 16), 255);
+			rt[1] = min_ii(cp1[1] + ((m * cp2[1]) >> 16), 255);
+			rt[2] = min_ii(cp1[2] + ((m * cp2[2]) >> 16), 255);
 			rt[3] = cp1[3];
 
 			cp1 += 4; cp2 += 4; rt += 4;
@@ -874,9 +875,10 @@ static void do_add_effect_byte(float facf0, float facf1, int x, int y, unsigned 
 
 		x = xo;
 		while (x--) {
-			rt[0] = min_ii(cp1[0] + ((fac3 * cp2[0]) >> 8), 255);
-			rt[1] = min_ii(cp1[1] + ((fac3 * cp2[1]) >> 8), 255);
-			rt[2] = min_ii(cp1[2] + ((fac3 * cp2[2]) >> 8), 255);
+			const int m = fac3 * (int)cp2[3];
+			rt[0] = min_ii(cp1[0] + ((m * cp2[0]) >> 16), 255);
+			rt[1] = min_ii(cp1[1] + ((m * cp2[1]) >> 16), 255);
+			rt[2] = min_ii(cp1[2] + ((m * cp2[2]) >> 16), 255);
 			rt[3] = cp1[3];
 
 			cp1 += 4; cp2 += 4; rt += 4;
@@ -887,7 +889,7 @@ static void do_add_effect_byte(float facf0, float facf1, int x, int y, unsigned 
 static void do_add_effect_float(float facf0, float facf1, int x, int y, float *rect1, float *rect2, float *out)
 {
 	int xo;
-	float m, fac1, fac3;
+	float fac1, fac3;
 	float *rt1, *rt2, *rt;
 
 	xo = x;
@@ -901,7 +903,7 @@ static void do_add_effect_float(float facf0, float facf1, int x, int y, float *r
 	while (y--) {
 		x = xo;
 		while (x--) {
-			m = 1.0f - (rt1[3] * (1.0f - fac1));
+			const float m = (1.0f - (rt1[3] * (1.0f - fac1))) * rt2[3];
 			rt[0] = rt1[0] + m * rt2[0];
 			rt[1] = rt1[1] + m * rt2[1];
 			rt[2] = rt1[2] + m * rt2[2];
@@ -916,7 +918,7 @@ static void do_add_effect_float(float facf0, float facf1, int x, int y, float *r
 
 		x = xo;
 		while (x--) {
-			m = 1.0f - (rt1[3] * (1.0f - fac3));
+			const float m = (1.0f - (rt1[3] * (1.0f - fac3))) * rt2[3];
 			rt[0] = rt1[0] + m * rt2[0];
 			rt[1] = rt1[1] + m * rt2[1];
 			rt[2] = rt1[2] + m * rt2[2];
@@ -964,9 +966,10 @@ static void do_sub_effect_byte(float facf0, float facf1, int x, int y, unsigned 
 	while (y--) {
 		x = xo;
 		while (x--) {
-			rt[0] = max_ii(cp1[0] - ((fac1 * cp2[0]) >> 8), 0);
-			rt[1] = max_ii(cp1[1] - ((fac1 * cp2[1]) >> 8), 0);
-			rt[2] = max_ii(cp1[2] - ((fac1 * cp2[2]) >> 8), 0);
+			const int m = fac1 * (int)cp2[3];
+			rt[0] = max_ii(cp1[0] - ((m * cp2[0]) >> 16), 0);
+			rt[1] = max_ii(cp1[1] - ((m * cp2[1]) >> 16), 0);
+			rt[2] = max_ii(cp1[2] - ((m * cp2[2]) >> 16), 0);
 			rt[3] = cp1[3];
 
 			cp1 += 4; cp2 += 4; rt += 4;
@@ -978,9 +981,10 @@ static void do_sub_effect_byte(float facf0, float facf1, int x, int y, unsigned 
 
 		x = xo;
 		while (x--) {
-			rt[0] = max_ii(cp1[0] - ((fac3 * cp2[0]) >> 8), 0);
-			rt[1] = max_ii(cp1[1] - ((fac3 * cp2[1]) >> 8), 0);
-			rt[2] = max_ii(cp1[2] - ((fac3 * cp2[2]) >> 8), 0);
+			const int m = fac3 * (int)cp2[3];
+			rt[0] = max_ii(cp1[0] - ((m * cp2[0]) >> 16), 0);
+			rt[1] = max_ii(cp1[1] - ((m * cp2[1]) >> 16), 0);
+			rt[2] = max_ii(cp1[2] - ((m * cp2[2]) >> 16), 0);
 			rt[3] = cp1[3];
 
 			cp1 += 4; cp2 += 4; rt += 4;
@@ -991,7 +995,7 @@ static void do_sub_effect_byte(float facf0, float facf1, int x, int y, unsigned 
 static void do_sub_effect_float(float UNUSED(facf0), float facf1, int x, int y, float *rect1, float *rect2, float *out)
 {
 	int xo;
-	float m /*, fac1*/, fac3;
+	float /* fac1, */ fac3_inv;
 	float *rt1, *rt2, *rt;
 
 	xo = x;
@@ -1001,12 +1005,12 @@ static void do_sub_effect_float(float UNUSED(facf0), float facf1, int x, int y, 
 
 	/* UNUSED */
 	// fac1 = facf0;
-	fac3 = facf1;
+	fac3_inv = 1.0f - facf1;
 
 	while (y--) {
 		x = xo;
 		while (x--) {
-			m = 1.0f - (rt1[3] * (1 - fac3));
+			const float m = (1.0f - (rt1[3] * fac3_inv)) * rt2[3];
 			rt[0] = max_ff(rt1[0] - m * rt2[0], 0.0f);
 			rt[1] = max_ff(rt1[1] - m * rt2[1], 0.0f);
 			rt[2] = max_ff(rt1[2] - m * rt2[2], 0.0f);
@@ -1021,7 +1025,7 @@ static void do_sub_effect_float(float UNUSED(facf0), float facf1, int x, int y, 
 
 		x = xo;
 		while (x--) {
-			m = 1.0f - (rt1[3] * (1 - fac3));
+			const float m = (1.0f - (rt1[3] * fac3_inv)) * rt2[3];
 			rt[0] = max_ff(rt1[0] - m * rt2[0], 0.0f);
 			rt[1] = max_ff(rt1[1] - m * rt2[1], 0.0f);
 			rt[2] = max_ff(rt1[2] - m * rt2[2], 0.0f);
