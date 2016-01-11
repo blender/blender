@@ -2223,7 +2223,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "show_hair_grid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_HAIR_GRID);
-	RNA_def_property_ui_text(prop, "Guide Hairs", "Show guide hairs");
+	RNA_def_property_ui_text(prop, "Guide Hairs", "Show hair simulation grid");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 	prop = RNA_def_property(srna, "show_velocity", PROP_BOOLEAN, PROP_NONE);
