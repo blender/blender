@@ -215,20 +215,24 @@ static void whiteBalance_apply_threaded(int width, int height, unsigned char *re
 
 			mul_v3_v3(result, multiplier);
 
-			if (mask_rect_float)
+			if (mask_rect_float) {
 				copy_v3_v3(mask, mask_rect_float + pixel_index);
-			else if (mask_rect)
+			}
+			else if (mask_rect) {
 				rgb_uchar_to_float(mask, mask_rect + pixel_index);
+			}
 
 			result[0] = result[0] * (1.0f - mask[0]) + result[0] * mask[0];
 			result[1] = result[1] * (1.0f - mask[1]) + result[1] * mask[1];
 			result[2] = result[2] * (1.0f - mask[2]) + result[2] * mask[2];
 
-			if (rect_float)
+			if (rect_float) {
 				copy_v3_v3(rect_float + pixel_index, result);
-			else
+			}
+			else {
 				IMB_colormanagement_scene_linear_to_colorspace_v3(result, data->colorspace);
-			premul_float_to_straight_uchar(rect + pixel_index, result);
+				premul_float_to_straight_uchar(rect + pixel_index, result);
+			}
 		}
 	}
 }
