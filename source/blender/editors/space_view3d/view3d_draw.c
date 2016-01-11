@@ -3316,7 +3316,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 		/* bind */
 		ofs = GPU_offscreen_create(sizex, sizey, full_samples ? 0 : samples, err_out);
 		if (ofs == NULL) {
-			glPopAttrib();
 			return NULL;
 		}
 	}
@@ -3442,8 +3441,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 
 	if (own_ofs) {
 		GPU_offscreen_free(ofs);
-
-		glPopAttrib();
 	}
 
 	if (ibuf->rect_float && ibuf->rect)
