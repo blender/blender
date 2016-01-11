@@ -2143,10 +2143,12 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UN
 			BKE_report(op->reports, RPT_WARNING, "Active group is locked, aborting");
 			return false;
 		}
-		dg = BLI_findlink(&ob->defbase, vgroup_index.mirror);
-		if (dg->flag & DG_LOCK_WEIGHT) {
-			BKE_report(op->reports, RPT_WARNING, "Mirror group is locked, aborting");
-			return false;
+		if (vgroup_index.mirror != -1) {
+			dg = BLI_findlink(&ob->defbase, vgroup_index.mirror);
+			if (dg->flag & DG_LOCK_WEIGHT) {
+				BKE_report(op->reports, RPT_WARNING, "Mirror group is locked, aborting");
+				return false;
+			}
 		}
 	}
 
