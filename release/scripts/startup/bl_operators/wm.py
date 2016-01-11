@@ -1768,13 +1768,13 @@ class WM_OT_operator_cheat_sheet(Operator):
 # Addon Operators
 
 class WM_OT_addon_enable(Operator):
-    "Enable an addon"
+    "Enable an add-on"
     bl_idname = "wm.addon_enable"
     bl_label = "Enable Addon"
 
     module = StringProperty(
             name="Module",
-            description="Module name of the addon to enable",
+            description="Module name of the add-on to enable",
             )
 
     def execute(self, context):
@@ -1812,13 +1812,13 @@ class WM_OT_addon_enable(Operator):
 
 
 class WM_OT_addon_disable(Operator):
-    "Disable an addon"
+    "Disable an add-on"
     bl_idname = "wm.addon_disable"
     bl_label = "Disable Addon"
 
     module = StringProperty(
             name="Module",
-            description="Module name of the addon to disable",
+            description="Module name of the add-on to disable",
             )
 
     def execute(self, context):
@@ -1900,7 +1900,7 @@ class WM_OT_theme_install(Operator):
 
 
 class WM_OT_addon_refresh(Operator):
-    "Scan addon directories for new modules"
+    "Scan add-on directories for new modules"
     bl_idname = "wm.addon_refresh"
     bl_label = "Refresh"
 
@@ -1913,7 +1913,7 @@ class WM_OT_addon_refresh(Operator):
 
 
 class WM_OT_addon_install(Operator):
-    "Install an addon"
+    "Install an add-on"
     bl_idname = "wm.addon_install"
     bl_label = "Install from File..."
 
@@ -1994,7 +1994,7 @@ class WM_OT_addon_install(Operator):
         pyfile_dir = os.path.dirname(pyfile)
         for addon_path in addon_utils.paths():
             if os.path.samefile(pyfile_dir, addon_path):
-                self.report({'ERROR'}, "Source file is in the addon search path: %r" % addon_path)
+                self.report({'ERROR'}, "Source file is in the add-on search path: %r" % addon_path)
                 return {'CANCELLED'}
         del addon_path
         del pyfile_dir
@@ -2078,13 +2078,13 @@ class WM_OT_addon_install(Operator):
 
 
 class WM_OT_addon_remove(Operator):
-    "Delete the addon from the file system"
+    "Delete the add-on from the file system"
     bl_idname = "wm.addon_remove"
     bl_label = "Remove Addon"
 
     module = StringProperty(
             name="Module",
-            description="Module name of the addon to remove",
+            description="Module name of the add-on to remove",
             )
 
     @staticmethod
@@ -2137,14 +2137,14 @@ class WM_OT_addon_remove(Operator):
 
 
 class WM_OT_addon_expand(Operator):
-    "Display more information on this addon"
+    "Display information and preferences for this add-on"
     bl_idname = "wm.addon_expand"
     bl_label = ""
     bl_options = {'INTERNAL'}
 
     module = StringProperty(
             name="Module",
-            description="Module name of the addon to expand",
+            description="Module name of the add-on to expand",
             )
 
     def execute(self, context):
