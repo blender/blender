@@ -3631,6 +3631,7 @@ void CustomData_external_write(CustomData *data, ID *id, CustomDataMask mask, in
 
 	if (!cdf_write_open(cdf, filename)) {
 		fprintf(stderr, "Failed to open %s for writing.\n", filename);
+		cdf_free(cdf);
 		return;
 	}
 
@@ -3657,6 +3658,7 @@ void CustomData_external_write(CustomData *data, ID *id, CustomDataMask mask, in
 
 	if (i != data->totlayer) {
 		fprintf(stderr, "Failed to write data to %s.\n", filename);
+		cdf_write_close(cdf);
 		cdf_free(cdf);
 		return;
 	}
