@@ -50,19 +50,7 @@ typedef struct IsectPrecalc {
 } IsectPrecalc;
 
 #if defined(__KERNEL_CUDA__)
-#  if (defined(i386) || defined(_M_IX86))
-#    if __CUDA_ARCH__ > 500
-ccl_device_noinline
-#    else  /* __CUDA_ARCH__ > 500 */
 ccl_device_inline
-#    endif  /* __CUDA_ARCH__ > 500 */
-#  else  /* (defined(i386) || defined(_M_IX86)) */
-#    if defined(__KERNEL_EXPERIMENTAL__) && (__CUDA_ARCH__ >= 500)
-ccl_device_noinline
-#    else
-ccl_device_inline
-#    endif
-#  endif  /* (defined(i386) || defined(_M_IX86)) */
 #elif defined(__KERNEL_OPENCL_APPLE__)
 ccl_device_noinline
 #else  /* defined(__KERNEL_OPENCL_APPLE__) */
