@@ -1314,9 +1314,19 @@ class USERPREF_PT_addons(Panel):
                 col_box = col.column()
                 box = col_box.box()
                 colsub = box.column()
-                row = colsub.row()
+                row = colsub.row(align=True)
 
-                row.operator("wm.addon_expand", icon='TRIA_DOWN' if info["show_expanded"] else 'TRIA_RIGHT', emboss=False).module = module_name
+                row.operator(
+                        "wm.addon_expand",
+                        icon='TRIA_DOWN' if info["show_expanded"] else 'TRIA_RIGHT',
+                        emboss=False,
+                        ).module = module_name
+
+                row.operator(
+                        "wm.addon_disable" if is_enabled else "wm.addon_enable",
+                        icon='CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT', text="",
+                        emboss=False,
+                        ).module = module_name
 
                 sub = row.row()
                 sub.active = is_enabled
@@ -1326,11 +1336,6 @@ class USERPREF_PT_addons(Panel):
 
                 # icon showing support level.
                 sub.label(icon=self._support_icon_mapping.get(info["support"], 'QUESTION'))
-
-                if is_enabled:
-                    row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name
-                else:
-                    row.operator("wm.addon_enable", icon='CHECKBOX_DEHLT', text="", emboss=False).module = module_name
 
                 # Expanded UI (only if additional info is available)
                 if info["show_expanded"]:
