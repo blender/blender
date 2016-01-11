@@ -1042,7 +1042,7 @@ clean_Boost() {
 
 compile_Boost() {
   # To be changed each time we make edits that would modify the compiled result!
-  boost_magic=8
+  boost_magic=9
 
   _init_boost
 
