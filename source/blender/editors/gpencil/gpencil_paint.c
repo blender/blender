@@ -1679,9 +1679,23 @@ static void gpencil_draw_apply_event(wmOperator *op, const wmEvent *event)
 		
 		tablet = (wmtab->Active != EVT_TABLET_NONE);
 		p->pressure = wmtab->Pressure;
+		
+		/* Hack for pressure sensitive eraser on D+RMB when using a tablet:
+		 *  The pen has to float over the tablet surface, resulting in
+		 *  zero pressure (T47101). Ignore pressure values if floating
+		 *  (i.e. "effectively zero" pressure), and only when the "active"
+		 *  end is the stylus (i.e. the default when not eraser)
+		 */
+		if (p->paintmode == GP_PAINTMODE_ERASER) {
+			if ((wmtab->Active != EVT_TABLET_ERASER) && (p->pressure < 0.001f)) {
+				p->pressure = 1.0f;
+			}
+		}
 	}
-	else
+	else {
+		/* No tablet data -> No pressure info is available */
 		p->pressure = 1.0f;
+	}
 	
 	/* special exception for start of strokes (i.e. maybe for just a dot) */
 	if (p->flags & GP_PAINTFLAG_FIRSTRUN) {
