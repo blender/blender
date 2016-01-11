@@ -1866,6 +1866,9 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 					/* add reports to the global list, otherwise they are not seen */
 					BLI_movelisttolist(&CTX_wm_reports(C)->list, &handler->op->reports->list);
 
+					/* more hacks, since we meddle with reports, banner display doesn't happen automatic */
+					WM_report_banner_show(C);
+
 					CTX_wm_window_set(C, win_prev);
 					CTX_wm_area_set(C, area_prev);
 					CTX_wm_region_set(C, ar_prev);
