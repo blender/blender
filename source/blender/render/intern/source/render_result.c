@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -1134,6 +1135,8 @@ bool RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *fil
 		}
 	}
 
+	errno = 0;
+
 	BLI_make_existing_file(filename);
 
 	if (IMB_exr_begin_write(exrhandle, filename, width, height, compress, rr->stamp_data)) {
@@ -1142,7 +1145,7 @@ bool RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *fil
 	}
 	else {
 		/* TODO, get the error from openexr's exception */
-		BKE_report(reports, RPT_ERROR, "Error writing render result (see console)");
+		BKE_reportf(reports, RPT_ERROR, "Error writing render result, %s (see console)", strerror(errno));
 		success = false;
 	}
 

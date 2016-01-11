@@ -48,6 +48,7 @@
 
 #ifdef RNA_RUNTIME
 
+#include <errno.h>
 #include "BKE_image.h"
 #include "BKE_packedFile.h"
 #include "BKE_main.h"
@@ -101,7 +102,7 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 			write_ibuf->dither = scene->r.dither_intensity;
 
 			if (!BKE_imbuf_write(write_ibuf, path, &scene->r.im_format)) {
-				BKE_reportf(reports, RPT_ERROR, "Could not write image '%s'", path);
+				BKE_reportf(reports, RPT_ERROR, "Could not write image: %s, '%s'", strerror(errno), path);
 			}
 
 			if (write_ibuf != ibuf)

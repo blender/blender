@@ -1580,7 +1580,9 @@ static void save_image_options_to_op(SaveImageOptions *simopts, wmOperator *op)
 	RNA_string_set(op->ptr, "filepath", simopts->filepath);
 }
 
-static void save_image_post(wmOperator *op, ImBuf *ibuf, Image *ima, int ok, int save_copy, const char *relbase, int relative, int do_newpath, const char *filepath)
+static void save_image_post(
+        wmOperator *op, ImBuf *ibuf, Image *ima, int ok, int save_copy,
+        const char *relbase, int relative, int do_newpath, const char *filepath)
 {
 	if (ok) {
 		if (!save_copy) {
@@ -1630,7 +1632,7 @@ static void save_image_post(wmOperator *op, ImBuf *ibuf, Image *ima, int ok, int
 		}
 	}
 	else {
-		BKE_reportf(op->reports, RPT_ERROR, "Could not write image %s", filepath);
+		BKE_reportf(op->reports, RPT_ERROR, "Could not write image: %s", strerror(errno));
 	}
 }
 
@@ -2151,7 +2153,7 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
 			BLI_path_abs(name, bmain->name);
 
 			if (0 == IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)) {
-				BKE_reportf(op->reports, RPT_ERROR, "Could not write image %s", name);
+				BKE_reportf(op->reports, RPT_ERROR, "Could not write image: %s", strerror(errno));
 				break;
 			}
 

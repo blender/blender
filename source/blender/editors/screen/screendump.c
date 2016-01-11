@@ -30,6 +30,7 @@
 
 
 #include <string.h>
+#include <errno.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -177,6 +178,7 @@ static void screenshot_crop(ImBuf *ibuf, rcti crop)
 static int screenshot_exec(bContext *C, wmOperator *op)
 {
 	ScreenshotData *scd = op->customdata;
+	bool ok = false;
 
 	if (scd == NULL) {
 		/* when running exec directly */
@@ -204,14 +206,20 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 				/* bw screenshot? - users will notice if it fails! */
 				IMB_color_to_bw(ibuf);
 			}
-			BKE_imbuf_write(ibuf, path, &scd->im_format);
+			if (BKE_imbuf_write(ibuf, path, &scd->im_format)) {
+				ok = true;
+			}
+			else {
+				BKE_reportf(op->reports, RPT_ERROR, "Could not write image: %s", strerror(errno));
+			}
 
 			IMB_freeImBuf(ibuf);
 		}
 	}
 
 	screenshot_data_free(op);
-	return OPERATOR_FINISHED;
+
+	return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static int screenshot_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
