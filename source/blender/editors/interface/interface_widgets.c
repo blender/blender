@@ -3492,6 +3492,8 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			
 		/* specials */
 		case UI_WTYPE_ICON:
+			/* behave like regular labels (this is simply a label with an icon) */
+			wt.state = widget_state_label;
 			wt.custom = widget_icon_has_anim;
 			break;
 			
