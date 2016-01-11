@@ -9704,7 +9704,7 @@ static void link_object_postprocess(ID *id, Scene *scene, View3D *v3d, const sho
 /**
  * Simple reader for copy/paste buffers.
  */
-void BLO_library_link_all(Main *mainl, BlendHandle *bh, const short flag, Scene *scene, View3D *v3d)
+void BLO_library_link_copypaste(Main *mainl, BlendHandle *bh)
 {
 	FileData *fd = (FileData *)(bh);
 	BHead *bhead;
@@ -9714,15 +9714,24 @@ void BLO_library_link_all(Main *mainl, BlendHandle *bh, const short flag, Scene 
 
 		if (bhead->code == ENDB)
 			break;
-		if (bhead->code == ID_OB)
+		if (ELEM(bhead->code, ID_OB, ID_GR)) {
 			read_libblock(fd, mainl, bhead, LIB_TAG_TESTIND, &id);
-			
+		}
+
+
 		if (id) {
 			/* sort by name in list */
 			ListBase *lb = which_libbase(mainl, GS(id->name));
 			id_sort_by_name(lb, id);
 
-			link_object_postprocess(id, scene, v3d, flag);
+			if (bhead->code == ID_OB) {
+				/* Instead of instancing Base's directly, postpone until after groups are loaded
+				 * otherwise the base's flag is set incorrecty when groups are used */
+				Object *ob = (Object *)id;
+				ob->mode = OB_MODE_OBJECT;
+				/* ensure give_base_to_objects runs on this object */
+				BLI_assert(id->us == 0);
+			}
 		}
 	}
 }

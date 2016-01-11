@@ -103,9 +103,7 @@ struct ID *BLO_library_link_named_part_ex(
         struct Scene *scene, struct View3D *v3d);
 void BLO_library_link_end(struct Main *mainl, BlendHandle **bh, short flag, struct Scene *scene, struct View3D *v3d);
 
-void BLO_library_link_all(
-        struct Main *mainl, BlendHandle *bh, const short flag,
-        struct Scene *scene, struct View3D *v3d);
+void BLO_library_link_copypaste(struct Main *mainl, BlendHandle *bh);
 
 void *BLO_library_read_struct(struct FileData *fd, struct BHead *bh, const char *blockname);
 

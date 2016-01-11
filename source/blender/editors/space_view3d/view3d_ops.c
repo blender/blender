@@ -34,6 +34,7 @@
 
 
 #include "DNA_object_types.h"
+#include "DNA_group_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -78,6 +79,17 @@ static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
 		BKE_copybuffer_tag_ID(&ob->id);
 	}
 	CTX_DATA_END;
+
+	for (Group *group = bmain->group.first; group; group = group->id.next) {
+		for (GroupObject *go = group->gobject.first; go; go = go->next) {
+			if (go->ob && (go->ob->id.tag & LIB_TAG_DOIT)) {
+				BKE_copybuffer_tag_ID(&group->id);
+				/* don't expand out to all other objects */
+				group->id.tag &= ~LIB_TAG_NEED_EXPAND;
+				break;
+			}
+		}
+	}
 	
 	BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer.blend");
 	BKE_copybuffer_save(str, op->reports);
