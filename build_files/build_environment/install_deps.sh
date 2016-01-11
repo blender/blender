@@ -2786,7 +2786,7 @@ install_RPM() {
   SNDFILE_DEV="libsndfile-devel"
   check_package_RPM $SNDFILE_DEV
   if [ $? -eq 0 ]; then
-    install_packages_RMP $SNDFILE_DEV
+    install_packages_RPM $SNDFILE_DEV
   fi
 
   if [ "$WITH_ALL" = true ]; then
