@@ -67,11 +67,15 @@ void    BKE_render_result_stamp_info(struct Scene *scene, struct Object *camera,
 void    BKE_imbuf_stamp_info(struct RenderResult *rr, struct ImBuf *ibuf);
 void    BKE_stamp_info_from_imbuf(struct RenderResult *rr, struct ImBuf *ibuf);
 void    BKE_stamp_info_callback(void *data, struct StampData *stamp_data, StampCallback callback, bool noskip);
-void    BKE_image_stamp_buf(struct Scene *scene, struct Object *camera, unsigned char *rect, float *rectf, int width, int height, int channels);
+void    BKE_image_stamp_buf(
+        struct Scene *scene, struct Object *camera,
+        unsigned char *rect, float *rectf, int width, int height, int channels);
 bool    BKE_imbuf_alpha_test(struct ImBuf *ibuf);
-int     BKE_imbuf_write_stamp(struct Scene *scene, struct RenderResult *rr, struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
-void    BKE_imbuf_write_prepare(struct ImBuf *ibuf, struct ImageFormatData *imf);
-int     BKE_imbuf_write(struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
+int     BKE_imbuf_write_stamp(
+        struct Scene *scene, struct RenderResult *rr, struct ImBuf *ibuf, const char *name,
+        const struct ImageFormatData *imf);
+void    BKE_imbuf_write_prepare(struct ImBuf *ibuf, const struct ImageFormatData *imf);
+int     BKE_imbuf_write(struct ImBuf *ibuf, const char *name, const struct ImageFormatData *imf);
 int     BKE_imbuf_write_as(struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf, const bool is_copy);
 void    BKE_image_path_from_imformat(
         char *string, const char *base, const char *relbase, int frame,
@@ -181,7 +185,8 @@ struct Image *BKE_image_load_exists(const char *filepath);
 
 /* adds image, adds ibuf, generates color or pattern */
 struct Image *BKE_image_add_generated(
-        struct Main *bmain, unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type, const float color[4], const bool stereo3d);
+        struct Main *bmain, unsigned int width, unsigned int height, const char *name,
+        int depth, int floatbuf, short gen_type, const float color[4], const bool stereo3d);
 /* adds image from imbuf, owns imbuf */
 struct Image *BKE_image_add_from_imbuf(struct ImBuf *ibuf, const char *name);
 
