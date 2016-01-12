@@ -272,6 +272,7 @@ def select_next(bm, report):
 
     ele.select_set(False)
     ele.select_set(True)
+    bm.select_history.discard(ele)
     bm.select_history.add(ele)
     if type(ele) is bmesh.types.BMFace:
         bm.faces.active = ele
