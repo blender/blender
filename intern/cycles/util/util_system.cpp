@@ -15,6 +15,7 @@
  */
 
 #include "util_system.h"
+#include "util_debug.h"
 #include "util_types.h"
 #include "util_string.h"
 
@@ -126,29 +127,6 @@ struct CPUCapabilities {
 	bool bmi2;
 };
 
-static void system_cpu_capabilities_override(CPUCapabilities *caps)
-{
-	/* Only capabilities which affects on cycles kernel. */
-	if(getenv("CYCLES_CPU_NO_AVX2")) {
-		caps->avx2 = false;
-	}
-	if(getenv("CYCLES_CPU_NO_AVX")) {
-		caps->avx = false;
-	}
-	if(getenv("CYCLES_CPU_NO_SSE41")) {
-		caps->sse41 = false;
-	}
-	if(getenv("CYCLES_CPU_NO_SSE3")) {
-		caps->sse3 = false;
-	}
-	if(getenv("CYCLES_CPU_NO_SSE2")) {
-		caps->sse2 = false;
-	}
-	if(getenv("CYCLES_CPU_NO_SSE")) {
-		caps->sse = false;
-	}
-}
-
 static CPUCapabilities& system_cpu_capabilities()
 {
 	static CPUCapabilities caps;
@@ -201,8 +179,6 @@ static CPUCapabilities& system_cpu_capabilities()
 			caps.avx2 = (result[1] & ((int)1 << 5)) != 0;
 		}
 
-		system_cpu_capabilities_override(&caps);
-
 		caps_init = true;
 	}
 
@@ -212,30 +188,35 @@ static CPUCapabilities& system_cpu_capabilities()
 bool system_cpu_support_sse2()
 {
 	CPUCapabilities& caps = system_cpu_capabilities();
-	return caps.sse && caps.sse2;
+	return DebugFlags().cpu.sse2 && caps.sse && caps.sse2;
 }
 
 bool system_cpu_support_sse3()
 {
 	CPUCapabilities& caps = system_cpu_capabilities();
-	return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3;
+	return DebugFlags().cpu.sse3 &&
+	       caps.sse && caps.sse2 && caps.sse3 && caps.ssse3;
 }
 
 bool system_cpu_support_sse41()
 {
 	CPUCapabilities& caps = system_cpu_capabilities();
-	return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41;
+	return DebugFlags().cpu.sse41 &&
+	       caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41;
 }
 
 bool system_cpu_support_avx()
 {
 	CPUCapabilities& caps = system_cpu_capabilities();
-	return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41 && caps.avx;
+	return DebugFlags().cpu.avx &&
+	       caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41 && caps.avx;
 }
+
 bool system_cpu_support_avx2()
 {
 	CPUCapabilities& caps = system_cpu_capabilities();
-	return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41 && caps.avx && caps.f16c && caps.avx2 && caps.fma3 && caps.bmi1 && caps.bmi2;
+	return DebugFlags().cpu.avx2 &&
+	       caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41 && caps.avx && caps.f16c && caps.avx2 && caps.fma3 && caps.bmi1 && caps.bmi2;
 }
 #else
 

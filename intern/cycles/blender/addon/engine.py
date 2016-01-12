@@ -88,6 +88,11 @@ def create(engine, data, scene, region=None, v3d=None, rv3d=None, preview_osl=Fa
     if rv3d:
         rv3d = rv3d.as_pointer()
 
+    if bpy.app.debug_value == 256:
+        _cycles.debug_flags_update(scene)
+    else:
+        _cycles.debug_flags_reset()
+
     engine.session = _cycles.create(engine.as_pointer(), userpref, data, scene, region, v3d, rv3d, preview_osl)
 
 

@@ -550,6 +550,46 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
             min=0.0, max=1.0,
             )
 
+        # Various fine-tuning debug flags
+
+        def devices_update_callback(self, context):
+            import _cycles
+            scene = context.scene.as_pointer()
+            return _cycles.debug_flags_update(scene)
+
+        cls.debug_use_cpu_avx2 = BoolProperty(name="AVX2", default=True)
+        cls.debug_use_cpu_avx = BoolProperty(name="AVX", default=True)
+        cls.debug_use_cpu_sse41 = BoolProperty(name="SSE41", default=True)
+        cls.debug_use_cpu_sse3 = BoolProperty(name="SSE3", default=True)
+        cls.debug_use_cpu_sse2 = BoolProperty(name="SSE2", default=True)
+
+        cls.debug_opencl_kernel_type = EnumProperty(
+            name="OpenCL Kernel Type",
+            default='DEFAULT',
+            items=(
+                ('DEFAULT', "Default", ""),
+                ('MEGA', "Mega", ""),
+                ('SPLIT', "Split", ""),
+                ),
+            update=devices_update_callback
+            )
+
+        cls.debug_opencl_device_type = EnumProperty(
+            name="OpenCL Device Type",
+            default='ALL',
+            items=(
+                ('NONE', "None", ""),
+                ('ALL', "All", ""),
+                ('DEFAULT', "Default", ""),
+                ('CPU', "CPU", ""),
+                ('GPU', "GPU", ""),
+                ('ACCELLERATOR', "Accellerator", ""),
+                ),
+            update=devices_update_callback
+            )
+
+        cls.debug_use_opencl_debug = BoolProperty(name="Debug OpenCL", default=False)
+
     @classmethod
     def unregister(cls):
         del bpy.types.Scene.cycles

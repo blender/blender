@@ -11,6 +11,7 @@ set(INC_SYS
 set(SRC
 	util_aligned_malloc.cpp
 	util_cache.cpp
+	util_debug.cpp
 	util_logging.cpp
 	util_math_cdf.cpp
 	util_md5.cpp

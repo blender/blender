@@ -37,12 +37,88 @@
 
 CCL_NAMESPACE_BEGIN
 
-static void *pylong_as_voidptr_typesafe(PyObject *object)
+namespace {
+
+/* Flag describing whether debug flags were synchronized from scene. */
+bool debug_flags_set = false;
+
+void *pylong_as_voidptr_typesafe(PyObject *object)
 {
 	if(object == Py_None)
 		return NULL;
 	return PyLong_AsVoidPtr(object);
 }
+
+/* Synchronize debug flags from a given Blender scene.
+ * Return truth when device list needs invalidation.
+ */
+bool debug_flags_sync_from_scene(BL::Scene b_scene)
+{
+	DebugFlagsRef flags = DebugFlags();
+	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+	/* Backup some settings for comparison. */
+	DebugFlags::OpenCL::DeviceType opencl_device_type = flags.opencl.device_type;
+	DebugFlags::OpenCL::KernelType opencl_kernel_type = flags.opencl.kernel_type;
+	/* Synchronize CPU flags. */
+	flags.cpu.avx2 = get_boolean(cscene, "debug_use_cpu_avx2");
+	flags.cpu.avx = get_boolean(cscene, "debug_use_cpu_avx");
+	flags.cpu.sse41 = get_boolean(cscene, "debug_use_cpu_sse41");
+	flags.cpu.sse3 = get_boolean(cscene, "debug_use_cpu_sse3");
+	flags.cpu.sse2 = get_boolean(cscene, "debug_use_cpu_sse2");
+	/* Synchronize OpenCL kernel type. */
+	switch(get_enum(cscene, "debug_opencl_kernel_type")) {
+		case 0:
+			flags.opencl.kernel_type = DebugFlags::OpenCL::KERNEL_DEFAULT;
+			break;
+		case 1:
+			flags.opencl.kernel_type = DebugFlags::OpenCL::KERNEL_MEGA;
+			break;
+		case 2:
+			flags.opencl.kernel_type = DebugFlags::OpenCL::KERNEL_SPLIT;
+			break;
+	}
+	/* Synchronize OpenCL device type. */
+	switch(get_enum(cscene, "debug_opencl_device_type")) {
+		case 0:
+			flags.opencl.device_type = DebugFlags::OpenCL::DEVICE_NONE;
+			break;
+		case 1:
+			flags.opencl.device_type = DebugFlags::OpenCL::DEVICE_ALL;
+			break;
+		case 2:
+			flags.opencl.device_type = DebugFlags::OpenCL::DEVICE_DEFAULT;
+			break;
+		case 3:
+			flags.opencl.device_type = DebugFlags::OpenCL::DEVICE_CPU;
+			break;
+		case 4:
+			flags.opencl.device_type = DebugFlags::OpenCL::DEVICE_GPU;
+			break;
+		case 5:
+			flags.opencl.device_type = DebugFlags::OpenCL::DEVICE_ACCELERATOR;
+			break;
+	}
+	/* Synchronize other OpenCL flags. */
+	flags.opencl.debug = get_boolean(cscene, "debug_use_opencl_debug");
+	return flags.opencl.device_type != opencl_device_type ||
+	       flags.opencl.kernel_type != opencl_kernel_type;
+}
+
+/* Reset debug flags to default values.
+ * Return truth when device list needs invalidation.
+ */
+bool debug_flags_reset()
+{
+	DebugFlagsRef flags = DebugFlags();
+	/* Backup some settings for comparison. */
+	DebugFlags::OpenCL::DeviceType opencl_device_type = flags.opencl.device_type;
+	DebugFlags::OpenCL::KernelType opencl_kernel_type = flags.opencl.kernel_type;
+	flags.reset();
+	return flags.opencl.device_type != opencl_device_type ||
+	       flags.opencl.kernel_type != opencl_kernel_type;
+}
+
+}  /* namespace */
 
 void python_thread_state_save(void **python_thread_state)
 {
@@ -88,6 +164,9 @@ static PyObject *init_func(PyObject * /*self*/, PyObject *args)
 	Py_XDECREF(user_path_coerce);
 
 	BlenderSession::headless = headless;
+
+	VLOG(2) << "Debug flags initialized to:\n"
+	        << DebugFlags();
 
 	Py_RETURN_NONE;
 }
@@ -491,14 +570,48 @@ static PyObject *system_info_func(PyObject * /*self*/, PyObject * /*value*/)
 static PyObject *opencl_disable_func(PyObject * /*self*/, PyObject * /*value*/)
 {
 	VLOG(2) << "Disabling OpenCL platform.";
-#ifdef WIN32
-	putenv("CYCLES_OPENCL_TEST=NONE");
-#else
-	setenv("CYCLES_OPENCL_TEST", "NONE", 1);
-#endif
+	DebugFlags().opencl.device_type = DebugFlags::OpenCL::DEVICE_NONE;
 	Py_RETURN_NONE;
 }
 #endif
+
+static PyObject *debug_flags_update_func(PyObject * /*self*/, PyObject *args)
+{
+	PyObject *pyscene;
+	if(!PyArg_ParseTuple(args, "O", &pyscene)) {
+		return NULL;
+	}
+
+	PointerRNA sceneptr;
+	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pyscene), &sceneptr);
+	BL::Scene b_scene(sceneptr);
+
+	if(debug_flags_sync_from_scene(b_scene)) {
+		VLOG(2) << "Tagging device list for update.";
+		Device::tag_update();
+	}
+
+	VLOG(2) << "Debug flags set to:\n"
+	        << DebugFlags();
+
+	debug_flags_set = true;
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *debug_flags_reset_func(PyObject * /*self*/, PyObject * /*args*/)
+{
+	if(debug_flags_reset()) {
+		VLOG(2) << "Tagging device list for update.";
+		Device::tag_update();
+	}
+	if(debug_flags_set) {
+		VLOG(2) << "Debug flags reset to:\n"
+		        << DebugFlags();
+		debug_flags_set = false;
+	}
+	Py_RETURN_NONE;
+}
 
 static PyMethodDef methods[] = {
 	{"init", init_func, METH_VARARGS, ""},
@@ -518,6 +631,8 @@ static PyMethodDef methods[] = {
 #ifdef WITH_OPENCL
 	{"opencl_disable", opencl_disable_func, METH_NOARGS, ""},
 #endif
+	{"debug_flags_update", debug_flags_update_func, METH_VARARGS, ""},
+	{"debug_flags_reset", debug_flags_reset_func, METH_NOARGS, ""},
 	{NULL, NULL, 0, NULL},
 };
 
