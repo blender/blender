@@ -303,11 +303,12 @@ ccl_device int subsurface_scatter_multi_intersect(
 #ifdef __OBJECT_MOTION__
 		else  if(ccl_fetch(sd, type) & PRIMITIVE_MOTION_TRIANGLE) {
 			float3 verts[3];
-			motion_triangle_vertices(kg,
-			                         ccl_fetch(sd, object),
-			                         ccl_fetch(sd, prim),
-			                         ccl_fetch(sd, time),
-			                         verts);
+			motion_triangle_vertices(
+			        kg,
+			        ccl_fetch(sd, object),
+			        kernel_tex_fetch(__prim_index, ss_isect->hits[hit].prim),
+			        ccl_fetch(sd, time),
+			        verts);
 			hit_P = motion_triangle_refine_subsurface(kg,
 			                                          sd,
 			                                          &ss_isect->hits[hit],
