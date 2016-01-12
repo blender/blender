@@ -52,6 +52,10 @@ set(ADDON_FILES
 
 add_definitions(${GL_DEFINITIONS})
 
+if(WITH_CYCLES_NETWORK)
+	add_definitions(-DWITH_NETWORK)
+endif()
+
 blender_add_lib(bf_intern_cycles "${SRC}" "${INC}" "${INC_SYS}")
 
 # avoid link failure with clang 3.4 debug

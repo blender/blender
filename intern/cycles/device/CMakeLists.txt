@@ -46,6 +46,18 @@ set(SRC_HEADERS
 )
 
 add_definitions(${GL_DEFINITIONS})
+if(WITH_CYCLES_NETWORK)
+	add_definitions(-DWITH_NETWORK)
+endif()
+if(WITH_CYCLES_DEVICE_OPENCL)
+	add_definitions(-DWITH_OPENCL)
+endif()
+if(WITH_CYCLES_DEVICE_CUDA)
+	add_definitions(-DWITH_CUDA)
+endif()
+if(WITH_CYCLES_DEVICE_MULTI)
+	add_definitions(-DWITH_MULTI)
+endif()
 
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
