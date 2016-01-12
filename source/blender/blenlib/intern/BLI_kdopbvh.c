@@ -1611,7 +1611,7 @@ static void dfs_raycast_all(BVHRayCastData *data, BVHNode *node)
 	if (node->totnode == 0) {
 		if (data->callback) {
 			data->hit.index = -1;
-			data->hit.dist = FLT_MAX;
+			data->hit.dist = BVH_RAYCAST_DIST_MAX;
 			data->callback(data->userdata, node->index, &data->ray, &data->hit);
 		}
 		else {
@@ -1720,7 +1720,7 @@ int BLI_bvhtree_ray_cast_ex(
 	}
 	else {
 		data.hit.index = -1;
-		data.hit.dist = FLT_MAX;
+		data.hit.dist = BVH_RAYCAST_DIST_MAX;
 	}
 
 	if (root) {
@@ -1747,7 +1747,7 @@ float BLI_bvhtree_bb_raycast(const float bv[6], const float light_start[3], cons
 	BVHRayCastData data;
 	float dist;
 
-	data.hit.dist = FLT_MAX;
+	data.hit.dist = BVH_RAYCAST_DIST_MAX;
 	
 	/* get light direction */
 	sub_v3_v3v3(data.ray.direction, light_end, light_start);
@@ -1792,7 +1792,7 @@ int BLI_bvhtree_ray_cast_all_ex(
 	bvhtree_ray_cast_data_precalc(&data, flag);
 
 	data.hit.index = -1;
-	data.hit.dist = FLT_MAX;
+	data.hit.dist = BVH_RAYCAST_DIST_MAX;
 
 	if (root) {
 		dfs_raycast_all(&data, root);

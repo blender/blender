@@ -1544,7 +1544,7 @@ static bool snapDerivedMesh(
 	if (totvert > 0) {
 		float imat[4][4];
 		float timat[3][3]; /* transpose inverse matrix for normals */
-		float ray_start_local[3], ray_normal_local[3], local_scale, len_diff = TRANSFORM_DIST_MAX_RAY;
+		float ray_start_local[3], ray_normal_local[3], local_scale, len_diff = BVH_RAYCAST_DIST_MAX;
 
 		invert_m4_m4(imat, obmat);
 		transpose_m3_m4(timat, imat);
@@ -1637,7 +1637,7 @@ static bool snapDerivedMesh(
 
 				hit.index = -1;
 				hit.dist = *ray_depth;
-				if (hit.dist != TRANSFORM_DIST_MAX_RAY) {
+				if (hit.dist != BVH_RAYCAST_DIST_MAX) {
 					hit.dist *= local_scale;
 					hit.dist -= len_diff;
 				}
@@ -2081,7 +2081,7 @@ bool snapObjectsTransform(
         TransInfo *t, const float mval[2], SnapSelect snap_select,
         float r_loc[3], float r_no[3], float *r_dist_px)
 {
-	float ray_dist = TRANSFORM_DIST_MAX_RAY;
+	float ray_dist = BVH_RAYCAST_DIST_MAX;
 	Object *obedit = NULL;
 	Base *base_act = NULL;
 
@@ -2109,7 +2109,7 @@ bool snapObjectsContext(
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	Object *obedit = CTX_data_edit_object(C);
-	float ray_dist = TRANSFORM_DIST_MAX_RAY;
+	float ray_dist = BVH_RAYCAST_DIST_MAX;
 
 	return snapObjects(
 	        scene, v3d, ar, scene->basact, obedit,

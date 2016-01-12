@@ -33,6 +33,7 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_kdopbvh.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -410,7 +411,7 @@ static bool walk_floor_distance_get(bContext *C, RegionView3D *rv3d, WalkInfo *w
 	float dvec_tmp[3];
 	bool ret;
 
-	*r_distance = TRANSFORM_DIST_MAX_RAY;
+	*r_distance = BVH_RAYCAST_DIST_MAX;
 
 	copy_v3_v3(ray_start, rv3d->viewinv[3]);
 
@@ -441,7 +442,7 @@ static bool walk_ray_cast(bContext *C, RegionView3D *rv3d, WalkInfo *walk, float
 	float mat[3][3]; /* 3x3 copy of the view matrix so we can move along the view axis */
 	bool ret;
 
-	*ray_distance = TRANSFORM_DIST_MAX_RAY;
+	*ray_distance = BVH_RAYCAST_DIST_MAX;
 
 	copy_v3_v3(ray_start, rv3d->viewinv[3]);
 	copy_m3_m4(mat, rv3d->viewinv);

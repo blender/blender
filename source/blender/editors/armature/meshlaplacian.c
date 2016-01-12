@@ -1008,7 +1008,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, const 
 	isect_mdef.vec_length = normalize_v3_v3(vec_normal, isect_mdef.vec);
 
 	hit.index = -1;
-	hit.dist = FLT_MAX;
+	hit.dist = BVH_RAYCAST_DIST_MAX;
 	if (BLI_bvhtree_ray_cast(mdb->bvhtree, isect_mdef.start, vec_normal,
 	                         0.0, &hit, harmonic_ray_callback, &data) != -1)
 	{

@@ -3478,7 +3478,7 @@ static void shrinkwrap_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 
 					/* TODO should use FLT_MAX.. but normal projection doenst yet supports it */
 					hit.index = -1;
-					hit.dist = (scon->projLimit == 0.0f) ? 100000.0f : scon->projLimit;
+					hit.dist = (scon->projLimit == 0.0f) ? BVH_RAYCAST_DIST_MAX : scon->projLimit;
 
 					switch (scon->projAxis) {
 						case OB_POSX: case OB_POSY: case OB_POSZ:
@@ -4123,7 +4123,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 
 					bvhtree_from_mesh_looptri(&treeData, target, 0.0f, 4, 6);
 
-					hit.dist = FLT_MAX;
+					hit.dist = BVH_RAYCAST_DIST_MAX;
 					hit.index = -1;
 
 					result = BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_nor, 0.0f, &hit, treeData.raycast_callback, &treeData);

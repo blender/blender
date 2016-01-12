@@ -899,7 +899,7 @@ static int isect_bvhtree_point_v3(
 	 * keeps calling the intersect callback.
 	 */
 	hit.index = -1;
-	hit.dist = FLT_MAX;
+	hit.dist = BVH_RAYCAST_DIST_MAX;
 
 	BLI_bvhtree_ray_cast(tree,
 	                     co, dir,

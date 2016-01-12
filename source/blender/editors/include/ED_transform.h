@@ -109,6 +109,7 @@ struct TransInfo;
 struct Base;
 struct Scene;
 struct Object;
+struct wmOperator;
 
 /* UNUSED */
 // int BIF_snappingSupported(struct Object *obedit);
@@ -175,7 +176,6 @@ typedef enum SnapSelect {
 } SnapSelect;
 
 #define SNAP_MIN_DISTANCE 30
-#define TRANSFORM_DIST_MAX_RAY (FLT_MAX / 2.0f)
 
 bool peelObjectsTransForm(
         struct TransInfo *t, const float mval[2], SnapSelect snap_select,

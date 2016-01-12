@@ -41,6 +41,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_kdopbvh.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -5183,7 +5184,7 @@ bool ED_view3d_snap_from_ray(
         float r_co[3])
 {
 	float r_no_dummy[3];
-	float ray_dist = TRANSFORM_DIST_MAX_RAY;
+	float ray_dist = BVH_RAYCAST_DIST_MAX;
 	bool ret;
 
 	struct Object *obedit = scene->obedit;
@@ -5223,7 +5224,7 @@ bool ED_view3d_snap_from_region(
         float r_co[3], float r_no[3])
 {
 	float r_no_dummy[3];
-	float ray_dist = TRANSFORM_DIST_MAX_RAY;
+	float ray_dist = BVH_RAYCAST_DIST_MAX;
 	bool is_hit = false;
 	float *r_no_ptr = r_no ? r_no : r_no_dummy;
 
@@ -5236,7 +5237,7 @@ bool ED_view3d_snap_from_region(
 	for (int i = 0; i < 3; i++) {
 		if (elem_test[i] && (is_hit == false || use_depth)) {
 			if (use_depth == false) {
-				ray_dist = TRANSFORM_DIST_MAX_RAY;
+				ray_dist = BVH_RAYCAST_DIST_MAX;
 			}
 			if (snapObjectsEx(
 			        scene, v3d, ar, NULL, obedit,

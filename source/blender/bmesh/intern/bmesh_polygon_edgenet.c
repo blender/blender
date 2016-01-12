@@ -808,7 +808,7 @@ static BMEdge *test_edges_isect_2d_ray(
 	BLI_ASSERT_UNIT_V2(dir);
 
 	hit.index = -1;
-	hit.dist = FLT_MAX;
+	hit.dist = BVH_RAYCAST_DIST_MAX;
 
 	struct Edges_VertRay_BVHTreeTest user_data = {0};
 	user_data.edge_arr = args->edge_arr;

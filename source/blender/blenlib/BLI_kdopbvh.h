@@ -77,6 +77,7 @@ enum {
 	BVH_RAYCAST_WATERTIGHT		= (1 << 0),
 };
 #define BVH_RAYCAST_DEFAULT (BVH_RAYCAST_WATERTIGHT)
+#define BVH_RAYCAST_DIST_MAX (FLT_MAX / 2.0f)
 
 /* callback must update nearest in case it finds a nearest result */
 typedef void (*BVHTree_NearestPointCallback)(void *userdata, int index, const float co[3], BVHTreeNearest *nearest);

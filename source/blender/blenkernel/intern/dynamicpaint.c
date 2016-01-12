@@ -3274,7 +3274,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 							add_v3_fl(ray_start, 0.001f);
 
 							hit.index = -1;
-							hit.dist = 9999;
+							hit.dist = BVH_RAYCAST_DIST_MAX;
 							nearest.index = -1;
 							nearest.dist_sq = brush_radius * brush_radius; /* find_nearest uses squared distance */
 
@@ -3304,7 +3304,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 										 * point is at least surrounded by two brush faces */
 										negate_v3(ray_dir);
 										hit.index = -1;
-										hit.dist = 9999;
+										hit.dist = BVH_RAYCAST_DIST_MAX;
 
 										BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_dir, 0.0f, &hit, mesh_tris_spherecast_dp, &treeData);
 
