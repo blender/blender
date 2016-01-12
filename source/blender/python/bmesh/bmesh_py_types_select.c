@@ -145,12 +145,40 @@ static PyObject *bpy_bmeditselseq_remove(BPy_BMEditSelSeq *self, BPy_BMElem *val
 	Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(bpy_bmeditselseq_discard_doc,
+".. method:: discard(element)\n"
+"\n"
+"   Discard an element from the selection history.\n"
+"\n"
+"   Like remove but doesn't raise an error when the elements not in the selection list.\n"
+);
+static PyObject *bpy_bmeditselseq_discard(BPy_BMEditSelSeq *self, BPy_BMElem *value)
+{
+	BPY_BM_CHECK_OBJ(self);
+
+	if ((BPy_BMVert_Check(value) ||
+	     BPy_BMEdge_Check(value) ||
+	     BPy_BMFace_Check(value)) == false)
+	{
+		PyErr_Format(PyExc_TypeError,
+		             "Expected a BMVert/BMedge/BMFace not a %.200s", Py_TYPE(value)->tp_name);
+		return NULL;
+	}
+
+	BPY_BM_CHECK_SOURCE_OBJ(self->bm, "select_history.discard()", value);
+
+	BM_select_history_remove(self->bm, value->ele);
+
+	Py_RETURN_NONE;
+}
+
 static struct PyMethodDef bpy_bmeditselseq_methods[] = {
 	{"validate", (PyCFunction)bpy_bmeditselseq_validate, METH_NOARGS, bpy_bmeditselseq_validate_doc},
 	{"clear",    (PyCFunction)bpy_bmeditselseq_clear,    METH_NOARGS, bpy_bmeditselseq_clear_doc},
 
 	{"add",      (PyCFunction)bpy_bmeditselseq_add,      METH_O,      bpy_bmeditselseq_add_doc},
 	{"remove",   (PyCFunction)bpy_bmeditselseq_remove,   METH_O,      bpy_bmeditselseq_remove_doc},
+	{"discard",  (PyCFunction)bpy_bmeditselseq_discard,  METH_O,      bpy_bmeditselseq_discard_doc},
 	{NULL, NULL, 0, NULL}
 };
 
