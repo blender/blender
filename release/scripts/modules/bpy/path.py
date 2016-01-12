@@ -118,13 +118,13 @@ def is_subdir(path, directory):
     :arg path: An absolute path.
     :type path: string or bytes
     """
-    from os.path import normpath, normcase
+    from os.path import normpath, normcase, sep
     path = normpath(normcase(path))
     directory = normpath(normcase(directory))
     if len(path) > len(directory):
-        if path.startswith(directory):
-            sep = ord(_os.sep) if isinstance(directory, bytes) else _os.sep
-            return (path[len(directory)] == sep)
+        sep = sep.encode('ascii') if isinstance(directory, bytes) else sep
+        if path.startswith(directory.rstrip(sep) + sep):
+            return True
     return False
 
 
