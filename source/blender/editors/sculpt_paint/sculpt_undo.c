@@ -41,6 +41,7 @@
 #include "BLI_string.h"
 #include "BLI_listbase.h"
 #include "BLI_ghash.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 
 #include "DNA_meshdata_types.h"
@@ -265,6 +266,13 @@ static int sculpt_undo_restore_mask(bContext *C, DerivedMesh *dm, SculptUndoNode
 	return 1;
 }
 
+static void sculpt_undo_bmesh_restore_generic_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
+{
+	PBVHNode **nodes = userdata;
+
+	BKE_pbvh_node_mark_redraw(nodes[n]);
+}
+
 static void sculpt_undo_bmesh_restore_generic(bContext *C,
                                               SculptUndoNode *unode,
                                               Object *ob,
@@ -280,21 +288,14 @@ static void sculpt_undo_bmesh_restore_generic(bContext *C,
 	}
 
 	if (unode->type == SCULPT_UNDO_MASK) {
-		int i, totnode;
+		int totnode;
 		PBVHNode **nodes;
-
-#ifdef _OPENMP
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-#else
-		(void)C;
-#endif
 
 		BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
-#pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
-		for (i = 0; i < totnode; i++) {
-			BKE_pbvh_node_mark_redraw(nodes[i]);
-		}
+		BLI_task_parallel_range_ex(0, totnode, nodes, NULL, 0, sculpt_undo_bmesh_restore_generic_task_cb,
+		                           ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT), false);
 
 		if (nodes)
 			MEM_freeN(nodes);
