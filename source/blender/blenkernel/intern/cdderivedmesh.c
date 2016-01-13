@@ -343,6 +343,11 @@ static void cdDM_update_normals_from_pbvh(DerivedMesh *dm)
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 	float (*face_nors)[3];
 
+	/* constructive modifiers handle their own normals */
+	if (!dm->deformedOnly) {
+		return;
+	}
+
 	face_nors = CustomData_get_layer(&dm->polyData, CD_NORMAL);
 
 	BKE_pbvh_update(cddm->pbvh, PBVH_UpdateNormals, face_nors);
