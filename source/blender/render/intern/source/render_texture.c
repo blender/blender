@@ -3014,13 +3014,14 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float col_r[4])
 /* ------------------------------------------------------------------------- */
 
 /* hor and zen are RGB vectors, blend is 1 float, should all be initialized */
-void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float hor[3], float zen[3], float *blend, int skyflag, short thread)
+void do_sky_tex(const float rco[3], const float lo[3], const float dxyview[2], float hor[3], float zen[3], float *blend, int skyflag, short thread)
 {
 	const bool skip_load_image = (R.r.scemode & R_NO_IMAGE_LOAD) != 0;
 	MTex *mtex;
 	Tex *tex;
 	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
-	float *co, fact, stencilTin=1.0;
+	const float *co;
+	float fact, stencilTin=1.0;
 	float tempvec[3], texvec[3], dxt[3], dyt[3];
 	int tex_nr, rgb= 0;
 	
