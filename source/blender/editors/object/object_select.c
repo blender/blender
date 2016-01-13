@@ -1175,6 +1175,123 @@ void OBJECT_OT_select_mirror(wmOperatorType *ot)
 }
 
 
+/** \name Select More/Less
+ * \{ */
+
+static bool object_select_more_less(bContext *C, const bool select)
+{
+	Scene *scene = CTX_data_scene(C);
+
+	for (Base *base = scene->base.first; base; base = base->next) {
+		Object *ob = base->object;
+		ob->flag &= ~OB_DONE;
+		ob->id.tag &= ~LIB_TAG_DOIT;
+		/* parent may be in another scene */
+		if (ob->parent) {
+			ob->parent->flag &= ~OB_DONE;
+			ob->parent->id.tag &= ~LIB_TAG_DOIT;
+		}
+	}
+
+	ListBase ctx_base_list;
+	CollectionPointerLink *ctx_base;
+	CTX_data_selectable_bases(C, &ctx_base_list);
+
+	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
+	{
+		ob->flag |= OB_DONE;
+	}
+	CTX_DATA_END;
+
+
+
+	for (ctx_base = ctx_base_list.first; ctx_base; ctx_base = ctx_base->next) {
+		Object *ob = ((Base *)ctx_base->ptr.data)->object;
+		if (ob->parent) {
+			if ((ob->flag & OB_DONE) != (ob->parent->flag & OB_DONE)) {
+				ob->id.tag         |= LIB_TAG_DOIT;
+				ob->parent->id.tag |= LIB_TAG_DOIT;
+			}
+		}
+	}
+
+	bool changed = false;
+	const short select_mode = select ? BA_SELECT : BA_DESELECT;
+	const short select_flag = select ? SELECT : 0;
+
+	for (ctx_base = ctx_base_list.first; ctx_base; ctx_base = ctx_base->next) {
+		Base *base = ctx_base->ptr.data;
+		Object *ob = base->object;
+		if ((ob->id.tag & LIB_TAG_DOIT) && ((ob->flag & SELECT) != select_flag)) {
+			ED_base_object_select(base, select_mode);
+			changed = true;
+		}
+	}
+
+	BLI_freelistN(&ctx_base_list);
+
+	return changed;
+}
+
+static int object_select_more_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	bool changed = object_select_more_less(C, true);
+
+	if (changed) {
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void OBJECT_OT_select_more(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select More";
+	ot->idname = "OBJECT_OT_select_more";
+	ot->description = "Select connected parent/child objects";
+
+	/* api callbacks */
+	ot->exec = object_select_more_exec;
+	ot->poll = ED_operator_objectmode;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int object_select_less_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	bool changed = object_select_more_less(C, false);
+
+	if (changed) {
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void OBJECT_OT_select_less(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Less";
+	ot->idname = "OBJECT_OT_select_less";
+	ot->description = "Deselect objects at the boundaries of parent/child relationships";
+
+	/* api callbacks */
+	ot->exec = object_select_less_exec;
+	ot->poll = ED_operator_objectmode;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
+
 /**************************** Select Random ****************************/
 
 static int object_select_random_exec(bContext *C, wmOperator *op)
