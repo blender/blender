@@ -492,7 +492,7 @@ int shadeHaloFloat(HaloRen *har, float col[4], int zz,
 /* Only view vector is important here. Result goes to col_r[3] */
 void shadeSkyView(float col_r[3], const float rco[3], const float view[3], const float dxyview[2], short thread)
 {
-	float lo[3], zen[3], hor[3], blend, blendm;
+	float zen[3], hor[3], blend, blendm;
 	int skyflag;
 	
 	/* flag indicating if we render the top hemisphere */
@@ -521,15 +521,7 @@ void shadeSkyView(float col_r[3], const float rco[3], const float view[3], const
 	/* Careful: SKYTEX and SKYBLEND are NOT mutually exclusive! If           */
 	/* SKYBLEND is active, the texture and color blend are added.           */
 	if (R.wrld.skytype & WO_SKYTEX) {
-		copy_v3_v3(lo, view);
-		if (R.wrld.skytype & WO_SKYREAL) {
-			
-			mul_m3_v3(R.imat, lo);
-			
-			SWAP(float, lo[1],  lo[2]);
-			
-		}
-		do_sky_tex(rco, lo, dxyview, hor, zen, &blend, skyflag, thread);
+		do_sky_tex(rco, view, dxyview, hor, zen, &blend, skyflag, thread);
 	}
 	
 	if (blend>1.0f) blend= 1.0f;
