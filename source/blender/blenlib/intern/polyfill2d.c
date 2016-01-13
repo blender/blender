@@ -516,18 +516,6 @@ static void pf_triangulate(PolyFill *pf)
 #endif
 		        );
 
-#ifdef USE_CLIP_SWEEP
-#ifdef USE_CLIP_EVEN
-		if (pi_ear != pi_ear_init) {
-			reverse = !reverse;
-		}
-#else
-		if (pi_ear != pf->indices) {
-			reverse = !reverse;
-		}
-#endif
-#endif
-
 #ifdef USE_CONVEX_SKIP
 		if (pi_ear->sign != CONVEX) {
 			pf->coords_tot_concave -= 1;
@@ -574,6 +562,20 @@ static void pf_triangulate(PolyFill *pf)
 #else
 		pi_ear_init = pi_next->next;
 #endif
+#endif
+
+#ifdef USE_CLIP_EVEN
+#ifdef USE_CLIP_SWEEP
+		if (pi_ear_init->sign != CONVEX) {
+			/* take the extra step since this ear isn't a good candidate */
+			pi_ear_init = reverse ? pi_ear_init->prev : pi_ear_init->next;
+			reverse = !reverse;
+		}
+#endif
+#else
+		if ((reverse ? pi_prev->prev : pi_next->next)->sign != CONVEX) {
+			reverse = !reverse;
+		}
 #endif
 
 	}
