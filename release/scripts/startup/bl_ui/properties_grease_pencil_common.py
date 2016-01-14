@@ -28,7 +28,7 @@ def gpencil_stroke_placement_settings(context, layout):
     elif context.space_data.type == 'SEQUENCE_EDITOR':
         propname = "gpencil_stroke_placement_sequencer_preview"
     elif context.space_data.type == 'IMAGE_EDITOR':
-        propname = "gpencil_stroke_placement_image_edit"
+        propname = "gpencil_stroke_placement_image_editor"
     else:
         propname = "gpencil_stroke_placement_view2d"
 
