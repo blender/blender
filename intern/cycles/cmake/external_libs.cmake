@@ -37,7 +37,7 @@ endif()
 ###########################################################################
 # CUDA
 
-if(WITH_CYCLES_CUDA_BINARIES OR NOT WITH_CUDA_DUNLOAD)
+if(WITH_CYCLES_CUDA_BINARIES OR NOT WITH_CUDA_DYNLOAD)
 	find_package(CUDA) # Try to auto locate CUDA toolkit
 	if(CUDA_FOUND)
 		message(STATUS "CUDA nvcc = ${CUDA_NVCC_EXECUTABLE}")
