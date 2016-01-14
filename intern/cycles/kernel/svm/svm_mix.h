@@ -261,7 +261,7 @@ ccl_device float3 svm_mix_clamp(float3 col)
 	return outcol;
 }
 
-ccl_device float3 svm_mix(NodeMix type, float fac, float3 c1, float3 c2)
+ccl_device_noinline float3 svm_mix(NodeMix type, float fac, float3 c1, float3 c2)
 {
 	float t = saturate(fac);
 

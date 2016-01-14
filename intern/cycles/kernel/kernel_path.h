@@ -391,7 +391,12 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 	}
 }
 
-ccl_device void kernel_path_ao(KernelGlobals *kg, ShaderData *sd, PathRadiance *L, PathState *state, RNG *rng, float3 throughput)
+ccl_device_noinline void kernel_path_ao(KernelGlobals *kg,
+                                        ShaderData *sd,
+                                        PathRadiance *L,
+                                        PathState *state,
+                                        RNG *rng,
+                                        float3 throughput)
 {
 	/* todo: solve correlation */
 	float bsdf_u, bsdf_v;
@@ -586,7 +591,11 @@ ccl_device void kernel_path_subsurface_setup_indirect(
 
 #endif  /* __SUBSURFACE__ */
 
-ccl_device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, Ray ray, ccl_global float *buffer)
+ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
+                                               RNG *rng,
+                                               int sample,
+                                               Ray ray,
+                                               ccl_global float *buffer)
 {
 	/* initialize */
 	PathRadiance L;

@@ -183,11 +183,14 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
  * potentially transparent, and only in that case start marching. this gives
  * one extra ray cast for the cases were we do want transparency. */
 
-ccl_device_inline bool shadow_blocked(KernelGlobals *kg, ccl_addr_space PathState *state, ccl_addr_space Ray *ray_input, float3 *shadow
+ccl_device_noinline bool shadow_blocked(KernelGlobals *kg,
+                                        ccl_addr_space PathState *state,
+                                        ccl_addr_space Ray *ray_input,
+                                        float3 *shadow
 #ifdef __SPLIT_KERNEL__
-                                      , ShaderData *sd_mem, Intersection *isect_mem
+                                        , ShaderData *sd_mem, Intersection *isect_mem
 #endif
-                                      )
+                                       )
 {
 	*shadow = make_float3(1.0f, 1.0f, 1.0f);
 

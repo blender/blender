@@ -845,7 +845,14 @@ ccl_device bool light_select_reached_max_bounces(KernelGlobals *kg, int index, i
 	return (bounce > __float_as_int(data4.x));
 }
 
-ccl_device void light_sample(KernelGlobals *kg, float randt, float randu, float randv, float time, float3 P, int bounce, LightSample *ls)
+ccl_device_noinline void light_sample(KernelGlobals *kg,
+                                      float randt,
+                                      float randu,
+                                      float randv,
+                                      float time,
+                                      float3 P,
+                                      int bounce,
+                                      LightSample *ls)
 {
 	/* sample index */
 	int index = light_distribution_sample(kg, randt);

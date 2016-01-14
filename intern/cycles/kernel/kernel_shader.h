@@ -48,8 +48,10 @@ ccl_device void shader_setup_object_transforms(KernelGlobals *kg, ShaderData *sd
 }
 #endif
 
-ccl_device void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
-	const Intersection *isect, const Ray *ray)
+ccl_device_noinline void shader_setup_from_ray(KernelGlobals *kg,
+                                               ShaderData *sd,
+                                               const Intersection *isect,
+                                               const Ray *ray)
 {
 #ifdef __INSTANCING__
 	ccl_fetch(sd, object) = (isect->object == PRIM_NONE)? kernel_tex_fetch(__prim_object, isect->prim): isect->object;
