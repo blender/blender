@@ -156,10 +156,19 @@ typedef struct ImBuf {
 	int	mall;				/* what is malloced internal, and can be freed */
 
 	/* pixels */
-	unsigned int *rect;		/* pixel values stored here */
-	float *rect_float;		/* floating point Rect equivalent
-	                         * Linear RGB color space - may need gamma correction to
-	                         * sRGB when generating 8bit representations */
+
+	/** Image pixel buffer (8bit representation):
+	 * - color space defaults to `sRGB`.
+	 * - alpha defaults to 'straight'.
+	 */
+	unsigned int *rect;
+	/** Image pixel buffer (float representation):
+	 * - color space defaults to 'linear' (`rec709`).
+	 * - alpha defaults to 'premul'.
+	 * \note May need gamma correction to `sRGB` when generating 8bit representations.
+	 * \note Formats that support higher more than 8 but channels load as floats.
+	 */
+	float *rect_float;
 
 	/* resolution - pixels per meter */
 	double ppm[2];
