@@ -253,10 +253,7 @@ public:
 		string cubin;
 
 		/* attempt to use kernel provided with blender */
-		if(requested_features.experimental)
-			cubin = path_get(string_printf("lib/kernel_experimental_sm_%d%d.cubin", major, minor));
-		else
-			cubin = path_get(string_printf("lib/kernel_sm_%d%d.cubin", major, minor));
+		cubin = path_get(string_printf("lib/kernel_sm_%d%d.cubin", major, minor));
 		VLOG(1) << "Testing for pre-compiled kernel " << cubin;
 		if(path_exists(cubin)) {
 			VLOG(1) << "Using precompiled kernel";
@@ -275,10 +272,7 @@ public:
 		                      major, minor,
 		                      md5.c_str());
 #else
-		if(requested_features.experimental)
-			cubin = string_printf("cycles_kernel_experimental_sm%d%d_%s.cubin", major, minor, md5.c_str());
-		else
-			cubin = string_printf("cycles_kernel_sm%d%d_%s.cubin", major, minor, md5.c_str());
+		cubin = string_printf("cycles_kernel_sm%d%d_%s.cubin", major, minor, md5.c_str());
 #endif
 
 		cubin = path_user_get(path_join("cache", cubin));
@@ -338,10 +332,6 @@ public:
 
 #ifdef KERNEL_USE_ADAPTIVE
 		command += " " + feature_build_options;
-#else
-		if(requested_features.experimental) {
-			command += " -D__KERNEL_EXPERIMENTAL__";
-		}
 #endif
 
 		const char* extra_cflags = getenv("CYCLES_CUDA_EXTRA_CFLAGS");

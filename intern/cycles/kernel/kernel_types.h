@@ -83,13 +83,8 @@ CCL_NAMESPACE_BEGIN
 #define __BRANCHED_PATH__
 #define __VOLUME__
 #define __VOLUME_SCATTER__
-
-/* Experimental on GPU */
-#ifdef __KERNEL_EXPERIMENTAL__
 #define __SUBSURFACE__
 #define __CMJ__
-#endif
-
 #endif
 
 #ifdef __KERNEL_OPENCL__

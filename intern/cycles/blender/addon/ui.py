@@ -187,7 +187,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
             sub.prop(cscene, "subsurface_samples", text="Subsurface")
             sub.prop(cscene, "volume_samples", text="Volume")
 
-        if use_cpu(context) or cscene.feature_set == 'EXPERIMENTAL':
+        if not (use_opencl(context) and cscene.feature_set != 'EXPERIMENTAL'):
             layout.row().prop(cscene, "sampling_pattern", text="Pattern")
 
         for rl in scene.render.layers:
