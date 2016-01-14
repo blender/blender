@@ -191,7 +191,7 @@ static int preprocess_include(char *maindata, int len);
 /**
  * Scan this file for serializable types.
  */ 
-static int convert_include(char *filename);
+static int convert_include(const char *filename);
 
 /**
  * Determine how many bytes are needed for an array.
@@ -515,7 +515,7 @@ static int preprocess_include(char *maindata, int len)
 	return newlen;
 }
 
-static void *read_file_data(char *filename, int *r_len)
+static void *read_file_data(const char *filename, int *r_len)
 {
 #ifdef WIN32
 	FILE *fp = fopen(filename, "rb");
@@ -556,7 +556,7 @@ static void *read_file_data(char *filename, int *r_len)
 	return data;
 }
 
-static int convert_include(char *filename)
+static int convert_include(const char *filename)
 {
 	/* read include file, skip structs with a '#' before it.
 	 * store all data in temporal arrays.
