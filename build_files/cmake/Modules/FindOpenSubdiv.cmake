@@ -39,6 +39,7 @@ SET(_opensubdiv_SEARCH_DIRS
   /opt/local # DarwinPorts
   /opt/csw # Blastwave
   /opt/lib/opensubdiv
+  /opt/lib/osd # install_deps.sh
 )
 
 FIND_PATH(OPENSUBDIV_INCLUDE_DIR
