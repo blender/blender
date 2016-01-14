@@ -583,7 +583,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 ('DEFAULT', "Default", ""),
                 ('CPU', "CPU", ""),
                 ('GPU', "GPU", ""),
-                ('ACCELLERATOR', "Accellerator", ""),
+                ('ACCELERATOR', "Accelerator", ""),
                 ),
             update=devices_update_callback
             )

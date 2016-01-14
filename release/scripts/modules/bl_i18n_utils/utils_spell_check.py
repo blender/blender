@@ -502,6 +502,7 @@ class SpellChecker:
         "asc", "cdl",
         "ascii",
         "atrac",
+        "avx",
         "bsdf",
         "bssrdf",
         "bw",
