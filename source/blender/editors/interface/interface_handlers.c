@@ -2218,6 +2218,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	int buf_paste_len = 0;
 	const char *buf_paste = "";
 	bool buf_paste_alloc = false;
+	bool show_report = false;  /* use to display errors parsing paste input */
 
 	if (mode == 'v' && but->lock  == true) {
 		return;
@@ -2268,6 +2269,10 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 				ui_but_string_set(C, but, buf_paste);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
+			else {
+				/* evaluating will report errors */
+				show_report = true;
+			}
 		}
 	}
 
@@ -2293,6 +2298,10 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 				ui_but_v3_set(but, xyz);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
+			}
+			else {
+				WM_report(C, RPT_ERROR, "Paste expected 3 numbers, formatted: '[n, n, n]'");
+				show_report = true;
 			}
 		}
 	}
@@ -2334,6 +2343,10 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 					RNA_property_float_set_index(&but->rnapoin, but->rnaprop, 3, rgba[3]);
 
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
+			}
+			else {
+				WM_report(C, RPT_ERROR, "Paste expected 4 numbers, formatted: '[n, n, n, n]'");
+				show_report = true;
 			}
 		}
 	}
@@ -2428,6 +2441,10 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 
 	if (buf_paste_alloc) {
 		MEM_freeN((void *)buf_paste);
+	}
+
+	if (show_report) {
+		WM_report_banner_show(C);
 	}
 }
 
