@@ -74,7 +74,9 @@ endif()
 
 if(WITH_CYCLES OR WITH_COMPOSITOR OR WITH_OPENSUBDIV)
 	add_subdirectory(clew)
-	add_subdirectory(cuew)
+	if(WITH_CUDA_DYNLOAD)
+		add_subdirectory(cuew)
+	endif()
 endif()
 
 if(WITH_MOD_BOOLEAN)

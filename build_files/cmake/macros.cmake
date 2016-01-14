@@ -478,7 +478,11 @@ function(setup_liblinks
 	# We put CLEW and CUEW here because OPENSUBDIV_LIBRARIES dpeends on them..
 	if(WITH_CYCLES OR WITH_COMPOSITOR OR WITH_OPENSUBDIV)
 		target_link_libraries(${target} "extern_clew")
-		target_link_libraries(${target} "extern_cuew")
+		if(WITH_CUDA_DYNLOAD)
+			target_link_libraries(${target} "extern_cuew")
+		else()
+			target_link_libraries(${target} ${CUDA_CUDA_LIBRARY})
+		endif()
 	endif()
 
 	#system libraries with no dependencies such as platform link libs or opengl should go last

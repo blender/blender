@@ -29,8 +29,13 @@ set(LIBRARIES
 	${TIFF_LIBRARY}
 	${PTHREADS_LIBRARIES}
 	extern_clew
-	extern_cuew
 )
+
+if(WITH_CUDA_DYNLOAD)
+	list(APPEND LIBRARIES extern_cuew)
+else()
+	list(APPEND LIBRARIES ${CUDA_CUDA_LIBRARY})
+endif()
 
 if(WITH_CYCLES_OSL)
 	list(APPEND LIBRARIES cycles_kernel_osl)
