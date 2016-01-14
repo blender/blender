@@ -596,7 +596,7 @@ while true; do
     ;;
     --skip-osd)
       OSD_SKIP=true; shift; continue
-    ;;    
+    ;;
     --skip-opencollada)
       OPENCOLLADA_SKIP=true; shift; continue
     ;;
@@ -660,7 +660,7 @@ OSL_SOURCE_REPO_UID="7d40ff5fe8e47b030042afb92d0e955f5aa96f48"
 OSL_SOURCE_REPO_BRANCH="blender-fixes"
 
 OSD_USE_REPO=true
-# Script foo to make the version string compliant with the archive name: 
+# Script foo to make the version string compliant with the archive name:
 # ${Varname//SearchForThisChar/ReplaceWithThisChar}
 OSD_SOURCE=( "https://github.com/PixarAnimationStudios/OpenSubdiv/archive/v${OSD_VERSION//./_}.tar.gz" )
 OSD_SOURCE_REPO=( "https://github.com/PixarAnimationStudios/OpenSubdiv.git" )
@@ -1141,7 +1141,7 @@ compile_OCIO() {
     # Always refresh the whole build!
     if [ -d build ]; then
       rm -rf build
-    fi    
+    fi
     mkdir build
     cd build
 
@@ -1237,7 +1237,7 @@ compile_ILMBASE() {
     # Always refresh the whole build!
     if [ -d build ]; then
       rm -rf build
-    fi    
+    fi
     mkdir build
     cd build
 
@@ -1344,7 +1344,7 @@ compile_OPENEXR() {
     # Always refresh the whole build!
     if [ -d build ]; then
       rm -rf build
-    fi    
+    fi
     mkdir build
     cd build
 
@@ -1449,7 +1449,7 @@ compile_OIIO() {
     # Always refresh the whole build!
     if [ -d build ]; then
       rm -rf build
-    fi    
+    fi
     mkdir build
     cd build
 
@@ -1677,7 +1677,7 @@ compile_OSL() {
     # Always refresh the whole build!
     if [ -d build ]; then
       rm -rf build
-    fi    
+    fi
     mkdir build
     cd build
 
@@ -1796,7 +1796,7 @@ compile_OSD() {
     # Always refresh the whole build!
     if [ -d build ]; then
       rm -rf build
-    fi    
+    fi
     mkdir build
     cd build
 
@@ -2545,7 +2545,7 @@ get_package_version_RPM() {
     yum info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'
   elif [ "$RPM" = "SUSE" ]; then
     zypper info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'
-  fi  
+  fi
 }
 
 check_package_RPM() {
@@ -3367,7 +3367,7 @@ install_ARCH() {
 
   if [ "$_do_compile_osl" = true ]; then
     if [ "$have_llvm" = true ]; then
-      #XXX Note: will fail to build with LLVM 3.2! 
+      #XXX Note: will fail to build with LLVM 3.2!
       install_packages_ARCH intel-tbb
       PRINT ""
       compile_OSL
