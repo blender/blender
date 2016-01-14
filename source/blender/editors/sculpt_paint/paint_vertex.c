@@ -1391,7 +1391,7 @@ static float redistribute_change(MDeformVert *ndv, const int defbase_tot,
 						total_valid--;
 					}
 					else if (ndw->weight + change < 0) { /* check the lower bound */
-						totchange -= ndw->weight;
+						totchange += ndw->weight;
 						ndw->weight = 0;
 						change_status[ndw->def_nr] = changeto;
 						total_valid--;
