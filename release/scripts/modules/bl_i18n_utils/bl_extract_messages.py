@@ -493,7 +493,11 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         return i18n_contexts.default
 
     def _op_to_ctxt(node):
-        opname, _ = extract_strings(node)
+        # Some smart coders like things like:
+        #    >>> row.operator("wm.addon_disable" if is_enabled else "wm.addon_enable", ...)
+        # We only take first arg into account here!
+        bag = extract_strings_split(node)
+        opname, _ = bag[0]
         if not opname:
             return i18n_contexts.default
         op = bpy.ops
