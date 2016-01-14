@@ -994,6 +994,12 @@ static int make_structDNA(const char *baseDirectory, FILE *file)
 	add_type("short", 2);    /* SDNA_TYPE_SHORT */
 	add_type("ushort", 2);   /* SDNA_TYPE_USHORT */
 	add_type("int", 4);      /* SDNA_TYPE_INT */
+
+	/* note, long isn't supported,
+	 * these are place-holders to maintain alignment with eSDNA_Type*/
+	add_type("long", 4);     /* SDNA_TYPE_LONG */
+	add_type("ulong", 4);    /* SDNA_TYPE_ULONG */
+
 	add_type("float", 4);    /* SDNA_TYPE_FLOAT */
 	add_type("double", 8);   /* SDNA_TYPE_DOUBLE */
 	add_type("int64_t", 8);  /* SDNA_TYPE_INT64 */

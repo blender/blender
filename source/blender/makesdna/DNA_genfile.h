@@ -41,20 +41,28 @@ struct SDNA;
 extern const unsigned char DNAstr[];
 extern const int DNAlen; /* length of DNAstr */
 
-/* primitive (non-struct, non-pointer/function/array) types--do not change ordering! */
+/**
+ * Primitive (non-struct, non-pointer/function/array) types,
+ * \warning Don't change these values!
+ * Currently changes here here will work on native endianness,
+ * however #DNA_struct_switch_endian currently checks these
+ * hard-coded values against those from old files.
+ */
 typedef enum eSDNA_Type {
 	SDNA_TYPE_CHAR     = 0,
 	SDNA_TYPE_UCHAR    = 1,
 	SDNA_TYPE_SHORT    = 2,
 	SDNA_TYPE_USHORT   = 3,
 	SDNA_TYPE_INT      = 4,
-	SDNA_TYPE_FLOAT    = 5,
-	SDNA_TYPE_DOUBLE   = 6,
-	/* ,SDNA_TYPE_VOID = 7 */
+	/* SDNA_TYPE_LONG     = 5, */  /* deprecated (use as int) */
+	/* SDNA_TYPE_ULONG    = 6, */  /* deprecated (use as int) */
+	SDNA_TYPE_FLOAT    = 7,
+	SDNA_TYPE_DOUBLE   = 8,
+	/* ,SDNA_TYPE_VOID = 9 */
 /* define so switch statements don't complain */
-#define SDNA_TYPE_VOID 7
-	SDNA_TYPE_INT64    = 8,
-	SDNA_TYPE_UINT64   = 9,
+#define SDNA_TYPE_VOID 9
+	SDNA_TYPE_INT64    = 10,
+	SDNA_TYPE_UINT64   = 11
 } eSDNA_Type;
 
 
