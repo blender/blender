@@ -2174,6 +2174,9 @@ void BKE_imbuf_write_prepare(ImBuf *ibuf, const ImageFormatData *imf)
 	char compress = imf->compress;
 	char quality = imf->quality;
 
+	/* initialize all from image format */
+	ibuf->foptions.flag = 0;
+
 	if (imtype == R_IMF_IMTYPE_IRIS) {
 		ibuf->ftype = IMB_FTYPE_IMAGIC;
 	}
@@ -2214,7 +2217,6 @@ void BKE_imbuf_write_prepare(ImBuf *ibuf, const ImageFormatData *imf)
 		ibuf->ftype = IMB_FTYPE_OPENEXR;
 		if (imf->depth == R_IMF_CHAN_DEPTH_16)
 			ibuf->foptions.flag |= OPENEXR_HALF;
-		ibuf->foptions.flag &= ~OPENEXR_COMPRESS;
 		ibuf->foptions.flag |= (imf->exr_codec & OPENEXR_COMPRESS);
 
 		if (!(imf->flag & R_IMF_FLAG_ZBUF))
@@ -2334,6 +2336,7 @@ int BKE_imbuf_write_as(ImBuf *ibuf, const char *name, ImageFormatData *imf,
 		/* note that we are not restoring _all_ settings */
 		ibuf->planes = ibuf_back.planes;
 		ibuf->ftype =  ibuf_back.ftype;
+		ibuf->foptions =  ibuf_back.foptions;
 	}
 
 	return ok;
