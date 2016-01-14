@@ -2106,11 +2106,16 @@ static bool wpaint_ensure_data(
 		return false;
 	}
 
-	vgroup_index->active = ob->actdef - 1;
+	if (vgroup_index) {
+		vgroup_index->active = ob->actdef - 1;
+	}
 
 	if (flag & WPAINT_ENSURE_MIRROR) {
 		if (me->editflag & ME_EDIT_MIRROR_X) {
-			vgroup_index->mirror = wpaint_mirror_vgroup_ensure(ob, vgroup_index->active);
+			int mirror = wpaint_mirror_vgroup_ensure(ob, ob->actdef - 1);
+			if (vgroup_index) {
+				vgroup_index->mirror = mirror;
+			}
 		}
 	}
 
