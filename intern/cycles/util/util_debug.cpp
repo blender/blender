@@ -92,7 +92,7 @@ void DebugFlags::OpenCL::reset()
 	if(getenv("CYCLES_OPENCL_MEGA_KERNEL_TEST") != NULL) {
 		kernel_type = DebugFlags::OpenCL::KERNEL_MEGA;
 	}
-	else if(getenv("CYCLES_OPENCL_MEGA_KERNEL_TEST") != NULL) {
+	else if(getenv("CYCLES_OPENCL_SPLITKERNEL_TEST") != NULL) {
 		kernel_type = DebugFlags::OpenCL::KERNEL_SPLIT;
 	}
 	/* Initialize other flags from environment variables. */
