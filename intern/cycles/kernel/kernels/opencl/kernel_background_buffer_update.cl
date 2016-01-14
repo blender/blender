@@ -19,7 +19,6 @@
 __kernel void kernel_ocl_path_trace_background_buffer_update(
         ccl_global char *kg,
         ccl_constant KernelData *data,
-        ccl_global char *sd,
         ccl_global float *per_sample_output_buffers,
         ccl_global uint *rng_state,
         ccl_global uint *rng_coop,             /* Required for buffer Update */
@@ -84,7 +83,6 @@ __kernel void kernel_ocl_path_trace_background_buffer_update(
 #endif
 		enqueue_flag =
 			kernel_background_buffer_update((KernelGlobals *)kg,
-			                                (ShaderData *)sd,
 			                                per_sample_output_buffers,
 			                                rng_state,
 			                                rng_coop,

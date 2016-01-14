@@ -86,6 +86,11 @@ typedef ccl_addr_space struct KernelGlobals {
 #define KERNEL_TEX(type, ttype, name) \
 	ccl_global type *name;
 #include "kernel_textures.h"
+
+#ifdef __SPLIT_KERNEL__
+	ShaderData *sd_input;
+	Intersection *isect_shadow;
+#endif
 } KernelGlobals;
 
 #endif

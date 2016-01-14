@@ -23,8 +23,6 @@ __kernel void kernel_ocl_path_trace_shadow_blocked(
         ccl_global PathState *PathState_coop,  /* Required for shadow blocked */
         ccl_global Ray *LightRay_dl_coop,      /* Required for direct lighting's shadow blocked */
         ccl_global Ray *LightRay_ao_coop,      /* Required for AO's shadow blocked */
-        Intersection *Intersection_coop_AO,
-        Intersection *Intersection_coop_DL,
         ccl_global char *ray_state,
         ccl_global int *Queue_data,            /* Queue memory */
         ccl_global int *Queue_index,           /* Tracks the number of elements in each queue */
@@ -73,8 +71,6 @@ __kernel void kernel_ocl_path_trace_shadow_blocked(
 	                      PathState_coop,
 	                      LightRay_dl_coop,
 	                      LightRay_ao_coop,
-	                      Intersection_coop_AO,
-	                      Intersection_coop_DL,
 	                      ray_state,
 	                      total_num_rays,
 	                      shadow_blocked_type,

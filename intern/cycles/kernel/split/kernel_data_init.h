@@ -145,6 +145,7 @@ ccl_device void kernel_data_init(
         PathRadiance *PathRadiance_coop,             /* PathRadiance array to store PathRadiance values for all rays */
         ccl_global Ray *Ray_coop,                    /* Ray array to store Ray information for all rays */
         ccl_global PathState *PathState_coop,        /* PathState array to store PathState information for all rays */
+        Intersection *Intersection_coop_shadow,
         ccl_global char *ray_state,                  /* Stores information on current state of a ray */
 
 #define KERNEL_TEX(type, ttype, name)                                   \
@@ -170,6 +171,8 @@ ccl_device void kernel_data_init(
         int parallel_samples)                        /* Number of samples to be processed in parallel */
 {
 	kg->data = data;
+	kg->sd_input = sd_DL_shadow;
+	kg->isect_shadow = Intersection_coop_shadow;
 #define KERNEL_TEX(type, ttype, name) \
 	kg->name = name;
 #include "../kernel_textures.h"

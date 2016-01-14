@@ -186,11 +186,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *
 ccl_device_noinline bool shadow_blocked(KernelGlobals *kg,
                                         ccl_addr_space PathState *state,
                                         ccl_addr_space Ray *ray_input,
-                                        float3 *shadow
-#ifdef __SPLIT_KERNEL__
-                                        , ShaderData *sd_mem, Intersection *isect_mem
-#endif
-                                       )
+                                        float3 *shadow)
 {
 	*shadow = make_float3(1.0f, 1.0f, 1.0f);
 
@@ -205,7 +201,7 @@ ccl_device_noinline bool shadow_blocked(KernelGlobals *kg,
 #endif
 
 #ifdef __SPLIT_KERNEL__
-	Intersection *isect = isect_mem;
+	Intersection *isect = &kg->isect_shadow[TIDX];
 #else
 	Intersection isect_object;
 	Intersection *isect = &isect_object;
@@ -254,7 +250,7 @@ ccl_device_noinline bool shadow_blocked(KernelGlobals *kg,
 
 				/* setup shader data at surface */
 #ifdef __SPLIT_KERNEL__
-				ShaderData *sd = sd_mem;
+				ShaderData *sd = kg->sd_input;
 #else
 				ShaderData sd_object;
 				ShaderData *sd = &sd_object;

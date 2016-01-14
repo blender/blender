@@ -1968,8 +1968,7 @@ public:
 	cl_mem AOAlpha_coop;
 	cl_mem AOBSDF_coop;
 	cl_mem AOLightRay_coop;
-	cl_mem Intersection_coop_AO;
-	cl_mem Intersection_coop_DL;
+	cl_mem Intersection_coop_shadow;
 
 #ifdef WITH_CYCLES_DEBUG
 	/* DebugData memory */
@@ -2133,8 +2132,7 @@ public:
 		BSDFEval_coop = NULL;
 		ISLamp_coop = NULL;
 		LightRay_coop = NULL;
-		Intersection_coop_AO = NULL;
-		Intersection_coop_DL = NULL;
+		Intersection_coop_shadow = NULL;
 
 #ifdef WITH_CYCLES_DEBUG
 		debugdata_coop = NULL;
@@ -2259,6 +2257,8 @@ public:
 	ccl_global type *name;
 #include "kernel_textures.h"
 #undef KERNEL_TEX
+			void *sd_input;
+			void *isect_shadow;
 		} KernelGlobals;
 
 		return sizeof(KernelGlobals);
@@ -2475,8 +2475,7 @@ public:
 		release_mem_object_safe(BSDFEval_coop);
 		release_mem_object_safe(ISLamp_coop);
 		release_mem_object_safe(LightRay_coop);
-		release_mem_object_safe(Intersection_coop_AO);
-		release_mem_object_safe(Intersection_coop_DL);
+		release_mem_object_safe(Intersection_coop_shadow);
 #ifdef WITH_CYCLES_DEBUG
 		release_mem_object_safe(debugdata_coop);
 #endif
@@ -2672,8 +2671,7 @@ public:
 			BSDFEval_coop = mem_alloc(num_global_elements * sizeof(BsdfEval));
 			ISLamp_coop = mem_alloc(num_global_elements * sizeof(int));
 			LightRay_coop = mem_alloc(num_global_elements * sizeof(Ray));
-			Intersection_coop_AO = mem_alloc(num_global_elements * sizeof(Intersection));
-			Intersection_coop_DL = mem_alloc(num_global_elements * sizeof(Intersection));
+			Intersection_coop_shadow = mem_alloc(2 * num_global_elements * sizeof(Intersection));
 
 #ifdef WITH_CYCLES_DEBUG
 			debugdata_coop = mem_alloc(num_global_elements * sizeof(DebugData));
@@ -2779,6 +2777,7 @@ public:
 			                PathRadiance_coop,
 			                Ray_coop,
 			                PathState_coop,
+			                Intersection_coop_shadow,
 			                ray_state);
 
 /* TODO(sergey): Avoid map lookup here. */
@@ -2838,7 +2837,6 @@ public:
 		                0,
 		                kgbuffer,
 		                d_data,
-		                sd,
 		                throughput_coop,
 		                PathRadiance_coop,
 		                Ray_coop,
@@ -2864,7 +2862,6 @@ public:
 		                 0,
 		                 kgbuffer,
 		                 d_data,
-		                 sd,
 		                 per_sample_output_buffers,
 		                 d_rng_state,
 		                 rng_coop,
@@ -2946,7 +2943,6 @@ public:
 		                kgbuffer,
 		                d_data,
 		                sd,
-		                sd_DL_shadow,
 		                rng_coop,
 		                PathState_coop,
 		                ISLamp_coop,
@@ -2965,8 +2961,6 @@ public:
 		                PathState_coop,
 		                LightRay_coop,
 		                AOLightRay_coop,
-		                Intersection_coop_AO,
-		                Intersection_coop_DL,
 		                ray_state,
 		                Queue_data,
 		                Queue_index,

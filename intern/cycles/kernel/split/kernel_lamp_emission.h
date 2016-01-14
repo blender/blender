@@ -36,12 +36,9 @@
  * sw -------------------------------------------------|                           |
  * sh -------------------------------------------------|                           |
  * parallel_samples -----------------------------------|                           |
- *
- * note : sd is neither input nor output. Its just filled and consumed in the same, kernel_lamp_emission, kernel.
  */
 ccl_device void kernel_lamp_emission(
         KernelGlobals *kg,
-        ShaderData *sd,                        /* Required for lamp emission */
         ccl_global float3 *throughput_coop,    /* Required for lamp emission */
         PathRadiance *PathRadiance_coop,       /* Required for lamp emission */
         ccl_global Ray *Ray_coop,              /* Required for lamp emission */
@@ -79,7 +76,7 @@ ccl_device void kernel_lamp_emission(
 			/* intersect with lamp */
 			float3 emission;
 
-			if(indirect_lamp_emission(kg, state, &light_ray, &emission, sd)) {
+			if(indirect_lamp_emission(kg, state, &light_ray, &emission)) {
 				path_radiance_accum_emission(L, throughput, emission, state->bounce);
 			}
 		}

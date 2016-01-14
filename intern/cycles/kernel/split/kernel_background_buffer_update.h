@@ -71,7 +71,6 @@
  */
 ccl_device char kernel_background_buffer_update(
         KernelGlobals *kg,
-        ShaderData *sd,
         ccl_global float *per_sample_output_buffers,
         ccl_global uint *rng_state,
         ccl_global uint *rng_coop,             /* Required for buffer Update */
@@ -158,7 +157,7 @@ ccl_device char kernel_background_buffer_update(
 		if(IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND)) {
 #ifdef __BACKGROUND__
 			/* sample background shader */
-			float3 L_background = indirect_background(kg, state, ray, sd);
+			float3 L_background = indirect_background(kg, state, ray);
 			path_radiance_accum_background(L, (*throughput), L_background, state->bounce);
 #endif
 			ASSIGN_RAY_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER);

@@ -20,7 +20,6 @@ __kernel void kernel_ocl_path_trace_direct_lighting(
         ccl_global char *kg,
         ccl_constant KernelData *data,
         ccl_global char *sd,                    /* Required for direct lighting */
-        ccl_global char *sd_DL,                 /* Required for direct lighting */
         ccl_global uint *rng_coop,              /* Required for direct lighting */
         ccl_global PathState *PathState_coop,   /* Required for direct lighting */
         ccl_global int *ISLamp_coop,            /* Required for direct lighting */
@@ -63,7 +62,6 @@ __kernel void kernel_ocl_path_trace_direct_lighting(
 #endif
 		enqueue_flag = kernel_direct_lighting((KernelGlobals *)kg,
 		                                      (ShaderData *)sd,
-		                                      (ShaderData *)sd_DL,
 		                                      rng_coop,
 		                                      PathState_coop,
 		                                      ISLamp_coop,

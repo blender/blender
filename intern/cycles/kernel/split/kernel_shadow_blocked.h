@@ -51,8 +51,6 @@ ccl_device void kernel_shadow_blocked(
         ccl_global PathState *PathState_coop,  /* Required for shadow blocked */
         ccl_global Ray *LightRay_dl_coop,      /* Required for direct lighting's shadow blocked */
         ccl_global Ray *LightRay_ao_coop,      /* Required for AO's shadow blocked */
-        Intersection *Intersection_coop_AO,
-        Intersection *Intersection_coop_DL,
         ccl_global char *ray_state,
         int total_num_rays,
         char shadow_blocked_type,
@@ -67,25 +65,17 @@ ccl_device void kernel_shadow_blocked(
 		ccl_global PathState *state = &PathState_coop[ray_index];
 		ccl_global Ray *light_ray_dl_global = &LightRay_dl_coop[ray_index];
 		ccl_global Ray *light_ray_ao_global = &LightRay_ao_coop[ray_index];
-		Intersection *isect_ao_global = &Intersection_coop_AO[ray_index];
-		Intersection *isect_dl_global = &Intersection_coop_DL[ray_index];
 
 		ccl_global Ray *light_ray_global =
 		        shadow_blocked_type == RAY_SHADOW_RAY_CAST_AO
 		                ? light_ray_ao_global
 		                : light_ray_dl_global;
-		Intersection *isect_global =
-		        shadow_blocked_type == RAY_SHADOW_RAY_CAST_AO
-		                ? isect_ao_global
-		                : isect_dl_global;
 
 		float3 shadow;
 		update_path_radiance = !(shadow_blocked(kg,
 		                                        state,
 		                                        light_ray_global,
-		                                        &shadow,
-		                                        sd_shadow,
-		                                        isect_global));
+		                                        &shadow));
 
 		/* We use light_ray_global's P and t to store shadow and
 		 * update_path_radiance.
