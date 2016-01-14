@@ -83,7 +83,6 @@ set(SRC
 	util/depsgraph_util_transitive.h
 )
 
-TEST_UNORDERED_MAP_SUPPORT()
 if(HAVE_STD_UNORDERED_MAP_HEADER)
 	if(HAVE_UNORDERED_MAP_IN_STD_NAMESPACE)
 		add_definitions(-DDEG_STD_UNORDERED_MAP)
