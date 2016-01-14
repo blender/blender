@@ -355,7 +355,10 @@ typedef struct ImageFormatData {
 	char  jp2_flag;
 	char jp2_codec;
 
-	char pad[5];
+	/* TIFF */
+	char tiff_codec;
+
+	char pad[4];
 
 	/* Multiview */
 	char views_format;
@@ -441,6 +444,14 @@ typedef struct ImageFormatData {
 
 /* ImageFormatData.cineon_flag */
 #define R_IMF_CINEON_FLAG_LOG (1<<0)  /* was R_CINEON_LOG */
+
+/* ImageFormatData.tiff_codec */
+enum {
+	R_IMF_TIFF_CODEC_DEFLATE   = 0,
+	R_IMF_TIFF_CODEC_LZW       = 1,
+	R_IMF_TIFF_CODEC_PACKBITS  = 2,
+	R_IMF_TIFF_CODEC_NONE      = 3,
+};
 
 typedef struct BakeData {
 	struct ImageFormatData im_format;

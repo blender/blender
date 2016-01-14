@@ -127,7 +127,11 @@ enum eImbTypes {
 #define RAWTGA	        1
 
 #ifdef WITH_TIFF
-#define TIF_16BIT		(1 << 8 )
+#define TIF_16BIT			(1 << 8)
+#define TIF_COMPRESS_NONE		(1 << 7)
+#define TIF_COMPRESS_DEFLATE		(1 << 6)
+#define TIF_COMPRESS_LZW		(1 << 5)
+#define TIF_COMPRESS_PACKBITS		(1 << 4)
 #endif
 
 typedef struct ImbFormatOptions {

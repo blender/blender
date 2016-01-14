@@ -708,6 +708,7 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 	float *fromf = NULL;
 	float xres, yres;
 	int x, y, from_i, to_i, i;
+	int compress_mode = COMPRESSION_NONE;
 
 	/* check for a valid number of bytes per pixel.  Like the PNG writer,
 	 * the TIFF writer supports 1, 3 or 4 bytes per pixel, corresponding
@@ -724,6 +725,13 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 		bitspersample = 16;
 	else
 		bitspersample = 8;
+
+	if (ibuf->foptions.flag & TIF_COMPRESS_DEFLATE)
+		compress_mode = COMPRESSION_DEFLATE;
+	else if (ibuf->foptions.flag & TIF_COMPRESS_LZW)
+		compress_mode = COMPRESSION_LZW;
+	else if (ibuf->foptions.flag & TIF_COMPRESS_PACKBITS)
+		compress_mode = COMPRESSION_PACKBITS;
 
 	/* open TIFF file for writing */
 	if (flags & IB_mem) {
@@ -839,7 +847,7 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 	TIFFSetField(image, TIFFTAG_IMAGEWIDTH,      ibuf->x);
 	TIFFSetField(image, TIFFTAG_IMAGELENGTH,     ibuf->y);
 	TIFFSetField(image, TIFFTAG_ROWSPERSTRIP,    ibuf->y);
-	TIFFSetField(image, TIFFTAG_COMPRESSION, COMPRESSION_DEFLATE);
+	TIFFSetField(image, TIFFTAG_COMPRESSION, compress_mode);
 	TIFFSetField(image, TIFFTAG_FILLORDER, FILLORDER_MSB2LSB);
 	TIFFSetField(image, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
 

@@ -4580,6 +4580,16 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	};
 #endif
 
+#ifdef WITH_TIFF
+	static EnumPropertyItem tiff_codec_items[] = {
+		{R_IMF_TIFF_CODEC_NONE, "NONE", 0, "None", ""},
+		{R_IMF_TIFF_CODEC_DEFLATE, "DEFLATE", 0, "Deflate", ""},
+		{R_IMF_TIFF_CODEC_LZW, "LZW", 0, "LZW", ""},
+		{R_IMF_TIFF_CODEC_PACKBITS, "PACKBITS", 0, "Pack Bits", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+#endif
+
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -4676,6 +4686,15 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "jp2_codec");
 	RNA_def_property_enum_items(prop, jp2_codec_items);
 	RNA_def_property_ui_text(prop, "Codec", "Codec settings for Jpek2000");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+#endif
+
+#ifdef WITH_TIFF
+	/* TIFF */
+	prop = RNA_def_property(srna, "tiff_codec", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "tiff_codec");
+	RNA_def_property_enum_items(prop, tiff_codec_items);
+	RNA_def_property_ui_text(prop, "Compression", "Compression mode for TIFF");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 #endif
 

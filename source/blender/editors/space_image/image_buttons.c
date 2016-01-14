@@ -1126,6 +1126,10 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_man
 #endif
 	}
 
+	if (imf->imtype == R_IMF_IMTYPE_TIFF) {
+		uiItemR(col, imfptr, "tiff_codec", 0, NULL, ICON_NONE);
+	}
+
 	/* color management */
 	if (color_management &&
 	    (!BKE_imtype_requires_linear_float(imf->imtype) ||
