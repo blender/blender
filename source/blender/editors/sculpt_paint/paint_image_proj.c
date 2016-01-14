@@ -306,6 +306,8 @@ typedef struct ProjPaintState {
 	/* reproject vars */
 	Image *reproject_image;
 	ImBuf *reproject_ibuf;
+	bool   reproject_ibuf_free_float;
+	bool   reproject_ibuf_free_uchar;
 
 	/* threads */
 	int thread_tot;
@@ -3913,6 +3915,12 @@ static void project_paint_end(ProjPaintState *ps)
 		}
 	}
 
+	if (ps->reproject_ibuf_free_float) {
+		imb_freerectfloatImBuf(ps->reproject_ibuf);
+	}
+	if (ps->reproject_ibuf_free_uchar) {
+		imb_freerectImBuf(ps->reproject_ibuf);
+	}
 	BKE_image_release_ibuf(ps->reproject_image, ps->reproject_ibuf, NULL);
 
 	MEM_freeN(ps->screenCoords);
@@ -4599,23 +4607,28 @@ static void *do_projectpaint_thread(void *ph_v)
 				}
 				else {
 					if (is_floatbuf) {
-						/* re-project buffer is assumed byte - TODO, allow float */
-						bicubic_interpolation_color(ps->reproject_ibuf, projPixel->newColor.ch, NULL,
+						if (UNLIKELY(ps->reproject_ibuf->rect_float == NULL)) {
+							IMB_float_from_rect(ps->reproject_ibuf);
+							ps->reproject_ibuf_free_float = true;
+						}
+
+						bicubic_interpolation_color(ps->reproject_ibuf, NULL, projPixel->newColor.f,
 						                            projPixel->projCoSS[0], projPixel->projCoSS[1]);
-						if (projPixel->newColor.ch[3]) {
-							float newColor_f[4];
+						if (projPixel->newColor.f[3]) {
 							float mask = ((float)projPixel->mask) * (1.0f / 65535.0f);
 
-							straight_uchar_to_premul_float(newColor_f, projPixel->newColor.ch);
-							IMB_colormanagement_colorspace_to_scene_linear_v4(newColor_f, true, ps->reproject_ibuf->rect_colorspace);
-							mul_v4_v4fl(newColor_f, newColor_f, mask);
+							mul_v4_v4fl(projPixel->newColor.f, projPixel->newColor.f, mask);
 
 							blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f_pt,
-							                      newColor_f);
+							                      projPixel->newColor.f);
 						}
 					}
 					else {
-						/* re-project buffer is assumed byte - TODO, allow float */
+						if (UNLIKELY(ps->reproject_ibuf->rect == NULL)) {
+							IMB_rect_from_float(ps->reproject_ibuf);
+							ps->reproject_ibuf_free_uchar = true;
+						}
+
 						bicubic_interpolation_color(ps->reproject_ibuf, projPixel->newColor.ch, NULL,
 						                            projPixel->projCoSS[0], projPixel->projCoSS[1]);
 						if (projPixel->newColor.ch[3]) {
@@ -5280,7 +5293,9 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	ps.reproject_image = image;
 	ps.reproject_ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
 
-	if (ps.reproject_ibuf == NULL || ps.reproject_ibuf->rect == NULL) {
+	if ((ps.reproject_ibuf == NULL) ||
+	    ((ps.reproject_ibuf->rect || ps.reproject_ibuf->rect_float) == false))
+	{
 		BKE_report(op->reports, RPT_ERROR, "Image data could not be found");
 		return OPERATOR_CANCELLED;
 	}
