@@ -1209,6 +1209,78 @@ static void do_weight_paint_normalize_all(MDeformVert *dvert, const int defbase_
 	}
 }
 
+/**
+ * A version of #do_weight_paint_normalize_all that includes locked weights
+ * but only changes unlocked weights.
+ */
+static void do_weight_paint_normalize_all_locked(
+        MDeformVert *dvert, const int defbase_tot, const bool *vgroup_validmap,
+        const bool *lock_flags)
+{
+	float sum = 0.0f, fac;
+	float sum_unlock = 0.0f;
+	float lock_weight = 0.0f;
+	unsigned int i, tot = 0;
+	MDeformWeight *dw;
+
+
+	for (i = dvert->totweight, dw = dvert->dw; i != 0; i--, dw++) {
+		if (dw->def_nr < defbase_tot && vgroup_validmap[dw->def_nr]) {
+			sum += dw->weight;
+
+			if (lock_flags[dw->def_nr]) {
+				lock_weight += dw->weight;
+			}
+			else {
+				tot++;
+				sum_unlock += dw->weight;
+			}
+		}
+	}
+
+	if ((tot == 0) || (sum == 1.0f)) {
+		return;
+	}
+
+	if (lock_weight >= 1.0f) {
+		for (i = dvert->totweight, dw = dvert->dw; i != 0; i--, dw++) {
+			if (dw->def_nr < defbase_tot && vgroup_validmap[dw->def_nr]) {
+				if (lock_flags[dw->def_nr] == false) {
+					dw->weight = 0.0f;
+				}
+			}
+		}
+
+	}
+	else if (sum_unlock != 0.0f) {
+		fac = (1.0f - lock_weight) / sum;
+
+		for (i = dvert->totweight, dw = dvert->dw; i != 0; i--, dw++) {
+			if (dw->def_nr < defbase_tot && vgroup_validmap[dw->def_nr]) {
+				if (lock_flags[dw->def_nr] == false) {
+					dw->weight *= fac;
+					/* paranoid but possibly with float error */
+					CLAMP(dw->weight, 0.0f, 1.0f);
+				}
+			}
+		}
+	}
+	else {
+		/* hrmf, not a factor in this case */
+		fac = (1.0f - lock_weight) / tot;
+		/* paranoid but possibly with float error */
+		CLAMP(fac, 0.0f, 1.0f);
+
+		for (i = dvert->totweight, dw = dvert->dw; i != 0; i--, dw++) {
+			if (dw->def_nr < defbase_tot && vgroup_validmap[dw->def_nr]) {
+				if (lock_flags[dw->def_nr] == false) {
+					dw->weight = fac;
+				}
+			}
+		}
+	}
+}
+
 /* same as function above except it normalizes against the active vgroup which remains unchanged
  *
  * note that the active is just the group which is unchanged, it can be any,
@@ -1238,7 +1310,7 @@ static void do_weight_paint_normalize_all_active(MDeformVert *dvert, const int d
 	}
 
 	if (sum != 0.0f) {
-		fac = (1.0f / sum) * (1.0f - act_weight);
+		fac = (1.0f - act_weight) / sum;
 
 		for (i = dvert->totweight, dw = dvert->dw; i != 0; i--, dw++) {
 			if (dw->def_nr < defbase_tot && vgroup_validmap[dw->def_nr]) {
@@ -1641,7 +1713,12 @@ static int apply_mp_locks_normalize(Mesh *me, const WeightPaintInfo *wpi,
 
 	if (wpi->do_auto_normalize) {
 		/* XXX - should we pass the active group? - currently '-1' */
-		do_weight_paint_normalize_all(dv, wpi->defbase_tot, wpi->vgroup_validmap);
+		if (wpi->lock_flags) {
+			do_weight_paint_normalize_all_locked(dv, wpi->defbase_tot, wpi->vgroup_validmap, wpi->lock_flags);
+		}
+		else {
+			do_weight_paint_normalize_all(dv, wpi->defbase_tot, wpi->vgroup_validmap);
+		}
 	}
 
 	if (oldChange && wpi->do_multipaint && wpi->defbase_tot_sel > 1) {
