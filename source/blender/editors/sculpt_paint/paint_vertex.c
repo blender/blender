@@ -1700,8 +1700,6 @@ static void do_weight_paint_vertex(
 	MDeformVert *dv_mirr;
 	MDeformWeight *dw_mirr;
 
-	const short do_multipaint_totsel = (wpi->do_multipaint && wpi->defbase_tot_sel > 1);
-
 	if (wp->flag & VP_ONLYVGROUP) {
 		dw = defvert_find_index(dv, wpi->vgroup_active);
 		dw_prev = defvert_find_index(wp->wpaint_prev + index, wpi->vgroup_active);
@@ -1765,15 +1763,15 @@ static void do_weight_paint_vertex(
 		dw_mirr = NULL;
 	}
 
-
-	/* TODO: De-duplicate the simple weight paint - jason */
-	/* ... or not, since its <10 SLOC - campbell */
-
-	/* If there are no locks or multipaint,
+	/* If there are no normalize-locks or multipaint,
 	 * then there is no need to run the more complicated checks */
-	if ((do_multipaint_totsel == false) &&
-	    (wpi->lock_flags == NULL || has_locked_group(dv, wpi->defbase_tot, wpi->vgroup_validmap, wpi->lock_flags) == false))
-	{
+	const bool do_multipaint_totsel =
+	        (wpi->do_multipaint && wpi->defbase_tot_sel > 1);
+	const bool do_locked_normalize  =
+	        (wpi->do_auto_normalize && wpi->lock_flags &&
+	         has_locked_group(dv, wpi->defbase_tot, wpi->vgroup_validmap, wpi->lock_flags));
+
+	if ((do_multipaint_totsel || do_locked_normalize) == false) {
 		dw->weight = wpaint_blend(wp, dw->weight, dw_prev->weight, alpha, paintweight,
 		                          wpi->brush_alpha_value, wpi->do_flip, false);
 
