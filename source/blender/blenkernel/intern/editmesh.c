@@ -142,7 +142,7 @@ static void editmesh_tessface_calc_intern(BMEditMesh *em)
 	em->looptris = looptris;
 
 	/* after allocating the em->looptris, we're ready to tessellate */
-	BM_bmesh_calc_tessellation(em->bm, em->looptris, &em->tottri);
+	BM_mesh_calc_tessellation(em->bm, em->looptris, &em->tottri);
 
 }
 

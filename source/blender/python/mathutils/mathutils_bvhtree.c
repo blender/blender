@@ -894,7 +894,7 @@ static PyObject *C_BVHTree_FromBMesh(PyObject *UNUSED(cls), PyObject *args, PyOb
 
 		looptris = MEM_mallocN(sizeof(*looptris) * (size_t)tris_len, __func__);
 
-		BM_bmesh_calc_tessellation(bm, looptris, &tris_len_dummy);
+		BM_mesh_calc_tessellation(bm, looptris, &tris_len_dummy);
 		BLI_assert(tris_len_dummy == (int)tris_len);
 	}
 

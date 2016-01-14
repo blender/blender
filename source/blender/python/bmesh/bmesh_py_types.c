@@ -1257,7 +1257,7 @@ static PyObject *bpy_bmesh_calc_tessface(BPy_BMElem *self)
 	looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
 	looptris = PyMem_MALLOC(sizeof(*looptris) * looptris_tot);
 
-	BM_bmesh_calc_tessellation(bm, looptris, &tottri);
+	BM_mesh_calc_tessellation(bm, looptris, &tottri);
 
 	ret = PyList_New(tottri);
 	for (i = 0; i < tottri; i++) {

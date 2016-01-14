@@ -32,7 +32,7 @@ struct Heap;
 
 #include "BLI_compiler_attrs.h"
 
-void  BM_bmesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptris_tot);
+void  BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptris_tot);
 
 void  BM_face_calc_tessellation(
         const BMFace *f, const bool use_fixed_quad,

@@ -1267,12 +1267,12 @@ void BM_face_as_array_loop_quad(BMFace *f, BMLoop *r_loops[4])
 
 
 /**
- * \brief BM_bmesh_calc_tessellation get the looptris and its number from a certain bmesh
+ * \brief BM_mesh_calc_tessellation get the looptris and its number from a certain bmesh
  * \param looptris
  *
  * \note \a looptris  Must be pre-allocated to at least the size of given by: poly_to_tri_count
  */
-void BM_bmesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptris_tot)
+void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptris_tot)
 {
 	/* use this to avoid locking pthread for _every_ polygon
 	 * and calling the fill function */
