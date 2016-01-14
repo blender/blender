@@ -1182,7 +1182,7 @@ static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *pr
  *
  * Useful when the values aren't flags.
  *
- * \param type_convert_sign: Maps signed to unsuigned range,
+ * \param type_convert_sign: Maps signed to unsigned range,
  * needed when we want to use the full range of a signed short/char.
  */
 BLI_bitmap *pyrna_set_to_enum_bitmap(

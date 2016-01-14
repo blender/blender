@@ -3251,7 +3251,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 		};
 
 		BLI_task_parallel_range_ex(0, totnode, &task_data, NULL, 0, do_brush_action_task_cb,
-								   ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT), false);
+		                           ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT), false);
 
 		if (sculpt_brush_needs_normal(brush))
 			update_sculpt_normal(sd, ob, nodes, totnode);
@@ -3431,7 +3431,7 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 		};
 
 		BLI_task_parallel_range_ex(0, totnode, &data, NULL, 0, sculpt_combine_proxies_task_cb,
-								   ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT), false);
+		                           ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT), false);
 	}
 
 	if (nodes)
@@ -3507,11 +3507,11 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 
 		SculptThreadedTaskData data = {
 			.sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
-		    .vertCos = vertCos,
+			.vertCos = vertCos,
 		};
 
 		BLI_task_parallel_range_ex(0, totnode, &data, NULL, 0, sculpt_flush_stroke_deform_task_cb,
-								   ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT), false);
+		                           ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT), false);
 
 		if (vertCos) {
 			sculpt_vertcos_to_key(ob, ss->kb, vertCos);

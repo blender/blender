@@ -1055,7 +1055,7 @@ static void node_shader_buts_anisotropic(uiLayout *layout, bContext *UNUSED(C), 
 	uiItemR(layout, ptr, "distribution", 0, "", ICON_NONE);
 }
 
-static void node_shader_buts_subsurface(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_shader_buts_subsurface(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "falloff", 0, "", ICON_NONE);
 }
