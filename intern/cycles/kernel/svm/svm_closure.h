@@ -437,9 +437,9 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 #ifdef __SUBSURFACE__
 #ifndef __SPLIT_KERNEL__
 #  define sc_next(sc) sc++
-#  else
+#else
 #  define sc_next(sc) sc = ccl_fetch_array(sd, closure, ccl_fetch(sd, num_closure))
-#  endif
+#endif
 		case CLOSURE_BSSRDF_CUBIC_ID:
 		case CLOSURE_BSSRDF_GAUSSIAN_ID: {
 			ShaderClosure *sc = ccl_fetch_array(sd, closure, ccl_fetch(sd, num_closure));

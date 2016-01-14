@@ -295,7 +295,7 @@ ccl_device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, f
 	}
 	else {
 		/* TODO(sergey): Such lookup is unneeded when there's rolling shutter
-		 * effect in use but rollign shutter duration is set to 0.0.
+		 * effect in use but rolling shutter duration is set to 0.0.
 		 */
 		const int shutter_table_offset = kernel_data.cam.shutter_table_offset;
 		ray->time = lookup_table_read(kg, time, shutter_table_offset, SHUTTER_TABLE_SIZE);
