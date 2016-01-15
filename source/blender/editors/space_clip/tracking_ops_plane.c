@@ -119,21 +119,16 @@ typedef struct SlidePlaneMarkerData {
 	bool accurate;
 } SlidePlaneMarkerData;
 
-/* TODO(sergey): Use closest sliding zone semantic here. */
-static bool mouse_on_plane_slide_zone(SpaceClip *sc,
-                                      float co[2],
-                                      float slide_zone[2],
-                                      int width,
-                                      int height)
+static float mouse_to_plane_slide_zone_distance_squared(
+        const float co[2],
+        const float slide_zone[2],
+        int width,
+        int height)
 {
-	const float size = 12.0f;
-	float dx, dy;
-
-	dx = size / width / sc->zoom;
-	dy = size / height / sc->zoom;
-
-	return IN_RANGE_INCL(co[0], slide_zone[0] - dx, slide_zone[0] + dx) &&
-	       IN_RANGE_INCL(co[1], slide_zone[1] - dy, slide_zone[1] + dy);
+	float pixel_co[2] = {co[0] * width, co[1] * height},
+	      pixel_slide_zone[2] = {slide_zone[0] * width, slide_zone[1] * height};
+	return SQUARE(pixel_co[0] - pixel_slide_zone[0]) +
+	       SQUARE(pixel_co[1] - pixel_slide_zone[1]);
 }
 
 static MovieTrackingPlaneTrack *tracking_plane_marker_check_slide(
@@ -141,6 +136,7 @@ static MovieTrackingPlaneTrack *tracking_plane_marker_check_slide(
         const wmEvent *event,
         int *corner_r)
 {
+	const float distance_clip_squared = 12.0f * 12.0f;
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -157,6 +153,9 @@ static MovieTrackingPlaneTrack *tracking_plane_marker_check_slide(
 
 	ED_clip_mouse_pos(sc, ar, event->mval, co);
 
+	float min_distance_squared = FLT_MAX;
+	int min_corner = -1;
+	MovieTrackingPlaneTrack *min_plane_track = NULL;
 	for (MovieTrackingPlaneTrack *plane_track = plane_tracks_base->first;
 	     plane_track != NULL;
 	     plane_track = plane_track->next)
@@ -164,28 +163,28 @@ static MovieTrackingPlaneTrack *tracking_plane_marker_check_slide(
 		if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
 			MovieTrackingPlaneMarker *plane_marker =
 			        BKE_tracking_plane_marker_get(plane_track, framenr);
-			bool ok = false;
-			int i;
+			for (int i = 0; i < 4; i++) {
+				float distance_squared =
+				        mouse_to_plane_slide_zone_distance_squared(
+				                co,
+				                plane_marker->corners[i],
+				                width,
+				                height);
 
-			for (i = 0; i < 4; i++) {
-				if (mouse_on_plane_slide_zone(sc,
-				                              co,
-				                              plane_marker->corners[i],
-				                              width,
-				                              height))
-				{
-					if (corner_r) {
-						*corner_r = i;
-					}
-					ok = true;
-					break;
+				if (distance_squared < min_distance_squared) {
+					min_distance_squared = distance_squared;
+					min_corner = i;
+					min_plane_track = plane_track;
 				}
 			}
-
-			if (ok) {
-				return plane_track;
-			}
 		}
+	}
+
+	if (min_distance_squared < distance_clip_squared / sc->zoom) {
+		if (corner_r != NULL) {
+			*corner_r = min_corner;
+		}
+		return min_plane_track;
 	}
 
 	return NULL;

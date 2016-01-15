@@ -723,7 +723,7 @@ MovieTrackingTrack *tracking_marker_check_slide(bContext *C,
 		track = track->next;
 	}
 
-	if (global_min_distance_squared < distance_clip_squared) {
+	if (global_min_distance_squared < distance_clip_squared / sc->zoom) {
 		if (area_r) {
 			*area_r = min_area;
 		}
