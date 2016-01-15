@@ -53,9 +53,17 @@ set(SRC
 	clip_utils.c
 	space_clip.c
 	tracking_ops.c
+	tracking_ops_detect.c
+	tracking_ops_orient.c
+	tracking_ops_plane.c
+	tracking_ops_solve.c
+	tracking_ops_track.c
+	tracking_ops_stabilize.c
+	tracking_ops_utils.c
 	tracking_select.c
 
 	clip_intern.h
+	tracking_ops_intern.h
 )
 
 add_definitions(${GL_DEFINITIONS})
