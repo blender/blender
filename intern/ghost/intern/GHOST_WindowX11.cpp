@@ -787,16 +787,16 @@ void GHOST_WindowX11::icccmSetState(int state)
 
 int GHOST_WindowX11::icccmGetState(void) const
 {
-	unsigned char *prop_ret;
+	Atom *prop_ret;
 	unsigned long bytes_after, num_ret;
 	Atom type_ret;
 	int format_ret, st;
 
 	prop_ret = NULL;
-	st = XGetWindowProperty(m_display, m_window, m_system->m_atom.WM_STATE, 0,
-	                        0x7fffffff, False, m_system->m_atom.WM_STATE, &type_ret,
-	                        &format_ret, &num_ret, &bytes_after, &prop_ret);
-
+	st = XGetWindowProperty(
+	        m_display, m_window, m_system->m_atom.WM_STATE, 0, 2,
+	        False, m_system->m_atom.WM_STATE, &type_ret,
+	        &format_ret, &num_ret, &bytes_after, ((unsigned char **)&prop_ret));
 	if ((st == Success) && (prop_ret) && (num_ret == 2))
 		st = prop_ret[0];
 	else
@@ -833,7 +833,7 @@ void GHOST_WindowX11::netwmMaximized(bool set)
 
 bool GHOST_WindowX11::netwmIsMaximized(void) const
 {
-	unsigned char *prop_ret;
+	Atom *prop_ret;
 	unsigned long bytes_after, num_ret, i;
 	Atom type_ret;
 	bool st;
@@ -841,16 +841,19 @@ bool GHOST_WindowX11::netwmIsMaximized(void) const
 
 	prop_ret = NULL;
 	st = False;
-	ret = XGetWindowProperty(m_display, m_window, m_system->m_atom._NET_WM_STATE, 0,
-	                         0x7fffffff, False, XA_ATOM, &type_ret, &format_ret,
-	                         &num_ret, &bytes_after, &prop_ret);
+	ret = XGetWindowProperty(
+	        m_display, m_window, m_system->m_atom._NET_WM_STATE, 0, INT_MAX,
+	        False, XA_ATOM, &type_ret, &format_ret,
+	        &num_ret, &bytes_after, (unsigned char **)&prop_ret);
 	if ((ret == Success) && (prop_ret) && (format_ret == 32)) {
 		count = 0;
 		for (i = 0; i < num_ret; i++) {
-			if (((unsigned long *) prop_ret)[i] == m_system->m_atom._NET_WM_STATE_MAXIMIZED_HORZ)
+			if (prop_ret[i] == m_system->m_atom._NET_WM_STATE_MAXIMIZED_HORZ) {
 				count++;
-			if (((unsigned long *) prop_ret)[i] == m_system->m_atom._NET_WM_STATE_MAXIMIZED_VERT)
+			}
+			if (prop_ret[i] == m_system->m_atom._NET_WM_STATE_MAXIMIZED_VERT) {
 				count++;
+			}
 			if (count == 2) {
 				st = True;
 				break;
@@ -889,7 +892,7 @@ void GHOST_WindowX11::netwmFullScreen(bool set)
 
 bool GHOST_WindowX11::netwmIsFullScreen(void) const
 {
-	unsigned char *prop_ret;
+	Atom *prop_ret;
 	unsigned long bytes_after, num_ret, i;
 	Atom type_ret;
 	bool st;
@@ -897,12 +900,13 @@ bool GHOST_WindowX11::netwmIsFullScreen(void) const
 
 	prop_ret = NULL;
 	st = False;
-	ret = XGetWindowProperty(m_display, m_window, m_system->m_atom._NET_WM_STATE, 0,
-	                         0x7fffffff, False, XA_ATOM, &type_ret, &format_ret,
-	                         &num_ret, &bytes_after, &prop_ret);
+	ret = XGetWindowProperty(
+	        m_display, m_window, m_system->m_atom._NET_WM_STATE, 0, INT_MAX,
+	        False, XA_ATOM, &type_ret, &format_ret,
+	        &num_ret, &bytes_after, (unsigned char **)&prop_ret);
 	if ((ret == Success) && (prop_ret) && (format_ret == 32)) {
 		for (i = 0; i < num_ret; i++) {
-			if (((unsigned long *) prop_ret)[i] == m_system->m_atom._NET_WM_STATE_FULLSCREEN) {
+			if (prop_ret[i] == m_system->m_atom._NET_WM_STATE_FULLSCREEN) {
 				st = True;
 				break;
 			}
@@ -931,23 +935,22 @@ void GHOST_WindowX11::motifFullScreen(bool set)
 
 bool GHOST_WindowX11::motifIsFullScreen(void) const
 {
-	unsigned char *prop_ret;
+	MotifWmHints *prop_ret;
 	unsigned long bytes_after, num_ret;
-	MotifWmHints *hints;
 	Atom type_ret;
 	bool state;
 	int format_ret, st;
 
 	prop_ret = NULL;
 	state = False;
-	st = XGetWindowProperty(m_display, m_window, m_system->m_atom._MOTIF_WM_HINTS, 0,
-	                        0x7fffffff, False, m_system->m_atom._MOTIF_WM_HINTS,
-	                        &type_ret, &format_ret, &num_ret,
-	                        &bytes_after, &prop_ret);
-	if ((st == Success) && (prop_ret)) {
-		hints = (MotifWmHints *) prop_ret;
-		if (hints->flags & MWM_HINTS_DECORATIONS) {
-			if (!hints->decorations)
+	st = XGetWindowProperty(
+	        m_display, m_window, m_system->m_atom._MOTIF_WM_HINTS, 0, INT_MAX,
+	        False, m_system->m_atom._MOTIF_WM_HINTS,
+	        &type_ret, &format_ret, &num_ret,
+	        &bytes_after, (unsigned char **)&prop_ret);
+	if ((st == Success) && prop_ret) {
+		if (prop_ret->flags & MWM_HINTS_DECORATIONS) {
+			if (!prop_ret->decorations)
 				state = True;
 		}
 	}
