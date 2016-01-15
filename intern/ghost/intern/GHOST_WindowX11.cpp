@@ -355,22 +355,17 @@ GHOST_WindowX11(GHOST_SystemX11 *system,
 #endif
 
 	if (state == GHOST_kWindowStateMaximized || state == GHOST_kWindowStateFullScreen) {
-		Atom _NET_WM_STATE = XInternAtom(m_display, "_NET_WM_STATE", False);
-		Atom _NET_WM_STATE_MAXIMIZED_VERT = XInternAtom(m_display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
-		Atom _NET_WM_STATE_MAXIMIZED_HORZ = XInternAtom(m_display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-		Atom _NET_WM_STATE_FULLSCREEN     = XInternAtom(m_display, "_NET_WM_STATE_FULLSCREEN", False);
 		Atom atoms[2];
 		int count = 0;
-
 		if (state == GHOST_kWindowStateMaximized) {
-			atoms[count++] = _NET_WM_STATE_MAXIMIZED_VERT;
-			atoms[count++] = _NET_WM_STATE_MAXIMIZED_HORZ;
+			atoms[count++] = m_system->m_atom._NET_WM_STATE_MAXIMIZED_VERT;
+			atoms[count++] = m_system->m_atom._NET_WM_STATE_MAXIMIZED_HORZ;
 		}
 		else {
-			atoms[count++] = _NET_WM_STATE_FULLSCREEN;
+			atoms[count++] = m_system->m_atom._NET_WM_STATE_FULLSCREEN;
 		}
 
-		XChangeProperty(m_display, m_window, _NET_WM_STATE, XA_ATOM, 32,
+		XChangeProperty(m_display, m_window, m_system->m_atom._NET_WM_STATE, XA_ATOM, 32,
 		                PropModeReplace, (unsigned char *)atoms, count);
 		m_post_init = False;
 	}
