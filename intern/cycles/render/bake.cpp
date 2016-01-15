@@ -131,7 +131,7 @@ void BakeManager::set_shader_limit(const size_t x, const size_t y)
 	m_shader_limit = (size_t)pow(2, ceil(log(m_shader_limit)/log(2)));
 }
 
-bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress, ShaderEvalType shader_type, BakeData *bake_data, float result[])
+bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress, ShaderEvalType shader_type, const int pass_filter, BakeData *bake_data, float result[])
 {
 	size_t num_pixels = bake_data->size();
 
@@ -183,6 +183,7 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 		task.shader_input = d_input.device_pointer;
 		task.shader_output = d_output.device_pointer;
 		task.shader_eval_type = shader_type;
+		task.shader_filter = pass_filter;
 		task.shader_x = 0;
 		task.offset = shader_offset;
 		task.shader_w = d_output.size();
@@ -254,21 +255,28 @@ bool BakeManager::is_aa_pass(ShaderEvalType type)
 	}
 }
 
-bool BakeManager::is_light_pass(ShaderEvalType type)
+/* Keep it synced with kernel_bake.h::is_light_pass. */
+bool BakeManager::is_light_pass(ShaderEvalType type, const int pass_filter)
 {
 	switch(type) {
 		case SHADER_EVAL_AO:
-		case SHADER_EVAL_COMBINED:
 		case SHADER_EVAL_SHADOW:
-		case SHADER_EVAL_DIFFUSE_DIRECT:
-		case SHADER_EVAL_GLOSSY_DIRECT:
-		case SHADER_EVAL_TRANSMISSION_DIRECT:
-		case SHADER_EVAL_SUBSURFACE_DIRECT:
-		case SHADER_EVAL_DIFFUSE_INDIRECT:
-		case SHADER_EVAL_GLOSSY_INDIRECT:
-		case SHADER_EVAL_TRANSMISSION_INDIRECT:
-		case SHADER_EVAL_SUBSURFACE_INDIRECT:
 			return true;
+		case SHADER_EVAL_DIFFUSE:
+		case SHADER_EVAL_GLOSSY:
+		case SHADER_EVAL_TRANSMISSION:
+		case SHADER_EVAL_SUBSURFACE:
+			return ((pass_filter & BAKE_FILTER_DIRECT) != 0) ||
+			       ((pass_filter & BAKE_FILTER_INDIRECT) != 0);
+		case SHADER_EVAL_COMBINED:
+			return ((pass_filter & BAKE_FILTER_AO) != 0) ||
+			       ((pass_filter & BAKE_FILTER_EMISSION) != 0) ||
+			       ((((pass_filter & BAKE_FILTER_DIRECT) != 0) ||
+			         ((pass_filter & BAKE_FILTER_INDIRECT) != 0)) &&
+			        (((pass_filter & BAKE_FILTER_DIFFUSE) != 0) ||
+			         ((pass_filter & BAKE_FILTER_GLOSSY) != 0) ||
+			         ((pass_filter & BAKE_FILTER_TRANSMISSION) != 0) ||
+			         ((pass_filter & BAKE_FILTER_SUBSURFACE) != 0)));
 		default:
 			return false;
 	}

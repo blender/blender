@@ -44,6 +44,7 @@ void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
                                        float4 *output,
                                        float *output_luma,
                                        int type,
+                                       int filter,
                                        int i,
                                        int offset,
                                        int sample);

@@ -316,22 +316,14 @@ static ShaderEvalType get_shader_type(const string& pass_type)
 		return SHADER_EVAL_COMBINED;
 	else if(strcmp(shader_type, "SHADOW")==0)
 		return SHADER_EVAL_SHADOW;
-	else if(strcmp(shader_type, "DIFFUSE_DIRECT")==0)
-		return SHADER_EVAL_DIFFUSE_DIRECT;
-	else if(strcmp(shader_type, "GLOSSY_DIRECT")==0)
-		return SHADER_EVAL_GLOSSY_DIRECT;
-	else if(strcmp(shader_type, "TRANSMISSION_DIRECT")==0)
-		return SHADER_EVAL_TRANSMISSION_DIRECT;
-	else if(strcmp(shader_type, "SUBSURFACE_DIRECT")==0)
-		return SHADER_EVAL_SUBSURFACE_DIRECT;
-	else if(strcmp(shader_type, "DIFFUSE_INDIRECT")==0)
-		return SHADER_EVAL_DIFFUSE_INDIRECT;
-	else if(strcmp(shader_type, "GLOSSY_INDIRECT")==0)
-		return SHADER_EVAL_GLOSSY_INDIRECT;
-	else if(strcmp(shader_type, "TRANSMISSION_INDIRECT")==0)
-		return SHADER_EVAL_TRANSMISSION_INDIRECT;
-	else if(strcmp(shader_type, "SUBSURFACE_INDIRECT")==0)
-		return SHADER_EVAL_SUBSURFACE_INDIRECT;
+	else if(strcmp(shader_type, "DIFFUSE")==0)
+		return SHADER_EVAL_DIFFUSE;
+	else if(strcmp(shader_type, "GLOSSY")==0)
+		return SHADER_EVAL_GLOSSY;
+	else if(strcmp(shader_type, "TRANSMISSION")==0)
+		return SHADER_EVAL_TRANSMISSION;
+	else if(strcmp(shader_type, "SUBSURFACE")==0)
+		return SHADER_EVAL_SUBSURFACE;
 
 	/* extra */
 	else if(strcmp(shader_type, "ENVIRONMENT")==0)
@@ -543,11 +535,47 @@ static void populate_bake_data(BakeData *data, const int object_id, BL::BakePixe
 	}
 }
 
-void BlenderSession::bake(BL::Object b_object, const string& pass_type, const int object_id, BL::BakePixel pixel_array, const size_t num_pixels, const int /*depth*/, float result[])
+static int bake_pass_filter_get(const int pass_filter)
+{
+	int flag = BAKE_FILTER_NONE;
+
+	if((pass_filter & BL::BakeSettings::pass_filter_DIRECT) != 0)
+		flag |= BAKE_FILTER_DIRECT;
+	if((pass_filter & BL::BakeSettings::pass_filter_INDIRECT) != 0)
+		flag |= BAKE_FILTER_INDIRECT;
+	if((pass_filter & BL::BakeSettings::pass_filter_COLOR) != 0)
+		flag |= BAKE_FILTER_COLOR;
+
+	if((pass_filter & BL::BakeSettings::pass_filter_DIFFUSE) != 0)
+		flag |= BAKE_FILTER_DIFFUSE;
+	if((pass_filter & BL::BakeSettings::pass_filter_GLOSSY) != 0)
+		flag |= BAKE_FILTER_GLOSSY;
+	if((pass_filter & BL::BakeSettings::pass_filter_TRANSMISSION) != 0)
+		flag |= BAKE_FILTER_TRANSMISSION;
+	if((pass_filter & BL::BakeSettings::pass_filter_SUBSURFACE) != 0)
+		flag |= BAKE_FILTER_SUBSURFACE;
+
+	if((pass_filter & BL::BakeSettings::pass_filter_EMIT) != 0)
+		flag |= BAKE_FILTER_EMISSION;
+	if((pass_filter & BL::BakeSettings::pass_filter_AO) != 0)
+		flag |= BAKE_FILTER_AO;
+
+	return flag;
+}
+
+void BlenderSession::bake(BL::Object b_object,
+                          const string& pass_type,
+                          const int pass_filter,
+                          const int object_id,
+                          BL::BakePixel pixel_array,
+                          const size_t num_pixels,
+                          const int /*depth*/,
+                          float result[])
 {
 	ShaderEvalType shader_type = get_shader_type(pass_type);
 	size_t object_index = OBJECT_NONE;
 	int tri_offset = 0;
+	int bake_pass_filter = bake_pass_filter_get(pass_filter);
 
 	/* Set baking flag in advance, so kernel loading can check if we need
 	 * any baking capabilities.
@@ -565,7 +593,7 @@ void BlenderSession::bake(BL::Object b_object, const string& pass_type, const in
 		Pass::add(PASS_UV, scene->film->passes);
 	}
 
-	if(BakeManager::is_light_pass(shader_type)) {
+	if(BakeManager::is_light_pass(shader_type, bake_pass_filter)) {
 		/* force use_light_pass to be true */
 		Pass::add(PASS_LIGHT, scene->film->passes);
 	}
@@ -617,7 +645,7 @@ void BlenderSession::bake(BL::Object b_object, const string& pass_type, const in
 
 	session->progress.set_update_callback(function_bind(&BlenderSession::update_bake_progress, this));
 
-	scene->bake_manager->bake(scene->device, &scene->dscene, scene, session->progress, shader_type, bake_data, result);
+	scene->bake_manager->bake(scene->device, &scene->dscene, scene, session->progress, shader_type, bake_pass_filter, bake_data, result);
 
 	/* free all memory used (host and device), so we wouldn't leave render
 	 * engine with extra memory allocated

@@ -397,7 +397,7 @@ public:
 #ifdef WITH_OSL
 		OSLShader::thread_init(&kg, &kernel_globals, &osl_globals);
 #endif
-		void(*shader_kernel)(KernelGlobals*, uint4*, float4*, float*, int, int, int, int);
+		void(*shader_kernel)(KernelGlobals*, uint4*, float4*, float*, int, int, int, int, int);
 
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX2
 		if(system_cpu_support_avx2()) {
@@ -440,6 +440,7 @@ public:
 				              (float4*)task.shader_output,
 				              (float*)task.shader_output_luma,
 				              task.shader_eval_type,
+				              task.shader_filter,
 				              x,
 				              task.offset,
 				              sample);

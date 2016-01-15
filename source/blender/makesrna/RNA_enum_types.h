@@ -141,6 +141,9 @@ extern EnumPropertyItem rna_enum_controller_type_items[];
 extern EnumPropertyItem rna_enum_render_pass_type_items[];
 extern EnumPropertyItem rna_enum_render_pass_debug_type_items[];
 
+extern EnumPropertyItem rna_enum_bake_pass_type_items[];
+extern EnumPropertyItem rna_enum_bake_pass_filter_type_items[];
+
 extern EnumPropertyItem rna_enum_keymap_propvalue_items[];
 
 extern EnumPropertyItem rna_enum_operator_context_items[];

@@ -528,6 +528,7 @@ void BKE_scene_init(Scene *sce)
 	sce->r.bake_biasdist = 0.001;
 
 	sce->r.bake.flag = R_BAKE_CLEAR;
+	sce->r.bake.pass_filter = R_BAKE_PASS_FILTER_ALL;
 	sce->r.bake.width = 512;
 	sce->r.bake.height = 512;
 	sce->r.bake.margin = 16;

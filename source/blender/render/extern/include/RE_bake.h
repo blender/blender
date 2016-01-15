@@ -72,7 +72,7 @@ bool RE_bake_has_engine(struct Render *re);
 
 bool RE_bake_engine(
         struct Render *re, struct Object *object, const int object_id, const BakePixel pixel_array[],
-        const size_t num_pixels, const int depth, const ScenePassType pass_type, float result[]);
+        const size_t num_pixels, const int depth, const ScenePassType pass_type, const int pass_filter, float result[]);
 
 /* bake.c */
 int RE_pass_depth(const ScenePassType pass_type);
