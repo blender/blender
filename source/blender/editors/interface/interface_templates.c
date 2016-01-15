@@ -1636,7 +1636,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 	h = UI_UNIT_X * (args.icon_scale + args.show_labels);
 
 	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS_PULLDOWN);
-	UI_block_flag_enable(block, UI_BLOCK_LOOP);
+	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_NO_FLIP);
 
 	RNA_property_enum_items(C, &args.ptr, args.prop, &item, NULL, &free);
 
@@ -1644,7 +1644,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *ar, void *arg_litem)
 		int x, y;
 
 		x = (a % 8) * w;
-		y = (a / 8) * h;
+		y = -(a / 8) * h;
 
 		icon = item[a].icon;
 		value = item[a].value;
