@@ -1490,7 +1490,6 @@ void RE_TileProcessor(Render *re)
 static void do_render_3d(Render *re)
 {
 	RenderView *rv;
-	int cfra_backup;
 
 	re->current_scene_update(re->suh, re->scene);
 
@@ -1502,9 +1501,10 @@ static void do_render_3d(Render *re)
 	RE_parts_clamp(re);
 	
 	/* add motion blur and fields offset to frames */
-	cfra_backup = re->scene->r.cfra;
+	const int cfra_backup = re->scene->r.cfra;
+	const float subframe_backup = re->scene->r.subframe;
 
-	BKE_scene_frame_set(re->scene, (double)re->scene->r.cfra + (double)re->mblur_offs + (double)re->field_offs);
+	BKE_scene_frame_set(re->scene, (double)re->scene->r.cfra + re->scene->r.subframe + re->mblur_offs + re->field_offs);
 
 	/* init main render result */
 	main_render_result_new(re);
@@ -1556,7 +1556,7 @@ static void do_render_3d(Render *re)
 	main_render_result_end(re);
 
 	re->scene->r.cfra = cfra_backup;
-	re->scene->r.subframe = 0.f;
+	re->scene->r.subframe = subframe_backup;
 }
 
 /* called by blur loop, accumulate RGBA key alpha */
