@@ -1564,7 +1564,7 @@ typedef struct SculptDoBrushSmoothGridDataChunk {
 	size_t tmpgrid_size;
 } SculptDoBrushSmoothGridDataChunk;
 
-static void do_smooth_brush_mesh_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
+static void do_smooth_brush_mesh_task_cb(void *userdata, int n)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -1610,7 +1610,7 @@ static void do_smooth_brush_mesh_task_cb(void *userdata, void *UNUSED(userdata_c
 	BKE_pbvh_vertex_iter_end;
 }
 
-static void do_smooth_brush_bmesh_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
+static void do_smooth_brush_bmesh_task_cb(void *userdata, int n)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
