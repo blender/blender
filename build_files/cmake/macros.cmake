@@ -799,17 +799,6 @@ macro(TEST_SSE_SUPPORT
 	unset(CMAKE_REQUIRED_FLAGS)
 endmacro()
 
-macro(TEST_STDBOOL_SUPPORT)
-	include(CheckCSourceRuns)
-
-	# This program will compile correctly if and only if
-	# this C compiler supports C99 stdbool.
-	check_c_source_runs("
-		#include <stdbool.h>
-		int main(void) { return (int)false; }"
-	HAVE_STDBOOL_H)
-endmacro()
-
 # Only print message if running CMake first time
 macro(message_first_run)
 	if(FIRST_RUN)

@@ -726,11 +726,6 @@ else()
 	set(COMPILER_SSE2_FLAG)
 endif()
 
-TEST_STDBOOL_SUPPORT()
-if(HAVE_STDBOOL_H)
-	add_definitions(-DHAVE_STDBOOL_H)
-endif()
-
 TEST_SHARED_PTR_SUPPORT()
 TEST_UNORDERED_MAP_SUPPORT()
 
@@ -3050,9 +3045,6 @@ if(FIRST_RUN)
 	if(WIN32)
 		info_cfg_option(WITH_GL_ANGLE)
 	endif()
-
-	# debug
-	message(STATUS "HAVE_STDBOOL_H = ${HAVE_STDBOOL_H}")
 
 	info_cfg_text("")
 
