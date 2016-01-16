@@ -490,7 +490,7 @@ typedef enum BakeSaveMode {
 } BakeSaveMode;
 
 /* bake->pass_filter */
-typedef enum BakePassFilter{
+typedef enum BakePassFilter {
 	R_BAKE_PASS_FILTER_NONE           = 0,
 	R_BAKE_PASS_FILTER_AO             = (1 << 0),
 	R_BAKE_PASS_FILTER_EMIT           = (1 << 1),

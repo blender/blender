@@ -29,8 +29,8 @@
  *  \ingroup spclip
  */
 
-#ifndef __CLIP_TRACKING_INTERN__
-#define __CLIP_TRACKING_INTERN__
+#ifndef __TRACKING_OPS_INTERN_INTERN__
+#define __TRACKING_OPS_INTERN_INTERN__
 
 struct bContext;
 struct SpaceClip;
@@ -42,4 +42,4 @@ void clip_tracking_clear_invisible_track_selection(struct SpaceClip *sc,
 void clip_tracking_show_cursor(struct bContext *C);
 void clip_tracking_hide_cursor(struct bContext *C);
 
-#endif /* __CLIP_TRACKING_INTERN__ */
+#endif /* __TRACKING_OPS_INTERN_INTERN__ */

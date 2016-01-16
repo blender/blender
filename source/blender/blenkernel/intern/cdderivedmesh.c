@@ -355,7 +355,7 @@ static void cdDM_update_normals_from_pbvh(DerivedMesh *dm)
 	 * case modifier stack is re-constructed from scratch on every
 	 * update.
 	 */
-	if(!cddm->pbvh_draw) {
+	if (!cddm->pbvh_draw) {
 		return;
 	}
 

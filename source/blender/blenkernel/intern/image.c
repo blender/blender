@@ -2222,7 +2222,7 @@ void BKE_imbuf_write_prepare(ImBuf *ibuf, const ImageFormatData *imf)
 		if (imf->tiff_codec == R_IMF_TIFF_CODEC_NONE) {
 			ibuf->foptions.flag |= TIF_COMPRESS_NONE;
 		}
-		else if (imf->tiff_codec== R_IMF_TIFF_CODEC_DEFLATE) {
+		else if (imf->tiff_codec == R_IMF_TIFF_CODEC_DEFLATE) {
 			ibuf->foptions.flag |= TIF_COMPRESS_DEFLATE;
 		}
 		else if (imf->tiff_codec == R_IMF_TIFF_CODEC_LZW) {

@@ -1361,7 +1361,7 @@ static int hide_tracks_clear_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* Unhide plane tracks. */
 	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
-	for (MovieTrackingPlaneTrack *plane_track= plane_tracks_base->first;
+	for (MovieTrackingPlaneTrack *plane_track = plane_tracks_base->first;
 	     plane_track != NULL;
 	     plane_track = plane_track->next)
 	{
