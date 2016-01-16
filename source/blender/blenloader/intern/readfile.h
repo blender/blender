@@ -75,7 +75,7 @@ typedef struct FileData {
 	// general reading variables
 	struct SDNA *filesdna;
 	struct SDNA *memsdna;
-	char *compflags;
+	char *compflags;        /* array of eSDNA_StructCompare */
 	
 	int fileversion;
 	int id_name_offs;       /* used to retrieve ID names from (bhead+1) */

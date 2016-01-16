@@ -582,7 +582,7 @@ static void recurs_test_compflags(const SDNA *sdna, char *compflags, int structn
 	typenr = sp[0];
 	
 	for (a = 0; a < sdna->nr_structs; a++) {
-		if (a != structnr && compflags[a] == 1) {
+		if ((a != structnr) && (compflags[a] == SDNA_CMP_EQUAL)) {
 			sp = sdna->structs[a];
 			elems = sp[1];
 			sp += 2;
@@ -590,7 +590,7 @@ static void recurs_test_compflags(const SDNA *sdna, char *compflags, int structn
 				if (sp[0] == typenr) {
 					cp = sdna->names[sp[1]];
 					if (!ispointer(cp)) {
-						compflags[a] = 2;
+						compflags[a] = SDNA_CMP_NOT_EQUAL;
 						recurs_test_compflags(sdna, compflags, a);
 					}
 				}
@@ -635,7 +635,8 @@ char *DNA_struct_get_compareflags(SDNA *oldsdna, SDNA *newsdna)
 		sp_new = findstruct_name(newsdna, oldsdna->types[sp_old[0]]);
 		
 		if (sp_new) {
-			compflags[a] = 2; /* initial assumption */
+			/* initial assumption */
+			compflags[a] = SDNA_CMP_NOT_EQUAL;
 			
 			/* compare length and amount of elems */
 			if (sp_new[1] == sp_old[1]) {
@@ -663,7 +664,10 @@ char *DNA_struct_get_compareflags(SDNA *oldsdna, SDNA *newsdna)
 						sp_old += 2;
 						sp_new += 2;
 					}
-					if (b == 0) compflags[a] = 1; /* no differences found */
+					if (b == 0) {
+						/* no differences found */
+						compflags[a] = SDNA_CMP_EQUAL;
+					}
 
 				}
 			}
@@ -674,18 +678,20 @@ char *DNA_struct_get_compareflags(SDNA *oldsdna, SDNA *newsdna)
 	/* first struct in util.h is struct Link, this is skipped in compflags (als # 0).
 	 * was a bug, and this way dirty patched! Solve this later....
 	 */
-	compflags[0] = 1;
+	compflags[0] = SDNA_CMP_EQUAL;
 
 	/* Because structs can be inside structs, we recursively
 	 * set flags when a struct is altered
 	 */
 	for (a = 0; a < oldsdna->nr_structs; a++) {
-		if (compflags[a] == 2) recurs_test_compflags(oldsdna, compflags, a);
+		if (compflags[a] == SDNA_CMP_NOT_EQUAL) {
+			recurs_test_compflags(oldsdna, compflags, a);
+		}
 	}
 	
 #if 0
 	for (a = 0; a < oldsdna->nr_structs; a++) {
-		if (compflags[a] == 2) {
+		if (compflags[a] == SDNA_CMP_NOT_EQUAL) {
 			spold = oldsdna->structs[a];
 			printf("changed: %s\n", oldsdna->types[spold[0]]);
 		}
@@ -1040,8 +1046,8 @@ static void reconstruct_struct(
 	if (oldSDNAnr == -1) return;
 	if (curSDNAnr == -1) return;
 
-	if (compflags[oldSDNAnr] == 1) {        /* if recursive: test for equal */
-	
+	if (compflags[oldSDNAnr] == SDNA_CMP_EQUAL) {
+		/* if recursive: test for equal */
 		spo = oldsdna->structs[oldSDNAnr];
 		elen = oldsdna->typelens[spo[0]];
 		memcpy(cur, data, elen);

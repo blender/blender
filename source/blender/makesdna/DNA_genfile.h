@@ -65,6 +65,14 @@ typedef enum eSDNA_Type {
 	SDNA_TYPE_UINT64   = 11
 } eSDNA_Type;
 
+/**
+ * For use with #DNA_struct_reconstruct & #DNA_struct_get_compareflags
+ */
+enum eSDNA_StructCompare {
+	SDNA_CMP_REMOVED    = 0,
+	SDNA_CMP_EQUAL      = 1,
+	SDNA_CMP_NOT_EQUAL  = 2,
+};
 
 struct SDNA *DNA_sdna_from_data(const void *data, const int datalen, bool do_endian_swap);
 void DNA_sdna_free(struct SDNA *sdna);
