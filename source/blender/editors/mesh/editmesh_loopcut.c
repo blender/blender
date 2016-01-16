@@ -117,8 +117,6 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 			glVertexPointer(3, GL_FLOAT, 0, lcd->points);
 			glDrawArrays(GL_POINTS, 0, lcd->totpoint);
 			glDisableClientState(GL_VERTEX_ARRAY);
-
-			glPointSize(1.0f);
 		}
 
 		glPopMatrix();

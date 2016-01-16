@@ -112,9 +112,7 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
 			glVertex2f(fed->time, fed->max);
 		}
 	}
-	glEnd();  /* GL_POINTS */
-	
-	glPointSize(1.0f);
+	glEnd();
 }
 
 /* *************************** */
@@ -152,7 +150,7 @@ static void draw_fcurve_vertices_keyframes(FCurve *fcu, SpaceIpo *UNUSED(sipo), 
 		}
 	}
 	
-	glEnd();  /* GL_POINTS */
+	glEnd();
 }
 
 
@@ -288,8 +286,6 @@ static void draw_fcurve_vertices(SpaceIpo *sipo, ARegion *ar, FCurve *fcu, short
 	
 	set_fcurve_vertex_color(fcu, 1);
 	draw_fcurve_vertices_keyframes(fcu, sipo, v2d, !(fcu->flag & FCURVE_PROTECTED), 1);
-	
-	glPointSize(1.0f);
 }
 
 /* Handles ---------------- */
@@ -915,8 +911,6 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 			glBegin(GL_POINTS);
 			glVertex2f(x, y);
 			glEnd();
-			
-			glPointSize(1.0f);
 		}
 	}
 }

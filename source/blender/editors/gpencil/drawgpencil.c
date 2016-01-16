@@ -105,9 +105,9 @@ static void gp_draw_stroke_buffer(tGPspoint *points, int totpoints, short thickn
 	if (dflag & (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_ONLYV2D))
 		return;
 	
-	/* if drawing a single point, draw it larger */
 	if (totpoints == 1) {
-		/* draw point */
+		/* if drawing a single point, draw it larger */
+		glPointSize((float)(thickness + 2) * points->pressure);
 		glBegin(GL_POINTS);
 		glVertex2iv(&points->x);
 		glEnd();
@@ -1123,7 +1123,6 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 	
 	/* restore initial gl conditions */
 	glLineWidth(1.0);
-	glPointSize(1.0);
 	glColor4f(0, 0, 0, 1);
 }
 

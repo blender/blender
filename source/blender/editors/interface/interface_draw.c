@@ -728,6 +728,8 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 		/* LUMA (1 channel) */
 		glBlendFunc(GL_ONE, GL_ONE);
 		glColor3f(alpha, alpha, alpha);
+		glPointSize(1.0);
+
 		if (scopes->wavefrm_mode == SCOPES_WAVEFRM_LUMA) {
 
 			glBlendFunc(GL_ONE, GL_ONE);
@@ -944,6 +946,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 		glScalef(diam, diam, 0.f);
 
 		glVertexPointer(2, GL_FLOAT, 0, scopes->vecscope);
+		glPointSize(1.0);
 		glDrawArrays(GL_POINTS, 0, scopes->waveform_tot);
 		
 		glDisableClientState(GL_VERTEX_ARRAY);
@@ -1517,7 +1520,6 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 		glVertex2fv(fac);
 	}
 	glEnd();
-	glPointSize(1.0f);
 	
 	/* restore scissortest */
 	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);

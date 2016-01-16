@@ -923,6 +923,7 @@ bool GPU_fx_do_composite_pass(
 				glDisable(GL_DEPTH_TEST);
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_ONE, GL_ONE);
+				glPointSize(1.0f);
 				/* have to clear the buffer unfortunately */
 				glClearColor(0.0, 0.0, 0.0, 0.0);
 				glClear(GL_COLOR_BUFFER_BIT);

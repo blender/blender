@@ -856,12 +856,13 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		float cent[2];
 		
 		pointsize = UI_GetThemeValuef(TH_FACEDOT_SIZE);
-		glPointSize(pointsize); // TODO - drawobject.c changes this value after - Investigate!
+		glPointSize(pointsize);
 		
+		glBegin(GL_POINTS);
+
 		/* unselected faces */
 		UI_ThemeColor(TH_WIRE);
 
-		glBegin(GL_POINTS);
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 				continue;
@@ -871,12 +872,10 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 				glVertex2fv(cent);
 			}
 		}
-		glEnd();
 
 		/* selected faces */
 		UI_ThemeColor(TH_FACE_DOT);
 
-		glBegin(GL_POINTS);
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 				continue;
@@ -886,6 +885,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 				glVertex2fv(cent);
 			}
 		}
+
 		glEnd();
 	}
 
@@ -947,8 +947,6 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		}
 		glEnd();
 	}
-
-	glPointSize(1.0);
 }
 
 

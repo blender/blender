@@ -467,7 +467,6 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 		glVertex2f(path[i][0], path[i][1]);
 	}
 	glEnd();
-	glPointSize(1.0f);
 }
 
 static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
@@ -495,12 +494,10 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 		if (isect_point_quad_v2(p, marker->pattern_corners[0], marker->pattern_corners[1],
 		                        marker->pattern_corners[2], marker->pattern_corners[3]))
 		{
-			if (tiny) glPointSize(3.0f);
-			else glPointSize(4.0f);
+			glPointSize(tiny ? 3.0f : 4.0f);
 			glBegin(GL_POINTS);
 			glVertex2f(pos[0], pos[1]);
 			glEnd();
-			glPointSize(1.0f);
 		}
 		else {
 			if (!tiny) glLineWidth(3.0f);
@@ -612,15 +609,10 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		if (isect_point_quad_v2(p, marker->pattern_corners[0], marker->pattern_corners[1],
 		                        marker->pattern_corners[2], marker->pattern_corners[3]))
 		{
-			if (!tiny)
-				glPointSize(2.0f);
-
+			glPointSize(tiny ? 1.0f : 2.0f);
 			glBegin(GL_POINTS);
 			glVertex2f(pos[0], pos[1]);
 			glEnd();
-
-			if (!tiny)
-				glPointSize(1.0f);
 		}
 		else {
 			glBegin(GL_LINES);
@@ -1451,7 +1443,6 @@ static void draw_tracking_tracks(SpaceClip *sc, Scene *scene, ARegion *ar, Movie
 			track = track->next;
 		}
 
-		glPointSize(1.0f);
 		glDisable(GL_POINT_SMOOTH);
 	}
 
@@ -1677,7 +1668,6 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		}
 
 		glLineWidth(1.0f);
-		glPointSize(1.0f);
 	}
 
 	glPopMatrix();

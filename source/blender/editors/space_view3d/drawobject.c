@@ -135,7 +135,6 @@ typedef struct drawDMVerts_userData {
 	unsigned char th_vertex_select[4];
 	unsigned char th_vertex[4];
 	unsigned char th_skin_root[4];
-	float th_vertex_size;
 
 	/* for skin node drawing */
 	int cd_vskin_offset;
@@ -972,7 +971,6 @@ static void drawshadbuflimits(Lamp *la, float mat[4][4])
 	glVertex3fv(sta);
 	glVertex3fv(end);
 	glEnd();
-	glPointSize(1.0);
 }
 
 static void spotvolume(float lvec[3], float vvec[3], const float inp)
@@ -1501,7 +1499,6 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 	glBegin(GL_POINTS);
 	glVertex3fv(vec);
 	glEnd();
-	glPointSize(1.0);
 	
 	glDisable(GL_BLEND);
 	
@@ -1529,7 +1526,6 @@ static void draw_limit_line(float sta, float end, const short dflag, const unsig
 		glVertex3f(0.0, 0.0, -sta);
 		glVertex3f(0.0, 0.0, -end);
 		glEnd();
-		glPointSize(1.0);
 	}
 }
 
@@ -2234,7 +2230,6 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, BPoint *actbp, short s
 	}
 	
 	glEnd();
-	glPointSize(1.0);
 }
 
 static void drawlattice__point(Lattice *lt, DispList *dl, int u, int v, int w, int actdef_wcol)
@@ -2567,20 +2562,13 @@ static void draw_dm_verts__mapFunc(void *userData, int index, const float co[3],
 			}
 		}
 
-		/* draw active larger - need to stop/start point drawing for this :/ */
+		/* draw active in a different color - no need to stop/start point drawing for this :D */
 		if (eve == data->eve_act) {
 			glColor4ubv(data->th_editmesh_active);
-			
-			glEnd();
-			
-			glPointSize(data->th_vertex_size);
-			glBegin(GL_POINTS);
 			glVertex3fv(co);
-			glEnd();
 
+			/* back to regular vertex color */
 			glColor4ubv(data->sel ? data->th_vertex_select : data->th_vertex);
-			glPointSize(data->th_vertex_size);
-			glBegin(GL_POINTS);
 		}
 		else {
 			glVertex3fv(co);
@@ -2601,7 +2589,6 @@ static void draw_dm_verts(BMEditMesh *em, DerivedMesh *dm, const char sel, BMVer
 	UI_GetThemeColor4ubv(TH_VERTEX_SELECT, data.th_vertex_select);
 	UI_GetThemeColor4ubv(TH_VERTEX, data.th_vertex);
 	UI_GetThemeColor4ubv(TH_SKIN_ROOT, data.th_skin_root);
-	data.th_vertex_size = UI_GetThemeValuef(TH_VERTEX_SIZE);
 
 	/* For skin root drawing */
 	data.cd_vskin_offset = CustomData_get_offset(&em->bm->vdata, CD_MVERT_SKIN);
@@ -2609,6 +2596,7 @@ static void draw_dm_verts(BMEditMesh *em, DerivedMesh *dm, const char sel, BMVer
 	mul_m4_m4m4(data.imat, rv3d->viewmat, em->ob->obmat);
 	invert_m4(data.imat);
 
+	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	glBegin(GL_POINTS);
 	dm->foreachMappedVert(dm, draw_dm_verts__mapFunc, &data, DM_FOREACH_NOP);
 	glEnd();
@@ -3182,7 +3170,6 @@ static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit,
 	}
 
 	if (v3d->zbuf) glDepthMask(1);
-	glPointSize(1.0);
 }
 
 static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
@@ -3995,7 +3982,6 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	{
 		glPointSize(1.5);
 		dm->drawVerts(dm);
-		glPointSize(1.0);
 	}
 	else if ((dt == OB_WIRE) || no_faces) {
 		draw_wire = OBDRAW_WIRE_ON; /* draw wire only, no depth buffer stuff */
@@ -4196,8 +4182,6 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		drawSelectedVertices(dm, ob->data);
 		if (!use_depth) glEnable(GL_DEPTH_TEST);
 		else            ED_view3d_polygon_offset(rv3d, 0.0);
-		
-		glPointSize(1.0f);
 	}
 	dm->release(dm);
 }
@@ -5846,7 +5830,6 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 	glShadeModel(GL_FLAT);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 	glLineWidth(1.0f);
-	glPointSize(1.0f);
 }
 
 static void ob_draw_RE_motion(float com[3], float rotscale[3][3], float itw, float ith, float drw_size)
@@ -6161,7 +6144,6 @@ static void drawvertsN(Nurb *nu, const char sel, const bool hide_handles, const 
 	}
 	
 	glEnd();
-	glPointSize(1.0);
 }
 
 static void editnurb_draw_active_poly(Nurb *nu)
@@ -7268,7 +7250,6 @@ static void draw_hooks(Object *ob)
 			glBegin(GL_POINTS);
 			glVertex3fv(vec);
 			glEnd();
-			glPointSize(1.0);
 		}
 	}
 }
@@ -7859,7 +7840,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				}
 
 				glEnd();
-				glPointSize(1.0);
 
 				glMultMatrixf(ob->obmat);
 				glDisable(GL_BLEND);
@@ -8047,9 +8027,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		if (do_draw_center != -1) {
 			if (dflag & DRAW_PICKING) {
 				/* draw a single point for opengl selection */
-				glBegin(GL_POINTS);
-				glVertex3fv(ob->obmat[3]);
-				glEnd();
+				if (U.obcenter_dia > 0) {
+					glPointSize(U.obcenter_dia);
+					glBegin(GL_POINTS);
+					glVertex3fv(ob->obmat[3]);
+					glEnd();
+				}
 			}
 			else if ((dflag & DRAW_CONSTCOLOR) == 0) {
 				/* we don't draw centers for duplicators and sets */
@@ -8200,7 +8183,6 @@ static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 	glBegin(GL_POINTS);
 	dm->foreachMappedVert(dm, bbs_obmode_mesh_verts__mapFunc, &data, DM_FOREACH_NOP);
 	glEnd();
-	glPointSize(1.0);
 }
 
 static void bbs_mesh_verts__mapFunc(void *userData, int index, const float co[3],
@@ -8221,7 +8203,6 @@ static void bbs_mesh_verts(BMEditMesh *em, DerivedMesh *dm, int offset)
 	glBegin(GL_POINTS);
 	dm->foreachMappedVert(dm, bbs_mesh_verts__mapFunc, &data, DM_FOREACH_NOP);
 	glEnd();
-	glPointSize(1.0);
 }
 
 static DMDrawOption bbs_mesh_wire__setDrawOptions(void *userData, int index)

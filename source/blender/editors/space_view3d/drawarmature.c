@@ -1000,6 +1000,12 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 	/* this chunk not in object mode */
 	if (armflag & (ARM_EDITMODE | ARM_POSEMODE)) {
 		glLineWidth(4.0f);
+		if (G.f & G_PICKSEL) {
+			/* no bitmap in selection mode, crashes 3d cards...
+			 * instead draw a solid point the same size */
+			glPointSize(8.0f);
+		}
+
 		if (armflag & ARM_POSEMODE)
 			set_pchan_glColor(PCHAN_COLOR_NORMAL, boneflag, constflag);
 		else if (armflag & ARM_EDITMODE) {
@@ -1008,7 +1014,7 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 		
 		/*	Draw root point if we are not connected */
 		if ((boneflag & BONE_CONNECTED) == 0) {
-			if (G.f & G_PICKSEL) {  /* no bitmap in selection mode, crashes 3d cards... */
+			if (G.f & G_PICKSEL) {
 				GPU_select_load_id(id | BONESEL_ROOT);
 				glBegin(GL_POINTS);
 				glVertex3f(0.0f, 0.0f, 0.0f);
@@ -2587,7 +2593,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 
 /* ********************************** Armature Drawing - Main ************************* */
 
-/* called from drawobject.c, return 1 if nothing was drawn
+/* called from drawobject.c, return true if nothing was drawn
  * (ob_wire_col == NULL) when drawing ghost */
 bool draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
                    const short dt, const short dflag, const unsigned char ob_wire_col[4],

@@ -1326,6 +1326,7 @@ static void draw_manipulator_scale(
 		}
 	}
 
+#if 0 // XXX
 	/* if shiftkey, center point as last, for selectbuffer order */
 	if (is_picksel) {
 		int shift = 0; // XXX
@@ -1333,11 +1334,13 @@ static void draw_manipulator_scale(
 		if (shift) {
 			glTranslatef(0.0, -dz, 0.0);
 			GPU_select_load_id(MAN_SCALE_C);
+			/* TODO: set glPointSize before drawing center point */
 			glBegin(GL_POINTS);
 			glVertex3f(0.0, 0.0, 0.0);
 			glEnd();
 		}
 	}
+#endif
 
 	/* restore */
 	glLoadMatrixf(rv3d->viewmat);

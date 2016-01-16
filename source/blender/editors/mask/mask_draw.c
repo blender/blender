@@ -387,8 +387,6 @@ static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline
 		draw_circle(x, y, 6.0f, false, xscale, yscale);
 	}
 
-	glPointSize(1.0f);
-
 	if (is_smooth) {
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
