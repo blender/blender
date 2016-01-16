@@ -5807,19 +5807,16 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 			if (cdata) { MEM_freeN(cdata); cd = cdata = NULL; }
 		}
 		else if (pset->selectmode == SCE_SELECT_END) {
+			glBegin(GL_POINTS);
 			for (i = 0, point = edit->points; i < totpoint; i++, point++) {
 				if ((point->flag & PEP_HIDE) == 0 && point->totkey) {
 					key = point->keys + point->totkey - 1;
-					if (key->flag & PEK_SELECT)
-						glColor3fv(sel_col);
-					else
-						glColor3fv(nosel_col);
+					glColor3fv((key->flag & PEK_SELECT) ? sel_col : nosel_col);
 					/* has to be like this.. otherwise selection won't work, have try glArrayElement later..*/
-					glBegin(GL_POINTS);
 					glVertex3fv((key->flag & PEK_USE_WCO) ? key->world_co : key->co);
-					glEnd();
 				}
 			}
+			glEnd();
 		}
 	}
 
