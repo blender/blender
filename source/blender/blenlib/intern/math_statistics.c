@@ -46,7 +46,7 @@ typedef struct CovarianceData {
 	int nbr_cos_vn;
 } CovarianceData;
 
-static void covariance_m_vn_ex_task_cb(void *userdata, void *UNUSED(userdata_chunk), int a)
+static void covariance_m_vn_ex_task_cb(void *userdata, const int a)
 {
 	CovarianceData *data = userdata;
 	const float *cos_vn = data->cos_vn;
@@ -117,8 +117,8 @@ void BLI_covariance_m_vn_ex(
 	    .covfac = covfac, .n = n, .nbr_cos_vn = nbr_cos_vn,
 	};
 
-	BLI_task_parallel_range_ex(
-	            0, n * n, &data, NULL, 0, covariance_m_vn_ex_task_cb, (nbr_cos_vn * n * n) >= 10000, false);
+	BLI_task_parallel_range(
+	            0, n * n, &data, covariance_m_vn_ex_task_cb, (nbr_cos_vn * n * n) >= 10000);
 }
 
 /**

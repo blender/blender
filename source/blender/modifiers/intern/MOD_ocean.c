@@ -280,7 +280,7 @@ typedef struct GenerateOceanGeometryData {
 	float ix, iy;
 } GenerateOceanGeometryData;
 
-static void generate_ocean_geometry_vertices(void *userdata, void *UNUSED(userdata_chunk), int y)
+static void generate_ocean_geometry_vertices(void *userdata, const int y)
 {
 	GenerateOceanGeometryData *gogd = userdata;
 	int x;
@@ -294,7 +294,7 @@ static void generate_ocean_geometry_vertices(void *userdata, void *UNUSED(userda
 	}
 }
 
-static void generate_ocean_geometry_polygons(void *userdata, void *UNUSED(userdata_chunk), int y)
+static void generate_ocean_geometry_polygons(void *userdata, const int y)
 {
 	GenerateOceanGeometryData *gogd = userdata;
 	int x;
@@ -324,7 +324,7 @@ static void generate_ocean_geometry_polygons(void *userdata, void *UNUSED(userda
 	}
 }
 
-static void generate_ocean_geometry_uvs(void *userdata, void *UNUSED(userdata_chunk), int y)
+static void generate_ocean_geometry_uvs(void *userdata, const int y)
 {
 	GenerateOceanGeometryData *gogd = userdata;
 	int x;
@@ -360,6 +360,8 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 	int num_verts;
 	int num_polys;
 
+	const bool use_threading = omd->resolution > 4;
+
 	gogd.rx = omd->resolution * omd->resolution;
 	gogd.ry = omd->resolution * omd->resolution;
 	gogd.res_x = gogd.rx * omd->repeat_x;
@@ -385,10 +387,10 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 	gogd.origindex = CustomData_get_layer(&result->polyData, CD_ORIGINDEX);
 
 	/* create vertices */
-	BLI_task_parallel_range(0, gogd.res_y + 1, &gogd, generate_ocean_geometry_vertices);
+	BLI_task_parallel_range(0, gogd.res_y + 1, &gogd, generate_ocean_geometry_vertices, use_threading);
 
 	/* create faces */
-	BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_polygons);
+	BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_polygons, use_threading);
 
 	CDDM_calc_edges(result);
 
@@ -401,7 +403,7 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 			gogd.ix = 1.0 / gogd.rx;
 			gogd.iy = 1.0 / gogd.ry;
 
-			BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_uvs);
+			BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_uvs, use_threading);
 		}
 	}
 

@@ -584,7 +584,9 @@ typedef struct ParallelRangeState {
 	void *userdata;
 	void *userdata_chunk;
 	size_t userdata_chunk_size;
+
 	TaskParallelRangeFunc func;
+	TaskParallelRangeFuncEx func_ex;
 
 	int iter;
 	int chunk_size;
@@ -610,23 +612,31 @@ BLI_INLINE bool parallel_range_next_iter_get(
 static void parallel_range_func(
         TaskPool * __restrict pool,
         void *UNUSED(taskdata),
-        int UNUSED(threadid))
+        int threadid)
 {
 	ParallelRangeState * __restrict state = BLI_task_pool_userdata(pool);
 	int iter, count;
 
-	const bool use_userdata_chunk = (state->userdata_chunk_size != 0) && (state->userdata_chunk != NULL);
+	const bool use_userdata_chunk = (state->func_ex != NULL) &&
+	                                (state->userdata_chunk_size != 0) && (state->userdata_chunk != NULL);
 	void *userdata_chunk = use_userdata_chunk ? MALLOCA(state->userdata_chunk_size) : NULL;
 
 	while (parallel_range_next_iter_get(state, &iter, &count)) {
 		int i;
 
-		if (use_userdata_chunk) {
-			memcpy(userdata_chunk, state->userdata_chunk, state->userdata_chunk_size);
-		}
+		if (state->func_ex) {
+			if (use_userdata_chunk) {
+				memcpy(userdata_chunk, state->userdata_chunk, state->userdata_chunk_size);
+			}
 
-		for (i = 0; i < count; ++i) {
-			state->func(state->userdata, userdata_chunk, iter + i);
+			for (i = 0; i < count; ++i) {
+				state->func_ex(state->userdata, userdata_chunk, iter + i, threadid);
+			}
+		}
+		else {
+			for (i = 0; i < count; ++i) {
+				state->func(state->userdata, iter + i);
+			}
 		}
 	}
 
@@ -642,18 +652,20 @@ static void parallel_range_func(
  * \param userdata_chunk Optional, each instance of looping chunks will get a copy of this data
  *                       (similar to OpenMP's firstprivate).
  * \param userdata_chunk_size Memory size of \a userdata_chunk.
- * \param func Callback function.
+ * \param func Callback function (simple version).
+ * \param func_ex Callback function (advanced version).
  * \param use_threading If \a true, actually split-execute loop in threads, else just do a sequential forloop
  *                      (allows caller to use any kind of test to switch on parallelization or not).
  * \param use_dynamic_scheduling If \a true, the whole range is divided in a lot of small chunks (of size 32 currently),
  *                               otherwise whole range is split in a few big chunks (num_threads * 2 chunks currently).
  */
-void BLI_task_parallel_range_ex(
+static void task_parallel_range_ex(
         int start, int stop,
         void *userdata,
         void *userdata_chunk,
         const size_t userdata_chunk_size,
         TaskParallelRangeFunc func,
+        TaskParallelRangeFuncEx func_ex,
         const bool use_threading,
         const bool use_dynamic_scheduling)
 {
@@ -666,25 +678,37 @@ void BLI_task_parallel_range_ex(
 		return;
 	}
 
-	BLI_assert(start <= stop);
+	BLI_assert(start < stop);
+	if (userdata_chunk_size != 0) {
+		BLI_assert(func_ex != NULL && func == NULL);
+		BLI_assert(userdata_chunk != NULL);
+	}
 
 	/* If it's not enough data to be crunched, don't bother with tasks at all,
 	 * do everything from the main thread.
 	 */
 	if (!use_threading) {
-		const bool use_userdata_chunk = (userdata_chunk_size != 0) && (userdata_chunk != NULL);
-		void *userdata_chunk_local = NULL;
+		if (func_ex) {
+			const bool use_userdata_chunk = (userdata_chunk_size != 0) && (userdata_chunk != NULL);
+			void *userdata_chunk_local = NULL;
 
-		if (use_userdata_chunk) {
-			userdata_chunk_local = MALLOCA(userdata_chunk_size);
-			memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
+			if (use_userdata_chunk) {
+				userdata_chunk_local = MALLOCA(userdata_chunk_size);
+				memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
+			}
+
+			for (i = start; i < stop; ++i) {
+				func_ex(userdata, userdata_chunk, i, 0);
+			}
+
+			MALLOCA_FREE(userdata_chunk_local, userdata_chunk_size);
+		}
+		else {
+			for (i = start; i < stop; ++i) {
+				func(userdata, i);
+			}
 		}
 
-		for (i = start; i < stop; ++i) {
-			func(userdata, userdata_chunk_local, i);
-		}
-
-		MALLOCA_FREE(userdata_chunk_local, userdata_chunk_size);
 		return;
 	}
 
@@ -705,6 +729,7 @@ void BLI_task_parallel_range_ex(
 	state.userdata_chunk = userdata_chunk;
 	state.userdata_chunk_size = userdata_chunk_size;
 	state.func = func;
+	state.func_ex = func_ex;
 	state.iter = start;
 	if (use_dynamic_scheduling) {
 		state.chunk_size = 32;
@@ -729,15 +754,46 @@ void BLI_task_parallel_range_ex(
 }
 
 /**
+ * This function allows to parallelized for loops in a similar way to OpenMP's 'parallel for' statement.
+ *
+ * \param start First index to process.
+ * \param stop Index to stop looping (excluded).
+ * \param userdata Common userdata passed to all instances of \a func.
+ * \param userdata_chunk Optional, each instance of looping chunks will get a copy of this data
+ *                       (similar to OpenMP's firstprivate).
+ * \param userdata_chunk_size Memory size of \a userdata_chunk.
+ * \param func Callback function (simple version).
+ * \param func_ex Callback function (advanced version).
+ * \param use_threading If \a true, actually split-execute loop in threads, else just do a sequential forloop
+ *                      (allows caller to use any kind of test to switch on parallelization or not).
+ * \param use_dynamic_scheduling If \a true, the whole range is divided in a lot of small chunks (of size 32 currently),
+ *                               otherwise whole range is split in a few big chunks (num_threads * 2 chunks currently).
+ */
+void BLI_task_parallel_range_ex(
+        int start, int stop,
+        void *userdata,
+        void *userdata_chunk,
+        const size_t userdata_chunk_size,
+        TaskParallelRangeFuncEx func_ex,
+        const bool use_threading,
+        const bool use_dynamic_scheduling)
+{
+	task_parallel_range_ex(
+	            start, stop, userdata, userdata_chunk, userdata_chunk_size, NULL, func_ex,
+	            use_threading, use_dynamic_scheduling);
+}
+
+/**
  * A simpler version of \a BLI_task_parallel_range_ex, which does not use \a use_dynamic_scheduling,
- * has a \a range_threshold of 64, and does not handle 'firstprivate'-like \a userdata_chunk.
+ * and does not handle 'firstprivate'-like \a userdata_chunk.
  */
 void BLI_task_parallel_range(
         int start, int stop,
         void *userdata,
-        TaskParallelRangeFunc func)
+        TaskParallelRangeFunc func,
+		const bool use_threading)
 {
-	BLI_task_parallel_range_ex(start, stop, userdata, NULL, 0, func, (stop - start) > 64, false);
+	task_parallel_range_ex(start, stop, userdata, NULL, 0, func, NULL, use_threading, false);
 }
 
 #undef MALLOCA

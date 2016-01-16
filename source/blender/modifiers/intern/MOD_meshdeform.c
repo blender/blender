@@ -234,7 +234,7 @@ typedef struct MeshdeformUserdata {
 	float (*icagemat)[3];
 } MeshdeformUserdata;
 
-static void meshdeform_vert_task(void *userdata, void *UNUSED(userdata_chunck), int iter)
+static void meshdeform_vert_task(void *userdata, const int iter)
 {
 	MeshdeformUserdata *data = userdata;
 	/*const*/ MeshDeformModifierData *mmd = data->mmd;
@@ -413,7 +413,7 @@ static void meshdeformModifier_do(
 	data.icagemat = icagemat;
 
 	/* Do deformation. */
-	BLI_task_parallel_range(0, totvert, &data, meshdeform_vert_task);
+	BLI_task_parallel_range(0, totvert, &data, meshdeform_vert_task, totvert > 1000);
 
 	/* release cage derivedmesh */
 	MEM_freeN(dco);

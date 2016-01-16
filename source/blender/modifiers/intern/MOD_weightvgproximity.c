@@ -89,7 +89,7 @@ typedef struct Vert2GeomDataChunk {
 /**
  * Callback used by BLI_task 'for loop' helper.
  */
-static void vert2geom_task_cb(void *userdata, void *userdata_chunk, int iter)
+static void vert2geom_task_cb_ex(void *userdata, void *userdata_chunk, const int iter, const int UNUSED(thread_id))
 {
 	Vert2GeomData *data = userdata;
 	Vert2GeomDataChunk *data_chunk = userdata_chunk;
@@ -177,7 +177,8 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
 	data.dist[2] = dist_f;
 
 	BLI_task_parallel_range_ex(
-	            0, numVerts, &data, &data_chunk, sizeof(data_chunk), vert2geom_task_cb, numVerts > 10000, false);
+	            0, numVerts, &data, &data_chunk, sizeof(data_chunk), vert2geom_task_cb_ex,
+	            numVerts > 10000, false);
 
 	if (dist_v)
 		free_bvhtree_from_mesh(&treeData_v);

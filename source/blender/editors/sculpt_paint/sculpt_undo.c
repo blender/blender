@@ -266,7 +266,7 @@ static int sculpt_undo_restore_mask(bContext *C, DerivedMesh *dm, SculptUndoNode
 	return 1;
 }
 
-static void sculpt_undo_bmesh_restore_generic_task_cb(void *userdata, void *UNUSED(userdata_chunk), int n)
+static void sculpt_undo_bmesh_restore_generic_task_cb(void *userdata, const int n)
 {
 	PBVHNode **nodes = userdata;
 
@@ -294,8 +294,9 @@ static void sculpt_undo_bmesh_restore_generic(bContext *C,
 
 		BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
-		BLI_task_parallel_range_ex(0, totnode, nodes, NULL, 0, sculpt_undo_bmesh_restore_generic_task_cb,
-		                           ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT), false);
+		BLI_task_parallel_range(
+		            0, totnode, nodes, sculpt_undo_bmesh_restore_generic_task_cb,
+		            ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT));
 
 		if (nodes)
 			MEM_freeN(nodes);
