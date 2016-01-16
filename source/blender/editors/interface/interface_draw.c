@@ -1634,11 +1634,9 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 	for (int a = 0; a < 16; a++)
 		glVertex2f(x + size * si[a], y + size * co[a]);
 	glEnd();
-	glDisable(GL_BLEND);
 	
 	glColor4ub(0, 0, 0, 150);
 	
-	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
 	glBegin(GL_LINE_LOOP);
 	for (int a = 0; a < 16; a++)
