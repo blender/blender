@@ -836,12 +836,11 @@ static void vectorscope_draw_target(float centerx, float centery, float diam, co
 	glColor4f(1.0f, 1.0f, 1.0, 0.12f);
 	dangle = DEG2RADF(2.5f);
 	dampli = 2.5f / 200.0f;
-	glBegin(GL_LINE_STRIP);
+	glBegin(GL_LINE_LOOP);
 	glVertex2f(polar_to_x(centerx, diam, tampli + dampli, tangle + dangle), polar_to_y(centery, diam, tampli + dampli, tangle + dangle));
 	glVertex2f(polar_to_x(centerx, diam, tampli - dampli, tangle + dangle), polar_to_y(centery, diam, tampli - dampli, tangle + dangle));
 	glVertex2f(polar_to_x(centerx, diam, tampli - dampli, tangle - dangle), polar_to_y(centery, diam, tampli - dampli, tangle - dangle));
 	glVertex2f(polar_to_x(centerx, diam, tampli + dampli, tangle - dangle), polar_to_y(centery, diam, tampli + dampli, tangle - dangle));
-	glVertex2f(polar_to_x(centerx, diam, tampli + dampli, tangle + dangle), polar_to_y(centery, diam, tampli + dampli, tangle + dangle));
 	glEnd();
 	/* big target vary by 10 degree and 20% amplitude */
 	glColor4f(1.0f, 1.0f, 1.0, 0.12f);
@@ -918,8 +917,9 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 	fdrawline(centerx, centery - (diam / 2) - 5, centerx, centery + (diam / 2) + 5);
 	/* circles */
 	for (j = 0; j < 5; j++) {
-		glBegin(GL_LINE_STRIP);
-		for (i = 0; i <= 360; i = i + 15) {
+		glBegin(GL_LINE_LOOP);
+		const int increment = 15;
+		for (i = 0; i <= 360 - increment; i += increment) {
 			const float a = DEG2RADF((float)i);
 			const float r = (j + 1) / 10.0f;
 			glVertex2f(polar_to_x(centerx, diam, r, a), polar_to_y(centery, diam, r, a));
@@ -961,17 +961,12 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 
 static void ui_draw_colorband_handle_tri_hlight(float x1, float y1, float halfwidth, float height)
 {
-	float v[2];
-
 	glEnable(GL_LINE_SMOOTH);
 
 	glBegin(GL_LINE_STRIP);
-	copy_v2_fl2(v, x1 + halfwidth, y1);
-	glVertex2fv(v);
-	copy_v2_fl2(v, x1, y1 + height);
-	glVertex2fv(v);
-	copy_v2_fl2(v, x1 - halfwidth, y1);
-	glVertex2fv(v);
+	glVertex2f(x1 + halfwidth, y1);
+	glVertex2f(x1, y1 + height);
+	glVertex2f(x1 - halfwidth, y1);
 	glEnd();
 
 	glDisable(GL_LINE_SMOOTH);
@@ -979,60 +974,25 @@ static void ui_draw_colorband_handle_tri_hlight(float x1, float y1, float halfwi
 
 static void ui_draw_colorband_handle_tri(float x1, float y1, float halfwidth, float height, bool fill)
 {
-	float v[2];
+	glEnable(fill ? GL_POLYGON_SMOOTH : GL_LINE_SMOOTH);
 
-	if (fill) {
-		glPolygonMode(GL_FRONT, GL_FILL);
-		glEnable(GL_POLYGON_SMOOTH);
-	}
-	else {
-		glPolygonMode(GL_FRONT, GL_LINE);
-		glEnable(GL_LINE_SMOOTH);
-	}
-
-	glBegin(GL_TRIANGLES);
-	copy_v2_fl2(v, x1 + halfwidth, y1);
-	glVertex2fv(v);
-	copy_v2_fl2(v, x1, y1 + height);
-	glVertex2fv(v);
-	copy_v2_fl2(v, x1 - halfwidth, y1);
-	glVertex2fv(v);
+	glBegin(fill ? GL_TRIANGLES : GL_LINE_LOOP);
+	glVertex2f(x1 + halfwidth, y1);
+	glVertex2f(x1, y1 + height);
+	glVertex2f(x1 - halfwidth, y1);
 	glEnd();
 
-	if (fill) {
-		glDisable(GL_POLYGON_SMOOTH);
-	}
-	else {
-		glDisable(GL_LINE_SMOOTH);
-		glPolygonMode(GL_FRONT, GL_FILL);
-	}
+	glDisable(fill ? GL_POLYGON_SMOOTH : GL_LINE_SMOOTH);
 }
 
 static void ui_draw_colorband_handle_box(float x1, float y1, float x2, float y2, bool fill)
 {
-	float v[2];
-
-	if (fill) {
-		glPolygonMode(GL_FRONT, GL_FILL);
-	}
-	else {
-		glPolygonMode(GL_FRONT, GL_LINE);
-	}
-
-	glBegin(GL_QUADS);
-	copy_v2_fl2(v, x1, y1);
-	glVertex2fv(v);
-	copy_v2_fl2(v, x1, y2);
-	glVertex2fv(v);
-	copy_v2_fl2(v, x2, y2);
-	glVertex2fv(v);
-	copy_v2_fl2(v, x2, y1);
-	glVertex2fv(v);
+	glBegin(fill ? GL_QUADS : GL_LINE_LOOP);
+	glVertex2f(x1, y1);
+	glVertex2f(x1, y2);
+	glVertex2f(x2, y2);
+	glVertex2f(x2, y1);
 	glEnd();
-
-	if (!fill) {
-		glPolygonMode(GL_FRONT, GL_FILL);
-	}
 }
 
 static void ui_draw_colorband_handle(
@@ -1433,6 +1393,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	/* sample option */
 
 	if (cumap->flag & CUMA_DRAW_SAMPLE) {
+		glBegin(GL_LINES); /* will draw one of the following 3 lines */
 		if (but->a1 == UI_GRAD_H) {
 			float tsample[3];
 			float hsv[3];
@@ -1440,19 +1401,15 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 			rgb_to_hsv_v(tsample, hsv);
 			glColor3ub(240, 240, 240);
 
-			glBegin(GL_LINES);
 			glVertex2f(rect->xmin + zoomx * (hsv[0] - offsx), rect->ymin);
 			glVertex2f(rect->xmin + zoomx * (hsv[0] - offsx), rect->ymax);
-			glEnd();
 		}
 		else if (cumap->cur == 3) {
 			float lum = IMB_colormanagement_get_luminance(cumap->sample);
 			glColor3ub(240, 240, 240);
 			
-			glBegin(GL_LINES);
 			glVertex2f(rect->xmin + zoomx * (lum - offsx), rect->ymin);
 			glVertex2f(rect->xmin + zoomx * (lum - offsx), rect->ymax);
-			glEnd();
 		}
 		else {
 			if (cumap->cur == 0)
@@ -1462,11 +1419,10 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 			else
 				glColor3ub(100, 100, 240);
 			
-			glBegin(GL_LINES);
 			glVertex2f(rect->xmin + zoomx * (cumap->sample[cumap->cur] - offsx), rect->ymin);
 			glVertex2f(rect->xmin + zoomx * (cumap->sample[cumap->cur] - offsx), rect->ymax);
-			glEnd();
 		}
+		glEnd();
 	}
 
 	/* the curve */
@@ -1726,50 +1682,47 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 
 static void ui_shadowbox(float minx, float miny, float maxx, float maxy, float shadsize, unsigned char alpha)
 {
-	glEnable(GL_BLEND);
-	glShadeModel(GL_SMOOTH);
-	
 	/* right quad */
-	glBegin(GL_POLYGON);
 	glColor4ub(0, 0, 0, alpha);
 	glVertex2f(maxx, miny);
 	glVertex2f(maxx, maxy - 0.3f * shadsize);
 	glColor4ub(0, 0, 0, 0);
 	glVertex2f(maxx + shadsize, maxy - 0.75f * shadsize);
 	glVertex2f(maxx + shadsize, miny);
-	glEnd();
 	
 	/* corner shape */
-	glBegin(GL_POLYGON);
 	glColor4ub(0, 0, 0, alpha);
 	glVertex2f(maxx, miny);
 	glColor4ub(0, 0, 0, 0);
 	glVertex2f(maxx + shadsize, miny);
 	glVertex2f(maxx + 0.7f * shadsize, miny - 0.7f * shadsize);
 	glVertex2f(maxx, miny - shadsize);
-	glEnd();
 	
 	/* bottom quad */
-	glBegin(GL_POLYGON);
 	glColor4ub(0, 0, 0, alpha);
 	glVertex2f(minx + 0.3f * shadsize, miny);
 	glVertex2f(maxx, miny);
 	glColor4ub(0, 0, 0, 0);
 	glVertex2f(maxx, miny - shadsize);
 	glVertex2f(minx + 0.5f * shadsize, miny - shadsize);
-	glEnd();
-	
-	glDisable(GL_BLEND);
-	glShadeModel(GL_FLAT);
 }
 
 void UI_draw_box_shadow(unsigned char alpha, float minx, float miny, float maxx, float maxy)
 {
+	glEnable(GL_BLEND);
+	glShadeModel(GL_SMOOTH);
+	
+	glBegin(GL_QUADS);
+
 	/* accumulated outline boxes to make shade not linear, is more pleasant */
 	ui_shadowbox(minx, miny, maxx, maxy, 11.0, (20 * alpha) >> 8);
 	ui_shadowbox(minx, miny, maxx, maxy, 7.0, (40 * alpha) >> 8);
 	ui_shadowbox(minx, miny, maxx, maxy, 5.0, (80 * alpha) >> 8);
 	
+	glEnd();
+	
+	glDisable(GL_BLEND);
+	glShadeModel(GL_FLAT);
 }
 
 
