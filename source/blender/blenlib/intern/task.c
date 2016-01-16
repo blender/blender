@@ -646,18 +646,7 @@ static void parallel_range_func(
 /**
  * This function allows to parallelized for loops in a similar way to OpenMP's 'parallel for' statement.
  *
- * \param start First index to process.
- * \param stop Index to stop looping (excluded).
- * \param userdata Common userdata passed to all instances of \a func.
- * \param userdata_chunk Optional, each instance of looping chunks will get a copy of this data
- *                       (similar to OpenMP's firstprivate).
- * \param userdata_chunk_size Memory size of \a userdata_chunk.
- * \param func Callback function (simple version).
- * \param func_ex Callback function (advanced version).
- * \param use_threading If \a true, actually split-execute loop in threads, else just do a sequential forloop
- *                      (allows caller to use any kind of test to switch on parallelization or not).
- * \param use_dynamic_scheduling If \a true, the whole range is divided in a lot of small chunks (of size 32 currently),
- *                               otherwise whole range is split in a few big chunks (num_threads * 2 chunks currently).
+ * See public API doc for description of parameters.
  */
 static void task_parallel_range_ex(
         int start, int stop,
@@ -762,7 +751,6 @@ static void task_parallel_range_ex(
  * \param userdata_chunk Optional, each instance of looping chunks will get a copy of this data
  *                       (similar to OpenMP's firstprivate).
  * \param userdata_chunk_size Memory size of \a userdata_chunk.
- * \param func Callback function (simple version).
  * \param func_ex Callback function (advanced version).
  * \param use_threading If \a true, actually split-execute loop in threads, else just do a sequential forloop
  *                      (allows caller to use any kind of test to switch on parallelization or not).
@@ -786,6 +774,13 @@ void BLI_task_parallel_range_ex(
 /**
  * A simpler version of \a BLI_task_parallel_range_ex, which does not use \a use_dynamic_scheduling,
  * and does not handle 'firstprivate'-like \a userdata_chunk.
+ *
+ * \param start First index to process.
+ * \param stop Index to stop looping (excluded).
+ * \param userdata Common userdata passed to all instances of \a func.
+ * \param func Callback function (simple version).
+ * \param use_threading If \a true, actually split-execute loop in threads, else just do a sequential forloop
+ *                      (allows caller to use any kind of test to switch on parallelization or not).
  */
 void BLI_task_parallel_range(
         int start, int stop,
