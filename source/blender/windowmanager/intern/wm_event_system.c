@@ -659,7 +659,9 @@ void WM_reportf(ReportType type, const char *format, ...)
 	BLI_dynstr_vappendf(ds, format, args);
 	va_end(args);
 
-	WM_report(type, BLI_dynstr_get_cstring(ds));
+	char *str = BLI_dynstr_get_cstring(ds);
+	WM_report(type, str);
+	MEM_freeN(str);
 
 	BLI_dynstr_free(ds);
 }
