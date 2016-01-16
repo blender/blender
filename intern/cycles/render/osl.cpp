@@ -282,7 +282,7 @@ bool OSLShaderManager::osl_compile(const string& inputfile, const string& output
 	stdosl_path = path_get("shader/stdosl.h");
 
 	/* compile */
-	OSL::OSLCompiler *compiler = new OSL::OSLCompiler();
+	OSL::OSLCompiler *compiler = new OSL::OSLCompiler(&OSL::ErrorHandler::default_handler());
 	bool ok = compiler->compile(string_view(inputfile), options, string_view(stdosl_path));
 	delete compiler;
 
