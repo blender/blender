@@ -297,7 +297,7 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 		return;
 	}
 
-	const bool use_fire = (sds->active_fields & SM_ACTIVE_FIRE) != 0;
+	const bool use_fire = (sds->active_fields & SM_ACTIVE_FIRE) && sds->tex_flame;
 
 	GPUShader *shader = GPU_shader_get_builtin_shader(
 	                        (use_fire) ? GPU_SHADER_SMOKE_FIRE : GPU_SHADER_SMOKE);
@@ -343,7 +343,7 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 
 	GPUTexture *tex_spec = NULL;
 
-	if (sds->tex_flame) {
+	if (use_fire) {
 		GPU_texture_bind(sds->tex_flame, 2);
 		GPU_shader_uniform_texture(shader, flame_location, sds->tex_flame);
 
@@ -412,7 +412,7 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	GPU_texture_unbind(sds->tex);
 	GPU_texture_unbind(sds->tex_shadow);
 
-	if (sds->tex_flame) {
+	if (use_fire) {
 		GPU_texture_unbind(sds->tex_flame);
 		GPU_texture_unbind(tex_spec);
 		GPU_texture_free(tex_spec);
