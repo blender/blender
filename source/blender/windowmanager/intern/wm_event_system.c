@@ -598,17 +598,17 @@ void WM_event_print(const wmEvent *event)
 /**
  * Show the report in the info header.
  */
-void WM_report_banner_show(const bContext *C)
+void WM_report_banner_show()
 {
-	wmWindowManager *wm = CTX_wm_manager(C);
-	ReportList *wm_reports = CTX_wm_reports(C);
+	wmWindowManager *wm = G.main->wm.first;
+	ReportList *wm_reports = &wm->reports;
 	ReportTimerInfo *rti;
 
 	/* After adding reports to the global list, reset the report timer. */
 	WM_event_remove_timer(wm, NULL, wm_reports->reporttimer);
 
 	/* Records time since last report was added */
-	wm_reports->reporttimer = WM_event_add_timer(wm, CTX_wm_window(C), TIMERREPORT, 0.05);
+	wm_reports->reporttimer = WM_event_add_timer(wm, wm->winactive, TIMERREPORT, 0.05);
 
 	rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
 	wm_reports->reporttimer->customdata = rti;
@@ -624,32 +624,32 @@ void WM_ndof_deadzone_set(float deadzone)
 	GHOST_setNDOFDeadZone(deadzone);
 }
 
-static void wm_add_reports(const bContext *C, ReportList *reports)
+static void wm_add_reports(ReportList *reports)
 {
 	/* if the caller owns them, handle this */
 	if (reports->list.first && (reports->flag & RPT_OP_HOLD) == 0) {
-		ReportList *wm_reports = CTX_wm_reports(C);
+		wmWindowManager *wm = G.main->wm.first;
 
 		/* add reports to the global list, otherwise they are not seen */
-		BLI_movelisttolist(&wm_reports->list, &reports->list);
+		BLI_movelisttolist(&wm->reports.list, &reports->list);
 
-		WM_report_banner_show(C);
+		WM_report_banner_show();
 	}
 }
 
-void WM_report(const bContext *C, ReportType type, const char *message)
+void WM_report(ReportType type, const char *message)
 {
 	ReportList reports;
 
 	BKE_reports_init(&reports, RPT_STORE);
 	BKE_report(&reports, type, message);
 
-	wm_add_reports(C, &reports);
+	wm_add_reports(&reports);
 
 	BKE_reports_clear(&reports);
 }
 
-void WM_reportf(const bContext *C, ReportType type, const char *format, ...)
+void WM_reportf(ReportType type, const char *format, ...)
 {
 	DynStr *ds;
 	va_list args;
@@ -659,7 +659,7 @@ void WM_reportf(const bContext *C, ReportType type, const char *format, ...)
 	BLI_dynstr_vappendf(ds, format, args);
 	va_end(args);
 
-	WM_report(C, type, BLI_dynstr_get_cstring(ds));
+	WM_report(type, BLI_dynstr_get_cstring(ds));
 
 	BLI_dynstr_free(ds);
 }
@@ -706,7 +706,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, bool ca
 	}
 
 	/* if the caller owns them, handle this */
-	wm_add_reports(C, op->reports);
+	wm_add_reports(op->reports);
 }
 
 /**
@@ -1867,7 +1867,7 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 					BLI_movelisttolist(&CTX_wm_reports(C)->list, &handler->op->reports->list);
 
 					/* more hacks, since we meddle with reports, banner display doesn't happen automatic */
-					WM_report_banner_show(C);
+					WM_report_banner_show();
 
 					CTX_wm_window_set(C, win_prev);
 					CTX_wm_area_set(C, area_prev);

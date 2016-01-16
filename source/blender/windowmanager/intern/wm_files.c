@@ -429,7 +429,7 @@ void wm_file_read_report(bContext *C)
 
 	if (reports) {
 		if (!G.background) {
-			WM_report_banner_show(C);
+			WM_report_banner_show();
 		}
 	}
 }

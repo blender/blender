@@ -2300,7 +2300,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
 			else {
-				WM_report(C, RPT_ERROR, "Paste expected 3 numbers, formatted: '[n, n, n]'");
+				WM_report(RPT_ERROR, "Paste expected 3 numbers, formatted: '[n, n, n]'");
 				show_report = true;
 			}
 		}
@@ -2345,7 +2345,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
 			else {
-				WM_report(C, RPT_ERROR, "Paste expected 4 numbers, formatted: '[n, n, n, n]'");
+				WM_report(RPT_ERROR, "Paste expected 4 numbers, formatted: '[n, n, n, n]'");
 				show_report = true;
 			}
 		}
@@ -2444,7 +2444,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	}
 
 	if (show_report) {
-		WM_report_banner_show(C);
+		WM_report_banner_show();
 	}
 }
 
@@ -6993,7 +6993,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		/* this should become disabled button .. */
 		if (but->lock == true) {
 			if (but->lockstr) {
-				WM_report(C, RPT_INFO, but->lockstr);
+				WM_report(RPT_INFO, but->lockstr);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				return WM_UI_HANDLER_BREAK;
 			}
@@ -7636,7 +7636,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 			 * No warnings should show for editing driver expressions though!
 			 */
 			if (state != BUTTON_STATE_TEXT_EDITING) {
-				WM_report(C, RPT_INFO, "Can't edit driven number value, see graph editor for the driver setup.");
+				WM_report(RPT_INFO, "Can't edit driven number value, see graph editor for the driver setup.");
 			}
 		}
 
