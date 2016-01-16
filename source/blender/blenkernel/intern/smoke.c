@@ -246,21 +246,21 @@ static void smoke_set_domain_from_derivedmesh(SmokeDomainSettings *sds, Object *
 		scale = res / size[0];
 		sds->scale = size[0] / fabsf(ob->size[0]);
 		sds->base_res[0] = res;
-		sds->base_res[1] = (int)(size[1] * scale + 0.5f);
-		sds->base_res[2] = (int)(size[2] * scale + 0.5f);
+		sds->base_res[1] = max_ii((int)(size[1] * scale + 0.5f), 4);
+		sds->base_res[2] = max_ii((int)(size[2] * scale + 0.5f), 4);
 	}
 	else if (size[1] >= MAX2(size[0], size[2])) {
 		scale = res / size[1];
 		sds->scale = size[1] / fabsf(ob->size[1]);
-		sds->base_res[0] = (int)(size[0] * scale + 0.5f);
+		sds->base_res[0] = max_ii((int)(size[0] * scale + 0.5f), 4);
 		sds->base_res[1] = res;
-		sds->base_res[2] = (int)(size[2] * scale + 0.5f);
+		sds->base_res[2] = max_ii((int)(size[2] * scale + 0.5f), 4);
 	}
 	else {
 		scale = res / size[2];
 		sds->scale = size[2] / fabsf(ob->size[2]);
-		sds->base_res[0] = (int)(size[0] * scale + 0.5f);
-		sds->base_res[1] = (int)(size[1] * scale + 0.5f);
+		sds->base_res[0] = max_ii((int)(size[0] * scale + 0.5f), 4);
+		sds->base_res[1] = max_ii((int)(size[1] * scale + 0.5f), 4);
 		sds->base_res[2] = res;
 	}
 
