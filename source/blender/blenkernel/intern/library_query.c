@@ -303,6 +303,8 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 				BKE_rigidbody_world_id_loop(scene->rigidbody_world, library_foreach_rigidbodyworldSceneLooper, &data);
 			}
 
+			CALLBACK_INVOKE(scene->gm.dome.warptext, IDWALK_NOP);
+
 			break;
 		}
 
