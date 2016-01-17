@@ -598,7 +598,7 @@ void WM_event_print(const wmEvent *event)
 /**
  * Show the report in the info header.
  */
-void WM_report_banner_show()
+void WM_report_banner_show(void)
 {
 	wmWindowManager *wm = G.main->wm.first;
 	ReportList *wm_reports = &wm->reports;
