@@ -497,11 +497,14 @@ void gp_point_to_xy(GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
 	}
 }
 
-/* Project screenspace coordinates to 3D-space
- * NOTE: We include this as a utility function, since the standard method
- *       involves quite a few steps, which are invariably always the same
- *       for all GPencil operations. So, it's nicer to just centralise these.
- * WARNING: Assumes that it is getting called in a 3D view only
+/**
+ * Project screenspace coordinates to 3D-space
+ *
+ * \note We include this as a utility function, since the standard method
+ * involves quite a few steps, which are invariably always the same
+ * for all GPencil operations. So, it's nicer to just centralize these.
+ *
+ * \warning Assumes that it is getting called in a 3D view only.
  */
 bool gp_point_xy_to_3d(GP_SpaceConversion *gsc, Scene *scene, const float screen_co[2], float r_out[3])
 {

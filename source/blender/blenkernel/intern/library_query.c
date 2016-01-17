@@ -224,7 +224,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 			CALLBACK_INVOKE(scene->set, IDWALK_NOP);
 			CALLBACK_INVOKE(scene->clip, IDWALK_NOP);
 			CALLBACK_INVOKE(scene->nodetree, IDWALK_NOP);
-			/* DO NOT handle scene->basact here, it’s doubling with the loop over whole scene->base later,
+			/* DO NOT handle scene->basact here, it's doubling with the loop over whole scene->base later,
 			 * since basact is just a pointer to one of those items. */
 			CALLBACK_INVOKE(scene->obedit, IDWALK_NOP);
 

@@ -262,7 +262,7 @@ static void ui_block_bounds_calc_text(uiBlock *block, float offset)
 		}
 
 		if (bt->next && bt->rect.xmin < bt->next->rect.xmin) {
-			/* End of this column, and it’s not the last one. */
+			/* End of this column, and it's not the last one. */
 			for (col_bt = init_col_bt; col_bt->prev != bt; col_bt = col_bt->next) {
 				col_bt->rect.xmin = x1addval;
 				col_bt->rect.xmax = x1addval + i + block->bounds;

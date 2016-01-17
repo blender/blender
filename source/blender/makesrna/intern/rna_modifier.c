@@ -176,7 +176,7 @@ EnumPropertyItem rna_enum_dt_method_edge_items[] = {
 	{MREMAP_MODE_TOPOLOGY, "TOPOLOGY", 0, "Topology",
 	 "Copy from identical topology meshes"},
 	{MREMAP_MODE_EDGE_VERT_NEAREST, "VERT_NEAREST", 0, "Nearest Vertices",
-	 "Copy from most similar edge (edge which vertices are the closest of destination edge’s ones)"},
+	 "Copy from most similar edge (edge which vertices are the closest of destination edge's ones)"},
 	{MREMAP_MODE_EDGE_NEAREST, "NEAREST", 0, "Nearest Edge",
 	 "Copy from closest edge (using midpoints)"},
 	{MREMAP_MODE_EDGE_POLY_NEAREST, "POLY_NEAREST", 0, "Nearest Face Edge",

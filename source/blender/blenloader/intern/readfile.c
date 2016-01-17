@@ -9727,7 +9727,7 @@ void BLO_library_link_copypaste(Main *mainl, BlendHandle *bh)
 
 			if (bhead->code == ID_OB) {
 				/* Instead of instancing Base's directly, postpone until after groups are loaded
-				 * otherwise the base's flag is set incorrecty when groups are used */
+				 * otherwise the base's flag is set incorrectly when groups are used */
 				Object *ob = (Object *)id;
 				ob->mode = OB_MODE_OBJECT;
 				/* ensure give_base_to_objects runs on this object */
