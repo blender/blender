@@ -2275,6 +2275,16 @@ int GPU_lamp_shadow_buffer_type(GPULamp *lamp)
 	return lamp->la->shadowmap_type;
 }
 
+int GPU_lamp_shadow_bind_code(GPULamp *lamp)
+{
+	return lamp->tex ? GPU_texture_opengl_bindcode(lamp->tex) : -1;
+}
+
+float *GPU_lamp_dynpersmat(GPULamp *lamp)
+{
+	return lamp->dynpersmat ? (float *)lamp->dynpersmat : NULL;
+}
+
 int GPU_lamp_shadow_layer(GPULamp *lamp)
 {
 	if (lamp->fb && lamp->tex && (lamp->mode & (LA_LAYER | LA_LAYER_SHADOW)))

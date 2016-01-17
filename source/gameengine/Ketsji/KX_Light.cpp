@@ -158,6 +158,16 @@ PyAttributeDef KX_LightObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("quad_attenuation", KX_LightObject, pyattr_get_quad_attenuation, pyattr_set_quad_attenuation),
 	KX_PYATTRIBUTE_RW_FUNCTION("spotsize", KX_LightObject, pyattr_get_spotsize, pyattr_set_spotsize),
 	KX_PYATTRIBUTE_RW_FUNCTION("spotblend", KX_LightObject, pyattr_get_spotblend, pyattr_set_spotblend),
+	KX_PYATTRIBUTE_RO_FUNCTION("shadowClipStart", KX_LightObject, pyattr_get_shadow_clip_start),
+	KX_PYATTRIBUTE_RO_FUNCTION("shadowClipEnd", KX_LightObject, pyattr_get_shadow_clip_end),
+	KX_PYATTRIBUTE_RO_FUNCTION("shadowFrustumSize", KX_LightObject, pyattr_get_shadow_frustum_size),
+	KX_PYATTRIBUTE_RO_FUNCTION("shadowBias", KX_LightObject, pyattr_get_shadow_bias),
+	KX_PYATTRIBUTE_RO_FUNCTION("shadowBleedBias", KX_LightObject, pyattr_get_shadow_bleed_bias),
+	KX_PYATTRIBUTE_RO_FUNCTION("shadowBindId", KX_LightObject, pyattr_get_shadow_bind_code),
+	KX_PYATTRIBUTE_RO_FUNCTION("shadowMapType", KX_LightObject, pyattr_get_shadow_map_type),
+	KX_PYATTRIBUTE_RO_FUNCTION("shadowColor", KX_LightObject, pyattr_get_shadow_color),
+	KX_PYATTRIBUTE_RO_FUNCTION("useShadow", KX_LightObject, pyattr_get_shadow_active),
+	KX_PYATTRIBUTE_RO_FUNCTION("shadowMatrix", KX_LightObject, pyattr_get_shadow_matrix),
 	KX_PYATTRIBUTE_RO_FUNCTION("SPOT", KX_LightObject, pyattr_get_typeconst),
 	KX_PYATTRIBUTE_RO_FUNCTION("SUN", KX_LightObject, pyattr_get_typeconst),
 	KX_PYATTRIBUTE_RO_FUNCTION("NORMAL", KX_LightObject, pyattr_get_typeconst),
@@ -217,6 +227,66 @@ int KX_LightObject::pyattr_set_energy(void *self_v, const KX_PYATTRIBUTE_DEF *at
 
 	PyErr_Format(PyExc_TypeError, "expected float value for attribute \"%s\"", attrdef->m_name);
 	return PY_SET_ATTR_FAIL;
+}
+
+PyObject *KX_LightObject::pyattr_get_shadow_clip_start(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_LightObject *self = static_cast<KX_LightObject *>(self_v);
+	return PyFloat_FromDouble(self->m_lightobj->m_shadowclipstart);
+}
+
+PyObject *KX_LightObject::pyattr_get_shadow_clip_end(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_LightObject *self = static_cast<KX_LightObject *>(self_v);
+	return PyFloat_FromDouble(self->m_lightobj->m_shadowclipend);
+}
+
+PyObject *KX_LightObject::pyattr_get_shadow_frustum_size(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_LightObject *self = static_cast<KX_LightObject *>(self_v);
+	return PyFloat_FromDouble(self->m_lightobj->m_shadowfrustumsize);
+}
+
+PyObject *KX_LightObject::pyattr_get_shadow_bind_code(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_LightObject *self = static_cast<KX_LightObject *>(self_v);
+	return PyLong_FromLong(self->m_lightobj->GetShadowBindCode());
+}
+
+PyObject *KX_LightObject::pyattr_get_shadow_bias(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_LightObject *self = static_cast<KX_LightObject *>(self_v);
+	return PyFloat_FromDouble(self->m_lightobj->m_shadowbias);
+}
+
+PyObject *KX_LightObject::pyattr_get_shadow_bleed_bias(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_LightObject *self = static_cast<KX_LightObject *>(self_v);
+	return PyFloat_FromDouble(self->m_lightobj->m_shadowbleedbias);
+}
+
+PyObject *KX_LightObject::pyattr_get_shadow_map_type(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_LightObject *self = static_cast<KX_LightObject *>(self_v);
+	return PyLong_FromLong(self->m_lightobj->m_shadowmaptype);
+}
+
+PyObject *KX_LightObject::pyattr_get_shadow_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_LightObject *self = static_cast<KX_LightObject *>(self_v);
+	return PyObjectFrom(self->m_lightobj->GetShadowMatrix());
+}
+
+PyObject *KX_LightObject::pyattr_get_shadow_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_LightObject *self = static_cast<KX_LightObject *>(self_v);
+	return PyColorFromVector(MT_Vector3(self->m_lightobj->m_shadowcolor));
+}
+
+PyObject *KX_LightObject::pyattr_get_shadow_active(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_LightObject *self = static_cast<KX_LightObject *>(self_v);
+	return PyBool_FromLong(self->m_lightobj->HasShadowBuffer());
 }
 
 PyObject *KX_LightObject::pyattr_get_distance(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

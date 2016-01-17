@@ -1432,6 +1432,15 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 	lightobj->m_color[2] = la->b;
 	lightobj->m_distance = la->dist;
 	lightobj->m_energy = la->energy;
+	lightobj->m_shadowclipstart = la->clipsta;
+	lightobj->m_shadowclipend = la->clipend;
+	lightobj->m_shadowbias = la->bias;
+	lightobj->m_shadowbleedbias = la->bleedbias;
+	lightobj->m_shadowmaptype = la->shadowmap_type;
+	lightobj->m_shadowfrustumsize = la->shadow_frustum_size;
+	lightobj->m_shadowcolor[0] = la->shdwr;
+	lightobj->m_shadowcolor[1] = la->shdwg;
+	lightobj->m_shadowcolor[2] = la->shdwb;
 	lightobj->m_layer = layerflag;
 	lightobj->m_spotblend = la->spotblend;
 	lightobj->m_spotsize = la->spotsize;

@@ -177,6 +177,26 @@ bool RAS_OpenGLLight::HasShadowBuffer()
 		return false;
 }
 
+int RAS_OpenGLLight::GetShadowBindCode()
+{
+	GPULamp *lamp;
+	
+	if ((lamp = GetGPULamp()))
+		return GPU_lamp_shadow_bind_code(lamp);
+	return -1;
+}
+
+MT_Matrix4x4 RAS_OpenGLLight::GetShadowMatrix()
+{
+	GPULamp *lamp;
+
+	if ((lamp = GetGPULamp()))
+		return MT_Matrix4x4(GPU_lamp_dynpersmat(lamp));
+	MT_Matrix4x4 mat;
+	mat.setIdentity();
+	return mat;
+}
+
 int RAS_OpenGLLight::GetShadowLayer()
 {
 	GPULamp *lamp;

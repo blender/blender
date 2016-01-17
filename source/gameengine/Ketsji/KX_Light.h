@@ -70,6 +70,16 @@ public:
 	static int			pyattr_set_layer(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_energy(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_energy(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject		*pyattr_get_shadow_clip_start(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject		*pyattr_get_shadow_clip_end(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject		*pyattr_get_shadow_frustum_size(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject		*pyattr_get_shadow_bind_code(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject		*pyattr_get_shadow_bias(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject		*pyattr_get_shadow_bleed_bias(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject		*pyattr_get_shadow_map_type(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject		*pyattr_get_shadow_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject		*pyattr_get_shadow_active(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject		*pyattr_get_shadow_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_distance(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_distance(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_color(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
