@@ -1467,17 +1467,21 @@ function(find_python_package
 		)
 
 		 if(NOT EXISTS "${PYTHON_${_upper_package}_PATH}")
-			message(WARNING "'${package}' path could not be found in:\n"
-			                "'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/${package}', "
-			                "'${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/site-packages/${package}', "
-			                "'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/dist-packages/${package}', "
-			                "'${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/dist-packages/${package}', "
-			                "WITH_PYTHON_INSTALL_${_upper_package} option will be ignored when installing python")
+			message(WARNING
+				"Python package '${package}' path could not be found in:\n"
+				"'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/site-packages/${package}', "
+				"'${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/site-packages/${package}', "
+				"'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/dist-packages/${package}', "
+				"'${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/dist-packages/${package}', "
+				"\n"
+				"The 'WITH_PYTHON_INSTALL_${_upper_package}' option will be ignored when installing Python.\n"
+				"The build will be usable, only add-ons that depend on this package won't be functional."
+			)
 			set(WITH_PYTHON_INSTALL_${_upper_package} OFF PARENT_SCOPE)
 		else()
 			message(STATUS "${package} found at '${PYTHON_${_upper_package}_PATH}'")
 		endif()
-	  endif()
+	endif()
 endfunction()
 
 # like Python's 'print(dir())'
