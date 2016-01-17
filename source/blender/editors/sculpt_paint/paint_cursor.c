@@ -32,6 +32,7 @@
 
 #include "BLI_math.h"
 #include "BLI_rect.h"
+#include "BLI_task.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
@@ -139,6 +140,112 @@ static void make_tex_snap(TexSnapshot *snap, ViewContext *vc, float zoom)
 	snap->winy = vc->ar->winy;
 }
 
+typedef struct LoadTexData {
+	Brush *br;
+	ViewContext *vc;
+
+	MTex *mtex;
+	GLubyte *buffer;
+	bool col;
+
+	struct ImagePool *pool;
+	int size;
+	float rotation;
+	float radius;
+} LoadTexData;
+
+static void load_tex_task_cb_ex(void *userdata, void *UNUSED(userdata_chunck), const int j, const int thread_id)
+{
+	LoadTexData *data = userdata;
+	Brush *br = data->br;
+	ViewContext *vc = data->vc;
+
+	MTex *mtex = data->mtex;
+	GLubyte *buffer = data->buffer;
+	const bool col = data->col;
+
+	struct ImagePool *pool = data->pool;
+	const int size = data->size;
+	const float rotation = data->rotation;
+	const float radius = data->radius;
+
+	bool convert_to_linear = false;
+	struct ColorSpace *colorspace = NULL;
+
+	if (mtex->tex->type == TEX_IMAGE && mtex->tex->ima) {
+		ImBuf *tex_ibuf = BKE_image_pool_acquire_ibuf(mtex->tex->ima, &mtex->tex->iuser, pool);
+		/* For consistency, sampling always returns color in linear space */
+		if (tex_ibuf && tex_ibuf->rect_float == NULL) {
+			convert_to_linear = true;
+			colorspace = tex_ibuf->rect_colorspace;
+		}
+		BKE_image_pool_release_ibuf(mtex->tex->ima, tex_ibuf, pool);
+	}
+
+	for (int i = 0; i < size; i++) {
+		// largely duplicated from tex_strength
+
+		int index = j * size + i;
+
+		float x = (float)i / size;
+		float y = (float)j / size;
+		float len;
+
+		if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
+			x *= vc->ar->winx / radius;
+			y *= vc->ar->winy / radius;
+		}
+		else {
+			x = (x - 0.5f) * 2.0f;
+			y = (y - 0.5f) * 2.0f;
+		}
+
+		len = sqrtf(x * x + y * y);
+
+		if (ELEM(mtex->brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL) || len <= 1.0f) {
+			/* it is probably worth optimizing for those cases where the texture is not rotated by skipping the calls to
+			 * atan2, sqrtf, sin, and cos. */
+			if (mtex->tex && (rotation > 0.001f || rotation < -0.001f)) {
+				const float angle = atan2f(y, x) + rotation;
+
+				x = len * cosf(angle);
+				y = len * sinf(angle);
+			}
+
+			if (col) {
+				float rgba[4];
+
+				paint_get_tex_pixel_col(mtex, x, y, rgba, pool, thread_id, convert_to_linear, colorspace);
+
+				buffer[index * 4]     = rgba[0] * 255;
+				buffer[index * 4 + 1] = rgba[1] * 255;
+				buffer[index * 4 + 2] = rgba[2] * 255;
+				buffer[index * 4 + 3] = rgba[3] * 255;
+			}
+			else {
+				float avg = paint_get_tex_pixel(mtex, x, y, pool, thread_id);
+
+				avg += br->texture_sample_bias;
+
+				/* clamp to avoid precision overflow */
+				CLAMP(avg, 0.0f, 1.0f);
+				buffer[index] = 255 - (GLubyte)(255 * avg);
+			}
+		}
+		else {
+			if (col) {
+				buffer[index * 4]     = 0;
+				buffer[index * 4 + 1] = 0;
+				buffer[index * 4 + 2] = 0;
+				buffer[index * 4 + 3] = 0;
+			}
+			else {
+				buffer[index] = 0;
+			}
+		}
+	}
+}
+
 static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool primary)
 {
 	bool init;
@@ -149,10 +256,9 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 	GLubyte *buffer = NULL;
 
 	int size;
-	int j;
-	int refresh;
+	bool refresh;
 	OverlayControlFlags invalid = (primary) ? (overlay_flags & PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY) :
-	                           (overlay_flags & PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY);
+	                                          (overlay_flags & PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY);
 
 	target = (primary) ? &primary_snap : &secondary_snap;
 
@@ -165,13 +271,9 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 
 	if (refresh) {
 		struct ImagePool *pool = NULL;
-		bool convert_to_linear = false;
-		struct ColorSpace *colorspace;
 		/* stencil is rotated later */
-		const float rotation = (mtex->brush_map_mode != MTEX_MAP_MODE_STENCIL) ?
-		                       -mtex->rot : 0;
-
-		float radius = BKE_brush_size_get(vc->scene, br) * zoom;
+		const float rotation = (mtex->brush_map_mode != MTEX_MAP_MODE_STENCIL) ? -mtex->rot : 0.0f;
+		const float radius = BKE_brush_size_get(vc->scene, br) * zoom;
 
 		make_tex_snap(target, vc, zoom);
 
@@ -190,8 +292,9 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 			if (size < target->old_size)
 				size = target->old_size;
 		}
-		else
+		else {
 			size = 512;
+		}
 
 		if (target->old_size != size) {
 			if (target->overlay_texture) {
@@ -213,98 +316,12 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 		if (mtex->tex && mtex->tex->nodetree)
 			ntreeTexBeginExecTree(mtex->tex->nodetree);  /* has internal flag to detect it only does it once */
 
-#pragma omp parallel for schedule(static)
-		for (j = 0; j < size; j++) {
-			int i;
-			float y;
-			float len;
-			int thread_num;
+		LoadTexData data = {
+		    .br = br, .vc = vc, .mtex = mtex, .buffer = buffer, .col = col,
+		    .pool = pool, .size = size, .rotation = rotation, .radius = radius,
+		};
 
-#ifdef _OPENMP
-			thread_num = omp_get_thread_num();
-#else
-			thread_num = 0;
-#endif
-
-			if (mtex->tex->type == TEX_IMAGE && mtex->tex->ima) {
-				ImBuf *tex_ibuf = BKE_image_pool_acquire_ibuf(mtex->tex->ima, &mtex->tex->iuser, pool);
-				/* For consistency, sampling always returns color in linear space */
-				if (tex_ibuf && tex_ibuf->rect_float == NULL) {
-					convert_to_linear = true;
-					colorspace = tex_ibuf->rect_colorspace;
-				}
-				BKE_image_pool_release_ibuf(mtex->tex->ima, tex_ibuf, pool);
-			}
-
-
-			for (i = 0; i < size; i++) {
-
-				// largely duplicated from tex_strength
-
-				int index = j * size + i;
-				float x;
-
-				x = (float)i / size;
-				y = (float)j / size;
-
-				if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
-					x *= vc->ar->winx / radius;
-					y *= vc->ar->winy / radius;
-				}
-				else {
-					x -= 0.5f;
-					y -= 0.5f;
-
-					x *= 2;
-					y *= 2;
-				}
-
-				len = sqrtf(x * x + y * y);
-
-				if (ELEM(mtex->brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL) || len <= 1) {
-					/* it is probably worth optimizing for those cases where 
-					 * the texture is not rotated by skipping the calls to
-					 * atan2, sqrtf, sin, and cos. */
-					if (mtex->tex && (rotation > 0.001f || rotation < -0.001f)) {
-						const float angle = atan2f(y, x) + rotation;
-
-						x = len * cosf(angle);
-						y = len * sinf(angle);
-					}
-
-					if (col) {
-						float rgba[4];
-
-						paint_get_tex_pixel_col(mtex, x, y, rgba, pool, thread_num, convert_to_linear, colorspace);
-
-						buffer[index * 4]     = rgba[0] * 255;
-						buffer[index * 4 + 1] = rgba[1] * 255;
-						buffer[index * 4 + 2] = rgba[2] * 255;
-						buffer[index * 4 + 3] = rgba[3] * 255;
-					}
-					else {
-						float avg = paint_get_tex_pixel(mtex, x, y, pool, thread_num);
-
-						avg += br->texture_sample_bias;
-
-						/* clamp to avoid precision overflow */
-						CLAMP(avg, 0.0f, 1.0f);
-						buffer[index] = 255 - (GLubyte)(255 * avg);
-					}
-				}
-				else {
-					if (col) {
-						buffer[index * 4]     = 0;
-						buffer[index * 4 + 1] = 0;
-						buffer[index * 4 + 2] = 0;
-						buffer[index * 4 + 3] = 0;
-					}
-					else {
-						buffer[index] = 0;
-					}
-				}
-			}
-		}
+		BLI_task_parallel_range_ex(0, size, &data, NULL, 0, load_tex_task_cb_ex, true, false);
 
 		if (mtex->tex && mtex->tex->nodetree)
 			ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
@@ -353,6 +370,34 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 	return 1;
 }
 
+static void load_tex_cursor_task_cb(void *userdata, const int j)
+{
+	LoadTexData *data = userdata;
+	Brush *br = data->br;
+
+	GLubyte *buffer = data->buffer;
+
+	const int size = data->size;
+
+	for (int i = 0; i < size; i++) {
+		// largely duplicated from tex_strength
+
+		const int index = j * size + i;
+		const float x = (((float)i / size) - 0.5f) * 2.0f;
+		const float y = (((float)j / size) - 0.5f) * 2.0f;
+		const float len = sqrtf(x * x + y * y);
+
+		if (len <= 1.0f) {
+			float avg = BKE_brush_curve_strength_clamped(br, len, 1.0f);  /* Falloff curve */
+
+			buffer[index] = 255 - (GLubyte)(255 * avg);
+		}
+		else {
+			buffer[index] = 0;
+		}
+	}
+}
+
 static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 {
 	bool init;
@@ -361,10 +406,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 	GLubyte *buffer = NULL;
 
 	int size;
-	int j;
-	int refresh;
-
-	refresh =
+	const bool refresh =
 	    !cursor_snap.overlay_texture ||
 	    (overlay_flags & PAINT_INVALID_OVERLAY_CURVE) ||
 	    cursor_snap.zoom != zoom;
@@ -404,41 +446,11 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 
 		curvemapping_initialize(br->curve);
 
-#pragma omp parallel for schedule(static)
-		for (j = 0; j < size; j++) {
-			int i;
-			float y;
-			float len;
+		LoadTexData data = {
+		    .br = br, .buffer = buffer, .size = size,
+		};
 
-			for (i = 0; i < size; i++) {
-
-				// largely duplicated from tex_strength
-
-				int index = j * size + i;
-				float x;
-
-				x = (float)i / size;
-				y = (float)j / size;
-
-				x -= 0.5f;
-				y -= 0.5f;
-
-				x *= 2;
-				y *= 2;
-
-				len = sqrtf(x * x + y * y);
-
-				if (len <= 1) {
-					float avg = BKE_brush_curve_strength_clamped(br, len, 1.0f);  /* Falloff curve */
-
-					buffer[index] = 255 - (GLubyte)(255 * avg);
-
-				}
-				else {
-					buffer[index] = 0;
-				}
-			}
-		}
+		BLI_task_parallel_range(0, size, &data, load_tex_cursor_task_cb, true);
 
 		if (!cursor_snap.overlay_texture)
 			glGenTextures(1, &cursor_snap.overlay_texture);
