@@ -178,11 +178,9 @@ typedef struct PTCacheBaker {
 	int anim_init;
 	int quick_step;
 	struct PTCacheID *pid;
-	int (*break_test)(void *data);
-	void *break_data;
-	void (*progressbar)(void *data, int num);
-	void (*progressend)(void *data);
-	void *progresscontext;
+
+	void (*update_progress)(void *data, float progress, int *cancel);
+	void *bake_job;
 } PTCacheBaker;
 
 /* PTCacheEditKey->flag */

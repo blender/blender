@@ -3050,9 +3050,8 @@ static void update_physics_cache(Render *re, Scene *scene, int UNUSED(anim_init)
 	baker.render = 1;
 	baker.anim_init = 1;
 	baker.quick_step = 1;
-	baker.break_test = re->test_break;
-	baker.break_data = re->tbh;
-	baker.progressbar = NULL;
+	baker.update_progress = NULL;
+	baker.bake_job = NULL;
 
 	BKE_ptcache_bake(&baker);
 }
