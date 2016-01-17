@@ -443,6 +443,7 @@ enum {
 	WM_JOB_TYPE_SEQ_BUILD_PROXY,
 	WM_JOB_TYPE_SEQ_BUILD_PREVIEW,
 	WM_JOB_TYPE_POINTCACHE,
+	WM_JOB_TYPE_DPAINT_BAKE,
 	/* add as needed, screencast, seq proxy build
 	 * if having hard coded values is a problem */
 };

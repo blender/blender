@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -44,8 +46,10 @@
 #include "BKE_depsgraph.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_report.h"
+#include "BKE_screen.h"
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
@@ -275,49 +279,112 @@ void DPAINT_OT_output_toggle(wmOperatorType *ot)
 
 /***************************** Image Sequence Baking ******************************/
 
+typedef struct DynamicPaintBakeJob {
+    /* from wmJob */
+    void *owner;
+    short *stop, *do_update;
+    float *progress;
+
+	struct Main *bmain;
+	Scene *scene;
+	Object *ob;
+
+	DynamicPaintSurface *surface;
+	DynamicPaintCanvasSettings *canvas;
+
+	int success;
+	double start;
+} DynamicPaintBakeJob;
+
+static void dpaint_bake_free(void *customdata)
+{
+    DynamicPaintBakeJob *job = customdata;
+    MEM_freeN(job);
+}
+
+static void dpaint_bake_endjob(void *customdata)
+{
+    DynamicPaintBakeJob *job = customdata;
+	DynamicPaintCanvasSettings *canvas = job->canvas;
+
+	canvas->flags &= ~MOD_DPAINT_BAKING;
+
+	dynamicPaint_freeSurfaceData(job->surface);
+
+	G.is_rendering = false;
+    BKE_spacedata_draw_locks(false);
+
+	WM_set_locked_interface(G.main->wm.first, false);
+
+	/* Bake was successful:
+	 *  Report for ended bake and how long it took */
+	if (job->success) {
+		/* Show bake info */
+		WM_reportf(RPT_INFO, "DynamicPaint: Bake complete! (%.2f)", PIL_check_seconds_timer() - job->start);
+	}
+	else {
+		if (strlen(canvas->error)) { /* If an error occurred */
+			WM_reportf(RPT_ERROR, "DynamicPaint: Bake failed: %s", canvas->error);
+		}
+		else { /* User canceled the bake */
+			WM_report(RPT_WARNING, "Baking canceled!");
+		}
+	}
+}
+
 /*
  * Do actual bake operation. Loop through to-be-baked frames.
  * Returns 0 on failure.
  */
-static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surface, Object *cObject)
+static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
 {
+	DynamicPaintSurface *surface = job->surface;
+	Object *cObject = job->ob;
 	DynamicPaintCanvasSettings *canvas = surface->canvas;
-	Scene *scene = CTX_data_scene(C);
-	wmWindow *win = CTX_wm_window(C);
-	int frame = 1;
+	Scene *scene = job->scene;
+	int frame = 1, orig_frame;
 	int frames;
 
 	frames = surface->end_frame - surface->start_frame + 1;
 	if (frames <= 0) {
 		BLI_strncpy(canvas->error, N_("No frames to bake"), sizeof(canvas->error));
-		return 0;
+		return;
 	}
 
 	/* Set frame to start point (also inits modifier data) */
 	frame = surface->start_frame;
+	orig_frame = scene->r.cfra;
 	scene->r.cfra = (int)frame;
-	ED_update_for_newframe(CTX_data_main(C), scene, 1);
+	ED_update_for_newframe(job->bmain, scene, 1);
 
 	/* Init surface	*/
-	if (!dynamicPaint_createUVSurface(scene, surface)) return 0;
+	if (!dynamicPaint_createUVSurface(scene, surface)) {
+		job->success = 0;
+		return;
+	}
 
 	/* Loop through selected frames */
 	for (frame = surface->start_frame; frame <= surface->end_frame; frame++) {
-		float progress = (frame - surface->start_frame) / (float)frames * 100;
+		float progress = (frame - surface->start_frame) / (float)frames;
 		surface->current_frame = frame;
 
-		/* If user requested stop (esc), quit baking	*/
-		if (blender_test_break()) return 0;
-
-		/* Update progress bar cursor */
-		if (!G.background) {
-			WM_cursor_time(win, (int)progress);
+		/* If user requested stop, quit baking */
+		if (G.is_break) {
+			job->success = 0;
+			return;
 		}
+
+		/* Update progress bar */
+	    *(job->do_update) = true;
+	    *(job->progress) = progress;
 
 		/* calculate a frame */
 		scene->r.cfra = (int)frame;
-		ED_update_for_newframe(CTX_data_main(C), scene, 1);
-		if (!dynamicPaint_calculateFrame(surface, scene, cObject, frame)) return 0;
+		ED_update_for_newframe(job->bmain, scene, 1);
+		if (!dynamicPaint_calculateFrame(surface, scene, cObject, frame)) {
+			job->success = 0;
+			return;
+		}
 
 		/*
 		 * Save output images
@@ -345,21 +412,44 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
 			}
 		}
 	}
-	return 1;
+
+	scene->r.cfra = orig_frame;
 }
 
+static void dpaint_bake_startjob(void *customdata, short *stop, short *do_update, float *progress)
+{
+    DynamicPaintBakeJob *job = customdata;
+
+    job->stop = stop;
+    job->do_update = do_update;
+    job->progress = progress;
+	job->start = PIL_check_seconds_timer();
+	job->success = 1;
+
+    G.is_break = false; /* reset blender_test_break*/
+
+	/* XXX annoying hack: needed to prevent data corruption when changing
+	 * scene frame in separate threads
+     */
+    G.is_rendering = true;
+    BKE_spacedata_draw_locks(true);
+
+	dynamicPaint_bakeImageSequence(job);
+
+    *do_update = true;
+    *stop = 0;
+}
 
 /*
  * Bake Dynamic Paint image sequence surface
  */
-static int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
+static int dynamicpaint_bake_exec(struct bContext *C, struct wmOperator *op)
 {
-	wmWindow *win = CTX_wm_window(C);
 	DynamicPaintModifierData *pmd = NULL;
 	DynamicPaintCanvasSettings *canvas;
 	Object *ob = ED_object_context(C);
-	int status = 0;
-	double timer = PIL_check_seconds_timer();
+	Scene *scene = CTX_data_scene(C);
+
 	DynamicPaintSurface *surface;
 
 	/*
@@ -368,54 +458,40 @@ static int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 	pmd = (DynamicPaintModifierData *)modifiers_findByType(ob, eModifierType_DynamicPaint);
 	if (!pmd) {
 		BKE_report(op->reports, RPT_ERROR, "Bake failed: no Dynamic Paint modifier found");
-		return 0;
+		return OPERATOR_CANCELLED;
 	}
 
 	/* Make sure we're dealing with a canvas */
 	canvas = pmd->canvas;
 	if (!canvas) {
 		BKE_report(op->reports, RPT_ERROR, "Bake failed: invalid canvas");
-		return 0;
+		return OPERATOR_CANCELLED;
 	}
 	surface = get_activeSurface(canvas);
 
 	/* Set state to baking and init surface */
 	canvas->error[0] = '\0';
 	canvas->flags |= MOD_DPAINT_BAKING;
-	G.is_break = false;  /* reset blender_test_break*/
+
+	DynamicPaintBakeJob *job = MEM_mallocN(sizeof(DynamicPaintBakeJob), "DynamicPaintBakeJob");
+	job->bmain = CTX_data_main(C);
+	job->scene = scene;
+	job->ob = ob;
+	job->canvas = canvas;
+	job->surface = surface;
+
+	wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene,
+	                            "Dynamic Paint Bake", WM_JOB_PROGRESS,
+	                            WM_JOB_TYPE_DPAINT_BAKE);
+
+	WM_jobs_customdata_set(wm_job, job, dpaint_bake_free);
+	WM_jobs_timer(wm_job, 0.1, NC_OBJECT | ND_MODIFIER, NC_OBJECT | ND_MODIFIER);
+	WM_jobs_callbacks(wm_job, dpaint_bake_startjob, NULL, NULL, dpaint_bake_endjob);
+
+	WM_set_locked_interface(CTX_wm_manager(C), true);
 
 	/*  Bake Dynamic Paint	*/
-	status = dynamicPaint_bakeImageSequence(C, surface, ob);
-	/* Clear bake */
-	canvas->flags &= ~MOD_DPAINT_BAKING;
-	if (!G.background) {
-		WM_cursor_modal_restore(win);
-	}
-	dynamicPaint_freeSurfaceData(surface);
-
-	/* Bake was successful:
-	 *  Report for ended bake and how long it took */
-	if (status) {
-		/* Show bake info */
-		BKE_reportf(op->reports, RPT_INFO, "Bake complete! (%.2f)", PIL_check_seconds_timer() - timer);
-	}
-	else {
-		if (strlen(canvas->error)) { /* If an error occurred */
-			BKE_reportf(op->reports, RPT_ERROR, "Bake failed: %s", canvas->error);
-		}
-		else { /* User canceled the bake */
-			BKE_report(op->reports, RPT_WARNING, "Baking canceled!");
-		}
-	}
-
-	return status;
-}
-
-static int dynamicpaint_bake_exec(bContext *C, wmOperator *op)
-{
-	/* Bake dynamic paint */
-	if (!dynamicPaint_initBake(C, op)) {
-		return OPERATOR_CANCELLED;}
+	WM_jobs_start(CTX_wm_manager(C), wm_job);
 
 	return OPERATOR_FINISHED;
 }
