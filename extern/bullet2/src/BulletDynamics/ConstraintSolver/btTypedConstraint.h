@@ -44,6 +44,7 @@ enum btTypedConstraintType
 	D6_SPRING_CONSTRAINT_TYPE,
 	GEAR_CONSTRAINT_TYPE,
 	FIXED_CONSTRAINT_TYPE,
+	D6_SPRING_2_CONSTRAINT_TYPE,
 	MAX_CONSTRAINT_TYPE
 };
 
@@ -65,6 +66,7 @@ enum btConstraintParams
 
 ATTRIBUTE_ALIGNED16(struct)	btJointFeedback
 {
+	BT_DECLARE_ALIGNED_ALLOCATOR();
 	btVector3	m_appliedForceBodyA;
 	btVector3	m_appliedTorqueBodyA;
 	btVector3	m_appliedForceBodyB;

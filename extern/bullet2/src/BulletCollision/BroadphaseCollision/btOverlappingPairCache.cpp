@@ -34,7 +34,6 @@ int gFindPairs =0;
 
 btHashedOverlappingPairCache::btHashedOverlappingPairCache():
 	m_overlapFilterCallback(0),
-	m_blockedForChanges(false),
 	m_ghostPairCallback(0)
 {
 	int initialAllocatedSize= 2;

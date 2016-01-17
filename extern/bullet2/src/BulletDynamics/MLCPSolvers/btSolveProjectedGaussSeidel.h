@@ -62,7 +62,7 @@ public:
 				}
 
 				float aDiag = A(i,i);
-				x [i] = (b [i] - delta) / A(i,i);
+				x [i] = (b [i] - delta) / aDiag;
 				float s = 1.f;
 
 				if (limitDependency[i]>=0)

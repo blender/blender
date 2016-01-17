@@ -4,8 +4,8 @@ Questions? mail blender at erwincoumans.com, or check the bf-blender mailing lis
 Thanks,
 Erwin
 
-Apply patches/convex_hull.patch to add access to the convex hull
-operation, used in the BMesh convex hull operator.
+Apply patches/blender.patch to fix a few build errors and warnings and dd original
+vertex access for BMesh convex hull operator.
 
 Documentation is available at:
 http://code.google.com/p/bullet/source/browse/trunk/Bullet_User_Manual.pdf

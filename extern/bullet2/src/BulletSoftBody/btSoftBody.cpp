@@ -3605,8 +3605,8 @@ const char*	btSoftBody::serialize(void* dataBuffer, class btSerializer* serializ
 			m_joints[i]->m_refs[0].serializeFloat(memPtr->m_refs[0]);
 			m_joints[i]->m_refs[1].serializeFloat(memPtr->m_refs[1]);
 			memPtr->m_cfm = m_joints[i]->m_cfm;
-			memPtr->m_erp = m_joints[i]->m_erp;
-			memPtr->m_split = m_joints[i]->m_split;
+			memPtr->m_erp = float(m_joints[i]->m_erp);
+			memPtr->m_split = float(m_joints[i]->m_split);
 			memPtr->m_delete = m_joints[i]->m_delete;
 			
 			for (int j=0;j<4;j++)

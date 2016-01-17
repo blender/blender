@@ -1193,19 +1193,34 @@ inline void		btDbvt::collideOCL(	const btDbvtNode* root,
 							/* Insert 0	*/ 
 							j=nearest(&stack[0],&stock[0],nes[q].value,0,stack.size());
 							stack.push_back(0);
+							
+							//void * memmove ( void * destination, const void * source, size_t num );
+							
 #if DBVT_USE_MEMMOVE
-							memmove(&stack[j+1],&stack[j],sizeof(int)*(stack.size()-j-1));
+                     {
+                     int num_items_to_move = stack.size()-1-j;
+                     if(num_items_to_move > 0)
+                        memmove(&stack[j+1],&stack[j],sizeof(int)*num_items_to_move);
+                     }
 #else
-							for(int k=stack.size()-1;k>j;--k) stack[k]=stack[k-1];
+                     for(int k=stack.size()-1;k>j;--k) {
+								stack[k]=stack[k-1];
+                     }
 #endif
 							stack[j]=allocate(ifree,stock,nes[q]);
 							/* Insert 1	*/ 
 							j=nearest(&stack[0],&stock[0],nes[1-q].value,j,stack.size());
 							stack.push_back(0);
 #if DBVT_USE_MEMMOVE
-							memmove(&stack[j+1],&stack[j],sizeof(int)*(stack.size()-j-1));
+                     {
+                     int num_items_to_move = stack.size()-1-j;
+                     if(num_items_to_move > 0)
+                        memmove(&stack[j+1],&stack[j],sizeof(int)*num_items_to_move);
+                     }
 #else
-							for(int k=stack.size()-1;k>j;--k) stack[k]=stack[k-1];
+                     for(int k=stack.size()-1;k>j;--k) {
+                        stack[k]=stack[k-1];
+                     }
 #endif
 							stack[j]=allocate(ifree,stock,nes[1-q]);
 						}

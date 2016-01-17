@@ -112,10 +112,9 @@ struct	btCompoundCompoundLeafCallback : btDbvt::ICollide
 									btManifoldResult*	resultOut,
 									btHashedSimplePairCache* childAlgorithmsCache,
 									btPersistentManifold*	sharedManifold)
-		:m_compound0ColObjWrap(compound1ObjWrap),m_compound1ColObjWrap(compound0ObjWrap),m_dispatcher(dispatcher),m_dispatchInfo(dispatchInfo),m_resultOut(resultOut),
+		:m_numOverlapPairs(0),m_compound0ColObjWrap(compound1ObjWrap),m_compound1ColObjWrap(compound0ObjWrap),m_dispatcher(dispatcher),m_dispatchInfo(dispatchInfo),m_resultOut(resultOut),
 		m_childCollisionAlgorithmCache(childAlgorithmsCache),
-		m_sharedManifold(sharedManifold),
-		m_numOverlapPairs(0)
+		m_sharedManifold(sharedManifold)
 	{
 
 	}

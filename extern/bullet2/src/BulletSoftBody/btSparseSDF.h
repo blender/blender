@@ -185,7 +185,6 @@ struct	btSparseSdf
 		{
 			++nprobes;		
 			++ncells;
-			int sz = sizeof(Cell);
 			if (ncells>m_clampCells)
 			{
 				static int numResets=0;

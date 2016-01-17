@@ -196,10 +196,6 @@ public:
 		m_pointCache[insertIndex].m_appliedImpulseLateral1 = appliedLateralImpulse1;
 		m_pointCache[insertIndex].m_appliedImpulseLateral2 = appliedLateralImpulse2;
 		
-		m_pointCache[insertIndex].m_appliedImpulse =  appliedImpulse;
-		m_pointCache[insertIndex].m_appliedImpulseLateral1 = appliedLateralImpulse1;
-		m_pointCache[insertIndex].m_appliedImpulseLateral2 = appliedLateralImpulse2;
-
 
 		m_pointCache[insertIndex].m_lifeTime = lifeTime;
 #else
