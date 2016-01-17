@@ -3147,7 +3147,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 	PointCache *cache = NULL;
 	float frameleno = scene->r.framelen;
 	int cfrao = CFRA;
-	int startframe = MAXFRAME, endframe = MAXFRAME;
+	int startframe = MAXFRAME, endframe = baker->anim_init ? scene->r.sfra : CFRA;
 	int bake = baker->bake;
 	int render = baker->render;
 	
