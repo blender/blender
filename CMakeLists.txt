@@ -246,7 +246,7 @@ mark_as_advanced(WITH_COMPOSITOR_WERROR)
 option(WITH_GHOST_DEBUG   "Enable debugging output for the GHOST library" OFF)
 mark_as_advanced(WITH_GHOST_DEBUG)
 
-option(WITH_GHOST_SDL    "Enable building blender against SDL for windowing rather then the native APIs" OFF)
+option(WITH_GHOST_SDL    "Enable building Blender against SDL for windowing rather than the native APIs" OFF)
 mark_as_advanced(WITH_GHOST_SDL)
 
 if(WITH_X11)
