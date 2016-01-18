@@ -39,13 +39,13 @@
 } (void)0
 
 #define CHECK_TYPE_PAIR(var_a, var_b)  {  \
-	typeof(var_a) *__tmp;                 \
+	const typeof(var_a) *__tmp;           \
 	__tmp = (typeof(var_b) *)NULL;        \
 	(void)__tmp;                          \
 } (void)0
 
 #define CHECK_TYPE_PAIR_INLINE(var_a, var_b)  ((void)({  \
-	typeof(var_a) *__tmp;                                \
+	const typeof(var_a) *__tmp;                          \
 	__tmp = (typeof(var_b) *)NULL;                       \
 	(void)__tmp;                                         \
 }))
