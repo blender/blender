@@ -142,3 +142,31 @@ int _bli_array_findindex(const void *arr, unsigned int arr_len, size_t arr_strid
 	}
 	return -1;
 }
+
+void _bli_array_binary_and(
+        void *arr, const void *arr_a, const void *arr_b,
+        unsigned int arr_len, size_t arr_stride)
+{
+	char *dst   = arr;
+	const char *src_a = arr_a;
+	const char *src_b = arr_b;
+
+	size_t i = arr_stride * arr_len;
+	while (i--) {
+		*(dst++) = *(src_a++) & *(src_b++);
+	}
+}
+
+void _bli_array_binary_or(
+        void *arr, const void *arr_a, const void *arr_b,
+        unsigned int arr_len, size_t arr_stride)
+{
+	char *dst   = arr;
+	const char *src_a = arr_a;
+	const char *src_b = arr_b;
+
+	size_t i = arr_stride * arr_len;
+	while (i--) {
+		*(dst++) = *(src_a++) | *(src_b++);
+	}
+}

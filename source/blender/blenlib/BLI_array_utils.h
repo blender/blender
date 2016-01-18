@@ -26,6 +26,8 @@
  *  \brief Generic array manipulation API.
  */
 
+#include "BLI_compiler_typecheck.h"
+
 void _bli_array_reverse(void *arr, unsigned int arr_len, size_t arr_stride);
 #define BLI_array_reverse(arr, arr_len) \
 	_bli_array_reverse(arr, arr_len, sizeof(*(arr)))
@@ -45,5 +47,21 @@ void _bli_array_permute(
 int _bli_array_findindex(const void *arr, unsigned int arr_len, size_t arr_stride, const void *p);
 #define BLI_array_findindex(arr, arr_len, p) \
 	_bli_array_findindex(arr, arr_len, sizeof(*(arr)), p)
+
+void _bli_array_binary_and(
+        void *arr, const void *arr_a, const void *arr_b,
+        unsigned int arr_len, size_t arr_stride);
+#define BLI_array_binary_and(arr, arr_a, arr_b, arr_len) \
+	(CHECK_TYPE_PAIR_INLINE(*(arr), *(arr_a)), \
+	 CHECK_TYPE_PAIR_INLINE(*(arr), *(arr_b)), \
+	 _bli_array_binary_and(arr, arr_a, arr_b, arr_len, sizeof(*(arr))))
+
+void _bli_array_binary_or(
+        void *arr, const void *arr_a, const void *arr_b,
+        unsigned int arr_len, size_t arr_stride);
+#define BLI_array_binary_or(arr, arr_a, arr_b, arr_len) \
+	(CHECK_TYPE_PAIR_INLINE(*(arr), *(arr_a)), \
+	 CHECK_TYPE_PAIR_INLINE(*(arr), *(arr_b)), \
+	 _bli_array_binary_or(arr, arr_a, arr_b, arr_len, sizeof(*(arr))))
 
 #endif  /* __BLI_ARRAY_UTILS_H__ */
