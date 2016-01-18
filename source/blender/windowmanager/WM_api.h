@@ -454,8 +454,6 @@ bool        WM_jobs_test(struct wmWindowManager *wm, void *owner, int job_type);
 float		WM_jobs_progress(struct wmWindowManager *wm, void *owner);
 char       *WM_jobs_name(struct wmWindowManager *wm, void *owner);
 double      WM_jobs_starttime(struct wmWindowManager *wm, void *owner);
-char       *WM_jobs_tooltip(struct wmWindowManager *wm, void *owner);
-void		WM_jobs_set_tooltip(struct wmWindowManager *wm, void *owner, char *text);
 void       *WM_jobs_customdata(struct wmWindowManager *wm, void *owner);
 void       *WM_jobs_customdata_from_type(struct wmWindowManager *wm, int job_type);
 

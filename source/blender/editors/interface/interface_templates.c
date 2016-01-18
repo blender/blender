@@ -3379,6 +3379,36 @@ static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
 	}
 }
 
+struct ProgressTooltip_Store {
+	wmWindowManager *wm;
+	void *owner;
+};
+
+static char *progress_tooltip_func(bContext *UNUSED(C), void *argN, const char *UNUSED(tip))
+{
+	struct ProgressTooltip_Store *arg = argN;
+	wmWindowManager *wm = arg->wm;
+	void *owner = arg->owner;
+
+	const float progress = WM_jobs_progress(wm, owner);
+
+	/* create tooltip text and associate it with the job */
+	char elapsed_str[32];
+	char remaining_str[32] = "Unknown";
+	const double elapsed = PIL_check_seconds_timer() - WM_jobs_starttime(wm, owner);
+	BLI_timecode_string_from_time_simple(elapsed_str, sizeof(elapsed_str), elapsed);
+
+	if (progress) {
+		const double remaining = (elapsed / progress) - elapsed;
+		BLI_timecode_string_from_time_simple(remaining_str, sizeof(remaining_str), remaining);
+	}
+
+	return BLI_sprintfN(
+	        "Time Remaining: %s\n"
+	        "Time Elapsed: %s",
+	        remaining_str, elapsed_str);
+}
+
 void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 {
 	bScreen *screen = CTX_wm_screen(C);
@@ -3470,7 +3500,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 
 	if (owner) {
 		const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-		bool active = !(WM_jobs_is_stopped(wm, owner) || G.is_break);
+		bool active = !(G.is_break || WM_jobs_is_stopped(wm, owner));
 		
 		uiLayout *row = uiLayoutRow(layout, false);
 		block = uiLayoutGetBlock(row);
@@ -3479,20 +3509,6 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		const float progress = WM_jobs_progress(wm, owner);
 		char text[8];
 		BLI_snprintf(text, 8, "%d%%", (int)(progress * 100));
-		
-		/* create tooltip text and associate it with the job */
-
-		const double elapsed = PIL_check_seconds_timer() - WM_jobs_starttime(wm, owner);
-		const double remaining = (elapsed / progress) - elapsed;
-
-		char remaining_str[32], elapsed_str[32];
-		BLI_timecode_string_from_time_simple(remaining_str, sizeof(remaining_str), remaining);
-		BLI_timecode_string_from_time_simple(elapsed_str, sizeof(remaining_str), elapsed);
-
-		char tooltip[128];
-		BLI_snprintf(tooltip, sizeof(tooltip), "Time Remaining: %s\nTime Elapsed: %s", remaining_str, elapsed_str);
-
-		WM_jobs_set_tooltip(wm, owner, tooltip);
 
 		const char *name = active ? WM_jobs_name(wm, owner) : "Canceling...";
 
@@ -3506,9 +3522,16 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		uiLayoutSetActive(row, active);
 		block = uiLayoutGetBlock(row);
 
-		uiDefIconTextBut(block, UI_BTYPE_PROGRESS_BAR, 0, 0, text,
-		                 UI_UNIT_X, 0, UI_UNIT_X * 6.0f, UI_UNIT_Y, NULL, 0.0f, 0.0f,
-		                 progress, 0, WM_jobs_tooltip(wm, owner));
+		{
+			struct ProgressTooltip_Store *tip_arg = MEM_mallocN(sizeof(*tip_arg), __func__);
+			tip_arg->wm = wm;
+			tip_arg->owner = owner;
+			uiBut *but_progress = uiDefIconTextBut(
+			        block, UI_BTYPE_PROGRESS_BAR, 0, 0, text,
+			        UI_UNIT_X, 0, UI_UNIT_X * 6.0f, UI_UNIT_Y, NULL, 0.0f, 0.0f,
+			        progress, 0, NULL);
+			UI_but_func_tooltip_set(but_progress, progress_tooltip_func, tip_arg);
+		}
 
 		uiDefIconTextBut(block, UI_BTYPE_BUT, handle_event, ICON_PANEL_CLOSE,
 		                 "", 0, 0, UI_UNIT_X, UI_UNIT_Y,

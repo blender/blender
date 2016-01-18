@@ -111,9 +111,6 @@ struct wmJob {
 
 	/* for display in header, identification */
 	char name[128];
-	
-    /* for other text display in progress bar */
-    char text[128];
 
 	/* once running, we store this separately */
 	void *run_customdata;
@@ -257,27 +254,6 @@ double WM_jobs_starttime(wmWindowManager *wm, void *owner)
 		return wm_job->start_time;
 
 	return 0;
-}
-
-/* get progress bar tooltip text */
-char *WM_jobs_tooltip(wmWindowManager *wm, void *owner)
-{
-	wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
-
-	if (wm_job && wm_job->flag & WM_JOB_PROGRESS)
-		return wm_job->text;
-
-	return NULL;
-}
-
-/* set progress bar text (e.g. tooltip, UI label, eta...) */
-void WM_jobs_set_tooltip(wmWindowManager *wm, void *owner, char *text)
-{
-	wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
-
-	if (wm_job && wm_job->flag & WM_JOB_PROGRESS) {
-		BLI_strncpy(wm_job->text, text, sizeof(wm_job->text));
-	}
 }
 
 char *WM_jobs_name(wmWindowManager *wm, void *owner)
