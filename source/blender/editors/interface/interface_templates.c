@@ -45,6 +45,7 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_fnmatch.h"
+#include "BLI_timecode.h"
 
 #include "BLF_api.h"
 #include "BLT_translation.h"
@@ -80,6 +81,8 @@
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 #include "interface_intern.h"
+
+#include "PIL_time.h"
 
 void UI_template_fix_linking(void)
 {
@@ -3383,7 +3386,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 	ScrArea *sa = CTX_wm_area(C);
 	uiBlock *block;
 	void *owner = NULL;
-	int handle_event;
+	int handle_event, icon = 0;
 	
 	block = uiLayoutGetBlock(layout);
 	UI_block_layout_set_current(block, layout);
@@ -3394,17 +3397,20 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		if (WM_jobs_test(wm, sa, WM_JOB_TYPE_ANY))
 			owner = sa;
 		handle_event = B_STOPSEQ;
+		icon = ICON_SEQUENCE;
 	}
 	else if (sa->spacetype == SPACE_CLIP) {
 		if (WM_jobs_test(wm, sa, WM_JOB_TYPE_ANY))
 			owner = sa;
 		handle_event = B_STOPCLIP;
+		icon = ICON_CLIP;
 	}
 	else if (sa->spacetype == SPACE_FILE) {
 		if (WM_jobs_test(wm, sa, WM_JOB_TYPE_FILESEL_READDIR)) {
 			owner = sa;
 		}
 		handle_event = B_STOPFILE;
+		icon = ICON_FILESEL;
 	}
 	else {
 		Scene *scene;
@@ -3412,10 +3418,12 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		for (scene = CTX_data_main(C)->scene.first; scene; scene = scene->id.next) {
 			if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER)) {
 				handle_event = B_STOPRENDER;
+				icon = ICON_SCENE;
 				break;
 			}
 			else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_COMPOSITE)) {
 				handle_event = B_STOPCOMPO;
+				icon = ICON_RENDERLAYERS;
 				break;
 			}
 			else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE) ||
@@ -3427,11 +3435,33 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 				 */
 				if (sa->spacetype != SPACE_NODE) {
 					handle_event = B_STOPOTHER;
+					icon = ICON_IMAGE_COL;
 					break;
 				}
 			}
+			else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_DPAINT_BAKE)) {
+				handle_event = B_STOPOTHER;
+				icon = ICON_MOD_DYNAMICPAINT;
+				break;
+			}
+			else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_POINTCACHE)) {
+				handle_event = B_STOPOTHER;
+				icon = ICON_PHYSICS;
+				break;
+			}
+			else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_SIM_FLUID)) {
+				handle_event = B_STOPOTHER;
+				icon = ICON_MOD_FLUIDSIM;
+				break;
+			}
+			else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_OBJECT_SIM_OCEAN)) {
+				handle_event = B_STOPOTHER;
+				icon = ICON_MOD_OCEAN;
+				break;
+			}
 			else if (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY)) {
 				handle_event = B_STOPOTHER;
+				icon = ICON_NONE;
 				break;
 			}
 		}
@@ -3439,18 +3469,52 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 	}
 
 	if (owner) {
-		uiLayout *ui_abs;
+		const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
+		bool active = !(WM_jobs_is_stopped(wm, owner) || G.is_break);
 		
-		ui_abs = uiLayoutAbsolute(layout, false);
-		(void)ui_abs;  /* UNUSED */
+		uiLayout *row = uiLayoutRow(layout, false);
+		block = uiLayoutGetBlock(row);
+
+		/* get percentage done and set it as the UI text */
+		const float progress = WM_jobs_progress(wm, owner);
+		char text[8];
+		BLI_snprintf(text, 8, "%d%%", (int)(progress * 100));
 		
-		uiDefIconBut(block, UI_BTYPE_BUT, handle_event, ICON_PANEL_CLOSE, 0, UI_UNIT_Y * 0.1, UI_UNIT_X * 0.8, UI_UNIT_Y * 0.8,
-		             NULL, 0.0f, 0.0f, 0, 0, TIP_("Stop this job"));
-		uiDefBut(block, UI_BTYPE_PROGRESS_BAR, 0, WM_jobs_name(wm, owner), 
-		         UI_UNIT_X, 0, UI_UNIT_X * 5.0f, UI_UNIT_Y, NULL, 0.0f, 0.0f, WM_jobs_progress(wm, owner), 0, TIP_("Progress"));
-		
-		uiLayoutRow(layout, false);
+		/* create tooltip text and associate it with the job */
+
+		const double elapsed = PIL_check_seconds_timer() - WM_jobs_starttime(wm, owner);
+		const double remaining = (elapsed / progress) - elapsed;
+
+		char remaining_str[32], elapsed_str[32];
+		BLI_timecode_string_from_time_simple(remaining_str, sizeof(remaining_str), remaining);
+		BLI_timecode_string_from_time_simple(elapsed_str, sizeof(remaining_str), elapsed);
+
+		char tooltip[128];
+		BLI_snprintf(tooltip, sizeof(tooltip), "Time Remaining: %s\nTime Elapsed: %s", remaining_str, elapsed_str);
+
+		WM_jobs_set_tooltip(wm, owner, tooltip);
+
+		const char *name = active ? WM_jobs_name(wm, owner) : "Canceling...";
+
+		/* job name and icon */
+		const int textwidth = UI_fontstyle_string_width(fstyle, name);
+		uiDefIconTextBut(block, UI_BTYPE_LABEL, 0, icon, name, 0, 0,
+		                 textwidth + UI_UNIT_X * 1.5f, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0.0f, 0.0f, "");
+
+		/* stick progress bar and cancel button together */
+		row = uiLayoutRow(layout, true);
+		uiLayoutSetActive(row, active);
+		block = uiLayoutGetBlock(row);
+
+		uiDefIconTextBut(block, UI_BTYPE_PROGRESS_BAR, 0, 0, text,
+		                 UI_UNIT_X, 0, UI_UNIT_X * 6.0f, UI_UNIT_Y, NULL, 0.0f, 0.0f,
+		                 progress, 0, WM_jobs_tooltip(wm, owner));
+
+		uiDefIconTextBut(block, UI_BTYPE_BUT, handle_event, ICON_PANEL_CLOSE,
+		                 "", 0, 0, UI_UNIT_X, UI_UNIT_Y,
+		                 NULL, 0.0f, 0.0f, 0, 0, TIP_("Stop this job"));
 	}
+
 	if (WM_jobs_test(wm, screen, WM_JOB_TYPE_SCREENCAST))
 		uiDefIconTextBut(block, UI_BTYPE_BUT, B_STOPCAST, ICON_CANCEL, IFACE_("Capture"), 0, 0, UI_UNIT_X * 4.25f, UI_UNIT_Y,
 		                 NULL, 0.0f, 0.0f, 0, 0, TIP_("Stop screencast"));

@@ -103,7 +103,7 @@ struct wmJob {
 	unsigned int note, endnote;
 	
 	
-/* internal */
+	/* internal */
 	void *owner;
 	int flag;
 	short suspended, running, ready, do_update, stop, job_type;
@@ -112,6 +112,9 @@ struct wmJob {
 	/* for display in header, identification */
 	char name[128];
 	
+    /* for other text display in progress bar */
+    char text[128];
+
 	/* once running, we store this separately */
 	void *run_customdata;
 	void (*run_free)(void *);
@@ -245,6 +248,38 @@ float WM_jobs_progress(wmWindowManager *wm, void *owner)
 	return 0.0;
 }
 
+/* time that job started */
+double WM_jobs_starttime(wmWindowManager *wm, void *owner)
+{
+	wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
+
+	if (wm_job && wm_job->flag & WM_JOB_PROGRESS)
+		return wm_job->start_time;
+
+	return 0;
+}
+
+/* get progress bar tooltip text */
+char *WM_jobs_tooltip(wmWindowManager *wm, void *owner)
+{
+	wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
+
+	if (wm_job && wm_job->flag & WM_JOB_PROGRESS)
+		return wm_job->text;
+
+	return NULL;
+}
+
+/* set progress bar text (e.g. tooltip, UI label, eta...) */
+void WM_jobs_set_tooltip(wmWindowManager *wm, void *owner, char *text)
+{
+	wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
+
+	if (wm_job && wm_job->flag & WM_JOB_PROGRESS) {
+		BLI_strncpy(wm_job->text, text, sizeof(wm_job->text));
+	}
+}
+
 char *WM_jobs_name(wmWindowManager *wm, void *owner)
 {
 	wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
@@ -278,6 +313,12 @@ void *WM_jobs_customdata_from_type(wmWindowManager *wm, int job_type)
 bool WM_jobs_is_running(wmJob *wm_job)
 {
 	return wm_job->running;
+}
+
+bool WM_jobs_is_stopped(wmWindowManager *wm, void *owner)
+{
+	wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
+	return wm_job->stop;
 }
 
 void *WM_jobs_customdata_get(wmJob *wm_job)
@@ -420,8 +461,7 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job)
 			if (wm_job->wt == NULL)
 				wm_job->wt = WM_event_add_timer(wm, wm_job->win, TIMERJOBS, wm_job->timestep);
 
-			if (G.debug & G_DEBUG_JOBS)
-				wm_job->start_time = PIL_check_seconds_timer();
+			wm_job->start_time = PIL_check_seconds_timer();
 		}
 		else {
 			printf("job fails, not initialized\n");

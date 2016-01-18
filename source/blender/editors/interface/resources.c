@@ -2024,7 +2024,7 @@ void init_userdef_do_versions(void)
 			{0, 0, 0, 255},
 			{190, 190, 190, 255},
 			{100, 100, 100, 180},
-			{68, 68, 68, 255},
+			{128, 128, 128, 255},
 			
 			{0, 0, 0, 255},
 			{255, 255, 255, 255},
@@ -2675,6 +2675,13 @@ void init_userdef_do_versions(void)
 		bTheme *btheme;
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			rgba_char_args_set(btheme->tseq.text_strip, 162, 151, 0, 255);
+		}
+	}
+
+	if (!USER_VERSION_ATLEAST(276, 8)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			rgba_char_args_set(btheme->tui.wcol_progress.item, 128, 128, 128, 255);
 		}
 	}
 

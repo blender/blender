@@ -1854,7 +1854,7 @@ static struct uiWidgetColors wcol_progress = {
 	{0, 0, 0, 255},
 	{190, 190, 190, 255},
 	{100, 100, 100, 180},
-	{68, 68, 68, 255},
+	{128, 128, 128, 255},
 	
 	{0, 0, 0, 255},
 	{255, 255, 255, 255},
@@ -2863,30 +2863,37 @@ static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	UI_draw_widget_scroll(wcol, rect, &rect1, state);
 }
 
-static void widget_progressbar(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
+static void widget_progressbar(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
 {
+	uiWidgetBase wtb, wtb_bar;
 	rcti rect_prog = *rect, rect_bar = *rect;
+
+	widget_init(&wtb);
+	widget_init(&wtb_bar);
+
+	/* round corners */
 	float value = but->a1;
-	float w, min;
-	
-	/* make the progress bar a proportion of the original height */
-	/* hardcoded 4px high for now */
-	rect_prog.ymax = rect_prog.ymin + 4 * UI_DPI_FAC;
-	rect_bar.ymax = rect_bar.ymin + 4 * UI_DPI_FAC;
-	
-	w = value * BLI_rcti_size_x(&rect_prog);
-	
+	float offs = 0.25f * BLI_rcti_size_y(&rect_prog);
+	float w = value * BLI_rcti_size_x(&rect_prog);
+
 	/* ensure minimium size */
-	min = BLI_rcti_size_y(&rect_prog);
-	w = MAX2(w, min);
-	
+	w = MAX2(w, offs);
+
 	rect_bar.xmax = rect_bar.xmin + w;
-		
-	UI_draw_widget_scroll(wcol, &rect_prog, &rect_bar, UI_SCROLL_NO_OUTLINE);
-	
+
+	round_box_edges(&wtb, roundboxalign, &rect_prog, offs);
+	round_box_edges(&wtb_bar, roundboxalign, &rect_bar, offs);
+
+	wtb.draw_outline = true;
+	widgetbase_draw(&wtb, wcol);
+
+	/* "slider" bar color */
+	copy_v3_v3_char(wcol->inner, wcol->item);
+	widgetbase_draw(&wtb_bar, wcol);
+
 	/* raise text a bit */
-	rect->ymin += 6 * UI_DPI_FAC;
-	rect->xmin -= 6 * UI_DPI_FAC;
+	rect->xmin += (BLI_rcti_size_x(&rect_prog) / 2);
+	rect->xmax += (BLI_rcti_size_x(&rect_prog) / 2);
 }
 
 static void widget_link(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
