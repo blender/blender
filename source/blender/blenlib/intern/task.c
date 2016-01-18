@@ -786,7 +786,7 @@ void BLI_task_parallel_range(
         int start, int stop,
         void *userdata,
         TaskParallelRangeFunc func,
-		const bool use_threading)
+        const bool use_threading)
 {
 	task_parallel_range_ex(start, stop, userdata, NULL, 0, func, NULL, use_threading, false);
 }

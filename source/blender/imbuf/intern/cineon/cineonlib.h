@@ -27,8 +27,8 @@
  */
 
 
-#ifndef __CINEON_LIB_H__
-#define __CINEON_LIB_H__
+#ifndef __CINEONLIB_H__
+#define __CINEONLIB_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -139,4 +139,4 @@ LogImageFile *cineonCreate(const char *filename, int width, int height, int bits
 }
 #endif
 
-#endif  /* __CINEON_LIB_H__ */
+#endif  /* __CINEONLIB_H__ */

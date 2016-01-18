@@ -52,10 +52,10 @@ static int gpu_shader_particle_info(GPUMaterial *mat, bNode *UNUSED(node), bNode
 {
 
 	return GPU_stack_link(mat, "particle_info", in, out,
-						  GPU_builtin(GPU_PARTICLE_SCALAR_PROPS),
-						  GPU_builtin(GPU_PARTICLE_LOCATION),
-						  GPU_builtin(GPU_PARTICLE_VELOCITY),
-						  GPU_builtin(GPU_PARTICLE_ANG_VELOCITY));
+	                      GPU_builtin(GPU_PARTICLE_SCALAR_PROPS),
+	                      GPU_builtin(GPU_PARTICLE_LOCATION),
+	                      GPU_builtin(GPU_PARTICLE_VELOCITY),
+	                      GPU_builtin(GPU_PARTICLE_ANG_VELOCITY));
 }
 
 /* node type definition */

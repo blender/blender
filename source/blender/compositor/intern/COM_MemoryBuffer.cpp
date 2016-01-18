@@ -178,7 +178,8 @@ void MemoryBuffer::writePixel(int x, int y, const float color[4])
 	    y >= this->m_rect.ymin && y < this->m_rect.ymax)
 	{
 		const int offset = (this->m_width * (y - this->m_rect.ymin) + x - this->m_rect.xmin) * this->m_num_channels;
-		memcpy(&this->m_buffer[offset], color, sizeof(float)*this->m_num_channels);	}
+		memcpy(&this->m_buffer[offset], color, sizeof(float) * this->m_num_channels);
+	}
 }
 
 void MemoryBuffer::addPixel(int x, int y, const float color[4])

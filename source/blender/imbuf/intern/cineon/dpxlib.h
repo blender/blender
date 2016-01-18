@@ -26,8 +26,8 @@
  */
 
 
-#ifndef __DPX_LIB_H__
-#define __DPX_LIB_H__
+#ifndef __DPXLIB_H__
+#define __DPXLIB_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -157,4 +157,4 @@ LogImageFile *dpxCreate(const char *filename, int width, int height, int bitsPer
 }
 #endif
 
-#endif
+#endif  /* __DPXLIB_H__ */

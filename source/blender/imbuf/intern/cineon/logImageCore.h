@@ -30,8 +30,8 @@
  *  \ingroup imbcineon
  */
 
-#ifndef __LOG_IMAGE_CORE_H__
-#define __LOG_IMAGE_CORE_H__
+#ifndef __LOGIMAGECORE_H__
+#define __LOGIMAGECORE_H__
 
 #include <stdio.h>
 
@@ -278,4 +278,4 @@ BLI_INLINE unsigned int float_uint(float value, unsigned int max)
 }
 #endif
 
-#endif  /* __LOG_IMAGE_CORE_H__ */
+#endif  /* __LOGIMAGECORE_H__ */

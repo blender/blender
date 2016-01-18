@@ -1,6 +1,6 @@
 
-#ifndef EIGEN_CONSTRAINEDCG_H
-#define EIGEN_CONSTRAINEDCG_H
+#ifndef __CONSTRAINEDCONJUGATEGRADIENT_H__
+#define __CONSTRAINEDCONJUGATEGRADIENT_H__
 
 #include <Eigen/Core>
 
@@ -291,4 +291,4 @@ struct solve_retval<ConstrainedConjugateGradient<_MatrixType,_UpLo,_Filter,_Prec
 
 } // end namespace Eigen
 
-#endif // EIGEN_CONSTRAINEDCG_H
+#endif // __CONSTRAINEDCONJUGATEGRADIENT_H__
