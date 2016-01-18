@@ -60,7 +60,6 @@
 /* Extensions support */
 
 /* -- extension: version of GL that absorbs it
- * ARB_fragment_program: 2.0
  * ARB_framebuffer object: 3.0
  * EXT_framebuffer_object: 3.0
  * EXT_framebuffer_blit: 3.0
