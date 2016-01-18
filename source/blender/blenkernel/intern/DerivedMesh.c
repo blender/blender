@@ -1333,9 +1333,9 @@ typedef struct DMWeightColorInfo {
 
 static int dm_drawflag_calc(const ToolSettings *ts)
 {
-	return ((ts->multipaint ? CALC_WP_MULTIPAINT :
-	                          /* CALC_WP_GROUP_USER_ACTIVE or CALC_WP_GROUP_USER_ALL*/
-	                          (1 << ts->weightuser)) |
+	return ((ts->multipaint ? CALC_WP_MULTIPAINT : 0) |
+	        /* CALC_WP_GROUP_USER_ACTIVE or CALC_WP_GROUP_USER_ALL*/
+	        (1 << ts->weightuser) |
 	        (ts->auto_normalize ? CALC_WP_AUTO_NORMALIZE : 0));
 }
 
