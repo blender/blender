@@ -90,12 +90,16 @@ typedef struct TransSnap {
 	char	snapNodeBorder;
 	ListBase points;
 	TransSnapPoint	*selectedPoint;
-	float	dist; // Distance from snapPoint to snapTarget
 	double	last;
 	void  (*applySnap)(struct TransInfo *, float *);
 	void  (*calcSnap)(struct TransInfo *, float *);
 	void  (*targetSnap)(struct TransInfo *);
-	/* Get the transform distance between two points (used by Closest snap) */
+	/**
+	 * Get the transform distance between two points (used by Closest snap)
+	 *
+	 * \note Return value can be anything,
+	 * where the smallest absolute value defines whats closest.
+	 */
 	float  (*distance)(struct TransInfo *, const float p1[3], const float p2[3]);
 } TransSnap;
 
