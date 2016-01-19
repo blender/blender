@@ -635,6 +635,226 @@ static SequenceModifierTypeInfo seqModifier_Mask = {
 	maskmodifier_apply                           /* apply */
 };
 
+/* **** Tonemap Modifier **** */
+
+typedef struct AvgLogLum {
+	SequencerTonemapModifierData *tmmd;
+	struct ColorSpace *colorspace;
+	float al;
+	float auto_key;
+	float lav;
+	float cav[4];
+	float igm;
+} AvgLogLum;
+
+static void tonemapmodifier_init_data(SequenceModifierData *smd)
+{
+	SequencerTonemapModifierData *tmmd = (SequencerTonemapModifierData *) smd;
+	/* Same as tonemap compositor node. */
+	tmmd->type = SEQ_TONEMAP_RD_PHOTORECEPTOR;
+	tmmd->key = 0.18f;
+	tmmd->offset = 1.0f;
+	tmmd->gamma = 1.0f;
+	tmmd->intensity = 0.0f;
+	tmmd->contrast = 0.0f;
+	tmmd->adaptation = 1.0f;
+	tmmd->correction = 0.0f;
+}
+
+static void tonemapmodifier_apply_threaded_simple(int width,
+                                                  int height,
+                                                  unsigned char *rect,
+                                                  float *rect_float,
+                                                  unsigned char *mask_rect,
+                                                  float *mask_rect_float,
+                                                  void *data_v)
+{
+	AvgLogLum *avg = (AvgLogLum *)data_v;
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
+			int pixel_index = (y * width + x) * 4;
+			float input[4], output[4], mask[3] = {1.0f, 1.0f, 1.0f};
+			/* Get input value. */
+			if (rect_float) {
+				copy_v4_v4(input, &rect_float[pixel_index]);
+			}
+			else {
+				straight_uchar_to_premul_float(input, &rect[pixel_index]);
+			}
+			IMB_colormanagement_colorspace_to_scene_linear_v3(input, avg->colorspace);
+			copy_v4_v4(output, input);
+			/* Get mask value. */
+			if (mask_rect_float) {
+				copy_v3_v3(mask, mask_rect_float + pixel_index);
+			}
+			else if (mask_rect) {
+				rgb_uchar_to_float(mask, mask_rect + pixel_index);
+			}
+			/* Apply correction. */
+			mul_v3_fl(output, avg->al);
+			float dr = output[0] + avg->tmmd->offset;
+			float dg = output[1] + avg->tmmd->offset;
+			float db = output[2] + avg->tmmd->offset;
+			output[0] /= ((dr == 0.0f) ? 1.0f : dr);
+			output[1] /= ((dg == 0.0f) ? 1.0f : dg);
+			output[2] /= ((db == 0.0f) ? 1.0f : db);
+			const float igm = avg->igm;
+			if (igm != 0.0f) {
+				output[0] = powf(max_ff(output[0], 0.0f), igm);
+				output[1] = powf(max_ff(output[1], 0.0f), igm);
+				output[2] = powf(max_ff(output[2], 0.0f), igm);
+			}
+			/* Apply mask. */
+			output[0] = input[0] * (1.0f - mask[0]) + output[0] * mask[0];
+			output[1] = input[1] * (1.0f - mask[1]) + output[1] * mask[1];
+			output[2] = input[2] * (1.0f - mask[2]) + output[2] * mask[2];
+			/* Copy result back. */
+			IMB_colormanagement_scene_linear_to_colorspace_v3(output, avg->colorspace);
+			if (rect_float) {
+				copy_v4_v4(&rect_float[pixel_index], output);
+			}
+			else {
+				premul_float_to_straight_uchar(&rect[pixel_index], output);
+			}
+		}
+	}
+}
+
+static void tonemapmodifier_apply_threaded_photoreceptor(int width,
+                                                         int height,
+                                                         unsigned char *rect,
+                                                         float *rect_float,
+                                                         unsigned char *mask_rect,
+                                                         float *mask_rect_float,
+                                                         void *data_v)
+{
+	AvgLogLum *avg = (AvgLogLum *)data_v;
+	const float f = expf(-avg->tmmd->intensity);
+	const float m = (avg->tmmd->contrast > 0.0f) ? avg->tmmd->contrast : (0.3f + 0.7f * powf(avg->auto_key, 1.4f));
+	const float ic = 1.0f - avg->tmmd->correction, ia = 1.0f - avg->tmmd->adaptation;
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
+			int pixel_index = (y * width + x) * 4;
+			float input[4], output[4], mask[3] = {1.0f, 1.0f, 1.0f};
+			/* Get input value. */
+			if (rect_float) {
+				copy_v4_v4(input, &rect_float[pixel_index]);
+			}
+			else {
+				straight_uchar_to_premul_float(input, &rect[pixel_index]);
+			}
+			IMB_colormanagement_colorspace_to_scene_linear_v3(input, avg->colorspace);
+			copy_v4_v4(output, input);
+			/* Get mask value. */
+			if (mask_rect_float) {
+				copy_v3_v3(mask, mask_rect_float + pixel_index);
+			}
+			else if (mask_rect) {
+				rgb_uchar_to_float(mask, mask_rect + pixel_index);
+			}
+			/* Apply correction. */
+			const float L = IMB_colormanagement_get_luminance(output);
+			float I_l = output[0] + ic * (L - output[0]);
+			float I_g = avg->cav[0] + ic * (avg->lav - avg->cav[0]);
+			float I_a = I_l + ia * (I_g - I_l);
+			output[0] /= (output[0] + powf(f * I_a, m));
+			I_l = output[1] + ic * (L - output[1]);
+			I_g = avg->cav[1] + ic * (avg->lav - avg->cav[1]);
+			I_a = I_l + ia * (I_g - I_l);
+			output[1] /= (output[1] + powf(f * I_a, m));
+			I_l = output[2] + ic * (L - output[2]);
+			I_g = avg->cav[2] + ic * (avg->lav - avg->cav[2]);
+			I_a = I_l + ia * (I_g - I_l);
+			output[2] /= (output[2] + powf(f * I_a, m));
+			/* Apply mask. */
+			output[0] = input[0] * (1.0f - mask[0]) + output[0] * mask[0];
+			output[1] = input[1] * (1.0f - mask[1]) + output[1] * mask[1];
+			output[2] = input[2] * (1.0f - mask[2]) + output[2] * mask[2];
+			/* Copy result back. */
+			IMB_colormanagement_scene_linear_to_colorspace_v3(output, avg->colorspace);
+			if (rect_float) {
+				copy_v4_v4(&rect_float[pixel_index], output);
+			}
+			else {
+				premul_float_to_straight_uchar(&rect[pixel_index], output);
+			}
+		}
+	}
+}
+
+static void tonemapmodifier_apply(struct SequenceModifierData *smd,
+                                  ImBuf *ibuf,
+                                  ImBuf *mask)
+{
+	SequencerTonemapModifierData *tmmd = (SequencerTonemapModifierData *) smd;
+	AvgLogLum data;
+	data.tmmd = tmmd;
+	data.colorspace = (ibuf->rect_float != NULL)
+	                      ? ibuf->float_colorspace
+	                      : ibuf->rect_colorspace;
+	float lsum = 0.0f;
+	int p = ibuf->x * ibuf->y;
+	float *fp = ibuf->rect_float;
+	unsigned char *cp = (unsigned char *)ibuf->rect;
+	float avl, maxl = -FLT_MAX, minl = FLT_MAX;
+	const float sc = 1.0f / p;
+	float Lav = 0.f;
+	float cav[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+	while (p--) {
+		float pixel[4];
+		if (fp != NULL) {
+			copy_v4_v4(pixel, fp);
+		}
+		else {
+			straight_uchar_to_premul_float(pixel, cp);
+		}
+		IMB_colormanagement_colorspace_to_scene_linear_v3(pixel, data.colorspace);
+		float L = IMB_colormanagement_get_luminance(pixel);
+		Lav += L;
+		add_v3_v3(cav, pixel);
+		lsum += logf(max_ff(L, 0.0f) + 1e-5f);
+		maxl = (L > maxl) ? L : maxl;
+		minl = (L < minl) ? L : minl;
+		if (fp != NULL) {
+			fp += 4;
+		} else {
+			cp += 4;
+		}
+	}
+	data.lav = Lav * sc;
+	mul_v3_v3fl(data.cav, cav, sc);
+	maxl = logf(maxl + 1e-5f);
+	minl = logf(minl + 1e-5f);
+	avl = lsum * sc;
+	data.auto_key = (maxl > minl) ? ((maxl - avl) / (maxl - minl)) : 1.0f;
+	float al = expf(avl);
+	data.al = (al == 0.0f) ? 0.0f : (tmmd->key / al);
+	data.igm = (tmmd->gamma == 0.0f) ? 1.0f : (1.0f / tmmd->gamma);
+
+	if (tmmd->type == SEQ_TONEMAP_RD_PHOTORECEPTOR) {
+		modifier_apply_threaded(ibuf,
+		                        mask,
+		                        tonemapmodifier_apply_threaded_photoreceptor,
+		                        &data);
+	}
+	else /* if (tmmd->type == SEQ_TONEMAP_RD_SIMPLE) */ {
+		modifier_apply_threaded(ibuf,
+		                        mask,
+		                        tonemapmodifier_apply_threaded_simple,
+		                        &data);
+	}
+}
+
+static SequenceModifierTypeInfo seqModifier_Tonemap = {
+	CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Tonemap"), /* name */
+	"SequencerTonemapModifierData",                 /* struct_name */
+	sizeof(SequencerTonemapModifierData),           /* struct_size */
+	tonemapmodifier_init_data,                      /* init_data */
+	NULL,                                           /* free_data */
+	NULL,                                           /* copy_data */
+	tonemapmodifier_apply                           /* apply */
+};
+
 /*********************** Modifier functions *************************/
 
 static void sequence_modifier_type_info_init(void)
@@ -647,6 +867,7 @@ static void sequence_modifier_type_info_init(void)
 	INIT_TYPE(BrightContrast);
 	INIT_TYPE(Mask);
 	INIT_TYPE(WhiteBalance);
+	INIT_TYPE(Tonemap);
 
 #undef INIT_TYPE
 }

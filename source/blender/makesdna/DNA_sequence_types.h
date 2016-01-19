@@ -352,6 +352,19 @@ typedef struct WhiteBalanceModifierData {
 	float pad;
 } WhiteBalanceModifierData;
 
+typedef struct SequencerTonemapModifierData {
+	SequenceModifierData modifier;
+
+	float key, offset, gamma;
+	float intensity, contrast, adaptation, correction;
+	int type;
+} SequencerTonemapModifierData;
+
+enum {
+	SEQ_TONEMAP_RH_SIMPLE = 0,
+	SEQ_TONEMAP_RD_PHOTORECEPTOR = 1,
+};
+
 /* ***************** Scopes ****************** */
 
 typedef struct SequencerScopes {
@@ -528,6 +541,7 @@ enum {
 	seqModifierType_BrightContrast = 4,
 	seqModifierType_Mask           = 5,
 	seqModifierType_WhiteBalance   = 6,
+	seqModifierType_Tonemap        = 7,
 
 	NUM_SEQUENCE_MODIFIER_TYPES
 };

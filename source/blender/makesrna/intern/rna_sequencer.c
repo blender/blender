@@ -67,6 +67,7 @@ EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
 	{seqModifierType_BrightContrast, "BRIGHT_CONTRAST", ICON_NONE, "Bright/Contrast", ""},
 	{seqModifierType_Mask, "MASK", ICON_NONE, "Mask", ""},
 	{seqModifierType_WhiteBalance, "WHITE_BALANCE", ICON_NONE, "White Balance", ""},
+	{seqModifierType_Tonemap, "TONEMAP", ICON_NONE, "Tone Map", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -953,6 +954,8 @@ static StructRNA *rna_SequenceModifier_refine(struct PointerRNA *ptr)
 			return &RNA_BrightContrastModifier;
 		case seqModifierType_WhiteBalance:
 			return &RNA_WhiteBalanceModifier;
+		case seqModifierType_Tonemap:
+			return &RNA_SequencerTonemapModifierData;
 		default:
 			return &RNA_SequenceModifier;
 	}
@@ -2559,6 +2562,65 @@ static void rna_def_brightcontrast_modifier(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
 }
 
+static void rna_def_tonemap_modifier(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem type_items[] = {
+		{SEQ_TONEMAP_RD_PHOTORECEPTOR, "RD_PHOTORECEPTOR", 0, "R/D Photoreceptor", ""},
+		{SEQ_TONEMAP_RH_SIMPLE,        "RH_SIMPLE",        0, "Rh Simple",         ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	srna = RNA_def_struct(brna, "SequencerTonemapModifierData", "SequenceModifier");
+	RNA_def_struct_sdna(srna, "SequencerTonemapModifierData");
+	RNA_def_struct_ui_text(srna, "SequencerTonemapModifierData",
+	                       "Tone mapping modifier");
+
+	prop = RNA_def_property(srna, "tonemap_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, type_items);
+	RNA_def_property_ui_text(prop, "Tonemap Type", "");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
+
+	prop = RNA_def_property(srna, "key", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Key", "The value the average luminance is mapped to");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
+
+	prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.001f, 10.0f);
+	RNA_def_property_ui_text(prop, "Offset",
+	                         "Normally always 1, but can be used as an extra control to alter the brightness curve");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
+
+	prop = RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.001f, 3.0f);
+	RNA_def_property_ui_text(prop, "Gamma", "If not used, set to 1");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
+
+	prop = RNA_def_property(srna, "intensity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, -8.0f, 8.0f);
+	RNA_def_property_ui_text(prop, "Intensity", "If less than zero, darkens image; otherwise, makes it brighter");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
+
+	prop = RNA_def_property(srna, "contrast", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Contrast", "Set to 0 to use estimate from input image");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
+
+	prop = RNA_def_property(srna, "adaptation", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Adaptation", "If 0, global; if 1, based on pixel intensity");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
+
+	prop = RNA_def_property(srna, "correction", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Color Correction", "If 0, same for all channels; if 1, each independent");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
+}
+
 static void rna_def_modifiers(BlenderRNA *brna)
 {
 	rna_def_modifier(brna);
@@ -2568,6 +2630,7 @@ static void rna_def_modifiers(BlenderRNA *brna)
 	rna_def_hue_modifier(brna);
 	rna_def_brightcontrast_modifier(brna);
 	rna_def_whitebalance_modifier(brna);
+	rna_def_tonemap_modifier(brna);
 }
 
 void RNA_def_sequencer(BlenderRNA *brna)
