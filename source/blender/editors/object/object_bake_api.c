@@ -450,11 +450,12 @@ static bool bake_pass_filter_check(ScenePassType pass_type, const int pass_filte
 
 				if ((pass_filter & R_BAKE_PASS_FILTER_AO) != 0) {
 					BKE_report(reports, RPT_ERROR,
-					           "Combined bake pass Ambient Occlusion contribution requires an enabled light pass. "
-					           "Bake the Ambient Occlusion pass type instead.");
+					           "Combined bake pass Ambient Occlusion contribution requires an enabled light pass "
+					           "(bake the Ambient Occlusion pass type instead)");
 				}
 				else {
-					BKE_report(reports, RPT_ERROR, "Combined bake pass requires Emit, or a light pass with "
+					BKE_report(reports, RPT_ERROR,
+					           "Combined bake pass requires Emit, or a light pass with "
 					           "Direct or Indirect contributions enabled");
 				}
 

@@ -123,6 +123,7 @@ class SpellChecker:
         "mixdown",
         "multi",
         "multifractal",
+        "multipaint",
         "multires", "multiresolution",
         "multisampling",
         "multitexture",
