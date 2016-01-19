@@ -1485,38 +1485,68 @@ static ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 	return(ibuf);
 }
 
-
-/* no float buf needed here! */
 static void scalefast_Z_ImBuf(ImBuf *ibuf, int newx, int newy)
 {
-	unsigned int *rect, *_newrect, *newrect;
+	int *zbuf, *newzbuf, *_newzbuf = NULL;
+	float *zbuf_float, *newzbuf_float, *_newzbuf_float = NULL;
 	int x, y;
 	int ofsx, ofsy, stepx, stepy;
 
 	if (ibuf->zbuf) {
-		_newrect = MEM_mallocN(newx * newy * sizeof(int), "z rect");
-		if (_newrect == NULL) return;
-		
-		stepx = (65536.0 * (ibuf->x - 1.0) / (newx - 1.0)) + 0.5;
-		stepy = (65536.0 * (ibuf->y - 1.0) / (newy - 1.0)) + 0.5;
-		ofsy = 32768;
+		_newzbuf = MEM_mallocN(newx * newy * sizeof(int), __func__);
+		if (_newzbuf == NULL) {
+			IMB_freezbufImBuf(ibuf);
+		}
+	}
 
-		newrect = _newrect;
-	
-		for (y = newy; y > 0; y--) {
-			rect = (unsigned int *) ibuf->zbuf;
-			rect += (ofsy >> 16) * ibuf->x;
-			ofsy += stepy;
+	if (ibuf->zbuf_float) {
+		_newzbuf_float = MEM_mallocN((size_t)newx * newy * sizeof(float), __func__);
+		if (_newzbuf_float == NULL) {
+			IMB_freezbuffloatImBuf(ibuf);
+		}
+	}
+
+	if (!_newzbuf && !_newzbuf_float) {
+		return;
+	}
+
+	stepx = (65536.0 * (ibuf->x - 1.0) / (newx - 1.0)) + 0.5;
+	stepy = (65536.0 * (ibuf->y - 1.0) / (newy - 1.0)) + 0.5;
+	ofsy = 32768;
+
+	newzbuf = _newzbuf;
+	newzbuf_float = _newzbuf_float;
+
+	for (y = newy; y > 0; y--, ofsy += stepy) {
+		if (newzbuf) {
+			zbuf = ibuf->zbuf;
+			zbuf += (ofsy >> 16) * ibuf->x;
 			ofsx = 32768;
-			for (x = newx; x > 0; x--) {
-				*newrect++ = rect[ofsx >> 16];
-				ofsx += stepx;
+			for (x = newx; x > 0; x--, ofsx += stepx) {
+				*newzbuf++ = zbuf[ofsx >> 16];
 			}
 		}
-	
+
+		if (newzbuf_float) {
+			zbuf_float = ibuf->zbuf_float;
+			zbuf_float += (ofsy >> 16) * ibuf->x;
+			ofsx = 32768;
+			for (x = newx; x > 0; x--, ofsx += stepx) {
+				*newzbuf_float++ = zbuf_float[ofsx >> 16];
+			}
+		}
+	}
+
+	if (_newzbuf) {
 		IMB_freezbufImBuf(ibuf);
 		ibuf->mall |= IB_zbuf;
-		ibuf->zbuf = (int *) _newrect;
+		ibuf->zbuf = _newzbuf;
+	}
+
+	if (_newzbuf_float) {
+		IMB_freezbuffloatImBuf(ibuf);
+		ibuf->mall |= IB_zbuffloat;
+		ibuf->zbuf_float = _newzbuf_float;
 	}
 }
 
@@ -1586,30 +1616,24 @@ struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned
 	stepy = (65536.0 * (ibuf->y - 1.0) / (newy - 1.0)) + 0.5;
 	ofsy = 32768;
 
-	for (y = newy; y > 0; y--) {
+	for (y = newy; y > 0; y--, ofsy += stepy) {
 		if (do_rect) {
 			rect = ibuf->rect;
 			rect += (ofsy >> 16) * ibuf->x;
-		}
-		if (do_float) {
-			rectf = (struct imbufRGBA *)ibuf->rect_float;
-			rectf += (ofsy >> 16) * ibuf->x;
-		}
-		ofsy += stepy;
-		ofsx = 32768;
-		
-		if (do_rect) {
-			for (x = newx; x > 0; x--) {
+			ofsx = 32768;
+
+			for (x = newx; x > 0; x--, ofsx += stepx) {
 				*newrect++ = rect[ofsx >> 16];
-				ofsx += stepx;
 			}
 		}
 
 		if (do_float) {
+			rectf = (struct imbufRGBA *)ibuf->rect_float;
+			rectf += (ofsy >> 16) * ibuf->x;
 			ofsx = 32768;
-			for (x = newx; x > 0; x--) {
+
+			for (x = newx; x > 0; x--, ofsx += stepx) {
 				*newrectf++ = rectf[ofsx >> 16];
-				ofsx += stepx;
 			}
 		}
 	}
