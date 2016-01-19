@@ -1472,7 +1472,8 @@ static void calc_weightpaint_vert_array(
 	else {
 		unsigned char col[4];
 		if ((ob->actdef == 0) && !BLI_listbase_is_empty(&ob->defbase)) {
-			ARRAY_SET_ITEMS(col, 0xff, 0, 0xff, 0xff);
+			/* color-code for missing data (full brightness isn't easy on the eye). */
+			ARRAY_SET_ITEMS(col, 0xa0, 0, 0xa0, 0xff);
 		}
 		else if (draw_flag & (CALC_WP_GROUP_USER_ACTIVE | CALC_WP_GROUP_USER_ALL)) {
 			copy_v3_v3_char((char *)col, dm_wcinfo->alert_color);
