@@ -64,7 +64,9 @@ if(LLVM_STATIC)
 	             PATHS ${LLVM_LIBPATH})
 else()
 	find_library(LLVM_LIBRARY
-	             NAMES LLVM-${LLVM_VERSION}
+	             NAMES
+	               LLVM-${LLVM_VERSION}
+	               LLVMAnalysis  # check for the static library as a fall-back
 	             PATHS ${LLVM_LIBPATH})
 endif()
 
