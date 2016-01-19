@@ -787,6 +787,9 @@ public:
 					args[arg++] = &d_output_luma;
 				}
 				args[arg++] = &task.shader_eval_type;
+				if(task.shader_eval_type >= SHADER_EVAL_BAKE) {
+					args[arg++] = &task.shader_filter;
+				}
 				args[arg++] = &shader_x;
 				args[arg++] = &shader_w;
 				args[arg++] = &offset;

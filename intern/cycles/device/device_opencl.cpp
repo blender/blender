@@ -1305,6 +1305,7 @@ public:
 		cl_mem d_output = CL_MEM_PTR(task.shader_output);
 		cl_mem d_output_luma = CL_MEM_PTR(task.shader_output_luma);
 		cl_int d_shader_eval_type = task.shader_eval_type;
+		cl_int d_shader_filter = task.shader_filter;
 		cl_int d_shader_x = task.shader_x;
 		cl_int d_shader_w = task.shader_w;
 		cl_int d_offset = task.offset;
@@ -1330,11 +1331,11 @@ public:
 				                d_input,
 				                d_output);
 
-		if(task.shader_eval_type < SHADER_EVAL_BAKE) {
-			start_arg_index += kernel_set_args(kernel,
-			                                   start_arg_index,
-			                                   d_output_luma);
-		}
+			if(task.shader_eval_type < SHADER_EVAL_BAKE) {
+				start_arg_index += kernel_set_args(kernel,
+				                                   start_arg_index,
+				                                   d_output_luma);
+			}
 
 #define KERNEL_TEX(type, ttype, name) \
 		set_kernel_arg_mem(kernel, &start_arg_index, #name);
@@ -1343,7 +1344,13 @@ public:
 
 			start_arg_index += kernel_set_args(kernel,
 			                                   start_arg_index,
-			                                   d_shader_eval_type,
+			                                   d_shader_eval_type);
+			if(task.shader_eval_type >= SHADER_EVAL_BAKE) {
+				start_arg_index += kernel_set_args(kernel,
+				                                   d_shader_filter);
+			}
+			start_arg_index += kernel_set_args(kernel,
+			                                   start_arg_index,
 			                                   d_shader_x,
 			                                   d_shader_w,
 			                                   d_offset,
