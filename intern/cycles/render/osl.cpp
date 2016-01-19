@@ -186,7 +186,7 @@ void OSLShaderManager::texture_system_free()
 	ts_shared_users--;
 
 	if(ts_shared_users == 0) {
-		OSL::TextureSystem::destroy(ts_shared);
+		OSL::TextureSystem::destroy(ts_shared, true);
 		ts_shared = NULL;
 	}
 
