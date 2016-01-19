@@ -925,7 +925,7 @@ static float wpaint_blend_tool(const int tool,
 static float wpaint_blend(VPaint *wp, float weight, float weight_prev,
                           const float alpha, float paintval,
                           const float brush_alpha_value,
-                          const short do_flip, const short do_multipaint_totsel)
+                          const short do_flip)
 {
 	Brush *brush = BKE_paint_brush(&wp->paint);
 	int tool = brush->vertexpaint_tool;
@@ -947,25 +947,20 @@ static float wpaint_blend(VPaint *wp, float weight, float weight_prev,
 	
 	weight = wpaint_blend_tool(tool, weight, paintval, alpha);
 
-	/* delay clamping until the end so multi-paint can function when the active group is at the limits */
-	if (do_multipaint_totsel == false) {
-		CLAMP(weight, 0.0f, 1.0f);
-	}
+	CLAMP(weight, 0.0f, 1.0f);
 	
 	/* if no spray, clip result with orig weight & orig alpha */
 	if ((wp->flag & VP_SPRAY) == 0) {
-		if (do_multipaint_totsel == false) {
-			float testw = wpaint_blend_tool(tool, weight_prev, paintval, brush_alpha_value);
+		float testw = wpaint_blend_tool(tool, weight_prev, paintval, brush_alpha_value);
 
-			CLAMP(testw, 0.0f, 1.0f);
-			if (testw < weight_prev) {
-				if (weight < testw) weight = testw;
-				else if (weight > weight_prev) weight = weight_prev;
-			}
-			else {
-				if (weight > testw) weight = testw;
-				else if (weight < weight_prev) weight = weight_prev;
-			}
+		CLAMP(testw, 0.0f, 1.0f);
+		if (testw < weight_prev) {
+			if (weight < testw) weight = testw;
+			else if (weight > weight_prev) weight = weight_prev;
+		}
+		else {
+			if (weight > testw) weight = testw;
+			else if (weight < weight_prev) weight = weight_prev;
 		}
 	}
 
@@ -1556,7 +1551,7 @@ static void do_weight_paint_vertex_single(
 
 	{
 		dw->weight = wpaint_blend(wp, dw->weight, dw_prev->weight, alpha, paintweight,
-		                          wpi->brush_alpha_value, wpi->do_flip, false);
+		                          wpi->brush_alpha_value, wpi->do_flip);
 
 		/* WATCH IT: take care of the ordering of applying mirror -> normalize,
 		 * can give wrong results [#26193], least confusing if normalize is done last */
@@ -1651,7 +1646,7 @@ static void do_weight_paint_vertex_multi(
 		return;
 	}
 
-	neww = wpaint_blend(wp, curw, oldw, alpha, paintweight, wpi->brush_alpha_value, wpi->do_flip, false);
+	neww = wpaint_blend(wp, curw, oldw, alpha, paintweight, wpi->brush_alpha_value, wpi->do_flip);
 
 	change = neww / curw;
 
