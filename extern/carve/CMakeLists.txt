@@ -37,12 +37,10 @@ set(INC_SYS
 set(SRC
 	carve-capi.cc
 	carve-util.cc
-	lib/aabb.cpp
 	lib/carve.cpp
 	lib/convex_hull.cpp
 	lib/csg_collector.cpp
 	lib/csg.cpp
-	lib/edge.cpp
 	lib/face.cpp
 	lib/geom2d.cpp
 	lib/geom3d.cpp
