@@ -68,6 +68,10 @@ void BKE_defvert_array_copy(struct MDeformVert *dst, const struct MDeformVert *s
 float  defvert_find_weight(const struct MDeformVert *dvert, const int defgroup);
 float  defvert_array_find_weight_safe(const struct MDeformVert *dvert, const int index, const int defgroup);
 
+float BKE_defvert_multipaint_collective_weight(
+        const struct MDeformVert *dv, int defbase_tot,
+        const bool *defbase_sel, int defbase_tot_sel, bool do_autonormalize);
+
 void defvert_copy(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src);
 void defvert_copy_subset(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src,
                          const bool *vgroup_subset, const int vgroup_tot);

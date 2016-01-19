@@ -1014,6 +1014,24 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
 			Brush *brush = BKE_paint_brush(&ts->wpaint->paint);
 			const int vgroup_active = vc.obact->actdef - 1;
 			float vgroup_weight = defvert_find_weight(&me->dvert[v_idx_best], vgroup_active);
+
+			/* use combined weight in multipaint mode, since that's what is displayed to the user in the colors */
+			if (ts->multipaint) {
+				int defbase_tot_sel;
+				const int defbase_tot = BLI_listbase_count(&vc.obact->defbase);
+				bool *defbase_sel = BKE_object_defgroup_selected_get(vc.obact, defbase_tot, &defbase_tot_sel);
+
+				if (defbase_tot_sel > 1) {
+					vgroup_weight = BKE_defvert_multipaint_collective_weight(
+					        &me->dvert[v_idx_best], defbase_tot, defbase_sel, defbase_tot_sel, ts->auto_normalize);
+
+					/* if autonormalize is enabled, but weights are not normalized, the value can exceed 1 */
+					CLAMP(vgroup_weight, 0.0f, 1.0f);
+				}
+
+				MEM_freeN(defbase_sel);
+			}
+
 			BKE_brush_weight_set(vc.scene, brush, vgroup_weight);
 			changed = true;
 		}

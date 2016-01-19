@@ -1373,29 +1373,12 @@ static void calc_weightpaint_vert_color(
 
 	if ((defbase_sel_tot > 1) && (draw_flag & CALC_WP_MULTIPAINT)) {
 		/* Multi-Paint feature */
-		bool was_a_nonzero = false;
-		unsigned int i;
-
-		const MDeformWeight *dw = dv->dw;
-		for (i = dv->totweight; i != 0; i--, dw++) {
-			/* in multipaint, get the average if auto normalize is inactive
-			 * get the sum if it is active */
-			if (dw->def_nr < defbase_tot) {
-				if (defbase_sel[dw->def_nr]) {
-					if (dw->weight) {
-						input += dw->weight;
-						was_a_nonzero = true;
-					}
-				}
-			}
-		}
+		input = BKE_defvert_multipaint_collective_weight(
+		        dv, defbase_tot, defbase_sel, defbase_sel_tot, (draw_flag & CALC_WP_AUTO_NORMALIZE) != 0);
 
 		/* make it black if the selected groups have no weight on a vertex */
-		if (was_a_nonzero == false) {
+		if (input == 0.0f) {
 			show_alert_color = true;
-		}
-		else if ((draw_flag & CALC_WP_AUTO_NORMALIZE) == false) {
-			input /= defbase_sel_tot; /* get the average */
 		}
 	}
 	else {

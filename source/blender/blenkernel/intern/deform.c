@@ -919,6 +919,40 @@ bool defvert_is_weight_zero(const struct MDeformVert *dvert, const int defgroup_
 	return true;
 }
 
+
+/**
+ * \return The representative weight of a multipaint group, used for
+ * viewport colors and actual painting.
+ *
+ * Result equal to sum of weights with auto normalize, and average otherwise.
+ * Value is not clamped, since painting relies on multiplication being always
+ * commutative with the collective weight function.
+ */
+float BKE_defvert_multipaint_collective_weight(
+        const struct MDeformVert *dv, int defbase_tot,
+        const bool *defbase_sel, int defbase_tot_sel, bool do_autonormalize)
+{
+	int i;
+	float total = 0.0f;
+	const MDeformWeight *dw = dv->dw;
+
+	for (i = dv->totweight; i != 0; i--, dw++) {
+		/* in multipaint, get the average if auto normalize is inactive
+		 * get the sum if it is active */
+		if (dw->def_nr < defbase_tot) {
+			if (defbase_sel[dw->def_nr]) {
+				total += dw->weight;
+			}
+		}
+	}
+
+	if (do_autonormalize == false) {
+		total /= defbase_tot_sel;
+	}
+
+	return total;
+}
+
 /* -------------------------------------------------------------------- */
 /* Defvert Array functions */
 
