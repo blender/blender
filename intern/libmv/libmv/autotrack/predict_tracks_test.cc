@@ -29,7 +29,7 @@
 
 namespace mv {
 
-void AddMarker(int frame, float x, float y, Tracks* tracks) {
+static void AddMarker(int frame, float x, float y, Tracks* tracks) {
   Marker marker;
   marker.clip = marker.track = 0;
   marker.frame = frame;

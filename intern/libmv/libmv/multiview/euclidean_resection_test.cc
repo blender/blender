@@ -28,15 +28,15 @@ using namespace libmv::euclidean_resection;
 using namespace libmv;
 
 // Generates all necessary inputs and expected outputs for EuclideanResection.
-void CreateCameraSystem(const Mat3& KK,
-                        const Mat3X& x_image,
-                        const Vec& X_distances,
-                        const Mat3& R_input,
-                        const Vec3& T_input,
-                        Mat2X *x_camera,
-                        Mat3X *X_world,
-                        Mat3  *R_expected,
-                        Vec3  *T_expected) {
+static void CreateCameraSystem(const Mat3& KK,
+                               const Mat3X& x_image,
+                               const Vec& X_distances,
+                               const Mat3& R_input,
+                               const Vec3& T_input,
+                               Mat2X *x_camera,
+                               Mat3X *X_world,
+                               Mat3  *R_expected,
+                               Vec3  *T_expected) {
   int num_points = x_image.cols();
 
   Mat3X x_unit_cam(3, num_points);

@@ -40,21 +40,6 @@ void CoeffsForCubicZeros(double a, double b, double c,
   *q = (a * b + (b + a) * c);
   *r = -a * b * c;
 }
-// Find the polynomial coefficients of x in the equation
-//
-//   (x - a)(x - b)(x - c)(x - d) == 0
-//
-// by expanding to
-//
-//   x^4 - (d+c+b+a) * x^3 + (d*(c+b+a) + a*b+(b+a)*c) * x^2
-//   - (d*(a*b+(b+a)*c)+a*b*c) * x + a*b*c*d = 0.
-void CoeffsForQuarticZeros(double a, double b, double c, double d,
-                    double *p, double *q, double *r, double *s) {
-  *p = -(d + c + b + a);
-  *q = (d * (c + b + a) + a * b + (b + a) * c);
-  *r = -(d * (a * b + (b + a) * c) + a * b * c);
-  *s = a * b * c *d;
-}
 
 TEST(Poly, SolveCubicPolynomial) {
   double a, b, c, aa, bb, cc;

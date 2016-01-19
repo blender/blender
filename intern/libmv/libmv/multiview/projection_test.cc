@@ -76,8 +76,8 @@ TEST(Projection, isInFrontOfCamera) {
   bool res_front = isInFrontOfCamera(P, X_front);
   bool res_back = isInFrontOfCamera(P, X_back);
 
-  EXPECT_EQ(true, res_front);
-  EXPECT_EQ(false, res_back);
+  EXPECT_TRUE(res_front);
+  EXPECT_FALSE(res_back);
 }
 
 TEST(AutoCalibration, ProjectionShiftPrincipalPoint) {

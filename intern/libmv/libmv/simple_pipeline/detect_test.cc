@@ -46,6 +46,7 @@ void PreformSinglePointTest(const DetectOptions &options) {
   }
 }
 
+#if 0
 void PreformCheckerBoardTest(const DetectOptions &options) {
   // Prepare the image.
   FloatImage image(30, 30);
@@ -80,6 +81,7 @@ void PreformCheckerBoardTest(const DetectOptions &options) {
     EXPECT_LE(1, std::abs(feature.y - rounded_y));
   }
 }
+#endif
 
 void CheckExpectedFeatures(const vector<Feature> &detected_features,
                            const vector<Feature> &expected_features) {
