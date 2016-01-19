@@ -41,6 +41,9 @@ public:
 		bool sse41;
 		bool sse3;
 		bool sse2;
+
+		/* Whether QBVH usage is allowed or not. */
+		bool qbvh;
 	};
 
 	/* Descriptor of OpenCL feature-set to be used. */

@@ -554,6 +554,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.debug_use_cpu_sse41 = BoolProperty(name="SSE41", default=True)
         cls.debug_use_cpu_sse3 = BoolProperty(name="SSE3", default=True)
         cls.debug_use_cpu_sse2 = BoolProperty(name="SSE2", default=True)
+        cls.debug_use_qbvh = BoolProperty(name="QBVH", default=True)
 
         cls.debug_opencl_kernel_type = EnumProperty(
             name="OpenCL Kernel Type",

@@ -28,7 +28,8 @@ DebugFlags::CPU::CPU()
     avx(true),
     sse41(true),
     sse3(true),
-    sse2(true)
+    sse2(true),
+    qbvh(true)
 {
 	reset();
 }
@@ -52,6 +53,8 @@ void DebugFlags::CPU::reset()
 
 #undef STRINGIFY
 #undef CHECK_CPU_FLAGS
+
+	qbvh = true;
 }
 
 DebugFlags::OpenCL::OpenCL()

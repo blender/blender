@@ -1511,12 +1511,13 @@ class CyclesRender_PT_debug(CyclesButtonsPanel, Panel):
         col = layout.column()
 
         col.label('CPU Flags:')
-        row = layout.row(align=True)
+        row = col.row(align=True)
         row.prop(cscene, "debug_use_cpu_sse2", toggle=True)
         row.prop(cscene, "debug_use_cpu_sse3", toggle=True)
         row.prop(cscene, "debug_use_cpu_sse41", toggle=True)
         row.prop(cscene, "debug_use_cpu_avx", toggle=True)
         row.prop(cscene, "debug_use_cpu_avx2", toggle=True)
+        col.prop(cscene, "debug_use_qbvh")
 
         col = layout.column()
         col.label('OpenCL Flags:')

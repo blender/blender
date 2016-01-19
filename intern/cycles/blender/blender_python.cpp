@@ -65,6 +65,7 @@ bool debug_flags_sync_from_scene(BL::Scene b_scene)
 	flags.cpu.sse41 = get_boolean(cscene, "debug_use_cpu_sse41");
 	flags.cpu.sse3 = get_boolean(cscene, "debug_use_cpu_sse3");
 	flags.cpu.sse2 = get_boolean(cscene, "debug_use_cpu_sse2");
+	flags.cpu.qbvh = get_boolean(cscene, "debug_use_qbvh");
 	/* Synchronize OpenCL kernel type. */
 	switch(get_enum(cscene, "debug_opencl_kernel_type")) {
 		case 0:
