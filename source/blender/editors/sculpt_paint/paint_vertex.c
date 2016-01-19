@@ -2042,6 +2042,19 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UN
 	return true;
 }
 
+static float wpaint_blur_weight_single(MDeformVert *dv, WeightPaintInfo *wpi)
+{
+	return defvert_find_weight(dv, wpi->active.index);
+}
+
+static float wpaint_blur_weight_multi(MDeformVert *dv, WeightPaintInfo *wpi)
+{
+	float weight = BKE_defvert_multipaint_collective_weight(
+	        dv, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->do_auto_normalize);
+	CLAMP(weight, 0.0f, 1.0f);
+	return weight;
+}
+
 static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -2063,11 +2076,8 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	bool use_face_sel;
 	bool use_depth;
 
-	MDeformWeight *(*dw_func)(MDeformVert *, const int) =
-	        (brush->vertexpaint_tool == PAINT_BLEND_BLUR) ?
-	        ((wp->flag & VP_ONLYVGROUP) ?
-	             (MDeformWeight *(*)(MDeformVert *, const int))defvert_find_index :
-	              defvert_verify_index) : NULL;
+	float (*blur_weight_func)(MDeformVert *, WeightPaintInfo *) =
+	        wpd->do_multipaint ? wpaint_blur_weight_multi : wpaint_blur_weight_single;
 
 	const float pressure = RNA_float_get(itemptr, "pressure");
 	const float brush_size_pressure = BKE_brush_size_get(scene, brush) * (BKE_brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
@@ -2168,8 +2178,8 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		const unsigned int vidx = v_idx_var; \
 		const float fac = calc_vp_strength_col_dl(wp, vc, wpd->vertexcosnos[vidx].co, mval, brush_size_pressure, NULL); \
 		if (fac > 0.0f) { \
-			MDeformWeight *dw = dw_func(&me->dvert[vidx], wpi.active.index); \
-			paintweight += dw ? (dw->weight * fac) : 0.0f; \
+			float weight = blur_weight_func(&me->dvert[vidx], &wpi); \
+			paintweight += weight * fac; \
 			totw += fac; \
 		} \
 	} (void)0
