@@ -1338,7 +1338,7 @@ public:
 			}
 
 #define KERNEL_TEX(type, ttype, name) \
-		set_kernel_arg_mem(kernel, &start_arg_index, #name);
+			set_kernel_arg_mem(kernel, &start_arg_index, #name);
 #include "kernel_textures.h"
 #undef KERNEL_TEX
 
@@ -1347,6 +1347,7 @@ public:
 			                                   d_shader_eval_type);
 			if(task.shader_eval_type >= SHADER_EVAL_BAKE) {
 				start_arg_index += kernel_set_args(kernel,
+				                                   start_arg_index,
 				                                   d_shader_filter);
 			}
 			start_arg_index += kernel_set_args(kernel,

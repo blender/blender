@@ -214,9 +214,34 @@ ccl_device_inline float bake_clamp_mirror_repeat(float u)
 	return (((int)fu) & 1)? 1.0f - u: u;
 }
 
-ccl_device float3 kernel_bake_evaluate_direct_indirect(KernelGlobals *kg, ShaderData *sd, PathState *state,
-                                                       float3 (*shader_bsdf)(KernelGlobals *kg, ShaderData *sd),
-                                                       float3 direct, float3 indirect, const int pass_filter)
+ccl_device_inline float3 kernel_bake_shader_bsdf(KernelGlobals *kg,
+                                                 ShaderData *sd,
+                                                 const ShaderEvalType type)
+{
+	switch(type) {
+		case SHADER_EVAL_DIFFUSE:
+			return shader_bsdf_diffuse(kg, sd);
+		case SHADER_EVAL_GLOSSY:
+			return shader_bsdf_glossy(kg, sd);
+		case SHADER_EVAL_TRANSMISSION:
+			return shader_bsdf_transmission(kg, sd);
+#ifdef __SUBSURFACE__
+		case SHADER_EVAL_SUBSURFACE:
+			return shader_bsdf_subsurface(kg, sd);
+#endif
+		default:
+			kernel_assert(!"Unknown bake type passed to BSDF evaluate");
+			return make_float3(0.0f, 0.0f, 0.0f);
+	}
+}
+
+ccl_device float3 kernel_bake_evaluate_direct_indirect(KernelGlobals *kg,
+                                                       ShaderData *sd,
+                                                       PathState *state,
+                                                       float3 direct,
+                                                       float3 indirect,
+                                                       const ShaderEvalType type,
+                                                       const int pass_filter)
 {
 	float3 color;
 	const bool is_color = (pass_filter & BAKE_FILTER_COLOR) != 0;
@@ -232,12 +257,12 @@ ccl_device float3 kernel_bake_evaluate_direct_indirect(KernelGlobals *kg, Shader
 		else {
 			/* surface color of the pass only */
 			shader_eval_surface(kg, sd, state, 0.0f, 0, SHADER_CONTEXT_MAIN);
-			return shader_bsdf(kg, sd);
+			return kernel_bake_shader_bsdf(kg, sd, type);
 		}
 	}
 	else {
 		shader_eval_surface(kg, sd, state, 0.0f, 0, SHADER_CONTEXT_MAIN);
-		color = shader_bsdf(kg, sd);
+		color = kernel_bake_shader_bsdf(kg, sd, type);
 	}
 
 	if(is_direct) {
@@ -411,23 +436,47 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 		}
 		case SHADER_EVAL_DIFFUSE:
 		{
-			out = kernel_bake_evaluate_direct_indirect(kg, &sd, &state, &shader_bsdf_diffuse, L.direct_diffuse, L.indirect_diffuse, pass_filter);
+			out = kernel_bake_evaluate_direct_indirect(kg,
+			                                           &sd,
+			                                           &state,
+			                                           L.direct_diffuse,
+			                                           L.indirect_diffuse,
+			                                           type,
+			                                           pass_filter);
 			break;
 		}
 		case SHADER_EVAL_GLOSSY:
 		{
-			out = kernel_bake_evaluate_direct_indirect(kg, &sd, &state, &shader_bsdf_glossy, L.direct_glossy, L.indirect_glossy, pass_filter);
+			out = kernel_bake_evaluate_direct_indirect(kg,
+			                                           &sd,
+			                                           &state,
+			                                           L.direct_glossy,
+			                                           L.indirect_glossy,
+			                                           type,
+			                                           pass_filter);
 			break;
 		}
 		case SHADER_EVAL_TRANSMISSION:
 		{
-			out = kernel_bake_evaluate_direct_indirect(kg, &sd, &state, &shader_bsdf_transmission, L.direct_transmission, L.indirect_transmission, pass_filter);
+			out = kernel_bake_evaluate_direct_indirect(kg,
+			                                           &sd,
+			                                           &state,
+			                                           L.direct_transmission,
+			                                           L.indirect_transmission,
+			                                           type,
+			                                           pass_filter);
 			break;
 		}
 		case SHADER_EVAL_SUBSURFACE:
 		{
 #ifdef __SUBSURFACE__
-			out = kernel_bake_evaluate_direct_indirect(kg, &sd, &state, &shader_bsdf_subsurface, L.direct_subsurface, L.indirect_subsurface, pass_filter);
+			out = kernel_bake_evaluate_direct_indirect(kg,
+			                                           &sd,
+			                                           &state,
+			                                           L.direct_subsurface,
+			                                           L.indirect_subsurface,
+			                                           type,
+			                                           pass_filter);
 #endif
 			break;
 		}
