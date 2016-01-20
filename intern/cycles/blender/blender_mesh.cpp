@@ -414,8 +414,8 @@ static void attr_create_uv_map(Scene *scene,
 
 					if(nverts[i] == 4) {
 						fdata[0] = uvs[tri_b[0]];
-						fdata[1] = uvs[tri_b[0]];
-						fdata[2] = uvs[tri_b[0]];
+						fdata[1] = uvs[tri_b[1]];
+						fdata[2] = uvs[tri_b[2]];
 						fdata += 3;
 					}
 				}
