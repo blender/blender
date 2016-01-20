@@ -40,10 +40,6 @@
 #include <math.h>
 #include <string.h>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
@@ -1745,7 +1741,6 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 					temp_spring.delete_flag = 0;
 
 					/* sph_spring_add is not thread-safe. - z0r */
-#pragma omp critical
 					sph_spring_add(psys[0], &temp_spring);
 				}
 			}
@@ -3334,6 +3329,119 @@ static float update_timestep(ParticleSystem *psys, ParticleSimulationData *sim, 
 /************************************************/
 /*			System Core							*/
 /************************************************/
+
+typedef struct DynamicStepSolverTaskData {
+	ParticleSimulationData *sim;
+
+	float cfra;
+	float timestep;
+	float dtime;
+
+	ThreadMutex mutex;
+} DynamicStepSolverTaskData;
+
+static void dynamics_step_sph_ddr_task_cb_ex(
+        void *userdata, void *userdata_chunk, const int p, const int UNUSED(thread_id))
+{
+	DynamicStepSolverTaskData *data = userdata;
+	ParticleSimulationData *sim = data->sim;
+	ParticleSystem *psys = sim->psys;
+	ParticleSettings *part = psys->part;
+
+	SPHData *sphdata = userdata_chunk;
+
+	ParticleData *pa;
+
+	if ((pa = psys->particles + p)->state.time <= 0.0f) {
+		return;
+	}
+
+	/* do global forces & effectors */
+	basic_integrate(sim, p, pa->state.time, data->cfra);
+
+	/* actual fluids calculations */
+	sph_integrate(sim, pa, pa->state.time, sphdata);
+
+	if (sim->colliders)
+		collision_check(sim, p, pa->state.time, data->cfra);
+
+	/* SPH particles are not physical particles, just interpolation
+	 * particles,  thus rotation has not a direct sense for them */
+	basic_rotate(part, pa, pa->state.time, data->timestep);
+
+	if (part->time_flag & PART_TIME_AUTOSF) {
+		BLI_mutex_lock(&data->mutex);
+		update_courant_num(sim, pa, data->dtime, sphdata);
+		BLI_mutex_unlock(&data->mutex);
+	}
+}
+
+static void dynamics_step_sph_classical_basic_integrate_task_cb(void *userdata, const int p)
+{
+	DynamicStepSolverTaskData *data = userdata;
+	ParticleSimulationData *sim = data->sim;
+	ParticleSystem *psys = sim->psys;
+
+	ParticleData *pa;
+
+	if ((pa = psys->particles + p)->state.time <= 0.0f) {
+		return;
+	}
+
+	basic_integrate(sim, p, pa->state.time, data->cfra);
+}
+
+static void dynamics_step_sph_classical_calc_density_task_cb_ex(
+        void *userdata, void *userdata_chunk, const int p, const int UNUSED(thread_id))
+{
+	DynamicStepSolverTaskData *data = userdata;
+	ParticleSimulationData *sim = data->sim;
+	ParticleSystem *psys = sim->psys;
+
+	SPHData *sphdata = userdata_chunk;
+
+	ParticleData *pa;
+
+	if ((pa = psys->particles + p)->state.time <= 0.0f) {
+		return;
+	}
+
+	sphclassical_calc_dens(pa, pa->state.time, sphdata);
+}
+
+static void dynamics_step_sph_classical_integrate_task_cb_ex(
+        void *userdata, void *userdata_chunk, const int p, const int UNUSED(thread_id))
+{
+	DynamicStepSolverTaskData *data = userdata;
+	ParticleSimulationData *sim = data->sim;
+	ParticleSystem *psys = sim->psys;
+	ParticleSettings *part = psys->part;
+
+	SPHData *sphdata = userdata_chunk;
+
+	ParticleData *pa;
+
+	if ((pa = psys->particles + p)->state.time <= 0.0f) {
+		return;
+	}
+
+	/* actual fluids calculations */
+	sph_integrate(sim, pa, pa->state.time, sphdata);
+
+	if (sim->colliders)
+		collision_check(sim, p, pa->state.time, data->cfra);
+
+	/* SPH particles are not physical particles, just interpolation
+	 * particles,  thus rotation has not a direct sense for them */
+	basic_rotate(part, pa, pa->state.time, data->timestep);
+
+	if (part->time_flag & PART_TIME_AUTOSF) {
+		BLI_mutex_lock(&data->mutex);
+		update_courant_num(sim, pa, data->dtime, sphdata);
+		BLI_mutex_unlock(&data->mutex);
+	}
+}
+
 /* unbaked particles are calculated dynamically */
 static void dynamics_step(ParticleSimulationData *sim, float cfra)
 {
@@ -3490,31 +3598,21 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 			SPHData sphdata;
 			psys_sph_init(sim, &sphdata);
 
+			DynamicStepSolverTaskData task_data = {
+			    .sim = sim, .cfra = cfra, .timestep = timestep, .dtime = dtime,
+			};
+
+			BLI_mutex_init(&task_data.mutex);
+
 			if (part->fluid->solver == SPH_SOLVER_DDR) {
 				/* Apply SPH forces using double-density relaxation algorithm
 				 * (Clavat et. al.) */
-#pragma omp parallel for firstprivate (sphdata) private (pa) schedule(dynamic,5)
-				LOOP_DYNAMIC_PARTICLES {
-					/* do global forces & effectors */
-					basic_integrate(sim, p, pa->state.time, cfra);
 
-					/* actual fluids calculations */
-					sph_integrate(sim, pa, pa->state.time, &sphdata);
-
-					if (sim->colliders)
-						collision_check(sim, p, pa->state.time, cfra);
-
-					/* SPH particles are not physical particles, just interpolation
-					 * particles,  thus rotation has not a direct sense for them */
-					basic_rotate(part, pa, pa->state.time, timestep);
-
-#pragma omp critical
-					if (part->time_flag & PART_TIME_AUTOSF)
-						update_courant_num(sim, pa, dtime, &sphdata);
-				}
+				BLI_task_parallel_range_ex(
+				            0, psys->totpart, &task_data, &sphdata, sizeof(sphdata),
+				            dynamics_step_sph_ddr_task_cb_ex, psys->totpart > 100, false);
 
 				sph_springs_modify(psys, timestep);
-
 			}
 			else {
 				/* SPH_SOLVER_CLASSICAL */
@@ -3522,35 +3620,24 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 				 * and Monaghan). Note that, unlike double-density relaxation,
 				 * this algorithm is separated into distinct loops. */
 
-#pragma omp parallel for private (pa) schedule(dynamic,5)
-				LOOP_DYNAMIC_PARTICLES {
-					basic_integrate(sim, p, pa->state.time, cfra);
-				}
+				BLI_task_parallel_range(
+				            0, psys->totpart, &task_data,
+				            dynamics_step_sph_classical_basic_integrate_task_cb, psys->totpart > 100);
 
 				/* calculate summation density */
-#pragma omp parallel for firstprivate (sphdata) private (pa) schedule(dynamic,5)
-				LOOP_DYNAMIC_PARTICLES {
-					sphclassical_calc_dens(pa, pa->state.time, &sphdata);
-				}
+				/* Note that we could avoid copying sphdata for each thread here (it's only read here),
+				 * but doubt this would gain us anything except confusion... */
+				BLI_task_parallel_range_ex(
+				            0, psys->totpart, &task_data, &sphdata, sizeof(sphdata),
+				            dynamics_step_sph_classical_calc_density_task_cb_ex, psys->totpart > 100, false);
 
 				/* do global forces & effectors */
-#pragma omp parallel for firstprivate (sphdata) private (pa) schedule(dynamic,5)
-				LOOP_DYNAMIC_PARTICLES {
-					/* actual fluids calculations */
-					sph_integrate(sim, pa, pa->state.time, &sphdata);
-
-					if (sim->colliders)
-						collision_check(sim, p, pa->state.time, cfra);
-				
-					/* SPH particles are not physical particles, just interpolation
-					 * particles,  thus rotation has not a direct sense for them */
-					basic_rotate(part, pa, pa->state.time, timestep);
-
-#pragma omp critical
-					if (part->time_flag & PART_TIME_AUTOSF)
-						update_courant_num(sim, pa, dtime, &sphdata);
-				}
+				BLI_task_parallel_range_ex(
+				            0, psys->totpart, &task_data, &sphdata, sizeof(sphdata),
+				            dynamics_step_sph_classical_integrate_task_cb_ex, psys->totpart > 100, false);
 			}
+
+			BLI_mutex_end(&task_data.mutex);
 
 			psys_sph_finalise(&sphdata);
 			break;
