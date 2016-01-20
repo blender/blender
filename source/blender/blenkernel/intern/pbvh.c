@@ -1439,7 +1439,7 @@ void BKE_pbvh_node_get_bm_orco_data(
 /********************************* Raycast ***********************************/
 
 typedef struct {
-	IsectRayAABBData ray;
+	struct IsectRayAABB_Precalc ray;
 	bool original;
 } RaycastData;
 
@@ -1453,7 +1453,7 @@ static bool ray_aabb_intersect(PBVHNode *node, void *data_v)
 	else
 		BKE_pbvh_node_get_BB(node, bb_min, bb_max);
 
-	return isect_ray_aabb(&rcd->ray, bb_min, bb_max, &node->tmin);
+	return isect_ray_aabb_v3(&rcd->ray, bb_min, bb_max, &node->tmin);
 }
 
 void BKE_pbvh_raycast(
@@ -1463,7 +1463,7 @@ void BKE_pbvh_raycast(
 {
 	RaycastData rcd;
 
-	isect_ray_aabb_initialize(&rcd.ray, ray_start, ray_normal);
+	isect_ray_aabb_v3_precalc(&rcd.ray, ray_start, ray_normal);
 	rcd.original = original;
 
 	BKE_pbvh_search_callback_occluded(bvh, ray_aabb_intersect, &rcd, cb, data);
@@ -1637,7 +1637,7 @@ void BKE_pbvh_raycast_project_ray_root(
 	if (bvh->nodes) {
 		float rootmin_start, rootmin_end;
 		float bb_min_root[3], bb_max_root[3], bb_center[3], bb_diff[3];
-		IsectRayAABBData ray;
+		struct IsectRayAABB_Precalc ray;
 		float ray_normal_inv[3];
 		float offset = 1.0f + 1e-3f;
 		float offset_vec[3] = {1e-3f, 1e-3f, 1e-3f};
@@ -1658,15 +1658,15 @@ void BKE_pbvh_raycast_project_ray_root(
 		madd_v3_v3v3fl(bb_min_root, bb_center, bb_diff, -offset);
 
 		/* first project start ray */
-		isect_ray_aabb_initialize(&ray, ray_start, ray_normal);
-		if (!isect_ray_aabb(&ray, bb_min_root, bb_max_root, &rootmin_start))
+		isect_ray_aabb_v3_precalc(&ray, ray_start, ray_normal);
+		if (!isect_ray_aabb_v3(&ray, bb_min_root, bb_max_root, &rootmin_start))
 			return;
 
 		/* then the end ray */
 		mul_v3_v3fl(ray_normal_inv, ray_normal, -1.0);
-		isect_ray_aabb_initialize(&ray, ray_end, ray_normal_inv);
+		isect_ray_aabb_v3_precalc(&ray, ray_end, ray_normal_inv);
 		/* unlikely to fail exiting if entering succeeded, still keep this here */
-		if (!isect_ray_aabb(&ray, bb_min_root, bb_max_root, &rootmin_end))
+		if (!isect_ray_aabb_v3(&ray, bb_min_root, bb_max_root, &rootmin_end))
 			return;
 
 		madd_v3_v3v3fl(ray_start, ray_start, ray_normal, rootmin_start);

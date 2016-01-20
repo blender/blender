@@ -2195,7 +2195,9 @@ bool isect_aabb_aabb_v3(const float min1[3], const float max1[3], const float mi
 	        min2[0] < max1[0] && min2[1] < max1[1] && min2[2] < max1[2]);
 }
 
-void isect_ray_aabb_initialize(IsectRayAABBData *data, const float ray_origin[3], const float ray_direction[3])
+void isect_ray_aabb_v3_precalc(
+        struct IsectRayAABB_Precalc *data,
+        const float ray_origin[3], const float ray_direction[3])
 {
 	copy_v3_v3(data->ray_origin, ray_origin);
 
@@ -2209,8 +2211,9 @@ void isect_ray_aabb_initialize(IsectRayAABBData *data, const float ray_origin[3]
 }
 
 /* Adapted from http://www.gamedev.net/community/forums/topic.asp?topic_id=459973 */
-bool isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3],
-                    const float bb_max[3], float *tmin_out)
+bool isect_ray_aabb_v3(
+        const IsectRayAABB_Precalc *data, const float bb_min[3],
+        const float bb_max[3], float *tmin_out)
 {
 	float bbox[2][3];
 

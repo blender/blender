@@ -271,14 +271,18 @@ bool isect_point_tri_v3(
 /* axis-aligned bounding box */
 bool isect_aabb_aabb_v3(const float min1[3], const float max1[3], const float min2[3], const float max2[3]);
 
-typedef struct {
+struct IsectRayAABB_Precalc {
 	float ray_origin[3];
 	float ray_inv_dir[3];
 	int sign[3];
-} IsectRayAABBData;
+};
 
-void isect_ray_aabb_initialize(IsectRayAABBData *data, const float ray_origin[3], const float ray_direction[3]);
-bool isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3], const float bb_max[3], float *tmin);
+void isect_ray_aabb_v3_precalc(
+        struct IsectRayAABB_Precalc *data,
+        const float ray_origin[3], const float ray_direction[3]);
+bool isect_ray_aabb_v3(
+        const struct IsectRayAABB_Precalc *data,
+        const float bb_min[3], const float bb_max[3], float *tmin);
 
 /* other */
 bool isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const float radius,
