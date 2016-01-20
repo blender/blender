@@ -240,6 +240,9 @@ static void emDM_calcLoopNormalsSpaceArray(
 /** \name Tangent Space Calculation
  * \{ */
 
+/* Necessary complexity to handle looptri's as quads for correct tangents */
+#define USE_LOOPTRI_DETECT_QUADS
+
 typedef struct {
 	const float (*precomputedFaceNormals)[3];
 	const float (*precomputedLoopNormals)[3];
@@ -249,7 +252,26 @@ typedef struct {
 	float (*tangent)[4];    /* destination */
 	int numTessFaces;
 
+#ifdef USE_LOOPTRI_DETECT_QUADS
+	/* map from 'fake' face index to looptri,
+	 * quads will point to the first looptri of the quad */
+	const int    *face_as_quad_map;
+	int       num_face_as_quad_map;
+#endif
+
 } SGLSLEditMeshToTangent;
+
+#ifdef USE_LOOPTRI_DETECT_QUADS
+/* seems weak but only used on quads */
+static const BMLoop *bm_loop_at_face_index(const BMFace *f, int vert_index)
+{
+	const BMLoop *l = BM_FACE_FIRST_LOOP(f);
+	while (vert_index--) {
+		l = l->next;
+	}
+	return l;
+}
+#endif
 
 /* interface */
 #include "mikktspace.h"
@@ -257,14 +279,29 @@ typedef struct {
 static int emdm_ts_GetNumFaces(const SMikkTSpaceContext *pContext)
 {
 	SGLSLEditMeshToTangent *pMesh = pContext->m_pUserData;
+
+#ifdef USE_LOOPTRI_DETECT_QUADS
+	return pMesh->num_face_as_quad_map;
+#else
 	return pMesh->numTessFaces;
+#endif
 }
 
 static int emdm_ts_GetNumVertsOfFace(const SMikkTSpaceContext *pContext, const int face_num)
 {
-	//SGLSLEditMeshToTangent *pMesh = pContext->m_pUserData;
+#ifdef USE_LOOPTRI_DETECT_QUADS
+	SGLSLEditMeshToTangent *pMesh = pContext->m_pUserData;
+	if (pMesh->face_as_quad_map) {
+		const BMLoop **lt = pMesh->looptris[pMesh->face_as_quad_map[face_num]];
+		if (lt[0]->f->len == 4) {
+			return 4;
+		}
+	}
+	return 3;
+#else
 	UNUSED_VARS(pContext, face_num);
 	return 3;
+#endif
 }
 
 static void emdm_ts_GetPosition(
@@ -273,8 +310,30 @@ static void emdm_ts_GetPosition(
 {
 	//assert(vert_index >= 0 && vert_index < 4);
 	SGLSLEditMeshToTangent *pMesh = pContext->m_pUserData;
-	const BMLoop **lt = pMesh->looptris[face_num];
-	const float *co = lt[vert_index]->v->co;
+	const BMLoop **lt;
+	const BMLoop *l;
+
+#ifdef USE_LOOPTRI_DETECT_QUADS
+	if (pMesh->face_as_quad_map) {
+		lt = pMesh->looptris[pMesh->face_as_quad_map[face_num]];
+		if (lt[0]->f->len == 4) {
+			l = bm_loop_at_face_index(lt[0]->f, vert_index);
+			goto finally;
+		}
+		/* fall through to regular triangle */
+	}
+	else {
+		lt = pMesh->looptris[face_num];
+	}
+#else
+	lt = pMesh->looptris[face_num];
+#endif
+	l = lt[vert_index];
+
+	const float *co;
+
+finally:
+	co = l->v->co;
 	copy_v3_v3(r_co, co);
 }
 
@@ -284,14 +343,33 @@ static void emdm_ts_GetTextureCoordinate(
 {
 	//assert(vert_index >= 0 && vert_index < 4);
 	SGLSLEditMeshToTangent *pMesh = pContext->m_pUserData;
-	const BMLoop **lt = pMesh->looptris[face_num];
+	const BMLoop **lt;
+	const BMLoop *l;
 
+#ifdef USE_LOOPTRI_DETECT_QUADS
+	if (pMesh->face_as_quad_map) {
+		lt = pMesh->looptris[pMesh->face_as_quad_map[face_num]];
+		if (lt[0]->f->len == 4) {
+			l = bm_loop_at_face_index(lt[0]->f, vert_index);
+			goto finally;
+		}
+		/* fall through to regular triangle */
+	}
+	else {
+		lt = pMesh->looptris[face_num];
+	}
+#else
+	lt = pMesh->looptris[face_num];
+#endif
+	l = lt[vert_index];
+
+finally:
 	if (pMesh->cd_loop_uv_offset != -1) {
-		const float *uv = BM_ELEM_CD_GET_VOID_P(lt[vert_index], pMesh->cd_loop_uv_offset);
+		const float *uv = BM_ELEM_CD_GET_VOID_P(l, pMesh->cd_loop_uv_offset);
 		copy_v2_v2(r_uv, uv);
 	}
 	else {
-		const float *orco = pMesh->orco[BM_elem_index_get(lt[vert_index]->v)];
+		const float *orco = pMesh->orco[BM_elem_index_get(l->v)];
 		map_to_sphere(&r_uv[0], &r_uv[1], orco[0], orco[1], orco[2]);
 	}
 }
@@ -302,22 +380,40 @@ static void emdm_ts_GetNormal(
 {
 	//assert(vert_index >= 0 && vert_index < 4);
 	SGLSLEditMeshToTangent *pMesh = pContext->m_pUserData;
-	const BMLoop **lt = pMesh->looptris[face_num];
-	const bool smoothnormal = BM_elem_flag_test_bool(lt[0]->f, BM_ELEM_SMOOTH);
+	const BMLoop **lt;
+	const BMLoop *l;
 
-	if (pMesh->precomputedLoopNormals) {
-		copy_v3_v3(r_no, pMesh->precomputedLoopNormals[BM_elem_index_get(lt[vert_index])]);
+#ifdef USE_LOOPTRI_DETECT_QUADS
+	if (pMesh->face_as_quad_map) {
+		lt = pMesh->looptris[pMesh->face_as_quad_map[face_num]];
+		if (lt[0]->f->len == 4) {
+			l = bm_loop_at_face_index(lt[0]->f, vert_index);
+			goto finally;
+		}
+		/* fall through to regular triangle */
 	}
-	else if (!smoothnormal) {
+	else {
+		lt = pMesh->looptris[face_num];
+	}
+#else
+	lt = pMesh->looptris[face_num];
+#endif
+	l = lt[vert_index];
+
+finally:
+	if (pMesh->precomputedLoopNormals) {
+		copy_v3_v3(r_no, pMesh->precomputedLoopNormals[BM_elem_index_get(l)]);
+	}
+	else if (BM_elem_flag_test(l->f, BM_ELEM_SMOOTH) == 0) {  /* flat */
 		if (pMesh->precomputedFaceNormals) {
-			copy_v3_v3(r_no, pMesh->precomputedFaceNormals[BM_elem_index_get(lt[0]->f)]);
+			copy_v3_v3(r_no, pMesh->precomputedFaceNormals[BM_elem_index_get(l->f)]);
 		}
 		else {
-			copy_v3_v3(r_no, lt[0]->f->no);
+			copy_v3_v3(r_no, l->f->no);
 		}
 	}
 	else {
-		copy_v3_v3(r_no, lt[vert_index]->v->no);
+		copy_v3_v3(r_no, l->v->no);
 	}
 }
 
@@ -327,8 +423,30 @@ static void emdm_ts_SetTSpace(
 {
 	//assert(vert_index >= 0 && vert_index < 4);
 	SGLSLEditMeshToTangent *pMesh = pContext->m_pUserData;
-	const BMLoop **lt = pMesh->looptris[face_num];
-	float *pRes = pMesh->tangent[BM_elem_index_get(lt[vert_index])];
+	const BMLoop **lt;
+	const BMLoop *l;
+
+#ifdef USE_LOOPTRI_DETECT_QUADS
+	if (pMesh->face_as_quad_map) {
+		lt = pMesh->looptris[pMesh->face_as_quad_map[face_num]];
+		if (lt[0]->f->len == 4) {
+			l = bm_loop_at_face_index(lt[0]->f, vert_index);
+			goto finally;
+		}
+		/* fall through to regular triangle */
+	}
+	else {
+		lt = pMesh->looptris[face_num];
+	}
+#else
+	lt = pMesh->looptris[face_num];
+#endif
+	l = lt[vert_index];
+
+	float *pRes;
+
+finally:
+	pRes = pMesh->tangent[BM_elem_index_get(l)];
 	copy_v3_v3(pRes, fvTangent);
 	pRes[3] = fSign;
 }
@@ -389,6 +507,31 @@ static void emDM_calcLoopTangents(DerivedMesh *dm)
 	DM_add_loop_layer(dm, CD_TANGENT, CD_CALLOC, NULL);
 	tangent = DM_get_loop_data_layer(dm, CD_TANGENT);
 
+#ifdef USE_LOOPTRI_DETECT_QUADS
+	int num_face_as_quad_map;
+	int *face_as_quad_map = NULL;
+
+	/* map faces to quads */
+	if (bmdm->em->tottri != bm->totface) {
+		/* over alloc, since we dont know how many ngon or quads we have */
+
+		/* map fake face index to looptri */
+		face_as_quad_map = MEM_mallocN(sizeof(int) * totface, __func__);
+		int i, j;
+		for (i = 0, j = 0; j < totface; i++, j++) {
+			face_as_quad_map[i] = j;
+			/* step over all quads */
+			if (em->looptris[j][0]->f->len == 4) {
+				j++;  /* skips the nest looptri */
+			}
+		}
+		num_face_as_quad_map = i;
+	}
+	else {
+		num_face_as_quad_map = totface;
+	}
+#endif
+
 	/* new computation method */
 	{
 		SGLSLEditMeshToTangent mesh2tangent = {NULL};
@@ -403,6 +546,11 @@ static void emDM_calcLoopTangents(DerivedMesh *dm)
 		mesh2tangent.tangent = tangent;
 		mesh2tangent.numTessFaces = totface;
 
+#ifdef USE_LOOPTRI_DETECT_QUADS
+		mesh2tangent.face_as_quad_map = face_as_quad_map;
+		mesh2tangent.num_face_as_quad_map = num_face_as_quad_map;
+#endif
+
 		sContext.m_pUserData = &mesh2tangent;
 		sContext.m_pInterface = &sInterface;
 		sInterface.m_getNumFaces = emdm_ts_GetNumFaces;
@@ -414,6 +562,13 @@ static void emDM_calcLoopTangents(DerivedMesh *dm)
 
 		/* 0 if failed */
 		genTangSpaceDefault(&sContext);
+
+#ifdef USE_LOOPTRI_DETECT_QUADS
+		if (face_as_quad_map) {
+			MEM_freeN(face_as_quad_map);
+		}
+#undef USE_LOOPTRI_DETECT_QUADS
+#endif
 	}
 }
 
