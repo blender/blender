@@ -1322,7 +1322,8 @@ enum {
 	CALC_WP_GROUP_USER_ALL      = (1 << 2),
 
 	CALC_WP_MULTIPAINT          = (1 << 3),
-	CALC_WP_AUTO_NORMALIZE      = (1 << 4)
+	CALC_WP_AUTO_NORMALIZE      = (1 << 4),
+	CALC_WP_MIRROR_X            = (1 << 5),
 };
 
 typedef struct DMWeightColorInfo {
@@ -1331,12 +1332,13 @@ typedef struct DMWeightColorInfo {
 } DMWeightColorInfo;
 
 
-static int dm_drawflag_calc(const ToolSettings *ts)
+static int dm_drawflag_calc(const ToolSettings *ts, const Mesh *me)
 {
 	return ((ts->multipaint ? CALC_WP_MULTIPAINT : 0) |
 	        /* CALC_WP_GROUP_USER_ACTIVE or CALC_WP_GROUP_USER_ALL*/
 	        (1 << ts->weightuser) |
-	        (ts->auto_normalize ? CALC_WP_AUTO_NORMALIZE : 0));
+	        (ts->auto_normalize ? CALC_WP_AUTO_NORMALIZE : 0) |
+	        ((me->editflag & ME_EDIT_MIRROR_X) ? CALC_WP_MIRROR_X : 0));
 }
 
 static void weightpaint_color(unsigned char r_col[4], DMWeightColorInfo *dm_wcinfo, const float input)
@@ -1442,6 +1444,10 @@ static void calc_weightpaint_vert_array(
 
 		if (draw_flag & CALC_WP_MULTIPAINT) {
 			defbase_sel = BKE_object_defgroup_selected_get(ob, defbase_tot, &defbase_sel_tot);
+
+			if (defbase_sel_tot > 1 && (draw_flag & CALC_WP_MIRROR_X)) {
+				BKE_object_defgroup_mirror_selection(ob, defbase_tot, defbase_sel, defbase_sel, &defbase_sel_tot);
+			}
 		}
 
 		for (i = numVerts; i != 0; i--, wc++, dv++) {
@@ -1716,7 +1722,7 @@ static void mesh_calc_modifiers(
 	bool multires_applied = false;
 	const bool sculpt_mode = ob->mode & OB_MODE_SCULPT && ob->sculpt && !useRenderParams;
 	const bool sculpt_dyntopo = (sculpt_mode && ob->sculpt->bm)  && !useRenderParams;
-	const int draw_flag = dm_drawflag_calc(scene->toolsettings);
+	const int draw_flag = dm_drawflag_calc(scene->toolsettings, me);
 
 	/* Generic preview only in object mode! */
 	const bool do_mod_mcol = (ob->mode == OB_MODE_OBJECT);
@@ -2257,7 +2263,7 @@ static void editbmesh_calc_modifiers(
 	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	CDMaskLink *datamasks, *curr;
 	const int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
-	int draw_flag = dm_drawflag_calc(scene->toolsettings);
+	int draw_flag = dm_drawflag_calc(scene->toolsettings, ob->data);
 
 	// const bool do_mod_mcol = true; // (ob->mode == OB_MODE_OBJECT);
 #if 0 /* XXX Will re-enable this when we have global mod stack options. */

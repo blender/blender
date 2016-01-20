@@ -596,6 +596,30 @@ bool *BKE_object_defgroup_selected_get(Object *ob, int defbase_tot, int *r_dg_fl
 	return dg_selection;
 }
 
+/* Marks mirror vgroups in output and counts them. Output and counter assumed to be already initialized.
+ * Designed to be usable after BKE_object_defgroup_selected_get to extend selection to mirror.
+ */
+void BKE_object_defgroup_mirror_selection(
+        struct Object *ob, int defbase_tot, const bool *dg_selection,
+        bool *dg_flags_sel, int *r_dg_flags_sel_tot)
+{
+	bDeformGroup *defgroup;
+	unsigned int i, i_mirr;
+
+	for (i = 0, defgroup = ob->defbase.first; i < defbase_tot && defgroup; defgroup = defgroup->next, i++) {
+		if (dg_selection[i]) {
+			char name_flip[MAXBONENAME];
+
+			BKE_deform_flip_side_name(name_flip, defgroup->name, false);
+			i_mirr = STREQ(name_flip, defgroup->name) ? i : defgroup_name_index(ob, name_flip);
+
+			if ((i_mirr >= 0 && i_mirr < defbase_tot) && (dg_flags_sel[i_mirr] == false)) {
+				dg_flags_sel[i_mirr] = true;
+				(*r_dg_flags_sel_tot) += 1;
+			}
+		}
+	}
+}
 
 /**
  * Return the subset type of the Vertex Group Selection

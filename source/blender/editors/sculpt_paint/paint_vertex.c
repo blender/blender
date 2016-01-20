@@ -1017,6 +1017,11 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
 				bool *defbase_sel = BKE_object_defgroup_selected_get(vc.obact, defbase_tot, &defbase_tot_sel);
 
 				if (defbase_tot_sel > 1) {
+					if (me->editflag & ME_EDIT_MIRROR_X) {
+						BKE_object_defgroup_mirror_selection(
+						        vc.obact, defbase_tot, defbase_sel, defbase_sel, &defbase_tot_sel);
+					}
+
 					vgroup_weight = BKE_defvert_multipaint_collective_weight(
 					        &me->dvert[v_idx_best], defbase_tot, defbase_sel, defbase_tot_sel, ts->auto_normalize);
 

@@ -68,6 +68,10 @@ bool *BKE_object_defgroup_lock_flags_get(struct Object *ob, const int defbase_to
 bool *BKE_object_defgroup_validmap_get(struct Object *ob, const int defbase_tot);
 bool *BKE_object_defgroup_selected_get(struct Object *ob, int defbase_tot, int *r_dg_flags_sel_tot);
 
+void BKE_object_defgroup_mirror_selection(
+        struct Object *ob, int defbase_tot, const bool *selection,
+        bool *dg_flags_sel, int *r_dg_flags_sel_tot);
+
 #ifdef __cplusplus
 }
 #endif
