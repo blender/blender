@@ -1749,34 +1749,6 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 
 			return Vector_CreatePyObject(tvec, vec_size, Py_TYPE(vec1));
 		}
-		else if (QuaternionObject_Check(v2)) {
-			/* VEC * QUAT */
-/* ------ to be removed ------*/
-#if 1
-			PyErr_SetString(PyExc_ValueError,
-			                "(Vector * Quat) is now removed, reverse the "
-			                "order (promoted to an Error for Debug builds)");
-			return NULL;
-#else
-			QuaternionObject *quat2 = (QuaternionObject *)v2;
-			float tvec[3];
-
-			if (vec1->size != 3) {
-				PyErr_SetString(PyExc_ValueError,
-				                "Vector multiplication: "
-				                "only 3D vector rotations (with quats) currently supported");
-				return NULL;
-			}
-			if (BaseMath_ReadCallback(quat2) == -1) {
-				return NULL;
-			}
-
-			copy_v3_v3(tvec, vec1->vec);
-			mul_qt_v3(quat2->quat, tvec);
-			return Vector_CreatePyObject(tvec, 3, Py_TYPE(vec1));
-#endif
-/* ------ to be removed ------*/
-		}
 		else if (((scalar = PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred()) == 0) { /* VEC * FLOAT */
 			return vector_mul_float(vec1, scalar);
 		}
@@ -1808,55 +1780,7 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 
 	/* only support vec*=float and vec*=mat
 	 *  vec*=vec result is a float so that wont work */
-	if (MatrixObject_Check(v2)) {
-/* ------ to be removed ------*/
-#if 1
-		PyErr_SetString(PyExc_ValueError,
-		                "(Vector *= Matrix) is now removed, reverse the "
-		                "order (promoted to an Error for Debug builds) "
-		                "and uses the non in-place multiplication.");
-		return NULL;
-#else
-		float rvec[MAX_DIMENSIONS];
-		if (BaseMath_ReadCallback((MatrixObject *)v2) == -1)
-			return NULL;
-
-		if (column_vector_multiplication(rvec, vec, (MatrixObject *)v2) == -1)
-			return NULL;
-
-		memcpy(vec->vec, rvec, sizeof(float) * vec->size);
-#endif
-/* ------ to be removed ------*/
-	}
-	else if (QuaternionObject_Check(v2)) {
-		/* VEC *= QUAT */
-
-/* ------ to be removed ------*/
-#if 1
-		PyErr_SetString(PyExc_ValueError,
-		                "(Vector *= Quat) is now removed, reverse the "
-		                "order (promoted to an Error for Debug builds) "
-		                "and uses the non in-place multiplication.");
-		return NULL;
-#else
-		QuaternionObject *quat2 = (QuaternionObject *)v2;
-
-		if (vec->size != 3) {
-			PyErr_SetString(PyExc_ValueError,
-			                "Vector multiplication: "
-			                "only 3D vector rotations (with quats) currently supported");
-			return NULL;
-		}
-
-		if (BaseMath_ReadCallback(quat2) == -1) {
-			return NULL;
-		}
-
-		mul_qt_v3(quat2->quat, vec->vec);
-#endif
-/* ------ to be removed ------*/
-	}
-	else if (((scalar = PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred()) == 0) { /* VEC *= FLOAT */
+	if (((scalar = PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred()) == 0) { /* VEC *= FLOAT */
 		mul_vn_fl(vec->vec, vec->size, scalar);
 	}
 	else {
