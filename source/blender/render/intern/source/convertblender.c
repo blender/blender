@@ -4252,6 +4252,7 @@ static void check_non_flat_quads(ObjectRen *obr)
 				vlr->v2= v3;
 				vlr->v3= v4;
 				vlr->v4= NULL;
+				vlr->flag |= (R_DIVIDE_24 | R_FACE_SPLIT);
 			}
 			else {
 				sub_v3_v3v3(nor, v2->co, v3->co);
@@ -4259,6 +4260,7 @@ static void check_non_flat_quads(ObjectRen *obr)
 					vlr->v2= v3;
 					vlr->v3= v4;
 					vlr->v4= NULL;
+					vlr->flag |= R_FACE_SPLIT;
 				}
 				else {
 					sub_v3_v3v3(nor, v3->co, v4->co);
