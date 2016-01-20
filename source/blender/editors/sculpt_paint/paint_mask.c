@@ -41,6 +41,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_utildefines.h"
 #include "BLI_lasso.h"
+#include "BLI_task.h"
 
 #include "BKE_pbvh.h"
 #include "BKE_ccg.h"
@@ -91,6 +92,39 @@ static void mask_flood_fill_set_elem(float *elem,
 	}
 }
 
+typedef struct MaskTaskData {
+	Object *ob;
+	PBVH *pbvh;
+	PBVHNode **nodes;
+	bool multires;
+
+	PaintMaskFloodMode mode;
+	float value;
+	float (*clip_planes_final)[4];
+} MaskTaskData;
+
+static void mask_flood_fill_task_cb(void *userdata, const int i)
+{
+	MaskTaskData *data = userdata;
+
+	PBVHNode *node = data->nodes[i];
+
+	const PaintMaskFloodMode mode = data->mode;
+	const float value = data->value;
+
+	PBVHVertexIter vi;
+
+	sculpt_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
+
+	BKE_pbvh_vertex_iter_begin(data->pbvh, node, vi, PBVH_ITER_UNIQUE) {
+		mask_flood_fill_set_elem(vi.mask, mode, value);
+	} BKE_pbvh_vertex_iter_end;
+
+	BKE_pbvh_node_mark_redraw(node);
+	if (data->multires)
+		BKE_pbvh_node_mark_normals_update(node);
+}
+
 static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar = CTX_wm_region(C);
@@ -100,7 +134,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 	float value;
 	PBVH *pbvh;
 	PBVHNode **nodes;
-	int totnode, i;
+	int totnode;
 	bool multires;
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
@@ -115,20 +149,14 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
 	sculpt_undo_push_begin("Mask flood fill");
 
-#pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
-	for (i = 0; i < totnode; i++) {
-		PBVHVertexIter vi;
+	MaskTaskData data = {
+	    .ob = ob, .pbvh = pbvh, .nodes = nodes, .multires = multires,
+		.mode = mode, .value = value,
+	};
 
-		sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
-
-		BKE_pbvh_vertex_iter_begin(pbvh, nodes[i], vi, PBVH_ITER_UNIQUE) {
-			mask_flood_fill_set_elem(vi.mask, mode, value);
-		} BKE_pbvh_vertex_iter_end;
-		
-		BKE_pbvh_node_mark_redraw(nodes[i]);
-		if (multires)
-			BKE_pbvh_node_mark_normals_update(nodes[i]);
-	}
+	BLI_task_parallel_range(
+	            0, totnode, &data, mask_flood_fill_task_cb,
+	            ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT));
 
 	if (multires)
 		multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
@@ -189,6 +217,35 @@ static void flip_plane(float out[4], const float in[4], const char symm)
 	out[3] = in[3];
 }
 
+static void mask_box_select_task_cb(void *userdata, const int i)
+{
+	MaskTaskData *data = userdata;
+
+	PBVHNode *node = data->nodes[i];
+
+	const PaintMaskFloodMode mode = data->mode;
+	const float value = data->value;
+	float (*clip_planes_final)[4] = data->clip_planes_final;
+
+	PBVHVertexIter vi;
+	bool any_masked = false;
+
+	BKE_pbvh_vertex_iter_begin(data->pbvh, node, vi, PBVH_ITER_UNIQUE) {
+		if (is_effected(clip_planes_final, vi.co)) {
+			if (!any_masked) {
+				any_masked = true;
+
+				sculpt_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
+
+				BKE_pbvh_node_mark_redraw(node);
+				if (data->multires)
+					BKE_pbvh_node_mark_normals_update(node);
+			}
+			mask_flood_fill_set_elem(vi.mask, mode, value);
+		}
+	} BKE_pbvh_vertex_iter_end;
+}
+
 int ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *rect, bool select, bool UNUSED(extend))
 {
 	Sculpt *sd = vc->scene->toolsettings->sculpt;
@@ -204,7 +261,7 @@ int ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *r
 	bool multires;
 	PBVH *pbvh;
 	PBVHNode **nodes;
-	int totnode, i, symmpass;
+	int totnode, symmpass;
 	int symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
 	mode = PAINT_MASK_FLOOD_VALUE;
@@ -236,26 +293,14 @@ int ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *r
 
 			BKE_pbvh_search_gather(pbvh, BKE_pbvh_node_planes_contain_AABB, clip_planes_final, &nodes, &totnode);
 
-#pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
-			for (i = 0; i < totnode; i++) {
-				PBVHVertexIter vi;
-				bool any_masked = false;
+			MaskTaskData data = {
+			    .ob = ob, .pbvh = pbvh, .nodes = nodes, .multires = multires,
+				.mode = mode, .value = value, .clip_planes_final = clip_planes_final,
+			};
 
-				BKE_pbvh_vertex_iter_begin(pbvh, nodes[i], vi, PBVH_ITER_UNIQUE) {
-					if (is_effected(clip_planes_final, vi.co)) {
-						if (!any_masked) {
-							any_masked = true;
-
-							sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
-
-							BKE_pbvh_node_mark_redraw(nodes[i]);
-							if (multires)
-								BKE_pbvh_node_mark_normals_update(nodes[i]);
-						}
-						mask_flood_fill_set_elem(vi.mask, mode, value);
-					}
-				} BKE_pbvh_vertex_iter_end;
-			}
+			BLI_task_parallel_range(
+			            0, totnode, &data, mask_box_select_task_cb,
+			            ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT));
 
 			if (nodes)
 				MEM_freeN(nodes);
@@ -281,6 +326,8 @@ typedef struct LassoMaskData {
 	int width;
 	rcti rect; /* bounding box for scanfilling */
 	int symmpass;
+
+	MaskTaskData task_data;
 } LassoMaskData;
 
 
@@ -317,12 +364,42 @@ static bool is_effected_lasso(LassoMaskData *data, float co[3])
 
 static void mask_lasso_px_cb(int x, int x_end, int y, void *user_data)
 {
-	struct LassoMaskData *data = user_data;
+	LassoMaskData *data = user_data;
 	int index     = (y * data->width) + x;
 	int index_end = (y * data->width) + x_end;
 	do {
 		BLI_BITMAP_ENABLE(data->px, index);
 	} while (++index != index_end);
+}
+
+static void mask_gesture_lasso_task_cb(void *userdata, const int i)
+{
+	LassoMaskData *lasso_data = userdata;
+	MaskTaskData *data = &lasso_data->task_data;
+
+	PBVHNode *node = data->nodes[i];
+
+	const PaintMaskFloodMode mode = data->mode;
+	const float value = data->value;
+
+	PBVHVertexIter vi;
+	bool any_masked = false;
+
+	BKE_pbvh_vertex_iter_begin(data->pbvh, node, vi, PBVH_ITER_UNIQUE) {
+		if (is_effected_lasso(lasso_data, vi.co)) {
+			if (!any_masked) {
+				any_masked = true;
+
+				sculpt_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
+
+				BKE_pbvh_node_mark_redraw(node);
+				if (data->multires)
+					BKE_pbvh_node_mark_normals_update(node);
+			}
+
+			mask_flood_fill_set_elem(vi.mask, mode, value);
+		}
+	} BKE_pbvh_vertex_iter_end;
 }
 
 static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
@@ -342,7 +419,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		int symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 		PBVH *pbvh;
 		PBVHNode **nodes;
-		int totnode, i, symmpass;
+		int totnode, symmpass;
 		bool multires;
 		PaintMaskFloodMode mode = RNA_enum_get(op->ptr, "mode");
 		float value = RNA_float_get(op->ptr, "value");
@@ -394,27 +471,16 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 				/* gather nodes inside lasso's enclosing rectangle (should greatly help with bigger meshes) */
 				BKE_pbvh_search_gather(pbvh, BKE_pbvh_node_planes_contain_AABB, clip_planes_final, &nodes, &totnode);
 
-#pragma omp parallel for schedule(guided) if ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT)
-				for (i = 0; i < totnode; i++) {
-					PBVHVertexIter vi;
-					bool any_masked = false;
+				data.task_data.ob = ob;
+				data.task_data.pbvh = pbvh;
+				data.task_data.nodes = nodes;
+				data.task_data.multires = multires;
+				data.task_data.mode = mode;
+				data.task_data.value = value;
 
-					BKE_pbvh_vertex_iter_begin(pbvh, nodes[i], vi, PBVH_ITER_UNIQUE) {
-						if (is_effected_lasso(&data, vi.co)) {
-							if (!any_masked) {
-								any_masked = true;
-
-								sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
-
-								BKE_pbvh_node_mark_redraw(nodes[i]);
-								if (multires)
-									BKE_pbvh_node_mark_normals_update(nodes[i]);
-							}
-
-							mask_flood_fill_set_elem(vi.mask, mode, value);
-						}
-					} BKE_pbvh_vertex_iter_end;
-				}
+				BLI_task_parallel_range(
+				            0, totnode, &data, mask_gesture_lasso_task_cb,
+				            ((sd->flags & SCULPT_USE_OPENMP) && (totnode > SCULPT_OMP_LIMIT)));
 
 				if (nodes)
 					MEM_freeN(nodes);
