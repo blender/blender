@@ -2212,7 +2212,7 @@ void isect_ray_aabb_v3_precalc(
 
 /* Adapted from http://www.gamedev.net/community/forums/topic.asp?topic_id=459973 */
 bool isect_ray_aabb_v3(
-        const IsectRayAABB_Precalc *data, const float bb_min[3],
+        const struct IsectRayAABB_Precalc *data, const float bb_min[3],
         const float bb_max[3], float *tmin_out)
 {
 	float bbox[2][3];
