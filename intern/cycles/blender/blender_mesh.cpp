@@ -35,6 +35,48 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Per-face bit flags. */
+enum {
+	/* Face has no special flags. */
+	FACE_FLAG_NONE      = (0 << 0),
+	/* Quad face was split using 1-3 diagonal. */
+	FACE_FLAG_DIVIDE_13 = (1 << 0),
+	/* Quad face was split using 2-4 diagonal. */
+	FACE_FLAG_DIVIDE_24 = (1 << 1),
+};
+
+/* Get vertex indices to create triangles from a given face.
+ *
+ * Two triangles has vertex indices in the original Blender-side face.
+ * If face is already a quad tri_b will not be initialized.
+ */
+inline void face_split_tri_indices(const int num_verts,
+                                   const int face_flag,
+                                   int tri_a[3],
+                                   int tri_b[3])
+{
+	if(face_flag & FACE_FLAG_DIVIDE_24) {
+		tri_a[0] = 0;
+		tri_a[1] = 1;
+		tri_a[2] = 3;
+		if(num_verts == 4) {
+			tri_b[0] = 2;
+			tri_b[1] = 3;
+			tri_b[2] = 1;
+		}
+	}
+	else /*if(face_flag & FACE_FLAG_DIVIDE_13)*/ {
+		tri_a[0] = 0;
+		tri_a[1] = 1;
+		tri_a[2] = 2;
+		if(num_verts == 4) {
+			tri_b[0] = 0;
+			tri_b[1] = 2;
+			tri_b[2] = 3;
+		}
+	}
+}
+
 /* Tangent Space */
 
 struct MikkUserData {
@@ -140,7 +182,13 @@ static void mikk_set_tangent_space(const SMikkTSpaceContext *context, const floa
 	userdata->tangent[face*4 + vert] = make_float4(T[0], T[1], T[2], sign);
 }
 
-static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer *b_layer, Mesh *mesh, const vector<int>& nverts, bool need_sign, bool active_render)
+static void mikk_compute_tangents(BL::Mesh b_mesh,
+                                  BL::MeshTextureFaceLayer *b_layer,
+                                  Mesh *mesh,
+                                  const vector<int>& nverts,
+                                  const vector<int>& face_flags,
+                                  bool need_sign,
+                                  bool active_render)
 {
 	/* setup userdata */
 	MikkUserData userdata(b_mesh, b_layer, nverts.size());
@@ -199,28 +247,31 @@ static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer *b_l
 	}
 
 	for(int i = 0; i < nverts.size(); i++) {
-		tangent[0] = float4_to_float3(userdata.tangent[i*4 + 0]);
-		tangent[1] = float4_to_float3(userdata.tangent[i*4 + 1]);
-		tangent[2] = float4_to_float3(userdata.tangent[i*4 + 2]);
+		int tri_a[3], tri_b[3];
+		face_split_tri_indices(nverts[i], face_flags[i], tri_a, tri_b);
+
+		tangent[0] = float4_to_float3(userdata.tangent[i*4 + tri_a[0]]);
+		tangent[1] = float4_to_float3(userdata.tangent[i*4 + tri_a[1]]);
+		tangent[2] = float4_to_float3(userdata.tangent[i*4 + tri_a[2]]);
 		tangent += 3;
 
 		if(tangent_sign) {
-			tangent_sign[0] = userdata.tangent[i*4 + 0].w;
-			tangent_sign[1] = userdata.tangent[i*4 + 1].w;
-			tangent_sign[2] = userdata.tangent[i*4 + 2].w;
+			tangent_sign[0] = userdata.tangent[i*4 + tri_a[0]].w;
+			tangent_sign[1] = userdata.tangent[i*4 + tri_a[1]].w;
+			tangent_sign[2] = userdata.tangent[i*4 + tri_a[2]].w;
 			tangent_sign += 3;
 		}
 
 		if(nverts[i] == 4) {
-			tangent[0] = float4_to_float3(userdata.tangent[i*4 + 0]);
-			tangent[1] = float4_to_float3(userdata.tangent[i*4 + 2]);
-			tangent[2] = float4_to_float3(userdata.tangent[i*4 + 3]);
+			tangent[0] = float4_to_float3(userdata.tangent[i*4 + tri_b[0]]);
+			tangent[1] = float4_to_float3(userdata.tangent[i*4 + tri_b[1]]);
+			tangent[2] = float4_to_float3(userdata.tangent[i*4 + tri_b[2]]);
 			tangent += 3;
 
 			if(tangent_sign) {
-				tangent_sign[0] = userdata.tangent[i*4 + 0].w;
-				tangent_sign[1] = userdata.tangent[i*4 + 2].w;
-				tangent_sign[2] = userdata.tangent[i*4 + 3].w;
+				tangent_sign[0] = userdata.tangent[i*4 + tri_b[0]].w;
+				tangent_sign[1] = userdata.tangent[i*4 + tri_b[1]].w;
+				tangent_sign[2] = userdata.tangent[i*4 + tri_b[2]].w;
 				tangent_sign += 3;
 			}
 		}
@@ -273,7 +324,8 @@ static void create_mesh_volume_attributes(Scene *scene, BL::Object b_ob, Mesh *m
 static void attr_create_vertex_color(Scene *scene,
                                      Mesh *mesh,
                                      BL::Mesh b_mesh,
-                                     const vector<int>& nverts)
+                                     const vector<int>& nverts,
+                                     const vector<int>& face_flags)
 {
 	BL::Mesh::tessface_vertex_colors_iterator l;
 	for(b_mesh.tessface_vertex_colors.begin(l); l != b_mesh.tessface_vertex_colors.end(); ++l) {
@@ -288,14 +340,25 @@ static void attr_create_vertex_color(Scene *scene,
 		size_t i = 0;
 
 		for(l->data.begin(c); c != l->data.end(); ++c, ++i) {
-			cdata[0] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color1())));
-			cdata[1] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color2())));
-			cdata[2] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color3())));
+			int tri_a[3], tri_b[3];
+			face_split_tri_indices(nverts[i], face_flags[i], tri_a, tri_b);
+
+			uchar4 colors[4];
+			colors[0] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color1())));
+			colors[1] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color2())));
+			colors[2] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color3())));
+			if(nverts[i] == 4) {
+				colors[3] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color4())));
+			}
+
+			cdata[0] = colors[tri_a[0]];
+			cdata[1] = colors[tri_a[1]];
+			cdata[2] = colors[tri_a[2]];
 
 			if(nverts[i] == 4) {
-				cdata[3] = cdata[0];
-				cdata[4] = cdata[2];
-				cdata[5] = color_float_to_byte(color_srgb_to_scene_linear(get_float3(c->color4())));
+				cdata[3] = colors[tri_b[0]];
+				cdata[4] = colors[tri_b[1]];
+				cdata[5] = colors[tri_b[2]];
 				cdata += 6;
 			}
 			else
@@ -308,7 +371,8 @@ static void attr_create_vertex_color(Scene *scene,
 static void attr_create_uv_map(Scene *scene,
                                Mesh *mesh,
                                BL::Mesh b_mesh,
-                               const vector<int>& nverts)
+                               const vector<int>& nverts,
+                               const vector<int>& face_flags)
 {
 	if(b_mesh.tessface_uv_textures.length() != 0) {
 		BL::Mesh::tessface_uv_textures_iterator l;
@@ -332,15 +396,26 @@ static void attr_create_uv_map(Scene *scene,
 				size_t i = 0;
 
 				for(l->data.begin(t); t != l->data.end(); ++t, ++i) {
-					fdata[0] = get_float3(t->uv1());
-					fdata[1] = get_float3(t->uv2());
-					fdata[2] = get_float3(t->uv3());
+					int tri_a[3], tri_b[3];
+					face_split_tri_indices(nverts[i], face_flags[i], tri_a, tri_b);
+
+					float3 uvs[4];
+					uvs[0] = get_float3(t->uv1());
+					uvs[1] = get_float3(t->uv2());
+					uvs[2] = get_float3(t->uv3());
+					if(nverts[i] == 4) {
+						uvs[3] = get_float3(t->uv4());
+					}
+
+					fdata[0] = uvs[tri_a[0]];
+					fdata[1] = uvs[tri_a[1]];
+					fdata[2] = uvs[tri_a[2]];
 					fdata += 3;
 
 					if(nverts[i] == 4) {
-						fdata[0] = get_float3(t->uv1());
-						fdata[1] = get_float3(t->uv3());
-						fdata[2] = get_float3(t->uv4());
+						fdata[0] = uvs[tri_b[0]];
+						fdata[1] = uvs[tri_b[0]];
+						fdata[2] = uvs[tri_b[0]];
 						fdata += 3;
 					}
 				}
@@ -355,13 +430,25 @@ static void attr_create_uv_map(Scene *scene,
 				name = ustring((string(l->name().c_str()) + ".tangent_sign").c_str());
 				bool need_sign = (mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std));
 
-				mikk_compute_tangents(b_mesh, &(*l), mesh, nverts, need_sign, active_render);
+				mikk_compute_tangents(b_mesh,
+				                      &(*l),
+				                      mesh,
+				                      nverts,
+				                      face_flags,
+				                      need_sign,
+				                      active_render);
 			}
 		}
 	}
 	else if(mesh->need_attribute(scene, ATTR_STD_UV_TANGENT)) {
 		bool need_sign = mesh->need_attribute(scene, ATTR_STD_UV_TANGENT_SIGN);
-		mikk_compute_tangents(b_mesh, NULL, mesh, nverts, need_sign, true);
+		mikk_compute_tangents(b_mesh,
+		                      NULL,
+		                      mesh,
+		                      nverts,
+		                      face_flags,
+		                      need_sign,
+		                      true);
 	}
 }
 
@@ -482,6 +569,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 
 	/* create faces */
 	vector<int> nverts(numfaces);
+	vector<int> face_flags(numfaces, FACE_FLAG_NONE);
 	int fi = 0, ti = 0;
 
 	for(b_mesh.tessfaces.begin(f); f != b_mesh.tessfaces.end(); ++f, ++fi) {
@@ -519,10 +607,12 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 			{
 				mesh->set_triangle(ti++, vi[0], vi[1], vi[3], shader, smooth);
 				mesh->set_triangle(ti++, vi[2], vi[3], vi[1], shader, smooth);
+				face_flags[fi] |= FACE_FLAG_DIVIDE_24;
 			}
 			else {
 				mesh->set_triangle(ti++, vi[0], vi[1], vi[2], shader, smooth);
 				mesh->set_triangle(ti++, vi[0], vi[2], vi[3], shader, smooth);
+				face_flags[fi] |= FACE_FLAG_DIVIDE_13;
 			}
 		}
 		else
@@ -534,8 +624,8 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 	/* Create all needed attributes.
 	 * The calculate functions will check whether they're needed or not.
 	 */
-	attr_create_vertex_color(scene, mesh, b_mesh, nverts);
-	attr_create_uv_map(scene, mesh, b_mesh, nverts);
+	attr_create_vertex_color(scene, mesh, b_mesh, nverts, face_flags);
+	attr_create_uv_map(scene, mesh, b_mesh, nverts, face_flags);
 
 	/* for volume objects, create a matrix to transform from object space to
 	 * mesh texture space. this does not work with deformations but that can
