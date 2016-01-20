@@ -1256,7 +1256,7 @@ typedef enum eOutlinerLibOpTypes {
 
 static EnumPropertyItem outliner_lib_op_type_items[] = {
 	{OL_LIB_RENAME, "RENAME", 0, "Rename", ""},
-    {OL_LIB_DELETE, "DELETE", 0, "Delete", "Delete this library and all its item from Blender (needs a save/reload)"},
+	{OL_LIB_DELETE, "DELETE", 0, "Delete", "Delete this library and all its item from Blender (needs a save/reload)"},
 	{0, NULL, 0, NULL, NULL}
 
 };

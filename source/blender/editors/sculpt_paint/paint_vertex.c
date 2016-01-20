@@ -1078,7 +1078,8 @@ static bool weight_paint_sample_enum_itemf__helper(const MDeformVert *dvert, con
 	}
 	return found;
 }
-static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+static EnumPropertyItem *weight_paint_sample_enum_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	if (C) {
 		wmWindow *win = CTX_wm_window(C);
@@ -2080,9 +2081,11 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	        wpd->do_multipaint ? wpaint_blur_weight_multi : wpaint_blur_weight_single;
 
 	const float pressure = RNA_float_get(itemptr, "pressure");
-	const float brush_size_pressure = BKE_brush_size_get(scene, brush) * (BKE_brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_size_pressure =
+	        BKE_brush_size_get(scene, brush) * (BKE_brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
 	const float brush_alpha_value = BKE_brush_alpha_get(scene, brush);
-	const float brush_alpha_pressure = brush_alpha_value * (BKE_brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_alpha_pressure =
+	        brush_alpha_value * (BKE_brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
 
 	/* intentionally don't initialize as NULL, make sure we initialize all members below */
 	WeightPaintInfo wpi;
@@ -2176,7 +2179,8 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 #define WP_BLUR_ACCUM(v_idx_var)  \
 	{ \
 		const unsigned int vidx = v_idx_var; \
-		const float fac = calc_vp_strength_col_dl(wp, vc, wpd->vertexcosnos[vidx].co, mval, brush_size_pressure, NULL); \
+		const float fac = calc_vp_strength_col_dl( \
+		        wp, vc, wpd->vertexcosnos[vidx].co, mval, brush_size_pressure, NULL); \
 		if (fac > 0.0f) { \
 			float weight = blur_weight_func(&me->dvert[vidx], &wpi); \
 			paintweight += weight * fac; \
@@ -2704,8 +2708,10 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float mval[2];
 
 	const float pressure = RNA_float_get(itemptr, "pressure");
-	const float brush_size_pressure = BKE_brush_size_get(scene, brush) * (BKE_brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
-	const float brush_alpha_pressure = BKE_brush_alpha_get(scene, brush) * (BKE_brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_size_pressure =
+	        BKE_brush_size_get(scene, brush) * (BKE_brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
+	const float brush_alpha_pressure =
+	        BKE_brush_alpha_get(scene, brush) * (BKE_brush_use_alpha_pressure(scene, brush) ? pressure : 1.0f);
 
 	RNA_float_get_array(itemptr, "mouse", mval);
 
@@ -3173,7 +3179,8 @@ static int paint_weight_gradient_invoke(bContext *C, wmOperator *op, const wmEve
 	if (ret & OPERATOR_RUNNING_MODAL) {
 		struct ARegion *ar = CTX_wm_region(C);
 		if (ar->regiontype == RGN_TYPE_WINDOW) {
-			if (event->type == LEFTMOUSE && event->val == KM_PRESS) {  /* TODO, hardcoded, extend WM_gesture_straightline_ */
+			/* TODO, hardcoded, extend WM_gesture_straightline_ */
+			if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
 				wmGesture *gesture = op->customdata;
 				gesture->mode = 1;
 			}

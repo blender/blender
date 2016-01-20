@@ -114,7 +114,7 @@ void BLI_covariance_m_vn_ex(
 
 	CovarianceData data = {
 		.cos_vn = cos_vn, .center = center, .r_covmat = r_covmat,
-	    .covfac = covfac, .n = n, .nbr_cos_vn = nbr_cos_vn,
+		.covfac = covfac, .n = n, .nbr_cos_vn = nbr_cos_vn,
 	};
 
 	BLI_task_parallel_range(

@@ -269,7 +269,7 @@ static void rna_def_cloth_solver_result(BlenderRNA *brna)
 	    {BPH_SOLVER_NUMERICAL_ISSUE, "NUMERICAL_ISSUE", 0, "Numerical Issue", "The provided data did not satisfy the prerequisites"},
 	    {BPH_SOLVER_NO_CONVERGENCE, "NO_CONVERGENCE", 0, "No Convergence", "Iterative procedure did not converge"},
 	    {BPH_SOLVER_INVALID_INPUT, "INVALID_INPUT", 0, "Invalid Input", "The inputs are invalid, or the algorithm has been improperly called"},
-		{0, NULL, 0, NULL, NULL}
+	    {0, NULL, 0, NULL, NULL}
 	};
 	
 	srna = RNA_def_struct(brna, "ClothSolverResult", NULL);

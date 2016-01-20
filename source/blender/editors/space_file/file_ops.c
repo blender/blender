@@ -1041,7 +1041,7 @@ static int bookmark_move_exec(bContext *C, wmOperator *op)
 void FILE_OT_bookmark_move(wmOperatorType *ot)
 {
 	static EnumPropertyItem slot_move[] = {
-	    {FILE_BOOKMARK_MOVE_TOP, "TOP", 0, "Top", "Top of the list"},
+		{FILE_BOOKMARK_MOVE_TOP, "TOP", 0, "Top", "Top of the list"},
 		{FILE_BOOKMARK_MOVE_UP, "UP", 0, "Up", ""},
 		{FILE_BOOKMARK_MOVE_DOWN, "DOWN", 0, "Down", ""},
 		{FILE_BOOKMARK_MOVE_BOTTOM, "BOTTOM", 0, "Bottom", "Bottom of the list"},

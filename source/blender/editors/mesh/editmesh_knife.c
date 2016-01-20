@@ -1651,8 +1651,8 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 			hit.v = v;
 
 			/* If this isn't from an existing BMVert, it may have been added to a BMEdge originally.
-				 * knowing if the hit comes from an edge is important for edge-in-face checks later on
-				 * see: #knife_add_single_cut -> #knife_verts_edge_in_face, T42611 */
+			 * knowing if the hit comes from an edge is important for edge-in-face checks later on
+			 * see: #knife_add_single_cut -> #knife_verts_edge_in_face, T42611 */
 			if (kfe_hit) {
 				hit.kfe = kfe_hit;
 			}

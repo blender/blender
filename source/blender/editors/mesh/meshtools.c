@@ -905,7 +905,9 @@ static float *editmesh_get_mirror_uv(BMEditMesh *em, int axis, float *uv, float 
 	if (isnan(uv[0]) || !finite(uv[0]) ||
 	    isnan(uv[1]) || !finite(uv[1])
 	    )
+	{
 		return NULL;
+	}
 
 	if (axis) {
 		vec[0] = uv[0];

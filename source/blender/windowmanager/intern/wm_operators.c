@@ -4954,7 +4954,7 @@ static void WM_OT_previews_clear(wmOperatorType *ot)
 
 	ot->prop = RNA_def_enum_flag(ot->srna, "id_type", preview_id_type_items,
 	                             FILTER_ID_SCE | FILTER_ID_OB | FILTER_ID_GR |
-		                         FILTER_ID_MA | FILTER_ID_LA | FILTER_ID_WO | FILTER_ID_TE | FILTER_ID_IM,
+	                             FILTER_ID_MA | FILTER_ID_LA | FILTER_ID_WO | FILTER_ID_TE | FILTER_ID_IM,
 	                             "DataBlock Type", "Which datablock previews to clear");
 }
 

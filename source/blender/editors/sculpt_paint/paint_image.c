@@ -651,7 +651,7 @@ bool paint_use_opacity_masking(Brush *brush)
 	       (brush->imagepaint_tool == PAINT_TOOL_SOFTEN) ||
 	       (brush->imagepaint_tool == PAINT_TOOL_FILL) ||
 	       (brush->flag & BRUSH_USE_GRADIENT) ||
-		   (brush->mtex.tex && !ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL, MTEX_MAP_MODE_3D)) ?
+	       (brush->mtex.tex && !ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL, MTEX_MAP_MODE_3D)) ?
 	            false : true;
 }
 

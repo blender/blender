@@ -3343,7 +3343,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	static EnumPropertyItem zoom_frame_modes[] = {
 		{ZOOM_FRAME_MODE_KEEP_RANGE, "KEEP_RANGE", 0, "Keep Range", ""},
 		{ZOOM_FRAME_MODE_SECONDS, "SECONDS", 0, "Seconds", ""},
-	    {ZOOM_FRAME_MODE_KEYFRAMES, "KEYFRAMES", 0, "Keyframes", ""},
+		{ZOOM_FRAME_MODE_KEYFRAMES, "KEYFRAMES", 0, "Keyframes", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

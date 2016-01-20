@@ -508,7 +508,7 @@ static void imb_stereo3d_write_topbottom(Stereo3DData *s3d)
 			uchar *to = rect_to + stride_to * y * channels;
 			const uchar *from[2] = {
 			    rect_left  + stride_from * y * channels,
-				rect_right + stride_from * y * channels,
+			    rect_right + stride_from * y * channels,
 			};
 
 			memcpy(to, from[1], sizeof(uchar) * channels * stride_from);
@@ -1201,7 +1201,7 @@ static void imb_stereo3d_read_topbottom(Stereo3DData *s3d)
 			const uchar *from = rect_from + stride_from * y * channels;
 			uchar *to[2] = {
 			    rect_left  + stride_to * y * channels,
-				rect_right + stride_to * y * channels,
+			    rect_right + stride_to * y * channels,
 			};
 
 			memcpy(to[1], from, sizeof(uchar) * channels * stride_to);

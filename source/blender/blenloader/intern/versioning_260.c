@@ -459,19 +459,19 @@ static void do_versions_affine_tracker_track(MovieTrackingTrack *track)
 
 		if (is_zero_v2(marker->pattern_corners[0]) && is_zero_v2(marker->pattern_corners[1]) &&
 		    is_zero_v2(marker->pattern_corners[2]) && is_zero_v2(marker->pattern_corners[3]))
-			{
-				marker->pattern_corners[0][0] = track->pat_min[0];
-				marker->pattern_corners[0][1] = track->pat_min[1];
+		{
+			marker->pattern_corners[0][0] = track->pat_min[0];
+			marker->pattern_corners[0][1] = track->pat_min[1];
 
-				marker->pattern_corners[1][0] = track->pat_max[0];
-				marker->pattern_corners[1][1] = track->pat_min[1];
+			marker->pattern_corners[1][0] = track->pat_max[0];
+			marker->pattern_corners[1][1] = track->pat_min[1];
 
-				marker->pattern_corners[2][0] = track->pat_max[0];
-				marker->pattern_corners[2][1] = track->pat_max[1];
+			marker->pattern_corners[2][0] = track->pat_max[0];
+			marker->pattern_corners[2][1] = track->pat_max[1];
 
-				marker->pattern_corners[3][0] = track->pat_min[0];
-				marker->pattern_corners[3][1] = track->pat_max[1];
-			}
+			marker->pattern_corners[3][0] = track->pat_min[0];
+			marker->pattern_corners[3][1] = track->pat_max[1];
+		}
 
 		if (is_zero_v2(marker->search_min) && is_zero_v2(marker->search_max)) {
 			copy_v2_v2(marker->search_min, track->search_min);

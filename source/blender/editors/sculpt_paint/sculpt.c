@@ -402,7 +402,7 @@ typedef struct SculptThreadedTaskData {
 	Sculpt *sd;
 	Object *ob;
 	Brush *brush;
-    PBVHNode **nodes;
+	PBVHNode **nodes;
 	int totnode;
 
 	/* Data specific to some callbacks. */
@@ -946,7 +946,7 @@ static void calc_area_center(
 
 	SculptThreadedTaskData data = {
 		.sd = sd, .ob = ob, .nodes = nodes, .totnode = totnode,
-	    .has_bm_orco = has_bm_orco, .area_cos = area_cos, .area_nos = NULL, .count = count,
+		.has_bm_orco = has_bm_orco, .area_cos = area_cos, .area_nos = NULL, .count = count,
 	};
 	BLI_mutex_init(&data.mutex);
 
@@ -986,7 +986,7 @@ static void calc_area_normal(
 
 	SculptThreadedTaskData data = {
 		.sd = sd, .ob = ob, .nodes = nodes, .totnode = totnode,
-	    .has_bm_orco = has_bm_orco, .area_cos = NULL, .area_nos = area_nos, .count = count,
+		.has_bm_orco = has_bm_orco, .area_cos = NULL, .area_nos = area_nos, .count = count,
 	};
 	BLI_mutex_init(&data.mutex);
 
@@ -1024,7 +1024,7 @@ static void calc_area_normal_and_center(
 
 	SculptThreadedTaskData data = {
 		.sd = sd, .ob = ob, .nodes = nodes, .totnode = totnode,
-	    .has_bm_orco = has_bm_orco, .area_cos = area_cos, .area_nos = area_nos, .count = count,
+		.has_bm_orco = has_bm_orco, .area_cos = area_cos, .area_nos = area_nos, .count = count,
 	};
 	BLI_mutex_init(&data.mutex);
 

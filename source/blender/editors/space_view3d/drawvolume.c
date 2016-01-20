@@ -290,7 +290,7 @@ static int create_view_aligned_slices(VolumeSlicer *slicer,
 
 void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
                        const float min[3], const float max[3],
-	                   const float viewnormal[3])
+                        const float viewnormal[3])
 {
 	if (!sds->tex || !sds->tex_shadow) {
 		fprintf(stderr, "Could not allocate 3D texture for volume rendering!\n");
