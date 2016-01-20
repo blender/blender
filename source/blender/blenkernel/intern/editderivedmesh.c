@@ -237,10 +237,13 @@ static void emDM_calcLoopNormalsSpaceArray(
 }
 
 
+/** \name Tangent Space Calculation
+ * \{ */
+
 typedef struct {
 	const float (*precomputedFaceNormals)[3];
 	const float (*precomputedLoopNormals)[3];
-	BMLoop *(*looptris)[3];
+	const BMLoop *(*looptris)[3];
 	int cd_loop_uv_offset;   /* texture coordinates */
 	const float (*orco)[3];
 	float (*tangent)[4];    /* destination */
@@ -270,7 +273,7 @@ static void emdm_ts_GetPosition(
 {
 	//assert(vert_index >= 0 && vert_index < 4);
 	SGLSLEditMeshToTangent *pMesh = pContext->m_pUserData;
-	BMLoop **lt = pMesh->looptris[face_num];
+	const BMLoop **lt = pMesh->looptris[face_num];
 	const float *co = lt[vert_index]->v->co;
 	copy_v3_v3(r_co, co);
 }
@@ -281,7 +284,7 @@ static void emdm_ts_GetTextureCoordinate(
 {
 	//assert(vert_index >= 0 && vert_index < 4);
 	SGLSLEditMeshToTangent *pMesh = pContext->m_pUserData;
-	BMLoop **lt = pMesh->looptris[face_num];
+	const BMLoop **lt = pMesh->looptris[face_num];
 
 	if (pMesh->cd_loop_uv_offset != -1) {
 		const float *uv = BM_ELEM_CD_GET_VOID_P(lt[vert_index], pMesh->cd_loop_uv_offset);
@@ -299,7 +302,7 @@ static void emdm_ts_GetNormal(
 {
 	//assert(vert_index >= 0 && vert_index < 4);
 	SGLSLEditMeshToTangent *pMesh = pContext->m_pUserData;
-	BMLoop **lt = pMesh->looptris[face_num];
+	const BMLoop **lt = pMesh->looptris[face_num];
 	const bool smoothnormal = BM_elem_flag_test_bool(lt[0]->f, BM_ELEM_SMOOTH);
 
 	if (pMesh->precomputedLoopNormals) {
@@ -324,7 +327,7 @@ static void emdm_ts_SetTSpace(
 {
 	//assert(vert_index >= 0 && vert_index < 4);
 	SGLSLEditMeshToTangent *pMesh = pContext->m_pUserData;
-	BMLoop **lt = pMesh->looptris[face_num];
+	const BMLoop **lt = pMesh->looptris[face_num];
 	float *pRes = pMesh->tangent[BM_elem_index_get(lt[vert_index])];
 	copy_v3_v3(pRes, fvTangent);
 	pRes[3] = fSign;
@@ -394,7 +397,7 @@ static void emDM_calcLoopTangents(DerivedMesh *dm)
 
 		mesh2tangent.precomputedFaceNormals = fnors;
 		mesh2tangent.precomputedLoopNormals = tlnors;
-		mesh2tangent.looptris = em->looptris;
+		mesh2tangent.looptris = (const BMLoop *(*)[3])em->looptris;
 		mesh2tangent.cd_loop_uv_offset = cd_loop_uv_offset;
 		mesh2tangent.orco = (const float (*)[3])orco;
 		mesh2tangent.tangent = tangent;
@@ -413,6 +416,9 @@ static void emDM_calcLoopTangents(DerivedMesh *dm)
 		genTangSpaceDefault(&sContext);
 	}
 }
+
+/** \} */
+
 
 static void emDM_recalcTessellation(DerivedMesh *UNUSED(dm))
 {

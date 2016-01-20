@@ -2987,6 +2987,9 @@ void mesh_get_mapped_verts_coords(DerivedMesh *dm, float (*r_cos)[3], const int 
 
 /* ******************* GLSL ******************** */
 
+/** \name Tangent Space Calculation
+ * \{ */
+
 typedef struct {
 	float (*precomputedFaceNormals)[3];
 	float (*precomputedLoopNormals)[3];
@@ -3004,32 +3007,36 @@ typedef struct {
 /* interface */
 #include "mikktspace.h"
 
-static int GetNumFaces(const SMikkTSpaceContext *pContext)
+static int dm_ts_GetNumFaces(const SMikkTSpaceContext *pContext)
 {
-	SGLSLMeshToTangent *pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
+	SGLSLMeshToTangent *pMesh = pContext->m_pUserData;
 	return pMesh->numTessFaces;
 }
 
-static int GetNumVertsOfFace(const SMikkTSpaceContext *pContext, const int face_num)
+static int dm_ts_GetNumVertsOfFace(const SMikkTSpaceContext *pContext, const int face_num)
 {
-	//SGLSLMeshToTangent *pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
+	//SGLSLMeshToTangent *pMesh = pContext->m_pUserData;
 	UNUSED_VARS(pContext, face_num);
 	return 3;
 }
 
-static void GetPosition(const SMikkTSpaceContext *pContext, float r_co[3], const int face_num, const int vert_index)
+static void dm_ts_GetPosition(
+        const SMikkTSpaceContext *pContext, float r_co[3],
+        const int face_num, const int vert_index)
 {
 	//assert(vert_index >= 0 && vert_index < 4);
-	SGLSLMeshToTangent *pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
+	SGLSLMeshToTangent *pMesh = pContext->m_pUserData;
 	const MLoopTri *lt = &pMesh->looptri[face_num];
 	const float *co = pMesh->mvert[pMesh->mloop[lt->tri[vert_index]].v].co;
 	copy_v3_v3(r_co, co);
 }
 
-static void GetTextureCoordinate(const SMikkTSpaceContext *pContext, float r_uv[2], const int face_num, const int vert_index)
+static void dm_ts_GetTextureCoordinate(
+        const SMikkTSpaceContext *pContext, float r_uv[2],
+        const int face_num, const int vert_index)
 {
 	//assert(vert_index >= 0 && vert_index < 4);
-	SGLSLMeshToTangent *pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
+	SGLSLMeshToTangent *pMesh = pContext->m_pUserData;
 	const MLoopTri *lt = &pMesh->looptri[face_num];
 
 	if (pMesh->mloopuv != NULL) {
@@ -3042,10 +3049,12 @@ static void GetTextureCoordinate(const SMikkTSpaceContext *pContext, float r_uv[
 	}
 }
 
-static void GetNormal(const SMikkTSpaceContext *pContext, float r_no[3], const int face_num, const int vert_index)
+static void dm_ts_GetNormal(
+        const SMikkTSpaceContext *pContext, float r_no[3],
+        const int face_num, const int vert_index)
 {
 	//assert(vert_index >= 0 && vert_index < 4);
-	SGLSLMeshToTangent *pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
+	SGLSLMeshToTangent *pMesh = pContext->m_pUserData;
 	const MLoopTri *lt = &pMesh->looptri[face_num];
 	const bool smoothnormal = (pMesh->mpoly[lt->poly].flag & ME_SMOOTH) != 0;
 
@@ -3070,10 +3079,12 @@ static void GetNormal(const SMikkTSpaceContext *pContext, float r_no[3], const i
 	}
 }
 
-static void SetTSpace(const SMikkTSpaceContext *pContext, const float fvTangent[3], const float fSign, const int face_num, const int vert_index)
+static void dm_ts_SetTSpace(
+        const SMikkTSpaceContext *pContext, const float fvTangent[3], const float fSign,
+        const int face_num, const int vert_index)
 {
 	//assert(vert_index >= 0 && vert_index < 4);
-	SGLSLMeshToTangent *pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
+	SGLSLMeshToTangent *pMesh = pContext->m_pUserData;
 	const MLoopTri *lt = &pMesh->looptri[face_num];
 	float *pRes = pMesh->tangent[lt->tri[vert_index]];
 	copy_v3_v3(pRes, fvTangent);
@@ -3141,17 +3152,20 @@ void DM_calc_loop_tangents(DerivedMesh *dm)
 
 		sContext.m_pUserData = &mesh2tangent;
 		sContext.m_pInterface = &sInterface;
-		sInterface.m_getNumFaces = GetNumFaces;
-		sInterface.m_getNumVerticesOfFace = GetNumVertsOfFace;
-		sInterface.m_getPosition = GetPosition;
-		sInterface.m_getTexCoord = GetTextureCoordinate;
-		sInterface.m_getNormal = GetNormal;
-		sInterface.m_setTSpaceBasic = SetTSpace;
+		sInterface.m_getNumFaces = dm_ts_GetNumFaces;
+		sInterface.m_getNumVerticesOfFace = dm_ts_GetNumVertsOfFace;
+		sInterface.m_getPosition = dm_ts_GetPosition;
+		sInterface.m_getTexCoord = dm_ts_GetTextureCoordinate;
+		sInterface.m_getNormal = dm_ts_GetNormal;
+		sInterface.m_setTSpaceBasic = dm_ts_SetTSpace;
 
 		/* 0 if failed */
 		genTangSpaceDefault(&sContext);
 	}
 }
+
+/** \} */
+
 
 void DM_calc_auto_bump_scale(DerivedMesh *dm)
 {
