@@ -156,7 +156,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
 	BLI_task_parallel_range(
 	            0, totnode, &data, mask_flood_fill_task_cb,
-	            ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT));
+	            ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT));
 
 	if (multires)
 		multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
@@ -300,7 +300,7 @@ int ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *r
 
 			BLI_task_parallel_range(
 			            0, totnode, &data, mask_box_select_task_cb,
-			            ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT));
+			            ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT));
 
 			if (nodes)
 				MEM_freeN(nodes);
@@ -480,7 +480,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 
 				BLI_task_parallel_range(
 				            0, totnode, &data, mask_gesture_lasso_task_cb,
-				            ((sd->flags & SCULPT_USE_OPENMP) && (totnode > SCULPT_OMP_LIMIT)));
+				            ((sd->flags & SCULPT_USE_OPENMP) && (totnode > SCULPT_THREADED_LIMIT)));
 
 				if (nodes)
 					MEM_freeN(nodes);

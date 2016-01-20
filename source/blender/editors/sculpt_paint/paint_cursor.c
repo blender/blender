@@ -69,10 +69,6 @@
  * removed eventually (TODO) */
 #include "sculpt_intern.h"
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 /* TODOs:
  *
  * Some of the cursor drawing code is doing non-draw stuff

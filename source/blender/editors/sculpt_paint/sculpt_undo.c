@@ -296,7 +296,7 @@ static void sculpt_undo_bmesh_restore_generic(bContext *C,
 
 		BLI_task_parallel_range(
 		            0, totnode, nodes, sculpt_undo_bmesh_restore_generic_task_cb,
-		            ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_OMP_LIMIT));
+		            ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT));
 
 		if (nodes)
 			MEM_freeN(nodes);
