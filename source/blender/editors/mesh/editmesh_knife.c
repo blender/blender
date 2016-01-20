@@ -1621,9 +1621,14 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	/* Now go through the candidates and find intersections */
 	/* These tolerances, in screen space, are for intermediate hits, as ends are already snapped to screen */
 
-	vert_tol = KNIFE_FLT_EPS_PX_VERT;
-	line_tol = KNIFE_FLT_EPS_PX_EDGE;
-	face_tol = KNIFE_FLT_EPS_PX_FACE;
+	if (kcd->is_interactive) {
+		vert_tol = KNIFE_FLT_EPS_PX_VERT;
+		line_tol = KNIFE_FLT_EPS_PX_EDGE;
+		face_tol = KNIFE_FLT_EPS_PX_FACE;
+	}
+	else {
+		vert_tol = line_tol = face_tol = 0.001f;
+	}
 
 	vert_tol_sq = vert_tol * vert_tol;
 	line_tol_sq = line_tol * line_tol;
@@ -1884,17 +1889,7 @@ static int knife_sample_screen_density(KnifeTool_OpData *kcd, const float radius
  * surrounding mesh (in screen space)*/
 static float knife_snap_size(KnifeTool_OpData *kcd, float maxsize)
 {
-	float density;
-
-	if (kcd->is_interactive) {
-		density = (float)knife_sample_screen_density(kcd, maxsize * 2.0f);
-	}
-	else {
-		density = 1.0f;
-	}
-
-	if (density < 1.0f)
-		density = 1.0f;
+	float density = (float)knife_sample_screen_density(kcd, maxsize * 2.0f);
 
 	return min_ff(maxsize / (density * 0.5f), maxsize);
 }
@@ -1905,10 +1900,18 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 {
 	BMFace *f;
 	float co[3], cageco[3], sco[2];
-	float maxdist = knife_snap_size(kcd, kcd->ethresh);
+	float maxdist;
 
-	if (kcd->ignore_vert_snapping)
-		maxdist *= 0.5f;
+	if (kcd->is_interactive) {
+		maxdist = knife_snap_size(kcd, kcd->ethresh);
+
+		if (kcd->ignore_vert_snapping) {
+			maxdist *= 0.5f;
+		}
+	}
+	else {
+		maxdist = KNIFE_FLT_EPS;
+	}
 
 	f = knife_find_closest_face(kcd, co, cageco, NULL);
 	*is_space = !f;
@@ -2028,10 +2031,18 @@ static KnifeVert *knife_find_closest_vert(KnifeTool_OpData *kcd, float p[3], flo
                                           bool *is_space)
 {
 	BMFace *f;
-	float co[3], cageco[3], sco[2], maxdist = knife_snap_size(kcd, kcd->vthresh);
+	float co[3], cageco[3], sco[2];
+	float maxdist;
 
-	if (kcd->ignore_vert_snapping)
-		maxdist *= 0.5f;
+	if (kcd->is_interactive) {
+		maxdist = knife_snap_size(kcd, kcd->vthresh);
+		if (kcd->ignore_vert_snapping) {
+			maxdist *= 0.5f;
+		}
+	}
+	else {
+		maxdist = KNIFE_FLT_EPS;
+	}
 
 	f = knife_find_closest_face(kcd, co, cageco, is_space);
 
