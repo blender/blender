@@ -2667,183 +2667,211 @@ static float *make_gaussian_blur_kernel(float rad, int size)
 	return gausstab;
 }
 
-static void do_gaussian_blur_effect_byte(Sequence *seq,
-                                         int start_line,
-                                         int x, int y,
-                                         int frame_width, int frame_height,
-                                         unsigned char *rect,
-                                         unsigned char *out)
+static void do_gaussian_blur_effect_byte_x(Sequence *seq,
+                                           int start_line,
+                                           int x, int y,
+                                           int frame_width,
+                                           int UNUSED(frame_height),
+                                           unsigned char *rect,
+                                           unsigned char *out)
 {
 #define INDEX(_x, _y) (((_y) * (x) + (_x)) * 4)
 	GaussianBlurVars *data = seq->effectdata;
 	const int size_x = (int) (data->size_x + 0.5f);
-	const int size_y = (int) (data->size_y + 0.5f);
 	int i, j;
 
 	/* Make gaussian weight tabke. */
-	float *gausstab_x, *gausstab_y;
+	float *gausstab_x;
 	gausstab_x = make_gaussian_blur_kernel(data->size_x, size_x);
-	if (data->size_x == data->size_y) {
-		gausstab_y = gausstab_x;
-	}
-	else {
-		gausstab_y = make_gaussian_blur_kernel(data->size_y, size_y);
-	}
 
 	for (i = 0; i < y; ++i) {
 		for (j = 0; j < x; ++j) {
 			int out_index = INDEX(j, i);
-			int current_x, current_y;
 			float accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 			float accum_weight = 0.0f;
-			for (current_y = i - size_y;
-			     current_y <= i + size_y;
-			     ++current_y)
+
+			for (int current_x = j - size_x;
+			     current_x <= j + size_x;
+			     ++current_x)
 			{
-				if (current_y < -start_line ||
-				    current_y + start_line >= frame_height)
-				{
+				if (current_x < 0 || current_x >= frame_width) {
 					/* Out of bounds. */
 					continue;
 				}
-
-				for (current_x = j - size_x;
-				     current_x <= j + size_x;
-				     ++current_x)
-				{
-					float weight;
-					int index = INDEX(current_x, current_y + start_line);
-					if (current_x < 0 || current_x >= frame_width) {
-						/* Out of bounds. */
-						continue;
-					}
-					BLI_assert(index >= 0);
-					BLI_assert(index < frame_width * frame_height * 4);
-
-					if (size_x != 0 && size_y != 0) {
-						weight = gausstab_x[current_x - j + size_x] *
-							gausstab_y[current_y - i + size_y];
-					}
-					else if (size_x == 0) {
-						weight = gausstab_y[current_y - i + size_y];
-					}
-					else {
-						weight = gausstab_x[current_x - j + size_x];
-					}
-					accum[0] += rect[index] * weight;
-					accum[1] += rect[index + 1] * weight;
-					accum[2] += rect[index + 2] * weight;
-					accum[3] += rect[index + 3] * weight;
-					accum_weight += weight;
-				}
+				int index = INDEX(current_x, i + start_line);
+				float weight = gausstab_x[current_x - j + size_x];
+				accum[0] += rect[index] * weight;
+				accum[1] += rect[index + 1] * weight;
+				accum[2] += rect[index + 2] * weight;
+				accum[3] += rect[index + 3] * weight;
+				accum_weight += weight;
 			}
-			out[out_index + 0] = accum[0] / accum_weight;
-			out[out_index + 1] = accum[1] / accum_weight;
-			out[out_index + 2] = accum[2] / accum_weight;
-			out[out_index + 3] = accum[3] / accum_weight;
+
+			float inv_accum_weight = 1.0f / accum_weight;
+			out[out_index + 0] = accum[0] * inv_accum_weight;
+			out[out_index + 1] = accum[1] * inv_accum_weight;
+			out[out_index + 2] = accum[2] * inv_accum_weight;
+			out[out_index + 3] = accum[3] * inv_accum_weight;
 		}
 	}
 
 	MEM_freeN(gausstab_x);
-	if (gausstab_x != gausstab_y) {
-		MEM_freeN(gausstab_y);
-	}
 #undef INDEX
 }
 
-static void do_gaussian_blur_effect_float(Sequence *seq,
-                                          int start_line,
-                                          int x, int y,
-                                          int frame_width, int frame_height,
-                                          float *rect,
-                                          float *out)
+static void do_gaussian_blur_effect_byte_y(Sequence *seq,
+                                           int start_line,
+                                           int x, int y,
+                                           int UNUSED(frame_width),
+                                           int frame_height,
+                                           unsigned char *rect,
+                                           unsigned char *out)
 {
 #define INDEX(_x, _y) (((_y) * (x) + (_x)) * 4)
 	GaussianBlurVars *data = seq->effectdata;
-	const int size_x = (int) (data->size_x + 0.5f);
 	const int size_y = (int) (data->size_y + 0.5f);
 	int i, j;
 
 	/* Make gaussian weight tabke. */
-	float *gausstab_x, *gausstab_y;
-	gausstab_x = make_gaussian_blur_kernel(data->size_x, size_x);
-	if (data->size_x == data->size_y) {
-		gausstab_y = gausstab_x;
-	}
-	else {
-		gausstab_y = make_gaussian_blur_kernel(data->size_y, size_y);
-	}
+	float *gausstab_y;
+	gausstab_y = make_gaussian_blur_kernel(data->size_y, size_y);
 
 	for (i = 0; i < y; ++i) {
 		for (j = 0; j < x; ++j) {
 			int out_index = INDEX(j, i);
-			int current_x, current_y;
 			float accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 			float accum_weight = 0.0f;
-			for (current_y = i - size_y;
+			for (int current_y = i - size_y;
 			     current_y <= i + size_y;
 			     ++current_y)
 			{
-				float weight;
 				if (current_y < -start_line ||
 				    current_y + start_line >= frame_height)
 				{
 					/* Out of bounds. */
 					continue;
 				}
+				int index = INDEX(j, current_y + start_line);
+				float weight = gausstab_y[current_y - i + size_y];
+				accum[0] += rect[index] * weight;
+				accum[1] += rect[index + 1] * weight;
+				accum[2] += rect[index + 2] * weight;
+				accum[3] += rect[index + 3] * weight;
+				accum_weight += weight;
+			}
+			float inv_accum_weight = 1.0f / accum_weight;
+			out[out_index + 0] = accum[0] * inv_accum_weight;
+			out[out_index + 1] = accum[1] * inv_accum_weight;
+			out[out_index + 2] = accum[2] * inv_accum_weight;
+			out[out_index + 3] = accum[3] * inv_accum_weight;
+		}
+	}
 
-				for (current_x = j - size_x;
-				     current_x <= j + size_x;
-				     ++current_x)
-				{
-					int index = INDEX(current_x, current_y + start_line);
-					if (current_x < 0 || current_x >= frame_width) {
-						/* Out of bounds. */
-						continue;
-					}
+	MEM_freeN(gausstab_y);
+#undef INDEX
+}
 
-					if (size_x != 0 && size_y != 0) {
-						weight = gausstab_x[current_x - j + size_x] *
-							gausstab_y[current_y - i + size_y];
-					}
-					else if (size_x == 0) {
-						weight = gausstab_y[current_y - i + size_y];
-					}
-					else {
-						weight = gausstab_x[current_x - j + size_x];
-					}
-					madd_v4_v4fl(accum, &rect[index], weight);
-					accum_weight += weight;
+static void do_gaussian_blur_effect_float_x(Sequence *seq,
+                                            int start_line,
+                                            int x, int y,
+                                            int frame_width,
+                                            int UNUSED(frame_height),
+                                            float *rect,
+                                            float *out)
+{
+#define INDEX(_x, _y) (((_y) * (x) + (_x)) * 4)
+	GaussianBlurVars *data = seq->effectdata;
+	const int size_x = (int) (data->size_x + 0.5f);
+	int i, j;
+
+	/* Make gaussian weight tabke. */
+	float *gausstab_x;
+	gausstab_x = make_gaussian_blur_kernel(data->size_x, size_x);
+
+	for (i = 0; i < y; ++i) {
+		for (j = 0; j < x; ++j) {
+			int out_index = INDEX(j, i);
+			float accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+			float accum_weight = 0.0f;
+			for (int current_x = j - size_x;
+			     current_x <= j + size_x;
+			     ++current_x)
+			{
+				if (current_x < 0 || current_x >= frame_width) {
+					/* Out of bounds. */
+					continue;
 				}
+				int index = INDEX(current_x, i + start_line);
+				float weight = gausstab_x[current_x - j + size_x];
+				madd_v4_v4fl(accum, &rect[index], weight);
+				accum_weight += weight;
 			}
 			mul_v4_v4fl(&out[out_index], accum, 1.0f / accum_weight);
 		}
 	}
 
 	MEM_freeN(gausstab_x);
-	if (gausstab_x != gausstab_y) {
-		MEM_freeN(gausstab_y);
-	}
 #undef INDEX
 }
 
-static void do_gaussian_blur_effect(const SeqRenderData *context,
-                                    Sequence *seq,
-                                    float UNUSED(cfra),
-                                    float UNUSED(facf0),
-                                    float UNUSED(facf1),
-                                    ImBuf *ibuf1,
-                                    ImBuf *ibuf2,
-                                    ImBuf *UNUSED(ibuf3),
-                                    int start_line,
-                                    int total_lines,
-                                    ImBuf *out)
+static void do_gaussian_blur_effect_float_y(Sequence *seq,
+                                            int start_line,
+                                            int x, int y,
+                                            int UNUSED(frame_width),
+                                            int frame_height,
+                                            float *rect,
+                                            float *out)
+{
+#define INDEX(_x, _y) (((_y) * (x) + (_x)) * 4)
+	GaussianBlurVars *data = seq->effectdata;
+	const int size_y = (int) (data->size_y + 0.5f);
+	int i, j;
+
+	/* Make gaussian weight tabke. */
+	float *gausstab_y;
+	gausstab_y = make_gaussian_blur_kernel(data->size_y, size_y);
+
+	for (i = 0; i < y; ++i) {
+		for (j = 0; j < x; ++j) {
+			int out_index = INDEX(j, i);
+			float accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+			float accum_weight = 0.0f;
+			for (int current_y = i - size_y;
+			     current_y <= i + size_y;
+			     ++current_y)
+			{
+				if (current_y < -start_line ||
+				    current_y + start_line >= frame_height)
+				{
+					/* Out of bounds. */
+					continue;
+				}
+				int index = INDEX(j, current_y + start_line);
+				float weight = gausstab_y[current_y - i + size_y];
+				madd_v4_v4fl(accum, &rect[index], weight);
+				accum_weight += weight;
+			}
+			mul_v4_v4fl(&out[out_index], accum, 1.0f / accum_weight);
+		}
+	}
+
+	MEM_freeN(gausstab_y);
+#undef INDEX
+}
+
+static void do_gaussian_blur_effect_x_cb(const SeqRenderData *context,
+                                         Sequence *seq,
+                                         ImBuf *ibuf,
+                                         int start_line,
+                                         int total_lines,
+                                         ImBuf *out)
 {
 	if (out->rect_float) {
 		float *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slice_get_float_buffers(context,
-		                        ibuf1, ibuf2,
+		                        ibuf,
+		                        NULL,
 		                        NULL,
 		                        out,
 		                        start_line,
@@ -2852,20 +2880,21 @@ static void do_gaussian_blur_effect(const SeqRenderData *context,
 		                        NULL,
 		                        &rect_out);
 
-		do_gaussian_blur_effect_float(seq,
-		                              start_line,
-		                              context->rectx,
-		                              total_lines,
-		                              context->rectx,
-		                              context->recty,
-		                              ibuf1->rect_float,
-		                              rect_out);
+		do_gaussian_blur_effect_float_x(seq,
+		                                start_line,
+		                                context->rectx,
+		                                total_lines,
+		                                context->rectx,
+		                                context->recty,
+		                                ibuf->rect_float,
+		                                rect_out);
 	}
 	else {
 		unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
 		slice_get_byte_buffers(context,
-		                       ibuf1, ibuf2,
+		                       ibuf,
+		                       NULL,
 		                       NULL,
 		                       out,
 		                       start_line,
@@ -2874,15 +2903,167 @@ static void do_gaussian_blur_effect(const SeqRenderData *context,
 		                       NULL,
 		                       &rect_out);
 
-		do_gaussian_blur_effect_byte(seq,
-		                             start_line,
-		                             context->rectx,
-		                             total_lines,
-		                             context->rectx,
-		                             context->recty,
-		                             (unsigned char *) ibuf1->rect,
-		                             rect_out);
+		do_gaussian_blur_effect_byte_x(seq,
+		                               start_line,
+		                               context->rectx,
+		                               total_lines,
+		                               context->rectx,
+		                               context->recty,
+		                               (unsigned char *) ibuf->rect,
+		                               rect_out);
 	}
+}
+
+static void do_gaussian_blur_effect_y_cb(const SeqRenderData *context,
+                                         Sequence *seq,
+                                         ImBuf *ibuf,
+                                         int start_line,
+                                         int total_lines,
+                                         ImBuf *out)
+{
+	if (out->rect_float) {
+		float *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
+
+		slice_get_float_buffers(context,
+		                        ibuf,
+		                        NULL,
+		                        NULL,
+		                        out,
+		                        start_line,
+		                        &rect1,
+		                        &rect2,
+		                        NULL,
+		                        &rect_out);
+
+		do_gaussian_blur_effect_float_y(seq,
+		                                start_line,
+		                                context->rectx,
+		                                total_lines,
+		                                context->rectx,
+		                                context->recty,
+		                                ibuf->rect_float,
+		                                rect_out);
+	}
+	else {
+		unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
+
+		slice_get_byte_buffers(context,
+		                       ibuf,
+		                       NULL,
+		                       NULL,
+		                       out,
+		                       start_line,
+		                       &rect1,
+		                       &rect2,
+		                       NULL,
+		                       &rect_out);
+
+		do_gaussian_blur_effect_byte_y(seq,
+		                               start_line,
+		                               context->rectx,
+		                               total_lines,
+		                               context->rectx,
+		                               context->recty,
+		                               (unsigned char *) ibuf->rect,
+		                               rect_out);
+	}
+}
+
+typedef struct RenderGaussianBlurEffectInitData {
+	const SeqRenderData *context;
+	Sequence *seq;
+	ImBuf *ibuf;
+	ImBuf *out;
+} RenderGaussianBlurEffectInitData;
+
+typedef struct RenderGaussianBlurEffectThread {
+	const SeqRenderData *context;
+	Sequence *seq;
+	ImBuf *ibuf;
+	ImBuf *out;
+	int start_line, tot_line;
+} RenderGaussianBlurEffectThread;
+
+static void render_effect_execute_init_handle(void *handle_v,
+                                              int start_line,
+                                              int tot_line,
+                                              void *init_data_v)
+{
+	RenderGaussianBlurEffectThread *handle = (RenderGaussianBlurEffectThread *) handle_v;
+	RenderGaussianBlurEffectInitData *init_data = (RenderGaussianBlurEffectInitData *) init_data_v;
+
+	handle->context = init_data->context;
+	handle->seq = init_data->seq;
+	handle->ibuf = init_data->ibuf;
+	handle->out = init_data->out;
+
+	handle->start_line = start_line;
+	handle->tot_line = tot_line;
+}
+
+static void *render_effect_execute_do_x_thread(void *thread_data_v)
+{
+	RenderGaussianBlurEffectThread *thread_data = (RenderGaussianBlurEffectThread *) thread_data_v;
+	do_gaussian_blur_effect_x_cb(thread_data->context,
+	                             thread_data->seq,
+	                             thread_data->ibuf,
+	                             thread_data->start_line,
+	                             thread_data->tot_line,
+	                             thread_data->out);
+	return NULL;
+}
+
+static void *render_effect_execute_do_y_thread(void *thread_data_v)
+{
+	RenderGaussianBlurEffectThread *thread_data = (RenderGaussianBlurEffectThread *) thread_data_v;
+	do_gaussian_blur_effect_y_cb(thread_data->context,
+	                             thread_data->seq,
+	                             thread_data->ibuf,
+	                             thread_data->start_line,
+	                             thread_data->tot_line,
+	                             thread_data->out);
+
+	return NULL;
+}
+
+static ImBuf* do_gaussian_blur_effect(const SeqRenderData *context,
+                                      Sequence *seq,
+                                      float UNUSED(cfra),
+                                      float UNUSED(facf0),
+                                      float UNUSED(facf1),
+                                      ImBuf *ibuf1,
+                                      ImBuf *UNUSED(ibuf2),
+                                      ImBuf *UNUSED(ibuf3))
+{
+	ImBuf *out = prepare_effect_imbufs(context, ibuf1, NULL, NULL);
+
+	RenderGaussianBlurEffectInitData init_data;
+
+	init_data.context = context;
+	init_data.seq = seq;
+	init_data.ibuf = ibuf1;
+	init_data.out = out;
+
+	IMB_processor_apply_threaded(out->y,
+	                             sizeof(RenderGaussianBlurEffectThread),
+	                             &init_data,
+	                             render_effect_execute_init_handle,
+	                             render_effect_execute_do_x_thread);
+
+	ibuf1 = out;
+	init_data.ibuf = ibuf1;
+	out = prepare_effect_imbufs(context, ibuf1, NULL, NULL);;
+	init_data.out = out;
+
+	IMB_processor_apply_threaded(out->y,
+	                             sizeof(RenderGaussianBlurEffectThread),
+	                             &init_data,
+	                             render_effect_execute_init_handle,
+	                             render_effect_execute_do_y_thread);
+
+	IMB_freeImBuf(ibuf1);
+
+	return out;
 }
 
 /*********************** text *************************/
@@ -3215,13 +3396,12 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 			rval.execute = do_adjustment;
 			break;
 		case SEQ_TYPE_GAUSSIAN_BLUR:
-			rval.multithreaded = true;
 			rval.init = init_gaussian_blur_effect;
 			rval.num_inputs = num_inputs_gaussian_blur;
 			rval.free = free_gaussian_blur_effect;
 			rval.copy = copy_gaussian_blur_effect;
 			rval.early_out = early_out_gaussian_blur;
-			rval.execute_slice = do_gaussian_blur_effect;
+			rval.execute = do_gaussian_blur_effect;
 			break;
 		case SEQ_TYPE_TEXT:
 			rval.num_inputs = num_inputs_text;
