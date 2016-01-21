@@ -178,7 +178,7 @@ static int rna_SculptToolCapabilities_has_persistence_get(PointerRNA *ptr)
 static int rna_SculptToolCapabilities_has_pinch_factor_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return ELEM(br->sculpt_tool, SCULPT_TOOL_BLOB, SCULPT_TOOL_CREASE);
+	return ELEM(br->sculpt_tool, SCULPT_TOOL_BLOB, SCULPT_TOOL_CREASE, SCULPT_TOOL_SNAKE_HOOK);
 }
 
 static int rna_SculptToolCapabilities_has_plane_offset_get(PointerRNA *ptr)

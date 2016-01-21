@@ -2278,6 +2278,7 @@ static void do_snake_hook_brush_task_cb_ex(
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Brush *brush = data->brush;
+	SculptProjectVector *spvc = data->spvc;
 	const float *grab_delta = data->grab_delta;
 
 	PBVHVertexIter vd;
@@ -2285,6 +2286,9 @@ static void do_snake_hook_brush_task_cb_ex(
 	float (*proxy)[3];
 	const float bstrength = ss->cache->bstrength;
 	const bool do_rake_rotation = ss->cache->is_rake_rotation_valid;
+	const bool do_pinch = (brush->crease_pinch_factor != 0.5f);
+	const float pinch = do_pinch ?
+	        (2.0f * (0.5f - brush->crease_pinch_factor) * (len_v3(grab_delta) / ss->cache->radius)) : 0.0f;
 
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
@@ -2297,6 +2301,31 @@ static void do_snake_hook_brush_task_cb_ex(
 			                       ss, brush, vd.co, test.dist, vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
 
 			mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
+
+			/* negative pinch will inflate, helps maintain volume */
+			if (do_pinch) {
+				float delta_pinch_init[3], delta_pinch[3];
+
+				sub_v3_v3v3(delta_pinch, vd.co, test.location);
+
+				/* important to calculate based on the grabbed location (intentionally ignore fade here). */
+				add_v3_v3(delta_pinch, grab_delta);
+
+				sculpt_project_v3(spvc, delta_pinch, delta_pinch);
+
+				copy_v3_v3(delta_pinch_init, delta_pinch);
+
+				float pinch_fade = pinch * fade;
+				/* when reducing, scale reduction back by how close to the center we are,
+				 * so we don't pinch into nothingness */
+				if (pinch > 0.0f) {
+					/* square to have even less impact for close vertices */
+					pinch_fade *= pow2f(min_ff(1.0f, len_v3(delta_pinch) / ss->cache->radius));
+				}
+				mul_v3_fl(delta_pinch, 1.0f + pinch_fade);
+				sub_v3_v3v3(delta_pinch, delta_pinch_init, delta_pinch);
+				add_v3_v3(proxy[vd.i], delta_pinch);
+			}
 
 			if (do_rake_rotation) {
 				float delta_rotate[3];
@@ -2319,6 +2348,8 @@ static void do_snake_hook_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 	float grab_delta[3];
 	float len;
 
+	SculptProjectVector spvc;
+
 	copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
 
 	len = len_v3(grab_delta);
@@ -2332,9 +2363,14 @@ static void do_snake_hook_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 		add_v3_v3(grab_delta, ss->cache->sculpt_normal_symm);
 	}
 
+	/* optionally pinch while painting */
+	if (brush->crease_pinch_factor != 0.5f) {
+		sculpt_project_v3_cache_init(&spvc, grab_delta);
+	}
+
 	SculptThreadedTaskData data = {
 	    .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
-	    .grab_delta = grab_delta,
+	    .spvc = &spvc, .grab_delta = grab_delta,
 	};
 
 	BLI_task_parallel_range_ex(
