@@ -1717,6 +1717,8 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 	}
 
 
+	/* Intentionally don't support (Quaternion) here, uses reverse order instead. */
+
 	/* make sure v1 is always the vector */
 	if (vec1 && vec2) {
 		if (vec1->size != vec2->size) {
@@ -1778,7 +1780,9 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 	if (BaseMath_ReadCallback_ForWrite(vec) == -1)
 		return NULL;
 
-	/* only support vec*=float and vec*=mat
+	/* Intentionally don't support (Quaternion, Matrix) here, uses reverse order instead. */
+
+	/* only support 'vec *= float'
 	 *  vec*=vec result is a float so that wont work */
 	if (((scalar = PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred()) == 0) { /* VEC *= FLOAT */
 		mul_vn_fl(vec->vec, vec->size, scalar);
