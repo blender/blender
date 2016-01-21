@@ -1968,6 +1968,10 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UN
 		int i;
 		bDeformGroup *dg;
 
+		if (me->editflag & ME_EDIT_MIRROR_X) {
+			BKE_object_defgroup_mirror_selection(ob, defbase_tot, defbase_sel, defbase_sel, &defbase_tot_sel);
+		}
+
 		for (i = 0; i < defbase_tot; i++) {
 			if (defbase_sel[i]) {
 				dg = BLI_findlink(&ob->defbase, i);
