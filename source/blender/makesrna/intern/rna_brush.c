@@ -154,6 +154,12 @@ static int rna_SculptToolCapabilities_has_normal_weight_get(PointerRNA *ptr)
 	return SCULPT_TOOL_HAS_NORMAL_WEIGHT(br->sculpt_tool);
 }
 
+static int rna_SculptToolCapabilities_has_rake_factor_get(PointerRNA *ptr)
+{
+	Brush *br = (Brush *)ptr->data;
+	return SCULPT_TOOL_HAS_RAKE(br->sculpt_tool);
+}
+
 static int rna_BrushCapabilities_has_overlay_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
@@ -706,6 +712,7 @@ static void rna_def_sculpt_capabilities(BlenderRNA *brna)
 	SCULPT_TOOL_CAPABILITY(has_height, "Has Height");
 	SCULPT_TOOL_CAPABILITY(has_jitter, "Has Jitter");
 	SCULPT_TOOL_CAPABILITY(has_normal_weight, "Has Crease/Pinch Factor");
+	SCULPT_TOOL_CAPABILITY(has_rake_factor, "Has Rake Factor");
 	SCULPT_TOOL_CAPABILITY(has_persistence, "Has Persistence");
 	SCULPT_TOOL_CAPABILITY(has_pinch_factor, "Has Pinch Factor");
 	SCULPT_TOOL_CAPABILITY(has_plane_offset, "Has Plane Offset");
@@ -1023,6 +1030,14 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_float_default(prop, 0);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Normal Weight", "How much grab will pull vertexes out of surface during a grab");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+	prop = RNA_def_property(srna, "rake_factor", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "rake_factor");
+	RNA_def_property_float_default(prop, 0);
+	RNA_def_property_range(prop, 0.0f, 10.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
+	RNA_def_property_ui_text(prop, "Rake", "How much grab will follow cursor rotation");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop = RNA_def_property(srna, "crease_pinch_factor", PROP_FLOAT, PROP_FACTOR);

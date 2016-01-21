@@ -397,6 +397,29 @@ void flip_v3_v3(float out[3], const float in[3], const char symm)
 		out[2] = in[2];
 }
 
+void flip_qt_qt(float out[4], const float in[4], const char symm)
+{
+	float axis[3], angle;
+
+	quat_to_axis_angle(axis, &angle, in);
+	normalize_v3(axis);
+
+	if (symm & PAINT_SYMM_X) {
+		axis[0] *= -1.0f;
+		angle *= -1.0f;
+	}
+	if (symm & PAINT_SYMM_Y) {
+		axis[1] *= -1.0f;
+		angle *= -1.0f;
+	}
+	if (symm & PAINT_SYMM_Z) {
+		axis[2] *= -1.0f;
+		angle *= -1.0f;
+	}
+
+	axis_angle_normalized_to_quat(out, axis, angle);
+}
+
 /* used for both 3d view and image window */
 void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_proj, bool use_palette)
 {

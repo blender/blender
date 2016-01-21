@@ -69,6 +69,8 @@ typedef struct Brush {
 	char icon_filepath[1024]; /* 1024 = FILE_MAX */
 
 	float normal_weight;
+	float rake_factor;  /* rake actual data (not texture), used for sculpt */
+	int pad;
 
 	short blend;        /* blend mode */
 	short ob_mode;      /* & with ob->mode to see if the brush is compatible, use for display only. */
@@ -270,6 +272,10 @@ typedef enum BrushSculptTool {
 
 #define SCULPT_TOOL_HAS_NORMAL_WEIGHT(t) ELEM(t, \
 	SCULPT_TOOL_GRAB, \
+	SCULPT_TOOL_SNAKE_HOOK \
+	)
+
+#define SCULPT_TOOL_HAS_RAKE(t) ELEM(t, \
 	SCULPT_TOOL_SNAKE_HOOK \
 	)
 
