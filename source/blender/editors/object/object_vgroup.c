@@ -1828,13 +1828,13 @@ static void vgroup_smooth_subset(
 					float tot_factor = 1.0f; \
 					if (expand_sign == 1) {  /* expand */ \
 						if (weight_other < weight_accum_prev[i]) { \
-							weight_other = (weight_accum_prev[i_other] * iexpand) + (weight_other * expand); \
+							weight_other = (weight_accum_prev[i] * expand) + (weight_other * iexpand); \
 							tot_factor = iexpand; \
 						} \
 					} \
 					else if (expand_sign == -1) {  /* contract */ \
 						if (weight_other > weight_accum_prev[i]) { \
-							weight_other = (weight_accum_prev[i_other] * iexpand) + (weight_other * expand); \
+							weight_other = (weight_accum_prev[i] * expand) + (weight_other * iexpand); \
 							tot_factor = iexpand; \
 						} \
 					} \
