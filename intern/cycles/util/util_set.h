@@ -23,6 +23,11 @@
 #else
 #  include <boost/tr1/unordered_set.hpp>
 #endif
+
+#if defined(_MSC_VER) && (_MSC_VER >= 1900)
+#  include <iterator>
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 using std::set;
