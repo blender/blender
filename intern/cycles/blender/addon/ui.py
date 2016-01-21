@@ -81,6 +81,12 @@ def use_branched_path(context):
     return (cscene.progressive == 'BRANCHED_PATH' and device_type != 'OPENCL')
 
 
+def use_sample_all_lights(context):
+    cscene = context.scene.cycles
+
+    return cscene.sample_all_lights_direct or cscene.sample_all_lights_indirect
+
+
 def draw_samples_info(layout, context):
     cscene = context.scene.cycles
     integrator = cscene.progressive
@@ -183,7 +189,11 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
             sub.prop(cscene, "glossy_samples", text="Glossy")
             sub.prop(cscene, "transmission_samples", text="Transmission")
             sub.prop(cscene, "ao_samples", text="AO")
-            sub.prop(cscene, "mesh_light_samples", text="Mesh Light")
+
+            subsub = sub.row(align=True)
+            subsub.active = use_sample_all_lights(context)
+            subsub.prop(cscene, "mesh_light_samples", text="Mesh Light")
+
             sub.prop(cscene, "subsurface_samples", text="Subsurface")
             sub.prop(cscene, "volume_samples", text="Volume")
 
@@ -877,7 +887,9 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
         if not (lamp.type == 'AREA' and clamp.is_portal):
             sub = col.column(align=True)
             if use_branched_path(context):
-                sub.prop(clamp, "samples")
+                subsub = sub.row(align=True)
+                subsub.active = use_sample_all_lights(context)
+                subsub.prop(clamp, "samples")
             sub.prop(clamp, "max_bounces")
 
         col = split.column()
@@ -1086,7 +1098,9 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
         sub.active = cworld.sample_as_light
         sub.prop(cworld, "sample_map_resolution")
         if use_branched_path(context):
-            sub.prop(cworld, "samples")
+            subsub = sub.row(align=True)
+            subsub.active = use_sample_all_lights(context)
+            subsub.prop(cworld, "samples")
         sub.prop(cworld, "max_bounces")
 
         col = split.column()
