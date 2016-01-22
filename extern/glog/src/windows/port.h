@@ -149,8 +149,13 @@ inline struct tm* localtime_r(const time_t* timep, struct tm* result) {
 }
 
 inline char* strerror_r(int errnum, char* buf, size_t buflen) {
+#ifdef FREE_WINDOWS
+  strncpy(buf, "Not implemented yet", buflen);
+  return buf;
+#else
   strerror_s(buf, buflen, errnum);
   return buf;
+#endif
 }
 
 #ifndef __cplusplus
