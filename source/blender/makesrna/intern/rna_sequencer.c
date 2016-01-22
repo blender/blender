@@ -282,7 +282,7 @@ static void rna_Sequence_frame_length_set(PointerRNA *ptr, int value)
 	Sequence *seq = (Sequence *)ptr->data;
 	Scene *scene = (Scene *)ptr->id.data;
 	
-	BKE_sequence_tx_set_final_right(seq, seq->start + value);
+	BKE_sequence_tx_set_final_right(seq, BKE_sequence_tx_get_final_left(seq, false) + value);
 	do_sequence_frame_change_update(scene, seq);
 }
 
