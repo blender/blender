@@ -1832,8 +1832,6 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 		}
 	}
 
-	glShadeModel((buffers->smooth || buffers->face_indices_len) ? GL_SMOOTH : GL_FLAT);
-
 	if (buffers->vert_buf) {
 		char *base = NULL;
 		char *index_base = NULL;
@@ -1859,6 +1857,8 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 
 		if (wireframe)
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		else
+			glShadeModel((buffers->smooth || buffers->face_indices_len) ? GL_SMOOTH : GL_FLAT);
 
 		if (buffers->tot_quad) {
 			const char *offset = base;
@@ -1868,10 +1868,12 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 
 				glVertexPointer(3, GL_FLOAT, sizeof(VertexBufferFormat),
 				                offset + offsetof(VertexBufferFormat, co));
-				glNormalPointer(GL_SHORT, sizeof(VertexBufferFormat),
-				                offset + offsetof(VertexBufferFormat, no));
-				glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(VertexBufferFormat),
-				               offset + offsetof(VertexBufferFormat, color));
+				if (!wireframe) {
+					glNormalPointer(GL_SHORT, sizeof(VertexBufferFormat),
+					                offset + offsetof(VertexBufferFormat, no));
+					glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(VertexBufferFormat),
+					               offset + offsetof(VertexBufferFormat, color));
+				}
 
 				glMultiDrawElementsBaseVertex(GL_TRIANGLES, buffers->baseelemarray, buffers->index_type,
 				                              (const void * const *)buffers->baseindex,
@@ -1884,10 +1886,12 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 				for (i = 0; i < last; i++) {
 					glVertexPointer(3, GL_FLOAT, sizeof(VertexBufferFormat),
 					                offset + offsetof(VertexBufferFormat, co));
-					glNormalPointer(GL_SHORT, sizeof(VertexBufferFormat),
-					                offset + offsetof(VertexBufferFormat, no));
-					glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(VertexBufferFormat),
-					               offset + offsetof(VertexBufferFormat, color));
+					if (!wireframe) {
+						glNormalPointer(GL_SHORT, sizeof(VertexBufferFormat),
+						                offset + offsetof(VertexBufferFormat, no));
+						glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(VertexBufferFormat),
+						               offset + offsetof(VertexBufferFormat, color));
+					}
 
 					if (do_fast)
 						glDrawElements(GL_TRIANGLES, buffers->totgrid * 6, buffers->index_type, index_base);
@@ -1903,10 +1907,13 @@ void GPU_draw_pbvh_buffers(GPU_PBVH_Buffers *buffers, DMSetMaterial setMaterial,
 
 			glVertexPointer(3, GL_FLOAT, sizeof(VertexBufferFormat),
 			                (void *)(base + offsetof(VertexBufferFormat, co)));
-			glNormalPointer(GL_SHORT, sizeof(VertexBufferFormat),
-			                (void *)(base + offsetof(VertexBufferFormat, no)));
-			glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(VertexBufferFormat),
-			               (void *)(base + offsetof(VertexBufferFormat, color)));
+
+			if (!wireframe) {
+				glNormalPointer(GL_SHORT, sizeof(VertexBufferFormat),
+				                (void *)(base + offsetof(VertexBufferFormat, no)));
+				glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(VertexBufferFormat),
+				               (void *)(base + offsetof(VertexBufferFormat, color)));
+			}
 
 			if (buffers->index_buf)
 				glDrawElements(GL_TRIANGLES, totelem, buffers->index_type, index_base);
