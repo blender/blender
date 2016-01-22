@@ -535,6 +535,7 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool wr
 	/* draw the Z axis line */
 	/* check for the 'show Z axis' preference */
 	if (v3d->gridflag & (V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z)) {
+		glBegin(GL_LINES);
 		int axis;
 		for (axis = 0; axis < 3; axis++) {
 			if (v3d->gridflag & (V3D_SHOW_X << axis)) {
@@ -544,15 +545,14 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool wr
 				UI_make_axis_color(col_grid, tcol, 'X' + axis);
 				glColor3ubv(tcol);
 
-				glBegin(GL_LINE_STRIP);
 				zero_v3(vert);
 				vert[axis] = grid;
 				glVertex3fv(vert);
 				vert[axis] = -grid;
 				glVertex3fv(vert);
-				glEnd();
 			}
 		}
+		glEnd();
 	}
 	
 	glDepthMask(GL_TRUE);

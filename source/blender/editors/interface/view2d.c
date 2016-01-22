@@ -1298,7 +1298,9 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 	/* check for grid first, as it may not exist */
 	if (grid == NULL)
 		return;
-	
+
+	glBegin(GL_LINES);
+
 	/* vertical lines */
 	if (flag & V2D_VERTICAL_LINES) {
 		/* initialize initial settings */
@@ -1311,10 +1313,8 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		UI_ThemeColor(TH_GRID);
 		
 		for (a = 0; a < step; a++) {
-			glBegin(GL_LINE_STRIP);
 			glVertex2fv(vec1);
 			glVertex2fv(vec2);
-			glEnd();
 			
 			vec2[0] = vec1[0] += grid->dx;
 		}
@@ -1325,10 +1325,8 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		
 		step++;
 		for (a = 0; a <= step; a++) {
-			glBegin(GL_LINE_STRIP);
 			glVertex2fv(vec1);
 			glVertex2fv(vec2);
-			glEnd();
 			
 			vec2[0] = vec1[0] -= grid->dx;
 		}
@@ -1345,10 +1343,8 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		
 		UI_ThemeColor(TH_GRID);
 		for (a = 0; a <= step; a++) {
-			glBegin(GL_LINE_STRIP);
 			glVertex2fv(vec1);
 			glVertex2fv(vec2);
-			glEnd();
 			
 			vec2[1] = vec1[1] += grid->dy;
 		}
@@ -1360,10 +1356,8 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		if (flag & V2D_HORIZONTAL_FINELINES) {
 			UI_ThemeColorShade(TH_GRID, 16);
 			for (a = 0; a < step; a++) {
-				glBegin(GL_LINE_STRIP);
 				glVertex2fv(vec1);
 				glVertex2fv(vec2);
-				glEnd();
 				
 				vec2[1] = vec1[1] -= grid->dy;
 			}
@@ -1379,10 +1373,8 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		vec2[0] = v2d->cur.xmax;
 		vec1[1] = vec2[1] = 0.0f;
 		
-		glBegin(GL_LINE_STRIP);
 		glVertex2fv(vec1);
 		glVertex2fv(vec2);
-		glEnd();
 	}
 	
 	/* vertical axis */
@@ -1391,11 +1383,11 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		vec2[1] = v2d->cur.ymax;
 		vec1[0] = vec2[0] = 0.0f;
 		
-		glBegin(GL_LINE_STRIP);
 		glVertex2fv(vec1);
 		glVertex2fv(vec2);
-		glEnd();
 	}
+
+	glEnd();
 }
 
 /* Draw a constant grid in given 2d-region */
