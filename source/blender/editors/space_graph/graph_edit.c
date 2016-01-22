@@ -140,8 +140,14 @@ void get_graph_keyframe_extents(bAnimContext *ac, float *xmin, float *xmax, floa
 		
 		/* ensure that the extents are not too extreme that view implodes...*/
 		if (foundBounds) {
-			if ((xmin && xmax) && (fabsf(*xmax - *xmin) < 0.1f)) *xmax += 0.1f;
-			if ((ymin && ymax) && (fabsf(*ymax - *ymin) < 0.1f)) *ymax += 0.1f;
+			if ((xmin && xmax) && (fabsf(*xmax - *xmin) < 0.001f)) {
+				*xmin -= 0.0005f;
+				*xmax += 0.0005f;
+			}
+			if ((ymin && ymax) && (fabsf(*ymax - *ymin) < 0.001f)) {
+				*ymax -= 0.0005f;
+				*ymax += 0.0005f;
+			}
 		}
 		else {
 			if (xmin) *xmin = (float)PSFRA;
