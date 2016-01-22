@@ -3539,13 +3539,9 @@ void node_draw_link_straight(View2D *v2d, SpaceNode *snode, bNodeLink *link,
                              int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3)
 {
 	float coord_array[2][2];
-	float linew;
 	int i;
 	
 	node_link_straight_points(v2d, snode, link, coord_array);
-	
-	/* store current linewidth */
-	glGetFloatv(GL_LINE_WIDTH, &linew);
 	
 	glEnable(GL_LINE_SMOOTH);
 	
