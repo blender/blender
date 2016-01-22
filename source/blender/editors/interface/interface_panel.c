@@ -1761,7 +1761,6 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 
 			/* tab outline */
 			glColor3ubv(theme_col_tab_outline);
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			ui_panel_category_draw_tab(GL_LINE_STRIP, rct->xmin - px, rct->ymin - px, rct->xmax - px, rct->ymax + px,
 			                           tab_curve_radius, roundboxtype, true, true, NULL);
 			/* tab highlight (3d look) */
@@ -1771,8 +1770,6 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 			                           tab_curve_radius, roundboxtype, true, false,
 			                           is_active ? theme_col_back : theme_col_tab_inactive);
 			glShadeModel(GL_FLAT);
-
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
 		/* tab blackline */

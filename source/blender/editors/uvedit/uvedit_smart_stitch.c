@@ -1515,7 +1515,6 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 	glEnable(GL_BLEND);
 
 	UI_ThemeColor4(TH_STITCH_PREVIEW_ACTIVE);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glVertexPointer(2, GL_FLOAT, 0, stitch_preview->static_tris);
 	glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_static_tris * 3);
 
