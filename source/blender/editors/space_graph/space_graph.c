@@ -267,49 +267,40 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 	
 	/* horizontal component of value-cursor (value line before the current frame line) */
 	if ((sipo->flag & SIPO_NODRAWCURSOR) == 0) {
-		float vec[2];
+
+		float y = sipo->cursorVal;
 		
 		/* Draw a green line to indicate the cursor value */
-		vec[1] = sipo->cursorVal;
-		
 		UI_ThemeColorShadeAlpha(TH_CFRAME, -10, -50);
-		glLineWidth(2.0);
-		
 		glEnable(GL_BLEND);
-		glBegin(GL_LINE_STRIP);
-		vec[0] = v2d->cur.xmin;
-		glVertex2fv(vec);
-			
-		vec[0] = v2d->cur.xmax;
-		glVertex2fv(vec);
-		glEnd(); // GL_LINE_STRIP
-		glDisable(GL_BLEND);
+		glLineWidth(2.0);
+
+		glBegin(GL_LINES);
+		glVertex2f(v2d->cur.xmin, y);
+		glVertex2f(v2d->cur.xmax, y);
+		glEnd();
 
 		glLineWidth(1.0);
+		glDisable(GL_BLEND);
 	}
 	
 	/* current frame or vertical component of vertical component of the cursor */
 	if (sipo->mode == SIPO_MODE_DRIVERS) {
 		/* cursor x-value */
-		float vec[2];
-		
-		vec[0] = sipo->cursorTime;
+		float x = sipo->cursorTime;
 		
 		/* to help differentiate this from the current frame, draw slightly darker like the horizontal one */
 		UI_ThemeColorShadeAlpha(TH_CFRAME, -40, -50);
+		glEnable(GL_BLEND);
 		glLineWidth(2.0);
 		
-		glEnable(GL_BLEND);
-		glBegin(GL_LINE_STRIP);
-		vec[1] = v2d->cur.ymin;
-		glVertex2fv(vec);
-			
-		vec[1] = v2d->cur.ymax;
-		glVertex2fv(vec);
-		glEnd(); // GL_LINE_STRIP
-		glDisable(GL_BLEND);
+		glBegin(GL_LINES);
+		glVertex2f(x, v2d->cur.ymin);
+		glVertex2f(x, v2d->cur.ymax);
+		glEnd();
 
 		glLineWidth(1.0);
+		glDisable(GL_BLEND);
 	}
 	else {
 		/* current frame */

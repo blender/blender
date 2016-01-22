@@ -247,20 +247,17 @@ void clip_draw_cfra(SpaceClip *sc, ARegion *ar, Scene *scene)
 {
 	View2D *v2d = &ar->v2d;
 	float xscale, yscale;
-	float vec[2];
 
 	/* Draw a light green line to indicate current frame */
-	vec[0] = (float)(sc->user.framenr * scene->r.framelen);
-
 	UI_ThemeColor(TH_CFRAME);
+
+	float x = (float)(sc->user.framenr * scene->r.framelen);
+
 	glLineWidth(2.0);
 
-	glBegin(GL_LINE_STRIP);
-	vec[1] = v2d->cur.ymin;
-	glVertex2fv(vec);
-
-	vec[1] = v2d->cur.ymax;
-	glVertex2fv(vec);
+	glBegin(GL_LINES);
+	glVertex2f(x, v2d->cur.ymin);
+	glVertex2f(x, v2d->cur.ymax);
 	glEnd();
 
 	glLineWidth(1.0);

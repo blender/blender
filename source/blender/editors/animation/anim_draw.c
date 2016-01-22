@@ -111,23 +111,17 @@ static void draw_cfra_number(Scene *scene, View2D *v2d, const float cfra, const 
 void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
 {
 	Scene *scene = CTX_data_scene(C);
-	float vec[2];
-	
+
 	/* Draw a light green line to indicate current frame */
-	vec[0] = (float)(scene->r.cfra * scene->r.framelen);
-	
 	UI_ThemeColor(TH_CFRAME);
-	if (flag & DRAWCFRA_WIDE)
-		glLineWidth(3.0);
-	else
-		glLineWidth(2.0);
-	
-	glBegin(GL_LINE_STRIP);
-	vec[1] = v2d->cur.ymin - 500.0f;    /* XXX arbitrary... want it go to bottom */
-	glVertex2fv(vec);
-		
-	vec[1] = v2d->cur.ymax;
-	glVertex2fv(vec);
+
+	const float x = (float)(scene->r.cfra * scene->r.framelen);
+
+	glLineWidth((flag & DRAWCFRA_WIDE) ? 3.0 : 2.0);
+
+	glBegin(GL_LINES);
+	glVertex2f(x, v2d->cur.ymin - 500.0f); /* XXX arbitrary... want it go to bottom */
+	glVertex2f(x, v2d->cur.ymax);
 	glEnd();
 	
 	glLineWidth(1.0);
@@ -135,7 +129,7 @@ void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
 	/* Draw current frame number in a little box */
 	if (flag & DRAWCFRA_SHOW_NUMBOX) {
 		UI_view2d_view_orthoSpecial(CTX_wm_region(C), v2d, 1);
-		draw_cfra_number(scene, v2d, vec[0], (flag & DRAWCFRA_UNIT_SECONDS) != 0);
+		draw_cfra_number(scene, v2d, x, (flag & DRAWCFRA_UNIT_SECONDS) != 0);
 	}
 }
 

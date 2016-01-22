@@ -1040,7 +1040,7 @@ void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis
 		glColor3ubv(col2);
 		
 		setlinestyle(0);
-		glBegin(GL_LINE_STRIP);
+		glBegin(GL_LINES);
 		glVertex3fv(v1);
 		glVertex3fv(v2);
 		glEnd();

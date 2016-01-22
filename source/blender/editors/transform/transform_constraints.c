@@ -696,7 +696,7 @@ void drawConstraint(TransInfo *t)
 				glDisable(GL_DEPTH_TEST);
 
 			setlinestyle(1);
-			glBegin(GL_LINE_STRIP);
+			glBegin(GL_LINES);
 			glVertex3fv(t->center_global);
 			glVertex3fv(vec);
 			glEnd();
