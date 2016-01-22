@@ -655,6 +655,15 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, tPoseSlideOp *p
 	return OPERATOR_RUNNING_MODAL;
 }
 
+/* calculate percentage based on position of mouse (we only use x-axis for now.
+ * since this is more convenient for users to do), and store new percentage value
+ */
+static void pose_slide_mouse_update_percentage(tPoseSlideOp *pso, wmOperator *op, const wmEvent *event)
+{
+	pso->percentage = (event->x - pso->ar->winrct.xmin) / ((float)pso->ar->winx);
+	RNA_float_set(op->ptr, "percentage", pso->percentage);
+}
+
 /* common code for modal() */
 static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -702,11 +711,8 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		{
 			/* only handle mousemove if not doing numinput */
 			if (has_numinput == false) {
-				/* calculate percentage based on position of mouse (we only use x-axis for now.
-				 * since this is more convenient for users to do), and store new percentage value
-				 */
-				pso->percentage = (event->x - pso->ar->winrct.xmin) / ((float)pso->ar->winx);
-				RNA_float_set(op->ptr, "percentage", pso->percentage);
+				/* update percentage based on position of mouse */
+				pose_slide_mouse_update_percentage(pso, op, event);
 				
 				/* update percentage indicator in header */
 				pose_slide_draw_status(pso);
@@ -787,7 +793,7 @@ static void pose_slide_opdef_properties(wmOperatorType *ot)
 /* ------------------------------------ */
 
 /* invoke() - for 'push' mode */
-static int pose_slide_push_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int pose_slide_push_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	tPoseSlideOp *pso;
 	
@@ -798,6 +804,9 @@ static int pose_slide_push_invoke(bContext *C, wmOperator *op, const wmEvent *UN
 	}
 	else
 		pso = op->customdata;
+		
+	/* initialise percentage so that it won't pop on first mouse move */
+	pose_slide_mouse_update_percentage(pso, op, event);
 	
 	/* do common setup work */
 	return pose_slide_invoke_common(C, op, pso);
@@ -844,7 +853,7 @@ void POSE_OT_push(wmOperatorType *ot)
 /* ........................ */
 
 /* invoke() - for 'relax' mode */
-static int pose_slide_relax_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int pose_slide_relax_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	tPoseSlideOp *pso;
 	
@@ -855,6 +864,9 @@ static int pose_slide_relax_invoke(bContext *C, wmOperator *op, const wmEvent *U
 	}
 	else
 		pso = op->customdata;
+	
+	/* initialise percentage so that it won't pop on first mouse move */
+	pose_slide_mouse_update_percentage(pso, op, event);
 	
 	/* do common setup work */
 	return pose_slide_invoke_common(C, op, pso);
@@ -901,7 +913,7 @@ void POSE_OT_relax(wmOperatorType *ot)
 /* ........................ */
 
 /* invoke() - for 'breakdown' mode */
-static int pose_slide_breakdown_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int pose_slide_breakdown_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	tPoseSlideOp *pso;
 	
@@ -912,6 +924,9 @@ static int pose_slide_breakdown_invoke(bContext *C, wmOperator *op, const wmEven
 	}
 	else
 		pso = op->customdata;
+	
+	/* initialise percentage so that it won't pop on first mouse move */
+	pose_slide_mouse_update_percentage(pso, op, event);
 	
 	/* do common setup work */
 	return pose_slide_invoke_common(C, op, pso);
