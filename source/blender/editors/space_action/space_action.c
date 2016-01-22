@@ -63,6 +63,7 @@
 
 static SpaceLink *action_new(const bContext *C)
 {
+	Scene *scene = CTX_data_scene(C);
 	ScrArea *sa = CTX_wm_area(C);
 	SpaceAction *saction;
 	ARegion *ar;
@@ -98,9 +99,9 @@ static SpaceLink *action_new(const bContext *C)
 	BLI_addtail(&saction->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
 	
-	ar->v2d.tot.xmin = -10.0f;
+	ar->v2d.tot.xmin = (float)(SFRA - 10);
 	ar->v2d.tot.ymin = (float)(-sa->winy) / 3.0f;
-	ar->v2d.tot.xmax = (float)(sa->winx);
+	ar->v2d.tot.xmax = (float)(EFRA + 10);
 	ar->v2d.tot.ymax = 0.0f;
 	
 	ar->v2d.cur = ar->v2d.tot;
