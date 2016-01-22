@@ -176,10 +176,12 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "GPENCIL_OT_select_linked", LKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "GPENCIL_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	
+	/* select grouped */
+	WM_keymap_add_item(keymap, "GPENCIL_OT_select_grouped", GKEY, KM_PRESS, KM_SHIFT, 0);
+		
 	/* select more/less */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "GPENCIL_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
-	
 	
 	/* Editing ----------------------------------------- */
 	
@@ -309,6 +311,7 @@ void ED_operatortypes_gpencil(void)
 	WM_operatortype_append(GPENCIL_OT_select_lasso);
 	
 	WM_operatortype_append(GPENCIL_OT_select_linked);
+	WM_operatortype_append(GPENCIL_OT_select_grouped);
 	WM_operatortype_append(GPENCIL_OT_select_more);
 	WM_operatortype_append(GPENCIL_OT_select_less);
 	

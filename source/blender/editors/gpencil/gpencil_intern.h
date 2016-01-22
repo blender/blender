@@ -157,6 +157,7 @@ void GPENCIL_OT_select_border(struct wmOperatorType *ot);
 void GPENCIL_OT_select_lasso(struct wmOperatorType *ot);
 
 void GPENCIL_OT_select_linked(struct wmOperatorType *ot);
+void GPENCIL_OT_select_grouped(struct wmOperatorType *ot);
 void GPENCIL_OT_select_more(struct wmOperatorType *ot);
 void GPENCIL_OT_select_less(struct wmOperatorType *ot);
 

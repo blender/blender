@@ -41,6 +41,7 @@
 #include "BLI_math_vector.h"
 
 #include "DNA_gpencil_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
@@ -242,6 +243,109 @@ void GPENCIL_OT_select_linked(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ********************************************** */
+/* Select Grouped */
+
+typedef enum eGP_SelectGrouped {
+	/* Select strokes in the same layer */
+	GP_SEL_SAME_LAYER     = 0,
+	
+	/* TODO: All with same prefix - Useful for isolating all layers for a particular character for instance */
+	/* TODO: All with same appearance - colour/opacity/volumetric/fills ? */
+} eGP_SelectGrouped;
+
+/* ----------------------------------- */
+
+/* On each visible layer, check for selected strokes - if found, select all others */
+static void gp_select_same_layer(bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+	
+	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
+	{
+		bGPDframe *gpf = gpencil_layer_getframe(gpl, CFRA, 0);
+		bGPDstroke *gps;
+		bool found = false;
+		
+		if (gpf == NULL)
+			continue;
+		
+		/* Search for a selected stroke */
+		for (gps = gpf->strokes.first; gps; gps = gps->next) {
+			if (ED_gpencil_stroke_can_use(C, gps)) {
+				if (gps->flag & GP_STROKE_SELECT) {
+					found = true;
+					break;
+				}
+			}
+		}
+		
+		/* Select all if found */
+		if (found) {
+			for (gps = gpf->strokes.first; gps; gps = gps->next) {
+				if (ED_gpencil_stroke_can_use(C, gps)) {
+					bGPDspoint *pt;
+					int i;
+					
+					for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+						pt->flag |= GP_SPOINT_SELECT;
+					}
+					
+					gps->flag |= GP_STROKE_SELECT;
+				}
+			}
+		}
+	}
+	CTX_DATA_END;
+}
+
+
+
+/* ----------------------------------- */
+
+static int gpencil_select_grouped_exec(bContext *C, wmOperator *op)
+{
+	eGP_SelectGrouped mode = RNA_enum_get(op->ptr, "type");
+	
+	switch (mode) {
+		case GP_SEL_SAME_LAYER:
+			gp_select_same_layer(C);
+			break;
+			
+		default:
+			BLI_assert(!"unhandled select grouped gpencil mode");
+			break;
+	}
+	
+	/* updates */
+	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_select_grouped(wmOperatorType *ot)
+{
+	static EnumPropertyItem prop_select_grouped_types[] = {
+		{GP_SEL_SAME_LAYER, "LAYER", 0, "Layer", "Shared layers"},
+		{0, NULL, 0, NULL, NULL}
+	};
+	
+	/* identifiers */
+	ot->name = "Select Grouped";
+	ot->idname = "GPENCIL_OT_select_grouped";
+	ot->description = "Select all strokes with similar characteristics";
+	
+	/* callbacks */
+	//ot->invoke = WM_menu_invoke;
+	ot->exec = gpencil_select_grouped_exec;
+	ot->poll = gpencil_select_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* props */
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_select_grouped_types, GP_SEL_SAME_LAYER, "Type", "");
 }
 
 /* ********************************************** */
