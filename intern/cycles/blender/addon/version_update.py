@@ -219,3 +219,38 @@ def do_versions(self):
     if bpy.data.version <= (2, 76, 6):
         for scene in bpy.data.scenes:
             custom_bake_remap(scene)
+
+    # Several default changes for 2.77
+    if bpy.data.version <= (2, 76, 8):
+        for scene in bpy.data.scenes:
+            cscene = scene.cycles
+
+            # Samples
+            if not cscene.is_property_set("samples"):
+                cscene.samples = 10
+
+            # Preview Samples
+            if not cscene.is_property_set("preview_samples"):
+                cscene.preview_samples = 10
+
+            # Filter
+            if not cscene.is_property_set("filter_type"):
+                cscene.filter_type = 'GAUSSIAN'
+
+            # Tile Order
+            if not cscene.is_property_set("tile_order"):
+                cscene.tile_order = 'CENTER'
+
+        for lamp in bpy.data.lamps:
+            clamp = lamp.cycles
+
+            # MIS
+            if not clamp.is_property_set("use_multiple_importance_sampling"):
+                clamp.use_multiple_importance_sampling = False
+
+        for mat in bpy.data.materials:
+            cmat = mat.cycles
+
+            # Volume Sampling
+            if not cmat.is_property_set("volume_sampling"):
+                cmat.volume_sampling = 'DISTANCE'

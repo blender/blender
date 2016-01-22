@@ -165,13 +165,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 name="Samples",
                 description="Number of samples to render for each pixel",
                 min=1, max=2147483647,
-                default=10,
+                default=100,
                 )
         cls.preview_samples = IntProperty(
                 name="Preview Samples",
                 description="Number of samples to render in the viewport, unlimited if 0",
                 min=0, max=2147483647,
-                default=10,
+                default=50,
                 )
         cls.preview_pause = BoolProperty(
                 name="Pause Preview",
@@ -380,7 +380,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 name="Filter Type",
                 description="Pixel filter type",
                 items=enum_filter_types,
-                default='GAUSSIAN',
+                default='BLACKMAN_HARRIS',
                 )
         cls.filter_width = FloatProperty(
                 name="Filter Width",
@@ -469,7 +469,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 name="Tile Order",
                 description="Tile order for rendering",
                 items=enum_tile_order,
-                default='CENTER',
+                default='HILBERT_SPIRAL',
                 options=set(),  # Not animatable!
                 )
         cls.use_progressive_refine = BoolProperty(
@@ -726,7 +726,7 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
                 name="Volume Sampling",
                 description="Sampling method to use for volumes",
                 items=enum_volume_sampling,
-                default='DISTANCE',
+                default='MULTIPLE_IMPORTANCE',
                 )
 
         cls.volume_interpolation = EnumProperty(
@@ -770,7 +770,7 @@ class CyclesLampSettings(bpy.types.PropertyGroup):
                 name="Multiple Importance Sample",
                 description="Use multiple importance sampling for the lamp, "
                             "reduces noise for area lamps and sharp glossy materials",
-                default=False,
+                default=True,
                 )
         cls.is_portal = BoolProperty(
                 name="Is Portal",
