@@ -3465,7 +3465,6 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link,
 				glBegin(GL_LINE_STRIP);
 				glVertex2fv(arrow1);
 				glVertex2fv(arrow);
-				glVertex2fv(arrow);
 				glVertex2fv(arrow2);
 				glEnd();
 			}
@@ -3501,7 +3500,6 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link,
 		if (drawarrow) {
 			glBegin(GL_LINE_STRIP);
 			glVertex2fv(arrow1);
-			glVertex2fv(arrow);
 			glVertex2fv(arrow);
 			glVertex2fv(arrow2);
 			glEnd();
