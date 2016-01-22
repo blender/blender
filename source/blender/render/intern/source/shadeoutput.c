@@ -1914,8 +1914,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		copy_v3_v3(shr->combined, shr->diffshad);
 			
 		/* calculate shadow pass, we use a multiplication mask */
-		/* if diff = 0,0,0 it doesn't matter what the shadow pass is, so leave it as is */
-		if (passflag & SCE_PASS_SHADOW && !(shr->diff[0]==0.0f && shr->diff[1]==0.0f && shr->diff[2]==0.0f)) {
+		/* Even if diff = 0,0,0, it does matter what the shadow pass is, since we may want it 'for itself'! */
+		if (passflag & SCE_PASS_SHADOW) {
 			if (shr->diff[0]!=0.0f) shr->shad[0]= shr->shad[0]/shr->diff[0];
 			/* can't determine proper shadow from shad/diff (0/0), so use shadow intensity */
 			else if (shr->shad[0]==0.0f) shr->shad[0]= shr->shad[3];
