@@ -338,9 +338,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 
 	/* draw outline */
 	glColor3ub(128, 128, 128);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glRecti(color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	sdrawbox(color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
 
 	dx += 1.75f * UI_UNIT_X;
 
