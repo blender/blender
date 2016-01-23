@@ -3430,8 +3430,6 @@ void REEB_draw()
 		}
 	}
 	glEnable(GL_DEPTH_TEST);
-	
-	glLineWidth(1.0);
 }
 
 #endif

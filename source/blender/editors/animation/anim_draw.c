@@ -123,9 +123,7 @@ void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
 	glVertex2f(x, v2d->cur.ymin - 500.0f); /* XXX arbitrary... want it go to bottom */
 	glVertex2f(x, v2d->cur.ymax);
 	glEnd();
-	
-	glLineWidth(1.0);
-	
+
 	/* Draw current frame number in a little box */
 	if (flag & DRAWCFRA_SHOW_NUMBOX) {
 		UI_view2d_view_orthoSpecial(CTX_wm_region(C), v2d, 1);

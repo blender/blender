@@ -280,7 +280,6 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 		glVertex2f(v2d->cur.xmax, y);
 		glEnd();
 
-		glLineWidth(1.0);
 		glDisable(GL_BLEND);
 	}
 	
@@ -299,7 +298,6 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 		glVertex2f(x, v2d->cur.ymax);
 		glEnd();
 
-		glLineWidth(1.0);
 		glDisable(GL_BLEND);
 	}
 	else {

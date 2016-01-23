@@ -452,8 +452,6 @@ static void ui_draw_anti_x(float x1, float y1, float x2, float y2)
 	fdrawline(x1, y1, x2, y2);
 	fdrawline(x1, y2, x2, y1);
 	
-	glLineWidth(1.0);
-	
 	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
 	

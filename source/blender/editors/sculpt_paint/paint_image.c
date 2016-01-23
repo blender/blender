@@ -727,7 +727,6 @@ static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customda
 		glLineWidth(2.0);
 		glColor4ub(255, 255, 255, 255);
 		sdrawline(x, y, pop->startmouse[0], pop->startmouse[1]);
-		glLineWidth(1.0);
 
 		glDisable(GL_BLEND);
 		glDisable(GL_LINE_SMOOTH);

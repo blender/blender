@@ -490,6 +490,8 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool wr
 
 	UI_GetThemeColor3ubv(TH_GRID, col_grid);
 
+	glLineWidth(1);
+
 	/* draw the Y axis and/or grid lines */
 	if (v3d->gridflag & V3D_SHOW_FLOOR) {
 		const int sublines = v3d->gridsubdiv;
@@ -569,6 +571,7 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 		const float f10 = 0.5f * U.widget_unit;
 		const float f20 = U.widget_unit;
 		
+		glLineWidth(1);
 		setlinestyle(0); 
 		cpack(0xFF);
 		circ((float)co[0], (float)co[1], f10);
@@ -636,9 +639,6 @@ static void draw_view_axis(RegionView3D *rv3d, rcti *rect)
 		glEnable(GL_BLEND);
 	}
 
-	/* restore line-width */
-	
-	glLineWidth(1.0);
 	glDisable(GL_BLEND);
 }
 

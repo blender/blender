@@ -260,8 +260,6 @@ void clip_draw_cfra(SpaceClip *sc, ARegion *ar, Scene *scene)
 	glVertex2f(x, v2d->cur.ymax);
 	glEnd();
 
-	glLineWidth(1.0);
-
 	UI_view2d_view_orthoSpecial(ar, v2d, 1);
 
 	/* because the frame number text is subject to the same scaling as the contents of the view */

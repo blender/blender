@@ -1711,6 +1711,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 				UI_ThemeColor(TH_VIEW_OVERLAY);
 
 				setlinestyle(3);
+				glLineWidth(1);
 				glBegin(GL_LINES);
 				glVertex2iv(t->mval);
 				glVertex2fv(cent);
@@ -1752,6 +1753,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 				UI_ThemeColor(TH_VIEW_OVERLAY);
 
 				setlinestyle(3);
+				glLineWidth(1);
 				glBegin(GL_LINES);
 				glVertex2iv(t->mval);
 				glVertex2fv(cent);
@@ -1804,7 +1806,6 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 		}
 
 		glPopMatrix();
-		glLineWidth(1.0);
 	}
 }
 

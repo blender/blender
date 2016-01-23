@@ -492,7 +492,9 @@ void drawaxes(float size, char drawtype)
 	float v1[3] = {0.0, 0.0, 0.0};
 	float v2[3] = {0.0, 0.0, 0.0};
 	float v3[3] = {0.0, 0.0, 0.0};
-	
+
+	glLineWidth(1);
+
 	switch (drawtype) {
 
 		case OB_PLAINAXES:
@@ -749,6 +751,7 @@ static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, const float co[3],
 	glDrawArrays(GL_POLYGON, 0, CIRCLE_RESOL);
 
 	/* 2. draw outline */
+	glLineWidth(1);
 	UI_ThemeColorShadeAlpha(TH_WIRE, 0, -30);
 	glDrawArrays(GL_LINE_LOOP, 0, CIRCLE_RESOL);
 
@@ -1202,6 +1205,8 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 		curcol[3] = 154;
 		glColor4ubv(curcol);
 	}
+
+	glLineWidth(1);
 
 	if (lampsize > 0.0f) {
 
@@ -1661,7 +1666,6 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 					draw_bundle_sphere();
 
 					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-					glLineWidth(1.0f);
 				}
 
 				if ((dflag & DRAW_CONSTCOLOR) == 0) {
@@ -1717,8 +1721,6 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 					glVertex3fv(camera->mat[3]);
 				}
 				glEnd();
-
-				glLineWidth(1.0f);
 			}
 		}
 	}
@@ -2062,6 +2064,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	                         asp, shift, &drawsize, vec);
 
 	glDisable(GL_CULL_FACE);
+	glLineWidth(1);
 
 	/* camera frame */
 	if (!is_stereo3d_cameras) {
@@ -2163,6 +2166,7 @@ static void drawspeaker(Scene *UNUSED(scene), View3D *UNUSED(v3d), RegionView3D 
 	float vec[3];
 
 	glEnable(GL_BLEND);
+	glLineWidth(1);
 
 	for (int j = 0; j < 3; j++) {
 		vec[2] = 0.25f * j - 0.125f;
@@ -2317,7 +2321,8 @@ static void drawlattice(View3D *v3d, Object *ob)
 			glShadeModel(GL_SMOOTH);
 		}
 	}
-	
+
+	glLineWidth(1);
 	glBegin(GL_LINES);
 	for (w = 0; w < lt->pntsw; w++) {
 		int wxt = (w == 0 || w == lt->pntsw - 1);
@@ -3041,7 +3046,6 @@ static void draw_dm_creases(BMEditMesh *em, DerivedMesh *dm)
 	if (data.cd_layer_offset != -1) {
 		glLineWidth(3.0);
 		dm->drawMappedEdges(dm, draw_dm_creases__setDrawOptions, &data);
-		glLineWidth(1.0);
 	}
 }
 
@@ -3101,7 +3105,6 @@ static void draw_dm_bweights(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 		if (data.cd_layer_offset != -1) {
 			glLineWidth(3.0);
 			dm->drawMappedEdges(dm, draw_dm_bweights__setDrawOptions, &data);
-			glLineWidth(1.0);
 		}
 	}
 }
@@ -3657,6 +3660,8 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 	BMVert *eve_act = NULL;
 	bool use_occlude_wire = (v3d->flag2 & V3D_OCCLUDE_WIRE) && (dt > OB_WIRE);
 	
+	glLineWidth(1);
+
 	if (em->bm->selected.last) {
 		BMEditSelection *ese = em->bm->selected.last;
 		/* face is handled above */
@@ -3809,7 +3814,6 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 			draw_dm_edges_seams(em, cageDM);
 
 			glColor3ub(0, 0, 0);
-			glLineWidth(1);
 		}
 		
 		if (me->drawflag & ME_DRAWSHARP) {
@@ -3819,7 +3823,6 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 			draw_dm_edges_sharp(em, cageDM);
 
 			glColor3ub(0, 0, 0);
-			glLineWidth(1);
 		}
 
 #ifdef WITH_FREESTYLE
@@ -3830,7 +3833,6 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 			draw_dm_edges_freestyle(em, cageDM);
 	
 			glColor3ub(0, 0, 0);
-			glLineWidth(1);
 		}
 #endif
 	
@@ -3841,6 +3843,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 			draw_dm_bweights(em, scene, cageDM);
 		}
 
+		glLineWidth(1);
 		draw_em_fancy_edges(em, scene, v3d, me, cageDM, 0, eed_act);
 	}
 
@@ -3910,7 +3913,6 @@ static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 			dm->drawEdges(dm, 0, 1);
 		}
 
-		glLineWidth(1.0);
 		glDepthMask(1);
 	}
 }
@@ -5541,8 +5543,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 			cdata2 = NULL;
 		}
 
-		glLineWidth(1.0f);
-
 		if ((part->draw & PART_DRAW_NUM) && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 			cache = psys->pathcache;
 
@@ -5820,7 +5820,6 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glShadeModel(GL_FLAT);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
-	glLineWidth(1.0f);
 }
 
 static void ob_draw_RE_motion(float com[3], float rotscale[3][3], float itw, float ith, float drw_size)
@@ -6072,7 +6071,6 @@ static void drawhandlesN_active(Nurb *nu)
 	glEnd();
 
 	glColor3ub(0, 0, 0);
-	glLineWidth(1);
 }
 
 static void drawvertsN(Nurb *nu, const char sel, const bool hide_handles, const void *vert)
@@ -6155,7 +6153,6 @@ static void editnurb_draw_active_poly(Nurb *nu)
 	}
 
 	glColor3ub(0, 0, 0);
-	glLineWidth(1);
 }
 
 static void editnurb_draw_active_nurbs(Nurb *nu)
@@ -6197,7 +6194,6 @@ static void editnurb_draw_active_nurbs(Nurb *nu)
 	glEnd();
 
 	glColor3ub(0, 0, 0);
-	glLineWidth(1);
 }
 
 static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
@@ -7178,7 +7174,6 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 			draw_armature(scene, v3d, ar, base, OB_WIRE, 0, ob_wire_col, true);
 	}
 
-	glLineWidth(1.0);
 	glDepthMask(1);
 }
 
@@ -7195,6 +7190,7 @@ static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, const 
 
 		ED_view3d_polygon_offset(rv3d, 1.0);
 		glDepthMask(0);  /* disable write in zbuffer, selected edge wires show better */
+		glLineWidth(1);
 
 		if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
 			if (ED_view3d_boundbox_clip(rv3d, ob->bb)) {
@@ -7274,7 +7270,7 @@ static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data,
 			view3d_cached_text_draw_add(v, axis_str[axis], 2, 0, V3D_CACHE_TEXT_ASCII, ob_wire_col);
 		}
 	}
-	glLineWidth(1.0f);
+
 	setlinestyle(0);
 }
 

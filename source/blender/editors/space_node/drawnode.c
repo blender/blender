@@ -3506,9 +3506,6 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link,
 		}
 		
 		glDisable(GL_LINE_SMOOTH);
-		
-		/* restore previuos linewidth */
-		glLineWidth(1.0f);
 	}
 }
 
@@ -3588,9 +3585,6 @@ void node_draw_link_straight(View2D *v2d, SpaceNode *snode, bNodeLink *link,
 	}
 	
 	glDisable(GL_LINE_SMOOTH);
-	
-	/* restore previuos linewidth */
-	glLineWidth(1.0f);
 }
 #endif
 

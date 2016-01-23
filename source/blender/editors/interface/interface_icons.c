@@ -274,8 +274,6 @@ static void vicon_x_draw(int x, int y, int w, int h, float alpha)
 	glVertex2i(x + w, y);
 	glVertex2i(x, y + h);
 	glEnd();
-
-	glLineWidth(1.0);
 	
 	glDisable(GL_LINE_SMOOTH);
 }
@@ -443,7 +441,6 @@ static void vicon_move_up_draw(int x, int y, int w, int h, float UNUSED(alpha))
 	glVertex2i(x + w / 2 + d * 2, y + h / 2 + d);
 	glEnd();
 
-	glLineWidth(1.0);
 	glDisable(GL_LINE_SMOOTH);
 }
 
@@ -461,7 +458,6 @@ static void vicon_move_down_draw(int x, int y, int w, int h, float UNUSED(alpha)
 	glVertex2i(x + w / 2 + d * 2, y + h / 2 + d);
 	glEnd();
 
-	glLineWidth(1.0);
 	glDisable(GL_LINE_SMOOTH);
 }
 

@@ -85,6 +85,7 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
 	
 	/* draw two black lines showing the standard reference levels */
 	glColor3f(0.0f, 0.0f, 0.0f);
+	glLineWidth(1);
 	setlinestyle(5);
 	
 	glBegin(GL_LINES);
@@ -93,7 +94,7 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
 		
 	glVertex2f(v2d->cur.xmin, env->midval + env->max);
 	glVertex2f(v2d->cur.xmax, env->midval + env->max);
-	glEnd();  /* GL_LINES */
+	glEnd();
 	setlinestyle(0);
 	
 	/* set size of vertices (non-adjustable for now) */
@@ -852,7 +853,6 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 		
 		/* cleanup line drawing */
 		setlinestyle(0);
-		glLineWidth(1.0f);
 	}
 	
 	/* draw driver only if actually functional */
@@ -946,7 +946,6 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	
 	/* restore settings */
 	setlinestyle(0);
-	glLineWidth(1.0f);
 	
 	if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
@@ -1036,7 +1035,6 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 			
 			/* restore settings */
 			setlinestyle(0);
-			glLineWidth(1.0);
 			
 			if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) glDisable(GL_LINE_SMOOTH);
 			glDisable(GL_BLEND);

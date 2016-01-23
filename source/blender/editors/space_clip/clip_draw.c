@@ -439,7 +439,6 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 		for (i = a; i < b; i++)
 			glVertex2f(path[i][0], path[i][1]);
 		glEnd();
-		glLineWidth(1.0f);
 	}
 
 	UI_ThemeColor(TH_PATH_BEFORE);
@@ -458,6 +457,8 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 	}
 
 	UI_ThemeColor(TH_PATH_BEFORE);
+
+	glLineWidth(1);
 
 	glBegin(GL_LINE_STRIP);
 	for (i = a; i < b; i++) {
@@ -515,7 +516,6 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 			glVertex2f(pos[0], pos[1] + px[1] * 2);
 			glVertex2f(pos[0], pos[1] + px[1] * 8);
 			glEnd();
-			if (!tiny) glLineWidth(1.0f);
 		}
 	}
 
@@ -543,9 +543,6 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 		glEnd();
 	}
 	glPopMatrix();
-
-	if (!tiny)
-		glLineWidth(1.0f);
 }
 
 static void track_colors(MovieTrackingTrack *track, int act, float col[3], float scol[3])
@@ -886,9 +883,6 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	}
 
 	glPopMatrix();
-
-	if (outline)
-		glLineWidth(1.0f);
 }
 
 static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
@@ -1192,9 +1186,6 @@ static void draw_plane_marker_ex(SpaceClip *sc, Scene *scene, MovieTrackingPlane
 
 		if (stipple)
 			glDisable(GL_LINE_STIPPLE);
-		
-		if (thick)
-			glLineWidth(1.0f);
 	}
 
 	/* Draw sliders. */
@@ -1663,8 +1654,6 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 			layer = layer->next;
 		}
-
-		glLineWidth(1.0f);
 	}
 
 	glPopMatrix();

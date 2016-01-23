@@ -738,7 +738,9 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
-	
+
+	glLineWidth(1);
+
 	switch (sima->dt_uv) {
 		case SI_UVDT_DASH:
 			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {

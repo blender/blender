@@ -197,7 +197,6 @@ static void draw_single_handle(const MaskLayer *mask_layer, const MaskSplinePoin
 		glVertex2fv(point_pos);
 		glVertex2fv(handle_pos);
 		glEnd();
-		glLineWidth(1);
 	}
 
 	switch (handle_type) {
@@ -213,6 +212,7 @@ static void draw_single_handle(const MaskLayer *mask_layer, const MaskSplinePoin
 			break;
 	}
 
+	glLineWidth(1);
 	glBegin(GL_LINES);
 	glVertex2fv(point_pos);
 	glVertex2fv(handle_pos);

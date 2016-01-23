@@ -1050,8 +1050,6 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		glVertex3fv(kcd->prev.cage);
 		glVertex3fv(kcd->curr.cage);
 		glEnd();
-
-		glLineWidth(1.0);
 	}
 
 	if (kcd->prev.vert) {
@@ -1080,8 +1078,6 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		glVertex3fv(kcd->curr.edge->v1->cageco);
 		glVertex3fv(kcd->curr.edge->v2->cageco);
 		glEnd();
-
-		glLineWidth(1.0);
 	}
 	else if (kcd->curr.vert) {
 		glColor3ubv(kcd->colors.point);
@@ -1151,7 +1147,6 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		}
 
 		glEnd();
-		glLineWidth(1.0);
 	}
 
 	if (kcd->totkvert > 0) {

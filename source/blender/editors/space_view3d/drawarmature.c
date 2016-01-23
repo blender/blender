@@ -1090,8 +1090,6 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 		glBitmap(8, 8, 4, 4, 0, 0, bm_dot5);
 	}
 	
-	glLineWidth(1.0);
-	
 	glPopMatrix();
 }
 

@@ -1045,11 +1045,11 @@ static void drawscredge_area(ScrArea *sa, int sizex, int sizey, int center)
 			glColor3ub(0x50, 0x50, 0x50);
 			glLineWidth((2.0f * U.pixelsize) - 1);
 			drawscredge_area_draw(sizex, sizey, x1, y1, x2, y2, 0);
-			glLineWidth(1.0f);
 		}
 	}
 	else {
 		glColor3ub(0, 0, 0);
+		glLineWidth(1);
 		drawscredge_area_draw(sizex, sizey, x1, y1, x2, y2, 0);
 	}
 }

@@ -932,8 +932,6 @@ static void paint_draw_curve_cursor(Brush *brush)
 		draw_rect_point(&cp->bez.vec[0][0], 8.0, cp->bez.f1 || cp->bez.f2);
 		draw_rect_point(&cp->bez.vec[2][0], 8.0, cp->bez.f3 || cp->bez.f2);
 
-		glLineWidth(1.0);
-
 		glDisable(GL_BLEND);
 		glDisable(GL_LINE_SMOOTH);
 		glDisableClientState(GL_VERTEX_ARRAY);

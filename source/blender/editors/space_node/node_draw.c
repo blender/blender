@@ -651,7 +651,6 @@ static void node_circle_draw(float x, float y, float size, const float col[4], i
 	glEnd();
 	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
-	glLineWidth(1.0f);
 }
 
 void node_socket_circle_draw(const bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *sock, float size, int highlight)

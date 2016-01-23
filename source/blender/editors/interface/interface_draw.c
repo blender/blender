@@ -528,8 +528,6 @@ static void histogram_draw_one(
 			glVertex2f(x2, y + (data[i] * h));
 		}
 		glEnd();
-
-		glLineWidth(1.0);
 	}
 	else {
 		/* under the curve */
@@ -1631,7 +1629,7 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 	glEnd();
 	
 	glColor4ub(0, 0, 0, 150);
-	
+	glLineWidth(1);
 	glEnable(GL_LINE_SMOOTH);
 	glBegin(GL_LINE_LOOP);
 	for (int a = 0; a < 16; a++)

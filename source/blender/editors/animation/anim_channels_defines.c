@@ -3716,7 +3716,6 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 			glLineWidth(2.0);
 			fdrawline((float)(offset), yminc,
 			          (float)(v2d->cur.xmax), yminc);
-			glLineWidth(1.0);
 		}
 	}
 
