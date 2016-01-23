@@ -2476,9 +2476,12 @@ bool isect_point_tri_v3(
 	}
 }
 
-bool clip_segment_v3_plane(float p1[3], float p2[3], const float plane[4])
+bool clip_segment_v3_plane(
+        const float p1[3], const float p2[3],
+        const float plane[4],
+        float r_p1[3], float r_p2[3])
 {
-	float dp[3], div, t, pc[3];
+	float dp[3], div;
 
 	sub_v3_v3v3(dp, p2, p1);
 	div = dot_v3v3(dp, plane);
@@ -2486,98 +2489,96 @@ bool clip_segment_v3_plane(float p1[3], float p2[3], const float plane[4])
 	if (div == 0.0f) /* parallel */
 		return true;
 
-	t = -plane_point_side_v3(plane, p1) / div;
+	float t = -plane_point_side_v3(plane, p1);
 
 	if (div > 0.0f) {
 		/* behind plane, completely clipped */
-		if (t >= 1.0f) {
-			zero_v3(p1);
-			zero_v3(p2);
+		if (t >= div) {
 			return false;
 		}
-
-		/* intersect plane */
-		if (t > 0.0f) {
-			madd_v3_v3v3fl(pc, p1, dp, t);
-			copy_v3_v3(p1, pc);
+		else if (t > 0.0f) {
+			const float p1_copy[3] = {UNPACK3(p1)};
+			copy_v3_v3(r_p2, p2);
+			madd_v3_v3v3fl(r_p1, p1_copy, dp, t / div);
 			return true;
 		}
-
-		return true;
 	}
 	else {
 		/* behind plane, completely clipped */
-		if (t <= 0.0f) {
-			zero_v3(p1);
-			zero_v3(p2);
+		if (t >= 0.0f) {
 			return false;
 		}
-
-		/* intersect plane */
-		if (t < 1.0f) {
-			madd_v3_v3v3fl(pc, p1, dp, t);
-			copy_v3_v3(p2, pc);
+		else if (t > div) {
+			const float p1_copy[3] = {UNPACK3(p1)};
+			copy_v3_v3(r_p1, p1);
+			madd_v3_v3v3fl(r_p2, p1_copy, dp, t / div);
 			return true;
 		}
-
-		return true;
 	}
+
+	/* incase input/output values match (above also) */
+	const float p1_copy[3] = {UNPACK3(p1)};
+	copy_v3_v3(r_p2, p2);
+	copy_v3_v3(r_p1, p1_copy);
+	return true;
 }
 
-bool clip_segment_v3_plane_n(float r_p1[3], float r_p2[3], float plane_array[][4], const int plane_tot)
+bool clip_segment_v3_plane_n(
+        const float p1[3], const float p2[3],
+        const float plane_array[][4], const int plane_tot,
+        float r_p1[3], float r_p2[3])
 {
 	/* intersect from both directions */
-	float p1[3], p2[3], dp[3], dp_orig[3];
-	int i;
-	copy_v3_v3(p1, r_p1);
-	copy_v3_v3(p2, r_p2);
+	float p1_fac = 0.0f, p2_fac = 1.0f;
 
+	float dp[3];
 	sub_v3_v3v3(dp, p2, p1);
-	copy_v3_v3(dp_orig, dp);
 
-	for (i = 0; i < plane_tot; i++) {
+	for (int i = 0; i < plane_tot; i++) {
 		const float *plane = plane_array[i];
 		const float div = dot_v3v3(dp, plane);
 
 		if (div != 0.0f) {
-			const float t = -plane_point_side_v3(plane, p1) / div;
+			float t = -plane_point_side_v3(plane, p1);
 			if (div > 0.0f) {
-				/* clip a */
-				if (t >= 1.0f) {
+				/* clip p1 lower bounds */
+				if (t >= div) {
 					return false;
 				}
-
-				/* intersect plane */
-				if (t > 0.0f) {
-					madd_v3_v3v3fl(p1, p1, dp, t);
-					/* recalc direction and test for flipping */
-					sub_v3_v3v3(dp, p2, p1);
-					if (dot_v3v3(dp, dp_orig) < 0.0f) {
-						return false;
+				else if (t > 0.0f) {
+					t /= div;
+					if (t > p1_fac) {
+						p1_fac = t;
+						if (p1_fac > p2_fac) {
+							return false;
+						}
 					}
 				}
 			}
 			else if (div < 0.0f) {
-				/* clip b */
-				if (t <= 0.0f) {
+				/* clip p2 upper bounds */
+				if (t >= 0.0f) {
 					return false;
 				}
-
-				/* intersect plane */
-				if (t < 1.0f) {
-					madd_v3_v3v3fl(p2, p1, dp, t);
-					/* recalc direction and test for flipping */
-					sub_v3_v3v3(dp, p2, p1);
-					if (dot_v3v3(dp, dp_orig) < 0.0f) {
-						return false;
+				else if (t > div) {
+					t /= div;
+					if (t < p2_fac) {
+						p2_fac = t;
+						if (p1_fac > p2_fac) {
+							return false;
+						}
 					}
 				}
 			}
 		}
 	}
 
-	copy_v3_v3(r_p1, p1);
-	copy_v3_v3(r_p2, p2);
+	/* incase input/output values match */
+	const float p1_copy[3] = {UNPACK3(p1)};
+
+	madd_v3_v3v3fl(r_p1, p1_copy, dp, p1_fac);
+	madd_v3_v3v3fl(r_p2, p1_copy, dp, p2_fac);
+
 	return true;
 }
 

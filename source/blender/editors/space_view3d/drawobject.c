@@ -3311,10 +3311,7 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 					copy_v3_v3(v2, eed->v2->co);
 				}
 
-				copy_v3_v3(v1_clip, v1);
-				copy_v3_v3(v2_clip, v2);
-
-				if (clip_segment_v3_plane_n(v1_clip, v2_clip, clip_planes, 4)) {
+				if (clip_segment_v3_plane_n(v1, v2, clip_planes, 4, v1_clip, v2_clip)) {
 
 					if (do_edge_textpair) {
 						interp_v3_v3v3(vmid, v1, v2, edge_texpair_sep);
@@ -3378,10 +3375,7 @@ static void draw_em_measure_stats(ARegion *ar, View3D *v3d, Object *ob, BMEditMe
 						copy_v3_v3(v2, eed->v2->co);
 					}
 
-					copy_v3_v3(v1_clip, v1);
-					copy_v3_v3(v2_clip, v2);
-
-					if (clip_segment_v3_plane_n(v1_clip, v2_clip, clip_planes, 4)) {
+					if (clip_segment_v3_plane_n(v1, v2, clip_planes, 4, v1_clip, v2_clip)) {
 						float no_a[3], no_b[3];
 						float angle;
 

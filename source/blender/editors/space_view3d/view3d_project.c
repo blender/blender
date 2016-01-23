@@ -348,7 +348,10 @@ static void view3d_win_to_ray_segment(const ARegion *ar, View3D *v3d, const floa
 
 BLI_INLINE bool view3d_clip_segment(RegionView3D *rv3d, float ray_start[3], float ray_end[3])
 {
-	if ((rv3d->rflag & RV3D_CLIPPING) && !clip_segment_v3_plane_n(ray_start, ray_end, rv3d->clip, 6)) {
+	if ((rv3d->rflag & RV3D_CLIPPING) &&
+	    (clip_segment_v3_plane_n(ray_start, ray_end, rv3d->clip, 6,
+	                             ray_start, ray_end) == false))
+	{
 		return false;
 	}
 	return true;

@@ -1439,7 +1439,10 @@ static bool point_is_visible(
 			copy_v3_v3(view_clip[0], p_ofs);
 			madd_v3_v3v3fl(view_clip[1], p_ofs, view, dist);
 
-			if (clip_segment_v3_plane_n(view_clip[0], view_clip[1], kcd->vc.rv3d->clip_local, 6)) {
+			if (clip_segment_v3_plane_n(
+			        view_clip[0], view_clip[1], kcd->vc.rv3d->clip_local, 6,
+			        view_clip[0], view_clip[1]))
+			{
 				dist = len_v3v3(p_ofs, view_clip[1]);
 			}
 		}
