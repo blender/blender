@@ -415,15 +415,18 @@ rcti* RE_engine_get_current_tiles(Render *re, int *r_total_tiles, bool *r_needs_
 				/* Just in case we're using crazy network rendering with more
 				 * slaves as BLENDER_MAX_THREADS.
 				 */
-				if (tiles == tiles_static)
-					tiles = MEM_mallocN(allocation_step * sizeof(rcti), "current engine tiles");
-				else
-					tiles = MEM_reallocN(tiles, (total_tiles + allocation_step) * sizeof(rcti));
-
 				allocation_size += allocation_step;
+				if (tiles == tiles_static) {
+					/* Can not realloc yet, tiles are pointing to a
+					 * stack memory.
+					 */
+					tiles = MEM_mallocN(allocation_size * sizeof(rcti), "current engine tiles");
+				}
+				else {
+					tiles = MEM_reallocN(tiles, allocation_size * sizeof(rcti));
+				}
 				*r_needs_free = true;
 			}
-
 			tiles[total_tiles] = pa->disprect;
 
 			if (pa->crop) {
