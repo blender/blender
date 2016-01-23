@@ -1383,6 +1383,7 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 
 		/* draw clip start, useful for wide cones where its not obvious where the start is */
 		glTranslatef(0.0, 0.0, -x);  /* reverse translation above */
+		glBegin(GL_LINES);
 		if (la->type == LA_SPOT && (la->mode & LA_SHAD_BUF)) {
 			float lvec_clip[3];
 			float vvec_clip[3];
@@ -1391,18 +1392,15 @@ static void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 			interp_v3_v3v3(lvec_clip, vec, lvec, clipsta_fac);
 			interp_v3_v3v3(vvec_clip, vec, vvec, clipsta_fac);
 
-			glBegin(GL_LINES);
 			glVertex3fv(lvec_clip);
 			glVertex3fv(vvec_clip);
-			glEnd();
 		}
 		/* Else, draw spot direction (using distance as end limit, same as for Area lamp). */
 		else {
-			glBegin(GL_LINES);
 			glVertex3f(0.0, 0.0, -circrad);
 			glVertex3f(0.0, 0.0, -la->dist);
-			glEnd();
 		}
+		glEnd();
 	}
 	else if (ELEM(la->type, LA_HEMI, LA_SUN)) {
 		
@@ -5831,8 +5829,9 @@ static void ob_draw_RE_motion(float com[3], float rotscale[3][3], float itw, flo
 	float tw = itw * drw_size;
 	float th = ith * drw_size;
 
-	glColor4ub(0x7F, 0x00, 0x00, 155);
 	glBegin(GL_LINES);
+
+	glColor4ub(0x7F, 0x00, 0x00, 155);
 	root[1] = root[2] = 0.0f;
 	root[0] = -drw_size;
 	mul_m3_v3(tr, root);
@@ -5843,47 +5842,37 @@ static void ob_draw_RE_motion(float com[3], float rotscale[3][3], float itw, flo
 	mul_m3_v3(tr, tip);
 	add_v3_v3(tip, com);
 	glVertex3fv(tip);
-	glEnd();
 
 	root[1] = 0.0f; root[2] = tw;
 	root[0] = th;
-	glBegin(GL_LINES);
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
 	glVertex3fv(root);
 	glVertex3fv(tip);
-	glEnd();
 
 	root[1] = 0.0f; root[2] = -tw;
 	root[0] = th;
-	glBegin(GL_LINES);
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
 	glVertex3fv(root);
 	glVertex3fv(tip);
-	glEnd();
 
 	root[1] = tw; root[2] = 0.0f;
 	root[0] = th;
-	glBegin(GL_LINES);
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
 	glVertex3fv(root);
 	glVertex3fv(tip);
-	glEnd();
 
 	root[1] = -tw; root[2] = 0.0f;
 	root[0] = th;
-	glBegin(GL_LINES);
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
 	glVertex3fv(root);
 	glVertex3fv(tip);
-	glEnd();
 
 	glColor4ub(0x00, 0x7F, 0x00, 155);
 
-	glBegin(GL_LINES);
 	root[0] = root[2] = 0.0f;
 	root[1] = -drw_size;
 	mul_m3_v3(tr, root);
@@ -5894,46 +5883,36 @@ static void ob_draw_RE_motion(float com[3], float rotscale[3][3], float itw, flo
 	mul_m3_v3(tr, tip);
 	add_v3_v3(tip, com);
 	glVertex3fv(tip);
-	glEnd();
 
 	root[0] = 0.0f; root[2] = tw;
 	root[1] = th;
-	glBegin(GL_LINES);
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
 	glVertex3fv(root);
 	glVertex3fv(tip);
-	glEnd();
 
 	root[0] = 0.0f; root[2] = -tw;
 	root[1] = th;
-	glBegin(GL_LINES);
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
 	glVertex3fv(root);
 	glVertex3fv(tip);
-	glEnd();
 
 	root[0] = tw; root[2] = 0.0f;
 	root[1] = th;
-	glBegin(GL_LINES);
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
 	glVertex3fv(root);
 	glVertex3fv(tip);
-	glEnd();
 
 	root[0] = -tw; root[2] = 0.0f;
 	root[1] = th;
-	glBegin(GL_LINES);
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
 	glVertex3fv(root);
 	glVertex3fv(tip);
-	glEnd();
 
 	glColor4ub(0x00, 0x00, 0x7F, 155);
-	glBegin(GL_LINES);
 	root[0] = root[1] = 0.0f;
 	root[2] = -drw_size;
 	mul_m3_v3(tr, root);
@@ -5944,42 +5923,35 @@ static void ob_draw_RE_motion(float com[3], float rotscale[3][3], float itw, flo
 	mul_m3_v3(tr, tip);
 	add_v3_v3(tip, com);
 	glVertex3fv(tip);
-	glEnd();
 
 	root[0] = 0.0f; root[1] = tw;
 	root[2] = th;
-	glBegin(GL_LINES);
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
 	glVertex3fv(root);
 	glVertex3fv(tip);
-	glEnd();
 
 	root[0] = 0.0f; root[1] = -tw;
 	root[2] = th;
-	glBegin(GL_LINES);
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
 	glVertex3fv(root);
 	glVertex3fv(tip);
-	glEnd();
 
 	root[0] = tw; root[1] = 0.0f;
 	root[2] = th;
-	glBegin(GL_LINES);
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
 	glVertex3fv(root);
 	glVertex3fv(tip);
-	glEnd();
 
 	root[0] = -tw; root[1] = 0.0f;
 	root[2] = th;
-	glBegin(GL_LINES);
 	mul_m3_v3(tr, root);
 	add_v3_v3(root, com);
 	glVertex3fv(root);
 	glVertex3fv(tip);
+
 	glEnd();
 }
 
@@ -6232,6 +6204,8 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 						editnurb_draw_active_nurbs(nu);
 					}
 
+					glBegin(GL_LINES);
+
 					bp = nu->bp;
 					for (b = 0; b < nu->pntsv; b++) {
 						bp1 = bp;
@@ -6242,11 +6216,8 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 									if ((bp->f1 & SELECT) && (bp1->f1 & SELECT)) {
 										UI_ThemeColor(TH_NURB_SEL_ULINE);
 
-										/* TODO: pull glBegin out of loop */
-										glBegin(GL_LINES);
 										glVertex3fv(bp->vec);
 										glVertex3fv(bp1->vec);
-										glEnd();
 									}
 								}
 								else {
@@ -6256,18 +6227,16 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 									else {
 										UI_ThemeColor(TH_NURB_ULINE);
 
-										glBegin(GL_LINES);
 										glVertex3fv(bp->vec);
 										glVertex3fv(bp1->vec);
-										glEnd();
 									}
 								}
 							}
 							bp1 = bp;
 						}
 					}
-					if (nu->pntsv > 1) {    /* surface */
 
+					if (nu->pntsv > 1) {    /* surface */
 						int ofs = nu->pntsu;
 						for (b = 0; b < nu->pntsu; b++) {
 							bp1 = nu->bp + b;
@@ -6278,11 +6247,8 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 										if ((bp->f1 & SELECT) && (bp1->f1 & SELECT)) {
 											UI_ThemeColor(TH_NURB_SEL_VLINE);
 
-											/* TODO: pull glBegin out of loop */
-											glBegin(GL_LINE);
 											glVertex3fv(bp->vec);
 											glVertex3fv(bp1->vec);
-											glEnd();
 										}
 									}
 									else {
@@ -6292,10 +6258,8 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 										else {
 											UI_ThemeColor(TH_NURB_VLINE);
 
-											glBegin(GL_LINES);
 											glVertex3fv(bp->vec);
 											glVertex3fv(bp1->vec);
-											glEnd();
 										}
 									}
 								}
@@ -6303,6 +6267,8 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 							}
 						}
 					}
+
+					glEnd();
 					break;
 			}
 		}
