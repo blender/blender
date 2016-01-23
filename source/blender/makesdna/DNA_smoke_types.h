@@ -77,6 +77,12 @@ enum {
 #define SM_ACTIVE_COLORS	(1<<2)
 #define SM_ACTIVE_COLOR_SET	(1<<3)
 
+enum {
+	VDB_COMPRESSION_BLOSC = 0,
+	VDB_COMPRESSION_ZIP   = 1,
+	VDB_COMPRESSION_NONE  = 2,
+};
+
 typedef struct SmokeDomainSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
 	struct FLUID_3D *fluid;
@@ -103,6 +109,8 @@ typedef struct SmokeDomainSettings {
 	float obj_shift_f[3]; /* how much object has shifted since previous smoke frame (used to "lock" domain while drawing) */
 	float imat[4][4]; /* domain object imat */
 	float obmat[4][4]; /* domain obmat */
+	float fluidmat[4][4]; /* low res fluid matrix */
+	float fluidmat_wt[4][4]; /* high res fluid matrix */
 
 	int base_res[3]; /* initial "non-adapted" resolution */
 	int res_min[3]; /* cell min */
@@ -129,8 +137,14 @@ typedef struct SmokeDomainSettings {
 	float strength;
 	int res_wt[3];
 	float dx_wt;
+	/* point cache options */
 	int cache_comp;
 	int cache_high_comp;
+	/* OpenVDB cache options */
+	int openvdb_comp;
+	char cache_file_format;
+	char data_depth;
+	char pad[2];
 
 	/* Smoke uses only one cache from now on (index [0]), but keeping the array for now for reading old files. */
 	struct PointCache *point_cache[2];	/* definition is in DNA_object_force.h */

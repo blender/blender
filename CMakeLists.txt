@@ -242,6 +242,9 @@ option(WITH_OPENSUBDIV    "Enable OpenSubdiv for surface subdivision" _init_OPEN
 option(WITH_SUBSURF_WERROR  "Treat warnings as errors in subsurf code" OFF)
 mark_as_advanced(WITH_COMPOSITOR_WERROR)
 
+option(WITH_OPENVDB       "Enable features relying on OpenVDB" OFF)
+option(WITH_OPENVDB_BLOSC "Enable blosc compression for OpenVDB, only enable if OpenVDB was built with blosc support" OFF)
+
 # GHOST Windowing Library Options
 option(WITH_GHOST_DEBUG   "Enable debugging output for the GHOST library" OFF)
 mark_as_advanced(WITH_GHOST_DEBUG)
@@ -677,10 +680,11 @@ if(NOT WITH_BOOST)
 	set_and_warn(WITH_CYCLES         OFF)
 	set_and_warn(WITH_AUDASPACE      OFF)
 	set_and_warn(WITH_INTERNATIONAL  OFF)
+	set_and_warn(WITH_OPENVDB        OFF)
 
 	set_and_warn(WITH_OPENAL         OFF)  # depends on AUDASPACE
 	set_and_warn(WITH_GAMEENGINE     OFF)  # depends on AUDASPACE
-elseif(WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_AUDASPACE OR WITH_INTERNATIONAL)
+elseif(WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_AUDASPACE OR WITH_INTERNATIONAL OR WITH_OPENVDB)
 	# Keep enabled
 else()
 	# Enabled but we don't need it
@@ -1056,6 +1060,24 @@ if(UNIX AND NOT APPLE)
 		endif()
 	endif()
 
+	if(WITH_OPENVDB)
+		find_package_wrapper(OpenVDB)
+
+		set(TBB ${LIBDIR}/tbb)
+		set(TBB_LIBRARIES tbb)
+		set(TBB_LIBPATH ${TBB}/lib)
+
+		set(OPENVDB_LIBRARIES ${OPENVDB_LIBRARIES} ${BOOST_LIBRARIES} ${ZLIB_LIBRARIES} ${TBB_LIBRARIES})
+		set(OPENVDB_LIBPATH)  # TODO, remove and reference the absolute path everywhere
+		set(OPENVDB_DEFINITIONS)
+
+		if(NOT OPENVDB_FOUND)
+			set(WITH_OPENVDB OFF)
+			set(WITH_OPENVDB_BLOSC OFF)
+			message(STATUS "OpenVDB not found")
+		endif()
+	endif()
+
 	if(WITH_BOOST)
 		# uses in build instructions to override include and library variables
 		if(NOT BOOST_CUSTOM)
@@ -1075,6 +1097,9 @@ if(UNIX AND NOT APPLE)
 			endif()
 			if(WITH_CYCLES_NETWORK)
 				list(APPEND __boost_packages serialization)
+			endif()
+			if(WITH_OPENVDB)
+				list(APPEND __boost_packages iostreams)
 			endif()
 			find_package(Boost 1.48 COMPONENTS ${__boost_packages})
 			if(NOT Boost_FOUND)
@@ -1561,7 +1586,14 @@ elseif(WIN32)
 			set(OPENCOLORIO_LIBPATH ${LIBDIR}/opencolorio/lib)
 			set(OPENCOLORIO_DEFINITIONS)
 		endif()
-		
+
+		if(WITH_OPENVDB)
+			set(OPENVDB ${LIBDIR}/openvdb)
+			set(OPENVDB_INCLUDE_DIRS ${OPENVDB}/include)
+			set(OPENVDB_LIBRARIES openvdb ${TBB_LIBRARIES})
+			set(OPENVDB_LIBPATH ${LIBDIR}/openvdb/lib)
+			set(OPENVDB_DEFINITIONS)
+		endif()
 
 		if(WITH_MOD_CLOTH_ELTOPO)
 			set(LAPACK ${LIBDIR}/lapack)
@@ -1832,6 +1864,14 @@ elseif(WIN32)
 			set(SDL_INCLUDE_DIR ${SDL}/include)
 			set(SDL_LIBRARY SDL)
 			set(SDL_LIBPATH ${SDL}/lib)
+		endif()
+
+		if(WITH_OPENVDB)
+			set(OPENVDB ${LIBDIR}/openvdb)
+			set(OPENVDB_INCLUDE_DIRS ${OPENVDB}/include)
+			set(OPENVDB_LIBRARIES openvdb ${TBB_LIBRARIES})
+			set(OPENVDB_LIBPATH ${LIBDIR}/openvdb/lib)
+			set(OPENVDB_DEFINITIONS)
 		endif()
 
 		set(PLATFORM_LINKFLAGS "-Xlinker --stack=2097152")
@@ -2137,6 +2177,14 @@ elseif(APPLE)
 		set(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO}/include)
 		set(OPENCOLORIO_LIBRARIES OpenColorIO tinyxml yaml-cpp)
 		set(OPENCOLORIO_LIBPATH ${OPENCOLORIO}/lib)
+	endif()
+
+	if(WITH_OPENVDB)
+		set(OPENVDB ${LIBDIR}/openvdb)
+		set(OPENVDB_INCLUDE_DIRS ${OPENVDB}/include)
+		set(OPENVDB_LIBRARIES openvdb ${TBB_LIBRARIES})
+		set(OPENVDB_LIBPATH ${LIBDIR}/openvdb/lib)
+		set(OPENVDB_DEFINITIONS)
 	endif()
 
 	if(WITH_LLVM)
@@ -2981,6 +3029,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_CYCLES)
 	info_cfg_option(WITH_FREESTYLE)
 	info_cfg_option(WITH_OPENCOLORIO)
+	info_cfg_option(WITH_OPENVDB)
 
 	info_cfg_text("Compiler Options:")
 	info_cfg_option(WITH_BUILDINFO)

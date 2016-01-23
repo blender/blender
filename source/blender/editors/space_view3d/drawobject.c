@@ -7812,9 +7812,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 
 			/* draw adaptive domain bounds */
 			if ((sds->flags & MOD_SMOKE_ADAPTIVE_DOMAIN) && !render_override) {
-				float p0[3], p1[3];
-				BoundBox bb;
 				/* draw domain max bounds */
+				BoundBox bb;
+				float p0[3], p1[3];
 				VECSUBFAC(p0, sds->p0, sds->cell_size, sds->adapt_res);
 				VECADDFAC(p1, sds->p1, sds->cell_size, sds->adapt_res);
 				BKE_boundbox_init_from_minmax(&bb, p0, p1);
@@ -7825,6 +7825,20 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				BKE_boundbox_init_from_minmax(&bb, sds->p0, sds->p1);
 				draw_box(bb.vec);
 #endif
+
+
+				/* draw a single voxel to hint the user about the resolution of the fluid */
+				copy_v3_v3(p0, sds->p0);
+
+				if (sds->flags & MOD_SMOKE_HIGHRES) {
+					madd_v3_v3v3fl(p1, p0, sds->cell_size, 1.0f / (sds->amplify + 1));
+				}
+				else {
+					add_v3_v3v3(p1, p0, sds->cell_size);
+				}
+
+				BKE_boundbox_init_from_minmax(&bb, p0, p1);
+				draw_box(bb.vec, false);
 			}
 
 			/* don't show smoke before simulation starts, this could be made an option in the future */

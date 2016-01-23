@@ -304,12 +304,26 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        md = context.smoke.domain_settings
-        cache = md.point_cache
+        domain = context.smoke.domain_settings
+        cache_file_format = domain.cache_file_format
 
-        layout.label(text="Compression:")
-        layout.prop(md, "point_cache_compress_type", expand=True)
+        layout.prop(domain, "cache_file_format")
 
+        if cache_file_format == 'POINTCACHE':
+            layout.label(text="Compression:")
+            layout.prop(domain, "point_cache_compress_type", expand=True)
+        elif cache_file_format == 'OPENVDB':
+            if not bpy.app.build_options.openvdb:
+                layout.label("Build without OpenVDB support.")
+                return
+
+            layout.label(text="Compression:")
+            layout.prop(domain, "openvdb_cache_compress_type", expand=True)
+            row = layout.row()
+            row.label("Data Depth:")
+            row.prop(domain, "data_depth", expand=True, text="Data Depth")
+
+        cache = domain.point_cache
         point_cache_ui(self, context, cache, (cache.is_baked is False), 'SMOKE')
 
 

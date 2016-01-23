@@ -311,6 +311,14 @@ if(WITH_OPENSUBDIV)
 	add_definitions(-DWITH_OPENSUBDIV)
 endif()
 
+if(WITH_OPENVDB)
+	add_definitions(-DWITH_OPENVDB)
+
+	if(WITH_OPENVDB_BLOSC)
+		add_definitions(-DWITH_OPENVDB_BLOSC)
+	endif()
+endif()
+
 # Build makesrna executable
 blender_include_dirs(
 	.

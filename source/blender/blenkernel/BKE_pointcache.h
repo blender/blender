@@ -94,6 +94,9 @@ struct SmokeModifierData;
 struct SoftBody;
 struct RigidBodyWorld;
 
+struct OpenVDBReader;
+struct OpenVDBWriter;
+
 /* temp structure for read/write */
 typedef struct PTCacheData {
 	unsigned int index;
@@ -119,13 +122,18 @@ typedef struct PTCacheFile {
 
 #define PTCACHE_VEL_PER_SEC     1
 
+enum {
+	PTCACHE_FILE_PTCACHE = 0,
+	PTCACHE_FILE_OPENVDB = 1,
+};
+
 typedef struct PTCacheID {
 	struct PTCacheID *next, *prev;
 
 	struct Scene *scene;
 	struct Object *ob;
 	void *calldata;
-	unsigned int type;
+	unsigned int type, file_type;
 	unsigned int stack_index;
 	unsigned int flag;
 
@@ -146,6 +154,11 @@ typedef struct PTCacheID {
 	int (*write_stream)(PTCacheFile *pf, void *calldata);
 	/* copies cache cata to point data */
 	int (*read_stream)(PTCacheFile *pf, void *calldata);
+
+	/* copies point data to cache data */
+	int (*write_openvdb_stream)(struct OpenVDBWriter *writer, void *calldata);
+	/* copies cache cata to point data */
+	int (*read_openvdb_stream)(struct OpenVDBReader *reader, void *calldata);
 
 	/* copies custom extradata to cache data */
 	void (*write_extra_data)(void *calldata, struct PTCacheMem *pm, int cfra);

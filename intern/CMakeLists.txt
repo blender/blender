@@ -82,3 +82,7 @@ endif()
 if(WIN32)
 	add_subdirectory(utfconv)
 endif()
+
+if(WITH_OPENVDB)
+	add_subdirectory(openvdb)
+endif()

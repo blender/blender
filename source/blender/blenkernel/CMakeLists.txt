@@ -517,6 +517,19 @@ if(WITH_OPENSUBDIV)
 	endif()
 endif()
 
+if(WITH_OPENVDB)
+	add_definitions(-DWITH_OPENVDB)
+	list(APPEND INC
+		 ../../../intern/openvdb
+	)
+
+	if(WITH_OPENVDB_BLOSC)
+		add_definitions(
+			-DWITH_OPENVDB_BLOSC
+		)
+	endif()
+endif()
+
 ## Warnings as errors, this is too strict!
 #if(MSVC)
 #	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")

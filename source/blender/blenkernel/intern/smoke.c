@@ -527,6 +527,14 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 
 			smd->domain->viewsettings = MOD_SMOKE_VIEW_SHOWBIG;
 			smd->domain->effector_weights = BKE_add_effector_weights(NULL);
+
+#ifdef WITH_OPENVDB_BLOSC
+			smd->domain->openvdb_comp = VDB_COMPRESSION_BLOSC;
+#else
+			smd->domain->openvdb_comp = VDB_COMPRESSION_ZIP;
+#endif
+			smd->domain->data_depth = 0;
+			smd->domain->cache_file_format = PTCACHE_FILE_PTCACHE;
 		}
 		else if (smd->type & MOD_SMOKE_TYPE_FLOW)
 		{
@@ -617,6 +625,9 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 
 		MEM_freeN(tsmd->domain->effector_weights);
 		tsmd->domain->effector_weights = MEM_dupallocN(smd->domain->effector_weights);
+		tsmd->domain->openvdb_comp = smd->domain->openvdb_comp;
+		tsmd->domain->data_depth = smd->domain->data_depth;
+		tsmd->domain->cache_file_format = smd->domain->cache_file_format;
 	}
 	else if (tsmd->flow) {
 		tsmd->flow->psys = smd->flow->psys;

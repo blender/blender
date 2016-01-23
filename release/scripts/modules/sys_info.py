@@ -151,6 +151,13 @@ def write_sysinfo(filepath):
     else:
         output.write("Blender was built without Cycles support\n")
 
+    openvdb = bpy.app.openvdb
+    output.write("OpenVDB: ")
+    if openvdb.supported:
+        output.write("%s\n" % openvdb.version_string)
+    else:
+        output.write("Blender was built without OpenVDB support\n")
+
     if not bpy.app.build_options.sdl:
         output.write("SDL: Blender was built without SDL support\n")
 
