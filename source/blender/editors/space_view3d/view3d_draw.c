@@ -633,10 +633,10 @@ static void draw_view_axis(RegionView3D *rv3d, rcti *rect)
 
 		if (fabsf(dx) > toll || fabsf(dy) > toll) {
 			BLF_draw_default_ascii(startx + dx + 2, starty + dy + ydisp + 2, 0.0f, axis_text, 1);
-		}
 
-		/* BLF_draw_default disables blending */
-		glEnable(GL_BLEND);
+			/* BLF_draw_default disables blending */
+			glEnable(GL_BLEND);
+		}
 	}
 
 	glDisable(GL_BLEND);
