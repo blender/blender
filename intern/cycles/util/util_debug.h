@@ -125,13 +125,14 @@ private:
 };
 
 typedef DebugFlags& DebugFlagsRef;
+typedef const DebugFlags& DebugFlagsConstRef;
 
 inline DebugFlags& DebugFlags() {
   return DebugFlags::get();
 }
 
 std::ostream& operator <<(std::ostream &os,
-                          const DebugFlagsRef debug_flags);
+                          DebugFlagsConstRef debug_flags);
 
 CCL_NAMESPACE_END
 
