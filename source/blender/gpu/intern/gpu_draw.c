@@ -1763,7 +1763,7 @@ int GPU_object_material_bind(int nr, void *attribs)
 			        GMS.gviewmat, GMS.gviewinv, GMS.gviewcamtexcofac, GMS.gscenelock);
 
 			auto_bump_scale = GMS.gob->derivedFinal != NULL ? GMS.gob->derivedFinal->auto_bump_scale : 1.0f;
-			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, GMS.gob->col, auto_bump_scale, &partile_info);
+			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, GMS.gviewmat, GMS.gob->col, auto_bump_scale, &partile_info);
 			GMS.gboundmat = mat;
 
 			/* for glsl use alpha blend mode, unless it's set to solid and

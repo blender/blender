@@ -1188,6 +1188,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	char name[32];
 	int update_flag;
 	bool use_border;
+	int ob_inst_update_flag = 0;
 
 	update_flag = rp->engine->job_update_flag;
 	rp->engine->job_update_flag = 0;
@@ -1299,6 +1300,13 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 	/* OK, can we enter render code? */
 	if (rstats->convertdone) {
 		bool first_time = true;
+
+		if (update_flag & PR_UPDATE_VIEW) {
+			ob_inst_update_flag |= RE_OBJECT_INSTANCES_UPDATE_VIEW;
+		}
+
+		RE_updateRenderInstances(re, ob_inst_update_flag);
+
 		for (;;) {
 			if (first_time == false) {
 				if (restore)

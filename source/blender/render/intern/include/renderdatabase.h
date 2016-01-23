@@ -119,6 +119,7 @@ struct ObjectInstanceRen *RE_addRenderInstance(
         struct Render *re, struct ObjectRen *obr, struct Object *ob, struct Object *par,
         int index, int psysindex, float mat[4][4], int lay, const struct DupliObject *dob);
 void RE_makeRenderInstances(struct Render *re);
+void RE_updateRenderInstance(Render *re, ObjectInstanceRen *obi, int flag);
 
 void RE_instance_rotate_ray_start(struct ObjectInstanceRen *obi, struct Isect *is);
 void RE_instance_rotate_ray_dir(struct ObjectInstanceRen *obi, struct Isect *is);

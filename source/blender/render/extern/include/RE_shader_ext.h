@@ -220,6 +220,22 @@ float RE_bake_make_derivative(struct ImBuf *ibuf, float *heights_buffer, const c
                               const float height_min, const float height_max,
                               const float fmult);
 
+enum {
+	RE_OBJECT_INSTANCE_MATRIX_OB,
+	RE_OBJECT_INSTANCE_MATRIX_OBINV,
+	RE_OBJECT_INSTANCE_MATRIX_LOCALTOVIEW,
+	RE_OBJECT_INSTANCE_MATRIX_LOCALTOVIEWINV,
+};
+
+const float (*RE_object_instance_get_matrix(struct ObjectInstanceRen *obi, int matrix_id))[4];
+
+enum {
+	RE_VIEW_MATRIX,
+	RE_VIEWINV_MATRIX,
+};
+
+const float (*RE_render_current_get_matrix(int matrix_id))[4];
+
 #define BAKE_RESULT_OK			0
 #define BAKE_RESULT_NO_OBJECTS		1
 #define BAKE_RESULT_FEEDBACK_LOOP	2

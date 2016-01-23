@@ -112,6 +112,7 @@ struct GPUMaterial {
 	/* for passing uniforms */
 	int viewmatloc, invviewmatloc;
 	int obmatloc, invobmatloc;
+	int localtoviewmatloc, invlocaltoviewmatloc;
 	int obcolloc, obautobumpscaleloc;
 	int cameratexcofacloc;
 
@@ -242,6 +243,10 @@ static int GPU_material_construct_end(GPUMaterial *material, const char *passnam
 			material->obmatloc = GPU_shader_get_uniform(shader, GPU_builtin_name(GPU_OBJECT_MATRIX));
 		if (material->builtins & GPU_INVERSE_OBJECT_MATRIX)
 			material->invobmatloc = GPU_shader_get_uniform(shader, GPU_builtin_name(GPU_INVERSE_OBJECT_MATRIX));
+		if (material->builtins & GPU_LOC_TO_VIEW_MATRIX)
+			material->localtoviewmatloc = GPU_shader_get_uniform(shader, GPU_builtin_name(GPU_LOC_TO_VIEW_MATRIX));
+		if (material->builtins & GPU_INVERSE_LOC_TO_VIEW_MATRIX)
+			material->invlocaltoviewmatloc = GPU_shader_get_uniform(shader, GPU_builtin_name(GPU_INVERSE_LOC_TO_VIEW_MATRIX));
 		if (material->builtins & GPU_OBCOLOR)
 			material->obcolloc = GPU_shader_get_uniform(shader, GPU_builtin_name(GPU_OBCOLOR));
 		if (material->builtins & GPU_AUTO_BUMPSCALE)
@@ -384,12 +389,14 @@ void GPU_material_bind(
 }
 
 void GPU_material_bind_uniforms(
-        GPUMaterial *material, float obmat[4][4], float obcol[4],
+        GPUMaterial *material, float obmat[4][4], float viewmat[4][4], float obcol[4],
         float autobumpscale, GPUParticleInfo *pi)
 {
 	if (material->pass) {
 		GPUShader *shader = GPU_pass_shader(material->pass);
 		float invmat[4][4], col[4];
+		float localtoviewmat[4][4];
+		float invlocaltoviewmat[4][4];
 
 		/* handle per object builtins */
 		if (material->builtins & GPU_OBJECT_MATRIX) {
@@ -398,6 +405,19 @@ void GPU_material_bind_uniforms(
 		if (material->builtins & GPU_INVERSE_OBJECT_MATRIX) {
 			invert_m4_m4(invmat, obmat);
 			GPU_shader_uniform_vector(shader, material->invobmatloc, 16, 1, (float *)invmat);
+		}
+		if (material->builtins & GPU_LOC_TO_VIEW_MATRIX) {
+			if (viewmat) {
+				mul_m4_m4m4(localtoviewmat, viewmat, obmat);
+				GPU_shader_uniform_vector(shader, material->localtoviewmatloc, 16, 1, (float *)localtoviewmat);
+			}
+		}
+		if (material->builtins & GPU_INVERSE_LOC_TO_VIEW_MATRIX) {
+			if (viewmat) {
+				mul_m4_m4m4(localtoviewmat, viewmat, obmat);
+				invert_m4_m4(invlocaltoviewmat, localtoviewmat);
+				GPU_shader_uniform_vector(shader, material->invlocaltoviewmatloc, 16, 1, (float*)invlocaltoviewmat);
+			}
 		}
 		if (material->builtins & GPU_OBCOLOR) {
 			copy_v4_v4(col, obcol);
@@ -2352,6 +2372,8 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 		{ GPU_INVERSE_VIEW_MATRIX, GPU_DYNAMIC_OBJECT_VIEWIMAT, GPU_DATA_16F },
 		{ GPU_OBJECT_MATRIX, GPU_DYNAMIC_OBJECT_MAT, GPU_DATA_16F },
 		{ GPU_INVERSE_OBJECT_MATRIX, GPU_DYNAMIC_OBJECT_IMAT, GPU_DATA_16F },
+		{ GPU_LOC_TO_VIEW_MATRIX, GPU_DYNAMIC_OBJECT_LOCTOVIEWMAT, GPU_DATA_16F },
+		{ GPU_INVERSE_LOC_TO_VIEW_MATRIX, GPU_DYNAMIC_OBJECT_LOCTOVIEWIMAT, GPU_DATA_16F },
 		{ GPU_OBCOLOR, GPU_DYNAMIC_OBJECT_COLOR, GPU_DATA_4F },
 		{ GPU_AUTO_BUMPSCALE, GPU_DYNAMIC_OBJECT_AUTOBUMPSCALE, GPU_DATA_1F },
 		{ 0 }

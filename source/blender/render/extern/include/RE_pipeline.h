@@ -363,6 +363,13 @@ bool RE_is_rendering_allowed(struct Scene *scene, struct Object *camera_override
 
 bool RE_allow_render_generic_object(struct Object *ob);
 
+/* RE_updateRenderInstances flag */
+enum {
+	RE_OBJECT_INSTANCES_UPDATE_VIEW  = (1 << 0),
+	RE_OBJECT_INSTANCES_UPDATE_OBMAT = (1 << 1),
+};
+void RE_updateRenderInstances(Render *re, int flag);
+
 /******* defined in render_result.c *********/
 
 bool RE_HasFakeLayer(RenderResult *res);

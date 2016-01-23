@@ -2112,3 +2112,31 @@ float RE_lamp_get_data(ShadeInput *shi, Object *lamp_obj, float col[4], float lv
 
 	return 0.0f;
 }
+
+const float (*RE_object_instance_get_matrix(struct ObjectInstanceRen *obi, int matrix_id))[4]
+{
+	if (obi) {
+		switch (matrix_id) {
+			case RE_OBJECT_INSTANCE_MATRIX_OB:
+				return (const float(*)[4])obi->obmat;
+			case RE_OBJECT_INSTANCE_MATRIX_OBINV:
+				return (const float(*)[4])obi->obinvmat;
+			case RE_OBJECT_INSTANCE_MATRIX_LOCALTOVIEW:
+				return (const float(*)[4])obi->localtoviewmat;
+			case RE_OBJECT_INSTANCE_MATRIX_LOCALTOVIEWINV:
+				return (const float(*)[4])obi->localtoviewinvmat;
+		}
+	}
+	return NULL;
+}
+
+const float (*RE_render_current_get_matrix(int matrix_id))[4]
+{
+	switch(matrix_id) {
+		case RE_VIEW_MATRIX:
+			return (const float(*)[4])R.viewmat;
+		case RE_VIEWINV_MATRIX:
+			return (const float(*)[4])R.viewinv;
+	}
+	return NULL;
+}

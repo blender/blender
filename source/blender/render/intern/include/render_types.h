@@ -353,6 +353,10 @@ typedef struct ObjectInstanceRen {
 
 	float mat[4][4], imat[4][4];
 	float nmat[3][3]; /* nmat is inverse mat tranposed */
+
+	float obmat[4][4], obinvmat[4][4];
+	float localtoviewmat[4][4], localtoviewinvmat[4][4];
+
 	short flag;
 
 	float dupliorco[3], dupliuv[2];

@@ -381,6 +381,10 @@ const char *GPU_builtin_name(GPUBuiltin builtin)
 		return "unfinvviewmat";
 	else if (builtin == GPU_INVERSE_OBJECT_MATRIX)
 		return "unfinvobmat";
+	else if (builtin == GPU_LOC_TO_VIEW_MATRIX)
+		return "unflocaltoviewmat";
+	else if (builtin == GPU_INVERSE_LOC_TO_VIEW_MATRIX)
+		return "unfinvlocaltoviewmat";
 	else if (builtin == GPU_VIEW_POSITION)
 		return "varposition";
 	else if (builtin == GPU_VIEW_NORMAL)
