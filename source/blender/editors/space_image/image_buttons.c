@@ -597,6 +597,7 @@ static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt
 
 	rr = BKE_image_acquire_renderresult(scene, image);
 	if (UNLIKELY(rr == NULL)) {
+		BKE_image_release_renderresult(scene, image);
 		return false;
 	}
 
@@ -606,11 +607,13 @@ static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt
 
 	rl = BLI_findlink(&rr->layers, layer);
 	if (rl == NULL) {
+		BKE_image_release_renderresult(scene, image);
 		return false;
 	}
 
 	rpass = BLI_findlink(&rl->passes, iuser->pass);
 	if (rpass == NULL) {
+		BKE_image_release_renderresult(scene, image);
 		return false;
 	}
 
@@ -631,8 +634,10 @@ static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt
 		RenderPass *rp;
 		int rp_index = 0;
 
-		if (iuser->pass == 0)
+		if (iuser->pass == 0) {
+			BKE_image_release_renderresult(scene, image);
 			return false;
+		}
 
 		for (rp = rl->passes.first; rp; rp = rp->next, rp_index++) {
 			if (rp->passtype == rpass->passtype) {
@@ -645,6 +650,8 @@ static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt
 	else {
 		BLI_assert(0);
 	}
+
+	BKE_image_release_renderresult(scene, image);
 
 	if (changed) {
 		BKE_image_multilayer_index(rr, iuser);
