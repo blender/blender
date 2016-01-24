@@ -130,6 +130,7 @@ static void draw_render_info(const bContext *C,
 
 			UI_ThemeColor(TH_FACE_SELECT);
 
+			glLineWidth(1.0f);
 			for (i = 0, tile = tiles; i < total_tiles; i++, tile++) {
 				glaDrawBorderCorners(tile, zoomx, zoomy);
 			}
