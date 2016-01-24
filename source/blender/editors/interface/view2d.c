@@ -212,11 +212,6 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 
 	do_init = (v2d->flag & V2D_IS_INITIALISED) == 0;
 
-	/* initialize without scroll bars (interferes with zoom level see: T47047) */
-	if (do_init) {
-		v2d->scroll |= V2D_SCROLL_VERTICAL_FULLR | V2D_SCROLL_HORIZONTAL_FULLR;
-	}
-
 	/* see eView2D_CommonViewTypes in UI_view2d.h for available view presets */
 	switch (type) {
 		/* 'standard view' - optimum setup for 'standard' view behavior,
@@ -322,8 +317,12 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			v2d->keeptot = V2D_KEEPTOT_BOUNDS;
 			
 			/* note, scroll is being flipped in ED_region_panels() drawing */
-			v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
-			v2d->scroll |= V2D_SCROLL_VERTICAL_HIDE;
+			v2d->scroll |= (V2D_SCROLL_HORIZONTAL_HIDE | V2D_SCROLL_VERTICAL_HIDE);
+
+			/* initialize without scroll bars (interferes with zoom level see: T47047) */
+			if (do_init) {
+				v2d->scroll |= (V2D_SCROLL_VERTICAL_FULLR | V2D_SCROLL_HORIZONTAL_FULLR);
+			}
 
 			if (do_init) {
 				float panelzoom = (style) ? style->panelzoom : 1.0f;
