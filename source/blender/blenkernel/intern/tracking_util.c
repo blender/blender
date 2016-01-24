@@ -482,7 +482,18 @@ MovieTrackingMarker *tracking_get_keyframed_marker(MovieTrackingTrack *track,
 			 * fallback to the first marker in current tracked segment
 			 * as a keyframe.
 			 */
-			if (next_marker && next_marker->flag & MARKER_DISABLED) {
+			if (next_marker == NULL) {
+				/* Could happen when trying to get reference marker for the fist
+				 * one on the segment which isn't surrounded by disabled markers.
+				 *
+				 * There's no really good choise here, just use the reference
+				 * marker which looks correct..
+				 */
+				if (marker_keyed_fallback == NULL) {
+					marker_keyed_fallback = cur_marker;
+				}
+			}
+			else if (next_marker->flag & MARKER_DISABLED) {
 				if (marker_keyed_fallback == NULL)
 					marker_keyed_fallback = cur_marker;
 			}
