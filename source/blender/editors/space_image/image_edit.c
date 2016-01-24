@@ -119,8 +119,6 @@ ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **r_lock)
 		if (ibuf) {
 			if (ibuf->rect || ibuf->rect_float)
 				return ibuf;
-
-			BKE_image_release_ibuf(sima->image, ibuf, NULL);
 		}
 	}
 	else
