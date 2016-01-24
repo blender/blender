@@ -577,6 +577,8 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	px[0] = 1.0f / width / sc->zoom;
 	px[1] = 1.0f / height / sc->zoom;
 
+	glLineWidth(1.0f);
+
 	/* marker position and offset position */
 	if ((track->flag & SELECT) == sel && (marker->flag & MARKER_DISABLED) == 0) {
 		float pos[2], p[2];
