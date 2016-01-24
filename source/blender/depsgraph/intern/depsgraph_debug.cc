@@ -326,7 +326,8 @@ static void deg_debug_graphviz_node_fillcolor(const DebugContext &ctx,
 	int color_index = deg_debug_node_color_index(node);
 	const char *base_color = color_index < 0 ? defaultcolor : deg_debug_colors_light[color_index % deg_debug_max_colors];
 	if (ctx.show_tags &&
-	    (node->flag & (DEPSNODE_FLAG_DIRECTLY_MODIFIED | DEPSNODE_FLAG_NEEDS_UPDATE))) {
+	    (node->flag & (DEPSNODE_FLAG_DIRECTLY_MODIFIED | DEPSNODE_FLAG_NEEDS_UPDATE)))
+	{
 		deg_debug_fprintf(ctx, "\"");
 		for (int i = 0; i < num_stripes; ++i) {
 			if (i > 0) {

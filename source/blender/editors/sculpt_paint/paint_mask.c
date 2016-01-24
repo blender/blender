@@ -151,7 +151,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
 	MaskTaskData data = {
 	    .ob = ob, .pbvh = pbvh, .nodes = nodes, .multires = multires,
-		.mode = mode, .value = value,
+	    .mode = mode, .value = value,
 	};
 
 	BLI_task_parallel_range(

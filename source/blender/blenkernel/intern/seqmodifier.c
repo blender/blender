@@ -817,7 +817,8 @@ static void tonemapmodifier_apply(struct SequenceModifierData *smd,
 		minl = (L < minl) ? L : minl;
 		if (fp != NULL) {
 			fp += 4;
-		} else {
+		}
+		else {
 			cp += 4;
 		}
 	}

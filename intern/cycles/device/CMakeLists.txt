@@ -15,10 +15,14 @@ set(INC_SYS
 )
 
 if(WITH_CUDA_DYNLOAD)
-	list(APPEND INC ../../../extern/cuew/include)
+	list(APPEND INC
+		../../../extern/cuew/include
+	)
 	add_definitions(-DWITH_CUDA_DYNLOAD)
 else()
-	list(APPEND INC_SYS ${CUDA_TOOLKIT_INCLUDE})
+	list(APPEND INC_SYS
+		${CUDA_TOOLKIT_INCLUDE}
+	)
 	add_definitions(-DCYCLES_CUDA_NVCC_EXECUTABLE="${CUDA_NVCC_EXECUTABLE}")
 endif()
 
