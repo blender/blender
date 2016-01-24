@@ -313,7 +313,7 @@ vector<DeviceInfo>& Device::available_devices()
 {
 	static vector<DeviceInfo> devices;
 
-	if(need_types_update) {
+	if(need_devices_update) {
 		devices.clear();
 #ifdef WITH_CUDA
 		if(device_cuda_init())
@@ -335,7 +335,7 @@ vector<DeviceInfo>& Device::available_devices()
 		device_network_info(devices);
 #endif
 
-		need_types_update = false;
+		need_devices_update = false;
 	}
 
 	return devices;
