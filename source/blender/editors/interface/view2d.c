@@ -1427,7 +1427,8 @@ void UI_view2d_multi_grid_draw(View2D *v2d, int colorid, float step, int level_s
 	int offset = -10;
 	float lstep = step;
 	int level;
-	
+
+	glLineWidth(1.0f);
 	for (level = 0; level < totlevels; ++level) {
 		int i;
 		float start;
