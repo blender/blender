@@ -128,6 +128,7 @@ static GPUNodeLink *get_gpulink_matrix_from_to(short from, short to)
 				case SHD_VECT_TRANSFORM_SPACE_CAMERA:
 					return GPU_builtin(GPU_LOC_TO_VIEW_MATRIX);
 			}
+			break;
 		case SHD_VECT_TRANSFORM_SPACE_WORLD:
 			switch (to) {
 				case SHD_VECT_TRANSFORM_SPACE_WORLD:
@@ -137,6 +138,7 @@ static GPUNodeLink *get_gpulink_matrix_from_to(short from, short to)
 				case SHD_VECT_TRANSFORM_SPACE_OBJECT:
 					return GPU_builtin(GPU_INVERSE_OBJECT_MATRIX);
 			}
+			break;
 		case SHD_VECT_TRANSFORM_SPACE_CAMERA:
 			switch (to) {
 				case SHD_VECT_TRANSFORM_SPACE_CAMERA:
@@ -146,8 +148,9 @@ static GPUNodeLink *get_gpulink_matrix_from_to(short from, short to)
 				case SHD_VECT_TRANSFORM_SPACE_OBJECT:
 					return GPU_builtin(GPU_INVERSE_LOC_TO_VIEW_MATRIX);
 			}
+			break;
 	}
-	return 0;
+	return NULL;
 }
 static int gpu_shader_vect_transform(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {

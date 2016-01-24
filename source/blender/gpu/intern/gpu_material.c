@@ -416,7 +416,7 @@ void GPU_material_bind_uniforms(
 			if (viewmat) {
 				mul_m4_m4m4(localtoviewmat, viewmat, obmat);
 				invert_m4_m4(invlocaltoviewmat, localtoviewmat);
-				GPU_shader_uniform_vector(shader, material->invlocaltoviewmatloc, 16, 1, (float*)invlocaltoviewmat);
+				GPU_shader_uniform_vector(shader, material->invlocaltoviewmatloc, 16, 1, (float *)invlocaltoviewmat);
 			}
 		}
 		if (material->builtins & GPU_OBCOLOR) {
