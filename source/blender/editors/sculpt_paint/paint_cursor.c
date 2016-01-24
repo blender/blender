@@ -1064,6 +1064,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	}
 
 	/* make lines pretty */
+	glLineWidth(1.0f);
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
 

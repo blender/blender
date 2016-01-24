@@ -304,6 +304,8 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	dx = fabs(x - (wx) * fx / fw);
 	if (dx == 0) dx = fabs(y - (wy) * fy / fw);
 	
+	glLineWidth(1.0f);
+
 	glDepthMask(GL_FALSE);     /* disable write in zbuffer */
 
 	/* check zoom out */
