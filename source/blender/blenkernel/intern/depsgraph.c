@@ -764,6 +764,10 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Sc
 			ListBase *effectors = NULL;
 			EffectorCache *eff;
 
+			if (part->adt) {
+				dag_add_driver_relation(part->adt, dag, node, 1);
+			}
+
 			dag_add_relation(dag, node, node, DAG_RL_OB_DATA, "Particle-Object Relation");
 
 			if (!psys_check_enabled(ob, psys))
