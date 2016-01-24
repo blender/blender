@@ -52,7 +52,7 @@ static void node_shader_init_vect_transform(bNodeTree *UNUSED(ntree), bNode *nod
 	node->storage = vect;
 }
 
-static const float (* const get_matrix_from_to(ShaderCallData *scd, short from, short to))[4]
+static const float (* get_matrix_from_to(ShaderCallData *scd, short from, short to))[4]
 {
 	switch (from) {
 		case SHD_VECT_TRANSFORM_SPACE_OBJECT:
