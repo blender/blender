@@ -409,6 +409,7 @@ static void region_draw_azones(ScrArea *sa, ARegion *ar)
 	if (!sa)
 		return;
 
+	glLineWidth(1.0f);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -1940,6 +1941,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, const char *context, int c
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 	
+	/* reset line width for drawing tabs */
+	glLineWidth(1.0f);
 
 	/* set the view */
 	UI_view2d_view_ortho(v2d);
