@@ -750,7 +750,7 @@ ccl_device void kernel_volume_decoupled_free(KernelGlobals *kg, VolumeSegment *s
 }
 
 /* scattering for homogeneous and heterogeneous volumes, using decoupled ray
- * marching. this function does not do emission or modify throughput. 
+ * marching.
  *
  * function is expected to return VOLUME_PATH_SCATTERED when probalistic_scatter is false */
 ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
