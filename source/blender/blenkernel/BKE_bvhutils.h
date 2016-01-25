@@ -51,6 +51,7 @@ typedef struct BVHTreeFromMesh {
 	/* default callbacks to bvh nearest and raycast */
 	BVHTree_NearestPointCallback nearest_callback;
 	BVHTree_RayCastCallback raycast_callback;
+	BVHTree_NearestToRayCallback nearest_to_ray_callback;
 
 	/* Vertex array, so that callbacks have instante access to data */
 	const struct MVert *vert;
@@ -147,6 +148,8 @@ enum {
 	BVHTREE_FROM_FACES_EDITMESH_ALL     = 4,
 	/* visible unselected, only used for transform snapping */
 	BVHTREE_FROM_FACES_EDITMESH_SNAP    = 5,
+	// BVHTREE_FROM_EDGES_EDITMESH_SNAP    = 6,
+	BVHTREE_FROM_VERTS_EDITMESH_SNAP    = 7,
 };
 
 typedef struct LinkNode *BVHCache;

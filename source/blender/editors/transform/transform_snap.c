@@ -1660,50 +1660,26 @@ static bool snapDerivedMesh(
 			}
 			case SCE_SNAP_MODE_VERTEX:
 			{
-				MVert *verts = dm->getVertArray(dm);
-				const int *index_array = NULL;
-				int index = 0;
-				int i;
+				BVHTreeNearest nearest;
+				BVHTreeFromMesh treeData;
 
-				if (em != NULL) {
-					index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);
-					BM_mesh_elem_table_ensure(em->bm, BM_VERT);
+				treeData.em_evil = em;
+				bvhtree_from_mesh_verts(&treeData, dm, 0.0f, 2, 6);
+
+				nearest.index = -1;
+				nearest.dist_sq = FLT_MAX;
+				if (treeData.tree &&
+				    BLI_bvhtree_find_nearest_to_ray(
+				        treeData.tree, ray_start_local, ray_normal_local, 0.0f,
+				        &nearest, NULL, &treeData) != -1)
+				{
+					MVert v = treeData.vert[nearest.index];
+					retval = snapVertex(
+						ar, v.co, v.no, obmat, timat, mval,
+						ray_start, ray_start_local, ray_normal_local, ray_depth,
+						r_loc, r_no, r_dist_px);
 				}
-
-				for (i = 0; i < totvert; i++) {
-					BMVert *eve = NULL;
-					MVert *v = verts + i;
-					bool test = true;
-
-					if (em != NULL) {
-						if (index_array) {
-							index = index_array[i];
-						}
-						else {
-							index = i;
-						}
-						
-						if (index == ORIGINDEX_NONE) {
-							test = false;
-						}
-						else {
-							eve = BM_vert_at_index(em->bm, index);
-							
-							if (BM_elem_flag_test(eve, BM_ELEM_HIDDEN) ||
-							    BM_elem_flag_test(eve, BM_ELEM_SELECT))
-							{
-								test = false;
-							}
-						}
-					}
-
-					if (test) {
-						retval |= snapVertex(
-						        ar, v->co, v->no, obmat, timat, mval,
-						        ray_start, ray_start_local, ray_normal_local, ray_depth,
-						        r_loc, r_no, r_dist_px);
-					}
-				}
+				free_bvhtree_from_mesh(&treeData);
 
 				break;
 			}
