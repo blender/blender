@@ -308,7 +308,8 @@ typedef struct SequenceModifierData {
 	char name[64]; /* MAX_NAME */
 
 	/* mask input, either sequence or mask ID */
-	int mask_input_type, pad;
+	int mask_input_type;
+	int mask_time;
 
 	struct Sequence *mask_sequence;
 	struct Mask     *mask_id;
@@ -555,6 +556,13 @@ enum {
 enum {
 	SEQUENCE_MASK_INPUT_STRIP   = 0,
 	SEQUENCE_MASK_INPUT_ID      = 1
+};
+
+enum {
+	/* Mask animation will be remapped relative to the strip start frame. */
+	SEQUENCE_MASK_TIME_RELATIVE = 0,
+	/* Global (scene) frame number will be used to access the mask. */
+	SEQUENCE_MASK_TIME_ABSOLUTE = 1,
 };
 
 #endif  /* __DNA_SEQUENCE_TYPES_H__ */

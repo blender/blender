@@ -1112,6 +1112,8 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
                     box.prop_search(mod, "input_mask_strip", sequences_object, "sequences", text="Mask")
                 else:
                     box.prop(mod, "input_mask_id")
+                    row = box.row()
+                    row.prop(mod, "mask_time", expand=True)
 
                 if mod.type == 'COLOR_BALANCE':
                     box.prop(mod, "color_multiply")

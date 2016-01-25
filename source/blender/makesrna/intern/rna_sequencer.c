@@ -2422,6 +2422,12 @@ static void rna_def_modifier(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static const EnumPropertyItem mask_time_items[] = {
+		{SEQUENCE_MASK_TIME_RELATIVE, "RELATIVE", 0, "Relative", "Mask animation is offset to start of strip"},
+		{SEQUENCE_MASK_TIME_ABSOLUTE, "ABSOLUTE", 0, "Absolute", "Mask animation is in sync with scene frame"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "SequenceModifier", NULL);
 	RNA_def_struct_sdna(srna, "SequenceModifierData");
 	RNA_def_struct_ui_text(srna, "SequenceModifier", "Modifier for sequence strip");
@@ -2456,6 +2462,12 @@ static void rna_def_modifier(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mask_input_type");
 	RNA_def_property_enum_items(prop, mask_input_type_items);
 	RNA_def_property_ui_text(prop, "Mask Input Type", "Type of input data used for mask");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
+
+	prop = RNA_def_property(srna, "mask_time", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mask_time");
+	RNA_def_property_enum_items(prop, mask_time_items);
+	RNA_def_property_ui_text(prop, "Mask Time", "Time to use for the Mask animation");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceModifier_update");
 
 	prop = RNA_def_property(srna, "input_mask_strip",  PROP_POINTER, PROP_NONE);

@@ -978,7 +978,19 @@ ImBuf *BKE_sequence_modifier_apply_stack(const SeqRenderData *context, Sequence 
 			continue;
 
 		if (smti->apply) {
-			ImBuf *mask = modifier_mask_get(smd, context, cfra, seq->start, ibuf->rect_float != NULL);
+			int frame_offset;
+			if (smd->mask_time == SEQUENCE_MASK_TIME_RELATIVE) {
+				frame_offset = seq->start;
+			}
+			else /*if (smd->mask_time == SEQUENCE_MASK_TIME_ABSOLUTE)*/ {
+				frame_offset = 0;
+			}
+
+			ImBuf *mask = modifier_mask_get(smd,
+			                                context,
+			                                cfra,
+			                                frame_offset,
+			                                ibuf->rect_float != NULL);
 
 			if (processed_ibuf == ibuf)
 				processed_ibuf = IMB_dupImBuf(ibuf);
