@@ -111,12 +111,14 @@ base class --- :class:`KX_GameObject`
 
       mat4_perspective_to_depth is a fixed matrix defined as follow:
 
-          0.5 0.0 0.0 0.5
-          0.0 0.5 0.0 0.5
-          0.0 0.0 0.5 0.5
-          0.0 0.0 0.0 1.0
-      Note:
-          There is one matrix of that type per lamp casting shadow in the scene.
+         0.5 0.0 0.0 0.5
+         0.0 0.5 0.0 0.5
+         0.0 0.0 0.5 0.5
+         0.0 0.0 0.0 1.0
+
+      .. note:
+
+         There is one matrix of that type per lamp casting shadow in the scene.
 
       :type: Matrix4x4 (read only)
 

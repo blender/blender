@@ -417,7 +417,7 @@ PyDoc_STRVAR(M_Geometry_intersect_line_line_2d_doc,
 "\n"
 "   Takes 2 segments (defined by 4 vectors) and returns a vector for their point of intersection or None.\n"
 "\n"
-"   .. warning:: Despite its name, this function works on segments, and not on lines..."
+"   .. warning:: Despite its name, this function works on segments, and not on lines.\n"
 "\n"
 "   :arg lineA_p1: First point of the first line\n"
 "   :type lineA_p1: :class:`mathutils.Vector`\n"
