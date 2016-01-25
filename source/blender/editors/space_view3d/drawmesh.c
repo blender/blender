@@ -384,7 +384,7 @@ static bool set_draw_settings_cached(int clearcache, MTexPoly *texface, Material
 			float specular[3];
 			mul_v3_v3fl(specular, &ma->specr, ma->spec);
 
-			GPU_basic_shader_colors(NULL, specular, ma->har, 0.0f);
+			GPU_basic_shader_colors(NULL, specular, ma->har, 1.0f);
 			GPU_basic_shader_bind(options);
 		}
 		else {
@@ -1078,7 +1078,7 @@ static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
 			if (data->two_sided_lighting)
 				options |= GPU_SHADER_TWO_SIDED;
 
-			GPU_basic_shader_colors(diffuse, NULL, 0, 0.0f);
+			GPU_basic_shader_colors(diffuse, NULL, 0, 1.0f);
 			GPU_basic_shader_bind(options);
 
 			return;
