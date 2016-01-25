@@ -85,6 +85,9 @@ typedef void (*BVHTree_NearestPointCallback)(void *userdata, int index, const fl
 /* callback must update hit in case it finds a nearest successful hit */
 typedef void (*BVHTree_RayCastCallback)(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit);
 
+/* callback must update nearest to ray in case it finds a nearest result */
+typedef void(*BVHTree_NearestToRayCallback)(void *userdata, int index, const BVHTreeRay *ray, BVHTreeNearest *nearest);
+
 /* callback to check if 2 nodes overlap (use thread if intersection results need to be stored) */
 typedef bool (*BVHTree_OverlapCallback)(void *userdata, int index_a, int index_b, int thread);
 
@@ -115,6 +118,10 @@ float BLI_bvhtree_getepsilon(const BVHTree *tree);
  * (if nearest is given it will only search nodes where square distance is smaller than nearest->dist) */
 int BLI_bvhtree_find_nearest(BVHTree *tree, const float co[3], BVHTreeNearest *nearest,
                              BVHTree_NearestPointCallback callback, void *userdata);
+
+int BLI_bvhtree_find_nearest_to_ray(
+        BVHTree *tree, const float co[3], const float dir[3], float radius, BVHTreeNearest *nearest,
+        BVHTree_NearestToRayCallback callback, void *userdata);
 
 int BLI_bvhtree_ray_cast_ex(
         BVHTree *tree, const float co[3], const float dir[3], float radius, BVHTreeRayHit *hit,

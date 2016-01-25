@@ -146,6 +146,17 @@ typedef struct BVHRayCastData {
 	BVHTreeRayHit hit;
 } BVHRayCastData;
 
+typedef struct BVHNearestRayData {
+	BVHTree *tree;
+	BVHTree_NearestToRayCallback callback;
+	void    *userdata;
+	BVHTreeRay ray;
+
+	struct NearestRayToAABB_Precalc nearest_precalc;
+
+	bool pick_smallest[3];
+	BVHTreeNearest nearest;
+} BVHNearestRayData;
 
 /**
  * Bounding Volume Hierarchy Definition
@@ -1806,6 +1817,102 @@ int BLI_bvhtree_ray_cast_all(
         BVHTree_RayCastCallback callback, void *userdata)
 {
 	return BLI_bvhtree_ray_cast_all_ex(tree, co, dir, radius, callback, userdata, BVH_RAYCAST_DEFAULT);
+}
+
+static float calc_dist_sq_to_ray(BVHNearestRayData *data, BVHNode *node)
+{
+	const float *bv = node->bv;
+	const float bb_min[3] = {bv[0], bv[2], bv[4]};
+	const float bb_max[3] = {bv[1], bv[3], bv[5]};
+	return dist_squared_ray_to_aabb_v3(&data->nearest_precalc, bb_min, bb_max, data->pick_smallest);
+}
+
+static void dfs_find_nearest_to_ray_dfs(BVHNearestRayData *data, BVHNode *node)
+{
+	if (node->totnode == 0) {
+		if (data->callback) {
+			data->callback(data->userdata, node->index, &data->ray, &data->nearest);
+		}
+		else {
+			const float dist_sq = calc_dist_sq_to_ray(data, node);
+			if (dist_sq != FLT_MAX) {  /* not an invalid ray */
+				data->nearest.index = node->index;
+				data->nearest.dist_sq = dist_sq;
+				/* TODO: return a value to the data->nearest.co
+				 * not urgent however since users currently define own callbacks */
+			}
+		}
+	}
+	else {
+		int i;
+		/* First pick the closest node to dive on */
+		if (data->pick_smallest[node->main_axis]) {
+			for (i = 0; i != node->totnode; i++) {
+				if (calc_dist_sq_to_ray(data, node->children[i]) >= data->nearest.dist_sq) {
+					continue;
+				}
+				dfs_find_nearest_to_ray_dfs(data, node->children[i]);
+			}
+		}
+		else {
+			for (i = node->totnode - 1; i != 0; i--) {
+				if (calc_dist_sq_to_ray(data, node->children[i]) >= data->nearest.dist_sq) {
+					continue;
+				}
+				dfs_find_nearest_to_ray_dfs(data, node->children[i]);
+			}
+		}
+	}
+}
+
+static void dfs_find_nearest_to_ray_begin(BVHNearestRayData *data, BVHNode *node)
+{
+	float dist_sq = calc_dist_sq_to_ray(data, node);
+	if (dist_sq >= data->nearest.dist_sq) {
+		return;
+	}
+	dfs_find_nearest_to_ray_dfs(data, node);
+}
+
+int BLI_bvhtree_find_nearest_to_ray(
+	BVHTree *tree, const float co[3], const float dir[3], float radius, BVHTreeNearest *nearest,
+	BVHTree_NearestToRayCallback callback, void *userdata)
+{
+	BVHNearestRayData data;
+	BVHNode *root = tree->nodes[tree->totleaf];
+
+	BLI_ASSERT_UNIT_V3(dir);
+
+	data.tree = tree;
+
+	data.callback = callback;
+	data.userdata = userdata;
+
+	copy_v3_v3(data.ray.origin, co);
+	copy_v3_v3(data.ray.direction, dir);
+	data.ray.radius = radius;
+
+	dist_squared_ray_to_aabb_v3_precalc(&data.nearest_precalc, co, dir);
+
+	if (nearest) {
+		memcpy(&data.nearest, nearest, sizeof(*nearest));
+	}
+	else {
+		data.nearest.index = -1;
+		data.nearest.dist_sq = FLT_MAX;
+	}
+
+	/* dfs search */
+	if (root) {
+		dfs_find_nearest_to_ray_begin(&data, root);
+	}
+
+	/* copy back results */
+	if (nearest) {
+		memcpy(nearest, &data.nearest, sizeof(*nearest));
+	}
+
+	return data.nearest.index;
 }
 
 /**
