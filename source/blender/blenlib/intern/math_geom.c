@@ -2347,12 +2347,7 @@ float dist_squared_ray_to_aabb_v3(
 	/* `rtmin` is the highest value of the smaller distances. == max_axis_v3(tmin)
 	 * `rtmax` is the lowest value of longer distances. == min_axis_v3(tmax)*/
 	float rtmin, rtmax, mul, rdist;
-	/* `main_axis` is the axis equivalent to edge close to the ray;
-	 * `id_rate` is index of `data->project_rate`. Each edge has a proportional distance to
-	 * the distance between tmin and tmax. This proportion is stored in `data->project_rate",
-	 * getting this value, you can get the distance between the origin and
-	 * the nearest point on the ray to the edge:
-	 * `(rtmax + data->project_rate[face][id_rate] * (rtmin - rtmax))` */
+	/* `main_axis` is the axis equivalent to edge close to the ray */
 	int main_axis;
 
 	r_axis_closest[0] = false;
@@ -2369,7 +2364,7 @@ float dist_squared_ray_to_aabb_v3(
 		r_axis_closest[0] = data->sign[0];
 	}
 	else if ((tmax[1] <= tmax[0]) && (tmax[1] <= tmax[2])) {
-		// printf("# Hit in Y %s\n", data->sign[0] ? "min", "max");
+		// printf("# Hit in Y %s\n", data->sign[1] ? "min", "max");
 		rtmax = tmax[1];
 		v1[1] = v2[1] = local_bvmax[1];
 		mul = local_bvmax[1] * data->ray_dot_axis[1];
@@ -2377,7 +2372,7 @@ float dist_squared_ray_to_aabb_v3(
 		r_axis_closest[1] = data->sign[1];
 	}
 	else {
-		// printf("# Hit in Z %s\n", data->sign[0] ? "min", "max");
+		// printf("# Hit in Z %s\n", data->sign[2] ? "min", "max");
 		rtmax = tmax[2];
 		v1[2] = v2[2] = local_bvmax[2];
 		mul = local_bvmax[2] * data->ray_dot_axis[2];
@@ -2387,7 +2382,7 @@ float dist_squared_ray_to_aabb_v3(
 
 	/* *** max_axis_v3(tmin) *** */
 	if ((tmin[0] >= tmin[1]) && (tmin[0] >= tmin[2])) {
-		// printf("# To X %s\n", data->sign[0] ? "min", "max");
+		// printf("# To X %s\n", data->sign[0] ? "max", "min");
 		rtmin = tmin[0];
 		v1[0] = v2[0] = local_bvmin[0];
 		mul += local_bvmin[0] * data->ray_dot_axis[0];
@@ -2395,7 +2390,7 @@ float dist_squared_ray_to_aabb_v3(
 		r_axis_closest[0] = !data->sign[0];
 	}
 	else if ((tmin[1] >= tmin[0]) && (tmin[1] >= tmin[2])) {
-		// printf("# To Y %s\n", data->sign[0] ? "min", "max");
+		// printf("# To Y %s\n", data->sign[1] ? "max", "min");
 		rtmin = tmin[1];
 		v1[1] = v2[1] = local_bvmin[1];
 		mul += local_bvmin[1] * data->ray_dot_axis[1];
@@ -2403,7 +2398,7 @@ float dist_squared_ray_to_aabb_v3(
 		r_axis_closest[1] = !data->sign[1];
 	}
 	else {
-		// printf("# To Z %s\n", data->sign[0] ? "min", "max");
+		// printf("# To Z %s\n", data->sign[2] ? "max", "min");
 		rtmin = tmin[2];
 		v1[2] = v2[2] = local_bvmin[2];
 		mul += local_bvmin[2] * data->ray_dot_axis[2];
