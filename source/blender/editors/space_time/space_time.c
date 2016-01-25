@@ -352,6 +352,9 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 	View2D *v2d = &ar->v2d;
 	bool onlysel = ((scene->flag & SCE_KEYS_NO_SELONLY) == 0);
 	
+	/* set this for all keyframe lines once and for all */
+	glLineWidth(1.0);
+	
 	/* draw grease pencil keyframes (if available) */	
 	UI_ThemeColor(TH_TIME_GP_KEYFRAME);
 	if (scene->gpd) {

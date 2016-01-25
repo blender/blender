@@ -1008,6 +1008,9 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 			if (fcu->flag & FCURVE_ACTIVE) {
 				glLineWidth(2.0);
 			}
+			else {
+				glLineWidth(1.0);
+			}
 			
 			/* anti-aliased lines for less jagged appearance */
 			if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) glEnable(GL_LINE_SMOOTH);
@@ -1058,11 +1061,15 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 				short mapping_flag = ANIM_get_normalization_flags(ac);
 				float offset;
 				float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, mapping_flag, &offset);
-
+				
+				/* apply unit-scaling to all values via OpenGL */
 				glPushMatrix();
 				glScalef(1.0f, unit_scale, 1.0f);
 				glTranslatef(0.0f, offset, 0.0f);
-
+				
+				/* set this once and for all - all handles and handle-verts should use the same thickness */
+				glLineWidth(1.0);
+				
 				if (fcu->bezt) {
 					bool do_handles = draw_fcurve_handles_check(sipo, fcu);
 					
@@ -1079,7 +1086,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 					/* samples: only draw two indicators at either end as indicators */
 					draw_fcurve_samples(sipo, ar, fcu);
 				}
-
+				
 				glPopMatrix();
 			}
 		}
