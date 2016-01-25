@@ -1345,7 +1345,10 @@ def pyrna2sphinx(basepath):
                     descr = prop.description
                     if not descr:
                         descr = prop.name
-                    fw("         `%s`, %s, %s\n\n" % (prop.identifier, descr, type_descr))
+                    # In rare cases descr may be empty
+                    fw("         `%s`, %s\n\n" %
+                       (prop.identifier,
+                        ", ".join((val for val in (descr, type_descr) if val))))
 
             write_example_ref("      ", fw, "bpy.types." + struct_id + "." + func.identifier)
 
