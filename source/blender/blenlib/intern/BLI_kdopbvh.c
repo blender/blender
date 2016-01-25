@@ -1855,7 +1855,7 @@ static void dfs_find_nearest_to_ray_dfs(BVHNearestRayData *data, BVHNode *node)
 			}
 		}
 		else {
-			for (i = node->totnode - 1; i != 0; i--) {
+			for (i = node->totnode - 1; i >= 0; i--) {
 				if (calc_dist_sq_to_ray(data, node->children[i]) >= data->nearest.dist_sq) {
 					continue;
 				}
