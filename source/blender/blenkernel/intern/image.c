@@ -4410,6 +4410,15 @@ void BKE_image_get_size(Image *image, ImageUser *iuser, int *width, int *height)
 		*width = ibuf->x;
 		*height = ibuf->y;
 	}
+	else if (image->type == IMA_TYPE_R_RESULT && iuser != NULL && iuser->scene != NULL) {
+		Scene *scene = iuser->scene;
+		*width = (scene->r.xsch * scene->r.size) / 100;
+		*height = (scene->r.ysch * scene->r.size) / 100;
+		if ((scene->r.mode & R_BORDER) && (scene->r.mode & R_CROP)) {
+			*width *= BLI_rctf_size_x(&scene->r.border);
+			*height *= BLI_rctf_size_y(&scene->r.border);
+		}
+	}
 	else {
 		*width  = IMG_SIZE_FALLBACK;
 		*height = IMG_SIZE_FALLBACK;
