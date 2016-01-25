@@ -1070,7 +1070,8 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 }
 
 /* draws checkerboard background for transparent content */
-static void sequencer_draw_background(const SpaceSeq *sseq, View2D *v2d, const float viewrect[2])
+static void sequencer_draw_background(
+        const SpaceSeq *sseq, View2D *v2d, const float viewrect[2], const bool draw_overlay)
 {
 	/* setting up the view */
 	UI_view2d_totRect_set(v2d, viewrect[0] + 0.5f, viewrect[1] + 0.5f);
@@ -1079,7 +1080,7 @@ static void sequencer_draw_background(const SpaceSeq *sseq, View2D *v2d, const f
 
 	/* only draw alpha for main buffer */
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
-		if (sseq->flag & SEQ_USE_ALPHA) {
+		if ((sseq->flag & SEQ_USE_ALPHA) && !draw_overlay) {
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -1146,10 +1147,10 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	    (ibuf->rect == NULL && ibuf->rect_float == NULL))
 	{
 		/* gpencil can also be drawn without a valid imbuf */
-		if (draw_gpencil && is_imbuf) {
+		if ((draw_gpencil && is_imbuf) && !draw_overlay) {
 			sequencer_display_size(scene, sseq, viewrect);
 
-			sequencer_draw_background(sseq, v2d, viewrect);
+			sequencer_draw_background(sseq, v2d, viewrect, false);
 			sequencer_draw_borders(sseq, v2d, scene);
 
 			sequencer_draw_gpencil(C);
@@ -1219,7 +1220,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	}
 
 	if (!draw_backdrop) {
-		sequencer_draw_background(sseq, v2d, viewrect);
+		sequencer_draw_background(sseq, v2d, viewrect, draw_overlay);
 	}
 
 	if (scope) {
