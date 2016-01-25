@@ -7811,15 +7811,18 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			glLoadMatrixf(rv3d->viewmat);
 			glMultMatrixf(ob->obmat);
 
-			/* draw adaptive domain bounds */
-			if ((sds->flags & MOD_SMOKE_ADAPTIVE_DOMAIN) && !render_override) {
-				/* draw domain max bounds */
+			if (!render_override) {
 				BoundBox bb;
 				float p0[3], p1[3];
-				VECSUBFAC(p0, sds->p0, sds->cell_size, sds->adapt_res);
-				VECADDFAC(p1, sds->p1, sds->cell_size, sds->adapt_res);
-				BKE_boundbox_init_from_minmax(&bb, p0, p1);
-				draw_box(bb.vec, false);
+
+				/* draw adaptive domain bounds */
+				if ((sds->flags & MOD_SMOKE_ADAPTIVE_DOMAIN)) {
+					/* draw domain max bounds */
+					VECSUBFAC(p0, sds->p0, sds->cell_size, sds->adapt_res);
+					VECADDFAC(p1, sds->p1, sds->cell_size, sds->adapt_res);
+					BKE_boundbox_init_from_minmax(&bb, p0, p1);
+					draw_box(bb.vec, false);
+				}
 
 #if 0
 				/* draw base resolution bounds */
