@@ -552,6 +552,17 @@ static FCurve *rna_Driver_from_existing(AnimData *adt, bContext *C, FCurve *src_
 	}
 }
 
+static FCurve *rna_Driver_find(AnimData *adt, ReportList *reports, const char *data_path, int index)
+{
+	if (data_path[0] == '\0') {
+		BKE_report(reports, RPT_ERROR, "F-Curve data path empty, invalid argument");
+		return NULL;
+	}
+
+	/* Returns NULL if not found. */
+	return list_find_fcurve(&adt->drivers, data_path, index);
+}
+
 #else
 
 /* helper function for Keying Set -> keying settings */
@@ -936,12 +947,25 @@ static void rna_api_animdata_drivers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_sdna(srna, "AnimData");
 	RNA_def_struct_ui_text(srna, "Drivers", "Collection of Driver F-Curves");
 	
+	/* AnimData.drivers.from_existing(...) */
 	func = RNA_def_function(srna, "from_existing", "rna_Driver_from_existing");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Add a new driver given an existing one");
 	RNA_def_pointer(func, "src_driver", "FCurve", "", "Existing Driver F-Curve to use as template for a new one");
 	/* return type */
 	parm = RNA_def_pointer(func, "driver", "FCurve", "", "New Driver F-Curve");
+	RNA_def_function_return(func, parm);
+	
+	/* AnimData.drivers.find(...) */
+	func = RNA_def_function(srna, "find", "rna_Driver_find");
+	RNA_def_function_ui_description(func, "Find a driver F-Curve. Note that this function performs a linear scan "
+	                                "of all driver F-Curves.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_string(func, "data_path", NULL, 0, "Data Path", "F-Curve data path");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);
+	/* return type */
+	parm = RNA_def_pointer(func, "fcurve", "FCurve", "", "The found F-Curve, or None if it doesn't exist");
 	RNA_def_function_return(func, parm);
 }
 
