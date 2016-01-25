@@ -294,7 +294,7 @@ bool WM_jobs_is_running(wmJob *wm_job)
 bool WM_jobs_is_stopped(wmWindowManager *wm, void *owner)
 {
 	wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
-	return wm_job->stop;
+	return wm_job ? wm_job->stop : true; /* XXX to be redesigned properly. */
 }
 
 void *WM_jobs_customdata_get(wmJob *wm_job)

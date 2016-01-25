@@ -604,7 +604,8 @@ void BKE_object_defgroup_mirror_selection(
         bool *dg_flags_sel, int *r_dg_flags_sel_tot)
 {
 	bDeformGroup *defgroup;
-	unsigned int i, i_mirr;
+	unsigned int i;
+	int i_mirr;
 
 	for (i = 0, defgroup = ob->defbase.first; i < defbase_tot && defgroup; defgroup = defgroup->next, i++) {
 		if (dg_selection[i]) {

@@ -2081,9 +2081,6 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	bool use_face_sel;
 	bool use_depth;
 
-	float (*blur_weight_func)(MDeformVert *, WeightPaintInfo *) =
-	        wpd->do_multipaint ? wpaint_blur_weight_multi : wpaint_blur_weight_single;
-
 	const float pressure = RNA_float_get(itemptr, "pressure");
 	const float brush_size_pressure =
 	        BKE_brush_size_get(scene, brush) * (BKE_brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
@@ -2101,6 +2098,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		ED_region_tag_redraw(CTX_wm_region(C));
 		return;
 	}
+
+	float (*blur_weight_func)(MDeformVert *, WeightPaintInfo *) =
+	        wpd->do_multipaint ? wpaint_blur_weight_multi : wpaint_blur_weight_single;
 
 	vc = &wpd->vc;
 	ob = vc->obact;
