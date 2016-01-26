@@ -167,11 +167,33 @@ void BKE_mesh_calc_normals_mapping_ex(
 	
 }
 
-static void mesh_calc_normals_poly_accum(
-        const MPoly *mp, const MLoop *ml,
-        const MVert *mvert,
-        float r_polyno[3], float (*r_tnorms)[3])
+typedef struct MeshCalcNormalsData {
+	const MPoly *mpolys;
+	const MLoop *mloop;
+	MVert *mverts;
+	float (*pnors)[3];
+	float (*vnors)[3];
+} MeshCalcNormalsData;
+
+static void mesh_calc_normals_poly_task_cb(void *userdata, const int pidx)
 {
+	MeshCalcNormalsData *data = userdata;
+	const MPoly *mp = &data->mpolys[pidx];
+
+	BKE_mesh_calc_poly_normal(mp, data->mloop + mp->loopstart, data->mverts, data->pnors[pidx]);
+}
+
+static void mesh_calc_normals_poly_accum_task_cb(void *userdata, const int pidx)
+{
+	MeshCalcNormalsData *data = userdata;
+	const MPoly *mp = &data->mpolys[pidx];
+	const MLoop *ml = &data->mloop[mp->loopstart];
+    const MVert *mverts = data->mverts;
+
+	float pnor_temp[3];
+	float *pnor = data->pnors ? data->pnors[pidx] : pnor_temp;
+	float (*vnors)[3] = data->vnors;
+
 	const int nverts = mp->totloop;
 	float (*edgevecbuf)[3] = BLI_array_alloca(edgevecbuf, (size_t)nverts);
 	int i;
@@ -180,14 +202,14 @@ static void mesh_calc_normals_poly_accum(
 	/* inline version of #BKE_mesh_calc_poly_normal, also does edge-vectors */
 	{
 		int i_prev = nverts - 1;
-		const float *v_prev = mvert[ml[i_prev].v].co;
+		const float *v_prev = mverts[ml[i_prev].v].co;
 		const float *v_curr;
 
-		zero_v3(r_polyno);
+		zero_v3(pnor);
 		/* Newell's Method */
 		for (i = 0; i < nverts; i++) {
-			v_curr = mvert[ml[i].v].co;
-			add_newell_cross_v3_v3v3(r_polyno, v_prev, v_curr);
+			v_curr = mverts[ml[i].v].co;
+			add_newell_cross_v3_v3v3(pnor, v_prev, v_curr);
 
 			/* Unrelated to normalize, calculate edge-vector */
 			sub_v3_v3v3(edgevecbuf[i_prev], v_prev, v_curr);
@@ -196,8 +218,8 @@ static void mesh_calc_normals_poly_accum(
 
 			v_prev = v_curr;
 		}
-		if (UNLIKELY(normalize_v3(r_polyno) == 0.0f)) {
-			r_polyno[2] = 1.0f; /* other axis set to 0.0 */
+		if (UNLIKELY(normalize_v3(pnor) == 0.0f)) {
+			pnor[2] = 1.0f; /* other axis set to 0.0 */
 		}
 	}
 
@@ -214,7 +236,7 @@ static void mesh_calc_normals_poly_accum(
 			const float fac = saacos(-dot_v3v3(cur_edge, prev_edge));
 
 			/* accumulate */
-			madd_v3_v3fl(r_tnorms[ml[i].v], r_polyno, fac);
+			madd_v3_v3fl(vnors[ml[i].v], pnor, fac);
 			prev_edge = cur_edge;
 		}
 	}
@@ -231,16 +253,16 @@ void BKE_mesh_calc_normals_poly(
 	float (*vnors)[3] = r_vertnors;
 	bool free_vnors = false;
 	int i;
-	const MPoly *mp;
 
 	if (only_face_normals) {
 		BLI_assert((pnors != NULL) || (numPolys == 0));
 		BLI_assert(r_vertnors == NULL);
 
-#pragma omp parallel for if (numPolys > BKE_MESH_OMP_LIMIT)
-		for (i = 0; i < numPolys; i++) {
-			BKE_mesh_calc_poly_normal(&mpolys[i], mloop + mpolys[i].loopstart, mverts, pnors[i]);
-		}
+		MeshCalcNormalsData data = {
+		    .mpolys = mpolys, .mloop = mloop, .mverts = mverts, .pnors = pnors,
+		};
+
+		BLI_task_parallel_range(0, numPolys, &data, mesh_calc_normals_poly_task_cb, (numPolys > BKE_MESH_OMP_LIMIT));
 		return;
 	}
 
@@ -253,18 +275,11 @@ void BKE_mesh_calc_normals_poly(
 		memset(vnors, 0, sizeof(*vnors) * (size_t)numVerts);
 	}
 
-	mp = mpolys;
-	if (pnors) {
-		for (i = 0; i < numPolys; i++, mp++) {
-			mesh_calc_normals_poly_accum(mp, mloop + mp->loopstart, mverts, pnors[i], vnors);
-		}
-	}
-	else {
-		float tpnor[3];  /* temp poly normal */
-		for (i = 0; i < numPolys; i++, mp++) {
-			mesh_calc_normals_poly_accum(mp, mloop + mp->loopstart, mverts, tpnor, vnors);
-		}
-	}
+	MeshCalcNormalsData data = {
+	    .mpolys = mpolys, .mloop = mloop, .mverts = mverts, .pnors = pnors, .vnors = vnors,
+	};
+
+	BLI_task_parallel_range(0, numPolys, &data, mesh_calc_normals_poly_accum_task_cb, (numPolys > BKE_MESH_OMP_LIMIT));
 
 	for (i = 0; i < numVerts; i++) {
 		MVert *mv = &mverts[i];
