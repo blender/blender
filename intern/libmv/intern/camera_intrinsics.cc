@@ -264,33 +264,23 @@ void libmv_cameraIntrinsicsDistortFloat(
 }
 
 void libmv_cameraIntrinsicsApply(
-    const libmv_CameraIntrinsicsOptions* libmv_camera_intrinsics_options,
+    const struct libmv_CameraIntrinsics* libmv_intrinsics,
     double x,
     double y,
     double* x1,
     double* y1) {
-  /* Do a lens distortion if focal length is non-zero only. */
-  if (libmv_camera_intrinsics_options->focal_length) {
-    CameraIntrinsics* camera_intrinsics =
-      libmv_cameraIntrinsicsCreateFromOptions(libmv_camera_intrinsics_options);
-    camera_intrinsics->ApplyIntrinsics(x, y, x1, y1);
-    LIBMV_OBJECT_DELETE(camera_intrinsics, CameraIntrinsics);
-  }
+  CameraIntrinsics *intrinsics = (CameraIntrinsics *) libmv_intrinsics;
+  intrinsics->ApplyIntrinsics(x, y, x1, y1);
 }
 
 void libmv_cameraIntrinsicsInvert(
-    const libmv_CameraIntrinsicsOptions* libmv_camera_intrinsics_options,
+    const struct libmv_CameraIntrinsics* libmv_intrinsics,
     double x,
     double y,
     double* x1,
     double* y1) {
-  /* Do a lens un-distortion if focal length is non-zero only/ */
-  if (libmv_camera_intrinsics_options->focal_length) {
-    CameraIntrinsics *camera_intrinsics =
-      libmv_cameraIntrinsicsCreateFromOptions(libmv_camera_intrinsics_options);
-    camera_intrinsics->InvertIntrinsics(x, y, x1, y1);
-    LIBMV_OBJECT_DELETE(camera_intrinsics, CameraIntrinsics);
-  }
+  CameraIntrinsics *intrinsics = (CameraIntrinsics *) libmv_intrinsics;
+  intrinsics->InvertIntrinsics(x, y, x1, y1);
 }
 
 static void libmv_cameraIntrinsicsFillFromOptions(

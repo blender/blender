@@ -108,14 +108,14 @@ void libmv_cameraIntrinsicsDistortFloat(
     float* destination_image);
 
 void libmv_cameraIntrinsicsApply(
-    const libmv_CameraIntrinsicsOptions* libmv_camera_intrinsics_options,
+    const struct libmv_CameraIntrinsics* libmv_intrinsics,
     double x,
     double y,
     double* x1,
     double* y1);
 
 void libmv_cameraIntrinsicsInvert(
-    const libmv_CameraIntrinsicsOptions* libmv_camera_intrinsics_options,
+    const struct libmv_CameraIntrinsics* libmv_intrinsics,
     double x,
     double y,
     double* x1,

@@ -303,29 +303,23 @@ void libmv_cameraIntrinsicsDistortFloat(
 /* ************ utils ************ */
 
 void libmv_cameraIntrinsicsApply(
-    const libmv_CameraIntrinsicsOptions* libmv_camera_intrinsics_options,
-    double x,
-    double y,
+    const struct libmv_CameraIntrinsics* /*libmv_intrinsics*/,
+    double /*x*/,
+    double /*y*/,
     double* x1,
     double* y1) {
-  double focal_length = libmv_camera_intrinsics_options->focal_length;
-  double principal_x = libmv_camera_intrinsics_options->principal_point_x;
-  double principal_y = libmv_camera_intrinsics_options->principal_point_y;
-  *x1 = x * focal_length + principal_x;
-  *y1 = y * focal_length + principal_y;
+  *x1 = 0.0;
+  *y1 = 0.0;
 }
 
 void libmv_cameraIntrinsicsInvert(
-    const libmv_CameraIntrinsicsOptions* libmv_camera_intrinsics_options,
-    double x,
-    double y,
+    const struct libmv_CameraIntrinsics* /*libmv_intrinsics*/,
+    double /*x*/,
+    double /*y*/,
     double* x1,
     double* y1) {
-  double focal_length = libmv_camera_intrinsics_options->focal_length;
-  double principal_x = libmv_camera_intrinsics_options->principal_point_x;
-  double principal_y = libmv_camera_intrinsics_options->principal_point_y;
-  *x1 = (x - principal_x) / focal_length;
-  *y1 = (y - principal_y) / focal_length;
+  *x1 = 0.0;
+  *y1 = 0.0;
 }
 
 void libmv_homography2DFromCorrespondencesEuc(/* const */ double (* /*x1*/)[2],

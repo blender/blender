@@ -15,9 +15,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor: 
- *		Jeroen Bakker 
+ * Contributor:
+ *		Jeroen Bakker
  *		Monique Dewanchand
+ *		Sergey Sharybin
  */
 
 #include "COM_MovieDistortionOperation.h"
@@ -29,17 +30,6 @@ extern "C" {
 }
 
 
-static vector<DistortionCache *> s_cache;
-
-void deintializeDistortionCache(void) 
-{
-	while (s_cache.size() > 0) {
-		DistortionCache * cache = s_cache.back();
-		s_cache.pop_back();
-		delete cache;
-	}
-}
-
 MovieDistortionOperation::MovieDistortionOperation(bool distortion) : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
@@ -47,40 +37,32 @@ MovieDistortionOperation::MovieDistortionOperation(bool distortion) : NodeOperat
 	this->setResolutionInputSocketIndex(0);
 	this->m_inputOperation = NULL;
 	this->m_movieClip = NULL;
-	this->m_cache = NULL;
-	this->m_distortion = distortion;
+	this->m_apply = distortion;
 }
 
 void MovieDistortionOperation::initExecution()
 {
 	this->m_inputOperation = this->getInputSocketReader(0);
 	if (this->m_movieClip) {
+		MovieTracking *tracking = &this->m_movieClip->tracking;
 		MovieClipUser clipUser = {0};
 		int calibration_width, calibration_height;
 
 		BKE_movieclip_user_set_frame(&clipUser, this->m_framenumber);
-		BKE_movieclip_get_size(this->m_movieClip, &clipUser, &calibration_width, &calibration_height);
-
-		for (unsigned int i = 0; i < s_cache.size(); i++) {
-			DistortionCache *c = (DistortionCache *)s_cache[i];
-			if (c->isCacheFor(this->m_movieClip, this->m_width, this->m_height,
-			                  calibration_width, calibration_height, this->m_distortion))
-			{
-				this->m_cache = c;
-				this->m_cache->updateLastUsage();
-				this->m_cache->getMargin(this->m_margin);
-				return;
-			}
-		}
+		BKE_movieclip_get_size(this->m_movieClip,
+		                       &clipUser,
+		                       &calibration_width,
+		                       &calibration_height);
 
 		float delta[2];
 		rcti full_frame;
 		full_frame.xmin = full_frame.ymin = 0;
 		full_frame.xmax = this->m_width;
 		full_frame.ymax = this->m_height;
-		BKE_tracking_max_distortion_delta_across_bound(
-			&this->m_movieClip->tracking, &full_frame,
-			!this->m_distortion, delta);
+		BKE_tracking_max_distortion_delta_across_bound(tracking,
+		                                               &full_frame,
+		                                               !this->m_apply,
+		                                               delta);
 
 		/* 5 is just in case we didn't hit real max of distortion in
 		 * BKE_tracking_max_undistortion_delta_across_bound
@@ -88,17 +70,16 @@ void MovieDistortionOperation::initExecution()
 		m_margin[0] = delta[0] + 5;
 		m_margin[1] = delta[1] + 5;
 
-		DistortionCache *newC = new DistortionCache(this->m_movieClip,
-		                                            this->m_width, this->m_height,
-		                                            calibration_width, calibration_height,
-		                                            this->m_distortion,
-		                                            this->m_margin);
-		s_cache.push_back(newC);
-		this->m_cache = newC;
+		this->m_distortion = BKE_tracking_distortion_new(tracking,
+		                                                 calibration_width,
+		                                                 calibration_height);
+		this->m_calibration_width = calibration_width;
+		this->m_calibration_height = calibration_height;
+		this->m_pixel_aspect = tracking->camera.pixel_aspect;
 	}
 	else {
-		this->m_cache = NULL;
 		m_margin[0] = m_margin[1] = 0;
+		this->m_distortion = NULL;
 	}
 }
 
@@ -106,27 +87,39 @@ void MovieDistortionOperation::deinitExecution()
 {
 	this->m_inputOperation = NULL;
 	this->m_movieClip = NULL;
-	while (s_cache.size() > COM_DISTORTIONCACHE_MAXSIZE) {
-		double minTime = PIL_check_seconds_timer();
-		vector<DistortionCache*>::iterator minTimeIterator = s_cache.begin();
-		for (vector<DistortionCache*>::iterator it = s_cache.begin(); it < s_cache.end(); it ++) {
-			DistortionCache * cache = *it;
-			if (cache->getTimeLastUsage() < minTime) {
-				minTime = cache->getTimeLastUsage();
-				minTimeIterator = it;
-			}
-		}
-		s_cache.erase(minTimeIterator);
+	if (this->m_distortion != NULL) {
+		BKE_tracking_distortion_free(this->m_distortion);
 	}
 }
 
-
-void MovieDistortionOperation::executePixelSampled(float output[4], float x, float y, PixelSampler /*sampler*/)
+void MovieDistortionOperation::executePixelSampled(float output[4],
+                                                   float x,
+                                                   float y,
+                                                   PixelSampler /*sampler*/)
 {
-	
-	if (this->m_cache != NULL) {
-		float u, v;
-		this->m_cache->getUV(&this->m_movieClip->tracking, x, y, &u, &v);
+	if (this->m_distortion != NULL) {
+		/* float overscan = 0.0f; */
+		const float pixel_aspect = this->m_pixel_aspect;
+		const float w = (float)this->m_width /* / (1 + overscan) */;
+		const float h = (float)this->m_height /* / (1 + overscan) */;
+		const float aspx = w / (float)this->m_calibration_width;
+		const float aspy = h / (float)this->m_calibration_height;
+		float in[2];
+		float out[2];
+
+		in[0] = (x /* - 0.5 * overscan * w */) / aspx;
+		in[1] = (y /* - 0.5 * overscan * h */) / aspy / pixel_aspect;
+
+		if (this->m_apply) {
+			BKE_tracking_distortion_undistort_v2(this->m_distortion, in, out);
+		}
+		else {
+			BKE_tracking_distortion_distort_v2(this->m_distortion, in, out);
+		}
+
+		float u = out[0] * aspx /* + 0.5 * overscan * w */,
+		      v = (out[1] * aspy /* + 0.5 * overscan * h */) * pixel_aspect;
+
 		this->m_inputOperation->readSampled(output, u, v, COM_PS_BILINEAR);
 	}
 	else {
@@ -134,12 +127,17 @@ void MovieDistortionOperation::executePixelSampled(float output[4], float x, flo
 	}
 }
 
-bool MovieDistortionOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool MovieDistortionOperation::determineDependingAreaOfInterest(
+        rcti *input,
+        ReadBufferOperation *readOperation,
+        rcti *output)
 {
 	rcti newInput;
 	newInput.xmin = input->xmin - m_margin[0];
 	newInput.ymin = input->ymin - m_margin[1];
 	newInput.xmax = input->xmax + m_margin[0];
 	newInput.ymax = input->ymax + m_margin[1];
-	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+	return NodeOperation::determineDependingAreaOfInterest(&newInput,
+	                                                       readOperation,
+	                                                       output);
 }

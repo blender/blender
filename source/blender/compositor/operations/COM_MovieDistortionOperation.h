@@ -15,9 +15,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor: 
- *		Jeroen Bakker 
+ * Contributor:
+ *		Jeroen Bakker
  *		Monique Dewanchand
+ *		Sergey Sharybin
  */
 
 #ifndef _COM_MovieDistortionOperation_h_
@@ -29,145 +30,37 @@
 
 extern "C" {
 #  include "BKE_tracking.h"
-#  include "PIL_time.h"
 }
-
-#define COM_DISTORTIONCACHE_MAXSIZE 10
-
-class DistortionCache {
-private:
-	short m_distortion_model;
-	float m_k1, m_k2, m_k3;
-	float m_division_k1, m_division_k2;
-	float m_principal_x;
-	float m_principal_y;
-	float m_pixel_aspect;
-	int m_width;
-	int m_height;
-	int m_calibration_width;
-	int m_calibration_height;
-	bool m_inverted;
-	double timeLastUsage;
-	int m_margin[2];
-
-public:
-	DistortionCache(MovieClip *movieclip,
-	                int width, int height,
-	                int calibration_width, int calibration_height,
-	                bool inverted,
-	                const int margin[2])
-	{
-		this->m_distortion_model = movieclip->tracking.camera.distortion_model;
-		this->m_k1 = movieclip->tracking.camera.k1;
-		this->m_k2 = movieclip->tracking.camera.k2;
-		this->m_k3 = movieclip->tracking.camera.k3;
-		this->m_division_k1 = movieclip->tracking.camera.division_k1;
-		this->m_division_k2 = movieclip->tracking.camera.division_k2;
-		this->m_principal_x = movieclip->tracking.camera.principal[0];
-		this->m_principal_y = movieclip->tracking.camera.principal[1];
-		this->m_pixel_aspect = movieclip->tracking.camera.pixel_aspect;
-		this->m_width = width;
-		this->m_height = height;
-		this->m_calibration_width = calibration_width;
-		this->m_calibration_height = calibration_height;
-		this->m_inverted = inverted;
-		copy_v2_v2_int(this->m_margin, margin);
-		this->updateLastUsage();
-	}
-
-	void updateLastUsage() {
-		this->timeLastUsage = PIL_check_seconds_timer();
-	}
-
-	inline double getTimeLastUsage() {
-		return this->timeLastUsage;
-	}
-
-	bool isCacheFor(MovieClip *movieclip,
-	                int width, int height,
-	                int calibration_width, int claibration_height,
-	                bool inverted)
-	{
-		return this->m_distortion_model == movieclip->tracking.camera.distortion_model &&
-		       this->m_k1 == movieclip->tracking.camera.k1 &&
-		       this->m_k2 == movieclip->tracking.camera.k2 &&
-		       this->m_k3 == movieclip->tracking.camera.k3 &&
-		       this->m_division_k1 == movieclip->tracking.camera.division_k1 &&
-		       this->m_division_k2 == movieclip->tracking.camera.division_k2 &&
-		       this->m_principal_x == movieclip->tracking.camera.principal[0] &&
-		       this->m_principal_y == movieclip->tracking.camera.principal[1] &&
-		       this->m_pixel_aspect == movieclip->tracking.camera.pixel_aspect &&
-		       this->m_inverted == inverted &&
-		       this->m_width == width &&
-		       this->m_height == height &&
-		       this->m_calibration_width == calibration_width &&
-		       this->m_calibration_height == claibration_height;
-	}
-
-	void getUV(MovieTracking *trackingData,
-	           float x,
-	           float y,
-	           float *r_u,
-	           float *r_v)
-	{
-		if (x < 0 || x >= this->m_width || y < 0 || y >= this->m_height) {
-			*r_u = x;
-			*r_v = y;
-		}
-		else {
-			/* float overscan = 0.0f; */
-			const float w = (float)this->m_width /* / (1 + overscan) */;
-			const float h = (float)this->m_height /* / (1 + overscan) */;
-			const float aspx = w / (float)this->m_calibration_width;
-			const float aspy = h / (float)this->m_calibration_height;
-			float in[2];
-			float out[2];
-
-			in[0] = (x /* - 0.5 * overscan * w */) / aspx;
-			in[1] = (y /* - 0.5 * overscan * h */) / aspy / this->m_pixel_aspect;
-
-			if (this->m_inverted) {
-				BKE_tracking_undistort_v2(trackingData, in, out);
-			}
-			else {
-				BKE_tracking_distort_v2(trackingData, in, out);
-			}
-
-			*r_u = out[0] * aspx /* + 0.5 * overscan * w */;
-			*r_v = (out[1] * aspy /* + 0.5 * overscan * h */) * this->m_pixel_aspect;
-		}
-	}
-
-	void getMargin(int margin[2])
-	{
-		copy_v2_v2_int(margin, m_margin);
-	}
-};
 
 class MovieDistortionOperation : public NodeOperation {
 private:
-	DistortionCache *m_cache;
 	SocketReader *m_inputOperation;
 	MovieClip *m_movieClip;
 	int m_margin[2];
 
 protected:
-	bool m_distortion;
+	bool m_apply;
 	int m_framenumber;
+
+	struct MovieDistortion *m_distortion;
+	int m_calibration_width, m_calibration_height;
+	float m_pixel_aspect;
 
 public:
 	MovieDistortionOperation(bool distortion);
-	void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+	void executePixelSampled(float output[4],
+	                         float x, float y,
+	                         PixelSampler sampler);
 
 	void initExecution();
 	void deinitExecution();
-	
+
 	void setMovieClip(MovieClip *clip) { this->m_movieClip = clip; }
 	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
-	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+	bool determineDependingAreaOfInterest(rcti *input,
+	                                      ReadBufferOperation *readOperation,
+	                                      rcti *output);
 
 };
-
-void deintializeDistortionCache(void);
 
 #endif

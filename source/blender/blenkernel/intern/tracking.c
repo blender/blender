@@ -69,6 +69,10 @@
 
 typedef struct MovieDistortion {
 	struct libmv_CameraIntrinsics *intrinsics;
+	/* Parameters needed for coordinates normalization. */
+	float principal[2];
+	float pixel_aspect;
+	float focal;
 } MovieDistortion;
 
 static struct {
@@ -1878,6 +1882,11 @@ MovieDistortion *BKE_tracking_distortion_new(MovieTracking *tracking,
 	distortion = MEM_callocN(sizeof(MovieDistortion), "BKE_tracking_distortion_create");
 	distortion->intrinsics = libmv_cameraIntrinsicsNew(&camera_intrinsics_options);
 
+	const MovieTrackingCamera *camera = &tracking->camera;
+	copy_v2_v2(distortion->principal, camera->principal);
+	distortion->pixel_aspect = camera->pixel_aspect;
+	distortion->focal = camera->focal;
+
 	return distortion;
 }
 
@@ -1890,6 +1899,11 @@ void BKE_tracking_distortion_update(MovieDistortion *distortion, MovieTracking *
 	                                             calibration_width,
 	                                             calibration_height,
 	                                             &camera_intrinsics_options);
+
+	const MovieTrackingCamera *camera = &tracking->camera;
+	copy_v2_v2(distortion->principal, camera->principal);
+	distortion->pixel_aspect = camera->pixel_aspect;
+	distortion->focal = camera->focal;
 
 	libmv_cameraIntrinsicsUpdate(&camera_intrinsics_options, distortion->intrinsics);
 }
@@ -1904,7 +1918,7 @@ MovieDistortion *BKE_tracking_distortion_copy(MovieDistortion *distortion)
 	MovieDistortion *new_distortion;
 
 	new_distortion = MEM_callocN(sizeof(MovieDistortion), "BKE_tracking_distortion_create");
-
+	*new_distortion = *distortion;
 	new_distortion->intrinsics = libmv_cameraIntrinsicsCopy(distortion->intrinsics);
 
 	return new_distortion;
@@ -1962,6 +1976,36 @@ ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion, MovieTracking *
 	return resibuf;
 }
 
+void BKE_tracking_distortion_distort_v2(MovieDistortion *distortion,
+                                        const float co[2],
+                                        float r_co[2])
+{
+	const float aspy = 1.0f / distortion->pixel_aspect;
+
+	/* Normalize coords. */
+	float inv_focal = 1.0f / distortion->focal;
+	double x = (co[0] - distortion->principal[0]) * inv_focal,
+	       y = (co[1] - distortion->principal[1] * aspy) * inv_focal;
+
+	libmv_cameraIntrinsicsApply(distortion->intrinsics, x, y, &x, &y);
+
+	/* Result is in image coords already. */
+	r_co[0] = x;
+	r_co[1] = y;
+}
+
+void BKE_tracking_distortion_undistort_v2(MovieDistortion *distortion,
+                                          const float co[2],
+                                          float r_co[2])
+{
+	double x = co[0], y = co[1];
+	libmv_cameraIntrinsicsInvert(distortion->intrinsics, x, y, &x, &y);
+
+	const float aspy = 1.0f / distortion->pixel_aspect;
+	r_co[0] = (float)x * distortion->focal + distortion->principal[0];
+	r_co[1] = (float)y * distortion->focal + distortion->principal[1] * aspy;
+}
+
 void BKE_tracking_distortion_free(MovieDistortion *distortion)
 {
 	libmv_cameraIntrinsicsDestroy(distortion->intrinsics);
@@ -1971,40 +2015,43 @@ void BKE_tracking_distortion_free(MovieDistortion *distortion)
 
 void BKE_tracking_distort_v2(MovieTracking *tracking, const float co[2], float r_co[2])
 {
-	MovieTrackingCamera *camera = &tracking->camera;
+	const MovieTrackingCamera *camera = &tracking->camera;
+	const float aspy = 1.0f / tracking->camera.pixel_aspect;
 
 	libmv_CameraIntrinsicsOptions camera_intrinsics_options;
-	double x, y;
-	float aspy = 1.0f / tracking->camera.pixel_aspect;
-
 	tracking_cameraIntrinscisOptionsFromTracking(tracking,
 	                                             0, 0,
 	                                             &camera_intrinsics_options);
+	libmv_CameraIntrinsics *intrinsics =
+	        libmv_cameraIntrinsicsNew(&camera_intrinsics_options);
 
-	/* normalize coords */
-	x = (co[0] - camera->principal[0]) / camera->focal;
-	y = (co[1] - camera->principal[1] * aspy) / camera->focal;
+	/* Normalize coordinates. */
+	double x = (co[0] - camera->principal[0]) / camera->focal,
+	       y = (co[1] - camera->principal[1] * aspy) / camera->focal;
 
-	libmv_cameraIntrinsicsApply(&camera_intrinsics_options, x, y, &x, &y);
+	libmv_cameraIntrinsicsApply(intrinsics, x, y, &x, &y);
+	libmv_cameraIntrinsicsDestroy(intrinsics);
 
-	/* result is in image coords already */
+	/* Result is in image coords already. */
 	r_co[0] = x;
 	r_co[1] = y;
 }
 
 void BKE_tracking_undistort_v2(MovieTracking *tracking, const float co[2], float r_co[2])
 {
-	MovieTrackingCamera *camera = &tracking->camera;
+	const MovieTrackingCamera *camera = &tracking->camera;
+	const float aspy = 1.0f / tracking->camera.pixel_aspect;
 
 	libmv_CameraIntrinsicsOptions camera_intrinsics_options;
-	double x = co[0], y = co[1];
-	float aspy = 1.0f / tracking->camera.pixel_aspect;
-
 	tracking_cameraIntrinscisOptionsFromTracking(tracking,
 	                                             0, 0,
 	                                             &camera_intrinsics_options);
+	libmv_CameraIntrinsics *intrinsics =
+	        libmv_cameraIntrinsicsNew(&camera_intrinsics_options);
 
-	libmv_cameraIntrinsicsInvert(&camera_intrinsics_options, x, y, &x, &y);
+	double x = co[0], y = co[1];
+	libmv_cameraIntrinsicsInvert(intrinsics, x, y, &x, &y);
+	libmv_cameraIntrinsicsDestroy(intrinsics);
 
 	r_co[0] = (float)x * camera->focal + camera->principal[0];
 	r_co[1] = (float)y * camera->focal + camera->principal[1] * aspy;
