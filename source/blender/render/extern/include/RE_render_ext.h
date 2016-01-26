@@ -67,6 +67,12 @@ void RE_cache_point_density(struct Scene *scene,
                             struct PointDensity *pd,
                             const bool use_render_params);
 
+void RE_minmac_point_density(struct Scene *scene,
+                             struct PointDensity *pd,
+                             const bool use_render_params,
+                             float r_min[3],
+                             float r_max[3]);
+
 void RE_sample_point_density(struct Scene *scene,
                              struct PointDensity *pd,
                              const int resolution,

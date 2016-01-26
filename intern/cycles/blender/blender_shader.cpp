@@ -803,19 +803,11 @@ static ShaderNode *add_node(Scene *scene,
 		        (InterpolationType)b_point_density_node.interpolation();
 		point_density->builtin_data = b_point_density_node.ptr.data;
 
-		/* Transformation form world space to texture space. */
-		BL::Object b_ob(b_point_density_node.object());
-		if(b_ob) {
-			float3 loc, size;
-			point_density_texture_space(b_point_density_node, loc, size);
-			point_density->tfm =
-			        transform_translate(-loc) * transform_scale(size) *
-			        transform_inverse(get_transform(b_ob.matrix_world()));
-		}
+		/* 1 - render settings, 0 - vewport settings. */
+		int settings = background ? 1 : 0;
 
 		/* TODO(sergey): Use more proper update flag. */
 		if(true) {
-			int settings = background ? 1 : 0;  /* 1 - render settings, 0 - vewport settings. */
 			b_point_density_node.cache_point_density(b_scene, settings);
 			scene->image_manager->tag_reload_image(
 			        point_density->filename,
@@ -824,6 +816,24 @@ static ShaderNode *add_node(Scene *scene,
 			        EXTENSION_CLIP);
 		}
 		node = point_density;
+
+		/* Transformation form world space to texture space.
+		 *
+		 * NOTE: Do this after the texture is cached, this is because getting
+		 * min/max will need to access this cache.
+		 */
+		BL::Object b_ob(b_point_density_node.object());
+		if(b_ob) {
+			float3 loc, size;
+			point_density_texture_space(b_scene,
+			                            b_point_density_node,
+			                            settings,
+			                            loc,
+			                            size);
+			point_density->tfm =
+			        transform_translate(-loc) * transform_scale(size) *
+			        transform_inverse(get_transform(b_ob.matrix_world()));
+		}
 	}
 
 	if(node)
