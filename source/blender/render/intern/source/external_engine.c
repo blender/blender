@@ -606,7 +606,7 @@ int RE_engine_render(Render *re, int do_all)
 			if (re->r.scemode & R_SINGLE_LAYER) {
 				srl = BLI_findlink(&re->r.layers, re->r.actlay);
 				if (srl) {
-					non_excluded_lay |= ~srl->lay_exclude;
+					non_excluded_lay |= ~(srl->lay_exclude & ~srl->lay_zmask);
 
 					/* in this case we must update all because animation for
 					 * the scene has not been updated yet, and so may not be
@@ -618,7 +618,7 @@ int RE_engine_render(Render *re, int do_all)
 			else {
 				for (srl = re->r.layers.first; srl; srl = srl->next) {
 					if (!(srl->layflag & SCE_LAY_DISABLE)) {
-						non_excluded_lay |= ~srl->lay_exclude;
+						non_excluded_lay |= ~(srl->lay_exclude & ~srl->lay_zmask);
 
 						if (render_layer_exclude_animated(re->scene, srl))
 							non_excluded_lay |= ~0;
