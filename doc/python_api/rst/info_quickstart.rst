@@ -47,8 +47,12 @@ A quick list of helpful things to know before starting:
 - For more examples, the text menu has a templates section where some example operators can be found.
 - To examine further scripts distributed with Blender, see:
 
-  | ``~/.blender/scripts/startup/bl_ui`` for the user interface,
-  | ``~/.blender/scripts/startup/bl_op`` for operators.
+  | ``scripts/startup/bl_ui`` for the user interface,
+  | ``scripts/startup/bl_operators`` for operators.
+
+  Exact location depends on platform, see:
+  `Configuration and Data Paths
+  <https://www.blender.org/manual/getting_started/installing_blender/directorylayout.html>`__.
 
 
 Running Scripts
