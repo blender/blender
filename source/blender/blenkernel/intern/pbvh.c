@@ -1906,38 +1906,32 @@ PBVHProxyNode *BKE_pbvh_node_add_proxy(PBVH *bvh, PBVHNode *node)
 {
 	int index, totverts;
 
-#pragma omp critical
-	{
-		index = node->proxy_count;
+	index = node->proxy_count;
 
-		node->proxy_count++;
+	node->proxy_count++;
 
-		if (node->proxies)
-			node->proxies = MEM_reallocN(node->proxies, node->proxy_count * sizeof(PBVHProxyNode));
-		else
-			node->proxies = MEM_mallocN(sizeof(PBVHProxyNode), "PBVHNodeProxy");
+	if (node->proxies)
+		node->proxies = MEM_reallocN(node->proxies, node->proxy_count * sizeof(PBVHProxyNode));
+	else
+		node->proxies = MEM_mallocN(sizeof(PBVHProxyNode), "PBVHNodeProxy");
 
-		BKE_pbvh_node_num_verts(bvh, node, &totverts, NULL);
-		node->proxies[index].co = MEM_callocN(sizeof(float[3]) * totverts, "PBVHNodeProxy.co");
-	}
+	BKE_pbvh_node_num_verts(bvh, node, &totverts, NULL);
+	node->proxies[index].co = MEM_callocN(sizeof(float[3]) * totverts, "PBVHNodeProxy.co");
 
 	return node->proxies + index;
 }
 
 void BKE_pbvh_node_free_proxies(PBVHNode *node)
 {
-#pragma omp critical
-	{
-		for (int p = 0; p < node->proxy_count; p++) {
-			MEM_freeN(node->proxies[p].co);
-			node->proxies[p].co = NULL;
-		}
-
-		MEM_freeN(node->proxies);
-		node->proxies = NULL;
-
-		node->proxy_count = 0;
+	for (int p = 0; p < node->proxy_count; p++) {
+		MEM_freeN(node->proxies[p].co);
+		node->proxies[p].co = NULL;
 	}
+
+	MEM_freeN(node->proxies);
+	node->proxies = NULL;
+
+	node->proxy_count = 0;
 }
 
 void BKE_pbvh_gather_proxies(PBVH *pbvh, PBVHNode ***r_array,  int *r_tot)
