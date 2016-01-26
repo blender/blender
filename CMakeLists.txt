@@ -685,7 +685,7 @@ if(NOT WITH_BOOST)
 
 	set_and_warn(WITH_OPENAL         OFF)  # depends on AUDASPACE
 	set_and_warn(WITH_GAMEENGINE     OFF)  # depends on AUDASPACE
-	set_and_warn(WITH_PLAYER         OFF)  # depends on AUDASPACE
+	set_and_warn(WITH_PLAYER         OFF)  # depends on GAMEENGINE
 elseif(WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_AUDASPACE OR WITH_INTERNATIONAL OR WITH_OPENVDB OR WITH_OPENCOLORIO OR WITH_MOD_BOOLEAN)
 	# Keep enabled
 else()
