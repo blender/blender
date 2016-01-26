@@ -122,7 +122,7 @@ void free_blender(void)
 	DAG_exit();
 
 	BKE_brush_system_exit();
-	RE_exit_texture_rng();	
+	RE_texture_rng_exit();	
 
 	BLI_callback_global_finalize();
 

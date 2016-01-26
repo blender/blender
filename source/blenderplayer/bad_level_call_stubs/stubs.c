@@ -226,8 +226,8 @@ bool EDBM_mtexpoly_check(struct BMEditMesh *em) RET_ZERO
 float *RE_RenderLayerGetPass(volatile struct RenderLayer *rl, int passtype, const char *viewname) RET_NULL
 float RE_filter_value(int type, float x) RET_ZERO
 struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name) RET_NULL
-void RE_init_texture_rng() RET_NONE
-void RE_exit_texture_rng() RET_NONE
+void RE_texture_rng_init() RET_NONE
+void RE_texture_rng_exit() RET_NONE
 
 bool RE_layers_have_name(struct RenderResult *result) {STUB_ASSERT(0); return 0;}
 void RE_engine_active_view_set(struct RenderEngine *engine, const char *viewname) {STUB_ASSERT(0);}
@@ -254,8 +254,8 @@ int	multitex_ext(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], i
 int multitex_ext_safe(struct Tex *tex, float texvec[3], struct TexResult *texres, struct ImagePool *pool, bool scene_color_manage, const bool skip_load_image) RET_ZERO
 int multitex_nodes(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres, const short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex, struct ImagePool *pool) RET_ZERO
 
-struct Material *RE_init_sample_material(struct Material *orig_mat, struct Scene *scene) RET_NULL
-void RE_free_sample_material(struct Material *mat) RET_NONE
+struct Material *RE_sample_material_init(struct Material *orig_mat, struct Scene *scene) RET_NULL
+void RE_sample_material_free(struct Material *mat) RET_NONE
 void RE_sample_material_color(
         struct Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3],
         int tri_index, struct DerivedMesh *orcoDm, struct Object *ob) RET_NONE
@@ -285,7 +285,6 @@ struct Render *RE_NewRender(const char *name) RET_NULL
 void RE_SwapResult(struct Render *re, struct RenderResult **rr) RET_NONE
 void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene, struct SceneRenderLayer *srl, struct Object *camera_override, unsigned int lay_override, int frame, const bool write_still) RET_NONE
 bool RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, const char imtype, float layout[12]) RET_ZERO
-void RE_cache_point_density(struct Scene *scene, struct PointDensity *pd, const bool use_render_params) RET_NONE
 
 /* rna */
 float *ED_view3d_cursor3d_get(struct Scene *scene, struct View3D *v3d) RET_NULL
@@ -632,10 +631,9 @@ void RE_engine_update_memory_stats(struct RenderEngine *engine, float mem_used, 
 struct RenderEngine *RE_engine_create(struct RenderEngineType *type) RET_NULL
 void RE_engine_frame_set(struct RenderEngine *engine, int frame, float subframe) RET_NONE
 void RE_FreePersistentData(void) RET_NONE
-void RE_sample_point_density(struct Scene *scene, struct PointDensity *pd, int resolution, const bool use_render_params, float *values) RET_NONE;
-void RE_minmac_point_density(
-        struct Scene *scene, struct PointDensity *pd, const bool use_render_params,
-        float r_min[3], float r_max[3]) RET_NONE;
+void RE_point_density_cache(struct Scene *scene, struct PointDensity *pd, const bool use_render_params) RET_NONE
+void RE_point_density_minmax(struct Scene *scene, struct PointDensity *pd, const bool use_render_params, float r_min[3], float r_max[3]) RET_NONE;
+void RE_point_density_sample(sstruct Scene *scene, struct PointDensity *pd, int resolution, const bool use_render_params, float *values) RET_NONE;
 void RE_instance_get_particle_info(struct ObjectInstanceRen *obi, float *index, float *age, float *lifetime, float co[3], float *size, float vel[3], float angvel[3]) RET_NONE
 void RE_FreeAllPersistentData(void) RET_NONE
 

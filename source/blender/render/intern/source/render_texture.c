@@ -85,12 +85,12 @@ extern struct Render R;
 static RNG_THREAD_ARRAY *random_tex_array;
 
 
-void RE_init_texture_rng(void)
+void RE_texture_rng_init(void)
 {
 	random_tex_array = BLI_rng_threaded_new();
 }
 
-void RE_exit_texture_rng(void)
+void RE_texture_rng_exit(void)
 {
 	BLI_rng_threaded_free(random_tex_array);
 }
@@ -3556,7 +3556,7 @@ static void textured_face_generate_uv(
 }
 
 /* Generate an updated copy of material to use for color sampling. */
-Material *RE_init_sample_material(Material *orig_mat, Scene *scene)
+Material *RE_sample_material_init(Material *orig_mat, Scene *scene)
 {
 	Tex *tex = NULL;
 	Material *mat;
@@ -3644,8 +3644,8 @@ Material *RE_init_sample_material(Material *orig_mat, Scene *scene)
 	return mat;
 }
 
-/* free all duplicate data allocated by RE_init_sample_material() */
-void RE_free_sample_material(Material *mat)
+/* free all duplicate data allocated by RE_sample_material_init() */
+void RE_sample_material_free(Material *mat)
 {
 	int tex_nr;
 

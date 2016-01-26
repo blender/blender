@@ -3063,7 +3063,7 @@ void rna_ShaderNodePointDensity_density_cache(bNode *self,
 	pd->color_source = point_density_color_source_from_shader(shader_point_density);
 
 	/* Single-threaded sampling of the voxel domain. */
-	RE_cache_point_density(scene,
+	RE_point_density_cache(scene,
 	                       pd,
 	                       settings == 1);
 }
@@ -3091,7 +3091,7 @@ void rna_ShaderNodePointDensity_density_calc(bNode *self,
 	}
 
 	/* Single-threaded sampling of the voxel domain. */
-	RE_sample_point_density(scene, pd,
+	RE_point_density_sample(scene, pd,
 	                        shader_point_density->resolution,
 	                        settings == 1,
 	                        *values);
@@ -3113,7 +3113,7 @@ void rna_ShaderNodePointDensity_density_minmax(bNode *self,
 		zero_v3(r_max);
 		return;
 	}
-	RE_minmac_point_density(scene, pd, settings == 1, r_min, r_max);
+	RE_point_density_minmax(scene, pd, settings == 1, r_min, r_max);
 }
 
 #else

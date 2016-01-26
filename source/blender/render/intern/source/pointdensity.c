@@ -715,9 +715,10 @@ static void particle_system_minmax(Scene *scene,
 	}
 }
 
-void RE_cache_point_density(Scene *scene,
-                            PointDensity *pd,
-                            const bool use_render_params)
+void RE_point_density_cache(
+        Scene *scene,
+        PointDensity *pd,
+        const bool use_render_params)
 {
 	float mat[4][4];
 	/* Same matricies/resolution as dupli_render_particle_set(). */
@@ -727,11 +728,11 @@ void RE_cache_point_density(Scene *scene,
 	BLI_mutex_unlock(&sample_mutex);
 }
 
-void RE_minmac_point_density(struct Scene *scene,
-                             struct PointDensity *pd,
-                             const bool use_render_params,
-                             float r_min[3],
-                             float r_max[3])
+void RE_point_density_minmax(
+        struct Scene *scene,
+        struct PointDensity *pd,
+        const bool use_render_params,
+        float r_min[3], float r_max[3])
 {
 	Object *object = pd->object;
 	if (object == NULL) {
@@ -770,14 +771,15 @@ void RE_minmac_point_density(struct Scene *scene,
 	}
 }
 
-/* NOTE 1: Requires RE_cache_point_density() to be called first.
+/* NOTE 1: Requires RE_point_density_cache() to be called first.
  * NOTE 2: Frees point density structure after sampling.
  */
-void RE_sample_point_density(Scene *scene,
-                             PointDensity *pd,
-                             const int resolution,
-                             const bool use_render_params,
-                             float *values)
+void RE_point_density_sample(
+        Scene *scene,
+        PointDensity *pd,
+        const int resolution,
+        const bool use_render_params,
+        float *values)
 {
 	const size_t resolution2 = resolution * resolution;
 	Object *object = pd->object;
@@ -793,7 +795,7 @@ void RE_sample_point_density(Scene *scene,
 		return;
 	}
 
-	RE_minmac_point_density(scene,
+	RE_point_density_minmax(scene,
 	                        pd,
 	                        use_render_params,
 	                        min,
