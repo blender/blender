@@ -158,7 +158,6 @@ option_defaults_init(
 	_init_IMAGE_REDCODE
 	_init_INPUT_NDOF
 	_init_JACK
-	_init_LIBMV_SCHUR_SPECIALIZATION
 	_init_OPENCOLLADA
 	_init_OPENCOLORIO
 	_init_SDL
@@ -351,7 +350,7 @@ endif()
 
 # Camera/motion tracking
 option(WITH_LIBMV         "Enable Libmv structure from motion library" ON)
-option(WITH_LIBMV_SCHUR_SPECIALIZATIONS "Enable fixed-size schur specializations." ${_init_LIBMV_SCHUR_SPECIALIZATION})
+option(WITH_LIBMV_SCHUR_SPECIALIZATIONS "Enable fixed-size schur specializations." OFF)
 option(WITH_LIBMV_WERROR  "Treat warnings as errors in Libmv (and Blender's motion tracking) code")
 mark_as_advanced(WITH_LIBMV_SCHUR_SPECIALIZATIONS)
 mark_as_advanced(WITH_LIBMV_WERROR)
