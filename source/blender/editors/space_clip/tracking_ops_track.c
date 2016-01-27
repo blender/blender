@@ -319,23 +319,11 @@ static int track_markers(bContext *C, wmOperator *op, bool use_job)
 	TrackMarkersJob *tmj;
 	ScrArea *sa = CTX_wm_area(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip;
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	wmJob *wm_job;
 	bool backwards = RNA_boolean_get(op->ptr, "backwards");
 	bool sequence = RNA_boolean_get(op->ptr, "sequence");
-	int framenr;
-
-	if (sc == NULL) {
-		/* TODO(sergey): Support clip for invoke as well. */
-		BKE_report(op->reports, RPT_ERROR,
-		           "Invoking this operator only supported from "
-		           "Clip Editor space");
-		return OPERATOR_CANCELLED;
-	}
-
-	clip = ED_space_clip_get_clip(sc);
-	BLI_assert(clip != NULL);
-	framenr = ED_space_clip_get_clip_frame_number(sc);
+	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	if (WM_jobs_test(CTX_wm_manager(C), sa, WM_JOB_TYPE_ANY)) {
 		/* Only one tracking is allowed at a time. */
@@ -433,8 +421,6 @@ static int track_markers_modal(bContext *C,
 
 void CLIP_OT_track_markers(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name = "Track Markers";
 	ot->description = "Track selected markers";
@@ -455,9 +441,6 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "sequence", 0, "Track Sequence",
 	                "Track marker during image sequence rather than "
 	                "single image");
-	prop = RNA_def_string(ot->srna, "clip", NULL, MAX_NAME, "Movie Clip",
-	                      "Movie Clip to be tracked");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /********************** Refine track position operator *********************/
