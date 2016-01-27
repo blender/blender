@@ -44,6 +44,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_scene_types.h"
+#include "DNA_sound_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -3773,6 +3774,16 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 
 		/* important else we don't get the imbuf cache flushed */
 		BKE_sequencer_free_imbuf(scene, &ed->seqbase, false);
+	}
+	else if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
+		bSound *sound = seq->sound;
+		if (sound == NULL) {
+			return OPERATOR_CANCELLED;
+		}
+		char filepath[FILE_MAX];
+		RNA_string_get(op->ptr, "filepath", filepath);
+		BLI_strncpy(sound->name, filepath, sizeof(sound->name));
+		BKE_sound_load(bmain, sound);
 	}
 	else {
 		/* lame, set rna filepath */
