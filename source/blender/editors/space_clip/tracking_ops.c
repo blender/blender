@@ -1163,6 +1163,12 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
 
 /********************** disable markers operator *********************/
 
+enum {
+	MARKER_OP_DISABLE = 0,
+	MARKER_OP_ENABLE  = 1,
+	MARKER_OP_TOGGLE  = 2,
+};
+
 static int disable_markers_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
@@ -1180,15 +1186,16 @@ static int disable_markers_exec(bContext *C, wmOperator *op)
 		    (track->flag & TRACK_LOCKED) == 0)
 		{
 			MovieTrackingMarker *marker = BKE_tracking_marker_ensure(track, framenr);
-			/* TODO(segrey): et rid of hardcoded constants. */
-			if (action == 0) {
-				marker->flag |= MARKER_DISABLED;
-			}
-			else if (action == 1) {
-				marker->flag &= ~MARKER_DISABLED;
-			}
-			else {
-				marker->flag ^= MARKER_DISABLED;
+			switch (action) {
+				case MARKER_OP_DISABLE:
+					marker->flag |= MARKER_DISABLED;
+					break;
+				case MARKER_OP_ENABLE:
+					marker->flag &= ~MARKER_DISABLED;
+					break;
+				case MARKER_OP_TOGGLE:
+					marker->flag ^= MARKER_DISABLED;
+					break;
 			}
 		}
 	}
@@ -1203,9 +1210,12 @@ static int disable_markers_exec(bContext *C, wmOperator *op)
 void CLIP_OT_disable_markers(wmOperatorType *ot)
 {
 	static EnumPropertyItem actions_items[] = {
-		{0, "DISABLE", 0, "Disable", "Disable selected markers"},
-		{1, "ENABLE", 0, "Enable", "Enable selected markers"},
-		{2, "TOGGLE", 0, "Toggle", "Toggle disabled flag for selected markers"},
+		{MARKER_OP_DISABLE, "DISABLE", 0, "Disable",
+		 "Disable selected markers"},
+		{MARKER_OP_ENABLE,  "ENABLE", 0, "Enable",
+		 "Enable selected markers"},
+		{MARKER_OP_TOGGLE,  "TOGGLE", 0, "Toggle",
+		 "Toggle disabled flag for selected markers"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -1551,6 +1561,12 @@ void CLIP_OT_join_tracks(wmOperatorType *ot)
 
 /********************** lock tracks operator *********************/
 
+enum {
+	TRACK_ACTION_LOCK   = 0,
+	TRACK_ACTION_UNLOCK = 1,
+	TRACK_ACTION_TOGGLE = 2,
+};
+
 static int lock_tracks_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
@@ -1564,14 +1580,17 @@ static int lock_tracks_exec(bContext *C, wmOperator *op)
 	     track = track->next)
 	{
 		if (TRACK_VIEW_SELECTED(sc, track)) {
-			/* TODO(sergey): Get rid of magic constants. */
-			if (action == 0) {
-				track->flag |= TRACK_LOCKED;
+			switch (action) {
+				case TRACK_ACTION_LOCK:
+					track->flag |= TRACK_LOCKED;
+					break;
+				case TRACK_ACTION_UNLOCK:
+					track->flag &= ~TRACK_LOCKED;
+					break;
+				case TRACK_ACTION_TOGGLE:
+					track->flag ^= TRACK_LOCKED;
+					break;
 			}
-			else if (action == 1) {
-				track->flag &= ~TRACK_LOCKED;
-			}
-			else track->flag ^= TRACK_LOCKED;
 		}
 	}
 
@@ -1583,9 +1602,10 @@ static int lock_tracks_exec(bContext *C, wmOperator *op)
 void CLIP_OT_lock_tracks(wmOperatorType *ot)
 {
 	static EnumPropertyItem actions_items[] = {
-		{0, "LOCK", 0, "Lock", "Lock selected tracks"},
-		{1, "UNLOCK", 0, "Unlock", "Unlock selected tracks"},
-		{2, "TOGGLE", 0, "Toggle", "Toggle locked flag for selected tracks"},
+		{TRACK_ACTION_LOCK, "LOCK", 0, "Lock", "Lock selected tracks"},
+		{TRACK_ACTION_UNLOCK, "UNLOCK", 0, "Unlock", "Unlock selected tracks"},
+		{TRACK_ACTION_TOGGLE, "TOGGLE", 0, "Toggle",
+		 "Toggle locked flag for selected tracks"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -1608,6 +1628,11 @@ void CLIP_OT_lock_tracks(wmOperatorType *ot)
 
 /********************** set keyframe operator *********************/
 
+enum {
+	SOLVER_KEYFRAME_A = 0,
+	SOLVER_KEYFRAME_B = 1,
+};
+
 static int set_solver_keyframe_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
@@ -1618,8 +1643,7 @@ static int set_solver_keyframe_exec(bContext *C, wmOperator *op)
 	int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip,
 	                                                      sc->user.framenr);
 
-	/* TODO(sergey): Get rid of magic constant. */
-	if (keyframe == 0) {
+	if (keyframe == SOLVER_KEYFRAME_A) {
 		object->keyframe1 = framenr;
 	}
 	else {
@@ -1634,8 +1658,8 @@ static int set_solver_keyframe_exec(bContext *C, wmOperator *op)
 void CLIP_OT_set_solver_keyframe(wmOperatorType *ot)
 {
 	static EnumPropertyItem keyframe_items[] = {
-		{0, "KEYFRAME_A", 0, "Keyframe A", ""},
-		{1, "KEYFRAME_B", 0, "Keyframe B", ""},
+		{SOLVER_KEYFRAME_A, "KEYFRAME_A", 0, "Keyframe A", ""},
+		{SOLVER_KEYFRAME_B, "KEYFRAME_B", 0, "Keyframe B", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
