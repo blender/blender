@@ -90,6 +90,8 @@ ATOMIC_INLINE uint32_t atomic_add_uint32(uint32_t *p, uint32_t x);
 ATOMIC_INLINE uint32_t atomic_sub_uint32(uint32_t *p, uint32_t x);
 ATOMIC_INLINE uint32_t atomic_cas_uint32(uint32_t *v, uint32_t old, uint32_t _new);
 
+ATOMIC_INLINE uint8_t atomic_fetch_and_and_uint8(uint8_t *p, uint8_t b);
+
 ATOMIC_INLINE size_t atomic_add_z(size_t *p, size_t x);
 ATOMIC_INLINE size_t atomic_sub_z(size_t *p, size_t x);
 ATOMIC_INLINE size_t atomic_cas_z(size_t *v, size_t old, size_t _new);
@@ -375,6 +377,26 @@ atomic_cas_uint32(uint32_t *v, uint32_t old, uint32_t _new)
 }
 #else
 #  error "Missing implementation for 32-bit atomic operations"
+#endif
+
+/******************************************************************************/
+/* 8-bit operations. */
+#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_1
+ATOMIC_INLINE uint8_t
+atomic_fetch_and_and_uint8(uint8_t *p, uint8_t b)
+{
+	return __sync_fetch_and_and(p, b);
+}
+#elif (defined(_MSC_VER))
+#include <intrin.h>
+#pragma intrinsic(_InterlockedAnd8)
+ATOMIC_INLINE uint8_t
+atomic_fetch_and_and_uint8(uint8_t *p, uint8_t b)
+{
+	return InterlockedAnd8((char *)p, (char)b);
+}
+#else
+#  error "Missing implementation for 8-bit atomic operations"
 #endif
 
 /******************************************************************************/
