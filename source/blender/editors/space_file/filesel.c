@@ -186,7 +186,13 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		if ((prop = RNA_struct_find_property(op->ptr, "filter_collada")))
 			params->filter |= RNA_property_boolean_get(op->ptr, prop) ? FILE_TYPE_COLLADA : 0;
 		if ((prop = RNA_struct_find_property(op->ptr, "filter_glob"))) {
-			RNA_property_string_get(op->ptr, prop, params->filter_glob);
+			/* Protection against pyscripts not setting proper size limit... */
+			char *tmp = RNA_property_string_get_alloc(
+			                op->ptr, prop, params->filter_glob, sizeof(params->filter_glob), NULL);
+			if (tmp != params->filter_glob) {
+				BLI_strncpy(params->filter_glob, tmp, sizeof(params->filter_glob));
+				MEM_freeN(tmp);
+			}
 			params->filter |= (FILE_TYPE_OPERATOR | FILE_TYPE_FOLDER);
 		}
 		else {

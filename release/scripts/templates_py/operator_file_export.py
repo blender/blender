@@ -28,6 +28,7 @@ class ExportSomeData(Operator, ExportHelper):
     filter_glob = StringProperty(
             default="*.txt",
             options={'HIDDEN'},
+            maxlen=255,  # Max internal buffer length, longer would be clamped.
             )
 
     # List of operator properties, the attributes will be assigned

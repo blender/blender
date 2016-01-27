@@ -270,7 +270,7 @@ typedef struct FileListEntryPreview {
 typedef struct FileListFilter {
 	unsigned int filter;
 	unsigned int filter_id;
-	char filter_glob[64];
+	char filter_glob[256];
 	char filter_search[66];  /* + 2 for heading/trailing implicit '*' wildcards. */
 	short flags;
 } FileListFilter;
