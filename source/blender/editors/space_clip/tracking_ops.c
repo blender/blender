@@ -35,6 +35,7 @@
 #include "DNA_space_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 
@@ -1509,12 +1510,15 @@ static int join_tracks_exec(bContext *C, wmOperator *op)
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
+	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
 
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
 	if (act_track == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No active track to join to");
 		return OPERATOR_CANCELLED;
 	}
+
+	GSet *point_tracks = BLI_gset_ptr_new(__func__);
 
 	for (MovieTrackingTrack *track = tracksbase->first, *next_track;
 	     track != NULL;
@@ -1528,16 +1532,33 @@ static int join_tracks_exec(bContext *C, wmOperator *op)
 				tracking->stabilization.rot_track = act_track;
 			}
 
-			/* TODO(sergey): Re-evaluate planes with auto-key. */
-			BKE_tracking_plane_tracks_replace_point_track(tracking,
-			                                              track,
-			                                              act_track);
-
+			for (MovieTrackingPlaneTrack *plane_track = plane_tracks_base->first;
+			     plane_track != NULL;
+			     plane_track = plane_track->next)
+			{
+				if (BKE_tracking_plane_track_has_point_track(plane_track, track)) {
+					BKE_tracking_plane_track_replace_point_track(plane_track,
+					                                             track,
+					                                             act_track);
+					if ((plane_track->flag & PLANE_TRACK_AUTOKEY) == 0) {
+						BLI_gset_insert(point_tracks, plane_track);
+					}
+				}
+			}
 
 			BKE_tracking_track_free(track);
 			BLI_freelinkN(tracksbase, track);
 		}
 	}
+
+	GSetIterator gs_iter;
+	int framenr = ED_space_clip_get_clip_frame_number(sc);
+	GSET_ITER (gs_iter, point_tracks) {
+		MovieTrackingPlaneTrack *plane_track = BLI_gsetIterator_getKey(&gs_iter);
+		BKE_tracking_track_plane_from_existing_motion( plane_track, framenr);
+	}
+
+	BLI_gset_free(point_tracks, NULL);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 
