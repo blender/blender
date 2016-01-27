@@ -1565,8 +1565,9 @@ void blo_make_image_pointer_map(FileData *fd, Main *oldmain)
 	for (; ima; ima = ima->id.next) {
 		if (ima->cache)
 			oldnewmap_insert(fd->imamap, ima->cache, ima->cache, 0);
-		if (ima->gputexture)
-			oldnewmap_insert(fd->imamap, ima->gputexture, ima->gputexture, 0);
+		for (a = 0; a < TEXTARGET_COUNT; a++)
+			if (ima->gputexture[a])
+				oldnewmap_insert(fd->imamap, ima->gputexture[a], ima->gputexture[a], 0);
 		if (ima->rr)
 			oldnewmap_insert(fd->imamap, ima->rr, ima->rr, 0);
 		for (a=0; a < IMA_MAX_RENDER_SLOT; a++)
@@ -1602,15 +1603,18 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 	for (; ima; ima = ima->id.next) {
 		ima->cache = newimaadr(fd, ima->cache);
 		if (ima->cache == NULL) {
-			ima->bindcode = 0;
 			ima->tpageflag &= ~IMA_GLBIND_IS_DATA;
-			ima->gputexture = NULL;
+			for (i = 0; i < TEXTARGET_COUNT; i++) {
+				ima->bindcode[i] = 0;
+				ima->gputexture[i] = NULL;
+			}
 			ima->rr = NULL;
 		}
 		for (i = 0; i < IMA_MAX_RENDER_SLOT; i++)
 			ima->renders[i] = newimaadr(fd, ima->renders[i]);
 		
-		ima->gputexture = newimaadr(fd, ima->gputexture);
+		for (i = 0; i < TEXTARGET_COUNT; i++)
+			ima->gputexture[i] = newimaadr(fd, ima->gputexture[i]);
 		ima->rr = newimaadr(fd, ima->rr);
 	}
 	for (; sce; sce = sce->id.next) {
@@ -3644,9 +3648,11 @@ static void direct_link_image(FileData *fd, Image *ima)
 
 	/* if not restored, we keep the binded opengl index */
 	if (!ima->cache) {
-		ima->bindcode = 0;
 		ima->tpageflag &= ~IMA_GLBIND_IS_DATA;
-		ima->gputexture = NULL;
+		for (int i = 0; i < TEXTARGET_COUNT; i++) {
+			ima->bindcode[i] = 0;
+			ima->gputexture[i] = NULL;
+		}
 		ima->rr = NULL;
 	}
 

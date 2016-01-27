@@ -318,7 +318,7 @@ static bool set_draw_settings_cached(int clearcache, MTexPoly *texface, Material
 		if (textured) {
 			if (texpaint) {
 				c_badtex = false;
-				if (GPU_verify_image(ima, NULL, 0, 1, 0, false)) {
+				if (GPU_verify_image(ima, NULL, GL_TEXTURE_2D, 0, 1, 0, false)) {
 					glEnable(GL_TEXTURE_2D);
 					glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 					glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
@@ -337,7 +337,7 @@ static bool set_draw_settings_cached(int clearcache, MTexPoly *texface, Material
 					glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_ALPHA);
 					glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
 					glTexEnvi(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PREVIOUS);
-					glBindTexture(GL_TEXTURE_2D, ima->bindcode);
+					glBindTexture(GL_TEXTURE_2D, ima->bindcode[TEXTARGET_TEXTURE_2D]);
 					glActiveTexture(GL_TEXTURE0);					
 				}
 				else {
@@ -465,7 +465,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 		/* load the stencil texture here */
 		if (Gtexdraw.stencil != NULL) {
 			glActiveTexture(GL_TEXTURE2);
-			if (GPU_verify_image(Gtexdraw.stencil, NULL, false, false, false, false)) {
+			if (GPU_verify_image(Gtexdraw.stencil, NULL, GL_TEXTURE_2D, false, false, false, false)) {
 				float col[4] = {imapaint->stencil_col[0], imapaint->stencil_col[1], imapaint->stencil_col[2], 1.0f};
 				glEnable(GL_TEXTURE_2D);
 				glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
@@ -1046,7 +1046,7 @@ static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
 	if (ED_object_get_active_image(data->ob, mat_nr, &ima, &iuser, &node, NULL)) {
 		/* get openl texture */
 		int mipmap = 1;
-		int bindcode = (ima) ? GPU_verify_image(ima, iuser, 0, 0, mipmap, false) : 0;
+		int bindcode = (ima) ? GPU_verify_image(ima, iuser, GL_TEXTURE_2D, 0, 0, mipmap, false) : 0;
 
 		if (bindcode) {
 			NodeTexBase *texbase = node->storage;
@@ -1055,7 +1055,7 @@ static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
 			GPU_object_material_unbind();
 
 			/* bind texture */
-			glBindTexture(GL_TEXTURE_2D, ima->bindcode);
+			glBindTexture(GL_TEXTURE_2D, ima->bindcode[TEXTARGET_TEXTURE_2D]);
 
 			glMatrixMode(GL_TEXTURE);
 			glLoadMatrixf(texbase->tex_mapping.mat);

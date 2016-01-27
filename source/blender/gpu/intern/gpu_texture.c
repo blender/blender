@@ -368,27 +368,33 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, const f
 	return tex;
 }
 
-GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, bool is_data, double time, int mipmap)
+GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget, bool is_data, double time, int mipmap)
 {
-	GPU_update_image_time(ima, time);
+	int gputt;
 	/* this binds a texture, so that's why to restore it to 0 */
-	GLint bindcode = GPU_verify_image(ima, iuser, 0, 0, mipmap, is_data);
+	GLint bindcode = GPU_verify_image(ima, iuser, textarget, 0, 0, mipmap, is_data);
+	GPU_update_image_time(ima, time);
 
-	if (ima->gputexture) {
-		ima->gputexture->bindcode = bindcode;
-		glBindTexture(GL_TEXTURE_2D, 0);
-		return ima->gputexture;
+	if (textarget == GL_TEXTURE_2D)
+		gputt = TEXTARGET_TEXTURE_2D;
+	else
+		gputt = TEXTARGET_TEXTURE_CUBE_MAP;
+
+	if (ima->gputexture[gputt]) {
+		ima->gputexture[gputt]->bindcode = bindcode;
+		glBindTexture(textarget, 0);
+		return ima->gputexture[gputt];
 	}
 
 	GPUTexture *tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
 	tex->bindcode = bindcode;
 	tex->number = -1;
 	tex->refcount = 1;
-	tex->target = GL_TEXTURE_2D;
+	tex->target = textarget;
 	tex->target_base = GL_TEXTURE_2D;
 	tex->fromblender = 1;
 
-	ima->gputexture = tex;
+	ima->gputexture[gputt] = tex;
 
 	if (!glIsTexture(tex->bindcode)) {
 		GPU_ASSERT_NO_GL_ERRORS("Blender Texture Not Loaded");
@@ -396,16 +402,23 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, bool is_data,
 	else {
 		GLint w, h, border;
 
-		glBindTexture(GL_TEXTURE_2D, tex->bindcode);
-		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
-		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
-		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_BORDER, &border);
+		GLenum gettarget;
+
+		if (textarget == GL_TEXTURE_2D)
+			gettarget = GL_TEXTURE_2D;
+		else
+			gettarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+
+		glBindTexture(textarget, tex->bindcode);
+		glGetTexLevelParameteriv(gettarget, 0, GL_TEXTURE_WIDTH, &w);
+		glGetTexLevelParameteriv(gettarget, 0, GL_TEXTURE_HEIGHT, &h);
+		glGetTexLevelParameteriv(gettarget, 0, GL_TEXTURE_BORDER, &border);
 
 		tex->w = w - border;
 		tex->h = h - border;
 	}
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(textarget, 0);
 
 	return tex;
 }
@@ -420,7 +433,7 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
 	
 	/* this binds a texture, so that's why we restore it to 0 */
 	if (bindcode == 0) {
-		GPU_create_gl_tex(&bindcode, prv->rect[0], NULL, prv->w[0], prv->h[0], mipmap, 0, NULL);
+		GPU_create_gl_tex(&bindcode, prv->rect[0], NULL, prv->w[0], prv->h[0], GL_TEXTURE_2D, mipmap, 0, NULL);
 	}
 	if (tex) {
 		tex->bindcode = bindcode;
@@ -641,6 +654,8 @@ void GPU_texture_unbind(GPUTexture *tex)
 	GLenum arbnumber = (GLenum)((GLuint)GL_TEXTURE0 + tex->number);
 	if (tex->number != 0) glActiveTexture(arbnumber);
 	glBindTexture(tex->target, 0);
+	glDisable(tex->target);
+	glBindTexture(tex->target_base, 0);
 	glDisable(tex->target_base);
 	if (tex->number != 0) glActiveTexture(GL_TEXTURE0);
 

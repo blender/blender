@@ -138,7 +138,7 @@ bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 
 	mipmap = mipmap && GPU_get_mipmap();
 
-	mTexture = img->bindcode;
+	mTexture = img->bindcode[TEXTARGET_TEXTURE_2D];
 	mType = GL_TEXTURE_2D;
 	mUnit = unit;
 

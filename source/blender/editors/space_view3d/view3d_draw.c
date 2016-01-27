@@ -99,6 +99,7 @@
 #include "GPU_framebuffer.h"
 #include "GPU_material.h"
 #include "GPU_compositing.h"
+#include "GPU_extensions.h"
 
 #include "view3d_intern.h"  /* own include */
 
@@ -2971,8 +2972,7 @@ void ED_view3d_draw_offscreen_init(Scene *scene, View3D *v3d)
 static void view3d_main_region_clear(Scene *scene, View3D *v3d, ARegion *ar)
 {
 	if (scene->world && (v3d->flag3 & V3D_SHOW_WORLD)) {
-		bool glsl = BKE_scene_use_new_shading_nodes(scene) && scene->world->nodetree && scene->world->use_nodes;
-		
+		bool glsl = GPU_glsl_support();
 		if (glsl) {
 			RegionView3D *rv3d = ar->regiondata;
 			GPUMaterial *gpumat = GPU_material_world(scene, scene->world);

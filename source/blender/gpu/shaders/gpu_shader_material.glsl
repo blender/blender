@@ -1204,6 +1204,11 @@ void mtex_alpha_to_col(vec4 col, float alpha, out vec4 outcol)
 	outcol = vec4(col.rgb, alpha);
 }
 
+void mtex_alpha_multiply_value(vec4 col, float value, out vec4 outcol)
+{
+    outcol = vec4(col.rgb, col.a * value);
+}
+
 void mtex_rgbtoint(vec4 rgb, out float intensity)
 {
 	intensity = dot(vec3(0.35, 0.45, 0.2), rgb.rgb);
@@ -1251,6 +1256,12 @@ void mtex_2d_mapping(vec3 vec, out vec3 outvec)
 vec3 mtex_2d_mapping(vec3 vec)
 {
 	return vec3(vec.xy*0.5 + vec2(0.5), vec.z);
+}
+
+void mtex_cube_map(vec3 co, samplerCube ima, out float value, out vec4 color)
+{
+	color = textureCube(ima, co);
+	value = 1.0;
 }
 
 void mtex_image(vec3 texco, sampler2D ima, out float value, out vec4 color)
@@ -1651,6 +1662,40 @@ void lamp_visibility_spot(float spotsi, float spotbl, float inpr, float visifac,
 void lamp_visibility_clamp(float visifac, out float outvisifac)
 {
 	outvisifac = (visifac < 0.001)? 0.0: visifac;
+}
+
+void world_paper_view(vec3 vec, out vec3 outvec)
+{
+	vec3 nvec = normalize(vec);
+	outvec = (gl_ProjectionMatrix[3][3] == 0.0) ? vec3(nvec.x, 0.0, nvec.y) : vec3(0.0, 0.0, -1.0);
+}
+
+void world_zen_mapping(vec3 view, float zenup, float zendown, out float zenfac)
+{
+	if (view.z >= 0.0)
+		zenfac = zenup;
+	else
+		zenfac = zendown;
+}
+
+void world_blend_paper_real(vec3 vec, out float blend)
+{
+	blend = abs(vec.y);
+}
+
+void world_blend_paper(vec3 vec, out float blend)
+{
+	blend = (vec.y + 1.0) * 0.5;
+}
+
+void world_blend_real(vec3 vec, out float blend)
+{
+	blend = abs(normalize(vec).z);
+}
+
+void world_blend(vec3 vec, out float blend)
+{
+	blend = (normalize(vec).z + 1) * 0.5;
 }
 
 void shade_view(vec3 co, out vec3 view)

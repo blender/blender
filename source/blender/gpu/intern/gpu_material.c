@@ -1814,6 +1814,198 @@ GPUMaterial *GPU_material_matcap(Scene *scene, Material *ma, bool use_opensubdiv
 	return mat;
 }
 
+static void do_world_tex(GPUShadeInput *shi, struct World *wo, GPUNodeLink **hor, GPUNodeLink **zen, GPUNodeLink **blend)
+{
+	GPUMaterial *mat = shi->gpumat;
+	GPUNodeLink *texco, *tin, *trgb, *stencil, *tcol, *zenfac;
+	MTex *mtex;
+	Tex *tex;
+	float ofs[3], zero = 0.0f;
+	int tex_nr, rgbnor;
+
+	GPU_link(mat, "set_value_one", &stencil);
+	/* go over texture slots */
+	for (tex_nr = 0; tex_nr < MAX_MTEX; tex_nr++) {
+		if (wo->mtex[tex_nr]) {
+			mtex = wo->mtex[tex_nr];
+			tex = mtex->tex;
+			if (tex == NULL || !tex->ima || (tex->type != TEX_IMAGE && tex->type != TEX_ENVMAP))
+				continue;
+			/* which coords */
+			if (mtex->texco == TEXCO_VIEW || mtex->texco == TEXCO_GLOB) {
+				if (tex->type == TEX_IMAGE)
+					texco = GPU_builtin(GPU_VIEW_POSITION);
+				else if (tex->type == TEX_ENVMAP)
+					GPU_link(mat, "background_transform_to_world", GPU_builtin(GPU_VIEW_POSITION), &texco);
+			}
+			else if (mtex->texco == TEXCO_EQUIRECTMAP || mtex->texco == TEXCO_ANGMAP) {
+				if ((tex->type == TEX_IMAGE && wo->skytype & WO_SKYREAL) || tex->type == TEX_ENVMAP)
+					GPU_link(mat, "background_transform_to_world", GPU_builtin(GPU_VIEW_POSITION), &texco);
+				else
+					texco = GPU_builtin(GPU_VIEW_POSITION);
+			}
+			else
+				continue;
+			GPU_link(mat, "texco_norm", texco, &texco);
+			if (tex->type == TEX_IMAGE && !(wo->skytype & WO_SKYREAL)) {
+				GPU_link(mat, "mtex_2d_mapping", texco, &texco);
+			}
+			if (mtex->size[0] != 1.0f || mtex->size[1] != 1.0f || mtex->size[2] != 1.0f) {
+				float size[3] = { mtex->size[0], mtex->size[1], mtex->size[2] };
+				if (tex->type == TEX_ENVMAP) {
+					size[1] = mtex->size[2];
+					size[2] = mtex->size[1];
+				}
+				GPU_link(mat, "mtex_mapping_size", texco, GPU_uniform(size), &texco);
+			}
+			ofs[0] = mtex->ofs[0] + 0.5f - 0.5f * mtex->size[0];
+			if (tex->type == TEX_ENVMAP) {
+				ofs[1] = -mtex->ofs[2] + 0.5f - 0.5f * mtex->size[2];
+				ofs[2] = mtex->ofs[1] + 0.5f - 0.5f * mtex->size[1];
+			}
+			else {
+				ofs[1] = mtex->ofs[1] + 0.5f - 0.5f * mtex->size[1];
+				ofs[2] = 0.0;
+			}
+			if (ofs[0] != 0.0f || ofs[1] != 0.0f || ofs[2] != 0.0f)
+				GPU_link(mat, "mtex_mapping_ofs", texco, GPU_uniform(ofs), &texco);
+			if (mtex->texco == TEXCO_EQUIRECTMAP) {
+				GPU_link(mat, "node_tex_environment_equirectangular", texco, GPU_image(tex->ima, &tex->iuser, false), &trgb);
+			}
+			else if (mtex->texco == TEXCO_ANGMAP) {
+				GPU_link(mat, "node_tex_environment_mirror_ball", texco, GPU_image(tex->ima, &tex->iuser, false), &trgb);
+			}
+			else {
+				if (tex->type == TEX_ENVMAP)
+					GPU_link(mat, "mtex_cube_map", texco, GPU_cube_map(tex->ima, &tex->iuser, false), &tin, &trgb);
+				else if (tex->type == TEX_IMAGE)
+					GPU_link(mat, "mtex_image", texco, GPU_image(tex->ima, &tex->iuser, false), &tin, &trgb);
+			}
+			rgbnor = TEX_RGB;
+			if (tex->type == TEX_IMAGE || tex->type == TEX_ENVMAP)
+				if (GPU_material_do_color_management(mat))
+					GPU_link(mat, "srgb_to_linearrgb", trgb, &trgb);
+			/* texture output */
+			if ((rgbnor & TEX_RGB) && (mtex->texflag & MTEX_RGBTOINT)) {
+				GPU_link(mat, "mtex_rgbtoint", trgb, &tin);
+				rgbnor -= TEX_RGB;
+			}
+			if (mtex->texflag & MTEX_NEGATIVE) {
+				if (rgbnor & TEX_RGB)
+					GPU_link(mat, "mtex_rgb_invert", trgb, &trgb);
+				else
+					GPU_link(mat, "mtex_value_invert", tin, &tin);
+			}
+			if (mtex->texflag & MTEX_STENCIL) {
+				if (rgbnor & TEX_RGB)
+					GPU_link(mat, "mtex_rgb_stencil", stencil, trgb, &stencil, &trgb);
+				else
+					GPU_link(mat, "mtex_value_stencil", stencil, tin, &stencil, &tin);
+			}
+			else {
+				if (rgbnor & TEX_RGB)
+					GPU_link(mat, "mtex_alpha_multiply_value", trgb, stencil, &trgb);
+				else
+					GPU_link(mat, "math_multiply", stencil, tin, &tin);
+			}
+			/* color mapping */
+			if (mtex->mapto & (WOMAP_HORIZ + WOMAP_ZENUP + WOMAP_ZENDOWN)) {
+				if ((rgbnor & TEX_RGB) == 0)
+					GPU_link(mat, "set_rgb", GPU_uniform(&mtex->r), &trgb);
+				else
+					GPU_link(mat, "mtex_alpha_from_col", trgb, &tin);
+				GPU_link(mat, "set_rgb", trgb, &tcol);
+				if (mtex->mapto & WOMAP_HORIZ) {
+					texture_rgb_blend(mat, tcol, *hor, tin, GPU_uniform(&mtex->colfac), mtex->blendtype, hor);
+				}
+				if (mtex->mapto & (WOMAP_ZENUP + WOMAP_ZENDOWN)) {
+					GPU_link(mat, "set_value_zero", &zenfac);
+					if (wo->skytype & WO_SKYREAL) {
+						if (mtex->mapto & WOMAP_ZENUP) {
+							if (mtex->mapto & WOMAP_ZENDOWN) {
+								GPU_link(mat, "world_zen_mapping", shi->view, GPU_uniform(&mtex->zenupfac),
+									GPU_uniform(&mtex->zendownfac), &zenfac);
+							}
+							else {
+								GPU_link(mat, "world_zen_mapping", shi->view, GPU_uniform(&mtex->zenupfac),
+									GPU_uniform(&zero), &zenfac);
+							}
+						}
+						else if (mtex->mapto & WOMAP_ZENDOWN)
+							GPU_link(mat, "world_zen_mapping", shi->view, GPU_uniform(&zero),
+								GPU_uniform(&mtex->zendownfac), &zenfac);
+					}
+					else {
+						if (mtex->mapto & WOMAP_ZENUP)
+							GPU_link(mat, "set_value", GPU_uniform(&mtex->zenupfac), &zenfac);
+						else if (mtex->mapto & WOMAP_ZENDOWN)
+							GPU_link(mat, "set_value", GPU_uniform(&mtex->zendownfac), &zenfac);
+					}
+					texture_rgb_blend(mat, tcol, *zen, tin, zenfac, mtex->blendtype, zen);
+				}
+			}
+			if (mtex->mapto & WOMAP_BLEND && wo->skytype & WO_SKYBLEND) {
+				if (rgbnor & TEX_RGB)
+					GPU_link(mat, "mtex_rgbtoint", trgb, &tin);
+				texture_value_blend(mat, GPU_uniform(&mtex->def_var), *blend, tin, GPU_uniform(&mtex->blendfac), mtex->blendtype, blend);
+			}
+		}
+	}
+}
+
+static void GPU_material_old_world(struct GPUMaterial *mat, struct World *wo)
+{
+	GPUShadeInput shi;
+	GPUShadeResult shr;
+	GPUNodeLink *hor, *zen, *ray, *blend;
+
+	shi.gpumat = mat;
+
+	for (int i = 0; i < MAX_MTEX; i++) {
+		if (wo->mtex[i] && wo->mtex[i]->tex) {
+			wo->skytype |= WO_SKYTEX;
+			break;
+		}
+	}
+	if ((wo->skytype & (WO_SKYBLEND + WO_SKYTEX)) == 0) {
+		GPU_link(mat, "set_rgb", GPU_dynamic_uniform(&wo->horr, GPU_DYNAMIC_HORIZON_COLOR, NULL), &shr.combined);
+	}
+	else {
+		GPU_link(mat, "set_rgb_zero", &shi.rgb);
+		GPU_link(mat, "background_transform_to_world", GPU_builtin(GPU_VIEW_POSITION), &ray);
+		if (wo->skytype & WO_SKYPAPER)
+			GPU_link(mat, "world_paper_view", GPU_builtin(GPU_VIEW_POSITION), &shi.view);
+		else
+			GPU_link(mat, "shade_view", ray, &shi.view);
+		if (wo->skytype & WO_SKYBLEND) {
+			if (wo->skytype & WO_SKYPAPER) {
+				if (wo->skytype & WO_SKYREAL)
+					GPU_link(mat, "world_blend_paper_real", GPU_builtin(GPU_VIEW_POSITION), &blend);
+				else
+					GPU_link(mat, "world_blend_paper", GPU_builtin(GPU_VIEW_POSITION), &blend);
+			}
+			else {
+				if (wo->skytype & WO_SKYREAL)
+					GPU_link(mat, "world_blend_real", ray, &blend);
+				else
+					GPU_link(mat, "world_blend", ray, &blend);
+			}
+		}
+		else {
+			GPU_link(mat, "set_value_zero", &blend);
+		}
+		GPU_link(mat, "set_rgb", GPU_dynamic_uniform(&wo->horr, GPU_DYNAMIC_HORIZON_COLOR, NULL), &hor);
+		GPU_link(mat, "set_rgb", GPU_dynamic_uniform(&wo->zenr, GPU_DYNAMIC_ZENITH_COLOR, NULL), &zen);
+		do_world_tex(&shi, wo, &hor, &zen, &blend);
+		if (wo->skytype & WO_SKYBLEND)
+			GPU_link(mat, "node_mix_shader", blend, hor, zen, &shi.rgb);
+		else
+			GPU_link(mat, "set_rgb", hor, &shi.rgb);
+		GPU_link(mat, "set_rgb", shi.rgb, &shr.combined);
+	}
+	GPU_material_output_link(mat, shr.combined);
+}
+
 GPUMaterial *GPU_material_world(struct Scene *scene, struct World *wo)
 {
 	LinkData *link;
@@ -1832,7 +2024,7 @@ GPUMaterial *GPU_material_world(struct Scene *scene, struct World *wo)
 	if (BKE_scene_use_new_shading_nodes(scene) && wo->nodetree && wo->use_nodes)
 		ntreeGPUMaterialNodes(wo->nodetree, mat, NODE_NEW_SHADING);
 	else {
-		/* old fixed function world */
+		GPU_material_old_world(mat, wo);
 	}
 
 	if (GPU_material_do_color_management(mat))
@@ -2424,6 +2616,7 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 						break;
 
 					case GPU_NONE:
+					case GPU_TEXCUBE:
 					case GPU_FLOAT:
 					case GPU_VEC2:
 					case GPU_VEC3:
@@ -2459,6 +2652,7 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 
 					case GPU_NONE:
 					case GPU_TEX2D:
+					case GPU_TEXCUBE:
 					case GPU_SHADOW2D:
 					case GPU_ATTRIB:
 						break;

@@ -657,6 +657,18 @@ bool BKE_image_scale(Image *image, int width, int height)
 	return (ibuf != NULL);
 }
 
+bool BKE_image_has_bindcode(Image *ima)
+{
+	bool has_bindcode = false;
+	for (int i = 0; i < TEXTARGET_COUNT; i++) {
+		if (ima->bindcode[i]) {
+			has_bindcode = true;
+			break;
+		}
+	}
+	return has_bindcode;
+}
+
 static void image_init_color_management(Image *ima)
 {
 	ImBuf *ibuf;

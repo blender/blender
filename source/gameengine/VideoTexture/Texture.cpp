@@ -299,7 +299,7 @@ PyObject *Texture_close(Texture * self)
 			self->m_matTexture->swapTexture(self->m_orgTex);
 		else
 		{
-			self->m_imgTexture->bindcode = self->m_orgTex;
+			self->m_imgTexture->bindcode[TEXTARGET_TEXTURE_2D] = self->m_orgTex;
 			BKE_image_release_ibuf(self->m_imgTexture, self->m_imgBuf, NULL);
 			self->m_imgBuf = NULL;
 		}
@@ -357,8 +357,8 @@ static PyObject *Texture_refresh(Texture *self, PyObject *args)
 						// WARNING: GPU has a ImageUser to pass, we don't. Using NULL
 						// works on image file, not necessarily on other type of image.
 						self->m_imgBuf = BKE_image_acquire_ibuf(self->m_imgTexture, NULL, NULL);
-						self->m_orgTex = self->m_imgTexture->bindcode;
-						self->m_imgTexture->bindcode = self->m_actTex;
+						self->m_orgTex = self->m_imgTexture->bindcode[TEXTARGET_TEXTURE_2D];
+						self->m_imgTexture->bindcode[TEXTARGET_TEXTURE_2D] = self->m_actTex;
 					}
 				}
 
