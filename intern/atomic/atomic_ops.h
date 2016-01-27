@@ -393,7 +393,11 @@ atomic_fetch_and_and_uint8(uint8_t *p, uint8_t b)
 ATOMIC_INLINE uint8_t
 atomic_fetch_and_and_uint8(uint8_t *p, uint8_t b)
 {
+#if (LG_SIZEOF_PTR == 3 || LG_SIZEOF_INT == 3)
 	return InterlockedAnd8((char *)p, (char)b);
+#else
+	return _InterlockedAnd8((char *)p, (char)b);
+#endif
 }
 #else
 #  error "Missing implementation for 8-bit atomic operations"
