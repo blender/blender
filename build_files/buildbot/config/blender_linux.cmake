@@ -91,7 +91,10 @@ set(OPENEXR_IMATH_LIBRARY     "/opt/lib/openexr/lib/libImath.a"     CACHE STRING
 # JeMalloc library
 set(JEMALLOC_LIBRARY    "/opt/lib/jemalloc/lib/libjemalloc.a" CACHE STRING "" FORCE)
 
-# Foce some system libraries to be static
+# Space navigation
+set(SPACENAV_ROOT_DIR       "/opt/lib/libspnav" CACHE STRING "" FORCE)
+
+# Force some system libraries to be static
 set(FFTW3_LIBRARY       "/usr/lib/libfftw3.a" CACHE STRING "" FORCE)
 set(JPEG_LIBRARY        "/usr/lib/libjpeg.a"  CACHE STRING "" FORCE)
 set(PNG_LIBRARY         "/usr/lib/libpng.a"   CACHE STRING "" FORCE)
