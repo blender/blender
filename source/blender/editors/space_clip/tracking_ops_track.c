@@ -153,7 +153,8 @@ static bool track_markers_check_direction(int backwards, int curfra, int efra)
 
 static int track_markers_initjob(bContext *C,
                                  TrackMarkersJob *tmj,
-                                 int backwards)
+                                 bool backwards,
+                                 bool sequence)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -168,11 +169,21 @@ static int track_markers_initjob(bContext *C,
 	tmj->clip = clip;
 	tmj->backwards = backwards;
 
-	if (backwards) {
-		tmj->efra = SFRA;
+	if (sequence) {
+		if (backwards) {
+			tmj->efra = SFRA;
+		}
+		else {
+			tmj->efra = EFRA;
+		}
 	}
 	else {
-		tmj->efra = EFRA;
+		if (backwards) {
+			tmj->efra = tmj->sfra - 1;
+		}
+		else {
+			tmj->efra = tmj->sfra + 1;
+		}
 	}
 
 	/* Limit frames to be tracked by user setting. */
@@ -303,106 +314,7 @@ static void track_markers_freejob(void *tmv)
 	MEM_freeN(tmj);
 }
 
-/* TODO(sergey): Majority of the code here can be de-duplicated with the job. */
-static int track_markers_exec(bContext *C, wmOperator *op)
-{
-	SpaceClip *sc;
-	MovieClip *clip;
-	Scene *scene = CTX_data_scene(C);
-	struct AutoTrackContext *context;
-	MovieClipUser *user, fake_user = {0};
-	int framenr, sfra, efra;
-	const bool backwards = RNA_boolean_get(op->ptr, "backwards");
-	const bool sequence = RNA_boolean_get(op->ptr, "sequence");
-	int frames_limit;
-
-	if (RNA_struct_property_is_set(op->ptr, "clip")) {
-		Main *bmain = CTX_data_main(C);
-		char clip_name[MAX_ID_NAME - 2];
-
-		RNA_string_get(op->ptr, "clip", clip_name);
-		clip = (MovieClip *)BLI_findstring(&bmain->movieclip,
-		                                   clip_name,
-		                                   offsetof(ID, name) + 2);
-		sc = NULL;
-
-		if (clip == NULL) {
-			return OPERATOR_CANCELLED;
-		}
-		framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, CFRA);
-		fake_user.framenr = framenr;
-		user = &fake_user;
-	}
-	else {
-		sc = CTX_wm_space_clip(C);
-
-		if (sc == NULL) {
-			return OPERATOR_CANCELLED;
-		}
-
-		clip = ED_space_clip_get_clip(sc);
-		framenr = ED_space_clip_get_clip_frame_number(sc);
-		user = &sc->user;
-	}
-
-	sfra = framenr;
-
-	if (track_count_markers(sc, clip, framenr) == 0) {
-		return OPERATOR_CANCELLED;
-	}
-
-	track_init_markers(sc, clip, framenr, &frames_limit);
-
-	if (backwards) {
-		efra = SFRA;
-	}
-	else {
-		efra = EFRA;
-	}
-
-	/* Limit frames to be tracked by user setting. */
-	if (frames_limit) {
-		if (backwards)
-			efra = MAX2(efra, sfra - frames_limit);
-		else
-			efra = MIN2(efra, sfra + frames_limit);
-	}
-
-	efra = BKE_movieclip_remap_scene_to_clip_frame(clip, efra);
-
-	if (!track_markers_check_direction(backwards, framenr, efra)) {
-		return OPERATOR_CANCELLED;
-	}
-
-	/* Do not disable tracks due to threshold when tracking frame-by-frame. */
-	context = BKE_autotrack_context_new(clip, user, backwards, sequence);
-	while (framenr != efra) {
-		if (!BKE_autotrack_context_step(context))
-			break;
-
-		if (backwards) framenr--;
-		else framenr++;
-
-		if (!sequence)
-			break;
-	}
-
-	BKE_autotrack_context_sync(context);
-	BKE_autotrack_context_finish(context);
-	BKE_autotrack_context_free(context);
-
-	/* Update scene current frame to the lastes tracked frame. */
-	scene->r.cfra = BKE_movieclip_remap_clip_to_scene_frame(clip, framenr);
-
-	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
-	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
-
-	return OPERATOR_FINISHED;
-}
-
-static int track_markers_invoke(bContext *C,
-                                wmOperator *op,
-                                const wmEvent *UNUSED(event))
+static int track_markers(bContext *C, wmOperator *op, bool use_job)
 {
 	TrackMarkersJob *tmj;
 	ScrArea *sa = CTX_wm_area(C);
@@ -438,49 +350,67 @@ static int track_markers_invoke(bContext *C,
 		return OPERATOR_CANCELLED;
 	}
 
-	if (!sequence) {
-		return track_markers_exec(C, op);
-	}
-
 	tmj = MEM_callocN(sizeof(TrackMarkersJob), "TrackMarkersJob data");
-	if (!track_markers_initjob(C, tmj, backwards)) {
+	if (!track_markers_initjob(C, tmj, backwards, sequence)) {
 		track_markers_freejob(tmj);
 		return OPERATOR_CANCELLED;
 	}
 
 	/* Setup job. */
-	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa,
-	                     "Track Markers",
-	                     WM_JOB_PROGRESS, WM_JOB_TYPE_CLIP_TRACK_MARKERS);
-	WM_jobs_customdata_set(wm_job, tmj, track_markers_freejob);
+	if (use_job && sequence) {
+		wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa,
+		                     "Track Markers",
+		                     WM_JOB_PROGRESS, WM_JOB_TYPE_CLIP_TRACK_MARKERS);
+		WM_jobs_customdata_set(wm_job, tmj, track_markers_freejob);
 
-	/* If there's delay set in tracking job, tracking should happen
-	 * with fixed FPS. To deal with editor refresh we have to synchronize
-	 * tracks from job and tracks in clip. Do this in timer callback
-	 * to prevent threading conflicts. */
-	if (tmj->delay > 0) {
-		WM_jobs_timer(wm_job,
-		              tmj->delay / 1000.0f, NC_MOVIECLIP | NA_EVALUATED, 0);
+		/* If there's delay set in tracking job, tracking should happen
+		 * with fixed FPS. To deal with editor refresh we have to synchronize
+		 * tracks from job and tracks in clip. Do this in timer callback
+		 * to prevent threading conflicts. */
+		if (tmj->delay > 0) {
+			WM_jobs_timer(wm_job,
+			              tmj->delay / 1000.0f, NC_MOVIECLIP | NA_EVALUATED, 0);
+		}
+		else {
+			WM_jobs_timer(wm_job, 0.2, NC_MOVIECLIP | NA_EVALUATED, 0);
+		}
+
+		WM_jobs_callbacks(wm_job,
+		                  track_markers_startjob,
+		                  NULL,
+		                  track_markers_updatejob,
+		                  track_markers_endjob);
+
+		G.is_break = false;
+
+		WM_jobs_start(CTX_wm_manager(C), wm_job);
+		WM_cursor_wait(0);
+
+		/* Add modal handler for ESC. */
+		WM_event_add_modal_handler(C, op);
+
+		return OPERATOR_RUNNING_MODAL;
 	}
 	else {
-		WM_jobs_timer(wm_job, 0.2, NC_MOVIECLIP | NA_EVALUATED, 0);
+		short stop = 0, do_update = 0;
+		float progress = 0.0f;
+		track_markers_startjob(tmj, &stop, &do_update, &progress);
+		track_markers_endjob(tmj);
+		track_markers_freejob(tmj);
+		return OPERATOR_FINISHED;
 	}
+}
 
-	WM_jobs_callbacks(wm_job,
-	                  track_markers_startjob,
-	                  NULL,
-	                  track_markers_updatejob,
-	                  track_markers_endjob);
+static int track_markers_exec(bContext *C, wmOperator *op)
+{
+	return track_markers(C, op, false);
+}
 
-	G.is_break = false;
-
-	WM_jobs_start(CTX_wm_manager(C), wm_job);
-	WM_cursor_wait(0);
-
-	/* Add modal handler for ESC. */
-	WM_event_add_modal_handler(C, op);
-
-	return OPERATOR_RUNNING_MODAL;
+static int track_markers_invoke(bContext *C,
+                                wmOperator *op,
+                                const wmEvent *UNUSED(event))
+{
+	return track_markers(C, op, true);
 }
 
 static int track_markers_modal(bContext *C,
