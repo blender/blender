@@ -284,6 +284,7 @@ static int smokeModifier_init(SmokeModifierData *smd, Object *ob, Scene *scene, 
 		add_v3_fl(sds->shift_f, 0.5f);
 		zero_v3(sds->prev_loc);
 		mul_m4_v3(ob->obmat, sds->prev_loc);
+		copy_m4_m4(sds->obmat, ob->obmat);
 
 		/* set resolutions */
 		if (smd->domain->flags & MOD_SMOKE_ADAPTIVE_DOMAIN) {
