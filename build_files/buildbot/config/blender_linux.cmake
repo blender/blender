@@ -101,5 +101,8 @@ set(PNG_LIBRARY         "/usr/lib/libpng.a"   CACHE STRING "" FORCE)
 set(TIFF_LIBRARY        "/usr/lib/libtiff.a"  CACHE STRING "" FORCE)
 set(ZLIB_LIBRARY        "/usr/lib/libz.a"     CACHE STRING "" FORCE)
 
+# OpenVDB
+set(WITH_OPENVDB       ON  CACHE BOOL "" FORCE)
+
 # Additional linking libraries
 set(CMAKE_EXE_LINKER_FLAGS   "-lrt -static-libstdc++"  CACHE STRING "" FORCE)

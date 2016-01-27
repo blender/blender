@@ -1063,19 +1063,11 @@ if(UNIX AND NOT APPLE)
 
 	if(WITH_OPENVDB)
 		find_package_wrapper(OpenVDB)
-
-		set(TBB ${LIBDIR}/tbb)
-		set(TBB_LIBRARIES tbb)
-		set(TBB_LIBPATH ${TBB}/lib)
-
-		set(OPENVDB_LIBRARIES ${OPENVDB_LIBRARIES} ${BOOST_LIBRARIES} ${ZLIB_LIBRARIES} ${TBB_LIBRARIES})
-		set(OPENVDB_LIBPATH)  # TODO, remove and reference the absolute path everywhere
-		set(OPENVDB_DEFINITIONS)
-
-		if(NOT OPENVDB_FOUND)
+		find_package_wrapper(TBB)
+		if(NOT OPENVDB_FOUND OR NOT TBB_FOUND)
 			set(WITH_OPENVDB OFF)
 			set(WITH_OPENVDB_BLOSC OFF)
-			message(STATUS "OpenVDB not found")
+			message(STATUS "OpenVDB not found, disabling it")
 		endif()
 	endif()
 
