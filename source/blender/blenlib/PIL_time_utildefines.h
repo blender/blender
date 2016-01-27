@@ -51,15 +51,40 @@
 
 #define TIMEIT_VALUE_PRINT(var)                                               \
 	{                                                                         \
-		printf("time update(" #var "): %.6f" "  " AT "\n", TIMEIT_VALUE(var));\
+		printf("time update   (" #var "): %.6f" "  " AT "\n", TIMEIT_VALUE(var));\
 		fflush(stdout);                                                       \
 	} (void)0
 
 #define TIMEIT_END(var)                                                       \
-	}                                                                         \
-	printf("time end   (" #var "): %.6f" "  " AT "\n", TIMEIT_VALUE(var));    \
-	fflush(stdout);                                                           \
-} (void)0
+		}                                                                     \
+		printf("time end   (" #var "): %.6f" "  " AT "\n", TIMEIT_VALUE(var));\
+		fflush(stdout);                                                       \
+	} (void)0
+
+/**
+ * _AVERAGED variants do same thing as their basic counterpart, but additionnally add elapsed time to an averaged
+ * static value, useful to get sensible timing of code running fast and often.
+ */
+#define TIMEIT_START_AVERAGED(var)                                            \
+	{                                                                         \
+		static float _sum_##var = 0.0f;                                       \
+		static float _num_##var = 0.0f;                                       \
+		double _timeit_##var = PIL_check_seconds_timer();                     \
+		printf("time start    (" #var "):  " AT "\n");                        \
+		fflush(stdout);                                                       \
+		{ (void)0
+
+#define TIMEIT_AVERAGED_VALUE(var) (_num##var ? (_sum_##var / _num_##var) : 0.0f)
+
+#define TIMEIT_END_AVERAGED(var)                                              \
+		}                                                                     \
+		const float _delta_##var = TIMEIT_VALUE(var);                         \
+		_sum_##var += _delta_##var;                                           \
+		printf("time end      (" #var "): %.6f" "  " AT "\n", _delta_##var);  \
+		printf("time averaged (" #var "): %.6f" "  " AT "\n",                 \
+		       (_sum_##var / ++_num_##var));                                  \
+		fflush(stdout);                                                       \
+	} (void)0
 
 /**
  * Given some function/expression:
