@@ -1253,8 +1253,9 @@ static short clear_keyframe(ReportList *reports, ID *id, bAction *act, const cha
 			continue;
 
 		if (BKE_fcurve_is_protected(fcu)) {
-			if (G.debug & G_DEBUG)
-				printf("WARNING: not deleting keyframe for locked F-Curve\n");
+			BKE_reportf(reports, RPT_WARNING,
+			            "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'",
+			            fcu->rna_path, BKE_idcode_to_name(GS(id->name)), id->name + 2);
 			continue;
 		}
 
