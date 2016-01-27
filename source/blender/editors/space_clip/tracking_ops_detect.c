@@ -54,6 +54,7 @@
 #include "RNA_define.h"
 
 #include "clip_intern.h"
+#include "tracking_ops_intern.h"
 
 /********************** detect features operator *********************/
 
@@ -105,16 +106,8 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 	}
 
 	/* Deselect existing tracks. */
-	/* TODO(sergey): Could use deselect oeprator function for this. */
-	for (MovieTrackingTrack *track = tracksbase->first;
-	     track != NULL;
-	     track = track->next)
-	{
-		track->flag &= ~SELECT;
-		track->pat_flag &= ~SELECT;
-		track->search_flag &= ~SELECT;
-	}
-
+	ed_tracking_delect_all_tracks(tracksbase);
+	/* Run detector. */
 	BKE_tracking_detect_harris(tracking,
 	                           tracksbase,
 	                           ibuf,

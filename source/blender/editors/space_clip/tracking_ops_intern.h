@@ -33,13 +33,21 @@
 #define __TRACKING_OPS_INTERN_H__
 
 struct bContext;
-struct SpaceClip;
+struct ListBase;
 struct MovieClip;
+struct SpaceClip;
+
+/* tracking_utils.c */
 
 void clip_tracking_clear_invisible_track_selection(struct SpaceClip *sc,
                                                    struct MovieClip *clip);
 
 void clip_tracking_show_cursor(struct bContext *C);
 void clip_tracking_hide_cursor(struct bContext *C);
+
+/* tracking_select.h */
+
+void ed_tracking_delect_all_tracks(struct ListBase *tracks_base);
+void ed_tracking_delect_all_plane_tracks(struct ListBase *plane_tracks_base);
 
 #endif /* __TRACKING_OPS_INTERN_H__ */
