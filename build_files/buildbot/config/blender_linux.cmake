@@ -36,18 +36,18 @@ set(Boost_USE_STATIC_LIBS    ON CACHE BOOL "" FORCE)
 # FFmpeg libraries
 set(FFMPEG                   "/opt/lib/ffmpeg" CACHE STRING "" FORCE)
 set(FFMPEG_LIBRARIES
-    avdevice avformat avcodec avutil avfilter swscale swresample
-    /usr/lib/libxvidcore.a
-    /usr/lib/libx264.a
-    /usr/lib/libmp3lame.a
-    /usr/lib/libvpx.a
-    /usr/lib/libvorbis.a
-    /usr/lib/libogg.a
-    /usr/lib/libvorbisenc.a
-    /usr/lib/libtheora.a
-    /usr/lib/libschroedinger-1.0.a
-    /usr/lib/liborc-0.4.a
-    CACHE STRING "" FORCE
+	avdevice avformat avcodec avutil avfilter swscale swresample
+	/usr/lib/libxvidcore.a
+	/usr/lib/libx264.a
+	/usr/lib/libmp3lame.a
+	/usr/lib/libvpx.a
+	/usr/lib/libvorbis.a
+	/usr/lib/libogg.a
+	/usr/lib/libvorbisenc.a
+	/usr/lib/libtheora.a
+	/usr/lib/libschroedinger-1.0.a
+	/usr/lib/liborc-0.4.a
+	CACHE STRING "" FORCE
 )
 
 # SndFile libraries
@@ -57,9 +57,9 @@ set(SNDFILE_LIBRARY          "/usr/lib/libsndfile.a;/usr/lib/libFLAC.a" CACHE ST
 set(OPENAL_ROOT_DIR           "/opt/lib/openal" CACHE STRING "" FORCE)
 set(OPENAL_INCLUDE_DIR        "${OPENAL_ROOT_DIR}/include" CACHE STRING "" FORCE)
 set(OPENAL_LIBRARY
-    ${OPENAL_ROOT_DIR}/lib/libopenal.a
-    ${OPENAL_ROOT_DIR}/lib/libcommon.a
-    CACHE STRING "" FORCE
+	${OPENAL_ROOT_DIR}/lib/libopenal.a
+	${OPENAL_ROOT_DIR}/lib/libcommon.a
+	CACHE STRING "" FORCE
 )
 
 # OpenCollada libraries
@@ -103,6 +103,12 @@ set(ZLIB_LIBRARY        "/usr/lib/libz.a"     CACHE STRING "" FORCE)
 
 # OpenVDB
 set(WITH_OPENVDB       ON  CACHE BOOL "" FORCE)
+set(WITH_OPENVDB_BLOSC ON  CACHE BOOL "" FORCE)
+set(OPENVDB_LIBRARY
+	/opt/lib/openvdb/lib/libopenvdb.a
+	/opt/lib/blosc/lib/libblosc.a
+	CACHE BOOL "" FORCE
+)
 
 # Additional linking libraries
 set(CMAKE_EXE_LINKER_FLAGS   "-lrt -static-libstdc++"  CACHE STRING "" FORCE)
