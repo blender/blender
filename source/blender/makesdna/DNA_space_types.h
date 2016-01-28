@@ -124,7 +124,7 @@ typedef struct SpaceButs {
 	short mainb, mainbo, mainbuser; /* context tabs */
 	short re_align, align;          /* align for panels */
 	short preview;                  /* preview is signal to refresh */
-	/* texture context selector (material, lamp, particles, world, other)*/
+	/* texture context selector (material, lamp, particles, world, other) */
 	short texture_context, texture_context_prev;
 	char flag, pad[7];
 	
@@ -650,7 +650,7 @@ typedef struct SpaceFile {
 	short systemnr, system_bookmarknr;
 } SpaceFile;
 
-/* FSMenuEntry's without paths indicate seperators */
+/* FSMenuEntry's without paths indicate separators */
 typedef struct FSMenuEntry {
 	struct FSMenuEntry *next;
 
@@ -853,7 +853,7 @@ typedef struct FileDirEntryArr {
 
 /* FileDirEntry.status */
 enum {
-	ASSET_STATUS_LOCAL  = 1 << 0,  /* If active uuid is available localy/immediately. */
+	ASSET_STATUS_LOCAL  = 1 << 0,  /* If active uuid is available locally/immediately. */
 	ASSET_STATUS_LATEST = 1 << 1,  /* If active uuid is latest available version. */
 };
 
@@ -924,7 +924,7 @@ typedef enum eSpaceImage_Mode {
 
 /* SpaceImage->sticky
  * Note DISABLE should be 0, however would also need to re-arrange icon order,
- * also, sticky loc is the default mode so this means we don't need to 'do_versons' */
+ * also, sticky loc is the default mode so this means we don't need to 'do_versions' */
 typedef enum eSpaceImage_Sticky {
 	SI_STICKY_LOC      = 0,
 	SI_STICKY_DISABLE  = 1,
@@ -957,7 +957,7 @@ typedef enum eSpaceImage_Flag {
 /*	SI_DEPRECATED5        = (1 << 18), */  /* deprecated */
 	
 	/* this means that the image is drawn until it reaches the view edge,
-	 * in the image view, its unrelated to the 'tile' mode for texface
+	 * in the image view, it's unrelated to the 'tile' mode for texface
 	 */
 	SI_DRAW_TILE          = (1 << 19),
 	SI_SMOOTH_UV          = (1 << 20),

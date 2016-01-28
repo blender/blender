@@ -2674,16 +2674,16 @@ int BKE_mesh_recalc_tessellation(
 		}
 	}
 
-	/* NOTE: quad detection issue - forth vertidx vs forth loopidx:
+	/* NOTE: quad detection issue - fourth vertidx vs fourth loopidx:
 	 * Polygons take care of their loops ordering, hence not of their vertices ordering.
-	 * Currently, our tfaces' forth vertex index might be 0 even for a quad. However, we know our forth loop index is
+	 * Currently, our tfaces' fourth vertex index might be 0 even for a quad. However, we know our fourth loop index is
 	 * never 0 for quads (because they are sorted for polygons, and our quads are still mere copies of their polygons).
-	 * So we pass NULL as MFace pointer, and BKE_mesh_loops_to_tessdata will use the forth loop index as quad test.
+	 * So we pass NULL as MFace pointer, and BKE_mesh_loops_to_tessdata will use the fourth loop index as quad test.
 	 * ...
 	 */
 	BKE_mesh_loops_to_tessdata(fdata, ldata, pdata, NULL, mface_to_poly_map, lindices, totface);
 
-	/* NOTE: quad detection issue - forth vertidx vs forth loopidx:
+	/* NOTE: quad detection issue - fourth vertidx vs fourth loopidx:
 	 * ...However, most TFace code uses 'MFace->v4 == 0' test to check whether it is a tri or quad.
 	 * test_index_face() will check this and rotate the tessellated face if needed.
 	 */

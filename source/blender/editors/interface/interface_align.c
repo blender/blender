@@ -102,7 +102,7 @@ enum {
 /* 0: LEFT/RIGHT sides; 1 = TOP/DOWN sides. */
 #define IS_COLUMN(_s) ((_s) % 2)
 
-/* Stich flag from side value. */
+/* Stitch flag from side value. */
 #define STITCH(_s) (1 << (_s))
 
 /* Max distance between to buttons for them to be 'mergeable'. */
@@ -151,8 +151,8 @@ static void block_align_proximity_compute(ButAlign *butal, ButAlign *butal_other
 			side_opp = OPPOSITE(side);
 
 			/* We check both opposite sides at once, because with very small buttons, delta could be below max_delta for
-			 * the wrong side (that is, in horizontal case, the total width of two buttons can be below max_delta). */
-			/* We rely on exact zero value here as an 'already processed' flag, so ensure we never actually
+			 * the wrong side (that is, in horizontal case, the total width of two buttons can be below max_delta).
+			 * We rely on exact zero value here as an 'already processed' flag, so ensure we never actually
 			 * set a zero value at this stage. FLT_MIN is zero-enough for UI position computing. ;) */
 			delta = max_ff(fabsf(*butal->borders[side] - *butal_other->borders[side_opp]), FLT_MIN);
 			delta_side_opp = max_ff(fabsf(*butal->borders[side_opp] - *butal_other->borders[side]), FLT_MIN);
@@ -399,7 +399,7 @@ void ui_block_align_calc(uiBlock *block)
 		}
 	}
 
-	/* Forth loop: we have all our 'aligned' buttons as a 'map' in butal_array. We need to:
+	/* Fourth loop: we have all our 'aligned' buttons as a 'map' in butal_array. We need to:
 	 *     - update their relevant coordinates to stitch them.
 	 *     - assign them valid flags.
 	 */
@@ -568,7 +568,7 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
 					flag |= UI_BUT_ALIGN_TOP;
 				}
 				
-				if ((flag & UI_BUT_ALIGN_TOP) == 0) {  /* stil top row */
+				if ((flag & UI_BUT_ALIGN_TOP) == 0) {  /* still top row */
 					if (prev) {
 						if (next && buts_are_horiz(but, next))
 							flag = UI_BUT_ALIGN_DOWN | UI_BUT_ALIGN_LEFT | UI_BUT_ALIGN_RIGHT;

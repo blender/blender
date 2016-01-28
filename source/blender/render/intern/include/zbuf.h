@@ -95,7 +95,7 @@ typedef struct ZSpan {
 	float zmulx, zmuly, zofsx, zofsy;		/* transform from hoco to zbuf co */
 	
 	int *rectz, *arectz;					/* zbuffers, arectz is for transparent */
-	int *rectz1;							/* seconday z buffer for shadowbuffer (2nd closest z) */
+	int *rectz1;							/* secondary z buffer for shadowbuffer (2nd closest z) */
 	int *rectp;								/* polygon index buffer */
 	int *recto;								/* object buffer */
 	int *rectmask;							/* negative zmask buffer */
@@ -142,7 +142,7 @@ void zbufclipwire(struct ZSpan *zspan, int obi, int zvlnr, int ec,
 void zbuf_make_winmat(Render *re, float winmat[4][4]);
 void zbuf_render_project(float winmat[4][4], const float co[3], float ho[4]);
 
-/* sould not really be exposed, bad! */
+/* should not really be exposed, bad! */
 void hoco_to_zco(ZSpan *zspan, float zco[3], const float hoco[4]);
 void zspan_scanconvert_strand(ZSpan *zspan, void *handle, float *v1, float *v2, float *v3, void (*func)(void *, int, int, float, float, float) );
 void zbufsinglewire(ZSpan *zspan, int obi, int zvlnr, const float ho1[4], const float ho2[4]);

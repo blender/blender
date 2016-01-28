@@ -872,7 +872,7 @@ PyDoc_STRVAR(M_Geometry_intersect_point_quad_2d_doc,
 "   :type quad_p2: :class:`mathutils.Vector`\n"
 "   :arg quad_p3: Third point of the quad\n"
 "   :type quad_p3: :class:`mathutils.Vector`\n"
-"   :arg quad_p4: Forth point of the quad\n"
+"   :arg quad_p4: Fourth point of the quad\n"
 "   :type quad_p4: :class:`mathutils.Vector`\n"
 "   :rtype: int\n"
 );

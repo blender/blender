@@ -2630,7 +2630,7 @@ PyDoc_STRVAR(BPy_EnumProperty_doc,
 "      [(identifier, name, description, icon, number), ...] where the identifier is used\n"
 "      for python access and other values are used for the interface.\n"
 "      The three first elements of the tuples are mandatory.\n"
-"      The forth one is either the (unique!) number id of the item or, if followed by a fith element\n"
+"      The fourth one is either the (unique!) number id of the item or, if followed by a fith element\n"
 "      (which must be the numid), an icon string identifier or integer icon value (e.g. returned by icon()...).\n"
 "      Note the item is optional.\n"
 "      For dynamic values a callback can be passed which returns a list in\n"

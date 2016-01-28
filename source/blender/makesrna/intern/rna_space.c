@@ -2650,7 +2650,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	                                  "rna_iterator_listbase_end", "rna_SpaceView3D_region_quadviews_get",
 	                                  NULL, NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Quad View Regions", "3D regions (the third one defines quad view settings, "
-	                                                    "the forth one is same as 'region_3d')");
+	                                                    "the fourth one is same as 'region_3d')");
 
 	prop = RNA_def_property(srna, "show_reconstruction", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_RECONSTRUCTION);

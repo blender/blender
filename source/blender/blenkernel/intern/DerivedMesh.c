@@ -565,8 +565,8 @@ void DM_update_tessface_data(DerivedMesh *dm)
 			}
 		}
 
-		/* NOTE: quad detection issue - forth vertidx vs forth loopidx:
-		 * Here, our tfaces' forth vertex index is never 0 for a quad. However, we know our forth loop index may be
+		/* NOTE: quad detection issue - fourth vertidx vs fourth loopidx:
+		 * Here, our tfaces' fourth vertex index is never 0 for a quad. However, we know our fourth loop index may be
 		 * 0 for quads (because our quads may have been rotated compared to their org poly, see tessellation code).
 		 * So we pass the MFace's, and BKE_mesh_loops_to_tessdata will use MFace->v4 index as quad test.
 		 */
@@ -630,8 +630,8 @@ void DM_generate_tangent_tessface_data(DerivedMesh *dm, bool generate)
 		}
 	}
 
-	/* NOTE: quad detection issue - forth vertidx vs forth loopidx:
-	 * Here, our tfaces' forth vertex index is never 0 for a quad. However, we know our forth loop index may be
+	/* NOTE: quad detection issue - fourth vertidx vs fourth loopidx:
+	 * Here, our tfaces' fourth vertex index is never 0 for a quad. However, we know our fourth loop index may be
 	 * 0 for quads (because our quads may have been rotated compared to their org poly, see tessellation code).
 	 * So we pass the MFace's, and BKE_mesh_loops_to_tessdata will use MFace->v4 index as quad test.
 	 */
@@ -799,7 +799,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask, bool
 
 	/* ok, this should now use new CD shapekey data,
 	 * which should be fed through the modifier
-	 * stack*/
+	 * stack */
 	if (tmp.totvert != me->totvert && !did_shapekeys && me->key) {
 		printf("%s: YEEK! this should be recoded! Shape key loss!: ID '%s'\n", __func__, tmp.id.name);
 		if (tmp.key)
@@ -1335,7 +1335,7 @@ typedef struct DMWeightColorInfo {
 static int dm_drawflag_calc(const ToolSettings *ts, const Mesh *me)
 {
 	return ((ts->multipaint ? CALC_WP_MULTIPAINT : 0) |
-	        /* CALC_WP_GROUP_USER_ACTIVE or CALC_WP_GROUP_USER_ALL*/
+	        /* CALC_WP_GROUP_USER_ACTIVE or CALC_WP_GROUP_USER_ALL */
 	        (1 << ts->weightuser) |
 	        (ts->auto_normalize ? CALC_WP_AUTO_NORMALIZE : 0) |
 	        ((me->editflag & ME_EDIT_MIRROR_X) ? CALC_WP_MIRROR_X : 0));
@@ -1545,8 +1545,8 @@ void DM_update_weight_mcol(
 		int l_index;
 		int j;
 
-		/* now add to loops, so the data can be passed through the modifier stack */
-		/* If no CD_PREVIEW_MLOOPCOL existed yet, we have to add a new one! */
+		/* now add to loops, so the data can be passed through the modifier stack
+		 * If no CD_PREVIEW_MLOOPCOL existed yet, we have to add a new one! */
 		if (!wtcol_l) {
 			wtcol_l = MEM_mallocN(sizeof(*wtcol_l) * dm_totloop, __func__);
 			CustomData_add_layer(&dm->loopData, CD_PREVIEW_MLOOPCOL, CD_ASSIGN, wtcol_l, dm_totloop);
@@ -2013,12 +2013,12 @@ static void mesh_calc_modifiers(
 			
 			/* set the DerivedMesh to only copy needed data */
 			mask = curr->mask;
-			/* needMapping check here fixes bug [#28112], otherwise its
-			 * possible that it wont be copied */
+			/* needMapping check here fixes bug [#28112], otherwise it's
+			 * possible that it won't be copied */
 			mask |= append_mask;
 			DM_set_only_copy(dm, mask | (need_mapping ? CD_MASK_ORIGINDEX : 0));
 			
-			/* add cloth rest shape key if need */
+			/* add cloth rest shape key if needed */
 			if (mask & CD_MASK_CLOTH_ORCO)
 				add_orco_dm(ob, NULL, dm, clothorcodm, CD_CLOTH_ORCO);
 
