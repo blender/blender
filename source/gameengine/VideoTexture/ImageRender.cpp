@@ -141,14 +141,14 @@ void ImageRender::calcImage (unsigned int texId, double ts)
 
 void ImageRender::Render()
 {
-	RAS_FrameFrustum frustrum;
+	RAS_FrameFrustum frustum;
 
 	if (!m_render)
 		return;
 
 	if (m_mirror)
 	{
-		// mirror mode, compute camera frustrum, position and orientation
+		// mirror mode, compute camera frustum, position and orientation
 		// convert mirror position and normal in world space
 		const MT_Matrix3x3 & mirrorObjWorldOri = m_mirror->GetSGNode()->GetWorldOrientation();
 		const MT_Point3 & mirrorObjWorldPos = m_mirror->GetSGNode()->GetWorldPosition();
@@ -177,7 +177,7 @@ void ImageRender::Render()
 		            mirrorWorldX[2], mirrorWorldY[2], mirrorWorldZ[2]);
 		m_camera->GetSGNode()->SetLocalOrientation(cameraWorldOri);
 		m_camera->GetSGNode()->UpdateWorldData(0.0);
-		// compute camera frustrum:
+		// compute camera frustum:
 		//   get position of mirror relative to camera: offset = mirrorPos-cameraPos
 		MT_Vector3 mirrorOffset = mirrorWorldPos - cameraWorldPos;
 		//   convert to camera orientation
@@ -203,12 +203,12 @@ void ImageRender::Render()
 		//   bottom = offsety-height
 		//   near = -offsetz
 		//   far = near+100
-		frustrum.x1 = mirrorOffset[0]-width;
-		frustrum.x2 = mirrorOffset[0]+width;
-		frustrum.y1 = mirrorOffset[1]-height;
-		frustrum.y2 = mirrorOffset[1]+height;
-		frustrum.camnear = -mirrorOffset[2];
-		frustrum.camfar = -mirrorOffset[2]+m_clip;
+		frustum.x1 = mirrorOffset[0]-width;
+		frustum.x2 = mirrorOffset[0]+width;
+		frustum.y1 = mirrorOffset[1]-height;
+		frustum.y2 = mirrorOffset[1]+height;
+		frustum.camnear = -mirrorOffset[2];
+		frustum.camfar = -mirrorOffset[2]+m_clip;
 	}
 	// Store settings to be restored later
 	const RAS_IRasterizer::StereoMode stereomode = m_rasterizer->GetStereoMode();
@@ -226,10 +226,10 @@ void ImageRender::Render()
 	m_rasterizer->SetStereoMode(RAS_IRasterizer::RAS_STEREO_NOSTEREO);
 	if (m_mirror)
 	{
-		// frustrum was computed above
-		// get frustrum matrix and set projection matrix
+		// frustum was computed above
+		// get frustum matrix and set projection matrix
 		MT_Matrix4x4 projmat = m_rasterizer->GetFrustumMatrix(
-		            frustrum.x1, frustrum.x2, frustrum.y1, frustrum.y2, frustrum.camnear, frustrum.camfar);
+		            frustum.x1, frustum.x2, frustum.y1, frustum.y2, frustum.camnear, frustum.camfar);
 
 		m_camera->SetProjectionMatrix(projmat);
 	}
@@ -264,11 +264,11 @@ void ImageRender::Render()
 						m_camera->GetSensorFit(),
 			            shift_x,
 			            shift_y,
-			            frustrum
+			            frustum
 			            );
 
 			projmat = m_rasterizer->GetOrthoMatrix(
-			            frustrum.x1, frustrum.x2, frustrum.y1, frustrum.y2, frustrum.camnear, frustrum.camfar);
+			            frustum.x1, frustum.x2, frustum.y1, frustum.y2, frustum.camnear, frustum.camfar);
 		}
 		else {
 			RAS_FramingManager::ComputeDefaultFrustum(
@@ -281,10 +281,10 @@ void ImageRender::Render()
 			            shift_x,
 			            shift_y,
 			            aspect_ratio,
-			            frustrum);
+			            frustum);
 			
 			projmat = m_rasterizer->GetFrustumMatrix(
-			            frustrum.x1, frustrum.x2, frustrum.y1, frustrum.y2, frustrum.camnear, frustrum.camfar);
+			            frustum.x1, frustum.x2, frustum.y1, frustum.y2, frustum.camnear, frustum.camfar);
 		}
 		m_camera->SetProjectionMatrix(projmat);
 	}
@@ -548,7 +548,7 @@ static int ImageMirror_init(PyObject *pySelf, PyObject *args, PyObject *kwds)
 		exp.report();
 		return -1;
 	}
-	// initialization succeded
+	// initialization succeeded
 	return 0;
 }
 
@@ -607,7 +607,7 @@ ImageRender::ImageRender (KX_Scene *scene, KX_GameObject *observer, KX_GameObjec
     m_clip(100.f)
 {
 	// this constructor is used for automatic planar mirror
-	// create a camera, take all data by default, in any case we will recompute the frustrum on each frame
+	// create a camera, take all data by default, in any case we will recompute the frustum on each frame
 	RAS_CameraData camdata;
 	vector<RAS_TexVert*> mirrorVerts;
 	vector<RAS_TexVert*>::iterator it;
@@ -641,7 +641,7 @@ ImageRender::ImageRender (KX_Scene *scene, KX_GameObject *observer, KX_GameObjec
 				RAS_TexVert *v1, *v2, *v3, *v4;
 				float normal[3];
 				float area;
-				// this polygon is part of the mirror,
+				// this polygon is part of the mirror
 				v1 = polygon->GetVertex(0);
 				v2 = polygon->GetVertex(1);
 				v3 = polygon->GetVertex(2);

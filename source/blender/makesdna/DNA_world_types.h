@@ -86,7 +86,7 @@ typedef struct World {
 	 * bit 2: (reserved) depth of field
 	 * bit 3: (gameengine): Activity culling is enabled.
 	 * bit 4: ambient occlusion
-	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling 
+	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustum culling 
 	 */
 	short mode;												// partially moved to scene->gamedata in 2.5
 	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */	// XXX moved to scene->gamedata in 2.5

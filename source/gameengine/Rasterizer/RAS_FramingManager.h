@@ -73,7 +73,7 @@ public :
 	};
 	
 	/**
-	 * Contructor
+	 * Constructor
 	 */
 
 	RAS_FrameSettings(
@@ -221,7 +221,7 @@ public :
 
 	
 	/**
-	 * compute a frustrum given a valid viewport,
+	 * compute a frustum given a valid viewport,
 	 * RAS_FrameSettings, canvas description 
 	 * and camera description
 	 */

@@ -320,7 +320,7 @@ void KX_Camera::ExtractFrustumSphere()
 
 	if (m_projection_matrix[3][3] == MT_Scalar(0.0f))
 	{
-		// frustrum projection
+		// frustum projection
 		// detect which of the corner of the far clipping plane is the farthest to the origin
 		MT_Vector4 nfar;    // far point in device normalized coordinate
 		MT_Point3 farpoint; // most extreme far point in camera coordinate
@@ -359,7 +359,7 @@ void KX_Camera::ExtractFrustumSphere()
 		nfar.setValue(-nfar[0], -nfar[1], -1.0f, 1.0f);
 		nfar = clip_camcs_matrix*nfar;
 		nearpoint.setValue(nfar[0]/nfar[3], nfar[1]/nfar[3], nfar[2]/nfar[3]);
-		// this is a frustrum projection
+		// this is a frustum projection
 		N = nearpoint.dot(nearpoint);
 		e = farpoint[2];
 		s = nearpoint[2];

@@ -800,7 +800,7 @@ typedef struct RecastData {
 
 typedef struct GameData {
 
-	/*  standalone player */
+	/* standalone player */
 	struct GameFraming framing;
 	short playerflag, xplay, yplay, freqplay;
 	short depth, attrib, rt1, rt2;
@@ -823,7 +823,7 @@ typedef struct GameData {
 
 	/*
 	 * bit 3: (gameengine): Activity culling is enabled.
-	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling
+	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustum culling
 	 */
 	int flag;
 	short mode, matmode;

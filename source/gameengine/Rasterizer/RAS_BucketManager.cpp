@@ -125,7 +125,7 @@ void RAS_BucketManager::OrderBuckets(const MT_Transform& cameratrans, BucketList
 	{
 		RAS_MaterialBucket* bucket = *bit;
 		RAS_MeshSlot* ms;
-		// remove the mesh slot form the list, it culls them automatically for next frame
+		// remove the mesh slot from the list, it culls them automatically for next frame
 		while ((ms = bucket->GetNextActiveMeshSlot())) {
 			slots[i++].set(ms, bucket, pnorm);
 		}
@@ -157,7 +157,7 @@ void RAS_BucketManager::RenderAlphaBuckets(const MT_Transform& cameratrans, RAS_
 			sit->m_bucket->RenderMeshSlot(cameratrans, rasty, *(sit->m_ms));
 
 		// make this mesh slot culled automatically for next frame
-		// it will be culled out by frustrum culling
+		// it will be culled out by frustum culling
 		sit->m_ms->SetCulled(true);
 	}
 
@@ -174,14 +174,14 @@ void RAS_BucketManager::RenderSolidBuckets(const MT_Transform& cameratrans, RAS_
 #if 1
 		RAS_MaterialBucket* bucket = *bit;
 		RAS_MeshSlot* ms;
-		// remove the mesh slot form the list, it culls them automatically for next frame
+		// remove the mesh slot from the list, it culls them automatically for next frame
 		while ((ms = bucket->GetNextActiveMeshSlot())) {
 			rasty->SetClientObject(ms->m_clientObj);
 			while (bucket->ActivateMaterial(cameratrans, rasty))
 				bucket->RenderMeshSlot(cameratrans, rasty, *ms);
 
 			// make this mesh slot culled automatically for next frame
-			// it will be culled out by frustrum culling
+			// it will be culled out by frustum culling
 			ms->SetCulled(true);
 		}
 #else
@@ -196,7 +196,7 @@ void RAS_BucketManager::RenderSolidBuckets(const MT_Transform& cameratrans, RAS_
 				(*bit)->RenderMeshSlot(cameratrans, rasty, *mit);
 
 			// make this mesh slot culled automatically for next frame
-			// it will be culled out by frustrum culling
+			// it will be culled out by frustum culling
 			mit->SetCulled(true);
 		}
 #endif
@@ -367,7 +367,7 @@ void RAS_BucketManager::RemoveMaterial(RAS_IPolyMaterial * mat)
 
 void RAS_BucketManager::MergeBucketManager(RAS_BucketManager *other, SCA_IScene *scene)
 {
-	/* concatinate lists */
+	/* concatenate lists */
 	// printf("BEFORE %d %d\n", GetSolidBuckets().size(), GetAlphaBuckets().size());
 
 	GetSolidBuckets().insert( GetSolidBuckets().end(), other->GetSolidBuckets().begin(), other->GetSolidBuckets().end() );
