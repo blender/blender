@@ -1449,7 +1449,15 @@ protected:
 		template <typename T>
 		ArgumentWrapper(T& argument) : size(sizeof(argument)),
 		                               pointer(&argument) { }
+		ArgumentWrapper(int argument) : size(sizeof(int)),
+		                                int_value(argument),
+		                                pointer(&int_value) { }
+		ArgumentWrapper(float argument) : size(sizeof(float)),
+		                                  float_value(argument),
+		                                  pointer(&float_value) { }
 		size_t size;
+		int int_value;
+		float float_value;
 		void *pointer;
 	};
 
