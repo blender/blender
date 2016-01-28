@@ -399,7 +399,7 @@ static BVHTree *bvhtree_from_mesh_verts_create_tree(
 			for (i = 0; i < numVerts; i++) {
 				if (BLI_BITMAP_TEST_BOOL(mask, i)) {
 					if (em != NULL) {
-						if (index_array){
+						if (index_array) {
 							index = index_array[i];
 							if (index == ORIGINDEX_NONE) {
 								continue;
@@ -432,7 +432,7 @@ static BVHTree *bvhtree_from_mesh_verts_create_tree(
 					continue;
 				}
 				if (em != NULL) {
-					if (index_array){
+					if (index_array) {
 						index = index_array[i];
 						if (index == ORIGINDEX_NONE) {
 							continue;

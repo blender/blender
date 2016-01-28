@@ -226,8 +226,8 @@ static bool is_power_of_2_resolution(int w, int h)
 
 static bool is_over_resolution_limit(GLenum textarget, int w, int h)
 {
-	int size = (textarget == GL_TEXTURE_2D)?
-	GPU_max_texture_size() : GPU_max_cube_map_size();
+	int size = (textarget == GL_TEXTURE_2D) ?
+	        GPU_max_texture_size() : GPU_max_cube_map_size();
 	int reslimit = (U.glreslimit != 0) ?
 		min_ii(U.glreslimit, size) : size;
 
@@ -237,8 +237,8 @@ static bool is_over_resolution_limit(GLenum textarget, int w, int h)
 static int smaller_power_of_2_limit(int num)
 {
 	int reslimit = (U.glreslimit != 0) ?
-		min_ii(U.glreslimit, GPU_max_texture_size()) :
-		GPU_max_texture_size();
+	        min_ii(U.glreslimit, GPU_max_texture_size()) :
+	        GPU_max_texture_size();
 	/* take texture clamping into account */
 	if (num > reslimit)
 		return reslimit;
@@ -744,7 +744,7 @@ static void **gpu_gen_cube_map(unsigned int *rect, float *frect, int rectw, int 
 		return sides;
 
 	/* PosX, NegX, PosY, NegY, PosZ, NegZ */
-	sides = MEM_mallocN(sizeof(void*) * 6, "");
+	sides = MEM_mallocN(sizeof(void *) * 6, "");
 	for (int i = 0; i < 6; i++)
 		sides[i] = MEM_mallocN(block_size * w * h, "");
 
@@ -813,8 +813,8 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *rect, float *frect, int
 	 * GPUs (OpenGL version >= 2.0) since they support non-power-of-two-textures 
 	 * Then don't bother scaling for hardware that supports NPOT textures! */
 	if (textarget == GL_TEXTURE_2D &&
-			(!GPU_full_non_power_of_two_support() && !is_power_of_2_resolution(rectw, recth) ||
-			is_over_resolution_limit(textarget, rectw, recth)))
+	    ((!GPU_full_non_power_of_two_support() && !is_power_of_2_resolution(rectw, recth)) ||
+	     is_over_resolution_limit(textarget, rectw, recth)))
 	{
 		rectw = smaller_power_of_2_limit(rectw);
 		recth = smaller_power_of_2_limit(recth);
@@ -918,8 +918,9 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *rect, float *frect, int
 
 					for (int i = 1; i < ibuf->miptot; i++) {
 						ImBuf *mip = ibuf->mipmap[i - 1];
-						void **mip_cube_map = gpu_gen_cube_map(mip->rect, mip->rect_float,
-													mip->x, mip->y, use_high_bit_depth);
+						void **mip_cube_map = gpu_gen_cube_map(
+						        mip->rect, mip->rect_float,
+						        mip->x, mip->y, use_high_bit_depth);
 						int mipw = mip->x / 3, miph = mip->y / 2;
 
 						if (mip_cube_map) {
@@ -1157,7 +1158,7 @@ void GPU_paint_set_mipmap(bool mipmap)
 static bool GPU_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x, int y, int w, int h)
 {
 	if ((!GPU_full_non_power_of_two_support() && !is_power_of_2_resolution(ibuf->x, ibuf->y)) ||
-		is_over_resolution_limit(GL_TEXTURE_2D, ibuf->x, ibuf->y))
+	    is_over_resolution_limit(GL_TEXTURE_2D, ibuf->x, ibuf->y))
 	{
 		int x_limit = smaller_power_of_2_limit(ibuf->x);
 		int y_limit = smaller_power_of_2_limit(ibuf->y);

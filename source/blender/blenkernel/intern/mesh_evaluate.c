@@ -188,7 +188,7 @@ static void mesh_calc_normals_poly_accum_task_cb(void *userdata, const int pidx)
 	MeshCalcNormalsData *data = userdata;
 	const MPoly *mp = &data->mpolys[pidx];
 	const MLoop *ml = &data->mloop[mp->loopstart];
-    const MVert *mverts = data->mverts;
+	const MVert *mverts = data->mverts;
 
 	float pnor_temp[3];
 	float *pnor = data->pnors ? data->pnors[pidx] : pnor_temp;

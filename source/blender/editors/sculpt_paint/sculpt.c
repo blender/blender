@@ -4819,7 +4819,7 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	const Brush *brush = BKE_paint_brush(&sd->paint);
 
-	/* XXX Cancelling strokes that way does not work with dynamic topology, user will have to do real undo for now.
+	/* XXX Canceling strokes that way does not work with dynamic topology, user will have to do real undo for now.
 	 *     See T46456. */
 	if (ss->cache && !sculpt_stroke_is_dynamic_topology(ss, brush)) {
 		paint_mesh_restore_co(sd, ob);

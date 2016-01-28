@@ -1924,16 +1924,17 @@ static void do_world_tex(GPUShadeInput *shi, struct World *wo, GPUNodeLink **hor
 						if (mtex->mapto & WOMAP_ZENUP) {
 							if (mtex->mapto & WOMAP_ZENDOWN) {
 								GPU_link(mat, "world_zen_mapping", shi->view, GPU_uniform(&mtex->zenupfac),
-									GPU_uniform(&mtex->zendownfac), &zenfac);
+								         GPU_uniform(&mtex->zendownfac), &zenfac);
 							}
 							else {
 								GPU_link(mat, "world_zen_mapping", shi->view, GPU_uniform(&mtex->zenupfac),
-									GPU_uniform(&zero), &zenfac);
+								         GPU_uniform(&zero), &zenfac);
 							}
 						}
-						else if (mtex->mapto & WOMAP_ZENDOWN)
+						else if (mtex->mapto & WOMAP_ZENDOWN) {
 							GPU_link(mat, "world_zen_mapping", shi->view, GPU_uniform(&zero),
-								GPU_uniform(&mtex->zendownfac), &zenfac);
+							         GPU_uniform(&mtex->zendownfac), &zenfac);
+						}
 					}
 					else {
 						if (mtex->mapto & WOMAP_ZENUP)

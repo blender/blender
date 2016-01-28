@@ -486,7 +486,7 @@ MovieTrackingMarker *tracking_get_keyframed_marker(MovieTrackingTrack *track,
 				/* Could happen when trying to get reference marker for the fist
 				 * one on the segment which isn't surrounded by disabled markers.
 				 *
-				 * There's no really good choise here, just use the reference
+				 * There's no really good choice here, just use the reference
 				 * marker which looks correct..
 				 */
 				if (marker_keyed_fallback == NULL) {
