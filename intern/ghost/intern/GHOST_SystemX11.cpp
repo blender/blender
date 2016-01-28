@@ -76,6 +76,10 @@
 /* see [#34039] Fix Alt key glitch on Unity desktop */
 #define USE_UNITY_WORKAROUND
 
+/* Fix 'shortcut' part of keyboard reading code only ever using first defined keymap instead of active one.
+ * See T47228 and D1746 */
+#define USE_NON_LATIN_KB_WORKAROUND
+
 static GHOST_TKey convertXKey(KeySym key);
 
 /* these are for copy and select copy */
@@ -761,7 +765,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		case KeyRelease:
 		{
 			XKeyEvent *xke = &(xe->xkey);
-			KeySym key_sym;
+			KeySym key_sym = 0;
 			char ascii;
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 			/* utf8_array[] is initial buffer used for Xutf8LookupString().
@@ -777,8 +781,48 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			char *utf8_buf = NULL;
 #endif
 			
+			GHOST_TEventType type = (xke->type == KeyPress) ?  GHOST_kEventKeyDown : GHOST_kEventKeyUp;
+
 			GHOST_TKey gkey;
 
+#ifdef USE_NON_LATIN_KB_WORKAROUND
+            /* XXX Code below is kinda awfully convoluted... Issues are:
+             *
+             *     - In keyboards like latin ones, numbers need a 'Shift' to be accessed but key_sym
+             *       is unmodified (or anyone swapping the keys with xmodmap).
+             *
+             *     - XLookupKeysym seems to always use first defined keymap (see T47228), which generates
+             *       keycodes unusable by convertXKey for non-latin-compatible keymaps.
+             *
+             * To address this, we:
+             *
+             *     - Try to get a 'number' key_sym using XLookupKeysym (with or without shift modifier).
+             *     - Fallback to XLookupString to get a key_sym from active user-defined keymap.
+             *
+             * Note that this enforces users to use an ascii-compatible keymap with Blender - but at least it gives
+             * predictable and consistent results.
+             *
+             * Also, note that nothing in XLib sources [1] makes it obvious why those two functions give different
+             * key_sym results...
+             *
+             * [1] http://cgit.freedesktop.org/xorg/lib/libX11/tree/src/KeyBind.c
+             */
+            if ((xke->keycode >= 10 && xke->keycode < 20)) {
+                key_sym = XLookupKeysym(xke, ShiftMask);
+                if (!((key_sym >= XK_0) && (key_sym <= XK_9))) {
+                    key_sym = XLookupKeysym(xke, 0);
+                }
+                if (!((key_sym >= XK_0) && (key_sym <= XK_9))) {
+                    key_sym = 0;  /* Get current-keymap valid key_sym. */
+                }
+            }
+
+            if (!XLookupString(xke, &ascii, 1, (key_sym == 0) ? &key_sym : NULL, NULL)) {
+                ascii = '\0';
+            }
+
+			gkey = convertXKey(key_sym);
+#else
 			/* In keyboards like latin ones,
 			 * numbers needs a 'Shift' to be accessed but key_sym
 			 * is unmodified (or anyone swapping the keys with xmodmap).
@@ -799,14 +843,12 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			}
 
 			gkey = convertXKey(key_sym);
-
-			GHOST_TEventType type = (xke->type == KeyPress) ? 
-			                        GHOST_kEventKeyDown : GHOST_kEventKeyUp;
 			
 			if (!XLookupString(xke, &ascii, 1, NULL, NULL)) {
 				ascii = '\0';
 			}
-			
+#endif
+
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 			/* getting unicode on key-up events gives XLookupNone status */
 			XIC xic = window->getX11_XIC();
