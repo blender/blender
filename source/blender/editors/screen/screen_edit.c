@@ -993,65 +993,56 @@ static void draw_join_shape(ScrArea *sa, char dir)
 static void scrarea_draw_shape_dark(ScrArea *sa, char dir)
 {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
 	glColor4ub(0, 0, 0, 50);
 	draw_join_shape(sa, dir);
-	glDisable(GL_BLEND);
 }
 
 /* draw screen area ligher with arrow shape ("eraser" of previous dark shape) */
 static void scrarea_draw_shape_light(ScrArea *sa, char UNUSED(dir))
 {
 	glBlendFunc(GL_DST_COLOR, GL_SRC_ALPHA);
-	glEnable(GL_BLEND);
 	/* value 181 was hardly computed: 181~105 */
 	glColor4ub(255, 255, 255, 50);
 	/* draw_join_shape(sa, dir); */
 	glRecti(sa->v1->vec.x, sa->v1->vec.y, sa->v3->vec.x, sa->v3->vec.y);
-	glDisable(GL_BLEND);
 }
 
-static void drawscredge_area_draw(int sizex, int sizey, int x1, int y1, int x2, int y2, int a)
+static void drawscredge_area_draw(int sizex, int sizey, short x1, short y1, short x2, short y2)
 {
 	/* right border area */
-	if (x2 < sizex - 1)
-		sdrawline(x2 + a, y1, x2 + a, y2);
-	
+	if (x2 < sizex - 1) {
+		glVertex2s(x2, y1);
+		glVertex2s(x2, y2);
+	}
+
 	/* left border area */
-	if (x1 > 0) /* otherwise it draws the emboss of window over */
-		sdrawline(x1 + a, y1, x1 + a, y2);
-	
+	if (x1 > 0) { /* otherwise it draws the emboss of window over */
+		glVertex2s(x1, y1);
+		glVertex2s(x1, y2);
+	}
+
 	/* top border area */
-	if (y2 < sizey - 1)
-		sdrawline(x1, y2 + a, x2, y2 + a);
-	
+	if (y2 < sizey - 1) {
+		glVertex2s(x1, y2);
+		glVertex2s(x2, y2);
+	}
+
 	/* bottom border area */
-	if (y1 > 0)
-		sdrawline(x1, y1 + a, x2, y1 + a);
-	
+	if (y1 > 0) {
+		glVertex2s(x1, y1);
+		glVertex2s(x2, y1);
+	}
 }
 
 /** screen edges drawing **/
-static void drawscredge_area(ScrArea *sa, int sizex, int sizey, int center)
+static void drawscredge_area(ScrArea *sa, int sizex, int sizey)
 {
 	short x1 = sa->v1->vec.x;
 	short y1 = sa->v1->vec.y;
 	short x2 = sa->v3->vec.x;
 	short y2 = sa->v3->vec.y;
 	
-	if (center == 0) {
-		if (U.pixelsize > 1.0f) {
-		
-			glColor3ub(0x50, 0x50, 0x50);
-			glLineWidth((2.0f * U.pixelsize) - 1);
-			drawscredge_area_draw(sizex, sizey, x1, y1, x2, y2, 0);
-		}
-	}
-	else {
-		glColor3ub(0, 0, 0);
-		glLineWidth(1);
-		drawscredge_area_draw(sizex, sizey, x1, y1, x2, y2, 0);
-	}
+	drawscredge_area_draw(sizex, sizey, x1, y1, x2, y2);
 }
 
 /* ****************** EXPORTED API TO OTHER MODULES *************************** */
@@ -1125,23 +1116,37 @@ void ED_screen_draw(wmWindow *win)
 	ScrArea *sa1 = NULL;
 	ScrArea *sa2 = NULL;
 	ScrArea *sa3 = NULL;
-	int dir = -1;
-	int dira = -1;
 
 	wmSubWindowSet(win, win->screen->mainwin);
 	
+	/* Note: first loop only draws if U.pixelsize > 1, skip otherwise */
+	if (U.pixelsize > 1.0f) {
+		/* FIXME: doesn't our glLineWidth already scale by U.pixelsize? */
+		glLineWidth((2.0f * U.pixelsize) - 1);
+		glColor3ub(0x50, 0x50, 0x50);
+		glBegin(GL_LINES);
+		for (sa = win->screen->areabase.first; sa; sa = sa->next)
+			drawscredge_area(sa, winsize_x, winsize_y);
+		glEnd();
+	}
+
+	glLineWidth(1);
+	glColor3ub(0, 0, 0);
+	glBegin(GL_LINES);
 	for (sa = win->screen->areabase.first; sa; sa = sa->next) {
+		drawscredge_area(sa, winsize_x, winsize_y);
+
+		/* gather area split/join info */
 		if (sa->flag & AREA_FLAG_DRAWJOINFROM) sa1 = sa;
 		if (sa->flag & AREA_FLAG_DRAWJOINTO) sa2 = sa;
 		if (sa->flag & (AREA_FLAG_DRAWSPLIT_H | AREA_FLAG_DRAWSPLIT_V)) sa3 = sa;
-		drawscredge_area(sa, winsize_x, winsize_y, 0);
 	}
-	for (sa = win->screen->areabase.first; sa; sa = sa->next)
-		drawscredge_area(sa, winsize_x, winsize_y, 1);
-	
+	glEnd();
+
 	/* blended join arrow */
 	if (sa1 && sa2) {
-		dir = area_getorientation(sa1, sa2);
+		int dir = area_getorientation(sa1, sa2);
+		int dira;
 		if (dir != -1) {
 			switch (dir) {
 				case 0: /* W */
@@ -1162,26 +1167,33 @@ void ED_screen_draw(wmWindow *win)
 					break;
 			}
 		}
+		glEnable(GL_BLEND);
 		scrarea_draw_shape_dark(sa2, dir);
 		scrarea_draw_shape_light(sa1, dira);
+		glDisable(GL_BLEND);
 	}
 	
 	/* splitpoint */
 	if (sa3) {
 		glEnable(GL_BLEND);
+		glBegin(GL_LINES);
 		glColor4ub(255, 255, 255, 100);
 		
 		if (sa3->flag & AREA_FLAG_DRAWSPLIT_H) {
-			sdrawline(sa3->totrct.xmin, win->eventstate->y, sa3->totrct.xmax, win->eventstate->y);
+			glVertex2s(sa3->totrct.xmin, win->eventstate->y);
+			glVertex2s(sa3->totrct.xmax, win->eventstate->y);
 			glColor4ub(0, 0, 0, 100);
-			sdrawline(sa3->totrct.xmin, win->eventstate->y + 1, sa3->totrct.xmax, win->eventstate->y + 1);
+			glVertex2s(sa3->totrct.xmin, win->eventstate->y + 1);
+			glVertex2s(sa3->totrct.xmax, win->eventstate->y + 1);
 		}
 		else {
-			sdrawline(win->eventstate->x, sa3->totrct.ymin, win->eventstate->x, sa3->totrct.ymax);
+			glVertex2s(win->eventstate->x, sa3->totrct.ymin);
+			glVertex2s(win->eventstate->x, sa3->totrct.ymax);
 			glColor4ub(0, 0, 0, 100);
-			sdrawline(win->eventstate->x + 1, sa3->totrct.ymin, win->eventstate->x + 1, sa3->totrct.ymax);
+			glVertex2s(win->eventstate->x + 1, sa3->totrct.ymin);
+			glVertex2s(win->eventstate->x + 1, sa3->totrct.ymax);
 		}
-		
+		glEnd();
 		glDisable(GL_BLEND);
 	}
 	
