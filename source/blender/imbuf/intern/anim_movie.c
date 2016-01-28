@@ -525,9 +525,14 @@ static int startffmpeg(struct anim *anim)
 	}
 
 	frame_rate = av_get_r_frame_rate_compat(pFormatCtx->streams[videoStream]);
-	anim->duration = ceil(pFormatCtx->duration *
-	                      av_q2d(frame_rate) /
-	                      AV_TIME_BASE);
+	if (pFormatCtx->streams[videoStream]->nb_frames != 0) {
+		anim->duration = pFormatCtx->streams[videoStream]->nb_frames;
+	}
+	else {
+		anim->duration = ceil(pFormatCtx->duration *
+		                      av_q2d(frame_rate) /
+		                      AV_TIME_BASE);
+	}
 
 	frs_num = frame_rate.num;
 	frs_den = frame_rate.den;
