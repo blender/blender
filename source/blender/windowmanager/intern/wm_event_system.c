@@ -1890,7 +1890,9 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 					WM_operator_last_properties_store(handler->op);
 				}
 
-				WM_operator_free(handler->op);
+				if (retval & (OPERATOR_CANCELLED | OPERATOR_FINISHED)) {
+					WM_operator_free(handler->op);
+				}
 			}
 			else {
 				if (handler->op->type->cancel) {
