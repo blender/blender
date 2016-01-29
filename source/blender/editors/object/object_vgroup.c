@@ -3327,8 +3327,14 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
 		if (obact != ob) {
-			if (ED_vgroup_array_copy(ob, obact)) changed_tot++;
-			else fail++;
+			if (ED_vgroup_array_copy(ob, obact)) {
+				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob);
+				changed_tot++;
+			}
+			else {
+				fail++;
+			}
 		}
 	}
 	CTX_DATA_END;
