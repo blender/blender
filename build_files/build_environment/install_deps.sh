@@ -26,12 +26,15 @@ ARGS=$( \
 getopt \
 -o s:i:t:h \
 --long source:,install:,tmp:,info:,threads:,help,show-deps,no-sudo,no-confirm,with-all,with-opencollada,\
-ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,ver-osd:,\
-force-all,force-python,force-numpy,force-boost,force-ocio,force-openexr,force-oiio,force-llvm,force-osl,force-osd,\
+ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,ver-osd:,ver-openvdb:,\
+force-all,force-python,force-numpy,force-boost,\
+force-ocio,force-openexr,force-oiio,force-llvm,force-osl,force-osd,force-openvdb,\
 force-ffmpeg,force-opencollada,\
-build-all,build-python,build-numpy,build-boost,build-ocio,build-openexr,build-oiio,build-llvm,build-osl,build-osd,\
+build-all,build-python,build-numpy,build-boost,\
+build-ocio,build-openexr,build-oiio,build-llvm,build-osl,build-osd,build-openvdb,\
 build-ffmpeg,build-opencollada,\
-skip-python,skip-numpy,skip-boost,skip-ocio,skip-openexr,skip-oiio,skip-llvm,skip-osl,skip-osd,\
+skip-python,skip-numpy,skip-boost,\
+skip-ocio,skip-openexr,skip-oiio,skip-llvm,skip-osl,skip-osd,skip-openvdb,\
 skip-ffmpeg,skip-opencollada \
 -- "$@" \
 )
@@ -121,6 +124,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --ver-osd=<ver>
         Force version of OSD library.
 
+    --ver-openvdb=<ver>
+        Force version of OpenVDB library.
+
     Note about the --ver-foo options:
         It may not always work as expected (some libs are actually checked out from a git rev...), yet it might help
         to fix some build issues (like LLVM mismatch with the version used by your graphic system).
@@ -154,6 +160,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --build-osd
         Force the build of OpenSubdiv.
+
+    --build-openvdb
+        Force the build of OpenVDB.
 
     --build-opencollada
         Force the build of OpenCOLLADA.
@@ -201,6 +210,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --force-osd
         Force the rebuild of OpenSubdiv.
 
+    --force-openvdb
+        Force the rebuild of OpenVDB.
+
     --force-opencollada
         Force the rebuild of OpenCOLLADA.
 
@@ -239,6 +251,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --skip-osd
         Unconditionally skip OpenSubdiv installation/building.
+
+    --skip-openvdb
+        Unconditionally skip OpenVDB installation/building.
 
     --skip-opencollada
         Unconditionally skip OpenCOLLADA installation/building.
@@ -314,6 +329,15 @@ OSD_VERSION_MIN=$OSD_VERSION
 OSD_FORCE_BUILD=false
 OSD_FORCE_REBUILD=false
 OSD_SKIP=false
+
+# OpenVDB needs to be compiled for now
+OPENVDB_BLOSC_VERSION="1.7.0"
+
+OPENVDB_VERSION="3.1.0"
+OPENVDB_VERSION_MIN=$OPENVDB_VERSION
+OPENVDB_FORCE_BUILD=false
+OPENVDB_FORCE_REBUILD=false
+OPENVDB_SKIP=false
 
 # Version??
 OPENCOLLADA_VERSION="1.3"
@@ -470,6 +494,11 @@ while true; do
       OSD_VERSION_MIN=$OSD_VERSION
       shift; shift; continue
     ;;
+    --ver-openvdb)
+      OPENVDB_VERSION="$2"
+      OPENVDB_VERSION_MIN=$OPENVDB_VERSION
+      shift; shift; continue
+    ;;
     --build-all)
       PYTHON_FORCE_BUILD=true
       NUMPY_FORCE_BUILD=true
@@ -480,6 +509,7 @@ while true; do
       LLVM_FORCE_BUILD=true
       OSL_FORCE_BUILD=true
       OSD_FORCE_BUILD=true
+      OPENVDB_FORCE_BUILD=true
       OPENCOLLADA_FORCE_BUILD=true
       FFMPEG_FORCE_BUILD=true
       shift; continue
@@ -515,6 +545,9 @@ while true; do
     --build-osd)
       OSD_FORCE_BUILD=true; shift; continue
     ;;
+    --build-openvdb)
+      OPENVDB_FORCE_BUILD=true; shift; continue
+    ;;
     --build-opencollada)
       OPENCOLLADA_FORCE_BUILD=true; shift; continue
     ;;
@@ -531,6 +564,7 @@ while true; do
       LLVM_FORCE_REBUILD=true
       OSL_FORCE_REBUILD=true
       OSD_FORCE_REBUILD=true
+      OPENVDB_FORCE_REBUILD=true
       OPENCOLLADA_FORCE_REBUILD=true
       FFMPEG_FORCE_REBUILD=true
       shift; continue
@@ -564,6 +598,9 @@ while true; do
     --force-osd)
       OSD_FORCE_REBUILD=true; shift; continue
     ;;
+    --force-openvdb)
+      OPENVDB_FORCE_REBUILD=true; shift; continue
+    ;;
     --force-opencollada)
       OPENCOLLADA_FORCE_REBUILD=true; shift; continue
     ;;
@@ -596,6 +633,9 @@ while true; do
     ;;
     --skip-osd)
       OSD_SKIP=true; shift; continue
+    ;;
+    --skip-openvdb)
+      OPENVDB_SKIP=true; shift; continue
     ;;
     --skip-opencollada)
       OPENCOLLADA_SKIP=true; shift; continue
@@ -667,6 +707,13 @@ OSD_SOURCE_REPO=( "https://github.com/PixarAnimationStudios/OpenSubdiv.git" )
 OSD_SOURCE_REPO_UID="404659fffa659da075d1c9416e4fc939139a84ee"
 OSD_SOURCE_REPO_BRANCH="dev"
 
+OPENVDB_USE_REPO=false
+OPENVDB_BLOSC_SOURCE=( "https://github.com/Blosc/c-blosc/archive/v${OPENVDB_BLOSC_VERSION}.tar.gz" )
+OPENVDB_SOURCE=( "https://github.com/dreamworksanimation/openvdb/archive/v${OPENVDB_VERSION}.tar.gz" )
+#~ OPENVDB_SOURCE_REPO=( "https:///dreamworksanimation/openvdb.git" )
+#~ OPENVDB_SOURCE_REPO_UID="404659fffa659da075d1c9416e4fc939139a84ee"
+#~ OPENVDB_SOURCE_REPO_BRANCH="dev"
+
 OPENCOLLADA_SOURCE=( "https://github.com/KhronosGroup/OpenCOLLADA.git" )
 OPENCOLLADA_REPO_UID="3335ac164e68b2512a40914b14c74db260e6ff7d"
 OPENCOLLADA_REPO_BRANCH="master"
@@ -706,6 +753,7 @@ You may also want to build them yourself (optional ones are [between brackets]):
     * [LLVM $LLVM_VERSION_MIN (with clang)] (from $LLVM_SOURCE, and $LLVM_CLANG_SOURCE).
     * [OpenShadingLanguage $OSL_VERSION_MIN] (from $OSL_SOURCE_REPO, branch $OSL_SOURCE_REPO_BRANCH, commit $OSL_SOURCE_REPO_UID).
     * [OpenSubDiv $OSD_VERSION_MIN] (from $OSD_SOURCE_REPO, branch $OSD_SOURCE_REPO_BRANCH, commit $OSD_SOURCE_REPO_UID).
+    * [OpenVDB $OPENVDB_VERSION_MIN] (from $OPENVDB_SOURCE), [Blosc $OPENVDB_BLOSC_VERSION] (from $OPENVDB_BLOSC_SOURCE).
     * [OpenCollada] (from $OPENCOLLADA_SOURCE, branch $OPENCOLLADA_REPO_BRANCH, commit $OPENCOLLADA_REPO_UID).\""
 
 if [ "$DO_SHOW_DEPS" = true ]; then
@@ -1832,6 +1880,193 @@ compile_OSD() {
   run_ldconfig "osd"
 }
 
+#### Build Blosc ####
+_init_blosc() {
+  _src=$SRC/c-blosc-$OPENVDB_BLOSC_VERSION
+  _git=false
+  _inst=$INST/blosc-$OPENVDB_BLOSC_VERSION
+  _inst_shortcut=$INST/blosc
+}
+
+clean_BLOSC() {
+  _init_blosc
+  _clean
+}
+
+compile_BLOSC() {
+  # To be changed each time we make edits that would modify the compiled result!
+  blosc_magic=0
+  _init_blosc
+
+  # Clean install if needed!
+  magic_compile_check blosc-$OPENVDB_BLOSC_VERSION $blosc_magic
+  if [ $? -eq 1 -o "$OPENVDB_FORCE_REBUILD" = true ]; then
+    clean_BLOSC
+    rm -rf $_inst
+  fi
+
+  if [ ! -d $_inst ]; then
+    INFO "Building Blosc-$OPENVDB_BLOSC_VERSION"
+
+    # Rebuild dependecies as well!
+    OPENVDB_FORCE_BUILD=true
+    OPENVDB_FORCE_REBUILD=true
+
+    prepare_opt
+
+    if [ ! -d $_src ]; then
+      INFO "Downloading Blosc-$OPENVDB_BLOSC_VERSION"
+      mkdir -p $SRC
+      download OPENVDB_BLOSC_SOURCE[@] $_src.tar.gz
+
+      INFO "Unpacking Blosc-$OPENVDB_BLOSC_VERSION"
+      tar -C $SRC -xf $_src.tar.gz
+    fi
+
+    cd $_src
+    # Always refresh the whole build!
+    if [ -d build ]; then
+      rm -rf build
+    fi
+    mkdir build
+    cd build
+
+    cmake_d="-D CMAKE_BUILD_TYPE=Release"
+    cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
+    cmake_d="$cmake_d -D BUILD_STATIC=OFF"
+    cmake_d="$cmake_d -D BUILD_TESTS=OFF"
+    cmake_d="$cmake_d -D BUILD_BENCHMARKS=OFF"
+    INFO "$cmake_d"
+
+    cmake $cmake_d ..
+
+    make -j$THREADS && make install
+
+    make clean
+
+    if [ -d $_inst ]; then
+      _create_inst_shortcut
+    else
+      ERROR "Blosc-$OPENVDB_BLOSC_VERSION failed to compile, exiting"
+      exit 1
+    fi
+    cd $CWD
+    INFO "Done compiling Blosc-$OPENVDB_BLOSC_VERSION!"
+  else
+    INFO "Own Blosc-$OPENVDB_BLOSC_VERSION is up to date, nothing to do!"
+    INFO "If you want to force rebuild of this lib (and openexr), use the --force-openvdb option."
+  fi
+
+  magic_compile_set blosc-$OPENVDB_BLOSC_VERSION $blosc_magic
+
+  run_ldconfig "blosc"
+}
+
+#### Build OpenVDB ####
+_init_openvdb() {
+  _src=$SRC/openvdb-$OPENVDB_VERSION
+  _git=false
+  _inst=$INST/openvdb-$OPENVDB_VERSION
+  _inst_shortcut=$INST/openvdb
+}
+
+clean_OPENVDB() {
+  _init_openvdb
+  _clean
+}
+
+compile_OPENVDB() {
+  compile_BLOSC
+  PRINT ""
+
+  # To be changed each time we make edits that would modify the compiled result!
+  openvdb_magic=0
+  _init_openvdb
+
+  # Clean install if needed!
+  magic_compile_check openvdb-$OPENVDB_VERSION $openvdb_magic
+  if [ $? -eq 1 -o "$OPENVDB_FORCE_REBUILD" = true ]; then
+    clean_OPENVDB
+  fi
+
+  if [ ! -d $_inst ]; then
+    INFO "Building OpenVDB-$OPENVDB_VERSION"
+
+    prepare_opt
+
+    if [ ! -d $_src -o true ]; then
+      mkdir -p $SRC
+      download OPENVDB_SOURCE[@] "$_src.tar.gz"
+
+      INFO "Unpacking OpenVDB-$OPENVDB_VERSION"
+      #~ tar -C $SRC --transform "s,(.*/?)OpenShadingLanguage-[^/]*(.*),\1OpenShadingLanguage-$OPENVDB_VERSION\2,x" \
+          #~ -xf $_src.tar.gz
+      tar -C $SRC -xf $_src.tar.gz
+    fi
+
+    cd $_src
+
+    #~ if [ "$OPENVDB_USE_REPO" = true ]; then
+      #~ git remote set-url origin ${OPENVDB_SOURCE_REPO[0]}
+      #~ # XXX For now, always update from latest repo...
+      #~ git pull --no-edit -X theirs origin $OPENVDB_SOURCE_REPO_BRANCH
+      #~ # Stick to same rev as windows' libs...
+      #~ git checkout $OPENVDB_SOURCE_REPO_UID
+      #~ git reset --hard
+    #~ fi
+
+    cd openvdb  # Grrrrrr...
+
+    # Always refresh the whole build!
+    if [ -d build ]; then
+      rm -rf build
+    fi
+    mkdir build
+    cd build
+
+    make_d="DESTDIR=$_inst"
+
+    if [ -d $INST/boost ]; then
+      make_d="$make_d -D BOOST_ROOT=$INST/boost -D Boost_NO_SYSTEM_PATHS=ON"
+    fi
+
+    #~ if [ "$_with_built_openexr" = true ]; then
+      #~ cmake_d="$cmake_d -D ILMBASE_HOME=$INST/openexr"
+      #~ cmake_d="$cmake_d -D OPENEXR_HOME=$INST/openexr"
+      #~ INFO "ILMBASE_HOME=$INST/openexr"
+    #~ fi
+
+    #~ cmake_d="-D CMAKE_BUILD_TYPE=Release"
+    #~ cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
+    #~ # ptex is only needed when nicholas bishop is ready
+    #~ cmake_d="$cmake_d -D NO_PTEX=1"
+    #~ cmake_d="$cmake_d -D NO_CLEW=1"
+    #~ # maya plugin, docs, tutorials, regression tests and examples are not needed
+    #~ cmake_d="$cmake_d -D NO_MAYA=1 -D NO_DOC=1 -D NO_TUTORIALS=1 -D NO_REGRESSION=1 -DNO_EXAMPLES=1"
+
+    #~ cmake $cmake_d ..
+
+    #~ make -j$THREADS && make install
+    #~ make clean
+
+    #~ if [ -d $_inst ]; then
+      #~ _create_inst_shortcut
+    #~ else
+      #~ ERROR "OpenSubdiv-$OSD_VERSION failed to compile, exiting"
+      #~ exit 1
+    #~ fi
+
+    #~ magic_compile_set osd-$OSD_VERSION $osd_magic
+
+    cd $CWD
+    INFO "Done compiling OpenVDB-$OPENVDB_VERSION!"
+  else
+    INFO "Own OpenVDB-$OPENVDB_VERSION is up to date, nothing to do!"
+    INFO "If you want to force rebuild of this lib, use the --force-openvdb option."
+  fi
+
+  run_ldconfig "openvdb"
+}
 
 #### Build OpenCOLLADA ####
 _init_opencollada() {
