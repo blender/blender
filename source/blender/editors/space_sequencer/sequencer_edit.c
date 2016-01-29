@@ -35,7 +35,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_fileops.h"
 #include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_timecode.h"
@@ -927,37 +926,6 @@ static bool sequence_offset_after_frame(Scene *scene, const int delta, const int
 	}
 
 	return done;
-}
-
-static void UNUSED_FUNCTION(touch_seq_files) (Scene *scene)
-{
-	Sequence *seq;
-	Editing *ed = BKE_sequencer_editing_get(scene, false);
-	char str[256];
-
-	/* touch all strips with movies */
-	
-	if (ed == NULL) return;
-
-	// XXX25 if (okee("Touch and print selected movies")==0) return;
-
-	WM_cursor_wait(1);
-
-	SEQP_BEGIN (ed, seq)
-	{
-		if (seq->flag & SELECT) {
-			if (seq->type == SEQ_TYPE_MOVIE) {
-				if (seq->strip && seq->strip->stripdata) {
-					BLI_make_file_string(G.main->name, str, seq->strip->dir, seq->strip->stripdata->name);
-					BLI_file_touch(seq->name);
-				}
-			}
-
-		}
-	}
-	SEQ_END
-
-	WM_cursor_wait(0);
 }
 
 #if 0
