@@ -2689,7 +2689,6 @@ public:
 		}
 
 		cl_int dQueue_size = global_size[0] * global_size[1];
-		cl_int total_num_rays = global_size[0] * global_size[1];
 
 		cl_uint start_arg_index =
 			kernel_set_args(ckPathTraceKernel_data_init,
@@ -2957,15 +2956,13 @@ public:
 		                0,
 		                kgbuffer,
 		                d_data,
-		                sd_DL_shadow,
 		                PathState_coop,
 		                LightRay_coop,
 		                AOLightRay_coop,
 		                ray_state,
 		                Queue_data,
 		                Queue_index,
-		                dQueue_size,
-		                total_num_rays);
+		                dQueue_size);
 
 		kernel_set_args(ckPathTraceKernel_next_iteration_setup,
 		                0,

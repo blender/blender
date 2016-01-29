@@ -76,6 +76,5 @@ __kernel void kernel_ocl_path_trace_scene_intersect(
 #ifdef __KERNEL_DEBUG__
 	                       debugdata_coop,
 #endif
-	                       parallel_samples,
 	                       ray_index);
 }

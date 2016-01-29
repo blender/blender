@@ -76,6 +76,5 @@ __kernel void kernel_ocl_path_trace_lamp_emission(
 	                     ray_state,
 	                     sw, sh,
 	                     use_queues_flag,
-	                     parallel_samples,
 	                     ray_index);
 }

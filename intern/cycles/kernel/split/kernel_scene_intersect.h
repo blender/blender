@@ -30,7 +30,6 @@
  * PathState_coop ---------------------------------|                                          |--- Intersection
  * ray_state --------------------------------------|                                          |--- ray_state
  * use_queues_flag --------------------------------|                                          |
- * parallel_samples -------------------------------|                                          |
  * QueueData(QUEUE_ACTIVE_AND_REGENERATED_RAYS) ---|                                          |
  * kg (globals) -----------------------------------|                                          |
  * rng_coop ---------------------------------------|                                          |
@@ -75,7 +74,6 @@ ccl_device void kernel_scene_intersect(
 #ifdef __KERNEL_DEBUG__
         DebugData *debugdata_coop,
 #endif
-        int parallel_samples,                  /* Number of samples to be processed in parallel */
         int ray_index)
 {
 	/* All regenerated rays become active here */

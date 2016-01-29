@@ -19,15 +19,13 @@
 __kernel void kernel_ocl_path_trace_shadow_blocked(
         ccl_global char *kg,
         ccl_constant KernelData *data,
-        ccl_global char *sd_shadow,            /* Required for shadow blocked */
         ccl_global PathState *PathState_coop,  /* Required for shadow blocked */
         ccl_global Ray *LightRay_dl_coop,      /* Required for direct lighting's shadow blocked */
         ccl_global Ray *LightRay_ao_coop,      /* Required for AO's shadow blocked */
         ccl_global char *ray_state,
         ccl_global int *Queue_data,            /* Queue memory */
         ccl_global int *Queue_index,           /* Tracks the number of elements in each queue */
-        int queuesize,                         /* Size (capacity) of each queue */
-        int total_num_rays)
+        int queuesize)                         /* Size (capacity) of each queue */
 {
 #if 0
 	/* We will make the Queue_index entries '0' in the next kernel. */
@@ -67,12 +65,10 @@ __kernel void kernel_ocl_path_trace_shadow_blocked(
 		return;
 
 	kernel_shadow_blocked((KernelGlobals *)kg,
-	                      (ShaderData *)sd_shadow,
 	                      PathState_coop,
 	                      LightRay_dl_coop,
 	                      LightRay_ao_coop,
 	                      ray_state,
-	                      total_num_rays,
 	                      shadow_blocked_type,
 	                      ray_index);
 }

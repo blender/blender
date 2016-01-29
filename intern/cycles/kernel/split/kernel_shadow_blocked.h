@@ -47,12 +47,10 @@
  */
 ccl_device void kernel_shadow_blocked(
         KernelGlobals *kg,
-        ShaderData *sd_shadow,                 /* Required for shadow blocked */
         ccl_global PathState *PathState_coop,  /* Required for shadow blocked */
         ccl_global Ray *LightRay_dl_coop,      /* Required for direct lighting's shadow blocked */
         ccl_global Ray *LightRay_ao_coop,      /* Required for AO's shadow blocked */
         ccl_global char *ray_state,
-        int total_num_rays,
         char shadow_blocked_type,
         int ray_index)
 {

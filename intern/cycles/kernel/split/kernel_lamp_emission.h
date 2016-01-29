@@ -35,7 +35,6 @@
  * use_queues_flag ------------------------------------|                           |
  * sw -------------------------------------------------|                           |
  * sh -------------------------------------------------|                           |
- * parallel_samples -----------------------------------|                           |
  */
 ccl_device void kernel_lamp_emission(
         KernelGlobals *kg,
@@ -49,7 +48,6 @@ ccl_device void kernel_lamp_emission(
         ccl_global char *use_queues_flag,      /* Used to decide if this kernel should use
                                                 * queues to fetch ray index
                                                 */
-        int parallel_samples,                  /* Number of samples to be processed in parallel */
         int ray_index)
 {
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE) ||
