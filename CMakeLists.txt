@@ -467,7 +467,9 @@ if(WIN32)
 	set(CPACK_INSTALL_PREFIX ${CMAKE_GENERIC_PROGRAM_FILES}/${})
 endif()
 
-# Experimental support of C++11
+# Experimental support of C11 and C++11
+option(WITH_C11 "Build with C11 standard enabled, for development use only!" OFF)
+mark_as_advanced(WITH_C11)
 option(WITH_CPP11 "Build with C++11 standard enabled, for development use only!" OFF)
 mark_as_advanced(WITH_CPP11)
 
@@ -2903,7 +2905,11 @@ endif()
 # Visual Studio has all standards it supports available by default
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "Intel")
 	# Use C99 + GNU extensions, works with GCC, Clang, ICC
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+	if(WITH_C11)
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
+	else()
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+	endif()
 endif()
 
 # Include warnings first, so its possible to disable them with user defined flags
