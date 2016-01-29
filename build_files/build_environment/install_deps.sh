@@ -1520,6 +1520,7 @@ compile_OIIO() {
     # Optional tests and cmd tools
     cmake_d="$cmake_d -D USE_QT=OFF"
     cmake_d="$cmake_d -D USE_PYTHON=OFF"
+    cmake_d="$cmake_d -D USE_FFMPEG=OFF"
     cmake_d="$cmake_d -D BUILD_TESTING=OFF"
     cmake_d="$cmake_d -D OIIO_BUILD_TESTS=OFF"
     cmake_d="$cmake_d -D OIIO_BUILD_TOOLS=OFF"
