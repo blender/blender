@@ -4322,7 +4322,7 @@ static void operator_enum_search_cb(const struct bContext *C, void *but, const c
 		EnumPropertyItem *item, *item_array;
 		bool do_free;
 
-		RNA_property_enum_items((bContext *)C, ptr, prop, &item_array, NULL, &do_free);
+		RNA_property_enum_items_gettexted((bContext *)C, ptr, prop, &item_array, NULL, &do_free);
 
 		for (item = item_array; item->identifier; item++) {
 			/* note: need to give the index rather than the identifier because the enum can be freed */
