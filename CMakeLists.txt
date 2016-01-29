@@ -233,12 +233,8 @@ option(WITH_OPENCOLORIO   "Enable OpenColorIO color management" ${_init_OPENCOLO
 
 # Compositor
 option(WITH_COMPOSITOR         "Enable the tile based nodal compositor" ON)
-option(WITH_COMPOSITOR_WERROR  "Treat warnings as errors in compositor code" OFF)
-mark_as_advanced(WITH_COMPOSITOR_WERROR)
 
 option(WITH_OPENSUBDIV    "Enable OpenSubdiv for surface subdivision" _init_OPENSUBDIV)
-option(WITH_SUBSURF_WERROR  "Treat warnings as errors in subsurf code" OFF)
-mark_as_advanced(WITH_COMPOSITOR_WERROR)
 
 option(WITH_OPENVDB       "Enable features relying on OpenVDB" OFF)
 option(WITH_OPENVDB_BLOSC "Enable blosc compression for OpenVDB, only enable if OpenVDB was built with blosc support" OFF)
@@ -350,9 +346,7 @@ endif()
 # Camera/motion tracking
 option(WITH_LIBMV         "Enable Libmv structure from motion library" ON)
 option(WITH_LIBMV_SCHUR_SPECIALIZATIONS "Enable fixed-size schur specializations." OFF)
-option(WITH_LIBMV_WERROR  "Treat warnings as errors in Libmv (and Blender's motion tracking) code")
 mark_as_advanced(WITH_LIBMV_SCHUR_SPECIALIZATIONS)
-mark_as_advanced(WITH_LIBMV_WERROR)
 
 # Freestyle
 option(WITH_FREESTYLE     "Enable Freestyle (advanced edges rendering)" ON)
@@ -395,10 +389,8 @@ mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
 unset(PLATFORM_DEFAULT)
 option(WITH_CYCLES_LOGGING	"Build Cycles with logging support" ON)
 option(WITH_CYCLES_DEBUG	"Build Cycles with extra debug capabilities" OFF)
-option(WITH_CYCLES_WERROR	"Treat warnings as errors in Cycles code" OFF)
 mark_as_advanced(WITH_CYCLES_LOGGING)
 mark_as_advanced(WITH_CYCLES_DEBUG)
-mark_as_advanced(WITH_CYCLES_WERROR)
 
 option(WITH_CUDA_DYNLOAD "Dynamically load CUDA libraries at runtime" ON)
 mark_as_advanced(WITH_CUDA_DYNLOAD)

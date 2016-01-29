@@ -14,11 +14,6 @@ include(cmake/external_libs.cmake)
 # todo: this code could be refactored a bit to avoid duplication
 # note: CXX_HAS_SSE is needed in case passing SSE flags fails altogether (gcc-arm)
 
-if(WITH_CYCLES_WERROR)
-	ADD_CHECK_C_COMPILER_FLAG(CMAKE_C_FLAGS C_WERROR -Werror)
-	ADD_CHECK_CXX_COMPILER_FLAG(CMAKE_CXX_FLAGS C_WERROR -Werror)
-endif()
-
 if(NOT WITH_CPU_SSE)
 	set(CXX_HAS_SSE FALSE)
 	set(CXX_HAS_AVX FALSE)

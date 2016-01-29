@@ -49,11 +49,6 @@ set(SRC
 	opensubdiv_intern.h
 )
 
-if(WITH_SUBSURF_WERROR)
-	ADD_CHECK_C_COMPILER_FLAG(CMAKE_C_FLAGS C_WERROR -Werror)
-	ADD_CHECK_CXX_COMPILER_FLAG(CMAKE_CXX_FLAGS C_WERROR -Werror)
-endif()
-
 macro(OPENSUBDIV_DEFINE_COMPONENT component)
 	if(${${component}})
 		add_definitions(-D${component})
