@@ -1068,6 +1068,8 @@ int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *
 	G.main->recovered = 0;
 	
 	if (BLO_write_file(CTX_data_main(C), filepath, fileflags, reports, thumb)) {
+		const bool do_history = (G.background == false) && (CTX_wm_manager(C)->op_undo_depth == 0);
+
 		if (!(fileflags & G_FILE_SAVE_COPY)) {
 			G.relbase_valid = 1;
 			BLI_strncpy(G.main->name, filepath, sizeof(G.main->name));  /* is guaranteed current file */
@@ -1079,7 +1081,7 @@ int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *
 		BKE_BIT_TEST_SET(G.fileflags, fileflags & G_FILE_AUTOPLAY, G_FILE_AUTOPLAY);
 
 		/* prevent background mode scripts from clobbering history */
-		if (!G.background) {
+		if (do_history) {
 			wm_history_file_update();
 		}
 
