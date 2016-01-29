@@ -236,7 +236,7 @@ static void transform_decompose(Transform *decomp, const Transform *tfm)
 	} while(iteration < 100 && norm > 1e-4f);
 
 	if(transform_negative_scale(R))
-		R = R * transform_scale(-1.0f, -1.0f, -1.0f); /* todo: test scale */
+		R = R * transform_scale(-1.0f, -1.0f, -1.0f);
 
 	decomp->x = transform_to_quat(R);
 
