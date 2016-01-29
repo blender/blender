@@ -88,9 +88,10 @@ static void InputTrackBall(TransInfo *UNUSED(t), MouseInput *mi, const double mv
 
 static void InputHorizontalRatio(TransInfo *t, MouseInput *UNUSED(mi), const double mval[2], float output[3])
 {
-	const double pad = t->ar->winx / 10;
+	const int winx = t->ar ? t->ar->winx : 1;
+	const double pad = winx / 10;
 
-	output[0] = (mval[0] - pad) / (t->ar->winx - 2 * pad);
+	output[0] = (mval[0] - pad) / (winx - 2 * pad);
 }
 
 static void InputHorizontalAbsolute(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
@@ -105,9 +106,10 @@ static void InputHorizontalAbsolute(TransInfo *t, MouseInput *mi, const double m
 
 static void InputVerticalRatio(TransInfo *t, MouseInput *UNUSED(mi), const double mval[2], float output[3])
 {
-	const double pad = t->ar->winy / 10;
+	const int winy = t->ar ? t->ar->winy : 1;
+	const double pad = winy / 10;
 
-	output[0] = (mval[1] - pad) / (t->ar->winy - 2 * pad);
+	output[0] = (mval[1] - pad) / (winy - 2 * pad);
 }
 
 static void InputVerticalAbsolute(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
