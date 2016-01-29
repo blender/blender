@@ -30,7 +30,6 @@
 
 #include "osl_globals.h"
 
-#include "util_cache.h"
 #include "util_foreach.h"
 #include "util_logging.h"
 #include "util_progress.h"

@@ -10,7 +10,6 @@ set(INC_SYS
 
 set(SRC
 	util_aligned_malloc.cpp
-	util_cache.cpp
 	util_debug.cpp
 	util_logging.cpp
 	util_math_cdf.cpp
@@ -40,7 +39,6 @@ set(SRC_HEADERS
 	util_args.h
 	util_atomic.h
 	util_boundbox.h
-	util_cache.h
 	util_debug.h
 	util_foreach.h
 	util_function.h
