@@ -44,12 +44,17 @@
 #  undef min
 #endif
 
-/* note: modified to use glibc arg order for callback */
-/* **** qsort based on FreeBSD source (libkern\qsort.c) **** */
+/**
+ * qsort, copied from FreeBSD source.
+ * with only very minor edits, see:
+ * http://github.com/freebsd/freebsd/blob/master/sys/libkern/qsort.c
+ *
+ * \note modified to use glibc arg order for callbacks.
+ */
 BLI_INLINE char	*med3(char *, char *, char *, BLI_sort_cmp_t, void *);
 BLI_INLINE void	 swapfunc(char *, char *, int, int);
 
-#define min(a, b)	(a) < (b) ? a : b
+#define min(a, b)	(a) < (b) ? (a) : (b)
 #define swapcode(TYPE, parmi, parmj, n)		\
 {											\
 	long i = (n) / sizeof(TYPE); 			\
@@ -92,8 +97,6 @@ BLI_INLINE char *med3(char *a, char *b, char *c, BLI_sort_cmp_t cmp, void *thunk
 
 /**
  * Quick sort reentrant.
- *
- * \note Follows BSD arg order (incompatible with glibc).
  */
 void BLI_qsort_r(void *a, size_t n, size_t es, BLI_sort_cmp_t cmp, void *thunk)
 {
