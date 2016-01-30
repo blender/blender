@@ -2913,6 +2913,8 @@ static bool poly_gset_compare_fn(const void *k1, const void *k2)
  * \param vtargetmap  The table that maps vertices to target vertices.  a value of -1
  * indicates a vertex is a target, and is to be kept.
  * This array is aligned with 'dm->numVertData'
+ * \warning \a vtergatmap must **not** contain any chained mapping (v1 -> v2 -> v3 etc.), this is not supported
+ * and will likely generate corrupted geometry.
  *
  * \param tot_vtargetmap  The number of non '-1' values in vtargetmap. (not the size)
  *
@@ -3221,7 +3223,10 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 			med->v1 = newv[med->v1];
 		if (newv[med->v2] != -1)
 			med->v2 = newv[med->v2];
-		
+
+		/* Can happen in case vtargetmap contains some double chains, we do not support that. */
+		BLI_assert(med->v1 != med->v2);
+
 		CustomData_copy_data(&dm->edgeData, &cddm2->dm.edgeData, olde[i], i, 1);
 	}
 	

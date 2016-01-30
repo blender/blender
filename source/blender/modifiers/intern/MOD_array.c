@@ -222,8 +222,7 @@ static void dm_mvert_map_doubles(
         const int target_num_verts,
         const int source_start,
         const int source_num_verts,
-        const float dist,
-        const bool with_follow)
+        const float dist)
 {
 	const float dist3 = ((float)M_SQRT3 + 0.00005f) * dist;   /* Just above sqrt(3) */
 	int i_source, i_target, i_target_low_bound, target_end, source_end;
@@ -258,7 +257,8 @@ static void dm_mvert_map_doubles(
 	     i_source < source_num_verts;
 	     i_source++, sve_source++)
 	{
-		bool double_found;
+		int best_target_vertex = -1;
+		float best_dist_sq = dist * dist;
 		float sve_source_sumco;
 
 		/* If source has already been assigned to a target (in an earlier call, with other chunks) */
@@ -294,37 +294,38 @@ static void dm_mvert_map_doubles(
 
 		/* i_target will scan vertices in the [v_source_sumco - dist3;  v_source_sumco + dist3] range */
 
-		double_found = false;
 		while ((i_target < target_num_verts) &&
 		       (sve_target->sum_co <= sve_source_sumco + dist3))
 		{
 			/* Testing distance for candidate double in target */
 			/* v_target is within dist3 of v_source in terms of sumco;  check real distance */
-			if (compare_len_v3v3(sve_source->co, sve_target->co, dist)) {
-				/* Double found */
-				/* If double target is itself already mapped to other vertex,
-				 * behavior depends on with_follow option */
-				int target_vertex = sve_target->vertex_num;
-				if (doubles_map[target_vertex] != -1) {
-					if (with_follow) { /* with_follow option:  map to initial target */
-						target_vertex = doubles_map[target_vertex];
+			float dist_sq;
+			if ((dist_sq = len_squared_v3v3(sve_source->co, sve_target->co)) <= best_dist_sq) {
+				/* Potential double found */
+				best_dist_sq = dist_sq;
+				best_target_vertex = sve_target->vertex_num;
+
+				/* If target is already mapped, we only follow that mapping if final target remains
+				 * close enough from current vert (otherwise no mapping at all).
+				 * Note that if we later find another target closer than this one, then we check it. But if other
+				 * potential targets are farther, then there will be no mapping at all for this source. */
+				while (best_target_vertex != -1 && !ELEM(doubles_map[best_target_vertex], -1, best_target_vertex)) {
+					if (compare_len_v3v3(mverts[sve_source->vertex_num].co,
+					                     mverts[doubles_map[best_target_vertex]].co,
+					                     dist))
+					{
+						best_target_vertex = doubles_map[best_target_vertex];
 					}
 					else {
-						/* not with_follow: if target is mapped, then we do not map source, and stop searching  */
-						break;
+						best_target_vertex = -1;
 					}
 				}
-				doubles_map[sve_source->vertex_num] = target_vertex;
-				double_found = true;
-				break;
 			}
 			i_target++;
 			sve_target++;
 		}
 		/* End of candidate scan: if none found then no doubles */
-		if (!double_found) {
-			doubles_map[sve_source->vertex_num] = -1;
-		}
+		doubles_map[sve_source->vertex_num] = best_target_vertex;
 	}
 
 	MEM_freeN(sorted_verts_source);
@@ -431,8 +432,6 @@ static DerivedMesh *arrayModifier_doArray(
 	const bool use_merge = (amd->flags & MOD_ARR_MERGE) != 0;
 	const bool use_recalc_normals = (dm->dirty & DM_DIRTY_NORMALS) || use_merge;
 	const bool use_offset_ob = ((amd->offset_type & MOD_ARR_OFF_OBJ) && amd->offset_ob);
-	/* allow pole vertices to be used by many faces */
-	const bool with_follow = use_offset_ob;
 
 	int start_cap_nverts = 0, start_cap_nedges = 0, start_cap_npolys = 0, start_cap_nloops = 0;
 	int end_cap_nverts = 0, end_cap_nedges = 0, end_cap_npolys = 0, end_cap_nloops = 0;
@@ -633,13 +632,16 @@ static DerivedMesh *arrayModifier_doArray(
 					int target = full_doubles_map[prev_chunk_index];
 					if (target != -1) {
 						target += chunk_nverts; /* translate mapping */
-						if (full_doubles_map[target] != -1) {
-							if (with_follow) {
+						while (target != -1 && !ELEM(full_doubles_map[target], -1, target)) {
+							/* If target is already mapped, we only follow that mapping if final target remains
+							 * close enough from current vert (otherwise no mapping at all). */
+							if (compare_len_v3v3(result_dm_verts[this_chunk_index].co,
+							                     result_dm_verts[full_doubles_map[target]].co,
+							                     amd->merge_dist))
+							{
 								target = full_doubles_map[target];
 							}
 							else {
-								/* The rule here is to not follow mapping to chunk N-2, which could be too far
-								 * so if target vertex was itself mapped, then this vertex is not mapped */
 								target = -1;
 							}
 						}
@@ -655,8 +657,7 @@ static DerivedMesh *arrayModifier_doArray(
 				        chunk_nverts,
 				        c * chunk_nverts,
 				        chunk_nverts,
-				        amd->merge_dist,
-				        with_follow);
+				        amd->merge_dist);
 			}
 		}
 	}
@@ -675,8 +676,7 @@ static DerivedMesh *arrayModifier_doArray(
 		        last_chunk_nverts,
 		        first_chunk_start,
 		        first_chunk_nverts,
-		        amd->merge_dist,
-		        with_follow);
+		        amd->merge_dist);
 	}
 
 	/* start capping */
@@ -700,8 +700,7 @@ static DerivedMesh *arrayModifier_doArray(
 			        first_chunk_nverts,
 			        start_cap_start,
 			        start_cap_nverts,
-			        amd->merge_dist,
-			        false);
+			        amd->merge_dist);
 		}
 	}
 
@@ -725,8 +724,7 @@ static DerivedMesh *arrayModifier_doArray(
 			        last_chunk_nverts,
 			        end_cap_start,
 			        end_cap_nverts,
-			        amd->merge_dist,
-			        false);
+			        amd->merge_dist);
 		}
 	}
 	/* done capping */
@@ -735,11 +733,18 @@ static DerivedMesh *arrayModifier_doArray(
 	tot_doubles = 0;
 	if (use_merge) {
 		for (i = 0; i < result_nverts; i++) {
-			if (full_doubles_map[i] != -1) {
-				if (i == full_doubles_map[i]) {
+			int new_i = full_doubles_map[i];
+			if (new_i != -1) {
+				/* We have to follow chains of doubles (merge start/end especially is likely to create some),
+				 * those are not supported at all by CDDM_merge_verts! */
+				while (!ELEM(full_doubles_map[new_i], -1, new_i)) {
+					new_i = full_doubles_map[new_i];
+				}
+				if (i == new_i) {
 					full_doubles_map[i] = -1;
 				}
 				else {
+					full_doubles_map[i] = new_i;
 					tot_doubles++;
 				}
 			}
