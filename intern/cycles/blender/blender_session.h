@@ -33,11 +33,18 @@ class RenderTile;
 
 class BlenderSession {
 public:
-	BlenderSession(BL::RenderEngine b_engine, BL::UserPreferences b_userpref,
-		BL::BlendData b_data, BL::Scene b_scene);
-	BlenderSession(BL::RenderEngine b_engine, BL::UserPreferences b_userpref,
-		BL::BlendData b_data, BL::Scene b_scene,
-		BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int width, int height);
+	BlenderSession(BL::RenderEngine& b_engine,
+	               BL::UserPreferences& b_userpref,
+	               BL::BlendData& b_data,
+	               BL::Scene& b_scene);
+
+	BlenderSession(BL::RenderEngine& b_engine,
+	               BL::UserPreferences& b_userpref,
+	               BL::BlendData& b_data,
+	               BL::Scene& b_scene,
+	               BL::SpaceView3D& b_v3d,
+	               BL::RegionView3D& b_rv3d,
+	               int width, int height);
 
 	~BlenderSession();
 
@@ -47,26 +54,31 @@ public:
 	void create_session();
 	void free_session();
 
-	void reset_session(BL::BlendData b_data, BL::Scene b_scene);
+	void reset_session(BL::BlendData& b_data,
+	                   BL::Scene& b_scene);
 
 	/* offline render */
 	void render();
 
-	void bake(BL::Object b_object,
+	void bake(BL::Object& b_object,
 	          const string& pass_type,
 	          const int custom_flag,
 	          const int object_id,
-	          BL::BakePixel pixel_array,
+	          BL::BakePixel& pixel_array,
 	          const size_t num_pixels,
 	          const int depth,
 	          float pixels[]);
 
-	void write_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile);
+	void write_render_result(BL::RenderResult& b_rr,
+	                         BL::RenderLayer& b_rlay,
+	                         RenderTile& rtile);
 	void write_render_tile(RenderTile& rtile);
 
 	/* update functions are used to update display buffer only after sample was rendered
 	 * only needed for better visual feedback */
-	void update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile);
+	void update_render_result(BL::RenderResult& b_rr,
+	                          BL::RenderLayer& b_rlay,
+	                          RenderTile& rtile);
 	void update_render_tile(RenderTile& rtile);
 
 	/* interactive updates */
@@ -109,7 +121,10 @@ public:
 	void *python_thread_state;
 
 protected:
-	void do_write_update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile, bool do_update_only);
+	void do_write_update_render_result(BL::RenderResult& b_rr,
+	                                   BL::RenderLayer& b_rlay,
+	                                   RenderTile& rtile,
+	                                   bool do_update_only);
 	void do_write_update_render_tile(RenderTile& rtile, bool do_update_only);
 
 	int builtin_image_frame(const string &builtin_name);

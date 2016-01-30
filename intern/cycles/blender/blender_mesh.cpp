@@ -80,7 +80,9 @@ inline void face_split_tri_indices(const int num_verts,
 /* Tangent Space */
 
 struct MikkUserData {
-	MikkUserData(const BL::Mesh mesh_, BL::MeshTextureFaceLayer *layer_, int num_faces_)
+	MikkUserData(const BL::Mesh& mesh_,
+	             BL::MeshTextureFaceLayer *layer_,
+	             int num_faces_)
 	: mesh(mesh_), layer(layer_), num_faces(num_faces_)
 	{
 		tangent.resize(num_faces*4);
@@ -182,7 +184,7 @@ static void mikk_set_tangent_space(const SMikkTSpaceContext *context, const floa
 	userdata->tangent[face*4 + vert] = make_float4(T[0], T[1], T[2], sign);
 }
 
-static void mikk_compute_tangents(BL::Mesh b_mesh,
+static void mikk_compute_tangents(BL::Mesh& b_mesh,
                                   BL::MeshTextureFaceLayer *b_layer,
                                   Mesh *mesh,
                                   const vector<int>& nverts,
@@ -280,7 +282,11 @@ static void mikk_compute_tangents(BL::Mesh b_mesh,
 
 /* Create Volume Attribute */
 
-static void create_mesh_volume_attribute(BL::Object b_ob, Mesh *mesh, ImageManager *image_manager, AttributeStandard std, float frame)
+static void create_mesh_volume_attribute(BL::Object& b_ob,
+                                         Mesh *mesh,
+                                         ImageManager *image_manager,
+                                         AttributeStandard std,
+                                         float frame)
 {
 	BL::SmokeDomainSettings b_domain = object_smoke_domain_find(b_ob);
 
@@ -305,7 +311,10 @@ static void create_mesh_volume_attribute(BL::Object b_ob, Mesh *mesh, ImageManag
 	        true);
 }
 
-static void create_mesh_volume_attributes(Scene *scene, BL::Object b_ob, Mesh *mesh, float frame)
+static void create_mesh_volume_attributes(Scene *scene,
+                                          BL::Object& b_ob,
+                                          Mesh *mesh,
+                                          float frame)
 {
 	/* for smoke volume rendering */
 	if(mesh->need_attribute(scene, ATTR_STD_VOLUME_DENSITY))
@@ -323,7 +332,7 @@ static void create_mesh_volume_attributes(Scene *scene, BL::Object b_ob, Mesh *m
 /* Create vertex color attributes. */
 static void attr_create_vertex_color(Scene *scene,
                                      Mesh *mesh,
-                                     BL::Mesh b_mesh,
+                                     BL::Mesh& b_mesh,
                                      const vector<int>& nverts,
                                      const vector<int>& face_flags)
 {
@@ -370,7 +379,7 @@ static void attr_create_vertex_color(Scene *scene,
 /* Create uv map attributes. */
 static void attr_create_uv_map(Scene *scene,
                                Mesh *mesh,
-                               BL::Mesh b_mesh,
+                               BL::Mesh& b_mesh,
                                const vector<int>& nverts,
                                const vector<int>& face_flags)
 {
@@ -455,7 +464,7 @@ static void attr_create_uv_map(Scene *scene,
 /* Create vertex pointiness attributes. */
 static void attr_create_pointiness(Scene *scene,
                                    Mesh *mesh,
-                                   BL::Mesh b_mesh)
+                                   BL::Mesh& b_mesh)
 {
 	if(mesh->need_attribute(scene, ATTR_STD_POINTINESS)) {
 		const int numverts = b_mesh.vertices.length();
@@ -519,7 +528,10 @@ static void attr_create_pointiness(Scene *scene,
 
 /* Create Mesh */
 
-static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<uint>& used_shaders)
+static void create_mesh(Scene *scene,
+                        Mesh *mesh,
+                        BL::Mesh& b_mesh,
+                        const vector<uint>& used_shaders)
 {
 	/* count vertices and faces */
 	int numverts = b_mesh.vertices.length();
@@ -641,7 +653,11 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 	}
 }
 
-static void create_subd_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, PointerRNA *cmesh, const vector<uint>& used_shaders)
+static void create_subd_mesh(Scene *scene,
+                             Mesh *mesh,
+                             BL::Mesh& b_mesh,
+                             PointerRNA *cmesh,
+                             const vector<uint>& used_shaders)
 {
 	/* create subd mesh */
 	SubdMesh sdmesh;
@@ -685,7 +701,9 @@ static void create_subd_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, PointerR
 
 /* Sync */
 
-Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tris)
+Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
+                             bool object_updated,
+                             bool hide_tris)
 {
 	/* When viewport display is not needed during render we can force some
 	 * caches to be releases from blender side in order to reduce peak memory
@@ -705,10 +723,13 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 
 	BL::Object::material_slots_iterator slot;
 	for(b_ob.material_slots.begin(slot); slot != b_ob.material_slots.end(); ++slot) {
-		if(material_override)
+		if(material_override) {
 			find_shader(material_override, used_shaders, scene->default_surface);
-		else
-			find_shader(slot->material(), used_shaders, scene->default_surface);
+		}
+		else {
+			BL::ID b_material(slot->material());
+			find_shader(b_material, used_shaders, scene->default_surface);
+		}
 	}
 
 	if(used_shaders.size() == 0) {
@@ -838,7 +859,9 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 	return mesh;
 }
 
-void BlenderSync::sync_mesh_motion(BL::Object b_ob, Object *object, float motion_time)
+void BlenderSync::sync_mesh_motion(BL::Object& b_ob,
+                                   Object *object,
+                                   float motion_time)
 {
 	/* ensure we only sync instanced meshes once */
 	Mesh *mesh = object->mesh;

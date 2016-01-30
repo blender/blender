@@ -34,8 +34,8 @@ void density_texture_space_invert(float3& loc,
 
 }  /* namespace */
 
-void point_density_texture_space(BL::Scene b_scene,
-                                 BL::ShaderNodeTexPointDensity b_point_density_node,
+void point_density_texture_space(BL::Scene& b_scene,
+                                 BL::ShaderNodeTexPointDensity& b_point_density_node,
                                  int settings,
                                  float3& loc,
                                  float3& size)

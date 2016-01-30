@@ -44,10 +44,18 @@ CCL_NAMESPACE_BEGIN
 
 bool BlenderSession::headless = false;
 
-BlenderSession::BlenderSession(BL::RenderEngine b_engine_, BL::UserPreferences b_userpref_,
-	BL::BlendData b_data_, BL::Scene b_scene_)
-: b_engine(b_engine_), b_userpref(b_userpref_), b_data(b_data_), b_render(b_engine_.render()), b_scene(b_scene_),
-  b_v3d(PointerRNA_NULL), b_rv3d(PointerRNA_NULL), python_thread_state(NULL)
+BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
+                               BL::UserPreferences& b_userpref,
+                               BL::BlendData& b_data,
+                               BL::Scene& b_scene)
+: b_engine(b_engine),
+  b_userpref(b_userpref),
+  b_data(b_data),
+  b_render(b_engine.render()),
+  b_scene(b_scene),
+  b_v3d(PointerRNA_NULL),
+  b_rv3d(PointerRNA_NULL),
+  python_thread_state(NULL)
 {
 	/* offline render */
 
@@ -59,16 +67,26 @@ BlenderSession::BlenderSession(BL::RenderEngine b_engine_, BL::UserPreferences b
 	start_resize_time = 0.0;
 }
 
-BlenderSession::BlenderSession(BL::RenderEngine b_engine_, BL::UserPreferences b_userpref_,
-	BL::BlendData b_data_, BL::Scene b_scene_,
-	BL::SpaceView3D b_v3d_, BL::RegionView3D b_rv3d_, int width_, int height_)
-: b_engine(b_engine_), b_userpref(b_userpref_), b_data(b_data_), b_render(b_scene_.render()), b_scene(b_scene_),
-  b_v3d(b_v3d_), b_rv3d(b_rv3d_), python_thread_state(NULL)
+BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
+                               BL::UserPreferences& b_userpref,
+                               BL::BlendData& b_data,
+                               BL::Scene& b_scene,
+                               BL::SpaceView3D& b_v3d,
+                               BL::RegionView3D& b_rv3d,
+                               int width, int height)
+: b_engine(b_engine),
+  b_userpref(b_userpref),
+  b_data(b_data),
+  b_render(b_scene.render()),
+  b_scene(b_scene),
+  b_v3d(b_v3d),
+  b_rv3d(b_rv3d),
+  width(width),
+  height(height),
+  python_thread_state(NULL)
 {
 	/* 3d view render */
 
-	width = width_;
-	height = height_;
 	background = false;
 	last_redraw_time = 0.0;
 	start_resize_time = 0.0;
@@ -117,14 +135,14 @@ void BlenderSession::create_session()
 
 	/* create sync */
 	sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background, session->progress, is_cpu);
-
+	BL::Object b_camera_override(b_engine.camera_override());
 	if(b_v3d) {
 		if(session_pause == false) {
 			/* full data sync */
 			sync->sync_view(b_v3d, b_rv3d, width, height);
 			sync->sync_data(b_render,
 			                b_v3d,
-			                b_engine.camera_override(),
+			                b_camera_override,
 			                width, height,
 			                &python_thread_state,
 			                b_rlay_name.c_str());
@@ -135,7 +153,7 @@ void BlenderSession::create_session()
 		 * do some basic syncing here, no objects or materials for speed */
 		sync->sync_render_layers(b_v3d, NULL);
 		sync->sync_integrator();
-		sync->sync_camera(b_render, b_engine.camera_override(), width, height);
+		sync->sync_camera(b_render, b_camera_override, width, height);
 	}
 
 	/* set buffer parameters */
@@ -145,7 +163,7 @@ void BlenderSession::create_session()
 	b_engine.use_highlight_tiles(session_params.progressive_refine == false);
 }
 
-void BlenderSession::reset_session(BL::BlendData b_data_, BL::Scene b_scene_)
+void BlenderSession::reset_session(BL::BlendData& b_data_, BL::Scene& b_scene_)
 {
 	b_data = b_data_;
 	b_render = b_engine.render();
@@ -188,11 +206,18 @@ void BlenderSession::reset_session(BL::BlendData b_data_, BL::Scene b_scene_)
 
 	/* for final render we will do full data sync per render layer, only
 	 * do some basic syncing here, no objects or materials for speed */
+	BL::Object b_camera_override(b_engine.camera_override());
 	sync->sync_render_layers(b_v3d, NULL);
 	sync->sync_integrator();
-	sync->sync_camera(b_render, b_engine.camera_override(), width, height);
+	sync->sync_camera(b_render, b_camera_override, width, height);
 
-	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, PointerRNA_NULL, PointerRNA_NULL, scene->camera, width, height);
+	BL::SpaceView3D b_null_space_view3d(PointerRNA_NULL);
+	BL::RegionView3D b_null_region_view3d(PointerRNA_NULL);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render,
+	                                                            b_null_space_view3d,
+	                                                            b_null_region_view3d,
+	                                                            scene->camera,
+	                                                            width, height);
 	session->reset(buffer_params, session_params.samples);
 
 	b_engine.use_highlight_tiles(session_params.progressive_refine == false);
@@ -209,7 +234,7 @@ void BlenderSession::free_session()
 	delete session;
 }
 
-static PassType get_pass_type(BL::RenderPass b_pass)
+static PassType get_pass_type(BL::RenderPass& b_pass)
 {
 	switch(b_pass.type()) {
 		case BL::RenderPass::type_COMBINED:
@@ -333,12 +358,19 @@ static ShaderEvalType get_shader_type(const string& pass_type)
 		return SHADER_EVAL_BAKE;
 }
 
-static BL::RenderResult begin_render_result(BL::RenderEngine b_engine, int x, int y, int w, int h, const char *layername, const char *viewname)
+static BL::RenderResult begin_render_result(BL::RenderEngine& b_engine,
+                                            int x, int y,
+                                            int w, int h,
+                                            const char *layername,
+                                            const char *viewname)
 {
 	return b_engine.begin_result(x, y, w, h, layername, viewname);
 }
 
-static void end_render_result(BL::RenderEngine b_engine, BL::RenderResult b_rr, bool cancel, bool do_merge_results)
+static void end_render_result(BL::RenderEngine& b_engine,
+                              BL::RenderResult& b_rr,
+                              bool cancel,
+                              bool do_merge_results)
 {
 	b_engine.end_result(b_rr, (int)cancel, (int)do_merge_results);
 }
@@ -469,10 +501,11 @@ void BlenderSession::render()
 			b_engine.active_view_set(b_rview_name.c_str());
 
 			/* update scene */
-			sync->sync_camera(b_render, b_engine.camera_override(), width, height);
+			BL::Object b_camera_override(b_engine.camera_override());
+			sync->sync_camera(b_render, b_camera_override, width, height);
 			sync->sync_data(b_render,
 			                b_v3d,
-			                b_engine.camera_override(),
+			                b_camera_override,
 			                width, height,
 			                &python_thread_state,
 			                b_rlay_name.c_str());
@@ -520,7 +553,10 @@ void BlenderSession::render()
 	sync = NULL;
 }
 
-static void populate_bake_data(BakeData *data, const int object_id, BL::BakePixel pixel_array, const int num_pixels)
+static void populate_bake_data(BakeData *data, const
+                               int object_id,
+                               BL::BakePixel& pixel_array,
+                               const int num_pixels)
 {
 	BL::BakePixel bp = pixel_array;
 
@@ -563,11 +599,11 @@ static int bake_pass_filter_get(const int pass_filter)
 	return flag;
 }
 
-void BlenderSession::bake(BL::Object b_object,
+void BlenderSession::bake(BL::Object& b_object,
                           const string& pass_type,
                           const int pass_filter,
                           const int object_id,
-                          BL::BakePixel pixel_array,
+                          BL::BakePixel& pixel_array,
                           const size_t num_pixels,
                           const int /*depth*/,
                           float result[])
@@ -603,10 +639,11 @@ void BlenderSession::bake(BL::Object b_object,
 	scene->integrator->tag_update(scene);
 
 	/* update scene */
-	sync->sync_camera(b_render, b_engine.camera_override(), width, height);
+	BL::Object b_camera_override(b_engine.camera_override());
+	sync->sync_camera(b_render, b_camera_override, width, height);
 	sync->sync_data(b_render,
 	                b_v3d,
-	                b_engine.camera_override(),
+	                b_camera_override,
 	                width, height,
 	                &python_thread_state,
 	                b_rlay_name.c_str());
@@ -657,7 +694,10 @@ void BlenderSession::bake(BL::Object b_object,
 	sync = NULL;
 }
 
-void BlenderSession::do_write_update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile, bool do_update_only)
+void BlenderSession::do_write_update_render_result(BL::RenderResult& b_rr,
+                                                   BL::RenderLayer& b_rlay,
+                                                   RenderTile& rtile,
+                                                   bool do_update_only)
 {
 	RenderBuffers *buffers = rtile.buffers;
 
@@ -699,12 +739,16 @@ void BlenderSession::do_write_update_render_result(BL::RenderResult b_rr, BL::Re
 	b_engine.update_result(b_rr);
 }
 
-void BlenderSession::write_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile)
+void BlenderSession::write_render_result(BL::RenderResult& b_rr,
+                                         BL::RenderLayer& b_rlay,
+                                         RenderTile& rtile)
 {
 	do_write_update_render_result(b_rr, b_rlay, rtile, false);
 }
 
-void BlenderSession::update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile)
+void BlenderSession::update_render_result(BL::RenderResult& b_rr,
+                                          BL::RenderLayer& b_rlay,
+                                          RenderTile& rtile)
 {
 	do_write_update_render_result(b_rr, b_rlay, rtile, true);
 }
@@ -751,9 +795,10 @@ void BlenderSession::synchronize()
 	}
 
 	/* data and camera synchronize */
+	BL::Object b_camera_override(b_engine.camera_override());
 	sync->sync_data(b_render,
 	                b_v3d,
-	                b_engine.camera_override(),
+	                b_camera_override,
 	                width, height,
 	                &python_thread_state,
 	                b_rlay_name.c_str());
@@ -761,7 +806,7 @@ void BlenderSession::synchronize()
 	if(b_rv3d)
 		sync->sync_view(b_v3d, b_rv3d, width, height);
 	else
-		sync->sync_camera(b_render, b_engine.camera_override(), width, height);
+		sync->sync_camera(b_render, b_camera_override, width, height);
 
 	/* unlock */
 	session->scene->mutex.unlock();

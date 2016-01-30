@@ -856,7 +856,11 @@ void BlenderSync::sync_curve_settings()
 		curve_system_manager->tag_update(scene);
 }
 
-void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool motion, int time_index)
+void BlenderSync::sync_curves(Mesh *mesh,
+                              BL::Mesh& b_mesh,
+                              BL::Object& b_ob,
+                              bool motion,
+                              int time_index)
 {
 	if(!motion) {
 		/* Clear stored curve data */

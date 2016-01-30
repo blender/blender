@@ -40,7 +40,12 @@ CCL_NAMESPACE_BEGIN
 void python_thread_state_save(void **python_thread_state);
 void python_thread_state_restore(void **python_thread_state);
 
-static inline BL::Mesh object_to_mesh(BL::BlendData data, BL::Object object, BL::Scene scene, bool apply_modifiers, bool render, bool calc_undeformed)
+static inline BL::Mesh object_to_mesh(BL::BlendData& data,
+                                      BL::Object& object,
+                                      BL::Scene& scene,
+                                      bool apply_modifiers,
+                                      bool render,
+                                      bool calc_undeformed)
 {
 	BL::Mesh me = data.meshes.new_from_object(scene, object, apply_modifiers, (render)? 2: 1, false, calc_undeformed);
 	if((bool)me) {
@@ -52,7 +57,9 @@ static inline BL::Mesh object_to_mesh(BL::BlendData data, BL::Object object, BL:
 	return me;
 }
 
-static inline void colorramp_to_array(BL::ColorRamp ramp, float4 *data, int size)
+static inline void colorramp_to_array(BL::ColorRamp& ramp,
+                                      float4 *data,
+                                      int size)
 {
 	for(int i = 0; i < size; i++) {
 		float color[4];
@@ -85,7 +92,9 @@ static inline void curvemapping_minmax(/*const*/ BL::CurveMapping& cumap,
 	}
 }
 
-static inline void curvemapping_to_array(BL::CurveMapping cumap, float *data, int size)
+static inline void curvemapping_to_array(BL::CurveMapping& cumap,
+                                         float *data,
+                                         int size)
 {
 	cumap.update();
 	BL::CurveMap curve = cumap.curves[0];
@@ -95,7 +104,7 @@ static inline void curvemapping_to_array(BL::CurveMapping cumap, float *data, in
 	}
 }
 
-static inline void curvemapping_color_to_array(BL::CurveMapping cumap,
+static inline void curvemapping_color_to_array(BL::CurveMapping& cumap,
                                                float4 *data,
                                                int size,
                                                bool rgb_curve)
@@ -145,27 +154,33 @@ static inline void curvemapping_color_to_array(BL::CurveMapping cumap,
 	}
 }
 
-static inline bool BKE_object_is_modified(BL::Object self, BL::Scene scene, bool preview)
+static inline bool BKE_object_is_modified(BL::Object& self,
+                                          BL::Scene& scene,
+                                          bool preview)
 {
 	return self.is_modified(scene, (preview)? (1<<0): (1<<1))? true: false;
 }
 
-static inline bool BKE_object_is_deform_modified(BL::Object self, BL::Scene scene, bool preview)
+static inline bool BKE_object_is_deform_modified(BL::Object& self,
+                                                 BL::Scene& scene,
+                                                 bool preview)
 {
 	return self.is_deform_modified(scene, (preview)? (1<<0): (1<<1))? true: false;
 }
 
-static inline int render_resolution_x(BL::RenderSettings b_render)
+static inline int render_resolution_x(BL::RenderSettings& b_render)
 {
 	return b_render.resolution_x()*b_render.resolution_percentage()/100;
 }
 
-static inline int render_resolution_y(BL::RenderSettings b_render)
+static inline int render_resolution_y(BL::RenderSettings& b_render)
 {
 	return b_render.resolution_y()*b_render.resolution_percentage()/100;
 }
 
-static inline string image_user_file_path(BL::ImageUser iuser, BL::Image ima, int cfra)
+static inline string image_user_file_path(BL::ImageUser& iuser,
+                                          BL::Image& ima,
+                                          int cfra)
 {
 	char filepath[1024];
 	BKE_image_user_frame_calc(iuser.ptr.data, cfra, 0);
@@ -173,25 +188,27 @@ static inline string image_user_file_path(BL::ImageUser iuser, BL::Image ima, in
 	return string(filepath);
 }
 
-static inline int image_user_frame_number(BL::ImageUser iuser, int cfra)
+static inline int image_user_frame_number(BL::ImageUser& iuser, int cfra)
 {
 	BKE_image_user_frame_calc(iuser.ptr.data, cfra, 0);
 	return iuser.frame_current();
 }
 
-static inline unsigned char *image_get_pixels_for_frame(BL::Image image, int frame)
+static inline unsigned char *image_get_pixels_for_frame(BL::Image& image,
+                                                        int frame)
 {
 	return BKE_image_get_pixels_for_frame(image.ptr.data, frame);
 }
 
-static inline float *image_get_float_pixels_for_frame(BL::Image image, int frame)
+static inline float *image_get_float_pixels_for_frame(BL::Image& image,
+                                                      int frame)
 {
 	return BKE_image_get_float_pixels_for_frame(image.ptr.data, frame);
 }
 
 /* Utilities */
 
-static inline Transform get_transform(BL::Array<float, 16> array)
+static inline Transform get_transform(const BL::Array<float, 16>& array)
 {
 	Transform tfm;
 
@@ -203,42 +220,42 @@ static inline Transform get_transform(BL::Array<float, 16> array)
 	return tfm;
 }
 
-static inline float2 get_float2(BL::Array<float, 2> array)
+static inline float2 get_float2(const BL::Array<float, 2>& array)
 {
 	return make_float2(array[0], array[1]);
 }
 
-static inline float3 get_float3(BL::Array<float, 2> array)
+static inline float3 get_float3(const BL::Array<float, 2>& array)
 {
 	return make_float3(array[0], array[1], 0.0f);
 }
 
-static inline float3 get_float3(BL::Array<float, 3> array)
+static inline float3 get_float3(const BL::Array<float, 3>& array)
 {
 	return make_float3(array[0], array[1], array[2]);
 }
 
-static inline float3 get_float3(BL::Array<float, 4> array)
+static inline float3 get_float3(const BL::Array<float, 4>& array)
 {
 	return make_float3(array[0], array[1], array[2]);
 }
 
-static inline float4 get_float4(BL::Array<float, 4> array)
+static inline float4 get_float4(const BL::Array<float, 4>& array)
 {
 	return make_float4(array[0], array[1], array[2], array[3]);
 }
 
-static inline int3 get_int3(BL::Array<int, 3> array)
+static inline int3 get_int3(const BL::Array<int, 3>& array)
 {
 	return make_int3(array[0], array[1], array[2]);
 }
 
-static inline int4 get_int4(BL::Array<int, 4> array)
+static inline int4 get_int4(const BL::Array<int, 4>& array)
 {
 	return make_int4(array[0], array[1], array[2], array[3]);
 }
 
-static inline uint get_layer(BL::Array<int, 20> array)
+static inline uint get_layer(const BL::Array<int, 20>& array)
 {
 	uint layer = 0;
 
@@ -249,8 +266,8 @@ static inline uint get_layer(BL::Array<int, 20> array)
 	return layer;
 }
 
-static inline uint get_layer(BL::Array<int, 20> array,
-                             BL::Array<int, 8> local_array,
+static inline uint get_layer(const BL::Array<int, 20>& array,
+                             const BL::Array<int, 8>& local_array,
                              bool use_local,
                              bool is_light = false,
                              uint scene_layers = (1 << 20) - 1)
@@ -384,13 +401,19 @@ static inline void set_string(PointerRNA& ptr, const char *name, const string &v
 
 /* Relative Paths */
 
-static inline string blender_absolute_path(BL::BlendData b_data, BL::ID b_id, const string& path)
+static inline string blender_absolute_path(BL::BlendData& b_data,
+                                           BL::ID& b_id,
+                                           const string& path)
 {
 	if(path.size() >= 2 && path[0] == '/' && path[1] == '/') {
 		string dirname;
 		
-		if(b_id.library())
-			dirname = blender_absolute_path(b_data, b_id.library(), b_id.library().filepath());
+		if(b_id.library()) {
+			BL::ID b_library_id(b_id.library());
+			dirname = blender_absolute_path(b_data,
+			                                b_library_id,
+			                                b_id.library().filepath());
+		}
 		else
 			dirname = b_data.filepath();
 
@@ -402,7 +425,9 @@ static inline string blender_absolute_path(BL::BlendData b_data, BL::ID b_id, co
 
 /* Texture Space */
 
-static inline void mesh_texture_space(BL::Mesh b_mesh, float3& loc, float3& size)
+static inline void mesh_texture_space(BL::Mesh& b_mesh,
+                                      float3& loc,
+                                      float3& size)
 {
 	loc = get_float3(b_mesh.texspace_location());
 	size = get_float3(b_mesh.texspace_size());
@@ -415,7 +440,7 @@ static inline void mesh_texture_space(BL::Mesh b_mesh, float3& loc, float3& size
 }
 
 /* object used for motion blur */
-static inline bool object_use_motion(BL::Object b_parent, BL::Object b_ob)
+static inline bool object_use_motion(BL::Object& b_parent, BL::Object& b_ob)
 {
 	PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
 	bool use_motion = get_boolean(cobject, "use_motion_blur");
@@ -433,7 +458,7 @@ static inline bool object_use_motion(BL::Object b_parent, BL::Object b_ob)
 }
 
 /* object motion steps */
-static inline uint object_motion_steps(BL::Object b_ob)
+static inline uint object_motion_steps(BL::Object& b_ob)
 {
 	PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
 	uint steps = get_int(cobject, "motion_steps");
@@ -445,7 +470,8 @@ static inline uint object_motion_steps(BL::Object b_ob)
 }
 
 /* object uses deformation motion blur */
-static inline bool object_use_deform_motion(BL::Object b_parent, BL::Object b_ob)
+static inline bool object_use_deform_motion(BL::Object& b_parent,
+                                            BL::Object& b_ob)
 {
 	PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
 	bool use_deform_motion = get_boolean(cobject, "use_deform_motion");
@@ -462,7 +488,7 @@ static inline bool object_use_deform_motion(BL::Object b_parent, BL::Object b_ob
 	return use_deform_motion;
 }
 
-static inline BL::SmokeDomainSettings object_smoke_domain_find(BL::Object b_ob)
+static inline BL::SmokeDomainSettings object_smoke_domain_find(BL::Object& b_ob)
 {
 	BL::Object::modifiers_iterator b_mod;
 
@@ -491,7 +517,7 @@ public:
 		scene_data = scene_data_;
 	}
 
-	T *find(BL::ID id)
+	T *find(const BL::ID& id)
 	{
 		return find(id.ptr.id.data);
 	}
@@ -506,7 +532,7 @@ public:
 		return NULL;
 	}
 
-	void set_recalc(BL::ID id)
+	void set_recalc(const BL::ID& id)
 	{
 		b_recalc.insert(id.ptr.data);
 	}
@@ -521,12 +547,12 @@ public:
 		used_set.clear();
 	}
 
-	bool sync(T **r_data, BL::ID id)
+	bool sync(T **r_data, const BL::ID& id)
 	{
 		return sync(r_data, id, id, id.ptr.id.data);
 	}
 
-	bool sync(T **r_data, BL::ID id, BL::ID parent, const K& key)
+	bool sync(T **r_data, const BL::ID& id, const BL::ID& parent, const K& key)
 	{
 		T *data = find(key);
 		bool recalc;
