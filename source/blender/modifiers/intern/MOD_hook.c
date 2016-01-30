@@ -67,6 +67,13 @@ static void copyData(ModifierData *md, ModifierData *target)
 	HookModifierData *hmd = (HookModifierData *) md;
 	HookModifierData *thmd = (HookModifierData *) target;
 
+	if (thmd->curfalloff != NULL) {
+		curvemapping_free(thmd->curfalloff);
+	}
+	if (thmd->indexar != NULL) {
+		MEM_freeN(thmd->indexar);
+	}
+
 	modifier_copyData_generic(md, target);
 
 	thmd->curfalloff = curvemapping_copy(hmd->curfalloff);
