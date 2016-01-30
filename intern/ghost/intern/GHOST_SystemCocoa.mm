@@ -1399,7 +1399,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 				if ([event respondsToSelector:@selector(phase)])
 					phase = [event phase];
 				if ([event respondsToSelector:@selector(hasPreciseScrollingDeltas)])
-					hasMultiTouch = [event hasPreciseScrollingDeltas];
+					hasMultiTouch = [event hasPreciseScrollingDeltas] && [event subtype] != NSMouseEventSubtype;
 
 				/* when pressing a key while momentum scrolling continues after
 				 * lifting fingers off the trackpad, the action can unexpectedly
