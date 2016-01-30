@@ -4005,8 +4005,8 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 					angle = -angle;
 				}
 
-				/* z-axis */
-				axis_angle_to_quat_single(quat_mul, 'Z', angle);
+				/* View Y-axis */
+				axis_angle_to_quat(quat_mul, rv3d->viewinv[1], angle);
 			}
 			else {
 
@@ -4014,7 +4014,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 					angle = -angle;
 				}
 
-				/* horizontal axis */
+				/* View X-axis */
 				axis_angle_to_quat(quat_mul, rv3d->viewinv[0], angle);
 			}
 
