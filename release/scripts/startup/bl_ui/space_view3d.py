@@ -971,7 +971,7 @@ class VIEW3D_MT_select_edit_armature(Menu):
 
 class VIEW3D_MT_select_gpencil(Menu):
     bl_label = "Select"
-    
+
     def draw(self, context):
         layout = self.layout
 
@@ -2936,7 +2936,7 @@ class VIEW3D_MT_edit_armature_delete(Menu):
 
 class VIEW3D_MT_edit_gpencil(Menu):
     bl_label = "GPencil"
-    
+
     def draw(self, context):
         toolsettings = context.tool_settings
 

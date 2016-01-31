@@ -293,7 +293,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             row = col.split(percentage=0.75)
             row.prop(md, "use_symmetry")
             row.prop(md, "symmetry_axis", text="")
-            
 
         elif decimate_type == 'UNSUBDIV':
             layout.prop(md, "iterations")

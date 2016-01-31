@@ -40,7 +40,6 @@ def write_sysinfo(filepath):
             r = r[1:-1]
         return r
 
-
     output = open(filepath, 'w', encoding="utf-8")
 
     header = "= Blender %s System Information =\n" % bpy.app.version_string

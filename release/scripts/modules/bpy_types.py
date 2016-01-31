@@ -208,7 +208,7 @@ class _GenericBone:
     @property
     def basename(self):
         """The name of this bone before any '.' character"""
-        #return self.name.rsplit(".", 1)[0]
+        # return self.name.rsplit(".", 1)[0]
         return self.name.split(".")[0]
 
     @property

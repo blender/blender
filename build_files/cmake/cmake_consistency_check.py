@@ -278,7 +278,6 @@ def main():
         # Write a 'sed' script, useful if we get a lot of these
         # print("sed '%dd' '%s' > '%s.tmp' ; mv '%s.tmp' '%s'" % (i, cf, cf, cf, cf))
 
-
     if is_err:
         raise Exception("CMake referenecs missing files, aborting!")
     del is_err

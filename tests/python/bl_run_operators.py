@@ -285,8 +285,8 @@ def run_ops(operators, setup_func=None, reset=True):
                 try:
                     op(mode)
                 except:
-                    #import traceback
-                    #traceback.print_exc()
+                    # import traceback
+                    # traceback.print_exc()
                     pass
 
                 if USE_ATTRSET:
@@ -445,7 +445,7 @@ def main():
     filter_op_list(operators)
 
     # for testing, mix the list up.
-    #operators.reverse()
+    # operators.reverse()
 
     if USE_RANDOM:
         import random

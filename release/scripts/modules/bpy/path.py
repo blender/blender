@@ -69,19 +69,23 @@ def abspath(path, start=None, library=None):
     if isinstance(path, bytes):
         if path.startswith(b"//"):
             if library:
-                start = _os.path.dirname(abspath(_getattr_bytes(library, "filepath")))
-            return _os.path.join(_os.path.dirname(_getattr_bytes(_bpy.data, "filepath"))
-                                 if start is None else start,
-                                 path[2:],
-                                 )
+                start = _os.path.dirname(
+                        abspath(_getattr_bytes(library, "filepath")))
+            return _os.path.join(
+                    _os.path.dirname(_getattr_bytes(_bpy.data, "filepath"))
+                    if start is None else start,
+                    path[2:],
+                    )
     else:
         if path.startswith("//"):
             if library:
-                start = _os.path.dirname(abspath(library.filepath))
-            return _os.path.join(_os.path.dirname(_bpy.data.filepath)
-                                 if start is None else start,
-                                 path[2:],
-                                 )
+                start = _os.path.dirname(
+                        abspath(library.filepath))
+            return _os.path.join(
+                    _os.path.dirname(_bpy.data.filepath)
+                    if start is None else start,
+                    path[2:],
+                    )
 
     return path
 

@@ -1135,6 +1135,7 @@ class CLIP_PT_tools_grease_pencil_draw(GreasePencilDrawingToolsPanel, Panel):
 class CLIP_PT_tools_grease_pencil_edit(GreasePencilStrokeEditPanel, Panel):
     bl_space_type = 'CLIP_EDITOR'
 
+
 # Grease Pencil stroke sculpting tools
 class CLIP_PT_tools_grease_pencil_sculpt(GreasePencilStrokeSculptPanel, Panel):
     bl_space_type = 'CLIP_EDITOR'

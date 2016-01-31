@@ -81,7 +81,6 @@ def create_nb_project_main():
             # be tricky, get the project name from git if we can!
             PROJECT_NAME = project_name_get()
 
-
         make_exe = cmake_cache_var("CMAKE_MAKE_PROGRAM")
         make_exe_basename = os.path.basename(make_exe)
 

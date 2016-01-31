@@ -63,7 +63,6 @@ class OffScreenDraw(bpy.types.Operator):
                 render.pixel_aspect_y,
                 )
 
-
         offscreen.draw_view3d(
                 scene,
                 context.space_data,

@@ -538,7 +538,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.rolling_shutter_duration = FloatProperty(
             name="Rolling Shutter Duration",
             description="Scanline \"exposure\" time for the rolling shutter effect",
-            default = 0.1,
+            default=0.1,
             min=0.0, max=1.0,
             )
 

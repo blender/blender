@@ -168,7 +168,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "sample_clamp_direct")
         sub.prop(cscene, "sample_clamp_indirect")
 
-        if cscene.progressive == 'PATH' or use_branched_path(context) == False:
+        if cscene.progressive == 'PATH' or use_branched_path(context) is False:
             col = split.column()
             sub = col.column(align=True)
             sub.label(text="Samples:")

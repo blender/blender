@@ -440,7 +440,7 @@ class ConstraintButtonsPanel:
 
         self.space_template(layout, con)
 
-    #def SCRIPT(self, context, layout, con):
+    # def SCRIPT(self, context, layout, con):
 
     def ACTION(self, context, layout, con):
         self.target_template(layout, con)

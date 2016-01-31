@@ -54,7 +54,7 @@ def parse_rst_py(filepath):
     for i, line in enumerate(f):
         line_strip = line.lstrip()
         # ^\.\.\s[a-zA-Z09\-]+::.*$
-        #if line.startswith(".. "):
+        # if line.startswith(".. "):
         march = re_prefix.match(line_strip)
 
         if march:

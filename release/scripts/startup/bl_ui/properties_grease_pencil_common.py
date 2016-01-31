@@ -89,7 +89,7 @@ class GreasePencilDrawingToolsPanel:
                 row.prop(context.tool_settings, "grease_pencil_source", expand=True)
             elif context.space_data.type == 'CLIP_EDITOR':
                 row.prop(context.space_data, "grease_pencil_source", expand=True)
-        
+
         col.separator()
         col.separator()
 
@@ -192,11 +192,11 @@ class GreasePencilStrokeSculptPanel:
     @staticmethod
     def draw(self, context):
         layout = self.layout
-        
+
         settings = context.tool_settings.gpencil_sculpt
         tool = settings.tool
         brush = settings.brush
-        
+
         layout.column().prop(settings, "tool", expand=True)
 
         col = layout.column()
@@ -394,7 +394,7 @@ class GPENCIL_PIE_sculpt(Menu):
 
         # W - Launch Sculpt Mode
         col = pie.column()
-        #col.label("Tool:")
+        # col.label("Tool:")
         col.prop(settings, "tool", text="")
         col.operator("gpencil.brush_paint", text="Sculpt", icon='SCULPTMODE_HLT')
 
@@ -403,7 +403,7 @@ class GPENCIL_PIE_sculpt(Menu):
         col.prop(brush, "size", slider=True)
         row = col.row(align=True)
         row.prop(brush, "strength", slider=True)
-       # row.prop(brush, "use_pressure_strength", text="", icon_only=True)
+        # row.prop(brush, "use_pressure_strength", text="", icon_only=True)
         col.prop(brush, "use_falloff")
 
         # S - Change Brush Type Shortcuts

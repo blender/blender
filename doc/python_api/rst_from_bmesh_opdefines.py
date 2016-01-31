@@ -180,8 +180,8 @@ def main():
                 l = "None,"
             b[i] = l
 
-        #for l in b:
-        #    print(l)
+        # for l in b:
+        #     print(l)
 
         text = "\n".join(b)
         global_namespace = {

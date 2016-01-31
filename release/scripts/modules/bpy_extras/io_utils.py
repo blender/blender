@@ -137,7 +137,8 @@ def orientation_helper_factory(name, axis_forward='Y', axis_up='Z'):
 
     def _update_axis_forward(self, context):
         if self.axis_forward[-1] == self.axis_up[-1]:
-            self.axis_up = self.axis_up[0:-1] + 'XYZ'[('XYZ'.index(self.axis_up[-1]) + 1) % 3]
+            self.axis_up = (self.axis_up[0:-1] +
+                    'XYZ'[('XYZ'.index(self.axis_up[-1]) + 1) % 3])
 
     members['axis_forward'] = EnumProperty(
             name="Forward",
@@ -154,7 +155,8 @@ def orientation_helper_factory(name, axis_forward='Y', axis_up='Z'):
 
     def _update_axis_up(self, context):
         if self.axis_up[-1] == self.axis_forward[-1]:
-            self.axis_forward = self.axis_forward[0:-1] + 'XYZ'[('XYZ'.index(self.axis_forward[-1]) + 1) % 3]
+            self.axis_forward = (self.axis_forward[0:-1] +
+                    'XYZ'[('XYZ'.index(self.axis_forward[-1]) + 1) % 3])
 
     members['axis_up'] = EnumProperty(
             name="Up",

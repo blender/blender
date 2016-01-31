@@ -728,6 +728,7 @@ class IMAGE_PT_paint(Panel, ImagePaintPanel):
         toolsettings = context.tool_settings.image_paint
         return sima.show_paint
 
+
 class IMAGE_PT_tools_brush_overlay(BrushButtonsPanel, Panel):
     bl_label = "Overlay"
     bl_options = {'DEFAULT_CLOSED'}

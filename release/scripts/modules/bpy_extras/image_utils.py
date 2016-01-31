@@ -62,11 +62,13 @@ def load_image(imagepath,
     :type convert_callback: function
     :arg relpath: If not None, make the file relative to this path.
     :type relpath: None or string
-    :arg check_existing: If true, returns already loaded image datablock if possible
+    :arg check_existing: If true,
+       returns already loaded image datablock if possible
        (based on file path).
     :type check_existing: bool
-    :arg force_reload: If true, force reloading of image (only useful when `check_existing`
-        is also enabled).
+    :arg force_reload: If true,
+       force reloading of image (only useful when `check_existing`
+       is also enabled).
     :type force_reload: bool
     :return: an image or None
     :rtype: :class:`bpy.types.Image`
