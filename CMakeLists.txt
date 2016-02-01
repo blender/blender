@@ -2854,7 +2854,7 @@ if(WITH_PYTHON)
 							"Python.h for python version \"${PYTHON_VERSION}\"")
 	endif()
 
-	if(WIN32)
+	if(WIN32 OR APPLE)
 		# pass, we have this in an archive to extract
 	elseif(WITH_PYTHON_INSTALL AND WITH_PYTHON_INSTALL_NUMPY)
 		find_python_package(numpy)
