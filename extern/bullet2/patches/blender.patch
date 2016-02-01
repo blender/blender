@@ -148,3 +148,101 @@ index 7240ac4..6871ce8 100644
  
  		// Edges of the output hull
  		btAlignedObjectArray<Edge> edges;
+diff --git a/extern/bullet2/src/BulletCollision/CollisionShapes/btConvexHullShape.cpp b/extern/bullet2/src/BulletCollision/CollisionShapes/btConvexHullShape.cpp
+index 0623e35..02ea503 100644
+--- a/extern/bullet2/src/BulletCollision/CollisionShapes/btConvexHullShape.cpp
++++ b/extern/bullet2/src/BulletCollision/CollisionShapes/btConvexHullShape.cpp
+@@ -13,9 +13,9 @@ subject to the following restrictions:
+ 3. This notice may not be removed or altered from any source distribution.
+ */
+ 
+-#if defined (_WIN32) || defined (__i386__)
+-#define BT_USE_SSE_IN_API
+-#endif
++//#if defined (_WIN32) || defined (__i386__)
++//#define BT_USE_SSE_IN_API
++//#endif
+ 
+ #include "btConvexHullShape.h"
+ #include "BulletCollision/CollisionShapes/btCollisionMargin.h"
+diff --git a/extern/bullet2/src/BulletCollision/CollisionShapes/btConvexShape.cpp b/extern/bullet2/src/BulletCollision/CollisionShapes/btConvexShape.cpp
+index b56d729..88018b4 100644
+--- a/extern/bullet2/src/BulletCollision/CollisionShapes/btConvexShape.cpp
++++ b/extern/bullet2/src/BulletCollision/CollisionShapes/btConvexShape.cpp
+@@ -13,9 +13,9 @@ subject to the following restrictions:
+ 3. This notice may not be removed or altered from any source distribution.
+ */
+ 
+-#if defined (_WIN32) || defined (__i386__)
+-#define BT_USE_SSE_IN_API
+-#endif
++//#if defined (_WIN32) || defined (__i386__)
++//#define BT_USE_SSE_IN_API
++//#endif
+ 
+ #include "btConvexShape.h"
+ #include "btTriangleShape.h"
+diff --git a/extern/bullet2/src/BulletCollision/CollisionShapes/btMultiSphereShape.cpp b/extern/bullet2/src/BulletCollision/CollisionShapes/btMultiSphereShape.cpp
+index a7362ea..6abfdff 100644
+--- a/extern/bullet2/src/BulletCollision/CollisionShapes/btMultiSphereShape.cpp
++++ b/extern/bullet2/src/BulletCollision/CollisionShapes/btMultiSphereShape.cpp
+@@ -13,9 +13,9 @@ subject to the following restrictions:
+ 3. This notice may not be removed or altered from any source distribution.
+ */
+ 
+-#if defined (_WIN32) || defined (__i386__)
+-#define BT_USE_SSE_IN_API
+-#endif
++//#if defined (_WIN32) || defined (__i386__)
++//#define BT_USE_SSE_IN_API
++//#endif
+ 
+ #include "btMultiSphereShape.h"
+ #include "BulletCollision/CollisionShapes/btCollisionMargin.h"
+diff --git a/extern/bullet2/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp b/extern/bullet2/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
+index 4854f37..9095c59 100644
+--- a/extern/bullet2/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
++++ b/extern/bullet2/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
+@@ -12,9 +12,9 @@ subject to the following restrictions:
+ 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+ 3. This notice may not be removed or altered from any source distribution.
+ */
+-#if defined (_WIN32) || defined (__i386__)
+-#define BT_USE_SSE_IN_API
+-#endif
++//#if defined (_WIN32) || defined (__i386__)
++//#define BT_USE_SSE_IN_API
++//#endif
+ 
+ #include "BulletCollision/CollisionShapes/btPolyhedralConvexShape.h"
+ #include "btConvexPolyhedron.h"
+diff --git a/extern/bullet2/src/LinearMath/btScalar.h b/extern/bullet2/src/LinearMath/btScalar.h
+index 0bfd255..2e24676 100644
+--- a/extern/bullet2/src/LinearMath/btScalar.h
++++ b/extern/bullet2/src/LinearMath/btScalar.h
+@@ -179,7 +179,7 @@ inline int	btGetVersion()
+ 		#define BT_USE_SSE
+ 		//BT_USE_SSE_IN_API is enabled on Mac OSX by default, because memory is automatically aligned on 16-byte boundaries
+ 		//if apps run into issues, we will disable the next line
+-		#define BT_USE_SSE_IN_API
++		//#define BT_USE_SSE_IN_API
+         #ifdef BT_USE_SSE
+             // include appropriate SSE level
+             #if defined (__SSE4_1__)
+diff --git a/extern/bullet2/src/LinearMath/btVector3.cpp b/extern/bullet2/src/LinearMath/btVector3.cpp
+index e05bdcc..dbcf2b6 100644
+--- a/extern/bullet2/src/LinearMath/btVector3.cpp
++++ b/extern/bullet2/src/LinearMath/btVector3.cpp
+@@ -15,9 +15,9 @@
+  This source version has been altered.
+  */
+ 
+-#if defined (_WIN32) || defined (__i386__)
+-#define BT_USE_SSE_IN_API
+-#endif
++//#if defined (_WIN32) || defined (__i386__)
++//#define BT_USE_SSE_IN_API
++//#endif
+ 
+ 
+ #include "btVector3.h"
