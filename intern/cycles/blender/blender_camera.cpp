@@ -771,7 +771,7 @@ static void blender_camera_border(BlenderCamera *bcam,
 	                             width, height,
 	                             bcam->border,
 	                             &bcam->border);
-	bcam->border.clamp();
+	bcam->border = bcam->border.clamp();
 }
 
 void BlenderSync::sync_view(BL::SpaceView3D& b_v3d,
