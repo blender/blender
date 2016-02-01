@@ -163,6 +163,8 @@ static int gpu_shader_vect_transform(GPUMaterial *mat, bNode *node, bNodeExecDat
 	const char *ptransform = "point_transform_m4v3";
 	const char *func_name = 0;
 
+	bool new_shading = GPU_material_use_new_shading_nodes(mat);
+
 	NodeShaderVectTransform *nodeprop = (NodeShaderVectTransform *)node->storage;
 
 	if (in[0].hasinput)
@@ -173,8 +175,22 @@ static int gpu_shader_vect_transform(GPUMaterial *mat, bNode *node, bNodeExecDat
 	fromto = get_gpulink_matrix_from_to(nodeprop->convert_from, nodeprop->convert_to);
 
 	func_name = (nodeprop->type == SHD_VECT_TRANSFORM_TYPE_POINT) ? ptransform : vtransform;
-	if (fromto)
-		ret = GPU_link(mat, func_name, inputlink, fromto,  &out[0].link);
+	if (fromto) {
+		if (new_shading) {
+			/* For cycles we have inverted Z */
+			/* TODO: pass here the correct matrices */
+			if (nodeprop->convert_from == SHD_VECT_TRANSFORM_SPACE_CAMERA && nodeprop->convert_to != SHD_VECT_TRANSFORM_SPACE_CAMERA) {
+				ret = GPU_link(mat, "invert_z", inputlink, &inputlink);
+			}
+			ret = GPU_link(mat, func_name, inputlink, fromto,  &out[0].link);
+			if (nodeprop->convert_to == SHD_VECT_TRANSFORM_SPACE_CAMERA && nodeprop->convert_from != SHD_VECT_TRANSFORM_SPACE_CAMERA) {
+				ret = GPU_link(mat, "invert_z", out[0].link, &out[0].link);
+			}
+		}
+		else {
+			ret = GPU_link(mat, func_name, inputlink, fromto,  &out[0].link);
+		}
+	}
 	else
 		ret = GPU_link(mat, "set_rgb", inputlink,  &out[0].link);
 

@@ -384,6 +384,12 @@ void vec_math_negate(vec3 v, out vec3 outv)
 	outv = -v;
 }
 
+void invert_z(vec3 v, out vec3 outv)
+{
+        v.z = -v.z;
+        outv = v;
+}
+
 void normal(vec3 dir, vec3 nor, out vec3 outnor, out float outdot)
 {
 	outnor = nor;
