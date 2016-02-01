@@ -86,7 +86,8 @@ void constraintNumInput(TransInfo *t, float vec[3])
 	if (mode & CON_APPLY) {
 		float nval = (t->flag & T_NULL_ONE) ? 1.0f : 0.0f;
 
-		if (getConstraintSpaceDimension(t) == 2) {
+		const int dims = getConstraintSpaceDimension(t);
+		if (dims == 2) {
 			int axis = mode & (CON_AXIS0 | CON_AXIS1 | CON_AXIS2);
 			if (axis == (CON_AXIS0 | CON_AXIS1)) {
 				/* vec[0] = vec[0]; */ /* same */
@@ -104,7 +105,7 @@ void constraintNumInput(TransInfo *t, float vec[3])
 				vec[1] = nval;
 			}
 		}
-		else if (getConstraintSpaceDimension(t) == 1) {
+		else if (dims == 1) {
 			if (mode & CON_AXIS0) {
 				/* vec[0] = vec[0]; */ /* same */
 				vec[1] = nval;
@@ -311,12 +312,14 @@ static void applyAxisConstraintVec(TransInfo *t, TransData *td, const float in[3
 
 		// With snap, a projection is alright, no need to correct for view alignment
 		if (!(!ELEM(t->tsnap.mode, SCE_SNAP_MODE_INCREMENT, SCE_SNAP_MODE_GRID) && activeSnap(t))) {
-			if (getConstraintSpaceDimension(t) == 2) {
+
+			const int dims = getConstraintSpaceDimension(t);
+			if (dims == 2) {
 				if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
 					planeProjection(t, in, out);
 				}
 			}
-			else if (getConstraintSpaceDimension(t) == 1) {
+			else if (dims == 1) {
 				float c[3];
 
 				if (t->con.mode & CON_AXIS0) {
@@ -352,12 +355,14 @@ static void applyObjectConstraintVec(TransInfo *t, TransData *td, const float in
 	if (t->con.mode & CON_APPLY) {
 		if (!td) {
 			mul_m3_v3(t->con.pmtx, out);
-			if (getConstraintSpaceDimension(t) == 2) {
+
+			const int dims = getConstraintSpaceDimension(t);
+			if (dims == 2) {
 				if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
 					planeProjection(t, in, out);
 				}
 			}
-			else if (getConstraintSpaceDimension(t) == 1) {
+			else if (dims == 1) {
 				float c[3];
 
 				if (t->con.mode & CON_AXIS0) {
