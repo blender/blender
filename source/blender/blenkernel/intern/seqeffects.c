@@ -146,6 +146,11 @@ static ImBuf *prepare_effect_imbufs(const SeqRenderData *context, ImBuf *ibuf1, 
 	if (out->rect_float)
 		IMB_colormanagement_assign_float_colorspace(out, scene->sequencer_colorspace_settings.name);
 
+	/* If effect only affecting a single channel, forward input's metadata to the output. */
+	if (ibuf1 != NULL && ibuf1 == ibuf2 && ibuf2 == ibuf3) {
+		IMB_metadata_copy(out, ibuf1);
+	}
+
 	return out;
 }
 
@@ -2358,6 +2363,7 @@ static ImBuf *do_adjustment(const SeqRenderData *context, Sequence *seq, float c
 
 	if (BKE_sequencer_input_have_to_preprocess(context, seq, cfra)) {
 		out = IMB_dupImBuf(i);
+		IMB_metadata_copy(out, i);
 		IMB_freeImBuf(i);
 	}
 	else {
