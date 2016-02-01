@@ -448,6 +448,8 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
 
 			rr->xof = re->disprect.xmin;
 			rr->yof = re->disprect.ymin;
+
+			rr->stamp_data = re->result->stamp_data;
 		}
 	}
 }
@@ -2596,7 +2598,13 @@ static void renderresult_stampinfo(Render *re)
 	for (rv = re->result->views.first;rv;rv = rv->next, nr++) {
 		RE_SetActiveRenderView(re, rv->name);
 		RE_AcquireResultImage(re, &rres, nr);
-		BKE_image_stamp_buf(re->scene, RE_GetCamera(re), (unsigned char *)rres.rect32, rres.rectf, rres.rectx, rres.recty, 4);
+		BKE_image_stamp_buf(re->scene,
+		                    RE_GetCamera(re),
+		                    (re->r.stamp & R_STAMP_STRIPMETA) ? rres.stamp_data : NULL,
+		                    (unsigned char *)rres.rect32,
+		                    rres.rectf,
+		                    rres.rectx, rres.recty,
+		                    4);
 		RE_ReleaseResultImage(re);
 	}
 }

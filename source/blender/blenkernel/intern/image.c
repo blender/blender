@@ -1865,8 +1865,45 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 	}
 }
 
+static void stampdata_reset(const Scene *scene, StampData *stamp_data)
+{
+	if ((scene->r.stamp & R_STAMP_FILENAME) == 0) {
+		stamp_data->file[0] = '\0';
+	}
+	if ((scene->r.stamp & R_STAMP_NOTE) == 0) {
+		stamp_data->note[0] = '\0';
+	}
+	if ((scene->r.stamp & R_STAMP_DATE) == 0) {
+		stamp_data->date[0] = '\0';
+	}
+	if ((scene->r.stamp & R_STAMP_MARKER) == 0) {
+		stamp_data->marker[0] = '\0';
+	}
+	if ((scene->r.stamp & R_STAMP_TIME) == 0) {
+		stamp_data->time[0] = '\0';
+	}
+	if ((scene->r.stamp & R_STAMP_FRAME) == 0) {
+		stamp_data->frame[0] = '\0';
+	}
+	if ((scene->r.stamp & R_STAMP_CAMERA) == 0) {
+		stamp_data->camera[0] = '\0';
+	}
+	if ((scene->r.stamp & R_STAMP_CAMERALENS) == 0) {
+		stamp_data->cameralens[0] = '\0';
+	}
+	if ((scene->r.stamp & R_STAMP_SCENE) == 0) {
+		stamp_data->scene[0] = '\0';
+	}
+	if ((scene->r.stamp & R_STAMP_SEQSTRIP) == 0) {
+		stamp_data->strip[0] = '\0';
+	}
+	if ((scene->r.stamp & R_STAMP_RENDERTIME) == 0) {
+		stamp_data->rendertime[0] = '\0';
+	}
+}
+
 void BKE_image_stamp_buf(
-        Scene *scene, Object *camera,
+        Scene *scene, Object *camera, const StampData *stamp_data_template,
         unsigned char *rect, float *rectf, int width, int height, int channels)
 {
 	struct StampData stamp_data;
@@ -1903,7 +1940,13 @@ void BKE_image_stamp_buf(
 	display_device = scene->display_settings.display_device;
 	display = IMB_colormanagement_display_get_named(display_device);
 
-	stampdata(scene, camera, &stamp_data, 1);
+	if (stamp_data_template == NULL) {
+		stampdata(scene, camera, &stamp_data, 1);
+	}
+	else {
+		stamp_data = *stamp_data_template;
+		stampdata_reset(scene, &stamp_data);
+	}
 
 	/* TODO, do_versions */
 	if (scene->r.stamp_font_id < 8)
@@ -2146,7 +2189,12 @@ static void metadata_change_field(void *data, const char *propname, char *propva
 
 static void metadata_get_field(void *data, const char *propname, char *propvalue, int len)
 {
-	IMB_metadata_get_field(data, propname, propvalue, len);
+	char buffer[1024];
+	if (STREQ(propname, "Strip")) {
+		IMB_metadata_get_field(data, propname, buffer, sizeof(buffer));
+	}
+	IMB_metadata_get_field(data, propname, buffer, sizeof(buffer));
+	BLI_snprintf(propvalue, len, "%s %s", propname, buffer);
 }
 
 void BKE_imbuf_stamp_info(RenderResult *rr, struct ImBuf *ibuf)

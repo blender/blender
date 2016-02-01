@@ -392,7 +392,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 		/* rr->rectf is now filled with image data */
 
 		if ((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW))
-			BKE_image_stamp_buf(scene, camera, rect, rectf, rr->rectx, rr->recty, 4);
+			BKE_image_stamp_buf(scene, camera, NULL, rect, rectf, rr->rectx, rr->recty, 4);
 
 		MEM_freeN(rect);
 	}
