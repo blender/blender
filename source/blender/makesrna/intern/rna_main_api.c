@@ -1863,7 +1863,10 @@ void RNA_def_main_movieclips(BlenderRNA *brna, PropertyRNA *cprop)
 	/* load func */
 	func = RNA_def_function(srna, "load", "rna_Main_movieclip_load");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_function_ui_description(func, "Add a new movie clip to the main database from a file");
+	RNA_def_function_ui_description(
+	        func, "Add a new movie clip to the main database from a file "
+	        "(while ``check_existing`` is disabled for consistency with other load functions, "
+	        "behavior with multiple movie-clips using the same file may incorrectly generate proxies)");
 	parm = RNA_def_string_file_path(func, "filepath", "Path", FILE_MAX, "", "path for the data-block");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_boolean(func, "check_existing", false, "", "Using existing data-block if this file is already loaded");
