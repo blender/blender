@@ -370,7 +370,6 @@ typedef struct TransInfo {
 	short		state;			/* current state (running, canceled,...)*/
 	int         options;        /* current context/options for transform                      */
 	float       val;            /* init value for some transformations (and rotation angle)  */
-	float       fac;            /* factor for distance based transform  */
 	void      (*transform)(struct TransInfo *, const int[2]);
 								/* transform function pointer           */
 	eRedrawFlag (*handleEvent)(struct TransInfo *, const struct wmEvent *);
@@ -391,7 +390,6 @@ typedef struct TransInfo {
 	float       center[3];      /* center of transformation (in local-space) */
 	float       center_global[3];  /* center of transformation (in global-space) */
 	float       center2d[2];    /* center in screen coordinates         */
-	short		event_type;		/* event->type used to invoke transform */
 	short       idx_max;		/* maximum index on the input vector	*/
 	float		snap[3];		/* Snapping Gears						*/
 	float		snap_spatial[3]; /* Spatial snapping gears(even when rotating, scaling... etc) */
