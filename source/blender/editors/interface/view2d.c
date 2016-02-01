@@ -1221,7 +1221,7 @@ View2DGrid *UI_view2d_grid_calc(
 {
 
 	View2DGrid *grid;
-	float space, pixels, seconddiv;
+	float space, seconddiv;
 	
 	/* check that there are at least some workable args */
 	if (ELEM(V2D_ARG_DUMMY, xunits, xclamp) && ELEM(V2D_ARG_DUMMY, yunits, yclamp))
@@ -1241,32 +1241,37 @@ View2DGrid *UI_view2d_grid_calc(
 	/* calculate x-axis grid scale (only if both args are valid) */
 	if (ELEM(V2D_ARG_DUMMY, xunits, xclamp) == 0) {
 		space = BLI_rctf_size_x(&v2d->cur);
-		pixels = (float)BLI_rcti_size_x(&v2d->mask);
-		
-		if (pixels != 0.0f) {
-			grid->dx = (U.v2d_min_gridsize * UI_DPI_FAC * space) / (seconddiv * pixels);
-			step_to_grid(&grid->dx, &grid->powerx, xunits);
-			grid->dx *= seconddiv;
+
+		if (space != 0.0f) {
+			const float pixels = (float)BLI_rcti_size_x(&v2d->mask);
+			if (pixels != 0.0f) {
+				grid->dx = (U.v2d_min_gridsize * UI_DPI_FAC * space) / (seconddiv * pixels);
+				step_to_grid(&grid->dx, &grid->powerx, xunits);
+				grid->dx *= seconddiv;
+			}
 		}
 		
 		if (xclamp == V2D_GRID_CLAMP) {
-			if (grid->dx < 0.1f) grid->dx = 0.1f;
+			CLAMP_MIN(grid->dx, 0.1f);
+			CLAMP_MIN(grid->powerx, 0);
 			grid->powerx -= 2;
-			if (grid->powerx < -2) grid->powerx = -2;
 		}
 	}
 	
 	/* calculate y-axis grid scale (only if both args are valid) */
 	if (ELEM(V2D_ARG_DUMMY, yunits, yclamp) == 0) {
 		space = BLI_rctf_size_y(&v2d->cur);
-		pixels = (float)winy;
-		
-		grid->dy = U.v2d_min_gridsize * UI_DPI_FAC * space / pixels;
-		step_to_grid(&grid->dy, &grid->powery, yunits);
-		
+		if (space != 0.0f) {
+			const float pixels = (float)winy;
+			if (pixels != 0.0f) {
+				grid->dy = U.v2d_min_gridsize * UI_DPI_FAC * space / pixels;
+				step_to_grid(&grid->dy, &grid->powery, yunits);
+			}
+		}
+
 		if (yclamp == V2D_GRID_CLAMP) {
-			if (grid->dy < 1.0f) grid->dy = 1.0f;
-			if (grid->powery < 1) grid->powery = 1;
+			CLAMP_MIN(grid->dy, 1.0f);
+			CLAMP_MIN(grid->powery, 1);
 		}
 	}
 	
