@@ -2685,6 +2685,15 @@ void init_userdef_do_versions(void)
 		}
 	}
 
+	if (!USER_VERSION_ATLEAST(276, 10)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			/* 3dView Keyframe Indicators */
+			rgba_char_args_set(btheme->tv3d.time_keyframe, 0xDD, 0xD7, 0x00, 1.0);
+			rgba_char_args_set(btheme->tv3d.time_gp_keyframe, 0xB5, 0xE6, 0x1D, 1.0);
+		}
+	}
+
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
 	
