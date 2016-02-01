@@ -110,13 +110,15 @@ typedef struct BHeadN {
 	struct BHead bhead;
 } BHeadN;
 
-
-#define FD_FLAGS_SWITCH_ENDIAN             (1 << 0)
-#define FD_FLAGS_FILE_POINTSIZE_IS_4       (1 << 1)
-#define FD_FLAGS_POINTSIZE_DIFFERS         (1 << 2)
-#define FD_FLAGS_FILE_OK                   (1 << 3)
-#define FD_FLAGS_NOT_MY_BUFFER             (1 << 4)
-#define FD_FLAGS_NOT_MY_LIBMAP             (1 << 5)
+/* FileData->flags */
+enum {
+	FD_FLAGS_SWITCH_ENDIAN         = 1 << 0,
+	FD_FLAGS_FILE_POINTSIZE_IS_4   = 1 << 1,
+	FD_FLAGS_POINTSIZE_DIFFERS     = 1 << 2,
+	FD_FLAGS_FILE_OK               = 1 << 3,
+	FD_FLAGS_NOT_MY_BUFFER         = 1 << 4,
+	FD_FLAGS_NOT_MY_LIBMAP         = 1 << 5,  /* XXX Unused in practice (checked once but never set). */
+};
 
 #define SIZEOFBLENDERHEADER 12
 
