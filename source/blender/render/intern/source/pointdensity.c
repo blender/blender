@@ -738,6 +738,7 @@ void RE_point_density_minmax(
 	if (object == NULL) {
 		zero_v3(r_min);
 		zero_v3(r_max);
+		return;
 	}
 	if (pd->source == TEX_PD_PSYS) {
 		ParticleSystem *psys;
