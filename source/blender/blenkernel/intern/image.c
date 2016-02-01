@@ -1865,39 +1865,75 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 	}
 }
 
-static void stampdata_reset(const Scene *scene, StampData *stamp_data)
+/* Will always add prefix. */
+static void stampdata_from_template(StampData *stamp_data,
+                                    const Scene *scene,
+                                    const StampData *stamp_data_template)
 {
-	if ((scene->r.stamp & R_STAMP_FILENAME) == 0) {
+	if (scene->r.stamp & R_STAMP_FILENAME) {
+		BLI_snprintf(stamp_data->file, sizeof(stamp_data->file), "File %s", stamp_data_template->file);
+	}
+	else {
 		stamp_data->file[0] = '\0';
 	}
-	if ((scene->r.stamp & R_STAMP_NOTE) == 0) {
+	if (scene->r.stamp & R_STAMP_NOTE) {
+		BLI_snprintf(stamp_data->note, sizeof(stamp_data->note), "%s", stamp_data_template->note);
+	}
+	else {
 		stamp_data->note[0] = '\0';
 	}
-	if ((scene->r.stamp & R_STAMP_DATE) == 0) {
+	if (scene->r.stamp & R_STAMP_DATE) {
+		BLI_snprintf(stamp_data->date, sizeof(stamp_data->date), "Date %s", stamp_data_template->date);
+	}
+	else {
 		stamp_data->date[0] = '\0';
 	}
-	if ((scene->r.stamp & R_STAMP_MARKER) == 0) {
+	if (scene->r.stamp & R_STAMP_MARKER) {
+		BLI_snprintf(stamp_data->marker, sizeof(stamp_data->marker), "Marker %s", stamp_data_template->marker);
+	}
+	else {
 		stamp_data->marker[0] = '\0';
 	}
-	if ((scene->r.stamp & R_STAMP_TIME) == 0) {
+	if (scene->r.stamp & R_STAMP_TIME) {
+		BLI_snprintf(stamp_data->time, sizeof(stamp_data->time), "Timecode %s", stamp_data_template->time);
+	}
+	else {
 		stamp_data->time[0] = '\0';
 	}
-	if ((scene->r.stamp & R_STAMP_FRAME) == 0) {
+	if (scene->r.stamp & R_STAMP_FRAME) {
+		BLI_snprintf(stamp_data->frame, sizeof(stamp_data->frame), "Frame %s", stamp_data_template->frame);
+	}
+	else {
 		stamp_data->frame[0] = '\0';
 	}
-	if ((scene->r.stamp & R_STAMP_CAMERA) == 0) {
+	if(scene->r.stamp & R_STAMP_CAMERA) {
+		BLI_snprintf(stamp_data->camera, sizeof(stamp_data->camera), "Camera %s", stamp_data_template->camera);
+	}
+	else {
 		stamp_data->camera[0] = '\0';
 	}
-	if ((scene->r.stamp & R_STAMP_CAMERALENS) == 0) {
+	if (scene->r.stamp & R_STAMP_CAMERALENS) {
+		BLI_snprintf(stamp_data->cameralens, sizeof(stamp_data->cameralens), "Lens %s", stamp_data_template->cameralens);
+	}
+	else {
 		stamp_data->cameralens[0] = '\0';
 	}
-	if ((scene->r.stamp & R_STAMP_SCENE) == 0) {
+	if (scene->r.stamp & R_STAMP_SCENE) {
+		BLI_snprintf(stamp_data->scene, sizeof(stamp_data->scene), "Scene %s", stamp_data_template->scene);
+	}
+	else {
 		stamp_data->scene[0] = '\0';
 	}
-	if ((scene->r.stamp & R_STAMP_SEQSTRIP) == 0) {
+	if (scene->r.stamp & R_STAMP_SEQSTRIP) {
+		BLI_snprintf(stamp_data->strip, sizeof(stamp_data->strip), "Strip %s" , stamp_data_template->strip);
+	}
+	else {
 		stamp_data->strip[0] = '\0';
 	}
-	if ((scene->r.stamp & R_STAMP_RENDERTIME) == 0) {
+	if (scene->r.stamp & R_STAMP_RENDERTIME) {
+		BLI_snprintf(stamp_data->rendertime, sizeof(stamp_data->rendertime), "RenderTime %s", stamp_data_template->rendertime);
+	}
+	else {
 		stamp_data->rendertime[0] = '\0';
 	}
 }
@@ -1944,8 +1980,7 @@ void BKE_image_stamp_buf(
 		stampdata(scene, camera, &stamp_data, 1);
 	}
 	else {
-		stamp_data = *stamp_data_template;
-		stampdata_reset(scene, &stamp_data);
+		stampdata_from_template(&stamp_data, scene, stamp_data_template);
 	}
 
 	/* TODO, do_versions */
@@ -2189,10 +2224,7 @@ static void metadata_change_field(void *data, const char *propname, char *propva
 
 static void metadata_get_field(void *data, const char *propname, char *propvalue, int len)
 {
-	char buffer[1024];
-	if (IMB_metadata_get_field(data, propname, buffer, sizeof(buffer))) {
-		BLI_snprintf(propvalue, len, "%s %s", propname, buffer);
-	}
+	IMB_metadata_get_field(data, propname, propvalue, len);
 }
 
 void BKE_imbuf_stamp_info(RenderResult *rr, struct ImBuf *ibuf)
