@@ -471,8 +471,8 @@ class VIEW3D_MT_view_navigation(Menu):
 
         layout.separator()
 
-        layout.operator("view3d.view_roll", text="Roll Left").angle = pi / -12.0
-        layout.operator("view3d.view_roll", text="Roll Right").angle = pi / 12.0
+        layout.operator("view3d.view_roll", text="Roll Left").type = 'LEFT'
+        layout.operator("view3d.view_roll", text="Roll Right").type = 'RIGHT'
 
         layout.separator()
 
