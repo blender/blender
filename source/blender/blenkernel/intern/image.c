@@ -2190,9 +2190,6 @@ static void metadata_change_field(void *data, const char *propname, char *propva
 static void metadata_get_field(void *data, const char *propname, char *propvalue, int len)
 {
 	char buffer[1024];
-	if (STREQ(propname, "Strip")) {
-		IMB_metadata_get_field(data, propname, buffer, sizeof(buffer));
-	}
 	IMB_metadata_get_field(data, propname, buffer, sizeof(buffer));
 	BLI_snprintf(propvalue, len, "%s %s", propname, buffer);
 }
