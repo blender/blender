@@ -2331,25 +2331,14 @@ static void createTransEditVerts(TransInfo *t)
 		mirror = 1;
 	}
 
-	/* quick check if we can transform */
-	/* note: in prop mode we need at least 1 selected */
-	if (em->selectmode & SCE_SELECT_VERTEX) {
-		if (bm->totvertsel == 0) {
-			goto cleanup;
-		}
-	}
-	else if (em->selectmode & SCE_SELECT_EDGE) {
-		if (bm->totvertsel == 0 || bm->totedgesel == 0) {
-			goto cleanup;
-		}
-	}
-	else if (em->selectmode & SCE_SELECT_FACE) {
-		if (bm->totvertsel == 0 || bm->totfacesel == 0) {
-			goto cleanup;
-		}
-	}
-	else {
-		BLI_assert(0);
+	/**
+	 * Quick check if we can transform.
+	 *
+	 * \note ignore modes here, even in edge/face modes, transform data is created by selected vertices.
+	 * \note in prop mode we need at least 1 selected.
+	 */
+	if (bm->totvertsel == 0) {
+		goto cleanup;
 	}
 
 	if (t->mode == TFM_BWEIGHT) {
