@@ -216,19 +216,6 @@ index 4854f37..9095c59 100644
  
  #include "BulletCollision/CollisionShapes/btPolyhedralConvexShape.h"
  #include "btConvexPolyhedron.h"
-diff --git a/extern/bullet2/src/LinearMath/btScalar.h b/extern/bullet2/src/LinearMath/btScalar.h
-index 0bfd255..2e24676 100644
---- a/extern/bullet2/src/LinearMath/btScalar.h
-+++ b/extern/bullet2/src/LinearMath/btScalar.h
-@@ -179,7 +179,7 @@ inline int	btGetVersion()
- 		#define BT_USE_SSE
- 		//BT_USE_SSE_IN_API is enabled on Mac OSX by default, because memory is automatically aligned on 16-byte boundaries
- 		//if apps run into issues, we will disable the next line
--		#define BT_USE_SSE_IN_API
-+		//#define BT_USE_SSE_IN_API
-         #ifdef BT_USE_SSE
-             // include appropriate SSE level
-             #if defined (__SSE4_1__)
 diff --git a/extern/bullet2/src/LinearMath/btVector3.cpp b/extern/bullet2/src/LinearMath/btVector3.cpp
 index e05bdcc..dbcf2b6 100644
 --- a/extern/bullet2/src/LinearMath/btVector3.cpp
