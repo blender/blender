@@ -274,6 +274,51 @@ static void axisProjection(TransInfo *t, const float axis[3], const float in[3],
 	}
 }
 
+/**
+ * Return true if the 2x axis are both aligned when projected into the view.
+ * In this case, we can't usefully project the cursor onto the plane.
+ */
+static bool isPlaneProjectionViewAligned(TransInfo *t)
+{
+	RegionView3D *rv3d = t->ar->regiondata;
+	const float eps = 0.001f;
+
+	const float *constraint_vector[2];
+	int n = 0;
+	for (int i = 0; i < 3; i++) {
+		if (t->con.mode & (CON_AXIS0 << i)) {
+			constraint_vector[n++] = t->con.mtx[i];
+			if (n == 2) {
+				break;
+			}
+		}
+	}
+	BLI_assert(n == 2);
+
+	float points[2][3];
+	add_v3_v3v3(points[0], constraint_vector[0], t->center_global);
+	add_v3_v3v3(points[1], constraint_vector[1], t->center_global);
+
+	float coords[3][2];
+	projectFloatView(t, points[0],        coords[0]);
+	projectFloatView(t, t->center_global, coords[1]);
+	projectFloatView(t, points[1],        coords[2]);
+
+	float dir[2][2];
+
+	sub_v2_v2v2(dir[0], coords[0], coords[1]);
+	sub_v2_v2v2(dir[1], coords[2], coords[1]);
+
+	/* remove pixel scaling */
+	float scale = mul_project_m4_v3_zfac((float(*)[4])rv3d->persmat, t->center_global) * rv3d->pixsize;
+	mul_v2_fl(dir[0], scale);
+	mul_v2_fl(dir[1], scale);
+
+	float area = fabsf(cross_v2v2(dir[0], dir[1]));
+
+	return (area < eps);
+}
+
 static void planeProjection(TransInfo *t, const float in[3], float out[3])
 {
 	float vec[3], factor, norm[3];
@@ -315,8 +360,10 @@ static void applyAxisConstraintVec(TransInfo *t, TransData *td, const float in[3
 
 			const int dims = getConstraintSpaceDimension(t);
 			if (dims == 2) {
-				if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
-					planeProjection(t, in, out);
+				if (!is_zero_v3(out)) {
+					if (!isPlaneProjectionViewAligned(t)) {
+						planeProjection(t, in, out);
+					}
 				}
 			}
 			else if (dims == 1) {
@@ -358,8 +405,10 @@ static void applyObjectConstraintVec(TransInfo *t, TransData *td, const float in
 
 			const int dims = getConstraintSpaceDimension(t);
 			if (dims == 2) {
-				if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
-					planeProjection(t, in, out);
+				if (!is_zero_v3(out)) {
+					if (!isPlaneProjectionViewAligned(t)) {
+						planeProjection(t, in, out);
+					}
 				}
 			}
 			else if (dims == 1) {
