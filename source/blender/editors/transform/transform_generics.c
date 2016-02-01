@@ -422,7 +422,7 @@ static void recalcData_graphedit(TransInfo *t)
 /* helper for recalcData() - for NLA Editor transforms */
 static void recalcData_nla(TransInfo *t)
 {
-	TransDataNla *tdn = (TransDataNla *)t->customData;
+	TransDataNla *tdn = t->custom.type.data;
 	SpaceNla *snla = (SpaceNla *)t->sa->spacedata.first;
 	Scene *scene = t->scene;
 	double secf = FPS;
@@ -1055,10 +1055,10 @@ void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis
 void resetTransModal(TransInfo *t)
 {
 	if (t->mode == TFM_EDGE_SLIDE) {
-		freeEdgeSlideVerts(t);
+		freeEdgeSlideVerts(t, &t->custom.mode);
 	}
 	else if (t->mode == TFM_VERT_SLIDE) {
-		freeVertSlideVerts(t);
+		freeVertSlideVerts(t, &t->custom.mode);
 	}
 }
 
@@ -1441,14 +1441,20 @@ void postTrans(bContext *C, TransInfo *t)
 	if (t->draw_handle_cursor)
 		WM_paint_cursor_end(CTX_wm_manager(C), t->draw_handle_cursor);
 
-	if (t->customFree) {
-		/* Can take over freeing t->data and data2d etc... */
-		t->customFree(t);
-		BLI_assert(t->customData == NULL);
-	}
-	else if ((t->customData != NULL) && (t->flag & T_FREE_CUSTOMDATA)) {
-		MEM_freeN(t->customData);
-		t->customData = NULL;
+	/* Free all custom-data */
+	{
+		TransCustomData *custom_data = &t->custom.first_elem;
+		for (int i = 0; i < TRANS_CUSTOM_DATA_ELEM_MAX; i++, custom_data++) {
+			if (custom_data->free_cb) {
+				/* Can take over freeing t->data and data2d etc... */
+				custom_data->free_cb(t, custom_data);
+				BLI_assert(custom_data->data == NULL);
+			}
+			else if ((custom_data->data != NULL) && custom_data->use_free) {
+				MEM_freeN(custom_data->data);
+				custom_data->data = NULL;
+			}
+		}
 	}
 
 	/* postTrans can be called when nothing is selected, so data is NULL already */

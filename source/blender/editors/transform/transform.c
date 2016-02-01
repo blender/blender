@@ -2858,7 +2858,7 @@ static void initBend(TransInfo *t)
 	t->num.unit_type[0] = B_UNIT_ROTATION;
 	t->num.unit_type[1] = B_UNIT_LENGTH;
 
-	t->flag |= T_NO_CONSTRAINT | T_FREE_CUSTOMDATA;
+	t->flag |= T_NO_CONSTRAINT;
 
 	//copy_v3_v3(t->center, ED_view3d_cursor3d_get(t->scene, t->view));
 	calculateCenterCursor(t, t->center);
@@ -2886,7 +2886,8 @@ static void initBend(TransInfo *t)
 
 	data->warp_init_dist = len_v3v3(data->warp_end, data->warp_sta);
 
-	t->customData = data;
+	t->custom.mode.data = data;
+	t->custom.mode.use_free = true;
 }
 
 static eRedrawFlag handleEventBend(TransInfo *UNUSED(t), const wmEvent *event)
@@ -2908,7 +2909,7 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
 	float warp_end_radius[3];
 	int i;
 	char str[MAX_INFO_LEN];
-	const struct BendCustomData *data = t->customData;
+	const struct BendCustomData *data = t->custom.mode.data;
 	const bool is_clamp = (t->flag & T_ALT_TRANSFORM) == 0;
 
 	union {
@@ -3065,27 +3066,27 @@ static eRedrawFlag handleEventShear(TransInfo *t, const wmEvent *event)
 	eRedrawFlag status = TREDRAW_NOTHING;
 	
 	if (event->type == MIDDLEMOUSE && event->val == KM_PRESS) {
-		// Use customData pointer to signal Shear direction
-		if (t->customData == NULL) {
+		/* Use custom.mode.data pointer to signal Shear direction */
+		if (t->custom.mode.data == NULL) {
 			initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
-			t->customData = (void *)1;
+			t->custom.mode.data = (void *)1;
 		}
 		else {
 			initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_ABSOLUTE);
-			t->customData = NULL;
+			t->custom.mode.data = NULL;
 		}
 
 		status = TREDRAW_HARD;
 	}
 	else if (event->type == XKEY && event->val == KM_PRESS) {
 		initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_ABSOLUTE);
-		t->customData = NULL;
+		t->custom.mode.data = NULL;
 		
 		status = TREDRAW_HARD;
 	}
 	else if (event->type == YKEY && event->val == KM_PRESS) {
 		initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
-		t->customData = (void *)1;
+		t->custom.mode.data = (void *)1;
 		
 		status = TREDRAW_HARD;
 	}
@@ -3131,7 +3132,7 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 	unit_m3(smat);
 	
 	// Custom data signals shear direction
-	if (t->customData == NULL)
+	if (t->custom.mode.data == NULL)
 		smat[1][0] = value;
 	else
 		smat[0][1] = value;
@@ -5680,7 +5681,7 @@ static void slide_origdata_free_date(
 
 static void calcEdgeSlideCustomPoints(struct TransInfo *t)
 {
-	EdgeSlideData *sld = t->customData;
+	EdgeSlideData *sld = t->custom.mode.data;
 
 	setCustomPoints(t, &t->mouse, sld->mval_end, sld->mval_start);
 
@@ -6425,7 +6426,7 @@ static bool createEdgeSlideVerts_double_side(TransInfo *t, bool use_even, bool f
 	
 	sld->perc = 0.0f;
 	
-	t->customData = sld;
+	t->custom.mode.data = sld;
 	
 	MEM_freeN(sv_table);
 
@@ -6627,7 +6628,7 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t, bool use_even, bool f
 
 	sld->perc = 0.0f;
 
-	t->customData = sld;
+	t->custom.mode.data = sld;
 
 	MEM_freeN(sv_table);
 
@@ -6636,7 +6637,7 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t, bool use_even, bool f
 
 void projectEdgeSlideData(TransInfo *t, bool is_final)
 {
-	EdgeSlideData *sld = t->customData;
+	EdgeSlideData *sld = t->custom.mode.data;
 	SlideOrigData *sod = &sld->orig_data;
 
 	if (sod->use_origfaces == false) {
@@ -6651,9 +6652,9 @@ void freeEdgeSlideTempFaces(EdgeSlideData *sld)
 	slide_origdata_free_date(&sld->orig_data);
 }
 
-void freeEdgeSlideVerts(TransInfo *t)
+void freeEdgeSlideVerts(TransInfo *UNUSED(t), TransCustomData *custom_data)
 {
-	EdgeSlideData *sld = t->customData;
+	EdgeSlideData *sld = custom_data->data;
 	
 	if (!sld)
 		return;
@@ -6665,7 +6666,7 @@ void freeEdgeSlideVerts(TransInfo *t)
 	MEM_freeN(sld->sv);
 	MEM_freeN(sld);
 	
-	t->customData = NULL;
+	custom_data->data = NULL;
 }
 
 static void initEdgeSlide_ex(TransInfo *t, bool use_double_side, bool use_even, bool flipped, bool use_clamp)
@@ -6689,12 +6690,12 @@ static void initEdgeSlide_ex(TransInfo *t, bool use_double_side, bool use_even, 
 		return;
 	}
 	
-	sld = t->customData;
+	sld = t->custom.mode.data;
 
 	if (!sld)
 		return;
 
-	t->customFree = freeEdgeSlideVerts;
+	t->custom.mode.free_cb = freeEdgeSlideVerts;
 
 	/* set custom point first if you want value to be initialized by init */
 	calcEdgeSlideCustomPoints(t);
@@ -6721,7 +6722,7 @@ static void initEdgeSlide(TransInfo *t)
 static eRedrawFlag handleEventEdgeSlide(struct TransInfo *t, const struct wmEvent *event)
 {
 	if (t->mode == TFM_EDGE_SLIDE) {
-		EdgeSlideData *sld = t->customData;
+		EdgeSlideData *sld = t->custom.mode.data;
 
 		if (sld) {
 			switch (event->type) {
@@ -6770,8 +6771,8 @@ static eRedrawFlag handleEventEdgeSlide(struct TransInfo *t, const struct wmEven
 
 static void drawEdgeSlide(TransInfo *t)
 {
-	if ((t->mode == TFM_EDGE_SLIDE) && t->customData) {
-		EdgeSlideData *sld = t->customData;
+	if ((t->mode == TFM_EDGE_SLIDE) && t->custom.mode.data) {
+		EdgeSlideData *sld = t->custom.mode.data;
 		const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
 
 		/* Even mode */
@@ -6886,7 +6887,7 @@ static void drawEdgeSlide(TransInfo *t)
 
 static void doEdgeSlide(TransInfo *t, float perc)
 {
-	EdgeSlideData *sld = t->customData;
+	EdgeSlideData *sld = t->custom.mode.data;
 	TransDataEdgeSlideVert *svlist = sld->sv, *sv;
 	int i;
 
@@ -6959,7 +6960,7 @@ static void applyEdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 	char str[MAX_INFO_LEN];
 	size_t ofs = 0;
 	float final;
-	EdgeSlideData *sld =  t->customData;
+	EdgeSlideData *sld =  t->custom.mode.data;
 	bool flipped = sld->flipped;
 	bool use_even = sld->use_even;
 	const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
@@ -7013,7 +7014,7 @@ static void applyEdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 
 static void calcVertSlideCustomPoints(struct TransInfo *t)
 {
-	VertSlideData *sld = t->customData;
+	VertSlideData *sld = t->custom.mode.data;
 	TransDataVertSlideVert *sv = &sld->sv[sld->curr_sv_index];
 
 	const float *co_orig_3d = sv->co_orig_3d;
@@ -7048,7 +7049,7 @@ static void calcVertSlideCustomPoints(struct TransInfo *t)
  */
 static void calcVertSlideMouseActiveVert(struct TransInfo *t, const int mval[2])
 {
-	VertSlideData *sld = t->customData;
+	VertSlideData *sld = t->custom.mode.data;
 	float mval_fl[2] = {UNPACK2(mval)};
 	TransDataVertSlideVert *sv;
 
@@ -7075,7 +7076,7 @@ static void calcVertSlideMouseActiveVert(struct TransInfo *t, const int mval[2])
  */
 static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2])
 {
-	VertSlideData *sld = t->customData;
+	VertSlideData *sld = t->custom.mode.data;
 	float imval_fl[2] = {UNPACK2(t->mouse.imval)};
 	float  mval_fl[2] = {UNPACK2(mval)};
 
@@ -7209,7 +7210,7 @@ static bool createVertSlideVerts(TransInfo *t, bool use_even, bool flipped, bool
 
 	sld->perc = 0.0f;
 
-	t->customData = sld;
+	t->custom.mode.data = sld;
 
 	/* most likely will be set below */
 	unit_m4(sld->proj_mat);
@@ -7233,7 +7234,7 @@ static bool createVertSlideVerts(TransInfo *t, bool use_even, bool flipped, bool
 
 void projectVertSlideData(TransInfo *t, bool is_final)
 {
-	VertSlideData *sld = t->customData;
+	VertSlideData *sld = t->custom.mode.data;
 	SlideOrigData *sod = &sld->orig_data;
 
 	if (sod->use_origfaces == false) {
@@ -7248,9 +7249,9 @@ void freeVertSlideTempFaces(VertSlideData *sld)
 	slide_origdata_free_date(&sld->orig_data);
 }
 
-void freeVertSlideVerts(TransInfo *t)
+void freeVertSlideVerts(TransInfo *UNUSED(t), TransCustomData *custom_data)
 {
-	VertSlideData *sld = t->customData;
+	VertSlideData *sld = custom_data->data;
 
 	if (!sld)
 		return;
@@ -7270,7 +7271,7 @@ void freeVertSlideVerts(TransInfo *t)
 	MEM_freeN(sld->sv);
 	MEM_freeN(sld);
 
-	t->customData = NULL;
+	custom_data->data = NULL;
 }
 
 static void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use_clamp)
@@ -7286,12 +7287,12 @@ static void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use
 		return;
 	}
 
-	sld = t->customData;
+	sld = t->custom.mode.data;
 
 	if (!sld)
 		return;
 
-	t->customFree = freeVertSlideVerts;
+	t->custom.mode.free_cb = freeVertSlideVerts;
 
 	/* set custom point first if you want value to be initialized by init */
 	calcVertSlideCustomPoints(t);
@@ -7318,7 +7319,7 @@ static void initVertSlide(TransInfo *t)
 static eRedrawFlag handleEventVertSlide(struct TransInfo *t, const struct wmEvent *event)
 {
 	if (t->mode == TFM_VERT_SLIDE) {
-		VertSlideData *sld = t->customData;
+		VertSlideData *sld = t->custom.mode.data;
 
 		if (sld) {
 			switch (event->type) {
@@ -7378,8 +7379,8 @@ static eRedrawFlag handleEventVertSlide(struct TransInfo *t, const struct wmEven
 
 static void drawVertSlide(TransInfo *t)
 {
-	if ((t->mode == TFM_VERT_SLIDE) && t->customData) {
-		VertSlideData *sld = t->customData;
+	if ((t->mode == TFM_VERT_SLIDE) && t->custom.mode.data) {
+		VertSlideData *sld = t->custom.mode.data;
 		const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
 
 		/* Non-Prop mode */
@@ -7483,7 +7484,7 @@ static void drawVertSlide(TransInfo *t)
 
 static void doVertSlide(TransInfo *t, float perc)
 {
-	VertSlideData *sld = t->customData;
+	VertSlideData *sld = t->custom.mode.data;
 	TransDataVertSlideVert *svlist = sld->sv, *sv;
 	int i;
 
@@ -7527,7 +7528,7 @@ static void applyVertSlide(TransInfo *t, const int UNUSED(mval[2]))
 	char str[MAX_INFO_LEN];
 	size_t ofs = 0;
 	float final;
-	VertSlideData *sld =  t->customData;
+	VertSlideData *sld =  t->custom.mode.data;
 	const bool flipped = sld->flipped;
 	const bool use_even = sld->use_even;
 	const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
@@ -8277,9 +8278,33 @@ static void initTimeSlide(TransInfo *t)
 
 	t->mode = TFM_TIME_SLIDE;
 	t->transform = applyTimeSlide;
-	t->flag |= T_FREE_CUSTOMDATA;
 
 	initMouseInputMode(t, &t->mouse, INPUT_NONE);
+
+	{
+		Scene *scene = t->scene;
+		float *range;
+		t->custom.mode.data = range = MEM_mallocN(sizeof(float[2]), "TimeSlide Min/Max");
+		t->custom.mode.use_free = true;
+
+		float min = 999999999.0f, max = -999999999.0f;
+		int i;
+
+		TransData  *td = t->data;
+		for (i = 0; i < t->total; i++, td++) {
+			if (min > *(td->val)) min = *(td->val);
+			if (max < *(td->val)) max = *(td->val);
+		}
+
+		if (min == max) {
+			/* just use the current frame ranges */
+			min = (float)PSFRA;
+			max = (float)PEFRA;
+		}
+
+		range[0] = min;
+		range[1] = max;
+	}
 
 	/* num-input has max of (n-1) */
 	t->idx_max = 0;
@@ -8304,8 +8329,9 @@ static void headerTimeSlide(TransInfo *t, const float sval, char str[MAX_INFO_LE
 		outputNumInput(&(t->num), tvec, &t->scene->unit);
 	}
 	else {
-		float minx = *((float *)(t->customData));
-		float maxx = *((float *)(t->customData) + 1);
+		const float *range = t->custom.mode.data;
+		float minx = range[0];
+		float maxx = range[1];
 		float cval = t->values[0];
 		float val;
 
@@ -8322,9 +8348,9 @@ static void applyTimeSlideValue(TransInfo *t, float sval)
 {
 	TransData *td = t->data;
 	int i;
-
-	float minx = *((float *)(t->customData));
-	float maxx = *((float *)(t->customData) + 1);
+	const float *range = t->custom.mode.data;
+	float minx = range[0];
+	float maxx = range[1];
 
 	/* set value for drawing black line */
 	if (t->spacetype == SPACE_ACTION) {
@@ -8369,8 +8395,9 @@ static void applyTimeSlide(TransInfo *t, const int mval[2])
 {
 	View2D *v2d = (View2D *)t->view;
 	float cval[2], sval[2];
-	float minx = *((float *)(t->customData));
-	float maxx = *((float *)(t->customData) + 1);
+	const float *range = t->custom.mode.data;
+	float minx = range[0];
+	float maxx = range[1];
 	char str[MAX_INFO_LEN];
 
 	/* calculate mouse co-ordinates */
