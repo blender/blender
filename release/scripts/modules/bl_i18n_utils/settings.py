@@ -337,6 +337,8 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "image path can't be written to",
     "in memory to enable editing!",
     "jumps over",
+    "left",
+    "right",
     "the lazy dog",
     "unable to load movie clip",
     "unable to load text",

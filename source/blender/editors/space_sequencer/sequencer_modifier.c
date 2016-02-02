@@ -260,7 +260,7 @@ void SEQUENCER_OT_strip_modifier_copy(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[] = {
 		{SEQ_MODIFIER_COPY_REPLACE, "REPLACE", 0, "Replace",
-		 "Replace modifiers in desctination"},
+		 "Replace modifiers in destination"},
 		{SEQ_MODIFIER_COPY_APPEND,  "APPEND",  0, "Append",
 		 "Append active modifiers to selected strips"},
 		{0, NULL, 0, NULL, NULL}};
