@@ -629,6 +629,7 @@ typedef struct SculptBrushTest {
 	float radius_squared;
 	float location[3];
 	float dist;
+	int mirror_symmetry_pass;
 
 	/* View3d clipping - only set rv3d for clipping */
 	RegionView3D *clip_rv3d;
@@ -642,6 +643,7 @@ static void sculpt_brush_test_init(SculptSession *ss, SculptBrushTest *test)
 	copy_v3_v3(test->location, ss->cache->location);
 	test->dist = 0.0f;   /* just for initialize */
 
+	test->mirror_symmetry_pass = ss->cache->mirror_symmetry_pass;
 
 	if (rv3d->rflag & RV3D_CLIPPING) {
 		test->clip_rv3d = rv3d;
@@ -654,7 +656,12 @@ static void sculpt_brush_test_init(SculptSession *ss, SculptBrushTest *test)
 BLI_INLINE bool sculpt_brush_test_clipping(const SculptBrushTest *test, const float co[3])
 {
 	RegionView3D *rv3d = test->clip_rv3d;
-	return (rv3d && (ED_view3d_clipping_test(rv3d, co, true)));
+	if (!rv3d) {
+		return false;
+	}
+	float symm_co[3];
+	flip_v3_v3(symm_co, co, test->mirror_symmetry_pass);
+	return ED_view3d_clipping_test(rv3d, symm_co, true);
 }
 
 static bool sculpt_brush_test(SculptBrushTest *test, const float co[3])
