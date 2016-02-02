@@ -72,6 +72,7 @@
 #include "BKE_boids.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_collision.h"
+#include "BKE_colortools.h"
 #include "BKE_effect.h"
 #include "BKE_library_query.h"
 #include "BKE_particle.h"
@@ -511,6 +512,13 @@ void psys_thread_context_free(ParticleThreadContext *ctx)
 	if (ctx->seams) MEM_freeN(ctx->seams);
 	//if (ctx->vertpart) MEM_freeN(ctx->vertpart);
 	BLI_kdtree_free(ctx->tree);
+
+	if (ctx->clumpcurve != NULL) {
+		curvemapping_free(ctx->clumpcurve);
+	}
+	if (ctx->roughcurve != NULL) {
+		curvemapping_free(ctx->roughcurve);
+	}
 }
 
 static void initialize_particle_texture(ParticleSimulationData *sim, ParticleData *pa, int p)

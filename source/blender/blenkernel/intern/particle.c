@@ -105,7 +105,7 @@ static void get_child_modifier_parameters(ParticleSettings *part, ParticleThread
                                           ChildParticle *cpa, short cpa_from, int cpa_num, float *cpa_fuv, float *orco, ParticleTexture *ptex);
 static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSettings *part, ParticleData *par,
 							int child_index, int face_index, const float fw[4], float *orco, ParticleTexture *ptex, int event, float cfra);
-extern void do_child_modifiers(ParticleSimulationData *sim,
+extern void do_child_modifiers(ParticleThreadContext *ctx, ParticleSimulationData *sim,
                                ParticleTexture *ptex, const float par_co[3], const float par_vel[3], const float par_rot[4], const float par_orco[3],
                                ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t);
 
@@ -2105,10 +2105,20 @@ static bool psys_thread_context_init_path(ParticleThreadContext *ctx, ParticleSi
 		ctx->vg_effector = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_EFFECTOR);
 
 	/* prepare curvemapping tables */
-	if ((part->child_flag & PART_CHILD_USE_CLUMP_CURVE) && part->clumpcurve)
-		curvemapping_changed_all(part->clumpcurve);
-	if ((part->child_flag & PART_CHILD_USE_ROUGH_CURVE) && part->roughcurve)
-		curvemapping_changed_all(part->roughcurve);
+	if ((part->child_flag & PART_CHILD_USE_CLUMP_CURVE) && part->clumpcurve) {
+		ctx->clumpcurve = curvemapping_copy(part->clumpcurve);
+		curvemapping_changed_all(ctx->clumpcurve);
+	}
+	else {
+		ctx->clumpcurve = NULL;
+	}
+	if ((part->child_flag & PART_CHILD_USE_ROUGH_CURVE) && part->roughcurve) {
+		ctx->clumpcurve = curvemapping_copy(part->roughcurve);
+		curvemapping_changed_all(ctx->roughcurve);
+	}
+	else {
+		ctx->roughcurve = NULL;
+	}
 
 	return true;
 }
@@ -3890,7 +3900,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 				copy_particle_key(&tstate, state, 1);
 
 			/* apply different deformations to the child path */
-			do_child_modifiers(sim, &ptex, par->co, par->vel, par->rot, par_orco, cpa, orco, hairmat, state, t);
+			do_child_modifiers(NULL, sim, &ptex, par->co, par->vel, par->rot, par_orco, cpa, orco, hairmat, state, t);
 
 			/* try to estimate correct velocity */
 			if (vel) {
@@ -3993,7 +4003,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 			CLAMP(t, 0.0f, 1.0f);
 
 			unit_m4(mat);
-			do_child_modifiers(sim, NULL, key1->co, key1->vel, key1->rot, par_orco, cpa, cpa->fuv, mat, state, t);
+			do_child_modifiers(NULL, sim, NULL, key1->co, key1->vel, key1->rot, par_orco, cpa, cpa->fuv, mat, state, t);
 
 			if (psys->lattice_deform_data)
 				calc_latt_deform(psys->lattice_deform_data, state->co, 1.0f);

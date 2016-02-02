@@ -43,7 +43,7 @@ void do_kink(ParticleKey *state, const float par_co[3], const float par_vel[3], 
              short type, short axis, float obmat[4][4], int smooth_start);
 float do_clump(ParticleKey *state, const float par_co[3], float time, const float orco_offset[3], float clumpfac, float clumppow, float pa_clump,
                bool use_clump_noise, float clump_noise_size, CurveMapping *clumpcurve);
-void do_child_modifiers(ParticleSimulationData *sim,
+void do_child_modifiers(ParticleThreadContext *ctx, ParticleSimulationData *sim,
                         ParticleTexture *ptex, const float par_co[3], const float par_vel[3], const float par_rot[4], const float par_orco[3],
                         ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t);
 
@@ -281,7 +281,7 @@ static void do_kink_spiral(ParticleThreadContext *ctx, ParticleTexture *ptex, co
 		}
 		
 		/* apply different deformations to the child path */
-		do_child_modifiers(&ctx->sim, ptex, par_co, par_vel, par_rot, parent_orco, cpa, orco, hairmat, (ParticleKey *)key, par_time);
+		do_child_modifiers(ctx, &ctx->sim, ptex, par_co, par_vel, par_rot, parent_orco, cpa, orco, hairmat, (ParticleKey *)key, par_time);
 	}
 	
 	totlen = 0.0f;
@@ -349,7 +349,7 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx, struct ListBase *mod
 			par = (ParticleKey *)iter.parent_key;
 			
 			/* apply different deformations to the child path */
-			do_child_modifiers(&ctx->sim, ptex, par->co, par->vel, iter.parent_rotation, parent_orco, cpa, orco, hairmat, (ParticleKey *)key, iter.time);
+			do_child_modifiers(ctx, &ctx->sim, ptex, par->co, par->vel, iter.parent_rotation, parent_orco, cpa, orco, hairmat, (ParticleKey *)key, iter.time);
 		}
 	}
 
@@ -664,14 +664,21 @@ static void do_rough_curve(const float loc[3], float mat[4][4], float time, floa
 	madd_v3_v3fl(state->co, mat[2], fac * rough[2]);
 }
 
-void do_child_modifiers(ParticleSimulationData *sim, ParticleTexture *ptex, const float par_co[3], const float par_vel[3], const float par_rot[4], const float par_orco[3],
+void do_child_modifiers(ParticleThreadContext *ctx, ParticleSimulationData *sim, ParticleTexture *ptex,
+                        const float par_co[3], const float par_vel[3], const float par_rot[4], const float par_orco[3],
                         ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t)
 {
 	ParticleSettings *part = sim->psys->part;
-	CurveMapping *clumpcurve = (part->child_flag & PART_CHILD_USE_CLUMP_CURVE) ? part->clumpcurve : NULL;
-	CurveMapping *roughcurve = (part->child_flag & PART_CHILD_USE_ROUGH_CURVE) ? part->roughcurve : NULL;
+	CurveMapping *clumpcurve = NULL, *roughcurve = NULL;
 	int i = cpa - sim->psys->child;
 	int guided = 0;
+
+	if (part->child_flag & PART_CHILD_USE_CLUMP_CURVE) {
+		clumpcurve = (ctx != NULL) ? ctx->clumpcurve : part->clumpcurve;
+	}
+	if (part->child_flag & PART_CHILD_USE_ROUGH_CURVE) {
+		roughcurve = (ctx != NULL) ? ctx->roughcurve : part->roughcurve;
+	}
 
 	float kink_amp = part->kink_amp;
 	float kink_amp_clump = part->kink_amp_clump;
