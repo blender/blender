@@ -765,7 +765,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		case KeyRelease:
 		{
 			XKeyEvent *xke = &(xe->xkey);
-			KeySym key_sym = 0;
+			KeySym key_sym;
+			KeySym key_sym_str;
 			char ascii;
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 			/* utf8_array[] is initial buffer used for Xutf8LookupString().
@@ -810,18 +811,20 @@ GHOST_SystemX11::processEvent(XEvent *xe)
             if ((xke->keycode >= 10 && xke->keycode < 20)) {
                 key_sym = XLookupKeysym(xke, ShiftMask);
                 if (!((key_sym >= XK_0) && (key_sym <= XK_9))) {
-                    key_sym = XLookupKeysym(xke, 0);
-                }
-                if (!((key_sym >= XK_0) && (key_sym <= XK_9))) {
-                    key_sym = 0;  /* Get current-keymap valid key_sym. */
+					key_sym = XLookupKeysym(xke, 0);
                 }
             }
+			else {
+				key_sym = XLookupKeysym(xke, 0);
+			}
 
-            if (!XLookupString(xke, &ascii, 1, (key_sym == 0) ? &key_sym : NULL, NULL)) {
+            if (!XLookupString(xke, &ascii, 1, &key_sym_str, NULL)) {
                 ascii = '\0';
             }
 
-			gkey = convertXKey(key_sym);
+			if ((gkey = convertXKey(key_sym)) == GHOST_kKeyUnknown) {
+				gkey = convertXKey(key_sym_str);
+			}
 #else
 			/* In keyboards like latin ones,
 			 * numbers needs a 'Shift' to be accessed but key_sym
