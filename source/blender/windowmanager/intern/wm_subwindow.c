@@ -192,7 +192,7 @@ void wm_subwindow_rect_set(wmWindow *win, int swinid, const rcti *rect)
 
 /* always sets pixel-precise 2D window/view matrices */
 /* coords is in whole pixels. xmin = 15, xmax = 16: means window is 2 pix big */
-int wm_subwindow_open(wmWindow *win, const rcti *winrct)
+int wm_subwindow_open(wmWindow *win, const rcti *winrct, bool activate)
 {
 	wmSubWindow *swin;
 	int width, height;
@@ -208,17 +208,18 @@ int wm_subwindow_open(wmWindow *win, const rcti *winrct)
 	swin->swinid = freewinid;
 	swin->winrct = *winrct;
 
-	/* and we appy it all right away */
-	wmSubWindowSet(win, swin->swinid);
-	
-	/* extra service */
-	wm_swin_size_get(swin, &width, &height);
-	wmOrtho2_pixelspace(width, height);
-	glLoadIdentity();
+	if (activate) {
+		/* and we appy it all right away */
+		wmSubWindowSet(win, swin->swinid);
+
+		/* extra service */
+		wm_swin_size_get(swin, &width, &height);
+		wmOrtho2_pixelspace(width, height);
+		glLoadIdentity();
+	}
 
 	return swin->swinid;
 }
-
 
 void wm_subwindow_close(wmWindow *win, int swinid)
 {
@@ -237,7 +238,7 @@ void wm_subwindow_close(wmWindow *win, int swinid)
 }
 
 /* pixels go from 0-99 for a 100 pixel window */
-void wm_subwindow_position(wmWindow *win, int swinid, const rcti *winrct)
+void wm_subwindow_position(wmWindow *win, int swinid, const rcti *winrct, bool activate)
 {
 	wmSubWindow *swin = swin_from_swinid(win, swinid);
 	
@@ -267,10 +268,12 @@ void wm_subwindow_position(wmWindow *win, int swinid, const rcti *winrct)
 		if (swin->winrct.ymax > winsize_y)
 			swin->winrct.ymax = winsize_y;
 		
-		/* extra service */
-		wmSubWindowSet(win, swinid);
-		wm_swin_size_get(swin, &width, &height);
-		wmOrtho2_pixelspace(width, height);
+		if (activate) {
+			/* extra service */
+			wmSubWindowSet(win, swinid);
+			wm_swin_size_get(swin, &width, &height);
+			wmOrtho2_pixelspace(width, height);
+		}
 	}
 	else {
 		printf("%s: Internal error, bad winid: %d\n", __func__, swinid);

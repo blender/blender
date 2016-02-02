@@ -1233,10 +1233,12 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 		
 		screen_test_scale(win->screen, winsize_x, winsize_y);
 		
-		if (win->screen->mainwin == 0)
-			win->screen->mainwin = wm_subwindow_open(win, &winrct);
-		else
-			wm_subwindow_position(win, win->screen->mainwin, &winrct);
+		if (win->screen->mainwin == 0) {
+			win->screen->mainwin = wm_subwindow_open(win, &winrct, false);
+		}
+		else {
+			wm_subwindow_position(win, win->screen->mainwin, &winrct, false);
+		}
 		
 		for (sa = win->screen->areabase.first; sa; sa = sa->next) {
 			/* set spacetype and region callbacks, calls init() */

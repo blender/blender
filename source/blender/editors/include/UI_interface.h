@@ -705,6 +705,7 @@ void    UI_but_func_drawextra_set(
 void    UI_but_func_menu_step_set(uiBut *but, uiMenuStepFunc func);
 
 void    UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *argN);
+void    UI_but_tooltip_refresh(struct bContext *C, uiBut *but);
 void    UI_but_tooltip_timer_remove(struct bContext *C, uiBut *but);
 
 bool UI_textbutton_activate_rna(const struct bContext *C, struct ARegion *ar,

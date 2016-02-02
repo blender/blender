@@ -1339,7 +1339,7 @@ static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 
 
 /* used for area initialize below */
-static void region_subwindow(wmWindow *win, ARegion *ar)
+static void region_subwindow(wmWindow *win, ARegion *ar, bool activate)
 {
 	bool hidden = (ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) != 0;
 
@@ -1351,10 +1351,12 @@ static void region_subwindow(wmWindow *win, ARegion *ar)
 			wm_subwindow_close(win, ar->swinid);
 		ar->swinid = 0;
 	}
-	else if (ar->swinid == 0)
-		ar->swinid = wm_subwindow_open(win, &ar->winrct);
-	else 
-		wm_subwindow_position(win, ar->swinid, &ar->winrct);
+	else if (ar->swinid == 0) {
+		ar->swinid = wm_subwindow_open(win, &ar->winrct, activate);
+	}
+	else {
+		wm_subwindow_position(win, ar->swinid, &ar->winrct, activate);
+	}
 }
 
 static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *handlers, int flag)
@@ -1457,7 +1459,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	
 	/* region windows, default and own handlers */
 	for (ar = sa->regionbase.first; ar; ar = ar->next) {
-		region_subwindow(win, ar);
+		region_subwindow(win, ar, false);
 		
 		if (ar->swinid) {
 			/* default region handlers */
@@ -1498,10 +1500,10 @@ void ED_region_update_rect(bContext *C, ARegion *ar)
 void ED_region_init(bContext *C, ARegion *ar)
 {
 //	ARegionType *at = ar->type;
-	
+
 	/* refresh can be called before window opened */
-	region_subwindow(CTX_wm_window(C), ar);
-	
+	region_subwindow(CTX_wm_window(C), ar, false);
+
 	region_update_rect(ar);
 }
 

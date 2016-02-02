@@ -7526,6 +7526,20 @@ static bool button_modal_state(uiHandleButtonState state)
 	            BUTTON_STATE_MENU_OPEN);
 }
 
+/**
+ * Recreate tooltip (use to update dynamic tips)
+ */
+void UI_but_tooltip_refresh(bContext *C, uiBut *but)
+{
+	uiHandleButtonData *data;
+
+	data = but->active;
+	if (data && data->tooltip) {
+		ui_tooltip_free(C, data->tooltip);
+		data->tooltip = ui_tooltip_create(C, data->region, but);
+	}
+}
+
 /* removes tooltip timer from active but (meaning tooltip is disabled until it's reenabled again) */
 void UI_but_tooltip_timer_remove(bContext *C, uiBut *but)
 {

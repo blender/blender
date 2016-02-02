@@ -1207,6 +1207,11 @@ void UI_block_update_from_old(const bContext *C, uiBlock *block)
 	for (but = block->buttons.first; but; but = but->next) {
 		if (ui_but_update_from_old_block(C, block, &but, &but_old)) {
 			ui_but_update(but);
+
+			/* redraw dynamic tooltip if we have one open */
+			if (but->tip_func) {
+				UI_but_tooltip_refresh((bContext *)C, but);
+			}
 		}
 	}
 
