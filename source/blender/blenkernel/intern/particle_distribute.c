@@ -220,13 +220,15 @@ static void distribute_grid(DerivedMesh *dm, ParticleSystem *psys)
 						copy_v3_v3(v2, mvert[mface->v2].co);
 						copy_v3_v3(v3, mvert[mface->v3].co);
 
-						if (isect_axial_line_segment_tri_v3(a, co1, co2, v2, v3, v1, &lambda)) {
+						bool intersects_tri = isect_axial_line_segment_tri_v3(a, co1, co2, v2, v3, v1, &lambda);
+						if (intersects_tri) {
 							if (from==PART_FROM_FACE)
 								(pa+(int)(lambda*size[a])*a0mul)->flag &= ~PARS_UNEXIST;
 							else /* store number of intersections */
 								(pa+(int)(lambda*size[a])*a0mul)->hair_index++;
 						}
-						else if (mface->v4) {
+
+						if (mface->v4 && (!intersects_tri || from==PART_FROM_VOLUME)) {
 							copy_v3_v3(v4, mvert[mface->v4].co);
 
 							if (isect_axial_line_segment_tri_v3(a, co1, co2, v4, v1, v3, &lambda)) {
