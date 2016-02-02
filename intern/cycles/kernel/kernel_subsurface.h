@@ -16,7 +16,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* NEW BSSRDF: See "BSSRDF Importance Sampling", SIGGRAPH 2013 */
+/* New BSSRDF using disk based sampling.
+ *
+ * BSSRDF Importance Sampling, SIGGRAPH 2013
+ * http://library.imageworks.com/pdfs/imageworks-library-BSSRDF-sampling.pdf
+ *
+ */
 
 /* TODO:
  * - test using power heuristic for combing bssrdfs

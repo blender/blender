@@ -83,8 +83,8 @@ ccl_device void bssrdf_gaussian_sample(ShaderClosure *sc, float xi, float *r, fl
 	const float r_squared = -2.0f*v*logf(1.0f - xi*area_truncated);
 	*r = sqrtf(r_squared);
 
-	 /* h^2 + r^2 = Rm^2 */
-	 *h = sqrtf(Rm*Rm - r_squared);
+	/* h^2 + r^2 = Rm^2 */
+	*h = sqrtf(Rm*Rm - r_squared);
 }
 
 /* Planar Cubic BSSRDF falloff
@@ -184,7 +184,7 @@ ccl_device void bssrdf_cubic_sample(ShaderClosure *sc, float xi, float *r, float
 		r_ = powf(r_, 1.0f + sharpness);
 		Rm *= (1.0f + sharpness);
 	}
-	
+
 	r_ *= Rm;
 	*r = r_;
 
@@ -193,7 +193,7 @@ ccl_device void bssrdf_cubic_sample(ShaderClosure *sc, float xi, float *r, float
 }
 
 /* None BSSRDF falloff
- * 
+ *
  * Samples distributed over disk with no falloff, for reference. */
 
 ccl_device float bssrdf_none_eval(ShaderClosure *sc, float r)
