@@ -942,7 +942,6 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
                                    Object *ob, DerivedMesh *dm, const int draw_flags)
 {
 	Mesh *me = ob->data;
-	DMDrawFlag uvflag = DM_DRAW_USE_ACTIVE_UV;
 
 	/* correct for negative scale */
 	if (ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
@@ -952,10 +951,6 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 	draw_textured_begin(scene, v3d, rv3d, ob);
 
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-
-	if (ob->mode & OB_MODE_TEXTURE_PAINT) {
-		uvflag = DM_DRAW_USE_TEXPAINT_UV;
-	}
 
 	if (ob->mode & OB_MODE_EDIT) {
 		drawEMTFMapped_userData data;
@@ -969,34 +964,54 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 
 		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, compareDrawOptionsEm, &data, 0);
 	}
-	else if (draw_flags & DRAW_FACE_SELECT) {
-		if (ob->mode & OB_MODE_WEIGHT_PAINT)
-			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions_facemask, GPU_object_material_bind, NULL, me,
-			                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH | DM_DRAW_SKIP_HIDDEN);
-		else {
-			drawTFace_userData userData;
-
-			userData.mpoly = DM_get_poly_data_layer(dm, CD_MPOLY);
-			userData.mtexpoly = DM_get_poly_data_layer(dm, CD_MTEXPOLY);
-			userData.me = me;
-			dm->drawMappedFacesTex(dm, me->mpoly ? draw_tface_mapped__set_draw : NULL, compareDrawOptions, &userData, uvflag);
-		}
+	else if ((draw_flags & DRAW_FACE_SELECT) &&
+	         (ob->mode & OB_MODE_WEIGHT_PAINT))
+	{
+		dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions_facemask, GPU_object_material_bind, NULL, me,
+		                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH | DM_DRAW_SKIP_HIDDEN);
 	}
-	else {		
+	else {
+		DMDrawFlag uvflag;
 		drawTFace_userData userData;
-		
-		update_tface_color_layer(dm, !(ob->mode & OB_MODE_TEXTURE_PAINT));
-		
+
+		if (ob->mode & OB_MODE_TEXTURE_PAINT) {
+			uvflag = DM_DRAW_USE_TEXPAINT_UV;
+		}
+		else {
+			uvflag = DM_DRAW_USE_ACTIVE_UV;
+		}
+
+		if ((ob->mode & OB_MODE_SCULPT) && (ob == OBACT)) {
+			uvflag |= DM_DRAW_SKIP_HIDDEN;
+		}
+
+
 		userData.mpoly = DM_get_poly_data_layer(dm, CD_MPOLY);
 		userData.mtexpoly = DM_get_poly_data_layer(dm, CD_MTEXPOLY);
-		userData.me = NULL;
-		
-		dm->drawFacesTex(dm, draw_tface__set_draw, compareDrawOptions, &userData, uvflag);
+
+		if (draw_flags & DRAW_FACE_SELECT) {
+			userData.me = me;
+
+			dm->drawMappedFacesTex(
+			        dm, me->mpoly ? draw_tface_mapped__set_draw : NULL, compareDrawOptions,
+			        &userData, uvflag);
+		}
+		else {
+			userData.me = NULL;
+
+			update_tface_color_layer(dm, !(ob->mode & OB_MODE_TEXTURE_PAINT));
+			dm->drawFacesTex(
+			        dm, draw_tface__set_draw, compareDrawOptions,
+			        &userData, uvflag);
+		}
 	}
 
 	/* draw game engine text hack */
-	if (BKE_bproperty_object_get(ob, "Text"))
-		draw_mesh_text(scene, ob, 0);
+	if (rv3d->rflag & RV3D_IS_GAME_ENGINE) {
+		if (BKE_bproperty_object_get(ob, "Text")) {
+			draw_mesh_text(scene, ob, 0);
+		}
+	}
 
 	draw_textured_end();
 	

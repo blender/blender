@@ -498,7 +498,8 @@ static void cdDM_drawFacesTex_common(
 	const  MLoopCol *mloopcol;
 	int i;
 	int colType, start_element, tot_drawn;
-	bool use_tface = (uvflag & DM_DRAW_USE_ACTIVE_UV) != 0;
+	const bool use_hide = (uvflag & DM_DRAW_SKIP_HIDDEN) != 0;
+	const bool use_tface = (uvflag & DM_DRAW_USE_ACTIVE_UV) != 0;
 	int totpoly;
 	int next_actualFace;
 	int mat_index;
@@ -570,7 +571,10 @@ static void cdDM_drawFacesTex_common(
 			if (i != totpoly - 1)
 				next_actualFace = bufmat->polys[i + 1];
 
-			if (drawParams) {
+			if (use_hide && (mpoly[actualFace].flag & ME_HIDE)) {
+				draw_option = DM_DRAW_OPTION_SKIP;
+			}
+			else if (drawParams) {
 				MTexPoly *tp = use_tface && mtexpoly ? &mtexpoly[actualFace] : NULL;
 				draw_option = drawParams(tp, (mloopcol != NULL), mpoly[actualFace].mat_nr);
 			}
