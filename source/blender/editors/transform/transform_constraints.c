@@ -280,9 +280,7 @@ static void axisProjection(TransInfo *t, const float axis[3], const float in[3],
  */
 static bool isPlaneProjectionViewAligned(TransInfo *t)
 {
-	RegionView3D *rv3d = t->ar->regiondata;
 	const float eps = 0.001f;
-
 	const float *constraint_vector[2];
 	int n = 0;
 	for (int i = 0; i < 3; i++) {
@@ -295,28 +293,15 @@ static bool isPlaneProjectionViewAligned(TransInfo *t)
 	}
 	BLI_assert(n == 2);
 
-	float points[2][3];
-	add_v3_v3v3(points[0], constraint_vector[0], t->center_global);
-	add_v3_v3v3(points[1], constraint_vector[1], t->center_global);
+	float view_to_plane[3], plane_normal[3];
 
-	float coords[3][2];
-	projectFloatView(t, points[0],        coords[0]);
-	projectFloatView(t, t->center_global, coords[1]);
-	projectFloatView(t, points[1],        coords[2]);
+	getViewVector(t, t->center_global, view_to_plane);
 
-	float dir[2][2];
+	cross_v3_v3v3(plane_normal, constraint_vector[0], constraint_vector[1]);
+	normalize_v3(plane_normal);
 
-	sub_v2_v2v2(dir[0], coords[0], coords[1]);
-	sub_v2_v2v2(dir[1], coords[2], coords[1]);
-
-	/* remove pixel scaling */
-	float scale = mul_project_m4_v3_zfac((float(*)[4])rv3d->persmat, t->center_global) * rv3d->pixsize;
-	mul_v2_fl(dir[0], scale);
-	mul_v2_fl(dir[1], scale);
-
-	float area = fabsf(cross_v2v2(dir[0], dir[1]));
-
-	return (area < eps);
+	float factor = dot_v3v3(plane_normal, view_to_plane);
+	return fabsf(factor) < eps;
 }
 
 static void planeProjection(TransInfo *t, const float in[3], float out[3])
