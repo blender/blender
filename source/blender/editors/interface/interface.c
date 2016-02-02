@@ -735,8 +735,15 @@ static bool ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBu
 
 		/* copy hardmin for list rows to prevent 'sticking' highlight to mouse position
 		 * when scrolling without moving mouse (see [#28432]) */
-		if (ELEM(oldbut->type, UI_BTYPE_ROW, UI_BTYPE_LISTROW))
+		if (ELEM(oldbut->type, UI_BTYPE_ROW, UI_BTYPE_LISTROW)) {
 			oldbut->hardmax = but->hardmax;
+		}
+
+		/* Selectively copy a1, a2 since their use differs across all button types
+		 * (and we'll probably split these out later) */
+		if (ELEM(oldbut->type, UI_BTYPE_PROGRESS_BAR)) {
+			oldbut->a1 = but->a1;
+		}
 
 		ui_but_update_linklines(block, oldbut, but);
 

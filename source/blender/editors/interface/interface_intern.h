@@ -225,6 +225,7 @@ struct uiBut {
 	 * (type == UI_BTYPE_SCROLL)      Use as scroll size.
 	 * (type == UI_BTYPE_SEARCH_MENU) Use as number or rows.
 	 * (type == UI_BTYPE_COLOR)       Use as indication of color palette
+	 * (type == UI_BTYPE_PROGRESS_BAR) Use to store progress (0..1).
 	 */
 	float a1;
 
