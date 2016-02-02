@@ -740,25 +740,25 @@ void ARMATURE_OT_select_less(wmOperatorType *ot)
 }
 
 enum {
-	SIMEDBONE_LENGTH = 1,
+	SIMEDBONE_CHILDREN = 1,
+	SIMEDBONE_CHILDREN_IMMEDIATE,
+	SIMEDBONE_SIBLINGS,
+	SIMEDBONE_LENGTH,
 	SIMEDBONE_DIRECTION,
 	SIMEDBONE_PREFIX,
 	SIMEDBONE_SUFFIX,
 	SIMEDBONE_LAYER,
-	SIMEDBONE_CHILDREN,
-	SIMEDBONE_CHILDREN_IMMEDIATE,
-	SIMEDBONE_SIBLINGS
 };
 
 static EnumPropertyItem prop_similar_types[] = {
+	{SIMEDBONE_CHILDREN, "CHILDREN", 0, "Children", ""},
+	{SIMEDBONE_CHILDREN_IMMEDIATE, "CHILDREN_IMMEDIATE", 0, "Immediate children", ""},
+	{SIMEDBONE_SIBLINGS, "SIBLINGS", 0, "Siblings", ""},
 	{SIMEDBONE_LENGTH, "LENGTH", 0, "Length", ""},
 	{SIMEDBONE_DIRECTION, "DIRECTION", 0, "Direction (Y axis)", ""},
 	{SIMEDBONE_PREFIX, "PREFIX", 0, "Prefix", ""},
 	{SIMEDBONE_SUFFIX, "SUFFIX", 0, "Suffix", ""},
 	{SIMEDBONE_LAYER, "LAYER", 0, "Layer", ""},
-	{SIMEDBONE_CHILDREN, "CHILDREN", 0, "Children", ""},
-	{SIMEDBONE_CHILDREN_IMMEDIATE, "CHILDREN_IMMEDIATE", 0, "Immediate children", ""},
-	{SIMEDBONE_SIBLINGS, "SIBLINGS", 0, "Siblings", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -929,6 +929,15 @@ static int armature_select_similar_exec(bContext *C, wmOperator *op)
 	}
 
 	switch (type) {
+		case SIMEDBONE_CHILDREN:
+			select_similar_children(arm, ebone_act);
+			break;
+		case SIMEDBONE_CHILDREN_IMMEDIATE:
+			select_similar_children_immediate(arm, ebone_act);
+			break;
+		case SIMEDBONE_SIBLINGS:
+			select_similar_siblings(arm, ebone_act);
+			break;
 		case SIMEDBONE_LENGTH:
 			select_similar_length(arm, ebone_act, thresh);
 			break;
@@ -943,15 +952,6 @@ static int armature_select_similar_exec(bContext *C, wmOperator *op)
 			break;
 		case SIMEDBONE_LAYER:
 			select_similar_layer(arm, ebone_act);
-			break;
-		case SIMEDBONE_CHILDREN:
-			select_similar_children(arm, ebone_act);
-			break;
-		case SIMEDBONE_CHILDREN_IMMEDIATE:
-			select_similar_children_immediate(arm, ebone_act);
-			break;
-		case SIMEDBONE_SIBLINGS:
-			select_similar_siblings(arm, ebone_act);
 			break;
 	}
 
