@@ -401,8 +401,15 @@ static const float cosval[CIRCLE_RESOL] = {
 	1.00000000
 };
 
-static void draw_xyz_wire(const float c[3], float size, int axis)
+/**
+ * \param viewmat_local is typically the 'rv3d->viewmatob'.
+ */
+static void draw_xyz_wire(const float viewmat_local_unit[3][3], const float c[3], float size, int axis)
 {
+	int line_type;
+	float buffer[4][3];
+	int n = 0;
+
 	float v1[3] = {0.0f, 0.0f, 0.0f}, v2[3] = {0.0f, 0.0f, 0.0f};
 	float dim = size * 0.1f;
 	float dx[3], dy[3], dz[3];
@@ -413,80 +420,91 @@ static void draw_xyz_wire(const float c[3], float size, int axis)
 
 	switch (axis) {
 		case 0:     /* x axis */
-			glBegin(GL_LINES);
-			
+			line_type = GL_LINES;
+
+
 			/* bottom left to top right */
-			sub_v3_v3v3(v1, c, dx);
+			negate_v3_v3(v1, dx);
 			sub_v3_v3(v1, dy);
-			add_v3_v3v3(v2, c, dx);
+			copy_v3_v3(v2, dx);
 			add_v3_v3(v2, dy);
-			
-			glVertex3fv(v1);
-			glVertex3fv(v2);
+
+			copy_v3_v3(buffer[n++], v1);
+			copy_v3_v3(buffer[n++], v2);
 			
 			/* top left to bottom right */
 			mul_v3_fl(dy, 2.0f);
 			add_v3_v3(v1, dy);
 			sub_v3_v3(v2, dy);
 			
-			glVertex3fv(v1);
-			glVertex3fv(v2);
-			
-			glEnd();
+			copy_v3_v3(buffer[n++], v1);
+			copy_v3_v3(buffer[n++], v2);
+
 			break;
 		case 1:     /* y axis */
-			glBegin(GL_LINES);
+			line_type = GL_LINES;
 			
 			/* bottom left to top right */
 			mul_v3_fl(dx, 0.75f);
-			sub_v3_v3v3(v1, c, dx);
+			negate_v3_v3(v1, dx);
 			sub_v3_v3(v1, dy);
-			add_v3_v3v3(v2, c, dx);
+			copy_v3_v3(v2, dx);
 			add_v3_v3(v2, dy);
 			
-			glVertex3fv(v1);
-			glVertex3fv(v2);
+			copy_v3_v3(buffer[n++], v1);
+			copy_v3_v3(buffer[n++], v2);
 			
 			/* top left to center */
 			mul_v3_fl(dy, 2.0f);
 			add_v3_v3(v1, dy);
-			copy_v3_v3(v2, c);
+			zero_v3(v2);
 			
-			glVertex3fv(v1);
-			glVertex3fv(v2);
+			copy_v3_v3(buffer[n++], v1);
+			copy_v3_v3(buffer[n++], v2);
 			
-			glEnd();
 			break;
 		case 2:     /* z axis */
-			glBegin(GL_LINE_STRIP);
+			line_type = GL_LINE_STRIP;
 			
 			/* start at top left */
-			sub_v3_v3v3(v1, c, dx);
-			add_v3_v3v3(v1, c, dz);
+			negate_v3_v3(v1, dx);
+			add_v3_v3(v1, dy);
 			
-			glVertex3fv(v1);
+			copy_v3_v3(buffer[n++], v1);
 			
 			mul_v3_fl(dx, 2.0f);
 			add_v3_v3(v1, dx);
 
-			glVertex3fv(v1);
+			copy_v3_v3(buffer[n++], v1);
 			
-			mul_v3_fl(dz, 2.0f);
+			mul_v3_fl(dy, 2.0f);
 			sub_v3_v3(v1, dx);
-			sub_v3_v3(v1, dz);
+			sub_v3_v3(v1, dy);
 			
-			glVertex3fv(v1);
+			copy_v3_v3(buffer[n++], v1);
 			
 			add_v3_v3(v1, dx);
 		
-			glVertex3fv(v1);
+			copy_v3_v3(buffer[n++], v1);
 			
-			glEnd();
 			break;
+		default:
+			BLI_assert(0);
+			return;
 	}
+
+	for (int i = 0; i < n; i++) {
+		mul_transposed_m3_v3((float (*)[3])viewmat_local_unit, buffer[i]);
+		add_v3_v3(buffer[i], c);
+	}
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, buffer);
+	glDrawArrays(line_type, 0, n);
+	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-void drawaxes(float size, char drawtype)
+void drawaxes(const float viewmat_local[4][4], float size, char drawtype)
 {
 	int axis;
 	float v1[3] = {0.0, 0.0, 0.0};
@@ -565,6 +583,11 @@ void drawaxes(float size, char drawtype)
 		case OB_ARROWS:
 		default:
 		{
+			float viewmat_local_unit[3][3];
+
+			copy_m3_m4(viewmat_local_unit, (float (*)[4])viewmat_local);
+			normalize_m3(viewmat_local_unit);
+
 			for (axis = 0; axis < 3; axis++) {
 				const int arrow_axis = (axis == 0) ? 1 : 0;
 
@@ -587,7 +610,7 @@ void drawaxes(float size, char drawtype)
 				
 				v2[axis] += size * 0.125f;
 
-				draw_xyz_wire(v2, size, axis);
+				draw_xyz_wire(viewmat_local_unit, v2, size, axis);
 
 
 				/* reset v1 & v2 to zero */
@@ -1575,10 +1598,11 @@ static void draw_bundle_sphere(void)
 	glCallList(displist);
 }
 
-static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D *v3d,
-                                                MovieClip *clip, MovieTrackingObject *tracking_object,
-                                                const short dflag, const unsigned char ob_wire_col[4],
-                                                int *global_track_index, bool draw_selected)
+static void draw_viewport_object_reconstruction(
+        Scene *scene, Base *base, const View3D *v3d, const RegionView3D *rv3d,
+        MovieClip *clip, MovieTrackingObject *tracking_object,
+        const short dflag, const unsigned char ob_wire_col[4],
+        int *global_track_index, bool draw_selected)
 {
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *track;
@@ -1648,7 +1672,7 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 				}
 			}
 
-			drawaxes(0.05f, v3d->bundle_drawtype);
+			drawaxes(rv3d->viewmatob, 0.05f, v3d->bundle_drawtype);
 		}
 		else if (v3d->drawtype > OB_WIRE) {
 			if (v3d->bundle_drawtype == OB_EMPTY_SPHERE) {
@@ -1684,7 +1708,7 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 					}
 				}
 
-				drawaxes(0.05f, v3d->bundle_drawtype);
+				drawaxes(rv3d->viewmatob, 0.05f, v3d->bundle_drawtype);
 			}
 		}
 
@@ -1728,9 +1752,10 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 	*global_track_index = tracknr;
 }
 
-static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, MovieClip *clip,
-                                         const short dflag, const unsigned char ob_wire_col[4],
-                                         const bool draw_selected)
+static void draw_viewport_reconstruction(
+        Scene *scene, Base *base, const View3D *v3d, const RegionView3D *rv3d, MovieClip *clip,
+        const short dflag, const unsigned char ob_wire_col[4],
+        const bool draw_selected)
 {
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingObject *tracking_object;
@@ -1749,8 +1774,9 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 
 	tracking_object = tracking->objects.first;
 	while (tracking_object) {
-		draw_viewport_object_reconstruction(scene, base, v3d, clip, tracking_object,
-		                                    dflag, ob_wire_col, &global_track_index, draw_selected);
+		draw_viewport_object_reconstruction(
+		        scene, base, v3d, rv3d, clip, tracking_object,
+		        dflag, ob_wire_col, &global_track_index, draw_selected);
 
 		tracking_object = tracking_object->next;
 	}
@@ -2022,8 +2048,8 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 
 	/* draw data for movie clip set as active for scene */
 	if (clip) {
-		draw_viewport_reconstruction(scene, base, v3d, clip, dflag, ob_wire_col, false);
-		draw_viewport_reconstruction(scene, base, v3d, clip, dflag, ob_wire_col, true);
+		draw_viewport_reconstruction(scene, base, v3d, rv3d, clip, dflag, ob_wire_col, false);
+		draw_viewport_reconstruction(scene, base, v3d, rv3d, clip, dflag, ob_wire_col, true);
 	}
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
@@ -7635,7 +7661,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 						draw_empty_image(ob, dflag, ob_wire_col);
 					}
 					else {
-						drawaxes(ob->empty_drawsize, ob->empty_drawtype);
+						drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype);
 					}
 				}
 				break;
@@ -7687,7 +7713,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				break;
 			default:
 				if (!render_override) {
-					drawaxes(1.0, OB_ARROWS);
+					drawaxes(rv3d->viewmatob, 1.0, OB_ARROWS);
 				}
 				break;
 		}
@@ -7914,7 +7940,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		if (dtx && (G.f & G_RENDER_OGL) == 0) {
 
 			if (dtx & OB_AXIS) {
-				drawaxes(1.0f, OB_ARROWS);
+				drawaxes(rv3d->viewmatob, 1.0f, OB_ARROWS);
 			}
 			if (dtx & OB_DRAWBOUNDOX) {
 				draw_bounding_volume(ob, ob->boundtype);
@@ -8454,7 +8480,7 @@ void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 				draw_empty_image(ob, DRAW_CONSTCOLOR, NULL);
 			}
 			else {
-				drawaxes(ob->empty_drawsize, ob->empty_drawtype);
+				drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype);
 			}
 			break;
 	}

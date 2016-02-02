@@ -140,7 +140,7 @@ void draw_object(Scene *scene, struct ARegion *ar, View3D *v3d, Base *base, cons
 bool draw_glsl_material(Scene *scene, struct Object *ob, View3D *v3d, const char dt);
 void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob, const char dt, int outline);
 void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob);
-void drawaxes(float size, char drawtype);
+void drawaxes(const float viewmat_local[4][4], float size, char drawtype);
 
 void view3d_cached_text_draw_begin(void);
 void view3d_cached_text_draw_add(const float co[3],

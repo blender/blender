@@ -2077,7 +2077,10 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 							glMultMatrixf(bmat);
 							
 							glColor3ubv(col);
-							drawaxes(pchan->bone->length * 0.25f, OB_ARROWS);
+
+							float viewmat_pchan[4][4];
+							mul_m4_m4m4(viewmat_pchan, rv3d->viewmatob, bmat);
+							drawaxes(viewmat_pchan, pchan->bone->length * 0.25f, OB_ARROWS);
 							
 							glPopMatrix();
 						}
@@ -2285,7 +2288,10 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 							glMultMatrixf(bmat);
 
 							glColor3ubv(col);
-							drawaxes(eBone->length * 0.25f, OB_ARROWS);
+
+							float viewmat_ebone[4][4];
+							mul_m4_m4m4(viewmat_ebone, rv3d->viewmatob, bmat);
+							drawaxes(viewmat_ebone, eBone->length * 0.25f, OB_ARROWS);
 							
 							glPopMatrix();
 						}
