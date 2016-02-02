@@ -490,7 +490,7 @@ static void cdDM_drawFacesTex_common(
         DMSetDrawOptionsTex drawParams,
         DMSetDrawOptionsMappedTex drawParamsMapped,
         DMCompareDrawOptions compareDrawOptions,
-        void *userData, DMDrawFlag uvflag)
+        void *userData, DMDrawFlag flag)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 	const MPoly *mpoly = cddm->mpoly;
@@ -498,8 +498,8 @@ static void cdDM_drawFacesTex_common(
 	const  MLoopCol *mloopcol;
 	int i;
 	int colType, start_element, tot_drawn;
-	const bool use_hide = (uvflag & DM_DRAW_SKIP_HIDDEN) != 0;
-	const bool use_tface = (uvflag & DM_DRAW_USE_ACTIVE_UV) != 0;
+	const bool use_hide = (flag & DM_DRAW_SKIP_HIDDEN) != 0;
+	const bool use_tface = (flag & DM_DRAW_USE_ACTIVE_UV) != 0;
 	int totpoly;
 	int next_actualFace;
 	int mat_index;
@@ -543,7 +543,7 @@ static void cdDM_drawFacesTex_common(
 	GPU_vertex_setup(dm);
 	GPU_normal_setup(dm);
 	GPU_triangle_setup(dm);
-	if (uvflag & DM_DRAW_USE_TEXPAINT_UV)
+	if (flag & DM_DRAW_USE_TEXPAINT_UV)
 		GPU_texpaint_uv_setup(dm);
 	else
 		GPU_uv_setup(dm);
@@ -638,9 +638,9 @@ static void cdDM_drawFacesTex(
         DerivedMesh *dm,
         DMSetDrawOptionsTex setDrawOptions,
         DMCompareDrawOptions compareDrawOptions,
-        void *userData, DMDrawFlag uvflag)
+        void *userData, DMDrawFlag flag)
 {
-	cdDM_drawFacesTex_common(dm, setDrawOptions, NULL, compareDrawOptions, userData, uvflag);
+	cdDM_drawFacesTex_common(dm, setDrawOptions, NULL, compareDrawOptions, userData, flag);
 }
 
 static void cdDM_drawMappedFaces(
@@ -653,7 +653,9 @@ static void cdDM_drawMappedFaces(
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 	const MPoly *mpoly = cddm->mpoly;
 	const MLoopCol *mloopcol = NULL;
-	int colType, useColors = flag & DM_DRAW_USE_COLORS, useHide = flag & DM_DRAW_SKIP_HIDDEN;
+	const bool use_colors = (flag & DM_DRAW_USE_COLORS) != 0;
+	const bool use_hide = (flag & DM_DRAW_SKIP_HIDDEN) != 0;
+	int colType;
 	int i, j;
 	int start_element = 0, tot_element, tot_drawn;
 	int totpoly;
@@ -690,7 +692,7 @@ static void cdDM_drawMappedFaces(
 					const int orig = (index_mp_to_orig) ? index_mp_to_orig[i] : i;
 					bool is_hidden;
 
-					if (useHide) {
+					if (use_hide) {
 						if (flag & DM_DRAW_SELECT_USE_EDITMODE) {
 							BMFace *efa = BM_face_at_index(bm, orig);
 							is_hidden = BM_elem_flag_test(efa, BM_ELEM_HIDDEN) != 0;
@@ -720,7 +722,7 @@ static void cdDM_drawMappedFaces(
 	else {
 		GPU_normal_setup(dm);
 
-		if (useColors) {
+		if (use_colors) {
 			colType = CD_TEXTURE_MLOOPCOL;
 			mloopcol = DM_get_loop_data_layer(dm, colType);
 			if (!mloopcol) {
@@ -732,7 +734,7 @@ static void cdDM_drawMappedFaces(
 				mloopcol = DM_get_loop_data_layer(dm, colType);
 			}
 
-			if (useColors && mloopcol) {
+			if (use_colors && mloopcol) {
 				GPU_color_setup(dm, colType);
 			}
 		}
@@ -755,7 +757,7 @@ static void cdDM_drawMappedFaces(
 			GPUBufferMaterial *bufmat = dm->drawObject->materials + mat_index;
 			DMDrawOption draw_option = DM_DRAW_OPTION_NORMAL;
 			int next_actualFace = bufmat->polys[0];
-			totpoly = useHide ? bufmat->totvisiblepolys : bufmat->totpolys;
+			totpoly = use_hide ? bufmat->totvisiblepolys : bufmat->totpolys;
 
 			tot_element = 0;
 			start_element = 0;
@@ -950,7 +952,7 @@ static void cdDM_drawMappedFacesGLSL(
 			if (!do_draw) {
 				continue;
 			}
-			else if (setDrawOptions) {
+			else /* if (setDrawOptions) */ {
 				orig = (index_mp_to_orig) ? index_mp_to_orig[lt->poly] : lt->poly;
 
 				if (orig == ORIGINDEX_NONE) {

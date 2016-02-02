@@ -971,18 +971,18 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 		                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH | DM_DRAW_SKIP_HIDDEN);
 	}
 	else {
-		DMDrawFlag uvflag;
+		DMDrawFlag dm_draw_flag;
 		drawTFace_userData userData;
 
 		if (ob->mode & OB_MODE_TEXTURE_PAINT) {
-			uvflag = DM_DRAW_USE_TEXPAINT_UV;
+			dm_draw_flag = DM_DRAW_USE_TEXPAINT_UV;
 		}
 		else {
-			uvflag = DM_DRAW_USE_ACTIVE_UV;
+			dm_draw_flag = DM_DRAW_USE_ACTIVE_UV;
 		}
 
 		if ((ob->mode & OB_MODE_SCULPT) && (ob == OBACT)) {
-			uvflag |= DM_DRAW_SKIP_HIDDEN;
+			dm_draw_flag |= DM_DRAW_SKIP_HIDDEN;
 		}
 
 
@@ -994,7 +994,7 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 
 			dm->drawMappedFacesTex(
 			        dm, me->mpoly ? draw_tface_mapped__set_draw : NULL, compareDrawOptions,
-			        &userData, uvflag);
+			        &userData, dm_draw_flag);
 		}
 		else {
 			userData.me = NULL;
@@ -1002,7 +1002,7 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 			update_tface_color_layer(dm, !(ob->mode & OB_MODE_TEXTURE_PAINT));
 			dm->drawFacesTex(
 			        dm, draw_tface__set_draw, compareDrawOptions,
-			        &userData, uvflag);
+			        &userData, dm_draw_flag);
 		}
 	}
 
