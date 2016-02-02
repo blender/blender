@@ -226,7 +226,9 @@ static int GPU_material_construct_end(GPUMaterial *material, const char *passnam
 		GPUNodeLink *outlink = material->outlink;
 		material->pass = GPU_generate_pass(&material->nodes, outlink,
 			&material->attribs, &material->builtins, material->type,
-			passname, material->is_opensubdiv);
+			passname,
+			material->is_opensubdiv,
+			GPU_material_use_new_shading_nodes(material));
 
 		if (!material->pass)
 			return 0;

@@ -318,7 +318,9 @@ static void codegen_convert_datatype(DynStr *ds, int from, int to, const char *t
 		BLI_dynstr_append(ds, name);
 	}
 	else if (to == GPU_FLOAT) {
-		if (from == GPU_VEC4 || from == GPU_VEC3)
+		if (from == GPU_VEC4)
+			BLI_dynstr_appendf(ds, "convert_rgba_to_float(%s)", name);
+		else if (from == GPU_VEC3)
 			BLI_dynstr_appendf(ds, "(%s.r + %s.g + %s.b) / 3.0", name, name, name);
 		else if (from == GPU_VEC2)
 			BLI_dynstr_appendf(ds, "%s.r", name);
@@ -1641,7 +1643,9 @@ static void gpu_nodes_prune(ListBase *nodes, GPUNodeLink *outlink)
 GPUPass *GPU_generate_pass(
         ListBase *nodes, GPUNodeLink *outlink,
         GPUVertexAttribs *attribs, int *builtins,
-        const GPUMatType type, const char *UNUSED(name), const bool use_opensubdiv)
+        const GPUMatType type, const char *UNUSED(name),
+        const bool use_opensubdiv,
+        const bool use_new_shading)
 {
 	GPUShader *shader;
 	GPUPass *pass;
@@ -1664,6 +1668,14 @@ GPUPass *GPU_generate_pass(
 	fragmentcode = code_generate_fragment(nodes, outlink->output);
 	vertexcode = code_generate_vertex(nodes, type);
 	geometrycode = code_generate_geometry(nodes, use_opensubdiv);
+
+	int flags = GPU_SHADER_FLAGS_NONE;
+	if (use_opensubdiv) {
+		flags |= GPU_SHADER_FLAGS_SPECIAL_OPENSUBDIV;
+	}
+	if (use_new_shading) {
+		flags |= GPU_SHADER_FLAGS_NEW_SHADING;
+	}
 	shader = GPU_shader_create_ex(vertexcode,
 	                              fragmentcode,
 	                              geometrycode,
@@ -1672,8 +1684,7 @@ GPUPass *GPU_generate_pass(
 	                              0,
 	                              0,
 	                              0,
-	                              use_opensubdiv ? GPU_SHADER_FLAGS_SPECIAL_OPENSUBDIV
-	                                             : GPU_SHADER_FLAGS_NONE);
+	                              flags);
 
 	/* failed? */
 	if (!shader) {

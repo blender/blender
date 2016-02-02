@@ -46,6 +46,7 @@ struct GPUTexture;
 enum {
 	GPU_SHADER_FLAGS_NONE = 0,
 	GPU_SHADER_FLAGS_SPECIAL_OPENSUBDIV = (1 << 0),
+	GPU_SHADER_FLAGS_NEW_SHADING        = (1 << 1),
 };
 
 GPUShader *GPU_shader_create(

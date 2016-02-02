@@ -1,3 +1,13 @@
+/* Converters */
+
+float convert_rgba_to_float(vec4 color)
+{
+#ifdef USE_NEW_SHADING
+	return color.r*0.2126 + color.g*0.7152 + color.b*0.0722;
+#else
+	return (color.r + color.g + color.b) / 3.0;
+#endif
+}
 
 float exp_blender(float f)
 {
@@ -743,7 +753,11 @@ void valtorgb(float fac, sampler2D colormap, out vec4 outcol, out float outalpha
 
 void rgbtobw(vec4 color, out float outval)  
 {
+#ifdef USE_NEW_SHADING
+	outval = color.r*0.2126 + color.g*0.7152 + color.b*0.0722;
+#else
 	outval = color.r*0.35 + color.g*0.45 + color.b*0.2; /* keep these factors in sync with texture.h:RGBTOBW */
+#endif
 }
 
 void invert(float fac, vec4 col, out vec4 outcol)

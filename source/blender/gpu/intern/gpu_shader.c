@@ -183,7 +183,9 @@ static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH], 
 	}
 }
 
-static void gpu_shader_standard_defines(char defines[MAX_DEFINE_LENGTH], bool use_opensubdiv)
+static void gpu_shader_standard_defines(char defines[MAX_DEFINE_LENGTH],
+                                        bool use_opensubdiv,
+                                        bool use_new_shading)
 {
 	/* some useful defines to detect GPU type */
 	if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)) {
@@ -221,6 +223,10 @@ static void gpu_shader_standard_defines(char defines[MAX_DEFINE_LENGTH], bool us
 #else
 	UNUSED_VARS(use_opensubdiv);
 #endif
+
+	if (use_new_shading) {
+		strcat(defines, "#define USE_NEW_SHADING\n");
+	}
 
 	return;
 }
@@ -296,7 +302,9 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 		return NULL;
 	}
 
-	gpu_shader_standard_defines(standard_defines, use_opensubdiv);
+	gpu_shader_standard_defines(standard_defines,
+	                            use_opensubdiv,
+	                            (flags & GPU_SHADER_FLAGS_NEW_SHADING) != 0);
 	gpu_shader_standard_extensions(standard_extensions, geocode != NULL);
 
 	if (vertexcode) {
