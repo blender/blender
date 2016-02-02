@@ -513,6 +513,7 @@ static void deg_debug_graphviz_node(const DebugContext &ctx,
 		case DEPSNODE_TYPE_EVAL_POSE:
 		case DEPSNODE_TYPE_BONE:
 		case DEPSNODE_TYPE_SHADING:
+		case DEPSNODE_TYPE_EVAL_PARTICLES:
 		{
 			ComponentDepsNode *comp_node = (ComponentDepsNode *)node;
 			if (!comp_node->operations.empty()) {
