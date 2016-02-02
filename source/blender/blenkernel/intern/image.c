@@ -1906,7 +1906,7 @@ static void stampdata_from_template(StampData *stamp_data,
 	else {
 		stamp_data->frame[0] = '\0';
 	}
-	if(scene->r.stamp & R_STAMP_CAMERA) {
+	if (scene->r.stamp & R_STAMP_CAMERA) {
 		BLI_snprintf(stamp_data->camera, sizeof(stamp_data->camera), "Camera %s", stamp_data_template->camera);
 	}
 	else {
@@ -1925,7 +1925,7 @@ static void stampdata_from_template(StampData *stamp_data,
 		stamp_data->scene[0] = '\0';
 	}
 	if (scene->r.stamp & R_STAMP_SEQSTRIP) {
-		BLI_snprintf(stamp_data->strip, sizeof(stamp_data->strip), "Strip %s" , stamp_data_template->strip);
+		BLI_snprintf(stamp_data->strip, sizeof(stamp_data->strip), "Strip %s", stamp_data_template->strip);
 	}
 	else {
 		stamp_data->strip[0] = '\0';

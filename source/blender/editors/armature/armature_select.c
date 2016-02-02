@@ -863,10 +863,10 @@ static void select_similar_suffix(bArmature *arm, EditBone *ebone_act)
 
 static void is_ancestor(EditBone * bone, EditBone * ancestor)
 {
-	if(bone->temp.ebone == ancestor || bone->temp.ebone == NULL)
+	if (bone->temp.ebone == ancestor || bone->temp.ebone == NULL)
 		return;
 
-	if(bone->temp.ebone->temp.ebone != NULL && bone->temp.ebone->temp.ebone != ancestor)
+	if (bone->temp.ebone->temp.ebone != NULL && bone->temp.ebone->temp.ebone != ancestor)
 		is_ancestor(bone->temp.ebone, ancestor);
 
 	bone->temp.ebone = bone->temp.ebone->temp.ebone;
@@ -880,10 +880,10 @@ static void select_similar_children(bArmature *arm, EditBone *ebone_act)
 		ebone_iter->temp.ebone = ebone_iter->parent;
 	}
 
-	for (ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next){
+	for (ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
 		is_ancestor(ebone_iter, ebone_act);
 
-		if(ebone_iter->temp.ebone == ebone_act && EBONE_SELECTABLE(arm, ebone_iter))
+		if (ebone_iter->temp.ebone == ebone_act && EBONE_SELECTABLE(arm, ebone_iter))
 			ED_armature_ebone_select_set(ebone_iter, true);
 	}
 }
@@ -892,7 +892,7 @@ static void select_similar_children_immediate(bArmature *arm, EditBone *ebone_ac
 {
 	EditBone *ebone_iter;
 	for (ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
-		if(ebone_iter->parent == ebone_act && EBONE_SELECTABLE(arm, ebone_iter)) {
+		if (ebone_iter->parent == ebone_act && EBONE_SELECTABLE(arm, ebone_iter)) {
 			ED_armature_ebone_select_set(ebone_iter, true);
 		}
 	}
@@ -902,11 +902,11 @@ static void select_similar_siblings(bArmature *arm, EditBone *ebone_act)
 {
 	EditBone *ebone_iter;
 
-	if(ebone_act->parent == NULL)
+	if (ebone_act->parent == NULL)
 		return;
 
 	for (ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
-		if(ebone_iter->parent == ebone_act->parent && EBONE_SELECTABLE(arm, ebone_iter)) {
+		if (ebone_iter->parent == ebone_act->parent && EBONE_SELECTABLE(arm, ebone_iter)) {
 			ED_armature_ebone_select_set(ebone_iter, true);
 		}
 	}
