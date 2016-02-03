@@ -77,8 +77,8 @@ public:
 ClosureParam *closure_emission_params()
 {
 	static ClosureParam params[] = {
-	    CLOSURE_STRING_KEYPARAM(GenericEmissiveClosure, label, "label"),
-	    CLOSURE_FINISH_PARAM(GenericEmissiveClosure)
+		CLOSURE_STRING_KEYPARAM(GenericEmissiveClosure, label, "label"),
+		CLOSURE_FINISH_PARAM(GenericEmissiveClosure)
 	};
 	return params;
 }

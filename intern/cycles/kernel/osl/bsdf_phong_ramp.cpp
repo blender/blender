@@ -94,7 +94,7 @@ ClosureParam *closure_bsdf_phong_ramp_params()
 		CLOSURE_FLOAT_PARAM(PhongRampClosure, sc.data0),
 		CLOSURE_COLOR_ARRAY_PARAM(PhongRampClosure, colors, 8),
 		CLOSURE_STRING_KEYPARAM(PhongRampClosure, label, "label"),
-	    CLOSURE_FINISH_PARAM(PhongRampClosure)
+		CLOSURE_FINISH_PARAM(PhongRampClosure)
 	};
 	return params;
 }

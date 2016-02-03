@@ -185,7 +185,7 @@ static ClosureParam *bsdf_##lower##_params() \
 
 #define BSDF_CLOSURE_CLASS_END(Upper, lower) \
 		CLOSURE_STRING_KEYPARAM(Upper##Closure, label, "label"), \
-	    CLOSURE_FINISH_PARAM(Upper##Closure) \
+		CLOSURE_FINISH_PARAM(Upper##Closure) \
 	}; \
 	return params; \
 } \
@@ -233,7 +233,7 @@ static ClosureParam *volume_##lower##_params() \
 
 #define VOLUME_CLOSURE_CLASS_END(Upper, lower) \
 		CLOSURE_STRING_KEYPARAM(Upper##Closure, label, "label"), \
-	    CLOSURE_FINISH_PARAM(Upper##Closure) \
+		CLOSURE_FINISH_PARAM(Upper##Closure) \
 	}; \
 	return params; \
 } \
