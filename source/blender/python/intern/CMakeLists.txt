@@ -199,10 +199,6 @@ if(WITH_IMAGE_OPENJPEG)
 	add_definitions(-DWITH_OPENJPEG)
 endif()
 
-if(WITH_IMAGE_REDCODE)
-	add_definitions(-DWITH_REDCODE)
-endif()
-
 if(WITH_IMAGE_TIFF)
 	add_definitions(-DWITH_TIFF)
 endif()

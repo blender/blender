@@ -373,19 +373,6 @@ static int isffmpeg(const char *filename)
 }
 #endif
 
-#ifdef WITH_REDCODE
-static int isredcode(const char *filename)
-{
-	struct redcode_handle *h = redcode_open(filename);
-	if (!h) {
-		return 0;
-	}
-	redcode_close(h);
-	return 1;
-}
-
-#endif
-
 int imb_get_anim_type(const char *name)
 {
 	int type;
@@ -423,9 +410,6 @@ int imb_get_anim_type(const char *name)
 
 
 	if (isavi(name)) return (ANIM_AVI);
-#endif
-#ifdef WITH_REDCODE
-	if (isredcode(name)) return (ANIM_REDCODE);
 #endif
 	type = IMB_ispic(name);
 	if (type) {

@@ -98,11 +98,6 @@
 
 #endif //WITH_FFMPEG
 
-#ifdef WITH_REDCODE
-#  include "libredcode/format.h"
-#  include "libredcode/codec.h"
-#endif
-
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 
@@ -216,9 +211,6 @@ static void free_anim_avi(struct anim *anim)
 #ifdef WITH_FFMPEG
 static void free_anim_ffmpeg(struct anim *anim);
 #endif
-#ifdef WITH_REDCODE
-static void free_anim_redcode(struct anim *anim);
-#endif
 
 void IMB_free_anim(struct anim *anim)
 {
@@ -238,9 +230,6 @@ void IMB_free_anim(struct anim *anim)
 #endif
 #ifdef WITH_FFMPEG
 	free_anim_ffmpeg(anim);
-#endif
-#ifdef WITH_REDCODE
-	free_anim_redcode(anim);
 #endif
 	IMB_free_indices(anim);
 
@@ -1164,62 +1153,6 @@ static void free_anim_ffmpeg(struct anim *anim)
 
 #endif
 
-#ifdef WITH_REDCODE
-
-static int startredcode(struct anim *anim)
-{
-	anim->redcodeCtx = redcode_open(anim->name);
-	if (!anim->redcodeCtx) {
-		return -1;
-	}
-	anim->duration = redcode_get_length(anim->redcodeCtx);
-	
-	return 0;
-}
-
-static ImBuf *redcode_fetchibuf(struct anim *anim, int position)
-{
-	struct ImBuf *ibuf;
-	struct redcode_frame *frame;
-	struct redcode_frame_raw *raw_frame;
-
-	if (!anim->redcodeCtx) {
-		return NULL;
-	}
-
-	frame = redcode_read_video_frame(anim->redcodeCtx, position);
-	
-	if (!frame) {
-		return NULL;
-	}
-
-	raw_frame = redcode_decode_video_raw(frame, 1);
-
-	redcode_free_frame(frame);
-
-	if (!raw_frame) {
-		return NULL;
-	}
-	
-	ibuf = IMB_allocImBuf(raw_frame->width * 2,
-	                      raw_frame->height * 2, 32, IB_rectfloat);
-
-	redcode_decode_video_float(raw_frame, ibuf->rect_float, 1);
-
-	return ibuf;
-}
-
-static void free_anim_redcode(struct anim *anim)
-{
-	if (anim->redcodeCtx) {
-		redcode_close(anim->redcodeCtx);
-		anim->redcodeCtx = 0;
-	}
-	anim->duration = 0;
-}
-
-#endif
-
 /* Try next picture to read */
 /* No picture, try to open next animation */
 /* Succeed, remove first image from animation */
@@ -1242,10 +1175,6 @@ static ImBuf *anim_getnew(struct anim *anim)
 #ifdef WITH_FFMPEG
 	free_anim_ffmpeg(anim);
 #endif
-#ifdef WITH_REDCODE
-	free_anim_redcode(anim);
-#endif
-
 
 	if (anim->curtype != 0) return (NULL);
 	anim->curtype = imb_get_anim_type(anim->name);
@@ -1281,12 +1210,6 @@ static ImBuf *anim_getnew(struct anim *anim)
 		case ANIM_FFMPEG:
 			if (startffmpeg(anim)) return (0);
 			ibuf = IMB_allocImBuf(anim->x, anim->y, 24, 0);
-			break;
-#endif
-#ifdef WITH_REDCODE
-		case ANIM_REDCODE:
-			if (startredcode(anim)) return (0);
-			ibuf = IMB_allocImBuf(8, 8, 32, 0);
 			break;
 #endif
 	}
@@ -1393,12 +1316,6 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim, int position,
 			if (ibuf)
 				anim->curposition = position;
 			filter_y = 0; /* done internally */
-			break;
-#endif
-#ifdef WITH_REDCODE
-		case ANIM_REDCODE:
-			ibuf = redcode_fetchibuf(anim, position);
-			if (ibuf) anim->curposition = position;
 			break;
 #endif
 	}

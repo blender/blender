@@ -78,10 +78,6 @@
 #  include <libswscale/swscale.h>
 #endif
 
-#ifdef WITH_REDCODE
-#  include "libredcode/format.h"
-#endif
-
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -111,7 +107,6 @@
 #define ANIM_AVI        (1 << 6)
 #define ANIM_QTIME      (1 << 7)
 #define ANIM_FFMPEG     (1 << 8)
-#define ANIM_REDCODE    (1 << 9)
 
 #define MAXNUMSTREAMS       50
 
@@ -175,10 +170,6 @@ struct anim {
 	int64_t last_pts;
 	int64_t next_pts;
 	AVPacket next_packet;
-#endif
-
-#ifdef WITH_REDCODE
-	struct redcode_handle *redcodeCtx;
 #endif
 
 	char index_dir[768];

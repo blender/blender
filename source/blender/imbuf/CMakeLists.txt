@@ -123,13 +123,6 @@ if(WITH_IMAGE_OPENJPEG)
 	add_definitions(-DWITH_OPENJPEG ${OPENJPEG_DEFINES})
 endif()
 
-if(WITH_IMAGE_REDCODE)
-	list(APPEND INC_SYS
-		${REDCODE_INC}
-	)
-	add_definitions(-DWITH_REDCODE)
-endif()
-
 if(WITH_CODEC_AVI)
 	list(APPEND INC
 		../avi
