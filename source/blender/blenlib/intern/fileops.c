@@ -720,6 +720,8 @@ int   BLI_access(const char *filename, int mode)
 /**
  * Deletes the specified file or directory (depending on dir), optionally
  * doing recursive delete of directory contents.
+ *
+ * \return zero on success (matching 'remove' behavior).
  */
 int BLI_delete(const char *file, bool dir, bool recursive)
 {
@@ -1043,9 +1045,14 @@ bool BLI_dir_create_recursive(const char *dirname)
 	return ret;
 }
 
+/**
+ * \return zero on success (matching 'rename' behavior).
+ */
 int BLI_rename(const char *from, const char *to)
 {
-	if (!BLI_exists(from)) return 0;
+	if (!BLI_exists(from)) {
+		return 1;
+	}
 	
 	if (BLI_exists(to))
 		if (BLI_delete(to, false, false)) return 1;
