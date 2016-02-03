@@ -354,24 +354,8 @@ static void ui_tooltip_region_free_cb(ARegion *ar)
 	ar->regiondata = NULL;
 }
 
-ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
+static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 {
-	const float pad_px = UI_TIP_PADDING;
-	wmWindow *win = CTX_wm_window(C);
-	uiStyle *style = UI_style_get();
-	static ARegionType type;
-	ARegion *ar;
-	uiTooltipData *data;
-/*	IDProperty *prop;*/
-	char buf[512];
-	/* aspect values that shrink text are likely unreadable */
-	const float aspect = min_ff(1.0f, but->block->aspect);
-	int fonth, fontw;
-	int winx, ofsx, ofsy, h, i;
-	rctf rect_fl;
-	rcti rect_i;
-	int font_flag = 0;
-
 	uiStringInfo but_tip = {BUT_GET_TIP, NULL};
 	uiStringInfo enum_label = {BUT_GET_RNAENUM_LABEL, NULL};
 	uiStringInfo enum_tip = {BUT_GET_RNAENUM_TIP, NULL};
@@ -380,11 +364,10 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	uiStringInfo rna_struct = {BUT_GET_RNASTRUCT_IDENTIFIER, NULL};
 	uiStringInfo rna_prop = {BUT_GET_RNAPROP_IDENTIFIER, NULL};
 
-	if (but->drawflag & UI_BUT_NO_TOOLTIP)
-		return NULL;
+	char buf[512];
 
 	/* create tooltip data */
-	data = MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
+	uiTooltipData *data = MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
 
 	UI_but_string_info_get(C, but, &but_tip, &enum_label, &enum_tip, &op_keymap, &prop_keymap, &rna_struct, &rna_prop, NULL);
 
@@ -576,6 +559,36 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		MEM_freeN(data);
 		return NULL;
 	}
+	else {
+		return data;
+	}
+}
+
+ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
+{
+	const float pad_px = UI_TIP_PADDING;
+	wmWindow *win = CTX_wm_window(C);
+	const int winx = WM_window_pixels_x(win);
+	uiStyle *style = UI_style_get();
+	static ARegionType type;
+	ARegion *ar;
+/*	IDProperty *prop;*/
+	/* aspect values that shrink text are likely unreadable */
+	const float aspect = min_ff(1.0f, but->block->aspect);
+	int fonth, fontw;
+	int ofsx, ofsy, h, i;
+	rctf rect_fl;
+	rcti rect_i;
+	int font_flag = 0;
+
+	if (but->drawflag & UI_BUT_NO_TOOLTIP) {
+		return NULL;
+	}
+
+	uiTooltipData *data = ui_tooltip_data_from_button(C, but);
+	if (data == NULL) {
+		return NULL;
+	}
 
 	/* create area region */
 	ar = ui_region_temp_add(CTX_wm_screen(C));
@@ -592,7 +605,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 	UI_fontstyle_set(&data->fstyle);
 
-	data->wrap_width = min_ii(UI_TIP_MAXWIDTH * U.pixelsize / aspect, WM_window_pixels_x(win) - (UI_TIP_PADDING * 2));
+	data->wrap_width = min_ii(UI_TIP_MAXWIDTH * U.pixelsize / aspect, winx - (UI_TIP_PADDING * 2));
 
 	font_flag |= BLF_WORD_WRAP;
 	if (data->fstyle.kerning == 1) {
@@ -615,7 +628,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 		if (data->format[i].style == UI_TIP_STYLE_HEADER) {
 			w = BLF_width_ex(data->fstyle.uifont_id, data->header, sizeof(data->header), &info);
-			if (enum_label.strinfo) {
+			/* check for enum label */
+			if (data->active_info[0]) {
 				x_pos = info.width;
 				w = max_ii(w, x_pos + BLF_width(data->fstyle.uifont_id, data->active_info, sizeof(data->active_info)));
 			}
@@ -684,8 +698,6 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 #undef TIP_BORDER_Y
 
 	/* clip with window boundaries */
-	winx = WM_window_pixels_x(win);
-
 	if (rect_i.xmax > winx) {
 		/* super size */
 		if (rect_i.xmax > winx + rect_i.xmin) {
