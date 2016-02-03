@@ -426,7 +426,6 @@ void cache_voxeldata(Tex *tex, int scene_frame)
 			return;
 		case TEX_VD_BLENDERVOXEL:
 			BLI_path_abs(path, G.main->name);
-			if (!BLI_exists(path)) return;
 			fp = BLI_fopen(path, "rb");
 			if (!fp) return;
 			
@@ -437,7 +436,6 @@ void cache_voxeldata(Tex *tex, int scene_frame)
 			return;
 		case TEX_VD_RAW_8BIT:
 			BLI_path_abs(path, G.main->name);
-			if (!BLI_exists(path)) return;
 			fp = BLI_fopen(path, "rb");
 			if (!fp) return;
 			

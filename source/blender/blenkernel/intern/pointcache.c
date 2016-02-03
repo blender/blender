@@ -1886,9 +1886,6 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
 	ptcache_filename(pid, filename, cfra, 1, 1);
 
 	if (mode==PTCACHE_FILE_READ) {
-		if (!BLI_exists(filename)) {
-			return NULL;
-		}
 		fp = BLI_fopen(filename, "rb");
 	}
 	else if (mode==PTCACHE_FILE_WRITE) {
