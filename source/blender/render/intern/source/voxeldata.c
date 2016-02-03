@@ -371,7 +371,6 @@ static void init_frame_hair(VoxelData *vd, int UNUSED(cfra))
 {
 	Object *ob;
 	ModifierData *md;
-	bool found = false;
 	
 	vd->dataset = NULL;
 	if (vd->object == NULL) return;
@@ -381,11 +380,9 @@ static void init_frame_hair(VoxelData *vd, int UNUSED(cfra))
 		ParticleSystemModifierData *pmd = (ParticleSystemModifierData *)md;
 		
 		if (pmd->psys && pmd->psys->clmd) {
-			found |= BPH_cloth_solver_get_texture_data(ob, pmd->psys->clmd, vd);
+			vd->ok |= BPH_cloth_solver_get_texture_data(ob, pmd->psys->clmd, vd);
 		}
 	}
-	
-	vd->ok = found;
 }
 
 void cache_voxeldata(Tex *tex, int scene_frame)
@@ -414,6 +411,9 @@ void cache_voxeldata(Tex *tex, int scene_frame)
 	
 	BLI_strncpy(path, vd->source_path, sizeof(path));
 	
+	/* each type is responsible for setting to true */
+	vd->ok = false;
+
 	switch (vd->file_format) {
 		case TEX_VD_IMAGE_SEQUENCE:
 			load_frame_image_sequence(vd, tex);
