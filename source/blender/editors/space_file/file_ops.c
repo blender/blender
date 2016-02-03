@@ -69,6 +69,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <errno.h>
 
 /* ---------- FILE SELECTION ------------ */
 static FileSelection find_file_mouse_rect(SpaceFile *sfile, ARegion *ar, const rcti *rect_region)
@@ -1783,16 +1784,18 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	}
 
 	/* create the file */
-	if (!BLI_dir_create_recursive(path)) {
-		BKE_report(op->reports, RPT_ERROR, "Could not create new folder");
+	errno = 0;
+	if (!BLI_dir_create_recursive(path) ||
+	    /* Should no more be needed,
+	     * now that BLI_dir_create_recursive returns a success state - but kept just in case. */
+	    !BLI_exists(path))
+	{
+		BKE_reportf(op->reports, RPT_ERROR,
+		            "Could not create new folder: %s",
+		            errno ? strerror(errno) : "unknown error");
 		return OPERATOR_CANCELLED;
 	}
 
-	/* Should no more be needed, now that BLI_dir_create_recursive returns a success state - but kept just in case. */
-	if (!BLI_exists(path)) {
-		BKE_report(op->reports, RPT_ERROR, "Could not create new folder");
-		return OPERATOR_CANCELLED;
-	}
 
 	/* now remember file to jump into editing */
 	BLI_strncpy(sfile->params->renamefile, name, FILE_MAXFILE);
@@ -2256,7 +2259,7 @@ static int file_delete_poll(bContext *C)
 	return poll;
 }
 
-int file_delete_exec(bContext *C, wmOperator *UNUSED(op))
+int file_delete_exec(bContext *C, wmOperator *op)
 {
 	char str[FILE_MAX];
 	wmWindowManager *wm = CTX_wm_manager(C);
@@ -2266,14 +2269,26 @@ int file_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	int numfiles = filelist_files_ensure(sfile->files);
 	int i;
 
+	bool report_error = false;
+	errno = 0;
 	for (i = 0; i < numfiles; i++) {
 		if (filelist_entry_select_index_get(sfile->files, i, CHECK_FILES)) {
 			file = filelist_file(sfile->files, i);
 			BLI_make_file_string(G.main->name, str, sfile->params->dir, file->relpath);
-			BLI_delete(str, false, false);
+			if (BLI_delete(str, false, false) != 0 ||
+			    BLI_exists(str))
+			{
+				report_error = true;
+			}
 		}
 	}
 	
+	if (report_error) {
+		BKE_reportf(op->reports, RPT_ERROR,
+		            "Could not delete file: %s",
+		            errno ? strerror(errno) : "unknown error");
+	}
+
 	ED_fileselect_clear(wm, sa, sfile);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 	

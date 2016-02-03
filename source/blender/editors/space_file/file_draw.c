@@ -31,6 +31,7 @@
 
 #include <math.h>
 #include <string.h>
+#include <errno.h>
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -426,7 +427,16 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
 
 	if (!STREQ(orgname, newname)) {
 		if (!BLI_exists(newname)) {
-			BLI_rename(orgname, newname);
+			errno = 0;
+			if ((BLI_rename(orgname, newname) != 0) ||
+			    !BLI_exists(newname))
+			{
+				WM_reportf(RPT_ERROR,
+				           "Could not rename: %s",
+				           errno ? strerror(errno) : "unknown error");
+				WM_report_banner_show();
+			}
+
 			/* to make sure we show what is on disk */
 			ED_fileselect_clear(wm, sa, sfile);
 		}
