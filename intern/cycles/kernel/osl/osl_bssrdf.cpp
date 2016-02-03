@@ -105,5 +105,34 @@ ClosureParam *closure_bssrdf_gaussian_params()
 
 CCLOSURE_PREPARE(closure_bssrdf_gaussian_prepare, GaussianBSSRDFClosure)
 
+/* Burley */
+
+class BurleyBSSRDFClosure : public CBSSRDFClosure {
+public:
+	BurleyBSSRDFClosure()
+	{}
+
+	void setup()
+	{
+		sc.type = CLOSURE_BSSRDF_BURLEY_ID;
+		sc.data0 = fabsf(average(radius));
+	}
+};
+
+ClosureParam *closure_bssrdf_burley_params()
+{
+	static ClosureParam params[] = {
+		CLOSURE_FLOAT3_PARAM(BurleyBSSRDFClosure, sc.N),
+		CLOSURE_FLOAT3_PARAM(BurleyBSSRDFClosure, radius),
+		CLOSURE_FLOAT_PARAM(BurleyBSSRDFClosure, sc.data1),
+		CLOSURE_FLOAT3_PARAM(BurleyBSSRDFClosure, albedo),
+		CLOSURE_STRING_KEYPARAM(BurleyBSSRDFClosure, label, "label"),
+		CLOSURE_FINISH_PARAM(BurleyBSSRDFClosure)
+	};
+	return params;
+}
+
+CCLOSURE_PREPARE(closure_bssrdf_burley_prepare, BurleyBSSRDFClosure)
+
 CCL_NAMESPACE_END
 

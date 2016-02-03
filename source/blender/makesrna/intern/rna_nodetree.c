@@ -4247,6 +4247,7 @@ static void def_sh_subsurface(StructRNA *srna)
 	static EnumPropertyItem prop_subsurface_falloff_items[] = {
 		{SHD_SUBSURFACE_CUBIC, "CUBIC", 0, "Cubic", "Simple cubic falloff function"},
 		{SHD_SUBSURFACE_GAUSSIAN, "GAUSSIAN", 0, "Gaussian", "Normal distribution, multiple can be combined to fit more complex profiles"},
+		{SHD_SUBSURFACE_BURLEY, "BURLEY", 0, "Christensen-Burley", "Approximation to physically based volume scattering"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

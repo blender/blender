@@ -49,6 +49,7 @@ class CBSSRDFClosure : public CClosurePrimitive {
 public:
 	ShaderClosure sc;
 	float3 radius;
+	float3 albedo;
 
 	CBSSRDFClosure() : CClosurePrimitive(BSSRDF) { }
 	int scattering() const { return LABEL_DIFFUSE; }

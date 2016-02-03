@@ -405,6 +405,9 @@ static ShaderNode *add_node(Scene *scene,
 			case BL::ShaderNodeSubsurfaceScattering::falloff_GAUSSIAN:
 				subsurface->closure = CLOSURE_BSSRDF_GAUSSIAN_ID;
 				break;
+			case BL::ShaderNodeSubsurfaceScattering::falloff_BURLEY:
+				subsurface->closure = CLOSURE_BSSRDF_BURLEY_ID;
+				break;
 		}
 
 		node = subsurface;

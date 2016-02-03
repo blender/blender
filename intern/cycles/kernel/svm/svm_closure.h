@@ -442,8 +442,10 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 #  define sc_next(sc) sc = ccl_fetch_array(sd, closure, ccl_fetch(sd, num_closure))
 #endif
 		case CLOSURE_BSSRDF_CUBIC_ID:
-		case CLOSURE_BSSRDF_GAUSSIAN_ID: {
+		case CLOSURE_BSSRDF_GAUSSIAN_ID:
+		case CLOSURE_BSSRDF_BURLEY_ID: {
 			ShaderClosure *sc = ccl_fetch_array(sd, closure, ccl_fetch(sd, num_closure));
+			float3 albedo = sc->weight;
 			float3 weight = sc->weight * mix_weight;
 			float sample_weight = fabsf(average(weight));
 			
@@ -467,7 +469,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					sc->sample_weight = sample_weight;
 					sc->data0 = radius.x;
 					sc->data1 = texture_blur;
-					sc->data2 = 0.0f;
+					sc->data2 = albedo.x;
 					sc->T.x = sharpness;
 #ifdef __OSL__
 					sc->prim = NULL;
@@ -484,7 +486,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					sc->sample_weight = sample_weight;
 					sc->data0 = radius.y;
 					sc->data1 = texture_blur;
-					sc->data2 = 0.0f;
+					sc->data2 = albedo.y;
 					sc->T.x = sharpness;
 #ifdef __OSL__
 					sc->prim = NULL;
@@ -501,7 +503,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					sc->sample_weight = sample_weight;
 					sc->data0 = radius.z;
 					sc->data1 = texture_blur;
-					sc->data2 = 0.0f;
+					sc->data2 = albedo.z;
 					sc->T.x = sharpness;
 #ifdef __OSL__
 					sc->prim = NULL;

@@ -1057,6 +1057,7 @@ enum {
 #endif
 	SHD_SUBSURFACE_CUBIC			= 1,
 	SHD_SUBSURFACE_GAUSSIAN			= 2,
+	SHD_SUBSURFACE_BURLEY			= 3,
 };
 
 /* blur node */

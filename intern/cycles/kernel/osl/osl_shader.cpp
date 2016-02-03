@@ -281,11 +281,17 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 							if(path_flag & PATH_RAY_DIFFUSE_ANCESTOR)
 								bssrdf->radius = make_float3(0.0f, 0.0f, 0.0f);
 
+							float3 albedo =
+							        (bssrdf->sc.type == CLOSURE_BSSRDF_BURLEY_ID)
+							                ? bssrdf->albedo
+							                : make_float3(0.0f, 0.0f, 0.0f);
+
 							/* create one closure for each color channel */
 							if(fabsf(weight.x) > 0.0f) {
 								sc.weight = make_float3(weight.x, 0.0f, 0.0f);
 								sc.data0 = bssrdf->radius.x;
 								sc.data1 = 0.0f;
+								sc.data2 = albedo.x;
 								sd->flag |= bssrdf_setup(&sc, sc.type);
 								sd->closure[sd->num_closure++] = sc;
 							}
@@ -294,6 +300,7 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 								sc.weight = make_float3(0.0f, weight.y, 0.0f);
 								sc.data0 = bssrdf->radius.y;
 								sc.data1 = 0.0f;
+								sc.data2 = albedo.y;
 								sd->flag |= bssrdf_setup(&sc, sc.type);
 								sd->closure[sd->num_closure++] = sc;
 							}
@@ -302,6 +309,7 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 								sc.weight = make_float3(0.0f, 0.0f, weight.z);
 								sc.data0 = bssrdf->radius.z;
 								sc.data1 = 0.0f;
+								sc.data2 = albedo.z;
 								sd->flag |= bssrdf_setup(&sc, sc.type);
 								sd->closure[sd->num_closure++] = sc;
 							}

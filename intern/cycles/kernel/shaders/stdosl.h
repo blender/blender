@@ -510,6 +510,7 @@ closure color ambient_occlusion() BUILTIN;
 // BSSRDF
 closure color bssrdf_cubic(normal N, vector radius, float texture_blur, float sharpness) BUILTIN;
 closure color bssrdf_gaussian(normal N, vector radius, float texture_blur) BUILTIN;
+closure color bssrdf_burley(normal N, vector radius, float texture_blur, color albedo) BUILTIN;
 
 // Hair
 closure color hair_reflection(normal N, float roughnessu, float roughnessv, vector T, float offset) BUILTIN;

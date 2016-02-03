@@ -192,6 +192,110 @@ ccl_device void bssrdf_cubic_sample(ShaderClosure *sc, float xi, float *r, float
 	*h = sqrtf(Rm*Rm - r_*r_);
 }
 
+/* Approximate Reflectance Profiles
+ * http://graphics.pixar.com/library/ApproxBSSRDF/paper.pdf
+ */
+
+ccl_device_inline float bssrdf_burley_fitting(float A)
+{
+	/* Diffuse surface transmission, equation (6). */
+	return 1.9f - A + 3.5f * (A - 0.8f) * (A - 0.8f);
+}
+
+/* Scale mean free path length so it gives similar looking result
+ * to Cubic and Gaussian models.
+ */
+ccl_device_inline float bssrdf_burley_compatible_mfp(float r)
+{
+	return 0.5f * M_1_PI_F * r;
+}
+
+ccl_device float bssrdf_burley_eval(ShaderClosure *sc, float r)
+{
+	/* Mean free path length. */
+	const float l = bssrdf_burley_compatible_mfp(sc->data0);
+	/* Surface albedo. */
+	const float A = sc->data2;
+	const float s = bssrdf_burley_fitting(A);
+	/* Burley refletance profile, equation (3).
+	 *
+	 * Note that surface albedo is already included into sc->weight, no need to
+	 * multiply by this term here.
+	 */
+	float exp_r_3_d = expf(-s*r / (3.0f * l));
+	float exp_r_d = exp_r_3_d * exp_r_3_d * exp_r_3_d;
+	return s * (exp_r_d + exp_r_3_d) / (8*M_PI_F*l*r);
+}
+
+ccl_device float bssrdf_burley_pdf(ShaderClosure *sc, float r)
+{
+	return bssrdf_burley_eval(sc, r);
+}
+
+/* Find the radius for desired CDF value.
+ * Returns scaled radius, meaning the result is to be scaled up by d.
+ * Since there's no closed form solution we do Newton-Raphson method to find it.
+ */
+ccl_device float bssrdf_burley_root_find(float xi)
+{
+	const float tolerance = 1e-6f;
+	const int max_iteration_count = 10;
+	/* Do initial guess based on manual curve fitting, this allows us to reduce
+	 * number of iterations to maximum 4 across the [0..1] range. We keep maximum
+	 * number of iteration higher just to be sure we didn't miss root in some
+	 * corner case.
+	 */
+	float r;
+	if (xi <= 0.9f) {
+		r = expf(xi * xi * 2.4f) - 1.0f;
+	}
+	else {
+		float a = expf(xi * xi * 4.0f) - 1.0f;
+		r = a*a;
+	}
+	/* Solve against scaled radius. */
+	for(int i = 0; i < max_iteration_count; i++) {
+		float exp_r_3 = expf(-r / 3.0f);
+		float exp_r = exp_r_3 * exp_r_3 * exp_r_3;
+		float f = 1.0f - 0.25f * exp_r - 0.75f * exp_r_3 - xi;
+		float f_ = 0.25f * exp_r + 0.25f * exp_r_3;
+
+		if(fabsf(f) < tolerance || f_ == 0.0f) {
+			break;
+		}
+
+		r = r - f/f_;
+		if(r < 0.0f) {
+			r = 0.0f;
+		}
+	}
+	return r;
+}
+
+ccl_device void bssrdf_burley_sample(ShaderClosure *sc,
+                                     float xi,
+                                     float *r,
+                                     float *h)
+{
+	/* Mean free path length. */
+	const float l = bssrdf_burley_compatible_mfp(sc->data0);
+	/* Surface albedo. */
+	const float A = sc->data2;
+	const float s = bssrdf_burley_fitting(A);
+	const float d = l / s;
+	/* This is a bit arbitrary, just need big enough radius so it matches
+	 * the mean free length, but still not too big so sampling is still
+	 * effective. Might need some further tweaks.
+	 */
+	const float Rm = 10.0f*d;
+	const float r_ = bssrdf_burley_root_find(xi) * d;
+
+	*r = r_;
+
+	/* h^2 + r^2 = Rm^2 */
+	*h = sqrtf(Rm*Rm - r_*r_);
+}
+
 /* None BSSRDF falloff
  *
  * Samples distributed over disk with no falloff, for reference. */
@@ -230,16 +334,20 @@ ccl_device void bssrdf_sample(ShaderClosure *sc, float xi, float *r, float *h)
 {
 	if(sc->type == CLOSURE_BSSRDF_CUBIC_ID)
 		bssrdf_cubic_sample(sc, xi, r, h);
-	else
+	else if(sc->type == CLOSURE_BSSRDF_GAUSSIAN_ID)
 		bssrdf_gaussian_sample(sc, xi, r, h);
+	else /*if(sc->type == CLOSURE_BSSRDF_BURLEY_ID)*/
+		bssrdf_burley_sample(sc, xi, r, h);
 }
 
 ccl_device float bssrdf_pdf(ShaderClosure *sc, float r)
 {
 	if(sc->type == CLOSURE_BSSRDF_CUBIC_ID)
 		return bssrdf_cubic_pdf(sc, r);
-	else
+	else if(sc->type == CLOSURE_BSSRDF_GAUSSIAN_ID)
 		return bssrdf_gaussian_pdf(sc, r);
+	else /*if(sc->type == CLOSURE_BSSRDF_BURLEY_ID)*/
+		return bssrdf_burley_pdf(sc, r);
 }
 
 CCL_NAMESPACE_END

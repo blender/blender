@@ -2243,6 +2243,7 @@ static ShaderEnum subsurface_falloff_init()
 
 	enm.insert("Cubic", CLOSURE_BSSRDF_CUBIC_ID);
 	enm.insert("Gaussian", CLOSURE_BSSRDF_GAUSSIAN_ID);
+	enm.insert("Burley", CLOSURE_BSSRDF_BURLEY_ID);
 
 	return enm;
 }

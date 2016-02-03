@@ -596,8 +596,10 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			xml_read_string(&falloff, node, "falloff");
 			if(falloff == "cubic")
 				sss->closure = CLOSURE_BSSRDF_CUBIC_ID;
-			else
+			else if(falloff == "gaussian")
 				sss->closure = CLOSURE_BSSRDF_GAUSSIAN_ID;
+			else /*if(falloff == "burley")*/
+				sss->closure = CLOSURE_BSSRDF_BURLEY_ID;
 
 			snode = sss;
 		}
