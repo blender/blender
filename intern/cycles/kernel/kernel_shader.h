@@ -225,9 +225,14 @@ ccl_device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderDat
 
 /* ShaderData setup from position sampled on mesh */
 
-ccl_device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
-	const float3 P, const float3 Ng, const float3 I,
-	int shader, int object, int prim, float u, float v, float t, float time)
+ccl_device void shader_setup_from_sample(KernelGlobals *kg,
+                                         ShaderData *sd,
+                                         const float3 P,
+                                         const float3 Ng,
+                                         const float3 I,
+                                         int shader, int object, int prim,
+                                         float u, float v, float t,
+                                         float time)
 {
 	/* vectors */
 	ccl_fetch(sd, P) = P;

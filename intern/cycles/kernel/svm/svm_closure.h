@@ -254,7 +254,8 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID: {
 #ifdef __CAUSTICS_TRICKS__
 			if(!kernel_data.integrator.caustics_reflective &&
-			   !kernel_data.integrator.caustics_refractive && (path_flag & PATH_RAY_DIFFUSE)) {
+			   !kernel_data.integrator.caustics_refractive && (path_flag & PATH_RAY_DIFFUSE))
+			{
 				break;
 			}
 #endif

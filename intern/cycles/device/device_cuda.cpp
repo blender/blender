@@ -657,14 +657,14 @@ public:
 
 		/* pass in parameters */
 		void *args[] = {&d_buffer,
-						 &d_rng_state,
-						 &sample,
-						 &rtile.x,
-						 &rtile.y,
-						 &rtile.w,
-						 &rtile.h,
-						 &rtile.offset,
-						 &rtile.stride};
+		                &d_rng_state,
+		                &sample,
+		                &rtile.x,
+		                &rtile.y,
+		                &rtile.w,
+		                &rtile.h,
+		                &rtile.offset,
+		                &rtile.stride};
 
 		/* launch kernel */
 		int threads_per_block;
@@ -684,9 +684,9 @@ public:
 		cuda_assert(cuFuncSetCacheConfig(cuPathTrace, CU_FUNC_CACHE_PREFER_L1));
 
 		cuda_assert(cuLaunchKernel(cuPathTrace,
-								   xblocks , yblocks, 1, /* blocks */
-								   xthreads, ythreads, 1, /* threads */
-								   0, 0, args, 0));
+		                           xblocks , yblocks, 1, /* blocks */
+		                           xthreads, ythreads, 1, /* threads */
+		                           0, 0, args, 0));
 
 		cuda_assert(cuCtxSynchronize());
 
@@ -717,14 +717,14 @@ public:
 
 		/* pass in parameters */
 		void *args[] = {&d_rgba,
-						 &d_buffer,
-						 &sample_scale,
-						 &task.x,
-						 &task.y,
-						 &task.w,
-						 &task.h,
-						 &task.offset,
-						 &task.stride};
+		                &d_buffer,
+		                &sample_scale,
+		                &task.x,
+		                &task.y,
+		                &task.w,
+		                &task.h,
+		                &task.offset,
+		                &task.stride};
 
 		/* launch kernel */
 		int threads_per_block;
@@ -738,9 +738,9 @@ public:
 		cuda_assert(cuFuncSetCacheConfig(cuFilmConvert, CU_FUNC_CACHE_PREFER_L1));
 
 		cuda_assert(cuLaunchKernel(cuFilmConvert,
-								   xblocks , yblocks, 1, /* blocks */
-								   xthreads, ythreads, 1, /* threads */
-								   0, 0, args, 0));
+		                           xblocks , yblocks, 1, /* blocks */
+		                           xthreads, ythreads, 1, /* threads */
+		                           0, 0, args, 0));
 
 		unmap_pixels((rgba_byte)? rgba_byte: rgba_half);
 
@@ -803,9 +803,9 @@ public:
 
 				cuda_assert(cuFuncSetCacheConfig(cuShader, CU_FUNC_CACHE_PREFER_L1));
 				cuda_assert(cuLaunchKernel(cuShader,
-										   xblocks , 1, 1, /* blocks */
-										   threads_per_block, 1, 1, /* threads */
-										   0, 0, args, 0));
+				                           xblocks , 1, 1, /* blocks */
+				                           threads_per_block, 1, 1, /* threads */
+				                           0, 0, args, 0));
 
 				cuda_assert(cuCtxSynchronize());
 

@@ -141,7 +141,7 @@ void MD5Hash::process(const uint8_t *data /*[64]*/)
 
 			X = xbuf;		/* (dynamic only) */
 			for(i = 0; i < 16; ++i, xp += 4)
-			xbuf[i] = xp[0] + (xp[1] << 8) + (xp[2] << 16) + (xp[3] << 24);
+				xbuf[i] = xp[0] + (xp[1] << 8) + (xp[2] << 16) + (xp[3] << 24);
 		}
 	}
 

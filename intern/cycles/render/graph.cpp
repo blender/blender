@@ -481,7 +481,8 @@ void ShaderGraph::remove_unneeded_nodes()
 			if(bg->outputs[0]->links.size()) {
 				/* Black color or zero strength, remove node */
 				if((!bg->inputs[0]->link && bg->inputs[0]->value == make_float3(0.0f, 0.0f, 0.0f)) ||
-				   (!bg->inputs[1]->link && bg->inputs[1]->value.x == 0.0f)) {
+				   (!bg->inputs[1]->link && bg->inputs[1]->value.x == 0.0f))
+				{
 					vector<ShaderInput*> inputs = bg->outputs[0]->links;
 
 					relink(bg->inputs, inputs, NULL);
@@ -496,7 +497,8 @@ void ShaderGraph::remove_unneeded_nodes()
 			if(em->outputs[0]->links.size()) {
 				/* Black color or zero strength, remove node */
 				if((!em->inputs[0]->link && em->inputs[0]->value == make_float3(0.0f, 0.0f, 0.0f)) ||
-				   (!em->inputs[1]->link && em->inputs[1]->value.x == 0.0f)) {
+				   (!em->inputs[1]->link && em->inputs[1]->value.x == 0.0f))
+				{
 					vector<ShaderInput*> inputs = em->outputs[0]->links;
 
 					relink(em->inputs, inputs, NULL);

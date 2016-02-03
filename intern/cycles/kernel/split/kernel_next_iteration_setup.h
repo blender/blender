@@ -87,7 +87,7 @@ ccl_device char kernel_next_iteration_setup(
 	/* Path radiance update for AO/Direct_lighting's shadow blocked. */
 	if(IS_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_DL) ||
 	   IS_FLAG(ray_state, ray_index, RAY_SHADOW_RAY_CAST_AO))
-	 {
+	{
 		state = &PathState_coop[ray_index];
 		L = &PathRadiance_coop[ray_index];
 		float3 _throughput = throughput_coop[ray_index];

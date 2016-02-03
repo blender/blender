@@ -693,8 +693,10 @@ bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D, float t, L
 			return false;
 
 		if(!ray_aligned_disk_intersect(P, D, t,
-			lightP, radius, &ls->P, &ls->t))
+		                               lightP, radius, &ls->P, &ls->t))
+		{
 			return false;
+		}
 
 		ls->Ng = -D;
 		ls->D = D;
@@ -736,8 +738,10 @@ bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D, float t, L
 		float3 light_P = make_float3(data0.y, data0.z, data0.w);
 
 		if(!ray_quad_intersect(P, D, t,
-			light_P, axisu, axisv, &ls->P, &ls->t))
+		                       light_P, axisu, axisv, &ls->P, &ls->t))
+		{
 			return false;
+		}
 
 		ls->D = D;
 		ls->Ng = Ng;

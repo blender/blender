@@ -142,32 +142,32 @@ static void set_default_value(ShaderInput *input,
 {
 	/* copy values for non linked inputs */
 	switch(input->type) {
-	case SHADER_SOCKET_FLOAT: {
-		input->set(get_float(b_sock.ptr, "default_value"));
-		break;
-	}
-	case SHADER_SOCKET_INT: {
-		input->set((float)get_int(b_sock.ptr, "default_value"));
-		break;
-	}
-	case SHADER_SOCKET_COLOR: {
-		input->set(float4_to_float3(get_float4(b_sock.ptr, "default_value")));
-		break;
-	}
-	case SHADER_SOCKET_NORMAL:
-	case SHADER_SOCKET_POINT:
-	case SHADER_SOCKET_VECTOR: {
-		input->set(get_float3(b_sock.ptr, "default_value"));
-		break;
-	}
-	case SHADER_SOCKET_STRING: {
-		input->set((ustring)blender_absolute_path(b_data, b_id, get_string(b_sock.ptr, "default_value")));
-		break;
-	}
-	
-	case SHADER_SOCKET_CLOSURE:
-	case SHADER_SOCKET_UNDEFINED:
-		break;
+		case SHADER_SOCKET_FLOAT: {
+			input->set(get_float(b_sock.ptr, "default_value"));
+			break;
+		}
+		case SHADER_SOCKET_INT: {
+			input->set((float)get_int(b_sock.ptr, "default_value"));
+			break;
+		}
+		case SHADER_SOCKET_COLOR: {
+			input->set(float4_to_float3(get_float4(b_sock.ptr, "default_value")));
+			break;
+		}
+		case SHADER_SOCKET_NORMAL:
+		case SHADER_SOCKET_POINT:
+		case SHADER_SOCKET_VECTOR: {
+			input->set(get_float3(b_sock.ptr, "default_value"));
+			break;
+		}
+		case SHADER_SOCKET_STRING: {
+			input->set((ustring)blender_absolute_path(b_data, b_id, get_string(b_sock.ptr, "default_value")));
+			break;
+		}
+
+		case SHADER_SOCKET_CLOSURE:
+		case SHADER_SOCKET_UNDEFINED:
+			break;
 	}
 }
 
@@ -399,12 +399,12 @@ static ShaderNode *add_node(Scene *scene,
 		SubsurfaceScatteringNode *subsurface = new SubsurfaceScatteringNode();
 
 		switch(b_subsurface_node.falloff()) {
-		case BL::ShaderNodeSubsurfaceScattering::falloff_CUBIC:
-			subsurface->closure = CLOSURE_BSSRDF_CUBIC_ID;
-			break;
-		case BL::ShaderNodeSubsurfaceScattering::falloff_GAUSSIAN:
-			subsurface->closure = CLOSURE_BSSRDF_GAUSSIAN_ID;
-			break;
+			case BL::ShaderNodeSubsurfaceScattering::falloff_CUBIC:
+				subsurface->closure = CLOSURE_BSSRDF_CUBIC_ID;
+				break;
+			case BL::ShaderNodeSubsurfaceScattering::falloff_GAUSSIAN:
+				subsurface->closure = CLOSURE_BSSRDF_GAUSSIAN_ID;
+				break;
 		}
 
 		node = subsurface;
@@ -414,18 +414,18 @@ static ShaderNode *add_node(Scene *scene,
 		GlossyBsdfNode *glossy = new GlossyBsdfNode();
 		
 		switch(b_glossy_node.distribution()) {
-		case BL::ShaderNodeBsdfGlossy::distribution_SHARP:
-			glossy->distribution = ustring("Sharp");
-			break;
-		case BL::ShaderNodeBsdfGlossy::distribution_BECKMANN:
-			glossy->distribution = ustring("Beckmann");
-			break;
-		case BL::ShaderNodeBsdfGlossy::distribution_GGX:
-			glossy->distribution = ustring("GGX");
-			break;
-		case BL::ShaderNodeBsdfGlossy::distribution_ASHIKHMIN_SHIRLEY:
-			glossy->distribution = ustring("Ashikhmin-Shirley");
-			break;
+			case BL::ShaderNodeBsdfGlossy::distribution_SHARP:
+				glossy->distribution = ustring("Sharp");
+				break;
+			case BL::ShaderNodeBsdfGlossy::distribution_BECKMANN:
+				glossy->distribution = ustring("Beckmann");
+				break;
+			case BL::ShaderNodeBsdfGlossy::distribution_GGX:
+				glossy->distribution = ustring("GGX");
+				break;
+			case BL::ShaderNodeBsdfGlossy::distribution_ASHIKHMIN_SHIRLEY:
+				glossy->distribution = ustring("Ashikhmin-Shirley");
+				break;
 		}
 		node = glossy;
 	}
@@ -433,15 +433,15 @@ static ShaderNode *add_node(Scene *scene,
 		BL::ShaderNodeBsdfGlass b_glass_node(b_node);
 		GlassBsdfNode *glass = new GlassBsdfNode();
 		switch(b_glass_node.distribution()) {
-		case BL::ShaderNodeBsdfGlass::distribution_SHARP:
-			glass->distribution = ustring("Sharp");
-			break;
-		case BL::ShaderNodeBsdfGlass::distribution_BECKMANN:
-			glass->distribution = ustring("Beckmann");
-			break;
-		case BL::ShaderNodeBsdfGlass::distribution_GGX:
-			glass->distribution = ustring("GGX");
-			break;
+			case BL::ShaderNodeBsdfGlass::distribution_SHARP:
+				glass->distribution = ustring("Sharp");
+				break;
+			case BL::ShaderNodeBsdfGlass::distribution_BECKMANN:
+				glass->distribution = ustring("Beckmann");
+				break;
+			case BL::ShaderNodeBsdfGlass::distribution_GGX:
+				glass->distribution = ustring("GGX");
+				break;
 		}
 		node = glass;
 	}

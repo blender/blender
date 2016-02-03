@@ -204,9 +204,10 @@ void OpenSubdMesh::add_face(int *index, int num)
 		if(opposite && opposite->GetOpposite())
 			assert("A non-manifold edge incident to more than 2 faces was found\n");
 
-		if(origin->GetEdge(destination))
+		if(origin->GetEdge(destination)) {
 			assert("An edge connecting two vertices was specified more than once."
-				 "It's likely that an incident face was flipped\n");
+		               "It's likely that an incident face was flipped\n");
+		}
 	}
 #endif
 

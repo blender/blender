@@ -994,7 +994,8 @@ public:
 			if(path_exists(clbin) && load_binary(kernel_path,
 			                                     clbin,
 			                                     build_flags,
-			                                     &cpProgram)) {
+			                                     &cpProgram))
+			{
 				/* Kernel loaded from binary, nothing to do. */
 				VLOG(2) << "Loaded kernel from " << clbin << ".";
 			}
@@ -1672,7 +1673,8 @@ public:
 			                                     clbin,
 			                                     custom_kernel_build_options,
 			                                     &path_trace_program,
-			                                     debug_src)) {
+			                                     debug_src))
+			{
 				/* Kernel loaded from binary, nothing to do. */
 			}
 			else {
@@ -2080,7 +2082,8 @@ public:
 		                                     clbin,
 		                                     custom_kernel_build_options,
 		                                     program,
-		                                     debug_src)) {
+		                                     debug_src))
+		{
 			/* Kernel loaded from binary. */
 		}
 		else {

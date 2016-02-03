@@ -4251,10 +4251,10 @@ bool VectorMathNode::constant_fold(ShaderOutput *socket, float3 *optimized_value
 
 	if(vector1_in->link == NULL && vector2_in->link == NULL) {
 		svm_vector_math(&value,
-						&vector,
-						(NodeVectorMath)type_enum[type],
-						vector1_in->value,
-						vector2_in->value);
+		                &vector,
+		                (NodeVectorMath)type_enum[type],
+		                vector1_in->value,
+		                vector2_in->value);
 
 		if(socket == output("Value")) {
 			optimized_value->x = value;

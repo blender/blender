@@ -212,8 +212,8 @@ void BlenderSync::sync_background_light(bool use_portal)
 			ObjectKey key(b_world, 0, b_world);
 
 			if(light_map.sync(&light, b_world, b_world, key) ||
-				world_recalc ||
-				b_world.ptr.data != world_map)
+			    world_recalc ||
+			    b_world.ptr.data != world_map)
 			{
 				light->type = LIGHT_BACKGROUND;
 				light->map_resolution  = get_int(cworld, "sample_map_resolution");

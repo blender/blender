@@ -168,14 +168,16 @@ ccl_device void svm_node_tex_sky(KernelGlobals *kg, ShaderData *sd, float *stack
 	float3 f;
 
 	/* Compute Sky */
-	if(sky_model == 0)
+	if(sky_model == 0) {
 		f = sky_radiance_old(kg, dir, sunphi, suntheta,
 	                             radiance_x, radiance_y, radiance_z,
 	                             config_x, config_y, config_z);
-	else
+	}
+	else {
 		f = sky_radiance_new(kg, dir, sunphi, suntheta,
 	                             radiance_x, radiance_y, radiance_z,
 	                             config_x, config_y, config_z);
+	}
 
 	stack_store_float3(stack, out_offset, f);
 }
