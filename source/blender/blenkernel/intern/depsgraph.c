@@ -935,7 +935,8 @@ DagForest *build_dag(Main *bmain, Scene *sce, short mask)
 		dag = dag_init();
 		sce->theDag = dag;
 	}
-	
+	dag->need_update = false;
+
 	/* clear "LIB_TAG_DOIT" flag from all materials, to prevent infinite recursion problems later [#32017] */
 	BKE_main_id_tag_idcode(bmain, ID_MA, false);
 	BKE_main_id_tag_idcode(bmain, ID_LA, false);
@@ -1440,6 +1441,13 @@ static void scene_sort_groups(Main *bmain, Scene *sce)
 	}
 }
 
+static void dag_scene_tag_rebuild(Scene *sce)
+{
+	if (sce->theDag) {
+		sce->theDag->need_update = true;
+	}
+}
+
 /* free the depency graph */
 static void dag_scene_free(Scene *sce)
 {
@@ -1582,7 +1590,7 @@ static void dag_scene_build(Main *bmain, Scene *sce)
 	BLI_listbase_clear(&tempbase);
 
 	build_dag(bmain, sce, DAG_RL_ALL_BUT_DATA);
-	
+
 	dag_check_cycle(sce->theDag);
 
 	nqueue = queue_create(DAGQUEUEALLOC);
@@ -1672,7 +1680,7 @@ void DAG_relations_tag_update(Main *bmain)
 	if (DEG_depsgraph_use_legacy()) {
 		Scene *sce;
 		for (sce = bmain->scene.first; sce; sce = sce->id.next) {
-			dag_scene_free(sce);
+			dag_scene_tag_rebuild(sce);
 		}
 	}
 	else {
@@ -1698,7 +1706,7 @@ void DAG_scene_relations_rebuild(Main *bmain, Scene *sce)
 void DAG_scene_relations_update(Main *bmain, Scene *sce)
 {
 	if (DEG_depsgraph_use_legacy()) {
-		if (!sce->theDag)
+		if (!sce->theDag || sce->theDag->need_update)
 			dag_scene_build(bmain, sce);
 	}
 	else {
@@ -1975,7 +1983,7 @@ void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const sho
 		return;
 	}
 
-	if (sce->theDag == NULL) {
+	if (sce->theDag == NULL || sce->theDag->need_update) {
 		printf("DAG zero... not allowed to happen!\n");
 		DAG_scene_relations_update(bmain, sce);
 	}
