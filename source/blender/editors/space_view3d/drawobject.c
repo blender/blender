@@ -402,7 +402,8 @@ static const float cosval[CIRCLE_RESOL] = {
 };
 
 /**
- * \param viewmat_local is typically the 'rv3d->viewmatob'.
+ * \param viewmat_local_unit is typically the 'rv3d->viewmatob'
+ * copied into a 3x3 matrix and normalized.
  */
 static void draw_xyz_wire(const float viewmat_local_unit[3][3], const float c[3], float size, int axis)
 {
@@ -412,16 +413,14 @@ static void draw_xyz_wire(const float viewmat_local_unit[3][3], const float c[3]
 
 	float v1[3] = {0.0f, 0.0f, 0.0f}, v2[3] = {0.0f, 0.0f, 0.0f};
 	float dim = size * 0.1f;
-	float dx[3], dy[3], dz[3];
+	float dx[3], dy[3];
 
 	dx[0] = dim;  dx[1] = 0.0f; dx[2] = 0.0f;
 	dy[0] = 0.0f; dy[1] = dim;  dy[2] = 0.0f;
-	dz[0] = 0.0f; dz[1] = 0.0f; dz[2] = dim;
 
 	switch (axis) {
 		case 0:     /* x axis */
 			line_type = GL_LINES;
-
 
 			/* bottom left to top right */
 			negate_v3_v3(v1, dx);
