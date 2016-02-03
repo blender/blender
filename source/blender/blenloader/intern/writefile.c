@@ -3798,24 +3798,28 @@ static bool do_history(const char *name, ReportList *reports)
 		BKE_report(reports, RPT_ERROR, "Unable to make version backup: filename too short");
 		return 1;
 	}
-		
+
 	while (hisnr > 1) {
 		BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr-1);
-		BLI_snprintf(tempname2, sizeof(tempname2), "%s%d", name, hisnr);
-	
-		if (BLI_rename(tempname1, tempname2)) {
-			BKE_report(reports, RPT_ERROR, "Unable to make version backup");
-			return 1;
+		if (BLI_exists(tempname1)) {
+			BLI_snprintf(tempname2, sizeof(tempname2), "%s%d", name, hisnr);
+
+			if (BLI_rename(tempname1, tempname2)) {
+				BKE_report(reports, RPT_ERROR, "Unable to make version backup");
+				return true;
+			}
 		}
 		hisnr--;
 	}
 
 	/* is needed when hisnr==1 */
-	BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr);
+	if (BLI_exists(name)) {
+		BLI_snprintf(tempname1, sizeof(tempname1), "%s%d", name, hisnr);
 
-	if (BLI_rename(name, tempname1)) {
-		BKE_report(reports, RPT_ERROR, "Unable to make version backup");
-		return 1;
+		if (BLI_rename(name, tempname1)) {
+			BKE_report(reports, RPT_ERROR, "Unable to make version backup");
+			return true;
+		}
 	}
 
 	return 0;
