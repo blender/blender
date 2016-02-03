@@ -889,9 +889,8 @@ static void emDM_drawMappedFaces(
 	BMFace *efa;
 	struct BMLoop *(*looptris)[3] = bmdm->em->looptris;
 	const int tottri = bmdm->em->tottri;
-	const int lasttri = tottri - 1; /* compare agasint this a lot */
 	DMDrawOption draw_option;
-	int i, flush;
+	int i;
 	const int skip_normals = !(flag & DM_DRAW_NEED_NORMALS);
 	const float (*lnors)[3] = dm->getLoopDataArray(dm, CD_NORMAL);
 	MLoopCol *lcol[3] = {NULL} /* , dummylcol = {0} */;
@@ -904,6 +903,7 @@ static void emDM_drawMappedFaces(
 	/* GL_ZERO is used to detect if drawing has started or not */
 	GLenum poly_prev = GL_ZERO;
 	GLenum shade_prev = GL_ZERO;
+	DMDrawOption draw_option_prev = DM_DRAW_OPTION_SKIP;
 
 	/* call again below is ok */
 	if (has_vcol_preview) {
@@ -952,8 +952,22 @@ static void emDM_drawMappedFaces(
 			if (draw_option != DM_DRAW_OPTION_SKIP) {
 				const GLenum poly_type = GL_TRIANGLES; /* BMESH NOTE, this is odd but keep it for now to match trunk */
 
+				if (draw_option_prev != draw_option) {
+					if (draw_option_prev == DM_DRAW_OPTION_STIPPLE) {
+						if (poly_prev != GL_ZERO) glEnd();
+						poly_prev = GL_ZERO; /* force glBegin */
+
+						GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
+					}
+					draw_option_prev = draw_option;
+				}
+
+
 				if (efa->mat_nr != prev_mat_nr) {
 					if (setMaterial) {
+						if (poly_prev != GL_ZERO) glEnd();
+						poly_prev = GL_ZERO; /* force glBegin */
+
 						setMaterial(efa->mat_nr + 1, NULL);
 					}
 					prev_mat_nr = efa->mat_nr;
@@ -1018,17 +1032,6 @@ static void emDM_drawMappedFaces(
 						glVertex3fv(vertexCos[BM_elem_index_get(ltri[2]->v)]);
 					}
 				}
-
-				flush = (draw_option == DM_DRAW_OPTION_STIPPLE);
-				if (!skip_normals && !flush && (i != lasttri))
-					flush |= efa->mat_nr != looptris[i + 1][0]->f->mat_nr;  /* TODO, make this neater */
-
-				if (flush) {
-					glEnd();
-					poly_prev = GL_ZERO; /* force glBegin */
-
-					GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
-				}
 			}
 		}
 	}
@@ -1051,8 +1054,21 @@ static void emDM_drawMappedFaces(
 			if (draw_option != DM_DRAW_OPTION_SKIP) {
 				const GLenum poly_type = GL_TRIANGLES; /* BMESH NOTE, this is odd but keep it for now to match trunk */
 
+				if (draw_option_prev != draw_option) {
+					if (draw_option_prev == DM_DRAW_OPTION_STIPPLE) {
+						if (poly_prev != GL_ZERO) glEnd();
+						poly_prev = GL_ZERO; /* force glBegin */
+
+						GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
+					}
+					draw_option_prev = draw_option;
+				}
+
 				if (efa->mat_nr != prev_mat_nr) {
 					if (setMaterial) {
+						if (poly_prev != GL_ZERO) glEnd();
+						poly_prev = GL_ZERO; /* force glBegin */
+
 						setMaterial(efa->mat_nr + 1, NULL);
 					}
 					prev_mat_nr = efa->mat_nr;
@@ -1117,18 +1133,6 @@ static void emDM_drawMappedFaces(
 						else glNormal3fv(ltri[2]->v->no);
 						glVertex3fv(ltri[2]->v->co);
 					}
-				}
-
-				flush = (draw_option == DM_DRAW_OPTION_STIPPLE);
-				if (!skip_normals && !flush && (i != lasttri)) {
-					flush |= efa->mat_nr != looptris[i + 1][0]->f->mat_nr; /* TODO, make this neater */
-				}
-
-				if (flush) {
-					glEnd();
-					poly_prev = GL_ZERO; /* force glBegin */
-
-					GPU_basic_shader_bind(GPU_SHADER_USE_COLOR);
 				}
 			}
 		}
