@@ -406,9 +406,9 @@ extern "C" {
 	CHECK_TYPE_INLINE(a, float), CHECK_TYPE_INLINE(b, float), \
 	((fabsf((float)((a) - (b))) >= (float) FLT_EPSILON) ? false : true))
 
-#define IS_EQT(a, b, c) ((a > b) ? ((((a) - (b)) <= c) ? 1 : 0) : (((((b) - (a)) <= c) ? 1 : 0)))
-#define IN_RANGE(a, b, c) ((b < c) ? ((b < a && a < c) ? 1 : 0) : ((c < a && a < b) ? 1 : 0))
-#define IN_RANGE_INCL(a, b, c) ((b < c) ? ((b <= a && a <= c) ? 1 : 0) : ((c <= a && a <= b) ? 1 : 0))
+#define IS_EQT(a, b, c)        (((a) > (b)) ? ((((a) - (b)) <= (c))) : (((((b) - (a)) <= (c)))))
+#define IN_RANGE(a, b, c)      (((b) < (c)) ? (((b) <  (a) && (a) <  (c))) : (((c) <  (a) && (a) <  (b))))
+#define IN_RANGE_INCL(a, b, c) (((b) < (c)) ? (((b) <= (a) && (a) <= (c))) : (((c) <= (a) && (a) <= (b))))
 
 /* unpack vector for args */
 #define UNPACK2(a)  ((a)[0]),   ((a)[1])
