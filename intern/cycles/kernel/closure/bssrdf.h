@@ -65,7 +65,7 @@ ccl_device void bssrdf_gaussian_sample(ShaderClosure *sc, float xi, float *r, fl
 	*r = sqrtf(r_squared);
 
 	/* h^2 + r^2 = Rm^2 */
-	*h = sqrtf(Rm*Rm - r_squared);
+	*h = safe_sqrtf(Rm*Rm - r_squared);
 }
 
 /* Planar Cubic BSSRDF falloff
@@ -170,12 +170,19 @@ ccl_device void bssrdf_cubic_sample(ShaderClosure *sc, float xi, float *r, float
 	*r = r_;
 
 	/* h^2 + r^2 = Rm^2 */
-	*h = sqrtf(Rm*Rm - r_*r_);
+	*h = safe_sqrtf(Rm*Rm - r_*r_);
 }
 
 /* Approximate Reflectance Profiles
  * http://graphics.pixar.com/library/ApproxBSSRDF/paper.pdf
  */
+
+/* This is a bit arbitrary, just need big enough radius so it matches
+ * the mean free length, but still not too big so sampling is still
+ * effective. Might need some further tweaks.
+ */
+#define BURLEY_TRUNCATE     10.0f
+#define BURLEY_TRUNCATE_CDF 0.973233f // cdf(BURLEY_TRUNCATE)
 
 ccl_device_inline float bssrdf_burley_fitting(float A)
 {
@@ -200,28 +207,33 @@ ccl_device void bssrdf_burley_setup(ShaderClosure *sc)
 	const float s = bssrdf_burley_fitting(A);
 	const float d = l / s;
 
-	sc->custom1 = l;
-	sc->custom2 = s;
-	sc->custom3 = d;
+	sc->custom1 = d;
 }
 
 ccl_device float bssrdf_burley_eval(ShaderClosure *sc, float r)
 {
-	const float l = sc->custom1,
-	            s = sc->custom2;
+	const float d = sc->custom1;
+	const float Rm = BURLEY_TRUNCATE * d;
+
+	if (r >= Rm)
+		return 0.0f;
+
+	/* Clamp to avoid precision issues computing expf(-x)/x */
+	r = fmaxf(r, 1e-2f * d);
+
 	/* Burley refletance profile, equation (3).
 	 *
 	 * Note that surface albedo is already included into sc->weight, no need to
 	 * multiply by this term here.
 	 */
-	float exp_r_3_d = expf(-s*r / (3.0f * l));
+	float exp_r_3_d = expf(-r / (3.0f * d));
 	float exp_r_d = exp_r_3_d * exp_r_3_d * exp_r_3_d;
-	return s * (exp_r_d + exp_r_3_d) / (8*M_PI_F*l*r);
+	return (exp_r_d + exp_r_3_d) / (8*M_PI_F*d*r);
 }
 
 ccl_device float bssrdf_burley_pdf(ShaderClosure *sc, float r)
 {
-	return bssrdf_burley_eval(sc, r);
+	return bssrdf_burley_eval(sc, r) * (1.0f/BURLEY_TRUNCATE_CDF);
 }
 
 /* Find the radius for desired CDF value.
@@ -269,18 +281,14 @@ ccl_device void bssrdf_burley_sample(ShaderClosure *sc,
                                      float *r,
                                      float *h)
 {
-	const float d = sc->custom3;
-	/* This is a bit arbitrary, just need big enough radius so it matches
-	 * the mean free length, but still not too big so sampling is still
-	 * effective. Might need some further tweaks.
-	 */
-	const float Rm = 10.0f*d;
-	const float r_ = bssrdf_burley_root_find(xi) * d;
+	const float d = sc->custom1;
+	const float Rm = BURLEY_TRUNCATE * d;
+	const float r_ = bssrdf_burley_root_find(xi * BURLEY_TRUNCATE_CDF) * d;
 
 	*r = r_;
 
 	/* h^2 + r^2 = Rm^2 */
-	*h = sqrtf(Rm*Rm - r_*r_);
+	*h = safe_sqrtf(Rm*Rm - r_*r_);
 }
 
 /* None BSSRDF falloff
@@ -312,7 +320,7 @@ ccl_device void bssrdf_none_sample(ShaderClosure *sc, float xi, float *r, float 
 	*r = r_;
 
 	/* h^2 + r^2 = Rm^2 */
-	*h = sqrtf(Rm*Rm - r_*r_);
+	*h = safe_sqrtf(Rm*Rm - r_*r_);
 }
 
 /* Generic */
