@@ -217,7 +217,7 @@
           <ThemeWidgetColors outline="#3b3b3b"
                              inner="#3f3f3f00"
                              inner_sel="#607f9eff"
-                             item="#ffffffff"
+                             item="#414141ff"
                              text="#b8b8b8"
                              text_sel="#ffffff"
                              show_shaded="TRUE"
@@ -300,6 +300,8 @@
                    camera_path="#000000"
                    skin_root="#000000"
                    clipping_border_3d="#313131ff"
+                   text_keyframe="#ddd700"
+                   text_grease_pencil="#b5e61d"
                    paint_curve_handle="#7fff7f7f"
                    paint_curve_pivot="#ff7f7f7f">
         <space>
@@ -571,6 +573,8 @@
                         uv_shadow="#707070ff"
                         uv_others="#606060ff"
                         frame_current="#60c040"
+                        metadatabg="#000000"
+                        metadatatext="#ffffff"
                         handle_free="#000000"
                         handle_auto="#909000"
                         handle_align="#803060"
@@ -625,10 +629,13 @@
                            effect_strip="#ffffff"
                            transition_strip="#726d70"
                            meta_strip="#6d9183"
+                           text_strip="#a29700"
                            frame_current="#4291dc"
                            keyframe="#ff8500"
                            draw_action="#607f9e"
-                           preview_back="#3b3b3b">
+                           preview_back="#3b3b3b"
+                           metadatabg="#000000"
+                           metadatatext="#ffffff">
         <space>
           <ThemeSpaceGeneric back="#5d5d5d"
                              title="#e4e4e4"
