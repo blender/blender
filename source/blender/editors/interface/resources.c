@@ -2694,6 +2694,21 @@ void init_userdef_do_versions(void)
 		}
 	}
 
+	/**
+	 * Include next version bump.
+	 *
+	 * (keep this block even if it becomes empty).
+	 */
+	{
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			if (memcmp(btheme->tui.wcol_list_item.item, btheme->tui.wcol_list_item.text_sel, sizeof(char) * 3) == 0) {
+				copy_v4_v4_char(btheme->tui.wcol_list_item.item, btheme->tui.wcol_text.item);
+				copy_v4_v4_char(btheme->tui.wcol_list_item.text_sel, btheme->tui.wcol_text.text_sel);
+			}
+		}
+	}
+
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
 	
