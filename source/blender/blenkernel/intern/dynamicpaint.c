@@ -2189,8 +2189,10 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface)
 	tottri = dm->getNumLoopTri(dm);
 
 	/* get uv map */
-	CustomData_validate_layer_name(&dm->loopData, CD_MLOOPUV, surface->uvlayer_name, uvname);
-	mloopuv = CustomData_get_layer_named(&dm->loopData, CD_MLOOPUV, uvname);
+	if (CustomData_has_layer(&dm->loopData, CD_MLOOPUV)) {
+		CustomData_validate_layer_name(&dm->loopData, CD_MLOOPUV, surface->uvlayer_name, uvname);
+		mloopuv = CustomData_get_layer_named(&dm->loopData, CD_MLOOPUV, uvname);
+	}
 
 	/* Check for validity	*/
 	if (!mloopuv)
