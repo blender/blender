@@ -48,7 +48,7 @@ static void node_shader_init_subsurface_scattering(bNodeTree *UNUSED(ntree), bNo
 {
 	/*bNodeSocket *sock;*/
 
-	node->custom1 = SHD_SUBSURFACE_CUBIC;
+	node->custom1 = SHD_SUBSURFACE_BURLEY;
 
 	/*for (sock = node->inputs.first; sock; sock = sock->next) {
 		if (STREQ(sock->name, "Sharpness")) {
