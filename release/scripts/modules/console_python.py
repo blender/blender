@@ -136,33 +136,40 @@ def execute(context, is_interactive):
 
     console, stdout, stderr = get_console(hash(context.region))
 
-    # redirect output
-    sys.stdout = stdout
-    sys.stderr = stderr
-
-    # don't allow the stdin to be used, can lock blender.
-    stdin_backup = sys.stdin
-    sys.stdin = None
-
     if _BPY_MAIN_OWN:
         main_mod_back = sys.modules["__main__"]
         sys.modules["__main__"] = console._bpy_main_mod
 
-    # in case exception happens
-    line = ""  # in case of encoding error
-    is_multiline = False
+    # redirect output
+    from contextlib import (
+            redirect_stdout,
+            redirect_stderr,
+            )
 
-    try:
-        line = line_object.body
+    # not included with Python
+    class redirect_stdin(redirect_stdout.__base__):
+        _stream = "stdin"
 
-        # run the console, "\n" executes a multi line statement
-        line_exec = line if line.strip() else "\n"
+    # don't allow the stdin to be used, can lock blender.
+    with redirect_stdout(stdout), \
+         redirect_stderr(stderr), \
+         redirect_stdin(None):
 
-        is_multiline = console.push(line_exec)
-    except:
-        # unlikely, but this can happen with unicode errors for example.
-        import traceback
-        stderr.write(traceback.format_exc())
+        # in case exception happens
+        line = ""  # in case of encoding error
+        is_multiline = False
+
+        try:
+            line = line_object.body
+
+            # run the console, "\n" executes a multi line statement
+            line_exec = line if line.strip() else "\n"
+
+            is_multiline = console.push(line_exec)
+        except:
+            # unlikely, but this can happen with unicode errors for example.
+            import traceback
+            stderr.write(traceback.format_exc())
 
     if _BPY_MAIN_OWN:
         sys.modules["__main__"] = main_mod_back
@@ -174,8 +181,6 @@ def execute(context, is_interactive):
     output_err = stderr.read()
 
     # cleanup
-    sys.stdout = sys.__stdout__
-    sys.stderr = sys.__stderr__
     sys.last_traceback = None
 
     # So we can reuse, clear all data
@@ -212,9 +217,6 @@ def execute(context, is_interactive):
         add_scrollback(output, 'OUTPUT')
     if output_err:
         add_scrollback(output_err, 'ERROR')
-
-    # restore the stdin
-    sys.stdin = stdin_backup
 
     # execute any hooks
     for func, args in execute.hooks:
