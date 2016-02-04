@@ -46,16 +46,7 @@ static bNodeSocketTemplate sh_node_subsurface_scattering_out[] = {
 
 static void node_shader_init_subsurface_scattering(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	/*bNodeSocket *sock;*/
-
 	node->custom1 = SHD_SUBSURFACE_BURLEY;
-
-	/*for (sock = node->inputs.first; sock; sock = sock->next) {
-		if (STREQ(sock->name, "Sharpness")) {
-			bNodeSocketValueFloat *dval = sock->default_value;
-			dval->value = 0.0f;
-		}
-	}*/
 }
 
 static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
