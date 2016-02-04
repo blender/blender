@@ -190,6 +190,8 @@ typedef struct wmWindow {
 	short modalcursor;  /* the current modal cursor */
 	short grabcursor;           /* cursor grab mode */
 	short addmousemove; /* internal: tag this for extra mousemove event, makes cursors/buttons active on UI switching */
+	short multisamples; /* amount of samples for OpenGL FSA the ghost window was created with, if zero no FSA */
+	short pad[3];
 
 	int winid;                  /* winid also in screens, is for retrieving this window after read */
 

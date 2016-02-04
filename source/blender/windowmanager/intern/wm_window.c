@@ -163,6 +163,7 @@ static void wm_ghostwindow_destroy(wmWindow *win)
 	if (win->ghostwin) {
 		GHOST_DisposeWindow(g_system, win->ghostwin);
 		win->ghostwin = NULL;
+		win->multisamples = 0;
 	}
 }
 
@@ -432,6 +433,9 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 		
 		if (win->eventstate == NULL)
 			win->eventstate = MEM_callocN(sizeof(wmEvent), "window event state");
+
+		/* store multisamples window was created with, in case user prefs change */
+		win->multisamples = multisamples;
 		
 		/* store actual window size in blender window */
 		bounds = GHOST_GetClientBounds(win->ghostwin);

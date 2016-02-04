@@ -108,6 +108,7 @@ void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 	vc->ar = CTX_wm_region(C);
 	vc->scene = CTX_data_scene(C);
 	vc->v3d = CTX_wm_view3d(C);
+	vc->win = CTX_wm_window(C);
 	vc->rv3d = CTX_wm_region_view3d(C);
 	vc->obact = CTX_data_active_object(C);
 	vc->obedit = CTX_data_edit_object(C);

@@ -1310,7 +1310,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 /* *********************** backdraw for selection *************** */
 
-static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
+static void backdrawview3d(Scene *scene, wmWindow *win, ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	struct Base *base = scene->basact;
@@ -1365,7 +1365,7 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	if (multisample_enabled)
 		glDisable(GL_MULTISAMPLE);
 
-	if (U.ogl_multisamples != USER_MULTISAMPLE_NONE) {
+	if (win->multisamples != USER_MULTISAMPLE_NONE) {
 		/* for multisample we use an offscreen FBO. multisample drawing can fail
 		 * with color coded selection drawing, and reading back depths from such
 		 * a buffer can also cause a few seconds freeze on OS X / NVidia. */
@@ -1456,7 +1456,7 @@ static void view3d_opengl_read_Z_pixels(ARegion *ar, int x, int y, int w, int h,
 void ED_view3d_backbuf_validate(ViewContext *vc)
 {
 	if (vc->v3d->flag & V3D_INVALID_BACKBUF)
-		backdrawview3d(vc->scene, vc->ar, vc->v3d);
+		backdrawview3d(vc->scene, vc->win, vc->ar, vc->v3d);
 }
 
 /**
@@ -3830,6 +3830,7 @@ static void update_lods(Scene *scene, float camera_pos[3])
 static void view3d_main_region_draw_objects(const bContext *C, Scene *scene, View3D *v3d,
                                           ARegion *ar, const char **grid_unit)
 {
+	wmWindow *win = CTX_wm_window(C);
 	RegionView3D *rv3d = ar->regiondata;
 	unsigned int lay_used = v3d->lay_used;
 	
@@ -3883,7 +3884,7 @@ static void view3d_main_region_draw_objects(const bContext *C, Scene *scene, Vie
 	view3d_main_region_clear(scene, v3d, ar);
 
 	/* enables anti-aliasing for 3D view drawing */
-	if (U.ogl_multisamples != USER_MULTISAMPLE_NONE) {
+	if (win->multisamples != USER_MULTISAMPLE_NONE) {
 		glEnable(GL_MULTISAMPLE);
 	}
 
@@ -3896,7 +3897,7 @@ static void view3d_main_region_draw_objects(const bContext *C, Scene *scene, Vie
 	}
 
 	/* Disable back anti-aliasing */
-	if (U.ogl_multisamples != USER_MULTISAMPLE_NONE) {
+	if (win->multisamples != USER_MULTISAMPLE_NONE) {
 		glDisable(GL_MULTISAMPLE);
 	}
 

@@ -74,6 +74,7 @@ typedef struct ViewContext {
 	struct Object *obedit;
 	struct ARegion *ar;
 	struct View3D *v3d;
+	struct wmWindow *win;
 	struct RegionView3D *rv3d;
 	struct BMEditMesh *em;
 	int mval[2];
