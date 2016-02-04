@@ -326,7 +326,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 
 				for (node = ntree->nodes.first; node; node = node->next) {
 					if (ELEM(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
-						ED_node_tag_update_nodetree(bmain, ntree);
+						ED_node_tag_update_nodetree(bmain, ntree, node);
 					}
 				}
 				break;

@@ -168,7 +168,7 @@ static void node_socket_disconnect(Main *bmain, bNodeTree *ntree, bNode *node_to
 	nodeUpdate(ntree, node_to);
 	ntreeUpdateTree(bmain, ntree);
 
-	ED_node_tag_update_nodetree(bmain, ntree);
+	ED_node_tag_update_nodetree(bmain, ntree, node_to);
 }
 
 /* remove all nodes connected to this socket, if they aren't connected to other nodes */
@@ -183,7 +183,7 @@ static void node_socket_remove(Main *bmain, bNodeTree *ntree, bNode *node_to, bN
 	nodeUpdate(ntree, node_to);
 	ntreeUpdateTree(bmain, ntree);
 
-	ED_node_tag_update_nodetree(bmain, ntree);
+	ED_node_tag_update_nodetree(bmain, ntree, node_to);
 }
 
 /* add new node connected to this socket, or replace an existing one */
@@ -279,7 +279,7 @@ static void node_socket_add_replace(const bContext *C, bNodeTree *ntree, bNode *
 	nodeUpdate(ntree, node_to);
 	ntreeUpdateTree(CTX_data_main(C), ntree);
 
-	ED_node_tag_update_nodetree(CTX_data_main(C), ntree);
+	ED_node_tag_update_nodetree(CTX_data_main(C), ntree, node_to);
 }
 
 /****************************** Node Link Menu *******************************/

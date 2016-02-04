@@ -59,6 +59,55 @@
 
 #include "node_intern.h"  /* own include */
 
+/* ****************** Relations helpers *********************** */
+
+static bool ntree_check_nodes_connected_dfs(bNodeTree *ntree,
+                                            bNode *from,
+                                            bNode *to)
+{
+	if (from->flag & NODE_TEST) {
+		return false;
+	}
+	from->flag |= NODE_TEST;
+	for (bNodeLink *link = ntree->links.first; link != NULL; link = link->next) {
+		if (link->fromnode == from) {
+			if (link->tonode == to) {
+				return true;
+			}
+			else {
+				if (ntree_check_nodes_connected_dfs(ntree, link->tonode, to)) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+static bool ntree_check_nodes_connected(bNodeTree *ntree, bNode *from, bNode *to)
+{
+	if (from == to) {
+		return true;
+	}
+	ntreeNodeFlagSet(ntree, NODE_TEST, false);
+	return ntree_check_nodes_connected_dfs(ntree, from, to);
+}
+
+bool node_connected_to_output(bNodeTree *ntree, bNode *node)
+{
+	for (bNode *current_node = ntree->nodes.first;
+	     current_node != NULL;
+	     current_node = current_node->next)
+	{
+		if (current_node->flag & NODE_DO_OUTPUT) {
+			if (ntree_check_nodes_connected(ntree, node, current_node)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 /* ****************** Add *********************** */
 
 
@@ -468,7 +517,8 @@ static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
 	bNodeTree *ntree = snode->edittree;
 	bNodeLinkDrag *nldrag = op->customdata;
 	LinkData *linkdata;
-	
+	bool do_tag_update = false;
+
 	/* avoid updates while applying links */
 	ntree->is_updating = true;
 	for (linkdata = nldrag->links.first; linkdata; linkdata = linkdata->next) {
@@ -493,15 +543,27 @@ static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
 			
 			/* we might need to remove a link */
 			node_remove_extra_links(snode, link);
+
+			if (link->tonode) {
+				do_tag_update |= (do_tag_update || node_connected_to_output(ntree, link->tonode));
+			}
 		}
-		else
+		else {
+			/* See note below, but basically TEST flag means that the link
+			 * was connected to output (or to a node which affects the
+			 * output).
+			 */
+			do_tag_update |= (link->flag & NODE_LINK_TEST) != 0;
 			nodeRemLink(ntree, link);
+		}
 	}
 	ntree->is_updating = false;
 	
 	ntreeUpdateTree(CTX_data_main(C), ntree);
 	snode_notify(C, snode);
-	snode_dag_update(C, snode);
+	if (do_tag_update) {
+		snode_dag_update(C, snode);
+	}
 	
 	BLI_remlink(&snode->linkdrag, nldrag);
 	/* links->data pointers are either held by the tree or freed already */
@@ -632,7 +694,18 @@ static bNodeLinkDrag *node_link_init(SpaceNode *snode, float cursor[2], bool det
 					*oplink = *link;
 					oplink->next = oplink->prev = NULL;
 					oplink->flag |= NODE_LINK_VALID;
-					
+
+					/* The link could be disconnected and in that case we
+					 * wouldn't be able to check whether tag update is
+					 * needed or not when releasing mouse button. So we
+					 * cache whether the link affects output or not here
+					 * using TEST flag.
+					 */
+					oplink->flag &= ~NODE_LINK_TEST;
+					if (node_connected_to_output(snode->edittree, link->tonode)) {
+						oplink->flag |= NODE_LINK_TEST;
+					}
+
 					BLI_addtail(&nldrag->links, linkdata);
 					nodeRemLink(snode->edittree, link);
 				}
@@ -647,7 +720,11 @@ static bNodeLinkDrag *node_link_init(SpaceNode *snode, float cursor[2], bool det
 			oplink->fromnode = node;
 			oplink->fromsock = sock;
 			oplink->flag |= NODE_LINK_VALID;
-			
+			oplink->flag &= ~NODE_LINK_TEST;
+			if (node_connected_to_output(snode->edittree, node)) {
+				oplink->flag |= NODE_LINK_TEST;
+			}
+
 			BLI_addtail(&nldrag->links, linkdata);
 		}
 	}
@@ -668,7 +745,11 @@ static bNodeLinkDrag *node_link_init(SpaceNode *snode, float cursor[2], bool det
 					*oplink = *link;
 					oplink->next = oplink->prev = NULL;
 					oplink->flag |= NODE_LINK_VALID;
-					
+					oplink->flag &= ~NODE_LINK_TEST;
+					if (node_connected_to_output(snode->edittree, link->tonode)) {
+						oplink->flag |= NODE_LINK_TEST;
+					}
+
 					BLI_addtail(&nldrag->links, linkdata);
 					nodeRemLink(snode->edittree, link);
 					
@@ -687,7 +768,11 @@ static bNodeLinkDrag *node_link_init(SpaceNode *snode, float cursor[2], bool det
 			oplink->tonode = node;
 			oplink->tosock = sock;
 			oplink->flag |= NODE_LINK_VALID;
-			
+			oplink->flag &= ~NODE_LINK_TEST;
+			if (node_connected_to_output(snode->edittree, node)) {
+				oplink->flag |= NODE_LINK_TEST;
+			}
+
 			BLI_addtail(&nldrag->links, linkdata);
 		}
 	}
@@ -817,6 +902,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	float mcoords[256][2];
 	int i = 0;
+	bool do_tag_update = false;
 
 	RNA_BEGIN (op->ptr, itemptr, "path")
 	{
@@ -849,6 +935,8 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 					found = true;
 				}
 
+				do_tag_update |= (do_tag_update || node_connected_to_output(snode->edittree, link->tonode));
+
 				snode_update(snode, link->tonode);
 				nodeRemLink(snode->edittree, link);
 			}
@@ -857,7 +945,9 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		if (found) {
 			ntreeUpdateTree(CTX_data_main(C), snode->edittree);
 			snode_notify(C, snode);
-			snode_dag_update(C, snode);
+			if (do_tag_update) {
+				snode_dag_update(C, snode);
+			}
 
 			return OPERATOR_FINISHED;
 		}

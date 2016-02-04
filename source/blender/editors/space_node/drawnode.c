@@ -2884,7 +2884,8 @@ static void node_texture_set_butfunc(bNodeType *ntype)
 static void node_property_update_default(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	bNodeTree *ntree = ptr->id.data;
-	ED_node_tag_update_nodetree(bmain, ntree);
+	bNode *node = ptr->data;
+	ED_node_tag_update_nodetree(bmain, ntree, node);
 }
 
 static void node_socket_template_properties_update(bNodeType *ntype, bNodeSocketTemplate *stemp)

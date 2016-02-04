@@ -155,6 +155,8 @@ void NODE_OT_group_edit(struct wmOperatorType *ot);
 
 
 /* node_relationships.c */
+bool node_connected_to_output(struct bNodeTree *ntree, struct bNode *node);
+
 void NODE_OT_link(struct wmOperatorType *ot);
 void NODE_OT_link_make(struct wmOperatorType *ot);
 void NODE_OT_links_cut(struct wmOperatorType *ot);
