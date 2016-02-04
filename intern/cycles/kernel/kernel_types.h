@@ -642,7 +642,14 @@ typedef ccl_addr_space struct ShaderClosure {
 	float data0;
 	float data1;
 	float data2;
-	int pad1, pad2, pad3;
+
+	/* Following fields could be used to store pre-calculated
+	 * values by various BSDF closures for more effective sampling
+	 * and evaluation.
+	 */
+	float custom1;
+	float custom2;
+	float custom3;
 
 #ifdef __OSL__
 	void *prim, *pad4;

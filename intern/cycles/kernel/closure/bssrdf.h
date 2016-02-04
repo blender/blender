@@ -19,25 +19,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device int bssrdf_setup(ShaderClosure *sc, ClosureType type)
-{
-	if(sc->data0 < BSSRDF_MIN_RADIUS) {
-		/* revert to diffuse BSDF if radius too small */
-		sc->data0 = 0.0f;
-		sc->data1 = 0.0f;
-		int flag = bsdf_diffuse_setup(sc);
-		sc->type = CLOSURE_BSDF_BSSRDF_ID;
-		return flag;
-	}
-	else {
-		sc->data1 = saturate(sc->data1); /* texture blur */
-		sc->T.x = saturate(sc->T.x); /* sharpness */
-		sc->type = type;
-
-		return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSSRDF;
-	}
-}
-
 /* Planar Truncated Gaussian
  *
  * Note how this is different from the typical gaussian, this one integrates
@@ -210,13 +191,24 @@ ccl_device_inline float bssrdf_burley_compatible_mfp(float r)
 	return 0.5f * M_1_PI_F * r;
 }
 
-ccl_device float bssrdf_burley_eval(ShaderClosure *sc, float r)
+ccl_device void bssrdf_burley_setup(ShaderClosure *sc)
 {
 	/* Mean free path length. */
 	const float l = bssrdf_burley_compatible_mfp(sc->data0);
 	/* Surface albedo. */
 	const float A = sc->data2;
 	const float s = bssrdf_burley_fitting(A);
+	const float d = l / s;
+
+	sc->custom1 = l;
+	sc->custom2 = s;
+	sc->custom3 = d;
+}
+
+ccl_device float bssrdf_burley_eval(ShaderClosure *sc, float r)
+{
+	const float l = sc->custom1,
+	            s = sc->custom2;
 	/* Burley refletance profile, equation (3).
 	 *
 	 * Note that surface albedo is already included into sc->weight, no need to
@@ -277,12 +269,7 @@ ccl_device void bssrdf_burley_sample(ShaderClosure *sc,
                                      float *r,
                                      float *h)
 {
-	/* Mean free path length. */
-	const float l = bssrdf_burley_compatible_mfp(sc->data0);
-	/* Surface albedo. */
-	const float A = sc->data2;
-	const float s = bssrdf_burley_fitting(A);
-	const float d = l / s;
+	const float d = sc->custom3;
 	/* This is a bit arbitrary, just need big enough radius so it matches
 	 * the mean free length, but still not too big so sampling is still
 	 * effective. Might need some further tweaks.
@@ -329,6 +316,29 @@ ccl_device void bssrdf_none_sample(ShaderClosure *sc, float xi, float *r, float 
 }
 
 /* Generic */
+
+ccl_device int bssrdf_setup(ShaderClosure *sc, ClosureType type)
+{
+	if(sc->data0 < BSSRDF_MIN_RADIUS) {
+		/* revert to diffuse BSDF if radius too small */
+		sc->data0 = 0.0f;
+		sc->data1 = 0.0f;
+		int flag = bsdf_diffuse_setup(sc);
+		sc->type = CLOSURE_BSDF_BSSRDF_ID;
+		return flag;
+	}
+	else {
+		sc->data1 = saturate(sc->data1); /* texture blur */
+		sc->T.x = saturate(sc->T.x); /* sharpness */
+		sc->type = type;
+
+		if(type == CLOSURE_BSSRDF_BURLEY_ID) {
+			bssrdf_burley_setup(sc);
+		}
+
+		return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSSRDF;
+	}
+}
 
 ccl_device void bssrdf_sample(ShaderClosure *sc, float xi, float *r, float *h)
 {
