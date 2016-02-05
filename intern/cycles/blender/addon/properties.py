@@ -796,20 +796,20 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
                 name="Multiple Importance Sample",
                 description="Use multiple importance sampling for the environment, "
                             "enabling for non-solid colors is recommended",
-                default=False,
+                default=True,
                 )
         cls.sample_map_resolution = IntProperty(
                 name="Map Resolution",
                 description="Importance map size is resolution x resolution; "
                             "higher values potentially produce less noise, at the cost of memory and speed",
                 min=4, max=8192,
-                default=256,
+                default=1024,
                 )
         cls.samples = IntProperty(
                 name="Samples",
                 description="Number of light samples to render for each AA sample",
                 min=1, max=10000,
-                default=4,
+                default=1,
                 )
         cls.max_bounces = IntProperty(
                 name="Max Bounces",

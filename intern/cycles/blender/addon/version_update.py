@@ -254,3 +254,19 @@ def do_versions(self):
             # Volume Sampling
             if not cmat.is_property_set("volume_sampling"):
                 cmat.volume_sampling = 'DISTANCE'
+
+    if bpy.data.version <= (2, 76, 9):
+        for world in bpy.data.worlds:
+            cworld = world.cycles
+
+            # World MIS
+            if not cworld.is_property_set("sample_as_light"):
+                cworld.sample_as_light = False
+
+            # World MIS Samples
+            if not cworld.is_property_set("samples"):
+                cworld.samples = 4
+
+            # World MIS Resolution
+            if not cworld.is_property_set("sample_map_resolution"):
+                cworld.sample_map_resolution = 256
