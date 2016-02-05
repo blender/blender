@@ -948,6 +948,7 @@ static void actkeys_mselect_single(bAnimContext *ac, bAnimListElem *ale, short s
 	select_cb = ANIM_editkeyframes_select(select_mode);
 	ok_cb = ANIM_editkeyframes_ok(BEZT_OK_FRAME);
 	ked.f1 = selx;
+	ked.iterflags |= KED_F1_NLA_UNMAP;
 	
 	/* select the nominated keyframe on the given frame */
 	if (ale->type == ANIMTYPE_GPLAYER) {
