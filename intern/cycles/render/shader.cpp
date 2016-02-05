@@ -152,7 +152,7 @@ Shader::Shader()
 	has_volume = false;
 	has_displacement = false;
 	has_bssrdf_bump = false;
-	has_heterogeneous_volume = false;
+	has_volume_spatial_varying = false;
 	has_object_dependency = false;
 	has_integrator_dependency = false;
 
@@ -362,7 +362,7 @@ void ShaderManager::device_update_common(Device *device,
 			 */
 			flag |= SD_HAS_TRANSPARENT_SHADOW;
 		}
-		if(shader->heterogeneous_volume && shader->has_heterogeneous_volume)
+		if(shader->heterogeneous_volume && shader->has_volume_spatial_varying)
 			flag |= SD_HETEROGENEOUS_VOLUME;
 		if(shader->has_bssrdf_bump)
 			flag |= SD_HAS_BSSRDF_BUMP;

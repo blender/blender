@@ -106,7 +106,7 @@ public:
 	bool has_displacement;
 	bool has_surface_bssrdf;
 	bool has_bssrdf_bump;
-	bool has_heterogeneous_volume;
+	bool has_volume_spatial_varying;
 	bool has_object_dependency;
 	bool has_integrator_dependency;
 
