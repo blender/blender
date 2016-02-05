@@ -1539,7 +1539,7 @@ static bool snapDerivedMesh(
 		float ray_start_local[3], ray_normal_local[3];
 		float local_scale, local_depth, len_diff;
 
-		BVHTreeFromMesh treedata;
+		BVHTreeFromMesh treedata = {0};
 
 		invert_m4_m4(imat, obmat);
 		transpose_m3_m4(timat, imat);
