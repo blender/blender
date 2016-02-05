@@ -987,6 +987,16 @@ int CTX_data_selected_editable_bases(const bContext *C, ListBase *list)
 	return ctx_data_collection_get(C, "selected_editable_bases", list);
 }
 
+int CTX_data_editable_objects(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, "editable_objects", list);
+}
+
+int CTX_data_editable_bases(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, "editable_bases", list);
+}
+
 int CTX_data_selected_objects(const bContext *C, ListBase *list)
 {
 	return ctx_data_collection_get(C, "selected_objects", list);

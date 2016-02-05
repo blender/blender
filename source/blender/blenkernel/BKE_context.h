@@ -246,6 +246,9 @@ void CTX_data_scene_set(bContext *C, struct Scene *bmain);
 int CTX_data_selected_editable_objects(const bContext *C, ListBase *list);
 int CTX_data_selected_editable_bases(const bContext *C, ListBase *list);
 
+int CTX_data_editable_objects(const bContext *C, ListBase *list);
+int CTX_data_editable_bases(const bContext *C, ListBase *list);
+
 int CTX_data_selected_objects(const bContext *C, ListBase *list);
 int CTX_data_selected_bases(const bContext *C, ListBase *list);
 
