@@ -242,8 +242,8 @@ ccl_device float bssrdf_burley_root_find(float xi)
 		r = expf(xi * xi * 2.4f) - 1.0f;
 	}
 	else {
-		float a = expf(xi * xi * 4.0f) - 1.0f;
-		r = a*a;
+		/* TODO(sergey): Some nicer curve fit is possible here. */
+		r = 15.0f;
 	}
 	/* Solve against scaled radius. */
 	for(int i = 0; i < max_iteration_count; i++) {
