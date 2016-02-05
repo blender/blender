@@ -22,8 +22,24 @@
 #include "../../kernel_globals.h"
 
 #include "../../kernel_film.h"
+
+#ifdef __COMPILE_ONLY_MEGAKERNEL__
 #include "../../kernel_path.h"
 #include "../../kernel_path_branched.h"
+#else  /* __COMPILE_ONLY_MEGAKERNEL__ */
+/* Include only actually used headers for the case
+ * when path tracing kernels are not needed.
+ */
+#include "../../kernel_differential.h"
+#include "../../kernel_montecarlo.h"
+#include "../../kernel_projection.h"
+#include "../../geom/geom.h"
+
+#include "../../kernel_accumulate.h"
+#include "../../kernel_camera.h"
+#include "../../kernel_shader.h"
+#endif  /* __COMPILE_ONLY_MEGAKERNEL__ */
+
 #include "../../kernel_bake.h"
 
 #ifdef __COMPILE_ONLY_MEGAKERNEL__
@@ -55,7 +71,7 @@ __kernel void kernel_ocl_path_trace(
 		kernel_path_trace(kg, buffer, rng_state, sample, x, y, offset, stride);
 }
 
-#else // __COMPILE_ONLY_MEGAKERNEL__
+#else  /* __COMPILE_ONLY_MEGAKERNEL__ */
 
 __kernel void kernel_ocl_shader(
 	ccl_constant KernelData *data,
@@ -174,4 +190,4 @@ __kernel void kernel_ocl_convert_to_half_float(
 		kernel_film_convert_to_half_float(kg, rgba, buffer, sample_scale, x, y, offset, stride);
 }
 
-#endif // __COMPILE_ONLY_MEGAKERNEL__
+#endif  /* __COMPILE_ONLY_MEGAKERNEL__ */
