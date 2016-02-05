@@ -2115,9 +2115,9 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 		
 		/* perform snapping */
 		if (adt) {
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0); 
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0);
 		}
 		else 
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
@@ -2252,9 +2252,9 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 		
 		/* perform actual mirroring */
 		if (adt) {
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0); 
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0);
 		}
 		else 
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);

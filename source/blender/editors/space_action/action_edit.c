@@ -1586,9 +1586,9 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 			ED_masklayer_snap_frames(ale->data, ac->scene, mode);
 		}
 		else if (adt) {
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0); 
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0);
 		}
 		else {
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
@@ -1700,9 +1700,9 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 			/* TODO */
 		}
 		else if (adt) {
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0); 
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0);
 		}
 		else {
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, edit_cb, calchandles_fcurve);

@@ -998,9 +998,9 @@ short paste_animedit_keys(bAnimContext *ac, ListBase *anim_data,
 					totmatch++;
 					
 					if (adt) {
-						ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
+						ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0);
 						paste_animedit_keys_fcurve(fcu, aci, offset, merge_mode, flip);
-						ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
+						ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0);
 					}
 					else {
 						paste_animedit_keys_fcurve(fcu, aci, offset, merge_mode, flip);
