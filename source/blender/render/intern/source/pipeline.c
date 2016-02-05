@@ -2815,13 +2815,14 @@ static bool check_valid_compositing_camera(Scene *scene, Object *camera_override
 		while (node) {
 			if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
 				Scene *sce = node->id ? (Scene *)node->id : scene;
-
-				if (!sce->camera && !BKE_scene_camera_find(sce)) {
+				if (sce->camera == NULL) {
+					sce->camera = BKE_scene_camera_find(sce);
+				}
+				if (sce->camera == NULL) {
 					/* all render layers nodes need camera */
 					return false;
 				}
 			}
-
 			node = node->next;
 		}
 
