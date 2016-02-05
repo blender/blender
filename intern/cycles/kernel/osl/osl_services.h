@@ -93,11 +93,6 @@ public:
 	bool getmessage(OSL::ShaderGlobals *sg, ustring source, ustring name,
 	                TypeDesc type, void *val, bool derivatives);
 
-#if OSL_LIBRARY_VERSION_CODE < 10600
-	typedef TextureSystem::TextureHandle TextureHandle;
-	typedef TextureSystem::Perthread TexturePerthread;
-#endif
-
 	bool texture(ustring filename,
 	             TextureSystem::TextureHandle *texture_handle,
 	             TexturePerthread *texture_thread_info,
@@ -181,36 +176,6 @@ public:
 	static ustring u_u;
 	static ustring u_v;
 	static ustring u_empty;
-
-	/* Code to make OSL versions transition smooth. */
-
-#if OSL_LIBRARY_VERSION_CODE < 10600
-	bool texture(ustring filename,
-	             TextureOpt &options,
-	             OSL::ShaderGlobals *sg,
-	             float s, float t,
-	             float dsdx, float dtdx,
-	             float dsdy, float dtdy,
-	             float *result);
-
-	bool texture3d(ustring filename,
-	               TextureOpt &options,
-	               OSL::ShaderGlobals *sg,
-	               const OSL::Vec3 &P,
-	               const OSL::Vec3 &dPdx,
-	               const OSL::Vec3 &dPdy,
-	               const OSL::Vec3 &dPdz,
-	               float *result);
-
-	inline bool environment(ustring filename, TextureOpt &options,
-	                        OSL::ShaderGlobals *sg, const OSL::Vec3 &R,
-	                        const OSL::Vec3 &dRdx, const OSL::Vec3 &dRdy,
-	                        float *result)
-	{
-		return environment(filename, options, sg, R, dRdx, dRdy,
-		                   options.nchannels, result);
-	}
-#endif
 
 private:
 	KernelGlobals *kernel_globals;
