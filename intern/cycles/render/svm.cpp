@@ -397,7 +397,11 @@ void SVMCompiler::generate_node(ShaderNode *node, ShaderNodeSet& done)
 	stack_clear_users(node, done);
 	stack_clear_temporary(node);
 
-	if(current_type == SHADER_TYPE_VOLUME) {
+	if(current_type == SHADER_TYPE_SURFACE) {
+		if(node->has_spatial_varying())
+			current_shader->has_surface_spatial_varying = true;
+	}
+	else if(current_type == SHADER_TYPE_VOLUME) {
 		if(node->has_spatial_varying())
 			current_shader->has_volume_spatial_varying = true;
 	}
@@ -761,6 +765,7 @@ void SVMCompiler::compile(Scene *scene,
 	shader->has_bssrdf_bump = false;
 	shader->has_volume = false;
 	shader->has_displacement = false;
+	shader->has_surface_spatial_varying = false;
 	shader->has_volume_spatial_varying = false;
 	shader->has_object_dependency = false;
 	shader->has_integrator_dependency = false;

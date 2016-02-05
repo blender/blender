@@ -570,14 +570,20 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 	/* test if we shader contains specific closures */
 	OSLShaderInfo *info = ((OSLShaderManager*)manager)->shader_loaded_info(name);
 
-	if(info && current_type == SHADER_TYPE_SURFACE) {
-		if(info->has_surface_emission)
-			current_shader->has_surface_emission = true;
-		if(info->has_surface_transparent)
-			current_shader->has_surface_transparent = true;
-		if(info->has_surface_bssrdf) {
-			current_shader->has_surface_bssrdf = true;
-			current_shader->has_bssrdf_bump = true; /* can't detect yet */
+	if(current_type == SHADER_TYPE_SURFACE) {
+		if(info) {
+			if(info->has_surface_emission)
+				current_shader->has_surface_emission = true;
+			if(info->has_surface_transparent)
+				current_shader->has_surface_transparent = true;
+			if(info->has_surface_bssrdf) {
+				current_shader->has_surface_bssrdf = true;
+				current_shader->has_bssrdf_bump = true; /* can't detect yet */
+			}
+		}
+
+		if(node->has_spatial_varying()) {
+			current_shader->has_surface_spatial_varying = true;
 		}
 	}
 	else if(current_type == SHADER_TYPE_VOLUME) {
@@ -752,6 +758,8 @@ void OSLCompiler::generate_nodes(const ShaderNodeSet& nodes)
 							current_shader->has_surface_emission = true;
 						if(node->has_surface_transparent())
 							current_shader->has_surface_transparent = true;
+						if(node->has_spatial_varying())
+							current_shader->has_surface_spatial_varying = true;
 						if(node->has_surface_bssrdf()) {
 							current_shader->has_surface_bssrdf = true;
 							if(node->has_bssrdf_bump())
@@ -839,6 +847,7 @@ void OSLCompiler::compile(Scene *scene, OSLGlobals *og, Shader *shader)
 		shader->has_bssrdf_bump = false;
 		shader->has_volume = false;
 		shader->has_displacement = false;
+		shader->has_surface_spatial_varying = false;
 		shader->has_volume_spatial_varying = false;
 		shader->has_object_dependency = false;
 		shader->has_integrator_dependency = false;

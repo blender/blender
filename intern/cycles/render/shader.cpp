@@ -152,6 +152,7 @@ Shader::Shader()
 	has_volume = false;
 	has_displacement = false;
 	has_bssrdf_bump = false;
+	has_surface_spatial_varying = false;
 	has_volume_spatial_varying = false;
 	has_object_dependency = false;
 	has_integrator_dependency = false;
