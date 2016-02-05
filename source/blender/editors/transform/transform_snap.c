@@ -1526,15 +1526,20 @@ static bool snapDerivedMesh(
         float r_loc[3], float r_no[3], float *r_dist_px, int *r_index)
 {
 	bool retval = false;
-	const bool do_ray_start_correction = (
-	        (snap_to == SCE_SNAP_MODE_FACE) &&
-	         (ar && !((RegionView3D *)ar->regiondata)->is_persp));
 	int totvert = dm->getNumVerts(dm);
 
 	if (totvert > 0) {
+		const bool do_ray_start_correction = (
+		         ELEM(snap_to, SCE_SNAP_MODE_FACE, SCE_SNAP_MODE_VERTEX) &&
+		         (ar && !((RegionView3D *)ar->regiondata)->is_persp));
+		bool need_ray_start_correction_init = do_ray_start_correction;
+
 		float imat[4][4];
 		float timat[3][3]; /* transpose inverse matrix for normals */
-		float ray_start_local[3], ray_normal_local[3], local_scale, len_diff = BVH_RAYCAST_DIST_MAX;
+		float ray_start_local[3], ray_normal_local[3];
+		float local_scale, local_depth, len_diff;
+
+		BVHTreeFromMesh treedata;
 
 		invert_m4_m4(imat, obmat);
 		transpose_m3_m4(timat, imat);
@@ -1547,6 +1552,10 @@ static bool snapDerivedMesh(
 
 		/* local scale in normal direction */
 		local_scale = normalize_v3(ray_normal_local);
+		local_depth = *ray_depth;
+		if (local_depth != BVH_RAYCAST_DIST_MAX) {
+			local_depth *= local_scale;
+		}
 
 		if (do_bb) {
 			BoundBox *bb = BKE_object_boundbox_get(ob);
@@ -1565,76 +1574,75 @@ static bool snapDerivedMesh(
 					bb = &bb_temp;
 				}
 
+				len_diff = local_depth;
 				if (!BKE_boundbox_ray_hit_check(bb, ray_start_local, ray_normal_local, &len_diff)) {
 					return retval;
 				}
+				need_ray_start_correction_init = false;
 			}
 		}
-		else if (do_ray_start_correction) {
+
+		treedata.em_evil = em;
+		treedata.em_evil_all = false;
+		switch (snap_to) {
+			case SCE_SNAP_MODE_FACE:
+				bvhtree_from_mesh_looptri(&treedata, dm, 0.0f, 4, 6);
+				break;
+			case SCE_SNAP_MODE_VERTEX:
+				bvhtree_from_mesh_verts(&treedata, dm, 0.0f, 2, 6);
+				break;
+		}
+
+		if (need_ray_start_correction_init) {
 			/* We *need* a reasonably valid len_diff in this case.
 			 * Use BHVTree to find the closest face from ray_start_local.
 			 */
-			BVHTreeFromMesh treeData;
 			BVHTreeNearest nearest;
-			len_diff = 0.0f;  /* In case BVHTree would fail for some reason... */
 
-			treeData.em_evil = em;
-			treeData.em_evil_all = false;
-			bvhtree_from_mesh_looptri(&treeData, dm, 0.0f, 2, 6);
-			if (treeData.tree != NULL) {
+			if (treedata.tree != NULL) {
 				nearest.index = -1;
 				nearest.dist_sq = FLT_MAX;
 				/* Compute and store result. */
-				BLI_bvhtree_find_nearest(treeData.tree, ray_start_local, &nearest,
-				                         treeData.nearest_callback, &treeData);
+				BLI_bvhtree_find_nearest(
+				            treedata.tree, ray_start_local, &nearest, treedata.nearest_callback, &treedata);
 				if (nearest.index != -1) {
 					len_diff = sqrtf(nearest.dist_sq);
 				}
 			}
-			free_bvhtree_from_mesh(&treeData);
+		}
+		/* Only use closer ray_start in case of ortho view! In perspective one, ray_start may already
+		 * been *inside* boundbox, leading to snap failures (see T38409).
+		 * Note also ar might be null (see T38435), in this case we assume ray_start is ok!
+		 */
+		if (do_ray_start_correction) {
+			float ray_org_local[3];
+
+			copy_v3_v3(ray_org_local, ray_origin);
+			mul_m4_v3(imat, ray_org_local);
+
+			/* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with very far
+			 * away ray_start values (as returned in case of ortho view3d), see T38358.
+			 */
+			len_diff -= local_scale;  /* make temp start point a bit away from bbox hit point. */
+			madd_v3_v3v3fl(ray_start_local, ray_org_local, ray_normal_local,
+			               len_diff - len_v3v3(ray_start_local, ray_org_local));
+			local_depth -= len_diff;
+		}
+		else {
+			len_diff = 0.0f;
 		}
 
 		switch (snap_to) {
 			case SCE_SNAP_MODE_FACE:
 			{
 				BVHTreeRayHit hit;
-				BVHTreeFromMesh treeData;
-
-				/* Only use closer ray_start in case of ortho view! In perspective one, ray_start may already
-				 * been *inside* boundbox, leading to snap failures (see T38409).
-				 * Note also ar might be null (see T38435), in this case we assume ray_start is ok!
-				 */
-				if (do_ray_start_correction) {
-					float ray_org_local[3];
-
-					copy_v3_v3(ray_org_local, ray_origin);
-					mul_m4_v3(imat, ray_org_local);
-
-					/* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with very far
-					 * away ray_start values (as returned in case of ortho view3d), see T38358.
-					 */
-					len_diff -= local_scale;  /* make temp start point a bit away from bbox hit point. */
-					madd_v3_v3v3fl(ray_start_local, ray_org_local, ray_normal_local,
-					               len_diff - len_v3v3(ray_start_local, ray_org_local));
-				}
-				else {
-					len_diff = 0.0f;
-				}
-
-				treeData.em_evil = em;
-				treeData.em_evil_all = false;
-				bvhtree_from_mesh_looptri(&treeData, dm, 0.0f, 4, 6);
 
 				hit.index = -1;
-				hit.dist = *ray_depth;
-				if (hit.dist != BVH_RAYCAST_DIST_MAX) {
-					hit.dist *= local_scale;
-					hit.dist -= len_diff;
-				}
+				hit.dist = local_depth;
 
-				if (treeData.tree &&
-				    BLI_bvhtree_ray_cast(treeData.tree, ray_start_local, ray_normal_local, 0.0f,
-				                         &hit, treeData.raycast_callback, &treeData) != -1)
+				if (treedata.tree &&
+				    BLI_bvhtree_ray_cast(treedata.tree, ray_start_local, ray_normal_local, 0.0f,
+				                         &hit, treedata.raycast_callback, &treedata) != -1)
 				{
 					hit.dist += len_diff;
 					hit.dist /= local_scale;
@@ -1651,36 +1659,29 @@ static bool snapDerivedMesh(
 						retval = true;
 
 						if (r_index) {
-							*r_index = dm_looptri_to_poly_index(dm, &treeData.looptri[hit.index]);
+							*r_index = dm_looptri_to_poly_index(dm, &treedata.looptri[hit.index]);
 						}
 					}
 				}
-				free_bvhtree_from_mesh(&treeData);
 				break;
 			}
 			case SCE_SNAP_MODE_VERTEX:
 			{
 				BVHTreeNearest nearest;
-				BVHTreeFromMesh treeData;
-
-				treeData.em_evil = em;
-				bvhtree_from_mesh_verts(&treeData, dm, 0.0f, 2, 6);
 
 				nearest.index = -1;
-				nearest.dist_sq = FLT_MAX;
-				if (treeData.tree &&
+				nearest.dist_sq = local_depth * local_depth;
+				if (treedata.tree &&
 				    BLI_bvhtree_find_nearest_to_ray(
-				        treeData.tree, ray_start_local, ray_normal_local, 0.0f,
-				        &nearest, NULL, &treeData) != -1)
+				        treedata.tree, ray_start_local, ray_normal_local, 0.0f,
+				        &nearest, NULL, NULL) != -1)
 				{
-					MVert v = treeData.vert[nearest.index];
+					const MVert *v = &treedata.vert[nearest.index];
 					retval = snapVertex(
-						ar, v.co, v.no, obmat, timat, mval,
-						ray_start, ray_start_local, ray_normal_local, ray_depth,
-						r_loc, r_no, r_dist_px);
+					             ar, v->co, v->no, obmat, timat, mval,
+					             ray_start, ray_start_local, ray_normal_local, ray_depth,
+					             r_loc, r_no, r_dist_px);
 				}
-				free_bvhtree_from_mesh(&treeData);
-
 				break;
 			}
 			case SCE_SNAP_MODE_EDGE:
@@ -1735,6 +1736,8 @@ static bool snapDerivedMesh(
 				break;
 			}
 		}
+
+		free_bvhtree_from_mesh(&treedata);
 	}
 
 	return retval;
