@@ -1454,7 +1454,7 @@ clean_OIIO() {
 
 compile_OIIO() {
   # To be changed each time we make edits that would modify the compiled result!
-  oiio_magic=15
+  oiio_magic=16
   _init_oiio
 
   # Clean install if needed!
@@ -1682,7 +1682,7 @@ clean_OSL() {
 
 compile_OSL() {
   # To be changed each time we make edits that would modify the compiled result!
-  osl_magic=19
+  osl_magic=20
   _init_osl
 
   # Clean install if needed!
