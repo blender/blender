@@ -17,16 +17,15 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include <boost/algorithm/string.hpp>
-
 #include "util_foreach.h"
 #include "util_string.h"
+#include "util_windows.h"
 
 #ifdef _WIN32
-#ifndef vsnprintf
-#define vsnprintf _vsnprintf
-#endif
-#endif
+#  ifndef vsnprintf
+#    define vsnprintf _vsnprintf
+#  endif
+#endif  /* _WIN32 */
 
 CCL_NAMESPACE_BEGIN
 
@@ -77,13 +76,42 @@ bool string_iequals(const string& a, const string& b)
 
 void string_split(vector<string>& tokens, const string& str, const string& separators)
 {
-	vector<string> split;
+	size_t token_start = 0, token_length = 0;
+	for(size_t i = 0; i < str.size(); ++i) {
+		const char ch = str[i];
+		if(separators.find(ch) == string::npos) {
+			/* Current character is not a separator,
+			 * append it to token by increasing token length.
+			 */
+			++token_length;
+		}
+		else {
+			/* Current character is a separator,
+			 * append current token to the list (if token is not empty).
+			 */
+			if(token_length > 0) {
+				string token = str.substr(token_start, token_length);
+				tokens.push_back(token);
+			}
+			token_start = i + 1;
+			token_length = 0;
+		}
+	}
+	/* Append token from the tail of the string if exists. */
+	if(token_length) {
+		string token = str.substr(token_start, token_length);
+		tokens.push_back(token);
+	}
+}
 
-	boost::split(split, str, boost::is_any_of(separators), boost::token_compress_on);
+bool string_startswith(const string& s, const char *start)
+{
+	size_t len = strlen(start);
 
-	foreach(const string& token, split)
-		if(token != "")
-			tokens.push_back(token);
+	if(len > s.size())
+		return 0;
+	else
+		return strncmp(s.c_str(), start, len) == 0;
 }
 
 bool string_endswith(const string& s, const char *end)
@@ -107,10 +135,11 @@ string string_strip(const string& s)
 
 void string_replace(string& haystack, const string& needle, const string& other)
 {
-	size_t i;
-
-	while((i = haystack.find(needle)) != string::npos)
-		haystack.replace(i, needle.length(), other);
+	size_t i = 0, index;
+	while((index = haystack.find(needle, i)) != string::npos) {
+		haystack.replace(index, needle.size(), other);
+		i = index + other.size();
+	}
 }
 
 string string_remove_trademark(const string &s)
@@ -129,6 +158,50 @@ string string_from_bool(bool var)
 	else
 		return "False";
 }
+
+/* Wide char strings helpers for Windows. */
+
+#ifdef _WIN32
+
+wstring string_to_wstring(const string& str)
+{
+	const int length_wc = MultiByteToWideChar(CP_ACP,
+	                                          0,
+	                                          str.c_str(),
+	                                          str.length(),
+	                                          NULL,
+	                                          0);
+	wstring str_wc(length_wc + 1, 0);
+	MultiByteToWideChar(CP_ACP,
+	                    0,
+	                    str.c_str(),
+	                    str.length(),
+	                    &str_wc[0],
+	                    length_wc);
+	return str_wc;
+}
+
+string string_from_wstring(const wstring& str)
+{
+	int length_mb = WideCharToMultiByte(CP_ACP,
+	                                    0,
+	                                    str.c_str(),
+	                                    str.size(),
+	                                    NULL,
+	                                    0,
+	                                    NULL, NULL);
+	string str_mb(length_mb + 1, 0);
+	WideCharToMultiByte(CP_ACP,
+	                    0,
+	                    str.c_str(),
+	                    str.size(),
+	                    &str_mb[0],
+	                    length_mb,
+	                    NULL, NULL);
+	return str_mb;
+}
+
+#endif  /* _WIN32 */
 
 CCL_NAMESPACE_END
 

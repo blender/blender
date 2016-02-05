@@ -21,7 +21,20 @@
 #if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
 #  include <unordered_set>
 #else
-#  include <boost/tr1/unordered_set.hpp>
+#  if defined(CYCLES_TR1_UNORDERED_MAP)
+#    include <tr1/unordered_set>
+#  endif
+#  if defined(CYCLES_STD_UNORDERED_MAP) || \
+      defined(CYCLES_STD_UNORDERED_MAP_IN_TR1_NAMESPACE)
+#    include <unordered_set>
+#  endif
+#  if !defined(CYCLES_NO_UNORDERED_MAP) && \
+      !defined(CYCLES_TR1_UNORDERED_MAP) && \
+      !defined(CYCLES_STD_UNORDERED_MAP) && \
+      !defined(CYCLES_STD_UNORDERED_MAP_IN_TR1_NAMESPACE)
+#    error One of: CYCLES_NO_UNORDERED_MAP, CYCLES_TR1_UNORDERED_MAP,\
+ CYCLES_STD_UNORDERED_MAP, CYCLES_STD_UNORDERED_MAP_IN_TR1_NAMESPACE must be defined!  // NOLINT
+#  endif
 #endif
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1900)
@@ -34,7 +47,15 @@ using std::set;
 #if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
 using std::unordered_set;
 #else
+#  if defined(CYCLES_NO_UNORDERED_MAP)
+typedef std::set unordered_set;
+#  endif
+#  if defined(CYCLES_TR1_UNORDERED_MAP) || defined(CYCLES_STD_UNORDERED_MAP_IN_TR1_NAMESPACE)
 using std::tr1::unordered_set;
+#  endif
+#  if defined(CYCLES_STD_UNORDERED_MAP)
+using std::unordered_set;
+#  endif
 #endif
 CCL_NAMESPACE_END
 

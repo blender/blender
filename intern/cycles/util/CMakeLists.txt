@@ -73,6 +73,7 @@ set(SRC_HEADERS
 	util_types.h
 	util_vector.h
 	util_view.h
+	util_windows.h
 	util_xml.h
 )
 

@@ -20,15 +20,15 @@
 #include "util_string.h"
 
 #ifdef _WIN32
-#if(!defined(FREE_WINDOWS))
-#include <intrin.h>
-#endif
-#include <windows.h>
+#  if(!defined(FREE_WINDOWS))
+#    include <intrin.h>
+#  endif
+#  include "util_windows.h"
 #elif defined(__APPLE__)
-#include <sys/sysctl.h>
-#include <sys/types.h>
+#  include <sys/sysctl.h>
+#  include <sys/types.h>
 #else
-#include <unistd.h>
+#  include <unistd.h>
 #endif
 
 CCL_NAMESPACE_BEGIN

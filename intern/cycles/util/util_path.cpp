@@ -21,27 +21,296 @@
 
 #include <OpenImageIO/strutil.h>
 #include <OpenImageIO/sysutil.h>
+
 OIIO_NAMESPACE_USING
 
 #include <stdio.h>
 
-#include <boost/filesystem.hpp> 
-#include <boost/algorithm/string.hpp>
+#include <sys/stat.h>
+
+#if defined(_WIN32)
+#  define DIR_SEP '\\'
+#  define DIR_SEP_ALT '/'
+#  include <direct.h>
+#else
+#  define DIR_SEP '/'
+#  define DIR_SEP_ALT '\\'
+#  include <dirent.h>
+#endif
+
+#ifdef HAVE_SHLWAPI_H
+#  include <shlwapi.h>
+#endif
+
+#include "util_windows.h"
 
 CCL_NAMESPACE_BEGIN
+
+#ifdef _WIN32
+#  if defined(_MSC_VER) || defined(__MINGW64__)
+typedef struct _stat64 path_stat_t;
+#  elif defined(__MINGW32__)
+typedef struct _stati64 path_stat_t;
+#  else
+typedef struct _stat path_stat_t;
+#  endif
+#  ifndef S_ISDIR
+#    define S_ISDIR(x) (((x) & _S_IFDIR) == _S_IFDIR)
+#  endif
+#  define mkdir(path, mode) _mkdir(path)
+#else
+typedef struct stat path_stat_t;
+#endif
 
 static string cached_path = "";
 static string cached_user_path = "";
 
-static boost::filesystem::path to_boost(const string& path)
+namespace {
+
+#ifdef _WIN32
+class directory_iterator {
+public:
+	class path_info {
+	public:
+		path_info(const string& path,
+		          const WIN32_FIND_DATAW& find_data)
+		: path_(path),
+		  find_data_(find_data)
+		{
+		}
+
+		string path() {
+			return path_join(path_, string_from_wstring(find_data_.cFileName));
+		}
+	protected:
+		const string& path_;
+		const WIN32_FIND_DATAW& find_data_;
+	};
+
+	directory_iterator()
+	: path_info_("", find_data_),
+	  h_find_(INVALID_HANDLE_VALUE)
+	{
+	}
+
+	directory_iterator(const string& path)
+	: path_(path),
+	  path_info_(path, find_data_)
+	{
+		string wildcard = path;
+		if(wildcard[wildcard.size() - 1] != DIR_SEP) {
+			wildcard += DIR_SEP;
+		}
+		wildcard += "*";
+		h_find_ = FindFirstFileW(string_to_wstring(wildcard).c_str(),
+		                         &find_data_);
+		if(h_find_ != INVALID_HANDLE_VALUE) {
+			skip_dots();
+		}
+	}
+
+	~directory_iterator()
+	{
+		if(h_find_ != INVALID_HANDLE_VALUE) {
+			FindClose(h_find_);
+		}
+	}
+
+	directory_iterator& operator++()
+	{
+		step();
+		return *this;
+	}
+
+	path_info* operator-> ()
+	{
+		return &path_info_;
+	}
+
+	bool operator!=(const directory_iterator& other)
+	{
+		return h_find_ != other.h_find_;
+	}
+
+protected:
+	bool step()
+	{
+		if(do_step()) {
+			return skip_dots();
+		}
+		return false;
+	}
+
+	bool do_step()
+	{
+		if(h_find_ != INVALID_HANDLE_VALUE) {
+			bool result = FindNextFileW(h_find_, &find_data_) == TRUE;
+			if(!result) {
+				FindClose(h_find_);
+				h_find_ = INVALID_HANDLE_VALUE;
+			}
+			return result;
+		}
+		return false;
+	}
+
+	bool skip_dots()
+	{
+		while(wcscmp(find_data_.cFileName, L".") == 0 ||
+		      wcscmp(find_data_.cFileName, L"..") == 0)
+		{
+			if(!do_step()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	string path_;
+	path_info path_info_;
+	WIN32_FIND_DATAW find_data_;
+	HANDLE h_find_;
+};
+#else  /* _WIN32 */
+
+class directory_iterator {
+public:
+	class path_info {
+	public:
+		path_info(const string& path)
+		: path_(path)
+		{
+		}
+
+		string path() {
+			return path_join(path_, entry_->d_name);
+		}
+
+		void current_entry_set(const struct dirent *entry)
+		{
+			entry_ = entry;
+		}
+	protected:
+		const string& path_;
+		const struct dirent *entry_;
+	};
+
+	directory_iterator()
+	: path_info_(""),
+	  name_list_(NULL),
+	  num_entries_(-1),
+	  cur_entry_(-1)
+	{
+	}
+
+	directory_iterator(const string& path)
+	: path_(path),
+	  path_info_(path_),
+	  cur_entry_(0)
+	{
+		num_entries_ = scandir(path.c_str(),
+		                       &name_list_,
+		                       NULL,
+		                       alphasort);
+		if(num_entries_ < 0) {
+			perror("scandir");
+		}
+		else {
+			skip_dots();
+		}
+	}
+
+	~directory_iterator()
+	{
+		destroy_name_list();
+	}
+
+	directory_iterator& operator++()
+	{
+		step();
+		return *this;
+	}
+
+	path_info* operator-> ()
+	{
+		path_info_.current_entry_set(name_list_[cur_entry_]);
+		return &path_info_;
+	}
+
+	bool operator!=(const directory_iterator& other)
+	{
+		return name_list_ != other.name_list_;
+	}
+
+protected:
+	bool step()
+	{
+		if(do_step()) {
+			return skip_dots();
+		}
+		return false;
+	}
+
+	bool do_step()
+	{
+		++cur_entry_;
+		if(cur_entry_ >= num_entries_) {
+			destroy_name_list();
+			return false;
+		}
+		return true;
+	}
+
+	/* Skip . and .. folders. */
+	bool skip_dots()
+	{
+		while(strcmp(name_list_[cur_entry_]->d_name, ".") == 0 ||
+		      strcmp(name_list_[cur_entry_]->d_name, "..") == 0)
+		{
+			if(!step()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	void destroy_name_list()
+	{
+		if(name_list_ == NULL) {
+			return;
+		}
+		for(int i = 0; i < num_entries_; ++i) {
+			free(name_list_[i]);
+		}
+		free(name_list_);
+		name_list_ = NULL;
+	}
+
+	string path_;
+	path_info path_info_;
+	struct dirent **name_list_;
+	int num_entries_, cur_entry_;
+};
+
+#endif  /* _WIN32 */
+
+size_t find_last_slash(const string& path)
 {
-	return boost::filesystem::path(path.c_str());
+	for(size_t i = 0; i < path.size(); ++i) {
+		size_t index = path.size() - 1 - i;
+#ifdef _WIN32
+		if(path[index] == DIR_SEP || path[index] == DIR_SEP_ALT)
+#else
+		if(path[index] == DIR_SEP)
+#endif
+		{
+			return index;
+		}
+	}
+	return string::npos;
 }
 
-static string from_boost(const boost::filesystem::path& path)
-{
-	return path.string().c_str();
-}
+}  /* namespace */
 
 static char *path_specials(const string& sub)
 {
@@ -90,49 +359,237 @@ string path_user_get(const string& sub)
 
 string path_filename(const string& path)
 {
-	return from_boost(to_boost(path).filename());
+	size_t index = find_last_slash(path);
+	if(index != string::npos) {
+		/* Corner cases to match boost behavior. */
+#ifndef _WIN32
+		if(index == 0 && path.size() == 1) {
+			return path;
+		}
+#endif
+		if(index == path.size() - 1) {
+#ifdef _WIN32
+			if(index == 2) {
+				return string(1, DIR_SEP);
+			}
+#endif
+			return ".";
+		}
+		return path.substr(index + 1, path.size() - index - 1);
+	}
+	return path;
 }
 
 string path_dirname(const string& path)
 {
-	return from_boost(to_boost(path).parent_path());
+	size_t index = find_last_slash(path);
+	if(index != string::npos) {
+#ifndef _WIN32
+		if(index == 0 && path.size() > 1) {
+			return string(1, DIR_SEP);
+		}
+#endif
+		return path.substr(0, index);
+	}
+	return "";
 }
 
 string path_join(const string& dir, const string& file)
 {
-	return from_boost((to_boost(dir) / to_boost(file)));
+	if(dir.size() == 0) {
+		return file;
+	}
+	if(file.size() == 0) {
+		return dir;
+	}
+	string result = dir;
+#ifndef _WIN32
+	if(result[result.size() - 1] != DIR_SEP &&
+	   file[0] != DIR_SEP)
+#else
+	if(result[result.size() - 1] != DIR_SEP &&
+	   result[result.size() - 1] != DIR_SEP_ALT &&
+	   file[0] != DIR_SEP &&
+	   file[0] != DIR_SEP_ALT)
+#endif
+	{
+		result += DIR_SEP;
+	}
+	result += file;
+	return result;
 }
 
 string path_escape(const string& path)
 {
 	string result = path;
-	boost::replace_all(result, " ", "\\ ");
+	string_replace(result, " ", "\\ ");
 	return result;
 }
 
 bool path_is_relative(const string& path)
 {
-	return to_boost(path).is_relative();
+#ifdef _WIN32
+#  ifdef HAVE_SHLWAPI_H
+	return PathIsRelative(path.c_str());
+#  else  /* HAVE_SHLWAPI_H */
+	if(path.size() >= 3) {
+		return !(((path[0] >= 'a' && path[0] <= 'z') ||
+		         (path[0] >= 'A' && path[0] <= 'Z')) &&
+		         path[1] == ':' && path[2] == DIR_SEP);
+	}
+	return true;
+#  endif  /* HAVE_SHLWAPI_H */
+#else  /* _WIN32 */
+	if(path.size() == 0) {
+		return 1;
+	}
+	return path[0] != DIR_SEP;
+#endif  /* _WIN32 */
+}
+
+#ifdef _WIN32
+/* Add a slash if the UNC path points to a share. */
+static string path_unc_add_slash_to_share(const string& path)
+{
+	size_t slash_after_server = path.find(DIR_SEP, 2);
+	if(slash_after_server != string::npos) {
+		size_t slash_after_share = path.find(DIR_SEP,
+		                                     slash_after_server + 1);
+		if(slash_after_share == string::npos) {
+			return path + DIR_SEP;
+		}
+	}
+	return path;
+}
+
+/* Convert:
+ *    \\?\UNC\server\share\folder\... to \\server\share\folder\...
+ *    \\?\C:\ to C:\ and \\?\C:\folder\... to C:\folder\...
+ */
+static string path_unc_to_short(const string& path)
+{
+	size_t len = path.size();
+	if((len > 3) &&
+	   (path[0] ==  DIR_SEP) &&
+	   (path[1] ==  DIR_SEP) &&
+	   (path[2] ==  '?') &&
+	   ((path[3] ==  DIR_SEP) || (path[3] ==  DIR_SEP_ALT)))
+	{
+		if((len > 5) && (path[5] ==  ':')) {
+			return path.substr(4, len - 4);
+		}
+		else if ((len > 7) &&
+		         (path.substr(4, 3) == "UNC") &&
+		         ((path[7] ==  DIR_SEP) || (path[7] ==  DIR_SEP_ALT)))
+		{
+			return "\\\\" + path.substr(8, len - 8);
+		}
+	}
+	return path;
+}
+
+static string path_cleanup_unc(const string& path)
+{
+	string result = path_unc_to_short(path);
+	if(path.size() > 2) {
+		/* It's possible path is now a non-UNC. */
+		if(result[0] == DIR_SEP && result[1] == DIR_SEP) {
+			return path_unc_add_slash_to_share(result);
+		}
+	}
+	return result;
+}
+
+/* Make path compatible for stat() functions. */
+static string path_make_compatible(const string& path)
+{
+	string result = path;
+	/* in Windows stat() doesn't recognize dir ending on a slash. */
+	if(result.size() > 3 && result[result.size() - 1] == DIR_SEP) {
+		result.pop_back();
+	}
+	/* Clean up UNC path. */
+	if((path.size() >= 3) && (path[0] == DIR_SEP) && (path[1] == DIR_SEP)) {
+		result = path_cleanup_unc(result);
+	}
+	/* Make sure volume-only path ends up wit ha directory separator. */
+	if(result.size() == 2 && result[1] == ':') {
+		result += DIR_SEP;
+	}
+	return result;
+}
+
+static int path_wstat(const wstring& path_wc, path_stat_t *st)
+{
+#if defined(_MSC_VER) || defined(__MINGW64__)
+	return _wstat64(path_wc.c_str(), st);
+#elif defined(__MINGW32__)
+	return _wstati64(path_wc.c_str(), st);
+#else
+	return _wstat(path_wc.c_str(), st);
+#endif
+}
+
+static int path_stat(const string& path, path_stat_t *st)
+{
+	wstring path_wc = string_to_wstring(path);
+	return path_wstat(path_wc, st);
+}
+#else  /* _WIN32 */
+static int path_stat(const string& path, path_stat_t *st)
+{
+	return stat(path.c_str(), st);
+}
+#endif  /* _WIN32 */
+
+size_t path_file_size(const string& path)
+{
+	path_stat_t st;
+	if(path_stat(path, &st) != 0) {
+		return -1;
+	}
+	return st.st_size;
 }
 
 bool path_exists(const string& path)
 {
-	return boost::filesystem::exists(to_boost(path));
+#ifdef _WIN32
+	string fixed_path = path_make_compatible(path);
+	wstring path_wc = string_to_wstring(fixed_path);
+	path_stat_t st;
+	if(path_wstat(path_wc, &st) != 0) {
+		return false;
+	}
+	return st.st_mode != 0;
+#else  /* _WIN32 */
+	struct stat st;
+	if(stat(path.c_str(), &st) != 0) {
+		return 0;
+	}
+	return st.st_mode != 0;
+#endif /* _WIN32 */
+}
+
+bool path_is_directory(const string& path)
+{
+	path_stat_t st;
+	if(path_stat(path, &st) != 0) {
+		return false;
+	}
+	return S_ISDIR(st.st_mode);
 }
 
 static void path_files_md5_hash_recursive(MD5Hash& hash, const string& dir)
 {
-	boost::filesystem::path dirpath = to_boost(dir);
+	if(path_exists(dir)) {
+		directory_iterator it(dir), it_end;
 
-	if(boost::filesystem::exists(dirpath)) {
-		boost::filesystem::directory_iterator it(dirpath), it_end;
-
-		for(; it != it_end; it++) {
-			if(boost::filesystem::is_directory(it->status())) {
-				path_files_md5_hash_recursive(hash, from_boost(it->path()));
+		for(; it != it_end; ++it) {
+			if(path_is_directory(it->path())) {
+				path_files_md5_hash_recursive(hash, it->path());
 			}
 			else {
-				string filepath = from_boost(it->path());
+				string filepath = it->path();
 
 				hash.append((const uint8_t*)filepath.c_str(), filepath.size());
 				hash.append_file(filepath);
@@ -151,9 +608,31 @@ string path_files_md5_hash(const string& dir)
 	return hash.get_hex();
 }
 
-void path_create_directories(const string& path)
+static bool create_directories_recursivey(const string& path)
 {
-	boost::filesystem::create_directories(to_boost(path_dirname(path)));
+	if(path_is_directory(path)) {
+		/* Directory already exists, nothing to do. */
+		return true;
+	}
+	if(path_exists(path)) {
+		/* File exists and it's not a directory. */
+		return false;
+	}
+
+	string parent = path_dirname(path);
+	if(parent.size() > 0 && parent != path) {
+		if(!create_directories_recursivey(parent)) {
+			return false;
+		}
+	}
+
+	return mkdir(path.c_str(), 0777) == 0;
+}
+
+void path_create_directories(const string& filepath)
+{
+	string path = path_dirname(filepath);
+	create_directories_recursivey(path);
 }
 
 bool path_write_binary(const string& path, const vector<uint8_t>& binary)
@@ -184,13 +663,15 @@ bool path_write_text(const string& path, string& text)
 
 bool path_read_binary(const string& path, vector<uint8_t>& binary)
 {
-	binary.resize(boost::filesystem::file_size(to_boost(path)));
-
 	/* read binary file into memory */
 	FILE *f = path_fopen(path, "rb");
 
-	if(!f)
+	if(!f) {
+		binary.resize(0);
 		return false;
+	}
+
+	binary.resize(path_file_size(path));
 
 	if(binary.size() == 0) {
 		fclose(f);
@@ -223,10 +704,16 @@ bool path_read_text(const string& path, string& text)
 
 uint64_t path_modified_time(const string& path)
 {
-	if(boost::filesystem::exists(to_boost(path)))
-		return (uint64_t)boost::filesystem::last_write_time(to_boost(path));
-	
+	path_stat_t st;
+	if(path_stat(path, &st) != 0) {
+		return st.st_mtime;
+	}
 	return 0;
+}
+
+bool path_remove(const string& path)
+{
+	return remove(path.c_str()) == 0;
 }
 
 string path_source_replace_includes(const string& source_, const string& path)
@@ -265,15 +752,15 @@ void path_cache_clear_except(const string& name, const set<string>& except)
 {
 	string dir = path_user_get("cache");
 
-	if(boost::filesystem::exists(dir)) {
-		boost::filesystem::directory_iterator it(dir), it_end;
+	if(path_exists(dir)) {
+		directory_iterator it(dir), it_end;
 
-		for(; it != it_end; it++) {
-			string filename = from_boost(it->path().filename().string());
+		for(; it != it_end; ++it) {
+			string filename = path_filename(it->path());
 
-			if(boost::starts_with(filename, name))
+			if(string_startswith(filename, name.c_str()))
 				if(except.find(filename) == except.end())
-					boost::filesystem::remove(to_boost(filename));
+					path_remove(it->path());
 		}
 	}
 
