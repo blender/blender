@@ -623,10 +623,6 @@ void RE_bake_pixels_populate(
 	unsigned int mpoly_prev_testindex = UINT_MAX;
 #endif
 
-	/* we can't bake in edit mode */
-	if (me->edit_btmesh)
-		return;
-
 	if ((uv_layer == NULL) || (uv_layer[0] == '\0')) {
 		mloopuv = CustomData_get_layer(&me->ldata, CD_MLOOPUV);
 	}
