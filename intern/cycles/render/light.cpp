@@ -131,6 +131,7 @@ Light::Light()
 	max_bounces = 1024;
 
 	is_portal = false;
+	is_enabled = true;
 }
 
 void Light::tag_update(Scene *scene)
@@ -161,32 +162,36 @@ LightManager::~LightManager()
 {
 }
 
-bool LightManager::skip_background_light(Device *device, Scene *scene)
+void LightManager::disable_ineffective_light(Device *device, Scene *scene)
 {
-	/* Check whether we've got portals. */
-	bool has_portal = false;
-	foreach(Light *light, scene->lights) {
-		if(light->is_portal) {
-			has_portal = true;
-			break;
-		}
-	}
-	/* Ignore background light if:
-	 * - If unsupported on a device
-	 * - If we don't need it (no HDRs etc.)
+	/* Make all lights enabled by default, and perform some preliminary checks
+	 * needed for finer-tuning of settings (for example, check whether we've
+	 * got portals or not).
 	 */
+	bool has_portal = false, has_background = false;
 	foreach(Light *light, scene->lights) {
-		if(light->type == LIGHT_BACKGROUND) {
-			Shader *shader = scene->shaders[scene->background->shader];
-			bool auto_disable_mis = (!has_portal && !shader->has_surface_spatial_varying);
-			if(!(device->info.advanced_shading) || auto_disable_mis) {
-				VLOG(1) << "Background MIS has been disabled.\n";
-				return true;
+		light->is_enabled = light->has_contribution(scene);
+		has_portal |= light->is_portal;
+		has_background |= light->type == LIGHT_BACKGROUND;
+	}
+
+	if(has_background) {
+		/* Ignore background light if:
+		 * - If unsupported on a device
+		 * - If we don't need it (no HDRs etc.)
+		 */
+		Shader *shader = scene->shaders[scene->background->shader];
+		bool disable_mis = !(has_portal || shader->has_surface_spatial_varying) ||
+		                   !(device->info.advanced_shading);
+		if(disable_mis) {
+			VLOG(1) << "Background MIS has been disabled.\n";
+			foreach(Light *light, scene->lights) {
+				if(light->type == LIGHT_BACKGROUND) {
+					light->is_enabled = false;
+				}
 			}
-			break;
 		}
 	}
-	return false;
 }
 
 void LightManager::device_update_distribution(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
@@ -491,24 +496,21 @@ static void background_cdf(int start,
 void LightManager::device_update_background(Device *device,
                                             DeviceScene *dscene,
                                             Scene *scene,
-                                            Progress& progress,
-                                            bool skip_background)
+                                            Progress& progress)
 {
 	KernelIntegrator *kintegrator = &dscene->data.integrator;
 	Light *background_light = NULL;
 
 	/* find background light */
-	if(!skip_background) {
-		foreach(Light *light, scene->lights) {
-			if(light->type == LIGHT_BACKGROUND) {
-				background_light = light;
-				break;
-			}
+	foreach(Light *light, scene->lights) {
+		if(light->type == LIGHT_BACKGROUND) {
+			background_light = light;
+			break;
 		}
 	}
 
 	/* no background light found, signal renderer to skip sampling */
-	if(!background_light) {
+	if(!background_light || !background_light->is_enabled) {
 		kintegrator->pdf_background_res = 0;
 		return;
 	}
@@ -587,8 +589,7 @@ void LightManager::device_update_background(Device *device,
 
 void LightManager::device_update_points(Device *device,
                                         DeviceScene *dscene,
-                                        Scene *scene,
-                                        bool skip_background)
+                                        Scene *scene)
 {
 	int num_scene_lights = scene->lights.size();
 	if(num_scene_lights == 0)
@@ -598,7 +599,7 @@ void LightManager::device_update_points(Device *device,
 	int light_index = 0;
 
 	foreach(Light *light, scene->lights) {
-		if(!light->has_contribution(scene)) {
+		if(!light->is_enabled) {
 			continue;
 		}
 
@@ -664,10 +665,6 @@ void LightManager::device_update_points(Device *device,
 			light_data[light_index*LIGHT_SIZE + 4] = make_float4(max_bounces, 0.0f, 0.0f, 0.0f);
 		}
 		else if(light->type == LIGHT_BACKGROUND) {
-			if(skip_background) {
-				continue;
-			}
-
 			uint visibility = scene->background->visibility;
 
 			shader_id &= ~SHADER_AREA_LIGHT;
@@ -782,15 +779,16 @@ void LightManager::device_update(Device *device, DeviceScene *dscene, Scene *sce
 	device_free(device, dscene);
 
 	use_light_visibility = false;
-	bool skip_background = skip_background_light(device, scene);
 
-	device_update_points(device, dscene, scene, skip_background);
+	disable_ineffective_light(device, scene);
+
+	device_update_points(device, dscene, scene);
 	if(progress.get_cancel()) return;
 
 	device_update_distribution(device, dscene, scene, progress);
 	if(progress.get_cancel()) return;
 
-	device_update_background(device, dscene, scene, progress, skip_background);
+	device_update_background(device, dscene, scene, progress);
 	if(progress.get_cancel()) return;
 
 	if(use_light_visibility != scene->film->use_light_visibility) {

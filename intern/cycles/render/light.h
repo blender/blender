@@ -57,6 +57,7 @@ public:
 	bool use_scatter;
 
 	bool is_portal;
+	bool is_enabled;
 
 	int shader;
 	int samples;
@@ -76,24 +77,32 @@ public:
 	LightManager();
 	~LightManager();
 
-	void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
+	void device_update(Device *device,
+	                   DeviceScene *dscene,
+	                   Scene *scene,
+	                   Progress& progress);
 	void device_free(Device *device, DeviceScene *dscene);
 
 	void tag_update(Scene *scene);
 
 protected:
-	bool skip_background_light(Device *device, Scene *scene);
+	/* Optimization: disable light which is either unsupported or
+	 * which doesn't contribute to the scene or which is only used for MIS
+	 * and scene doesn't need MIS.
+	 */
+	void disable_ineffective_light(Device *device, Scene *scene);
 
 	void device_update_points(Device *device,
 	                          DeviceScene *dscene,
-	                          Scene *scene,
-	                          bool skip_background);
-	void device_update_distribution(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
+	                          Scene *scene);
+	void device_update_distribution(Device *device,
+	                                DeviceScene *dscene,
+	                                Scene *scene,
+	                                Progress& progress);
 	void device_update_background(Device *device,
 	                              DeviceScene *dscene,
 	                              Scene *scene,
-	                              Progress& progress,
-	                              bool skip_background);
+	                              Progress& progress);
 };
 
 CCL_NAMESPACE_END
