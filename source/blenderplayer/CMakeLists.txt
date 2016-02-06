@@ -150,7 +150,6 @@ endif()
 		bf_imbuf_openexr 
 		bf_imbuf_openimageio
 		extern_openjpeg
-		extern_redcode
 		bf_imbuf_dds
 		bf_dna
 		ge_videotex

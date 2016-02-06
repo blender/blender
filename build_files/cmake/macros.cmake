@@ -618,7 +618,6 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		ge_logic_loopbacknetwork
 		bf_intern_moto
 		extern_openjpeg
-		extern_redcode
 		ge_videotex
 		bf_dna
 		bf_blenfont
