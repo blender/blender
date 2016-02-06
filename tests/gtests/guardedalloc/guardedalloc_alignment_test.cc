@@ -48,6 +48,6 @@ TEST(guardedalloc, GuardedAlignedAlloc16)
 TEST(guardedalloc, GuardedAlignedAlloc32)
 {
 	MEM_use_guarded_allocator();
-	DoBasicAlignmentChecks(16);
+	DoBasicAlignmentChecks(32);
 }
 #endif
