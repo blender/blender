@@ -29,6 +29,7 @@ macro(BLENDER_SRC_GTEST_EX NAME SRC EXTRA_LIBS DO_ADD_TEST)
 		add_executable(${NAME}_test ${SRC})
 		target_link_libraries(${NAME}_test
 		                      ${EXTRA_LIBS}
+		                      ${PLATFORM_LINKLIBS}
 		                      bf_testing_main
 		                      bf_intern_guardedalloc
 		                      extern_gtest
