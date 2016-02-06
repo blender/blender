@@ -1281,6 +1281,16 @@ void OBJECT_OT_paths_calculate(wmOperatorType *ot)
 
 /* --------- */
 
+static int object_update_paths_poll(bContext *C)
+{
+	if (ED_operator_object_active_editable(C)) {
+		Object *ob = CTX_data_active_object(C);
+		return (ob->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) != 0;
+	}
+	
+	return false;
+}
+
 static int object_update_paths_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
@@ -1306,7 +1316,7 @@ void OBJECT_OT_paths_update(wmOperatorType *ot)
 	
 	/* api callbakcs */
 	ot->exec = object_update_paths_exec;
-	ot->poll = ED_operator_object_active_editable; /* TODO: this should probably check for existing paths */
+	ot->poll = object_update_paths_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

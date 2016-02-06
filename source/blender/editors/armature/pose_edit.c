@@ -262,6 +262,16 @@ void POSE_OT_paths_calculate(wmOperatorType *ot)
 
 /* --------- */
 
+static int pose_update_paths_poll(bContext *C)
+{
+	if (ED_operator_posemode_exclusive(C)) {
+		bPoseChannel *pchan = CTX_data_active_pose_bone(C);
+		return (pchan && pchan->mpath);
+	}
+	
+	return false;
+}
+
 static int pose_update_paths_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
@@ -289,7 +299,7 @@ void POSE_OT_paths_update(wmOperatorType *ot)
 	
 	/* api callbakcs */
 	ot->exec = pose_update_paths_exec;
-	ot->poll = ED_operator_posemode_exclusive; /* TODO: this should probably check for active bone and/or existing paths */
+	ot->poll = pose_update_paths_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
