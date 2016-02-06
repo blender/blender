@@ -82,9 +82,18 @@ public:
 	void tag_update(Scene *scene);
 
 protected:
-	void device_update_points(Device *device, DeviceScene *dscene, Scene *scene);
+	bool skip_background_light(Device *device, Scene *scene);
+
+	void device_update_points(Device *device,
+	                          DeviceScene *dscene,
+	                          Scene *scene,
+	                          bool skip_background);
 	void device_update_distribution(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
-	void device_update_background(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
+	void device_update_background(Device *device,
+	                              DeviceScene *dscene,
+	                              Scene *scene,
+	                              Progress& progress,
+	                              bool skip_background);
 };
 
 CCL_NAMESPACE_END

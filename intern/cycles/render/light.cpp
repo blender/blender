@@ -161,6 +161,34 @@ LightManager::~LightManager()
 {
 }
 
+bool LightManager::skip_background_light(Device *device, Scene *scene)
+{
+	/* Check whether we've got portals. */
+	bool has_portal = false;
+	foreach(Light *light, scene->lights) {
+		if(light->is_portal) {
+			has_portal = true;
+			break;
+		}
+	}
+	/* Ignore background light if:
+	 * - If unsupported on a device
+	 * - If we don't need it (no HDRs etc.)
+	 */
+	foreach(Light *light, scene->lights) {
+		if(light->type == LIGHT_BACKGROUND) {
+			Shader *shader = scene->shaders[scene->background->shader];
+			bool auto_disable_mis = (!has_portal && !shader->has_surface_spatial_varying);
+			if(!(device->info.advanced_shading) || auto_disable_mis) {
+				VLOG(1) << "Background MIS has been disabled.\n";
+				return true;
+			}
+			break;
+		}
+	}
+	return false;
+}
+
 void LightManager::device_update_distribution(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
 	progress.set_status("Updating Lights", "Computing distribution");
@@ -460,16 +488,22 @@ static void background_cdf(int start,
 	}
 }
 
-void LightManager::device_update_background(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
+void LightManager::device_update_background(Device *device,
+                                            DeviceScene *dscene,
+                                            Scene *scene,
+                                            Progress& progress,
+                                            bool skip_background)
 {
 	KernelIntegrator *kintegrator = &dscene->data.integrator;
 	Light *background_light = NULL;
 
 	/* find background light */
-	foreach(Light *light, scene->lights) {
-		if(light->type == LIGHT_BACKGROUND) {
-			background_light = light;
-			break;
+	if(!skip_background) {
+		foreach(Light *light, scene->lights) {
+			if(light->type == LIGHT_BACKGROUND) {
+				background_light = light;
+				break;
+			}
 		}
 	}
 
@@ -551,37 +585,16 @@ void LightManager::device_update_background(Device *device, DeviceScene *dscene,
 	device->tex_alloc("__light_background_conditional_cdf", dscene->light_background_conditional_cdf);
 }
 
-void LightManager::device_update_points(Device *device, DeviceScene *dscene, Scene *scene)
+void LightManager::device_update_points(Device *device,
+                                        DeviceScene *dscene,
+                                        Scene *scene,
+                                        bool skip_background)
 {
-	if(scene->lights.size() == 0)
+	int num_scene_lights = scene->lights.size();
+	if(num_scene_lights == 0)
 		return;
 
-	/* Do we have a portal? */
-	bool has_portal = false;
-	foreach(Light *light, scene->lights) {
-		if(light->is_portal) {
-			has_portal = true;
-			break;
-		}
-	}
-
-	/* Remove background light:
-	 * - If unsupported on a device
-	 * - If we don't need it (no HDRs etc.)
-	 */
-	foreach(Light *light, scene->lights) {
-		if(light->type == LIGHT_BACKGROUND) {
-			Shader *shader = scene->shaders[scene->background->shader];
-			bool auto_disable_mis = (!has_portal && !shader->has_surface_spatial_varying);
-			if(!(device->info.advanced_shading) || auto_disable_mis) {
-				VLOG(1) << "Background MIS has been disabled. \n";
-				scene->lights.erase(std::remove(scene->lights.begin(), scene->lights.end(), light), scene->lights.end());
-			}
-			break;
-		}
-	}
-
-	float4 *light_data = dscene->light_data.resize(scene->lights.size()*LIGHT_SIZE);
+	float4 *light_data = dscene->light_data.resize(num_scene_lights*LIGHT_SIZE);
 	int light_index = 0;
 
 	foreach(Light *light, scene->lights) {
@@ -651,6 +664,10 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			light_data[light_index*LIGHT_SIZE + 4] = make_float4(max_bounces, 0.0f, 0.0f, 0.0f);
 		}
 		else if(light->type == LIGHT_BACKGROUND) {
+			if(skip_background) {
+				continue;
+			}
+
 			uint visibility = scene->background->visibility;
 
 			shader_id &= ~SHADER_AREA_LIGHT;
@@ -747,15 +764,17 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 		light_index++;
 	}
 
+	VLOG(1) << "Number of lights sent to the device: " << light_index;
+
 	VLOG(1) << "Number of lights without contribution: "
-	        << scene->lights.size() - light_index;
+	        << num_scene_lights - light_index;
 
 	device->tex_alloc("__light_data", dscene->light_data);
 }
 
 void LightManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
-	int lights_size = scene->lights.size();
+	VLOG(1) << "Total " << scene->lights.size() << " lights.";
 
 	if(!need_update)
 		return;
@@ -763,14 +782,15 @@ void LightManager::device_update(Device *device, DeviceScene *dscene, Scene *sce
 	device_free(device, dscene);
 
 	use_light_visibility = false;
+	bool skip_background = skip_background_light(device, scene);
 
-	device_update_points(device, dscene, scene);
+	device_update_points(device, dscene, scene, skip_background);
 	if(progress.get_cancel()) return;
 
 	device_update_distribution(device, dscene, scene, progress);
 	if(progress.get_cancel()) return;
 
-	device_update_background(device, dscene, scene, progress);
+	device_update_background(device, dscene, scene, progress, skip_background);
 	if(progress.get_cancel()) return;
 
 	if(use_light_visibility != scene->film->use_light_visibility) {
@@ -779,11 +799,6 @@ void LightManager::device_update(Device *device, DeviceScene *dscene, Scene *sce
 	}
 
 	need_update = false;
-
-	if(lights_size != scene->lights.size())
-		VLOG(1) << "Total " << scene->lights.size() << " lights (" << lights_size << " before optimization).";
-	else
-		VLOG(1) << "Total " << scene->lights.size() << " lights.";
 }
 
 void LightManager::device_free(Device *device, DeviceScene *dscene)
