@@ -611,7 +611,6 @@ void BlenderSession::bake(BL::Object& b_object,
 	ShaderEvalType shader_type = get_shader_type(pass_type);
 	size_t object_index = OBJECT_NONE;
 	int tri_offset = 0;
-	int bake_pass_filter = bake_pass_filter_get(pass_filter);
 
 	/* Set baking flag in advance, so kernel loading can check if we need
 	 * any baking capabilities.
@@ -629,8 +628,11 @@ void BlenderSession::bake(BL::Object& b_object,
 		Pass::add(PASS_UV, scene->film->passes);
 	}
 
-	if(BakeManager::is_light_pass(shader_type, bake_pass_filter)) {
-		/* force use_light_pass to be true */
+	int bake_pass_filter = bake_pass_filter_get(pass_filter);
+	bake_pass_filter = BakeManager::shader_type_to_pass_filter(shader_type, bake_pass_filter);
+
+	/* force use_light_pass to be true if we bake more than just colors */
+	if (bake_pass_filter & ~BAKE_FILTER_COLOR) {
 		Pass::add(PASS_LIGHT, scene->film->passes);
 	}
 
