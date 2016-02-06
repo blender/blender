@@ -17,17 +17,10 @@
 #ifndef __UTIL_GUARDED_ALLOCATOR_H__
 #define __UTIL_GUARDED_ALLOCATOR_H__
 
-/* Define this in order to use Blender's guarded allocator to keep
- * track of allocated buffers, their sizes and peak memory usage.
- *
- * This is usually a bad level call, but it's really handy to keep
- * track of overall peak memory consumption during the scene
- * synchronization step.
- */
-#undef WITH_BLENDER_GUARDEDALLOC
-
+#include <cstddef>
 #include <memory>
 
+#include "util_debug.h"
 #include "util_types.h"
 
 #ifdef WITH_BLENDER_GUARDEDALLOC
@@ -42,39 +35,85 @@ void util_guarded_mem_free(size_t n);
 
 /* Guarded allocator for the use with STL. */
 template <typename T>
-class GuardedAllocator : public std::allocator<T> {
+class GuardedAllocator {
 public:
-	template<typename _Tp1>
-	struct rebind {
-		typedef GuardedAllocator<_Tp1> other;
-	};
+	typedef size_t size_type;
+	typedef ptrdiff_t difference_type;
+	typedef T *pointer;
+	typedef const T *const_pointer;
+	typedef T& reference;
+	typedef const T& const_reference;
+	typedef T value_type;
+
+	GuardedAllocator() {}
+	GuardedAllocator(const GuardedAllocator&) {}
 
 	T *allocate(size_t n, const void *hint = 0)
 	{
 		util_guarded_mem_alloc(n * sizeof(T));
-#ifdef WITH_BLENDER_GUARDEDALLOC
 		(void)hint;
-		return (T*)MEM_mallocN_aligned(n * sizeof(T), 16, "Cycles Alloc");
+#ifdef WITH_BLENDER_GUARDEDALLOC
+		if(n == 0) {
+			return NULL;
+		}
+		return (T*)MEM_mallocN(n * sizeof(T), "Cycles Alloc");
 #else
-		return std::allocator<T>::allocate(n, hint);
+		return (T*)malloc(n * sizeof(T));
 #endif
 	}
 
 	void deallocate(T *p, size_t n)
 	{
 		util_guarded_mem_free(n * sizeof(T));
+		if(p != NULL) {
 #ifdef WITH_BLENDER_GUARDEDALLOC
-		MEM_freeN((void*)p);
+			MEM_freeN(p);
 #else
-		std::allocator<T>::deallocate(p, n);
+			free(p);
 #endif
+		}
 	}
 
-	GuardedAllocator() : std::allocator<T>() {  }
-	GuardedAllocator(const GuardedAllocator &a) : std::allocator<T>(a) { }
+	T *address(T& x) const
+	{
+		return &x;
+	}
+
+	const T *address(const T& x) const
+	{
+		return &x;
+	}
+
+	GuardedAllocator<T>& operator=(const GuardedAllocator&)
+	{
+		return *this;
+	}
+
+	void construct(T *p, const T& val)
+	{
+		new ((T *)p) T(val);
+	}
+
+	void destroy(T *p)
+	{
+		p->~T();
+	}
+
+	size_t max_size() const
+	{
+		return size_t(-1);
+	}
+
 	template <class U>
-	GuardedAllocator(const GuardedAllocator<U> &a) : std::allocator<T>(a) { }
-	~GuardedAllocator() { }
+	struct rebind {
+		typedef GuardedAllocator<U> other;
+	};
+
+	template <class U>
+	GuardedAllocator(const GuardedAllocator<U>&) {}
+
+	template <class U>
+	GuardedAllocator& operator=(const GuardedAllocator<U>&) { return *this; }
 };
 
 /* Get memory usage and peak from the guarded STL allocator. */

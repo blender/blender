@@ -39,6 +39,10 @@ CCL_NAMESPACE_BEGIN
 
 namespace {
 
+/* Device list stored static (used by compute_device_list()). */
+static ccl::vector<CCLDeviceInfo> device_list;
+static ccl::DeviceType device_type = DEVICE_NONE;
+
 /* Flag describing whether debug flags were synchronized from scene. */
 bool debug_flags_set = false;
 
@@ -169,6 +173,16 @@ static PyObject *init_func(PyObject * /*self*/, PyObject *args)
 	VLOG(2) << "Debug flags initialized to:\n"
 	        << DebugFlags();
 
+	Py_RETURN_NONE;
+}
+
+
+static PyObject *exit_func(PyObject * /*self*/, PyObject * /*args*/)
+{
+	ShaderManager::free_memory();
+	TaskScheduler::free_memory();
+	Device::free_memory();
+	device_list.free_memory();
 	Py_RETURN_NONE;
 }
 
@@ -616,6 +630,7 @@ static PyObject *debug_flags_reset_func(PyObject * /*self*/, PyObject * /*args*/
 
 static PyMethodDef methods[] = {
 	{"init", init_func, METH_VARARGS, ""},
+	{"exit", exit_func, METH_VARARGS, ""},
 	{"create", create_func, METH_VARARGS, ""},
 	{"free", free_func, METH_O, ""},
 	{"render", render_func, METH_O, ""},
@@ -648,10 +663,6 @@ static struct PyModuleDef module = {
 
 static CCLDeviceInfo *compute_device_list(DeviceType type)
 {
-	/* device list stored static */
-	static ccl::vector<CCLDeviceInfo> device_list;
-	static ccl::DeviceType device_type = DEVICE_NONE;
-
 	/* create device list if it's not already done */
 	if(type != device_type) {
 		ccl::vector<DeviceInfo>& devices = ccl::Device::available_devices();

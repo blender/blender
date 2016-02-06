@@ -169,6 +169,8 @@ public:
 	void get_requested_features(Scene *scene,
 	                            DeviceRequestedFeatures *requested_features);
 
+	static void free_memory();
+
 protected:
 	ShaderManager();
 

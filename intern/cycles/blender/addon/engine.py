@@ -74,6 +74,10 @@ def init():
     _cycles.init(path, user_path, bpy.app.background)
 
 
+def exit():
+    import _cycles
+    _cycles.exit()
+
 def create(engine, data, scene, region=None, v3d=None, rv3d=None, preview_osl=False):
     import bpy
     import _cycles

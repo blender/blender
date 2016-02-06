@@ -210,6 +210,7 @@ endif()
 # Subdirectories
 
 if(WITH_CYCLES_BLENDER)
+	add_definitions(-DWITH_BLENDER_GUARDEDALLOC)
 	add_subdirectory(blender)
 endif()
 

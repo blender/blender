@@ -91,6 +91,7 @@ class TaskScheduler
 public:
 	static void init(int num_threads = 0);
 	static void exit();
+	static void free_memory();
 
 	/* number of threads that can work on task */
 	static int num_threads() { return threads.size(); }

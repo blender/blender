@@ -219,6 +219,12 @@ void TaskScheduler::exit()
 	}
 }
 
+void TaskScheduler::free_memory()
+{
+	assert(users == 0);
+	threads.free_memory();
+}
+
 bool TaskScheduler::thread_wait_pop(Entry& entry)
 {
 	thread_scoped_lock queue_lock(queue_mutex);

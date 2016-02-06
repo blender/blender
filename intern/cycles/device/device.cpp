@@ -34,6 +34,8 @@ CCL_NAMESPACE_BEGIN
 
 bool Device::need_types_update = true;
 bool Device::need_devices_update = true;
+vector<DeviceType> Device::types;
+vector<DeviceInfo> Device::devices;
 
 /* Device Requested Features */
 
@@ -280,8 +282,6 @@ string Device::string_from_type(DeviceType type)
 
 vector<DeviceType>& Device::available_types()
 {
-	static vector<DeviceType> types;
-
 	if(need_types_update) {
 		types.clear();
 		types.push_back(DEVICE_CPU);
@@ -311,8 +311,6 @@ vector<DeviceType>& Device::available_types()
 
 vector<DeviceInfo>& Device::available_devices()
 {
-	static vector<DeviceInfo> devices;
-
 	if(need_devices_update) {
 		devices.clear();
 #ifdef WITH_CUDA
@@ -366,6 +364,12 @@ void Device::tag_update()
 {
 	need_types_update = true;
 	need_devices_update = true;
+}
+
+void Device::free_memory()
+{
+	types.free_memory();
+	devices.free_memory();
 }
 
 CCL_NAMESPACE_END

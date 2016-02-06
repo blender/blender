@@ -269,9 +269,12 @@ public:
 	/* Tag devices lists for update. */
 	static void tag_update();
 
+	static void free_memory();
 private:
 	/* Indicted whether device types and devices lists were initialized. */
 	static bool need_types_update, need_devices_update;
+	static vector<DeviceType> types;
+	static vector<DeviceInfo> devices;
 };
 
 CCL_NAMESPACE_END

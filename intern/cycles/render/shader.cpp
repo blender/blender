@@ -531,5 +531,10 @@ void ShaderManager::get_requested_features(Scene *scene,
 	}
 }
 
+void ShaderManager::free_memory()
+{
+	beckmann_table.free_memory();
+}
+
 CCL_NAMESPACE_END
 
