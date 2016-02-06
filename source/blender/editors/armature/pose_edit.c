@@ -306,21 +306,18 @@ static void ED_pose_clear_paths(Object *ob)
 	if (ELEM(NULL, ob, ob->pose))
 		return;
 	
-	/* free the motionpath blocks, but also take note of whether we skipped some... */
+	/* free the motionpath blocks for all bones - This is easier for users to quickly clear all */
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		if (pchan->mpath) {
-			if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
+			if (pchan->bone) {
 				animviz_free_motionpath(pchan->mpath);
 				pchan->mpath = NULL;
 			}
-			else 
-				skipped = 1;
 		}
 	}
 	
-	/* if we didn't skip any, we shouldn't have any paths left */
-	if (skipped == 0)
-		ob->pose->avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
+	/* no paths left!*/
+	ob->pose->avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
 }
 
 /* operator callback for this */
@@ -346,7 +343,7 @@ void POSE_OT_paths_clear(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Clear Bone Paths";
 	ot->idname = "POSE_OT_paths_clear";
-	ot->description = "Clear path caches for selected bones";
+	ot->description = "Clear path caches for all bones";
 	
 	/* api callbacks */
 	ot->exec = pose_clear_paths_exec;
