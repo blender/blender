@@ -249,6 +249,7 @@ class VIEW3D_PT_tools_animation(View3DPanel, Panel):
         row = col.row(align=True)
         row.operator("object.paths_calculate", text="Calculate")
         row.operator("object.paths_clear", text="Clear")
+        col.operator("object.paths_update", text="Update")
 
         col.separator()
 
@@ -775,6 +776,7 @@ class VIEW3D_PT_tools_posemode(View3DPanel, Panel):
         row = col.row(align=True)
         row.operator("pose.paths_calculate", text="Calculate")
         row.operator("pose.paths_clear", text="Clear")
+        col.operator("pose.paths_update", text="Update")
 
 
 class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
