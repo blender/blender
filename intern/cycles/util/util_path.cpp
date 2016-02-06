@@ -66,11 +66,6 @@ void path_init(const string& path, const string& user_path)
 {
 	cached_path = path;
 	cached_user_path = user_path;
-
-#ifdef _MSC_VER
-	// fix for https://svn.boost.org/trac/boost/ticket/6320
-	boost::filesystem::path::imbue( std::locale( "" ) );
-#endif
 }
 
 string path_get(const string& sub)
