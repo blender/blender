@@ -2,6 +2,10 @@
 
 #include "testing/testing.h"
 
+extern "C" {
+#include "BLI_utildefines.h"
+}
+
 #include "MEM_guardedalloc.h"
 
 #define CHECK_ALIGNMENT(ptr, align) EXPECT_EQ(0, (size_t)ptr % align)

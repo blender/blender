@@ -6,12 +6,21 @@ extern "C" {
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "../../../source/blender/imbuf/IMB_imbuf.h"
+
+#ifdef _WIN32
+#  include "../../../source/blender/blenkernel/BKE_global.h"
+#endif
+
 }
 
 /* -------------------------------------------------------------------- */
 /* stubs */
 
 extern "C" {
+
+#if _WIN32
+Global G = {0};
+#endif
 
 const char *GHOST_getUserDir(int version, const char *versionstr);
 const char *GHOST_getSystemDir(int version, const char *versionstr);
@@ -47,6 +56,7 @@ char *zLhm65070058860608_br_find_exe(const char *default_exe)
 /* tests */
 
 /* BLI_cleanup_path */
+#ifndef _WIN32
 TEST(path_util, PathUtilClean)
 {
 	/* "/./" -> "/" */
@@ -101,6 +111,7 @@ TEST(path_util, PathUtilClean)
 		EXPECT_STREQ("/a/b/", path);
 	}
 }
+#endif
 
 /* BLI_path_frame */
 TEST(path_util, PathUtilFrame)

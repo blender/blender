@@ -579,6 +579,7 @@ const char words10k[] =
 "arcu. Integer ut tellus ac sapien maximus tincidunt sed vitae risus. Nulla viverra, nibh eget eleifend aliquam, quam "
 "quam tempor massa, eu semper ipsum lacus in turpis. Nulla sed purus enim. Nullam sed fermentum ipsum. Sed dui nisi, "
 "elementum a auctor at, ultrices et nibh. Phasellus aliquam nulla ut lacinia accumsan. Phasellus sed arcu ligula. "
+#ifndef _MSC_VER
 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam fermentum magna vitae dui sagittis tempor. Vivamus "
 "eu ligula blandit, imperdiet arcu at, rutrum sem. Aliquam erat volutpat. Quisque luctus enim quis volutpat lobortis. "
 "Vestibulum eget sodales libero. Aenean at condimentum est. Proin eget massa vel nulla efficitur tempor eget at enim. "
@@ -597,6 +598,8 @@ const char words10k[] =
 "sit amet porta risus hendrerit non. Aenean id sem nisi. Nullam non nisl vestibulum, pellentesque nisl et, imperdiet "
 "ligula. Sed laoreet fringilla felis. Proin ac dolor viverra tellus mollis aliquet eget et neque. Suspendisse mattis "
 "nulla vitae nulla sagittis blandit. Sed at tortor rutrum, ornare magna nec, pellentesque nisi. Etiam non aliquet "
-"tellus. Aliquam at ex suscipit, posuere sem sit amet, tincidunt.";
+"tellus. Aliquam at ex suscipit, posuere sem sit amet, tincidunt."
+#endif
+;
 
 #endif  /* __BLENDER_TESTING_BLI_RESSOURCE_STRING_H__ */

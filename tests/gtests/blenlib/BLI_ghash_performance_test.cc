@@ -339,7 +339,8 @@ static void int4_ghash_tests(GHash *ghash, const char *id, const unsigned int nb
 {
 	printf("\n========== STARTING %s ==========\n", id);
 
-	unsigned int (*data)[4] = (unsigned int (*)[4])MEM_mallocN(sizeof(*data) * (size_t)nbr, __func__);
+	void *data_v = MEM_mallocN(sizeof(unsigned int (*)[4]) * (size_t)nbr, __func__);
+	unsigned int (*data)[4] = (unsigned int (*)[4])data_v;
 	unsigned int (*dt)[4];
 	unsigned int i, j;
 

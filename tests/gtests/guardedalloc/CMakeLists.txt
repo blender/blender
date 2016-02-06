@@ -25,6 +25,7 @@ set(INC
 	.
 	..
 	../../../intern/guardedalloc
+	../../../source/blender/blenlib
 )
 
 include_directories(${INC})
