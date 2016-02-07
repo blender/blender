@@ -54,7 +54,10 @@ if(WIN32 AND NOT UNIX)
 		)
 	endif()
 
-	add_executable(blenderplayer ${EXETYPE} bad_level_call_stubs/stubs.c ../icons/winblender.rc)
+	add_executable(
+			blenderplayer ${EXETYPE}
+			bad_level_call_stubs/stubs.c
+			${CMAKE_SOURCE_DIR}/release/windows/icons/winblender.rc)
 
 	install(TARGETS blenderplayer
 			COMPONENT Blenderplayer
