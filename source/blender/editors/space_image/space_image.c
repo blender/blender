@@ -285,7 +285,7 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 
-	kmi = WM_keymap_add_item(keymap, "IMAGE_OT_view_all", FKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "IMAGE_OT_view_all", HOMEKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "fit_view", true);
 
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
