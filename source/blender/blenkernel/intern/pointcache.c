@@ -3681,9 +3681,6 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 			ptime = ctime;
 		}
 
-		/* Delay to lessen CPU load from UI thread */
-		PIL_sleep_ms(200);
-
 		/* NOTE: breaking baking should leave calculated frames in cache, not clear it */
 		if ((cancel || G.is_break)) {
 			break;
