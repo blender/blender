@@ -1132,7 +1132,7 @@ static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyO
 
 static PyMethodDef py_bvhtree_methods[] = {
 	{"ray_cast", (PyCFunction)py_bvhtree_ray_cast, METH_VARARGS, py_bvhtree_ray_cast_doc},
-	{"find", (PyCFunction)py_bvhtree_find_nearest, METH_VARARGS, py_bvhtree_find_nearest_doc},
+	{"find_nearest", (PyCFunction)py_bvhtree_find_nearest, METH_VARARGS, py_bvhtree_find_nearest_doc},
 	{"overlap", (PyCFunction)py_bvhtree_overlap, METH_O, py_bvhtree_overlap_doc},
 
 	/* class methods */
