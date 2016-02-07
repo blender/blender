@@ -28,7 +28,7 @@ inline float colorbalance_cdl(float in, float offset, float power, float slope)
 	float x = in * slope + offset;
 
 	/* prevent NaN */
-	CLAMP(x, 0.0f, 1.0f);
+	if (x < 0.f) x = 0.f;
 
 	return powf(x, power);
 }
