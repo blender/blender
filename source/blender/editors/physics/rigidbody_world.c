@@ -195,5 +195,7 @@ void RIGIDBODY_OT_world_export(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FILE_TYPE_FOLDER, FILE_SPECIAL, FILE_SAVE, FILE_RELPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
+	WM_operator_properties_filesel(
+	        ot, FILE_TYPE_FOLDER, FILE_SPECIAL, FILE_SAVE,
+	        FILE_RELPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
 }

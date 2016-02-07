@@ -43,7 +43,9 @@
 #include "WM_types.h"
 
 /* default properties for fileselect */
-void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, short action, short flag, short display, short sort)
+void WM_operator_properties_filesel(
+        wmOperatorType *ot, int filter, short type, short action,
+        short flag, short display, short sort)
 {
 	PropertyRNA *prop;
 
