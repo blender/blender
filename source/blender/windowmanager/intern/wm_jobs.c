@@ -124,7 +124,6 @@ struct wmJob {
 	/* ticket mutex for main thread locking while some job accesses
 	 * data that the main thread might modify at the same time */
 	TicketMutex *main_thread_mutex;
-	bool main_thread_mutex_ending;
 };
 
 /* Main thread locking */
@@ -132,25 +131,15 @@ struct wmJob {
 void WM_job_main_thread_lock_acquire(wmJob *wm_job)
 {
 	BLI_ticket_mutex_lock(wm_job->main_thread_mutex);
-
-	/* if BLI_end_threads is being called to stop the job before it's finished,
-	 * we no longer need to lock to get access to the main thread as it's
-	 * waiting and can't respond */
-	if (wm_job->main_thread_mutex_ending)
-		BLI_ticket_mutex_unlock(wm_job->main_thread_mutex);
 }
 
 void WM_job_main_thread_lock_release(wmJob *wm_job)
 {
-	if (!wm_job->main_thread_mutex_ending)
-		BLI_ticket_mutex_unlock(wm_job->main_thread_mutex);
+	BLI_ticket_mutex_unlock(wm_job->main_thread_mutex);
 }
 
-static void wm_job_main_thread_yield(wmJob *wm_job, bool ending)
+static void wm_job_main_thread_yield(wmJob *wm_job)
 {
-	if (ending)
-		wm_job->main_thread_mutex_ending = true;
-
 	/* unlock and lock the ticket mutex. because it's a fair mutex any job that
 	 * is waiting to acquire the lock will get it first, before we can lock */
 	BLI_ticket_mutex_unlock(wm_job->main_thread_mutex);
@@ -206,7 +195,7 @@ wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner, const char *
 		BLI_strncpy(wm_job->name, name, sizeof(wm_job->name));
 
 		wm_job->main_thread_mutex = BLI_ticket_mutex_alloc();
-		BLI_ticket_mutex_lock(wm_job->main_thread_mutex);
+		WM_job_main_thread_lock_acquire(wm_job);
 	}
 	/* else: a running job, be careful */
 	
@@ -448,7 +437,7 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job)
 static void wm_job_free(wmWindowManager *wm, wmJob *wm_job)
 {
 	BLI_remlink(&wm->jobs, wm_job);
-	BLI_ticket_mutex_unlock(wm_job->main_thread_mutex);
+	WM_job_main_thread_lock_release(wm_job);
 	BLI_ticket_mutex_free(wm_job->main_thread_mutex);
 	MEM_freeN(wm_job);
 }
@@ -459,8 +448,10 @@ static void wm_jobs_kill_job(wmWindowManager *wm, wmJob *wm_job)
 	if (wm_job->running) {
 		/* signal job to end */
 		wm_job->stop = true;
-		wm_job_main_thread_yield(wm_job, true);
+
+		WM_job_main_thread_lock_release(wm_job);
 		BLI_end_threads(&wm_job->threads);
+		WM_job_main_thread_lock_acquire(wm_job);
 
 		if (wm_job->endjob)
 			wm_job->endjob(wm_job->run_customdata);
@@ -576,7 +567,7 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 			if (wm_job->threads.first) {
 
 				/* let threads get temporary lock over main thread if needed */
-				wm_job_main_thread_yield(wm_job, false);
+				wm_job_main_thread_yield(wm_job);
 				
 				/* always call note and update when ready */
 				if (wm_job->do_update || wm_job->ready) {
@@ -608,9 +599,10 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 					}
 
 					wm_job->running = false;
-					wm_job_main_thread_yield(wm_job, true);
+
+					WM_job_main_thread_lock_release(wm_job);
 					BLI_end_threads(&wm_job->threads);
-					wm_job->main_thread_mutex_ending = false;
+					WM_job_main_thread_lock_acquire(wm_job);
 					
 					if (wm_job->endnote)
 						WM_event_add_notifier(C, wm_job->endnote, NULL);
