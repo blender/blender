@@ -2413,27 +2413,29 @@ void node_add_shader(vec4 shader1, vec4 shader2, out vec4 shader)
 
 /* fresnel */
 
-void node_fresnel(float ior, vec3 N, vec3 I, out float result)
+void node_fresnel(float ior, vec3 N, vec3 I, mat4 toworld, out float result)
 {
 	/* handle perspective/orthographic */
 	vec3 I_view = (gl_ProjectionMatrix[3][3] == 0.0)? normalize(I): vec3(0.0, 0.0, -1.0);
+	vec3 normal = (toworld*vec4(N, 0.0)).xyz;
 
 	float eta = max(ior, 0.00001);
-	result = fresnel_dielectric(I_view, N, (gl_FrontFacing)? eta: 1.0/eta);
+	result = fresnel_dielectric(I_view, normal, (gl_FrontFacing)? eta: 1.0/eta);
 }
 
 /* layer_weight */
 
-void node_layer_weight(float blend, vec3 N, vec3 I, out float fresnel, out float facing)
+void node_layer_weight(float blend, vec3 N, vec3 I, mat4 toworld, out float fresnel, out float facing)
 {
 	/* fresnel */
 	float eta = max(1.0 - blend, 0.00001);
 	vec3 I_view = (gl_ProjectionMatrix[3][3] == 0.0)? normalize(I): vec3(0.0, 0.0, -1.0);
+	vec3 normal = (toworld*vec4(N, 0.0)).xyz;
 
-	fresnel = fresnel_dielectric(I_view, N, (gl_FrontFacing)? 1.0/eta : eta );
+	fresnel = fresnel_dielectric(I_view, normal, (gl_FrontFacing)? 1.0/eta : eta );
 
 	/* facing */
-	facing = abs(dot(I_view, N));
+	facing = abs(dot(I_view, normal));
 	if(blend != 0.5) {
 		blend = clamp(blend, 0.0, 0.99999);
 		blend = (blend < 0.5)? 2.0*blend: 0.5/(1.0 - blend);

@@ -44,7 +44,7 @@ static int node_shader_gpu_fresnel(GPUMaterial *mat, bNode *UNUSED(node), bNodeE
 	if (!in[1].link)
 		in[1].link = GPU_builtin(GPU_VIEW_NORMAL);
 	
-	return GPU_stack_link(mat, "node_fresnel", in, out, GPU_builtin(GPU_VIEW_POSITION));
+	return GPU_stack_link(mat, "node_fresnel", in, out, GPU_builtin(GPU_VIEW_POSITION), GPU_builtin(GPU_VIEW_MATRIX));
 }
 
 /* node type definition */
