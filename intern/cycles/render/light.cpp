@@ -206,7 +206,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 	bool background_mis = false;
 
 	foreach(Light *light, scene->lights) {
-		if(light->has_contribution(scene))
+		if(light->is_enabled)
 			num_lights++;
 	}
 
@@ -345,7 +345,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 
 	int light_index = 0;
 	foreach(Light *light, scene->lights) {
-		if(!light->has_contribution(scene))
+		if(!light->is_enabled)
 			continue;
 
 		distribution[offset].x = totarea;
