@@ -2812,7 +2812,6 @@ static bool acf_gpl_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSE
 	switch (setting) {
 		/* unsupported */
 		case ACHANNEL_SETTING_EXPAND: /* gpencil layers are more like F-Curves than groups */
-		case ACHANNEL_SETTING_VISIBLE: /* graph editor only */
 		case ACHANNEL_SETTING_SOLO: /* nla editor only */
 			return false;
 		
@@ -2832,7 +2831,11 @@ static int acf_gpl_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings 
 		case ACHANNEL_SETTING_SELECT: /* selected */
 			return GP_LAYER_SELECT;
 			
-		case ACHANNEL_SETTING_MUTE: /* muted */
+		case ACHANNEL_SETTING_MUTE: /* animation muting - similar to frame lock... */
+			return GP_LAYER_FRAMELOCK;
+			
+		case ACHANNEL_SETTING_VISIBLE: /* visiblity of the layers (NOT muting) */
+			*neg = true;
 			return GP_LAYER_HIDE;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
@@ -3757,9 +3760,13 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 			/* protect... */
 			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT))
 				offset += ICON_WIDTH;
+				
 			/* mute... */
 			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MUTE))
 				offset += ICON_WIDTH;
+			if (ale->type == ANIMTYPE_GPLAYER)
+				offset += ICON_WIDTH;
+				
 			/* pinned... */
 			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PINNED))
 				offset += ICON_WIDTH;
@@ -4006,6 +4013,8 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, const bAni
 			
 			if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE))
 				tooltip = TIP_("F-Curve is visible in Graph Editor for editing");
+			else if (ale->type == ANIMTYPE_GPLAYER)
+				tooltip = TIP_("Grease Pencil layer is visible in the viewport");
 			else
 				tooltip = TIP_("Channels are visible in Graph Editor for editing");
 			break;
@@ -4050,6 +4059,9 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, const bAni
 			}
 			else if ((ac) && (ac->spacetype == SPACE_NLA) && (ale->type != ANIMTYPE_NLATRACK)) {
 				tooltip = TIP_("Temporarily disable NLA stack evaluation (i.e. only the active action is evaluated)");
+			}
+			else if (ale->type == ANIMTYPE_GPLAYER) {
+				tooltip = TIP_("Lock current frame displayed by layer (i.e. disable animation playback)");
 			}
 			else {
 				tooltip = TIP_("Do channels contribute to result (toggle channel muting)");
@@ -4286,6 +4298,11 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MUTE)) {
 				offset += ICON_WIDTH;
 				draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax - offset, ymid, ACHANNEL_SETTING_MUTE);
+			}
+			if (ale->type == ANIMTYPE_GPLAYER) {
+				/* Not technically "mute" (in terms of anim channels, but this sets layer visibility instead) */
+				offset += ICON_WIDTH;
+				draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax - offset, ymid, ACHANNEL_SETTING_VISIBLE);
 			}
 			
 			/* modifiers disable */
