@@ -2145,8 +2145,8 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				case PADMINUS:
 					p->radius -= 5;
 					
-					if (p->radius < 0)
-						p->radius = 0;
+					if (p->radius <= 0)
+						p->radius = 1;
 					break;
 			}
 			

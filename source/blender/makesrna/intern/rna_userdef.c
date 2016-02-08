@@ -3774,7 +3774,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "grease_pencil_eraser_radius", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_sdna(prop, NULL, "gp_eraser");
-	RNA_def_property_range(prop, 0, 100);
+	RNA_def_property_range(prop, 1, 500);
 	RNA_def_property_ui_text(prop, "Grease Pencil Eraser Radius", "Radius of eraser 'brush'");
 	
 	
