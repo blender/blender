@@ -159,7 +159,9 @@ msbuild ^
 	/verbosity:minimal
 
 echo.
-echo edit build configuration with: "%BUILD_DIR%\CMakeCache.txt" run make again to rebuild.
+echo At any point you can optionally modify your build configuration by editing:
+echo "%BUILD_DIR%\CMakeCache.txt", then run "make" again to build with the changes applied.
+echo.
 echo Blender successfully built, run from: "%BUILD_DIR%\bin\%BUILD_TYPE%"
 echo.
 
