@@ -253,6 +253,9 @@ bGPDlayer *gpencil_layer_addnew(bGPdata *gpd, const char *name, int setactive)
 	gpl->thickness = 3;
 	
 	/* onion-skinning settings */
+	if (gpd->flag & GP_DATA_SHOW_ONIONSKINS)
+		gpl->flag |= GP_LAYER_ONIONSKIN;
+	
 	gpl->flag |= (GP_LAYER_GHOST_PREVCOL | GP_LAYER_GHOST_NEXTCOL);
 	
 	ARRAY_SET_ITEMS(gpl->gcolor_prev, 0.145098f, 0.419608f, 0.137255f); /* green */
