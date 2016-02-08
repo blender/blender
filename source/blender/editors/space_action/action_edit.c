@@ -902,16 +902,16 @@ static bool delete_action_keys(bAnimContext *ac)
 				ale->key_data = NULL;
 			}
 		}
-
+		
 		if (changed) {
 			ale->update |= ANIM_UPDATE_DEFAULT;
 			changed_final = true;
 		}
 	}
-
+	
 	ANIM_animdata_update(ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);
-
+	
 	return changed_final;
 }
 

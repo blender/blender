@@ -35,6 +35,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
@@ -46,6 +47,7 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
+#include "BKE_gpencil.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -351,7 +353,7 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
 {
 	bAnimListElem *ale;
 
-	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
+	if (ELEM(ac->datatype, ANIMCONT_MASK)) {
 #ifdef DEBUG
 		/* quiet assert */
 		for (ale = anim_data->first; ale; ale = ale->next) {
@@ -362,25 +364,42 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
 	}
 
 	for (ale = anim_data->first; ale; ale = ale->next) {
-		FCurve *fcu = ale->key_data;
-
-		if (ale->update & ANIM_UPDATE_ORDER) {
-			ale->update &= ~ANIM_UPDATE_ORDER;
-			if (fcu)
-				sort_time_fcurve(fcu);
+		if (ale->type == ANIMTYPE_GPLAYER) {
+			bGPDlayer *gpl = ale->data;
+			
+			if (ale->update & ANIM_UPDATE_ORDER) {
+				ale->update &= ~ANIM_UPDATE_ORDER;
+				if (gpl) {
+					//gpencil_sort_frames(gpl);
+				}
+			}
+			
+			if (ale->update & ANIM_UPDATE_DEPS) {
+				ale->update &= ~ANIM_UPDATE_DEPS;
+				ANIM_list_elem_update(ac->scene, ale);
+			}
 		}
-
-		if (ale->update & ANIM_UPDATE_HANDLES) {
-			ale->update &= ~ANIM_UPDATE_HANDLES;
-			if (fcu)
-				calchandles_fcurve(fcu);
+		else if (ale->datatype == ALE_FCURVE) {
+			FCurve *fcu = ale->key_data;
+			
+			if (ale->update & ANIM_UPDATE_ORDER) {
+				ale->update &= ~ANIM_UPDATE_ORDER;
+				if (fcu)
+					sort_time_fcurve(fcu);
+			}
+			
+			if (ale->update & ANIM_UPDATE_HANDLES) {
+				ale->update &= ~ANIM_UPDATE_HANDLES;
+				if (fcu)
+					calchandles_fcurve(fcu);
+			}
+			
+			if (ale->update & ANIM_UPDATE_DEPS) {
+				ale->update &= ~ANIM_UPDATE_DEPS;
+				ANIM_list_elem_update(ac->scene, ale);
+			}
 		}
-
-		if (ale->update & ANIM_UPDATE_DEPS) {
-			ale->update &= ~ANIM_UPDATE_DEPS;
-			ANIM_list_elem_update(ac->scene, ale);
-		}
-
+		
 		BLI_assert(ale->update == 0);
 	}
 }
