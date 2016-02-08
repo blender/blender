@@ -391,7 +391,7 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 		/* no active layer - let's just create one */
 		gpl = gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true);
 	}
-	else if (gpl->flag & (GP_LAYER_HIDE | GP_LAYER_LOCKED)) {
+	else if (gpencil_layer_is_editable(gpl) == false) {
 		BKE_report(op->reports, RPT_ERROR, "Can not paste strokes when active layer is hidden or locked");
 		return OPERATOR_CANCELLED;
 	}

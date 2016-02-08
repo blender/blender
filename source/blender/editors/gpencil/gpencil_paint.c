@@ -931,7 +931,7 @@ static void gp_stroke_doeraser(tGPsdata *p)
 		bGPDframe *gpf = gpl->actframe;
 		
 		/* only affect layer if it's editable (and visible) */
-		if (gpl->flag & (GP_LAYER_HIDE | GP_LAYER_LOCKED)) {
+		if (gpencil_layer_is_editable(gpl) == false) {
 			continue;
 		}
 		else if (gpf == NULL) {
@@ -1220,7 +1220,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode)
 		bGPDlayer *gpl;
 		for (gpl = p->gpd->layers.first; gpl; gpl = gpl->next) {
 			/* Skip if layer not editable */
-			if (gpl->flag & (GP_LAYER_HIDE | GP_LAYER_LOCKED))
+			if (gpencil_layer_is_editable(gpl) == false)
 				continue;
 			
 			/* Add a new frame if needed (and based off the active frame,

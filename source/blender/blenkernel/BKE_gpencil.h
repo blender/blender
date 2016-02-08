@@ -58,6 +58,11 @@ struct bGPdata *gpencil_data_duplicate(struct bGPdata *gpd, bool internal_copy);
 void gpencil_frame_delete_laststroke(struct bGPDlayer *gpl, struct bGPDframe *gpf);
 
 
+/* Stroke and Fill - Alpha Visibility Threshold */
+#define GPENCIL_ALPHA_OPACITY_THRESH 0.001f
+
+bool gpencil_layer_is_editable(const struct bGPDlayer *gpl);
+
 /* How gpencil_layer_getframe() should behave when there
  * is no existing GP-Frame on the frame requested.
  */

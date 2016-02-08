@@ -145,7 +145,7 @@ static int rna_GPencilLayer_is_stroke_visible_get(PointerRNA *ptr)
 	 * about this limit for showing/not showing
 	 */
 	bGPDlayer *gpl = (bGPDlayer *)ptr->data;
-	return (gpl->color[3] > 0.001f);
+	return (gpl->color[3] > GPENCIL_ALPHA_OPACITY_THRESH);
 }
 
 static int rna_GPencilLayer_is_fill_visible_get(PointerRNA *ptr)
@@ -154,7 +154,7 @@ static int rna_GPencilLayer_is_fill_visible_get(PointerRNA *ptr)
 	 * about this limit for showing/not showing
 	 */
 	bGPDlayer *gpl = (bGPDlayer *)ptr->data;
-	return (gpl->fill[3] > 0.001f);
+	return (gpl->fill[3] > GPENCIL_ALPHA_OPACITY_THRESH);
 }
 
 static PointerRNA rna_GPencil_active_layer_get(PointerRNA *ptr)

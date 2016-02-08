@@ -993,7 +993,7 @@ static void gp_draw_data_layers(bGPdata *gpd, int offsx, int offsy, int winx, in
 		
 		/* fill strokes... */
 		// XXX: this is not a very good limit
-		GP_DRAWFLAG_APPLY((gpl->fill[3] > 0.001f), GP_DRAWDATA_FILL);
+		GP_DRAWFLAG_APPLY((gpl->fill[3] > GPENCIL_ALPHA_OPACITY_THRESH), GP_DRAWDATA_FILL);
 #undef GP_DRAWFLAG_APPLY
 		
 		/* draw 'onionskins' (frame left + right) */
