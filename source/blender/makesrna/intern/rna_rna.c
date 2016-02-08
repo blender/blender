@@ -952,13 +952,13 @@ static void rna_Function_parameters_begin(CollectionPropertyIterator *iter, Poin
 static int rna_Function_registered_get(PointerRNA *ptr)
 {
 	FunctionRNA *func = (FunctionRNA *)ptr->data;
-	return func->flag & FUNC_REGISTER;
+	return 0 != (func->flag & FUNC_REGISTER);
 }
 
 static int rna_Function_registered_optional_get(PointerRNA *ptr)
 {
 	FunctionRNA *func = (FunctionRNA *)ptr->data;
-	return func->flag & (FUNC_REGISTER_OPTIONAL & ~FUNC_REGISTER);
+	return 0 != (func->flag & (FUNC_REGISTER_OPTIONAL & ~FUNC_REGISTER));
 }
 
 static int rna_Function_no_self_get(PointerRNA *ptr)
@@ -970,7 +970,7 @@ static int rna_Function_no_self_get(PointerRNA *ptr)
 static int rna_Function_use_self_type_get(PointerRNA *ptr)
 {
 	FunctionRNA *func = (FunctionRNA *)ptr->data;
-	return (func->flag & FUNC_USE_SELF_TYPE);
+	return 0 != (func->flag & FUNC_USE_SELF_TYPE);
 }
 
 /* Blender RNA */
