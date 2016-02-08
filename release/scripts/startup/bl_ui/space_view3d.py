@@ -126,6 +126,10 @@ class VIEW3D_HT_header(Header):
 
             layout.prop(context.gpencil_data, "use_onion_skinning", text="Onion Skins", icon='PARTICLE_PATH') # XXX: icon
 
+            layout.prop(context.tool_settings.gpencil_sculpt, "use_select_mask")
+
+
+
 
 class VIEW3D_MT_editor_menus(Menu):
     bl_space_type = 'VIEW3D_MT_editor_menus'
