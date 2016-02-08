@@ -277,7 +277,7 @@ void RenderLayersDepthProg::executePixelSampled(float output[4], float x, float 
 	float *inputBuffer = this->getInputBuffer();
 
 	if (inputBuffer == NULL || ix < 0 || iy < 0 || ix >= (int)this->getWidth() || iy >= (int)this->getHeight() ) {
-		output[0] = 0.0f;
+		output[0] = 10e10f;
 	}
 	else {
 		unsigned int offset = (iy * this->getWidth() + ix);
