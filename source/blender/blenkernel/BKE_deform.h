@@ -73,24 +73,29 @@ float BKE_defvert_multipaint_collective_weight(
         const bool *defbase_sel, int defbase_tot_sel, bool do_autonormalize);
 
 void defvert_copy(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src);
-void defvert_copy_subset(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src,
-                         const bool *vgroup_subset, const int vgroup_tot);
+void defvert_copy_subset(
+        struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src,
+        const bool *vgroup_subset, const int vgroup_tot);
 void defvert_copy_index(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src, const int defgroup);
 void defvert_sync(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src, const bool use_verify);
-void defvert_sync_mapped(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src,
-                         const int *flip_map, const int flip_map_len, const bool use_verify);
+void defvert_sync_mapped(
+        struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src,
+        const int *flip_map, const int flip_map_len, const bool use_verify);
 void defvert_remap(struct MDeformVert *dvert, int *map, const int map_len);
 void defvert_flip(struct MDeformVert *dvert, const int *flip_map, const int flip_map_len);
 void defvert_flip_merged(struct MDeformVert *dvert, const int *flip_map, const int flip_map_len);
 void defvert_normalize(struct MDeformVert *dvert);
-void defvert_normalize_subset(struct MDeformVert *dvert,
-                              const bool *vgroup_subset, const int vgroup_tot);
-void defvert_normalize_lock_single(struct MDeformVert *dvert,
-                                   const bool *vgroup_subset, const int vgroup_tot,
-                                   const int def_nr_lock);
-void defvert_normalize_lock_map(struct MDeformVert *dvert,
-                                const bool *vgroup_subset, const int vgroup_tot,
-                                const bool *lock_flags, const int defbase_tot);
+void defvert_normalize_subset(
+        struct MDeformVert *dvert,
+        const bool *vgroup_subset, const int vgroup_tot);
+void defvert_normalize_lock_single(
+        struct MDeformVert *dvert,
+        const bool *vgroup_subset, const int vgroup_tot,
+        const int def_nr_lock);
+void defvert_normalize_lock_map(
+        struct MDeformVert *dvert,
+        const bool *vgroup_subset, const int vgroup_tot,
+        const bool *lock_flags, const int defbase_tot);
 
 /* Utilities to 'extract' a given vgroup into a simple float array, for verts, but also edges/polys/loops. */
 void BKE_defvert_extract_vgroup_to_vertweights(
