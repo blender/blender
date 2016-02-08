@@ -179,7 +179,6 @@ class GreasePencilStrokeSculptPanel:
     bl_label = "Sculpt Strokes"
     bl_category = "Grease Pencil"
     bl_region_type = 'TOOLS'
-    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
