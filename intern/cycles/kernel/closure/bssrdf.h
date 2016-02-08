@@ -181,7 +181,7 @@ ccl_device void bssrdf_cubic_sample(ShaderClosure *sc, float xi, float *r, float
  * the mean free length, but still not too big so sampling is still
  * effective. Might need some further tweaks.
  */
-#define BURLEY_TRUNCATE     10.0f
+#define BURLEY_TRUNCATE     30.0f
 #define BURLEY_TRUNCATE_CDF 0.973233f // cdf(BURLEY_TRUNCATE)
 
 ccl_device_inline float bssrdf_burley_fitting(float A)
