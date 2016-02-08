@@ -1949,6 +1949,13 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			 *   - for undo (during sketching sessions)
 			 */
 		}
+		else if (ELEM(event->type, PAD0, PAD1, PAD2, PAD3, PAD4, PAD5, PAD6, PAD7, PAD8, PAD9)) {
+			/* allow numpad keys so that camera/view manipulations can still take place
+			 * - PAD0 in particular is really important for Grease Pencil drawing,
+			 *   as animators may be working "to camera", so having this working
+			 *   is essential for ensuring that they can quickly return to that view
+			 */
+		}
 		else {
 			estate = OPERATOR_RUNNING_MODAL;
 		}
