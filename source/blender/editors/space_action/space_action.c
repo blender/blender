@@ -296,6 +296,10 @@ static void action_channel_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(
 					break;
 			}
 			break;
+		case NC_GPENCIL:
+			if (wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
+			break;
 		case NC_ID:
 			if (wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
