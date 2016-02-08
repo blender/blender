@@ -182,7 +182,7 @@ static int gp_layer_add_exec(bContext *C, wmOperator *op)
 		*gpd_ptr = gpencil_data_addnew(DATA_("GPencil"));
 	
 	/* add new layer now */
-	gpencil_layer_addnew(*gpd_ptr, DATA_("GP_Layer"), 1);
+	gpencil_layer_addnew(*gpd_ptr, DATA_("GP_Layer"), true);
 	
 	/* notifiers */
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);

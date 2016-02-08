@@ -234,7 +234,7 @@ bGPDframe *gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
 }
 
 /* add a new gp-layer and make it the active layer */
-bGPDlayer *gpencil_layer_addnew(bGPdata *gpd, const char *name, int setactive)
+bGPDlayer *gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setactive)
 {
 	bGPDlayer *gpl;
 	
