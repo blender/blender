@@ -95,6 +95,10 @@ def load_image(imagepath,
         if convert_callback:
             path = convert_callback(path)
 
+        # Ensure we're not relying on the 'CWD' to resolve the path.
+        if not os.path.isabs(path):
+            path = os.path.abspath(path)
+
         try:
             image = bpy.data.images.load(path, check_existing)
         except RuntimeError:
