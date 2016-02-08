@@ -63,6 +63,9 @@ void BLO_update_defaults_userpref_blend(void)
 
 	/* default from T47064 */
 	U.audiorate = 48000;
+
+	/* for some reason U.glalphaclip was 1.8367099231598242e-40 */
+	U.glalphaclip = 0.0f;
 }
 
 /**
