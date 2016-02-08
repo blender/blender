@@ -257,7 +257,6 @@ void ED_vgroup_parray_mirror_sync(Object *ob,
 	BMEditMesh *em = BKE_editmesh_from_object(ob);
 	MDeformVert **dvert_array_all = NULL;
 	int dvert_tot_all;
-	int i;
 
 	/* get an array of all verts, not only selected */
 	if (ED_vgroup_parray_alloc(ob->data, &dvert_array_all, &dvert_tot_all, false) == false) {
@@ -268,22 +267,26 @@ void ED_vgroup_parray_mirror_sync(Object *ob,
 		BM_mesh_elem_table_ensure(em->bm, BM_VERT);
 	}
 
-	for (i = 0; i < dvert_tot; i++) {
-		if (dvert_array[i] == NULL) {
-			/* its unselected, check if its mirror is */
-			int i_sel = ED_mesh_mirror_get_vert(ob, i);
-			if ((i_sel != -1) && (i_sel != i) && (dvert_array[i_sel])) {
+	int flip_map_len;
+	const int *flip_map = defgroup_flip_map(ob, &flip_map_len, true);
+
+	for (int i_src = 0; i_src < dvert_tot; i_src++) {
+		if (dvert_array[i_src] != NULL) {
+			/* its selected, check if its mirror exists */
+			int i_dst = ED_mesh_mirror_get_vert(ob, i_src);
+			if (i_dst != -1 && dvert_array_all[i_dst] != NULL) {
 				/* we found a match! */
-				MDeformVert *dv_src = dvert_array[i_sel];
-				MDeformVert *dv_dst = dvert_array_all[i];
+				const MDeformVert *dv_src = dvert_array[i_src];
+				MDeformVert       *dv_dst = dvert_array_all[i_dst];
 
-				defvert_copy_subset(dv_dst, dv_src, vgroup_validmap, vgroup_tot);
+				defvert_mirror_subset(dv_dst, dv_src, vgroup_validmap, vgroup_tot, flip_map, flip_map_len);
 
-				dvert_array[i] = dvert_array_all[i];
+				dvert_array[i_dst] = dvert_array_all[i_dst];
 			}
 		}
 	}
 
+	MEM_freeN((void *)flip_map);
 	MEM_freeN(dvert_array_all);
 }
 
@@ -2123,7 +2126,7 @@ static void dvert_mirror_op(MDeformVert *dvert, MDeformVert *dvert_mirr,
 				defvert_copy(dvert, dvert_mirr);
 			}
 			else {
-				defvert_copy_index(dvert, dvert_mirr, act_vgroup);
+				defvert_copy_index(dvert, act_vgroup, dvert_mirr, act_vgroup);
 			}
 		}
 

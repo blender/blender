@@ -76,7 +76,13 @@ void defvert_copy(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert
 void defvert_copy_subset(
         struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src,
         const bool *vgroup_subset, const int vgroup_tot);
-void defvert_copy_index(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src, const int defgroup);
+void defvert_mirror_subset(
+        struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src,
+        const bool *vgroup_subset, const int vgroup_tot,
+        const int *flip_map, const int flip_map_len);
+void defvert_copy_index(
+        struct MDeformVert       *dvert_dst, const int defgroup_dst,
+        const struct MDeformVert *dvert_src, const int defgroup_src);
 void defvert_sync(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src, const bool use_verify);
 void defvert_sync_mapped(
         struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src,

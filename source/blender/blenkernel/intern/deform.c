@@ -119,7 +119,25 @@ void defvert_copy_subset(
 	int defgroup;
 	for (defgroup = 0; defgroup < vgroup_tot; defgroup++) {
 		if (vgroup_subset[defgroup]) {
-			defvert_copy_index(dvert_dst, dvert_src, defgroup);
+			defvert_copy_index(dvert_dst, defgroup, dvert_src, defgroup);
+		}
+	}
+}
+
+/**
+ * Overwrite weights filtered by vgroup_subset and with mirroring specified by the flip map
+ * - do nothing if neither are set.
+ * - add destination weight if needed
+ */
+void defvert_mirror_subset(
+        MDeformVert *dvert_dst, const MDeformVert *dvert_src,
+        const bool *vgroup_subset, const int vgroup_tot,
+        const int *flip_map, const int flip_map_len)
+{
+	int defgroup;
+	for (defgroup = 0; defgroup < vgroup_tot && defgroup < flip_map_len; defgroup++) {
+		if (vgroup_subset[defgroup] && (dvert_dst != dvert_src || flip_map[defgroup] != defgroup)) {
+			defvert_copy_index(dvert_dst, flip_map[defgroup], dvert_src, defgroup);
 		}
 	}
 }
@@ -148,20 +166,22 @@ void defvert_copy(MDeformVert *dvert_dst, const MDeformVert *dvert_src)
  * - do nothing if neither are set.
  * - add destination weight if needed.
  */
-void defvert_copy_index(MDeformVert *dvert_dst, const MDeformVert *dvert_src, const int defgroup)
+void defvert_copy_index(
+        MDeformVert       *dvert_dst, const int defgroup_dst,
+        const MDeformVert *dvert_src, const int defgroup_src)
 {
 	MDeformWeight *dw_src, *dw_dst;
 
-	dw_src = defvert_find_index(dvert_src, defgroup);
+	dw_src = defvert_find_index(dvert_src, defgroup_src);
 
 	if (dw_src) {
 		/* source is valid, verify destination */
-		dw_dst = defvert_verify_index(dvert_dst, defgroup);
+		dw_dst = defvert_verify_index(dvert_dst, defgroup_dst);
 		dw_dst->weight = dw_src->weight;
 	}
 	else {
 		/* source was NULL, assign zero, could also remove */
-		dw_dst = defvert_find_index(dvert_dst, defgroup);
+		dw_dst = defvert_find_index(dvert_dst, defgroup_dst);
 
 		if (dw_dst) {
 			dw_dst->weight = 0.0f;
