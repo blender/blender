@@ -295,7 +295,7 @@ int ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *r
 
 			MaskTaskData data = {
 			    .ob = ob, .pbvh = pbvh, .nodes = nodes, .multires = multires,
-				.mode = mode, .value = value, .clip_planes_final = clip_planes_final,
+			    .mode = mode, .value = value, .clip_planes_final = clip_planes_final,
 			};
 
 			BLI_task_parallel_range(

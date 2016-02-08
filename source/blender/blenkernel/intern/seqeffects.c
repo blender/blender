@@ -3032,7 +3032,7 @@ static void *render_effect_execute_do_y_thread(void *thread_data_v)
 	return NULL;
 }
 
-static ImBuf* do_gaussian_blur_effect(const SeqRenderData *context,
+static ImBuf *do_gaussian_blur_effect(const SeqRenderData *context,
                                       Sequence *seq,
                                       float UNUSED(cfra),
                                       float UNUSED(facf0),

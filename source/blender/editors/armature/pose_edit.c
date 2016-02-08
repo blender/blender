@@ -311,8 +311,7 @@ void POSE_OT_paths_update(wmOperatorType *ot)
 static void ED_pose_clear_paths(Object *ob)
 {
 	bPoseChannel *pchan;
-	short skipped = 0;
-	
+
 	if (ELEM(NULL, ob, ob->pose))
 		return;
 	
