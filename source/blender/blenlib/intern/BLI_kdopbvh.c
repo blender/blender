@@ -1998,3 +1998,79 @@ int BLI_bvhtree_range_query(BVHTree *tree, const float co[3], float radius, BVHT
 
 	return data.hits;
 }
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name BLI_bvhtree_walk_dfs
+ * \{ */
+
+/**
+ * Runs first among nodes children of the first node before going to the next node in the same layer.
+ *
+ * \return false to break out of the search early.
+ */
+static bool bvhtree_walk_dfs_recursive(
+        BVHTree_WalkParentCallback walk_parent_cb,
+        BVHTree_WalkLeafCallback walk_leaf_cb,
+        BVHTree_WalkOrderCallback walk_order_cb,
+        const BVHNode *node, void *userdata)
+{
+	if (node->totnode == 0) {
+		return walk_leaf_cb((const BVHTreeAxisRange *)node->bv, node->index, userdata);
+	}
+	else {
+		/* First pick the closest node to recurse into */
+		if (walk_order_cb((const BVHTreeAxisRange *)node->bv, node->main_axis, userdata)) {
+			for (int i = 0; i != node->totnode; i++) {
+				if (walk_parent_cb((const BVHTreeAxisRange *)node->bv, userdata)) {
+					if (!bvhtree_walk_dfs_recursive(
+					        walk_parent_cb, walk_leaf_cb, walk_order_cb,
+					        node->children[i], userdata))
+					{
+						return false;
+					}
+				}
+			}
+		}
+		else {
+			for (int i = node->totnode - 1; i >= 0; i--) {
+				if (walk_parent_cb((const BVHTreeAxisRange *)node->bv, userdata)) {
+					if (!bvhtree_walk_dfs_recursive(
+					        walk_parent_cb, walk_leaf_cb, walk_order_cb,
+					        node->children[i], userdata))
+					{
+						return false;
+					}
+				}
+			}
+		}
+	}
+	return true;
+}
+
+/**
+ * This is a generic function to perform a depth first search on the BVHTree
+ * where the search order and nodes traversed depend on callbacks passed in.
+ *
+ * \param tree: Tree to walk.
+ * \param walk_parent_cb: Callback on a parents bound-box to test if it should be traversed.
+ * \param walk_leaf_cb: Callback to test leaf nodes, callback must store its own result,
+ * returning false exits early.
+ * \param walk_order_cb: Callback that indicates which direction to search,
+ * either from the node with the lower or higher k-dop axis value.
+ * \param userdata: Argument passed to all callbacks.
+ */
+void BLI_bvhtree_walk_dfs(
+        BVHTree *tree,
+        BVHTree_WalkParentCallback walk_parent_cb,
+        BVHTree_WalkLeafCallback walk_leaf_cb,
+        BVHTree_WalkOrderCallback walk_order_cb, void *userdata)
+{
+	const BVHNode *root = tree->nodes[tree->totleaf];
+	if (root != NULL) {
+		bvhtree_walk_dfs_recursive(walk_parent_cb, walk_leaf_cb, walk_order_cb, root, userdata);
+	}
+}
+
+/** \} */

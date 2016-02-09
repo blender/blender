@@ -43,6 +43,16 @@ struct BVHTree;
 typedef struct BVHTree BVHTree;
 #define USE_KDOPBVH_WATERTIGHT
 
+typedef struct BVHTreeAxisRange {
+	union {
+		struct {
+			float min, max;
+		};
+		/* alternate access */
+		float range[2];
+	};
+} BVHTreeAxisRange;
+
 typedef struct BVHTreeOverlap {
 	int indexA;
 	int indexB;
@@ -85,14 +95,24 @@ typedef void (*BVHTree_NearestPointCallback)(void *userdata, int index, const fl
 /* callback must update hit in case it finds a nearest successful hit */
 typedef void (*BVHTree_RayCastCallback)(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit);
 
-/* callback must update nearest to ray in case it finds a nearest result */
-typedef void(*BVHTree_NearestToRayCallback)(void *userdata, int index, const BVHTreeRay *ray, BVHTreeNearest *nearest);
+/* callback must update nearest in case it finds a nearest result */
+typedef void (*BVHTree_NearestToRayCallback)(void *userdata, int index, const BVHTreeRay *ray, BVHTreeNearest *nearest);
 
 /* callback to check if 2 nodes overlap (use thread if intersection results need to be stored) */
 typedef bool (*BVHTree_OverlapCallback)(void *userdata, int index_a, int index_b, int thread);
 
 /* callback to range search query */
 typedef void (*BVHTree_RangeQuery)(void *userdata, int index, float dist_sq);
+
+
+/* callbacks to BLI_bvhtree_walk_dfs */
+/* return true to traverse into this nodes children, else skip. */
+typedef bool (*BVHTree_WalkParentCallback)(const BVHTreeAxisRange *bounds, void *userdata);
+/* return true to keep walking, else early-exit the search. */
+typedef bool (*BVHTree_WalkLeafCallback)(const BVHTreeAxisRange *bounds, int index, void *userdata);
+/* return true to search (min, max) else (max, min). */
+typedef bool (*BVHTree_WalkOrderCallback)(const BVHTreeAxisRange *bounds, char axis, void *userdata);
+
 
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis);
 void BLI_bvhtree_free(BVHTree *tree);
@@ -144,6 +164,13 @@ float BLI_bvhtree_bb_raycast(const float bv[6], const float light_start[3], cons
 /* range query */
 int BLI_bvhtree_range_query(BVHTree *tree, const float co[3], float radius,
                             BVHTree_RangeQuery callback, void *userdata);
+
+void BLI_bvhtree_walk_dfs(
+        BVHTree *tree,
+        BVHTree_WalkParentCallback walk_parent_cb,
+        BVHTree_WalkLeafCallback walk_leaf_cb,
+        BVHTree_WalkOrderCallback walk_order_cb,
+        void *userdata);
 
 
 /* expose for bvh callbacks to use */
