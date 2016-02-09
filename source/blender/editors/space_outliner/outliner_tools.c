@@ -400,8 +400,11 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te,
 			ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
 		
 		ED_base_object_free_and_unlink(CTX_data_main(C), scene, base);
+		/* leave for ED_outliner_id_unref to handle */
+#if 0
 		te->directdata = NULL;
 		tselem->id = NULL;
+#endif
 	}
 }
 
@@ -828,8 +831,11 @@ static void object_delete_hierarchy_cb(
 		}
 
 		outline_delete_hierarchy(C, scene, base);
+		/* leave for ED_outliner_id_unref to handle */
+#if 0
 		te->directdata = NULL;
 		tselem->id = NULL;
+#endif
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
