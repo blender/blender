@@ -293,10 +293,12 @@ void curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope)
 		case CURVE_PRESET_LINE:
 			cuma->curve[0].x = clipr->xmin;
 			cuma->curve[0].y = clipr->ymax;
-			cuma->curve[0].flag |= CUMA_VECTOR;
 			cuma->curve[1].x = clipr->xmax;
 			cuma->curve[1].y = clipr->ymin;
-			cuma->curve[1].flag |= CUMA_VECTOR;
+			if (slope == CURVEMAP_SLOPE_POS_NEG) {
+				cuma->curve[0].flag |= CUMA_VECTOR;
+				cuma->curve[1].flag |= CUMA_VECTOR;
+			}
 			break;
 		case CURVE_PRESET_SHARP:
 			cuma->curve[0].x = 0;
