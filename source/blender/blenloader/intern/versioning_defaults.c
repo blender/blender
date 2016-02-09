@@ -64,8 +64,10 @@ void BLO_update_defaults_userpref_blend(void)
 	/* default from T47064 */
 	U.audiorate = 48000;
 
-	/* for some reason U.glalphaclip was 1.8367099231598242e-40 */
-	U.glalphaclip = 0.0f;
+	/* Keep this a very small, non-zero number so zero-alpha doesn't mask out objects behind it.
+	 * but take care since some hardware has driver bugs here (T46962).
+	 * Further hardware workarounds should be made in gpu_extensions.c */
+	U.glalphaclip = (1.5f / 255);
 }
 
 /**
