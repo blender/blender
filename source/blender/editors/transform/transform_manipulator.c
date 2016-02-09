@@ -1663,11 +1663,11 @@ void BIF_draw_manipulator(const bContext *C)
 	drawflags = rv3d->twdrawflag;    /* set in calc_manipulator_stats */
 
 	if (v3d->twflag & V3D_DRAW_MANIPULATOR) {
-
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
-		if (v3d->twtype & V3D_MANIP_ROTATE) {
+		glLineWidth(1.0f);
 
+		if (v3d->twtype & V3D_MANIP_ROTATE) {
 			if (G.debug_value == 3) {
 				if (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT))
 					draw_manipulator_rotate_cyl(v3d, rv3d, drawflags, v3d->twtype, MAN_MOVECOL, true, is_picksel);
