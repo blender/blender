@@ -1812,6 +1812,8 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 static void drawTransformView(const struct bContext *C, ARegion *UNUSED(ar), void *arg)
 {
 	TransInfo *t = arg;
+	
+	glLineWidth(1.0);
 
 	drawConstraint(t);
 	drawPropCircle(C, t);
