@@ -29,7 +29,12 @@
  *  \ingroup bli
  *  \brief BVH-tree implementation.
  *
- * KD-Overlap-BVH, implements a bvh-tree structure with support for:
+ * k-DOP BVH (Discrete Oriented Polytope, Bounding Volume Hierarchy).
+ * A k-DOP is represented as k/2 pairs of min , max values for k/2 directions (intervals, "slabs").
+ *
+ * See: http://www.gris.uni-tuebingen.de/people/staff/jmezger/papers/bvh.pdf
+ *
+ * implements a bvh-tree structure with support for:
  *
  * - Ray-cast:
  *   #BLI_bvhtree_ray_cast, #BVHRayCastData
@@ -37,6 +42,8 @@
  *   #BLI_bvhtree_find_nearest, #BVHNearestData
  * - Overlapping 2 trees:
  *   #BLI_bvhtree_overlap, #BVHOverlapData_Shared, #BVHOverlapData_Thread
+ * - Range Query:
+ *   #BLI_bvhtree_range_query
  */
 
 #include <assert.h>
