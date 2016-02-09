@@ -1441,7 +1441,43 @@ class CyclesRender_PT_bake(CyclesButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(cscene, "bake_type")
-        col.separator()
+
+        col = layout.column()
+
+        if cscene.bake_type == 'NORMAL':
+            col.prop(cbk, "normal_space", text="Space")
+
+            row = col.row(align=True)
+            row.label(text="Swizzle:")
+            row.prop(cbk, "normal_r", text="")
+            row.prop(cbk, "normal_g", text="")
+            row.prop(cbk, "normal_b", text="")
+
+        elif cscene.bake_type == 'COMBINED':
+            row = col.row(align=True)
+            row.prop(cbk, "use_pass_direct", toggle=True)
+            row.prop(cbk, "use_pass_indirect", toggle=True)
+
+            split = col.split()
+            split.active = cbk.use_pass_direct or cbk.use_pass_indirect
+
+            col = split.column()
+            col.prop(cbk, "use_pass_diffuse")
+            col.prop(cbk, "use_pass_glossy")
+            col.prop(cbk, "use_pass_transmission")
+
+            col = split.column()
+            col.prop(cbk, "use_pass_subsurface")
+            col.prop(cbk, "use_pass_ambient_occlusion")
+            col.prop(cbk, "use_pass_emit")
+
+        elif cscene.bake_type in {'DIFFUSE', 'GLOSSY', 'TRANSMISSION', 'SUBSURFACE'}:
+            row = col.row(align=True)
+            row.prop(cbk, "use_pass_direct", toggle=True)
+            row.prop(cbk, "use_pass_indirect", toggle=True)
+            row.prop(cbk, "use_pass_color", toggle=True)
+
+        layout.separator()
 
         split = layout.split()
 
@@ -1459,51 +1495,6 @@ class CyclesRender_PT_bake(CyclesButtonsPanel, Panel):
             sub.prop_search(cbk, "cage_object", scene, "objects", text="")
         else:
             sub.prop(cbk, "cage_extrusion", text="Ray Distance")
-
-        if cscene.bake_type == 'NORMAL':
-            layout.separator()
-            col = layout.column()
-            col.label(text="Normal Settings:")
-            col.prop(cbk, "normal_space", text="Space")
-
-            row = col.row(align=True)
-            row.label(text="Swizzle:")
-            row.prop(cbk, "normal_r", text="")
-            row.prop(cbk, "normal_g", text="")
-            row.prop(cbk, "normal_b", text="")
-
-        elif cscene.bake_type == 'COMBINED':
-            col = layout.column()
-            col.label(text="Combined Settings:")
-
-            row = col.row()
-            row.prop(cbk, "use_pass_ambient_occlusion")
-            row.prop(cbk, "use_pass_emit")
-
-            row = col.row(align=True)
-            row.prop(cbk, "use_pass_direct", toggle=True)
-            row.prop(cbk, "use_pass_indirect", toggle=True)
-
-            split = col.split()
-            split.active = cbk.use_pass_direct or cbk.use_pass_indirect
-
-            col = split.column()
-            col.prop(cbk, "use_pass_diffuse")
-            col.prop(cbk, "use_pass_glossy")
-
-            col = split.column()
-            col.prop(cbk, "use_pass_transmission")
-            col.prop(cbk, "use_pass_subsurface")
-
-        elif cscene.bake_type in {'DIFFUSE', 'GLOSSY', 'TRANSMISSION', 'SUBSURFACE'}:
-            layout.separator()
-            col = layout.column()
-            col.label(text="{0} Settings:".format(cscene.bake_type.title()))
-
-            row = col.row(align=True)
-            row.prop(cbk, "use_pass_direct", toggle=True)
-            row.prop(cbk, "use_pass_indirect", toggle=True)
-            row.prop(cbk, "use_pass_color", toggle=True)
 
 
 class CyclesRender_PT_debug(CyclesButtonsPanel, Panel):
