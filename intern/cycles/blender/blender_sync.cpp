@@ -192,7 +192,7 @@ void BlenderSync::sync_integrator()
 #endif
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
-	experimental = (RNA_enum_get(&cscene, "feature_set") != 0);
+	experimental = (get_enum(cscene, "feature_set") != 0);
 
 	Integrator *integrator = scene->integrator;
 	Integrator previntegrator = *integrator;
@@ -220,7 +220,7 @@ void BlenderSync::sync_integrator()
 	if(get_boolean(cscene, "use_animated_seed"))
 		integrator->seed = hash_int_2d(b_scene.frame_current(), get_int(cscene, "seed"));
 
-	integrator->sampling_pattern = (SamplingPattern)RNA_enum_get(&cscene, "sampling_pattern");
+	integrator->sampling_pattern = (SamplingPattern)get_enum(cscene, "sampling_pattern");
 
 	integrator->layer_flag = render_layer.layer;
 
@@ -287,7 +287,7 @@ void BlenderSync::sync_film()
 	film->use_sample_clamp = (integrator->sample_clamp_direct != 0.0f || integrator->sample_clamp_indirect != 0.0f);
 
 	film->exposure = get_float(cscene, "film_exposure");
-	film->filter_type = (FilterType)RNA_enum_get(&cscene, "filter_type");
+	film->filter_type = (FilterType)get_enum(cscene, "filter_type");
 	film->filter_width = (film->filter_type == FILTER_BOX)? 1.0f: get_float(cscene, "filter_width");
 
 	if(b_scene.world()) {
@@ -348,7 +348,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D& b_v3d, const char *layer)
 	/* render layer */
 	BL::RenderSettings r = b_scene.render();
 	BL::RenderSettings::layers_iterator b_rlay;
-	int use_layer_samples = RNA_enum_get(&cscene, "use_layer_samples");
+	int use_layer_samples = get_enum(cscene, "use_layer_samples");
 	bool first_layer = true;
 	uint layer_override = get_layer(b_engine.layer_override());
 	uint scene_layers = layer_override ? layer_override : get_layer(b_scene.layers());
@@ -440,7 +440,7 @@ SceneParams BlenderSync::get_scene_params(BL::Scene& b_scene,
 	if(background)
 		params.bvh_type = SceneParams::BVH_STATIC;
 	else
-		params.bvh_type = (SceneParams::BVHType)RNA_enum_get(&cscene, "debug_bvh_type");
+		params.bvh_type = (SceneParams::BVHType)get_enum(cscene, "debug_bvh_type");
 
 	params.use_bvh_spatial_split = RNA_boolean_get(&cscene, "debug_use_spatial_splits");
 
@@ -479,7 +479,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
 	/* feature set */
-	params.experimental = (RNA_enum_get(&cscene, "feature_set") != 0);
+	params.experimental = (get_enum(cscene, "feature_set") != 0);
 
 	/* device type */
 	vector<DeviceInfo>& devices = Device::available_devices();
@@ -487,13 +487,13 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 	/* device default CPU */
 	params.device = devices[0];
 
-	if(RNA_enum_get(&cscene, "device") == 2) {
+	if(get_enum(cscene, "device") == 2) {
 		/* find network device */
 		foreach(DeviceInfo& info, devices)
 			if(info.type == DEVICE_NETWORK)
 				params.device = info;
 	}
-	else if(RNA_enum_get(&cscene, "device") == 1) {
+	else if(get_enum(cscene, "device") == 1) {
 		/* find GPU device with given id */
 		PointerRNA systemptr = b_userpref.system().ptr;
 		PropertyRNA *deviceprop = RNA_struct_find_property(&systemptr, "compute_device");
@@ -564,7 +564,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 	}
 
 	if((BlenderSession::headless == false) && background) {
-		params.tile_order = (TileOrder)RNA_enum_get(&cscene, "tile_order");
+		params.tile_order = (TileOrder)get_enum(cscene, "tile_order");
 	}
 	else {
 		params.tile_order = TILE_BOTTOM_TO_TOP;
