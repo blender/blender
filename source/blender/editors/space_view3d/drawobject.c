@@ -7634,6 +7634,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 					}
 				}
 				else if (ED_view3d_boundbox_clip(rv3d, ob->bb)) {
+					glLineWidth(1.0f);
 					empty_object = drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
 				}
 				break;
