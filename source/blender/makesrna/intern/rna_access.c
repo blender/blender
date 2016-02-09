@@ -1215,14 +1215,15 @@ EnumPropertyItem DummyRNA_DEFAULT_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **r_item,
-                             int *r_totitem, bool *r_free)
+void RNA_property_enum_items_ex(
+        bContext *C, PointerRNA *ptr, PropertyRNA *prop, const bool use_static,
+        EnumPropertyItem **r_item, int *r_totitem, bool *r_free)
 {
 	EnumPropertyRNA *eprop = (EnumPropertyRNA *)rna_ensure_property(prop);
 
 	*r_free = false;
 
-	if (eprop->itemf && (C != NULL || (prop->flag & PROP_ENUM_NO_CONTEXT))) {
+	if (!use_static && eprop->itemf && (C != NULL || (prop->flag & PROP_ENUM_NO_CONTEXT))) {
 		EnumPropertyItem *item;
 
 		if (prop->flag & PROP_ENUM_NO_CONTEXT)
@@ -1248,6 +1249,12 @@ void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, En
 		if (r_totitem)
 			*r_totitem = eprop->totitem;
 	}
+}
+
+void RNA_property_enum_items(
+        bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **r_item, int *r_totitem, bool *r_free)
+{
+	RNA_property_enum_items_ex(C, ptr, prop, false, r_item, r_totitem, r_free);
 }
 
 #ifdef WITH_INTERNATIONAL

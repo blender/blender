@@ -322,8 +322,20 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
                 process_msg(msgs, default_context, prop.description, msgsrc, reports, check_ctxt_rna_tip, settings)
 
             if isinstance(prop, bpy.types.EnumProperty):
+                done_items = set()
                 for item in prop.enum_items:
                     msgsrc = "bpy.types.{}.{}:'{}'".format(bl_rna.identifier, prop.identifier, item.identifier)
+                    done_items.add(item.identifier)
+                    if item.name and item.name != item.identifier:
+                        process_msg(msgs, msgctxt, item.name, msgsrc, reports, check_ctxt_rna, settings)
+                    if item.description:
+                        process_msg(msgs, default_context, item.description, msgsrc, reports, check_ctxt_rna_tip,
+                                    settings)
+                for item in prop.enum_items_static:
+                    if item.identifier in done_items:
+                        continue
+                    msgsrc = "bpy.types.{}.{}:'{}'".format(bl_rna.identifier, prop.identifier, item.identifier)
+                    done_items.add(item.identifier)
                     if item.name and item.name != item.identifier:
                         process_msg(msgs, msgctxt, item.name, msgsrc, reports, check_ctxt_rna, settings)
                     if item.description:
