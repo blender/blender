@@ -116,10 +116,12 @@ if NOT "%1" == "" (
 	goto argv_loop
 )
 
-if "%PROCESSOR_ARCHITECTURE%" == "x86" (
-	set WINDOWS_ARCH=
-) else (
+if "%PROCESSOR_ARCHITECTURE%" == "AMD64" (
 	set WINDOWS_ARCH=Win64
+) else if "%PROCESSOR_ARCHITEW6432%" == "AMD64" (
+	set WINDOWS_ARCH=Win64
+) else (
+	set WINDOWS_ARCH=
 )
 
 set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -G "Visual Studio 12 2013 %WINDOWS_ARCH%"
