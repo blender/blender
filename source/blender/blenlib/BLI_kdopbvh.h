@@ -145,6 +145,10 @@ float BLI_bvhtree_bb_raycast(const float bv[6], const float light_start[3], cons
 int BLI_bvhtree_range_query(BVHTree *tree, const float co[3], float radius,
                             BVHTree_RangeQuery callback, void *userdata);
 
+
+/* expose for bvh callbacks to use */
+extern const float bvhtree_kdop_axes[13][3];
+
 #ifdef __cplusplus
 }
 #endif

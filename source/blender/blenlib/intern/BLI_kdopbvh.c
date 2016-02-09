@@ -95,7 +95,7 @@ struct BVHTree {
 	float epsilon;          /* epslion is used for inflation of the k-dop	   */
 	int totleaf;            /* leafs */
 	int totbranch;
-	axis_t start_axis, stop_axis;  /* KDOP_AXES array indices according to axis */
+	axis_t start_axis, stop_axis;  /* bvhtree_kdop_axes array indices according to axis */
 	axis_t axis;                   /* kdop type (6 => OBB, 7 => AABB, ...) */
 	char tree_type;                /* type of tree (4 => quadtree) */
 };
@@ -173,7 +173,7 @@ typedef struct BVHNearestRayData {
  * Notes: You can choose the tree type --> binary, quad, octree, choose below
  */
 
-static const float KDOP_AXES[13][3] = {
+const float bvhtree_kdop_axes[13][3] = {
 	{1.0, 0, 0}, {0, 1.0, 0}, {0, 0, 1.0}, {1.0, 1.0, 1.0}, {1.0, -1.0, 1.0}, {1.0, 1.0, -1.0},
 	{1.0, -1.0, -1.0}, {1.0, 1.0, 0}, {1.0, 0, 1.0}, {0, 1.0, 1.0}, {1.0, -1.0, 0}, {1.0, 0, -1.0},
 	{0, 1.0, -1.0}
@@ -468,7 +468,7 @@ static void create_kdop_hull(BVHTree *tree, BVHNode *node, const float *co, int 
 	for (k = 0; k < numpoints; k++) {
 		/* for all Axes. */
 		for (axis_iter = tree->start_axis; axis_iter < tree->stop_axis; axis_iter++) {
-			newminmax = dot_v3v3(&co[k * 3], KDOP_AXES[axis_iter]);
+			newminmax = dot_v3v3(&co[k * 3], bvhtree_kdop_axes[axis_iter]);
 			if (newminmax < bv[2 * axis_iter])
 				bv[2 * axis_iter] = newminmax;
 			if (newminmax > bv[(2 * axis_iter) + 1])
@@ -1318,15 +1318,15 @@ static float calc_nearest_point_squared(const float proj[3], BVHNode *node, floa
 	/* nearest on a general hull */
 	copy_v3_v3(nearest, data->co);
 	for (i = data->tree->start_axis; i != data->tree->stop_axis; i++, bv += 2) {
-		float proj = dot_v3v3(nearest, KDOP_AXES[i]);
+		float proj = dot_v3v3(nearest, bvhtree_kdop_axes[i]);
 		float dl = bv[0] - proj;
 		float du = bv[1] - proj;
 
 		if (dl > 0) {
-			madd_v3_v3fl(nearest, KDOP_AXES[i], dl);
+			madd_v3_v3fl(nearest, bvhtree_kdop_axes[i], dl);
 		}
 		else if (du < 0) {
-			madd_v3_v3fl(nearest, KDOP_AXES[i], du);
+			madd_v3_v3fl(nearest, bvhtree_kdop_axes[i], du);
 		}
 	}
 #endif
@@ -1488,7 +1488,7 @@ int BLI_bvhtree_find_nearest(BVHTree *tree, const float co[3], BVHTreeNearest *n
 	data.userdata = userdata;
 
 	for (axis_iter = data.tree->start_axis; axis_iter != data.tree->stop_axis; axis_iter++) {
-		data.proj[axis_iter] = dot_v3v3(data.co, KDOP_AXES[axis_iter]);
+		data.proj[axis_iter] = dot_v3v3(data.co, bvhtree_kdop_axes[axis_iter]);
 	}
 
 	if (nearest) {
@@ -1687,7 +1687,7 @@ static void bvhtree_ray_cast_data_precalc(BVHRayCastData *data, int flag)
 	int i;
 
 	for (i = 0; i < 3; i++) {
-		data->ray_dot_axis[i] = dot_v3v3(data->ray.direction, KDOP_AXES[i]);
+		data->ray_dot_axis[i] = dot_v3v3(data->ray.direction, bvhtree_kdop_axes[i]);
 		data->idot_axis[i] = 1.0f / data->ray_dot_axis[i];
 
 		if (fabsf(data->ray_dot_axis[i]) < FLT_EPSILON) {
