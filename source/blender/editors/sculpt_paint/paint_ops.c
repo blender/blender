@@ -1187,19 +1187,28 @@ void set_brush_rc_props(PointerRNA *ptr, const char *paint,
 		set_brush_rc_path(ptr, brush_path, "rotation_path", "texture_slot.angle");
 	RNA_string_set(ptr, "image_id", brush_path);
 
-	if (flags & RC_COLOR)
+	if (flags & RC_COLOR) {
 		set_brush_rc_path(ptr, brush_path, "fill_color_path", "color");
-	else
+	}
+	else {
 		RNA_string_set(ptr, "fill_color_path", "");
+	}
+
+	if (flags & RC_COLOR_OVERRIDE) {
+		RNA_string_set(ptr, "fill_color_override_path", "tool_settings.unified_paint_settings.color");
+		RNA_string_set(ptr, "fill_color_override_test_path", "tool_settings.unified_paint_settings.use_unified_color");
+	}
+	else {
+		RNA_string_set(ptr, "fill_color_override_path", "");
+		RNA_string_set(ptr, "fill_color_override_test_path", "");
+	}
+
 	if (flags & RC_ZOOM)
 		RNA_string_set(ptr, "zoom_path", "space_data.zoom");
 	else
 		RNA_string_set(ptr, "zoom_path", "");
 
-	if (flags & RC_SECONDARY_ROTATION)
-		RNA_boolean_set(ptr, "secondary_tex", true);
-	else
-		RNA_boolean_set(ptr, "secondary_tex", false);
+	RNA_boolean_set(ptr, "secondary_tex", (flags & RC_SECONDARY_ROTATION) != 0);
 
 	MEM_freeN(brush_path);
 }
@@ -1373,7 +1382,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
 	ed_keymap_paint_brush_switch(keymap, "vertex_paint");
 	ed_keymap_paint_brush_size(keymap, "tool_settings.vertex_paint.brush.size");
-	ed_keymap_paint_brush_radial_control(keymap, "vertex_paint", RC_COLOR | RC_ROTATION);
+	ed_keymap_paint_brush_radial_control(keymap, "vertex_paint", RC_COLOR | RC_COLOR_OVERRIDE | RC_ROTATION);
 
 	ed_keymap_stencil(keymap);
 
@@ -1449,7 +1458,9 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
 	ed_keymap_paint_brush_switch(keymap, "image_paint");
 	ed_keymap_paint_brush_size(keymap, "tool_settings.image_paint.brush.size");
-	ed_keymap_paint_brush_radial_control(keymap, "image_paint", RC_COLOR | RC_ZOOM | RC_ROTATION | RC_SECONDARY_ROTATION);
+	ed_keymap_paint_brush_radial_control(
+	        keymap, "image_paint",
+	        RC_COLOR | RC_COLOR_OVERRIDE | RC_ZOOM | RC_ROTATION | RC_SECONDARY_ROTATION);
 
 	ed_keymap_stencil(keymap);
 

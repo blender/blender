@@ -249,7 +249,8 @@ typedef enum {
 	RC_ROTATION = 2,
 	RC_ZOOM     = 4,
 	RC_WEIGHT   = 8,
-	RC_SECONDARY_ROTATION = 16
+	RC_SECONDARY_ROTATION = 16,
+	RC_COLOR_OVERRIDE = 32,
 } RCFlags;
 
 void set_brush_rc_props(struct PointerRNA *ptr, const char *paint, const char *prop, const char *secondary_prop,

@@ -3866,7 +3866,9 @@ typedef struct {
 	PropertyType type;
 	PropertySubType subtype;
 	PointerRNA ptr, col_ptr, fill_col_ptr, rot_ptr, zoom_ptr, image_id_ptr;
+	PointerRNA fill_col_override_ptr, fill_col_override_test_ptr;
 	PropertyRNA *prop, *col_prop, *fill_col_prop, *rot_prop, *zoom_prop;
+	PropertyRNA *fill_col_override_prop, *fill_col_override_test_prop;
 	StructRNA *image_id_srna;
 	float initial_value, current_value, min_value, max_value;
 	int initial_mouse[2];
@@ -3959,8 +3961,23 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 	float rot;
 
 	/* set fill color */
-	if (rc->fill_col_prop)
-		RNA_property_float_get_array(&rc->fill_col_ptr, rc->fill_col_prop, col);
+	if (rc->fill_col_prop) {
+		PointerRNA *fill_ptr;
+		PropertyRNA *fill_prop;
+
+		if (rc->fill_col_override_prop &&
+		    RNA_property_boolean_get(&rc->fill_col_override_test_ptr, rc->fill_col_override_test_prop))
+		{
+			fill_ptr = &rc->fill_col_override_ptr;
+			fill_prop = rc->fill_col_override_prop;
+		}
+		else {
+			fill_ptr = &rc->fill_col_ptr;
+			fill_prop = rc->fill_col_prop;
+		}
+
+		RNA_property_float_get_array(fill_ptr, fill_prop, col);
+	}
 	glColor4f(col[0], col[1], col[2], alpha);
 
 	if (rc->gltex) {
@@ -4224,9 +4241,27 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 		return 0;
 	if (!radial_control_get_path(&ctx_ptr, op, "color_path", &rc->col_ptr, &rc->col_prop, 3, RC_PROP_REQUIRE_FLOAT))
 		return 0;
-	if (!radial_control_get_path(&ctx_ptr, op, "fill_color_path", &rc->fill_col_ptr, &rc->fill_col_prop, 3, RC_PROP_REQUIRE_FLOAT))
+
+
+	if (!radial_control_get_path(
+	        &ctx_ptr, op, "fill_color_path", &rc->fill_col_ptr, &rc->fill_col_prop, 3, RC_PROP_REQUIRE_FLOAT))
+	{
 		return 0;
-	
+	}
+
+	if (!radial_control_get_path(
+	        &ctx_ptr, op, "fill_color_override_path",
+	        &rc->fill_col_override_ptr, &rc->fill_col_override_prop, 3, RC_PROP_REQUIRE_FLOAT))
+	{
+		return 0;
+	}
+	if (!radial_control_get_path(
+	        &ctx_ptr, op, "fill_color_override_test_path",
+	        &rc->fill_col_override_test_ptr, &rc->fill_col_override_test_prop, 0, RC_PROP_REQUIRE_BOOL))
+	{
+		return 0;
+	}
+
 	/* slightly ugly; allow this property to not resolve
 	 * correctly. needed because 3d texture paint shares the same
 	 * keymap as 2d image paint */
@@ -4596,6 +4631,9 @@ static void WM_OT_radial_control(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "color_path", NULL, 0, "Color Path", "Path of property used to set the color of the control");
 
 	RNA_def_string(ot->srna, "fill_color_path", NULL, 0, "Fill Color Path", "Path of property used to set the fill color of the control");
+
+	RNA_def_string(ot->srna, "fill_color_override_path", NULL, 0, "Fill Color Override Path", "");
+	RNA_def_string(ot->srna, "fill_color_override_test_path", NULL, 0, "Fill Color Override Test", "");
 
 	RNA_def_string(ot->srna, "zoom_path", NULL, 0, "Zoom Path", "Path of property used to set the zoom level for the control");
 
