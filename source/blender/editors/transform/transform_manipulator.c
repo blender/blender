@@ -1633,7 +1633,7 @@ void BIF_draw_manipulator(const bContext *C)
 
 				if (((v3d->around == V3D_AROUND_ACTIVE) && (scene->obedit == NULL)) &&
 				    ((gpd == NULL) || !(gpd->flag & GP_DATA_STROKE_EDITMODE)) &&
-				    (!(ob->mode & OB_MODE_POSE)))
+				    (ob && !(ob->mode & OB_MODE_POSE)))
 				{
 					copy_v3_v3(rv3d->twmat[3], ob->obmat[3]);
 				}
