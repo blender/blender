@@ -235,7 +235,7 @@ def do_versions(self):
 
             # Filter
             if not cscene.is_property_set("filter_type"):
-                cscene.filter_type = 'GAUSSIAN'
+                cscene.pixel_filter_type = 'GAUSSIAN'
 
             # Tile Order
             if not cscene.is_property_set("tile_order"):
@@ -270,3 +270,12 @@ def do_versions(self):
             # World MIS Resolution
             if not cworld.is_property_set("sample_map_resolution"):
                 cworld.sample_map_resolution = 256
+
+    if bpy.data.version <= (2, 76, 10):
+        for scene in bpy.data.scenes:
+            cscene = scene.cycles
+            if cscene.is_property_set("filter_type"):
+                if not cscene.is_property_set("pixel_filter_type"):
+                    cscene.pixel_filter_type = cscene.filter_type
+                if cscene.filter_type == 'BLACKMAN_HARRIS':
+                    cscene.filter_type = 'GAUSSIAN'

@@ -376,12 +376,24 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 default=False,
                 )
 
+        # Really annoyingly, we have to keep it around for a few releases,
+        # otherwise forward compatibility breaks in really bad manner: CRASH!
+        #
+        # TODO(sergey): Remove this during 2.8x series of Blender.
         cls.filter_type = EnumProperty(
                 name="Filter Type",
                 description="Pixel filter type",
                 items=enum_filter_types,
                 default='BLACKMAN_HARRIS',
                 )
+
+        cls.pixel_filter_type = EnumProperty(
+                name="Filter Type",
+                description="Pixel filter type",
+                items=enum_filter_types,
+                default='BLACKMAN_HARRIS',
+                )
+
         cls.filter_width = FloatProperty(
                 name="Filter Width",
                 description="Pixel filter width",

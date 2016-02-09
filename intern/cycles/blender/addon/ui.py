@@ -329,8 +329,8 @@ class CyclesRender_PT_film(CyclesButtonsPanel, Panel):
 
         col = split.column()
         sub = col.column(align=True)
-        sub.prop(cscene, "filter_type", text="")
-        if cscene.filter_type != 'BOX':
+        sub.prop(cscene, "pixel_filter_type", text="")
+        if cscene.pixel_filter_type != 'BOX':
             sub.prop(cscene, "filter_width", text="Width")
 
 
