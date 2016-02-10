@@ -72,6 +72,12 @@
 #  define KDOPBVH_THREAD_LEAF_THRESHOLD 1024
 #endif
 
+
+/* -------------------------------------------------------------------- */
+
+/** \name Struct Definitions
+ * \{ */
+
 typedef unsigned char axis_t;
 
 typedef struct BVHNode {
@@ -165,6 +171,9 @@ typedef struct BVHNearestRayData {
 	BVHTreeNearest nearest;
 } BVHNearestRayData;
 
+/** \} */
+
+
 /**
  * Bounding Volume Hierarchy Definition
  *
@@ -178,6 +187,12 @@ const float bvhtree_kdop_axes[13][3] = {
 	{1.0, -1.0, -1.0}, {1.0, 1.0, 0}, {1.0, 0, 1.0}, {0, 1.0, 1.0}, {1.0, -1.0, 0}, {1.0, 0, -1.0},
 	{0, 1.0, -1.0}
 };
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Utility Functions
+ * \{ */
 
 MINLINE axis_t min_axis(axis_t a, axis_t b)
 {
@@ -287,6 +302,14 @@ static void node_minmax_init(const BVHTree *tree, BVHNode *node)
 		bv[axis_iter][1] = -FLT_MAX;
 	}
 }
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Balance Utility Functions
+ * \{ */
 
 /**
  * Insertion sort algorithm
@@ -897,8 +920,13 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 	}
 }
 
+/** \} */
+
+
 /* -------------------------------------------------------------------- */
-/* BLI_bvhtree api */
+
+/** \name BLI_bvhtree API
+ * \{ */
 
 /**
  * \note many callers don't check for ``NULL`` return.
@@ -1092,9 +1120,13 @@ float BLI_bvhtree_getepsilon(const BVHTree *tree)
 	return tree->epsilon;
 }
 
+/** \} */
+
 
 /* -------------------------------------------------------------------- */
-/* BLI_bvhtree_overlap */
+
+/** \name BLI_bvhtree_overlap
+ * \{ */
 
 /**
  * overlap - is it possible for 2 bv's to collide ?
@@ -1297,6 +1329,14 @@ BVHTreeOverlap *BLI_bvhtree_overlap(
 	*r_overlap_tot = (unsigned int)total;
 	return overlap;
 }
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name BLI_bvhtree_find_nearest
+ * \{ */
 
 /* Determines the nearest point of the given node BV. Returns the squared distance to that point. */
 static float calc_nearest_point_squared(const float proj[3], BVHNode *node, float nearest[3])
@@ -1511,12 +1551,16 @@ int BLI_bvhtree_find_nearest(BVHTree *tree, const float co[3], BVHTreeNearest *n
 	return data.nearest.index;
 }
 
+/** \} */
 
-/**
- * Raycast - BLI_bvhtree_ray_cast
+
+/* -------------------------------------------------------------------- */
+
+/** \name BLI_bvhtree_ray_cast
  *
- * raycast is done by performing a DFS on the BVHTree and saving the closest hit
- */
+ * raycast is done by performing a DFS on the BVHTree and saving the closest hit.
+ *
+ * \{ */
 
 
 /* Determines the distance that the ray must travel to hit the bounding volume of the given node */
@@ -1922,12 +1966,18 @@ int BLI_bvhtree_find_nearest_to_ray(
 	return data.nearest.index;
 }
 
-/**
- * Range Query - as request by broken :P
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name BLI_bvhtree_range_query
  *
- * Allocs and fills an array with the indexs of node that are on the given spherical range (center, radius) 
+ * Allocs and fills an array with the indexs of node that are on the given spherical range (center, radius).
  * Returns the size of the array.
- */
+ *
+ * \{ */
+
 typedef struct RangeQueryData {
 	BVHTree *tree;
 	const float *center;
@@ -1969,7 +2019,9 @@ static void dfs_range_query(RangeQueryData *data, BVHNode *node)
 	}
 }
 
-int BLI_bvhtree_range_query(BVHTree *tree, const float co[3], float radius, BVHTree_RangeQuery callback, void *userdata)
+int BLI_bvhtree_range_query(
+        BVHTree *tree, const float co[3], float radius,
+        BVHTree_RangeQuery callback, void *userdata)
 {
 	BVHNode *root = tree->nodes[tree->totleaf];
 
@@ -1998,6 +2050,8 @@ int BLI_bvhtree_range_query(BVHTree *tree, const float co[3], float radius, BVHT
 
 	return data.hits;
 }
+
+/** \} */
 
 
 /* -------------------------------------------------------------------- */
