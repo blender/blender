@@ -1512,8 +1512,9 @@ static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
 #endif
 
 
-int BLI_bvhtree_find_nearest(BVHTree *tree, const float co[3], BVHTreeNearest *nearest,
-                             BVHTree_NearestPointCallback callback, void *userdata)
+int BLI_bvhtree_find_nearest(
+        BVHTree *tree, const float co[3], BVHTreeNearest *nearest,
+        BVHTree_NearestPointCallback callback, void *userdata)
 {
 	axis_t axis_iter;
 
@@ -1870,6 +1871,13 @@ int BLI_bvhtree_ray_cast_all(
 	return BLI_bvhtree_ray_cast_all_ex(tree, co, dir, radius, callback, userdata, BVH_RAYCAST_DEFAULT);
 }
 
+
+/* -------------------------------------------------------------------- */
+
+/** \name BLI_bvhtree_find_nearest_to_ray
+ *
+ * \{ */
+
 static float calc_dist_sq_to_ray(BVHNearestRayData *data, BVHNode *node)
 {
 	const float *bv = node->bv;
@@ -1926,8 +1934,8 @@ static void dfs_find_nearest_to_ray_begin(BVHNearestRayData *data, BVHNode *node
 }
 
 int BLI_bvhtree_find_nearest_to_ray(
-	BVHTree *tree, const float co[3], const float dir[3], float radius, BVHTreeNearest *nearest,
-	BVHTree_NearestToRayCallback callback, void *userdata)
+        BVHTree *tree, const float co[3], const float dir[3], BVHTreeNearest *nearest,
+        BVHTree_NearestToRayCallback callback, void *userdata)
 {
 	BVHNearestRayData data;
 	BVHNode *root = tree->nodes[tree->totleaf];
@@ -1941,7 +1949,7 @@ int BLI_bvhtree_find_nearest_to_ray(
 
 	copy_v3_v3(data.ray.origin, co);
 	copy_v3_v3(data.ray.direction, dir);
-	data.ray.radius = radius;
+	data.ray.radius = 0.0f;  /* unused here */
 
 	dist_squared_ray_to_aabb_v3_precalc(&data.nearest_precalc, co, dir);
 

@@ -1673,7 +1673,7 @@ static bool snapDerivedMesh(
 				nearest.dist_sq = local_depth * local_depth;
 				if (treedata.tree &&
 				    BLI_bvhtree_find_nearest_to_ray(
-				        treedata.tree, ray_start_local, ray_normal_local, 0.0f,
+				        treedata.tree, ray_start_local, ray_normal_local,
 				        &nearest, NULL, NULL) != -1)
 				{
 					const MVert *v = &treedata.vert[nearest.index];

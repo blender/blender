@@ -141,7 +141,7 @@ int BLI_bvhtree_find_nearest(
         BVHTree_NearestPointCallback callback, void *userdata);
 
 int BLI_bvhtree_find_nearest_to_ray(
-        BVHTree *tree, const float co[3], const float dir[3], float radius, BVHTreeNearest *nearest,
+        BVHTree *tree, const float co[3], const float dir[3], BVHTreeNearest *nearest,
         BVHTree_NearestToRayCallback callback, void *userdata);
 
 int BLI_bvhtree_ray_cast_ex(
