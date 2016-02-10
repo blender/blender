@@ -813,7 +813,7 @@ static void TRANSFORM_OT_mirror(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Mirror";
-	ot->description = "Mirror selected vertices around one or more axes";
+	ot->description = "Mirror selected items around one or more axes";
 	ot->idname = OP_MIRROR;
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 
