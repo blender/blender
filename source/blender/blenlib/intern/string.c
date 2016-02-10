@@ -302,8 +302,6 @@ char *BLI_sprintfN(const char *__restrict format, ...)
 	va_list arg;
 	char *n;
 
-	BLI_assert(format != NULL);
-
 	va_start(arg, format);
 
 	ds = BLI_dynstr_new();

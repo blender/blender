@@ -1506,7 +1506,9 @@ static void do_render_3d(Render *re)
 	const int cfra_backup = re->scene->r.cfra;
 	const float subframe_backup = re->scene->r.subframe;
 
-	BKE_scene_frame_set(re->scene, (double)re->scene->r.cfra + re->scene->r.subframe + re->mblur_offs + re->field_offs);
+	BKE_scene_frame_set(
+	        re->scene, (double)re->scene->r.cfra + (double)re->scene->r.subframe +
+	        (double)re->mblur_offs + (double)re->field_offs);
 
 	/* init main render result */
 	main_render_result_new(re);

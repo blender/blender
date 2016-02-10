@@ -3399,7 +3399,7 @@ static char *progress_tooltip_func(bContext *UNUSED(C), void *argN, const char *
 	BLI_timecode_string_from_time_simple(elapsed_str, sizeof(elapsed_str), elapsed);
 
 	if (progress) {
-		const double remaining = (elapsed / progress) - elapsed;
+		const double remaining = (elapsed / (double)progress) - elapsed;
 		BLI_timecode_string_from_time_simple(remaining_str, sizeof(remaining_str), remaining);
 	}
 
