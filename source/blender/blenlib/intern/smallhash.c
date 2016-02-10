@@ -28,11 +28,13 @@
 /** \file blender/blenlib/intern/smallhash.c
  *  \ingroup bli
  *
- * A light stack-friendly hash library, it uses stack space for smallish hash tables
- * but falls back to heap memory once the stack limits reached.
+ * A light stack-friendly hash library, it uses stack space for relatively small, fixed size hash tables
+ * but falls back to heap memory once the stack limits reached (#SMSTACKSIZE).
  *
- * based on a doubling non-chaining approach  which uses more buckets then entries
+ * based on a doubling hashing approach (non-chaining) which uses more buckets then entries
  * stepping over buckets when two keys share the same hash so any key can find a free bucket.
+ *
+ * See: http://en.wikipedia.org/wiki/Double_hashing
  *
  * \warning This should _only_ be used for small hashes where allocating a hash every time is unacceptable.
  * Otherwise #GHash should be used instead.
@@ -50,7 +52,8 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <BLI_sys_types.h>
+
+#include "BLI_sys_types.h"
 
 #include "MEM_guardedalloc.h"
 
