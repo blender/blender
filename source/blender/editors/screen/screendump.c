@@ -229,7 +229,12 @@ static int screenshot_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 			return screenshot_exec(C, op);
 
 		/* extension is added by 'screenshot_check' after */
-		RNA_string_set(op->ptr, "filepath", G.relbase_valid ? G.main->name : "//screen");
+		char filepath[FILE_MAX] = "//screen";
+		if (G.relbase_valid) {
+			BLI_strncpy(filepath, G.main->name, sizeof(filepath));
+			BLI_replace_extension(filepath, sizeof(filepath), "");  /* strip '.blend' */
+		}
+		RNA_string_set(op->ptr, "filepath", filepath);
 		
 		WM_event_add_fileselect(C, op);
 	
