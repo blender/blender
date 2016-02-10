@@ -53,11 +53,15 @@ enum VolumeSampling {
 	VOLUME_SAMPLING_DISTANCE = 0,
 	VOLUME_SAMPLING_EQUIANGULAR = 1,
 	VOLUME_SAMPLING_MULTIPLE_IMPORTANCE = 2,
+
+	VOLUME_NUM_SAMPLING,
 };
 
 enum VolumeInterpolation {
 	VOLUME_INTERPOLATION_LINEAR = 0,
 	VOLUME_INTERPOLATION_CUBIC = 1,
+
+	VOLUME_NUM_INTERPOLATION,
 };
 
 /* Shader describing the appearance of a Mesh, Light or Background.

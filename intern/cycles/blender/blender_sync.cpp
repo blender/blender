@@ -220,7 +220,11 @@ void BlenderSync::sync_integrator()
 	if(get_boolean(cscene, "use_animated_seed"))
 		integrator->seed = hash_int_2d(b_scene.frame_current(), get_int(cscene, "seed"));
 
-	integrator->sampling_pattern = (SamplingPattern)get_enum(cscene, "sampling_pattern");
+	integrator->sampling_pattern = (SamplingPattern)get_enum(
+	        cscene,
+	        "sampling_pattern",
+	        SAMPLING_NUM_PATTERNS,
+	        SAMPLING_PATTERN_SOBOL);
 
 	integrator->layer_flag = render_layer.layer;
 
@@ -237,7 +241,10 @@ void BlenderSync::sync_integrator()
 	}
 #endif
 
-	integrator->method = (Integrator::Method)get_enum(cscene, "progressive");
+	integrator->method = (Integrator::Method)get_enum(cscene,
+	                                                  "progressive",
+	                                                  Integrator::NUM_METHODS,
+	                                                  Integrator::PATH);
 
 	integrator->sample_all_lights_direct = get_boolean(cscene, "sample_all_lights_direct");
 	integrator->sample_all_lights_indirect = get_boolean(cscene, "sample_all_lights_indirect");
@@ -287,7 +294,10 @@ void BlenderSync::sync_film()
 	film->use_sample_clamp = (integrator->sample_clamp_direct != 0.0f || integrator->sample_clamp_indirect != 0.0f);
 
 	film->exposure = get_float(cscene, "film_exposure");
-	film->filter_type = (FilterType)get_enum(cscene, "pixel_filter_type");
+	film->filter_type = (FilterType)get_enum(cscene,
+	                                         "pixel_filter_type",
+	                                         FILTER_NUM_TYPES,
+	                                         FILTER_BLACKMAN_HARRIS);
 	film->filter_width = (film->filter_type == FILTER_BOX)? 1.0f: get_float(cscene, "filter_width");
 
 	if(b_scene.world()) {
@@ -440,7 +450,11 @@ SceneParams BlenderSync::get_scene_params(BL::Scene& b_scene,
 	if(background)
 		params.bvh_type = SceneParams::BVH_STATIC;
 	else
-		params.bvh_type = (SceneParams::BVHType)get_enum(cscene, "debug_bvh_type");
+		params.bvh_type = (SceneParams::BVHType)get_enum(
+		        cscene,
+		        "debug_bvh_type",
+		        SceneParams::BVH_NUM_TYPES,
+		        SceneParams::BVH_STATIC);
 
 	params.use_bvh_spatial_split = RNA_boolean_get(&cscene, "debug_use_spatial_splits");
 

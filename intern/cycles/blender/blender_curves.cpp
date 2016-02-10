@@ -795,8 +795,16 @@ void BlenderSync::sync_curve_settings()
 	curve_system_manager->minimum_width = get_float(csscene, "minimum_width");
 	curve_system_manager->maximum_width = get_float(csscene, "maximum_width");
 
-	curve_system_manager->primitive = get_enum(csscene, "primitive");
-	curve_system_manager->curve_shape = get_enum(csscene, "shape");
+	curve_system_manager->primitive =
+	        (CurvePrimitiveType)get_enum(csscene,
+	                                     "primitive",
+	                                     CURVE_NUM_PRIMITIVE_TYPES,
+	                                     CURVE_LINE_SEGMENTS);
+	curve_system_manager->curve_shape =
+	        (CurveShapeType)get_enum(csscene,
+	                                 "shape",
+	                                 CURVE_NUM_SHAPE_TYPES,
+	                                 CURVE_THICK);
 	curve_system_manager->resolution = get_int(csscene, "resolution");
 	curve_system_manager->subdivisions = get_int(csscene, "subdivisions");
 	curve_system_manager->use_backfacing = !get_boolean(csscene, "cull_backfacing");

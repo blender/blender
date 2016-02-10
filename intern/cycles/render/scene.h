@@ -125,7 +125,12 @@ public:
 class SceneParams {
 public:
 	ShadingSystem shadingsystem;
-	enum BVHType { BVH_DYNAMIC, BVH_STATIC } bvh_type;
+	enum BVHType {
+		BVH_DYNAMIC = 0,
+		BVH_STATIC = 1,
+
+		BVH_NUM_TYPES,
+	} bvh_type;
 	bool use_bvh_spatial_split;
 	bool use_qbvh;
 	bool persistent_data;

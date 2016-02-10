@@ -827,7 +827,10 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 
 	/* displacement method */
 	if(cmesh.data) {
-		const int method = get_enum(cmesh, "displacement_method");
+		const int method = get_enum(cmesh,
+		                            "displacement_method",
+		                            Mesh::DISPLACE_NUM_METHODS,
+		                            Mesh::DISPLACE_BUMP);
 
 		if(method == 0 || !experimental)
 			mesh->displacement_method = Mesh::DISPLACE_BUMP;

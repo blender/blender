@@ -468,6 +468,8 @@ enum InterpolationType {
 	INTERPOLATION_CLOSEST = 1,
 	INTERPOLATION_CUBIC = 2,
 	INTERPOLATION_SMART = 3,
+
+	INTERPOLATION_NUM_TYPES,
 };
 
 /* Extension types for textures.
@@ -481,6 +483,8 @@ enum ExtensionType {
 	EXTENSION_EXTEND = 1,
 	/* Clip to image size and set exterior pixels as transparent. */
 	EXTENSION_CLIP = 2,
+
+	EXTENSION_NUM_TYPES,
 };
 
 /* macros */

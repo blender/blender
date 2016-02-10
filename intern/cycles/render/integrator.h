@@ -66,7 +66,9 @@ public:
 
 	enum Method {
 		BRANCHED_PATH = 0,
-		PATH = 1
+		PATH = 1,
+
+		NUM_METHODS,
 	};
 	
 	Method method;

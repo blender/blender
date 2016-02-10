@@ -264,7 +264,9 @@ enum PathTraceDimension {
 
 enum SamplingPattern {
 	SAMPLING_PATTERN_SOBOL = 0,
-	SAMPLING_PATTERN_CMJ = 1
+	SAMPLING_PATTERN_CMJ = 1,
+
+	SAMPLING_NUM_PATTERNS,
 };
 
 /* these flags values correspond to raytypes in osl.cpp, so keep them in sync!
@@ -482,10 +484,12 @@ enum CameraType {
 /* Panorama Type */
 
 enum PanoramaType {
-	PANORAMA_EQUIRECTANGULAR,
-	PANORAMA_MIRRORBALL,
-	PANORAMA_FISHEYE_EQUIDISTANT,
-	PANORAMA_FISHEYE_EQUISOLID
+	PANORAMA_EQUIRECTANGULAR = 0,
+	PANORAMA_FISHEYE_EQUIDISTANT = 1,
+	PANORAMA_FISHEYE_EQUISOLID = 2,
+	PANORAMA_MIRRORBALL = 3,
+
+	PANORAMA_NUM_TYPES,
 };
 
 /* Differential */

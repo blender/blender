@@ -579,6 +579,8 @@ public:
 					cuda_assert(cuTexRefSetAddressMode(texref, 0, CU_TR_ADDRESS_MODE_BORDER));
 					cuda_assert(cuTexRefSetAddressMode(texref, 1, CU_TR_ADDRESS_MODE_BORDER));
 					break;
+				default:
+					assert(0);
 			}
 			cuda_assert(cuTexRefSetFormat(texref, format, mem.data_elements));
 

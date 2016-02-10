@@ -357,9 +357,24 @@ static inline void set_int(PointerRNA& ptr, const char *name, int value)
 	RNA_int_set(&ptr, name, value);
 }
 
-static inline int get_enum(PointerRNA& ptr, const char *name)
+/* Get a RNA enum value with sanity check: if the RNA value is above num_values
+ * the function will return a fallback default value.
+ *
+ * NOTE: This function assumes that RNA enum values are a continuous sequence
+ * from 0 to num_values-1. Be careful to use it with enums where some values are
+ * deprecated!
+ */
+static inline int get_enum(PointerRNA& ptr,
+                           const char *name,
+                           int num_values = -1,
+                           int default_value = -1)
 {
-	return RNA_enum_get(&ptr, name);
+	int value = RNA_enum_get(&ptr, name);
+	if(num_values != -1 && value >= num_values) {
+		assert(default_value != -1);
+		value = default_value;
+	}
+	return value;
 }
 
 static inline string get_enum_identifier(PointerRNA& ptr, const char *name)

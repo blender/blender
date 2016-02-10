@@ -63,9 +63,11 @@ public:
 
 	/* Displacement */
 	enum DisplacementMethod {
-		DISPLACE_BUMP,
-		DISPLACE_TRUE,
-		DISPLACE_BOTH
+		DISPLACE_BUMP = 0,
+		DISPLACE_TRUE = 1,
+		DISPLACE_BOTH = 2,
+
+		DISPLACE_NUM_METHODS,
 	};
 
 	ustring name;
