@@ -825,7 +825,12 @@ static void cdDM_drawMappedFaces(
 						start_element = tot_element;
 					}
 					else {
-						tot_drawn += tot_tri_verts;
+						if (draw_option != DM_DRAW_OPTION_SKIP) {
+							tot_drawn += tot_tri_verts;
+						}
+						else {
+							start_element = tot_element;
+						}
 					}
 				}
 			}
