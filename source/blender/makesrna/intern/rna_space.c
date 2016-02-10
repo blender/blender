@@ -2050,7 +2050,7 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 		{SO_ALL_SCENES, "ALL_SCENES", 0, "All Scenes", "Display data-blocks in all scenes"},
 		{SO_CUR_SCENE, "CURRENT_SCENE", 0, "Current Scene", "Display data-blocks in current scene"},
 		{SO_VISIBLE, "VISIBLE_LAYERS", 0, "Visible Layers", "Display data-blocks in visible layers"},
-		{SO_SELECTED, "SELECTED", 0, "Selected", "Display data-blocks of selected objects"},
+		{SO_SELECTED, "SELECTED", 0, "Selected", "Display data-blocks of selected, visible objects"},
 		{SO_ACTIVE, "ACTIVE", 0, "Active", "Display data-blocks of active object"},
 		{SO_SAME_TYPE, "SAME_TYPES", 0, "Same Types",
 		               "Display data-blocks of all objects of same type as selected object"},

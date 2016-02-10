@@ -1717,7 +1717,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	else if (soops->outlinevis == SO_SELECTED) {
 		for (base = scene->base.first; base; base = base->next) {
 			if (base->lay & scene->lay) {
-				if (base == BASACT || (base->flag & SELECT)) {
+				if (base->flag & SELECT) {
 					ten = outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
 					ten->directdata = base;
 				}
