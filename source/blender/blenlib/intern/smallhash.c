@@ -34,6 +34,8 @@
  * based on a doubling non-chaining approach  which uses more buckets then entries
  * stepping over buckets when two keys share the same hash so any key can find a free bucket.
  *
+ * \warning This should _only_ be used for small hashes where allocating a hash every time is unacceptable.
+ * Otherwise #GHash should be used instead.
  *
  * #SmallHashEntry.key
  * - ``SMHASH_KEY_UNUSED`` means the key in the cell has not been initialized.
@@ -126,7 +128,7 @@ BLI_INLINE SmallHashEntry *smallhash_lookup(const SmallHash *sh, const uintptr_t
 
 	BLI_assert(key != SMHASH_KEY_UNUSED);
 
-	/* note: there are always more buckets then entries,
+	/* note: there are always more buckets than entries,
 	 * so we know there will always be a free bucket if the key isn't found. */
 	for (e = &sh->buckets[h % sh->nbuckets];
 	     e->val != SMHASH_CELL_FREE;
@@ -221,7 +223,7 @@ void BLI_smallhash_init(SmallHash *sh)
 	BLI_smallhash_init_ex(sh, 0);
 }
 
-/*NOTE: does *not* free *sh itself!  only the direct data!*/
+/* NOTE: does *not* free *sh itself!  only the direct data! */
 void BLI_smallhash_release(SmallHash *sh)
 {
 	if (sh->buckets != sh->buckets_stack) {
