@@ -1135,6 +1135,8 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			glEnable(GL_BLEND);
 			glColor4f(0, 0, 0, ca->passepartalpha);
 		}
+		glLineWidth(1.0f);
+
 		if (x1i > 0.0f)
 			glRectf(0.0, winy, x1i, 0.0);
 		if (x2i < winx)
