@@ -1423,7 +1423,7 @@ elseif(WIN32)
 				message(WARNING "Using HARDCODED OpenEXR locations")
 				set(OPENEXR ${LIBDIR}/openexr)
 				set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
-				set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
+				set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR} ${OPENEXR}/include/OpenEXR)
 				set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 				set(OPENEXR_LIBRARIES
 					${OPENEXR_LIBPATH}/Iex-2_2.lib
@@ -1475,6 +1475,9 @@ elseif(WIN32)
 			endif()
 			if(WITH_INTERNATIONAL)
 				list(APPEND boost_extra_libs locale)
+			endif()
+			if(WITH_OPENVDB)
+				list(APPEND boost_extra_libs iostreams)
 			endif()
 			set(Boost_USE_STATIC_RUNTIME ON) # prefix lib
 			set(Boost_USE_MULTITHREADED ON) # suffix -mt
@@ -1566,11 +1569,12 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_OPENVDB)
+			set(TBB_LIBRARIES ${LIBDIR}/tbb/lib/tbb.lib)
+			set(TBB_INCLUDE_DIR ${LIBDIR}/tbb/include)
 			set(OPENVDB ${LIBDIR}/openvdb)
-			set(OPENVDB_INCLUDE_DIRS ${OPENVDB}/include)
+			set(OPENVDB_INCLUDE_DIRS ${OPENVDB}/include ${TBB_INCLUDE_DIR})
 			set(OPENVDB_LIBRARIES openvdb ${TBB_LIBRARIES})
 			set(OPENVDB_LIBPATH ${LIBDIR}/openvdb/lib)
-			set(OPENVDB_DEFINITIONS)
 		endif()
 
 		if(WITH_MOD_CLOTH_ELTOPO)
