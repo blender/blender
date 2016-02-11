@@ -33,7 +33,7 @@
  */
 
 // #ifdef DEBUG_TIME
-#define USE_BMESH
+// #define USE_BMESH
 #ifdef WITH_MOD_BOOLEAN
 #  define USE_CARVE WITH_MOD_BOOLEAN
 #endif
