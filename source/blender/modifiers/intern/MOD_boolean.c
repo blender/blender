@@ -43,6 +43,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_math_matrix.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_library_query.h"
@@ -52,6 +53,7 @@
 
 #include "MOD_boolean_util.h"
 #include "MOD_util.h"
+
 
 #ifdef USE_BMESH
 #include "BLI_alloca.h"
