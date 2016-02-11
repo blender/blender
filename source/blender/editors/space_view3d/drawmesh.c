@@ -964,12 +964,6 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 
 		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, compareDrawOptionsEm, &data, 0);
 	}
-	else if ((draw_flags & DRAW_FACE_SELECT) &&
-	         (ob->mode & OB_MODE_WEIGHT_PAINT))
-	{
-		dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions_facemask, GPU_object_material_bind, NULL, me,
-		                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH | DM_DRAW_SKIP_HIDDEN);
-	}
 	else {
 		DMDrawFlag dm_draw_flag;
 		drawTFace_userData userData;
@@ -981,8 +975,14 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 			dm_draw_flag = DM_DRAW_USE_ACTIVE_UV;
 		}
 
-		if ((ob->mode & OB_MODE_SCULPT) && (ob == OBACT)) {
-			dm_draw_flag |= DM_DRAW_SKIP_HIDDEN;
+		if (ob == OBACT) {
+			if (ob->mode & OB_MODE_WEIGHT_PAINT) {
+				dm_draw_flag |= DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH | DM_DRAW_SKIP_HIDDEN;
+
+			}
+			else if (ob->mode & OB_MODE_SCULPT) {
+				dm_draw_flag |= DM_DRAW_SKIP_HIDDEN;
+			}
 		}
 
 
