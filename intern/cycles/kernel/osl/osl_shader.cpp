@@ -147,11 +147,7 @@ static void flatten_surface_closure_tree(ShaderData *sd, int path_flag,
 	/* OSL gives us a closure tree, we flatten it into arrays per
 	 * closure type, for evaluation, sampling, etc later on. */
 
-#if OSL_LIBRARY_VERSION_CODE < 10700
-	switch(closure->type) {
-#else
 	switch(closure->id) {
-#endif
 		case OSL::ClosureColor::MUL: {
 			OSL::ClosureMul *mul = (OSL::ClosureMul *)closure;
 			flatten_surface_closure_tree(sd, path_flag, mul->closure, TO_FLOAT3(mul->weight) * weight);
@@ -355,11 +351,7 @@ static float3 flatten_background_closure_tree(const OSL::ClosureColor *closure)
 	 * is only one supported closure type at the moment, which has no evaluation
 	 * functions, so we just sum the weights */
 
-#if OSL_LIBRARY_VERSION_CODE < 10700
-	switch(closure->type) {
-#else
 	switch(closure->id) {
-#endif
 		case OSL::ClosureColor::MUL: {
 			OSL::ClosureMul *mul = (OSL::ClosureMul *)closure;
 
@@ -417,11 +409,7 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 	/* OSL gives us a closure tree, we flatten it into arrays per
 	 * closure type, for evaluation, sampling, etc later on. */
 
-#if OSL_LIBRARY_VERSION_CODE < 10700
-	switch(closure->type) {
-#else
 	switch(closure->id) {
-#endif
 		case OSL::ClosureColor::MUL: {
 			OSL::ClosureMul *mul = (OSL::ClosureMul *)closure;
 			flatten_volume_closure_tree(sd, mul->closure, TO_FLOAT3(mul->weight) * weight);

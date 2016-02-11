@@ -4599,28 +4599,6 @@ void OSLScriptNode::compile(SVMCompiler& /*compiler*/)
 
 void OSLScriptNode::compile(OSLCompiler& compiler)
 {
-#if defined(WITH_OSL) && (OSL_LIBRARY_VERSION_CODE < 10701)
-	/* XXX fix for #36790:
-	 * point and normal parameters are reflected as generic SOCK_VECTOR sockets
-	 * on the node. Socket fixed input values need to be copied explicitly here for
-	 * vector sockets, otherwise OSL will reject the value due to mismatching type.
-	 */
-	foreach(ShaderInput *input, this->inputs) {
-		if(!input->link) {
-			/* no need for compatible_name here, OSL parameter names are always unique */
-			string param_name(input->name);
-			switch(input->type) {
-				case SHADER_SOCKET_VECTOR:
-					compiler.parameter_point(param_name.c_str(), input->value);
-					compiler.parameter_normal(param_name.c_str(), input->value);
-					break;
-				default:
-					break;
-			}
-		}
-	}
-#endif
-
 	if(!filepath.empty())
 		compiler.add(this, filepath.c_str(), true);
 	else

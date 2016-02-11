@@ -114,9 +114,6 @@ static ShaderSocketType convert_osl_socket_type(OSL::OSLQuery& query,
                                                 BL::NodeSocket& b_socket)
 {
 	ShaderSocketType socket_type = convert_socket_type(b_socket);
-#if OSL_LIBRARY_VERSION_CODE < 10701
-	(void) query;
-#else
 	if(socket_type == SHADER_SOCKET_VECTOR) {
 		/* TODO(sergey): Do we need compatible_name() here? */
 		const OSL::OSLQuery::Parameter *param = query.getparam(b_socket.name());
@@ -130,7 +127,7 @@ static ShaderSocketType convert_osl_socket_type(OSL::OSLQuery& query,
 			}
 		}
 	}
-#endif
+
 	return socket_type;
 }
 #endif  /* WITH_OSL */
@@ -561,7 +558,7 @@ static ShaderNode *add_node(Scene *scene,
 			 * input/output type info needed for proper node construction.
 			 */
 			OSL::OSLQuery query;
-#if OSL_LIBRARY_VERSION_CODE >= 10701
+
 			if(!bytecode_hash.empty()) {
 				query.open_bytecode(b_script_node.bytecode());
 			}
@@ -569,7 +566,6 @@ static ShaderNode *add_node(Scene *scene,
 				!OSLShaderManager::osl_query(query, b_script_node.filepath());
 			}
 			/* TODO(sergey): Add proper query info error parsing. */
-#endif
 
 			/* Generate inputs/outputs from node sockets
 			 *
