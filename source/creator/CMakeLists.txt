@@ -555,6 +555,7 @@ if(UNIX AND NOT APPLE)
 				install(
 					DIRECTORY ${PYTHON_NUMPY_PATH}/numpy
 					DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/${_suffix}
+					PATTERN ".svn" EXCLUDE
 					PATTERN "__pycache__" EXCLUDE           # * any cache *
 					PATTERN "*.pyc" EXCLUDE                 # * any cache *
 					PATTERN "*.pyo" EXCLUDE                 # * any cache *
@@ -579,6 +580,7 @@ if(UNIX AND NOT APPLE)
 				install(
 					DIRECTORY ${PYTHON_REQUESTS_PATH}/requests
 					DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/${_suffix}
+					PATTERN ".svn" EXCLUDE
 					PATTERN "__pycache__" EXCLUDE           # * any cache *
 					PATTERN "*.pyc" EXCLUDE                 # * any cache *
 					PATTERN "*.pyo" EXCLUDE                 # * any cache *
@@ -591,6 +593,7 @@ if(UNIX AND NOT APPLE)
 						install(
 							DIRECTORY ${PYTHON_REQUESTS_PATH}/${_requests_dep}
 							DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/${_suffix}
+							PATTERN ".svn" EXCLUDE
 							PATTERN "__pycache__" EXCLUDE           # * any cache *
 							PATTERN "*.pyc" EXCLUDE                 # * any cache *
 							PATTERN "*.pyo" EXCLUDE                 # * any cache *
@@ -672,6 +675,7 @@ elseif(WIN32)
 			install(
 				DIRECTORY ${LIBDIR}/release/site-packages
 				DESTINATION ${BLENDER_VERSION}/python/lib
+				PATTERN ".svn" EXCLUDE
 				PATTERN "__pycache__" EXCLUDE           # * any cache *
 				PATTERN "*.pyc" EXCLUDE                 # * any cache *
 				PATTERN "*.pyo" EXCLUDE                 # * any cache *)
@@ -878,6 +882,7 @@ elseif(APPLE)
 			DIRECTORY ${from}
 			DESTINATION ${to}
 			PATTERN ".git" EXCLUDE
+			PATTERN ".svn" EXCLUDE
 			PATTERN "*.pyc" EXCLUDE
 			PATTERN "*.pyo" EXCLUDE
 			PATTERN "*.orig" EXCLUDE
