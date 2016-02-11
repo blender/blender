@@ -286,8 +286,8 @@ bool isect_ray_aabb_v3(
 
 struct NearestRayToAABB_Precalc {
 	float ray_origin[3];
-	float ray_dot_axis[3];
-	float idot_axis[3];
+	float ray_direction[3];
+	float ray_inv_dir[3];
 	float cdot_axis[3];
 	float idiag_sq[3];
 	bool sign[3];

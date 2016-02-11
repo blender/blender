@@ -2262,13 +2262,13 @@ void dist_squared_ray_to_aabb_v3_precalc(
 
 	for (int i = 0; i < 3; i++) {
 		data->ray_origin[i] = ray_origin[i];
-		data->ray_dot_axis[i] = ray_direction[i];
-		data->idot_axis[i] = (data->ray_dot_axis[i] != 0.0f) ? (1.0f / data->ray_dot_axis[i]) : FLT_MAX;
-		/* It has to be a function of `idot_axis`,
+		data->ray_direction[i] = ray_direction[i];
+		data->ray_inv_dir[i] = (data->ray_direction[i] != 0.0f) ? (1.0f / data->ray_direction[i]) : FLT_MAX;
+		/* It has to be a function of `ray_inv_dir`,
 		 * since the division of 1 by 0.0f, can be -inf or +inf */
-		data->sign[i] = (data->idot_axis[i] < 0.0f);
+		data->sign[i] = (data->ray_inv_dir[i] < 0.0f);
 
-		dir_sq[i] = SQUARE(data->ray_dot_axis[i]);
+		dir_sq[i] = SQUARE(data->ray_direction[i]);
 	}
 
 	/* `diag_sq` Length square of each face diagonal */
@@ -2281,9 +2281,9 @@ void dist_squared_ray_to_aabb_v3_precalc(
 	data->idiag_sq[1] = (diag_sq[1] > FLT_EPSILON) ? (1.0f / diag_sq[1]) : FLT_MAX;
 	data->idiag_sq[2] = (diag_sq[2] > FLT_EPSILON) ? (1.0f / diag_sq[2]) : FLT_MAX;
 
-	data->cdot_axis[0] = data->ray_dot_axis[0] * data->idiag_sq[0];
-	data->cdot_axis[1] = data->ray_dot_axis[1] * data->idiag_sq[1];
-	data->cdot_axis[2] = data->ray_dot_axis[2] * data->idiag_sq[2];
+	data->cdot_axis[0] = data->ray_direction[0] * data->idiag_sq[0];
+	data->cdot_axis[1] = data->ray_direction[1] * data->idiag_sq[1];
+	data->cdot_axis[2] = data->ray_direction[2] * data->idiag_sq[2];
 }
 
 /**
@@ -2329,18 +2329,18 @@ float dist_squared_ray_to_aabb_v3(
 	}
 
 	const float tmin[3] = {
-		local_bvmin[0] * data->idot_axis[0],
-		local_bvmin[1] * data->idot_axis[1],
-		local_bvmin[2] * data->idot_axis[2],
+		local_bvmin[0] * data->ray_inv_dir[0],
+		local_bvmin[1] * data->ray_inv_dir[1],
+		local_bvmin[2] * data->ray_inv_dir[2],
 	};
 
 	/* `tmax` is a vector that has the longer distances to each of the
 	 * infinite planes of the `AABB` faces (hit in farthest face X plane,
 	 * farthest face Y plane and farthest face Z plane) */
 	const float tmax[3] = {
-		local_bvmax[0] * data->idot_axis[0],
-		local_bvmax[1] * data->idot_axis[1],
-		local_bvmax[2] * data->idot_axis[2],
+		local_bvmax[0] * data->ray_inv_dir[0],
+		local_bvmax[1] * data->ray_inv_dir[1],
+		local_bvmax[2] * data->ray_inv_dir[2],
 	};
 	/* `v1` and `v3` is be the coordinates of the nearest `AABB` edge to the ray*/
 	float v1[3], v2[3];
@@ -2359,7 +2359,7 @@ float dist_squared_ray_to_aabb_v3(
 		// printf("# Hit in X %s\n", data->sign[0] ? "min", "max");
 		rtmax = tmax[0];
 		v1[0] = v2[0] = local_bvmax[0];
-		mul = local_bvmax[0] * data->ray_dot_axis[0];
+		mul = local_bvmax[0] * data->ray_direction[0];
 		main_axis = 3;
 		r_axis_closest[0] = data->sign[0];
 	}
@@ -2367,7 +2367,7 @@ float dist_squared_ray_to_aabb_v3(
 		// printf("# Hit in Y %s\n", data->sign[1] ? "min", "max");
 		rtmax = tmax[1];
 		v1[1] = v2[1] = local_bvmax[1];
-		mul = local_bvmax[1] * data->ray_dot_axis[1];
+		mul = local_bvmax[1] * data->ray_direction[1];
 		main_axis = 2;
 		r_axis_closest[1] = data->sign[1];
 	}
@@ -2375,7 +2375,7 @@ float dist_squared_ray_to_aabb_v3(
 		// printf("# Hit in Z %s\n", data->sign[2] ? "min", "max");
 		rtmax = tmax[2];
 		v1[2] = v2[2] = local_bvmax[2];
-		mul = local_bvmax[2] * data->ray_dot_axis[2];
+		mul = local_bvmax[2] * data->ray_direction[2];
 		main_axis = 1;
 		r_axis_closest[2] = data->sign[2];
 	}
@@ -2385,7 +2385,7 @@ float dist_squared_ray_to_aabb_v3(
 		// printf("# To X %s\n", data->sign[0] ? "max", "min");
 		rtmin = tmin[0];
 		v1[0] = v2[0] = local_bvmin[0];
-		mul += local_bvmin[0] * data->ray_dot_axis[0];
+		mul += local_bvmin[0] * data->ray_direction[0];
 		main_axis -= 3;
 		r_axis_closest[0] = !data->sign[0];
 	}
@@ -2393,7 +2393,7 @@ float dist_squared_ray_to_aabb_v3(
 		// printf("# To Y %s\n", data->sign[1] ? "max", "min");
 		rtmin = tmin[1];
 		v1[1] = v2[1] = local_bvmin[1];
-		mul += local_bvmin[1] * data->ray_dot_axis[1];
+		mul += local_bvmin[1] * data->ray_direction[1];
 		main_axis -= 1;
 		r_axis_closest[1] = !data->sign[1];
 	}
@@ -2401,7 +2401,7 @@ float dist_squared_ray_to_aabb_v3(
 		// printf("# To Z %s\n", data->sign[2] ? "max", "min");
 		rtmin = tmin[2];
 		v1[2] = v2[2] = local_bvmin[2];
-		mul += local_bvmin[2] * data->ray_dot_axis[2];
+		mul += local_bvmin[2] * data->ray_direction[2];
 		main_axis -= 2;
 		r_axis_closest[2] = !data->sign[2];
 	}
@@ -2428,7 +2428,7 @@ float dist_squared_ray_to_aabb_v3(
 
 	/* if rtmin < rtmax, ray intersect `AABB` */
 	if (rtmin <= rtmax) {
-		const float proj = rtmin * data->ray_dot_axis[main_axis];
+		const float proj = rtmin * data->ray_direction[main_axis];
 		rdist = 0.0f;
 		r_axis_closest[main_axis] = (proj - v1[main_axis]) < (v2[main_axis] - proj);
 	}
@@ -2440,12 +2440,12 @@ float dist_squared_ray_to_aabb_v3(
 			/* `depth` is equivalent the distance from the origin to the point v1,
 			 * Here's a faster way to calculate the dot product of v1 and ray
 			 * (depth = dot_v3v3(v1, data->ray.direction))*/
-			depth = mul + data->ray_dot_axis[main_axis] * v1[main_axis];
+			depth = mul + data->ray_direction[main_axis] * v1[main_axis];
 			rdist = len_squared_v3(v1) - SQUARE(depth);
 			r_axis_closest[main_axis] = true;
 		}
 		else if (v2[main_axis] < proj) {  /* the nearest point of the ray is the point v2 */
-			depth = mul + data->ray_dot_axis[main_axis] * v2[main_axis];
+			depth = mul + data->ray_direction[main_axis] * v2[main_axis];
 			rdist = len_squared_v3(v2) - SQUARE(depth);
 			r_axis_closest[main_axis] = false;
 		}
@@ -2453,16 +2453,16 @@ float dist_squared_ray_to_aabb_v3(
 			float v[2];
 			mul *= data->idiag_sq[main_axis];
 			if (main_axis == 0) {
-				v[0] = (mul * data->ray_dot_axis[1]) - v1[1];
-				v[1] = (mul * data->ray_dot_axis[2]) - v1[2];
+				v[0] = (mul * data->ray_direction[1]) - v1[1];
+				v[1] = (mul * data->ray_direction[2]) - v1[2];
 			}
 			else if (main_axis == 1) {
-				v[0] = (mul * data->ray_dot_axis[0]) - v1[0];
-				v[1] = (mul * data->ray_dot_axis[2]) - v1[2];
+				v[0] = (mul * data->ray_direction[0]) - v1[0];
+				v[1] = (mul * data->ray_direction[2]) - v1[2];
 			}
 			else {
-				v[0] = (mul * data->ray_dot_axis[0]) - v1[0];
-				v[1] = (mul * data->ray_dot_axis[1]) - v1[1];
+				v[0] = (mul * data->ray_direction[0]) - v1[0];
+				v[1] = (mul * data->ray_direction[1]) - v1[1];
 			}
 			rdist = len_squared_v2(v);
 			r_axis_closest[main_axis] = (proj - v1[main_axis]) < (v2[main_axis] - proj);
