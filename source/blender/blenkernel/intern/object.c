@@ -3231,6 +3231,9 @@ int BKE_object_obdata_texspace_get(Object *ob, short **r_texflag, float **r_loc,
 		case ID_ME:
 		{
 			Mesh *me = ob->data;
+			if (me->bb == NULL || (me->bb->flag & BOUNDBOX_DIRTY)) {
+				BKE_mesh_texspace_calc(me);
+			}
 			if (r_texflag) *r_texflag = &me->texflag;
 			if (r_loc) *r_loc = me->loc;
 			if (r_size) *r_size = me->size;
@@ -3240,6 +3243,9 @@ int BKE_object_obdata_texspace_get(Object *ob, short **r_texflag, float **r_loc,
 		case ID_CU:
 		{
 			Curve *cu = ob->data;
+			if (cu->bb == NULL || (cu->bb->flag & BOUNDBOX_DIRTY)) {
+				BKE_curve_texspace_calc(cu);
+			}
 			if (r_texflag) *r_texflag = &cu->texflag;
 			if (r_loc) *r_loc = cu->loc;
 			if (r_size) *r_size = cu->size;
