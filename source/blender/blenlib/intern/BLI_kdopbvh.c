@@ -1924,23 +1924,12 @@ static void dfs_find_nearest_to_ray_dfs(BVHNearestRayData *data, BVHNode *node)
 	}
 }
 
-static void dfs_find_nearest_to_ray_begin(BVHNearestRayData *data, BVHNode *node)
-{
-	float dist_sq = calc_dist_sq_to_ray(data, node);
-	if (dist_sq >= data->nearest.dist_sq) {
-		return;
-	}
-	dfs_find_nearest_to_ray_dfs(data, node);
-}
-
 int BLI_bvhtree_find_nearest_to_ray(
         BVHTree *tree, const float co[3], const float dir[3], BVHTreeNearest *nearest,
         BVHTree_NearestToRayCallback callback, void *userdata)
 {
 	BVHNearestRayData data;
 	BVHNode *root = tree->nodes[tree->totleaf];
-
-	BLI_ASSERT_UNIT_V3(dir);
 
 	data.tree = tree;
 
@@ -1963,7 +1952,9 @@ int BLI_bvhtree_find_nearest_to_ray(
 
 	/* dfs search */
 	if (root) {
-		dfs_find_nearest_to_ray_begin(&data, root);
+		if (calc_dist_sq_to_ray(&data, root) < data.nearest.dist_sq) {
+			dfs_find_nearest_to_ray_dfs(&data, root);
+		}
 	}
 
 	/* copy back results */
@@ -2131,7 +2122,10 @@ void BLI_bvhtree_walk_dfs(
 {
 	const BVHNode *root = tree->nodes[tree->totleaf];
 	if (root != NULL) {
-		bvhtree_walk_dfs_recursive(walk_parent_cb, walk_leaf_cb, walk_order_cb, root, userdata);
+		/* first make sure the bv of root passes in the test too */
+		if (walk_parent_cb((const BVHTreeAxisRange *)root->bv, userdata)) {
+			bvhtree_walk_dfs_recursive(walk_parent_cb, walk_leaf_cb, walk_order_cb, root, userdata);
+		}
 	}
 }
 
