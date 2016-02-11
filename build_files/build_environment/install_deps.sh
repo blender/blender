@@ -3089,7 +3089,7 @@ install_RPM() {
     INFO "Forced Boost building, as requested..."
     compile_Boost
   else
-    check_package_version_ge_RPM boost-devel $BOOST_VERSION
+    check_package_version_ge_RPM boost-devel $BOOST_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_RPM boost-devel
       clean_Boost
