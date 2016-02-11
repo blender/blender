@@ -85,6 +85,7 @@ void id_sort_by_name(struct ListBase *lb, struct ID *id);
 
 bool new_id(struct ListBase *lb, struct ID *id, const char *name);
 void id_clear_lib_data(struct Main *bmain, struct ID *id);
+void id_clear_lib_data_ex(struct Main *bmain, struct ID *id, bool id_in_mainlist);
 
 struct ListBase *which_libbase(struct Main *mainlib, short type);
 

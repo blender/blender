@@ -1979,7 +1979,7 @@ static void extern_local_ntree(bNodeTree *ntree)
 	}
 }
 
-void ntreeMakeLocal(bNodeTree *ntree)
+void ntreeMakeLocal(bNodeTree *ntree, bool id_in_mainlist)
 {
 	Main *bmain = G.main;
 	bool lib = false, local = false;
@@ -1991,7 +1991,7 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	
 	if (ntree->id.lib == NULL) return;
 	if (ntree->id.us == 1) {
-		id_clear_lib_data(bmain, (ID *)ntree);
+		id_clear_lib_data_ex(bmain, (ID *)ntree, id_in_mainlist);
 		extern_local_ntree(ntree);
 		return;
 	}
@@ -2012,7 +2012,7 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	
 	/* if all users are local, we simply make tree local */
 	if (local && !lib) {
-		id_clear_lib_data(bmain, (ID *)ntree);
+		id_clear_lib_data_ex(bmain, (ID *)ntree, id_in_mainlist);
 		extern_local_ntree(ntree);
 	}
 	else if (local && lib) {

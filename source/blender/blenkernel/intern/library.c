@@ -323,7 +323,7 @@ bool id_make_local(ID *id, bool test)
 			if (!test) BKE_action_make_local((bAction *)id);
 			return true;
 		case ID_NT:
-			if (!test) ntreeMakeLocal((bNodeTree *)id);
+			if (!test) ntreeMakeLocal((bNodeTree *)id, true);
 			return true;
 		case ID_BR:
 			if (!test) BKE_brush_make_local((Brush *)id);
@@ -1654,7 +1654,7 @@ bool new_id(ListBase *lb, ID *id, const char *tname)
  * Pull an ID out of a library (make it local). Only call this for IDs that
  * don't have other library users.
  */
-void id_clear_lib_data(Main *bmain, ID *id)
+void id_clear_lib_data_ex(Main *bmain, ID *id, bool id_in_mainlist)
 {
 	bNodeTree *ntree = NULL;
 
@@ -1664,7 +1664,8 @@ void id_clear_lib_data(Main *bmain, ID *id)
 
 	id->lib = NULL;
 	id->tag &= ~(LIB_TAG_INDIRECT | LIB_TAG_EXTERN);
-	new_id(which_libbase(bmain, GS(id->name)), id, NULL);
+	if (id_in_mainlist)
+		new_id(which_libbase(bmain, GS(id->name)), id, NULL);
 
 	/* internal bNodeTree blocks inside ID types below
 	 * also stores id->lib, make sure this stays in sync.
@@ -1672,7 +1673,7 @@ void id_clear_lib_data(Main *bmain, ID *id)
 	ntree = ntreeFromID(id);
 
 	if (ntree) {
-		ntreeMakeLocal(ntree);
+		ntreeMakeLocal(ntree, false);
 	}
 
 	if (GS(id->name) == ID_OB) {
@@ -1683,6 +1684,11 @@ void id_clear_lib_data(Main *bmain, ID *id)
 		}
 		object->proxy = object->proxy_from = object->proxy_group = NULL;
 	}
+}
+
+void id_clear_lib_data(Main *bmain, ID *id)
+{
+	id_clear_lib_data_ex(bmain, id, true);
 }
 
 /* next to indirect usage in read/writefile also in editobject.c scene.c */
