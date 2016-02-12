@@ -117,10 +117,10 @@ ccl_device_noinline void shader_setup_from_ray(KernelGlobals *kg,
 		/* instance transform */
 		object_normal_transform_auto(kg, sd, &ccl_fetch(sd, N));
 		object_normal_transform_auto(kg, sd, &ccl_fetch(sd, Ng));
-#ifdef __DPDU__
+#  ifdef __DPDU__
 		object_dir_transform_auto(kg, sd, &ccl_fetch(sd, dPdu));
 		object_dir_transform_auto(kg, sd, &ccl_fetch(sd, dPdv));
-#endif
+#  endif
 	}
 #endif
 
@@ -158,10 +158,10 @@ ccl_device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderDat
 	sd->prim = kernel_tex_fetch(__prim_index, isect->prim);
 	sd->type = isect->type;
 
-#ifdef __UV__
+#  ifdef __UV__
 	sd->u = isect->u;
 	sd->v = isect->v;
-#endif
+#  endif
 
 	/* fetch triangle data */
 	if(sd->type == PRIMITIVE_TRIANGLE) {
@@ -176,10 +176,10 @@ ccl_device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderDat
 		if(sd->shader & SHADER_SMOOTH_NORMAL)
 			sd->N = triangle_smooth_normal(kg, sd->prim, sd->u, sd->v);
 
-#ifdef __DPDU__
+#  ifdef __DPDU__
 		/* dPdu/dPdv */
 		triangle_dPdudv(kg, sd->prim, &sd->dPdu, &sd->dPdv);
-#endif
+#  endif
 	}
 	else {
 		/* motion triangle */
@@ -188,38 +188,38 @@ ccl_device_inline void shader_setup_from_subsurface(KernelGlobals *kg, ShaderDat
 
 	sd->flag |= kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
 
-#ifdef __INSTANCING__
+#  ifdef __INSTANCING__
 	if(isect->object != OBJECT_NONE) {
 		/* instance transform */
 		object_normal_transform(kg, sd, &sd->N);
 		object_normal_transform(kg, sd, &sd->Ng);
-#ifdef __DPDU__
+#    ifdef __DPDU__
 		object_dir_transform(kg, sd, &sd->dPdu);
 		object_dir_transform(kg, sd, &sd->dPdv);
-#endif
+#    endif
 	}
-#endif
+#  endif
 
 	/* backfacing test */
 	if(backfacing) {
 		sd->flag |= SD_BACKFACING;
 		sd->Ng = -sd->Ng;
 		sd->N = -sd->N;
-#ifdef __DPDU__
+#  ifdef __DPDU__
 		sd->dPdu = -sd->dPdu;
 		sd->dPdv = -sd->dPdv;
-#endif
+#  endif
 	}
 
 	/* should not get used in principle as the shading will only use a diffuse
 	 * BSDF, but the shader might still access it */
 	sd->I = sd->N;
 
-#ifdef __RAY_DIFFERENTIALS__
+#  ifdef __RAY_DIFFERENTIALS__
 	/* differentials */
 	differential_dudv(&sd->du, &sd->dv, sd->dPdu, sd->dPdv, sd->dP, sd->Ng);
 	/* don't modify dP and dI */
-#endif
+#  endif
 }
 #endif
 
@@ -296,12 +296,12 @@ ccl_device void shader_setup_from_sample(KernelGlobals *kg,
 #ifdef __DPDU__
 		triangle_dPdudv(kg, ccl_fetch(sd, prim), &ccl_fetch(sd, dPdu), &ccl_fetch(sd, dPdv));
 
-#ifdef __INSTANCING__
+#  ifdef __INSTANCING__
 		if(instanced) {
 			object_dir_transform_auto(kg, sd, &ccl_fetch(sd, dPdu));
 			object_dir_transform_auto(kg, sd, &ccl_fetch(sd, dPdv));
 		}
-#endif
+#  endif
 #endif
 	}
 	else {
@@ -1020,12 +1020,12 @@ ccl_device void shader_eval_volume(KernelGlobals *kg, ShaderData *sd,
 
 		/* evaluate shader */
 #ifdef __SVM__
-#ifdef __OSL__
+#  ifdef __OSL__
 		if(kg->osl) {
 			OSLShader::eval_volume(kg, sd, state, path_flag, ctx);
 		}
 		else
-#endif
+#  endif
 		{
 			svm_eval_nodes(kg, sd, state, SHADER_TYPE_VOLUME, path_flag);
 		}
@@ -1048,11 +1048,11 @@ ccl_device void shader_eval_displacement(KernelGlobals *kg, ShaderData *sd, ccl_
 
 	/* this will modify sd->P */
 #ifdef __SVM__
-#ifdef __OSL__
+#  ifdef __OSL__
 	if(kg->osl)
 		OSLShader::eval_displacement(kg, sd, ctx);
 	else
-#endif
+#  endif
 	{
 		svm_eval_nodes(kg, sd, state, SHADER_TYPE_DISPLACEMENT, 0);
 	}

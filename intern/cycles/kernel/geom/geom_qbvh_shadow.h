@@ -316,11 +316,11 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					/* Instance push. */
 					object = kernel_tex_fetch(__prim_object, -primAddr-1);
 
-#if BVH_FEATURE(BVH_MOTION)
+#  if BVH_FEATURE(BVH_MOTION)
 					bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_itfm);
-#else
+#  else
 					bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect_t);
-#endif
+#  endif
 
 					num_hits_in_instance = 0;
 					isect_array->t = isect_t;
@@ -330,12 +330,12 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					if(idir.z >= 0.0f) { near_z = 4; far_z = 5; } else { near_z = 5; far_z = 4; }
 					tfar = ssef(isect_t);
 					idir4 = sse3f(ssef(idir.x), ssef(idir.y), ssef(idir.z));
-#ifdef __KERNEL_AVX2__
+#  ifdef __KERNEL_AVX2__
 					P_idir = P*idir;
 					P_idir4 = sse3f(P_idir.x, P_idir.y, P_idir.z);
-#else
+#  else
 					org = sse3f(ssef(P.x), ssef(P.y), ssef(P.z));
-#endif
+#  endif
 					triangle_intersect_precalc(dir, &isect_precalc);
 
 					++stackPtr;
@@ -356,11 +356,11 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 			if(num_hits_in_instance) {
 				float t_fac;
 
-#if BVH_FEATURE(BVH_MOTION)
+#  if BVH_FEATURE(BVH_MOTION)
 				bvh_instance_motion_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac, &ob_itfm);
-#else
+#  else
 				bvh_instance_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac);
-#endif
+#  endif
 
 				/* scale isect->t to adjust for instancing */
 				for(int i = 0; i < num_hits_in_instance; i++)
@@ -369,11 +369,11 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 			else {
 				float ignore_t = FLT_MAX;
 
-#if BVH_FEATURE(BVH_MOTION)
+#  if BVH_FEATURE(BVH_MOTION)
 				bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &ignore_t, &ob_itfm);
-#else
+#  else
 				bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &ignore_t);
-#endif
+#  endif
 			}
 
 			isect_t = tmax;
@@ -384,12 +384,12 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 			if(idir.z >= 0.0f) { near_z = 4; far_z = 5; } else { near_z = 5; far_z = 4; }
 			tfar = ssef(tmax);
 			idir4 = sse3f(ssef(idir.x), ssef(idir.y), ssef(idir.z));
-#ifdef __KERNEL_AVX2__
+#  ifdef __KERNEL_AVX2__
 			P_idir = P*idir;
 			P_idir4 = sse3f(P_idir.x, P_idir.y, P_idir.z);
-#else
+#  else
 			org = sse3f(ssef(P.x), ssef(P.y), ssef(P.z));
-#endif
+#  endif
 			triangle_intersect_precalc(dir, &isect_precalc);
 
 			object = OBJECT_NONE;

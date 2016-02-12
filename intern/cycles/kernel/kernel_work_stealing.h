@@ -24,7 +24,7 @@
 #ifdef __WORK_STEALING__
 
 #ifdef __KERNEL_OPENCL__
-#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
+#  pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
 #endif
 
 uint get_group_id_with_ray_index(uint ray_index,

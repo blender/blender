@@ -720,31 +720,46 @@ bool path_remove(const string& path)
 	return remove(path.c_str()) == 0;
 }
 
-string path_source_replace_includes(const string& source_, const string& path)
+string path_source_replace_includes(const string& source, const string& path)
 {
-	/* our own little c preprocessor that replaces #includes with the file
+	/* Our own little c preprocessor that replaces #includes with the file
 	 * contents, to work around issue of opencl drivers not supporting
-	 * include paths with spaces in them */
-	string source = source_;
-	const string include = "#include \"";
-	size_t n, pos = 0;
+	 * include paths with spaces in them.
+	 */
 
-	while((n = source.find(include, pos)) != string::npos) {
-		size_t n_start = n + include.size();
-		size_t n_end = source.find("\"", n_start);
-		string filename = source.substr(n_start, n_end - n_start);
+	string result = "";
+	vector<string> lines;
+	string_split(lines, source, "\n");
 
-		string text, filepath = path_join(path, filename);
-
-		if(path_read_text(filepath, text)) {
-			text = path_source_replace_includes(text, path_dirname(filepath));
-			source.replace(n, n_end + 1 - n, "\n" + text + "\n");
+	for(size_t i = 0; i < lines.size(); ++i) {
+		string line = lines[i];
+		if(line[0] == '#') {
+			string token = string_strip(line.substr(1, line.size() - 1));
+			if(string_startswith(token, "include")) {
+				token = string_strip(token.substr(7, token.size() - 7));
+				if(token[0] == '"') {
+					size_t n_start = 1;
+					size_t n_end = token.find("\"", n_start);
+					string filename = token.substr(n_start, n_end - n_start);
+					string text, filepath = path_join(path, filename);
+					if(path_read_text(filepath, text)) {
+						/* Replace include directories with both current path
+						 * and path extracted from the include file.
+						 * Not totally robust, but works fine for Cycles kernel
+						 * and avoids having list of include directories.x
+						 */
+						text = path_source_replace_includes(
+						        text, path_dirname(filepath));
+						text = path_source_replace_includes(text, path);
+						line = token.replace(0, n_end + 1, "\n" + text + "\n");
+					}
+				}
+			}
 		}
-		else
-			pos = n_end;
+		result += line + "\n";
 	}
 
-	return source;
+	return result;
 }
 
 FILE *path_fopen(const string& path, const string& mode)

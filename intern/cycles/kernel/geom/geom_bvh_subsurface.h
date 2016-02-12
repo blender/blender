@@ -18,7 +18,7 @@
  */
 
 #ifdef __QBVH__
-#include "geom_qbvh_subsurface.h"
+#  include "geom_qbvh_subsurface.h"
 #endif
 
 /* This is a template BVH traversal function for subsurface scattering, where

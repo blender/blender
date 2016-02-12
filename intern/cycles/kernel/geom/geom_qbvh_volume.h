@@ -280,23 +280,23 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 
 					if(object_flag & SD_OBJECT_HAS_VOLUME) {
 
-#if BVH_FEATURE(BVH_MOTION)
+#  if BVH_FEATURE(BVH_MOTION)
 						bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect->t, &ob_itfm);
-#else
+#  else
 						bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect->t);
-#endif
+#  endif
 
 						if(idir.x >= 0.0f) { near_x = 0; far_x = 1; } else { near_x = 1; far_x = 0; }
 						if(idir.y >= 0.0f) { near_y = 2; far_y = 3; } else { near_y = 3; far_y = 2; }
 						if(idir.z >= 0.0f) { near_z = 4; far_z = 5; } else { near_z = 5; far_z = 4; }
 						tfar = ssef(isect->t);
 						idir4 = sse3f(ssef(idir.x), ssef(idir.y), ssef(idir.z));
-#ifdef __KERNEL_AVX2__
+#  ifdef __KERNEL_AVX2__
 						P_idir = P*idir;
 						P_idir4 = sse3f(P_idir.x, P_idir.y, P_idir.z);
-#else
+#  else
 						org = sse3f(ssef(P.x), ssef(P.y), ssef(P.z));
-#endif
+#  endif
 						triangle_intersect_precalc(dir, &isect_precalc);
 
 						++stackPtr;
@@ -321,23 +321,23 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 			kernel_assert(object != OBJECT_NONE);
 
 			/* Instance pop. */
-#if BVH_FEATURE(BVH_MOTION)
+#  if BVH_FEATURE(BVH_MOTION)
 			bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &isect->t, &ob_itfm);
-#else
+#  else
 			bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &isect->t);
-#endif
+#  endif
 
 			if(idir.x >= 0.0f) { near_x = 0; far_x = 1; } else { near_x = 1; far_x = 0; }
 			if(idir.y >= 0.0f) { near_y = 2; far_y = 3; } else { near_y = 3; far_y = 2; }
 			if(idir.z >= 0.0f) { near_z = 4; far_z = 5; } else { near_z = 5; far_z = 4; }
 			tfar = ssef(isect->t);
 			idir4 = sse3f(ssef(idir.x), ssef(idir.y), ssef(idir.z));
-#ifdef __KERNEL_AVX2__
+#  ifdef __KERNEL_AVX2__
 			P_idir = P*idir;
 			P_idir4 = sse3f(P_idir.x, P_idir.y, P_idir.z);
-#else
+#  else
 			org = sse3f(ssef(P.x), ssef(P.y), ssef(P.z));
-#endif
+#  endif
 			triangle_intersect_precalc(dir, &isect_precalc);
 
 			object = OBJECT_NONE;

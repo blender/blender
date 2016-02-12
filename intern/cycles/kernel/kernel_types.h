@@ -21,14 +21,14 @@
 #include "svm/svm_types.h"
 
 #ifndef __KERNEL_GPU__
-#define __KERNEL_CPU__
+#  define __KERNEL_CPU__
 #endif
 
 /* TODO(sergey): This is only to make it possible to include this header
  * from outside of the kernel. but this could be done somewhat cleaner?
  */
 #ifndef ccl_addr_space
-#define ccl_addr_space
+#  define ccl_addr_space
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -59,84 +59,84 @@ CCL_NAMESPACE_BEGIN
 
 /* device capabilities */
 #ifdef __KERNEL_CPU__
-#ifdef __KERNEL_SSE2__
-#  define __QBVH__
-#endif
-#define __KERNEL_SHADING__
-#define __KERNEL_ADV_SHADING__
-#define __BRANCHED_PATH__
-#ifdef WITH_OSL
-#define __OSL__
-#endif
-#define __SUBSURFACE__
-#define __CMJ__
-#define __VOLUME__
-#define __VOLUME_DECOUPLED__
-#define __VOLUME_SCATTER__
-#define __SHADOW_RECORD_ALL__
-#define __VOLUME_RECORD_ALL__
-#endif
+#  ifdef __KERNEL_SSE2__
+#    define __QBVH__
+#  endif
+#  define __KERNEL_SHADING__
+#  define __KERNEL_ADV_SHADING__
+#  define __BRANCHED_PATH__
+#  ifdef WITH_OSL
+#    define __OSL__
+#  endif
+#  define __SUBSURFACE__
+#  define __CMJ__
+#  define __VOLUME__
+#  define __VOLUME_DECOUPLED__
+#  define __VOLUME_SCATTER__
+#  define __SHADOW_RECORD_ALL__
+#  define __VOLUME_RECORD_ALL__
+#endif  /* __KERNEL_CPU__ */
 
 #ifdef __KERNEL_CUDA__
-#define __KERNEL_SHADING__
-#define __KERNEL_ADV_SHADING__
-#define __BRANCHED_PATH__
-#define __VOLUME__
-#define __VOLUME_SCATTER__
-#define __SUBSURFACE__
-#define __CMJ__
-#endif
+#  define __KERNEL_SHADING__
+#  define __KERNEL_ADV_SHADING__
+#  define __BRANCHED_PATH__
+#  define __VOLUME__
+#  define __VOLUME_SCATTER__
+#  define __SUBSURFACE__
+#  define __CMJ__
+#endif  /* __KERNEL_CUDA__ */
 
 #ifdef __KERNEL_OPENCL__
 
 /* keep __KERNEL_ADV_SHADING__ in sync with opencl_kernel_use_advanced_shading! */
 
-#ifdef __KERNEL_OPENCL_NVIDIA__
-#  define __KERNEL_SHADING__
-#  define __KERNEL_ADV_SHADING__
-#  ifdef __KERNEL_EXPERIMENTAL__
-#    define __CMJ__
-#  endif
-#endif
+#  ifdef __KERNEL_OPENCL_NVIDIA__
+#    define __KERNEL_SHADING__
+#    define __KERNEL_ADV_SHADING__
+#    ifdef __KERNEL_EXPERIMENTAL__
+#      define __CMJ__
+#    endif
+#  endif  /* __KERNEL_OPENCL_NVIDIA__ */
 
-#ifdef __KERNEL_OPENCL_APPLE__
-#  define __KERNEL_SHADING__
-#  define __KERNEL_ADV_SHADING__
+#  ifdef __KERNEL_OPENCL_APPLE__
+#    define __KERNEL_SHADING__
+#    define __KERNEL_ADV_SHADING__
 /* TODO(sergey): Currently experimental section is ignored here,
  * this is because megakernel in device_opencl does not support
  * custom cflags depending on the scene features.
  */
-#  ifdef __KERNEL_EXPERIMENTAL__
-#    define __CMJ__
-#  endif
-#endif
+#    ifdef __KERNEL_EXPERIMENTAL__
+#      define __CMJ__
+#    endif
+#  endif  /* __KERNEL_OPENCL_NVIDIA__ */
 
-#ifdef __KERNEL_OPENCL_AMD__
-#  define __CL_USE_NATIVE__
-#  define __KERNEL_SHADING__
-#  define __MULTI_CLOSURE__
-#  define __PASSES__
-#  define __BACKGROUND_MIS__
-#  define __LAMP_MIS__
-#  define __AO__
-#  define __CAMERA_MOTION__
-#  define __OBJECT_MOTION__
-#  define __HAIR__
-#  ifdef __KERNEL_EXPERIMENTAL__
-#    define __TRANSPARENT_SHADOWS__
-#  endif
-#endif
+#  ifdef __KERNEL_OPENCL_AMD__
+#    define __CL_USE_NATIVE__
+#    define __KERNEL_SHADING__
+#    define __MULTI_CLOSURE__
+#    define __PASSES__
+#    define __BACKGROUND_MIS__
+#    define __LAMP_MIS__
+#    define __AO__
+#    define __CAMERA_MOTION__
+#    define __OBJECT_MOTION__
+#    define __HAIR__
+#    ifdef __KERNEL_EXPERIMENTAL__
+#      define __TRANSPARENT_SHADOWS__
+#    endif
+#  endif  /* __KERNEL_OPENCL_AMD__ */
 
-#ifdef __KERNEL_OPENCL_INTEL_CPU__
-#  define __CL_USE_NATIVE__
-#  define __KERNEL_SHADING__
-#  define __KERNEL_ADV_SHADING__
-#  ifdef __KERNEL_EXPERIMENTAL__
-#    define __CMJ__
-#  endif
-#endif
+#  ifdef __KERNEL_OPENCL_INTEL_CPU__
+#    define __CL_USE_NATIVE__
+#    define __KERNEL_SHADING__
+#    define __KERNEL_ADV_SHADING__
+#    ifdef __KERNEL_EXPERIMENTAL__
+#      define __CMJ__
+#    endif
+#  endif  /* __KERNEL_OPENCL_INTEL_CPU__ */
 
-#endif // __KERNEL_OPENCL__
+#endif  /* __KERNEL_OPENCL__ */
 
 /* kernel features */
 #define __SOBOL__
@@ -152,23 +152,23 @@ CCL_NAMESPACE_BEGIN
 #define __CLAMP_SAMPLE__
 
 #ifdef __KERNEL_SHADING__
-#define __SVM__
-#define __EMISSION__
-#define __TEXTURES__
-#define __EXTRA_NODES__
-#define __HOLDOUT__
+#  define __SVM__
+#  define __EMISSION__
+#  define __TEXTURES__
+#  define __EXTRA_NODES__
+#  define __HOLDOUT__
 #endif
 
 #ifdef __KERNEL_ADV_SHADING__
-#define __MULTI_CLOSURE__
-#define __TRANSPARENT_SHADOWS__
-#define __PASSES__
-#define __BACKGROUND_MIS__
-#define __LAMP_MIS__
-#define __AO__
-#define __CAMERA_MOTION__
-#define __OBJECT_MOTION__
-#define __HAIR__
+#  define __MULTI_CLOSURE__
+#  define __TRANSPARENT_SHADOWS__
+#  define __PASSES__
+#  define __BACKGROUND_MIS__
+#  define __LAMP_MIS__
+#  define __AO__
+#  define __CAMERA_MOTION__
+#  define __OBJECT_MOTION__
+#  define __HAIR__
 #endif
 
 #ifdef WITH_CYCLES_DEBUG
@@ -628,7 +628,7 @@ typedef enum AttributeStandard {
 #    define MAX_CLOSURE __MAX_CLOSURE__
 #  endif
 #else
-#define MAX_CLOSURE 1
+#  define MAX_CLOSURE 1
 #endif
 
 /* This struct is to be 16 bytes aligned, we also keep some extra precautions:

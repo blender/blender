@@ -18,7 +18,7 @@
 
 /* On x86-64, we can assume SSE2, so avoid the extra kernel and compile this one with SSE2 intrinsics */
 #if defined(__x86_64__) || defined(_M_X64)
-#define __KERNEL_SSE2__
+#  define __KERNEL_SSE2__
 #endif
 
 /* quiet unused define warnings */

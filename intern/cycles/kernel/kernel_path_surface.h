@@ -31,9 +31,9 @@ ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobal
 	BsdfEval L_light;
 	bool is_lamp;
 
-#ifdef __OBJECT_MOTION__
+#  ifdef __OBJECT_MOTION__
 	light_ray.time = ccl_fetch(sd, time);
-#endif
+#  endif
 
 	if(sample_all_lights) {
 		/* lamp sampling */

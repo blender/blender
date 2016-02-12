@@ -92,16 +92,16 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 
 #ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.have_motion) {
-#ifdef __KERNEL_OPENCL__
+#  ifdef __KERNEL_OPENCL__
 		const MotionTransform tfm = kernel_data.cam.motion;
 		transform_motion_interpolate(&cameratoworld,
 		                             ((const DecompMotionTransform*)&tfm),
 		                             ray->time);
-#else
+#  else
 		transform_motion_interpolate(&cameratoworld,
 		                             ((const DecompMotionTransform*)&kernel_data.cam.motion),
 		                             ray->time);
-#endif
+#  endif
 	}
 #endif
 
@@ -176,16 +176,16 @@ ccl_device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, fl
 
 #ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.have_motion) {
-#ifdef __KERNEL_OPENCL__
+#  ifdef __KERNEL_OPENCL__
 		const MotionTransform tfm = kernel_data.cam.motion;
 		transform_motion_interpolate(&cameratoworld,
 		                             (const DecompMotionTransform*)&tfm,
 		                             ray->time);
-#else
+#  else
 		transform_motion_interpolate(&cameratoworld,
 		                             (const DecompMotionTransform*)&kernel_data.cam.motion,
 		                             ray->time);
-#endif
+#  endif
 	}
 #endif
 
@@ -260,16 +260,16 @@ ccl_device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float 
 
 #ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.have_motion) {
-#ifdef __KERNEL_OPENCL__
+#  ifdef __KERNEL_OPENCL__
 		const MotionTransform tfm = kernel_data.cam.motion;
 		transform_motion_interpolate(&cameratoworld,
 		                             (const DecompMotionTransform*)&tfm,
 		                             ray->time);
-#else
+#  else
 		transform_motion_interpolate(&cameratoworld,
 		                             (const DecompMotionTransform*)&kernel_data.cam.motion,
 		                             ray->time);
-#endif
+#  endif
 	}
 #endif
 

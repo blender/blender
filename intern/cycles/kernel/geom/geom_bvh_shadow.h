@@ -18,7 +18,7 @@
  */
 
 #ifdef __QBVH__
-#include "geom_qbvh_shadow.h"
+#  include "geom_qbvh_shadow.h"
 #endif
 
 /* This is a template BVH traversal function, where various features can be
@@ -84,7 +84,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	ssef tsplat(0.0f, 0.0f, -isect_t, -isect_t);
 
 	gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
-#endif
+#endif  /* __KERNEL_SSE2__ */
 
 	IsectPrecalc isect_precalc;
 	triangle_intersect_precalc(dir, &isect_precalc);
@@ -127,14 +127,14 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 				NO_EXTENDED_PRECISION float c1max = min4(max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz), t);
 
 				/* decide which nodes to traverse next */
-#ifdef __VISIBILITY_FLAG__
+#  ifdef __VISIBILITY_FLAG__
 				/* this visibility test gives a 5% performance hit, how to solve? */
 				traverseChild0 = (c0max >= c0min) && (__float_as_uint(cnodes.z) & PATH_RAY_SHADOW);
 				traverseChild1 = (c1max >= c1min) && (__float_as_uint(cnodes.w) & PATH_RAY_SHADOW);
-#else
+#  else
 				traverseChild0 = (c0max >= c0min);
 				traverseChild1 = (c1max >= c1min);
-#endif
+#  endif
 
 #else // __KERNEL_SSE2__
 				/* Intersect two child bounding boxes, SSE3 version adapted from Embree */
@@ -154,14 +154,14 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 				const sseb lrhit = tminmax <= shuffle<2, 3, 0, 1>(tminmax);
 
 				/* decide which nodes to traverse next */
-#ifdef __VISIBILITY_FLAG__
+#  ifdef __VISIBILITY_FLAG__
 				/* this visibility test gives a 5% performance hit, how to solve? */
 				traverseChild0 = (movemask(lrhit) & 1) && (__float_as_uint(cnodes.z) & PATH_RAY_SHADOW);
 				traverseChild1 = (movemask(lrhit) & 2) && (__float_as_uint(cnodes.w) & PATH_RAY_SHADOW);
-#else
+#  else
 				traverseChild0 = (movemask(lrhit) & 1);
 				traverseChild1 = (movemask(lrhit) & 2);
-#endif
+#  endif
 #endif // __KERNEL_SSE2__
 
 				nodeAddr = __float_as_int(cnodes.x);
@@ -301,24 +301,24 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 					/* instance push */
 					object = kernel_tex_fetch(__prim_object, -primAddr-1);
 
-#if BVH_FEATURE(BVH_MOTION)
+#  if BVH_FEATURE(BVH_MOTION)
 					bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_itfm);
-#else
+#  else
 					bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect_t);
-#endif
+#  endif
 
 					triangle_intersect_precalc(dir, &isect_precalc);
 					num_hits_in_instance = 0;
 					isect_array->t = isect_t;
 
-#if defined(__KERNEL_SSE2__)
+#  if defined(__KERNEL_SSE2__)
 					Psplat[0] = ssef(P.x);
 					Psplat[1] = ssef(P.y);
 					Psplat[2] = ssef(P.z);
 
 					tsplat = ssef(0.0f, 0.0f, -isect_t, -isect_t);
 					gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
-#endif
+#  endif
 
 					++stackPtr;
 					kernel_assert(stackPtr < BVH_STACK_SIZE);
@@ -337,11 +337,11 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 			if(num_hits_in_instance) {
 				float t_fac;
 
-#if BVH_FEATURE(BVH_MOTION)
+#  if BVH_FEATURE(BVH_MOTION)
 				bvh_instance_motion_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac, &ob_itfm);
-#else
+#  else
 				bvh_instance_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac);
-#endif
+#  endif
 
 				triangle_intersect_precalc(dir, &isect_precalc);
 
@@ -352,25 +352,25 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 			else {
 				float ignore_t = FLT_MAX;
 
-#if BVH_FEATURE(BVH_MOTION)
+#  if BVH_FEATURE(BVH_MOTION)
 				bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &ignore_t, &ob_itfm);
-#else
+#  else
 				bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &ignore_t);
-#endif
+#  endif
 				triangle_intersect_precalc(dir, &isect_precalc);
 			}
 
 			isect_t = tmax;
 			isect_array->t = isect_t;
 
-#if defined(__KERNEL_SSE2__)
+#  if defined(__KERNEL_SSE2__)
 			Psplat[0] = ssef(P.x);
 			Psplat[1] = ssef(P.y);
 			Psplat[2] = ssef(P.z);
 
 			tsplat = ssef(0.0f, 0.0f, -isect_t, -isect_t);
 			gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
-#endif
+#  endif
 
 			object = OBJECT_NONE;
 			nodeAddr = traversalStack[stackPtr];

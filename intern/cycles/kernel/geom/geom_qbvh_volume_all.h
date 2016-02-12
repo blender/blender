@@ -246,12 +246,12 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 									isect_array->t = isect_t;
 									if(num_hits == max_hits) {
 #if BVH_FEATURE(BVH_INSTANCING)
-#if BVH_FEATURE(BVH_MOTION)
+#  if BVH_FEATURE(BVH_MOTION)
 										float t_fac = 1.0f / len(transform_direction(&ob_itfm, dir));
-#else
+#  else
 										Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 										float t_fac = 1.0f / len(transform_direction(&itfm, dir));
-#endif
+#  endif
 										for(int i = 0; i < num_hits_in_instance; i++) {
 											(isect_array-i-1)->t *= t_fac;
 										}
@@ -278,22 +278,22 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 									/* Move on to next entry in intersections array. */
 									isect_array++;
 									num_hits++;
-#if BVH_FEATURE(BVH_INSTANCING)
+#  if BVH_FEATURE(BVH_INSTANCING)
 									num_hits_in_instance++;
-#endif
+#  endif
 									isect_array->t = isect_t;
 									if(num_hits == max_hits) {
-#if BVH_FEATURE(BVH_INSTANCING)
-#  if BVH_FEATURE(BVH_MOTION)
+#  if BVH_FEATURE(BVH_INSTANCING)
+#    if BVH_FEATURE(BVH_MOTION)
 										float t_fac = 1.0f / len(transform_direction(&ob_itfm, dir));
-#  else
+#    else
 										Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 										float t_fac = 1.0f / len(transform_direction(&itfm, dir));
-#endif
+#    endif
 										for(int i = 0; i < num_hits_in_instance; i++) {
 											(isect_array-i-1)->t *= t_fac;
 										}
-#endif  /* BVH_FEATURE(BVH_INSTANCING) */
+#  endif  /* BVH_FEATURE(BVH_INSTANCING) */
 										return num_hits;
 									}
 								}
@@ -321,29 +321,29 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 									/* Move on to next entry in intersections array. */
 									isect_array++;
 									num_hits++;
-#if BVH_FEATURE(BVH_INSTANCING)
+#  if BVH_FEATURE(BVH_INSTANCING)
 									num_hits_in_instance++;
-#endif
+#  endif
 									isect_array->t = isect_t;
 									if(num_hits == max_hits) {
-#if BVH_FEATURE(BVH_INSTANCING)
-#  if BVH_FEATURE(BVH_MOTION)
+#  if BVH_FEATURE(BVH_INSTANCING)
+#    if BVH_FEATURE(BVH_MOTION)
 										float t_fac = 1.0f / len(transform_direction(&ob_itfm, dir));
-#  else
+#    else
 										Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 										float t_fac = 1.0f / len(transform_direction(&itfm, dir));
-#endif
+#    endif
 										for(int i = 0; i < num_hits_in_instance; i++) {
 											(isect_array-i-1)->t *= t_fac;
 										}
-#endif  /* BVH_FEATURE(BVH_INSTANCING) */
+#  endif  /* BVH_FEATURE(BVH_INSTANCING) */
 										return num_hits;
 									}
 								}
 							}
 							break;
 						}
-#endif
+#endif  /* BVH_HAIR */
 					}
 				}
 #if BVH_FEATURE(BVH_INSTANCING)
@@ -354,23 +354,23 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 
 					if(object_flag & SD_OBJECT_HAS_VOLUME) {
 
-#if BVH_FEATURE(BVH_MOTION)
+#  if BVH_FEATURE(BVH_MOTION)
 						bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_itfm);
-#else
+#  else
 						bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect_t);
-#endif
+#  endif
 
 						if(idir.x >= 0.0f) { near_x = 0; far_x = 1; } else { near_x = 1; far_x = 0; }
 						if(idir.y >= 0.0f) { near_y = 2; far_y = 3; } else { near_y = 3; far_y = 2; }
 						if(idir.z >= 0.0f) { near_z = 4; far_z = 5; } else { near_z = 5; far_z = 4; }
 						tfar = ssef(isect_t);
 						idir4 = sse3f(ssef(idir.x), ssef(idir.y), ssef(idir.z));
-#ifdef __KERNEL_AVX2__
+#  ifdef __KERNEL_AVX2__
 						P_idir = P*idir;
 						P_idir4 = sse3f(P_idir.x, P_idir.y, P_idir.z);
-#else
+#  else
 						org = sse3f(ssef(P.x), ssef(P.y), ssef(P.z));
-#endif
+#  endif
 						triangle_intersect_precalc(dir, &isect_precalc);
 						num_hits_in_instance = 0;
 						isect_array->t = isect_t;
@@ -399,11 +399,11 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 			/* Instance pop. */
 			if(num_hits_in_instance) {
 				float t_fac;
-#if BVH_FEATURE(BVH_MOTION)
+#  if BVH_FEATURE(BVH_MOTION)
 				bvh_instance_motion_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac, &ob_itfm);
-#else
+#  else
 				bvh_instance_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac);
-#endif
+#  endif
 				triangle_intersect_precalc(dir, &isect_precalc);
 				/* Scale isect->t to adjust for instancing. */
 				for(int i = 0; i < num_hits_in_instance; i++) {
@@ -412,11 +412,11 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 			}
 			else {
 				float ignore_t = FLT_MAX;
-#if BVH_FEATURE(BVH_MOTION)
+#  if BVH_FEATURE(BVH_MOTION)
 				bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &ignore_t, &ob_itfm);
-#else
+#  else
 				bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &ignore_t);
-#endif
+#  endif
 				triangle_intersect_precalc(dir, &isect_precalc);
 			}
 
@@ -425,12 +425,12 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 			if(idir.z >= 0.0f) { near_z = 4; far_z = 5; } else { near_z = 5; far_z = 4; }
 			tfar = ssef(isect_t);
 			idir4 = sse3f(ssef(idir.x), ssef(idir.y), ssef(idir.z));
-#ifdef __KERNEL_AVX2__
+#  ifdef __KERNEL_AVX2__
 			P_idir = P*idir;
 			P_idir4 = sse3f(P_idir.x, P_idir.y, P_idir.z);
-#else
+#  else
 			org = sse3f(ssef(P.x), ssef(P.y), ssef(P.z));
-#endif
+#  endif
 			triangle_intersect_precalc(dir, &isect_precalc);
 			isect_t = tmax;
 			isect_array->t = isect_t;

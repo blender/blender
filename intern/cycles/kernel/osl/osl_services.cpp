@@ -53,7 +53,7 @@
 #include "kernel_shader.h"
 
 #ifdef WITH_PTEX
-#include <Ptexture.h>
+#  include <Ptexture.h>
 #endif
 
 CCL_NAMESPACE_BEGIN

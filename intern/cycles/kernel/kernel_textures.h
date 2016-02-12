@@ -15,11 +15,11 @@
  */
 
 #ifndef KERNEL_TEX
-#define KERNEL_TEX(type, ttype, name)
+#  define KERNEL_TEX(type, ttype, name)
 #endif
 
 #ifndef KERNEL_IMAGE_TEX
-#define KERNEL_IMAGE_TEX(type, ttype, name)
+#  define KERNEL_IMAGE_TEX(type, ttype, name)
 #endif
 
 /* bvh */

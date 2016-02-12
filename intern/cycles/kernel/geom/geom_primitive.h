@@ -109,11 +109,11 @@ ccl_device float3 primitive_tangent(KernelGlobals *kg, ShaderData *sd)
 {
 #ifdef __HAIR__
 	if(ccl_fetch(sd, type) & PRIMITIVE_ALL_CURVE)
-#ifdef __DPDU__
+#  ifdef __DPDU__
 		return normalize(ccl_fetch(sd, dPdu));
-#else
+#  else
 		return make_float3(0.0f, 0.0f, 0.0f);
-#endif
+#  endif
 #endif
 
 	/* try to create spherical tangent from generated coordinates */

@@ -753,12 +753,12 @@ ccl_device void object_transform_light_sample(KernelGlobals *kg, LightSample *ls
 #ifdef __INSTANCING__
 	/* instance transform */
 	if(object >= 0) {
-#ifdef __OBJECT_MOTION__
+#  ifdef __OBJECT_MOTION__
 		Transform itfm;
 		Transform tfm = object_fetch_transform_motion_test(kg, object, time, &itfm);
-#else
+#  else
 		Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
-#endif
+#  endif
 
 		ls->P = transform_point(&tfm, ls->P);
 		ls->Ng = normalize(transform_direction(&tfm, ls->Ng));

@@ -27,10 +27,10 @@
 #include "../closure/bsdf_toon.h"
 #include "../closure/bsdf_hair.h"
 #ifdef __SUBSURFACE__
-#include "../closure/bssrdf.h"
+#  include "../closure/bssrdf.h"
 #endif
 #ifdef __VOLUME__
-#include "../closure/volume.h"
+#  include "../closure/volume.h"
 #endif
 
 CCL_NAMESPACE_BEGIN

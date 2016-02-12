@@ -90,8 +90,8 @@ ccl_device uint hash(uint kx, uint ky, uint kz)
 #ifdef __KERNEL_SSE2__
 ccl_device_inline ssei hash_sse(const ssei& kx, const ssei& ky, const ssei& kz)
 {
-#define rot(x,k) (((x)<<(k)) | (srl(x, 32-(k))))
-#define xor_rot(a, b, c) do {a = a^b; a = a - rot(b, c);} while(0)
+#  define rot(x,k) (((x)<<(k)) | (srl(x, 32-(k))))
+#  define xor_rot(a, b, c) do {a = a^b; a = a - rot(b, c);} while(0)
 
 	uint len = 3;
 	ssei magic = ssei(0xdeadbeef + (len << 2) + 13);
@@ -108,8 +108,8 @@ ccl_device_inline ssei hash_sse(const ssei& kx, const ssei& ky, const ssei& kz)
 	xor_rot(c, b, 24);
 
 	return c;
-#undef rot
-#undef xor_rot
+#  undef rot
+#  undef xor_rot
 }
 #endif
 

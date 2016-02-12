@@ -15,7 +15,7 @@
  */
 
 #ifdef __OSL__
-#include "osl_shader.h"
+#  include "osl_shader.h"
 #endif
 
 #include "kernel_random.h"
@@ -32,11 +32,11 @@
 #include "kernel_passes.h"
 
 #ifdef __SUBSURFACE__
-#include "kernel_subsurface.h"
+#  include "kernel_subsurface.h"
 #endif
 
 #ifdef __VOLUME__
-#include "kernel_volume.h"
+#  include "kernel_volume.h"
 #endif
 
 #include "kernel_path_state.h"
@@ -47,7 +47,7 @@
 #include "kernel_path_volume.h"
 
 #ifdef __KERNEL_DEBUG__
-#include "kernel_debug.h"
+#  include "kernel_debug.h"
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -106,7 +106,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 			        volume_stack_is_heterogeneous(kg,
 			                                      state->volume_stack);
 
-#ifdef __VOLUME_DECOUPLED__
+#  ifdef __VOLUME_DECOUPLED__
 			int sampling_method =
 			        volume_stack_sampling_method(kg,
 			                                     state->volume_stack);
@@ -195,14 +195,14 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 				}
 			}
 			else
-#endif
+#  endif
 			{
 				/* integrate along volume segment with distance sampling */
 				ShaderData volume_sd;
 				VolumeIntegrateResult result = kernel_volume_integrate(
 					kg, state, &volume_sd, &volume_ray, L, &throughput, rng, heterogeneous);
 
-#ifdef __VOLUME_SCATTER__
+#  ifdef __VOLUME_SCATTER__
 				if(result == VOLUME_PATH_SCATTERED) {
 					/* direct lighting */
 					kernel_path_volume_connect_light(kg,
@@ -227,7 +227,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 						break;
 					}
 				}
-#endif
+#  endif
 			}
 		}
 #endif
@@ -322,9 +322,9 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 				light_ray.P = ray_offset(sd.P, sd.Ng);
 				light_ray.D = ao_D;
 				light_ray.t = kernel_data.background.ao_distance;
-#ifdef __OBJECT_MOTION__
+#  ifdef __OBJECT_MOTION__
 				light_ray.time = sd.time;
-#endif
+#  endif
 				light_ray.dP = sd.dP;
 				light_ray.dD = differential3_zero();
 
@@ -468,11 +468,11 @@ ccl_device bool kernel_path_subsurface_scatter(
 		                                                  &lcg_state,
 		                                                  bssrdf_u, bssrdf_v,
 		                                                  false);
-#ifdef __VOLUME__
+#  ifdef __VOLUME__
 		ss_indirect->need_update_volume_stack =
 		        kernel_data.integrator.use_volumes &&
 		        ccl_fetch(sd, flag) & SD_OBJECT_INTERSECTS_VOLUME;
-#endif
+#  endif
 
 		/* compute lighting with the BSDF closure */
 		for(int hit = 0; hit < num_hits; hit++) {
@@ -513,11 +513,11 @@ ccl_device bool kernel_path_subsurface_scatter(
 			                              hit_L,
 			                              hit_ray))
 			{
-#ifdef __LAMP_MIS__
+#  ifdef __LAMP_MIS__
 				hit_state->ray_t = 0.0f;
-#endif
+#  endif
 
-#ifdef __VOLUME__
+#  ifdef __VOLUME__
 				if(ss_indirect->need_update_volume_stack) {
 					Ray volume_ray = *ray;
 					/* Setup ray from previous surface point to the new one. */
@@ -529,7 +529,7 @@ ccl_device bool kernel_path_subsurface_scatter(
 					    &volume_ray,
 					    hit_state->volume_stack);
 				}
-#endif
+#  endif
 				path_radiance_reset_indirect(L);
 				ss_indirect->num_rays++;
 			}
@@ -682,7 +682,7 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 
 			bool heterogeneous = volume_stack_is_heterogeneous(kg, state.volume_stack);
 
-#ifdef __VOLUME_DECOUPLED__
+#  ifdef __VOLUME_DECOUPLED__
 			int sampling_method = volume_stack_sampling_method(kg, state.volume_stack);
 			bool decoupled = kernel_volume_use_decoupled(kg, heterogeneous, true, sampling_method);
 
@@ -735,15 +735,15 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 					throughput *= volume_segment.accum_transmittance;
 				}
 			}
-			else 
-#endif
+			else
+#  endif
 			{
 				/* integrate along volume segment with distance sampling */
 				ShaderData volume_sd;
 				VolumeIntegrateResult result = kernel_volume_integrate(
 					kg, &state, &volume_sd, &volume_ray, &L, &throughput, rng, heterogeneous);
 
-#ifdef __VOLUME_SCATTER__
+#  ifdef __VOLUME_SCATTER__
 				if(result == VOLUME_PATH_SCATTERED) {
 					/* direct lighting */
 					kernel_path_volume_connect_light(kg, rng, &volume_sd, throughput, &state, &L);
@@ -754,7 +754,7 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 					else
 						break;
 				}
-#endif
+#  endif
 			}
 		}
 #endif

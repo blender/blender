@@ -30,9 +30,9 @@ CCL_NAMESPACE_BEGIN
 
 /* Don't inline intersect functions on GPU, this is faster */
 #ifdef __KERNEL_GPU__
-#define ccl_device_intersect ccl_device_noinline
+#  define ccl_device_intersect ccl_device_noinline
 #else
-#define ccl_device_intersect ccl_device_inline
+#  define ccl_device_intersect ccl_device_inline
 #endif
 
 /* BVH intersection function variations */
@@ -50,7 +50,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Common QBVH functions. */
 #ifdef __QBVH__
-#include "geom_qbvh.h"
+#  include "geom_qbvh.h"
 #endif
 
 /* Regular BVH traversal */
@@ -60,137 +60,137 @@ CCL_NAMESPACE_BEGIN
 #include "geom_bvh_traversal.h"
 
 #if defined(__INSTANCING__)
-#define BVH_FUNCTION_NAME bvh_intersect_instancing
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING
-#include "geom_bvh_traversal.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_instancing
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING
+#  include "geom_bvh_traversal.h"
 #endif
 
 #if defined(__HAIR__)
-#define BVH_FUNCTION_NAME bvh_intersect_hair
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH
-#include "geom_bvh_traversal.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_hair
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH
+#  include "geom_bvh_traversal.h"
 #endif
 
 #if defined(__OBJECT_MOTION__)
-#define BVH_FUNCTION_NAME bvh_intersect_motion
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION
-#include "geom_bvh_traversal.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_motion
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION
+#  include "geom_bvh_traversal.h"
 #endif
 
 #if defined(__HAIR__) && defined(__OBJECT_MOTION__)
-#define BVH_FUNCTION_NAME bvh_intersect_hair_motion
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH|BVH_MOTION
-#include "geom_bvh_traversal.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_hair_motion
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH|BVH_MOTION
+#  include "geom_bvh_traversal.h"
 #endif
 
 /* Subsurface scattering BVH traversal */
 
 #if defined(__SUBSURFACE__)
-#define BVH_FUNCTION_NAME bvh_intersect_subsurface
-#define BVH_FUNCTION_FEATURES 0
-#include "geom_bvh_subsurface.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_subsurface
+#  define BVH_FUNCTION_FEATURES 0
+#  include "geom_bvh_subsurface.h"
 #endif
 
 #if defined(__SUBSURFACE__) && defined(__OBJECT_MOTION__)
-#define BVH_FUNCTION_NAME bvh_intersect_subsurface_motion
-#define BVH_FUNCTION_FEATURES BVH_MOTION
-#include "geom_bvh_subsurface.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_subsurface_motion
+#  define BVH_FUNCTION_FEATURES BVH_MOTION
+#  include "geom_bvh_subsurface.h"
 #endif
 
 /* Volume BVH traversal */
 
 #if defined(__VOLUME__)
-#define BVH_FUNCTION_NAME bvh_intersect_volume
-#define BVH_FUNCTION_FEATURES 0
-#include "geom_bvh_volume.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_volume
+#  define BVH_FUNCTION_FEATURES 0
+#  include "geom_bvh_volume.h"
 #endif
 
 #if defined(__VOLUME__) && defined(__INSTANCING__)
-#define BVH_FUNCTION_NAME bvh_intersect_volume_instancing
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING
-#include "geom_bvh_volume.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_volume_instancing
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING
+#  include "geom_bvh_volume.h"
 #endif
 
 #if defined(__VOLUME__) && defined(__HAIR__)
-#define BVH_FUNCTION_NAME bvh_intersect_volume_hair
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH
-#include "geom_bvh_volume.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_volume_hair
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH
+#  include "geom_bvh_volume.h"
 #endif
 
 #if defined(__VOLUME__) && defined(__OBJECT_MOTION__)
-#define BVH_FUNCTION_NAME bvh_intersect_volume_motion
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION
-#include "geom_bvh_volume.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_volume_motion
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION
+#  include "geom_bvh_volume.h"
 #endif
 
 #if defined(__VOLUME__) && defined(__HAIR__) && defined(__OBJECT_MOTION__)
-#define BVH_FUNCTION_NAME bvh_intersect_volume_hair_motion
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH|BVH_MOTION
-#include "geom_bvh_volume.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_volume_hair_motion
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH|BVH_MOTION
+#  include "geom_bvh_volume.h"
 #endif
 
 /* Record all intersections - Shadow BVH traversal */
 
 #if defined(__SHADOW_RECORD_ALL__)
-#define BVH_FUNCTION_NAME bvh_intersect_shadow_all
-#define BVH_FUNCTION_FEATURES 0
-#include "geom_bvh_shadow.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_shadow_all
+#  define BVH_FUNCTION_FEATURES 0
+#  include "geom_bvh_shadow.h"
 #endif
 
 #if defined(__SHADOW_RECORD_ALL__) && defined(__INSTANCING__)
-#define BVH_FUNCTION_NAME bvh_intersect_shadow_all_instancing
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING
-#include "geom_bvh_shadow.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_shadow_all_instancing
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING
+#  include "geom_bvh_shadow.h"
 #endif
 
 #if defined(__SHADOW_RECORD_ALL__) && defined(__HAIR__)
-#define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR
-#include "geom_bvh_shadow.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR
+#  include "geom_bvh_shadow.h"
 #endif
 
 #if defined(__SHADOW_RECORD_ALL__) && defined(__OBJECT_MOTION__)
-#define BVH_FUNCTION_NAME bvh_intersect_shadow_all_motion
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION
-#include "geom_bvh_shadow.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_shadow_all_motion
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION
+#  include "geom_bvh_shadow.h"
 #endif
 
 #if defined(__SHADOW_RECORD_ALL__) && defined(__HAIR__) && defined(__OBJECT_MOTION__)
-#define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair_motion
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_MOTION
-#include "geom_bvh_shadow.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_shadow_all_hair_motion
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_MOTION
+#  include "geom_bvh_shadow.h"
 #endif
 
 /* Record all intersections - Volume BVH traversal  */
 
 #if defined(__VOLUME_RECORD_ALL__)
-#define BVH_FUNCTION_NAME bvh_intersect_volume_all
-#define BVH_FUNCTION_FEATURES 0
-#include "geom_bvh_volume_all.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_volume_all
+#  define BVH_FUNCTION_FEATURES 0
+#  include "geom_bvh_volume_all.h"
 #endif
 
 #if defined(__VOLUME_RECORD_ALL__) && defined(__INSTANCING__)
-#define BVH_FUNCTION_NAME bvh_intersect_volume_all_instancing
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING
-#include "geom_bvh_volume_all.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_volume_all_instancing
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING
+#  include "geom_bvh_volume_all.h"
 #endif
 
 #if defined(__VOLUME_RECORD_ALL__) && defined(__HAIR__)
-#define BVH_FUNCTION_NAME bvh_intersect_volume_all_hair
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH
-#include "geom_bvh_volume_all.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_volume_all_hair
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH
+#  include "geom_bvh_volume_all.h"
 #endif
 
 #if defined(__VOLUME_RECORD_ALL__) && defined(__OBJECT_MOTION__)
-#define BVH_FUNCTION_NAME bvh_intersect_volume_all_motion
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION
-#include "geom_bvh_volume_all.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_volume_all_motion
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION
+#  include "geom_bvh_volume_all.h"
 #endif
 
 #if defined(__VOLUME_RECORD_ALL__) && defined(__HAIR__) && defined(__OBJECT_MOTION__)
-#define BVH_FUNCTION_NAME bvh_intersect_volume_all_hair_motion
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH|BVH_MOTION
-#include "geom_bvh_volume_all.h"
+#  define BVH_FUNCTION_NAME bvh_intersect_volume_all_hair_motion
+#  define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_HAIR_MINIMUM_WIDTH|BVH_MOTION
+#  include "geom_bvh_volume_all.h"
 #endif
 
 #undef BVH_FEATURE
@@ -208,35 +208,35 @@ ccl_device_intersect bool scene_intersect(KernelGlobals *kg,
 {
 #ifdef __OBJECT_MOTION__
 	if(kernel_data.bvh.have_motion) {
-#ifdef __HAIR__
+#  ifdef __HAIR__
 		if(kernel_data.bvh.have_curves)
 			return bvh_intersect_hair_motion(kg, ray, isect, visibility, lcg_state, difl, extmax);
-#endif /* __HAIR__ */
+#  endif /* __HAIR__ */
 
 		return bvh_intersect_motion(kg, ray, isect, visibility);
 	}
 #endif /* __OBJECT_MOTION__ */
 
-#ifdef __HAIR__ 
+#ifdef __HAIR__
 	if(kernel_data.bvh.have_curves)
 		return bvh_intersect_hair(kg, ray, isect, visibility, lcg_state, difl, extmax);
 #endif /* __HAIR__ */
 
 #ifdef __KERNEL_CPU__
 
-#ifdef __INSTANCING__
+#  ifdef __INSTANCING__
 	if(kernel_data.bvh.have_instancing)
 		return bvh_intersect_instancing(kg, ray, isect, visibility);
-#endif /* __INSTANCING__ */
+#  endif /* __INSTANCING__ */
 
 	return bvh_intersect(kg, ray, isect, visibility);
 #else /* __KERNEL_CPU__ */
 
-#ifdef __INSTANCING__
+#  ifdef __INSTANCING__
 	return bvh_intersect_instancing(kg, ray, isect, visibility);
-#else
+#  else
 	return bvh_intersect(kg, ray, isect, visibility);
-#endif /* __INSTANCING__ */
+#  endif /* __INSTANCING__ */
 
 #endif /* __KERNEL_CPU__ */
 }
@@ -271,71 +271,71 @@ ccl_device_intersect void scene_intersect_subsurface(KernelGlobals *kg,
 #ifdef __SHADOW_RECORD_ALL__
 ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals *kg, const Ray *ray, Intersection *isect, uint max_hits, uint *num_hits)
 {
-#ifdef __OBJECT_MOTION__
+#  ifdef __OBJECT_MOTION__
 	if(kernel_data.bvh.have_motion) {
-#ifdef __HAIR__
+#    ifdef __HAIR__
 		if(kernel_data.bvh.have_curves)
 			return bvh_intersect_shadow_all_hair_motion(kg, ray, isect, max_hits, num_hits);
-#endif /* __HAIR__ */
+#    endif /* __HAIR__ */
 
 		return bvh_intersect_shadow_all_motion(kg, ray, isect, max_hits, num_hits);
 	}
-#endif /* __OBJECT_MOTION__ */
+#  endif /* __OBJECT_MOTION__ */
 
-#ifdef __HAIR__ 
+#  ifdef __HAIR__
 	if(kernel_data.bvh.have_curves)
 		return bvh_intersect_shadow_all_hair(kg, ray, isect, max_hits, num_hits);
-#endif /* __HAIR__ */
+#  endif /* __HAIR__ */
 
-#ifdef __INSTANCING__
+#  ifdef __INSTANCING__
 	if(kernel_data.bvh.have_instancing)
 		return bvh_intersect_shadow_all_instancing(kg, ray, isect, max_hits, num_hits);
-#endif /* __INSTANCING__ */
+#  endif /* __INSTANCING__ */
 
 	return bvh_intersect_shadow_all(kg, ray, isect, max_hits, num_hits);
 }
-#endif
+#endif  /* __SHADOW_RECORD_ALL__ */
 
 #ifdef __VOLUME__
 ccl_device_intersect bool scene_intersect_volume(KernelGlobals *kg,
-                            const Ray *ray,
-                            Intersection *isect)
+                                                 const Ray *ray,
+                                                 Intersection *isect)
 {
-#ifdef __OBJECT_MOTION__
+#  ifdef __OBJECT_MOTION__
 	if(kernel_data.bvh.have_motion) {
-#ifdef __HAIR__
+#    ifdef __HAIR__
 		if(kernel_data.bvh.have_curves)
 			return bvh_intersect_volume_hair_motion(kg, ray, isect);
-#endif /* __HAIR__ */
+#    endif /* __HAIR__ */
 
 		return bvh_intersect_volume_motion(kg, ray, isect);
 	}
-#endif /* __OBJECT_MOTION__ */
+#  endif /* __OBJECT_MOTION__ */
 
-#ifdef __HAIR__
+#  ifdef __HAIR__
 	if(kernel_data.bvh.have_curves)
 		return bvh_intersect_volume_hair(kg, ray, isect);
-#endif /* __HAIR__ */
+#  endif /* __HAIR__ */
 
-#ifdef __KERNEL_CPU__
+#  ifdef __KERNEL_CPU__
 
-#ifdef __INSTANCING__
+#    ifdef __INSTANCING__
 	if(kernel_data.bvh.have_instancing)
 		return bvh_intersect_volume_instancing(kg, ray, isect);
-#endif /* __INSTANCING__ */
+#    endif /* __INSTANCING__ */
 
 	return bvh_intersect_volume(kg, ray, isect);
-#else /* __KERNEL_CPU__ */
+#  else /* __KERNEL_CPU__ */
 
-#ifdef __INSTANCING__
+#    ifdef __INSTANCING__
 	return bvh_intersect_volume_instancing(kg, ray, isect);
-#else
+#    else
 	return bvh_intersect_volume(kg, ray, isect);
-#endif /* __INSTANCING__ */
+#    endif /* __INSTANCING__ */
 
-#endif /* __KERNEL_CPU__ */
+#  endif /* __KERNEL_CPU__ */
 }
-#endif
+#endif  /* __VOLUME__ */
 
 #ifdef __VOLUME_RECORD_ALL__
 ccl_device_intersect uint scene_intersect_volume_all(KernelGlobals *kg,
@@ -343,30 +343,30 @@ ccl_device_intersect uint scene_intersect_volume_all(KernelGlobals *kg,
                                                      Intersection *isect,
                                                      const uint max_hits)
 {
-#ifdef __OBJECT_MOTION__
+#  ifdef __OBJECT_MOTION__
 	if(kernel_data.bvh.have_motion) {
-#ifdef __HAIR__
+#    ifdef __HAIR__
 		if(kernel_data.bvh.have_curves)
 			return bvh_intersect_volume_all_hair_motion(kg, ray, isect, max_hits);
-#endif /* __HAIR__ */
+#    endif /* __HAIR__ */
 
 		return bvh_intersect_volume_all_motion(kg, ray, isect, max_hits);
 	}
-#endif /* __OBJECT_MOTION__ */
+#  endif /* __OBJECT_MOTION__ */
 
-#ifdef __HAIR__
+#  ifdef __HAIR__
 	if(kernel_data.bvh.have_curves)
 		return bvh_intersect_volume_all_hair(kg, ray, isect, max_hits);
-#endif /* __HAIR__ */
+#  endif /* __HAIR__ */
 
-#ifdef __INSTANCING__
+#  ifdef __INSTANCING__
 	if(kernel_data.bvh.have_instancing)
 		return bvh_intersect_volume_all_instancing(kg, ray, isect, max_hits);
-#endif /* __INSTANCING__ */
+#  endif /* __INSTANCING__ */
 
 	return bvh_intersect_volume_all(kg, ray, isect, max_hits);
 }
-#endif
+#endif  /* __VOLUME_RECORD_ALL__ */
 
 
 /* Ray offset to avoid self intersection.

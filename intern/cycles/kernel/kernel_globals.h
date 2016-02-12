@@ -25,36 +25,36 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_CPU__
 
-#ifdef __OSL__
+#  ifdef __OSL__
 struct OSLGlobals;
 struct OSLThreadData;
 struct OSLShadingSystem;
-#endif
+#  endif
 
-#define MAX_BYTE_IMAGES   1024
-#define MAX_FLOAT_IMAGES  1024
+#  define MAX_BYTE_IMAGES   1024
+#  define MAX_FLOAT_IMAGES  1024
 
 typedef struct KernelGlobals {
 	texture_image_uchar4 texture_byte_images[MAX_BYTE_IMAGES];
 	texture_image_float4 texture_float_images[MAX_FLOAT_IMAGES];
 
-#define KERNEL_TEX(type, ttype, name) ttype name;
-#define KERNEL_IMAGE_TEX(type, ttype, name)
-#include "kernel_textures.h"
+#  define KERNEL_TEX(type, ttype, name) ttype name;
+#  define KERNEL_IMAGE_TEX(type, ttype, name)
+#  include "kernel_textures.h"
 
 	KernelData __data;
 
-#ifdef __OSL__
+#  ifdef __OSL__
 	/* On the CPU, we also have the OSL globals here. Most data structures are shared
 	 * with SVM, the difference is in the shaders and object/mesh attributes. */
 	OSLGlobals *osl;
 	OSLShadingSystem *osl_ss;
 	OSLThreadData *osl_tdata;
-#endif
+#  endif
 
 } KernelGlobals;
 
-#endif
+#endif  /* __KERNEL_CPU__ */
 
 /* For CUDA, constant memory textures must be globals, so we can't put them
  * into a struct. As a result we don't actually use this struct and use actual
@@ -66,15 +66,15 @@ typedef struct KernelGlobals {
 __constant__ KernelData __data;
 typedef struct KernelGlobals {} KernelGlobals;
 
-#ifdef __KERNEL_CUDA_TEX_STORAGE__
-#define KERNEL_TEX(type, ttype, name) ttype name;
-#else
-#define KERNEL_TEX(type, ttype, name) const __constant__ __device__ type *name;
-#endif
-#define KERNEL_IMAGE_TEX(type, ttype, name) ttype name;
-#include "kernel_textures.h"
+#  ifdef __KERNEL_CUDA_TEX_STORAGE__
+#    define KERNEL_TEX(type, ttype, name) ttype name;
+#  else
+#    define KERNEL_TEX(type, ttype, name) const __constant__ __device__ type *name;
+#  endif
+#  define KERNEL_IMAGE_TEX(type, ttype, name) ttype name;
+#  include "kernel_textures.h"
 
-#endif
+#endif  /* __KERNEL_CUDA__ */
 
 /* OpenCL */
 
@@ -83,17 +83,17 @@ typedef struct KernelGlobals {} KernelGlobals;
 typedef ccl_addr_space struct KernelGlobals {
 	ccl_constant KernelData *data;
 
-#define KERNEL_TEX(type, ttype, name) \
+#  define KERNEL_TEX(type, ttype, name) \
 	ccl_global type *name;
-#include "kernel_textures.h"
+#  include "kernel_textures.h"
 
-#ifdef __SPLIT_KERNEL__
+#  ifdef __SPLIT_KERNEL__
 	ShaderData *sd_input;
 	Intersection *isect_shadow;
-#endif
+#  endif
 } KernelGlobals;
 
-#endif
+#endif  /* __KERNEL_OPENCL__ */
 
 /* Interpolated lookup table access */
 

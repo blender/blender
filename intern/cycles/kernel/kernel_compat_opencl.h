@@ -25,9 +25,9 @@
 #define CCL_NAMESPACE_END
 
 #ifdef __CL_NOINLINE__
-#define ccl_noinline __attribute__((noinline))
+#  define ccl_noinline __attribute__((noinline))
 #else
-#define ccl_noinline
+#  define ccl_noinline
 #endif
 
 /* in opencl all functions are device functions, so leave this empty */
@@ -41,9 +41,9 @@
 #define ccl_private __private
 
 #ifdef __SPLIT_KERNEL__
-#define ccl_addr_space __global
+#  define ccl_addr_space __global
 #else
-#define ccl_addr_space
+#  define ccl_addr_space
 #endif
 
 /* Selective nodes compilation. */
@@ -59,25 +59,25 @@
 
 /* make_type definitions with opencl style element initializers */
 #ifdef make_float2
-#undef make_float2
+#  undef make_float2
 #endif
 #ifdef make_float3
-#undef make_float3
+#  undef make_float3
 #endif
 #ifdef make_float4
-#undef make_float4
+#  undef make_float4
 #endif
 #ifdef make_int2
-#undef make_int2
+#  undef make_int2
 #endif
 #ifdef make_int3
-#undef make_int3
+#  undef make_int3
 #endif
 #ifdef make_int4
-#undef make_int4
+#  undef make_int4
 #endif
 #ifdef make_uchar4
-#undef make_uchar4
+#  undef make_uchar4
 #endif
 
 #define make_float2(x, y) ((float2)(x, y))
@@ -108,19 +108,19 @@
 #define fmodf(x, y) fmod((float)(x), (float)(y))
 
 #ifndef __CL_USE_NATIVE__
-#define sinf(x) native_sin(((float)(x)))
-#define cosf(x) native_cos(((float)(x)))
-#define tanf(x) native_tan(((float)(x)))
-#define expf(x) native_exp(((float)(x)))
-#define sqrtf(x) native_sqrt(((float)(x)))
-#define logf(x) native_log(((float)(x)))
+#  define sinf(x) native_sin(((float)(x)))
+#  define cosf(x) native_cos(((float)(x)))
+#  define tanf(x) native_tan(((float)(x)))
+#  define expf(x) native_exp(((float)(x)))
+#  define sqrtf(x) native_sqrt(((float)(x)))
+#  define logf(x) native_log(((float)(x)))
 #else
-#define sinf(x) sin(((float)(x)))
-#define cosf(x) cos(((float)(x)))
-#define tanf(x) tan(((float)(x)))
-#define expf(x) exp(((float)(x)))
-#define sqrtf(x) sqrt(((float)(x)))
-#define logf(x) log(((float)(x)))
+#  define sinf(x) sin(((float)(x)))
+#  define cosf(x) cos(((float)(x)))
+#  define tanf(x) tan(((float)(x)))
+#  define expf(x) exp(((float)(x)))
+#  define sqrtf(x) sqrt(((float)(x)))
+#  define logf(x) log(((float)(x)))
 #endif
 
 /* data lookup defines */

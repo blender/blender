@@ -40,9 +40,9 @@ ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg,
 		ray.D = ls->D;
 		ray.P = ls->P;
 		ray.t = 1.0f;
-#ifdef __OBJECT_MOTION__
+#  ifdef __OBJECT_MOTION__
 		ray.time = time;
-#endif
+#  endif
 		ray.dP = differential3_zero();
 		ray.dD = dI;
 
@@ -278,21 +278,21 @@ ccl_device_noinline float3 indirect_background(KernelGlobals *kg,
 	}
 
 	/* evaluate background closure */
-#ifdef __SPLIT_KERNEL__
+#  ifdef __SPLIT_KERNEL__
 	Ray priv_ray = *ray;
 	shader_setup_from_background(kg, kg->sd_input, &priv_ray);
 
 	path_state_modify_bounce(state, true);
 	float3 L = shader_eval_background(kg, kg->sd_input, state, state->flag, SHADER_CONTEXT_EMISSION);
 	path_state_modify_bounce(state, false);
-#else
+#  else
 	ShaderData sd;
 	shader_setup_from_background(kg, &sd, ray);
 
 	path_state_modify_bounce(state, true);
 	float3 L = shader_eval_background(kg, &sd, state, state->flag, SHADER_CONTEXT_EMISSION);
 	path_state_modify_bounce(state, false);
-#endif
+#  endif
 
 #ifdef __BACKGROUND_MIS__
 	/* check if background light exists or if we should skip pdf */

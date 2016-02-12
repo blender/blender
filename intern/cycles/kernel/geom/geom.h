@@ -31,9 +31,9 @@
  * without sse support on x86, it results in different results for float ops
  * that you would otherwise expect to compare correctly */
 #if !defined(__i386__) || defined(__SSE__)
-#define NO_EXTENDED_PRECISION
+#  define NO_EXTENDED_PRECISION
 #else
-#define NO_EXTENDED_PRECISION volatile
+#  define NO_EXTENDED_PRECISION volatile
 #endif
 
 #include "geom_attribute.h"

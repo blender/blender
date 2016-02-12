@@ -266,15 +266,15 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 
 					if(object_flag & SD_OBJECT_HAS_VOLUME) {
 
-#if BVH_FEATURE(BVH_MOTION)
+#  if BVH_FEATURE(BVH_MOTION)
 						bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect->t, &ob_itfm);
-#else
+#  else
 						bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect->t);
-#endif
+#  endif
 
 						triangle_intersect_precalc(dir, &isect_precalc);
 
-#if defined(__KERNEL_SSE2__)
+#  if defined(__KERNEL_SSE2__)
 						Psplat[0] = ssef(P.x);
 						Psplat[1] = ssef(P.y);
 						Psplat[2] = ssef(P.z);
@@ -282,7 +282,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 						tsplat = ssef(0.0f, 0.0f, -isect->t, -isect->t);
 
 						gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
-#endif
+#  endif
 
 						++stackPtr;
 						kernel_assert(stackPtr < BVH_STACK_SIZE);
@@ -306,15 +306,15 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 			kernel_assert(object != OBJECT_NONE);
 
 			/* instance pop */
-#if BVH_FEATURE(BVH_MOTION)
+#  if BVH_FEATURE(BVH_MOTION)
 			bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &isect->t, &ob_itfm);
-#else
+#  else
 			bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &isect->t);
-#endif
+#  endif
 
 			triangle_intersect_precalc(dir, &isect_precalc);
 
-#if defined(__KERNEL_SSE2__)
+#  if defined(__KERNEL_SSE2__)
 			Psplat[0] = ssef(P.x);
 			Psplat[1] = ssef(P.y);
 			Psplat[2] = ssef(P.z);
@@ -322,7 +322,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 			tsplat = ssef(0.0f, 0.0f, -isect->t, -isect->t);
 
 			gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
-#endif
+#  endif
 
 			object = OBJECT_NONE;
 			nodeAddr = traversalStack[stackPtr];
