@@ -64,6 +64,7 @@
 #include "BKE_mball_tessellate.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
+#include "BKE_font.h"
 
 #include "BKE_addon.h"
 #include "BKE_appdir.h"
@@ -504,6 +505,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	BKE_sequencer_free_clipboard(); /* sequencer.c */
 	BKE_tracking_clipboard_free();
 	BKE_mask_clipboard_free();
+	BKE_vfont_clipboard_free();
 		
 #ifdef WITH_COMPOSITOR
 	COM_deinitialize();

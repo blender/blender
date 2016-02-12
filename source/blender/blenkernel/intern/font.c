@@ -1261,3 +1261,77 @@ bool BKE_vfont_to_curve(Main *bmain, Object *ob, int mode)
 
 	return BKE_vfont_to_curve_ex(bmain, ob, mode, &cu->nurb, NULL, NULL, NULL, NULL);
 }
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name VFont Clipboard
+ * \{ */
+
+static struct {
+	wchar_t *text_buffer;
+	CharInfo *info_buffer;
+	size_t len_wchar;
+	size_t len_utf8;
+} g_vfont_clipboard = {NULL};
+
+void BKE_vfont_clipboard_free(void)
+{
+	MEM_SAFE_FREE(g_vfont_clipboard.text_buffer);
+	MEM_SAFE_FREE(g_vfont_clipboard.info_buffer);
+	g_vfont_clipboard.len_wchar = 0;
+	g_vfont_clipboard.len_utf8 = 0;
+}
+
+void BKE_vfont_clipboard_set(const wchar_t *text_buf, const CharInfo *info_buf, const size_t len)
+{
+	wchar_t *text;
+	CharInfo *info;
+
+	/* clean previous buffers*/
+	BKE_vfont_clipboard_free();
+
+	text = MEM_mallocN((len + 1) * sizeof(wchar_t), __func__);
+	if (text == NULL) {
+		return;
+	}
+
+	info = MEM_mallocN(len * sizeof(CharInfo), __func__);
+	if (info == NULL) {
+		MEM_freeN(text);
+		return;
+	}
+
+	memcpy(text, text_buf, len * sizeof(wchar_t));
+	text[len] = '\0';
+	memcpy(info, info_buf, len * sizeof(CharInfo));
+
+	/* store new buffers */
+	g_vfont_clipboard.text_buffer = text;
+	g_vfont_clipboard.info_buffer = info;
+	g_vfont_clipboard.len_utf8 = BLI_wstrlen_utf8(text);
+	g_vfont_clipboard.len_wchar = len;
+}
+
+void BKE_vfont_clipboard_get(
+        wchar_t **r_text_buf, CharInfo **r_info_buf,
+        size_t *r_len_utf8, size_t *r_len_wchar)
+{
+	if (r_text_buf) {
+		*r_text_buf = g_vfont_clipboard.text_buffer;
+	}
+
+	if (r_info_buf) {
+		*r_info_buf = g_vfont_clipboard.info_buffer;
+	}
+
+	if (r_len_wchar) {
+		*r_len_wchar = g_vfont_clipboard.len_wchar;
+	}
+
+	if (r_len_utf8) {
+		*r_len_utf8 = g_vfont_clipboard.len_utf8;
+	}
+}
+
+/** \} */

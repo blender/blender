@@ -109,10 +109,6 @@ void BKE_curve_editfont_free(Curve *cu)
 			MEM_freeN(ef->textbuf);
 		if (ef->textbufinfo)
 			MEM_freeN(ef->textbufinfo);
-		if (ef->copybuf)
-			MEM_freeN(ef->copybuf);
-		if (ef->copybufinfo)
-			MEM_freeN(ef->copybufinfo);
 		if (ef->selboxes)
 			MEM_freeN(ef->selboxes);
 
