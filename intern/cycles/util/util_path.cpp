@@ -504,9 +504,9 @@ static string path_cleanup_unc(const string& path)
 static string path_make_compatible(const string& path)
 {
 	string result = path;
-	/* in Windows stat() doesn't recognize dir ending on a slash. */
+	/* In Windows stat() doesn't recognize dir ending on a slash. */
 	if(result.size() > 3 && result[result.size() - 1] == DIR_SEP) {
-		result.pop_back();
+		result.resize(result.size() - 1);
 	}
 	/* Clean up UNC path. */
 	if((path.size() >= 3) && (path[0] == DIR_SEP) && (path[1] == DIR_SEP)) {
