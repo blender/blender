@@ -25,6 +25,10 @@
  */
 
 
+extern "C" {
+#include "BLI_utildefines.h"
+}
+
 #include <stddef.h>
 #include <dds_api.h>
 #include <Stream.h>
