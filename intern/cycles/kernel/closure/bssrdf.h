@@ -181,8 +181,8 @@ ccl_device void bssrdf_cubic_sample(ShaderClosure *sc, float xi, float *r, float
  * the mean free length, but still not too big so sampling is still
  * effective. Might need some further tweaks.
  */
-#define BURLEY_TRUNCATE     30.0f
-#define BURLEY_TRUNCATE_CDF 0.999966f // cdf(BURLEY_TRUNCATE)
+#define BURLEY_TRUNCATE     16.0f
+#define BURLEY_TRUNCATE_CDF 0.9963790093708328f // cdf(BURLEY_TRUNCATE)
 
 ccl_device_inline float bssrdf_burley_fitting(float A)
 {
@@ -195,7 +195,7 @@ ccl_device_inline float bssrdf_burley_fitting(float A)
  */
 ccl_device_inline float bssrdf_burley_compatible_mfp(float r)
 {
-	return 0.5f * M_1_PI_F * r;
+	return 0.25f * M_1_PI_F * r;
 }
 
 ccl_device void bssrdf_burley_setup(ShaderClosure *sc)
@@ -215,20 +215,20 @@ ccl_device float bssrdf_burley_eval(ShaderClosure *sc, float r)
 	const float d = sc->custom1;
 	const float Rm = BURLEY_TRUNCATE * d;
 
-	if (r >= Rm)
+	if(r >= Rm)
 		return 0.0f;
-
-	/* Clamp to avoid precision issues computing expf(-x)/x */
-	r = fmaxf(r, 1e-2f * d);
 
 	/* Burley refletance profile, equation (3).
 	 *
-	 * Note that surface albedo is already included into sc->weight, no need to
-	 * multiply by this term here.
+	 * NOTES:
+	 * - Surface albedo is already included into sc->weight, no need to
+	 *   multiply by this term here.
+	 * - This is normalized diffuse model, so the equation is mutliplied
+	 *   by 2*pi, which also matches cdf().
 	 */
 	float exp_r_3_d = expf(-r / (3.0f * d));
 	float exp_r_d = exp_r_3_d * exp_r_3_d * exp_r_3_d;
-	return (exp_r_d + exp_r_3_d) / (8*M_PI_F*d*r);
+	return (exp_r_d + exp_r_3_d) / (4.0f*d);
 }
 
 ccl_device float bssrdf_burley_pdf(ShaderClosure *sc, float r)
