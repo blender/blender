@@ -2076,7 +2076,7 @@ static bool bvhtree_walk_dfs_recursive(
 		/* First pick the closest node to recurse into */
 		if (walk_order_cb((const BVHTreeAxisRange *)node->bv, node->main_axis, userdata)) {
 			for (int i = 0; i != node->totnode; i++) {
-				if (walk_parent_cb((const BVHTreeAxisRange *)node->bv, userdata)) {
+				if (walk_parent_cb((const BVHTreeAxisRange *)node->children[i]->bv, userdata)) {
 					if (!bvhtree_walk_dfs_recursive(
 					        walk_parent_cb, walk_leaf_cb, walk_order_cb,
 					        node->children[i], userdata))
@@ -2088,7 +2088,7 @@ static bool bvhtree_walk_dfs_recursive(
 		}
 		else {
 			for (int i = node->totnode - 1; i >= 0; i--) {
-				if (walk_parent_cb((const BVHTreeAxisRange *)node->bv, userdata)) {
+				if (walk_parent_cb((const BVHTreeAxisRange *)node->children[i]->bv, userdata)) {
 					if (!bvhtree_walk_dfs_recursive(
 					        walk_parent_cb, walk_leaf_cb, walk_order_cb,
 					        node->children[i], userdata))
