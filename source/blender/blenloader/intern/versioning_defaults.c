@@ -67,7 +67,7 @@ void BLO_update_defaults_userpref_blend(void)
 	/* Keep this a very small, non-zero number so zero-alpha doesn't mask out objects behind it.
 	 * but take care since some hardware has driver bugs here (T46962).
 	 * Further hardware workarounds should be made in gpu_extensions.c */
-	U.glalphaclip = (1.5f / 255);
+	U.glalphaclip = (1.0f / 255);
 }
 
 /**
