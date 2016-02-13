@@ -32,14 +32,6 @@ For an overview of BMesh data types and how they reference each other see:
 
 .. warning::
 
-   This API is still in development and experimental, while we don't expect to see large changes,
-   many areas are not well tested yet and so its possible changes will be made that break scripts.
-
-   *Campbell Barton, 13, March 2012*
-
-
-.. warning::
-
    TODO items are...
 
    * add access to BMesh **walkers**
