@@ -246,22 +246,19 @@ static int map_insert_vert(PBVH *bvh, GHash *map,
 	void *key, **value_p;
 
 	key = SET_INT_IN_POINTER(vertex);
-	value_p = BLI_ghash_lookup_p(map, key);
-
-	if (value_p == NULL) {
-		void *value;
-		if (BLI_BITMAP_TEST(bvh->vert_bitmap, vertex)) {
-			value = SET_INT_IN_POINTER(~(*face_verts));
-			++(*face_verts);
+	if (!BLI_ghash_ensure_p(map, key, &value_p)) {
+		int value_i;
+		if (BLI_BITMAP_TEST(bvh->vert_bitmap, vertex) == 0) {
+			BLI_BITMAP_ENABLE(bvh->vert_bitmap, vertex);
+			value_i = *uniq_verts;
+			(*uniq_verts)++;
 		}
 		else {
-			BLI_BITMAP_ENABLE(bvh->vert_bitmap, vertex);
-			value = SET_INT_IN_POINTER(*uniq_verts);
-			++(*uniq_verts);
+			value_i = ~(*face_verts);
+			(*face_verts)++;
 		}
-		
-		BLI_ghash_insert(map, key, value);
-		return GET_INT_FROM_POINTER(value);
+		*value_p = SET_INT_IN_POINTER(value_i);
+		return value_i;
 	}
 	else {
 		return GET_INT_FROM_POINTER(*value_p);
@@ -502,7 +499,7 @@ static void pbvh_build(PBVH *bvh, BB *cb, BBC *prim_bbc, int totprim)
 		bvh->totprim = totprim;
 		if (bvh->nodes) MEM_freeN(bvh->nodes);
 		if (bvh->prim_indices) MEM_freeN(bvh->prim_indices);
-		bvh->prim_indices = MEM_callocN(sizeof(int) * totprim,
+		bvh->prim_indices = MEM_mallocN(sizeof(int) * totprim,
 		                                "bvh prim indices");
 		for (int i = 0; i < totprim; ++i)
 			bvh->prim_indices[i] = i;
