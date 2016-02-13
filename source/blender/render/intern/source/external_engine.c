@@ -452,6 +452,8 @@ RenderData *RE_engine_get_render_data(Render *re)
 /* Bake */
 void RE_bake_engine_set_engine_parameters(Render *re, Main *bmain, Scene *scene)
 {
+	curvemapping_free_data(&re->r.mblur_shutter_curve);
+
 	re->scene = scene;
 	re->main = bmain;
 	re->r = scene->r;
@@ -518,8 +520,6 @@ bool RE_bake_engine(
 	engine->flag &= ~RE_ENGINE_RENDERING;
 
 	BLI_rw_mutex_lock(&re->partsmutex, THREAD_LOCK_WRITE);
-
-	curvemapping_free_data(&re->r.mblur_shutter_curve);
 
 	/* re->engine becomes zero if user changed active render engine during render */
 	if (!persistent_data || !re->engine) {
