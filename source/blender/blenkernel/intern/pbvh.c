@@ -1474,6 +1474,30 @@ void BKE_pbvh_node_get_bm_orco_data(
 	*r_orco_coords = node->bm_orco;
 }
 
+/**
+ * \note doing a full search on all vertices here seems expensive,
+ * however this is important to avoid having to recalculate boundbox & sync the buffers to the GPU
+ * (which is far more expensive!) See: T47232.
+ */
+bool BKE_pbvh_node_vert_update_check_any(PBVH *bvh, PBVHNode *node)
+{
+	BLI_assert(bvh->type == PBVH_FACES);
+	const int *verts = node->vert_indices;
+	const int totvert = node->uniq_verts + node->face_verts;
+
+	for (int i = 0; i < totvert; ++i) {
+		const int v = verts[i];
+		const MVert *mvert = &bvh->verts[v];
+
+		if (mvert->flag & ME_VERT_PBVH_UPDATE) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
 /********************************* Raycast ***********************************/
 
 typedef struct {
@@ -1914,8 +1938,11 @@ void BKE_pbvh_apply_vertCos(PBVH *pbvh, float (*vertCos)[3])
 		MVert *mvert = pbvh->verts;
 		/* copy new verts coords */
 		for (int a = 0; a < pbvh->totvert; ++a, ++mvert) {
-			copy_v3_v3(mvert->co, vertCos[a]);
-			mvert->flag |= ME_VERT_PBVH_UPDATE;
+			/* no need for float comparison here (memory is exactly equal or not) */
+			if (memcmp(mvert->co, vertCos[a], sizeof(float[3])) != 0) {
+				copy_v3_v3(mvert->co, vertCos[a]);
+				mvert->flag |= ME_VERT_PBVH_UPDATE;
+			}
 		}
 
 		/* coordinates are new -- normals should also be updated */

@@ -349,6 +349,8 @@ void BKE_pbvh_node_get_bm_orco_data(
         PBVHNode *node,
         int (**r_orco_tris)[3], int *r_orco_tris_num, float (**r_orco_coords)[3]);
 
+bool BKE_pbvh_node_vert_update_check_any(PBVH *bvh, PBVHNode *node);
+
 //void BKE_pbvh_node_BB_reset(PBVHNode *node);
 //void BKE_pbvh_node_BB_expand(PBVHNode *node, float co[3]);
 

@@ -79,28 +79,57 @@ static void update_cb(PBVHNode *node, void *rebuild)
 	BKE_pbvh_node_fully_hidden_set(node, 0);
 }
 
-static void sculpt_undo_restore_deformed(const SculptSession *ss,
-                                         SculptUndoNode *unode,
-                                         int uindex, int oindex,
-                                         float coord[3])
+struct PartialUpdateData {
+	PBVH *pbvh;
+	bool rebuild;
+};
+
+/**
+ * A version of #update_cb that tests for 'ME_VERT_PBVH_UPDATE'
+ */
+static void update_cb_partial(PBVHNode *node, void *userdata)
 {
-	if (unode->orig_co) {
-		swap_v3_v3(coord, unode->orig_co[uindex]);
-		copy_v3_v3(unode->co[uindex], ss->deform_cos[oindex]);
-	}
-	else {
-		swap_v3_v3(coord, unode->co[uindex]);
+	struct PartialUpdateData *data = userdata;
+	if (BKE_pbvh_node_vert_update_check_any(data->pbvh, node)) {
+		update_cb(node, &(data->rebuild));
 	}
 }
 
-static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNode *unode)
+static bool test_swap_v3_v3(float a[3], float b[3])
+{
+	/* no need for float comparison here (memory is exactly equal or not) */
+	if (memcmp(a, b, sizeof(float[3])) != 0) {
+		swap_v3_v3(a, b);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+static bool sculpt_undo_restore_deformed(
+        const SculptSession *ss,
+        SculptUndoNode *unode,
+        int uindex, int oindex,
+        float coord[3])
+{
+	if (test_swap_v3_v3(coord, unode->orig_co[uindex])) {
+		copy_v3_v3(unode->co[uindex], ss->deform_cos[oindex]);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+static bool sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNode *unode)
 {
 	Scene *scene = CTX_data_scene(C);
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 	MVert *mvert;
-	int *index, i, j;
+	int *index;
 	
 	if (unode->maxvert) {
 		/* regular mesh restore */
@@ -123,6 +152,7 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 			}
 		}
 
+		/* no need for float comparison here (memory is exactly equal or not) */
 		index = unode->index;
 		mvert = ss->mvert;
 
@@ -130,13 +160,21 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 			float (*vertCos)[3];
 			vertCos = BKE_keyblock_convert_to_vertcos(ob, ss->kb);
 
-			for (i = 0; i < unode->totvert; i++) {
+			if (unode->orig_co) {
 				if (ss->modifiers_active) {
-					sculpt_undo_restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);
+					for (int i = 0; i < unode->totvert; i++) {
+						sculpt_undo_restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);
+					}
 				}
 				else {
-					if (unode->orig_co) swap_v3_v3(vertCos[index[i]], unode->orig_co[i]);
-					else swap_v3_v3(vertCos[index[i]], unode->co[i]);
+					for (int i = 0; i < unode->totvert; i++) {
+						swap_v3_v3(vertCos[index[i]], unode->orig_co[i]);
+					}
+				}
+			}
+			else {
+				for (int i = 0; i < unode->totvert; i++) {
+					swap_v3_v3(vertCos[index[i]], unode->co[i]);
 				}
 			}
 
@@ -150,15 +188,28 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 			MEM_freeN(vertCos);
 		}
 		else {
-			for (i = 0; i < unode->totvert; i++) {
+			if (unode->orig_co) {
 				if (ss->modifiers_active) {
-					sculpt_undo_restore_deformed(ss, unode, i, index[i], mvert[index[i]].co);
+					for (int i = 0; i < unode->totvert; i++) {
+						if (sculpt_undo_restore_deformed(ss, unode, i, index[i], mvert[index[i]].co)) {
+							mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
+						}
+					}
 				}
 				else {
-					if (unode->orig_co) swap_v3_v3(mvert[index[i]].co, unode->orig_co[i]);
-					else swap_v3_v3(mvert[index[i]].co, unode->co[i]);
+					for (int i = 0; i < unode->totvert; i++) {
+						if (test_swap_v3_v3(mvert[index[i]].co, unode->orig_co[i])) {
+							mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
+						}
+					}
 				}
-				mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
+			}
+			else {
+				for (int i = 0; i < unode->totvert; i++) {
+					if (test_swap_v3_v3(mvert[index[i]].co, unode->co[i])) {
+						mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
+					}
+				}
 			}
 		}
 	}
@@ -174,19 +225,21 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 		dm->getGridKey(dm, &key);
 
 		co = unode->co;
-		for (j = 0; j < unode->totgrid; j++) {
+		for (int j = 0; j < unode->totgrid; j++) {
 			grid = grids[unode->grids[j]];
 
-			for (i = 0; i < gridsize * gridsize; i++, co++)
+			for (int i = 0; i < gridsize * gridsize; i++, co++) {
 				swap_v3_v3(CCG_elem_offset_co(&key, grid, i), co[0]);
+			}
 		}
 	}
 
 	return 1;
 }
 
-static int sculpt_undo_restore_hidden(bContext *C, DerivedMesh *dm,
-                                      SculptUndoNode *unode)
+static bool sculpt_undo_restore_hidden(
+        bContext *C, DerivedMesh *dm,
+        SculptUndoNode *unode)
 {
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
@@ -197,16 +250,11 @@ static int sculpt_undo_restore_hidden(bContext *C, DerivedMesh *dm,
 		
 		for (i = 0; i < unode->totvert; i++) {
 			MVert *v = &mvert[unode->index[i]];
-			int uval = BLI_BITMAP_TEST(unode->vert_hidden, i);
-
-			BLI_BITMAP_SET(unode->vert_hidden, i,
-			                  v->flag & ME_HIDE);
-			if (uval)
-				v->flag |= ME_HIDE;
-			else
-				v->flag &= ~ME_HIDE;
-			
-			v->flag |= ME_VERT_PBVH_UPDATE;
+			if ((BLI_BITMAP_TEST(unode->vert_hidden, i) != 0) != ((v->flag & ME_HIDE) != 0)) {
+				BLI_BITMAP_FLIP(unode->vert_hidden, i);
+				v->flag ^= ME_HIDE;
+				v->flag |= ME_VERT_PBVH_UPDATE;
+			}
 		}
 	}
 	else if (unode->maxgrid && dm->getGridData) {
@@ -223,7 +271,7 @@ static int sculpt_undo_restore_hidden(bContext *C, DerivedMesh *dm,
 	return 1;
 }
 
-static int sculpt_undo_restore_mask(bContext *C, DerivedMesh *dm, SculptUndoNode *unode)
+static bool sculpt_undo_restore_mask(bContext *C, DerivedMesh *dm, SculptUndoNode *unode)
 {
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
@@ -239,8 +287,10 @@ static int sculpt_undo_restore_mask(bContext *C, DerivedMesh *dm, SculptUndoNode
 		vmask = ss->vmask;
 
 		for (i = 0; i < unode->totvert; i++) {
-			SWAP(float, vmask[index[i]], unode->mask[i]);
-			mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
+			if (vmask[index[i]] != unode->mask[i]) {
+				SWAP(float, vmask[index[i]], unode->mask[i]);
+				mvert[index[i]].flag |= ME_VERT_PBVH_UPDATE;
+			}
 		}
 	}
 	else if (unode->maxgrid && dm->getGridData) {
@@ -404,6 +454,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 	SculptUndoNode *unode;
 	bool update = false, rebuild = false;
 	bool need_mask = false;
+	bool partial_update = true;
 
 	for (unode = lb->first; unode; unode = unode->next) {
 		if (STREQ(unode->idname, ob->id.name)) {
@@ -440,6 +491,9 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 			{
 				continue;
 			}
+
+			/* multi-res can't do partial updates since it doesn't flag edited vertices */
+			partial_update = false;
 		}
 
 		switch (unode->type) {
@@ -469,7 +523,16 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		/* we update all nodes still, should be more clever, but also
 		 * needs to work correct when exiting/entering sculpt mode and
 		 * the nodes get recreated, though in that case it could do all */
-		BKE_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb, &rebuild);
+		if (partial_update) {
+			struct PartialUpdateData data = {
+				.rebuild = rebuild,
+				.pbvh = ss->pbvh,
+			};
+			BKE_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb_partial, &data);
+		}
+		else {
+			BKE_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb, &rebuild);
+		}
 		BKE_pbvh_update(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw, NULL);
 
 		if (BKE_sculpt_multires_active(scene, ob)) {
