@@ -7708,6 +7708,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 						draw_bounding_volume(ob, ob->boundtype);
 					}
 					else {
+						glLineWidth(1.0f);
 						empty_object = draw_armature(scene, v3d, ar, base, dt, dflag, ob_wire_col, false);
 					}
 				}
