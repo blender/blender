@@ -120,6 +120,9 @@ public:
 
 	template <class U>
 	GuardedAllocator& operator=(const GuardedAllocator<U>&) { return *this; }
+
+	inline bool operator==(GuardedAllocator const& /*other*/) { return true; }
+	inline bool operator!=(GuardedAllocator const& other) { return !operator==(other); }
 };
 
 /* Get memory usage and peak from the guarded STL allocator. */
