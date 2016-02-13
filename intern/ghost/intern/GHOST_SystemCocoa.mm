@@ -1548,11 +1548,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 				for (int x = 0; x < [convertedCharacters length]; x++) {
 					utf8_buf[x] = ((char*)[convertedCharacters bytes])[x];
 				}
-
-				/* ascii is a subset of unicode */
-				if ([convertedCharacters length] == 1) {
-					ascii = utf8_buf[0];
-				}
 			}
 
 			/* arrow keys should not have utf8 */
@@ -1569,6 +1564,11 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 
 			if ((keyCode == GHOST_kKeyQ) && (m_modifierMask & NSCommandKeyMask))
 				break; //Cmd-Q is directly handled by Cocoa
+
+			/* ascii is a subset of unicode */
+			if (utf8_buf[0] && !utf8_buf[1]) {
+				ascii = utf8_buf[0];
+			}
 
 			if ([event type] == NSKeyDown) {
 				pushEvent( new GHOST_EventKey([event timestamp] * 1000, GHOST_kEventKeyDown, window, keyCode, ascii, utf8_buf) );
