@@ -50,15 +50,21 @@ public:
 
 	T *allocate(size_t n, const void *hint = 0)
 	{
-		util_guarded_mem_alloc(n * sizeof(T));
+		size_t size = n * sizeof(T);
+		util_guarded_mem_alloc(size);
 		(void)hint;
 #ifdef WITH_BLENDER_GUARDEDALLOC
 		if(n == 0) {
 			return NULL;
 		}
-		return (T*)MEM_mallocN(n * sizeof(T), "Cycles Alloc");
+		/* C++ standard requires allocation functions to allocate memory suitably
+		 * aligned for any standard type. This is 16 bytes for 64 bit platform as
+		 * far as i concerned. We might over-align on 32bit here, but that should
+		 * be all safe actually.
+		 */
+		return (T*)MEM_mallocN_aligned(size, 16, "Cycles Alloc");
 #else
-		return (T*)malloc(n * sizeof(T));
+		return (T*)malloc(size);
 #endif
 	}
 
