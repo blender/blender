@@ -86,6 +86,12 @@ typedef unsigned int BLI_bitmap;
 	 ((_bitmap)[(_index) >> _BITMAP_POWER] &= \
 	  ~(1u << ((_index) & _BITMAP_MASK))))
 
+/* flip the value of a single bit at '_index' */
+#define BLI_BITMAP_FLIP(_bitmap, _index) \
+	(CHECK_TYPE_ANY(_bitmap, BLI_bitmap *, const BLI_bitmap *), \
+	 ((_bitmap)[(_index) >> _BITMAP_POWER] ^= \
+	  (1u << ((_index) & _BITMAP_MASK))))
+
 /* set or clear the value of a single bit at '_index' */
 #define BLI_BITMAP_SET(_bitmap, _index, _set) \
 	{ \
