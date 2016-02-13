@@ -97,8 +97,8 @@ All instructions on how to use this code are in the accompanying header file.
 
 */
 
-#include "sky_model.h"
-#include "sky_model_data.h"
+#include "util_sky_model.h"
+#include "util_sky_model_data.h"
 
 #include <assert.h>
 #include <stdio.h>

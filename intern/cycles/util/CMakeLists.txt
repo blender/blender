@@ -62,6 +62,9 @@ set(SRC_HEADERS
 	util_queue.h
 	util_set.h
 	util_simd.h
+	util_sky_model.cpp
+	util_sky_model.h
+	util_sky_model_data.h
 	util_sseb.h
 	util_ssef.h
 	util_ssei.h

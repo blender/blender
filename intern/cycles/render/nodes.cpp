@@ -21,8 +21,8 @@
 #include "svm.h"
 #include "svm_math_util.h"
 #include "osl.h"
-#include "sky_model.h"
 
+#include "util_sky_model.h"
 #include "util_foreach.h"
 #include "util_transform.h"
 
