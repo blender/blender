@@ -607,7 +607,7 @@ static ShaderNode *add_node(Scene *scene,
 				query.open_bytecode(b_script_node.bytecode());
 			}
 			else {
-				!OSLShaderManager::osl_query(query, b_script_node.filepath());
+				OSLShaderManager::osl_query(query, b_script_node.filepath());
 			}
 			/* TODO(sergey): Add proper query info error parsing. */
 
