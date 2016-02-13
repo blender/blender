@@ -375,6 +375,7 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	
 	m_ignoreWindowSizedMessages = false;
 	m_ignoreMomentumScroll = false;
+	m_multiTouchScroll = false;
 }
 
 GHOST_SystemCocoa::~GHOST_SystemCocoa()
@@ -1392,31 +1393,34 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			{
 				NSEventPhase momentumPhase = NSEventPhaseNone;
 				NSEventPhase phase = NSEventPhaseNone;
-				bool hasMultiTouch = false;
 				
 				if ([event respondsToSelector:@selector(momentumPhase)])
 					momentumPhase = [event momentumPhase];
 				if ([event respondsToSelector:@selector(phase)])
 					phase = [event phase];
-				if ([event respondsToSelector:@selector(hasPreciseScrollingDeltas)])
-					hasMultiTouch = [event hasPreciseScrollingDeltas] && [event subtype] != NSMouseEventSubtype;
 
 				/* when pressing a key while momentum scrolling continues after
 				 * lifting fingers off the trackpad, the action can unexpectedly
 				 * change from e.g. scrolling to zooming. this works around the
 				 * issue by ignoring momentum scroll after a key press */
-				if (momentumPhase)
-				{
+				if (momentumPhase) {
 					if (m_ignoreMomentumScroll)
 						break;
 				}
-				else
-				{
+				else {
 					m_ignoreMomentumScroll = false;
 				}
 
+				/* we assume phases are only set for gestures from trackpad or magic
+				 * mouse events. note that using tablet at the same time may not work
+				 * since this is a static variable */
+				if (phase == NSEventPhaseBegan)
+					m_multiTouchScroll = true;
+				else if (phase == NSEventPhaseEnded)
+					m_multiTouchScroll = false;
+
 				/* standard scrollwheel case, if no swiping happened, and no momentum (kinetic scroll) works */
-				if (!hasMultiTouch && momentumPhase == NSEventPhaseNone) {
+				if (!m_multiTouchScroll && momentumPhase == NSEventPhaseNone) {
 					GHOST_TInt32 delta;
 					
 					double deltaF = [event deltaY];
