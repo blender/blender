@@ -2082,13 +2082,13 @@ static void ccgDM_buffer_copy_triangles(
 					for (x = 0; x < gridFaces; x++) {
 						start = gpumat->start + fc[mati].i_tri_visible;
 
-						varray[start++] = totloops;
-						varray[start++] = totloops + 2;
 						varray[start++] = totloops + 3;
-
-						varray[start++] = totloops;
-						varray[start++] = totloops + 1;
 						varray[start++] = totloops + 2;
+						varray[start++] = totloops;
+
+						varray[start++] = totloops + 2;
+						varray[start++] = totloops + 1;
+						varray[start++] = totloops;
 
 						fc[mati].i_tri_visible += 6;
 
