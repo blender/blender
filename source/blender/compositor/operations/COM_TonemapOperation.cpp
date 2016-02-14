@@ -52,9 +52,9 @@ void TonemapOperation::executePixel(float output[4], int x, int y, void *data)
 	float dr = output[0] + this->m_data->offset;
 	float dg = output[1] + this->m_data->offset;
 	float db = output[2] + this->m_data->offset;
-	output[0] /= ((dr == 0.f) ? 1.0f : dr);
-	output[1] /= ((dg == 0.f) ? 1.0f : dg);
-	output[2] /= ((db == 0.f) ? 1.0f : db);
+	output[0] /= ((dr == 0.0f) ? 1.0f : dr);
+	output[1] /= ((dg == 0.0f) ? 1.0f : dg);
+	output[2] /= ((db == 0.0f) ? 1.0f : db);
 	const float igm = avg->igm;
 	if (igm != 0.0f) {
 		output[0] = powf(max(output[0], 0.0f), igm);
@@ -126,7 +126,7 @@ void *TonemapOperation::initializeTileData(rcti *rect)
 		float *bc = buffer;
 		float avl, maxl = -1e10f, minl = 1e10f;
 		const float sc = 1.0f / p;
-		float Lav = 0.f;
+		float Lav = 0.0f;
 		float cav[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 		while (p--) {
 			float L = IMB_colormanagement_get_luminance(bc);
@@ -140,10 +140,10 @@ void *TonemapOperation::initializeTileData(rcti *rect)
 		data->lav = Lav * sc;
 		mul_v3_v3fl(data->cav, cav, sc);
 		maxl = log((double)maxl + 1e-5); minl = log((double)minl + 1e-5); avl = lsum * sc;
-		data->auto_key = (maxl > minl) ? ((maxl - avl) / (maxl - minl)) : 1.f;
+		data->auto_key = (maxl > minl) ? ((maxl - avl) / (maxl - minl)) : 1.0f;
 		float al = exp((double)avl);
 		data->al = (al == 0.0f) ? 0.0f : (this->m_data->key / al);
-		data->igm = (this->m_data->gamma == 0.f) ? 1 : (1.f / this->m_data->gamma);
+		data->igm = (this->m_data->gamma == 0.0f) ? 1 : (1.0f / this->m_data->gamma);
 		this->m_cachedInstance = data;
 	}
 	unlockMutex();

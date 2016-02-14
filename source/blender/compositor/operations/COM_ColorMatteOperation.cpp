@@ -72,7 +72,7 @@ void ColorMatteOperation::executePixelSampled(float output[4], float x, float y,
 	    /* multiply by 2 because it wraps on both sides of the hue,
 	     * otherwise 0.5 would key all hue's */
 
-	    /* hue */ ((h_wrap = 2.f * fabsf(inColor[0] - inKey[0])) < hue || (2.f - h_wrap) < hue)
+	    /* hue */ ((h_wrap = 2.0f * fabsf(inColor[0] - inKey[0])) < hue || (2.0f - h_wrap) < hue)
 	    )
 	{
 		output[0] = 0.0f; /* make transparent */

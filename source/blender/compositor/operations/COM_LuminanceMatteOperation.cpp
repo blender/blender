@@ -57,10 +57,10 @@ void LuminanceMatteOperation::executePixelSampled(float output[4], float x, floa
 		
 	/* test range */
 	if (inColor[0] > high) {
-		alpha = 1.f;
+		alpha = 1.0f;
 	}
 	else if (inColor[0] < low) {
-		alpha = 0.f;
+		alpha = 0.0f;
 	}
 	else { /*blend */
 		alpha = (inColor[0] - low) / (high - low);

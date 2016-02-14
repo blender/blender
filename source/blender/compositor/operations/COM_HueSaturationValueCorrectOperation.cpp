@@ -57,11 +57,11 @@ void HueSaturationValueCorrectOperation::executePixelSampled(float output[4], fl
 
 	/* adjust saturation, scaling returned default 0.5 up to 1 */
 	f = curvemapping_evaluateF(this->m_curveMapping, 1, hsv[0]);
-	hsv[1] *= (f * 2.f);
+	hsv[1] *= (f * 2.0f);
 
 	/* adjust value, scaling returned default 0.5 up to 1 */
 	f = curvemapping_evaluateF(this->m_curveMapping, 2, hsv[0]);
-	hsv[2] *= (f * 2.f);
+	hsv[2] *= (f * 2.0f);
 
 	hsv[0] = hsv[0] - floorf(hsv[0]);  /* mod 1.0 */
 	CLAMP(hsv[1], 0.0f, 1.0f);

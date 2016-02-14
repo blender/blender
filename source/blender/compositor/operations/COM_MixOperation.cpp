@@ -462,7 +462,7 @@ void MixGlareOperation::executePixelSampled(float output[4], float x, float y, P
 	this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
 	this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
 	value = inputValue[0];
-	float mf = 2.f - 2.f * fabsf(value - 0.5f);
+	float mf = 2.0f - 2.0f * fabsf(value - 0.5f);
 
 	if (inputColor1[0] < 0.0f) inputColor1[0] = 0.0f;
 	if (inputColor1[1] < 0.0f) inputColor1[1] = 0.0f;

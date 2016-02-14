@@ -33,7 +33,7 @@ inline float colorbalance_lgg(float in, float lift_lgg, float gamma_inv, float g
 	float x = (((linearrgb_to_srgb(in) - 1.0f) * lift_lgg) + 1.0f) * gain;
 
 	/* prevent NaN */
-	if (x < 0.f) x = 0.f;
+	if (x < 0.0f) x = 0.0f;
 
 	return powf(srgb_to_linearrgb(x), gamma_inv);
 }

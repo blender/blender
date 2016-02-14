@@ -274,15 +274,15 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 	data2 = (fREAL *)MEM_callocN(w2 * h2 * sizeof(fREAL), "convolve_fast FHT data2");
 
 	// normalize convolutor
-	wt[0] = wt[1] = wt[2] = 0.f;
+	wt[0] = wt[1] = wt[2] = 0.0f;
 	for (y = 0; y < kernelHeight; y++) {
 		colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_NUM_CHANNELS_COLOR];
 		for (x = 0; x < kernelWidth; x++)
 			add_v3_v3(wt, colp[x]);
 	}
-	if (wt[0] != 0.f) wt[0] = 1.f / wt[0];
-	if (wt[1] != 0.f) wt[1] = 1.f / wt[1];
-	if (wt[2] != 0.f) wt[2] = 1.f / wt[2];
+	if (wt[0] != 0.0f) wt[0] = 1.0f / wt[0];
+	if (wt[1] != 0.0f) wt[1] = 1.0f / wt[1];
+	if (wt[2] != 0.0f) wt[2] = 1.0f / wt[2];
 	for (y = 0; y < kernelHeight; y++) {
 		colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_NUM_CHANNELS_COLOR];
 		for (x = 0; x < kernelWidth; x++)
@@ -375,7 +375,7 @@ void GlareFogGlowOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 	fRGB fcol;
 	MemoryBuffer *ckrn;
 	unsigned int sz = 1 << settings->size;
-	const float cs_r = 1.f, cs_g = 1.f, cs_b = 1.f;
+	const float cs_r = 1.0f, cs_g = 1.0f, cs_b = 1.0f;
 
 	// temp. src image
 	// make the convolution kernel
@@ -386,14 +386,14 @@ void GlareFogGlowOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 	scale = 0.25f * sqrtf((float)(sz * sz));
 
 	for (y = 0; y < sz; ++y) {
-		v = 2.f * (y / (float)sz) - 1.0f;
+		v = 2.0f * (y / (float)sz) - 1.0f;
 		for (x = 0; x < sz; ++x) {
-			u = 2.f * (x / (float)sz) - 1.0f;
+			u = 2.0f * (x / (float)sz) - 1.0f;
 			r = (u * u + v * v) * scale;
 			d = -sqrtf(sqrtf(sqrtf(r))) * 9.0f;
 			fcol[0] = expf(d * cs_r), fcol[1] = expf(d * cs_g), fcol[2] = expf(d * cs_b);
 			// linear window good enough here, visual result counts, not scientific analysis
-			//w = (1.f-fabs(u))*(1.f-fabs(v));
+			//w = (1.0f-fabs(u))*(1.0f-fabs(v));
 			// actually, Hanning window is ok, cos^2 for some reason is slower
 			w = (0.5f + 0.5f * cosf(u * (float)M_PI)) * (0.5f + 0.5f * cosf(v * (float)M_PI));
 			mul_v3_fl(fcol, w);

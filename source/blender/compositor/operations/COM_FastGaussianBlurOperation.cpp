@@ -91,7 +91,7 @@ void *FastGaussianBlurOperation::initializeTileData(rcti *rect)
 		this->m_sx = this->m_data.sizex * this->m_size / 2.0f;
 		this->m_sy = this->m_data.sizey * this->m_size / 2.0f;
 		
-		if ((this->m_sx == this->m_sy) && (this->m_sx > 0.f)) {
+		if ((this->m_sx == this->m_sy) && (this->m_sx > 0.0f)) {
 			for (c = 0; c < COM_NUM_CHANNELS_COLOR; ++c)
 				IIR_gauss(copy, this->m_sx, c, 3);
 		}

@@ -109,7 +109,7 @@ void *NormalizeOperation::initializeTileData(rcti *rect)
 
 		minmult->x = minv;
 		/* The rare case of flat buffer  would cause a divide by 0 */
-		minmult->y = ((maxv != minv) ? 1.0f / (maxv - minv) : 0.f);
+		minmult->y = ((maxv != minv) ? 1.0f / (maxv - minv) : 0.0f);
 
 		this->m_cachedInstance = minmult;
 	}

@@ -71,7 +71,7 @@ void DistanceRGBMatteOperation::executePixelSampled(float output[4], float x, fl
  
 	/*make 100% transparent */
 	if (distance < tolerance) {
-		output[0] = 0.f;
+		output[0] = 0.0f;
 	}
 	/*in the falloff region, make partially transparent */
 	else if (distance < falloff + tolerance) {

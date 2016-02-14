@@ -79,8 +79,8 @@ void ConvertDepthToRadiusOperation::executePixelSampled(float output[4], float x
 	float radius;
 	this->m_inputOperation->readSampled(inputValue, x, y, sampler);
 	z = inputValue[0];
-	if (z != 0.f) {
-		float iZ = (1.f / z);
+	if (z != 0.0f) {
+		float iZ = (1.0f / z);
 		
 		// bug #6656 part 2b, do not rescale
 #if 0
@@ -88,7 +88,7 @@ void ConvertDepthToRadiusOperation::executePixelSampled(float output[4], float x
 		// scale crad back to original maximum and blend
 		crad->rect[px] = bcrad + wts->rect[px] * (scf * crad->rect[px] - bcrad);
 #endif
-		radius = 0.5f * fabsf(this->m_aperture * (this->m_dof_sp * (this->m_inverseFocalDistance - iZ) - 1.f));
+		radius = 0.5f * fabsf(this->m_aperture * (this->m_dof_sp * (this->m_inverseFocalDistance - iZ) - 1.0f));
 		// 'bug' #6615, limit minimum radius to 1 pixel, not really a solution, but somewhat mitigates the problem
 		if (radius < 0.0f) radius = 0.0f;
 		if (radius > this->m_maxRadius) {

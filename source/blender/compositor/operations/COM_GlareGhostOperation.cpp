@@ -40,11 +40,11 @@ static float smoothMask(float x, float y)
 void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings)
 {
 	const int qt = 1 << settings->quality;
-	const float s1 = 4.f / (float)qt, s2 = 2.f * s1;
+	const float s1 = 4.0f / (float)qt, s2 = 2.0f * s1;
 	int x, y, n, p, np;
 	fRGB c, tc, cm[64];
 	float sc, isc, u, v, sm, s, t, ofs, scalef[64];
-	const float cmo = 1.f - settings->colmod;
+	const float cmo = 1.0f - settings->colmod;
 
 	MemoryBuffer *gbuf = inputTile->duplicate();
 	MemoryBuffer *tbuf1 = inputTile->duplicate();
@@ -69,10 +69,10 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 	for (x = 0; x < (settings->iter * 4); x++) {
 		y = x & 3;
 		cm[x][0] = cm[x][1] = cm[x][2] = 1;
-		if (y == 1) fRGB_rgbmult(cm[x], 1.f, cmo, cmo);
-		if (y == 2) fRGB_rgbmult(cm[x], cmo, cmo, 1.f);
-		if (y == 3) fRGB_rgbmult(cm[x], cmo, 1.f, cmo);
-		scalef[x] = 2.1f * (1.f - (x + ofs) / (float)(settings->iter * 4));
+		if (y == 1) fRGB_rgbmult(cm[x], 1.0f, cmo, cmo);
+		if (y == 2) fRGB_rgbmult(cm[x], cmo, cmo, 1.0f);
+		if (y == 3) fRGB_rgbmult(cm[x], cmo, 1.0f, cmo);
+		scalef[x] = 2.1f * (1.0f - (x + ofs) / (float)(settings->iter * 4));
 		if (x & 1) scalef[x] = -0.99f / scalef[x];
 	}
 
@@ -103,7 +103,7 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 			v = ((float)y + 0.5f) / (float)gbuf->getHeight();
 			for (x = 0; x < gbuf->getWidth(); x++) {
 				u = ((float)x + 0.5f) / (float)gbuf->getWidth();
-				tc[0] = tc[1] = tc[2] = 0.f;
+				tc[0] = tc[1] = tc[2] = 0.0f;
 				for (p = 0; p < 4; p++) {
 					np = (n << 2) + p;
 					s = (u - 0.5f) * scalef[np] + 0.5f;

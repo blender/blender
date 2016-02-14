@@ -79,8 +79,8 @@ void DisplaceSimpleOperation::executePixelSampled(float output[4], float x, floa
 	/* clamp nodes to avoid glitches */
 	u = x - p_dx + 0.5f;
 	v = y - p_dy + 0.5f;
-	CLAMP(u, 0.f, this->getWidth() - 1.f);
-	CLAMP(v, 0.f, this->getHeight() - 1.f);
+	CLAMP(u, 0.0f, this->getWidth() - 1.0f);
+	CLAMP(v, 0.0f, this->getHeight() - 1.0f);
 
 	this->m_inputColorProgram->readSampled(output, u, v, sampler);
 }
