@@ -647,6 +647,9 @@ static int bake(
 	Mesh *me_low = NULL;
 	Mesh *me_cage = NULL;
 
+	MultiresModifierData *mmd_low = NULL;
+	int mmd_flags_low = 0;
+
 	float *result = NULL;
 
 	BakePixel *pixel_array_low = NULL;
@@ -761,6 +764,17 @@ static int bake(
 	pixel_array_low = MEM_mallocN(sizeof(BakePixel) * num_pixels, "bake pixels low poly");
 	pixel_array_high = MEM_mallocN(sizeof(BakePixel) * num_pixels, "bake pixels high poly");
 	result = MEM_callocN(sizeof(float) * depth * num_pixels, "bake return pixels");
+
+	/* for multires bake, use linear UV subdivision to match low res UVs */
+	if (pass_type == SCE_PASS_NORMAL && normal_space == R_BAKE_SPACE_TANGENT && !is_selected_to_active)
+	{
+		mmd_low = (MultiresModifierData *) modifiers_findByType(ob_low, eModifierType_Multires);
+		if (mmd_low)
+		{
+			mmd_flags_low = mmd_low->flags;
+			mmd_low->flags |= eMultiresModifierFlag_PlainUv;
+		}
+	}
 
 	/* get the mesh as it arrives in the renderer */
 	me_low = bake_mesh_new_from_object(bmain, scene, ob_low);
@@ -1062,6 +1076,9 @@ cleanup:
 	}
 
 	ob_low->restrictflag = restrict_flag_low;
+
+	if (mmd_low)
+		mmd_low->flags = mmd_flags_low;
 
 	if (ob_cage)
 		ob_cage->restrictflag = restrict_flag_cage;

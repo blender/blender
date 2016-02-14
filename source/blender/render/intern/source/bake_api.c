@@ -792,7 +792,10 @@ void RE_bake_normal_world_to_tangent(
 		offset = i * depth;
 
 		if (primitive_id == -1) {
-			copy_v3_fl3(&result[offset], 0.5f, 0.5f, 1.0f);
+			if (depth == 4)
+				copy_v4_fl4(&result[offset], 0.5f, 0.5f, 1.0f, 1.0f);
+			else
+				copy_v3_fl3(&result[offset], 0.5f, 0.5f, 1.0f);
 			continue;
 		}
 
