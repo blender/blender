@@ -766,11 +766,9 @@ static int bake(
 	result = MEM_callocN(sizeof(float) * depth * num_pixels, "bake return pixels");
 
 	/* for multires bake, use linear UV subdivision to match low res UVs */
-	if (pass_type == SCE_PASS_NORMAL && normal_space == R_BAKE_SPACE_TANGENT && !is_selected_to_active)
-	{
+	if (pass_type == SCE_PASS_NORMAL && normal_space == R_BAKE_SPACE_TANGENT && !is_selected_to_active) {
 		mmd_low = (MultiresModifierData *) modifiers_findByType(ob_low, eModifierType_Multires);
-		if (mmd_low)
-		{
+		if (mmd_low) {
 			mmd_flags_low = mmd_low->flags;
 			mmd_low->flags |= eMultiresModifierFlag_PlainUv;
 		}
