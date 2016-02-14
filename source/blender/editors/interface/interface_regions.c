@@ -375,7 +375,7 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 	if (but_tip.strinfo) {
 		BLI_strncpy(data->header, but_tip.strinfo, sizeof(data->lines[0]));
 		if (enum_label.strinfo) {
-			BLI_snprintf(data->header, sizeof(data->header), "%s: ", but_tip.strinfo);
+			BLI_snprintf(data->header, sizeof(data->header), "%s:  ", but_tip.strinfo);
 			BLI_strncpy(data->active_info, enum_label.strinfo, sizeof(data->lines[0]));
 		}
 		data->format[data->totline].style = UI_TIP_STYLE_HEADER;
