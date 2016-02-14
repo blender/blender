@@ -171,7 +171,7 @@ wstring string_to_wstring(const string& str)
 	                                          str.length(),
 	                                          NULL,
 	                                          0);
-	wstring str_wc(length_wc + 1, 0);
+	wstring str_wc(length_wc, 0);
 	MultiByteToWideChar(CP_ACP,
 	                    0,
 	                    str.c_str(),
@@ -190,7 +190,7 @@ string string_from_wstring(const wstring& str)
 	                                    NULL,
 	                                    0,
 	                                    NULL, NULL);
-	string str_mb(length_mb + 1, 0);
+	string str_mb(length_mb, 0);
 	WideCharToMultiByte(CP_ACP,
 	                    0,
 	                    str.c_str(),
