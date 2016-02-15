@@ -213,12 +213,21 @@ this has the disadvantage that any extensions you have installed in your systems
 
 There are 2 ways around this:
 
-- remove Blender Python sub-directory, Blender will then fallback on the systems Python and use that instead
+- Remove Blender Python sub-directory, Blender will then fallback on the systems Python and use that instead.
+
+  Depending on your platform,
+  you may need to explicitly reference the location of your Python installation using the
+  ``PYTHONPATH`` environment variable, eg:
+
+  .. code-block:: sh
+
+     PYTHONPATH=/usr/lib/python3.5 ./blender
+
   .. warning::
 
      The Python version must match the one that Blender comes with.
 
-- copy the extensions into Blender's Python sub-directory so Blender can access them,
+- Copy or link the extensions into Blender's Python sub-directory so Blender can access them,
   you could also copy the entire Python installation into Blenders sub-directory,
   replacing the one Blender comes with.
   This works as long as the Python versions match and the paths are created in the same relative locations.
