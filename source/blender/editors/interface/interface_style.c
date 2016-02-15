@@ -501,9 +501,6 @@ void uiStyleInit(void)
 			monofont_ttf = (unsigned char *)datatoc_bmonofont_ttf;
 		}
 	}
-
-	/* reload */
-	blf_mono_font_render = -1;
 #endif
 
 	/* XXX, this should be moved into a style, but for now best only load the monospaced font once. */
