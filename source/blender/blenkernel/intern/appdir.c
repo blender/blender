@@ -597,10 +597,20 @@ bool BKE_appdir_program_python_search(
         char *fullpath, const size_t fullpath_len,
         const int version_major, const int version_minor)
 {
+#ifdef PYTHON_EXECUTABLE_NAME
+	/* passed in from the build-systems 'PYTHON_EXECUTABLE' */
+	const char *python_build_def = STRINGIFY(PYTHON_EXECUTABLE_NAME);
+#endif
 	const char *basename = "python";
 	char python_ver[16];
 	/* check both possible names */
-	const char *python_names[] = {python_ver, basename};
+	const char *python_names[] = {
+#ifdef PYTHON_EXECUTABLE_NAME
+		python_build_def,
+#endif
+		python_ver,
+		basename,
+	};
 	int i;
 
 	bool is_found = false;

@@ -412,6 +412,13 @@ if(WITH_PYTHON)
 	if(WITH_PYTHON_SECURITY)
 		add_definitions(-DWITH_PYTHON_SECURITY)
 	endif()
+
+
+	if (PYTHON_EXECUTABLE)
+		get_filename_component(_python_exe_name ${PYTHON_EXECUTABLE} NAME)
+		add_definitions(-DPYTHON_EXECUTABLE_NAME=${_python_exe_name})
+		unset(_python_exe_name)
+	endif()
 endif()
 
 if(WITH_MOD_FLUID)
