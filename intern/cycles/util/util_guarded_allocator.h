@@ -121,8 +121,8 @@ public:
 	template <class U>
 	GuardedAllocator& operator=(const GuardedAllocator<U>&) { return *this; }
 
-	inline bool operator==(GuardedAllocator const& /*other*/) { return true; }
-	inline bool operator!=(GuardedAllocator const& other) { return !operator==(other); }
+	inline bool operator==(GuardedAllocator const& /*other*/) const { return true; }
+	inline bool operator!=(GuardedAllocator const& other) const { return !operator==(other); }
 
 #ifdef _MSC_VER
 	/* Welcome to the black magic here.
