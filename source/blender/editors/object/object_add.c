@@ -1159,7 +1159,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* delete has to handle all open scenes */
-	BKE_main_id_flag_listbase(&bmain->scene, LIB_TAG_DOIT, 1);
+	BKE_main_id_tag_listbase(&bmain->scene, LIB_TAG_DOIT, 1);
 	for (win = wm->windows.first; win; win = win->next) {
 		scene = win->screen->scene;
 		

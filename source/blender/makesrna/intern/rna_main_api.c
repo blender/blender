@@ -775,7 +775,7 @@ static void rna_Main_linestyles_remove(Main *bmain, ReportList *reports, Freesty
 /* tag and is_updated functions, all the same */
 #define RNA_MAIN_ID_TAG_FUNCS_DEF(_func_name, _listbase_name, _id_type)            \
 	static void rna_Main_##_func_name##_tag(Main *bmain, int value) {              \
-		BKE_main_id_tag_listbase(&bmain->_listbase_name, value);                   \
+		BKE_main_id_tag_listbase(&bmain->_listbase_name, LIB_TAG_DOIT, value);     \
 	}                                                                              \
 	static int rna_Main_##_func_name##_is_updated_get(PointerRNA *ptr) {           \
 		return DAG_id_type_tagged(ptr->data, _id_type) != 0;                       \

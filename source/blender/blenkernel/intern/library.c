@@ -575,7 +575,51 @@ ListBase *which_libbase(Main *mainlib, short type)
 }
 
 /**
- * Clear or set given flags for all ids in listbase (runtime flags only).
+ * Clear or set given tags for all ids in listbase (runtime tags).
+ */
+void BKE_main_id_tag_listbase(ListBase *lb, const int tag, const bool value)
+{
+	ID *id;
+	if (value) {
+		for (id = lb->first; id; id = id->next) {
+			id->tag |= tag;
+		}
+	}
+	else {
+		const int ntag = ~tag;
+		for (id = lb->first; id; id = id->next) {
+			id->tag &= ntag;
+		}
+	}
+}
+
+/**
+ * Clear or set given tags for all ids of given type in bmain (runtime tags).
+ */
+void BKE_main_id_tag_idcode(struct Main *mainvar, const short type, const int tag, const bool value)
+{
+	ListBase *lb = which_libbase(mainvar, type);
+
+	BKE_main_id_tag_listbase(lb, tag, value);
+}
+
+/**
+ * Clear or set given tags for all ids in bmain (runtime tags).
+ */
+void BKE_main_id_tag_all(struct Main *mainvar, const int tag, const bool value)
+{
+	ListBase *lbarray[MAX_LIBARRAY];
+	int a;
+
+	a = set_listbasepointers(mainvar, lbarray);
+	while (a--) {
+		BKE_main_id_tag_listbase(lbarray[a], tag, value);
+	}
+}
+
+
+/**
+ * Clear or set given flags for all ids in listbase (persistent flags).
  */
 void BKE_main_id_flag_listbase(ListBase *lb, const int flag, const bool value)
 {
@@ -592,7 +636,7 @@ void BKE_main_id_flag_listbase(ListBase *lb, const int flag, const bool value)
 }
 
 /**
- * Clear or set given flags for all ids in bmain (runtime flags only).
+ * Clear or set given flags for all ids in bmain (persistent flags).
  */
 void BKE_main_id_flag_all(Main *bmain, const int flag, const bool value)
 {
@@ -1754,39 +1798,6 @@ static void lib_indirect_test_id(ID *id, Library *lib)
 	}
 
 #undef LIBTAG
-}
-
-void BKE_main_id_tag_listbase(ListBase *lb, const bool tag)
-{
-	ID *id;
-	if (tag) {
-		for (id = lb->first; id; id = id->next) {
-			id->tag |= LIB_TAG_DOIT;
-		}
-	}
-	else {
-		for (id = lb->first; id; id = id->next) {
-			id->tag &= ~LIB_TAG_DOIT;
-		}
-	}
-}
-
-void BKE_main_id_tag_idcode(struct Main *mainvar, const short type, const bool tag)
-{
-	ListBase *lb = which_libbase(mainvar, type);
-
-	BKE_main_id_tag_listbase(lb, tag);
-}
-
-void BKE_main_id_tag_all(struct Main *mainvar, const bool tag)
-{
-	ListBase *lbarray[MAX_LIBARRAY];
-	int a;
-
-	a = set_listbasepointers(mainvar, lbarray);
-	while (a--) {
-		BKE_main_id_tag_listbase(lbarray[a], tag);
-	}
 }
 
 /* if lib!=NULL, only all from lib local

@@ -247,7 +247,7 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
 	 * shouldn't bother with setting it, they only might query this flag when
 	 * needed.
 	 */
-	BKE_main_id_tag_all(bmain, false);
+	BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
 	/* scene ID block */
 	add_id_node(&scene->id);

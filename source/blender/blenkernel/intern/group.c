@@ -260,7 +260,7 @@ static bool group_object_cyclic_check_internal(Object *object, Group *group)
 bool BKE_group_object_cyclic_check(Main *bmain, Object *object, Group *group)
 {
 	/* first flag all groups */
-	BKE_main_id_tag_listbase(&bmain->group, true);
+	BKE_main_id_tag_listbase(&bmain->group, LIB_TAG_DOIT, true);
 
 	return group_object_cyclic_check_internal(object, group);
 }

@@ -2135,7 +2135,7 @@ static void tag_localizable_objects(bContext *C, const int mode)
 {
 	Main *bmain = CTX_data_main(C);
 
-	BKE_main_id_tag_all(bmain, false);
+	BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
 	/* Set LIB_TAG_DOIT flag for all selected objects, so next we can check whether
 	 * object is gonna to become local or not.

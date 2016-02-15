@@ -412,7 +412,7 @@ void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 	wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
 	int old_layers = graph->layers;
 	if (wm != NULL) {
-		BKE_main_id_flag_listbase(&bmain->scene, LIB_TAG_DOIT, true);
+		BKE_main_id_tag_listbase(&bmain->scene, LIB_TAG_DOIT, true);
 		graph->layers = 0;
 		for (wmWindow *win = (wmWindow *)wm->windows.first;
 		     win != NULL;

@@ -497,7 +497,7 @@ static bool bake_objects_check(Main *bmain, Object *ob, ListBase *selected_objec
 	CollectionPointerLink *link;
 
 	/* error handling and tag (in case multiple materials share the same image) */
-	BKE_main_id_tag_idcode(bmain, ID_IM, false);
+	BKE_main_id_tag_idcode(bmain, ID_IM, LIB_TAG_DOIT, false);
 
 	if (is_selected_to_active) {
 		int tot_objects = 0;
@@ -555,7 +555,7 @@ static void build_image_lookup(Main *bmain, Object *ob, BakeImages *bake_images)
 	int tot_images = 0;
 
 	/* error handling and tag (in case multiple materials share the same image) */
-	BKE_main_id_tag_idcode(bmain, ID_IM, false);
+	BKE_main_id_tag_idcode(bmain, ID_IM, LIB_TAG_DOIT, false);
 
 	for (i = 0; i < tot_mat; i++) {
 		Image *image;

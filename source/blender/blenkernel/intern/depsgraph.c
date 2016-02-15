@@ -938,9 +938,9 @@ DagForest *build_dag(Main *bmain, Scene *sce, short mask)
 	dag->need_update = false;
 
 	/* clear "LIB_TAG_DOIT" flag from all materials, to prevent infinite recursion problems later [#32017] */
-	BKE_main_id_tag_idcode(bmain, ID_MA, false);
-	BKE_main_id_tag_idcode(bmain, ID_LA, false);
-	BKE_main_id_tag_idcode(bmain, ID_GR, false);
+	BKE_main_id_tag_idcode(bmain, ID_MA, LIB_TAG_DOIT, false);
+	BKE_main_id_tag_idcode(bmain, ID_LA, LIB_TAG_DOIT, false);
+	BKE_main_id_tag_idcode(bmain, ID_GR, LIB_TAG_DOIT, false);
 	
 	/* add base node for scene. scene is always the first node in DAG */
 	scenenode = dag_add_node(dag, sce);
@@ -956,7 +956,7 @@ DagForest *build_dag(Main *bmain, Scene *sce, short mask)
 			build_dag_group(dag, scenenode, bmain, sce, ob->dup_group, mask);
 	}
 	
-	BKE_main_id_tag_idcode(bmain, ID_GR, false);
+	BKE_main_id_tag_idcode(bmain, ID_GR, LIB_TAG_DOIT, false);
 	
 	/* Now all relations were built, but we need to solve 1 exceptional case;
 	 * When objects have multiple "parents" (for example parent + constraint working on same object)
@@ -2297,7 +2297,7 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const b
 	GroupObject *go;
 	Scene *sce_iter;
 
-	BKE_main_id_tag_idcode(bmain, ID_GR, false);
+	BKE_main_id_tag_idcode(bmain, ID_GR, LIB_TAG_DOIT, false);
 
 	/* set ob flags where animated systems are */
 	for (SETLOOPER(scene, sce_iter, base)) {
@@ -2476,7 +2476,7 @@ void DAG_on_visible_update(Main *bmain, const bool do_time)
 		for (sce_iter = scene; sce_iter; sce_iter = sce_iter->set)
 			dag_scene_flush_layers(sce_iter, lay);
 
-		BKE_main_id_tag_idcode(bmain, ID_GR, false);
+		BKE_main_id_tag_idcode(bmain, ID_GR, LIB_TAG_DOIT, false);
 
 		for (SETLOOPER(scene, sce_iter, base)) {
 			ob = base->object;
@@ -2507,7 +2507,7 @@ void DAG_on_visible_update(Main *bmain, const bool do_time)
 			}
 		}
 
-		BKE_main_id_tag_idcode(bmain, ID_GR, false);
+		BKE_main_id_tag_idcode(bmain, ID_GR, LIB_TAG_DOIT, false);
 
 		/* now tag update flags, to ensure deformers get calculated on redraw */
 		DAG_scene_update_flags(bmain, scene, lay, do_time, true);

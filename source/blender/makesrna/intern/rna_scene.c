@@ -1582,7 +1582,7 @@ static void rna_Scene_use_simplify_update(Main *bmain, Scene *UNUSED(scene), Poi
 	Scene *sce_iter;
 	Base *base;
 
-	BKE_main_id_tag_listbase(&bmain->object, true);
+	BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, true);
 	for (SETLOOPER(sce, sce_iter, base))
 		object_simplify_update(base->object);
 	

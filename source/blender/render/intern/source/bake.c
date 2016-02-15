@@ -1037,7 +1037,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 
 	if (R.r.bake_flag & R_BAKE_VCOL) {
 		/* untag all meshes */
-		BKE_main_id_tag_listbase(&G.main->mesh, false);
+		BKE_main_id_tag_listbase(&G.main->mesh, LIB_TAG_DOIT, false);
 	}
 
 	BLI_init_threads(&threads, do_bake_thread, re->r.threads);

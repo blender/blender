@@ -1810,8 +1810,8 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	/* clear "LIB_TAG_DOIT" flag from all materials, to prevent infinite recursion problems later
 	 * when trying to find materials with drivers that need evaluating [#32017] 
 	 */
-	BKE_main_id_tag_idcode(bmain, ID_MA, false);
-	BKE_main_id_tag_idcode(bmain, ID_LA, false);
+	BKE_main_id_tag_idcode(bmain, ID_MA, LIB_TAG_DOIT, false);
+	BKE_main_id_tag_idcode(bmain, ID_LA, LIB_TAG_DOIT, false);
 
 	/* update all objects: drivers, matrices, displists, etc. flags set
 	 * by depgraph or manual, no layer check here, gets correct flushed
@@ -1969,8 +1969,8 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 	/* clear "LIB_TAG_DOIT" flag from all materials, to prevent infinite recursion problems later
 	 * when trying to find materials with drivers that need evaluating [#32017] 
 	 */
-	BKE_main_id_tag_idcode(bmain, ID_MA, false);
-	BKE_main_id_tag_idcode(bmain, ID_LA, false);
+	BKE_main_id_tag_idcode(bmain, ID_MA, LIB_TAG_DOIT, false);
+	BKE_main_id_tag_idcode(bmain, ID_LA, LIB_TAG_DOIT, false);
 
 	/* run rigidbody sim */
 	/* NOTE: current position is so that rigidbody sim affects other objects, might change in the future */

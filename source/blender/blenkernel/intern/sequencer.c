@@ -3799,7 +3799,7 @@ ImBuf *BKE_sequencer_give_ibuf(const SeqRenderData *context, float cfra, int cha
 	}
 
 #ifdef USE_SCENE_RECURSIVE_HACK
-	BKE_main_id_tag_idcode(context->bmain, ID_SCE, false);
+	BKE_main_id_tag_idcode(context->bmain, ID_SCE, LIB_TAG_DOIT, false);
 #endif
 
 	return seq_render_strip_stack(context, seqbasep, cfra, chanshown);
