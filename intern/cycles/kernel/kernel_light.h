@@ -620,12 +620,7 @@ ccl_device void lamp_light_sample(KernelGlobals *kg, int lamp,
 	}
 }
 
-#if defined(__KERNEL_CUDA__) && (__CUDA_ARCH__ >= 500) && (defined(i386) || defined(_M_IX86))
-ccl_device_noinline
-#else
-ccl_device
-#endif
-bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D, float t, LightSample *ls)
+ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D, float t, LightSample *ls)
 {
 	float4 data0 = kernel_tex_fetch(__light_data, lamp*LIGHT_SIZE + 0);
 	float4 data1 = kernel_tex_fetch(__light_data, lamp*LIGHT_SIZE + 1);

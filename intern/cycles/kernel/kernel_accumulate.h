@@ -55,7 +55,7 @@ ccl_device_inline void bsdf_eval_init(BsdfEval *eval, ClosureType type, float3 v
 }
 
 /* TODO(sergey): This is just a workaround for annoying 6.5 compiler bug. */
-#if !defined(__KERNEL_CUDA__) || __CUDA_ARCH__ < 500
+#if !defined(__KERNEL_CUDA__) || __CUDA_ARCH__ < 520
 ccl_device_inline
 #else
 ccl_device_noinline

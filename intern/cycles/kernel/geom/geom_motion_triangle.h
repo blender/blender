@@ -178,7 +178,12 @@ ccl_device_inline float3 motion_triangle_refine(KernelGlobals *kg, ShaderData *s
 /* Same as above, except that isect->t is assumed to be in object space for instancing */
 
 #ifdef __SUBSURFACE__
-ccl_device_inline float3 motion_triangle_refine_subsurface(KernelGlobals *kg, ShaderData *sd, const Intersection *isect, const Ray *ray, float3 verts[3])
+#  if defined(__KERNEL_CUDA__) && (defined(i386) || defined(_M_IX86))
+ccl_device_noinline
+#  else
+ccl_device_inline
+#  endif
+float3 motion_triangle_refine_subsurface(KernelGlobals *kg, ShaderData *sd, const Intersection *isect, const Ray *ray, float3 verts[3])
 {
 	float3 P = ray->P;
 	float3 D = ray->D;
