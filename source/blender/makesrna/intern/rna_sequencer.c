@@ -1044,7 +1044,7 @@ static SequenceModifierData *rna_Sequence_modifier_new(Sequence *seq, bContext *
 		Scene *scene = CTX_data_scene(C);
 		SequenceModifierData *smd;
 
-		smd = BKE_sequence_modifier_new(seq, name, type, scene);
+		smd = BKE_sequence_modifier_new(seq, name, type);
 
 		BKE_sequence_invalidate_cache_for_modifier(scene, seq);
 

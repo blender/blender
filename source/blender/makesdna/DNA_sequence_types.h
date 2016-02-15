@@ -313,7 +313,6 @@ typedef struct SequenceModifierData {
 
 	struct Sequence *mask_sequence;
 	struct Mask     *mask_id;
-	struct Scene    *scene;
 } SequenceModifierData;
 
 typedef struct ColorBalanceModifierData {

@@ -184,7 +184,6 @@ static void whiteBalance_init_data(SequenceModifierData *smd)
 }
 
 typedef struct WhiteBalanceThreadData {
-	struct ColorSpace *colorspace;
 	float white[3];
 } WhiteBalanceThreadData;
 
@@ -210,7 +209,6 @@ static void whiteBalance_apply_threaded(int width, int height, unsigned char *re
 			}
 			else {
 				straight_uchar_to_premul_float(result, rect + pixel_index);
-				IMB_colormanagement_colorspace_to_scene_linear_v3(result, data->colorspace);
 			}
 
 			mul_v3_v3(result, multiplier);
@@ -230,7 +228,6 @@ static void whiteBalance_apply_threaded(int width, int height, unsigned char *re
 				copy_v3_v3(rect_float + pixel_index, result);
 			}
 			else {
-				IMB_colormanagement_scene_linear_to_colorspace_v3(result, data->colorspace);
 				premul_float_to_straight_uchar(rect + pixel_index, result);
 			}
 		}
@@ -243,9 +240,6 @@ static void whiteBalance_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *ma
 	WhiteBalanceModifierData *wbmd = (WhiteBalanceModifierData *) smd;
 
 	copy_v3_v3(data.white, wbmd->white_value);
-	IMB_colormanagement_display_to_scene_linear_v3(data.white,
-	                                               IMB_colormanagement_display_get_named(wbmd->modifier.scene->display_settings.display_device));
-	data.colorspace = ibuf->rect_colorspace;
 
 	modifier_apply_threaded(ibuf, mask, whiteBalance_apply_threaded, &data);
 }
@@ -883,7 +877,7 @@ const SequenceModifierTypeInfo *BKE_sequence_modifier_type_info_get(int type)
 	return modifiersTypes[type];
 }
 
-SequenceModifierData *BKE_sequence_modifier_new(Sequence *seq, const char *name, int type, struct Scene *scene)
+SequenceModifierData *BKE_sequence_modifier_new(Sequence *seq, const char *name, int type)
 {
 	SequenceModifierData *smd;
 	const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(type);
@@ -892,7 +886,6 @@ SequenceModifierData *BKE_sequence_modifier_new(Sequence *seq, const char *name,
 
 	smd->type = type;
 	smd->flag |= SEQUENCE_MODIFIER_EXPANDED;
-	smd->scene = scene;
 
 	if (!name || !name[0])
 		BLI_strncpy(smd->name, smti->name, sizeof(smd->name));
