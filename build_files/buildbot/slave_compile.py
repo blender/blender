@@ -33,6 +33,17 @@ builder = sys.argv[1]
 # we run from build/ directory
 blender_dir = os.path.join('..', 'blender.git')
 
+
+def parse_header_file(filename, define):
+    import re
+    regex = re.compile("^#\s*define\s+%s\s+(.*)" % define)
+    with open(filename, "r") as file:
+        for l in file:
+            match = regex.match(l)
+            if match:
+                return match.group(1)
+    return None
+
 if 'cmake' in builder:
     # cmake
 
@@ -43,9 +54,11 @@ if 'cmake' in builder:
     targets = ['blender']
 
     chroot_name = None  # If not None command will be delegated to that chroot
+    cuda_chroot_name = None  # If not None cuda compilationcommand will be delegated to that chroot
     build_cubins = True  # Whether to build Cycles CUDA kernels
     remove_cache = False  # Remove CMake cache to be sure config is totally up-to-date
     remove_install_dir = False  # Remove installation folder before building
+    bits = 64
 
     # Config file to be used (relative to blender's sources root)
     cmake_config_file = "build_files/cmake/config/blender_full.cmake"
@@ -55,6 +68,7 @@ if 'cmake' in builder:
     # Set build options.
     cmake_options = []
     cmake_extra_options = ['-DCMAKE_BUILD_TYPE:STRING=Release']
+    cuda_cmake_options = []
 
     if builder.startswith('mac'):
         remove_cache = True
@@ -62,41 +76,42 @@ if 'cmake' in builder:
         # Set up OSX architecture
         if builder.endswith('x86_64_10_6_cmake'):
             cmake_extra_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64')
-        elif builder.endswith('i386_10_6_cmake'):
-            build_cubins = False
-            cmake_extra_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=i386')
-            # Some special options to disable usupported features
-            cmake_extra_options.append("-DWITH_CYCLES_OSL=OFF")
-            cmake_extra_options.append("-DWITH_OPENCOLLADA=OFF")
-        elif builder.endswith('ppc_10_6_cmake'):
-            cmake_extra_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=ppc')
 
     elif builder.startswith('win'):
         install_dir = None
         if builder.startswith('win64'):
             cmake_options.append(['-G', '"Visual Studio 12 2013 Win64"'])
         elif builder.startswith('win32'):
+            bits = 32
             cmake_options.append(['-G', '"Visual Studio 12 2013"'])
-            build_cubins = False
 
     elif builder.startswith('linux'):
         remove_cache = True
         remove_install_dir = True
         cmake_config_file = "build_files/buildbot/config/blender_linux.cmake"
         cmake_player_config_file = "build_files/buildbot/config/blender_linux_player.cmake"
-        # Currently unused
-        # cmake_cuda_config_file = "build_files/buildbot/config/blender_linux_cuda.cmake"
         if builder.endswith('x86_64_cmake'):
             chroot_name = 'buildbot_squeeze_x86_64'
-            build_cubins = True
             targets = ['player', 'blender']
         elif builder.endswith('i386_cmake'):
+            bits = 32
             chroot_name = 'buildbot_squeeze_i686'
-            build_cubins = False
-            targets = ['player', 'blender']
+            cuda_chroot_name = 'buildbot_squeeze_x86_64'
+            targets = ['player', 'blender', 'cuda']
 
     cmake_options.append("-C" + os.path.join(blender_dir, cmake_config_file))
-    cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=%d" % (build_cubins))
+
+    # Prepare CMake options needed to configure cuda binaries compilation.
+    cuda_cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=%s" % ('ON' if build_cubins else 'OFF'))
+    if build_cubins or 'cuda' in targets:
+        if bits == 32:
+            cuda_cmake_options.append("-DCUDA_64_BIT_DEVICE_CODE=OFF")
+        else:
+            cuda_cmake_options.append("-DCUDA_64_BIT_DEVICE_CODE=ON")
+
+    # Only modify common cmake options if cuda doesn't require separate target.
+    if 'cuda' not in targets:
+        cmake_options += cuda_cmake_options
 
     if install_dir:
         cmake_options.append("-DCMAKE_INSTALL_PREFIX=%s" % (install_dir))
@@ -104,11 +119,14 @@ if 'cmake' in builder:
     cmake_options += cmake_extra_options
 
     # Prepare chroot command prefix if needed
-
     if chroot_name:
         chroot_prefix = ['schroot', '-c', chroot_name, '--']
     else:
         chroot_prefix = []
+    if cuda_chroot_name:
+        cuda_chroot_prefix = ['schroot', '-c', cuda_chroot_name, '--']
+    else:
+        cuda_chroot_prefix = chroot_prefix[:]
 
     # Make sure no garbage remained from the previous run
     # (only do it if builder requested this)
@@ -120,8 +138,10 @@ if 'cmake' in builder:
         print("Building target %s" % (target))
         # Construct build directory name based on the target
         target_build_dir = build_dir
+        target_chroot_prefix = chroot_prefix[:]
         if target != 'blender':
             target_build_dir += '_' + target
+        target_name = 'install'
         # Make sure build directory exists and enter it
         if not os.path.isdir(target_build_dir):
             os.mkdir(target_build_dir)
@@ -131,14 +151,20 @@ if 'cmake' in builder:
         if target == 'player':
             target_cmake_options.append("-C" + os.path.join(blender_dir, cmake_player_config_file))
         elif target == 'cuda':
-            target_cmake_options.append("-C" + os.path.join(blender_dir, cmake_cuda_config_file))
+            target_cmake_options += cuda_cmake_options
+            target_chroot_prefix = cuda_chroot_prefix[:]
+            target_name = 'cycles_kernel_cuda'
+        # If cuda binaries are compiled as a separate target, make sure
+        # other targets don't compile cuda binaries.
+        if 'cuda' in targets and target != 'cuda':
+            target_cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=OFF")
         # Configure the build
         print("CMake options:")
         print(target_cmake_options)
-        if remove_cache and os.path.exists('CMakeCache.txt'):
-            print("Removing CMake cache")
-            os.remove('CMakeCache.txt')
-        retcode = subprocess.call(chroot_prefix + ['cmake', blender_dir] + target_cmake_options)
+#        if remove_cache and os.path.exists('CMakeCache.txt'):
+#            print("Removing CMake cache")
+#            os.remove('CMakeCache.txt')
+        retcode = subprocess.call(target_chroot_prefix + ['cmake', blender_dir] + target_cmake_options)
         if retcode != 0:
             print('Condifuration FAILED!')
             sys.exit(retcode)
@@ -148,7 +174,7 @@ if 'cmake' in builder:
         elif 'win64' in builder:
             command = ['msbuild', 'INSTALL.vcxproj', '/p:Configuration=Release']
         else:
-            command = chroot_prefix + ['make', '-s', '-j2', 'install']
+            command = target_chroot_prefix + ['make', '-s', '-j2', target_name]
 
         print("Executing command:")
         print(command)
@@ -156,6 +182,17 @@ if 'cmake' in builder:
 
         if retcode != 0:
             sys.exit(retcode)
+
+        if builder.startswith('linux') and target == 'cuda':
+            blender_h = os.path.join(blender_dir, "source", "blender", "blenkernel", "BKE_blender.h")
+            blender_version = int(parse_header_file(blender_h, 'BLENDER_VERSION'))
+            blender_version = "%d.%d" % (blender_version // 100, blender_version % 100)
+            kernels = os.path.join(target_build_dir, 'intern', 'cycles', 'kernel')
+            install_kernels = os.path.join(install_dir, blender_version, 'scripts', 'addons', 'cycles', 'lib')
+            os.mkdir(install_kernels)
+            print("Copying cuda binaries from %s to %s" % (kernels, install_kernels))
+            os.system('cp %s/*.cubin %s' % (kernels, install_kernels))
+
 else:
     print("Unknown building system")
     sys.exit(1)
