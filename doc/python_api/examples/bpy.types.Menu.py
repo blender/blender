@@ -9,9 +9,11 @@ Notice the 'CATEGORY_MT_name' in  :class:`Menu.bl_idname`, this is a naming
 convention for menus.
 
 .. note::
+
    Menu subclasses must be registered before referencing them from blender.
 
 .. note::
+
    Menus have their :class:`Layout.operator_context` initialized as
    'EXEC_REGION_WIN' rather than 'INVOKE_DEFAULT' (see :ref:`Execution Context <operator-execution_context>`).
    If the operator context needs to initialize inputs from the

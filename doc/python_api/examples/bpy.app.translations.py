@@ -3,6 +3,7 @@ Intro
 -----
 
 .. warning::
+
    Most of this object should only be useful if you actually manipulate i18n stuff from Python.
    If you are a regular addon, you should only bother about :const:`contexts` member,
    and the :func:`register`/:func:`unregister` functions! The :func:`pgettext` family of functions
@@ -12,12 +13,12 @@ Intro
 |    ``{locale: {msg_key: msg_translation, ...}, ...}``
 | where:
 
-* locale is either a lang iso code (e.g. ``fr``), a lang+country code (e.g. ``pt_BR``),
+- locale is either a lang iso code (e.g. ``fr``), a lang+country code (e.g. ``pt_BR``),
   a lang+variant code (e.g. ``sr@latin``), or a full code (e.g. ``uz_UZ@cyrilic``).
-* msg_key is a tuple (context, org message) - use, as much as possible, the predefined :const:`contexts`.
-* msg_translation is the translated message in given language!
+- msg_key is a tuple (context, org message) - use, as much as possible, the predefined :const:`contexts`.
+- msg_translation is the translated message in given language!
 
-Then, call ``bpy.app.translations.register(__name__, your_dict)`` in your ``register()`` function, and \n"
+Then, call ``bpy.app.translations.register(__name__, your_dict)`` in your ``register()`` function, and
 ``bpy.app.translations.unregister(__name__)`` in your ``unregister()`` one.
 
 The ``Manage UI translations`` addon has several functions to help you collect strings to translate, and

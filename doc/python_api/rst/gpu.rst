@@ -186,6 +186,7 @@ GLSL Lamp Uniforms
       mat4_world_to_cam_ * (-vec3_lamp_Z_axis)
 
    .. note::
+
       - The lamp Z axis points to the opposite direction of light.
       - The norm of the vector should be unit length.
 

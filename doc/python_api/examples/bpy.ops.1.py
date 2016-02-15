@@ -12,6 +12,7 @@ For example to override ``bpy.context.active_object``,
 you would pass ``{'active_object': object}``.
 
 .. note::
+
    You will nearly always want to use a copy of the actual current context as basis
    (otherwise, you'll have to find and gather all needed data yourself).
 """

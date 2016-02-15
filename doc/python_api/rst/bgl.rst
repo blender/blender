@@ -20,6 +20,7 @@ offers a set of extensive examples, including advanced features.
 
 
 .. note::
+
    You can use the :class:`Image` type to load and set textures.
    See :class:`Image.gl_load` and :class:`Image.gl_load`,
    for example.
