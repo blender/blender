@@ -16,8 +16,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-#if !defined(__KERNEL_GPU__)
-
 /* TODO(sergey): Think of making it more generic volume-type attribute
  * sampler.
  */
@@ -43,13 +41,15 @@ ccl_device void svm_node_tex_voxel(KernelGlobals *kg,
 		tfm.w = read_node_float(kg, offset);
 		co = transform_point(&tfm, co);
 	}
+#if defined(__KERNEL_GPU__)
+	float4 r = volume_image_texture_3d(id, co.x, co.y, co.z);
+#else
 	float4 r = kernel_tex_image_interp_3d(id, co.x, co.y, co.z);
+#endif
 	if (stack_valid(density_out_offset))
 		stack_store_float(stack, density_out_offset, r.w);
 	if (stack_valid(color_out_offset))
 		stack_store_float3(stack, color_out_offset, make_float3(r.x, r.y, r.z));
 }
-
-#endif  /* !defined(__KERNEL_GPU__) */
 
 CCL_NAMESPACE_END

@@ -474,8 +474,19 @@ public:
 	               InterpolationType interpolation,
 	               ExtensionType extension)
 	{
-		/* todo: support 3D textures, only CPU for now */
 		VLOG(1) << "Texture allocate: " << name << ", " << mem.memory_size() << " bytes.";
+
+		string bind_name = name;
+		if(mem.data_depth > 1) {
+			/* Kernel uses different bind names for 2d and 3d float textures,
+			 * so we have to adjust couple of things here.
+			 */
+			vector<string> tokens;
+			string_split(tokens, name, "_");
+			bind_name = string_printf("__tex_image_%s3d_%s",
+			                          tokens[2].c_str(),
+			                          tokens[3].c_str());
+		}
 
 		/* determine format */
 		CUarray_format_enum format;
@@ -496,7 +507,7 @@ public:
 			CUtexref texref = NULL;
 
 			cuda_push_context();
-			cuda_assert(cuModuleGetTexRef(&texref, cuModule, name));
+			cuda_assert(cuModuleGetTexRef(&texref, cuModule, bind_name.c_str()));
 
 			if(!texref) {
 				cuda_pop_context();
@@ -505,20 +516,49 @@ public:
 
 			if(interpolation != INTERPOLATION_NONE) {
 				CUarray handle = NULL;
-				CUDA_ARRAY_DESCRIPTOR desc;
 
-				desc.Width = mem.data_width;
-				desc.Height = mem.data_height;
-				desc.Format = format;
-				desc.NumChannels = mem.data_elements;
+				if(mem.data_depth > 1) {
+					CUDA_ARRAY3D_DESCRIPTOR desc;
 
-				cuda_assert(cuArrayCreate(&handle, &desc));
+					desc.Width = mem.data_width;
+					desc.Height = mem.data_height;
+					desc.Depth = mem.data_depth;
+					desc.Format = format;
+					desc.NumChannels = mem.data_elements;
+					desc.Flags = 0;
+
+					cuda_assert(cuArray3DCreate(&handle, &desc));
+				}
+				else {
+					CUDA_ARRAY_DESCRIPTOR desc;
+
+					desc.Width = mem.data_width;
+					desc.Height = mem.data_height;
+					desc.Format = format;
+					desc.NumChannels = mem.data_elements;
+
+					cuda_assert(cuArrayCreate(&handle, &desc));
+				}
 
 				if(!handle) {
 					cuda_pop_context();
 					return;
 				}
 
+				if(mem.data_depth > 1) {
+					CUDA_MEMCPY3D param;
+					memset(&param, 0, sizeof(param));
+					param.dstMemoryType = CU_MEMORYTYPE_ARRAY;
+					param.dstArray = handle;
+					param.srcMemoryType = CU_MEMORYTYPE_HOST;
+					param.srcHost = (void*)mem.data_pointer;
+					param.srcPitch = mem.data_width*dsize*mem.data_elements;
+					param.WidthInBytes = param.srcPitch;
+					param.Height = mem.data_height;
+					param.Depth = mem.data_depth;
+
+					cuda_assert(cuMemcpy3D(&param));
+				}
 				if(mem.data_height > 1) {
 					CUDA_MEMCPY2D param;
 					memset(&param, 0, sizeof(param));
@@ -595,7 +635,7 @@ public:
 			CUdeviceptr cumem;
 			size_t cubytes;
 
-			cuda_assert(cuModuleGetGlobal(&cumem, &cubytes, cuModule, name));
+			cuda_assert(cuModuleGetGlobal(&cumem, &cubytes, cuModule, bind_name.c_str()));
 
 			if(cubytes == 8) {
 				/* 64 bit device pointer */

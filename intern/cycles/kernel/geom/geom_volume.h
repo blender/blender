@@ -29,6 +29,21 @@ CCL_NAMESPACE_BEGIN
 
 /* Return position normalized to 0..1 in mesh bounds */
 
+#ifdef __KERNEL_GPU__
+ccl_device float4 volume_image_texture_3d(int id, float x, float y, float z)
+{
+	float4 r;
+	switch(id) {
+		case 0: r = kernel_tex_image_interp_3d(__tex_image_float3d_000, x, y, z); break;
+		case 1: r = kernel_tex_image_interp_3d(__tex_image_float3d_001, x, y, z); break;
+		case 2: r = kernel_tex_image_interp_3d(__tex_image_float3d_002, x, y, z); break;
+		case 3: r = kernel_tex_image_interp_3d(__tex_image_float3d_003, x, y, z); break;
+		case 4: r = kernel_tex_image_interp_3d(__tex_image_float3d_004, x, y, z); break;
+	}
+	return r;
+}
+#endif  /* __KERNEL_GPU__ */
+
 ccl_device float3 volume_normalized_position(KernelGlobals *kg, const ShaderData *sd, float3 P)
 {
 	/* todo: optimize this so it's just a single matrix multiplication when
@@ -50,7 +65,7 @@ ccl_device float volume_attribute_float(KernelGlobals *kg, const ShaderData *sd,
 {
 	float3 P = volume_normalized_position(kg, sd, sd->P);
 #ifdef __KERNEL_GPU__
-	float4 r = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+	float4 r = volume_image_texture_3d(id, P.x, P.y, P.z);
 #else
 	float4 r;
 	if(sd->flag & SD_VOLUME_CUBIC)
@@ -70,7 +85,7 @@ ccl_device float3 volume_attribute_float3(KernelGlobals *kg, const ShaderData *s
 {
 	float3 P = volume_normalized_position(kg, sd, sd->P);
 #ifdef __KERNEL_GPU__
-	float4 r = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+	float4 r = volume_image_texture_3d(id, P.x, P.y, P.z);
 #else
 	float4 r;
 	if(sd->flag & SD_VOLUME_CUBIC)

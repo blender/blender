@@ -79,6 +79,12 @@ KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float_002)
 KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float_003)
 KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float_004)
 
+KERNEL_IMAGE_TEX(float4, texture_image3d_float4, __tex_image_float3d_000)
+KERNEL_IMAGE_TEX(float4, texture_image3d_float4, __tex_image_float3d_001)
+KERNEL_IMAGE_TEX(float4, texture_image3d_float4, __tex_image_float3d_002)
+KERNEL_IMAGE_TEX(float4, texture_image3d_float4, __tex_image_float3d_003)
+KERNEL_IMAGE_TEX(float4, texture_image3d_float4, __tex_image_float3d_004)
+
 /* image */
 KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_005)
 KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_006)
