@@ -1304,6 +1304,8 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	float offsx = cumap->curr.xmin - (1.0f / zoomx);
 	float offsy = cumap->curr.ymin - (1.0f / zoomy);
 	
+	glLineWidth(1.0f);
+
 	/* backdrop */
 	if (but->a1 == UI_GRAD_H) {
 		/* magic trigger for curve backgrounds */
