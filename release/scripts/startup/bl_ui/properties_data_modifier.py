@@ -791,7 +791,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Origin:")
+        col.label(text="Axis, Origin:")
         col.prop(md, "origin", text="")
 
         if md.deform_method in {'TAPER', 'STRETCH', 'TWIST'}:
