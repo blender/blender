@@ -977,7 +977,13 @@ void uiItemEnumR(uiLayout *layout, const char *name, int icon, struct PointerRNA
 void uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *value, const char *name, int icon);
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname);
 void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propname, struct PointerRNA *searchptr, const char *searchpropname, const char *name, int icon);
-void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname, struct IDProperty *properties, int context, int flag);
+void uiItemsFullEnumO(
+        uiLayout *layout, const char *opname, const char *propname,
+        struct IDProperty *properties, int context, int flag);
+void uiItemsFullEnumO_items(
+        uiLayout *layout, struct wmOperatorType *ot, PointerRNA ptr, PropertyRNA *prop,
+        IDProperty *properties, int context, int flag,
+        const EnumPropertyItem *item_array, int totitem);
 
 void uiItemL(uiLayout *layout, const char *name, int icon); /* label */
 void uiItemLDrag(uiLayout *layout, struct PointerRNA *ptr, const char *name, int icon); /* label icon for dragging */

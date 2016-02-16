@@ -2840,6 +2840,8 @@ uiPieMenu *UI_pie_menu_begin(struct bContext *C, const char *title, int icon, co
 		}
 		/* do not align left */
 		but->drawflag &= ~UI_BUT_TEXT_LEFT;
+		pie->block_radial->pie_data.title = but->str;
+		pie->block_radial->pie_data.icon = icon;
 	}
 
 	return pie;
@@ -2950,6 +2952,101 @@ int UI_pie_menu_invoke_from_rna_enum(
 
 	return OPERATOR_INTERFACE;
 }
+
+/**
+ * \name Pie Menu Levels
+ *
+ * Pie menus can't contain more than 8 items (yet). When using #uiItemsFullEnumO, a "More" button is created that calls
+ * a new pie menu if the enum has too many items. We call this a new "level".
+ * Indirect recursion is used, so that a theoretically unlimited number of items is supported.
+ *
+ * This is a implementation specifically for operator enums, needed since the object mode pie now has more than 8
+ * items. Ideally we'd have some way of handling this for all kinds of pie items, but that's tricky.
+ *
+ * - Julian (Feb 2016)
+ *
+ * \{ */
+
+typedef struct PieMenuLevelData {
+	char title[UI_MAX_NAME_STR]; /* parent pie title, copied for level */
+	int icon; /* parent pie icon, copied for level */
+	int totitem; /* total count of *remaining* items */
+
+	/* needed for calling uiItemsFullEnumO_array again for new level */
+	wmOperatorType *ot;
+	const char *propname;
+	IDProperty *properties;
+	int context, flag;
+} PieMenuLevelData;
+
+/**
+ * Invokes a new pie menu for a new level.
+ */
+static void ui_pie_menu_level_invoke(bContext *C, void *argN, void *arg2)
+{
+	EnumPropertyItem *item_array = (EnumPropertyItem *)argN;
+	PieMenuLevelData *lvl = (PieMenuLevelData *)arg2;
+	wmWindow *win = CTX_wm_window(C);
+
+	uiPieMenu *pie = UI_pie_menu_begin(C, IFACE_(lvl->title), lvl->icon, win->eventstate);
+	uiLayout *layout = UI_pie_menu_layout(pie);
+
+	layout = uiLayoutRadial(layout);
+
+	PointerRNA ptr;
+
+	WM_operator_properties_create_ptr(&ptr, lvl->ot);
+	/* so the context is passed to itemf functions (some need it) */
+	WM_operator_properties_sanitize(&ptr, false);
+	PropertyRNA *prop = RNA_struct_find_property(&ptr, lvl->propname);
+
+	if (prop) {
+		uiItemsFullEnumO_items(
+		        layout, lvl->ot, ptr, prop, lvl->properties, lvl->context, lvl->flag,
+		        item_array, lvl->totitem);
+	}
+	else {
+		RNA_warning("%s.%s not found", RNA_struct_identifier(ptr.type), lvl->propname);
+	}
+
+	UI_pie_menu_end(C, pie);
+}
+
+/**
+ * Set up data for defining a new pie menu level and add button that invokes it.
+ */
+void ui_pie_menu_level_create(
+        uiBlock *block, wmOperatorType *ot, const char *propname, IDProperty *properties,
+        const EnumPropertyItem *items, int totitem, int context, int flag)
+{
+	const int totitem_parent = PIE_MAX_ITEMS - 1;
+	const int totitem_remain = totitem - totitem_parent;
+	size_t array_size = sizeof(EnumPropertyItem) * totitem_remain;
+
+	/* used as but->func_argN so freeing is handled elsewhere */
+	EnumPropertyItem *remaining = MEM_mallocN(array_size + sizeof(EnumPropertyItem), "pie_level_item_array");
+	memcpy(remaining, items + totitem_parent, array_size);
+	/* a NULL terminating sentinal element is required */
+	memset(&remaining[totitem_remain], 0, sizeof(EnumPropertyItem));
+
+
+	/* yuk, static... issue is we can't reliably free this without doing dangerous changes */
+	static PieMenuLevelData lvl;
+	BLI_strncpy(lvl.title, block->pie_data.title, UI_MAX_NAME_STR);
+	lvl.totitem    = totitem_remain;
+	lvl.ot         = ot;
+	lvl.propname   = propname;
+	lvl.properties = properties;
+	lvl.context    = context;
+	lvl.flag       = flag;
+
+	/* add a 'more' menu entry */
+	uiBut *but = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, ICON_PLUS, "More", 0, 0, UI_UNIT_X * 3, UI_UNIT_Y, NULL,
+	                              0.0f, 0.0f, 0.0f, 0.0f, "Show more items of this menu");
+	UI_but_funcN_set(but, ui_pie_menu_level_invoke, remaining, &lvl);
+}
+
+/** \} */ /* Pie Menu Levels */
 
 
 /*************************** Standard Popup Menus ****************************/

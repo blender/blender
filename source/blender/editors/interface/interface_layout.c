@@ -720,7 +720,7 @@ void UI_context_active_but_prop_get_filebrowser(
 /**
  * Update a buttons tip with an enum's description if possible.
  */
-static void ui_but_tip_from_enum_item(uiBut *but, EnumPropertyItem *item)
+static void ui_but_tip_from_enum_item(uiBut *but, const EnumPropertyItem *item)
 {
 	if (but->tip == NULL || but->tip[0] == '\0') {
 		if (item->description && item->description[0]) {
@@ -883,6 +883,125 @@ void uiItemEnumO(uiLayout *layout, const char *opname, const char *name, int ico
 
 }
 
+BLI_INLINE bool ui_layout_is_radial(const uiLayout *layout)
+{
+	return (layout->item.type == ITEM_LAYOUT_RADIAL) ||
+	       ((layout->item.type == ITEM_LAYOUT_ROOT) && (layout->root->type == UI_LAYOUT_PIEMENU));
+}
+
+/**
+ * Create ui items for enum items in \a item_array.
+ *
+ * A version of #uiItemsFullEnumO that takes pre-calculated item array.
+ */
+void uiItemsFullEnumO_items(
+        uiLayout *layout, wmOperatorType *ot, PointerRNA ptr, PropertyRNA *prop, IDProperty *properties,
+        int context, int flag,
+        const EnumPropertyItem *item_array, int totitem)
+{
+	const char *propname = RNA_property_identifier(prop);
+	if (RNA_property_type(prop) != PROP_ENUM) {
+		RNA_warning("%s.%s, not an enum type", RNA_struct_identifier(ptr.type), propname);
+		return;
+	}
+
+	uiLayout *target, *split = NULL;
+	const EnumPropertyItem *item;
+	uiBlock *block = layout->root->block;
+	const bool radial = ui_layout_is_radial(layout);
+
+	if (radial) {
+		target = uiLayoutRadial(layout);
+	}
+	else {
+		split = uiLayoutSplit(layout, 0.0f, false);
+		target = uiLayoutColumn(split, layout->align);
+	}
+
+
+	int i;
+	bool last_iter = false;
+
+	for (i = 1, item = item_array; item->identifier && !last_iter; i++, item++) {
+		/* handle oversized pies */
+		if (radial && (totitem > PIE_MAX_ITEMS) && (i >= PIE_MAX_ITEMS)) {
+			if (item->name) { /* only visible items */
+				const EnumPropertyItem *tmp;
+
+				/* Check if there are more visible items for the next level. If not, we don't
+				 * add a new level and add the remaining item instead of the 'more' button. */
+				for (tmp = item + 1; tmp->identifier; tmp++)
+					if (tmp->name)
+						break;
+
+				if (tmp->identifier) { /* only true if loop above found item and did early-exit */
+					ui_pie_menu_level_create(block, ot, propname, properties, item_array, totitem, context, flag);
+					/* break since rest of items is handled in new pie level */
+					break;
+				}
+				else {
+					last_iter = true;
+				}
+			}
+			else {
+				continue;
+			}
+		}
+
+		if (item->identifier[0]) {
+			PointerRNA tptr;
+
+			WM_operator_properties_create_ptr(&tptr, ot);
+			if (properties) {
+				if (tptr.data) {
+					IDP_FreeProperty(tptr.data);
+					MEM_freeN(tptr.data);
+				}
+				tptr.data = IDP_CopyProperty(properties);
+			}
+			RNA_property_enum_set(&tptr, prop, item->value);
+
+			uiItemFullO_ptr(target, ot, item->name, item->icon, tptr.data, context, flag);
+
+			ui_but_tip_from_enum_item(block->buttons.last, item);
+		}
+		else {
+			if (item->name) {
+				uiBut *but;
+
+				if (item != item_array && !radial) {
+					target = uiLayoutColumn(split, layout->align);
+
+					/* inconsistent, but menus with labels do not look good flipped */
+					block->flag |= UI_BLOCK_NO_FLIP;
+				}
+
+				if (item->icon || radial) {
+					uiItemL(target, item->name, item->icon);
+
+					but = block->buttons.last;
+				}
+				else {
+					/* Do not use uiItemL here, as our root layout is a menu one, it will add a fake blank icon! */
+					but = uiDefBut(block, UI_BTYPE_LABEL, 0, item->name, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL,
+					               0.0, 0.0, 0, 0, "");
+				}
+				ui_but_tip_from_enum_item(but, item);
+			}
+			else {
+				if (radial) {
+					/* invisible dummy button to ensure all items are always at the same position */
+					uiItemS(target);
+				}
+				else {
+					/* XXX bug here, colums draw bottom item badly */
+					uiItemS(target);
+				}
+			}
+		}
+	}
+}
+
 void uiItemsFullEnumO(
         uiLayout *layout, const char *opname, const char *propname, IDProperty *properties,
         int context, int flag)
@@ -892,8 +1011,6 @@ void uiItemsFullEnumO(
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	uiBlock *block = layout->root->block;
-	const bool radial = (layout->item.type == ITEM_LAYOUT_RADIAL) ||
-	                     ((layout->item.type == ITEM_LAYOUT_ROOT) && (layout->root->type == UI_LAYOUT_PIEMENU));
 
 	if (!ot || !ot->srna) {
 		ui_item_disabled(layout, opname);
@@ -910,89 +1027,22 @@ void uiItemsFullEnumO(
 	BLI_assert((prop == NULL) || (RNA_property_type(prop) == PROP_ENUM));
 
 	if (prop && RNA_property_type(prop) == PROP_ENUM) {
-		EnumPropertyItem *item, *item_array = NULL;
+		EnumPropertyItem *item_array = NULL;
+		int totitem;
 		bool free;
-		uiLayout *split = NULL;
-		uiLayout *target;
 
-		if (radial) {
-			target = uiLayoutRadial(layout);
+		if (ui_layout_is_radial(layout)) {
+			RNA_property_enum_items_gettexted_all(block->evil_C, &ptr, prop, &item_array, &totitem, &free);
 		}
 		else {
-			split = uiLayoutSplit(layout, 0.0f, false);
-			target = uiLayoutColumn(split, layout->align);
+			RNA_property_enum_items_gettexted(block->evil_C, &ptr, prop, &item_array, &totitem, &free);
 		}
 
-		if (0 && radial) {
-			/* XXX Disabled as temporary workaround!
-			 *
-			 * Normally, we always draw a button for all items even if they're unavailable (we draw invisible
-			 * dummy buttons then), so items are always at the same position. This causes issues with current
-			 * 'Object Mode' pie since more than 8 modes exist now (see T46973).
-			 * Disabling this until more than 8 items per pie are supported (or a better solution is found).
-			 * We should work on that ASAP though.
-			 *
-			 * - Julian (Dec 2015)
-			 */
-			RNA_property_enum_items_gettexted_all(block->evil_C, &ptr, prop, &item_array, NULL, &free);
-		}
-		else {
-			RNA_property_enum_items_gettexted(block->evil_C, &ptr, prop, &item_array, NULL, &free);
-		}
+		/* add items */
+		uiItemsFullEnumO_items(
+		        layout, ot, ptr, prop, properties, context, flag,
+		        item_array, totitem);
 
-		for (item = item_array; item->identifier; item++) {
-			if (item->identifier[0]) {
-				PointerRNA tptr;
-
-				WM_operator_properties_create_ptr(&tptr, ot);
-				if (properties) {
-					if (tptr.data) {
-						IDP_FreeProperty(tptr.data);
-						MEM_freeN(tptr.data);
-					}
-					tptr.data = IDP_CopyProperty(properties);
-				}
-				RNA_property_enum_set(&tptr, prop, item->value);
-
-				uiItemFullO_ptr(target, ot, item->name, item->icon, tptr.data, context, flag);
-
-				ui_but_tip_from_enum_item(block->buttons.last, item);
-			}
-			else {
-				if (item->name) {
-					uiBut *but;
-
-					if (item != item_array && !radial) {
-						target = uiLayoutColumn(split, layout->align);
-
-						/* inconsistent, but menus with labels do not look good flipped */
-						block->flag |= UI_BLOCK_NO_FLIP;
-					}
-
-					if (item->icon || radial) {
-						uiItemL(target, item->name, item->icon);
-
-						but = block->buttons.last;
-					}
-					else {
-						/* Do not use uiItemL here, as our root layout is a menu one, it will add a fake blank icon! */
-						but = uiDefBut(block, UI_BTYPE_LABEL, 0, item->name, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL,
-						               0.0, 0.0, 0, 0, "");
-					}
-					ui_but_tip_from_enum_item(but, item);
-				}
-				else {
-					if (radial) {
-						/* invisible dummy button to ensure all items are always at the same position */
-						uiItemS(target);
-					}
-					else {
-						/* XXX bug here, colums draw bottom item badly */
-						uiItemS(target);
-					}
-				}
-			}
-		}
 		if (free) {
 			MEM_freeN(item_array);
 		}
@@ -2178,9 +2228,9 @@ static RadialDirection ui_get_radialbut_vec(float vec[2], short itemnum)
 {
 	RadialDirection dir;
 
-	if (itemnum >= 8) {
-		itemnum %= 8;
-		printf("Warning: Pie menus with more than 8 items are currently unsupported\n");
+	if (itemnum >= PIE_MAX_ITEMS) {
+		itemnum %= PIE_MAX_ITEMS;
+		printf("Warning: Pie menus with more than %i items are currently unsupported\n", PIE_MAX_ITEMS);
 	}
 
 	dir = ui_radial_dir_order[itemnum];
