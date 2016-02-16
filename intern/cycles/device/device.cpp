@@ -368,6 +368,8 @@ void Device::tag_update()
 
 void Device::free_memory()
 {
+	need_types_update = true;
+	need_devices_update = true;
 	types.free_memory();
 	devices.free_memory();
 }

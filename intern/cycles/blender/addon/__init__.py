@@ -98,6 +98,8 @@ def register():
     from . import presets
     import atexit
 
+    # Make sure wee only registered the callback once.
+    atexit.unregister(engine_exit)
     atexit.register(engine_exit)
 
     engine.init()
@@ -122,6 +124,3 @@ def unregister():
     properties.unregister()
     presets.unregister()
     bpy.utils.unregister_module(__name__)
-
-    atexit.unregister(engine_exit)
-    engine_exit()
