@@ -3384,7 +3384,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 		unsigned int i;
 		int j;
 
-		BLI_jitter_init(jit_ofs, scene->r.osa);
+		BLI_jitter_init(jit_ofs, samples);
 
 		/* first sample buffer, also initializes 'rv3d->persmat' */
 		ED_view3d_draw_offscreen(
