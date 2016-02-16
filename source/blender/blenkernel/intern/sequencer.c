@@ -3250,7 +3250,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 		        scene, camera, width, height, IB_rect,
 		        context->scene->r.seq_prev_type,
 		        (context->scene->r.seq_flag & R_SEQ_SOLID_TEX) != 0,
-		        use_gpencil, true, scene->r.alphamode,
+		        use_gpencil, false, scene->r.alphamode,
 		        context->gpu_samples, context->gpu_full_samples, viewname,
 		        context->gpu_fx, context->gpu_offscreen, err_out);
 		if (ibuf == NULL) {
