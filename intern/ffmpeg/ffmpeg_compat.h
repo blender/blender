@@ -446,4 +446,205 @@ AVRational av_get_r_frame_rate_compat(const AVStream *stream)
 #  define FFMPEG_HAVE_DEPRECATED_FLAGS2
 #endif
 
+/* Since FFmpeg-1.1 this constant have AV_ prefix. */
+#if LIBAVUTIL_VERSION_INT < AV_VERSION_INT(52, 13, 100)
+#  define AV_PIX_FMT_BGR32 PIX_FMT_BGR32
+#  define AV_PIX_FMT_YUV422P PIX_FMT_YUV422P
+#  define AV_PIX_FMT_BGRA PIX_FMT_BGRA
+#  define AV_PIX_FMT_ARGB PIX_FMT_ARGB
+#  define AV_PIX_FMT_RGBA PIX_FMT_RGBA
+#endif
+
+/* New API from FFmpeg-2.0 which soon became recommended one. */
+#if LIBAVUTIL_VERSION_INT < AV_VERSION_INT(52, 38, 100)
+#  define av_frame_alloc avcodec_alloc_frame
+#  define av_frame_free avcodec_free_frame
+#  define av_frame_unref avcodec_get_frame_defaults
+#endif
+
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(57, 24, 102)
+
+/* NOTE: The code in this block are from FFmpeg 2.6.4, which is licensed by LGPL. */
+
+#define MAX_NEG_CROP 1024
+
+extern const uint8_t ff_crop_tab[256 + 2 * MAX_NEG_CROP];
+
+/* filter parameters: [-1 4 2 4 -1] // 8 */
+FFMPEG_INLINE
+void deinterlace_line(uint8_t *dst,
+                      const uint8_t *lum_m4, const uint8_t *lum_m3,
+                      const uint8_t *lum_m2, const uint8_t *lum_m1,
+                      const uint8_t *lum,
+                      int size)
+{
+	const uint8_t *cm = ff_crop_tab + MAX_NEG_CROP;
+	int sum;
+
+	for(;size > 0;size--) {
+		sum = -lum_m4[0];
+		sum += lum_m3[0] << 2;
+		sum += lum_m2[0] << 1;
+		sum += lum_m1[0] << 2;
+		sum += -lum[0];
+		dst[0] = cm[(sum + 4) >> 3];
+		lum_m4++;
+		lum_m3++;
+		lum_m2++;
+		lum_m1++;
+		lum++;
+		dst++;
+	}
+}
+
+FFMPEG_INLINE
+void deinterlace_line_inplace(uint8_t *lum_m4, uint8_t *lum_m3,
+                              uint8_t *lum_m2, uint8_t *lum_m1,
+                              uint8_t *lum, int size)
+{
+	const uint8_t *cm = ff_crop_tab + MAX_NEG_CROP;
+	int sum;
+
+	for(;size > 0;size--) {
+		sum = -lum_m4[0];
+		sum += lum_m3[0] << 2;
+		sum += lum_m2[0] << 1;
+		lum_m4[0]=lum_m2[0];
+		sum += lum_m1[0] << 2;
+		sum += -lum[0];
+		lum_m2[0] = cm[(sum + 4) >> 3];
+		lum_m4++;
+		lum_m3++;
+		lum_m2++;
+		lum_m1++;
+		lum++;
+	}
+}
+
+/* deinterlacing : 2 temporal taps, 3 spatial taps linear filter. The
+   top field is copied as is, but the bottom field is deinterlaced
+   against the top field. */
+FFMPEG_INLINE
+void deinterlace_bottom_field(uint8_t *dst, int dst_wrap,
+                              const uint8_t *src1, int src_wrap,
+                              int width, int height)
+{
+	const uint8_t *src_m2, *src_m1, *src_0, *src_p1, *src_p2;
+	int y;
+
+	src_m2 = src1;
+	src_m1 = src1;
+	src_0=&src_m1[src_wrap];
+	src_p1=&src_0[src_wrap];
+	src_p2=&src_p1[src_wrap];
+	for(y=0;y<(height-2);y+=2) {
+		memcpy(dst,src_m1,width);
+		dst += dst_wrap;
+		deinterlace_line(dst,src_m2,src_m1,src_0,src_p1,src_p2,width);
+		src_m2 = src_0;
+		src_m1 = src_p1;
+		src_0 = src_p2;
+		src_p1 += 2*src_wrap;
+		src_p2 += 2*src_wrap;
+		dst += dst_wrap;
+	}
+	memcpy(dst,src_m1,width);
+	dst += dst_wrap;
+	/* do last line */
+	deinterlace_line(dst,src_m2,src_m1,src_0,src_0,src_0,width);
+}
+
+FFMPEG_INLINE
+int deinterlace_bottom_field_inplace(uint8_t *src1, int src_wrap,
+                                     int width, int height)
+{
+	uint8_t *src_m1, *src_0, *src_p1, *src_p2;
+	int y;
+	uint8_t *buf = (uint8_t *)av_malloc(width);
+	if (!buf)
+		return AVERROR(ENOMEM);
+
+	src_m1 = src1;
+	memcpy(buf,src_m1,width);
+	src_0=&src_m1[src_wrap];
+	src_p1=&src_0[src_wrap];
+	src_p2=&src_p1[src_wrap];
+	for(y=0;y<(height-2);y+=2) {
+		deinterlace_line_inplace(buf,src_m1,src_0,src_p1,src_p2,width);
+		src_m1 = src_p1;
+		src_0 = src_p2;
+		src_p1 += 2*src_wrap;
+		src_p2 += 2*src_wrap;
+	}
+	/* do last line */
+	deinterlace_line_inplace(buf,src_m1,src_0,src_0,src_0,width);
+	av_free(buf);
+	return 0;
+}
+
+#ifdef __GNUC__
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+FFMPEG_INLINE
+int avpicture_deinterlace(AVPicture *dst, const AVPicture *src,
+                          enum AVPixelFormat pix_fmt, int width, int height)
+{
+	int i, ret;
+
+	if (pix_fmt != AV_PIX_FMT_YUV420P &&
+	    pix_fmt != AV_PIX_FMT_YUVJ420P &&
+	    pix_fmt != AV_PIX_FMT_YUV422P &&
+	    pix_fmt != AV_PIX_FMT_YUVJ422P &&
+	    pix_fmt != AV_PIX_FMT_YUV444P &&
+	    pix_fmt != AV_PIX_FMT_YUV411P &&
+	    pix_fmt != AV_PIX_FMT_GRAY8)
+		return -1;
+	if ((width & 3) != 0 || (height & 3) != 0)
+		return -1;
+
+	for(i=0;i<3;i++) {
+		if (i == 1) {
+			switch(pix_fmt) {
+			case AV_PIX_FMT_YUVJ420P:
+			case AV_PIX_FMT_YUV420P:
+				width >>= 1;
+				height >>= 1;
+				break;
+			case AV_PIX_FMT_YUV422P:
+			case AV_PIX_FMT_YUVJ422P:
+				width >>= 1;
+				break;
+			case AV_PIX_FMT_YUV411P:
+				width >>= 2;
+				break;
+			default:
+				break;
+			}
+			if (pix_fmt == AV_PIX_FMT_GRAY8) {
+				break;
+			}
+		}
+		if (src == dst) {
+			ret = deinterlace_bottom_field_inplace(dst->data[i],
+			                                       dst->linesize[i],
+			                                       width, height);
+			if (ret < 0)
+				return ret;
+		} else {
+			deinterlace_bottom_field(dst->data[i],dst->linesize[i],
+			                         src->data[i], src->linesize[i],
+			                         width, height);
+		}
+	}
+	return 0;
+}
+
+#ifdef __GNUC__
+#  pragma GCC diagnostic pop
+#endif
+
+#endif
+
 #endif

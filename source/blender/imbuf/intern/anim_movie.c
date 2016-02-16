@@ -556,12 +556,12 @@ static int startffmpeg(struct anim *anim)
 	anim->next_pts = -1;
 	anim->next_packet.stream_index = -1;
 
-	anim->pFrame = avcodec_alloc_frame();
+	anim->pFrame = av_frame_alloc();
 	anim->pFrameComplete = false;
-	anim->pFrameDeinterlaced = avcodec_alloc_frame();
-	anim->pFrameRGB = avcodec_alloc_frame();
+	anim->pFrameDeinterlaced = av_frame_alloc();
+	anim->pFrameRGB = av_frame_alloc();
 
-	if (avpicture_get_size(PIX_FMT_RGBA, anim->x, anim->y) !=
+	if (avpicture_get_size(AV_PIX_FMT_RGBA, anim->x, anim->y) !=
 	    anim->x * anim->y * 4)
 	{
 		fprintf(stderr,
@@ -600,7 +600,7 @@ static int startffmpeg(struct anim *anim)
 	        anim->pCodecCtx->pix_fmt,
 	        anim->x,
 	        anim->y,
-	        PIX_FMT_RGBA,
+	        AV_PIX_FMT_RGBA,
 	        SWS_FAST_BILINEAR | SWS_PRINT_INFO | SWS_FULL_CHR_H_INT,
 	        NULL, NULL, NULL);
 		
@@ -689,7 +689,7 @@ static void ffmpeg_postprocess(struct anim *anim)
 	
 	avpicture_fill((AVPicture *) anim->pFrameRGB,
 	               (unsigned char *) ibuf->rect,
-	               PIX_FMT_RGBA, anim->x, anim->y);
+	               AV_PIX_FMT_RGBA, anim->x, anim->y);
 
 	if (ENDIAN_ORDER == B_ENDIAN) {
 		int *dstStride   = anim->pFrameRGB->linesize;
