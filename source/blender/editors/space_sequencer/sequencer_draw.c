@@ -1039,6 +1039,8 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 	float x2 = v2d->tot.xmax;
 	float y2 = v2d->tot.ymax;
 
+	glLineWidth(1.0f);
+
 	/* border */
 	setlinestyle(3);
 
