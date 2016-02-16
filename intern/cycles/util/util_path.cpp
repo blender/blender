@@ -178,7 +178,8 @@ public:
 	class path_info {
 	public:
 		path_info(const string& path)
-		: path_(path)
+		: path_(path),
+		  entry_(NULL)
 		{
 		}
 

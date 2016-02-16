@@ -78,7 +78,7 @@ static int validate_enum_value(int value, int num_values, int default_value)
 }
 
 template<typename NodeType>
-static InterpolationType get_image_interpolation(NodeType b_node)
+static InterpolationType get_image_interpolation(NodeType& b_node)
 {
 	int value = b_node.interpolation();
 	return (InterpolationType)validate_enum_value(value,
@@ -87,7 +87,7 @@ static InterpolationType get_image_interpolation(NodeType b_node)
 }
 
 template<typename NodeType>
-static ExtensionType get_image_extension(NodeType b_node)
+static ExtensionType get_image_extension(NodeType& b_node)
 {
 	int value = b_node.extension();
 	return (ExtensionType)validate_enum_value(value,
