@@ -75,7 +75,7 @@ public:
 	/* Some external API might demand working with std::vector. */
 	operator std::vector<value_type>()
 	{
-		return std::vector<value_type>(*this);
+		return std::vector<value_type>(this->begin(), this->end());
 	}
 };
 
