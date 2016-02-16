@@ -245,7 +245,7 @@ void BVHSpatialSplit::split(BVHBuild *builder, BVHRange& left, BVHRange& right, 
 	}
 	/* Insert duplicated references into actual array in one go. */
 	if(new_refs.size() != 0) {
-		refs.insert(refs.begin() + right_end - new_refs.size(),
+		refs.insert(refs.begin() + (right_end - new_refs.size()),
 		            new_refs.begin(),
 		            new_refs.end());
 	}
