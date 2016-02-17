@@ -202,8 +202,10 @@ endif()
 if(CMAKE_COMPILER_IS_GNUCXX)
 	ADD_CHECK_CXX_COMPILER_FLAG(CMAKE_CXX_FLAGS _has_cxxflag_float_conversion "-Werror=float-conversion")
 	ADD_CHECK_CXX_COMPILER_FLAG(CMAKE_CXX_FLAGS _has_cxxflag_double_promotion "-Werror=double-promotion")
+	ADD_CHECK_CXX_COMPILER_FLAG(CMAKE_CXX_FLAGS _has_no_error_unused_macros "-Wno-error=unused-macros")
 	unset(_has_cxxflag_float_conversion)
 	unset(_has_cxxflag_double_promotion)
+	unset(_has_no_error_unused_macros)
 endif()
 
 
