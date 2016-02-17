@@ -2723,7 +2723,7 @@ static void rna_def_unit_settings(BlenderRNA  *brna)
 	prop = RNA_def_property(srna, "scale_length", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_ui_text(prop, "Unit Scale", "Scale to use when converting between blender units and dimensions");
 	RNA_def_property_range(prop, 0.00001, 100000.0);
-	RNA_def_property_ui_range(prop, 0.001, 100.0, 0.1, 3);
+	RNA_def_property_ui_range(prop, 0.001, 100.0, 0.1, 6);
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop = RNA_def_property(srna, "use_separate", PROP_BOOLEAN, PROP_NONE);
