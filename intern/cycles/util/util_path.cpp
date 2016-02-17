@@ -38,6 +38,10 @@ OIIO_NAMESPACE_USING
 #  include <dirent.h>
 #endif
 
+#if defined(DIR_SEP_ALT)
+/* quiet unused define warning */
+#endif
+
 #ifdef HAVE_SHLWAPI_H
 #  include <shlwapi.h>
 #endif
