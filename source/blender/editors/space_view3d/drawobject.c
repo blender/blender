@@ -6773,6 +6773,8 @@ static bool drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 		}
 	}
 	
+	glLineWidth(1.0f);
+
 	while (ml) {
 		/* draw radius */
 		if (mb->editelems) {
