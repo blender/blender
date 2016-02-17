@@ -56,7 +56,6 @@ if 'cmake' in builder:
     chroot_name = None  # If not None command will be delegated to that chroot
     cuda_chroot_name = None  # If not None cuda compilationcommand will be delegated to that chroot
     build_cubins = True  # Whether to build Cycles CUDA kernels
-    remove_cache = False  # Remove CMake cache to be sure config is totally up-to-date
     remove_install_dir = False  # Remove installation folder before building
     bits = 64
 
@@ -71,7 +70,6 @@ if 'cmake' in builder:
     cuda_cmake_options = []
 
     if builder.startswith('mac'):
-        remove_cache = True
         install_dir = None
         # Set up OSX architecture
         if builder.endswith('x86_64_10_6_cmake'):
@@ -86,7 +84,6 @@ if 'cmake' in builder:
             cmake_options.append(['-G', '"Visual Studio 12 2013"'])
 
     elif builder.startswith('linux'):
-        remove_cache = True
         remove_install_dir = True
         cmake_config_file = "build_files/buildbot/config/blender_linux.cmake"
         cmake_player_config_file = "build_files/buildbot/config/blender_linux_player.cmake"
@@ -161,9 +158,9 @@ if 'cmake' in builder:
         # Configure the build
         print("CMake options:")
         print(target_cmake_options)
-#        if remove_cache and os.path.exists('CMakeCache.txt'):
-#            print("Removing CMake cache")
-#            os.remove('CMakeCache.txt')
+        if os.path.exists('CMakeCache.txt'):
+            print("Removing CMake cache")
+            os.remove('CMakeCache.txt')
         retcode = subprocess.call(target_chroot_prefix + ['cmake', blender_dir] + target_cmake_options)
         if retcode != 0:
             print('Condifuration FAILED!')
