@@ -1662,21 +1662,20 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	bArmature *arm = ob->data;
 	bPoseChannel *pchan;
 	Bone *bone;
-	GLfloat tmp;
 	float smat[4][4], imat[4][4], bmat[4][4];
 	int index = -1;
-	short do_dashed = 3;
+	const enum {
+		DASH_RELATIONSHIP_LINES = 1,
+		DASH_HELP_LINES = 2,
+	} do_dashed = (
+	        (is_outline ? 0 : DASH_RELATIONSHIP_LINES) |
+	        ((v3d->flag & V3D_HIDE_HELPLINES) ? 0 : DASH_HELP_LINES));
 	bool draw_wire = false;
 	int flag;
 	bool is_cull_enabled;
 	
 	/* being set below */
 	arm->layer_used = 0;
-	
-	/* hacky... prevent outline select from drawing dashed helplines */
-	glGetFloatv(GL_LINE_WIDTH, &tmp);
-	if (tmp > 1.1f) do_dashed &= ~1;
-	if (v3d->flag & V3D_HIDE_HELPLINES) do_dashed &= ~2;
 	
 	/* precalc inverse matrix for drawing screen aligned */
 	if (arm->drawtype == ARM_ENVELOPE) {
@@ -1924,11 +1923,11 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 			{
 				if (bone->layer & arm->layer) {
 					const short constflag = pchan->constflag;
-					if ((do_dashed & 1) && (pchan->parent)) {
+					if ((do_dashed & DASH_RELATIONSHIP_LINES) && (pchan->parent)) {
 						/* Draw a line from our root to the parent's tip 
 						 * - only if V3D_HIDE_HELPLINES is enabled...
 						 */
-						if ((do_dashed & 2) && ((bone->flag & BONE_CONNECTED) == 0)) {
+						if ((do_dashed & DASH_HELP_LINES) && ((bone->flag & BONE_CONNECTED) == 0)) {
 							if (arm->flag & ARM_POSEMODE) {
 								GPU_select_load_id(index & 0xFFFF);  /* object tag, for bordersel optim */
 								UI_ThemeColor(TH_WIRE);
@@ -1951,7 +1950,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 									else glColor3ub(200, 200, 50);  /* add theme! */
 
 									GPU_select_load_id(index & 0xFFFF);
-									pchan_draw_IK_root_lines(pchan, !(do_dashed & 2));
+									pchan_draw_IK_root_lines(pchan, !(do_dashed & DASH_HELP_LINES));
 								}
 							}
 							else if (constflag & PCHAN_HAS_SPLINEIK) {
@@ -1959,7 +1958,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 									glColor3ub(150, 200, 50);  /* add theme! */
 									
 									GPU_select_load_id(index & 0xFFFF);
-									pchan_draw_IK_root_lines(pchan, !(do_dashed & 2));
+									pchan_draw_IK_root_lines(pchan, !(do_dashed & DASH_HELP_LINES));
 								}
 							}
 						}
