@@ -1766,7 +1766,10 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 						/* set color-set to use */
 						set_pchan_colorset(ob, pchan);
 					}
-					
+
+					/* may be 2x width from custom bone's outline option */
+					glLineWidth(1.0f);
+
 					if (use_custom) {
 						/* if drawwire, don't try to draw in solid */
 						if (pchan->bone->flag & BONE_DRAWWIRE) {
