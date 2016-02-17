@@ -21,7 +21,7 @@ float ramp_lookup(color ramp[RAMP_TABLE_SIZE], float at, int component)
 {
 	if (at < 0.0 || at > 1.0) {
 		float t0, dy;
-		if(at < 0.0) {
+		if (at < 0.0) {
 			t0 = ramp[0][component];
 			dy = t0 - ramp[1][component];
 			at = -at;

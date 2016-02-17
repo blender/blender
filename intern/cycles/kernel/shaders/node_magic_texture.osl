@@ -106,6 +106,6 @@ shader node_magic_texture(
 		p = transform(mapping, p);
 
 	Color = magic(p * Scale, Depth, Distortion);
-	Fac = (Color[0] + Color[1] + Color[2]) * (1.0/3.0);
+	Fac = (Color[0] + Color[1] + Color[2]) * (1.0 / 3.0);
 }
 
