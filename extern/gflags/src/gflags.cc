@@ -881,9 +881,15 @@ FlagRegistry* FlagRegistry::global_registry_ = NULL;
 Mutex FlagRegistry::global_registry_lock_(Mutex::LINKER_INITIALIZED);
 
 FlagRegistry* FlagRegistry::GlobalRegistry() {
-  MutexLock acquire_lock(&global_registry_lock_);
-  if (!global_registry_) {
-    global_registry_ = new FlagRegistry;
+  if (GetArgvSum() != 0) {
+    MutexLock acquire_lock(&global_registry_lock_);
+    if (!global_registry_) {
+      global_registry_ = new FlagRegistry;
+    }
+  } else {
+    if (!global_registry_) {
+      global_registry_ = new FlagRegistry;
+    }
   }
   return global_registry_;
 }
