@@ -56,7 +56,8 @@
 /* this module */
 #include "render_types.h"
 #include "envmap.h"
-#include "renderdatabase.h" 
+#include "renderdatabase.h"
+#include "renderpipeline.h"
 #include "texture.h"
 #include "zbuf.h"
 
@@ -138,7 +139,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->flag = re->flag;
 	
 	/* set up renderdata */
-	envre->r = re->r;
+	render_copy_renderdata(&envre->r, &re->r);
 	envre->r.mode &= ~(R_BORDER | R_PANORAMA | R_ORTHO | R_MBLUR);
 	BLI_listbase_clear(&envre->r.layers);
 	BLI_listbase_clear(&envre->r.views);

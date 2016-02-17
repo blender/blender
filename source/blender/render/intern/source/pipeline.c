@@ -684,6 +684,19 @@ static void re_init_resolution(Render *re, Render *source,
 	re->clipcrop = 1.0f + 2.0f / (float)(re->winx > re->winy ? re->winy : re->winx);
 }
 
+void render_copy_renderdata(RenderData *to, RenderData *from)
+{
+	BLI_freelistN(&to->layers);
+	BLI_freelistN(&to->views);
+	curvemapping_free_data(&to->mblur_shutter_curve);
+
+	*to = *from;
+
+	BLI_duplicatelist(&to->layers, &from->layers);
+	BLI_duplicatelist(&to->views, &from->views);
+	curvemapping_copy_data(&to->mblur_shutter_curve, &from->mblur_shutter_curve);
+}
+
 /* what doesn't change during entire render sequence */
 /* disprect is optional, if NULL it assumes full window render */
 void RE_InitState(Render *re, Render *source, RenderData *rd,
@@ -697,13 +710,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 	re->i.starttime = PIL_check_seconds_timer();
 
 	/* copy render data and render layers for thread safety */
-	BLI_freelistN(&re->r.layers);
-	BLI_freelistN(&re->r.views);
-	curvemapping_free_data(&re->r.mblur_shutter_curve);
-	re->r = *rd;
-	BLI_duplicatelist(&re->r.layers, &rd->layers);
-	BLI_duplicatelist(&re->r.views, &rd->views);
-	curvemapping_copy_data(&re->r.mblur_shutter_curve, &rd->mblur_shutter_curve);
+	render_copy_renderdata(&re->r, rd);
 
 	if (source) {
 		/* reuse border flags from source renderer */

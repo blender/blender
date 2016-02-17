@@ -452,18 +452,9 @@ RenderData *RE_engine_get_render_data(Render *re)
 /* Bake */
 void RE_bake_engine_set_engine_parameters(Render *re, Main *bmain, Scene *scene)
 {
-	curvemapping_free_data(&re->r.mblur_shutter_curve);
-
 	re->scene = scene;
 	re->main = bmain;
-	re->r = scene->r;
-
-	/* prevent crash when freeing the scene
-	 * but it potentially leaves unfreed memory blocks
-	 * not sure how to fix this yet -- dfelinto */
-	BLI_listbase_clear(&re->r.layers);
-	BLI_listbase_clear(&re->r.views);
-	curvemapping_copy_data(&re->r.mblur_shutter_curve, &scene->r.mblur_shutter_curve);
+	render_copy_renderdata(&re->r, &scene->r);
 }
 
 bool RE_bake_has_engine(Render *re)
