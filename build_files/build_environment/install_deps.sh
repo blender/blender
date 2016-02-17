@@ -3940,15 +3940,17 @@ print_info() {
   PRINT ""
   PRINT "If you're using CMake add this to your configuration flags:"
 
-  _buildargs=""
+  _buildargs="-U *SNDFILE* -U *PYTHON* -U *BOOST* -U *Boost*"
+  _buildargs="$_buildargs -U *OPENCOLORIO* -U *OPENEXR* -U *OPENIMAGEIO* -U *LLVM* -U *CYCLES*"
+  _buildargs="$_buildargs -U *OPENSUBDIV* -U *COLLADA* -U *FFMPEG*"
 
   _1="-D WITH_CODEC_SNDFILE=ON"
   PRINT "  $_1"
-  _buildargs="$_buildargs -U *SNDFILE* $_1"
+  _buildargs="$_buildargs $_1"
 
   _1="-D PYTHON_VERSION=$PYTHON_VERSION_MIN"
   PRINT "  $_1"
-  _buildargs="$_buildargs -U *PYTHON* $_1"
+  _buildargs="$_buildargs $_1"
   if [ -d $INST/python-$PYTHON_VERSION_MIN ]; then
     _1="-D PYTHON_ROOT_DIR=$INST/python-$PYTHON_VERSION_MIN"
     PRINT "  $_1"
@@ -3960,7 +3962,7 @@ print_info() {
     _2="-D Boost_NO_SYSTEM_PATHS=ON"
     PRINT "  $_1"
     PRINT "  $_2"
-    _buildargs="$_buildargs -U *BOOST* -U *Boost* $_1 $_2"
+    _buildargs="$_buildargs $_1 $_2"
   fi
 
   if [ -d $INST/ocio ]; then
@@ -3968,13 +3970,13 @@ print_info() {
     _2="-D OPENCOLORIO_ROOT_DIR=$INST/ocio"
     PRINT "  $_1"
     PRINT "  $_2"
-    _buildargs="$_buildargs -U *OPENCOLORIO* $_1 $_2"
+    _buildargs="$_buildargs $_1 $_2"
   fi
 
   if [ -d $INST/openexr ]; then
     _1="-D OPENEXR_ROOT_DIR=$INST/openexr"
     PRINT "  $_1"
-    _buildargs="$_buildargs -U *OPENEXR* $_1"
+    _buildargs="$_buildargs $_1"
   fi
 
   if [ -d $INST/oiio ]; then
@@ -3982,7 +3984,7 @@ print_info() {
     _2="-D OPENIMAGEIO_ROOT_DIR=$INST/oiio"
     PRINT "  $_1"
     PRINT "  $_2"
-    _buildargs="$_buildargs -U *OPENIMAGEIO* $_1 $_2"
+    _buildargs="$_buildargs $_1 $_2"
   fi
 
   if [ "$OSL_SKIP" = false ]; then
@@ -3992,7 +3994,7 @@ print_info() {
     PRINT "  $_1"
     PRINT "  $_2"
     PRINT "  $_3"
-    _buildargs="$_buildargs -U *LLVM* -U *CYCLES* $_1 $_2 $_3"
+    _buildargs="$_buildargs $_1 $_2 $_3"
     if [ -d $INST/osl ]; then
       _1="-D CYCLES_OSL=$INST/osl"
       PRINT "  $_1"
@@ -4018,13 +4020,13 @@ print_info() {
     _2="-D OPENSUBDIV_ROOT_DIR=$INST/osd"
     PRINT "  $_1"
     PRINT "  $_2"
-    _buildargs="$_buildargs -U *OPENSUBDIV* $_1 $_2"
+    _buildargs="$_buildargs $_1 $_2"
   fi
 
   if [ "$WITH_OPENCOLLADA" = true ]; then
     _1="-D WITH_OPENCOLLADA=ON"
     PRINT "  $_1"
-    _buildargs="$_buildargs -U *COLLADA* $_1"
+    _buildargs="$_buildargs $_1"
   fi
 
   if [ "$FFMPEG_SKIP" = false ]; then
@@ -4032,7 +4034,7 @@ print_info() {
     _2="-D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;swresample;lzma;rt;`print_info_ffmpeglink`'"
     PRINT "  $_1"
     PRINT "  $_2"
-    _buildargs="$_buildargs -U *FFMPEG* $_1 $_2"
+    _buildargs="$_buildargs $_1 $_2"
     if [ -d $INST/ffmpeg ]; then
       _1="-D FFMPEG=$INST/ffmpeg"
       PRINT "  $_1"
