@@ -259,7 +259,9 @@ public:
 		float u = x;
 		float v = y;
 		this->wrap_pixel(u, v, extend_x, extend_y);
-		BLI_bilinear_interpolation_fl(this->m_buffer, result, this->m_width, this->m_height, this->m_num_channels, u, v);
+		BLI_bilinear_interpolation_wrap_fl(
+		        this->m_buffer, result, this->m_width, this->m_height, this->m_num_channels, u, v,
+		        extend_x == COM_MB_REPEAT, extend_y == COM_MB_REPEAT);
 	}
 
 	void readEWA(float *result, const float uv[2], const float derivatives[2][2]);

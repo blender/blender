@@ -262,7 +262,7 @@ void BLI_bicubic_interpolation_char(const unsigned char *buffer, unsigned char *
 /* BILINEAR INTERPOLATION */
 BLI_INLINE void bilinear_interpolation(const unsigned char *byte_buffer, const float *float_buffer,
                                        unsigned char *byte_output, float *float_output, int width, int height,
-                                       int components, float u, float v)
+                                       int components, float u, float v, bool wrap_x, bool wrap_y)
 {
 	float a, b;
 	float a_b, ma_b, a_mb, ma_mb;
@@ -279,11 +279,21 @@ BLI_INLINE void bilinear_interpolation(const unsigned char *byte_buffer, const f
 		const float *row1, *row2, *row3, *row4;
 		float empty[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-		/* sample area entirely outside image? */
-		if (x2 < 0 || x1 > width - 1 || y2 < 0 || y1 > height - 1) {
-			copy_vn_fl(float_output, components, 0.0f);
-			return;
+		/* pixel value must be already wrapped, however values at boundaries may flip */
+		if (wrap_x) {
+			if (x1 < 0) x1 = width  - 1;
+			if (x2 >= width) x2 = 0;
 		}
+		if (wrap_y) {
+			if (y1 < 0) y1 = height - 1;
+			if (y2 >= height) y2 = 0;
+		}
+
+		CLAMP(x1, 0, width - 1);
+		CLAMP(x2, 0, width - 1);
+
+		CLAMP(y1, 0, height - 1);
+		CLAMP(y2, 0, height - 1);
 
 		/* sample including outside of edges of image */
 		if (x1 < 0 || y1 < 0) row1 = empty;
@@ -364,14 +374,27 @@ BLI_INLINE void bilinear_interpolation(const unsigned char *byte_buffer, const f
 void BLI_bilinear_interpolation_fl(const float *buffer, float *output, int width, int height,
                                    int components, float u, float v)
 {
-	bilinear_interpolation(NULL, buffer, NULL, output, width, height, components, u, v);
+	bilinear_interpolation(NULL, buffer, NULL, output, width, height, components, u, v, false, false);
 }
 
 void BLI_bilinear_interpolation_char(const unsigned char *buffer, unsigned char *output, int width, int height,
                                      int components, float u, float v)
 {
-	bilinear_interpolation(buffer, NULL, output, NULL, width, height, components, u, v);
+	bilinear_interpolation(buffer, NULL, output, NULL, width, height, components, u, v, false, false);
 }
+
+void BLI_bilinear_interpolation_wrap_fl(const float *buffer, float *output, int width, int height,
+                                        int components, float u, float v, bool wrap_x, bool wrap_y)
+{
+	bilinear_interpolation(NULL, buffer, NULL, output, width, height, components, u, v, wrap_x, wrap_y);
+}
+
+void BLI_bilinear_interpolation_wrap_char(const unsigned char *buffer, unsigned char *output, int width, int height,
+                                          int components, float u, float v, bool wrap_x, bool wrap_y)
+{
+	bilinear_interpolation(buffer, NULL, output, NULL, width, height, components, u, v, wrap_x, wrap_y);
+}
+
 
 /**************************************************************************
  * Filtering method based on
