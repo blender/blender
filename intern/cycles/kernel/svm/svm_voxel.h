@@ -27,6 +27,7 @@ ccl_device void svm_node_tex_voxel(KernelGlobals *kg,
 {
 	uint co_offset, density_out_offset, color_out_offset, space;
 	decode_node_uchar4(node.z, &co_offset, &density_out_offset, &color_out_offset, &space);
+#ifdef __VOLUME__
 	int id = node.y;
 	float3 co = stack_load_float3(stack, co_offset);
 	if(space == NODE_TEX_VOXEL_SPACE_OBJECT) {
@@ -41,10 +42,13 @@ ccl_device void svm_node_tex_voxel(KernelGlobals *kg,
 		tfm.w = read_node_float(kg, offset);
 		co = transform_point(&tfm, co);
 	}
-#if defined(__KERNEL_GPU__)
+#  if defined(__KERNEL_GPU__)
 	float4 r = volume_image_texture_3d(id, co.x, co.y, co.z);
-#else
+#  else
 	float4 r = kernel_tex_image_interp_3d(id, co.x, co.y, co.z);
+#  endif
+#else
+	float4 r = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 #endif
 	if (stack_valid(density_out_offset))
 		stack_store_float(stack, density_out_offset, r.w);
