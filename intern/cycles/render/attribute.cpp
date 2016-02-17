@@ -32,8 +32,9 @@ Attribute::~Attribute()
 	if(element == ATTR_ELEMENT_VOXEL) {
 		VoxelAttribute *voxel_data = data_voxel();
 
-		if(voxel_data)
+		if(voxel_data && voxel_data->slot != -1) {
 			voxel_data->manager->remove_image(voxel_data->slot);
+		}
 	}
 }
 
