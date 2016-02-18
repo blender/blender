@@ -441,9 +441,14 @@ static void node_draw_frame_label(bNodeTree *ntree, bNode *node, const float asp
 
 		for (line = text->lines.first; line; line = line->next) {
 			struct ResultBLF info;
-			BLF_position(fontid, x, y, 0);
-			BLF_draw_ex(fontid, line->line, line->len, &info);
-			y -= line_spacing * info.lines;
+			if (line->line[0]) {
+				BLF_position(fontid, x, y, 0);
+				BLF_draw_ex(fontid, line->line, line->len, &info);
+				y -= line_spacing * info.lines;
+			}
+			else {
+				y -= line_spacing;
+			}
 			if (y < y_min) {
 				break;
 			}
