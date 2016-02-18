@@ -4166,6 +4166,7 @@ static void p_add_ngon(ParamHandle *handle, ParamKey key, int nverts,
 
 	while (nverts > 2) {
 		float minangle = FLT_MAX;
+		float minshape = FLT_MAX;
 		int i, mini = 0;
 
 		/* find corner with smallest angle */
@@ -4181,8 +4182,20 @@ static void p_add_ngon(ParamHandle *handle, ParamKey key, int nverts,
 			if (normal && (dot_v3v3(n, normal) < 0.0f))
 				angle = (float)(2.0 * M_PI) - angle;
 
-			if (angle < minangle) {
+			float other_angle = p_vec_angle(co[v2], co[v0], co[v1]);
+			float shape = fabsf(M_PI - angle - 2.0f * other_angle);
+
+			if (fabsf(angle - minangle) < 0.01f) {
+				/* for nearly equal angles, try to get well shaped triangles */
+				if (shape < minshape) {
+					minangle = angle;
+					minshape = shape;
+					mini = i;
+				}
+			}
+			else if (angle < minangle) {
 				minangle = angle;
+				minshape = shape;
 				mini = i;
 			}
 		}
