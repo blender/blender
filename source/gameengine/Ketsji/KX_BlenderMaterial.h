@@ -133,6 +133,7 @@ public:
 	KX_PYMETHOD_DOC(KX_BlenderMaterial, getMaterialIndex);
 	KX_PYMETHOD_DOC(KX_BlenderMaterial, getTexture);
 	KX_PYMETHOD_DOC(KX_BlenderMaterial, setTexture);
+	KX_PYMETHOD_DOC(KX_BlenderMaterial, getTextureBindcode);
 
 	KX_PYMETHOD_DOC(KX_BlenderMaterial, setBlending);
 #endif  /* WITH_PYTHON */

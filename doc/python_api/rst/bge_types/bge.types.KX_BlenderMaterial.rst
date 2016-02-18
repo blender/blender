@@ -89,6 +89,15 @@ base class --- :class:`PyObjectPlus`
       :return: the material's shader
       :rtype: :class:`BL_Shader`
 
+   .. method:: getTextureBindcode(textureslot)
+
+      Returns the material's texture OpenGL bind code/id/number/name.
+
+      :arg textureslot: Specifies the texture slot number
+      :type textureslot: integer
+      :return: the material's texture OpenGL bind code/id/number/name
+      :rtype: integer
+
    .. attribute:: alpha
 
       The material's alpha transparency.
