@@ -84,6 +84,7 @@
 
 /* local include */
 #include "render_types.h"
+#include "shading.h"
 #include "zbuf.h"
 
 /* Remove when Cycles moves from MFace to MLoopTri */
@@ -263,31 +264,14 @@ static void calc_point_from_barycentric_extrusion(
 }
 
 /**
- * This function returns the barycentric u,v of a face for a coordinate. The face is defined by its index.
- */
-static void calc_barycentric_from_point(
-        TriTessFace *triangles, const int index, const float co[3],
-        int *r_primitive_id, float r_uv[2])
-{
-	TriTessFace *triangle = &triangles[index];
-	resolve_tri_uv_v3(r_uv, co,
-	                  triangle->mverts[0]->co,
-	                  triangle->mverts[1]->co,
-	                  triangle->mverts[2]->co);
-	*r_primitive_id = index;
-}
-
-/**
  * This function populates pixel_array and returns TRUE if things are correct
  */
 static bool cast_ray_highpoly(
-        BVHTreeFromMesh *treeData, TriTessFace *triangles[], BakePixel *pixel_array, BakeHighPolyData *highpoly,
-        const float co[3], const float dir[3], const int pixel_id, const int tot_highpoly,
-        const float du_dx, const float du_dy, const float dv_dx, const float dv_dy)
+        BVHTreeFromMesh *treeData, TriTessFace *triangle_low, TriTessFace *triangles[],
+        BakePixel *pixel_array_low, BakePixel *pixel_array, float mat_low[4][4], BakeHighPolyData *highpoly,
+        const float co[3], const float dir[3], const int pixel_id, const int tot_highpoly)
 {
 	int i;
-	int primitive_id = -1;
-	float uv[2];
 	int hit_mesh = -1;
 	float hit_distance = FLT_MAX;
 
@@ -333,17 +317,47 @@ static bool cast_ray_highpoly(
 	}
 
 	if (hit_mesh != -1) {
-		calc_barycentric_from_point(triangles[hit_mesh], hits[hit_mesh].index, hits[hit_mesh].co, &primitive_id, uv);
-		pixel_array[pixel_id].primitive_id = primitive_id;
-		pixel_array[pixel_id].object_id = hit_mesh;
-		copy_v2_v2(pixel_array[pixel_id].uv, uv);
+		int primitive_id_high = hits[hit_mesh].index;
+		TriTessFace *triangle_high = &triangles[hit_mesh][primitive_id_high];
 
-		/* the differentials are relative to the UV/image space, so the highpoly differentials
-		 * are the same as the low poly differentials */
-		pixel_array[pixel_id].du_dx = du_dx;
-		pixel_array[pixel_id].du_dy = du_dy;
-		pixel_array[pixel_id].dv_dx = dv_dx;
-		pixel_array[pixel_id].dv_dy = dv_dy;
+		pixel_array[pixel_id].primitive_id = primitive_id_high;
+		pixel_array[pixel_id].object_id = hit_mesh;
+
+		/* ray direction in high poly object space */
+		float dir_high[3];
+		mul_v3_mat3_m4v3(dir_high, highpoly[hit_mesh].imat, dir);
+		normalize_v3(dir_high);
+
+		/* compute position differentials on low poly object */
+		float duco_low[3], dvco_low[3], dxco[3], dyco[3];
+		sub_v3_v3v3(duco_low, triangle_low->mverts[0]->co, triangle_low->mverts[2]->co);
+		sub_v3_v3v3(dvco_low, triangle_low->mverts[1]->co, triangle_low->mverts[2]->co);
+
+		mul_v3_v3fl(dxco, duco_low, pixel_array_low[pixel_id].du_dx);
+		madd_v3_v3fl(dxco, dvco_low, pixel_array_low[pixel_id].dv_dx);
+		mul_v3_v3fl(dyco, duco_low, pixel_array_low[pixel_id].du_dy);
+		madd_v3_v3fl(dyco, dvco_low, pixel_array_low[pixel_id].dv_dy);
+
+		/* transform from low poly to to high poly object space */
+		mul_mat3_m4_v3(mat_low, dxco);
+		mul_mat3_m4_v3(mat_low, dyco);
+		mul_mat3_m4_v3(highpoly[hit_mesh].imat, dxco);
+		mul_mat3_m4_v3(highpoly[hit_mesh].imat, dyco);
+
+		/* transfer position differentials */
+		float tmp[3];
+		mul_v3_v3fl(tmp, dir_high, 1.0f/dot_v3v3(dir_high, triangle_high->normal));
+		madd_v3_v3fl(dxco, tmp, -dot_v3v3(dxco, triangle_high->normal));
+		madd_v3_v3fl(dyco, tmp, -dot_v3v3(dyco, triangle_high->normal));
+
+		/* compute barycentric differentials from position differentials */
+		barycentric_differentials_from_position(
+			hits[hit_mesh].co, triangle_high->mverts[0]->co,
+			triangle_high->mverts[1]->co, triangle_high->mverts[2]->co,
+			dxco, dyco, triangle_high->normal, true,
+			&pixel_array[pixel_id].uv[0], &pixel_array[pixel_id].uv[1],
+			&pixel_array[pixel_id].du_dx, &pixel_array[pixel_id].dv_dx,
+			&pixel_array[pixel_id].du_dy, &pixel_array[pixel_id].dv_dy);
 	}
 	else {
 		pixel_array[pixel_id].primitive_id = -1;
@@ -441,17 +455,17 @@ static TriTessFace *mesh_calc_tri_tessface(
 			triangles[i].tspace[0] = &tspace[lt->tri[0]];
 			triangles[i].tspace[1] = &tspace[lt->tri[1]];
 			triangles[i].tspace[2] = &tspace[lt->tri[2]];
+		}
 
-			if (calculate_normal) {
-				if (lt->poly != mpoly_prev) {
-					BKE_mesh_calc_poly_normal(mp, &me->mloop[mp->loopstart], me->mvert, no);
-					mpoly_prev = lt->poly;
-				}
-				copy_v3_v3(triangles[i].normal, no);
+		if (calculate_normal) {
+			if (lt->poly != mpoly_prev) {
+				BKE_mesh_calc_poly_normal(mp, &me->mloop[mp->loopstart], me->mvert, no);
+				mpoly_prev = lt->poly;
 			}
-			else {
-				copy_v3_v3(triangles[i].normal, &precomputed_normals[lt->poly]);
-			}
+			copy_v3_v3(triangles[i].normal, no);
+		}
+		else {
+			copy_v3_v3(triangles[i].normal, &precomputed_normals[lt->poly]);
 		}
 	}
 
@@ -546,9 +560,9 @@ bool RE_bake_pixels_populate_from_objects(
 		}
 
 		/* cast ray */
-		if (!cast_ray_highpoly(treeData, tris_high, pixel_array_to, highpoly, co, dir, i, tot_highpoly,
-		                       pixel_array_from[i].du_dx, pixel_array_from[i].du_dy,
-		                       pixel_array_from[i].dv_dx, pixel_array_from[i].dv_dy)) {
+		if (!cast_ray_highpoly(treeData, &tris_low[primitive_id], tris_high,
+		                       pixel_array_from, pixel_array_to, mat_low,
+		                       highpoly, co, dir, i, tot_highpoly)) {
 			/* if it fails mask out the original pixel array */
 			pixel_array_from[i].primitive_id = -1;
 		}
