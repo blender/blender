@@ -3131,9 +3131,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	copy_m3_m4(imat, ob->imat);
 	negative_scale= is_negative_m4(mat);
 
-	if (me->totvert==0)
-		return;
-	
 	need_orco= 0;
 	for (a=1; a<=ob->totcol; a++) {
 		ma= give_render_material(re, ob, a);
@@ -3194,6 +3191,14 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 		dm= mesh_create_derived_render(re->scene, ob, mask);
 	if (dm==NULL) return;	/* in case duplicated object fails? */
 
+	mvert= dm->getVertArray(dm);
+	totvert= dm->getNumVerts(dm);
+
+	if (totvert == 0) {
+		dm->release(dm);
+		return;
+	}
+
 	if (mask & CD_MASK_ORCO) {
 		orco = get_object_orco(re, ob);
 		if (!orco) {
@@ -3204,9 +3209,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			}
 		}
 	}
-
-	mvert= dm->getVertArray(dm);
-	totvert= dm->getNumVerts(dm);
 
 	/* attempt to autsmooth on original mesh, only without subsurf */
 	if (do_autosmooth && me->totvert==totvert && me->totface==dm->getNumTessFaces(dm))
