@@ -624,13 +624,13 @@ elseif(WIN32)
 		# MinGW TODO: This bit of Python configuration diverges from MSVC
 		if(NOT CMAKE_COMPILER_IS_GNUCC)
 			install(
-				FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.dll ${LIBDIR}/python/lib/sqlite3.dll
+				FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.dll
 				DESTINATION "."
 				CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
 			)
 
 			install(
-				FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}_d.dll ${LIBDIR}/python/lib/sqlite3_d.dll
+				FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}_d.dll
 				DESTINATION "."
 				CONFIGURATIONS Debug
 			)
