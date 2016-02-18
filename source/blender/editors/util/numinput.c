@@ -477,6 +477,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 
 	/* At this point, our value has changed, try to interpret it with python (if str is not empty!). */
 	if (n->str[0]) {
+		const float val_prev = n->val[idx];
 #ifdef WITH_PYTHON
 		Scene *sce = CTX_data_scene(C);
 		double val;
@@ -513,6 +514,11 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 		}
 		if (n->val_flag[idx] & NUM_INVERSE) {
 			n->val[idx] = 1.0f / n->val[idx];
+		}
+
+		if (UNLIKELY(!isfinite(n->val[idx]))) {
+			n->val[idx] = val_prev;
+			n->val_flag[idx] |= NUM_INVALID;
 		}
 	}
 
