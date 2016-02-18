@@ -32,6 +32,7 @@
 #define __ED_UTIL_H__
 
 struct bContext;
+struct SpaceLink;
 struct wmOperator;
 struct wmOperatorType;
 

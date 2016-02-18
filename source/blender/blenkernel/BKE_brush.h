@@ -32,6 +32,7 @@ struct ImBuf;
 struct ImagePool;
 struct Main;
 struct Scene;
+struct UnifiedPaintSettings;
 // enum CurveMappingPreset;
 
 
@@ -60,8 +61,9 @@ int BKE_brush_clone_image_set_nr(struct Brush *brush, int nr);
 int BKE_brush_clone_image_delete(struct Brush *brush);
 
 /* jitter */
-void BKE_brush_jitter_pos(const struct Scene *scene, struct Brush *brush,
-                          const float pos[2], float jitterpos[2]);
+void BKE_brush_jitter_pos(
+        const struct Scene *scene, struct Brush *brush,
+        const float pos[2], float jitterpos[2]);
 void BKE_brush_randomize_texture_coords(struct UnifiedPaintSettings *ups, bool mask);
 
 /* brush curve */
@@ -70,10 +72,12 @@ float BKE_brush_curve_strength_clamped(struct Brush *br, float p, const float le
 float BKE_brush_curve_strength(struct Brush *br, float p, const float len);
 
 /* sampling */
-float BKE_brush_sample_tex_3D(const Scene *scene, struct Brush *br, const float point[3],
-                              float rgba[4], const int thread, struct ImagePool *pool);
-float BKE_brush_sample_masktex(const Scene *scene, struct Brush *br, const float point[2],
-                               const int thread, struct ImagePool *pool);
+float BKE_brush_sample_tex_3D(
+        const struct Scene *scene, struct Brush *br, const float point[3],
+        float rgba[4], const int thread, struct ImagePool *pool);
+float BKE_brush_sample_masktex(
+        const struct Scene *scene, struct Brush *br, const float point[2],
+        const int thread, struct ImagePool *pool);
 
 /* texture */
 unsigned int *BKE_brush_gen_texture_cache(struct Brush *br, int half_side, bool use_secondary);
@@ -94,9 +98,9 @@ float BKE_brush_unprojected_radius_get(const struct Scene *scene, const struct B
 void  BKE_brush_unprojected_radius_set(struct Scene *scene, struct Brush *brush, float value);
 
 float BKE_brush_alpha_get(const struct Scene *scene, const struct Brush *brush);
-void BKE_brush_alpha_set(Scene *scene, struct Brush *brush, float alpha);
-float BKE_brush_weight_get(const Scene *scene, const struct Brush *brush);
-void BKE_brush_weight_set(const Scene *scene, struct Brush *brush, float value);
+void BKE_brush_alpha_set(struct Scene *scene, struct Brush *brush, float alpha);
+float BKE_brush_weight_get(const struct Scene *scene, const struct Brush *brush);
+void BKE_brush_weight_set(const struct Scene *scene, struct Brush *brush, float value);
 
 int  BKE_brush_use_locked_size(const struct Scene *scene, const struct Brush *brush);
 int  BKE_brush_use_alpha_pressure(const struct Scene *scene, const struct Brush *brush);
