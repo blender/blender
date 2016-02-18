@@ -113,6 +113,10 @@ GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 		gc->max_glyph_height = (int)(((float)font->face->size->metrics.height) / 64.0f);
 	}
 
+	/* can happen with size 1 fonts */
+	CLAMP_MIN(gc->max_glyph_width, 1);
+	CLAMP_MIN(gc->max_glyph_height, 1);
+
 	gc->p2_width = 0;
 	gc->p2_height = 0;
 
