@@ -621,21 +621,6 @@ elseif(WIN32)
 	if(WITH_PYTHON)
 		string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 
-		# MinGW TODO: This bit of Python configuration diverges from MSVC
-		if(NOT CMAKE_COMPILER_IS_GNUCC)
-			install(
-				FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.dll ${LIBDIR}/python/lib/sqlite3.dll
-				DESTINATION "."
-				CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
-			)
-
-			install(
-				FILES ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}_d.dll ${LIBDIR}/python/lib/sqlite3_d.dll
-				DESTINATION "."
-				CONFIGURATIONS Debug
-			)
-		endif()
-
 		if(WITH_PYTHON_INSTALL)
 			# note, as far as python is concerned 'RelWithDebInfo' is not debug since its without debug flags.
 
