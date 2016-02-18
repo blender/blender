@@ -141,7 +141,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 				VolumeIntegrateResult result = VOLUME_PATH_ATTENUATED;
 
 				if(volume_segment.closure_flag & SD_SCATTER) {
-					bool all = kernel_data.integrator.sample_all_lights_indirect;
+					int all = kernel_data.integrator.sample_all_lights_indirect;
 
 					/* direct light sampling */
 					kernel_branched_path_volume_connect_light(kg,
@@ -374,7 +374,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 
 #if defined(__EMISSION__) && defined(__BRANCHED_PATH__)
 		if(kernel_data.integrator.use_direct_light) {
-			bool all = kernel_data.integrator.sample_all_lights_indirect;
+			int all = kernel_data.integrator.sample_all_lights_indirect;
 			kernel_branched_path_surface_connect_light(kg,
 			                                           rng,
 			                                           &sd,
@@ -705,7 +705,7 @@ ccl_device_inline float4 kernel_path_integrate(KernelGlobals *kg,
 				VolumeIntegrateResult result = VOLUME_PATH_ATTENUATED;
 
 				if(volume_segment.closure_flag & SD_SCATTER) {
-					bool all = false;
+					int all = false;
 
 					/* direct light sampling */
 					kernel_branched_path_volume_connect_light(kg, rng, &volume_sd,

@@ -150,7 +150,7 @@ ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadian
 #if defined(__EMISSION__)
 			/* direct light */
 			if(kernel_data.integrator.use_direct_light) {
-				bool all = kernel_data.integrator.sample_all_lights_direct;
+				int all = kernel_data.integrator.sample_all_lights_direct;
 				kernel_branched_path_surface_connect_light(kg, &rng,
 					sd, &state, throughput, 1.0f, &L_sample, all);
 			}

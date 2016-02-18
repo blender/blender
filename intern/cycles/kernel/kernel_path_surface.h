@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
 
 /* branched path tracing: connect path directly to position on one or more lights and add it to L */
 ccl_device_noinline void kernel_branched_path_surface_connect_light(KernelGlobals *kg, RNG *rng,
-	ShaderData *sd, PathState *state, float3 throughput, float num_samples_adjust, PathRadiance *L, bool sample_all_lights)
+	ShaderData *sd, PathState *state, float3 throughput, float num_samples_adjust, PathRadiance *L, int sample_all_lights)
 {
 #ifdef __EMISSION__
 	/* sample illumination from lights to find path contribution */
