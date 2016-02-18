@@ -62,7 +62,10 @@ ccl_device void svm_node_light_falloff(ShaderData *sd, float *stack, uint4 node)
 
 	if(smooth > 0.0f) {
 		float squared = ccl_fetch(sd, ray_length)*ccl_fetch(sd, ray_length);
-		strength *= squared/(smooth + squared);
+		/* Distant lamps set the ray length to FLT_MAX, which causes squared to overflow. */
+		if(isfinite(squared)) {
+			strength *= squared/(smooth + squared);
+		}
 	}
 
 	stack_store_float(stack, out_offset, strength);

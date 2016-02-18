@@ -378,6 +378,7 @@ ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg, PathRadi
 
 		/* Reject invalid value */
 		if(!isfinite(sum)) {
+			kernel_assert(!"Non-finite sum in path_radiance_clamp_and_sum!");
 			L_sum = make_float3(0.0f, 0.0f, 0.0f);
 
 			L->direct_diffuse = make_float3(0.0f, 0.0f, 0.0f);
@@ -445,8 +446,10 @@ ccl_device_inline float3 path_radiance_clamp_and_sum(KernelGlobals *kg, PathRadi
 
 	/* Reject invalid value */
 	float sum = fabsf((L_sum).x) + fabsf((L_sum).y) + fabsf((L_sum).z);
-	if(!isfinite(sum))
+	if(!isfinite(sum)) {
+		kernel_assert(!"Non-finite final sum in path_radiance_clamp_and_sum!");
 		L_sum = make_float3(0.0f, 0.0f, 0.0f);
+	}
 
 	return L_sum;
 }
