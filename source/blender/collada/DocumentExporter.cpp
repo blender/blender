@@ -160,7 +160,7 @@ static COLLADABU::NativeString make_temp_filepath(const char *name, const char *
 	const char *tempdir = BKE_tempdir_session();
 
 	if (name == NULL) {
-		name = tmpnam(NULL);
+		name = "untitled";
 	}
 
 	BLI_make_file_string(NULL, tempfile, tempdir, name);
