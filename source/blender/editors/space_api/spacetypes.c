@@ -249,8 +249,10 @@ void ED_region_draw_cb_draw(const bContext *C, ARegion *ar, int type)
 	RegionDrawCB *rdc;
 	
 	for (rdc = ar->type->drawcalls.first; rdc; rdc = rdc->next) {
-		if (rdc->type == type)
+		if (rdc->type == type) {
+			UI_reinit_gl_state();
 			rdc->draw(C, ar, rdc->customdata);
+		}
 	}
 }
 
