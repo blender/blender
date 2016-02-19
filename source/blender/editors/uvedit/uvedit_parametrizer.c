@@ -4183,7 +4183,7 @@ static void p_add_ngon(ParamHandle *handle, ParamKey key, int nverts,
 				angle = (float)(2.0 * M_PI) - angle;
 
 			float other_angle = p_vec_angle(co[v2], co[v0], co[v1]);
-			float shape = fabsf(M_PI - angle - 2.0f * other_angle);
+			float shape = fabsf((float)M_PI - angle - 2.0f * other_angle);
 
 			if (fabsf(angle - minangle) < 0.01f) {
 				/* for nearly equal angles, try to get well shaped triangles */
