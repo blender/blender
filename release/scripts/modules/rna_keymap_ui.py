@@ -70,7 +70,7 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
 
     col = _indented_layout(layout, level)
 
-    row = col.row()
+    row = col.row(align=True)
     row.prop(km, "show_expanded_children", text="", emboss=False)
     row.label(text=km.name, text_ctxt=i18n_contexts.id_windowmanager)
 
@@ -89,7 +89,7 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
             # Put the Parent key map's entries in a 'global' sub-category
             # equal in hierarchy to the other children categories
             subcol = _indented_layout(col, level + 1)
-            subrow = subcol.row()
+            subrow = subcol.row(align=True)
             subrow.prop(km, "show_expanded_items", text="", emboss=False)
             subrow.label(text=iface_("%s (Global)") % km.name, translate=False)
         else:
@@ -107,12 +107,14 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
             subcol.operator("wm.keyitem_add", text="Add New", text_ctxt=i18n_contexts.id_windowmanager,
                             icon='ZOOMIN')
 
-        col.separator()
+            col.separator()
 
         # Child key maps
         if children:
             for entry in children:
                 draw_entry(display_keymaps, entry, col, level + 1)
+
+        col.separator()
 
 
 def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
@@ -126,7 +128,7 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
     else:
         box = col.column()
 
-    split = box.split(percentage=0.05)
+    split = box.split(percentage=0.01)
 
     # header bar
     row = split.row()
