@@ -97,12 +97,13 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
 
         # Key Map items
         if km.show_expanded_items:
+            kmi_level = level + 3 if children else level + 1
             for kmi in km.keymap_items:
-                draw_kmi(display_keymaps, kc, km, kmi, col, level + 1)
+                draw_kmi(display_keymaps, kc, km, kmi, col, kmi_level)
 
             # "Add New" at end of keymap item list
-            col = _indented_layout(col, level + 1)
-            subcol = col.split(percentage=0.2).column()
+            subcol = _indented_layout(col, kmi_level)
+            subcol = subcol.split(percentage=0.2).column()
             subcol.operator("wm.keyitem_add", text="Add New", text_ctxt=i18n_contexts.id_windowmanager,
                             icon='ZOOMIN')
 
@@ -110,9 +111,6 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
 
         # Child key maps
         if children:
-            subcol = col.column()
-            row = subcol.row()
-
             for entry in children:
                 draw_entry(display_keymaps, entry, col, level + 1)
 
