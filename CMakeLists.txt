@@ -673,8 +673,11 @@ if(NOT WITH_BOOST)
 elseif(WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_AUDASPACE OR WITH_INTERNATIONAL OR WITH_OPENVDB OR WITH_OPENCOLORIO OR WITH_MOD_BOOLEAN)
 	# Keep enabled
 else()
-	# Enabled but we don't need it
-	set(WITH_BOOST OFF)
+	# New dependency graph needs either Boost or C++11 for function bindings.
+	if(NOT USE_CPP11)
+		# Enabled but we don't need it
+		set(WITH_BOOST OFF)
+	endif()
 endif()
 
 # auto enable openimageio for cycles
