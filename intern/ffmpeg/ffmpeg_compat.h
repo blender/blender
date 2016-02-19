@@ -447,7 +447,7 @@ AVRational av_get_r_frame_rate_compat(const AVStream *stream)
 #endif
 
 /* Since FFmpeg-1.1 this constant have AV_ prefix. */
-#if LIBAVUTIL_VERSION_INT < AV_VERSION_INT(52, 13, 100)
+#if LIBAVUTIL_VERSION_INT < AV_VERSION_INT(52, 3, 100)
 #  define AV_PIX_FMT_BGR32 PIX_FMT_BGR32
 #  define AV_PIX_FMT_YUV422P PIX_FMT_YUV422P
 #  define AV_PIX_FMT_BGRA PIX_FMT_BGRA
