@@ -53,7 +53,7 @@ extern "C"
 
 OIIO_NAMESPACE_USING
 
-using namespace std;
+using std::string;
 
 typedef unsigned char uchar;
 
