@@ -2530,13 +2530,15 @@ void BKE_scene_multiview_view_prefix_get(Scene *scene, const char *name, char *r
 
 	/* begin of extension */
 	index_act = BLI_str_rpartition(name, delims, rext, &suf_act);
+	if (*rext == NULL)
+		return;
 	BLI_assert(index_act > 0);
 	UNUSED_VARS_NDEBUG(index_act);
 
 	for (srv = scene->r.views.first; srv; srv = srv->next) {
 		if (BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
 			size_t len = strlen(srv->suffix);
-			if (STREQLEN(*rext - len, srv->suffix, len)) {
+			if (strlen(*rext) >= len && STREQLEN(*rext - len, srv->suffix, len)) {
 				BLI_strncpy(rprefix, name, strlen(name) - strlen(*rext) - len + 1);
 				break;
 			}
