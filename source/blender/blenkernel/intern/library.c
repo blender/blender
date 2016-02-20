@@ -209,11 +209,6 @@ void id_us_min(ID *id)
 	if (id) {
 		const int limit = ID_FAKE_USERS(id);
 
-		if ((id->us == limit) && (id->tag & LIB_TAG_EXTRAUSER) && !(id->tag & LIB_TAG_EXTRAUSER_SET)) {
-			/* We need an extra user here, but never actually incremented user count for it so far, do it now. */
-			id_us_ensure_real(id);
-		}
-
 		if (id->us <= limit) {
 			printf("ID user decrement error: %s (from '%s'): %d <= %d\n",
 			       id->name, id->lib ? id->lib->filepath : "[Main]", id->us, limit);
@@ -224,6 +219,11 @@ void id_us_min(ID *id)
 		}
 		else {
 			id->us--;
+		}
+
+		if ((id->us == limit) && (id->tag & LIB_TAG_EXTRAUSER)) {
+			/* We need an extra user here, but never actually incremented user count for it so far, do it now. */
+			id_us_ensure_real(id);
 		}
 	}
 }
