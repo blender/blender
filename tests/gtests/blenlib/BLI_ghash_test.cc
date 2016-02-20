@@ -156,3 +156,45 @@ TEST(ghash, Copy)
 	BLI_ghash_free(ghash, NULL, NULL);
 	BLI_ghash_free(ghash_copy, NULL, NULL);
 }
+
+/* Check pop. */
+TEST(ghash, Pop)
+{
+	GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);
+	unsigned int keys[TESTCASE_SIZE], *k;
+	int i;
+
+	BLI_ghash_flag_set(ghash, GHASH_FLAG_ALLOW_SHRINK);
+	init_keys(keys, 30);
+
+	for (i = TESTCASE_SIZE, k = keys; i--; k++) {
+		BLI_ghash_insert(ghash, SET_UINT_IN_POINTER(*k), SET_UINT_IN_POINTER(*k));
+	}
+
+	EXPECT_EQ(TESTCASE_SIZE, BLI_ghash_size(ghash));
+
+	GHashIterState pop_state = {0};
+
+	for (i = TESTCASE_SIZE / 2; i--; ) {
+		void *k, *v;
+		bool success = BLI_ghash_pop(ghash, &pop_state, &k, &v);
+		EXPECT_EQ(k, v);
+		EXPECT_EQ(success, true);
+
+		if (i % 2) {
+			BLI_ghash_insert(ghash, SET_UINT_IN_POINTER(i * 4), SET_UINT_IN_POINTER(i * 4));
+		}
+	}
+
+	EXPECT_EQ((TESTCASE_SIZE - TESTCASE_SIZE / 2 + TESTCASE_SIZE / 4), BLI_ghash_size(ghash));
+
+	{
+		void *k, *v;
+		while (BLI_ghash_pop(ghash, &pop_state, &k, &v)) {
+			EXPECT_EQ(k, v);
+		}
+	}
+	EXPECT_EQ(0, BLI_ghash_size(ghash));
+
+	BLI_ghash_free(ghash, NULL, NULL);
+}

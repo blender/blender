@@ -196,6 +196,21 @@ static void int_ghash_tests(GHash *ghash, const char *id, const unsigned int nbr
 		TIMEIT_END(int_lookup);
 	}
 
+	{
+		void *k, *v;
+
+		TIMEIT_START(int_pop);
+
+		GHashIterState pop_state = {0};
+
+		while (BLI_ghash_pop(ghash, &pop_state, &k, &v)) {
+			EXPECT_EQ(k, v);
+		}
+
+		TIMEIT_END(int_pop);
+	}
+	EXPECT_EQ(0, BLI_ghash_size(ghash));
+
 	BLI_ghash_free(ghash, NULL, NULL);
 
 	printf("========== ENDED %s ==========\n\n", id);
