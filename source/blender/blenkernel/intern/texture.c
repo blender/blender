@@ -254,9 +254,7 @@ void BKE_texture_default(Tex *tex)
   tex->vn_distm = 0;
   tex->vn_coltype = 0;
 
-  tex->iuser.ok = 1;
-  tex->iuser.frames = 100;
-  tex->iuser.sfra = 1;
+  BKE_imageuser_default(&tex->iuser);
 
   tex->preview = NULL;
 }

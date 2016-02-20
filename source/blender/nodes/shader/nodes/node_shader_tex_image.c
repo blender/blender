@@ -58,9 +58,7 @@ static void node_shader_init_tex_image(bNodeTree *UNUSED(ntree), bNode *node)
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->color_space = SHD_COLORSPACE_COLOR;
-  tex->iuser.frames = 1;
-  tex->iuser.sfra = 1;
-  tex->iuser.ok = 1;
+  BKE_imageuser_default(&tex->iuser);
 
   node->storage = tex;
 }

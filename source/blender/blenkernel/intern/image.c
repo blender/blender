@@ -3029,7 +3029,15 @@ static void image_tag_reload(Image *ima, ImageUser *iuser, void *customdata)
   }
 }
 
-static void image_init_imageuser(Image *ima, ImageUser *iuser)
+void BKE_imageuser_default(ImageUser *iuser)
+{
+  memset(iuser, 0, sizeof(ImageUser));
+  iuser->ok = true;
+  iuser->frames = 100;
+  iuser->sfra = 1;
+}
+
+void BKE_image_init_imageuser(Image *ima, ImageUser *iuser)
 {
   RenderResult *rr = ima->rr;
 
@@ -3038,11 +3046,6 @@ static void image_init_imageuser(Image *ima, ImageUser *iuser)
 
   if (rr)
     BKE_image_multilayer_index(rr, iuser);
-}
-
-void BKE_image_init_imageuser(Image *ima, ImageUser *iuser)
-{
-  image_init_imageuser(ima, iuser);
 }
 
 void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
@@ -3146,7 +3149,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
         iuser->ok = 1;
         if (ima->source == IMA_SRC_FILE || ima->source == IMA_SRC_SEQUENCE) {
           if (ima->type == IMA_TYPE_MULTILAYER) {
-            image_init_imageuser(ima, iuser);
+            BKE_image_init_imageuser(ima, iuser);
           }
         }
       }

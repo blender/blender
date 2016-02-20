@@ -233,6 +233,7 @@ struct Image *BKE_image_add_generated(struct Main *bmain,
 struct Image *BKE_image_add_from_imbuf(struct Main *bmain, struct ImBuf *ibuf, const char *name);
 
 /* for reload, refresh, pack */
+void BKE_imageuser_default(struct ImageUser *iuser);
 void BKE_image_init_imageuser(struct Image *ima, struct ImageUser *iuser);
 void BKE_image_signal(struct Main *bmain, struct Image *ima, struct ImageUser *iuser, int signal);
 
