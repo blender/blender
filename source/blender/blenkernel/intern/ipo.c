@@ -71,6 +71,7 @@
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_nla.h"
@@ -330,7 +331,7 @@ static const char *constraint_adrcodes_to_paths(int adrcode, int *array_index)
  * NOTE: as we don't have access to the keyblock where the data comes from (for now), 
  *       we'll just use numerical indices for now...
  */
-static char *shapekey_adrcodes_to_paths(int adrcode, int *UNUSED(array_index))
+static char *shapekey_adrcodes_to_paths(ID *id, int adrcode, int *UNUSED(array_index))
 {
 	static char buf[128];
 	
@@ -340,8 +341,19 @@ static char *shapekey_adrcodes_to_paths(int adrcode, int *UNUSED(array_index))
 		BLI_strncpy(buf, "eval_time", sizeof(buf));
 	}
 	else {
+		/* Find the name of the ShapeKey (i.e. KeyBlock) to look for */
+		Key *key = (Key *)id;
+		KeyBlock *kb = BKE_keyblock_from_key(key, adrcode);
+		
 		/* setting that we alter is the "value" (i.e. keyblock.curval) */
-		BLI_snprintf(buf, sizeof(buf), "key_blocks[%d].value", adrcode);
+		if (kb) {
+			/* Use the keyblock name, escaped, so that path lookups for this will work */
+			BLI_snprintf(buf, sizeof(buf), "key_blocks[\"%s\"].value", kb->name);
+		}
+		else {
+			/* Fallback - Use the adrcode as index directly, so that this can be manually fixed */
+			BLI_snprintf(buf, sizeof(buf), "key_blocks[%d].value", adrcode);
+		}
 	}
 	return buf;
 }
@@ -799,13 +811,14 @@ static const char *particle_adrcodes_to_paths(int adrcode, int *array_index)
 
 /* Allocate memory for RNA-path for some property given a blocktype, adrcode, and 'root' parts of path
  *	Input:
+ *		- id					- the datablock that the curve's IPO block is attached to and/or which the new paths will start from
  *		- blocktype, adrcode	- determines setting to get
  *		- actname, constname,seq - used to build path
  *	Output:
  *		- array_index			- index in property's array (if applicable) to use
  *		- return				- the allocated path...
  */
-static char *get_rna_access(int blocktype, int adrcode, char actname[], char constname[], Sequence *seq, int *array_index)
+static char *get_rna_access(ID *id, int blocktype, int adrcode, char actname[], char constname[], Sequence *seq, int *array_index)
 {
 	DynStr *path = BLI_dynstr_new();
 	const char *propname = NULL;
@@ -828,7 +841,7 @@ static char *get_rna_access(int blocktype, int adrcode, char actname[], char con
 			break;
 			
 		case ID_KE: /* shapekeys */
-			propname = shapekey_adrcodes_to_paths(adrcode, &dummy_index);
+			propname = shapekey_adrcodes_to_paths(id, adrcode, &dummy_index);
 			break;
 			
 		case ID_CO: /* constraint */
@@ -1274,7 +1287,7 @@ static void icu_to_fcurves(ID *id, ListBase *groups, ListBase *list, IpoCurve *i
 		/* get rna-path
 		 *	- we will need to set the 'disabled' flag if no path is able to be made (for now)
 		 */
-		fcu->rna_path = get_rna_access(icu->blocktype, icu->adrcode, actname, constname, seq, &fcu->array_index);
+		fcu->rna_path = get_rna_access(id, icu->blocktype, icu->adrcode, actname, constname, seq, &fcu->array_index);
 		if (fcu->rna_path == NULL)
 			fcu->flag |= FCURVE_DISABLED;
 		
