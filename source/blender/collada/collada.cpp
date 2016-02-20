@@ -133,11 +133,11 @@ int collada_export(Scene *sce,
 	}
 
 	DocumentExporter exporter(&export_settings);
-	exporter.exportCurrentScene(sce);
+	int status = exporter.exportCurrentScene(sce);
 
 	BLI_linklist_free(export_settings.export_set, NULL);
 
-	return export_count;
+	return (status) ? -1:export_count;
 }
 
 /* end extern C */

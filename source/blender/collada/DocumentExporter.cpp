@@ -178,7 +178,7 @@ static COLLADABU::NativeString make_temp_filepath(const char *name, const char *
 // COLLADA allows this through multiple <channel>s in <animation>.
 // For this to work, we need to know objects that use a certain action.
 
-void DocumentExporter::exportCurrentScene(Scene *sce)
+int DocumentExporter::exportCurrentScene(Scene *sce)
 {
 	PointerRNA sceneptr, unit_settings;
 	PropertyRNA *system; /* unused , *scale; */
@@ -331,8 +331,13 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 
 	// Finally move the created document into place
 	int status = BLI_rename(native_filename.c_str(), this->export_settings->filepath);
-	fprintf(stdout, "Collada moved buffer : %s (Status: %d)\n", this->export_settings->filepath, status);
-
+	if (status != 0)
+	{
+		fprintf(stdout, "Collada: Can't move buffer  %s\n", native_filename.c_str());
+		fprintf(stdout, "         to its destination %s\n", this->export_settings->filepath);
+		fprintf(stdout, "Reason : %s\n", errno ? strerror(errno) : "unknown error");
+	}
+	return status;
 }
 
 void DocumentExporter::exportScenes(const char *filename)

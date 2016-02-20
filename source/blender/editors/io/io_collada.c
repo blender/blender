@@ -175,6 +175,10 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_WARNING, "Export file is empty");
 		return OPERATOR_CANCELLED;
 	}
+	else if (export_count < 0) {
+		BKE_report(op->reports, RPT_WARNING, "Error during export (see Console)");
+		return OPERATOR_CANCELLED;
+	}
 	else {
 		char buff[100];
 		sprintf(buff, "Exported %d Objects", export_count);
