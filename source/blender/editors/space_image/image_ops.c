@@ -1679,16 +1679,32 @@ void IMAGE_OT_replace(wmOperatorType *ot)
 /******************** save image as operator ********************/
 
 typedef struct {
-  /* matching scene->r settings */
-  //short planes, imtype, subimtype, quality;
+  /* Context within which image is saved. */
+  Main *bmain;
+  Scene *scene;
+
+  /* Matching scene->r settings */
   ImageFormatData im_format;
   char filepath[FILE_MAX]; /* keep absolute */
+
+  bool relative;
+  bool save_copy;
+  bool save_as_render;
+  bool do_newpath;
 } SaveImageOptions;
 
-static void save_image_options_defaults(SaveImageOptions *simopts)
+static void save_image_options_defaults(SaveImageOptions *simopts, Main *bmain, Scene *scene)
 {
+  simopts->bmain = bmain;
+  simopts->scene = scene;
+
   BKE_imformat_defaults(&simopts->im_format);
   simopts->filepath[0] = '\0';
+
+  simopts->relative = false;
+  simopts->save_copy = false;
+  simopts->save_as_render = false;
+  simopts->do_newpath = false;
 }
 
 static char imtype_best_depth(ImBuf *ibuf, const char imtype)
@@ -1732,16 +1748,16 @@ static char imtype_best_depth(ImBuf *ibuf, const char imtype)
 
 static int save_image_options_init(Main *bmain,
                                    SaveImageOptions *simopts,
-                                   SpaceImage *sima,
-                                   Scene *scene,
+                                   Image *ima,
+                                   ImageUser *iuser,
                                    const bool guess_path,
                                    const bool save_as_render)
 {
   void *lock;
-  ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
 
   if (ibuf) {
-    Image *ima = sima->image;
+    Scene *scene = simopts->scene;
     bool is_depth_set = false;
 
     if (ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
@@ -1817,7 +1833,7 @@ static int save_image_options_init(Main *bmain,
     BKE_color_managed_view_settings_copy(&simopts->im_format.view_settings, &scene->view_settings);
   }
 
-  ED_space_image_release_buffer(sima, ibuf, lock);
+  BKE_image_release_ibuf(ima, ibuf, lock);
 
   return (ibuf != NULL);
 }
@@ -1847,69 +1863,68 @@ static void save_image_options_to_op(SaveImageOptions *simopts, wmOperator *op)
   RNA_string_set(op->ptr, "filepath", simopts->filepath);
 }
 
-static void save_image_post(Main *bmain,
-                            wmOperator *op,
-                            ImBuf *ibuf,
+static void save_image_post(ReportList *reports,
+                            Main *bmain,
                             Image *ima,
+                            ImBuf *ibuf,
                             int ok,
+                            SaveImageOptions *simopts,
                             int save_copy,
-                            const char *relbase,
-                            int relative,
-                            int do_newpath,
                             const char *filepath)
 {
-  if (ok) {
-    if (!save_copy) {
-      ColorManagedColorspaceSettings old_colorspace_settings;
+  if (!ok) {
+    BKE_reportf(reports, RPT_ERROR, "Could not write image: %s", strerror(errno));
+    return;
+  }
 
-      if (do_newpath) {
-        BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
-        BLI_strncpy(ima->name, filepath, sizeof(ima->name));
-      }
+  if (save_copy) {
+    return;
+  }
 
-      ibuf->userflags &= ~IB_BITMAPDIRTY;
+  if (simopts->do_newpath) {
+    BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
+    BLI_strncpy(ima->name, filepath, sizeof(ima->name));
+  }
 
-      /* change type? */
-      if (ima->type == IMA_TYPE_R_RESULT) {
-        ima->type = IMA_TYPE_IMAGE;
+  ibuf->userflags &= ~IB_BITMAPDIRTY;
 
-        /* workaround to ensure the render result buffer is no longer used
+  /* change type? */
+  if (ima->type == IMA_TYPE_R_RESULT) {
+    ima->type = IMA_TYPE_IMAGE;
+
+    /* workaround to ensure the render result buffer is no longer used
          * by this image, otherwise can crash when a new render result is
          * created. */
-        if (ibuf->rect && !(ibuf->mall & IB_rect)) {
-          imb_freerectImBuf(ibuf);
-        }
-        if (ibuf->rect_float && !(ibuf->mall & IB_rectfloat)) {
-          imb_freerectfloatImBuf(ibuf);
-        }
-        if (ibuf->zbuf && !(ibuf->mall & IB_zbuf)) {
-          IMB_freezbufImBuf(ibuf);
-        }
-        if (ibuf->zbuf_float && !(ibuf->mall & IB_zbuffloat)) {
-          IMB_freezbuffloatImBuf(ibuf);
-        }
-      }
-      if (ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
-        ima->source = IMA_SRC_FILE;
-        ima->type = IMA_TYPE_IMAGE;
-      }
-
-      /* only image path, never ibuf */
-      if (relative) {
-        BLI_path_rel(ima->name, relbase); /* only after saving */
-      }
-
-      BKE_color_managed_colorspace_settings_copy(&old_colorspace_settings,
-                                                 &ima->colorspace_settings);
-      IMB_colormanagement_colorspace_from_ibuf_ftype(&ima->colorspace_settings, ibuf);
-      if (!BKE_color_managed_colorspace_settings_equals(&old_colorspace_settings,
-                                                        &ima->colorspace_settings)) {
-        BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_COLORMANAGE);
-      }
+    if (ibuf->rect && !(ibuf->mall & IB_rect)) {
+      imb_freerectImBuf(ibuf);
+    }
+    if (ibuf->rect_float && !(ibuf->mall & IB_rectfloat)) {
+      imb_freerectfloatImBuf(ibuf);
+    }
+    if (ibuf->zbuf && !(ibuf->mall & IB_zbuf)) {
+      IMB_freezbufImBuf(ibuf);
+    }
+    if (ibuf->zbuf_float && !(ibuf->mall & IB_zbuffloat)) {
+      IMB_freezbuffloatImBuf(ibuf);
     }
   }
-  else {
-    BKE_reportf(op->reports, RPT_ERROR, "Could not write image: %s", strerror(errno));
+  if (ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
+    ima->source = IMA_SRC_FILE;
+    ima->type = IMA_TYPE_IMAGE;
+  }
+
+  /* only image path, never ibuf */
+  if (simopts->relative) {
+    const char *relbase = ID_BLEND_PATH(simopts->bmain, &ima->id);
+    BLI_path_rel(ima->name, relbase); /* only after saving */
+  }
+
+  ColorManagedColorspaceSettings old_colorspace_settings;
+  BKE_color_managed_colorspace_settings_copy(&old_colorspace_settings, &ima->colorspace_settings);
+  IMB_colormanagement_colorspace_from_ibuf_ftype(&ima->colorspace_settings, ibuf);
+  if (!BKE_color_managed_colorspace_settings_equals(&old_colorspace_settings,
+                                                    &ima->colorspace_settings)) {
+    BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_COLORMANAGE);
   }
 }
 
@@ -1934,262 +1949,282 @@ static void save_imbuf_post(ImBuf *ibuf, ImBuf *colormanaged_ibuf)
  * \note for multiview the first ``ibuf`` is important to get the settings.
  */
 static bool save_image_doit(
-    bContext *C, SpaceImage *sima, wmOperator *op, SaveImageOptions *simopts, bool do_newpath)
+    ReportList *reports, Main *bmain, Image *ima, ImageUser *iuser, SaveImageOptions *simopts)
 {
-  Main *bmain = CTX_data_main(C);
-  Image *ima = ED_space_image(sima);
   void *lock;
-  ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
-  Scene *scene;
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
   RenderResult *rr = NULL;
   bool ok = false;
 
-  WM_cursor_wait(1);
+  if (ibuf == NULL || (ibuf->rect == NULL && ibuf->rect_float == NULL)) {
+    BKE_image_release_ibuf(ima, ibuf, &lock);
+    goto cleanup;
+  }
 
-  if (ibuf) {
-    ImBuf *colormanaged_ibuf = NULL;
-    const char *relbase = ID_BLEND_PATH(CTX_data_main(C), &ima->id);
-    const bool relative = (RNA_struct_find_property(op->ptr, "relative_path") &&
-                           RNA_boolean_get(op->ptr, "relative_path"));
-    const bool save_copy = (RNA_struct_find_property(op->ptr, "copy") &&
-                            RNA_boolean_get(op->ptr, "copy"));
-    const bool save_as_render = (RNA_struct_find_property(op->ptr, "save_as_render") &&
-                                 RNA_boolean_get(op->ptr, "save_as_render"));
-    ImageFormatData *imf = &simopts->im_format;
+  ImBuf *colormanaged_ibuf = NULL;
+  const bool save_copy = simopts->save_copy;
+  const bool save_as_render = simopts->save_as_render;
+  ImageFormatData *imf = &simopts->im_format;
 
-    /* old global to ensure a 2nd save goes to same dir */
-    BLI_strncpy(G.ima, simopts->filepath, sizeof(G.ima));
-
-    if (ima->type == IMA_TYPE_R_RESULT) {
-      /* enforce user setting for RGB or RGBA, but skip BW */
-      if (simopts->im_format.planes == R_IMF_PLANES_RGBA) {
-        ibuf->planes = R_IMF_PLANES_RGBA;
-      }
-      else if (simopts->im_format.planes == R_IMF_PLANES_RGB) {
-        ibuf->planes = R_IMF_PLANES_RGB;
-      }
+  if (ima->type == IMA_TYPE_R_RESULT) {
+    /* enforce user setting for RGB or RGBA, but skip BW */
+    if (simopts->im_format.planes == R_IMF_PLANES_RGBA) {
+      ibuf->planes = R_IMF_PLANES_RGBA;
     }
-    else {
-      /* TODO, better solution, if a 24bit image is painted onto it may contain alpha */
-      if ((simopts->im_format.planes == R_IMF_PLANES_RGBA) &&
-          /* it has been painted onto */
-          (ibuf->userflags & IB_BITMAPDIRTY)) {
-        /* checks each pixel, not ideal */
-        ibuf->planes = BKE_imbuf_alpha_test(ibuf) ? R_IMF_PLANES_RGBA : R_IMF_PLANES_RGB;
-      }
+    else if (simopts->im_format.planes == R_IMF_PLANES_RGB) {
+      ibuf->planes = R_IMF_PLANES_RGB;
     }
+  }
+  else {
+    /* TODO, better solution, if a 24bit image is painted onto it may contain alpha */
+    if ((simopts->im_format.planes == R_IMF_PLANES_RGBA) &&
+        /* it has been painted onto */
+        (ibuf->userflags & IB_BITMAPDIRTY)) {
+      /* checks each pixel, not ideal */
+      ibuf->planes = BKE_imbuf_alpha_test(ibuf) ? R_IMF_PLANES_RGBA : R_IMF_PLANES_RGB;
+    }
+  }
 
-    /* we need renderresult for exr and rendered multiview */
-    scene = CTX_data_scene(C);
-    rr = BKE_image_acquire_renderresult(scene, ima);
-    bool is_mono = rr ? BLI_listbase_count_at_most(&rr->views, 2) < 2 :
-                        BLI_listbase_count_at_most(&ima->views, 2) < 2;
-    bool is_exr_rr = rr && ELEM(imf->imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER) &&
-                     RE_HasFloatPixels(rr);
-    bool is_multilayer = is_exr_rr && (imf->imtype == R_IMF_IMTYPE_MULTILAYER);
-    int layer = (is_multilayer) ? -1 : sima->iuser.layer;
+  /* we need renderresult for exr and rendered multiview */
+  rr = BKE_image_acquire_renderresult(simopts->scene, ima);
+  bool is_mono = rr ? BLI_listbase_count_at_most(&rr->views, 2) < 2 :
+                      BLI_listbase_count_at_most(&ima->views, 2) < 2;
+  bool is_exr_rr = rr && ELEM(imf->imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER) &&
+                   RE_HasFloatPixels(rr);
+  bool is_multilayer = is_exr_rr && (imf->imtype == R_IMF_IMTYPE_MULTILAYER);
+  int layer = (iuser && !is_multilayer) ? iuser->layer : -1;
 
-    /* error handling */
-    if (!rr) {
-      if (imf->imtype == R_IMF_IMTYPE_MULTILAYER) {
-        BKE_report(op->reports, RPT_ERROR, "Did not write, no Multilayer Image");
+  /* error handling */
+  if (!rr) {
+    if (imf->imtype == R_IMF_IMTYPE_MULTILAYER) {
+      BKE_report(reports, RPT_ERROR, "Did not write, no Multilayer Image");
+      BKE_image_release_ibuf(ima, ibuf, &lock);
+      goto cleanup;
+    }
+  }
+  else {
+    if (imf->views_format == R_IMF_VIEWS_STEREO_3D) {
+      if (!BKE_image_is_stereo(ima)) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "Did not write, the image doesn't have a \"%s\" and \"%s\" views",
+                    STEREO_LEFT_NAME,
+                    STEREO_RIGHT_NAME);
+        BKE_image_release_ibuf(ima, ibuf, &lock);
+        goto cleanup;
+      }
+
+      /* it shouldn't ever happen*/
+      if ((BLI_findstring(&rr->views, STEREO_LEFT_NAME, offsetof(RenderView, name)) == NULL) ||
+          (BLI_findstring(&rr->views, STEREO_RIGHT_NAME, offsetof(RenderView, name)) == NULL)) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "Did not write, the image doesn't have a \"%s\" and \"%s\" views",
+                    STEREO_LEFT_NAME,
+                    STEREO_RIGHT_NAME);
+        BKE_image_release_ibuf(ima, ibuf, &lock);
         goto cleanup;
       }
     }
+    BKE_imbuf_stamp_info(rr, ibuf);
+  }
+
+  /* fancy multiview OpenEXR */
+  if (imf->views_format == R_IMF_VIEWS_MULTIVIEW && is_exr_rr) {
+    /* save render result */
+    ok = RE_WriteRenderResult(reports, rr, simopts->filepath, imf, NULL, layer);
+    save_image_post(reports, bmain, ima, ibuf, ok, simopts, true, simopts->filepath);
+    BKE_image_release_ibuf(ima, ibuf, &lock);
+  }
+  /* regular mono pipeline */
+  else if (is_mono) {
+    if (is_exr_rr) {
+      ok = RE_WriteRenderResult(reports, rr, simopts->filepath, imf, NULL, layer);
+    }
     else {
-      if (imf->views_format == R_IMF_VIEWS_STEREO_3D) {
-        if (!BKE_image_is_stereo(ima)) {
-          BKE_reportf(op->reports,
-                      RPT_ERROR,
-                      "Did not write, the image doesn't have a \"%s\" and \"%s\" views",
-                      STEREO_LEFT_NAME,
-                      STEREO_RIGHT_NAME);
-          goto cleanup;
-        }
+      colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(
+          ibuf, save_as_render, true, &imf->view_settings, &imf->display_settings, imf);
+      ok = BKE_imbuf_write_as(colormanaged_ibuf, simopts->filepath, imf, save_copy);
+      save_imbuf_post(ibuf, colormanaged_ibuf);
+    }
+    save_image_post(
+        reports, bmain, ima, ibuf, ok, simopts, (is_exr_rr ? true : save_copy), simopts->filepath);
+    BKE_image_release_ibuf(ima, ibuf, &lock);
+  }
+  /* individual multiview images */
+  else if (imf->views_format == R_IMF_VIEWS_INDIVIDUAL) {
+    int i;
+    unsigned char planes = ibuf->planes;
+    const int totviews = (rr ? BLI_listbase_count(&rr->views) : BLI_listbase_count(&ima->views));
 
-        /* it shouldn't ever happen*/
-        if ((BLI_findstring(&rr->views, STEREO_LEFT_NAME, offsetof(RenderView, name)) == NULL) ||
-            (BLI_findstring(&rr->views, STEREO_RIGHT_NAME, offsetof(RenderView, name)) == NULL)) {
-          BKE_reportf(op->reports,
-                      RPT_ERROR,
-                      "Did not write, the image doesn't have a \"%s\" and \"%s\" views",
-                      STEREO_LEFT_NAME,
-                      STEREO_RIGHT_NAME);
-          goto cleanup;
-        }
-      }
-      BKE_imbuf_stamp_info(rr, ibuf);
+    if (!is_exr_rr) {
+      BKE_image_release_ibuf(ima, ibuf, &lock);
     }
 
-    /* fancy multiview OpenEXR */
-    if (imf->views_format == R_IMF_VIEWS_MULTIVIEW && is_exr_rr) {
-      /* save render result */
-      ok = RE_WriteRenderResult(op->reports, rr, simopts->filepath, imf, NULL, layer);
-      save_image_post(
-          bmain, op, ibuf, ima, ok, true, relbase, relative, do_newpath, simopts->filepath);
-      ED_space_image_release_buffer(sima, ibuf, lock);
-    }
-    /* regular mono pipeline */
-    else if (is_mono) {
+    for (i = 0; i < totviews; i++) {
+      char filepath[FILE_MAX];
+      bool ok_view = false;
+      const char *view = rr ? ((RenderView *)BLI_findlink(&rr->views, i))->name :
+                              ((ImageView *)BLI_findlink(&ima->views, i))->name;
+
       if (is_exr_rr) {
-        ok = RE_WriteRenderResult(op->reports, rr, simopts->filepath, imf, NULL, layer);
+        BKE_scene_multiview_view_filepath_get(
+            &simopts->scene->r, simopts->filepath, view, filepath);
+        ok_view = RE_WriteRenderResult(reports, rr, filepath, imf, view, layer);
+        save_image_post(reports, bmain, ima, ibuf, ok_view, simopts, true, filepath);
       }
       else {
-        colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(
-            ibuf, save_as_render, true, &imf->view_settings, &imf->display_settings, imf);
-        ok = BKE_imbuf_write_as(colormanaged_ibuf, simopts->filepath, imf, save_copy);
-        save_imbuf_post(ibuf, colormanaged_ibuf);
-      }
-      save_image_post(bmain,
-                      op,
-                      ibuf,
-                      ima,
-                      ok,
-                      (is_exr_rr ? true : save_copy),
-                      relbase,
-                      relative,
-                      do_newpath,
-                      simopts->filepath);
-      ED_space_image_release_buffer(sima, ibuf, lock);
-    }
-    /* individual multiview images */
-    else if (imf->views_format == R_IMF_VIEWS_INDIVIDUAL) {
-      int i;
-      unsigned char planes = ibuf->planes;
-      const int totviews = (rr ? BLI_listbase_count(&rr->views) : BLI_listbase_count(&ima->views));
+        /* copy iuser to get the correct ibuf for this view */
+        ImageUser view_iuser;
 
-      if (!is_exr_rr) {
-        ED_space_image_release_buffer(sima, ibuf, lock);
-      }
-
-      for (i = 0; i < totviews; i++) {
-        char filepath[FILE_MAX];
-        bool ok_view = false;
-        const char *view = rr ? ((RenderView *)BLI_findlink(&rr->views, i))->name :
-                                ((ImageView *)BLI_findlink(&ima->views, i))->name;
-
-        if (is_exr_rr) {
-          BKE_scene_multiview_view_filepath_get(&scene->r, simopts->filepath, view, filepath);
-          ok_view = RE_WriteRenderResult(op->reports, rr, filepath, imf, view, layer);
-          save_image_post(
-              bmain, op, ibuf, ima, ok_view, true, relbase, relative, do_newpath, filepath);
+        if (iuser) {
+          /* copy iuser to get the correct ibuf for this view */
+          view_iuser = *iuser;
         }
         else {
-          /* copy iuser to get the correct ibuf for this view */
-          ImageUser iuser = sima->iuser;
-          iuser.view = i;
-          iuser.flag &= ~IMA_SHOW_STEREO;
-
-          if (rr) {
-            BKE_image_multilayer_index(rr, &iuser);
-          }
-          else {
-            BKE_image_multiview_index(ima, &iuser);
-          }
-
-          ibuf = BKE_image_acquire_ibuf(sima->image, &iuser, &lock);
-          ibuf->planes = planes;
-
-          BKE_scene_multiview_view_filepath_get(&scene->r, simopts->filepath, view, filepath);
-
-          colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(
-              ibuf, save_as_render, true, &imf->view_settings, &imf->display_settings, imf);
-          ok_view = BKE_imbuf_write_as(
-              colormanaged_ibuf, filepath, &simopts->im_format, save_copy);
-          save_imbuf_post(ibuf, colormanaged_ibuf);
-          save_image_post(
-              bmain, op, ibuf, ima, ok_view, true, relbase, relative, do_newpath, filepath);
-          BKE_image_release_ibuf(sima->image, ibuf, lock);
-        }
-        ok &= ok_view;
-      }
-
-      if (is_exr_rr) {
-        ED_space_image_release_buffer(sima, ibuf, lock);
-      }
-    }
-    /* stereo (multiview) images */
-    else if (simopts->im_format.views_format == R_IMF_VIEWS_STEREO_3D) {
-      if (imf->imtype == R_IMF_IMTYPE_MULTILAYER) {
-        ok = RE_WriteRenderResult(op->reports, rr, simopts->filepath, imf, NULL, layer);
-        save_image_post(
-            bmain, op, ibuf, ima, ok, true, relbase, relative, do_newpath, simopts->filepath);
-        ED_space_image_release_buffer(sima, ibuf, lock);
-      }
-      else {
-        ImBuf *ibuf_stereo[2] = {NULL};
-
-        unsigned char planes = ibuf->planes;
-        const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
-        int i;
-
-        /* we need to get the specific per-view buffers */
-        ED_space_image_release_buffer(sima, ibuf, lock);
-
-        for (i = 0; i < 2; i++) {
-          ImageUser iuser = sima->iuser;
-          iuser.flag &= ~IMA_SHOW_STEREO;
-
-          if (rr) {
-            int id = BLI_findstringindex(&rr->views, names[i], offsetof(RenderView, name));
-            iuser.view = id;
-            BKE_image_multilayer_index(rr, &iuser);
-          }
-          else {
-            iuser.view = i;
-            BKE_image_multiview_index(ima, &iuser);
-          }
-
-          ibuf = BKE_image_acquire_ibuf(sima->image, &iuser, &lock);
-
-          if (ibuf == NULL) {
-            BKE_report(op->reports,
-                       RPT_ERROR,
-                       "Did not write, unexpected error when saving stereo image");
-            goto cleanup;
-          }
-
-          ibuf->planes = planes;
-
-          /* color manage the ImBuf leaving it ready for saving */
-          colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(
-              ibuf, save_as_render, true, &imf->view_settings, &imf->display_settings, imf);
-
-          BKE_imbuf_write_prepare(colormanaged_ibuf, imf);
-          IMB_prepare_write_ImBuf(IMB_isfloat(colormanaged_ibuf), colormanaged_ibuf);
-
-          /* duplicate buffer to prevent locker issue when using render result */
-          ibuf_stereo[i] = IMB_dupImBuf(colormanaged_ibuf);
-
-          save_imbuf_post(ibuf, colormanaged_ibuf);
-          BKE_image_release_ibuf(sima->image, ibuf, lock);
+          BKE_imageuser_default(&view_iuser);
         }
 
-        ibuf = IMB_stereo3d_ImBuf(imf, ibuf_stereo[0], ibuf_stereo[1]);
+        view_iuser.view = i;
+        view_iuser.flag &= ~IMA_SHOW_STEREO;
 
-        /* save via traditional path */
-        ok = BKE_imbuf_write_as(ibuf, simopts->filepath, imf, save_copy);
-
-        IMB_freeImBuf(ibuf);
-
-        for (i = 0; i < 2; i++) {
-          IMB_freeImBuf(ibuf_stereo[i]);
+        if (rr) {
+          BKE_image_multilayer_index(rr, &view_iuser);
         }
+        else {
+          BKE_image_multiview_index(ima, &view_iuser);
+        }
+
+        ibuf = BKE_image_acquire_ibuf(ima, &view_iuser, &lock);
+        ibuf->planes = planes;
+
+        BKE_scene_multiview_view_filepath_get(
+            &simopts->scene->r, simopts->filepath, view, filepath);
+
+        colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(
+            ibuf, save_as_render, true, &imf->view_settings, &imf->display_settings, imf);
+        ok_view = BKE_imbuf_write_as(colormanaged_ibuf, filepath, &simopts->im_format, save_copy);
+        save_imbuf_post(ibuf, colormanaged_ibuf);
+        save_image_post(reports, bmain, ima, ibuf, ok_view, simopts, true, filepath);
+        BKE_image_release_ibuf(ima, ibuf, lock);
       }
+      ok &= ok_view;
     }
 
-    WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, sima->image);
+    if (is_exr_rr) {
+      BKE_image_release_ibuf(ima, ibuf, &lock);
+    }
   }
-  else {
-  cleanup:
-    ED_space_image_release_buffer(sima, ibuf, lock);
+  /* stereo (multiview) images */
+  else if (simopts->im_format.views_format == R_IMF_VIEWS_STEREO_3D) {
+    if (imf->imtype == R_IMF_IMTYPE_MULTILAYER) {
+      ok = RE_WriteRenderResult(reports, rr, simopts->filepath, imf, NULL, layer);
+      save_image_post(reports, bmain, ima, ibuf, ok, simopts, true, simopts->filepath);
+      BKE_image_release_ibuf(ima, ibuf, &lock);
+    }
+    else {
+      ImBuf *ibuf_stereo[2] = {NULL};
+
+      unsigned char planes = ibuf->planes;
+      const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
+      int i;
+
+      /* we need to get the specific per-view buffers */
+      BKE_image_release_ibuf(ima, ibuf, &lock);
+
+      for (i = 0; i < 2; i++) {
+        ImageUser view_iuser;
+
+        if (iuser) {
+          view_iuser = *iuser;
+        }
+        else {
+          BKE_imageuser_default(&view_iuser);
+        }
+
+        view_iuser.flag &= ~IMA_SHOW_STEREO;
+
+        if (rr) {
+          int id = BLI_findstringindex(&rr->views, names[i], offsetof(RenderView, name));
+          view_iuser.view = id;
+          BKE_image_multilayer_index(rr, &view_iuser);
+        }
+        else {
+          view_iuser.view = i;
+          BKE_image_multiview_index(ima, &view_iuser);
+        }
+
+        ibuf = BKE_image_acquire_ibuf(ima, &view_iuser, &lock);
+
+        if (ibuf == NULL) {
+          BKE_report(
+              reports, RPT_ERROR, "Did not write, unexpected error when saving stereo image");
+          goto cleanup;
+        }
+
+        ibuf->planes = planes;
+
+        /* color manage the ImBuf leaving it ready for saving */
+        colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(
+            ibuf, save_as_render, true, &imf->view_settings, &imf->display_settings, imf);
+
+        BKE_imbuf_write_prepare(colormanaged_ibuf, imf);
+        IMB_prepare_write_ImBuf(IMB_isfloat(colormanaged_ibuf), colormanaged_ibuf);
+
+        /* duplicate buffer to prevent locker issue when using render result */
+        ibuf_stereo[i] = IMB_dupImBuf(colormanaged_ibuf);
+
+        save_imbuf_post(ibuf, colormanaged_ibuf);
+        BKE_image_release_ibuf(ima, ibuf, lock);
+      }
+
+      ibuf = IMB_stereo3d_ImBuf(imf, ibuf_stereo[0], ibuf_stereo[1]);
+
+      /* save via traditional path */
+      ok = BKE_imbuf_write_as(ibuf, simopts->filepath, imf, save_copy);
+
+      IMB_freeImBuf(ibuf);
+
+      for (i = 0; i < 2; i++) {
+        IMB_freeImBuf(ibuf_stereo[i]);
+      }
+    }
   }
 
+cleanup:
   if (rr) {
-    BKE_image_release_renderresult(scene, ima);
+    BKE_image_release_renderresult(simopts->scene, ima);
   }
+
+  return ok;
+}
+
+static bool save_image_op(const bContext *C,
+                          SpaceImage *sima,
+                          wmOperator *op,
+                          SaveImageOptions *simopts)
+{
+  Main *bmain = CTX_data_main(C);
+  Image *ima = ED_space_image(sima);
+  ImageUser *iuser = &sima->iuser;
+
+  simopts->relative = (RNA_struct_find_property(op->ptr, "relative_path") &&
+                       RNA_boolean_get(op->ptr, "relative_path"));
+  simopts->save_copy = (RNA_struct_find_property(op->ptr, "copy") &&
+                        RNA_boolean_get(op->ptr, "copy"));
+  simopts->save_as_render = (RNA_struct_find_property(op->ptr, "save_as_render") &&
+                             RNA_boolean_get(op->ptr, "save_as_render"));
+
+  WM_cursor_wait(1);
+
+  bool ok = save_image_doit(op->reports, bmain, ima, iuser, simopts);
 
   WM_cursor_wait(0);
+
+  /* Remember file path for next save. */
+  BLI_strncpy(G.ima, simopts->filepath, sizeof(G.ima));
+
+  WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 
   return ok;
 }
@@ -2208,18 +2243,20 @@ static void image_save_as_free(wmOperator *op)
 static int image_save_as_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
   SpaceImage *sima = CTX_wm_space_image(C);
   SaveImageOptions simopts;
 
-  save_image_options_defaults(&simopts);
+  save_image_options_defaults(&simopts, bmain, scene);
 
   /* just in case to initialize values,
    * these should be set on invoke or by the caller. */
-  save_image_options_init(bmain, &simopts, sima, CTX_data_scene(C), false, false);
+  save_image_options_init(bmain, &simopts, sima->image, &sima->iuser, false, false);
 
   save_image_options_from_op(bmain, &simopts, op);
+  simopts.do_newpath = true;
 
-  save_image_doit(C, sima, op, &simopts, true);
+  save_image_op(C, sima, op, &simopts);
 
   image_save_as_free(op);
   return OPERATOR_FINISHED;
@@ -2246,9 +2283,9 @@ static int image_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
     return image_save_as_exec(C, op);
   }
 
-  save_image_options_defaults(&simopts);
+  save_image_options_defaults(&simopts, bmain, scene);
 
-  if (save_image_options_init(bmain, &simopts, sima, scene, true, save_as_render) == 0) {
+  if (save_image_options_init(bmain, &simopts, ima, &sima->iuser, true, save_as_render) == 0) {
     return OPERATOR_CANCELLED;
   }
   save_image_options_to_op(&simopts, op);
@@ -2380,14 +2417,14 @@ static int image_save_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   SaveImageOptions simopts;
 
-  save_image_options_defaults(&simopts);
-  if (save_image_options_init(bmain, &simopts, sima, scene, false, false) == 0) {
+  save_image_options_defaults(&simopts, bmain, scene);
+  if (save_image_options_init(bmain, &simopts, sima->image, &sima->iuser, false, false) == 0) {
     return OPERATOR_CANCELLED;
   }
   save_image_options_from_op(bmain, &simopts, op);
 
   if (BLI_exists(simopts.filepath) && BLI_file_is_writable(simopts.filepath)) {
-    if (save_image_doit(C, sima, op, &simopts, false)) {
+    if (save_image_op(C, sima, op, &simopts)) {
       /* report since this can be called from key-shortcuts */
       BKE_reportf(op->reports, RPT_INFO, "Saved Image '%s'", simopts.filepath);
     }
