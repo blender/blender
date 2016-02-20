@@ -2569,12 +2569,8 @@ void IMAGE_OT_invert(wmOperatorType *ot)
 static bool image_pack_test(bContext *C, wmOperator *op)
 {
   Image *ima = CTX_data_edit_image(C);
-  const bool as_png = RNA_boolean_get(op->ptr, "as_png");
 
   if (!ima) {
-    return 0;
-  }
-  if (!as_png && BKE_image_has_packedfile(ima)) {
     return 0;
   }
 
@@ -2590,19 +2586,12 @@ static int image_pack_exec(bContext *C, wmOperator *op)
 {
   struct Main *bmain = CTX_data_main(C);
   Image *ima = CTX_data_edit_image(C);
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
-  const bool as_png = RNA_boolean_get(op->ptr, "as_png");
 
   if (!image_pack_test(C, op)) {
     return OPERATOR_CANCELLED;
   }
 
-  if (!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot pack edited image from disk, only as internal PNG");
-    return OPERATOR_CANCELLED;
-  }
-
-  if (as_png) {
+  if (BKE_image_is_dirty(ima)) {
     BKE_image_memorypack(ima);
   }
   else {
@@ -2611,44 +2600,7 @@ static int image_pack_exec(bContext *C, wmOperator *op)
 
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 
-  BKE_image_release_ibuf(ima, ibuf, NULL);
-
   return OPERATOR_FINISHED;
-}
-
-static int image_pack_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-  Image *ima = CTX_data_edit_image(C);
-  ImBuf *ibuf;
-  uiPopupMenu *pup;
-  uiLayout *layout;
-  const bool as_png = RNA_boolean_get(op->ptr, "as_png");
-
-  if (!image_pack_test(C, op)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
-
-  if (!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
-    pup = UI_popup_menu_begin(C, IFACE_("OK"), ICON_QUESTION);
-    layout = UI_popup_menu_layout(pup);
-    uiItemBooleanO(layout,
-                   IFACE_("Can't pack edited image from disk, pack as internal PNG?"),
-                   ICON_NONE,
-                   op->idname,
-                   "as_png",
-                   1);
-    UI_popup_menu_end(C, pup);
-
-    BKE_image_release_ibuf(ima, ibuf, NULL);
-
-    return OPERATOR_INTERFACE;
-  }
-
-  BKE_image_release_ibuf(ima, ibuf, NULL);
-
-  return image_pack_exec(C, op);
 }
 
 void IMAGE_OT_pack(wmOperatorType *ot)
@@ -2660,13 +2612,9 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = image_pack_exec;
-  ot->invoke = image_pack_invoke;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  /* properties */
-  RNA_def_boolean(ot->srna, "as_png", 0, "Pack As PNG", "Pack image as lossless PNG");
 }
 
 /********************* unpack operator *********************/

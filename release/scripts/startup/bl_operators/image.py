@@ -132,7 +132,7 @@ class SaveDirty(Operator):
                                     " can't be re-packed" %
                                     (image.name, image.library.filepath))
                     else:
-                        image.pack(as_png=True)
+                        image.pack()
                 else:
                     filepath = bpy.path.abspath(image.filepath,
                                                 library=image.library)

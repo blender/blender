@@ -146,35 +146,23 @@ static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *r
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, image);
 }
 
-static void rna_Image_pack(Image *image,
-                           Main *bmain,
-                           bContext *C,
-                           ReportList *reports,
-                           bool as_png,
-                           const char *data,
-                           int data_len)
+static void rna_Image_pack(
+    Image *image, Main *bmain, bContext *C, ReportList *reports, const char *data, int data_len)
 {
-  ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
+  BKE_image_free_packedfiles(image);
 
-  if (!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
-    BKE_report(reports, RPT_ERROR, "Cannot pack edited image from disk, only as internal PNG");
+  if (data) {
+    char *data_dup = MEM_mallocN(sizeof(*data_dup) * (size_t)data_len, __func__);
+    memcpy(data_dup, data, (size_t)data_len);
+    BKE_image_packfiles_from_mem(reports, image, data_dup, (size_t)data_len);
+  }
+  else if (BKE_image_is_dirty(image)) {
+    BKE_image_memorypack(image);
   }
   else {
-    BKE_image_free_packedfiles(image);
-    if (as_png) {
-      BKE_image_memorypack(image);
-    }
-    else if (data) {
-      char *data_dup = MEM_mallocN(sizeof(*data_dup) * (size_t)data_len, __func__);
-      memcpy(data_dup, data, (size_t)data_len);
-      BKE_image_packfiles_from_mem(reports, image, data_dup, (size_t)data_len);
-    }
-    else {
-      BKE_image_packfiles(reports, image, ID_BLEND_PATH(bmain, &image->id));
-    }
+    BKE_image_packfiles(reports, image, ID_BLEND_PATH(bmain, &image->id));
   }
 
-  BKE_image_release_ibuf(image, ibuf, NULL);
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, image);
 }
 
@@ -339,8 +327,6 @@ void RNA_api_image(StructRNA *srna)
   func = RNA_def_function(srna, "pack", "rna_Image_pack");
   RNA_def_function_ui_description(func, "Pack an image as embedded data into the .blend file");
   RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
-  RNA_def_boolean(
-      func, "as_png", 0, "as_png", "Pack the image as PNG (needed for generated/dirty images)");
   parm = RNA_def_property(func, "data", PROP_STRING, PROP_BYTESTRING);
   RNA_def_property_ui_text(parm, "data", "Raw data (bytes, exact content of the embedded file)");
   RNA_def_int(func,

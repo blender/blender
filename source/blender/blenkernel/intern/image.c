@@ -720,11 +720,10 @@ Image *BKE_image_add_from_imbuf(Main *bmain, ImBuf *ibuf, const char *name)
   return ima;
 }
 
-/* Pack image buffer to memory as PNG. */
+/* Pack image buffer to memory as PNG or EXR. */
 static bool image_memorypack_imbuf(Image *ima, ImBuf *ibuf, const char *filepath)
 {
-  ibuf->ftype = IMB_FTYPE_PNG;
-  ibuf->planes = R_IMF_PLANES_RGBA;
+  ibuf->ftype = (ibuf->rect_float) ? IMB_FTYPE_OPENEXR : IMB_FTYPE_PNG;
 
   IMB_saveiff(ibuf, filepath, IB_rect | IB_mem);
 
