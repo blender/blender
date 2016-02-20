@@ -72,18 +72,16 @@
 #  endif /* _WIN32 || __APPLE__ */
 #endif /* WITH_QUICKTIME */
 
-#ifdef WITH_FFMPEG
-#  include <libavformat/avformat.h>
-#  include <libavcodec/avcodec.h>
-#  include <libswscale/swscale.h>
-#endif
-
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
 #include "IMB_allocimbuf.h"
 
-
+#ifdef WITH_FFMPEG
+#  include <libavformat/avformat.h>
+#  include <libavcodec/avcodec.h>
+#  include <libswscale/swscale.h>
+#endif
 
 /* actually hard coded endianness */
 #define GET_BIG_LONG(x) (((uchar *) (x))[0] << 24 | ((uchar *) (x))[1] << 16 | ((uchar *) (x))[2] << 8 | ((uchar *) (x))[3])

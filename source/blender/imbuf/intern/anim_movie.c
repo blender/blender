@@ -85,21 +85,20 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
+
 #include "IMB_anim.h"
 #include "IMB_indexer.h"
 
 #ifdef WITH_FFMPEG
-#include <libavformat/avformat.h>
-#include <libavcodec/avcodec.h>
-#include <libavutil/rational.h>
-#include <libswscale/swscale.h>
+#  include <libavformat/avformat.h>
+#  include <libavcodec/avcodec.h>
+#  include <libavutil/rational.h>
+#  include <libswscale/swscale.h>
 
-#include "ffmpeg_compat.h"
-
+#  include "ffmpeg_compat.h"
 #endif //WITH_FFMPEG
-
-#include "IMB_colormanagement.h"
-#include "IMB_colormanagement_intern.h"
 
 int ismovie(const char *UNUSED(filepath))
 {
