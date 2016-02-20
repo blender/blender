@@ -1341,9 +1341,9 @@ namespace carve {
             carve::geom::vector<3> v_best = vert->v;
             double d_best = 0.0;
             
-            for (size_t axes = 0; axes < 8; ++axes) {
+            for (int axes = 0; axes < 8; ++axes) {
               carve::geom::vector<3> v = vert->v;
-              for (size_t N = 0; N < 3; ++N) {
+              for (int N = 0; N < 3; ++N) {
                 if (constraint & (1 << N)) continue;
                 if (axes & (1<<N)) {
                   v.v[N] = ceil(v.v[N] / grid) * grid;
@@ -1471,9 +1471,9 @@ namespace carve {
         std::vector<heapval_t> heap;
 
         point_enumerator_t(vector_t _origin, int _base, int _n_dp) : origin(_origin), rounding_fac(pow((double)_base, _n_dp)), last(-1.0, _origin), heap() {
-          for (size_t i = 0; i < (1 << 3); ++i) {
+          for (int i = 0; i < (1 << 3); ++i) {
             vector_t t = origin;
-            for (size_t j = 0; j < 3; ++j) {
+            for (int j = 0; j < 3; ++j) {
               if (i & (1U << j)) {
                 t[j] = ceil(t[j] * rounding_fac) / rounding_fac;
               } else {
