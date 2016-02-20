@@ -3934,10 +3934,10 @@ static void project_paint_end(ProjPaintState *ps)
 		/* must be set for non-shared */
 		BLI_assert(ps->dm_mloopuv || ps->is_shared_user);
 		if (ps->dm_mloopuv)
-			MEM_freeN(ps->dm_mloopuv);
+			MEM_freeN((void *)ps->dm_mloopuv);
 
 		if (ps->do_layer_clone)
-			MEM_freeN(ps->dm_mloopuv_clone);
+			MEM_freeN((void *)ps->dm_mloopuv_clone);
 		if (ps->thread_tot > 1) {
 			BLI_spin_end(ps->tile_lock);
 			MEM_freeN((void *)ps->tile_lock);
