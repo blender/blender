@@ -253,7 +253,7 @@ static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 	if (wgroup->adt) {
 		LinkData *ld, *ldn = NULL;
 		bAction *waction;
-		
+
 		/* firstly, wgroup needs to temporary dummy action that can be destroyed, as it shares copies */
 		waction = wgroup->adt->action = BKE_action_copy(wgroup->adt->action);
 		
@@ -271,6 +271,7 @@ static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 		/* free temp action too */
 		if (waction) {
 			BKE_libblock_free(G.main, waction);
+			wgroup->adt->action = NULL;
 		}
 	}
 	
