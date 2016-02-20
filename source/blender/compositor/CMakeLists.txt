@@ -542,7 +542,7 @@ list(APPEND INC
 	${CMAKE_CURRENT_BINARY_DIR}/operations
 )
 
-if(MSVC)
+if(MSVC AND NOT CMAKE_CL_64)
 	set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
 endif()
