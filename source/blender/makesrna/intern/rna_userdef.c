@@ -1593,9 +1593,16 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 
 	rna_def_userdef_theme_spaces_gradient(srna);
 
+	/* General Viewport options */
+
 	prop = RNA_def_property(srna, "grid", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Grid", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "clipping_border_3d", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Clipping Border", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "wire", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -1608,32 +1615,18 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Wire Edit", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
+
+	/* Grease Pencil */
+
 	rna_def_userdef_theme_spaces_gpencil(srna);
 
-	prop = RNA_def_property(srna, "lamp", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_array(prop, 4);
-	RNA_def_property_ui_text(prop, "Lamp", "");
+	prop = RNA_def_property(srna, "text_grease_pencil", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "time_gp_keyframe");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Grease Pencil Keyframe", "Color for indicating Grease Pencil keyframes");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "speaker", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Speaker", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-	
-	prop = RNA_def_property(srna, "camera", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Camera", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
-	prop = RNA_def_property(srna, "view_overlay", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "View Overlay", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
-	prop = RNA_def_property(srna, "empty", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Empty", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	/* Object specific options */
 
 	prop = RNA_def_property(srna, "object_selected", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "select");
@@ -1659,14 +1652,42 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Object Grouped Active", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "transform", PROP_FLOAT, PROP_COLOR_GAMMA);
+	prop = RNA_def_property(srna, "text_keyframe", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "time_keyframe");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Transform", "");
+	RNA_def_property_ui_text(prop, "Object Keyframe", "Color for indicating Object keyframes");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-	
+
+	/* Object type options */
+
+	prop = RNA_def_property(srna, "camera", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Camera", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "empty", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Empty", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "lamp", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Lamp", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "speaker", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Speaker", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	/* Mesh Object specific */
+
 	rna_def_userdef_theme_spaces_vertex(srna);
 	rna_def_userdef_theme_spaces_edge(srna);
 	rna_def_userdef_theme_spaces_face(srna);
+
+	/* Mesh Object specific curves*/
+
 	rna_def_userdef_theme_spaces_curves(srna, true, true, true, false);
 
 	prop = RNA_def_property(srna, "extra_edge_len", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -1710,10 +1731,7 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Split Normal", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "bone_solid", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Bone Solid", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	/* Armature Object specific  */
 
 	prop = RNA_def_property(srna, "bone_pose", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
@@ -1725,16 +1743,12 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Bone Pose Active", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "cframe");
+	prop = RNA_def_property(srna, "bone_solid", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Current Frame", "");
+	RNA_def_property_ui_text(prop, "Bone Solid", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "outline_width", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, 1, 5);
-	RNA_def_property_ui_text(prop, "Outline Width", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	/* misc */
 
 	prop = RNA_def_property(srna, "bundle_solid", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "bundle_solid");
@@ -1753,24 +1767,29 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Skin Root", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "clipping_border_3d", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_array(prop, 4);
-	RNA_def_property_ui_text(prop, "Clipping Border", "");
+	prop = RNA_def_property(srna, "view_overlay", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "View Overlay", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "text_keyframe", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "time_keyframe");
+	prop = RNA_def_property(srna, "transform", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Keyframe", "Color for indicating Object keyframes");
+	RNA_def_property_ui_text(prop, "Transform", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "text_grease_pencil", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "time_gp_keyframe");
+	prop = RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "cframe");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Grease Pencil", "Color for indicating Grease Pencil keyframes");
+	RNA_def_property_ui_text(prop, "Current Frame", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	rna_def_userdef_theme_spaces_paint_curves(srna);
+
+	prop = RNA_def_property(srna, "outline_width", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 1, 5);
+	RNA_def_property_ui_text(prop, "Outline Width", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
 }
 
 
