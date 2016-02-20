@@ -4435,6 +4435,9 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 	if (ob->type == OB_MBALL) {  /* mball always smooth shaded */
 		glShadeModel(GL_SMOOTH);
 	}
+
+	/* track current material, -1 for none (needed for lines) */
+	short col = -1;
 	
 	DispList *dl = lb->first;
 	while (dl) {
@@ -4444,6 +4447,11 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 		switch (dl->type) {
 			case DL_SEGM:
 				if (ob->type == OB_SURF) {
+					if (col != -1) {
+						GPU_object_material_unbind();
+						col = -1;
+					}
+
 					if ((dflag & DRAW_CONSTCOLOR) == 0)
 						glColor3ubv(ob_wire_col);
 
@@ -4458,6 +4466,11 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 				break;
 			case DL_POLY:
 				if (ob->type == OB_SURF) {
+					if (col != -1) {
+						GPU_object_material_unbind();
+						col = -1;
+					}
+
 					/* for some reason glDrawArrays crashes here in half of the platforms (not osx) */
 					//glVertexPointer(3, GL_FLOAT, 0, dl->verts);
 					//glDrawArrays(GL_LINE_LOOP, 0, dl->nr);
@@ -4471,7 +4484,10 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 			case DL_SURF:
 
 				if (dl->index) {
-					GPU_object_material_bind(dl->col + 1, use_glsl ? &gattribs : NULL);
+					if (col != dl->col) {
+						GPU_object_material_bind(dl->col + 1, use_glsl ? &gattribs : NULL);
+						col = dl->col;
+					}
 
 					if (dl->rt & CU_SMOOTH) glShadeModel(GL_SMOOTH);
 					else glShadeModel(GL_FLAT);
@@ -4485,7 +4501,10 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 				break;
 
 			case DL_INDEX3:
-				GPU_object_material_bind(dl->col + 1, (use_glsl) ? &gattribs : NULL);
+				if (col != dl->col) {
+					GPU_object_material_bind(dl->col + 1, use_glsl ? &gattribs : NULL);
+					col = dl->col;
+				}
 
 				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
 
@@ -4505,7 +4524,10 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 				break;
 
 			case DL_INDEX4:
-				GPU_object_material_bind(dl->col + 1, (use_glsl) ? &gattribs : NULL);
+				if (col != dl->col) {
+					GPU_object_material_bind(dl->col + 1, use_glsl ? &gattribs : NULL);
+					col = dl->col;
+				}
 
 				glEnableClientState(GL_NORMAL_ARRAY);
 				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
@@ -4522,7 +4544,9 @@ static void drawDispListsolid(ListBase *lb, Object *ob, const short dflag,
 	glShadeModel(GL_FLAT);
 	glFrontFace(GL_CCW);
 
-	GPU_object_material_unbind();
+	if (col != -1) {
+		GPU_object_material_unbind();
+	}
 }
 
 static void drawCurveDMWired(Object *ob)
