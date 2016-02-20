@@ -34,6 +34,7 @@
 #include "GHOST_DisplayManagerWin32.h"
 #include "GHOST_Debug.h"
 
+#undef _WIN32_WINNT
 #define _WIN32_WINNT 0x501 // require Windows XP or newer
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
