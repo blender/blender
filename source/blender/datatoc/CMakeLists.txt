@@ -51,6 +51,9 @@ if(NOT WITH_HEADLESS)
 			../blenlib/intern/winstuff_dir.c
 			../../../intern/utfconv/utfconv.c
 		)
+
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS}")
+		set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${PLATFORM_LINKFLAGS_DEBUG}")
 	endif()
 
 	include_directories(${PNG_INCLUDE_DIRS})
