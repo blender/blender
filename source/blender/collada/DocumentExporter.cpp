@@ -188,7 +188,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	COLLADABU::NativeString native_filename = make_temp_filepath(NULL, ".dae");
 	COLLADASW::StreamWriter *writer = new COLLADASW::StreamWriter(native_filename);
 
-	fprintf(stdout, "Collada export: %s\n", this->export_settings->filepath);
+	fprintf(stdout, "Collada export buffer: %s\n", native_filename.c_str());
 
 	// open <collada>
 	writer->startDocument();
@@ -330,7 +330,8 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	delete writer;
 
 	// Finally move the created document into place
-	BLI_rename(native_filename.c_str(), this->export_settings->filepath);
+	int status = BLI_rename(native_filename.c_str(), this->export_settings->filepath);
+	fprintf(stdout, "Collada moved buffer : %s (Status: %d)\n", this->export_settings->filepath, status);
 
 }
 
