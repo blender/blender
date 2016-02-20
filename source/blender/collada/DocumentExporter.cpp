@@ -133,6 +133,7 @@ extern bool bc_has_object_type(LinkNode *export_set, short obtype);
 #include "LightExporter.h"
 #include "MaterialExporter.h"
 
+#include <errno.h>
 
 char *bc_CustomData_get_layer_name(const struct CustomData *data, int type, int n)
 {
@@ -187,8 +188,6 @@ int DocumentExporter::exportCurrentScene(Scene *sce)
 
 	COLLADABU::NativeString native_filename = make_temp_filepath(NULL, ".dae");
 	COLLADASW::StreamWriter *writer = new COLLADASW::StreamWriter(native_filename);
-
-	fprintf(stdout, "Collada export buffer: %s\n", native_filename.c_str());
 
 	// open <collada>
 	writer->startDocument();
@@ -330,12 +329,11 @@ int DocumentExporter::exportCurrentScene(Scene *sce)
 	delete writer;
 
 	// Finally move the created document into place
+	fprintf(stdout, "Collada export to: %s\n", this->export_settings->filepath);
 	int status = BLI_rename(native_filename.c_str(), this->export_settings->filepath);
-	if (status != 0)
-	{
-		fprintf(stdout, "Collada: Can't move buffer  %s\n", native_filename.c_str());
-		fprintf(stdout, "         to its destination %s\n", this->export_settings->filepath);
-		fprintf(stdout, "Reason : %s\n", errno ? strerror(errno) : "unknown error");
+	if (status != 0) {
+		status = BLI_copy(native_filename.c_str(), this->export_settings->filepath);
+		BLI_delete(native_filename.c_str(), false, false);
 	}
 	return status;
 }
