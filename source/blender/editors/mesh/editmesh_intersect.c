@@ -761,7 +761,7 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 		BM_mesh_elem_index_ensure(bm, BM_FACE);
 
 		{
-			BMBVHTree *bmbvh = BKE_bmbvh_new(bm, em->looptris, em->tottri, BMBVH_RESPECT_SELECT, NULL, NULL);
+			BMBVHTree *bmbvh = BKE_bmbvh_new(bm, em->looptris, em->tottri, BMBVH_RESPECT_SELECT, NULL, false);
 
 			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 				BM_elem_index_set(e, -1);  /* set_dirty */
