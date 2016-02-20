@@ -116,50 +116,48 @@ static void imb_exr_type_by_channels(ChannelList &channels,
 
 /* Memory Input Stream */
 
-class Mem_IStream : public Imf::IStream {
+class IMemStream : public Imf::IStream {
  public:
-  Mem_IStream(unsigned char *exrbuf, size_t exrsize)
-      : IStream("dummy"), _exrpos(0), _exrsize(exrsize)
+  IMemStream(unsigned char *exrbuf, size_t exrsize)
+      : IStream("<memory>"), _exrpos(0), _exrsize(exrsize)
   {
     _exrbuf = exrbuf;
   }
 
-  virtual bool read(char c[], int n);
-  virtual Int64 tellg();
-  virtual void seekg(Int64 pos);
-  virtual void clear();
-  //virtual ~Mem_IStream() {}; // unused
+  virtual ~IMemStream()
+  {
+  }
+
+  virtual bool read(char c[], int n)
+  {
+    if (n + _exrpos <= _exrsize) {
+      memcpy(c, (void *)(&_exrbuf[_exrpos]), n);
+      _exrpos += n;
+      return true;
+    }
+    else
+      return false;
+  }
+
+  virtual Int64 tellg()
+  {
+    return _exrpos;
+  }
+
+  virtual void seekg(Int64 pos)
+  {
+    _exrpos = pos;
+  }
+
+  virtual void clear()
+  {
+  }
 
  private:
   Int64 _exrpos;
   Int64 _exrsize;
   unsigned char *_exrbuf;
 };
-
-bool Mem_IStream::read(char c[], int n)
-{
-  if (n + _exrpos <= _exrsize) {
-    memcpy(c, (void *)(&_exrbuf[_exrpos]), n);
-    _exrpos += n;
-    return true;
-  }
-  else
-    return false;
-}
-
-Int64 Mem_IStream::tellg()
-{
-  return _exrpos;
-}
-
-void Mem_IStream::seekg(Int64 pos)
-{
-  _exrpos = pos;
-}
-
-void Mem_IStream::clear()
-{
-}
 
 /* File Input Stream */
 
@@ -220,6 +218,48 @@ class IFileStream : public Imf::IStream {
   }
 
   std::ifstream ifs;
+};
+
+/* Memory Output Stream */
+
+class OMemStream : public OStream {
+ public:
+  OMemStream(ImBuf *ibuf_) : OStream("<memory>"), ibuf(ibuf_), offset(0)
+  {
+  }
+
+  virtual void write(const char c[], int n)
+  {
+    ensure_size(offset + n);
+    memcpy(ibuf->encodedbuffer + offset, c, n);
+    offset += n;
+    ibuf->encodedsize += n;
+  }
+
+  virtual Int64 tellp()
+  {
+    return offset;
+  }
+
+  virtual void seekp(Int64 pos)
+  {
+    offset = pos;
+    ensure_size(offset);
+  }
+
+ private:
+  void ensure_size(Int64 size)
+  {
+    /* if buffer is too small increase it. */
+    while (size > ibuf->encodedbuffersize) {
+      if (!imb_enlargeencodedbufferImBuf(ibuf)) {
+        throw Iex::ErrnoExc("Out of memory.");
+      }
+    }
+  }
+
+  ImBuf *ibuf;
+  Int64 offset;
 };
 
 /* File Output Stream */
@@ -367,6 +407,7 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *name, const int flags
   const bool is_zbuf = (flags & IB_zbuffloat) && ibuf->zbuf_float != NULL; /* summarize */
   const int width = ibuf->x;
   const int height = ibuf->y;
+  OStream *file_stream = NULL;
 
   try {
     Header header(width, height);
@@ -386,8 +427,11 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *name, const int flags
     FrameBuffer frameBuffer;
 
     /* manually create ofstream, so we can handle utf-8 filepaths on windows */
-    OFileStream file_stream(name);
-    OutputFile file(file_stream, header);
+    if (flags & IB_mem)
+      file_stream = new OMemStream(ibuf);
+    else
+      file_stream = new OFileStream(name);
+    OutputFile file(*file_stream, header);
 
     /* we store first everything in half array */
     std::vector<RGBAZ> pixels(height * width);
@@ -448,11 +492,13 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *name, const int flags
     file.writePixels(height);
   }
   catch (const std::exception &exc) {
+    delete file_stream;
     printf("OpenEXR-save: ERROR: %s\n", exc.what());
 
     return false;
   }
 
+  delete file_stream;
   return true;
 }
 
@@ -463,6 +509,7 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *name, const int flag
   const bool is_zbuf = (flags & IB_zbuffloat) && ibuf->zbuf_float != NULL; /* summarize */
   const int width = ibuf->x;
   const int height = ibuf->y;
+  OStream *file_stream = NULL;
 
   try {
     Header header(width, height);
@@ -482,8 +529,11 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *name, const int flag
     FrameBuffer frameBuffer;
 
     /* manually create ofstream, so we can handle utf-8 filepaths on windows */
-    OFileStream file_stream(name);
-    OutputFile file(file_stream, header);
+    if (flags & IB_mem)
+      file_stream = new OMemStream(ibuf);
+    else
+      file_stream = new OFileStream(name);
+    OutputFile file(*file_stream, header);
 
     int xstride = sizeof(float) * channels;
     int ystride = -xstride * width;
@@ -516,19 +566,19 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *name, const int flag
   }
   catch (const std::exception &exc) {
     printf("OpenEXR-save: ERROR: %s\n", exc.what());
+    delete file_stream;
     return false;
   }
 
+  delete file_stream;
   return true;
 }
 
 int imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
 {
   if (flags & IB_mem) {
-    printf("OpenEXR-save: Create EXR in memory CURRENTLY NOT SUPPORTED !\n");
     imb_addencodedbufferImBuf(ibuf);
     ibuf->encodedsize = 0;
-    return (0);
   }
 
   if (ibuf->foptions.flag & OPENEXR_HALF)
@@ -1792,7 +1842,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
                                char colorspace[IM_MAX_SPACE])
 {
   struct ImBuf *ibuf = NULL;
-  Mem_IStream *membuf = NULL;
+  IMemStream *membuf = NULL;
   MultiPartInputFile *file = NULL;
 
   if (imb_is_a_openexr(mem) == 0)
@@ -1803,7 +1853,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
   try {
     bool is_multi;
 
-    membuf = new Mem_IStream((unsigned char *)mem, size);
+    membuf = new IMemStream((unsigned char *)mem, size);
     file = new MultiPartInputFile(*membuf);
 
     Box2i dw = file->header(0).dataWindow();

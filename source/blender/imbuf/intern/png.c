@@ -83,7 +83,7 @@ static void WriteData(png_structp png_ptr, png_bytep data, png_size_t length)
 {
   ImBuf *ibuf = (ImBuf *)png_get_io_ptr(png_ptr);
 
-  /* if buffer is to small increase it. */
+  /* if buffer is too small increase it. */
   while (ibuf->encodedsize + length > ibuf->encodedbuffersize) {
     imb_enlargeencodedbufferImBuf(ibuf);
   }
