@@ -399,8 +399,6 @@ static TriTessFace *mesh_calc_tri_tessface(
 	int i;
 	MVert *mvert;
 	TSpace *tspace;
-	float *precomputed_normals = NULL;
-	bool calculate_normal;
 
 	const int tottri = poly_to_tri_count(me->totpoly, me->totloop);
 	MLoopTri *looptri;
@@ -422,9 +420,6 @@ static TriTessFace *mesh_calc_tri_tessface(
 		DM_ensure_normals(dm);
 		DM_calc_loop_tangents(dm);
 
-		precomputed_normals = dm->getPolyDataArray(dm, CD_NORMAL);
-		calculate_normal = precomputed_normals ? false : true;
-
 		tspace = dm->getLoopDataArray(dm, CD_TANGENT);
 		BLI_assert(tspace);
 	}
@@ -434,6 +429,10 @@ static TriTessFace *mesh_calc_tri_tessface(
 	            me->mvert,
 	            me->totloop, me->totpoly,
 	            looptri);
+
+
+	const float *precomputed_normals = dm->getPolyDataArray(dm, CD_NORMAL);
+	const bool calculate_normal = precomputed_normals ? false : true;
 
 	for (i = 0; i < tottri; i++) {
 		const MLoopTri *lt = &looptri[i];
