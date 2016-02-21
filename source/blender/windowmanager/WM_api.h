@@ -26,7 +26,7 @@
 #ifndef __WM_API_H__
 #define __WM_API_H__
 
-/** \file WM_api.h
+/** \file blender/windowmanager/WM_api.h
  *  \ingroup wm
  *
  *  \page wmpage windowmanager

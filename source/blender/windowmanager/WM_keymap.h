@@ -26,7 +26,7 @@
 #ifndef __WM_KEYMAP_H__
 #define __WM_KEYMAP_H__
 
-/** \file WM_keymap.h
+/** \file blender/windowmanager/WM_keymap.h
  *  \ingroup wm
  */
 
