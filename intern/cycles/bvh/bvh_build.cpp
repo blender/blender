@@ -230,8 +230,23 @@ BVHNode* BVHBuild::run()
 	}
 
 	spatial_min_overlap = root.bounds().safe_area() * params.spatial_split_alpha;
-	spatial_right_bounds.clear();
-	spatial_right_bounds.resize(max(root.size(), (int)BVHParams::NUM_SPATIAL_BINS) - 1);
+
+	if(params.use_spatial_split) {
+		/* NOTE: The API here tries to be as much ready for multi-threaded build
+		 * as possible, but at the same time it tries not to introduce any
+		 * changes in behavior for until all refactoring needed for threading is
+		 * finished.
+		 *
+		 * So we currently allocate single storage for now, which is only used by
+		 * the only thread working on the spatial BVH build.
+		 */
+		spatial_storage.resize(1);
+		size_t num_bins = max(root.size(), (int)BVHParams::NUM_SPATIAL_BINS) - 1;
+		foreach(BVHSpatialStorage &storage, spatial_storage) {
+			storage.spatial_right_bounds.clear();
+			storage.spatial_right_bounds.resize(num_bins);
+		}
+	}
 
 	/* init progress updates */
 	double build_start_time;
@@ -407,7 +422,7 @@ BVHNode* BVHBuild::build_node(const BVHRange& range, int level)
 	}
 
 	/* splitting test */
-	BVHMixedSplit split(this, range, level);
+	BVHMixedSplit split(this, &spatial_storage[0], range, level);
 
 	if(!(range.size() > 0 && params.top_level && level == 0)) {
 		if(split.no_split) {

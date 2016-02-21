@@ -28,8 +28,16 @@ CCL_NAMESPACE_BEGIN
 
 /* Object Split */
 
-BVHObjectSplit::BVHObjectSplit(BVHBuild *builder, const BVHRange& range, float nodeSAH)
-: sah(FLT_MAX), dim(0), num_left(0), left_bounds(BoundBox::empty), right_bounds(BoundBox::empty)
+BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
+                               BVHSpatialStorage *storage,
+                               const BVHRange& range,
+                               float nodeSAH)
+: sah(FLT_MAX),
+  dim(0),
+  num_left(0),
+  left_bounds(BoundBox::empty),
+  right_bounds(BoundBox::empty),
+  storage_(storage)
 {
 	const BVHReference *ref_ptr = &builder->references[range.start()];
 	float min_sah = FLT_MAX;
@@ -43,7 +51,7 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder, const BVHRange& range, float n
 
 		for(int i = range.size() - 1; i > 0; i--) {
 			right_bounds.grow(ref_ptr[i].bounds());
-			builder->spatial_right_bounds[i - 1] = right_bounds;
+			storage_->spatial_right_bounds[i - 1] = right_bounds;
 		}
 
 		/* sweep left to right and select lowest SAH. */
@@ -51,7 +59,7 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder, const BVHRange& range, float n
 
 		for(int i = 1; i < range.size(); i++) {
 			left_bounds.grow(ref_ptr[i - 1].bounds());
-			right_bounds = builder->spatial_right_bounds[i - 1];
+			right_bounds = storage_->spatial_right_bounds[i - 1];
 
 			float sah = nodeSAH +
 				left_bounds.safe_area() * builder->params.primitive_cost(i) +
@@ -83,8 +91,14 @@ void BVHObjectSplit::split(BVHBuild *builder, BVHRange& left, BVHRange& right, c
 
 /* Spatial Split */
 
-BVHSpatialSplit::BVHSpatialSplit(BVHBuild *builder, const BVHRange& range, float nodeSAH)
-: sah(FLT_MAX), dim(0), pos(0.0f)
+BVHSpatialSplit::BVHSpatialSplit(BVHBuild *builder,
+                                 BVHSpatialStorage *storage,
+                                 const BVHRange& range,
+                                 float nodeSAH)
+: sah(FLT_MAX),
+  dim(0),
+  pos(0.0f),
+  storage_(storage)
 {
 	/* initialize bins. */
 	float3 origin = range.bounds().min;
@@ -93,7 +107,7 @@ BVHSpatialSplit::BVHSpatialSplit(BVHBuild *builder, const BVHRange& range, float
 
 	for(int dim = 0; dim < 3; dim++) {
 		for(int i = 0; i < BVHParams::NUM_SPATIAL_BINS; i++) {
-			BVHSpatialBin& bin = builder->spatial_bins[dim][i];
+			BVHSpatialBin& bin = storage_->spatial_bins[dim][i];
 
 			bin.bounds = BoundBox::empty;
 			bin.enter = 0;
@@ -119,13 +133,13 @@ BVHSpatialSplit::BVHSpatialSplit(BVHBuild *builder, const BVHRange& range, float
 				BVHReference leftRef, rightRef;
 
 				split_reference(builder, leftRef, rightRef, currRef, dim, origin[dim] + binSize[dim] * (float)(i + 1));
-				builder->spatial_bins[dim][i].bounds.grow(leftRef.bounds());
+				storage_->spatial_bins[dim][i].bounds.grow(leftRef.bounds());
 				currRef = rightRef;
 			}
 
-			builder->spatial_bins[dim][lastBin[dim]].bounds.grow(currRef.bounds());
-			builder->spatial_bins[dim][firstBin[dim]].enter++;
-			builder->spatial_bins[dim][lastBin[dim]].exit++;
+			storage_->spatial_bins[dim][lastBin[dim]].bounds.grow(currRef.bounds());
+			storage_->spatial_bins[dim][firstBin[dim]].enter++;
+			storage_->spatial_bins[dim][lastBin[dim]].exit++;
 		}
 	}
 
@@ -135,8 +149,8 @@ BVHSpatialSplit::BVHSpatialSplit(BVHBuild *builder, const BVHRange& range, float
 		BoundBox right_bounds = BoundBox::empty;
 
 		for(int i = BVHParams::NUM_SPATIAL_BINS - 1; i > 0; i--) {
-			right_bounds.grow(builder->spatial_bins[dim][i].bounds);
-			builder->spatial_right_bounds[i - 1] = right_bounds;
+			right_bounds.grow(storage_->spatial_bins[dim][i].bounds);
+			storage_->spatial_right_bounds[i - 1] = right_bounds;
 		}
 
 		/* sweep left to right and select lowest SAH. */
@@ -145,13 +159,13 @@ BVHSpatialSplit::BVHSpatialSplit(BVHBuild *builder, const BVHRange& range, float
 		int rightNum = range.size();
 
 		for(int i = 1; i < BVHParams::NUM_SPATIAL_BINS; i++) {
-			left_bounds.grow(builder->spatial_bins[dim][i - 1].bounds);
-			leftNum += builder->spatial_bins[dim][i - 1].enter;
-			rightNum -= builder->spatial_bins[dim][i - 1].exit;
+			left_bounds.grow(storage_->spatial_bins[dim][i - 1].bounds);
+			leftNum += storage_->spatial_bins[dim][i - 1].enter;
+			rightNum -= storage_->spatial_bins[dim][i - 1].exit;
 
 			float sah = nodeSAH +
 				left_bounds.safe_area() * builder->params.primitive_cost(leftNum) +
-				builder->spatial_right_bounds[i - 1].safe_area() * builder->params.primitive_cost(rightNum);
+				storage_->spatial_right_bounds[i - 1].safe_area() * builder->params.primitive_cost(rightNum);
 
 			if(sah < this->sah) {
 				this->sah = sah;

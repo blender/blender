@@ -175,6 +175,18 @@ struct BVHSpatialBin
 	}
 };
 
+/* BVH Spatial Storage
+ *
+ * The idea of this storage is have thread-specific storage for the spatial
+ * splitters. We can pre-allocate this storage in advance and avoid heavy memory
+ * operations during split process.
+ */
+
+struct BVHSpatialStorage {
+	vector<BoundBox> spatial_right_bounds;
+	BVHSpatialBin spatial_bins[3][BVHParams::NUM_SPATIAL_BINS];
+};
+
 CCL_NAMESPACE_END
 
 #endif /* __BVH_PARAMS_H__ */
