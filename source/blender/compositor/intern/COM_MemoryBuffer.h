@@ -259,6 +259,12 @@ public:
 		float u = x;
 		float v = y;
 		this->wrap_pixel(u, v, extend_x, extend_y);
+		if ((extend_x != COM_MB_REPEAT && (u < 0.0f || u >= this->m_width)) ||
+		    (extend_y != COM_MB_REPEAT && (v < 0.0f || v >= this->m_height)))
+		{
+			zero_v4(result);
+			return;
+		}
 		BLI_bilinear_interpolation_wrap_fl(
 		        this->m_buffer, result, this->m_width, this->m_height, this->m_num_channels, u, v,
 		        extend_x == COM_MB_REPEAT, extend_y == COM_MB_REPEAT);
