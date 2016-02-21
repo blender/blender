@@ -220,7 +220,8 @@ void BVHSpatialSplit::split(BVHBuild *builder, BVHRange& left, BVHRange& right, 
 	 * Duplication happens into a temporary pre-allocated vector in order to
 	 * reduce number of memmove() calls happening in vector.insert().
 	 */
-	vector<BVHReference> new_refs;
+	vector<BVHReference>& new_refs = storage_->spatial_new_refs;
+	new_refs.clear();
 	new_refs.reserve(right_start - left_end);
 	while(left_end < right_start) {
 		/* split reference. */

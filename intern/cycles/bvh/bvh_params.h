@@ -186,6 +186,7 @@ struct BVHSpatialStorage {
 	vector<BoundBox> spatial_right_bounds;
 	BVHSpatialBin spatial_bins[3][BVHParams::NUM_SPATIAL_BINS];
 	vector<int> spatial_indices;
+	vector<BVHReference> spatial_new_refs;
 };
 
 CCL_NAMESPACE_END
