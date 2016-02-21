@@ -430,6 +430,23 @@ __forceinline __int64 _mm_extract_epi64( __m128i input, const int index ) {
 
 #endif
 
+#else  /* __KERNEL_SSE2__ */
+
+/* This section is for utility functions which operates on non-register data
+ * which might be used from a non-vectorized code.
+ */
+
+ccl_device_inline int bitscan(int value)
+{
+	assert(value != 0);
+	int bit = 0;
+	while(value >>= 1) {
+		++bit;
+	}
+	return bit;
+}
+
+
 #endif /* __KERNEL_SSE2__ */
 
 CCL_NAMESPACE_END
