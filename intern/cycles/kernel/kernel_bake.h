@@ -16,8 +16,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-#undef USE_BAKE_JITTER
-
 #ifndef __NO_BAKING__
 
 ccl_device void compute_light_pass(KernelGlobals *kg, ShaderData *sd, PathRadiance *L, RNG rng,
@@ -180,15 +178,16 @@ ccl_device bool is_aa_pass(ShaderEvalType type)
 
 /* this helps with AA but it's not the real solution as it does not AA the geometry
  *  but it's better than nothing, thus committed */
-ccl_device_inline float bake_clamp_mirror_repeat(float u)
+ccl_device_inline float bake_clamp_mirror_repeat(float u, float max)
 {
 	/* use mirror repeat (like opengl texture) so that if the barycentric
 	 * coordinate goes past the end of the triangle it is not always clamped
 	 * to the same value, gives ugly patterns */
+	u /= max;
 	float fu = floorf(u);
 	u = u - fu;
 
-	return (((int)fu) & 1)? 1.0f - u: u;
+	return ((((int)fu) & 1)? 1.0f - u: u) * max;
 }
 
 ccl_device_inline float3 kernel_bake_shader_bsdf(KernelGlobals *kg,
@@ -282,7 +281,6 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 	/* random number generator */
 	RNG rng = cmj_hash(offset + i, kernel_data.integrator.seed);
 
-#ifdef USE_BAKE_JITTER
 	float filter_x, filter_y;
 	if(sample == 0) {
 		filter_x = filter_y = 0.5f;
@@ -293,10 +291,9 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 
 	/* subpixel u/v offset */
 	if(sample > 0) {
-		u = bake_clamp_mirror_repeat(u + dudx*(filter_x - 0.5f) + dudy*(filter_y - 0.5f));
-		v = bake_clamp_mirror_repeat(v + dvdx*(filter_x - 0.5f) + dvdy*(filter_y - 0.5f));
+		u = bake_clamp_mirror_repeat(u + dudx*(filter_x - 0.5f) + dudy*(filter_y - 0.5f), 1.0f);
+		v = bake_clamp_mirror_repeat(v + dvdx*(filter_x - 0.5f) + dvdy*(filter_y - 0.5f), 1.0f - u);
 	}
-#endif
 
 	/* triangle */
 	int shader;
