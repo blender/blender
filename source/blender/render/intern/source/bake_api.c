@@ -431,7 +431,7 @@ static TriTessFace *mesh_calc_tri_tessface(
 	            looptri);
 
 
-	const float *precomputed_normals = dm->getPolyDataArray(dm, CD_NORMAL);
+	const float *precomputed_normals = dm ? dm->getPolyDataArray(dm, CD_NORMAL) : NULL;
 	const bool calculate_normal = precomputed_normals ? false : true;
 
 	for (i = 0; i < tottri; i++) {
