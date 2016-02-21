@@ -319,9 +319,11 @@ static bool cast_ray_highpoly(
 	if (hit_mesh != -1) {
 		int primitive_id_high = hits[hit_mesh].index;
 		TriTessFace *triangle_high = &triangles[hit_mesh][primitive_id_high];
+		BakePixel *pixel_low = &pixel_array_low[pixel_id];
+		BakePixel *pixel_high = &pixel_array[pixel_id];
 
-		pixel_array[pixel_id].primitive_id = primitive_id_high;
-		pixel_array[pixel_id].object_id = hit_mesh;
+		pixel_high->primitive_id = primitive_id_high;
+		pixel_high->object_id = hit_mesh;
 
 		/* ray direction in high poly object space */
 		float dir_high[3];
@@ -333,10 +335,10 @@ static bool cast_ray_highpoly(
 		sub_v3_v3v3(duco_low, triangle_low->mverts[0]->co, triangle_low->mverts[2]->co);
 		sub_v3_v3v3(dvco_low, triangle_low->mverts[1]->co, triangle_low->mverts[2]->co);
 
-		mul_v3_v3fl(dxco, duco_low, pixel_array_low[pixel_id].du_dx);
-		madd_v3_v3fl(dxco, dvco_low, pixel_array_low[pixel_id].dv_dx);
-		mul_v3_v3fl(dyco, duco_low, pixel_array_low[pixel_id].du_dy);
-		madd_v3_v3fl(dyco, dvco_low, pixel_array_low[pixel_id].dv_dy);
+		mul_v3_v3fl(dxco, duco_low, pixel_low->du_dx);
+		madd_v3_v3fl(dxco, dvco_low, pixel_low->dv_dx);
+		mul_v3_v3fl(dyco, duco_low, pixel_low->du_dy);
+		madd_v3_v3fl(dyco, dvco_low, pixel_low->dv_dy);
 
 		/* transform from low poly to to high poly object space */
 		mul_mat3_m4_v3(mat_low, dxco);
@@ -355,9 +357,14 @@ static bool cast_ray_highpoly(
 			hits[hit_mesh].co, triangle_high->mverts[0]->co,
 			triangle_high->mverts[1]->co, triangle_high->mverts[2]->co,
 			dxco, dyco, triangle_high->normal, true,
-			&pixel_array[pixel_id].uv[0], &pixel_array[pixel_id].uv[1],
-			&pixel_array[pixel_id].du_dx, &pixel_array[pixel_id].dv_dx,
-			&pixel_array[pixel_id].du_dy, &pixel_array[pixel_id].dv_dy);
+			&pixel_high->uv[0], &pixel_high->uv[1],
+			&pixel_high->du_dx, &pixel_high->dv_dx,
+			&pixel_high->du_dy, &pixel_high->dv_dy);
+
+		/* verify we have valid uvs */
+		BLI_assert(pixel_high->uv[0] >= -1e-3f &&
+		           pixel_high->uv[1] >= -1e-3f &&
+		           pixel_high->uv[0] + pixel_high->uv[1] <= 1.0f + 1e-3f);
 	}
 	else {
 		pixel_array[pixel_id].primitive_id = -1;
