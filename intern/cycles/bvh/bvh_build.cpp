@@ -339,7 +339,7 @@ void BVHBuild::thread_build_node(InnerNode *inner, int child, BVHObjectBinning *
 	}
 }
 
-bool BVHBuild::range_within_max_leaf_size(const BVHRange& range)
+bool BVHBuild::range_within_max_leaf_size(const BVHRange& range) const
 {
 	size_t size = range.size();
 	size_t max_leaf_size = max(params.max_triangle_leaf_size, params.max_curve_leaf_size);
@@ -352,7 +352,7 @@ bool BVHBuild::range_within_max_leaf_size(const BVHRange& range)
 	size_t num_motion_curves = 0;
 
 	for(int i = 0; i < size; i++) {
-		BVHReference& ref = references[range.start() + i];
+		const BVHReference& ref = references[range.start() + i];
 
 		if(ref.prim_type() & PRIMITIVE_CURVE)
 			num_curves++;
@@ -424,7 +424,7 @@ BVHNode* BVHBuild::build_node(const BVHRange& range, int level)
 	}
 
 	/* splitting test */
-	BVHMixedSplit split(this, &spatial_storage[0], range, level);
+	BVHMixedSplit split(*this, &spatial_storage[0], range, level);
 
 	if(!(range.size() > 0 && params.top_level && level == 0)) {
 		if(split.no_split) {

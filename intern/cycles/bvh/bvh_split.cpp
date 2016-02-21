@@ -28,7 +28,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Object Split */
 
-BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
+BVHObjectSplit::BVHObjectSplit(const BVHBuild& builder,
                                BVHSpatialStorage *storage,
                                const BVHRange& range,
                                float nodeSAH)
@@ -39,7 +39,7 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
   right_bounds(BoundBox::empty),
   storage_(storage)
 {
-	const BVHReference *ref_ptr = &builder->references[range.start()];
+	const BVHReference *ref_ptr = &builder.references[range.start()];
 	float min_sah = FLT_MAX;
 
 	storage->spatial_indices.resize(range.size());
@@ -52,7 +52,7 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
 		 */
 		bvh_reference_sort_indices(range.start(),
 		                           range.end(),
-		                           &builder->references[0],
+		                           &builder.references[0],
 		                           indices,
 		                           dim);
 
@@ -72,8 +72,8 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
 			right_bounds = storage_->spatial_right_bounds[i - 1];
 
 			float sah = nodeSAH +
-				left_bounds.safe_area() * builder->params.primitive_cost(i) +
-				right_bounds.safe_area() * builder->params.primitive_cost(range.size() - i);
+				left_bounds.safe_area() * builder.params.primitive_cost(i) +
+				right_bounds.safe_area() * builder.params.primitive_cost(range.size() - i);
 
 			if(sah < min_sah) {
 				min_sah = sah;
@@ -101,7 +101,7 @@ void BVHObjectSplit::split(BVHBuild *builder, BVHRange& left, BVHRange& right, c
 
 /* Spatial Split */
 
-BVHSpatialSplit::BVHSpatialSplit(BVHBuild *builder,
+BVHSpatialSplit::BVHSpatialSplit(const BVHBuild& builder,
                                  BVHSpatialStorage *storage,
                                  const BVHRange& range,
                                  float nodeSAH)
@@ -127,7 +127,7 @@ BVHSpatialSplit::BVHSpatialSplit(BVHBuild *builder,
 
 	/* chop references into bins. */
 	for(unsigned int refIdx = range.start(); refIdx < range.end(); refIdx++) {
-		const BVHReference& ref = builder->references[refIdx];
+		const BVHReference& ref = builder.references[refIdx];
 		float3 firstBinf = (ref.bounds().min - origin) * invBinSize;
 		float3 lastBinf = (ref.bounds().max - origin) * invBinSize;
 		int3 firstBin = make_int3((int)firstBinf.x, (int)firstBinf.y, (int)firstBinf.z);
@@ -174,8 +174,8 @@ BVHSpatialSplit::BVHSpatialSplit(BVHBuild *builder,
 			rightNum -= storage_->spatial_bins[dim][i - 1].exit;
 
 			float sah = nodeSAH +
-				left_bounds.safe_area() * builder->params.primitive_cost(leftNum) +
-				storage_->spatial_right_bounds[i - 1].safe_area() * builder->params.primitive_cost(rightNum);
+				left_bounds.safe_area() * builder.params.primitive_cost(leftNum) +
+				storage_->spatial_right_bounds[i - 1].safe_area() * builder.params.primitive_cost(rightNum);
 
 			if(sah < this->sah) {
 				this->sah = sah;
@@ -225,7 +225,7 @@ void BVHSpatialSplit::split(BVHBuild *builder, BVHRange& left, BVHRange& right, 
 	while(left_end < right_start) {
 		/* split reference. */
 		BVHReference lref, rref;
-		split_reference(builder, lref, rref, refs[left_end], this->dim, this->pos);
+		split_reference(*builder, lref, rref, refs[left_end], this->dim, this->pos);
 
 		/* compute SAH for duplicate/unsplit candidates. */
 		BoundBox lub = left_bounds;		// Unsplit to left:		new left-hand bounds.
@@ -425,7 +425,7 @@ void BVHSpatialSplit::split_object_reference(const Object *object,
 	}
 }
 
-void BVHSpatialSplit::split_reference(BVHBuild *builder,
+void BVHSpatialSplit::split_reference(const BVHBuild& builder,
                                       BVHReference& left,
                                       BVHReference& right,
                                       const BVHReference& ref,
@@ -437,7 +437,7 @@ void BVHSpatialSplit::split_reference(BVHBuild *builder,
 	BoundBox right_bounds = BoundBox::empty;
 
 	/* loop over vertices/edges. */
-	Object *ob = builder->objects[ref.prim_object()];
+	const Object *ob = builder.objects[ref.prim_object()];
 	const Mesh *mesh = ob->mesh;
 
 	if(ref.prim_type() & PRIMITIVE_ALL_TRIANGLE) {

@@ -78,7 +78,7 @@ protected:
 	                                    int start,
 	                                    int nun);
 
-	bool range_within_max_leaf_size(const BVHRange& range);
+	bool range_within_max_leaf_size(const BVHRange& range) const;
 
 	/* threads */
 	enum { THREAD_TASK_SIZE = 4096 };
