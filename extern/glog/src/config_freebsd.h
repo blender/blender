@@ -14,7 +14,7 @@
 #define HAVE_DLFCN_H
 
 /* Define to 1 if you have the <execinfo.h> header file. */
-#define HAVE_EXECINFO_H
+/* #undef HAVE_EXECINFO_H */
 
 /* Define if you have the `fcntl' function */
 #define HAVE_FCNTL
@@ -26,10 +26,10 @@
 #define HAVE_INTTYPES_H 1
 
 /* Define to 1 if you have the `pthread' library (-lpthread). */
-/* #undef HAVE_LIBPTHREAD */
+#define HAVE_LIBPTHREAD
 
 /* Define to 1 if you have the <libunwind.h> header file. */
-#define HAVE_LIBUNWIND_H
+/* #undef HAVE_LIBUNWIND_H */
 
 /* define if you have google gflags library */
 #define HAVE_LIB_GFLAGS
@@ -65,13 +65,13 @@
 #define HAVE_PWRITE
 
 /* define if the compiler implements pthread_rwlock_* */
-/* #undef HAVE_RWLOCK */
+#define HAVE_RWLOCK 1
 
 /* Define if you have the 'sigaction' function */
 #define HAVE_SIGACTION
 
 /* Define if you have the `sigaltstack' function */
-/* #undef HAVE_SIGALTSTACK */
+#define HAVE_SIGALTSTACK 1
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
@@ -86,7 +86,7 @@
 #define HAVE_STRING_H
 
 /* Define to 1 if you have the <syscall.h> header file. */
-#define HAVE_SYSCALL_H
+/* #undef HAVE_SYSCALL_H */
 
 /* Define to 1 if you have the <syslog.h> header file. */
 #define HAVE_SYSLOG_H
@@ -104,7 +104,7 @@
 #define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <sys/ucontext.h> header file. */
-/* #undef HAVE_SYS_UCONTEXT_H */
+#define HAVE_SYS_UCONTEXT_H
 
 /* Define to 1 if you have the <sys/utsname.h> header file. */
 #define HAVE_SYS_UTSNAME_H
@@ -166,7 +166,7 @@
 #define SIZEOF_VOID_P 8
 
 /* Define to 1 if you have the ANSI C header files. */
-/* #undef STDC_HEADERS */
+#define STDC_HEADERS 1
 
 /* the namespace where STL code like vector<> is defined */
 #define STL_NAMESPACE std
@@ -184,3 +184,9 @@
 #define _START_GOOGLE_NAMESPACE_ namespace google {
 
 #define GOOGLE_GLOG_DLL_DECL
+
+/* isn't getting defined by configure script when clang compilers are used
+   and cuases compilation errors in stactrace/unwind modules */
+#ifdef __clang__
+#  define NO_FRAME_POINTER
+#endif
