@@ -30,6 +30,7 @@
 #include "util_foreach.h"
 #include "util_logging.h"
 #include "util_progress.h"
+#include "util_stack_allocator.h"
 #include "util_time.h"
 
 CCL_NAMESPACE_BEGIN
@@ -481,12 +482,26 @@ BVHNode *BVHBuild::create_primitive_leaf_node(const int *p_type,
 
 BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 {
-	/* TODO(sergey): Consider writing own allocator which would
-	 * not do heap allocation if number of elements is relatively small.
+	const int MAX_ITEMS_PER_LEAF = 16;
+
+	/* This is a bit overallocating here (considering leaf size into account),
+	 * but chunk-based re-allocation in vector makes it difficult to use small
+	 * size of stack storage here. Some tweaks are possible tho.
+	 *
+	 * NOTES:
+	 *  - If the size is too big, we'll have inefficient stack usage,
+	 *    and lots of cache misses.
+	 *  - If the size is too small, then we can run out of memory
+	 *    allowed to be used by vector.
+	 *  - Optimistic re-allocation in STL could jump us out of stack usage
+	 *    because re-allocation happens in chunks and size of those chunks we
+	 *    can not control.
 	 */
-	vector<int> p_type[PRIMITIVE_NUM_TOTAL];
-	vector<int> p_index[PRIMITIVE_NUM_TOTAL];
-	vector<int> p_object[PRIMITIVE_NUM_TOTAL];
+	typedef StackAllocator<MAX_ITEMS_PER_LEAF * 8, int> LeafStackAllocator;
+
+	vector<int, LeafStackAllocator> p_type[PRIMITIVE_NUM_TOTAL];
+	vector<int, LeafStackAllocator> p_index[PRIMITIVE_NUM_TOTAL];
+	vector<int, LeafStackAllocator> p_object[PRIMITIVE_NUM_TOTAL];
 	uint visibility[PRIMITIVE_NUM_TOTAL] = {0};
 	/* NOTE: Keep initializtion in sync with actual number of primitives. */
 	BoundBox bounds[PRIMITIVE_NUM_TOTAL] = {BoundBox::empty,
