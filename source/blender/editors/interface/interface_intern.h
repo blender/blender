@@ -484,7 +484,9 @@ extern uiButExtraIconType ui_but_icon_extra_get(uiBut *but);
 
 extern void ui_but_default_set(struct bContext *C, const bool all, const bool use_afterfunc);
 
+extern void ui_but_update_ex(uiBut *but, const bool validate);
 extern void ui_but_update(uiBut *but);
+extern void ui_but_update_edited(uiBut *but);
 extern bool ui_but_is_float(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_but_is_bool(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_but_is_unit(const uiBut *but) ATTR_WARN_UNUSED_RESULT;

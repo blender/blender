@@ -2787,7 +2787,12 @@ void UI_block_emboss_set(uiBlock *block, char dt)
 	block->dt = dt;
 }
 
-void ui_but_update(uiBut *but)
+/**
+ * \param but: Button to update.
+ * \param validate: When set, this function may change the button value.
+ * Otherwise treat the button value as read-only.
+ */
+void ui_but_update_ex(uiBut *but, const bool validate)
 {
 	/* if something changed in the button */
 	double value = UI_BUT_VALUE_UNSET;
@@ -2809,13 +2814,19 @@ void ui_but_update(uiBut *but)
 		case UI_BTYPE_NUM:
 		case UI_BTYPE_SCROLL:
 		case UI_BTYPE_NUM_SLIDER:
-			UI_GET_BUT_VALUE_INIT(but, value);
-			if      (value < (double)but->hardmin) ui_but_value_set(but, but->hardmin);
-			else if (value > (double)but->hardmax) ui_but_value_set(but, but->hardmax);
+			if (validate) {
+				UI_GET_BUT_VALUE_INIT(but, value);
+				if      (value < (double)but->hardmin) {
+					ui_but_value_set(but, but->hardmin);
+				}
+				else if (value > (double)but->hardmax) {
+					ui_but_value_set(but, but->hardmax);
+				}
 
-			/* max must never be smaller than min! Both being equal is allowed though */
-			BLI_assert(but->softmin <= but->softmax &&
-			           but->hardmin <= but->hardmax);
+				/* max must never be smaller than min! Both being equal is allowed though */
+				BLI_assert(but->softmin <= but->softmax &&
+				           but->hardmin <= but->hardmax);
+			}
 			break;
 			
 		case UI_BTYPE_ICON_TOGGLE:
@@ -2989,6 +3000,15 @@ void ui_but_update(uiBut *but)
 	/* text clipping moved to widget drawing code itself */
 }
 
+void ui_but_update(uiBut *but)
+{
+	ui_but_update_ex(but, false);
+}
+
+void ui_but_update_edited(uiBut *but)
+{
+	ui_but_update_ex(but, true);
+}
 
 void UI_block_align_begin(uiBlock *block)
 {
