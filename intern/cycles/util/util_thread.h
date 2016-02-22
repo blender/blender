@@ -81,6 +81,29 @@ protected:
 	bool joined;
 };
 
+/* Own wrapper around pthread's spin lock to make it's use easier. */
+
+class thread_spin_lock {
+public:
+	inline thread_spin_lock() {
+		pthread_spin_init(&spin_, 0);
+	}
+
+	inline ~thread_spin_lock() {
+		pthread_spin_destroy(&spin_);
+	}
+
+	inline void lock() {
+		pthread_spin_lock(&spin_);
+	}
+
+	inline void unlock() {
+		pthread_spin_unlock(&spin_);
+	}
+protected:
+	pthread_spinlock_t spin_;
+};
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_THREAD_H__ */
