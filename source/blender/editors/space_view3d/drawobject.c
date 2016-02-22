@@ -4248,20 +4248,26 @@ static bool draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3
 			        scene, ob, em, scene->customdata_mask,
 			        &finalDM);
 
+		const bool use_material = ((me->drawflag & ME_DRAWEIGHT) == 0);
+
 		DM_update_materials(finalDM, ob);
 		if (cageDM != finalDM) {
 			DM_update_materials(cageDM, ob);
 		}
 
-		if (dt > OB_WIRE) {
-			const bool glsl = draw_glsl_material(scene, ob, v3d, dt);
+		if (use_material) {
+			if (dt > OB_WIRE) {
+				const bool glsl = draw_glsl_material(scene, ob, v3d, dt);
 
-			GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
+				GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
+			}
 		}
 
 		draw_em_fancy(scene, ar, v3d, ob, em, cageDM, finalDM, dt);
 
-		GPU_end_object_materials();
+		if (use_material) {
+			GPU_end_object_materials();
+		}
 
 		if (obedit != ob)
 			finalDM->release(finalDM);
