@@ -8068,7 +8068,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		if (do_draw_center != -1) {
 			if (dflag & DRAW_PICKING) {
 				/* draw a single point for opengl selection */
-				if (U.obcenter_dia > 0) {
+				if ((base->sx != IS_CLIPPED) &&
+				    (U.obcenter_dia != 0.0))
+				{
 					glPointSize(U.obcenter_dia);
 					glBegin(GL_POINTS);
 					glVertex3fv(ob->obmat[3]);
@@ -8077,7 +8079,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			}
 			else if ((dflag & DRAW_CONSTCOLOR) == 0) {
 				/* we don't draw centers for duplicators and sets */
-				if (U.obcenter_dia > 0 && !(G.f & G_RENDER_OGL)) {
+				if ((base->sx != IS_CLIPPED) &&
+				    (U.obcenter_dia != 0.0) &&
+				    !(G.f & G_RENDER_OGL))
+				{
 					/* check > 0 otherwise grease pencil can draw into the circle select which is annoying. */
 					drawcentercircle(v3d, rv3d, ob->obmat[3], do_draw_center, ob->id.lib || ob->id.us > 1);
 				}
