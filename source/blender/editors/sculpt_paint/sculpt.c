@@ -381,6 +381,30 @@ static void sculpt_rake_rotate(
 
 }
 
+/**
+ * Align the grab delta to the brush normal.
+ *
+ * \param grab_delta: Typically from `ss->cache->grab_delta_symmetry`.
+ */
+static void sculpt_project_v3_normal_align(SculptSession *ss, const float normal_weight, float grab_delta[3])
+{
+	/* signed to support grabbing in (to make a hole) as well as out. */
+	const float len_signed = dot_v3v3(ss->cache->sculpt_normal_symm, grab_delta);
+
+	/* this scale effectively projects the offset so dragging follows the cursor,
+	 * as the normal points towards the view, the scale increases. */
+	float len_view_scale;
+	{
+		float view_aligned_normal[3];
+		project_plane_v3_v3v3(view_aligned_normal, ss->cache->sculpt_normal_symm, ss->cache->view_normal);
+		len_view_scale = fabsf(dot_v3v3(view_aligned_normal, ss->cache->sculpt_normal_symm));
+		len_view_scale = (len_view_scale > FLT_EPSILON) ? 1.0f / len_view_scale : 1.0f;
+	}
+
+	mul_v3_fl(grab_delta, 1.0f - normal_weight);
+	madd_v3_v3fl(grab_delta, ss->cache->sculpt_normal_symm, (len_signed * normal_weight) * len_view_scale);
+}
+
 
 /** \name SculptProjectVector
  *
@@ -2207,21 +2231,7 @@ static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 	copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
 
 	if (brush->normal_weight > 0) {
-		/* signed to support grabbing in (to make a hole) as well as out. */
-		const float len_signed = dot_v3v3(ss->cache->sculpt_normal_symm, ss->cache->grab_delta_symmetry);
-
-		/* this scale effectively projects the offset so dragging follows the cursor,
-		 * as the normal points towards the view, the scale increases. */
-		float len_view_scale;
-		{
-			float view_aligned_normal[3];
-			project_plane_v3_v3v3(view_aligned_normal, ss->cache->sculpt_normal_symm, ss->cache->view_normal);
-			len_view_scale = fabsf(dot_v3v3(view_aligned_normal, ss->cache->sculpt_normal_symm));
-			len_view_scale = (len_view_scale > FLT_EPSILON) ? 1.0f / len_view_scale : 1.0f;
-		}
-
-		mul_v3_fl(grab_delta, 1.0f - brush->normal_weight);
-		madd_v3_v3fl(grab_delta, ss->cache->sculpt_normal_symm, (len_signed * brush->normal_weight) * len_view_scale);
+		sculpt_project_v3_normal_align(ss, brush->normal_weight, grab_delta);
 	}
 
 	SculptThreadedTaskData data = {
@@ -2374,9 +2384,7 @@ static void do_snake_hook_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 		negate_v3(grab_delta);
 
 	if (brush->normal_weight > 0) {
-		mul_v3_fl(ss->cache->sculpt_normal_symm, len * brush->normal_weight);
-		mul_v3_fl(grab_delta, 1.0f - brush->normal_weight);
-		add_v3_v3(grab_delta, ss->cache->sculpt_normal_symm);
+		sculpt_project_v3_normal_align(ss, brush->normal_weight, grab_delta);
 	}
 
 	/* optionally pinch while painting */
