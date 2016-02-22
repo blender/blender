@@ -93,23 +93,22 @@ class array
 {
 public:
 	array()
-	{
-		data = NULL;
-		datasize = 0;
-		capacity = 0;
-	}
+	: data_(NULL),
+	  datasize_(0),
+	  capacity_(0)
+	{}
 
 	array(size_t newsize)
 	{
 		if(newsize == 0) {
-			data = NULL;
-			datasize = 0;
-			capacity = 0;
+			data_ = NULL;
+			datasize_ = 0;
+			capacity_ = 0;
 		}
 		else {
-			data = mem_allocate(newsize);
-			datasize = newsize;
-			capacity = datasize;
+			data_ = mem_allocate(newsize);
+			datasize_ = newsize;
+			capacity_ = datasize_;
 		}
 	}
 
@@ -121,15 +120,15 @@ public:
 	array& operator=(const array& from)
 	{
 		if(from.datasize == 0) {
-			data = NULL;
-			datasize = 0;
-			capacity = 0;
+			data_ = NULL;
+			datasize_ = 0;
+			capacity_ = 0;
 		}
 		else {
-			data = mem_allocate(from.datasize);
-			memcpy(data, from.data, from.datasize*sizeof(T));
-			datasize = from.datasize;
-			capacity = datasize;
+			data_ = mem_allocate(from.datasize);
+			memcpy(data_, from.data, from.datasize*sizeof(T));
+			datasize_ = from.datasize_;
+			capacity_ = datasize_;
 		}
 
 		return *this;
@@ -137,13 +136,13 @@ public:
 
 	array& operator=(const vector<T>& from)
 	{
-		datasize = from.size();
-		capacity = datasize;
-		data = NULL;
+		datasize_ = from.size();
+		capacity_ = datasize_;
+		data_ = NULL;
 
-		if(datasize > 0) {
-			data = mem_allocate(datasize);
-			memcpy(data, &from[0], datasize*sizeof(T));
+		if(datasize_ > 0) {
+			data_ = mem_allocate(datasize_);
+			memcpy(data_, &from[0], datasize_*sizeof(T));
 		}
 
 		return *this;
@@ -151,7 +150,7 @@ public:
 
 	~array()
 	{
-		mem_free(data, capacity);
+		mem_free(data_, capacity_);
 	}
 
 	T* resize(size_t newsize)
@@ -159,57 +158,61 @@ public:
 		if(newsize == 0) {
 			clear();
 		}
-		else if(newsize != datasize) {
-			if(newsize > capacity) {
+		else if(newsize != datasize_) {
+			if(newsize > capacity_) {
 				T *newdata = mem_allocate(newsize);
 				if(newdata == NULL) {
 					/* Allocation failed, likely out of memory. */
 					clear();
 					return NULL;
 				}
-				else if(data != NULL) {
-					memcpy(newdata, data, ((datasize < newsize)? datasize: newsize)*sizeof(T));
-					mem_free(data, capacity);
+				else if(data_ != NULL) {
+					memcpy(newdata, data_, ((datasize_ < newsize)? datasize_: newsize)*sizeof(T));
+					mem_free(data_, capacity_);
 				}
-				data = newdata;
-				capacity = newsize;
+				data_ = newdata;
+				capacity_ = newsize;
 			}
-			datasize = newsize;
+			datasize_ = newsize;
 		}
-		return data;
+		return data_;
 	}
 
 	void clear()
 	{
-		if(data != NULL) {
-			mem_free(data, capacity);
-			data = NULL;
+		if(data_ != NULL) {
+			mem_free(data_, capacity_);
+			data_ = NULL;
 		}
-		datasize = 0;
-		capacity = 0;
+		datasize_ = 0;
+		capacity_ = 0;
 	}
 
 	size_t size() const
 	{
-		return datasize;
+		return datasize_;
 	}
 
 	T& operator[](size_t i) const
 	{
-		assert(i < datasize);
-		return data[i];
+		assert(i < datasize_);
+		return data_[i];
 	}
 
 	void reserve(size_t newcapacity) {
-		if(newcapacity > capacity) {
+		if(newcapacity > capacity_) {
 			T *newdata = mem_allocate(newcapacity);
-			if(data) {
-				memcpy(newdata, data, ((datasize < newcapacity)? datasize: newcapacity)*sizeof(T));
-				mem_free(data, capacity);
+			if(data_ != NULL) {
+				memcpy(newdata, data_, ((datasize_ < newcapacity)? datasize_: newcapacity)*sizeof(T));
+				mem_free(data_, capacity_);
 			}
-			data = newdata;
-			capacity = newcapacity;
+			data_ = newdata;
+			capacity_ = newcapacity;
 		}
+	}
+
+	size_t capacity() const {
+		return capacity_;
 	}
 
 protected:
@@ -230,9 +233,9 @@ protected:
 		}
 	}
 
-	T *data;
-	size_t datasize;
-	size_t capacity;
+	T *data_;
+	size_t datasize_;
+	size_t capacity_;
 };
 
 CCL_NAMESPACE_END
