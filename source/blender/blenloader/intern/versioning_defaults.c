@@ -239,6 +239,12 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 		if (br) {
 			BKE_libblock_rename(bmain, &br->id, "Rotate");
 		}
+
+		/* use original normal for grab brush (otherwise flickers with normal weighting). */
+		br = (Brush *)BKE_libblock_find_name_ex(bmain, ID_BR, "Grab");
+		if (br) {
+			br->flag |= BRUSH_ORIGINAL_NORMAL;
+		}
 	}
 }
 
