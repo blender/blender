@@ -243,10 +243,10 @@ BVHNode* BVHBuild::run()
 		spatial_storage.resize(1);
 		size_t num_bins = max(root.size(), (int)BVHParams::NUM_SPATIAL_BINS) - 1;
 		foreach(BVHSpatialStorage &storage, spatial_storage) {
-			storage.spatial_right_bounds.clear();
-			storage.spatial_right_bounds.resize(num_bins);
-			storage.spatial_indices.clear();
-			storage.spatial_indices.reserve(num_bins);
+			storage.right_bounds.clear();
+			storage.right_bounds.resize(num_bins);
+			storage.reference_indices.clear();
+			storage.reference_indices.reserve(num_bins);
 		}
 	}
 

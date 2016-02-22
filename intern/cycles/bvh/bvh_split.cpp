@@ -42,8 +42,8 @@ BVHObjectSplit::BVHObjectSplit(const BVHBuild& builder,
 	const BVHReference *ref_ptr = &builder.references[range.start()];
 	float min_sah = FLT_MAX;
 
-	storage->spatial_indices.resize(range.size());
-	int *indices = &storage->spatial_indices[0];
+	storage->reference_indices.resize(range.size());
+	int *indices = &storage->reference_indices[0];
 
 	for(int dim = 0; dim < 3; dim++) {
 		/* Sort references.
@@ -61,7 +61,7 @@ BVHObjectSplit::BVHObjectSplit(const BVHBuild& builder,
 
 		for(int i = range.size() - 1; i > 0; i--) {
 			right_bounds.grow(ref_ptr[indices[i]].bounds());
-			storage_->spatial_right_bounds[i - 1] = right_bounds;
+			storage_->right_bounds[i - 1] = right_bounds;
 		}
 
 		/* sweep left to right and select lowest SAH. */
@@ -69,7 +69,7 @@ BVHObjectSplit::BVHObjectSplit(const BVHBuild& builder,
 
 		for(int i = 1; i < range.size(); i++) {
 			left_bounds.grow(ref_ptr[indices[i - 1]].bounds());
-			right_bounds = storage_->spatial_right_bounds[i - 1];
+			right_bounds = storage_->right_bounds[i - 1];
 
 			float sah = nodeSAH +
 				left_bounds.safe_area() * builder.params.primitive_cost(i) +
@@ -117,7 +117,7 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild& builder,
 
 	for(int dim = 0; dim < 3; dim++) {
 		for(int i = 0; i < BVHParams::NUM_SPATIAL_BINS; i++) {
-			BVHSpatialBin& bin = storage_->spatial_bins[dim][i];
+			BVHSpatialBin& bin = storage_->bins[dim][i];
 
 			bin.bounds = BoundBox::empty;
 			bin.enter = 0;
@@ -143,13 +143,13 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild& builder,
 				BVHReference leftRef, rightRef;
 
 				split_reference(builder, leftRef, rightRef, currRef, dim, origin[dim] + binSize[dim] * (float)(i + 1));
-				storage_->spatial_bins[dim][i].bounds.grow(leftRef.bounds());
+				storage_->bins[dim][i].bounds.grow(leftRef.bounds());
 				currRef = rightRef;
 			}
 
-			storage_->spatial_bins[dim][lastBin[dim]].bounds.grow(currRef.bounds());
-			storage_->spatial_bins[dim][firstBin[dim]].enter++;
-			storage_->spatial_bins[dim][lastBin[dim]].exit++;
+			storage_->bins[dim][lastBin[dim]].bounds.grow(currRef.bounds());
+			storage_->bins[dim][firstBin[dim]].enter++;
+			storage_->bins[dim][lastBin[dim]].exit++;
 		}
 	}
 
@@ -159,8 +159,8 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild& builder,
 		BoundBox right_bounds = BoundBox::empty;
 
 		for(int i = BVHParams::NUM_SPATIAL_BINS - 1; i > 0; i--) {
-			right_bounds.grow(storage_->spatial_bins[dim][i].bounds);
-			storage_->spatial_right_bounds[i - 1] = right_bounds;
+			right_bounds.grow(storage_->bins[dim][i].bounds);
+			storage_->right_bounds[i - 1] = right_bounds;
 		}
 
 		/* sweep left to right and select lowest SAH. */
@@ -169,13 +169,13 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild& builder,
 		int rightNum = range.size();
 
 		for(int i = 1; i < BVHParams::NUM_SPATIAL_BINS; i++) {
-			left_bounds.grow(storage_->spatial_bins[dim][i - 1].bounds);
-			leftNum += storage_->spatial_bins[dim][i - 1].enter;
-			rightNum -= storage_->spatial_bins[dim][i - 1].exit;
+			left_bounds.grow(storage_->bins[dim][i - 1].bounds);
+			leftNum += storage_->bins[dim][i - 1].enter;
+			rightNum -= storage_->bins[dim][i - 1].exit;
 
 			float sah = nodeSAH +
 				left_bounds.safe_area() * builder.params.primitive_cost(leftNum) +
-				storage_->spatial_right_bounds[i - 1].safe_area() * builder.params.primitive_cost(rightNum);
+				storage_->right_bounds[i - 1].safe_area() * builder.params.primitive_cost(rightNum);
 
 			if(sah < this->sah) {
 				this->sah = sah;
@@ -220,7 +220,7 @@ void BVHSpatialSplit::split(BVHBuild *builder, BVHRange& left, BVHRange& right, 
 	 * Duplication happens into a temporary pre-allocated vector in order to
 	 * reduce number of memmove() calls happening in vector.insert().
 	 */
-	vector<BVHReference>& new_refs = storage_->spatial_new_refs;
+	vector<BVHReference>& new_refs = storage_->new_references;
 	new_refs.clear();
 	new_refs.reserve(right_start - left_end);
 	while(left_end < right_start) {

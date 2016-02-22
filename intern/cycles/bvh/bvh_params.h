@@ -183,10 +183,21 @@ struct BVHSpatialBin
  */
 
 struct BVHSpatialStorage {
-	vector<BoundBox> spatial_right_bounds;
-	BVHSpatialBin spatial_bins[3][BVHParams::NUM_SPATIAL_BINS];
-	vector<int> spatial_indices;
-	vector<BVHReference> spatial_new_refs;
+	/* Accumulated bounds when sweeping from right to left.  */
+	vector<BoundBox> right_bounds;
+
+	/* Bins used for histogram when selecting best split plane. */
+	BVHSpatialBin bins[3][BVHParams::NUM_SPATIAL_BINS];
+
+	/* Indices to a reference array used by object splitter to speed up
+	 * sorting process.
+	 */
+	vector<int> reference_indices;
+
+	/* Temporary storage for the new references. Used by spatial split to store
+	 * new references in before they're getting inserted into actual array,
+	 */
+	vector<BVHReference> new_references;
 };
 
 CCL_NAMESPACE_END
