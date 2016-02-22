@@ -5094,6 +5094,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		draw_as = PART_DRAW_DOT;
 
 /* 3. */
+	glLineWidth(1.0f);
+
 	switch (draw_as) {
 		case PART_DRAW_DOT:
 			if (part->draw_size)
