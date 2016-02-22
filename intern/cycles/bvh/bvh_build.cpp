@@ -245,6 +245,8 @@ BVHNode* BVHBuild::run()
 		foreach(BVHSpatialStorage &storage, spatial_storage) {
 			storage.spatial_right_bounds.clear();
 			storage.spatial_right_bounds.resize(num_bins);
+			storage.spatial_indices.clear();
+			storage.spatial_indices.reserve(num_bins);
 		}
 	}
 

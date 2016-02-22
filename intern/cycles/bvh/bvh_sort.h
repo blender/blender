@@ -21,6 +21,11 @@
 CCL_NAMESPACE_BEGIN
 
 void bvh_reference_sort(int start, int end, BVHReference *data, int dim);
+void bvh_reference_sort_indices(int start,
+                                int end,
+                                const BVHReference *data,
+                                int *indices,
+                                int dim);
 
 CCL_NAMESPACE_END
 
