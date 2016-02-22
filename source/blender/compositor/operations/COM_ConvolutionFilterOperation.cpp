@@ -33,7 +33,6 @@ ConvolutionFilterOperation::ConvolutionFilterOperation() : NodeOperation()
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setResolutionInputSocketIndex(0);
 	this->m_inputOperation = NULL;
-	this->m_filter = NULL;
 	this->setComplex(true);
 }
 void ConvolutionFilterOperation::initExecution()
@@ -44,7 +43,6 @@ void ConvolutionFilterOperation::initExecution()
 
 void ConvolutionFilterOperation::set3x3Filter(float f1, float f2, float f3, float f4, float f5, float f6, float f7, float f8, float f9)
 {
-	this->m_filter = (float *)MEM_mallocN(sizeof(float) * 9, __func__);
 	this->m_filter[0] = f1;
 	this->m_filter[1] = f2;
 	this->m_filter[2] = f3;
@@ -62,10 +60,6 @@ void ConvolutionFilterOperation::deinitExecution()
 {
 	this->m_inputOperation = NULL;
 	this->m_inputValueOperation = NULL;
-	if (this->m_filter) {
-		MEM_freeN(this->m_filter);
-		this->m_filter = NULL;
-	}
 }
 
 

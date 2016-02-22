@@ -33,7 +33,7 @@ private:
 protected:
 	SocketReader *m_inputOperation;
 	SocketReader *m_inputValueOperation;
-	float *m_filter;
+	float m_filter[9];
 
 public:
 	ConvolutionFilterOperation();
