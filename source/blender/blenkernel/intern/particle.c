@@ -2113,7 +2113,7 @@ static bool psys_thread_context_init_path(ParticleThreadContext *ctx, ParticleSi
 		ctx->clumpcurve = NULL;
 	}
 	if ((part->child_flag & PART_CHILD_USE_ROUGH_CURVE) && part->roughcurve) {
-		ctx->clumpcurve = curvemapping_copy(part->roughcurve);
+		ctx->roughcurve = curvemapping_copy(part->roughcurve);
 		curvemapping_changed_all(ctx->roughcurve);
 	}
 	else {
