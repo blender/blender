@@ -3045,8 +3045,11 @@ void rna_ShaderNodePointDensity_density_cache(bNode *self,
 		return;
 	}
 
+	/* Make sure there's no cached data. */
+	BKE_texture_pointdensity_free_data(pd);
+	RE_point_density_free(pd);
+
 	/* Create PointDensity structure from node for sampling. */
-	memset(pd, 0, sizeof(*pd));
 	BKE_texture_pointdensity_init_data(pd);
 	pd->object = (Object *)self->id;
 	pd->radius = shader_point_density->radius;
@@ -3098,6 +3101,7 @@ void rna_ShaderNodePointDensity_density_calc(bNode *self,
 
 	/* We're done, time to clean up. */
 	BKE_texture_pointdensity_free_data(pd);
+	memset(pd, 0, sizeof(*pd));
 }
 
 void rna_ShaderNodePointDensity_density_minmax(bNode *self,

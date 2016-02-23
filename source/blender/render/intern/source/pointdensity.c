@@ -832,3 +832,8 @@ void RE_point_density_sample(
 	free_pointdensity(pd);
 	BLI_mutex_unlock(&sample_mutex);
 }
+
+void RE_point_density_free(struct PointDensity *pd)
+{
+	free_pointdensity(pd);
+}

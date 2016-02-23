@@ -86,5 +86,7 @@ void RE_point_density_sample(
         const bool use_render_params,
         float *values);
 
+void RE_point_density_free(struct PointDensity *pd);
+
 #endif /* __RE_RENDER_EXT_H__ */
 

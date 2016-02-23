@@ -27,6 +27,10 @@
 
 #include "../node_shader_util.h"
 
+#include "BKE_texture.h"
+
+#include "RE_render_ext.h"
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_tex_pointdensity_in[] = {
@@ -52,6 +56,26 @@ static void node_shader_init_tex_pointdensity(bNodeTree *UNUSED(ntree),
 	node->storage = point_density;
 }
 
+static void node_shader_free_tex_pointdensity(bNode *node)
+{
+	NodeShaderTexPointDensity *point_density = node->storage;
+	PointDensity *pd = &point_density->pd;
+	RE_point_density_free(pd);
+	BKE_texture_pointdensity_free_data(pd);
+	memset(pd, 0, sizeof(*pd));
+	MEM_freeN(point_density);
+}
+
+static void node_shader_copy_tex_pointdensity(bNodeTree * UNUSED(dest_ntree),
+                                              bNode *dest_node,
+                                              bNode *src_node)
+{
+	dest_node->storage = MEM_dupallocN(src_node->storage);
+	NodeShaderTexPointDensity *point_density = dest_node->storage;
+	PointDensity *pd = &point_density->pd;
+	memset(pd, 0, sizeof(*pd));
+}
+
 /* node type definition */
 void register_node_type_sh_tex_pointdensity(void)
 {
@@ -69,8 +93,8 @@ void register_node_type_sh_tex_pointdensity(void)
 	node_type_init(&ntype, node_shader_init_tex_pointdensity);
 	node_type_storage(&ntype,
 	                  "NodeShaderTexPointDensity",
-	                  node_free_standard_storage,
-	                  node_copy_standard_storage);
+	                  node_shader_free_tex_pointdensity,
+	                  node_shader_copy_tex_pointdensity);
 
 	nodeRegisterType(&ntype);
 }

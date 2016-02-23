@@ -3025,6 +3025,10 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 					NodeShaderScript *nss = (NodeShaderScript *) node->storage;
 					nss->bytecode = newdataadr(fd, nss->bytecode);
 				}
+				else if (node->type==SH_NODE_TEX_POINTDENSITY) {
+					NodeShaderTexPointDensity *npd = (NodeShaderTexPointDensity *) node->storage;
+					memset(&npd->pd, 0, sizeof(npd->pd));
+				}
 			}
 			else if (ntree->type==NTREE_COMPOSIT) {
 				if (ELEM(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
