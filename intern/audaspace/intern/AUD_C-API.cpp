@@ -75,7 +75,6 @@
 #include "AUD_MutexLock.h"
 
 #ifdef WITH_SDL
-#include <SDL.h>
 #include "AUD_SDLDevice.h"
 #endif
 

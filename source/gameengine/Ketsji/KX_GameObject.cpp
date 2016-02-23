@@ -3734,7 +3734,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	if (!spc && parent)
 		spc = parent->GetPhysicsController();
 
-	RayCastData rayData(propName, false, (1 << OB_MAX_COL_MASKS) - 1);
+	RayCastData rayData(propName, false, (1u << OB_MAX_COL_MASKS) - 1);
 	KX_RayCast::Callback<KX_GameObject, RayCastData> callback(this, spc, &rayData);
 	if (KX_RayCast::RayTest(pe, fromPoint, toPoint, callback) && rayData.m_hitObject) {
 		return rayData.m_hitObject->GetProxy();

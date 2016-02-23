@@ -29,10 +29,6 @@
  *  \ingroup gamelogic
  */
 
-#ifdef WITH_SDL
-#  include <SDL.h>
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 

@@ -34,7 +34,18 @@
 
 #include "SCA_JoystickDefines.h"
 #ifdef WITH_SDL
+/* SDL force defines __SSE__ and __SSE2__ flags, which generates warnings
+ * because we pass those defines via command line as well. For until there's
+ * proper ifndef added to SDL headers we ignore the redefinition warning.
+ */
+#  ifdef _MSC_VER
+#    pragma warning(push)
+#    pragma warning(disable : 4005)
+#  endif
 #  include "SDL.h"
+#  ifdef _MSC_VER
+#    pragma warning(pop)
+#  endif
 #endif
 
 /**

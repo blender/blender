@@ -228,17 +228,7 @@ static std::map<int, SCA_IInputDevice::KX_EnumInputs> create_translate_table()
 	m[EKEY				] = SCA_IInputDevice::KX_EKEY;                  
 	m[FKEY				] = SCA_IInputDevice::KX_FKEY;                  
 	m[GKEY				] = SCA_IInputDevice::KX_GKEY;                  
-
-//XXX clean up
-#ifdef WIN32
-#define HKEY	'h'
-#endif
 	m[HKEY				] = SCA_IInputDevice::KX_HKEY;                  
-//XXX clean up
-#ifdef WIN32
-#undef HKEY
-#endif
-
 	m[IKEY				] = SCA_IInputDevice::KX_IKEY;                  
 	m[JKEY				] = SCA_IInputDevice::KX_JKEY;                  
 	m[KKEY				] = SCA_IInputDevice::KX_KKEY;                  

@@ -6106,7 +6106,7 @@ static int rna_function_format_array_length(const char *format, int ofs, int fle
 }
 
 static int rna_function_parameter_parse(PointerRNA *ptr, PropertyRNA *prop, PropertyType type,
-                                        char ftype, int len, void *dest, void *src, StructRNA *srna,
+                                        char ftype, int len, void *dest, const void *src, StructRNA *srna,
                                         const char *tid, const char *fid, const char *pid)
 {
 	/* ptr is always a function pointer, prop always a parameter */
@@ -6401,7 +6401,7 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 				}
 				case PROP_STRING:
 				{
-					const char **arg = va_arg(args, const char **);
+					char **arg = va_arg(args, char **);
 					err = rna_function_parameter_parse(&funcptr, parm, type, ftype, len, arg, retdata,
 					                                   NULL, tid, fid, pid);
 					break;

@@ -29,10 +29,6 @@
  *  \ingroup gamelogic
  */
 
-#ifdef WITH_SDL
-#  include <SDL.h>
-#endif
-
 #include "SCA_Joystick.h"
 #include "SCA_JoystickPrivate.h"
 
