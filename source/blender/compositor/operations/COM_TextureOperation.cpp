@@ -26,6 +26,10 @@
 #include "BLI_threads.h"
 #include "BKE_image.h"
 
+extern "C" {
+#include "BKE_node.h"
+}
+
 static ThreadMutex mutex_lock = BLI_MUTEX_INITIALIZER;
 
 TextureBaseOperation::TextureBaseOperation() : SingleThreadedOperation()
@@ -53,6 +57,9 @@ void TextureBaseOperation::initExecution()
 	this->m_inputOffset = getInputSocketReader(0);
 	this->m_inputSize = getInputSocketReader(1);
 	this->m_pool = BKE_image_pool_new();
+	if (this->m_texture->nodetree && this->m_texture->use_nodes) {
+		ntreeTexBeginExecTree(this->m_texture->nodetree);
+	}
 	SingleThreadedOperation::initExecution();
 }
 void TextureBaseOperation::deinitExecution()
@@ -61,6 +68,13 @@ void TextureBaseOperation::deinitExecution()
 	this->m_inputOffset = NULL;
 	BKE_image_pool_free(this->m_pool);
 	this->m_pool = NULL;
+	if (this->m_texture != NULL &&
+	    this->m_texture->use_nodes &&
+	    this->m_texture->nodetree != NULL &&
+	    this->m_texture->nodetree->execdata != NULL)
+	{
+		ntreeTexEndExecTree(this->m_texture->nodetree->execdata);
+	}
 	SingleThreadedOperation::deinitExecution();
 }
 
@@ -82,7 +96,8 @@ void TextureAlphaOperation::executePixelSampled(float output[4], float x, float 
 {
 	float color[4];
 	TextureBaseOperation::executePixelSampled(color, x, y, sampler);
-	output[0] = color[3];}
+	output[0] = color[3];
+}
 
 void TextureBaseOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
