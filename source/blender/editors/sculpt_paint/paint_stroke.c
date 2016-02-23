@@ -1237,15 +1237,16 @@ int paint_stroke_exec(bContext *C, wmOperator *op)
 {
 	PaintStroke *stroke = op->customdata;
 
-	/* only when executed for the first time */
-	if (stroke->stroke_started == 0) {
-		/* XXX stroke->last_mouse_position is unset, this may cause problems */
-		stroke->test_start(C, op, NULL);
-		stroke->stroke_started = 1;
-	}
-
 	RNA_BEGIN (op->ptr, itemptr, "stroke")
 	{
+		/* only when executed for the first time */
+		if (stroke->stroke_started == 0) {
+			float mval[2];
+			RNA_float_get_array(&itemptr, "mouse", mval);
+			stroke->test_start(C, op, mval);
+			stroke->stroke_started = 1;
+		}
+
 		stroke->update_step(C, stroke, &itemptr);
 	}
 	RNA_END;
