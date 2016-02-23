@@ -1473,6 +1473,7 @@ void UI_panel_category_active_set(ARegion *ar, const char *idname)
 			pc_act_next = pc_act->next;
 			if (!BLI_findstring(&ar->type->paneltypes, pc_act->idname, offsetof(PanelType, category))) {
 				BLI_remlink(lb, pc_act);
+				MEM_freeN(pc_act);
 			}
 		}
 	}
