@@ -820,6 +820,7 @@ void CTX_wm_manager_set(bContext *C, wmWindowManager *wm)
 	C->wm.screen = NULL;
 	C->wm.area = NULL;
 	C->wm.region = NULL;
+	C->wm.menu = NULL;
 }
 
 void CTX_wm_window_set(bContext *C, wmWindow *win)
@@ -830,6 +831,7 @@ void CTX_wm_window_set(bContext *C, wmWindow *win)
 		C->data.scene = C->wm.screen->scene;
 	C->wm.area = NULL;
 	C->wm.region = NULL;
+	C->wm.menu = NULL;
 }
 
 void CTX_wm_screen_set(bContext *C, bScreen *screen)
@@ -839,17 +841,20 @@ void CTX_wm_screen_set(bContext *C, bScreen *screen)
 		C->data.scene = C->wm.screen->scene;
 	C->wm.area = NULL;
 	C->wm.region = NULL;
+	C->wm.menu = NULL;
 }
 
 void CTX_wm_area_set(bContext *C, ScrArea *area)
 {
 	C->wm.area = area;
 	C->wm.region = NULL;
+	C->wm.menu = NULL;
 }
 
 void CTX_wm_region_set(bContext *C, ARegion *region)
 {
 	C->wm.region = region;
+	C->wm.menu = NULL;
 }
 
 void CTX_wm_menu_set(bContext *C, ARegion *menu)
