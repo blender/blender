@@ -1237,23 +1237,33 @@ int paint_stroke_exec(bContext *C, wmOperator *op)
 {
 	PaintStroke *stroke = op->customdata;
 
-	RNA_BEGIN (op->ptr, itemptr, "stroke")
-	{
-		/* only when executed for the first time */
-		if (stroke->stroke_started == 0) {
-			float mval[2];
-			RNA_float_get_array(&itemptr, "mouse", mval);
-			stroke->test_start(C, op, mval);
-			stroke->stroke_started = 1;
-		}
+	/* only when executed for the first time */
+	if (stroke->stroke_started == 0) {
+		PropertyRNA *strokeprop;
+		PointerRNA firstpoint;
+		float mouse[2];
 
-		stroke->update_step(C, stroke, &itemptr);
+		strokeprop = RNA_struct_find_property(op->ptr, "stroke");
+
+		if (RNA_property_collection_lookup_int(op->ptr, strokeprop, 0, &firstpoint)) {
+			RNA_float_get_array(&firstpoint, "mouse", mouse);
+			stroke->stroke_started = stroke->test_start(C, op, mouse);
+		}
 	}
-	RNA_END;
+
+	if (stroke->stroke_started) {
+		RNA_BEGIN (op->ptr, itemptr, "stroke")
+		{
+			stroke->update_step(C, stroke, &itemptr);
+		}
+		RNA_END;
+	}
+
+	bool ok = (stroke->stroke_started != 0);
 
 	stroke_done(C, op);
 
-	return OPERATOR_FINISHED;
+	return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void paint_stroke_cancel(bContext *C, wmOperator *op)

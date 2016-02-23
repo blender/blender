@@ -954,7 +954,6 @@ static int paint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 static int paint_exec(bContext *C, wmOperator *op)
 {
-	PaintOperation *pop;
 	PropertyRNA *strokeprop;
 	PointerRNA firstpoint;
 	float mouse[2];
@@ -966,18 +965,12 @@ static int paint_exec(bContext *C, wmOperator *op)
 
 	RNA_float_get_array(&firstpoint, "mouse", mouse);
 
-	if (!(pop = texture_paint_init(C, op, mouse))) {
-		return OPERATOR_CANCELLED;
-	}
-
 	op->customdata = paint_stroke_new(C, op, NULL, paint_stroke_test_start,
 	                                  paint_stroke_update_step,
 	                                  paint_stroke_redraw,
 	                                  paint_stroke_done, 0);
 	/* frees op->customdata */
-	paint_stroke_exec(C, op);
-
-	return OPERATOR_FINISHED;
+	return paint_stroke_exec(C, op);
 }
 
 void PAINT_OT_image_paint(wmOperatorType *ot)
