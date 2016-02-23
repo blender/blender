@@ -195,9 +195,9 @@ static void whiteBalance_apply_threaded(int width, int height, unsigned char *re
 
 	WhiteBalanceThreadData *data = (WhiteBalanceThreadData *) data_v;
 
-	multiplier[0] = 1.0f / data->white[0];
-	multiplier[1] = 1.0f / data->white[1];
-	multiplier[2] = 1.0f / data->white[2];
+	multiplier[0] = (data->white[0] != 0.0f) ? 1.0f / data->white[0] : FLT_MAX;
+	multiplier[1] = (data->white[1] != 0.0f) ? 1.0f / data->white[1] : FLT_MAX;
+	multiplier[2] = (data->white[2] != 0.0f) ? 1.0f / data->white[2] : FLT_MAX;
 
 	for (y = 0; y < height; y++) {
 		for (x = 0; x < width; x++) {
@@ -211,7 +211,14 @@ static void whiteBalance_apply_threaded(int width, int height, unsigned char *re
 				straight_uchar_to_premul_float(result, rect + pixel_index);
 			}
 
+#if 0
 			mul_v3_v3(result, multiplier);
+#else
+			/* similar to division without the clipping */
+			for (int i = 0; i < 3; i++) {
+				result[i] = 1.0f - powf(1.0f - result[i], multiplier[i]);
+			}
+#endif
 
 			if (mask_rect_float) {
 				copy_v3_v3(mask, mask_rect_float + pixel_index);
