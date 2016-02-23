@@ -857,7 +857,7 @@ void RE_point_density_sample(
 	                        point_density_sample_func,
 	                        resolution > 32);
 
-	BLI_mutex_unlock(&sample_mutex);
+	free_pointdensity(pd);
 }
 
 void RE_point_density_free(struct PointDensity *pd)
