@@ -102,8 +102,6 @@ set(TIFF_LIBRARY        "/usr/lib/libtiff.a"  CACHE STRING "" FORCE)
 set(ZLIB_LIBRARY        "/usr/lib/libz.a"     CACHE STRING "" FORCE)
 
 # OpenVDB
-set(WITH_OPENVDB       ON  CACHE BOOL "" FORCE)
-set(WITH_OPENVDB_BLOSC ON  CACHE BOOL "" FORCE)
 set(OPENVDB_LIBRARY
 	/opt/lib/openvdb/lib/libopenvdb.a
 	/opt/lib/blosc/lib/libblosc.a
