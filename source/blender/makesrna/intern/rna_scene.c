@@ -5617,12 +5617,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	                         "Free all image textures from memory after render, to save memory before compositing");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
-	prop = RNA_def_property(srna, "use_free_unused_nodes", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_COMP_FREE);
-	RNA_def_property_ui_text(prop, "Free Unused Nodes",
-	                         "Free Nodes that are not used while compositing, to save memory");
-	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-
 	prop = RNA_def_property(srna, "use_save_buffers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_EXR_TILE_FILE);
 	RNA_def_property_boolean_funcs(prop, "rna_RenderSettings_save_buffers_get", NULL);
