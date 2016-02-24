@@ -834,11 +834,13 @@ void RE_point_density_sample(
 		return;
 	}
 
+	BLI_mutex_lock(&sample_mutex);
 	RE_point_density_minmax(scene,
 	                        pd,
 	                        use_render_params,
 	                        min,
 	                        max);
+	BLI_mutex_unlock(&sample_mutex);
 	sub_v3_v3v3(dim, max, min);
 	if (dim[0] <= 0.0f || dim[1] <= 0.0f || dim[2] <= 0.0f) {
 		sample_dummy_point_density(resolution, values);
