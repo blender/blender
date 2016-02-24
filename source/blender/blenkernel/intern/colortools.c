@@ -409,7 +409,9 @@ void curvemap_sethandle(CurveMap *cuma, int type)
 
 /* *********************** Making the tables and display ************** */
 
-/* reduced copy of garbled calchandleNurb() code in curve.c */
+/**
+ * reduced copy of #calchandleNurb_intern code in curve.c
+ */
 static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *next, int UNUSED(mode))
 {
 	float *p1, *p2, *p3, pt[3];
