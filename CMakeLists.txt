@@ -1242,6 +1242,14 @@ elseif(WIN32)
 	add_definitions(-DWIN32)
 
 	if(MSVC)
+		# Minimum MSVC Version
+		set(_min_ver "18.0.31101")
+		if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${_min_ver})
+			message(FATAL_ERROR
+			        "Visual Studio 2013 (Update 4, ${_min_ver}) required, "
+			        "found (${CMAKE_CXX_COMPILER_VERSION})")
+		endif()
+		unset(_min_ver)
 
 		# needed for some MSVC installations
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
