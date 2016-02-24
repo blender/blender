@@ -26,7 +26,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline bool cmj_is_pow2(int i)
 {
-	return (i & (i - 1)) == 0;
+	return (i > 1) && ((i & (i - 1)) == 0);
 }
 
 ccl_device_inline int cmj_fast_mod_pow2(int a, int b)
