@@ -1576,11 +1576,12 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_OPENVDB)
+			set(BLOSC_LIBRARIES ${LIBDIR}/blosc/lib/libblosc.lib)
 			set(TBB_LIBRARIES ${LIBDIR}/tbb/lib/tbb.lib)
 			set(TBB_INCLUDE_DIR ${LIBDIR}/tbb/include)
 			set(OPENVDB ${LIBDIR}/openvdb)
 			set(OPENVDB_INCLUDE_DIRS ${OPENVDB}/include ${TBB_INCLUDE_DIR})
-			set(OPENVDB_LIBRARIES openvdb ${TBB_LIBRARIES})
+			set(OPENVDB_LIBRARIES openvdb ${TBB_LIBRARIES} ${BLOSC_LIBRARIES})
 			set(OPENVDB_LIBPATH ${LIBDIR}/openvdb/lib)
 		endif()
 
