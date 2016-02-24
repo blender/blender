@@ -414,6 +414,10 @@ void curvemap_sethandle(CurveMap *cuma, int type)
  */
 static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *next, int UNUSED(mode))
 {
+	/* defines to avoid confusion */
+#define p2_h1 ((p2) - 3)
+#define p2_h2 ((p2) + 3)
+
 	float *p1, *p2, *p3, pt[3];
 	float len, len_a, len_b;
 	float dvec_a[2], dvec_b[2];
@@ -463,21 +467,24 @@ static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *nex
 			
 			if (bezt->h1 == HD_AUTO) {
 				len_a /= len;
-				madd_v2_v2v2fl(p2 - 3, p2, tvec, -len_a);
+				madd_v2_v2v2fl(p2_h1, p2, tvec, -len_a);
 			}
 			if (bezt->h2 == HD_AUTO) {
 				len_b /= len;
-				madd_v2_v2v2fl(p2 + 3, p2, tvec,  len_b);
+				madd_v2_v2v2fl(p2_h2, p2, tvec,  len_b);
 			}
 		}
 	}
 
 	if (bezt->h1 == HD_VECT) {    /* vector */
-		madd_v2_v2v2fl(p2 - 3, p2, dvec_a, -1.0f / 3.0f);
+		madd_v2_v2v2fl(p2_h1, p2, dvec_a, -1.0f / 3.0f);
 	}
 	if (bezt->h2 == HD_VECT) {
-		madd_v2_v2v2fl(p2 + 3, p2, dvec_b,  1.0f / 3.0f);
+		madd_v2_v2v2fl(p2_h2, p2, dvec_b,  1.0f / 3.0f);
 	}
+
+#undef p2_h1
+#undef p2_h2
 }
 
 /* in X, out Y. 
