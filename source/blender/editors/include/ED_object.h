@@ -152,7 +152,7 @@ void ED_object_single_users(struct Main *bmain, struct Scene *scene, const bool 
 void ED_object_single_user(struct Main *bmain, struct Scene *scene, struct Object *ob);
 
 /* object motion paths */
-void ED_objects_clear_paths(struct bContext *C);
+void ED_objects_clear_paths(struct bContext *C, bool only_selected);
 void ED_objects_recalculate_paths(struct bContext *C, struct Scene *scene);
 
 /* constraints */

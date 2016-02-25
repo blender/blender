@@ -1324,26 +1324,44 @@ void OBJECT_OT_paths_update(wmOperatorType *ot)
 
 /* --------- */
 
-/* Clear motion paths for all objects */
-void ED_objects_clear_paths(bContext *C)
+/* Helper for ED_objects_clear_paths() */
+static void object_clear_mpath(Object *ob)
 {
-	/* loop over all edtiable objects in scene */
-	CTX_DATA_BEGIN(C, Object *, ob, editable_objects)
-	{
-		if (ob->mpath) {
-			animviz_free_motionpath(ob->mpath);
-			ob->mpath = NULL;
-			ob->avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
-		}
+	if (ob->mpath) {
+		animviz_free_motionpath(ob->mpath);
+		ob->mpath = NULL;
+		ob->avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
 	}
-	CTX_DATA_END;
+}
+
+/* Clear motion paths for all objects */
+void ED_objects_clear_paths(bContext *C, bool only_selected)
+{
+	if (only_selected) {
+		/* loop over all selected + sedtiable objects in scene */
+		CTX_DATA_BEGIN(C, Object *, ob, selected_editable_objects)
+		{
+			object_clear_mpath(ob);
+		}
+		CTX_DATA_END;
+	}
+	else {
+		/* loop over all edtiable objects in scene */
+		CTX_DATA_BEGIN(C, Object *, ob, editable_objects)
+		{
+			object_clear_mpath(ob);
+		}
+		CTX_DATA_END;
+	}
 }
 
 /* operator callback for this */
-static int object_clear_paths_exec(bContext *C, wmOperator *UNUSED(op))
-{	
+static int object_clear_paths_exec(bContext *C, wmOperator *op)
+{
+	bool only_selected = RNA_boolean_get(op->ptr, "only_selected");
+	
 	/* use the backend function for this */
-	ED_objects_clear_paths(C);
+	ED_objects_clear_paths(C, only_selected);
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
@@ -1351,19 +1369,34 @@ static int object_clear_paths_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED; 
 }
 
+/* operator callback/wrapper */
+static int object_clear_paths_invoke(bContext *C, wmOperator *op, const wmEvent *evt)
+{
+	if ((evt->shift) && !RNA_struct_property_is_set(op->ptr, "only_selected")) {
+		RNA_boolean_set(op->ptr, "only_selected", true);
+	}
+	return object_clear_paths_exec(C, op);
+}
+
 void OBJECT_OT_paths_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Clear Object Paths";
 	ot->idname = "OBJECT_OT_paths_clear";
-	ot->description = "Clear path caches for all objects";
+	ot->description = "Clear path caches for all objects, hold Shift key for selected objects only";
 	
 	/* api callbacks */
+	ot->invoke = object_clear_paths_invoke;
 	ot->exec = object_clear_paths_exec;
 	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	ot->prop = RNA_def_boolean(ot->srna, "only_selected", false, "Only Selected",
+	                           "Only clear paths from selected objects");
+	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
 
