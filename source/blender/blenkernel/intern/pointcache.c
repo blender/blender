@@ -1110,12 +1110,12 @@ static int ptcache_smoke_openvdb_read(struct OpenVDBReader *reader, void *smoke_
 		const char *name = (!sds->wt) ? "density" : "density low";
 		OpenVDB_import_grid_fl(reader, name, &dens, sds->res);
 
-		if (fluid_fields & SM_ACTIVE_HEAT) {
+		if (cache_fields & SM_ACTIVE_HEAT) {
 			OpenVDB_import_grid_fl(reader, "heat", &heat, sds->res);
 			OpenVDB_import_grid_fl(reader, "heat old", &heatold, sds->res);
 		}
 
-		if (fluid_fields & SM_ACTIVE_FIRE) {
+		if (cache_fields & SM_ACTIVE_FIRE) {
 			name = (!sds->wt) ? "flame" : "flame low";
 			OpenVDB_import_grid_fl(reader, name, &flame, sds->res);
 			name = (!sds->wt) ? "fuel" : "fuel low";
@@ -1124,7 +1124,7 @@ static int ptcache_smoke_openvdb_read(struct OpenVDBReader *reader, void *smoke_
 			OpenVDB_import_grid_fl(reader, name, &react, sds->res);
 		}
 
-		if (fluid_fields & SM_ACTIVE_COLORS) {
+		if (cache_fields & SM_ACTIVE_COLORS) {
 			name = (!sds->wt) ? "color" : "color low";
 			OpenVDB_import_grid_vec(reader, name, &r, &g, &b, sds->res);
 		}
