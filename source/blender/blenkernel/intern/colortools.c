@@ -412,13 +412,16 @@ void curvemap_sethandle(CurveMap *cuma, int type)
 /**
  * reduced copy of #calchandleNurb_intern code in curve.c
  */
-static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *next, int UNUSED(mode))
+static void calchandle_curvemap(
+        BezTriple *bezt, const BezTriple *prev, const BezTriple *next)
 {
 	/* defines to avoid confusion */
 #define p2_h1 ((p2) - 3)
 #define p2_h2 ((p2) + 3)
 
-	float *p1, *p2, *p3, pt[3];
+	const float *p1, *p3;
+	float *p2;
+	float pt[3];
 	float len, len_a, len_b;
 	float dvec_a[2], dvec_b[2];
 
@@ -546,13 +549,11 @@ static void curvemap_make_table(CurveMap *cuma, const rctf *clipr)
 			bezt[a].h1 = bezt[a].h2 = HD_AUTO;
 	}
 	
+	const BezTriple *bezt_prev = NULL;
 	for (a = 0; a < cuma->totpoint; a++) {
-		if (a == 0)
-			calchandle_curvemap(bezt, NULL, bezt + 1, 0);
-		else if (a == cuma->totpoint - 1)
-			calchandle_curvemap(bezt + a, bezt + a - 1, NULL, 0);
-		else
-			calchandle_curvemap(bezt + a, bezt + a - 1, bezt + a + 1, 0);
+		const BezTriple *bezt_next = (a != cuma->totpoint - 1) ? &bezt[a + 1] : NULL;
+		calchandle_curvemap(&bezt[a], bezt_prev, bezt_next);
+		bezt_prev = &bezt[a];
 	}
 	
 	/* first and last handle need correction, instead of pointing to center of next/prev, 
