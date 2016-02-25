@@ -1338,7 +1338,7 @@ static int move_to_layer_invoke(bContext *C, wmOperator *op, const wmEvent *even
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	if (v3d && v3d->localvd) {
-		return WM_operator_confirm_message(C, op, "Move from localview");
+		return WM_operator_confirm_message(C, op, "Move out of Local View");
 	}
 	else {
 		move_to_layer_init(C, op);
