@@ -87,6 +87,7 @@ public:
 	vector<bool> smooth;
 
 	bool has_volume;  /* Set in the device_update_flags(). */
+	bool has_surface_bssrdf;  /* Set in the device_update_flags(). */
 
 	vector<float4> curve_keys; /* co + radius */
 	vector<Curve> curves;
@@ -143,6 +144,19 @@ public:
 	void tag_update(Scene *scene, bool rebuild);
 
 	bool has_motion_blur() const;
+
+	/* Check whether the mesh should have own BVH built separately. Briefly,
+	 * own BVH is needed for mesh, if:
+	 *
+	 * - It is instanced multiple times, so each instance object should share the
+	 *   same BVH tree.
+	 * - Special ray intersection is needed, for example to limit subsurface rays
+	 *   to only the mesh itself.
+	 */
+	bool need_build_bvh() const;
+
+	/* Check if the mesh should be treated as instanced. */
+	bool is_instanced() const;
 };
 
 /* Mesh Manager */

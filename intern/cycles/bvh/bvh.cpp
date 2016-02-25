@@ -233,7 +233,7 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 		Mesh *mesh = ob->mesh;
 		BVH *bvh = mesh->bvh;
 
-		if(!mesh->transform_applied) {
+		if(mesh->need_build_bvh()) {
 			if(mesh_map.find(mesh) == mesh_map.end()) {
 				prim_index_size += bvh->pack.prim_index.size();
 				tri_woop_size += bvh->pack.tri_woop.size();
@@ -268,9 +268,10 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 	foreach(Object *ob, objects) {
 		Mesh *mesh = ob->mesh;
 
-		/* if mesh transform is applied, that means it's already in the top
-		 * level BVH, and we don't need to merge it in */
-		if(mesh->transform_applied) {
+		/* We assume that if mesh doesn't need own BVH it was already included
+		 * into a top-level BVH and no packing here is needed.
+		 */
+		if(!mesh->need_build_bvh()) {
 			pack.object_node[object_offset++] = 0;
 			continue;
 		}

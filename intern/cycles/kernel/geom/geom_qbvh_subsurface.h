@@ -21,7 +21,6 @@
  * various features can be enabled/disabled. This way we can compile optimized
  * versions for each case without new features slowing things down.
  *
- * BVH_INSTANCING: object instancing
  * BVH_MOTION: motion blur rendering
  *
  */
@@ -47,7 +46,7 @@ ccl_device void BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 
 	/* Traversal variables in registers. */
 	int stackPtr = 0;
-	int nodeAddr = kernel_data.bvh.root;
+	int nodeAddr = kernel_tex_fetch(__object_node, subsurface_object);
 
 	/* Ray parameters in registers. */
 	float3 P = ray->P;
@@ -58,9 +57,23 @@ ccl_device void BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 
 	ss_isect->num_hits = 0;
 
+	const int object_flag = kernel_tex_fetch(__object_flag, subsurface_object);
+	if(!(object_flag & SD_TRANSFORM_APPLIED)) {
 #if BVH_FEATURE(BVH_MOTION)
-	Transform ob_itfm;
+		Transform ob_itfm;
+		bvh_instance_motion_push(kg,
+		                         subsurface_object,
+		                         ray,
+		                         &P,
+		                         &dir,
+		                         &idir,
+		                         &isect_t,
+		                         &ob_itfm);
+#else
+		bvh_instance_push(kg, subsurface_object, ray, &P, &dir, &idir, &isect_t);
 #endif
+		object = subsurface_object;
+	}
 
 #ifndef __KERNEL_SSE41__
 	if(!isfinite(P.x)) {
@@ -206,137 +219,54 @@ ccl_device void BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 				float4 leaf = kernel_tex_fetch(__bvh_leaf_nodes, (-nodeAddr-1)*BVH_QNODE_LEAF_SIZE);
 				int primAddr = __float_as_int(leaf.x);
 
-#if BVH_FEATURE(BVH_INSTANCING)
-				if(primAddr >= 0) {
-#endif
-					int primAddr2 = __float_as_int(leaf.y);
-					const uint type = __float_as_int(leaf.w);
+				int primAddr2 = __float_as_int(leaf.y);
+				const uint type = __float_as_int(leaf.w);
 
-					/* Pop. */
-					nodeAddr = traversalStack[stackPtr].addr;
-					--stackPtr;
+				/* Pop. */
+				nodeAddr = traversalStack[stackPtr].addr;
+				--stackPtr;
 
-					/* Primitive intersection. */
-					switch(type & PRIMITIVE_ALL) {
-						case PRIMITIVE_TRIANGLE: {
-							/* Intersect ray against primitive, */
-							for(; primAddr < primAddr2; primAddr++) {
-								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
-								/* Only primitives from the same object. */
-								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
-								if(tri_object != subsurface_object) {
-									continue;
-								}
-								triangle_intersect_subsurface(kg,
-								                              &isect_precalc,
-								                              ss_isect,
-								                              P,
-								                              object,
-								                              primAddr,
-								                              isect_t,
-								                              lcg_state,
-								                              max_hits);
-							}
-							break;
+				/* Primitive intersection. */
+				switch(type & PRIMITIVE_ALL) {
+					case PRIMITIVE_TRIANGLE: {
+						/* Intersect ray against primitive, */
+						for(; primAddr < primAddr2; primAddr++) {
+							kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
+							triangle_intersect_subsurface(kg,
+							                              &isect_precalc,
+							                              ss_isect,
+							                              P,
+							                              object,
+							                              primAddr,
+							                              isect_t,
+							                              lcg_state,
+							                              max_hits);
 						}
+						break;
+					}
 #if BVH_FEATURE(BVH_MOTION)
-						case PRIMITIVE_MOTION_TRIANGLE: {
-							/* Intersect ray against primitive. */
-							for(; primAddr < primAddr2; primAddr++) {
-								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
-								/* Only primitives from the same object. */
-								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
-								if(tri_object != subsurface_object) {
-									continue;
-								}
-								motion_triangle_intersect_subsurface(kg,
-								                                     ss_isect,
-								                                     P,
-								                                     dir,
-								                                     ray->time,
-								                                     object,
-								                                     primAddr,
-								                                     isect_t,
-								                                     lcg_state,
-								                                     max_hits);
-							}
-							break;
+					case PRIMITIVE_MOTION_TRIANGLE: {
+						/* Intersect ray against primitive. */
+						for(; primAddr < primAddr2; primAddr++) {
+							kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
+							motion_triangle_intersect_subsurface(kg,
+							                                     ss_isect,
+							                                     P,
+							                                     dir,
+							                                     ray->time,
+							                                     object,
+							                                     primAddr,
+							                                     isect_t,
+							                                     lcg_state,
+							                                     max_hits);
 						}
-#endif
-						default:
-							break;
+						break;
 					}
-				}
-#if BVH_FEATURE(BVH_INSTANCING)
-				else {
-					/* Instance push. */
-					if(subsurface_object == kernel_tex_fetch(__prim_object, -primAddr-1)) {
-						object = subsurface_object;
-
-#if BVH_FEATURE(BVH_MOTION)
-						bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_itfm);
-#else
-						bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect_t);
 #endif
-
-						if(idir.x >= 0.0f) { near_x = 0; far_x = 1; } else { near_x = 1; far_x = 0; }
-						if(idir.y >= 0.0f) { near_y = 2; far_y = 3; } else { near_y = 3; far_y = 2; }
-						if(idir.z >= 0.0f) { near_z = 4; far_z = 5; } else { near_z = 5; far_z = 4; }
-						tfar = ssef(isect_t);
-						idir4 = sse3f(ssef(idir.x), ssef(idir.y), ssef(idir.z));
-#ifdef __KERNEL_AVX2__
-						P_idir = P*idir;
-						P_idir4 = sse3f(P_idir.x, P_idir.y, P_idir.z);
-#else
-						org = sse3f(ssef(P.x), ssef(P.y), ssef(P.z));
-#endif
-						triangle_intersect_precalc(dir, &isect_precalc);
-
-						++stackPtr;
-						kernel_assert(stackPtr < BVH_QSTACK_SIZE);
-						traversalStack[stackPtr].addr = ENTRYPOINT_SENTINEL;
-
-						nodeAddr = kernel_tex_fetch(__object_node, object);
-					}
-					else {
-						/* Pop. */
-						nodeAddr = traversalStack[stackPtr].addr;
-						--stackPtr;
-					}
-
+					default:
+						break;
 				}
 			}
-#endif  /* FEATURE(BVH_INSTANCING) */
 		} while(nodeAddr != ENTRYPOINT_SENTINEL);
-
-#if BVH_FEATURE(BVH_INSTANCING)
-		if(stackPtr >= 0) {
-			kernel_assert(object != OBJECT_NONE);
-
-			/* Instance pop. */
-#if BVH_FEATURE(BVH_MOTION)
-			bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_itfm);
-#else
-			bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &isect_t);
-#endif
-
-			if(idir.x >= 0.0f) { near_x = 0; far_x = 1; } else { near_x = 1; far_x = 0; }
-			if(idir.y >= 0.0f) { near_y = 2; far_y = 3; } else { near_y = 3; far_y = 2; }
-			if(idir.z >= 0.0f) { near_z = 4; far_z = 5; } else { near_z = 5; far_z = 4; }
-			tfar = ssef(isect_t);
-			idir4 = sse3f(ssef(idir.x), ssef(idir.y), ssef(idir.z));
-#ifdef __KERNEL_AVX2__
-			P_idir = P*idir;
-			P_idir4 = sse3f(P_idir.x, P_idir.y, P_idir.z);
-#else
-			org = sse3f(ssef(P.x), ssef(P.y), ssef(P.z));
-#endif
-			triangle_intersect_precalc(dir, &isect_precalc);
-
-			object = OBJECT_NONE;
-			nodeAddr = traversalStack[stackPtr].addr;
-			--stackPtr;
-		}
-#endif  /* FEATURE(BVH_INSTANCING) */
 	} while(nodeAddr != ENTRYPOINT_SENTINEL);
 }

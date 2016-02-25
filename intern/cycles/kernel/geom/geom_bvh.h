@@ -91,27 +91,9 @@ CCL_NAMESPACE_BEGIN
 #include "geom_bvh_subsurface.h"
 #endif
 
-#if defined(__SUBSURFACE__) && defined(__INSTANCING__)
-#define BVH_FUNCTION_NAME bvh_intersect_subsurface_instancing
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING
-#include "geom_bvh_subsurface.h"
-#endif
-
-#if defined(__SUBSURFACE__) && defined(__HAIR__)
-#define BVH_FUNCTION_NAME bvh_intersect_subsurface_hair
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR
-#include "geom_bvh_subsurface.h"
-#endif
-
 #if defined(__SUBSURFACE__) && defined(__OBJECT_MOTION__)
 #define BVH_FUNCTION_NAME bvh_intersect_subsurface_motion
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_MOTION
-#include "geom_bvh_subsurface.h"
-#endif
-
-#if defined(__SUBSURFACE__) && defined(__HAIR__) && defined(__OBJECT_MOTION__)
-#define BVH_FUNCTION_NAME bvh_intersect_subsurface_hair_motion
-#define BVH_FUNCTION_FEATURES BVH_INSTANCING|BVH_HAIR|BVH_MOTION
+#define BVH_FUNCTION_FEATURES BVH_MOTION
 #include "geom_bvh_subsurface.h"
 #endif
 
@@ -269,17 +251,6 @@ ccl_device_intersect void scene_intersect_subsurface(KernelGlobals *kg,
 {
 #ifdef __OBJECT_MOTION__
 	if(kernel_data.bvh.have_motion) {
-#ifdef __HAIR__
-		if(kernel_data.bvh.have_curves) {
-			return bvh_intersect_subsurface_hair_motion(kg,
-			                                            ray,
-			                                            ss_isect,
-			                                            subsurface_object,
-			                                            lcg_state,
-			                                            max_hits);
-		}
-#endif /* __HAIR__ */
-
 		return bvh_intersect_subsurface_motion(kg,
 		                                       ray,
 		                                       ss_isect,
@@ -288,56 +259,12 @@ ccl_device_intersect void scene_intersect_subsurface(KernelGlobals *kg,
 		                                       max_hits);
 	}
 #endif /* __OBJECT_MOTION__ */
-
-#ifdef __HAIR__
-	if(kernel_data.bvh.have_curves) {
-		return bvh_intersect_subsurface_hair(kg,
-		                                     ray,
-		                                     ss_isect,
-		                                     subsurface_object,
-		                                     lcg_state,
-		                                     max_hits);
-	}
-#endif /* __HAIR__ */
-
-#ifdef __KERNEL_CPU__
-
-#ifdef __INSTANCING__
-	if(kernel_data.bvh.have_instancing) {
-		return bvh_intersect_subsurface_instancing(kg,
-		                                           ray,
-		                                           ss_isect,
-		                                           subsurface_object,
-		                                           lcg_state,
-		                                           max_hits);
-	}
-#endif /* __INSTANCING__ */
-
 	return bvh_intersect_subsurface(kg,
 	                                ray,
 	                                ss_isect,
 	                                subsurface_object,
 	                                lcg_state,
 	                                max_hits);
-#else /* __KERNEL_CPU__ */
-
-#ifdef __INSTANCING__
-	return bvh_intersect_subsurface_instancing(kg,
-	                                           ray,
-	                                           ss_isect,
-	                                           subsurface_object,
-	                                           lcg_state,
-	                                           max_hits);
-#else
-	return bvh_intersect_subsurface(kg,
-	                                ray,
-	                                ss_isect,
-	                                subsurface_object,
-	                                lcg_state,
-	                                max_hits);
-#endif /* __INSTANCING__ */
-
-#endif /* __KERNEL_CPU__ */
 }
 #endif
 

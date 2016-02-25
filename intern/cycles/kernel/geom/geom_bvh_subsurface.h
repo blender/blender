@@ -25,7 +25,6 @@
  * various features can be enabled/disabled. This way we can compile optimized
  * versions for each case without new features slowing things down.
  *
- * BVH_INSTANCING: object instancing
  * BVH_MOTION: motion blur rendering
  *
  */
@@ -41,17 +40,16 @@ ccl_device void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	 * - test if pushing distance on the stack helps (for non shadow rays)
 	 * - separate version for shadow rays
 	 * - likely and unlikely for if() statements
-	 * - SSE for hair
 	 * - test restrict attribute for pointers
 	 */
-	
+
 	/* traversal stack in CUDA thread-local memory */
 	int traversalStack[BVH_STACK_SIZE];
 	traversalStack[0] = ENTRYPOINT_SENTINEL;
 
 	/* traversal variables in registers */
 	int stackPtr = 0;
-	int nodeAddr = kernel_data.bvh.root;
+	int nodeAddr = kernel_tex_fetch(__object_node, subsurface_object);
 
 	/* ray parameters in registers */
 	float3 P = ray->P;
@@ -62,14 +60,28 @@ ccl_device void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 
 	ss_isect->num_hits = 0;
 
+	const int object_flag = kernel_tex_fetch(__object_flag, subsurface_object);
+	if(!(object_flag & SD_TRANSFORM_APPLIED)) {
 #if BVH_FEATURE(BVH_MOTION)
-	Transform ob_itfm;
+		Transform ob_itfm;
+		bvh_instance_motion_push(kg,
+		                         subsurface_object,
+		                         ray,
+		                         &P,
+		                         &dir,
+		                         &idir,
+		                         &isect_t,
+		                         &ob_itfm);
+#else
+		bvh_instance_push(kg, subsurface_object, ray, &P, &dir, &idir, &isect_t);
 #endif
+		object = subsurface_object;
+	}
 
 #if defined(__KERNEL_SSE2__)
 	const shuffle_swap_t shuf_identity = shuffle_swap_identity();
 	const shuffle_swap_t shuf_swap = shuffle_swap_swap();
-	
+
 	const ssef pn = cast(ssei(0, 0, 0x80000000, 0x80000000));
 	ssef Psplat[3], idirsplat[3];
 	shuffle_swap_t shufflexyz[3];
@@ -190,133 +202,56 @@ ccl_device void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 				float4 leaf = kernel_tex_fetch(__bvh_leaf_nodes, (-nodeAddr-1)*BVH_NODE_LEAF_SIZE);
 				int primAddr = __float_as_int(leaf.x);
 
-#if BVH_FEATURE(BVH_INSTANCING)
-				if(primAddr >= 0) {
-#endif
-					const int primAddr2 = __float_as_int(leaf.y);
-					const uint type = __float_as_int(leaf.w);
+				const int primAddr2 = __float_as_int(leaf.y);
+				const uint type = __float_as_int(leaf.w);
 
-					/* pop */
-					nodeAddr = traversalStack[stackPtr];
-					--stackPtr;
+				/* pop */
+				nodeAddr = traversalStack[stackPtr];
+				--stackPtr;
 
-					/* primitive intersection */
-					switch(type & PRIMITIVE_ALL) {
-						case PRIMITIVE_TRIANGLE: {
-							/* intersect ray against primitive */
-							for(; primAddr < primAddr2; primAddr++) {
-								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
-								/* only primitives from the same object */
-								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
-								if(tri_object != subsurface_object)
-									continue;
-								triangle_intersect_subsurface(kg,
-								                              &isect_precalc,
-								                              ss_isect,
-								                              P,
-								                              object,
-								                              primAddr,
-								                              isect_t,
-								                              lcg_state,
-								                              max_hits);
-							}
-							break;
+				/* primitive intersection */
+				switch(type & PRIMITIVE_ALL) {
+					case PRIMITIVE_TRIANGLE: {
+						/* intersect ray against primitive */
+						for(; primAddr < primAddr2; primAddr++) {
+							kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
+							triangle_intersect_subsurface(kg,
+							                              &isect_precalc,
+							                              ss_isect,
+							                              P,
+							                              object,
+							                              primAddr,
+							                              isect_t,
+							                              lcg_state,
+							                              max_hits);
 						}
-#if BVH_FEATURE(BVH_MOTION)
-						case PRIMITIVE_MOTION_TRIANGLE: {
-							/* intersect ray against primitive */
-							for(; primAddr < primAddr2; primAddr++) {
-								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
-								/* only primitives from the same object */
-								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
-								if(tri_object != subsurface_object)
-									continue;
-								motion_triangle_intersect_subsurface(kg,
-								                                     ss_isect,
-								                                     P,
-								                                     dir,
-								                                     ray->time,
-								                                     object,
-								                                     primAddr,
-								                                     isect_t,
-								                                     lcg_state,
-								                                     max_hits);
-							}
-							break;
-						}
-#endif
-						default: {
-							break;
-						}
+						break;
 					}
-				}
-#if BVH_FEATURE(BVH_INSTANCING)
-				else {
-					/* instance push */
-					if(subsurface_object == kernel_tex_fetch(__prim_object, -primAddr-1)) {
-						object = subsurface_object;
-
 #if BVH_FEATURE(BVH_MOTION)
-						bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_itfm);
-#else
-						bvh_instance_push(kg, object, ray, &P, &dir, &idir, &isect_t);
-#endif
-						triangle_intersect_precalc(dir, &isect_precalc);
-
-#if defined(__KERNEL_SSE2__)
-						Psplat[0] = ssef(P.x);
-						Psplat[1] = ssef(P.y);
-						Psplat[2] = ssef(P.z);
-
-						tsplat = ssef(0.0f, 0.0f, -isect_t, -isect_t);
-
-						gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
-#endif
-
-						++stackPtr;
-						kernel_assert(stackPtr < BVH_STACK_SIZE);
-						traversalStack[stackPtr] = ENTRYPOINT_SENTINEL;
-
-						nodeAddr = kernel_tex_fetch(__object_node, object);
+					case PRIMITIVE_MOTION_TRIANGLE: {
+						/* intersect ray against primitive */
+						for(; primAddr < primAddr2; primAddr++) {
+							kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
+							motion_triangle_intersect_subsurface(kg,
+							                                     ss_isect,
+							                                     P,
+							                                     dir,
+							                                     ray->time,
+							                                     object,
+							                                     primAddr,
+							                                     isect_t,
+							                                     lcg_state,
+							                                     max_hits);
+						}
+						break;
 					}
-					else {
-						/* pop */
-						nodeAddr = traversalStack[stackPtr];
-						--stackPtr;
+#endif
+					default: {
+						break;
 					}
 				}
 			}
-#endif  /* FEATURE(BVH_INSTANCING) */
 		} while(nodeAddr != ENTRYPOINT_SENTINEL);
-
-#if BVH_FEATURE(BVH_INSTANCING)
-		if(stackPtr >= 0) {
-			kernel_assert(object != OBJECT_NONE);
-
-			/* instance pop */
-#if BVH_FEATURE(BVH_MOTION)
-			bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, &isect_t, &ob_itfm);
-#else
-			bvh_instance_pop(kg, object, ray, &P, &dir, &idir, &isect_t);
-#endif
-
-			triangle_intersect_precalc(dir, &isect_precalc);
-
-#if defined(__KERNEL_SSE2__)
-			Psplat[0] = ssef(P.x);
-			Psplat[1] = ssef(P.y);
-			Psplat[2] = ssef(P.z);
-
-			tsplat = ssef(0.0f, 0.0f, -isect_t, -isect_t);
-
-			gen_idirsplat_swap(pn, shuf_identity, shuf_swap, idir, idirsplat, shufflexyz);
-#endif
-
-			object = OBJECT_NONE;
-			nodeAddr = traversalStack[stackPtr];
-			--stackPtr;
-		}
-#endif  /* FEATURE(BVH_INSTANCING) */
 	} while(nodeAddr != ENTRYPOINT_SENTINEL);
 }
 

@@ -97,6 +97,7 @@ Mesh::Mesh()
 	curve_attributes.curve_mesh = this;
 
 	has_volume = false;
+	has_surface_bssrdf = false;
 }
 
 Mesh::~Mesh()
@@ -490,7 +491,7 @@ void Mesh::compute_bvh(SceneParams *params, Progress *progress, int n, int total
 
 	compute_bounds();
 
-	if(!transform_applied) {
+	if(need_build_bvh()) {
 		string msg = "Updating Mesh BVH ";
 		if(name == "")
 			msg += string_printf("%u/%u", (uint)(n+1), (uint)total);
@@ -548,6 +549,21 @@ bool Mesh::has_motion_blur() const
 	return (use_motion_blur &&
 	        (attributes.find(ATTR_STD_MOTION_VERTEX_POSITION) ||
 	         curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)));
+}
+
+bool Mesh::need_build_bvh() const
+{
+	return !transform_applied || has_surface_bssrdf;
+}
+
+bool Mesh::is_instanced() const
+{
+	/* Currently we treat subsurface objects as instanced.
+	 *
+	 * While it might be not very optimal for ray traversal, it avoids having
+	 * duplicated BVH in the memory, saving quite some space.
+	 */
+	return !transform_applied || has_surface_bssrdf;
 }
 
 /* Mesh Manager */
@@ -1142,9 +1158,13 @@ void MeshManager::device_update_flags(Device * /*device*/,
 	/* update flags */
 	foreach(Mesh *mesh, scene->meshes) {
 		mesh->has_volume = false;
-		foreach(uint shader, mesh->used_shaders) {
-			if(scene->shaders[shader]->has_volume) {
+		foreach(uint shader_index, mesh->used_shaders) {
+			const Shader *shader = scene->shaders[shader_index];
+			if(shader->has_volume) {
 				mesh->has_volume = true;
+			}
+			if(shader->has_surface_bssrdf) {
+				mesh->has_surface_bssrdf = true;
 			}
 		}
 	}
@@ -1278,7 +1298,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 	size_t i = 0, num_bvh = 0;
 
 	foreach(Mesh *mesh, scene->meshes)
-		if(mesh->need_update && !mesh->transform_applied)
+		if(mesh->need_update && mesh->need_build_bvh())
 			num_bvh++;
 
 	TaskPool pool;
@@ -1291,7 +1311,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 			                        &progress,
 			                        i,
 			                        num_bvh));
-			if(!mesh->transform_applied) {
+			if(mesh->need_build_bvh()) {
 				i++;
 			}
 		}

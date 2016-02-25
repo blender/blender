@@ -180,7 +180,7 @@ void BVHBuild::add_references(BVHRange& root)
 
 	foreach(Object *ob, objects) {
 		if(params.top_level) {
-			if(ob->mesh->transform_applied) {
+			if(!ob->mesh->is_instanced()) {
 				num_alloc_references += ob->mesh->triangles.size();
 				num_alloc_references += count_curve_segments(ob->mesh);
 			}
@@ -201,7 +201,7 @@ void BVHBuild::add_references(BVHRange& root)
 
 	foreach(Object *ob, objects) {
 		if(params.top_level) {
-			if(ob->mesh->transform_applied)
+			if(!ob->mesh->is_instanced())
 				add_reference_mesh(bounds, center, ob->mesh, i);
 			else
 				add_reference_object(bounds, center, ob, i);
