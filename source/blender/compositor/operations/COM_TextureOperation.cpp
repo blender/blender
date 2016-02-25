@@ -57,7 +57,10 @@ void TextureBaseOperation::initExecution()
 	this->m_inputOffset = getInputSocketReader(0);
 	this->m_inputSize = getInputSocketReader(1);
 	this->m_pool = BKE_image_pool_new();
-	if (this->m_texture->nodetree && this->m_texture->use_nodes) {
+	if (this->m_texture != NULL &&
+	    this->m_texture->nodetree != NULL &&
+	    this->m_texture->use_nodes)
+	{
 		ntreeTexBeginExecTree(this->m_texture->nodetree);
 	}
 	SingleThreadedOperation::initExecution();
