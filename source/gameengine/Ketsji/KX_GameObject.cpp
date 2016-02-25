@@ -1187,6 +1187,7 @@ const MT_Vector4& KX_GameObject::GetObjectColor()
 
 void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 {
+	const MT_Scalar eps = 3.0f * MT_EPSILON;
 	MT_Matrix3x3 orimat;
 	MT_Vector3 vect,ori,z,x,y;
 	MT_Scalar len;
@@ -1212,10 +1213,12 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 	orimat = GetSGNode()->GetWorldOrientation();
 	switch (axis)
 	{
-		case 0: //x axis
-			ori.setValue(orimat[0][2], orimat[1][2], orimat[2][2]); //pivot axis
-			if (MT_abs(vect.dot(ori)) > 1.0f-3.0f*MT_EPSILON) //is the vector parallel to the pivot?
-				ori.setValue(orimat[0][1], orimat[1][1], orimat[2][1]); //change the pivot!
+		case 0: // align x axis of new coord system to vect
+			ori.setValue(orimat[0][2], orimat[1][2], orimat[2][2]); // pivot axis
+			if (1.0f - MT_abs(vect.dot(ori)) < eps)  { // vect parallel to pivot?
+				ori.setValue(orimat[0][1], orimat[1][1], orimat[2][1]); // change the pivot!
+			}
+
 			if (fac == 1.0f) {
 				x = vect;
 			} else {
@@ -1227,10 +1230,12 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 			y = ori.cross(x);
 			z = x.cross(y);
 			break;
-		case 1: //y axis
+		case 1: // y axis
 			ori.setValue(orimat[0][0], orimat[1][0], orimat[2][0]);
-			if (MT_abs(vect.dot(ori)) > 1.0f-3.0f*MT_EPSILON)
+			if (1.0f - MT_abs(vect.dot(ori)) < eps) {
 				ori.setValue(orimat[0][2], orimat[1][2], orimat[2][2]);
+			}
+
 			if (fac == 1.0f) {
 				y = vect;
 			} else {
@@ -1242,10 +1247,12 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 			z = ori.cross(y);
 			x = y.cross(z);
 			break;
-		case 2: //z axis
+		case 2: // z axis
 			ori.setValue(orimat[0][1], orimat[1][1], orimat[2][1]);
-			if (MT_abs(vect.dot(ori)) > 1.0f-3.0f*MT_EPSILON)
+			if (1.0f - MT_abs(vect.dot(ori)) < eps) {
 				ori.setValue(orimat[0][0], orimat[1][0], orimat[2][0]);
+			}
+
 			if (fac == 1.0f) {
 				z = vect;
 			} else {
@@ -1257,25 +1264,27 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 			x = ori.cross(z);
 			y = z.cross(x);
 			break;
-		default: //wrong input?
-			cout << "alignAxisToVect(): Wrong axis '" << axis <<"'\n";
+		default: // invalid axis specified
+			cout << "alignAxisToVect(): Invalid axis '" << axis <<"'\n";
 			return;
 	}
-	x.normalize(); //normalize the vectors
+	x.normalize(); // normalize the new base vectors
 	y.normalize();
 	z.normalize();
-	orimat.setValue(	x[0],y[0],z[0],
-						x[1],y[1],z[1],
-						x[2],y[2],z[2]);
+	orimat.setValue(x[0], y[0], z[0],
+	                x[1], y[1], z[1],
+	                x[2], y[2], z[2]);
+
 	if (GetSGNode()->GetSGParent() != NULL)
 	{
 		// the object is a child, adapt its local orientation so that 
-		// the global orientation is aligned as we want.
+		// the global orientation is aligned as we want (cancelling out the parent orientation)
 		MT_Matrix3x3 invori = GetSGNode()->GetSGParent()->GetWorldOrientation().inverse();
 		NodeSetLocalOrientation(invori*orimat);
 	}
-	else
+	else {
 		NodeSetLocalOrientation(orimat);
+	}
 }
 
 MT_Scalar KX_GameObject::GetMass()
