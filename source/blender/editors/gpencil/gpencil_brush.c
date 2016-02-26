@@ -575,8 +575,6 @@ static bool gp_brush_twist_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
                                  const int radius, const int co[2])
 {
 	bGPDspoint *pt = gps->points + i;
-	float tco[2], rco[2], nco[2];
-	float rmat[2][2];
 	float angle, inf;
 	
 	/* Angle to rotate by */
@@ -588,40 +586,42 @@ static bool gp_brush_twist_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
 		angle *= -1;
 	}
 	
-	/* Express position of point relative to cursor, ready to rotate */
-	tco[0] = (float)(co[0] - gso->mval[0]);
-	tco[1] = (float)(co[1] - gso->mval[1]);
-	
-	/* Rotate point in 2D */
-	angle_to_mat2(rmat, angle);
-	mul_v2_m2v2(rco, rmat, tco);
-	
-	/* Convert back to screen-coordinates */
-	nco[0] = rco[0] + (float)gso->mval[0];
-	nco[1] = rco[1] + (float)gso->mval[1];
-	
-#if 0
-	printf("C: %d %d | P: %d %d -> t: %f %f -> r: %f %f x %f -> %f %f\n",
-	       gso->mval[0], gso->mval[1], co[0], co[1],
-	       tco[0], tco[1],
-	       rco[0], rco[1], angle,
-	       nco[0], nco[1]);
-#endif
-	
-	/* convert to dataspace */
+	/* Rotate in 2D or 3D space? */
 	if (gps->flag & GP_STROKE_3DSPACE) {
-		/* 3D: Project to 3D space */
-		if (gso->sa->spacetype == SPACE_VIEW3D) {
-			// XXX: this conversion process sometimes introduces noise to the data -> some parts don't seem to move at all, while others get random offsets
-			gp_point_xy_to_3d(&gso->gsc, gso->scene, nco, &pt->x);
-		}
-		else {
-			/* ERROR */
-			BLI_assert("3D stroke being sculpted in non-3D view");
-		}
+		/* Perform rotation in 3D space... */
+		RegionView3D *rv3d = gso->ar->regiondata;
+		float rmat[3][3];
+		float axis[3];
+		float vec[3];
+		
+		/* Compute rotation matrix - rotate around view vector by angle */
+		negate_v3_v3(axis, rv3d->persinv[2]);
+		normalize_v3(axis);
+		
+		axis_angle_normalized_to_mat3(rmat, axis, angle);
+		
+		/* Rotate point (no matrix-space transforms needed, as GP points are in world space) */
+		sub_v3_v3v3(vec, &pt->x, gso->dvec); /* make relative to center (center is stored in dvec) */
+		mul_m3_v3(rmat, vec);
+		add_v3_v3v3(&pt->x, vec, gso->dvec); /* restore */
 	}
 	else {
-		/* 2D: As-is */
+		float tco[2], rco[2], nco[2];
+		float rmat[2][2];
+		
+		/* Express position of point relative to cursor, ready to rotate */
+		tco[0] = (float)(co[0] - gso->mval[0]);
+		tco[1] = (float)(co[1] - gso->mval[1]);
+		
+		/* Rotate point in 2D */
+		angle_to_mat2(rmat, angle);
+		mul_v2_m2v2(rco, rmat, tco);
+		
+		/* Convert back to screen-coordinates */
+		nco[0] = rco[0] + (float)gso->mval[0];
+		nco[1] = rco[1] + (float)gso->mval[1];
+		
+		/* Use coordinates "as-is" */
 		// XXX: v2d scaling/offset?
 		copy_v2_v2(&pt->x, nco);
 	}
@@ -1189,7 +1189,7 @@ static bool gpsculpt_brush_do_stroke(tGP_BrushEditData *gso, bGPDstroke *gps, GP
 			    ((!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1])) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1])))
 			{
 				/* Check if point segment of stroke had anything to do with
-				 * eraser region  (either within stroke painted, or on its lines)
+				 * brush region  (either within stroke painted, or on its lines)
 				 *  - this assumes that linewidth is irrelevant
 				 */
 				if (gp_stroke_inside_circle(gso->mval, gso->mval_prev, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
@@ -1248,7 +1248,7 @@ static bool gpsculpt_brush_apply_standard(bContext *C, tGP_BrushEditData *gso)
 		}
 		
 		case GP_EDITBRUSH_TYPE_PINCH: /* Pinch points */
-		//case GP_EDITBRUSH_TYPE_TWIST: /* Twist points around midpoint */
+		case GP_EDITBRUSH_TYPE_TWIST: /* Twist points around midpoint */
 		{
 			/* calculate midpoint of the brush (in data space) */
 			gp_brush_calc_midpoint(gso);
