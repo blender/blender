@@ -606,24 +606,32 @@ static bool gp_brush_twist_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
 		add_v3_v3v3(&pt->x, vec, gso->dvec); /* restore */
 	}
 	else {
-		float tco[2], rco[2], nco[2];
-		float rmat[2][2];
+		const float axis[3] = {0.0f, 0.0f, 1.0f};
+		float vec[3] = {0.0f};
+		float rmat[3][3];
 		
 		/* Express position of point relative to cursor, ready to rotate */
-		tco[0] = (float)(co[0] - gso->mval[0]);
-		tco[1] = (float)(co[1] - gso->mval[1]);
+		// XXX: There is still some offset here, but it's close to working as expected...
+		vec[0] = (float)(co[0] - gso->mval[0]);
+		vec[1] = (float)(co[1] - gso->mval[1]);
 		
-		/* Rotate point in 2D */
-		angle_to_mat2(rmat, angle);
-		mul_v2_m2v2(rco, rmat, tco);
+		/* rotate point */
+		axis_angle_normalized_to_mat3(rmat, axis, angle);
+		mul_m3_v3(rmat, vec);
 		
 		/* Convert back to screen-coordinates */
-		nco[0] = rco[0] + (float)gso->mval[0];
-		nco[1] = rco[1] + (float)gso->mval[1];
+		vec[0] += (float)gso->mval[0];
+		vec[1] += (float)gso->mval[1];
 		
-		/* Use coordinates "as-is" */
-		// XXX: v2d scaling/offset?
-		copy_v2_v2(&pt->x, nco);
+		/* Map from screen-coordinates to final coordinate space */
+		if (gps->flag & GP_STROKE_2DSPACE) {
+			View2D *v2d = gso->gsc.v2d;
+			UI_view2d_region_to_view(v2d, vec[0], vec[1], &pt->x, &pt->y);
+		}
+		else {
+			// XXX
+			copy_v2_v2(&pt->x, vec);
+		}
 	}
 	
 	/* done */
