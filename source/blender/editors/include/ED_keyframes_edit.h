@@ -131,20 +131,9 @@ typedef struct KeyframeEditData {
 	int curIndex;               /* index of current keyframe being iterated over */
 
 	/* flags */
-	short curflags;             /* current flags for the keyframe we're reached in the iteration process */
-	short iterflags;            /* settings for iteration process */
+	short curflags;             /* current flags for the keyframe we're reached in the iteration process (eKeyframeVertOk) */
+	short iterflags;            /* settings for iteration process (eKeyframeIterFlags) */
 } KeyframeEditData;
-
-/* Flags for controlling the iteration process (to supply additional capabilities, etc.) */
-typedef enum eKeyframeEditData_IterFlags {
-	/* Perform NLA time remapping (global -> strip) for the "f1" parameter
-	 * (e.g. used for selection tools on summary tracks)
-	 */
-	KED_F1_NLA_UNMAP = (1 << 0),
-	
-	/* Perform NLA time remapping (global -> strip) for the "f2" parameter */
-	KED_F2_NLA_UNMAP = (1 << 1),
-} eKeyframeEditData_IterFlags;
 
 /* ------- Function Pointer Typedefs ---------------- */
 
@@ -171,7 +160,15 @@ typedef enum eKeyframeVertOk {
 typedef enum eKeyframeIterFlags {
 	/* consider handles in addition to key itself */
 	KEYFRAME_ITER_INCL_HANDLES  = (1 << 0),
-} eKeyframeIterFlags;	
+	
+	/* Perform NLA time remapping (global -> strip) for the "f1" parameter
+	 * (e.g. used for selection tools on summary tracks)
+	 */
+	KED_F1_NLA_UNMAP            = (1 << 1),
+	
+	/* Perform NLA time remapping (global -> strip) for the "f2" parameter */
+	KED_F2_NLA_UNMAP            = (1 << 2),
+} eKeyframeIterFlags;
 
 /* ------- Custom Data Type Defines ------------------ */
 
