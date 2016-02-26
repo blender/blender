@@ -6866,6 +6866,11 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 		}
 	}
 
+	if (but->optype) {
+		uiItemO(layout, NULL,
+		        ICON_NONE, "UI_OT_copy_python_command_button");
+	}
+
 	/* perhaps we should move this into (G.debug & G_DEBUG) - campbell */
 	if (ui_block_is_menu(but->block) == false) {
 		uiItemFullO(layout, "UI_OT_editsource", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0);
