@@ -4171,9 +4171,23 @@ static bool ui_numedit_but_NUM(
 		data->draglastx = mx;
 	}
 	else {
+		float non_linear_range_limit;
+		float non_linear_pixel_map;
+		float non_linear_scale;
+
 		/* Use a non-linear mapping of the mouse drag especially for large floats (normal behavior) */
 		deler = 500;
-		if (!is_float) {
+		if (is_float) {
+			/* not needed for smaller float buttons */
+			non_linear_range_limit = 11.0f;
+			non_linear_pixel_map = 500.0f;
+		}
+		else {
+			/* only scale large int buttons */
+			non_linear_range_limit = 129.0f;
+			/* larger for ints, we dont need to fine tune them */
+			non_linear_pixel_map = 250.0f;
+
 			/* prevent large ranges from getting too out of control */
 			if      (softrange > 600) deler = powf(softrange, 0.75f);
 			else if (softrange <  25) deler = 50.0;
@@ -4181,18 +4195,19 @@ static bool ui_numedit_but_NUM(
 		}
 		deler /= fac;
 
-		if ((is_float == true) && (softrange > 11)) {
-			/* non linear change in mouse input- good for high precicsion */
-			data->dragf += (((float)(mx - data->draglastx)) / deler) * ((float)abs(mx - data->dragstartx) / 500.0f);
-		}
-		else if ((is_float == false) && (softrange > 129)) { /* only scale large int buttons */
-			/* non linear change in mouse input- good for high precicsionm ints need less fine tuning */
-			data->dragf += (((float)(mx - data->draglastx)) / deler) * ((float)abs(mx - data->dragstartx) / 250.0f);
+		if (softrange > non_linear_range_limit) {
+			non_linear_scale = (float)abs(mx - data->dragstartx) / non_linear_pixel_map;
 		}
 		else {
-			/*no scaling */
-			data->dragf += ((float)(mx - data->draglastx)) / deler;
+			non_linear_scale = 1.0f;
 		}
+
+		if (is_float == false) {
+			/* at minimum, moving cursor 2 pixels should change an int button. */
+			CLAMP_MIN(non_linear_scale, 0.5f * U.pixelsize);
+		}
+
+		data->dragf += (((float)(mx - data->draglastx)) / deler) * non_linear_scale;
 	
 		CLAMP(data->dragf, 0.0f, 1.0f);
 		data->draglastx = mx;
