@@ -54,7 +54,17 @@ SPHINXBASE=doc/python_api
 
 if $DO_EXE_BLENDER ; then
 	# dont delete existing docs, now partial updates are used for quick builds.
-	$BLENDER_BIN --background -noaudio --factory-startup --python $SPHINXBASE/sphinx_doc_gen.py
+	$BLENDER_BIN \
+		--background \
+		-noaudio \
+		--factory-startup \
+		--python-exit-code 1 \
+		--python $SPHINXBASE/sphinx_doc_gen.py
+
+	if (($? == 1)) ; then
+		echo "Generating documentation failed, aborting"
+		exit 1
+	fi
 fi
 
 
