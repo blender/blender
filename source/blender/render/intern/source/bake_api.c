@@ -543,6 +543,7 @@ bool RE_bake_pixels_populate_from_objects(
 	for (i = 0; i < num_pixels; i++) {
 		float co[3];
 		float dir[3];
+		TriTessFace *tri_low;
 
 		primitive_id = pixel_array_from[i].primitive_id;
 
@@ -557,16 +558,19 @@ bool RE_bake_pixels_populate_from_objects(
 		/* calculate from low poly mesh cage */
 		if (is_custom_cage) {
 			calc_point_from_barycentric_cage(tris_low, tris_cage, mat_low, mat_cage, primitive_id, u, v, co, dir);
+			tri_low = &tris_cage[primitive_id];
 		}
 		else if (is_cage) {
 			calc_point_from_barycentric_extrusion(tris_cage, mat_low, imat_low, primitive_id, u, v, cage_extrusion, co, dir, true);
+			tri_low = &tris_cage[primitive_id];
 		}
 		else {
 			calc_point_from_barycentric_extrusion(tris_low, mat_low, imat_low, primitive_id, u, v, cage_extrusion, co, dir, false);
+			tri_low = &tris_cage[primitive_id];
 		}
 
 		/* cast ray */
-		if (!cast_ray_highpoly(treeData, &tris_low[primitive_id], tris_high,
+		if (!cast_ray_highpoly(treeData, tri_low, tris_high,
 		                       pixel_array_from, pixel_array_to, mat_low,
 		                       highpoly, co, dir, i, tot_highpoly)) {
 			/* if it fails mask out the original pixel array */
