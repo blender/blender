@@ -1284,7 +1284,7 @@ void OBJECT_OT_paths_calculate(wmOperatorType *ot)
 static int object_update_paths_poll(bContext *C)
 {
 	if (ED_operator_object_active_editable(C)) {
-		Object *ob = CTX_data_active_object(C);
+		Object *ob = ED_object_active_context(C);
 		return (ob->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) != 0;
 	}
 	
