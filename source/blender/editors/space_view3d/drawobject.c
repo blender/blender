@@ -6264,6 +6264,8 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 						editnurb_draw_active_nurbs(nu);
 					}
 
+					glLineWidth(1);
+
 					glBegin(GL_LINES);
 
 					bp = nu->bp;
