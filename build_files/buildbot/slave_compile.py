@@ -96,7 +96,7 @@ if 'cmake' in builder:
         if builder.endswith('x86_64_cmake'):
             chroot_name = 'buildbot_' + deb_name + '_x86_64'
             targets = ['player', 'blender']
-        elif builder.endswith('i386_cmake'):
+        elif builder.endswith('i686_cmake'):
             bits = 32
             chroot_name = 'buildbot_' + deb_name + '_i686'
             cuda_chroot_name = 'buildbot_' + deb_name + '_x86_64'

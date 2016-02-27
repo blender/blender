@@ -142,7 +142,7 @@ if builder.find('cmake') != -1:
             chroot_name = 'buildbot_squeeze_x86_64'
             bits = 64
             blender_arch = 'x86_64'
-        elif builder.endswith('i386_cmake'):
+        elif builder.endswith('i686_cmake'):
             chroot_name = 'buildbot_squeeze_i686'
             bits = 32
             blender_arch = 'i686'

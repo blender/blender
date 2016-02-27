@@ -43,12 +43,14 @@ if "cmake" in builder:
     chroot_name = None
     chroot_prefix = []
 
+    """
     if builder.endswith('x86_64_cmake'):
         chroot_name = 'buildbot_squeeze_x86_64'
-    elif builder.endswith('i386_cmake'):
+    elif builder.endswith('i686_cmake'):
         chroot_name = 'buildbot_squeeze_i686'
     if chroot_name:
         chroot_prefix = ['schroot', '-c', chroot_name, '--']
+    """
 
     os.chdir(build_dir)
     retcode = subprocess.call(chroot_prefix + ['ctest', '--output-on-failure'])
