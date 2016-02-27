@@ -4065,6 +4065,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				if ((dflag & DRAW_CONSTCOLOR) == 0) {
 					glColor3ubv(ob_wire_col);
 				}
+				glLineWidth(1.0f);
 				dm->drawLooseEdges(dm);
 			}
 		}
@@ -4141,6 +4142,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				if ((dflag & DRAW_CONSTCOLOR) == 0) {
 					glColor3ubv(ob_wire_col);
 				}
+				glLineWidth(1.0f);
 				dm->drawLooseEdges(dm);
 			}
 		}
@@ -4183,6 +4185,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			glDepthMask(0);  /* disable write in zbuffer, selected edge wires show better */
 		}
 		
+		glLineWidth(1.0f);
 		dm->drawEdges(dm, ((dt == OB_WIRE) || no_faces), (ob->dtx & OB_DRAW_ALL_EDGES) != 0);
 
 		if (dt != OB_WIRE && (draw_wire == OBDRAW_WIRE_ON_DEPTH)) {
