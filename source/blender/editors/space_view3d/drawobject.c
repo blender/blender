@@ -6021,8 +6021,6 @@ static void drawhandlesN(Nurb *nu, const char sel, const bool hide_handles)
 {
 	if (nu->hide || hide_handles) return;
 
-	glBegin(GL_LINES);
-
 	if (nu->type == CU_BEZIER) {
 
 		const float *fp;
@@ -6035,6 +6033,10 @@ static void drawhandlesN(Nurb *nu, const char sel, const bool hide_handles)
 		for (int a = 0; a < TH_HANDLE_COL_TOT; a++) {
 			UI_GetThemeColor3ubv(basecol + a, handle_cols[a]);
 		}
+
+		glLineWidth(1.0f);
+
+		glBegin(GL_LINES);
 
 		BezTriple *bezt = nu->bezt;
 		int a = nu->pntsu;
@@ -6069,10 +6071,11 @@ static void drawhandlesN(Nurb *nu, const char sel, const bool hide_handles)
 			bezt++;
 		}
 
+		glEnd();
+
 #undef TH_HANDLE_COL_TOT
 
 	}
-	glEnd();
 }
 
 static void drawhandlesN_active(Nurb *nu)
@@ -6244,6 +6247,8 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 						/* we should draw active spline highlight below everything */
 						editnurb_draw_active_poly(nu);
 					}
+
+					glLineWidth(1);
 
 					UI_ThemeColor(TH_NURB_ULINE);
 					bp = nu->bp;
