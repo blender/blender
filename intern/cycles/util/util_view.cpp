@@ -98,7 +98,7 @@ void view_display_help()
 	glColor3f(0.8f, 0.8f, 0.8f);
 
 	view_display_text(x1+20, y2-20, "Cycles Renderer");
-	view_display_text(x1+20, y2-40, "(C) 2011-2015 Blender Foundation");
+	view_display_text(x1+20, y2-40, "(C) 2011-2016 Blender Foundation");
 	view_display_text(x1+20, y2-80, "Controls:");
 	view_display_text(x1+20, y2-100, "h:  Info/Help");
 	view_display_text(x1+20, y2-120, "r:  Reset");
