@@ -2,6 +2,25 @@
 
 include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/config/blender_full.cmake")
 
+# Detect which libc we'll be linking against.
+# Some of the paths will depend on this
+
+if (EXISTS "/lib/x86_64-linux-gnu/libc-2.19.so")
+	message(STATUS "Building in GLibc-2.19 environment")
+	set(GLIBC "2.19")
+	set(MULTILIB "/x86_64-linux-gnu")
+elseif (EXISTS "/lib/i386-linux-gnu//libc-2.19.so")
+	message(STATUS "Building in GLibc-2.19 environment")
+	set(GLIBC "2.19")
+	set(MULTILIB "/i386-linux-gnu")
+elseif (EXISTS "/lib/libc-2.11.3.so")
+	message(STATUS "Building in GLibc-2.11 environment")
+	set(GLIBC "2.11")
+	set(MULTILIB "")
+else()
+	message(FATAL_ERROR "Unknown build environment")
+endif()
+
 # Default to only build Blender, not the player
 set(WITH_BLENDER             ON  CACHE BOOL "" FORCE)
 set(WITH_PLAYER              OFF CACHE BOOL "" FORCE)
@@ -37,16 +56,16 @@ set(Boost_USE_STATIC_LIBS    ON CACHE BOOL "" FORCE)
 set(FFMPEG                   "/opt/lib/ffmpeg" CACHE STRING "" FORCE)
 set(FFMPEG_LIBRARIES
 	avdevice avformat avcodec avutil avfilter swscale swresample
-	/usr/lib/libxvidcore.a
-	/usr/lib/libx264.a
-	/usr/lib/libmp3lame.a
-	/usr/lib/libvpx.a
-	/usr/lib/libvorbis.a
-	/usr/lib/libogg.a
-	/usr/lib/libvorbisenc.a
-	/usr/lib/libtheora.a
-	/usr/lib/libschroedinger-1.0.a
-	/usr/lib/liborc-0.4.a
+	/usr/lib${MULTILIB}/libxvidcore.a
+	/usr/lib${MULTILIB}/libx264.a
+	/usr/lib${MULTILIB}/libmp3lame.a
+	/usr/lib${MULTILIB}/libvpx.a
+	/usr/lib${MULTILIB}/libvorbis.a
+	/usr/lib${MULTILIB}/libogg.a
+	/usr/lib${MULTILIB}/libvorbisenc.a
+	/usr/lib${MULTILIB}/libtheora.a
+	/usr/lib${MULTILIB}/libschroedinger-1.0.a
+	/usr/lib${MULTILIB}/liborc-0.4.a
 	CACHE STRING "" FORCE
 )
 
@@ -63,17 +82,29 @@ set(OPENAL_LIBRARY
 )
 
 # OpenCollada libraries
-set(OPENCOLLADA_UTF_LIBRARY   ""                   CACHE STRING "" FORCE)
-set(PCRE_INCLUDE_DIR          "/usr/include"       CACHE STRING "" FORCE)
-set(PCRE_LIBRARY              "/usr/lib/libpcre.a" CACHE STRING "" FORCE)
-set(XML2_INCLUDE_DIR          "/usr/include"       CACHE STRING "" FORCE)
-set(XML2_LIBRARY              "/usr/lib/libxml2.a" CACHE STRING "" FORCE)
+set(OPENCOLLADA_UTF_LIBRARY   ""                              CACHE STRING "" FORCE)
+set(PCRE_INCLUDE_DIR          "/usr/include"                  CACHE STRING "" FORCE)
+set(PCRE_LIBRARY              "/usr/lib${MULTILIB}/libpcre.a" CACHE STRING "" FORCE)
+set(XML2_INCLUDE_DIR          "/usr/include"                  CACHE STRING "" FORCE)
+set(XML2_LIBRARY              "/usr/lib${MULTILIB}/libxml2.a" CACHE STRING "" FORCE)
 
 # OpenColorIO libraries
 set(OPENCOLORIO_ROOT_DIR      "/opt/lib/ocio" CACHE STRING "" FORCE)
 set(OPENCOLORIO_OPENCOLORIO_LIBRARY "${OPENCOLORIO_ROOT_DIR}/lib/libOpenColorIO.a" CACHE STRING "" FORCE)
 set(OPENCOLORIO_TINYXML_LIBRARY "${OPENCOLORIO_ROOT_DIR}/lib/libtinyxml.a"         CACHE STRING "" FORCE)
 set(OPENCOLORIO_YAML-CPP_LIBRARY "${OPENCOLORIO_ROOT_DIR}/lib/libyaml-cpp.a"       CACHE STRING "" FORCE)
+
+# OpenImageIO
+if(GLIBC EQUAL "2.19")
+	set(OPENIMAGEIO_LIBRARY
+		/opt/lib/oiio/lib/libOpenImageIO.a
+		/opt/lib/oiio/lib/libOpenImageIO_Util.a
+		/usr/lib${MULTILIB}/libwebp.a
+		/usr/lib${MULTILIB}/liblzma.a
+		/usr/lib${MULTILIB}/libjbig.a
+		CACHE STRING "" FORCE
+	)
+endif()
 
 # OpenSubdiv libraries
 set(OPENSUBDIV_ROOT_DIR "/opt/lib/opensubdiv" CACHE STRING "" FORCE)
@@ -95,11 +126,11 @@ set(JEMALLOC_LIBRARY    "/opt/lib/jemalloc/lib/libjemalloc.a" CACHE STRING "" FO
 set(SPACENAV_ROOT_DIR       "/opt/lib/libspnav" CACHE STRING "" FORCE)
 
 # Force some system libraries to be static
-set(FFTW3_LIBRARY       "/usr/lib/libfftw3.a" CACHE STRING "" FORCE)
-set(JPEG_LIBRARY        "/usr/lib/libjpeg.a"  CACHE STRING "" FORCE)
-set(PNG_LIBRARY         "/usr/lib/libpng.a"   CACHE STRING "" FORCE)
-set(TIFF_LIBRARY        "/usr/lib/libtiff.a"  CACHE STRING "" FORCE)
-set(ZLIB_LIBRARY        "/usr/lib/libz.a"     CACHE STRING "" FORCE)
+set(FFTW3_LIBRARY       "/usr/lib${MULTILIB}/libfftw3.a" CACHE STRING "" FORCE)
+set(JPEG_LIBRARY        "/usr/lib${MULTILIB}/libjpeg.a"  CACHE STRING "" FORCE)
+set(PNG_LIBRARY         "/usr/lib${MULTILIB}/libpng.a"   CACHE STRING "" FORCE)
+set(TIFF_LIBRARY        "/usr/lib${MULTILIB}/libtiff.a"  CACHE STRING "" FORCE)
+set(ZLIB_LIBRARY        "/usr/lib${MULTILIB}/libz.a"     CACHE STRING "" FORCE)
 
 # OpenVDB
 set(OPENVDB_LIBRARY

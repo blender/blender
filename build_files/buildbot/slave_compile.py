@@ -84,16 +84,22 @@ if 'cmake' in builder:
             cmake_options.append(['-G', '"Visual Studio 12 2013"'])
 
     elif builder.startswith('linux'):
+        tokens = builder.split("_")
+        glibc = tokens[1]
+        if glibc == 'glibc219':
+            deb_name = "jessie"
+        elif glibc == 'glibc211':
+            deb_name = "squeeze"
         remove_install_dir = True
         cmake_config_file = "build_files/buildbot/config/blender_linux.cmake"
         cmake_player_config_file = "build_files/buildbot/config/blender_linux_player.cmake"
         if builder.endswith('x86_64_cmake'):
-            chroot_name = 'buildbot_squeeze_x86_64'
+            chroot_name = 'buildbot_' + deb_name + '_x86_64'
             targets = ['player', 'blender']
         elif builder.endswith('i386_cmake'):
             bits = 32
-            chroot_name = 'buildbot_squeeze_i686'
-            cuda_chroot_name = 'buildbot_squeeze_x86_64'
+            chroot_name = 'buildbot_' + deb_name + '_i686'
+            cuda_chroot_name = 'buildbot_' + deb_name + '_x86_64'
             targets = ['player', 'blender', 'cuda']
 
     cmake_options.append("-C" + os.path.join(blender_dir, cmake_config_file))
