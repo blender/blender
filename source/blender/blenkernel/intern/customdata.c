@@ -2356,6 +2356,35 @@ void CustomData_swap_corners(struct CustomData *data, int index, const int *corn
 	}
 }
 
+/**
+ * Swap two items of given custom data, in all available layers.
+ */
+void CustomData_swap(struct CustomData *data, const int index_a, const int index_b)
+{
+	int i;
+	char buff_static[256];
+
+	if (index_a == index_b) {
+		return;
+	}
+
+	for (i = 0; i < data->totlayer; ++i) {
+		const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[i].type);
+		const size_t size = typeInfo->size;
+		const size_t offset_a = size * index_a;
+		const size_t offset_b = size * index_b;
+
+		void *buff = size <= sizeof(buff_static) ? buff_static : MEM_mallocN(size, __func__);
+		memcpy(buff, POINTER_OFFSET(data->layers[i].data, offset_a), size);
+		memcpy(POINTER_OFFSET(data->layers[i].data, offset_a), POINTER_OFFSET(data->layers[i].data, offset_b), size);
+		memcpy(POINTER_OFFSET(data->layers[i].data, offset_b), buff, size);
+
+		if (buff != buff_static) {
+			MEM_freeN(buff);
+		}
+	}
+}
+
 void *CustomData_get(const CustomData *data, int index, int type)
 {
 	int offset;

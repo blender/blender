@@ -317,6 +317,9 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(
         int *r_totloop, int *r_totpoly,
         struct MLoop **r_mloop, struct MPoly **r_mpoly);
 
+void BKE_mesh_polygon_flip(struct MPoly *mpoly, struct MLoop *mloop, struct CustomData *ldata);
+void BKE_mesh_polygons_flip(struct MPoly *mpoly, struct MLoop *mloop, struct CustomData *ldata, int totpoly);
+
 /* flush flags */
 void BKE_mesh_flush_hidden_from_verts_ex(
         const struct MVert *mvert,

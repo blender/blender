@@ -260,6 +260,8 @@ void CustomData_bmesh_interp(
  * faces an array of length 4 */
 void CustomData_swap_corners(struct CustomData *data, int index, const int *corner_indices);
 
+void CustomData_swap(struct CustomData *data, const int index_a, const int index_b);
+
 /* gets a pointer to the data element at index from the first layer of type
  * returns NULL if there is no layer of type
  */

@@ -3200,6 +3200,57 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData 
 }
 /** \} */
 
+/**
+ * Flip (invert winding of) the given \a mpoly, i.e. reverse order of its loops
+ * (keeping the same vertex as 'start point').
+ *
+ * \param mpoly the polygon to flip.
+ * \param mloop the full loops array.
+ * \param ldata the loops custom data.
+ */
+void BKE_mesh_polygon_flip(MPoly *mpoly, MLoop *mloop, CustomData *ldata)
+{
+	int loopstart = mpoly->loopstart;
+	int loopend = loopstart + mpoly->totloop - 1;
+	const bool loops_in_ldata = (CustomData_get_layer(ldata, CD_MLOOP) == mloop);
+
+	/* Note that we keep same start vertex for flipped face. */
+
+	/* We also have to update loops' edge
+	 * (they ell get ther original 'other edge', that is, the original edge of their original previous loop)... */
+	unsigned int prev_edge_index = mloop[loopstart].e;
+	mloop[loopstart].e = mloop[loopend].e;
+
+	for (loopstart++; loopend > loopstart; loopstart++, loopend--) {
+		mloop[loopend].e = mloop[loopend - 1].e;
+		SWAP(unsigned int, mloop[loopstart].e, prev_edge_index);
+
+		if (!loops_in_ldata) {
+			SWAP(MLoop, mloop[loopstart], mloop[loopend]);
+		}
+		CustomData_swap(ldata, loopstart, loopend);
+	}
+	/* Even if we did not swap the other 'pivot' loop, we need to set its swapped edge. */
+	if (loopstart == loopend) {
+		mloop[loopstart].e = prev_edge_index;
+	}
+}
+
+/**
+ * Flip (invert winding of) all polygons (used to inverse their normals).
+ *
+ * \note Invalidates tessalation, caller must handle that.
+ */
+void BKE_mesh_polygons_flip(
+        MPoly *mpoly, MLoop *mloop, CustomData *ldata, int totpoly)
+{
+	MPoly *mp;
+	int i;
+
+	for (mp = mpoly, i = 0; i < totpoly; mp++, i++) {
+		BKE_mesh_polygon_flip(mp, mloop, ldata);
+	}
+}
 
 /* -------------------------------------------------------------------- */
 

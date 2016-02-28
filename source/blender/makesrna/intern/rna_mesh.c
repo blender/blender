@@ -418,6 +418,14 @@ static float rna_MeshPolygon_area_get(PointerRNA *ptr)
 	return BKE_mesh_calc_poly_area(mp, me->mloop + mp->loopstart, me->mvert);
 }
 
+static void rna_MeshPolygon_flip(ID *id, MPoly *mp)
+{
+	Mesh *me = (Mesh *)id;
+
+	BKE_mesh_polygon_flip(mp, me->mloop, &me->ldata);
+	BKE_mesh_tessface_clear(me);
+}
+
 static void rna_MeshTessFace_normal_get(PointerRNA *ptr, float *values)
 {
 	Mesh *me = rna_mesh(ptr);
@@ -2138,6 +2146,7 @@ static void rna_def_mpolygon(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	FunctionRNA *func;
 
 	srna = RNA_def_struct(brna, "MeshPolygon", NULL);
 	RNA_def_struct_sdna(srna, "MPoly");
@@ -2216,6 +2225,11 @@ static void rna_def_mpolygon(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_MeshPolygon_index_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Index", "Index of this polygon");
+
+	func = RNA_def_function(srna, "flip", "rna_MeshPolygon_flip");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_ui_description(func, "Invert winding of this polygon (flip its normal)");
+
 }
 
 /* mesh.loop_uvs */
