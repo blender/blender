@@ -30,6 +30,7 @@
 /* Include only actually used headers for the case
  * when path tracing kernels are not needed.
  */
+#include "../../kernel_random.h"
 #include "../../kernel_differential.h"
 #include "../../kernel_montecarlo.h"
 #include "../../kernel_projection.h"
