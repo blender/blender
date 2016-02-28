@@ -149,6 +149,40 @@ static void mix_normals(
 	MEM_SAFE_FREE(facs);
 }
 
+/* Check poly normals and new loop normals are compatible, otherwise flip polygons
+ * (and invert matching poly normals). */
+static bool polygons_check_flip(
+        MLoop *mloop, float (*nos)[3], CustomData *ldata,
+		MPoly *mpoly, float (*polynors)[3], const int num_polys)
+{
+	MPoly *mp;
+	int i;
+	bool flipped = false;
+
+	for (i = 0, mp = mpoly; i < num_polys; i++, mp++) {
+		float norsum[3] = {0.0f};
+		float (*no)[3];
+		int j;
+
+		for (j = 0, no = &nos[mp->loopstart]; j < mp->totloop; j++, no++) {
+			add_v3_v3(norsum, *no);
+		}
+
+		if (!normalize_v3(norsum)) {
+			continue;
+		}
+
+		/* If average of new loop normals is opposed to polygon normal, flip polygon. */
+		if (dot_v3v3(polynors[i], norsum) < 0.0f) {
+			BKE_mesh_polygon_flip(mp, mloop, ldata);
+			negate_v3(polynors[i]);
+			flipped = true;
+		}
+	}
+
+	return flipped;
+}
+
 static void normalEditModifier_do_radial(
         NormalEditModifierData *smd, Object *ob, DerivedMesh *dm,
         short (*clnors)[2], float (*loopnors)[3], float (*polynors)[3],
@@ -234,6 +268,10 @@ static void normalEditModifier_do_radial(
 		            mix_mode, num_verts, mloop, loopnors, nos, num_loops);
 	}
 
+	if (polygons_check_flip(mloop, nos, dm->getLoopDataLayout(dm), mpoly, polynors, num_polys)) {
+		dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
+	}
+
 	BKE_mesh_normals_loop_custom_set(mvert, num_verts, medge, num_edges, mloop, nos, num_loops,
 	                                 mpoly, (const float(*)[3])polynors, num_polys, clnors);
 
@@ -305,6 +343,10 @@ static void normalEditModifier_do_directional(
 	if (loopnors) {
 		mix_normals(mix_factor, dvert, defgrp_index, use_invert_vgroup,
 		            mix_mode, num_verts, mloop, loopnors, nos, num_loops);
+	}
+
+	if (polygons_check_flip(mloop, nos, dm->getLoopDataLayout(dm), mpoly, polynors, num_polys)) {
+		dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
 	}
 
 	BKE_mesh_normals_loop_custom_set(mvert, num_verts, medge, num_edges, mloop, nos, num_loops,
