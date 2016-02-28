@@ -64,9 +64,10 @@ static PyObject *M_Interpolate_poly_3d_calc(PyObject *UNUSED(self), PyObject *ar
 	PyObject *point, *veclist, *ret;
 	int i;
 	
-	if (!PyArg_ParseTuple(args, "OO!:interpolation_weights",
-	                      &veclist,
-	                      &vector_Type, &point))
+	if (!PyArg_ParseTuple(
+	        args, "OO!:poly_3d_calc",
+	        &veclist,
+	        &vector_Type, &point))
 	{
 		return NULL;
 	}
@@ -81,13 +82,13 @@ static PyObject *M_Interpolate_poly_3d_calc(PyObject *UNUSED(self), PyObject *ar
 	else
 		fp[2] = 0.0f;  /* if its a 2d vector then set the z to be zero */
 	
-	len = mathutils_array_parse_alloc_v(((float **)&vecs), 3, veclist, "interpolation_weights");
+	len = mathutils_array_parse_alloc_v(((float **)&vecs), 3, veclist, __func__);
 	if (len == -1) {
 		return NULL;
 	}
 	
 	if (len) {
-		float *weights = MEM_mallocN(sizeof(float) * len, "interpolation weights");
+		float *weights = MEM_mallocN(sizeof(float) * len, __func__);
 		
 		interp_weights_poly_v3(weights, vecs, len, fp);
 		
