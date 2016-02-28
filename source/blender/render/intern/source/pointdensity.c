@@ -764,12 +764,18 @@ void RE_point_density_minmax(
 	else {
 		float radius[3] = {pd->radius, pd->radius, pd->radius};
 		float *loc, *size;
-		BKE_object_obdata_texspace_get(pd->object, NULL, &loc, &size, NULL);
-		sub_v3_v3v3(r_min, loc, size);
-		add_v3_v3v3(r_max, loc, size);
-		/* Adjust texture space to include density points on the boundaries. */
-		sub_v3_v3(r_min, radius);
-		add_v3_v3(r_max, radius);
+
+		if (BKE_object_obdata_texspace_get(pd->object, NULL, &loc, &size, NULL)) {
+			sub_v3_v3v3(r_min, loc, size);
+			add_v3_v3v3(r_max, loc, size);
+			/* Adjust texture space to include density points on the boundaries. */
+			sub_v3_v3(r_min, radius);
+			add_v3_v3(r_max, radius);
+		}
+		else {
+			zero_v3(r_min);
+			zero_v3(r_max);
+		}
 	}
 }
 
