@@ -1264,8 +1264,7 @@ void BKE_pbvh_get_grid_updates(PBVH *bvh, bool clear, void ***r_gridfaces, int *
 		if (node->flag & PBVH_UpdateNormals) {
 			for (unsigned i = 0; i < node->totprim; ++i) {
 				void *face = bvh->gridfaces[node->prim_indices[i]];
-				if (!BLI_gset_haskey(face_set, face))
-					BLI_gset_insert(face_set, face);
+				BLI_gset_add(face_set, face);
 			}
 
 			if (clear)
