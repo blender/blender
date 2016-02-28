@@ -2333,7 +2333,14 @@ void CustomData_interp(const CustomData *source, CustomData *dest,
 	if (count > SOURCE_BUF_SIZE) MEM_freeN((void *)sources);
 }
 
-void CustomData_swap(struct CustomData *data, int index, const int *corner_indices)
+/**
+ * Swap data inside each item, for all layers.
+ * This only applies to item types that may store several sub-item data (e.g. corner data [UVs, VCol, ...] of
+ * tessellated faces).
+ *
+ * \param corner_indices A mapping 'new_index -> old_index' of sub-item data.
+ */
+void CustomData_swap_corners(struct CustomData *data, int index, const int *corner_indices)
 {
 	const LayerTypeInfo *typeInfo;
 	int i;

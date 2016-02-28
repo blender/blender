@@ -995,7 +995,7 @@ int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 			SWAP(unsigned int, mface->v2, mface->v3);
 
 			if (fdata)
-				CustomData_swap(fdata, mfindex, corner_indices);
+				CustomData_swap_corners(fdata, mfindex, corner_indices);
 		}
 	}
 	else if (nr == 4) {
@@ -1006,7 +1006,7 @@ int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 			SWAP(unsigned int, mface->v2, mface->v4);
 
 			if (fdata)
-				CustomData_swap(fdata, mfindex, corner_indices);
+				CustomData_swap_corners(fdata, mfindex, corner_indices);
 		}
 	}
 
