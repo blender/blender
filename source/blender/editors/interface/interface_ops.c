@@ -1108,3 +1108,13 @@ void ED_button_operatortypes(void)
 	WM_operatortype_append(UI_OT_eyedropper_id);
 	WM_operatortype_append(UI_OT_eyedropper_depth);
 }
+
+/**
+ * \brief User Interface Keymap
+ *
+ * For now only modal maps here, since UI uses special ui-handlers instead of operators.
+ */
+void ED_keymap_ui(wmKeyConfig *keyconf)
+{
+	WM_keymap_find(keyconf, "User Interface", 0, 0);
+}

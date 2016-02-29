@@ -188,6 +188,7 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 	ED_keymap_marker(keyconf);
 
 	ED_keymap_view2d(keyconf);
+	ED_keymap_ui(keyconf);
 
 	spacetypes = BKE_spacetypes_list();
 	for (stype = spacetypes->first; stype; stype = stype->next) {

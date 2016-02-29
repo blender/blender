@@ -62,6 +62,7 @@ struct uiFontStyle;
 struct uiWidgetColors;
 struct Image;
 struct ImageUser;
+struct wmKeyConfig;
 struct wmOperatorType;
 struct uiWidgetColors;
 struct MTex;
@@ -1004,6 +1005,8 @@ typedef struct uiDragColorHandle {
 } uiDragColorHandle;
 
 void ED_button_operatortypes(void);
+void ED_keymap_ui(struct wmKeyConfig *keyconf);
+
 void UI_drop_color_copy(struct wmDrag *drag, struct wmDropBox *drop);
 int UI_drop_color_poll(struct bContext *C, struct wmDrag *drag, const struct wmEvent *event);
 

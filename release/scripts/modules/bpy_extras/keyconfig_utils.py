@@ -33,6 +33,10 @@ KM_HIERARCHY = [
     ('View2D', 'EMPTY', 'WINDOW', []),    # view 2d navigation (per region)
     ('View2D Buttons List', 'EMPTY', 'WINDOW', []),  # view 2d with buttons navigation
 
+    ('User Interface', 'EMPTY', 'WINDOW', [
+        # empty
+        ]),
+
     ('3D View', 'VIEW_3D', 'WINDOW', [  # view 3d navigation and generic stuff (select, transform)
         ('Object Mode', 'EMPTY', 'WINDOW', []),
         ('Mesh', 'EMPTY', 'WINDOW', []),
