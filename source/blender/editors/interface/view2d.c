@@ -2394,7 +2394,7 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 	/* investigate using BLF_ascender() */
 	const float default_height = g_v2d_strings ? BLF_height_default("28", 3) : 0.0f;
 
-	wmOrtho2_region_ui(ar);
+	wmOrtho2_region_pixelspace(ar);
 
 	for (v2s = g_v2d_strings; v2s; v2s = v2s->next) {
 		int xofs = 0, yofs;

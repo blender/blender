@@ -502,7 +502,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	/* note; this sets state, so we can use wmOrtho and friends */
 	wmSubWindowScissorSet(win, ar->swinid, &ar->drawrct, scissor_pad);
 
-	wmOrtho2_region_ui(ar);
+	wmOrtho2_region_pixelspace(ar);
 	
 	UI_SetTheme(sa ? sa->spacetype : 0, at->regionid);
 	

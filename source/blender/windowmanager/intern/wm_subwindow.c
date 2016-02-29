@@ -367,7 +367,7 @@ static void wmOrtho2_offset(const float x, const float y, const float ofs)
 /**
  * default pixel alignment.
  */
-void wmOrtho2_region_pixelspace(const struct ARegion *ar)
+void wmOrtho2_region_pixelspace(const ARegion *ar)
 {
 	wmOrtho2_offset(ar->winx, ar->winy, -0.01f);
 }
@@ -375,17 +375,6 @@ void wmOrtho2_region_pixelspace(const struct ARegion *ar)
 void wmOrtho2_pixelspace(const float x, const float y)
 {
 	wmOrtho2_offset(x, y, -GLA_PIXEL_OFS);
-}
-
-/**
- * use for drawing uiBlock, any UI elements and text.
- * \note prevents blurry text with multi-sample (FSAA), see T41749
- */
-void wmOrtho2_region_ui(const ARegion *ar)
-{
-	/* note, intentionally no '+ 1',
-	 * as with wmOrtho2_region_pixelspace */
-	wmOrtho2_offset(ar->winx, ar->winy, -0.01f);
 }
 
 /* *************************** Framebuffer color depth, for selection codes ********************** */

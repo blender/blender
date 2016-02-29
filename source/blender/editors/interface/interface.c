@@ -1383,7 +1383,7 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 	glPushMatrix();
 	glLoadIdentity();
 
-	wmOrtho2_region_ui(ar);
+	wmOrtho2_region_pixelspace(ar);
 	
 	/* back */
 	if (block->flag & UI_BLOCK_RADIAL)
