@@ -652,6 +652,13 @@ static int rna_NumberProperty_default_array_get_length(PointerRNA *ptr, int leng
 
 	return length[0];
 }
+static int rna_NumberProperty_is_array_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop = (PropertyRNA *)ptr->data;
+
+	return RNA_property_array_check(prop);
+}
+
 static void rna_IntProperty_default_array_get(PointerRNA *ptr, int *values)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
@@ -1336,6 +1343,11 @@ static void rna_def_number_property(StructRNA *srna, PropertyType type)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_Property_array_length_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Array Length", "Maximum length of the array, 0 means unlimited");
+
+	prop = RNA_def_property(srna, "is_array", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_NumberProperty_is_array_get", NULL);
+	RNA_def_property_ui_text(prop, "Is Array", "");
 
 	if (type == PROP_BOOLEAN)
 		return;
