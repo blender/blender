@@ -75,7 +75,7 @@
  * \{ */
 
 enum {
-	EYE_MODAL_CANCEL = 1, /* XXX actually does same as confirming */
+	EYE_MODAL_CANCEL = 1,
 	EYE_MODAL_SAMPLE_CONFIRM,
 	EYE_MODAL_SAMPLE_BEGIN,
 	EYE_MODAL_SAMPLE_RESET,
@@ -102,6 +102,8 @@ wmKeyMap *eyedropper_modal_keymap(wmKeyConfig *keyconf)
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, EYE_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_PRESS, KM_ANY, 0, EYE_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, RETKEY, KM_RELEASE, KM_ANY, 0, EYE_MODAL_SAMPLE_CONFIRM);
+	WM_modalkeymap_add_item(keymap, PADENTER, KM_RELEASE, KM_ANY, 0, EYE_MODAL_SAMPLE_CONFIRM);
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_ANY, 0, EYE_MODAL_SAMPLE_CONFIRM);
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, EYE_MODAL_SAMPLE_BEGIN);
 	WM_modalkeymap_add_item(keymap, SPACEKEY, KM_RELEASE, KM_ANY, 0, EYE_MODAL_SAMPLE_RESET);
@@ -164,6 +166,8 @@ typedef struct Eyedropper {
 	PropertyRNA *prop;
 	int index;
 
+	float init_col[3]; /* for resetting on cancel */
+
 	bool  accum_start; /* has mouse been presed */
 	float accum_col[3];
 	int   accum_tot;
@@ -189,9 +193,17 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
 
 	if (RNA_property_subtype(eye->prop) == PROP_COLOR) {
 		const char *display_device;
+		float col[4];
 
 		display_device = scene->display_settings.display_device;
 		eye->display = IMB_colormanagement_display_get_named(display_device);
+
+		/* store inital color */
+		RNA_property_float_get_array(&eye->ptr, eye->prop, col);
+		if (eye->display) {
+			IMB_colormanagement_scene_linear_to_display_v3(col, eye->display);
+		}
+		copy_v3_v3(eye->init_col, col);
 	}
 
 	return true;
@@ -205,11 +217,6 @@ static void eyedropper_exit(bContext *C, wmOperator *op)
 		MEM_freeN(op->customdata);
 		op->customdata = NULL;
 	}
-}
-
-static void eyedropper_cancel(bContext *C, wmOperator *op)
-{
-	eyedropper_exit(C, op);
 }
 
 /* *** eyedropper_color_ helper functions *** */
@@ -316,6 +323,13 @@ static void eyedropper_color_sample_accum(bContext *C, Eyedropper *eye, int mx, 
 	/* delay linear conversion */
 	add_v3_v3(eye->accum_col, col);
 	eye->accum_tot++;
+}
+
+static void eyedropper_cancel(bContext *C, wmOperator *op)
+{
+	Eyedropper *eye = op->customdata;
+	eyedropper_color_set(C, eye, eye->init_col);
+	eyedropper_exit(C, op);
 }
 
 /* main modal status check */
@@ -441,6 +455,8 @@ typedef struct DataDropper {
 	short idcode;
 	const char *idcode_name;
 
+	ID *init_id; /* for resetting on cancel */
+
 	ARegionType *art;
 	void *draw_handle_pixel;
 	char name[200];
@@ -487,6 +503,9 @@ static int datadropper_init(bContext *C, wmOperator *op)
 	/* Note we can translate here (instead of on draw time), because this struct has very short lifetime. */
 	ddr->idcode_name = TIP_(BKE_idcode_to_name(ddr->idcode));
 
+	PointerRNA ptr = RNA_property_pointer_get(&ddr->ptr, ddr->prop);
+	ddr->init_id = ptr.id.data;
+
 	return true;
 }
 
@@ -507,11 +526,6 @@ static void datadropper_exit(bContext *C, wmOperator *op)
 	}
 
 	WM_event_add_mousemove(C);
-}
-
-static void datadropper_cancel(bContext *C, wmOperator *op)
-{
-	datadropper_exit(C, op);
 }
 
 /* *** datadropper id helper functions *** */
@@ -600,6 +614,13 @@ static bool datadropper_id_sample(bContext *C, DataDropper *ddr, int mx, int my)
 
 	datadropper_id_sample_pt(C, ddr, mx, my, &id);
 	return datadropper_id_set(C, ddr, id);
+}
+
+static void datadropper_cancel(bContext *C, wmOperator *op)
+{
+	DataDropper *ddr = op->customdata;
+	datadropper_id_set(C, ddr, ddr->init_id);
+	datadropper_exit(C, op);
 }
 
 /* main modal status check */
@@ -712,6 +733,8 @@ typedef struct DepthDropper {
 	PointerRNA ptr;
 	PropertyRNA *prop;
 
+	float init_depth; /* for resetting on cancel */
+
 	bool  accum_start; /* has mouse been presed */
 	float accum_depth;
 	int   accum_tot;
@@ -766,6 +789,7 @@ static int depthdropper_init(bContext *C, wmOperator *op)
 
 	ddr->art = art;
 	ddr->draw_handle_pixel = ED_region_draw_cb_activate(art, depthdropper_draw_cb, ddr, REGION_DRAW_POST_PIXEL);
+	ddr->init_depth = RNA_property_float_get(&ddr->ptr, ddr->prop);
 
 	return true;
 }
@@ -785,11 +809,6 @@ static void depthdropper_exit(bContext *C, wmOperator *op)
 
 		op->customdata = NULL;
 	}
-}
-
-static void depthdropper_cancel(bContext *C, wmOperator *op)
-{
-	depthdropper_exit(C, op);
 }
 
 /* *** depthdropper id helper functions *** */
@@ -894,6 +913,13 @@ static void depthdropper_depth_sample_accum(bContext *C, DepthDropper *ddr, int 
 		ddr->accum_depth += depth;
 		ddr->accum_tot++;
 	}
+}
+
+static void depthdropper_cancel(bContext *C, wmOperator *op)
+{
+	DepthDropper *ddr = op->customdata;
+	depthdropper_depth_set(C, ddr, ddr->init_depth);
+	depthdropper_exit(C, op);
 }
 
 /* main modal status check */
