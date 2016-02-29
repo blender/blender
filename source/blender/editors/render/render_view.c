@@ -193,7 +193,7 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
 			/* find largest open non-image area */
 			sa = biggest_non_image_area(C);
 			if (sa) {
-				ED_area_newspace(C, sa, SPACE_IMAGE);
+				ED_area_newspace(C, sa, SPACE_IMAGE, true);
 				sima = sa->spacedata.first;
 
 				/* makes ESC go back to prev space */
@@ -265,7 +265,7 @@ static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(op))
 
 		if (sima->flag & SI_FULLWINDOW) {
 			sima->flag &= ~SI_FULLWINDOW;
-			ED_screen_full_prevspace(C, sa, false);
+			ED_screen_full_prevspace(C, sa);
 		}
 		else {
 			ED_area_prevspace(C, sa);
@@ -330,16 +330,10 @@ static int render_view_show_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
 					if (sima->flag & SI_FULLWINDOW) {
 						sima->flag &= ~SI_FULLWINDOW;
-						ED_screen_full_prevspace(C, sa, false);
+						ED_screen_full_prevspace(C, sa);
 					}
-					else if (sima->next) {
-						/* workaround for case of double prevspace, render window
-						 * with a file browser on top of it (same as in ED_area_prevspace) */
-						if (sima->next->spacetype == SPACE_FILE && sima->next->next)
-							ED_area_newspace(C, sa, sima->next->next->spacetype);
-						else
-							ED_area_newspace(C, sa, sima->next->spacetype);
-						ED_area_tag_redraw(sa);
+					else {
+						ED_area_prevspace(C, sa);
 					}
 				}
 			}

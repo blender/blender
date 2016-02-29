@@ -3838,7 +3838,7 @@ static int fullscreen_back_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	ED_screen_full_prevspace(C, sa, false);
+	ED_screen_full_prevspace(C, sa);
 
 	return OPERATOR_FINISHED;
 }

@@ -425,7 +425,7 @@ void ED_space_image_get_zoom(struct SpaceImage *sima, struct ARegion *ar, float 
 const char *ED_info_stats_string(struct Scene *scene) RET_NULL
 void ED_area_tag_redraw(struct ScrArea *sa) RET_NONE
 void ED_area_tag_refresh(struct ScrArea *sa) RET_NONE
-void ED_area_newspace(struct bContext *C, struct ScrArea *sa, int type) RET_NONE
+void ED_area_newspace(struct bContext *C, struct ScrArea *sa, int type, const bool skip_ar_exit) RET_NONE
 void ED_region_tag_redraw(struct ARegion *ar) RET_NONE
 void WM_event_add_fileselect(struct bContext *C, struct wmOperator *op) RET_NONE
 void WM_cursor_wait(bool val) RET_NONE

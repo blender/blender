@@ -678,10 +678,10 @@ wmWindow *WM_window_open_temp(bContext *C, const rcti *rect_init, int type)
 	CTX_wm_area_set(C, sa);
 	
 	if (type == WM_WINDOW_RENDER) {
-		ED_area_newspace(C, sa, SPACE_IMAGE);
+		ED_area_newspace(C, sa, SPACE_IMAGE, false);
 	}
 	else {
-		ED_area_newspace(C, sa, SPACE_USERPREF);
+		ED_area_newspace(C, sa, SPACE_USERPREF, false);
 	}
 	
 	ED_screen_set(C, win->screen);

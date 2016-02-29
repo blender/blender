@@ -1792,9 +1792,12 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 				if (sa->prev) {
 					sa = sa->prev;
 				}
-				ED_area_newspace(C, sa, SPACE_FILE);     /* 'sa' is modified in-place */
+				ED_area_newspace(C, sa, SPACE_FILE, true);     /* 'sa' is modified in-place */
 				/* we already had a fullscreen here -> mark new space as a stacked fullscreen */
-				sa->flag |= AREA_FLAG_STACKED_FULLSCREEN;
+				sa->flag |= (AREA_FLAG_STACKED_FULLSCREEN | AREA_FLAG_TEMP_TYPE);
+			}
+			else if (sa->spacetype == SPACE_FILE) {
+				sa = ED_screen_state_toggle(C, CTX_wm_window(C), sa, SCREENMAXIMIZED);
 			}
 			else {
 				sa = ED_screen_full_newspace(C, sa, SPACE_FILE);    /* sets context */
@@ -1823,11 +1826,9 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 
 			if (val != EVT_FILESELECT_EXTERNAL_CANCEL) {
 				ScrArea *sa = CTX_wm_area(C);
-				const SpaceLink *sl = sa->spacedata.first;
-				const bool was_prev_temp = (sl->next && sl->next->spacetype == SPACE_IMAGE);
 
 				if (sa->full) {
-					ED_screen_full_prevspace(C, sa, was_prev_temp);
+					ED_screen_full_prevspace(C, sa);
 				}
 				/* user may have left fullscreen */
 				else {

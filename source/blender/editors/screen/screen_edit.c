@@ -1800,25 +1800,21 @@ ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 		newsa->flag &= ~AREA_FLAG_TEMP_TYPE;
 	}
 
-	ED_area_newspace(C, newsa, type);
-	
+	ED_area_newspace(C, newsa, type, (newsa->flag & AREA_FLAG_TEMP_TYPE));
+
 	return newsa;
 }
 
 /**
  * \a was_prev_temp for the case previous space was a temporary fullscreen as well
  */
-void ED_screen_full_prevspace(bContext *C, ScrArea *sa, const bool was_prev_temp)
+void ED_screen_full_prevspace(bContext *C, ScrArea *sa)
 {
 	BLI_assert(sa->full);
 
 	if (sa->flag & AREA_FLAG_STACKED_FULLSCREEN) {
 		/* stacked fullscreen -> only go back to previous screen and don't toggle out of fullscreen */
 		ED_area_prevspace(C, sa);
-		/* only clear if previous space wasn't a temp fullscreen as well */
-		if (!was_prev_temp) {
-			sa->flag &= ~AREA_FLAG_TEMP_TYPE;
-		}
 	}
 	else {
 		ED_screen_restore_temp_type(C, sa);
@@ -1853,7 +1849,7 @@ void ED_screen_full_restore(bContext *C, ScrArea *sa)
 	
 	if (sl->next) {
 		if (sa->flag & AREA_FLAG_TEMP_TYPE) {
-			ED_screen_full_prevspace(C, sa, false);
+			ED_screen_full_prevspace(C, sa);
 		}
 		else {
 			ED_screen_state_toggle(C, win, sa, state);
@@ -1963,7 +1959,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 		if (state == SCREENMAXIMIZED) {
 			/* returns the top small area */
 			newa = area_split(sc, (ScrArea *)sc->areabase.first, 'h', 0.99f, 1);
-			ED_area_newspace(C, newa, SPACE_INFO);
+			ED_area_newspace(C, newa, SPACE_INFO, false);
 
 			/* copy area */
 			newa = newa->prev;

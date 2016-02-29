@@ -161,7 +161,7 @@ static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
 			CTX_wm_area_set(C, sa);
 			CTX_wm_region_set(C, NULL);
 
-			ED_area_newspace(C, sa, sa->butspacetype);
+			ED_area_newspace(C, sa, sa->butspacetype, true);
 			ED_area_tag_redraw(sa);
 
 			/* It is possible that new layers becomes visible. */

@@ -1611,14 +1611,30 @@ void ED_area_swapspace(bContext *C, ScrArea *sa1, ScrArea *sa2)
 	ED_area_tag_refresh(sa2);
 }
 
-void ED_area_newspace(bContext *C, ScrArea *sa, int type)
+/**
+ * \param skip_ar_exit  Skip calling area exit callback. Set for opening temp spaces.
+ */
+void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exit)
 {
 	if (sa->spacetype != type) {
 		SpaceType *st;
 		SpaceLink *slold;
 		SpaceLink *sl;
+		/* store sa->type->exit callback */
+		void *sa_exit = sa->type ? sa->type->exit : NULL;
+
+		/* in some cases (opening temp space) we don't want to
+		 * call area exit callback, so we temporarily unset it */
+		if (skip_ar_exit && sa->type) {
+			sa->type->exit = NULL;
+		}
 
 		ED_area_exit(C, sa);
+
+		/* restore old area exit callback */
+		if (skip_ar_exit && sa->type) {
+			sa->type->exit = sa_exit;
+		}
 
 		st = BKE_spacetype_from_id(type);
 		slold = sa->spacedata.first;
@@ -1686,12 +1702,12 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 	SpaceLink *sl = sa->spacedata.first;
 
 	if (sl && sl->next) {
-		/* workaround for case of double prevspace, render window
-		 * with a file browser on top of it */
-		if (sl->next->spacetype == SPACE_FILE && sl->next->next)
-			ED_area_newspace(C, sa, sl->next->next->spacetype);
-		else
-			ED_area_newspace(C, sa, sl->next->spacetype);
+		ED_area_newspace(C, sa, sl->next->spacetype, false);
+
+		/* keep old spacedata but move it to end, so calling
+		 * ED_area_prevspace once more won't open it again */
+		BLI_remlink(&sa->spacedata, sl);
+		BLI_addtail(&sa->spacedata, sl);
 	}
 	else {
 		/* no change */
