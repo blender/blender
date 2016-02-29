@@ -1087,7 +1087,7 @@ static void UI_OT_drop_color(wmOperatorType *ot)
 /* ********************************************************* */
 /* Registration */
 
-void ED_button_operatortypes(void)
+void ED_operatortypes_ui(void)
 {
 	WM_operatortype_append(UI_OT_reset_default_theme);
 	WM_operatortype_append(UI_OT_copy_data_path_button);

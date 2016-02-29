@@ -1004,7 +1004,7 @@ typedef struct uiDragColorHandle {
 	bool gamma_corrected;
 } uiDragColorHandle;
 
-void ED_button_operatortypes(void);
+void ED_operatortypes_ui(void);
 void ED_keymap_ui(struct wmKeyConfig *keyconf);
 
 void UI_drop_color_copy(struct wmDrag *drag, struct wmDropBox *drop);

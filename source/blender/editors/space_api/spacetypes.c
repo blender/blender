@@ -120,7 +120,7 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_io();
 	
 	ED_operatortypes_view2d();
-	ED_button_operatortypes();
+	ED_operatortypes_ui();
 	
 	/* register operators */
 	spacetypes = BKE_spacetypes_list();
