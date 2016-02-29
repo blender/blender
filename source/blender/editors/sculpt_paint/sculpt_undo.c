@@ -546,8 +546,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 
 		if (ss->kb || ss->modifiers_active) {
 			Mesh *mesh = ob->data;
-			BKE_mesh_calc_normals_tessface(mesh->mvert, mesh->totvert,
-			                               mesh->mface, mesh->totface, NULL);
+			BKE_mesh_calc_normals(mesh);
 
 			BKE_sculptsession_free_deformMats(ss);
 			tag_update |= true;
