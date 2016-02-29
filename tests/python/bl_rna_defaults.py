@@ -11,11 +11,40 @@ GLOBALS = {
     }
 
 
+def as_float_32(f):
+    from struct import pack, unpack
+    return unpack("f", pack("f", f))[0]
+
+
+def repr_float_precision(f, round_fn):
+    """
+    Get's the value which was most likely entered by a human in C.
+
+    Needed since Python will show trailing precision from a 32bit float.
+    """
+    f_round = round_fn(f)
+    f_str = repr(f)
+    f_str_frac = f_str.partition(".")[2]
+    if not f_str_frac:
+        return f_str
+    for i in range(1, len(f_str_frac)):
+        f_test = round(f, i)
+        f_test_round = round_fn(f_test)
+        if f_test_round == f_round:
+            return "%.*f" % (i, f_test)
+    return f_str
+
+
+def repr_float_32(f):
+    return repr_float_precision(f, as_float_32)
+
+
 def validate_defaults(test_id, o):
 
-    def warning(prop_id, val_real, val_default):
-        print("Error %s: '%s.%s' is:%r, expected:%r" %
-              (test_id, o.__class__.__name__, prop_id, val_real, val_default))
+    def warning(prop_id, val_real, val_default, *, repr_fn=repr):
+        print("Error %s: '%s.%s' is:%s, expected:%s" %
+              (test_id, o.__class__.__name__, prop_id,
+               repr_fn(val_real), repr_fn(val_default)))
         GLOBALS["error_num"] += 1
 
     properties = type(o).bl_rna.properties.items()
@@ -32,8 +61,8 @@ def validate_defaults(test_id, o):
             if (val_real is not None) and (not isinstance(val_real, bpy.types.ID)):
                 validate_defaults("%s.%s" % (test_id, prop_id), val_real)
         elif prop_type in {'INT', 'BOOL'}:
-            array_length = prop.array_length
-            if array_length == 0:
+            # array_length = prop.array_length
+            if not prop.is_array:
                 val_real = getattr(o, prop_id)
                 val_default = prop.default
                 if val_real != val_default:
@@ -41,12 +70,12 @@ def validate_defaults(test_id, o):
             else:
                 pass  # TODO, array defaults
         elif prop_type == 'FLOAT':
-            array_length = prop.array_length
-            if array_length == 0:
+            # array_length = prop.array_length
+            if not prop.is_array:
                 val_real = getattr(o, prop_id)
                 val_default = prop.default
                 if val_real != val_default:
-                    warning(prop_id, val_real, val_default)
+                    warning(prop_id, val_real, val_default, repr_fn=repr_float_32)
             else:
                 pass  # TODO, array defaults
         elif prop_type == 'ENUM':
