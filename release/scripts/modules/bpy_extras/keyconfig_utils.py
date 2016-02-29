@@ -34,7 +34,7 @@ KM_HIERARCHY = [
     ('View2D Buttons List', 'EMPTY', 'WINDOW', []),  # view 2d with buttons navigation
 
     ('User Interface', 'EMPTY', 'WINDOW', [
-        # empty
+        ('Eyedropper Modal Map', 'EMPTY', 'WINDOW', []),
         ]),
 
     ('3D View', 'VIEW_3D', 'WINDOW', [  # view 3d navigation and generic stuff (select, transform)

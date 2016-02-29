@@ -67,6 +67,56 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
+
+/* -------------------------------------------------------------------- */
+/* Keymap
+ */
+/** \name Modal Keymap
+ * \{ */
+
+enum {
+	EYE_MODAL_CANCEL = 1, /* XXX actually does same as confirming */
+	EYE_MODAL_SAMPLE_CONFIRM,
+	EYE_MODAL_SAMPLE_BEGIN,
+	EYE_MODAL_SAMPLE_RESET,
+};
+
+wmKeyMap *eyedropper_modal_keymap(wmKeyConfig *keyconf)
+{
+	static EnumPropertyItem modal_items[] = {
+		{EYE_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
+		{EYE_MODAL_SAMPLE_CONFIRM, "SAMPLE_CONFIRM", 0, "Confirm Sampling", ""},
+		{EYE_MODAL_SAMPLE_BEGIN, "SAMPLE_BEGIN", 0, "Start Sampling", ""},
+		{EYE_MODAL_SAMPLE_RESET, "SAMPLE_RESET", 0, "Reset Sampling", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Eyedropper Modal Map");
+
+	/* this function is called for each spacetype, only needs to add map once */
+	if (keymap && keymap->modal_items)
+		return NULL;
+
+	keymap = WM_modalkeymap_add(keyconf, "Eyedropper Modal Map", modal_items);
+
+	/* items for modal map */
+	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, EYE_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_PRESS, KM_ANY, 0, EYE_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_ANY, 0, EYE_MODAL_SAMPLE_CONFIRM);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, EYE_MODAL_SAMPLE_BEGIN);
+	WM_modalkeymap_add_item(keymap, SPACEKEY, KM_RELEASE, KM_ANY, 0, EYE_MODAL_SAMPLE_RESET);
+
+	/* assign to operators */
+	WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_color");
+	WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_id");
+	WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_depth");
+
+	return keymap;
+}
+
+/** \} */
+
+
 /* -------------------------------------------------------------------- */
 /* Utility Functions
  */
@@ -273,13 +323,13 @@ static int eyedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Eyedropper *eye = (Eyedropper *)op->customdata;
 
-	switch (event->type) {
-		case ESCKEY:
-		case RIGHTMOUSE:
-			eyedropper_cancel(C, op);
-			return OPERATOR_CANCELLED;
-		case LEFTMOUSE:
-			if (event->val == KM_RELEASE) {
+	/* handle modal keymap */
+	if (event->type == EVT_MODAL_MAP) {
+		switch (event->val) {
+			case EYE_MODAL_CANCEL:
+				eyedropper_cancel(C, op);
+				return OPERATOR_CANCELLED;
+			case EYE_MODAL_SAMPLE_CONFIRM:
 				if (eye->accum_tot == 0) {
 					eyedropper_color_sample(C, eye, event->x, event->y);
 				}
@@ -288,28 +338,25 @@ static int eyedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				}
 				eyedropper_exit(C, op);
 				return OPERATOR_FINISHED;
-			}
-			else if (event->val == KM_PRESS) {
+			case EYE_MODAL_SAMPLE_BEGIN:
 				/* enable accum and make first sample */
 				eye->accum_start = true;
 				eyedropper_color_sample_accum(C, eye, event->x, event->y);
-			}
-			break;
-		case MOUSEMOVE:
-			if (eye->accum_start) {
-				/* button is pressed so keep sampling */
-				eyedropper_color_sample_accum(C, eye, event->x, event->y);
-				eyedropper_color_set_accum(C, eye);
-			}
-			break;
-		case SPACEKEY:
-			if (event->val == KM_RELEASE) {
+				break;
+			case EYE_MODAL_SAMPLE_RESET:
 				eye->accum_tot = 0;
 				zero_v3(eye->accum_col);
 				eyedropper_color_sample_accum(C, eye, event->x, event->y);
 				eyedropper_color_set_accum(C, eye);
-			}
-			break;
+				break;
+		}
+	}
+	else if (event->type == MOUSEMOVE) {
+		if (eye->accum_start) {
+			/* button is pressed so keep sampling */
+			eyedropper_color_sample_accum(C, eye, event->x, event->y);
+			eyedropper_color_set_accum(C, eye);
+		}
 	}
 
 	return OPERATOR_RUNNING_MODAL;
@@ -560,13 +607,14 @@ static int datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	DataDropper *ddr = (DataDropper *)op->customdata;
 
-	switch (event->type) {
-		case ESCKEY:
-		case RIGHTMOUSE:
-			datadropper_cancel(C, op);
-			return OPERATOR_CANCELLED;
-		case LEFTMOUSE:
-			if (event->val == KM_RELEASE) {
+	/* handle modal keymap */
+	if (event->type == EVT_MODAL_MAP) {
+		switch (event->val) {
+			case EYE_MODAL_CANCEL:
+				datadropper_cancel(C, op);
+				return OPERATOR_CANCELLED;
+			case EYE_MODAL_SAMPLE_CONFIRM:
+			{
 				bool success;
 
 				success = datadropper_id_sample(C, ddr, event->x, event->y);
@@ -580,13 +628,11 @@ static int datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					return OPERATOR_CANCELLED;
 				}
 			}
-			break;
-		case MOUSEMOVE:
-		{
-			ID *id = NULL;
-			datadropper_id_sample_pt(C, ddr, event->x, event->y, &id);
-			break;
 		}
+	}
+	else if (event->type == MOUSEMOVE) {
+		ID *id = NULL;
+		datadropper_id_sample_pt(C, ddr, event->x, event->y, &id);
 	}
 
 	return OPERATOR_RUNNING_MODAL;
@@ -855,13 +901,13 @@ static int depthdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	DepthDropper *ddr = (DepthDropper *)op->customdata;
 
-	switch (event->type) {
-		case ESCKEY:
-		case RIGHTMOUSE:
-			depthdropper_cancel(C, op);
-			return OPERATOR_CANCELLED;
-		case LEFTMOUSE:
-			if (event->val == KM_RELEASE) {
+	/* handle modal keymap */
+	if (event->type == EVT_MODAL_MAP) {
+		switch (event->val) {
+			case EYE_MODAL_CANCEL:
+				depthdropper_cancel(C, op);
+				return OPERATOR_CANCELLED;
+			case EYE_MODAL_SAMPLE_CONFIRM:
 				if (ddr->accum_tot == 0) {
 					depthdropper_depth_sample(C, ddr, event->x, event->y);
 				}
@@ -870,28 +916,25 @@ static int depthdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				}
 				depthdropper_exit(C, op);
 				return OPERATOR_FINISHED;
-			}
-			else if (event->val == KM_PRESS) {
+			case EYE_MODAL_SAMPLE_BEGIN:
 				/* enable accum and make first sample */
 				ddr->accum_start = true;
 				depthdropper_depth_sample_accum(C, ddr, event->x, event->y);
-			}
-			break;
-		case MOUSEMOVE:
-			if (ddr->accum_start) {
-				/* button is pressed so keep sampling */
-				depthdropper_depth_sample_accum(C, ddr, event->x, event->y);
-				depthdropper_depth_set_accum(C, ddr);
-			}
-			break;
-		case SPACEKEY:
-			if (event->val == KM_RELEASE) {
+				break;
+			case EYE_MODAL_SAMPLE_RESET:
 				ddr->accum_tot = 0;
 				ddr->accum_depth = 0.0f;
 				depthdropper_depth_sample_accum(C, ddr, event->x, event->y);
 				depthdropper_depth_set_accum(C, ddr);
-			}
-			break;
+				break;
+		}
+	}
+	else if (event->type == MOUSEMOVE) {
+		if (ddr->accum_start) {
+			/* button is pressed so keep sampling */
+			depthdropper_depth_sample_accum(C, ddr, event->x, event->y);
+			depthdropper_depth_set_accum(C, ddr);
+		}
 	}
 
 	return OPERATOR_RUNNING_MODAL;

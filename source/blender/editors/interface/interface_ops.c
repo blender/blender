@@ -1117,4 +1117,6 @@ void ED_operatortypes_ui(void)
 void ED_keymap_ui(wmKeyConfig *keyconf)
 {
 	WM_keymap_find(keyconf, "User Interface", 0, 0);
+
+	eyedropper_modal_keymap(keyconf);
 }
