@@ -496,7 +496,7 @@ void BKE_mesh_init(Mesh *me)
 	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(me, id));
 
 	me->size[0] = me->size[1] = me->size[2] = 1.0;
-	me->smoothresh = 30;
+	me->smoothresh = DEG2RADF(30);
 	me->texflag = ME_AUTOSPACE;
 
 	/* disable because its slow on many GPU's, see [#37518] */
