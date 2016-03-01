@@ -81,6 +81,11 @@ Speaker *BKE_speaker_copy(Speaker *spk)
 	return spkn;
 }
 
+static void extern_local_speaker(Speaker *spk)
+{
+	id_lib_extern((ID *)spk->sound);
+}
+
 void BKE_speaker_make_local(Speaker *spk)
 {
 	Main *bmain = G.main;
@@ -95,6 +100,7 @@ void BKE_speaker_make_local(Speaker *spk)
 	if (spk->id.lib == NULL) return;
 	if (spk->id.us == 1) {
 		id_clear_lib_data(bmain, &spk->id);
+		extern_local_speaker(spk);
 		return;
 	}
 
@@ -109,6 +115,7 @@ void BKE_speaker_make_local(Speaker *spk)
 
 	if (is_local && is_lib == false) {
 		id_clear_lib_data(bmain, &spk->id);
+		extern_local_speaker(spk);
 	}
 	else if (is_local && is_lib) {
 		Speaker *spk_new = BKE_speaker_copy(spk);
