@@ -548,6 +548,7 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 
 	ViewContext vc;
 	BMEditMesh *em;
+	bool track_active = true;
 
 	em_setup_viewcontext(C, &vc);
 	copy_v2_v2_int(vc.mval, event->mval);
@@ -559,12 +560,25 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 	if (!(ele_src = BM_mesh_active_elem_get(em->bm)) ||
 	    !(ele_dst = edbm_elem_find_nearest(&vc, ele_src->head.htype)))
 	{
-		return OPERATOR_PASS_THROUGH;
+		/* special case, toggle edge tags even when we don't have a path */
+		if (((em->selectmode & SCE_SELECT_EDGE) &&
+		     (vc.scene->toolsettings->edge_mode != EDGE_MODE_SELECT)) &&
+		    /* check if we only have a destination edge */
+		    ((ele_src == NULL) &&
+		     (ele_dst = edbm_elem_find_nearest(&vc, BM_EDGE))))
+		{
+			ele_src = ele_dst;
+			track_active = false;
+		}
+		else {
+			return OPERATOR_PASS_THROUGH;
+		}
 	}
 
 	struct PathSelectParams op_params;
+
 	path_select_params_from_op(op, &op_params);
-	op_params.track_active = true;
+	op_params.track_active = track_active;
 	op_params.edge_mode = vc.scene->toolsettings->edge_mode;
 
 	if (!edbm_shortest_path_pick_ex(vc.scene, &op_params, ele_src, ele_dst)) {
