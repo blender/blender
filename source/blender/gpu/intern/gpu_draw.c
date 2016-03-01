@@ -1227,8 +1227,11 @@ static bool GPU_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x,
 void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, int h)
 {
 	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
-	
-	if (ima->repbind || (GPU_get_mipmap() && !GTS.gpu_mipmap) || BKE_image_has_bindcode(ima) || !ibuf ||
+
+	if (ima->repbind ||
+	    (!GTS.gpu_mipmap && GPU_get_mipmap()) ||
+	    (ima->bindcode[TEXTARGET_TEXTURE_2D] == 0) ||
+	    (ibuf == NULL) ||
 	    (w == 0) || (h == 0))
 	{
 		/* these cases require full reload still */
