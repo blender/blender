@@ -181,7 +181,6 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
 
 			/* Iterate over all translations of the found language dict, and populate our ghash cache. */
 			while (PyDict_Next(lang_dict, &ppos, &pykey, &trans)) {
-				GHashKey *key;
 				const char *msgctxt = NULL, *msgid = NULL;
 				bool invalid_key = false;
 
@@ -229,14 +228,11 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
 					continue;
 				}
 
-				key = _ghashutil_keyalloc(msgctxt, msgid);
-
 				/* Do not overwrite existing keys! */
-				if (BLI_ghash_lookup(_translations_cache, (void *)key)) {
-					continue;
+				if (BPY_app_translations_py_pgettext(msgctxt, msgid) == msgid) {
+					GHashKey *key = _ghashutil_keyalloc(msgctxt, msgid);
+					BLI_ghash_insert(_translations_cache, key, BLI_strdup(_PyUnicode_AsString(trans)));
 				}
-
-				BLI_ghash_insert(_translations_cache, key, BLI_strdup(_PyUnicode_AsString(trans)));
 			}
 		}
 	}
@@ -251,7 +247,7 @@ const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *ms
 {
 #define STATIC_LOCALE_SIZE 32  /* Should be more than enough! */
 
-	GHashKey *key;
+	GHashKey key;
 	static char locale[STATIC_LOCALE_SIZE] = "";
 	const char *tmp;
 
@@ -275,11 +271,10 @@ const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *ms
 	}
 
 	/* And now, simply create the key (context, messageid) and find it in the cached dict! */
-	key = _ghashutil_keyalloc(msgctxt, msgid);
+	key.msgctxt = BLT_is_default_context(msgctxt) ? BLT_I18NCONTEXT_DEFAULT_BPYRNA : msgctxt;
+	key.msgid = msgid;
 
-	tmp = BLI_ghash_lookup(_translations_cache, key);
-
-	_ghashutil_keyfree((void *)key);
+	tmp = BLI_ghash_lookup(_translations_cache, &key);
 
 	return tmp ? tmp : msgid;
 
