@@ -471,13 +471,25 @@ def main():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 
     parser = argparse.ArgumentParser(description="Use Blender to generate previews for currently open Blender file's items.")
-    parser.add_argument('--clear', default=False, action="store_true", help="Clear previews instead of generating them.")
-    parser.add_argument('--no_scenes', default=True, action="store_false", help="Do not generate/clear previews for scene IDs.")
-    parser.add_argument('--no_groups', default=True, action="store_false", help="Do not generate/clear previews for group IDs.")
-    parser.add_argument('--no_objects', default=True, action="store_false", help="Do not generate/clear previews for object IDs.")
+    parser.add_argument('--clear', default=False, action="store_true",
+                        help="Clear previews instead of generating them.")
+    parser.add_argument('--no_backups', default=False, action="store_true",
+                        help="Do not generate a backup .blend1 file when saving processed ones.")
+    parser.add_argument('--no_scenes', default=True, action="store_false",
+                        help="Do not generate/clear previews for scene IDs.")
+    parser.add_argument('--no_groups', default=True, action="store_false",
+                        help="Do not generate/clear previews for group IDs.")
+    parser.add_argument('--no_objects', default=True, action="store_false",
+                        help="Do not generate/clear previews for object IDs.")
     parser.add_argument('--no_data_intern', default=True, action="store_false",
                         help="Do not generate/clear previews for mat/tex/image/etc. IDs (those handled by core Blender code).")
     args = parser.parse_args(argv)
+
+    orig_save_version = bpy.context.user_preferences.filepaths.save_version
+    if args.no_backups:
+        bpy.context.user_preferences.filepaths.save_version = 0
+    elif orig_save_version < 1:
+        bpy.context.user_preferences.filepaths.save_version = 1
 
     if args.clear:
         print("clear!")
@@ -487,6 +499,9 @@ def main():
         print("render!")
         do_previews(do_objects=args.no_objects, do_groups=args.no_groups, do_scenes=args.no_scenes,
                     do_data_intern=args.no_data_intern)
+
+    # Not really necessary, but better be consistent.
+    bpy.context.user_preferences.filepaths.save_version = orig_save_version
 
 
 if __name__ == "__main__":
