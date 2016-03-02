@@ -432,7 +432,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	printf("\t# blender --background test.blend --render-frame 1 --render-output '/tmp'\n");
 	printf("\t...will not render to '/tmp' because '--render-frame 1' renders before the output path is set\n");
 	printf("\t# blender --background --render-output /tmp test.blend --render-frame 1\n");
-	printf("\t...will not render to '/tmp' because loading the blend file overwrites the render output that was set\n");
+	printf("\t...will not render to '/tmp' because loading the blend-file overwrites the render output that was set\n");
 	printf("\t# blender --background test.blend --render-output /tmp --render-frame 1\n");
 	printf("\t...works as expected.\n\n");
 
@@ -849,7 +849,7 @@ static int arg_handle_audio_set(int argc, const char **argv, void *UNUSED(data))
 static const char arg_handle_output_set_doc[] =
 "<path>\n"
 "\tSet the render path and file name.\n"
-"\tUse '//' at the start of the path to render relative to the blend file.\n"
+"\tUse '//' at the start of the path to render relative to the blend-file.\n"
 "\n"
 "\tThe '#' characters are replaced by the frame number, and used to define zero padding.\n"
 "\t* 'ani_##_test.png' becomes 'ani_01_test.png'\n"
@@ -1540,7 +1540,7 @@ void main_args_setup(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	//BLI_argsAdd(ba, pass, short_arg, long_arg, doc, cb, C);
 
 	/* end argument processing after -- */
-	BLI_argsAdd(ba, -1, "--", NULL, arg_handle_arguments_end_doc, arg_handle_arguments_end, NULL);
+	BLI_argsAdd(ba, -1, "--", NULL, CB(arg_handle_arguments_end), NULL);
 
 	/* first pass: background mode, disable python and commands that exit after usage */
 	BLI_argsAdd(ba, 1, "-h", "--help", CB(arg_handle_print_help), ba);

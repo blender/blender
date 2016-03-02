@@ -1500,7 +1500,7 @@ static void cdDM_buffer_copy_uv_texpaint(
 		}
 	}
 
-	MEM_freeN((void*)uv_base);
+	MEM_freeN((void *)uv_base);
 }
 
 /* treat varray_ as an array of MCol, four MCol's per face */

@@ -153,7 +153,7 @@ static void mix_normals(
  * (and invert matching poly normals). */
 static bool polygons_check_flip(
         MLoop *mloop, float (*nos)[3], CustomData *ldata,
-		MPoly *mpoly, float (*polynors)[3], const int num_polys)
+        MPoly *mpoly, float (*polynors)[3], const int num_polys)
 {
 	MPoly *mp;
 	int i;
