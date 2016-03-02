@@ -22,9 +22,10 @@
 
 if "bpy" in locals():
     from importlib import reload
-    for val in _modules_loaded.values():
+    for val in _modules_loaded:
         reload(val)
     del reload
+
 _modules = [
     "properties_animviz",
     "properties_constraint",
@@ -78,15 +79,16 @@ _modules = [
     "space_userpref",
     "space_view3d",
     "space_view3d_toolbar",
-]
+    ]
 
 import bpy
 
 if bpy.app.build_options.freestyle:
     _modules.append("properties_freestyle")
+
 __import__(name=__name__, fromlist=_modules)
 _namespace = globals()
-_modules_loaded = {name: _namespace[name] for name in _modules if name != "bpy"}
+_modules_loaded = [_namespace[name] for name in _modules]
 del _namespace
 
 
