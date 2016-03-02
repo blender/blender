@@ -433,7 +433,7 @@ void WM_event_add_fileselect(struct bContext *C, struct wmOperator *op) RET_NONE
 void WM_cursor_wait(bool val) RET_NONE
 void ED_node_texture_default(const struct bContext *C, struct Tex *tex) RET_NONE
 void ED_node_tag_update_id(struct ID *id) RET_NONE
-void ED_node_tag_update_nodetree(struct Main *bmain, struct bNodeTree *ntree) RET_NONE
+void ED_node_tag_update_nodetree(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node) RET_NONE
 void ED_node_tree_update(const struct bContext *C) RET_NONE
 void ED_node_set_tree_type(struct SpaceNode *snode, struct bNodeTreeType *typeinfo){}
 void ED_init_custom_node_type(struct bNodeType *ntype){}
