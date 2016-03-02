@@ -479,7 +479,8 @@ static const char *unit_find_str(const char *str, const char *substr)
 					}
 				}
 				/* If str_found is not a valid unit, we have to check further in the string... */
-				str = str_found + 1;
+				for (str_found++; isalpha_or_utf8(*str_found); str_found++);
+				str = str_found;
 			}
 			else {
 				break;
