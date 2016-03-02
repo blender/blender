@@ -354,6 +354,7 @@ typedef void (*uiButHandleFunc)(struct bContext *C, void *arg1, void *arg2);
 typedef void (*uiButHandleRenameFunc)(struct bContext *C, void *arg, char *origstr);
 typedef void (*uiButHandleNFunc)(struct bContext *C, void *argN, void *arg2);
 typedef int (*uiButCompleteFunc)(struct bContext *C, char *str, void *arg);
+typedef struct ARegion *(*uiButSearchCreateFunc)(struct bContext *C, struct ARegion *butregion, uiBut *but);
 typedef void (*uiButSearchFunc)(const struct bContext *C, void *arg, const char *str, uiSearchItems *items);
 /* Must return allocated string. */
 typedef char *(*uiButToolTipFunc)(struct bContext *C, void *argN, const char *tip);
@@ -680,7 +681,9 @@ uiBut *UI_block_links_find_inlink(uiBlock *block, void *poin);
 /* use inside searchfunc to add items */
 bool    UI_search_item_add(uiSearchItems *items, const char *name, void *poin, int iconid);
 /* bfunc gets search item *poin as arg2, or if NULL the old string */
-void    UI_but_func_search_set(uiBut *but,        uiButSearchFunc sfunc, void *arg1, uiButHandleFunc bfunc, void *active);
+void    UI_but_func_search_set(
+        uiBut *but, uiButSearchCreateFunc cfunc, uiButSearchFunc sfunc,
+        void *arg1, uiButHandleFunc bfunc, void *active);
 /* height in pixels, it's using hardcoded values still */
 int     UI_searchbox_size_y(void);
 int     UI_searchbox_size_x(void);

@@ -185,7 +185,7 @@ static uiBlock *tool_search_menu(bContext *C, ARegion *ar, void *arg_listbase)
 	uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 15, UI_searchbox_size_x(), UI_searchbox_size_y(), NULL, 0, 0, 0, 0, NULL);
 	
 	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, 150, 19, 0, 0, "");
-	UI_but_func_search_set(but, operator_search_cb, arg_listbase, operator_call_cb, NULL);
+	UI_but_func_search_set(but, NULL, operator_search_cb, arg_listbase, operator_call_cb, NULL);
 	
 	UI_block_bounds_set_normal(block, 6);
 	UI_block_direction_set(block, UI_DIR_DOWN);

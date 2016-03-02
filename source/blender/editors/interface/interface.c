@@ -4320,9 +4320,19 @@ uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxle
  * \param arg: user value,
  * \param  active: when set, button opens with this item visible and selected.
  */
-void UI_but_func_search_set(uiBut *but, uiButSearchFunc sfunc, void *arg, uiButHandleFunc bfunc, void *active)
+void UI_but_func_search_set(
+        uiBut *but,
+        uiButSearchCreateFunc search_create_func,
+        uiButSearchFunc search_func, void *arg,
+        uiButHandleFunc bfunc, void *active)
 {
-	but->search_func = sfunc;
+	/* needed since callers don't have access to internal functions (as an alternative we could expose it) */
+	if (search_create_func == NULL) {
+		search_create_func = ui_searchbox_create_generic;
+	}
+
+	but->search_create_func = search_create_func;
+	but->search_func = search_func;
 	but->search_arg = arg;
 	
 	UI_but_func_set(but, bfunc, arg, active);
@@ -4400,7 +4410,9 @@ uiBut *uiDefSearchButO_ptr(
 	uiBut *but;
 
 	but = uiDefSearchBut(block, arg, retval, icon, maxlen, x, y, width, height, a1, a2, tip);
-	UI_but_func_search_set(but, operator_enum_search_cb, but, operator_enum_call_cb, NULL);
+	UI_but_func_search_set(
+	        but, ui_searchbox_create_generic, operator_enum_search_cb,
+	        but, operator_enum_call_cb, NULL);
 
 	but->optype = ot;
 	but->opcontext = WM_OP_EXEC_DEFAULT;

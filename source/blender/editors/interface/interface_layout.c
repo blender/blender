@@ -1672,7 +1672,7 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 			but->str[0] = 0;
 		}
 
-		UI_but_func_search_set(but, rna_search_cb, but, NULL, NULL);
+		UI_but_func_search_set(but, ui_searchbox_create_generic, rna_search_cb, but, NULL, NULL);
 	}
 }
 

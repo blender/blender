@@ -1900,8 +1900,14 @@ static void WM_OT_splash(wmOperatorType *ot)
 
 
 /* ***************** Search menu ************************* */
-static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_op))
+
+struct SearchPopupInit_Data {
+	int size[2];
+};
+
+static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *userdata)
 {
+	const struct SearchPopupInit_Data *init_data = userdata;
 	static char search[256] = "";
 	wmEvent event;
 	wmWindow *win = CTX_wm_window(C);
@@ -1911,11 +1917,12 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_
 	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
 	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
 	
-	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, UI_searchbox_size_x(), UI_UNIT_Y, 0, 0, "");
+	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, init_data->size[0], UI_UNIT_Y, 0, 0, "");
 	UI_but_func_operator_search(but);
 	
 	/* fake button, it holds space for search items */
-	uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 10 - UI_searchbox_size_y(), UI_searchbox_size_x(), UI_searchbox_size_y(), NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 10 - init_data->size[1],
+	         init_data->size[0], init_data->size[1], NULL, 0, 0, 0, 0, NULL);
 	
 	UI_block_bounds_set_popup(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
 	
@@ -1934,9 +1941,16 @@ static int wm_search_menu_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int wm_search_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int wm_search_menu_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
-	UI_popup_block_invoke(C, wm_block_search_menu, op);
+	struct SearchPopupInit_Data data = {
+		.size = {
+		    UI_searchbox_size_x(),
+		    UI_searchbox_size_y(),
+		},
+	};
+
+	UI_popup_block_invoke(C, wm_block_search_menu, &data);
 	
 	return OPERATOR_INTERFACE;
 }

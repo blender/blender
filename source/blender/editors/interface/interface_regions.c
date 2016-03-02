@@ -829,7 +829,7 @@ int UI_searchbox_size_y(void)
 
 int UI_searchbox_size_x(void)
 {
-	return 12 * UI_UNIT_X;
+	return 10 * UI_UNIT_X;
 }
 
 int UI_search_items_find_index(uiSearchItems *items, const char *name)
@@ -1164,7 +1164,7 @@ static void ui_searchbox_region_free_cb(ARegion *ar)
 	ar->regiondata = NULL;
 }
 
-ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
+ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but)
 {
 	wmWindow *win = CTX_wm_window(C);
 	uiStyle *style = UI_style_get();

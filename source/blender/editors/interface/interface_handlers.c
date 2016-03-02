@@ -3066,7 +3066,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 	/* optional searchbox */
 	if (but->type ==  UI_BTYPE_SEARCH_MENU) {
-		data->searchbox = ui_searchbox_create(C, data->region, but);
+		data->searchbox = but->search_create_func(C, data->region, but);
 		ui_searchbox_update(C, data->searchbox, but, true); /* true = reset */
 	}
 
