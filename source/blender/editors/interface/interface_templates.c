@@ -3308,7 +3308,7 @@ static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char 
 void UI_but_func_operator_search(uiBut *but)
 {
 	UI_but_func_search_set(
-	        but, ui_searchbox_create_generic, operator_search_cb,
+	        but, ui_searchbox_create_operator, operator_search_cb,
 	        NULL, operator_call_cb, NULL);
 }
 

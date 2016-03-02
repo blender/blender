@@ -1328,6 +1328,110 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiBut *but
 	return ar;
 }
 
+/**
+ * Similar to Python's `str.title` except...
+ *
+ * - we know words are upper case and ascii only.
+ * - '_' are replaces by spaces.
+ */
+static void str_tolower_titlecaps_ascii(char *str, const size_t len)
+{
+	size_t i;
+	bool prev_delim = true;
+
+	for (i = 0; (i < len) && str[i]; i++) {
+		if (str[i] >= 'A' && str[i] <= 'Z') {
+			if (prev_delim == false) {
+				str[i] += 'a' - 'A';
+			}
+		}
+		else if (str[i] == '_') {
+			str[i] = ' ';
+		}
+
+		prev_delim = ELEM(str[i], ' ') || (str[i] >= '0' && str[i] <= '9');
+	}
+
+}
+
+static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARegion *ar)
+{
+	uiSearchboxData *data = ar->regiondata;
+
+	/* pixel space */
+	wmOrtho2_region_pixelspace(ar);
+
+	if (data->noback == false)
+		ui_draw_search_back(NULL, NULL, &data->bbox);  /* style not used yet */
+
+	/* draw text */
+	if (data->items.totitem) {
+		rcti rect;
+		int a;
+
+		/* draw items */
+		for (a = 0; a < data->items.totitem; a++) {
+			rcti rect_pre, rect_post;
+			ui_searchbox_butrect(&rect, data, a);
+
+			rect_pre  = rect;
+			rect_post = rect;
+
+			rect_pre.xmax = rect_post.xmin = rect.xmin + ((rect.xmax - rect.xmin) / 4);
+
+			/* widget itself */
+			{
+				wmOperatorType *ot = data->items.pointers[a];
+
+				int state = (a == data->active) ? UI_ACTIVE : 0;
+				char  text_pre[128];
+				char *text_pre_p = strstr(ot->idname, "_OT_");
+				if (text_pre_p == NULL) {
+					text_pre[0] = '\0';
+				}
+				else {
+					int text_pre_len;
+					text_pre_p += 1;
+					text_pre_len = BLI_strncpy_rlen(
+					        text_pre, ot->idname, min_ii(sizeof(text_pre), text_pre_p - ot->idname));
+					text_pre[text_pre_len] = ':';
+					text_pre[text_pre_len + 1] = '\0';
+					str_tolower_titlecaps_ascii(text_pre, sizeof(text_pre));
+				}
+
+				rect_pre.xmax += 4;  /* sneaky, avoid showing ugly margin */
+				ui_draw_menu_item(&data->fstyle, &rect_pre, text_pre, data->items.icons[a], state, false);
+				ui_draw_menu_item(&data->fstyle, &rect_post, data->items.names[a], 0, state, data->use_sep);
+			}
+
+		}
+		/* indicate more */
+		if (data->items.more) {
+			ui_searchbox_butrect(&rect, data, data->items.maxitem - 1);
+			glEnable(GL_BLEND);
+			UI_icon_draw((BLI_rcti_size_x(&rect)) / 2, rect.ymin - 9, ICON_TRIA_DOWN);
+			glDisable(GL_BLEND);
+		}
+		if (data->items.offset) {
+			ui_searchbox_butrect(&rect, data, 0);
+			glEnable(GL_BLEND);
+			UI_icon_draw((BLI_rcti_size_x(&rect)) / 2, rect.ymax - 7, ICON_TRIA_UP);
+			glDisable(GL_BLEND);
+		}
+	}
+}
+
+ARegion *ui_searchbox_create_operator(bContext *C, ARegion *butregion, uiBut *but)
+{
+	ARegion *ar;
+
+	ar = ui_searchbox_create_generic(C, butregion, but);
+
+	ar->type->draw = ui_searchbox_region_draw_cb__operator;
+
+	return ar;
+}
+
 void ui_searchbox_free(bContext *C, ARegion *ar)
 {
 	ui_region_temp_remove(C, CTX_wm_screen(C), ar);

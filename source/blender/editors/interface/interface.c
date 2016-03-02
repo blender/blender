@@ -4411,7 +4411,7 @@ uiBut *uiDefSearchButO_ptr(
 
 	but = uiDefSearchBut(block, arg, retval, icon, maxlen, x, y, width, height, a1, a2, tip);
 	UI_but_func_search_set(
-	        but, ui_searchbox_create_generic, operator_enum_search_cb,
+	        but, ui_searchbox_create_operator, operator_enum_search_cb,
 	        but, operator_enum_call_cb, NULL);
 
 	but->optype = ot;
