@@ -4087,7 +4087,9 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 		const float minwidth = (float)(UI_DPI_ICON_SIZE);
 
 		BLI_strncpy(drawstr, name, sizeof(drawstr));
-		UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');
+		if (drawstr[0]) {
+			UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');
+		}
 
 		glColor4ubv((unsigned char *)wt->wcol.text);
 		UI_fontstyle_draw(fstyle, rect, drawstr);
