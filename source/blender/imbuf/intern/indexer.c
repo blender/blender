@@ -1167,12 +1167,13 @@ IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim, IMB_Timecod
 				char filename[FILE_MAX];
 				get_proxy_filename(anim, proxy_size, filename, false);
 
-				if (BLI_gset_haskey(file_list, filename)) {
-					proxy_sizes_to_build &= ~proxy_size;
-					printf("Proxy: %s already registered for generation, skipping\n", filename);
+				void **filename_key_p;
+				if (!BLI_gset_ensure_p_ex(file_list, filename, &filename_key_p)) {
+					*filename_key_p = BLI_strdup(filename);
 				}
 				else {
-					BLI_gset_insert(file_list, BLI_strdup(filename));
+					proxy_sizes_to_build &= ~proxy_size;
+					printf("Proxy: %s already registered for generation, skipping\n", filename);
 				}
 			}
 		}

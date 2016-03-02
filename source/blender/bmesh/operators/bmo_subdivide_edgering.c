@@ -258,11 +258,10 @@ static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
 					if (pair_test.first > pair_test.second)
 						SWAP(const void *, pair_test.first, pair_test.second);
 
-					if (!BLI_gset_haskey(eloop_pair_gs, &pair_test)) {
-						GHashPair *pair = BLI_ghashutil_pairalloc(pair_test.first, pair_test.second);
-						BLI_gset_insert(eloop_pair_gs, pair);
+					void **pair_key_p;
+					if (!BLI_gset_ensure_p_ex(eloop_pair_gs, &pair_test, &pair_key_p)) {
+						*pair_key_p = BLI_ghashutil_pairalloc(pair_test.first, pair_test.second);
 					}
-
 				}
 			}
 		}

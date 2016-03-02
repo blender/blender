@@ -94,7 +94,7 @@ void  *BLI_ghash_lookup(GHash *gh, const void *key) ATTR_WARN_UNUSED_RESULT;
 void  *BLI_ghash_lookup_default(GHash *gh, const void *key, void *val_default) ATTR_WARN_UNUSED_RESULT;
 void **BLI_ghash_lookup_p(GHash *gh, const void *key) ATTR_WARN_UNUSED_RESULT;
 bool   BLI_ghash_ensure_p(GHash *gh, void *key, void ***r_val) ATTR_WARN_UNUSED_RESULT;
-bool   BLI_ghash_ensure_p_ex(GHash *gh, const void *key, void ***r_val, GHashKeyCopyFP keycopyfp) ATTR_WARN_UNUSED_RESULT;
+bool   BLI_ghash_ensure_p_ex(GHash *gh, const void *key, void ***r_key, void ***r_val) ATTR_WARN_UNUSED_RESULT;
 bool   BLI_ghash_remove(GHash *gh, const void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
 void   BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
 void   BLI_ghash_clear_ex(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp,
@@ -244,6 +244,7 @@ void   BLI_gset_flag_clear(GSet *gs, unsigned int flag);
 void   BLI_gset_free(GSet *gs, GSetKeyFreeFP keyfreefp);
 void   BLI_gset_insert(GSet *gh, void *key);
 bool   BLI_gset_add(GSet *gs, void *key);
+bool   BLI_gset_ensure_p_ex(GSet *gs, const void *key, void ***r_key);
 bool   BLI_gset_reinsert(GSet *gh, void *key, GSetKeyFreeFP keyfreefp);
 bool   BLI_gset_haskey(GSet *gs, const void *key) ATTR_WARN_UNUSED_RESULT;
 bool   BLI_gset_pop(GSet *gs, GSetIterState *state, void **r_key) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
