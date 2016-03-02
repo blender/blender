@@ -566,7 +566,7 @@ bool RE_bake_pixels_populate_from_objects(
 		}
 		else {
 			calc_point_from_barycentric_extrusion(tris_low, mat_low, imat_low, primitive_id, u, v, cage_extrusion, co, dir, false);
-			tri_low = &tris_cage[primitive_id];
+			tri_low = &tris_low[primitive_id];
 		}
 
 		/* cast ray */
