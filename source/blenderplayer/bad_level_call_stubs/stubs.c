@@ -277,7 +277,9 @@ struct Scene *RE_GetScene(struct Render *re) RET_NULL
 void RE_Database_Free(struct Render *re) RET_NONE
 void RE_FreeRender(struct Render *re) RET_NONE
 void RE_DataBase_GetView(struct Render *re, float mat[4][4]) RET_NONE
-int	externtex(struct MTex *mtex, const float vec[3], float *tin, float *tr, float *tg, float *tb, float *ta, const int thread, struct ImagePool *pool, const bool skip_load_image) RET_ZERO
+int externtex(
+        struct MTex *mtex, const float vec[3], float *tin, float *tr, float *tg, float *tb, float *ta,
+        const int thread, struct ImagePool *pool, const bool skip_load_image, const bool texnode_preview) RET_ZERO
 float texture_value_blend(float tex, float out, float fact, float facg, int blendtype) RET_ZERO
 void texture_rgb_blend(float in[3], const float tex[3], const float out[3], float fact, float facg, int blendtype) RET_NONE
 double elbeemEstimateMemreq(int res, float sx, float sy, float sz, int refine, char *retstr) RET_ZERO
