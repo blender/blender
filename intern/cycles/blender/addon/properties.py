@@ -238,7 +238,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 name="Volume Samples",
                 description="Number of volume scattering samples to render for each AA sample",
                 min=1, max=10000,
-                default=0,
+                default=1,
                 )
 
         cls.sampling_pattern = EnumProperty(
