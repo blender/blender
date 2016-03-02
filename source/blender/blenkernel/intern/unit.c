@@ -460,29 +460,33 @@ BLI_INLINE bool isalpha_or_utf8(const int ch)
 
 static const char *unit_find_str(const char *str, const char *substr)
 {
-	const char *str_found;
-
 	if (substr && substr[0] != '\0') {
-		str_found = strstr(str, substr);
-		if (str_found) {
-			/* previous char cannot be a letter */
-			if (str_found == str ||
-			    /* weak unicode support!, so "µm" won't match up be replaced by "m"
-			     * since non ascii utf8 values will NEVER return true */
-			    isalpha_or_utf8(*BLI_str_prev_char_utf8(str_found)) == 0)
-			{
-				/* next char cannot be alphanum */
-				int len_name = strlen(substr);
+		while (true) {
+			const char *str_found = strstr(str, substr);
 
-				if (!isalpha_or_utf8(*(str_found + len_name))) {
-					return str_found;
+			if (str_found) {
+				/* Previous char cannot be a letter. */
+				if (str_found == str ||
+					/* weak unicode support!, so "µm" won't match up be replaced by "m"
+					 * since non ascii utf8 values will NEVER return true */
+					isalpha_or_utf8(*BLI_str_prev_char_utf8(str_found)) == 0)
+				{
+					/* next char cannot be alphanum */
+					int len_name = strlen(substr);
+
+					if (!isalpha_or_utf8(*(str_found + len_name))) {
+						return str_found;
+					}
 				}
+				/* If str_found is not a valid unit, we have to check further in the string... */
+				str = str_found + 1;
+			}
+			else {
+				break;
 			}
 		}
-
 	}
 	return NULL;
-
 }
 
 /* Note that numbers are added within brackets
