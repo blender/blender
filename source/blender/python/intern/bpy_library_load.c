@@ -15,12 +15,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Campbell Barton
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/intern/bpy_library.c
+/** \file blender/python/intern/bpy_library_load.c
  *  \ingroup pythonintern
  *
  * This file exposed blend file library appending/linking to python, typically
@@ -464,12 +462,13 @@ static PyObject *bpy_lib_dir(BPy_Library *self)
 }
 
 
-int BPY_library_module(PyObject *mod_par)
+int BPY_library_load_module(PyObject *mod_par)
 {
-	static PyMethodDef load_meth = {"load", (PyCFunction)bpy_lib_load,
-	                                METH_STATIC | METH_VARARGS | METH_KEYWORDS,
-	                                bpy_lib_load_doc};
-
+	static PyMethodDef load_meth = {
+		"load", (PyCFunction)bpy_lib_load,
+		METH_STATIC | METH_VARARGS | METH_KEYWORDS,
+		bpy_lib_load_doc,
+	};
 	PyModule_AddObject(mod_par, "_library_load", PyCFunction_New(&load_meth, NULL));
 
 	/* some compilers don't like accessing this directly, delay assignment */
