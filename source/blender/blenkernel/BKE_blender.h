@@ -103,7 +103,15 @@ extern const char   *BKE_undo_get_name(int nr, bool *r_active);
 extern bool          BKE_undo_save_file(const char *filename);
 extern struct Main  *BKE_undo_get_main(struct Scene **r_scene);
 
-/* copybuffer */
+/* partial blend file writing */
+void BKE_blendfile_write_partial_tag_ID(struct ID *id, bool set);
+void BKE_blendfile_write_partial_begin(struct Main *bmain_src);
+bool BKE_blendfile_write_partial(
+        struct Main *bmain_src, const char *filepath, const int write_flags, struct ReportList *reports);
+void BKE_blendfile_write_partial_end(struct Main *bmain_src);
+
+
+/* copybuffer (wrapper for BKE_blendfile_write_partial) */
 void BKE_copybuffer_begin(struct Main *bmain_src);
 void BKE_copybuffer_tag_ID(struct ID *id);
 bool BKE_copybuffer_save(struct Main *bmain_src, const char *filename, struct ReportList *reports);
