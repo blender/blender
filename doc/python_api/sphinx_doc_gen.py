@@ -263,8 +263,9 @@ else:
         "gpu",
         "gpu.offscreen",
         "mathutils",
-        "mathutils.geometry",
         "mathutils.bvhtree",
+        "mathutils.geometry",
+        "mathutils.interpolate",
         "mathutils.kdtree",
         "mathutils.noise",
         "freestyle",
@@ -1663,7 +1664,11 @@ def write_rst_contents(basepath):
 
     standalone_modules = (
         # mathutils
-        "mathutils", "mathutils.geometry", "mathutils.bvhtree", "mathutils.kdtree", "mathutils.noise",
+        "mathutils",
+        "mathutils.geometry",
+        "mathutils.bvhtree", "mathutils.kdtree",
+        "mathutils.interpolate",
+        "mathutils.noise",
         # misc
         "freestyle", "bgl", "blf",
         "gpu", "gpu.offscreen",
@@ -1820,6 +1825,7 @@ def write_rst_importable_modules(basepath):
         "mathutils.geometry"   : "Geometry Utilities",
         "mathutils.bvhtree"    : "BVHTree Utilities",
         "mathutils.kdtree"     : "KDTree Utilities",
+        "mathutils.interpolate": "Interpolation Utilities",
         "mathutils.noise"      : "Noise Utilities",
         "freestyle"            : "Freestyle Module",
         "freestyle.types"      : "Freestyle Types",
