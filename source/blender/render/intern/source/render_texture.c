@@ -1377,9 +1377,28 @@ static int multitex_mtex(ShadeInput *shi, MTex *mtex, float texvec[3], float dxt
  *
  * Use it for stuff which is out of render pipeline.
  */
-int multitex_ext(Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, TexResult *texres, struct ImagePool *pool, bool scene_color_manage, const bool skip_load_image)
+int multitex_ext(Tex *tex,
+                 float texvec[3],
+                 float dxt[3], float dyt[3],
+                 int osatex,
+                 TexResult *texres,
+                 const short thread,
+                 struct ImagePool *pool,
+                 bool scene_color_manage,
+                 const bool skip_load_image)
 {
-	return multitex_nodes_intern(tex, texvec, dxt, dyt, osatex, texres, 0, 0, NULL, NULL, pool, scene_color_manage, skip_load_image, false);
+	return multitex_nodes_intern(tex,
+	                             texvec,
+	                             dxt, dyt,
+	                             osatex,
+	                             texres,
+	                             thread,
+	                             0,
+	                             NULL, NULL,
+	                             pool,
+	                             scene_color_manage,
+	                             skip_load_image,
+	                             false);
 }
 
 /* extern-tex doesn't support nodes (ntreeBeginExec() can't be called when rendering is going on)\

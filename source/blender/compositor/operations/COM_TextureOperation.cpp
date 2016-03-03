@@ -21,6 +21,7 @@
  */
 
 #include "COM_TextureOperation.h"
+#include "COM_WorkScheduler.h"
 
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
@@ -30,9 +31,7 @@ extern "C" {
 #include "BKE_node.h"
 }
 
-static ThreadMutex mutex_lock = BLI_MUTEX_INITIALIZER;
-
-TextureBaseOperation::TextureBaseOperation() : SingleThreadedOperation()
+TextureBaseOperation::TextureBaseOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VECTOR); //offset
 	this->addInputSocket(COM_DT_VECTOR); //size
@@ -63,7 +62,7 @@ void TextureBaseOperation::initExecution()
 	{
 		ntreeTexBeginExecTree(this->m_texture->nodetree);
 	}
-	SingleThreadedOperation::initExecution();
+	NodeOperation::initExecution();
 }
 void TextureBaseOperation::deinitExecution()
 {
@@ -78,7 +77,7 @@ void TextureBaseOperation::deinitExecution()
 	{
 		ntreeTexEndExecTree(this->m_texture->nodetree->execdata);
 	}
-	SingleThreadedOperation::deinitExecution();
+	NodeOperation::deinitExecution();
 }
 
 void TextureBaseOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
@@ -121,12 +120,16 @@ void TextureBaseOperation::executePixelSampled(float output[4], float x, float y
 	vec[1] = textureSize[1] * (v + textureOffset[1]);
 	vec[2] = textureSize[2] * textureOffset[2];
 
-	/* TODO(sergey): Need to pass thread ID to the multitex code,
-	 * then we can avoid having mutex here.
-	 */
-	BLI_mutex_lock(&mutex_lock);
-	retval = multitex_ext(this->m_texture, vec, NULL, NULL, 0, &texres, m_pool, m_sceneColorManage, false);
-	BLI_mutex_unlock(&mutex_lock);
+	const int thread_id = WorkScheduler::current_thread_id();
+	retval = multitex_ext(this->m_texture,
+	                      vec,
+	                      NULL, NULL,
+	                      0,
+	                      &texres,
+	                      thread_id,
+	                      m_pool,
+	                      m_sceneColorManage,
+	                      false);
 
 	if (texres.talpha)
 		output[3] = texres.ta;
