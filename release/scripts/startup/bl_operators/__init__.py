@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+# support reloading sub-modules
 if "bpy" in locals():
     from importlib import reload
     for val in _modules_loaded:
