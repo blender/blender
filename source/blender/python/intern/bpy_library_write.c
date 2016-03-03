@@ -54,6 +54,10 @@ PyDoc_STRVAR(bpy_lib_write_doc,
 "\n"
 "   Write data-blocks into a blend file.\n"
 "\n"
+"   .. note::\n"
+"\n"
+"      Indirectly referenced data-blocks will be expanded and written too.\n"
+"\n"
 "   :arg filepath: The path to write the blend-file.\n"
 "   :type filepath: string\n"
 "   :arg datablocks: data-blocks (:class:`bpy.types.ID` instances).\n"
@@ -165,8 +169,8 @@ static PyObject *bpy_lib_write(PyObject *UNUSED(self), PyObject *args, PyObject 
 		Py_INCREF(ret);
 	}
 	else {
-		if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == 0) {
-			PyErr_SetString(PyExc_RuntimeError, "Unknown error writing library data");
+		if (BPy_reports_to_error(&reports, PyExc_IOError, true) == 0) {
+			PyErr_SetString(PyExc_IOError, "Unknown error writing library data");
 		}
 		ret = NULL;
 	}
