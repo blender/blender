@@ -2098,6 +2098,7 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	/* BLI_assert(RNA_property_int_clamp(ptr, prop, &value) == 0); */
 
 	if ((idprop = rna_idproperty_check(&prop, ptr))) {
+		RNA_property_int_clamp(ptr, prop, &value);
 		IDP_Int(idprop) = value;
 		rna_idproperty_touch(idprop);
 	}
@@ -2356,6 +2357,7 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
 	/* BLI_assert(RNA_property_float_clamp(ptr, prop, &value) == 0); */
 
 	if ((idprop = rna_idproperty_check(&prop, ptr))) {
+		RNA_property_float_clamp(ptr, prop, &value);
 		if (idprop->type == IDP_FLOAT)
 			IDP_Float(idprop) = value;
 		else
