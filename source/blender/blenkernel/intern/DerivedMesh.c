@@ -808,13 +808,12 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask, bool
 	}
 
 	/* Clear selection history */
-	tmp.mselect = NULL;
+	MEM_SAFE_FREE(tmp.mselect);
 	tmp.totselect = 0;
-	if (me->mselect) {
-		MEM_freeN(me->mselect);
-	}
+	BLI_assert(ELEM(tmp.bb, NULL, me->bb));
 	if (me->bb) {
 		MEM_freeN(me->bb);
+		tmp.bb = NULL;
 	}
 
 	/* skip the listbase */
