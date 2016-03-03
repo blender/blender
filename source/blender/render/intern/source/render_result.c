@@ -641,7 +641,8 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 		rl->recty = recty;
 		
 		if (rr->do_exr_tile) {
-			rl->display_buffer = MEM_mapallocN(rectx * recty * sizeof(unsigned int), "Combined display space rgba");
+			rl->display_buffer = MEM_mapallocN((size_t)rectx * recty * sizeof(unsigned int),
+			                                   "Combined display space rgba");
 			rl->exrhandle = IMB_exr_get_handle();
 		}
 
