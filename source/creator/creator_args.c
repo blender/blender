@@ -269,6 +269,16 @@ static void arg_py_context_restore(
 /* -------------------------------------------------------------------- */
 
 /** \name Handle Argument Callbacks
+ *
+ * \note Doc strings here are used in differently:
+ *
+ * - The `--help` message.
+ * - The man page (for Unix systems),
+ *   see: `doc/manpage/blender.1.py`
+ * - Parsed and extracted for the manual,
+ *   which converts our ad-hoc formatting to reStructuredText.
+ *   see: http://www.blender.org/manual/advanced/command_line.html
+ *
  * \{ */
 
 static const char arg_handle_print_version_doc[] =
@@ -417,7 +427,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	BLI_argsPrintOtherDoc(ba);
 
 	printf("\n");
-	printf("Experimental features:\n");
+	printf("Experimental Features:\n");
 	BLI_argsPrintArgDoc(ba, "--enable-new-depsgraph");
 
 	printf("Argument Parsing:\n");
@@ -910,7 +920,8 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
 				}
 			}
 			else {
-				printf("\nError: no blend loaded. order the arguments so '-E  / --engine ' is after a blend is loaded.\n");
+				printf("\nError: no blend loaded. "
+				       "order the arguments so '-E  / --engine ' is after a blend is loaded.\n");
 			}
 		}
 
@@ -947,7 +958,8 @@ static int arg_handle_image_type_set(int argc, const char **argv, void *data)
 			}
 		}
 		else {
-			printf("\nError: no blend loaded. order the arguments so '-F  / --render-format' is after the blend is loaded.\n");
+			printf("\nError: no blend loaded. "
+			       "order the arguments so '-F  / --render-format' is after the blend is loaded.\n");
 		}
 		return 1;
 	}
@@ -1043,7 +1055,8 @@ static int arg_handle_extension_set(int argc, const char **argv, void *data)
 			}
 		}
 		else {
-			printf("\nError: no blend loaded. order the arguments so '-o ' is after '-x '.\n");
+			printf("\nError: no blend loaded. "
+			       "order the arguments so '-o ' is after '-x '.\n");
 		}
 		return 1;
 	}
