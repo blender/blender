@@ -1057,4 +1057,15 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			scene->r.bake.pass_filter = R_BAKE_PASS_FILTER_ALL;
 		}
 	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 277, 1)) {
+		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			ParticleEditSettings *pset = &scene->toolsettings->particle;
+			for (int a = 0; a < PE_TOT_BRUSH; a++) {
+				if (pset->brush[a].strength > 1.0f) {
+					pset->brush[a].strength *= 0.01f;
+				}
+			}
+		}
+	}
 }
