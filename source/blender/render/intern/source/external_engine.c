@@ -643,6 +643,11 @@ int RE_engine_render(Render *re, int do_all)
 		if (re->draw_lock) {
 			re->draw_lock(re->dlh, 0);
 		}
+		/* Too small image is handled earlier, here it could only happen if
+		 * there was no sufficient memory to allocate all passes.
+		 */
+		BKE_report(re->reports, RPT_ERROR, "Failed allocate render result, out of memory");
+		G.is_break = true;
 		return 1;
 	}
 

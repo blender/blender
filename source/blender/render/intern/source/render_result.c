@@ -491,7 +491,6 @@ static RenderPass *render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int 
 	RenderPass *rpass = MEM_callocN(sizeof(RenderPass), typestr);
 	size_t rectsize = ((size_t)rr->rectx) * rr->recty * channels;
 	
-	BLI_addtail(&rl->passes, rpass);
 	rpass->passtype = passtype;
 	rpass->channels = channels;
 	rpass->rectx = rl->rectx;
@@ -512,6 +511,10 @@ static RenderPass *render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int 
 		int x;
 		
 		rpass->rect = MEM_mapallocN(sizeof(float) * rectsize, typestr);
+		if (rpass->rect == NULL) {
+			MEM_freeN(rpass);
+			return NULL;
+		}
 		
 		if (passtype == SCE_PASS_VECTOR) {
 			/* initialize to max speed */
@@ -525,6 +528,9 @@ static RenderPass *render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int 
 				rect[x] = 10e10;
 		}
 	}
+
+	BLI_addtail(&rl->passes, rpass);
+
 	return rpass;
 }
 
@@ -557,6 +563,9 @@ static RenderPass *render_layer_add_debug_pass(RenderResult *rr,
 	const char *name = RE_debug_pass_name_get(debug_type);
 	int channels = RE_debug_pass_num_channels_get(debug_type);
 	RenderPass *rpass = render_layer_add_pass(rr, rl, channels, pass_type, view);
+	if (rpass == NULL) {
+		return NULL;
+	}
 	rpass->debug_type = debug_type;
 	BLI_strncpy(rpass->name,
 	            name,
@@ -644,6 +653,10 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 		if (rr->do_exr_tile) {
 			rl->display_buffer = MEM_mapallocN((size_t)rectx * recty * sizeof(unsigned int),
 			                                   "Combined display space rgba");
+			if (rl->display_buffer == NULL) {
+				render_result_free(rr);
+				return NULL;
+			}
 			rl->exrhandle = IMB_exr_get_handle();
 		}
 
@@ -657,76 +670,90 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 			if (rr->do_exr_tile)
 				IMB_exr_add_view(rl->exrhandle, view);
 
+#define RENDER_LAYER_ADD_PASS_SAFE(rr, rl, channels, passtype, viewname) \
+			do { \
+				if (render_layer_add_pass(rr, rl, channels, passtype, viewname) == NULL) { \
+					render_result_free(rr); \
+					return NULL; \
+				} \
+			} while (false)
+
 			/* a renderlayer should always have a Combined pass*/
 			render_layer_add_pass(rr, rl, 4, SCE_PASS_COMBINED, view);
 
 			if (srl->passflag  & SCE_PASS_Z)
-				render_layer_add_pass(rr, rl, 1, SCE_PASS_Z, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 1, SCE_PASS_Z, view);
 			if (srl->passflag  & SCE_PASS_VECTOR)
-				render_layer_add_pass(rr, rl, 4, SCE_PASS_VECTOR, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 4, SCE_PASS_VECTOR, view);
 			if (srl->passflag  & SCE_PASS_NORMAL)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_NORMAL, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_NORMAL, view);
 			if (srl->passflag  & SCE_PASS_UV)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_UV, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_UV, view);
 			if (srl->passflag  & SCE_PASS_RGBA)
-				render_layer_add_pass(rr, rl, 4, SCE_PASS_RGBA, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 4, SCE_PASS_RGBA, view);
 			if (srl->passflag  & SCE_PASS_EMIT)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_EMIT, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_EMIT, view);
 			if (srl->passflag  & SCE_PASS_DIFFUSE)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_DIFFUSE, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_DIFFUSE, view);
 			if (srl->passflag  & SCE_PASS_SPEC)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_SPEC, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_SPEC, view);
 			if (srl->passflag  & SCE_PASS_AO)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_AO, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_AO, view);
 			if (srl->passflag  & SCE_PASS_ENVIRONMENT)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_ENVIRONMENT, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_ENVIRONMENT, view);
 			if (srl->passflag  & SCE_PASS_INDIRECT)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_INDIRECT, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_INDIRECT, view);
 			if (srl->passflag  & SCE_PASS_SHADOW)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_SHADOW, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_SHADOW, view);
 			if (srl->passflag  & SCE_PASS_REFLECT)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_REFLECT, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_REFLECT, view);
 			if (srl->passflag  & SCE_PASS_REFRACT)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_REFRACT, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_REFRACT, view);
 			if (srl->passflag  & SCE_PASS_INDEXOB)
-				render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXOB, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 1, SCE_PASS_INDEXOB, view);
 			if (srl->passflag  & SCE_PASS_INDEXMA)
-				render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXMA, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 1, SCE_PASS_INDEXMA, view);
 			if (srl->passflag  & SCE_PASS_MIST)
-				render_layer_add_pass(rr, rl, 1, SCE_PASS_MIST, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 1, SCE_PASS_MIST, view);
 			if (rl->passflag & SCE_PASS_RAYHITS)
-				render_layer_add_pass(rr, rl, 4, SCE_PASS_RAYHITS, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 4, SCE_PASS_RAYHITS, view);
 			if (srl->passflag  & SCE_PASS_DIFFUSE_DIRECT)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_DIFFUSE_DIRECT, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_DIFFUSE_DIRECT, view);
 			if (srl->passflag  & SCE_PASS_DIFFUSE_INDIRECT)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_DIFFUSE_INDIRECT, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_DIFFUSE_INDIRECT, view);
 			if (srl->passflag  & SCE_PASS_DIFFUSE_COLOR)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_DIFFUSE_COLOR, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_DIFFUSE_COLOR, view);
 			if (srl->passflag  & SCE_PASS_GLOSSY_DIRECT)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_GLOSSY_DIRECT, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_GLOSSY_DIRECT, view);
 			if (srl->passflag  & SCE_PASS_GLOSSY_INDIRECT)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_GLOSSY_INDIRECT, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_GLOSSY_INDIRECT, view);
 			if (srl->passflag  & SCE_PASS_GLOSSY_COLOR)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_GLOSSY_COLOR, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_GLOSSY_COLOR, view);
 			if (srl->passflag  & SCE_PASS_TRANSM_DIRECT)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_TRANSM_DIRECT, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_TRANSM_DIRECT, view);
 			if (srl->passflag  & SCE_PASS_TRANSM_INDIRECT)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_TRANSM_INDIRECT, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_TRANSM_INDIRECT, view);
 			if (srl->passflag  & SCE_PASS_TRANSM_COLOR)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_TRANSM_COLOR, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_TRANSM_COLOR, view);
 			if (srl->passflag  & SCE_PASS_SUBSURFACE_DIRECT)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_SUBSURFACE_DIRECT, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_SUBSURFACE_DIRECT, view);
 			if (srl->passflag  & SCE_PASS_SUBSURFACE_INDIRECT)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_SUBSURFACE_INDIRECT, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_SUBSURFACE_INDIRECT, view);
 			if (srl->passflag  & SCE_PASS_SUBSURFACE_COLOR)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_SUBSURFACE_COLOR, view);
+				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, SCE_PASS_SUBSURFACE_COLOR, view);
 
 #ifdef WITH_CYCLES_DEBUG
 			if (BKE_scene_use_new_shading_nodes(re->scene)) {
-				render_layer_add_debug_pass(rr, rl, SCE_PASS_DEBUG,
-				        re->r.debug_pass_type, view);
+				if (render_layer_add_debug_pass(rr, rl, SCE_PASS_DEBUG,
+				                                re->r.debug_pass_type, view) == NULL)
+				{
+					render_result_free(rr);
+					return NULL;
+				}
 			}
 #endif
+
+#undef RENDER_LAYER_ADD_PASS_SAFE
 		}
 	}
 	/* sss, previewrender and envmap don't do layers, so we make a default one */

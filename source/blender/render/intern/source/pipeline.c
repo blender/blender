@@ -1519,6 +1519,11 @@ static void do_render_3d(Render *re)
 
 	/* init main render result */
 	main_render_result_new(re);
+	if (re->result == NULL) {
+		BKE_report(re->reports, RPT_ERROR, "Failed allocate render result, out of memory");
+		G.is_break = true;
+		return;
+	}
 
 #ifdef WITH_FREESTYLE
 	if (re->r.mode & R_EDGE_FRS) {
@@ -2592,8 +2597,10 @@ static void do_render_composite_fields_blur_3d(Render *re)
 #endif
 
 	/* weak... the display callback wants an active renderlayer pointer... */
-	re->result->renlay = render_get_active_layer(re, re->result);
-	re->display_update(re->duh, re->result, NULL);
+	if (re->result != NULL) {
+		re->result->renlay = render_get_active_layer(re, re->result);
+		re->display_update(re->duh, re->result, NULL);
+	}
 }
 
 static void renderresult_stampinfo(Render *re)
@@ -2790,15 +2797,17 @@ static void do_render_all_options(Render *re)
 	re->stats_draw(re->sdh, &re->i);
 	
 	/* save render result stamp if needed */
-	camera = RE_GetCamera(re);
-	/* sequence rendering should have taken care of that already */
-	if (!(render_seq && (re->r.stamp & R_STAMP_STRIPMETA)))
-		BKE_render_result_stamp_info(re->scene, camera, re->result, false);
+	if (re->result != NULL) {
+		camera = RE_GetCamera(re);
+		/* sequence rendering should have taken care of that already */
+		if (!(render_seq && (re->r.stamp & R_STAMP_STRIPMETA)))
+			BKE_render_result_stamp_info(re->scene, camera, re->result, false);
 
-	/* stamp image info here */
-	if ((re->r.stamp & R_STAMP_ALL) && (re->r.stamp & R_STAMP_DRAW)) {
-		renderresult_stampinfo(re);
-		re->display_update(re->duh, re->result, NULL);
+		/* stamp image info here */
+		if ((re->r.stamp & R_STAMP_ALL) && (re->r.stamp & R_STAMP_DRAW)) {
+			renderresult_stampinfo(re);
+			re->display_update(re->duh, re->result, NULL);
+		}
 	}
 }
 
