@@ -1424,7 +1424,7 @@ char BKE_imtype_valid_depths(const char imtype)
 
 
 /* string is from command line --render-format arg, keep in sync with
- * creator.c help info */
+ * creator_args.c help info */
 char BKE_imtype_from_arg(const char *imtype_arg)
 {
 	if      (STREQ(imtype_arg, "TGA")) return R_IMF_IMTYPE_TARGA;

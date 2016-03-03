@@ -889,7 +889,7 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 	/* no full animation update, this to enable render code to work (render code calls own animation updates) */
 }
 
-/* called from creator.c */
+/* called from creator_args.c */
 Scene *BKE_scene_set_name(Main *bmain, const char *name)
 {
 	Scene *sce = (Scene *)BKE_libblock_find_name_ex(bmain, ID_SCE, name);
