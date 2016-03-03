@@ -650,12 +650,12 @@ void BKE_scene_init(Scene *sce)
 	pset->fade_frames = 2;
 	pset->selectmode = SCE_SELECT_PATH;
 	for (a = 0; a < PE_TOT_BRUSH; a++) {
-		pset->brush[a].strength = 0.5;
+		pset->brush[a].strength = 0.5f;
 		pset->brush[a].size = 50;
 		pset->brush[a].step = 10;
 		pset->brush[a].count = 10;
 	}
-	pset->brush[PE_BRUSH_CUT].strength = 100;
+	pset->brush[PE_BRUSH_CUT].strength = 1.0f;
 
 	sce->r.ffcodecdata.audio_mixrate = 48000;
 	sce->r.ffcodecdata.audio_volume = 1.0f;
