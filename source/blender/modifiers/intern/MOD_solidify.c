@@ -459,6 +459,8 @@ static DerivedMesh *applyModifier(
 			unsigned int e;
 			int j;
 
+			/* reverses the loop direction (MLoop.v as well as custom-data)
+			 * MLoop.e also needs to be corrected too, done in a separate loop below. */
 			ml2 = mloop + mp->loopstart + dm->numLoopData;
 			for (j = 0; j < mp->totloop; j++) {
 				CustomData_copy_data(&dm->loopData, &result->loopData, mp->loopstart + j,
