@@ -711,7 +711,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
             layout.prop(strip.colorspace_settings, "name")
             layout.prop(strip, "alpha_mode")
 
-            layout.operator("sequencer.change_path")
+            layout.operator("sequencer.change_path").filter_image = True
 
         elif seq_type == 'MOVIE':
             split = layout.split(percentage=0.2)
