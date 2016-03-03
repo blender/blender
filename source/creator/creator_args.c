@@ -936,10 +936,10 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
 static const char arg_handle_image_type_set_doc[] =
 "<format>\n"
 "\tSet the render format, Valid options are...\n"
-"\t\tTGA IRIS JPEG MOVIE IRIZ RAWTGA\n"
-"\t\tAVIRAW AVIJPEG PNG BMP FRAMESERVER\n"
+"\t\tTGA RAWTGA JPEG IRIS IRIZ\n"
+"\t\tAVIRAW AVIJPEG PNG BMP\n"
 "\t(formats that can be compiled into blender, not available on all systems)\n"
-"\t\tHDR TIFF EXR MULTILAYER MPEG AVICODEC QUICKTIME CINEON DPX DDS"
+"\t\tHDR TIFF EXR MULTILAYER MPEG FRAMESERVER QUICKTIME CINEON DPX DDS JP2"
 ;
 static int arg_handle_image_type_set(int argc, const char **argv, void *data)
 {
