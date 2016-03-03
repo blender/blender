@@ -3825,9 +3825,12 @@ static bool do_history(const char *name, ReportList *reports)
 	return 0;
 }
 
-/* return: success (1) */
-int BLO_write_file(
-        Main *mainvar, const char *filepath, int write_flags, ReportList *reports, const BlendThumbnail *thumb)
+/**
+ * \return Success.
+ */
+bool BLO_write_file(
+        Main *mainvar, const char *filepath, int write_flags,
+        ReportList *reports, const BlendThumbnail *thumb)
 {
 	char tempname[FILE_MAX+1];
 	int err, write_user_block;
@@ -3925,14 +3928,14 @@ int BLO_write_file(
 	return 1;
 }
 
-/* return: success (1) */
-int BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int write_flags)
+/**
+ * \return Success.
+ */
+bool BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int write_flags)
 {
 	int err;
 
 	err = write_file_handle(mainvar, NULL, compare, current, 0, write_flags, NULL);
-	
-	if (err==0) return 1;
-	return 0;
-}
 
+	return (err == 0);
+}

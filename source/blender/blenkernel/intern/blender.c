@@ -639,7 +639,10 @@ int blender_test_break(void)
 }
 
 
-/* ***************** GLOBAL UNDO *************** */
+/* -------------------------------------------------------------------- */
+
+/** \name Global Undo
+ * \{ */
 
 #define UNDO_DISK   0
 
@@ -957,14 +960,18 @@ Main *BKE_undo_get_main(Scene **r_scene)
 	return mainp;
 }
 
-/* ************** copy paste .blend, partial saves ********** */
+/** \} */
 
-/* assumes data is in G.main */
 
-void BKE_copybuffer_begin(Main *bmain)
+/* -------------------------------------------------------------------- */
+
+/** \name Copy/Paste `.blend`, partial saves.
+ * \{ */
+
+void BKE_copybuffer_begin(Main *bmain_src)
 {
 	/* set all id flags to zero; */
-	BKE_main_id_tag_all(bmain, LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT, false);
+	BKE_main_id_tag_all(bmain_src, LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT, false);
 }
 
 void BKE_copybuffer_tag_ID(ID *id)
@@ -972,7 +979,7 @@ void BKE_copybuffer_tag_ID(ID *id)
 	id->tag |= LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT;
 }
 
-static void copybuffer_doit(void *UNUSED(handle), Main *UNUSED(bmain), void *vid)
+static void copybuffer_doit(void *UNUSED(handle), Main *UNUSED(bmain_src), void *vid)
 {
 	if (vid) {
 		ID *id = vid;
@@ -982,70 +989,75 @@ static void copybuffer_doit(void *UNUSED(handle), Main *UNUSED(bmain), void *vid
 	}
 }
 
-/* frees main in end */
-int BKE_copybuffer_save(const char *filename, ReportList *reports)
+/**
+ * \return Success.
+ */
+bool BKE_copybuffer_save(Main *bmain_src, const char *filename, ReportList *reports)
 {
-	Main *mainb = MEM_callocN(sizeof(Main), "copybuffer");
-	ListBase *lbarray[MAX_LIBARRAY], *fromarray[MAX_LIBARRAY];
+	/* frees main in end */
+	Main *bmain_dst = MEM_callocN(sizeof(Main), "copybuffer");
+	ListBase *lbarray_dst[MAX_LIBARRAY], *lbarray_src[MAX_LIBARRAY];
 	int a, retval;
 	
 	/* path backup/restore */
 	void     *path_list_backup;
 	const int path_list_flag = (BKE_BPATH_TRAVERSE_SKIP_LIBRARY | BKE_BPATH_TRAVERSE_SKIP_MULTIFILE);
 
-	path_list_backup = BKE_bpath_list_backup(G.main, path_list_flag);
+	path_list_backup = BKE_bpath_list_backup(bmain_src, path_list_flag);
 
 	BLO_main_expander(copybuffer_doit);
-	BLO_expand_main(NULL, G.main);
+	BLO_expand_main(NULL, bmain_src);
 	
 	/* move over all tagged blocks */
-	set_listbasepointers(G.main, fromarray);
-	a = set_listbasepointers(mainb, lbarray);
+	set_listbasepointers(bmain_src, lbarray_src);
+	a = set_listbasepointers(bmain_dst, lbarray_dst);
 	while (a--) {
 		ID *id, *nextid;
-		ListBase *lb1 = lbarray[a], *lb2 = fromarray[a];
+		ListBase *lb_dst = lbarray_dst[a], *lb_src = lbarray_src[a];
 		
-		for (id = lb2->first; id; id = nextid) {
+		for (id = lb_src->first; id; id = nextid) {
 			nextid = id->next;
 			if (id->tag & LIB_TAG_DOIT) {
-				BLI_remlink(lb2, id);
-				BLI_addtail(lb1, id);
+				BLI_remlink(lb_src, id);
+				BLI_addtail(lb_dst, id);
 			}
 		}
 	}
 	
 	
 	/* save the buffer */
-	retval = BLO_write_file(mainb, filename, G_FILE_RELATIVE_REMAP, reports, NULL);
+	retval = BLO_write_file(bmain_dst, filename, G_FILE_RELATIVE_REMAP, reports, NULL);
 	
 	/* move back the main, now sorted again */
-	set_listbasepointers(G.main, lbarray);
-	a = set_listbasepointers(mainb, fromarray);
+	set_listbasepointers(bmain_src, lbarray_dst);
+	a = set_listbasepointers(bmain_dst, lbarray_src);
 	while (a--) {
 		ID *id;
-		ListBase *lb1 = lbarray[a], *lb2 = fromarray[a];
+		ListBase *lb_dst = lbarray_dst[a], *lb_src = lbarray_src[a];
 		
-		while ((id = BLI_pophead(lb2))) {
-			BLI_addtail(lb1, id);
-			id_sort_by_name(lb1, id);
+		while ((id = BLI_pophead(lb_src))) {
+			BLI_addtail(lb_dst, id);
+			id_sort_by_name(lb_dst, id);
 		}
 	}
 	
-	MEM_freeN(mainb);
+	MEM_freeN(bmain_dst);
 	
 	/* set id flag to zero; */
-	BKE_main_id_tag_all(G.main, LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT, false);
+	BKE_main_id_tag_all(bmain_src, LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT, false);
 	
 	if (path_list_backup) {
-		BKE_bpath_list_restore(G.main, path_list_flag, path_list_backup);
+		BKE_bpath_list_restore(bmain_src, path_list_flag, path_list_backup);
 		BKE_bpath_list_free(path_list_backup);
 	}
 
 	return retval;
 }
 
-/* return success (1) */
-int BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, ReportList *reports)
+/**
+ * \return Success.
+ */
+bool BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, ReportList *reports)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -1058,7 +1070,7 @@ int BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, Rep
 	
 	if (bh == NULL) {
 		/* error reports will have been made by BLO_blendhandle_from_file() */
-		return 0;
+		return false;
 	}
 
 	BKE_scene_base_deselect_all(scene);
@@ -1094,5 +1106,7 @@ int BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, Rep
 	BLO_blendhandle_close(bh);
 	/* remove library... */
 	
-	return 1;
+	return true;
 }
+
+/** \} */

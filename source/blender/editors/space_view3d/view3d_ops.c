@@ -92,7 +92,7 @@ static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
 	}
 	
 	BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer.blend");
-	BKE_copybuffer_save(str, op->reports);
+	BKE_copybuffer_save(bmain, str, op->reports);
 	
 	BKE_report(op->reports, RPT_INFO, "Copied selected objects to buffer");
 
