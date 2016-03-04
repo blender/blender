@@ -52,7 +52,10 @@ void GlareThresholdOperation::executePixelSampled(float output[4], float x, floa
 	
 	this->m_inputProgram->readSampled(output, x, y, sampler);
 	if (IMB_colormanagement_get_luminance(output) >= threshold) {
-		output[0] -= threshold, output[1] -= threshold, output[2] -= threshold;
+		output[0] -= threshold;
+		output[1] -= threshold;
+		output[2] -= threshold;
+
 		output[0] = max(output[0], 0.0f);
 		output[1] = max(output[1], 0.0f);
 		output[2] = max(output[2], 0.0f);

@@ -68,7 +68,7 @@ public:
 	void setAxis(int value) {this->m_axis = value;}
 	void setPosition(int value) {this->m_position = value;}
 	void setRelativeFrame(int value) {this->m_relativeFrame = value;}
-	void setSpeedOutput(bool speed_output) {this->m_speed_output = speed_output;};
+	void setSpeedOutput(bool speed_output) {this->m_speed_output = speed_output;}
 
 	void initExecution();
 

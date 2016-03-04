@@ -126,7 +126,6 @@ static void FHT2D(fREAL *data, unsigned int Mx, unsigned int My,
                   unsigned int nzp, unsigned int inverse)
 {
 	unsigned int i, j, Nx, Ny, maxy;
-	fREAL t;
 
 	Nx = 1 << Mx;
 	Ny = 1 << My;
@@ -141,7 +140,7 @@ static void FHT2D(fREAL *data, unsigned int Mx, unsigned int My,
 		for (j = 0; j < Ny; ++j)
 			for (i = j + 1; i < Nx; ++i) {
 				unsigned int op = i + (j << Mx), np = j + (i << My);
-				t = data[op], data[op] = data[np], data[np] = t;
+				SWAP(fREAL, data[op], data[np]);
 			}
 	}
 	else {  // rectangular
@@ -151,15 +150,15 @@ static void FHT2D(fREAL *data, unsigned int Mx, unsigned int My,
 			for (j = PRED(i); j > i; j = PRED(j)) ;
 			if (j < i) continue;
 			for (k = i, j = PRED(i); j != i; k = j, j = PRED(j), stm--) {
-				t = data[j], data[j] = data[k], data[k] = t;
+				SWAP(fREAL, data[j], data[k]);
 			}
 #undef PRED
 			stm--;
 		}
 	}
-	// swap Mx/My & Nx/Ny
-	i = Nx, Nx = Ny, Ny = i;
-	i = Mx, Mx = My, My = i;
+
+	SWAP(unsigned int, Nx, Ny);
+	SWAP(unsigned int, Mx, My);
 
 	// now columns == transposed rows
 	for (j = 0; j < Ny; ++j)
@@ -391,7 +390,9 @@ void GlareFogGlowOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 			u = 2.0f * (x / (float)sz) - 1.0f;
 			r = (u * u + v * v) * scale;
 			d = -sqrtf(sqrtf(sqrtf(r))) * 9.0f;
-			fcol[0] = expf(d * cs_r), fcol[1] = expf(d * cs_g), fcol[2] = expf(d * cs_b);
+			fcol[0] = expf(d * cs_r);
+			fcol[1] = expf(d * cs_g);
+			fcol[2] = expf(d * cs_b);
 			// linear window good enough here, visual result counts, not scientific analysis
 			//w = (1.0f-fabs(u))*(1.0f-fabs(v));
 			// actually, Hanning window is ok, cos^2 for some reason is slower

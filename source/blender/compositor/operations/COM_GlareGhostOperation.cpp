@@ -82,11 +82,13 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 		v = ((float)y + 0.5f) / (float)gbuf->getHeight();
 		for (x = 0; x < gbuf->getWidth(); x++) {
 			u = ((float)x + 0.5f) / (float)gbuf->getWidth();
-			s = (u - 0.5f) * sc + 0.5f, t = (v - 0.5f) * sc + 0.5f;
+			s = (u - 0.5f) * sc + 0.5f;
+			t = (v - 0.5f) * sc + 0.5f;
 			tbuf1->readBilinear(c, s * gbuf->getWidth(), t * gbuf->getHeight());
 			sm = smoothMask(s, t);
 			mul_v3_fl(c, sm);
-			s = (u - 0.5f) * isc + 0.5f, t = (v - 0.5f) * isc + 0.5f;
+			s = (u - 0.5f) * isc + 0.5f;
+			t = (v - 0.5f) * isc + 0.5f;
 			tbuf2->readBilinear(tc, s * gbuf->getWidth() - 0.5f, t * gbuf->getHeight() - 0.5f);
 			sm = smoothMask(s, t);
 			madd_v3_v3fl(c, tc, sm);
