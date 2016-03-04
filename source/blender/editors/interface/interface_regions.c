@@ -1621,7 +1621,8 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 				// yof = ysize; (not with menu scrolls)
 			}
 		}
-		
+
+#if 0 /* seems redundant and causes issues with blocks inside big regions */
 		/* or no space left or right */
 		if (left == 0 && right == 0) {
 			if (dir1 == UI_DIR_UP || dir1 == UI_DIR_DOWN) {
@@ -1629,7 +1630,8 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 				xof = -block->rect.xmin + 5;
 			}
 		}
-		
+#endif
+
 #if 0
 		/* clamp to window bounds, could be made into an option if its ever annoying */
 		if (     (offscreen = (block->rect.ymin + yof)) < 0) yof -= offscreen;   /* bottom */
