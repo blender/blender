@@ -7194,12 +7194,8 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 				draw_mesh_object_outline(v3d, ob, dm);
 			}
 			else {
-				/* don't show outline on 'wire' with surfaces,
-				 * don't show interior tessellation with curves */
-				drawDispListwire_ex(
-				        &ob->curve_cache->disp,
-				        (ob->type == OB_SURF) ?
-				        (DL_INDEX3 | DL_INDEX4 | DL_SURF) : (DL_SEGM | DL_POLY));
+				/* only draw 'solid' parts of the display list as wire. */
+				drawDispListwire_ex(&ob->curve_cache->disp, (DL_INDEX3 | DL_INDEX4 | DL_SURF));
 			}
 		}
 	}
