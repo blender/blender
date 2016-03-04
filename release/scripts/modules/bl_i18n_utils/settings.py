@@ -88,7 +88,7 @@ LANGUAGES = (
     (38, "Uzbek (Oʻzbek)", "uz_UZ"),
     (39, "Uzbek Cyrillic (Ўзбек)", "uz_UZ@cyrillic"),
     (40, "Hindi (मानक हिन्दी)", "hi_IN"),
-    (41, "Vitnamese (tiếng Việt)", "vi_VN"),
+    (41, "Vietnamese (tiếng Việt)", "vi_VN"),
     (42, "Basque (Euskara)", "eu_EU"),
 )
 
