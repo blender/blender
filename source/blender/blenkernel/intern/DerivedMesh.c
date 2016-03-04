@@ -3655,6 +3655,8 @@ void DM_set_object_boundbox(Object *ob, DerivedMesh *dm)
 		ob->bb = MEM_callocN(sizeof(BoundBox), "DM-BoundBox");
 
 	BKE_boundbox_init_from_minmax(ob->bb, min, max);
+
+	ob->bb->flag &= ~BOUNDBOX_DIRTY;
 }
 
 /* --- NAVMESH (begin) --- */
