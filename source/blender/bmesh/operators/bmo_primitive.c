@@ -635,7 +635,6 @@ void BM_mesh_calc_uvs_sphere(BMesh *bm, const short oflag)
 
 void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
 {
-	BMVert *eve;
 	BMVert **tv = MEM_mallocN(sizeof(*tv) * monkeynv * 2, "tv");
 	float mat[4][4];
 	int i;
@@ -653,9 +652,14 @@ void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
 		tv[i] = BM_vert_create(bm, v, NULL, BM_CREATE_NOP);
 		BMO_elem_flag_enable(bm, tv[i], VERT_MARK);
 
-		tv[monkeynv + i] = (fabsf(v[0] = -v[0]) < 0.001f) ?
-		                   tv[i] :
-		                   (eve = BM_vert_create(bm, v, NULL, BM_CREATE_NOP), mul_m4_v3(mat, eve->co), eve);
+		if (fabsf(v[0] = -v[0]) < 0.001f) {
+			tv[monkeynv + i] = tv[i];
+		}
+		else {
+			BMVert *eve = BM_vert_create(bm, v, NULL, BM_CREATE_NOP);
+			mul_m4_v3(mat, eve->co);
+			tv[monkeynv + i] = eve;
+		}
 
 		BMO_elem_flag_enable(bm, tv[monkeynv + i], VERT_MARK);
 

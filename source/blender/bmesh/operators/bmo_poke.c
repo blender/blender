@@ -140,7 +140,7 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
 				offset_fac += len_v3v3(f_center, l_iter->v->co);
 			}
 
-		} while (i++, (l_iter = l_iter->next) != l_first);
+		} while ((void)i++, (l_iter = l_iter->next) != l_first);
 
 		if (use_relative_offset) {
 			offset_fac /= (float)f->len;

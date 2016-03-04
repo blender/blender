@@ -1065,7 +1065,8 @@ static bool bm_vert_connect_select_history(BMesh *bm)
 					else {
 						changed |= bm_vert_connect_pair(bm, (BMVert *)ese_last->ele, (BMVert *)ese->ele);
 					}
-				} while ((ese_last = ese),
+				} while ((void)
+				         (ese_last = ese),
 				         (ese = ese->next));
 
 				if (changed) {
@@ -1105,7 +1106,8 @@ static bool bm_vert_connect_select_history(BMesh *bm)
 					BM_edge_select_set(bm, e, true);
 					changed = true;
 				}
-			} while ((ese_prev = ese),
+			} while ((void)
+			         (ese_prev = ese),
 			         (ese = ese->next));
 
 			if (changed == false) {

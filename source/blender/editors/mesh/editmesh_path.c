@@ -161,7 +161,7 @@ static void mouse_mesh_shortest_path_vert(
 				verttag_set_cb((BMVert *)node->link, !all_set, &user_data);
 				v_dst_last = node->link;
 			}
-		} while (depth++, (node = node->next));
+		} while ((void)depth++, (node = node->next));
 
 		BLI_linklist_free(path, NULL);
 	}
@@ -336,7 +336,7 @@ static void mouse_mesh_shortest_path_edge(
 				edgetag_set_cb((BMEdge *)node->link, !all_set, &user_data);
 				e_dst_last = node->link;
 			}
-		} while (depth++, (node = node->next));
+		} while ((void)depth++, (node = node->next));
 
 		BLI_linklist_free(path, NULL);
 	}
@@ -466,7 +466,7 @@ static void mouse_mesh_shortest_path_face(
 				facetag_set_cb((BMFace *)node->link, !all_set, &user_data);
 				f_dst_last = node->link;
 			}
-		} while (depth++, (node = node->next));
+		} while ((void)depth++, (node = node->next));
 
 		BLI_linklist_free(path, NULL);
 	}

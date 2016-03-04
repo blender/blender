@@ -509,7 +509,7 @@ bool BM_face_split_edgenet(
 			mul_v2_m3v3(cos_2d[i], axis_mat, l_iter->v->co);
 			blocks[i] = l_iter->head.data;
 
-		} while (i++, (l_iter = l_iter->next) != l_first);
+		} while ((void)i++, (l_iter = l_iter->next) != l_first);
 
 
 		for (i = 0; i < edge_net_len; i++) {

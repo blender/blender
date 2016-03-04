@@ -116,7 +116,8 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 				}
 			}
 
-		} while (((l_new = l_new->next),
+		} while (((void)
+		          (l_new = l_new->next),
 		          (l_org = l_org->next)) != l_org_first);
 	}
 

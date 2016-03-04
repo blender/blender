@@ -544,7 +544,7 @@ void bmo_dissolve_degenerate_exec(BMesh *bm, BMOperator *op)
 				if (
 				    /* check the loop hasn't already been tested (and flag not to test again) */
 				    !BM_elem_flag_test(l_iter, BM_ELEM_TAG) &&
-				    (BM_elem_flag_enable(l_iter, BM_ELEM_TAG),
+				    ((void)BM_elem_flag_enable(l_iter, BM_ELEM_TAG),
 
 				     /* check we're marked to tested (radial edge already tested) */
 				     BMO_elem_flag_test(bm, l_iter->prev->e, EDGE_MARK) &&

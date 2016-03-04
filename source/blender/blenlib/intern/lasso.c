@@ -71,15 +71,12 @@ bool BLI_lasso_is_edge_inside(const int mcords[][2], const unsigned int moves,
                               int x0, int y0, int x1, int y1,
                               const int error_value)
 {
-	int v1[2], v2[2];
-	unsigned int a;
 
 	if (x0 == error_value || x1 == error_value || moves == 0) {
 		return false;
 	}
 
-	v1[0] = x0, v1[1] = y0;
-	v2[0] = x1, v2[1] = y1;
+	const int v1[2] = {x0, y0}, v2[2] = {x1, y1};
 
 	/* check points in lasso */
 	if (BLI_lasso_is_point_inside(mcords, moves, v1[0], v1[1], error_value)) return true;
@@ -88,7 +85,7 @@ bool BLI_lasso_is_edge_inside(const int mcords[][2], const unsigned int moves,
 	/* no points in lasso, so we have to intersect with lasso edge */
 
 	if (isect_seg_seg_v2_int(mcords[0], mcords[moves - 1], v1, v2) > 0) return true;
-	for (a = 0; a < moves - 1; a++) {
+	for (unsigned int a = 0; a < moves - 1; a++) {
 		if (isect_seg_seg_v2_int(mcords[a], mcords[a + 1], v1, v2) > 0) return true;
 	}
 

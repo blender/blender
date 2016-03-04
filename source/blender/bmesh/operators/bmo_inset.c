@@ -94,7 +94,7 @@ static void bm_interp_face_store(InterpFace *iface, BMesh *bm, BMFace *f, MemAre
 
 		/* use later for index lookups */
 		BM_elem_index_set(l_iter, i); /* set_dirty */
-	} while (i++, (l_iter = l_iter->next) != l_first);
+	} while ((void)i++, (l_iter = l_iter->next) != l_first);
 	bm->elem_index_dirty |= BM_LOOP;
 }
 static void bm_interp_face_free(InterpFace *iface, BMesh *bm)
@@ -293,7 +293,7 @@ static void bmo_face_inset_individual(
 
 		/* unrelated to splitting, but calc here */
 		BM_edge_calc_face_tangent(l_iter->e, l_iter, edge_nors[i]);
-	} while (i++, ((l_iter = l_iter->next) != l_first));
+	} while ((void)i++, ((l_iter = l_iter->next) != l_first));
 
 
 	/* build rim faces */
@@ -324,7 +324,7 @@ static void bmo_face_inset_individual(
 			BM_elem_attrs_copy(bm, bm, l_iter->next, l_other);
 			BM_elem_attrs_copy(bm, bm, l_iter, l_other->next);
 		}
-	} while (i++, ((l_iter = l_iter->next) != l_first));
+	} while ((void)i++, ((l_iter = l_iter->next) != l_first));
 
 	/* hold interpolation values */
 	if (use_interpolate) {
@@ -376,14 +376,14 @@ static void bmo_face_inset_individual(
 
 
 		copy_v3_v3(coords[i], v_new_co);
-	} while (i++, ((l_iter = l_iter->next) != l_first));
+	} while ((void)i++, ((l_iter = l_iter->next) != l_first));
 
 	/* update the coords */
 	l_iter = l_first;
 	i = 0;
 	do {
 		copy_v3_v3(l_iter->v->co, coords[i]);
-	} while (i++, ((l_iter = l_iter->next) != l_first));
+	} while ((void)i++, ((l_iter = l_iter->next) != l_first));
 
 
 	if (use_interpolate) {

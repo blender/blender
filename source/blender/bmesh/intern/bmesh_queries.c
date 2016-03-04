@@ -1951,7 +1951,7 @@ bool BM_face_exists(BMVert **varr, int len, BMFace **r_existface)
 								if (l_walk->v != varr[i_walk]) {
 									break;
 								}
-							} while ((l_walk = l_walk->next), ++i_walk != len);
+							} while ((void)(l_walk = l_walk->next), ++i_walk != len);
 						}
 						else if (l_iter_radial->prev->v == varr[1]) {
 							BMLoop *l_walk = l_iter_radial->prev->prev;
@@ -1959,7 +1959,7 @@ bool BM_face_exists(BMVert **varr, int len, BMFace **r_existface)
 								if (l_walk->v != varr[i_walk]) {
 									break;
 								}
-							} while ((l_walk = l_walk->prev), ++i_walk != len);
+							} while ((void)(l_walk = l_walk->prev), ++i_walk != len);
 						}
 
 						if (i_walk == len) {

@@ -54,7 +54,8 @@ static void bm_bridge_splice_loops(BMesh *bm, LinkData *el_a, LinkData *el_b, co
 		interp_v3_v3v3(v_b->co, v_a->co, v_b->co, merge_factor);
 		BLI_assert(v_a != v_b);
 		BMO_slot_map_elem_insert(&op_weld, slot_targetmap, v_a, v_b);
-	} while ((el_b = el_b->next),
+	} while ((void)
+	         (el_b = el_b->next),
 	         (el_a = el_a->next));
 
 	BMO_op_exec(bm, &op_weld);
@@ -95,7 +96,8 @@ static float bm_edgeloop_offset_length(
 	BLI_assert(el_a->prev == NULL);  /* must be first */
 	do {
 		len += len_v3v3(((BMVert *)el_a->data)->co, ((BMVert *)el_b->data)->co);
-	} while ((el_b = el_b->next ? el_b->next : el_b_first),
+	} while ((void)
+	         (el_b = el_b->next ? el_b->next : el_b_first),
 	         (el_a = el_a->next) && (len < len_max));
 	return len;
 }

@@ -467,7 +467,10 @@ size_t blf_font_width_to_strlen(FontBLF *font, const char *str, size_t len, floa
 
 	blf_font_ensure_ascii_table(font);
 
-	while ((i_prev = i), (width_new = pen_x), ((i < len) && str[i])) {
+	while ((void)(i_prev = i),
+	       (void)(width_new = pen_x),
+	       ((i < len) && str[i]))
+	{
 		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
 
 		if (UNLIKELY(c == BLI_UTF8_ERR))

@@ -170,7 +170,7 @@ finally:
 				l_iter = l_first = BM_FACE_FIRST_LOOP(f_new);
 				do {
 					BM_elem_attrs_copy(bm, bm, loops[i], l_iter);
-				} while (i++, (l_iter = l_iter->next) != l_first);
+				} while ((void)i++, (l_iter = l_iter->next) != l_first);
 
 				return f_new;
 			}

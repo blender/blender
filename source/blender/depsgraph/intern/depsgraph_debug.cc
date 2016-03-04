@@ -143,6 +143,7 @@ static int deg_debug_node_color_index(const DepsNode *node)
 			OperationDepsNode *op_node = (OperationDepsNode *)node;
 			if (op_node->is_noop())
 				return 8;
+			break;
 		}
 
 		default:

@@ -197,7 +197,7 @@ void BM_face_interp_from_face_ex(
 		if (do_vertex) {
 			CustomData_bmesh_interp(&bm->vdata, blocks_v, w, NULL, f_src->len, l_iter->v->head.data);
 		}
-	} while (i++, (l_iter = l_iter->next) != l_first);
+	} while ((void)i++, (l_iter = l_iter->next) != l_first);
 }
 
 void BM_face_interp_from_face(BMesh *bm, BMFace *f_dst, const BMFace *f_src, const bool do_vertex)
@@ -221,7 +221,7 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *f_dst, const BMFace *f_src, con
 		mul_v2_m3v3(cos_2d[i], axis_mat, l_iter->v->co);
 		blocks_l[i] = l_iter->head.data;
 		if (do_vertex) blocks_v[i] = l_iter->v->head.data;
-	} while (i++, (l_iter = l_iter->next) != l_first);
+	} while ((void)i++, (l_iter = l_iter->next) != l_first);
 
 	BM_face_interp_from_face_ex(bm, f_dst, f_src, do_vertex,
 	                            blocks_l, blocks_v, cos_2d, axis_mat);
@@ -650,7 +650,7 @@ void BM_loop_interp_from_face(
 		if (do_vertex) {
 			vblocks[i] = l_iter->v->head.data;
 		}
-	} while (i++, (l_iter = l_iter->next) != l_first);
+	} while ((void)i++, (l_iter = l_iter->next) != l_first);
 
 	mul_v2_m3v3(co, axis_mat, l_dst->v->co);
 
@@ -687,7 +687,7 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v_dst, const BMFace *f_src)
 	do {
 		mul_v2_m3v3(cos_2d[i], axis_mat, l_iter->v->co);
 		blocks[i] = l_iter->v->head.data;
-	} while (i++, (l_iter = l_iter->next) != l_first);
+	} while ((void)i++, (l_iter = l_iter->next) != l_first);
 
 	mul_v2_m3v3(co, axis_mat, v_dst->co);
 

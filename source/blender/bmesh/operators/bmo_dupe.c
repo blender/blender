@@ -170,7 +170,8 @@ static BMFace *bmo_face_copy(
 	l_iter_dst = BM_FACE_FIRST_LOOP(f_dst);
 	do {
 		BM_elem_attrs_copy(bm_src, bm_dst, l_iter_src, l_iter_dst);
-	} while ((l_iter_dst = l_iter_dst->next),
+	} while ((void)
+	         (l_iter_dst = l_iter_dst->next),
 	         (l_iter_src = l_iter_src->next) != l_first_src);
 
 	/* Mark the face for output */
