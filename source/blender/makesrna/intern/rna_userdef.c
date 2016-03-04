@@ -148,8 +148,7 @@ static void rna_userdef_virtual_pixel_update(Main *UNUSED(bmain), Scene *UNUSED(
 {
 	/* font's are stored at each DPI level, without this we can easy load 100's of fonts */
 	BLF_cache_clear();
-	
-	BKE_userdef_state();
+
 	WM_main_add_notifier(NC_WINDOW, NULL);      /* full redraw */
 	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);    /* refresh region sizes */
 }

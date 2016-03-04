@@ -831,11 +831,11 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
 			printf("%s: set drawable %d\n", __func__, win->winid);
 		}
 		GHOST_ActivateWindowDrawingContext(win->ghostwin);
-		
-		/* this can change per window */
-		U.pixelsize = wm_window_pixelsize(win);
-		BKE_userdef_state();
 	}
+
+	/* this can change per window */
+	U.pixelsize = wm_window_pixelsize(win);
+	BKE_userdef_state();
 }
 
 /* called by ghost, here we handle events for windows themselves or send to event system */
