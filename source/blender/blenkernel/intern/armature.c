@@ -2221,8 +2221,7 @@ static void boundbox_armature(Object *ob)
 	float min[3], max[3];
 
 	if (ob->bb == NULL) {
-		ob->bb = MEM_mallocN(sizeof(BoundBox), "Armature boundbox");
-		ob->bb->flag = 0;
+		ob->bb = MEM_callocN(sizeof(BoundBox), "Armature boundbox");
 	}
 	bb = ob->bb;
 
@@ -2233,6 +2232,8 @@ static void boundbox_armature(Object *ob)
 	}
 
 	BKE_boundbox_init_from_minmax(bb, min, max);
+
+	bb->flag &= ~BOUNDBOX_DIRTY;
 }
 
 BoundBox *BKE_armature_boundbox_get(Object *ob)

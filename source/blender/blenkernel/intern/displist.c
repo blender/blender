@@ -1861,6 +1861,8 @@ static void boundbox_displist_object(Object *ob)
 			INIT_MINMAX(min, max);
 			BKE_displist_minmax(&ob->curve_cache->disp, min, max);
 			BKE_boundbox_init_from_minmax(ob->bb, min, max);
+
+			ob->bb->flag &= ~BOUNDBOX_DIRTY;
 		}
 	}
 }
