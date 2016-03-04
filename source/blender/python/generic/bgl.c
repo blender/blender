@@ -3681,7 +3681,7 @@ static PyObject *Method_ShaderSource(PyObject *UNUSED(self), PyObject *args)
 
 	glShaderSource(shader, 1, (const char **)&source, NULL);
 
-	return Py_INCREF(Py_None), Py_None;
+	Py_RETURN_NONE;
 }
 
 
