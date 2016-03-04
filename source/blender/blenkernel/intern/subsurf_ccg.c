@@ -1524,19 +1524,19 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 
 					mv->v = v1;
 					mv->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v1, v2));
-					mv++, i++;
+					mv++; i++;
 
 					mv->v = v2;
 					mv->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v2, v3));
-					mv++, i++;
+					mv++; i++;
 
 					mv->v = v3;
 					mv->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v3, v4));
-					mv++, i++;
+					mv++; i++;
 
 					mv->v = v4;
 					mv->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v4, v1));
-					mv++, i++;
+					mv++; i++;
 				}
 			}
 		}

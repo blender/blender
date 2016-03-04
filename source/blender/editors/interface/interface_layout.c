@@ -2264,7 +2264,6 @@ static void ui_litem_layout_radial(uiLayout *litem)
 	int itemnum = 0;
 	int totitems = 0;
 
-	int minx, miny, maxx, maxy;
 	/* For the radial layout we will use Matt Ebb's design
 	 * for radiation, see http://mattebb.com/weblog/radiation/
 	 * also the old code at http://developer.blender.org/T5103
@@ -2275,7 +2274,7 @@ static void ui_litem_layout_radial(uiLayout *litem)
 	x = litem->x;
 	y = litem->y;
 
-	minx = x, miny = y, maxx = x, maxy = y;
+	int minx = x, miny = y, maxx = x, maxy = y;
 
 	/* first count total items */
 	for (item = litem->items.first; item; item = item->next)

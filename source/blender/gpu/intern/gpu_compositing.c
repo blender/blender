@@ -332,7 +332,8 @@ bool GPU_fx_compositor_initialize_passes(
 	/* scissor is missing when drawing offscreen, in that case, dimensions match exactly. In opposite case
 	 * add one to match viewport dimensions */
 	if (scissor_rect) {
-		w++, h++;
+		w++;
+		h++;
 	}
 
 	fx->num_passes = 0;

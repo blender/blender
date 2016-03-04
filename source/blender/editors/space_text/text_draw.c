@@ -1108,8 +1108,13 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 		vsell = txt_get_span(text->lines.first, text->sell) - st->top + offl;
 		vselc = text_get_char_pos(st, text->sell->line, text->selc) - st->left + offc;
 
-		if (vcurc < 0) vcurc = 0;
-		if (vselc < 0) vselc = 0, hidden = 1;
+		if (vcurc < 0) {
+			vcurc = 0;
+		}
+		if (vselc < 0) {
+			vselc = 0;
+			hidden = 1;
+		}
 		
 		UI_ThemeColor(TH_SHADE2);
 		x = st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
@@ -1135,11 +1140,16 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 			}
 
 			y -= froml * lheight;
-			glRecti(x + fromc * st->cwidth - 1, y, ar->winx, y - lheight); y -= lheight;
-			for (i = froml + 1; i < tol; i++)
-				glRecti(x - 4, y, ar->winx, y - lheight),  y -= lheight;
 
-			glRecti(x - 4, y, x + toc * st->cwidth, y - lheight);  y -= lheight;
+			glRecti(x + fromc * st->cwidth - 1, y, ar->winx, y - lheight);
+			y -= lheight;
+			for (i = froml + 1; i < tol; i++) {
+				glRecti(x - 4, y, ar->winx, y - lheight);
+				y -= lheight;
+			}
+
+			glRecti(x - 4, y, x + toc * st->cwidth, y - lheight);
+			y -= lheight;
 		}
 	}
 	else {

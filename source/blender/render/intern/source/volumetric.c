@@ -269,7 +269,9 @@ static float metadensity(Object *ob, const float co[3])
 		/* MB_BALL default */
 		switch (ml->type) {
 			case MB_ELIPSOID:
-				tp[0] /= ml->expx, tp[1] /= ml->expy, tp[2] /= ml->expz;
+				tp[0] /= ml->expx;
+				tp[1] /= ml->expy;
+				tp[2] /= ml->expz;
 				break;
 			case MB_CUBE:
 				tp[2] = (tp[2] > ml->expz) ? (tp[2] - ml->expz) : ((tp[2] < -ml->expz) ? (tp[2] + ml->expz) : 0.f);

@@ -3250,7 +3250,9 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int *rectmask, int sample)
 				}
 			}
 			
-			rd++; rza++, rma++;
+			rza++;
+			rma++;
+			rd++;
 		}
 	}
 }

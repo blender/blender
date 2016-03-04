@@ -3577,11 +3577,11 @@ static int findBitIndex(unsigned int x)
 	else {
 		int idx = 0;
 
-		if (x & 0xFFFF0000) idx += 16, x >>= 16;
-		if (x & 0xFF00) idx += 8, x >>= 8;
-		if (x & 0xF0) idx += 4, x >>= 4;
-		if (x & 0xC) idx += 2, x >>= 2;
-		if (x & 0x2) idx += 1;
+		if (x & 0xFFFF0000) { idx += 16; x >>= 16; }
+		if (x & 0xFF00)     { idx +=  8; x >>=  8; }
+		if (x & 0xF0)       { idx +=  4; x >>=  4; }
+		if (x & 0xC)        { idx +=  2; x >>=  2; }
+		if (x & 0x2)        { idx +=  1; }
 
 		return idx;
 	}

@@ -327,8 +327,13 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 				if (text_do_suggest_select(st, ar))
 					swallow = 1;
 				else {
-					if (tools & TOOL_SUGG_LIST) texttool_suggest_clear();
-					if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll = 0;
+					if (tools & TOOL_SUGG_LIST) {
+						texttool_suggest_clear();
+					}
+					if (tools & TOOL_DOCUMENT)  {
+						texttool_docs_clear();
+						doc_scroll = 0;
+					}
 					retval = OPERATOR_FINISHED;
 				}
 				draw = 1;
@@ -342,8 +347,13 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 					swallow = 1;
 				}
 				else {
-					if (tools & TOOL_SUGG_LIST) texttool_suggest_clear();
-					if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll = 0;
+					if (tools & TOOL_SUGG_LIST) {
+						texttool_suggest_clear();
+					}
+					if (tools & TOOL_DOCUMENT) {
+						texttool_docs_clear();
+						doc_scroll = 0;
+					}
 					retval = OPERATOR_FINISHED;
 				}
 				draw = 1;
@@ -352,8 +362,13 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 		case ESCKEY:
 			if (event->val == KM_PRESS) {
 				draw = swallow = 1;
-				if (tools & TOOL_SUGG_LIST) texttool_suggest_clear();
-				else if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll = 0;
+				if (tools & TOOL_SUGG_LIST) {
+					texttool_suggest_clear();
+				}
+				else if (tools & TOOL_DOCUMENT) {
+					texttool_docs_clear();
+					doc_scroll = 0;
+				}
 				else draw = swallow = 0;
 				retval = OPERATOR_CANCELLED;
 			}
@@ -367,7 +382,11 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 					swallow = 1;
 					draw = 1;
 				}
-				if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll = 0, draw = 1;
+				if (tools & TOOL_DOCUMENT) {
+					texttool_docs_clear();
+					doc_scroll = 0;
+					draw = 1;
+				}
 				retval = OPERATOR_FINISHED;
 			}
 			break;
@@ -398,7 +417,10 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 						}
 					}
 				}
-				if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll = 0;
+				if (tools & TOOL_DOCUMENT) {
+					texttool_docs_clear();
+					doc_scroll = 0;
+				}
 			}
 			break;
 		case RIGHTARROWKEY:
@@ -427,7 +449,10 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 						}
 					}
 				}
-				if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll = 0;
+				if (tools & TOOL_DOCUMENT) {
+					texttool_docs_clear();
+					doc_scroll = 0;
+				}
 			}
 			break;
 		case PAGEDOWNKEY:
@@ -498,8 +523,15 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 			break;
 #if 0
 		default:
-			if (tools & TOOL_SUGG_LIST) texttool_suggest_clear(), draw = 1;
-			if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll = 0, draw = 1;
+			if (tools & TOOL_SUGG_LIST) {
+				texttool_suggest_clear();
+				draw = 1;
+			}
+			if (tools & TOOL_DOCUMENT) {
+				texttool_docs_clear();
+				doc_scroll = 0;
+				draw = 1;
+			}
 #endif
 	}
 

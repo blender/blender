@@ -331,7 +331,8 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 
 	if (size > nchilds) {
 		float bcost = FLT_MAX;
-		baxis = -1, boffset = size / 2;
+		baxis = -1;
+		boffset = size / 2;
 
 		SweepCost *sweep = (SweepCost *)MEM_mallocN(sizeof(SweepCost) * size, "RTBuilder.HeuristicSweep");
 		

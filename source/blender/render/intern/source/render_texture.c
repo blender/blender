@@ -3827,7 +3827,9 @@ void RE_sample_material_color(
 		return;
 	}
 
-	v1=mloop[mlooptri[tri_index].tri[0]].v, v2=mloop[mlooptri[tri_index].tri[1]].v, v3=mloop[mlooptri[tri_index].tri[2]].v;
+	v1 = mloop[mlooptri[tri_index].tri[0]].v;
+	v2 = mloop[mlooptri[tri_index].tri[1]].v;
+	v3 = mloop[mlooptri[tri_index].tri[2]].v;
 	normal_tri_v3(normal, mvert[v1].co, mvert[v2].co, mvert[v3].co);
 
 	/* generate shadeinput with data required */
