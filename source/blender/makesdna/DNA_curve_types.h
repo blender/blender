@@ -268,6 +268,9 @@ typedef struct Curve {
 
 } Curve;
 
+#define CURVE_VFONT_ANY(cu) \
+	((cu)->vfont), ((cu)->vfontb), ((cu)->vfonti), ((cu)->vfontbi)
+
 /* **************** CURVE ********************* */
 
 /* Curve.texflag */

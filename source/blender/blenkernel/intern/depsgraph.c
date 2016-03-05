@@ -2586,7 +2586,18 @@ static void dag_id_flush_update(Main *bmain, Scene *sce, ID *id)
 				}
 			}
 		}
-		
+		else if (idtype == ID_VF) {
+			for (obt = bmain->object.first; obt; obt = obt->id.next) {
+				if (obt->type == OB_FONT) {
+					Curve *cu = obt->data;
+					if (ELEM((struct VFont *)id, CURVE_VFONT_ANY(cu))) {
+						obt->recalc |= OB_RECALC_DATA;
+						lib_id_recalc_data_tag(bmain, &obt->id);
+					}
+				}
+			}
+		}
+
 		/* set flags based on textures - can influence depgraph via modifiers */
 		if (idtype == ID_TE) {
 			for (obt = bmain->object.first; obt; obt = obt->id.next) {
@@ -2949,18 +2960,6 @@ void DAG_id_tag_update_ex(Main *bmain, ID *id, short flag)
 						psys->recalc |= (flag & PSYS_RECALC);
 						lib_id_recalc_tag(bmain, &ob->id);
 						lib_id_recalc_data_tag(bmain, &ob->id);
-					}
-				}
-			}
-		}
-		else if (idtype == ID_VF) {
-			/* this is weak still, should be done delayed as well */
-			for (ob = bmain->object.first; ob; ob = ob->id.next) {
-				if (ob->type == OB_FONT) {
-					Curve *cu = ob->data;
-
-					if (ELEM((struct VFont *)id, cu->vfont, cu->vfontb, cu->vfonti, cu->vfontbi)) {
-						ob->recalc |= (flag & OB_RECALC_ALL);
 					}
 				}
 			}
