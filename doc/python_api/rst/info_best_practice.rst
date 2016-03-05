@@ -34,7 +34,7 @@ As well as pep8 we have other conventions used for blender python scripts.
 
 - Use single quotes for enums, and double quotes for strings.
 
-  Both are of course strings but in our internal API enums are unique items from a limited set. eg.
+  Both are of course strings, but in our internal API enums are unique items from a limited set. eg.
 
   .. code-block:: python
 
@@ -137,7 +137,7 @@ Searching for list items
 
 In Python there are some handy list functions that save you having to search through the list.
 
-Even though you're not looping on the list data **python is**,
+Even though you are not looping on the list data **python is**,
 so you need to be aware of functions that will slow down your script by searching the whole list.
 
 .. code-block:: python
@@ -283,7 +283,7 @@ This is generally faster since there is no re-assignment and no list duplication
 >>> some_list_func(vec)
 
 
-Also note that passing a sliced list makes a copy of the list in python memory
+Also note that passing a sliced list makes a copy of the list in python memory.
 
 >>> foobar(my_list[:])
 
@@ -293,27 +293,29 @@ If my_list was a large array containing 10000's of items, a copy could use a lot
 Writing Strings to a File (Python General)
 ------------------------------------------
 
-Here are 3 ways of joining multiple strings into 1 string for writing
+Here are 3 ways of joining multiple strings into one string for writing.
+This also applies to any area of your code that involves a lot of string joining.
 
-This really applies to any area of your code that involves a lot of string joining.
 
-
-Python’s string addition, *don't use if you can help it, especially when writing data in a loop.*
+``String addition`` - 
+this is the slowest option, *don't use if you can help it, especially when writing data in a loop*.
 
 >>> file.write(str1 + " " + str2 + " " + str3 + "\n")
 
 
-String formatting. Use this when you're writing string data from floats and ints
+``String formatting`` - 
+use this when you are writing string data from floats and ints.
 
 >>> file.write("%s %s %s\n" % (str1, str2, str3))
 
 
-Python’s string joining function. To join a list of strings
+``String join() function``
+use to join a list of strings (the list may be temporary). In the following example, the strings are joined with a space " " in between, other examples are "" or ", ".
 
 >>> file.write(" ".join([str1, str2, str3, "\n"]))
 
 
-join is fastest on many strings,
+Join is fastest on many strings,
 `string formatting <http://docs.python.org/py3k/library/string.html#string-formatting>`__
 is quite fast too (better for converting data types). String arithmetic is slowest.
 
@@ -331,17 +333,17 @@ Parsing Numbers
 ^^^^^^^^^^^^^^^
 
 Use ``float(string)`` rather than ``eval(string)``, if you know the value will be an int then ``int(string)``,
-float() will work for an int too but it's faster to read ints with int().
+float() will work for an int too but it is faster to read ints with int().
 
 
 Checking String Start/End
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you're checking the start of a string for a keyword, rather than...
+If you are checking the start of a string for a keyword, rather than...
 
 >>> if line[0:5] == "vert ": ...
 
-Use...
+use...
 
 >>> if line.startswith("vert "):
 
@@ -350,7 +352,7 @@ error with the slice length not matching the string length.
 
 my_string.endswith("foo_bar") can be used for line endings too.
 
-If you are unsure whether the text is upper or lower case use ``lower()`` or ``upper()`` string function.
+If you are unsure whether the text is upper or lower case, use the ``lower()`` or ``upper()`` string function.
 
 >>> if line.lower().startswith("vert ")
 
@@ -372,7 +374,7 @@ Value Comparison
 
 Python has two ways to compare values ``a == b`` and ``a is b``,
 the difference is that ``==`` may run the objects comparison function ``__cmp__()`` whereas ``is`` compares identity,
-that both variables reference the same item in memory.
+this is, that both variables reference the same item in memory.
 
 In cases where you know you are checking for the same value which is referenced from multiple places, ``is`` is faster.
 
@@ -380,7 +382,7 @@ In cases where you know you are checking for the same value which is referenced 
 Time Your Code
 --------------
 
-While developing a script it's good to time it to be aware of any changes in performance, this can be done simply.
+While developing a script it is good to time it to be aware of any changes in performance, this can be done simply.
 
 .. code-block:: python
 
@@ -389,5 +391,5 @@ While developing a script it's good to time it to be aware of any changes in per
 
    # do something...
 
-   print("My Script Finished: %.4f sec" % time.time() - time_start)
+   print("My Script Finished: %.4f sec" % (time.time() - time_start))
 
