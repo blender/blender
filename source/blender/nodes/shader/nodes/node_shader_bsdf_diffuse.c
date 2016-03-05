@@ -45,6 +45,8 @@ static int node_shader_gpu_bsdf_diffuse(GPUMaterial *mat, bNode *UNUSED(node), b
 {
 	if (!in[2].link)
 		in[2].link = GPU_builtin(GPU_VIEW_NORMAL);
+	else
+		GPU_link(mat, "direction_transform_m4v3", in[2].link, GPU_builtin(GPU_VIEW_MATRIX), &in[2].link);
 
 	return GPU_stack_link(mat, "node_bsdf_diffuse", in, out);
 }

@@ -46,6 +46,8 @@ static int node_shader_gpu_bsdf_toon(GPUMaterial *mat, bNode *UNUSED(node), bNod
 {
 	if (!in[3].link)
 		in[3].link = GPU_builtin(GPU_VIEW_NORMAL);
+	else
+		GPU_link(mat, "direction_transform_m4v3", in[3].link, GPU_builtin(GPU_VIEW_MATRIX), &in[3].link);
 
 	return GPU_stack_link(mat, "node_bsdf_toon", in, out);
 }
