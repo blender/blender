@@ -45,8 +45,10 @@ static int node_shader_gpu_layer_weight(GPUMaterial *mat, bNode *UNUSED(node), b
 {
 	if (!in[1].link)
 		in[1].link = GPU_builtin(GPU_VIEW_NORMAL);
+	else
+		GPU_link(mat, "direction_transform_m4v3", in[1].link, GPU_builtin(GPU_VIEW_MATRIX), &in[1].link);
 
-	return GPU_stack_link(mat, "node_layer_weight", in, out, GPU_builtin(GPU_VIEW_POSITION), GPU_builtin(GPU_VIEW_MATRIX));
+	return GPU_stack_link(mat, "node_layer_weight", in, out, GPU_builtin(GPU_VIEW_POSITION));
 }
 
 /* node type definition */

@@ -53,6 +53,8 @@ static int node_shader_gpu_bsdf_anisotropic(GPUMaterial *mat, bNode *UNUSED(node
 {
 	if (!in[4].link)
 		in[4].link = GPU_builtin(GPU_VIEW_NORMAL);
+	else
+		GPU_link(mat, "direction_transform_m4v3", in[4].link, GPU_builtin(GPU_VIEW_MATRIX), &in[4].link);
 
 	return GPU_stack_link(mat, "node_bsdf_anisotropic", in, out);
 }
