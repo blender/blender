@@ -48,7 +48,10 @@ static void node_shader_init_normal_map(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int gpu_shader_normal_map(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	return GPU_stack_link(mat, "node_normal_map", in, out, GPU_builtin(GPU_VIEW_NORMAL));
+	GPUNodeLink *normal;
+	GPU_link(mat, "direction_transform_m4v3", GPU_builtin(GPU_VIEW_NORMAL), GPU_builtin(GPU_INVERSE_VIEW_MATRIX), &normal);
+
+	return GPU_stack_link(mat, "node_normal_map", in, out, normal);
 }
 
 /* node type definition */
