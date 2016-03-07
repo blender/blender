@@ -825,6 +825,8 @@ enum {
 	MOD_SHRINKWRAP_CULL_TARGET_BACKFACE  = (1 << 4),
 
 	MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE    = (1 << 5),  /* distance is measure to the front face of the target */
+
+	MOD_SHRINKWRAP_INVERT_VGROUP         = (1 << 6),
 };
 
 /* Shrinkwrap->projAxis */

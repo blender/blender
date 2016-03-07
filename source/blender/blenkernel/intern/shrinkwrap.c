@@ -96,6 +96,11 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 		float *co = calc->vertexCos[i];
 		float tmp_co[3];
 		float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
+
+		if (calc->invert_vgroup) {
+			weight = 1.0f - weight;
+		}
+
 		if (weight == 0.0f) {
 			continue;
 		}
@@ -411,6 +416,11 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 		float *co = calc->vertexCos[i];
 		float tmp_co[3];
 		float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
+
+		if (calc->invert_vgroup) {
+			weight = 1.0f - weight;
+		}
+
 		if (weight == 0.0f) continue;
 
 		/* Convert the vertex to tree coordinates */
@@ -480,6 +490,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 	calc.ob = ob;
 	calc.numVerts = numVerts;
 	calc.vertexCos = vertexCos;
+	calc.invert_vgroup = (smd->shrinkOpts & MOD_SHRINKWRAP_INVERT_VGROUP) != 0;
 
 	/* DeformVertex */
 	calc.vgroup = defgroup_name_index(calc.ob, calc.smd->vgroup_name);
