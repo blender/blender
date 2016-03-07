@@ -848,9 +848,16 @@ typedef struct SimpleDeformModifierData {
 
 	char mode;              /* deform function */
 	char axis;              /* lock axis (for taper and strech) */
-	char pad[2];
+	char flag;
+	char pad;
 
 } SimpleDeformModifierData;
+
+/* SimpleDeform->flag */
+enum {
+	MOD_SIMPLEDEFORM_FLAG_INVERT_VGROUP = (1 << 0),
+};
+
 
 enum {
 	MOD_SIMPLEDEFORM_MODE_TWIST   = 1,
