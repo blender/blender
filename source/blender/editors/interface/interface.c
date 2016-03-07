@@ -4335,7 +4335,15 @@ void UI_but_func_search_set(
 	but->search_func = search_func;
 	but->search_arg = arg;
 	
-	UI_but_func_set(but, bfunc, arg, active);
+	if (bfunc) {
+#ifdef DEBUG
+		if (but->func) {
+			/* watch this, can be cause of much confusion, see: T47691 */
+			printf("%s: warning, overwriting button callback with search function callback!\n", __func__);
+		}
+#endif
+		UI_but_func_set(but, bfunc, arg, active);
+	}
 	
 	/* search buttons show red-alert if item doesn't exist, not for menus */
 	if (0 == (but->block->flag & UI_BLOCK_LOOP)) {
