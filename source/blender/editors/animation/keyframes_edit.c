@@ -295,7 +295,7 @@ static short summary_keyframes_loop(KeyframeEditData *ked, bAnimContext *ac, Key
 			case ALE_FCURVE:
 			default:
 			{
-				if (ked->iterflags) {
+				if (ked && ked->iterflags) {
 					/* make backups of the current values, so that a localised fix
 					 * (e.g. NLA time remapping) can be applied to these values
 					 */
