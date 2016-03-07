@@ -197,17 +197,21 @@ static bool wm_scene_is_visible(wmWindowManager *wm, Scene *scene)
 	return false;
 }
 
-/* context matching */
-/* handle no-ui case */
-
-/* note, this is called on Undo so any slow conversion functions here
- * should be avoided or check (mode!='u') */
-
-static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath)
+/**
+ * Context matching, handle no-ui case
+ *
+ * \note this is called on Undo so any slow conversion functions here
+ * should be avoided or check (mode != LOAD_UNDO).
+ *
+ * \param bfd: Blend file data, freed by this function on exit.
+ * \param filepath: File path or identifier.
+ */
+static void setup_app_data(
+        bContext *C, BlendFileData *bfd,
+        const char *filepath, ReportList *reports)
 {
-	bScreen *curscreen = NULL;
 	Scene *curscene = NULL;
-	int recover;
+	const bool recover = (G.fileflags & G_FILE_RECOVER) != 0;
 	enum {
 		LOAD_UI = 1,
 		LOAD_UI_OFF,
@@ -224,7 +228,13 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 		mode = LOAD_UI;
 	}
 
-	recover = (G.fileflags & G_FILE_RECOVER);
+	if (mode != LOAD_UNDO) {
+		/* may happen with library files */
+		if (ELEM(NULL, bfd->curscreen, bfd->curscene)) {
+			BKE_report(reports, RPT_WARNING, "Library file, loading empty scene");
+			mode = LOAD_UI_OFF;
+		}
+	}
 
 	/* Free all render results, without this stale data gets displayed after loading files */
 	if (mode != LOAD_UNDO) {
@@ -252,6 +262,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 		 * (otherwise we'd be undoing on an off-screen scene which isn't acceptable).
 		 * see: T43424
 		 */
+		bScreen *curscreen = NULL;
 		bool track_undo_scene;
 
 		/* comes from readfile.c */
@@ -265,9 +276,13 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 
 		track_undo_scene = (mode == LOAD_UNDO && curscreen && curscene && bfd->main->wm.first);
 
-		if (curscene == NULL) curscene = bfd->main->scene.first;
+		if (curscene == NULL) {
+			curscene = bfd->main->scene.first;
+		}
 		/* empty file, we add a scene to make Blender work */
-		if (curscene == NULL) curscene = BKE_scene_add(bfd->main, "Empty");
+		if (curscene == NULL) {
+			curscene = BKE_scene_add(bfd->main, "Empty");
+		}
 
 		if (track_undo_scene) {
 			/* keep the old (free'd) scene, let 'blo_lib_link_screen_restore'
@@ -349,7 +364,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	if (CTX_data_scene(C) == NULL) {
 		/* in case we don't even have a local scene, add one */
 		if (!G.main->scene.first)
-			BKE_scene_add(G.main, "Scene");
+			BKE_scene_add(G.main, "Empty");
 
 		CTX_data_scene_set(C, G.main->scene.first);
 		CTX_wm_screen(C)->scene = CTX_data_scene(C);
@@ -373,10 +388,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	BPY_context_update(C);
 #endif
 
-	if (!G.background) {
-		//setscreen(G.curscreen);
-	}
-	
 	/* FIXME: this version patching should really be part of the file-reading code,
 	 * but we still get too many unrelated data-corruption crashes otherwise... */
 	if (G.main->versionfile < 250)
@@ -527,8 +538,9 @@ int BKE_read_file(bContext *C, const char *filepath, ReportList *reports)
 			bfd = NULL;
 			retval = BKE_READ_FILE_FAIL;
 		}
-		else
-			setup_app_data(C, bfd, filepath);  // frees BFD
+		else {
+			setup_app_data(C, bfd, filepath, reports);
+		}
 	}
 	else
 		BKE_reports_prependf(reports, "Loading '%s' failed: ", filepath);
@@ -546,7 +558,7 @@ bool BKE_read_file_from_memory(
 	if (bfd) {
 		if (update_defaults)
 			BLO_update_defaults_startup_blend(bfd->main);
-		setup_app_data(C, bfd, "<memory2>");
+		setup_app_data(C, bfd, "<memory2>", reports);
 	}
 	else {
 		BKE_reports_prepend(reports, "Loading failed: ");
@@ -570,7 +582,7 @@ bool BKE_read_file_from_memfile(
 		while (bfd->main->screen.first)
 			BKE_libblock_free_ex(bfd->main, bfd->main->screen.first, true);
 		
-		setup_app_data(C, bfd, "<memory1>");
+		setup_app_data(C, bfd, "<memory1>", reports);
 	}
 	else {
 		BKE_reports_prepend(reports, "Loading failed: ");
