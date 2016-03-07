@@ -245,7 +245,7 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int frame, int f
 		return (int)GL_INVALID_OPERATION;
 	}
 
-	GPU_create_gl_tex(bind, ibuf->rect, ibuf->rect_float, GL_TEXTURE_2D, ibuf->x, ibuf->y,
+	GPU_create_gl_tex(bind, ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y, GL_TEXTURE_2D,
 	                  (filter != GL_NEAREST && filter != GL_LINEAR), false, image);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (GLint)filter);
