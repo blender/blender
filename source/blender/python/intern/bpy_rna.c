@@ -2837,7 +2837,7 @@ static int prop_subscript_ass_array_slice__bool_recursive(
 
 /* could call (pyrna_py_to_prop_array_index(self, i, value) in a loop but it is slow */
 static int prop_subscript_ass_array_slice(
-        PointerRNA *ptr, PropertyRNA *prop,
+        PointerRNA *ptr, PropertyRNA *prop, int arraydim, int arrayoffset,
         int start, int stop, int length, PyObject *value_orig)
 {
 	const int length_flat = RNA_property_array_length(ptr, prop);
@@ -2866,7 +2866,14 @@ static int prop_subscript_ass_array_slice(
 	int dimsize[3];
 	int totdim = RNA_property_array_dimension(ptr, prop, dimsize);
 	if (totdim > 1) {
-		BLI_assert(dimsize[0] == length);
+		BLI_assert(dimsize[arraydim] == length);
+	}
+
+	int span = 1;
+	if (totdim > 1) {
+		for (int i = arraydim + 1; i < totdim; i++) {
+			span *= dimsize[i];
+		}
 	}
 
 	value_items = PySequence_Fast_ITEMS(value);
@@ -2884,10 +2891,10 @@ static int prop_subscript_ass_array_slice(
 			float range[2];
 			RNA_property_float_range(ptr, prop, &range[0], &range[1]);
 
-			dimsize[0] = stop - start;
+			dimsize[arraydim] = stop - start;
 			prop_subscript_ass_array_slice__float_recursive(
-			        value_items, &values[start],
-			        totdim, dimsize,
+			        value_items, &values[arrayoffset + (start * span)],
+			        totdim - arraydim, &dimsize[arraydim],
 			        range);
 
 			if (PyErr_Occurred()) ret = -1;
@@ -2907,10 +2914,10 @@ static int prop_subscript_ass_array_slice(
 			int range[2];
 			RNA_property_int_range(ptr, prop, &range[0], &range[1]);
 
-			dimsize[0] = stop - start;
+			dimsize[arraydim] = stop - start;
 			prop_subscript_ass_array_slice__int_recursive(
-			        value_items, &values[start],
-			        totdim, dimsize,
+			        value_items, &values[arrayoffset + (start * span)],
+			        totdim - arraydim, &dimsize[arraydim],
 			        range);
 
 			if (PyErr_Occurred()) ret = -1;
@@ -2928,10 +2935,10 @@ static int prop_subscript_ass_array_slice(
 				RNA_property_boolean_get_array(ptr, prop, values);
 			}
 
-			dimsize[0] = stop - start;
+			dimsize[arraydim] = stop - start;
 			prop_subscript_ass_array_slice__bool_recursive(
-			        value_items, &values[start],
-			        totdim, dimsize);
+			        value_items, &values[arrayoffset + (start * span)],
+			        totdim - arraydim, &dimsize[arraydim]);
 
 			if (PyErr_Occurred()) ret = -1;
 			else                  RNA_property_boolean_set_array(ptr, prop, values);
@@ -3005,7 +3012,9 @@ static int pyrna_prop_array_ass_subscript(BPy_PropertyArrayRNA *self, PyObject *
 			ret = 0; /* do nothing */
 		}
 		else if (step == 1) {
-			ret = prop_subscript_ass_array_slice(&self->ptr, self->prop, start, stop, len, value);
+			ret = prop_subscript_ass_array_slice(
+			        &self->ptr, self->prop, self->arraydim, self->arrayoffset,
+			        start, stop, len, value);
 		}
 		else {
 			PyErr_SetString(PyExc_TypeError, "slice steps not supported with rna");
