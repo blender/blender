@@ -62,6 +62,10 @@ static EnumPropertyItem image_source_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include "BKE_global.h"
+
+#include "GPU_draw.h"
+
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -399,7 +403,11 @@ static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
 				((unsigned char *)ibuf->rect)[i] = FTOCHAR(values[i]);
 		}
 
-		ibuf->userflags |= IB_BITMAPDIRTY | IB_DISPLAY_BUFFER_INVALID;
+		ibuf->userflags |= IB_BITMAPDIRTY | IB_DISPLAY_BUFFER_INVALID | IB_MIPMAP_INVALID;
+		if (!G.background) {
+			GPU_free_image(ima);
+		}
+		WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
 	}
 
 	BKE_image_release_ibuf(ima, ibuf, lock);
