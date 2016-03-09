@@ -222,6 +222,7 @@ bool BIF_sk_selectStroke(struct bContext *C, const int mval[2], const bool exten
 
 /* duplicate method */
 void preEditBoneDuplicate(struct ListBase *editbones);
+void postEditBoneDuplicate(struct ListBase *editbones, struct Object *ob);
 struct EditBone *duplicateEditBone(struct EditBone *curBone, const char *name, struct ListBase *editbones, struct Object *ob);
 void updateDuplicateSubtarget(struct EditBone *dupBone, struct ListBase *editbones, struct Object *ob);
 

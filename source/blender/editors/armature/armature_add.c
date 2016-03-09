@@ -38,6 +38,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_ghash.h"
 
 #include "BKE_action.h"
 #include "BKE_constraint.h"
@@ -287,6 +288,66 @@ void preEditBoneDuplicate(ListBase *editbones)
 	ED_armature_ebone_listbase_temp_clear(editbones);
 }
 
+/**
+ * Helper function for #postEditBoneDuplicate,
+ * return the destination pchan from the original.
+ *
+ * \param use_orig_fallback: return the input value if no new channel is found.
+ */
+static bPoseChannel *pchan_duplicate_map(
+        const bPose *pose, GHash *name_map,
+        bPoseChannel *pchan_src, bool use_orig_fallback)
+{
+	bPoseChannel *pchan_dst = NULL;
+	const char *name_src = pchan_src->name;
+	const char *name_dst = BLI_ghash_lookup(name_map, name_src);
+	if (name_dst) {
+		pchan_dst = BKE_pose_channel_find_name(pose, name_dst);
+	}
+
+	if ((pchan_dst == NULL) && use_orig_fallback) {
+		pchan_dst = pchan_src;
+	}
+
+	return pchan_dst;
+}
+
+void postEditBoneDuplicate(struct ListBase *editbones, Object *ob)
+{
+	if (ob->pose == NULL) {
+		return;
+	}
+
+	BKE_pose_channels_hash_free(ob->pose);
+	BKE_pose_channels_hash_make(ob->pose);
+
+	GHash *name_map = BLI_ghash_str_new(__func__);
+
+	for (EditBone *ebone_src = editbones->first; ebone_src; ebone_src = ebone_src->next) {
+		EditBone *ebone_dst = ebone_src->temp.ebone;
+		if (ebone_dst) {
+			BLI_ghash_insert(name_map, ebone_src->name, ebone_dst->name);
+		}
+	}
+
+	for (EditBone *ebone_src = editbones->first; ebone_src; ebone_src = ebone_src->next) {
+		EditBone *ebone_dst = ebone_src->temp.ebone;
+		if (ebone_dst) {
+			bPoseChannel *pchan_src = BKE_pose_channel_find_name(ob->pose, ebone_src->name);
+			if (pchan_src) {
+				bPoseChannel *pchan_dst = BKE_pose_channel_find_name(ob->pose, ebone_dst->name);
+				if (pchan_dst) {
+					if (pchan_src->custom_tx) {
+						pchan_dst->custom_tx = pchan_duplicate_map(ob->pose, name_map, pchan_src->custom_tx, true);
+					}
+				}
+			}
+		}
+	}
+
+	BLI_ghash_free(name_map, NULL, NULL);
+}
+
 /*
  * Note: When duplicating cross objects, editbones here is the list of bones
  * from the SOURCE object but ob is the DESTINATION object
@@ -490,6 +551,8 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
+	postEditBoneDuplicate(arm->edbo, obedit);
+
 	ED_armature_validate_active(arm);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
@@ -686,6 +749,8 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 	if (arm->act_edbone && arm->act_edbone->temp.ebone) {
 		arm->act_edbone = arm->act_edbone->temp.ebone;
 	}
+
+	postEditBoneDuplicate(arm->edbo, obedit);
 
 	ED_armature_validate_active(arm);
 
