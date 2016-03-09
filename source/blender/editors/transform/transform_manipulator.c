@@ -367,7 +367,13 @@ static int calc_manipulator_stats(const bContext *C)
 							calc_tw_center(scene, ebo->tail);
 							totsel++;
 						}
-						if (ebo->flag & BONE_ROOTSEL) {
+						if ((ebo->flag & BONE_ROOTSEL) &&
+						    /* don't include same point multiple times */
+						    ((ebo->flag & BONE_CONNECTED) &&
+						     (ebo->parent != NULL) &&
+						     (ebo->parent->flag & BONE_TIPSEL) &&
+						     EBONE_VISIBLE(arm, ebo->parent)) == 0)
+						{
 							calc_tw_center(scene, ebo->head);
 							totsel++;
 						}
