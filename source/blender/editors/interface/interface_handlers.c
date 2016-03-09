@@ -7769,7 +7769,9 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 		/* XXX curve is temp */
 	}
 	else {
-		data->interactive = true;
+		if ((but->flag & UI_BUT_UPDATE_DELAY) == 0) {
+			data->interactive = true;
+		}
 	}
 	
 	data->state = BUTTON_STATE_INIT;

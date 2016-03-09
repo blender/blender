@@ -181,6 +181,7 @@ enum {
 	UI_BUT_TIP_FORCE       = (1 << 28),  /* force show tooltips when holding option/alt if U's USER_TOOLTIPS is off */
 	UI_BUT_TEXTEDIT_UPDATE = (1 << 29),  /* when widget is in textedit mode, update value on each char stroke */
 	UI_BUT_SEARCH_UNLINK   = (1 << 30),  /* show unlink for search button */
+	UI_BUT_UPDATE_DELAY    = (1 << 31),  /* don't run updates while dragging (needed in rare cases). */
 };
 
 #define UI_PANEL_WIDTH          340
