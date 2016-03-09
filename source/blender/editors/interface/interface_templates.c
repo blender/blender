@@ -3668,6 +3668,9 @@ void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
 			/* operator buttons may store props for use (file selector, [#36492]) */
 			if (but->rnaprop) {
 				UI_but_func_set(but, keymap_item_modified, ptr->data, NULL);
+
+				/* Otherwise the keymap will be re-generated which we're trying to edit, see: T47685 */
+				UI_but_flag_enable(but, UI_BUT_UPDATE_DELAY);
 			}
 		}
 	}
