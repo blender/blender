@@ -670,7 +670,7 @@ NUMPY_SOURCE=( "http://sourceforge.net/projects/numpy/files/NumPy/$NUMPY_VERSION
 
 _boost_version_nodots=`echo "$BOOST_VERSION" | sed -r 's/\./_/g'`
 BOOST_SOURCE=( "http://sourceforge.net/projects/boost/files/boost/$BOOST_VERSION/boost_$_boost_version_nodots.tar.bz2/download" )
-BOOST_BUILD_MODULES="--with-system --with-filesystem --with-thread --with-regex --with-locale --with-date_time --with-wave"
+BOOST_BUILD_MODULES="--with-system --with-filesystem --with-thread --with-regex --with-locale --with-date_time --with-wave --with-iostreams"
 
 OCIO_SOURCE=( "https://github.com/imageworks/OpenColorIO/tarball/v$OCIO_VERSION" )
 
@@ -1090,7 +1090,7 @@ clean_Boost() {
 
 compile_Boost() {
   # To be changed each time we make edits that would modify the compiled result!
-  boost_magic=9
+  boost_magic=10
 
   _init_boost
 
