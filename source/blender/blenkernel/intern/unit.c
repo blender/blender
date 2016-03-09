@@ -467,9 +467,9 @@ static const char *unit_find_str(const char *str, const char *substr)
 			if (str_found) {
 				/* Previous char cannot be a letter. */
 				if (str_found == str ||
-					/* weak unicode support!, so "µm" won't match up be replaced by "m"
-					 * since non ascii utf8 values will NEVER return true */
-					isalpha_or_utf8(*BLI_str_prev_char_utf8(str_found)) == 0)
+				    /* weak unicode support!, so "µm" won't match up be replaced by "m"
+				     * since non ascii utf8 values will NEVER return true */
+				    isalpha_or_utf8(*BLI_str_prev_char_utf8(str_found)) == 0)
 				{
 					/* next char cannot be alphanum */
 					int len_name = strlen(substr);

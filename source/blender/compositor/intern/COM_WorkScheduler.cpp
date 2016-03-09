@@ -51,7 +51,7 @@
 
 /// @brief list of all CPUDevices. for every hardware thread an instance of CPUDevice is created
 static vector<CPUDevice*> g_cpudevices;
-static ThreadLocal(CPUDevice*) g_thread_device;
+static ThreadLocal(CPUDevice *) g_thread_device;
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 /// @brief list of all thread for every CPUDevice in cpudevices a thread exists

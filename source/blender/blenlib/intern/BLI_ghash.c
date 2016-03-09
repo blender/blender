@@ -607,7 +607,7 @@ static Entry *ghash_pop(GHash *gh, GHashIterState *state)
 	}
 
 	/* Note: using first_bucket_index here allows us to avoid potential huge number of loops over buckets,
-	 *       in case we are poping from a large ghash with few items in it... */
+	 *       in case we are popping from a large ghash with few items in it... */
 	curr_bucket = ghash_find_next_bucket_index(gh, curr_bucket);
 
 	Entry *e = gh->buckets[curr_bucket];
@@ -915,12 +915,12 @@ bool BLI_ghash_haskey(GHash *gh, const void *key)
 }
 
 /**
- * Remove a random entry from \a ghp, returning true if a key/value pair could be removed, false otherwise.
+ * Remove a random entry from \a gh, returning true if a key/value pair could be removed, false otherwise.
  *
  * \param r_key: The removed key.
  * \param r_val: The removed value.
  * \param state: Used for efficient removal.
- * \return true if there was somethjing to pop, false if ghash was already empty.
+ * \return true if there was something to pop, false if ghash was already empty.
  */
 bool BLI_ghash_pop(
         GHash *gh, GHashIterState *state,
@@ -1437,7 +1437,7 @@ bool BLI_gset_haskey(GSet *gs, const void *key)
 }
 
 /**
- * Remove a random entry from \a gsp, returning true if a key could be removed, false otherwise.
+ * Remove a random entry from \a gs, returning true if a key could be removed, false otherwise.
  *
  * \param r_key: The removed key.
  * \param state: Used for efficient removal.
