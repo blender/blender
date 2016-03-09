@@ -274,6 +274,10 @@ static void snode_autoconnect(SpaceNode *snode, const bool allow_multiple, const
 
 		node_fr = nli->node;
 		node_to = nli->next->node;
+		/* corner case: input/output node aligned the wrong way around (T47729) */
+		if (BLI_listbase_is_empty(&node_to->inputs) || BLI_listbase_is_empty(&node_fr->outputs)) {
+			SWAP(bNode *, node_fr, node_to);
+		}
 
 		/* if there are selected sockets, connect those */
 		for (sock_to = node_to->inputs.first; sock_to; sock_to = sock_to->next) {
