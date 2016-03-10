@@ -329,6 +329,16 @@ void ED_space_image_scopes_update(const struct bContext *C, struct SpaceImage *s
 		return;
 	if (ob && ((ob->mode & (OB_MODE_TEXTURE_PAINT | OB_MODE_EDIT)) != 0))
 		return;
+
+	/* We also don't update scopes of render result during render. */
+	if (G.is_rendering) {
+		const Image *image = sima->image;
+		if (image != NULL &&
+		    (image->type == IMA_TYPE_R_RESULT || image->type == IMA_TYPE_COMPOSITE))
+		{
+			return;
+		}
+	}
 	
 	scopes_update(&sima->scopes, ibuf, use_view_settings ? &scene->view_settings : NULL, &scene->display_settings);
 }
