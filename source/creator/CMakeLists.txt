@@ -593,7 +593,6 @@ if(UNIX AND NOT APPLE)
 					PATTERN "__pycache__" EXCLUDE           # * any cache *
 					PATTERN "*.pyc" EXCLUDE                 # * any cache *
 					PATTERN "*.pyo" EXCLUDE                 # * any cache *
-					PATTERN "cacert.pem" EXCLUDE            # for now we don't deal with security
 				)
 				# On some platforms requests does have extra dependencies.
 				set(_requests_deps "chardet" "urllib3")
