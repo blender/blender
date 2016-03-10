@@ -600,7 +600,7 @@ static int startffmpeg(struct anim *anim)
 	        anim->x,
 	        anim->y,
 	        AV_PIX_FMT_RGBA,
-	        SWS_FAST_BILINEAR | SWS_PRINT_INFO | SWS_FULL_CHR_H_INT,
+	        SWS_FAST_BILINEAR | SWS_PRINT_INFO | SWS_FULL_CHR_H_INT | SWS_ACCURATE_RND,
 	        NULL, NULL, NULL);
 		
 	if (!anim->img_convert_ctx) {
