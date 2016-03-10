@@ -230,9 +230,11 @@ void RE_texture_rng_init() RET_NONE
 void RE_texture_rng_exit() RET_NONE
 
 bool RE_layers_have_name(struct RenderResult *result) {STUB_ASSERT(0); return 0;}
+const char *RE_engine_active_view_get(struct RenderEngine *engine) RET_NULL
 void RE_engine_active_view_set(struct RenderEngine *engine, const char *viewname) {STUB_ASSERT(0);}
-void RE_engine_get_camera_model_matrix(struct RenderEngine *engine, struct Object *camera, float *r_modelmat) {STUB_ASSERT(0);}
-float RE_engine_get_camera_shift_x(struct RenderEngine *engine, struct Object *camera) RET_ZERO
+void RE_engine_get_camera_model_matrix(struct RenderEngine *engine, struct Object *camera, int use_spherical_stereo, float *r_modelmat) {STUB_ASSERT(0);}
+float RE_engine_get_camera_shift_x(struct RenderEngine *engine, struct Object *camera, int use_spherical_stereo) RET_ZERO
+int RE_engine_get_spherical_stereo(struct RenderEngine *engine, struct Object *camera) RET_ZERO
 void RE_SetActiveRenderView(struct Render *re, const char *viewname) {STUB_ASSERT(0);}
 
 struct RenderPass *RE_pass_find_by_type(volatile struct RenderLayer *rl, int passtype, const char *viewname) RET_NULL

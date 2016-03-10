@@ -901,6 +901,11 @@ typedef struct KernelCamera {
 	float fisheye_lens;
 	float4 equirectangular_range;
 
+	/* stereo */
+	int pad1, pad2;
+	float interocular_offset;
+	float convergence_distance;
+
 	/* matrices */
 	Transform cameratoworld;
 	Transform rastertocamera;

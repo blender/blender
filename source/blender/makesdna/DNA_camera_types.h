@@ -51,7 +51,8 @@ typedef struct CameraStereoSettings {
 	float convergence_distance;
 	short convergence_mode;
 	short pivot;
-	short pad, pad2;
+	short flag;
+	short pad;
 } CameraStereoSettings;
 
 typedef struct Camera {
@@ -146,6 +147,11 @@ enum {
 	CAM_S3D_PIVOT_LEFT      = 0,
 	CAM_S3D_PIVOT_RIGHT     = 1,
 	CAM_S3D_PIVOT_CENTER    = 2,
+};
+
+/* stereo->flag */
+enum {
+	CAM_S3D_SPHERICAL       = (1 << 0),
 };
 
 #ifdef __cplusplus

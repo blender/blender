@@ -59,6 +59,13 @@ public:
 		ROLLING_SHUTTER_NUM_TYPES,
 	};
 
+	/* Stereo Type */
+	enum StereoEye {
+		STEREO_NONE,
+		STEREO_LEFT,
+		STEREO_RIGHT,
+	};
+
 	/* motion blur */
 	float shuttertime;
 	MotionPosition motion_position;
@@ -91,6 +98,12 @@ public:
 	float latitude_max;
 	float longitude_min;
 	float longitude_max;
+
+	/* panorama stereo */
+	StereoEye stereo_eye;
+	bool use_spherical_stereo;
+	float interocular_distance;
+	float convergence_distance;
 
 	/* anamorphic lens bokeh */
 	float aperture_ratio;

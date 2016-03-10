@@ -359,6 +359,10 @@ static void xml_read_camera(const XMLReadState& state, pugi::xml_node node)
 	xml_read_float(&cam->fisheye_fov, node, "fisheye_fov");
 	xml_read_float(&cam->fisheye_lens, node, "fisheye_lens");
 
+	xml_read_float(&cam->use_spherical_stereo, node, "use_spherical_stereo");
+	xml_read_float(&cam->interocular_distance, node, "interocular_distance");
+	xml_read_float(&cam->convergence_distance, node, "convergence_distance");
+
 	xml_read_float(&cam->sensorwidth, node, "sensorwidth");
 	xml_read_float(&cam->sensorheight, node, "sensorheight");
 

@@ -43,6 +43,7 @@ class CyclesRender(bpy.types.RenderEngine):
     bl_use_preview = True
     bl_use_exclude_layers = True
     bl_use_save_buffers = True
+    bl_use_spherical_stereo = True
 
     def __init__(self):
         self.session = None

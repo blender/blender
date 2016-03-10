@@ -153,7 +153,6 @@ void BlenderSession::create_session()
 		 * do some basic syncing here, no objects or materials for speed */
 		sync->sync_render_layers(b_v3d, NULL);
 		sync->sync_integrator();
-		sync->sync_camera(b_render, b_camera_override, width, height);
 	}
 
 	/* set buffer parameters */
@@ -206,10 +205,8 @@ void BlenderSession::reset_session(BL::BlendData& b_data_, BL::Scene& b_scene_)
 
 	/* for final render we will do full data sync per render layer, only
 	 * do some basic syncing here, no objects or materials for speed */
-	BL::Object b_camera_override(b_engine.camera_override());
 	sync->sync_render_layers(b_v3d, NULL);
 	sync->sync_integrator();
-	sync->sync_camera(b_render, b_camera_override, width, height);
 
 	BL::SpaceView3D b_null_space_view3d(PointerRNA_NULL);
 	BL::RegionView3D b_null_region_view3d(PointerRNA_NULL);
@@ -502,7 +499,7 @@ void BlenderSession::render()
 
 			/* update scene */
 			BL::Object b_camera_override(b_engine.camera_override());
-			sync->sync_camera(b_render, b_camera_override, width, height);
+			sync->sync_camera(b_render, b_camera_override, width, height, b_rview_name.c_str());
 			sync->sync_data(b_render,
 			                b_v3d,
 			                b_camera_override,
@@ -642,7 +639,7 @@ void BlenderSession::bake(BL::Object& b_object,
 
 	/* update scene */
 	BL::Object b_camera_override(b_engine.camera_override());
-	sync->sync_camera(b_render, b_camera_override, width, height);
+	sync->sync_camera(b_render, b_camera_override, width, height, "");
 	sync->sync_data(b_render,
 	                b_v3d,
 	                b_camera_override,
@@ -808,7 +805,7 @@ void BlenderSession::synchronize()
 	if(b_rv3d)
 		sync->sync_view(b_v3d, b_rv3d, width, height);
 	else
-		sync->sync_camera(b_render, b_camera_override, width, height);
+		sync->sync_camera(b_render, b_camera_override, width, height, "");
 
 	/* unlock */
 	session->scene->mutex.unlock();
