@@ -199,17 +199,21 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
 	fflush(stdout);
 }
 
-static void render_print_save_message(const char *name, int ok, int err)
+static void render_print_save_message(
+        ReportList *reports, const char *name, int ok, int err)
 {
 	if (ok) {
+		/* no need to report, just some helpful console info */
 		printf("Saved: '%s'\n", name);
 	}
 	else {
-		printf("Render error (%s) cannot save: '%s'\n", strerror(err), name);
+		/* report on error since users will want to know what failed */
+		BKE_reportf(reports, RPT_ERROR, "Render error (%s) cannot save: '%s'", strerror(err), name);
 	}
 }
 
 static int render_imbuf_write_stamp_test(
+        ReportList *reports,
         Scene *scene, struct RenderResult *rr, ImBuf *ibuf, const char *name,
         const ImageFormatData *imf, bool stamp)
 {
@@ -223,7 +227,7 @@ static int render_imbuf_write_stamp_test(
 		ok = BKE_imbuf_write(ibuf, name, imf);
 	}
 
-	render_print_save_message(name, ok, errno);
+	render_print_save_message(reports, name, ok, errno);
 
 	return ok;
 }
@@ -3266,7 +3270,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 	    rd->im_format.views_format == R_IMF_VIEWS_MULTIVIEW)
 	{
 		ok = RE_WriteRenderResult(reports, rr, name, &rd->im_format, true, NULL);
-		render_print_save_message(name, ok, errno);
+		render_print_save_message(reports, name, ok, errno);
 	}
 
 	/* mono, legacy code */
@@ -3285,7 +3289,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 
 			if (rd->im_format.imtype == R_IMF_IMTYPE_MULTILAYER) {
 				ok = RE_WriteRenderResult(reports, rr, name, &rd->im_format, false, rv->name);
-				render_print_save_message(name, ok, errno);
+				render_print_save_message(reports, name, ok, errno);
 			}
 			else {
 				ImBuf *ibuf = render_result_rect_to_ibuf(rr, rd, view_id);
@@ -3293,7 +3297,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 				IMB_colormanagement_imbuf_for_write(ibuf, true, false, &scene->view_settings,
 				                                    &scene->display_settings, &rd->im_format);
 
-				ok = render_imbuf_write_stamp_test(scene, rr, ibuf, name, &rd->im_format, stamp);
+				ok = render_imbuf_write_stamp_test(reports, scene, rr, ibuf, name, &rd->im_format, stamp);
 
 				/* optional preview images for exr */
 				if (ok && rd->im_format.imtype == R_IMF_IMTYPE_OPENEXR && (rd->im_format.flag & R_IMF_FLAG_PREVIEW_JPG)) {
@@ -3308,7 +3312,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 					IMB_colormanagement_imbuf_for_write(ibuf, true, false, &scene->view_settings,
 					                                    &scene->display_settings, &imf);
 
-					ok = render_imbuf_write_stamp_test(scene, rr, ibuf, name, &imf, stamp);
+					ok = render_imbuf_write_stamp_test(reports, scene, rr, ibuf, name, &imf, stamp);
 				}
 
 				/* imbuf knows which rects are not part of ibuf */
@@ -3337,7 +3341,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 
 			ibuf_arr[2] = IMB_stereo3d_ImBuf(&scene->r.im_format, ibuf_arr[0], ibuf_arr[1]);
 
-			ok = render_imbuf_write_stamp_test(scene, rr, ibuf_arr[2], name, &rd->im_format, stamp);
+			ok = render_imbuf_write_stamp_test(reports, scene, rr, ibuf_arr[2], name, &rd->im_format, stamp);
 
 			/* optional preview images for exr */
 			if (ok && rd->im_format.imtype == R_IMF_IMTYPE_OPENEXR &&
@@ -3355,7 +3359,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 				IMB_colormanagement_imbuf_for_write(ibuf_arr[2], true, false, &scene->view_settings,
 				                                    &scene->display_settings, &imf);
 
-				ok = render_imbuf_write_stamp_test(scene, rr, ibuf_arr[2], name, &rd->im_format, stamp);
+				ok = render_imbuf_write_stamp_test(reports, scene, rr, ibuf_arr[2], name, &rd->im_format, stamp);
 			}
 
 			/* imbuf knows which rects are not part of ibuf */
