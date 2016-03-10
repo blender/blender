@@ -503,40 +503,23 @@ endif()
 # Apple
 
 if(APPLE)
-	if(${CMAKE_VERSION} VERSION_LESS 3.0) # else breaks setting CMP0043 policy
-		cmake_minimum_required(VERSION 2.8.8)
-		cmake_policy(VERSION 2.8.8)
-	endif()
+	# require newer cmake on osx because of version handling,
+	# older cmake cannot handle 2 digit subversion!
+	cmake_minimum_required(VERSION 3.0.0)
 
 	if(NOT CMAKE_OSX_ARCHITECTURES)
 		set(CMAKE_OSX_ARCHITECTURES x86_64 CACHE STRING
 		"Choose the architecture you want to build Blender for: i386, x86_64 or ppc"
 		FORCE)
 	endif()
-	
-	execute_process(COMMAND uname -r OUTPUT_VARIABLE MAC_SYS) # check for actual system-version
-	if(${MAC_SYS} MATCHES 15)
-		set(OSX_SYSTEM 10.11)
-		# throw an error here, older cmake cannot handle 2 digit subversion!
-		cmake_minimum_required(VERSION 3.0.0)
-	elseif(${MAC_SYS} MATCHES 14)
-		set(OSX_SYSTEM 10.10)
-		# throw an error here, older cmake cannot handle 2 digit subversion!
-		cmake_minimum_required(VERSION 3.0.0)
-	elseif(${MAC_SYS} MATCHES 13)
-		set(OSX_SYSTEM 10.9)
-	elseif(${MAC_SYS} MATCHES 12)
-		set(OSX_SYSTEM 10.8)
-	elseif(${MAC_SYS} MATCHES 11)
-		set(OSX_SYSTEM 10.7)
-	elseif(${MAC_SYS} MATCHES 10)
-		set(OSX_SYSTEM 10.6)
-	elseif(${MAC_SYS} MATCHES 9)
-		set(OSX_SYSTEM 10.5)
-	else()
-		set(OSX_SYSTEM unsupported)
+
+	if(NOT DEFINED OSX_SYSTEM)
+		execute_process(
+		        COMMAND xcodebuild -version -sdk macosx SDKVersion
+		        OUTPUT_VARIABLE OSX_SYSTEM
+		        OUTPUT_STRIP_TRAILING_WHITESPACE)
 	endif()
-	
+
 	# workaround for incorrect cmake xcode lookup for developer previews - XCODE_VERSION does not take xcode-select path into accout
 	# but would always look into /Applications/Xcode.app while dev versions are named Xcode<version>-DP<preview_number>
 	execute_process(COMMAND xcode-select --print-path  OUTPUT_VARIABLE XCODE_CHECK OUTPUT_STRIP_TRAILING_WHITESPACE)
