@@ -990,11 +990,51 @@ void txt_move_down(Text *text, const bool sel)
 	if (!sel) txt_pop_sel(text);
 }
 
+int txt_calc_tab_left(TextLine *tl, int ch)
+{
+	/* do nice left only if there are only spaces */
+
+	int tabsize = (ch < TXT_TABSIZE) ? ch : TXT_TABSIZE;
+
+	for (int i = 0; i < ch; i++)
+		if (tl->line[i] != ' ') {
+			tabsize = 0;
+			break;
+		}
+
+	/* if in the middle of the space-tab */
+	if (tabsize && ch % TXT_TABSIZE != 0)
+		tabsize = (ch % TXT_TABSIZE);
+	return tabsize;
+}
+
+int txt_calc_tab_right(TextLine *tl, int ch)
+{
+	if (tl->line[ch] == ' ') {
+		int i;
+		for (i = 0; i < ch; i++) {
+			if (tl->line[i] != ' ') {
+				return 0;
+			}
+		}
+
+		int tabsize = (ch) % TXT_TABSIZE + 1;
+		for (i = ch + 1; tl->line[i] == ' ' && tabsize < TXT_TABSIZE; i++) {
+			tabsize++;
+		}
+
+		return i - ch;
+	}
+	else {
+		return 0;
+	}
+}
+
 void txt_move_left(Text *text, const bool sel)
 {
 	TextLine **linep;
 	int *charp;
-	int tabsize = 0, i = 0;
+	int tabsize = 0;
 
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else { txt_pop_first(text); txt_curs_cur(text, &linep, &charp); }
@@ -1007,24 +1047,15 @@ void txt_move_left(Text *text, const bool sel)
 		}
 	}
 	else {
-		// do nice left only if there are only spaces
+		/* do nice left only if there are only spaces */
 		// TXT_TABSIZE hardcoded in DNA_text_types.h
 		if (text->flags & TXT_TABSTOSPACES) {
-			tabsize = (*charp < TXT_TABSIZE) ? *charp : TXT_TABSIZE;
-			
-			for (i = 0; i < (*charp); i++)
-				if ((*linep)->line[i] != ' ') {
-					tabsize = 0;
-					break;
-				}
-			
-			// if in the middle of the space-tab
-			if (tabsize && (*charp) % TXT_TABSIZE != 0)
-				tabsize = ((*charp) % TXT_TABSIZE);
+			tabsize = txt_calc_tab_left(*linep, *charp);
 		}
 		
-		if (tabsize)
+		if (tabsize) {
 			(*charp) -= tabsize;
+		}
 		else {
 			const char *prev = BLI_str_prev_char_utf8((*linep)->line + *charp);
 			*charp = prev - (*linep)->line;
@@ -1037,8 +1068,7 @@ void txt_move_left(Text *text, const bool sel)
 void txt_move_right(Text *text, const bool sel)
 {
 	TextLine **linep;
-	int *charp, i;
-	bool do_tab = false;
+	int *charp;
 
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else { txt_pop_last(text); txt_curs_cur(text, &linep, &charp); }
@@ -1051,22 +1081,16 @@ void txt_move_right(Text *text, const bool sel)
 		}
 	}
 	else {
-		// do nice right only if there are only spaces
-		// spaces hardcoded in DNA_text_types.h
-		if (text->flags & TXT_TABSTOSPACES && (*linep)->line[*charp] == ' ') {
-			do_tab = true;
-			for (i = 0; i < *charp; i++)
-				if ((*linep)->line[i] != ' ') {
-					do_tab = false;
-					break;
-				}
+		/* do nice right only if there are only spaces */
+		/* spaces hardcoded in DNA_text_types.h */
+		int tabsize = 0;
+
+		if (text->flags & TXT_TABSTOSPACES) {
+			tabsize = txt_calc_tab_right(*linep, *charp);
 		}
 		
-		if (do_tab) {
-			int tabsize = (*charp) % TXT_TABSIZE + 1;
-			for (i = *charp + 1; (*linep)->line[i] == ' ' && tabsize < TXT_TABSIZE; i++)
-				tabsize++;
-			(*charp) = i;
+		if (tabsize) {
+			(*charp) += tabsize;
 		}
 		else {
 			(*charp) += BLI_str_utf8_size((*linep)->line + *charp);
