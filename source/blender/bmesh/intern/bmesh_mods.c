@@ -600,7 +600,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 	BMFace **oldfaces = NULL;
 	BMEdge *e_dummy;
 	BLI_array_staticdeclare(oldfaces, 32);
-	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+	const int cd_loop_mdisp_offset = BM_edge_is_wire(e) ? -1 : CustomData_get_offset(&bm->ldata, CD_MDISPS);
 
 	BLI_assert(BM_vert_in_edge(e, v) == true);
 
