@@ -115,16 +115,13 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 	/* ray differential */
 	ray->dP = differential3_zero();
 
-	tP = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
-	tD = transform_direction(&cameratoworld, tP);
-	float3 Pdiff = spherical_stereo_position(kg, tD, tP);
-	float3 Ddiff = normalize(spherical_stereo_direction(kg, tD, tP, Pdiff));
+	const float3 Ddiff = normalize(ray->D);
 
 	tP = transform_perspective(&rastertocamera, make_float3(raster_x + 1.0f, raster_y, 0.0f));
 	tD = transform_direction(&cameratoworld, tP);
 	Pcamera = spherical_stereo_position(kg, tD, tP);
 	ray->dD.dx = normalize(spherical_stereo_direction(kg, tD, tP, Pcamera)) - Ddiff;
-	ray->dP.dx = Pcamera - Pdiff;
+	ray->dP.dx = Pcamera - ray->P;
 
 	tP = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y + 1.0f, 0.0f));
 	tD = transform_direction(&cameratoworld, tP);
