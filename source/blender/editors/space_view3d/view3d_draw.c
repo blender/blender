@@ -3304,7 +3304,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 {
 	RegionView3D *rv3d = ar->regiondata;
 	ImBuf *ibuf;
-	const bool draw_sky = (alpha_mode == R_ADDSKY) && v3d && (v3d->flag3 & V3D_SHOW_WORLD);
+	const bool draw_sky = (alpha_mode == R_ADDSKY);
 	const bool own_ofs = (ofs == NULL);
 
 	/* view state */
