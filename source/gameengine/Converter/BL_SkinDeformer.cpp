@@ -153,7 +153,10 @@ void BL_SkinDeformer::Relink(CTR_Map<class CTR_HashedPtr, void*>*map)
 bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
 {
 	// We do everything in UpdateInternal() now so we can thread it.
-	return false;
+	// All that is left is telling the rasterizer if we've changed the mesh
+	bool retval = !m_poseApplied;
+	m_poseApplied = true;
+	return retval;
 }
 
 RAS_Deformer *BL_SkinDeformer::GetReplica()
@@ -358,6 +361,8 @@ bool BL_SkinDeformer::UpdateInternal(bool shape_applied)
 		m_bDynamic = true;
 
 		UpdateTransverts();
+
+		m_poseApplied = false;
 
 		/* indicate that the m_transverts and normals are up to date */
 		return true;
