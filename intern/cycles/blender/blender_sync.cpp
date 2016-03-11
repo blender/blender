@@ -546,7 +546,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 		else {
 			params.samples = preview_aa_samples;
 			if(params.samples == 0)
-				params.samples = USHRT_MAX;
+				params.samples = INT_MAX;
 		}
 	}
 	else {
@@ -556,7 +556,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 		else {
 			params.samples = preview_samples;
 			if(params.samples == 0)
-				params.samples = USHRT_MAX;
+				params.samples = INT_MAX;
 		}
 	}
 
