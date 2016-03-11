@@ -62,6 +62,8 @@ private:
 	void*			uv_offset;
 };
 
+typedef std::map<RAS_DisplayArray*, VBO*> VBOMap;
+
 class RAS_StorageVBO : public RAS_IStorage
 {
 
@@ -86,7 +88,7 @@ protected:
 	RAS_IRasterizer::TexCoGen*		m_attrib;
 	int*			                m_attrib_layer;
 
-	std::map<RAS_DisplayArray*, class VBO*>	m_vbo_lookup;
+	VBOMap			m_vbo_lookup;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 public:

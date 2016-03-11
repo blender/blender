@@ -193,6 +193,11 @@ bool RAS_StorageVBO::Init()
 
 void RAS_StorageVBO::Exit()
 {
+	VBOMap::iterator it = m_vbo_lookup.begin();
+	while (it != m_vbo_lookup.end()) {
+		delete it->second;
+		++it;
+	}
 	m_vbo_lookup.clear();
 }
 
