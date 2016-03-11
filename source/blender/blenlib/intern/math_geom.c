@@ -4837,55 +4837,62 @@ float form_factor_hemi_poly(float p[3], float n[3], float v1[3], float v2[3], fl
 	return contrib;
 }
 
-/* evaluate if entire quad is a proper convex quad */
+/**
+ * Evaluate if entire quad is a proper convex quad
+ */
 bool is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])
 {
-	float nor[3], nor_a[3], nor_b[3], vec[4][2];
-	float mat[3][3];
-	const bool is_ok_a = (normal_tri_v3(nor_a, v1, v2, v3) > FLT_EPSILON);
-	const bool is_ok_b = (normal_tri_v3(nor_b, v1, v3, v4) > FLT_EPSILON);
+	/**
+	 * Method projects points onto a plane and checks its convex using following method:
+	 *
+	 * - Create a plane from the cross-product of both diagonal vectors.
+	 * - Project all points onto the plane.
+	 * - Subtract for direction vectors.
+	 * - Return true if all corners cross-products have the same relative direction as the plane
+	 *   (all positive or all negative).
+	 */
 
-	/* define projection, do both trias apart, quad is undefined! */
+	/* non-unit length normal, used as a projection plane */
+	float plane[3];
 
-	/* check normal length incase one size is zero area */
-	if (is_ok_a) {
-		if (is_ok_b) {
-			/* use both, most common outcome */
+	{
+		float v13[3], v24[3];
 
-			/* when the face is folded over as 2 tris we probably don't want to create
-			 * a quad from it, but go ahead with the intersection test since this
-			 * isn't a function for degenerate faces */
-			if (UNLIKELY(dot_v3v3(nor_a, nor_b) < 0.0f)) {
-				/* flip so adding normals in the opposite direction
-				 * doesn't give a zero length vector */
-				negate_v3(nor_b);
-			}
+		sub_v3_v3v3(v13, v1, v3);
+		sub_v3_v3v3(v24, v2, v4);
 
-			add_v3_v3v3(nor, nor_a, nor_b);
-			normalize_v3(nor);
-		}
-		else {
-			copy_v3_v3(nor, nor_a);  /* only 'a' */
-		}
-	}
-	else {
-		if (is_ok_b) {
-			copy_v3_v3(nor, nor_b);  /* only 'b' */
-		}
-		else {
-			return false;  /* both zero, we can't do anything useful here */
+		cross_v3_v3v3(plane, v13, v24);
+
+		if (len_squared_v3(plane) < FLT_EPSILON) {
+			return false;
 		}
 	}
 
-	axis_dominant_v3_to_m3(mat, nor);
+	const float *quad_coords[4] = {v1, v2, v3, v4};
+	float        quad_proj[4][3];
 
-	mul_v2_m3v3(vec[0], mat, v1);
-	mul_v2_m3v3(vec[1], mat, v2);
-	mul_v2_m3v3(vec[2], mat, v3);
-	mul_v2_m3v3(vec[3], mat, v4);
+	for (int i = 0; i < 4; i++) {
+		project_plane_v3_v3v3(quad_proj[i], quad_coords[i], plane);
+	}
 
-	/* linetests, the 2 diagonals have to instersect to be convex */
-	return (isect_seg_seg_v2(vec[0], vec[2], vec[1], vec[3]) > 0);
+	float        quad_dirs[4][3];
+	for (int i = 0, j = 3; i < 4; j = i++) {
+		sub_v3_v3v3(quad_dirs[i], quad_proj[i], quad_proj[j]);
+	}
+
+	int test;
+	float test_dir[3];
+
+#define CROSS_SIGNUM(dir_a, dir_b) \
+	((void)cross_v3_v3v3(test_dir, dir_a, dir_b), signum_i(dot_v3v3(plane, test_dir)))
+
+	/* first assignment, then compare all others match */
+	return ((test =  CROSS_SIGNUM(quad_dirs[0], quad_dirs[1])) &&
+	        (test == CROSS_SIGNUM(quad_dirs[1], quad_dirs[2])) &&
+	        (test == CROSS_SIGNUM(quad_dirs[2], quad_dirs[3])) &&
+	        (test == CROSS_SIGNUM(quad_dirs[3], quad_dirs[0])));
+
+#undef CROSS_SIGNUM
 }
 
 bool is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
