@@ -1528,21 +1528,19 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 
 		/* check for empty path */
 		if (guess_path && simopts->filepath[0] == 0) {
-			const bool is_pref_save = !STREQ(G.ima, "//");
-			RenderResult *rr = BKE_image_acquire_renderresult(scene, ima);
+			const bool is_prev_save = !STREQ(G.ima, "//");
 			if (save_as_render) {
-				const int cfra = rr ? rr->framenr : scene->r.cfra;
-				BKE_image_path_from_imformat(
-				        simopts->filepath, scene->r.pic, G.main->name, cfra,
-				        &simopts->im_format, (scene->r.scemode & R_EXTENSION) != 0, true, NULL);
-
-				if (rr) {
-					BKE_image_release_renderresult(scene, ima);
+				if (is_prev_save) {
+					BLI_strncpy(simopts->filepath, G.ima, sizeof(simopts->filepath));
+				}
+				else {
+					BLI_strncpy(simopts->filepath, "//untitled", sizeof(simopts->filepath));
+					BLI_path_abs(simopts->filepath, G.main->name);
 				}
 			}
 			else {
 				BLI_snprintf(simopts->filepath, sizeof(simopts->filepath), "//%s", ima->id.name + 2);
-				BLI_path_abs(simopts->filepath, is_pref_save ? G.ima : G.main->name);
+				BLI_path_abs(simopts->filepath, is_prev_save ? G.ima : G.main->name);
 			}
 		}
 

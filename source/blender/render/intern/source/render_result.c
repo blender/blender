@@ -605,7 +605,6 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	rr->renrect.xmin = 0; rr->renrect.xmax = rectx - 2 * crop;
 	/* crop is one or two extra pixels rendered for filtering, is used for merging and display too */
 	rr->crop = crop;
-	rr->framenr = re->r.cfra;
 
 	/* tilerect is relative coordinates within render disprect. do not subtract crop yet */
 	rr->tilerect.xmin = partrct->xmin - re->disprect.xmin;
