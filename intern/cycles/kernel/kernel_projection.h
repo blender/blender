@@ -247,15 +247,20 @@ ccl_device float3 spherical_stereo_direction(KernelGlobals *kg,
                                              float3 pos,
                                              float3 newpos)
 {
+	const float convergence_distance = kernel_data.cam.convergence_distance;
 	const float3 normalized_dir = normalize(dir);
 	/* Interocular offset of zero means either no stereo, or stereo without
 	 * spherical stereo.
+	 * Convergence distance is FLT_MAX in the case of parallel convergence mode,
+	 * no need to mdify direction in this case either.
 	 */
-	if(kernel_data.cam.interocular_offset == 0.0f) {
+	if(kernel_data.cam.interocular_offset == 0.0f ||
+	   convergence_distance == FLT_MAX)
+	{
 		return normalized_dir;
 	}
 
-	float3 screenpos = pos + (normalized_dir * kernel_data.cam.convergence_distance);
+	float3 screenpos = pos + (normalized_dir * convergence_distance);
 	return normalize(screenpos - newpos);
 }
 
