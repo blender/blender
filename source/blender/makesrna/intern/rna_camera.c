@@ -139,7 +139,7 @@ static void rna_def_camera_stereo_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "convergence_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0.00001f, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.0f, 15.f, 1, 2);
+	RNA_def_property_ui_range(prop, 0.00001f, 15.f, 1, 2);
 	RNA_def_property_ui_text(prop, "Convergence Plane Distance",
 	                         "The converge point for the stereo cameras "
 	                         "(often the distance between a projector and the projection screen)");
