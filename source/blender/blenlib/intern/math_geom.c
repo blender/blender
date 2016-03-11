@@ -4848,8 +4848,7 @@ bool is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], 
 	 * - Create a plane from the cross-product of both diagonal vectors.
 	 * - Project all points onto the plane.
 	 * - Subtract for direction vectors.
-	 * - Return true if all corners cross-products have the same relative direction as the plane
-	 *   (all positive or all negative).
+	 * - Return true if all corners cross-products point the direction of the plane.
 	 */
 
 	/* non-unit length normal, used as a projection plane */
@@ -4880,19 +4879,17 @@ bool is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], 
 		sub_v3_v3v3(quad_dirs[i], quad_proj[i], quad_proj[j]);
 	}
 
-	int test;
 	float test_dir[3];
 
-#define CROSS_SIGNUM(dir_a, dir_b) \
-	((void)cross_v3_v3v3(test_dir, dir_a, dir_b), signum_i(dot_v3v3(plane, test_dir)))
+#define CROSS_SIGN(dir_a, dir_b) \
+	((void)cross_v3_v3v3(test_dir, dir_a, dir_b), (dot_v3v3(plane, test_dir) > 0.0f))
 
-	/* first assignment, then compare all others match */
-	return ((test =  CROSS_SIGNUM(quad_dirs[0], quad_dirs[1])) &&
-	        (test == CROSS_SIGNUM(quad_dirs[1], quad_dirs[2])) &&
-	        (test == CROSS_SIGNUM(quad_dirs[2], quad_dirs[3])) &&
-	        (test == CROSS_SIGNUM(quad_dirs[3], quad_dirs[0])));
+	return (CROSS_SIGN(quad_dirs[0], quad_dirs[1]) &&
+	        CROSS_SIGN(quad_dirs[1], quad_dirs[2]) &&
+	        CROSS_SIGN(quad_dirs[2], quad_dirs[3]) &&
+	        CROSS_SIGN(quad_dirs[3], quad_dirs[0]));
 
-#undef CROSS_SIGNUM
+#undef CROSS_SIGN
 }
 
 bool is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
