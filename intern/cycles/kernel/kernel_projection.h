@@ -241,20 +241,22 @@ ccl_device float3 spherical_stereo_position(KernelGlobals *kg,
 	return pos + (side * interocular_offset);
 }
 
+/* NOTE: Ensures direction is normalized. */
 ccl_device float3 spherical_stereo_direction(KernelGlobals *kg,
                                              float3 dir,
                                              float3 pos,
                                              float3 newpos)
 {
+	const float3 normalized_dir = normalize(dir);
 	/* Interocular offset of zero means either no stereo, or stereo without
 	 * spherical stereo.
 	 */
 	if(kernel_data.cam.interocular_offset == 0.0f) {
-		return dir;
+		return normalized_dir;
 	}
 
-	float3 screenpos = pos + (normalize(dir) * kernel_data.cam.convergence_distance);
-	return screenpos - newpos;
+	float3 screenpos = pos + (normalized_dir * kernel_data.cam.convergence_distance);
+	return normalize(screenpos - newpos);
 }
 
 CCL_NAMESPACE_END
