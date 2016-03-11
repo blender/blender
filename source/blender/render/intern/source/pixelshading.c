@@ -521,7 +521,16 @@ void shadeSkyView(float col_r[3], const float rco[3], const float view[3], const
 	/* Careful: SKYTEX and SKYBLEND are NOT mutually exclusive! If           */
 	/* SKYBLEND is active, the texture and color blend are added.           */
 	if (R.wrld.skytype & WO_SKYTEX) {
-		do_sky_tex(rco, view, dxyview, hor, zen, &blend, skyflag, thread);
+		float lo[3];
+		copy_v3_v3(lo, view);
+		if (R.wrld.skytype & WO_SKYREAL) {
+
+			mul_m3_v3(R.imat, lo);
+
+			SWAP(float, lo[1],  lo[2]);
+
+		}
+		do_sky_tex(rco, view, lo, dxyview, hor, zen, &blend, skyflag, thread);
 	}
 	
 	if (blend>1.0f) blend= 1.0f;
