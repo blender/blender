@@ -216,6 +216,10 @@ if(WITH_CYCLES_BLENDER)
 	add_subdirectory(blender)
 endif()
 
+if(WITH_CYCLES_NETWORK)
+	add_definitions(-DWITH_NETWORK)
+endif()
+
 if(WITH_CYCLES_STANDALONE OR WITH_CYCLES_NETWORK)
 	add_subdirectory(app)
 endif()
