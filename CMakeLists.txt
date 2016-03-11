@@ -704,6 +704,13 @@ else()
 	set(COMPILER_SSE2_FLAG)
 endif()
 
+if(WITH_BUILDINFO)
+	find_package(Git)
+	if(NOT GIT_FOUND)
+		set(WITH_BUILDINFO OFF)
+	endif()
+endif()
+
 TEST_SHARED_PTR_SUPPORT()
 TEST_UNORDERED_MAP_SUPPORT()
 
