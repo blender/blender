@@ -618,7 +618,6 @@ static int disconnect_hair_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= ED_object_context(C);
-	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= NULL;
 	const bool all = RNA_boolean_get(op->ptr, "all");
 
@@ -631,7 +630,7 @@ static int disconnect_hair_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		psys = ptr.data;
+		psys = psys_get_current(ob);
 		disconnect_hair(scene, ob, psys);
 	}
 
