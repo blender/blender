@@ -1188,12 +1188,12 @@ bool device_cuda_init(void)
 	if(cuew_result == CUEW_SUCCESS) {
 		VLOG(1) << "CUEW initialization succeeded";
 		if(CUDADevice::have_precompiled_kernels()) {
-			VLOG(1) << "Found precompiled  kernels";
+			VLOG(1) << "Found precompiled kernels";
 			result = true;
 		}
 #ifndef _WIN32
 		else if(cuewCompilerPath() != NULL) {
-			VLOG(1) << "Found CUDA compiled " << cuewCompilerPath();
+			VLOG(1) << "Found CUDA compiler " << cuewCompilerPath();
 			result = true;
 		}
 		else {
