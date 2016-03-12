@@ -3289,15 +3289,20 @@ static const float TIMESTEP_EXPANSION_TOLERANCE = 1.5f;
  * step, after the velocity has been updated. element_size defines the scale of
  * the simulation, and is typically the distance to neighboring particles. */
 static void update_courant_num(ParticleSimulationData *sim, ParticleData *pa,
-                               float dtime, SPHData *sphdata)
+                               float dtime, SPHData *sphdata, SpinLock *spin)
 {
 	float relative_vel[3];
-	float speed;
 
 	sub_v3_v3v3(relative_vel, pa->prev_state.vel, sphdata->flow);
-	speed = len_v3(relative_vel);
-	if (sim->courant_num < speed * dtime / sphdata->element_size)
-		sim->courant_num = speed * dtime / sphdata->element_size;
+
+	const float courant_num = len_v3(relative_vel) * dtime / sphdata->element_size;
+	if (sim->courant_num < courant_num) {
+		BLI_spin_lock(spin);
+		if (sim->courant_num < courant_num) {
+			sim->courant_num = courant_num;
+		}
+		BLI_spin_unlock(spin);
+	}
 }
 static float get_base_time_step(ParticleSettings *part)
 {
@@ -3345,7 +3350,7 @@ typedef struct DynamicStepSolverTaskData {
 	float timestep;
 	float dtime;
 
-	ThreadMutex mutex;
+	SpinLock spin;
 } DynamicStepSolverTaskData;
 
 static void dynamics_step_sph_ddr_task_cb_ex(
@@ -3378,13 +3383,12 @@ static void dynamics_step_sph_ddr_task_cb_ex(
 	basic_rotate(part, pa, pa->state.time, data->timestep);
 
 	if (part->time_flag & PART_TIME_AUTOSF) {
-		BLI_mutex_lock(&data->mutex);
-		update_courant_num(sim, pa, data->dtime, sphdata);
-		BLI_mutex_unlock(&data->mutex);
+		update_courant_num(sim, pa, data->dtime, sphdata, &data->spin);
 	}
 }
 
-static void dynamics_step_sph_classical_basic_integrate_task_cb(void *userdata, const int p)
+static void dynamics_step_sph_classical_basic_integrate_task_cb_ex(
+        void *userdata,  void *UNUSED(userdata_chunk), const int p, const int UNUSED(thread_id))
 {
 	DynamicStepSolverTaskData *data = userdata;
 	ParticleSimulationData *sim = data->sim;
@@ -3444,9 +3448,7 @@ static void dynamics_step_sph_classical_integrate_task_cb_ex(
 	basic_rotate(part, pa, pa->state.time, data->timestep);
 
 	if (part->time_flag & PART_TIME_AUTOSF) {
-		BLI_mutex_lock(&data->mutex);
-		update_courant_num(sim, pa, data->dtime, sphdata);
-		BLI_mutex_unlock(&data->mutex);
+		update_courant_num(sim, pa, data->dtime, sphdata, &data->spin);
 	}
 }
 
@@ -3610,7 +3612,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 			    .sim = sim, .cfra = cfra, .timestep = timestep, .dtime = dtime,
 			};
 
-			BLI_mutex_init(&task_data.mutex);
+			BLI_spin_init(&task_data.spin);
 
 			if (part->fluid->solver == SPH_SOLVER_DDR) {
 				/* Apply SPH forces using double-density relaxation algorithm
@@ -3618,7 +3620,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 
 				BLI_task_parallel_range_ex(
 				            0, psys->totpart, &task_data, &sphdata, sizeof(sphdata),
-				            dynamics_step_sph_ddr_task_cb_ex, psys->totpart > 100, false);
+				            dynamics_step_sph_ddr_task_cb_ex, psys->totpart > 100, true);
 
 				sph_springs_modify(psys, timestep);
 			}
@@ -3628,24 +3630,24 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 				 * and Monaghan). Note that, unlike double-density relaxation,
 				 * this algorithm is separated into distinct loops. */
 
-				BLI_task_parallel_range(
-				            0, psys->totpart, &task_data,
-				            dynamics_step_sph_classical_basic_integrate_task_cb, psys->totpart > 100);
+				BLI_task_parallel_range_ex(
+				            0, psys->totpart, &task_data, NULL, 0,
+				            dynamics_step_sph_classical_basic_integrate_task_cb_ex, psys->totpart > 100, true);
 
 				/* calculate summation density */
 				/* Note that we could avoid copying sphdata for each thread here (it's only read here),
 				 * but doubt this would gain us anything except confusion... */
 				BLI_task_parallel_range_ex(
 				            0, psys->totpart, &task_data, &sphdata, sizeof(sphdata),
-				            dynamics_step_sph_classical_calc_density_task_cb_ex, psys->totpart > 100, false);
+				            dynamics_step_sph_classical_calc_density_task_cb_ex, psys->totpart > 100, true);
 
 				/* do global forces & effectors */
 				BLI_task_parallel_range_ex(
 				            0, psys->totpart, &task_data, &sphdata, sizeof(sphdata),
-				            dynamics_step_sph_classical_integrate_task_cb_ex, psys->totpart > 100, false);
+				            dynamics_step_sph_classical_integrate_task_cb_ex, psys->totpart > 100, true);
 			}
 
-			BLI_mutex_end(&task_data.mutex);
+			BLI_spin_end(&task_data.spin);
 
 			psys_sph_finalise(&sphdata);
 			break;
