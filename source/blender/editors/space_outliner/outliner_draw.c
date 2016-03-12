@@ -208,11 +208,12 @@ static void restrictbutton_recursive_child(bContext *C, Scene *scene, Object *ob
 					id = ptr.id.data;
 					if (autokeyframe_cfra_can_key(scene, id)) {
 						ReportList *reports = CTX_wm_reports(C);
+						ToolSettings *ts = scene->toolsettings;
 						eInsertKeyFlags key_flag = ANIM_get_keyframing_flags(scene, 1);
 
 						fcu->flag &= ~FCURVE_SELECTED;
 						insert_keyframe(reports, id, action, ((fcu->grp) ? (fcu->grp->name) : (NULL)),
-						                fcu->rna_path, fcu->array_index, CFRA, key_flag);
+						                fcu->rna_path, fcu->array_index, CFRA, ts->keyframe_type, key_flag);
 						/* Assuming this is not necessary here, since 'ancestor' object button will do it anyway. */
 						/* WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL); */
 					}

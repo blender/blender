@@ -130,8 +130,8 @@ FCurve *verify_driver_fcurve(ID *id, const char rna_path[], const int array_inde
 				 * - These are configured to 0,0 and 1,1 to give a 1-1 mapping
 				 *   which can be easily tweaked from there.
 				 */
-				insert_vert_fcurve(fcu, 0.0f, 0.0f, INSERTKEY_FAST);
-				insert_vert_fcurve(fcu, 1.0f, 1.0f, INSERTKEY_FAST);
+				insert_vert_fcurve(fcu, 0.0f, 0.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
+				insert_vert_fcurve(fcu, 1.0f, 1.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
 				
 				/* configure this curve to extrapolate */
 				for (i = 0, bezt = fcu->bezt;  (i < fcu->totvert) && bezt;  i++, bezt++) {

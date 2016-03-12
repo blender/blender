@@ -231,13 +231,14 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 		/* NLA Strip property */
 		if (IS_AUTOKEY_ON(scene)) {
 			ReportList *reports = CTX_wm_reports(C);
+			ToolSettings *ts = scene->toolsettings;
 			PointerRNA ptr = {{NULL}};
 			PropertyRNA *prop = NULL;
 			int index;
 			
 			UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 			
-			insert_keyframe_direct(reports, ptr, prop, fcu, cfra, 0);
+			insert_keyframe_direct(reports, ptr, prop, fcu, cfra, ts->keyframe_type, 0);
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 		}
 	}
@@ -247,6 +248,7 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 		/* TODO: this should probably respect the keyingset only option for anim */
 		if (autokeyframe_cfra_can_key(scene, id)) {
 			ReportList *reports = CTX_wm_reports(C);
+			ToolSettings *ts = scene->toolsettings;
 			short flag = ANIM_get_keyframing_flags(scene, 1);
 
 			fcu->flag &= ~FCURVE_SELECTED;
@@ -256,7 +258,7 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 			 *       E.g., color wheels (see T42567). */
 			BLI_assert((fcu->array_index == but->rnaindex) || (but->rnaindex == -1));
 			insert_keyframe(reports, id, action, ((fcu->grp) ? (fcu->grp->name) : (NULL)),
-			                fcu->rna_path, but->rnaindex, cfra, flag);
+			                fcu->rna_path, but->rnaindex, cfra, ts->keyframe_type, flag);
 
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 		}

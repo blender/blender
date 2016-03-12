@@ -98,7 +98,7 @@ int insert_bezt_fcurve(struct FCurve *fcu, struct BezTriple *bezt, short flag);
  *  already exists. It will insert a keyframe using the current value being keyframed.
  *  Returns the index at which a keyframe was added (or -1 if failed)
  */
-int insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag);
+int insert_vert_fcurve(struct FCurve *fcu, float x, float y, char keytype, short flag);
 
 /* -------- */
 
@@ -106,7 +106,7 @@ int insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag);
  *	Use this to insert a keyframe using the current value being keyframed, in the 
  *	nominated F-Curve (no creation of animation data performed). Returns success.
  */
-bool insert_keyframe_direct(struct ReportList *reports, struct PointerRNA ptr, struct PropertyRNA *prop, struct FCurve *fcu, float cfra, short flag);
+bool insert_keyframe_direct(struct ReportList *reports, struct PointerRNA ptr, struct PropertyRNA *prop, struct FCurve *fcu, float cfra, char keytype, short flag);
 
 /* -------- */
 
@@ -114,7 +114,7 @@ bool insert_keyframe_direct(struct ReportList *reports, struct PointerRNA ptr, s
  *	Use this to create any necessary animation data, and then insert a keyframe
  *	using the current value being keyframed, in the relevant place. Returns success.
  */
-short insert_keyframe(struct ReportList *reports, struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag);
+short insert_keyframe(struct ReportList *reports, struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, char keytype, short flag);
 
 /* Main Keyframing API call: 
  *  Use this to delete keyframe on current frame for relevant channel. Will perform checks just in case.

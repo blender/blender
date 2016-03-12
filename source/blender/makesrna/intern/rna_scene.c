@@ -2379,6 +2379,12 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	                         "Automatic keyframe insertion using active Keying Set only");
 	RNA_def_property_ui_icon(prop, ICON_KEYINGSET, 0);
 	
+	/* Keyframing */
+	prop = RNA_def_property(srna, "keyframe_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "keyframe_type");
+	RNA_def_property_enum_items(prop, rna_enum_beztriple_keyframe_type_items);
+	RNA_def_property_ui_text(prop, "Keyframe Type", "Type of keyframes to create");
+	
 	/* UV */
 	prop = RNA_def_property(srna, "uv_select_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "uv_selectmode");

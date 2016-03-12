@@ -522,6 +522,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
 	ReportList *reports = ac->reports;
 	SpaceIpo *sipo = (SpaceIpo *)ac->sl;
 	Scene *scene = ac->scene;
+	ToolSettings *ts = scene->toolsettings;
 	short flag = 0;
 	
 	/* filter data */
@@ -574,7 +575,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
 				y = 0.0f;
 				
 			/* insert keyframe directly into the F-Curve */
-			insert_vert_fcurve(fcu, x, y, 0);
+			insert_vert_fcurve(fcu, x, y, ts->keyframe_type, 0);
 			
 			ale->update |= ANIM_UPDATE_DEFAULT;
 		}
@@ -602,9 +603,9 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
 			 *                        up adding the keyframes on a new F-Curve in the action data instead.
 			 */
 			if (ale->id && !ale->owner && !fcu->driver)
-				insert_keyframe(reports, ale->id, NULL, ((fcu->grp) ? (fcu->grp->name) : (NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+				insert_keyframe(reports, ale->id, NULL, ((fcu->grp) ? (fcu->grp->name) : (NULL)), fcu->rna_path, fcu->array_index, cfra, ts->keyframe_type, flag);
 			else
-				insert_vert_fcurve(fcu, cfra, fcu->curval, 0);
+				insert_vert_fcurve(fcu, cfra, fcu->curval, ts->keyframe_type, 0);
 			
 			ale->update |= ANIM_UPDATE_DEFAULT;
 		}
@@ -683,9 +684,11 @@ static int graphkeys_click_insert_exec(bContext *C, wmOperator *op)
 	 */
 	if (fcurve_is_keyframable(fcu)) {
 		ListBase anim_data;
-
+		ToolSettings *ts = ac.scene->toolsettings;
+		
 		short mapping_flag = ANIM_get_normalization_flags(&ac);
 		float scale, offset;
+		
 		/* get frame and value from props */
 		frame = RNA_float_get(op->ptr, "frame");
 		val = RNA_float_get(op->ptr, "value");
@@ -696,11 +699,11 @@ static int graphkeys_click_insert_exec(bContext *C, wmOperator *op)
 		
 		/* apply inverse unit-mapping to value to get correct value for F-Curves */
 		scale = ANIM_unit_mapping_get_factor(ac.scene, ale->id, fcu, mapping_flag | ANIM_UNITCONV_RESTORE, &offset);
-
+		
 		val = val * scale - offset;
-
+		
 		/* insert keyframe on the specified frame + value */
-		insert_vert_fcurve(fcu, frame, val, 0);
+		insert_vert_fcurve(fcu, frame, val, ts->keyframe_type, 0);
 		
 		ale->update |= ANIM_UPDATE_DEPS;
 		

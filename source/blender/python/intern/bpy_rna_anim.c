@@ -211,6 +211,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 	int index = -1;
 	float cfra = FLT_MAX;
 	const char *group_name = NULL;
+	char keytype = BEZT_KEYTYPE_KEYFRAME; /* XXX: Expose this as a one-off option... */
 	int options = 0;
 
 	PYRNA_STRUCT_CHECK_OBJ(self);
@@ -227,7 +228,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 
 		BKE_reports_init(&reports, RPT_STORE);
 
-		result = insert_keyframe(&reports, (ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, options);
+		result = insert_keyframe(&reports, (ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, keytype, options);
 		MEM_freeN((void *)path_full);
 
 		if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1)

@@ -3874,6 +3874,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 	
 	ReportList *reports = CTX_wm_reports(C);
 	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
 	short flag = 0;
@@ -3896,7 +3897,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 			flag |= INSERTKEY_REPLACE;
 		
 		/* insert a keyframe for this F-Curve */
-		done = insert_keyframe_direct(reports, ptr, prop, fcu, cfra, flag);
+		done = insert_keyframe_direct(reports, ptr, prop, fcu, cfra, ts->keyframe_type, flag);
 		
 		if (done)
 			WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
@@ -3912,6 +3913,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 	
 	ReportList *reports = CTX_wm_reports(C);
 	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
 	short flag = 0;
@@ -3939,7 +3941,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 			flag |= INSERTKEY_REPLACE;
 		
 		/* insert a keyframe for this F-Curve */
-		done = insert_keyframe_direct(reports, ptr, prop, fcu, cfra, flag);
+		done = insert_keyframe_direct(reports, ptr, prop, fcu, cfra, ts->keyframe_type, flag);
 		
 		if (done)
 			WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
@@ -3962,6 +3964,7 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C, void *UNUSED(id_po
 	
 	ReportList *reports = CTX_wm_reports(C);
 	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
 	short flag = 0;
 	bool done = false;
 	float cfra;
@@ -3981,7 +3984,7 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C, void *UNUSED(id_po
 			flag |= INSERTKEY_REPLACE;
 		
 		/* insert a keyframe for this F-Curve */
-		done = insert_keyframe_direct(reports, ptr, prop, fcu, cfra, flag);
+		done = insert_keyframe_direct(reports, ptr, prop, fcu, cfra, ts->keyframe_type, flag);
 		
 		if (done)
 			WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);

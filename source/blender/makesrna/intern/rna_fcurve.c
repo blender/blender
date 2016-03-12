@@ -740,9 +740,9 @@ static void rna_FModifierStepped_end_frame_range(PointerRNA *ptr, float *min, fl
 	*max = MAXFRAMEF;
 }
 
-static BezTriple *rna_FKeyframe_points_insert(FCurve *fcu, float frame, float value, int flag)
+static BezTriple *rna_FKeyframe_points_insert(FCurve *fcu, float frame, float value, char keyframe_type, int flag)
 {
-	int index = insert_vert_fcurve(fcu, frame, value, flag | INSERTKEY_NO_USERPREF);
+	int index = insert_vert_fcurve(fcu, frame, value, keyframe_type, flag | INSERTKEY_NO_USERPREF);
 	return ((fcu->bezt) && (index >= 0)) ? (fcu->bezt + index) : NULL;
 }
 
@@ -1777,7 +1777,9 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_float(func, "value", 0.0f, -FLT_MAX, FLT_MAX, "",
 	                     "Y Value of this keyframe point", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-
+	
+	RNA_def_enum(func, "keyframe_type", rna_enum_beztriple_keyframe_type_items, 0, "", 
+	             "Type of keyframe to insert");
 	RNA_def_enum_flag(func, "options", keyframe_flag_items, 0, "", "Keyframe options");
 
 	parm = RNA_def_pointer(func, "keyframe", "Keyframe", "", "Newly created keyframe");

@@ -957,6 +957,7 @@ int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSe
 	const short base_kflags = ANIM_get_keyframing_flags(scene, 1);
 	short kflag = 0, success = 0;
 	const char *groupname = NULL;
+	const char *keytype = scene->toolsettings->keyframe_type;
 	
 	/* sanity checks */
 	if (ks == NULL)
@@ -1028,7 +1029,7 @@ int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSe
 		for (; i < arraylen; i++) {
 			/* action to take depends on mode */
 			if (mode == MODIFYKEY_MODE_INSERT)
-				success += insert_keyframe(reports, ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag2);
+				success += insert_keyframe(reports, ksp->id, act, groupname, ksp->rna_path, i, cfra, keytype, kflag2);
 			else if (mode == MODIFYKEY_MODE_DELETE)
 				success += delete_keyframe(reports, ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag2);
 		}

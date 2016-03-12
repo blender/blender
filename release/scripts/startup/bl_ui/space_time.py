@@ -87,6 +87,8 @@ class TIME_HT_header(Header):
                 subsub = row.row(align=True)
                 subsub.prop(toolsettings, "use_record_with_nla", toggle=True)
 
+        layout.prop(toolsettings, "keyframe_type", icon='SPACE2', text="") # xxx: icon...
+
         row = layout.row(align=True)
         row.prop_search(scene.keying_sets_all, "active", scene, "keying_sets_all", text="")
         row.operator("anim.keyframe_insert", text="", icon='KEY_HLT')

@@ -1342,10 +1342,10 @@ typedef struct ToolSettings {
 
 	/* Auto-Keying Mode */
 	short autokey_mode, autokey_flag;	/* defines in DNA_userdef_types.h */
+	char keyframe_type;                 /* keyframe type (see DNA_curve_types.h) */
 
 	/* Multires */
 	char multires_subdiv_type;
-	char pad3[1];
 
 	/* Skeleton generation */
 	short skgen_resolution;
