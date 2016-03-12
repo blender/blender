@@ -924,14 +924,13 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					pwidth = &node->miniwidth;
 					oldwidth = nsw->oldminiwidth;
 					widthmin = 0.0f;
-					widthmax = 100.0f;
 				}
 				else {
 					pwidth = &node->width;
 					oldwidth = nsw->oldwidth;
 					widthmin = node->typeinfo->minwidth;
-					widthmax = node->typeinfo->maxwidth;
 				}
+				widthmax = node->typeinfo->maxwidth;
 				
 				{
 					if (nsw->directions & NODE_RESIZE_RIGHT) {

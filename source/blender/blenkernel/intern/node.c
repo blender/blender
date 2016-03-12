@@ -72,6 +72,8 @@
 #include "NOD_shader.h"
 #include "NOD_texture.h"
 
+#define NODE_DEFAULT_MAX_WIDTH 700
+
 /* Fallback types for undefined tree, nodes, sockets */
 bNodeTreeType NodeTreeTypeUndefined;
 bNodeType NodeTypeUndefined;
@@ -3423,16 +3425,16 @@ void node_type_size_preset(struct bNodeType *ntype, eNodeSizePreset size)
 {
 	switch (size) {
 		case NODE_SIZE_DEFAULT:
-			node_type_size(ntype, 140, 100, 320);
+			node_type_size(ntype, 140, 100, NODE_DEFAULT_MAX_WIDTH);
 			break;
 		case NODE_SIZE_SMALL:
-			node_type_size(ntype, 100, 80, 320);
+			node_type_size(ntype, 100, 80, NODE_DEFAULT_MAX_WIDTH);
 			break;
 		case NODE_SIZE_MIDDLE:
-			node_type_size(ntype, 150, 120, 320);
+			node_type_size(ntype, 150, 120, NODE_DEFAULT_MAX_WIDTH);
 			break;
 		case NODE_SIZE_LARGE:
-			node_type_size(ntype, 240, 140, 320);
+			node_type_size(ntype, 240, 140, NODE_DEFAULT_MAX_WIDTH);
 			break;
 	}
 }
