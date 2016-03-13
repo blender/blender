@@ -955,9 +955,9 @@ int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSe
 	ReportList *reports = CTX_wm_reports(C);
 	KS_Path *ksp;
 	const short base_kflags = ANIM_get_keyframing_flags(scene, 1);
-	short kflag = 0, success = 0;
 	const char *groupname = NULL;
-	const char *keytype = scene->toolsettings->keyframe_type;
+	short kflag = 0, success = 0;
+	char keytype = scene->toolsettings->keyframe_type;
 	
 	/* sanity checks */
 	if (ks == NULL)
