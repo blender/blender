@@ -87,7 +87,7 @@ class TIME_HT_header(Header):
                 subsub = row.row(align=True)
                 subsub.prop(toolsettings, "use_record_with_nla", toggle=True)
 
-        layout.prop(toolsettings, "keyframe_type", text="")
+        layout.prop(toolsettings, "keyframe_type", text="", icon_only=True)
 
         row = layout.row(align=True)
         row.prop_search(scene.keying_sets_all, "active", scene, "keying_sets_all", text="")
