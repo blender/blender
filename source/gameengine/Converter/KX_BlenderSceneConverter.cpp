@@ -630,8 +630,8 @@ void KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 
 					mat3_to_compatible_eul(blenderObject->rot, blenderObject->rot, tmat);
 
-					insert_keyframe(NULL, &blenderObject->id, NULL, NULL, "location", -1, (float)frameNumber, INSERTKEY_FAST);
-					insert_keyframe(NULL, &blenderObject->id, NULL, NULL, "rotation_euler", -1, (float)frameNumber, INSERTKEY_FAST);
+					insert_keyframe(NULL, &blenderObject->id, NULL, NULL, "location", -1, (float)frameNumber, BEZT_KEYTYPE_JITTER, INSERTKEY_FAST);
+					insert_keyframe(NULL, &blenderObject->id, NULL, NULL, "rotation_euler", -1, (float)frameNumber, BEZT_KEYTYPE_JITTER, INSERTKEY_FAST);
 
 #if 0
 					const MT_Point3& position = gameObj->NodeGetWorldPosition();
