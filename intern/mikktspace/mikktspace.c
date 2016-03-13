@@ -477,12 +477,14 @@ static void GenerateSharedVerticesIndexList(int piTriList_in_and_out[], const SM
 	if (vDim.y>vDim.x && vDim.y>vDim.z)
 	{
 		iChannel=1;
-		fMin = vMin.y, fMax=vMax.y;
+		fMin = vMin.y;
+		fMax = vMax.y;
 	}
 	else if (vDim.z>vDim.x)
 	{
 		iChannel=2;
-		fMin = vMin.z, fMax=vMax.z;
+		fMin = vMin.z;
+		fMax = vMax.z;
 	}
 
 	// make allocations
@@ -1660,7 +1662,8 @@ static void QuickSortEdges(SEdge * pSortBuffer, int iLeft, int iRight, const int
 	uSeed=uSeed+t+3;
 	// Random end
 
-	iL=iLeft, iR=iRight;
+	iL = iLeft;
+	iR = iRight;
 	n = (iR-iL)+1;
 	assert(n>=0);
 	index = (int) (uSeed%n);
