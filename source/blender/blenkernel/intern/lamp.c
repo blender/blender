@@ -79,6 +79,9 @@ void BKE_lamp_init(Lamp *la)
 	la->adapt_thresh = 0.001f;
 	la->preview = NULL;
 	la->falloff_type = LA_FALLOFF_INVSQUARE;
+	la->coeff_const = 1.0f;
+	la->coeff_lin = 0.0f;
+	la->coeff_quad = 0.0f;
 	la->curfalloff = curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
 	la->sun_effect_type = 0;
 	la->horizon_brightness = 1.0;

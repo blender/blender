@@ -59,7 +59,7 @@ RAS_OpenGLLight::~RAS_OpenGLLight()
 	if ((lamp = GetGPULamp())) {
 		float obmat[4][4] = {{0}};
 		GPU_lamp_update(lamp, 0, 0, obmat);
-		GPU_lamp_update_distance(lamp, la->dist, la->att1, la->att2);
+		GPU_lamp_update_distance(lamp, la->dist, la->att1, la->att2, la->coeff_const, la->coeff_lin, la->coeff_quad);
 		GPU_lamp_update_spot(lamp, la->spotsize, la->spotblend);
 	}
 }
@@ -291,7 +291,7 @@ void RAS_OpenGLLight::Update()
 		GPU_lamp_update(lamp, m_layer, hide, obmat);
 		GPU_lamp_update_colors(lamp, m_color[0], m_color[1],
 			m_color[2], m_energy);
-		GPU_lamp_update_distance(lamp, m_distance, m_att1, m_att2);
+		GPU_lamp_update_distance(lamp, m_distance, m_att1, m_att2, m_coeff_const, m_coeff_lin, m_coeff_quad);
 		GPU_lamp_update_spot(lamp, m_spotsize, m_spotblend);
 	}
 }

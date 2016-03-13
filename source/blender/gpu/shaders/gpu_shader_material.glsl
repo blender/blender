@@ -1627,6 +1627,17 @@ void lamp_falloff_sliders(float lampdist, float ld1, float ld2, float dist, out 
 	visifac *= lampdistkw/(lampdistkw + ld2*dist*dist);
 }
 
+void lamp_falloff_invcoefficients(float coeff_const, float coeff_lin, float coeff_quad, float dist, out float visifac)
+{
+	vec3 coeff = vec3(coeff_const, coeff_lin, coeff_quad);
+	vec3 d_coeff = vec3(1.0, dist, dist*dist);
+	float visifac_r = dot(coeff, d_coeff);
+	if (visifac_r > 0.0)
+		visifac = 1.0 / visifac_r;
+	else
+		visifac = 0.0;
+}
+
 void lamp_falloff_curve(float lampdist, sampler2D curvemap, float dist, out float visifac)
 {
 	visifac = texture2D(curvemap, vec2(dist/lampdist, 0.0)).x;

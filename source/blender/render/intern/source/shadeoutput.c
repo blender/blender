@@ -1188,7 +1188,7 @@ float lamp_get_visibility(LampRen *lar, const float co[3], float lv[3], float *d
 		return 1.0f;
 	}
 	else {
-		float visifac= 1.0f;
+		float visifac= 1.0f, visifac_r;
 		
 		sub_v3_v3v3(lv, co, lar->co);
 		mul_v3_fl(lv, 1.0f / (*dist = len_v3(lv)));
@@ -1222,6 +1222,15 @@ float lamp_get_visibility(LampRen *lar, const float co[3], float lv[3], float *d
 						visifac= lar->dist/(lar->dist+lar->ld1*dist[0]);
 					if (lar->ld2>0.0f)
 						visifac*= lar->distkw/(lar->distkw+lar->ld2*dist[0]*dist[0]);
+					break;
+				case LA_FALLOFF_INVCOEFFICIENTS:
+					visifac_r = lar->coeff_const +
+								lar->coeff_lin * dist[0] +
+								lar->coeff_quad * dist[0] * dist[0];
+					if (visifac_r > 0.0)
+						visifac = 1.0 / visifac_r;
+					else
+						visifac = 0.0;
 					break;
 				case LA_FALLOFF_CURVE:
 					/* curvemapping_initialize is called from #add_render_lamp */

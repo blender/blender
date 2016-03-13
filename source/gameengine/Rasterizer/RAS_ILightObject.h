@@ -69,6 +69,7 @@ public:
 
 	float	m_att1;
 	float	m_att2;
+	float	m_coeff_const, m_coeff_lin, m_coeff_quad;
 	float	m_spotsize;
 	float	m_spotblend;
 

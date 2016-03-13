@@ -148,6 +148,7 @@ struct GPULamp {
 	float spotvec[2];
 	float dyndist, dynatt1, dynatt2;
 	float dist, att1, att2;
+	float coeff_const, coeff_lin, coeff_quad;
 	float shadow_color[3];
 
 	float bias, d, clipend;
@@ -549,6 +550,12 @@ static GPUNodeLink *lamp_get_visibility(GPUMaterial *mat, GPULamp *lamp, GPUNode
 				         GPU_dynamic_uniform(&lamp->dist, GPU_DYNAMIC_LAMP_DISTANCE, lamp->ob),
 				         GPU_dynamic_uniform(&lamp->att1, GPU_DYNAMIC_LAMP_ATT1, lamp->ob),
 				         GPU_dynamic_uniform(&lamp->att2, GPU_DYNAMIC_LAMP_ATT2, lamp->ob), *dist, &visifac);
+				break;
+			case LA_FALLOFF_INVCOEFFICIENTS:
+				GPU_link(mat, "lamp_falloff_invcoefficients",
+					     GPU_dynamic_uniform(&lamp->coeff_const, GPU_DYNAMIC_LAMP_COEFFCONST, lamp->ob),
+					     GPU_dynamic_uniform(&lamp->coeff_lin, GPU_DYNAMIC_LAMP_COEFFLIN, lamp->ob),
+					     GPU_dynamic_uniform(&lamp->coeff_quad, GPU_DYNAMIC_LAMP_COEFFQUAD, lamp->ob), *dist, &visifac);
 				break;
 			case LA_FALLOFF_CURVE:
 			{
@@ -2209,11 +2216,15 @@ void GPU_lamp_update_colors(GPULamp *lamp, float r, float g, float b, float ener
 	lamp->col[2] = b;
 }
 
-void GPU_lamp_update_distance(GPULamp *lamp, float distance, float att1, float att2)
+void GPU_lamp_update_distance(GPULamp *lamp, float distance, float att1, float att2,
+                              float coeff_const, float coeff_lin, float coeff_quad)
 {
 	lamp->dist = distance;
 	lamp->att1 = att1;
 	lamp->att2 = att2;
+	lamp->coeff_const = coeff_const;
+	lamp->coeff_lin = coeff_lin;
+	lamp->coeff_quad = coeff_quad;
 }
 
 void GPU_lamp_update_spot(GPULamp *lamp, float spotsize, float spotblend)
@@ -2254,6 +2265,9 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 	lamp->falloff_type = la->falloff_type;
 	lamp->att1 = la->att1;
 	lamp->att2 = la->att2;
+	lamp->coeff_const = la->coeff_const;
+	lamp->coeff_lin = la->coeff_lin;
+	lamp->coeff_quad = la->coeff_quad;
 	lamp->curfalloff = la->curfalloff;
 
 	/* initshadowbuf */

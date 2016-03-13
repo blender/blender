@@ -3801,6 +3801,9 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	lar->falloff_type = la->falloff_type;
 	lar->ld1= la->att1;
 	lar->ld2= la->att2;
+	lar->coeff_const= la->coeff_const;
+	lar->coeff_lin= la->coeff_lin;
+	lar->coeff_quad= la->coeff_quad;
 	lar->curfalloff = curvemapping_copy(la->curfalloff);
 
 	if (lar->curfalloff) {

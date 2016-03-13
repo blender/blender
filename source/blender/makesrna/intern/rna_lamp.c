@@ -420,6 +420,7 @@ static void rna_def_lamp_falloff(StructRNA *srna)
 		{LA_FALLOFF_CONSTANT, "CONSTANT", 0, "Constant", ""},
 		{LA_FALLOFF_INVLINEAR, "INVERSE_LINEAR", 0, "Inverse Linear", ""},
 		{LA_FALLOFF_INVSQUARE, "INVERSE_SQUARE", 0, "Inverse Square", ""},
+		{LA_FALLOFF_INVCOEFFICIENTS, "INVERSE_COEFFICIENTS", 0, "Inverse Coefficients", ""},
 		{LA_FALLOFF_CURVE, "CUSTOM_CURVE", 0, "Custom Curve", ""},
 		{LA_FALLOFF_SLIDERS, "LINEAR_QUADRATIC_WEIGHTED", 0, "Lin/Quad Weighted", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -450,6 +451,27 @@ static void rna_def_lamp_falloff(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "att2");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Quadratic Attenuation", "Quadratic distance attenuation");
+	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
+
+	prop = RNA_def_property(srna, "constant_coefficient", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "coeff_const");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Constant Coefficient",
+							 "Constant distance attenuation coefficient");
+	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
+
+	prop = RNA_def_property(srna, "linear_coefficient", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "coeff_lin");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Linear Coefficient",
+							 "Linear distance attenuation coefficient");
+	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
+
+	prop = RNA_def_property(srna, "quadratic_coefficient", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "coeff_quad");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Quadratic Coefficient",
+							 "Quadratic distance attenuation coefficient");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 }
 
