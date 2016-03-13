@@ -3510,8 +3510,10 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 			boids_precalc_rules(part, cfra);
 
 			for (; pt; pt=pt->next) {
-				if (pt->ob)
-					psys_update_particle_tree(BLI_findlink(&pt->ob->particlesystem, pt->psys-1), cfra);
+				ParticleSystem *psys_target = psys_get_target_system(sim->ob, pt);
+				if (psys_target && psys_target != psys) {
+					psys_update_particle_tree(psys_target, cfra);
+				}
 			}
 			break;
 		}
