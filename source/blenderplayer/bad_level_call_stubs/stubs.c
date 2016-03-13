@@ -412,7 +412,7 @@ int	WM_keymap_map_type_get(struct wmKeyMapItem *kmi) RET_ZERO
 /* rna editors */
 
 struct FCurve *verify_fcurve(struct bAction *act, const char group[], struct PointerRNA *ptr, const char rna_path[], const int array_index, short add) RET_NULL
-int insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag) RET_ZERO
+int insert_vert_fcurve(struct FCurve *fcu, float x, float y, char keytype, short flag) RET_ZERO
 void delete_fcurve_key(struct FCurve *fcu, int index, bool do_recalc) RET_NONE
 struct KeyingSetInfo *ANIM_keyingset_info_find_name (const char name[]) RET_NULL
 struct KeyingSet *ANIM_scene_get_active_keyingset (struct Scene *scene) RET_NULL
@@ -662,7 +662,7 @@ void WM_operator_bl_idname(char *to, const char *from) RET_NONE
 void WM_operator_py_idname(char *to, const char *from) RET_NONE
 int WM_operator_ui_popup(struct bContext *C, struct wmOperator *op, int width, int height) RET_ZERO
 void update_autoflags_fcurve(struct FCurve *fcu, struct bContext *C, struct ReportList *reports, struct PointerRNA *ptr) RET_NONE
-short insert_keyframe(struct ReportList *reports, struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag) RET_ZERO
+short insert_keyframe(struct ReportList *reports, struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, char keytype, short flag) RET_ZERO
 short delete_keyframe(struct ReportList *reports, struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag) RET_ZERO
 struct bAction *verify_adt_action(struct ID *id, short add) RET_NULL
 char *WM_operator_pystring_ex(struct bContext *C, struct wmOperator *op, const bool all_args, const bool macro_args, struct wmOperatorType *ot, struct PointerRNA *opptr) RET_NULL
