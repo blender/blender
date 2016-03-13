@@ -470,8 +470,8 @@ endif()
 # Experimental support of C11 and C++11
 option(WITH_C11 "Build with C11 standard enabled, for development use only!" OFF)
 mark_as_advanced(WITH_C11)
-option(WITH_CPP11 "Build with C++11 standard enabled, for development use only!" OFF)
-mark_as_advanced(WITH_CPP11)
+option(WITH_CXX11 "Build with C++11 standard enabled, for development use only!" OFF)
+mark_as_advanced(WITH_CXX11)
 
 # Dependency graph
 option(WITH_LEGACY_DEPSGRAPH "Build Blender with legacy dependency graph" ON)
@@ -659,7 +659,7 @@ elseif(WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_AUDASPACE OR WITH_INTERNATIONAL O
 	# Keep enabled
 else()
 	# New dependency graph needs either Boost or C++11 for function bindings.
-	if(NOT USE_CPP11)
+	if(NOT USE_CXX11)
 		# Enabled but we don't need it
 		set(WITH_BOOST OFF)
 	endif()
@@ -2883,7 +2883,7 @@ if(WITH_PYTHON)
 	endif()
 endif()
 
-if(WITH_CPP11)
+if(WITH_CXX11)
 	if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 	elseif(MSVC12)
