@@ -937,8 +937,9 @@ PyDoc_STRVAR(bpy_bmesh_from_object_doc,
 "   :arg face_normals: Calculate face normals.\n"
 "   :type face_normals: boolean\n"
 );
-static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args)
+static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject *kw)
 {
+	static const char *kwlist[] = {"object", "scene", "deform", "render", "cage", "face_normals", NULL};
 	PyObject *py_object;
 	PyObject *py_scene;
 	Object *ob;
@@ -953,8 +954,8 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args)
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTuple(
-	        args, "OO|O&O&O&O&:from_object",
+	if (!PyArg_ParseTupleAndKeywords(
+	        args, kw, "OO|O&O&O&O&:from_object", (char **)kwlist,
 	        &py_object, &py_scene,
 	        PyC_ParseBool, &use_deform,
 	        PyC_ParseBool, &use_render,
