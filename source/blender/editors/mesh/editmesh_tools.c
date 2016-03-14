@@ -1470,8 +1470,12 @@ static int edbm_flip_normals_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	
-	if (!EDBM_op_callf(em, op, "reverse_faces faces=%hf", BM_ELEM_SELECT))
+	if (!EDBM_op_callf(
+	        em, op, "reverse_faces faces=%hf flip_multires=%b",
+	        BM_ELEM_SELECT, true))
+	{
 		return OPERATOR_CANCELLED;
+	}
 	
 	EDBM_update_generic(em, true, false);
 
@@ -1639,8 +1643,9 @@ static int edbm_normals_make_consistent_exec(bContext *C, wmOperator *op)
 	if (!EDBM_op_callf(em, op, "recalc_face_normals faces=%hf", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
 
-	if (RNA_boolean_get(op->ptr, "inside"))
-		EDBM_op_callf(em, op, "reverse_faces faces=%hf", BM_ELEM_SELECT);
+	if (RNA_boolean_get(op->ptr, "inside")) {
+		EDBM_op_callf(em, op, "reverse_faces faces=%hf flip_multires=%b", BM_ELEM_SELECT, true);
+	}
 
 	EDBM_update_generic(em, true, false);
 

@@ -111,11 +111,13 @@ void bmo_rotate_exec(BMesh *bm, BMOperator *op)
 
 void bmo_reverse_faces_exec(BMesh *bm, BMOperator *op)
 {
+	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+	const bool use_loop_mdisp_flip = BMO_slot_bool_get(op->slots_in, "flip_multires");
 	BMOIter siter;
 	BMFace *f;
 
 	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
-		BM_face_normal_flip(bm, f);
+		BM_face_normal_flip_ex(bm, f, cd_loop_mdisp_offset, use_loop_mdisp_flip);
 	}
 }
 

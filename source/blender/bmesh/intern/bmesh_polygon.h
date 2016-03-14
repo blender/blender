@@ -62,6 +62,9 @@ bool  BM_vert_calc_normal(const BMVert *v, float r_no[3]);
 void  BM_vert_normal_update(BMVert *v) ATTR_NONNULL();
 void  BM_vert_normal_update_all(BMVert *v) ATTR_NONNULL();
 
+void  BM_face_normal_flip_ex(
+        BMesh *bm, BMFace *f,
+        const int cd_loop_mdisp_offset, const bool use_loop_mdisp_flip) ATTR_NONNULL();
 void  BM_face_normal_flip(BMesh *bm, BMFace *f) ATTR_NONNULL();
 bool  BM_face_point_inside_test(const BMFace *f, const float co[3]) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 

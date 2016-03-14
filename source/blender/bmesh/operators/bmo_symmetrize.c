@@ -79,6 +79,9 @@ void bmo_symmetrize_exec(BMesh *bm, BMOperator *op)
 
 
 	BMO_op_callf(bm, op->flag, "scale verts=%S vec=%v", &op_dupe, "geom.out", scale);
+
+	/* important 'flip_multires' is disabled,
+	 * otherwise multi-res data will be reversed, see: T47788 */
 	BMO_op_callf(bm, op->flag, "reverse_faces faces=%S", &op_dupe, "geom.out");
 
 

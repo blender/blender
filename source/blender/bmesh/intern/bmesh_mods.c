@@ -244,7 +244,8 @@ BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f_a, BMFace *f_b, BMEdge *e, const
 	BLI_assert(l_a && l_b);
 
 	if (l_a->v == l_b->v) {
-		bmesh_loop_reverse(bm, f_b);
+		const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+		bmesh_loop_reverse(bm, f_b, cd_loop_mdisp_offset, true);
 	}
 	
 	return BM_faces_join(bm, faces, 2, do_del);
