@@ -1749,7 +1749,7 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const in
 		ob = base->object;
 
 		if ((base->flag & flag) == flag) {
-			if (ob->id.lib == NULL && ob->id.us > 1) {
+			if (ob->id.lib == NULL && ID_REFCOUNT_USERS(ob) > 1) {
 				/* base gets copy of object */
 				obn = BKE_object_copy(ob);
 				base->object = obn;
