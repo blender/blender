@@ -194,11 +194,29 @@ void id_us_clear_real(ID *id)
 	}
 }
 
+/* Same as \a id_us_plus, but does not handle lib indirect -> extern.
+ * Only used by readfile.c so far, but simpler/safer to keep it here nontheless. */
+void id_us_plus_no_lib(ID *id)
+{
+	if (id) {
+		if ((id->tag & LIB_TAG_EXTRAUSER) && (id->tag & LIB_TAG_EXTRAUSER_SET)) {
+			BLI_assert(id->us >= 1);
+			/* No need to increase count, just tag extra user as no more set.
+			 * Avoids annoying & inconsistent +1 in user count. */
+			id->tag &= ~LIB_TAG_EXTRAUSER_SET;
+		}
+		else {
+			BLI_assert(id->us >= 0);
+			id->us++;
+		}
+	}
+}
+
+
 void id_us_plus(ID *id)
 {
 	if (id) {
-		BLI_assert(id->us >= 0);
-		id->us++;
+		id_us_plus_no_lib(id);
 		id_lib_extern(id);
 	}
 }
