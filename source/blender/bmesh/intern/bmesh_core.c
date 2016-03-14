@@ -37,6 +37,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_DerivedMesh.h"
+#include "BKE_mesh.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
@@ -1082,42 +1083,8 @@ static bool bm_loop_reverse_loop(
 		l_iter = oldnext;
 		
 		if (cd_loop_mdisp_offset != -1) {
-			float (*co)[3];
-			int x, y, sides;
-			MDisps *md;
-			
-			md = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_mdisp_offset);
-			if (!md->totdisp || !md->disps)
-				continue;
-
-			sides = (int)sqrt(md->totdisp);
-			co = md->disps;
-			
-			for (x = 0; x < sides; x++) {
-				float *co_a, *co_b;
-
-				for (y = 0; y < x; y++) {
-					co_a = co[y * sides + x];
-					co_b = co[x * sides + y];
-
-					swap_v3_v3(co_a, co_b);
-					SWAP(float, co_a[0], co_a[1]);
-					SWAP(float, co_b[0], co_b[1]);
-
-					if (use_loop_mdisp_flip) {
-						co_a[2] *= -1.0f;
-						co_b[2] *= -1.0f;
-					}
-				}
-
-				co_a = co[x * sides + x];
-
-				SWAP(float, co_a[0], co_a[1]);
-
-				if (use_loop_mdisp_flip) {
-					co_a[2] *= -1.0f;
-				}
-			}
+			MDisps *md = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_mdisp_offset);
+			BKE_mesh_mdisp_flip(md, use_loop_mdisp_flip);
 		}
 	}
 

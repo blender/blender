@@ -3201,6 +3201,46 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData 
 /** \} */
 
 /**
+ * Flip a single MLoop's #MDisps structure,
+ * low level function to be called from face-flipping code which re-arranged the mdisps themselves.
+ */
+void BKE_mesh_mdisp_flip(MDisps *md, const bool use_loop_mdisp_flip)
+{
+	if (UNLIKELY(!md->totdisp || !md->disps)) {
+		return;
+	}
+
+	const int sides = (int)sqrt(md->totdisp);
+	float (*co)[3] = md->disps;
+
+	for (int x = 0; x < sides; x++) {
+		float *co_a, *co_b;
+
+		for (int y = 0; y < x; y++) {
+			co_a = co[y * sides + x];
+			co_b = co[x * sides + y];
+
+			swap_v3_v3(co_a, co_b);
+			SWAP(float, co_a[0], co_a[1]);
+			SWAP(float, co_b[0], co_b[1]);
+
+			if (use_loop_mdisp_flip) {
+				co_a[2] *= -1.0f;
+				co_b[2] *= -1.0f;
+			}
+		}
+
+		co_a = co[x * sides + x];
+
+		SWAP(float, co_a[0], co_a[1]);
+
+		if (use_loop_mdisp_flip) {
+			co_a[2] *= -1.0f;
+		}
+	}
+}
+
+/**
  * Flip (invert winding of) the given \a mpoly, i.e. reverse order of its loops
  * (keeping the same vertex as 'start point').
  *
