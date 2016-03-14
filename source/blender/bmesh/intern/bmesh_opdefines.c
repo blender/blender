@@ -243,6 +243,7 @@ static BMOpDefine bmo_reverse_faces_def = {
 	"reverse_faces",
 	/* slots_in */
 	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},    /* input faces */
+	 {"flip_multires", BMO_OP_SLOT_BOOL},  /* maintain multi-res offset */
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */

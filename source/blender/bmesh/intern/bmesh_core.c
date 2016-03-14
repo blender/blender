@@ -1044,13 +1044,18 @@ static int UNUSED_FUNCTION(bm_loop_length)(BMLoop *l)
  *
  * BMESH_TODO: reinsert validation code.
  *
+ * \param cd_loop_mdisp_offset: Cached result of `CustomData_get_offset(&bm->ldata, CD_MDISPS)`.
+ * \param use_loop_mdisp_flip: When set, flip the Z-depth of the mdisp,
+ * (use when flipping normals, disable when mirroring, eg: symmetrize).
+ *
  * \return Success
  */
-static bool bm_loop_reverse_loop(BMesh *bm, BMFace *f
+static bool bm_loop_reverse_loop(
+        BMesh *bm, BMFace *f,
 #ifdef USE_BMESH_HOLES
-                                , BMLoopList *lst
+        BMLoopList *lst,
 #endif
-                                )
+        const int cd_loop_mdisp_offset, const bool use_loop_mdisp_flip)
 {
 
 #ifdef USE_BMESH_HOLES
@@ -1060,7 +1065,6 @@ static bool bm_loop_reverse_loop(BMesh *bm, BMFace *f
 #endif
 
 	const int len = f->len;
-	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
 	BMLoop *l_iter, *oldprev, *oldnext;
 	BMEdge **edar = BLI_array_alloca(edar, len);
 	int i, j, edok;
@@ -1100,15 +1104,19 @@ static bool bm_loop_reverse_loop(BMesh *bm, BMFace *f
 					SWAP(float, co_a[0], co_a[1]);
 					SWAP(float, co_b[0], co_b[1]);
 
-					co_a[2] *= -1.0f;
-					co_b[2] *= -1.0f;
+					if (use_loop_mdisp_flip) {
+						co_a[2] *= -1.0f;
+						co_b[2] *= -1.0f;
+					}
 				}
 
 				co_a = co[x * sides + x];
 
 				SWAP(float, co_a[0], co_a[1]);
 
-				co_a[2] *= -1.0f;
+				if (use_loop_mdisp_flip) {
+					co_a[2] *= -1.0f;
+				}
 			}
 		}
 	}
@@ -1155,12 +1163,14 @@ static bool bm_loop_reverse_loop(BMesh *bm, BMFace *f
 /**
  * \brief Flip the faces direction
  */
-bool bmesh_loop_reverse(BMesh *bm, BMFace *f)
+bool bmesh_loop_reverse(
+        BMesh *bm, BMFace *f,
+        const int cd_loop_mdisp_offset, const bool use_loop_mdisp_flip)
 {
 #ifdef USE_BMESH_HOLES
-	return bm_loop_reverse_loop(bm, f, f->loops.first);
+	return bm_loop_reverse_loop(bm, f, f->loops.first, cd_loop_mdisp_offset, use_loop_mdisp_flip);
 #else
-	return bm_loop_reverse_loop(bm, f);
+	return bm_loop_reverse_loop(bm, f, cd_loop_mdisp_offset, use_loop_mdisp_flip);
 #endif
 }
 

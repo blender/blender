@@ -702,10 +702,18 @@ void BM_face_calc_center_mean_vcos(
  * Reverses the winding of a face.
  * \note This updates the calculated normal.
  */
+void BM_face_normal_flip_ex(
+        BMesh *bm, BMFace *f,
+        const int cd_loop_mdisp_offset, const bool use_loop_mdisp_flip)
+{
+	bmesh_loop_reverse(bm, f, cd_loop_mdisp_offset, use_loop_mdisp_flip);
+	negate_v3(f->no);
+}
+
 void BM_face_normal_flip(BMesh *bm, BMFace *f)
 {
-	bmesh_loop_reverse(bm, f);
-	negate_v3(f->no);
+	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+	BM_face_normal_flip_ex(bm, f, cd_loop_mdisp_offset, true);
 }
 
 /* detects if two line segments cross each other (intersects).
