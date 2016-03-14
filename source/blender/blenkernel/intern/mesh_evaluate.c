@@ -3216,8 +3216,8 @@ void BKE_mesh_polygon_flip(MPoly *mpoly, MLoop *mloop, CustomData *ldata)
 
 	/* Note that we keep same start vertex for flipped face. */
 
-	/* We also have to update loops' edge
-	 * (they ell get ther original 'other edge', that is, the original edge of their original previous loop)... */
+	/* We also have to update loops edge
+	 * (they will get their original 'other edge', that is, the original edge of their original previous loop)... */
 	unsigned int prev_edge_index = mloop[loopstart].e;
 	mloop[loopstart].e = mloop[loopend].e;
 

@@ -457,21 +457,21 @@ static void rna_def_lamp_falloff(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "coeff_const");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Constant Coefficient",
-							 "Constant distance attenuation coefficient");
+	                         "Constant distance attenuation coefficient");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
 	prop = RNA_def_property(srna, "linear_coefficient", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "coeff_lin");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Linear Coefficient",
-							 "Linear distance attenuation coefficient");
+	                         "Linear distance attenuation coefficient");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
 	prop = RNA_def_property(srna, "quadratic_coefficient", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "coeff_quad");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Quadratic Coefficient",
-							 "Quadratic distance attenuation coefficient");
+	                         "Quadratic distance attenuation coefficient");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 }
 

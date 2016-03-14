@@ -3191,8 +3191,8 @@ void do_sky_tex(
 				}
 				break;
 			case TEXCO_EQUIRECTMAP:
-				tempvec[0]= -atan2f(lo[2], lo[0]) / M_PI;
-				tempvec[1]=  atan2f(lo[1], hypot(lo[0], lo[2])) / M_PI_2;
+				tempvec[0]= -atan2f(lo[2], lo[0]) / (float)M_PI;
+				tempvec[1]=  atan2f(lo[1], hypot(lo[0], lo[2])) / (float)M_PI_2;
 				tempvec[2]= 0.0f;
 				co= tempvec;
 				break;

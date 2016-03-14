@@ -1441,7 +1441,7 @@ bool BLI_gset_haskey(GSet *gs, const void *key)
  *
  * \param r_key: The removed key.
  * \param state: Used for efficient removal.
- * \return true if there was somethjing to pop, false if gset was already empty.
+ * \return true if there was something to pop, false if gset was already empty.
  */
 bool BLI_gset_pop(
         GSet *gs, GSetIterState *state,
