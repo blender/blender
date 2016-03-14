@@ -218,9 +218,13 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
                 row.prop(part, "hair_step")
                 if psys is not None and psys.is_edited:
                     if psys.is_global_hair:
-                        layout.operator("particle.connect_hair")
+                        row = layout.row(align=True)
+                        row.operator("particle.connect_hair").all = False
+                        row.operator("particle.connect_hair", text="Connect All").all = True
                     else:
-                        layout.operator("particle.disconnect_hair")
+                        row = layout.row(align=True)
+                        row.operator("particle.disconnect_hair").all = False
+                        row.operator("particle.disconnect_hair", text="Disconnect All").all = True
             elif psys is not None and part.type == 'REACTOR':
                 split.enabled = particle_panel_enabled(context, psys)
                 split.prop(psys, "reactor_target_object")

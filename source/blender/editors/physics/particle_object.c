@@ -649,7 +649,7 @@ void PARTICLE_OT_disconnect_hair(wmOperatorType *ot)
 	ot->exec = disconnect_hair_exec;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;  /* No REGISTER, redo does not work due to missing update, see T47750. */
 
 	RNA_def_boolean(ot->srna, "all", 0, "All hair", "Disconnect all hair systems from the emitter mesh");
 }
@@ -862,7 +862,6 @@ static int connect_hair_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= ED_object_context(C);
-	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= NULL;
 	const bool all = RNA_boolean_get(op->ptr, "all");
 	bool any_connected = false;
@@ -876,12 +875,13 @@ static int connect_hair_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		psys = ptr.data;
+		psys = psys_get_current(ob);
 		any_connected |= connect_hair(scene, ob, psys);
 	}
 
 	if (!any_connected) {
-		BKE_report(op->reports, RPT_ERROR, "Can't disconnect hair if particle system modifier is disabled");
+		BKE_report(op->reports, RPT_WARNING,
+		           "No hair connected (can't connect hair if particle system modifier is disabled)");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -900,7 +900,7 @@ void PARTICLE_OT_connect_hair(wmOperatorType *ot)
 	ot->exec = connect_hair_exec;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;  /* No REGISTER, redo does not work due to missing update, see T47750. */
 
 	RNA_def_boolean(ot->srna, "all", 0, "All hair", "Connect all hair systems to the emitter mesh");
 }
