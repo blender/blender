@@ -409,28 +409,24 @@ class Mesh(bpy_types.ID):
 
         :type faces: iterable object
         """
+        from itertools import chain, islice, accumulate
+
+        face_lengths = tuple(map(len, faces))
+
         self.vertices.add(len(vertices))
         self.edges.add(len(edges))
-        self.loops.add(sum((len(f) for f in faces)))
+        self.loops.add(sum(face_lengths))
         self.polygons.add(len(faces))
 
-        vertices_flat = [f for v in vertices for f in v]
-        self.vertices.foreach_set("co", vertices_flat)
-        del vertices_flat
+        self.vertices.foreach_set("co", tuple(chain.from_iterable(vertices)))
+        self.edges.foreach_set("vertices", tuple(chain.from_iterable(edges)))
 
-        edges_flat = [i for e in edges for i in e]
-        self.edges.foreach_set("vertices", edges_flat)
-        del edges_flat
+        vertex_indices = tuple(chain.from_iterable(faces))
+        loop_starts = tuple(islice(chain([0], accumulate(face_lengths)), len(faces)))
 
-        # this is different in bmesh
-        loop_index = 0
-        for i, p in enumerate(self.polygons):
-            f = faces[i]
-            loop_len = len(f)
-            p.loop_start = loop_index
-            p.loop_total = loop_len
-            p.vertices = f
-            loop_index += loop_len
+        self.polygons.foreach_set("loop_total", face_lengths)
+        self.polygons.foreach_set("loop_start", loop_starts)
+        self.polygons.foreach_set("vertices", vertex_indices)
 
         # if no edges - calculate them
         if faces and (not edges):
