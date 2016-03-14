@@ -3248,11 +3248,19 @@ void BKE_mesh_mdisp_flip(MDisps *md, const bool use_loop_mdisp_flip)
  * \param mloop the full loops array.
  * \param ldata the loops custom data.
  */
-void BKE_mesh_polygon_flip(MPoly *mpoly, MLoop *mloop, CustomData *ldata)
+void BKE_mesh_polygon_flip_ex(
+        MPoly *mpoly, MLoop *mloop, CustomData *ldata,
+        MDisps *mdisp, const bool use_loop_mdisp_flip)
 {
 	int loopstart = mpoly->loopstart;
 	int loopend = loopstart + mpoly->totloop - 1;
 	const bool loops_in_ldata = (CustomData_get_layer(ldata, CD_MLOOP) == mloop);
+
+	if (mdisp) {
+		for (int i = mpoly->loopstart; i <= loopend; i++) {
+			BKE_mesh_mdisp_flip(&mdisp[i], use_loop_mdisp_flip);
+		}
+	}
 
 	/* Note that we keep same start vertex for flipped face. */
 
@@ -3276,6 +3284,12 @@ void BKE_mesh_polygon_flip(MPoly *mpoly, MLoop *mloop, CustomData *ldata)
 	}
 }
 
+void BKE_mesh_polygon_flip(MPoly *mpoly, MLoop *mloop, CustomData *ldata)
+{
+	MDisps *mdisp = CustomData_get_layer(ldata, CD_MDISPS);
+	BKE_mesh_polygon_flip_ex(mpoly, mloop, ldata, mdisp, true);
+}
+
 /**
  * Flip (invert winding of) all polygons (used to inverse their normals).
  *
@@ -3284,11 +3298,12 @@ void BKE_mesh_polygon_flip(MPoly *mpoly, MLoop *mloop, CustomData *ldata)
 void BKE_mesh_polygons_flip(
         MPoly *mpoly, MLoop *mloop, CustomData *ldata, int totpoly)
 {
+	MDisps *mdisp = CustomData_get_layer(ldata, CD_MDISPS);
 	MPoly *mp;
 	int i;
 
 	for (mp = mpoly, i = 0; i < totpoly; mp++, i++) {
-		BKE_mesh_polygon_flip(mp, mloop, ldata);
+		BKE_mesh_polygon_flip_ex(mp, mloop, ldata, mdisp, true);
 	}
 }
 
