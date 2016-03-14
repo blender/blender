@@ -659,7 +659,7 @@ static bool gp_brush_randomize_apply(tGP_BrushEditData *gso, bGPDstroke *gps, in
 	 *   and then project these to get the points/distances in
 	 *   viewspace as needed
 	 */
-	float mvec[2], svec[2], nco[2];
+	float mvec[2], svec[2];
 	
 	/* mouse movement in ints -> floats */
 	mvec[0] = (float)(gso->mval[0] - gso->mval_prev[0]);
@@ -679,16 +679,20 @@ static bool gp_brush_randomize_apply(tGP_BrushEditData *gso, bGPDstroke *gps, in
 		mul_v2_fl(svec, fac);
 	}
 	
-	nco[0] = (float)co[0] + svec[0];
-	nco[1] = (float)co[1] + svec[1];
-	
 	//printf("%f %f (%f), nco = {%f %f}, co = %d %d\n", svec[0], svec[1], fac, nco[0], nco[1], co[0], co[1]);
 	
 	/* convert to dataspace */
 	if (gps->flag & GP_STROKE_3DSPACE) {
 		/* 3D: Project to 3D space */
 		if (gso->sa->spacetype == SPACE_VIEW3D) {
-			gp_point_xy_to_3d(&gso->gsc, gso->scene, nco, &pt->x);
+			bool flip;
+			RegionView3D *rv3d = gso->ar->regiondata;
+			float zfac = ED_view3d_calc_zfac(rv3d, &pt->x, &flip);
+			if (flip == false) {
+				float dvec[3];
+				ED_view3d_win_to_delta(gso->gsc.ar, svec, dvec, zfac);
+				add_v3_v3(&pt->x, dvec);
+			}
 		}
 		else {
 			/* ERROR */
@@ -698,6 +702,10 @@ static bool gp_brush_randomize_apply(tGP_BrushEditData *gso, bGPDstroke *gps, in
 	else {
 		/* 2D: As-is */
 		// XXX: v2d scaling/offset?
+		float nco[2];
+		nco[0] = (float)co[0] + svec[0];
+		nco[1] = (float)co[1] + svec[1];
+
 		copy_v2_v2(&pt->x, nco);
 	}
 	
