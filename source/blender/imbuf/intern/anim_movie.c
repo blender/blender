@@ -569,9 +569,9 @@ static int startffmpeg(struct anim *anim)
 			fprintf(stderr, "Could not allocate frame data.\n");
 			avcodec_close(anim->pCodecCtx);
 			avformat_close_input(&anim->pFormatCtx);
-			av_free(anim->pFrameRGB);
-			av_free(anim->pFrameDeinterlaced);
-			av_free(anim->pFrame);
+			av_frame_free(&anim->pFrameRGB);
+			av_frame_free(&anim->pFrameDeinterlaced);
+			av_frame_free(&anim->pFrame);
 			anim->pCodecCtx = NULL;
 			return -1;
 		}
@@ -584,9 +584,9 @@ static int startffmpeg(struct anim *anim)
 		        "ffmpeg has changed alloc scheme ... ARGHHH!\n");
 		avcodec_close(anim->pCodecCtx);
 		avformat_close_input(&anim->pFormatCtx);
-		av_free(anim->pFrameRGB);
-		av_free(anim->pFrameDeinterlaced);
-		av_free(anim->pFrame);
+		av_frame_free(&anim->pFrameRGB);
+		av_frame_free(&anim->pFrameDeinterlaced);
+		av_frame_free(&anim->pFrame);
 		anim->pCodecCtx = NULL;
 		return -1;
 	}
@@ -625,9 +625,9 @@ static int startffmpeg(struct anim *anim)
 		        "Can't transform color space??? Bailing out...\n");
 		avcodec_close(anim->pCodecCtx);
 		avformat_close_input(&anim->pFormatCtx);
-		av_free(anim->pFrameRGB);
-		av_free(anim->pFrameDeinterlaced);
-		av_free(anim->pFrame);
+		av_frame_free(&anim->pFrameRGB);
+		av_frame_free(&anim->pFrameDeinterlaced);
+		av_frame_free(&anim->pFrame);
 		anim->pCodecCtx = NULL;
 		return -1;
 	}
@@ -1163,13 +1163,9 @@ static void free_anim_ffmpeg(struct anim *anim)
 	if (anim->pCodecCtx) {
 		avcodec_close(anim->pCodecCtx);
 		avformat_close_input(&anim->pFormatCtx);
-		av_free(anim->pFrameRGB);
-		av_free(anim->pFrame);
-
-		if (anim->ib_flags & IB_animdeinterlace) {
-			MEM_freeN(anim->pFrameDeinterlaced->data[0]);
-		}
-		av_free(anim->pFrameDeinterlaced);
+		av_frame_free(&anim->pFrameRGB);
+		av_frame_free(&anim->pFrame);
+		av_frame_free(&anim->pFrameDeinterlaced);
 		sws_freeContext(anim->img_convert_ctx);
 		IMB_freeImBuf(anim->last_frame);
 		if (anim->next_packet.stream_index != -1) {
