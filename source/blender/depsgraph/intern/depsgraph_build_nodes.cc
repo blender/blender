@@ -778,6 +778,14 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
 		}
 	}
 
+	/* Make sure pose is up-to-date with armature updates. */
+	add_operation_node(&arm->id,
+	                   DEPSNODE_TYPE_PARAMETERS,
+	                   DEPSOP_TYPE_EXEC,
+	                   NULL,
+	                   DEG_OPCODE_PLACEHOLDER,
+	                   "Armature Eval");
+
 	/**
 	 * Pose Rig Graph
 	 * ==============
