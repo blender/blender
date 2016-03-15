@@ -476,6 +476,9 @@ void EDBM_select_less(BMEditMesh *em, const bool use_face_step)
 	BMO_op_finish(em->bm, &bmop);
 
 	EDBM_selectmode_flush(em);
+
+	/* only needed for select less, ensure we don't have isolated elements remaining */
+	BM_mesh_select_mode_clean(em->bm);
 }
 
 void EDBM_flag_disable_all(BMEditMesh *em, const char hflag)
