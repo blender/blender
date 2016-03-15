@@ -560,6 +560,23 @@ static int startffmpeg(struct anim *anim)
 	anim->pFrameDeinterlaced = av_frame_alloc();
 	anim->pFrameRGB = av_frame_alloc();
 
+	if ((anim->x & 31) != 0) {
+		anim->pFrameRGB->format = AV_PIX_FMT_RGBA;
+		anim->pFrameRGB->width  = anim->x;
+		anim->pFrameRGB->height = anim->y;
+
+		if (av_frame_get_buffer(anim->pFrameRGB, 32) < 0) {
+			fprintf(stderr, "Could not allocate frame data.\n");
+			avcodec_close(anim->pCodecCtx);
+			avformat_close_input(&anim->pFormatCtx);
+			av_free(anim->pFrameRGB);
+			av_free(anim->pFrameDeinterlaced);
+			av_free(anim->pFrame);
+			anim->pCodecCtx = NULL;
+			return -1;
+		}
+	}
+
 	if (avpicture_get_size(AV_PIX_FMT_RGBA, anim->x, anim->y) !=
 	    anim->x * anim->y * 4)
 	{
@@ -685,10 +702,12 @@ static void ffmpeg_postprocess(struct anim *anim)
 			input = anim->pFrameDeinterlaced;
 		}
 	}
-	
-	avpicture_fill((AVPicture *) anim->pFrameRGB,
-	               (unsigned char *) ibuf->rect,
-	               AV_PIX_FMT_RGBA, anim->x, anim->y);
+
+	if ((anim->x & 31) == 0) {
+		avpicture_fill((AVPicture *) anim->pFrameRGB,
+		               (unsigned char *) ibuf->rect,
+		               AV_PIX_FMT_RGBA, anim->x, anim->y);
+	}
 
 	if (ENDIAN_ORDER == B_ENDIAN) {
 		int *dstStride   = anim->pFrameRGB->linesize;
@@ -751,6 +770,16 @@ static void ffmpeg_postprocess(struct anim *anim)
 		          anim->y,
 		          dst2,
 		          dstStride2);
+	}
+
+	if ((anim->x & 31) != 0) {
+		uint8_t *src = anim->pFrameRGB->data[0];
+		uint8_t *dst = (uint8_t *) ibuf->rect;
+		for (int y = 0; y < anim->y; y++) {
+			memcpy(dst, src, anim->x * 4);
+			dst += anim->x * 4;
+			src += anim->pFrameRGB->linesize[0];
+		}
 	}
 
 	if (filter_y) {
