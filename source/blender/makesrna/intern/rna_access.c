@@ -1521,6 +1521,51 @@ bool RNA_property_enum_name_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA 
 	return result;
 }
 
+bool RNA_property_enum_item_from_value(
+        bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value,
+        EnumPropertyItem *r_item)
+{
+	EnumPropertyItem *item = NULL;
+	bool free;
+
+	RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
+	if (item) {
+		const int i = RNA_enum_from_value(item, value);
+		bool result;
+
+		if (i != -1) {
+			*r_item = item[i];
+			result = true;
+		}
+		else {
+			result = false;
+		}
+
+		if (free)
+			MEM_freeN(item);
+
+		return result;
+	}
+	return false;
+}
+
+bool RNA_property_enum_item_from_value_gettexted(
+        bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value,
+        EnumPropertyItem *r_item)
+{
+	bool result;
+
+	result = RNA_property_enum_item_from_value(C, ptr, prop, value, r_item);
+
+	if (!(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
+		if (BLT_translate_iface()) {
+			r_item->name = BLT_pgettext(prop->translation_context, r_item->name);
+		}
+	}
+
+	return result;
+}
+
 int RNA_property_enum_bitflag_identifiers(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value,
                                           const char **identifier)
 {

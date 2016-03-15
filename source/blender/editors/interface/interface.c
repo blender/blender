@@ -2855,14 +2855,16 @@ void ui_but_update_ex(uiBut *but, const bool validate)
 				if (but->block->flag & UI_BLOCK_LOOP) {
 					if (but->rnaprop && (RNA_property_type(but->rnaprop) == PROP_ENUM)) {
 						int value_enum = RNA_property_enum_get(&but->rnapoin, but->rnaprop);
-						const char *buf;
-						if (RNA_property_enum_name_gettexted(
+
+						EnumPropertyItem item;
+						if (RNA_property_enum_item_from_value_gettexted(
 						        but->block->evil_C,
-						        &but->rnapoin, but->rnaprop, value_enum, &buf))
+						        &but->rnapoin, but->rnaprop, value_enum, &item))
 						{
-							size_t slen = strlen(buf);
+							size_t slen = strlen(item.name);
 							ui_but_string_free_internal(but);
-							ui_but_string_set_internal(but, buf, slen);
+							ui_but_string_set_internal(but, item.name, slen);
+							but->icon = item.icon;
 						}
 					}
 				}
