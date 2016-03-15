@@ -362,18 +362,22 @@ if(UNIX AND NOT APPLE)
 		mark_as_advanced(WITH_BOOST_ICU)
 	endif()
 endif()
+
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
-option(WITH_PYTHON_INSTALL_NUMPY "Copy system numpy into the blender install folder"  ON)
-set(PYTHON_NUMPY_PATH            "" CACHE PATH "Path to python site-packages or dist-packages containing 'numpy' module")
-mark_as_advanced(PYTHON_NUMPY_PATH)
+if(WITH_PYTHON_INSTALL)
+	option(WITH_PYTHON_INSTALL_NUMPY "Copy system numpy into the blender install folder"  ON)
+	set(PYTHON_NUMPY_PATH            "" CACHE PATH "Path to python site-packages or dist-packages containing 'numpy' module")
+	mark_as_advanced(PYTHON_NUMPY_PATH)
+
+	if(UNIX AND NOT APPLE)
+		option(WITH_PYTHON_INSTALL_REQUESTS "Copy system requests into the blender install folder" ON)
+		set(PYTHON_REQUESTS_PATH "" CACHE PATH "Path to python site-packages or dist-packages containing 'requests' module")
+		mark_as_advanced(PYTHON_REQUESTS_PATH)
+	endif()
+endif()
+
 option(WITH_CPU_SSE              "Enable SIMD instruction if they're detected on the host machine" ON)
 mark_as_advanced(WITH_CPU_SSE)
-
-if(UNIX AND NOT APPLE)
-	option(WITH_PYTHON_INSTALL_REQUESTS "Copy system requests into the blender install folder" ON)
-	set(PYTHON_REQUESTS_PATH "" CACHE PATH "Path to python site-packages or dist-packages containing 'requests' module")
-	mark_as_advanced(PYTHON_REQUESTS_PATH)
-endif()
 
 # Cycles
 option(WITH_CYCLES					"Enable Cycles Render Engine" ON)
