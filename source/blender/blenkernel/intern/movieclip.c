@@ -367,6 +367,8 @@ typedef struct MovieClipCache {
 	} stabilized;
 
 	int sequence_offset;
+
+	bool is_still_sequence;
 } MovieClipCache;
 
 typedef struct MovieClipImBufCacheKey {
@@ -465,7 +467,12 @@ static ImBuf *get_imbuf_cache(MovieClip *clip,
 	if (clip->cache) {
 		MovieClipImBufCacheKey key;
 
-		key.framenr = user_frame_to_cache_frame(clip, user->framenr);
+		if (!clip->cache->is_still_sequence) {
+			key.framenr = user_frame_to_cache_frame(clip, user->framenr);
+		}
+		else {
+			key.framenr = 1;
+		}
 
 		if (flag & MCLIP_USE_PROXY) {
 			key.proxy = rendersize_to_proxy(user, flag);
@@ -533,9 +540,19 @@ static bool put_imbuf_cache(MovieClip *clip,
 
 		clip->cache->moviecache = moviecache;
 		clip->cache->sequence_offset = -1;
+		if (clip->source == MCLIP_SRC_SEQUENCE) {
+			unsigned short numlen;
+			BLI_stringdec(clip->name, NULL, NULL, &numlen);
+			clip->cache->is_still_sequence = (numlen == 0);
+		}
 	}
 
-	key.framenr = user_frame_to_cache_frame(clip, user->framenr);
+	if (!clip->cache->is_still_sequence) {
+		key.framenr = user_frame_to_cache_frame(clip, user->framenr);
+	}
+	else {
+		key.framenr = 1;
+	}
 
 	if (flag & MCLIP_USE_PROXY) {
 		key.proxy = rendersize_to_proxy(user, flag);
