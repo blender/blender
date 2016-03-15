@@ -96,7 +96,7 @@ void BMW_init(
 	if (UNLIKELY(type >= BMW_MAXWALKERS || type < 0)) {
 		fprintf(stderr,
 		        "%s: Invalid walker type in BMW_init; type: %d, "
-		        "searchmask: (v:%d, e:%d, f:%d), flag: %d, layer: %d\n",
+		        "searchmask: (v:%d, e:%d, f:%d), flag: %u, layer: %d\n",
 		        __func__, type, mask_vert, mask_edge, mask_face, flag, layer);
 		BLI_assert(0);
 		return;

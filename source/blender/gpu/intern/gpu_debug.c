@@ -195,7 +195,7 @@ void gpu_debug_init(void)
 #if !defined(WITH_GLEW_ES) && !defined(GLEW_ES_ONLY)
 	if (GLEW_VERSION_4_3) {
 		glEnable(GL_DEBUG_OUTPUT);
-		glDebugMessageCallback(gpu_debug_proc, mxGetCurrentContext());
+		glDebugMessageCallback((GLDEBUGPROC)gpu_debug_proc, mxGetCurrentContext());
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 		GPU_string_marker(sizeof(success), success);
 		return;
@@ -204,7 +204,7 @@ void gpu_debug_init(void)
 
 	if (GLEW_KHR_debug) {
 #ifndef GLEW_ES_ONLY
-		glDebugMessageCallback(gpu_debug_proc, mxGetCurrentContext());
+		glDebugMessageCallback((GLDEBUGPROC)gpu_debug_proc, mxGetCurrentContext());
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 		GPU_string_marker(sizeof(success), success);
 #endif
@@ -213,7 +213,7 @@ void gpu_debug_init(void)
 
 #ifndef GLEW_ES_ONLY
 	if (GLEW_ARB_debug_output) {
-		glDebugMessageCallbackARB(gpu_debug_proc, mxGetCurrentContext());
+		glDebugMessageCallbackARB((GLDEBUGPROCARB)gpu_debug_proc, mxGetCurrentContext());
 		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 		GPU_string_marker(sizeof(success), success);
 
