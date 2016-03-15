@@ -256,6 +256,9 @@ endfunction()
 
 function(SETUP_LIBDIRS)
 
+	# NOTE: For all new libraries, use absolute library paths.
+	# This should eventually be phased out.
+
 	link_directories(${JPEG_LIBPATH} ${PNG_LIBPATH} ${ZLIB_LIBPATH} ${FREETYPE_LIBPATH})
 
 	if(WITH_PYTHON)  #  AND NOT WITH_PYTHON_MODULE  # WIN32 needs
@@ -285,12 +288,6 @@ function(SETUP_LIBDIRS)
 	if(WITH_OPENVDB)
 		link_directories(${OPENVDB_LIBPATH})
 	endif()
-	if(WITH_IMAGE_OPENJPEG AND WITH_SYSTEM_OPENJPEG)
-		link_directories(${OPENJPEG_LIBPATH})
-	endif()
-	if(WITH_CODEC_QUICKTIME)
-		link_directories(${QUICKTIME_LIBPATH})
-	endif()
 	if(WITH_OPENAL)
 		link_directories(${OPENAL_LIBPATH})
 	endif()
@@ -305,14 +302,12 @@ function(SETUP_LIBDIRS)
 	endif()
 	if(WITH_OPENCOLLADA)
 		link_directories(${OPENCOLLADA_LIBPATH})
-		link_directories(${PCRE_LIBPATH})
-		link_directories(${EXPAT_LIBPATH})
+		## Never set
+		# link_directories(${PCRE_LIBPATH})
+		# link_directories(${EXPAT_LIBPATH})
 	endif()
 	if(WITH_LLVM)
 		link_directories(${LLVM_LIBPATH})
-	endif()
-	if(WITH_MEM_JEMALLOC)
-		link_directories(${JEMALLOC_LIBPATH})
 	endif()
 
 	if(WIN32 AND NOT UNIX)
