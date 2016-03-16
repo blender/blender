@@ -1066,7 +1066,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); /* XXX - don't print into self! */
 
 		uiDefBut(node->block, UI_BTYPE_LABEL, 0, showname,
-		         (int)(rct->xmin + (NODE_MARGIN_X)), (int)(centy - 10),
+		         iroundf(rct->xmin + NODE_MARGIN_X), iroundf(centy - NODE_DY * 0.5f),
 		         (short)(BLI_rctf_size_x(rct) - 18.0f - 12.0f), (short)NODE_DY,
 		         NULL, 0, 0, 0, 0, "");
 	}
