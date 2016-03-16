@@ -1537,6 +1537,7 @@ static int gpsculpt_brush_modal(bContext *C, wmOperator *op, const wmEvent *even
 	tGP_BrushEditData *gso = op->customdata;
 	const bool is_modal = RNA_boolean_get(op->ptr, "wait_for_input");
 	bool redraw_region = false;
+	bool redraw_toolsettings = false;
 	
 	/* The operator can be in 2 states: Painting and Idling */
 	if (gso->is_painting) {
@@ -1575,8 +1576,9 @@ static int gpsculpt_brush_modal(bContext *C, wmOperator *op, const wmEvent *even
 					gso->brush->size += 3;
 					CLAMP_MAX(gso->brush->size, 300);
 				}
-					
+				
 				redraw_region = true;
+				redraw_toolsettings = true;
 				break;
 			
 			case WHEELDOWNMOUSE: 
@@ -1591,8 +1593,9 @@ static int gpsculpt_brush_modal(bContext *C, wmOperator *op, const wmEvent *even
 					gso->brush->size -= 3;
 					CLAMP_MIN(gso->brush->size, 1);
 				}
-					
+				
 				redraw_region = true;
+				redraw_toolsettings = true;
 				break;
 			
 			/* Painting mbut release = Stop painting (back to idle) */
@@ -1664,8 +1667,9 @@ static int gpsculpt_brush_modal(bContext *C, wmOperator *op, const wmEvent *even
 					gso->brush->size += 3;
 					CLAMP_MAX(gso->brush->size, 300);
 				}
-					
+				
 				redraw_region = true;
+				redraw_toolsettings = true;
 				break;
 			
 			case WHEELDOWNMOUSE: 
@@ -1680,8 +1684,9 @@ static int gpsculpt_brush_modal(bContext *C, wmOperator *op, const wmEvent *even
 					gso->brush->size -= 3;
 					CLAMP_MIN(gso->brush->size, 1);
 				}
-					
+				
 				redraw_region = true;
+				redraw_toolsettings = true;
 				break;
 			
 			/* Change Frame - Allowed */
@@ -1701,6 +1706,11 @@ static int gpsculpt_brush_modal(bContext *C, wmOperator *op, const wmEvent *even
 	if (redraw_region) {
 		ARegion *ar = CTX_wm_region(C);
 		ED_region_tag_redraw(ar);
+	}
+	
+	/* Redraw toolsettings (brush settings)? */
+	if (redraw_toolsettings) {
+		WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
 	}
 	
 	return OPERATOR_RUNNING_MODAL;
