@@ -295,6 +295,24 @@ class SEQUENCER_MT_frame(Menu):
         layout.operator("anim.previewrange_clear")
         layout.operator("anim.previewrange_set")
 
+        layout.separator()
+
+        props = layout.operator("sequencer.strip_jump", text="Jump to Previous Strip")
+        props.next = False
+        props.center = False
+        props = layout.operator("sequencer.strip_jump", text="Jump to Next Strip")
+        props.next = True
+        props.center = False
+
+        layout.separator()
+
+        props = layout.operator("sequencer.strip_jump", text="Jump to Previous Strip (Center)")
+        props.next = False
+        props.center = True
+        props = layout.operator("sequencer.strip_jump", text="Jump to Next Strip (Center)")
+        props.next = True
+        props.center = True
+
 
 class SEQUENCER_MT_add(Menu):
     bl_label = "Add"
