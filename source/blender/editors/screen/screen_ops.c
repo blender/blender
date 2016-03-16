@@ -3205,8 +3205,8 @@ static int header_exec(bContext *C, wmOperator *UNUSED(op))
 static void SCREEN_OT_header(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Header";
-	ot->description = "Display header";
+	ot->name = "Toggle Header";
+	ot->description = "Toggle header display";
 	ot->idname = "SCREEN_OT_header";
 
 	/* api callbacks */
@@ -4305,10 +4305,12 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_options", RIGHTMOUSE, KM_PRESS, 0, 0);
 
+	WM_keymap_add_item(keymap, "SCREEN_OT_header", F9KEY, KM_PRESS, KM_ALT, 0);
+
 	/* Header Editing ------------------------------------------------ */
+	/* note: this is only used when the cursor is inside the header */
 	keymap = WM_keymap_find(keyconf, "Header", 0, 0);
 
-	WM_keymap_add_item(keymap, "SCREEN_OT_header", F9KEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_header_toolbox", RIGHTMOUSE, KM_PRESS, 0, 0);
 
 	/* Screen General ------------------------------------------------ */
