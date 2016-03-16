@@ -437,7 +437,10 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 					seq->flag |= is_striponly_selected ? SEQ_ALLSEL : SELECT;
 					select_surrounding_handles(scene, seq);
 				}
-				else if (seq->flag & SELECT) {
+				else {
+					/* always select the strip under the cursor */
+					seq->flag |= SELECT;
+
 					/* First click selects adjacent handles on that side.
 					 * Second click selects all strips in that direction.
 					 * If there are no adjacent strips, it just selects all in that direction.
