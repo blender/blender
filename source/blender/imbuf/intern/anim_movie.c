@@ -443,6 +443,11 @@ static ImBuf *avi_fetchibuf(struct anim *anim, int position)
 
 #ifdef WITH_FFMPEG
 
+BLI_INLINE bool need_aligned_ffmpeg_buffer(struct anim *anim)
+{
+	return (anim->x & 31) != 0;
+}
+
 static int startffmpeg(struct anim *anim)
 {
 	int i, videoStream;
@@ -560,7 +565,7 @@ static int startffmpeg(struct anim *anim)
 	anim->pFrameDeinterlaced = av_frame_alloc();
 	anim->pFrameRGB = av_frame_alloc();
 
-	if ((anim->x & 31) != 0) {
+	if (need_aligned_ffmpeg_buffer(anim)) {
 		anim->pFrameRGB->format = AV_PIX_FMT_RGBA;
 		anim->pFrameRGB->width  = anim->x;
 		anim->pFrameRGB->height = anim->y;
@@ -703,7 +708,7 @@ static void ffmpeg_postprocess(struct anim *anim)
 		}
 	}
 
-	if ((anim->x & 31) == 0) {
+	if (!need_aligned_ffmpeg_buffer(anim)) {
 		avpicture_fill((AVPicture *) anim->pFrameRGB,
 		               (unsigned char *) ibuf->rect,
 		               AV_PIX_FMT_RGBA, anim->x, anim->y);
@@ -772,7 +777,7 @@ static void ffmpeg_postprocess(struct anim *anim)
 		          dstStride2);
 	}
 
-	if ((anim->x & 31) != 0) {
+	if (need_aligned_ffmpeg_buffer(anim)) {
 		uint8_t *src = anim->pFrameRGB->data[0];
 		uint8_t *dst = (uint8_t *) ibuf->rect;
 		for (int y = 0; y < anim->y; y++) {
@@ -1163,6 +1168,16 @@ static void free_anim_ffmpeg(struct anim *anim)
 	if (anim->pCodecCtx) {
 		avcodec_close(anim->pCodecCtx);
 		avformat_close_input(&anim->pFormatCtx);
+		if (!need_aligned_ffmpeg_buffer(anim)) {
+			/* If there's no need for own aligned buffer it means that FFmpeg's
+			 * frame shares the same buffer as temporary ImBuf. In this case we
+			 * should not free the buffer when freeing the FFmpeg buffer.
+			 */
+			avpicture_fill((AVPicture *)anim->pFrameRGB,
+			               NULL,
+			               AV_PIX_FMT_RGBA,
+			               anim->x, anim->y);
+		}
 		av_frame_free(&anim->pFrameRGB);
 		av_frame_free(&anim->pFrame);
 		av_frame_free(&anim->pFrameDeinterlaced);
