@@ -3237,9 +3237,9 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 				display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
 				
 #ifdef __BIG_ENDIAN__
-				if      (snode->flag & SNODE_SHOW_R) ofs = 2;
+				if      (snode->flag & SNODE_SHOW_R) ofs = 0;
 				else if (snode->flag & SNODE_SHOW_G) ofs = 1;
-				else                                 ofs = 0;
+				else                                 ofs = 2;
 #else
 				if      (snode->flag & SNODE_SHOW_R) ofs = 1;
 				else if (snode->flag & SNODE_SHOW_G) ofs = 2;
@@ -3250,7 +3250,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 				/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
 				
 				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_LUMINANCE, GL_UNSIGNED_INT,
-				                  display_buffer + ofs);
+				                  display_buffer - (4 - ofs));
 				
 				glPixelZoom(1.0f, 1.0f);
 			}
