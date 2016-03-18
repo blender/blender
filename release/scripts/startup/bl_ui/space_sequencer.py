@@ -866,6 +866,14 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
         if scene:
             layout.prop(scene, "audio_volume", text="Audio Volume")
 
+        if not strip.use_sequence:
+            if scene:
+                # Warning, this is not a good convention to follow.
+                # Expose here because setting the alpha from the 'Render' menu is very inconvenient.
+                layout.label("Preview")
+                layout.prop(scene.render, "alpha_mode")
+
+        if scene:
             sta = scene.frame_start
             end = scene.frame_end
             layout.label(text=iface_("Original frame range: %d-%d (%d)") % (sta, end, end - sta + 1), translate=False)
