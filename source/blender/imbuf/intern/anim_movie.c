@@ -1168,6 +1168,15 @@ static void free_anim_ffmpeg(struct anim *anim)
 	if (anim->pCodecCtx) {
 		avcodec_close(anim->pCodecCtx);
 		avformat_close_input(&anim->pFormatCtx);
+
+		/* Special case here: pFrame could share pointers with codec,
+		 * so in order to avoid double-free we don't use av_frame_free()
+		 * to free the frame.
+		 *
+		 * Could it be a bug in FFmpeg?
+		 */
+		av_free(anim->pFrame);
+
 		if (!need_aligned_ffmpeg_buffer(anim)) {
 			/* If there's no need for own aligned buffer it means that FFmpeg's
 			 * frame shares the same buffer as temporary ImBuf. In this case we
@@ -1179,8 +1188,8 @@ static void free_anim_ffmpeg(struct anim *anim)
 			               anim->x, anim->y);
 		}
 		av_frame_free(&anim->pFrameRGB);
-		av_frame_free(&anim->pFrame);
 		av_frame_free(&anim->pFrameDeinterlaced);
+
 		sws_freeContext(anim->img_convert_ctx);
 		IMB_freeImBuf(anim->last_frame);
 		if (anim->next_packet.stream_index != -1) {
