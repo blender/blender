@@ -344,8 +344,10 @@ enum {
 #define UI_LIST_AUTO_SIZE_THRESHOLD 1
 
 /* uiList filter flags (dyn_data) */
+/* WARNING! Those values are used by integer RNA too, which does not handle well values > INT_MAX...
+ *          So please do not use 32nd bit here. */
 enum {
-	UILST_FLT_ITEM      = 1 << 31,  /* This item has passed the filter process successfully. */
+	UILST_FLT_ITEM      = 1 << 30,  /* This item has passed the filter process successfully. */
 };
 
 /* uiList filter options */
@@ -356,7 +358,7 @@ enum {
 
 /* uiList filter orderby type */
 enum {
-	UILST_FLT_SORT_ALPHA         = 1 << 0,
+	UILST_FLT_SORT_ALPHA        = 1 << 0,
 	UILST_FLT_SORT_REVERSE      = 1 << 31  /* Special value, bitflag used to reverse order! */
 };
 
