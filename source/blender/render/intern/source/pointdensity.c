@@ -435,11 +435,13 @@ typedef struct PointDensityRangeData {
 	float velscale;
 } PointDensityRangeData;
 
-static void accum_density(void *userdata, int index, float squared_dist)
+static void accum_density(void *userdata, int index, const float co[3], float squared_dist)
 {
 	PointDensityRangeData *pdr = (PointDensityRangeData *)userdata;
 	const float dist = (pdr->squared_radius - squared_dist) / pdr->squared_radius * 0.5f;
 	float density = 0.0f;
+
+	UNUSED_VARS(co);
 
 	if (pdr->point_data_used & POINT_DATA_VEL) {
 		pdr->vec[0] += pdr->point_data[index * 3 + 0]; // * density;

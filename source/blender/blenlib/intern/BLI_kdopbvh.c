@@ -2009,7 +2009,7 @@ static void dfs_range_query(RangeQueryData *data, BVHNode *node)
 				/* Its a leaf.. call the callback */
 				if (node->children[i]->totnode == 0) {
 					data->hits++;
-					data->callback(data->userdata, node->children[i]->index, dist_sq);
+					data->callback(data->userdata, node->children[i]->index, data->center, dist_sq);
 				}
 				else
 					dfs_range_query(data, node->children[i]);
@@ -2040,7 +2040,7 @@ int BLI_bvhtree_range_query(
 			/* Its a leaf.. call the callback */
 			if (root->totnode == 0) {
 				data.hits++;
-				data.callback(data.userdata, root->index, dist_sq);
+				data.callback(data.userdata, root->index, co, dist_sq);
 			}
 			else
 				dfs_range_query(&data, root);

@@ -101,7 +101,7 @@ typedef struct SPHData {
 
 	/* Integrator callbacks. This allows different SPH implementations. */
 	void (*force_cb) (void *sphdata_v, ParticleKey *state, float *force, float *impulse);
-	void (*density_cb) (void *rangedata_v, int index, float squared_dist);
+	void (*density_cb) (void *rangedata_v, int index, const float co[3], float squared_dist);
 } SPHData;
 
 typedef struct ParticleTexture {

@@ -102,7 +102,7 @@ typedef void (*BVHTree_NearestToRayCallback)(void *userdata, int index, const BV
 typedef bool (*BVHTree_OverlapCallback)(void *userdata, int index_a, int index_b, int thread);
 
 /* callback to range search query */
-typedef void (*BVHTree_RangeQuery)(void *userdata, int index, float dist_sq);
+typedef void (*BVHTree_RangeQuery)(void *userdata, int index, const float co[3], float dist_sq);
 
 
 /* callbacks to BLI_bvhtree_walk_dfs */
