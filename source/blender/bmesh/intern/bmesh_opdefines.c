@@ -168,8 +168,8 @@ static BMOpDefine bmo_planar_faces_def = {
 	"planar_faces",
 	/* slots_in */
 	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},    /* input geometry. */
-	 {"iterations", BMO_OP_SLOT_INT},
-	 {"factor", BMO_OP_SLOT_FLT},           /* planar factor */
+	 {"iterations", BMO_OP_SLOT_INT},  /* Number of times to flatten faces (for when connected faces are used) */
+	 {"factor", BMO_OP_SLOT_FLT},  /* Influence for making planar each iteration */
 	 {{'\0'}},
 	},
 	/* slots_out */
@@ -436,8 +436,8 @@ static BMOpDefine bmo_average_vert_facedata_def = {
 static BMOpDefine bmo_pointmerge_def = {
 	"pointmerge",
 	/* slots_in */
-	{{"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}}, /* input vertices */
-	 {"merge_co",         BMO_OP_SLOT_VEC},
+	{{"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}}, /* input vertices (all verts will be merged into the first). */
+	 {"merge_co", BMO_OP_SLOT_VEC},  /* Position to merge at. */
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */
