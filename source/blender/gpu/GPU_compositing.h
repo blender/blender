@@ -44,6 +44,7 @@ struct GPUOffScreen;
 struct GPUFXSettings;
 struct rcti;
 struct Scene;
+struct GPUShader;
 enum eGPUFXFlags;
 
 /**** Public API *****/
@@ -94,6 +95,10 @@ void GPU_fx_compositor_XRay_resolve(GPUFX *fx);
 
 void GPU_fx_compositor_init_dof_settings(struct GPUDOFSettings *dof);
 void GPU_fx_compositor_init_ssao_settings(struct GPUSSAOSettings *ssao);
+
+
+/* initialize and cache the shader unform interface for effects */
+void GPU_fx_shader_init_interface(struct GPUShader *shader, GPUFXShaderEffect effect);
 #ifdef __cplusplus
 }
 #endif
