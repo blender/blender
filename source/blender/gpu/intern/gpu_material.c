@@ -2193,12 +2193,16 @@ void GPU_lamp_update(GPULamp *lamp, int lay, int hide, float obmat[4][4])
 	copy_m4_m4(lamp->obmat, mat);
 	invert_m4_m4(lamp->imat, mat);
 
-	/* update spotlamp scale on X and Y axis */
-	lamp->spotvec[0] = obmat_scale[0] / obmat_scale[2];
-	lamp->spotvec[1] = obmat_scale[1] / obmat_scale[2];
+	if (lamp->type == LA_SPOT) {
+		/* update spotlamp scale on X and Y axis */
+		lamp->spotvec[0] = obmat_scale[0] / obmat_scale[2];
+		lamp->spotvec[1] = obmat_scale[1] / obmat_scale[2];
+	}
 
-	/* makeshadowbuf */
-	gpu_lamp_calc_winmat(lamp);
+	if (GPU_lamp_has_shadow_buffer(lamp)) {
+		/* makeshadowbuf */
+		gpu_lamp_calc_winmat(lamp);
+	}
 }
 
 void GPU_lamp_update_colors(GPULamp *lamp, float r, float g, float b, float energy)
