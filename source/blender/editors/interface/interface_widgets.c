@@ -3253,7 +3253,7 @@ static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int UN
 	recttemp.ymax -= delta;
 	
 	/* half rounded */
-	rad = 0.2f * U.widget_unit;
+	rad = BLI_rcti_size_y(&recttemp) / 3;
 	round_box_edges(&wtb, UI_CNR_ALL, &recttemp, rad);
 	
 	/* decoration */
