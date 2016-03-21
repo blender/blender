@@ -3309,12 +3309,18 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 	RegionView3D *rv3d = ar->regiondata;
 	ImBuf *ibuf;
 	const bool draw_sky = (alpha_mode == R_ADDSKY);
-	const bool own_ofs = (ofs == NULL);
 
 	/* view state */
 	GPUFXSettings fx_settings = v3d->fx_settings;
 	bool is_ortho = false;
 	float winmat[4][4];
+
+	if (ofs && ((GPU_offscreen_width(ofs) != sizex) || (GPU_offscreen_height(ofs) != sizey))) {
+		/* sizes differ, can't reuse */
+		ofs = NULL;
+	}
+
+	const bool own_ofs = (ofs == NULL);
 
 	if (own_ofs) {
 		/* bind */
