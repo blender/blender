@@ -192,7 +192,8 @@ typedef enum GPUDynamicType {
 	GPU_DYNAMIC_MAT_HARD             = 5  | GPU_DYNAMIC_GROUP_MAT,
 	GPU_DYNAMIC_MAT_EMIT             = 6  | GPU_DYNAMIC_GROUP_MAT,
 	GPU_DYNAMIC_MAT_AMB              = 7  | GPU_DYNAMIC_GROUP_MAT,
-	GPU_DYNAMIC_MAT_ALPHA            = 8  | GPU_DYNAMIC_GROUP_MAT
+	GPU_DYNAMIC_MAT_ALPHA            = 8  | GPU_DYNAMIC_GROUP_MAT,
+	GPU_DYNAMIC_MAT_MIR              = 9  | GPU_DYNAMIC_GROUP_MAT
 } GPUDynamicType;
 
 GPUNodeLink *GPU_attribute(CustomDataType type, const char *name);
@@ -249,7 +250,7 @@ typedef struct GPUShadeInput {
 
 	GPUNodeLink *rgb, *specrgb, *vn, *view, *vcol, *ref;
 	GPUNodeLink *alpha, *refl, *spec, *emit, *har, *amb;
-	GPUNodeLink *spectra;
+	GPUNodeLink *spectra, *mir, *refcol;
 } GPUShadeInput;
 
 typedef struct GPUShadeResult {

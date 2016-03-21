@@ -923,6 +923,11 @@ void shade_norm(vec3 normal, out vec3 outnormal)
 	outnormal = -normalize(normal);
 }
 
+void mtex_mirror(vec3 tcol, vec4 refcol, float tin, float colmirfac, out vec4 outrefcol)
+{
+    outrefcol = mix(refcol, vec4(1.0, tcol), tin*colmirfac);
+}
+
 void mtex_rgb_blend(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 incol)
 {
 	float facm;
@@ -2056,6 +2061,11 @@ void shade_spec_t(float shadfac, float spec, float visifac, float specfac, out f
 void shade_add_spec(float t, vec3 lampcol, vec3 speccol, out vec3 outcol)
 {
 	outcol = t*lampcol*speccol;
+}
+
+void shade_add_mirror(vec3 mir, vec4 refcol, vec3 combined, out vec3 result)
+{
+    result = mir*refcol.gba + (vec3(1.0) - mir*refcol.rrr)*combined;
 }
 
 void alpha_spec_correction(vec3 spec, float spectra, float alpha, out float outalpha)

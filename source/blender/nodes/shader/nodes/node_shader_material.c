@@ -263,6 +263,8 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 			GPU_link(mat, "vec_math_negate", shi.vn, &shi.vn);
 
 		if (node->type == SH_NODE_MATERIAL_EXT) {
+			if (hasinput[MAT_IN_MIR])
+				shi.mir = gpu_get_input_link(&in[MAT_IN_MIR]);
 			if (hasinput[MAT_IN_AMB])
 				shi.amb = gpu_get_input_link(&in[MAT_IN_AMB]);
 			if (hasinput[MAT_IN_EMIT])

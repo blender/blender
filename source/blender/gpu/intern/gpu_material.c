@@ -1270,7 +1270,7 @@ static void do_material_tex(GPUShadeInput *shi)
 			}
 
 			/* mapping */
-			if (mtex->mapto & (MAP_COL + MAP_COLSPEC)) {
+			if (mtex->mapto & (MAP_COL | MAP_COLSPEC | MAP_COLMIR)) {
 				/* stencil maps on the texture control slider, not texture intensity value */
 				if ((rgbnor & TEX_RGB) == 0) {
 					GPU_link(mat, "set_rgb", GPU_uniform(&mtex->r), &tcol);
@@ -1310,6 +1310,20 @@ static void do_material_tex(GPUShadeInput *shi)
 					else GPU_link(mat, "math_multiply", GPU_uniform(&mtex->colspecfac), stencil, &colspecfac);
 
 					texture_rgb_blend(mat, tcol, shi->specrgb, tin, colspecfac, mtex->blendtype, &shi->specrgb);
+				}
+
+				if(mtex->mapto & MAP_COLMIR) {
+					GPUNodeLink *colmirfac;
+
+					if (mtex->mirrfac == 1.0f) colmirfac = stencil;
+					else GPU_link(mat, "math_multiply", GPU_uniform(&mtex->mirrfac), stencil, &colmirfac);
+
+					/* exception for envmap only */
+					if (tex->type == TEX_ENVMAP && mtex->blendtype == MTEX_BLEND) {
+						GPU_link(mat, "mtex_mirror", tcol, shi->refcol, tin, colmirfac, &shi->refcol);
+					}
+					else
+						texture_rgb_blend(mat, tcol, shi->mir, tin, colmirfac, mtex->blendtype, &shi->mir);
 				}
 			}
 
@@ -1603,6 +1617,8 @@ void GPU_shadeinput_set(GPUMaterial *mat, Material *ma, GPUShadeInput *shi)
 
 	GPU_link(mat, "set_rgb", GPU_dynamic_uniform(&ma->r, GPU_DYNAMIC_MAT_DIFFRGB, NULL), &shi->rgb);
 	GPU_link(mat, "set_rgb", GPU_dynamic_uniform(&ma->specr, GPU_DYNAMIC_MAT_SPECRGB, NULL), &shi->specrgb);
+	GPU_link(mat, "set_rgb", GPU_dynamic_uniform(&ma->mirr, GPU_DYNAMIC_MAT_MIR, NULL), &shi->mir);
+	GPU_link(mat, "set_rgba_zero", &shi->refcol);
 	GPU_link(mat, "shade_norm", GPU_builtin(GPU_VIEW_NORMAL), &shi->vn);
 
 	if (mat->alpha)
@@ -1722,6 +1738,9 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 
 		if (ma->mode & MA_RAMP_COL) ramp_diffuse_result(shi, &shr->combined);
 		if (ma->mode & MA_RAMP_SPEC) ramp_spec_result(shi, &shr->spec);
+
+		if (GPU_link_changed(shi->refcol))
+			GPU_link(mat, "shade_add_mirror", shi->mir, shi->refcol, shr->combined, &shr->combined);
 
 		if (GPU_link_changed(shi->spec) || ma->spec != 0.0f)
 			GPU_link(mat, "shade_add", shr->combined, shr->spec, &shr->combined);
