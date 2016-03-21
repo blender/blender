@@ -175,9 +175,9 @@ static int uv_sculpt_brush_poll_do(bContext *C, const bool check_region)
 	em = BKE_editmesh_from_object(obedit);
 	ret = EDBM_mtexpoly_check(em);
 
-	if (ret && check_region) {
+	if (ret) {
 		ARegion *ar = CTX_wm_region(C);
-		if (!((toolsettings->use_uv_sculpt) && (ar->regiontype == RGN_TYPE_WINDOW))) {
+		if ((!toolsettings->use_uv_sculpt) || (check_region && ar && (ar->regiontype == RGN_TYPE_WINDOW))) {
 			ret = 0;
 		}
 	}
