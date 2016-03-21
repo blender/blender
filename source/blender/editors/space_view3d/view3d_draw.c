@@ -2508,7 +2508,11 @@ static void gpu_render_lamp_update(Scene *scene, View3D *v3d,
 		if (srl)
 			layers &= srl->lay;
 
-		if (layers && GPU_lamp_override_visible(lamp, srl, NULL) && GPU_lamp_has_shadow_buffer(lamp)) {
+		if (layers &&
+		    GPU_lamp_has_shadow_buffer(lamp) &&
+		    /* keep last, may do string lookup */
+		    GPU_lamp_override_visible(lamp, srl, NULL))
+		{
 			shadow = MEM_callocN(sizeof(View3DShadow), "View3DShadow");
 			shadow->lamp = lamp;
 			BLI_addtail(shadows, shadow);
