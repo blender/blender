@@ -3837,6 +3837,7 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 		if (tex->pd->falloff_curve) {
 			direct_link_curvemapping(fd, tex->pd->falloff_curve);
 		}
+		tex->pd->point_data = NULL; /* runtime data */
 	}
 	
 	tex->vd = newdataadr(fd, tex->vd);
