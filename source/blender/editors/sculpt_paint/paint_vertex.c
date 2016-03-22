@@ -35,6 +35,7 @@
 #include "BLI_math.h"
 #include "BLI_array_utils.h"
 #include "BLI_bitmap.h"
+#include "BLI_stack.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -75,6 +76,12 @@
 #include "ED_view3d.h"
 
 #include "paint_intern.h"  /* own include */
+
+/* small structure to defer applying weight-paint results */
+struct WPaintDefer {
+	int index;
+	float alpha, weight;
+};
 
 /* check if we can do partial updates and have them draw realtime
  * (without rebuilding the 'derivedFinal') */
@@ -1850,6 +1857,8 @@ struct WPaintData {
 		int *vmap_mem;
 	} blur_data;
 
+	BLI_Stack *accumulate_stack;  /* for reuse (WPaintDefer) */
+
 	int defbase_tot;
 };
 
@@ -2052,6 +2061,12 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UN
 		        me->medge, me->totvert, me->totedge);
 	}
 
+	if ((brush->vertexpaint_tool == PAINT_BLEND_BLUR) &&
+	    (brush->flag & BRUSH_ACCUMULATE))
+	{
+		wpd->accumulate_stack = BLI_stack_new(sizeof(struct WPaintDefer), __func__);
+	}
+
 	/* imat for normals */
 	mul_m4_m4m4(mat, wpd->vc.rv3d->viewmat, ob->obmat);
 	invert_m4_m4(imat, mat);
@@ -2060,12 +2075,12 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UN
 	return true;
 }
 
-static float wpaint_blur_weight_single(MDeformVert *dv, WeightPaintInfo *wpi)
+static float wpaint_blur_weight_single(const MDeformVert *dv, const WeightPaintInfo *wpi)
 {
 	return defvert_find_weight(dv, wpi->active.index);
 }
 
-static float wpaint_blur_weight_multi(MDeformVert *dv, WeightPaintInfo *wpi)
+static float wpaint_blur_weight_multi(const MDeformVert *dv, const WeightPaintInfo *wpi)
 {
 	float weight = BKE_defvert_multipaint_collective_weight(
 	        dv, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->do_auto_normalize);
@@ -2074,20 +2089,20 @@ static float wpaint_blur_weight_multi(MDeformVert *dv, WeightPaintInfo *wpi)
 }
 
 static float wpaint_blur_weight_calc_from_connected(
-        VPaint *wp, WeightPaintInfo *wpi, struct WPaintData *wpd, const unsigned int vidx,
-        float (*blur_weight_func)(MDeformVert *, WeightPaintInfo *))
+        const MDeformVert *dvert, WeightPaintInfo *wpi, struct WPaintData *wpd, const unsigned int vidx,
+        float (*blur_weight_func)(const MDeformVert *, const WeightPaintInfo *))
 {
 	const MeshElemMap *map = &wpd->blur_data.vmap[vidx];
 	float paintweight;
 	if (map->count != 0) {
 		paintweight = 0.0f;
 		for (int j = 0; j < map->count; j++) {
-			paintweight += blur_weight_func(&wp->wpaint_prev[map->indices[j]], wpi);
+			paintweight += blur_weight_func(&dvert[map->indices[j]], wpi);
 		}
 		paintweight /= map->count;
 	}
 	else {
-		paintweight = blur_weight_func(&wp->wpaint_prev[vidx], wpi);
+		paintweight = blur_weight_func(&dvert[vidx], wpi);
 	}
 
 	return paintweight;
@@ -2131,7 +2146,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		return;
 	}
 
-	float (*blur_weight_func)(MDeformVert *, WeightPaintInfo *) =
+	float (*blur_weight_func)(const MDeformVert *, const WeightPaintInfo *) =
 	        wpd->do_multipaint ? wpaint_blur_weight_multi : wpaint_blur_weight_single;
 
 	vc = &wpd->vc;
@@ -2245,6 +2260,14 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		}
 	}
 
+	/* accumulate means we refer to the previous,
+	 * which is either the last update, or when we started painting */
+	BLI_Stack *accumulate_stack = wpd->accumulate_stack;
+	const bool use_accumulate = (accumulate_stack != NULL);
+	BLI_assert(accumulate_stack == NULL || BLI_stack_is_empty(accumulate_stack));
+
+	const MDeformVert *dvert_prev = use_accumulate ? me->dvert : wp->wpaint_prev;
+
 #define WP_PAINT(v_idx_var)  \
 	{ \
 		unsigned int vidx = v_idx_var; \
@@ -2254,9 +2277,18 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			        mval, brush_size_pressure, brush_alpha_pressure, NULL); \
 			if (alpha) { \
 				if (use_blur) { \
-					paintweight = wpaint_blur_weight_calc_from_connected(wp, &wpi, wpd, vidx, blur_weight_func); \
+					paintweight = wpaint_blur_weight_calc_from_connected( \
+					        dvert_prev, &wpi, wpd, vidx, blur_weight_func); \
 				} \
-				do_weight_paint_vertex(wp, ob, &wpi, vidx, alpha, paintweight); \
+				if (use_accumulate) { \
+					struct WPaintDefer *dweight = BLI_stack_push_r(accumulate_stack); \
+					dweight->index = vidx; \
+					dweight->alpha = alpha; \
+					dweight->weight = paintweight; \
+				} \
+				else { \
+					do_weight_paint_vertex(wp, ob, &wpi, vidx, alpha, paintweight); \
+				} \
 			} \
 			me->dvert[vidx].flag = 0; \
 		} \
@@ -2285,6 +2317,15 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		}
 	}
 #undef WP_PAINT
+
+	if (use_accumulate) {
+		unsigned int defer_count = BLI_stack_count(accumulate_stack);
+		while (defer_count--) {
+			struct WPaintDefer *dweight = BLI_stack_peek(accumulate_stack);
+			do_weight_paint_vertex(wp, ob, &wpi, dweight->index, dweight->alpha, dweight->weight);
+			BLI_stack_discard(accumulate_stack);
+		}
+	}
 
 
 	/* *** free wpi members */
@@ -2328,6 +2369,10 @@ static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 		}
 		if (wpd->blur_data.vmap_mem) {
 			MEM_freeN(wpd->blur_data.vmap_mem);
+		}
+
+		if (wpd->accumulate_stack) {
+			BLI_stack_free(wpd->accumulate_stack);
 		}
 
 		MEM_freeN(wpd);

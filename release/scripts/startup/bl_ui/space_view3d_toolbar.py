@@ -1055,6 +1055,10 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
             col.prop(brush, "vertex_tool", text="Blend")
 
+            if brush.vertex_tool == 'BLUR':
+                col.prop(brush, "use_accumulate")
+                col.separator()
+
             col = layout.column()
             col.prop(toolsettings, "use_auto_normalize", text="Auto Normalize")
             col.prop(toolsettings, "use_multipaint", text="Multi-Paint")
