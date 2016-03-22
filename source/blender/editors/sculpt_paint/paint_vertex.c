@@ -1844,6 +1844,12 @@ struct WPaintData {
 	int defbase_tot_sel;          /* number of selected groups */
 	bool do_multipaint;           /* true if multipaint enabled and multiple groups selected */
 
+	/* variables for blur */
+	struct {
+		MeshElemMap *vmap;
+		int *vmap_mem;
+	} blur_data;
+
 	int defbase_tot;
 };
 
@@ -1935,6 +1941,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UN
 	struct WPaintVGroupIndex vgroup_index;
 	int defbase_tot, defbase_tot_sel;
 	bool *defbase_sel;
+	const Brush *brush = BKE_paint_brush(&wp->paint);
 
 	float mat[4][4], imat[4][4];
 
@@ -2039,6 +2046,12 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UN
 	wpd->indexar = get_indexarray(me);
 	copy_wpaint_prev(wp, me->dvert, me->totvert);
 
+	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
+		BKE_mesh_vert_edge_vert_map_create(
+		        &wpd->blur_data.vmap, &wpd->blur_data.vmap_mem,
+		        me->medge, me->totvert, me->totedge);
+	}
+
 	/* imat for normals */
 	mul_m4_m4m4(mat, wpd->vc.rv3d->viewmat, ob->obmat);
 	invert_m4_m4(imat, mat);
@@ -2060,6 +2073,26 @@ static float wpaint_blur_weight_multi(MDeformVert *dv, WeightPaintInfo *wpi)
 	return weight;
 }
 
+static float wpaint_blur_weight_calc_from_connected(
+        VPaint *wp, WeightPaintInfo *wpi, struct WPaintData *wpd, const unsigned int vidx,
+        float (*blur_weight_func)(MDeformVert *, WeightPaintInfo *))
+{
+	const MeshElemMap *map = &wpd->blur_data.vmap[vidx];
+	float paintweight;
+	if (map->count != 0) {
+		paintweight = 0.0f;
+		for (int j = 0; j < map->count; j++) {
+			paintweight += blur_weight_func(&wp->wpaint_prev[map->indices[j]], wpi);
+		}
+		paintweight /= map->count;
+	}
+	else {
+		paintweight = blur_weight_func(&wp->wpaint_prev[vidx], wpi);
+	}
+
+	return paintweight;
+}
+
 static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -2073,10 +2106,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float mat[4][4];
 	float paintweight;
 	int *indexar;
-	float totw;
 	unsigned int index, totindex;
-	float alpha;
 	float mval[2];
+	const bool use_blur = (brush->vertexpaint_tool == PAINT_BLEND_BLUR);
 	bool use_vert_sel;
 	bool use_face_sel;
 	bool use_depth;
@@ -2174,24 +2206,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	/* make sure each vertex gets treated only once */
 	/* and calculate filter weight */
-	totw = 0.0f;
-	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR)
-		paintweight = 0.0f;
-	else
-		paintweight = BKE_brush_weight_get(scene, brush);
-
-#define WP_BLUR_ACCUM(v_idx_var)  \
-	{ \
-		const unsigned int vidx = v_idx_var; \
-		const float fac = calc_vp_strength_col_dl( \
-		        wp, vc, wpd->vertexcosnos[vidx].co, mval, brush_size_pressure, NULL); \
-		if (fac > 0.0f) { \
-			float weight = blur_weight_func(&me->dvert[vidx], &wpi); \
-			paintweight += weight * fac; \
-			totw += fac; \
-		} \
-	} (void)0
-
+	paintweight = BKE_brush_weight_get(scene, brush);
 
 	if (use_depth) {
 		for (index = 0; index < totindex; index++) {
@@ -2208,13 +2223,6 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 				else {
 					for (i = 0; i < mpoly->totloop; i++, ml++) {
 						me->dvert[ml->v].flag = 1;
-					}
-				}
-
-				if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
-					ml = me->mloop + mpoly->loopstart;
-					for (i = 0; i < mpoly->totloop; i++, ml++) {
-						WP_BLUR_ACCUM(ml->v);
 					}
 				}
 			}
@@ -2235,28 +2243,19 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 				me->dvert[i].flag = SELECT;
 			}
 		}
-
-		if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
-			for (i = 0; i < totvert; i++) {
-				WP_BLUR_ACCUM(i);
-			}
-		}
-	}
-
-#undef WP_BLUR_ACCUM
-
-
-	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
-		paintweight /= totw;
 	}
 
 #define WP_PAINT(v_idx_var)  \
 	{ \
 		unsigned int vidx = v_idx_var; \
 		if (me->dvert[vidx].flag) { \
-			alpha = calc_vp_alpha_col_dl(wp, vc, wpd->wpimat, &wpd->vertexcosnos[vidx], \
-			                         mval, brush_size_pressure, brush_alpha_pressure, NULL); \
+			const float alpha = calc_vp_alpha_col_dl( \
+			        wp, vc, wpd->wpimat, &wpd->vertexcosnos[vidx], \
+			        mval, brush_size_pressure, brush_alpha_pressure, NULL); \
 			if (alpha) { \
+				if (use_blur) { \
+					paintweight = wpaint_blur_weight_calc_from_connected(wp, &wpi, wpd, vidx, blur_weight_func); \
+				} \
 				do_weight_paint_vertex(wp, ob, &wpi, vidx, alpha, paintweight); \
 			} \
 			me->dvert[vidx].flag = 0; \
@@ -2323,6 +2322,13 @@ static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 			MEM_freeN((void *)wpd->active.lock);
 		if (wpd->mirror.lock)
 			MEM_freeN((void *)wpd->mirror.lock);
+
+		if (wpd->blur_data.vmap) {
+			MEM_freeN(wpd->blur_data.vmap);
+		}
+		if (wpd->blur_data.vmap_mem) {
+			MEM_freeN(wpd->blur_data.vmap_mem);
+		}
 
 		MEM_freeN(wpd);
 	}
