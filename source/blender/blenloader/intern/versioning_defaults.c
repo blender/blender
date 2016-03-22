@@ -197,6 +197,15 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 	}
 
 	{
+		Object *ob;
+
+		ob = (Object *)BKE_libblock_find_name_ex(bmain, ID_OB, "Camera");
+		if (ob) {
+			ob->rot[1] = 0.0f;
+		}
+	}
+
+	{
 		Brush *br;
 
 		br = (Brush *)BKE_libblock_find_name_ex(bmain, ID_BR, "Fill");
