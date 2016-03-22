@@ -1312,7 +1312,7 @@ static void do_material_tex(GPUShadeInput *shi)
 					texture_rgb_blend(mat, tcol, shi->specrgb, tin, colspecfac, mtex->blendtype, &shi->specrgb);
 				}
 
-				if(mtex->mapto & MAP_COLMIR) {
+				if (mtex->mapto & MAP_COLMIR) {
 					GPUNodeLink *colmirfac;
 
 					if (mtex->mirrfac == 1.0f) colmirfac = stencil;

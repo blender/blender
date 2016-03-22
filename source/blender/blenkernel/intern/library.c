@@ -194,8 +194,10 @@ void id_us_clear_real(ID *id)
 	}
 }
 
-/* Same as \a id_us_plus, but does not handle lib indirect -> extern.
- * Only used by readfile.c so far, but simpler/safer to keep it here nontheless. */
+/**
+ * Same as \a id_us_plus, but does not handle lib indirect -> extern.
+ * Only used by readfile.c so far, but simpler/safer to keep it here nonetheless.
+ */
 void id_us_plus_no_lib(ID *id)
 {
 	if (id) {

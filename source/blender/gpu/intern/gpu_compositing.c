@@ -61,8 +61,7 @@ static const float fullscreenuvs[4][2] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 1.0
 
 /* shader interfaces (legacy GL 2 style, without uniform buffer objects) */
 
-typedef struct
-{
+typedef struct {
 	int ssao_uniform;
 	int ssao_color_uniform;
 	int color_uniform;
@@ -73,8 +72,7 @@ typedef struct
 	int ssao_jitter_uniform;
 } GPUSSAOShaderInterface;
 
-typedef struct
-{
+typedef struct {
 	int invrendertargetdim_uniform;
 	int color_uniform;
 	int dof_uniform;
@@ -82,8 +80,7 @@ typedef struct
 	int viewvecs_uniform;
 } GPUDOFHQPassOneInterface;
 
-typedef struct
-{
+typedef struct {
 	int rendertargetdim_uniform;
 	int color_uniform;
 	int coc_uniform;
@@ -91,8 +88,7 @@ typedef struct
 	int dof_uniform;
 } GPUDOFHQPassTwoInterface;
 
-typedef struct
-{
+typedef struct {
 	int dof_uniform;
 	int invrendertargetdim_uniform;
 	int color_uniform;
@@ -102,8 +98,7 @@ typedef struct
 	int depth_uniform;
 } GPUDOFHQPassThreeInterface;
 
-typedef struct
-{
+typedef struct {
 	int dof_uniform;
 	int invrendertargetdim_uniform;
 	int color_uniform;
@@ -111,8 +106,7 @@ typedef struct
 	int viewvecs_uniform;
 } GPUDOFPassOneInterface;
 
-typedef struct
-{
+typedef struct {
 	int dof_uniform;
 	int invrendertargetdim_uniform;
 	int color_uniform;
@@ -120,20 +114,17 @@ typedef struct
 	int viewvecs_uniform;
 } GPUDOFPassTwoInterface;
 
-typedef struct
-{
+typedef struct {
 	int near_coc_downsampled;
 	int near_coc_blurred;
 } GPUDOFPassThreeInterface;
 
-typedef struct
-{
+typedef struct {
 	int near_coc_downsampled;
 	int invrendertargetdim_uniform;
 } GPUDOFPassFourInterface;
 
-typedef struct
-{
+typedef struct {
 	int medium_blurred_uniform;
 	int high_blurred_uniform;
 	int dof_uniform;
@@ -143,8 +134,7 @@ typedef struct
 	int viewvecs_uniform;
 } GPUDOFPassFiveInterface;
 
-typedef struct
-{
+typedef struct {
 	int depth_uniform;
 } GPUDepthResolveInterface;
 
@@ -1332,8 +1322,7 @@ void GPU_fx_shader_init_interface(struct GPUShader *shader, GPUFXShaderEffect ef
 	if (!shader)
 		return;
 
-	switch (effect)
-	{
+	switch (effect) {
 		case GPU_SHADER_FX_SSAO:
 		{
 			GPUSSAOShaderInterface *interface = MEM_mallocN(sizeof(GPUSSAOShaderInterface), "GPUSSAOShaderInterface");
