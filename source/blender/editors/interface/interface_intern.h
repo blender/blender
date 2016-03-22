@@ -93,6 +93,7 @@ typedef enum {
 
 	/* specials */
 	UI_WTYPE_ICON,
+	UI_WTYPE_ICON_LABEL,
 	UI_WTYPE_SWATCH,
 	UI_WTYPE_RGB_PICKER,
 	UI_WTYPE_UNITVEC,
