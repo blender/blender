@@ -56,7 +56,6 @@ typedef struct _stat path_stat_t;
 #  ifndef S_ISDIR
 #    define S_ISDIR(x) (((x) & _S_IFDIR) == _S_IFDIR)
 #  endif
-#  define mkdir(path, mode) _mkdir(path)
 #else
 typedef struct stat path_stat_t;
 #endif
@@ -626,7 +625,12 @@ static bool create_directories_recursivey(const string& path)
 		}
 	}
 
+#ifdef _WIN32
+	wstring path_wc = string_to_wstring(path);
+	return _wmkdir(path_wc.c_str()) == 0;
+#else
 	return mkdir(path.c_str(), 0777) == 0;
+#endif
 }
 
 void path_create_directories(const string& filepath)
@@ -745,7 +749,13 @@ string path_source_replace_includes(const string& source_, const string& path)
 
 FILE *path_fopen(const string& path, const string& mode)
 {
+#ifdef _WIN32
+	wstring path_wc = string_to_wstring(path);
+	wstring mode_wc = string_to_wstring(mode);
+	return _wfopen(path_wc.c_str(), mode_wc.c_str());
+#else
 	return fopen(path.c_str(), mode.c_str());
+#endif
 }
 
 void path_cache_clear_except(const string& name, const set<string>& except)

@@ -138,19 +138,29 @@ void python_thread_state_restore(void **python_thread_state)
 
 static const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 {
-#ifdef WIN32
-	/* bug [#31856] oddly enough, Python3.2 --> 3.3 on Windows will throw an
-	 * exception here this needs to be fixed in python:
-	 * see: bugs.python.org/issue15859 */
-	if(!PyUnicode_Check(py_str)) {
-		PyErr_BadArgument();
-		return "";
+	const char *result = _PyUnicode_AsString(py_str);
+	if(result) {
+		/* 99% of the time this is enough but we better support non unicode
+		 * chars since blender doesnt limit this.
+		 */
+		return result;
 	}
-#endif
-	if((*coerce = PyUnicode_EncodeFSDefault(py_str))) {
-		return PyBytes_AS_STRING(*coerce);
+	else {
+		PyErr_Clear();
+		if(PyBytes_Check(py_str)) {
+			return PyBytes_AS_STRING(py_str);
+		}
+		else if((*coerce = PyUnicode_EncodeFSDefault(py_str))) {
+			return PyBytes_AS_STRING(*coerce);
+		}
+		else {
+			/* Clear the error, so Cycles can be at leadt used without
+			 * GPU and OSL support,
+			 */
+			PyErr_Clear();
+			return "";
+		}
 	}
-	return "";
 }
 
 static PyObject *init_func(PyObject * /*self*/, PyObject *args)
