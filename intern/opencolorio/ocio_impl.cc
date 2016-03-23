@@ -25,6 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string.h>
@@ -53,6 +54,19 @@ using namespace OCIO_NAMESPACE;
 
 #if defined(_MSC_VER)
 #  define __func__ __FUNCTION__
+#endif
+
+#ifdef _WIN32
+#  ifndef NOGDI
+#    define NOGDI
+#  endif
+#  ifndef NOMINMAX
+#   define NOMINMAX
+#  endif
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
+#  include <windows.h>
 #endif
 
 static void OCIO_reportError(const char *err)
@@ -121,7 +135,26 @@ OCIO_ConstConfigRcPtr *OCIOImpl::configCreateFromFile(const char *filename)
 	ConstConfigRcPtr *config = OBJECT_GUARDED_NEW(ConstConfigRcPtr);
 
 	try {
-		*config = Config::CreateFromFile(filename);
+#ifdef _WIN32
+		const int length_mb = strlen(filename);
+		const int length_wc = MultiByteToWideChar(CP_UTF8,
+		                                          0,
+		                                          filename,
+		                                          length_mb,
+		                                          NULL,
+		                                          0);
+		std::wstring wfilename(length_wc, 0);
+		MultiByteToWideChar(CP_UTF8,
+		                    0,
+		                    filename,
+		                    length_mb,
+		                    &wfilename[0],
+		                    length_wc);
+		std::fstream stream(wfilename);
+#else
+		std::fstream stream(filename);
+#endif
+		*config = Config::CreateFromStream(stream);
 
 		if (*config)
 			return (OCIO_ConstConfigRcPtr *) config;
@@ -622,7 +655,7 @@ void OCIOImpl::matrixTransformScale(float *m44, float *offset4, const float *sca
 
 const char *OCIOImpl::getVersionString(void)
 {
-	return GetVersion();
+	return OCIO_NAMESPACE::GetVersion();
 }
 
 int OCIOImpl::getVersionHex(void)
