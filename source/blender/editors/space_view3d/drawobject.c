@@ -8380,6 +8380,8 @@ static void bbs_mesh_solid_verts(Scene *scene, Object *ob)
 
 	dm->drawMappedFaces(dm, bbs_mesh_solid_hide2__setDrawOpts, GPU_object_material_bind, NULL, me, DM_DRAW_SKIP_HIDDEN);
 
+	GPU_object_material_unbind();
+
 	bbs_obmode_mesh_verts(ob, dm, 1);
 	bm_vertoffs = me->totvert + 1;
 	dm->release(dm);
