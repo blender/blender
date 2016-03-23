@@ -93,12 +93,60 @@ static bool ntree_check_nodes_connected(bNodeTree *ntree, bNode *from, bNode *to
 	return ntree_check_nodes_connected_dfs(ntree, from, to);
 }
 
+static bool node_group_has_output_dfs(bNode *node)
+{
+	if (node->flag & NODE_TEST) {
+		return false;
+	}
+	node->flag |= NODE_TEST;
+	bNodeTree *ntree = (bNodeTree *)node->id;
+	for (bNode *current_node = ntree->nodes.first;
+	     current_node != NULL;
+	     current_node = current_node->next)
+	{
+		if (current_node->type == NODE_GROUP) {
+			if (node_group_has_output_dfs(current_node)) {
+				return true;
+			}
+		}
+		if (current_node->flag & NODE_DO_OUTPUT &&
+		    current_node->type != NODE_GROUP_OUTPUT)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+static bool node_group_has_output(bNode *node)
+{
+	BLI_assert(node->type == NODE_GROUP);
+	bNodeTree *ntree = (bNodeTree *)node->id;
+	if (ntree == NULL) {
+		return false;
+	}
+	ntreeNodeFlagSet(ntree, NODE_TEST, false);
+	return node_group_has_output_dfs(node);
+}
+
 bool node_connected_to_output(bNodeTree *ntree, bNode *node)
 {
 	for (bNode *current_node = ntree->nodes.first;
 	     current_node != NULL;
 	     current_node = current_node->next)
 	{
+		/* Special case for group nodes -- if modified node connected to a group
+		 * with active output inside we consider refresh is needed.
+		 *
+		 * We could make check more grained here by taking which socket the node
+		 * is connected to and so eventually.
+		 */
+		if (current_node->type == NODE_GROUP &&
+		    ntree_check_nodes_connected(ntree, node, current_node) &&
+		    node_group_has_output(current_node))
+		{
+			return true;
+		}
 		if (current_node->flag & NODE_DO_OUTPUT) {
 			if (ntree_check_nodes_connected(ntree, node, current_node)) {
 				return true;
