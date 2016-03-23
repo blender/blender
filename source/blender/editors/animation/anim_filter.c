@@ -76,7 +76,9 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_alloca.h"
 #include "BLI_ghash.h"
+#include "BLI_string.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -986,6 +988,35 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
 	return false;
 }
 
+/* Helper for name-based filtering - Perform "partial/fuzzy matches" (as in 80a7efd) */
+static bool name_matches_dopesheet_filter(bDopeSheet *ads, char *name)
+{
+	if (ads->flag & ADS_FLAG_FUZZY_NAMES) {
+		/* full fuzzy, multi-word, case insensitive matches */
+		const size_t str_len = strlen(ads->searchstr);
+		const int words_max = (str_len / 2) + 1;
+		
+		int (*words)[2] = BLI_array_alloca(words, words_max);
+		const int words_len = BLI_string_find_split_words(ads->searchstr, str_len, ' ', words, words_max);
+		bool found = false;
+		
+		/* match name against all search words */
+		for (int index = 0; index < words_len; index++) {
+			if (BLI_strncasestr(name, ads->searchstr + words[index][0], words[index][1])) {
+				found = true;
+				break;
+			}
+		}
+		
+		/* if we have a match somewhere, this returns true */
+		return found;
+	}
+	else {
+		/* fallback/default - just case insensitive, but starts from start of word */
+		return BLI_strcasestr(name, ads->searchstr) != NULL;
+	}
+}
+
 /* (Display-)Name-based F-Curve filtering
  * NOTE: when this function returns true, the F-Curve is to be skipped 
  */
@@ -1010,7 +1041,7 @@ static bool skip_fcurve_with_name(bDopeSheet *ads, FCurve *fcu, ID *owner_id)
 		/* check for partial match with the match string, assuming case insensitive filtering 
 		 * if match, this channel shouldn't be ignored!
 		 */
-		return BLI_strcasestr(name, ads->searchstr) == NULL;
+		return !name_matches_dopesheet_filter(ads, name);
 	}
 	
 	/* just let this go... */
@@ -1315,12 +1346,12 @@ static size_t animfilter_nla(bAnimContext *UNUSED(ac), ListBase *anim_data, bDop
 						bool track_ok = false, strip_ok = false;
 						
 						/* check if the name of the track, or the strips it has are ok... */
-						track_ok = BLI_strcasestr(nlt->name, ads->searchstr);
+						track_ok = name_matches_dopesheet_filter(ads, nlt->name);
 						
 						if (track_ok == false) {
 							NlaStrip *strip;
 							for (strip = nlt->strips.first; strip; strip = strip->next) {
-								if (BLI_strcasestr(strip->name, ads->searchstr)) {
+								if (name_matches_dopesheet_filter(ads, strip->name)) {
 									strip_ok = true;
 									break;
 								}
@@ -1520,7 +1551,7 @@ static size_t animdata_filter_gpencil_layers_data(ListBase *anim_data, bDopeShee
 				if (!(filter_mode & ANIMFILTER_ACTIVE) || (gpl->flag & GP_LAYER_ACTIVE)) {
 					/* skip layer if the name doesn't match the filter string */
 					if ((ads) && (ads->filterflag & ADS_FILTER_BY_FCU_NAME)) {
-						if (BLI_strcasestr(gpl->info, ads->searchstr) == NULL)
+						if (name_matches_dopesheet_filter(ads, gpl->info) == false)
 							continue;
 					}
 					
