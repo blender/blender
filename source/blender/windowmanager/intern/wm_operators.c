@@ -3915,7 +3915,7 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
 			switch (rc->subtype) {
 				case PROP_NONE:
 				case PROP_DISTANCE:
-					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %.4f", ui_name, rc->current_value);
+					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %0.4f", ui_name, rc->current_value);
 					break;
 				case PROP_PIXEL:
 					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %d", ui_name, (int)rc->current_value); /* XXX: round to nearest? */
@@ -3924,10 +3924,10 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
 					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %3.1f%%", ui_name, rc->current_value);
 					break;
 				case PROP_FACTOR:
-					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %1.2f", ui_name, rc->current_value);
+					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %1.3f", ui_name, rc->current_value);
 					break;
 				case PROP_ANGLE:
-					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %3f", ui_name, RAD2DEGF(rc->current_value)); // XXX: 2dp is enough
+					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %3.2f", ui_name, RAD2DEGF(rc->current_value));
 					break;
 				default:
 					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s", ui_name); /* XXX: No value? */
@@ -4095,14 +4095,14 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 			r2 = tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE;
 			rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
 			alpha = rc->current_value / 2.0f + 0.5f;
-			BLI_snprintf(str, WM_RADIAL_MAX_STR, "%1.2f", rc->current_value);
+			BLI_snprintf(str, WM_RADIAL_MAX_STR, "%1.3f", rc->current_value);
 			strdrawlen = BLI_strlen_utf8(str);
 			break;
 		case PROP_ANGLE:
 			r1 = r2 = tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE;
 			alpha = 0.75;
 			rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
-			BLI_snprintf(str, WM_RADIAL_MAX_STR, "%3f", RAD2DEGF(rc->current_value));
+			BLI_snprintf(str, WM_RADIAL_MAX_STR, "%3.2f", RAD2DEGF(rc->current_value));
 			strdrawlen = BLI_strlen_utf8(str);
 			break;
 		default:
