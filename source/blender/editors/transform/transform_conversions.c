@@ -7793,15 +7793,26 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 								td->ival = pt->pressure;
 							}
 							
-							/* configure 2D points so that they don't play up... */
-							if (gps->flag & (GP_STROKE_2DSPACE | GP_STROKE_2DIMAGE)) {
+							/* screenspace needs special matrices... */
+							if ((gps->flag & (GP_STROKE_3DSPACE | GP_STROKE_2DSPACE | GP_STROKE_2DIMAGE)) == 0) {
+								/* screenspace */
 								td->protectflag = OB_LOCK_LOCZ | OB_LOCK_ROTZ | OB_LOCK_SCALEZ;
-								// XXX: matrices may need to be different?
+								
+								copy_m3_m4(td->smtx, t->persmat);
+								copy_m3_m4(td->mtx, t->persinv);
+								unit_m3(td->axismtx);
 							}
-							
-							copy_m3_m3(td->smtx, smtx);
-							copy_m3_m3(td->mtx, mtx);
-							unit_m3(td->axismtx); // XXX?
+							else {
+								/* configure 2D dataspace points so that they don't play up... */
+								if (gps->flag & (GP_STROKE_2DSPACE | GP_STROKE_2DIMAGE)) {
+									td->protectflag = OB_LOCK_LOCZ | OB_LOCK_ROTZ | OB_LOCK_SCALEZ;
+									// XXX: matrices may need to be different?
+								}
+								
+								copy_m3_m3(td->smtx, smtx);
+								copy_m3_m3(td->mtx, mtx);
+								unit_m3(td->axismtx); // XXX?
+							}
 							
 							td++;
 							tail++;
