@@ -3902,12 +3902,39 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
 	char msg[WM_RADIAL_CONTROL_HEADER_LENGTH];
 	ScrArea *sa = CTX_wm_area(C);
 	Scene *scene = CTX_data_scene(C);
-
-	if (sa && hasNumInput(&rc->num_input)) {
-		char num_str[NUM_STR_REP_LEN];
-		outputNumInput(&rc->num_input, num_str, &scene->unit);
-		BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %s", RNA_property_ui_name(rc->prop), num_str);
-		ED_area_headerprint(sa, msg);
+	
+	if (sa) {
+		if (hasNumInput(&rc->num_input)) {
+			char num_str[NUM_STR_REP_LEN];
+			outputNumInput(&rc->num_input, num_str, &scene->unit);
+			BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %s", RNA_property_ui_name(rc->prop), num_str);
+			ED_area_headerprint(sa, msg);
+		}
+		else {
+			const char *ui_name = RNA_property_ui_name(rc->prop);
+			switch (rc->subtype) {
+				case PROP_NONE:
+				case PROP_DISTANCE:
+					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %.4f", ui_name, rc->current_value);
+					break;
+				case PROP_PIXEL:
+					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %d", ui_name, (int)rc->current_value); /* XXX: round to nearest? */
+					break;
+				case PROP_PERCENTAGE:
+					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %3.1f%%", ui_name, rc->current_value);
+					break;
+				case PROP_FACTOR:
+					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %1.2f", ui_name, rc->current_value);
+					break;
+				case PROP_ANGLE:
+					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s: %3f", ui_name, RAD2DEGF(rc->current_value)); // XXX: 2dp is enough
+					break;
+				default:
+					BLI_snprintf(msg, WM_RADIAL_CONTROL_HEADER_LENGTH, "%s", ui_name); /* XXX: No value? */
+					break;
+			}
+			ED_area_headerprint(sa, msg);
+		}
 	}
 }
 
@@ -4124,12 +4151,12 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 		glutil_draw_lined_arc(0.0, (float)(M_PI * 2.0), rmin, 40);
 
 	BLF_size(fontid, 1.5 * fstyle_points, 1.0f / U.dpi);
-	BLF_width_and_height(fontid, str, strdrawlen, &strwidth, &strheight);
 	BLF_enable(fontid, BLF_SHADOW);
 	BLF_shadow(fontid, 3, 0.0f, 0.0f, 0.0f, 0.5f);
 	BLF_shadow_offset(fontid, 1, -1);
 
 	/* draw value */
+	BLF_width_and_height(fontid, str, strdrawlen, &strwidth, &strheight);
 	BLF_position(fontid, -0.5f * strwidth, -0.5f * strheight, 0.0f);
 	BLF_draw(fontid, str, strdrawlen);
 
@@ -4614,6 +4641,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
 	}
 
 	ED_region_tag_redraw(CTX_wm_region(C));
+	radial_control_update_header(op, C);
 
 	if (ret != OPERATOR_RUNNING_MODAL)
 		radial_control_cancel(C, op);
