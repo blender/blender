@@ -1895,10 +1895,10 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject *meshobj, DerivedMesh *dm,
 		for (int p2 = 0; p2 < numpolys; p2++) {
 			MFace *mf = &mface[p2];
 			const int origi = index_mf_to_mpoly ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, p2) : p2;
-			RAS_Polygon *poly = meshobj->GetPolygon(origi);
+			RAS_Polygon *poly = (origi != ORIGINDEX_NONE) ? meshobj->GetPolygon(origi) : NULL;
 
 			// only add polygons that have the collision flag set
-			if (poly->IsCollider()) {
+			if (poly && poly->IsCollider()) {
 				if (!vert_tag_array[mf->v1]) {
 					vert_tag_array[mf->v1] = true;
 					tot_bt_verts++;
@@ -1930,7 +1930,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject *meshobj, DerivedMesh *dm,
 		for (int p2 = 0; p2 < numpolys; p2++) {
 			MFace *mf = &mface[p2];
 			const int origi = index_mf_to_mpoly ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, p2) : p2;
-			RAS_Polygon *poly = meshobj->GetPolygon(origi);
+			RAS_Polygon *poly = (origi != ORIGINDEX_NONE) ? meshobj->GetPolygon(origi) : NULL;
 
 			// only add polygons that have the collisionflag set
 			if (poly->IsCollider()) {
@@ -1973,10 +1973,10 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject *meshobj, DerivedMesh *dm,
 		for (int p2 = 0; p2 < numpolys; p2++) {
 			MFace *mf = &mface[p2];
 			const int origi = index_mf_to_mpoly ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, p2) : p2;
-			RAS_Polygon *poly = meshobj->GetPolygon(origi);
+			RAS_Polygon *poly = (origi != ORIGINDEX_NONE) ? meshobj->GetPolygon(origi) : NULL;
 
 			// only add polygons that have the collision flag set
-			if (poly->IsCollider()) {
+			if (poly && poly->IsCollider()) {
 				if (!vert_tag_array[mf->v1]) {
 					vert_tag_array[mf->v1] = true;
 					vert_remap_array[mf->v1] = tot_bt_verts;
@@ -2025,10 +2025,10 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject *meshobj, DerivedMesh *dm,
 			MFace *mf = &mface[p2];
 			MTFace *tf = (tface) ? &tface[p2] : NULL;
 			const int origi = index_mf_to_mpoly ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, p2) : p2;
-			RAS_Polygon *poly = meshobj->GetPolygon(origi);
+			RAS_Polygon *poly = (origi != ORIGINDEX_NONE) ? meshobj->GetPolygon(origi) : NULL;
 
 			// only add polygons that have the collisionflag set
-			if (poly->IsCollider()) {
+			if (poly && poly->IsCollider()) {
 				MVert *v1 = &mvert[mf->v1];
 				MVert *v2 = &mvert[mf->v2];
 				MVert *v3 = &mvert[mf->v3];
