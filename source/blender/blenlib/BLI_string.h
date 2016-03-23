@@ -74,6 +74,7 @@ size_t BLI_str_format_int_grouped(char dst[16], int num) ATTR_NONNULL();
 
 int BLI_strcaseeq(const char *a, const char *b) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 char *BLI_strcasestr(const char *s, const char *find) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+char *BLI_strncasestr(const char *s, const char *find, size_t len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 int BLI_strcasecmp(const char *s1, const char *s2) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 int BLI_strncasecmp(const char *s1, const char *s2, size_t len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 int BLI_natstrcmp(const char *s1, const char *s2) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
@@ -96,6 +97,11 @@ size_t BLI_str_rpartition(const char *str, const char delim[], const char **sep,
 size_t BLI_str_partition_ex(
         const char *str, const char *end, const char delim[], const char **sep, const char **suf, const bool from_right)
         ATTR_NONNULL(1, 3, 4, 5);
+
+int BLI_string_find_split_words(
+        const char *str, const size_t len,
+        const char delim, int r_words[][2], int words_max)
+        ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 #ifdef __cplusplus
 }

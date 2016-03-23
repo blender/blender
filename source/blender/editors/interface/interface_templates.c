@@ -39,6 +39,7 @@
 #include "DNA_texture_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_alloca.h"
 #include "BLI_string.h"
 #include "BLI_ghash.h"
 #include "BLI_rect.h"
@@ -3273,15 +3274,28 @@ static void operator_call_cb(bContext *C, void *UNUSED(arg1), void *arg2)
 static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char *str, uiSearchItems *items)
 {
 	GHashIterator iter;
+	const size_t str_len = strlen(str);
+	const int words_max = (str_len / 2) + 1;
+	int (*words)[2] = BLI_array_alloca(words, words_max);
+
+	const int words_len = BLI_string_find_split_words(str, str_len, ' ', words, words_max);
 
 	for (WM_operatortype_iter(&iter); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter)) {
 		wmOperatorType *ot = BLI_ghashIterator_getValue(&iter);
 		const char *ot_ui_name = CTX_IFACE_(ot->translation_context, ot->name);
+		int index;
 
 		if ((ot->flag & OPTYPE_INTERNAL) && (G.debug & G_DEBUG_WM) == 0)
 			continue;
 
-		if (BLI_strcasestr(ot_ui_name, str)) {
+		/* match name against all search words */
+		for (index = 0; index < words_len; index++) {
+			if (!BLI_strncasestr(ot_ui_name, str + words[index][0], words[index][1])) {
+				break;
+			}
+		}
+
+		if (index == words_len) {
 			if (WM_operator_poll((bContext *)C, ot)) {
 				char name[256];
 				int len = strlen(ot_ui_name);

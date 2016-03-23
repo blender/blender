@@ -82,4 +82,13 @@ inline void EXPECT_EQ_ARRAY(const T *expected, T *actual, const size_t N) {
   }
 }
 
+template <typename T>
+inline void EXPECT_EQ_ARRAY_ND(const T *expected, T *actual, const size_t N, const size_t D) {
+  for(size_t i = 0; i < N; ++i) {
+    for(size_t j = 0; j < D; ++j) {
+      EXPECT_EQ(expected[i][j], actual[i][j]);
+    }
+  }
+}
+
 #endif  // __BLENDER_TESTING_H__

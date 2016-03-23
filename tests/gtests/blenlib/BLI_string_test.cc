@@ -363,3 +363,103 @@ TEST(string, StrFormatIntGrouped)
 	BLI_str_format_int_grouped(num_str, num = -999);
 	EXPECT_STREQ("-999", num_str);
 }
+
+#define STRING_FIND_SPLIT_WORDS_EX(word_str_src, word_str_src_len, limit_words, ...) \
+{ \
+	int word_info[][2] = \
+		{{-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}}; \
+	const int word_cmp[][2] = __VA_ARGS__; \
+	const int word_cmp_size_input = ARRAY_SIZE(word_cmp) - (limit_words ? 1 : 0); \
+	const int word_cmp_size = ARRAY_SIZE(word_cmp); \
+	const int word_num = BLI_string_find_split_words( \
+	        word_str_src, word_str_src_len, ' ', word_info, word_cmp_size_input); \
+	EXPECT_EQ(word_num, word_cmp_size - 1); \
+	EXPECT_EQ_ARRAY_ND(word_cmp, word_info, word_cmp_size, 2); \
+} ((void)0)
+
+#define STRING_FIND_SPLIT_WORDS(word_str_src, ...) \
+	STRING_FIND_SPLIT_WORDS_EX(word_str_src, strlen(word_str_src), false, __VA_ARGS__)
+
+/* BLI_string_find_split_words */
+TEST(string, StringFindSplitWords_Single)
+{
+	STRING_FIND_SPLIT_WORDS("t",    {{0, 1}, {-1, -1}});
+	STRING_FIND_SPLIT_WORDS("test", {{0, 4}, {-1, -1}});
+}
+TEST(string, StringFindSplitWords_Triple)
+{
+	STRING_FIND_SPLIT_WORDS("f t w",            {{0, 1}, {2, 1}, {4, 1}, {-1, -1}});
+	STRING_FIND_SPLIT_WORDS("find three words", {{0, 4}, {5, 5}, {11, 5}, {-1, -1}});
+}
+TEST(string, StringFindSplitWords_Spacing)
+{
+	STRING_FIND_SPLIT_WORDS("# ## ### ####",   {{0, 1}, {2, 2}, {5, 3}, {9, 4}, {-1, -1}});
+	STRING_FIND_SPLIT_WORDS("#  #   #    #",   {{0, 1}, {3, 1}, {7, 1}, {12, 1}, {-1, -1}});
+}
+TEST(string, StringFindSplitWords_Trailing_Left)
+{
+	STRING_FIND_SPLIT_WORDS("   t",    {{3, 1}, {-1, -1}});
+	STRING_FIND_SPLIT_WORDS("   test", {{3, 4}, {-1, -1}});
+}
+TEST(string, StringFindSplitWords_Trailing_Right)
+{
+	STRING_FIND_SPLIT_WORDS("t   ",    {{0, 1}, {-1, -1}});
+	STRING_FIND_SPLIT_WORDS("test   ", {{0, 4}, {-1, -1}});
+}
+TEST(string, StringFindSplitWords_Trailing_LeftRight)
+{
+	STRING_FIND_SPLIT_WORDS("   surrounding space test   123   ", {{3, 11}, {15, 5}, {21, 4}, {28, 3}, {-1, -1}});
+}
+TEST(string, StringFindSplitWords_Blank)
+{
+	STRING_FIND_SPLIT_WORDS("", {{-1, -1}});
+}
+TEST(string, StringFindSplitWords_Whitespace)
+{
+	STRING_FIND_SPLIT_WORDS(" ",    {{-1, -1}});
+	STRING_FIND_SPLIT_WORDS("    ", {{-1, -1}});
+}
+TEST(string, StringFindSplitWords_LimitWords)
+{
+	const char *words = "too many words";
+	const int words_len = strlen(words);
+	STRING_FIND_SPLIT_WORDS_EX(words, words_len, false, {{0, 3}, {4, 4}, {9, 5}, {-1, -1}});
+	STRING_FIND_SPLIT_WORDS_EX(words, words_len, true,  {{0, 3}, {4, 4}, {-1, -1}});
+	STRING_FIND_SPLIT_WORDS_EX(words, words_len, true,  {{0, 3}, {-1, -1}});
+	STRING_FIND_SPLIT_WORDS_EX(words, words_len, true,  {{-1, -1}});
+}
+TEST(string, StringFindSplitWords_LimitChars)
+{
+	const char *words = "too many chars";
+	const int words_len = strlen(words);
+	STRING_FIND_SPLIT_WORDS_EX(words, words_len,      false, {{0, 3}, {4, 4}, {9, 5}, {-1, -1}});
+	STRING_FIND_SPLIT_WORDS_EX(words, words_len -  1, false, {{0, 3}, {4, 4}, {9, 4}, {-1, -1}});
+	STRING_FIND_SPLIT_WORDS_EX(words, words_len -  5, false, {{0, 3}, {4, 4}, {-1, -1}});
+	STRING_FIND_SPLIT_WORDS_EX(words, 1,              false, {{0, 1}, {-1, -1}});
+	STRING_FIND_SPLIT_WORDS_EX(words, 0,              false, {{-1, -1}});
+}
+
+#undef STRING_FIND_SPLIT_WORDS
+
+
+/* BLI_strncasestr */
+TEST(string, StringStrncasestr)
+{
+	const char *str_test0 = "search here";
+	const char *res;
+
+	res = BLI_strncasestr(str_test0, "", 0);
+	EXPECT_EQ(str_test0, res);
+
+	res = BLI_strncasestr(str_test0, "her", 3);
+	EXPECT_EQ(str_test0 + 7, res);
+
+	res = BLI_strncasestr(str_test0, "ARCh", 4);
+	EXPECT_EQ(str_test0 + 2, res);
+
+	res = BLI_strncasestr(str_test0, "earcq", 4);
+	EXPECT_EQ(str_test0 + 1, res);
+
+	res = BLI_strncasestr(str_test0, "not there", 9);
+	EXPECT_EQ(NULL, res);
+}

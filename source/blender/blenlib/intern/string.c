@@ -525,6 +525,26 @@ char *BLI_strcasestr(const char *s, const char *find)
 	return ((char *) s);
 }
 
+/**
+ * Variation of #BLI_strcasestr with string length limited to \a len
+ */
+char *BLI_strncasestr(const char *s, const char *find, size_t len)
+{
+	register char c, sc;
+
+	if ((c = *find++) != 0) {
+		c = tolower(c);
+		do {
+			do {
+				if ((sc = *s++) == 0)
+					return (NULL);
+				sc = tolower(sc);
+			} while (sc != c);
+		} while (BLI_strncasecmp(s, find, len - 1) != 0);
+		s--;
+	}
+	return ((char *)s);
+}
 
 int BLI_strcasecmp(const char *s1, const char *s2)
 {
@@ -961,4 +981,50 @@ size_t BLI_str_format_int_grouped(char dst[16], int num)
 	*--p_dst = '\0';
 
 	return (size_t)(p_dst - dst);
+}
+
+/**
+ * Find the ranges needed to split \a str into its individual words.
+ *
+ * \param str: The string to search for words.
+ * \param len: Size of the string to search.
+ * \param delim: Character to use as a delimiter.
+ * \param r_words: Info about the words found. Set to [index, len] pairs.
+ * \param words_max: Max number of words to find
+ * \return The number of words found in \a str
+ */
+int BLI_string_find_split_words(
+        const char *str, const size_t len,
+        const char delim, int r_words[][2], int words_max)
+{
+	int n = 0, i;
+	bool charsearch = true;
+
+	/* Skip leading spaces */
+	for (i = 0; (i < len) && (str[i] != '\0'); i++) {
+		if (str[i] != delim) {
+			break;
+		}
+	}
+
+	for (; (i < len) && (str[i] != '\0') && (n < words_max); i++) {
+		if ((str[i] != delim) && (charsearch == true)) {
+			r_words[n][0] = i;
+			charsearch = false;
+		}
+		else {
+			if ((str[i] == delim) && (charsearch == false)) {
+				r_words[n][1] = i - r_words[n][0];
+				n++;
+				charsearch = true;
+			}
+		}
+	}
+
+	if (charsearch == false) {
+		r_words[n][1] = i - r_words[n][0];
+		n++;
+	}
+
+	return n;
 }
