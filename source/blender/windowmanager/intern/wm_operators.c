@@ -63,7 +63,6 @@
 #include "BLI_dial.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
 #include "BLI_linklist.h"
-#include "BLI_linklist_stack.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
@@ -4894,12 +4893,10 @@ static void WM_OT_dependency_relations(wmOperatorType *ot)
 
 /* *************************** Mat/tex/etc. previews generation ************* */
 
-typedef struct PreviewsIDEnsureStack {
+typedef struct PreviewsIDEnsureData {
 	bContext *C;
 	Scene *scene;
-
-	BLI_LINKSTACK_DECLARE(id_stack, ID *);
-} PreviewsIDEnsureStack;
+} PreviewsIDEnsureData;
 
 static void previews_id_ensure(bContext *C, Scene *scene, ID *id)
 {
@@ -4913,17 +4910,15 @@ static void previews_id_ensure(bContext *C, Scene *scene, ID *id)
 	}
 }
 
-static int previews_id_ensure_callback(void *todo_v, ID *UNUSED(idself), ID **idptr, int UNUSED(cd_flag))
+static int previews_id_ensure_callback(void *userdata, ID *UNUSED(self_id), ID **idptr, int UNUSED(cd_flag))
 {
-	PreviewsIDEnsureStack *todo = todo_v;
+	PreviewsIDEnsureData *data = userdata;
 	ID *id = *idptr;
 
 	if (id && (id->tag & LIB_TAG_DOIT)) {
-		if (ELEM(GS(id->name), ID_MA, ID_TE, ID_IM, ID_WO, ID_LA)) {
-			previews_id_ensure(todo->C, todo->scene, id);
-		}
-		id->tag &= ~LIB_TAG_DOIT;  /* Tag the ID as done in any case. */
-		BLI_LINKSTACK_PUSH(todo->id_stack, id);
+		BLI_assert(ELEM(GS(id->name), ID_MA, ID_TE, ID_IM, ID_WO, ID_LA));
+		previews_id_ensure(data->C, data->scene, id);
+		id->tag &= ~LIB_TAG_DOIT;
 	}
 
 	return IDWALK_RET_NOP;
@@ -4933,35 +4928,33 @@ static int previews_ensure_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	ListBase *lb[] = {&bmain->mat, &bmain->tex, &bmain->image, &bmain->world, &bmain->lamp, NULL};
-	PreviewsIDEnsureStack preview_id_stack;
+	PreviewsIDEnsureData preview_id_data;
 	Scene *scene;
 	ID *id;
 	int i;
 
 	/* We use LIB_TAG_DOIT to check whether we have already handled a given ID or not. */
-	BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, true);
-
-	BLI_LINKSTACK_INIT(preview_id_stack.id_stack);
-
-	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
-		preview_id_stack.scene = scene;
-		preview_id_stack.C = C;
-		id = (ID *)scene;
-
-		do {
-			/* This will loop over all IDs linked by current one, render icons for them if needed,
-			 * and add them to 'todo' preview_id_stack. */
-			BKE_library_foreach_ID_link(id, previews_id_ensure_callback, &preview_id_stack, IDWALK_READONLY);
-		} while ((id = BLI_LINKSTACK_POP(preview_id_stack.id_stack)));
+	BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+	for (i = 0; lb[i]; i++) {
+		BKE_main_id_tag_listbase(lb[i], LIB_TAG_DOIT, true);
 	}
 
-	BLI_LINKSTACK_FREE(preview_id_stack.id_stack);
+	preview_id_data.C = C;
+	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
+		preview_id_data.scene = scene;
+		id = (ID *)scene;
+
+		BKE_library_foreach_ID_link(id, previews_id_ensure_callback, &preview_id_data, IDWALK_RECURSE);
+	}
 
 	/* Check a last time for ID not used (fake users only, in theory), and
 	 * do our best for those, using current scene... */
 	for (i = 0; lb[i]; i++) {
 		for (id = lb[i]->first; id; id = id->next) {
-			previews_id_ensure(C, NULL, id);
+			if (id->tag & LIB_TAG_DOIT) {
+				previews_id_ensure(C, NULL, id);
+				id->tag &= ~LIB_TAG_DOIT;
+			}
 		}
 	}
 
