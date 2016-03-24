@@ -314,23 +314,25 @@ int list_find_data_fcurves(ListBase *dst, ListBase *src, const char *dataPrefix,
 	return matches;
 }
 
-FCurve *rna_get_fcurve(PointerRNA *ptr, PropertyRNA *prop, int rnaindex, AnimData **adt, 
-                       bAction **action, bool *r_driven, bool *r_special)
+FCurve *rna_get_fcurve(
+        PointerRNA *ptr, PropertyRNA *prop, int rnaindex,
+        AnimData **r_adt,  bAction **r_action, bool *r_driven, bool *r_special)
 {
-	return rna_get_fcurve_context_ui(NULL, ptr, prop, rnaindex, adt, action, r_driven, r_special);
+	return rna_get_fcurve_context_ui(NULL, ptr, prop, rnaindex, r_adt, r_action, r_driven, r_special);
 }
 
-FCurve *rna_get_fcurve_context_ui(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int rnaindex, AnimData **animdata,
-                                  bAction **action, bool *r_driven, bool *r_special)
+FCurve *rna_get_fcurve_context_ui(
+        bContext *C, PointerRNA *ptr, PropertyRNA *prop, int rnaindex,
+        AnimData **r_animdata, bAction **r_action, bool *r_driven, bool *r_special)
 {
 	FCurve *fcu = NULL;
 	PointerRNA tptr = *ptr;
 	
-	if (animdata) *animdata = NULL;
 	*r_driven = false;
 	*r_special = false;
 	
-	if (action) *action = NULL;
+	if (r_animdata) *r_animdata = NULL;
+	if (r_action) *r_action = NULL;
 	
 	/* Special case for NLA Control Curves... */
 	if (ptr->type == &RNA_NlaStrip) {
@@ -372,8 +374,8 @@ FCurve *rna_get_fcurve_context_ui(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 					if (adt->action && adt->action->curves.first) {
 						fcu = list_find_fcurve(&adt->action->curves, path, rnaindex);
 						
-						if (fcu && action)
-							*action = adt->action;
+						if (fcu && r_action)
+							*r_action = adt->action;
 					}
 					
 					/* if not animated, check if driven */
@@ -381,14 +383,14 @@ FCurve *rna_get_fcurve_context_ui(bContext *C, PointerRNA *ptr, PropertyRNA *pro
 						fcu = list_find_fcurve(&adt->drivers, path, rnaindex);
 						
 						if (fcu) {
-							if (animdata) *animdata = adt;
+							if (r_animdata) *r_animdata = adt;
 							*r_driven = true;
 						}
 					}
 					
-					if (fcu && action) {
-						if (animdata) *animdata = adt;
-						*action = adt->action;
+					if (fcu && r_action) {
+						if (r_animdata) *r_animdata = adt;
+						*r_action = adt->action;
 						break;
 					}
 					else if (step) {

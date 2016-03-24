@@ -91,7 +91,7 @@ void update_autoflags_fcurve(struct FCurve *fcu, struct bContext *C, struct Repo
  *  Use this when validation of necessary animation data isn't necessary as it already
  *  exists, and there is a beztriple that can be directly copied into the array.
  */
-int insert_bezt_fcurve(struct FCurve *fcu, struct BezTriple *bezt, short flag);
+int insert_bezt_fcurve(struct FCurve *fcu, const struct BezTriple *bezt, short flag);
 
 /* Main Keyframing API call: 
  *  Use this when validation of necessary animation data isn't necessary as it

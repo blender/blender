@@ -301,7 +301,7 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
  * NOTE: any recalculate of the F-Curve that needs to be done will need to 
  *      be done by the caller.
  */
-int insert_bezt_fcurve(FCurve *fcu, BezTriple *bezt, short flag)
+int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, short flag)
 {
 	int i = 0;
 	
@@ -383,7 +383,8 @@ int insert_bezt_fcurve(FCurve *fcu, BezTriple *bezt, short flag)
 	return i;
 }
 
-/* This function is a wrapper for insert_bezt_fcurve_internal(), and should be used when
+/**
+ * This function is a wrapper for insert_bezt_fcurve_internal(), and should be used when
  * adding a new keyframe to a curve, when the keyframe doesn't exist anywhere else yet. 
  * It returns the index at which the keyframe was added.
  *
