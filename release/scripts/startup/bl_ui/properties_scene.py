@@ -18,13 +18,26 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Panel, UIList
+from bpy.types import (
+        Menu,
+        Panel,
+        UIList,
+        )
+
 from rna_prop_ui import PropertyPanel
 
 from bl_ui.properties_physics_common import (
         point_cache_ui,
         effector_weights_ui,
         )
+
+
+class SCENE_MT_units_length_presets(Menu):
+    """Sets the unit of measure for properties that use length values"""
+    bl_label = "Unit Presets"
+    preset_subdir = "units_length"
+    preset_operator = "script.execute_preset"
+    draw = Menu.draw_preset
 
 
 class SCENE_UL_keying_set_paths(UIList):
@@ -75,14 +88,28 @@ class SCENE_PT_unit(SceneButtonsPanel, Panel):
 
         unit = context.scene.unit_settings
 
-        col = layout.column()
-        col.row().prop(unit, "system", expand=True)
-        col.row().prop(unit, "system_rotation", expand=True)
+        row = layout.row(align=True)
+        row.menu("SCENE_MT_units_length_presets", text=SCENE_MT_units_length_presets.bl_label)
+        row.operator("scene.units_length_preset_add", text="", icon='ZOOMIN')
+        row.operator("scene.units_length_preset_add", text="", icon='ZOOMOUT').remove_active = True
 
-        if unit.system != 'NONE':
-            row = layout.row()
-            row.prop(unit, "scale_length", text="Scale")
-            row.prop(unit, "use_separate")
+        layout.separator()
+
+        split = layout.split(percentage=0.35)
+        split.label("Length:")
+        split.prop(unit, "system", text="")
+        split = layout.split(percentage=0.35)
+        split.label("Angle:")
+        split.prop(unit, "system_rotation", text="")
+
+        col = layout.column()
+        col.enabled = unit.system != 'NONE'
+        split = col.split(percentage=0.35)
+        split.label("Unit Scale:")
+        split.prop(unit, "scale_length", text="")
+        split = col.split(percentage=0.35)
+        split.row()
+        split.prop(unit, "use_separate")
 
 
 class SceneKeyingSetsPanel:

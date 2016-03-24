@@ -662,3 +662,21 @@ class WM_MT_operator_presets(Menu):
         return AddPresetOperator.operator_path(self.operator)
 
     preset_operator = "script.execute_preset"
+
+
+class AddPresetUnitsLength(AddPresetBase, Operator):
+    """Add or remove length units preset"""
+    bl_idname = "scene.units_length_preset_add"
+    bl_label = "Add Length Units Preset"
+    preset_menu = "SCENE_MT_units_length_presets"
+
+    preset_defines = [
+        "scene = bpy.context.scene"
+    ]
+
+    preset_values = [
+        "scene.unit_settings.system",
+        "scene.unit_settings.scale_length",
+    ]
+
+    preset_subdir = "units_length"
