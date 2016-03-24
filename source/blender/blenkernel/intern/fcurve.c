@@ -1598,9 +1598,9 @@ void driver_variable_name_validate(DriverVar *dvar)
 {
 	/* Special character blacklist */
 	const char special_char_blacklist[] = {
-		'~', '`', '!', '@', '#', '$', '%', '^', '&', '*', '+', '=', '-',
+	    '~', '`', '!', '@', '#', '$', '%', '^', '&', '*', '+', '=', '-',
 	    '/', '\\', '?', ':', ';',  '<', '>', '{', '}', '[', ']', '|',
-		' ', '.', '\t', '\n', '\r'
+	    ' ', '.', '\t', '\n', '\r'
 	};
 	
 	/* sanity checks */
