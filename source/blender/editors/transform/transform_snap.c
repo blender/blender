@@ -1574,7 +1574,9 @@ static bool snapDerivedMesh(
 					bb = &bb_temp;
 				}
 
-				len_diff = local_depth;
+				/* was local_depth, see: T47838 */
+				len_diff = BVH_RAYCAST_DIST_MAX;
+
 				if (!BKE_boundbox_ray_hit_check(bb, ray_start_local, ray_normal_local, &len_diff)) {
 					return retval;
 				}
