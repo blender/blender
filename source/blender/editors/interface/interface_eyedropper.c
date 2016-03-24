@@ -168,7 +168,7 @@ typedef struct Eyedropper {
 
 	float init_col[3]; /* for resetting on cancel */
 
-	bool  accum_start; /* has mouse been presed */
+	bool  accum_start; /* has mouse been pressed */
 	float accum_col[3];
 	int   accum_tot;
 } Eyedropper;
@@ -423,7 +423,7 @@ void UI_OT_eyedropper_color(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Eyedropper";
 	ot->idname = "UI_OT_eyedropper_color";
-	ot->description = "Sample a data-block from the 3D view";
+	ot->description = "Sample a color from the Blender Window to store in a property";
 
 	/* api callbacks */
 	ot->invoke = eyedropper_invoke;
