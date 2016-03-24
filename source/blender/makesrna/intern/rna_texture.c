@@ -1668,12 +1668,20 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	static EnumPropertyItem color_source_items[] = {
+	static EnumPropertyItem particle_color_source_items[] = {
 		{TEX_PD_COLOR_CONSTANT, "CONSTANT", 0, "Constant", ""},
 		{TEX_PD_COLOR_PARTAGE, "PARTICLE_AGE", 0, "Particle Age", "Lifetime mapped as 0.0 - 1.0 intensity"},
 		{TEX_PD_COLOR_PARTSPEED, "PARTICLE_SPEED", 0, "Particle Speed",
 		                         "Particle speed (absolute magnitude of velocity) mapped as 0.0-1.0 intensity"},
 		{TEX_PD_COLOR_PARTVEL, "PARTICLE_VELOCITY", 0, "Particle Velocity", "XYZ velocity mapped to RGB colors"},
+		{0, NULL, 0, NULL, NULL}
+	};
+	
+	static EnumPropertyItem vertex_color_source_items[] = {
+		{TEX_PD_COLOR_CONSTANT, "CONSTANT", 0, "Constant", ""},
+		{TEX_PD_COLOR_VERTCOL, "VERTEX_COLOR", 0, "Vertex Color", "Vertex color layer"},
+		{TEX_PD_COLOR_VERTWEIGHT, "VERTEX_WEIGHT", 0, "Vertex Weight", "Vertex group weight"},
+		{TEX_PD_COLOR_VERTNOR, "VERTEX_NORMAL", 0, "Vertex Normal", "XYZ normal vector mapped to RGB colors"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
@@ -1742,10 +1750,20 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Softness", "Softness of the 'soft' falloff option");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
-	prop = RNA_def_property(srna, "color_source", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "particle_color_source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "color_source");
-	RNA_def_property_enum_items(prop, color_source_items);
+	RNA_def_property_enum_items(prop, particle_color_source_items);
 	RNA_def_property_ui_text(prop, "Color Source", "Data to derive color results from");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	
+	prop = RNA_def_property(srna, "vertex_color_source", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "ob_color_source");
+	RNA_def_property_enum_items(prop, vertex_color_source_items);
+	RNA_def_property_ui_text(prop, "Color Source", "Data to derive color results from");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	
+	prop = RNA_def_property(srna, "vertex_attribute_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Vertex Attribute Name", "Vertex attribute to use for color");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop = RNA_def_property(srna, "speed_scale", PROP_FLOAT, PROP_NONE);

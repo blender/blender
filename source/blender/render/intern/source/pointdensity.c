@@ -43,6 +43,12 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
+#include "DNA_particle_types.h"
+#include "DNA_texture_types.h"
+
+#include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
@@ -51,10 +57,6 @@
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_colortools.h"
-
-#include "DNA_meshdata_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_particle_types.h"
 
 #include "render_types.h"
 #include "texture.h"
@@ -89,29 +91,78 @@ static int point_data_used(PointDensity *pd)
 			pd_bitflag |= POINT_DATA_LIFE;
 		}
 	}
+	else if (pd->source == TEX_PD_OBJECT) {
+		if (ELEM(pd->ob_color_source, TEX_PD_COLOR_VERTCOL, TEX_PD_COLOR_VERTWEIGHT, TEX_PD_COLOR_VERTNOR)) {
+			pd_bitflag |= POINT_DATA_COLOR;
+		}
+	}
 
 	return pd_bitflag;
 }
 
+static void point_data_pointers(PointDensity *pd,
+                                float **r_data_velocity, float **r_data_life, float **r_data_color)
+{
+	const int data_used = point_data_used(pd);
+	const int totpoint = pd->totpoints;
+	float *data = pd->point_data;
+	int offset = 0;
+	
+	if (data_used & POINT_DATA_VEL) {
+		if (r_data_velocity)
+			*r_data_velocity = data + offset;
+		offset += 3 * totpoint;
+	}
+	else {
+		if (r_data_velocity)
+			*r_data_velocity = NULL;
+	}
+	
+	if (data_used & POINT_DATA_LIFE) {
+		if (r_data_life)
+			*r_data_life = data + offset;
+		offset += totpoint;
+	}
+	else {
+		if (r_data_life)
+			*r_data_life = NULL;
+	}
+	
+	if (data_used & POINT_DATA_COLOR) {
+		if (r_data_color)
+			*r_data_color = data + offset;
+		offset += 3 * totpoint;
+	}
+	else {
+		if (r_data_color)
+			*r_data_color = NULL;
+	}
+}
 
 /* additional data stored alongside the point density BVH,
  * accessible by point index number to retrieve other information
  * such as particle velocity or lifetime */
-static void alloc_point_data(PointDensity *pd, int total_particles, int point_data_used)
+static void alloc_point_data(PointDensity *pd)
 {
+	const int totpoints = pd->totpoints;
+	int data_used = point_data_used(pd);
 	int data_size = 0;
 
-	if (point_data_used & POINT_DATA_VEL) {
+	if (data_used & POINT_DATA_VEL) {
 		/* store 3 channels of velocity data */
 		data_size += 3;
 	}
-	if (point_data_used & POINT_DATA_LIFE) {
+	if (data_used & POINT_DATA_LIFE) {
 		/* store 1 channel of lifetime data */
 		data_size += 1;
 	}
+	if (data_used & POINT_DATA_COLOR) {
+		/* store 3 channels of RGB data */
+		data_size += 3;
+	}
 
 	if (data_size) {
-		pd->point_data = MEM_mallocN(sizeof(float) * data_size * total_particles,
+		pd->point_data = MEM_callocN(sizeof(float) * data_size * totpoints,
 		                             "particle point data");
 	}
 }
@@ -132,14 +183,17 @@ static void pointdensity_cache_psys(Scene *scene,
 	ParticleData *pa = NULL;
 	float cfra = BKE_scene_frame_get(scene);
 	int i /*, childexists*/ /* UNUSED */;
-	int total_particles, offset = 0;
-	int data_used = point_data_used(pd);
+	int total_particles;
+	int data_used;
+	float *data_vel, *data_life;
 	float partco[3];
 
 	/* init everything */
 	if (!psys || !ob || !pd) {
 		return;
 	}
+
+	data_used = point_data_used(pd);
 
 	/* Just to create a valid rendering context for particles */
 	if (use_render_params) {
@@ -174,11 +228,9 @@ static void pointdensity_cache_psys(Scene *scene,
 	psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 
 	pd->point_tree = BLI_bvhtree_new(total_particles, 0.0, 4, 6);
-	alloc_point_data(pd, total_particles, data_used);
 	pd->totpoints = total_particles;
-	if (data_used & POINT_DATA_VEL) {
-		offset = pd->totpoints * 3;
-	}
+	alloc_point_data(pd);
+	point_data_pointers(pd, &data_vel, &data_life, NULL);
 
 #if 0 /* UNUSED */
 	if (psys->totchild > 0 && !(psys->part->draw & PART_DRAW_PARENT))
@@ -235,13 +287,13 @@ static void pointdensity_cache_psys(Scene *scene,
 
 		BLI_bvhtree_insert(pd->point_tree, i, partco, 1);
 
-		if (data_used & POINT_DATA_VEL) {
-			pd->point_data[i * 3 + 0] = state.vel[0];
-			pd->point_data[i * 3 + 1] = state.vel[1];
-			pd->point_data[i * 3 + 2] = state.vel[2];
+		if (data_vel) {
+			data_vel[i*3 + 0] = state.vel[0];
+			data_vel[i*3 + 1] = state.vel[1];
+			data_vel[i*3 + 2] = state.vel[2];
 		}
-		if (data_used & POINT_DATA_LIFE) {
-			pd->point_data[offset + i] = state.time;
+		if (data_life) {
+			data_life[i] = state.time;
 		}
 	}
 
@@ -259,39 +311,127 @@ static void pointdensity_cache_psys(Scene *scene,
 }
 
 
+static void pointdensity_cache_vertex_color(PointDensity *pd, Object *UNUSED(ob), DerivedMesh *dm, float *data_color)
+{
+	const MLoop *mloop = dm->getLoopArray(dm);
+	const int totloop = dm->getNumLoops(dm);
+	const MLoopCol *mcol;
+	char layername[MAX_CUSTOMDATA_LAYER_NAME];
+	int i;
+	
+	BLI_assert(data_color);
+	
+	if (!CustomData_has_layer(&dm->loopData, CD_MLOOPCOL))
+		return;
+	CustomData_validate_layer_name(&dm->loopData, CD_MLOOPCOL, pd->vertex_attribute_name, layername);
+	mcol = CustomData_get_layer_named(&dm->loopData, CD_MLOOPCOL, layername);
+	if (!mcol)
+		return;
+	
+	/* Stores the number of MLoops using the same vertex, so we can normalize colors. */
+	int *mcorners = MEM_callocN(sizeof(int) * pd->totpoints, "point density corner count");
+	
+	for (i = 0; i < totloop; i++) {
+		int v = mloop[i].v;
+		rgb_uchar_to_float(&data_color[v*3], &mcol[i].r);
+		++mcorners[v];
+	}
+	
+	/* Normalize colors by averaging over mcorners.
+	 * All the corners share the same vertex, ie. occupy the same point in space.
+	 */
+	for (i = 0; i < pd->totpoints; i++) {
+		if (mcorners[i] > 0)
+			mul_v3_fl(&data_color[i*3], 1.0f / mcorners[i]);
+	}
+	
+	MEM_freeN(mcorners);
+}
+
+static void pointdensity_cache_vertex_weight(PointDensity *pd, Object *ob, DerivedMesh *dm, float *data_color)
+{
+	const int totvert = dm->getNumVerts(dm);
+	const MDeformVert *mdef, *dv;
+	int mdef_index;
+	int i;
+	
+	BLI_assert(data_color);
+	
+	mdef = CustomData_get_layer(&dm->vertData, CD_MDEFORMVERT);
+	if (!mdef)
+		return;
+	mdef_index = defgroup_name_index(ob, pd->vertex_attribute_name);
+	if (mdef_index < 0)
+		mdef_index = ob->actdef - 1;
+	if (mdef_index < 0)
+		return;
+	
+	for (i = 0, dv = mdef; i < totvert; ++i, ++dv, data_color += 3) {
+		MDeformWeight *dw;
+		int j;
+		
+		for (j = 0, dw = dv->dw; j < dv->totweight; ++j, ++dw) {
+			if (dw->def_nr == mdef_index) {
+				copy_v3_fl(data_color, dw->weight);
+				break;
+			}
+		}
+	}
+}
+
+static void pointdensity_cache_vertex_normal(PointDensity *pd, Object *UNUSED(ob), DerivedMesh *dm, float *data_color)
+{
+	MVert *mvert = dm->getVertArray(dm), *mv;
+	int i;
+	
+	BLI_assert(data_color);
+	
+	for (i = 0, mv = mvert; i < pd->totpoints; i++, mv++, data_color += 3) {
+		normal_short_to_float_v3(data_color, mv->no);
+	}
+}
+
 static void pointdensity_cache_object(Scene *scene,
                                       PointDensity *pd,
                                       Object *ob,
                                       const bool use_render_params)
 {
+	float *data_color;
 	int i;
 	DerivedMesh *dm;
-	MVert *mvert = NULL;
+	CustomDataMask mask = CD_MASK_BAREMESH | CD_MASK_MTFACE | CD_MASK_MCOL;
+	MVert *mvert = NULL, *mv;
+
+	switch (pd->ob_color_source) {
+		case TEX_PD_COLOR_VERTCOL:
+			mask |= CD_MASK_MLOOPCOL;
+			break;
+		case TEX_PD_COLOR_VERTWEIGHT:
+			mask |= CD_MASK_MDEFORMVERT;
+			break;
+	}
 
 	if (use_render_params) {
-		dm = mesh_create_derived_render(scene,
-		                                ob,
-		                                CD_MASK_BAREMESH | CD_MASK_MTFACE | CD_MASK_MCOL);
+		dm = mesh_create_derived_render(scene, ob, mask);
 	}
 	else {
-		dm = mesh_get_derived_final(scene,
-		                            ob,
-		                            CD_MASK_BAREMESH | CD_MASK_MTFACE | CD_MASK_MCOL);
-
+		dm = mesh_get_derived_final(scene, ob, mask);
 	}
-	mvert = dm->getVertArray(dm);	/* local object space */
 
+	mvert = dm->getVertArray(dm);	/* local object space */
 	pd->totpoints = dm->getNumVerts(dm);
 	if (pd->totpoints == 0) {
 		return;
 	}
 
 	pd->point_tree = BLI_bvhtree_new(pd->totpoints, 0.0, 4, 6);
+	alloc_point_data(pd);
+	point_data_pointers(pd, NULL, NULL, &data_color);
 
-	for (i = 0; i < pd->totpoints; i++, mvert++) {
+	for (i = 0, mv = mvert; i < pd->totpoints; i++, mv++) {
 		float co[3];
 
-		copy_v3_v3(co, mvert->co);
+		copy_v3_v3(co, mv->co);
 
 		switch (pd->ob_cache_space) {
 			case TEX_PD_OBJECTSPACE:
@@ -307,6 +447,18 @@ static void pointdensity_cache_object(Scene *scene,
 		}
 
 		BLI_bvhtree_insert(pd->point_tree, i, co, 1);
+	}
+	
+	switch (pd->ob_color_source) {
+		case TEX_PD_COLOR_VERTCOL:
+			pointdensity_cache_vertex_color(pd, ob, dm, data_color);
+			break;
+		case TEX_PD_COLOR_VERTWEIGHT:
+			pointdensity_cache_vertex_weight(pd, ob, dm, data_color);
+			break;
+		case TEX_PD_COLOR_VERTNOR:
+			pointdensity_cache_vertex_normal(pd, ob, dm, data_color);
+			break;
 	}
 
 	BLI_bvhtree_balance(pd->point_tree);
@@ -423,80 +575,99 @@ void free_pointdensities(Render *re)
 typedef struct PointDensityRangeData {
 	float *density;
 	float squared_radius;
-	const float *point_data;
+	float *point_data_life;
+	float *point_data_velocity;
+	float *point_data_color;
 	float *vec;
+	float *col;
 	float softness;
 	short falloff_type;
 	short noise_influence;
 	float *age;
-	int point_data_used;
-	int offset;
 	struct CurveMapping *density_curve;
 	float velscale;
 } PointDensityRangeData;
 
-static void accum_density(void *userdata, int index, const float co[3], float squared_dist)
+static float density_falloff(PointDensityRangeData *pdr, int index, float squared_dist)
 {
-	PointDensityRangeData *pdr = (PointDensityRangeData *)userdata;
 	const float dist = (pdr->squared_radius - squared_dist) / pdr->squared_radius * 0.5f;
 	float density = 0.0f;
-
-	UNUSED_VARS(co);
-
-	if (pdr->point_data_used & POINT_DATA_VEL) {
-		pdr->vec[0] += pdr->point_data[index * 3 + 0]; // * density;
-		pdr->vec[1] += pdr->point_data[index * 3 + 1]; // * density;
-		pdr->vec[2] += pdr->point_data[index * 3 + 2]; // * density;
-	}
-	if (pdr->point_data_used & POINT_DATA_LIFE) {
-		*pdr->age += pdr->point_data[pdr->offset + index]; // * density;
-	}
-
-	if (pdr->falloff_type == TEX_PD_FALLOFF_STD)
-		density = dist;
-	else if (pdr->falloff_type == TEX_PD_FALLOFF_SMOOTH)
-		density = 3.0f * dist * dist - 2.0f * dist * dist * dist;
-	else if (pdr->falloff_type == TEX_PD_FALLOFF_SOFT)
-		density = pow(dist, pdr->softness);
-	else if (pdr->falloff_type == TEX_PD_FALLOFF_CONSTANT)
-		density = pdr->squared_radius;
-	else if (pdr->falloff_type == TEX_PD_FALLOFF_ROOT)
-		density = sqrtf(dist);
-	else if (pdr->falloff_type == TEX_PD_FALLOFF_PARTICLE_AGE) {
-		if (pdr->point_data_used & POINT_DATA_LIFE)
-			density = dist * MIN2(pdr->point_data[pdr->offset + index], 1.0f);
-		else
+	
+	switch (pdr->falloff_type) {
+		case TEX_PD_FALLOFF_STD:
 			density = dist;
+			break;
+		case TEX_PD_FALLOFF_SMOOTH:
+			density = 3.0f * dist * dist - 2.0f * dist * dist * dist;
+			break;
+		case TEX_PD_FALLOFF_SOFT:
+			density = pow(dist, pdr->softness);
+			break;
+		case TEX_PD_FALLOFF_CONSTANT:
+			density = pdr->squared_radius;
+			break;
+		case TEX_PD_FALLOFF_ROOT:
+			density = sqrtf(dist);
+			break;
+		case TEX_PD_FALLOFF_PARTICLE_AGE:
+			if (pdr->point_data_life)
+				density = dist * MIN2(pdr->point_data_life[index], 1.0f);
+			else
+				density = dist;
+			break;
+		case TEX_PD_FALLOFF_PARTICLE_VEL:
+			if (pdr->point_data_velocity)
+				density = dist * len_v3(&pdr->point_data_velocity[index * 3]) * pdr->velscale;
+			else
+				density = dist;
+			break;
 	}
-	else if (pdr->falloff_type == TEX_PD_FALLOFF_PARTICLE_VEL) {
-		if (pdr->point_data_used & POINT_DATA_VEL)
-			density = dist * len_v3(pdr->point_data + index * 3) * pdr->velscale;
-		else
-			density = dist;
-	}
-
+	
 	if (pdr->density_curve && dist != 0.0f) {
 		curvemapping_initialize(pdr->density_curve);
 		density = curvemapping_evaluateF(pdr->density_curve, 0, density / dist) * dist;
 	}
+	
+	return density;
+}
+
+static void accum_density(void *userdata, int index, const float co[3], float squared_dist)
+{
+	PointDensityRangeData *pdr = (PointDensityRangeData *)userdata;
+	float density = 0.0f;
+
+	UNUSED_VARS(co);
+
+	if (pdr->point_data_velocity) {
+		pdr->vec[0] += pdr->point_data_velocity[index * 3 + 0]; // * density;
+		pdr->vec[1] += pdr->point_data_velocity[index * 3 + 1]; // * density;
+		pdr->vec[2] += pdr->point_data_velocity[index * 3 + 2]; // * density;
+	}
+	if (pdr->point_data_life) {
+		*pdr->age += pdr->point_data_life[index]; // * density;
+	}
+	if (pdr->point_data_color) {
+		add_v3_v3(pdr->col, &pdr->point_data_color[index * 3]); // * density;
+	}
+
+	density = density_falloff(pdr, index, squared_dist);
 
 	*pdr->density += density;
 }
 
 
 static void init_pointdensityrangedata(PointDensity *pd, PointDensityRangeData *pdr,
-	float *density, float *vec, float *age, struct CurveMapping *density_curve, float velscale)
+	float *density, float *vec, float *age, float *col, struct CurveMapping *density_curve, float velscale)
 {
 	pdr->squared_radius = pd->radius * pd->radius;
 	pdr->density = density;
-	pdr->point_data = pd->point_data;
 	pdr->falloff_type = pd->falloff_type;
 	pdr->vec = vec;
 	pdr->age = age;
+	pdr->col = col;
 	pdr->softness = pd->falloff_softness;
 	pdr->noise_influence = pd->noise_influence;
-	pdr->point_data_used = point_data_used(pd);
-	pdr->offset = (pdr->point_data_used & POINT_DATA_VEL) ? pd->totpoints * 3 : 0;
+	point_data_pointers(pd, &pdr->point_data_velocity, &pdr->point_data_life, &pdr->point_data_color);
 	pdr->density_curve = density_curve;
 	pdr->velscale = velscale;
 }
@@ -505,13 +676,14 @@ static void init_pointdensityrangedata(PointDensity *pd, PointDensityRangeData *
 static int pointdensity(PointDensity *pd,
                         const float texvec[3],
                         TexResult *texres,
+                        float r_vec[3],
                         float *r_age,
-                        float r_vec[3])
+                        float r_col[3])
 {
 	int retval = TEX_INT;
 	PointDensityRangeData pdr;
 	float density = 0.0f, age = 0.0f, time = 0.0f;
-	float vec[3] = {0.0f, 0.0f, 0.0f}, co[3];
+	float vec[3] = {0.0f, 0.0f, 0.0f}, col[3] = {0.0f, 0.0f, 0.0f}, co[3];
 	float turb, noise_fac;
 	int num = 0;
 
@@ -520,7 +692,7 @@ static int pointdensity(PointDensity *pd,
 	if ((!pd) || (!pd->point_tree))
 		return 0;
 
-	init_pointdensityrangedata(pd, &pdr, &density, vec, &age,
+	init_pointdensityrangedata(pd, &pdr, &density, vec, &age, col,
 	        (pd->flag & TEX_PD_FALLOFF_CURVE ? pd->falloff_curve : NULL),
 	        pd->falloff_speed_scale * 0.001f);
 	noise_fac = pd->noise_fac * 0.5f;	/* better default */
@@ -534,10 +706,13 @@ static int pointdensity(PointDensity *pd,
 		if (num > 0) {
 			age /= num;
 			mul_v3_fl(vec, 1.0f / num);
+			mul_v3_fl(col, 1.0f / num);
 		}
 
 		/* reset */
-		density = vec[0] = vec[1] = vec[2] = 0.0f;
+		density = 0.0f;
+		zero_v3(vec);
+		zero_v3(col);
 	}
 
 	if (pd->flag & TEX_PD_TURBULENCE) {
@@ -570,6 +745,7 @@ static int pointdensity(PointDensity *pd,
 	if (num > 0) {
 		age /= num;
 		mul_v3_fl(vec, 1.0f / num);
+		mul_v3_fl(col, 1.0f / num);
 	}
 
 	texres->tin = density;
@@ -579,51 +755,88 @@ static int pointdensity(PointDensity *pd,
 	if (r_vec != NULL) {
 		copy_v3_v3(r_vec, vec);
 	}
+	if (r_col != NULL) {
+		copy_v3_v3(r_col, col);
+	}
 
 	return retval;
 }
 
-static int pointdensity_color(PointDensity *pd, TexResult *texres, float age, const float vec[3])
+static int pointdensity_color(PointDensity *pd, TexResult *texres, float age, const float vec[3], const float col[3])
 {
-	int retval = 0;
-	float col[4];
+	int retval = TEX_RGB;
 
-	retval |= TEX_RGB;
-
-	switch (pd->color_source) {
-		case TEX_PD_COLOR_PARTAGE:
-			if (pd->coba) {
-				if (do_colorband(pd->coba, age, col)) {
-					texres->talpha = true;
-					copy_v3_v3(&texres->tr, col);
-					texres->tin *= col[3];
-					texres->ta = texres->tin;
+	if (pd->source == TEX_PD_PSYS) {
+		float rgba[4];
+		
+		switch (pd->color_source) {
+			case TEX_PD_COLOR_PARTAGE:
+				if (pd->coba) {
+					if (do_colorband(pd->coba, age, rgba)) {
+						texres->talpha = true;
+						copy_v3_v3(&texres->tr, rgba);
+						texres->tin *= rgba[3];
+						texres->ta = texres->tin;
+					}
 				}
-			}
-			break;
-		case TEX_PD_COLOR_PARTSPEED:
-		{
-			float speed = len_v3(vec) * pd->speed_scale;
-
-			if (pd->coba) {
-				if (do_colorband(pd->coba, speed, col)) {
-					texres->talpha = true;
-					copy_v3_v3(&texres->tr, col);
-					texres->tin *= col[3];
-					texres->ta = texres->tin;
+				break;
+			case TEX_PD_COLOR_PARTSPEED:
+			{
+				float speed = len_v3(vec) * pd->speed_scale;
+				
+				if (pd->coba) {
+					if (do_colorband(pd->coba, speed, rgba)) {
+						texres->talpha = true;
+						copy_v3_v3(&texres->tr, rgba);
+						texres->tin *= rgba[3];
+						texres->ta = texres->tin;
+					}
 				}
+				break;
 			}
-			break;
+			case TEX_PD_COLOR_PARTVEL:
+				texres->talpha = true;
+				mul_v3_v3fl(&texres->tr, vec, pd->speed_scale);
+				texres->ta = texres->tin;
+				break;
+			case TEX_PD_COLOR_CONSTANT:
+			default:
+				texres->tr = texres->tg = texres->tb = texres->ta = 1.0f;
+				retval = TEX_INT;
+				break;
 		}
-		case TEX_PD_COLOR_PARTVEL:
-			texres->talpha = true;
-			mul_v3_v3fl(&texres->tr, vec, pd->speed_scale);
-			texres->ta = texres->tin;
-			break;
-		case TEX_PD_COLOR_CONSTANT:
-		default:
-			texres->tr = texres->tg = texres->tb = texres->ta = 1.0f;
-			break;
+	}
+	else {
+		float rgba[4];
+		
+		switch (pd->ob_color_source) {
+			case TEX_PD_COLOR_VERTCOL:
+				texres->talpha = true;
+				copy_v3_v3(&texres->tr, col);
+				texres->ta = texres->tin;
+				break;
+			case TEX_PD_COLOR_VERTWEIGHT:
+				texres->talpha = true;
+				if (pd->coba && do_colorband(pd->coba, col[0], rgba)) {
+					copy_v3_v3(&texres->tr, rgba);
+					texres->tin *= rgba[3];
+				}
+				else {
+					copy_v3_v3(&texres->tr, col);
+				}
+				texres->ta = texres->tin;
+				break;
+			case TEX_PD_COLOR_VERTNOR:
+				texres->talpha = true;
+				copy_v3_v3(&texres->tr, col);
+				texres->ta = texres->tin;
+				break;
+			case TEX_PD_COLOR_CONSTANT:
+			default:
+				texres->tr = texres->tg = texres->tb = texres->ta = 1.0f;
+				retval = TEX_INT;
+				break;
+		}
 	}
 	
 	return retval;
@@ -634,16 +847,12 @@ int pointdensitytex(Tex *tex, const float texvec[3], TexResult *texres)
 	PointDensity *pd = tex->pd;
 	float age = 0.0f;
 	float vec[3] = {0.0f, 0.0f, 0.0f};
-	int retval = pointdensity(pd, texvec, texres, &age, vec);
+	float col[3] = {0.0f, 0.0f, 0.0f};
+	int retval = pointdensity(pd, texvec, texres, vec, &age, col);
 
-	BRICONT;
-
-	if (pd->color_source == TEX_PD_COLOR_CONSTANT)
-		return retval;
-
-	retval |= pointdensity_color(pd, texres, age, vec);
+	retval |= pointdensity_color(pd, texres, age, vec, col);
 	BRICONTRGB;
-
+	
 	return retval;
 
 #if 0
@@ -803,7 +1012,7 @@ static void point_density_sample_func(void *data_v, const int iter)
 		for (size_t x = 0; x < resolution; ++x) {
 			size_t index = z * resolution2 + y * resolution + x;
 			float texvec[3];
-			float age, vec[3];
+			float age, vec[3], col[3];
 			TexResult texres;
 
 			copy_v3_v3(texvec, min);
@@ -811,8 +1020,8 @@ static void point_density_sample_func(void *data_v, const int iter)
 			texvec[1] += dim[1] * (float)y / (float)resolution;
 			texvec[2] += dim[2] * (float)z / (float)resolution;
 
-			pointdensity(pd, texvec, &texres, &age, vec);
-			pointdensity_color(pd, &texres, age, vec);
+			pointdensity(pd, texvec, &texres, vec, &age, col);
+			pointdensity_color(pd, &texres, age, vec, col);
 
 			copy_v3_v3(&values[index*4 + 0], &texres.tr);
 			values[index*4 + 3] = texres.tin;

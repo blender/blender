@@ -3030,12 +3030,30 @@ static void rna_ShaderNodePointDensity_psys_set(PointerRNA *ptr, PointerRNA valu
 	}
 }
 
-static int point_density_color_source_from_shader(NodeShaderTexPointDensity *shader_point_density)
+static int point_density_particle_color_source_from_shader(NodeShaderTexPointDensity *shader_point_density)
 {
 	switch (shader_point_density->color_source) {
-		case SHD_POINTDENSITY_COLOR_PARTAGE: return TEX_PD_COLOR_PARTAGE;
-		case SHD_POINTDENSITY_COLOR_PARTSPEED: return TEX_PD_COLOR_PARTSPEED;
-		case SHD_POINTDENSITY_COLOR_PARTVEL: return TEX_PD_COLOR_PARTVEL;
+		case SHD_POINTDENSITY_COLOR_PARTAGE:
+			return TEX_PD_COLOR_PARTAGE;
+		case SHD_POINTDENSITY_COLOR_PARTSPEED:
+			return TEX_PD_COLOR_PARTSPEED;
+		case SHD_POINTDENSITY_COLOR_PARTVEL:
+			return TEX_PD_COLOR_PARTVEL;
+		default:
+			BLI_assert(!"Unknown color source");
+			return TEX_PD_COLOR_CONSTANT;
+	}
+}
+
+static int point_density_vertex_color_source_from_shader(NodeShaderTexPointDensity *shader_point_density)
+{
+	switch (shader_point_density->ob_color_source) {
+		case SHD_POINTDENSITY_COLOR_VERTCOL:
+			return TEX_PD_COLOR_VERTCOL;
+		case SHD_POINTDENSITY_COLOR_VERTWEIGHT:
+			return TEX_PD_COLOR_VERTWEIGHT;
+		case SHD_POINTDENSITY_COLOR_VERTNOR:
+			return TEX_PD_COLOR_VERTNOR;
 		default:
 			BLI_assert(!"Unknown color source");
 			return TEX_PD_COLOR_CONSTANT;
@@ -3064,13 +3082,17 @@ void rna_ShaderNodePointDensity_density_cache(bNode *self,
 		pd->source = TEX_PD_PSYS;
 		pd->psys = shader_point_density->particle_system;
 		pd->psys_cache_space = TEX_PD_OBJECTSPACE;
+		pd->color_source = point_density_particle_color_source_from_shader(shader_point_density);
 	}
 	else {
 		BLI_assert(shader_point_density->point_source == SHD_POINTDENSITY_SOURCE_OBJECT);
 		pd->source = TEX_PD_OBJECT;
 		pd->ob_cache_space = TEX_PD_OBJECTSPACE;
+		pd->ob_color_source = point_density_vertex_color_source_from_shader(shader_point_density);
+		BLI_strncpy(pd->vertex_attribute_name,
+		            shader_point_density->vertex_attribute_name,
+		            sizeof(pd->vertex_attribute_name));
 	}
-	pd->color_source = point_density_color_source_from_shader(shader_point_density);
 
 	/* Single-threaded sampling of the voxel domain. */
 	RE_point_density_cache(scene,
@@ -4002,13 +4024,21 @@ static void def_sh_tex_pointdensity(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem color_source_items[] = {
+	static EnumPropertyItem particle_color_source_items[] = {
 		{SHD_POINTDENSITY_COLOR_PARTAGE, "PARTICLE_AGE", 0, "Particle Age",
 		                                 "Lifetime mapped as 0.0 - 1.0 intensity"},
 		{SHD_POINTDENSITY_COLOR_PARTSPEED, "PARTICLE_SPEED", 0, "Particle Speed",
 		                                   "Particle speed (absolute magnitude of velocity) mapped as 0.0-1.0 intensity"},
 		{SHD_POINTDENSITY_COLOR_PARTVEL, "PARTICLE_VELOCITY", 0, "Particle Velocity",
 		                                 "XYZ velocity mapped to RGB colors"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem vertex_color_source_items[] = {
+	    {SHD_POINTDENSITY_COLOR_VERTCOL, "VERTEX_COLOR", 0, "Vertex Color", "Vertex color layer"},
+	    {SHD_POINTDENSITY_COLOR_VERTWEIGHT, "VERTEX_WEIGHT", 0, "Vertex Weight", "Vertex group weight"},
+	    {SHD_POINTDENSITY_COLOR_VERTNOR, "VERTEX_NORMAL", 0, "Vertex Normal",
+	                                     "XYZ normal vector mapped to RGB colors"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -4062,11 +4092,21 @@ static void def_sh_tex_pointdensity(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Interpolation", "Texture interpolation");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 
-	prop = RNA_def_property(srna, "color_source", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "particle_color_source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "color_source");
-	RNA_def_property_enum_items(prop, color_source_items);
+	RNA_def_property_enum_items(prop, particle_color_source_items);
 	RNA_def_property_ui_text(prop, "Color Source", "Data to derive color results from");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "vertex_color_source", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "ob_color_source");
+	RNA_def_property_enum_items(prop, vertex_color_source_items);
+	RNA_def_property_ui_text(prop, "Color Source", "Data to derive color results from");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "vertex_attribute_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Vertex Attribute Name", "Vertex attribute to use for color");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	func = RNA_def_function(srna, "cache_point_density", "rna_ShaderNodePointDensity_density_cache");
 	RNA_def_function_ui_description(func, "Cache point density data for later calculation");

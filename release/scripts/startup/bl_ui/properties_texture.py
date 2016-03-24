@@ -830,12 +830,21 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, Panel):
 
         col.separator()
 
+        col.label(text="Color Source:")
         if pd.point_source == 'PARTICLE_SYSTEM':
-            col.label(text="Color Source:")
-            col.prop(pd, "color_source", text="")
-            if pd.color_source in {'PARTICLE_SPEED', 'PARTICLE_VELOCITY'}:
+            col.prop(pd, "particle_color_source", text="")
+            if pd.particle_color_source in {'PARTICLE_SPEED', 'PARTICLE_VELOCITY'}:
                 col.prop(pd, "speed_scale")
-            if pd.color_source in {'PARTICLE_SPEED', 'PARTICLE_AGE'}:
+            if pd.particle_color_source in {'PARTICLE_SPEED', 'PARTICLE_AGE'}:
+                layout.template_color_ramp(pd, "color_ramp", expand=True)
+        else:
+            col.prop(pd, "vertex_color_source", text="")
+            if pd.vertex_color_source == 'VERTEX_COLOR':
+                if pd.object and pd.object.data:
+                    col.prop_search(pd, "vertex_attribute_name", pd.object.data, "vertex_colors", text="")
+            if pd.vertex_color_source == 'VERTEX_WEIGHT':
+                if pd.object:
+                    col.prop_search(pd, "vertex_attribute_name", pd.object, "vertex_groups", text="")
                 layout.template_color_ramp(pd, "color_ramp", expand=True)
 
         col = split.column()

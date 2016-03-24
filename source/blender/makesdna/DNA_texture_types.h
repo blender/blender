@@ -143,15 +143,18 @@ typedef struct PointDensity {
 	float falloff_softness;
 	float radius;
 	short source;
-	short color_source;
-	int totpoints;
+	short pad0;
 	
-	int pdpad;
+	short color_source; /* psys_color_source */
+	short ob_color_source;
+	
+	int totpoints;
 
 	struct Object *object;	/* for 'Object' or 'Particle system' type - source object */
 	int psys;				/* index+1 in ob.particlesystem, non-ID pointer not allowed */
 	short psys_cache_space;		/* cache points in worldspace, object space, ... ? */
 	short ob_cache_space;		/* cache points in worldspace, object space, ... ? */
+	char vertex_attribute_name[64]; /* vertex attribute layer for color source, MAX_CUSTOMDATA_LAYER_NAME */
 	
 	void *point_tree;		/* the acceleration tree containing points */
 	float *point_data;		/* dynamically allocated extra for extra information, like particle age */
@@ -160,10 +163,10 @@ typedef struct PointDensity {
 	short noise_depth;
 	short noise_influence;
 	short noise_basis;
-	short pdpad3[3];
+	short pad1[3];
 	float noise_fac;
 	
-	float speed_scale, falloff_speed_scale, pdpad2;
+	float speed_scale, falloff_speed_scale, pad2;
 	struct ColorBand *coba;	/* for time -> color */
 	
 	struct CurveMapping *falloff_curve; /* falloff density curve */
@@ -594,13 +597,21 @@ enum {
 #define TEX_PD_NOISE_TIME		3
 
 /* color_source */
-#define TEX_PD_COLOR_CONSTANT	0
-#define TEX_PD_COLOR_PARTAGE	1
-#define TEX_PD_COLOR_PARTSPEED	2
-#define TEX_PD_COLOR_PARTVEL	3
+enum {
+	TEX_PD_COLOR_CONSTANT	= 0,
+	/* color_source: particles */
+	TEX_PD_COLOR_PARTAGE	= 1,
+	TEX_PD_COLOR_PARTSPEED	= 2,
+	TEX_PD_COLOR_PARTVEL	= 3,
+	/* color_source: vertices */
+	TEX_PD_COLOR_VERTCOL	= 1,
+	TEX_PD_COLOR_VERTWEIGHT	= 2,
+	TEX_PD_COLOR_VERTNOR	= 3,
+};
 
 #define POINT_DATA_VEL		1
 #define POINT_DATA_LIFE		2
+#define POINT_DATA_COLOR	4
 
 /******************** Voxel Data *****************************/
 /* flag */

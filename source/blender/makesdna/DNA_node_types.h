@@ -807,7 +807,8 @@ typedef struct NodeShaderTexPointDensity {
 	short space;
 	short interpolation;
 	short color_source;
-	short pad2;
+	short ob_color_source;
+	char vertex_attribute_name[64]; /* vertex attribute layer for color source, MAX_CUSTOMDATA_LAYER_NAME */
 	PointDensity pd;
 } NodeShaderTexPointDensity;
 
@@ -1140,6 +1141,12 @@ enum {
 	SHD_POINTDENSITY_COLOR_PARTAGE   = 1,
 	SHD_POINTDENSITY_COLOR_PARTSPEED = 2,
 	SHD_POINTDENSITY_COLOR_PARTVEL   = 3,
+};
+
+enum {
+	SHD_POINTDENSITY_COLOR_VERTCOL      = 0,
+	SHD_POINTDENSITY_COLOR_VERTWEIGHT   = 1,
+	SHD_POINTDENSITY_COLOR_VERTNOR      = 2,
 };
 
 #endif
