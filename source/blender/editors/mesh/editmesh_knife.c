@@ -1625,7 +1625,8 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 		face_tol = KNIFE_FLT_EPS_PX_FACE;
 	}
 	else {
-		vert_tol = line_tol = face_tol = 0.001f;
+		/* use 1/100th of a pixel, see T43896 (too big), T47910 (too small). */
+		vert_tol = line_tol = face_tol = 0.01f;
 	}
 
 	vert_tol_sq = vert_tol * vert_tol;
