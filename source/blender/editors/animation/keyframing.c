@@ -1777,7 +1777,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 		else if (UI_but_flag_is_set(but, UI_BUT_DRIVEN)) {
 			/* Driven property - Find driver */
 			FCurve *fcu;
-			int driven, special;
+			bool driven, special;
 			
 			fcu = rna_get_fcurve_context_ui(C, &ptr, prop, index, NULL, NULL, &driven, &special);
 			
