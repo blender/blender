@@ -495,6 +495,7 @@ bool    UI_but_active_drop_color(struct bContext *C);
 
 void    UI_but_flag_enable(uiBut *but, int flag);
 void    UI_but_flag_disable(uiBut *but, int flag);
+bool    UI_but_flag_is_set(uiBut *but, int flag);
 
 void    UI_but_drawflag_enable(uiBut *but, int flag);
 void    UI_but_drawflag_disable(uiBut *but, int flag);

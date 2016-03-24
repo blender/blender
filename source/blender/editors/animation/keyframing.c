@@ -930,6 +930,12 @@ bool insert_keyframe_direct(ReportList *reports, PointerRNA ptr, PropertyRNA *pr
 	/* update F-Curve flags to ensure proper behaviour for property type */
 	update_autoflags_fcurve_direct(fcu, prop);
 	
+	/* adjust frame on which to add keyframe */
+	if ((flag & INSERTKEY_DRIVER) && (fcu->driver)) {
+		/* for making it easier to add corrective drivers... */
+		cfra = evaluate_driver(fcu->driver, cfra);
+	}
+	
 	/* obtain value to give keyframe */
 	if ( (flag & INSERTKEY_MATRIX) && 
 	     (visualkey_can_use(&ptr, prop)) )
@@ -1743,6 +1749,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 	PointerRNA ptr = {{NULL}};
 	PropertyRNA *prop = NULL;
 	char *path;
+	uiBut *but;
 	float cfra = (float)CFRA;
 	short success = 0;
 	int index;
@@ -1753,6 +1760,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 	flag = ANIM_get_keyframing_flags(scene, 1);
 	
 	/* try to insert keyframe using property retrieved from UI */
+	but = UI_context_active_but_get(C);
 	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 	
 	if ((ptr.id.data && ptr.data && prop) && RNA_property_animateable(&ptr, prop)) {
@@ -1765,6 +1773,17 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 			FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), index);
 			
 			success = insert_keyframe_direct(op->reports, ptr, prop, fcu, cfra, ts->keyframe_type, 0);
+		}
+		else if (UI_but_flag_is_set(but, UI_BUT_DRIVEN)) {
+			/* Driven property - Find driver */
+			FCurve *fcu;
+			int driven, special;
+			
+			fcu = rna_get_fcurve_context_ui(C, &ptr, prop, index, NULL, NULL, &driven, &special);
+			
+			if (fcu && driven) {
+				success = insert_keyframe_direct(op->reports, ptr, prop, fcu, cfra, ts->keyframe_type, INSERTKEY_DRIVER);
+			}
 		}
 		else {
 			/* standard properties */

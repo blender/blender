@@ -1777,7 +1777,7 @@ float driver_get_variable_value(ChannelDriver *driver, DriverVar *dvar)
  *	- "evaltime" is the frame at which F-Curve is being evaluated
  *  - has to return a float value
  */
-static float evaluate_driver(ChannelDriver *driver, const float evaltime)
+float evaluate_driver(ChannelDriver *driver, const float evaltime)
 {
 	DriverVar *dvar;
 	

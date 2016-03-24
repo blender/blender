@@ -242,24 +242,41 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 		}
 	}
-	else if (!driven) {
+	else if (driven) {
+		/* Driver - Try to insert keyframe using the driver's input as the frame,
+		 * making it easier to set up corrective drivers
+		 */
+		if (IS_AUTOKEY_ON(scene)) {
+			ReportList *reports = CTX_wm_reports(C);
+			ToolSettings *ts = scene->toolsettings;
+			PointerRNA ptr = {{NULL}};
+			PropertyRNA *prop = NULL;
+			int index;
+			
+			UI_context_active_but_prop_get(C, &ptr, &prop, &index);
+			
+			insert_keyframe_direct(reports, ptr, prop, fcu, cfra, ts->keyframe_type, INSERTKEY_DRIVER);
+			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+		}
+	}
+	else  {
 		id = but->rnapoin.id.data;
-
+		
 		/* TODO: this should probably respect the keyingset only option for anim */
 		if (autokeyframe_cfra_can_key(scene, id)) {
 			ReportList *reports = CTX_wm_reports(C);
 			ToolSettings *ts = scene->toolsettings;
 			short flag = ANIM_get_keyframing_flags(scene, 1);
-
+			
 			fcu->flag &= ~FCURVE_SELECTED;
-
+			
 			/* Note: We use but->rnaindex instead of fcu->array_index,
 			 *       because a button may control all items of an array at once.
 			 *       E.g., color wheels (see T42567). */
 			BLI_assert((fcu->array_index == but->rnaindex) || (but->rnaindex == -1));
 			insert_keyframe(reports, id, action, ((fcu->grp) ? (fcu->grp->name) : (NULL)),
 			                fcu->rna_path, but->rnaindex, cfra, ts->keyframe_type, flag);
-
+			
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 		}
 	}

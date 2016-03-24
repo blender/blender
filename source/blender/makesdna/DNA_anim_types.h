@@ -834,6 +834,7 @@ typedef enum eInsertKeyFlags {
 	/* Allow to make a full copy of new key into existing one, if any, instead of 'reusing' existing handles.
 	 * Used by copy/paste code. */
 	INSERTKEY_OVERWRITE_FULL = (1<<7),
+	INSERTKEY_DRIVER    = (1<<8),	/* for driver FCurves, use driver's "input" value - for easier corrective driver setup */
 } eInsertKeyFlags;
 
 /* ************************************************ */

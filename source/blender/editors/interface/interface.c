@@ -3984,6 +3984,11 @@ void UI_but_flag_disable(uiBut *but, int flag)
 	but->flag &= ~flag;
 }
 
+bool UI_but_flag_is_set(uiBut *but, int flag)
+{
+	return (but->flag & flag) != 0;
+}
+
 void UI_but_drawflag_enable(uiBut *but, int flag)
 {
 	but->drawflag |= flag;
