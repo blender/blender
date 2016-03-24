@@ -47,10 +47,10 @@ ccl_device float2 direction_to_spherical(float3 dir)
 
 ccl_device float3 spherical_to_direction(float theta, float phi)
 {
-	return make_float3(
-		sinf(theta)*cosf(phi),
-		sinf(theta)*sinf(phi),
-		cosf(theta));
+	float sin_theta = sinf(theta);
+	return make_float3(sin_theta*cosf(phi),
+	                   sin_theta*sinf(phi),
+	                   cosf(theta));
 }
 
 /* Equirectangular coordinates <-> Cartesian direction */
@@ -67,11 +67,10 @@ ccl_device float3 equirectangular_range_to_direction(float u, float v, float4 ra
 {
 	float phi = range.x*u + range.y;
 	float theta = range.z*v + range.w;
-
-	return make_float3(
-		sinf(theta)*cosf(phi),
-		sinf(theta)*sinf(phi),
-		cosf(theta));
+	float sin_theta = sinf(theta);
+	return make_float3(sin_theta*cosf(phi),
+	                   sin_theta*sinf(phi),
+	                   cosf(theta));
 }
 
 ccl_device float2 direction_to_equirectangular(float3 dir)
