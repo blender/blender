@@ -25,6 +25,7 @@
  */
 
 
+#include <ctype.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
@@ -3271,6 +3272,22 @@ static void operator_call_cb(bContext *C, void *UNUSED(arg1), void *arg2)
 		WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, NULL);
 }
 
+static bool has_word_prefix(const char *haystack, const char *needle, size_t needle_len)
+{
+	const char *match = BLI_strncasestr(haystack, needle, needle_len);
+	if (match) {
+		if ((match == haystack) || (*(match - 1) == ' ') || ispunct(*(match - 1))) {
+			return true;
+		}
+		else {
+			return has_word_prefix(match + 1, needle, needle_len);
+		}
+	}
+	else {
+		return false;
+	}
+}
+
 static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char *str, uiSearchItems *items)
 {
 	GHashIterator iter;
@@ -3290,7 +3307,7 @@ static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char 
 
 		/* match name against all search words */
 		for (index = 0; index < words_len; index++) {
-			if (!BLI_strncasestr(ot_ui_name, str + words[index][0], words[index][1])) {
+			if (!has_word_prefix(ot_ui_name, str + words[index][0], words[index][1])) {
 				break;
 			}
 		}
