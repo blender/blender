@@ -374,7 +374,7 @@ typedef struct ChannelDriver {
 	/* python expression to execute (may call functions defined in an accessory file) 
 	 * which relates the target 'variables' in some way to yield a single usable value
 	 */
-	char expression[256];	/* expression to compile for evaluation */
+	char expression[512];	/* expression to compile for evaluation */
 	void *expr_comp; 		/* PyObject - compiled expression, don't save this */
 	
 	float curval;		/* result of previous evaluation */
