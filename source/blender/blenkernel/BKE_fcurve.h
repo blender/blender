@@ -95,6 +95,7 @@ struct ChannelDriver *fcurve_copy_driver(struct ChannelDriver *driver);
 
 void driver_free_variable(struct ChannelDriver *driver, struct DriverVar *dvar);
 void driver_change_variable_type(struct DriverVar *dvar, int type);
+void driver_variable_name_validate(struct DriverVar *dvar);
 struct DriverVar *driver_add_new_variable(struct ChannelDriver *driver);
 
 float driver_get_variable_value(struct ChannelDriver *driver, struct DriverVar *dvar);

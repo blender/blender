@@ -519,6 +519,39 @@ static void driver_delete_var_cb(bContext *UNUSED(C), void *driver_v, void *dvar
 	driver_free_variable(driver, dvar);
 }
 
+/* callback to report why a driver variable is invalid */
+static void driver_dvar_invalid_name_query_cb(bContext *C, void *dvar_v, void *UNUSED(arg))
+{
+	uiPopupMenu *pup = UI_popup_menu_begin(C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Invalid Variable Name"), ICON_NONE);
+	uiLayout *layout = UI_popup_menu_layout(pup);
+	
+	DriverVar *dvar = (DriverVar *)dvar_v;
+	
+	if (dvar->flag & DVAR_FLAG_INVALID_START_NUM) {
+		uiItemL(layout, "It cannot start with a number", ICON_ERROR);
+	}
+	if (dvar->flag & DVAR_FLAG_INVALID_START_CHAR) {
+		uiItemL(layout, 
+		        "It cannot start with a special character,"
+		        " including '$', '@', '!', '~', '+', '-', '_', '.', or ' '",
+				ICON_NONE);
+	}
+	if (dvar->flag & DVAR_FLAG_INVALID_HAS_SPACE) {
+		uiItemL(layout, "It cannot contain spaces (e.g. 'a space')", ICON_ERROR);
+	}
+	if (dvar->flag & DVAR_FLAG_INVALID_HAS_DOT) {
+		uiItemL(layout, "It cannot contain dots (e.g. 'a.dot')", ICON_ERROR);
+	}
+	if (dvar->flag & DVAR_FLAG_INVALID_HAS_SPECIAL) {
+		uiItemL(layout, "It cannot contain special (non-alphabetical/numeric) characters", ICON_ERROR);
+	}
+	if (dvar->flag & DVAR_FLAG_INVALID_PY_KEYWORD) {
+		uiItemL(layout, "It cannot be a reserved keyword in Python", ICON_INFO);
+	}
+	
+	UI_popup_menu_end(C, pup);
+}
+
 /* callback to reset the driver's flags */
 static void driver_update_flags_cb(bContext *UNUSED(C), void *fcu_v, void *UNUSED(arg))
 {
@@ -816,8 +849,16 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		/* variable name */
 		uiItemR(row, &dvar_ptr, "name", 0, "", ICON_NONE);
 		
-		/* remove button */
+		/* invalid name? */
 		UI_block_emboss_set(block, UI_EMBOSS_NONE);
+		
+		if (dvar->flag & DVAR_FLAG_INVALID_NAME) {
+			but = uiDefIconBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_ERROR, 290, 0, UI_UNIT_X, UI_UNIT_Y,
+			                   NULL, 0.0, 0.0, 0.0, 0.0, IFACE_("Invalid variable name. Click here for details"));
+			UI_but_func_set(but, driver_dvar_invalid_name_query_cb, dvar, NULL); // XXX: reports?
+		}
+		
+		/* remove button */
 		but = uiDefIconBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y,
 		                   NULL, 0.0, 0.0, 0.0, 0.0, IFACE_("Delete target variable"));
 		UI_but_func_set(but, driver_delete_var_cb, driver, dvar);

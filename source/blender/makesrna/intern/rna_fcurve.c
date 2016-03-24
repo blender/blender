@@ -275,6 +275,15 @@ static void rna_DriverVariable_type_set(PointerRNA *ptr, int value)
 	driver_change_variable_type(dvar, value);
 }
 
+void rna_DriverVariable_name_set(PointerRNA *ptr, const char *value)
+{
+	DriverVar *data = (DriverVar *)(ptr->data);
+	
+	BLI_strncpy_utf8(data->name, value, 64);
+	driver_variable_name_validate(data);
+}
+
+
 /* ----------- */
 
 static DriverVar *rna_Driver_new_variable(ChannelDriver *driver)
@@ -1474,6 +1483,7 @@ static void rna_def_drivervar(BlenderRNA *brna)
 	/* Variable Name */
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_DriverVariable_name_set");
 	RNA_def_property_ui_text(prop, "Name",
 	                         "Name to use in scripted expressions/functions (no spaces or dots are allowed, "
 	                         "and must start with a letter)");
@@ -1493,6 +1503,12 @@ static void rna_def_drivervar(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "targets", "num_targets");
 	RNA_def_property_struct_type(prop, "DriverTarget");
 	RNA_def_property_ui_text(prop, "Targets", "Sources of input data for evaluating this variable");
+	
+	/* Name Validity Flags */
+	prop = RNA_def_property(srna, "is_name_valid", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", DVAR_FLAG_INVALID_NAME);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Is Name Valid", "Is this a valid name for a driver variable");	
 }
 
 

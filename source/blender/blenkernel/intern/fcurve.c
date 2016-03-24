@@ -1593,6 +1593,69 @@ void driver_change_variable_type(DriverVar *dvar, int type)
 	DRIVER_TARGETS_LOOPER_END
 }
 
+/* Validate driver name (after being renamed) */
+void driver_variable_name_validate(DriverVar *dvar)
+{
+	/* Special character blacklist */
+	const char special_char_blacklist[] = {
+		'~', '`', '!', '@', '#', '$', '%', '^', '&', '*', '+', '=', '-',
+	    '/', '\\', '?', ':', ';',  '<', '>', '{', '}', '[', ']', '|',
+		' ', '.', '\t', '\n', '\r'
+	};
+	
+	/* sanity checks */
+	if (dvar == NULL)
+		return;
+	
+	/* clear all invalid-name flags */
+	dvar->flag &= ~DVAR_ALL_INVALID_FLAGS;
+	
+	/* 1) Must start with a letter */
+	/* XXX: We assume that valid unicode letters in other languages are ok too, hence the blacklisting */
+	if (ELEM(dvar->name[0], '0', '1', '2', '3', '4', '5', '6', '7', '8', '9')) {
+		dvar->flag |= DVAR_FLAG_INVALID_START_NUM;
+	}
+	else if (dvar->name[0] == '_') {
+		/* NOTE: We don't allow names to start with underscores (i.e. it helps when ruling out security risks) */
+		dvar->flag |= DVAR_FLAG_INVALID_START_CHAR;
+	}
+	
+	/* 2) Must not contain invalid stuff in the middle of the string */
+	if (strchr(dvar->name, ' ')) {
+		dvar->flag |= DVAR_FLAG_INVALID_HAS_SPACE;
+	}
+	if (strchr(dvar->name, '.')) {
+		dvar->flag |= DVAR_FLAG_INVALID_HAS_DOT;
+	}
+	
+	/* 3) Check for special characters - Either at start, or in the middle */
+	for (int i = 0; i < sizeof(special_char_blacklist); i++) {
+		char *match = strchr(dvar->name, special_char_blacklist[i]);
+		
+		if (match == dvar->name)
+			dvar->flag |= DVAR_FLAG_INVALID_START_CHAR;
+		else if (match != NULL)
+			dvar->flag |= DVAR_FLAG_INVALID_HAS_SPECIAL;
+	}
+	
+	/* 4) Check if the name is a reserved keyword
+	 * NOTE: These won't confuse Python, but it will be impossible to use the variable
+	 *       in an expression without Python misinterpreting what these are for
+	 */
+	if (STREQ(dvar->name, "if") || STREQ(dvar->name, "elif") || STREQ(dvar->name, "else") ||
+	    STREQ(dvar->name, "for") || STREQ(dvar->name, "while") || STREQ(dvar->name, "def") ||
+	    STREQ(dvar->name, "True") || STREQ(dvar->name, "False") || STREQ(dvar->name, "import") ||
+	    STREQ(dvar->name, "pass")  || STREQ(dvar->name, "with"))
+	{
+		dvar->flag |= DVAR_FLAG_INVALID_PY_KEYWORD;
+	}
+	
+	
+	/* If any these conditions match, the name is invalid */
+	if (dvar->flag & DVAR_ALL_INVALID_FLAGS)
+		dvar->flag |= DVAR_FLAG_INVALID_NAME;
+}
+
 /* Add a new driver variable */
 DriverVar *driver_add_new_variable(ChannelDriver *driver)
 {
@@ -1619,7 +1682,7 @@ DriverVar *driver_add_new_variable(ChannelDriver *driver)
 	if (driver->type == DRIVER_TYPE_PYTHON)
 		driver->flag |= DRIVER_FLAG_RENAMEVAR;
 #endif
-
+	
 	/* return the target */
 	return dvar;
 }
