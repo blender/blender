@@ -451,6 +451,9 @@ TEST(string, StringStrncasestr)
 	res = BLI_strncasestr(str_test0, "", 0);
 	EXPECT_EQ(str_test0, res);
 
+	res = BLI_strncasestr(str_test0, " ", 1);
+	EXPECT_EQ(str_test0 + 6, res);
+
 	res = BLI_strncasestr(str_test0, "her", 3);
 	EXPECT_EQ(str_test0 + 7, res);
 

@@ -534,13 +534,24 @@ char *BLI_strncasestr(const char *s, const char *find, size_t len)
 
 	if ((c = *find++) != 0) {
 		c = tolower(c);
-		do {
+		if (len > 1) {
 			do {
-				if ((sc = *s++) == 0)
-					return (NULL);
-				sc = tolower(sc);
-			} while (sc != c);
-		} while (BLI_strncasecmp(s, find, len - 1) != 0);
+				do {
+					if ((sc = *s++) == 0)
+						return NULL;
+					sc = tolower(sc);
+				} while (sc != c);
+			} while (BLI_strncasecmp(s, find, len - 1) != 0);
+		}
+		else {
+			{
+				do {
+					if ((sc = *s++) == 0)
+						return NULL;
+					sc = tolower(sc);
+				} while (sc != c);
+			}
+		}
 		s--;
 	}
 	return ((char *)s);
