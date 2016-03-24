@@ -4913,7 +4913,7 @@ static void previews_id_ensure(bContext *C, Scene *scene, ID *id)
 	}
 }
 
-static bool previews_id_ensure_callback(void *todo_v, ID **idptr, int UNUSED(cd_flag))
+static int previews_id_ensure_callback(void *todo_v, ID *UNUSED(idself), ID **idptr, int UNUSED(cd_flag))
 {
 	PreviewsIDEnsureStack *todo = todo_v;
 	ID *id = *idptr;
@@ -4926,7 +4926,7 @@ static bool previews_id_ensure_callback(void *todo_v, ID **idptr, int UNUSED(cd_
 		BLI_LINKSTACK_PUSH(todo->id_stack, id);
 	}
 
-	return true;
+	return IDWALK_RET_NOP;
 }
 
 static int previews_ensure_exec(bContext *C, wmOperator *UNUSED(op))

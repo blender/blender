@@ -80,7 +80,8 @@ static bool id_check_type(const ID *id, const BLI_bitmap *types_bitmap)
 	return BLI_BITMAP_TEST_BOOL(types_bitmap, id_code_as_index(GS(id->name)));
 }
 
-static bool foreach_libblock_id_user_map_callback(void *user_data, ID **id_p, int UNUSED(cb_flag))
+static int foreach_libblock_id_user_map_callback(
+        void *user_data, ID *UNUSED(self_id), ID **id_p, int UNUSED(cb_flag))
 {
 	IDUserMapData *data = user_data;
 
@@ -88,7 +89,7 @@ static bool foreach_libblock_id_user_map_callback(void *user_data, ID **id_p, in
 
 		if (data->types_bitmap) {
 			if (!id_check_type(*id_p, data->types_bitmap)) {
-				return true;
+				return IDWALK_RET_NOP;
 			}
 		}
 
@@ -104,7 +105,7 @@ static bool foreach_libblock_id_user_map_callback(void *user_data, ID **id_p, in
 
 			/* limit to key's added already */
 			if (data->is_subset) {
-				return true;
+				return IDWALK_RET_NOP;
 			}
 
 			/* Cannot use our placeholder key here! */
@@ -122,7 +123,7 @@ static bool foreach_libblock_id_user_map_callback(void *user_data, ID **id_p, in
 		PySet_Add(set, data->py_id_curr);
 	}
 
-	return true;
+	return IDWALK_RET_NOP;
 }
 
 PyDoc_STRVAR(bpy_user_map_doc,

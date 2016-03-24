@@ -50,15 +50,23 @@ enum {
 	IDWALK_USER_ONE = (1 << 9),
 };
 
-/* Call a callback for each ID link which the given ID uses.
+enum {
+	IDWALK_RET_NOP            = 0,
+	IDWALK_RET_STOP_ITER      = 1 << 0,  /* Completly top iteration. */
+	IDWALK_RET_STOP_RECURSION = 1 << 1,  /* Stop recursion, that is, do not loop over ID used by current one. */
+};
+
+/**
+ * Call a callback for each ID link which the given ID uses.
  *
- * Return 'false' if you want to stop iteration.
+ * \return a set of flags to controll further iteration (0 to keep going).
  */
-typedef bool (*LibraryIDLinkCallback) (void *user_data, struct ID **id_pointer, int cd_flag);
+typedef int (*LibraryIDLinkCallback) (void *user_data, struct ID *id_self, struct ID **id_pointer, int cd_flag);
 
 /* Flags for the foreach function itself. */
 enum {
 	IDWALK_READONLY = (1 << 0),
+	IDWALK_RECURSE  = (1 << 1),  /* Also implies IDWALK_READONLY. */
 };
 
 /* Loop over all of the ID's this datablock links to. */
