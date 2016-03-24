@@ -2363,7 +2363,9 @@ static ImBuf *do_adjustment(const SeqRenderData *context, Sequence *seq, float c
 
 	if (BKE_sequencer_input_have_to_preprocess(context, seq, cfra)) {
 		out = IMB_dupImBuf(i);
-		IMB_metadata_copy(out, i);
+		if (out) {
+			IMB_metadata_copy(out, i);
+		}
 		IMB_freeImBuf(i);
 	}
 	else {
