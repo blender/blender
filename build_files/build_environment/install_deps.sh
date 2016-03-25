@@ -2649,15 +2649,15 @@ install_DEB() {
       LLVM_VERSION_FOUND=$LLVM_VERSION
       clean_LLVM
     else
-      check_package_version_ge_DEB llvm-dev $LLVM_VERSION_MIN
-      if [ $? -eq 0 ]; then
-        install_packages_DEB llvm-dev clang
-        have_llvm=true
-        LLVM_VERSION_FOUND=""  # Using default one, no need to specify it!
-        clean_LLVM
-      else
-        _do_compile_llvm=true
-      fi
+      #~ check_package_version_ge_DEB llvm-dev $LLVM_VERSION_MIN
+      #~ if [ $? -eq 0 ]; then
+        #~ install_packages_DEB llvm-dev clang
+        #~ have_llvm=true
+        #~ LLVM_VERSION_FOUND=""  # Using default one, no need to specify it!
+        #~ clean_LLVM
+      #~ else
+      _do_compile_llvm=true
+      #~ fi
     fi
   fi
 
@@ -3563,7 +3563,7 @@ install_ARCH() {
     INFO "Forced LLVM building, as requested..."
     _do_compile_llvm=true
   else
-    check_package_version_ge_ARCH llvm $LLVM_VERSION_MIN
+    check_package_version_match_ARCH llvm $LLVM_VERSION
     if [ $? -eq 0 ]; then
       install_packages_ARCH llvm clang
       have_llvm=true
