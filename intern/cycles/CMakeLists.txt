@@ -14,7 +14,15 @@ include(cmake/external_libs.cmake)
 # todo: this code could be refactored a bit to avoid duplication
 # note: CXX_HAS_SSE is needed in case passing SSE flags fails altogether (gcc-arm)
 
-if(NOT WITH_CPU_SSE)
+if(WITH_CYCLES_NATIVE_ONLY)
+	set(CXX_HAS_SSE FALSE)
+	set(CXX_HAS_AVX FALSE)
+	set(CXX_HAS_AVX2 FALSE)
+	add_definitions(
+		-DWITH_KERNEL_NATIVE
+	)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+elseif(NOT WITH_CPU_SSE)
 	set(CXX_HAS_SSE FALSE)
 	set(CXX_HAS_AVX FALSE)
 	set(CXX_HAS_AVX2 FALSE)

@@ -16,9 +16,37 @@
 
 /* CPU kernel entry points */
 
-/* On x86-64, we can assume SSE2, so avoid the extra kernel and compile this one with SSE2 intrinsics */
+/* On x86-64, we can assume SSE2, so avoid the extra kernel and compile this
+ * one with SSE2 intrinsics.
+ */
 #if defined(__x86_64__) || defined(_M_X64)
 #  define __KERNEL_SSE2__
+#endif
+
+/* When building kernel for native machine detect kernel features from the flags
+ * set by compiler.
+ */
+#ifdef WITH_KERNEL_NATIVE
+#  ifdef __SSE2__
+#    ifndef __KERNEL_SSE2__
+#      define __KERNEL_SSE2__
+#    endif
+#  endif
+#  ifdef __SSE3__
+#    define __KERNEL_SSE3__
+#  endif
+#  ifdef __SSSE3__
+#    define __KERNEL_SSSE3__
+#  endif
+#  ifdef __SSE4_1__
+#    define __KERNEL_SSE41__
+#  endif
+#  ifdef __AVX__
+#    define __KERNEL_AVX__
+#  endif
+#  ifdef __AVX2__
+#    define __KERNEL_AVX2__
+#  endif
 #endif
 
 /* quiet unused define warnings */

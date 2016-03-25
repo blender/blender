@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-#ifdef WITH_KERNEL_SSE2
+#if (defined(WITH_KERNEL_SSE2)) || \
+    (defined(WITH_KERNEL_NATIVE) && defined(__SSE2__))
 
 #define __KERNEL_SSE2__
 #include "util_simd.h"
