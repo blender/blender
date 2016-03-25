@@ -29,6 +29,7 @@
 
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
@@ -173,6 +174,9 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 		for (; surface; surface = surface->next) {
 			walk(userData, ob, (ID **)&surface->brush_group, IDWALK_NOP);
 			walk(userData, ob, (ID **)&surface->init_texture, IDWALK_USER);
+			if (surface->effector_weights) {
+				walk(userData, ob, (ID **)&surface->effector_weights->group, IDWALK_NOP);
+			}
 		}
 	}
 	if (pmd->brush) {
