@@ -796,13 +796,23 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	}
 	
 	psys_thread_context_init(ctx, sim);
-	
+
+	if (psys->part->use_modifier_stack)
+		dm = finaldm;
+	else
+		dm= CDDM_from_mesh((Mesh*)ob->data);
+
+	/* BMESH ONLY, for verts we don't care about tessfaces */
+	if (from != PART_FROM_VERT) {
+		DM_ensure_tessface(dm);
+	}
+
 	/* First handle special cases */
 	if (from == PART_FROM_CHILD) {
 		/* Simple children */
 		if (part->childtype != PART_CHILD_FACES) {
 			BLI_srandom(31415926 + psys->seed + psys->child_seed);
-			distribute_simple_children(scene, ob, finaldm, sim->psmd->dm_deformed, psys);
+			distribute_simple_children(scene, ob, dm, sim->psmd->dm_deformed, psys);
 			return 0;
 		}
 	}
@@ -810,10 +820,11 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		/* Grid distribution */
 		if (part->distr==PART_DISTR_GRID && from != PART_FROM_VERT) {
 			BLI_srandom(31415926 + psys->seed);
-			dm= CDDM_from_mesh((Mesh*)ob->data);
-			DM_ensure_tessface(dm);
-			distribute_grid(dm,psys);
-			dm->release(dm);
+
+			distribute_grid(dm, psys);
+
+			if (dm != finaldm) dm->release(dm);
+
 			return 0;
 		}
 	}
@@ -822,10 +833,6 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	if (from == PART_FROM_CHILD) {
 		distr=PART_DISTR_RAND;
 		BLI_srandom(31415926 + psys->seed + psys->child_seed);
-		dm= finaldm;
-
-		/* BMESH ONLY */
-		DM_ensure_tessface(dm);
 
 		children=1;
 
@@ -846,16 +853,6 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		distr = part->distr;
 		BLI_srandom(31415926 + psys->seed);
 		
-		if (psys->part->use_modifier_stack)
-			dm = finaldm;
-		else
-			dm= CDDM_from_mesh((Mesh*)ob->data);
-
-		/* BMESH ONLY, for verts we don't care about tessfaces */
-		if (from != PART_FROM_VERT) {
-			DM_ensure_tessface(dm);
-		}
-
 		/* we need orco for consistent distributions */
 		if (!CustomData_has_layer(&dm->vertData, CD_ORCO))
 			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, BKE_mesh_orco_verts_get(ob));
