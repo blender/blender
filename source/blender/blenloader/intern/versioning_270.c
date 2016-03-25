@@ -1067,5 +1067,28 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		}
+
+		/* Bug: Was possible to add preview region to sequencer view by using AZones.
+		 * Caused by redundant preview region stored into startup.blend */
+		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_SEQ) {
+						SpaceSeq *sseq = (SpaceSeq *)sl;
+						if (sseq->view == SEQ_VIEW_SEQUENCE) {
+							ListBase *lb = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+							for (ARegion *ar = lb->first; ar; ar = ar->next) {
+								/* remove preview region for sequencer-only view! */
+								if (ar->regiontype == RGN_TYPE_PREVIEW) {
+									BKE_area_region_free(NULL, ar);
+									BLI_freelinkN(&sl->regionbase, ar);
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }
