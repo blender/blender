@@ -1505,7 +1505,7 @@ class CyclesRender_PT_debug(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return bpy.app.debug_value == 256
+        return CyclesButtonsPanel.poll(context) and bpy.app.debug_value == 256
 
     def draw(self, context):
         layout = self.layout
