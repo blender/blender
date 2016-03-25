@@ -361,9 +361,12 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			case LEFTMOUSE:
 			case PADENTER:
 			case RETKEY:
-				edbm_bevel_calc(op);
-				edbm_bevel_exit(C, op);
-				return OPERATOR_FINISHED;
+				if (event->val == KM_PRESS) {
+					edbm_bevel_calc(op);
+					edbm_bevel_exit(C, op);
+					return OPERATOR_FINISHED;
+				}
+				break;
 
 			/* Note this will prevent padplus and padminus to ever activate modal numinput.
 			 * This is not really an issue though, as we only expect positive values here...
