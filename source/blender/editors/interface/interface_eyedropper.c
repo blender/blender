@@ -157,6 +157,32 @@ static void eyedropper_draw_cursor_text(const struct bContext *C, ARegion *ar, c
 	UI_fontstyle_draw_simple_backdrop(fstyle, x, y, name, fg, bg);
 }
 
+
+/**
+ * Utility to retrieve a button representing a RNA property that is currently under the cursor.
+ *
+ * This is to be used by any eyedroppers which fetch properties (e.g. UI_OT_eyedropper_driver).
+ * Especially during modal operations (e.g. as with the eyedroppers), context cannot be relied
+ * upon to provide this information, as it is not updated until the operator finishes.
+ *
+ * \return A button under the mouse which relates to some RNA Property, or NULL
+ */
+static uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *event)
+{
+	wmWindow *win = CTX_wm_window(C);
+	ScrArea *sa = BKE_screen_find_area_xy(win->screen, SPACE_TYPE_ANY, event->x, event->y);
+	ARegion *ar = BKE_area_find_region_xy(sa, RGN_TYPE_ANY, event->x, event->y);
+	
+	uiBut *but = ui_but_find_mouse_over(ar, event);
+	
+	if (ELEM(NULL, but, but->rnapoin.data, but->rnaprop)) {
+		return NULL;
+	}
+	else {
+		return but;
+	}
+}
+
 /** \} */
 
 
@@ -1090,18 +1116,13 @@ static void driverdropper_exit(bContext *C, wmOperator *op)
 static void driverdropper_sample(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	DriverDropper *ddr = (DriverDropper *)op->customdata;
-	
-	wmWindow *win = CTX_wm_window(C);
-	ScrArea *sa = BKE_screen_find_area_xy(win->screen, SPACE_TYPE_ANY, event->x, event->y);
-	ARegion *ar = BKE_area_find_region_xy(sa, RGN_TYPE_ANY, event->x, event->y);
-	
-	uiBut *but = ui_but_find_mouse_over(ar, event);
+	uiBut *but = eyedropper_get_property_button_under_mouse(C, event);
 	
 	short mapping_type = RNA_enum_get(op->ptr, "mapping_type");
 	short flag = 0;
 	
 	/* we can only add a driver if we know what RNA property it corresponds to */
-	if (ELEM(NULL, but, but->rnapoin.data, but->rnaprop)) {
+	if (but == NULL) {
 		return;
 	}
 	else {
