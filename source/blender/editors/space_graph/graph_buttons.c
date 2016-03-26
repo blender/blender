@@ -527,6 +527,9 @@ static void driver_dvar_invalid_name_query_cb(bContext *C, void *dvar_v, void *U
 	
 	DriverVar *dvar = (DriverVar *)dvar_v;
 	
+	if (dvar->flag & DVAR_FLAG_INVALID_EMPTY) {
+		uiItemL(layout, "It cannot be left blank", ICON_ERROR);
+	}
 	if (dvar->flag & DVAR_FLAG_INVALID_START_NUM) {
 		uiItemL(layout, "It cannot start with a number", ICON_ERROR);
 	}

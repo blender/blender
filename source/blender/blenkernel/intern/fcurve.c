@@ -1612,6 +1612,11 @@ void driver_variable_name_validate(DriverVar *dvar)
 	/* clear all invalid-name flags */
 	dvar->flag &= ~DVAR_ALL_INVALID_FLAGS;
 	
+	/* 0) Zero-length identifiers are not allowed */
+	if (dvar->name[0] == '\0') {
+		dvar->flag |= DVAR_FLAG_INVALID_EMPTY;
+	}
+	
 	/* 1) Must start with a letter */
 	/* XXX: We assume that valid unicode letters in other languages are ok too, hence the blacklisting */
 	if (ELEM(dvar->name[0], '0', '1', '2', '3', '4', '5', '6', '7', '8', '9')) {

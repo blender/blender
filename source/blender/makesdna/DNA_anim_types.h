@@ -376,6 +376,8 @@ typedef enum eDriverVar_Flags {
 	DVAR_FLAG_INVALID_HAS_SPECIAL = (1 << 6),
 	/* name is a reserved keyword */
 	DVAR_FLAG_INVALID_PY_KEYWORD  = (1 << 7),
+	/* name is zero-length */
+	DVAR_FLAG_INVALID_EMPTY       = (1 << 8),
 } eDriverVar_Flags;
 
 /* All invalid dvar name flags */
@@ -386,7 +388,8 @@ typedef enum eDriverVar_Flags {
 	DVAR_FLAG_INVALID_HAS_SPACE |  \
 	DVAR_FLAG_INVALID_HAS_DOT |    \
 	DVAR_FLAG_INVALID_HAS_SPECIAL |  \
-	DVAR_FLAG_INVALID_PY_KEYWORD  \
+	DVAR_FLAG_INVALID_PY_KEYWORD  | \
+	DVAR_FLAG_INVALID_EMPTY  \
 )
 
 /* --- */
