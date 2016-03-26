@@ -3309,7 +3309,7 @@ static void lib_link_camera(FileData *fd, Main *main)
 			
 			ca->ipo = newlibadr_us(fd, ca->id.lib, ca->ipo); // XXX deprecated - old animation system
 			
-			ca->dof_ob = newlibadr_us(fd, ca->id.lib, ca->dof_ob);
+			ca->dof_ob = newlibadr(fd, ca->id.lib, ca->dof_ob);
 			
 			ca->id.tag &= ~LIB_TAG_NEED_LINK;
 		}
@@ -4012,7 +4012,7 @@ static void lib_link_partdeflect(FileData *fd, ID *id, PartDeflect *pd)
 	if (pd && pd->tex)
 		pd->tex = newlibadr_us(fd, id->lib, pd->tex);
 	if (pd && pd->f_source)
-		pd->f_source = newlibadr_us(fd, id->lib, pd->f_source);
+		pd->f_source = newlibadr(fd, id->lib, pd->f_source);
 }
 
 static void lib_link_particlesettings(FileData *fd, Main *main)
@@ -5578,7 +5578,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 
 			if (sce->toolsettings->sculpt)
 				sce->toolsettings->sculpt->gravity_object =
-						newlibadr_us(fd, sce->id.lib, sce->toolsettings->sculpt->gravity_object);
+						newlibadr(fd, sce->id.lib, sce->toolsettings->sculpt->gravity_object);
 
 			if (sce->toolsettings->imapaint.stencil)
 				sce->toolsettings->imapaint.stencil =
