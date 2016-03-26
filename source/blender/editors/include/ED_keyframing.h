@@ -235,6 +235,16 @@ typedef enum eCreateDriverFlags {
 	CREATEDRIVER_WITH_FMODIFIER     = (1 << 1),   /* create drivers with Generator FModifier (for backwards compat) */
 } eCreateDriverFlags;
 
+/* Heuristic to use for connecting target properties to driven ones */
+typedef enum eCreateDriver_MappingTypes {
+	CREATEDRIVER_MAPPING_1_N        = 0,           /* 1 to Many - Use the specified index, and drive all elements with it */
+	CREATEDRIVER_MAPPING_1_1        = 1,           /* 1 to 1 - Only for the specified index on each side */
+	CREATEDRIVER_MAPPING_N_N        = 2,           /* Many to Many - Match up the indices one by one (only for drivers on vectors/arrays) */
+} eCreateDriver_MappingTypes;
+
+/* RNA Enum of eCreateDriver_MappingTypes, for use by the appropriate operators */
+extern EnumPropertyItem prop_driver_create_mapping_types[];
+
 /* -------- */
 
 /* Low-level call to add a new driver F-Curve. This shouldn't be used directly for most tools,
@@ -244,8 +254,24 @@ struct FCurve *verify_driver_fcurve(struct ID *id, const char rna_path[], const 
 
 /* -------- */
 
-/* Returns whether there is a driver in the copy/paste buffer to paste */
-bool ANIM_driver_can_paste(void);
+/* Main Driver Management API calls:
+ *  Add a new driver for the specified property on the given ID block,
+ *  and make it be driven by the specified target.
+ *
+ * This is intended to be used in conjunction with a modal "eyedropper"
+ * for picking the variable that is going to be used to drive this one.
+ *
+ * - flag: eCreateDriverFlags
+ * - driver_type: eDriver_Types
+ * - mapping_type: eCreateDriver_MappingTypes
+ */
+int ANIM_add_driver_with_target(
+        struct ReportList *reports, 
+        struct ID *dst_id, const char dst_path[], int dst_index,
+        struct ID *src_id, const char src_path[], int src_index,
+        short flag, int driver_type, short mapping_type);
+
+/* -------- */
 
 /* Main Driver Management API calls:
  *  Add a new driver for the specified property on the given ID block
@@ -256,6 +282,11 @@ int ANIM_add_driver(struct ReportList *reports, struct ID *id, const char rna_pa
  *  Remove the driver for the specified property on the given ID block (if available)
  */
 bool ANIM_remove_driver(struct ReportList *reports, struct ID *id, const char rna_path[], int array_index, short flag);
+
+/* -------- */
+
+/* Returns whether there is a driver in the copy/paste buffer to paste */
+bool ANIM_driver_can_paste(void);
 
 /* Main Driver Management API calls:
  *  Make a copy of the driver for the specified property on the given ID block

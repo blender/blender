@@ -29,6 +29,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_object_types.h"
@@ -41,10 +42,13 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_report.h"
+#include "BKE_animsys.h"
+#include "BKE_depsgraph.h"
 #include "BKE_idcode.h"
 #include "BKE_unit.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "BIF_gl.h"
 
@@ -66,6 +70,9 @@
 #include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
+
+/* for Driver eyedropper */
+#include "ED_keyframing.h"
 
 
 /* -------------------------------------------------------------------- */
@@ -112,6 +119,7 @@ wmKeyMap *eyedropper_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_color");
 	WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_id");
 	WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_depth");
+	WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_driver");
 
 	return keymap;
 }
@@ -1023,6 +1031,193 @@ void UI_OT_eyedropper_depth(wmOperatorType *ot)
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 
 	/* properties */
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/* Eyedropper
+ */
+ 
+/* NOTE: This is here (instead of in drivers.c) because we need access the button internals,
+ * which we cannot access outside of the interface module
+ */
+
+/** \name Eyedropper (Driver Target)
+ * \{ */
+
+typedef struct DriverDropper {
+	/* Destination property (i.e. where we'll add a driver) */
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	int index;
+	
+	// TODO: new target?
+} DriverDropper;
+
+static bool driverdropper_init(bContext *C, wmOperator *op)
+{
+	DriverDropper *ddr;
+	uiBut *but;
+	
+	op->customdata = ddr = MEM_callocN(sizeof(DriverDropper), "DriverDropper");
+	
+	UI_context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &ddr->index);
+	but = UI_context_active_but_get(C);
+	
+	if ((ddr->ptr.data == NULL) ||
+	    (ddr->prop == NULL) ||
+	    (RNA_property_editable(&ddr->ptr, ddr->prop) == false) ||
+		(RNA_property_animateable(&ddr->ptr, ddr->prop) == false) ||
+		(but->flag & UI_BUT_DRIVEN))
+	{
+		return false;
+	}
+	
+	return true;
+}
+
+static void driverdropper_exit(bContext *C, wmOperator *op)
+{
+	WM_cursor_modal_restore(CTX_wm_window(C));
+
+	if (op->customdata) {
+		MEM_freeN(op->customdata);
+		op->customdata = NULL;
+	}
+}
+
+static void driverdropper_sample(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	DriverDropper *ddr = (DriverDropper *)op->customdata;
+	
+	wmWindow *win = CTX_wm_window(C);
+	ScrArea *sa = BKE_screen_find_area_xy(win->screen, SPACE_TYPE_ANY, event->x, event->y);
+	ARegion *ar = BKE_area_find_region_xy(sa, RGN_TYPE_ANY, event->x, event->y);
+	
+	uiBut *but = ui_but_find_mouse_over(ar, event);
+	
+	short mapping_type = RNA_enum_get(op->ptr, "mapping_type");
+	short flag = 0;
+	
+	/* we can only add a driver if we know what RNA property it corresponds to */
+	if (ELEM(NULL, but, but->rnapoin.data, but->rnaprop)) {
+		return;
+	}
+	else {
+		/* Get paths for src... */
+		PointerRNA *target_ptr = &but->rnapoin;
+		PropertyRNA *target_prop = but->rnaprop;
+		int target_index = but->rnaindex;
+		
+		char *target_path = RNA_path_from_ID_to_property(target_ptr, target_prop);
+		
+		/* ... and destination */
+		char *dst_path    = BKE_animdata_driver_path_hack(C, &ddr->ptr, ddr->prop, NULL);
+		
+		/* Now create driver(s) */
+		int success = ANIM_add_driver_with_target(op->reports,
+		                                          ddr->ptr.id.data, dst_path, ddr->index,
+		                                          target_ptr->id.data, target_path, target_index,
+		                                          flag, DRIVER_TYPE_PYTHON, mapping_type);
+		
+		if (success) {
+			/* send updates */
+			UI_context_update_anim_flag(C);
+			DAG_relations_tag_update(CTX_data_main(C));
+			DAG_id_tag_update(ddr->ptr.id.data, OB_RECALC_OB | OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL);  // XXX
+		}
+	}
+}
+
+static void driverdropper_cancel(bContext *C, wmOperator *op)
+{
+	driverdropper_exit(C, op);
+}
+
+/* main modal status check */
+static int driverdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	DriverDropper *ddr = (DriverDropper *)op->customdata;
+	
+	/* handle modal keymap */
+	if (event->type == EVT_MODAL_MAP) {
+		switch (event->val) {
+			case EYE_MODAL_CANCEL:
+				driverdropper_cancel(C, op);
+				return OPERATOR_CANCELLED;
+				
+			case EYE_MODAL_SAMPLE_CONFIRM:
+				driverdropper_sample(C, op, event);
+				driverdropper_exit(C, op);
+				
+				return OPERATOR_FINISHED;
+		}
+	}
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+/* Modal Operator init */
+static int driverdropper_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	/* init */
+	if (driverdropper_init(C, op)) {
+		WM_cursor_modal_set(CTX_wm_window(C), BC_EYEDROPPER_CURSOR);
+		
+		/* add temp handler */
+		WM_event_add_modal_handler(C, op);
+		
+		return OPERATOR_RUNNING_MODAL;
+	}
+	else {
+		driverdropper_exit(C, op);
+		return OPERATOR_CANCELLED;
+	}
+}
+
+/* Repeat operator */
+static int driverdropper_exec(bContext *C, wmOperator *op)
+{
+	/* init */
+	if (driverdropper_init(C, op)) {
+		/* cleanup */
+		driverdropper_exit(C, op);
+		
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+static int driverdropper_poll(bContext *C)
+{
+	if (!CTX_wm_window(C)) return 0;
+	else return 1;
+}
+
+void UI_OT_eyedropper_driver(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Eyedropper Driver";
+	ot->idname = "UI_OT_eyedropper_driver";
+	ot->description = "Pick a property to use as a driver target";
+	
+	/* api callbacks */
+	ot->invoke = driverdropper_invoke;
+	ot->modal = driverdropper_modal;
+	ot->cancel = driverdropper_cancel;
+	ot->exec = driverdropper_exec;
+	ot->poll = driverdropper_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
+	
+	/* properties */
+	RNA_def_enum(ot->srna, "mapping_type", prop_driver_create_mapping_types, 0,
+	             "Mapping Type", "Method used to match target and driven properties");
 }
 
 /** \} */

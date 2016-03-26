@@ -37,6 +37,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_texture_types.h"
@@ -153,6 +154,198 @@ FCurve *verify_driver_fcurve(ID *id, const char rna_path[], const int array_inde
 
 /* ************************************************** */
 /* Driver Management API */
+
+/* Mapping Types enum for operators */
+// XXX: These names need reviewing
+EnumPropertyItem prop_driver_create_mapping_types[] = {
+	{CREATEDRIVER_MAPPING_1_N, "SINGLE_MANY", 0, "Single Target, Multiple Properties",
+	 "Use the picked item to drive all components of this property"},
+	{CREATEDRIVER_MAPPING_1_1, "DIRECT", 0, "Single Item Only",
+	 "Use picked item to drive property under mouse"},
+	{CREATEDRIVER_MAPPING_N_N, "MATCH", 0, "Match Indices",
+	 "Create drivers for each pair of corresponding elements"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+/* --------------------------------- */
+
+/* Helper for ANIM_add_driver_with_target - Adds the actual driver */
+static int add_driver_with_target(
+        ReportList *reports,
+        ID *dst_id, const char dst_path[], int dst_index,
+        ID *src_id, const char src_path[], int src_index,
+        PointerRNA *src_ptr, PropertyRNA *src_prop,
+        short flag, int driver_type)
+{
+	FCurve *fcu;
+	short add_mode = (flag & CREATEDRIVER_WITH_FMODIFIER) ? 2 : 1;
+	const char *prop_name = RNA_property_identifier(src_prop);
+	
+	/* Create F-Curve with Driver */
+	fcu = verify_driver_fcurve(dst_id, dst_path, dst_index, add_mode);
+	
+	if (fcu && fcu->driver) {
+		ChannelDriver *driver = fcu->driver;
+		DriverVar *dvar;
+		
+		/* Set the type of the driver */
+		driver->type = driver_type;
+		BLI_strncpy(driver->expression, "var", sizeof(driver->expression)); /* XXX: if we have N-1 mapping, we need to include all those here... */
+		
+		/* Create a driver variable for the target
+		 *   - For transform properties, we want to automatically use "transform channel" instead
+		 *     (The only issue is with quat rotations vs euler channels...)
+		 */
+		dvar = driver_add_new_variable(driver);
+		
+		if (ELEM(src_ptr->type, &RNA_Object, &RNA_PoseBone) &&  
+			(STREQ(prop_name, "location") || STREQ(prop_name, "scale") || strstr(prop_name, "rotation_"))) 
+		{
+			/* Transform Channel */
+			DriverTarget *dtar;
+			
+			driver_change_variable_type(dvar, DVAR_TYPE_TRANSFORM_CHAN);
+			dtar = &dvar->targets[0];
+			
+			/* Bone or Object target? */
+			dtar->id = src_id;
+			dtar->idtype = GS(src_id->name);
+			
+			if (src_ptr->type == &RNA_PoseBone) {
+				RNA_string_get(src_ptr, "name", dtar->pchan_name);
+			}
+			
+			/* Transform channel depends on type */
+			if (STREQ(prop_name, "location")) {
+				if (src_index == 2)
+					dtar->transChan = DTAR_TRANSCHAN_LOCZ;
+				else if (src_index == 1)
+					dtar->transChan = DTAR_TRANSCHAN_LOCY;
+				else
+					dtar->transChan = DTAR_TRANSCHAN_LOCX;
+			}
+			else if (STREQ(prop_name, "scale")) {
+				if (src_index == 2)
+					dtar->transChan = DTAR_TRANSCHAN_SCALEZ;
+				else if (src_index == 1)
+					dtar->transChan = DTAR_TRANSCHAN_SCALEY;
+				else
+					dtar->transChan = DTAR_TRANSCHAN_SCALEX;
+			}
+			else {
+				/* XXX: With quaternions and axis-angle, this mapping might not be correct...
+				 *      But since those have 4 elements instead, there's not much we can do
+				 */
+				if (src_index == 2)
+					dtar->transChan = DTAR_TRANSCHAN_ROTZ;
+				else if (src_index == 1)
+					dtar->transChan = DTAR_TRANSCHAN_ROTY;
+				else
+					dtar->transChan = DTAR_TRANSCHAN_ROTX;
+			}
+		}
+		else {
+			/* Single RNA Property */
+			DriverTarget *dtar = &dvar->targets[0];
+			
+			/* ID is as-is */
+			dtar->id = src_id;
+			dtar->idtype = GS(src_id->name);
+			
+			/* Need to make a copy of the path (or build one with array index built in) */
+			if (RNA_property_array_check(src_prop)) {
+				dtar->rna_path = BLI_sprintfN("%s[%d]", src_path, src_index);
+			}
+			else {
+				dtar->rna_path = BLI_strdup(src_path);
+			}
+		}
+	}
+	
+	/* set the done status */
+	return (fcu != NULL);
+}
+
+/* Main Driver Management API calls:
+ *  Add a new driver for the specified property on the given ID block,
+ *  and make it be driven by the specified target.
+ *
+ * This is intended to be used in conjunction with a modal "eyedropper"
+ * for picking the variable that is going to be used to drive this one.
+ *
+ * - flag: eCreateDriverFlags
+ * - driver_type: eDriver_Types
+ * - mapping_type: eCreateDriver_MappingTypes
+ */
+int ANIM_add_driver_with_target(
+        ReportList *reports, 
+        ID *dst_id, const char dst_path[], int dst_index,
+        ID *src_id, const char src_path[], int src_index,
+        short flag, int driver_type, short mapping_type)
+{
+	PointerRNA id_ptr, ptr;
+	PropertyRNA *prop;
+	
+	PointerRNA id_ptr2, ptr2;
+	PropertyRNA *prop2;
+	int done_tot = 0;
+	
+	/* validate pointers first - exit if failure */
+	RNA_id_pointer_create(dst_id, &id_ptr);
+	if (RNA_path_resolve_property(&id_ptr, dst_path, &ptr, &prop) == false) {
+		BKE_reportf(reports, RPT_ERROR, 
+		            "Could not add driver, as RNA path is invalid for the given ID (ID = %s, path = %s)",
+		            dst_id->name, dst_path);
+		return 0;
+	}
+	
+	RNA_id_pointer_create(src_id, &id_ptr2);
+	if (RNA_path_resolve_property(&id_ptr2, src_path, &ptr2, &prop2) == false) {
+		/* No target - So, fall back to default method for adding a "simple" driver normally */
+		return ANIM_add_driver(reports, dst_id, dst_path, dst_index, flag, driver_type);
+	}
+	
+	/* handle curve-property mappings based on mapping_type */
+	switch (mapping_type) {
+		case CREATEDRIVER_MAPPING_N_N: /* N-N - Try to match as much as possible, then use the first one */
+		{
+			/* Use the shorter of the two (to avoid out of bounds access) */
+			int dst_len = (RNA_property_array_check(prop)) ? RNA_property_array_length(&ptr, prop) : 1;
+			int src_len = (RNA_property_array_check(prop)) ? RNA_property_array_length(&ptr2, prop2) : 1;
+			
+			int len = MIN2(dst_len, src_len);
+			int i;
+			
+			for (i = 0; i < len; i++) {
+				done_tot += add_driver_with_target(reports, dst_id, dst_path, i, src_id, src_path, i, &ptr2, prop2, flag, driver_type);
+			}
+			break;
+		}
+		
+		case CREATEDRIVER_MAPPING_1_N: /* 1-N - Specified target index for all */
+		default:
+		{
+			int len = (RNA_property_array_check(prop)) ? RNA_property_array_length(&ptr, prop) : 1;
+			int i;
+			
+			for (i = 0; i < len; i++) {
+				done_tot += add_driver_with_target(reports, dst_id, dst_path, i, src_id, src_path, src_index, &ptr2, prop2, flag, driver_type);
+			}
+			break;
+		}
+		
+		case CREATEDRIVER_MAPPING_1_1: /* 1-1 - Use the specified index (unless -1) */
+		{
+			done_tot = add_driver_with_target(reports, dst_id, dst_path, dst_index, src_id, src_path, src_index, &ptr2, prop2, flag, driver_type);
+			break;
+		}
+	}
+	
+	/* done */
+	return done_tot;
+}
+
+/* --------------------------------- */
 
 /* Main Driver Management API calls:
  *  Add a new driver for the specified property on the given ID block
@@ -427,35 +620,31 @@ static int add_driver_button_exec(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr = {{NULL}};
 	PropertyRNA *prop = NULL;
-	int success = 0;
 	int index;
+	
 	const bool all = RNA_boolean_get(op->ptr, "all");
+	int ret = OPERATOR_CANCELLED;
 	
 	/* try to create driver using property retrieved from UI */
 	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 	
-	if (all)
-		index = -1;
-	
 	if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
-		char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
-		short flags = CREATEDRIVER_WITH_DEFAULT_DVAR;
+		wmOperatorType *ot = WM_operatortype_find("UI_OT_eyedropper_driver", true);
+		PointerRNA op_ptr;
 		
-		if (path) {
-			success += ANIM_add_driver(op->reports, ptr.id.data, path, index, flags, DRIVER_TYPE_PYTHON);
-			
-			MEM_freeN(path);
-		}
+		WM_operator_properties_create_ptr(&op_ptr, ot);
+		
+		if (all)
+			RNA_enum_set(&op_ptr, "mapping_type", CREATEDRIVER_MAPPING_1_N);
+		else
+			RNA_enum_set(&op_ptr, "mapping_type", CREATEDRIVER_MAPPING_1_1);
+		
+		ret = WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &op_ptr);
+		
+		WM_operator_properties_free(&op_ptr);
 	}
 	
-	if (success) {
-		/* send updates */
-		UI_context_update_anim_flag(C);
-		DAG_relations_tag_update(CTX_data_main(C));
-		WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL); // XXX
-	}
-	
-	return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	return ret;
 }
 
 void ANIM_OT_driver_button_add(wmOperatorType *ot)
