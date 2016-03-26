@@ -259,6 +259,8 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				break;
 			}
 #endif
+			int num_closure = ccl_fetch(sd, num_closure);
+
 			/* index of refraction */
 			float eta = fmaxf(param2, 1e-5f);
 			eta = (ccl_fetch(sd, flag) & SD_BACKFACING)? 1.0f/eta: eta;
@@ -269,7 +271,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			float roughness = param1;
 
 			/* reflection */
-			ShaderClosure *sc = ccl_fetch_array(sd, closure, ccl_fetch(sd, num_closure));
+			ShaderClosure *sc = ccl_fetch_array(sd, closure, num_closure);
 			float3 weight = sc->weight;
 			float sample_weight = sc->sample_weight;
 
@@ -290,8 +292,8 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 #endif
 
 			/* refraction */
-			if(ccl_fetch(sd, num_closure) < MAX_CLOSURE) {
-				sc = ccl_fetch_array(sd, closure, ccl_fetch(sd, num_closure));
+			if(num_closure + 1 < MAX_CLOSURE) {
+				sc = ccl_fetch_array(sd, closure, num_closure + 1);
 				sc->weight = weight;
 				sc->sample_weight = sample_weight;
 
