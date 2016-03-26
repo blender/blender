@@ -6978,12 +6978,12 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 		}
 		/* handle drivers */
 		else if ((event->type == DKEY) &&
-		         !IS_EVENT_MOD(event, shift, ctrl, oskey) &&
+		         !IS_EVENT_MOD(event, shift, oskey) &&
 		         (event->val == KM_PRESS))
 		{
 			if (event->alt)
 				ui_but_anim_remove_driver(C);
-			else
+			else if (event->ctrl)
 				ui_but_anim_add_driver(C);
 				
 			ED_region_tag_redraw(data->region);
