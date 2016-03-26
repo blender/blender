@@ -2642,7 +2642,7 @@ install_DEB() {
     INFO "Forced LLVM building, as requested..."
     _do_compile_llvm=true
   else
-    check_package_DEB llvm-$LLVM_VERSION-dev
+    check_package_DEB clang-$LLVM_VERSION
     if [ $? -eq 0 ]; then
       install_packages_DEB llvm-$LLVM_VERSION-dev clang-$LLVM_VERSION
       have_llvm=true
@@ -3161,21 +3161,28 @@ install_RPM() {
     _do_compile_llvm=true
   else
     # Problem compiling with LLVM 3.2 so match version 3.1 ...
-    check_package_version_match_RPM llvm $LLVM_VERSION
-    if [ $? -eq 0 ]; then
-      if [ "$RPM" = "SUSE" ]; then
+    if [ "$RPM" = "SUSE" ]; then
+      check_package_version_match_RPM llvm-clang-devel $LLVM_VERSION
+      if [ $? -eq 0 ]; then
         install_packages_RPM llvm-devel llvm-clang-devel
+        have_llvm=true
+        LLVM_VERSION_FOUND=$LLVM_VERSION
+        clean_LLVM
       else
-        install_packages_RPM llvm-devel clang-devel
+        # Better to compile it than use minimum version from repo...
+        _do_compile_llvm=true
       fi
-      have_llvm=true
-      LLVM_VERSION_FOUND=$LLVM_VERSION
-      clean_LLVM
     else
-      #
-      # Better to compile it than use minimum version from repo...
-      #
-      _do_compile_llvm=true
+      check_package_version_match_RPM clang-devel $LLVM_VERSION
+      if [ $? -eq 0 ]; then
+        install_packages_RPM llvm-devel clang-devel
+        have_llvm=true
+        LLVM_VERSION_FOUND=$LLVM_VERSION
+        clean_LLVM
+      else
+        # Better to compile it than use minimum version from repo...
+        _do_compile_llvm=true
+      fi
     fi
   fi
 
@@ -3563,11 +3570,11 @@ install_ARCH() {
     INFO "Forced LLVM building, as requested..."
     _do_compile_llvm=true
   else
-    check_package_version_match_ARCH llvm $LLVM_VERSION
+    check_package_version_match_ARCH clang $LLVM_VERSION
     if [ $? -eq 0 ]; then
       install_packages_ARCH llvm clang
       have_llvm=true
-      LLVM_VERSION=`check_package_version_ge_ARCH llvm $LLVM_VERSION_MIN`
+      LLVM_VERSION=`check_package_version_ge_ARCH clang $LLVM_VERSION_MIN`
       LLVM_VERSION_FOUND=$LLVM_VERSION
       clean_LLVM
     else
