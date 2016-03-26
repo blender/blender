@@ -249,6 +249,7 @@ void BKE_library_foreach_ID_link(ID *id, LibraryIDLinkCallback callback, void *u
 		data.ids_handled = NULL;
 	}
 	data.flag = flag;
+	data.status = 0;
 	data.callback = callback;
 	data.user_data = user_data;
 
