@@ -569,7 +569,6 @@ static void datadropper_exit(bContext *C, wmOperator *op)
  */
 static void datadropper_id_sample_pt(bContext *C, DataDropper *ddr, int mx, int my, ID **r_id)
 {
-
 	/* we could use some clever */
 	wmWindow *win = CTX_wm_window(C);
 	ScrArea *sa = BKE_screen_find_area_xy(win->screen, -1, mx, my);
@@ -737,7 +736,7 @@ void UI_OT_eyedropper_id(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Eyedropper Datablock";
 	ot->idname = "UI_OT_eyedropper_id";
-	ot->description = "Sample a datablock from the Blender Window to store in a property";
+	ot->description = "Sample a datablock from the 3D View to store in a property";
 
 	/* api callbacks */
 	ot->invoke = datadropper_invoke;
