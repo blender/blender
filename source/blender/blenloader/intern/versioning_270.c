@@ -1081,7 +1081,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 								/* remove preview region for sequencer-only view! */
 								if (ar->regiontype == RGN_TYPE_PREVIEW) {
 									BKE_area_region_free(NULL, ar);
-									BLI_freelinkN(&sl->regionbase, ar);
+									BLI_freelinkN(lb, ar);
 									break;
 								}
 							}
