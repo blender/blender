@@ -533,4 +533,102 @@ bool gp_point_xy_to_3d(GP_SpaceConversion *gsc, Scene *scene, const float screen
 	}
 }
 
+/* Apply smooth to stroke point 
+* gps  Stroke to smooth
+* i    Point index
+* inf  Smooth factor
+*/
+bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf)
+{
+	bGPDspoint *pt = &gps->points[i];
+	float sco[3] = { 0.0f };
+
+	/* Do nothing if not enough points to smooth out */
+	if (gps->totpoints <= 2) {
+		return false;
+	}
+
+	/* Only affect endpoints by a fraction of the normal strength,
+	* to prevent the stroke from shrinking too much
+	*/
+	if ((i == 0) || (i == gps->totpoints - 1)) {
+		inf *= 0.1f;
+	}
+
+	/* Compute smoothed coordinate by taking the ones nearby */
+	/* XXX: This is potentially slow, and suffers from accumulation error as earlier points are handled before later ones */
+	{
+		// XXX: this is hardcoded to look at 2 points on either side of the current one (i.e. 5 items total)
+		const int   steps = 2;
+		const float average_fac = 1.0f / (float)(steps * 2 + 1);
+		int step;
+
+		/* add the point itself */
+		madd_v3_v3fl(sco, &pt->x, average_fac);
+
+		/* n-steps before/after current point */
+		// XXX: review how the endpoints are treated by this algorithm
+		// XXX: falloff measures should also introduce some weighting variations, so that further-out points get less weight
+		for (step = 1; step <= steps; step++) {
+			bGPDspoint *pt1, *pt2;
+			int before = i - step;
+			int after = i + step;
+
+			CLAMP_MIN(before, 0);
+			CLAMP_MAX(after, gps->totpoints - 1);
+
+			pt1 = &gps->points[before];
+			pt2 = &gps->points[after];
+
+			/* add both these points to the average-sum (s += p[i]/n) */
+			madd_v3_v3fl(sco, &pt1->x, average_fac);
+			madd_v3_v3fl(sco, &pt2->x, average_fac);
+
+		}
+	}
+
+	/* Based on influence factor, blend between original and optimal smoothed coordinate */
+	interp_v3_v3v3(&pt->x, &pt->x, sco, inf);
+
+	return true;
+}
+
+/* subdivide a stroke 
+* gps           Stroke data
+* new_totpoints Total number of points
+*/
+void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints)
+{
+	int i;
+	// Subdivide stroke adding a point half way existing points
+	bGPDspoint *pt_a;
+	bGPDspoint *pt_b;
+	bGPDspoint *pt_n;
+
+	/* Move points to insert subdivision */
+	int y = 1;
+	for (i = gps->totpoints - 1; i > 0; --i)
+	{
+		pt_n = &gps->points[i];
+		gps->points[new_totpoints - y] = *pt_n;
+		y = y + 2;
+	}
+	/* Create interpolated points */
+	for (i = 0; i < new_totpoints - 1; ++i)
+	{
+		pt_a = &gps->points[i];
+		pt_n = &gps->points[i + 1];
+		pt_b = &gps->points[i + 2];
+		// Interpolate all values
+		interp_v3_v3v3(&pt_n->x, &pt_a->x, &pt_b->x, 0.5f);
+		pt_n->pressure = interpf(pt_a->pressure, pt_b->pressure, 0.5f);
+		pt_n->time = interpf(pt_a->time, pt_b->time, 0.5f);
+
+		++i; // add to loop to jump next pair
+	}
+
+	gps->totpoints = new_totpoints;  // Increase number of points
+
+}
+
 /* ******************************************************** */

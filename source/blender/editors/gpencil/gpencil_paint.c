@@ -571,6 +571,8 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	bGPDstroke *gps;
 	bGPDspoint *pt;
 	tGPspoint *ptc;
+	bGPDlayer *layer = gpencil_layer_getactive(p->gpd);
+
 	int i, totelem;
 	/* since strokes are so fine, when using their depth we need a margin otherwise they might get missed */
 	int depth_margin = (p->gpd->flag & GP_DATA_DEPTH_STROKE) ? 4 : 0;
@@ -610,8 +612,20 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	gps->inittime = p->inittime;
 	
 	/* allocate enough memory for a continuous array for storage points */
-	gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
-	
+	int sublevel = layer->sublevel;
+	int new_totpoints = gps->totpoints;
+	for (i = 0; i < sublevel; ++i)
+	{
+		// Avoid error if subdivide is too big (assume totpoints is right)
+		if (new_totpoints + (new_totpoints - 1) > GP_STROKE_BUFFER_MAX)
+		{
+			sublevel = i;  // reduce sublevel
+			break;
+		}
+		new_totpoints += new_totpoints - 1;
+	}
+	gps->points = MEM_callocN(sizeof(bGPDspoint) * new_totpoints, "gp_stroke_points");
+
 	/* set pointer to first non-initialized point */
 	pt = gps->points + (gps->totpoints - totelem);
 	
@@ -730,10 +744,29 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			pt->time = ptc->time;
 		}
 		
+		/* subdivide the stroke */
+		if (sublevel > 0)
+		{
+			int sub = gps->totpoints;
+			for (i = 0; i < sublevel; ++i)
+			{
+				sub += sub - 1;
+				gp_subdivide_stroke(gps, sub);
+			}
+		}
+		/* smooth stroke */
+		if (layer->smooth_drawfac > 0.0f)  // only if something to do
+		{
+			for (i = 0; i < gps->totpoints; i++)
+			{
+				gp_smooth_stroke(gps, i, layer->smooth_drawfac);
+			}
+		}
+
 		if (depth_arr)
 			MEM_freeN(depth_arr);
 	}
-	
+
 	/* add stroke to frame */
 	BLI_addtail(&p->gpf->strokes, gps);
 	gp_stroke_added_enable(p);

@@ -208,6 +208,21 @@ void gpencil_undo_init(struct bGPdata *gpd);
 void gpencil_undo_push(struct bGPdata *gpd);
 void gpencil_undo_finish(void);
 
+/**
+* Apply smooth to stroke
+*
+* gps  Stroke to smooth
+* i    Point index
+* inf  Smooth factor
+*/
+bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf);
+
+/* subdivide a stroke
+* gps           Stroke data
+* new_totpoints Total number of points
+*/
+void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints);
+
 /******************************************************* */
 /* FILTERED ACTION DATA - TYPES  ---> XXX DEPRECEATED OLD ANIM SYSTEM CODE! */
 
