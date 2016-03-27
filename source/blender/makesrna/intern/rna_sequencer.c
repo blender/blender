@@ -1027,8 +1027,9 @@ static int rna_SequenceModifier_otherSequence_poll(PointerRNA *ptr, PointerRNA v
 	Sequence *seq = sequence_get_by_modifier(ed, ptr->data);
 	Sequence *cur = (Sequence *) value.data;
 
-	if (seq == cur)
+	if ((seq == cur) || (cur->type == SEQ_TYPE_SOUND_RAM)) {
 		return false;
+	}
 
 	return true;
 }
