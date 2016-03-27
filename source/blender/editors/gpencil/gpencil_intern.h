@@ -126,6 +126,23 @@ extern ListBase gp_strokes_copypastebuf;
 
 void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke *next_stroke, int tag_flags);
 
+
+/**
+ * Apply smooth to stroke
+ *
+ * \param gps  Stroke to smooth
+ * \param i    Point index
+ * \param inf  Smooth factor
+*/
+bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf);
+
+/**
+ * Subdivide a stroke
+ * \param gps           Stroke data
+ * \param new_totpoints Total number of points
+*/
+void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints);
+
 /* Layers Enums -------------------------------------- */
 
 struct EnumPropertyItem *ED_gpencil_layers_enum_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
@@ -207,21 +224,6 @@ void GPENCIL_OT_convert(struct wmOperatorType *ot);
 void gpencil_undo_init(struct bGPdata *gpd);
 void gpencil_undo_push(struct bGPdata *gpd);
 void gpencil_undo_finish(void);
-
-/**
-* Apply smooth to stroke
-*
-* gps  Stroke to smooth
-* i    Point index
-* inf  Smooth factor
-*/
-bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf);
-
-/* subdivide a stroke
-* gps           Stroke data
-* new_totpoints Total number of points
-*/
-void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints);
 
 /******************************************************* */
 /* FILTERED ACTION DATA - TYPES  ---> XXX DEPRECEATED OLD ANIM SYSTEM CODE! */

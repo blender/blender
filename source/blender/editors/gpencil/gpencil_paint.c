@@ -568,10 +568,10 @@ static void gp_stroke_simplify(tGPsdata *p)
 static void gp_stroke_newfrombuffer(tGPsdata *p)
 {
 	bGPdata *gpd = p->gpd;
+	bGPDlayer *gpl = p->gpl;
 	bGPDstroke *gps;
 	bGPDspoint *pt;
 	tGPspoint *ptc;
-	bGPDlayer *layer = gpencil_layer_getactive(p->gpd);
 
 	int i, totelem;
 	/* since strokes are so fine, when using their depth we need a margin otherwise they might get missed */
@@ -612,14 +612,13 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	gps->inittime = p->inittime;
 	
 	/* allocate enough memory for a continuous array for storage points */
-	int sublevel = layer->sublevel;
+	int sublevel = gpl->sublevel;
 	int new_totpoints = gps->totpoints;
-	for (i = 0; i < sublevel; ++i)
-	{
-		// Avoid error if subdivide is too big (assume totpoints is right)
-		if (new_totpoints + (new_totpoints - 1) > GP_STROKE_BUFFER_MAX)
-		{
-			sublevel = i;  // reduce sublevel
+	for (i = 0; i < sublevel; i++) {
+		/* Avoid error if subdivide is too big (assume totpoints is right) */
+		if (new_totpoints + (new_totpoints - 1) > GP_STROKE_BUFFER_MAX) {
+			/* Reduce sublevel to avoid too-dense strokes */
+			sublevel = i;
 			break;
 		}
 		new_totpoints += new_totpoints - 1;
@@ -745,21 +744,17 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		}
 		
 		/* subdivide the stroke */
-		if (sublevel > 0)
-		{
+		if (sublevel > 0) {
 			int sub = gps->totpoints;
-			for (i = 0; i < sublevel; ++i)
-			{
+			for (i = 0; i < sublevel; i++) {
 				sub += sub - 1;
 				gp_subdivide_stroke(gps, sub);
 			}
 		}
-		/* smooth stroke */
-		if (layer->smooth_drawfac > 0.0f)  // only if something to do
-		{
-			for (i = 0; i < gps->totpoints; i++)
-			{
-				gp_smooth_stroke(gps, i, layer->smooth_drawfac);
+		/* smooth stroke - only if there's somethign to do */
+		if (gpl->smooth_drawfac > 0.0f) {
+			for (i = 0; i < gps->totpoints; i++) {
+				gp_smooth_stroke(gps, i, gpl->smooth_drawfac);
 			}
 		}
 
