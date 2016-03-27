@@ -425,50 +425,38 @@ void btRigidBody::setCenterOfMassTransform(const btTransform& xform)
 }
 
 
+bool btRigidBody::checkCollideWithOverride(const  btCollisionObject* co) const
+{
+	const btRigidBody* otherRb = btRigidBody::upcast(co);
+	if (!otherRb)
+		return true;
+
+	for (int i = 0; i < m_constraintRefs.size(); ++i)
+	{
+		const btTypedConstraint* c = m_constraintRefs[i];
+		if (c->isEnabled())
+			if (&c->getRigidBodyA() == otherRb || &c->getRigidBodyB() == otherRb)
+				return false;
+	}
+
+	return true;
+}
 
 
 
 void btRigidBody::addConstraintRef(btTypedConstraint* c)
 {
-	///disable collision with the 'other' body
-
 	int index = m_constraintRefs.findLinearSearch(c);
-	//don't add constraints that are already referenced
-	//btAssert(index == m_constraintRefs.size());
 	if (index == m_constraintRefs.size())
-	{
-		m_constraintRefs.push_back(c);
-		btCollisionObject* colObjA = &c->getRigidBodyA();
-		btCollisionObject* colObjB = &c->getRigidBodyB();
-		if (colObjA == this)
-		{
-			colObjA->setIgnoreCollisionCheck(colObjB, true);
-		}
-		else
-		{
-			colObjB->setIgnoreCollisionCheck(colObjA, true);
-		}
-	} 
+		m_constraintRefs.push_back(c); 
+
+	m_checkCollideWith = true;
 }
 
 void btRigidBody::removeConstraintRef(btTypedConstraint* c)
 {
-	int index = m_constraintRefs.findLinearSearch(c);
-	//don't remove constraints that are not referenced
-	if(index < m_constraintRefs.size())
-    {
-        m_constraintRefs.remove(c);
-        btCollisionObject* colObjA = &c->getRigidBodyA();
-        btCollisionObject* colObjB = &c->getRigidBodyB();
-        if (colObjA == this)
-        {
-            colObjA->setIgnoreCollisionCheck(colObjB, false);
-        }
-        else
-        {
-            colObjB->setIgnoreCollisionCheck(colObjA, false);
-        }
-    }
+	m_constraintRefs.remove(c);
+	m_checkCollideWith = m_constraintRefs.size() > 0;
 }
 
 int	btRigidBody::calculateSerializeBufferSize()	const
