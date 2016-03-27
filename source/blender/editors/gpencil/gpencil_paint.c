@@ -616,12 +616,6 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	int new_totpoints = gps->totpoints;
 	
 	for (i = 0; i < sublevel; i++) {
-		/* Avoid error if subdivide is too big (assume totpoints is right) */
-		if (new_totpoints + (new_totpoints - 1) > GP_STROKE_BUFFER_MAX) {
-			/* Reduce sublevel to avoid too-dense strokes */
-			sublevel = i;
-			break;
-		}
 		new_totpoints += new_totpoints - 1;
 	}
 	gps->points = MEM_callocN(sizeof(bGPDspoint) * new_totpoints, "gp_stroke_points");
