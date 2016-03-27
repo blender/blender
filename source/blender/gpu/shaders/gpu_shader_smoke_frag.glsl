@@ -17,7 +17,13 @@ void main()
 {
 	/* compute color and density from volume texture */
 	vec4 soot = texture3D(soot_texture, coords);
-	vec3 soot_color = active_color * soot.rgb / soot.a;
+	vec3 soot_color;
+	if (soot.a != 0) {
+		soot_color = active_color * soot.rgb / soot.a;
+	}
+	else {
+		soot_color = vec3(0, 0, 0);
+	}
 	float soot_density = density_scale * soot.a;
 
 	/* compute transmittance and alpha */
