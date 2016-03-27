@@ -128,19 +128,19 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke 
 
 
 /**
- * Apply smooth to stroke
- *
- * \param gps  Stroke to smooth
- * \param i    Point index
- * \param inf  Smooth factor
-*/
-bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf);
+ * Apply smooth to stroke point 
+ * \param gps              Stroke to smooth
+ * \param i                Point index
+ * \param inf              Amount of smoothing to apply
+ * \param affect_pressure  Apply smoothing to pressure values too?
+ */
+bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf, bool affect_pressure);
 
 /**
  * Subdivide a stroke
  * \param gps           Stroke data
  * \param new_totpoints Total number of points
-*/
+ */
 void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints);
 
 /* Layers Enums -------------------------------------- */

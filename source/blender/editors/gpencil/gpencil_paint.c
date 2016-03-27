@@ -751,10 +751,10 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 				gp_subdivide_stroke(gps, sub);
 			}
 		}
-		/* smooth stroke - only if there's somethign to do */
+		/* smooth stroke - only if there's something to do */
 		if (gpl->smooth_drawfac > 0.0f) {
 			for (i = 0; i < gps->totpoints; i++) {
-				gp_smooth_stroke(gps, i, gpl->smooth_drawfac);
+				gp_smooth_stroke(gps, i, gpl->smooth_drawfac, true);
 			}
 		}
 

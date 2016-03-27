@@ -535,13 +535,15 @@ bool gp_point_xy_to_3d(GP_SpaceConversion *gsc, Scene *scene, const float screen
 
 /**
  * Apply smooth to stroke point 
- * \param gps  Stroke to smooth
- * \param i    Point index
- * \param inf  Smooth factor
-*/
-bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf)
+ * \param gps              Stroke to smooth
+ * \param i                Point index
+ * \param inf              Amount of smoothing to apply
+ * \param affect_pressure  Apply smoothing to pressure values too?
+ */
+bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf, bool affect_pressure)
 {
 	bGPDspoint *pt = &gps->points[i];
+	float pressure = 0.0f;
 	float sco[3] = {0.0f};
 	
 	/* Do nothing if not enough points to smooth out */
@@ -585,11 +587,20 @@ bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf)
 			madd_v3_v3fl(sco, &pt1->x, average_fac);
 			madd_v3_v3fl(sco, &pt2->x, average_fac);
 			
+			/* do pressure too? */
+			if (affect_pressure) {
+				pressure += pt1->pressure * average_fac;
+				pressure += pt2->pressure * average_fac;
+			}
 		}
 	}
 	
 	/* Based on influence factor, blend between original and optimal smoothed coordinate */
 	interp_v3_v3v3(&pt->x, &pt->x, sco, inf);
+	
+	if (affect_pressure) {
+		pt->pressure = pressure;
+	}
 	
 	return true;
 }

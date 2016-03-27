@@ -223,9 +223,10 @@ static bool gp_brush_smooth_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i
 	GP_EditBrush_Data *brush = gso->brush;
 	bGPDspoint *pt = &gps->points[i];
 	float inf = gp_brush_influence_calc(gso, radius, co);
+	bool affect_pressure = (brush->flag & GP_EDITBRUSH_FLAG_SMOOTH_PRESSURE) != 0;
 	
 	/* perform smoothing */
-	return gp_smooth_stroke(gps, i, inf);
+	return gp_smooth_stroke(gps, i, inf, affect_pressure);
 }
 
 /* ----------------------------------------------- */
