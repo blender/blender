@@ -1080,8 +1080,8 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 							for (ARegion *ar = lb->first; ar; ar = ar->next) {
 								/* remove preview region for sequencer-only view! */
 								if (ar->regiontype == RGN_TYPE_PREVIEW) {
-									BKE_area_region_free(NULL, ar);
-									BLI_freelinkN(lb, ar);
+									ar->flag |= RGN_FLAG_HIDDEN;
+									ar->alignment = RGN_ALIGN_NONE;
 									break;
 								}
 							}
