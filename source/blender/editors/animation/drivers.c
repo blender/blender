@@ -158,12 +158,16 @@ FCurve *verify_driver_fcurve(ID *id, const char rna_path[], const int array_inde
 /* Mapping Types enum for operators */
 // XXX: These names need reviewing
 EnumPropertyItem prop_driver_create_mapping_types[] = {
-	{CREATEDRIVER_MAPPING_1_N, "SINGLE_MANY", 0, "Single Target, Multiple Properties",
-	 "Use the picked item to drive all components of this property"},
-	{CREATEDRIVER_MAPPING_1_1, "DIRECT", 0, "Single Item Only",
-	 "Use picked item to drive property under mouse"},
+	{CREATEDRIVER_MAPPING_1_N, "SINGLE_MANY", 0, "All from Target",
+	 "Drive all components of this property using the target picked"},
+	{CREATEDRIVER_MAPPING_1_1, "DIRECT", 0, "Single from Target",
+	 "Drive this component of this property using the target picked"},
 	{CREATEDRIVER_MAPPING_N_N, "MATCH", 0, "Match Indices",
 	 "Create drivers for each pair of corresponding elements"},
+	 
+	// XXX: for all vs just one?
+	{CREATEDRIVER_MAPPING_NONE, "NONE", 0, "Manually Create Later",
+	 "Create driver without assigning any targets yet"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -300,9 +304,11 @@ int ANIM_add_driver_with_target(
 	}
 	
 	RNA_id_pointer_create(src_id, &id_ptr2);
-	if (RNA_path_resolve_property(&id_ptr2, src_path, &ptr2, &prop2) == false) {
+	if ((RNA_path_resolve_property(&id_ptr2, src_path, &ptr2, &prop2) == false) || 
+	    (mapping_type == CREATEDRIVER_MAPPING_NONE))
+	{
 		/* No target - So, fall back to default method for adding a "simple" driver normally */
-		return ANIM_add_driver(reports, dst_id, dst_path, dst_index, flag, driver_type);
+		return ANIM_add_driver(reports, dst_id, dst_path, dst_index, flag | CREATEDRIVER_WITH_DEFAULT_DVAR, driver_type);
 	}
 	
 	/* handle curve-property mappings based on mapping_type */
