@@ -449,45 +449,6 @@ static short gp_stroke_addpoint(tGPsdata *p, const int mval[2], float pressure, 
 	return GP_STROKEADD_INVALID;
 }
 
-/* smooth a stroke (in buffer) before storing it */
-static void gp_stroke_smooth(tGPsdata *p)
-{
-	bGPdata *gpd = p->gpd;
-	tGPspoint *spt, tmp_spt[3];
-	int i = 0, cmx = gpd->sbuffer_size;
-	
-	/* only smooth if smoothing is enabled, and we're not doing a straight line */
-	if (!(U.gp_settings & GP_PAINT_DOSMOOTH) || ELEM(p->paintmode, GP_PAINTMODE_DRAW_STRAIGHT, GP_PAINTMODE_DRAW_POLY))
-		return;
-	
-	/* don't try if less than 2 points in buffer */
-	if ((cmx <= 2) || (gpd->sbuffer == NULL))
-		return;
-	
-	/* Calculate smoothing coordinates using weighted-averages
-	 * WARNING: we do NOT smooth first and last points (to avoid shrinkage)
-	 */
-	spt = (tGPspoint *)gpd->sbuffer;
-	
-	/* This (tmp_spt) small array stores the last two points' original coordinates,
-	 * as we don't want to use already averaged ones! It is used as a cyclic buffer...
-	 */
-	tmp_spt[0] = *spt;
-	for (i = 1, spt++; i < cmx - 1; i++, spt++) {
-		const tGPspoint *pc = spt;
-		const tGPspoint *pb = &tmp_spt[(i - 1) % 3];
-		const tGPspoint *pa = (i - 1 > 0) ? (&tmp_spt[(i - 2) % 3]) : (pb);
-		const tGPspoint *pd = pc + 1;
-		const tGPspoint *pe = (i + 2 < cmx) ? (pc + 2) : (pd);
-		
-		/* Store current point's original state for the two next points! */
-		tmp_spt[i % 3] = *spt;
-		
-		spt->x = (int)(0.1 * pa->x + 0.2 * pb->x + 0.4 * pc->x + 0.2 * pd->x + 0.1 * pe->x);
-		spt->y = (int)(0.1 * pa->y + 0.2 * pb->y + 0.4 * pc->y + 0.2 * pd->y + 0.1 * pe->y);
-	}
-}
-
 /* simplify a stroke (in buffer) before storing it
  *	- applies a reverse Chaikin filter
  *	- code adapted from etch-a-ton branch (editarmature_sketch.c)
@@ -1411,9 +1372,6 @@ static void gp_paint_strokeend(tGPsdata *p)
 	
 	/* check if doing eraser or not */
 	if ((p->gpd->sbuffer_sflag & GP_STROKE_ERASER) == 0) {
-		/* smooth stroke before transferring? */
-		gp_stroke_smooth(p);
-		
 		/* simplify stroke before transferring? */
 		gp_stroke_simplify(p);
 		
