@@ -1160,8 +1160,6 @@ static void driverdropper_cancel(bContext *C, wmOperator *op)
 /* main modal status check */
 static int driverdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	DriverDropper *ddr = (DriverDropper *)op->customdata;
-	
 	/* handle modal keymap */
 	if (event->type == EVT_MODAL_MAP) {
 		switch (event->val) {

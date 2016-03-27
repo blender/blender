@@ -175,10 +175,10 @@ EnumPropertyItem prop_driver_create_mapping_types[] = {
 
 /* Helper for ANIM_add_driver_with_target - Adds the actual driver */
 static int add_driver_with_target(
-        ReportList *reports,
+        ReportList *UNUSED(reports),
         ID *dst_id, const char dst_path[], int dst_index,
         ID *src_id, const char src_path[], int src_index,
-        PointerRNA *dst_ptr, PropertyRNA *dst_prop,
+        PointerRNA *UNUSED(dst_ptr), PropertyRNA *dst_prop,
         PointerRNA *src_ptr, PropertyRNA *src_prop,
         short flag, int driver_type)
 {
