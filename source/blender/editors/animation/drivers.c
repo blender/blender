@@ -178,6 +178,7 @@ static int add_driver_with_target(
         ReportList *reports,
         ID *dst_id, const char dst_path[], int dst_index,
         ID *src_id, const char src_path[], int src_index,
+        PointerRNA *dst_ptr, PropertyRNA *dst_prop,
         PointerRNA *src_ptr, PropertyRNA *src_prop,
         short flag, int driver_type)
 {
@@ -194,7 +195,34 @@ static int add_driver_with_target(
 		
 		/* Set the type of the driver */
 		driver->type = driver_type;
-		BLI_strncpy(driver->expression, "var", sizeof(driver->expression)); /* XXX: if we have N-1 mapping, we need to include all those here... */
+		
+		/* Set driver expression, so that the driver works out of the box
+		 *
+		 * The following checks define a bit of "autodetection magic" we use
+		 * to ensure that the drivers will behave as expected out of the box
+		 * when faced with properties with different units.
+		 */
+		/* XXX: if we have N-1 mapping, should we include all those in the expression? */
+		if ((RNA_property_unit(dst_prop) == PROP_UNIT_ROTATION) && 
+		    (RNA_property_unit(src_prop) != PROP_UNIT_ROTATION))
+		{
+			/* Rotation Destination:  normal -> radians,  so convert src to radians
+			 * (However, if both input and output is a rotation, don't apply such corrections)
+			 */
+			BLI_strncpy(driver->expression, "radians(var)", sizeof(driver->expression));
+		}
+		else if ((RNA_property_unit(src_prop) == PROP_UNIT_ROTATION) &&
+		         (RNA_property_unit(dst_prop) != PROP_UNIT_ROTATION))
+		{
+			/* Rotation Source:  radians -> normal,  so convert src to degrees
+			 * (However, if both input and output is a rotation, don't apply such corrections)
+			 */
+			BLI_strncpy(driver->expression, "degrees(var)", sizeof(driver->expression));
+		}
+		else {
+			/* Just a normal property without any unit problems */
+			BLI_strncpy(driver->expression, "var", sizeof(driver->expression));
+		}
 		
 		/* Create a driver variable for the target
 		 *   - For transform properties, we want to automatically use "transform channel" instead
@@ -323,7 +351,7 @@ int ANIM_add_driver_with_target(
 			int i;
 			
 			for (i = 0; i < len; i++) {
-				done_tot += add_driver_with_target(reports, dst_id, dst_path, i, src_id, src_path, i, &ptr2, prop2, flag, driver_type);
+				done_tot += add_driver_with_target(reports, dst_id, dst_path, i, src_id, src_path, i, &ptr, prop, &ptr2, prop2, flag, driver_type);
 			}
 			break;
 		}
@@ -335,14 +363,14 @@ int ANIM_add_driver_with_target(
 			int i;
 			
 			for (i = 0; i < len; i++) {
-				done_tot += add_driver_with_target(reports, dst_id, dst_path, i, src_id, src_path, src_index, &ptr2, prop2, flag, driver_type);
+				done_tot += add_driver_with_target(reports, dst_id, dst_path, i, src_id, src_path, src_index, &ptr, prop, &ptr2, prop2, flag, driver_type);
 			}
 			break;
 		}
 		
 		case CREATEDRIVER_MAPPING_1_1: /* 1-1 - Use the specified index (unless -1) */
 		{
-			done_tot = add_driver_with_target(reports, dst_id, dst_path, dst_index, src_id, src_path, src_index, &ptr2, prop2, flag, driver_type);
+			done_tot = add_driver_with_target(reports, dst_id, dst_path, dst_index, src_id, src_path, src_index, &ptr, prop, &ptr2, prop2, flag, driver_type);
 			break;
 		}
 	}
