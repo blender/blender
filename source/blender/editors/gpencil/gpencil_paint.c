@@ -750,9 +750,9 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		}
 		
 		/* smooth stroke - only if there's something to do */
-		if (gpl->smooth_drawfac > 0.0f) {
+		if (gpl->draw_smoothfac > 0.0f) {
 			for (i = 0; i < gps->totpoints; i++) {
-				gp_smooth_stroke(gps, i, gpl->smooth_drawfac, true);
+				gp_smooth_stroke(gps, i, gpl->draw_smoothfac, true);
 			}
 		}
 		
