@@ -572,7 +572,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	bGPDstroke *gps;
 	bGPDspoint *pt;
 	tGPspoint *ptc;
-
+	
 	int i, totelem;
 	/* since strokes are so fine, when using their depth we need a margin otherwise they might get missed */
 	int depth_margin = (p->gpd->flag & GP_DATA_DEPTH_STROKE) ? 4 : 0;
@@ -614,6 +614,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	/* allocate enough memory for a continuous array for storage points */
 	int sublevel = gpl->sublevel;
 	int new_totpoints = gps->totpoints;
+	
 	for (i = 0; i < sublevel; i++) {
 		/* Avoid error if subdivide is too big (assume totpoints is right) */
 		if (new_totpoints + (new_totpoints - 1) > GP_STROKE_BUFFER_MAX) {
@@ -624,7 +625,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		new_totpoints += new_totpoints - 1;
 	}
 	gps->points = MEM_callocN(sizeof(bGPDspoint) * new_totpoints, "gp_stroke_points");
-
+	
 	/* set pointer to first non-initialized point */
 	pt = gps->points + (gps->totpoints - totelem);
 	
@@ -745,19 +746,22 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		
 		/* subdivide the stroke */
 		if (sublevel > 0) {
-			int sub = gps->totpoints;
+			int totpoints = gps->totpoints;
 			for (i = 0; i < sublevel; i++) {
-				sub += sub - 1;
-				gp_subdivide_stroke(gps, sub);
+				/* we're adding one new point between each pair of verts on each step */
+				totpoints += totpoints - 1;
+				
+				gp_subdivide_stroke(gps, totpoints);
 			}
 		}
+		
 		/* smooth stroke - only if there's something to do */
 		if (gpl->smooth_drawfac > 0.0f) {
 			for (i = 0; i < gps->totpoints; i++) {
 				gp_smooth_stroke(gps, i, gpl->smooth_drawfac, true);
 			}
 		}
-
+		
 		if (depth_arr)
 			MEM_freeN(depth_arr);
 	}

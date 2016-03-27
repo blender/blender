@@ -606,40 +606,34 @@ bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf, bool affect_pressure)
 }
 
 /**
- * Subdivide a stroke
+ * Subdivide a stroke once, by adding a point half way between each pair of existing points
  * \param gps           Stroke data
- * \param new_totpoints Total number of points
+ * \param new_totpoints Total number of points (after subdividing)
  */
 void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints)
 {
-	int i;
-	/* Subdivide stroke adding a point half way existing points */
-	bGPDspoint *pt_a;
-	bGPDspoint *pt_b;
-	bGPDspoint *pt_n;
-	
-	/* Move points to insert subdivision */
+	/* Move points towards end of enlarged points array to leave space for new points */
 	int y = 1;
-	for (i = gps->totpoints - 1; i > 0; i--) {
-		pt_n = &gps->points[i];
-		gps->points[new_totpoints - y] = *pt_n;
-		y = y + 2;
+	for (int i = gps->totpoints - 1; i > 0; i--) {
+		gps->points[new_totpoints - y] = gps->points[i];
+		y += 2;
 	}
 	
 	/* Create interpolated points */
-	for (i = 0; i < new_totpoints - 1; i++) {
-		pt_a = &gps->points[i];
-		pt_n = &gps->points[i + 1];
-		pt_b = &gps->points[i + 2];
-		/* Interpolate all values */
-		interp_v3_v3v3(&pt_n->x, &pt_a->x, &pt_b->x, 0.5f);
-		pt_n->pressure = interpf(pt_a->pressure, pt_b->pressure, 0.5f);
-		pt_n->time = interpf(pt_a->time, pt_b->time, 0.5f);
+	for (int i = 0; i < new_totpoints - 1; i += 2) {
+		bGPDspoint *prev  = &gps->points[i];
+		bGPDspoint *pt    = &gps->points[i + 1];
+		bGPDspoint *next  = &gps->points[i + 2];
 		
-		i++; /* add to loop to jump next pair */
+		/* Interpolate all values */
+		interp_v3_v3v3(&pt->x, &prev->x, &next->x, 0.5f);
+		
+		pt->pressure = interpf(prev->pressure, next->pressure, 0.5f);
+		pt->time     = interpf(prev->time, next->time, 0.5f);
 	}
 	
-	gps->totpoints = new_totpoints;  /* Increase number of points */
+	/* Update to new total number of points */
+	gps->totpoints = new_totpoints;
 }
 
 /* ******************************************************** */

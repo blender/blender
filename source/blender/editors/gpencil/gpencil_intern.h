@@ -137,9 +137,9 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke 
 bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf, bool affect_pressure);
 
 /**
- * Subdivide a stroke
+ * Subdivide a stroke once, by adding points at the midpoint between each pair of points
  * \param gps           Stroke data
- * \param new_totpoints Total number of points
+ * \param new_totpoints Total number of points (after subdividing)
  */
 void gp_subdivide_stroke(bGPDstroke *gps, const int new_totpoints);
 
