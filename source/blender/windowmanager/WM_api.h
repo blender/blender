@@ -304,6 +304,7 @@ void        WM_operator_properties_select_all(struct wmOperatorType *ot);
 void        WM_operator_properties_select_action(struct wmOperatorType *ot, int default_action);
 void        WM_operator_properties_select_action_simple(struct wmOperatorType *ot, int default_action);
 void        WM_operator_properties_select_random(struct wmOperatorType *ot);
+int         WM_operator_properties_select_random_seed_increment_get(wmOperator *op);
 struct CheckerIntervalParams {
 	int nth;  /* bypass when set to zero */
 	int skip;
