@@ -1421,7 +1421,7 @@ void VIEW3D_OT_walk(wmOperatorType *ot)
 	ot->invoke = walk_invoke;
 	ot->cancel = walk_cancel;
 	ot->modal = walk_modal;
-	ot->poll = ED_operator_view3d_active;
+	ot->poll = ED_operator_region_view3d_active;
 
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING;

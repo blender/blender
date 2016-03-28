@@ -1065,7 +1065,7 @@ void VIEW3D_OT_fly(wmOperatorType *ot)
 	ot->invoke = fly_invoke;
 	ot->cancel = fly_cancel;
 	ot->modal = fly_modal;
-	ot->poll = ED_operator_view3d_active;
+	ot->poll = ED_operator_region_view3d_active;
 
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING;
