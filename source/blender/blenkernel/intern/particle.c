@@ -1609,8 +1609,14 @@ void psys_particle_on_dm(DerivedMesh *dm_final, int from, int index, int index_d
 			normalize_v3(nor);
 		}
 
-		if (orco)
-			copy_v3_v3(orco, orcodata[mapindex]);
+		if (orco) {
+			if (orcodata) {
+				copy_v3_v3(orco, orcodata[mapindex]);
+			}
+			else {
+				copy_v3_v3(orco, vec);
+			}
+		}
 
 		if (ornor) {
 			dm_final->getVertNo(dm_final, mapindex, ornor);
