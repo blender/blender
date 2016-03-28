@@ -306,7 +306,6 @@ static void blf_font_draw_buffer_ex(
 	const unsigned char *b_col_char = buf_info->col_char;
 	int chx, chy;
 	int y, x;
-	float a;
 
 	BLF_KERNING_VARS(font, has_kerning, kern_mode);
 
@@ -356,26 +355,27 @@ static void blf_font_draw_buffer_ex(
 				int yb = yb_start;
 				for (y = ((chy >= 0) ? 0 : -chy); y < height_clip; y++) {
 					for (x = ((chx >= 0) ? 0 : -chx); x < width_clip; x++) {
-						a = *(g->bitmap + x + (yb * g->pitch)) / 255.0f;
-
-						if (a > 0.0f) {
+						const char a_byte = *(g->bitmap + x + (yb * g->pitch));
+						if (a_byte) {
+							const float a = (a_byte / 255.0f) * b_col_float[3];
 							const size_t buf_ofs = (
 							        ((size_t)(chx + x) + ((size_t)(pen_y + y) * (size_t)buf_info->w)) *
 							        (size_t)buf_info->ch);
 							float *fbuf = buf_info->fbuf + buf_ofs;
-							float alphatest;
 
 							if (a >= 1.0f) {
 								fbuf[0] = b_col_float[0];
 								fbuf[1] = b_col_float[1];
 								fbuf[2] = b_col_float[2];
-								fbuf[3] = (alphatest = (fbuf[3] + (b_col_float[3]))) < 1.0f ? alphatest : 1.0f;
+								fbuf[3] = 1.0f;
 							}
 							else {
+								float alphatest;
 								fbuf[0] = (b_col_float[0] * a) + (fbuf[0] * (1.0f - a));
 								fbuf[1] = (b_col_float[1] * a) + (fbuf[1] * (1.0f - a));
 								fbuf[2] = (b_col_float[2] * a) + (fbuf[2] * (1.0f - a));
-								fbuf[3] = (alphatest = (fbuf[3] + (b_col_float[3] * a))) < 1.0f ? alphatest : 1.0f;
+								fbuf[3] = (alphatest = (fbuf[3] + a)) < 1.0f ?
+								          alphatest : 1.0f;
 							}
 						}
 					}
@@ -391,40 +391,28 @@ static void blf_font_draw_buffer_ex(
 				int yb = yb_start;
 				for (y = ((chy >= 0) ? 0 : -chy); y < height_clip; y++) {
 					for (x = ((chx >= 0) ? 0 : -chx); x < width_clip; x++) {
-						a = *(g->bitmap + x + (yb * g->pitch)) / 255.0f;
+						const char a_byte = *(g->bitmap + x + (yb * g->pitch));
 
-						if (a > 0.0f) {
+						if (a_byte) {
+							const float a = (a_byte / 255.0f) * b_col_float[3];
 							const size_t buf_ofs = (
 							        ((size_t)(chx + x) + ((size_t)(pen_y + y) * (size_t)buf_info->w)) *
 							        (size_t)buf_info->ch);
 							unsigned char *cbuf = buf_info->cbuf + buf_ofs;
-							int alphatest;
 
 							if (a >= 1.0f) {
 								cbuf[0] = b_col_char[0];
 								cbuf[1] = b_col_char[1];
 								cbuf[2] = b_col_char[2];
-								
-								alphatest = (int)cbuf[3] + (int)b_col_char[3];
-								if (alphatest < 255) {
-									cbuf[3] = (unsigned char)(alphatest);
-								}
-								else {
-									cbuf[3] = 255;
-								}
+								cbuf[3] = 255;
 							}
 							else {
+								int alphatest;
 								cbuf[0] = (unsigned char)((b_col_char[0] * a) + (cbuf[0] * (1.0f - a)));
 								cbuf[1] = (unsigned char)((b_col_char[1] * a) + (cbuf[1] * (1.0f - a)));
 								cbuf[2] = (unsigned char)((b_col_char[2] * a) + (cbuf[2] * (1.0f - a)));
-								
-								alphatest = ((int)cbuf[3] + (int)((b_col_float[3] * a) * 255.0f));
-								if (alphatest < 255) {
-									cbuf[3] = (unsigned char)(alphatest);
-								}
-								else {
-									cbuf[3] = 255;
-								}
+								cbuf[3] = (unsigned char)((alphatest = ((int)cbuf[3] + (int)(a * 255)) < 255) ?
+								          alphatest : 255);
 							}
 						}
 					}
