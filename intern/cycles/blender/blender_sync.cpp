@@ -133,10 +133,18 @@ bool BlenderSync::sync_recalc()
 	BL::BlendData::worlds_iterator b_world;
 
 	for(b_data.worlds.begin(b_world); b_world != b_data.worlds.end(); ++b_world) {
-		if(world_map == b_world->ptr.data &&
-		   (b_world->is_updated() || (b_world->node_tree() && b_world->node_tree().is_updated())))
-		{
-			world_recalc = true;
+		if(world_map == b_world->ptr.data) {
+			if(b_world->is_updated() ||
+			   (b_world->node_tree() && b_world->node_tree().is_updated()))
+			{
+				world_recalc = true;
+			}
+			else if(b_world->node_tree() && b_world->use_nodes()) {
+				Shader *shader = scene->shaders[scene->default_background];
+				if(has_updated_objects && shader != NULL && shader->has_object_dependency) {
+					world_recalc = true;
+				}
+			}
 		}
 	}
 
