@@ -1753,7 +1753,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, const char *context, int c
 	int redo;
 	int scroll;
 
-	bool use_category_tabs = (ar->regiontype == RGN_TYPE_TOOLS);  /* XXX, should use some better check? */
+	bool use_category_tabs = (ELEM(ar->regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI));  /* XXX, should use some better check? */
 	/* offset panels for small vertical tab area */
 	const char *category = NULL;
 	const int category_tabs_width = UI_PANEL_CATEGORY_MARGIN_WIDTH;
