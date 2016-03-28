@@ -1045,7 +1045,7 @@ static int curve_select_random_exec(bContext *C, wmOperator *op)
 	ListBase *editnurb = object_editcurve_get(obedit);
 	const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
 	const float randfac = RNA_float_get(op->ptr, "percent") / 100.0f;
-	const int seed = RNA_int_get(op->ptr, "seed");
+	const int seed = WM_operator_properties_select_random_seed_increment_get(op);
 
 	curve_select_random(editnurb, randfac, seed, select);
 	BKE_curve_nurb_vert_active_validate(obedit->data);
