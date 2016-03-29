@@ -607,7 +607,7 @@ static Entry *ghash_pop(GHash *gh, GHashIterState *state)
 	}
 
 	/* Note: using first_bucket_index here allows us to avoid potential huge number of loops over buckets,
-	 *       in case we are poping from a large ghash with few items in it... */
+	 *       in case we are popping from a large ghash with few items in it... */
 	curr_bucket = ghash_find_next_bucket_index(gh, curr_bucket);
 
 	Entry *e = gh->buckets[curr_bucket];
@@ -836,11 +836,13 @@ bool BLI_ghash_ensure_p(GHash *gh, void *key, void ***r_val)
 }
 
 /**
- * A version of #BLI_ghash_ensure_p copies the key on insertion.
+ * A version of #BLI_ghash_ensure_p that allows caller to re-assign the key.
+ * Typically used when the key is to be duplicated.
+ *
+ * \warning Caller _must_ write to \a r_key when returning false.
  */
 bool BLI_ghash_ensure_p_ex(
-        GHash *gh, const void *key, void ***r_val,
-        GHashKeyCopyFP keycopyfp)
+        GHash *gh, const void *key, void ***r_key, void ***r_val)
 {
 	const unsigned int hash = ghash_keyhash(gh, key);
 	const unsigned int bucket_index = ghash_bucket_index(gh, hash);
@@ -848,11 +850,13 @@ bool BLI_ghash_ensure_p_ex(
 	const bool haskey = (e != NULL);
 
 	if (!haskey) {
-		/* keycopyfp(key) is the only difference to BLI_ghash_ensure_p */
+		/* pass 'key' incase we resize */
 		e = BLI_mempool_alloc(gh->entrypool);
-		ghash_insert_ex_keyonly_entry(gh, keycopyfp(key), bucket_index, (Entry *)e);
+		ghash_insert_ex_keyonly_entry(gh, (void *)key, bucket_index, (Entry *)e);
+		e->e.key = NULL;  /* caller must re-assign */
 	}
 
+	*r_key = &e->e.key;
 	*r_val = &e->val;
 	return haskey;
 }
@@ -913,12 +917,12 @@ bool BLI_ghash_haskey(GHash *gh, const void *key)
 }
 
 /**
- * Remove a random entry from \a ghp, returning true if a key/value pair could be removed, false otherwise.
+ * Remove a random entry from \a gh, returning true if a key/value pair could be removed, false otherwise.
  *
  * \param r_key: The removed key.
  * \param r_val: The removed value.
  * \param state: Used for efficient removal.
- * \return true if there was somethjing to pop, false if ghash was already empty.
+ * \return true if there was something to pop, false if ghash was already empty.
  */
 bool BLI_ghash_pop(
         GHash *gh, GHashIterState *state,
@@ -1391,6 +1395,30 @@ bool BLI_gset_add(GSet *gs, void *key)
 }
 
 /**
+ * Set counterpart to #BLI_ghash_ensure_p_ex.
+ * similar to BLI_gset_add, except it returns the key pointer.
+ *
+ * \warning Caller _must_ write to \a r_key when returning false.
+ */
+bool BLI_gset_ensure_p_ex(GSet *gs, const void *key, void ***r_key)
+{
+	const unsigned int hash = ghash_keyhash((GHash *)gs, key);
+	const unsigned int bucket_index = ghash_bucket_index((GHash *)gs, hash);
+	GSetEntry *e = (GSetEntry *)ghash_lookup_entry_ex((GHash *)gs, key, bucket_index);
+	const bool haskey = (e != NULL);
+
+	if (!haskey) {
+		/* pass 'key' incase we resize */
+		e = BLI_mempool_alloc(((GHash *)gs)->entrypool);
+		ghash_insert_ex_keyonly_entry((GHash *)gs, (void *)key, bucket_index, (Entry *)e);
+		e->key = NULL;  /* caller must re-assign */
+	}
+
+	*r_key = &e->key;
+	return haskey;
+}
+
+/**
  * Adds the key to the set (duplicates are managed).
  * Matching #BLI_ghash_reinsert
  *
@@ -1413,11 +1441,11 @@ bool BLI_gset_haskey(GSet *gs, const void *key)
 }
 
 /**
- * Remove a random entry from \a gsp, returning true if a key could be removed, false otherwise.
+ * Remove a random entry from \a gs, returning true if a key could be removed, false otherwise.
  *
  * \param r_key: The removed key.
  * \param state: Used for efficient removal.
- * \return true if there was somethjing to pop, false if gset was already empty.
+ * \return true if there was something to pop, false if gset was already empty.
  */
 bool BLI_gset_pop(
         GSet *gs, GSetIterState *state,
