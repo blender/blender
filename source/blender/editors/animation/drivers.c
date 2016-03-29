@@ -51,6 +51,7 @@
 #include "ED_keyframing.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -636,14 +637,14 @@ bool ANIM_paste_driver(ReportList *reports, ID *id, const char rna_path[], int a
 /* NOTE: Used by ANIM_OT_driver_button_add and UI_OT_eyedropper_driver */
 // XXX: These names need reviewing
 EnumPropertyItem prop_driver_create_mapping_types[] = {
-	{CREATEDRIVER_MAPPING_1_N, "SINGLE_MANY", 0, "All from Target",
+	{CREATEDRIVER_MAPPING_1_N, "SINGLE_MANY", ICON_UI, "All from Target",
 	 "Drive all components of this property using the target picked"},
 	{CREATEDRIVER_MAPPING_1_1, "DIRECT", 0, "Single from Target",
 	 "Drive this component of this property using the target picked"},
 	{CREATEDRIVER_MAPPING_N_N, "MATCH", 0, "Match Indices",
 	 "Create drivers for each pair of corresponding elements"},
 	 
-	{CREATEDRIVER_MAPPING_NONE_ALL, "NONE_ALL", 0, "Manually Create Later",
+	{CREATEDRIVER_MAPPING_NONE_ALL, "NONE_ALL", ICON_HAND, "Manually Create Later",
 	 "Create drivers for all properites without assigning any targets yet"},
 	{CREATEDRIVER_MAPPING_NONE,     "NONE_SINGLE", 0, "Manually Create Later (Single)",
 	 "Create driver for this property only and without assigning any targets yet"},
