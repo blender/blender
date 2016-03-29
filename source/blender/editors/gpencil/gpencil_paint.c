@@ -711,9 +711,10 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		}
 		
 		/* smooth stroke - only if there's something to do */
+		/* NOTE: No pressure smoothing, or else we get annoying thickness changes while drawing... */
 		if (gpl->draw_smoothfac > 0.0f) {
 			for (i = 0; i < gps->totpoints; i++) {
-				gp_smooth_stroke(gps, i, gpl->draw_smoothfac, true);
+				gp_smooth_stroke(gps, i, gpl->draw_smoothfac, false);
 			}
 		}
 		
