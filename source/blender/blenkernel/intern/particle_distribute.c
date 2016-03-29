@@ -795,6 +795,11 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		return 0;
 	}
 	
+	/* XXX This distribution code is totally broken in case from == PART_FROM_CHILD, it's always using finaldm
+	 *     even if use_modifier_stack is unset... But making things consistent here break all existing edited
+	 *     hair systems, so better wait for complete rewrite.
+	 */
+
 	psys_thread_context_init(ctx, sim);
 	
 	/* First handle special cases */
@@ -810,10 +815,20 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		/* Grid distribution */
 		if (part->distr==PART_DISTR_GRID && from != PART_FROM_VERT) {
 			BLI_srandom(31415926 + psys->seed);
-			dm= CDDM_from_mesh((Mesh*)ob->data);
-			DM_ensure_tessface(dm);
+
+			if (psys->part->use_modifier_stack) {
+				dm = finaldm;
+			}
+			else {
+				dm = CDDM_from_mesh((Mesh*)ob->data);
+			}
+
 			distribute_grid(dm,psys);
-			dm->release(dm);
+
+			if (dm != finaldm) {
+				dm->release(dm);
+			}
+
 			return 0;
 		}
 	}
