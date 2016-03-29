@@ -23,6 +23,11 @@
 
 import bmesh
 
+__all__ = (
+    "select_prev",
+    "select_next",
+    )
+
 
 def other_edges_over_face(e):
     # Can yield same edge multiple times, its fine.
@@ -261,6 +266,52 @@ def select_next(bm, report):
         return False
 
     ele_pair_next = find_next(*ele_pair)
+
+    if len(ele_pair_next) > 1:
+        # We have multiple options,
+        # check topology around the element and find the closest match
+        # (allow for sloppy comparison if exact checks fail).
+
+        def ele_uuid(ele):
+            ele_type = type(ele)
+            if ele_type is bmesh.types.BMFace:
+                ret = [len(f.verts) for l in ele.loops for f in l.edge.link_faces if f is not ele]
+            elif ele_type is bmesh.types.BMEdge:
+                ret = [len(l.face.verts) for l in ele.link_loops]
+            elif ele_type is bmesh.types.BMVert:
+                ret = [len(l.face.verts) for l in ele.link_loops]
+            else:
+                raise TypeError("wrong type")
+            return tuple(sorted(ret))
+
+        def ele_uuid_filter():
+
+            def pass_fn(seq):
+                return seq
+
+            def sum_set(seq):
+                return sum(set(seq))
+
+            uuid_cmp = ele_uuid(ele_pair[0])
+            ele_pair_next_uuid = [(ele, ele_uuid(ele)) for ele in ele_pair_next]
+
+            # Attempt to find the closest match,
+            # start specific, use increasingly more approximate comparisons.
+            for fn in (pass_fn, set, sum_set, len):
+                uuid_cmp_test = fn(uuid_cmp)
+                ele_pair_next_uuid_test = [
+                        (ele, uuid) for (ele, uuid) in ele_pair_next_uuid
+                        if uuid_cmp_test == fn(uuid)]
+                if len(ele_pair_next_uuid_test) > 1:
+                    ele_pair_next_uuid = ele_pair_next_uuid_test
+                elif len(ele_pair_next_uuid_test) == 1:
+                    return [ele for (ele, uuid) in ele_pair_next_uuid_test]
+            return []
+
+        ele_pair_next[:] = ele_uuid_filter()
+
+        del ele_uuid, ele_uuid_filter
+
     if len(ele_pair_next) != 1:
         report({'INFO'}, "No single next item found")
         return False
