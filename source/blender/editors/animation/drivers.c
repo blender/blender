@@ -155,24 +155,6 @@ FCurve *verify_driver_fcurve(ID *id, const char rna_path[], const int array_inde
 /* ************************************************** */
 /* Driver Management API */
 
-/* Mapping Types enum for operators */
-// XXX: These names need reviewing
-EnumPropertyItem prop_driver_create_mapping_types[] = {
-	{CREATEDRIVER_MAPPING_1_N, "SINGLE_MANY", 0, "All from Target",
-	 "Drive all components of this property using the target picked"},
-	{CREATEDRIVER_MAPPING_1_1, "DIRECT", 0, "Single from Target",
-	 "Drive this component of this property using the target picked"},
-	{CREATEDRIVER_MAPPING_N_N, "MATCH", 0, "Match Indices",
-	 "Create drivers for each pair of corresponding elements"},
-	 
-	// XXX: for all vs just one?
-	{CREATEDRIVER_MAPPING_NONE, "NONE", 0, "Manually Create Later",
-	 "Create driver without assigning any targets yet"},
-	{0, NULL, 0, NULL, NULL}
-};
-
-/* --------------------------------- */
-
 /* Helper for ANIM_add_driver_with_target - Adds the actual driver */
 static int add_driver_with_target(
         ReportList *UNUSED(reports),
@@ -648,37 +630,144 @@ bool ANIM_paste_driver(ReportList *reports, ID *id, const char rna_path[], int a
 /* ************************************************** */
 /* UI-Button Interface */
 
+/* Add Driver - Enum Defines ------------------------- */
+
+/* Mapping Types enum for operators */
+/* NOTE: Used by ANIM_OT_driver_button_add and UI_OT_eyedropper_driver */
+// XXX: These names need reviewing
+EnumPropertyItem prop_driver_create_mapping_types[] = {
+	{CREATEDRIVER_MAPPING_1_N, "SINGLE_MANY", 0, "All from Target",
+	 "Drive all components of this property using the target picked"},
+	{CREATEDRIVER_MAPPING_1_1, "DIRECT", 0, "Single from Target",
+	 "Drive this component of this property using the target picked"},
+	{CREATEDRIVER_MAPPING_N_N, "MATCH", 0, "Match Indices",
+	 "Create drivers for each pair of corresponding elements"},
+	 
+	{CREATEDRIVER_MAPPING_NONE_ALL, "NONE_ALL", 0, "Manually Create Later",
+	 "Create drivers for all properites without assigning any targets yet"},
+	{CREATEDRIVER_MAPPING_NONE,     "NONE_SINGLE", 0, "Manually Create Later (Single)",
+	 "Create driver for this property only and without assigning any targets yet"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+/* Filtering callback for driver mapping types enum */
+static EnumPropertyItem *driver_mapping_type_itemsf(bContext *C, PointerRNA *UNUSED(owner_ptr), PropertyRNA *UNUSED(owner_prop), bool *r_free)
+{
+	EnumPropertyItem *input = prop_driver_create_mapping_types;
+	EnumPropertyItem *item = NULL;
+	
+	PointerRNA ptr = {{NULL}};
+	PropertyRNA *prop = NULL;
+	int index;
+	
+	int totitem = 0;
+	
+	if (!C) /* needed for docs */
+		return prop_driver_create_mapping_types;
+	
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
+	
+	if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
+		const bool is_array = RNA_property_array_check(prop);
+		
+		while (input->identifier) {
+			if (ELEM(input->value, CREATEDRIVER_MAPPING_1_1, CREATEDRIVER_MAPPING_NONE) || (is_array)) {
+				RNA_enum_item_add(&item, &totitem, input);
+			}
+			input++;
+		}
+	}
+	else {
+		/* We need at least this one! */
+		RNA_enum_items_add_value(&item, &totitem, input, CREATEDRIVER_MAPPING_NONE);
+	}
+	
+	RNA_enum_item_end(&item, &totitem);
+	
+	*r_free = true;
+	return item;
+}
+
+
 /* Add Driver Button Operator ------------------------ */
 
-static int add_driver_button_exec(bContext *C, wmOperator *op)
+static int add_driver_button_poll(bContext *C)
 {
 	PointerRNA ptr = {{NULL}};
 	PropertyRNA *prop = NULL;
 	int index;
 	
-	const bool all = RNA_boolean_get(op->ptr, "all");
-	int ret = OPERATOR_CANCELLED;
+	/* this operator can only run if there's a property button active, and it can be animated */
+	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
+	return (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop));
+}
+
+/* Wrapper for creating a driver without knowing what the targets will be yet (i.e. "manual/add later") */
+static int add_driver_button_none(bContext *C, wmOperator *op, short mapping_type)
+{
+	PointerRNA ptr = {{NULL}};
+	PropertyRNA *prop = NULL;
+	int index;
+	int success = 0;
 	
-	/* try to create driver using property retrieved from UI */
 	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 	
+	if (mapping_type == CREATEDRIVER_MAPPING_NONE_ALL)
+		index = -1;
+	
 	if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
-		wmOperatorType *ot = WM_operatortype_find("UI_OT_eyedropper_driver", true);
-		PointerRNA op_ptr;
+		char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
+		short flags = CREATEDRIVER_WITH_DEFAULT_DVAR;
 		
-		WM_operator_properties_create_ptr(&op_ptr, ot);
-		
-		if (all)
-			RNA_enum_set(&op_ptr, "mapping_type", CREATEDRIVER_MAPPING_1_N);
-		else
-			RNA_enum_set(&op_ptr, "mapping_type", CREATEDRIVER_MAPPING_1_1);
-		
-		ret = WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &op_ptr);
-		
-		WM_operator_properties_free(&op_ptr);
+		if (path) {
+			success += ANIM_add_driver(op->reports, ptr.id.data, path, index, flags, DRIVER_TYPE_PYTHON);
+			MEM_freeN(path);
+		}
 	}
 	
-	return ret;
+	if (success) {
+		/* send updates */
+		UI_context_update_anim_flag(C);
+		DAG_relations_tag_update(CTX_data_main(C));
+		WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL);  // XXX
+		
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+static int add_driver_button_exec(bContext *C, wmOperator *op)
+{
+	short mapping_type = RNA_enum_get(op->ptr, "mapping_type");
+	if (ELEM(mapping_type, CREATEDRIVER_MAPPING_NONE, CREATEDRIVER_MAPPING_NONE_ALL)) {
+		/* Just create driver with no targets */
+		return add_driver_button_none(C, op, mapping_type);
+	}
+	else {
+		/* Create Driver using Eyedropper */
+		wmOperatorType *ot = WM_operatortype_find("UI_OT_eyedropper_driver", true);
+		
+		/* XXX: We assume that it's fine to use the same set of properties, since they're actually the same... */
+		return WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, op->ptr);
+	}
+}
+
+/* Show menu or create drivers */
+static int add_driver_button_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	PropertyRNA *prop;
+	
+	if ((prop = RNA_struct_find_property(op->ptr, "mapping_type")) && RNA_property_is_set(op->ptr, prop)) {
+		/* Mapping Type is Set - Directly go into creating drivers */
+		return add_driver_button_exec(C, op);
+	}
+	else {
+		/* Show menu */
+		// TODO: This should get filtered by the enum filter
+		return WM_menu_invoke(C, op, event);
+	}
 }
 
 void ANIM_OT_driver_button_add(wmOperatorType *ot)
@@ -689,14 +778,20 @@ void ANIM_OT_driver_button_add(wmOperatorType *ot)
 	ot->description = "Add driver(s) for the property(s) connected represented by the highlighted button";
 	
 	/* callbacks */
+	/* NOTE: No exec, as we need all these to use the current context info
+	 * (especially the eyedropper, which is interactive)
+	 */
+	ot->invoke = add_driver_button_invoke;
 	ot->exec = add_driver_button_exec; 
-	//op->poll = ??? // TODO: need to have some animatable property to do this
+	ot->poll = add_driver_button_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
-
+	
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Create drivers for all elements of the array");
+	ot->prop = RNA_def_enum(ot->srna, "mapping_type", prop_driver_create_mapping_types, 0,
+	                        "Mapping Type", "Method used to match target and driven properties");
+	RNA_def_enum_funcs(ot->prop, driver_mapping_type_itemsf);
 }
 
 /* Remove Driver Button Operator ------------------------ */

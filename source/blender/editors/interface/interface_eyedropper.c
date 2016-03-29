@@ -1231,7 +1231,7 @@ void UI_OT_eyedropper_driver(wmOperatorType *ot)
 	ot->poll = driverdropper_poll;
 	
 	/* flags */
-	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL | OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_enum(ot->srna, "mapping_type", prop_driver_create_mapping_types, 0,

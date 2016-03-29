@@ -6719,14 +6719,14 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 			uiItemS(layout);
 
 			if (is_array_component) {
-				uiItemBooleanO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Drivers"),
-				               ICON_NONE, "ANIM_OT_driver_button_add", "all", 1);
-				uiItemBooleanO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Single Driver"),
-				               ICON_NONE, "ANIM_OT_driver_button_add", "all", 0);
+				uiItemMenuEnumO(layout, C, "ANIM_OT_driver_button_add", "mapping_type", 
+				                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Drivers"), 
+				                ICON_NONE);
 			}
 			else {
-				uiItemBooleanO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Driver"),
-				               ICON_NONE, "ANIM_OT_driver_button_add", "all", 1);
+				uiItemMenuEnumO(layout, C, "ANIM_OT_driver_button_add", "mapping_type", 
+				                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Driver"), 
+				                ICON_NONE);
 			}
 
 			if (ANIM_driver_can_paste()) {

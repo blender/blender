@@ -240,7 +240,9 @@ typedef enum eCreateDriver_MappingTypes {
 	CREATEDRIVER_MAPPING_1_N        = 0,           /* 1 to Many - Use the specified index, and drive all elements with it */
 	CREATEDRIVER_MAPPING_1_1        = 1,           /* 1 to 1 - Only for the specified index on each side */
 	CREATEDRIVER_MAPPING_N_N        = 2,           /* Many to Many - Match up the indices one by one (only for drivers on vectors/arrays) */
-	CREATEDRIVER_MAPPING_NONE       = 3,           /* None - Do not create driver with any targets; these will get added later instead, when more convenient */
+	
+	CREATEDRIVER_MAPPING_NONE       = 3,           /* None (Single Prop)    - Do not create driver with any targets; these will get added later instead */
+	CREATEDRIVER_MAPPING_NONE_ALL   = 4,           /* None (All Properties) - Do not create driver with any targets; these will get added later instead */
 } eCreateDriver_MappingTypes;
 
 /* RNA Enum of eCreateDriver_MappingTypes, for use by the appropriate operators */
