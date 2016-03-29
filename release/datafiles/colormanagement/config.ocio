@@ -1,6 +1,8 @@
 # OpenColorIO configuration file for Blender
 #
 # Based on aces, nuke-default and spi configurations from OpenColorIO-Config
+#
+# See ocio-license.txt for details.
 
 ocio_profile_version: 1
 
