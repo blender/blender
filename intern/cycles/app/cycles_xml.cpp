@@ -1008,6 +1008,8 @@ static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
 					fdata[2] = make_float3(UV[v2*2], UV[v2*2+1], 0.0);
 					fdata += 3;
 				}
+
+				index_offset += nverts[i];
 			}
 		}
 	}
