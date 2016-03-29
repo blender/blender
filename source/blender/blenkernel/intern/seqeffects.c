@@ -1545,7 +1545,7 @@ static void init_wipe_effect(Sequence *seq)
 
 static int num_inputs_wipe(void)
 {
-	return 1;
+	return 2;
 }
 
 static void free_wipe_effect(Sequence *seq)
