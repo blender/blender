@@ -35,6 +35,7 @@ __all__ = (
     "extensions_audio",
     "is_subdir",
     "module_names",
+    "native_pathsep",
     "reduce_dirs",
     "relpath",
     "resolve_ncase",
@@ -347,6 +348,28 @@ def basename(path):
     Use for Windows compatibility.
     """
     return _os.path.basename(path[2:] if path[:2] in {"//", b"//"} else path)
+
+
+def native_pathsep(path):
+    """
+    Replace the path separator with the systems native ``os.sep``.
+    """
+    if type(path) is str:
+        if _os.sep == "/":
+            return path.replace("\\", "/")
+        else:
+            if path.startswith("//"):
+                return "//" + path[2:].replace("/", "\\")
+            else:
+                return path.replace("/", "\\")
+    else:  # bytes
+        if _os.sep == "/":
+            return path.replace(b"\\", b"/")
+        else:
+            if path.startswith(b"//"):
+                return b"//" + path[2:].replace(b"/", b"\\")
+            else:
+                return path.replace(b"/", b"\\")
 
 
 def reduce_dirs(dirs):
