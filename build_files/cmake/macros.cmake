@@ -141,22 +141,6 @@ function(target_link_libraries_debug
 	endforeach()
 endfunction()
 
-function(target_link_libraries_decoupled
-	target
-	libraries_var
-	)
-
-	if(NOT MSVC)
-		target_link_libraries(${target} ${${libraries_var}})
-	else()
-		# For MSVC we link to different libraries depending whether
-		# release or debug target is being built.
-		file_list_suffix(_libraries_debug "${${libraries_var}}" "_d")
-		target_link_libraries_debug(${target} "${_libraries_debug}")
-		target_link_libraries_optimized(${target} "${${libraries_var}}")
-	endif()
-endfunction()
-
 # Nicer makefiles with -I/1/foo/ instead of -I/1/2/3/../../foo/
 # use it instead of include_directories()
 function(blender_include_dirs
@@ -417,14 +401,7 @@ function(setup_liblinks
 	endif()
 	target_link_libraries(${target} ${JPEG_LIBRARIES})
 	if(WITH_IMAGE_OPENEXR)
-		if(WIN32 AND NOT UNIX AND NOT CMAKE_COMPILER_IS_GNUCC)
-			file_list_suffix(OPENEXR_LIBRARIES_DEBUG "${OPENEXR_LIBRARIES}" "_d")
-			target_link_libraries_debug(${target} "${OPENEXR_LIBRARIES_DEBUG}")
-			target_link_libraries_optimized(${target} "${OPENEXR_LIBRARIES}")
-			unset(OPENEXR_LIBRARIES_DEBUG)
-		else()
-			target_link_libraries(${target} ${OPENEXR_LIBRARIES})
-		endif()
+		target_link_libraries(${target} ${OPENEXR_LIBRARIES})
 	endif()
 	if(WITH_IMAGE_OPENJPEG AND WITH_SYSTEM_OPENJPEG)
 		target_link_libraries(${target} ${OPENJPEG_LIBRARIES})
