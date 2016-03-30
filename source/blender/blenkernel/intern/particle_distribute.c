@@ -822,6 +822,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 			else {
 				dm = CDDM_from_mesh((Mesh*)ob->data);
 			}
+			DM_ensure_tessface(dm);
 
 			distribute_grid(dm,psys);
 
