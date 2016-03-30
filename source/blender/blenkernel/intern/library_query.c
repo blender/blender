@@ -88,7 +88,7 @@
 		if (_flag & IDWALK_READONLY) { \
 			BLI_assert(*(id_pp) == old_id); \
 		} \
-		if (_flag & IDWALK_RECURSE) { \
+		if (old_id && (_flag & IDWALK_RECURSE)) { \
 			if (!BLI_gset_haskey((_data)->ids_handled, old_id)) { \
 				BLI_gset_add((_data)->ids_handled, old_id); \
 				if (!(callback_return & IDWALK_RET_STOP_RECURSION)) { \
