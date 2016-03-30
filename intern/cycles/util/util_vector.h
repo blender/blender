@@ -107,7 +107,7 @@ public:
 			capacity = 0;
 		}
 		else {
-			data = (T*)util_aligned_malloc(sizeof(T)*newsize, alignment);
+			data = mem_allocate(newsize);
 			datasize = newsize;
 			capacity = datasize;
 		}
@@ -126,7 +126,7 @@ public:
 			capacity = 0;
 		}
 		else {
-			data = (T*)util_aligned_malloc(sizeof(T)*from.datasize, alignment);
+			data = mem_allocate(from.datasize);
 			memcpy(data, from.data, from.datasize*sizeof(T));
 			datasize = from.datasize;
 			capacity = datasize;
@@ -142,7 +142,7 @@ public:
 		data = NULL;
 
 		if(datasize > 0) {
-			data = (T*)util_aligned_malloc(sizeof(T)*datasize, alignment);
+			data = mem_allocate(datasize);
 			memcpy(data, &from[0], datasize*sizeof(T));
 		}
 
@@ -151,7 +151,7 @@ public:
 
 	~array()
 	{
-		util_aligned_free(data);
+		mem_free(data, capacity);
 	}
 
 	T* resize(size_t newsize)
@@ -161,15 +161,15 @@ public:
 		}
 		else if(newsize != datasize) {
 			if(newsize > capacity) {
-				T *newdata = (T*)util_aligned_malloc(sizeof(T)*newsize, alignment);
+				T *newdata = mem_allocate(newsize);
 				if(newdata == NULL) {
 					/* Allocation failed, likely out of memory. */
 					clear();
 					return NULL;
 				}
-				else if(data) {
+				else if(data != NULL) {
 					memcpy(newdata, data, ((datasize < newsize)? datasize: newsize)*sizeof(T));
-					util_aligned_free(data);
+					mem_free(data, capacity);
 				}
 				data = newdata;
 				capacity = newsize;
@@ -182,7 +182,7 @@ public:
 	void clear()
 	{
 		if(data != NULL) {
-			util_aligned_free(data);
+			mem_free(data, capacity);
 			data = NULL;
 		}
 		datasize = 0;
@@ -202,10 +202,10 @@ public:
 
 	void reserve(size_t newcapacity) {
 		if(newcapacity > capacity) {
-			T *newdata = (T*)util_aligned_malloc(sizeof(T)*newcapacity, alignment);
+			T *newdata = mem_allocate(newcapacity);
 			if(data) {
 				memcpy(newdata, data, ((datasize < newcapacity)? datasize: newcapacity)*sizeof(T));
-				util_aligned_free(data);
+				mem_free(data, capacity);
 			}
 			data = newdata;
 			capacity = newcapacity;
@@ -213,6 +213,23 @@ public:
 	}
 
 protected:
+	inline T* mem_allocate(size_t N)
+	{
+		T *mem = (T*)util_aligned_malloc(sizeof(T)*N, alignment);
+		if(mem != NULL) {
+			util_guarded_mem_alloc(sizeof(T)*N);
+		}
+		return mem;
+	}
+
+	inline void mem_free(T *mem, size_t N)
+	{
+		if(mem != NULL) {
+			util_guarded_mem_free(sizeof(T)*N);
+			util_aligned_free(mem);
+		}
+	}
+
 	T *data;
 	size_t datasize;
 	size_t capacity;
