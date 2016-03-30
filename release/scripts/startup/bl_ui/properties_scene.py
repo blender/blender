@@ -33,7 +33,7 @@ from bl_ui.properties_physics_common import (
 
 
 class SCENE_MT_units_length_presets(Menu):
-    """Sets the unit of measure for properties that use length values"""
+    """Unit of measure for properties that use length values"""
     bl_label = "Unit Presets"
     preset_subdir = "units_length"
     preset_operator = "script.execute_preset"

@@ -497,7 +497,7 @@ void ARMATURE_OT_roll_clear(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Clear Roll";
 	ot->idname = "ARMATURE_OT_roll_clear";
-	ot->description = "Clear roll for select bones";
+	ot->description = "Clear roll for selected bones";
 
 	/* api callbacks */
 	ot->exec = armature_roll_clear_exec;
