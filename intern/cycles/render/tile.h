@@ -82,6 +82,17 @@ public:
 	bool done();
 
 	void set_tile_order(TileOrder tile_order_) { tile_order = tile_order_; }
+
+	/* ** Sample range rendering. ** */
+
+	/* Start sample in the range. */
+	int range_start_sample;
+
+	/* Number to samples in the rendering range. */
+	int range_num_samples;
+
+	/* get number of actual samples to render. */
+	int get_num_effective_samples();
 protected:
 
 	void set_tiles();

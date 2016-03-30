@@ -43,6 +43,8 @@
 CCL_NAMESPACE_BEGIN
 
 bool BlenderSession::headless = false;
+int BlenderSession::num_resumable_chunks = 0;
+int BlenderSession::current_resumable_chunk = 0;
 
 BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
                                BL::UserPreferences& b_userpref,
@@ -161,6 +163,8 @@ void BlenderSession::create_session()
 	session->reset(buffer_params, session_params.samples);
 
 	b_engine.use_highlight_tiles(session_params.progressive_refine == false);
+
+	update_resumable_tile_manager(session_params.samples);
 }
 
 void BlenderSession::reset_session(BL::BlendData& b_data_, BL::Scene& b_scene_)
@@ -510,14 +514,21 @@ void BlenderSession::render()
 			                &python_thread_state,
 			                b_rlay_name.c_str());
 
-			/* update number of samples per layer */
+			/* Update number of samples per layer. */
 			int samples = sync->get_layer_samples();
 			bool bound_samples = sync->get_layer_bound_samples();
+			int effective_layer_samples;
 
 			if(samples != 0 && (!bound_samples || (samples < session_params.samples)))
-				session->reset(buffer_params, samples);
+				effective_layer_samples = samples;
 			else
-				session->reset(buffer_params, session_params.samples);
+				effective_layer_samples = session_params.samples;
+
+			/* Update tile manager if we're doing resumable render. */
+			update_resumable_tile_manager(effective_layer_samples);
+
+			/* Update session itself. */
+			session->reset(buffer_params, effective_layer_samples);
 
 			/* render */
 			session->start();
@@ -712,6 +723,13 @@ void BlenderSession::do_write_update_render_result(BL::RenderResult& b_rr,
 
 	vector<float> pixels(params.width*params.height*4);
 
+	/* Adjust absolute sample number to the range. */
+	int sample = rtile.sample;
+	const int range_start_sample = session->tile_manager.range_start_sample;
+	if(range_start_sample != -1) {
+		sample -= range_start_sample;
+	}
+
 	if(!do_update_only) {
 		/* copy each pass */
 		BL::RenderLayer::passes_iterator b_iter;
@@ -724,7 +742,7 @@ void BlenderSession::do_write_update_render_result(BL::RenderResult& b_rr,
 			int components = b_pass.channels();
 
 			/* copy pixels */
-			if(!buffers->get_pass_rect(pass_type, exposure, rtile.sample, components, &pixels[0]))
+			if(!buffers->get_pass_rect(pass_type, exposure, sample, components, &pixels[0]))
 				memset(&pixels[0], 0, pixels.size()*sizeof(float));
 
 			b_pass.rect(&pixels[0]);
@@ -733,7 +751,7 @@ void BlenderSession::do_write_update_render_result(BL::RenderResult& b_rr,
 	else {
 		/* copy combined pass */
 		BL::RenderPass b_combined_pass(b_rlay.passes.find_by_type(BL::RenderPass::type_COMBINED, b_rview_name.c_str()));
-		if(buffers->get_pass_rect(PASS_COMBINED, exposure, rtile.sample, 4, &pixels[0]))
+		if(buffers->get_pass_rect(PASS_COMBINED, exposure, sample, 4, &pixels[0]))
 			b_combined_pass.rect(&pixels[0]);
 	}
 
@@ -909,12 +927,12 @@ void BlenderSession::get_progress(float& progress, double& total_time, double& r
 	int tile, sample, samples_per_tile;
 	int tile_total = session->tile_manager.state.num_tiles;
 	int samples = session->tile_manager.state.sample + 1;
-	int total_samples = session->tile_manager.num_samples;
+	int total_samples = session->tile_manager.get_num_effective_samples();
 
 	session->progress.get_tile(tile, total_time, render_time, tile_time);
 
 	sample = session->progress.get_sample();
-	samples_per_tile = session->tile_manager.num_samples;
+	samples_per_tile = session->tile_manager.get_num_effective_samples();
 
 	if(background && samples_per_tile && tile_total)
 		progress = ((float)sample / (float)(tile_total * samples_per_tile));
@@ -1277,5 +1295,26 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 	return false;
 }
 
-CCL_NAMESPACE_END
+void BlenderSession::update_resumable_tile_manager(int num_samples)
+{
+	const int num_resumable_chunks = BlenderSession::num_resumable_chunks,
+	          current_resumable_chunk = BlenderSession::current_resumable_chunk;
+	if(num_resumable_chunks == 0) {
+		return;
+	}
 
+	int num_samples_per_chunk = (int)ceilf((float)num_samples / num_resumable_chunks);
+	int range_start_sample = num_samples_per_chunk * (current_resumable_chunk - 1);
+	int range_num_samples = num_samples_per_chunk;
+	if(range_start_sample + range_num_samples > num_samples) {
+		range_num_samples = num_samples - range_num_samples;
+	}
+
+	VLOG(1) << "Samples range start is " << range_start_sample << ", "
+	        << "number of samples to render is " << range_num_samples;
+
+	session->tile_manager.range_start_sample = range_start_sample;
+	session->tile_manager.range_num_samples = range_num_samples;
+}
+
+CCL_NAMESPACE_END

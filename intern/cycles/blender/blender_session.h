@@ -95,7 +95,6 @@ public:
 	void update_bake_progress();
 
 	bool background;
-	static bool headless;
 	Session *session;
 	Scene *scene;
 	BlenderSync *sync;
@@ -120,6 +119,24 @@ public:
 
 	void *python_thread_state;
 
+	/* Global state which is common for all render sessions created from Blender.
+	 * Usually denotes command line arguments.
+	 */
+
+	/* Blender is running from the command line, no windows are shown and some
+	 * extra render optimization is possible (possible to free draw-only data and
+	 * so on.
+	 */
+	static bool headless;
+
+	/* ** Resumable render ** */
+
+	/* Overall number of chunks in which the sample range is to be devided. */
+	static int num_resumable_chunks;
+
+	/* Current resumable chunk index to render. */
+	static int current_resumable_chunk;
+
 protected:
 	void do_write_update_render_result(BL::RenderResult& b_rr,
 	                                   BL::RenderLayer& b_rlay,
@@ -131,6 +148,9 @@ protected:
 	void builtin_image_info(const string &builtin_name, void *builtin_data, bool &is_float, int &width, int &height, int &depth, int &channels);
 	bool builtin_image_pixels(const string &builtin_name, void *builtin_data, unsigned char *pixels);
 	bool builtin_image_float_pixels(const string &builtin_name, void *builtin_data, float *pixels);
+
+	/* Update tile manager to reflect resumable render settings. */
+	void update_resumable_tile_manager(int num_samples);
 };
 
 CCL_NAMESPACE_END

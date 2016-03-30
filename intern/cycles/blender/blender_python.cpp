@@ -638,6 +638,24 @@ static PyObject *debug_flags_reset_func(PyObject * /*self*/, PyObject * /*args*/
 	Py_RETURN_NONE;
 }
 
+static PyObject *set_resumable_chunks_func(PyObject * /*self*/, PyObject *args)
+{
+	int num_resumable_chunks, current_resumable_chunk;
+	if(!PyArg_ParseTuple(args, "ii",
+	                     &num_resumable_chunks,
+	                     &current_resumable_chunk)) {
+		return NULL;
+	}
+
+	VLOG(1) << "Initialized resumable render: "
+	        << "num_resumable_chunks=" << num_resumable_chunks << ", "
+	        << "current_resumable_chunk=" << current_resumable_chunk;
+	BlenderSession::num_resumable_chunks = num_resumable_chunks;
+	BlenderSession::current_resumable_chunk = current_resumable_chunk;
+
+	Py_RETURN_NONE;
+}
+
 static PyMethodDef methods[] = {
 	{"init", init_func, METH_VARARGS, ""},
 	{"exit", exit_func, METH_VARARGS, ""},
@@ -657,8 +675,14 @@ static PyMethodDef methods[] = {
 #ifdef WITH_OPENCL
 	{"opencl_disable", opencl_disable_func, METH_NOARGS, ""},
 #endif
+
+	/* Debugging routines */
 	{"debug_flags_update", debug_flags_update_func, METH_VARARGS, ""},
 	{"debug_flags_reset", debug_flags_reset_func, METH_NOARGS, ""},
+
+	/* Resumable render */
+	{"set_resumable_chunks", set_resumable_chunks_func, METH_VARARGS, ""},
+
 	{NULL, NULL, 0, NULL},
 };
 

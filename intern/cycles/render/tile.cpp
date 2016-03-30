@@ -97,6 +97,9 @@ TileManager::TileManager(bool progressive_, int num_samples_, int2 tile_size_, i
 	preserve_tile_device = preserve_tile_device_;
 	background = background_;
 
+	range_start_sample = 0;
+	range_num_samples = -1;
+
 	BufferParams buffer_params;
 	reset(buffer_params, 0);
 }
@@ -124,7 +127,7 @@ void TileManager::reset(BufferParams& params_, int num_samples_)
 	num_samples = num_samples_;
 
 	state.buffer = BufferParams();
-	state.sample = -1;
+	state.sample = range_start_sample - 1;
 	state.num_tiles = 0;
 	state.num_rendered_tiles = 0;
 	state.num_samples = 0;
@@ -325,7 +328,11 @@ bool TileManager::next_tile(Tile& tile, int device)
 
 bool TileManager::done()
 {
-	return (state.sample+state.num_samples >= num_samples && state.resolution_divider == 1);
+	int end_sample = (range_num_samples == -1)
+	                     ? num_samples
+	                     : range_start_sample + range_num_samples;
+	return (state.resolution_divider == 1) &&
+	       (state.sample+state.num_samples >= end_sample);
 }
 
 bool TileManager::next()
@@ -344,14 +351,22 @@ bool TileManager::next()
 
 		if(progressive)
 			state.num_samples = 1;
-		else
+		else if(range_num_samples == -1)
 			state.num_samples = num_samples;
+		else
+			state.num_samples = range_num_samples;
 
 		state.resolution_divider = 1;
 		set_tiles();
 	}
 
 	return true;
+}
+
+int TileManager::get_num_effective_samples()
+{
+	return (range_num_samples == -1) ? num_samples
+	                                 : range_num_samples;
 }
 
 CCL_NAMESPACE_END

@@ -50,10 +50,39 @@ def _workaround_buggy_drivers():
             _cycles.opencl_disable()
 
 
+def _parse_command_line():
+    import sys
+
+    argv = sys.argv
+    if "--" not in argv:
+        return
+
+    argv = argv[argv.index("--") + 1:]
+
+    num_resumable_chunks = None
+    current_resumable_chunk = None
+
+    # TODO(sergey): Add some nice error ptins if argument is not used properly.
+    idx = 0
+    while idx < len(argv) - 1:
+        arg = argv[idx]
+        if arg == '--cycles-resumable-num-chunks':
+            num_resumable_chunks = int(argv[idx + 1])
+        elif arg == '--cycles-resumable-current-chunk':
+            current_resumable_chunk = int(argv[idx + 1])
+        idx += 1
+
+    if num_resumable_chunks is not None and current_resumable_chunk is not None:
+        import _cycles
+        _cycles.set_resumable_chunks(num_resumable_chunks,
+                                     current_resumable_chunk)
+
+
 def init():
     import bpy
     import _cycles
     import os.path
+    import sys
 
     # Workaround possibly buggy legacy drivers which crashes on the OpenCL
     # device enumeration.
@@ -72,7 +101,7 @@ def init():
     user_path = os.path.dirname(os.path.abspath(bpy.utils.user_resource('CONFIG', '')))
 
     _cycles.init(path, user_path, bpy.app.background)
-
+    _parse_command_line()
 
 def exit():
     import _cycles
