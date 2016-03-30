@@ -1443,11 +1443,18 @@ elseif(WIN32)
 				set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR} ${OPENEXR}/include/OpenEXR)
 				set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 				set(OPENEXR_LIBRARIES
+					optimized
 					${OPENEXR_LIBPATH}/Iex-2_2.lib
 					${OPENEXR_LIBPATH}/Half.lib
 					${OPENEXR_LIBPATH}/IlmImf-2_2.lib
 					${OPENEXR_LIBPATH}/Imath-2_2.lib
 					${OPENEXR_LIBPATH}/IlmThread-2_2.lib
+					debug
+					${OPENEXR_LIBPATH}/Iex-2_2_d.lib
+					${OPENEXR_LIBPATH}/Half_d.lib
+					${OPENEXR_LIBPATH}/IlmImf-2_2_d.lib
+					${OPENEXR_LIBPATH}/Imath-2_2_d.lib
+					${OPENEXR_LIBPATH}/IlmThread-2_2_d.lib
 				)
 			endif()
 		endif()
