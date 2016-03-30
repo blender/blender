@@ -65,6 +65,7 @@ struct PathSelectParams {
 	bool track_active;  /* ensure the active element is the last selected item (handy for picking) */
 	bool use_topology_distance;
 	bool use_face_step;
+	bool use_fill;
 	char edge_mode;
 	struct CheckerIntervalParams interval_params;
 };
@@ -77,6 +78,9 @@ static void path_select_properties(wmOperatorType *ot)
 	RNA_def_boolean(
 	        ot->srna, "use_topology_distance", false, "Topology Distance",
 	        "Find the minimum number of steps, ignoring spatial distance");
+	RNA_def_boolean(
+	        ot->srna, "use_fill", false, "Fill Region",
+	        "Select all paths between the source/destination elements");
 	WM_operator_properties_checker_interval(ot, true);
 }
 
@@ -85,6 +89,7 @@ static void path_select_params_from_op(wmOperator *op, struct PathSelectParams *
 	op_params->edge_mode = EDGE_MODE_SELECT;
 	op_params->track_active = false;
 	op_params->use_face_step = RNA_boolean_get(op->ptr, "use_face_step");
+	op_params->use_fill = RNA_boolean_get(op->ptr, "use_fill");
 	op_params->use_topology_distance = RNA_boolean_get(op->ptr, "use_topology_distance");
 	WM_operator_properties_checker_interval_from_op(op, &op_params->interval_params);
 }
@@ -130,6 +135,7 @@ static void mouse_mesh_shortest_path_vert(
 		         &(const struct BMCalcPathParams) {
 		             .use_topology_distance = op_params->use_topology_distance,
 		             .use_step_face = op_params->use_face_step,
+		             .use_fill = op_params->use_fill,
 		         },
 		         verttag_filter_cb, &user_data)))
 		{
@@ -305,6 +311,7 @@ static void mouse_mesh_shortest_path_edge(
 		         &(const struct BMCalcPathParams) {
 		             .use_topology_distance = op_params->use_topology_distance,
 		             .use_step_face = op_params->use_face_step,
+		             .use_fill = op_params->use_fill,
 		         },
 		         edgetag_filter_cb, &user_data)))
 		{
@@ -434,6 +441,7 @@ static void mouse_mesh_shortest_path_face(
 			         &(const struct BMCalcPathParams) {
 			             .use_topology_distance = op_params->use_topology_distance,
 			             .use_step_face = op_params->use_face_step,
+			             .use_fill = op_params->use_fill,
 			         },
 			         facetag_filter_cb, &user_data)))
 			{

@@ -30,6 +30,8 @@
 struct BMCalcPathParams {
 	unsigned int use_topology_distance : 1;
 	unsigned int use_step_face : 1;
+	/* return all paths (no longer ordered) */
+	unsigned int use_fill : 1;
 };
 
 struct LinkNode *BM_mesh_calc_path_vert(
