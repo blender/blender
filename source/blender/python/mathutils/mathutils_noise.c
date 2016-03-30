@@ -113,6 +113,7 @@ static unsigned long state[N];  /* the array for the state vector  */
 static int left = 1;
 static int initf = 0;
 static unsigned long *next;
+static float state_offset_vector[3 * 3];
 
 /* initializes state[N] with a seed */
 static void init_genrand(unsigned long s)
@@ -131,6 +132,16 @@ static void init_genrand(unsigned long s)
 	}
 	left = 1;
 	initf = 1;
+
+	/* update vector offset */
+	{
+		const unsigned long *state_offset = &state[N - ARRAY_SIZE(state_offset_vector)];
+		const float range = 32;  /* range in both pos/neg direction */
+		for (j = 0; j < ARRAY_SIZE(state_offset_vector); j++, state_offset++) {
+			/* overflow is fine here */
+			state_offset_vector[j] = (float)(int)(*state_offset) * (1.0f / (INT_MAX / range));
+		}
+	}
 }
 
 static void next_state(void)
@@ -199,9 +210,11 @@ static void rand_vn(float *array_tar, const int size)
 static void noise_vector(float x, float y, float z, int nb, float v[3])
 {
 	/* Simply evaluate noise at 3 different positions */
-	v[0] = (float)(2.0f * BLI_gNoise(1.f, x + 9.321f, y - 1.531f, z - 7.951f, 0, nb) - 1.0f);
-	v[1] = (float)(2.0f * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0f);
-	v[2] = (float)(2.0f * BLI_gNoise(1.f, x + 6.327f, y + 0.1671f, z - 2.672f, 0, nb) - 1.0f);
+	const float *ofs = state_offset_vector;
+	for (int j = 0; j < 3; j++) {
+		v[j] = (2.0f * BLI_gNoise(1.0f, x + ofs[0], y + ofs[1], z + ofs[2], 0, nb) - 1.0f);
+		ofs += 3;
+	}
 }
 
 /* Returns a turbulence value for a given position (x, y, z) */
