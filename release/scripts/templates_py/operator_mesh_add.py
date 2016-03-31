@@ -69,6 +69,7 @@ class AddBox(bpy.types.Operator):
             name="Layers",
             description="Object Layers",
             size=20,
+            options={'HIDDEN', 'SKIP_SAVE'},
             )
 
     # generic transform props
