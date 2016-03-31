@@ -1014,8 +1014,10 @@ int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSe
 			PropertyRNA *prop;
 			
 			RNA_id_pointer_create(ksp->id, &id_ptr);
-			if (RNA_path_resolve_property(&id_ptr, ksp->rna_path, &ptr, &prop))
+			if (RNA_path_resolve_property(&id_ptr, ksp->rna_path, &ptr, &prop)) {
 				arraylen = RNA_property_array_length(&ptr, prop);
+				i = 0;  /* start from start of array, instead of the previously specified index - T48020 */
+			}
 		}
 		
 		/* we should do at least one step */
