@@ -409,7 +409,7 @@ static void options_parse(int argc, const char **argv)
 		exit(EXIT_SUCCESS);
 	}
 	else if(version) {
-		printf("%s\n", cycles_version_number().c_str());
+		printf("%s\n", CYCLES_VERSION_STRING);
 		exit(EXIT_SUCCESS);
 	}
 	else if(help || options.filepath == "") {

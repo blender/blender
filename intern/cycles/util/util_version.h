@@ -27,18 +27,13 @@ CCL_NAMESPACE_BEGIN
 #define CYCLES_VERSION_MINOR	7
 #define CYCLES_VERSION_PATCH	0
 
-/* Create string number, like "1.7.0" */
-string cycles_version_number()
-{
-	stringstream ss;
-	ss << CYCLES_VERSION_MAJOR << "."
-       << CYCLES_VERSION_MINOR << "."
-       << CYCLES_VERSION_PATCH;
-
-	return ss.str();
-}
+#define CYCLES_MAKE_VERSION_STRING2(a,b,c) #a "." #b "." #c
+#define CYCLES_MAKE_VERSION_STRING(a,b,c) CYCLES_MAKE_VERSION_STRING2(a,b,c)
+#define CYCLES_VERSION_STRING \
+  CYCLES_MAKE_VERSION_STRING(CYCLES_VERSION_MAJOR, \
+                             CYCLES_VERSION_MINOR, \
+                             CYCLES_VERSION_PATCH)
 
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_VERSION_H__ */
-
