@@ -751,7 +751,9 @@ static int add_driver_button_exec(bContext *C, wmOperator *op)
 		wmOperatorType *ot = WM_operatortype_find("UI_OT_eyedropper_driver", true);
 		
 		/* XXX: We assume that it's fine to use the same set of properties, since they're actually the same... */
-		return WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, op->ptr);
+		WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, op->ptr);
+		
+		return OPERATOR_FINISHED;
 	}
 }
 
