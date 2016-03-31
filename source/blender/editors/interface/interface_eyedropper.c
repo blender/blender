@@ -1093,8 +1093,8 @@ static bool driverdropper_init(bContext *C, wmOperator *op)
 	if ((ddr->ptr.data == NULL) ||
 	    (ddr->prop == NULL) ||
 	    (RNA_property_editable(&ddr->ptr, ddr->prop) == false) ||
-		(RNA_property_animateable(&ddr->ptr, ddr->prop) == false) ||
-		(but->flag & UI_BUT_DRIVEN))
+	    (RNA_property_animateable(&ddr->ptr, ddr->prop) == false) ||
+	    (but->flag & UI_BUT_DRIVEN))
 	{
 		return false;
 	}

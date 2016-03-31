@@ -259,7 +259,7 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 		}
 	}
-	else  {
+	else {
 		id = but->rnapoin.id.data;
 		
 		/* TODO: this should probably respect the keyingset only option for anim */

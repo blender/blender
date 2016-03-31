@@ -3293,7 +3293,7 @@ void BKE_mesh_polygon_flip(MPoly *mpoly, MLoop *mloop, CustomData *ldata)
 /**
  * Flip (invert winding of) all polygons (used to inverse their normals).
  *
- * \note Invalidates tessalation, caller must handle that.
+ * \note Invalidates tessellation, caller must handle that.
  */
 void BKE_mesh_polygons_flip(
         MPoly *mpoly, MLoop *mloop, CustomData *ldata, int totpoly)

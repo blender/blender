@@ -59,7 +59,7 @@ enum {
 /**
  * Call a callback for each ID link which the given ID uses.
  *
- * \return a set of flags to controll further iteration (0 to keep going).
+ * \return a set of flags to control further iteration (0 to keep going).
  */
 typedef int (*LibraryIDLinkCallback) (void *user_data, struct ID *id_self, struct ID **id_pointer, int cd_flag);
 

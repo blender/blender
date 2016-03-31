@@ -537,7 +537,7 @@ static void driver_dvar_invalid_name_query_cb(bContext *C, void *dvar_v, void *U
 		uiItemL(layout, 
 		        "It cannot start with a special character,"
 		        " including '$', '@', '!', '~', '+', '-', '_', '.', or ' '",
-				ICON_NONE);
+		        ICON_NONE);
 	}
 	if (dvar->flag & DVAR_FLAG_INVALID_HAS_SPACE) {
 		uiItemL(layout, "It cannot contain spaces (e.g. 'a space')", ICON_ERROR);
