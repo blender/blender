@@ -1485,12 +1485,26 @@ finally:
 #ifdef USE_PARTIAL_CONNECT
 	/* don't free 'vert_temp_pair_list', its part of the arena */
 	if (use_partial_connect) {
+
+		/* Sanity check: ensure we don't have connecting edges before splicing begins. */
+#ifdef DEBUG
+		{
+			struct TempVertPair *tvp = temp_vert_pairs.list;
+			do {
+				/* we must _never_ create connections here
+				 * (inface the islands can't have a connection at all) */
+				BLI_assert(BM_edge_exists(tvp->v_orig, tvp->v_temp) == NULL);
+			} while ((tvp = tvp->next));
+		}
+#endif
+
 		struct TempVertPair *tvp = temp_vert_pairs.list;
 		do {
-			/* we must _never_ create connections here
-			 * (inface the islands can't have a connection at all) */
-			BLI_assert(BM_edge_exists(tvp->v_orig, tvp->v_temp) == NULL);
-			BM_vert_splice(bm, tvp->v_orig, tvp->v_temp);
+			/* its _very_ unlikely the edge exists,
+			 * however splicing may case this. see: T48012 */
+			if (!BM_edge_exists(tvp->v_orig, tvp->v_temp)) {
+				BM_vert_splice(bm, tvp->v_orig, tvp->v_temp);
+			}
 		} while ((tvp = tvp->next));
 
 		/* Remove edges which have become doubles since splicing vertices together,
