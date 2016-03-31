@@ -2276,11 +2276,7 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMFace *f, ListBase *kfe
 	KnifeEdge *kfe;
 	Ref *ref;
 	int edge_array_len = BLI_listbase_count(kfedges);
-	bool ok;
 	int i;
-
-	BMFace **face_arr;
-	int face_arr_len;
 
 	BMEdge **edge_array = BLI_array_alloca(edge_array, edge_array_len);
 
@@ -2357,12 +2353,17 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMFace *f, ListBase *kfe
 		}
 #endif
 
-		ok = BM_face_split_edgenet(
-		         bm, f, edge_array, edge_array_len,
-		         &face_arr, &face_arr_len);
+		{
+			BMFace **face_arr = NULL;
+			int face_arr_len;
 
-		if (ok) {
-			MEM_freeN(face_arr);
+			BM_face_split_edgenet(
+			        bm, f, edge_array, edge_array_len,
+			        &face_arr, &face_arr_len);
+
+			if (face_arr) {
+				MEM_freeN(face_arr);
+			}
 		}
 
 		/* remove dangling edges, not essential - but nice for users */
