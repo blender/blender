@@ -1136,18 +1136,26 @@ static void driverdropper_sample(bContext *C, wmOperator *op, const wmEvent *eve
 		char *dst_path    = BKE_animdata_driver_path_hack(C, &ddr->ptr, ddr->prop, NULL);
 		
 		/* Now create driver(s) */
-		int success = ANIM_add_driver_with_target(op->reports,
-		                                          ddr->ptr.id.data, dst_path, ddr->index,
-		                                          target_ptr->id.data, target_path, target_index,
-		                                          flag, DRIVER_TYPE_PYTHON, mapping_type);
-		
-		if (success) {
-			/* send updates */
-			UI_context_update_anim_flag(C);
-			DAG_relations_tag_update(CTX_data_main(C));
-			DAG_id_tag_update(ddr->ptr.id.data, OB_RECALC_OB | OB_RECALC_DATA);
-			WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL);  // XXX
+		if (target_path && dst_path) {
+			int success = ANIM_add_driver_with_target(op->reports,
+			                                          ddr->ptr.id.data, dst_path, ddr->index,
+			                                          target_ptr->id.data, target_path, target_index,
+			                                          flag, DRIVER_TYPE_PYTHON, mapping_type);
+			
+			if (success) {
+				/* send updates */
+				UI_context_update_anim_flag(C);
+				DAG_relations_tag_update(CTX_data_main(C));
+				DAG_id_tag_update(ddr->ptr.id.data, OB_RECALC_OB | OB_RECALC_DATA);
+				WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL);  // XXX
+			}
 		}
+		
+		/* cleanup */
+		if (target_path)
+			MEM_freeN(target_path);
+		if (dst_path)
+			MEM_freeN(dst_path);
 	}
 }
 
