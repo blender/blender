@@ -1443,18 +1443,11 @@ elseif(WIN32)
 				set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR} ${OPENEXR}/include/OpenEXR)
 				set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 				set(OPENEXR_LIBRARIES
-					optimized
-					${OPENEXR_LIBPATH}/Iex-2_2.lib
-					${OPENEXR_LIBPATH}/Half.lib
-					${OPENEXR_LIBPATH}/IlmImf-2_2.lib
-					${OPENEXR_LIBPATH}/Imath-2_2.lib
-					${OPENEXR_LIBPATH}/IlmThread-2_2.lib
-					debug
-					${OPENEXR_LIBPATH}/Iex-2_2_d.lib
-					${OPENEXR_LIBPATH}/Half_d.lib
-					${OPENEXR_LIBPATH}/IlmImf-2_2_d.lib
-					${OPENEXR_LIBPATH}/Imath-2_2_d.lib
-					${OPENEXR_LIBPATH}/IlmThread-2_2_d.lib
+					optimized ${OPENEXR_LIBPATH}/Iex-2_2.lib debug ${OPENEXR_LIBPATH}/Iex-2_2_d.lib
+					optimized ${OPENEXR_LIBPATH}/Half.lib debug ${OPENEXR_LIBPATH}/Half_d.lib
+					optimized ${OPENEXR_LIBPATH}/IlmImf-2_2.lib debug ${OPENEXR_LIBPATH}/IlmImf-2_2_d.lib
+					optimized ${OPENEXR_LIBPATH}/Imath-2_2.lib debug ${OPENEXR_LIBPATH}/Imath-2_2_d.lib
+					optimized ${OPENEXR_LIBPATH}/IlmThread-2_2.lib debug ${OPENEXR_LIBPATH}/IlmThread-2_2_d.lib
 				)
 			endif()
 		endif()
@@ -1593,12 +1586,12 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_OPENVDB)
-			set(BLOSC_LIBRARIES ${LIBDIR}/blosc/lib/libblosc.lib)
-			set(TBB_LIBRARIES ${LIBDIR}/tbb/lib/tbb.lib)
+			set(BLOSC_LIBRARIES optimized ${LIBDIR}/blosc/lib/libblosc.lib debug ${LIBDIR}/blosc/lib/libblosc_d.lib)
+			set(TBB_LIBRARIES optimized ${LIBDIR}/tbb/lib/tbb.lib debug ${LIBDIR}/tbb/lib/tbb_debug.lib)
 			set(TBB_INCLUDE_DIR ${LIBDIR}/tbb/include)
 			set(OPENVDB ${LIBDIR}/openvdb)
 			set(OPENVDB_INCLUDE_DIRS ${OPENVDB}/include ${TBB_INCLUDE_DIR})
-			set(OPENVDB_LIBRARIES openvdb ${TBB_LIBRARIES} ${BLOSC_LIBRARIES})
+			set(OPENVDB_LIBRARIES optimized openvdb debug openvdb_d ${TBB_LIBRARIES} ${BLOSC_LIBRARIES})
 			set(OPENVDB_LIBPATH ${LIBDIR}/openvdb/lib)
 		endif()
 
