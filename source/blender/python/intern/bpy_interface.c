@@ -899,6 +899,32 @@ static void bpy_module_free(void *UNUSED(mod))
 
 #endif
 
+/**
+ * Avoids duplicating keyword list.
+ */
+bool BPY_string_is_keyword(const char *str)
+{
+	/* list is from...
+	* ", ".join(['"%s"' % kw for kw in  __import__("keyword").kwlist])
+	*/
+	const char *kwlist[] = {
+	    "False", "None", "True",
+	    "and", "as", "assert", "break",
+	    "class", "continue", "def", "del", "elif", "else", "except",
+	    "finally", "for", "from", "global", "if", "import", "in",
+	    "is", "lambda", "nonlocal", "not", "or", "pass", "raise",
+	    "return", "try", "while", "with", "yield", NULL,
+	};
+
+	for (int i = 0; kwlist[i]; i++) {
+		if (STREQ(str, kwlist[i])) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 
 /* EVIL, define text.c functions here... */
 /* BKE_text.h */

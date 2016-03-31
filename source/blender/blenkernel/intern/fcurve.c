@@ -1649,15 +1649,12 @@ void driver_variable_name_validate(DriverVar *dvar)
 	 * NOTE: These won't confuse Python, but it will be impossible to use the variable
 	 *       in an expression without Python misinterpreting what these are for
 	 */
-	if (STREQ(dvar->name, "if") || STREQ(dvar->name, "elif") || STREQ(dvar->name, "else") ||
-	    STREQ(dvar->name, "for") || STREQ(dvar->name, "while") || STREQ(dvar->name, "def") ||
-	    STREQ(dvar->name, "True") || STREQ(dvar->name, "False") || STREQ(dvar->name, "import") ||
-	    STREQ(dvar->name, "pass")  || STREQ(dvar->name, "with"))
-	{
+#ifdef WITH_PYTHON
+	if (BPY_string_is_keyword(dvar->name)) {
 		dvar->flag |= DVAR_FLAG_INVALID_PY_KEYWORD;
 	}
-	
-	
+#endif
+
 	/* If any these conditions match, the name is invalid */
 	if (dvar->flag & DVAR_ALL_INVALID_FLAGS)
 		dvar->flag |= DVAR_FLAG_INVALID_NAME;
