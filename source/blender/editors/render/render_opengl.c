@@ -88,8 +88,13 @@ typedef struct OGLRender {
 	ScrArea *prevsa;
 	ARegion *prevar;
 
+	int views_len;  /* multi-view views */
+
 	bool is_sequencer;
 	SpaceSeq *sseq;
+	struct {
+		ImBuf **ibufs_arr;
+	} seq_data;
 
 
 	Image *ima;
@@ -253,7 +258,6 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 	View3D *v3d = oglrender->v3d;
 	RegionView3D *rv3d = oglrender->rv3d;
 	Object *camera = NULL;
-	ImBuf *ibuf;
 	int sizex = oglrender->sizex;
 	int sizey = oglrender->sizey;
 	const short view_context = (v3d != NULL);
@@ -263,22 +267,11 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
 	const char *viewname = RE_GetActiveRenderView(oglrender->re);
 
 	if (oglrender->is_sequencer) {
-		SeqRenderData context;
 		SpaceSeq *sseq = oglrender->sseq;
-		int chanshown = sseq ? sseq->chanshown : 0;
 		struct bGPdata *gpd = (sseq && (sseq->flag & SEQ_SHOW_GPENCIL)) ? sseq->gpd : NULL;
 
-		BKE_sequencer_new_render_data(
-		        oglrender->bmain->eval_ctx, oglrender->bmain, scene,
-		        oglrender->sizex, oglrender->sizey, 100.0f,
-		        &context);
-
-		context.view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
-		context.gpu_offscreen = oglrender->ofs;
-		context.gpu_fx = oglrender->fx;
-		context.gpu_full_samples = oglrender->ofs_full_samples;
-
-		ibuf = BKE_sequencer_give_ibuf(&context, CFRA, chanshown);
+		/* use pre-calculated ImBuf (avoids deadlock), see: */
+		ImBuf *ibuf = oglrender->seq_data.ibufs_arr[oglrender->view_id];
 
 		if (ibuf) {
 			ImBuf *out = IMB_dupImBuf(ibuf);
@@ -429,8 +422,31 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	ImBuf *ibuf;
 	void *lock;
 
+	if (oglrender->is_sequencer) {
+		Scene *scene = oglrender->scene;
+
+		SeqRenderData context;
+		SpaceSeq *sseq = oglrender->sseq;
+		int chanshown = sseq ? sseq->chanshown : 0;
+
+		BKE_sequencer_new_render_data(
+		        oglrender->bmain->eval_ctx, oglrender->bmain, scene,
+		        oglrender->sizex, oglrender->sizey, 100.0f,
+		        &context);
+
+		for (view_id = 0; view_id < oglrender->views_len; view_id++) {
+			context.view_id = view_id;
+			context.gpu_offscreen = oglrender->ofs;
+			context.gpu_fx = oglrender->fx;
+			context.gpu_full_samples = oglrender->ofs_full_samples;
+
+			oglrender->seq_data.ibufs_arr[view_id] = BKE_sequencer_give_ibuf(&context, CFRA, chanshown);
+		}
+	}
+
 	rr = RE_AcquireResultRead(oglrender->re);
 	for (rv = rr->views.first, view_id = 0; rv; rv = rv->next, view_id++) {
+		BLI_assert(view_id < oglrender->views_len);
 		RE_SetActiveRenderView(oglrender->re, rv->name);
 		oglrender->view_id = view_id;
 		screen_opengl_render_doit(oglrender, rr);
@@ -529,9 +545,13 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 
 	oglrender->write_still = is_write_still && !is_animation;
 
+	oglrender->views_len = BKE_scene_multiview_num_views_get(&scene->r);
+
 	oglrender->is_sequencer = is_sequencer;
 	if (is_sequencer) {
 		oglrender->sseq = CTX_wm_space_seq(C);
+		ImBuf **ibufs_arr = MEM_callocN(sizeof(*ibufs_arr) * oglrender->views_len, __func__);
+		oglrender->seq_data.ibufs_arr = ibufs_arr;
 	}
 
 	oglrender->prevsa = prevsa;
@@ -615,6 +635,10 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 		GPU_fx_compositor_destroy(oglrender->fx);
 
 	GPU_offscreen_free(oglrender->ofs);
+
+	if (oglrender->is_sequencer) {
+		MEM_freeN(oglrender->seq_data.ibufs_arr);
+	}
 
 	oglrender->scene->customdata_mask_modal = 0;
 
