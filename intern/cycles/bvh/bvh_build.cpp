@@ -31,6 +31,7 @@
 #include "util_logging.h"
 #include "util_progress.h"
 #include "util_stack_allocator.h"
+#include "util_simd.h"
 #include "util_time.h"
 
 CCL_NAMESPACE_BEGIN
