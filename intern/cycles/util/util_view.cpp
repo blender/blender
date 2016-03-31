@@ -16,9 +16,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "util_opengl.h"
+#include "util_string.h"
 #include "util_time.h"
 #include "util_version.h"
 #include "util_view.h"

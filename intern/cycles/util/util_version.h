@@ -19,8 +19,6 @@
 
 /* Cycles version number */
 
-#include <util_string.h>
-
 CCL_NAMESPACE_BEGIN
 
 #define CYCLES_VERSION_MAJOR	1
