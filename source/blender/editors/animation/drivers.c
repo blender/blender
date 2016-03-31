@@ -214,7 +214,7 @@ static int add_driver_with_target(
 		dvar = driver_add_new_variable(driver);
 		
 		if (ELEM(src_ptr->type, &RNA_Object, &RNA_PoseBone) &&  
-			(STREQ(prop_name, "location") || STREQ(prop_name, "scale") || strstr(prop_name, "rotation_"))) 
+		    (STREQ(prop_name, "location") || STREQ(prop_name, "scale") || STRPREFIX(prop_name, "rotation_")))
 		{
 			/* Transform Channel */
 			DriverTarget *dtar;
