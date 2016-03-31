@@ -1308,6 +1308,17 @@ elseif(WIN32)
 
 		set(PLATFORM_LINKFLAGS_DEBUG "/IGNORE:4099 /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libc.lib")
 
+		# Use dynamic loading for OpenMP
+		if(WITH_OPENMP)
+			if(MSVC_VERSION EQUAL 1800)
+				set(OPENMP_DLL_NAME "vcomp120")
+			else()
+				set(OPENMP_DLL_NAME "vcomp140")
+			endif()
+			set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
+			set(PLATFORM_LINKFLAGS_DEBUG "${PLATFORM_LINKFLAGS_DEBUG} /DELAYLOAD::${OPENMP_DLL_NAME}d.dll delayimp.lib")
+		endif()
+
 		if(NOT DEFINED LIBDIR)
 
 			# Setup 64bit and 64bit windows systems

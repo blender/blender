@@ -205,6 +205,11 @@ int main(
 
 
 #ifdef WIN32
+	/* We delay loading of openmp so we can set the policy here. */
+# if defined(_MSC_VER)
+	_putenv_s("OMP_WAIT_POLICY", "PASSIVE");
+# endif
+
 	/* FMA3 support in the 2013 CRT is broken on Vista and Windows 7 RTM (fixed in SP1). Just disable it. */
 #  if defined(_MSC_VER) && defined(_M_X64)
 	_set_FMA3_enable(0);
