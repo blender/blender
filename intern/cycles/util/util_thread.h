@@ -28,6 +28,10 @@
 #include <pthread.h>
 #include <queue>
 
+#ifdef __APPLE__
+#  include <libkern/OSAtomic.h>
+#endif
+
 #include "util_function.h"
 
 CCL_NAMESPACE_BEGIN
@@ -85,6 +89,19 @@ protected:
 
 class thread_spin_lock {
 public:
+#ifdef __APPLE__
+	inline thread_spin_lock() {
+		spin_ = OS_SPINLOCK_INIT;
+	}
+
+	inline void lock() {
+		OSSpinLockLock(&spin_);
+	}
+
+	inline void unlock() {
+		OSSpinLockUnlock(&spin_);
+	}
+#else  /* __APPLE__ */
 	inline thread_spin_lock() {
 		pthread_spin_init(&spin_, 0);
 	}
@@ -100,8 +117,13 @@ public:
 	inline void unlock() {
 		pthread_spin_unlock(&spin_);
 	}
+#endif  /* __APPLE__ */
 protected:
+#ifdef __APPLE__
+	OSSpinLock spin_;
+#else
 	pthread_spinlock_t spin_;
+#endif
 };
 
 CCL_NAMESPACE_END
