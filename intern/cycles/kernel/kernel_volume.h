@@ -1010,17 +1010,22 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 			ShaderData sd;
 			shader_setup_from_ray(kg, &sd, isect, &volume_ray);
 			if(sd.flag & SD_BACKFACING) {
-				/* If ray exited the volume and never entered to that volume
-				 * it means that camera is inside such a volume.
-				 */
-				bool is_enclosed = false;
-				for(int i = 0; i < enclosed_index; ++i) {
-					if(enclosed_volumes[i] == sd.object) {
-						is_enclosed = true;
+				bool need_add = true;
+				for(int i = 0; stack[i].shader != SHADER_NONE; ++i) {
+					/* If ray exited the volume and never entered to that volume
+					 * it means that camera is inside such a volume.
+					 */
+					if(i < enclosed_index && enclosed_volumes[i] == sd.object) {
+						need_add = false;
+						break;
+					}
+					/* Don't add intersections twice. */
+					if(stack[i].object == sd.object) {
+						need_add = false;
 						break;
 					}
 				}
-				if(is_enclosed == false) {
+				if(need_add) {
 					stack[stack_index].object = sd.object;
 					stack[stack_index].shader = sd.shader;
 					++stack_index;
