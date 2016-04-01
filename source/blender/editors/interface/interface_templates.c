@@ -3023,7 +3023,7 @@ void uiTemplateList(
 						/* So that we do not map again activei! */
 						activei_mapping_pending = false;
 					}
-# if 0 /* For now, do not alter active element, even if it will be hidden... */
+#if 0 /* For now, do not alter active element, even if it will be hidden... */
 					else if (activei < i) {
 						/* We do not want an active but invisible item!
 						 * Only exception is when all items are filtered out...
@@ -3044,6 +3044,11 @@ void uiTemplateList(
 				i++;
 			}
 			RNA_PROP_END;
+
+			if (activei_mapping_pending) {
+				/* No active item found, set to 'invalid' -1 value... */
+				activei = -1;
+			}
 		}
 		if (dyn_data->items_shown >= 0) {
 			len = dyn_data->items_shown;
