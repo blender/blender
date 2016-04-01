@@ -27,7 +27,21 @@ class Task;
 class TaskPool;
 class TaskScheduler;
 
-typedef function<void(void)> TaskRunFunction;
+/* Notes on Thread ID
+ *
+ * Thread ID argument reports the 0-based ID of a working thread from which
+ * the run() callback is being invoked. Thread ID of 0 denotes the thread from
+ * which wait_work() was called.
+ *
+ * DO NOT use this ID to control execution flaw, use it only for things like
+ * emulating TLS which does not affect on scheduling. Don't use this ID to make
+ * any decisions.
+ *
+ * It is to be noted here that dedicated task pool will always report thread ID
+ * of 0.
+ */
+
+typedef function<void(int thread_id)> TaskRunFunction;
 
 /* Task
  *

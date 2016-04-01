@@ -89,7 +89,7 @@ void TaskPool::wait_work()
 		/* if found task, do it, otherwise wait until other tasks are done */
 		if(found_entry) {
 			/* run task */
-			work_entry.task->run();
+			work_entry.task->run(0);
 
 			/* delete task */
 			delete work_entry.task;
@@ -192,7 +192,7 @@ void TaskScheduler::init(int num_threads)
 		threads.resize(num_threads);
 
 		for(size_t i = 0; i < threads.size(); i++)
-			threads[i] = new thread(function_bind(&TaskScheduler::thread_run, i));
+			threads[i] = new thread(function_bind(&TaskScheduler::thread_run, i + 1));
 	}
 	
 	users++;
@@ -243,7 +243,7 @@ bool TaskScheduler::thread_wait_pop(Entry& entry)
 	return true;
 }
 
-void TaskScheduler::thread_run(int /*thread_id*/)
+void TaskScheduler::thread_run(int thread_id)
 {
 	Entry entry;
 
@@ -252,7 +252,7 @@ void TaskScheduler::thread_run(int /*thread_id*/)
 	/* keep popping off tasks */
 	while(thread_wait_pop(entry)) {
 		/* run task */
-		entry.task->run();
+		entry.task->run(thread_id);
 
 		/* delete task */
 		delete entry.task;
@@ -419,7 +419,7 @@ void DedicatedTaskPool::thread_run()
 	/* keep popping off tasks */
 	while(thread_wait_pop(task)) {
 		/* run task */
-		task->run();
+		task->run(0);
 
 		/* delete task */
 		delete task;
