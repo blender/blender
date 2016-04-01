@@ -15,13 +15,6 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2004 Blender Foundation.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
@@ -36,14 +29,11 @@
 
 #include "BLI_math.h"
 #include "BLI_linklist.h"
-#include "BLI_stackdefines.h"
 #include "BLI_heap.h"
 
 #include "bmesh.h"
 #include "bmesh_path.h"  /* own include */
 
-/* optionally expand all paths (result is no longer ordered) */
-#define USE_PATH_FILL
 
 /* -------------------------------------------------------------------- */
 /* Generic Helpers */
@@ -70,72 +60,6 @@ static float step_cost_3_v3(const float v1[3], const float v2[3], const float v3
 
 /* -------------------------------------------------------------------- */
 /* BM_mesh_calc_path_vert */
-
-#ifdef USE_PATH_FILL
-static void verttag_calc_fill_steps(
-        BMesh *bm, BMVert *v_start, int *steps, int steps_max, BMVert **stack_array,
-        const struct BMCalcPathParams *params)
-{
-	copy_vn_i(steps, bm->totvert, steps_max);
-
-	BMVert **stack = stack_array;
-	STACK_DECLARE(stack);
-	STACK_INIT(stack, bm->totvert);
-
-	STACK_PUSH(stack, v_start);
-	steps[BM_elem_index_get(v_start)] = 0;
-
-	while (STACK_SIZE(stack) != 0) {
-		BMVert *v_a = STACK_POP(stack);
-		const int v_a_index = BM_elem_index_get(v_a);
-		int step_a = steps[v_a_index];
-
-		if (step_a < steps_max) {
-			{
-				BMIter eiter;
-				BMEdge *e;
-				/* loop over faces of face, but do so by first looping over loops */
-				BM_ITER_ELEM (e, &eiter, v_a, BM_EDGES_OF_VERT) {
-					BMVert *v_b = BM_edge_other_vert(e, v_a);
-					if (!BM_elem_flag_test(v_b, BM_ELEM_TAG)) {
-						/* we know 'v_b' is not visited, check it out! */
-						const int v_b_index = BM_elem_index_get(v_b);
-						const int step_b = step_a + 1;
-						if (steps[v_b_index] > step_b) {
-							steps[v_b_index] = step_b;
-							STACK_PUSH(stack, v_b);
-						}
-					}
-				}
-			}
-
-			if (params->use_step_face) {
-				BMIter liter;
-				BMLoop *l;
-				/* loop over faces of face, but do so by first looping over loops */
-				BM_ITER_ELEM (l, &liter, v_a, BM_LOOPS_OF_VERT) {
-					if (l->f->len > 3) {
-						/* skip loops on adjacent edges */
-						BMLoop *l_iter = l->next->next;
-						do {
-							BMVert *v_b = l_iter->v;
-							if (!BM_elem_flag_test(v_b, BM_ELEM_TAG)) {
-								/* we know 'v_b' is not visited, check it out! */
-								const int v_b_index = BM_elem_index_get(v_b);
-								const int step_b = step_a + 1;
-								if (steps[v_b_index] > step_b) {
-									steps[v_b_index] = step_b;
-									STACK_PUSH(stack, v_b);
-								}
-							}
-						} while ((l_iter = l_iter->next) != l->prev);
-					}
-				}
-			}
-		}
-	}
-}
-#endif /* USE_PATH_FILL */
 
 static void verttag_add_adjacent(
         Heap *heap, BMVert *v_a, BMVert **verts_prev, float *cost,
@@ -196,7 +120,7 @@ static void verttag_add_adjacent(
 
 LinkNode *BM_mesh_calc_path_vert(
         BMesh *bm, BMVert *v_src, BMVert *v_dst, const struct BMCalcPathParams *params,
-        bool (*test_fn)(BMVert *, void *user_data), void *user_data)
+        bool (*filter_fn)(BMVert *, void *user_data), void *user_data)
 {
 	LinkNode *path = NULL;
 	/* BM_ELEM_TAG flag is used to store visited edges */
@@ -211,13 +135,7 @@ LinkNode *BM_mesh_calc_path_vert(
 	// BM_mesh_elem_index_ensure(bm, BM_VERT /* | BM_EDGE */); // NOT NEEDED FOR FACETAG
 
 	BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
-		if (test_fn(v, user_data)) {
-			BM_elem_flag_disable(v, BM_ELEM_TAG);
-		}
-		else {
-			BM_elem_flag_enable(v, BM_ELEM_TAG);
-		}
-
+		BM_elem_flag_set(v, BM_ELEM_TAG, !filter_fn(v, user_data));
 		BM_elem_index_set(v, i); /* set_inline */
 	}
 	bm->elem_index_dirty &= ~BM_VERT;
@@ -258,36 +176,9 @@ LinkNode *BM_mesh_calc_path_vert(
 	}
 
 	if (v == v_dst) {
-		int path_len = 0;
 		do {
 			BLI_linklist_prepend(&path, v);
-			path_len++;
 		} while ((v = verts_prev[BM_elem_index_get(v)]));
-
-#ifdef USE_PATH_FILL
-		if (params->use_fill) {
-			BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
-				BM_elem_flag_set(v, BM_ELEM_TAG, !test_fn(v, user_data));
-			}
-
-			int *steps_src = MEM_mallocN(sizeof(*steps_src) * totvert, __func__);
-			int *steps_dst = MEM_mallocN(sizeof(*steps_dst) * totvert, __func__);
-
-			/* reuse memory */
-			BMVert **stack_array = verts_prev;
-			verttag_calc_fill_steps(bm, v_src, steps_src, path_len, stack_array, params);
-			verttag_calc_fill_steps(bm, v_dst, steps_dst, path_len, stack_array, params);
-
-			BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
-				if (steps_src[i] + steps_dst[i] < path_len) {
-					BLI_linklist_prepend(&path, v);
-				}
-			}
-
-			MEM_freeN(steps_src);
-			MEM_freeN(steps_dst);
-		}
-#endif
 	}
 
 	MEM_freeN(verts_prev);
@@ -299,86 +190,6 @@ LinkNode *BM_mesh_calc_path_vert(
 
 /* -------------------------------------------------------------------- */
 /* BM_mesh_calc_path_edge */
-
-#ifdef USE_PATH_FILL
-static void edgetag_calc_fill_steps(
-        BMesh *bm, BMEdge *e_start, int *steps, int steps_max, BMEdge **stack_array,
-        const struct BMCalcPathParams *params)
-{
-	copy_vn_i(steps, bm->totedge, steps_max);
-
-	BMEdge **stack = stack_array;
-	STACK_DECLARE(stack);
-	STACK_INIT(stack, bm->totedge);
-
-	STACK_PUSH(stack, e_start);
-	steps[BM_elem_index_get(e_start)] = 0;
-
-	while (STACK_SIZE(stack) != 0) {
-		BMEdge *e_a = STACK_POP(stack);
-		const int e_a_index = BM_elem_index_get(e_a);
-		int step_a = steps[e_a_index];
-
-		if (step_a < steps_max) {
-			/* unlike vert/face, stepping faces disables scanning connected edges
-			 * and only steps over faces (selecting a ring of edges instead of a loop) */
-			if (params->use_step_face == false) {
-				BMIter viter;
-				BMVert *v;
-
-				BMIter eiter;
-				BMEdge *e_b;
-
-				BM_ITER_ELEM (v, &viter, e_a, BM_VERTS_OF_EDGE) {
-					BM_ITER_ELEM (e_b, &eiter, v, BM_EDGES_OF_VERT) {
-						if (!BM_elem_flag_test(e_b, BM_ELEM_TAG)) {
-							/* we know 'e_b' is not visited, check it out! */
-							const int e_b_index = BM_elem_index_get(e_b);
-							const int step_b = step_a + 1;
-							if (steps[e_b_index] > step_b) {
-								steps[e_b_index] = step_b;
-								STACK_PUSH(stack, e_b);
-							}
-						}
-					}
-				}
-			}
-			else {
-				BMLoop *l_first, *l_iter;
-
-				l_iter = l_first = e_a->l;
-				do {
-					BMLoop *l_cycle_iter, *l_cycle_end;
-
-					l_cycle_iter = l_iter->next;
-					l_cycle_end = l_iter;
-
-					/* good, but we need to allow this otherwise paths may fail to connect at all */
-		#if 0
-					if (l_iter->f->len > 3) {
-						l_cycle_iter = l_cycle_iter->next;
-						l_cycle_end = l_cycle_end->prev;
-					}
-		#endif
-
-					do {
-						BMEdge *e_b = l_cycle_iter->e;
-						if (!BM_elem_flag_test(e_b, BM_ELEM_TAG)) {
-							/* we know 'e_b' is not visited, check it out! */
-							const int e_b_index = BM_elem_index_get(e_b);
-							const int step_b = step_a + 1;
-							if (steps[e_b_index] > step_b) {
-								steps[e_b_index] = step_b;
-								STACK_PUSH(stack, e_b);
-							}
-						}
-					} while ((l_cycle_iter = l_cycle_iter->next) != l_cycle_end);
-				} while ((l_iter = l_iter->radial_next) != l_first);
-			}
-		}
-	}
-}
-#endif /* USE_PATH_FILL */
 
 static float edgetag_cut_cost_vert(BMEdge *e_a, BMEdge *e_b, BMVert *v)
 {
@@ -496,13 +307,7 @@ LinkNode *BM_mesh_calc_path_edge(
 	BM_mesh_elem_index_ensure(bm, BM_VERT /* | BM_EDGE */);
 
 	BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, i) {
-		if (filter_fn(e, user_data)) {
-			BM_elem_flag_disable(e, BM_ELEM_TAG);
-		}
-		else {
-			BM_elem_flag_enable(e, BM_ELEM_TAG);
-		}
-
+		BM_elem_flag_set(e, BM_ELEM_TAG, !filter_fn(e, user_data));
 		BM_elem_index_set(e, i); /* set_inline */
 	}
 	bm->elem_index_dirty &= ~BM_EDGE;
@@ -543,36 +348,9 @@ LinkNode *BM_mesh_calc_path_edge(
 	}
 
 	if (e == e_dst) {
-		int path_len = 0;
 		do {
 			BLI_linklist_prepend(&path, e);
-			path_len++;
 		} while ((e = edges_prev[BM_elem_index_get(e)]));
-
-#ifdef USE_PATH_FILL
-		if (params->use_fill) {
-			BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, i) {
-				BM_elem_flag_set(e, BM_ELEM_TAG, !filter_fn(e, user_data));
-			}
-
-			int *steps_src = MEM_mallocN(sizeof(*steps_src) * totedge, __func__);
-			int *steps_dst = MEM_mallocN(sizeof(*steps_dst) * totedge, __func__);
-
-			/* reuse memory */
-			BMEdge **stack_array = edges_prev;
-			edgetag_calc_fill_steps(bm, e_src, steps_src, path_len, stack_array, params);
-			edgetag_calc_fill_steps(bm, e_dst, steps_dst, path_len, stack_array, params);
-
-			BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, i) {
-				if (steps_src[i] + steps_dst[i] < path_len) {
-					BLI_linklist_prepend(&path, e);
-				}
-			}
-
-			MEM_freeN(steps_src);
-			MEM_freeN(steps_dst);
-		}
-#endif
 	}
 
 	MEM_freeN(edges_prev);
@@ -583,83 +361,8 @@ LinkNode *BM_mesh_calc_path_edge(
 }
 
 
-
 /* -------------------------------------------------------------------- */
 /* BM_mesh_calc_path_face */
-
-#ifdef USE_PATH_FILL
-static void facetag_calc_fill_steps(
-        BMesh *bm, BMFace *f_start, int *steps, int steps_max, BMFace **stack_array,
-        const struct BMCalcPathParams *params)
-{
-	copy_vn_i(steps, bm->totface, steps_max);
-
-	BMFace **stack = stack_array;
-	STACK_DECLARE(stack);
-	STACK_INIT(stack, bm->totface);
-
-	STACK_PUSH(stack, f_start);
-	steps[BM_elem_index_get(f_start)] = 0;
-
-	while (STACK_SIZE(stack) != 0) {
-		BMFace *f_a = STACK_POP(stack);
-		const int f_a_index = BM_elem_index_get(f_a);
-		int step_a = steps[f_a_index];
-
-		if (step_a < steps_max) {
-
-			{
-				BMIter liter;
-				BMLoop *l_a;
-
-				BM_ITER_ELEM (l_a, &liter, f_a, BM_LOOPS_OF_FACE) {
-					BMLoop *l_first, *l_iter;
-
-					l_iter = l_first = l_a;
-					do {
-						BMFace *f_b = l_iter->f;
-						if (!BM_elem_flag_test(f_b, BM_ELEM_TAG)) {
-							/* we know 'f_b' is not visited, check it out! */
-							const int f_b_index = BM_elem_index_get(f_b);
-							const int step_b = step_a + 1;
-							if (steps[f_b_index] > step_b) {
-								steps[f_b_index] = step_b;
-								STACK_PUSH(stack, f_b);
-							}
-						}
-					} while ((l_iter = l_iter->radial_next) != l_first);
-				}
-			}
-
-
-			if (params->use_step_face) {
-				BMIter liter;
-				BMLoop *l_a;
-
-				BM_ITER_ELEM (l_a, &liter, f_a, BM_LOOPS_OF_FACE) {
-					BMIter litersub;
-					BMLoop *l_b;
-					BM_ITER_ELEM (l_b, &litersub, l_a->v, BM_LOOPS_OF_VERT) {
-						if ((l_a != l_b) && !BM_loop_share_edge_check(l_a, l_b)) {
-							BMFace *f_b = l_b->f;
-							if (!BM_elem_flag_test(f_b, BM_ELEM_TAG)) {
-								/* we know 'f_b' is not visited, check it out! */
-								const int f_b_index = BM_elem_index_get(f_b);
-								const int step_b = step_a + 1;
-								if (steps[f_b_index] > step_b) {
-									steps[f_b_index] = step_b;
-									STACK_PUSH(stack, f_b);
-								}
-							}
-						}
-					}
-				}
-			}
-
-		}
-	}
-}
-#endif /* USE_PATH_FILL */
 
 static float facetag_cut_cost_edge(BMFace *f_a, BMFace *f_b, BMEdge *e)
 {
@@ -768,7 +471,7 @@ static void facetag_add_adjacent(
 
 LinkNode *BM_mesh_calc_path_face(
         BMesh *bm, BMFace *f_src, BMFace *f_dst, const struct BMCalcPathParams *params,
-        bool (*test_fn)(BMFace *, void *user_data), void *user_data)
+        bool (*filter_fn)(BMFace *, void *user_data), void *user_data)
 {
 	LinkNode *path = NULL;
 	/* BM_ELEM_TAG flag is used to store visited edges */
@@ -783,13 +486,7 @@ LinkNode *BM_mesh_calc_path_face(
 	// BM_mesh_elem_index_ensure(bm, BM_VERT /* | BM_EDGE */); // NOT NEEDED FOR FACETAG
 
 	BM_ITER_MESH_INDEX (f, &fiter, bm, BM_FACES_OF_MESH, i) {
-		if (test_fn(f, user_data)) {
-			BM_elem_flag_disable(f, BM_ELEM_TAG);
-		}
-		else {
-			BM_elem_flag_enable(f, BM_ELEM_TAG);
-		}
-
+		BM_elem_flag_set(f, BM_ELEM_TAG, !filter_fn(f, user_data));
 		BM_elem_index_set(f, i); /* set_inline */
 	}
 	bm->elem_index_dirty &= ~BM_FACE;
@@ -830,36 +527,9 @@ LinkNode *BM_mesh_calc_path_face(
 	}
 
 	if (f == f_dst) {
-		int path_len = 0;
 		do {
 			BLI_linklist_prepend(&path, f);
-			path_len++;
 		} while ((f = faces_prev[BM_elem_index_get(f)]));
-
-#ifdef USE_PATH_FILL
-		if (params->use_fill) {
-			BM_ITER_MESH_INDEX (f, &fiter, bm, BM_FACES_OF_MESH, i) {
-				BM_elem_flag_set(f, BM_ELEM_TAG, !test_fn(f, user_data));
-			}
-
-			int *steps_src = MEM_mallocN(sizeof(*steps_src) * totface, __func__);
-			int *steps_dst = MEM_mallocN(sizeof(*steps_dst) * totface, __func__);
-
-			/* reuse memory */
-			BMFace **stack_array = faces_prev;
-			facetag_calc_fill_steps(bm, f_src, steps_src, path_len, stack_array, params);
-			facetag_calc_fill_steps(bm, f_dst, steps_dst, path_len, stack_array, params);
-
-			BM_ITER_MESH_INDEX (f, &fiter, bm, BM_FACES_OF_MESH, i) {
-				if (steps_src[i] + steps_dst[i] < path_len) {
-					BLI_linklist_prepend(&path, f);
-				}
-			}
-
-			MEM_freeN(steps_src);
-			MEM_freeN(steps_dst);
-		}
-#endif
 	}
 
 	MEM_freeN(faces_prev);

@@ -148,6 +148,8 @@ set(SRC
 	tools/bmesh_intersect.h
 	tools/bmesh_path.c
 	tools/bmesh_path.h
+	tools/bmesh_path_region.c
+	tools/bmesh_path_region.h
 	tools/bmesh_region_match.c
 	tools/bmesh_region_match.h
 	tools/bmesh_triangulate.c

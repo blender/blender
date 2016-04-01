@@ -15,38 +15,29 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s):
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BMESH_TOOLS_H__
-#define __BMESH_TOOLS_H__
+#ifndef __BMESH_PATH_REGION_H__
+#define __BMESH_PATH_REGION_H__
 
-/** \file blender/bmesh/bmesh_tools.h
+/** \file blender/bmesh/tools/bmesh_path_region.h
  *  \ingroup bmesh
- *
- * Utility functions that operate directly on the BMesh,
- * These can be used by both Modifiers and BMesh-Operators.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct LinkNode *BM_mesh_calc_path_region_vert(
+        BMesh *bm, BMElem *ele_src, BMElem *ele_dst,
+        bool (*test_fn)(BMVert *, void *user_data), void *user_data)
+ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2, 3);
 
-#include "tools/bmesh_beautify.h"
-#include "tools/bmesh_bevel.h"
-#include "tools/bmesh_bisect_plane.h"
-#include "tools/bmesh_decimate.h"
-#include "tools/bmesh_edgenet.h"
-#include "tools/bmesh_edgesplit.h"
-#include "tools/bmesh_path.h"
-#include "tools/bmesh_path_region.h"
-#include "tools/bmesh_region_match.h"
-#include "tools/bmesh_triangulate.h"
+struct LinkNode *BM_mesh_calc_path_region_edge(
+        BMesh *bm, BMElem *ele_src, BMElem *ele_dst,
+        bool (*test_fn)(BMEdge *, void *user_data), void *user_data)
+ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2, 3);
 
-#ifdef __cplusplus
-}
-#endif
+struct LinkNode *BM_mesh_calc_path_region_face(
+        BMesh *bm, BMElem *ele_src, BMElem *ele_dst,
+        bool (*test_fn)(BMFace *, void *user_data), void *user_data)
+ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2, 3);
 
-#endif /* __BMESH_TOOLS_H__ */
+#endif /* __BMESH_PATH_REGION_H__ */
