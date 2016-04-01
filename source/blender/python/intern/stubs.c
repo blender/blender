@@ -32,11 +32,16 @@
 
 #include "BPY_extern.h"
 
+#if defined(__GNUC__)
+#  pragma GCC diagnostic error "-Wmissing-prototypes"
+#  pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
 /* python, will come back */
 //void BPY_script_exec(void) {}
 //void BPY_python_start(void) {}
 //void BPY_text_free_code(void) {}
-void BPY_pyconstraint_exec(struct bPythonConstraint *UNUSED(con), struct bConstraintOb *UNUSED(cob), struct ListBase *UNUSED(targets)) {}
-void BPY_pyconstraint_target(struct bPythonConstraint *UNUSED(con), struct bConstraintTarget *UNUSED(ct)) {}
-int BPY_is_pyconstraint(struct Text *UNUSED(text)) { return 0;}
-void BPY_pyconstraint_update(struct Object *UNUSED(owner), struct bConstraint *UNUSED(con)) {}
+void BPY_pyconstraint_exec(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets) {}
+void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct) {}
+int BPY_is_pyconstraint(struct Text *text) { return 0;}
+void BPY_pyconstraint_update(struct Object *owner, struct bConstraint *con) {}

@@ -195,6 +195,8 @@ extern bool pyrna_id_FromPyObject(struct PyObject *obj, struct ID **id);
 extern const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *msgid);
 extern const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *msgid);
 extern struct PyObject *pyrna_id_CreatePyObject(struct ID *id);
+/* bpy_interface.c */
+bool BPY_string_is_keyword(const char *str) { return false; }
 
 #endif
 /* end declarations */
