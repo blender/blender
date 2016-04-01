@@ -189,11 +189,6 @@ struct BVHSpatialStorage {
 	/* Bins used for histogram when selecting best split plane. */
 	BVHSpatialBin bins[3][BVHParams::NUM_SPATIAL_BINS];
 
-	/* Indices to a reference array used by object splitter to speed up
-	 * sorting process.
-	 */
-	vector<int> reference_indices;
-
 	/* Temporary storage for the new references. Used by spatial split to store
 	 * new references in before they're getting inserted into actual array,
 	 */

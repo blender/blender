@@ -65,54 +65,5 @@ void bvh_reference_sort(int start, int end, BVHReference *data, int dim)
 	sort(data+start, data+end, compare);
 }
 
-struct BVHReferenceCompareIndexed {
-public:
-	BVHReferenceCompareIndexed(int dim, const BVHReference *data, int start)
-	: dim_(dim),
-	  start_(start),
-	  data_(data)
-	{}
-
-	bool operator()(const int a, const int b)
-	{
-		const BVHReference& ra = data_[start_ + a];
-		const BVHReference& rb = data_[start_ + b];
-		NO_EXTENDED_PRECISION float ca = ra.bounds().min[dim_] + ra.bounds().max[dim_];
-		NO_EXTENDED_PRECISION float cb = rb.bounds().min[dim_] + rb.bounds().max[dim_];
-
-		if(ca < cb) return true;
-		else if(ca > cb) return false;
-		else if(ra.prim_object() < rb.prim_object()) return true;
-		else if(ra.prim_object() > rb.prim_object()) return false;
-		else if(ra.prim_index() < rb.prim_index()) return true;
-		else if(ra.prim_index() > rb.prim_index()) return false;
-		else if(ra.prim_type() < rb.prim_type()) return true;
-		else if(ra.prim_type() > rb.prim_type()) return false;
-
-		return false;
-	}
-
-private:
-	int dim_, start_;
-	const BVHReference *data_;
-};
-
-/* NOTE: indices are always from 0 to count, even in the cases when start is not
- * zero. This is to simplify indexing in the object splitter. Index array is also
- * always zero-based index.
- */
-void bvh_reference_sort_indices(int start,
-                                int end,
-                                const BVHReference *data,
-                                int *indices,
-                                int dim)
-{
-	const int count = end - start;
-	for(int i = 0; i < count; ++i) {
-		indices[i] = i;
-	}
-	BVHReferenceCompareIndexed compare(dim, data, start);
-	sort(indices, indices+count, compare);
-}
-
 CCL_NAMESPACE_END
+

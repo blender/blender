@@ -37,7 +37,7 @@ public:
 	BoundBox right_bounds;
 
 	BVHObjectSplit() {}
-	BVHObjectSplit(const BVHBuild& builder,
+	BVHObjectSplit(BVHBuild *builder,
 	               BVHSpatialStorage *storage,
 	               const BVHRange& range,
 	               float nodeSAH);
@@ -137,7 +137,7 @@ public:
 
 	bool no_split;
 
-	__forceinline BVHMixedSplit(const BVHBuild& builder,
+	__forceinline BVHMixedSplit(BVHBuild *builder,
 	                            BVHSpatialStorage *storage,
 	                            const BVHRange& range,
 	                            int level)
@@ -145,22 +145,22 @@ public:
 		/* find split candidates. */
 		float area = range.bounds().safe_area();
 
-		leafSAH = area * builder.params.primitive_cost(range.size());
-		nodeSAH = area * builder.params.node_cost(2);
+		leafSAH = area * builder->params.primitive_cost(range.size());
+		nodeSAH = area * builder->params.node_cost(2);
 
 		object = BVHObjectSplit(builder, storage, range, nodeSAH);
 
-		if(builder.params.use_spatial_split && level < BVHParams::MAX_SPATIAL_DEPTH) {
+		if(builder->params.use_spatial_split && level < BVHParams::MAX_SPATIAL_DEPTH) {
 			BoundBox overlap = object.left_bounds;
 			overlap.intersect(object.right_bounds);
 
-			if(overlap.safe_area() >= builder.spatial_min_overlap)
-				spatial = BVHSpatialSplit(builder, storage, range, nodeSAH);
+			if(overlap.safe_area() >= builder->spatial_min_overlap)
+				spatial = BVHSpatialSplit(*builder, storage, range, nodeSAH);
 		}
 
 		/* leaf SAH is the lowest => create leaf. */
 		minSAH = min(min(leafSAH, object.sah), spatial.sah);
-		no_split = (minSAH == leafSAH && builder.range_within_max_leaf_size(range));
+		no_split = (minSAH == leafSAH && builder->range_within_max_leaf_size(range));
 	}
 
 	__forceinline void split(BVHBuild *builder, BVHRange& left, BVHRange& right, const BVHRange& range)

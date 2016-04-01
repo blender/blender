@@ -246,8 +246,6 @@ BVHNode* BVHBuild::run()
 		foreach(BVHSpatialStorage &storage, spatial_storage) {
 			storage.right_bounds.clear();
 			storage.right_bounds.resize(num_bins);
-			storage.reference_indices.clear();
-			storage.reference_indices.reserve(num_bins);
 		}
 	}
 
@@ -425,7 +423,7 @@ BVHNode* BVHBuild::build_node(const BVHRange& range, int level)
 	}
 
 	/* splitting test */
-	BVHMixedSplit split(*this, &spatial_storage[0], range, level);
+	BVHMixedSplit split(this, &spatial_storage[0], range, level);
 
 	if(!(range.size() > 0 && params.top_level && level == 0)) {
 		if(split.no_split) {

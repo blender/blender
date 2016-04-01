@@ -28,7 +28,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Object Split */
 
-BVHObjectSplit::BVHObjectSplit(const BVHBuild& builder,
+BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
                                BVHSpatialStorage *storage,
                                const BVHRange& range,
                                float nodeSAH)
@@ -39,28 +39,21 @@ BVHObjectSplit::BVHObjectSplit(const BVHBuild& builder,
   right_bounds(BoundBox::empty),
   storage_(storage)
 {
-	const BVHReference *ref_ptr = &builder.references[range.start()];
+	const BVHReference *ref_ptr = &builder->references[range.start()];
 	float min_sah = FLT_MAX;
 
-	storage->reference_indices.resize(range.size());
-	int *indices = &storage->reference_indices[0];
-
 	for(int dim = 0; dim < 3; dim++) {
-		/* Sort references.
-		 * We only sort indices, to save amount of memory being sent back
-		 * and forth.
-		 */
-		bvh_reference_sort_indices(range.start(),
-		                           range.end(),
-		                           &builder.references[0],
-		                           indices,
-		                           dim);
+		/* Sort references. */
+		bvh_reference_sort(range.start(),
+		                   range.end(),
+		                   &builder->references[0],
+		                   dim);
 
 		/* sweep right to left and determine bounds. */
 		BoundBox right_bounds = BoundBox::empty;
 
 		for(int i = range.size() - 1; i > 0; i--) {
-			right_bounds.grow(ref_ptr[indices[i]].bounds());
+			right_bounds.grow(ref_ptr[i].bounds());
 			storage_->right_bounds[i - 1] = right_bounds;
 		}
 
@@ -68,12 +61,12 @@ BVHObjectSplit::BVHObjectSplit(const BVHBuild& builder,
 		BoundBox left_bounds = BoundBox::empty;
 
 		for(int i = 1; i < range.size(); i++) {
-			left_bounds.grow(ref_ptr[indices[i - 1]].bounds());
+			left_bounds.grow(ref_ptr[i - 1].bounds());
 			right_bounds = storage_->right_bounds[i - 1];
 
 			float sah = nodeSAH +
-				left_bounds.safe_area() * builder.params.primitive_cost(i) +
-				right_bounds.safe_area() * builder.params.primitive_cost(range.size() - i);
+				left_bounds.safe_area() * builder->params.primitive_cost(i) +
+				right_bounds.safe_area() * builder->params.primitive_cost(range.size() - i);
 
 			if(sah < min_sah) {
 				min_sah = sah;
