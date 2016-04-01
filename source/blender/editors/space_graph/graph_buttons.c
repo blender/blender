@@ -980,14 +980,6 @@ void graph_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
 
-	pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel view");
-	strcpy(pt->idname, "GRAPH_PT_view");
-	strcpy(pt->label, N_("View Properties"));
-	strcpy(pt->category, "View");
-	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
-	pt->draw = graph_panel_view;
-	BLI_addtail(&art->paneltypes, pt);
-	
 	pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel properties");
 	strcpy(pt->idname, "GRAPH_PT_properties");
 	strcpy(pt->label, N_("Active F-Curve"));
@@ -1023,6 +1015,14 @@ void graph_buttons_register(ARegionType *art)
 	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw = graph_panel_modifiers;
 	pt->poll = graph_panel_poll;
+	BLI_addtail(&art->paneltypes, pt);
+	
+	pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel view");
+	strcpy(pt->idname, "GRAPH_PT_view");
+	strcpy(pt->label, N_("View Properties"));
+	strcpy(pt->category, "View");
+	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+	pt->draw = graph_panel_view;
 	BLI_addtail(&art->paneltypes, pt);
 }
 
