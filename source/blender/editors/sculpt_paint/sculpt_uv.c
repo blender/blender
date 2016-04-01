@@ -177,7 +177,7 @@ static int uv_sculpt_brush_poll_do(bContext *C, const bool check_region)
 
 	if (ret) {
 		ARegion *ar = CTX_wm_region(C);
-		if ((!toolsettings->use_uv_sculpt) || (check_region && ar && (ar->regiontype == RGN_TYPE_WINDOW))) {
+		if ((!toolsettings->use_uv_sculpt) || (check_region && ar && (ar->regiontype != RGN_TYPE_WINDOW))) {
 			ret = 0;
 		}
 	}
