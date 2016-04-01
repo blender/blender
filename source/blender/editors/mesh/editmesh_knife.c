@@ -1625,8 +1625,11 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 		face_tol = KNIFE_FLT_EPS_PX_FACE;
 	}
 	else {
-		/* use 1/100th of a pixel, see T43896 (too big), T47910 (too small). */
-		vert_tol = line_tol = face_tol = 0.01f;
+		/* Use 1/100th of a pixel, see T43896 (too big), T47910 (too small).
+		 *
+		 * Update, leave this as is until we investigate not using pixel coords for geometry calculations: T48023
+		 */
+		vert_tol = line_tol = face_tol = 0.5f;
 	}
 
 	vert_tol_sq = vert_tol * vert_tol;
