@@ -572,7 +572,7 @@ static void view_zoom_axis_lock_defaults(bContext *C, bool r_do_zoom_xy[2])
 	if (sa && sa->spacetype == SPACE_SEQ) {
 		ARegion *ar = CTX_wm_region(C);
 
-		if (ar && ar->regiontype != RGN_TYPE_PREVIEW)
+		if (ar && ar->regiontype == RGN_TYPE_WINDOW)
 			r_do_zoom_xy[1] = false;
 	}
 }
