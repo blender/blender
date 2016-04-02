@@ -61,9 +61,6 @@
 
 #include "anim_intern.h"
 
-/* called by WM */
-void free_anim_drivers_copybuf(void);
-
 /* ************************************************** */
 /* Animation Data Validation */
 
@@ -514,8 +511,7 @@ bool ANIM_remove_driver(ReportList *UNUSED(reports), ID *id, const char rna_path
 static FCurve *channeldriver_copypaste_buf = NULL;
 
 /* This function frees any MEM_calloc'ed copy/paste buffer data */
-// XXX find some header to put this in!
-void free_anim_drivers_copybuf(void)
+void ANIM_drivers_copybuf_free(void)
 {
 	/* free the buffer F-Curve if it exists, as if it were just another F-Curve */
 	if (channeldriver_copypaste_buf)
@@ -553,7 +549,7 @@ bool ANIM_copy_driver(ReportList *reports, ID *id, const char rna_path[], int ar
 	fcu = verify_driver_fcurve(id, rna_path, array_index, 0);
 	
 	/* clear copy/paste buffer first (for consistency with other copy/paste buffers) */
-	free_anim_drivers_copybuf();
+	ANIM_drivers_copybuf_free();
 	
 	/* copy this to the copy/paste buf if it exists */
 	if (fcu && fcu->driver) {

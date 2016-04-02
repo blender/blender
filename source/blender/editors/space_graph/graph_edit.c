@@ -789,7 +789,7 @@ static short copy_graph_keys(bAnimContext *ac)
 	int filter, ok = 0;
 	
 	/* clear buffer first */
-	free_anim_copybuf();
+	ANIM_fcurves_copybuf_free();
 	
 	/* filter data */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
@@ -2487,7 +2487,7 @@ static int graph_fmodifier_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* clear buffer first */
-	free_fmodifiers_copybuf();
+	ANIM_fmodifiers_copybuf_free();
 	
 	/* get the active F-Curve */
 	ale = get_active_fcurve_channel(&ac);

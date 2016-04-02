@@ -288,6 +288,11 @@ bool ANIM_remove_driver(struct ReportList *reports, struct ID *id, const char rn
 
 /* -------- */
 
+/* Clear copy-paste buffer for drivers */
+void ANIM_drivers_copybuf_free(void);
+
+/* -------- */
+
 /* Returns whether there is a driver in the copy/paste buffer to paste */
 bool ANIM_driver_can_paste(void);
 

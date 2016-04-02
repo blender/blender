@@ -2346,7 +2346,7 @@ static int nla_fmodifier_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* clear buffer first */
-	free_fmodifiers_copybuf();
+	ANIM_fmodifiers_copybuf_free();
 	
 	/* get a list of the editable tracks being shown in the NLA */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT);

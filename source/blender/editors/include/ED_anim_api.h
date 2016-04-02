@@ -544,10 +544,10 @@ void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *id, List
 
 
 /* free the copy/paste buffer */
-void free_fmodifiers_copybuf(void);
+void ANIM_fmodifiers_copybuf_free(void);
 
 /* copy the given F-Modifiers to the buffer, returning whether anything was copied or not
- * assuming that the buffer has been cleared already with free_fmodifiers_copybuf()
+ * assuming that the buffer has been cleared already with ANIM_fmodifiers_copybuf_free()
  *	- active: only copy the active modifier
  */
 bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active);
