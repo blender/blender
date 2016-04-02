@@ -718,10 +718,10 @@ typedef struct NodeTexBase {
 
 typedef struct NodeTexSky {
 	NodeTexBase base;
-	int sky_model;
 	float sun_direction[3];
 	float turbidity;
 	float ground_albedo;
+	int pad;
 } NodeTexSky;
 
 typedef struct NodeTexImage {
@@ -976,10 +976,6 @@ typedef struct NodeSunBeams {
 
 #define SHD_WAVE_PROFILE_SIN	0
 #define SHD_WAVE_PROFILE_SAW	1
-
-/* sky texture */
-#define SHD_SKY_OLD		0
-#define SHD_SKY_NEW		1
 
 /* image/environment texture */
 #define SHD_COLORSPACE_NONE		0

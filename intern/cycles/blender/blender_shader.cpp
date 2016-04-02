@@ -833,7 +833,6 @@ static ShaderNode *add_node(Scene *scene,
 	else if(b_node.is_a(&RNA_ShaderNodeTexSky)) {
 		BL::ShaderNodeTexSky b_sky_node(b_node);
 		SkyTextureNode *sky = new SkyTextureNode();
-		sky->type = SkyTextureNode::type_enum[(int)b_sky_node.sky_type()];
 		sky->sun_direction = normalize(get_float3(b_sky_node.sun_direction()));
 		sky->turbidity = b_sky_node.turbidity();
 		sky->ground_albedo = b_sky_node.ground_albedo();

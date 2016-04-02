@@ -910,12 +910,9 @@ static void node_shader_buts_tex_environment_ex(uiLayout *layout, bContext *C, P
 
 static void node_shader_buts_tex_sky(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {	
-	uiItemR(layout, ptr, "sky_type", 0, "", ICON_NONE);
 	uiItemR(layout, ptr, "sun_direction", 0, "", ICON_NONE);
 	uiItemR(layout, ptr, "turbidity", 0, NULL, ICON_NONE);
-
-	if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_NEW)
-		uiItemR(layout, ptr, "ground_albedo", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "ground_albedo", 0, NULL, ICON_NONE);
 }
 
 static void node_shader_buts_tex_gradient(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

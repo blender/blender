@@ -25,44 +25,6 @@ ccl_device float sky_angle_between(float thetav, float phiv, float theta, float 
 }
 
 /*
- * "A Practical Analytic Model for Daylight"
- * A. J. Preetham, Peter Shirley, Brian Smits
- */
-ccl_device float sky_perez_function(float *lam, float theta, float gamma)
-{
-	float ctheta = cosf(theta);
-	float cgamma = cosf(gamma);
-
-	return (1.0f + lam[0]*expf(lam[1]/ctheta)) * (1.0f + lam[2]*expf(lam[3]*gamma)  + lam[4]*cgamma*cgamma);
-}
-
-ccl_device float3 sky_radiance_old(KernelGlobals *kg, float3 dir,
-                                 float sunphi, float suntheta,
-                                 float radiance_x, float radiance_y, float radiance_z,
-                                 float *config_x, float *config_y, float *config_z)
-{
-	/* convert vector to spherical coordinates */
-	float2 spherical = direction_to_spherical(dir);
-	float theta = spherical.x;
-	float phi = spherical.y;
-
-	/* angle between sun direction and dir */
-	float gamma = sky_angle_between(theta, phi, suntheta, sunphi);
-
-	/* clamp theta to horizon */
-	theta = min(theta, M_PI_2_F - 0.001f);
-
-	/* compute xyY color space values */
-	float x = radiance_y * sky_perez_function(config_y, theta, gamma);
-	float y = radiance_z * sky_perez_function(config_z, theta, gamma);
-	float Y = radiance_x * sky_perez_function(config_x, theta, gamma);
-
-	/* convert to RGB */
-	float3 xyz = xyY_to_xyz(x, y, Y);
-	return xyz_to_rgb(xyz.x, xyz.y, xyz.z);
-}
-
-/*
  * "An Analytic Model for Full Spectral Sky-Dome Radiance"
  * Lukas Hosek, Alexander Wilkie
  */
@@ -80,10 +42,10 @@ ccl_device float sky_radiance_internal(float *configuration, float theta, float 
 		(configuration[2] + configuration[3] * expM + configuration[5] * rayM + configuration[6] * mieM + configuration[7] * zenith);
 }
 
-ccl_device float3 sky_radiance_new(KernelGlobals *kg, float3 dir,
-                                 float sunphi, float suntheta,
-                                 float radiance_x, float radiance_y, float radiance_z,
-                                 float *config_x, float *config_y, float *config_z)
+ccl_device float3 sky_radiance(KernelGlobals *kg, float3 dir,
+                               float sunphi, float suntheta,
+                               float radiance_x, float radiance_y, float radiance_z,
+                               float *config_x, float *config_y, float *config_z)
 {
 	/* convert vector to spherical coordinates */
 	float2 spherical = direction_to_spherical(dir);
@@ -114,7 +76,6 @@ ccl_device void svm_node_tex_sky(KernelGlobals *kg, ShaderData *sd, float *stack
 	/* Load data */
 	uint dir_offset = node.y;
 	uint out_offset = node.z;
-	int sky_model = node.w;
 
 	float4 data = read_node_float(kg, offset);
 	sunphi = data.x;
@@ -168,16 +129,9 @@ ccl_device void svm_node_tex_sky(KernelGlobals *kg, ShaderData *sd, float *stack
 	float3 f;
 
 	/* Compute Sky */
-	if(sky_model == 0) {
-		f = sky_radiance_old(kg, dir, sunphi, suntheta,
-	                             radiance_x, radiance_y, radiance_z,
-	                             config_x, config_y, config_z);
-	}
-	else {
-		f = sky_radiance_new(kg, dir, sunphi, suntheta,
-	                             radiance_x, radiance_y, radiance_z,
-	                             config_x, config_y, config_z);
-	}
+	f = sky_radiance(kg, dir, sunphi, suntheta,
+	                 radiance_x, radiance_y, radiance_z,
+	                 config_x, config_y, config_z);
 
 	stack_store_float3(stack, out_offset, f);
 }
