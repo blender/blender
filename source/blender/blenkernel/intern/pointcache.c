@@ -3508,15 +3508,13 @@ void BKE_ptcache_quick_cache_all(Main *bmain, Scene *scene)
 {
 	PTCacheBaker baker;
 
-	baker.bake=0;
-	baker.pid=NULL;
-	baker.render=0;
+	memset(&baker, 0, sizeof(baker));
+	baker.main = bmain;
+	baker.scene = scene;
+	baker.bake = 0;
+	baker.render = 0;
 	baker.anim_init = 0;
-	baker.main=bmain;
-	baker.scene=scene;
-	baker.quick_step=scene->physics_settings.quick_cache_step;
-	baker.update_progress = NULL;
-	baker.bake_job = NULL;
+	baker.quick_step = scene->physics_settings.quick_cache_step;
 
 	BKE_ptcache_bake(&baker);
 }
@@ -3541,7 +3539,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 	Scene *sce_iter; /* SETLOOPER macro only */
 	Base *base;
 	ListBase pidlist;
-	PTCacheID *pid = baker->pid;
+	PTCacheID *pid = &baker->pid;
 	PointCache *cache = NULL;
 	float frameleno = scene->r.framelen;
 	int cfrao = CFRA;
@@ -3552,7 +3550,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 	G.is_break = false;
 
 	/* set caches to baking mode and figure out start frame */
-	if (pid) {
+	if (pid->ob) {
 		/* cache/bake a single object */
 		cache = pid->cache;
 		if ((cache->flag & PTCACHE_BAKED)==0) {
