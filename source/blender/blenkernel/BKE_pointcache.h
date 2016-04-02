@@ -190,7 +190,7 @@ typedef struct PTCacheBaker {
 	int render;
 	int anim_init;
 	int quick_step;
-	struct PTCacheID *pid;
+	struct PTCacheID pid;
 
 	void (*update_progress)(void *data, float progress, int *cancel);
 	void *bake_job;
