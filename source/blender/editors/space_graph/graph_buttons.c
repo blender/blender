@@ -948,15 +948,13 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 	/* 'add modifier' button at top of panel */
 	{
 		row = uiLayoutRow(pa->layout, false);
-		block = uiLayoutGetBlock(row);
 		
 		/* this is an operator button which calls a 'add modifier' operator... 
 		 * a menu might be nicer but would be tricky as we need some custom filtering
 		 */
-		uiDefButO(block, UI_BTYPE_BUT, "GRAPH_OT_fmodifier_add", WM_OP_INVOKE_REGION_WIN, IFACE_("Add Modifier"),
-		          0.5 * UI_UNIT_X, 0, 7.5 * UI_UNIT_X, UI_UNIT_Y, TIP_("Adds a new F-Curve Modifier for the active F-Curve"));
+		uiItemMenuEnumO(row, (bContext *)C, "GRAPH_OT_fmodifier_add", "type", IFACE_("Add Modifier"), ICON_NONE);
 		
-		/* copy/paste (as sub-row)*/
+		/* copy/paste (as sub-row) */
 		row = uiLayoutRow(row, true);
 		uiItemO(row, "", ICON_COPYDOWN, "GRAPH_OT_fmodifier_copy");
 		uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_fmodifier_paste");
@@ -970,7 +968,7 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 		
 		ANIM_uiTemplate_fmodifier_draw(col, ale->id, &fcu->modifiers, fcm);
 	}
-
+	
 	MEM_freeN(ale);
 }
 
