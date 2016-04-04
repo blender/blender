@@ -305,7 +305,7 @@ BVHNode* BVHBuild::run()
 		task_pool.wait_work();
 	}
 	else {
-		/* Perrform multithreaded binning build. */
+		/* Perform multithreaded binning build. */
 		BVHObjectBinning rootbin(root, (references.size())? &references[0]: NULL);
 		rootnode = build_node(rootbin, 0);
 		task_pool.wait_work();
@@ -638,7 +638,7 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 
 	/* Create leaf nodes for every existing primitive.
 	 *
-	 * Here we write otimitive types, indices and objects a to temporary array.
+	 * Here we write primitive types, indices and objects to a temporary array.
 	 * This way we keep all the heavy memory allocation code outside of the
 	 * thread lock in the case of spatial split building.
 	 *
