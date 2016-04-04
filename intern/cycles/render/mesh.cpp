@@ -1317,7 +1317,11 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 		}
 	}
 
-	pool.wait_work();
+	TaskPool::Summary summary;
+	pool.wait_work(&summary);
+	VLOG(2) << "Objects BVH build pool statistics:\n"
+	        << summary.full_report();
+
 	foreach(Shader *shader, scene->shaders)
 		shader->need_update_attributes = false;
 

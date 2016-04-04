@@ -18,6 +18,7 @@
 #include "util_foreach.h"
 #include "util_system.h"
 #include "util_task.h"
+#include "util_time.h"
 
 //#define THREADING_DEBUG_ENABLED
 
@@ -34,6 +35,7 @@ CCL_NAMESPACE_BEGIN
 
 TaskPool::TaskPool()
 {
+	num_tasks_handled = 0;
 	num = 0;
 	do_cancel = false;
 }
@@ -58,7 +60,7 @@ void TaskPool::push(const TaskRunFunction& run, bool front)
 	push(new Task(run), front);
 }
 
-void TaskPool::wait_work()
+void TaskPool::wait_work(Summary *stats)
 {
 	thread_scoped_lock num_lock(num_mutex);
 
@@ -107,6 +109,11 @@ void TaskPool::wait_work()
 			num_cond.wait(num_lock);
 			THREADING_DEBUG("num==%d, condition wait done in TaskPool::wait_work !found_entry\n", num);
 		}
+	}
+
+	if(stats != NULL) {
+		stats->time_total = time_dt() - start_time;
+		stats->num_tasks_handled = num_tasks_handled;
 	}
 }
 
@@ -158,7 +165,11 @@ void TaskPool::num_decrease(int done)
 void TaskPool::num_increase()
 {
 	thread_scoped_lock num_lock(num_mutex);
+	if(num_tasks_handled == 0) {
+		start_time = time_dt();
+	}
 	num++;
+	num_tasks_handled++;
 	THREADING_DEBUG("num==%d, notifying all in TaskPool::num_increase\n", num);
 	num_cond.notify_all();
 }
@@ -448,6 +459,14 @@ void DedicatedTaskPool::clear()
 
 	/* notify done */
 	num_decrease(done);
+}
+
+string TaskPool::Summary::full_report() const
+{
+	string report = "";
+	report += string_printf("Total time:    %f\n", time_total);
+	report += string_printf("Tasks handled: %d\n", num_tasks_handled);
+	return report;
 }
 
 CCL_NAMESPACE_END
