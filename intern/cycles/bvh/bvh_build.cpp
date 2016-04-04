@@ -513,7 +513,7 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 	 *    because re-allocation happens in chunks and size of those chunks we
 	 *    can not control.
 	 */
-	typedef StackAllocator<MAX_ITEMS_PER_LEAF * 8, int> LeafStackAllocator;
+	typedef StackAllocator<MAX_ITEMS_PER_LEAF * 16, int> LeafStackAllocator;
 
 	vector<int, LeafStackAllocator> p_type[PRIMITIVE_NUM_TOTAL];
 	vector<int, LeafStackAllocator> p_index[PRIMITIVE_NUM_TOTAL];
