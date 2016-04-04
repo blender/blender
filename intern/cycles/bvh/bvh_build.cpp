@@ -40,13 +40,49 @@ CCL_NAMESPACE_BEGIN
 
 class BVHBuildTask : public Task {
 public:
-	BVHBuildTask(BVHBuild *build, InnerNode *node, int child, BVHObjectBinning& range_, int level)
-	: range(range_)
+	BVHBuildTask(BVHBuild *build,
+	             InnerNode *node,
+	             int child,
+	             const BVHObjectBinning& range,
+	             int level)
+	: range_(range)
 	{
-		run = function_bind(&BVHBuild::thread_build_node, build, node, child, &range, level);
+		run = function_bind(&BVHBuild::thread_build_node,
+		                    build,
+		                    node,
+		                    child,
+		                    &range_,
+		                    level);
 	}
+private:
+	BVHObjectBinning range_;
+};
 
-	BVHObjectBinning range;
+class BVHSpatialSplitBuildTask : public Task {
+public:
+	BVHSpatialSplitBuildTask(BVHBuild *build,
+	                         InnerNode *node,
+	                         int child,
+	                         const BVHRange& range,
+	                         const vector<BVHReference>& references,
+	                         int level)
+	: range_(range),
+	  references_(references.begin() + range.start(),
+	              references.begin() + range.end())
+	{
+		range_.set_start(0);
+		run = function_bind(&BVHBuild::thread_build_spatial_split_node,
+		                    build,
+		                    node,
+		                    child,
+		                    &range_,
+		                    &references_,
+		                    level,
+		                    _1);
+	}
+private:
+	BVHRange range_;
+	vector<BVHReference> references_;
 };
 
 /* Constructor / Destructor */
@@ -231,7 +267,6 @@ BVHNode* BVHBuild::run()
 	}
 
 	spatial_min_overlap = root.bounds().safe_area() * params.spatial_split_alpha;
-
 	if(params.use_spatial_split) {
 		/* NOTE: The API here tries to be as much ready for multi-threaded build
 		 * as possible, but at the same time it tries not to introduce any
@@ -241,13 +276,14 @@ BVHNode* BVHBuild::run()
 		 * So we currently allocate single storage for now, which is only used by
 		 * the only thread working on the spatial BVH build.
 		 */
-		spatial_storage.resize(1);
+		spatial_storage.resize(TaskScheduler::num_threads() + 1);
 		size_t num_bins = max(root.size(), (int)BVHParams::NUM_SPATIAL_BINS) - 1;
 		foreach(BVHSpatialStorage &storage, spatial_storage) {
 			storage.right_bounds.clear();
 			storage.right_bounds.resize(num_bins);
 		}
 	}
+	spatial_free_index = 0;
 
 	/* init progress updates */
 	double build_start_time;
@@ -264,11 +300,12 @@ BVHNode* BVHBuild::run()
 	BVHNode *rootnode;
 
 	if(params.use_spatial_split) {
-		/* singlethreaded spatial split build */
-		rootnode = build_node(root, 0);
+		/* Perform multithreaded spatial split build. */
+		rootnode = build_node(root, &references, 0, 0);
+		task_pool.wait_work();
 	}
 	else {
-		/* multithreaded binning build */
+		/* Perrform multithreaded binning build. */
 		BVHObjectBinning rootbin(root, (references.size())? &references[0]: NULL);
 		rootnode = build_node(rootbin, 0);
 		task_pool.wait_work();
@@ -320,7 +357,10 @@ void BVHBuild::progress_update()
 	progress_start_time = time_dt(); 
 }
 
-void BVHBuild::thread_build_node(InnerNode *inner, int child, BVHObjectBinning *range, int level)
+void BVHBuild::thread_build_node(InnerNode *inner,
+                                 int child,
+                                 BVHObjectBinning *range,
+                                 int level)
 {
 	if(progress.get_cancel())
 		return;
@@ -342,14 +382,33 @@ void BVHBuild::thread_build_node(InnerNode *inner, int child, BVHObjectBinning *
 	}
 }
 
-bool BVHBuild::range_within_max_leaf_size(const BVHRange& range) const
+void BVHBuild::thread_build_spatial_split_node(InnerNode *inner,
+                                               int child,
+                                               BVHRange *range,
+                                               vector<BVHReference> *references,
+                                               int level,
+                                               int thread_id)
+{
+	if(progress.get_cancel()) {
+		return;
+	}
+
+	/* build nodes */
+	BVHNode *node = build_node(*range, references, level, thread_id);
+
+	/* set child in inner node */
+	inner->children[child] = node;
+}
+
+bool BVHBuild::range_within_max_leaf_size(const BVHRange& range,
+                                          const vector<BVHReference>& references) const
 {
 	size_t size = range.size();
 	size_t max_leaf_size = max(params.max_triangle_leaf_size, params.max_curve_leaf_size);
 
 	if(size > max_leaf_size)
 		return false;
-	
+
 	size_t num_triangles = 0;
 	size_t num_curves = 0;
 	size_t num_motion_curves = 0;
@@ -381,8 +440,11 @@ BVHNode* BVHBuild::build_node(const BVHObjectBinning& range, int level)
 	 * visibility tests, since object instances do not check visibility flag */
 	if(!(range.size() > 0 && params.top_level && level == 0)) {
 		/* make leaf node when threshold reached or SAH tells us */
-		if(params.small_enough_for_leaf(size, level) || (range_within_max_leaf_size(range) && leafSAH < splitSAH))
-			return create_leaf_node(range);
+		if((params.small_enough_for_leaf(size, level)) ||
+		   (range_within_max_leaf_size(range, references) && leafSAH < splitSAH))
+		{
+			return create_leaf_node(range, references);
+		}
 	}
 
 	/* perform split */
@@ -410,48 +472,86 @@ BVHNode* BVHBuild::build_node(const BVHObjectBinning& range, int level)
 	return inner;
 }
 
-/* single threaded spatial split builder */
-BVHNode* BVHBuild::build_node(const BVHRange& range, int level)
+/* multithreaded spatial split builder */
+BVHNode* BVHBuild::build_node(const BVHRange& range,
+                              vector<BVHReference> *references,
+                              int level,
+                              int thread_id)
 {
-	/* progress update */
+	/* Update progress.
+	 *
+	 * TODO(sergey): Currently it matches old behavior, but we can move it to the
+	 * task thread (which will mimic non=split builder) and save some CPU ticks
+	 * on checking cancel status.
+	 */
 	progress_update();
-	if(progress.get_cancel())
+	if(progress.get_cancel()) {
 		return NULL;
+	}
 
-	/* small enough or too deep => create leaf. */
+	/* Small enough or too deep => create leaf. */
 	if(!(range.size() > 0 && params.top_level && level == 0)) {
 		if(params.small_enough_for_leaf(range.size(), level)) {
 			progress_count += range.size();
-			return create_leaf_node(range);
+			return create_leaf_node(range, *references);
 		}
 	}
 
-	/* splitting test */
-	BVHMixedSplit split(this, &spatial_storage[0], range, level);
+	/* Perform splitting test. */
+	BVHSpatialStorage *storage = &spatial_storage[thread_id];
+	BVHMixedSplit split(this, storage, range, references, level);
 
 	if(!(range.size() > 0 && params.top_level && level == 0)) {
 		if(split.no_split) {
 			progress_count += range.size();
-			return create_leaf_node(range);
+			return create_leaf_node(range, *references);
 		}
 	}
-	
-	/* do split */
+
+	/* Do split. */
 	BVHRange left, right;
 	split.split(this, left, right, range);
 
 	progress_total += left.size() + right.size() - range.size();
-	size_t total = progress_total;
 
-	/* left node */
-	BVHNode *leftnode = build_node(left, level + 1);
+	/* Create inner node. */
+	InnerNode *inner;
 
-	/* right node (modify start for splits) */
-	right.set_start(right.start() + progress_total - total);
-	BVHNode *rightnode = build_node(right, level + 1);
+	if(range.size() < THREAD_TASK_SIZE) {
+		/* Local build. */
 
-	/* inner node */
-	return new InnerNode(range.bounds(), leftnode, rightnode);
+		/* Build left node. */
+		vector<BVHReference> copy(references->begin() + right.start(),
+		                          references->begin() + right.end());
+		right.set_start(0);
+
+		BVHNode *leftnode = build_node(left, references, level + 1, thread_id);
+
+		/* Build right node. */
+		BVHNode *rightnode = build_node(right, &copy, level + 1, thread_id);
+
+		inner = new InnerNode(range.bounds(), leftnode, rightnode);
+	}
+	else {
+		/* Threaded build. */
+		inner = new InnerNode(range.bounds());
+		task_pool.push(new BVHSpatialSplitBuildTask(this,
+		                                            inner,
+		                                            0,
+		                                            left,
+		                                            *references,
+		                                            level + 1),
+		               true);
+		task_pool.push(new BVHSpatialSplitBuildTask(this,
+		                                            inner,
+		                                            1,
+		                                            right,
+		                                            *references,
+		                                            level + 1),
+		               true);
+	}
+
+	return inner;
 }
 
 /* Create Nodes */
@@ -484,23 +584,8 @@ BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref, int start, 
 	}
 }
 
-BVHNode *BVHBuild::create_primitive_leaf_node(const int *p_type,
-                                              const int *p_index,
-                                              const int *p_object,
-                                              const BoundBox& bounds,
-                                              uint visibility,
-                                              int start,
-                                              int num)
-{
-	for(int i = 0; i < num; ++i) {
-		prim_type[start + i] = p_type[i];
-		prim_index[start + i] = p_index[i];
-		prim_object[start + i] = p_object[i];
-	}
-	return new LeafNode(bounds, visibility, start, start + num);
-}
-
-BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
+BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
+                                    const vector<BVHReference>& references)
 {
 	/* This is a bit overallocating here (considering leaf size into account),
 	 * but chunk-based re-allocation in vector makes it difficult to use small
@@ -522,6 +607,9 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 	vector<int, LeafStackAllocator> p_type[PRIMITIVE_NUM_TOTAL];
 	vector<int, LeafStackAllocator> p_index[PRIMITIVE_NUM_TOTAL];
 	vector<int, LeafStackAllocator> p_object[PRIMITIVE_NUM_TOTAL];
+	/* TODO(sergey): In theory we should be able to store references. */
+	vector<BVHReference, LeafStackAllocator> object_references;
+
 	uint visibility[PRIMITIVE_NUM_TOTAL] = {0};
 	/* NOTE: Keep initializtion in sync with actual number of primitives. */
 	BoundBox bounds[PRIMITIVE_NUM_TOTAL] = {BoundBox::empty,
@@ -532,7 +620,7 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 
 	/* Fill in per-type type/index array. */
 	for(int i = 0; i < range.size(); i++) {
-		BVHReference& ref = references[range.start() + i];
+		const BVHReference& ref = references[range.start() + i];
 		if(ref.prim_index() != -1) {
 			int type_index = bitscan(ref.prim_type() & PRIMITIVE_ALL);
 			p_type[type_index].push_back(ref.prim_type());
@@ -543,43 +631,112 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 			visibility[type_index] |= objects[ref.prim_object()]->visibility;
 		}
 		else {
-			if(ob_num < i) {
-				references[range.start() + ob_num] = ref;
-			}
+			object_references.push_back(ref);
 			ob_num++;
 		}
 	}
 
-	/* Extend an array when needed. */
-	if(prim_type.size() < range.end()) {
-		assert(params.use_spatial_split);
-		prim_type.reserve(references.size());
-		prim_index.reserve(references.size());
-		prim_object.reserve(references.size());
-		prim_type.resize(range.end());
-		prim_index.resize(range.end());
-		prim_object.resize(range.end());
-	}
-
-	/* Create leaf nodes for every existing primitive. */
+	/* Create leaf nodes for every existing primitive.
+	 *
+	 * Here we write otimitive types, indices and objects a to temporary array.
+	 * This way we keep all the heavy memory allocation code outside of the
+	 * thread lock in the case of spatial split building.
+	 *
+	 * TODO(sergey): With some pointer trickery we can write directly to the
+	 * destination buffers for the non-spatial split BVH.
+	 */
 	BVHNode *leaves[PRIMITIVE_NUM_TOTAL + 1] = {NULL};
 	int num_leaves = 0;
-	int start = range.start();
+	size_t start_index = 0;
+	vector<int, LeafStackAllocator> local_prim_type,
+	                                local_prim_index,
+	                                local_prim_object;
 	for(int i = 0; i < PRIMITIVE_NUM_TOTAL; ++i) {
 		int num = (int)p_type[i].size();
+		local_prim_type.resize(start_index + num);
+		local_prim_index.resize(start_index + num);
+		local_prim_object.resize(start_index + num);
 		if(num != 0) {
 			assert(p_type[i].size() == p_index[i].size());
 			assert(p_type[i].size() == p_object[i].size());
-			leaves[num_leaves] = create_primitive_leaf_node(&p_type[i][0],
-			                                                &p_index[i][0],
-			                                                &p_object[i][0],
-			                                                bounds[i],
-			                                                visibility[i],
-			                                                start,
-			                                                num);
-			++num_leaves;
-			start += num;
+			for(int j = 0; j < num; ++j) {
+				const int index = start_index + j;
+				local_prim_type[index] = p_type[i][j];
+				local_prim_index[index] = p_index[i][j];
+				local_prim_object[index] = p_object[i][j];
+			}
+			leaves[num_leaves++] = new LeafNode(bounds[i],
+			                                    visibility[i],
+			                                    start_index,
+			                                    start_index + num);
+			start_index += num;
 		}
+	}
+	/* Get size of new data to be copied to the packed arrays. */
+	const int num_new_leaf_data = start_index;
+	const size_t new_leaf_data_size = sizeof(int) * num_new_leaf_data;
+	/* Copy actual data to the packed array. */
+	if(params.use_spatial_split) {
+		spatial_spin_lock.lock();
+		/* We use first free index in the packed arrays and mode pointer to the
+		 * end of the current range.
+		 *
+		 * This doesn't give deterministic packed arrays, but it shouldn't really
+		 * matter because order of children in BVH is deterministic.
+		 */
+		start_index = spatial_free_index;
+		spatial_free_index += range.size();
+
+		/* Extend an array when needed. */
+		const size_t range_end = start_index + range.size();
+		if(prim_type.size() < range_end) {
+			/* Avoid extra re-allocations by pre-allocating bigger array in an
+			 * advance.
+			 */
+			if(range_end >= prim_type.capacity()) {
+				float progress = (float)progress_count/(float)progress_total;
+				float factor = (1.0f - progress);
+				const size_t reserve = (size_t)(range_end + (float)range_end*factor);
+				prim_type.reserve(reserve);
+				prim_index.reserve(reserve);
+				prim_object.reserve(reserve);
+			}
+
+			prim_type.resize(range_end);
+			prim_index.resize(range_end);
+			prim_object.resize(range_end);
+		}
+
+		/* Perform actual data copy. */
+		if(new_leaf_data_size > 0) {
+			memcpy(&prim_type[start_index], &local_prim_type[0], new_leaf_data_size);
+			memcpy(&prim_index[start_index], &local_prim_index[0], new_leaf_data_size);
+			memcpy(&prim_object[start_index], &local_prim_object[0], new_leaf_data_size);
+		}
+
+		spatial_spin_lock.unlock();
+	}
+	else {
+		/* For the regular BVH builder we simply copy new data starting at the
+		 * range start. This is totally thread-safe, all threads are living
+		 * inside of their own range.
+		 */
+		start_index = range.start();
+		if(new_leaf_data_size > 0) {
+			memcpy(&prim_type[start_index], &local_prim_type[0], new_leaf_data_size);
+			memcpy(&prim_index[start_index], &local_prim_index[0], new_leaf_data_size);
+			memcpy(&prim_object[start_index], &local_prim_object[0], new_leaf_data_size);
+		}
+	}
+
+	/* So far leaves were created with the zero-based index in an arrays,
+	 * here we modify the indices to correspond to actual packed array start
+	 * index.
+	 */
+	for(int i = 0; i < num_leaves; ++i) {
+		LeafNode *leaf = (LeafNode *)leaves[i];
+		leaf->m_lo += start_index;
+		leaf->m_hi += start_index;
 	}
 
 	/* Create leaf node for object. */
@@ -587,8 +744,10 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 		/* Only create object leaf nodes if there are objects or no other
 		 * nodes created.
 		 */
-		const BVHReference *ref = (ob_num)? &references[range.start()]: NULL;
-		leaves[num_leaves] = create_object_leaf_nodes(ref, start, ob_num);
+		const BVHReference *ref = (ob_num)? &object_references[0]: NULL;
+		leaves[num_leaves] = create_object_leaf_nodes(ref,
+		                                              start_index + num_new_leaf_data,
+		                                              ob_num);
 		++num_leaves;
 	}
 
@@ -620,6 +779,8 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 		}
 		return inner_c;
 	}
+
+#undef MAX_ITEMS_PER_LEAF
 }
 
 /* Tree Rotations */

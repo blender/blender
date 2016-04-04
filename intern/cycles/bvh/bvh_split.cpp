@@ -31,22 +31,24 @@ CCL_NAMESPACE_BEGIN
 BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
                                BVHSpatialStorage *storage,
                                const BVHRange& range,
+                               vector<BVHReference> *references,
                                float nodeSAH)
 : sah(FLT_MAX),
   dim(0),
   num_left(0),
   left_bounds(BoundBox::empty),
   right_bounds(BoundBox::empty),
-  storage_(storage)
+  storage_(storage),
+  references_(references)
 {
-	const BVHReference *ref_ptr = &builder->references[range.start()];
+	const BVHReference *ref_ptr = &references_->at(range.start());
 	float min_sah = FLT_MAX;
 
 	for(int dim = 0; dim < 3; dim++) {
 		/* Sort references. */
 		bvh_reference_sort(range.start(),
 		                   range.end(),
-		                   &builder->references[0],
+		                   &references_->at(0),
 		                   dim);
 
 		/* sweep right to left and determine bounds. */
@@ -81,10 +83,15 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
 	}
 }
 
-void BVHObjectSplit::split(BVHBuild *builder, BVHRange& left, BVHRange& right, const BVHRange& range)
+void BVHObjectSplit::split(BVHRange& left,
+                           BVHRange& right,
+                           const BVHRange& range)
 {
 	/* sort references according to split */
-	bvh_reference_sort(range.start(), range.end(), &builder->references[0], this->dim);
+	bvh_reference_sort(range.start(),
+	                   range.end(),
+	                   &references_->at(0),
+	                   this->dim);
 
 	/* split node ranges */
 	left = BVHRange(this->left_bounds, range.start(), this->num_left);
@@ -97,11 +104,13 @@ void BVHObjectSplit::split(BVHBuild *builder, BVHRange& left, BVHRange& right, c
 BVHSpatialSplit::BVHSpatialSplit(const BVHBuild& builder,
                                  BVHSpatialStorage *storage,
                                  const BVHRange& range,
+                                 vector<BVHReference> *references,
                                  float nodeSAH)
 : sah(FLT_MAX),
   dim(0),
   pos(0.0f),
-  storage_(storage)
+  storage_(storage),
+  references_(references)
 {
 	/* initialize bins. */
 	float3 origin = range.bounds().min;
@@ -120,7 +129,7 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild& builder,
 
 	/* chop references into bins. */
 	for(unsigned int refIdx = range.start(); refIdx < range.end(); refIdx++) {
-		const BVHReference& ref = builder.references[refIdx];
+		const BVHReference& ref = references_->at(refIdx);
 		float3 firstBinf = (ref.bounds().min - origin) * invBinSize;
 		float3 lastBinf = (ref.bounds().max - origin) * invBinSize;
 		int3 firstBin = make_int3((int)firstBinf.x, (int)firstBinf.y, (int)firstBinf.z);
@@ -179,7 +188,10 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild& builder,
 	}
 }
 
-void BVHSpatialSplit::split(BVHBuild *builder, BVHRange& left, BVHRange& right, const BVHRange& range)
+void BVHSpatialSplit::split(BVHBuild *builder,
+                            BVHRange& left,
+                            BVHRange& right,
+                            const BVHRange& range)
 {
 	/* Categorize references and compute bounds.
 	 *
@@ -187,7 +199,7 @@ void BVHSpatialSplit::split(BVHBuild *builder, BVHRange& left, BVHRange& right, 
 	 * Uncategorized/split:		[left_end, right_start[
 	 * Right-hand side:			[right_start, refs.size()[ */
 
-	vector<BVHReference>& refs = builder->references;
+	vector<BVHReference>& refs = *references_;
 	int left_start = range.start();
 	int left_end = left_start;
 	int right_start = range.end();
@@ -470,4 +482,3 @@ void BVHSpatialSplit::split_reference(const BVHBuild& builder,
 }
 
 CCL_NAMESPACE_END
-

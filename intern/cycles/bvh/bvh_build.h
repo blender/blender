@@ -30,6 +30,7 @@
 CCL_NAMESPACE_BEGIN
 
 class BVHBuildTask;
+class BVHSpatialSplitBuildTask;
 class BVHParams;
 class InnerNode;
 class Mesh;
@@ -57,6 +58,7 @@ protected:
 	friend class BVHObjectSplit;
 	friend class BVHSpatialSplit;
 	friend class BVHBuildTask;
+	friend class BVHSpatialSplitBuildTask;
 
 	/* adding references */
 	void add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, int i);
@@ -64,25 +66,30 @@ protected:
 	void add_references(BVHRange& root);
 
 	/* building */
-	BVHNode *build_node(const BVHRange& range, int level);
+	BVHNode *build_node(const BVHRange& range,
+	                    vector<BVHReference> *references,
+	                    int level,
+	                    int thread_id);
 	BVHNode *build_node(const BVHObjectBinning& range, int level);
-	BVHNode *create_leaf_node(const BVHRange& range);
+	BVHNode *create_leaf_node(const BVHRange& range,
+	                          const vector<BVHReference>& references);
 	BVHNode *create_object_leaf_nodes(const BVHReference *ref, int start, int num);
 
-	/* Leaf node type splitting. */
-	BVHNode *create_primitive_leaf_node(const int *p_type,
-	                                    const int *p_index,
-	                                    const int *p_object,
-	                                    const BoundBox& bounds,
-	                                    uint visibility,
-	                                    int start,
-	                                    int nun);
-
-	bool range_within_max_leaf_size(const BVHRange& range) const;
+	bool range_within_max_leaf_size(const BVHRange& range,
+	                                const vector<BVHReference>& references) const;
 
 	/* threads */
 	enum { THREAD_TASK_SIZE = 4096 };
-	void thread_build_node(InnerNode *node, int child, BVHObjectBinning *range, int level);
+	void thread_build_node(InnerNode *node,
+	                       int child,
+	                       BVHObjectBinning *range,
+	                       int level);
+	void thread_build_spatial_split_node(InnerNode *node,
+	                                     int child,
+	                                     BVHRange *range,
+	                                     vector<BVHReference> *references,
+	                                     int level,
+	                                     int thread_id);
 	thread_mutex build_mutex;
 
 	/* progress */
@@ -115,6 +122,8 @@ protected:
 	/* spatial splitting */
 	float spatial_min_overlap;
 	vector<BVHSpatialStorage> spatial_storage;
+	size_t spatial_free_index;
+	thread_spin_lock spatial_spin_lock;
 
 	/* threads */
 	TaskPool task_pool;
