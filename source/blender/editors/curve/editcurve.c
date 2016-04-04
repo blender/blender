@@ -4830,6 +4830,8 @@ static int ed_editcurve_addvert(Curve *cu, EditNurb *editnurb, const float locat
 						}
 					}
 				}
+
+				BKE_nurb_handles_calc(nu);
 			}
 			else {
 				BPoint *bp;
