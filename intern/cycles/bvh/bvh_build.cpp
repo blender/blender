@@ -318,7 +318,7 @@ BVHNode* BVHBuild::run()
 			rootnode = NULL;
 			VLOG(1) << "BVH build cancelled.";
 		}
-		else if(!params.use_spatial_split) {
+		else {
 			/*rotate(rootnode, 4, 5);*/
 			rootnode->update_visibility();
 		}
