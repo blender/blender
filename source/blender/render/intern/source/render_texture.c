@@ -1270,8 +1270,13 @@ static int multitex_nodes_intern(Tex *tex,
 				ImBuf *ibuf = BKE_image_pool_acquire_ibuf(tex->ima, &tex->iuser, pool);
 				
 				/* don't linearize float buffers, assumed to be linear */
-				if (ibuf && !(ibuf->rect_float) && scene_color_manage)
+				if (ibuf != NULL &&
+				    ibuf->rect_float == NULL &&
+				    (rgbnor & TEX_RGB) &&
+				    scene_color_manage)
+				{
 					IMB_colormanagement_colorspace_to_scene_linear_v3(&texres->tr, ibuf->rect_colorspace);
+				}
 
 				BKE_image_pool_release_ibuf(tex->ima, ibuf, pool);
 			}
@@ -1312,8 +1317,13 @@ static int multitex_nodes_intern(Tex *tex,
 				ImBuf *ibuf = BKE_image_pool_acquire_ibuf(tex->ima, &tex->iuser, pool);
 
 				/* don't linearize float buffers, assumed to be linear */
-				if (ibuf && !(ibuf->rect_float) && scene_color_manage)
+				if (ibuf != NULL &&
+				    ibuf->rect_float == NULL &&
+				    (rgbnor & TEX_RGB) &&
+				    scene_color_manage)
+				{
 					IMB_colormanagement_colorspace_to_scene_linear_v3(&texres->tr, ibuf->rect_colorspace);
+				}
 
 				BKE_image_pool_release_ibuf(tex->ima, ibuf, pool);
 			}
@@ -2501,8 +2511,13 @@ void do_material_tex(ShadeInput *shi, Render *re)
 					ImBuf *ibuf = BKE_image_pool_acquire_ibuf(ima, &tex->iuser, re->pool);
 					
 					/* don't linearize float buffers, assumed to be linear */
-					if (ibuf && !(ibuf->rect_float) && R.scene_color_manage)
+					if (ibuf != NULL &&
+					    ibuf->rect_float == NULL &&
+					    (rgbnor & TEX_RGB) &&
+					    R.scene_color_manage)
+					{
 						IMB_colormanagement_colorspace_to_scene_linear_v3(tcol, ibuf->rect_colorspace);
+					}
 
 					BKE_image_pool_release_ibuf(ima, ibuf, re->pool);
 				}
