@@ -38,6 +38,8 @@
 #include <queue>
 #include <vector>
 
+#include "BKE_global.h"
+
 #ifdef _WIN32
 #  ifdef INFINITY
 #    undef INFINITY
@@ -500,7 +502,7 @@ struct VBVH_optimalPackSIMD {
 			calc_costs(node);
 
 #ifdef DEBUG
-			if (first) {
+			if (first && G.debug) {
 				printf("expected cost = %f (%d)\n", node->cut_cost[0], node->best_cutsize);
 			}
 #endif
