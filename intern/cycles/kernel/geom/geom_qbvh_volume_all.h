@@ -30,7 +30,8 @@
 ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
                                              const Ray *ray,
                                              Intersection *isect_array,
-                                             const uint max_hits)
+                                             const uint max_hits,
+                                             const uint visibility)
 {
 	/* TODO(sergey):
 	 * - Test if pushing distance on the stack helps.
@@ -53,8 +54,6 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 	float3 idir = bvh_inverse_direction(dir);
 	int object = OBJECT_NONE;
 	float isect_t = tmax;
-
-	const uint visibility = PATH_RAY_ALL_VISIBILITY;
 
 #if BVH_FEATURE(BVH_MOTION)
 	Transform ob_itfm;

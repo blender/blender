@@ -299,38 +299,39 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals *kg, const Ra
 #ifdef __VOLUME__
 ccl_device_intersect bool scene_intersect_volume(KernelGlobals *kg,
                                                  const Ray *ray,
-                                                 Intersection *isect)
+                                                 Intersection *isect,
+                                                 const uint visibility)
 {
 #  ifdef __OBJECT_MOTION__
 	if(kernel_data.bvh.have_motion) {
 #    ifdef __HAIR__
 		if(kernel_data.bvh.have_curves)
-			return bvh_intersect_volume_hair_motion(kg, ray, isect);
+			return bvh_intersect_volume_hair_motion(kg, ray, isect, visibility);
 #    endif /* __HAIR__ */
 
-		return bvh_intersect_volume_motion(kg, ray, isect);
+		return bvh_intersect_volume_motion(kg, ray, isect, visibility);
 	}
 #  endif /* __OBJECT_MOTION__ */
 
 #  ifdef __HAIR__
 	if(kernel_data.bvh.have_curves)
-		return bvh_intersect_volume_hair(kg, ray, isect);
+		return bvh_intersect_volume_hair(kg, ray, isect, visibility);
 #  endif /* __HAIR__ */
 
 #  ifdef __KERNEL_CPU__
 
 #    ifdef __INSTANCING__
 	if(kernel_data.bvh.have_instancing)
-		return bvh_intersect_volume_instancing(kg, ray, isect);
+		return bvh_intersect_volume_instancing(kg, ray, isect, visibility);
 #    endif /* __INSTANCING__ */
 
-	return bvh_intersect_volume(kg, ray, isect);
+	return bvh_intersect_volume(kg, ray, isect, visibility);
 #  else /* __KERNEL_CPU__ */
 
 #    ifdef __INSTANCING__
-	return bvh_intersect_volume_instancing(kg, ray, isect);
+	return bvh_intersect_volume_instancing(kg, ray, isect, visibility);
 #    else
-	return bvh_intersect_volume(kg, ray, isect);
+	return bvh_intersect_volume(kg, ray, isect, visibility);
 #    endif /* __INSTANCING__ */
 
 #  endif /* __KERNEL_CPU__ */
@@ -341,30 +342,31 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals *kg,
 ccl_device_intersect uint scene_intersect_volume_all(KernelGlobals *kg,
                                                      const Ray *ray,
                                                      Intersection *isect,
-                                                     const uint max_hits)
+                                                     const uint max_hits,
+                                                     const uint visibility)
 {
 #  ifdef __OBJECT_MOTION__
 	if(kernel_data.bvh.have_motion) {
 #    ifdef __HAIR__
 		if(kernel_data.bvh.have_curves)
-			return bvh_intersect_volume_all_hair_motion(kg, ray, isect, max_hits);
+			return bvh_intersect_volume_all_hair_motion(kg, ray, isect, max_hits, visibility);
 #    endif /* __HAIR__ */
 
-		return bvh_intersect_volume_all_motion(kg, ray, isect, max_hits);
+		return bvh_intersect_volume_all_motion(kg, ray, isect, max_hits, visibility);
 	}
 #  endif /* __OBJECT_MOTION__ */
 
 #  ifdef __HAIR__
 	if(kernel_data.bvh.have_curves)
-		return bvh_intersect_volume_all_hair(kg, ray, isect, max_hits);
+		return bvh_intersect_volume_all_hair(kg, ray, isect, max_hits, visibility);
 #  endif /* __HAIR__ */
 
 #  ifdef __INSTANCING__
 	if(kernel_data.bvh.have_instancing)
-		return bvh_intersect_volume_all_instancing(kg, ray, isect, max_hits);
+		return bvh_intersect_volume_all_instancing(kg, ray, isect, max_hits, visibility);
 #  endif /* __INSTANCING__ */
 
-	return bvh_intersect_volume_all(kg, ray, isect, max_hits);
+	return bvh_intersect_volume_all(kg, ray, isect, max_hits, visibility);
 }
 #endif  /* __VOLUME_RECORD_ALL__ */
 

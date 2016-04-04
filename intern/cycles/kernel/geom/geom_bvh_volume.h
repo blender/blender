@@ -33,7 +33,8 @@
 
 ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
                                             const Ray *ray,
-                                            Intersection *isect)
+                                            Intersection *isect,
+                                            const uint visibility)
 {
 	/* todo:
 	 * - test if pushing distance on the stack helps (for non shadow rays)
@@ -55,8 +56,6 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	float3 dir = bvh_clamp_direction(ray->D);
 	float3 idir = bvh_inverse_direction(dir);
 	int object = OBJECT_NONE;
-
-	const uint visibility = PATH_RAY_ALL_VISIBILITY;
 
 #if BVH_FEATURE(BVH_MOTION)
 	Transform ob_itfm;
@@ -336,13 +335,15 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 
 ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
                                          const Ray *ray,
-                                         Intersection *isect)
+                                         Intersection *isect,
+                                         const uint visibility)
 {
 #ifdef __QBVH__
 	if(kernel_data.bvh.use_qbvh) {
 		return BVH_FUNCTION_FULL_NAME(QBVH)(kg,
 		                                    ray,
-		                                    isect);
+		                                    isect,
+		                                    visibility);
 	}
 	else
 #endif
@@ -350,7 +351,8 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
 		kernel_assert(kernel_data.bvh.use_qbvh == false);
 		return BVH_FUNCTION_FULL_NAME(BVH)(kg,
 		                                   ray,
-		                                   isect);
+		                                   isect,
+		                                   visibility);
 	}
 }
 
