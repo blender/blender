@@ -121,7 +121,6 @@ Nurb *ED_curve_add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4],
 	const float grid = 1.0f;
 	const int cutype = (type & CU_TYPE); // poly, bezier, nurbs, etc
 	const int stype = (type & CU_PRIMITIVE);
-	const bool force_3d = (((Curve *)obedit->data)->flag & CU_3D) != 0; /* could be adding to an existing 3D curve */
 
 	unit_m4(umat);
 	unit_m4(viewmat);
@@ -145,7 +144,6 @@ Nurb *ED_curve_add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4],
 		case CU_PRIM_CURVE: /* curve */
 			nu->resolu = cu->resolu;
 			if (cutype == CU_BEZIER) {
-				if (!force_3d) nu->flag |= CU_2D;
 				nu->pntsu = 2;
 				nu->bezt = (BezTriple *)MEM_callocN(2 * sizeof(BezTriple), "addNurbprim1");
 				bezt = nu->bezt;
@@ -247,7 +245,6 @@ Nurb *ED_curve_add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4],
 			nu->resolu = cu->resolu;
 
 			if (cutype == CU_BEZIER) {
-				if (!force_3d) nu->flag |= CU_2D;
 				nu->pntsu = 4;
 				nu->bezt = (BezTriple *)MEM_callocN(sizeof(BezTriple) * 4, "addNurbprim1");
 				nu->flagu = CU_NURB_CYCLIC;
@@ -459,6 +456,10 @@ Nurb *ED_curve_add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4],
 	BLI_assert(nu != NULL);
 
 	if (nu) { /* should always be set */
+		if ((obedit->type != OB_SURF) && ((cu->flag & CU_3D) == 0)) {
+			nu->flag |= CU_2D;
+		}
+
 		nu->flag |= CU_SMOOTH;
 		cu->actnu = BLI_listbase_count(editnurb);
 		cu->actvert = CU_ACT_NONE;
