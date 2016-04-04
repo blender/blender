@@ -293,7 +293,11 @@ BVHNode* BVHBuild::run()
 			        << "  Number of inner nodes: "
 			        << rootnode->getSubtreeSize(BVH_STAT_INNER_COUNT)  << "\n"
 			        << "  Number of leaf nodes: "
-			        << rootnode->getSubtreeSize(BVH_STAT_LEAF_COUNT)  << "\n";
+			        << rootnode->getSubtreeSize(BVH_STAT_LEAF_COUNT)  << "\n"
+			        << "  Allocation slop factor: "
+			               << ((prim_type.capacity() != 0)
+			                       ? (float)prim_type.size() / prim_type.capacity()
+			                       : 1.0f) << "\n";
 		}
 	}
 
