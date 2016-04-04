@@ -3658,6 +3658,9 @@ static bool object_deforms_in_time(Object *object)
 	if (BKE_key_from_object(object) != NULL) {
 		return true;
 	}
+	if (!BLI_listbase_is_empty(&object->modifiers)) {
+		return true;
+	}
 	return object_moves_in_time(object);
 }
 
