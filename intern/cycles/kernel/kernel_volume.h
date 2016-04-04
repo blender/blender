@@ -1011,7 +1011,7 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 			shader_setup_from_ray(kg, &sd, isect, &volume_ray);
 			if(sd.flag & SD_BACKFACING) {
 				bool need_add = true;
-				for(int i = 0; stack[i].shader != SHADER_NONE; ++i) {
+				for(int i = 0; i < stack_index; ++i) {
 					/* If ray exited the volume and never entered to that volume
 					 * it means that camera is inside such a volume.
 					 */
