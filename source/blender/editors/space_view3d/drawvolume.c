@@ -331,7 +331,7 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	int densityscale_location = GPU_shader_get_uniform(shader, "density_scale");
 	int invsize_location = GPU_shader_get_uniform(shader, "invsize");
 	int ob_sizei_location = GPU_shader_get_uniform(shader, "ob_sizei");
-	int min_location = GPU_shader_get_uniform(shader, "min");
+	int min_location = GPU_shader_get_uniform(shader, "min_location");
 
 	GPU_shader_bind(shader);
 
