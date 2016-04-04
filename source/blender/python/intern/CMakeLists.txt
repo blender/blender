@@ -71,6 +71,7 @@ set(SRC
 	bpy_rna_anim.c
 	bpy_rna_array.c
 	bpy_rna_callback.c
+	bpy_rna_driver.c
 	bpy_rna_id_collection.c
 	bpy_traceback.c
 	bpy_util.c
@@ -99,6 +100,7 @@ set(SRC
 	bpy_rna.h
 	bpy_rna_anim.h
 	bpy_rna_callback.h
+	bpy_rna_driver.h
 	bpy_rna_id_collection.h
 	bpy_traceback.h
 	bpy_util.h

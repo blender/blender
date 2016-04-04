@@ -1151,6 +1151,71 @@ static float dtar_get_prop_val(ChannelDriver *driver, DriverTarget *dtar)
 	return value;
 }
 
+/**
+ * Same as 'dtar_get_prop_val'. but get the RNA property.
+ */
+bool driver_get_variable_property(
+        ChannelDriver *driver, DriverTarget *dtar,
+        PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index)
+{
+	PointerRNA id_ptr;
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	ID *id;
+	int index = -1;
+
+	/* sanity check */
+	if (ELEM(NULL, driver, dtar))
+		return false;
+
+	id = dtar_id_ensure_proxy_from(dtar->id);
+
+	/* error check for missing pointer... */
+	if (id == NULL) {
+		if (G.debug & G_DEBUG) {
+			printf("Error: driver has an invalid target to use (path = %s)\n", dtar->rna_path);
+		}
+
+		driver->flag |= DRIVER_FLAG_INVALID;
+		dtar->flag   |= DTAR_FLAG_INVALID;
+		return false;
+	}
+
+	/* get RNA-pointer for the ID-block given in target */
+	RNA_id_pointer_create(id, &id_ptr);
+
+	/* get property to read from, and get value as appropriate */
+	if (dtar->rna_path == NULL || dtar->rna_path[0] == '\0') {
+		ptr = PointerRNA_NULL;
+		prop = NULL; /* ok */
+	}
+	else if (RNA_path_resolve_property_full(&id_ptr, dtar->rna_path, &ptr, &prop, &index)) {
+		/* ok */
+	}
+	else {
+		/* path couldn't be resolved */
+		if (G.debug & G_DEBUG) {
+			printf("Driver Evaluation Error: cannot resolve target for %s -> %s\n", id->name, dtar->rna_path);
+		}
+
+		ptr = PointerRNA_NULL;
+		*r_prop = NULL;
+		*r_index = -1;
+
+		driver->flag |= DRIVER_FLAG_INVALID;
+		dtar->flag   |= DTAR_FLAG_INVALID;
+		return false;
+	}
+
+	*r_ptr = ptr;
+	*r_prop = prop;
+	*r_index = index;
+
+	/* if we're still here, we should be ok... */
+	dtar->flag &= ~DTAR_FLAG_INVALID;
+	return true;
+}
+
 /* Helper function to obtain a pointer to a Pose Channel (for evaluating drivers) */
 static bPoseChannel *dtar_get_pchan_ptr(ChannelDriver *driver, DriverTarget *dtar)
 {

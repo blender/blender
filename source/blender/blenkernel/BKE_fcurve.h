@@ -99,6 +99,10 @@ void driver_variable_name_validate(struct DriverVar *dvar);
 struct DriverVar *driver_add_new_variable(struct ChannelDriver *driver);
 
 float driver_get_variable_value(struct ChannelDriver *driver, struct DriverVar *dvar);
+bool  driver_get_variable_property(
+        struct ChannelDriver *driver, struct DriverTarget *dtar,
+        struct PointerRNA *r_ptr, struct PropertyRNA **r_prop, int *r_index);
+
 float evaluate_driver(struct ChannelDriver *driver, const float evaltime);
 
 /* ************** F-Curve Modifiers *************** */
