@@ -54,28 +54,35 @@ public:
 	T *allocate(size_t n, const void *hint = 0)
 	{
 		(void)hint;
+		if(n == 0) {
+			return NULL;
+		}
 		if(pointer_ + n >= SIZE) {
-			assert(!"Stack allocator overallocated");
-			/* NOTE: This is just a safety feature for the release builds, so
-			 * we fallback to a less efficient allocation but preventing crash
-			 * from happening.
-			 */
-			return (T*)malloc(n * sizeof(T));
+			size_t size = n * sizeof(T);
+			util_guarded_mem_alloc(size);
+#ifdef WITH_BLENDER_GUARDEDALLOC
+			return (T*)MEM_mallocN_aligned(size, 16, "Cycles Alloc");
+#else
+			return (T*)malloc(size);
+#endif
 		}
 		T *mem = &data_[pointer_];
 		pointer_ += n;
 		return mem;
 	}
 
-	void deallocate(T *p, size_t /*n*/)
+	void deallocate(T *p, size_t n)
 	{
 		if(p == NULL) {
 			return;
 		}
 		if(p < data_ || p >= data_ + SIZE) {
-			/* Again this is just a safety feature for the release builds. */
-			assert(!"Should never happen");
+			util_guarded_mem_free(n * sizeof(T));
+#ifdef WITH_BLENDER_GUARDEDALLOC
+			MEM_freeN(p);
+#else
 			free(p);
+#endif
 			return;
 		}
 		/* We don't support memory free for the stack allocator. */

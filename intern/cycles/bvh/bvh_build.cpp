@@ -502,8 +502,6 @@ BVHNode *BVHBuild::create_primitive_leaf_node(const int *p_type,
 
 BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 {
-	const int MAX_ITEMS_PER_LEAF = 16;
-
 	/* This is a bit overallocating here (considering leaf size into account),
 	 * but chunk-based re-allocation in vector makes it difficult to use small
 	 * size of stack storage here. Some tweaks are possible tho.
@@ -513,11 +511,13 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 	 *    and lots of cache misses.
 	 *  - If the size is too small, then we can run out of memory
 	 *    allowed to be used by vector.
+	 *    In practice it wouldn't mean crash, just allocator will fallback
+	 *    to heap which is slower.
 	 *  - Optimistic re-allocation in STL could jump us out of stack usage
 	 *    because re-allocation happens in chunks and size of those chunks we
 	 *    can not control.
 	 */
-	typedef StackAllocator<MAX_ITEMS_PER_LEAF * 16, int> LeafStackAllocator;
+	typedef StackAllocator<256, int> LeafStackAllocator;
 
 	vector<int, LeafStackAllocator> p_type[PRIMITIVE_NUM_TOTAL];
 	vector<int, LeafStackAllocator> p_index[PRIMITIVE_NUM_TOTAL];
