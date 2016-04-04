@@ -4980,6 +4980,37 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			        location, no_dummy, &dist_px_dummy);
 		}
 
+		if ((cu->flag & CU_3D) == 0) {
+			const float eps = 1e-6f;
+
+			/* get the view vector to 'location' */
+			float view_dir[3];
+			ED_view3d_global_to_vector(vc.rv3d, location, view_dir);
+
+			/* get the plane */
+			float plane[4];
+			/* only normalize to avoid precision errors */
+			normalize_v3_v3(plane, vc.obedit->obmat[2]);
+			plane[3] = -dot_v3v3(plane, vc.obedit->obmat[3]);
+
+			if (fabsf(dot_v3v3(view_dir, plane)) < eps) {
+				/* can't project on an aligned plane. */
+			}
+			else {
+				float lambda;
+				if (isect_ray_plane_v3(location, view_dir, plane, &lambda, false)) {
+					/* check if we're behind the viewport */
+					float location_test[3];
+					madd_v3_v3v3fl(location_test, location, view_dir, lambda);
+					if ((vc.rv3d->is_persp == false) ||
+					    (mul_project_m4_v3_zfac(vc.rv3d->persmat, location_test) > 0.0f))
+					{
+						copy_v3_v3(location, location_test);
+					}
+				}
+			}
+		}
+
 		RNA_float_set_array(op->ptr, "location", location);
 	}
 
