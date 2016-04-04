@@ -994,12 +994,14 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 
 	int stack_index = 0, enclosed_index = 0;
 
+	const uint visibility = PATH_RAY_ALL_VISIBILITY | kernel_data.integrator.layer_flag;
 #ifdef __VOLUME_RECORD_ALL__
 	Intersection hits[2*VOLUME_STACK_SIZE];
 	uint num_hits = scene_intersect_volume_all(kg,
 	                                           &volume_ray,
 	                                           hits,
-	                                           2*VOLUME_STACK_SIZE);
+	                                           2*VOLUME_STACK_SIZE,
+	                                           visibility);
 	if(num_hits > 0) {
 		int enclosed_volumes[VOLUME_STACK_SIZE];
 		Intersection *isect = hits;
@@ -1048,7 +1050,7 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 	      step < 2 * VOLUME_STACK_SIZE)
 	{
 		Intersection isect;
-		if(!scene_intersect_volume(kg, &volume_ray, &isect)) {
+		if(!scene_intersect_volume(kg, &volume_ray, &isect, visibility)) {
 			break;
 		}
 
@@ -1159,7 +1161,8 @@ ccl_device void kernel_volume_stack_update_for_subsurface(KernelGlobals *kg,
 	uint num_hits = scene_intersect_volume_all(kg,
 	                                           &volume_ray,
 	                                           hits,
-	                                           2*VOLUME_STACK_SIZE);
+	                                           2*VOLUME_STACK_SIZE,
+	                                           PATH_RAY_ALL_VISIBILITY);
 	if(num_hits > 0) {
 		Intersection *isect = hits;
 
@@ -1175,7 +1178,10 @@ ccl_device void kernel_volume_stack_update_for_subsurface(KernelGlobals *kg,
 	Intersection isect;
 	int step = 0;
 	while(step < 2 * VOLUME_STACK_SIZE &&
-	      scene_intersect_volume(kg, &volume_ray, &isect))
+	      scene_intersect_volume(kg,
+	                             &volume_ray,
+	                             &isect,
+	                             PATH_RAY_ALL_VISIBILITY))
 	{
 		ShaderData sd;
 		shader_setup_from_ray(kg, &sd, &isect, &volume_ray);
