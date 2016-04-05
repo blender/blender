@@ -245,20 +245,41 @@ static bool buildNavMesh(const RecastData *recastParams, int nverts, float *vert
 		return false;
 	}
 
-	/* Prepare for region partitioning, by calculating distance field along the walkable surface */
-	if (!recast_buildDistanceField(chf)) {
-		recast_destroyCompactHeightfield(chf);
+	if (recastParams->partitioning == RC_PARTITION_WATERSHED) {
+		/* Prepare for region partitioning, by calculating distance field along the walkable surface */
+		if (!recast_buildDistanceField(chf)) {
+			recast_destroyCompactHeightfield(chf);
 
-		BKE_report(reports, RPT_ERROR, "Failed to build distance field");
-		return false;
+			BKE_report(reports, RPT_ERROR, "Failed to build distance field");
+			return false;
+		}
+
+		/* Partition the walkable surface into simple regions without holes */
+		if (!recast_buildRegions(chf, 0, minRegionArea, mergeRegionArea)) {
+			recast_destroyCompactHeightfield(chf);
+
+			BKE_report(reports, RPT_ERROR, "Failed to build watershed regions");
+			return false;
+		}
 	}
+	else if (recastParams->partitioning == RC_PARTITION_MONOTONE) {
+		/* Partition the walkable surface into simple regions without holes */
+		/* Monotone partitioning does not need distancefield. */
+		if (!recast_buildRegionsMonotone(chf, 0, minRegionArea, mergeRegionArea)) {
+			recast_destroyCompactHeightfield(chf);
 
-	/* Partition the walkable surface into simple regions without holes */
-	if (!recast_buildRegions(chf, 0, minRegionArea, mergeRegionArea)) {
-		recast_destroyCompactHeightfield(chf);
+			BKE_report(reports, RPT_ERROR, "Failed to build monotone regions");
+			return false;
+		}
+	}
+	else { /* RC_PARTITION_LAYERS */
+		/* Partition the walkable surface into simple regions without holes */
+		if (!recast_buildLayerRegions(chf, 0, minRegionArea)) {
+			recast_destroyCompactHeightfield(chf);
 
-		BKE_report(reports, RPT_ERROR, "Failed to build regions");
-		return false;
+			BKE_report(reports, RPT_ERROR, "Failed to build layer regions");
+			return false;
+		}
 	}
 
 	/* ** Step 5: Trace and simplify region contours ** */

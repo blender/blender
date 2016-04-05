@@ -510,7 +510,11 @@ class SCENE_PT_game_navmesh(SceneButtonsPanel, Panel):
         col.label(text="Region:")
         row = col.row()
         row.prop(rd, "region_min_size")
-        row.prop(rd, "region_merge_size")
+        if rd.partitioning != 'LAYERS':
+            row.prop(rd, "region_merge_size")
+
+        col = layout.column()
+        col.prop(rd, "partitioning")
 
         col = layout.column()
         col.label(text="Polygonization:")

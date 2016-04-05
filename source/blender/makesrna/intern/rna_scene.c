@@ -3565,6 +3565,13 @@ static void rna_def_scene_game_recast_data(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem rna_enum_partitioning_items[] = {
+		{RC_PARTITION_WATERSHED, "WATERSHED", 0, "Watershed", "Classic Recast partitioning method generating the nicest tessellation"},
+		{RC_PARTITION_MONOTONE, "MONOTONE", 0, "Monotone", "Fastest navmesh generation method, may create long thin polygons"},
+		{RC_PARTITION_LAYERS, "LAYERS", 0, "Layers", "Reasonably fast method that produces better triangles than monotone partitioning"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "SceneGameRecastData", NULL);
 	RNA_def_struct_sdna(srna, "RecastData");
 	RNA_def_struct_nested(brna, srna, "Scene");
@@ -3625,6 +3632,13 @@ static void rna_def_scene_game_recast_data(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0, 150, 1, 2);
 	RNA_def_property_float_default(prop, 20.0f);
 	RNA_def_property_ui_text(prop, "Merged Region Size", "Minimum regions size (smaller regions will be merged)");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop = RNA_def_property(srna, "partitioning", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "partitioning");
+	RNA_def_property_enum_items(prop, rna_enum_partitioning_items);
+	RNA_def_property_enum_default(prop, RC_PARTITION_WATERSHED);
+	RNA_def_property_ui_text(prop, "Partitioning", "Choose partitioning method");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop = RNA_def_property(srna, "edge_max_len", PROP_FLOAT, PROP_NONE);

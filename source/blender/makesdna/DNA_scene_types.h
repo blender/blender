@@ -795,8 +795,14 @@ typedef struct RecastData {
 	int vertsperpoly;
 	float detailsampledist;
 	float detailsamplemaxerror;
-	short pad1, pad2;
+	char partitioning;
+	char pad1;
+	short pad2;
 } RecastData;
+
+#define RC_PARTITION_WATERSHED 0
+#define RC_PARTITION_MONOTONE 1
+#define RC_PARTITION_LAYERS 2
 
 typedef struct GameData {
 
