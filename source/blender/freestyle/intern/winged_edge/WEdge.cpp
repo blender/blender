@@ -640,18 +640,19 @@ WFace *WShape::MakeFace(vector<WVertex *>& iVertexList, vector<bool>& iFaceEdgeM
 	vector<WVertex *>::iterator it;
 
 	// compute the face normal (v1v2 ^ v1v3)
-	WVertex *v1, *v2, *v3;
+	// Double precision numbers are used here to avoid truncation errors [T47705]
+	Vec3r v1, v2, v3;
 	it = iVertexList.begin();
-	v1 = *it;
+	v1 = (*it)->GetVertex();
 	it++;
-	v2 = *it;
+	v2 = (*it)->GetVertex();
 	it++;
-	v3 = *it;
+	v3 = (*it)->GetVertex();
 
-	Vec3f vector1(v2->GetVertex() - v1->GetVertex());
-	Vec3f vector2(v3->GetVertex() - v1->GetVertex());
+	Vec3r vector1(v2 - v1);
+	Vec3r vector2(v3 - v1);
 
-	Vec3f normal(vector1 ^ vector2);
+	Vec3r normal(vector1 ^ vector2);
 	normal.normalize();
 	face->setNormal(normal);
 
