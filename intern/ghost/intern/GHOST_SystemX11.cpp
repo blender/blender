@@ -787,40 +787,40 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			GHOST_TKey gkey;
 
 #ifdef USE_NON_LATIN_KB_WORKAROUND
-            /* XXX Code below is kinda awfully convoluted... Issues are:
-             *
-             *     - In keyboards like latin ones, numbers need a 'Shift' to be accessed but key_sym
-             *       is unmodified (or anyone swapping the keys with xmodmap).
-             *
-             *     - XLookupKeysym seems to always use first defined keymap (see T47228), which generates
-             *       keycodes unusable by convertXKey for non-latin-compatible keymaps.
-             *
-             * To address this, we:
-             *
-             *     - Try to get a 'number' key_sym using XLookupKeysym (with or without shift modifier).
-             *     - Fallback to XLookupString to get a key_sym from active user-defined keymap.
-             *
-             * Note that this enforces users to use an ascii-compatible keymap with Blender - but at least it gives
-             * predictable and consistent results.
-             *
-             * Also, note that nothing in XLib sources [1] makes it obvious why those two functions give different
-             * key_sym results...
-             *
-             * [1] http://cgit.freedesktop.org/xorg/lib/libX11/tree/src/KeyBind.c
-             */
-            if ((xke->keycode >= 10 && xke->keycode < 20)) {
-                key_sym = XLookupKeysym(xke, ShiftMask);
-                if (!((key_sym >= XK_0) && (key_sym <= XK_9))) {
+			/* XXX Code below is kinda awfully convoluted... Issues are:
+			 *
+			 *     - In keyboards like latin ones, numbers need a 'Shift' to be accessed but key_sym
+			 *       is unmodified (or anyone swapping the keys with xmodmap).
+			 *
+			 *     - XLookupKeysym seems to always use first defined keymap (see T47228), which generates
+			 *       keycodes unusable by convertXKey for non-latin-compatible keymaps.
+			 *
+			 * To address this, we:
+			 *
+			 *     - Try to get a 'number' key_sym using XLookupKeysym (with or without shift modifier).
+			 *     - Fallback to XLookupString to get a key_sym from active user-defined keymap.
+			 *
+			 * Note that this enforces users to use an ascii-compatible keymap with Blender - but at least it gives
+			 * predictable and consistent results.
+			 *
+			 * Also, note that nothing in XLib sources [1] makes it obvious why those two functions give different
+			 * key_sym results...
+			 *
+			 * [1] http://cgit.freedesktop.org/xorg/lib/libX11/tree/src/KeyBind.c
+			 */
+			if ((xke->keycode >= 10 && xke->keycode < 20)) {
+				key_sym = XLookupKeysym(xke, ShiftMask);
+				if (!((key_sym >= XK_0) && (key_sym <= XK_9))) {
 					key_sym = XLookupKeysym(xke, 0);
-                }
-            }
+				}
+			}
 			else {
 				key_sym = XLookupKeysym(xke, 0);
 			}
 
-            if (!XLookupString(xke, &ascii, 1, &key_sym_str, NULL)) {
-                ascii = '\0';
-            }
+			if (!XLookupString(xke, &ascii, 1, &key_sym_str, NULL)) {
+				ascii = '\0';
+			}
 
 			if ((gkey = convertXKey(key_sym)) == GHOST_kKeyUnknown) {
 				gkey = convertXKey(key_sym_str);
@@ -1385,8 +1385,8 @@ GHOST_TSuccess
 GHOST_SystemX11::
 setCursorPosition(
 		GHOST_TInt32 x,
-		GHOST_TInt32 y
-        ) {
+		GHOST_TInt32 y)
+{
 
 	/* This is a brute force move in screen coordinates
 	 * XWarpPointer does relative moves so first determine the
