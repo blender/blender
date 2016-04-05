@@ -586,10 +586,6 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	printf("Other Options:\n");
 	BLI_argsPrintOtherDoc(ba);
 
-	printf("\n");
-	printf("Experimental Features:\n");
-	BLI_argsPrintArgDoc(ba, "--enable-new-depsgraph");
-
 	printf("Argument Parsing:\n");
 	printf("\tArguments must be separated by white space, eg:\n");
 	printf("\t# blender -ba test.blend\n");
@@ -622,6 +618,11 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	printf("  $SDL_AUDIODRIVER          LibSDL audio driver - alsa, esd, dma.\n");
 #endif
 	printf("  $PYTHONHOME               Path to the python directory, eg. /usr/lib/python.\n\n");
+
+	/* keep last */
+	printf("\n");
+	printf("Experimental Features:\n");
+	BLI_argsPrintArgDoc(ba, "--enable-new-depsgraph");
 
 	exit(0);
 
@@ -694,10 +695,12 @@ static int arg_handle_background_mode_set(int UNUSED(argc), const char **UNUSED(
 }
 
 static const char arg_handle_debug_mode_set_doc[] =
-"\n\tTurn debugging on\n"
-"\n\t* Enables memory error detection"
-"\n\t* Disables mouse grab (to interact with a debugger in some cases)"
-"\n\t* Keeps Python's 'sys.stdin' rather than setting it to None"
+"\n"
+"\tTurn debugging on\n"
+"\n"
+"\t* Enables memory error detection\n"
+"\t* Disables mouse grab (to interact with a debugger in some cases)\n"
+"\t* Keeps Python's 'sys.stdin' rather than setting it to None"
 ;
 static int arg_handle_debug_mode_set(int UNUSED(argc), const char **UNUSED(argv), void *data)
 {
@@ -784,7 +787,8 @@ static int arg_handle_debug_mode_memory_set(int UNUSED(argc), const char **UNUSE
 }
 
 static const char arg_handle_debug_value_set_doc[] =
-"<value>\n\tSet debug value of <value> on startup\n"
+"<value>\n"
+"\tSet debug value of <value> on startup\n"
 ;
 static int arg_handle_debug_value_set(int argc, const char **argv, void *UNUSED(data))
 {
@@ -1022,6 +1026,7 @@ static const char arg_handle_output_set_doc[] =
 "\tUse '//' at the start of the path to render relative to the blend-file.\n"
 "\n"
 "\tThe '#' characters are replaced by the frame number, and used to define zero padding.\n"
+"\n"
 "\t* 'ani_##_test.png' becomes 'ani_01_test.png'\n"
 "\t* 'test-######.png' becomes 'test-000001.png'\n"
 "\n"
@@ -1166,7 +1171,8 @@ static int arg_handle_depsgraph_use_new(int UNUSED(argc), const char **UNUSED(ar
 }
 
 static const char arg_handle_verbosity_set_doc[] =
-"<verbose>\n\tSet logging verbosity level."
+"<verbose>\n"
+"\tSet logging verbosity level."
 ;
 static int arg_handle_verbosity_set(int argc, const char **argv, void *UNUSED(data))
 {
@@ -1398,7 +1404,8 @@ static int arg_handle_scene_set(int argc, const char **argv, void *data)
 }
 
 static const char arg_handle_frame_start_set_doc[] =
-"<frame>\n\tSet start to frame <frame>, supports +/- for relative frames too."
+"<frame>\n"
+"\tSet start to frame <frame>, supports +/- for relative frames too."
 ;
 static int arg_handle_frame_start_set(int argc, const char **argv, void *data)
 {
@@ -1459,7 +1466,8 @@ static int arg_handle_frame_end_set(int argc, const char **argv, void *data)
 }
 
 static const char arg_handle_frame_skip_set_doc[] =
-"<frames>\n\tSet number of frames to step forward after each rendered frame"
+"<frames>\n"
+"\tSet number of frames to step forward after each rendered frame"
 ;
 static int arg_handle_frame_skip_set(int argc, const char **argv, void *data)
 {
@@ -1610,7 +1618,8 @@ static int arg_handle_python_console_run(int UNUSED(argc), const char **argv, vo
 }
 
 static const char arg_handle_python_exit_code_set_doc[] =
-"\n\tSet the exit-code in [0..255] to exit if a Python exception is raised\n"
+"\n"
+"\tSet the exit-code in [0..255] to exit if a Python exception is raised\n"
 "\t(only for scripts executed from the command line), zero disables."
 ;
 static int arg_handle_python_exit_code_set(int argc, const char **argv, void *UNUSED(data))
