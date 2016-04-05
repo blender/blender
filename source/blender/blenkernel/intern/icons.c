@@ -273,9 +273,10 @@ PreviewImage *BKE_previewimg_cached_get(const char *name)
 PreviewImage *BKE_previewimg_cached_ensure(const char *name)
 {
 	PreviewImage *prv = NULL;
-	void **prv_p;
+	void **key_p, **prv_p;
 
-	if (!BLI_ghash_ensure_p_ex(gCachedPreviews, name, &prv_p, (GHashKeyCopyFP)BLI_strdup)) {
+	if (!BLI_ghash_ensure_p_ex(gCachedPreviews, name, &key_p, &prv_p)) {
+		*key_p = BLI_strdup(name);
 		*prv_p = BKE_previewimg_create();
 	}
 	prv = *prv_p;
