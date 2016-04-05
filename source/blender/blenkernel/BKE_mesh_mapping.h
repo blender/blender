@@ -69,7 +69,7 @@ typedef struct UvElement {
 	/* general use flag */
 	unsigned char flag;
 	/* If generating element map with island sorting, this stores the island index */
-	unsigned short island;
+	unsigned int island;
 } UvElement;
 
 
@@ -90,9 +90,7 @@ typedef struct UvElementMap {
 	int *islandIndices;
 } UvElementMap;
 
-/* invalid island index is max short. If any one has the patience
- * to make that many islands, he can bite me :p */
-#define INVALID_ISLAND 0xFFFF
+#define INVALID_ISLAND ((unsigned int)-1)
 
 /* Connectivity data */
 typedef struct MeshElemMap {
