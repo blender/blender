@@ -216,7 +216,7 @@ static bool buildNavMesh(const RecastData *recastParams, int nverts, float *vert
 
 	/* Find triangles which are walkable based on their slope and rasterize them */
 	recast_markWalkableTriangles(RAD2DEGF(recastParams->agentmaxslope), verts, nverts, tris, ntris, triflags);
-	recast_rasterizeTriangles(verts, nverts, tris, triflags, ntris, solid);
+	recast_rasterizeTriangles(verts, nverts, tris, triflags, ntris, solid, 1);
 	MEM_freeN(triflags);
 
 	/* ** Step 3: Filter walkables surfaces ** */
@@ -265,7 +265,7 @@ static bool buildNavMesh(const RecastData *recastParams, int nverts, float *vert
 	/* Create contours */
 	cset = recast_newContourSet();
 
-	if (!recast_buildContours(chf, recastParams->edgemaxerror, maxEdgeLen, cset)) {
+	if (!recast_buildContours(chf, recastParams->edgemaxerror, maxEdgeLen, cset, RECAST_CONTOUR_TESS_WALL_EDGES)) {
 		recast_destroyCompactHeightfield(chf);
 		recast_destroyContourSet(cset);
 

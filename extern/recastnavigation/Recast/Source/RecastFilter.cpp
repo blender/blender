@@ -37,7 +37,7 @@ void rcFilterLowHangingWalkableObstacles(rcContext* ctx, const int walkableClimb
 {
 	rcAssert(ctx);
 
-	ctx->startTimer(RC_TIMER_FILTER_LOW_OBSTACLES);
+	rcScopedTimer timer(ctx, RC_TIMER_FILTER_LOW_OBSTACLES);
 	
 	const int w = solid.width;
 	const int h = solid.height;
@@ -67,8 +67,6 @@ void rcFilterLowHangingWalkableObstacles(rcContext* ctx, const int walkableClimb
 			}
 		}
 	}
-
-	ctx->stopTimer(RC_TIMER_FILTER_LOW_OBSTACLES);
 }
 
 /// @par
@@ -86,7 +84,7 @@ void rcFilterLedgeSpans(rcContext* ctx, const int walkableHeight, const int walk
 {
 	rcAssert(ctx);
 	
-	ctx->startTimer(RC_TIMER_FILTER_BORDER);
+	rcScopedTimer timer(ctx, RC_TIMER_FILTER_BORDER);
 
 	const int w = solid.width;
 	const int h = solid.height;
@@ -128,7 +126,7 @@ void rcFilterLedgeSpans(rcContext* ctx, const int walkableHeight, const int walk
 					rcSpan* ns = solid.spans[dx + dy*w];
 					int nbot = -walkableClimb;
 					int ntop = ns ? (int)ns->smin : MAX_HEIGHT;
-					// Skip neighbor if the gap between the spans is too small.
+					// Skip neightbour if the gap between the spans is too small.
 					if (rcMin(top,ntop) - rcMax(bot,nbot) > walkableHeight)
 						minh = rcMin(minh, nbot - bot);
 					
@@ -137,7 +135,7 @@ void rcFilterLedgeSpans(rcContext* ctx, const int walkableHeight, const int walk
 					{
 						nbot = (int)ns->smax;
 						ntop = ns->next ? (int)ns->next->smin : MAX_HEIGHT;
-						// Skip neighbor if the gap between the spans is too small.
+						// Skip neightbour if the gap between the spans is too small.
 						if (rcMin(top,ntop) - rcMax(bot,nbot) > walkableHeight)
 						{
 							minh = rcMin(minh, nbot - bot);
@@ -156,20 +154,19 @@ void rcFilterLedgeSpans(rcContext* ctx, const int walkableHeight, const int walk
 				// The current span is close to a ledge if the drop to any
 				// neighbour span is less than the walkableClimb.
 				if (minh < -walkableClimb)
+				{
 					s->area = RC_NULL_AREA;
-					
+				}
 				// If the difference between all neighbours is too large,
 				// we are at steep slope, mark the span as ledge.
-				if ((asmax - asmin) > walkableClimb)
+				else if ((asmax - asmin) > walkableClimb)
 				{
 					s->area = RC_NULL_AREA;
 				}
 			}
 		}
 	}
-	
-	ctx->stopTimer(RC_TIMER_FILTER_BORDER);
-}	
+}
 
 /// @par
 ///
@@ -181,7 +178,7 @@ void rcFilterWalkableLowHeightSpans(rcContext* ctx, int walkableHeight, rcHeight
 {
 	rcAssert(ctx);
 	
-	ctx->startTimer(RC_TIMER_FILTER_WALKABLE);
+	rcScopedTimer timer(ctx, RC_TIMER_FILTER_WALKABLE);
 	
 	const int w = solid.width;
 	const int h = solid.height;
@@ -202,6 +199,4 @@ void rcFilterWalkableLowHeightSpans(rcContext* ctx, int walkableHeight, rcHeight
 			}
 		}
 	}
-	
-	ctx->stopTimer(RC_TIMER_FILTER_WALKABLE);
 }

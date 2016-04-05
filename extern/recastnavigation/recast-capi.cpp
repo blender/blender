@@ -68,17 +68,41 @@ int recast_createHeightfield(struct recast_heightfield *hf, int width, int heigh
 }
 
 void recast_markWalkableTriangles(const float walkableSlopeAngle,const float *verts, int nv,
-			const int *tris, int nt, unsigned char *flags)
+			const int *tris, int nt, unsigned char *areas)
 {
 	INIT_SCTX();
-	rcMarkWalkableTriangles(sctx, walkableSlopeAngle, verts, nv, tris, nt, flags);
+	rcMarkWalkableTriangles(sctx, walkableSlopeAngle, verts, nv, tris, nt, areas);
 }
 
-void recast_rasterizeTriangles(const float *verts, int nv, const int *tris,
-			const unsigned char *flags, int nt, struct recast_heightfield *solid)
+void recast_clearUnwalkableTriangles(const float walkableSlopeAngle, const float* verts, int nv,
+			const int* tris, int nt, unsigned char* areas)
 {
 	INIT_SCTX();
-	rcRasterizeTriangles(sctx, verts, nv, tris, flags, nt, *(rcHeightfield *) solid);
+	rcClearUnwalkableTriangles(sctx, walkableSlopeAngle, verts, nv, tris, nt, areas);
+}
+
+int recast_addSpan(struct recast_heightfield *hf, const int x, const int y,
+			const unsigned short smin, const unsigned short smax,
+			const unsigned char area, const int flagMergeThr)
+{
+	INIT_SCTX();
+	return rcAddSpan(sctx, *(rcHeightfield *) hf, x, y, smin, smax, area, flagMergeThr);
+}
+
+int recast_rasterizeTriangle(const float *v0, const float *v1, const float *v2,
+			const unsigned char area, struct recast_heightfield *solid,
+			const int flagMergeThr)
+{
+	INIT_SCTX();
+	return rcRasterizeTriangle(sctx, v0, v1, v2, area, *(rcHeightfield *) solid, flagMergeThr);
+}
+
+int recast_rasterizeTriangles(const float *verts, const int nv, const int *tris,
+			const unsigned char *areas, const int nt, struct recast_heightfield *solid,
+			const int flagMergeThr)
+{
+	INIT_SCTX();
+	return rcRasterizeTriangles(sctx, verts, nv, tris, areas, nt, *(rcHeightfield *) solid, flagMergeThr);
 }
 
 void recast_filterLedgeSpans(const int walkableHeight, const int walkableClimb,
@@ -98,6 +122,22 @@ void recast_filterLowHangingWalkableObstacles(const int walkableClimb, struct re
 {
 	INIT_SCTX();
 	rcFilterLowHangingWalkableObstacles(sctx, walkableClimb, *(rcHeightfield *) solid);
+}
+
+int recast_getHeightFieldSpanCount(struct recast_heightfield *hf)
+{
+	INIT_SCTX();
+	return rcGetHeightFieldSpanCount(sctx, *(rcHeightfield *) hf);
+}
+
+struct recast_heightfieldLayerSet *recast_newHeightfieldLayerSet(void)
+{
+	return (struct recast_heightfieldLayerSet *) rcAllocHeightfieldLayerSet();
+}
+
+void recast_destroyHeightfieldLayerSet(struct recast_heightfieldLayerSet *lset)
+{
+	rcFreeHeightfieldLayerSet( (rcHeightfieldLayerSet *) lset);
 }
 
 struct recast_compactHeightfield *recast_newCompactHeightfield(void)
@@ -124,18 +164,68 @@ int recast_erodeWalkableArea(int radius, struct recast_compactHeightfield *chf)
 	return rcErodeWalkableArea(sctx, radius, *(rcCompactHeightfield *) chf);
 }
 
+int recast_medianFilterWalkableArea(struct recast_compactHeightfield *chf)
+{
+	INIT_SCTX();
+	return rcMedianFilterWalkableArea(sctx, *(rcCompactHeightfield *) chf);
+}
+
+void recast_markBoxArea(const float *bmin, const float *bmax, unsigned char areaId,
+			struct recast_compactHeightfield *chf)
+{
+	INIT_SCTX();
+	rcMarkBoxArea(sctx, bmin, bmax, areaId, *(rcCompactHeightfield *) chf);
+}
+
+void recast_markConvexPolyArea(const float* verts, const int nverts,
+			const float hmin, const float hmax, unsigned char areaId,
+			struct recast_compactHeightfield *chf)
+{
+	INIT_SCTX();
+	rcMarkConvexPolyArea(sctx, verts, nverts, hmin, hmax, areaId, *(rcCompactHeightfield *) chf);
+}
+
+int recast_offsetPoly(const float* verts, const int nverts,
+			const float offset, float *outVerts, const int maxOutVerts)
+{
+	return rcOffsetPoly(verts, nverts, offset, outVerts, maxOutVerts);
+}
+
+void recast_markCylinderArea(const float* pos, const float r, const float h,
+			unsigned char areaId, struct recast_compactHeightfield *chf)
+{
+	INIT_SCTX();
+	rcMarkCylinderArea(sctx, pos, r, h, areaId, *(rcCompactHeightfield *) chf);
+}
+
 int recast_buildDistanceField(struct recast_compactHeightfield *chf)
 {
 	INIT_SCTX();
 	return rcBuildDistanceField(sctx, *(rcCompactHeightfield *) chf);
 }
 
-int recast_buildRegions(struct recast_compactHeightfield *chf, int borderSize,
-	int minRegionSize, int mergeRegionSize)
+int recast_buildRegions(struct recast_compactHeightfield *chf,
+			const int borderSize, const int minRegionArea, const int mergeRegionArea)
 {
 	INIT_SCTX();
 	return rcBuildRegions(sctx, *(rcCompactHeightfield *) chf, borderSize,
-				minRegionSize, mergeRegionSize);
+				minRegionArea, mergeRegionArea);
+}
+
+int recast_buildLayerRegions(struct recast_compactHeightfield *chf,
+			const int borderSize, const int minRegionArea)
+{
+	INIT_SCTX();
+	return rcBuildLayerRegions(sctx, *(rcCompactHeightfield *) chf, borderSize,
+				minRegionArea);
+}
+
+int recast_buildRegionsMonotone(struct recast_compactHeightfield *chf,
+			const int borderSize, const int minRegionArea, const int mergeRegionArea)
+{
+	INIT_SCTX();
+	return rcBuildRegionsMonotone(sctx, *(rcCompactHeightfield *) chf, borderSize,
+				minRegionArea, mergeRegionArea);
 }
 
 struct recast_contourSet *recast_newContourSet(void)
@@ -149,10 +239,11 @@ void recast_destroyContourSet(struct recast_contourSet *contourSet)
 }
 
 int recast_buildContours(struct recast_compactHeightfield *chf,
-			const float maxError, const int maxEdgeLen, struct recast_contourSet *cset)
+			const float maxError, const int maxEdgeLen, struct recast_contourSet *cset,
+			const int buildFlags)
 {
 	INIT_SCTX();
-	return rcBuildContours(sctx, *(rcCompactHeightfield *) chf, maxError, maxEdgeLen, *(rcContourSet *) cset);
+	return rcBuildContours(sctx, *(rcCompactHeightfield *) chf, maxError, maxEdgeLen, *(rcContourSet *) cset, buildFlags);
 }
 
 struct recast_polyMesh *recast_newPolyMesh(void)
@@ -165,10 +256,22 @@ void recast_destroyPolyMesh(struct recast_polyMesh *polyMesh)
 	rcFreePolyMesh((rcPolyMesh *) polyMesh);
 }
 
-int recast_buildPolyMesh(struct recast_contourSet *cset, int nvp, struct recast_polyMesh *mesh)
+int recast_buildPolyMesh(struct recast_contourSet *cset, const int nvp, struct recast_polyMesh *mesh)
 {
 	INIT_SCTX();
-	return rcBuildPolyMesh(sctx, *(rcContourSet *) cset, nvp, * (rcPolyMesh *) mesh);
+	return rcBuildPolyMesh(sctx, *(rcContourSet *) cset, nvp, *(rcPolyMesh *) mesh);
+}
+
+int recast_mergePolyMeshes(struct recast_polyMesh **meshes, const int nmeshes, struct recast_polyMesh *mesh)
+{
+	INIT_SCTX();
+	return rcMergePolyMeshes(sctx, (rcPolyMesh **) meshes, nmeshes, *(rcPolyMesh *) mesh);
+}
+
+int recast_copyPolyMesh(const struct recast_polyMesh *src, struct recast_polyMesh *dst)
+{
+	INIT_SCTX();
+	return rcCopyPolyMesh(sctx, *(const rcPolyMesh *) src, *(rcPolyMesh *) dst);
 }
 
 unsigned short *recast_polyMeshGetVerts(struct recast_polyMesh *mesh, int *nverts)
@@ -238,6 +341,12 @@ int recast_buildPolyMeshDetail(const struct recast_polyMesh *mesh, const struct 
 	INIT_SCTX();
 	return rcBuildPolyMeshDetail(sctx, *(rcPolyMesh *) mesh, *(rcCompactHeightfield *) chf,
 			sampleDist, sampleMaxError, *(rcPolyMeshDetail *) dmesh);
+}
+
+int recast_mergePolyMeshDetails(struct recast_polyMeshDetail **meshes, const int nmeshes, struct recast_polyMeshDetail *mesh)
+{
+	INIT_SCTX();
+	return rcMergePolyMeshDetails(sctx, (rcPolyMeshDetail **) meshes, nmeshes, *(rcPolyMeshDetail *) mesh);
 }
 
 float *recast_polyMeshDetailGetVerts(struct recast_polyMeshDetail *mesh, int *nverts)
