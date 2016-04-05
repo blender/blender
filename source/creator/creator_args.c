@@ -1335,7 +1335,7 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
 			for (int i = 0; i < frames_range_len; i++) {
 				/* We could pass in frame ranges,
 				 * but prefer having exact behavior as passing in multiple frames */
-				if ((frame_range_arr[i][0] < frame_range_arr[i][1]) == 0) {
+				if ((frame_range_arr[i][0] <= frame_range_arr[i][1]) == 0) {
 					printf("\nWarning: negative range ignored '%s %s'.\n", arg_id, argv[1]);
 				}
 
