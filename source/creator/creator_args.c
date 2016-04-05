@@ -99,7 +99,7 @@
  * \{ */
 
 static bool parse_int_relative(
-        const char *str, int pos, int neg,
+        const char *str, const char *str_end_test, int pos, int neg,
         int *r_value, const char **r_err_msg)
 {
 	char *str_end = NULL;
@@ -120,7 +120,7 @@ static bool parse_int_relative(
 	}
 
 
-	if (*str_end != '\0') {
+	if (*str_end != '\0' && (str_end != str_end_test)) {
 		static const char *msg = "not a number";
 		*r_err_msg = msg;
 		return false;
@@ -136,12 +136,63 @@ static bool parse_int_relative(
 	}
 }
 
+static const char *parse_int_range_sep_search(const char *str, const char *str_end_test)
+{
+	const char *str_end_range = NULL;
+	if (str_end_test) {
+		str_end_range = memchr(str, '.', (str_end_test - str) - 1);
+		if (str_end_range && (str_end_range[1] != '.')) {
+			str_end_range = NULL;
+		}
+	}
+	else {
+		str_end_range = strstr(str, "..");
+		if (str_end_range && (str_end_range[2] == '\0')) {
+			str_end_range = NULL;
+		}
+	}
+	return str_end_range;
+}
+
+/**
+ * Parse a number as a range, eg: `1..4`.
+ *
+ * The \a str_end_range argument is a result of #parse_int_range_sep_search.
+ */
+static bool parse_int_range_relative(
+        const char *str, const char *str_end_range, const char *str_end_test, int pos, int neg,
+        int r_value_range[2], const char **r_err_msg)
+{
+	if (parse_int_relative(str,               str_end_range, pos, neg, &r_value_range[0], r_err_msg) &&
+	    parse_int_relative(str_end_range + 2, str_end_test,  pos, neg, &r_value_range[1], r_err_msg))
+	{
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 static bool parse_int_relative_clamp(
-        const char *str, int pos, int neg, int min, int max,
+        const char *str, const char *str_end_test, int pos, int neg, int min, int max,
         int *r_value, const char **r_err_msg)
 {
-	if (parse_int_relative(str, pos, neg, r_value, r_err_msg)) {
+	if (parse_int_relative(str, str_end_test, pos, neg, r_value, r_err_msg)) {
 		CLAMP(*r_value, min, max);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+static bool parse_int_range_relative_clamp(
+        const char *str, const char *str_end_range, const char *str_end_test, int pos, int neg, int min, int max,
+        int r_value_range[2], const char **r_err_msg)
+{
+	if (parse_int_range_relative(str, str_end_range, str_end_test, pos, neg, r_value_range, r_err_msg)) {
+		CLAMP(r_value_range[0], min, max);
+		CLAMP(r_value_range[1], min, max);
 		return true;
 	}
 	else {
@@ -153,7 +204,7 @@ static bool parse_int_relative_clamp(
  * No clamping, fails with any number outside the range.
  */
 static bool parse_int_strict_range(
-        const char *str, const int min, const int max,
+        const char *str, const char *str_end_test, const int min, const int max,
         int *r_value, const char **r_err_msg)
 {
 	char *str_end = NULL;
@@ -162,7 +213,7 @@ static bool parse_int_strict_range(
 	errno = 0;
 	value = strtol(str, &str_end, 10);
 
-	if (*str_end != '\0') {
+	if (*str_end != '\0' && (str_end != str_end_test)) {
 		static const char *msg = "not a number";
 		*r_err_msg = msg;
 		return false;
@@ -179,23 +230,132 @@ static bool parse_int_strict_range(
 }
 
 static bool parse_int(
-        const char *str,
+        const char *str, const char *str_end_test,
         int *r_value, const char **r_err_msg)
 {
-	return parse_int_strict_range(str, INT_MIN, INT_MAX, r_value, r_err_msg);
+	return parse_int_strict_range(str, str_end_test, INT_MIN, INT_MAX, r_value, r_err_msg);
 }
 
 static bool parse_int_clamp(
-        const char *str, int min, int max,
+        const char *str, const char *str_end_test, int min, int max,
         int *r_value, const char **r_err_msg)
 {
-	if (parse_int(str, r_value, r_err_msg)) {
+	if (parse_int(str, str_end_test, r_value, r_err_msg)) {
 		CLAMP(*r_value, min, max);
 		return true;
 	}
 	else {
 		return false;
 	}
+}
+
+#if 0
+/**
+ * Version of #parse_int_relative_clamp
+ * that parses a comma separated list of numbers.
+ */
+static int *parse_int_relative_clamp_n(
+        const char *str, int pos, int neg, int min, int max,
+        int *r_value_len, const char **r_err_msg)
+{
+	const char sep = ',';
+	int len = 1;
+	for (int i = 0; str[i]; i++) {
+		if (str[i] == sep) {
+			len++;
+		}
+	}
+
+	int *values = MEM_mallocN(sizeof(*values) * len, __func__);
+	int i = 0;
+	while (true) {
+		const char *str_end = strchr(str, sep);
+		if ((*str == sep) || (*str == '\0')) {
+			static const char *msg = "incorrect comma use";
+			*r_err_msg = msg;
+			goto fail;
+
+		}
+		else if (parse_int_relative_clamp(str, str_end, pos, neg, min, max, &values[i], r_err_msg)) {
+			i++;
+		}
+		else {
+			goto fail;  /* error message already set */
+		}
+
+		if (str_end) {  /* next */
+			str = str_end + 1;
+		}
+		else {  /* finished */
+			break;
+		}
+	}
+
+	*r_value_len = i;
+	return values;
+
+fail:
+	MEM_freeN(values);
+	return NULL;
+}
+
+#endif
+
+/**
+ * Version of #parse_int_relative_clamp & #parse_int_range_relative_clamp
+ * that parses a comma separated list of numbers.
+ *
+ * \note single values are evaluated as a range with matching start/end.
+ */
+static int (*parse_int_range_relative_clamp_n(
+        const char *str, int pos, int neg, int min, int max,
+        int *r_value_len, const char **r_err_msg))[2]
+{
+	const char sep = ',';
+	int len = 1;
+	for (int i = 0; str[i]; i++) {
+		if (str[i] == sep) {
+			len++;
+		}
+	}
+
+	int (*values)[2] = MEM_mallocN(sizeof(*values) * len, __func__);
+	int i = 0;
+	while (true) {
+		const char *str_end_range;
+		const char *str_end = strchr(str, sep);
+		if ((*str == sep) || (*str == '\0')) {
+			static const char *msg = "incorrect comma use";
+			*r_err_msg = msg;
+			goto fail;
+		}
+		else if ((str_end_range = parse_int_range_sep_search(str, str_end)) ?
+		         parse_int_range_relative_clamp(str, str_end_range, str_end, pos, neg, min, max, values[i], r_err_msg) :
+		         parse_int_relative_clamp(str, str_end, pos, neg, min, max, &values[i][0], r_err_msg))
+		{
+			if (str_end_range == NULL) {
+				values[i][1] = values[i][0];
+			}
+			i++;
+		}
+		else {
+			goto fail;  /* error message already set */
+		}
+
+		if (str_end) {  /* next */
+			str = str_end + 1;
+		}
+		else {  /* finished */
+			break;
+		}
+	}
+
+	*r_value_len = i;
+	return values;
+
+fail:
+	MEM_freeN(values);
+	return NULL;
 }
 
 /** \} */
@@ -632,7 +792,7 @@ static int arg_handle_debug_value_set(int argc, const char **argv, void *UNUSED(
 	if (argc > 1) {
 		const char *err_msg = NULL;
 		int value;
-		if (!parse_int(argv[1], &value, &err_msg)) {
+		if (!parse_int(argv[1], NULL, &value, &err_msg)) {
 			printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
 			return 1;
 		}
@@ -736,7 +896,7 @@ static int arg_handle_window_geometry(int argc, const char **argv, void *UNUSED(
 
 	for (i = 0; i < 4; i++) {
 		const char *err_msg = NULL;
-		if (!parse_int(argv[i + 1], &params[i], &err_msg)) {
+		if (!parse_int(argv[i + 1], NULL, &params[i], &err_msg)) {
 			printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
 			exit(1);
 		}
@@ -981,7 +1141,7 @@ static int arg_handle_threads_set(int argc, const char **argv, void *UNUSED(data
 	if (argc > 1) {
 		const char *err_msg = NULL;
 		int threads;
-		if (!parse_int_strict_range(argv[1], min, max, &threads, &err_msg)) {
+		if (!parse_int_strict_range(argv[1], NULL, min, max, &threads, &err_msg)) {
 			printf("\nError: %s '%s %s', expected number in [%d..%d].\n", err_msg, arg_id, argv[1], min, max);
 			return 1;
 		}
@@ -1014,7 +1174,7 @@ static int arg_handle_verbosity_set(int argc, const char **argv, void *UNUSED(da
 	if (argc > 1) {
 		const char *err_msg = NULL;
 		int level;
-		if (!parse_int(argv[1], &level, &err_msg)) {
+		if (!parse_int(argv[1], NULL, &level, &err_msg)) {
 			printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
 		}
 
@@ -1132,7 +1292,12 @@ static int arg_handle_ge_parameters_set(int argc, const char **argv, void *data)
 }
 
 static const char arg_handle_render_frame_doc[] =
-"<frame>\n\tRender frame <frame> and save it.\n\t+<frame> start frame relative, -<frame> end frame relative."
+"<frame>\n"
+"\tRender frame <frame> and save it.\n"
+"\n"
+"\t* +<frame> start frame relative, -<frame> end frame relative.\n"
+"\t* A comma separated list of frames can also be used (no spaces).\n"
+"\t* A range of frames can be expressed using '..' seperator between the first and last frames (inclusive).\n"
 ;
 static int arg_handle_render_frame(int argc, const char **argv, void *data)
 {
@@ -1145,12 +1310,12 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
 		if (argc > 1) {
 			const char *err_msg = NULL;
 			Render *re;
-			int frame;
 			ReportList reports;
 
-			if (!parse_int_relative_clamp(
-			        argv[1], scene->r.sfra, scene->r.efra, MINAFRAME, MAXFRAME,
-			        &frame, &err_msg))
+			int (*frame_range_arr)[2], frames_range_len;
+			if ((frame_range_arr = parse_int_range_relative_clamp_n(
+			         argv[1], scene->r.sfra, scene->r.efra, MINAFRAME, MAXFRAME,
+			         &frames_range_len, &err_msg)) == NULL)
 			{
 				printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
 				return 1;
@@ -1161,9 +1326,20 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
 			BKE_reports_init(&reports, RPT_PRINT);
 
 			RE_SetReports(re, &reports);
-			RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, frame, frame, scene->r.frame_step);
+			for (int i = 0; i < frames_range_len; i++) {
+				/* We could pass in frame ranges,
+				 * but prefer having exact behavior as passing in multiple frames */
+				if ((frame_range_arr[i][0] < frame_range_arr[i][1]) == 0) {
+					printf("\nWarning: negative range ignored '%s %s'.\n", arg_id, argv[1]);
+				}
+
+				for (int frame = frame_range_arr[i][0]; frame <= frame_range_arr[i][1]; frame++) {
+					RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, frame, frame, scene->r.frame_step);
+				}
+			}
 			RE_SetReports(re, NULL);
 			BLI_end_threaded_malloc();
+			MEM_freeN(frame_range_arr);
 			return 1;
 		}
 		else {
@@ -1233,7 +1409,7 @@ static int arg_handle_frame_start_set(int argc, const char **argv, void *data)
 		if (argc > 1) {
 			const char *err_msg = NULL;
 			if (!parse_int_relative_clamp(
-			        argv[1], scene->r.sfra, scene->r.sfra - 1, MINAFRAME, MAXFRAME,
+			        argv[1], NULL, scene->r.sfra, scene->r.sfra - 1, MINAFRAME, MAXFRAME,
 			        &scene->r.sfra, &err_msg))
 			{
 				printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
@@ -1264,7 +1440,7 @@ static int arg_handle_frame_end_set(int argc, const char **argv, void *data)
 		if (argc > 1) {
 			const char *err_msg = NULL;
 			if (!parse_int_relative_clamp(
-			        argv[1], scene->r.efra, scene->r.efra - 1, MINAFRAME, MAXFRAME,
+			        argv[1], NULL, scene->r.efra, scene->r.efra - 1, MINAFRAME, MAXFRAME,
 			        &scene->r.efra, &err_msg))
 			{
 				printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
@@ -1293,7 +1469,7 @@ static int arg_handle_frame_skip_set(int argc, const char **argv, void *data)
 	if (scene) {
 		if (argc > 1) {
 			const char *err_msg = NULL;
-			if (!parse_int_clamp(argv[1], 1, MAXFRAME, &scene->r.frame_step, &err_msg)) {
+			if (!parse_int_clamp(argv[1], NULL, 1, MAXFRAME, &scene->r.frame_step, &err_msg)) {
 				printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
 			}
 			return 1;
@@ -1444,7 +1620,7 @@ static int arg_handle_python_exit_code_set(int argc, const char **argv, void *UN
 		const char *err_msg = NULL;
 		const int min = 0, max = 255;
 		int exit_code;
-		if (!parse_int_strict_range(argv[1], min, max, &exit_code, &err_msg)) {
+		if (!parse_int_strict_range(argv[1], NULL, min, max, &exit_code, &err_msg)) {
 			printf("\nError: %s '%s %s', expected number in [%d..%d].\n", err_msg, arg_id, argv[1], min, max);
 			return 1;
 		}
