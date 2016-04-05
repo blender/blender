@@ -591,8 +591,78 @@ typedef struct SunSky {
 	float config_x[9], config_y[9], config_z[9];
 } SunSky;
 
+/* Preetham model */
+static float sky_perez_function(float lam[6], float theta, float gamma)
+{
+	return (1.0f + lam[0]*expf(lam[1]/cosf(theta))) * (1.0f + lam[2]*expf(lam[3]*gamma)  + lam[4]*cosf(gamma)*cosf(gamma));
+}
+
+static void sky_texture_precompute_old(SunSky *sunsky, float3 dir, float turbidity)
+{
+	/*
+	* We re-use the SunSky struct of the new model, to avoid extra variables
+	* zenith_Y/x/y is now radiance_x/y/z
+	* perez_Y/x/y is now config_x/y/z
+	*/
+	
+	float2 spherical = sky_spherical_coordinates(dir);
+	float theta = spherical.x;
+	float phi = spherical.y;
+
+	sunsky->theta = theta;
+	sunsky->phi = phi;
+
+	float theta2 = theta*theta;
+	float theta3 = theta2*theta;
+	float T = turbidity;
+	float T2 = T * T;
+
+	float chi = (4.0f / 9.0f - T / 120.0f) * (M_PI_F - 2.0f * theta);
+	sunsky->radiance_x = (4.0453f * T - 4.9710f) * tanf(chi) - 0.2155f * T + 2.4192f;
+	sunsky->radiance_x *= 0.06f;
+
+	sunsky->radiance_y =
+	(0.00166f * theta3 - 0.00375f * theta2 + 0.00209f * theta) * T2 +
+	(-0.02903f * theta3 + 0.06377f * theta2 - 0.03202f * theta + 0.00394f) * T +
+	(0.11693f * theta3 - 0.21196f * theta2 + 0.06052f * theta + 0.25886f);
+
+	sunsky->radiance_z =
+	(0.00275f * theta3 - 0.00610f * theta2 + 0.00317f * theta) * T2 +
+	(-0.04214f * theta3 + 0.08970f * theta2 - 0.04153f * theta  + 0.00516f) * T +
+	(0.15346f * theta3 - 0.26756f * theta2 + 0.06670f * theta  + 0.26688f);
+
+	sunsky->config_x[0] = (0.1787f * T  - 1.4630f);
+	sunsky->config_x[1] = (-0.3554f * T  + 0.4275f);
+	sunsky->config_x[2] = (-0.0227f * T  + 5.3251f);
+	sunsky->config_x[3] = (0.1206f * T  - 2.5771f);
+	sunsky->config_x[4] = (-0.0670f * T  + 0.3703f);
+
+	sunsky->config_y[0] = (-0.0193f * T  - 0.2592f);
+	sunsky->config_y[1] = (-0.0665f * T  + 0.0008f);
+	sunsky->config_y[2] = (-0.0004f * T  + 0.2125f);
+	sunsky->config_y[3] = (-0.0641f * T  - 0.8989f);
+	sunsky->config_y[4] = (-0.0033f * T  + 0.0452f);
+
+	sunsky->config_z[0] = (-0.0167f * T  - 0.2608f);
+	sunsky->config_z[1] = (-0.0950f * T  + 0.0092f);
+	sunsky->config_z[2] = (-0.0079f * T  + 0.2102f);
+	sunsky->config_z[3] = (-0.0441f * T  - 1.6537f);
+	sunsky->config_z[4] = (-0.0109f * T  + 0.0529f);
+
+	/* unused for old sky model */
+	for(int i = 5; i < 9; i++) {
+		sunsky->config_x[i] = 0.0f;
+		sunsky->config_y[i] = 0.0f;
+		sunsky->config_z[i] = 0.0f;
+	}
+
+	sunsky->radiance_x /= sky_perez_function(sunsky->config_x, 0, theta);
+	sunsky->radiance_y /= sky_perez_function(sunsky->config_y, 0, theta);
+	sunsky->radiance_z /= sky_perez_function(sunsky->config_z, 0, theta);
+}
+
 /* Hosek / Wilkie */
-static void sky_texture_precompute(SunSky *sunsky, float3 dir, float turbidity, float ground_albedo)
+static void sky_texture_precompute_new(SunSky *sunsky, float3 dir, float turbidity, float ground_albedo)
 {
 	/* Calculate Sun Direction and save coordinates */
 	float2 spherical = sky_spherical_coordinates(dir);
@@ -628,9 +698,23 @@ static void sky_texture_precompute(SunSky *sunsky, float3 dir, float turbidity, 
 	arhosekskymodelstate_free(sky_state);
 }
 
+static ShaderEnum sky_type_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("Preetham", NODE_SKY_OLD);
+	enm.insert("Hosek / Wilkie", NODE_SKY_NEW);
+
+	return enm;
+}
+
+ShaderEnum SkyTextureNode::type_enum = sky_type_init();
+
 SkyTextureNode::SkyTextureNode()
 : TextureNode("sky_texture")
 {
+	type = ustring("Hosek / Wilkie");
+	
 	sun_direction = make_float3(0.0f, 0.0f, 1.0f);
 	turbidity = 2.2f;
 	ground_albedo = 0.3f;
@@ -645,12 +729,18 @@ void SkyTextureNode::compile(SVMCompiler& compiler)
 	ShaderOutput *color_out = output("Color");
 
 	SunSky sunsky;
-	sky_texture_precompute(&sunsky, sun_direction, turbidity, ground_albedo);
+	if(type_enum[type] == NODE_SKY_OLD)
+		sky_texture_precompute_old(&sunsky, sun_direction, turbidity);
+	else if(type_enum[type] == NODE_SKY_NEW)
+		sky_texture_precompute_new(&sunsky, sun_direction, turbidity, ground_albedo);
+	else
+		assert(false);
 
 	if(vector_in->link)
 		compiler.stack_assign(vector_in);
 
 	int vector_offset = vector_in->stack_offset;
+	int sky_model = type_enum[type];
 
 	if(!tex_mapping.skip()) {
 		vector_offset = compiler.stack_find_offset(SHADER_SOCKET_VECTOR);
@@ -658,7 +748,7 @@ void SkyTextureNode::compile(SVMCompiler& compiler)
 	}
 
 	compiler.stack_assign(color_out);
-	compiler.add_node(NODE_TEX_SKY, vector_offset, color_out->stack_offset);
+	compiler.add_node(NODE_TEX_SKY, vector_offset, color_out->stack_offset, sky_model);
 	compiler.add_node(__float_as_uint(sunsky.phi), __float_as_uint(sunsky.theta), __float_as_uint(sunsky.radiance_x), __float_as_uint(sunsky.radiance_y));
 	compiler.add_node(__float_as_uint(sunsky.radiance_z), __float_as_uint(sunsky.config_x[0]), __float_as_uint(sunsky.config_x[1]), __float_as_uint(sunsky.config_x[2]));
 	compiler.add_node(__float_as_uint(sunsky.config_x[3]), __float_as_uint(sunsky.config_x[4]), __float_as_uint(sunsky.config_x[5]), __float_as_uint(sunsky.config_x[6]));
@@ -677,8 +767,15 @@ void SkyTextureNode::compile(OSLCompiler& compiler)
 	tex_mapping.compile(compiler);
 
 	SunSky sunsky;
-	sky_texture_precompute(&sunsky, sun_direction, turbidity, ground_albedo);
 
+	if(type_enum[type] == NODE_SKY_OLD)
+		sky_texture_precompute_old(&sunsky, sun_direction, turbidity);
+	else if(type_enum[type] == NODE_SKY_NEW)
+		sky_texture_precompute_new(&sunsky, sun_direction, turbidity, ground_albedo);
+	else
+		assert(false);
+		
+	compiler.parameter("sky_model", type);
 	compiler.parameter("theta", sunsky.theta);
 	compiler.parameter("phi", sunsky.phi);
 	compiler.parameter_color("radiance", make_float3(sunsky.radiance_x, sunsky.radiance_y, sunsky.radiance_z));

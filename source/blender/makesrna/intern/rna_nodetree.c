@@ -3599,25 +3599,36 @@ static void def_sh_tex(StructRNA *srna)
 
 static void def_sh_tex_sky(StructRNA *srna)
 {
+	static EnumPropertyItem prop_sky_type[] = {
+		{SHD_SKY_OLD, "PREETHAM", 0, "Preetham", ""},
+		{SHD_SKY_NEW, "HOSEK_WILKIE", 0, "Hosek / Wilkie", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
 	static float default_dir[3] = {0.0f, 0.0f, 1.0f};
-
+	
 	PropertyRNA *prop;
-
+	
 	RNA_def_struct_sdna_from(srna, "NodeTexSky", "storage");
 	def_sh_tex(srna);
 
+	prop = RNA_def_property(srna, "sky_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "sky_model");
+	RNA_def_property_enum_items(prop, prop_sky_type);
+	RNA_def_property_ui_text(prop, "Sky Type", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+	
 	prop = RNA_def_property(srna, "sun_direction", PROP_FLOAT, PROP_DIRECTION);
 	RNA_def_property_ui_text(prop, "Sun Direction", "Direction from where the sun is shining");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_array_default(prop, default_dir);
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-
+	
 	prop = RNA_def_property(srna, "turbidity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 1.0f, 10.0f);
 	RNA_def_property_ui_range(prop, 1.0f, 10.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Turbidity", "Atmospheric turbidity");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-
+	
 	prop = RNA_def_property(srna, "ground_albedo", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Ground Albedo", "Ground color that is subtly reflected in the sky");

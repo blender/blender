@@ -299,6 +299,11 @@ typedef enum NodeWaveProfiles {
 	NODE_WAVE_PROFILE_SAW,
 } NodeWaveProfile;
 
+typedef enum NodeSkyType {
+	NODE_SKY_OLD,
+	NODE_SKY_NEW
+} NodeSkyType;
+
 typedef enum NodeGradientType {
 	NODE_BLEND_LINEAR,
 	NODE_BLEND_QUADRATIC,
