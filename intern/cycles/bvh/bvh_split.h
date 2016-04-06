@@ -61,7 +61,11 @@ public:
 	int dim;
 	float pos;
 
-	BVHSpatialSplit() : sah(FLT_MAX), dim(0), pos(0.0f) {}
+	BVHSpatialSplit() : sah(FLT_MAX),
+	                    dim(0),
+	                    pos(0.0f),
+	                    storage_(NULL),
+	                    references_(NULL) {}
 	BVHSpatialSplit(const BVHBuild& builder,
 	                BVHSpatialStorage *storage,
 	                const BVHRange& range,
