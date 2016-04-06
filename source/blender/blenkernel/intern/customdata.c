@@ -3577,6 +3577,7 @@ void CustomData_external_read(CustomData *data, ID *id, CustomDataMask mask, int
 
 	cdf = cdf_create(CDF_TYPE_MESH);
 	if (!cdf_read_open(cdf, filename)) {
+		cdf_free(cdf);
 		fprintf(stderr, "Failed to read %s layer from %s.\n", layerType_getName(layer->type), filename);
 		return;
 	}
