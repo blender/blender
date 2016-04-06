@@ -227,7 +227,7 @@ static LinkNode *mesh_calc_path_region_elem(
 		for (pass = 1; (STACK_SIZE(stack) != 0); pass++) {
 			while (STACK_SIZE(stack) != 0) {
 				BMVert *v_a = STACK_POP(stack);
-				const int v_a_index = BM_elem_index_get(v_a);
+				// const int v_a_index = BM_elem_index_get(v_a);  /* only for assert */
 				BMEdge *e = v_a->e;
 
 				do {
@@ -258,7 +258,7 @@ static LinkNode *mesh_calc_path_region_elem(
 #ifdef USE_EDGE_CHAIN
 							BLI_assert(!BM_vert_is_edge_pair(v_b));
 #endif
-							BLI_assert(pass == depths[side][v_a_index] + 1);
+							BLI_assert(pass == depths[side][BM_elem_index_get(v_a)] + 1);
 							depths[side][v_b_index] = pass;
 							if (!BM_elem_flag_test(v_b, BM_ELEM_TAG)) {
 								STACK_PUSH(stack_other, v_b);
