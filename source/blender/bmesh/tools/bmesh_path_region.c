@@ -315,12 +315,27 @@ static LinkNode *mesh_calc_path_region_elem(
 				BMLoop *l_first, *l_iter;
 				l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 				bool ok = true;
+#if 0
 				do {
 					if (!bm_vert_region_test_chain(l_iter->v, depths, pass)) {
 						ok = false;
 						break;
 					}
 				} while ((l_iter = l_iter->next) != l_first);
+#else
+				/* Allowing a single failure on a face gives fewer 'gaps'.
+				 * While correct, in practice they're often part of what a user would consider the 'region'. */
+				int ok_tests = f->len > 3 ? 1 : 0;  /* how many times we may fail */
+				do {
+					if (!bm_vert_region_test_chain(l_iter->v, depths, pass)) {
+						if (ok_tests == 0) {
+							ok = false;
+							break;
+						}
+						ok_tests--;
+					}
+				} while ((l_iter = l_iter->next) != l_first);
+#endif
 
 				if (ok) {
 					BLI_linklist_prepend(&path, f);
