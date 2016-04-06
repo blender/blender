@@ -39,6 +39,8 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_node.h"
 
 #include "ED_node.h"  /* own include */
@@ -95,11 +97,11 @@ static bool ntree_check_nodes_connected(bNodeTree *ntree, bNode *from, bNode *to
 
 static bool node_group_has_output_dfs(bNode *node)
 {
-	if (node->flag & NODE_TEST) {
+	bNodeTree *ntree = (bNodeTree *)node->id;
+	if (ntree->id.tag & LIB_TAG_DOIT) {
 		return false;
 	}
-	node->flag |= NODE_TEST;
-	bNodeTree *ntree = (bNodeTree *)node->id;
+	ntree->id.tag |= LIB_TAG_DOIT;
 	for (bNode *current_node = ntree->nodes.first;
 	     current_node != NULL;
 	     current_node = current_node->next)
@@ -120,12 +122,13 @@ static bool node_group_has_output_dfs(bNode *node)
 
 static bool node_group_has_output(bNode *node)
 {
+	Main *bmain = G.main;
 	BLI_assert(node->type == NODE_GROUP);
 	bNodeTree *ntree = (bNodeTree *)node->id;
 	if (ntree == NULL) {
 		return false;
 	}
-	ntreeNodeFlagSet(ntree, NODE_TEST, false);
+	BKE_main_id_tag_listbase(&bmain->nodetree, LIB_TAG_DOIT, false);
 	return node_group_has_output_dfs(node);
 }
 
