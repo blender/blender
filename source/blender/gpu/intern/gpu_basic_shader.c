@@ -61,6 +61,8 @@ static struct {
 
 	int lights_enabled;
 	int lights_directional;
+	float line_width;
+	GLint viewport[4];
 } GPU_MATERIAL_STATE;
 
 
@@ -325,6 +327,8 @@ static GPUShader *gpu_basic_shader(int options)
 	/* glsl code */
 	extern char datatoc_gpu_shader_basic_vert_glsl[];
 	extern char datatoc_gpu_shader_basic_frag_glsl[];
+	extern char datatoc_gpu_shader_basic_geom_glsl[];
+	char *geom_glsl = NULL;
 	GPUShader *shader;
 
 	/* detect if we can do faster lighting for solid draw mode */
@@ -347,7 +351,10 @@ static GPUShader *gpu_basic_shader(int options)
 			strcat(defines, "#define USE_TEXTURE\n");
 		if (options & GPU_SHADER_STIPPLE)
 			strcat(defines, "#define USE_STIPPLE\n");
-
+		if (options & GPU_SHADER_LINE) {
+			strcat(defines, "#define DRAW_LINE\n");
+			geom_glsl = datatoc_gpu_shader_basic_geom_glsl;
+		}
 		if (options & GPU_SHADER_SOLID_LIGHTING)
 			strcat(defines, "#define USE_SOLID_LIGHTING\n");
 		else if (options & GPU_SHADER_LIGHTING)
@@ -356,7 +363,7 @@ static GPUShader *gpu_basic_shader(int options)
 		shader = GPU_shader_create(
 			datatoc_gpu_shader_basic_vert_glsl,
 			datatoc_gpu_shader_basic_frag_glsl,
-			NULL,
+			geom_glsl,
 			NULL,
 			defines, 0, 0, 0);
 		
@@ -377,6 +384,15 @@ static GPUShader *gpu_basic_shader(int options)
 	return shader;
 }
 
+static void GPU_basic_shader_uniform_autoset(GPUShader *shader, int options)
+{
+	if (options & GPU_SHADER_LINE) {
+		glGetIntegerv(GL_VIEWPORT, &GPU_MATERIAL_STATE.viewport[0]);
+		glUniform4iv(GPU_shader_get_uniform(shader, "viewport"), 1, &GPU_MATERIAL_STATE.viewport[0]);
+		glUniform1f(GPU_shader_get_uniform(shader, "line_width"), GPU_MATERIAL_STATE.line_width);
+	}
+}
+
 /* Bind / unbind */
 
 void GPU_basic_shader_bind(int options)
@@ -385,8 +401,10 @@ void GPU_basic_shader_bind(int options)
 		if (options) {
 			GPUShader *shader = gpu_basic_shader(options);
 
-			if (shader)
+			if (shader) {
 				GPU_shader_bind(shader);
+				GPU_basic_shader_uniform_autoset(shader, options);
+			}
 		}
 		else {
 			GPU_shader_unbind();
@@ -424,10 +442,19 @@ void GPU_basic_shader_bind(int options)
 			glDisable(GL_TEXTURE_2D);
 		}
 
-		if (options & GPU_SHADER_STIPPLE)
-			glEnable(GL_POLYGON_STIPPLE);
-		else if (bound_options & GPU_SHADER_STIPPLE)
-			glDisable(GL_POLYGON_STIPPLE);
+		if (options & GPU_SHADER_LINE) {
+			if (options & GPU_SHADER_STIPPLE)
+				glEnable(GL_LINE_STIPPLE);
+			else if (bound_options & GPU_SHADER_STIPPLE)
+				glDisable(GL_LINE_STIPPLE);
+		}
+		else {
+			if (options & GPU_SHADER_STIPPLE)
+				glEnable(GL_POLYGON_STIPPLE);
+			else if (bound_options & GPU_SHADER_STIPPLE)
+				glDisable(GL_POLYGON_STIPPLE);
+		}
+
 	}
 
 	GPU_MATERIAL_STATE.bound_options = options;
@@ -590,5 +617,29 @@ void GPU_basic_shader_stipple(GPUBasicShaderStipple stipple_id)
 				glPolygonStipple(stipple_hexagon);
 				return;
 		}
+	}
+}
+
+void GPU_basic_shader_line_width(float line_width)
+{
+	if (USE_GLSL) {
+		GPU_MATERIAL_STATE.line_width = line_width;
+		if (GPU_MATERIAL_STATE.bound_options & GPU_SHADER_LINE) {
+			glUniform1f(GPU_shader_get_uniform(gpu_basic_shader(GPU_MATERIAL_STATE.bound_options), "line_width"), line_width);
+		}
+	}
+	else {
+		glLineWidth(line_width);
+	}
+}
+
+void GPU_basic_shader_line_stipple(GLint stipple_factor, GLushort stipple_pattern)
+{
+	if (USE_GLSL) {
+		glUniform1i(GPU_shader_get_uniform(gpu_basic_shader(GPU_MATERIAL_STATE.bound_options), "stipple_factor"), stipple_factor);
+		glUniform1i(GPU_shader_get_uniform(gpu_basic_shader(GPU_MATERIAL_STATE.bound_options), "stipple_pattern"), stipple_pattern);
+	}
+	else {
+		glLineStipple(stipple_factor, stipple_pattern);
 	}
 }

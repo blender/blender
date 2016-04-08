@@ -8,7 +8,11 @@ varying vec3 varying_position;
 #endif
 
 #ifdef USE_COLOR
+#ifdef DRAW_LINE
+varying vec4 varying_vertex_color_line;
+#else
 varying vec4 varying_vertex_color;
+#endif
 #endif
 
 #ifdef USE_TEXTURE
@@ -44,7 +48,11 @@ void main()
 #endif 
 
 #ifdef USE_COLOR
+#ifdef DRAW_LINE
+	varying_vertex_color_line = gl_Color;
+#else
 	varying_vertex_color = gl_Color;
+#endif
 #endif
 
 #ifdef USE_TEXTURE

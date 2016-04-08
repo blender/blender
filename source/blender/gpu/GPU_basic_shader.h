@@ -33,6 +33,7 @@
 #define __GPU_BASIC_SHADER_H__
 
 #include "BLI_utildefines.h"
+#include "GPU_glew.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,7 +49,8 @@ typedef enum GPUBasicShaderOption {
 
 	GPU_SHADER_SOLID_LIGHTING =   (1 << 4),   /* use faster lighting (set automatically) */
 	GPU_SHADER_STIPPLE =          (1 << 5),   /* use stipple */
-	GPU_SHADER_OPTIONS_NUM = 6,
+	GPU_SHADER_LINE =             (1 << 6),   /* draw lines */
+	GPU_SHADER_OPTIONS_NUM = 7,
 	GPU_SHADER_OPTION_COMBINATIONS = (1 << GPU_SHADER_OPTIONS_NUM)
 } GPUBasicShaderOption;
 
@@ -105,6 +107,8 @@ typedef struct GPULightData {
 void GPU_basic_shader_light_set(int light_num, GPULightData *light);
 void GPU_basic_shader_light_set_viewer(bool local);
 void GPU_basic_shader_stipple(GPUBasicShaderStipple stipple_id);
+void GPU_basic_shader_line_stipple(GLint stipple_factor, GLushort stipple_pattern);
+void GPU_basic_shader_line_width(float line_width);
 
 #ifdef __cplusplus
 }

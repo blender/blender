@@ -45,11 +45,20 @@ uniform sampler2D texture_map;
 
 #ifdef USE_STIPPLE
 uniform int stipple_id;
+#if defined(DRAW_LINE)
+varying in float t;
+uniform int stipple_pattern;
+#endif
 #endif
 
 void main()
 {
 #if defined(USE_STIPPLE)
+#if defined(DRAW_LINE)
+    /* GLSL 1.3 */
+    if (!bool((1 << int(mod(t, 16))) & stipple_pattern))
+        discard;
+#else
         /* We have to use mod function and integer casting.
          * This can be optimized further with the bitwise operations
          * when GLSL 1.3 is supported. */
@@ -123,9 +132,8 @@ void main()
                     discard;
             }
         }
-
-
-#endif
+#endif /* !DRAW_LINE */
+#endif /* USE_STIPPLE */
 
 #if defined(USE_SOLID_LIGHTING) || defined(USE_SCENE_LIGHTING)
 	/* compute normal */
