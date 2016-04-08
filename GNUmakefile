@@ -87,13 +87,13 @@ ifndef NPROCS
 		NPROCS:=$(shell nproc)
 	endif
 	ifeq ($(OS), Darwin)
-		NPROCS:=$(shell sysctl -a | grep "hw.ncpu" | cut -d" " -f3)
+		NPROCS:=$(shell sysctl -n hw.ncpu)
 	endif
 	ifeq ($(OS), FreeBSD)
-		NPROCS:=$(shell sysctl -a | grep "hw.ncpu" | cut -d" " -f2 )
+		NPROCS:=$(shell sysctl -n hw.ncpu)
 	endif
 	ifeq ($(OS), NetBSD)
-		NPROCS:=$(shell sysctl -a | grep "hw.ncpu" | cut -d" " -f2 )
+		NPROCS:=$(shell sysctl -n hw.ncpu)
 	endif
 endif
 
