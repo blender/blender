@@ -442,11 +442,11 @@ void GPU_basic_shader_bind(int options)
 			glDisable(GL_TEXTURE_2D);
 		}
 
-		if (options & GPU_SHADER_LINE) {
-			if (options & GPU_SHADER_STIPPLE)
-				glEnable(GL_LINE_STIPPLE);
-			else if (bound_options & GPU_SHADER_STIPPLE)
-				glDisable(GL_LINE_STIPPLE);
+		if ((options & GPU_SHADER_LINE) && (options & GPU_SHADER_STIPPLE)) {
+			glEnable(GL_LINE_STIPPLE);
+		}
+		else if ((bound_options & GPU_SHADER_LINE) && (bound_options & GPU_SHADER_STIPPLE)) {
+			glDisable(GL_LINE_STIPPLE);
 		}
 		else {
 			if (options & GPU_SHADER_STIPPLE)
