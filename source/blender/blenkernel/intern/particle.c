@@ -1422,13 +1422,19 @@ int psys_particle_dm_face_lookup(
 {
 	MFace *mtessface_final;
 	OrigSpaceFace *osface_final;
-	int totface_final;
 	int pindex_orig;
 	float uv[2], (*faceuv)[2];
 
 	const int *index_mf_to_mpoly_deformed = NULL;
 	const int *index_mf_to_mpoly = NULL;
 	const int *index_mp_to_orig = NULL;
+
+	const int totface_final = dm_final->getNumTessFaces(dm_final);
+	const int totface_deformed = dm_deformed ? dm_deformed->getNumTessFaces(dm_deformed) : totface_final;
+
+	if (ELEM(0, totface_final, totface_deformed)) {
+		return DMCACHE_NOTFOUND;
+	}
 
 	index_mf_to_mpoly = dm_final->getTessFaceDataArray(dm_final, CD_ORIGINDEX);
 	index_mp_to_orig = dm_final->getPolyDataArray(dm_final, CD_ORIGINDEX);
@@ -1450,11 +1456,6 @@ int psys_particle_dm_face_lookup(
 	}
 
 	index_mf_to_mpoly_deformed = NULL;
-
-	totface_final = dm_final->getNumTessFaces(dm_final);
-	if (!totface_final) {
-		return DMCACHE_NOTFOUND;
-	}
 
 	mtessface_final = dm_final->getTessFaceArray(dm_final);
 	osface_final = dm_final->getTessFaceDataArray(dm_final, CD_ORIGSPACE);
