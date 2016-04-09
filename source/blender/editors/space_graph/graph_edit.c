@@ -2374,27 +2374,27 @@ static EnumPropertyItem *graph_fmodifier_itemf(bContext *C, PointerRNA *UNUSED(p
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
 	int i = 0;
-
+	
 	if (C == NULL) {
 		return rna_enum_fmodifier_type_items;
 	}
-
+	
 	/* start from 1 to skip the 'Invalid' modifier type */
 	for (i = 1; i < FMODIFIER_NUM_TYPES; i++) {
 		const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(i);
 		int index;
-
+		
 		/* check if modifier is valid for this context */
 		if (fmi == NULL)
 			continue;
-
+		
 		index = RNA_enum_from_value(rna_enum_fmodifier_type_items, fmi->type);
 		RNA_enum_item_add(&item, &totitem, &rna_enum_fmodifier_type_items[index]);
 	}
-
+	
 	RNA_enum_item_end(&item, &totitem);
 	*r_free = true;
-
+	
 	return item;
 }
 
@@ -2435,16 +2435,15 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 			BKE_report(op->reports, RPT_ERROR, "Modifier could not be added (see console for details)");
 			break;
 		}
-
+		
 		ale->update |= ANIM_UPDATE_DEPS;
 	}
-
+	
 	ANIM_animdata_update(&ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);
 	
 	/* set notifier that things have changed */
-	// FIXME: this really isn't the best description for it...
-	WM_event_add_notifier(C, NC_ANIMATION, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2452,11 +2451,11 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_fmodifier_add(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-
+	
 	/* identifiers */
 	ot->name = "Add F-Curve Modifier";
 	ot->idname = "GRAPH_OT_fmodifier_add";
-	ot->description = "Add F-Modifiers to the selected F-Curves";
+	ot->description = "Add F-Modifier to the active/selected F-Curves";
 	
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -2470,7 +2469,7 @@ void GRAPH_OT_fmodifier_add(wmOperatorType *ot)
 	prop = RNA_def_enum(ot->srna, "type", rna_enum_fmodifier_type_items, 0, "Type", "");
 	RNA_def_enum_funcs(prop, graph_fmodifier_itemf);
 	ot->prop = prop;
-
+	
 	RNA_def_boolean(ot->srna, "only_active", 1, "Only Active", "Only add F-Modifier to active F-Curve");
 }
 
@@ -2495,10 +2494,10 @@ static int graph_fmodifier_copy_exec(bContext *C, wmOperator *op)
 	/* if this exists, call the copy F-Modifiers API function */
 	if (ale && ale->data) {
 		FCurve *fcu = (FCurve *)ale->data;
-
+		
 		/* TODO: when 'active' vs 'all' boolean is added, change last param! */
 		ok = ANIM_fmodifiers_copy_to_buf(&fcu->modifiers, 0);
-
+		
 		/* free temp data now */
 		MEM_freeN(ale);
 	}

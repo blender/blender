@@ -2213,19 +2213,20 @@ void NLA_OT_snap(wmOperatorType *ot)
 
 /* ******************** Add F-Modifier Operator *********************** */
 
-/* present a special customised popup menu for this, with some filtering */
-static int nla_fmodifier_add_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
+static EnumPropertyItem *nla_fmodifier_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	int i;
+	EnumPropertyItem *item = NULL;
+	int totitem = 0;
+	int i = 0;
 	
-	pup = UI_popup_menu_begin(C, IFACE_("Add F-Modifier"), ICON_NONE);
-	layout = UI_popup_menu_layout(pup);
+	if (C == NULL) {
+		return rna_enum_fmodifier_type_items;
+	}
 	
 	/* start from 1 to skip the 'Invalid' modifier type */
 	for (i = 1; i < FMODIFIER_NUM_TYPES; i++) {
 		const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(i);
+		int index;
 		
 		/* check if modifier is valid for this context */
 		if (fmi == NULL)
@@ -2233,15 +2234,16 @@ static int nla_fmodifier_add_invoke(bContext *C, wmOperator *UNUSED(op), const w
 		if (i == FMODIFIER_TYPE_CYCLES) /* we already have repeat... */
 			continue;
 		
-		/* add entry to add this type of modifier */
-		uiItemEnumO(layout, "NLA_OT_fmodifier_add", fmi->name, 0, "type", i);
+		index = RNA_enum_from_value(rna_enum_fmodifier_type_items, fmi->type);
+		RNA_enum_item_add(&item, &totitem, &rna_enum_fmodifier_type_items[index]);
 	}
-	uiItemS(layout);
 	
-	UI_popup_menu_end(C, pup);
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
 	
-	return OPERATOR_INTERFACE;
+	return item;
 }
+
 
 static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 {
@@ -2316,10 +2318,10 @@ void NLA_OT_fmodifier_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Add F-Modifier";
 	ot->idname = "NLA_OT_fmodifier_add";
-	ot->description = "Add a F-Modifier of the specified type to the selected NLA-Strips";
+	ot->description = "Add F-Modifier to the active/selected NLA-Strips";
 	
 	/* api callbacks */
-	ot->invoke = nla_fmodifier_add_invoke;
+	ot->invoke = WM_menu_invoke;
 	ot->exec = nla_fmodifier_add_exec;
 	ot->poll = nlaop_poll_tweakmode_off; 
 	
@@ -2328,7 +2330,9 @@ void NLA_OT_fmodifier_add(wmOperatorType *ot)
 	
 	/* id-props */
 	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_fmodifier_type_items, 0, "Type", "");
-	RNA_def_boolean(ot->srna, "only_active", 0, "Only Active", "Only add a F-Modifier of the specified type to the active strip");
+	RNA_def_enum_funcs(ot->prop, nla_fmodifier_itemf);
+	
+	RNA_def_boolean(ot->srna, "only_active", true, "Only Active", "Only add a F-Modifier of the specified type to the active strip");
 }
 
 /* ******************** Copy F-Modifiers Operator *********************** */
