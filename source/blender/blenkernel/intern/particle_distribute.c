@@ -915,7 +915,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 
 	element_weight	= MEM_callocN(sizeof(float)*totelem, "particle_distribution_weights");
 	particle_element= MEM_callocN(sizeof(int)*totpart, "particle_distribution_indexes");
-	element_sum		= MEM_callocN(sizeof(float)*(totelem+1), "particle_distribution_sum");
+	element_sum		= MEM_mallocN(sizeof(*element_sum) * totelem, "particle_distribution_sum");
 	jitter_offset	= MEM_callocN(sizeof(float)*totelem, "particle_distribution_jitoff");
 
 	/* Calculate weights from face areas */
@@ -1010,9 +1010,10 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	inv_totweight = (totweight > 0.f ? 1.f/totweight : 0.f);
 
 	/* Calculate cumulative weights */
-	element_sum[0] = 0.0f;
-	for (i=0; i<totelem; i++)
-		element_sum[i+1] = element_sum[i] + element_weight[i] * inv_totweight;
+	element_sum[0] = element_weight[0] * inv_totweight;
+	for (i = 1; i < totelem; i++) {
+		element_sum[i] = element_sum[i - 1] + element_weight[i] * inv_totweight;
+	}
 	
 	/* Finally assign elements to particles */
 	if ((part->flag&PART_TRAND) || (part->simplify_flag&PART_SIMPLIFY_ENABLE)) {
@@ -1020,7 +1021,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 
 		for (p=0; p<totpart; p++) {
 			/* In theory element_sum[totelem] should be 1.0, but due to float errors this is not necessarily always true, so scale pos accordingly. */
-			pos= BLI_frand() * element_sum[totelem];
+			pos= BLI_frand() * element_sum[totelem - 1];
 			particle_element[p] = distribute_binary_search(element_sum, totelem, pos);
 			particle_element[p] = MIN2(totelem-1, particle_element[p]);
 			jitter_offset[particle_element[p]] = pos;
@@ -1029,7 +1030,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	else {
 		double step, pos;
 		
-		step= (totpart < 2) ? 0.5 : 1.0/(double)totpart;
+		step = (totpart < 2) ? 0.5 : 1.0 / (double)totpart;
 		/* This is to address tricky issues with vertex-emitting when user tries (and expects) exact 1-1 vert/part
 		 * distribution (see T47983 and its two example files). It allows us to consider pos as
 		 * 'midpoint between v and v+1' (or 'p and p+1', depending whether we have more vertices than particles or not),
@@ -1038,21 +1039,24 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 			pos = (totpart < totelem) ? 0.5 / (double)totelem : step * 0.5;  /* We choose the smaller step. */
 		}
 		else {
-			pos = 1e-6; /* tiny offset to avoid zero weight face */
+			pos = 0.0;
 		}
-		i= 0;
 
-		for (p=0; p<totpart; p++, pos+=step) {
-			while ((i < totelem) && (pos > (double)element_sum[i + 1]))
-				i++;
+		/* Avoid initial zero-weight items. */
+		for (i = 0; (element_sum[i] == 0.0) && (i < totelem - 1); i++);
 
-			particle_element[p] = MIN2(totelem-1, i);
+		for (p = 0; p < totpart; p++, pos += step) {
+			for ( ; (pos > (double)element_sum[i]) && (i < totelem - 1); i++);
 
-			/* avoid zero weight face */
-			if (p == totpart-1 && element_weight[particle_element[p]] == 0.0f)
-				particle_element[p] = particle_element[p-1];
+			particle_element[p] = i;
 
 			jitter_offset[particle_element[p]] = pos;
+		}
+
+		/* Avoid final zero weight items. */
+		BLI_assert(p == totpart);
+		if (element_weight[particle_element[--p]] == 0.0f) {
+			particle_element[p] = particle_element[p - 1];
 		}
 	}
 
