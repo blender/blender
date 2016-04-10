@@ -411,7 +411,7 @@ int KX_CameraActuator::pyattr_set_object(void *self_v, const KX_PYATTRIBUTE_DEF 
 	KX_CameraActuator* self = static_cast<KX_CameraActuator*>(self_v);
 	KX_GameObject *gameobj;
 	
-	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: KX_CameraActuator"))
+	if (!ConvertPythonToGameObject(self->GetLogicManager(), value, &gameobj, true, "actuator.object = value: KX_CameraActuator"))
 		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 	
 	if (self->m_ob)

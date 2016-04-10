@@ -1597,14 +1597,6 @@ void KX_GameObject::RunCollisionCallbacks(KX_GameObject *collider, const MT_Vect
 	if (!m_collisionCallbacks || PyList_GET_SIZE(m_collisionCallbacks) == 0)
 		return;
 
-	/** Current logic controller is set by each python logic bricks before run,
-	 * but if no python logic brick ran the logic manager can be wrong 
-	 * (if the user use muti scenes) and it will cause problems with function
-	 * ConvertPythonToGameObject which use the current logic manager for object's name.
-	 * Note: the scene is already set in logic frame loop.
-	 */
-	SCA_ILogicBrick::m_sCurrentLogicManager = GetScene()->GetLogicManager();
-
 	PyObject *args[] = {collider->GetProxy(), PyObjectFrom(point), PyObjectFrom(normal)};
 	RunPythonCallBackList(m_collisionCallbacks, args, 1, ARRAY_SIZE(args));
 
@@ -2043,7 +2035,8 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 PyObject *KX_GameObject::PyReplaceMesh(PyObject *args)
 {
 	KX_Scene *scene = KX_GetActiveScene();
-	
+	SCA_LogicManager *logicmgr = GetScene()->GetLogicManager();
+
 	PyObject *value;
 	int use_gfx= 1, use_phys= 0;
 	RAS_MeshObject *new_mesh;
@@ -2051,7 +2044,7 @@ PyObject *KX_GameObject::PyReplaceMesh(PyObject *args)
 	if (!PyArg_ParseTuple(args,"O|ii:replaceMesh", &value, &use_gfx, &use_phys))
 		return NULL;
 	
-	if (!ConvertPythonToMesh(value, &new_mesh, false, "gameOb.replaceMesh(value): KX_GameObject"))
+	if (!ConvertPythonToMesh(logicmgr, value, &new_mesh, false, "gameOb.replaceMesh(value): KX_GameObject"))
 		return NULL;
 	
 	scene->ReplaceMesh(this, new_mesh, (bool)use_gfx, (bool)use_phys);
@@ -2072,13 +2065,14 @@ PyObject *KX_GameObject::PyReinstancePhysicsMesh(PyObject *args)
 {
 	KX_GameObject *gameobj= NULL;
 	RAS_MeshObject *mesh= NULL;
+	SCA_LogicManager *logicmgr = GetScene()->GetLogicManager();
 	
 	PyObject *gameobj_py= NULL;
 	PyObject *mesh_py= NULL;
 
 	if (	!PyArg_ParseTuple(args,"|OO:reinstancePhysicsMesh",&gameobj_py, &mesh_py) ||
-			(gameobj_py && !ConvertPythonToGameObject(gameobj_py, &gameobj, true, "gameOb.reinstancePhysicsMesh(obj, mesh): KX_GameObject")) || 
-			(mesh_py && !ConvertPythonToMesh(mesh_py, &mesh, true, "gameOb.reinstancePhysicsMesh(obj, mesh): KX_GameObject"))
+			(gameobj_py && !ConvertPythonToGameObject(logicmgr, gameobj_py, &gameobj, true, "gameOb.reinstancePhysicsMesh(obj, mesh): KX_GameObject")) || 
+			(mesh_py && !ConvertPythonToMesh(logicmgr, mesh_py, &mesh, true, "gameOb.reinstancePhysicsMesh(obj, mesh): KX_GameObject"))
 		) {
 		return NULL;
 	}
@@ -3423,6 +3417,7 @@ PyObject *KX_GameObject::PyDisableRigidBody()
 PyObject *KX_GameObject::PySetParent(PyObject *args)
 {
 	KX_Scene *scene = KX_GetActiveScene();
+	SCA_LogicManager *logicmgr = GetScene()->GetLogicManager();
 	PyObject *pyobj;
 	KX_GameObject *obj;
 	int addToCompound=1, ghost=1;
@@ -3430,7 +3425,7 @@ PyObject *KX_GameObject::PySetParent(PyObject *args)
 	if (!PyArg_ParseTuple(args,"O|ii:setParent", &pyobj, &addToCompound, &ghost)) {
 		return NULL; // Python sets a simple error
 	}
-	if (!ConvertPythonToGameObject(pyobj, &obj, true, "gameOb.setParent(obj): KX_GameObject"))
+	if (!ConvertPythonToGameObject(logicmgr, pyobj, &obj, true, "gameOb.setParent(obj): KX_GameObject"))
 		return NULL;
 	if (obj)
 		this->SetParent(scene, obj, addToCompound, ghost);
@@ -3586,9 +3581,10 @@ KX_PYMETHODDEF_DOC_O(KX_GameObject, getDistanceTo,
 		return PyFloat_FromDouble(NodeGetWorldPosition().distance(b));
 	}
 	PyErr_Clear();
-	
+
+	SCA_LogicManager *logicmgr = GetScene()->GetLogicManager();
 	KX_GameObject *other;
-	if (ConvertPythonToGameObject(value, &other, false, "gameOb.getDistanceTo(value): KX_GameObject"))
+	if (ConvertPythonToGameObject(logicmgr, value, &other, false, "gameOb.getDistanceTo(value): KX_GameObject"))
 	{
 		return PyFloat_FromDouble(NodeGetWorldPosition().distance(other->NodeGetWorldPosition()));
 	}
@@ -3604,6 +3600,7 @@ KX_PYMETHODDEF_DOC_O(KX_GameObject, getVectTo,
 	MT_Vector3 toDir, locToDir;
 	MT_Scalar distance;
 
+	SCA_LogicManager *logicmgr = GetScene()->GetLogicManager();
 	PyObject *returnValue;
 
 	if (!PyVecTo(value, toPoint))
@@ -3611,7 +3608,7 @@ KX_PYMETHODDEF_DOC_O(KX_GameObject, getVectTo,
 		PyErr_Clear();
 		
 		KX_GameObject *other;
-		if (ConvertPythonToGameObject(value, &other, false, "")) /* error will be overwritten */
+		if (ConvertPythonToGameObject(logicmgr, value, &other, false, "")) /* error will be overwritten */
 		{
 			toPoint = other->NodeGetWorldPosition();
 		} else
@@ -3713,6 +3710,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	PyObject *pyarg;
 	float dist = 0.0f;
 	char *propName = NULL;
+	SCA_LogicManager *logicmgr = GetScene()->GetLogicManager();
 
 	if (!PyArg_ParseTuple(args,"O|fs:rayCastTo", &pyarg, &dist, &propName)) {
 		return NULL; // python sets simple error
@@ -3723,7 +3721,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 		KX_GameObject *other;
 		PyErr_Clear();
 		
-		if (ConvertPythonToGameObject(pyarg, &other, false, "")) /* error will be overwritten */
+		if (ConvertPythonToGameObject(logicmgr, pyarg, &other, false, "")) /* error will be overwritten */
 		{
 			toPoint = other->NodeGetWorldPosition();
 		} else
@@ -3829,6 +3827,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	KX_GameObject *other;
 	int face=0, xray=0, poly=0;
 	int mask = (1 << OB_MAX_COL_MASKS) - 1;
+	SCA_LogicManager *logicmgr = GetScene()->GetLogicManager();
 
 	if (!PyArg_ParseTuple(args,"O|Ofsiiii:rayCast", &pyto, &pyfrom, &dist, &propName, &face, &xray, &poly, &mask)) {
 		return NULL; // Python sets a simple error
@@ -3838,7 +3837,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	{
 		PyErr_Clear();
 		
-		if (ConvertPythonToGameObject(pyto, &other, false, ""))  /* error will be overwritten */
+		if (ConvertPythonToGameObject(logicmgr, pyto, &other, false, ""))  /* error will be overwritten */
 		{
 			toPoint = other->NodeGetWorldPosition();
 		} else
@@ -3855,7 +3854,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	{
 		PyErr_Clear();
 		
-		if (ConvertPythonToGameObject(pyfrom, &other, false, "")) /* error will be overwritten */
+		if (ConvertPythonToGameObject(logicmgr, pyfrom, &other, false, "")) /* error will be overwritten */
 		{
 			fromPoint = other->NodeGetWorldPosition();
 		} else
@@ -4144,7 +4143,7 @@ PyObject *KX_GameObject::Pyget(PyObject *args)
 	return def;
 }
 
-bool ConvertPythonToGameObject(PyObject *value, KX_GameObject **object, bool py_none_ok, const char *error_prefix)
+bool ConvertPythonToGameObject(SCA_LogicManager *manager, PyObject *value, KX_GameObject **object, bool py_none_ok, const char *error_prefix)
 {
 	if (value==NULL) {
 		PyErr_Format(PyExc_TypeError, "%s, python pointer NULL, should never happen", error_prefix);
@@ -4164,7 +4163,7 @@ bool ConvertPythonToGameObject(PyObject *value, KX_GameObject **object, bool py_
 	}
 	
 	if (PyUnicode_Check(value)) {
-		*object = (KX_GameObject*)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String( _PyUnicode_AsString(value) ));
+		*object = (KX_GameObject*)manager->GetGameObjectByName(STR_String( _PyUnicode_AsString(value) ));
 		
 		if (*object) {
 			return true;

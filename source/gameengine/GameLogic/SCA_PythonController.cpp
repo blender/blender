@@ -386,8 +386,7 @@ bool SCA_PythonController::Import()
 void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 {
 	m_sCurrentController = this;
-	m_sCurrentLogicManager = logicmgr;
-	
+
 	PyObject *excdict=		NULL;
 	PyObject *resultobj=	NULL;
 	
@@ -478,7 +477,7 @@ PyObject *SCA_PythonController::PyActivate(PyObject *value)
 	if (actu==NULL)
 		return NULL;
 	
-	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu, true);
+	m_logicManager->AddActiveActuator((SCA_IActuator*)actu, true);
 	Py_RETURN_NONE;
 }
 
@@ -493,7 +492,7 @@ PyObject *SCA_PythonController::PyDeActivate(PyObject *value)
 	if (actu==NULL)
 		return NULL;
 	
-	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)actu, false);
+	m_logicManager->AddActiveActuator((SCA_IActuator*)actu, false);
 	Py_RETURN_NONE;
 }
 

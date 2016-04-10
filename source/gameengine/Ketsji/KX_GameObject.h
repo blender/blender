@@ -67,7 +67,7 @@ struct bAction;
 
 #ifdef WITH_PYTHON
 /* utility conversion function */
-bool ConvertPythonToGameObject(PyObject *value, KX_GameObject **object, bool py_none_ok, const char *error_prefix);
+bool ConvertPythonToGameObject(SCA_LogicManager *logicmgr, PyObject *value, KX_GameObject **object, bool py_none_ok, const char *error_prefix);
 #endif
 
 #ifdef USE_MATHUTILS

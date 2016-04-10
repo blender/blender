@@ -36,6 +36,7 @@
 #include "BL_ArmatureObject.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "KX_PythonInit.h"
 
 #ifdef WITH_PYTHON
 
@@ -360,6 +361,7 @@ int BL_ArmatureConstraint::py_attr_setattr(void *self_v, const struct KX_PYATTRI
 	int ival;
 	double dval;
 //	char* sval;
+	SCA_LogicManager *logicmgr = KX_GetActiveScene()->GetLogicManager();
 	KX_GameObject *oval;
 
 	if (!constraint) {
@@ -387,13 +389,13 @@ int BL_ArmatureConstraint::py_attr_setattr(void *self_v, const struct KX_PYATTRI
 		return PY_SET_ATTR_SUCCESS;
 
 	case BCA_TARGET:
-		if (!ConvertPythonToGameObject(value, &oval, true, "constraint.target = value: BL_ArmatureConstraint"))
+		if (!ConvertPythonToGameObject(logicmgr, value, &oval, true, "constraint.target = value: BL_ArmatureConstraint"))
 			return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 		self->SetTarget(oval);
 		return PY_SET_ATTR_SUCCESS;
 
 	case BCA_SUBTARGET:
-		if (!ConvertPythonToGameObject(value, &oval, true, "constraint.subtarget = value: BL_ArmatureConstraint"))
+		if (!ConvertPythonToGameObject(logicmgr, value, &oval, true, "constraint.subtarget = value: BL_ArmatureConstraint"))
 			return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 		self->SetSubtarget(oval);
 		return PY_SET_ATTR_SUCCESS;

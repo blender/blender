@@ -608,6 +608,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				gamesensor->SetLevel(level);
 				gamesensor->SetTap(tap);
 				gamesensor->SetName(sens->name);
+				gamesensor->SetLogicManager(logicmgr);
 
 				gameobj->AddSensor(gamesensor);
 

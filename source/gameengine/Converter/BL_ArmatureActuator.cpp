@@ -243,7 +243,7 @@ int BL_ArmatureActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBU
 	KX_GameObject* &target = (!strcmp(attrdef->m_name, "target")) ? actuator->m_gametarget : actuator->m_gamesubtarget;
 	KX_GameObject *gameobj;
 		
-	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: BL_ArmatureActuator"))
+	if (!ConvertPythonToGameObject(actuator->GetLogicManager(), value, &gameobj, true, "actuator.object = value: BL_ArmatureActuator"))
 		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 		
 	if (target != NULL)

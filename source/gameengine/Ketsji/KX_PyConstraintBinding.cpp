@@ -40,6 +40,7 @@
 #include "MT_Matrix3x3.h"
 
 #include "KX_GameObject.h" // ConvertPythonToGameObject()
+#include "KX_PythonInit.h"
 
 #include "EXP_PyObjectPlus.h" 
 
@@ -472,7 +473,7 @@ static PyObject* gPyGetCharacter(PyObject* self,
 	if (!PyArg_ParseTuple(args,"O", &pyob))
 		return NULL;
 
-	if (!ConvertPythonToGameObject(pyob, &ob, false, "bge.constraints.getCharacter(value)"))
+	if (!ConvertPythonToGameObject(KX_GetActiveScene()->GetLogicManager(), pyob, &ob, false, "bge.constraints.getCharacter(value)"))
 		return NULL;
 
 	if (PHY_GetActiveEnvironment())

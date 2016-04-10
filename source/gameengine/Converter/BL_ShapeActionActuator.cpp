@@ -547,7 +547,7 @@ int BL_ShapeActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE
 	
 	if (val != "")
 	{
-		action= (bAction*)SCA_ILogicBrick::m_sCurrentLogicManager->GetActionByName(val);
+		action= (bAction*)self->GetLogicManager()->GetActionByName(val);
 		if (action==NULL)
 		{
 			PyErr_SetString(PyExc_ValueError, "actuator.action = val: Shape Action Actuator, action not found!");

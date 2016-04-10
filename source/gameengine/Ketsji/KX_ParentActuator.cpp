@@ -186,7 +186,7 @@ int KX_ParentActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE
 	KX_ParentActuator* actuator = static_cast<KX_ParentActuator*>(self);
 	KX_GameObject *gameobj;
 		
-	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: KX_ParentActuator"))
+	if (!ConvertPythonToGameObject(actuator->GetLogicManager(), value, &gameobj, true, "actuator.object = value: KX_ParentActuator"))
 		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 		
 	if (actuator->m_ob != NULL)

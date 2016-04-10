@@ -687,7 +687,7 @@ int KX_ObjectActuator::pyattr_set_reference(void *self, const struct KX_PYATTRIB
 	KX_ObjectActuator* actuator = static_cast<KX_ObjectActuator*>(self);
 	KX_GameObject *refOb;
 	
-	if (!ConvertPythonToGameObject(value, &refOb, true, "actu.reference = value: KX_ObjectActuator"))
+	if (!ConvertPythonToGameObject(actuator->GetLogicManager(), value, &refOb, true, "actu.reference = value: KX_ObjectActuator"))
 		return PY_SET_ATTR_FAIL;
 	
 	if (actuator->m_reference)

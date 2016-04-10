@@ -1925,6 +1925,7 @@ static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *from, KX_Sce
 
 	brick->Replace_IScene(to);
 	brick->Replace_NetworkScene(to->GetNetworkScene());
+	brick->SetLogicManager(to->GetLogicManager());
 
 	// If we end up replacing a KX_TouchEventManager, we need to make sure
 	// physics controllers are properly in place. In other words, do this
@@ -2541,8 +2542,8 @@ KX_PYMETHODDEF_DOC(KX_Scene, addObject,
 	if (!PyArg_ParseTuple(args, "O|Oi:addObject", &pyob, &pyreference, &time))
 		return NULL;
 
-	if (!ConvertPythonToGameObject(pyob, &ob, false, "scene.addObject(object, reference, time): KX_Scene (first argument)") ||
-		!ConvertPythonToGameObject(pyreference, &reference, true, "scene.addObject(object, reference, time): KX_Scene (second argument)"))
+	if (!ConvertPythonToGameObject(m_logicmgr, pyob, &ob, false, "scene.addObject(object, reference, time): KX_Scene (first argument)") ||
+		!ConvertPythonToGameObject(m_logicmgr, pyreference, &reference, true, "scene.addObject(object, reference, time): KX_Scene (second argument)"))
 		return NULL;
 
 	if (!m_inactivelist->SearchValue(ob)) {

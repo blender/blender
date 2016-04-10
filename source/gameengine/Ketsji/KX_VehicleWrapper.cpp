@@ -30,6 +30,7 @@
 #include "KX_PyMath.h"
 #include "KX_GameObject.h"
 #include "KX_MotionState.h"
+#include "KX_PythonInit.h"
 
 KX_VehicleWrapper::KX_VehicleWrapper(
 						PHY_IVehicle* vehicle,
@@ -82,7 +83,7 @@ PyObject *KX_VehicleWrapper::PyAddWheel(PyObject *args)
 	if (PyArg_ParseTuple(args,"OOOOffi:addWheel",&wheelGameObject,&pylistPos,&pylistDir,&pylistAxleDir,&suspensionRestLength,&wheelRadius,&hasSteering))
 	{
 		KX_GameObject *gameOb;
-		if (!ConvertPythonToGameObject(wheelGameObject, &gameOb, false, "vehicle.addWheel(...): KX_VehicleWrapper (first argument)"))
+		if (!ConvertPythonToGameObject(KX_GetActiveScene()->GetLogicManager(), wheelGameObject, &gameOb, false, "vehicle.addWheel(...): KX_VehicleWrapper (first argument)"))
 			return NULL;
 
 		if (gameOb->GetSGNode())

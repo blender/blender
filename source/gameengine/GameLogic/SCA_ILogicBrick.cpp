@@ -35,12 +35,11 @@
 #include "SCA_ILogicBrick.h"
 #include "EXP_PyObjectPlus.h"
 
-SCA_LogicManager* SCA_ILogicBrick::m_sCurrentLogicManager = NULL;
-
 SCA_ILogicBrick::SCA_ILogicBrick(SCA_IObject* gameobj)
 	:
 	CValue(),
 	m_gameobj(gameobj),
+	m_logicManager(NULL),
 	m_Execute_Priority(0),
 	m_Execute_Ueber_Priority(0),
 	m_bActive(false),
@@ -141,6 +140,16 @@ bool SCA_ILogicBrick::LessComparedTo(SCA_ILogicBrick* other)
 	return (this->m_Execute_Ueber_Priority < other->m_Execute_Ueber_Priority) 
 		|| ((this->m_Execute_Ueber_Priority == other->m_Execute_Ueber_Priority) && 
 		(this->m_Execute_Priority < other->m_Execute_Priority));
+}
+
+void SCA_ILogicBrick::SetLogicManager(SCA_LogicManager *logicmgr)
+{
+	m_logicManager = logicmgr;
+}
+
+SCA_LogicManager *SCA_ILogicBrick::GetLogicManager()
+{
+	return m_logicManager;
 }
 
 void SCA_ILogicBrick::RegisterEvent(CValue* eventval)
