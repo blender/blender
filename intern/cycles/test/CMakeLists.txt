@@ -28,3 +28,4 @@ set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${PLATFORM_LIN
 CYCLES_TEST(util_aligned_malloc "cycles_util")
 CYCLES_TEST(util_path "cycles_util;${BOOST_LIBRARIES};${OPENIMAGEIO_LIBRARIES}")
 CYCLES_TEST(util_string "cycles_util;${BOOST_LIBRARIES}")
+CYCLES_TEST(util_task "cycles_util;${BOOST_LIBRARIES}")

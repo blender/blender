@@ -217,8 +217,10 @@ void TaskScheduler::exit()
 
 	if(users == 0) {
 		/* stop all waiting threads */
+		TaskScheduler::queue_mutex.lock();
 		do_exit = true;
 		TaskScheduler::queue_cond.notify_all();
+		TaskScheduler::queue_mutex.unlock();
 
 		/* delete threads */
 		foreach(thread *t, threads) {
