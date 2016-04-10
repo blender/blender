@@ -2534,33 +2534,43 @@ void GRAPH_OT_fmodifier_copy(wmOperatorType *ot)
 static int graph_fmodifier_paste_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
+	
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
-	int filter, ok = 0;
+	int filter;
+	
+	const bool replace = RNA_boolean_get(op->ptr, "replace");
+	bool ok = false;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 	
 	/* filter data */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT);
+	if (RNA_boolean_get(op->ptr, "only_active")) {
+		/* This should be the default (for buttons) - Just paste to the active FCurve */
+		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ACTIVE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+	}
+	else {
+		/* This is only if the operator gets called from a hotkey or search - Paste to all visible curves */
+		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+	}
+	
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* paste modifiers */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		FCurve *fcu = (FCurve *)ale->data;
 		int tot;
-
-		/* TODO: do we want to replace existing modifiers? add user pref for that! */
-		tot = ANIM_fmodifiers_paste_from_buf(&fcu->modifiers, 0);
-
+		
+		tot = ANIM_fmodifiers_paste_from_buf(&fcu->modifiers, replace);
+		
 		if (tot) {
 			ale->update |= ANIM_UPDATE_DEPS;
+			ok = true;
 		}
-
-		ok += tot;
 	}
-
+	
 	if (ok) {
 		ANIM_animdata_update(&ac, &anim_data);
 	}
@@ -2568,7 +2578,6 @@ static int graph_fmodifier_paste_exec(bContext *C, wmOperator *op)
 	
 	/* successful or not? */
 	if (ok) {
-
 		/* set notifier that keyframes have changed */
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 		
@@ -2593,6 +2602,11 @@ void GRAPH_OT_fmodifier_paste(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "only_active", true, "Only Active", "Only paste F-Modifiers on active F-Curve");
+	RNA_def_boolean(ot->srna, "replace", false, "Replace Existing", 
+	                "Replace existing F-Modifiers, instead of just appending to the end of the existing list");
 }
 
 /* ************************************************************************** */
