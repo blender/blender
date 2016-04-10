@@ -839,6 +839,14 @@ bool isect_seg_seg_v2_simple(const float v1[2], const float v2[2], const float v
  * \param l1, l2: Coordinates (point of line).
  * \param sp, r:  Coordinate and radius (sphere).
  * \return r_p1, r_p2: Intersection coordinates.
+ *
+ * \note The order of assignment for intersection points (\a r_p1, \a r_p2) is predictable,
+ * based on the direction defined by ``l2 - l1``,
+ * this direction compared with the normal of each point on the sphere:
+ * \a r_p1 always has a >= 0.0 dot product.
+ * \a r_p2 always has a <= 0.0 dot product.
+ * For example, when \a l1 is inside the sphere and \a l2 is outside,
+ * \a r_p1 will always be between \a l1 and \a l2.
  */
 int isect_line_sphere_v3(const float l1[3], const float l2[3],
                          const float sp[3], const float r,
