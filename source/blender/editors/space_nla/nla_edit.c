@@ -2412,12 +2412,15 @@ static int nla_fmodifier_paste_exec(bContext *C, wmOperator *op)
 	bAnimListElem *ale;
 	int filter, ok = 0;
 	
+	const bool active_only = RNA_boolean_get(op->ptr, "only_active");
+	const bool replace = RNA_boolean_get(op->ptr, "replace");
+	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 	
 	/* get a list of the editable tracks being shown in the NLA */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT);
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* for each NLA-Track, add the specified modifier to all selected strips */
@@ -2426,8 +2429,20 @@ static int nla_fmodifier_paste_exec(bContext *C, wmOperator *op)
 		NlaStrip *strip;
 		
 		for (strip = nlt->strips.first; strip; strip = strip->next) {
-			// TODO: do we want to replace existing modifiers? add user pref for that!
-			ok += ANIM_fmodifiers_paste_from_buf(&strip->modifiers, 0);
+			/* can F-Modifier be added to the current strip? */
+			if (active_only) {
+				/* if not active, cannot add since we're only adding to active strip */
+				if ((strip->flag & NLASTRIP_FLAG_ACTIVE) == 0)
+					continue;
+			}
+			else {
+				/* strip must be selected, since we're not just doing active */
+				if ((strip->flag & NLASTRIP_FLAG_SELECT) == 0)
+					continue;
+			}
+			
+			/* paste FModifiers from buffer */
+			ok += ANIM_fmodifiers_paste_from_buf(&strip->modifiers, replace);
 			ale->update |= ANIM_UPDATE_DEPS;
 		}
 	}
@@ -2460,6 +2475,11 @@ void NLA_OT_fmodifier_paste(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "only_active", true, "Only Active", "Only paste F-Modifiers on active strip");
+	RNA_def_boolean(ot->srna, "replace", false, "Replace Existing", 
+	                "Replace existing F-Modifiers, instead of just appending to the end of the existing list");
 }
 
 /* *********************************************** */
