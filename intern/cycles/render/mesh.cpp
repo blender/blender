@@ -1122,9 +1122,9 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 		dscene->object_node.reference((uint*)&pack.object_node[0], pack.object_node.size());
 		device->tex_alloc("__object_node", dscene->object_node);
 	}
-	if(pack.tri_woop.size()) {
-		dscene->tri_woop.reference(&pack.tri_woop[0], pack.tri_woop.size());
-		device->tex_alloc("__tri_woop", dscene->tri_woop);
+	if(pack.tri_storage.size()) {
+		dscene->tri_storage.reference(&pack.tri_storage[0], pack.tri_storage.size());
+		device->tex_alloc("__tri_storage", dscene->tri_storage);
 	}
 	if(pack.prim_type.size()) {
 		dscene->prim_type.reference((uint*)&pack.prim_type[0], pack.prim_type.size());
@@ -1359,7 +1359,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	device->tex_free(dscene->bvh_nodes);
 	device->tex_free(dscene->bvh_leaf_nodes);
 	device->tex_free(dscene->object_node);
-	device->tex_free(dscene->tri_woop);
+	device->tex_free(dscene->tri_storage);
 	device->tex_free(dscene->prim_type);
 	device->tex_free(dscene->prim_visibility);
 	device->tex_free(dscene->prim_index);
@@ -1377,7 +1377,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 
 	dscene->bvh_nodes.clear();
 	dscene->object_node.clear();
-	dscene->tri_woop.clear();
+	dscene->tri_storage.clear();
 	dscene->prim_type.clear();
 	dscene->prim_visibility.clear();
 	dscene->prim_index.clear();

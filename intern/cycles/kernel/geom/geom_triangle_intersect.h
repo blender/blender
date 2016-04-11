@@ -106,9 +106,9 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	const float Sz = isect_precalc->Sz;
 
 	/* Calculate vertices relative to ray origin. */
-	const float4 tri_a = kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+0),
-	             tri_b = kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+1),
-	             tri_c = kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+2);
+	const float4 tri_a = kernel_tex_fetch(__tri_storage, triAddr*TRI_NODE_SIZE+0),
+	             tri_b = kernel_tex_fetch(__tri_storage, triAddr*TRI_NODE_SIZE+1),
+	             tri_c = kernel_tex_fetch(__tri_storage, triAddr*TRI_NODE_SIZE+2);
 	const float3 A = make_float3(tri_a.x - P.x, tri_a.y - P.y, tri_a.z - P.z);
 	const float3 B = make_float3(tri_b.x - P.x, tri_b.y - P.y, tri_b.z - P.z);
 	const float3 C = make_float3(tri_c.x - P.x, tri_c.y - P.y, tri_c.z - P.z);
@@ -207,9 +207,9 @@ ccl_device_inline void triangle_intersect_subsurface(
 	const float Sz = isect_precalc->Sz;
 
 	/* Calculate vertices relative to ray origin. */
-	const float4 tri_a = kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+0),
-	             tri_b = kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+1),
-	             tri_c = kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+2);
+	const float4 tri_a = kernel_tex_fetch(__tri_storage, triAddr*TRI_NODE_SIZE+0),
+	             tri_b = kernel_tex_fetch(__tri_storage, triAddr*TRI_NODE_SIZE+1),
+	             tri_c = kernel_tex_fetch(__tri_storage, triAddr*TRI_NODE_SIZE+2);
 	const float3 A = make_float3(tri_a.x - P.x, tri_a.y - P.y, tri_a.z - P.z);
 	const float3 B = make_float3(tri_b.x - P.x, tri_b.y - P.y, tri_b.z - P.z);
 	const float3 C = make_float3(tri_c.x - P.x, tri_c.y - P.y, tri_c.z - P.z);
@@ -329,9 +329,9 @@ ccl_device_inline float3 triangle_refine(KernelGlobals *kg,
 
 	P = P + D*t;
 
-	const float4 tri_a = kernel_tex_fetch(__tri_woop, isect->prim*TRI_NODE_SIZE+0),
-	             tri_b = kernel_tex_fetch(__tri_woop, isect->prim*TRI_NODE_SIZE+1),
-	             tri_c = kernel_tex_fetch(__tri_woop, isect->prim*TRI_NODE_SIZE+2);
+	const float4 tri_a = kernel_tex_fetch(__tri_storage, isect->prim*TRI_NODE_SIZE+0),
+	             tri_b = kernel_tex_fetch(__tri_storage, isect->prim*TRI_NODE_SIZE+1),
+	             tri_c = kernel_tex_fetch(__tri_storage, isect->prim*TRI_NODE_SIZE+2);
 	float3 edge1 = make_float3(tri_a.x - tri_c.x, tri_a.y - tri_c.y, tri_a.z - tri_c.z);
 	float3 edge2 = make_float3(tri_b.x - tri_c.x, tri_b.y - tri_c.y, tri_b.z - tri_c.z);
 	float3 tvec = make_float3(P.x - tri_c.x, P.y - tri_c.y, P.z - tri_c.z);
@@ -386,9 +386,9 @@ ccl_device_inline float3 triangle_refine_subsurface(KernelGlobals *kg,
 	P = P + D*t;
 
 #ifdef __INTERSECTION_REFINE__
-	const float4 tri_a = kernel_tex_fetch(__tri_woop, isect->prim*TRI_NODE_SIZE+0),
-	             tri_b = kernel_tex_fetch(__tri_woop, isect->prim*TRI_NODE_SIZE+1),
-	             tri_c = kernel_tex_fetch(__tri_woop, isect->prim*TRI_NODE_SIZE+2);
+	const float4 tri_a = kernel_tex_fetch(__tri_storage, isect->prim*TRI_NODE_SIZE+0),
+	             tri_b = kernel_tex_fetch(__tri_storage, isect->prim*TRI_NODE_SIZE+1),
+	             tri_c = kernel_tex_fetch(__tri_storage, isect->prim*TRI_NODE_SIZE+2);
 	float3 edge1 = make_float3(tri_a.x - tri_c.x, tri_a.y - tri_c.y, tri_a.z - tri_c.z);
 	float3 edge2 = make_float3(tri_b.x - tri_c.x, tri_b.y - tri_c.y, tri_b.z - tri_c.z);
 	float3 tvec = make_float3(P.x - tri_c.x, P.y - tri_c.y, P.z - tri_c.z);

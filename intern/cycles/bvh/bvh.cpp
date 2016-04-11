@@ -130,7 +130,7 @@ void BVH::refit(Progress& progress)
 
 /* Triangles */
 
-void BVH::pack_triangle(int idx, float4 woop[3])
+void BVH::pack_triangle(int idx, float4 storage[3])
 {
 	int tob = pack.prim_object[idx];
 	assert(tob >= 0 && tob < objects.size());
@@ -143,36 +143,34 @@ void BVH::pack_triangle(int idx, float4 woop[3])
 	float3 v1 = vpos[vidx[1]];
 	float3 v2 = vpos[vidx[2]];
 
-	woop[0] = float3_to_float4(v0);
-	woop[1] = float3_to_float4(v1);
-	woop[2] = float3_to_float4(v2);
+	storage[0] = float3_to_float4(v0);
+	storage[1] = float3_to_float4(v1);
+	storage[2] = float3_to_float4(v2);
 }
-
-/* Curves*/
 
 void BVH::pack_primitives()
 {
 	int nsize = TRI_NODE_SIZE;
 	size_t tidx_size = pack.prim_index.size();
 
-	pack.tri_woop.clear();
-	pack.tri_woop.resize(tidx_size * nsize);
+	pack.tri_storage.clear();
+	pack.tri_storage.resize(tidx_size * nsize);
 	pack.prim_visibility.clear();
 	pack.prim_visibility.resize(tidx_size);
 
 	for(unsigned int i = 0; i < tidx_size; i++) {
 		if(pack.prim_index[i] != -1) {
-			float4 woop[3];
+			float4 storage[3];
 
 			if(pack.prim_type[i] & PRIMITIVE_TRIANGLE) {
-				pack_triangle(i, woop);
+				pack_triangle(i, storage);
 			}
 			else {
 				/* Avoid use of uninitialized memory. */
-				memset(&woop, 0, sizeof(woop));
+				memset(&storage, 0, sizeof(storage));
 			}
 
-			memcpy(&pack.tri_woop[i * nsize], woop, sizeof(float4)*3);
+			memcpy(&pack.tri_storage[i * nsize], storage, sizeof(float4)*3);
 
 			int tob = pack.prim_object[i];
 			Object *ob = objects[tob];
@@ -182,7 +180,7 @@ void BVH::pack_primitives()
 				pack.prim_visibility[i] |= PATH_RAY_CURVE;
 		}
 		else {
-			memset(&pack.tri_woop[i * nsize], 0, sizeof(float4)*3);
+			memset(&pack.tri_storage[i * nsize], 0, sizeof(float4)*3);
 			pack.prim_visibility[i] = 0;
 		}
 	}
@@ -219,10 +217,10 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 
 	/* reserve */
 	size_t prim_index_size = pack.prim_index.size();
-	size_t tri_woop_size = pack.tri_woop.size();
+	size_t tri_storage_size = pack.tri_storage.size();
 
 	size_t pack_prim_index_offset = prim_index_size;
-	size_t pack_tri_woop_offset = tri_woop_size;
+	size_t pack_tri_storage_offset = tri_storage_size;
 	size_t pack_nodes_offset = nodes_size;
 	size_t pack_leaf_nodes_offset = leaf_nodes_size;
 	size_t object_offset = 0;
@@ -236,7 +234,7 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 		if(mesh->need_build_bvh()) {
 			if(mesh_map.find(mesh) == mesh_map.end()) {
 				prim_index_size += bvh->pack.prim_index.size();
-				tri_woop_size += bvh->pack.tri_woop.size();
+				tri_storage_size += bvh->pack.tri_storage.size();
 				nodes_size += bvh->pack.nodes.size();
 				leaf_nodes_size += bvh->pack.leaf_nodes.size();
 
@@ -251,7 +249,7 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 	pack.prim_type.resize(prim_index_size);
 	pack.prim_object.resize(prim_index_size);
 	pack.prim_visibility.resize(prim_index_size);
-	pack.tri_woop.resize(tri_woop_size);
+	pack.tri_storage.resize(tri_storage_size);
 	pack.nodes.resize(nodes_size);
 	pack.leaf_nodes.resize(leaf_nodes_size);
 	pack.object_node.resize(objects.size());
@@ -260,7 +258,7 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 	int *pack_prim_type = (pack.prim_type.size())? &pack.prim_type[0]: NULL;
 	int *pack_prim_object = (pack.prim_object.size())? &pack.prim_object[0]: NULL;
 	uint *pack_prim_visibility = (pack.prim_visibility.size())? &pack.prim_visibility[0]: NULL;
-	float4 *pack_tri_woop = (pack.tri_woop.size())? &pack.tri_woop[0]: NULL;
+	float4 *pack_tri_storage = (pack.tri_storage.size())? &pack.tri_storage[0]: NULL;
 	int4 *pack_nodes = (pack.nodes.size())? &pack.nodes[0]: NULL;
 	int4 *pack_leaf_nodes = (pack.leaf_nodes.size())? &pack.leaf_nodes[0]: NULL;
 
@@ -322,10 +320,11 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 		}
 
 		/* merge triangle intersection data */
-		if(bvh->pack.tri_woop.size()) {
-			memcpy(pack_tri_woop + pack_tri_woop_offset, &bvh->pack.tri_woop[0],
-				bvh->pack.tri_woop.size()*sizeof(float4));
-			pack_tri_woop_offset += bvh->pack.tri_woop.size();
+		if(bvh->pack.tri_storage.size()) {
+			memcpy(pack_tri_storage + pack_tri_storage_offset,
+			       &bvh->pack.tri_storage[0],
+			       bvh->pack.tri_storage.size()*sizeof(float4));
+			pack_tri_storage_offset += bvh->pack.tri_storage.size();
 		}
 
 		/* merge nodes */
