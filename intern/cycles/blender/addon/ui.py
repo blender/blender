@@ -682,7 +682,7 @@ class Cycles_PT_mesh_displacement(CyclesButtonsPanel, Panel):
             cdata = mball.cycles
 
         layout.prop(cdata, "displacement_method", text="Method")
-        layout.prop(cdata, "use_subdivision")
+        layout.prop(cdata, "subdivision_type", text="Subdivision")
         layout.prop(cdata, "dicing_rate")
 
 

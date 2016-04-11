@@ -46,6 +46,12 @@ enum_displacement_methods = (
     ('BOTH', "Both", "Combination of displacement and bump mapping"),
     )
 
+enum_subdivision_types = (
+    ('NONE', "None", "No subdivision"),
+    ('LINEAR', "Linear", "Use linear subdivision"),
+    ('CATMULL_CLARK', "Catmull–Clark", "Use Catmull-Clark subdivision"),
+    )
+
 enum_bvh_types = (
     ('DYNAMIC_BVH', "Dynamic BVH", "Objects can be individually updated, at the cost of slower render time"),
     ('STATIC_BVH', "Static BVH", "Any object modification requires a complete BVH rebuild, but renders faster"),
@@ -931,10 +937,11 @@ class CyclesMeshSettings(bpy.types.PropertyGroup):
                 items=enum_displacement_methods,
                 default='BUMP',
                 )
-        cls.use_subdivision = BoolProperty(
-                name="Use Subdivision",
-                description="Subdivide mesh for rendering",
-                default=False,
+        cls.subdivision_type = EnumProperty(
+                name="Subdivision Type",
+                description="Type of subdivision to use",
+                items=enum_subdivision_types,
+                default='NONE',
                 )
         cls.dicing_rate = FloatProperty(
                 name="Dicing Rate",
