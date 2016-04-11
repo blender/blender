@@ -26,7 +26,6 @@
  * versions for each case without new features slowing things down.
  *
  * BVH_INSTANCING: object instancing
- * BVH_HAIR: hair curve rendering
  * BVH_MOTION: motion blur rendering
  *
  */
@@ -228,26 +227,6 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 									continue;
 								}
 								motion_triangle_intersect(kg, isect, P, dir, ray->time, visibility, object, primAddr);
-							}
-							break;
-						}
-#endif
-#if BVH_FEATURE(BVH_HAIR)
-						case PRIMITIVE_CURVE:
-						case PRIMITIVE_MOTION_CURVE: {
-							/* intersect ray against primitive */
-							for(; primAddr < primAddr2; primAddr++) {
-								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
-								/* only primitives from volume object */
-								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
-								int object_flag = kernel_tex_fetch(__object_flag, tri_object);
-								if((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
-									continue;
-								}
-								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE)
-									bvh_cardinal_curve_intersect(kg, isect, P, dir, visibility, object, primAddr, ray->time, type, NULL, 0, 0);
-								else
-									bvh_curve_intersect(kg, isect, P, dir, visibility, object, primAddr, ray->time, type, NULL, 0, 0);
 							}
 							break;
 						}

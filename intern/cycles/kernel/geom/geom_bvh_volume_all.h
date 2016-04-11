@@ -26,7 +26,6 @@
  * versions for each case without new features slowing things down.
  *
  * BVH_INSTANCING: object instancing
- * BVH_HAIR: hair curve rendering
  * BVH_MOTION: motion blur rendering
  *
  */
@@ -283,49 +282,6 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 							break;
 						}
 #endif  /* BVH_MOTION */
-#if BVH_FEATURE(BVH_HAIR)
-						case PRIMITIVE_CURVE:
-						case PRIMITIVE_MOTION_CURVE: {
-							/* intersect ray against primitive */
-							for(; primAddr < primAddr2; primAddr++) {
-								kernel_assert(kernel_tex_fetch(__prim_type, primAddr) == type);
-								/* only primitives from volume object */
-								uint tri_object = (object == OBJECT_NONE)? kernel_tex_fetch(__prim_object, primAddr): object;
-								int object_flag = kernel_tex_fetch(__object_flag, tri_object);
-								if((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
-									continue;
-								}
-								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE)
-									hit = bvh_cardinal_curve_intersect(kg, isect_array, P, dir, visibility, object, primAddr, ray->time, type, NULL, 0, 0);
-								else
-									hit = bvh_curve_intersect(kg, isect_array, P, dir, visibility, object, primAddr, ray->time, type, NULL, 0, 0);
-								if(hit) {
-									/* Move on to next entry in intersections array. */
-									isect_array++;
-									num_hits++;
-#  if BVH_FEATURE(BVH_INSTANCING)
-									num_hits_in_instance++;
-#  endif
-									isect_array->t = isect_t;
-									if(num_hits == max_hits) {
-#  if BVH_FEATURE(BVH_INSTANCING)
-#    if BVH_FEATURE(BVH_MOTION)
-										float t_fac = 1.0f / len(transform_direction(&ob_itfm, dir));
-#    else
-										Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
-										float t_fac = 1.0f / len(transform_direction(&itfm, dir));
-#    endif
-										for(int i = 0; i < num_hits_in_instance; i++) {
-											(isect_array-i-1)->t *= t_fac;
-										}
-#  endif  /* BVH_FEATURE(BVH_INSTANCING) */
-										return num_hits;
-									}
-								}
-							}
-							break;
-						}
-#endif  /* BVH_HAIR */
 						default: {
 							break;
 						}
