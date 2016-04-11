@@ -829,7 +829,7 @@ typedef struct VolumeStack {
 
 typedef struct PathState {
 	/* see enum PathRayFlag */
-	int flag;          
+	int flag;
 
 	/* random number generator state */
 	int rng_offset;    		/* dimension offset */
@@ -1178,34 +1178,50 @@ typedef ccl_addr_space struct DebugData {
 
 /* Queue names */
 enum QueueNumber {
-	QUEUE_ACTIVE_AND_REGENERATED_RAYS = 0,     /* All active rays and regenerated rays are enqueued here. */
-	QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS = 1,  /* All
-	                                            * 1. Background-hit rays,
-	                                            * 2. Rays that has exited path-iteration but needs to update output buffer
-	                                            * 3. Rays to be regenerated
-	                                            * are enqueued here.
-	                                            */
-	QUEUE_SHADOW_RAY_CAST_AO_RAYS = 2,         /* All rays for which a shadow ray should be cast to determine radiance
-	                                            * contribution for AO are enqueued here.
-	                                            */
-	QUEUE_SHADOW_RAY_CAST_DL_RAYS = 3,         /* All rays for which a shadow ray should be cast to determine radiance
-	                                            * contributing for direct lighting are enqueued here.
-	                                            */
+	/* All active rays and regenerated rays are enqueued here. */
+	QUEUE_ACTIVE_AND_REGENERATED_RAYS = 0,
+
+	/* All
+	 * 1. Background-hit rays,
+	 * 2. Rays that has exited path-iteration but needs to update output buffer
+	 * 3. Rays to be regenerated
+	 * are enqueued here.
+	 */
+	QUEUE_HITBG_BUFF_UPDATE_TOREGEN_RAYS = 1,
+
+	/* All rays for which a shadow ray should be cast to determine radiance
+	 * contribution for AO are enqueued here.
+	 */
+	QUEUE_SHADOW_RAY_CAST_AO_RAYS = 2,
+
+	/* All rays for which a shadow ray should be cast to determine radiance
+	 * contributing for direct lighting are enqueued here.
+	 */
+	QUEUE_SHADOW_RAY_CAST_DL_RAYS = 3,
 };
 
 /* We use RAY_STATE_MASK to get ray_state (enums 0 to 5) */
 #define RAY_STATE_MASK 0x007
 #define RAY_FLAG_MASK 0x0F8
 enum RayState {
-	RAY_ACTIVE = 0,             // Denotes ray is actively involved in path-iteration
-	RAY_INACTIVE = 1,           // Denotes ray has completed processing all samples and is inactive
-	RAY_UPDATE_BUFFER = 2,      // Denoted ray has exited path-iteration and needs to update output buffer
-	RAY_HIT_BACKGROUND = 3,     // Donotes ray has hit background
-	RAY_TO_REGENERATE = 4,      // Denotes ray has to be regenerated
-	RAY_REGENERATED = 5,        // Denotes ray has been regenerated
-	RAY_SKIP_DL = 6,            // Denotes ray should skip direct lighting
-	RAY_SHADOW_RAY_CAST_AO = 16, // Flag's ray has to execute shadow blocked function in AO part
-	RAY_SHADOW_RAY_CAST_DL = 32 // Flag's ray has to execute shadow blocked function in direct lighting part
+	/* Denotes ray is actively involved in path-iteration. */
+	RAY_ACTIVE = 0,
+	/* Denotes ray has completed processing all samples and is inactive. */
+	RAY_INACTIVE = 1,
+	/* Denoted ray has exited path-iteration and needs to update output buffer. */
+	RAY_UPDATE_BUFFER = 2,
+	/* Donotes ray has hit background */
+	RAY_HIT_BACKGROUND = 3,
+	/* Denotes ray has to be regenerated */
+	RAY_TO_REGENERATE = 4,
+	/* Denotes ray has been regenerated */
+	RAY_REGENERATED = 5,
+	/* Denotes ray should skip direct lighting */
+	RAY_SKIP_DL = 6,
+	/* Flag's ray has to execute shadow blocked function in AO part */
+	RAY_SHADOW_RAY_CAST_AO = 16,
+	/* Flag's ray has to execute shadow blocked function in direct lighting part. */
+	RAY_SHADOW_RAY_CAST_DL = 32,
 };
 
 #define ASSIGN_RAY_STATE(ray_state, ray_index, state) (ray_state[ray_index] = ((ray_state[ray_index] & RAY_FLAG_MASK) | state))
