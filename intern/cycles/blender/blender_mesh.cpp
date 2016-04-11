@@ -18,6 +18,7 @@
 #include "mesh.h"
 #include "object.h"
 #include "scene.h"
+#include "camera.h"
 
 #include "blender_sync.h"
 #include "blender_session.h"
@@ -655,6 +656,7 @@ static void create_mesh(Scene *scene,
 
 static void create_subd_mesh(Scene *scene,
                              Mesh *mesh,
+                             BL::Object b_ob,
                              BL::Mesh& b_mesh,
                              PointerRNA *cmesh,
                              const vector<uint>& used_shaders)
@@ -691,8 +693,10 @@ static void create_subd_mesh(Scene *scene,
 
 	SubdParams sdparams(mesh, used_shaders[0], true, need_ptex);
 	sdparams.dicing_rate = RNA_float_get(cmesh, "dicing_rate");
-	//scene->camera->update();
-	//sdparams.camera = scene->camera;
+
+	scene->camera->update();
+	sdparams.camera = scene->camera;
+	sdparams.objecttoworld = get_transform(b_ob.matrix_world());
 
 	/* tesselate */
 	DiagSplit dsplit(sdparams);
@@ -805,7 +809,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 		if(b_mesh) {
 			if(render_layer.use_surfaces && !hide_tris) {
 				if(cmesh.data && experimental && RNA_boolean_get(&cmesh, "use_subdivision"))
-					create_subd_mesh(scene, mesh, b_mesh, &cmesh, used_shaders);
+					create_subd_mesh(scene, mesh, b_ob, b_mesh, &cmesh, used_shaders);
 				else
 					create_mesh(scene, mesh, b_mesh, used_shaders);
 

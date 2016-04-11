@@ -938,8 +938,8 @@ class CyclesMeshSettings(bpy.types.PropertyGroup):
                 )
         cls.dicing_rate = FloatProperty(
                 name="Dicing Rate",
-                description="",
-                min=0.001, max=1000.0,
+                description="Size of a micropolygon in pixels",
+                min=0.1, max=1000.0,
                 default=1.0,
                 )
 

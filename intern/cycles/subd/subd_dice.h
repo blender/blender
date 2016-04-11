@@ -41,6 +41,7 @@ struct SubdParams {
 	int split_threshold;
 	float dicing_rate;
 	Camera *camera;
+	Transform objecttoworld;
 
 	SubdParams(Mesh *mesh_, int shader_, bool smooth_ = true, bool ptex_ = false)
 	{

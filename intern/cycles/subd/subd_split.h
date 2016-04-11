@@ -45,7 +45,7 @@ public:
 
 	DiagSplit(const SubdParams& params);
 
-	float3 project(Patch *patch, float2 uv);
+	float3 to_world(Patch *patch, float2 uv);
 	int T(Patch *patch, float2 Pstart, float2 Pend);
 	void partition_edge(Patch *patch, float2 *P, int *t0, int *t1,
 		float2 Pstart, float2 Pend, int t);

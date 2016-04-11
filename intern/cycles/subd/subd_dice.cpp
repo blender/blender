@@ -305,7 +305,12 @@ void QuadDice::dice(SubPatch& sub, EdgeFactors& ef)
 	int Mu = max(ef.tu0, ef.tu1);
 	int Mv = max(ef.tv0, ef.tv1);
 
+#if 0 /* Doesnt work very well, especially at grazing angles. */
 	float S = scale_factor(sub, ef, Mu, Mv);
+#else
+	float S = 1.0f;
+#endif
+
 	Mu = max((int)ceil(S*Mu), 2); // XXX handle 0 & 1?
 	Mv = max((int)ceil(S*Mv), 2); // XXX handle 0 & 1?
 

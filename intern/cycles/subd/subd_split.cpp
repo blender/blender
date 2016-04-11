@@ -46,13 +46,13 @@ void DiagSplit::dispatch(TriangleDice::SubPatch& sub, TriangleDice::EdgeFactors&
 	edgefactors_triangle.push_back(ef);
 }
 
-float3 DiagSplit::project(Patch *patch, float2 uv)
+float3 DiagSplit::to_world(Patch *patch, float2 uv)
 {
 	float3 P;
 
 	patch->eval(&P, NULL, NULL, uv.x, uv.y);
 	if(params.camera)
-		P = transform_perspective(&params.camera->worldtoraster, P);
+		P = transform_point(&params.objecttoworld, P);
 
 	return P;
 }
@@ -66,10 +66,21 @@ int DiagSplit::T(Patch *patch, float2 Pstart, float2 Pend)
 	for(int i = 0; i < params.test_steps; i++) {
 		float t = i/(float)(params.test_steps-1);
 
-		float3 P = project(patch, Pstart + t*(Pend - Pstart));
+		float3 P = to_world(patch, Pstart + t*(Pend - Pstart));
 
 		if(i > 0) {
-			float L = len(P - Plast);
+			float L;
+
+			if(!params.camera) {
+				L = len(P - Plast);
+			}
+			else {
+				Camera* cam = params.camera;
+
+				float pixel_width = cam->world_to_raster_size((P + Plast) * 0.5f);
+				L = len(P - Plast) / pixel_width;
+			}
+
 			Lsum += L;
 			Lmax = max(L, Lmax);
 		}
@@ -103,6 +114,16 @@ void DiagSplit::partition_edge(Patch *patch, float2 *P, int *t0, int *t1, float2
 
 void DiagSplit::split(TriangleDice::SubPatch& sub, TriangleDice::EdgeFactors& ef, int depth)
 {
+	if(depth > 32) {
+		/* We should never get here, but just in case end recursion safely. */
+		ef.tu = 1;
+		ef.tv = 1;
+		ef.tw = 1;
+
+		dispatch(sub, ef);
+		return;
+	}
+
 	assert(ef.tu == T(sub.patch, sub.Pv, sub.Pw));
 	assert(ef.tv == T(sub.patch, sub.Pw, sub.Pu));
 	assert(ef.tw == T(sub.patch, sub.Pu, sub.Pv));
@@ -187,7 +208,25 @@ void DiagSplit::split(TriangleDice::SubPatch& sub, TriangleDice::EdgeFactors& ef
 
 void DiagSplit::split(QuadDice::SubPatch& sub, QuadDice::EdgeFactors& ef, int depth)
 {
-	if((ef.tu0 == DSPLIT_NON_UNIFORM || ef.tu1 == DSPLIT_NON_UNIFORM)) {
+	if(depth > 32) {
+		/* We should never get here, but just in case end recursion safely. */
+		ef.tu0 = 1;
+		ef.tu1 = 1;
+		ef.tv0 = 1;
+		ef.tv1 = 1;
+
+		dispatch(sub, ef);
+		return;
+	}
+
+	bool split_u = (ef.tu0 == DSPLIT_NON_UNIFORM || ef.tu1 == DSPLIT_NON_UNIFORM);
+	bool split_v = (ef.tv0 == DSPLIT_NON_UNIFORM || ef.tv1 == DSPLIT_NON_UNIFORM);
+
+	if(split_u && split_v) {
+		split_u = depth % 2;
+	}
+
+	if(split_u) {
 		/* partition edges */
 		QuadDice::EdgeFactors ef0, ef1;
 		float2 Pu0, Pu1;
@@ -212,7 +251,7 @@ void DiagSplit::split(QuadDice::SubPatch& sub, QuadDice::EdgeFactors& ef, int de
 		split(sub0, ef0, depth+1);
 		split(sub1, ef1, depth+1);
 	}
-	else if(ef.tv0 == DSPLIT_NON_UNIFORM || ef.tv1 == DSPLIT_NON_UNIFORM) {
+	else if(split_v) {
 		/* partition edges */
 		QuadDice::EdgeFactors ef0, ef1;
 		float2 Pv0, Pv1;
@@ -237,8 +276,9 @@ void DiagSplit::split(QuadDice::SubPatch& sub, QuadDice::EdgeFactors& ef, int de
 		split(sub0, ef0, depth+1);
 		split(sub1, ef1, depth+1);
 	}
-	else
+	else {
 		dispatch(sub, ef);
+	}
 }
 
 void DiagSplit::split_triangle(Patch *patch)
