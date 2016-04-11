@@ -58,6 +58,7 @@ static void cloth_to_object (Object *ob,  ClothModifierData *clmd, float (*verte
 static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm );
 static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr, int first);
 static void cloth_update_springs( ClothModifierData *clmd );
+static void cloth_update_spring_lengths( ClothModifierData *clmd, DerivedMesh *dm );
 static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm );
 static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm );
 
@@ -369,6 +370,10 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 
 	/* Support for dynamic vertex groups, changing from frame to frame */
 	cloth_apply_vgroup ( clmd, result );
+
+	if ( 0 )
+		cloth_update_spring_lengths ( clmd, result );
+
 	cloth_update_springs( clmd );
 	
 	// TIMEIT_START(cloth_step)
@@ -1173,6 +1178,51 @@ static void cloth_update_springs( ClothModifierData *clmd )
 	}
 	
 	cloth_hair_update_bending_targets(clmd);
+}
+
+/* Update spring rest lenght, for dynamically deformable cloth */
+static void cloth_update_spring_lengths( ClothModifierData *clmd, DerivedMesh *dm )
+{
+	Cloth *cloth = clmd->clothObject;
+	LinkNode *search = cloth->springs;
+	unsigned int struct_springs = 0;
+	unsigned int i = 0;
+	unsigned int mvert_num = (unsigned int)dm->getNumVerts(dm);
+	float shrink_factor;
+
+	clmd->sim_parms->avg_spring_len = 0.0f;
+
+	for (i = 0; i < mvert_num; i++) {
+		cloth->verts[i].avg_spring_len = 0.0f;
+	}
+
+	while (search) {
+		ClothSpring *spring = search->link;
+
+		if ( spring->type != CLOTH_SPRING_TYPE_SEWING ) {
+			if (clmd->sim_parms->vgroup_shrink > 0)
+				shrink_factor = 1.0f - ((cloth->verts[spring->ij].shrink_factor + cloth->verts[spring->kl].shrink_factor) / 2.0f);
+			else
+				shrink_factor = 1.0f - clmd->sim_parms->shrink_min;
+			spring->restlen = len_v3v3(cloth->verts[spring->kl].xrest, cloth->verts[spring->ij].xrest) * shrink_factor;
+		}
+
+		if ( spring->type == CLOTH_SPRING_TYPE_STRUCTURAL ) {
+			clmd->sim_parms->avg_spring_len += spring->restlen;
+			cloth->verts[spring->ij].avg_spring_len += spring->restlen;
+			cloth->verts[spring->kl].avg_spring_len += spring->restlen;
+			struct_springs++;
+		}
+
+		search = search->next;
+	}
+
+	if (struct_springs > 0)
+		clmd->sim_parms->avg_spring_len /= struct_springs;
+
+	for (i = 0; i < mvert_num; i++) {
+		cloth->verts[i].avg_spring_len = cloth->verts[i].avg_spring_len * 0.49f / ((float)cloth->verts[i].spring_count);
+	}
 }
 
 BLI_INLINE void cross_identity_v3(float r[3][3], const float v[3])
