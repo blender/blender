@@ -618,18 +618,19 @@ static void create_mesh(Scene *scene,
 			if(is_zero(cross(mesh->verts[vi[1]] - mesh->verts[vi[0]], mesh->verts[vi[2]] - mesh->verts[vi[0]])) ||
 			   is_zero(cross(mesh->verts[vi[2]] - mesh->verts[vi[0]], mesh->verts[vi[3]] - mesh->verts[vi[0]])))
 			{
-				mesh->set_triangle(ti++, vi[0], vi[1], vi[3], shader, smooth);
-				mesh->set_triangle(ti++, vi[2], vi[3], vi[1], shader, smooth);
+				// TODO(mai): order here is probably wrong
+				mesh->set_triangle(ti++, vi[0], vi[1], vi[3], shader, smooth, true);
+				mesh->set_triangle(ti++, vi[2], vi[3], vi[1], shader, smooth, true);
 				face_flags[fi] |= FACE_FLAG_DIVIDE_24;
 			}
 			else {
-				mesh->set_triangle(ti++, vi[0], vi[1], vi[2], shader, smooth);
-				mesh->set_triangle(ti++, vi[0], vi[2], vi[3], shader, smooth);
+				mesh->set_triangle(ti++, vi[0], vi[1], vi[2], shader, smooth, true);
+				mesh->set_triangle(ti++, vi[0], vi[2], vi[3], shader, smooth, true);
 				face_flags[fi] |= FACE_FLAG_DIVIDE_13;
 			}
 		}
 		else
-			mesh->set_triangle(ti++, vi[0], vi[1], vi[2], shader, smooth);
+			mesh->set_triangle(ti++, vi[0], vi[1], vi[2], shader, smooth, false);
 
 		nverts[fi] = n;
 	}
@@ -661,37 +662,10 @@ static void create_subd_mesh(Scene *scene,
                              PointerRNA *cmesh,
                              const vector<uint>& used_shaders)
 {
-	/* create subd mesh */
-	SubdMesh sdmesh;
+	Mesh basemesh;
+	create_mesh(scene, &basemesh, b_mesh, used_shaders);
 
-	/* create vertices */
-	BL::Mesh::vertices_iterator v;
-
-	for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v)
-		sdmesh.add_vert(get_float3(v->co()));
-
-	/* create faces */
-	BL::Mesh::tessfaces_iterator f;
-
-	for(b_mesh.tessfaces.begin(f); f != b_mesh.tessfaces.end(); ++f) {
-		int4 vi = get_int4(f->vertices_raw());
-		int n = (vi[3] == 0) ? 3: 4;
-		//int shader = used_shaders[f->material_index()];
-
-		if(n == 4)
-			sdmesh.add_face(vi[0], vi[1], vi[2], vi[3]);
-		else
-			sdmesh.add_face(vi[0], vi[1], vi[2]);
-	}
-
-	/* finalize subd mesh */
-	sdmesh.finish();
-
-	/* parameters */
-	bool need_ptex = mesh->need_attribute(scene, ATTR_STD_PTEX_FACE_ID) ||
-	                 mesh->need_attribute(scene, ATTR_STD_PTEX_UV);
-
-	SubdParams sdparams(mesh, used_shaders[0], true, need_ptex);
+	SubdParams sdparams(mesh, used_shaders[0], true, false);
 	sdparams.dicing_rate = RNA_float_get(cmesh, "dicing_rate");
 
 	scene->camera->update();
@@ -700,7 +674,7 @@ static void create_subd_mesh(Scene *scene,
 
 	/* tesselate */
 	DiagSplit dsplit(sdparams);
-	sdmesh.tessellate(&dsplit);
+	basemesh.tessellate(&dsplit);
 }
 
 /* Sync */

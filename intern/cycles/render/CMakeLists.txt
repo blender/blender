@@ -6,6 +6,7 @@ set(INC
 	../kernel/svm
 	../kernel/osl
 	../bvh
+	../subd
 	../util
 	../../glew-mx
 )

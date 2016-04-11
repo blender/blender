@@ -35,6 +35,9 @@
 #include "util_progress.h"
 #include "util_set.h"
 
+#include "subd_split.h"
+#include "subd_patch.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Triangle */
@@ -112,6 +115,9 @@ void Mesh::reserve(int numverts, int numtris, int numcurves, int numcurvekeys)
 	triangles.resize(numtris);
 	shader.resize(numtris);
 	smooth.resize(numtris);
+
+	forms_quad.resize(numtris);
+
 	curve_keys.resize(numcurvekeys);
 	curves.resize(numcurves);
 
@@ -126,6 +132,8 @@ void Mesh::clear()
 	triangles.clear();
 	shader.clear();
 	smooth.clear();
+
+	forms_quad.clear();
 
 	curve_keys.clear();
 	curves.clear();
@@ -156,7 +164,7 @@ int Mesh::split_vertex(int vertex)
 	return verts.size() - 1;
 }
 
-void Mesh::set_triangle(int i, int v0, int v1, int v2, int shader_, bool smooth_)
+void Mesh::set_triangle(int i, int v0, int v1, int v2, int shader_, bool smooth_, bool forms_quad_)
 {
 	Triangle tri;
 	tri.v[0] = v0;
@@ -166,9 +174,10 @@ void Mesh::set_triangle(int i, int v0, int v1, int v2, int shader_, bool smooth_
 	triangles[i] = tri;
 	shader[i] = shader_;
 	smooth[i] = smooth_;
+	forms_quad[i] = forms_quad_;
 }
 
-void Mesh::add_triangle(int v0, int v1, int v2, int shader_, bool smooth_)
+void Mesh::add_triangle(int v0, int v1, int v2, int shader_, bool smooth_, bool forms_quad_)
 {
 	Triangle tri;
 	tri.v[0] = v0;
@@ -178,6 +187,7 @@ void Mesh::add_triangle(int v0, int v1, int v2, int shader_, bool smooth_)
 	triangles.push_back(tri);
 	shader.push_back(shader_);
 	smooth.push_back(smooth_);
+	forms_quad.push_back(forms_quad_);
 }
 
 void Mesh::add_curve_key(float3 co, float radius)
@@ -1435,6 +1445,43 @@ bool Mesh::need_attribute(Scene *scene, ustring name)
 			return true;
 	
 	return false;
+}
+
+void Mesh::tessellate(DiagSplit *split)
+{
+	int num_faces = triangles.size();
+
+	for(int f = 0; f < num_faces; f++) {
+		if(!forms_quad[f]) {
+			/* triangle */
+			LinearTrianglePatch* patch = new LinearTrianglePatch();
+			float3 *hull = patch->hull;
+
+			for(int i = 0; i < 3; i++) {
+				hull[i] = verts[triangles[f].v[i]];
+			}
+
+			split->split_triangle(patch);
+			delete patch;
+		}
+		else {
+			/* quad */
+			LinearQuadPatch* patch = new LinearQuadPatch();
+			float3 *hull = patch->hull;
+
+			hull[0] = verts[triangles[f  ].v[0]];
+			hull[1] = verts[triangles[f  ].v[1]];
+			hull[3] = verts[triangles[f  ].v[2]];
+			hull[2] = verts[triangles[f+1].v[2]];
+
+			split->split_quad(patch);
+			delete patch;
+
+			// consume second triangle in quad
+			f++;
+		}
+
+	}
 }
 
 CCL_NAMESPACE_END
