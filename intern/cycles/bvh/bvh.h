@@ -67,13 +67,9 @@ struct PackedBVH {
 	/* index of the root node. */
 	int root_index;
 
-	/* surface area heuristic, for building top level BVH */
-	float SAH;
-
 	PackedBVH()
 	{
 		root_index = 0;
-		SAH = 0.0f;
 	}
 };
 

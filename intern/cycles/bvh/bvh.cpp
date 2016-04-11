@@ -89,15 +89,6 @@ void BVH::build(Progress& progress)
 		return;
 	}
 
-	/* compute SAH */
-	if(!params.top_level)
-		pack.SAH = root->computeSubtreeSAHCost(params);
-
-	if(progress.get_cancel()) {
-		root->deleteSubtree();
-		return;
-	}
-
 	/* pack triangles */
 	progress.set_substatus("Packing BVH triangles and strands");
 	pack_primitives();
