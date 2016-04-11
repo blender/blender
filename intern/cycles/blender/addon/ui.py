@@ -681,10 +681,21 @@ class Cycles_PT_mesh_displacement(CyclesButtonsPanel, Panel):
         elif mball:
             cdata = mball.cycles
 
-        layout.prop(cdata, "displacement_method", text="Method")
-        layout.prop(cdata, "subdivision_type", text="Subdivision")
-        layout.prop(cdata, "dicing_rate")
+        split = layout.split()
 
+        col = split.column()
+        sub = col.column(align=True)
+        sub.label(text="Displacment:")
+        sub.prop(cdata, "displacement_method", text="")
+
+        col = split.column()
+        sub = col.column(align=True)
+        sub.label(text="Subdivision:")
+        sub.prop(cdata, "subdivision_type", text="")
+
+        if cdata.subdivision_type != 'NONE':
+            sub.label(text="Subdivision Rate:")
+            sub.prop(cdata, "dicing_rate", text="Render")
 
 class CyclesObject_PT_motion_blur(CyclesButtonsPanel, Panel):
     bl_label = "Motion Blur"

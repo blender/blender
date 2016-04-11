@@ -782,7 +782,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 
 		if(b_mesh) {
 			if(render_layer.use_surfaces && !hide_tris) {
-				if(cmesh.data && experimental && RNA_enum_get(&cmesh, "use_subdivision"))
+				if(cmesh.data && experimental && RNA_enum_get(&cmesh, "subdivision_type"))
 					create_subd_mesh(scene, mesh, b_ob, b_mesh, &cmesh, used_shaders);
 				else
 					create_mesh(scene, mesh, b_mesh, used_shaders);
