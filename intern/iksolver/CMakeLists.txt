@@ -40,6 +40,7 @@ set(SRC
 	intern/IK_Solver.cpp
 
 	extern/IK_solver.h
+	intern/IK_Math.h
 	intern/IK_QJacobian.h
 	intern/IK_QJacobianSolver.h
 	intern/IK_QSegment.h

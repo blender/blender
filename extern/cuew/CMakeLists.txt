@@ -33,8 +33,10 @@ set(INC_SYS
 )
 
 set(SRC
-	include/cuew.h
 	src/cuew.c
+
+	include/cuew.h
+	auto/stdlib.h
 )
 
 blender_add_lib(extern_cuew "${SRC}" "${INC}" "${INC_SYS}")
