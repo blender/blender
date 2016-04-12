@@ -1077,8 +1077,8 @@ void BlenderSession::builtin_image_info(const string &builtin_name, void *builti
 {
 	/* empty image */
 	is_float = false;
-	width = 0;
-	height = 0;
+	width = 1;
+	height = 1;
 	depth = 0;
 	channels = 0;
 
@@ -1105,6 +1105,10 @@ void BlenderSession::builtin_image_info(const string &builtin_name, void *builti
 		BL::Object b_ob(b_id);
 		BL::SmokeDomainSettings b_domain = object_smoke_domain_find(b_ob);
 
+		is_float = true;
+		depth = 1;
+		channels = 1;
+
 		if(!b_domain)
 			return;
 
@@ -1122,8 +1126,6 @@ void BlenderSession::builtin_image_info(const string &builtin_name, void *builti
 		width = resolution.x * amplify;
 		height = resolution.y * amplify;
 		depth = resolution.z * amplify;
-
-		is_float = true;
 	}
 	else {
 		/* TODO(sergey): Check we're indeed in shader node tree. */
@@ -1275,6 +1277,11 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 				SmokeDomainSettings_color_grid_get(&b_domain.ptr, pixels);
 				return true;
 			}
+		}
+		else {
+			fprintf(stderr, "Cycles error: unknown volume attribute, skipping\n");
+			pixels[0] = 0.0f;
+			return false;
 		}
 
 		fprintf(stderr, "Cycles error: unexpected smoke volume resolution, skipping\n");
