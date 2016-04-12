@@ -1253,15 +1253,16 @@ DupliApplyData *duplilist_apply(Object *ob, Scene *scene, ListBase *duplilist)
 		                                "DupliObject apply extra data");
 
 		for (dob = duplilist->first, i = 0; dob; dob = dob->next, ++i) {
-			/* copy obmat from duplis */
-			copy_m4_m4(apply_data->extra[i].obmat, dob->ob->obmat);
-
 			/* make sure derivedmesh is calculated once, before drawing */
 			if (scene && !(dob->ob->transflag & OB_DUPLICALCDERIVED) && dob->ob->type == OB_MESH) {
 				mesh_get_derived_final(scene, dob->ob, scene->customdata_mask);
 				dob->ob->transflag |= OB_DUPLICALCDERIVED;
 			}
+		}
 
+		for (dob = duplilist->first, i = 0; dob; dob = dob->next, ++i) {
+			/* copy obmat from duplis */
+			copy_m4_m4(apply_data->extra[i].obmat, dob->ob->obmat);
 			copy_m4_m4(dob->ob->obmat, dob->mat);
 			
 			/* copy layers from the main duplicator object */
