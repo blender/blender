@@ -1644,7 +1644,7 @@ static int arg_handle_python_exit_code_set(int argc, const char **argv, void *UN
 }
 
 static const char arg_handle_addons_set_doc[] =
-"\n\tComma separated list of addons (no spaces)"
+"\n\tComma separated list of add-ons (no spaces)"
 ;
 static int arg_handle_addons_set(int argc, const char **argv, void *data)
 {
