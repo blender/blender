@@ -72,7 +72,6 @@
 #include "BKE_lattice.h"
 #include "BKE_mball.h"
 #include "BKE_world.h"
-#include "BKE_particle.h"
 #include "BKE_paint.h"
 #include "BKE_font.h"
 #include "BKE_node.h"
@@ -98,7 +97,6 @@
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_world_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_node_types.h"
 #include "DNA_movieclip_types.h"
@@ -657,25 +655,6 @@ static void rna_Main_actions_remove(Main *bmain, ReportList *reports, PointerRNA
 	}
 }
 
-static ParticleSettings *rna_Main_particles_new(Main *bmain, const char *name)
-{
-	ParticleSettings *part = psys_new_settings(name, bmain);
-	id_us_min(&part->id);
-	return part;
-}
-static void rna_Main_particles_remove(Main *bmain, ReportList *reports, PointerRNA *part_ptr)
-{
-	ParticleSettings *part = part_ptr->data;
-	if (ID_REAL_USERS(part) <= 0) {
-		BKE_libblock_free(bmain, part);
-		RNA_POINTER_INVALIDATE(part_ptr);
-	}
-	else {
-		BKE_reportf(reports, RPT_ERROR, "Particle settings '%s' must have zero users to be removed, found %d",
-		            part->id.name + 2, ID_REAL_USERS(part));
-	}
-}
-
 static Palette *rna_Main_palettes_new(Main *bmain, const char *name)
 {
 	Palette *palette = BKE_palette_add(bmain, name);
@@ -806,7 +785,6 @@ RNA_MAIN_ID_TAG_FUNCS_DEF(speakers, speaker, ID_SPK)
 RNA_MAIN_ID_TAG_FUNCS_DEF(sounds, sound, ID_SO)
 RNA_MAIN_ID_TAG_FUNCS_DEF(armatures, armature, ID_AR)
 RNA_MAIN_ID_TAG_FUNCS_DEF(actions, action, ID_AC)
-RNA_MAIN_ID_TAG_FUNCS_DEF(particles, particle, ID_PA)
 RNA_MAIN_ID_TAG_FUNCS_DEF(palettes, palettes, ID_PAL)
 RNA_MAIN_ID_TAG_FUNCS_DEF(gpencil, gpencil, ID_GD)
 RNA_MAIN_ID_TAG_FUNCS_DEF(movieclips, movieclip, ID_MC)
@@ -1713,41 +1691,6 @@ void RNA_def_main_actions(BlenderRNA *brna, PropertyRNA *cprop)
 	prop = RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Main_actions_is_updated_get", NULL);
-}
-void RNA_def_main_particles(BlenderRNA *brna, PropertyRNA *cprop)
-{
-	StructRNA *srna;
-	FunctionRNA *func;
-	PropertyRNA *parm;
-	PropertyRNA *prop;
-
-	RNA_def_property_srna(cprop, "BlendDataParticles");
-	srna = RNA_def_struct(brna, "BlendDataParticles", NULL);
-	RNA_def_struct_sdna(srna, "Main");
-	RNA_def_struct_ui_text(srna, "Main Particle Settings", "Collection of particle settings");
-
-	func = RNA_def_function(srna, "new", "rna_Main_particles_new");
-	RNA_def_function_ui_description(func, "Add a new particle settings instance to the main database");
-	parm = RNA_def_string(func, "name", "ParticleSettings", 0, "", "New name for the data-block");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	/* return type */
-	parm = RNA_def_pointer(func, "particle", "ParticleSettings", "", "New particle settings data-block");
-	RNA_def_function_return(func, parm);
-
-	func = RNA_def_function(srna, "remove", "rna_Main_particles_remove");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_function_ui_description(func, "Remove a particle settings instance from the current blendfile");
-	parm = RNA_def_pointer(func, "particle", "ParticleSettings", "", "Particle Settings to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
-	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
-
-	func = RNA_def_function(srna, "tag", "rna_Main_particles_tag");
-	parm = RNA_def_boolean(func, "value", 0, "Value", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-
-	prop = RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_boolean_funcs(prop, "rna_Main_particles_is_updated_get", NULL);
 }
 void RNA_def_main_palettes(BlenderRNA *brna, PropertyRNA *cprop)
 {
