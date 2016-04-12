@@ -240,9 +240,10 @@ def cmake_get_src(f):
     filen.close()
 
 
-def is_ignore(f):
-    for ig in IGNORE:
+def is_ignore(f, ignore_used):
+    for index, ig in enumerate(IGNORE):
         if ig in f:
+            ignore_used[index] = True
             return True
     return False
 
@@ -283,10 +284,12 @@ def main():
     del is_err
     del errs
 
+    ignore_used = [False] * len(IGNORE)
+
     # now check on files not accounted for.
     print("\nC/C++ Files CMake doesnt know about...")
     for cf in sorted(source_list(SOURCE_DIR, is_c)):
-        if not is_ignore(cf):
+        if not is_ignore(cf, ignore_used):
             if cf not in global_c:
                 print("missing_c: ", cf)
 
@@ -303,7 +306,7 @@ def main():
 
     print("\nC/C++ Headers CMake doesnt know about...")
     for hf in sorted(source_list(SOURCE_DIR, is_c_header)):
-        if not is_ignore(hf):
+        if not is_ignore(hf, ignore_used):
             if hf not in global_h:
                 print("missing_h: ", hf)
 
@@ -323,6 +326,13 @@ def main():
                             print("Non utf8: %s:%d" % (f, i))
                             if i > 1:
                                 traceback.print_exc()
+
+    # Check ignores aren't stale
+    print("\nCheck for unused 'IGNORE' paths...")
+    for index, ig in enumerate(IGNORE):
+        if not ignore_used[index]:
+            print("unused ignore: %r" % ig)
+
 
 if __name__ == "__main__":
     main()
