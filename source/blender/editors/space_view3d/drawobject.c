@@ -71,7 +71,6 @@
 #include "BKE_movieclip.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
@@ -4768,23 +4767,6 @@ static bool drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *ba
 }
 
 /* *********** drawing for particles ************* */
-/* unified drawing of all new particle systems draw types except dupli ob & group
- * mostly tries to use vertex arrays for speed
- *
- * 1. check that everything is ok & updated
- * 2. start initializing things
- * 3. initialize according to draw type
- * 4. allocate drawing data arrays
- * 5. start filling the arrays
- * 6. draw the arrays
- * 7. clean up
- */
-static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv3d,
-                                     Base *base, ParticleSystem *psys,
-                                     const char ob_dt, const short dflag)
-{
-	UNUSED_VARS(scene, v3d, rv3d, base, psys, ob_dt, dflag);
-}
 
 static void ob_draw_RE_motion(float com[3], float rotscale[3][3], float itw, float ith, float drw_size)
 {
@@ -6364,15 +6346,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	Object *ob = base->object;
 	Curve *cu;
 	RegionView3D *rv3d = ar->regiondata;
-	unsigned int col = 0;
 	unsigned char _ob_wire_col[4];            /* dont initialize this */
 	const unsigned char *ob_wire_col = NULL;  /* dont initialize this, use NULL crashes as a way to find invalid use */
 	bool zbufoff = false, is_paint = false, empty_object = false;
 	const bool is_obact = (ob == OBACT);
 	const bool render_override = (v3d->flag2 & V3D_RENDER_OVERRIDE) != 0;
 	const bool is_picking = (G.f & G_PICKSEL) != 0;
-	const bool has_particles = (ob->particlesystem.first != NULL);
-	bool skip_object = false;  /* Draw particles but not their emitter object. */
 	SmokeModifierData *smd = NULL;
 
 	if (ob != scene->obedit) {
@@ -6383,28 +6362,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			if (ob->restrictflag & OB_RESTRICT_RENDER)
 				return;
 			
-			if (!has_particles && (ob->transflag & (OB_DUPLI & ~OB_DUPLIFRAMES)))
+			if (ob->transflag & (OB_DUPLI & ~OB_DUPLIFRAMES))
 				return;
-		}
-	}
-
-	if (has_particles) {
-		/* XXX particles are not safe for simultaneous threaded render */
-		if (G.is_rendering) {
-			return;
-		}
-
-		if (ob->mode == OB_MODE_OBJECT) {
-			ParticleSystem *psys;
-
-			skip_object = render_override;
-			for (psys = ob->particlesystem.first; psys; psys = psys->next) {
-				/* Once we have found a psys which renders its emitter object, we are done. */
-				if (psys->part->draw & PART_DRAW_EMITTER) {
-					skip_object = false;
-					break;
-				}
-			}
 		}
 	}
 
@@ -6433,20 +6392,17 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 
 	/* xray delay? */
 	if ((dflag & DRAW_PICKING) == 0 && (base->flag & OB_FROMDUPLI) == 0 && (v3d->flag2 & V3D_RENDER_SHADOW) == 0) {
-		/* don't do xray in particle mode, need the z-buffer */
-		if (!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
-			/* xray and transp are set when it is drawing the 2nd/3rd pass */
-			if (!v3d->xray && !v3d->transp && (ob->dtx & OB_DRAWXRAY) && !(ob->dtx & OB_DRAWTRANSP)) {
-				ED_view3d_after_add(&v3d->afterdraw_xray, base, dflag);
-				return;
-			}
+		/* xray and transp are set when it is drawing the 2nd/3rd pass */
+		if (!v3d->xray && !v3d->transp && (ob->dtx & OB_DRAWXRAY) && !(ob->dtx & OB_DRAWTRANSP)) {
+			ED_view3d_after_add(&v3d->afterdraw_xray, base, dflag);
+			return;
+		}
 
-			/* allow transp option for empty images */
-			if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE) {
-				if (!v3d->xray && !v3d->transp && !(ob->dtx & OB_DRAWXRAY) && (ob->dtx & OB_DRAWTRANSP)) {
-					ED_view3d_after_add(&v3d->afterdraw_transp, base, dflag);
-					return;
-				}
+		/* allow transp option for empty images */
+		if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE) {
+			if (!v3d->xray && !v3d->transp && !(ob->dtx & OB_DRAWXRAY) && (ob->dtx & OB_DRAWTRANSP)) {
+				ED_view3d_after_add(&v3d->afterdraw_transp, base, dflag);
+				return;
 			}
 		}
 	}
@@ -6536,218 +6492,163 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		}
 	}
 
-	if (!skip_object) {
-		/* draw outline for selected objects, mesh does itself */
-		if ((v3d->flag & V3D_SELECT_OUTLINE) && !render_override && ob->type != OB_MESH) {
-			if (dt > OB_WIRE && (ob->mode & OB_MODE_EDIT) == 0 && (dflag & DRAW_SCENESET) == 0) {
-				if (!(ob->dtx & OB_DRAWWIRE) && (ob->flag & SELECT) && !(dflag & (DRAW_PICKING | DRAW_CONSTCOLOR))) {
-					drawObjectSelect(scene, v3d, ar, base, ob_wire_col);
-				}
+	/* draw outline for selected objects, mesh does itself */
+	if ((v3d->flag & V3D_SELECT_OUTLINE) && !render_override && ob->type != OB_MESH) {
+		if (dt > OB_WIRE && (ob->mode & OB_MODE_EDIT) == 0 && (dflag & DRAW_SCENESET) == 0) {
+			if (!(ob->dtx & OB_DRAWWIRE) && (ob->flag & SELECT) && !(dflag & (DRAW_PICKING | DRAW_CONSTCOLOR))) {
+				drawObjectSelect(scene, v3d, ar, base, ob_wire_col);
 			}
 		}
+	}
 
-		switch (ob->type) {
-			case OB_MESH:
-				empty_object = draw_mesh_object(scene, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
-				if ((dflag & DRAW_CONSTCOLOR) == 0) {
-					/* mesh draws wire itself */
-					dtx &= ~OB_DRAWWIRE;
-				}
+	switch (ob->type) {
+		case OB_MESH:
+			empty_object = draw_mesh_object(scene, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
+			if ((dflag & DRAW_CONSTCOLOR) == 0) {
+				/* mesh draws wire itself */
+				dtx &= ~OB_DRAWWIRE;
+			}
 
-				break;
-			case OB_FONT:
-				cu = ob->data;
-				if (cu->editfont) {
-					draw_editfont(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
-				}
-				else if (dt == OB_BOUNDBOX) {
-					if ((render_override && v3d->drawtype >= OB_WIRE) == 0) {
+			break;
+		case OB_FONT:
+			cu = ob->data;
+			if (cu->editfont) {
+				draw_editfont(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+			}
+			else if (dt == OB_BOUNDBOX) {
+				if ((render_override && v3d->drawtype >= OB_WIRE) == 0) {
 #ifdef SEQUENCER_DAG_WORKAROUND
-						ensure_curve_cache(scene, base->object);
+					ensure_curve_cache(scene, base->object);
 #endif
-						draw_bounding_volume(ob, ob->boundtype);
-					}
+					draw_bounding_volume(ob, ob->boundtype);
 				}
-				else if (ED_view3d_boundbox_clip(rv3d, ob->bb)) {
-					empty_object = drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
-				}
+			}
+			else if (ED_view3d_boundbox_clip(rv3d, ob->bb)) {
+				empty_object = drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+			}
 
-				break;
-			case OB_CURVE:
-			case OB_SURF:
-				cu = ob->data;
+			break;
+		case OB_CURVE:
+		case OB_SURF:
+			cu = ob->data;
 
-				if (cu->editnurb) {
-					ListBase *nurbs = BKE_curve_editNurbs_get(cu);
-					draw_editnurb(scene, v3d, rv3d, base, nurbs->first, dt, dflag, ob_wire_col);
-				}
-				else if (dt == OB_BOUNDBOX) {
-					if ((render_override && (v3d->drawtype >= OB_WIRE)) == 0) {
+			if (cu->editnurb) {
+				ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+				draw_editnurb(scene, v3d, rv3d, base, nurbs->first, dt, dflag, ob_wire_col);
+			}
+			else if (dt == OB_BOUNDBOX) {
+				if ((render_override && (v3d->drawtype >= OB_WIRE)) == 0) {
 #ifdef SEQUENCER_DAG_WORKAROUND
-						ensure_curve_cache(scene, base->object);
+					ensure_curve_cache(scene, base->object);
 #endif
-						draw_bounding_volume(ob, ob->boundtype);
-					}
+					draw_bounding_volume(ob, ob->boundtype);
 				}
-				else if (ED_view3d_boundbox_clip(rv3d, ob->bb)) {
-					empty_object = drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+			}
+			else if (ED_view3d_boundbox_clip(rv3d, ob->bb)) {
+				empty_object = drawDispList(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+			}
+			break;
+		case OB_MBALL:
+		{
+			MetaBall *mb = ob->data;
+			
+			if (mb->editelems)
+				drawmball(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+			else if (dt == OB_BOUNDBOX) {
+				if ((render_override && (v3d->drawtype >= OB_WIRE)) == 0) {
+#ifdef SEQUENCER_DAG_WORKAROUND
+					ensure_curve_cache(scene, base->object);
+#endif
+					draw_bounding_volume(ob, ob->boundtype);
 				}
-				break;
-			case OB_MBALL:
+			}
+			else
+				empty_object = drawmball(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+			break;
+		}
+		case OB_EMPTY:
+			if (!render_override) {
+				if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
+					draw_empty_image(ob, dflag, ob_wire_col);
+				}
+				else {
+					drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype);
+				}
+			}
+			break;
+		case OB_LAMP:
+			if (!render_override) {
+				drawlamp(v3d, rv3d, base, dt, dflag, ob_wire_col, is_obact);
+			}
+			break;
+		case OB_CAMERA:
+			if (!render_override ||
+			    (rv3d->persp == RV3D_CAMOB && v3d->camera == ob)) /* special exception for active camera */
 			{
-				MetaBall *mb = ob->data;
-				
-				if (mb->editelems)
-					drawmball(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
-				else if (dt == OB_BOUNDBOX) {
-					if ((render_override && (v3d->drawtype >= OB_WIRE)) == 0) {
+				drawcamera(scene, v3d, rv3d, base, dflag, ob_wire_col);
+			}
+			break;
+		case OB_SPEAKER:
+			if (!render_override)
+				drawspeaker(scene, v3d, rv3d, ob, dflag);
+			break;
+		case OB_LATTICE:
+			if (!render_override) {
+				/* Do not allow boundbox in edit nor pose mode! */
+				if ((dt == OB_BOUNDBOX) && (ob->mode & OB_MODE_EDIT))
+					dt = OB_WIRE;
+				if (dt == OB_BOUNDBOX) {
+					draw_bounding_volume(ob, ob->boundtype);
+				}
+				else {
 #ifdef SEQUENCER_DAG_WORKAROUND
-						ensure_curve_cache(scene, base->object);
+					ensure_curve_cache(scene, ob);
 #endif
-						draw_bounding_volume(ob, ob->boundtype);
-					}
-				}
-				else
-					empty_object = drawmball(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
-				break;
-			}
-			case OB_EMPTY:
-				if (!render_override) {
-					if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
-						draw_empty_image(ob, dflag, ob_wire_col);
-					}
-					else {
-						drawaxes(rv3d->viewmatob, ob->empty_drawsize, ob->empty_drawtype);
-					}
-				}
-				break;
-			case OB_LAMP:
-				if (!render_override) {
-					drawlamp(v3d, rv3d, base, dt, dflag, ob_wire_col, is_obact);
-				}
-				break;
-			case OB_CAMERA:
-				if (!render_override ||
-				    (rv3d->persp == RV3D_CAMOB && v3d->camera == ob)) /* special exception for active camera */
-				{
-					drawcamera(scene, v3d, rv3d, base, dflag, ob_wire_col);
-				}
-				break;
-			case OB_SPEAKER:
-				if (!render_override)
-					drawspeaker(scene, v3d, rv3d, ob, dflag);
-				break;
-			case OB_LATTICE:
-				if (!render_override) {
-					/* Do not allow boundbox in edit nor pose mode! */
-					if ((dt == OB_BOUNDBOX) && (ob->mode & OB_MODE_EDIT))
-						dt = OB_WIRE;
-					if (dt == OB_BOUNDBOX) {
-						draw_bounding_volume(ob, ob->boundtype);
-					}
-					else {
-#ifdef SEQUENCER_DAG_WORKAROUND
-						ensure_curve_cache(scene, ob);
-#endif
-						drawlattice(v3d, ob);
-					}
-				}
-				break;
-			case OB_ARMATURE:
-				if (!render_override) {
-					/* Do not allow boundbox in edit nor pose mode! */
-					if ((dt == OB_BOUNDBOX) && (ob->mode & (OB_MODE_EDIT | OB_MODE_POSE)))
-						dt = OB_WIRE;
-					if (dt == OB_BOUNDBOX) {
-						draw_bounding_volume(ob, ob->boundtype);
-					}
-					else {
-						glLineWidth(1.0f);
-						empty_object = draw_armature(scene, v3d, ar, base, dt, dflag, ob_wire_col, false);
-					}
-				}
-				break;
-			default:
-				if (!render_override) {
-					drawaxes(rv3d->viewmatob, 1.0, OB_ARROWS);
-				}
-				break;
-		}
-
-		if (!render_override) {
-			if (ob->soft /*&& dflag & OB_SBMOTION*/) {
-				float mrt[3][3], msc[3][3], mtr[3][3];
-				SoftBody *sb = NULL;
-				float tipw = 0.5f, tiph = 0.5f, drawsize = 4.0f;
-				if ((sb = ob->soft)) {
-					if (sb->solverflags & SBSO_ESTIMATEIPO) {
-
-						glLoadMatrixf(rv3d->viewmat);
-						copy_m3_m3(msc, sb->lscale);
-						copy_m3_m3(mrt, sb->lrot);
-						mul_m3_m3m3(mtr, mrt, msc);
-						ob_draw_RE_motion(sb->lcom, mtr, tipw, tiph, drawsize);
-						glMultMatrixf(ob->obmat);
-					}
+					drawlattice(v3d, ob);
 				}
 			}
-
-			if (ob->pd && ob->pd->forcefield) {
-				draw_forcefield(ob, rv3d, dflag, ob_wire_col);
+			break;
+		case OB_ARMATURE:
+			if (!render_override) {
+				/* Do not allow boundbox in edit nor pose mode! */
+				if ((dt == OB_BOUNDBOX) && (ob->mode & (OB_MODE_EDIT | OB_MODE_POSE)))
+					dt = OB_WIRE;
+				if (dt == OB_BOUNDBOX) {
+					draw_bounding_volume(ob, ob->boundtype);
+				}
+				else {
+					glLineWidth(1.0f);
+					empty_object = draw_armature(scene, v3d, ar, base, dt, dflag, ob_wire_col, false);
+				}
 			}
-		}
+			break;
+		default:
+			if (!render_override) {
+				drawaxes(rv3d->viewmatob, 1.0, OB_ARROWS);
+			}
+			break;
 	}
 
-	/* code for new particle system */
-	if ((ob->particlesystem.first) &&
-	    (ob != scene->obedit))
-	{
-		ParticleSystem *psys;
-
-		if ((dflag & DRAW_CONSTCOLOR) == 0) {
-			/* for visibility, also while wpaint */
-			if (col || (ob->flag & SELECT)) {
-				cpack(0xFFFFFF);
+	if (!render_override) {
+		if (ob->soft /*&& dflag & OB_SBMOTION*/) {
+			float mrt[3][3], msc[3][3], mtr[3][3];
+			SoftBody *sb = NULL;
+			float tipw = 0.5f, tiph = 0.5f, drawsize = 4.0f;
+			if ((sb = ob->soft)) {
+				if (sb->solverflags & SBSO_ESTIMATEIPO) {
+					
+					glLoadMatrixf(rv3d->viewmat);
+					copy_m3_m3(msc, sb->lscale);
+					copy_m3_m3(mrt, sb->lrot);
+					mul_m3_m3m3(mtr, mrt, msc);
+					ob_draw_RE_motion(sb->lcom, mtr, tipw, tiph, drawsize);
+					glMultMatrixf(ob->obmat);
+				}
 			}
 		}
-		//glDepthMask(GL_FALSE);
 
-		glLoadMatrixf(rv3d->viewmat);
-		
-		view3d_cached_text_draw_begin();
-
-		for (psys = ob->particlesystem.first; psys; psys = psys->next) {
-			/* run this so that possible child particles get cached */
-			if (ob->mode & OB_MODE_PARTICLE_EDIT && is_obact) {
-//				PTCacheEdit *edit = PE_create_current(scene, ob);
-//				if (edit && edit->psys == psys)
-//					draw_update_ptcache_edit(scene, ob, edit);
-			}
-
-			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt, dflag);
-		}
-		invert_m4_m4(ob->imat, ob->obmat);
-		view3d_cached_text_draw_end(v3d, ar, 0, NULL);
-
-		glMultMatrixf(ob->obmat);
-		
-		//glDepthMask(GL_TRUE);
-		if (col) cpack(col);
-	}
-
-	/* draw edit particles last so that they can draw over child particles */
-	if ((dflag & DRAW_PICKING) == 0 &&
-	    (!scene->obedit))
-	{
-
-		if (ob->mode & OB_MODE_PARTICLE_EDIT && is_obact) {
-//			PTCacheEdit *edit = PE_create_current(scene, ob);
-//			if (edit) {
-//				glLoadMatrixf(rv3d->viewmat);
-//				draw_update_ptcache_edit(scene, ob, edit);
-//				draw_ptcache_edit(scene, v3d, edit);
-//				glMultMatrixf(ob->obmat);
-//			}
+		if (ob->pd && ob->pd->forcefield) {
+			draw_forcefield(ob, rv3d, dflag, ob_wire_col);
 		}
 	}
 
