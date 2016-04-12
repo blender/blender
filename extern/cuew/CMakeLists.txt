@@ -36,9 +36,6 @@ set(SRC
 	src/cuew.c
 
 	include/cuew.h
-
-	# Only used for updating the CUDA wrangler, intentionally omit:
-	# auto/stdlib.h
 )
 
 blender_add_lib(extern_cuew "${SRC}" "${INC}" "${INC_SYS}")
