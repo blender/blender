@@ -1117,6 +1117,8 @@ void BlenderSession::builtin_image_info(const string &builtin_name, void *builti
 			channels = 1;
 		else if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_COLOR))
 			channels = 4;
+		else if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY))
+			channels = 3;
 		else
 			return;
 
@@ -1246,6 +1248,11 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 		int3 resolution = get_int3(b_domain.domain_resolution());
 		int length, amplify = (b_domain.use_high_resolution())? b_domain.amplify() + 1: 1;
 
+		/* Velocity data is always low-resolution. */
+		if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY)) {
+			amplify = 1;
+		}
+
 		int width = resolution.x * amplify;
 		int height = resolution.y * amplify;
 		int depth = resolution.z * amplify;
@@ -1275,6 +1282,14 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 
 			if(length == num_pixels*4) {
 				SmokeDomainSettings_color_grid_get(&b_domain.ptr, pixels);
+				return true;
+			}
+		}
+		else if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY)) {
+			SmokeDomainSettings_velocity_grid_get_length(&b_domain.ptr, &length);
+
+			if(length == num_pixels*3) {
+				SmokeDomainSettings_velocity_grid_get(&b_domain.ptr, pixels);
 				return true;
 			}
 		}
