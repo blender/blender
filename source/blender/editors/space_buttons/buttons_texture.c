@@ -46,7 +46,6 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
-#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -59,7 +58,6 @@
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
-#include "BKE_particle.h"
 #include "BKE_scene.h"
 #ifdef WITH_FREESTYLE
 #  include "BKE_freestyle.h"
@@ -375,30 +373,8 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 		buttons_texture_users_find_nodetree(users, &linestyle->id, linestyle->nodetree, N_("Line Style"));
 
 	if (ob) {
-		ParticleSystem *psys = psys_get_current(ob);
-		MTex *mtex;
-		int a;
-
 		/* modifiers */
 		modifiers_foreachTexLink(ob, buttons_texture_modifier_foreach, users);
-
-		/* particle systems */
-		if (psys && !limited_mode) {
-			for (a = 0; a < MAX_MTEX; a++) {
-				mtex = psys->part->mtex[a];
-
-				if (mtex) {
-					PointerRNA ptr;
-					PropertyRNA *prop;
-
-					RNA_pointer_create(&psys->part->id, &RNA_ParticleSettingsTextureSlot, mtex, &ptr);
-					prop = RNA_struct_find_property(&ptr, "texture");
-
-					buttons_texture_user_property_add(users, &psys->part->id, ptr, prop, N_("Particles"),
-					                                  RNA_struct_ui_icon(&RNA_ParticleSettings), psys->name);
-				}
-			}
-		}
 
 		/* field */
 		if (ob->pd && ob->pd->forcefield == PFIELD_TEXTURE) {
@@ -528,17 +504,6 @@ static void template_texture_select(bContext *C, void *user_p, void *UNUSED(arg)
 		tex = (RNA_struct_is_a(texptr.type, &RNA_Texture)) ? texptr.data : NULL;
 
 		ct->texture = tex;
-
-		if (user->ptr.type == &RNA_ParticleSettingsTextureSlot) {
-			/* stupid exception for particle systems which still uses influence
-			 * from the old texture system, set the active texture slots as well */
-			ParticleSettings *part = user->ptr.id.data;
-			int a;
-
-			for (a = 0; a < MAX_MTEX; a++)
-				if (user->ptr.data == part->mtex[a])
-					part->texact = a;
-		}
 
 		if (sbuts && tex)
 			sbuts->preview = 1;

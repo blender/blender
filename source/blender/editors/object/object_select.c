@@ -37,6 +37,7 @@
 #include "DNA_group_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_armature_types.h"
@@ -53,7 +54,6 @@
 #include "BKE_group.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_particle.h"
 #include "BKE_property.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -192,7 +192,6 @@ enum {
 	OBJECT_SELECT_LINKED_MATERIAL,
 	OBJECT_SELECT_LINKED_TEXTURE,
 	OBJECT_SELECT_LINKED_DUPGROUP,
-	OBJECT_SELECT_LINKED_PARTICLE,
 	OBJECT_SELECT_LINKED_LIBRARY,
 	OBJECT_SELECT_LINKED_LIBRARY_OBDATA
 };
@@ -203,7 +202,6 @@ static EnumPropertyItem prop_select_linked_types[] = {
 	{OBJECT_SELECT_LINKED_MATERIAL, "MATERIAL", 0, "Material", ""},
 	{OBJECT_SELECT_LINKED_TEXTURE, "TEXTURE", 0, "Texture", ""},
 	{OBJECT_SELECT_LINKED_DUPGROUP, "DUPGROUP", 0, "Dupligroup", ""},
-	{OBJECT_SELECT_LINKED_PARTICLE, "PARTICLE", 0, "Particle System", ""},
 	{OBJECT_SELECT_LINKED_LIBRARY, "LIBRARY", 0, "Library", ""},
 	{OBJECT_SELECT_LINKED_LIBRARY_OBDATA, "LIBRARY_OBDATA", 0, "Library (Object Data)", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -306,37 +304,6 @@ static bool object_select_all_by_dup_group(bContext *C, Object *ob)
 
 				changed = true;
 			}
-		}
-	}
-	CTX_DATA_END;
-
-	return changed;
-}
-
-static bool object_select_all_by_particle(bContext *C, Object *ob)
-{
-	ParticleSystem *psys_act = psys_get_current(ob);
-	bool changed = false;
-
-	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
-	{
-		if ((base->flag & SELECT) == 0) {
-			/* loop through other particles*/
-			ParticleSystem *psys;
-			
-			for (psys = base->object->particlesystem.first; psys; psys = psys->next) {
-				if (psys->part == psys_act->part) {
-					base->flag |= SELECT;
-					changed = true;
-					break;
-				}
-
-				if (base->flag & SELECT) {
-					break;
-				}
-			}
-
-			base->object->flag = base->flag;
 		}
 	}
 	CTX_DATA_END;
@@ -460,12 +427,6 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 
 		changed = object_select_all_by_dup_group(C, ob);
-	}
-	else if (nr == OBJECT_SELECT_LINKED_PARTICLE) {
-		if (BLI_listbase_is_empty(&ob->particlesystem))
-			return OPERATOR_CANCELLED;
-
-		changed = object_select_all_by_particle(C, ob);
 	}
 	else if (nr == OBJECT_SELECT_LINKED_LIBRARY) {
 		/* do nothing */

@@ -708,8 +708,6 @@ static void recalcData_spaceclip(TransInfo *t)
 /* helper for recalcData() - for object transforms, typically in the 3D view */
 static void recalcData_objects(TransInfo *t)
 {
-	Base *base = t->scene->basact;
-
 	if (t->obedit) {
 		if (ELEM(t->obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu = t->obedit->data;

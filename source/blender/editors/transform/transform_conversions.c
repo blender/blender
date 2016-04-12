@@ -50,6 +50,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -81,7 +82,6 @@
 #include "BKE_nla.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
-#include "BKE_particle.h"
 #include "BKE_paint.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"

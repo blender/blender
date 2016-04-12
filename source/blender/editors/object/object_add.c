@@ -80,7 +80,6 @@
 #include "BKE_mesh.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"
-#include "BKE_particle.h"
 #include "BKE_report.h"
 #include "BKE_sca.h"
 #include "BKE_scene.h"
@@ -1921,23 +1920,6 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 					if (dupflag & USER_DUP_ACT) {
 						BKE_animdata_copy_id_action(&obn->mat[a]->id);
 					}
-				}
-			}
-		}
-		if (dupflag & USER_DUP_PSYS) {
-			ParticleSystem *psys;
-			for (psys = obn->particlesystem.first; psys; psys = psys->next) {
-				id = (ID *) psys->part;
-				if (id) {
-					ID_NEW_US(psys->part)
-					else
-						psys->part = BKE_particlesettings_copy(psys->part);
-
-					if (dupflag & USER_DUP_ACT) {
-						BKE_animdata_copy_id_action(&psys->part->id);
-					}
-
-					id_us_min(id);
 				}
 			}
 		}
