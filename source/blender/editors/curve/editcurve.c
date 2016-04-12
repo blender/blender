@@ -1390,7 +1390,9 @@ void CURVE_OT_split(wmOperatorType *ot)
 
 /* ******************* FLAGS ********************* */
 
-static short isNurbselUV(Nurb *nu, int *u, int *v, int flag)
+static bool isNurbselUV(
+        const Nurb *nu, int flag,
+        int *r_u, int *r_v)
 {
 	/* return (u != -1): 1 row in u-direction selected. U has value between 0-pntsv
 	 * return (v != -1): 1 column in v-direction selected. V has value between 0-pntsu
@@ -1398,7 +1400,7 @@ static short isNurbselUV(Nurb *nu, int *u, int *v, int flag)
 	BPoint *bp;
 	int a, b, sel;
 
-	*u = *v = -1;
+	*r_u = *r_v = -1;
 
 	bp = nu->bp;
 	for (b = 0; b < nu->pntsv; b++) {
@@ -1407,7 +1409,7 @@ static short isNurbselUV(Nurb *nu, int *u, int *v, int flag)
 			if (bp->f1 & flag) sel++;
 		}
 		if (sel == nu->pntsu) {
-			if (*u == -1) *u = b;
+			if (*r_u == -1) *r_u = b;
 			else return 0;
 		}
 		else if (sel > 1) {
@@ -1422,7 +1424,7 @@ static short isNurbselUV(Nurb *nu, int *u, int *v, int flag)
 			if (bp->f1 & flag) sel++;
 		}
 		if (sel == nu->pntsv) {
-			if (*v == -1) *v = a;
+			if (*r_v == -1) *r_v = a;
 			else return 0;
 		}
 		else if (sel > 1) {
@@ -1430,8 +1432,8 @@ static short isNurbselUV(Nurb *nu, int *u, int *v, int flag)
 		}
 	}
 
-	if (*u == -1 && *v > -1) return 1;
-	if (*v == -1 && *u > -1) return 1;
+	if (*r_u == -1 && *r_v > -1) return 1;
+	if (*r_v == -1 && *r_u > -1) return 1;
 	return 0;
 }
 
@@ -1851,7 +1853,7 @@ bool ed_editnurb_extrude_flag(EditNurb *editnurb, const short flag)
 		else {
 			/* which row or column is selected */
 
-			if (isNurbselUV(nu, &u, &v, flag)) {
+			if (isNurbselUV(nu, flag, &u, &v)) {
 
 				/* deselect all */
 				bp = nu->bp;

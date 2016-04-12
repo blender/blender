@@ -860,7 +860,7 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 {
 	ImageFormatData *imf = (ImageFormatData *)ptr->data;
 	ID *id = ptr->id.data;
-	const char is_render = (id && GS(id->name) == ID_SCE);
+	const bool is_render = (id && GS(id->name) == ID_SCE);
 	/* see note below on why this is */
 	const char chan_flag = BKE_imtype_valid_channels(imf->imtype, true) | (is_render ? IMA_CHAN_FLAG_BW : 0);
 
@@ -927,7 +927,7 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(
 {
 	ImageFormatData *imf = (ImageFormatData *)ptr->data;
 	ID *id = ptr->id.data;
-	const char is_render = (id && GS(id->name) == ID_SCE);
+	const bool is_render = (id && GS(id->name) == ID_SCE);
 
 	/* note, we need to act differently for render
 	 * where 'BW' will force grayscale even if the output format writes

@@ -7363,12 +7363,8 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	PointerRNA funcptr;
 	int err = 0, i, ret_len = 0, arg_count;
 	int flag = RNA_function_flag(func);
-	const char is_staticmethod = (flag & FUNC_NO_SELF) && !(flag & FUNC_USE_SELF_TYPE);
-	const char is_classmethod = (flag & FUNC_NO_SELF) && (flag & FUNC_USE_SELF_TYPE);
-
-	/* annoying!, need to check if the screen gets set to NULL which is a
-	 * hint that the file was actually re-loaded. */
-	char is_valid_wm;
+	const bool is_staticmethod = (flag & FUNC_NO_SELF) && !(flag & FUNC_USE_SELF_TYPE);
+	const bool is_classmethod = (flag & FUNC_NO_SELF) && (flag & FUNC_USE_SELF_TYPE);
 
 	PropertyRNA *pret_single = NULL;
 	void *retdata_single = NULL;
@@ -7395,7 +7391,9 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	if (C == NULL)
 		C = BPy_GetContext();
 
-	is_valid_wm = (CTX_wm_manager(C) != NULL);
+	/* annoying!, need to check if the screen gets set to NULL which is a
+	 * hint that the file was actually re-loaded. */
+	const bool is_valid_wm = (CTX_wm_manager(C) != NULL);
 
 	bpy_context_set(C, &gilstate);
 

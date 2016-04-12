@@ -926,7 +926,7 @@ static void *do_bake_thread(void *bs_v)
 void RE_bake_ibuf_filter(ImBuf *ibuf, char *mask, const int filter)
 {
 	/* must check before filtering */
-	const short is_new_alpha = (ibuf->planes != R_IMF_PLANES_RGBA) && BKE_imbuf_alpha_test(ibuf);
+	const bool is_new_alpha = (ibuf->planes != R_IMF_PLANES_RGBA) && BKE_imbuf_alpha_test(ibuf);
 
 	/* Margin */
 	if (filter) {

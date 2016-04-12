@@ -184,7 +184,7 @@ void freeraytree(Render *re)
 #endif
 }
 
-static int is_raytraceable_vlr(Render *re, VlakRen *vlr)
+static bool is_raytraceable_vlr(Render *re, VlakRen *vlr)
 {
 	/* note: volumetric must be tracable, wire must not */
 	if ((re->flag & R_BAKE_TRACE) || (vlr->flag & R_TRACEBLE) || (vlr->mat->material_type == MA_TYPE_VOLUME))
@@ -193,7 +193,7 @@ static int is_raytraceable_vlr(Render *re, VlakRen *vlr)
 	return 0;
 }
 
-static int is_raytraceable(Render *re, ObjectInstanceRen *obi)
+static bool is_raytraceable(Render *re, ObjectInstanceRen *obi)
 {
 	int v;
 	ObjectRen *obr = obi->obr;

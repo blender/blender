@@ -63,12 +63,12 @@ enum {
     DCP_CINEMA4K = 4,
 };
 
-static int check_jp2(const unsigned char *mem) /* J2K_CFMT */
+static bool check_jp2(const unsigned char *mem) /* J2K_CFMT */
 {
 	return memcmp(JP2_HEAD, mem, sizeof(JP2_HEAD)) ? 0 : 1;
 }
 
-static int check_j2k(const unsigned char *mem) /* J2K_CFMT */
+static bool check_j2k(const unsigned char *mem) /* J2K_CFMT */
 {
 	return memcmp(J2K_HEAD, mem, sizeof(J2K_HEAD)) ? 0 : 1;
 }
@@ -133,7 +133,7 @@ struct ImBuf *imb_jp2_decode(const unsigned char *mem, size_t size, int flags, c
 	unsigned int i, i_next, w, h, planes;
 	unsigned int y;
 	int *r, *g, *b, *a; /* matching 'opj_image_comp.data' type */
-	int is_jp2, is_j2k;
+	bool is_jp2, is_j2k;
 	
 	opj_dparameters_t parameters;   /* decompression parameters */
 	

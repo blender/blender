@@ -532,7 +532,7 @@ static bConstraint *rna_PoseChannel_constraints_new(bPoseChannel *pchan, int typ
 static void rna_PoseChannel_constraints_remove(ID *id, bPoseChannel *pchan, ReportList *reports, PointerRNA *con_ptr)
 {
 	bConstraint *con = con_ptr->data;
-	const short is_ik = ELEM(con->type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK);
+	const bool is_ik = ELEM(con->type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK);
 	Object *ob = (Object *)id;
 
 	if (BLI_findindex(&pchan->constraints, con) == -1) {

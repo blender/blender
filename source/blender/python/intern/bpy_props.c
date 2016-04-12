@@ -1314,7 +1314,7 @@ static int icon_id_from_name(const char *name)
 	return 0;
 }
 
-static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, int *defvalue, const short is_enum_flag)
+static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, int *defvalue, const bool is_enum_flag)
 {
 	EnumPropertyItem *items;
 	PyObject *item;

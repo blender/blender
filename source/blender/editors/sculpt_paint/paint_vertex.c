@@ -2979,7 +2979,7 @@ typedef struct DMGradient_userData {
 	const float *sco_end;       /* [2] */
 	float        sco_line_div;  /* store (1.0f / len_v2v2(sco_start, sco_end)) */
 	int def_nr;
-	short is_init;
+	bool is_init;
 	DMGradient_vertStore *vert_cache;
 	/* only for init */
 	BLI_bitmap *vert_visit;
