@@ -66,6 +66,7 @@ IGNORE = (
     "extern/carve/include/carve/external/boost/random.hpp",
     "extern/carve/patches/files/config.h",
     "extern/carve/patches/files/random.hpp",
+    "extern/cuew/auto/stdlib.h",
     )
 
 UTF8_CHECK = True
