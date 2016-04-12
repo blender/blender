@@ -376,8 +376,8 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 	phid /= 2;
 	for (a = 0; a <= tot; a++) {
 		/* Going in this direction, then edge extruding, makes normals face outward */
-		vec[0] = -dia * sinf(phi);
-		vec[1] = 0.0;
+		vec[0] = 0.0;
+		vec[1] = dia * sinf(phi);
 		vec[2] = dia * cosf(phi);
 		eve = BM_vert_create(bm, vec, NULL, BM_CREATE_NOP);
 		BMO_elem_flag_enable(bm, eve, VERT_MARK);
