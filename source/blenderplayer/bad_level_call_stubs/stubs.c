@@ -161,7 +161,6 @@ struct wmWindowManager;
 #include "../blender/editors/include/ED_mesh.h"
 #include "../blender/editors/include/ED_node.h"
 #include "../blender/editors/include/ED_object.h"
-#include "../blender/editors/include/ED_particle.h"
 #include "../blender/editors/include/ED_render.h"
 #include "../blender/editors/include/ED_screen.h"
 #include "../blender/editors/include/ED_space_api.h"

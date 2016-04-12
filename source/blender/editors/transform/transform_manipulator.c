@@ -66,7 +66,6 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
-#include "ED_particle.h"
 #include "ED_view3d.h"
 
 #include "UI_resources.h"
@@ -532,30 +531,6 @@ static int calc_manipulator_stats(const bContext *C)
 	}
 	else if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
 		/* pass */
-	}
-	else if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
-		PTCacheEdit *edit = PE_get_current(scene, ob);
-		PTCacheEditPoint *point;
-		PTCacheEditKey *ek;
-		int k;
-
-		if (edit) {
-			point = edit->points;
-			for (a = 0; a < edit->totpoint; a++, point++) {
-				if (point->flag & PEP_HIDE) continue;
-
-				for (k = 0, ek = point->keys; k < point->totkey; k++, ek++) {
-					if (ek->flag & PEK_SELECT) {
-						calc_tw_center(scene, (ek->flag & PEK_USE_WCO) ? ek->world_co : ek->co);
-						totsel++;
-					}
-				}
-			}
-
-			/* selection center */
-			if (totsel)
-				mul_v3_fl(scene->twcent, 1.0f / (float)totsel);  // centroid!
-		}
 	}
 	else {
 

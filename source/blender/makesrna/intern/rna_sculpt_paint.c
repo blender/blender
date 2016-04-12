@@ -98,8 +98,6 @@ EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 
 #include "GPU_buffers.h"
 
-#include "ED_particle.h"
-
 static EnumPropertyItem particle_edit_disconnected_hair_brush_items[] = {
 	{PE_BRUSH_NONE, "NONE", 0, "None", "Don't use any brush"},
 	{PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb hairs"},
@@ -136,13 +134,7 @@ static PointerRNA rna_ParticleBrush_curve_get(PointerRNA *ptr)
 
 static void rna_ParticleEdit_redo(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
-	Object *ob = (scene->basact) ? scene->basact->object : NULL;
-	PTCacheEdit *edit = PE_get_current(scene, ob);
-
-	if (!edit)
-		return;
-
-	psys_free_path_cache(edit->psys, edit);
+	UNUSED_VARS(scene);
 }
 
 static void rna_ParticleEdit_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
@@ -193,22 +185,13 @@ static EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerRNA *UN
 	return particle_edit_cache_brush_items;
 }
 
-static int rna_ParticleEdit_editable_get(PointerRNA *ptr)
+static int rna_ParticleEdit_editable_get(PointerRNA *UNUSED(ptr))
 {
-	ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
-
-	return (pset->object && pset->scene && PE_get_current(pset->scene, pset->object));
+	return false;
 }
 static int rna_ParticleEdit_hair_get(PointerRNA *ptr)
 {
-	ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
-
-	if (pset->scene) {
-		PTCacheEdit *edit = PE_get_current(pset->scene, pset->object);
-
-		return (edit && edit->psys);
-	}
-	
+	UNUSED_VARS(ptr);
 	return 0;
 }
 

@@ -193,7 +193,6 @@ EnumPropertyItem rna_enum_object_axis_items[] = {
 #include "BKE_deform.h"
 
 #include "ED_object.h"
-#include "ED_particle.h"
 #include "ED_curve.h"
 #include "ED_lattice.h"
 
@@ -750,9 +749,10 @@ static void rna_Object_active_particle_system_index_set(PointerRNA *ptr, int val
 
 static void rna_Object_particle_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
-	Object *ob = (Object *)ptr->id.data;
+	UNUSED_VARS(scene, ptr);
+//	Object *ob = (Object *)ptr->id.data;
 
-	PE_current_changed(scene, ob);
+//	PE_current_changed(scene, ob);
 }
 
 /* rotation - axis-angle */
