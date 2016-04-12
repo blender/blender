@@ -124,10 +124,8 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, Panel):
 
                 col = split.column()
                 if not use_shading_nodes:
-                    sub = col.column()
-                    sub.active = (brush.paint_source != 'PARTICLE_SYSTEM')
-                    sub.prop(brush, "use_material")
-                if brush.use_material and brush.paint_source != 'PARTICLE_SYSTEM' and not use_shading_nodes:
+                    col.prop(brush, "use_material")
+                if brush.use_material and not use_shading_nodes:
                     col.prop(brush, "material", text="")
                     col.prop(brush, "paint_alpha", text="Alpha Factor")
                 else:
@@ -428,16 +426,6 @@ class PHYSICS_PT_dp_brush_source(PhysicButtonsPanel, Panel):
         split = layout.split()
         col = split.column()
         col.prop(brush, "paint_source")
-
-        if brush.paint_source == 'PARTICLE_SYSTEM':
-            col.prop_search(brush, "particle_system", ob, "particle_systems", text="")
-            if brush.particle_system:
-                col.label(text="Particle effect:")
-                sub = col.column()
-                sub.active = not brush.use_particle_radius
-                sub.prop(brush, "solid_radius", text="Solid Radius")
-                col.prop(brush, "use_particle_radius", text="Use Particle's Radius")
-                col.prop(brush, "smooth_radius", text="Smooth radius")
 
         if brush.paint_source in {'DISTANCE', 'VOLUME_DISTANCE', 'POINT'}:
             col.prop(brush, "paint_distance", text="Paint Distance")

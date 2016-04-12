@@ -427,12 +427,10 @@ class SCENE_PT_simplify(SceneButtonsPanel, Panel):
         col = split.column()
         col.label(text="Viewport:")
         col.prop(rd, "simplify_subdivision", text="Subdivision")
-        col.prop(rd, "simplify_child_particles", text="Child Particles")
 
         col = split.column()
         col.label(text="Render:")
         col.prop(rd, "simplify_subdivision_render", text="Subdivision")
-        col.prop(rd, "simplify_child_particles_render", text="Child Particles")
         col.prop(rd, "simplify_shadow_samples", text="Shadow Samples")
         col.prop(rd, "simplify_ao_sss", text="AO and SSS")
         col.prop(rd, "use_simplify_triangulate")

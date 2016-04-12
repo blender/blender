@@ -86,14 +86,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
                 col = split.column()
                 col.label(text="Flow Source:")
                 col.prop(flow, "smoke_flow_source", expand=False, text="")
-                if flow.smoke_flow_source == 'PARTICLES':
-                    col.label(text="Particle System:")
-                    col.prop_search(flow, "particle_system", ob, "particle_systems", text="")
-                    col.prop(flow, "use_particle_size", text="Set Size")
-                    sub = col.column()
-                    sub.active = flow.use_particle_size
-                    sub.prop(flow, "particle_size")
-                else:
+                if flow.smoke_flow_source == 'MESH':
                     col.prop(flow, "surface_distance")
                     col.prop(flow, "volume_density")
 

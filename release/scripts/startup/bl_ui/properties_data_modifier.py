@@ -673,40 +673,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col = split.column()
 
-    def PARTICLE_INSTANCE(self, layout, ob, md):
-        layout.prop(md, "object")
-        layout.prop(md, "particle_system_index", text="Particle System")
-
-        split = layout.split()
-        col = split.column()
-        col.label(text="Create From:")
-        col.prop(md, "use_normal")
-        col.prop(md, "use_children")
-        col.prop(md, "use_size")
-
-        col = split.column()
-        col.label(text="Show Particles When:")
-        col.prop(md, "show_alive")
-        col.prop(md, "show_unborn")
-        col.prop(md, "show_dead")
-
-        layout.separator()
-
-        layout.prop(md, "use_path", text="Create Along Paths")
-
-        split = layout.split()
-        split.active = md.use_path
-        col = split.column()
-        col.row().prop(md, "axis", expand=True)
-        col.prop(md, "use_preserve_shape")
-
-        col = split.column()
-        col.prop(md, "position", slider=True)
-        col.prop(md, "random_position", text="Random", slider=True)
-
-    def PARTICLE_SYSTEM(self, layout, ob, md):
-        layout.label(text="Settings can be found inside the Particle context")
-
     def SCREW(self, layout, ob, md):
         split = layout.split()
 
