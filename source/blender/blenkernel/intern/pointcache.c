@@ -130,7 +130,7 @@ static int ptcache_data_size[] = {
 		3 * sizeof(float), // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST
 		sizeof(float), // BPHYS_DATA_SIZE
 		3 * sizeof(float), // BPHYS_DATA_TIMES
-		sizeof(BoidData) // case BPHYS_DATA_BOIDS
+		0 // case BPHYS_DATA_BOIDS
 };
 
 static int ptcache_extra_datasize[] = {
@@ -1825,7 +1825,6 @@ static void ptcache_file_pointers_init(PTCacheFile *pf)
 	pf->cur[BPHYS_DATA_AVELOCITY] =	(data_types & (1<<BPHYS_DATA_AVELOCITY))?		&pf->data.ave	: NULL;
 	pf->cur[BPHYS_DATA_SIZE] =		(data_types & (1<<BPHYS_DATA_SIZE))		?		&pf->data.size	: NULL;
 	pf->cur[BPHYS_DATA_TIMES] =		(data_types & (1<<BPHYS_DATA_TIMES))	?		&pf->data.times	: NULL;
-	pf->cur[BPHYS_DATA_BOIDS] =		(data_types & (1<<BPHYS_DATA_BOIDS))	?		&pf->data.boids	: NULL;
 }
 
 /* Check to see if point number "index" is in pm, uses binary search for index data. */

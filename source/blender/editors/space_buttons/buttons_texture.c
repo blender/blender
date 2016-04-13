@@ -96,12 +96,6 @@ bool ED_texture_context_check_lamp(const bContext *C)
 	return (ob && (ob->type == OB_LAMP));
 }
 
-bool ED_texture_context_check_particles(const bContext *C)
-{
-	Object *ob = CTX_data_active_object(C);
-	return (ob && ob->particlesystem.first);
-}
-
 bool ED_texture_context_check_linestyle(const bContext *C)
 {
 #ifdef WITH_FREESTYLE
@@ -176,7 +170,6 @@ static void set_texture_context(const bContext *C, SpaceButs *sbuts)
 		bool valid_world = ED_texture_context_check_world(C);
 		bool valid_material = ED_texture_context_check_material(C);
 		bool valid_lamp = ED_texture_context_check_lamp(C);
-		bool valid_particles = ED_texture_context_check_particles(C);
 		bool valid_linestyle = ED_texture_context_check_linestyle(C);
 		bool valid_others = ED_texture_context_check_others(C);
 
@@ -190,9 +183,6 @@ static void set_texture_context(const bContext *C, SpaceButs *sbuts)
 		else if ((sbuts->mainb == BCONTEXT_DATA) && valid_lamp) {
 			sbuts->texture_context = sbuts->texture_context_prev = SB_TEXC_LAMP;
 		}
-		else if ((sbuts->mainb == BCONTEXT_PARTICLE) && valid_particles) {
-			sbuts->texture_context = sbuts->texture_context_prev = SB_TEXC_PARTICLES;
-		}
 		else if ((sbuts->mainb == BCONTEXT_RENDER_LAYER) && valid_linestyle) {
 			sbuts->texture_context = sbuts->texture_context_prev = SB_TEXC_LINESTYLE;
 		}
@@ -204,7 +194,6 @@ static void set_texture_context(const bContext *C, SpaceButs *sbuts)
 		         (((sbuts->texture_context_prev == SB_TEXC_WORLD) && valid_world) ||
 		          ((sbuts->texture_context_prev == SB_TEXC_MATERIAL) && valid_material) ||
 		          ((sbuts->texture_context_prev == SB_TEXC_LAMP) && valid_lamp) ||
-		          ((sbuts->texture_context_prev == SB_TEXC_PARTICLES) && valid_particles) ||
 		          ((sbuts->texture_context_prev == SB_TEXC_LINESTYLE) && valid_linestyle) ||
 		          ((sbuts->texture_context_prev == SB_TEXC_OTHER) && valid_others)))
 		{
@@ -214,7 +203,6 @@ static void set_texture_context(const bContext *C, SpaceButs *sbuts)
 		else if (((sbuts->texture_context == SB_TEXC_WORLD) && !valid_world) ||
 		         ((sbuts->texture_context == SB_TEXC_MATERIAL) && !valid_material) ||
 		         ((sbuts->texture_context == SB_TEXC_LAMP) && !valid_lamp) ||
-		         ((sbuts->texture_context == SB_TEXC_PARTICLES) && !valid_particles) ||
 		         ((sbuts->texture_context == SB_TEXC_LINESTYLE) && !valid_linestyle) ||
 		         ((sbuts->texture_context == SB_TEXC_OTHER) && !valid_others))
 		{
@@ -225,9 +213,6 @@ static void set_texture_context(const bContext *C, SpaceButs *sbuts)
 			}
 			else if (valid_lamp) {
 				sbuts->texture_context = SB_TEXC_LAMP;
-			}
-			else if (valid_particles) {
-				sbuts->texture_context = SB_TEXC_PARTICLES;
 			}
 			else if (valid_linestyle) {
 				sbuts->texture_context = SB_TEXC_LINESTYLE;

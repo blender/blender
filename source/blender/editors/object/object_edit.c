@@ -1560,8 +1560,7 @@ static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *UNUSED(
 
 	ob = CTX_data_active_object(C);
 	if (ob) {
-		const bool use_mode_particle_edit = (BLI_listbase_is_empty(&ob->particlesystem) == false) ||
-		                                    (ob->soft != NULL) ||
+		const bool use_mode_particle_edit = (ob->soft != NULL) ||
 		                                    (modifiers_findByType(ob, eModifierType_Cloth) != NULL);
 		while (input->identifier) {
 			if ((input->value == OB_MODE_EDIT && OB_TYPE_SUPPORT_EDITMODE(ob->type)) ||

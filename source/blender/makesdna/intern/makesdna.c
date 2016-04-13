@@ -118,7 +118,6 @@ static const char *includefiles[] = {
 	"DNA_gpencil_types.h",
 	"DNA_windowmanager_types.h",
 	"DNA_anim_types.h",
-	"DNA_boid_types.h",
 	"DNA_smoke_types.h",
 	"DNA_speaker_types.h",
 	"DNA_movieclip_types.h",
@@ -1292,7 +1291,6 @@ int main(int argc, char **argv)
 #include "DNA_gpencil_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_anim_types.h"
-#include "DNA_boid_types.h"
 #include "DNA_smoke_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_movieclip_types.h"

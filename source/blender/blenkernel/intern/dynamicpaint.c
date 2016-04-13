@@ -1030,8 +1030,6 @@ bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, str
 				return false;
 			brush->pmd = pmd;
 
-			brush->psys = NULL;
-
 			brush->flags = MOD_DPAINT_ABS_ALPHA | MOD_DPAINT_RAMP_ALPHA;
 			brush->collision = MOD_DPAINT_COL_VOLUME;
 			
@@ -1185,7 +1183,6 @@ void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct Dyn
 		t_brush->particle_radius = brush->particle_radius;
 		t_brush->particle_smooth = brush->particle_smooth;
 		t_brush->paint_distance = brush->paint_distance;
-		t_brush->psys = brush->psys;
 
 		if (brush->paint_ramp)
 			memcpy(t_brush->paint_ramp, brush->paint_ramp, sizeof(ColorBand));

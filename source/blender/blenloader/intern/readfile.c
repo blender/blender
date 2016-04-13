@@ -4796,7 +4796,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->flow->dm = NULL;
 				smd->flow->verts_old = NULL;
 				smd->flow->numverts = 0;
-				smd->flow->psys = newdataadr(fd, smd->flow->psys);
 			}
 			else if (smd->type == MOD_SMOKE_TYPE_COLL) {
 				smd->flow = NULL;
@@ -4842,7 +4841,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			if (pmd->brush) {
 				pmd->brush = newdataadr(fd, pmd->brush);
 				pmd->brush->pmd = pmd;
-				pmd->brush->psys = newdataadr(fd, pmd->brush->psys);
 				pmd->brush->paint_ramp = newdataadr(fd, pmd->brush->paint_ramp);
 				pmd->brush->vel_ramp = newdataadr(fd, pmd->brush->vel_ramp);
 				pmd->brush->dm = NULL;

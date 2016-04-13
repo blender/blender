@@ -3615,11 +3615,8 @@ static int allow_render_object(Render *re, Object *ob, int nolamps, int onlysele
 	if (is_object_hidden(re, ob))
 		return 0;
 
-	/* Only handle dupli-hiding here if there is no particle systems. Else, let those handle show/noshow. */
-	if (!ob->particlesystem.first) {
-		if ((ob->transflag & OB_DUPLI) && !(ob->transflag & OB_DUPLIFRAMES)) {
-			return 0;
-		}
+	if ((ob->transflag & OB_DUPLI) && !(ob->transflag & OB_DUPLIFRAMES)) {
+		return 0;
 	}
 	
 	/* don't add non-basic meta objects, ends up having renderobjects with no geometry */

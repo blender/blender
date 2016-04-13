@@ -299,8 +299,7 @@ static bool object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
 			modifier_skin_customdata_delete(ob);
 	}
 
-	if (ELEM(md->type, eModifierType_Softbody, eModifierType_Cloth) &&
-	    BLI_listbase_is_empty(&ob->particlesystem))
+	if (ELEM(md->type, eModifierType_Softbody, eModifierType_Cloth))
 	{
 		ob->mode &= ~OB_MODE_PARTICLE_EDIT;
 	}

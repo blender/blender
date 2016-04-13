@@ -35,7 +35,6 @@
 #include "DNA_ID.h"
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_object_force.h"
-#include "DNA_boid_types.h"
 #include <stdio.h> /* for FILE */
 
 /* Point cache clearing option, for BKE_ptcache_id_clear, before
@@ -86,7 +85,6 @@ struct ListBase;
 struct Main;
 struct Object;
 struct PointCacheKey;
-struct ParticleSystem;
 struct PointCache;
 struct Scene;
 struct SmokeModifierData;
@@ -105,7 +103,6 @@ typedef struct PTCacheData {
 	float ave[3];
 	float size;
 	float times[3];
-	struct BoidData boids;
 } PTCacheData;
 
 typedef struct PTCacheFile {
@@ -248,15 +245,6 @@ typedef struct PTCacheEdit {
 	PTCacheEditPoint *points;
 
 	struct PTCacheID pid;
-
-	/* particles stuff */
-	struct ParticleSystem *psys;
-	struct KDTree *emitter_field;
-	float *emitter_cosnos; /* localspace face centers and normals (average of its verts), from the derived mesh */
-	int *mirror_cache;
-
-	struct ParticleCacheKey **pathcache;    /* path cache (runtime) */
-	ListBase pathcachebufs;
 
 	int totpoint, totframes, totcached, edited;
 

@@ -622,8 +622,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Sc
 
 	/* softbody collision  */
 	if ((ob->type == OB_MESH) || (ob->type == OB_CURVE) || (ob->type == OB_LATTICE)) {
-		if (ob->particlesystem.first ||
-		    modifiers_isModifierEnabled(ob, eModifierType_Softbody) ||
+		if (modifiers_isModifierEnabled(ob, eModifierType_Softbody) ||
 		    modifiers_isModifierEnabled(ob, eModifierType_Cloth) ||
 		    modifiers_isModifierEnabled(ob, eModifierType_DynamicPaint))
 		{
@@ -2107,8 +2106,6 @@ static void dag_object_time_update_flags(Main *bmain, Scene *scene, Object *ob)
 						ob->recalc |= OB_RECALC_DATA;
 					}
 				}
-				if (ob->particlesystem.first)
-					ob->recalc |= OB_RECALC_DATA;
 				break;
 			case OB_CURVE:
 			case OB_SURF:

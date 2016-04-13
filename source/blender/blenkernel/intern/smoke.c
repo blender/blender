@@ -562,8 +562,6 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->flow->color[2] = 0.7f;
 
 			smd->flow->dm = NULL;
-			smd->flow->psys = NULL;
-
 		}
 		else if (smd->type & MOD_SMOKE_TYPE_COLL)
 		{
@@ -629,7 +627,6 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 		tsmd->domain->cache_file_format = smd->domain->cache_file_format;
 	}
 	else if (tsmd->flow) {
-		tsmd->flow->psys = smd->flow->psys;
 		tsmd->flow->noise_texture = smd->flow->noise_texture;
 
 		tsmd->flow->vel_multi = smd->flow->vel_multi;

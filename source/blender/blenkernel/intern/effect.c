@@ -286,7 +286,6 @@ void pd_point_from_loc(Scene *scene, float *loc, float *vel, int index, Effected
 	point->flag = 0;
 
 	point->ave = point->rot = NULL;
-	point->psys = NULL;
 }
 void pd_point_from_soft(Scene *scene, float *loc, float *vel, int index, EffectedPoint *point)
 {
@@ -301,8 +300,6 @@ void pd_point_from_soft(Scene *scene, float *loc, float *vel, int index, Effecte
 	point->flag = PE_WIND_AS_SPEED;
 
 	point->ave = point->rot = NULL;
-
-	point->psys = NULL;
 }
 /************************************************/
 /*			Effectors		*/

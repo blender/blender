@@ -41,8 +41,6 @@ struct Object;
 struct Scene;
 struct ListBase;
 struct Group;
-struct ParticleSimulationData;
-struct ParticleData;
 struct PointCacheKey;
 
 struct EffectorWeights *BKE_add_effector_weights(struct Group *group);
@@ -62,8 +60,6 @@ typedef struct EffectedPoint {
 
 	unsigned int flag;
 	int index;
-
-	struct ParticleSystem *psys;  /* particle system the point belongs to */
 } EffectedPoint;
 
 typedef struct GuideEffectorData {

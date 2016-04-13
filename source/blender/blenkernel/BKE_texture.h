@@ -47,7 +47,6 @@ struct Main;
 struct Material;
 struct MTex;
 struct OceanTex;
-struct ParticleSettings;
 struct PointDensity;
 struct Tex;
 struct TexMapping;

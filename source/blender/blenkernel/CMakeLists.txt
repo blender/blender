@@ -191,7 +191,6 @@ set(SRC
 	BKE_blender.h
 	BKE_bmfont.h
 	BKE_bmfont_types.h
-	BKE_boids.h
 	BKE_bpath.h
 	BKE_brush.h
 	BKE_bullet.h
