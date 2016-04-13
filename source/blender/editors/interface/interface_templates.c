@@ -792,10 +792,6 @@ static int modifier_is_simulation(ModifierData *md)
 	{
 		return 1;
 	}
-	/* Particle Tab */
-	else if (md->type == eModifierType_ParticleSystem) {
-		return 2;
-	}
 	else {
 		return 0;
 	}
@@ -918,9 +914,6 @@ static uiLayout *draw_modifier(
 		else if (modifier_is_simulation(md) == 1) {
 			uiItemStringO(row, "", ICON_BUTS, "WM_OT_properties_context_change", "context", "PHYSICS");
 		}
-		else if (modifier_is_simulation(md) == 2) {
-			uiItemStringO(row, "", ICON_BUTS, "WM_OT_properties_context_change", "context", "PARTICLES");
-		}
 		UI_block_emboss_set(block, UI_EMBOSS);
 	}
 
@@ -948,7 +941,7 @@ static uiLayout *draw_modifier(
 			UI_block_lock_clear(block);
 			UI_block_lock_set(block, ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
 			
-			if (!ELEM(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem,
+			if (!ELEM(md->type, eModifierType_Fluidsim, eModifierType_Softbody,
 			           eModifierType_Cloth, eModifierType_Smoke))
 			{
 				uiItemO(row, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy"), ICON_NONE,

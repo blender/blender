@@ -1565,7 +1565,7 @@ static void object_simplify_update(Object *ob)
 	ob->id.tag &= ~LIB_TAG_DOIT;
 
 	for (md = ob->modifiers.first; md; md = md->next) {
-		if (ELEM(md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem)) {
+		if (ELEM(md->type, eModifierType_Subsurf, eModifierType_Multires)) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 	}

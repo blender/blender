@@ -4992,15 +4992,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				direct_link_curvemapping(fd, hmd->curfalloff);
 			}
 		}
-		else if (md->type == eModifierType_ParticleSystem) {
-			ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
-			
-			psmd->dm_final = NULL;
-			psmd->dm_deformed = NULL;
-			psmd->psys= newdataadr(fd, psmd->psys);
-			psmd->flag &= ~eParticleSystemFlag_psys_updated;
-			psmd->flag |= eParticleSystemFlag_file_loaded;
-		}
 		else if (md->type == eModifierType_Explode) {
 			ExplodeModifierData *psmd = (ExplodeModifierData *)md;
 			

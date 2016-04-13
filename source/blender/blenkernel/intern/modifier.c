@@ -401,13 +401,6 @@ bool modifiers_isModifierEnabled(Object *ob, int modifierType)
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
-bool modifiers_isParticleEnabled(Object *ob)
-{
-	ModifierData *md = modifiers_findByType(ob, eModifierType_ParticleSystem);
-
-	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
-}
-
 bool modifier_isEnabled(struct Scene *scene, ModifierData *md, int required_mode)
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);

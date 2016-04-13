@@ -1103,10 +1103,6 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 						UI_icon_draw(x, y, ICON_MOD_SOFT); break;
 					case eModifierType_Boolean: 
 						UI_icon_draw(x, y, ICON_MOD_BOOLEAN); break;
-					case eModifierType_ParticleSystem: 
-						UI_icon_draw(x, y, ICON_MOD_PARTICLES); break;
-					case eModifierType_ParticleInstance:
-						UI_icon_draw(x, y, ICON_MOD_PARTICLES); break;
 					case eModifierType_EdgeSplit:
 						UI_icon_draw(x, y, ICON_MOD_EDGESPLIT); break;
 					case eModifierType_Array:

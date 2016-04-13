@@ -389,22 +389,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 271, 6)) {
-		Object *ob;
-		for (ob = main->object.first; ob; ob = ob->id.next) {
-			ModifierData *md;
-
-			for (md = ob->modifiers.first; md; md = md->next) {
-				if (md->type == eModifierType_ParticleSystem) {
-					ParticleSystemModifierData *pmd = (ParticleSystemModifierData *)md;
-					if (pmd->psys && pmd->psys->clmd) {
-						pmd->psys->clmd->sim_parms->vel_damping = 1.0f;
-					}
-				}
-			}
-		}
-	}
-
 	if (!MAIN_VERSION_ATLEAST(main, 272, 0)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "RenderData", "int", "preview_start_resolution")) {
 			Scene *scene;
@@ -504,12 +488,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 					if (md->type == eModifierType_Cloth) {
 						ClothModifierData *clmd = (ClothModifierData *)md;
 						clmd->sim_parms->bending_damping = 0.5f;
-					}
-					else if (md->type == eModifierType_ParticleSystem) {
-						ParticleSystemModifierData *pmd = (ParticleSystemModifierData *)md;
-						if (pmd->psys->clmd) {
-							pmd->psys->clmd->sim_parms->bending_damping = 0.5f;
-						}
 					}
 				}
 			}
