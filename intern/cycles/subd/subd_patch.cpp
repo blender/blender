@@ -114,11 +114,11 @@ BoundBox LinearTrianglePatch::bound()
 
 void BicubicPatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, float u, float v)
 {
-	if (N) {
+	if(N) {
 		float3 dPdu_, dPdv_;
 		decasteljau_bicubic(P, &dPdu_, &dPdv_, hull, u, v);
 
-		if (dPdu && dPdv) {
+		if(dPdu && dPdv) {
 			*dPdu = dPdu_;
 			*dPdv = dPdv_;
 		}

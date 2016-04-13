@@ -643,7 +643,7 @@ void BlenderSession::bake(BL::Object& b_object,
 	bake_pass_filter = BakeManager::shader_type_to_pass_filter(shader_type, bake_pass_filter);
 
 	/* force use_light_pass to be true if we bake more than just colors */
-	if (bake_pass_filter & ~BAKE_FILTER_COLOR) {
+	if(bake_pass_filter & ~BAKE_FILTER_COLOR) {
 		Pass::add(PASS_LIGHT, scene->film->passes);
 	}
 

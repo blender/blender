@@ -30,7 +30,7 @@ void task_run() {
 TEST(util_task, basic) {
 	TaskScheduler::init(0);
 	TaskPool pool;
-	for (int i = 0; i < 100; ++i) {
+	for(int i = 0; i < 100; ++i) {
 		pool.push(function_bind(task_run));
 	}
 	TaskPool::Summary summary;
@@ -40,10 +40,10 @@ TEST(util_task, basic) {
 }
 
 TEST(util_task, multiple_times) {
-	for (int N = 0; N < 1000; ++N) {
+	for(int N = 0; N < 1000; ++N) {
 		TaskScheduler::init(0);
 		TaskPool pool;
-		for (int i = 0; i < 100; ++i) {
+		for(int i = 0; i < 100; ++i) {
 			pool.push(function_bind(task_run));
 		}
 		TaskPool::Summary summary;

@@ -250,7 +250,7 @@ ccl_device float bssrdf_burley_root_find(float xi)
 	 * corner case.
 	 */
 	float r;
-	if (xi <= 0.9f) {
+	if(xi <= 0.9f) {
 		r = expf(xi * xi * 2.4f) - 1.0f;
 	}
 	else {

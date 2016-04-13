@@ -485,9 +485,9 @@ static string path_unc_to_short(const string& path)
 		if((len > 5) && (path[5] ==  ':')) {
 			return path.substr(4, len - 4);
 		}
-		else if ((len > 7) &&
-		         (path.substr(4, 3) == "UNC") &&
-		         ((path[7] ==  DIR_SEP) || (path[7] ==  DIR_SEP_ALT)))
+		else if((len > 7) &&
+		        (path.substr(4, 3) == "UNC") &&
+		        ((path[7] ==  DIR_SEP) || (path[7] ==  DIR_SEP_ALT)))
 		{
 			return "\\\\" + path.substr(8, len - 8);
 		}
