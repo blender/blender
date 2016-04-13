@@ -297,10 +297,6 @@ void BlenderSync::sync_film()
 	Film *film = scene->film;
 	Film prevfilm = *film;
 	
-	/* Clamping */
-	Integrator *integrator = scene->integrator;
-	film->use_sample_clamp = (integrator->sample_clamp_direct != 0.0f || integrator->sample_clamp_indirect != 0.0f);
-
 	film->exposure = get_float(cscene, "film_exposure");
 	film->filter_type = (FilterType)get_enum(cscene,
 	                                         "pixel_filter_type",

@@ -217,13 +217,13 @@ void Scene::device_update(Device *device_, Progress& progress)
 
 	if(progress.get_cancel() || device->have_error()) return;
 
-	progress.set_status("Updating Film");
-	film->device_update(device, &dscene, this);
+	progress.set_status("Updating Integrator");
+	integrator->device_update(device, &dscene, this);
 
 	if(progress.get_cancel() || device->have_error()) return;
 
-	progress.set_status("Updating Integrator");
-	integrator->device_update(device, &dscene, this);
+	progress.set_status("Updating Film");
+	film->device_update(device, &dscene, this);
 
 	if(progress.get_cancel() || device->have_error()) return;
 
