@@ -62,11 +62,11 @@
 #include "BKE_blender.h"
 #include "BKE_cloth.h"
 #include "BKE_dynamicpaint.h"
+#include "BKE_key.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_smoke.h"
@@ -195,6 +195,36 @@ static void ptcache_softbody_read(int index, void *soft_v, void **data, float UN
 		PTCACHE_DATA_TO(data, BPHYS_DATA_VELOCITY, 0, bp->vec);
 	}
 }
+
+static void interpolate_particle_keys(short type, ParticleKey keys[4], float dt, ParticleKey *result, bool velocity)
+{
+	float t[4];
+
+	if (type < 0) {
+		interp_cubic_v3(result->co, result->vel, keys[1].co, keys[1].vel, keys[2].co, keys[2].vel, dt);
+	}
+	else {
+		key_curve_position_weights(dt, t, type);
+
+		interp_v3_v3v3v3v3(result->co, keys[0].co, keys[1].co, keys[2].co, keys[3].co, t);
+
+		if (velocity) {
+			float temp[3];
+
+			if (dt > 0.999f) {
+				key_curve_position_weights(dt - 0.001f, t, type);
+				interp_v3_v3v3v3v3(temp, keys[0].co, keys[1].co, keys[2].co, keys[3].co, t);
+				sub_v3_v3v3(result->vel, result->co, temp);
+			}
+			else {
+				key_curve_position_weights(dt + 0.001f, t, type);
+				interp_v3_v3v3v3v3(temp, keys[0].co, keys[1].co, keys[2].co, keys[3].co, t);
+				sub_v3_v3v3(result->vel, temp, result->co);
+			}
+		}
+	}
+}
+
 static void ptcache_softbody_interpolate(int index, void *soft_v, void **data, float cfra, float cfra1, float cfra2, float *old_data)
 {
 	SoftBody *soft= soft_v;
@@ -220,7 +250,7 @@ static void ptcache_softbody_interpolate(int index, void *soft_v, void **data, f
 	mul_v3_fl(keys[1].vel, dfra);
 	mul_v3_fl(keys[2].vel, dfra);
 
-	psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, keys, 1);
+	interpolate_particle_keys(-1, keys, (cfra - cfra1) / dfra, keys, 1);
 
 	mul_v3_fl(keys->vel, 1.0f / dfra);
 
@@ -402,7 +432,7 @@ static void ptcache_particle_interpolate(int index, void *psys_v, void **data, f
 	mul_v3_fl(keys[1].vel, dfra * timestep);
 	mul_v3_fl(keys[2].vel, dfra * timestep);
 
-	psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, &pa->state, 1);
+	interpolate_particle_keys(-1, keys, (cfra - cfra1) / dfra, &pa->state, 1);
 	interp_qt_qtqt(pa->state.rot, keys[1].rot, keys[2].rot, (cfra - cfra1) / dfra);
 
 	mul_v3_fl(pa->state.vel, 1.f / (dfra * timestep));
@@ -534,7 +564,7 @@ static void ptcache_cloth_interpolate(int index, void *cloth_v, void **data, flo
 	mul_v3_fl(keys[1].vel, dfra);
 	mul_v3_fl(keys[2].vel, dfra);
 
-	psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, keys, 1);
+	interpolate_particle_keys(-1, keys, (cfra - cfra1) / dfra, keys, 1);
 
 	mul_v3_fl(keys->vel, 1.0f / dfra);
 
@@ -1358,7 +1388,7 @@ static void ptcache_rigidbody_interpolate(int index, void *rb_v, void **data, fl
 			dfra = cfra2 - cfra1;
 		
 			/* note: keys[0] and keys[3] unused for type < 1 (crappy) */
-			psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, &result, true);
+			interpolate_particle_keys(-1, keys, (cfra - cfra1) / dfra, &result, true);
 			interp_qt_qtqt(result.rot, keys[1].rot, keys[2].rot, (cfra - cfra1) / dfra);
 			
 			copy_v3_v3(rbo->pos, result.co);
@@ -1424,7 +1454,7 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 
 	pid->ob= ob;
 	pid->calldata= psys;
-	pid->type= PTCACHE_TYPE_PARTICLES;
+	pid->type= 0xdeadbeef;
 	pid->stack_index= psys->pointcache->index;
 	pid->cache= psys->pointcache;
 	pid->cache_ptr= &psys->pointcache;
@@ -2224,8 +2254,6 @@ static int ptcache_old_elemsize(PTCacheID *pid)
 {
 	if (pid->type==PTCACHE_TYPE_SOFTBODY)
 		return 6 * sizeof(float);
-	else if (pid->type==PTCACHE_TYPE_PARTICLES)
-		return sizeof(ParticleKey);
 	else if (pid->type==PTCACHE_TYPE_CLOTH)
 		return 9 * sizeof(float);
 
@@ -3262,8 +3290,6 @@ int  BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 			cloth_free_modifier(pid->calldata);
 		else if (pid->type == PTCACHE_TYPE_SOFTBODY)
 			sbFreeSimulation(pid->calldata);
-		else if (pid->type == PTCACHE_TYPE_PARTICLES)
-			psys_reset(pid->calldata, PSYS_RESET_DEPSGRAPH);
 #if 0
 		else if (pid->type == PTCACHE_TYPE_SMOKE_DOMAIN)
 			smokeModifier_reset(pid->calldata);
@@ -3283,36 +3309,14 @@ int  BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 int  BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 {
 	PTCacheID pid;
-	ParticleSystem *psys;
 	ModifierData *md;
-	int reset, skip;
+	int reset;
 
 	reset= 0;
-	skip= 0;
 
 	if (ob->soft) {
 		BKE_ptcache_id_from_softbody(&pid, ob, ob->soft);
 		reset |= BKE_ptcache_id_reset(scene, &pid, mode);
-	}
-
-	for (psys=ob->particlesystem.first; psys; psys=psys->next) {
-		/* children or just redo can be calculated without resetting anything */
-		if (psys->recalc & PSYS_RECALC_REDO || psys->recalc & PSYS_RECALC_CHILD)
-			skip = 1;
-		/* Baked cloth hair has to be checked too, because we don't want to reset */
-		/* particles or cloth in that case -jahka */
-		else if (psys->clmd) {
-			BKE_ptcache_id_from_cloth(&pid, ob, psys->clmd);
-			if (mode == PSYS_RESET_ALL || !(psys->part->type == PART_HAIR && (pid.cache->flag & PTCACHE_BAKED))) 
-				reset |= BKE_ptcache_id_reset(scene, &pid, mode);
-			else
-				skip = 1;
-		}
-
-		if (skip == 0 && psys->part) {
-			BKE_ptcache_id_from_particles(&pid, ob, psys);
-			reset |= BKE_ptcache_id_reset(scene, &pid, mode);
-		}
 	}
 
 	for (md=ob->modifiers.first; md; md=md->next) {
@@ -3554,14 +3558,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 		/* cache/bake a single object */
 		cache = pid->cache;
 		if ((cache->flag & PTCACHE_BAKED)==0) {
-			if (pid->type==PTCACHE_TYPE_PARTICLES) {
-				ParticleSystem *psys= pid->calldata;
-
-				/* a bit confusing, could make this work better in the UI */
-				if (psys->part->type == PART_EMITTER)
-					psys_get_pointcache_start_end(scene, pid->calldata, &cache->startframe, &cache->endframe);
-			}
-			else if (pid->type == PTCACHE_TYPE_SMOKE_HIGHRES) {
+			if (pid->type == PTCACHE_TYPE_SMOKE_HIGHRES) {
 				/* get all pids from the object and search for smoke low res */
 				ListBase pidlist2;
 				PTCacheID *pid2;
@@ -3605,15 +3602,6 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 			for (pid=pidlist.first; pid; pid=pid->next) {
 				cache = pid->cache;
 				if ((cache->flag & PTCACHE_BAKED)==0) {
-					if (pid->type==PTCACHE_TYPE_PARTICLES) {
-						ParticleSystem *psys = (ParticleSystem*)pid->calldata;
-						/* skip hair & keyed particles */
-						if (psys->part->type == PART_HAIR || psys->part->phystype == PART_PHYS_KEYED)
-							continue;
-
-						psys_get_pointcache_start_end(scene, pid->calldata, &cache->startframe, &cache->endframe);
-					}
-
 					if ((cache->flag & PTCACHE_REDO_NEEDED || (cache->flag & PTCACHE_SIMULATION_VALID)==0) &&
 					    (render || bake))
 					{
@@ -3709,10 +3697,6 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 			BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
 			for (pid=pidlist.first; pid; pid=pid->next) {
-				/* skip hair particles */
-				if (pid->type==PTCACHE_TYPE_PARTICLES && ((ParticleSystem*)pid->calldata)->part->type == PART_HAIR)
-					continue;
-
 				cache = pid->cache;
 
 				if (baker->quick_step > 1)

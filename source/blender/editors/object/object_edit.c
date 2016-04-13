@@ -418,8 +418,7 @@ void ED_object_editmode_exit(bContext *C, int flag)
 		/* flag object caches as outdated */
 		BKE_ptcache_ids_from_object(&pidlist, obedit, scene, 0);
 		for (pid = pidlist.first; pid; pid = pid->next) {
-			if (pid->type != PTCACHE_TYPE_PARTICLES) /* particles don't need reset on geometry change */
-				pid->cache->flag |= PTCACHE_OUTDATED;
+			pid->cache->flag |= PTCACHE_OUTDATED;
 		}
 		BLI_freelistN(&pidlist);
 		

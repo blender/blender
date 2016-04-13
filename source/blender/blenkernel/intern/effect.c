@@ -67,7 +67,6 @@
 #include "BKE_library.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_particle.h"
 #include "BKE_scene.h"
 #include "BKE_smoke.h"
 
@@ -178,33 +177,9 @@ static void add_object_to_effectors(ListBase **effectors, Scene *scene, Effector
 
 	BLI_addtail(*effectors, eff);
 }
-static void add_particles_to_effectors(ListBase **effectors, Scene *scene, EffectorWeights *weights, Object *ob, ParticleSystem *psys, ParticleSystem *psys_src)
-{
-	ParticleSettings *part= psys->part;
-
-	if ( !psys_check_enabled(ob, psys) )
-		return;
-
-	if ( psys == psys_src && (part->flag & PART_SELF_EFFECT) == 0)
-		return;
-
-	if ( part->pd && part->pd->forcefield && weights->weight[part->pd->forcefield] != 0.0f) {
-		if (*effectors == NULL)
-			*effectors = MEM_callocN(sizeof(ListBase), "effectors list");
-
-		BLI_addtail(*effectors, new_effector_cache(scene, ob, psys, part->pd));
-	}
-
-	if (part->pd2 && part->pd2->forcefield && weights->weight[part->pd2->forcefield] != 0.0f) {
-		if (*effectors == NULL)
-			*effectors = MEM_callocN(sizeof(ListBase), "effectors list");
-
-		BLI_addtail(*effectors, new_effector_cache(scene, ob, psys, part->pd2));
-	}
-}
 
 /* returns ListBase handle with objects taking part in the effecting */
-ListBase *pdInitEffectors(Scene *scene, Object *ob_src, ParticleSystem *psys_src,
+ListBase *pdInitEffectors(Scene *scene, Object *ob_src, ParticleSystem *UNUSED(psys_src),
                           EffectorWeights *weights, bool precalc)
 {
 	Base *base;
@@ -218,13 +193,6 @@ ListBase *pdInitEffectors(Scene *scene, Object *ob_src, ParticleSystem *psys_src
 			if ( (go->ob->lay & layer) ) {
 				if ( go->ob->pd && go->ob->pd->forcefield )
 					add_object_to_effectors(&effectors, scene, weights, go->ob, ob_src);
-
-				if ( go->ob->particlesystem.first ) {
-					ParticleSystem *psys= go->ob->particlesystem.first;
-
-					for ( ; psys; psys=psys->next )
-						add_particles_to_effectors(&effectors, scene, weights, go->ob, psys, psys_src);
-				}
 			}
 		}
 	}
@@ -233,13 +201,6 @@ ListBase *pdInitEffectors(Scene *scene, Object *ob_src, ParticleSystem *psys_src
 			if ( (base->lay & layer) ) {
 				if ( base->object->pd && base->object->pd->forcefield )
 					add_object_to_effectors(&effectors, scene, weights, base->object, ob_src);
-
-				if ( base->object->particlesystem.first ) {
-					ParticleSystem *psys= base->object->particlesystem.first;
-
-					for ( ; psys; psys=psys->next )
-						add_particles_to_effectors(&effectors, scene, weights, base->object, psys, psys_src);
-				}
 			}
 		}
 	}
@@ -292,8 +253,6 @@ static void precalculate_effector(EffectorCache *eff)
 		if (eff->ob->type == OB_CURVE)
 			eff->flag |= PE_USE_NORMAL_DATA;
 	}
-	else if (eff->psys)
-		psys_update_particle_tree(eff->psys, eff->scene->r.cfra);
 
 	/* Store object velocity */
 	if (eff->ob) {
@@ -315,36 +274,6 @@ void pdPrecalculateEffectors(ListBase *effectors)
 	}
 }
 
-
-void pd_point_from_particle(ParticleSimulationData *sim, ParticleData *pa, ParticleKey *state, EffectedPoint *point)
-{
-	ParticleSettings *part = sim->psys->part;
-	point->loc = state->co;
-	point->vel = state->vel;
-	point->index = pa - sim->psys->particles;
-	point->size = pa->size;
-	point->charge = 0.0f;
-	
-	if (part->pd && part->pd->forcefield == PFIELD_CHARGE)
-		point->charge += part->pd->f_strength;
-
-	if (part->pd2 && part->pd2->forcefield == PFIELD_CHARGE)
-		point->charge += part->pd2->f_strength;
-
-	point->vel_to_sec = 1.0f;
-	point->vel_to_frame = psys_get_timestep(sim);
-
-	point->flag = 0;
-
-	if (sim->psys->part->flag & PART_ROT_DYN) {
-		point->ave = state->ave;
-		point->rot = state->rot;
-	}
-	else
-		point->ave = point->rot = NULL;
-
-	point->psys = sim->psys;
-}
 
 void pd_point_from_loc(Scene *scene, float *loc, float *vel, int index, EffectedPoint *point)
 {
@@ -563,7 +492,6 @@ int closest_point_on_surface(SurfaceModifierData *surmd, const float co[3], floa
 }
 int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *point, int real_velocity)
 {
-	float cfra = eff->scene->r.cfra;
 	int ret = 0;
 
 	if (eff->pd && eff->pd->shape==PFIELD_SHAPE_SURFACE && eff->surmd) {
@@ -596,43 +524,6 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 
 			/**/
 			ret = 1;
-		}
-	}
-	else if (eff->psys) {
-		ParticleData *pa = eff->psys->particles + *efd->index;
-		ParticleKey state;
-
-		/* exclude the particle itself for self effecting particles */
-		if (eff->psys == point->psys && *efd->index == point->index) {
-			/* pass */
-		}
-		else {
-			ParticleSimulationData sim= {NULL};
-			sim.scene= eff->scene;
-			sim.ob= eff->ob;
-			sim.psys= eff->psys;
-
-			/* TODO: time from actual previous calculated frame (step might not be 1) */
-			state.time = cfra - 1.0f;
-			ret = psys_get_particle_state(&sim, *efd->index, &state, 0);
-
-			/* TODO */
-			//if (eff->pd->forcefiled == PFIELD_HARMONIC && ret==0) {
-			//	if (pa->dietime < eff->psys->cfra)
-			//		eff->flag |= PE_VELOCITY_TO_IMPULSE;
-			//}
-
-			copy_v3_v3(efd->loc, state.co);
-
-			/* rather than use the velocity use rotated x-axis (defaults to velocity) */
-			efd->nor[0] = 1.f;
-			efd->nor[1] = efd->nor[2] = 0.f;
-			mul_qt_v3(state.rot, efd->nor);
-		
-			if (real_velocity)
-				copy_v3_v3(efd->vel, state.vel);
-
-			efd->size = pa->size;
 		}
 	}
 	else {

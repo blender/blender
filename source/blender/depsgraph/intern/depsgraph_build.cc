@@ -76,7 +76,6 @@ extern "C" {
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
-#include "BKE_particle.h"
 #include "BKE_rigidbody.h"
 #include "BKE_sound.h"
 #include "BKE_texture.h"

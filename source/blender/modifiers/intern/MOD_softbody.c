@@ -34,12 +34,12 @@
 
 #include <stdio.h>
 
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
-#include "BKE_particle.h"
 #include "BKE_softbody.h"
 
 #include "MOD_modifiertypes.h"

@@ -34,6 +34,7 @@
 
 
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -48,7 +49,6 @@
 #include "BKE_lattice.h"
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
-#include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
 #include "depsgraph_private.h"
@@ -74,40 +74,9 @@ static void copyData(ModifierData *md, ModifierData *target)
 	modifier_copyData_generic(md, target);
 }
 
-static bool isDisabled(ModifierData *md, int useRenderParams)
+static bool isDisabled(ModifierData *UNUSED(md), int UNUSED(useRenderParams))
 {
-	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
-	ParticleSystem *psys;
-	ModifierData *ob_md;
-	
-	if (!pimd->ob)
-		return true;
-	
-	psys = BLI_findlink(&pimd->ob->particlesystem, pimd->psys - 1);
-	if (psys == NULL)
-		return true;
-	
-	/* If the psys modifier is disabled we cannot use its data.
-	 * First look up the psys modifier from the object, then check if it is enabled.
-	 */
-	for (ob_md = pimd->ob->modifiers.first; ob_md; ob_md = ob_md->next) {
-		if (ob_md->type == eModifierType_ParticleSystem) {
-			ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)ob_md;
-			if (psmd->psys == psys) {
-				int required_mode;
-				
-				if (useRenderParams) required_mode = eModifierMode_Render;
-				else required_mode = eModifierMode_Realtime;
-				
-				if (!modifier_isEnabled(md->scene, ob_md, required_mode))
-					return true;
-				
-				break;
-			}
-		}
-	}
-	
-	return false;
+	return true;
 }
 
 
@@ -148,297 +117,13 @@ static void foreachObjectLink(ModifierData *md, Object *ob,
 	walk(userData, ob, &pimd->ob, IDWALK_NOP);
 }
 
-static int particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *psys, int p)
-{
-	ParticleData *pa;
-
-	if (pimd->flag & eParticleInstanceFlag_Parents) {
-		if (p >= psys->totpart) {
-			if (psys->part->childtype == PART_CHILD_PARTICLES) {
-				pa = psys->particles + (psys->child + p - psys->totpart)->parent;
-			}
-			else {
-				pa = NULL;
-			}
-		}
-		else {
-			pa = psys->particles + p;
-		}
-	}
-	else {
-		if (psys->part->childtype == PART_CHILD_PARTICLES) {
-			pa = psys->particles + (psys->child + p)->parent;
-		}
-		else {
-			pa = NULL;
-		}
-	}
-
-	if (pa) {
-		if (pa->alive == PARS_UNBORN && (pimd->flag & eParticleInstanceFlag_Unborn) == 0) return 1;
-		if (pa->alive == PARS_ALIVE && (pimd->flag & eParticleInstanceFlag_Alive) == 0) return 1;
-		if (pa->alive == PARS_DEAD && (pimd->flag & eParticleInstanceFlag_Dead) == 0) return 1;
-	}
-	
-	return 0;
-}
-
-static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
+static DerivedMesh *applyModifier(ModifierData *UNUSED(md), Object *UNUSED(ob),
                                   DerivedMesh *derivedData,
                                   ModifierApplyFlag UNUSED(flag))
 {
-	DerivedMesh *dm = derivedData, *result;
-	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *) md;
-	ParticleSimulationData sim;
-	ParticleSystem *psys = NULL;
-	ParticleData *pa = NULL;
-	MPoly *mpoly, *orig_mpoly;
-	MLoop *mloop, *orig_mloop;
-	MVert *mvert, *orig_mvert;
-	int totvert, totpoly, totloop /* , totedge */;
-	int maxvert, maxpoly, maxloop, totpart = 0, first_particle = 0;
-	int k, p, p_skip;
-	short track = ob->trackflag % 3, trackneg, axis = pimd->axis;
-	float max_co = 0.0, min_co = 0.0, temp_co[3];
-	float *size = NULL;
-
-	trackneg = ((ob->trackflag > 2) ? 1 : 0);
-
-	if (pimd->ob == ob) {
-		pimd->ob = NULL;
-		return derivedData;
-	}
-
-	if (pimd->ob) {
-		psys = BLI_findlink(&pimd->ob->particlesystem, pimd->psys - 1);
-		if (psys == NULL || psys->totpart == 0)
-			return derivedData;
-	}
-	else {
-		return derivedData;
-	}
-
-	if (pimd->flag & eParticleInstanceFlag_Parents)
-		totpart += psys->totpart;
-	if (pimd->flag & eParticleInstanceFlag_Children) {
-		if (totpart == 0)
-			first_particle = psys->totpart;
-		totpart += psys->totchild;
-	}
-
-	if (totpart == 0)
-		return derivedData;
-
-	sim.scene = md->scene;
-	sim.ob = pimd->ob;
-	sim.psys = psys;
-	sim.psmd = psys_get_modifier(pimd->ob, psys);
-
-	if (pimd->flag & eParticleInstanceFlag_UseSize) {
-		float *si;
-		si = size = MEM_callocN(totpart * sizeof(float), "particle size array");
-
-		if (pimd->flag & eParticleInstanceFlag_Parents) {
-			for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++, si++)
-				*si = pa->size;
-		}
-
-		if (pimd->flag & eParticleInstanceFlag_Children) {
-			ChildParticle *cpa = psys->child;
-
-			for (p = 0; p < psys->totchild; p++, cpa++, si++) {
-				*si = psys_get_child_size(psys, cpa, 0.0f, NULL);
-			}
-		}
-	}
-
-	totvert = dm->getNumVerts(dm);
-	totpoly = dm->getNumPolys(dm);
-	totloop = dm->getNumLoops(dm);
-	/* totedge = dm->getNumEdges(dm); */ /* UNUSED */
-
-	/* count particles */
-	maxvert = 0;
-	maxpoly = 0;
-	maxloop = 0;
-
-	for (p = 0; p < totpart; p++) {
-		if (particle_skip(pimd, psys, p))
-			continue;
-
-		maxvert += totvert;
-		maxpoly += totpoly;
-		maxloop += totloop;
-	}
-
-	psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
-
-	if (psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) {
-		float min[3], max[3];
-		INIT_MINMAX(min, max);
-		dm->getMinMax(dm, min, max);
-		min_co = min[track];
-		max_co = max[track];
-	}
-
-	result = CDDM_from_template(dm, maxvert, 0, 0, maxloop, maxpoly);
-
-	mvert = result->getVertArray(result);
-	orig_mvert = dm->getVertArray(dm);
-
-	mpoly = result->getPolyArray(result);
-	orig_mpoly = dm->getPolyArray(dm);
-	mloop = result->getLoopArray(result);
-	orig_mloop = dm->getLoopArray(dm);
-
-	for (p = 0, p_skip = 0; p < totpart; p++) {
-		float prev_dir[3];
-		float frame[4]; /* frame orientation quaternion */
-		
-		/* skip particle? */
-		if (particle_skip(pimd, psys, p))
-			continue;
-
-		/* set vertices coordinates */
-		for (k = 0; k < totvert; k++) {
-			ParticleKey state;
-			MVert *inMV;
-			MVert *mv = mvert + p_skip * totvert + k;
-
-			inMV = orig_mvert + k;
-			DM_copy_vert_data(dm, result, k, p_skip * totvert + k, 1);
-			*mv = *inMV;
-
-			/*change orientation based on object trackflag*/
-			copy_v3_v3(temp_co, mv->co);
-			mv->co[axis] = temp_co[track];
-			mv->co[(axis + 1) % 3] = temp_co[(track + 1) % 3];
-			mv->co[(axis + 2) % 3] = temp_co[(track + 2) % 3];
-
-			/* get particle state */
-			if ((psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) &&
-			    (pimd->flag & eParticleInstanceFlag_Path))
-			{
-				float ran = 0.0f;
-				if (pimd->random_position != 0.0f) {
-					ran = pimd->random_position * BLI_hash_frand(psys->seed + p);
-				}
-
-				if (pimd->flag & eParticleInstanceFlag_KeepShape) {
-					state.time = pimd->position * (1.0f - ran);
-				}
-				else {
-					state.time = (mv->co[axis] - min_co) / (max_co - min_co) * pimd->position * (1.0f - ran);
-
-					if (trackneg)
-						state.time = 1.0f - state.time;
-
-					mv->co[axis] = 0.0;
-				}
-
-				psys_get_particle_on_path(&sim, first_particle + p, &state, 1);
-
-				normalize_v3(state.vel);
-
-				/* Incrementally Rotating Frame (Bishop Frame) */
-				if (k == 0) {
-					float hairmat[4][4];
-					float mat[3][3];
-					
-					if (first_particle + p < psys->totpart)
-						pa = psys->particles + first_particle + p;
-					else {
-						ChildParticle *cpa = psys->child + (p - psys->totpart);
-						pa = psys->particles + cpa->parent;
-					}
-					psys_mat_hair_to_global(sim.ob, sim.psmd->dm_final, sim.psys->part->from, pa, hairmat);
-					copy_m3_m4(mat, hairmat);
-					/* to quaternion */
-					mat3_to_quat(frame, mat);
-					
-					/* note: direction is same as normal vector currently,
-					 * but best to keep this separate so the frame can be
-					 * rotated later if necessary
-					 */
-					copy_v3_v3(prev_dir, state.vel);
-				}
-				else {
-					float rot[4];
-					
-					/* incrementally rotate along bend direction */
-					rotation_between_vecs_to_quat(rot, prev_dir, state.vel);
-					mul_qt_qtqt(frame, rot, frame);
-					
-					copy_v3_v3(prev_dir, state.vel);
-				}
-				
-				copy_qt_qt(state.rot, frame);
-#if 0
-				/* Absolute Frame (Frenet Frame) */
-				if (state.vel[axis] < -0.9999f || state.vel[axis] > 0.9999f) {
-					unit_qt(state.rot);
-				}
-				else {
-					float cross[3];
-					float temp[3] = {0.0f, 0.0f, 0.0f};
-					temp[axis] = 1.0f;
-					
-					cross_v3_v3v3(cross, temp, state.vel);
-					
-					/* state.vel[axis] is the only component surviving from a dot product with the axis */
-					axis_angle_to_quat(state.rot, cross, saacos(state.vel[axis]));
-				}
-#endif
-			}
-			else {
-				state.time = -1.0;
-				psys_get_particle_state(&sim, first_particle + p, &state, 1);
-			}
-
-			mul_qt_v3(state.rot, mv->co);
-			if (pimd->flag & eParticleInstanceFlag_UseSize)
-				mul_v3_fl(mv->co, size[p]);
-			add_v3_v3(mv->co, state.co);
-		}
-
-		/* create polys and loops */
-		for (k = 0; k < totpoly; k++) {
-			MPoly *inMP = orig_mpoly + k;
-			MPoly *mp = mpoly + p_skip * totpoly + k;
-
-			DM_copy_poly_data(dm, result, k, p_skip * totpoly + k, 1);
-			*mp = *inMP;
-			mp->loopstart += p_skip * totloop;
-
-			{
-				MLoop *inML = orig_mloop + inMP->loopstart;
-				MLoop *ml = mloop + mp->loopstart;
-				int j = mp->totloop;
-
-				DM_copy_loop_data(dm, result, inMP->loopstart, mp->loopstart, j);
-				for (; j; j--, ml++, inML++) {
-					ml->v = inML->v + (p_skip * totvert);
-				}
-			}
-		}
-
-		p_skip++;
-	}
-
-	CDDM_calc_edges(result);
-
-	if (psys->lattice_deform_data) {
-		end_latt_deform(psys->lattice_deform_data);
-		psys->lattice_deform_data = NULL;
-	}
-
-	if (size)
-		MEM_freeN(size);
-
-	result->dirty |= DM_DIRTY_NORMALS;
-
-	return result;
+	return derivedData;
 }
+
 ModifierTypeInfo modifierType_ParticleInstance = {
 	/* name */              "ParticleInstance",
 	/* structName */        "ParticleInstanceModifierData",

@@ -62,12 +62,11 @@
 
 /* PTCacheID types */
 #define PTCACHE_TYPE_SOFTBODY           0
-#define PTCACHE_TYPE_PARTICLES          1
-#define PTCACHE_TYPE_CLOTH              2
-#define PTCACHE_TYPE_SMOKE_DOMAIN       3
-#define PTCACHE_TYPE_SMOKE_HIGHRES      4
-#define PTCACHE_TYPE_DYNAMICPAINT       5
-#define PTCACHE_TYPE_RIGIDBODY          6
+#define PTCACHE_TYPE_CLOTH              1
+#define PTCACHE_TYPE_SMOKE_DOMAIN       2
+#define PTCACHE_TYPE_SMOKE_HIGHRES      3
+#define PTCACHE_TYPE_DYNAMICPAINT       4
+#define PTCACHE_TYPE_RIGIDBODY          5
 
 /* high bits reserved for flags that need to be stored in file */
 #define PTCACHE_TYPEFLAG_COMPRESS       (1 << 16)
