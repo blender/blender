@@ -57,7 +57,6 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_fluidsim.h"
-#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
@@ -3638,7 +3637,6 @@ static int allow_render_object(Render *re, Object *ob, int nolamps, int onlysele
 
 static int allow_render_dupli_instance(Render *UNUSED(re), DupliObject *dob, Object *obd)
 {
-	ParticleSystem *psys;
 	Material *ma;
 	short a, *totmaterial;
 
@@ -3653,10 +3651,6 @@ static int allow_render_dupli_instance(Render *UNUSED(re), DupliObject *dob, Obj
 				return 0;
 		}
 	}
-
-	for (psys=obd->particlesystem.first; psys; psys=psys->next)
-		if (!ELEM(psys->part->ren_as, PART_DRAW_BB, PART_DRAW_LINE, PART_DRAW_PATH, PART_DRAW_OB, PART_DRAW_GR))
-			return 0;
 
 	/* don't allow lamp, animated duplis, or radio render */
 	return (render_object_type(obd->type) &&
@@ -3813,9 +3807,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 						continue;
 
 					if (allow_render_dupli_instance(re, dob, obd)) {
-						ParticleSystem *psys;
 						ObjectRen *obr = NULL;
-						int psysindex;
 						float mat[4][4];
 
 						obi=NULL;
@@ -3843,29 +3835,6 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 								assign_dupligroup_dupli(re, obi, obr, dob);
 								if (obd->transflag & OB_RENDER_DUPLI)
 									find_dupli_instances(re, obr, dob);
-							}
-						}
-
-						/* same logic for particles, each particle system has it's own object, so
-						 * need to go over them separately */
-						psysindex= 1;
-						for (psys=obd->particlesystem.first; psys; psys=psys->next) {
-							if (dob->type != OB_DUPLIGROUP || (obr=find_dupligroup_dupli(re, obd, psysindex))) {
-								if (obi == NULL)
-									mul_m4_m4m4(mat, re->viewmat, dob->mat);
-								obi = RE_addRenderInstance(re, NULL, obd, ob, dob->persistent_id[0], psysindex++, mat, obd->lay, dob);
-
-								set_dupli_tex_mat(re, obi, dob, dob_extra->obmat);
-								if (dob->type != OB_DUPLIGROUP) {
-									copy_v3_v3(obi->dupliorco, dob->orco);
-									obi->dupliuv[0]= dob->uv[0];
-									obi->dupliuv[1]= dob->uv[1];
-								}
-								else {
-									assign_dupligroup_dupli(re, obi, obr, dob);
-									if (obd->transflag & OB_RENDER_DUPLI)
-										find_dupli_instances(re, obr, dob);
-								}
 							}
 						}
 

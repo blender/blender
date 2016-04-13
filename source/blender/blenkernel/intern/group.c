@@ -40,7 +40,6 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_particle_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -79,7 +78,6 @@ void BKE_group_unlink(Main *bmain, Group *group)
 	Object *ob;
 	Scene *sce;
 	SceneRenderLayer *srl;
-	ParticleSystem *psys;
 	
 	for (ma = bmain->mat.first; ma; ma = ma->id.next) {
 		if (ma->group == group)
@@ -118,15 +116,6 @@ void BKE_group_unlink(Main *bmain, Group *group)
 		
 		if (ob->dup_group == group) {
 			ob->dup_group = NULL;
-		}
-		
-		for (psys = ob->particlesystem.first; psys; psys = psys->next) {
-			if (psys->part->dup_group == group)
-				psys->part->dup_group = NULL;
-#if 0       /* not used anymore, only keps for readfile.c, no need to account for this */
-			if (psys->part->eff_group == group)
-				psys->part->eff_group = NULL;
-#endif
 		}
 	}
 	

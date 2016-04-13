@@ -82,7 +82,6 @@
 #include "DNA_object_fluidsim.h" // NT
 #include "DNA_object_types.h"
 #include "DNA_packedFile_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_property_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_text_types.h"
@@ -4011,101 +4010,6 @@ static void lib_link_partdeflect(FileData *fd, ID *id, PartDeflect *pd)
 		pd->tex = newlibadr_us(fd, id->lib, pd->tex);
 	if (pd && pd->f_source)
 		pd->f_source = newlibadr(fd, id->lib, pd->f_source);
-}
-
-static void lib_link_particlesettings(FileData *fd, Main *main)
-{
-	ParticleSettings *part;
-	ParticleDupliWeight *dw;
-	MTex *mtex;
-	int a;
-	
-	for (part = main->particle.first; part; part = part->id.next) {
-		if (part->id.tag & LIB_TAG_NEED_LINK) {
-			lib_link_animdata(fd, &part->id, part->adt);
-			part->ipo = newlibadr_us(fd, part->id.lib, part->ipo); // XXX deprecated - old animation system
-			
-			part->dup_ob = newlibadr(fd, part->id.lib, part->dup_ob);
-			part->dup_group = newlibadr(fd, part->id.lib, part->dup_group);
-			part->eff_group = newlibadr(fd, part->id.lib, part->eff_group);
-			part->bb_ob = newlibadr(fd, part->id.lib, part->bb_ob);
-			
-			lib_link_partdeflect(fd, &part->id, part->pd);
-			lib_link_partdeflect(fd, &part->id, part->pd2);
-			
-			if (part->effector_weights)
-				part->effector_weights->group = newlibadr(fd, part->id.lib, part->effector_weights->group);
-			
-			if (part->dupliweights.first && part->dup_group) {
-				int index_ok = 0;
-				/* check for old files without indices (all indexes 0) */
-				if (BLI_listbase_is_single(&part->dupliweights)) {
-					/* special case for only one object in the group */
-					index_ok = 1;
-				}
-				else {
-					for (dw = part->dupliweights.first; dw; dw = dw->next) {
-						if (dw->index > 0) {
-							index_ok = 1;
-							break;
-						}
-					}
-				}
-
-				if (index_ok) {
-					/* if we have indexes, let's use them */
-					for (dw = part->dupliweights.first; dw; dw = dw->next) {
-						GroupObject *go = (GroupObject *)BLI_findlink(&part->dup_group->gobject, dw->index);
-						dw->ob = go ? go->ob : NULL;
-					}
-				}
-				else {
-					/* otherwise try to get objects from own library (won't work on library linked groups) */
-					for (dw = part->dupliweights.first; dw; dw = dw->next) {
-						dw->ob = newlibadr(fd, part->id.lib, dw->ob);
-					}
-				}
-			}
-			else {
-				BLI_listbase_clear(&part->dupliweights);
-			}
-			
-			if (part->boids) {
-				BoidState *state = part->boids->states.first;
-				BoidRule *rule;
-				for (; state; state=state->next) {
-					rule = state->rules.first;
-					for (; rule; rule=rule->next) {
-						switch (rule->type) {
-							case eBoidRuleType_Goal:
-							case eBoidRuleType_Avoid:
-							{
-								BoidRuleGoalAvoid *brga = (BoidRuleGoalAvoid*)rule;
-								brga->ob = newlibadr(fd, part->id.lib, brga->ob);
-								break;
-							}
-							case eBoidRuleType_FollowLeader:
-							{
-								BoidRuleFollowLeader *brfl = (BoidRuleFollowLeader*)rule;
-								brfl->ob = newlibadr(fd, part->id.lib, brfl->ob);
-								break;
-							}
-						}
-					}
-				}
-			}
-
-			for (a = 0; a < MAX_MTEX; a++) {
-				mtex= part->mtex[a];
-				if (mtex) {
-					mtex->tex = newlibadr_us(fd, part->id.lib, mtex->tex);
-					mtex->object = newlibadr(fd, part->id.lib, mtex->object);
-				}
-			}
-			
-			part->id.tag &= ~LIB_TAG_NEED_LINK;
-		}
-	}
 }
 
 static void direct_link_partdeflect(PartDeflect *pd)
@@ -8076,7 +7980,6 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_brush(fd, main);
 	lib_link_palette(fd, main);
 	lib_link_paint_curve(fd, main);
-	lib_link_particlesettings(fd, main);
 	lib_link_movieclip(fd, main);
 	lib_link_mask(fd, main);
 	lib_link_linestyle(fd, main);
@@ -8584,26 +8487,6 @@ static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 		expand_animdata_nlastrips(fd, mainvar, &nlt->strips);
 }	
 
-static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSettings *part)
-{
-	int a;
-	
-	expand_doit(fd, mainvar, part->dup_ob);
-	expand_doit(fd, mainvar, part->dup_group);
-	expand_doit(fd, mainvar, part->eff_group);
-	expand_doit(fd, mainvar, part->bb_ob);
-	
-	if (part->adt)
-		expand_animdata(fd, mainvar, part->adt);
-	
-	for (a = 0; a < MAX_MTEX; a++) {
-		if (part->mtex[a]) {
-			expand_doit(fd, mainvar, part->mtex[a]->tex);
-			expand_doit(fd, mainvar, part->mtex[a]->object);
-		}
-	}
-}
-
 static void expand_group(FileData *fd, Main *mainvar, Group *group)
 {
 	GroupObject *go;
@@ -8906,7 +8789,6 @@ static void expand_object_expandModifiers(
 
 static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 {
-	ParticleSystem *psys;
 	bSensor *sens;
 	bController *cont;
 	bActuator *act;
@@ -8962,9 +8844,6 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		expand_doit(fd, mainvar, ob->proxy);
 	if (ob->proxy_group)
 		expand_doit(fd, mainvar, ob->proxy_group);
-	
-	for (psys = ob->particlesystem.first; psys; psys = psys->next)
-		expand_doit(fd, mainvar, psys->part);
 	
 	for (sens = ob->sensors.first; sens; sens = sens->next) {
 		if (sens->type == SENS_MESSAGE) {
@@ -9324,9 +9203,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
 						break;
 					case ID_IP:
 						expand_ipo(fd, mainvar, (Ipo *)id); // XXX deprecated - old animation system
-						break;
-					case ID_PA:
-						expand_particlesettings(fd, mainvar, (ParticleSettings *)id);
 						break;
 					case ID_MC:
 						expand_movieclip(fd, mainvar, (MovieClip *)id);

@@ -50,12 +50,7 @@ static void node_shader_exec_particle_info(void *data, int UNUSED(thread), bNode
 
 static int gpu_shader_particle_info(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-
-	return GPU_stack_link(mat, "particle_info", in, out,
-	                      GPU_builtin(GPU_PARTICLE_SCALAR_PROPS),
-	                      GPU_builtin(GPU_PARTICLE_LOCATION),
-	                      GPU_builtin(GPU_PARTICLE_VELOCITY),
-	                      GPU_builtin(GPU_PARTICLE_ANG_VELOCITY));
+	return GPU_stack_link(mat, "particle_info", in, out);
 }
 
 /* node type definition */

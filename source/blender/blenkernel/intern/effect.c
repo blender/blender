@@ -43,7 +43,6 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
-#include "DNA_particle_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 
@@ -147,12 +146,11 @@ void free_partdeflect(PartDeflect *pd)
 	MEM_freeN(pd);
 }
 
-static EffectorCache *new_effector_cache(Scene *scene, Object *ob, ParticleSystem *psys, PartDeflect *pd)
+static EffectorCache *new_effector_cache(Scene *scene, Object *ob, PartDeflect *pd)
 {
 	EffectorCache *eff = MEM_callocN(sizeof(EffectorCache), "EffectorCache");
 	eff->scene = scene;
 	eff->ob = ob;
-	eff->psys = psys;
 	eff->pd = pd;
 	eff->frame = -1;
 	return eff;
@@ -170,7 +168,7 @@ static void add_object_to_effectors(ListBase **effectors, Scene *scene, Effector
 	if (*effectors == NULL)
 		*effectors = MEM_callocN(sizeof(ListBase), "effectors list");
 
-	eff = new_effector_cache(scene, ob, NULL, ob->pd);
+	eff = new_effector_cache(scene, ob, ob->pd);
 
 	/* make sure imat is up to date */
 	invert_m4_m4(ob->imat, ob->obmat);
@@ -179,7 +177,7 @@ static void add_object_to_effectors(ListBase **effectors, Scene *scene, Effector
 }
 
 /* returns ListBase handle with objects taking part in the effecting */
-ListBase *pdInitEffectors(Scene *scene, Object *ob_src, ParticleSystem *UNUSED(psys_src),
+ListBase *pdInitEffectors(Scene *scene, Object *ob_src,
                           EffectorWeights *weights, bool precalc)
 {
 	Base *base;
@@ -577,7 +575,7 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 
 	return ret;
 }
-static void get_effector_tot(EffectorCache *eff, EffectorData *efd, EffectedPoint *point, int *tot, int *p, int *step)
+static void get_effector_tot(EffectorCache *eff, EffectorData *efd, EffectedPoint *point, int *tot, int *p)
 {
 	*p = 0;
 	efd->index = p;
@@ -588,31 +586,6 @@ static void get_effector_tot(EffectorCache *eff, EffectorData *efd, EffectedPoin
 		if (*tot && eff->pd->forcefield == PFIELD_HARMONIC && point->index >= 0) {
 			*p = point->index % *tot;
 			*tot = *p+1;
-		}
-	}
-	else if (eff->psys) {
-		*tot = eff->psys->totpart;
-		
-		if (eff->pd->forcefield == PFIELD_CHARGE) {
-			/* Only the charge of the effected particle is used for 
-			 * interaction, not fall-offs. If the fall-offs aren't the
-			 * same this will be unphysical, but for animation this
-			 * could be the wanted behavior. If you want physical
-			 * correctness the fall-off should be spherical 2.0 anyways.
-			 */
-			efd->charge = eff->pd->f_strength;
-		}
-		else if (eff->pd->forcefield == PFIELD_HARMONIC && (eff->pd->flag & PFIELD_MULTIPLE_SPRINGS)==0) {
-			/* every particle is mapped to only one harmonic effector particle */
-			*p= point->index % eff->psys->totpart;
-			*tot= *p + 1;
-		}
-
-		if (eff->psys->part->effector_amount) {
-			int totpart = eff->psys->totpart;
-			int amount = eff->psys->part->effector_amount;
-
-			*step = (totpart > amount) ? totpart/amount : 1;
 		}
 	}
 	else {
@@ -875,7 +848,7 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
  */
 	EffectorCache *eff;
 	EffectorData efd;
-	int p=0, tot = 1, step = 1;
+	int p=0, tot = 1;
 
 	/* Cycle through collected objects, get total of (1/(gravity_strength * dist^gravity_power)) */
 	/* Check for min distance here? (yes would be cool to add that, ton) */
@@ -883,9 +856,9 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 	if (effectors) for (eff = effectors->first; eff; eff=eff->next) {
 		/* object effectors were fully checked to be OK to evaluate! */
 
-		get_effector_tot(eff, &efd, point, &tot, &p, &step);
+		get_effector_tot(eff, &efd, point, &tot, &p);
 
-		for (; p<tot; p+=step) {
+		for (; p<tot; p++) {
 			if (get_effector_data(eff, &efd, point, 0)) {
 				efd.falloff= effector_falloff(eff, &efd, point, weights);
 				

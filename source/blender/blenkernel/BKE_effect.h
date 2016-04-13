@@ -43,7 +43,7 @@ struct ListBase;
 struct Group;
 struct ParticleSimulationData;
 struct ParticleData;
-struct ParticleKey;
+struct PointCacheKey;
 
 struct EffectorWeights *BKE_add_effector_weights(struct Group *group);
 struct PartDeflect *object_add_collision_fields(int type);
@@ -95,7 +95,6 @@ typedef struct EffectorCache {
 
 	struct Scene *scene;
 	struct Object *ob;
-	struct ParticleSystem *psys;
 	struct SurfaceModifierData *surmd;
 	
 	struct PartDeflect *pd;
@@ -110,7 +109,7 @@ typedef struct EffectorCache {
 } EffectorCache;
 
 void            free_partdeflect(struct PartDeflect *pd);
-struct ListBase *pdInitEffectors(struct Scene *scene, struct Object *ob_src, struct ParticleSystem *psys_src, struct EffectorWeights *weights, bool precalc);
+struct ListBase *pdInitEffectors(struct Scene *scene, struct Object *ob_src, struct EffectorWeights *weights, bool precalc);
 void            pdEndEffectors(struct ListBase **effectors);
 void            pdPrecalculateEffectors(struct ListBase *effectors);
 void            pdDoEffectors(struct ListBase *effectors, struct ListBase *colliders, struct EffectorWeights *weights, struct EffectedPoint *point, float *force, float *impulse);

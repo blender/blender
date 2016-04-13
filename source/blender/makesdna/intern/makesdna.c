@@ -114,7 +114,6 @@ static const char *includefiles[] = {
 	"DNA_color_types.h",
 	"DNA_brush_types.h",
 	"DNA_customdata_types.h",
-	"DNA_particle_types.h",
 	"DNA_cloth_types.h",
 	"DNA_gpencil_types.h",
 	"DNA_windowmanager_types.h",
@@ -1289,7 +1288,6 @@ int main(int argc, char **argv)
 #include "DNA_color_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_cloth_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_windowmanager_types.h"

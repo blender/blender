@@ -57,7 +57,6 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
 
@@ -2198,7 +2197,7 @@ static void update_effectors(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 	ListBase *effectors;
 	/* make sure smoke flow influence is 0.0f */
 	sds->effector_weights->weight[PFIELD_SMOKEFLOW] = 0.0f;
-	effectors = pdInitEffectors(scene, ob, NULL, sds->effector_weights, true);
+	effectors = pdInitEffectors(scene, ob, sds->effector_weights, true);
 
 	if (effectors) {
 		// precalculate wind forces

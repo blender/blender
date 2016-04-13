@@ -85,7 +85,7 @@ struct ClothModifierData;
 struct ListBase;
 struct Main;
 struct Object;
-struct ParticleKey;
+struct PointCacheKey;
 struct ParticleSystem;
 struct PointCache;
 struct Scene;
@@ -264,12 +264,18 @@ typedef struct PTCacheEdit {
 	unsigned char nosel_col[3];
 } PTCacheEdit;
 
-/* Particle functions */
-void BKE_ptcache_make_particle_key(struct ParticleKey *key, int index, void **data, float time);
+typedef struct PointCacheKey {
+	float co[3];	/* location */
+	float vel[3];	/* velocity */
+	float rot[4];	/* rotation quaternion */
+	float ave[3];	/* angular velocity */
+	float time;		/* when this key happens */
+} PointCacheKey;
+
+void BKE_ptcache_make_key(struct PointCacheKey *key, int index, void **data, float time);
 
 /**************** Creating ID's ****************************/
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, struct Object *ob, struct SoftBody *sb);
-void BKE_ptcache_id_from_particles(PTCacheID *pid, struct Object *ob, struct ParticleSystem *psys);
 void BKE_ptcache_id_from_cloth(PTCacheID *pid, struct Object *ob, struct ClothModifierData *clmd);
 void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeModifierData *smd);
 void BKE_ptcache_id_from_dynamicpaint(PTCacheID *pid, struct Object *ob, struct DynamicPaintSurface *surface);
