@@ -280,8 +280,8 @@ BVHNode* BVHBuild::run()
 		size_t num_bins = max(root.size(), (int)BVHParams::NUM_SPATIAL_BINS) - 1;
 		foreach(BVHSpatialStorage &storage, spatial_storage) {
 			storage.right_bounds.clear();
-			storage.right_bounds.resize(num_bins);
 		}
+		spatial_storage[0].right_bounds.resize(num_bins);
 	}
 	spatial_free_index = 0;
 
