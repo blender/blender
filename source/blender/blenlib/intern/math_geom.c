@@ -2512,8 +2512,8 @@ float ray_point_factor_v3_ex(
 {
 	float p_relative[3];
 	sub_v3_v3v3(p_relative, p, ray_origin);
-	const float dot = dot_v3v3(ray_direction, ray_direction);
-	return (fabsf(dot) > epsilon) ? (dot_v3v3(ray_direction, p_relative) / dot) : fallback;
+	const float dot = len_squared_v3(ray_direction);
+	return (dot > epsilon) ? (dot_v3v3(ray_direction, p_relative) / dot) : fallback;
 }
 
 float ray_point_factor_v3(
@@ -2541,8 +2541,8 @@ float line_point_factor_v3_ex(
 	return (dot_v3v3(u, h) / dot_v3v3(u, u));
 #else
 	/* better check for zero */
-	dot = dot_v3v3(u, u);
-	return (fabsf(dot) > epsilon) ? (dot_v3v3(u, h) / dot) : fallback;
+	dot = len_squared_v3(u);
+	return (dot > epsilon) ? (dot_v3v3(u, h) / dot) : fallback;
 #endif
 }
 float line_point_factor_v3(
@@ -2563,8 +2563,8 @@ float line_point_factor_v2_ex(
 	return (dot_v2v2(u, h) / dot_v2v2(u, u));
 #else
 	/* better check for zero */
-	dot = dot_v2v2(u, u);
-	return (fabsf(dot) > epsilon) ? (dot_v2v2(u, h) / dot) : fallback;
+	dot = len_squared_v2(u);
+	return (dot > epsilon) ? (dot_v2v2(u, h) / dot) : fallback;
 #endif
 }
 
