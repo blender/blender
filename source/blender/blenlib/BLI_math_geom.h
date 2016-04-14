@@ -127,6 +127,12 @@ void closest_to_plane3_v3(float r_close[3], const float plane[3], const float pt
 /* Set 'r' to the point in triangle (t1, t2, t3) closest to point 'p' */
 void closest_on_tri_to_point_v3(float r[3], const float p[3], const float t1[3], const float t2[3], const float t3[3]);
 
+float ray_point_factor_v3_ex(
+        const float p[3], const float ray_origin[3], const float ray_direction[3],
+        const float epsilon, const float fallback);
+float ray_point_factor_v3(
+        const float p[3], const float ray_origin[3], const float ray_direction[3]);
+
 float line_point_factor_v3_ex(
         const float p[3], const float l1[3], const float l2[3],
         const float epsilon, const float fallback);

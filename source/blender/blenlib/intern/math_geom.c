@@ -2506,6 +2506,22 @@ float closest_to_line_v2(float r_close[2], const float p[2], const float l1[2], 
 	return lambda;
 }
 
+float ray_point_factor_v3_ex(
+        const float p[3], const float ray_origin[3], const float ray_direction[3],
+        const float epsilon, const float fallback)
+{
+	float p_relative[3];
+	sub_v3_v3v3(p_relative, p, ray_origin);
+	const float dot = dot_v3v3(ray_direction, ray_direction);
+	return (fabsf(dot) > epsilon) ? (dot_v3v3(ray_direction, p_relative) / dot) : fallback;
+}
+
+float ray_point_factor_v3(
+        const float p[3], const float ray_origin[3], const float ray_direction[3])
+{
+	return ray_point_factor_v3_ex(p, ray_origin, ray_direction, 0.0f, 0.0f);
+}
+
 /**
  * A simplified version of #closest_to_line_v3
  * we only need to return the ``lambda``
