@@ -54,6 +54,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_nla.h"
@@ -2598,6 +2599,133 @@ void GRAPH_OT_fmodifier_paste(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = graph_fmodifier_paste_exec;
+	ot->poll = graphop_active_fcurve_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "only_active", true, "Only Active", "Only paste F-Modifiers on active F-Curve");
+	RNA_def_boolean(ot->srna, "replace", false, "Replace Existing", 
+	                "Replace existing F-Modifiers, instead of just appending to the end of the existing list");
+}
+
+/* ************************************************************************** */
+/* Drivers */
+
+/* ******************** Copy Driver Vars Operator *********************** */
+
+static int graph_driver_vars_copy_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	bAnimListElem *ale;
+	bool ok = false;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* clear buffer first */
+	ANIM_driver_vars_copybuf_free();
+	
+	/* get the active F-Curve */
+	ale = get_active_fcurve_channel(&ac);
+	
+	/* if this exists, call the copy driver vars API function */
+	if (ale && ale->data) {
+		FCurve *fcu = (FCurve *)ale->data;
+		
+		ok = ANIM_driver_vars_copy(op->reports, fcu);
+		
+		/* free temp data now */
+		MEM_freeN(ale);
+	}
+	
+	/* successful or not? */
+	if (ok == 0)
+		return OPERATOR_CANCELLED;
+	else
+		return OPERATOR_FINISHED;
+}
+ 
+void GRAPH_OT_driver_variables_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Copy Driver Variables";
+	ot->idname = "GRAPH_OT_driver_variables_copy";
+	ot->description = "Copy the driver variables of the active F-Curve";
+	
+	/* api callbacks */
+	ot->exec = graph_driver_vars_copy_exec;
+	ot->poll = graphop_active_fcurve_poll; 
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ******************** Paste Driver Vars Operator *********************** */
+
+static int graph_driver_vars_paste_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	const bool replace = RNA_boolean_get(op->ptr, "replace");
+	bool ok = false;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* filter data */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ACTIVE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* paste modifiers */
+	for (ale = anim_data.first; ale; ale = ale->next) {
+		FCurve *fcu = (FCurve *)ale->data;
+		bool paste_ok;
+		
+		printf("pasting vars to %p -> %p\n", fcu, fcu->driver);
+		paste_ok = ANIM_driver_vars_paste(op->reports, fcu, replace);
+		
+		if (paste_ok) {
+			//ale->update |= ANIM_UPDATE_DEPS;
+			printf("now we have: %d vars\n",  BLI_listbase_count(&fcu->driver->variables));
+			ok = true;
+		}
+	}
+	
+	// XXX: something causes a crash after adding the copies (to empty list), if we do an update immediately
+	if (ok) {
+		DAG_relations_tag_update(CTX_data_main(C));
+		//ANIM_animdata_update(&ac, &anim_data);
+	}
+	ANIM_animdata_freelist(&anim_data);
+	
+	/* successful or not? */
+	if (ok) {
+		/* set notifier that keyframes have changed */
+		WM_event_add_notifier(C, NC_SCENE | ND_FRAME, CTX_data_scene(C));
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+ 
+void GRAPH_OT_driver_variables_paste(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Paste Driver Variables";
+	ot->idname = "GRAPH_OT_driver_variables_paste";
+	ot->description = "Add copied driver variables to the active driver";
+	
+	/* api callbacks */
+	ot->exec = graph_driver_vars_paste_exec;
 	ot->poll = graphop_active_fcurve_poll;
 	
 	/* flags */

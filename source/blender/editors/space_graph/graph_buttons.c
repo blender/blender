@@ -516,7 +516,7 @@ static void driver_delete_var_cb(bContext *UNUSED(C), void *driver_v, void *dvar
 	DriverVar *dvar = (DriverVar *)dvar_v;
 	
 	/* remove the active variable */
-	driver_free_variable(driver, dvar);
+	driver_free_variable_ex(driver, dvar);
 }
 
 /* callback to report why a driver variable is invalid */
@@ -825,14 +825,26 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		uiItemL(row, valBuf, ICON_NONE);
 	}
 	
-	/* add driver variables */
-	col = uiLayoutColumn(pa->layout, false);
-	block = uiLayoutGetBlock(col);
-	but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_ZOOMIN, IFACE_("Add Variable"),
-	               0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
-	               NULL, 0.0, 0.0, 0, 0,
-	               TIP_("Driver variables ensure that all dependencies will be accounted for and that drivers will update correctly"));
-	UI_but_func_set(but, driver_add_var_cb, driver, NULL);
+	/* add/copy/paste driver variables */
+	{
+		uiLayout *row;
+		
+		/* add driver variable */
+		row = uiLayoutRow(pa->layout, false);
+		block = uiLayoutGetBlock(row);
+		but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_ZOOMIN, IFACE_("Add Variable"),
+	                           0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
+	                           NULL, 0.0, 0.0, 0, 0,
+	                           TIP_("Driver variables ensure that all dependencies will be accounted for and that drivers will update correctly"));
+		UI_but_func_set(but, driver_add_var_cb, driver, NULL);
+		
+		/* copy/paste (as sub-row) */
+		row = uiLayoutRow(row, true);
+		block = uiLayoutGetBlock(row);
+		
+		uiItemO(row, "", ICON_COPYDOWN, "GRAPH_OT_driver_variables_copy");
+		uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_driver_variables_paste");
+	}
 	
 	/* loop over targets, drawing them */
 	for (dvar = driver->variables.first; dvar; dvar = dvar->next) {

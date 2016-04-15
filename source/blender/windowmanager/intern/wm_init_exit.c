@@ -510,6 +510,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 //	free_matcopybuf();
 	ANIM_fcurves_copybuf_free();
 	ANIM_drivers_copybuf_free();
+	ANIM_driver_vars_copybuf_free();
 	ANIM_fmodifiers_copybuf_free();
 	ED_gpencil_anim_copybuf_free();
 	ED_gpencil_strokes_copybuf_free();

@@ -300,7 +300,7 @@ static void rna_Driver_remove_variable(ChannelDriver *driver, ReportList *report
 		return;
 	}
 
-	driver_free_variable(driver, dvar);
+	driver_free_variable_ex(driver, dvar);
 	RNA_POINTER_INVALIDATE(dvar_ptr);
 }
 
