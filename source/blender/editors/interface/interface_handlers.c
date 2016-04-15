@@ -6778,10 +6778,19 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 			        ICON_NONE, "UI_OT_unset_property_button");
 		}
 		
+		if (is_array_component) {
+			uiItemBooleanO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy All To Selected"),
+			               ICON_NONE, "UI_OT_copy_to_selected_button", "all", true);
+			uiItemBooleanO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Single To Selected"),
+			               ICON_NONE, "UI_OT_copy_to_selected_button", "all", false);
+		}
+		else {
+			uiItemBooleanO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy To Selected"),
+		                   ICON_NONE, "UI_OT_copy_to_selected_button", "all", true);
+		}
+
 		uiItemO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Data Path"),
 		        ICON_NONE, "UI_OT_copy_data_path_button");
-		uiItemO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy To Selected"),
-		        ICON_NONE, "UI_OT_copy_to_selected_button");
 
 		uiItemS(layout);
 	}
