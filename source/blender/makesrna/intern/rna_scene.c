@@ -1767,6 +1767,11 @@ static char *rna_UnifiedPaintSettings_path(PointerRNA *UNUSED(ptr))
 	return BLI_strdup("tool_settings.unified_paint_settings");
 }
 
+static char *rna_CurvePaintSettings_path(PointerRNA *UNUSED(ptr))
+{
+	return BLI_strdup("tool_settings.curve_paint_settings");
+}
+
 /* generic function to recalc geometry */
 static void rna_EditMesh_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
@@ -2497,6 +2502,12 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_struct_type(prop, "UnifiedPaintSettings");
 	RNA_def_property_ui_text(prop, "Unified Paint Settings", NULL);
 
+	/* Curve Paint Settings */
+	prop = RNA_def_property(srna, "curve_paint_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "CurvePaintSettings");
+	RNA_def_property_ui_text(prop, "Curve Paint Settings", NULL);
+
 	/* Mesh Statistics */
 	prop = RNA_def_property(srna, "statvis", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -2593,6 +2604,96 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Use Blender Units",
 	                         "When locked brush stays same size relative to object; "
 	                         "when unlocked brush size is given in pixels");
+}
+
+
+static void rna_def_curve_paint_settings(BlenderRNA  *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "CurvePaintSettings", NULL);
+	RNA_def_struct_path_func(srna, "rna_CurvePaintSettings_path");
+	RNA_def_struct_ui_text(srna, "Curve Paint Settings", "");
+
+	static EnumPropertyItem curve_type_items[] = {
+		{CU_POLY, "POLY", 0, "Poly", ""},
+		{CU_BEZIER, "BEZIER", 0, "Bezier", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	prop = RNA_def_property(srna, "curve_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "curve_type");
+	RNA_def_property_enum_items(prop, curve_type_items);
+	RNA_def_property_ui_text(prop, "Type", "Type of curve to use for new strokes");
+
+	prop = RNA_def_property(srna, "use_corners_detect", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CURVE_PAINT_FLAG_CORNERS_DETECT);
+	RNA_def_property_ui_text(prop, "Detect Corners", "Detect corners and use non-aligned handles");
+
+	prop = RNA_def_property(srna, "use_pressure_radius", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CURVE_PAINT_FLAG_PRESSURE_RADIUS);
+	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
+	RNA_def_property_ui_text(prop, "Use Pressure", "Map tablet pressure to curve radius");
+
+	prop = RNA_def_property(srna, "use_stroke_endpoints", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CURVE_PAINT_FLAG_DEPTH_STROKE_ENDPOINTS);
+	RNA_def_property_ui_text(prop, "Only First", "Use the start of the stroke for the depth");
+
+	prop = RNA_def_property(srna, "error_threshold", PROP_INT, PROP_PIXEL);
+	RNA_def_property_range(prop, 1, 100);
+	RNA_def_property_ui_text(prop, "Tolerance", "Allow deviation for a smoother, less preceise line");
+
+	prop = RNA_def_property(srna, "corner_angle", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_range(prop, 0, M_PI);
+	RNA_def_property_ui_text(prop, "Corner Angle", "Angles above this are considered corners");
+
+	prop = RNA_def_property(srna, "radius_min", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, 100.0);
+	RNA_def_property_ui_range(prop, 0.0f, 10.0, 10, 2);
+	RNA_def_property_ui_text(prop, "Radius Min",
+	                         "Minimum radius when the minimum pressure is applied (also the minimum when tapering)");
+
+	prop = RNA_def_property(srna, "radius_max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, 100.0);
+	RNA_def_property_ui_range(prop, 0.0f, 10.0, 10, 2);
+	RNA_def_property_ui_text(prop, "Radius Max",
+	                         "Radius to use when the maximum pressure is applied (or when a tablet isn't used)");
+
+	prop = RNA_def_property(srna, "radius_taper_start", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Radius Min", "Taper factor for the radius of each point along the curve");
+
+	prop = RNA_def_property(srna, "radius_taper_end", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, 10.0);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Radius Max", "Taper factor for the radius of each point along the curve");
+
+	prop = RNA_def_property(srna, "radius_offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, -10.0, 10.0);
+	RNA_def_property_ui_range(prop, -1.0f, 1.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Offset", "Offset the stroke from the surface");
+
+	static EnumPropertyItem depth_mode_items[] = {
+		{CURVE_PAINT_PROJECT_CURSOR,  "CURSOR",  0, "Cursor",  ""},
+		{CURVE_PAINT_PROJECT_SURFACE, "SURFACE", 0, "Surface", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	prop = RNA_def_property(srna, "depth_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "depth_mode");
+	RNA_def_property_enum_items(prop, depth_mode_items);
+	RNA_def_property_ui_text(prop, "Depth", "Method of projecting depth");
+
+	static EnumPropertyItem surface_plane_items[] = {
+		{CURVE_PAINT_SURFACE_PLANE_NORMAL_VIEW,  "NORMAL_VIEW", 0, "Normal/View", "Draw perpendicular to the surface"},
+		{CURVE_PAINT_SURFACE_PLANE_NORMAL_SURFACE, "NORMAL_SURFACE", 0, "Normal/Surface", "Draw aligned to the surface"},
+		{CURVE_PAINT_SURFACE_PLANE_VIEW, "VIEW", 0, "View", "Draw aligned to the viewport"},
+		{0, NULL, 0, NULL, NULL}};
+
+	prop = RNA_def_property(srna, "surface_plane", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "surface_plane");
+	RNA_def_property_enum_items(prop, surface_plane_items);
+	RNA_def_property_ui_text(prop, "Plane", "Plane for projected stroke");
 }
 
 static void rna_def_statvis(BlenderRNA  *brna)
@@ -6720,6 +6821,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_define_animate_sdna(false);
 	rna_def_tool_settings(brna);
 	rna_def_unified_paint_settings(brna);
+	rna_def_curve_paint_settings(brna);
 	rna_def_statvis(brna);
 	rna_def_unit_settings(brna);
 	rna_def_scene_image_format_data(brna);

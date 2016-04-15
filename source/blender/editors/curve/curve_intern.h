@@ -166,4 +166,7 @@ void SURFACE_OT_primitive_nurbs_surface_cylinder_add(struct wmOperatorType *ot);
 void SURFACE_OT_primitive_nurbs_surface_sphere_add(struct wmOperatorType *ot);
 void SURFACE_OT_primitive_nurbs_surface_torus_add(struct wmOperatorType *ot);
 
+/* editcurve_paint.c */
+void CURVE_OT_draw(struct wmOperatorType *ot);
+
 #endif /* __CURVE_INTERN_H__ */

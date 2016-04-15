@@ -55,7 +55,7 @@
  *
  * \returns zero on success, nonzero is reserved for error values.
  */
-int curve_fit_cubic_from_points_db(
+int curve_fit_cubic_to_points_db(
         const double       *points,
         const unsigned int  points_len,
         const unsigned int  dims,
@@ -67,7 +67,7 @@ int curve_fit_cubic_from_points_db(
         unsigned int **r_cubic_orig_index,
         unsigned int **r_corner_index_array, unsigned int *r_corner_index_len);
 
-int curve_fit_cubic_from_points_fl(
+int curve_fit_cubic_to_points_fl(
         const float        *points,
         const unsigned int  points_len,
         const unsigned int  dims,

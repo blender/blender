@@ -846,7 +846,7 @@ static void fit_cubic_to_points(
  * Take an array of 3d points.
  * return the cubic splines
  */
-int curve_fit_cubic_from_points_db(
+int curve_fit_cubic_to_points_db(
         const double *points,
         const uint    points_len,
         const uint    dims,
@@ -984,9 +984,9 @@ int curve_fit_cubic_from_points_db(
 }
 
 /**
- * A version of #curve_fit_cubic_from_points_db to handle floats
+ * A version of #curve_fit_cubic_to_points_db to handle floats
  */
-int curve_fit_cubic_from_points_fl(
+int curve_fit_cubic_to_points_fl(
         const float  *points,
         const uint    points_len,
         const uint    dims,
@@ -1009,7 +1009,7 @@ int curve_fit_cubic_from_points_fl(
 	float  *cubic_array_fl = NULL;
 	uint    cubic_array_len = 0;
 
-	int result = curve_fit_cubic_from_points_db(
+	int result = curve_fit_cubic_to_points_db(
 	        points_db, points_len, dims, error_threshold, corners, corners_len,
 	        &cubic_array_db, &cubic_array_len,
 	        r_cubic_orig_index,
