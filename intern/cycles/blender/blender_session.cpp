@@ -1113,7 +1113,8 @@ void BlenderSession::builtin_image_info(const string &builtin_name, void *builti
 			return;
 
 		if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_DENSITY) ||
-		   builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_FLAME))
+		   builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_FLAME) ||
+		   builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_HEAT))
 			channels = 1;
 		else if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_COLOR))
 			channels = 4;
@@ -1124,6 +1125,13 @@ void BlenderSession::builtin_image_info(const string &builtin_name, void *builti
 
 		int3 resolution = get_int3(b_domain.domain_resolution());
 		int amplify = (b_domain.use_high_resolution())? b_domain.amplify() + 1: 1;
+
+		/* Velocity and heat data is always low-resolution. */
+		if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY) ||
+		   builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_HEAT))
+		{
+			amplify = 1;
+		}
 
 		width = resolution.x * amplify;
 		height = resolution.y * amplify;
@@ -1248,8 +1256,10 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 		int3 resolution = get_int3(b_domain.domain_resolution());
 		int length, amplify = (b_domain.use_high_resolution())? b_domain.amplify() + 1: 1;
 
-		/* Velocity data is always low-resolution. */
-		if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY)) {
+		/* Velocity and heat data is always low-resolution. */
+		if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY) ||
+		   builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_HEAT))
+		{
 			amplify = 1;
 		}
 
@@ -1260,7 +1270,6 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 
 		if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_DENSITY)) {
 			SmokeDomainSettings_density_grid_get_length(&b_domain.ptr, &length);
-
 			if(length == num_pixels) {
 				SmokeDomainSettings_density_grid_get(&b_domain.ptr, pixels);
 				return true;
@@ -1270,7 +1279,6 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 			/* this is in range 0..1, and interpreted by the OpenGL smoke viewer
 			 * as 1500..3000 K with the first part faded to zero density */
 			SmokeDomainSettings_flame_grid_get_length(&b_domain.ptr, &length);
-
 			if(length == num_pixels) {
 				SmokeDomainSettings_flame_grid_get(&b_domain.ptr, pixels);
 				return true;
@@ -1279,7 +1287,6 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 		else if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_COLOR)) {
 			/* the RGB is "premultiplied" by density for better interpolation results */
 			SmokeDomainSettings_color_grid_get_length(&b_domain.ptr, &length);
-
 			if(length == num_pixels*4) {
 				SmokeDomainSettings_color_grid_get(&b_domain.ptr, pixels);
 				return true;
@@ -1287,9 +1294,15 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 		}
 		else if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY)) {
 			SmokeDomainSettings_velocity_grid_get_length(&b_domain.ptr, &length);
-
 			if(length == num_pixels*3) {
 				SmokeDomainSettings_velocity_grid_get(&b_domain.ptr, pixels);
+				return true;
+			}
+		}
+		else if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_HEAT)) {
+			SmokeDomainSettings_heat_grid_get_length(&b_domain.ptr, &length);
+			if(length == num_pixels) {
+				SmokeDomainSettings_heat_grid_get(&b_domain.ptr, pixels);
 				return true;
 			}
 		}
