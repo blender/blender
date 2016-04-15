@@ -22,6 +22,7 @@
 #include "util_image.h"
 #include "util_path.h"
 #include "util_progress.h"
+#include "util_texture.h"
 
 #ifdef WITH_OSL
 #include <OSL/oslexec.h>

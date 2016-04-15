@@ -24,34 +24,7 @@
 #include "util_thread.h"
 #include "util_vector.h"
 
-#include "kernel_types.h"  /* for TEX_NUM_FLOAT_IMAGES */
-
 CCL_NAMESPACE_BEGIN
-
-/* generic */
-#define TEX_NUM_IMAGES			88
-#define TEX_IMAGE_BYTE_START	TEX_NUM_FLOAT_IMAGES
-
-/* extended gpu */
-#define TEX_EXTENDED_NUM_IMAGES_GPU		145
-
-/* extended cpu */
-#define TEX_EXTENDED_NUM_FLOAT_IMAGES	1024
-#define TEX_EXTENDED_NUM_IMAGES_CPU		1024
-#define TEX_EXTENDED_IMAGE_BYTE_START	TEX_EXTENDED_NUM_FLOAT_IMAGES
-
-/* Limitations for packed images.
- *
- * Technically number of textures is unlimited, but it should in
- * fact be in sync with CPU limitations.
- */
-#define TEX_PACKED_NUM_IMAGES			1024
-
-/* color to use when textures are not found */
-#define TEX_IMAGE_MISSING_R 1
-#define TEX_IMAGE_MISSING_G 0
-#define TEX_IMAGE_MISSING_B 1
-#define TEX_IMAGE_MISSING_A 1
 
 class Device;
 class DeviceScene;

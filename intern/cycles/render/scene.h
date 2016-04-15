@@ -22,11 +22,10 @@
 
 #include "device_memory.h"
 
-#include "kernel_types.h"
-
 #include "util_param.h"
 #include "util_string.h"
 #include "util_system.h"
+#include "util_texture.h"
 #include "util_thread.h"
 #include "util_types.h"
 #include "util_vector.h"
