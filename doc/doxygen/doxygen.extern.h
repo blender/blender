@@ -11,6 +11,10 @@
  *
  */
 
+/** \defgroup curve_fit Curve Fitting Library
+ *  \ingroup extern
+ */
+
 /** \defgroup bullet Bullet Physics Library
  *  \ingroup extern
  *  \see \ref bulletdoc
