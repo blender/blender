@@ -97,6 +97,11 @@ ccl_device_inline float fminf(float a, float b)
 
 #ifndef __KERNEL_GPU__
 
+ccl_device_inline int abs(int x)
+{
+	return (x > 0)? x: -x;
+}
+
 ccl_device_inline int max(int a, int b)
 {
 	return (a > b)? a: b;
