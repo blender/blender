@@ -635,8 +635,9 @@ void ANIM_driver_vars_copybuf_free(void)
 {
 	/* Free the driver variables kept in the buffer */
 	if (driver_vars_copybuf.first) {
-		/* Free variables (and any data they use) */
 		DriverVar *dvar, *dvarn;
+		
+		/* Free variables (and any data they use) */
 		for (dvar = driver_vars_copybuf.first; dvar; dvar = dvarn) {
 			dvarn = dvar->next;
 			driver_free_variable(&driver_vars_copybuf, dvar);
