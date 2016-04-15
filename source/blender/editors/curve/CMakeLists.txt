@@ -23,20 +23,24 @@ set(INC
 	../../blenkernel
 	../../blenlib
 	../../blentranslation
+	../../gpu
 	../../makesdna
 	../../makesrna
 	../../windowmanager
 	../../../../intern/guardedalloc
+	../../../../intern/glew-mx
+	../../../../extern/curve_fit_nd
 )
 
 set(INC_SYS
-
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
 	curve_ops.c
 	editcurve.c
 	editcurve_add.c
+	editcurve_paint.c
 	editcurve_select.c
 	editfont.c
 
@@ -46,5 +50,7 @@ set(SRC
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()
+
+add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_editor_curve "${SRC}" "${INC}" "${INC_SYS}")

@@ -97,9 +97,11 @@
 #include "wm_files.h"
 #include "wm_window.h"
 
+#include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_gpencil.h"
 #include "ED_keyframing.h"
+#include "ED_keyframes_edit.h"
 #include "ED_node.h"
 #include "ED_render.h"
 #include "ED_space_api.h"
@@ -399,13 +401,6 @@ static void free_openrecent(void)
 }
 
 
-/* bad stuff*/
-
-// XXX copy/paste buffer stuff...
-extern void free_anim_copybuf(void);
-extern void free_anim_drivers_copybuf(void);
-extern void free_fmodifiers_copybuf(void);
-
 #ifdef WIN32
 /* Read console events until there is a key event.  Also returns on any error. */
 static void wait_for_console_key(void)
@@ -513,9 +508,10 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	
 	free_blender();  /* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();
-	free_anim_copybuf();
-	free_anim_drivers_copybuf();
-	free_fmodifiers_copybuf();
+	ANIM_fcurves_copybuf_free();
+	ANIM_drivers_copybuf_free();
+	ANIM_driver_vars_copybuf_free();
+	ANIM_fmodifiers_copybuf_free();
 	ED_gpencil_anim_copybuf_free();
 	ED_gpencil_strokes_copybuf_free();
 	ED_clipboard_posebuf_free();

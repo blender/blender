@@ -148,6 +148,11 @@ void GRAPH_OT_fmodifier_paste(struct wmOperatorType *ot);
 
 /* ----------- */
 
+void GRAPH_OT_driver_variables_copy(struct wmOperatorType *ot);
+void GRAPH_OT_driver_variables_paste(struct wmOperatorType *ot);
+
+/* ----------- */
+
 void GRAPH_OT_ghost_curves_create(struct wmOperatorType *ot);
 void GRAPH_OT_ghost_curves_clear(struct wmOperatorType *ot);
 

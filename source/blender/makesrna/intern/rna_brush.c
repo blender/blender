@@ -653,34 +653,34 @@ static void rna_def_brush_texture_slot(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "brush_map_mode");
 	RNA_def_property_enum_items(prop, prop_map_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "");
-	RNA_def_property_update(prop, 0, "rna_TextureSlot_brush_update");
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop = RNA_def_property(srna, "tex_paint_map_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "brush_map_mode");
 	RNA_def_property_enum_items(prop, prop_tex_paint_map_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "");
-	RNA_def_property_update(prop, 0, "rna_TextureSlot_brush_update");
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop = RNA_def_property(srna, "mask_map_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "brush_map_mode");
 	RNA_def_property_enum_items(prop, prop_mask_paint_map_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "");
-	RNA_def_property_update(prop, 0, "rna_TextureSlot_brush_update");
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop = RNA_def_property(srna, "use_rake", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "brush_angle_mode", MTEX_ANGLE_RAKE);
 	RNA_def_property_ui_text(prop, "Rake", "");
-	RNA_def_property_update(prop, 0, "rna_TextureSlot_brush_update");
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop = RNA_def_property(srna, "use_random", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "brush_angle_mode", MTEX_ANGLE_RANDOM);
 	RNA_def_property_ui_text(prop, "Random", "");
-	RNA_def_property_update(prop, 0, "rna_TextureSlot_brush_update");
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop = RNA_def_property(srna, "random_angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_range(prop, 0, M_PI * 2);
 	RNA_def_property_ui_text(prop, "Random Angle", "Brush texture random angle");
-	RNA_def_property_update(prop, 0, "rna_TextureSlot_brush_update");
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 	
 	TEXTURE_CAPABILITY(has_texture_angle_source, "Has Texture Angle Source");
 	TEXTURE_CAPABILITY(has_random_texture_angle, "Has Random Texture Angle");

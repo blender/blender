@@ -643,7 +643,7 @@ void BlenderSession::bake(BL::Object& b_object,
 	bake_pass_filter = BakeManager::shader_type_to_pass_filter(shader_type, bake_pass_filter);
 
 	/* force use_light_pass to be true if we bake more than just colors */
-	if (bake_pass_filter & ~BAKE_FILTER_COLOR) {
+	if(bake_pass_filter & ~BAKE_FILTER_COLOR) {
 		Pass::add(PASS_LIGHT, scene->film->passes);
 	}
 
@@ -1077,8 +1077,8 @@ void BlenderSession::builtin_image_info(const string &builtin_name, void *builti
 {
 	/* empty image */
 	is_float = false;
-	width = 0;
-	height = 0;
+	width = 1;
+	height = 1;
 	depth = 0;
 	channels = 0;
 
@@ -1105,25 +1105,37 @@ void BlenderSession::builtin_image_info(const string &builtin_name, void *builti
 		BL::Object b_ob(b_id);
 		BL::SmokeDomainSettings b_domain = object_smoke_domain_find(b_ob);
 
+		is_float = true;
+		depth = 1;
+		channels = 1;
+
 		if(!b_domain)
 			return;
 
 		if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_DENSITY) ||
-		   builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_FLAME))
+		   builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_FLAME) ||
+		   builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_HEAT))
 			channels = 1;
 		else if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_COLOR))
 			channels = 4;
+		else if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY))
+			channels = 3;
 		else
 			return;
 
 		int3 resolution = get_int3(b_domain.domain_resolution());
 		int amplify = (b_domain.use_high_resolution())? b_domain.amplify() + 1: 1;
 
+		/* Velocity and heat data is always low-resolution. */
+		if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY) ||
+		   builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_HEAT))
+		{
+			amplify = 1;
+		}
+
 		width = resolution.x * amplify;
 		height = resolution.y * amplify;
 		depth = resolution.z * amplify;
-
-		is_float = true;
 	}
 	else {
 		/* TODO(sergey): Check we're indeed in shader node tree. */
@@ -1244,6 +1256,13 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 		int3 resolution = get_int3(b_domain.domain_resolution());
 		int length, amplify = (b_domain.use_high_resolution())? b_domain.amplify() + 1: 1;
 
+		/* Velocity and heat data is always low-resolution. */
+		if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY) ||
+		   builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_HEAT))
+		{
+			amplify = 1;
+		}
+
 		int width = resolution.x * amplify;
 		int height = resolution.y * amplify;
 		int depth = resolution.z * amplify;
@@ -1251,7 +1270,6 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 
 		if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_DENSITY)) {
 			SmokeDomainSettings_density_grid_get_length(&b_domain.ptr, &length);
-
 			if(length == num_pixels) {
 				SmokeDomainSettings_density_grid_get(&b_domain.ptr, pixels);
 				return true;
@@ -1261,7 +1279,6 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 			/* this is in range 0..1, and interpreted by the OpenGL smoke viewer
 			 * as 1500..3000 K with the first part faded to zero density */
 			SmokeDomainSettings_flame_grid_get_length(&b_domain.ptr, &length);
-
 			if(length == num_pixels) {
 				SmokeDomainSettings_flame_grid_get(&b_domain.ptr, pixels);
 				return true;
@@ -1270,11 +1287,31 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 		else if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_COLOR)) {
 			/* the RGB is "premultiplied" by density for better interpolation results */
 			SmokeDomainSettings_color_grid_get_length(&b_domain.ptr, &length);
-
 			if(length == num_pixels*4) {
 				SmokeDomainSettings_color_grid_get(&b_domain.ptr, pixels);
 				return true;
 			}
+		}
+		else if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY)) {
+			SmokeDomainSettings_velocity_grid_get_length(&b_domain.ptr, &length);
+			if(length == num_pixels*3) {
+				SmokeDomainSettings_velocity_grid_get(&b_domain.ptr, pixels);
+				return true;
+			}
+		}
+		else if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_HEAT)) {
+			SmokeDomainSettings_heat_grid_get_length(&b_domain.ptr, &length);
+			if(length == num_pixels) {
+				SmokeDomainSettings_heat_grid_get(&b_domain.ptr, pixels);
+				return true;
+			}
+		}
+		else {
+			fprintf(stderr,
+			        "Cycles error: unknown volume attribute %s, skipping\n",
+			        builtin_name.c_str());
+			pixels[0] = 0.0f;
+			return false;
 		}
 
 		fprintf(stderr, "Cycles error: unexpected smoke volume resolution, skipping\n");

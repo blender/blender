@@ -481,19 +481,22 @@ void ED_view3d_win_to_3d(const ARegion *ar, const float depth_pt[3], const float
 {
 	RegionView3D *rv3d = ar->regiondata;
 
-	float line_sta[3];
-	float line_end[3];
+	float ray_origin[3];
+	float ray_direction[3];
+	float lambda;
 
 	if (rv3d->is_persp) {
-		float mousevec[3], lambda;
-		copy_v3_v3(line_sta, rv3d->viewinv[3]);
-		ED_view3d_win_to_vector(ar, mval, mousevec);
-		add_v3_v3v3(line_end, line_sta, mousevec);
+		float plane[4];
+
+		copy_v3_v3(ray_origin, rv3d->viewinv[3]);
+		ED_view3d_win_to_vector(ar, mval, ray_direction);
 
 		/* note, we could use isect_line_plane_v3() however we want the intersection to be infront of the
 		 * view no matter what, so apply the unsigned factor instead */
-		lambda = line_plane_factor_v3(depth_pt, rv3d->viewinv[2], line_sta, line_end);
-		interp_v3_v3v3(out, line_sta, line_end, fabsf(lambda));
+		plane_from_point_normal_v3(plane, depth_pt, rv3d->viewinv[2]);
+
+		isect_ray_plane_v3(ray_origin, ray_direction, plane, &lambda, false);
+		lambda = fabsf(lambda);
 	}
 	else {
 		float dx = (2.0f * mval[0] / (float)ar->winx) - 1.0f;
@@ -504,13 +507,15 @@ void ED_view3d_win_to_3d(const ARegion *ar, const float depth_pt[3], const float
 			dx += rv3d->camdx * zoomfac;
 			dy += rv3d->camdy * zoomfac;
 		}
-		line_sta[0] = (rv3d->persinv[0][0] * dx) + (rv3d->persinv[1][0] * dy) + rv3d->viewinv[3][0];
-		line_sta[1] = (rv3d->persinv[0][1] * dx) + (rv3d->persinv[1][1] * dy) + rv3d->viewinv[3][1];
-		line_sta[2] = (rv3d->persinv[0][2] * dx) + (rv3d->persinv[1][2] * dy) + rv3d->viewinv[3][2];
+		ray_origin[0] = (rv3d->persinv[0][0] * dx) + (rv3d->persinv[1][0] * dy) + rv3d->viewinv[3][0];
+		ray_origin[1] = (rv3d->persinv[0][1] * dx) + (rv3d->persinv[1][1] * dy) + rv3d->viewinv[3][1];
+		ray_origin[2] = (rv3d->persinv[0][2] * dx) + (rv3d->persinv[1][2] * dy) + rv3d->viewinv[3][2];
 
-		add_v3_v3v3(line_end, line_sta, rv3d->viewinv[2]);
-		closest_to_line_v3(out, depth_pt, line_sta, line_end);
+		copy_v3_v3(ray_direction, rv3d->viewinv[2]);
+		lambda = ray_point_factor_v3(depth_pt, ray_origin, ray_direction);
 	}
+
+	madd_v3_v3v3fl(out, ray_origin, ray_direction, lambda);
 }
 
 void ED_view3d_win_to_3d_int(const ARegion *ar, const float depth_pt[3], const int mval[2], float out[3])

@@ -54,6 +54,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_nla.h"
@@ -789,7 +790,7 @@ static short copy_graph_keys(bAnimContext *ac)
 	int filter, ok = 0;
 	
 	/* clear buffer first */
-	free_anim_copybuf();
+	ANIM_fcurves_copybuf_free();
 	
 	/* filter data */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
@@ -2374,27 +2375,27 @@ static EnumPropertyItem *graph_fmodifier_itemf(bContext *C, PointerRNA *UNUSED(p
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
 	int i = 0;
-
+	
 	if (C == NULL) {
 		return rna_enum_fmodifier_type_items;
 	}
-
+	
 	/* start from 1 to skip the 'Invalid' modifier type */
 	for (i = 1; i < FMODIFIER_NUM_TYPES; i++) {
 		const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(i);
 		int index;
-
+		
 		/* check if modifier is valid for this context */
 		if (fmi == NULL)
 			continue;
-
+		
 		index = RNA_enum_from_value(rna_enum_fmodifier_type_items, fmi->type);
 		RNA_enum_item_add(&item, &totitem, &rna_enum_fmodifier_type_items[index]);
 	}
-
+	
 	RNA_enum_item_end(&item, &totitem);
 	*r_free = true;
-
+	
 	return item;
 }
 
@@ -2435,16 +2436,15 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 			BKE_report(op->reports, RPT_ERROR, "Modifier could not be added (see console for details)");
 			break;
 		}
-
+		
 		ale->update |= ANIM_UPDATE_DEPS;
 	}
-
+	
 	ANIM_animdata_update(&ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);
 	
 	/* set notifier that things have changed */
-	// FIXME: this really isn't the best description for it...
-	WM_event_add_notifier(C, NC_ANIMATION, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2452,11 +2452,11 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_fmodifier_add(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-
+	
 	/* identifiers */
 	ot->name = "Add F-Curve Modifier";
 	ot->idname = "GRAPH_OT_fmodifier_add";
-	ot->description = "Add F-Modifiers to the selected F-Curves";
+	ot->description = "Add F-Modifier to the active/selected F-Curves";
 	
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -2470,7 +2470,7 @@ void GRAPH_OT_fmodifier_add(wmOperatorType *ot)
 	prop = RNA_def_enum(ot->srna, "type", rna_enum_fmodifier_type_items, 0, "Type", "");
 	RNA_def_enum_funcs(prop, graph_fmodifier_itemf);
 	ot->prop = prop;
-
+	
 	RNA_def_boolean(ot->srna, "only_active", 1, "Only Active", "Only add F-Modifier to active F-Curve");
 }
 
@@ -2487,7 +2487,7 @@ static int graph_fmodifier_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* clear buffer first */
-	free_fmodifiers_copybuf();
+	ANIM_fmodifiers_copybuf_free();
 	
 	/* get the active F-Curve */
 	ale = get_active_fcurve_channel(&ac);
@@ -2495,10 +2495,10 @@ static int graph_fmodifier_copy_exec(bContext *C, wmOperator *op)
 	/* if this exists, call the copy F-Modifiers API function */
 	if (ale && ale->data) {
 		FCurve *fcu = (FCurve *)ale->data;
-
+		
 		/* TODO: when 'active' vs 'all' boolean is added, change last param! */
 		ok = ANIM_fmodifiers_copy_to_buf(&fcu->modifiers, 0);
-
+		
 		/* free temp data now */
 		MEM_freeN(ale);
 	}
@@ -2535,33 +2535,43 @@ void GRAPH_OT_fmodifier_copy(wmOperatorType *ot)
 static int graph_fmodifier_paste_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
+	
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
-	int filter, ok = 0;
+	int filter;
+	
+	const bool replace = RNA_boolean_get(op->ptr, "replace");
+	bool ok = false;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 	
 	/* filter data */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT);
+	if (RNA_boolean_get(op->ptr, "only_active")) {
+		/* This should be the default (for buttons) - Just paste to the active FCurve */
+		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ACTIVE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+	}
+	else {
+		/* This is only if the operator gets called from a hotkey or search - Paste to all visible curves */
+		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+	}
+	
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* paste modifiers */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		FCurve *fcu = (FCurve *)ale->data;
 		int tot;
-
-		/* TODO: do we want to replace existing modifiers? add user pref for that! */
-		tot = ANIM_fmodifiers_paste_from_buf(&fcu->modifiers, 0);
-
+		
+		tot = ANIM_fmodifiers_paste_from_buf(&fcu->modifiers, replace);
+		
 		if (tot) {
 			ale->update |= ANIM_UPDATE_DEPS;
+			ok = true;
 		}
-
-		ok += tot;
 	}
-
+	
 	if (ok) {
 		ANIM_animdata_update(&ac, &anim_data);
 	}
@@ -2569,7 +2579,6 @@ static int graph_fmodifier_paste_exec(bContext *C, wmOperator *op)
 	
 	/* successful or not? */
 	if (ok) {
-
 		/* set notifier that keyframes have changed */
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 		
@@ -2594,6 +2603,128 @@ void GRAPH_OT_fmodifier_paste(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "only_active", true, "Only Active", "Only paste F-Modifiers on active F-Curve");
+	RNA_def_boolean(ot->srna, "replace", false, "Replace Existing", 
+	                "Replace existing F-Modifiers, instead of just appending to the end of the existing list");
+}
+
+/* ************************************************************************** */
+/* Drivers */
+
+/* ******************** Copy Driver Vars Operator *********************** */
+
+static int graph_driver_vars_copy_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	bAnimListElem *ale;
+	bool ok = false;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* clear buffer first */
+	ANIM_driver_vars_copybuf_free();
+	
+	/* get the active F-Curve */
+	ale = get_active_fcurve_channel(&ac);
+	
+	/* if this exists, call the copy driver vars API function */
+	if (ale && ale->data) {
+		FCurve *fcu = (FCurve *)ale->data;
+		
+		ok = ANIM_driver_vars_copy(op->reports, fcu);
+		
+		/* free temp data now */
+		MEM_freeN(ale);
+	}
+	
+	/* successful or not? */
+	if (ok)
+		return OPERATOR_FINISHED;
+	else
+		return OPERATOR_CANCELLED;
+}
+ 
+void GRAPH_OT_driver_variables_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Copy Driver Variables";
+	ot->idname = "GRAPH_OT_driver_variables_copy";
+	ot->description = "Copy the driver variables of the active F-Curve";
+	
+	/* api callbacks */
+	ot->exec = graph_driver_vars_copy_exec;
+	ot->poll = graphop_active_fcurve_poll; 
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ******************** Paste Driver Vars Operator *********************** */
+
+static int graph_driver_vars_paste_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	const bool replace = RNA_boolean_get(op->ptr, "replace");
+	bool ok = false;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* filter data */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ACTIVE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* paste variables */
+	for (ale = anim_data.first; ale; ale = ale->next) {
+		FCurve *fcu = (FCurve *)ale->data;
+		ok |= ANIM_driver_vars_paste(op->reports, fcu, replace);
+	}
+	
+	/* cleanup */
+	ANIM_animdata_freelist(&anim_data);
+	
+	/* successful or not? */
+	if (ok) {
+		/* rebuild depsgraph, now that there are extra deps here */
+		DAG_relations_tag_update(CTX_data_main(C));
+		
+		/* set notifier that keyframes have changed */
+		WM_event_add_notifier(C, NC_SCENE | ND_FRAME, CTX_data_scene(C));
+		
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+ 
+void GRAPH_OT_driver_variables_paste(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Paste Driver Variables";
+	ot->idname = "GRAPH_OT_driver_variables_paste";
+	ot->description = "Add copied driver variables to the active driver";
+	
+	/* api callbacks */
+	ot->exec = graph_driver_vars_paste_exec;
+	ot->poll = graphop_active_fcurve_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "replace", false, "Replace Existing", 
+	                "Replace existing driver variables, instead of just appending to the end of the existing list");
 }
 
 /* ************************************************************************** */

@@ -1840,12 +1840,12 @@ class WM_OT_operator_cheat_sheet(Operator):
 
 
 # -----------------------------------------------------------------------------
-# Addon Operators
+# Add-on Operators
 
 class WM_OT_addon_enable(Operator):
     "Enable an add-on"
     bl_idname = "wm.addon_enable"
-    bl_label = "Enable Addon"
+    bl_label = "Enable Add-on"
 
     module = StringProperty(
             name="Module",
@@ -1889,7 +1889,7 @@ class WM_OT_addon_enable(Operator):
 class WM_OT_addon_disable(Operator):
     "Disable an add-on"
     bl_idname = "wm.addon_disable"
-    bl_label = "Disable Addon"
+    bl_label = "Disable Add-on"
 
     module = StringProperty(
             name="Module",
@@ -1994,7 +1994,7 @@ class WM_OT_addon_install(Operator):
 
     overwrite = BoolProperty(
             name="Overwrite",
-            description="Remove existing addons with the same ID",
+            description="Remove existing add-ons with the same ID",
             default=True,
             )
     target = EnumProperty(
@@ -2053,7 +2053,7 @@ class WM_OT_addon_install(Operator):
                 path_addons = os.path.join(path_addons, "addons")
 
         if not path_addons:
-            self.report({'ERROR'}, "Failed to get addons path")
+            self.report({'ERROR'}, "Failed to get add-ons path")
             return {'CANCELLED'}
 
         if not os.path.isdir(path_addons):
@@ -2155,7 +2155,7 @@ class WM_OT_addon_install(Operator):
 class WM_OT_addon_remove(Operator):
     "Delete the add-on from the file system"
     bl_idname = "wm.addon_remove"
-    bl_label = "Remove Addon"
+    bl_label = "Remove Add-on"
 
     module = StringProperty(
             name="Module",
@@ -2183,7 +2183,7 @@ class WM_OT_addon_remove(Operator):
 
         path, isdir = WM_OT_addon_remove.path_from_addon(self.module)
         if path is None:
-            self.report({'WARNING'}, "Addon path %r could not be found" % path)
+            self.report({'WARNING'}, "Add-on path %r could not be found" % path)
             return {'CANCELLED'}
 
         # in case its enabled
@@ -2202,7 +2202,7 @@ class WM_OT_addon_remove(Operator):
 
     # lame confirmation check
     def draw(self, context):
-        self.layout.label(text="Remove Addon: %r?" % self.module)
+        self.layout.label(text="Remove Add-on: %r?" % self.module)
         path, isdir = WM_OT_addon_remove.path_from_addon(self.module)
         self.layout.label(text="Path: %r" % path)
 

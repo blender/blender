@@ -25,9 +25,9 @@ ccl_device_noinline float svm_checker(float3 p)
 	p.y = (p.y + 0.000001f)*0.999999f;
 	p.z = (p.z + 0.000001f)*0.999999f;
 
-	int xi = float_to_int(fabsf(floorf(p.x)));
-	int yi = float_to_int(fabsf(floorf(p.y)));
-	int zi = float_to_int(fabsf(floorf(p.z)));
+	int xi = abs(float_to_int(floorf(p.x)));
+	int yi = abs(float_to_int(floorf(p.y)));
+	int zi = abs(float_to_int(floorf(p.z)));
 
 	return ((xi % 2 == yi % 2) == (zi % 2))? 1.0f: 0.0f;
 }

@@ -61,9 +61,6 @@
 
 #include "anim_intern.h"
 
-/* called by WM */
-void free_anim_drivers_copybuf(void);
-
 /* ************************************************** */
 /* Animation Data Validation */
 
@@ -514,8 +511,7 @@ bool ANIM_remove_driver(ReportList *UNUSED(reports), ID *id, const char rna_path
 static FCurve *channeldriver_copypaste_buf = NULL;
 
 /* This function frees any MEM_calloc'ed copy/paste buffer data */
-// XXX find some header to put this in!
-void free_anim_drivers_copybuf(void)
+void ANIM_drivers_copybuf_free(void)
 {
 	/* free the buffer F-Curve if it exists, as if it were just another F-Curve */
 	if (channeldriver_copypaste_buf)
@@ -553,7 +549,7 @@ bool ANIM_copy_driver(ReportList *reports, ID *id, const char rna_path[], int ar
 	fcu = verify_driver_fcurve(id, rna_path, array_index, 0);
 	
 	/* clear copy/paste buffer first (for consistency with other copy/paste buffers) */
-	free_anim_drivers_copybuf();
+	ANIM_drivers_copybuf_free();
 	
 	/* copy this to the copy/paste buf if it exists */
 	if (fcu && fcu->driver) {
@@ -604,7 +600,7 @@ bool ANIM_paste_driver(ReportList *reports, ID *id, const char rna_path[], int a
 	
 	/* create Driver F-Curve, but without data which will be copied across... */
 	fcu = verify_driver_fcurve(id, rna_path, array_index, -1);
-
+	
 	if (fcu) {
 		/* copy across the curve data from the buffer curve 
 		 * NOTE: this step needs care to not miss new settings
@@ -626,6 +622,117 @@ bool ANIM_paste_driver(ReportList *reports, ID *id, const char rna_path[], int a
 	
 	/* done */
 	return (fcu != NULL);
+}
+
+/* ************************************************** */
+/* Driver Management API - Copy/Paste Driver Variables */
+
+/* Copy/Paste Buffer for Driver Variables... */
+static ListBase driver_vars_copybuf = {NULL, NULL};
+
+/* This function frees any MEM_calloc'ed copy/paste buffer data */
+void ANIM_driver_vars_copybuf_free(void)
+{
+	/* Free the driver variables kept in the buffer */
+	if (driver_vars_copybuf.first) {
+		DriverVar *dvar, *dvarn;
+		
+		/* Free variables (and any data they use) */
+		for (dvar = driver_vars_copybuf.first; dvar; dvar = dvarn) {
+			dvarn = dvar->next;
+			driver_free_variable(&driver_vars_copybuf, dvar);
+		}
+	}
+	
+	BLI_listbase_clear(&driver_vars_copybuf);
+}
+
+/* Checks if there are driver variables in the copy/paste buffer */
+bool ANIM_driver_vars_can_paste(void)
+{
+	return (BLI_listbase_is_empty(&driver_vars_copybuf) == false);
+}
+
+/* -------------------------------------------------- */
+
+/* Copy the given driver's variables to the buffer */
+bool ANIM_driver_vars_copy(ReportList *reports, FCurve *fcu)
+{
+	/* sanity checks */
+	if (ELEM(NULL, fcu, fcu->driver)) {
+		BKE_report(reports, RPT_ERROR, "No driver to copy variables from");
+		return false;
+	}
+	
+	if (BLI_listbase_is_empty(&fcu->driver->variables)) {
+		BKE_report(reports, RPT_ERROR, "Driver has no variables to copy");
+		return false;
+	}
+	
+	/* clear buffer */
+	ANIM_driver_vars_copybuf_free();
+	
+	/* copy over the variables */
+	driver_variables_copy(&driver_vars_copybuf, &fcu->driver->variables);
+	
+	return (BLI_listbase_is_empty(&driver_vars_copybuf) == false);
+}
+
+/* Paste the variables in the buffer to the given FCurve */
+bool ANIM_driver_vars_paste(ReportList *reports, FCurve *fcu, bool replace)
+{
+	ChannelDriver *driver = (fcu) ? fcu->driver : NULL;
+	ListBase tmp_list = {NULL, NULL};
+	
+	/* sanity checks */
+	if (BLI_listbase_is_empty(&driver_vars_copybuf)) {
+		BKE_report(reports, RPT_ERROR, "No driver variables in clipboard to paste");
+		return false;
+	}
+	
+	if (ELEM(NULL, fcu, fcu->driver)) {
+		BKE_report(reports, RPT_ERROR, "Cannot paste driver variables without a driver");
+		return false;
+	}
+	
+	/* 1) Make a new copy of the variables in the buffer - these will get pasted later... */
+	driver_variables_copy(&tmp_list, &driver_vars_copybuf);
+	
+	/* 2) Prepare destination array */
+	if (replace) {
+		DriverVar *dvar, *dvarn;
+		
+		/* Free all existing vars first - We aren't retaining anything */
+		for (dvar = driver->variables.first; dvar; dvar = dvarn) {
+			dvarn = dvar->next;
+			driver_free_variable_ex(driver, dvar);
+		}
+		
+		BLI_listbase_clear(&driver->variables);
+	}
+	
+	/* 3) Add new vars */
+	if (driver->variables.last) {
+		DriverVar *last = driver->variables.last;
+		DriverVar *first = tmp_list.first;
+		
+		last->next = first;
+		first->prev = last;
+		
+		driver->variables.last = tmp_list.last;
+	}
+	else {
+		driver->variables.first = tmp_list.first;
+		driver->variables.last = tmp_list.last;
+	}
+	
+#ifdef WITH_PYTHON
+	/* since driver variables are cached, the expression needs re-compiling too */
+	if (driver->type == DRIVER_TYPE_PYTHON)
+		driver->flag |= DRIVER_FLAG_RENAMEVAR;
+#endif
+	
+	return true;
 }
 
 /* ************************************************** */

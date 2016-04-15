@@ -1451,31 +1451,63 @@ void Mesh::tessellate(DiagSplit *split)
 {
 	int num_faces = triangles.size();
 
+	add_face_normals();
+	add_vertex_normals();
+
+	Attribute *attr_fN = attributes.find(ATTR_STD_FACE_NORMAL);
+	float3 *fN = attr_fN->data_float3();
+
+	Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
+	float3 *vN = attr_vN->data_float3();
+
 	for(int f = 0; f < num_faces; f++) {
 		if(!forms_quad[f]) {
 			/* triangle */
-			LinearTrianglePatch* patch = new LinearTrianglePatch();
-			float3 *hull = patch->hull;
+			LinearTrianglePatch patch;
+			float3 *hull = patch.hull;
+			float3 *normals = patch.normals;
 
 			for(int i = 0; i < 3; i++) {
 				hull[i] = verts[triangles[f].v[i]];
 			}
 
-			split->split_triangle(patch);
-			delete patch;
+			if(smooth[f]) {
+				for(int i = 0; i < 3; i++) {
+					normals[i] = vN[triangles[f].v[i]];
+				}
+			}
+			else {
+				for(int i = 0; i < 3; i++) {
+					normals[i] = fN[f];
+				}
+			}
+
+			split->split_triangle(&patch);
 		}
 		else {
 			/* quad */
-			LinearQuadPatch* patch = new LinearQuadPatch();
-			float3 *hull = patch->hull;
+			LinearQuadPatch patch;
+			float3 *hull = patch.hull;
+			float3 *normals = patch.normals;
 
 			hull[0] = verts[triangles[f  ].v[0]];
 			hull[1] = verts[triangles[f  ].v[1]];
 			hull[3] = verts[triangles[f  ].v[2]];
 			hull[2] = verts[triangles[f+1].v[2]];
 
-			split->split_quad(patch);
-			delete patch;
+			if(smooth[f]) {
+				normals[0] = vN[triangles[f  ].v[0]];
+				normals[1] = vN[triangles[f  ].v[1]];
+				normals[3] = vN[triangles[f  ].v[2]];
+				normals[2] = vN[triangles[f+1].v[2]];
+			}
+			else {
+				for(int i = 0; i < 4; i++) {
+					normals[i] = fN[f];
+				}
+			}
+
+			split->split_quad(&patch);
 
 			// consume second triangle in quad
 			f++;

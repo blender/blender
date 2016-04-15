@@ -14,55 +14,22 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# Contributor(s): Jacques Beaurain.
-#
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../include
-	../../blenkernel
-	../../blenlib
-	../../blentranslation
-	../../gpu
-	../../makesdna
-	../../makesrna
-	../../windowmanager
-	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
+	.
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+
 )
 
 set(SRC
-	anim_channels_defines.c
-	anim_channels_edit.c
-	anim_deps.c
-	anim_draw.c
-	anim_filter.c
-	anim_ipo_utils.c
-	anim_markers.c
-	anim_ops.c
-	drivers.c
-	fmodifier_ui.c
-	keyframes_draw.c
-	keyframes_edit.c
-	keyframes_general.c
-	keyframing.c
-	keyingsets.c
+	intern/curve_fit_cubic.c
+	intern/curve_fit_corners_detect.c
 
-	anim_intern.h
+	intern/curve_fit_inline.h
+	curve_fit_nd.h
 )
 
-if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
-if(WITH_PYTHON)
-	add_definitions(-DWITH_PYTHON)
-endif()
-
-add_definitions(${GL_DEFINITIONS})
-
-blender_add_lib(bf_editor_animation "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(extern_curve_fit_nd "${SRC}" "${INC}" "${INC_SYS}")

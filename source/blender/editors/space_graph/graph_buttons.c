@@ -516,7 +516,7 @@ static void driver_delete_var_cb(bContext *UNUSED(C), void *driver_v, void *dvar
 	DriverVar *dvar = (DriverVar *)dvar_v;
 	
 	/* remove the active variable */
-	driver_free_variable(driver, dvar);
+	driver_free_variable_ex(driver, dvar);
 }
 
 /* callback to report why a driver variable is invalid */
@@ -825,14 +825,26 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		uiItemL(row, valBuf, ICON_NONE);
 	}
 	
-	/* add driver variables */
-	col = uiLayoutColumn(pa->layout, false);
-	block = uiLayoutGetBlock(col);
-	but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_ZOOMIN, IFACE_("Add Variable"),
-	               0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
-	               NULL, 0.0, 0.0, 0, 0,
-	               TIP_("Driver variables ensure that all dependencies will be accounted for and that drivers will update correctly"));
-	UI_but_func_set(but, driver_add_var_cb, driver, NULL);
+	/* add/copy/paste driver variables */
+	{
+		uiLayout *row;
+		
+		/* add driver variable */
+		row = uiLayoutRow(pa->layout, false);
+		block = uiLayoutGetBlock(row);
+		but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_ZOOMIN, IFACE_("Add Variable"),
+	                           0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
+	                           NULL, 0.0, 0.0, 0, 0,
+	                           TIP_("Driver variables ensure that all dependencies will be accounted for and that drivers will update correctly"));
+		UI_but_func_set(but, driver_add_var_cb, driver, NULL);
+		
+		/* copy/paste (as sub-row) */
+		row = uiLayoutRow(row, true);
+		block = uiLayoutGetBlock(row);
+		
+		uiItemO(row, "", ICON_COPYDOWN, "GRAPH_OT_driver_variables_copy");
+		uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_driver_variables_paste");
+	}
 	
 	/* loop over targets, drawing them */
 	for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
@@ -948,15 +960,13 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 	/* 'add modifier' button at top of panel */
 	{
 		row = uiLayoutRow(pa->layout, false);
-		block = uiLayoutGetBlock(row);
 		
 		/* this is an operator button which calls a 'add modifier' operator... 
 		 * a menu might be nicer but would be tricky as we need some custom filtering
 		 */
-		uiDefButO(block, UI_BTYPE_BUT, "GRAPH_OT_fmodifier_add", WM_OP_INVOKE_REGION_WIN, IFACE_("Add Modifier"),
-		          0.5 * UI_UNIT_X, 0, 7.5 * UI_UNIT_X, UI_UNIT_Y, TIP_("Adds a new F-Curve Modifier for the active F-Curve"));
+		uiItemMenuEnumO(row, (bContext *)C, "GRAPH_OT_fmodifier_add", "type", IFACE_("Add Modifier"), ICON_NONE);
 		
-		/* copy/paste (as sub-row)*/
+		/* copy/paste (as sub-row) */
 		row = uiLayoutRow(row, true);
 		uiItemO(row, "", ICON_COPYDOWN, "GRAPH_OT_fmodifier_copy");
 		uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_fmodifier_paste");
@@ -970,7 +980,7 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 		
 		ANIM_uiTemplate_fmodifier_draw(col, ale->id, &fcu->modifiers, fcm);
 	}
-
+	
 	MEM_freeN(ale);
 }
 
@@ -980,14 +990,6 @@ void graph_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
 
-	pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel view");
-	strcpy(pt->idname, "GRAPH_PT_view");
-	strcpy(pt->label, N_("View Properties"));
-	strcpy(pt->category, "View");
-	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
-	pt->draw = graph_panel_view;
-	BLI_addtail(&art->paneltypes, pt);
-	
 	pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel properties");
 	strcpy(pt->idname, "GRAPH_PT_properties");
 	strcpy(pt->label, N_("Active F-Curve"));
@@ -1023,6 +1025,14 @@ void graph_buttons_register(ARegionType *art)
 	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw = graph_panel_modifiers;
 	pt->poll = graph_panel_poll;
+	BLI_addtail(&art->paneltypes, pt);
+	
+	pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel view");
+	strcpy(pt->idname, "GRAPH_PT_view");
+	strcpy(pt->label, N_("View Properties"));
+	strcpy(pt->category, "View");
+	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+	pt->draw = graph_panel_view;
 	BLI_addtail(&art->paneltypes, pt);
 }
 

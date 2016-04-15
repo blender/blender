@@ -288,6 +288,14 @@ bool ANIM_remove_driver(struct ReportList *reports, struct ID *id, const char rn
 
 /* -------- */
 
+/* Clear copy-paste buffer for drivers */
+void ANIM_drivers_copybuf_free(void);
+
+/* Clear copy-paste buffer for driver variable sets */
+void ANIM_driver_vars_copybuf_free(void);
+
+/* -------- */
+
 /* Returns whether there is a driver in the copy/paste buffer to paste */
 bool ANIM_driver_can_paste(void);
 
@@ -301,6 +309,17 @@ bool ANIM_copy_driver(struct ReportList *reports, struct ID *id, const char rna_
  *	with the driver + driver-curve data from the buffer 
  */
 bool ANIM_paste_driver(struct ReportList *reports, struct ID *id, const char rna_path[], int array_index, short flag);
+
+/* -------- */
+
+/* Checks if there are driver variables in the copy/paste buffer */
+bool ANIM_driver_vars_can_paste(void);
+
+/* Copy the given driver's variables to the buffer */
+bool ANIM_driver_vars_copy(struct ReportList *reports, struct FCurve *fcu);
+
+/* Paste the variables in the buffer to the given FCurve */
+bool ANIM_driver_vars_paste(struct ReportList *reports, struct FCurve *fcu, bool replace);
 
 /* ************ Auto-Keyframing ********************** */
 /* Notes:

@@ -697,14 +697,14 @@ static ListBase fmodifier_copypaste_buf = {NULL, NULL};
 /* ---------- */
 
 /* free the copy/paste buffer */
-void free_fmodifiers_copybuf(void)
+void ANIM_fmodifiers_copybuf_free(void)
 {
 	/* just free the whole buffer */
 	free_fmodifiers(&fmodifier_copypaste_buf);
 }
 
 /* copy the given F-Modifiers to the buffer, returning whether anything was copied or not
- * assuming that the buffer has been cleared already with free_fmodifiers_copybuf()
+ * assuming that the buffer has been cleared already with ANIM_fmodifiers_copybuf_free()
  *	- active: only copy the active modifier
  */
 bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active)

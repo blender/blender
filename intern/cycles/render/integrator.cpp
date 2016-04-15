@@ -16,6 +16,7 @@
 
 #include "device.h"
 #include "integrator.h"
+#include "film.h"
 #include "light.h"
 #include "scene.h"
 #include "shader.h"
@@ -173,6 +174,14 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	sobol_generate_direction_vectors((uint(*)[SOBOL_BITS])directions, dimensions);
 
 	device->tex_alloc("__sobol_directions", dscene->sobol_directions);
+
+	/* Clamping. */
+	bool use_sample_clamp = (sample_clamp_direct != 0.0f ||
+	                         sample_clamp_indirect != 0.0f);
+	if(use_sample_clamp != scene->film->use_sample_clamp) {
+		scene->film->use_sample_clamp = use_sample_clamp;
+		scene->film->tag_update(scene);
+	}
 
 	need_update = false;
 }

@@ -2213,19 +2213,20 @@ void NLA_OT_snap(wmOperatorType *ot)
 
 /* ******************** Add F-Modifier Operator *********************** */
 
-/* present a special customised popup menu for this, with some filtering */
-static int nla_fmodifier_add_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
+static EnumPropertyItem *nla_fmodifier_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	int i;
+	EnumPropertyItem *item = NULL;
+	int totitem = 0;
+	int i = 0;
 	
-	pup = UI_popup_menu_begin(C, IFACE_("Add F-Modifier"), ICON_NONE);
-	layout = UI_popup_menu_layout(pup);
+	if (C == NULL) {
+		return rna_enum_fmodifier_type_items;
+	}
 	
 	/* start from 1 to skip the 'Invalid' modifier type */
 	for (i = 1; i < FMODIFIER_NUM_TYPES; i++) {
 		const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(i);
+		int index;
 		
 		/* check if modifier is valid for this context */
 		if (fmi == NULL)
@@ -2233,15 +2234,16 @@ static int nla_fmodifier_add_invoke(bContext *C, wmOperator *UNUSED(op), const w
 		if (i == FMODIFIER_TYPE_CYCLES) /* we already have repeat... */
 			continue;
 		
-		/* add entry to add this type of modifier */
-		uiItemEnumO(layout, "NLA_OT_fmodifier_add", fmi->name, 0, "type", i);
+		index = RNA_enum_from_value(rna_enum_fmodifier_type_items, fmi->type);
+		RNA_enum_item_add(&item, &totitem, &rna_enum_fmodifier_type_items[index]);
 	}
-	uiItemS(layout);
 	
-	UI_popup_menu_end(C, pup);
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
 	
-	return OPERATOR_INTERFACE;
+	return item;
 }
+
 
 static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 {
@@ -2316,10 +2318,10 @@ void NLA_OT_fmodifier_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Add F-Modifier";
 	ot->idname = "NLA_OT_fmodifier_add";
-	ot->description = "Add a F-Modifier of the specified type to the selected NLA-Strips";
+	ot->description = "Add F-Modifier to the active/selected NLA-Strips";
 	
 	/* api callbacks */
-	ot->invoke = nla_fmodifier_add_invoke;
+	ot->invoke = WM_menu_invoke;
 	ot->exec = nla_fmodifier_add_exec;
 	ot->poll = nlaop_poll_tweakmode_off; 
 	
@@ -2328,7 +2330,9 @@ void NLA_OT_fmodifier_add(wmOperatorType *ot)
 	
 	/* id-props */
 	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_fmodifier_type_items, 0, "Type", "");
-	RNA_def_boolean(ot->srna, "only_active", 0, "Only Active", "Only add a F-Modifier of the specified type to the active strip");
+	RNA_def_enum_funcs(ot->prop, nla_fmodifier_itemf);
+	
+	RNA_def_boolean(ot->srna, "only_active", true, "Only Active", "Only add a F-Modifier of the specified type to the active strip");
 }
 
 /* ******************** Copy F-Modifiers Operator *********************** */
@@ -2346,7 +2350,7 @@ static int nla_fmodifier_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* clear buffer first */
-	free_fmodifiers_copybuf();
+	ANIM_fmodifiers_copybuf_free();
 	
 	/* get a list of the editable tracks being shown in the NLA */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT);
@@ -2408,12 +2412,15 @@ static int nla_fmodifier_paste_exec(bContext *C, wmOperator *op)
 	bAnimListElem *ale;
 	int filter, ok = 0;
 	
+	const bool active_only = RNA_boolean_get(op->ptr, "only_active");
+	const bool replace = RNA_boolean_get(op->ptr, "replace");
+	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 	
 	/* get a list of the editable tracks being shown in the NLA */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT);
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* for each NLA-Track, add the specified modifier to all selected strips */
@@ -2422,8 +2429,20 @@ static int nla_fmodifier_paste_exec(bContext *C, wmOperator *op)
 		NlaStrip *strip;
 		
 		for (strip = nlt->strips.first; strip; strip = strip->next) {
-			// TODO: do we want to replace existing modifiers? add user pref for that!
-			ok += ANIM_fmodifiers_paste_from_buf(&strip->modifiers, 0);
+			/* can F-Modifier be added to the current strip? */
+			if (active_only) {
+				/* if not active, cannot add since we're only adding to active strip */
+				if ((strip->flag & NLASTRIP_FLAG_ACTIVE) == 0)
+					continue;
+			}
+			else {
+				/* strip must be selected, since we're not just doing active */
+				if ((strip->flag & NLASTRIP_FLAG_SELECT) == 0)
+					continue;
+			}
+			
+			/* paste FModifiers from buffer */
+			ok += ANIM_fmodifiers_paste_from_buf(&strip->modifiers, replace);
 			ale->update |= ANIM_UPDATE_DEPS;
 		}
 	}
@@ -2456,6 +2475,11 @@ void NLA_OT_fmodifier_paste(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "only_active", true, "Only Active", "Only paste F-Modifiers on active strip");
+	RNA_def_boolean(ot->srna, "replace", false, "Replace Existing", 
+	                "Replace existing F-Modifiers, instead of just appending to the end of the existing list");
 }
 
 /* *********************************************** */

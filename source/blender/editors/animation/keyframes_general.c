@@ -527,8 +527,7 @@ typedef struct tAnimCopybufItem {
 
 
 /* This function frees any MEM_calloc'ed copy/paste buffer data */
-// XXX find some header to put this in!
-void free_anim_copybuf(void)
+void ANIM_fcurves_copybuf_free(void)
 {
 	tAnimCopybufItem *aci, *acn;
 	
@@ -563,7 +562,7 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
 	Scene *scene = ac->scene;
 	
 	/* clear buffer first */
-	free_anim_copybuf();
+	ANIM_fcurves_copybuf_free();
 	
 	/* assume that each of these is an F-Curve */
 	for (ale = anim_data->first; ale; ale = ale->next) {
