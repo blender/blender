@@ -1294,7 +1294,9 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, void
 			}
 		}
 		else {
-			fprintf(stderr, "Cycles error: unknown volume attribute, skipping\n");
+			fprintf(stderr,
+			        "Cycles error: unknown volume attribute %s, skipping\n",
+			        builtin_name.c_str());
 			pixels[0] = 0.0f;
 			return false;
 		}
