@@ -871,14 +871,15 @@ bool GPU_fx_do_composite_pass(
 		float scale = scene->unit.system ? scene->unit.scale_length : 1.0f;
 		/* this is factor that converts to the scene scale. focal length and sensor are expressed in mm
 		 * unit.scale_length is how many meters per blender unit we have. We want to convert to blender units though
-		 * because the shader reads coordinates in world space, which is in blender units. */
+		 * because the shader reads coordinates in world space, which is in blender units.
+		 * Note however that focus_distance is already in blender units and shall not be scaled here (see T48157). */
 		float scale_camera = 0.001f / scale;
 		/* we want radius here for the aperture number  */
 		float aperture = 0.5f * scale_camera * fx_dof->focal_length / fx_dof->fstop;
 
 		dof_params[0] = aperture * fabsf(scale_camera * fx_dof->focal_length /
-		                                 ((fx_dof->focus_distance / scale) - scale_camera * fx_dof->focal_length));
-		dof_params[1] = fx_dof->focus_distance / scale;
+		                                 (fx_dof->focus_distance - scale_camera * fx_dof->focal_length));
+		dof_params[1] = fx_dof->focus_distance;
 		dof_params[2] = fx->gbuffer_dim[0] / (scale_camera * fx_dof->sensor);
 		dof_params[3] = fx_dof->num_blades;
 
