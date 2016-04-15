@@ -706,6 +706,7 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 			prim_index.resize(range_end);
 			prim_object.resize(range_end);
 		}
+		spatial_spin_lock.unlock();
 
 		/* Perform actual data copy. */
 		if(new_leaf_data_size > 0) {
@@ -713,8 +714,6 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 			memcpy(&prim_index[start_index], &local_prim_index[0], new_leaf_data_size);
 			memcpy(&prim_object[start_index], &local_prim_object[0], new_leaf_data_size);
 		}
-
-		spatial_spin_lock.unlock();
 	}
 	else {
 		/* For the regular BVH builder we simply copy new data starting at the
