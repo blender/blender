@@ -748,7 +748,8 @@ EnumPropertyItem prop_driver_create_mapping_types[] = {
 	 "Drive all components of this property using the target picked"},
 	{CREATEDRIVER_MAPPING_1_1, "DIRECT", 0, "Single from Target",
 	 "Drive this component of this property using the target picked"},
-	{CREATEDRIVER_MAPPING_N_N, "MATCH", 0, "Match Indices",
+	 
+	{CREATEDRIVER_MAPPING_N_N, "MATCH", ICON_COLOR, "Match Indices",
 	 "Create drivers for each pair of corresponding elements"},
 	 
 	{CREATEDRIVER_MAPPING_NONE_ALL, "NONE_ALL", ICON_HAND, "Manually Create Later",
