@@ -514,7 +514,6 @@ static void template_ID(
 		                                 BLT_I18NCONTEXT_ID_ACTION,
 		                                 BLT_I18NCONTEXT_ID_NODETREE,
 		                                 BLT_I18NCONTEXT_ID_BRUSH,
-		                                 BLT_I18NCONTEXT_ID_PARTICLESETTINGS,
 		                                 BLT_I18NCONTEXT_ID_GPENCIL,
 		                                 BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE,
 		);
