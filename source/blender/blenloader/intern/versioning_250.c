@@ -1414,13 +1414,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 9)) {
-		Scene *sce;
 		Mesh *me;
 		Object *ob;
-
-		for (sce = main->scene.first; sce; sce = sce->id.next)
-			if (!sce->toolsettings->particle.selectmode)
-				sce->toolsettings->particle.selectmode = SCE_SELECT_PATH;
 
 		if (main->versionfile == 250 && main->subversionfile > 1) {
 			for (me = main->mesh.first; me; me = me->id.next)
@@ -1748,15 +1743,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 				seq->volume = 1.0f;
 			}
 			SEQ_END
-		}
-
-		/* particle brush strength factor was changed from int to float */
-		for (sce = main->scene.first; sce; sce = sce->id.next) {
-			ParticleEditSettings *pset = &sce->toolsettings->particle;
-			int a;
-
-			for (a = 0; a < PE_TOT_BRUSH; a++)
-				pset->brush[a].strength /= 100.0f;
 		}
 
 		for (ma = main->mat.first; ma; ma = ma->id.next)

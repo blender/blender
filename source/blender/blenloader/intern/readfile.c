@@ -5322,8 +5322,6 @@ static void lib_link_scene(FileData *fd, Main *main)
 			
 			sce->toolsettings->skgen_template = newlibadr(fd, sce->id.lib, sce->toolsettings->skgen_template);
 			
-			sce->toolsettings->particle.shape_object = newlibadr(fd, sce->id.lib, sce->toolsettings->particle.shape_object);
-			
 			for (base = sce->base.first; base; base = next) {
 				next = base->next;
 				
@@ -5569,9 +5567,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		direct_link_paint(fd, &sce->toolsettings->imapaint.paint);
 
 		sce->toolsettings->imapaint.paintcursor = NULL;
-		sce->toolsettings->particle.paintcursor = NULL;
-		sce->toolsettings->particle.scene = NULL;
-		sce->toolsettings->particle.object = NULL;
 		sce->toolsettings->gp_sculpt.paintcursor = NULL;
 
 		/* in rare cases this is needed, see [#33806] */

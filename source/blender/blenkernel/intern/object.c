@@ -638,8 +638,6 @@ void BKE_object_unlink(Main *bmain, Object *ob)
 		if (sce->id.lib == NULL) {
 			if (sce->camera == ob) sce->camera = NULL;
 			if (sce->toolsettings->skgen_template == ob) sce->toolsettings->skgen_template = NULL;
-			if (sce->toolsettings->particle.object == ob) sce->toolsettings->particle.object = NULL;
-			if (sce->toolsettings->particle.shape_object == ob) sce->toolsettings->particle.shape_object = NULL;
 
 #ifdef DURIAN_CAMERA_SWITCH
 			{

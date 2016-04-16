@@ -2950,7 +2950,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 	}
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 8)) {
-		Scene *sce;
 		Object *ob;
 
 		for (ob = main->object.first; ob; ob = ob->id.next) {
@@ -2967,27 +2966,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 
 				sb->keys = NULL;
 				sb->totkey = 0;
-			}
-		}
-
-		for (sce = main->scene.first; sce; sce = sce->id.next) {
-			ParticleEditSettings *pset = &sce->toolsettings->particle;
-			int a;
-
-			if (pset->brush[0].size == 0) {
-				pset->flag = PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER;
-				pset->emitterdist = 0.25f;
-				pset->totrekey = 5;
-				pset->totaddkey = 5;
-				pset->brushtype = PE_BRUSH_NONE;
-
-				for (a = 0; a < PE_TOT_BRUSH; a++) {
-					pset->brush[a].strength = 50;
-					pset->brush[a].size = 50;
-					pset->brush[a].step = 10;
-				}
-
-				pset->brush[PE_BRUSH_CUT].strength = 100;
 			}
 		}
 	}
