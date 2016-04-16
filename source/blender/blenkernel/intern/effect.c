@@ -412,7 +412,7 @@ static float falloff_func_rad(PartDeflect *pd, float fac)
 	return falloff_func(fac, pd->flag&PFIELD_USEMINR, pd->minrad, pd->flag&PFIELD_USEMAXR, pd->maxrad, pd->f_power_r);
 }
 
-float effector_falloff(EffectorCache *eff, EffectorData *efd, EffectedPoint *UNUSED(point), EffectorWeights *weights)
+static float effector_falloff(EffectorCache *eff, EffectorData *efd, EffectedPoint *UNUSED(point), EffectorWeights *weights)
 {
 	float temp[3];
 	float falloff = weights ? weights->weight[0] * weights->weight[eff->pd->forcefield] : 1.0f;
