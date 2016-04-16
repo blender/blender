@@ -1074,8 +1074,6 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 				UI_icon_draw(x, y, ICON_MODIFIER); break;
 			case TSE_LINKED_OB:
 				UI_icon_draw(x, y, ICON_OBJECT_DATA); break;
-			case TSE_LINKED_PSYS:
-				UI_icon_draw(x, y, ICON_PARTICLES); break;
 			case TSE_MODIFIER:
 			{
 				Object *ob = (Object *)tselem->id;

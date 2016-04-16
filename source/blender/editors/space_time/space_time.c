@@ -424,7 +424,6 @@ static void time_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_POINTCACHE:
 				case ND_MODIFIER:
-				case ND_PARTICLE:
 				case ND_KEYS:
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
