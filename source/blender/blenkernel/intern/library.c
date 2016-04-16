@@ -567,8 +567,6 @@ ListBase *which_libbase(Main *mainlib, short type)
 			return &(mainlib->nodetree);
 		case ID_BR:
 			return &(mainlib->brush);
-		case ID_PA:
-			return &(mainlib->particle);
 		case ID_WM:
 			return &(mainlib->wm);
 		case ID_GD:
@@ -973,9 +971,6 @@ void BKE_libblock_init_empty(ID *id)
 			break;
 		case ID_BR:
 			BKE_brush_init((Brush *)id);
-			break;
-		case ID_PA:
-			/* Nothing to do. */
 			break;
 		case ID_PC:
 			/* Nothing to do. */

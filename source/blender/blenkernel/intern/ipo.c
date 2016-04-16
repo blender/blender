@@ -739,74 +739,6 @@ static const char *world_adrcodes_to_paths(int adrcode, int *array_index)
 	return NULL;
 }
 
-/* Particle Types */
-static const char *particle_adrcodes_to_paths(int adrcode, int *array_index)
-{
-	/* set array index like this in-case nothing sets it correctly  */
-	*array_index = 0;
-	
-	/* result depends on adrcode */
-	switch (adrcode) {
-		case PART_CLUMP:
-			return "settings.clump_factor";
-		case PART_AVE:
-			return "settings.angular_velocity_factor";
-		case PART_SIZE:
-			return "settings.particle_size";
-		case PART_DRAG:
-			return "settings.drag_factor";
-		case PART_BROWN:
-			return "settings.brownian_factor";
-		case PART_DAMP:
-			return "settings.damp_factor";
-		case PART_LENGTH:
-			return "settings.length";
-		case PART_GRAV_X:
-			*array_index = 0; return "settings.acceleration";
-		case PART_GRAV_Y:
-			*array_index = 1; return "settings.acceleration";
-		case PART_GRAV_Z:
-			*array_index = 2; return "settings.acceleration";
-		case PART_KINK_AMP:
-			return "settings.kink_amplitude";
-		case PART_KINK_FREQ:
-			return "settings.kink_frequency";
-		case PART_KINK_SHAPE:
-			return "settings.kink_shape";
-		case PART_BB_TILT:
-			return "settings.billboard_tilt";
-		
-		/* PartDeflect needs to be sorted out properly in rna_object_force;
-		 * If anyone else works on this, but is unfamiliar, these particular
-		 * settings reference the particles of the system themselves
-		 * being used as forces -- it will use the same rna structure
-		 * as the similar object forces */
-#if 0
-		case PART_PD_FSTR:
-			if (part->pd) poin = &(part->pd->f_strength);
-			break;
-		case PART_PD_FFALL:
-			if (part->pd) poin = &(part->pd->f_power);
-			break;
-		case PART_PD_FMAXD:
-			if (part->pd) poin = &(part->pd->maxdist);
-			break;
-		case PART_PD2_FSTR:
-			if (part->pd2) poin = &(part->pd2->f_strength);
-			break;
-		case PART_PD2_FFALL:
-			if (part->pd2) poin = &(part->pd2->f_power);
-			break;
-		case PART_PD2_FMAXD:
-			if (part->pd2) poin = &(part->pd2->maxdist);
-			break;
-#endif
-
-	}
-
-	return NULL;
-}
-
 /* ------- */
 
 /* Allocate memory for RNA-path for some property given a blocktype, adrcode, and 'root' parts of path
@@ -872,10 +804,6 @@ static char *get_rna_access(ID *id, int blocktype, int adrcode, char actname[], 
 			propname = world_adrcodes_to_paths(adrcode, &dummy_index);
 			break;
 		
-		case ID_PA: /* particle */
-			propname = particle_adrcodes_to_paths(adrcode, &dummy_index);
-			break;
-			
 		case ID_CU: /* curve */
 			/* this used to be a 'dummy' curve which got evaluated on the fly... 
 			 * now we've got real var for this!

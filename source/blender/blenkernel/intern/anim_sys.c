@@ -92,7 +92,6 @@ bool id_type_can_have_animdata(ID *id)
 		case ID_OB:
 		case ID_ME: case ID_MB: case ID_CU: case ID_AR: case ID_LT:
 		case ID_KE:
-		case ID_PA:
 		case ID_MA: case ID_TE: case ID_NT:
 		case ID_LA: case ID_CA: case ID_WO:
 		case ID_LS:

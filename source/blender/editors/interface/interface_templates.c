@@ -359,7 +359,6 @@ static const char *template_id_browse_tip(StructRNA *type)
 			case ID_AC:  return N_("Browse Action to be linked");
 			case ID_NT:  return N_("Browse Node Tree to be linked");
 			case ID_BR:  return N_("Browse Brush to be linked");
-			case ID_PA:  return N_("Browse Particle Settings to be linked");
 			case ID_GD:  return N_("Browse Grease Pencil Data to be linked");
 			case ID_MC:  return N_("Browse Movie Clip to be linked");
 			case ID_MSK: return N_("Browse Mask to be linked");

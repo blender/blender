@@ -238,7 +238,6 @@ typedef struct PreviewImage {
 #define ID_AC		MAKE_ID2('A', 'C') /* bAction */
 #define ID_NT		MAKE_ID2('N', 'T') /* bNodeTree */
 #define ID_BR		MAKE_ID2('B', 'R') /* Brush */
-#define ID_PA		MAKE_ID2('P', 'A') /* ParticleSettings */
 #define ID_GD		MAKE_ID2('G', 'D') /* bGPdata, (Grease Pencil) */
 #define ID_WM		MAKE_ID2('W', 'M') /* WindowManager */
 #define ID_MC		MAKE_ID2('M', 'C') /* MovieClip */
@@ -366,7 +365,6 @@ enum {
 	FILTER_ID_TXT       = (1 << 24),
 	FILTER_ID_VF        = (1 << 25),
 	FILTER_ID_WO        = (1 << 26),
-	FILTER_ID_PA        = (1 << 27),
 };
 
 #ifdef __cplusplus

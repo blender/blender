@@ -7548,7 +7548,6 @@ static const char *dataname(short id_code)
 		case ID_SO: return "Data from SO";
 		case ID_NT: return "Data from NT";
 		case ID_BR: return "Data from BR";
-		case ID_PA: return "Data from PA";
 		case ID_PAL: return "Data from PAL";
 		case ID_PC: return "Data from PCRV";
 		case ID_GD: return "Data from GD";

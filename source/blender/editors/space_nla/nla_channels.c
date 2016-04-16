@@ -213,7 +213,7 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, float x, int channe
 			/* offset for start of channel (on LHS of channel-list) */
 			if (ale->id) {
 				/* special exception for materials and particles */
-				if (ELEM(GS(ale->id->name), ID_MA, ID_PA))
+				if (GS(ale->id->name) == ID_MA)
 					offset = 21 + NLACHANNEL_BUTTON_WIDTH;
 				else
 					offset = 14;
