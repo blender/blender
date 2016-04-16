@@ -6537,7 +6537,6 @@ static void menu_add_shortcut_cancel(struct bContext *C, void *arg1)
 static void popup_change_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 {
 	uiBut *but = (uiBut *)arg1;
-	UI_but_tooltip_timer_remove(C, but);
 	UI_popup_block_invoke(C, menu_change_shortcut, but);
 }
 
@@ -6559,7 +6558,6 @@ static void remove_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 static void popup_add_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 {
 	uiBut *but = (uiBut *)arg1;
-	UI_but_tooltip_timer_remove(C, but);
 	UI_popup_block_ex(C, menu_add_shortcut, NULL, menu_add_shortcut_cancel, but);
 }
 
@@ -6608,8 +6606,6 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 		return false;
 	}
 	
-	UI_but_tooltip_timer_remove(C, but);
-
 	/* highly unlikely getting the label ever fails */
 	UI_but_string_info_get(C, but, &label, NULL);
 

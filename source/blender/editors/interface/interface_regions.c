@@ -1965,10 +1965,16 @@ uiPopupBlockHandle *ui_popup_block_create(
         void *arg)
 {
 	wmWindow *window = CTX_wm_window(C);
+	uiBut *activebut = UI_context_active_but_get(C);
 	static ARegionType type;
 	ARegion *ar;
 	uiBlock *block;
 	uiPopupBlockHandle *handle;
+
+	/* disable tooltips from buttons below */
+	if (activebut) {
+		UI_but_tooltip_timer_remove(C, activebut);
+	}
 
 	/* create handle */
 	handle = MEM_callocN(sizeof(uiPopupBlockHandle), "uiPopupBlockHandle");
