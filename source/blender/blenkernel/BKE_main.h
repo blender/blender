@@ -94,7 +94,6 @@ typedef struct Main {
 	ListBase action;
 	ListBase nodetree;
 	ListBase brush;
-	ListBase particle;
 	ListBase palettes;
 	ListBase paintcurves;
 	ListBase wm;

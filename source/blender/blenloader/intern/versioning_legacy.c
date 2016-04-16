@@ -3080,7 +3080,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		idproperties_fix_group_lengths(main->action);
 		idproperties_fix_group_lengths(main->nodetree);
 		idproperties_fix_group_lengths(main->brush);
-		idproperties_fix_group_lengths(main->particle);
 	}
 
 	/* sun/sky */

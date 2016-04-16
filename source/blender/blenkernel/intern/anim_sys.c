@@ -1133,9 +1133,6 @@ void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *u
 	/* meshes */
 	ANIMDATA_IDS_CB(mainptr->mesh.first);
 	
-	/* particles */
-	ANIMDATA_IDS_CB(mainptr->particle.first);
-
 	/* speakers */
 	ANIMDATA_IDS_CB(mainptr->speaker.first);
 
@@ -1226,9 +1223,6 @@ void BKE_animdata_fix_paths_rename_all(ID *ref_id, const char *prefix, const cha
 	/* meshes */
 	RENAMEFIX_ANIM_IDS(mainptr->mesh.first);
 	
-	/* particles */
-	RENAMEFIX_ANIM_IDS(mainptr->particle.first);
-
 	/* speakers */
 	RENAMEFIX_ANIM_IDS(mainptr->speaker.first);
 
@@ -2811,9 +2805,6 @@ void BKE_animsys_evaluate_all_animation(Main *main, Scene *scene, float ctime)
 	
 	/* meshes */
 	EVAL_ANIM_IDS(main->mesh.first, ADT_RECALC_ANIM);
-	
-	/* particles */
-	EVAL_ANIM_IDS(main->particle.first, ADT_RECALC_ANIM);
 	
 	/* speakers */
 	EVAL_ANIM_IDS(main->speaker.first, ADT_RECALC_ANIM);

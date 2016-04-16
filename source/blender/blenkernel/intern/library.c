@@ -718,7 +718,6 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++] = &(main->palettes);
 	lb[a++] = &(main->paintcurves);
 	lb[a++] = &(main->brush);
-	lb[a++] = &(main->particle);
 	lb[a++] = &(main->speaker);
 
 	lb[a++] = &(main->world);
