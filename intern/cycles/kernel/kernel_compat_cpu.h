@@ -154,6 +154,7 @@ template<typename T> struct texture_image  {
 					break;
 				default:
 					kernel_assert(0);
+					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 			}
 			return read(data[ix + iy*width]);
 		}
@@ -183,6 +184,7 @@ template<typename T> struct texture_image  {
 					break;
 				default:
 					kernel_assert(0);
+					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 			}
 
 			float4 r = (1.0f - ty)*(1.0f - tx)*read(data[ix + iy*width]);
@@ -231,6 +233,7 @@ template<typename T> struct texture_image  {
 					break;
 				default:
 					kernel_assert(0);
+					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 			}
 
 			const int xc[4] = {pix, ix, nix, nnix};
@@ -298,6 +301,7 @@ template<typename T> struct texture_image  {
 					break;
 				default:
 					kernel_assert(0);
+					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 			}
 
 			return read(data[ix + iy*width + iz*width*height]);
@@ -335,6 +339,7 @@ template<typename T> struct texture_image  {
 					break;
 				default:
 					kernel_assert(0);
+					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 			}
 
 			float4 r;
@@ -402,6 +407,7 @@ template<typename T> struct texture_image  {
 					break;
 				default:
 					kernel_assert(0);
+					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 			}
 
 			const int xc[4] = {pix, ix, nix, nnix};

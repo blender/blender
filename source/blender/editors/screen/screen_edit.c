@@ -1146,7 +1146,7 @@ void ED_screen_draw(wmWindow *win)
 	/* blended join arrow */
 	if (sa1 && sa2) {
 		int dir = area_getorientation(sa1, sa2);
-		int dira;
+		int dira = -1;
 		if (dir != -1) {
 			switch (dir) {
 				case 0: /* W */
