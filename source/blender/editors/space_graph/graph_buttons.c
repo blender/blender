@@ -851,21 +851,34 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
 		PointerRNA dvar_ptr;
 		uiLayout *box, *row;
+		uiLayout *subrow, *sub;
 		
 		/* sub-layout column for this variable's settings */
 		col = uiLayoutColumn(pa->layout, true);
 		
-		/* header panel */
+		/* 1) header panel */
 		box = uiLayoutBox(col);
-		/* first row context info for driver */
 		RNA_pointer_create(ale->id, &RNA_DriverVariable, dvar, &dvar_ptr);
 		
 		row = uiLayoutRow(box, false);
 		block = uiLayoutGetBlock(row);
-		/* variable name */
-		uiItemR(row, &dvar_ptr, "name", 0, "", ICON_NONE);
 		
-		/* invalid name? */
+		/* 1.1) variable type and name */
+		subrow = uiLayoutRow(row, true);
+		
+		/* 1.1.1) variable type */
+		sub = uiLayoutRow(subrow, true);                     /* HACK: special group just for the enum, otherwise we */
+		uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);  /*       we get ugly layout with text included too...  */
+		
+		uiItemR(sub, &dvar_ptr, "type", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+		
+		/* 1.1.2) variable name */
+		sub = uiLayoutRow(subrow, true);                       /* HACK: special group to counteract the effects of the previous */
+		uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_EXPAND);  /*       enum, which now pushes everything too far right         */
+		
+		uiItemR(sub, &dvar_ptr, "name", 0, "", ICON_NONE);
+		
+		/* 1.2) invalid name? */
 		UI_block_emboss_set(block, UI_EMBOSS_NONE);
 		
 		if (dvar->flag & DVAR_FLAG_INVALID_NAME) {
@@ -874,17 +887,14 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 			UI_but_func_set(but, driver_dvar_invalid_name_query_cb, dvar, NULL); // XXX: reports?
 		}
 		
-		/* remove button */
+		/* 1.3) remove button */
 		but = uiDefIconBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y,
 		                   NULL, 0.0, 0.0, 0.0, 0.0, IFACE_("Delete target variable"));
 		UI_but_func_set(but, driver_delete_var_cb, driver, dvar);
 		UI_block_emboss_set(block, UI_EMBOSS);
 		
-		/* variable type */
-		row = uiLayoutRow(box, false);
-		uiItemR(row, &dvar_ptr, "type", 0, "", ICON_NONE);
-				
-		/* variable type settings */
+		
+		/* 2) variable type settings */
 		box = uiLayoutBox(col);
 		/* controls to draw depends on the type of variable */
 		switch (dvar->type) {
@@ -902,7 +912,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 				break;
 		}
 		
-		/* value of variable */
+		/* 3) value of variable */
 		if (driver->flag & DRIVER_FLAG_SHOWDEBUG) {
 			char valBuf[32];
 			
