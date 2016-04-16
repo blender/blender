@@ -497,8 +497,6 @@ static void initSnappingMode(TransInfo *t)
 {
 	ToolSettings *ts = t->settings;
 	Object *obedit = t->obedit;
-	Scene *scene = t->scene;
-	Base *base_act = scene->basact;
 
 	if (t->spacetype == SPACE_NODE) {
 		/* force project off when not supported */
@@ -536,12 +534,6 @@ static void initSnappingMode(TransInfo *t)
 			else {
 				t->tsnap.modeSelect = t->tsnap.snap_self ? SNAP_ALL : SNAP_NOT_OBEDIT;
 			}
-		}
-		/* Particles edit mode*/
-		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
-		         (obedit == NULL && base_act && base_act->object && base_act->object->mode & OB_MODE_PARTICLE_EDIT))
-		{
-			t->tsnap.modeSelect = SNAP_ALL;
 		}
 		/* Object mode */
 		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
@@ -1964,21 +1956,6 @@ static bool snapObjectsRay(
 
 		retval |= snapObject(
 		        scene, ar, ob, ob->obmat, true,
-		        mval, snap_to,
-		        ray_start, ray_normal, ray_origin, ray_depth,
-		        r_loc, r_no, r_dist_px, r_index, r_ob, r_obmat);
-	}
-
-	/* Need an exception for particle edit because the base is flagged with BA_HAS_RECALC_DATA
-	 * which makes the loop skip it, even the derived mesh will never change
-	 *
-	 * To solve that problem, we do it first as an exception. 
-	 * */
-	base = base_act;
-	if (base && base->object && base->object->mode & OB_MODE_PARTICLE_EDIT) {
-		Object *ob = base->object;
-		retval |= snapObject(
-		        scene, ar, ob, ob->obmat, false,
 		        mval, snap_to,
 		        ray_start, ray_normal, ray_origin, ray_depth,
 		        r_loc, r_no, r_dist_px, r_index, r_ob, r_obmat);

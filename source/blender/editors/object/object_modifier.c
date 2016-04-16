@@ -299,11 +299,6 @@ static bool object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
 			modifier_skin_customdata_delete(ob);
 	}
 
-	if (ELEM(md->type, eModifierType_Softbody, eModifierType_Cloth))
-	{
-		ob->mode &= ~OB_MODE_PARTICLE_EDIT;
-	}
-
 	DAG_relations_tag_update(bmain);
 
 	BLI_remlink(&ob->modifiers, md);
@@ -733,21 +728,13 @@ ModifierData *edit_modifier_property_get(wmOperator *op, Object *ob, int type)
 static int modifier_remove_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
-	int mode_orig = ob->mode;
 	
 	if (!md || !ED_object_modifier_remove(op->reports, bmain, ob, md))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
-
-	/* if cloth/softbody was removed, particle mode could be cleared */
-	if (mode_orig & OB_MODE_PARTICLE_EDIT)
-		if ((ob->mode & OB_MODE_PARTICLE_EDIT) == 0)
-			if (scene->basact && scene->basact->object == ob)
-				WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
 	
 	return OPERATOR_FINISHED;
 }

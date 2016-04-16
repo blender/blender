@@ -2807,7 +2807,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	                     RNA_int_get(op->ptr, "y")};
 
 	if (CTX_data_edit_object(C) || BKE_paint_select_elem_test(obact) ||
-	    (obact && (obact->mode & (OB_MODE_PARTICLE_EDIT | OB_MODE_POSE))) )
+	    (obact && (obact->mode & OB_MODE_POSE)) )
 	{
 		ViewContext vc;
 		

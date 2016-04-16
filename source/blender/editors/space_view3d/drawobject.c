@@ -4161,12 +4161,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		 * with the background. */
 
 		if ((dflag & DRAW_CONSTCOLOR) == 0) {
-			if (is_obact && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
-				ob_wire_color_blend_theme_id(ob_wire_col, TH_BACK, 0.15f);
-			}
-			else {
-				glColor3ubv(ob_wire_col);
-			}
+			glColor3ubv(ob_wire_col);
 		}
 
 		/* If drawing wire and drawtype is not OB_WIRE then we are
