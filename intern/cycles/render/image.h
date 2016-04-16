@@ -32,7 +32,7 @@ class Progress;
 
 class ImageManager {
 public:
-	ImageManager();
+	ImageManager(const DeviceInfo& info);
 	~ImageManager();
 
 	int add_image(const string& filename,
@@ -62,7 +62,6 @@ public:
 
 	void set_osl_texture_system(void *texture_system);
 	void set_pack_images(bool pack_images_);
-	void set_extended_image_limits(const DeviceInfo& info);
 	bool set_animation_frame_update(int frame);
 
 	bool need_update;
@@ -86,7 +85,7 @@ public:
 	};
 
 private:
-	int tex_num_images;
+	int tex_num_byte_images;
 	int tex_num_float_images;
 	int tex_image_byte_start;
 	thread_mutex device_mutex;

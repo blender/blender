@@ -16,6 +16,15 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Float textures on various devices. */
+#if defined(__KERNEL_CPU__)
+  #define TEX_NUM_FLOAT_IMAGES	TEX_NUM_FLOAT_IMAGES_CPU
+#elif defined(__KERNEL_CUDA__)
+  #define TEX_NUM_FLOAT_IMAGES	TEX_NUM_FLOAT_IMAGES_CUDA
+#else
+  #define TEX_NUM_FLOAT_IMAGES	TEX_NUM_FLOAT_IMAGES_OPENCL
+#endif
+
 #ifdef __KERNEL_OPENCL__
 
 /* For OpenCL all images are packed in a single array, and we do manual lookup
@@ -50,12 +59,6 @@ ccl_device_inline float svm_image_texture_frac(float x, int *ix)
 
 ccl_device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb, uint use_alpha)
 {
-	/* first slots are used by float textures, which are not supported here */
-	if(id < TEX_NUM_FLOAT_IMAGES)
-		return make_float4(1.0f, 0.0f, 1.0f, 1.0f);
-
-	id -= TEX_NUM_FLOAT_IMAGES;
-
 	uint4 info = kernel_tex_fetch(__tex_image_packed_info, id);
 	uint width = info.x;
 	uint height = info.y;

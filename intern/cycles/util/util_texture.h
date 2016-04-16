@@ -21,26 +21,26 @@ CCL_NAMESPACE_BEGIN
 
 /* Texture limits on various devices. */
 
-#define TEX_NUM_FLOAT_IMAGES	5
+/* CPU */
+#define TEX_NUM_BYTE_IMAGES_CPU		1024
+#define TEX_NUM_FLOAT_IMAGES_CPU	1024
+#define TEX_IMAGE_BYTE_START_CPU	TEX_NUM_FLOAT_IMAGES_CPU
 
-/* generic */
-#define TEX_NUM_IMAGES			88
-#define TEX_IMAGE_BYTE_START	TEX_NUM_FLOAT_IMAGES
+/* CUDA (Fermi) */
+#define TEX_NUM_BYTE_IMAGES_CUDA	88
+#define TEX_NUM_FLOAT_IMAGES_CUDA	5
+#define TEX_IMAGE_BYTE_START_CUDA	TEX_NUM_FLOAT_IMAGES_CUDA
 
-/* extended gpu */
-#define TEX_EXTENDED_NUM_IMAGES_GPU		145
+/* CUDA (KEPLER and above) */
+#define TEX_NUM_BYTE_IMAGES_CUDA_KEPLER		145
+#define TEX_NUM_FLOAT_IMAGES_CUDA_KEPLER	5
+#define TEX_IMAGE_BYTE_START_CUDA_KELPER	TEX_NUM_FLOAT_IMAGES_CUDA_KEPLER
 
-/* extended cpu */
-#define TEX_EXTENDED_NUM_FLOAT_IMAGES	1024
-#define TEX_EXTENDED_NUM_IMAGES_CPU		1024
-#define TEX_EXTENDED_IMAGE_BYTE_START	TEX_EXTENDED_NUM_FLOAT_IMAGES
+/* OpenCL */
+#define TEX_NUM_BYTE_IMAGES_OPENCL		1024
+#define TEX_NUM_FLOAT_IMAGES_OPENCL		0
+#define TEX_IMAGE_BYTE_START_OPENCL		TEX_NUM_FLOAT_IMAGES_OPENCL
 
-/* Limitations for packed images.
- *
- * Technically number of textures is unlimited, but it should in
- * fact be in sync with CPU limitations.
- */
-#define TEX_PACKED_NUM_IMAGES			1024
 
 /* Color to use when textures are not found. */
 #define TEX_IMAGE_MISSING_R 1
