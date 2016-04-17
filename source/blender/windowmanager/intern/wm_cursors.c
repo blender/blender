@@ -253,7 +253,7 @@ static void wm_cursor_warp_relative(wmWindow *win, int x, int y)
 }
 
 /* give it a modal keymap one day? */
-int wm_cursor_arrow_move(wmWindow *win, wmEvent *event)
+bool wm_cursor_arrow_move(wmWindow *win, const wmEvent *event)
 {
 	if (win && event->val == KM_PRESS) {
 		if (event->type == UPARROWKEY) {
