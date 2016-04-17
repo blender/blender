@@ -192,7 +192,7 @@ static void TIME_OT_view_frame(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View Frame";
 	ot->idname = "TIME_OT_view_frame";
-	ot->description = "Show the entire playable frame range";
+	ot->description = "Reset viewable area to show range around current frame";
 	
 	/* api callbacks */
 	ot->exec = time_view_frame_exec;
