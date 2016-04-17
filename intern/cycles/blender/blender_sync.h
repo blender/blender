@@ -172,6 +172,8 @@ private:
 	bool experimental;
 	bool is_cpu;
 
+	float dicing_rate;
+
 	struct RenderLayerInfo {
 		RenderLayerInfo()
 		: scene_layer(0), layer(0),

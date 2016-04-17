@@ -63,8 +63,11 @@ BlenderSync::BlenderSync(BL::RenderEngine& b_engine,
   preview(preview),
   experimental(false),
   is_cpu(is_cpu),
+  dicing_rate(1.0f),
   progress(progress)
 {
+	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+	dicing_rate = preview ? RNA_float_get(&cscene, "preview_dicing_rate") : RNA_float_get(&cscene, "dicing_rate");
 }
 
 BlenderSync::~BlenderSync()
@@ -124,11 +127,33 @@ bool BlenderSync::sync_recalc()
 		}
 	}
 
+	bool dicing_rate_changed = false;
+
+	if(experimental) {
+		PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+		float updated_dicing_rate = preview ? RNA_float_get(&cscene, "preview_dicing_rate")
+		                                    : RNA_float_get(&cscene, "dicing_rate");
+
+		if(dicing_rate != updated_dicing_rate) {
+			dicing_rate = updated_dicing_rate;
+			dicing_rate_changed = true;
+		}
+	}
+
 	BL::BlendData::meshes_iterator b_mesh;
 
-	for(b_data.meshes.begin(b_mesh); b_mesh != b_data.meshes.end(); ++b_mesh)
-		if(b_mesh->is_updated())
+	for(b_data.meshes.begin(b_mesh); b_mesh != b_data.meshes.end(); ++b_mesh) {
+		if(b_mesh->is_updated()) {
 			mesh_map.set_recalc(*b_mesh);
+		}
+		else if(dicing_rate_changed) {
+			PointerRNA cmesh = RNA_pointer_get(&b_mesh->ptr, "cycles");
+
+			if(RNA_enum_get(&cmesh, "subdivision_type"))
+				mesh_map.set_recalc(*b_mesh);
+		}
+	}
+
 
 	BL::BlendData::worlds_iterator b_world;
 
