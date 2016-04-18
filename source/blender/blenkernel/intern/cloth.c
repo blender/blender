@@ -819,11 +819,11 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 			mul_m4_v3(ob->obmat, verts->x);
 
 			if ( shapekey_rest ) {
-				verts->xrest= shapekey_rest[i];
+				copy_v3_v3(verts->xrest, shapekey_rest[i]);
 				mul_m4_v3(ob->obmat, verts->xrest);
 			}
 			else
-				verts->xrest = verts->x;
+				copy_v3_v3(verts->xrest, verts->x);
 		}
 		
 		/* no GUI interface yet */
