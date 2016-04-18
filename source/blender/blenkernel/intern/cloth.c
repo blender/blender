@@ -1214,7 +1214,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 {
 	Cloth *cloth = clmd->clothObject;
 	ClothSpring *spring = NULL, *tspring = NULL, *tspring2 = NULL;
-	unsigned int struct_springs = 0, shear_springs=0, bend_springs = 0;
+	unsigned int struct_springs = 0, shear_springs=0, bend_springs = 0, struct_springs_real = 0;
 	unsigned int i = 0;
 	unsigned int mvert_num = (unsigned int)dm->getNumVerts(dm);
 	unsigned int numedges = (unsigned int)dm->getNumEdges (dm);
@@ -1262,12 +1262,15 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 				spring->restlen = len_v3v3(cloth->verts[spring->kl].xrest, cloth->verts[spring->ij].xrest) * shrink_factor;
 				spring->stiffness = (cloth->verts[spring->kl].struct_stiff + cloth->verts[spring->ij].struct_stiff) / 2.0f;
 				spring->type = CLOTH_SPRING_TYPE_STRUCTURAL;
+
+				clmd->sim_parms->avg_spring_len += spring->restlen;
+				cloth->verts[spring->ij].avg_spring_len += spring->restlen;
+				cloth->verts[spring->kl].avg_spring_len += spring->restlen;
+				cloth->verts[spring->ij].spring_count++;
+				cloth->verts[spring->kl].spring_count++;
+				struct_springs_real++;
 			}
-			clmd->sim_parms->avg_spring_len += spring->restlen;
-			cloth->verts[spring->ij].avg_spring_len += spring->restlen;
-			cloth->verts[spring->kl].avg_spring_len += spring->restlen;
-			cloth->verts[spring->ij].spring_count++;
-			cloth->verts[spring->kl].spring_count++;
+
 			spring->flags = 0;
 			struct_springs++;
 			
@@ -1279,11 +1282,12 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		}
 	}
 
-	if (struct_springs > 0)
-		clmd->sim_parms->avg_spring_len /= struct_springs;
+	if (struct_springs_real > 0)
+		clmd->sim_parms->avg_spring_len /= struct_springs_real;
 	
 	for (i = 0; i < mvert_num; i++) {
-		cloth->verts[i].avg_spring_len = cloth->verts[i].avg_spring_len * 0.49f / ((float)cloth->verts[i].spring_count);
+		if (cloth->verts[i].spring_count > 0)
+			cloth->verts[i].avg_spring_len = cloth->verts[i].avg_spring_len * 0.49f / ((float)cloth->verts[i].spring_count);
 	}
 
 	// shear springs
