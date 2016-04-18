@@ -747,7 +747,12 @@ static float cloth_shrink_factor(ClothModifierData *clmd, ClothVertex *verts, in
 		float base = 1.0f - clmd->sim_parms->shrink_min;
 		float delta = clmd->sim_parms->shrink_min - clmd->sim_parms->shrink_max;
 
-		return base + delta * 0.5f * (verts[i1].shrink_factor + verts[i2].shrink_factor);
+		float k1 = base + delta * verts[i1].shrink_factor;
+		float k2 = base + delta * verts[i2].shrink_factor;
+
+		/* Use geometrical mean to average two factors since it behaves better
+		   for diagonals when a rectangle transforms into a trapezoid. */
+		return sqrtf(k1 * k2);
 	}
 	else
 		return 1.0f;
