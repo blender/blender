@@ -235,6 +235,8 @@ class CyclesRender_PT_geometery(CyclesButtonsPanel, Panel):
             sub.label("Subdivision Rate:")
             sub.prop(cscene, "dicing_rate", text="Render")
             sub.prop(cscene, "preview_dicing_rate", text="Preview")
+            sub.separator()
+            sub.prop(cscene, "max_subdivisions")
         else:
             row = layout.row()
             row.label("Volume Sampling:")

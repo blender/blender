@@ -173,6 +173,7 @@ private:
 	bool is_cpu;
 
 	float dicing_rate;
+	int max_subdivisions;
 
 	struct RenderLayerInfo {
 		RenderLayerInfo()

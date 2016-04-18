@@ -383,6 +383,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 default=8.0,
                 )
 
+        cls.max_subdivisions = IntProperty(
+                name="Max Subdivisions",
+                description="Stop subdividing when this level is reached even if the dice rate would produce finer tessellation",
+                min=0, max=16,
+                default=12,
+                )
+
         cls.film_exposure = FloatProperty(
                 name="Exposure",
                 description="Image brightness scale",
