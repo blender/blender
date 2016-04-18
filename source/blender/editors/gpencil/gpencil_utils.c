@@ -569,6 +569,10 @@ bool gp_smooth_stroke(bGPDstroke *gps, int i, float inf, bool affect_pressure)
 		/* add the point itself */
 		madd_v3_v3fl(sco, &pt->x, average_fac);
 		
+		if (affect_pressure) {
+			pressure += pt->pressure * average_fac;
+		}
+		
 		/* n-steps before/after current point */
 		// XXX: review how the endpoints are treated by this algorithm
 		// XXX: falloff measures should also introduce some weighting variations, so that further-out points get less weight
