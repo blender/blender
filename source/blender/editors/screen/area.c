@@ -1509,7 +1509,7 @@ void ED_region_init(bContext *C, ARegion *ar)
 
 void ED_region_cursor_set(wmWindow *win, ScrArea *sa, ARegion *ar)
 {
-	if (ar->type && ar->type->cursor) {
+	if (ar && sa && ar->type && ar->type->cursor) {
 		ar->type->cursor(win, sa, ar);
 	}
 	else {
