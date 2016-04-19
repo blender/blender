@@ -79,7 +79,15 @@ static SpaceLink *text_new(const bContext *UNUSED(C))
 	BLI_addtail(&stext->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
 	ar->alignment = RGN_ALIGN_BOTTOM;
-	
+
+	/* properties region */
+	ar = MEM_callocN(sizeof(ARegion), "properties region for text");
+
+	BLI_addtail(&stext->regionbase, ar);
+	ar->regiontype = RGN_TYPE_UI;
+	ar->alignment = RGN_ALIGN_LEFT;
+	ar->flag = RGN_FLAG_HIDDEN;
+
 	/* main region */
 	ar = MEM_callocN(sizeof(ARegion), "main region for text");
 	
