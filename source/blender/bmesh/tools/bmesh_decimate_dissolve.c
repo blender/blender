@@ -91,9 +91,6 @@ static float bm_edge_calc_dissolve_error(
         const BMEdge *e, const BMO_Delimit delimit,
         const struct DelimitData *delimit_data)
 {
-	const bool is_contig = BM_edge_is_contiguous(e);
-	float angle;
-
 	if (!BM_edge_is_manifold(e)) {
 		goto fail;
 	}
@@ -116,6 +113,8 @@ static float bm_edge_calc_dissolve_error(
 		goto fail;
 	}
 
+	const bool is_contig = BM_edge_is_contiguous(e);
+
 	if ((delimit & BMO_DELIM_NORMAL) &&
 	    (is_contig == false))
 	{
@@ -128,12 +127,12 @@ static float bm_edge_calc_dissolve_error(
 		goto fail;
 	}
 
-	angle = BM_edge_calc_face_angle(e);
-	if (is_contig == false) {
-		angle = (float)M_PI - angle;
+	float angle_cos_neg = dot_v3v3(e->l->f->no, e->l->radial_next->f->no);
+	if (is_contig) {
+		angle_cos_neg *= -1;
 	}
 
-	return angle;
+	return angle_cos_neg;
 
 fail:
 	return COST_INVALID;
@@ -259,6 +258,7 @@ void BM_mesh_decimate_dissolve_ex(
         BMEdge **einput_arr, const int einput_len,
         const short oflag_out)
 {
+	const float angle_limit_cos_neg = -cosf(angle_limit);
 	struct DelimitData delimit_data = {0};
 	const int eheap_table_len = do_dissolve_boundaries ? einput_len : max_ii(einput_len, vinput_len);
 	void *_heap_table = MEM_mallocN(sizeof(HeapNode *) * eheap_table_len, __func__);
@@ -308,7 +308,7 @@ void BM_mesh_decimate_dissolve_ex(
 		}
 
 		while ((BLI_heap_is_empty(eheap) == false) &&
-		       (BLI_heap_node_value((enode_top = BLI_heap_top(eheap))) < angle_limit))
+		       (BLI_heap_node_value((enode_top = BLI_heap_top(eheap))) < angle_limit_cos_neg))
 		{
 			BMFace *f_new = NULL;
 			BMEdge *e;
