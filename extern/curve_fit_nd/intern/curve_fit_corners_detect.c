@@ -66,7 +66,7 @@ typedef unsigned int uint;
 /** \name Simple Vector Math Lib
  * \{ */
 
-static double angle_vnvnvn_cos(
+static double cos_vnvnvn(
         const double v0[], const double v1[], const double v2[],
         const uint dims)
 {
@@ -89,7 +89,7 @@ static double angle_vnvnvn(
         const double v0[], const double v1[], const double v2[],
         const uint dims)
 {
-	return acos(angle_vnvnvn_cos(v0, v1, v2, dims));
+	return acos(cos_vnvnvn(v0, v1, v2, dims));
 }
 
 
@@ -260,7 +260,7 @@ static double point_corner_angle(
 	const double *p = &points[i * dims];
 
 	/* initial test */
-	if (angle_vnvnvn_cos(&points[(i - 1) * dims], p, &points[(i + 1) * dims], dims) > angle_threshold_cos) {
+	if (cos_vnvnvn(&points[(i - 1) * dims], p, &points[(i + 1) * dims], dims) > angle_threshold_cos) {
 		return 0.0;
 	}
 
@@ -283,7 +283,7 @@ static double point_corner_angle(
 	        p_mid_prev, &i_mid_prev_next,
 	        p_mid_next, &i_mid_next_prev))
 	{
-		const double angle_mid_cos = angle_vnvnvn_cos(p_mid_prev, p, p_mid_next, dims);
+		const double angle_mid_cos = cos_vnvnvn(p_mid_prev, p, p_mid_next, dims);
 
 		/* compare as cos and flip direction */
 
