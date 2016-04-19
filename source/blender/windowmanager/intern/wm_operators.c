@@ -58,19 +58,15 @@
 #include "PIL_time.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_bitmap.h"
 #include "BLI_dial.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
-#include "BLI_linklist.h"
 #include "BLI_math.h"
-#include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
 #include "BLO_readfile.h"
 
 #include "BKE_appdir.h"
-#include "BKE_autoexec.h"
 #include "BKE_blender.h"
 #include "BKE_brush.h"
 #include "BKE_context.h"
@@ -87,14 +83,12 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h" /* BKE_ST_MAXNAME */
 #include "BKE_unit.h"
-#include "BKE_utildefines.h"
 
 #include "BKE_idcode.h"
 
 #include "BIF_glutil.h" /* for paint cursor */
 #include "BLF_api.h"
 
-#include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -104,7 +98,6 @@
 #include "ED_view3d.h"
 
 #include "GPU_basic_shader.h"
-#include "GPU_material.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
