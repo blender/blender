@@ -831,7 +831,8 @@ void Session::update_status_time(bool show_pause, bool show_done)
 	string status, substatus;
 
 	if(!params.progressive) {
-		const int progress_sample = progress.get_sample(), num_samples = tile_manager.num_samples;
+		const int progress_sample = progress.get_sample(),
+		          num_samples = tile_manager.get_num_effective_samples();
 		const bool is_gpu = params.device.type == DEVICE_CUDA || params.device.type == DEVICE_OPENCL;
 		const bool is_multidevice = params.device.multi_devices.size() > 1;
 		const bool is_cpu = params.device.type == DEVICE_CPU;
@@ -873,7 +874,9 @@ void Session::update_status_time(bool show_pause, bool show_done)
 	else if(tile_manager.num_samples == INT_MAX)
 		substatus = string_printf("Path Tracing Sample %d", sample+1);
 	else
-		substatus = string_printf("Path Tracing Sample %d/%d", sample+1, tile_manager.num_samples);
+		substatus = string_printf("Path Tracing Sample %d/%d",
+		                          sample+1,
+		                          tile_manager.get_num_effective_samples());
 	
 	if(show_pause) {
 		status = "Paused";
