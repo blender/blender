@@ -479,13 +479,15 @@ void BM_mesh_decimate_dissolve_ex(
 
 #ifdef USE_DEGENERATE_CHECK
 					/* dissolving a vertex may mean vertices we previously weren't able to dissolve
-					 * can bow be re-evaluated. */
+					 * can now be re-evaluated. */
 					if (e_new->l) {
 						BMLoop *l_first, *l_iter;
 						l_iter = l_first = e_new->l;
 						do {
+							/* skip vertices part of this edge, evaluated above */
 							BMLoop *l_cycle_first, *l_cycle_iter;
-							l_cycle_iter = l_cycle_first = l_iter;
+							l_cycle_iter = l_iter->next->next;
+							l_cycle_first = l_iter->prev;
 							do {
 								const int j = BM_elem_index_get(l_cycle_iter->v);
 								if (j != -1 && vheap_table[j] &&
