@@ -31,15 +31,33 @@
 #ifndef __WM_FILES_H__
 #define __WM_FILES_H__
 
+struct wmOperatorType;
+
+/* wm_files.c */
 void		wm_history_file_read(void);
-int			wm_history_file_read_exec(bContext *C, wmOperator *op);
-int			wm_file_write(struct bContext *C, const char *target, int fileflags, struct ReportList *reports);
-int			wm_homefile_read_exec(struct bContext *C, struct wmOperator *op);
 int			wm_homefile_read(struct bContext *C, struct ReportList *reports, bool from_memory, const char *filepath);
-int			wm_homefile_write_exec(struct bContext *C, struct wmOperator *op);
-int			wm_userpref_write_exec(struct bContext *C, struct wmOperator *op);
 void		wm_file_read_report(bContext *C);
 
+void        WM_OT_save_homefile(struct wmOperatorType *ot);
+void        WM_OT_userpref_autoexec_path_add(struct wmOperatorType *ot);
+void        WM_OT_userpref_autoexec_path_remove(struct wmOperatorType *ot);
+void        WM_OT_save_userpref(struct wmOperatorType *ot);
+void        WM_OT_read_history(struct wmOperatorType *ot);
+void        WM_OT_read_homefile(struct wmOperatorType *ot);
+void        WM_OT_read_factory_settings(struct wmOperatorType *ot);
+
+void        WM_OT_open_mainfile(struct wmOperatorType *ot);
+
+void        WM_OT_revert_mainfile(struct wmOperatorType *ot);
+void        WM_OT_recover_last_session(struct wmOperatorType *ot);
+void        WM_OT_recover_auto_save(struct wmOperatorType *ot);
+
+void        WM_OT_save_as_mainfile(struct wmOperatorType *ot);
+void        WM_OT_save_mainfile(struct wmOperatorType *ot);
+
+/* wm_files_link.c */
+void        WM_OT_link(struct wmOperatorType *ot);
+void        WM_OT_append(struct wmOperatorType *ot);
 
 #endif /* __WM_FILES_H__ */
 

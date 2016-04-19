@@ -26,7 +26,7 @@
 /** \file blender/windowmanager/intern/wm_files.c
  *  \ingroup wm
  *
- * User level access for blend file read/write, file-history and userprefs.
+ * User level access for blend file read/write, file-history and userprefs (including relevant operators).
  */
 
 
@@ -62,6 +62,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_mesh_types.h" /* only for USE_BMESH_SAVE_AS_COMPAT */
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -88,6 +89,7 @@
 #include "BLO_writefile.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -103,6 +105,7 @@
 #include "GHOST_Path-api.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "GPU_draw.h"
@@ -749,44 +752,6 @@ int wm_homefile_read(bContext *C, ReportList *reports, bool from_memory, const c
 	return true;
 }
 
-int wm_history_file_read_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
-{
-	ED_file_read_bookmarks();
-	wm_history_file_read();
-	return OPERATOR_FINISHED;
-}
-
-int wm_homefile_read_exec(bContext *C, wmOperator *op)
-{
-	const bool from_memory = (STREQ(op->type->idname, "WM_OT_read_factory_settings"));
-	char filepath_buf[FILE_MAX];
-	const char *filepath = NULL;
-
-	if (!from_memory) {
-		PropertyRNA *prop = RNA_struct_find_property(op->ptr, "filepath");
-
-		/* This can be used when loading of a start-up file should only change
-		 * the scene content but keep the blender UI as it is. */
-		wm_open_init_load_ui(op, true);
-		BKE_BIT_TEST_SET(G.fileflags, !RNA_boolean_get(op->ptr, "load_ui"), G_FILE_NO_UI);
-
-		if (RNA_property_is_set(op->ptr, prop)) {
-			RNA_property_string_get(op->ptr, prop, filepath_buf);
-			filepath = filepath_buf;
-			if (BLI_access(filepath, R_OK)) {
-				BKE_reportf(op->reports, RPT_ERROR, "Can't read alternative start-up file: '%s'", filepath);
-				return OPERATOR_CANCELLED;
-			}
-		}
-	}
-	else {
-		/* always load UI for factory settings (prefs will re-init) */
-		G.fileflags &= ~G_FILE_NO_UI;
-	}
-
-	return wm_homefile_read(C, op->reports, from_memory, filepath) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
-}
-
 /** \name WM History File API
  * \{ */
 
@@ -1005,7 +970,7 @@ bool write_crash_blend(void)
 /**
  * \see #wm_homefile_write_exec wraps #BLO_write_file in a similar way.
  */
-int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *reports)
+static int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *reports)
 {
 	Library *li;
 	int len;
@@ -1115,69 +1080,6 @@ int wm_file_write(bContext *C, const char *filepath, int fileflags, ReportList *
 	WM_cursor_wait(0);
 
 	return ret;
-}
-
-/**
- * \see #wm_file_write wraps #BLO_write_file in a similar way.
- */
-int wm_homefile_write_exec(bContext *C, wmOperator *op)
-{
-	wmWindowManager *wm = CTX_wm_manager(C);
-	wmWindow *win = CTX_wm_window(C);
-	char filepath[FILE_MAX];
-	int fileflags;
-
-	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_SAVE_PRE);
-
-	/* check current window and close it if temp */
-	if (win && win->screen->temp)
-		wm_window_close(C, wm, win);
-	
-	/* update keymaps in user preferences */
-	WM_keyconfig_update(wm);
-	
-	BLI_make_file_string("/", filepath, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
-	printf("trying to save homefile at %s ", filepath);
-	
-	ED_editors_flush_edits(C, false);
-
-	/*  force save as regular blend file */
-	fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_AUTOPLAY | G_FILE_HISTORY);
-
-	if (BLO_write_file(CTX_data_main(C), filepath, fileflags | G_FILE_USERPREFS, op->reports, NULL) == 0) {
-		printf("fail\n");
-		return OPERATOR_CANCELLED;
-	}
-	
-	printf("ok\n");
-
-	G.save_over = 0;
-
-	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_SAVE_POST);
-
-	return OPERATOR_FINISHED;
-}
-
-/* Only save the prefs block. operator entry */
-int wm_userpref_write_exec(bContext *C, wmOperator *op)
-{
-	wmWindowManager *wm = CTX_wm_manager(C);
-	char filepath[FILE_MAX];
-	
-	/* update keymaps in user preferences */
-	WM_keyconfig_update(wm);
-	
-	BLI_make_file_string("/", filepath, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL), BLENDER_USERPREF_FILE);
-	printf("trying to save userpref at %s ", filepath);
-	
-	if (BKE_write_file_userdef(filepath, op->reports) == 0) {
-		printf("fail\n");
-		return OPERATOR_CANCELLED;
-	}
-	
-	printf("ok\n");
-	
-	return OPERATOR_FINISHED;
 }
 
 /************************ autosave ****************************/
@@ -1341,3 +1243,728 @@ void WM_file_tag_modified(const bContext *C)
 		WM_event_add_notifier(C, NC_WM | ND_DATACHANGED, NULL);
 	}
 }
+
+/** \name Preferences/startup save & load.
+ *
+ * \{ */
+
+/**
+ * \see #wm_file_write wraps #BLO_write_file in a similar way.
+ */
+static int wm_homefile_write_exec(bContext *C, wmOperator *op)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *win = CTX_wm_window(C);
+	char filepath[FILE_MAX];
+	int fileflags;
+
+	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_SAVE_PRE);
+
+	/* check current window and close it if temp */
+	if (win && win->screen->temp)
+		wm_window_close(C, wm, win);
+
+	/* update keymaps in user preferences */
+	WM_keyconfig_update(wm);
+
+	BLI_make_file_string("/", filepath, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
+	printf("trying to save homefile at %s ", filepath);
+
+	ED_editors_flush_edits(C, false);
+
+	/*  force save as regular blend file */
+	fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_AUTOPLAY | G_FILE_HISTORY);
+
+	if (BLO_write_file(CTX_data_main(C), filepath, fileflags | G_FILE_USERPREFS, op->reports, NULL) == 0) {
+		printf("fail\n");
+		return OPERATOR_CANCELLED;
+	}
+
+	printf("ok\n");
+
+	G.save_over = 0;
+
+	BLI_callback_exec(G.main, NULL, BLI_CB_EVT_SAVE_POST);
+
+	return OPERATOR_FINISHED;
+}
+
+void WM_OT_save_homefile(wmOperatorType *ot)
+{
+	ot->name = "Save Startup File";
+	ot->idname = "WM_OT_save_homefile";
+	ot->description = "Make the current file the default .blend file, includes preferences";
+
+	ot->invoke = WM_operator_confirm;
+	ot->exec = wm_homefile_write_exec;
+}
+
+static int wm_userpref_autoexec_add_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+{
+	bPathCompare *path_cmp = MEM_callocN(sizeof(bPathCompare), "bPathCompare");
+	BLI_addtail(&U.autoexec_paths, path_cmp);
+	return OPERATOR_FINISHED;
+}
+
+void WM_OT_userpref_autoexec_path_add(wmOperatorType *ot)
+{
+	ot->name = "Add Autoexec Path";
+	ot->idname = "WM_OT_userpref_autoexec_path_add";
+	ot->description = "Add path to exclude from autoexecution";
+
+	ot->exec = wm_userpref_autoexec_add_exec;
+
+	ot->flag = OPTYPE_INTERNAL;
+}
+
+static int wm_userpref_autoexec_remove_exec(bContext *UNUSED(C), wmOperator *op)
+{
+	const int index = RNA_int_get(op->ptr, "index");
+	bPathCompare *path_cmp = BLI_findlink(&U.autoexec_paths, index);
+	if (path_cmp) {
+		BLI_freelinkN(&U.autoexec_paths, path_cmp);
+	}
+	return OPERATOR_FINISHED;
+}
+
+void WM_OT_userpref_autoexec_path_remove(wmOperatorType *ot)
+{
+	ot->name = "Remove Autoexec Path";
+	ot->idname = "WM_OT_userpref_autoexec_path_remove";
+	ot->description = "Remove path to exclude from autoexecution";
+
+	ot->exec = wm_userpref_autoexec_remove_exec;
+
+	ot->flag = OPTYPE_INTERNAL;
+
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
+}
+
+/* Only save the prefs block. operator entry */
+static int wm_userpref_write_exec(bContext *C, wmOperator *op)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	char filepath[FILE_MAX];
+
+	/* update keymaps in user preferences */
+	WM_keyconfig_update(wm);
+
+	BLI_make_file_string("/", filepath, BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL), BLENDER_USERPREF_FILE);
+	printf("trying to save userpref at %s ", filepath);
+
+	if (BKE_write_file_userdef(filepath, op->reports) == 0) {
+		printf("fail\n");
+		return OPERATOR_CANCELLED;
+	}
+
+	printf("ok\n");
+
+	return OPERATOR_FINISHED;
+}
+
+void WM_OT_save_userpref(wmOperatorType *ot)
+{
+	ot->name = "Save User Settings";
+	ot->idname = "WM_OT_save_userpref";
+	ot->description = "Save user preferences separately, overrides startup file preferences";
+
+	ot->invoke = WM_operator_confirm;
+	ot->exec = wm_userpref_write_exec;
+}
+
+static int wm_history_file_read_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+{
+	ED_file_read_bookmarks();
+	wm_history_file_read();
+	return OPERATOR_FINISHED;
+}
+
+void WM_OT_read_history(wmOperatorType *ot)
+{
+	ot->name = "Reload History File";
+	ot->idname = "WM_OT_read_history";
+	ot->description = "Reloads history and bookmarks";
+
+	ot->invoke = WM_operator_confirm;
+	ot->exec = wm_history_file_read_exec;
+
+	/* this operator is only used for loading settings from a previous blender install */
+	ot->flag = OPTYPE_INTERNAL;
+}
+
+static int wm_homefile_read_exec(bContext *C, wmOperator *op)
+{
+	const bool from_memory = (STREQ(op->type->idname, "WM_OT_read_factory_settings"));
+	char filepath_buf[FILE_MAX];
+	const char *filepath = NULL;
+
+	if (!from_memory) {
+		PropertyRNA *prop = RNA_struct_find_property(op->ptr, "filepath");
+
+		/* This can be used when loading of a start-up file should only change
+		 * the scene content but keep the blender UI as it is. */
+		wm_open_init_load_ui(op, true);
+		BKE_BIT_TEST_SET(G.fileflags, !RNA_boolean_get(op->ptr, "load_ui"), G_FILE_NO_UI);
+
+		if (RNA_property_is_set(op->ptr, prop)) {
+			RNA_property_string_get(op->ptr, prop, filepath_buf);
+			filepath = filepath_buf;
+			if (BLI_access(filepath, R_OK)) {
+				BKE_reportf(op->reports, RPT_ERROR, "Can't read alternative start-up file: '%s'", filepath);
+				return OPERATOR_CANCELLED;
+			}
+		}
+	}
+	else {
+		/* always load UI for factory settings (prefs will re-init) */
+		G.fileflags &= ~G_FILE_NO_UI;
+	}
+
+	return wm_homefile_read(C, op->reports, from_memory, filepath) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+}
+
+void WM_OT_read_homefile(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	ot->name = "Reload Start-Up File";
+	ot->idname = "WM_OT_read_homefile";
+	ot->description = "Open the default file (doesn't save the current file)";
+
+	ot->invoke = WM_operator_confirm;
+	ot->exec = wm_homefile_read_exec;
+
+	prop = RNA_def_string_file_path(ot->srna, "filepath", NULL,
+	                                FILE_MAX, "File Path",
+	                                "Path to an alternative start-up file");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+
+	/* So scripts can use an alternative start-up file without the UI */
+	prop = RNA_def_boolean(ot->srna, "load_ui", true, "Load UI",
+	                       "Load user interface setup from the .blend file");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+	/* omit poll to run in background mode */
+}
+
+void WM_OT_read_factory_settings(wmOperatorType *ot)
+{
+	ot->name = "Load Factory Settings";
+	ot->idname = "WM_OT_read_factory_settings";
+	ot->description = "Load default file and user preferences";
+
+	ot->invoke = WM_operator_confirm;
+	ot->exec = wm_homefile_read_exec;
+	/* omit poll to run in background mode */
+}
+
+/** \} */
+
+/** \name Open main .blend file.
+ *
+ * \{ */
+
+/**
+ * Wrap #WM_file_read, shared by file reading operators.
+ */
+static bool wm_file_read_opwrap(bContext *C, const char *filepath, ReportList *reports,
+                                const bool autoexec_init)
+{
+	bool success;
+
+	/* XXX wm in context is not set correctly after WM_file_read -> crash */
+	/* do it before for now, but is this correct with multiple windows? */
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+	if (autoexec_init) {
+		WM_file_autoexec_init(filepath);
+	}
+
+	success = WM_file_read(C, filepath, reports);
+
+	return success;
+}
+
+/* currently fits in a pointer */
+struct FileRuntime {
+	bool is_untrusted;
+};
+
+static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	const char *openname = G.main->name;
+
+	if (CTX_wm_window(C) == NULL) {
+		/* in rare cases this could happen, when trying to invoke in background
+		 * mode on load for example. Don't use poll for this because exec()
+		 * can still run without a window */
+		BKE_report(op->reports, RPT_ERROR, "Context window not set");
+		return OPERATOR_CANCELLED;
+	}
+
+	/* if possible, get the name of the most recently used .blend file */
+	if (G.recent_files.first) {
+		struct RecentFile *recent = G.recent_files.first;
+		openname = recent->filepath;
+	}
+
+	RNA_string_set(op->ptr, "filepath", openname);
+	wm_open_init_load_ui(op, true);
+	wm_open_init_use_scripts(op, true);
+	op->customdata = NULL;
+
+	WM_event_add_fileselect(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
+{
+	char filepath[FILE_MAX];
+	bool success;
+
+	RNA_string_get(op->ptr, "filepath", filepath);
+
+	/* re-use last loaded setting so we can reload a file without changing */
+	wm_open_init_load_ui(op, false);
+	wm_open_init_use_scripts(op, false);
+
+	if (RNA_boolean_get(op->ptr, "load_ui"))
+		G.fileflags &= ~G_FILE_NO_UI;
+	else
+		G.fileflags |= G_FILE_NO_UI;
+
+	if (RNA_boolean_get(op->ptr, "use_scripts"))
+		G.f |= G_SCRIPT_AUTOEXEC;
+	else
+		G.f &= ~G_SCRIPT_AUTOEXEC;
+
+	success = wm_file_read_opwrap(C, filepath, op->reports, !(G.f & G_SCRIPT_AUTOEXEC));
+
+	/* for file open also popup for warnings, not only errors */
+	BKE_report_print_level_set(op->reports, RPT_WARNING);
+
+	if (success) {
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+static bool wm_open_mainfile_check(bContext *UNUSED(C), wmOperator *op)
+{
+	struct FileRuntime *file_info = (struct FileRuntime *)&op->customdata;
+	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_scripts");
+	bool is_untrusted = false;
+	char path[FILE_MAX];
+	char *lslash;
+
+	RNA_string_get(op->ptr, "filepath", path);
+
+	/* get the dir */
+	lslash = (char *)BLI_last_slash(path);
+	if (lslash) *(lslash + 1) = '\0';
+
+	if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) {
+		if (BKE_autoexec_match(path) == true) {
+			RNA_property_boolean_set(op->ptr, prop, false);
+			is_untrusted = true;
+		}
+	}
+
+	if (file_info) {
+		file_info->is_untrusted = is_untrusted;
+	}
+
+	return is_untrusted;
+}
+
+static void wm_open_mainfile_ui(bContext *UNUSED(C), wmOperator *op)
+{
+	struct FileRuntime *file_info = (struct FileRuntime *)&op->customdata;
+	uiLayout *layout = op->layout;
+	uiLayout *col = op->layout;
+	const char *autoexec_text;
+
+	uiItemR(layout, op->ptr, "load_ui", 0, NULL, ICON_NONE);
+
+	col = uiLayoutColumn(layout, false);
+	if (file_info->is_untrusted) {
+		autoexec_text = IFACE_("Trusted Source [Untrusted Path]");
+		uiLayoutSetActive(col, false);
+		uiLayoutSetEnabled(col, false);
+	}
+	else {
+		autoexec_text = IFACE_("Trusted Source");
+	}
+
+	uiItemR(col, op->ptr, "use_scripts", 0, autoexec_text, ICON_NONE);
+}
+
+void WM_OT_open_mainfile(wmOperatorType *ot)
+{
+	ot->name = "Open Blender File";
+	ot->idname = "WM_OT_open_mainfile";
+	ot->description = "Open a Blender file";
+
+	ot->invoke = wm_open_mainfile_invoke;
+	ot->exec = wm_open_mainfile_exec;
+	ot->check = wm_open_mainfile_check;
+	ot->ui = wm_open_mainfile_ui;
+	/* omit window poll so this can work in background mode */
+
+	WM_operator_properties_filesel(
+	        ot, FILE_TYPE_FOLDER | FILE_TYPE_BLENDER, FILE_BLENDER, FILE_OPENFILE,
+	        WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
+
+	RNA_def_boolean(ot->srna, "load_ui", true, "Load UI", "Load user interface setup in the .blend file");
+	RNA_def_boolean(ot->srna, "use_scripts", true, "Trusted Source",
+	                "Allow .blend file to execute scripts automatically, default available from system preferences");
+}
+
+/** \} */
+
+/** \name Reload (revert) main .blend file.
+ *
+ * \{ */
+
+static int wm_revert_mainfile_exec(bContext *C, wmOperator *op)
+{
+	bool success;
+
+	wm_open_init_use_scripts(op, false);
+
+	if (RNA_boolean_get(op->ptr, "use_scripts"))
+		G.f |= G_SCRIPT_AUTOEXEC;
+	else
+		G.f &= ~G_SCRIPT_AUTOEXEC;
+
+	success = wm_file_read_opwrap(C, G.main->name, op->reports, !(G.f & G_SCRIPT_AUTOEXEC));
+
+	if (success) {
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+static int wm_revert_mainfile_poll(bContext *UNUSED(C))
+{
+	return G.relbase_valid;
+}
+
+void WM_OT_revert_mainfile(wmOperatorType *ot)
+{
+	ot->name = "Revert";
+	ot->idname = "WM_OT_revert_mainfile";
+	ot->description = "Reload the saved file";
+	ot->invoke = WM_operator_confirm;
+
+	RNA_def_boolean(ot->srna, "use_scripts", true, "Trusted Source",
+	                "Allow .blend file to execute scripts automatically, default available from system preferences");
+
+	ot->exec = wm_revert_mainfile_exec;
+	ot->poll = wm_revert_mainfile_poll;
+}
+
+/** \} */
+
+/** \name Recover last session & auto-save.
+ *
+ * \{ */
+
+void WM_recover_last_session(bContext *C, ReportList *reports)
+{
+	char filepath[FILE_MAX];
+
+	BLI_make_file_string("/", filepath, BKE_tempdir_base(), BLENDER_QUIT_FILE);
+	/* if reports==NULL, it's called directly without operator, we add a quick check here */
+	if (reports || BLI_exists(filepath)) {
+		G.fileflags |= G_FILE_RECOVER;
+
+		wm_file_read_opwrap(C, filepath, reports, true);
+
+		G.fileflags &= ~G_FILE_RECOVER;
+
+		/* XXX bad global... fixme */
+		if (G.main->name[0])
+			G.file_loaded = 1;	/* prevents splash to show */
+		else {
+			G.relbase_valid = 0;
+			G.save_over = 0;    /* start with save preference untitled.blend */
+		}
+
+	}
+}
+
+static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
+{
+	WM_recover_last_session(C, op->reports);
+	return OPERATOR_FINISHED;
+}
+
+void WM_OT_recover_last_session(wmOperatorType *ot)
+{
+	ot->name = "Recover Last Session";
+	ot->idname = "WM_OT_recover_last_session";
+	ot->description = "Open the last closed file (\"" BLENDER_QUIT_FILE "\")";
+	ot->invoke = WM_operator_confirm;
+
+	ot->exec = wm_recover_last_session_exec;
+}
+
+static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
+{
+	char filepath[FILE_MAX];
+	bool success;
+
+	RNA_string_get(op->ptr, "filepath", filepath);
+
+	G.fileflags |= G_FILE_RECOVER;
+
+	success = wm_file_read_opwrap(C, filepath, op->reports, true);
+
+	G.fileflags &= ~G_FILE_RECOVER;
+
+	if (success) {
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+static int wm_recover_auto_save_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	char filename[FILE_MAX];
+
+	wm_autosave_location(filename);
+	RNA_string_set(op->ptr, "filepath", filename);
+	WM_event_add_fileselect(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void WM_OT_recover_auto_save(wmOperatorType *ot)
+{
+	ot->name = "Recover Auto Save";
+	ot->idname = "WM_OT_recover_auto_save";
+	ot->description = "Open an automatically saved file to recover it";
+
+	ot->exec = wm_recover_auto_save_exec;
+	ot->invoke = wm_recover_auto_save_invoke;
+
+	WM_operator_properties_filesel(
+	        ot, FILE_TYPE_BLENDER, FILE_BLENDER, FILE_OPENFILE,
+	        WM_FILESEL_FILEPATH, FILE_LONGDISPLAY, FILE_SORT_TIME);
+}
+
+/** \} */
+
+/** \name Save main .blend file.
+ *
+ * \{ */
+
+static void wm_filepath_default(char *filepath)
+{
+	if (G.save_over == false) {
+		BLI_ensure_filename(filepath, FILE_MAX, "untitled.blend");
+	}
+}
+
+static void save_set_compress(wmOperator *op)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_struct_find_property(op->ptr, "compress");
+	if (!RNA_property_is_set(op->ptr, prop)) {
+		if (G.save_over) {  /* keep flag for existing file */
+			RNA_property_boolean_set(op->ptr, prop, (G.fileflags & G_FILE_COMPRESS) != 0);
+		}
+		else {  /* use userdef for new file */
+			RNA_property_boolean_set(op->ptr, prop, (U.flag & USER_FILECOMPRESS) != 0);
+		}
+	}
+}
+
+static void save_set_filepath(wmOperator *op)
+{
+	PropertyRNA *prop;
+	char name[FILE_MAX];
+
+	prop = RNA_struct_find_property(op->ptr, "filepath");
+	if (!RNA_property_is_set(op->ptr, prop)) {
+		/* if not saved before, get the name of the most recently used .blend file */
+		if (G.main->name[0] == 0 && G.recent_files.first) {
+			struct RecentFile *recent = G.recent_files.first;
+			BLI_strncpy(name, recent->filepath, FILE_MAX);
+		}
+		else {
+			BLI_strncpy(name, G.main->name, FILE_MAX);
+		}
+
+		wm_filepath_default(name);
+		RNA_property_string_set(op->ptr, prop, name);
+	}
+}
+
+static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+
+	save_set_compress(op);
+	save_set_filepath(op);
+
+	WM_event_add_fileselect(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+/* function used for WM_OT_save_mainfile too */
+static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
+{
+	char path[FILE_MAX];
+	int fileflags;
+
+	save_set_compress(op);
+
+	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
+		RNA_string_get(op->ptr, "filepath", path);
+	}
+	else {
+		BLI_strncpy(path, G.main->name, FILE_MAX);
+		wm_filepath_default(path);
+	}
+
+	fileflags = G.fileflags & ~G_FILE_USERPREFS;
+
+	/* set compression flag */
+	BKE_BIT_TEST_SET(fileflags, RNA_boolean_get(op->ptr, "compress"),
+	                 G_FILE_COMPRESS);
+	BKE_BIT_TEST_SET(fileflags, RNA_boolean_get(op->ptr, "relative_remap"),
+	                 G_FILE_RELATIVE_REMAP);
+	BKE_BIT_TEST_SET(fileflags,
+	                 (RNA_struct_property_is_set(op->ptr, "copy") &&
+	                  RNA_boolean_get(op->ptr, "copy")),
+	                 G_FILE_SAVE_COPY);
+
+#ifdef USE_BMESH_SAVE_AS_COMPAT
+	BKE_BIT_TEST_SET(fileflags,
+	                 (RNA_struct_find_property(op->ptr, "use_mesh_compat") &&
+	                  RNA_boolean_get(op->ptr, "use_mesh_compat")),
+	                 G_FILE_MESH_COMPAT);
+#else
+#  error "don't remove by accident"
+#endif
+
+	if (wm_file_write(C, path, fileflags, op->reports) != 0)
+		return OPERATOR_CANCELLED;
+
+	WM_event_add_notifier(C, NC_WM | ND_FILESAVE, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+/* function used for WM_OT_save_mainfile too */
+static bool blend_save_check(bContext *UNUSED(C), wmOperator *op)
+{
+	char filepath[FILE_MAX];
+	RNA_string_get(op->ptr, "filepath", filepath);
+	if (!BLO_has_bfile_extension(filepath)) {
+		/* some users would prefer BLI_replace_extension(),
+		 * we keep getting nitpicking bug reports about this - campbell */
+		BLI_ensure_extension(filepath, FILE_MAX, ".blend");
+		RNA_string_set(op->ptr, "filepath", filepath);
+		return true;
+	}
+	return false;
+}
+
+void WM_OT_save_as_mainfile(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	ot->name = "Save As Blender File";
+	ot->idname = "WM_OT_save_as_mainfile";
+	ot->description = "Save the current file in the desired location";
+
+	ot->invoke = wm_save_as_mainfile_invoke;
+	ot->exec = wm_save_as_mainfile_exec;
+	ot->check = blend_save_check;
+	/* omit window poll so this can work in background mode */
+
+	WM_operator_properties_filesel(
+	        ot, FILE_TYPE_FOLDER | FILE_TYPE_BLENDER, FILE_BLENDER, FILE_SAVE,
+	        WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
+	RNA_def_boolean(ot->srna, "compress", false, "Compress", "Write compressed .blend file");
+	RNA_def_boolean(ot->srna, "relative_remap", true, "Remap Relative",
+	                "Remap relative paths when saving in a different directory");
+	prop = RNA_def_boolean(ot->srna, "copy", false, "Save Copy",
+	                "Save a copy of the actual working state but does not make saved file active");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+#ifdef USE_BMESH_SAVE_AS_COMPAT
+	RNA_def_boolean(ot->srna, "use_mesh_compat", false, "Legacy Mesh Format",
+	                "Save using legacy mesh format (no ngons) - WARNING: only saves tris and quads, other ngons will "
+	                "be lost (no implicit triangulation)");
+#endif
+}
+
+static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	int ret;
+
+	/* cancel if no active window */
+	if (CTX_wm_window(C) == NULL)
+		return OPERATOR_CANCELLED;
+
+	save_set_compress(op);
+	save_set_filepath(op);
+
+	/* if we're saving for the first time and prefer relative paths - any existing paths will be absolute,
+	 * enable the option to remap paths to avoid confusion [#37240] */
+	if ((G.relbase_valid == false) && (U.flag & USER_RELPATHS)) {
+		PropertyRNA *prop = RNA_struct_find_property(op->ptr, "relative_remap");
+		if (!RNA_property_is_set(op->ptr, prop)) {
+			RNA_property_boolean_set(op->ptr, prop, true);
+		}
+	}
+
+	if (G.save_over) {
+		char path[FILE_MAX];
+
+		RNA_string_get(op->ptr, "filepath", path);
+		if (BLI_exists(path)) {
+			ret = WM_operator_confirm_message_ex(C, op, IFACE_("Save Over?"), ICON_QUESTION, path);
+		}
+		else {
+			ret = wm_save_as_mainfile_exec(C, op);
+		}
+	}
+	else {
+		WM_event_add_fileselect(C, op);
+		ret = OPERATOR_RUNNING_MODAL;
+	}
+
+	return ret;
+}
+
+void WM_OT_save_mainfile(wmOperatorType *ot)
+{
+	ot->name = "Save Blender File";
+	ot->idname = "WM_OT_save_mainfile";
+	ot->description = "Save the current Blender file";
+
+	ot->invoke = wm_save_mainfile_invoke;
+	ot->exec = wm_save_as_mainfile_exec;
+	ot->check = blend_save_check;
+	/* omit window poll so this can work in background mode */
+
+	WM_operator_properties_filesel(
+	        ot, FILE_TYPE_FOLDER | FILE_TYPE_BLENDER, FILE_BLENDER, FILE_SAVE,
+	        WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
+	RNA_def_boolean(ot->srna, "compress", false, "Compress", "Write compressed .blend file");
+	RNA_def_boolean(ot->srna, "relative_remap", false, "Remap Relative",
+	                "Remap relative paths when saving in a different directory");
+}
+
+/** \} */

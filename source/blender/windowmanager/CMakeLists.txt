@@ -58,6 +58,7 @@ set(SRC
 	intern/wm_draw.c
 	intern/wm_event_system.c
 	intern/wm_files.c
+	intern/wm_files_link.c
 	intern/wm_gesture.c
 	intern/wm_init_exit.c
 	intern/wm_jobs.c
