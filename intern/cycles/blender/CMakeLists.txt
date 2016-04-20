@@ -24,7 +24,6 @@ set(SRC
 	blender_camera.cpp
 	blender_mesh.cpp
 	blender_object.cpp
-	blender_particles.cpp
 	blender_curves.cpp
 	blender_logging.cpp
 	blender_python.cpp
