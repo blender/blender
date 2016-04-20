@@ -259,17 +259,10 @@ float QuadDice::scale_factor(SubPatch& sub, EdgeFactors& ef, int Mu, int Mv)
 void QuadDice::add_corners(SubPatch& sub)
 {
 	/* add verts for patch corners */
-	if(sub.patch->is_triangle()) {
-		add_vert(sub, 0.0f, 0.0f);
-		add_vert(sub, 1.0f, 0.0f);
-		add_vert(sub, 0.0f, 1.0f);
-	}
-	else {
-		add_vert(sub, 0.0f, 0.0f);
-		add_vert(sub, 1.0f, 0.0f);
-		add_vert(sub, 0.0f, 1.0f);
-		add_vert(sub, 1.0f, 1.0f);
-	}
+	add_vert(sub, 0.0f, 0.0f);
+	add_vert(sub, 1.0f, 0.0f);
+	add_vert(sub, 0.0f, 1.0f);
+	add_vert(sub, 1.0f, 1.0f);
 }
 
 void QuadDice::add_grid(SubPatch& sub, int Mu, int Mv, int offset)
@@ -458,15 +451,21 @@ void TriangleDice::add_grid(SubPatch& sub, EdgeFactors& ef, int M)
 		add_triangle(sub.patch, outer_w[0], outer_u[0], outer_v[0]);
 	}
 	else {
-		/* center vertex + 6 triangles */
+		/* center vertex + up to 6 triangles */
 		int center = add_vert(sub, make_float2(1.0f/3.0f, 1.0f/3.0f));
 
 		add_triangle(sub.patch, outer_w[0], outer_w[1], center);
-		add_triangle(sub.patch, outer_w[1], outer_w[2], center);
+		/* if this is false then there is only one triangle on this side */
+		if(outer_w.size() > 2)
+			add_triangle(sub.patch, outer_w[1], outer_w[2], center);
+
 		add_triangle(sub.patch, outer_u[0], outer_u[1], center);
-		add_triangle(sub.patch, outer_u[1], outer_u[2], center);
+		if(outer_u.size() > 2)
+			add_triangle(sub.patch, outer_u[1], outer_u[2], center);
+
 		add_triangle(sub.patch, outer_v[0], outer_v[1], center);
-		add_triangle(sub.patch, outer_v[1], outer_v[2], center);
+		if(outer_v.size() > 2)
+			add_triangle(sub.patch, outer_v[1], outer_v[2], center);
 	}
 }
 
@@ -474,6 +473,16 @@ void TriangleDice::dice(SubPatch& sub, EdgeFactors& ef)
 {
 	/* todo: handle 2 1 1 resolution */
 	int M = max(ef.tu, max(ef.tv, ef.tw));
+
+	/* Due to the "slant" of the edges of a triangle compared to a quad, the internal
+	 * triangles end up smaller, causing over-tessellation. This is to correct for this
+	 * difference in area. Technically its only correct for equilateral triangles, but
+	 * its better than how it was.
+	 *
+	 * (2*cos(radians(30))/3)**0.5
+	 */
+	float S = 0.7598356856515927f;
+	M = max((int)ceil(S*M), 1);
 
 	reserve(ef, M);
 	add_grid(sub, ef, M);

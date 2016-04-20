@@ -1061,14 +1061,23 @@ ccl_device void kernel_volume_stack_init(KernelGlobals *kg,
 			/* If ray exited the volume and never entered to that volume
 			 * it means that camera is inside such a volume.
 			 */
-			bool is_enclosed = false;
-			for(int i = 0; i < enclosed_index; ++i) {
+			bool need_add = true;
+			for(int i = 0; i < enclosed_index && need_add; ++i) {
+				/* If ray exited the volume and never entered to that volume
+				 * it means that camera is inside such a volume.
+				 */
 				if(enclosed_volumes[i] == sd.object) {
-					is_enclosed = true;
+					need_add = false;
+				}
+			}
+			for(int i = 0; i < stack_index && need_add; ++i) {
+				/* Don't add intersections twice. */
+				if(stack[i].object == sd.object) {
+					need_add = false;
 					break;
 				}
 			}
-			if(is_enclosed == false) {
+			if(need_add) {
 				stack[stack_index].object = sd.object;
 				stack[stack_index].shader = sd.shader;
 				++stack_index;

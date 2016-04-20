@@ -265,13 +265,7 @@ static int graphkeys_view_selected_exec(bContext *C, wmOperator *op)
 	return graphkeys_viewall(C, true, include_handles, smooth_viewtx);
 }
 
-static int graphkeys_view_frame_exec(bContext *C, wmOperator *op)
-{
-	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-	ANIM_center_frame(C, smooth_viewtx);
-	return OPERATOR_FINISHED;
-}
-
+/* ......... */
 
 void GRAPH_OT_view_all(wmOperatorType *ot)
 {
@@ -311,17 +305,26 @@ void GRAPH_OT_view_selected(wmOperatorType *ot)
 	                           "Include handles of keyframes when calculating extents");
 }
 
+/* ********************** View Frame Operator ****************************** */
+
+static int graphkeys_view_frame_exec(bContext *C, wmOperator *op)
+{
+	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+	ANIM_center_frame(C, smooth_viewtx);
+	return OPERATOR_FINISHED;
+}
+
 void GRAPH_OT_view_frame(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "View Frame";
 	ot->idname = "GRAPH_OT_view_frame";
 	ot->description = "Reset viewable area to show range around current frame";
-
+	
 	/* api callbacks */
 	ot->exec = graphkeys_view_frame_exec;
-	ot->poll = ED_operator_graphedit_active; /* XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier... */
-
+	ot->poll = ED_operator_graphedit_active;
+	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }

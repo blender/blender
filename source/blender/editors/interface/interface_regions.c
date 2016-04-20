@@ -1788,10 +1788,20 @@ void ui_popup_block_scrolltest(uiBlock *block)
 
 static void ui_popup_block_remove(bContext *C, uiPopupBlockHandle *handle)
 {
-	ui_region_temp_remove(C, CTX_wm_screen(C), handle->region);
+	wmWindow *win = CTX_wm_window(C);
+	bScreen *sc = CTX_wm_screen(C);
+
+	ui_region_temp_remove(C, sc, handle->region);
+
+	/* reset to region cursor (only if there's not another menu open) */
+	if (BLI_listbase_is_empty(&sc->regionbase)) {
+		ED_region_cursor_set(win, CTX_wm_area(C), CTX_wm_region(C));
+		/* in case cursor needs to be changed again */
+		WM_event_add_mousemove(C);
+	}
 
 	if (handle->scrolltimer)
-		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), handle->scrolltimer);
+		WM_event_remove_timer(CTX_wm_manager(C), win, handle->scrolltimer);
 }
 
 /**
@@ -1965,10 +1975,18 @@ uiPopupBlockHandle *ui_popup_block_create(
         void *arg)
 {
 	wmWindow *window = CTX_wm_window(C);
+	uiBut *activebut = UI_context_active_but_get(C);
 	static ARegionType type;
 	ARegion *ar;
 	uiBlock *block;
 	uiPopupBlockHandle *handle;
+
+	/* disable tooltips from buttons below */
+	if (activebut) {
+		UI_but_tooltip_timer_remove(C, activebut);
+	}
+	/* standard cursor by default */
+	WM_cursor_set(window, CURSOR_STD);
 
 	/* create handle */
 	handle = MEM_callocN(sizeof(uiPopupBlockHandle), "uiPopupBlockHandle");

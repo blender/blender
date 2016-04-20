@@ -130,6 +130,7 @@ void nla_operatortypes(void)
 	/* view */
 	WM_operatortype_append(NLA_OT_view_all);
 	WM_operatortype_append(NLA_OT_view_selected);
+	WM_operatortype_append(NLA_OT_view_frame);
 	
 	WM_operatortype_append(NLA_OT_previewrange_set);
 	
@@ -243,6 +244,7 @@ static void nla_keymap_main(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "NLA_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NLA_OT_view_all", NDOF_BUTTON_FIT, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NLA_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_view_frame", PAD0, KM_PRESS, 0, 0);
 	
 	/* editing ------------------------------------------------ */
 	

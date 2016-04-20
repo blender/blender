@@ -42,7 +42,7 @@ Write a bit
 @param bio BIO handle
 @param b Bit to write (0 or 1)
 */
-static void bio_putbit(opj_bio_t *bio, int b);
+static void bio_putbit(opj_bio_t *bio, unsigned int b);
 /**
 Read a bit
 @param bio BIO handle
@@ -78,7 +78,7 @@ static int bio_byteout(opj_bio_t *bio) {
 	if (bio->bp >= bio->end) {
 		return 1;
 	}
-	*bio->bp++ = bio->buf >> 8;
+	*bio->bp++ = (unsigned char)(bio->buf >> 8);
 	return 0;
 }
 
@@ -92,7 +92,7 @@ static int bio_bytein(opj_bio_t *bio) {
 	return 0;
 }
 
-static void bio_putbit(opj_bio_t *bio, int b) {
+static void bio_putbit(opj_bio_t *bio, unsigned int b) {
 	if (bio->ct == 0) {
 		bio_byteout(bio);
 	}
@@ -126,7 +126,7 @@ void bio_destroy(opj_bio_t *bio) {
 }
 
 int bio_numbytes(opj_bio_t *bio) {
-	return (bio->bp - bio->start);
+	return (int)(bio->bp - bio->start);
 }
 
 void bio_init_enc(opj_bio_t *bio, unsigned char *bp, int len) {

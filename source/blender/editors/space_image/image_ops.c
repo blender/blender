@@ -3554,7 +3554,7 @@ static int clear_render_border_exec(bContext *C, wmOperator *UNUSED(op))
 void IMAGE_OT_clear_render_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Render Border";
+	ot->name = "Clear Render Border";
 	ot->description = "Clear the boundaries of the border render and disable border render";
 	ot->idname = "IMAGE_OT_clear_render_border";
 

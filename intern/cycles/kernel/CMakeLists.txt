@@ -165,6 +165,7 @@ set(SRC_UTIL_HEADERS
 	../util/util_math.h
 	../util/util_math_fast.h
 	../util/util_transform.h
+	../util/util_texture.h
 	../util/util_types.h
 )
 

@@ -1507,6 +1507,16 @@ void ED_region_init(bContext *C, ARegion *ar)
 	region_update_rect(ar);
 }
 
+void ED_region_cursor_set(wmWindow *win, ScrArea *sa, ARegion *ar)
+{
+	if (ar && sa && ar->type && ar->type->cursor) {
+		ar->type->cursor(win, sa, ar);
+	}
+	else {
+		WM_cursor_set(win, CURSOR_STD);
+	}
+}
+
 /* for quick toggle, can skip fades */
 void region_toggle_hidden(bContext *C, ARegion *ar, const bool do_fade)
 {

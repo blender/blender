@@ -542,6 +542,30 @@ void NLA_OT_view_selected(wmOperatorType *ot)
 }
 
 /* *********************************************** */
+
+static int nlaedit_viewframe_exec(bContext *C, wmOperator *op)
+{
+	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+	ANIM_center_frame(C, smooth_viewtx);
+	return OPERATOR_FINISHED;
+}
+
+void NLA_OT_view_frame(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "View Frame";
+	ot->idname = "NLA_OT_view_frame";
+	ot->description = "Reset viewable area to show range around current frame";
+	
+	/* api callbacks */
+	ot->exec = nlaedit_viewframe_exec;
+	ot->poll = ED_operator_nla_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* *********************************************** */
 /* NLA Editing Operations (Constructive/Destructive) */
 
 /* ******************** Add Action-Clip Operator ***************************** */

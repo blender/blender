@@ -39,6 +39,7 @@
 
 #include "BKE_context.h"
 
+#include "ED_anim_api.h"
 #include "ED_screen.h"
 
 #include "WM_api.h"
@@ -176,6 +177,31 @@ static void TIME_OT_view_all(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/* ************************ View Frame Operator *******************************/
+
+static int time_view_frame_exec(bContext *C, wmOperator *op)
+{
+	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+	ANIM_center_frame(C, smooth_viewtx);
+	
+	return OPERATOR_FINISHED;
+}
+
+static void TIME_OT_view_frame(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "View Frame";
+	ot->idname = "TIME_OT_view_frame";
+	ot->description = "Reset viewable area to show range around current frame";
+	
+	/* api callbacks */
+	ot->exec = time_view_frame_exec;
+	ot->poll = ED_operator_timeline_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /* ************************** registration **********************************/
 
 void time_operatortypes(void)
@@ -183,6 +209,7 @@ void time_operatortypes(void)
 	WM_operatortype_append(TIME_OT_start_frame_set);
 	WM_operatortype_append(TIME_OT_end_frame_set);
 	WM_operatortype_append(TIME_OT_view_all);
+	WM_operatortype_append(TIME_OT_view_frame);
 }
 
 void time_keymap(wmKeyConfig *keyconf)
@@ -193,5 +220,6 @@ void time_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "TIME_OT_end_frame_set", EKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TIME_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TIME_OT_view_all", NDOF_BUTTON_FIT, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "TIME_OT_view_frame", PAD0, KM_PRESS, 0, 0);
 }
 

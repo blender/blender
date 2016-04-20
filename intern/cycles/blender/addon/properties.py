@@ -370,6 +370,26 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 min=2, max=65536
                 )
 
+        cls.dicing_rate = FloatProperty(
+                name="Dicing Rate",
+                description="Size of a micropolygon in pixels",
+                min=0.1, max=1000.0,
+                default=1.0,
+                )
+        cls.preview_dicing_rate = FloatProperty(
+                name="Preview Dicing Rate",
+                description="Size of a micropolygon in pixels during preview render",
+                min=0.1, max=1000.0,
+                default=8.0,
+                )
+
+        cls.max_subdivisions = IntProperty(
+                name="Max Subdivisions",
+                description="Stop subdividing when this level is reached even if the dice rate would produce finer tessellation",
+                min=0, max=16,
+                default=12,
+                )
+
         cls.film_exposure = FloatProperty(
                 name="Exposure",
                 description="Image brightness scale",
@@ -945,7 +965,7 @@ class CyclesMeshSettings(bpy.types.PropertyGroup):
                 )
         cls.dicing_rate = FloatProperty(
                 name="Dicing Rate",
-                description="Size of a micropolygon in pixels",
+                description="Multiplier for scene dicing rate",
                 min=0.1, max=1000.0,
                 default=1.0,
                 )

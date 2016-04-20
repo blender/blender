@@ -185,6 +185,10 @@ struct CurveDrawData {
 
 		/* use 'rv3d->depths', note that this will become 'damaged' while drawing, but thats OK. */
 		bool use_depth;
+
+		/* offset projection by this value */
+		bool use_offset;
+		float    offset[3];  /* worldspace */
 	} project;
 
 	/* cursor sampling */
@@ -284,6 +288,12 @@ static bool stroke_elem_project(
 					}
 				}
 			}
+		}
+	}
+
+	if (is_location_world_set) {
+		if (cdd->project.use_offset) {
+			add_v3_v3(r_location_world, cdd->project.offset);
 		}
 	}
 
@@ -582,6 +592,26 @@ static void curve_draw_event_add_first(wmOperator *op, const wmEvent *event)
 
 		normalize_v3_v3(cdd->project.plane, normal);
 		cdd->project.plane[3] = -dot_v3v3(cdd->project.plane, cdd->prev.location_world_valid);
+
+		/* Special case for when we only have offset applied on the first-hit,
+		 * the remaining stroke must be offset too. */
+		if (cdd->radius.offset != 0.0f) {
+			const float mval_fl[2] = {UNPACK2(event->mval)};
+
+			float location_no_offset[3];
+
+			if (stroke_elem_project(
+			        cdd, event->mval, mval_fl, 0.0f, 0.0f,
+			        location_no_offset))
+			{
+				sub_v3_v3v3(cdd->project.offset, cdd->prev.location_world_valid, location_no_offset);
+				if (!is_zero_v3(cdd->project.offset)) {
+					cdd->project.use_offset = true;
+				}
+			}
+		}
+		/* end special case */
+
 	}
 
 	cdd->init_event_type = event->type;

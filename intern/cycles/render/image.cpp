@@ -22,6 +22,7 @@
 #include "util_image.h"
 #include "util_path.h"
 #include "util_progress.h"
+#include "util_texture.h"
 
 #ifdef WITH_OSL
 #include <OSL/oslexec.h>
@@ -29,16 +30,46 @@
 
 CCL_NAMESPACE_BEGIN
 
-ImageManager::ImageManager()
+ImageManager::ImageManager(const DeviceInfo& info)
 {
 	need_update = true;
 	pack_images = false;
 	osl_texture_system = NULL;
 	animation_frame = 0;
 
-	tex_num_images = TEX_NUM_IMAGES;
-	tex_num_float_images = TEX_NUM_FLOAT_IMAGES;
-	tex_image_byte_start = TEX_IMAGE_BYTE_START;
+	/* Set image limits */
+
+	/* CPU */
+	if(info.type == DEVICE_CPU) {
+		tex_num_byte_images = TEX_NUM_BYTE_IMAGES_CPU;
+		tex_num_float_images = TEX_NUM_FLOAT_IMAGES_CPU;
+		tex_image_byte_start = TEX_IMAGE_BYTE_START_CPU;
+	}
+	/* CUDA (Fermi) */
+	else if((info.type == DEVICE_CUDA || info.type == DEVICE_MULTI) && !info.extended_images) {
+		tex_num_byte_images = TEX_NUM_BYTE_IMAGES_CUDA;
+		tex_num_float_images = TEX_NUM_FLOAT_IMAGES_CUDA;
+		tex_image_byte_start = TEX_IMAGE_BYTE_START_CUDA;
+	}
+	/* CUDA (Kepler and above) */
+	else if((info.type == DEVICE_CUDA || info.type == DEVICE_MULTI) && info.extended_images) {
+		tex_num_byte_images = TEX_NUM_BYTE_IMAGES_CUDA_KEPLER;
+		tex_num_float_images = TEX_NUM_FLOAT_IMAGES_CUDA_KEPLER;
+		tex_image_byte_start = TEX_IMAGE_BYTE_START_CUDA_KELPER;
+	}
+	/* OpenCL */
+	else if(info.pack_images) {
+		tex_num_byte_images = TEX_NUM_BYTE_IMAGES_OPENCL;
+		tex_num_float_images = TEX_NUM_FLOAT_IMAGES_OPENCL;
+		tex_image_byte_start = TEX_IMAGE_BYTE_START_OPENCL;
+	}
+	/* Should never happen */
+	else {
+		tex_num_byte_images = 0;
+		tex_num_float_images = 0;
+		tex_image_byte_start = 0;
+		assert(0);
+	}
 }
 
 ImageManager::~ImageManager()
@@ -57,21 +88,6 @@ void ImageManager::set_pack_images(bool pack_images_)
 void ImageManager::set_osl_texture_system(void *texture_system)
 {
 	osl_texture_system = texture_system;
-}
-
-void ImageManager::set_extended_image_limits(const DeviceInfo& info)
-{
-	if(info.type == DEVICE_CPU) {
-		tex_num_images = TEX_EXTENDED_NUM_IMAGES_CPU;
-		tex_num_float_images = TEX_EXTENDED_NUM_FLOAT_IMAGES;
-		tex_image_byte_start = TEX_EXTENDED_IMAGE_BYTE_START;
-	}
-	else if((info.type == DEVICE_CUDA || info.type == DEVICE_MULTI) && info.extended_images) {
-		tex_num_images = TEX_EXTENDED_NUM_IMAGES_GPU;
-	}
-	else if(info.pack_images) {
-		tex_num_images = TEX_PACKED_NUM_IMAGES;
-	}
 }
 
 bool ImageManager::set_animation_frame_update(int frame)
@@ -266,9 +282,9 @@ int ImageManager::add_image(const string& filename,
 
 		if(slot == images.size()) {
 			/* max images limit reached */
-			if(images.size() == tex_num_images) {
+			if(images.size() == tex_num_byte_images) {
 				printf("ImageManager::add_image: byte image limit reached %d, skipping '%s'\n",
-				       tex_num_images, filename.c_str());
+				       tex_num_byte_images, filename.c_str());
 				return -1;
 			}
 

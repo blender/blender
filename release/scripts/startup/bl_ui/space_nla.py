@@ -86,6 +86,7 @@ class NLA_MT_view(Menu):
         layout.separator()
         layout.operator("nla.view_all")
         layout.operator("nla.view_selected")
+        layout.operator("nla.view_frame")
 
         layout.separator()
         layout.operator("screen.area_dupli")

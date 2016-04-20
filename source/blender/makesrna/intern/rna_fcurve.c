@@ -61,7 +61,7 @@ EnumPropertyItem rna_enum_fmodifier_type_items[] = {
 	{FMODIFIER_TYPE_NOISE, "NOISE", 0, "Noise",
 	                       "Add pseudo-random noise on top of F-Curves"},
 	/*{FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""},*/ /* FIXME: not implemented yet! */
-	{FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""},
+	/*{FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""},*/ /* FIXME: not implemented yet! */
 	{FMODIFIER_TYPE_LIMITS, "LIMITS", 0, "Limits",
 	                        "Restrict maximum and minimum values of F-Curve"},
 	{FMODIFIER_TYPE_STEPPED, "STEPPED", 0, "Stepped Interpolation",
@@ -1467,11 +1467,11 @@ static void rna_def_drivervar(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_type_items[] = {
-		{DVAR_TYPE_SINGLE_PROP, "SINGLE_PROP", 0, "Single Property", "Use the value from some RNA property (Default)"},
-		{DVAR_TYPE_TRANSFORM_CHAN, "TRANSFORMS", 0, "Transform Channel",
+		{DVAR_TYPE_SINGLE_PROP, "SINGLE_PROP", ICON_RNA, "Single Property", "Use the value from some RNA property (Default)"},
+		{DVAR_TYPE_TRANSFORM_CHAN, "TRANSFORMS", ICON_MANIPUL, "Transform Channel",
 		                           "Final transformation value of object or bone"},
-		{DVAR_TYPE_ROT_DIFF, "ROTATION_DIFF", 0, "Rotational Difference", "Use the angle between two bones"},
-		{DVAR_TYPE_LOC_DIFF, "LOC_DIFF", 0, "Distance", "Distance between two bones or objects"},
+		{DVAR_TYPE_ROT_DIFF, "ROTATION_DIFF", ICON_PARTICLE_TIP, "Rotational Difference", "Use the angle between two bones"},  /* XXX: Icon... */
+		{DVAR_TYPE_LOC_DIFF, "LOC_DIFF", ICON_FULLSCREEN_ENTER, "Distance", "Distance between two bones or objects"},          /* XXX: Icon... */
 		{0, NULL, 0, NULL, NULL}
 	};
 		

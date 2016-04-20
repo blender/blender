@@ -410,15 +410,15 @@ void wm_event_do_notifiers(bContext *C)
 	CTX_wm_window_set(C, NULL);
 }
 
-static int wm_event_always_pass(wmEvent *event)
+static int wm_event_always_pass(const wmEvent *event)
 {
 	/* some events we always pass on, to ensure proper communication */
-	return ISTIMER(event->type) || (event->type == WINDEACTIVATE) || (event->type == EVT_BUT_OPEN);
+	return ISTIMER(event->type) || (event->type == WINDEACTIVATE);
 }
 
 /* ********************* ui handler ******************* */
 
-static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *event, int always_pass)
+static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, const wmEvent *event, int always_pass)
 {
 	ScrArea *area = CTX_wm_area(C);
 	ARegion *region = CTX_wm_region(C);
@@ -1526,7 +1526,7 @@ int WM_userdef_event_map(int kmitype)
 }
 
 
-static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
+static int wm_eventmatch(const wmEvent *winevent, wmKeyMapItem *kmi)
 {
 	int kmitype = WM_userdef_event_map(kmi->type);
 
@@ -1921,7 +1921,7 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 	return action;
 }
 
-static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHandler *handler, wmEvent *event)
+static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHandler *handler, const wmEvent *event)
 {
 	int action = WM_HANDLER_CONTINUE;
 	
@@ -1933,7 +1933,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 	return wm_handler_fileselect_do(C, handlers, handler, event->val);
 }
 
-static bool handler_boundbox_test(wmEventHandler *handler, wmEvent *event)
+static bool handler_boundbox_test(wmEventHandler *handler, const wmEvent *event)
 {
 	if (handler->bbwin) {
 		if (handler->bblocal) {
@@ -2245,7 +2245,7 @@ static void wm_paintcursor_tag(bContext *C, wmPaintCursor *pc, ARegion *ar)
 
 /* called on mousemove, check updates for paintcursors */
 /* context was set on active area and region */
-static void wm_paintcursor_test(bContext *C, wmEvent *event)
+static void wm_paintcursor_test(bContext *C, const wmEvent *event)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	
@@ -2312,7 +2312,7 @@ static void wm_event_drag_test(wmWindowManager *wm, wmWindow *win, wmEvent *even
 }
 
 /* filter out all events of the pie that spawned the last pie unless it's a release event */
-static bool wm_event_pie_filter(wmWindow *win, wmEvent *event)
+static bool wm_event_pie_filter(wmWindow *win, const wmEvent *event)
 {
 	if (win->lock_pie_event && win->lock_pie_event == event->type) {
 		if (event->val == KM_RELEASE) {
@@ -3124,7 +3124,7 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 	return NULL;
 }
 
-static bool wm_event_is_double_click(wmEvent *event, wmEvent *event_state)
+static bool wm_event_is_double_click(wmEvent *event, const wmEvent *event_state)
 {
 	if ((event->type == event_state->prevtype) &&
 	    (event_state->prevval == KM_RELEASE) &&

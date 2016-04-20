@@ -1064,17 +1064,11 @@ bScreen *ED_screen_duplicate(wmWindow *win, bScreen *sc)
 /* screen sets cursor based on swinid */
 static void region_cursor_set(wmWindow *win, int swinid, int swin_changed)
 {
-	ScrArea *sa = win->screen->areabase.first;
-	
-	for (; sa; sa = sa->next) {
-		ARegion *ar = sa->regionbase.first;
-		for (; ar; ar = ar->next) {
+	for (ScrArea *sa = win->screen->areabase.first; sa; sa = sa->next) {
+		for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
 			if (ar->swinid == swinid) {
 				if (swin_changed || (ar->type && ar->type->event_cursor)) {
-					if (ar->type && ar->type->cursor)
-						ar->type->cursor(win, sa, ar);
-					else
-						WM_cursor_set(win, CURSOR_STD);
+					ED_region_cursor_set(win, sa, ar);
 				}
 				return;
 			}
@@ -1146,7 +1140,7 @@ void ED_screen_draw(wmWindow *win)
 	/* blended join arrow */
 	if (sa1 && sa2) {
 		int dir = area_getorientation(sa1, sa2);
-		int dira;
+		int dira = -1;
 		if (dir != -1) {
 			switch (dir) {
 				case 0: /* W */

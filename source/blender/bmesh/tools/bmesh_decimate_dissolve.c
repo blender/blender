@@ -37,6 +37,9 @@
 #include "bmesh.h"
 #include "bmesh_decimate.h"  /* own include */
 
+/* check that collapsing a vertex between 2 edges doesn't cause a degenerate face. */
+#define USE_DEGENERATE_CHECK
+
 #define COST_INVALID FLT_MAX
 
 
@@ -88,9 +91,6 @@ static float bm_edge_calc_dissolve_error(
         const BMEdge *e, const BMO_Delimit delimit,
         const struct DelimitData *delimit_data)
 {
-	const bool is_contig = BM_edge_is_contiguous(e);
-	float angle;
-
 	if (!BM_edge_is_manifold(e)) {
 		goto fail;
 	}
@@ -113,6 +113,8 @@ static float bm_edge_calc_dissolve_error(
 		goto fail;
 	}
 
+	const bool is_contig = BM_edge_is_contiguous(e);
+
 	if ((delimit & BMO_DELIM_NORMAL) &&
 	    (is_contig == false))
 	{
@@ -125,16 +127,128 @@ static float bm_edge_calc_dissolve_error(
 		goto fail;
 	}
 
-	angle = BM_edge_calc_face_angle(e);
-	if (is_contig == false) {
-		angle = (float)M_PI - angle;
+	float angle_cos_neg = dot_v3v3(e->l->f->no, e->l->radial_next->f->no);
+	if (is_contig) {
+		angle_cos_neg *= -1;
 	}
 
-	return angle;
+	return angle_cos_neg;
 
 fail:
 	return COST_INVALID;
 }
+
+
+#ifdef USE_DEGENERATE_CHECK
+
+static void mul_v2_m3v3_center(float r[2], float m[3][3], const float a[3], const float center[3])
+{
+	BLI_assert(r != a);
+	BLI_assert(r != center);
+
+	float co[3];
+	sub_v3_v3v3(co, a, center);
+
+	r[0] = m[0][0] * co[0] + m[1][0] * co[1] + m[2][0] * co[2];
+	r[1] = m[0][1] * co[0] + m[1][1] * co[1] + m[2][1] * co[2];
+}
+
+static bool bm_loop_collapse_is_degenerate(BMLoop *l_ear)
+{
+	/* calculate relative to the centeral vertex for higher precision */
+	const float *center = l_ear->v->co;
+
+	float tri_2d[3][2];
+	float axis_mat[3][3];
+
+	axis_dominant_v3_to_m3(axis_mat, l_ear->f->no);
+
+	{
+		mul_v2_m3v3_center(tri_2d[0], axis_mat, l_ear->prev->v->co, center);
+#if 0
+		mul_v2_m3v3_center(tri_2d[1], axis_mat, l_ear->v->co, center);
+#else
+		zero_v2(tri_2d[1]);
+#endif
+		mul_v2_m3v3_center(tri_2d[2], axis_mat, l_ear->next->v->co, center);
+	}
+
+	/* check we're not flipping face corners before or after the ear */
+	{
+		float adjacent_2d[2];
+
+		if (!BM_vert_is_edge_pair(l_ear->prev->v)) {
+			mul_v2_m3v3_center(adjacent_2d, axis_mat, l_ear->prev->prev->v->co, center);
+			if (signum_i(cross_tri_v2(adjacent_2d, tri_2d[0], tri_2d[1])) !=
+			    signum_i(cross_tri_v2(adjacent_2d, tri_2d[0], tri_2d[2])))
+			{
+				return true;
+			}
+		}
+
+		if (!BM_vert_is_edge_pair(l_ear->next->v)) {
+			mul_v2_m3v3_center(adjacent_2d, axis_mat, l_ear->next->next->v->co, center);
+			if (signum_i(cross_tri_v2(adjacent_2d, tri_2d[2], tri_2d[1])) !=
+			    signum_i(cross_tri_v2(adjacent_2d, tri_2d[2], tri_2d[0])))
+			{
+				return true;
+			}
+		}
+	}
+
+	/* check no existing verts are inside the triangle */
+	{
+		/* triangle may be concave, if so - flip so we can use clockwise check */
+		if (cross_tri_v2(UNPACK3(tri_2d)) < 0.0f) {
+			swap_v2_v2(tri_2d[1], tri_2d[2]);
+		}
+
+		/* skip l_ear and adjacent verts */
+		BMLoop *l_iter, *l_first;
+
+		l_iter  = l_ear->next->next;
+		l_first = l_ear->prev;
+		do {
+			float co_2d[2];
+			mul_v2_m3v3_center(co_2d, axis_mat, l_iter->v->co, center);
+			if (isect_point_tri_v2_cw(co_2d, tri_2d[0], tri_2d[1], tri_2d[2])) {
+				return true;
+			}
+		} while ((l_iter = l_iter->next) != l_first);
+	}
+
+	return false;
+}
+
+static bool  bm_vert_collapse_is_degenerate(BMVert *v)
+{
+	BMEdge *e_pair[2];
+	BMVert *v_pair[2];
+
+	if (BM_vert_edge_pair(v, &e_pair[0], &e_pair[1])) {
+		v_pair[0] = BM_edge_other_vert(e_pair[0], v);
+		v_pair[1] = BM_edge_other_vert(e_pair[1], v);
+
+		if (fabsf(cos_v3v3v3(v_pair[0]->co, v->co, v_pair[1]->co)) < (1.0f - FLT_EPSILON)) {
+			BMLoop *l_iter, *l_first;
+			l_iter = l_first = e_pair[1]->l;
+			do {
+				if (l_iter->f->len > 3) {
+					BMLoop *l_pivot = (l_iter->v == v ? l_iter : l_iter->next);
+					BLI_assert(v == l_pivot->v);
+					if (bm_loop_collapse_is_degenerate(l_pivot)) {
+						return true;
+					}
+				}
+			} while ((l_iter = l_iter->radial_next) != l_first);
+		}
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+#endif  /* USE_DEGENERATE_CHECK */
 
 
 void BM_mesh_decimate_dissolve_ex(
@@ -144,6 +258,7 @@ void BM_mesh_decimate_dissolve_ex(
         BMEdge **einput_arr, const int einput_len,
         const short oflag_out)
 {
+	const float angle_limit_cos_neg = -cosf(angle_limit);
 	struct DelimitData delimit_data = {0};
 	const int eheap_table_len = do_dissolve_boundaries ? einput_len : max_ii(einput_len, vinput_len);
 	void *_heap_table = MEM_mallocN(sizeof(HeapNode *) * eheap_table_len, __func__);
@@ -193,7 +308,7 @@ void BM_mesh_decimate_dissolve_ex(
 		}
 
 		while ((BLI_heap_is_empty(eheap) == false) &&
-		       (BLI_heap_node_value((enode_top = BLI_heap_top(eheap))) < angle_limit))
+		       (BLI_heap_node_value((enode_top = BLI_heap_top(eheap))) < angle_limit_cos_neg))
 		{
 			BMFace *f_new = NULL;
 			BMEdge *e;
@@ -328,7 +443,14 @@ void BM_mesh_decimate_dissolve_ex(
 			v = BLI_heap_node_ptr(vnode_top);
 			i = BM_elem_index_get(v);
 
-			if (BM_vert_is_edge_pair(v)) {
+			if (
+#ifdef USE_DEGENERATE_CHECK
+			    !bm_vert_collapse_is_degenerate(v)
+#else
+			    BM_vert_is_edge_pair(v)
+#endif
+			    )
+			{
 				e_new = BM_vert_collapse_edge(bm, v->e, v, true, true);  /* join edges */
 
 				if (e_new) {
@@ -343,7 +465,6 @@ void BM_mesh_decimate_dissolve_ex(
 						do {
 							BM_face_normal_update(l_iter->f);
 						} while ((l_iter = l_iter->radial_next) != l_first);
-
 					}
 
 					/* re-calculate costs */
@@ -355,6 +476,33 @@ void BM_mesh_decimate_dissolve_ex(
 							vheap_table[j] = BLI_heap_insert(vheap, cost, v_iter);
 						}
 					}
+
+#ifdef USE_DEGENERATE_CHECK
+					/* dissolving a vertex may mean vertices we previously weren't able to dissolve
+					 * can now be re-evaluated. */
+					if (e_new->l) {
+						BMLoop *l_first, *l_iter;
+						l_iter = l_first = e_new->l;
+						do {
+							/* skip vertices part of this edge, evaluated above */
+							BMLoop *l_cycle_first, *l_cycle_iter;
+							l_cycle_iter = l_iter->next->next;
+							l_cycle_first = l_iter->prev;
+							do {
+								const int j = BM_elem_index_get(l_cycle_iter->v);
+								if (j != -1 && vheap_table[j] &&
+								    (BLI_heap_node_value(vheap_table[j]) == COST_INVALID))
+								{
+									const float cost = bm_vert_edge_face_angle(l_cycle_iter->v);
+									BLI_heap_remove(vheap, vheap_table[j]);
+									vheap_table[j] = BLI_heap_insert(vheap, cost, l_cycle_iter->v);
+								}
+							} while ((l_cycle_iter = l_cycle_iter->next) != l_cycle_first);
+
+						} while ((l_iter = l_iter->radial_next) != l_first);
+					}
+#endif  /* USE_DEGENERATE_CHECK */
+
 				}
 			}
 

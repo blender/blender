@@ -40,7 +40,7 @@ opj_image_t* OPJ_CALLCONV opj_image_create(int numcmpts, opj_image_cmptparm_t *c
 		image->color_space = clrspc;
 		image->numcomps = numcmpts;
 		/* allocate memory for the per-component information */
-		image->comps = (opj_image_comp_t*)opj_malloc(image->numcomps * sizeof(opj_image_comp_t));
+		image->comps = (opj_image_comp_t*)opj_calloc(1,image->numcomps * sizeof(opj_image_comp_t));
 		if(!image->comps) {
 			fprintf(stderr,"Unable to allocate memory for image.\n");
 			opj_image_destroy(image);
@@ -86,3 +86,4 @@ void OPJ_CALLCONV opj_image_destroy(opj_image_t *image) {
 		opj_free(image);
 	}
 }
+

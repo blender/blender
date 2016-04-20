@@ -94,6 +94,7 @@ void NLA_OT_previewrange_set(wmOperatorType *ot);
 
 void NLA_OT_view_all(wmOperatorType *ot);
 void NLA_OT_view_selected(wmOperatorType *ot);
+void NLA_OT_view_frame(wmOperatorType *ot);
 
 void NLA_OT_actionclip_add(wmOperatorType *ot);
 void NLA_OT_transition_add(wmOperatorType *ot);
