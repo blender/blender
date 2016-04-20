@@ -164,6 +164,26 @@ public:
 size_t util_guarded_get_mem_used(void);
 size_t util_guarded_get_mem_peak(void);
 
+/* Call given function and keep track if it runs out of memory.
+ *
+ * If it does run out f memory, stop execution and set progress
+ * to do a global cancel.
+ *
+ * It's not fully robust, but good enough to catch obvious issues
+ * when running out of memory.
+ */
+#define MEM_GUARDED_CALL(progress, func, ...) \
+	do { \
+		try { \
+			(func)(__VA_ARGS__); \
+		} \
+		catch (std::bad_alloc&) { \
+			fprintf(stderr, "Error: run out of memory!\n"); \
+			fflush(stderr); \
+			(progress)->set_error("Out of memory"); \
+		} \
+	} while(false)
+
 CCL_NAMESPACE_END
 
 #endif  /* __UTIL_GUARDED_ALLOCATOR_H__ */

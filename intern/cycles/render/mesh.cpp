@@ -528,7 +528,7 @@ void Mesh::compute_bvh(SceneParams *params, Progress *progress, int n, int total
 
 			delete bvh;
 			bvh = BVH::create(bparams, objects);
-			bvh->build(*progress);
+			MEM_GUARDED_CALL(progress, bvh->build, *progress);
 		}
 	}
 
