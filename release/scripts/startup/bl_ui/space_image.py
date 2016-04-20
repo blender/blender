@@ -113,6 +113,11 @@ class IMAGE_MT_view(Menu):
         layout.separator()
 
         if show_render:
+            layout.operator("image.render_border")
+            layout.operator("image.clear_render_border")
+
+            layout.separator()
+
             layout.operator("image.cycle_render_slot", text="Render Slot Cycle Next")
             layout.operator("image.cycle_render_slot", text="Render Slot Cycle Previous").reverse = True
             layout.separator()
