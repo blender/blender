@@ -89,18 +89,17 @@ Most compilers implement their own version of this keyword ...
 /* MSVC and Borland C do not have lrintf */
 #if defined(_MSC_VER) || defined(__BORLANDC__)
 static INLINE long lrintf(float f){
-#ifdef _M_X64
-    return (long)((f>0.0f) ? (f + 0.5f):(f -0.5f));
-#else
-    int i;
+#ifdef _M_IX86
+    long int i;
  
     _asm{
         fld f
         fistp i
     };
- 
     return i;
-#endif
+#else
+    return (long)((f>0.0f) ? (f + 0.5f):(f -0.5f));
+#endif /* _M_IX86 */
 }
 #endif
 

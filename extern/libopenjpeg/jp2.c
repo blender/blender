@@ -30,6 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include "opj_includes.h"
+#include <assert.h>
 
 /** @defgroup JP2 JP2 - JPEG-2000 file format reader/writer */
 /*@{*/
@@ -172,6 +173,9 @@ static opj_bool jp2_read_boxhdr(opj_common_ptr cinfo, opj_cio_t *cio, opj_jp2_bo
 	}
 	else if (box->length == 0) {
 		box->length = cio_numbytesleft(cio) + 8;
+	} else if (box->length < 0) {
+		opj_event_msg(cinfo, EVT_ERROR, "Integer overflow in box->length\n");
+		return OPJ_FALSE; /* TODO: actually check jp2_read_boxhdr's return value */
 	}
 	
 	return OPJ_TRUE;
@@ -206,7 +210,10 @@ static opj_bool jp2_read_ihdr(opj_jp2_t *jp2, opj_cio_t *cio) {
 
 	opj_common_ptr cinfo = jp2->cinfo;
 
-	jp2_read_boxhdr(cinfo, cio, &box);
+  if(jp2_read_boxhdr(cinfo, cio, &box) == OPJ_FALSE ) {
+    opj_event_msg(cinfo, EVT_ERROR, "Failed to read boxhdr\n");
+    return OPJ_FALSE;
+  }
 	if (JP2_IHDR != box.type) {
 		opj_event_msg(cinfo, EVT_ERROR, "Expected IHDR Marker\n");
 		return OPJ_FALSE;
@@ -279,7 +286,10 @@ static opj_bool jp2_read_bpcc(opj_jp2_t *jp2, opj_cio_t *cio) {
 
 	opj_common_ptr cinfo = jp2->cinfo;
 
-	jp2_read_boxhdr(cinfo, cio, &box);
+  if( jp2_read_boxhdr(cinfo, cio, &box) == OPJ_FALSE ) {
+    opj_event_msg(cinfo, EVT_ERROR, "Failed to read boxhdr\n");
+    return OPJ_FALSE;
+  }
 	if (JP2_BPCC != box.type) {
 		opj_event_msg(cinfo, EVT_ERROR, "Expected BPCC Marker\n");
 		return OPJ_FALSE;
@@ -469,7 +479,7 @@ static opj_bool jp2_read_pclr(opj_jp2_t *jp2, opj_cio_t *cio,
 	for(i = 0; i < nr_channels; ++i)
   {
 /* Cji */
-	*entries++ = cio_read(cio, channel_size[i]>>3);
+	*entries++ = cio_read(cio, (channel_size[i]+7)>>3);
   }
    }
 
@@ -512,10 +522,8 @@ static opj_bool jp2_read_cmap(opj_jp2_t *jp2, opj_cio_t *cio,
 static void jp2_apply_cdef(opj_image_t *image, opj_jp2_color_t *color)
 {
 	opj_jp2_cdef_info_t *info;
-	int color_space;
 	unsigned short i, n, cn, typ, asoc, acn;
 
-	color_space = image->color_space;
 	info = color->jp2_cdef->info;
 	n = color->jp2_cdef->n;
 
@@ -525,6 +533,7 @@ static void jp2_apply_cdef(opj_image_t *image, opj_jp2_color_t *color)
 	if((asoc = info[i].asoc) == 0) continue;
 
 	cn = info[i].cn; typ = info[i].typ; acn = asoc - 1;
+  (void)typ;
 
 	if(cn != acn)
   {
@@ -639,89 +648,172 @@ opj_bool jp2_read_jp2h(opj_jp2_t *jp2, opj_cio_t *cio, opj_jp2_color_t *color)
 
 	opj_common_ptr cinfo = jp2->cinfo;
 
-	jp2_read_boxhdr(cinfo, cio, &box);
-	do 
-   {
-	if (JP2_JP2H != box.type) 
-  {
-	if (box.type == JP2_JP2C) 
- {
-	opj_event_msg(cinfo, EVT_ERROR, "Expected JP2H Marker\n");
-	return OPJ_FALSE;
- }
-	cio_skip(cio, box.length - 8);
+  if( jp2_read_boxhdr(cinfo, cio, &box) == OPJ_FALSE ) return OPJ_FALSE;
+  do {
+    if (JP2_JP2H != box.type) 
+      {
+      if (box.type == JP2_JP2C) 
+        {
+        opj_event_msg(cinfo, EVT_ERROR, "Expected JP2H Marker\n");
+        return OPJ_FALSE;
+        }
+	  if (box.length <= 8) return OPJ_FALSE;
+      cio_skip(cio, box.length - 8);
 
-	if(cio->bp >= cio->end) return OPJ_FALSE;
+      if(cio->bp >= cio->end) return OPJ_FALSE;
 
-	jp2_read_boxhdr(cinfo, cio, &box);
-  }
-   } while(JP2_JP2H != box.type);
+      if( jp2_read_boxhdr(cinfo, cio, &box) == OPJ_FALSE ) return OPJ_FALSE;
+      }
+  } while(JP2_JP2H != box.type);
 
 	if (!jp2_read_ihdr(jp2, cio))
 		return OPJ_FALSE;
 	jp2h_end = box.init_pos + box.length;
 
-	if (jp2->bpc == 255) 
-   {
-	if (!jp2_read_bpcc(jp2, cio))
-		return OPJ_FALSE;
-   }
-	jp2_read_boxhdr(cinfo, cio, &box);
+  if (jp2->bpc == 255) 
+    {
+    if (!jp2_read_bpcc(jp2, cio))
+      return OPJ_FALSE;
+    }
+  if( jp2_read_boxhdr(cinfo, cio, &box) == OPJ_FALSE ) return OPJ_FALSE;
 
-	while(cio_tell(cio) < jp2h_end)
-   {
-	if(box.type == JP2_COLR)
-  {
-	if( !jp2_read_colr(jp2, cio, &box, color))
- {
-    cio_seek(cio, box.init_pos + 8);
-    cio_skip(cio, box.length - 8);
- }
-    jp2_read_boxhdr(cinfo, cio, &box);
-    continue;
-  }
+  while(cio_tell(cio) < jp2h_end)
+    {
+    if(box.type == JP2_COLR)
+      {
+      if( !jp2_read_colr(jp2, cio, &box, color))
+        {
+        if (box.length <= 8) return OPJ_FALSE;
+        cio_seek(cio, box.init_pos + 8);
+        cio_skip(cio, box.length - 8);
+        }
+      if( jp2_read_boxhdr(cinfo, cio, &box) == OPJ_FALSE ) return OPJ_FALSE;
+      continue;
+      }
     if(box.type == JP2_CDEF && !jp2->ignore_pclr_cmap_cdef)
-  {
-    if( !jp2_read_cdef(jp2, cio, &box, color))
- {
-    cio_seek(cio, box.init_pos + 8);
-    cio_skip(cio, box.length - 8);
- }
-    jp2_read_boxhdr(cinfo, cio, &box);
-    continue;
-  }
+      {
+      if( !jp2_read_cdef(jp2, cio, &box, color))
+        {
+        if (box.length <= 8) return OPJ_FALSE;
+        cio_seek(cio, box.init_pos + 8);
+        cio_skip(cio, box.length - 8);
+        }
+      if( jp2_read_boxhdr(cinfo, cio, &box) == OPJ_FALSE ) return OPJ_FALSE;
+      continue;
+      }
     if(box.type == JP2_PCLR && !jp2->ignore_pclr_cmap_cdef)
-  {
-    if( !jp2_read_pclr(jp2, cio, &box, color))
- {
-    cio_seek(cio, box.init_pos + 8);
-    cio_skip(cio, box.length - 8);
- }
-    jp2_read_boxhdr(cinfo, cio, &box);
-    continue;
-  }
+      {
+      if( !jp2_read_pclr(jp2, cio, &box, color))
+        {
+        if (box.length <= 8) return OPJ_FALSE;
+        cio_seek(cio, box.init_pos + 8);
+        cio_skip(cio, box.length - 8);
+        }
+      if( jp2_read_boxhdr(cinfo, cio, &box) == OPJ_FALSE ) return OPJ_FALSE;
+      continue;
+      }
     if(box.type == JP2_CMAP && !jp2->ignore_pclr_cmap_cdef)
-  {
-    if( !jp2_read_cmap(jp2, cio, &box, color))
- {
+      {
+      if( !jp2_read_cmap(jp2, cio, &box, color))
+        {
+        if (box.length <= 8) return OPJ_FALSE;
+        cio_seek(cio, box.init_pos + 8);
+        cio_skip(cio, box.length - 8);
+        }
+      if( jp2_read_boxhdr(cinfo, cio, &box) == OPJ_FALSE ) return OPJ_FALSE;
+      continue;
+      }
+    if (box.length <= 8) return OPJ_FALSE;
     cio_seek(cio, box.init_pos + 8);
     cio_skip(cio, box.length - 8);
- }
-    jp2_read_boxhdr(cinfo, cio, &box);
-    continue;
-  }
-	cio_seek(cio, box.init_pos + 8);
-	cio_skip(cio, box.length - 8);
-	jp2_read_boxhdr(cinfo, cio, &box);
+    if( jp2_read_boxhdr(cinfo, cio, &box) == OPJ_FALSE ) return OPJ_FALSE;
 
-   }/* while(cio_tell(cio) < box_end) */
+    }/* while(cio_tell(cio) < box_end) */
 
-	cio_seek(cio, jp2h_end);
+  cio_seek(cio, jp2h_end);
 
-/* Part 1, I.5.3.3 : 'must contain at least one' */
-	return (color->jp2_has_colr == 1);
+  /* Part 1, I.5.3.3 : 'must contain at least one' */
+  return (color->jp2_has_colr == 1);
 
 }/* jp2_read_jp2h() */
+
+static opj_bool opj_jp2_check_color(opj_image_t *image, opj_jp2_color_t *color, opj_common_ptr cinfo)
+{
+	int i;
+
+	/* testcase 4149.pdf.SIGSEGV.cf7.3501 */
+	if (color->jp2_cdef) {
+		opj_jp2_cdef_info_t *info = color->jp2_cdef->info;
+		int n = color->jp2_cdef->n;
+
+		for (i = 0; i < n; i++) {
+			if (info[i].cn >= image->numcomps) {
+				opj_event_msg(cinfo, EVT_ERROR, "Invalid component index %d (>= %d).\n", info[i].cn, image->numcomps);
+				return OPJ_FALSE;
+			}
+			if (info[i].asoc > 0 && (info[i].asoc - 1) >= image->numcomps) {
+				opj_event_msg(cinfo, EVT_ERROR, "Invalid component index %d (>= %d).\n", info[i].asoc - 1, image->numcomps);
+				return OPJ_FALSE;
+			}
+		}
+	}
+
+	/* testcases 451.pdf.SIGSEGV.f4c.3723, 451.pdf.SIGSEGV.5b5.3723 and
+	   66ea31acbb0f23a2bbc91f64d69a03f5_signal_sigsegv_13937c0_7030_5725.pdf */
+	if (color->jp2_pclr && color->jp2_pclr->cmap) {
+		int nr_channels = color->jp2_pclr->nr_channels;
+		opj_jp2_cmap_comp_t *cmap = color->jp2_pclr->cmap;
+		opj_bool *pcol_usage, is_sane = OPJ_TRUE;
+
+		/* verify that all original components match an existing one */
+		for (i = 0; i < nr_channels; i++) {
+			if (cmap[i].cmp >= image->numcomps) {
+				opj_event_msg(cinfo, EVT_ERROR, "Invalid component index %d (>= %d).\n", cmap[i].cmp, image->numcomps);
+				is_sane = OPJ_FALSE;
+			}
+		}
+
+		pcol_usage = opj_calloc(nr_channels, sizeof(opj_bool));
+		if (!pcol_usage) {
+			opj_event_msg(cinfo, EVT_ERROR, "Unexpected OOM.\n");
+			return OPJ_FALSE;
+		}
+		/* verify that no component is targeted more than once */
+		for (i = 0; i < nr_channels; i++) {
+      int pcol = cmap[i].pcol;
+      assert(cmap[i].mtyp == 0 || cmap[i].mtyp == 1);
+			if (pcol >= nr_channels) {
+				opj_event_msg(cinfo, EVT_ERROR, "Invalid component/palette index for direct mapping %d.\n", pcol);
+				is_sane = OPJ_FALSE;
+			}
+			else if (pcol_usage[pcol] && cmap[i].mtyp == 1) {
+				opj_event_msg(cinfo, EVT_ERROR, "Component %d is mapped twice.\n", pcol);
+				is_sane = OPJ_FALSE;
+			}
+      else if (cmap[i].mtyp == 0 && cmap[i].pcol != 0) {
+        /* I.5.3.5 PCOL: If the value of the MTYP field for this channel is 0, then
+         * the value of this field shall be 0. */
+				opj_event_msg(cinfo, EVT_ERROR, "Direct use at #%d however pcol=%d.\n", i, pcol);
+				is_sane = OPJ_FALSE;
+      }
+			else
+				pcol_usage[pcol] = OPJ_TRUE;
+		}
+		/* verify that all components are targeted at least once */
+		for (i = 0; i < nr_channels; i++) {
+			if (!pcol_usage[i] && cmap[i].mtyp != 0) {
+				opj_event_msg(cinfo, EVT_ERROR, "Component %d doesn't have a mapping.\n", i);
+				is_sane = OPJ_FALSE;
+			}
+		}
+		opj_free(pcol_usage);
+		if (!is_sane) {
+			return OPJ_FALSE;
+		}
+	}
+
+	return OPJ_TRUE;
+}
 
 opj_image_t* opj_jp2_decode(opj_jp2_t *jp2, opj_cio_t *cio, 
 	opj_codestream_info_t *cstr_info) 
@@ -756,6 +848,10 @@ opj_image_t* opj_jp2_decode(opj_jp2_t *jp2, opj_cio_t *cio,
    }
    
     if (!jp2->ignore_pclr_cmap_cdef){
+	    if (!opj_jp2_check_color(image, &color, cinfo)) {
+        opj_event_msg(cinfo, EVT_ERROR, "Failed to decode PCRL box\n");
+		    return NULL;
+	    }
 
     /* Set Image Color Space */
 	if (jp2->enumcs == 16)
@@ -839,8 +935,10 @@ static opj_bool jp2_read_ftyp(opj_jp2_t *jp2, opj_cio_t *cio) {
 
 	opj_common_ptr cinfo = jp2->cinfo;
 
-	jp2_read_boxhdr(cinfo, cio, &box);
-
+  if( jp2_read_boxhdr(cinfo, cio, &box) == OPJ_FALSE ) {
+    opj_event_msg(cinfo, EVT_ERROR, "Failed to read boxhdr\n");
+    return OPJ_FALSE;
+  }
 	if (JP2_FTYP != box.type) {
 		opj_event_msg(cinfo, EVT_ERROR, "Expected FTYP Marker\n");
 		return OPJ_FALSE;
@@ -849,6 +947,14 @@ static opj_bool jp2_read_ftyp(opj_jp2_t *jp2, opj_cio_t *cio) {
 	jp2->brand = cio_read(cio, 4);		/* BR */
 	jp2->minversion = cio_read(cio, 4);	/* MinV */
 	jp2->numcl = (box.length - 16) / 4;
+
+  /* edf_c2_1673169.jp2 */
+	if (cio_numbytesleft(cio) < ((int)jp2->numcl * 4)) {
+		opj_event_msg(cinfo, EVT_ERROR, "Not enough bytes in FTYP Box "
+				"(expected %d, but only %d left)\n",
+				((int)jp2->numcl * 4), cio_numbytesleft(cio));
+		return OPJ_FALSE;
+	}
 	jp2->cl = (unsigned int *) opj_malloc(jp2->numcl * sizeof(unsigned int));
 
 	for (i = 0; i < (int)jp2->numcl; i++) {
@@ -897,15 +1003,20 @@ static opj_bool jp2_read_jp2c(opj_jp2_t *jp2, opj_cio_t *cio, unsigned int *j2k_
 
 	opj_common_ptr cinfo = jp2->cinfo;
 
-	jp2_read_boxhdr(cinfo, cio, &box);
+  if( jp2_read_boxhdr(cinfo, cio, &box) == OPJ_FALSE ) {
+    opj_event_msg(cinfo, EVT_ERROR, "Failed to read boxhdr\n");
+    return OPJ_FALSE;
+  }
 	do {
 		if(JP2_JP2C != box.type) {
+			if (box.length <= 8) return OPJ_FALSE;
 			cio_skip(cio, box.length - 8);
-			jp2_read_boxhdr(cinfo, cio, &box);
+			if( jp2_read_boxhdr(cinfo, cio, &box) == OPJ_FALSE ) return OPJ_FALSE;
 		}
 	} while(JP2_JP2C != box.type);
 
 	*j2k_codestream_offset = cio_tell(cio);
+	if (box.length <= 8) return OPJ_FALSE;
 	*j2k_codestream_length = box.length - 8;
 
 	return OPJ_TRUE;
@@ -930,7 +1041,10 @@ static opj_bool jp2_read_jp(opj_jp2_t *jp2, opj_cio_t *cio) {
 
 	opj_common_ptr cinfo = jp2->cinfo;
 
-	jp2_read_boxhdr(cinfo, cio, &box);
+  if( jp2_read_boxhdr(cinfo, cio, &box) == OPJ_FALSE ) {
+    opj_event_msg(cinfo, EVT_ERROR, "Failed to read boxhdr\n");
+    return OPJ_FALSE;
+  }
 	if (JP2_JP != box.type) {
 		opj_event_msg(cinfo, EVT_ERROR, "Expected JP Marker\n");
 		return OPJ_FALSE;
@@ -1070,6 +1184,7 @@ void jp2_setup_decoder(opj_jp2_t *jp2, opj_dparameters_t *parameters) {
 opj_jp2_t* jp2_create_compress(opj_common_ptr cinfo) {
 	opj_jp2_t *jp2 = (opj_jp2_t*)opj_malloc(sizeof(opj_jp2_t));
 	if(jp2) {
+		memset(jp2, 0, sizeof(opj_jp2_t));
 		jp2->cinfo = cinfo;
 		/* create the J2K codec */
 		jp2->j2k = j2k_create_compress(cinfo);

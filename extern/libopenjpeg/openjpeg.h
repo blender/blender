@@ -135,6 +135,10 @@ typedef enum COLOR_SPACE {
 	CLRSPC_SYCC = 3			/**< YUV */
 } OPJ_COLOR_SPACE;
 
+#define ENUMCS_SRGB 16
+#define ENUMCS_GRAY 17
+#define ENUMCS_SYCC 18
+
 /**
 Supported codec
 */

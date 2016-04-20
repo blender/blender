@@ -1577,6 +1577,7 @@ void t1_decode_cblks(
 					opj_free(cblk->segs);
 				} /* cblkno */
 				opj_free(precinct->cblks.dec);
+                precinct->cblks.dec = NULL;
 			} /* precno */
 		} /* bandno */
 	} /* resno */

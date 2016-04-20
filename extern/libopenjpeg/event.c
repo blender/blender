@@ -103,18 +103,17 @@ opj_bool opj_event_msg(opj_common_ptr cinfo, int event_type, const char *fmt, ..
 		va_list arg;
 		int str_length/*, i, j*/; /* UniPG */
 		char message[MSG_SIZE];
-		memset(message, 0, MSG_SIZE);
 		/* initialize the optional parameter list */
 		va_start(arg, fmt);
-		/* check the length of the format string */
-		str_length = (strlen(fmt) > MSG_SIZE) ? MSG_SIZE : strlen(fmt);
 		/* parse the format string and put the result in 'message' */
-		vsprintf(message, fmt, arg); /* UniPG */
+		str_length = vsnprintf(message, MSG_SIZE, fmt, arg); /* UniPG */
 		/* deinitialize the optional parameter list */
 		va_end(arg);
 
 		/* output the message to the user program */
-		msg_handler(message, cinfo->client_data);
+    if( str_length > -1 && str_length < MSG_SIZE )
+      msg_handler(message, cinfo->client_data);
+    else return OPJ_FALSE;
 	}
 
 	return OPJ_TRUE;

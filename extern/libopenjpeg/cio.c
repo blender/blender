@@ -30,6 +30,7 @@
  */
 
 #include "opj_includes.h"
+#include <assert.h>
 
 /* ----------------------------------------------------------------------- */
 
@@ -106,6 +107,7 @@ int OPJ_CALLCONV cio_tell(opj_cio_t *cio) {
  * pos : position, in number of bytes, from the beginning of the stream
  */
 void OPJ_CALLCONV cio_seek(opj_cio_t *cio, int pos) {
+  assert((cio->start + pos) <= cio->end);
 	cio->bp = cio->start + pos;
 }
 
@@ -113,6 +115,7 @@ void OPJ_CALLCONV cio_seek(opj_cio_t *cio, int pos) {
  * Number of bytes left before the end of the stream.
  */
 int cio_numbytesleft(opj_cio_t *cio) {
+  assert((cio->end - cio->bp) >= 0);
 	return cio->end - cio->bp;
 }
 
@@ -139,6 +142,7 @@ opj_bool cio_byteout(opj_cio_t *cio, unsigned char v) {
  * Read a byte.
  */
 unsigned char cio_bytein(opj_cio_t *cio) {
+  assert(cio->bp >= cio->start);
 	if (cio->bp >= cio->end) {
 		opj_event_msg(cio->cinfo, EVT_ERROR, "read error: passed the end of the codestream (start = %d, current = %d, end = %d\n", cio->start, cio->bp, cio->end);
 		return 0;
@@ -152,7 +156,7 @@ unsigned char cio_bytein(opj_cio_t *cio) {
  * v : value to write
  * n : number of bytes to write
  */
-unsigned int cio_write(opj_cio_t *cio, unsigned long long int v, int n) {
+unsigned int cio_write(opj_cio_t *cio, unsigned int64 v, int n) {
 	int i;
 	for (i = n - 1; i >= 0; i--) {
 		if( !cio_byteout(cio, (unsigned char) ((v >> (i << 3)) & 0xff)) )
@@ -173,7 +177,7 @@ unsigned int cio_read(opj_cio_t *cio, int n) {
 	unsigned int v;
 	v = 0;
 	for (i = n - 1; i >= 0; i--) {
-		v += cio_bytein(cio) << (i << 3);
+		v += (unsigned int)cio_bytein(cio) << (i << 3);
 	}
 	return v;
 }
@@ -184,6 +188,10 @@ unsigned int cio_read(opj_cio_t *cio, int n) {
  * n : number of bytes to skip
  */
 void cio_skip(opj_cio_t *cio, int n) {
+  assert((cio->bp + n) >= cio->bp);
+  if (((cio->bp + n) < cio->start) || ((cio->bp + n) > cio->end)) {
+    assert(0);
+  }
 	cio->bp += n;
 }
 

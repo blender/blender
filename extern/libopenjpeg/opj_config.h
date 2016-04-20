@@ -3,7 +3,7 @@
  * the endian check is a blender define */
 
 /* create config.h for CMake */
-#define PACKAGE_VERSION "1.5.0"
+#define PACKAGE_VERSION "1.5.2"
 
 #define HAVE_INTTYPES_H
 #define HAVE_MEMORY_H
@@ -23,6 +23,7 @@
 /* #undef HAVE_LIBLCMS2 */
 /* #undef HAVE_LCMS1_H */
 /* #undef HAVE_LCMS2_H */
+/* #undef USE_SYSTEM_GETOPT */
 
 /* Byte order.  */
 /* All compilers that support Mac OS X define either __BIG_ENDIAN__ or

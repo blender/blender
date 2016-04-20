@@ -30,6 +30,7 @@
  */
 
 #include "opj_includes.h"
+#include <assert.h>
 
 /** @defgroup T2 T2 - Implementation of a tier-2 coding */
 /*@{*/
@@ -64,7 +65,7 @@ static int t2_encode_packet(opj_tcd_tile_t *tile, opj_tcp_t *tcp, opj_pi_iterato
 @param cblksty
 @param first
 */
-static void t2_init_seg(opj_tcd_cblk_dec_t* cblk, int index, int cblksty, int first);
+static opj_bool t2_init_seg(opj_tcd_cblk_dec_t* cblk, int index, int cblksty, int first);
 /**
 Decode a packet of a tile from a source buffer
 @param t2 T2 handle
@@ -296,9 +297,17 @@ static int t2_encode_packet(opj_tcd_tile_t * tile, opj_tcp_t * tcp, opj_pi_itera
 	return (c - dest);
 }
 
-static void t2_init_seg(opj_tcd_cblk_dec_t* cblk, int index, int cblksty, int first) {
+static opj_bool t2_init_seg(opj_tcd_cblk_dec_t* cblk, int index, int cblksty, int first) {
 	opj_tcd_seg_t* seg;
-	cblk->segs = (opj_tcd_seg_t*) opj_realloc(cblk->segs, (index + 1) * sizeof(opj_tcd_seg_t));
+    opj_tcd_seg_t* segs;
+    segs = (opj_tcd_seg_t*) opj_realloc(cblk->segs, (index + 1) * sizeof(opj_tcd_seg_t));
+
+    if (segs == NULL)
+    {
+        return OPJ_FALSE;
+    }
+    cblk->segs = segs;
+
 	seg = &cblk->segs[index];
 	seg->data = NULL;
 	seg->dataindex = 0;
@@ -316,6 +325,8 @@ static void t2_init_seg(opj_tcd_cblk_dec_t* cblk, int index, int cblksty, int fi
 	} else {
 		seg->maxpasses = 109;
 	}
+
+    return OPJ_TRUE;
 }
 
 static int t2_decode_packet(opj_t2_t* t2, unsigned char *src, int len, opj_tcd_tile_t *tile, 
@@ -330,13 +341,15 @@ static int t2_decode_packet(opj_t2_t* t2, unsigned char *src, int len, opj_tcd_t
 	int precno = pi->precno;	/* precinct value */
 	int layno  = pi->layno;		/* quality layer value */
 
-	opj_tcd_resolution_t* res = &tile->comps[compno].resolutions[resno];
-
 	unsigned char *hd = NULL;
 	int present;
 	
 	opj_bio_t *bio = NULL;	/* BIO component */
-	
+
+	opj_tcd_resolution_t* res;
+	assert(&tile->comps[compno] != NULL);
+	res = &tile->comps[compno].resolutions[resno];
+
 	if (layno == 0) {
 		for (bandno = 0; bandno < res->numbands; bandno++) {
 			opj_tcd_band_t *band = &res->bands[bandno];
@@ -462,12 +475,22 @@ static int t2_decode_packet(opj_t2_t* t2, unsigned char *src, int len, opj_tcd_t
 			cblk->numlenbits += increment;
 			segno = 0;
 			if (!cblk->numsegs) {
-				t2_init_seg(cblk, segno, tcp->tccps[compno].cblksty, 1);
+                if (!t2_init_seg(cblk, segno, tcp->tccps[compno].cblksty, 1))
+                {
+                    opj_event_msg(t2->cinfo, EVT_ERROR, "Out of memory\n");
+                    bio_destroy(bio);
+                    return -999;
+                }
 			} else {
 				segno = cblk->numsegs - 1;
 				if (cblk->segs[segno].numpasses == cblk->segs[segno].maxpasses) {
 					++segno;
-					t2_init_seg(cblk, segno, tcp->tccps[compno].cblksty, 0);
+                    if (!t2_init_seg(cblk, segno, tcp->tccps[compno].cblksty, 0))
+                    {
+                        opj_event_msg(t2->cinfo, EVT_ERROR, "Out of memory\n");
+                        bio_destroy(bio);
+                        return -999;
+                    }
 				}
 			}
 			n = cblk->numnewpasses;
@@ -478,7 +501,12 @@ static int t2_decode_packet(opj_t2_t* t2, unsigned char *src, int len, opj_tcd_t
 				n -= cblk->segs[segno].numnewpasses;
 				if (n > 0) {
 					++segno;
-					t2_init_seg(cblk, segno, tcp->tccps[compno].cblksty, 0);
+                    if (!t2_init_seg(cblk, segno, tcp->tccps[compno].cblksty, 0))
+                    {
+                        opj_event_msg(t2->cinfo, EVT_ERROR, "Out of memory\n");
+                        bio_destroy(bio);
+                        return -999;
+                    }
 				}
 			} while (n > 0);
 		}
@@ -714,7 +742,11 @@ int t2_decode_packets(opj_t2_t *t2, unsigned char *src, int len, int tileno, opj
 			} else {
 				e = 0;
 			}
-			if(e == -999) return -999;
+            if(e == -999)
+            {
+                pi_destroy(pi, cp, tileno);
+                return -999;
+            }
 			/* progression in resolution */
 			image->comps[pi[pino].compno].resno_decoded =	
 				(e > 0) ? 
