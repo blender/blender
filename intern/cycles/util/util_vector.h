@@ -218,9 +218,15 @@ public:
 protected:
 	inline T* mem_allocate(size_t N)
 	{
+		if(N == 0) {
+			return NULL;
+		}
 		T *mem = (T*)util_aligned_malloc(sizeof(T)*N, alignment);
 		if(mem != NULL) {
 			util_guarded_mem_alloc(sizeof(T)*N);
+		}
+		else {
+			throw std::bad_alloc();
 		}
 		return mem;
 	}

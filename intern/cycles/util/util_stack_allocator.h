@@ -60,11 +60,15 @@ public:
 		if(pointer_ + n >= SIZE) {
 			size_t size = n * sizeof(T);
 			util_guarded_mem_alloc(size);
+			T *mem;
 #ifdef WITH_BLENDER_GUARDEDALLOC
-			return (T*)MEM_mallocN_aligned(size, 16, "Cycles Alloc");
+			mem = (T*)MEM_mallocN_aligned(size, 16, "Cycles Alloc");
 #else
-			return (T*)malloc(size);
+			mem = (T*)malloc(size);
 #endif
+			if(mem == NULL) {
+				throw std::bad_alloc();
+			}
 		}
 		T *mem = &data_[pointer_];
 		pointer_ += n;
@@ -104,7 +108,9 @@ public:
 
 	void construct(T *p, const T& val)
 	{
-		new ((T *)p) T(val);
+		if(p != NULL) {
+			new ((T *)p) T(val);
+		}
 	}
 
 	void destroy(T *p)
