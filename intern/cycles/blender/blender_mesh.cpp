@@ -308,7 +308,7 @@ static void create_mesh_volume_attribute(BL::Object& b_ob,
 	        is_float,
 	        is_linear,
 	        INTERPOLATION_LINEAR,
-	        EXTENSION_REPEAT,
+	        EXTENSION_CLIP,
 	        true);
 }
 
