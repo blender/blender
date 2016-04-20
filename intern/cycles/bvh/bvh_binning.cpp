@@ -176,7 +176,7 @@ void BVHObjectBinning::split(BVHReference* prims, BVHObjectBinning& left_o, BVHO
 		prefetch_L2(&prims[start() + l + 8]);
 		prefetch_L2(&prims[start() + r - 8]);
 
-		BVHReference prim = prims[start() + l];
+		const BVHReference& prim = prims[start() + l];
 		float3 center = prim.bounds().center2();
 
 		if(get_bin(center)[dim] < pos) {
