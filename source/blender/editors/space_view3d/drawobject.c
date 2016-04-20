@@ -3678,29 +3678,10 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 {
 	RegionView3D *rv3d = ar->regiondata;
 	Mesh *me = ob->data;
-	BMFace *efa_act = BM_mesh_active_face_get(em->bm, false, true); /* annoying but active faces is stored differently */
-	BMEdge *eed_act = NULL;
-	BMVert *eve_act = NULL;
-	bool use_occlude_wire = (v3d->flag2 & V3D_OCCLUDE_WIRE) && (dt > OB_WIRE);
+	const bool use_occlude_wire = (dt > OB_WIRE) && (v3d->flag2 & V3D_OCCLUDE_WIRE);
+	bool use_depth_offset = false;
 	
 	glLineWidth(1);
-
-	if (em->bm->selected.last) {
-		BMEditSelection *ese = em->bm->selected.last;
-		/* face is handled above */
-#if 0
-		if (ese->type == BM_FACE) {
-			efa_act = (BMFace *)ese->data;
-		}
-		else
-#endif
-		if (ese->htype == BM_EDGE) {
-			eed_act = (BMEdge *)ese->ele;
-		}
-		else if (ese->htype == BM_VERT) {
-			eve_act = (BMVert *)ese->ele;
-		}
-	}
 	
 	BM_mesh_elem_table_ensure(em->bm, BM_VERT | BM_EDGE | BM_FACE);
 
@@ -3710,6 +3691,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 
 			ED_view3d_polygon_offset(rv3d, 1.0);
 			glDepthMask(0);
+			use_depth_offset = true;
 		}
 		else {
 			glEnable(GL_DEPTH_TEST);
@@ -3756,6 +3738,7 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 
 		ED_view3d_polygon_offset(rv3d, 1.0);
 		glDepthMask(0);
+		use_depth_offset = true;
 	}
 	else {
 		if (cageDM != finalDM) {
@@ -3764,145 +3747,172 @@ static void draw_em_fancy(Scene *scene, ARegion *ar, View3D *v3d,
 		}
 	}
 
-	if ((me->drawflag & ME_DRAWFACES) && (use_occlude_wire == false)) {  /* transp faces */
-		unsigned char col1[4], col2[4], col3[4];
-#ifdef WITH_FREESTYLE
-		unsigned char col4[4];
-#endif
-
-		UI_GetThemeColor4ubv(TH_FACE, col1);
-		UI_GetThemeColor4ubv(TH_FACE_SELECT, col2);
-		UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, col3);
-#ifdef WITH_FREESTYLE
-		UI_GetThemeColor4ubv(TH_FREESTYLE_FACE_MARK, col4);
-#endif
-
-		glEnable(GL_BLEND);
-		glDepthMask(0);  /* disable write in zbuffer, needed for nice transp */
-
-		/* don't draw unselected faces, only selected, this is MUCH nicer when texturing */
-		if (check_object_draw_texture(scene, v3d, dt))
-			col1[3] = 0;
-
-#ifdef WITH_FREESTYLE
-		if (!(me->drawflag & ME_DRAW_FREESTYLE_FACE) || !CustomData_has_layer(&em->bm->pdata, CD_FREESTYLE_FACE))
-			col4[3] = 0;
-
-		draw_dm_faces_sel(em, cageDM, col1, col2, col3, col4, efa_act);
-#else
-		draw_dm_faces_sel(em, cageDM, col1, col2, col3, efa_act);
-#endif
-
-		glDisable(GL_BLEND);
-		glDepthMask(1);  /* restore write in zbuffer */
-	}
-	else if (efa_act) {
-		/* even if draw faces is off it would be nice to draw the stipple face
-		 * Make all other faces zero alpha except for the active */
-		unsigned char col1[4], col2[4], col3[4];
-#ifdef WITH_FREESTYLE
-		unsigned char col4[4];
-		col4[3] = 0; /* don't draw */
-#endif
-		col1[3] = col2[3] = 0; /* don't draw */
-
-		UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, col3);
-
-		glEnable(GL_BLEND);
-		glDepthMask(0);  /* disable write in zbuffer, needed for nice transp */
-
-#ifdef WITH_FREESTYLE
-		draw_dm_faces_sel(em, cageDM, col1, col2, col3, col4, efa_act);
-#else
-		draw_dm_faces_sel(em, cageDM, col1, col2, col3, efa_act);
-#endif
-
-		glDisable(GL_BLEND);
-		glDepthMask(1);  /* restore write in zbuffer */
-	}
-
-	/* here starts all fancy draw-extra over */
-	if ((me->drawflag & ME_DRAWEDGES) == 0 && check_object_draw_texture(scene, v3d, dt)) {
-		/* we are drawing textures and 'ME_DRAWEDGES' is disabled, don't draw any edges */
-		
-		/* only draw selected edges otherwise there is no way of telling if a face is selected */
-		draw_em_fancy_edges(em, scene, v3d, me, cageDM, 1, eed_act);
-		
+	if ((dt > OB_WIRE) && (v3d->flag2 & V3D_RENDER_SHADOW)) {
+	    /* pass */
 	}
 	else {
-		if (me->drawflag & ME_DRAWSEAMS) {
-			UI_ThemeColor(TH_EDGE_SEAM);
-			glLineWidth(2);
+		/* annoying but active faces is stored differently */
+		BMFace *efa_act = BM_mesh_active_face_get(em->bm, false, true);
+		BMEdge *eed_act = NULL;
+		BMVert *eve_act = NULL;
 
-			draw_dm_edges_seams(em, cageDM);
-
-			glColor3ub(0, 0, 0);
+		if (em->bm->selected.last) {
+			BMEditSelection *ese = em->bm->selected.last;
+			/* face is handled above */
+#if 0
+			if (ese->type == BM_FACE) {
+				efa_act = (BMFace *)ese->data;
+			}
+			else
+#endif
+			if (ese->htype == BM_EDGE) {
+				eed_act = (BMEdge *)ese->ele;
+			}
+			else if (ese->htype == BM_VERT) {
+				eve_act = (BMVert *)ese->ele;
+			}
 		}
-		
-		if (me->drawflag & ME_DRAWSHARP) {
-			UI_ThemeColor(TH_EDGE_SHARP);
-			glLineWidth(2);
 
-			draw_dm_edges_sharp(em, cageDM);
+		if ((me->drawflag & ME_DRAWFACES) && (use_occlude_wire == false)) {  /* transp faces */
+			unsigned char col1[4], col2[4], col3[4];
+#ifdef WITH_FREESTYLE
+			unsigned char col4[4];
+#endif
 
-			glColor3ub(0, 0, 0);
-		}
+			UI_GetThemeColor4ubv(TH_FACE, col1);
+			UI_GetThemeColor4ubv(TH_FACE_SELECT, col2);
+			UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, col3);
+#ifdef WITH_FREESTYLE
+			UI_GetThemeColor4ubv(TH_FREESTYLE_FACE_MARK, col4);
+#endif
+
+			glEnable(GL_BLEND);
+			glDepthMask(0);  /* disable write in zbuffer, needed for nice transp */
+
+			/* don't draw unselected faces, only selected, this is MUCH nicer when texturing */
+			if (check_object_draw_texture(scene, v3d, dt))
+				col1[3] = 0;
 
 #ifdef WITH_FREESTYLE
-		if (me->drawflag & ME_DRAW_FREESTYLE_EDGE && CustomData_has_layer(&em->bm->edata, CD_FREESTYLE_EDGE)) {
-			UI_ThemeColor(TH_FREESTYLE_EDGE_MARK);
-			glLineWidth(2);
-	
-			draw_dm_edges_freestyle(em, cageDM);
-	
-			glColor3ub(0, 0, 0);
-		}
+			if (!(me->drawflag & ME_DRAW_FREESTYLE_FACE) || !CustomData_has_layer(&em->bm->pdata, CD_FREESTYLE_FACE))
+				col4[3] = 0;
+
+			draw_dm_faces_sel(em, cageDM, col1, col2, col3, col4, efa_act);
+#else
+			draw_dm_faces_sel(em, cageDM, col1, col2, col3, efa_act);
 #endif
-	
-		if (me->drawflag & ME_DRAWCREASES) {
-			draw_dm_creases(em, cageDM);
+
+			glDisable(GL_BLEND);
+			glDepthMask(1);  /* restore write in zbuffer */
 		}
-		if (me->drawflag & ME_DRAWBWEIGHTS) {
-			draw_dm_bweights(em, scene, cageDM);
+		else if (efa_act) {
+			/* even if draw faces is off it would be nice to draw the stipple face
+			 * Make all other faces zero alpha except for the active */
+			unsigned char col1[4], col2[4], col3[4];
+#ifdef WITH_FREESTYLE
+			unsigned char col4[4];
+			col4[3] = 0; /* don't draw */
+#endif
+			col1[3] = col2[3] = 0; /* don't draw */
+
+			UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, col3);
+
+			glEnable(GL_BLEND);
+			glDepthMask(0);  /* disable write in zbuffer, needed for nice transp */
+
+#ifdef WITH_FREESTYLE
+			draw_dm_faces_sel(em, cageDM, col1, col2, col3, col4, efa_act);
+#else
+			draw_dm_faces_sel(em, cageDM, col1, col2, col3, efa_act);
+#endif
+
+			glDisable(GL_BLEND);
+			glDepthMask(1);  /* restore write in zbuffer */
 		}
 
-		glLineWidth(1);
-		draw_em_fancy_edges(em, scene, v3d, me, cageDM, 0, eed_act);
+		/* here starts all fancy draw-extra over */
+		if ((me->drawflag & ME_DRAWEDGES) == 0 && check_object_draw_texture(scene, v3d, dt)) {
+			/* we are drawing textures and 'ME_DRAWEDGES' is disabled, don't draw any edges */
+
+			/* only draw selected edges otherwise there is no way of telling if a face is selected */
+			draw_em_fancy_edges(em, scene, v3d, me, cageDM, 1, eed_act);
+
+		}
+		else {
+			if (me->drawflag & ME_DRAWSEAMS) {
+				UI_ThemeColor(TH_EDGE_SEAM);
+				glLineWidth(2);
+
+				draw_dm_edges_seams(em, cageDM);
+
+				glColor3ub(0, 0, 0);
+			}
+
+			if (me->drawflag & ME_DRAWSHARP) {
+				UI_ThemeColor(TH_EDGE_SHARP);
+				glLineWidth(2);
+
+				draw_dm_edges_sharp(em, cageDM);
+
+				glColor3ub(0, 0, 0);
+			}
+
+#ifdef WITH_FREESTYLE
+			if (me->drawflag & ME_DRAW_FREESTYLE_EDGE && CustomData_has_layer(&em->bm->edata, CD_FREESTYLE_EDGE)) {
+				UI_ThemeColor(TH_FREESTYLE_EDGE_MARK);
+				glLineWidth(2);
+
+				draw_dm_edges_freestyle(em, cageDM);
+
+				glColor3ub(0, 0, 0);
+			}
+#endif
+
+			if (me->drawflag & ME_DRAWCREASES) {
+				draw_dm_creases(em, cageDM);
+			}
+			if (me->drawflag & ME_DRAWBWEIGHTS) {
+				draw_dm_bweights(em, scene, cageDM);
+			}
+
+			glLineWidth(1);
+			draw_em_fancy_edges(em, scene, v3d, me, cageDM, 0, eed_act);
+		}
+
+		{
+			draw_em_fancy_verts(scene, v3d, ob, em, cageDM, eve_act, rv3d);
+
+			if (me->drawflag & ME_DRAWNORMALS) {
+				UI_ThemeColor(TH_NORMAL);
+				draw_dm_face_normals(em, scene, ob, cageDM);
+			}
+			if (me->drawflag & ME_DRAW_VNORMALS) {
+				UI_ThemeColor(TH_VNORMAL);
+				draw_dm_vert_normals(em, scene, ob, cageDM);
+			}
+			if (me->drawflag & ME_DRAW_LNORMALS) {
+				UI_ThemeColor(TH_LNORMAL);
+				draw_dm_loop_normals(em, scene, ob, cageDM);
+			}
+
+			if ((me->drawflag & (ME_DRAWEXTRA_EDGELEN |
+			                     ME_DRAWEXTRA_FACEAREA |
+			                     ME_DRAWEXTRA_FACEANG |
+			                     ME_DRAWEXTRA_EDGEANG)) &&
+			    !(v3d->flag2 & V3D_RENDER_OVERRIDE))
+			{
+				draw_em_measure_stats(ar, v3d, ob, em, &scene->unit);
+			}
+
+			if ((G.debug & G_DEBUG) && (me->drawflag & ME_DRAWEXTRA_INDICES) &&
+			    !(v3d->flag2 & V3D_RENDER_OVERRIDE))
+			{
+				draw_em_indices(em);
+			}
+		}
 	}
 
-	{
-		draw_em_fancy_verts(scene, v3d, ob, em, cageDM, eve_act, rv3d);
-
-		if (me->drawflag & ME_DRAWNORMALS) {
-			UI_ThemeColor(TH_NORMAL);
-			draw_dm_face_normals(em, scene, ob, cageDM);
-		}
-		if (me->drawflag & ME_DRAW_VNORMALS) {
-			UI_ThemeColor(TH_VNORMAL);
-			draw_dm_vert_normals(em, scene, ob, cageDM);
-		}
-		if (me->drawflag & ME_DRAW_LNORMALS) {
-			UI_ThemeColor(TH_LNORMAL);
-			draw_dm_loop_normals(em, scene, ob, cageDM);
-		}
-
-		if ((me->drawflag & (ME_DRAWEXTRA_EDGELEN |
-		                     ME_DRAWEXTRA_FACEAREA |
-		                     ME_DRAWEXTRA_FACEANG |
-		                     ME_DRAWEXTRA_EDGEANG)) &&
-		    !(v3d->flag2 & V3D_RENDER_OVERRIDE))
-		{
-			draw_em_measure_stats(ar, v3d, ob, em, &scene->unit);
-		}
-
-		if ((G.debug & G_DEBUG) && (me->drawflag & ME_DRAWEXTRA_INDICES) &&
-		    !(v3d->flag2 & V3D_RENDER_OVERRIDE))
-		{
-			draw_em_indices(em);
-		}
-	}
-
-	if (dt > OB_WIRE) {
+	if (use_depth_offset) {
 		glDepthMask(1);
 		ED_view3d_polygon_offset(rv3d, 0.0);
 		GPU_object_material_unbind();
