@@ -23,7 +23,11 @@ import bpy
 from bpy.types import Operator
 
 DEG_TO_RAD = 0.017453292519943295 # pi/180.0
-SMALL_NUM = 0.00000001  # see bug [#31598] why we dont have smaller values
+# see bugs:
+# - T31598 (when too small).
+# - T48086 (when too big).
+SMALL_NUM = 1e-12
+
 
 global USER_FILL_HOLES
 global USER_FILL_HOLES_QUALITY
@@ -813,9 +817,6 @@ def main(context,
         else:
             meshFaces = [thickface(f, uv_layer, me_verts) for i, f in enumerate(me.polygons)]
 
-        if not meshFaces:
-            continue
-
 #XXX		Window.DrawProgressBar(0.1, 'SmartProj UV Unwrapper, mapping "%s", %i faces.' % (me.name, len(meshFaces)))
 
         # =======
@@ -834,6 +835,9 @@ def main(context,
             for uv in meshFaces[-1].uv:
                 uv.zero()
             meshFaces.pop()
+
+        if not meshFaces:
+            continue
 
         # Smallest first is slightly more efficient, but if the user cancels early then its better we work on the larger data.
 
