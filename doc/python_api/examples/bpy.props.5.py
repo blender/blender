@@ -48,9 +48,9 @@ bpy.types.Scene.test_array = bpy.props.BoolVectorProperty(size=2, get=get_array,
 # Note: the getter/setter callback must use integer identifiers!
 test_items = [
     ("RED", "Red", "", 1),
-    ("GREEN", "Red", "", 2),
-    ("BLUE", "Red", "", 3),
-    ("YELLOW", "Red", "", 4),
+    ("GREEN", "Green", "", 2),
+    ("BLUE", "Blue", "", 3),
+    ("YELLOW", "Yellow", "", 4),
     ]
 
 

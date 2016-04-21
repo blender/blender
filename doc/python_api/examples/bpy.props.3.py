@@ -20,7 +20,7 @@ bpy.types.Scene.my_settings = \
     bpy.props.CollectionProperty(type=SceneSettingItem)
 
 # Assume an armature object selected
-print("Adding 3 values!")
+print("Adding 2 values!")
 
 my_item = bpy.context.scene.my_settings.add()
 my_item.name = "Spam"
