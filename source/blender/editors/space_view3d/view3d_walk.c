@@ -437,19 +437,16 @@ static bool walk_floor_distance_get(bContext *C, RegionView3D *rv3d, WalkInfo *w
  */
 static bool walk_ray_cast(bContext *C, RegionView3D *rv3d, WalkInfo *walk, float r_location[3], float r_normal[3], float *ray_distance)
 {
-	float ray_normal[3] = {0, 0, 1}; /* forward */
+	float ray_normal[3] = {0, 0, -1}; /* forward */
 	float ray_start[3];
-	float mat[3][3]; /* 3x3 copy of the view matrix so we can move along the view axis */
 	bool ret;
 
 	*ray_distance = BVH_RAYCAST_DIST_MAX;
 
 	copy_v3_v3(ray_start, rv3d->viewinv[3]);
-	copy_m3_m4(mat, rv3d->viewinv);
 
-	mul_m3_v3(mat, ray_normal);
+	mul_mat3_m4_v3(rv3d->viewinv, ray_normal);
 
-	mul_v3_fl(ray_normal, -1);
 	normalize_v3(ray_normal);
 
 	ret = snapObjectsRayEx(
@@ -462,7 +459,7 @@ static bool walk_ray_cast(bContext *C, RegionView3D *rv3d, WalkInfo *walk, float
 
 	/* dot is positive if both rays are facing the same direction */
 	if (dot_v3v3(ray_normal, r_normal) > 0) {
-		copy_v3_fl3(r_normal, -r_normal[0], -r_normal[1], -r_normal[2]);
+		negate_v3(r_normal);
 	}
 
 	/* artifically scale the distance to the scene size */
