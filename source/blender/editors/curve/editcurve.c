@@ -4993,11 +4993,22 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 		if (use_proj) {
 			const float mval[2] = {UNPACK2(event->mval)};
-			float no_dummy[3];
-			float dist_px_dummy;
-			snapObjectsContext(
-			        C, mval, SNAP_NOT_OBEDIT,
-			        location, no_dummy, &dist_px_dummy);
+
+			struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
+			        CTX_data_main(C), vc.scene, 0,
+			        vc.ar, vc.v3d);
+
+			ED_transform_snap_object_project_view3d_mixed(
+			        snap_context,
+			        &(const struct SnapObjectParams){
+			            .snap_select = SNAP_NOT_OBEDIT,
+			            .snap_to_flag = SCE_SELECT_FACE,
+			        },
+			        mval, NULL, true,
+			        location, NULL);
+
+
+			ED_transform_snap_object_context_destroy(snap_context);
 		}
 
 		if ((cu->flag & CU_3D) == 0) {

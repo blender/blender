@@ -519,11 +519,18 @@ bool ED_texture_context_check_others(const struct bContext *C) RET_ZERO
 
 bool ED_text_region_location_from_cursor(SpaceText *st, ARegion *ar, const int cursor_co[2], int r_pixel_co[2]) RET_ZERO
 
-bool snapObjectsRayEx(
-        struct Scene *scene, struct View3D *v3d, struct ARegion *ar, struct Base *base_act, struct Object *obedit,
-        const float mval[2], SnapSelect snap_select, short snap_mode,
-        const float ray_start[3], const float ray_normal[3], float *ray_dist,
-        float r_loc[3], float r_no[3], float *r_dist_px, int *r_index,
+SnapObjectContext *ED_transform_snap_object_context_create(
+        struct Main *bmain, struct Scene *scene, int flag) RET_NULL
+SnapObjectContext *ED_transform_snap_object_context_create_view3d(
+        struct Main *bmain, struct Scene *scene, int flag,
+        struct ARegion *ar, struct View3D *v3d) RET_NULL
+void ED_transform_snap_object_context_destroy(SnapObjectContext *sctx) RET_NONE
+bool ED_transform_snap_object_project_ray_ex(
+        struct SnapObjectContext *sctx,
+        const struct SnapObjectParams *params,
+        const float ray_start[3], const float ray_normal[3], float *ray_depth,
+        /* return args */
+        float r_loc[3], float r_no[3], int *r_index,
         struct Object **r_ob, float r_obmat[4][4]) RET_ZERO
 
 void ED_lattice_editlatt_make(struct Object *obedit) RET_NONE

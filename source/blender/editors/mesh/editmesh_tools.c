@@ -301,20 +301,30 @@ void EMBM_project_snap_verts(bContext *C, ARegion *ar, BMEditMesh *em)
 
 	ED_view3d_init_mats_rv3d(obedit, ar->regiondata);
 
+	struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
+	        CTX_data_main(C), CTX_data_scene(C), SNAP_OBJECT_USE_CACHE,
+	        ar, CTX_wm_view3d(C));
+
 	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-			float mval[2], co_proj[3], no_dummy[3];
-			float dist_px_dummy;
+			float mval[2], co_proj[3];
 			if (ED_view3d_project_float_object(ar, eve->co, mval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-				if (snapObjectsContext(
-				        C, mval, SNAP_NOT_OBEDIT,
-				        co_proj, no_dummy, &dist_px_dummy))
+				if (ED_transform_snap_object_project_view3d_mixed(
+				        snap_context,
+				        &(const struct SnapObjectParams){
+				            .snap_select = SNAP_NOT_OBEDIT,
+				            .snap_to_flag = SCE_SELECT_FACE,
+				        },
+				        mval, NULL, true,
+				        co_proj, NULL))
 				{
 					mul_v3_m4v3(eve->co, obedit->imat, co_proj);
 				}
 			}
 		}
 	}
+
+	ED_transform_snap_object_context_destroy(snap_context);
 }
 
 

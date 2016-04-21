@@ -145,13 +145,22 @@ static void rna_Scene_ray_cast(
 {
 	normalize_v3(direction);
 
-	if (snapObjectsRayEx(
-	        scene, NULL, NULL, NULL, NULL,
-	        NULL, SNAP_ALL, SCE_SNAP_MODE_FACE,
+	SnapObjectContext *sctx = ED_transform_snap_object_context_create(
+	        G.main, scene, 0);
+
+	bool ret = ED_transform_snap_object_project_ray_ex(
+	        sctx,
+	        &(const struct SnapObjectParams){
+	            .snap_select = SNAP_ALL,
+	            .snap_to = SCE_SNAP_MODE_FACE,
+	        },
 	        origin, direction, &ray_dist,
-	        r_location, r_normal, NULL, r_index,
-	        r_ob, (float(*)[4])r_obmat))
-	{
+	        r_location, r_normal, r_index,
+	        r_ob, (float(*)[4])r_obmat);
+
+	ED_transform_snap_object_context_destroy(sctx);
+
+	if (ret) {
 		*r_success = true;
 	}
 	else {

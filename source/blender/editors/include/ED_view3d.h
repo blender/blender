@@ -396,18 +396,6 @@ void ED_view3d_operator_properties_viewmat_set(struct bContext *C, struct wmOper
 void ED_view3d_operator_properties_viewmat_get(struct wmOperator *op, int *winx, int *winy, float persmat[4][4]);
 #endif
 
-bool ED_view3d_snap_from_region(
-        struct Scene *scene, struct View3D *v3d, struct ARegion *ar,
-        const float mval[2], float dist_px,
-        bool use_depth, bool use_obedit,
-        bool use_vert, bool use_edge, bool use_face,
-        float r_co[3], float r_no[3]);
-
-bool ED_view3d_snap_from_ray(
-        struct Scene *scene,
-        const float ray_start[3], const float ray_normal[3],
-        float r_co[3]);
-
 /* render */
 void ED_view3d_stop_render_preview(struct wmWindowManager *wm, struct ARegion *ar);
 void ED_view3d_shade_update(struct Main *bmain, struct Scene *scene, struct View3D *v3d, struct ScrArea *sa);
