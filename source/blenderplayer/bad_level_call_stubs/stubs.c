@@ -148,6 +148,7 @@ struct wmWindowManager;
 #include "../blender/collada/collada.h"
 #include "../blender/compositor/COM_compositor.h"
 #include "../blender/editors/include/ED_armature.h"
+#include "../blender/editors/include/ED_anim_api.h"
 #include "../blender/editors/include/ED_buttons.h"
 #include "../blender/editors/include/ED_clip.h"
 #include "../blender/editors/include/ED_curve.h"
@@ -419,6 +420,7 @@ void delete_fcurve_key(struct FCurve *fcu, int index, bool do_recalc) RET_NONE
 struct KeyingSetInfo *ANIM_keyingset_info_find_name (const char name[]) RET_NULL
 struct KeyingSet *ANIM_scene_get_active_keyingset (struct Scene *scene) RET_NULL
 int ANIM_scene_get_keyingset_index(struct Scene *scene, struct KeyingSet *ks) RET_ZERO
+void ANIM_id_update(struct Scene *scene, struct ID *id) RET_NONE
 struct ListBase builtin_keyingsets;
 void ANIM_keyingset_info_register(struct KeyingSetInfo *ksi) RET_NONE
 void ANIM_keyingset_info_unregister(struct Main *bmain, KeyingSetInfo *ksi) RET_NONE
