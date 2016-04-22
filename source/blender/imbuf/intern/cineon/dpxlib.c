@@ -184,8 +184,8 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 	}
 	else {
 		if (verbose)  {
-			printf("DPX: Bad magic number %lu in \"%s\".\n",
-			       (uintptr_t)header.fileHeader.magic_num, byteStuff);
+			printf("DPX: Bad magic number %u in \"%s\".\n",
+			       header.fileHeader.magic_num, byteStuff);
 		}
 		logImageClose(dpx);
 		return NULL;

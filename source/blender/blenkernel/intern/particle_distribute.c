@@ -1043,7 +1043,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		}
 
 		/* Avoid initial zero-weight items. */
-		for (i = 0; (element_sum[i] == 0.0) && (i < totelem - 1); i++);
+		for (i = 0; (element_sum[i] == 0.0f) && (i < totelem - 1); i++);
 
 		for (p = 0; p < totpart; p++, pos += step) {
 			for ( ; (pos > (double)element_sum[i]) && (i < totelem - 1); i++);

@@ -84,7 +84,7 @@ static float depth_read_zbuf(const ViewContext *vc, int x, int y)
 
 static bool depth_unproject(
         const ARegion *ar, const bglMats *mats,
-        const int mval[2], const float depth,
+        const int mval[2], const double depth,
         float r_location_world[3])
 {
 	double p[3];
@@ -115,7 +115,7 @@ static bool depth_read_normal(
 		for (int y = 0; y < 2; y++) {
 			const int mval_ofs[2] = {mval[0] + (x - 1), mval[1] + (y - 1)};
 
-			float depth = depth_read_zbuf(vc, mval_ofs[0], mval_ofs[1]);
+			const double depth = (double)depth_read_zbuf(vc, mval_ofs[0], mval_ofs[1]);
 			if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
 				if (depth_unproject(ar, mats, mval_ofs, depth, coords[i])) {
 					depths_valid[i] = true;
@@ -275,7 +275,7 @@ static bool stroke_elem_project(
 		    ((unsigned int)mval_i[0] < depths->w) &&
 		    ((unsigned int)mval_i[1] < depths->h))
 		{
-			float depth = depth_read_zbuf(&cdd->vc, mval_i[0], mval_i[1]);
+			const double depth = (double)depth_read_zbuf(&cdd->vc, mval_i[0], mval_i[1]);
 			if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
 				if (depth_unproject(ar, &cdd->mats, mval_i, depth, r_location_world)) {
 					is_location_world_set = true;
@@ -684,7 +684,7 @@ static void curve_draw_exec_precalc(wmOperator *op)
 
 	prop = RNA_struct_find_property(op->ptr, "corner_angle");
 	if (!RNA_property_is_set(op->ptr, prop)) {
-		const float corner_angle = (cps->flag & CURVE_PAINT_FLAG_CORNERS_DETECT) ? cps->corner_angle : M_PI;
+		const float corner_angle = (cps->flag & CURVE_PAINT_FLAG_CORNERS_DETECT) ? cps->corner_angle : (float)M_PI;
 		RNA_property_float_set(op->ptr, prop, corner_angle);
 	}
 
@@ -738,7 +738,7 @@ static void curve_draw_exec_precalc(wmOperator *op)
 			selem_prev = selem;
 		}
 
-		if (cps->radius_taper_start != 0.0) {
+		if (cps->radius_taper_start != 0.0f) {
 			selem_array[0]->pressure = 0.0f;
 			const float len_taper_max = cps->radius_taper_start * len_3d;
 			for (i = 1; i < stroke_len && lengths[i] < len_taper_max; i++) {
@@ -746,7 +746,7 @@ static void curve_draw_exec_precalc(wmOperator *op)
 			}
 		}
 
-		if (cps->radius_taper_end != 0.0) {
+		if (cps->radius_taper_end != 0.0f) {
 			selem_array[stroke_len - 1]->pressure = 0.0f;
 			const float len_taper_max = cps->radius_taper_end * len_3d;
 			const float len_taper_min = len_3d - len_taper_max;
@@ -787,9 +787,9 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 
 	ED_curve_deselect_all(cu->editnurb);
 
-	const double radius_min = cps->radius_min;
-	const double radius_max = cps->radius_max;
-	const double radius_range = cps->radius_max - cps->radius_min;
+	const float radius_min = cps->radius_min;
+	const float radius_max = cps->radius_max;
+	const float radius_range = cps->radius_max - cps->radius_min;
 
 	Nurb *nu = MEM_callocN(sizeof(Nurb), __func__);
 	nu->pntsv = 1;
@@ -840,7 +840,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 		unsigned int *corners = NULL;
 		unsigned int  corners_len = 0;
 
-		if (corner_angle < M_PI) {
+		if (corner_angle < (float)M_PI) {
 			/* this could be configurable... */
 			const float corner_radius_min = error_threshold / 8;
 			const float corner_radius_max = error_threshold * 2;
