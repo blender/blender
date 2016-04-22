@@ -239,6 +239,11 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
 			}
 		}
 
+		if (fabsf(*max - *min) < 0.001f) {
+			*min -= 0.0005f;
+			*max += 0.0005f;
+		}
+
 		/* free memory */
 		ANIM_animdata_freelist(&anim_data);
 	}
