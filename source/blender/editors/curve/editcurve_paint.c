@@ -170,6 +170,11 @@ struct StrokeElem {
 	float mval[2];
 	float location_world[3];
 	float location_local[3];
+
+	/* surface normal, may be zero'd */
+	float normal_world[3];
+	float normal_local[3];
+
 	float pressure;
 };
 
@@ -225,10 +230,26 @@ struct CurveDrawData {
 	void *draw_handle_view;
 };
 
-static float stroke_elem_radius(const struct CurveDrawData *cdd, const struct StrokeElem *selem)
+static float stroke_elem_radius_from_pressure(const struct CurveDrawData *cdd, const float pressure)
 {
 	const Curve *cu = cdd->vc.obedit->data;
-	return ((selem->pressure * cdd->radius.range) + cdd->radius.min) * cu->ext2;
+	return ((pressure * cdd->radius.range) + cdd->radius.min) * cu->ext2;
+}
+
+static float stroke_elem_radius(const struct CurveDrawData *cdd, const struct StrokeElem *selem)
+{
+	return stroke_elem_radius_from_pressure(cdd, selem->pressure);
+}
+
+static void stroke_elem_pressure_set(const struct CurveDrawData *cdd, struct StrokeElem *selem, float pressure)
+{
+	if ((cdd->radius.offset != 0.0f) && !is_zero_v3(selem->normal_local)) {
+		const float adjust = stroke_elem_radius_from_pressure(cdd, pressure) -
+		                     stroke_elem_radius_from_pressure(cdd, selem->pressure);
+		madd_v3_v3fl(selem->location_local, selem->normal_local, adjust);
+		mul_v3_m4v3(selem->location_world, cdd->vc.obedit->obmat, selem->location_local);
+	}
+	selem->pressure = pressure;
 }
 
 static void stroke_elem_interp(
@@ -249,7 +270,7 @@ static bool stroke_elem_project(
         const struct CurveDrawData *cdd,
         const int mval_i[2], const float mval_fl[2],
         const float radius_offset, const float radius,
-        float r_location_world[3])
+        float r_location_world[3], float r_normal_world[3])
 {
 	View3D *v3d = cdd->vc.v3d;
 	ARegion *ar = cdd->vc.ar;
@@ -266,6 +287,9 @@ static bool stroke_elem_project(
 		float lambda;
 		if (isect_ray_plane_v3(ray_origin, ray_direction, cdd->project.plane, &lambda, true)) {
 			madd_v3_v3v3fl(r_location_world, ray_origin, ray_direction, lambda);
+			if (r_normal_world) {
+				zero_v3(r_normal_world);
+			}
 			is_location_world_set = true;
 		}
 	}
@@ -279,11 +303,17 @@ static bool stroke_elem_project(
 			if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
 				if (depth_unproject(ar, &cdd->mats, mval_i, depth, r_location_world)) {
 					is_location_world_set = true;
+					if (r_normal_world) {
+						zero_v3(r_normal_world);
+					}
 
 					if (radius_offset != 0.0f) {
 						float normal[3];
 						if (depth_read_normal(&cdd->vc, &cdd->mats, mval_i, normal)) {
 							madd_v3_v3fl(r_location_world, normal, radius_offset * radius);
+							if (r_normal_world) {
+								copy_v3_v3(r_normal_world, normal);
+							}
 						}
 					}
 				}
@@ -305,16 +335,27 @@ static bool stroke_elem_project_fallback(
         const int mval_i[2], const float mval_fl[2],
         const float radius_offset, const float radius,
         const float location_fallback_depth[3],
-        float r_location_world[3], float r_location_local[3])
+        float r_location_world[3], float r_location_local[3],
+        float r_normal_world[3], float r_normal_local[3])
 {
 	bool is_depth_found = stroke_elem_project(
 	        cdd, mval_i, mval_fl,
 	        radius_offset, radius,
-	        r_location_world);
+	        r_location_world, r_normal_world);
 	if (is_depth_found == false) {
 		ED_view3d_win_to_3d(cdd->vc.ar, location_fallback_depth, mval_fl, r_location_world);
+		zero_v3(r_normal_local);
 	}
 	mul_v3_m4v3(r_location_local, cdd->vc.obedit->imat, r_location_world);
+
+	if (!is_zero_v3(r_normal_world)) {
+		copy_v3_v3(r_normal_local, r_normal_world);
+		mul_transposed_mat3_m4_v3(cdd->vc.obedit->obmat, r_normal_local);
+		normalize_v3(r_normal_local);
+	}
+	else {
+		zero_v3(r_normal_local);
+	}
 
 	return is_depth_found;
 }
@@ -333,7 +374,8 @@ static bool stroke_elem_project_fallback_elem(
 	        cdd, mval_i, selem->mval,
 	        cdd->radius.offset, radius,
 	        location_fallback_depth,
-	        selem->location_world, selem->location_local);
+	        selem->location_world, selem->location_local,
+	        selem->normal_world, selem->normal_local);
 }
 
 /** \} */
@@ -602,7 +644,7 @@ static void curve_draw_event_add_first(wmOperator *op, const wmEvent *event)
 
 			if (stroke_elem_project(
 			        cdd, event->mval, mval_fl, 0.0f, 0.0f,
-			        location_no_offset))
+			        location_no_offset, NULL))
 			{
 				sub_v3_v3v3(cdd->project.offset, cdd->prev.location_world_valid, location_no_offset);
 				if (!is_zero_v3(cdd->project.offset)) {
@@ -739,19 +781,19 @@ static void curve_draw_exec_precalc(wmOperator *op)
 		}
 
 		if (cps->radius_taper_start != 0.0f) {
-			selem_array[0]->pressure = 0.0f;
 			const float len_taper_max = cps->radius_taper_start * len_3d;
-			for (i = 1; i < stroke_len && lengths[i] < len_taper_max; i++) {
-				selem_array[i]->pressure *=   lengths[i] / len_taper_max;
+			for (i = 0; i < stroke_len && lengths[i] < len_taper_max; i++) {
+				const float pressure_new = selem_array[i]->pressure * (lengths[i] / len_taper_max);
+				stroke_elem_pressure_set(cdd, selem_array[i], pressure_new);
 			}
 		}
 
 		if (cps->radius_taper_end != 0.0f) {
-			selem_array[stroke_len - 1]->pressure = 0.0f;
 			const float len_taper_max = cps->radius_taper_end * len_3d;
 			const float len_taper_min = len_3d - len_taper_max;
-			for (i = stroke_len - 2; i > 0 && lengths[i] > len_taper_min; i--) {
-				selem_array[i]->pressure *= (len_3d - lengths[i]) / len_taper_max;
+			for (i = stroke_len - 1; i > 0 && lengths[i] > len_taper_min; i--) {
+				const float pressure_new = selem_array[i]->pressure * ((len_3d - lengths[i]) / len_taper_max);
+				stroke_elem_pressure_set(cdd, selem_array[i], pressure_new);
 			}
 		}
 
