@@ -480,11 +480,11 @@ void ObjectManager::device_update_transforms(Device *device,
 
 void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
-	VLOG(1) << "Total " << scene->objects.size() << " objects.";
-
 	if(!need_update)
 		return;
-	
+
+	VLOG(1) << "Total " << scene->objects.size() << " objects.";
+
 	device_free(device, dscene);
 
 	if(scene->objects.size() == 0)

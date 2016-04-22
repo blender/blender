@@ -37,10 +37,10 @@ LookupTables::~LookupTables()
 
 void LookupTables::device_update(Device *device, DeviceScene *dscene)
 {
-	VLOG(1) << "Total " << lookup_tables.size() << " lookup tables.";
-
 	if(!need_update)
 		return;
+
+	VLOG(1) << "Total " << lookup_tables.size() << " lookup tables.";
 
 	device->tex_free(dscene->lookup_table);
 

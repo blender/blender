@@ -1232,10 +1232,10 @@ void MeshManager::device_update_displacement_images(Device *device,
 
 void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
-	VLOG(1) << "Total " << scene->meshes.size() << " meshes.";
-
 	if(!need_update)
 		return;
+
+	VLOG(1) << "Total " << scene->meshes.size() << " meshes.";
 
 	/* update normals */
 	foreach(Mesh *mesh, scene->meshes) {

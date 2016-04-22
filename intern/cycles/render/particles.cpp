@@ -93,12 +93,12 @@ void ParticleSystemManager::device_update_particles(Device *device, DeviceScene 
 
 void ParticleSystemManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
+	if(!need_update)
+		return;
+
 	VLOG(1) << "Total " << scene->particle_systems.size()
 	        << " particle systems.";
 
-	if(!need_update)
-		return;
-	
 	device_free(device, dscene);
 
 	progress.set_status("Updating Particle Systems", "Copying Particles to device");
