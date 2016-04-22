@@ -153,7 +153,7 @@ void BLF_disable(int fontid, int option);
  * the other argument are the rgba color.
  * Take care that shadow need to be enable using BLF_enable!!!
  */
-void BLF_shadow(int fontid, int level, float r, float g, float b, float a);
+void BLF_shadow(int fontid, int level, const float rgba[4]) ATTR_NONNULL(3);
 
 /* Set the offset for shadow text, this is the current cursor
  * position plus this offset, don't need call BLF_position before
@@ -174,7 +174,7 @@ void BLF_shadow_offset(int fontid, int x, int y);
 void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int nch, struct ColorManagedDisplay *display);
 
 /* Set the color to be used for text. */
-void BLF_buffer_col(int fontid, float r, float g, float b, float a);
+void BLF_buffer_col(int fontid, const float rgba[4]) ATTR_NONNULL(2);
 
 /* Draw the string into the buffer, this function draw in both buffer, float and unsigned char _BUT_
  * it's not necessary set both buffer, NULL is valid here.

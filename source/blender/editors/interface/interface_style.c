@@ -160,7 +160,8 @@ void UI_fontstyle_draw_ex(
 	/* set the flag */
 	if (fs->shadow) {
 		font_flag |= BLF_SHADOW;
-		BLF_shadow(fs->uifont_id, fs->shadow, fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha);
+		const float shadow_color[4] = {fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha};
+		BLF_shadow(fs->uifont_id, fs->shadow, shadow_color);
 		BLF_shadow_offset(fs->uifont_id, fs->shadx, fs->shady);
 	}
 	if (fs->kerning == 1) {
@@ -251,7 +252,8 @@ void UI_fontstyle_draw_rotated(const uiFontStyle *fs, const rcti *rect, const ch
 
 	if (fs->shadow) {
 		BLF_enable(fs->uifont_id, BLF_SHADOW);
-		BLF_shadow(fs->uifont_id, fs->shadow, fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha);
+		const float shadow_color[4] = {fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha};
+		BLF_shadow(fs->uifont_id, fs->shadow, shadow_color);
 		BLF_shadow_offset(fs->uifont_id, fs->shadx, fs->shady);
 	}
 

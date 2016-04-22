@@ -297,6 +297,9 @@ static void checker_board_text(unsigned char *rect, float *rect_float, int width
 	 */
 	BLF_buffer(mono, rect_float, rect, width, height, 4, NULL);
 
+	const float text_color[4]   = {0.0, 0.0, 0.0, 1.0};
+	const float text_outline[4] = {1.0, 1.0, 1.0, 1.0};
+
 	for (y = 0; y < height; y += step) {
 		text[1] = '1';
 
@@ -306,7 +309,7 @@ static void checker_board_text(unsigned char *rect, float *rect_float, int width
 			pen_y = y + 44;
 
 			/* terribly crappy outline font! */
-			BLF_buffer_col(mono, 1.0, 1.0, 1.0, 1.0);
+			BLF_buffer_col(mono, text_outline);
 
 			BLF_position(mono, pen_x - outline, pen_y, 0.0);
 			BLF_draw_buffer(mono, text, 2);
@@ -326,7 +329,7 @@ static void checker_board_text(unsigned char *rect, float *rect_float, int width
 			BLF_position(mono, pen_x + outline, pen_y - outline, 0.0);
 			BLF_draw_buffer(mono, text, 2);
 
-			BLF_buffer_col(mono, 0.0, 0.0, 0.0, 1.0);
+			BLF_buffer_col(mono, text_color);
 			BLF_position(mono, pen_x, pen_y, 0.0);
 			BLF_draw_buffer(mono, text, 2);
 

@@ -3124,7 +3124,7 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 
 	BLF_size(fontid, 1.5 * fstyle_points, 1.0f / U.dpi);
 	BLF_enable(fontid, BLF_SHADOW);
-	BLF_shadow(fontid, 3, 0.0f, 0.0f, 0.0f, 0.5f);
+	BLF_shadow(fontid, 3, (const float[4]){0.0f, 0.0f, 0.0f, 0.5f});
 	BLF_shadow_offset(fontid, 1, -1);
 
 	/* draw value */
