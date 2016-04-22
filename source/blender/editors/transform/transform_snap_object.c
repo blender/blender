@@ -34,6 +34,8 @@
 
 #include "BLI_math.h"
 #include "BLI_kdopbvh.h"
+#include "BLI_memarena.h"
+#include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_armature_types.h"
@@ -60,6 +62,11 @@
 
 #include "transform.h"
 
+typedef struct SnapObjectData {
+	BVHTreeFromMesh *bvh_trees[2];
+} SnapObjectData;
+
+
 typedef struct SnapObjectContext {
 	Main *bmain;
 	Scene *scene;
@@ -72,6 +79,13 @@ typedef struct SnapObjectContext {
 		struct View3D *v3d;
 		struct ARegion *ar;
 	} v3d_data;
+
+
+	/* Object -> SnapObjectData map */
+	struct {
+		GHash *object_map;
+		MemArena *mem_arena;
+	} cache;
 
 } SnapObjectContext;
 
@@ -555,8 +569,6 @@ static bool snapDerivedMesh(
 		float ray_start_local[3], ray_normal_local[3];
 		float local_scale, local_depth, len_diff;
 
-		BVHTreeFromMesh treedata = {0};
-
 		invert_m4_m4(imat, obmat);
 		transpose_m3_m4(timat, imat);
 
@@ -571,6 +583,19 @@ static bool snapDerivedMesh(
 		local_depth = *ray_depth;
 		if (local_depth != BVH_RAYCAST_DIST_MAX) {
 			local_depth *= local_scale;
+		}
+
+		SnapObjectData *sod = NULL;
+
+		if (sctx->flag & SNAP_OBJECT_USE_CACHE) {
+			void **sod_p;
+			if (BLI_ghash_ensure_p(sctx->cache.object_map, ob, &sod_p)) {
+				sod = *sod_p;
+			}
+			else {
+				sod = *sod_p = BLI_memarena_alloc(sctx->cache.mem_arena, sizeof(*sod));
+				memset(sod, 0, sizeof(*sod));
+			}
 		}
 
 		if (do_bb) {
@@ -600,14 +625,36 @@ static bool snapDerivedMesh(
 			}
 		}
 
-		treedata.em_evil = em;
-		treedata.em_evil_all = false;
+		BVHTreeFromMesh *treedata = NULL, treedata_stack;
+
+		if (sctx->flag & SNAP_OBJECT_USE_CACHE) {
+			int tree_index = 0;
+			switch (snap_to) {
+				case SCE_SNAP_MODE_FACE:
+					tree_index = 1;
+					break;
+				case SCE_SNAP_MODE_VERTEX:
+					tree_index = 0;
+					break;
+			}
+			if (sod->bvh_trees[tree_index] == NULL) {
+				sod->bvh_trees[tree_index] = BLI_memarena_alloc(sctx->cache.mem_arena, sizeof(*treedata));
+			}
+			treedata = sod->bvh_trees[tree_index];
+		}
+		else {
+			treedata = &treedata_stack;
+			memset(treedata, 0, sizeof(*treedata));
+		}
+
+		treedata->em_evil = em;
+		treedata->em_evil_all = false;
 		switch (snap_to) {
 			case SCE_SNAP_MODE_FACE:
-				bvhtree_from_mesh_looptri(&treedata, dm, 0.0f, 4, 6);
+				bvhtree_from_mesh_looptri(treedata, dm, 0.0f, 4, 6);
 				break;
 			case SCE_SNAP_MODE_VERTEX:
-				bvhtree_from_mesh_verts(&treedata, dm, 0.0f, 2, 6);
+				bvhtree_from_mesh_verts(treedata, dm, 0.0f, 2, 6);
 				break;
 		}
 
@@ -617,12 +664,12 @@ static bool snapDerivedMesh(
 			 */
 			BVHTreeNearest nearest;
 
-			if (treedata.tree != NULL) {
+			if (treedata->tree != NULL) {
 				nearest.index = -1;
 				nearest.dist_sq = FLT_MAX;
 				/* Compute and store result. */
 				BLI_bvhtree_find_nearest(
-				            treedata.tree, ray_start_local, &nearest, treedata.nearest_callback, &treedata);
+				            treedata->tree, ray_start_local, &nearest, treedata->nearest_callback, treedata);
 				if (nearest.index != -1) {
 					len_diff = sqrtf(nearest.dist_sq);
 				}
@@ -658,9 +705,9 @@ static bool snapDerivedMesh(
 				hit.index = -1;
 				hit.dist = local_depth;
 
-				if (treedata.tree &&
-				    BLI_bvhtree_ray_cast(treedata.tree, ray_start_local, ray_normal_local, 0.0f,
-				                         &hit, treedata.raycast_callback, &treedata) != -1)
+				if (treedata->tree &&
+				    BLI_bvhtree_ray_cast(treedata->tree, ray_start_local, ray_normal_local, 0.0f,
+				                         &hit, treedata->raycast_callback, treedata) != -1)
 				{
 					hit.dist += len_diff;
 					hit.dist /= local_scale;
@@ -677,7 +724,7 @@ static bool snapDerivedMesh(
 						retval = true;
 
 						if (r_index) {
-							*r_index = dm_looptri_to_poly_index(dm, &treedata.looptri[hit.index]);
+							*r_index = dm_looptri_to_poly_index(dm, &treedata->looptri[hit.index]);
 						}
 					}
 				}
@@ -689,12 +736,12 @@ static bool snapDerivedMesh(
 
 				nearest.index = -1;
 				nearest.dist_sq = local_depth * local_depth;
-				if (treedata.tree &&
+				if (treedata->tree &&
 				    BLI_bvhtree_find_nearest_to_ray(
-				        treedata.tree, ray_start_local, ray_normal_local,
+				        treedata->tree, ray_start_local, ray_normal_local,
 				        &nearest, NULL, NULL) != -1)
 				{
-					const MVert *v = &treedata.vert[nearest.index];
+					const MVert *v = &treedata->vert[nearest.index];
 					retval = snapVertex(
 					             ar, v->co, v->no, obmat, timat, mval, dist_px,
 					             ray_start, ray_start_local, ray_normal_local, ray_depth,
@@ -756,7 +803,9 @@ static bool snapDerivedMesh(
 			}
 		}
 
-		free_bvhtree_from_mesh(&treedata);
+		if ((sctx->flag & SNAP_OBJECT_USE_CACHE) == 0) {
+			free_bvhtree_from_mesh(treedata);
+		}
 	}
 
 	return retval;
@@ -956,11 +1005,31 @@ SnapObjectContext *ED_transform_snap_object_context_create_view3d(
 	sctx->v3d_data.ar = ar;
 	sctx->v3d_data.v3d = v3d;
 
+	if (sctx->flag & SNAP_OBJECT_USE_CACHE) {
+		sctx->cache.object_map = BLI_ghash_ptr_new(__func__);
+		sctx->cache.mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+	}
+
 	return sctx;
+}
+
+static void snap_object_data_free(void *val)
+{
+	SnapObjectData *sod = val;
+	for (int i = 0; i < ARRAY_SIZE(sod->bvh_trees); i++) {
+		if (sod->bvh_trees[i]) {
+			free_bvhtree_from_mesh(sod->bvh_trees[i]);
+		}
+	}
 }
 
 void ED_transform_snap_object_context_destroy(SnapObjectContext *sctx)
 {
+	if (sctx->flag & SNAP_OBJECT_USE_CACHE) {
+		BLI_ghash_free(sctx->cache.object_map, NULL, snap_object_data_free);
+		BLI_memarena_free(sctx->cache.mem_arena);
+	}
+
 	MEM_freeN(sctx);
 }
 
