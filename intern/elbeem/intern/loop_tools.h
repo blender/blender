@@ -22,6 +22,9 @@
 	int      calcCellsFilled=0; \
 	int      calcCellsEmptied=0; \
 	int      calcNumUsedCells=0; \
+	/* This is a generic macro, and now all it's users are using all variables. */ \
+	(void)calcCurrentMass; \
+	(void)calcCellsFilled  \
 
 
 

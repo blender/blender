@@ -139,6 +139,7 @@ namespace carve {
 
 
 
+#if 0
       static void walkGraphSegment(carve::csg::detail::VVSMap &shared_edge_graph,
                                    const carve::csg::detail::VSet &branch_points,
                                    V2 initial,
@@ -215,7 +216,7 @@ namespace carve {
 #endif
 #endif
       }
-
+#endif
 
 
       static carve::geom3d::Vector perpendicular(const carve::geom3d::Vector &v) {
@@ -383,6 +384,7 @@ namespace carve {
 
 
 
+#if 0
       static void traceIntersectionGraph(const V2Set &shared_edges,
                                          const FLGroupList & /* a_loops_grouped */,
                                          const FLGroupList & /* b_loops_grouped */,
@@ -416,6 +418,7 @@ namespace carve {
           walkGraphSegment(shared_edge_graph, branch_points, V2(v1, v2), a_edge_map, b_edge_map, out);
         }
       }
+#endif
 
       void hashByPerimeter(FLGroupList &grp, PerimMap &perim_map) {
         for (FLGroupList::iterator i = grp.begin(); i != grp.end(); ++i) {

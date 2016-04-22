@@ -685,6 +685,8 @@ bool LbmFsgrSolver::initializeSolverMemory()
 		if(firstMInit) {
 			mrSetup();
 		}
+#else
+		(void)firstMInit;
 #endif // LBM_INCLUDE_TESTSOLVERS==1
 		firstMInit=false;
 
@@ -1351,13 +1353,13 @@ bool LbmFsgrSolver::initializeSolverPostinit() {
 				} } \
 				if(ntype&(CFBndFreeslip)) { \
 					const LbmFloat dp=dot(objvel, vec2L((*pNormals)[n]) ); \
-					const LbmVec oldov=objvel; /*DEBUG*/ \
+					/* const LbmVec oldov=objvel; */ /*DEBUG*/ \
 					objvel = vec2L((*pNormals)[n]) *dp; \
 					/* if((j==24)&&(n%5==2)) errMsg("FSBT","n"<<n<<" v"<<objvel<<" nn"<<(*pNormals)[n]<<" dp"<<dp<<" oldov"<<oldov ); */ \
 				} \
 				else if(ntype&(CFBndPartslip)) { \
 					const LbmFloat dp=dot(objvel, vec2L((*pNormals)[n]) ); \
-					const LbmVec oldov=objvel; /*DEBUG*/ \
+					/* const LbmVec oldov=objvel; */ /*DEBUG*/ \
 					/* if((j==24)&&(n%5==2)) errMsg("FSBT","n"<<n<<" v"<<objvel<<" nn"<<(*pNormals)[n]<<" dp"<<dp<<" oldov"<<oldov ); */ \
 					const LbmFloat partv = mObjectPartslips[OId]; \
 					/*errMsg("PARTSLIP_DEBUG","l="<<l<<" ccel="<<RAC(ccel, dfInv[l] )<<" partv="<<partv<<",id="<<(int)(mnbf>>24)<<" newval="<<newval ); / part slip debug */ \

@@ -157,6 +157,7 @@ namespace carve {
       return pointInPoly(points, p2_adapt_ident(), p);
     }
 
+#if 0
     static int lineSegmentPolyIntersections(const P2Vector &points,
                                             LineSegment2 line,
                                             std::vector<PolyIntersectionInfo> &out) {
@@ -224,6 +225,7 @@ namespace carve {
       }
       return count;
     }
+#endif
  
     struct FwdSort {
       bool operator()(const PolyIntersectionInfo &a,
@@ -239,6 +241,7 @@ namespace carve {
       }
     };
 
+#if 0
     static int sortedLineSegmentPolyIntersections(const P2Vector &points,
                                                   LineSegment2 line,
                                                   std::vector<PolyIntersectionInfo> &out) {
@@ -253,6 +256,7 @@ namespace carve {
       }
       return count;
     }
+#endif
 
     bool pickContainedPoint(const std::vector<P2> &poly, P2 &result) {
       return pickContainedPoint(poly, p2_adapt_ident(), result);

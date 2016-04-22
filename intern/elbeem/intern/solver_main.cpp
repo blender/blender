@@ -777,6 +777,8 @@ LbmFsgrSolver::mainLoop(int lev)
 				+ RAC(ccel,dET) - RAC(ccel,dEB)
 				+ RAC(ccel,dWT) - RAC(ccel,dWB);
 
+		(void)oldRho;
+
 		// now reconstruction
 		ux=oldUx, uy=oldUy, uz=oldUz;  // no local vars, only for usqr
 		rho = REFERENCE_PRESSURE;

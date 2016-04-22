@@ -236,6 +236,7 @@ namespace {
 
 
 
+#if 0
   void dump_intersections(std::ostream &out, carve::csg::Intersections &csg_intersections) {
     std::vector<dump_data> temp;
 
@@ -284,13 +285,14 @@ namespace {
         vertices.push_back(i_pt->v);
       }
     }
+#endif
 
     carve::point::PointSet points(vertices);
 
     std::string outf("/tmp/intersection-points.ply");
     ::writePLY(outf, &points, true);
-#endif
   }
+#endif
 
 
 
@@ -481,6 +483,7 @@ void carve::csg::CSG::makeVertexIntersections() {
 
 
 
+#if 0
 static carve::mesh::MeshSet<3>::vertex_t *chooseWeldPoint(
     const carve::csg::detail::VSet &equivalent,
     carve::csg::VertexPool &vertex_pool) {
@@ -537,7 +540,7 @@ static const carve::mesh::MeshSet<3>::vertex_t *weld(
   }
   return weld_point;
 }
-
+#endif
 
 
 void carve::csg::CSG::groupIntersections() {
@@ -1219,6 +1222,7 @@ void carve::csg::CSG::makeFaceEdges(carve::csg::EdgeClassification &eclass,
  * 
  * @param fll 
  */
+#if 0
 static void checkFaceLoopIntegrity(carve::csg::FaceLoopList &fll) {
   static carve::TimingName FUNC_NAME("CSG::checkFaceLoopIntegrity()");
   carve::TimingBlock block(FUNC_NAME);
@@ -1245,7 +1249,7 @@ static void checkFaceLoopIntegrity(carve::csg::FaceLoopList &fll) {
     }
   }
 }
-
+#endif
 
 
 /** 

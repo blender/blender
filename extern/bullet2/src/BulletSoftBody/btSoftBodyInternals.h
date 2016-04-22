@@ -422,7 +422,7 @@ static inline btVector3		BaryCoord(	const btVector3& a,
 }
 
 //
-static btScalar				ImplicitSolve(	btSoftBody::ImplicitFn* fn,
+static inline btScalar				ImplicitSolve(	btSoftBody::ImplicitFn* fn,
 										  const btVector3& a,
 										  const btVector3& b,
 										  const btScalar accuracy,
@@ -504,7 +504,7 @@ static inline btScalar		VolumeOf(	const btVector3& x0,
 }
 
 //
-static void					EvaluateMedium(	const btSoftBodyWorldInfo* wfi,
+static inline void					EvaluateMedium(	const btSoftBodyWorldInfo* wfi,
 										   const btVector3& x,
 										   btSoftBody::sMedium& medium)
 {

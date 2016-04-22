@@ -1127,6 +1127,7 @@ int								nattrb=0;
 int								hasbounds=0;
 int result = sscanf(node,"%d %d %d %d",&nnode,&ndims,&nattrb,&hasbounds);
 result = sscanf(node,"%d %d %d %d",&nnode,&ndims,&nattrb,&hasbounds);
+(void)result;
 node += nextLine(node);
 
 pos.resize(nnode);
@@ -1208,10 +1209,10 @@ if(ele&&ele[0])
 			}
 		}
 	}
-printf("Nodes:  %u\r\n",psb->m_nodes.size());
-printf("Links:  %u\r\n",psb->m_links.size());
-printf("Faces:  %u\r\n",psb->m_faces.size());
-printf("Tetras: %u\r\n",psb->m_tetras.size());
+printf("Nodes:  %d\r\n",psb->m_nodes.size());
+printf("Links:  %d\r\n",psb->m_links.size());
+printf("Faces:  %d\r\n",psb->m_faces.size());
+printf("Tetras: %d\r\n",psb->m_tetras.size());
 return(psb);
 }
 
