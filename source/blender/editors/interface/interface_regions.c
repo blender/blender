@@ -3006,7 +3006,8 @@ int UI_pie_menu_invoke(struct bContext *C, const char *idname, const wmEvent *ev
 	}
 
 	if (mt->poll && mt->poll(C, mt) == 0)
-		return OPERATOR_CANCELLED;
+		/* cancel but allow event to pass through, just like operators do */
+		return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
 
 	pie = UI_pie_menu_begin(C, IFACE_(mt->label), ICON_NONE, event);
 	layout = UI_pie_menu_layout(pie);
@@ -3237,7 +3238,8 @@ int UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
 	}
 
 	if (mt->poll && mt->poll(C, mt) == 0)
-		return OPERATOR_CANCELLED;
+		/* cancel but allow event to pass through, just like operators do */
+		return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
 
 	pup = UI_popup_menu_begin(C, IFACE_(mt->label), ICON_NONE);
 	layout = UI_popup_menu_layout(pup);
