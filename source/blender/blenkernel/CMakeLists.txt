@@ -414,7 +414,7 @@ if(WITH_PYTHON)
 	endif()
 
 
-	if (PYTHON_EXECUTABLE)
+	if(PYTHON_EXECUTABLE)
 		get_filename_component(_python_exe_name ${PYTHON_EXECUTABLE} NAME)
 		add_definitions(-DPYTHON_EXECUTABLE_NAME=${_python_exe_name})
 		unset(_python_exe_name)
