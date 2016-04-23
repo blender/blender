@@ -2319,6 +2319,12 @@ elseif(APPLE)
 	endif()
 	# Get rid of eventually clashes, we export some symbols explicite as local
 	set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -Xlinker -unexported_symbols_list -Xlinker ${CMAKE_SOURCE_DIR}/source/creator/osx_locals.map")
+
+	# Suppress ranlib "has no symbols" warnings
+	SET(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+	SET(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+	SET(CMAKE_C_ARCHIVE_FINISH   "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
+	SET(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
 endif()
 
 #-----------------------------------------------------------------------------
