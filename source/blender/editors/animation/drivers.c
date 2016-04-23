@@ -886,7 +886,7 @@ void ANIM_OT_driver_button_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Add Driver";
 	ot->idname = "ANIM_OT_driver_button_add";
-	ot->description = "Add driver(s) for the property(s) connected represented by the highlighted button";
+	ot->description = "Add driver(s) for the property(s) represented by the highlighted button";
 	
 	/* callbacks */
 	/* NOTE: No exec, as we need all these to use the current context info
