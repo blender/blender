@@ -15,43 +15,38 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
- *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef __BKE_BLENDER_H__
-#define __BKE_BLENDER_H__
+#ifndef __BKE_BLENDER_UNDO_H__
+#define __BKE_BLENDER_UNDO_H__
 
-/** \file BKE_blender.h
+/** \file BKE_blender_undo.h
  *  \ingroup bke
- *  \since March 2001
- *  \author nzc
- *  \brief Blender util stuff
  */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void BKE_blender_free(void);
+struct bContext;
+struct Scene;
+struct Main;
 
-void BKE_blender_globals_init(void);
-void BKE_blender_globals_clear(void);
+#define BKE_UNDO_STR_MAX 64
 
-void BKE_blender_userdef_free(void);
-void BKE_blender_userdef_refresh(void);
-	
-/* set this callback when a UI is running */
-void BKE_blender_callback_test_break_set(void (*func)(void));
-int  BKE_blender_test_break(void);
+/* global undo */
+extern void          BKE_undo_write(struct bContext *C, const char *name);
+extern void          BKE_undo_step(struct bContext *C, int step);
+extern void          BKE_undo_name(struct bContext *C, const char *name);
+extern bool          BKE_undo_is_valid(const char *name);
+extern void          BKE_undo_reset(void);
+extern void          BKE_undo_number(struct bContext *C, int nr);
+extern const char   *BKE_undo_get_name(int nr, bool *r_active);
+extern bool          BKE_undo_save_file(const char *filename);
+extern struct Main  *BKE_undo_get_main(struct Scene **r_scene);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* __BKE_BLENDER_H__ */
+#endif  /* __BKE_BLENDER_UNDO_H__ */

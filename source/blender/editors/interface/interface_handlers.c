@@ -60,7 +60,7 @@
 
 #include "PIL_time.h"
 
-#include "BKE_blender.h"
+#include "BKE_blender_undo.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"

@@ -15,43 +15,30 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
- *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef __BKE_BLENDER_H__
-#define __BKE_BLENDER_H__
+#ifndef __BKE_BLENDER_VERSION_H__
+#define __BKE_BLENDER_VERSION_H__
 
-/** \file BKE_blender.h
+/** \file BKE_blender_version.h
  *  \ingroup bke
- *  \since March 2001
- *  \author nzc
- *  \brief Blender util stuff
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/* these lines are grep'd, watch out for our not-so-awesome regex
+ * and keep comment above the defines.
+ * Use STRINGIFY() rather than defining with quotes */
+#define BLENDER_VERSION         277
+#define BLENDER_SUBVERSION      0
+/* Several breakages with 270, e.g. constraint deg vs rad */
+#define BLENDER_MINVERSION      270
+#define BLENDER_MINSUBVERSION   6
 
-void BKE_blender_free(void);
+/* used by packaging tools */
+/* can be left blank, otherwise a,b,c... etc with no quotes */
+#define BLENDER_VERSION_CHAR
+/* alpha/beta/rc/release, docs use this */
+#define BLENDER_VERSION_CYCLE   alpha
 
-void BKE_blender_globals_init(void);
-void BKE_blender_globals_clear(void);
+extern char versionstr[]; /* from blender.c */
 
-void BKE_blender_userdef_free(void);
-void BKE_blender_userdef_refresh(void);
-	
-/* set this callback when a UI is running */
-void BKE_blender_callback_test_break_set(void (*func)(void));
-int  BKE_blender_test_break(void);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif  /* __BKE_BLENDER_H__ */
+#endif  /* __BKE_BLENDER_VERSION_H__ */

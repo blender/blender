@@ -75,6 +75,9 @@ set(SRC
 	intern/armature_update.c
 	intern/autoexec.c
 	intern/blender.c
+	intern/blender_copybuffer.c
+	intern/blender_undo.c
+	intern/blendfile.c
 	intern/bmfont.c
 	intern/boids.c
 	intern/bpath.c
@@ -194,6 +197,10 @@ set(SRC
 	BKE_armature.h
 	BKE_autoexec.h
 	BKE_blender.h
+	BKE_blender_copybuffer.h
+	BKE_blender_undo.h
+	BKE_blender_version.h
+	BKE_blendfile.h
 	BKE_bmfont.h
 	BKE_bmfont_types.h
 	BKE_boids.h

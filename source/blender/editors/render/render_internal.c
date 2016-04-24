@@ -49,7 +49,8 @@
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_blender.h"
+#include "BKE_blender_undo.h"
+#include "BKE_blender_version.h"
 #include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_colortools.h"

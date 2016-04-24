@@ -3140,7 +3140,7 @@ static int image_record_composite_apply(bContext *C, wmOperator *op)
 	
 	WM_cursor_time(CTX_wm_window(C), scene->r.cfra);
 
-	// XXX scene->nodetree->test_break = blender_test_break;
+	// XXX scene->nodetree->test_break = BKE_blender_test_break;
 	// XXX scene->nodetree->test_break = NULL;
 	
 	BKE_image_all_free_anim_ibufs(scene->r.cfra);

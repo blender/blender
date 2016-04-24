@@ -44,7 +44,7 @@
 #include "BLI_fileops.h"
 #include "BLI_mempool.h"
 
-#include "BKE_blender.h"
+#include "BKE_blender_version.h"
 #include "BKE_context.h"
 
 #include "BKE_global.h"

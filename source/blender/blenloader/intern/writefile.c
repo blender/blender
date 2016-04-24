@@ -145,7 +145,7 @@
 #include "BLI_mempool.h"
 
 #include "BKE_action.h"
-#include "BKE_blender.h"
+#include "BKE_blender_version.h"
 #include "BKE_bpath.h"
 #include "BKE_curve.h"
 #include "BKE_constraint.h"

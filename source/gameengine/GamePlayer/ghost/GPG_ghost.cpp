@@ -455,9 +455,9 @@ int main(int argc, char** argv)
 
 	init_nodesystem();
 	
-	initglobals();
+	BKE_blender_globals_init();
 
-	// We load our own G.main, so free the one that initglobals() gives us
+	// We load our own G.main, so free the one that BKE_blender_globals_init() gives us
 	BKE_main_free(G.main);
 	G.main = NULL;
 
@@ -1132,7 +1132,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-	/* refer to WM_exit_ext() and free_blender(),
+	/* refer to WM_exit_ext() and BKE_blender_free(),
 	 * these are not called in the player but we need to match some of there behavior here,
 	 * if the order of function calls or blenders state isn't matching that of blender proper,
 	 * we may get troubles later on */

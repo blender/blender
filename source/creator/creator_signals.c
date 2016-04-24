@@ -59,7 +59,7 @@
 #include BLI_SYSTEM_PID_H
 
 #include "BKE_appdir.h"  /* BKE_tempdir_base */
-#include "BKE_blender.h"
+#include "BKE_blender_version.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
