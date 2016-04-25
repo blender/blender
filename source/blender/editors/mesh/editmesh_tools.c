@@ -542,7 +542,7 @@ void MESH_OT_edge_collapse(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int edbm_add_edge_face__smooth_get(BMesh *bm)
+static bool edbm_add_edge_face__smooth_get(BMesh *bm)
 {
 	BMEdge *e;
 	BMIter iter;
@@ -710,7 +710,7 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	const short use_smooth = edbm_add_edge_face__smooth_get(em->bm);
+	const bool use_smooth = edbm_add_edge_face__smooth_get(em->bm);
 	const int totedge_orig = em->bm->totedge;
 	const int totface_orig = em->bm->totface;
 	/* when this is used to dissolve we could avoid this, but checking isnt too slow */
@@ -3576,7 +3576,7 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	const short use_smooth = edbm_add_edge_face__smooth_get(em->bm);
+	const bool use_smooth = edbm_add_edge_face__smooth_get(em->bm);
 	const int totedge_orig = em->bm->totedge;
 	const int totface_orig = em->bm->totface;
 	const bool use_interp_simple = RNA_boolean_get(op->ptr, "use_interp_simple");
