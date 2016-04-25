@@ -876,7 +876,10 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 	int armature_def_nr;
 	int totchan;
 
-	if (arm->edbo) return;
+	/* in editmode, or not an armature */
+	if (arm->edbo || (armOb->pose == NULL)) {
+		return;
+	}
 
 	invert_m4_m4(obinv, target->obmat);
 	copy_m4_m4(premat, target->obmat);
