@@ -223,7 +223,11 @@ static PyObject *bpy_bmfaceseq_get(BPy_BMesh *self, void *UNUSED(closure))
 }
 
 PyDoc_STRVAR(bpy_bmloopseq_doc,
-"This meshes face sequence (read-only).\n\n:type: :class:`BMLoopSeq`"
+"This meshes loops (read-only).\n\n:type: :class:`BMLoopSeq`\n"
+"\n"
+".. note::\n"
+"\n"
+"   Loops must be accessed via faces, this is only exposed for layer access.\n"
 );
 static PyObject *bpy_bmloopseq_get(BPy_BMesh *self, void *UNUSED(closure))
 {
