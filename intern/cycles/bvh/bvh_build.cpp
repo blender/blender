@@ -617,7 +617,7 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 	                                        BoundBox::empty,
 	                                        BoundBox::empty};
 	int ob_num = 0;
-
+	int num_new_prims = 0;
 	/* Fill in per-type type/index array. */
 	for(int i = 0; i < range.size(); i++) {
 		const BVHReference& ref = references[range.start() + i];
@@ -629,10 +629,11 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 
 			bounds[type_index].grow(ref.bounds());
 			visibility[type_index] |= objects[ref.prim_object()]->visibility;
+			++num_new_prims;
 		}
 		else {
 			object_references.push_back(ref);
-			ob_num++;
+			++ob_num;
 		}
 	}
 
@@ -651,11 +652,11 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 	vector<int, LeafStackAllocator> local_prim_type,
 	                                local_prim_index,
 	                                local_prim_object;
+	local_prim_type.resize(num_new_prims);
+	local_prim_index.resize(num_new_prims);
+	local_prim_object.resize(num_new_prims);
 	for(int i = 0; i < PRIMITIVE_NUM_TOTAL; ++i) {
 		int num = (int)p_type[i].size();
-		local_prim_type.resize(start_index + num);
-		local_prim_index.resize(start_index + num);
-		local_prim_object.resize(start_index + num);
 		if(num != 0) {
 			assert(p_type[i].size() == p_index[i].size());
 			assert(p_type[i].size() == p_object[i].size());
