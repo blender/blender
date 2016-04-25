@@ -327,6 +327,9 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 				data.x += prim_offset;
 				data.y += prim_offset;
 				pack_leaf_nodes[pack_leaf_nodes_offset] = data;
+				for(int j = 1; j < nsize_leaf; ++j) {
+					pack_leaf_nodes[pack_leaf_nodes_offset + j] = leaf_nodes_offset[i + j];
+				}
 				pack_leaf_nodes_offset += nsize_leaf;
 			}
 		}
