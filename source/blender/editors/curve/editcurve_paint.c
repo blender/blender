@@ -670,7 +670,7 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
 		view3d_set_viewcontext(C, &cdd->vc);
 		if (ELEM(NULL, cdd->vc.ar, cdd->vc.rv3d, cdd->vc.v3d, cdd->vc.win, cdd->vc.scene)) {
 			MEM_freeN(cdd);
-			BKE_report(op->reports, RPT_ERROR, "Unable to access 3D viewport.");
+			BKE_report(op->reports, RPT_ERROR, "Unable to access 3D viewport");
 			return false;
 		}
 	}
@@ -1100,7 +1100,7 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 					cdd->project.use_depth = true;
 				}
 				else {
-					BKE_report(op->reports, RPT_WARNING, "Unable to access depth buffer, using view plane.");
+					BKE_report(op->reports, RPT_WARNING, "Unable to access depth buffer, using view plane");
 					cdd->project.use_depth = false;
 				}
 			}
