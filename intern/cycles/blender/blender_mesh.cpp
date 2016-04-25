@@ -657,7 +657,7 @@ static void create_mesh(Scene *scene,
 
 static void create_subd_mesh(Scene *scene,
                              Mesh *mesh,
-                             BL::Object b_ob,
+                             BL::Object& b_ob,
                              BL::Mesh& b_mesh,
                              PointerRNA *cmesh,
                              const vector<uint>& used_shaders,
