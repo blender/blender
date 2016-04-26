@@ -1099,8 +1099,9 @@ static Base *object_mouse_select_menu(bContext *C, ViewContext *vc, unsigned int
 			int a;
 			for (a = 0; a < hits; a++) {
 				/* index was converted */
-				if (base->selcol == buffer[(4 * a) + 3])
+				if (base->selcol == (buffer[(4 * a) + 3] & ~0xFFFF0000)) {
 					ok = true;
+				}
 			}
 		}
 		else {
@@ -1468,7 +1469,7 @@ static bool ed_object_select_pick(
 			const bool has_bones = selectbuffer_has_bones(buffer, hits);
 
 			/* note; shift+alt goes to group-flush-selecting */
-			if (has_bones == 0 && enumerate) {
+			if (enumerate) {
 				basact = object_mouse_select_menu(C, &vc, buffer, hits, mval, toggle);
 			}
 			else {
