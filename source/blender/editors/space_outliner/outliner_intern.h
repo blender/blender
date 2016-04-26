@@ -130,9 +130,9 @@ typedef enum {
 void outliner_free_tree(ListBase *lb);
 void outliner_cleanup_tree(struct SpaceOops *soops);
 
-TreeElement *outliner_find_tse(struct SpaceOops *soops, TreeStoreElem *tse);
-TreeElement *outliner_find_tree_element(ListBase *lb, TreeStoreElem *store_elem);
-TreeElement *outliner_find_id(struct SpaceOops *soops, ListBase *lb, struct ID *id);
+TreeElement *outliner_find_tse(struct SpaceOops *soops, const TreeStoreElem *tse);
+TreeElement *outliner_find_tree_element(ListBase *lb, const TreeStoreElem *store_elem);
+TreeElement *outliner_find_id(struct SpaceOops *soops, ListBase *lb, const struct ID *id);
 TreeElement *outliner_find_posechannel(struct SpaceOops *soops, ListBase *lb, const struct bPoseChannel *pchan);
 TreeElement *outliner_find_editbone(struct SpaceOops *soops, ListBase *lb, const struct EditBone *ebone);
 struct ID *outliner_search_back(SpaceOops *soops, TreeElement *te, short idcode);

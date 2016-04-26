@@ -199,7 +199,7 @@ void outliner_cleanup_tree(SpaceOops *soops)
 }
 
 /* Find specific item from the treestore */
-TreeElement *outliner_find_tree_element(ListBase *lb, TreeStoreElem *store_elem)
+TreeElement *outliner_find_tree_element(ListBase *lb, const TreeStoreElem *store_elem)
 {
 	TreeElement *te, *tes;
 	for (te = lb->first; te; te = te->next) {
@@ -211,7 +211,7 @@ TreeElement *outliner_find_tree_element(ListBase *lb, TreeStoreElem *store_elem)
 }
 
 /* tse is not in the treestore, we use its contents to find a match */
-TreeElement *outliner_find_tse(SpaceOops *soops, TreeStoreElem *tse)
+TreeElement *outliner_find_tse(SpaceOops *soops, const TreeStoreElem *tse)
 {
 	TreeStoreElem *tselem;
 
@@ -226,19 +226,22 @@ TreeElement *outliner_find_tse(SpaceOops *soops, TreeStoreElem *tse)
 }
 
 /* Find treestore that refers to given ID */
-TreeElement *outliner_find_id(SpaceOops *soops, ListBase *lb, ID *id)
+TreeElement *outliner_find_id(SpaceOops *soops, ListBase *lb, const ID *id)
 {
-	TreeElement *te, *tes;
-	TreeStoreElem *tselem;
-	
-	for (te = lb->first; te; te = te->next) {
-		tselem = TREESTORE(te);
+	for (TreeElement *te = lb->first; te; te = te->next) {
+		TreeStoreElem *tselem = TREESTORE(te);
 		if (tselem->type == 0) {
-			if (tselem->id == id) return te;
+			if (tselem->id == id) {
+				return te;
+			}
 			/* only deeper on scene or object */
-			if (te->idcode == ID_OB || te->idcode == ID_SCE || (soops->outlinevis == SO_GROUPS && te->idcode == ID_GR)) {
-				tes = outliner_find_id(soops, &te->subtree, id);
-				if (tes) return tes;
+			if (ELEM(te->idcode, ID_OB, ID_SCE) ||
+			    ((soops->outlinevis == SO_GROUPS) && (te->idcode == ID_GR)))
+			{
+				TreeElement *tes = outliner_find_id(soops, &te->subtree, id);
+				if (tes) {
+					return tes;
+				}
 			}
 		}
 	}
