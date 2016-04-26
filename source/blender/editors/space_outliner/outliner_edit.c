@@ -59,6 +59,7 @@
 #include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_keyframing.h"
+#include "ED_armature.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -743,14 +744,35 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	TreeElement *te;
 	int xdelta, ytop;
-	
-	// TODO: make this get this info from context instead...
-	if (OBACT == NULL) 
+
+	Object *obact = OBACT;
+
+	if (!obact)
 		return OPERATOR_CANCELLED;
-	
-	te = outliner_find_id(so, &so->tree, (ID *)OBACT);
+
+
+	te = outliner_find_id(so, &so->tree, &obact->id);
+
+	if (obact->type == OB_ARMATURE) {
+		/* traverse down the bone hierarchy in case of armature */
+		TreeElement *te_obact = te;
+
+		if (obact->mode & OB_MODE_POSE) {
+			bPoseChannel *pchan = CTX_data_active_pose_bone(C);
+			if (pchan) {
+				te = outliner_find_posechannel(so, &te_obact->subtree, pchan);
+			}
+		}
+		else if (obact->mode & OB_MODE_EDIT) {
+			EditBone *ebone = CTX_data_active_bone(C);
+			if (ebone) {
+				te = outliner_find_editbone(so, &te_obact->subtree, ebone);
+			}
+		}
+	}
+
 	if (te) {
-		/* open up tree to active object */
+		/* open up tree to active object/bone */
 		if (outliner_open_back(te)) {
 			outliner_set_coordinates(ar, so);
 		}

@@ -245,6 +245,41 @@ TreeElement *outliner_find_id(SpaceOops *soops, ListBase *lb, ID *id)
 	return NULL;
 }
 
+TreeElement *outliner_find_posechannel(SpaceOops *soops, ListBase *lb, const bPoseChannel *pchan)
+{
+	for (TreeElement *te = lb->first; te; te = te->next) {
+		if (te->directdata == pchan) {
+			return te;
+		}
+
+		TreeStoreElem *tselem = TREESTORE(te);
+		if (ELEM(tselem->type, TSE_POSE_BASE, TSE_POSE_CHANNEL)) {
+			TreeElement *tes = outliner_find_posechannel(soops, &te->subtree, pchan);
+			if (tes) {
+				return tes;
+			}
+		}
+	}
+	return NULL;
+}
+
+TreeElement *outliner_find_editbone(SpaceOops *soops, ListBase *lb, const EditBone *ebone)
+{
+	for (TreeElement *te = lb->first; te; te = te->next) {
+		if (te->directdata == ebone) {
+			return te;
+		}
+
+		TreeStoreElem *tselem = TREESTORE(te);
+		if (ELEM(tselem->type, 0, TSE_EBONE)) {
+			TreeElement *tes = outliner_find_editbone(soops, &te->subtree, ebone);
+			if (tes) {
+				return tes;
+			}
+		}
+	}
+	return NULL;
+}
 
 ID *outliner_search_back(SpaceOops *UNUSED(soops), TreeElement *te, short idcode)
 {
