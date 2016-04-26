@@ -61,6 +61,8 @@ void PARTICLE_OT_shape_cut(struct wmOperatorType *ot);
 void PARTICLE_OT_particle_edit_toggle(struct wmOperatorType *ot);
 void PARTICLE_OT_edited_clear(struct wmOperatorType *ot);
 
+void PARTICLE_OT_unify_length(struct wmOperatorType *ot);
+
 /* particle_object.c */
 void OBJECT_OT_particle_system_add(struct wmOperatorType *ot);
 void OBJECT_OT_particle_system_remove(struct wmOperatorType *ot);

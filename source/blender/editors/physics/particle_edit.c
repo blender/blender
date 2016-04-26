@@ -4809,3 +4809,113 @@ void PARTICLE_OT_edited_clear(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/************************ Unify length operator ************************/
+
+static float calculate_point_length(PTCacheEditPoint *point)
+{
+	float length = 0.0f;
+	KEY_K;
+	LOOP_KEYS {
+		if (k > 0) {
+			length += len_v3v3((key - 1)->co, key->co);;
+		}
+	}
+	return length;
+}
+
+static float calculate_average_length(PTCacheEdit *edit)
+{
+	int num_selected = 0;
+	float total_length = 0;
+	POINT_P;
+	LOOP_SELECTED_POINTS {
+		total_length += calculate_point_length(point);
+		++num_selected;
+	}
+	if (num_selected == 0) {
+		return 0.0f;
+	}
+	return total_length / num_selected;
+}
+
+static void scale_point_factor(PTCacheEditPoint *point, float factor)
+{
+	float orig_prev_co[3], prev_co[3];
+	KEY_K;
+	LOOP_KEYS {
+		if (k == 0) {
+			copy_v3_v3(orig_prev_co, key->co);
+			copy_v3_v3(prev_co, key->co);
+		}
+		else {
+			float new_co[3];
+			float delta[3];
+
+			sub_v3_v3v3(delta, key->co, orig_prev_co);
+			mul_v3_fl(delta, factor);
+			add_v3_v3v3(new_co, prev_co, delta);
+
+			copy_v3_v3(orig_prev_co, key->co);
+			copy_v3_v3(key->co, new_co);
+			copy_v3_v3(prev_co, key->co);
+		}
+	}
+	point->flag |= PEP_EDIT_RECALC;
+}
+
+static void scale_point_to_length(PTCacheEditPoint *point, float length)
+{
+	const float point_length = calculate_point_length(point);
+	if (point_length != 0.0f) {
+		const float factor = length / point_length;
+		scale_point_factor(point, factor);
+	}
+}
+
+static void scale_points_to_length(PTCacheEdit *edit, float length)
+{
+	POINT_P;
+	LOOP_SELECTED_POINTS {
+		scale_point_to_length(point, length);
+	}
+	recalc_lengths(edit);
+}
+
+static int unify_length_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob = CTX_data_active_object(C);
+	Scene *scene = CTX_data_scene(C);
+	PTCacheEdit *edit = PE_get_current(scene, ob);
+	float average_length = calculate_average_length(edit);
+	if (average_length == 0.0f) {
+		return OPERATOR_CANCELLED;
+	}
+	scale_points_to_length(edit, average_length);
+
+	PE_update_object(scene, ob, 1);
+	if (edit->psys) {
+		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
+	}
+	else {
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_unify_length(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Unify Length";
+	ot->idname = "PARTICLE_OT_unify_length";
+	ot->description = "Make selected hair the same length";
+
+	/* api callbacks */
+	ot->exec = unify_length_exec;
+	ot->poll = PE_poll_view3d;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+

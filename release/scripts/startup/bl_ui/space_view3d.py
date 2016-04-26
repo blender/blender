@@ -1902,6 +1902,7 @@ class VIEW3D_MT_particle(Menu):
         if particle_edit.select_mode == 'POINT':
             layout.operator("particle.subdivide")
 
+        layout.operator("particle.unify_length")
         layout.operator("particle.rekey")
         layout.operator("particle.weight_set")
 
@@ -1921,6 +1922,7 @@ class VIEW3D_MT_particle_specials(Menu):
         layout.operator("particle.rekey")
         layout.operator("particle.delete")
         layout.operator("particle.remove_doubles")
+        layout.operator("particle.unify_length")
 
         if particle_edit.select_mode == 'POINT':
             layout.operator("particle.subdivide")
