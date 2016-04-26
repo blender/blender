@@ -42,7 +42,7 @@ static bNodeSocketTemplate sh_node_volume_absorption_out[] = {
 
 static int node_shader_gpu_volume_absorption(GPUMaterial *UNUSED(mat), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *UNUSED(in), GPUNodeStack *UNUSED(out))
 {
-	return 0;
+	return false;
 }
 
 /* node type definition */

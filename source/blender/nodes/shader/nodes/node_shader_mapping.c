@@ -85,12 +85,12 @@ static int gpu_shader_mapping(GPUMaterial *mat, bNode *node, bNodeExecData *UNUS
 	GPUNodeLink *tdomin = GPU_uniform(&domin);
 	GPUNodeLink *tdomax = GPU_uniform(&domax);
 
-	int result = GPU_stack_link(mat, "mapping", in, out, tmat, tmin, tmax, tdomin, tdomax);
+	GPU_stack_link(mat, "mapping", in, out, tmat, tmin, tmax, tdomin, tdomax);
 
-	if (result && texmap->type == TEXMAP_TYPE_NORMAL)
+	if (texmap->type == TEXMAP_TYPE_NORMAL)
 		GPU_link(mat, "texco_norm", out[0].link, &out[0].link);
 
-	return result;
+	return true;
 }
 
 void register_node_type_sh_mapping(void)

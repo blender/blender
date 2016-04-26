@@ -48,18 +48,12 @@ static void node_shader_init_normal_map(bNodeTree *UNUSED(ntree), bNode *node)
 
 static void node_shader_exec_normal_map(void *data, int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
  {
-    float vecIn[3];
-    float strength;
-    float B[4];
-    float *T;
-    float *N;
-    int j;
-
 	if (data) {
 		ShadeInput *shi = ((ShaderCallData *)data)->shi;
 
 		NodeShaderNormalMap *nm = node->storage;
 
+		float strength, vecIn[3];
 		nodestack_get_vec(&strength, SOCK_FLOAT, in[0]);
 		nodestack_get_vec(vecIn, SOCK_VECTOR, in[1]);
 
@@ -69,7 +63,7 @@ static void node_shader_exec_normal_map(void *data, int UNUSED(thread), bNode *n
 
 		CLAMP_MIN(strength, 0.0f);
 
-		N = shi->vno;
+		float *N = shi->vno;
 		int uv_index = 0;
 		switch (nm->space) {
 			case SHD_NORMAL_MAP_TANGENT:
@@ -86,12 +80,13 @@ static void node_shader_exec_normal_map(void *data, int UNUSED(thread), bNode *n
 					uv_index = shi->actuv;
 				}
 
-				T = shi->tangents[uv_index];
+				float *T = shi->tangents[uv_index];
 
+				float B[3];
 				cross_v3_v3v3(B, N, T);
 				mul_v3_fl(B, T[3]);
 
-				for (j = 0; j < 3; j++)
+				for (int j = 0; j < 3; j++)
 					out[0]->vec[j] = vecIn[0] * T[j] + vecIn[1] * B[j] + vecIn[2] * N[j];
 				interp_v3_v3v3(out[0]->vec, N, out[0]->vec, strength);
 				break;
@@ -114,7 +109,6 @@ static void node_shader_exec_normal_map(void *data, int UNUSED(thread), bNode *n
 
 static int gpu_shader_normal_map(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	int r;
 	NodeShaderNormalMap *nm = node->storage;
 	GPUNodeLink *negnorm;
 	GPUNodeLink *realnorm;
@@ -128,45 +122,35 @@ static int gpu_shader_normal_map(GPUMaterial *mat, bNode *node, bNodeExecData *U
 		strength = GPU_uniform(in[0].vec);
 
 	if (in[1].link) {
-		r = GPU_link(mat, "color_to_normal", in[1].link, &realnorm);
-		if (!r)	return r;
-		r = GPU_link(mat, "mtex_negate_texnormal", realnorm,  &realnorm);
+		GPU_link(mat, "color_to_normal", in[1].link, &realnorm);
+		GPU_link(mat, "mtex_negate_texnormal", realnorm,  &realnorm);
 	}
-	else
-		r = 1;
 
 	GPU_link(mat, "math_max", strength, GPU_uniform(d), &strength);
 	GPU_link(mat, "vec_math_negate", GPU_builtin(GPU_VIEW_NORMAL), &negnorm);
-	switch (nm->space) {
-		case SHD_NORMAL_MAP_TANGENT:
-			if (in[1].link) {
-				r = GPU_link(mat, "node_normal_map", GPU_attribute(CD_TANGENT, nm->uv_map), negnorm, realnorm, &out[0].link);
-				if (!r)	return r;
-			}
-			break;
-		case SHD_NORMAL_MAP_OBJECT:
-		case SHD_NORMAL_MAP_BLENDER_OBJECT:
-			if (in[1].link) {
-				r = GPU_link(mat, "direction_transform_m4v3", realnorm, GPU_builtin(GPU_LOC_TO_VIEW_MATRIX),  &out[0].link);
-				if (!r)	return r;
-			}
-			break;
-		case SHD_NORMAL_MAP_WORLD:
-		case SHD_NORMAL_MAP_BLENDER_WORLD:
-			if (in[1].link) {
-				r = GPU_link(mat, "direction_transform_m4v3", realnorm, GPU_builtin(GPU_VIEW_MATRIX),  &out[0].link);
-				if (!r)	return r;
-			}
-			break;
-	}
-	if (out[0].link) {
-		r = GPU_link(mat, "vec_math_mix", strength, out[0].link, negnorm,  &out[0].link);
-		if (!r)	return r;
 
-		r = GPU_link(mat, "vect_normalize", out[0].link, &out[0].link);
-		if (!r)	return r;
+	if (in[1].link) {
+		switch (nm->space) {
+			case SHD_NORMAL_MAP_TANGENT:
+				GPU_link(mat, "node_normal_map", GPU_attribute(CD_TANGENT, nm->uv_map), negnorm, realnorm, &out[0].link);
+				break;
+			case SHD_NORMAL_MAP_OBJECT:
+			case SHD_NORMAL_MAP_BLENDER_OBJECT:
+				GPU_link(mat, "direction_transform_m4v3", realnorm, GPU_builtin(GPU_LOC_TO_VIEW_MATRIX),  &out[0].link);
+				break;
+			case SHD_NORMAL_MAP_WORLD:
+			case SHD_NORMAL_MAP_BLENDER_WORLD:
+				GPU_link(mat, "direction_transform_m4v3", realnorm, GPU_builtin(GPU_VIEW_MATRIX),  &out[0].link);
+				break;
+		}
 	}
-	return r;
+
+	if (out[0].link) {
+		GPU_link(mat, "vec_math_mix", strength, out[0].link, negnorm,  &out[0].link);
+		GPU_link(mat, "vect_normalize", out[0].link, &out[0].link);
+	}
+
+	return true;
 }
 
 /* node type definition */
