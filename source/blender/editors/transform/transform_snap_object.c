@@ -628,7 +628,7 @@ static bool snapDerivedMesh(
 		BVHTreeFromMesh *treedata = NULL, treedata_stack;
 
 		if (sctx->flag & SNAP_OBJECT_USE_CACHE) {
-			int tree_index = 0;
+			int tree_index = -1;
 			switch (snap_to) {
 				case SCE_SNAP_MODE_FACE:
 					tree_index = 1;
@@ -637,34 +637,39 @@ static bool snapDerivedMesh(
 					tree_index = 0;
 					break;
 			}
-			if (sod->bvh_trees[tree_index] == NULL) {
-				sod->bvh_trees[tree_index] = BLI_memarena_alloc(sctx->cache.mem_arena, sizeof(*treedata));
+			if (tree_index != -1) {
+				if (sod->bvh_trees[tree_index] == NULL) {
+					sod->bvh_trees[tree_index] = BLI_memarena_alloc(sctx->cache.mem_arena, sizeof(*treedata));
+				}
+				treedata = sod->bvh_trees[tree_index];
 			}
-			treedata = sod->bvh_trees[tree_index];
 		}
 		else {
-			treedata = &treedata_stack;
-			memset(treedata, 0, sizeof(*treedata));
+			if (ELEM(snap_to, SCE_SNAP_MODE_FACE, SCE_SNAP_MODE_VERTEX)) {
+				treedata = &treedata_stack;
+				memset(treedata, 0, sizeof(*treedata));
+			}
 		}
 
-		treedata->em_evil = em;
-		treedata->em_evil_all = false;
-		switch (snap_to) {
-			case SCE_SNAP_MODE_FACE:
-				bvhtree_from_mesh_looptri(treedata, dm, 0.0f, 4, 6);
-				break;
-			case SCE_SNAP_MODE_VERTEX:
-				bvhtree_from_mesh_verts(treedata, dm, 0.0f, 2, 6);
-				break;
+		if (treedata) {
+			treedata->em_evil = em;
+			treedata->em_evil_all = false;
+			switch (snap_to) {
+				case SCE_SNAP_MODE_FACE:
+					bvhtree_from_mesh_looptri(treedata, dm, 0.0f, 4, 6);
+					break;
+				case SCE_SNAP_MODE_VERTEX:
+					bvhtree_from_mesh_verts(treedata, dm, 0.0f, 2, 6);
+					break;
+			}
 		}
 
 		if (need_ray_start_correction_init) {
 			/* We *need* a reasonably valid len_diff in this case.
 			 * Use BHVTree to find the closest face from ray_start_local.
 			 */
-			BVHTreeNearest nearest;
-
-			if (treedata->tree != NULL) {
+			if (treedata && treedata->tree != NULL) {
+				BVHTreeNearest nearest;
 				nearest.index = -1;
 				nearest.dist_sq = FLT_MAX;
 				/* Compute and store result. */
@@ -804,7 +809,9 @@ static bool snapDerivedMesh(
 		}
 
 		if ((sctx->flag & SNAP_OBJECT_USE_CACHE) == 0) {
-			free_bvhtree_from_mesh(treedata);
+			if (treedata) {
+				free_bvhtree_from_mesh(treedata);
+			}
 		}
 	}
 
