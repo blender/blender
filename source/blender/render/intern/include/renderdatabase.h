@@ -76,7 +76,7 @@ typedef struct VlakTableNode {
 	int *origindex;
 	int totmtface, totmcol;
 	float *surfnor;
-	float *tangent;
+	float *tangent_arrays[MAX_MTFACE];
 	struct RadFace **radface;
 } VlakTableNode;
 
@@ -137,7 +137,7 @@ struct MTFace *RE_vlakren_get_tface(struct ObjectRen *obr, VlakRen *ren, int n, 
 struct MCol *RE_vlakren_get_mcol(struct ObjectRen *obr, VlakRen *ren, int n, char **name, int verify);
 int *RE_vlakren_get_origindex(struct ObjectRen *obr, VlakRen *vlak, int verify);
 float *RE_vlakren_get_surfnor(struct ObjectRen *obr, VlakRen *ren, int verify);
-float *RE_vlakren_get_nmap_tangent(struct ObjectRen *obr, VlakRen *ren, int verify);
+float *RE_vlakren_get_nmap_tangent(ObjectRen *obr, VlakRen *vlak, int index, bool verify);
 RadFace **RE_vlakren_get_radface(struct ObjectRen *obr, VlakRen *ren, int verify);
 void RE_vlakren_get_normal(struct Render *re, struct ObjectInstanceRen *obi, struct VlakRen *vlr, float *nor);
 

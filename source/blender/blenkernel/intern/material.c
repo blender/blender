@@ -1148,7 +1148,7 @@ static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode
 
 	/* parses the geom+tex nodes */
 	ntreeShaderGetTexcoMode(ntree, r_mode, &basemat->texco, &basemat->mode_l);
-
+	basemat->nmap_tangent_names_count = 0;
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->id) {
 			if (GS(node->id->name) == ID_MA) {
@@ -1169,6 +1169,21 @@ static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode
 			}
 			else if (node->type == NODE_GROUP)
 				init_render_nodetree((bNodeTree *)node->id, basemat, r_mode, amb);
+		}
+		else if (node->typeinfo->type == SH_NODE_NORMAL_MAP) {
+			basemat->mode2_l |= MA_TANGENT_CONCRETE;
+			NodeShaderNormalMap *nm = node->storage;
+			bool taken_into_account = false;
+			for (int i = 0; i < basemat->nmap_tangent_names_count; i++) {
+				if (STREQ(basemat->nmap_tangent_names[i], nm->uv_map)) {
+					taken_into_account = true;
+					break;
+				}
+			}
+			if (!taken_into_account) {
+				BLI_assert(basemat->nmap_tangent_names_count < MAX_MTFACE + 1);
+				strcpy(basemat->nmap_tangent_names[basemat->nmap_tangent_names_count++], nm->uv_map);
+			}
 		}
 	}
 }

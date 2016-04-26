@@ -334,6 +334,8 @@ typedef struct ObjectRen {
 	char (*mcol)[MAX_CUSTOMDATA_LAYER_NAME];
 	int  actmtface, actmcol, bakemtface;
 
+	char tangent_mask; /* which tangent layer should be calculated */
+
 	float obmat[4][4];	/* only used in convertblender.c, for instancing */
 
 	/* used on makeraytree */

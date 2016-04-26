@@ -425,7 +425,7 @@ static TriTessFace *mesh_calc_tri_tessface(
 
 	if (tangent) {
 		DM_ensure_normals(dm);
-		DM_calc_loop_tangents(dm);
+		DM_calc_loop_tangents(dm, true, NULL, 0);
 
 		tspace = dm->getLoopDataArray(dm, CD_TANGENT);
 		BLI_assert(tspace);
