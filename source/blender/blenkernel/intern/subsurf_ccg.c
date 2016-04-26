@@ -4365,6 +4365,7 @@ static void ccgDM_recalcLoopTri(DerivedMesh *UNUSED(dm))
 
 static const MLoopTri *ccgDM_getLoopTriArray(DerivedMesh *dm)
 {
+	BLI_rw_mutex_lock(&loops_cache_rwlock, THREAD_LOCK_WRITE);
 	if (dm->looptris.array) {
 		BLI_assert(poly_to_tri_count(dm->numPolyData, dm->numLoopData) == dm->looptris.num);
 	}
@@ -4395,6 +4396,7 @@ static const MLoopTri *ccgDM_getLoopTriArray(DerivedMesh *dm)
 			lt->poly = poly_index;
 		}
 	}
+	BLI_rw_mutex_unlock(&loops_cache_rwlock);
 	return dm->looptris.array;
 }
 
