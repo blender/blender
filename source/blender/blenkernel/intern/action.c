@@ -1414,6 +1414,12 @@ void what_does_obaction(Object *ob, Object *workob, bPose *pose, bAction *act, c
 	workob->constraints.last = ob->constraints.last;
 	
 	workob->pose = pose; /* need to set pose too, since this is used for both types of Action Constraint */
+	if (pose) {
+		BKE_pose_channels_hash_make(pose);
+		if (pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
+			BKE_pose_update_constraint_flags(pose);
+		}
+	}
 
 	BLI_strncpy(workob->parsubstr, ob->parsubstr, sizeof(workob->parsubstr));
 	BLI_strncpy(workob->id.name, "OB<ConstrWorkOb>", sizeof(workob->id.name)); /* we don't use real object name, otherwise RNA screws with the real thing */
