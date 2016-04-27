@@ -196,7 +196,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
 
 static void setup_vertex_point(Mask *mask, MaskSpline *spline, MaskSplinePoint *new_point,
                                const float point_co[2], const float u,
-                               MaskSplinePoint *reference_point, const bool reference_adjacent)
+                               const MaskSplinePoint *reference_point, const bool reference_adjacent)
 {
 	MaskSplinePoint *prev_point = NULL;
 	MaskSplinePoint *next_point = NULL;

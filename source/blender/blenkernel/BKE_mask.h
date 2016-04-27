@@ -61,8 +61,10 @@ typedef enum {
 	MASK_HANDLE_MODE_INDIVIDUAL_HANDLES = 2,
 } eMaskhandleMode;
 
-struct MaskSplinePoint *BKE_mask_spline_point_array(struct MaskSpline *spline);
-struct MaskSplinePoint *BKE_mask_spline_point_array_from_point(struct MaskSpline *spline, struct MaskSplinePoint *point_ref);
+struct MaskSplinePoint *BKE_mask_spline_point_array(
+        struct MaskSpline *spline);
+struct MaskSplinePoint *BKE_mask_spline_point_array_from_point(
+        struct MaskSpline *spline, const struct MaskSplinePoint *point_ref);
 
 /* mask layers */
 struct MaskLayer *BKE_mask_layer_new(struct Mask *mask, const char *name);
