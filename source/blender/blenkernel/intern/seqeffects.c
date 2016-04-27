@@ -3103,7 +3103,9 @@ static int num_inputs_text(void)
 static int early_out_text(Sequence *seq, float UNUSED(facf0), float UNUSED(facf1))
 {
 	TextVars *data = seq->effectdata;
-	if (data->text[0] == 0 || data->text_size < 1) {
+	if (data->text[0] == 0 || data->text_size < 1 ||
+	    ((data->color[3] == 0.0f) && (data->shadow_color[3] == 0.0f || (data->flag & SEQ_TEXT_SHADOW) == 0)))
+	{
 		return EARLY_USE_INPUT_1;
 	}
 	return EARLY_NO_INPUT;
