@@ -61,7 +61,7 @@ typedef struct SnapObjectData {
 } SnapObjectData;
 
 
-typedef struct SnapObjectContext {
+struct SnapObjectContext {
 	Main *bmain;
 	Scene *scene;
 	int flag;
@@ -81,7 +81,7 @@ typedef struct SnapObjectContext {
 		MemArena *mem_arena;
 	} cache;
 
-} SnapObjectContext;
+};
 
 /* -------------------------------------------------------------------- */
 
