@@ -24,45 +24,35 @@ from nodeitems_utils import NodeCategory, NodeItem, NodeItemCustom
 
 # Subclasses for standard node types
 
-def alphabetical(items):
-	# for builtin nodes the convention is to sort by name
-    if isinstance(items, list):
-        return sorted(items, key=lambda item: item.label().lower)
-    return items
-
-class CompositorNodeCategory(NodeCategory):
+class SortedNodeCategory(NodeCategory):
     def __init__(self, identifier, name, description="", items=None):
-        super().__init__(identifier, name, description, alphabetical(items))
+        # for builtin nodes the convention is to sort by name
+        if isinstance(items, list):
+            items = sorted(items, key=lambda item: item.label.lower())
 
+        super().__init__(identifier, name, description, items)
+
+class CompositorNodeCategory(SortedNodeCategory):
     @classmethod
     def poll(cls, context):
         return (context.space_data.tree_type == 'CompositorNodeTree')
 
 
-class ShaderNewNodeCategory(NodeCategory):
-    def __init__(self, identifier, name, description="", items=None):
-        super().__init__(identifier, name, description, alphabetical(items))
-
+class ShaderNewNodeCategory(SortedNodeCategory):
     @classmethod
     def poll(cls, context):
         return (context.space_data.tree_type == 'ShaderNodeTree' and
                 context.scene.render.use_shading_nodes)
 
 
-class ShaderOldNodeCategory(NodeCategory):
-    def __init__(self, identifier, name, description="", items=None):
-        super().__init__(identifier, name, description, alphabetical(items))
-
+class ShaderOldNodeCategory(SortedNodeCategory):
     @classmethod
     def poll(cls, context):
         return (context.space_data.tree_type == 'ShaderNodeTree' and
                 not context.scene.render.use_shading_nodes)
 
 
-class TextureNodeCategory(NodeCategory):
-    def __init__(self, identifier, name, description="", items=None):
-        super().__init__(identifier, name, description, alphabetical(items))
-
+class TextureNodeCategory(SortedNodeCategory):
     @classmethod
     def poll(cls, context):
         return context.space_data.tree_type == 'TextureNodeTree'
