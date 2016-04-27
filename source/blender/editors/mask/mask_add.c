@@ -198,8 +198,6 @@ static void setup_vertex_point(Mask *mask, MaskSpline *spline, MaskSplinePoint *
                                const float point_co[2], const float u,
                                const MaskSplinePoint *reference_point, const bool reference_adjacent)
 {
-	MaskSplinePoint *prev_point = NULL;
-	MaskSplinePoint *next_point = NULL;
 	BezTriple *bezt;
 	float co[3];
 
@@ -247,14 +245,44 @@ static void setup_vertex_point(Mask *mask, MaskSpline *spline, MaskSplinePoint *
 		else {
 			bezt->h1 = bezt->h2 = MAX2(reference_point->bezt.h2, reference_point->bezt.h1);
 		}
+
+		new_point->parent = reference_point->parent;
 	}
 	else if (reference_adjacent) {
 		if (spline->tot_point != 1) {
-			int index = (int)(new_point - spline->points);
-			prev_point = &spline->points[(index - 1) % spline->tot_point];
-			next_point = &spline->points[(index + 1) % spline->tot_point];
+			MaskSplinePoint *prev_point, *next_point, *close_point;
 
-			bezt->h1 = bezt->h2 = MAX2(prev_point->bezt.h2, next_point->bezt.h1);
+			const int index = (int)(new_point - spline->points);
+			if (spline->flag & MASK_SPLINE_CYCLIC) {
+				prev_point = &spline->points[mod_i(index - 1, spline->tot_point)];
+				next_point = &spline->points[mod_i(index + 1, spline->tot_point)];
+			}
+			else {
+				prev_point = (index != 0)                     ? &spline->points[index - 1] : NULL;
+				next_point = (index != spline->tot_point - 1) ? &spline->points[index + 1] : NULL;
+			}
+
+			if (prev_point && next_point) {
+				close_point = (len_squared_v2v2(new_point->bezt.vec[1], prev_point->bezt.vec[1]) <
+				               len_squared_v2v2(new_point->bezt.vec[1], next_point->bezt.vec[1])) ?
+				               prev_point : next_point;
+			}
+			else {
+				close_point = prev_point ? prev_point : next_point;
+			}
+
+			/* handle type */
+			char handle_type = 0;
+			if (prev_point) {
+				handle_type = prev_point->bezt.h2;
+			}
+			if (next_point) {
+				handle_type = MAX2(next_point->bezt.h2, handle_type);
+			}
+			bezt->h1 = bezt->h2 = handle_type;
+
+			/* parent */
+			new_point->parent = close_point->parent;
 
 			/* note, we may want to copy other attributes later, radius? pressure? color? */
 		}
