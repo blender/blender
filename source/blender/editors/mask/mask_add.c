@@ -521,26 +521,17 @@ static bool add_vertex_new(const bContext *C, Mask *mask, MaskLayer *masklay, co
 	const float ctime = CFRA;
 
 	MaskSpline *spline;
-	MaskSplinePoint *point;
 	MaskSplinePoint *new_point = NULL, *ref_point = NULL;
 
 	if (!masklay) {
 		/* if there's no masklay currently operationg on, create new one */
 		masklay = BKE_mask_layer_new(mask, "");
 		mask->masklay_act = mask->masklay_tot - 1;
-		spline = NULL;
-		point = NULL;
-	}
-	else {
-		finSelectedSplinePoint(masklay, &spline, &point, true);
 	}
 
 	ED_mask_select_toggle_all(mask, SEL_DESELECT);
 
-	if (!spline) {
-		/* no selected splines in active masklay, create new spline */
-		spline = BKE_mask_spline_add(masklay);
-	}
+	spline = BKE_mask_spline_add(masklay);
 
 	masklay->act_spline = spline;
 	new_point = spline->points;
