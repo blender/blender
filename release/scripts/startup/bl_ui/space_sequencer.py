@@ -668,7 +668,15 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             col = layout.column()
             col.prop(strip, "text")
             col.prop(strip, "font_size")
-            col.prop(strip, "use_shadow")
+
+            row = col.row()
+            row.prop(strip, "color")
+            row = col.row()
+            row.prop(strip, "use_shadow")
+            rowsub = row.row()
+            rowsub.active = strip.use_shadow
+            rowsub.prop(strip, "shadow_color", text="")
+
             col.prop(strip, "align_x")
             col.prop(strip, "align_y")
             col.prop(strip, "location")
