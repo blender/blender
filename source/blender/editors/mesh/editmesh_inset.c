@@ -143,8 +143,10 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 		opdata->mesh_backup = EDBM_redo_state_store(em);
 		opdata->draw_handle_pixel = ED_region_draw_cb_activate(ar->type, ED_region_draw_mouse_line_cb, opdata->mcenter, REGION_DRAW_POST_PIXEL);
 		G.moving = G_TRANSFORM_EDIT;
-		opdata->twtype = v3d->twtype;
-		v3d->twtype = 0;
+		if (v3d) {
+			opdata->twtype = v3d->twtype;
+			v3d->twtype = 0;
+		}
 	}
 
 	return true;
@@ -162,7 +164,9 @@ static void edbm_inset_exit(bContext *C, wmOperator *op)
 		ARegion *ar = CTX_wm_region(C);
 		EDBM_redo_state_free(&opdata->mesh_backup, NULL, false);
 		ED_region_draw_cb_exit(ar->type, opdata->draw_handle_pixel);
-		v3d->twtype = opdata->twtype;
+		if (v3d) {
+			v3d->twtype = opdata->twtype;
+		}
 		G.moving = 0;
 	}
 
