@@ -21,13 +21,8 @@ import bpy
 from bpy.types import Menu, Panel
 
 from bl_ui.properties_physics_common import (
-        point_cache_ui,
         effector_weights_ui,
         )
-
-
-def cloth_panel_enabled(md):
-    return md.point_cache.is_baked is False
 
 
 class CLOTH_MT_presets(Menu):
@@ -60,8 +55,6 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
         cloth = md.settings
 
         split = layout.split()
-
-        split.active = cloth_panel_enabled(md)
 
         col = split.column()
 
@@ -110,15 +103,6 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
             col.prop_search(cloth, "rest_shape_key", key, "key_blocks", text="")
 
 
-class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
-    bl_label = "Cloth Cache"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        md = context.cloth
-        point_cache_ui(self, context, md.point_cache, cloth_panel_enabled(md), 'CLOTH')
-
-
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
     bl_label = "Cloth Collision"
     bl_options = {'DEFAULT_CLOSED'}
@@ -126,7 +110,6 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
     def draw_header(self, context):
         cloth = context.cloth.collision_settings
 
-        self.layout.active = cloth_panel_enabled(context.cloth)
         self.layout.prop(cloth, "use_collision", text="")
 
     def draw(self, context):
@@ -136,7 +119,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
         md = context.cloth
         ob = context.object
 
-        layout.active = cloth.use_collision and cloth_panel_enabled(md)
+        layout.active = cloth.use_collision
 
         split = layout.split()
 
@@ -165,7 +148,6 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
     def draw_header(self, context):
         cloth = context.cloth.settings
 
-        self.layout.active = cloth_panel_enabled(context.cloth)
         self.layout.prop(cloth, "use_stiffness_scale", text="")
 
     def draw(self, context):
@@ -175,7 +157,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
         ob = context.object
         cloth = context.cloth.settings
 
-        layout.active = (cloth.use_stiffness_scale and cloth_panel_enabled(md))
+        layout.active = cloth.use_stiffness_scale
 
         split = layout.split()
 
@@ -197,7 +179,6 @@ class PHYSICS_PT_cloth_sewing(PhysicButtonsPanel, Panel):
     def draw_header(self, context):
         cloth = context.cloth.settings
 
-        self.layout.active = cloth_panel_enabled(context.cloth)
         self.layout.prop(cloth, "use_sewing_springs", text="")
 
     def draw(self, context):
@@ -207,7 +188,7 @@ class PHYSICS_PT_cloth_sewing(PhysicButtonsPanel, Panel):
         ob = context.object
         cloth = context.cloth.settings
 
-        layout.active = (cloth.use_sewing_springs and cloth_panel_enabled(md))
+        layout.active = cloth.use_sewing_springs
 
         layout.prop(cloth, "sewing_force_max", text="Sewing Force")
 

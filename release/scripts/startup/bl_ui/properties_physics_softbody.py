@@ -21,13 +21,8 @@ import bpy
 from bpy.types import Panel
 
 from bl_ui.properties_physics_common import (
-        point_cache_ui,
         effector_weights_ui,
         )
-
-
-def softbody_panel_enabled(md):
-    return (md.point_cache.is_baked is False)
 
 
 class PhysicButtonsPanel:
@@ -55,7 +50,6 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, Panel):
 
         # General
         split = layout.split()
-        split.enabled = softbody_panel_enabled(md)
 
         col = split.column()
         col.label(text="Object:")
@@ -68,15 +62,6 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, Panel):
         col.prop(softbody, "speed")
 
 
-class PHYSICS_PT_softbody_cache(PhysicButtonsPanel, Panel):
-    bl_label = "Soft Body Cache"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        md = context.soft_body
-        point_cache_ui(self, context, md.point_cache, softbody_panel_enabled(md), 'SOFTBODY')
-
-
 class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, Panel):
     bl_label = "Soft Body Goal"
     bl_options = {'DEFAULT_CLOSED'}
@@ -84,7 +69,6 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, Panel):
     def draw_header(self, context):
         softbody = context.soft_body.settings
 
-        self.layout.active = softbody_panel_enabled(context.soft_body)
         self.layout.prop(softbody, "use_goal", text="")
 
     def draw(self, context):
@@ -94,7 +78,7 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, Panel):
         softbody = md.settings
         ob = context.object
 
-        layout.active = softbody.use_goal and softbody_panel_enabled(md)
+        layout.active = softbody.use_goal
 
         split = layout.split()
 
@@ -123,7 +107,6 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, Panel):
     def draw_header(self, context):
         softbody = context.soft_body.settings
 
-        self.layout.active = softbody_panel_enabled(context.soft_body)
         self.layout.prop(softbody, "use_edges", text="")
 
     def draw(self, context):
@@ -133,7 +116,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, Panel):
         softbody = md.settings
         ob = context.object
 
-        layout.active = softbody.use_edges and softbody_panel_enabled(md)
+        layout.active = softbody.use_edges
 
         split = layout.split()
 
@@ -172,7 +155,6 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, Panel):
     def draw_header(self, context):
         softbody = context.soft_body.settings
 
-        self.layout.active = softbody_panel_enabled(context.soft_body)
         self.layout.prop(softbody, "use_self_collision", text="")
 
     def draw(self, context):
@@ -181,7 +163,7 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, Panel):
         md = context.soft_body
         softbody = md.settings
 
-        layout.active = softbody.use_self_collision and softbody_panel_enabled(md)
+        layout.active = softbody.use_self_collision
 
         layout.label(text="Collision Ball Size Calculation:")
         layout.prop(softbody, "collision_type", expand=True)
@@ -202,8 +184,6 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, Panel):
 
         md = context.soft_body
         softbody = md.settings
-
-        layout.active = softbody_panel_enabled(md)
 
         # Solver
         split = layout.split()
