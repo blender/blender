@@ -721,10 +721,10 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Volumetric Strokes", "Draw strokes as a series of circular blobs, resulting in a volumetric effect");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 	
-	/* Use High quality fill */
+	/* Use High Quality Fill */
 	prop = RNA_def_property(srna, "use_hq_fill", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_HQ_FILL);
-	RNA_def_property_ui_text(prop, "High Quality Fill", "Fill strokes using high quality to avoid glitches (slower fps during animation play)");
+	RNA_def_property_ui_text(prop, "High Quality Fill", "Fill strokes using high quality method to avoid glitches (slower fps during animation playback)");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	/* Stroke Drawing Color */

@@ -328,128 +328,134 @@ static void gp_draw_stroke_volumetric_3d(bGPDspoint *points, int totpoints, shor
 
 
 /* --------------- Stroke Fills ----------------- */
-/* get points of stroke always flat to view not affected by camera view or view position
- */
+
+/* Get points of stroke always flat to view not affected by camera view or view position */
 static void gp_stroke_2d_flat(bGPDspoint *points, int totpoints, float(*points2d)[2], int *r_direction)
 {
 	bGPDspoint *pt0 = &points[0];
 	bGPDspoint *pt1 = &points[1];
-	bGPDspoint *pt3 = &points[(int) (totpoints * 0.75)];
-	bGPDspoint *pt;
+	bGPDspoint *pt3 = &points[(int)(totpoints * 0.75)];
+	
 	float locx[3];
 	float locy[3];
 	float loc3[3];
 	float normal[3];
-
+	
 	/* local X axis (p0-p1) */
 	sub_v3_v3v3(locx, &pt1->x, &pt0->x);
-
+	
 	/* point vector at 3/4 */
 	sub_v3_v3v3(loc3, &pt3->x, &pt0->x);
-
+	
 	/* vector orthogonal to polygon plane */
 	cross_v3_v3v3(normal, locx, loc3);
-
+	
 	/* local Y axis (cross to normal/x axis) */
 	cross_v3_v3v3(locy, normal, locx);
-
+	
 	/* Normalize vectors */
 	normalize_v3(locx);
 	normalize_v3(locy);
-
+	
 	/* Get all points in local space */
-	for (int i = 0; i < totpoints; i++)	{
-
+	for (int i = 0; i < totpoints; i++) {
+		bGPDspoint *pt = &points[i];
 		float loc[3];
+		
 		/* Get local space using first point as origin */
-		pt = &points[i];
 		sub_v3_v3v3(loc, &pt->x, &pt0->x);
-
-		float co[2];
-		co[0] = dot_v3v3(loc, locx);
-		co[1] = dot_v3v3(loc, locy);
-		points2d[i][0] = co[0];
-		points2d[i][1] = co[1];
+		
+		points2d[i][0] = dot_v3v3(loc, locx);
+		points2d[i][1] = dot_v3v3(loc, locy);
 	}
-
+	
 	*r_direction = (int)locy[2];
 }
 
 
-/* triangulate stroke for high quality fill (this is done only if cache is null or stroke was modified) */
+/* Triangulate stroke for high quality fill (this is done only if cache is null or stroke was modified) */
 static void gp_triangulate_stroke_fill(bGPDstroke *gps)
 {
 	BLI_assert(gps->totpoints >= 3);
-
-	bGPDtriangle *stroke_triangle;
-	int i;
-
+	
 	/* allocate memory for temporary areas */
-	unsigned int(*tmp_triangles)[3] = MEM_mallocN(sizeof(*tmp_triangles) * gps->totpoints, "GP Stroke temp triangulation");
-	float(*points2d)[2] = MEM_mallocN(sizeof(*points2d) * gps->totpoints, "GP Stroke temp 2d points");
-
+	unsigned int (*tmp_triangles)[3] = MEM_mallocN(sizeof(*tmp_triangles) * gps->totpoints, "GP Stroke temp triangulation");
+	float (*points2d)[2] = MEM_mallocN(sizeof(*points2d) * gps->totpoints, "GP Stroke temp 2d points");
+	
 	int direction;
-
+	
 	/* convert to 2d and triangulate */
 	gp_stroke_2d_flat(gps->points, gps->totpoints, points2d, &direction);
 	BLI_polyfill_calc((const float(*)[2])points2d, (unsigned int)gps->totpoints, direction, (unsigned int(*)[3])tmp_triangles);
-
+	
 	/* count number of valid triangles */
 	gps->tot_triangles = 0;
-	for (i = 0; i < gps->totpoints; i++) {
+	for (int i = 0; i < gps->totpoints; i++) {
 		if ((tmp_triangles[i][0] >= 0) && (tmp_triangles[i][0] < gps->totpoints) &&
 			(tmp_triangles[i][1] >= 0) && (tmp_triangles[i][1] < gps->totpoints) &&
 			(tmp_triangles[i][2] >= 0) && (tmp_triangles[i][2] < gps->totpoints))
 		{
-			gps->tot_triangles += 1;
+			gps->tot_triangles++;
 		}
 	}
-
+	
 	/* save triangulation data in stroke cache */
-	if (gps->triangles == NULL) {
-		gps->triangles = MEM_callocN(sizeof(bGPDtriangle) * gps->tot_triangles, "GP Stroke triangulation");
+	if (gps->tot_triangles > 0) {
+		if (gps->triangles == NULL) {
+			gps->triangles = MEM_callocN(sizeof(bGPDtriangle) * gps->tot_triangles, "GP Stroke triangulation");
+		}
+		else {
+			gps->triangles = MEM_recallocN(gps->triangles, sizeof(bGPDtriangle) * gps->tot_triangles);
+		}
+		
+		for (int i = 0; i < gps->tot_triangles; i++) {
+			if ((tmp_triangles[i][0] >= 0) && (tmp_triangles[i][0] < gps->totpoints) &&
+			    (tmp_triangles[i][1] >= 0) && (tmp_triangles[i][1] < gps->totpoints) &&
+			    (tmp_triangles[i][2] >= 0) && (tmp_triangles[i][2] < gps->totpoints))
+			{
+				bGPDtriangle *stroke_triangle = &gps->triangles[i];
+				
+				stroke_triangle->v1 = tmp_triangles[i][0];
+				stroke_triangle->v2 = tmp_triangles[i][1];
+				stroke_triangle->v3 = tmp_triangles[i][2];
+			}
+		}
 	}
 	else {
-		gps->triangles = MEM_recallocN(gps->triangles, sizeof(*gps->triangles) * gps->tot_triangles);
+		/* No triangles needed - Free anything allocated previously */
+		if (gps->triangles)
+			MEM_freeN(gps->triangles);
+			
+		gps->triangles = NULL;
 	}
-
-	for (i = 0; i < gps->tot_triangles; i++) {
-		if ((tmp_triangles[i][0] >= 0) && (tmp_triangles[i][0] < gps->totpoints) &&
-			(tmp_triangles[i][1] >= 0) && (tmp_triangles[i][1] < gps->totpoints) &&
-			(tmp_triangles[i][2] >= 0) && (tmp_triangles[i][2] < gps->totpoints))
-		{
-			stroke_triangle = &gps->triangles[i];
-			stroke_triangle->v1 = tmp_triangles[i][0];
-			stroke_triangle->v2 = tmp_triangles[i][1];
-			stroke_triangle->v3 = tmp_triangles[i][2];
-		}
-	}
-	/* disable recalculation flag (False)*/
+	
+	/* disable recalculation flag */
 	if (gps->flag & GP_STROKE_RECALC_CACHES) {
-		gps->flag ^= GP_STROKE_RECALC_CACHES;
+		gps->flag &= ~GP_STROKE_RECALC_CACHES;
 	}
+	
 	/* clear memory */
 	if (tmp_triangles) MEM_freeN(tmp_triangles);
 	if (points2d) MEM_freeN(points2d);
-
 }
 
 
 /* draw fills for shapes */
 static void gp_draw_stroke_fill(bGPDstroke *gps, short UNUSED(thickness), short dflag, int offsx, int offsy, int winx, int winy)
 {
-	int i;
-
 	BLI_assert(gps->totpoints >= 3);
+	
 	/* Triangulation fill if high quality flag is enabled */
 	if (dflag & GP_DRAWDATA_HQ_FILL) {
 		bGPDtriangle *stroke_triangle;
 		bGPDspoint *pt;
-
+		int i;
+		
 		/* Calculate triangles cache for filling area (must be done only after changes) */
 		if ((gps->flag & GP_STROKE_RECALC_CACHES) || (gps->tot_triangles == 0) || (gps->triangles == NULL)) {
 			gp_triangulate_stroke_fill(gps);
 		}
+		
 		/* Draw all triangles for filling the polygon (cache must be calculated before) */
 		BLI_assert(gps->tot_triangles >= 1);
 		glBegin(GL_TRIANGLES);
@@ -458,23 +464,28 @@ static void gp_draw_stroke_fill(bGPDstroke *gps, short UNUSED(thickness), short 
 				/* vertex 1 */
 				pt = &gps->points[stroke_triangle->v1];
 				glVertex3fv(&pt->x);
+				
 				/* vertex 2 */
 				pt = &gps->points[stroke_triangle->v2];
 				glVertex3fv(&pt->x);
+				
 				/* vertex 3 */
 				pt = &gps->points[stroke_triangle->v3];
 				glVertex3fv(&pt->x);
 			}
 			else {
 				float co[2];
+				
 				/* vertex 1 */
 				pt = &gps->points[stroke_triangle->v1];
 				gp_calc_2d_stroke_xy(pt, gps->flag, offsx, offsy, winx, winy, co);
 				glVertex2fv(co);
+				
 				/* vertex 2 */
 				pt = &gps->points[stroke_triangle->v2];
 				gp_calc_2d_stroke_xy(pt, gps->flag, offsx, offsy, winx, winy, co);
 				glVertex2fv(co);
+				
 				/* vertex 3 */
 				pt = &gps->points[stroke_triangle->v3];
 				gp_calc_2d_stroke_xy(pt, gps->flag, offsx, offsy, winx, winy, co);
@@ -486,11 +497,17 @@ static void gp_draw_stroke_fill(bGPDstroke *gps, short UNUSED(thickness), short 
 	else {
 		/* As an initial implementation, we use the OpenGL filled polygon drawing
 		 * here since it's the easiest option to implement for this case. It does
-		 * come with limitations (notably for concave shapes), though it shouldn't
-		 * be much of an issue in most cases.
+		 * come with limitations (notably for concave shapes), though it works well
+		 * enough for many simple situations.
+		 *
+		 * We keep this legacy implementation around despite now having the high quality
+		 * fills, as this is necessary for keeping everything working nicely for files
+		 * created using old versions of Blender which may have depended on the artifacts
+		 * the old fills created.
 		 */
 		bGPDspoint *pt;
-
+		int i;
+		
 		glBegin(GL_POLYGON);
 		for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
 			if (gps->flag & GP_STROKE_3DSPACE) {
@@ -498,12 +515,11 @@ static void gp_draw_stroke_fill(bGPDstroke *gps, short UNUSED(thickness), short 
 			}
 			else {
 				float co[2];
-
+				
 				gp_calc_2d_stroke_xy(pt, gps->flag, offsx, offsy, winx, winy, co);
 				glVertex2fv(co);
 			}
 		}
-
 		glEnd();
 	}
 }
