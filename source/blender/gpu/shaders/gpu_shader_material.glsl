@@ -135,6 +135,13 @@ void linearrgb_to_srgb(vec4 col_from, out vec4 col_to)
 	col_to.a = col_from.a;
 }
 
+void color_to_normal(vec3 color, out vec3 normal)
+{
+	normal.x =  2.0 * ((color.r) - 0.5);
+	normal.y = -2.0 * ((color.g) - 0.5);
+	normal.z =  2.0 * ((color.b) - 0.5);
+}
+
 #define M_PI 3.14159265358979323846
 #define M_1_PI 0.31830988618379069
 
@@ -368,6 +375,10 @@ void vec_math_average(vec3 v1, vec3 v2, out vec3 outvec, out float outval)
 	outvec = v1 + v2;
 	outval = length(outvec);
 	outvec = normalize(outvec);
+}
+void vec_math_mix(float strength, vec3 v1, vec3 v2, out vec3 outvec)
+{
+	outvec = strength*v1 + (1 - strength) * v2;
 }
 
 void vec_math_dot(vec3 v1, vec3 v2, out vec3 outvec, out float outval)
@@ -2701,9 +2712,12 @@ void node_object_info(out vec3 location, out float object_index, out float mater
 	random = 0.0;
 }
 
-void node_normal_map(float strength, vec4 color, vec3 N, out vec3 result)
+void node_normal_map(vec4 tangent, vec3 normal, vec3 texnormal, out vec3 outnormal)
 {
-	result = N;
+	vec3 B = tangent.w * cross(normal, tangent.xyz);
+
+	outnormal = texnormal.x * tangent.xyz + texnormal.y * B + texnormal.z * normal;
+	outnormal = normalize(outnormal);
 }
 
 void node_bump(float strength, float dist, float height, vec3 N, out vec3 result)

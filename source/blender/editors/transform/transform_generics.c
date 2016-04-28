@@ -1493,6 +1493,8 @@ void postTrans(bContext *C, TransInfo *t)
 	if (t->mouse.data) {
 		MEM_freeN(t->mouse.data);
 	}
+
+	freeSnapping(t);
 }
 
 void applyTransObjects(TransInfo *t)

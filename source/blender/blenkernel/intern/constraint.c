@@ -3523,8 +3523,6 @@ static void shrinkwrap_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 			
 			free_bvhtree_from_mesh(&treeData);
 			
-			target->release(target);
-			
 			if (fail == true) {
 				/* Don't move the point */
 				zero_v3(co);

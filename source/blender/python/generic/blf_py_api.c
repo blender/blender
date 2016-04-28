@@ -332,17 +332,21 @@ PyDoc_STRVAR(py_blf_shadow_doc,
 static PyObject *py_blf_shadow(PyObject *UNUSED(self), PyObject *args)
 {
 	int level, fontid;
-	float r, g, b, a;
+	float rgba[4];
 
-	if (!PyArg_ParseTuple(args, "iiffff:blf.shadow", &fontid, &level, &r, &g, &b, &a))
+	if (!PyArg_ParseTuple(
+	        args, "iiffff:blf.shadow",
+	        &fontid, &level, &rgba[0], &rgba[1], &rgba[2], &rgba[3]))
+	{
 		return NULL;
+	}
 
 	if (level != 0 && level != 3 && level != 5) {
 		PyErr_SetString(PyExc_TypeError, "blf.shadow expected arg to be in (0, 3, 5)");
 		return NULL;
 	}
 
-	BLF_shadow(fontid, level, r, g, b, a);
+	BLF_shadow(fontid, level, rgba);
 
 	Py_RETURN_NONE;
 }

@@ -3084,6 +3084,10 @@ static void init_text_effect(Sequence *seq)
 
 	data = seq->effectdata = MEM_callocN(sizeof(TextVars), "textvars");
 	data->text_size = 30;
+
+	copy_v4_fl(data->color, 1.0f);
+	data->shadow_color[3] = 1.0f;
+
 	BLI_strncpy(data->text, "Text", sizeof(data->text));
 
 	data->loc[0] = 0.5f;
@@ -3099,7 +3103,9 @@ static int num_inputs_text(void)
 static int early_out_text(Sequence *seq, float UNUSED(facf0), float UNUSED(facf1))
 {
 	TextVars *data = seq->effectdata;
-	if (data->text[0] == 0 || data->text_size < 1) {
+	if (data->text[0] == 0 || data->text_size < 1 ||
+	    ((data->color[3] == 0.0f) && (data->shadow_color[3] == 0.0f || (data->flag & SEQ_TEXT_SHADOW) == 0)))
+	{
 		return EARLY_USE_INPUT_1;
 	}
 	return EARLY_NO_INPUT;
@@ -3188,11 +3194,11 @@ static ImBuf *do_text_effect(const SeqRenderData *context, Sequence *seq, float 
 		fontx = BLF_width_max(mono);
 		fonty = line_height;
 		BLF_position(mono, x + max_ii(fontx / 25, 1), y + max_ii(fonty / 25, 1), 0.0f);
-		BLF_buffer_col(mono, 0.0f, 0.0f, 0.0f, 1.0f);
+		BLF_buffer_col(mono, data->shadow_color);
 		BLF_draw_buffer(mono, data->text, BLF_DRAW_STR_DUMMY_MAX);
 	}
 	BLF_position(mono, x, y, 0.0f);
-	BLF_buffer_col(mono, 1.0f, 1.0f, 1.0f, 1.0f);
+	BLF_buffer_col(mono, data->color);
 	BLF_draw_buffer(mono, data->text, BLF_DRAW_STR_DUMMY_MAX);
 
 	BLF_buffer(mono, NULL, NULL, 0, 0, 0, NULL);

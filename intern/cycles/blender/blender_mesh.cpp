@@ -657,7 +657,7 @@ static void create_mesh(Scene *scene,
 
 static void create_subd_mesh(Scene *scene,
                              Mesh *mesh,
-                             BL::Object b_ob,
+                             BL::Object& b_ob,
                              BL::Mesh& b_mesh,
                              PointerRNA *cmesh,
                              const vector<uint>& used_shaders,
@@ -976,7 +976,12 @@ void BlenderSync::sync_mesh_motion(BL::Object& b_ob,
 			   memcmp(mP, &mesh->verts[0], sizeof(float3)*numverts) == 0)
 			{
 				/* no motion, remove attributes again */
-				VLOG(1) << "No actual deformation motion for object " << b_ob.name();
+				if(b_mesh.vertices.length() != numverts) {
+					VLOG(1) << "Topology differs, disabling motion blur.";
+				}
+				else {
+					VLOG(1) << "No actual deformation motion for object " << b_ob.name();
+				}
 				mesh->attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
 				if(attr_mN)
 					mesh->attributes.remove(ATTR_STD_MOTION_VERTEX_NORMAL);

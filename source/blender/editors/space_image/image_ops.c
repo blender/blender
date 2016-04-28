@@ -149,6 +149,34 @@ static void sima_zoom_set_factor(SpaceImage *sima, ARegion *ar, float zoomfac, c
 	sima_zoom_set(sima, ar, sima->zoom * zoomfac, location);
 }
 
+/**
+ * Fits the view to the bounds exactly, caller should add margin if needed.
+ */
+static void sima_zoom_set_from_bounds(SpaceImage *sima, ARegion *ar, const rctf *bounds)
+{
+	int image_size[2];
+	float aspx, aspy;
+
+	ED_space_image_get_size(sima, &image_size[0], &image_size[1]);
+	ED_space_image_get_aspect(sima, &aspx, &aspy);
+
+	image_size[0] = image_size[0] * aspx;
+	image_size[1] = image_size[1] * aspy;
+
+	/* adjust offset and zoom */
+	sima->xof = roundf((BLI_rctf_cent_x(bounds) - 0.5f) * image_size[0]);
+	sima->yof = roundf((BLI_rctf_cent_y(bounds) - 0.5f) * image_size[1]);
+
+	float size_xy[2], size;
+	size_xy[0] = BLI_rcti_size_x(&ar->winrct) / (BLI_rctf_size_x(bounds) * image_size[0]);
+	size_xy[1] = BLI_rcti_size_y(&ar->winrct) / (BLI_rctf_size_y(bounds) * image_size[1]);
+
+	size = min_ff(size_xy[0], size_xy[1]);
+	CLAMP_MAX(size, 100.0f);
+
+	sima_zoom_set(sima, ar, size, NULL);
+}
+
 #if 0 // currently unused
 static int image_poll(bContext *C)
 {
@@ -763,8 +791,6 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene;
 	Object *obedit;
 	Image *ima;
-	float size, min[2], max[2], d[2], aspx, aspy;
-	int width, height;
 
 	/* retrieve state */
 	sima = CTX_wm_space_image(C);
@@ -773,33 +799,28 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	obedit = CTX_data_edit_object(C);
 
 	ima = ED_space_image(sima);
-	ED_space_image_get_size(sima, &width, &height);
-	ED_space_image_get_aspect(sima, &aspx, &aspy);
-
-	width = width * aspx;
-	height = height * aspy;
 
 	/* get bounds */
+	float min[2], max[2];
 	if (ED_space_image_show_uvedit(sima, obedit)) {
-		if (!ED_uvedit_minmax(scene, ima, obedit, min, max))
+		if (!ED_uvedit_minmax(scene, ima, obedit, min, max)) {
 			return OPERATOR_CANCELLED;
+		}
 	}
 	else if (ED_space_image_check_show_maskedit(scene, sima)) {
 		if (!ED_mask_selected_minmax(C, min, max)) {
 			return OPERATOR_CANCELLED;
 		}
 	}
+	rctf bounds = {
+	    .xmin = min[0], .ymin = min[1],
+	    .xmax = max[0], .ymax = max[1],
+	};
 
-	/* adjust offset and zoom */
-	sima->xof = (int)(((min[0] + max[0]) * 0.5f - 0.5f) * width);
-	sima->yof = (int)(((min[1] + max[1]) * 0.5f - 0.5f) * height);
+	/* add some margin */
+	BLI_rctf_scale(&bounds, 1.4f);
 
-	d[0] = max[0] - min[0];
-	d[1] = max[1] - min[1];
-	size = 0.5f * MAX2(d[0], d[1]) * MAX2(width, height) / 256.0f;
-	
-	if (size <= 0.01f) size = 0.01f;
-	sima_zoom_set(sima, ar, 0.7f / size, NULL);
+	sima_zoom_set_from_bounds(sima, ar, &bounds);
 
 	ED_region_tag_redraw(ar);
 	
@@ -3140,7 +3161,7 @@ static int image_record_composite_apply(bContext *C, wmOperator *op)
 	
 	WM_cursor_time(CTX_wm_window(C), scene->r.cfra);
 
-	// XXX scene->nodetree->test_break = blender_test_break;
+	// XXX scene->nodetree->test_break = BKE_blender_test_break;
 	// XXX scene->nodetree->test_break = NULL;
 	
 	BKE_image_all_free_anim_ibufs(scene->r.cfra);

@@ -39,7 +39,6 @@
 #include "COLLADAFWPolygons.h"
 
 extern "C" {
-	#include "BKE_blender.h"
 	#include "BKE_customdata.h"
 	#include "BKE_displist.h"
 	#include "BKE_global.h"

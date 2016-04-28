@@ -242,17 +242,21 @@ static void deg_graph_build_finalize(Depsgraph *graph)
 					id_node->layers |= id_to->layers;
 				}
 			}
-
-			/* Re-tag ID for update if it was tagged before the relations
-			 * update tag.
-			 */
-			ID *id = id_node->id;
-			if (id->tag & LIB_TAG_ID_RECALC_ALL &&
-			    id->tag & LIB_TAG_DOIT)
-			{
-				id_node->tag_update(graph);
-				id->tag &= ~LIB_TAG_DOIT;
-			}
+		}
+	}
+	
+	/* Re-tag IDs for update if it was tagged before the relations update tag. */
+	for (Depsgraph::IDNodeMap::const_iterator it = graph->id_hash.begin();
+	     it != graph->id_hash.end();
+	     ++it)
+	{
+		IDDepsNode *id_node = it->second;
+		ID *id = id_node->id;
+		if (id->tag & LIB_TAG_ID_RECALC_ALL &&
+		    id->tag & LIB_TAG_DOIT)
+		{
+			id_node->tag_update(graph);
+			id->tag &= ~LIB_TAG_DOIT;
 		}
 	}
 }

@@ -1100,6 +1100,10 @@ static void uv_image_outset(
         float (*orig_uv)[2], float (*outset_uv)[2], const float scaler,
         const int ibuf_x, const int ibuf_y, const bool cw)
 {
+	/* disallow shell-thickness to outset extreme values,
+	 * otherwise near zero area UV's may extend thousands of pixels. */
+	const float scale_clamp = 5.0f;
+
 	float a1, a2, a3;
 	float puv[3][2]; /* pixelspace uv's */
 	float no1[2], no2[2], no3[2]; /* normals */
@@ -1149,6 +1153,10 @@ static void uv_image_outset(
 	a1 = shell_v2v2_normal_dir_to_dist(no1, dir3);
 	a2 = shell_v2v2_normal_dir_to_dist(no2, dir1);
 	a3 = shell_v2v2_normal_dir_to_dist(no3, dir2);
+
+	CLAMP_MAX(a1, scale_clamp);
+	CLAMP_MAX(a2, scale_clamp);
+	CLAMP_MAX(a3, scale_clamp);
 
 	mul_v2_fl(no1, a1 * scaler);
 	mul_v2_fl(no2, a2 * scaler);

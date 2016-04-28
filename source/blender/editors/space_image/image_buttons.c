@@ -177,7 +177,7 @@ void image_preview_event(int event)
 
 		G.is_break = false;
 		G.scene->nodetree->timecursor = set_timecursor;
-		G.scene->nodetree->test_break = blender_test_break;
+		G.scene->nodetree->test_break = BKE_blender_test_break;
 		
 		BIF_store_spare();
 		

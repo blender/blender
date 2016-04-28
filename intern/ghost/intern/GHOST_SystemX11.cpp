@@ -1925,10 +1925,19 @@ GHOST_TSuccess GHOST_SystemX11::pushDragDropEvent(GHOST_TEventType eventType,
  * Basically it will not crash blender now if you have a X device that
  * is configured but not plugged in.
  */
-int GHOST_X11_ApplicationErrorHandler(Display * /*display*/, XErrorEvent *theEvent)
+int GHOST_X11_ApplicationErrorHandler(Display *display, XErrorEvent *event)
 {
-	fprintf(stderr, "Ignoring Xlib error: error code %d request code %d\n",
-	        theEvent->error_code, theEvent->request_code);
+	char error_code_str[512];
+
+	XGetErrorText(display, event->error_code, error_code_str, sizeof(error_code_str));
+
+	fprintf(stderr,
+	        "Received X11 Error:\n"
+	        "\terror code:   %d\n"
+	        "\trequest code: %d\n"
+	        "\tminor code:   %d\n"
+	        "\terror text:   %s\n",
+	        event->error_code, event->request_code, event->minor_code, error_code_str);
 
 	/* No exit! - but keep lint happy */
 	return 0;

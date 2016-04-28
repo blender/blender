@@ -273,6 +273,22 @@ float BPY_driver_exec(ChannelDriver *driver, const float evaltime)
 
 			if (driver_arg == NULL) {
 				driver_arg = PyFloat_FromDouble(0.0);
+				dvar->curval = 0.0f;
+			}
+			else {
+				/* no need to worry about overflow here, values from RNA are within limits. */
+				if (PyFloat_CheckExact(driver_arg)) {
+					dvar->curval = (float)PyFloat_AsDouble(driver_arg);
+				}
+				else if (PyLong_CheckExact(driver_arg)) {
+					dvar->curval = (float)PyLong_AsLong(driver_arg);
+				}
+				else if (PyBool_Check(driver_arg)) {
+					dvar->curval = (driver_arg == Py_True);
+				}
+				else {
+					dvar->curval = 0.0f;
+				}
 			}
 		}
 		else

@@ -1086,9 +1086,23 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 		mval[1] = dd->mval[1];
 
 		/* try to snap to closer object */
-		found = snapObjectsContext(
-		        C, mval, SNAP_NOT_SELECTED,
-		        vec, no, &dist_px);
+		{
+			struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
+			        CTX_data_main(C), CTX_data_scene(C), 0,
+			        CTX_wm_region(C), CTX_wm_view3d(C));
+
+			found = ED_transform_snap_object_project_view3d_mixed(
+			        snap_context,
+			        &(const struct SnapObjectParams){
+			            .snap_select = SNAP_NOT_SELECTED,
+			            .snap_to_flag = SCE_SELECT_FACE,
+			        },
+			        mval, &dist_px, true,
+			        vec, no);
+
+			ED_transform_snap_object_context_destroy(snap_context);
+		}
+
 		if (found == 1) {
 			pt->type = dd->type;
 			pt->mode = PT_SNAP;

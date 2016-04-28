@@ -46,10 +46,10 @@ void SVMShaderManager::reset(Scene * /*scene*/)
 
 void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
-	VLOG(1) << "Total " << scene->shaders.size() << " shaders.";
-
 	if(!need_update)
 		return;
+
+	VLOG(1) << "Total " << scene->shaders.size() << " shaders.";
 
 	/* test if we need to update */
 	device_free(device, dscene, scene);

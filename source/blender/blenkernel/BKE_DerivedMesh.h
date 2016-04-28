@@ -71,6 +71,7 @@
  *       as it is and stick with using BMesh and CDDM.
  */
 
+#include "DNA_defs.h"
 #include "DNA_customdata_types.h"
 #include "DNA_meshdata_types.h"
 
@@ -200,6 +201,8 @@ struct DerivedMesh {
 	/* use for converting to BMesh which doesn't store bevel weight and edge crease by default */
 	char cd_flag;
 
+	char tangent_mask; /* which tangent layers are calculated */
+
 	/** Calculate vert and face normals */
 	void (*calcNormals)(DerivedMesh *dm);
 
@@ -210,7 +213,9 @@ struct DerivedMesh {
 	void (*calcLoopNormalsSpaceArray)(DerivedMesh *dm, const bool use_split_normals, const float split_angle,
 	                                  struct MLoopNorSpaceArray *r_lnors_spacearr);
 
-	void (*calcLoopTangents)(DerivedMesh *dm);
+	void (*calcLoopTangents)(
+	        DerivedMesh *dm, bool calc_active_tangent,
+	        const char (*tangent_names)[MAX_NAME], int tangent_names_count);
 
 	/** Recalculates mesh tessellation */
 	void (*recalcTessellation)(DerivedMesh *dm);
@@ -763,7 +768,7 @@ typedef struct DMVertexAttribs {
 	struct {
 		float (*array)[4];
 		int em_offset, gl_index;
-	} tang;
+	} tang[MAX_MTFACE];
 
 	struct {
 		float (*array)[3];
@@ -779,7 +784,20 @@ void DM_vertex_attributes_from_gpu(
 
 void DM_draw_attrib_vertex(DMVertexAttribs *attribs, int a, int index, int vert, int loop);
 
-void DM_calc_loop_tangents(DerivedMesh *dm);
+void DM_calc_tangents_names_from_gpu(
+        const struct GPUVertexAttribs *gattribs,
+        char (*tangent_names)[MAX_NAME], int *tangent_names_count);
+void DM_add_named_tangent_layer_for_uv(
+        CustomData *uv_data, CustomData *tan_data, int numLoopData,
+        const char *layer_name);
+void DM_calc_loop_tangents_step_0(
+        const CustomData *loopData, bool calc_active_tangent,
+        const char (*tangent_names)[MAX_NAME], int tangent_names_count,
+        bool *rcalc_act, bool *rcalc_ren, int *ract_uv_n, int *rren_uv_n,
+        char *ract_uv_name, char *rren_uv_name, char *rtangent_mask);
+void DM_calc_loop_tangents(
+        DerivedMesh *dm, bool calc_active_tangent, const char (*tangent_names)[MAX_NAME],
+        int tangent_names_count);
 void DM_calc_auto_bump_scale(DerivedMesh *dm);
 
 /** Set object's bounding box based on DerivedMesh min/max data */

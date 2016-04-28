@@ -1040,7 +1040,7 @@ makebreak:
 			timeofs += distfac * cu->xof;  /* not cyclic */
 			
 			ct = chartransdata;
-			for (i = 0; i <= slen; i++, ct++) {
+			for (i = 0; i < slen; i++, ct++) {
 				float ctime, dtime, vec[4], tvec[4], rotvec[3];
 				float si, co;
 				
@@ -1082,8 +1082,9 @@ makebreak:
 					sb = &selboxes[i - selstart];
 					sb->rot = -ct->rot;
 				}
-				
 			}
+			/* null character is always zero width, no need to iterate over it */
+			chartransdata[slen] = chartransdata[slen - 1];
 		}
 	}
 

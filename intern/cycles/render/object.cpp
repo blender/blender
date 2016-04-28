@@ -231,160 +231,260 @@ ObjectManager::~ObjectManager()
 {
 }
 
-void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene, Scene *scene, uint *object_flag, Progress& progress)
+void ObjectManager::device_update_object_transform(UpdateObejctTransformState *state,
+                                                   Object *ob,
+                                                   int object_index)
 {
-	float4 *objects;
-	float4 *objects_vector = NULL;
-	int i = 0;
-	map<Mesh*, float> surface_area_map;
-	map<ParticleSystem*, int> particle_offset;
-	Scene::MotionType need_motion = scene->need_motion(device->info.advanced_shading);
-	bool have_motion = false;
-	bool have_curves = false;
+	float4 *objects = state->objects;
+	float4 *objects_vector = state->objects_vector;
 
-	objects = dscene->objects.resize(OBJECT_SIZE*scene->objects.size());
-	if(need_motion == Scene::MOTION_PASS)
-		objects_vector = dscene->objects_vector.resize(OBJECT_VECTOR_SIZE*scene->objects.size());
+	Mesh *mesh = ob->mesh;
+	uint flag = 0;
 
-	/* particle system device offsets
-	 * 0 is dummy particle, index starts at 1
+	/* Compute transformations. */
+	Transform tfm = ob->tfm;
+	Transform itfm = transform_inverse(tfm);
+
+	/* Compute surface area. for uniform scale we can do avoid the many
+	 * transform calls and share computation for instances.
+	 *
+	 * TODO(brecht): Correct for displacement, and move to a better place.
 	 */
-	int numparticles = 1;
-	foreach(ParticleSystem *psys, scene->particle_systems) {
-		particle_offset[psys] = numparticles;
-		numparticles += psys->particles.size();
-	}
+	float uniform_scale;
+	float surface_area = 0.0f;
+	float pass_id = ob->pass_id;
+	float random_number = (float)ob->random_id * (1.0f/(float)0xFFFFFFFF);
+	int particle_index = (ob->particle_system)
+	        ? ob->particle_index + state->particle_offset[ob->particle_system]
+	        : 0;
 
-	foreach(Object *ob, scene->objects) {
-		Mesh *mesh = ob->mesh;
-		uint flag = 0;
+	if(transform_uniform_scale(tfm, uniform_scale)) {
+		map<Mesh*, float>::iterator it;
 
-		/* compute transformations */
-		Transform tfm = ob->tfm;
-		Transform itfm = transform_inverse(tfm);
+		/* NOTE: This isn't fully optimal and could in theory lead to multiple
+		 * threads calculating area of the same mesh in parallel. However, this
+		 * also prevents suspending all the threads when some mesh's area is
+		 * not yet known.
+		 */
+		state->surface_area_lock.lock();
+		it = state->surface_area_map.find(mesh);
+		state->surface_area_lock.unlock();
 
-		/* compute surface area. for uniform scale we can do avoid the many
-		 * transform calls and share computation for instances */
-		/* todo: correct for displacement, and move to a better place */
-		float uniform_scale;
-		float surface_area = 0.0f;
-		float pass_id = ob->pass_id;
-		float random_number = (float)ob->random_id * (1.0f/(float)0xFFFFFFFF);
-		int particle_index = (ob->particle_system)? ob->particle_index + particle_offset[ob->particle_system]: 0;
-
-		if(transform_uniform_scale(tfm, uniform_scale)) {
-			map<Mesh*, float>::iterator it = surface_area_map.find(mesh);
-
-			if(it == surface_area_map.end()) {
-				foreach(Mesh::Triangle& t, mesh->triangles) {
-					float3 p1 = mesh->verts[t.v[0]];
-					float3 p2 = mesh->verts[t.v[1]];
-					float3 p3 = mesh->verts[t.v[2]];
-
-					surface_area += triangle_area(p1, p2, p3);
-				}
-
-				surface_area_map[mesh] = surface_area;
-			}
-			else
-				surface_area = it->second;
-
-			surface_area *= uniform_scale;
-		}
-		else {
+		if(it == state->surface_area_map.end()) {
 			foreach(Mesh::Triangle& t, mesh->triangles) {
-				float3 p1 = transform_point(&tfm, mesh->verts[t.v[0]]);
-				float3 p2 = transform_point(&tfm, mesh->verts[t.v[1]]);
-				float3 p3 = transform_point(&tfm, mesh->verts[t.v[2]]);
+				float3 p1 = mesh->verts[t.v[0]];
+				float3 p2 = mesh->verts[t.v[1]];
+				float3 p3 = mesh->verts[t.v[2]];
 
 				surface_area += triangle_area(p1, p2, p3);
 			}
+
+			state->surface_area_lock.lock();
+			state->surface_area_map[mesh] = surface_area;
+			state->surface_area_lock.unlock();
+		}
+		else {
+			surface_area = it->second;
 		}
 
-		/* pack in texture */
-		int offset = i*OBJECT_SIZE;
+		surface_area *= uniform_scale;
+	}
+	else {
+		foreach(Mesh::Triangle& t, mesh->triangles) {
+			float3 p1 = transform_point(&tfm, mesh->verts[t.v[0]]);
+			float3 p2 = transform_point(&tfm, mesh->verts[t.v[1]]);
+			float3 p3 = transform_point(&tfm, mesh->verts[t.v[2]]);
 
-		/* OBJECT_TRANSFORM */
-		memcpy(&objects[offset], &tfm, sizeof(float4)*3);
-		/* OBJECT_INVERSE_TRANSFORM */
-		memcpy(&objects[offset+4], &itfm, sizeof(float4)*3);
-		/* OBJECT_PROPERTIES */
-		objects[offset+8] = make_float4(surface_area, pass_id, random_number, __int_as_float(particle_index));
-
-		if(need_motion == Scene::MOTION_PASS) {
-			/* motion transformations, is world/object space depending if mesh
-			 * comes with deformed position in object space, or if we transform
-			 * the shading point in world space */
-			Transform mtfm_pre = ob->motion.pre;
-			Transform mtfm_post = ob->motion.post;
-
-			if(!mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
-				mtfm_pre = mtfm_pre * itfm;
-				mtfm_post = mtfm_post * itfm;
-			}
-			else {
-				flag |= SD_OBJECT_HAS_VERTEX_MOTION;
-			}
-
-			memcpy(&objects_vector[i*OBJECT_VECTOR_SIZE+0], &mtfm_pre, sizeof(float4)*3);
-			memcpy(&objects_vector[i*OBJECT_VECTOR_SIZE+3], &mtfm_post, sizeof(float4)*3);
+			surface_area += triangle_area(p1, p2, p3);
 		}
+	}
+
+	/* Pack in texture. */
+	int offset = object_index*OBJECT_SIZE;
+
+	/* OBJECT_TRANSFORM */
+	memcpy(&objects[offset], &tfm, sizeof(float4)*3);
+	/* OBJECT_INVERSE_TRANSFORM */
+	memcpy(&objects[offset+4], &itfm, sizeof(float4)*3);
+	/* OBJECT_PROPERTIES */
+	objects[offset+8] = make_float4(surface_area, pass_id, random_number, __int_as_float(particle_index));
+
+	if(state->need_motion == Scene::MOTION_PASS) {
+		/* Motion transformations, is world/object space depending if mesh
+		 * comes with deformed position in object space, or if we transform
+		 * the shading point in world space.
+		 */
+		Transform mtfm_pre = ob->motion.pre;
+		Transform mtfm_post = ob->motion.post;
+
+		if(!mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
+			mtfm_pre = mtfm_pre * itfm;
+			mtfm_post = mtfm_post * itfm;
+		}
+		else {
+			flag |= SD_OBJECT_HAS_VERTEX_MOTION;
+		}
+
+		memcpy(&objects_vector[object_index*OBJECT_VECTOR_SIZE+0], &mtfm_pre, sizeof(float4)*3);
+		memcpy(&objects_vector[object_index*OBJECT_VECTOR_SIZE+3], &mtfm_post, sizeof(float4)*3);
+	}
 #ifdef __OBJECT_MOTION__
-		else if(need_motion == Scene::MOTION_BLUR) {
-			if(ob->use_motion) {
-				/* decompose transformations for interpolation */
-				DecompMotionTransform decomp;
+	else if(state->need_motion == Scene::MOTION_BLUR) {
+		if(ob->use_motion) {
+			/* decompose transformations for interpolation. */
+			DecompMotionTransform decomp;
 
-				transform_motion_decompose(&decomp, &ob->motion, &ob->tfm);
-				memcpy(&objects[offset], &decomp, sizeof(float4)*8);
-				flag |= SD_OBJECT_MOTION;
-				have_motion = true;
-			}
+			transform_motion_decompose(&decomp, &ob->motion, &ob->tfm);
+			memcpy(&objects[offset], &decomp, sizeof(float4)*8);
+			flag |= SD_OBJECT_MOTION;
+			state->have_motion = true;
 		}
+	}
 #endif
 
-		if(mesh->use_motion_blur)
-			have_motion = true;
+	if(mesh->use_motion_blur) {
+		state->have_motion = true;
+	}
 
-		/* dupli object coords and motion info */
-		int totalsteps = mesh->motion_steps;
-		int numsteps = (totalsteps - 1)/2;
-		int numverts = mesh->verts.size();
-		int numkeys = mesh->curve_keys.size();
+	/* Dupli object coords and motion info. */
+	int totalsteps = mesh->motion_steps;
+	int numsteps = (totalsteps - 1)/2;
+	int numverts = mesh->verts.size();
+	int numkeys = mesh->curve_keys.size();
 
-		objects[offset+9] = make_float4(ob->dupli_generated[0], ob->dupli_generated[1], ob->dupli_generated[2], __int_as_float(numkeys));
-		objects[offset+10] = make_float4(ob->dupli_uv[0], ob->dupli_uv[1], __int_as_float(numsteps), __int_as_float(numverts));
+	objects[offset+9] = make_float4(ob->dupli_generated[0], ob->dupli_generated[1], ob->dupli_generated[2], __int_as_float(numkeys));
+	objects[offset+10] = make_float4(ob->dupli_uv[0], ob->dupli_uv[1], __int_as_float(numsteps), __int_as_float(numverts));
 
-		/* object flag */
-		if(ob->use_holdout)
-			flag |= SD_HOLDOUT_MASK;
-		object_flag[i] = flag;
+	/* Object flag. */
+	if(ob->use_holdout) {
+		flag |= SD_HOLDOUT_MASK;
+	}
+	state->object_flag[object_index] = flag;
 
-		/* have curves */
-		if(mesh->curves.size())
-			have_curves = true;
+	/* Have curves. */
+	if(mesh->curves.size()) {
+		state->have_curves = true;
+	}
+}
 
-		i++;
+bool ObjectManager::device_update_object_transform_pop_work(
+        UpdateObejctTransformState *state,
+        int *start_index,
+        int *num_objects)
+{
+	/* Tweakable parameter, number of objects per chunk.
+	 * Too small value will cause some extra overhead due to spin lock,
+	 * too big value might not use all threads nicely.
+	 */
+	static const int OBJECTS_PER_TASK = 32;
+	bool have_work = false;
+	state->queue_lock.lock();
+	int num_scene_objects = state->scene->objects.size();
+	if(state->queue_start_object < num_scene_objects) {
+		int count = min(OBJECTS_PER_TASK,
+		                num_scene_objects - state->queue_start_object);
+		*start_index = state->queue_start_object;
+		*num_objects = count;
+		state->queue_start_object += count;
+		have_work = true;
+	}
+	state->queue_lock.unlock();
+	return have_work;
+}
 
-		if(progress.get_cancel()) return;
+void ObjectManager::device_update_object_transform_task(
+        UpdateObejctTransformState *state)
+{
+	int start_index, num_objects;
+	while(device_update_object_transform_pop_work(state,
+	                                              &start_index,
+	                                              &num_objects))
+	{
+		for(int i = 0; i < num_objects; ++i) {
+			const int object_index = start_index + i;
+			Object *ob = state->scene->objects[object_index];
+			device_update_object_transform(state, ob, object_index);
+		}
+	}
+}
+
+void ObjectManager::device_update_transforms(Device *device,
+                                             DeviceScene *dscene,
+                                             Scene *scene,
+                                             uint *object_flag,
+                                             Progress& progress)
+{
+	UpdateObejctTransformState state;
+	state.need_motion = scene->need_motion(device->info.advanced_shading);
+	state.have_motion = false;
+	state.have_curves = false;
+	state.scene = scene;
+	state.queue_start_object = 0;
+
+	state.object_flag = object_flag;
+	state.objects = dscene->objects.resize(OBJECT_SIZE*scene->objects.size());
+	if(state.need_motion == Scene::MOTION_PASS) {
+		state.objects_vector = dscene->objects_vector.resize(OBJECT_VECTOR_SIZE*scene->objects.size());
+	}
+	else {
+		state.objects_vector = NULL;
+	}
+
+	/* Particle system device offsets
+	 * 0 is dummy particle, index starts at 1.
+	 */
+	int numparticles = 1;
+	foreach(ParticleSystem *psys, scene->particle_systems) {
+		state.particle_offset[psys] = numparticles;
+		numparticles += psys->particles.size();
+	}
+
+	/* NOTE: If it's just a handful of objects we deal with them in a single
+	 * thread to avoid threading overhead. However, this threshold is might
+	 * need some tweaks to make mid-complex scenes optimal.
+	 */
+	if(scene->objects.size() < 64) {
+		int object_index = 0;
+		foreach(Object *ob, scene->objects) {
+			device_update_object_transform(&state, ob, object_index);
+			object_index++;
+			if(progress.get_cancel()) {
+				return;
+			}
+		}
+	}
+	else {
+		const int num_threads = TaskScheduler::num_threads();
+		TaskPool pool;
+		for(int i = 0; i < num_threads; ++i) {
+			pool.push(function_bind(
+			        &ObjectManager::device_update_object_transform_task,
+			        this,
+			        &state));
+		}
+		pool.wait_work();
+		if(progress.get_cancel()) {
+			return;
+		}
 	}
 
 	device->tex_alloc("__objects", dscene->objects);
-	if(need_motion == Scene::MOTION_PASS)
+	if(state.need_motion == Scene::MOTION_PASS) {
 		device->tex_alloc("__objects_vector", dscene->objects_vector);
+	}
 
-	dscene->data.bvh.have_motion = have_motion;
-	dscene->data.bvh.have_curves = have_curves;
+	dscene->data.bvh.have_motion = state.have_motion;
+	dscene->data.bvh.have_curves = state.have_curves;
 	dscene->data.bvh.have_instancing = true;
 }
 
 void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
-	VLOG(1) << "Total " << scene->objects.size() << " objects.";
-
 	if(!need_update)
 		return;
-	
+
+	VLOG(1) << "Total " << scene->objects.size() << " objects.";
+
 	device_free(device, dscene);
 
 	if(scene->objects.size() == 0)

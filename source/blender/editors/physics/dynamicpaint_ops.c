@@ -39,7 +39,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_object_deform.h"
@@ -426,7 +425,7 @@ static void dpaint_bake_startjob(void *customdata, short *stop, short *do_update
 	job->start = PIL_check_seconds_timer();
 	job->success = 1;
 
-    G.is_break = false; /* reset blender_test_break*/
+    G.is_break = false; /* reset BKE_blender_test_break*/
 
 	/* XXX annoying hack: needed to prevent data corruption when changing
 	 * scene frame in separate threads

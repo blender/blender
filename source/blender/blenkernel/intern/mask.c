@@ -116,7 +116,7 @@ MaskSplinePoint *BKE_mask_spline_point_array(MaskSpline *spline)
 	return spline->points_deform ? spline->points_deform : spline->points;
 }
 
-MaskSplinePoint *BKE_mask_spline_point_array_from_point(MaskSpline *spline, MaskSplinePoint *point_ref)
+MaskSplinePoint *BKE_mask_spline_point_array_from_point(MaskSpline *spline, const MaskSplinePoint *point_ref)
 {
 	if ((point_ref >= spline->points) && (point_ref < &spline->points[spline->tot_point])) {
 		return spline->points;

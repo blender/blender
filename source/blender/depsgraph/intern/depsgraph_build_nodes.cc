@@ -731,6 +731,14 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
 		}
 	}
 
+	/* speed optimization for animation lookups */
+	if (ob->pose) {
+		BKE_pose_channels_hash_make(ob->pose);
+		if (ob->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
+			BKE_pose_update_constraint_flags(ob->pose);
+		}
+	}
+
 	/* Make sure pose is up-to-date with armature updates. */
 	add_operation_node(&arm->id,
 	                   DEPSNODE_TYPE_PARAMETERS,
@@ -824,6 +832,14 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *ob)
 {
 	ID *obdata = (ID *)ob->data;
 	build_animdata(obdata);
+
+	BLI_assert(ob->pose != NULL);
+
+	/* speed optimization for animation lookups */
+	BKE_pose_channels_hash_make(ob->pose);
+	if (ob->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
+		BKE_pose_update_constraint_flags(ob->pose);
+	}
 
 	add_operation_node(&ob->id,
 	                   DEPSNODE_TYPE_EVAL_POSE,

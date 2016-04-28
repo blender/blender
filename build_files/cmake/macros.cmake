@@ -968,6 +968,7 @@ macro(remove_strict_flags)
 		remove_cc_flag(
 			"-Wstrict-prototypes"
 			"-Wmissing-prototypes"
+			"-Wmissing-declarations"
 			"-Wmissing-format-attribute"
 			"-Wunused-local-typedefs"
 			"-Wunused-macros"
@@ -1095,10 +1096,10 @@ function(get_blender_version)
 	# - BLENDER_VERSION_CYCLE (alpha, beta, rc, release)
 
 	# So cmake depends on BKE_blender.h, beware of inf-loops!
-	CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender.h
-	               ${CMAKE_BINARY_DIR}/source/blender/blenkernel/BKE_blender.h.done)
+	CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender_version.h
+	               ${CMAKE_BINARY_DIR}/source/blender/blenkernel/BKE_blender_version.h.done)
 
-	file(STRINGS ${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender.h _contents REGEX "^#define[ \t]+BLENDER_.*$")
+	file(STRINGS ${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender_version.h _contents REGEX "^#define[ \t]+BLENDER_.*$")
 
 	string(REGEX REPLACE ".*#define[ \t]+BLENDER_VERSION[ \t]+([0-9]+).*" "\\1" _out_version "${_contents}")
 	string(REGEX REPLACE ".*#define[ \t]+BLENDER_SUBVERSION[ \t]+([0-9]+).*" "\\1" _out_subversion "${_contents}")

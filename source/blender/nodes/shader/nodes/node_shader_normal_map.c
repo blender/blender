@@ -46,12 +46,111 @@ static void node_shader_init_normal_map(bNodeTree *UNUSED(ntree), bNode *node)
 	node->storage = attr;
 }
 
-static int gpu_shader_normal_map(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
-{
-	GPUNodeLink *normal;
-	GPU_link(mat, "direction_transform_m4v3", GPU_builtin(GPU_VIEW_NORMAL), GPU_builtin(GPU_INVERSE_VIEW_MATRIX), &normal);
+static void node_shader_exec_normal_map(void *data, int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
+ {
+	if (data) {
+		ShadeInput *shi = ((ShaderCallData *)data)->shi;
 
-	return GPU_stack_link(mat, "node_normal_map", in, out, normal);
+		NodeShaderNormalMap *nm = node->storage;
+
+		float strength, vecIn[3];
+		nodestack_get_vec(&strength, SOCK_FLOAT, in[0]);
+		nodestack_get_vec(vecIn, SOCK_VECTOR, in[1]);
+
+		vecIn[0] = -2 * (vecIn[0] - 0.5f);
+		vecIn[1] =  2 * (vecIn[1] - 0.5f);
+		vecIn[2] =  2 * (vecIn[2] - 0.5f);
+
+		CLAMP_MIN(strength, 0.0f);
+
+		float *N = shi->vno;
+		int uv_index = 0;
+		switch (nm->space) {
+			case SHD_NORMAL_MAP_TANGENT:
+				if (nm->uv_map[0]) {
+					/* find uv map by name */
+					for (int i = 0; i < shi->totuv; i++) {
+						if (STREQ(shi->uv[i].name, nm->uv_map)) {
+							uv_index = i;
+							break;
+						}
+					}
+				}
+				else {
+					uv_index = shi->actuv;
+				}
+
+				float *T = shi->tangents[uv_index];
+
+				float B[3];
+				cross_v3_v3v3(B, N, T);
+				mul_v3_fl(B, T[3]);
+
+				for (int j = 0; j < 3; j++)
+					out[0]->vec[j] = vecIn[0] * T[j] + vecIn[1] * B[j] + vecIn[2] * N[j];
+				interp_v3_v3v3(out[0]->vec, N, out[0]->vec, strength);
+				break;
+
+			case SHD_NORMAL_MAP_OBJECT:
+			case SHD_NORMAL_MAP_BLENDER_OBJECT:
+				mul_mat3_m4_v3((float (*)[4])RE_object_instance_get_matrix(shi->obi, RE_OBJECT_INSTANCE_MATRIX_LOCALTOVIEW), vecIn);
+				interp_v3_v3v3(out[0]->vec, N, vecIn, strength);
+				break;
+
+			case SHD_NORMAL_MAP_WORLD:
+			case SHD_NORMAL_MAP_BLENDER_WORLD:
+				mul_mat3_m4_v3((float (*)[4])RE_render_current_get_matrix(RE_VIEW_MATRIX), vecIn);
+				interp_v3_v3v3(out[0]->vec, N, vecIn, strength);
+				break;
+		}
+		normalize_v3(out[0]->vec);
+	}
+}
+
+static int gpu_shader_normal_map(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
+{
+	NodeShaderNormalMap *nm = node->storage;
+	GPUNodeLink *negnorm;
+	GPUNodeLink *realnorm;
+	GPUNodeLink *strength;
+
+	float d[4] = {0, 0, 0, 0};
+
+	if (in[0].link)
+		strength = in[0].link;
+	else
+		strength = GPU_uniform(in[0].vec);
+
+	if (in[1].link) {
+		GPU_link(mat, "color_to_normal", in[1].link, &realnorm);
+		GPU_link(mat, "mtex_negate_texnormal", realnorm,  &realnorm);
+	}
+
+	GPU_link(mat, "math_max", strength, GPU_uniform(d), &strength);
+	GPU_link(mat, "vec_math_negate", GPU_builtin(GPU_VIEW_NORMAL), &negnorm);
+
+	if (in[1].link) {
+		switch (nm->space) {
+			case SHD_NORMAL_MAP_TANGENT:
+				GPU_link(mat, "node_normal_map", GPU_attribute(CD_TANGENT, nm->uv_map), negnorm, realnorm, &out[0].link);
+				break;
+			case SHD_NORMAL_MAP_OBJECT:
+			case SHD_NORMAL_MAP_BLENDER_OBJECT:
+				GPU_link(mat, "direction_transform_m4v3", realnorm, GPU_builtin(GPU_LOC_TO_VIEW_MATRIX),  &out[0].link);
+				break;
+			case SHD_NORMAL_MAP_WORLD:
+			case SHD_NORMAL_MAP_BLENDER_WORLD:
+				GPU_link(mat, "direction_transform_m4v3", realnorm, GPU_builtin(GPU_VIEW_MATRIX),  &out[0].link);
+				break;
+		}
+	}
+
+	if (out[0].link) {
+		GPU_link(mat, "vec_math_mix", strength, out[0].link, negnorm,  &out[0].link);
+		GPU_link(mat, "vect_normalize", out[0].link, &out[0].link);
+	}
+
+	return true;
 }
 
 /* node type definition */
@@ -60,12 +159,13 @@ void register_node_type_sh_normal_map(void)
 	static bNodeType ntype;
 
 	sh_node_type_base(&ntype, SH_NODE_NORMAL_MAP, "Normal Map", NODE_CLASS_OP_VECTOR, 0);
-	node_type_compatibility(&ntype, NODE_NEW_SHADING);
+	node_type_compatibility(&ntype, NODE_NEW_SHADING | NODE_OLD_SHADING);
 	node_type_socket_templates(&ntype, sh_node_normal_map_in, sh_node_normal_map_out);
 	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
 	node_type_init(&ntype, node_shader_init_normal_map);
 	node_type_storage(&ntype, "NodeShaderNormalMap", node_free_standard_storage, node_copy_standard_storage);
 	node_type_gpu(&ntype, gpu_shader_normal_map);
+	node_type_exec(&ntype, NULL, NULL, node_shader_exec_normal_map);
 
 	nodeRegisterType(&ntype);
 }

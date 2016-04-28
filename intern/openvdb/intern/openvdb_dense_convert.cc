@@ -115,7 +115,8 @@ openvdb::GridBase *OpenVDB_export_vector_grid(
 
 	vecgrid->setTransform(transform);
 
-	if (mask) {
+	/* Avoid clipping against an empty grid. */
+	if (mask && !mask->tree().empty()) {
 		vecgrid = tools::clip(*vecgrid, *mask);
 	}
 

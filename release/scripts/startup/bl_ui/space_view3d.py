@@ -1843,6 +1843,8 @@ class VIEW3D_MT_hide_mask(Menu):
         props = layout.operator("paint.mask_lasso_gesture", text="Lasso Mask")
 
 
+        layout.operator("particle.unify_length")
+        layout.operator("particle.unify_length")
 # ********** Pose Menu **********
 
 

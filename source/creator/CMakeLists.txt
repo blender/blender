@@ -996,6 +996,15 @@ elseif(APPLE)
 			DESTINATION ${TARGETDIR_VER}/python
 			USE_SOURCE_PERMISSIONS
 		)
+
+		# Needed for distutils/pip
+		# get the last part of the include dir, will be 'python{version}{abiflag}',
+		get_filename_component(_py_inc_suffix ${PYTHON_INCLUDE_DIR} NAME)
+		install(
+			FILES ${PYTHON_INCLUDE_DIR}/pyconfig.h
+			DESTINATION ${TARGETDIR_VER}/python/include/${_py_inc_suffix}
+		)
+		unset(_py_inc_suffix)
 	endif()
 	
 	# install blenderplayer bundle - copy of blender.app above. re-using macros et al

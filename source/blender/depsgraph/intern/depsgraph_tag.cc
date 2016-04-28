@@ -400,12 +400,11 @@ void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 		 * This is mainly needed on file load only, after that updates of invisible objects
 		 * will be stored in the pending list.
 		 */
-		for (Depsgraph::OperationNodes::const_iterator it = graph->operations.begin();
-		     it != graph->operations.end();
+		for (Depsgraph::IDNodeMap::const_iterator it = graph->id_hash.begin();
+		     it != graph->id_hash.end();
 		     ++it)
 		{
-			OperationDepsNode *node = *it;
-			IDDepsNode *id_node = node->owner->owner;
+			IDDepsNode *id_node = it->second;
 			ID *id = id_node->id;
 			if ((id->tag & LIB_TAG_ID_RECALC_ALL) != 0 ||
 			    (id_node->layers & scene->lay_updated) == 0)

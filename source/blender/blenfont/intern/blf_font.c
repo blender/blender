@@ -411,7 +411,7 @@ static void blf_font_draw_buffer_ex(
 								cbuf[0] = (unsigned char)((b_col_char[0] * a) + (cbuf[0] * (1.0f - a)));
 								cbuf[1] = (unsigned char)((b_col_char[1] * a) + (cbuf[1] * (1.0f - a)));
 								cbuf[2] = (unsigned char)((b_col_char[2] * a) + (cbuf[2] * (1.0f - a)));
-								cbuf[3] = (unsigned char)((alphatest = ((int)cbuf[3] + (int)(a * 255)) < 255) ?
+								cbuf[3] = (unsigned char)(((alphatest = ((int)cbuf[3] + (int)(a * 255))) < 255) ?
 								          alphatest : 255);
 							}
 						}

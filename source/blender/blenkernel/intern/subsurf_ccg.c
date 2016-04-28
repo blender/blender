@@ -3016,11 +3016,13 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 						numdata++;
 					}
 				}
-				if (matconv[a].attribs.tottang && matconv[a].attribs.tang.array) {
-					matconv[a].datatypes[numdata].index = matconv[a].attribs.tang.gl_index;
-					matconv[a].datatypes[numdata].size = 4;
-					matconv[a].datatypes[numdata].type = GL_FLOAT;
-					numdata++;
+				for (b = 0; b < matconv[a].attribs.tottang; b++) {
+					if (matconv[a].attribs.tottang && matconv[a].attribs.tang[b].array) {
+						matconv[a].datatypes[numdata].index = matconv[a].attribs.tang[b].gl_index;
+						matconv[a].datatypes[numdata].size = 4;
+						matconv[a].datatypes[numdata].type = GL_FLOAT;
+						numdata++;
+					}
 				}
 				if (numdata != 0) {
 					matconv[a].numdata = numdata;
@@ -3105,15 +3107,17 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 										offset += sizeof(unsigned char) * 4;
 									}
 								}
-								if (matconv[i].attribs.tottang && matconv[i].attribs.tang.array) {
-									const float (*looptang)[4] = (const float (*)[4])matconv[i].attribs.tang.array + tot_loops;
+								for (b = 0; b < matconv[i].attribs.tottang; b++) {
+									if (matconv[i].attribs.tottang && matconv[i].attribs.tang[b].array) {
+										const float (*looptang)[4] = (const float (*)[4])matconv[i].attribs.tang[b].array + tot_loops;
 
-									copy_v4_v4((float *)&varray[offset], looptang[0]);
-									copy_v4_v4((float *)&varray[offset + max_element_size], looptang[3]);
-									copy_v4_v4((float *)&varray[offset + 2 * max_element_size], looptang[2]);
-									copy_v4_v4((float *)&varray[offset + 3 * max_element_size], looptang[1]);
+										copy_v4_v4((float *)&varray[offset], looptang[0]);
+										copy_v4_v4((float *)&varray[offset + max_element_size], looptang[3]);
+										copy_v4_v4((float *)&varray[offset + 2 * max_element_size], looptang[2]);
+										copy_v4_v4((float *)&varray[offset + 3 * max_element_size], looptang[1]);
 
-									offset += sizeof(float) * 4;
+										offset += sizeof(float) * 4;
+									}
 								}
 
 								tot_loops += 4;
@@ -4361,6 +4365,7 @@ static void ccgDM_recalcLoopTri(DerivedMesh *UNUSED(dm))
 
 static const MLoopTri *ccgDM_getLoopTriArray(DerivedMesh *dm)
 {
+	BLI_rw_mutex_lock(&loops_cache_rwlock, THREAD_LOCK_WRITE);
 	if (dm->looptris.array) {
 		BLI_assert(poly_to_tri_count(dm->numPolyData, dm->numLoopData) == dm->looptris.num);
 	}
@@ -4391,6 +4396,7 @@ static const MLoopTri *ccgDM_getLoopTriArray(DerivedMesh *dm)
 			lt->poly = poly_index;
 		}
 	}
+	BLI_rw_mutex_unlock(&loops_cache_rwlock);
 	return dm->looptris.array;
 }
 

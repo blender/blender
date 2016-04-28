@@ -69,7 +69,7 @@ static int gpu_shader_lamp(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(
 		return GPU_stack_link(mat, "lamp", in, out, col, energy, lv, dist, shadow, visifac);
 	}
 
-	return 0;
+	return false;
 }
 
 void register_node_type_sh_lamp(void)

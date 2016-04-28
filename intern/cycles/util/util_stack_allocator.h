@@ -40,14 +40,17 @@ public:
 	/* Allocator construction/destruction. */
 
 	StackAllocator()
-	: pointer_(0) {}
+	: pointer_(0),
+	  use_stack_(true) {}
 
 	StackAllocator(const StackAllocator&)
-	: pointer_(0) {}
+	: pointer_(0),
+	  use_stack_(true) {}
 
 	template <class U>
 	StackAllocator(const StackAllocator<SIZE, U>&)
-	: pointer_(0) {}
+	: pointer_(0),
+	  use_stack_(false) {}
 
 	/* Memory allocation/deallocation. */
 
@@ -57,14 +60,19 @@ public:
 		if(n == 0) {
 			return NULL;
 		}
-		if(pointer_ + n >= SIZE) {
+		if(pointer_ + n >= SIZE || use_stack_ == false) {
 			size_t size = n * sizeof(T);
 			util_guarded_mem_alloc(size);
+			T *mem;
 #ifdef WITH_BLENDER_GUARDEDALLOC
-			return (T*)MEM_mallocN_aligned(size, 16, "Cycles Alloc");
+			mem = (T*)MEM_mallocN_aligned(size, 16, "Cycles Alloc");
 #else
-			return (T*)malloc(size);
+			mem = (T*)malloc(size);
 #endif
+			if(mem == NULL) {
+				throw std::bad_alloc();
+			}
+			return mem;
 		}
 		T *mem = &data_[pointer_];
 		pointer_ += n;
@@ -104,7 +112,9 @@ public:
 
 	void construct(T *p, const T& val)
 	{
-		new ((T *)p) T(val);
+		if(p != NULL) {
+			new ((T *)p) T(val);
+		}
 	}
 
 	void destroy(T *p)
@@ -151,6 +161,7 @@ public:
 
 private:
 	int pointer_;
+	bool use_stack_;
 	T data_[SIZE];
 };
 

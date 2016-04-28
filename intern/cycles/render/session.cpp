@@ -816,7 +816,7 @@ void Session::update_scene()
 	/* update scene */
 	if(scene->need_update()) {
 		progress.set_status("Updating Scene");
-		scene->device_update(device, progress);
+		MEM_GUARDED_CALL(&progress, scene->device_update, device, progress);
 	}
 }
 

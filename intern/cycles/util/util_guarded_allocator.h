@@ -53,19 +53,24 @@ public:
 		size_t size = n * sizeof(T);
 		util_guarded_mem_alloc(size);
 		(void)hint;
-#ifdef WITH_BLENDER_GUARDEDALLOC
 		if(n == 0) {
 			return NULL;
 		}
+		T *mem;
+#ifdef WITH_BLENDER_GUARDEDALLOC
 		/* C++ standard requires allocation functions to allocate memory suitably
 		 * aligned for any standard type. This is 16 bytes for 64 bit platform as
 		 * far as i concerned. We might over-align on 32bit here, but that should
 		 * be all safe actually.
 		 */
-		return (T*)MEM_mallocN_aligned(size, 16, "Cycles Alloc");
+		mem = (T*)MEM_mallocN_aligned(size, 16, "Cycles Alloc");
 #else
-		return (T*)malloc(size);
+		mem = (T*)malloc(size);
 #endif
+		if(mem == NULL) {
+			throw std::bad_alloc();
+		}
+		return mem;
 	}
 
 	void deallocate(T *p, size_t n)
@@ -97,7 +102,9 @@ public:
 
 	void construct(T *p, const T& val)
 	{
-		new ((T *)p) T(val);
+		if(p != NULL) {
+			new ((T *)p) T(val);
+		}
 	}
 
 	void destroy(T *p)
@@ -156,6 +163,26 @@ public:
 /* Get memory usage and peak from the guarded STL allocator. */
 size_t util_guarded_get_mem_used(void);
 size_t util_guarded_get_mem_peak(void);
+
+/* Call given function and keep track if it runs out of memory.
+ *
+ * If it does run out f memory, stop execution and set progress
+ * to do a global cancel.
+ *
+ * It's not fully robust, but good enough to catch obvious issues
+ * when running out of memory.
+ */
+#define MEM_GUARDED_CALL(progress, func, ...) \
+	do { \
+		try { \
+			(func)(__VA_ARGS__); \
+		} \
+		catch (std::bad_alloc&) { \
+			fprintf(stderr, "Error: run out of memory!\n"); \
+			fflush(stderr); \
+			(progress)->set_error("Out of memory"); \
+		} \
+	} while(false)
 
 CCL_NAMESPACE_END
 

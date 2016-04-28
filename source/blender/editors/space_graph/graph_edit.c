@@ -2393,7 +2393,9 @@ static EnumPropertyItem *graph_fmodifier_itemf(bContext *C, PointerRNA *UNUSED(p
 			continue;
 		
 		index = RNA_enum_from_value(rna_enum_fmodifier_type_items, fmi->type);
-		RNA_enum_item_add(&item, &totitem, &rna_enum_fmodifier_type_items[index]);
+		if (index != -1) {  /* Not all types are implemented yet... */
+			RNA_enum_item_add(&item, &totitem, &rna_enum_fmodifier_type_items[index]);
+		}
 	}
 	
 	RNA_enum_item_end(&item, &totitem);

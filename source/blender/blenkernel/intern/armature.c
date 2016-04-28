@@ -633,7 +633,7 @@ typedef struct bPoseChanDeform {
 	DualQuat *b_bone_dual_quats;
 } bPoseChanDeform;
 
-static void pchan_b_bone_defmats(bPoseChannel *pchan, bPoseChanDeform *pdef_info, int use_quaternion)
+static void pchan_b_bone_defmats(bPoseChannel *pchan, bPoseChanDeform *pdef_info, const bool use_quaternion)
 {
 	Bone *bone = pchan->bone;
 	Mat4 b_bone[MAX_BBONE_SUBDIV], b_bone_rest[MAX_BBONE_SUBDIV];
@@ -867,16 +867,19 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 	bDeformGroup *dg;
 	DualQuat *dualquats = NULL;
 	float obinv[4][4], premat[4][4], postmat[4][4];
-	const short use_envelope = deformflag & ARM_DEF_ENVELOPE;
-	const short use_quaternion = deformflag & ARM_DEF_QUATERNION;
-	const short invert_vgroup = deformflag & ARM_DEF_INVERT_VGROUP;
+	const bool use_envelope   = (deformflag & ARM_DEF_ENVELOPE) != 0;
+	const bool use_quaternion = (deformflag & ARM_DEF_QUATERNION) != 0;
+	const bool invert_vgroup  = (deformflag & ARM_DEF_INVERT_VGROUP) != 0;
 	int defbase_tot = 0;       /* safety for vertexgroup index overflow */
 	int i, target_totvert = 0; /* safety for vertexgroup overflow */
 	bool use_dverts = false;
 	int armature_def_nr;
 	int totchan;
 
-	if (arm->edbo) return;
+	/* in editmode, or not an armature */
+	if (arm->edbo || (armOb->pose == NULL)) {
+		return;
+	}
 
 	invert_m4_m4(obinv, target->obmat);
 	copy_m4_m4(premat, target->obmat);

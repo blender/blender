@@ -700,7 +700,7 @@ static void bake_startjob(void *bkv, short *stop, short *do_update, float *progr
 	bkr->progress = progress;
 
 	RE_test_break_cb(bkr->re, NULL, thread_break);
-	G.is_break = false;   /* blender_test_break uses this global */
+	G.is_break = false;   /* BKE_blender_test_break uses this global */
 
 	RE_Database_Baking(bkr->re, bmain, scene, scene->lay, scene->r.bake_mode, bkr->actob);
 
@@ -827,7 +827,7 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 			bkr.reports = op->reports;
 
 			RE_test_break_cb(bkr.re, NULL, thread_break);
-			G.is_break = false;   /* blender_test_break uses this global */
+			G.is_break = false;   /* BKE_blender_test_break uses this global */
 
 			RE_Database_Baking(bkr.re, bmain, scene, scene->lay, scene->r.bake_mode, (scene->r.bake_flag & R_BAKE_TO_ACTIVE) ? OBACT : NULL);
 
@@ -843,7 +843,7 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 
 				/* used to redraw in 2.4x but this is just for exec in 2.5 */
 				if (!G.background)
-					blender_test_break();
+					BKE_blender_test_break();
 			}
 			BLI_end_threads(&threads);
 

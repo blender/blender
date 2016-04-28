@@ -41,7 +41,7 @@
 
 #include "BLI_listbase.h"
 
-#include "BKE_blender.h"
+#include "BKE_blender_undo.h"
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
 

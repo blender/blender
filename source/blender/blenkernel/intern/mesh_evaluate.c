@@ -2417,30 +2417,42 @@ void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, CustomData
 	}
 }
 
-void BKE_mesh_tangent_loops_to_tessdata(CustomData *fdata, CustomData *ldata, MFace *mface,
-                                        int *polyindices, unsigned int (*loopindices)[4], const int num_faces)
+void BKE_mesh_tangent_loops_to_tessdata(
+        CustomData *fdata, CustomData *ldata, MFace *mface,
+        int *polyindices, unsigned int (*loopindices)[4], const int num_faces, const char *layer_name)
 {
 	/* Note: performances are sub-optimal when we get a NULL mface, we could be ~25% quicker with dedicated code...
 	 *       Issue is, unless having two different functions with nearly the same code, there's not much ways to solve
 	 *       this. Better imho to live with it for now. :/ --mont29
 	 */
-	const bool hasLoopTangent = CustomData_has_layer(ldata, CD_TANGENT);
+
+	float (*ftangents)[4] = NULL;
+	float (*ltangents)[4] = NULL;
+
 	int findex, j;
 	const int *pidx;
 	unsigned int (*lidx)[4];
 
-	if (hasLoopTangent) {
-		/* need to do for all uv maps at some point */
-		float (*ftangents)[4] = CustomData_get_layer(fdata, CD_TANGENT);
-		float (*ltangents)[4] = CustomData_get_layer(ldata, CD_TANGENT);
+	if (layer_name)
+		ltangents = CustomData_get_layer_named(ldata, CD_TANGENT, layer_name);
+	else
+		ltangents = CustomData_get_layer(ldata, CD_TANGENT);
 
-		for (findex = 0, pidx = polyindices, lidx = loopindices;
-		     findex < num_faces;
-		     pidx++, lidx++, findex++)
-		{
-			int nverts = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3;
-			for (j = nverts; j--;) {
-				copy_v4_v4(ftangents[findex * 4 + j], ltangents[(*lidx)[j]]);
+	if (ltangents) {
+		/* need to do for all uv maps at some point */
+		if (layer_name)
+			ftangents = CustomData_get_layer_named(fdata, CD_TANGENT, layer_name);
+		else
+			ftangents = CustomData_get_layer(fdata, CD_TANGENT);
+		if (ftangents) {
+			for (findex = 0, pidx = polyindices, lidx = loopindices;
+			     findex < num_faces;
+			     pidx++, lidx++, findex++)
+			{
+				int nverts = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3;
+				for (j = nverts; j--;) {
+					copy_v4_v4(ftangents[findex * 4 + j], ltangents[(*lidx)[j]]);
+				}
 			}
 		}
 	}

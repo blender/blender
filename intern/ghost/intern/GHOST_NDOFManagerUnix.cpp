@@ -28,13 +28,22 @@
 
 #include <spnav.h>
 #include <stdio.h>
+#include <unistd.h>
 
+#define SPNAV_SOCK_PATH "/var/run/spnav.sock"
 
 GHOST_NDOFManagerUnix::GHOST_NDOFManagerUnix(GHOST_System& sys)
     : GHOST_NDOFManager(sys),
       m_available(false)
 {
-	if (spnav_open() != -1) {
+	if (access(SPNAV_SOCK_PATH, F_OK) != 0) {
+#ifdef DEBUG
+		/* annoying for official builds, just adds noise and most people don't own these */
+		puts("ndof: spacenavd not found");
+		/* This isn't a hard error, just means the user doesn't have a 3D mouse. */
+#endif
+	}
+	else if (spnav_open() != -1) {
 		m_available = true;
 
 		/* determine exactly which device (if any) is plugged in */
@@ -54,13 +63,6 @@ GHOST_NDOFManagerUnix::GHOST_NDOFManagerUnix(GHOST_System& sys)
 			}
 			pclose(command_output);
 		}
-	}
-	else {
-#ifdef DEBUG
-		/* annoying for official builds, just adds noise and most people don't own these */
-		puts("ndof: spacenavd not found");
-		/* This isn't a hard error, just means the user doesn't have a 3D mouse. */
-#endif
 	}
 }
 

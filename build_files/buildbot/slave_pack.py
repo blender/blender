@@ -130,7 +130,7 @@ if builder.find('cmake') != -1:
         blenderplayer = os.path.join(install_dir, 'blenderplayer')
 
         buildinfo_h = os.path.join(build_dir, "source", "creator", "buildinfo.h")
-        blender_h = os.path.join(blender_dir, "source", "blender", "blenkernel", "BKE_blender.h")
+        blender_h = os.path.join(blender_dir, "source", "blender", "blenkernel", "BKE_blender_version.h")
 
         # Get version information
         blender_version = int(parse_header_file(blender_h, 'BLENDER_VERSION'))

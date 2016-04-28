@@ -32,6 +32,7 @@
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 
+#include "BLI_array.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
@@ -420,6 +421,13 @@ static int ui_compatible_sockets(int typeA, int typeB)
 	return (typeA == typeB);
 }
 
+static int ui_node_item_name_compare(const void *a, const void *b)
+{
+	const bNodeType* type_a = *(const bNodeType**)a;
+	const bNodeType* type_b = *(const bNodeType**)b;
+	return BLI_natstrcmp(type_a->ui_name, type_b->ui_name);
+}
+
 static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 {
 	bNodeTree *ntree = arg->ntree;
@@ -439,19 +447,32 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 			compatibility = NODE_OLD_SHADING;
 	}
 
+	/* generate array of node types sorted by UI name */
+	bNodeType **sorted_ntypes = NULL;
+	BLI_array_declare(sorted_ntypes);
+
 	NODE_TYPES_BEGIN(ntype) {
+		if (compatibility && !(ntype->compatibility & compatibility))
+			continue;
+
+		if (ntype->nclass != nclass)
+			continue;
+
+		BLI_array_append(sorted_ntypes, ntype);
+	}
+	NODE_TYPES_END
+
+	qsort(sorted_ntypes, BLI_array_count(sorted_ntypes), sizeof(bNodeType*), ui_node_item_name_compare);
+
+	/* generate UI */
+	for (int j = 0; j < BLI_array_count(sorted_ntypes); j++) {
+		bNodeType *ntype = sorted_ntypes[j];
 		NodeLinkItem *items;
 		int totitems;
 		char name[UI_MAX_NAME_STR];
 		const char *cur_node_name = NULL;
 		int i, num = 0;
 		int icon = ICON_NONE;
-		
-		if (compatibility && !(ntype->compatibility & compatibility))
-			continue;
-		
-		if (ntype->nclass != nclass)
-			continue;
 		
 		arg->node_type = ntype;
 		
@@ -502,7 +523,8 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 		if (items)
 			MEM_freeN(items);
 	}
-	NODE_TYPES_END
+
+	BLI_array_free(sorted_ntypes);
 }
 
 static void node_menu_column_foreach_cb(void *calldata, int nclass, const char *name)

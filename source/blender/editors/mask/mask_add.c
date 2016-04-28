@@ -194,12 +194,12 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
 
 /******************** add vertex *********************/
 
-static void setup_vertex_point(Mask *mask, MaskSpline *spline, MaskSplinePoint *new_point,
-                               const float point_co[2], const float u,
-                               MaskSplinePoint *reference_point, const bool reference_adjacent)
+static void setup_vertex_point(
+        Mask *mask, MaskSpline *spline, MaskSplinePoint *new_point,
+        const float point_co[2], const float u, const float ctime,
+        const MaskSplinePoint *reference_point, const bool reference_adjacent)
 {
-	MaskSplinePoint *prev_point = NULL;
-	MaskSplinePoint *next_point = NULL;
+	const MaskSplinePoint *reference_parent_point = NULL;
 	BezTriple *bezt;
 	float co[3];
 
@@ -247,14 +247,44 @@ static void setup_vertex_point(Mask *mask, MaskSpline *spline, MaskSplinePoint *
 		else {
 			bezt->h1 = bezt->h2 = MAX2(reference_point->bezt.h2, reference_point->bezt.h1);
 		}
+
+		reference_parent_point = reference_point;
 	}
 	else if (reference_adjacent) {
 		if (spline->tot_point != 1) {
-			int index = (int)(new_point - spline->points);
-			prev_point = &spline->points[(index - 1) % spline->tot_point];
-			next_point = &spline->points[(index + 1) % spline->tot_point];
+			MaskSplinePoint *prev_point, *next_point, *close_point;
 
-			bezt->h1 = bezt->h2 = MAX2(prev_point->bezt.h2, next_point->bezt.h1);
+			const int index = (int)(new_point - spline->points);
+			if (spline->flag & MASK_SPLINE_CYCLIC) {
+				prev_point = &spline->points[mod_i(index - 1, spline->tot_point)];
+				next_point = &spline->points[mod_i(index + 1, spline->tot_point)];
+			}
+			else {
+				prev_point = (index != 0)                     ? &spline->points[index - 1] : NULL;
+				next_point = (index != spline->tot_point - 1) ? &spline->points[index + 1] : NULL;
+			}
+
+			if (prev_point && next_point) {
+				close_point = (len_squared_v2v2(new_point->bezt.vec[1], prev_point->bezt.vec[1]) <
+				               len_squared_v2v2(new_point->bezt.vec[1], next_point->bezt.vec[1])) ?
+				               prev_point : next_point;
+			}
+			else {
+				close_point = prev_point ? prev_point : next_point;
+			}
+
+			/* handle type */
+			char handle_type = 0;
+			if (prev_point) {
+				handle_type = prev_point->bezt.h2;
+			}
+			if (next_point) {
+				handle_type = MAX2(next_point->bezt.h2, handle_type);
+			}
+			bezt->h1 = bezt->h2 = handle_type;
+
+			/* parent */
+			reference_parent_point = close_point;
 
 			/* note, we may want to copy other attributes later, radius? pressure? color? */
 		}
@@ -264,7 +294,20 @@ static void setup_vertex_point(Mask *mask, MaskSpline *spline, MaskSplinePoint *
 	copy_v3_v3(bezt->vec[1], co);
 	copy_v3_v3(bezt->vec[2], co);
 
-	BKE_mask_parent_init(&new_point->parent);
+	if (reference_parent_point) {
+		new_point->parent = reference_parent_point->parent;
+
+		if (new_point->parent.id) {
+			float parent_matrix[3][3];
+			BKE_mask_point_parent_matrix_get(new_point, ctime, parent_matrix);
+			invert_m3(parent_matrix);
+			mul_m3_v2(parent_matrix, new_point->bezt.vec[1]);
+		}
+	}
+	else {
+		BKE_mask_parent_init(&new_point->parent);
+	}
+
 	if (spline->tot_point != 1) {
 		BKE_mask_calc_handle_adjacent_interp(spline, new_point, u);
 	}
@@ -348,6 +391,9 @@ static bool add_vertex_subdivide(const bContext *C, Mask *mask, const float co[2
 	if (ED_mask_find_nearest_diff_point(C, mask, co, threshold, false, tangent, true, true,
 	                                    &masklay, &spline, &point, &u, NULL))
 	{
+		Scene *scene = CTX_data_scene(C);
+		const float ctime = CFRA;
+
 		MaskSplinePoint *new_point;
 		int point_index = point - spline->points;
 
@@ -357,7 +403,7 @@ static bool add_vertex_subdivide(const bContext *C, Mask *mask, const float co[2
 
 		new_point = &spline->points[point_index + 1];
 
-		setup_vertex_point(mask, spline, new_point, co, u, NULL, true);
+		setup_vertex_point(mask, spline, new_point, co, u, ctime, NULL, true);
 
 		/* TODO - we could pass the spline! */
 		BKE_mask_layer_shape_changed_add(masklay, BKE_mask_layer_shape_spline_to_index(masklay, spline) + point_index + 1, true, true);
@@ -375,6 +421,9 @@ static bool add_vertex_subdivide(const bContext *C, Mask *mask, const float co[2
 
 static bool add_vertex_extrude(const bContext *C, Mask *mask, MaskLayer *masklay, const float co[2])
 {
+	Scene *scene = CTX_data_scene(C);
+	const float ctime = CFRA;
+
 	MaskSpline *spline;
 	MaskSplinePoint *point;
 	MaskSplinePoint *new_point = NULL, *ref_point = NULL;
@@ -454,7 +503,7 @@ static bool add_vertex_extrude(const bContext *C, Mask *mask, MaskLayer *masklay
 
 	masklay->act_point = new_point;
 
-	setup_vertex_point(mask, spline, new_point, co, 0.5f, ref_point, false);
+	setup_vertex_point(mask, spline, new_point, co, 0.5f, ctime, ref_point, false);
 
 	if (masklay->splines_shapes.first) {
 		point_index = (((int)(new_point - spline->points) + 0) % spline->tot_point);
@@ -468,34 +517,28 @@ static bool add_vertex_extrude(const bContext *C, Mask *mask, MaskLayer *masklay
 
 static bool add_vertex_new(const bContext *C, Mask *mask, MaskLayer *masklay, const float co[2])
 {
+	Scene *scene = CTX_data_scene(C);
+	const float ctime = CFRA;
+
 	MaskSpline *spline;
-	MaskSplinePoint *point;
 	MaskSplinePoint *new_point = NULL, *ref_point = NULL;
 
 	if (!masklay) {
 		/* if there's no masklay currently operationg on, create new one */
 		masklay = BKE_mask_layer_new(mask, "");
 		mask->masklay_act = mask->masklay_tot - 1;
-		spline = NULL;
-		point = NULL;
-	}
-	else {
-		finSelectedSplinePoint(masklay, &spline, &point, true);
 	}
 
 	ED_mask_select_toggle_all(mask, SEL_DESELECT);
 
-	if (!spline) {
-		/* no selected splines in active masklay, create new spline */
-		spline = BKE_mask_spline_add(masklay);
-	}
+	spline = BKE_mask_spline_add(masklay);
 
 	masklay->act_spline = spline;
 	new_point = spline->points;
 
 	masklay->act_point = new_point;
 
-	setup_vertex_point(mask, spline, new_point, co, 0.5f, ref_point, false);
+	setup_vertex_point(mask, spline, new_point, co, 0.5f, ctime, ref_point, false);
 
 	{
 		int point_index = (((int)(new_point - spline->points) + 0) % spline->tot_point);

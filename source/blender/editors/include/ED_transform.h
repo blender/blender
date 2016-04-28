@@ -43,6 +43,8 @@ struct wmEvent;
 struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperatorType;
+struct Main;
+struct SnapObjectContext;
 
 void transform_keymap_for_space(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int spaceid);
 void transform_operatortypes(void);
@@ -187,27 +189,9 @@ bool peelObjectsContext(
         struct ListBase *r_depth_peels);
 bool snapObjectsTransform(
         struct TransInfo *t, const float mval[2], SnapSelect snap_select,
+        float *dist_px,
         /* return args */
-        float r_loc[3], float r_no[3], float *r_dist_px);
-bool snapObjectsContext(
-        struct bContext *C, const float mval[2], SnapSelect snap_select,
-        /* return args */
-        float r_loc[3], float r_no[3], float *r_dist_px);
-/* taks args for all settings */
-bool snapObjectsEx(
-        struct Scene *scene, struct View3D *v3d, struct ARegion *ar, struct Base *base_act, struct Object *obedit,
-        const float mval[2], SnapSelect snap_select, const short snap_mode,
-        float *ray_depth,
-        /* return args */
-        float r_loc[3], float r_no[3], float *r_dist_px);
-bool snapObjectsRayEx(
-        struct Scene *scene, struct View3D *v3d, struct ARegion *ar, struct Base *base_act, struct Object *obedit,
-        const float mval[2], SnapSelect snap_select, const short snap_mode,
-        const float ray_start[3], const float ray_normal[3], float *ray_depth,
-        /* return args */
-        float r_loc[3], float r_no[3], float *r_dist_px, int *r_index,
-        struct Object **r_ob, float r_obmat[4][4]);
-
+        float r_loc[3], float r_no[3]);
 bool snapNodesTransform(
         struct TransInfo *t, const int mval[2], SnapSelect snap_select,
         /* return args */
@@ -216,5 +200,68 @@ bool snapNodesContext(
         struct bContext *C, const int mval[2], SnapSelect snap_select,
         /* return args */
         float r_loc[2], float *r_dist_px, char *r_node_border);
+
+
+/* transform_snap_object.c */
+
+/* ED_transform_snap_object_*** API */
+struct SnapObjectParams {
+	SnapSelect snap_select;
+	union {
+		unsigned int snap_to : 4;
+		/* snap_target_flag: Snap to vert/edge/face. */
+		unsigned int snap_to_flag : 4;
+	};
+	/* use editmode cage */
+	unsigned int use_object_edit : 1;
+	/* special context sensitive handling for the active object */
+	unsigned int use_object_active : 1;
+};
+
+enum {
+	SNAP_OBJECT_USE_CACHE = (1 << 0),
+};
+
+typedef struct SnapObjectContext SnapObjectContext;
+SnapObjectContext *ED_transform_snap_object_context_create(
+        struct Main *bmain, struct Scene *scene, int flag);
+SnapObjectContext *ED_transform_snap_object_context_create_view3d(
+        struct Main *bmain, struct Scene *scene, int flag,
+        /* extra args for view3d */
+        struct ARegion *ar, struct View3D *v3d);
+void ED_transform_snap_object_context_destroy(SnapObjectContext *sctx);
+
+bool ED_transform_snap_object_project_ray_ex(
+        struct SnapObjectContext *sctx,
+        const struct SnapObjectParams *params,
+        const float ray_start[3], const float ray_normal[3], float *ray_depth,
+        /* return args */
+        float r_loc[3], float r_no[3], int *r_index,
+        struct Object **r_ob, float r_obmat[4][4]);
+bool ED_transform_snap_object_project_ray(
+        SnapObjectContext *sctx,
+        const float ray_origin[3], const float ray_direction[3], float *ray_dist,
+        float r_co[3], float r_no[3]);
+
+bool ED_transform_snap_object_project_view3d_ex(
+        struct SnapObjectContext *sctx,
+        const struct SnapObjectParams *params,
+        const float mval[2], float *dist_px,
+        float *ray_depth,
+        float r_loc[3], float r_no[3], int *r_index);
+bool ED_transform_snap_object_project_view3d(
+        struct SnapObjectContext *sctx,
+        const struct SnapObjectParams *params,
+        const float mval[2], float *dist_px,
+        float *ray_depth,
+        /* return args */
+        float r_loc[3], float r_no[3]);
+bool ED_transform_snap_object_project_view3d_mixed(
+        SnapObjectContext *sctx,
+        const struct SnapObjectParams *params,
+        const float mval_fl[2], float *dist_px,
+        bool use_depth,
+        float r_co[3], float r_no[3]);
+
 
 #endif  /* __ED_TRANSFORM_H__ */

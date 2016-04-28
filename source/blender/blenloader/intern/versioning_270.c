@@ -1002,5 +1002,21 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 
+		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			Sequence *seq;
+
+			SEQ_BEGIN (scene->ed, seq)
+			{
+				if (seq->type == SEQ_TYPE_TEXT) {
+					TextVars *data = seq->effectdata;
+					if (data->color[3] == 0.0f) {
+						copy_v4_fl(data->color, 1.0f);
+						data->shadow_color[3] = 1.0f;
+					}
+				}
+			}
+			SEQ_END
+		}
+
 	}
 }

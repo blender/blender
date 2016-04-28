@@ -32,7 +32,7 @@
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 
-#include "BKE_blender.h"  /* BLENDER_VERSION */
+#include "BKE_blender_version.h"
 #include "BKE_appdir.h"  /* own include */
 
 #include "GHOST_Path-api.h"

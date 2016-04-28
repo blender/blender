@@ -774,7 +774,6 @@ namespace carve {
   // connectivity information in the Polyhedron.
   mesh::MeshSet<3> *meshFromPolyhedron(const poly::Polyhedron *poly, int manifold_id) {
     typedef mesh::Vertex<3> vertex_t;
-    typedef mesh::Vertex<3>::vector_t vector_t;
     typedef mesh::Edge<3> edge_t;
     typedef mesh::Face<3> face_t;
     typedef mesh::Mesh<3> mesh_t;
@@ -884,7 +883,6 @@ namespace carve {
 
   // construct a Polyhedron from a MeshSet
   poly::Polyhedron *polyhedronFromMesh(const mesh::MeshSet<3> *mesh, int manifold_id) {
-    typedef poly::Polyhedron poly_t;
     typedef poly::Polyhedron::vertex_t vertex_t;
     typedef poly::Polyhedron::edge_t edge_t;
     typedef poly::Polyhedron::face_t face_t;

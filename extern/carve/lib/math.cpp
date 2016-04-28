@@ -43,6 +43,7 @@ namespace carve {
     };
 
     namespace {
+#if 0
       void cplx_sqrt(double re, double im,
                      double &re_1, double &im_1,
                      double &re_2, double &im_2) {
@@ -57,7 +58,9 @@ namespace carve {
           im_2 = -im_1;
         }
       }
+#endif
 
+#if 0
     void cplx_cbrt(double re, double im,
                    double &re_1, double &im_1,
                    double &re_2, double &im_2,
@@ -76,6 +79,7 @@ namespace carve {
         im_3 = r * sin(t + M_TWOPI * 2.0 / 3.0);
       }
     }
+#endif
 
       void add_root(std::vector<Root> &roots, double root) {
         for (size_t i = 0; i < roots.size(); ++i) {
@@ -250,6 +254,7 @@ namespace carve {
       e2.normalize();
     }
 
+#if 0
     static void eig3(const Matrix3 &m,
                      double l,
                      carve::geom::vector<3> &e1,
@@ -259,6 +264,7 @@ namespace carve {
       e2.x = 0.0; e2.y = 1.0; e2.z = 0.0;
       e3.x = 0.0; e3.y = 0.0; e3.z = 1.0;
     }
+#endif
 
     void eigSolveSymmetric(const Matrix3 &m,
                            double &l1, carve::geom::vector<3> &e1,

@@ -134,7 +134,7 @@ extern "C" {
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_appdir.h"
-#include "BKE_blender.h"
+#include "BKE_blender_version.h"
 #include "BLI_blenlib.h"
 #include "GPU_material.h"
 #include "MEM_guardedalloc.h"

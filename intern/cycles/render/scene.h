@@ -213,6 +213,11 @@ public:
 	void device_free();
 
 protected:
+	/* Check if some heavy data worth logging was updated.
+	 * Mainly used to suppress extra annoying logging.
+	 */
+	bool need_data_update();
+
 	void free_memory(bool final);
 };
 

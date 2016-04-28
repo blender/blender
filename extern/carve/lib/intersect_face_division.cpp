@@ -1409,6 +1409,7 @@ namespace {
     return s.str().substr(1);
   }
 
+#if 0
   void dumpAsGraph(carve::mesh::MeshSet<3>::face_t *face,
                    const std::vector<carve::mesh::MeshSet<3>::vertex_t *> &base_loop,
                    const carve::csg::V2Set &face_edges,
@@ -1450,6 +1451,7 @@ namespace {
     }
     std::cerr << "};\n";
   }
+#endif
 
   void generateOneFaceLoop(carve::mesh::MeshSet<3>::face_t *face,
                            const carve::csg::detail::Data &data,

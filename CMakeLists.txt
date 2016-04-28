@@ -166,7 +166,7 @@ option_defaults_init(
 )
 
 # customize...
-if (UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE)
 	# some of these libraries are problematic on Linux
 	# disable less important dependencies by default
 	set(_init_CODEC_FFMPEG                   OFF)
@@ -2319,6 +2319,12 @@ elseif(APPLE)
 	endif()
 	# Get rid of eventually clashes, we export some symbols explicite as local
 	set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -Xlinker -unexported_symbols_list -Xlinker ${CMAKE_SOURCE_DIR}/source/creator/osx_locals.map")
+
+	# Suppress ranlib "has no symbols" warnings (workaround for T48250)
+	set(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+	set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+	set(CMAKE_C_ARCHIVE_FINISH   "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
+	set(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
 endif()
 
 #-----------------------------------------------------------------------------

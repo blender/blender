@@ -64,7 +64,8 @@ GridType *OpenVDB_export_grid(
 
 	grid->setTransform(transform);
 
-	if (mask) {
+	/* Avoid clipping against an empty grid. */
+	if (mask && !mask->tree().empty()) {
 		grid = tools::clip(*grid, *mask);
 	}
 

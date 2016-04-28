@@ -137,29 +137,29 @@ static void deg_task_run_func(TaskPool *pool,
 	DepsgraphEvalState *state = (DepsgraphEvalState *)BLI_task_pool_userdata(pool);
 	OperationDepsNode *node = (OperationDepsNode *)taskdata;
 
-	if (!node->is_noop()) {
-		/* Get context. */
-		// TODO: who initialises this? "Init" operations aren't able to initialise it!!!
-		/* TODO(sergey): Wedon't use component contexts at this moment. */
-		/* ComponentDepsNode *comp = node->owner; */
-		BLI_assert(node->owner != NULL);
+	BLI_assert(!node->is_noop() && "NOOP nodes should not actually be scheduled");
 
-		/* Take note of current time. */
-		double start_time = PIL_check_seconds_timer();
-		DepsgraphDebug::task_started(state->graph, node);
-
-		/* Should only be the case for NOOPs, which never get to this point. */
-		BLI_assert(node->evaluate);
-
-		/* Perform operation. */
-		node->evaluate(state->eval_ctx);
-
-		/* Note how long this took. */
-		double end_time = PIL_check_seconds_timer();
-		DepsgraphDebug::task_completed(state->graph,
-		                               node,
-		                               end_time - start_time);
-	}
+	/* Get context. */
+	// TODO: who initialises this? "Init" operations aren't able to initialise it!!!
+	/* TODO(sergey): Wedon't use component contexts at this moment. */
+	/* ComponentDepsNode *comp = node->owner; */
+	BLI_assert(node->owner != NULL);
+	
+	/* Take note of current time. */
+	double start_time = PIL_check_seconds_timer();
+	DepsgraphDebug::task_started(state->graph, node);
+	
+	/* Should only be the case for NOOPs, which never get to this point. */
+	BLI_assert(node->evaluate);
+	
+	/* Perform operation. */
+	node->evaluate(state->eval_ctx);
+	
+	/* Note how long this took. */
+	double end_time = PIL_check_seconds_timer();
+	DepsgraphDebug::task_completed(state->graph,
+	                               node,
+	                               end_time - start_time);
 
 	schedule_children(pool, state->graph, node, state->layers);
 }
@@ -230,26 +230,54 @@ static void calculate_eval_priority(OperationDepsNode *node)
 	}
 }
 
+/* Schedule a node if it needs evaluation.
+ *   dec_parents: Decrement pending parents count, true when child nodes are scheduled
+ *                after a task has been completed.
+ */
+static void schedule_node(TaskPool *pool, Depsgraph *graph, int layers,
+                          OperationDepsNode *node, bool dec_parents)
+{
+	int id_layers = node->owner->owner->layers;
+	
+	if ((node->flag & DEPSOP_FLAG_NEEDS_UPDATE) != 0 &&
+	    (id_layers & layers) != 0)
+	{
+		if (dec_parents) {
+			BLI_assert(node->num_links_pending > 0);
+			atomic_sub_uint32(&node->num_links_pending, 1);
+		}
+
+		if (node->num_links_pending == 0) {
+			BLI_spin_lock(&graph->lock);
+			bool need_schedule = !node->scheduled;
+			node->scheduled = true;
+			BLI_spin_unlock(&graph->lock);
+
+			if (need_schedule) {
+				if (node->is_noop()) {
+					/* skip NOOP node, schedule children right away */
+					schedule_children(pool, graph, node, layers);
+				}
+				else {
+					/* children are scheduled once this task is completed */
+					BLI_task_pool_push(pool, deg_task_run_func, node, false, TASK_PRIORITY_LOW);
+				}
+			}
+		}
+	}
+}
+
 static void schedule_graph(TaskPool *pool,
                            Depsgraph *graph,
                            const int layers)
 {
-	BLI_spin_lock(&graph->lock);
 	for (Depsgraph::OperationNodes::const_iterator it = graph->operations.begin();
 	     it != graph->operations.end();
 	     ++it)
 	{
 		OperationDepsNode *node = *it;
-		IDDepsNode *id_node = node->owner->owner;
-		if ((node->flag & DEPSOP_FLAG_NEEDS_UPDATE) &&
-		    node->num_links_pending == 0 &&
-		    (id_node->layers & layers) != 0)
-		{
-			BLI_task_pool_push(pool, deg_task_run_func, node, false, TASK_PRIORITY_LOW);
-			node->scheduled = true;
-		}
+		schedule_node(pool, graph, layers, node, false);
 	}
-	BLI_spin_unlock(&graph->lock);
 }
 
 static void schedule_children(TaskPool *pool,
@@ -270,26 +298,7 @@ static void schedule_children(TaskPool *pool,
 			continue;
 		}
 
-		IDDepsNode *id_child = child->owner->owner;
-		if ((id_child->layers & layers) != 0 &&
-		    (child->flag & DEPSOP_FLAG_NEEDS_UPDATE) != 0)
-		{
-			if ((rel->flag & DEPSREL_FLAG_CYCLIC) == 0) {
-				BLI_assert(child->num_links_pending > 0);
-				atomic_sub_uint32(&child->num_links_pending, 1);
-			}
-
-			if (child->num_links_pending == 0) {
-				BLI_spin_lock(&graph->lock);
-				bool need_schedule = !child->scheduled;
-				child->scheduled = true;
-				BLI_spin_unlock(&graph->lock);
-
-				if (need_schedule) {
-					BLI_task_pool_push(pool, deg_task_run_func, child, false, TASK_PRIORITY_LOW);
-				}
-			}
-		}
+		schedule_node(pool, graph, layers, child, (rel->flag & DEPSREL_FLAG_CYCLIC) == 0);
 	}
 }
 

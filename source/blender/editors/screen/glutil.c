@@ -795,8 +795,13 @@ void bglPolygonOffset(float viewdist, float dist)
 #endif
 		}
 		else {
-			/* should be clipping value or so... */
-			offs = 0.0005f * dist;
+			/* This adjustment effectively results in reducing the Z value by 0.25%.
+			 *
+			 * winmat[14] actually evaluates to `-2 * far * near / (far - near)`,
+			 * is very close to -0.2 with default clip range, and is used as the coefficient multiplied by `w / z`,
+			 * thus controlling the z dependent part of the depth value.
+			 */
+			offs = winmat[14] * -0.0025f * dist;
 		}
 		
 		winmat[14] -= offs;

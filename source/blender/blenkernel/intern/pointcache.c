@@ -58,7 +58,6 @@
 
 #include "BKE_appdir.h"
 #include "BKE_anim.h"
-#include "BKE_blender.h"
 #include "BKE_cloth.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_key.h"

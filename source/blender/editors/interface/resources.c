@@ -96,7 +96,7 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 	static char setting = 0;
 	const char *cp = error;
 	
-	/* ensure we're not getting a color after running BKE_userdef_free */
+	/* ensure we're not getting a color after running BKE_blender_userdef_free */
 	BLI_assert(BLI_findindex(&U.themes, theme_active) != -1);
 	BLI_assert(colorid != TH_UNDEFINED);
 

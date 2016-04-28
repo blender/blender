@@ -28,6 +28,7 @@ namespace carve {
   namespace geom3d {
 
     namespace {
+#if 0
       int is_same(const std::vector<const Vector *> &a,
           const std::vector<const Vector *> &b) {
         if (a.size() != b.size()) return false;
@@ -52,6 +53,7 @@ not_fwd:
 not_rev:
         return 0;
       }
+#endif
     }
 
     bool planeIntersection(const Plane &a, const Plane &b, Ray &r) {

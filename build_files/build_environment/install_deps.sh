@@ -341,7 +341,7 @@ OPENVDB_SKIP=false
 
 # Version??
 OPENCOLLADA_VERSION="1.3"
-OPENCOLLADA_FORCE_BUILD=true  # no package!
+OPENCOLLADA_FORCE_BUILD=false
 OPENCOLLADA_FORCE_REBUILD=false
 OPENCOLLADA_SKIP=false
 
@@ -3288,7 +3288,7 @@ install_RPM() {
 
 #### Install on ARCH-like ####
 get_package_version_ARCH() {
-  pacman -Si $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'
+  pacman -Si $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+?(([0-9]+\.?)+).*/\1/'
 }
 
 check_package_ARCH() {
@@ -3385,8 +3385,8 @@ install_ARCH() {
 
   _packages="base-devel git cmake \
              libxi libxcursor libxrandr libxinerama glew libpng libtiff wget openal \
-             $OPENJPEG_DEV $VORBIS_DEV $OGG_DEV $THEORA_DEV yasm sdl fftw \
-             libxml2 yaml-cpp tinyxml"
+             $OPENJPEG_DEV $VORBIS_DEV $OGG_DEV $THEORA_DEV yasm sdl fftw intel-tbb \
+             libxml2 yaml-cpp tinyxml python-requests jemalloc"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
@@ -3394,8 +3394,7 @@ install_ARCH() {
   THEORA_USE=true
 
   if [ "$WITH_ALL" = true ]; then
-    # No libspacenav in official arch repos...
-    _packages="$_packages jack"
+    _packages="$_packages jack libspnav"
   fi
 
   PRINT ""
@@ -3456,17 +3455,15 @@ install_ARCH() {
       install_packages_ARCH python
       clean_Python
       PRINT ""
-      if [ "$WITH_NUMPY" = true ]; then
-        if [ "$NUMPY_SKIP" = true ]; then
-          WARNING "Skipping NumPy installation, as requested..."
-        else
-          check_package_version_ge_ARCH python-numpy $NUMPY_VERSION_MIN
-          if [ $? -eq 0 ]; then
-            install_packages_ARCH python-numpy
+      if [ "$NUMPY_SKIP" = true ]; then
+        WARNING "Skipping NumPy installation, as requested..."
+      else
+        check_package_version_ge_ARCH python-numpy $NUMPY_VERSION_MIN
+        if [ $? -eq 0 ]; then
+          install_packages_ARCH python-numpy
         else
           WARNING "Sorry, using python package but no valid numpy package available!" \
-                  "    Use --build-numpy to force building of both Python and NumPy."
-          fi
+                  "Use --build-numpy to force building of both Python and NumPy."
         fi
       fi
     else
@@ -3501,27 +3498,21 @@ install_ARCH() {
     fi
   fi
 
+
   PRINT ""
-  _do_compile_ocio=false
   if [ "$OCIO_SKIP" = true ]; then
     WARNING "Skipping OpenColorIO installation, as requested..."
   elif [ "$OCIO_FORCE_BUILD" = true ]; then
     INFO "Forced OpenColorIO building, as requested..."
-    _do_compile_ocio=true
-  else
-    # XXX Always force build of own OCIO, until linux distro guys update their package to default libyaml-cpp ver (0.5)!
-    #check_package_version_ge_ARCH opencolorio $OCIO_VERSION_MIN
-    #if [ $? -eq 0 ]; then
-      #install_packages_ARCH opencolorio yaml-cpp tinyxml
-      #clean_OCIO
-    #else
-      _do_compile_ocio=true
-    #fi
-  fi
-
-  if [ "$_do_compile_ocio" = true ]; then
-    install_packages_ARCH yaml-cpp tinyxml
     compile_OCIO
+  else
+    check_package_version_ge_ARCH opencolorio $OCIO_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_ARCH opencolorio
+      clean_OCIO
+    else
+      compile_OCIO
+    fi
   fi
 
 
@@ -3570,11 +3561,11 @@ install_ARCH() {
     INFO "Forced LLVM building, as requested..."
     _do_compile_llvm=true
   else
-    check_package_version_match_ARCH clang $LLVM_VERSION
+    check_package_version_match_ARCH llvm35 $LLVM_VERSION_MIN
     if [ $? -eq 0 ]; then
-      install_packages_ARCH llvm clang
+      install_packages_ARCH llvm35 clang35
       have_llvm=true
-      LLVM_VERSION=`check_package_version_ge_ARCH clang $LLVM_VERSION_MIN`
+      LLVM_VERSION=`get_package_version_ARCH llvm`
       LLVM_VERSION_FOUND=$LLVM_VERSION
       clean_LLVM
     else
@@ -3586,8 +3577,6 @@ install_ARCH() {
     install_packages_ARCH libffi
     # LLVM can't find the arch ffi header dir...
     _FFI_INCLUDE_DIR=`pacman -Ql libffi | grep -e ".*/ffi.h" | awk '{print $2}' | sed -r 's/(.*)\/ffi.h/\1/'`
-    # LLVM 3.1 needs python2 to build and arch defaults to python3
-    _PYTHON2_BIN="/usr/bin/python2"
     PRINT ""
     compile_LLVM
     have_llvm=true
@@ -3603,19 +3592,18 @@ install_ARCH() {
     INFO "Forced OpenShadingLanguage building, as requested..."
     _do_compile_osl=true
   else
-    check_package_version_ge_ARCH openshadinglanguage $OSL_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      install_packages_ARCH openshadinglanguage
-      clean_OSL
-    else
+    # XXX Compile for now due to requirement of LLVM 3.4 ...
+    #check_package_version_ge_ARCH openshadinglanguage $OSL_VERSION_MIN
+    #if [ $? -eq 0 ]; then
+    #  install_packages_ARCH openshadinglanguage
+    #  clean_OSL
+    #else
       _do_compile_osl=true
-    fi
+    #fi
   fi
 
   if [ "$_do_compile_osl" = true ]; then
     if [ "$have_llvm" = true ]; then
-      #XXX Note: will fail to build with LLVM 3.2!
-      install_packages_ARCH intel-tbb
       PRINT ""
       compile_OSL
     else
@@ -3625,21 +3613,19 @@ install_ARCH() {
 
 
   PRINT ""
-  _do_compile_osd=false
   if [ "$OSD_SKIP" = true ]; then
     WARNING "Skipping OpenSubdiv installation, as requested..."
   elif [ "$OSD_FORCE_BUILD" = true ]; then
     INFO "Forced OpenSubdiv building, as requested..."
-    _do_compile_osd=true
-  else
-    # No package currently? Just build for now!
-    _do_compile_osd=true
-  fi
-
-  if [ "$_do_compile_osd" = true ]; then
-    install_packages_ARCH intel-tbb
-    PRINT ""
     compile_OSD
+  else
+    check_package_version_ge_ARCH opensubdiv $OSD_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_ARCH opensubdiv
+      clean_OSD
+    else
+      compile_OSD
+    fi
   fi
 
 
@@ -3871,7 +3857,7 @@ print_info_ffmpeglink_RPM() {
 }
 
 print_info_ffmpeglink_ARCH() {
-  pacman -Ql $_packages | grep -e ".*\/lib[^\/]\+\.so$" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", $0)); nlines++ }'
+  pacman -Ql $_packages | grep -e ".*\/lib[^\/]\+\.so$" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
 }
 
 print_info_ffmpeglink() {
@@ -3972,12 +3958,15 @@ print_info() {
     _buildargs="$_buildargs $_1 $_2"
   fi
 
-  if [ -d $INST/ocio ]; then
+  if [ "$OCIO_SKIP" = false ]; then
     _1="-D WITH_OPENCOLORIO=ON"
-    _2="-D OPENCOLORIO_ROOT_DIR=$INST/ocio"
     PRINT "  $_1"
-    PRINT "  $_2"
-    _buildargs="$_buildargs $_1 $_2"
+    _buildargs="$_buildargs $_1"
+    if [ -d $INST/ocio ]; then
+      _1="-D OPENCOLORIO_ROOT_DIR=$INST/ocio"
+      PRINT "  $_1"
+      _buildargs="$_buildargs $_1"
+    fi
   fi
 
   if [ -d $INST/openexr ]; then
@@ -4022,12 +4011,15 @@ print_info() {
     _buildargs="$_buildargs $_1 $_2"
   fi
 
-  if [ -d $INST/osd ]; then
+  if [ "$OSD_SKIP" = false ]; then
     _1="-D WITH_OPENSUBDIV=ON"
-    _2="-D OPENSUBDIV_ROOT_DIR=$INST/osd"
     PRINT "  $_1"
-    PRINT "  $_2"
-    _buildargs="$_buildargs $_1 $_2"
+    _buildargs="$_buildargs $_1"
+    if [ -d $INST/osd ]; then
+      _1="-D OPENSUBDIV_ROOT_DIR=$INST/osd"
+      PRINT "  $_1"
+      _buildargs="$_buildargs $_1"
+    fi
   fi
 
   if [ "$WITH_OPENCOLLADA" = true ]; then

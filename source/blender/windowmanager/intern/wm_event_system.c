@@ -2197,12 +2197,6 @@ static int wm_event_inside_i(wmEvent *event, rcti *rect)
 		return 1;
 	if (BLI_rcti_isect_pt_v(rect, &event->x))
 		return 1;
-	if (event->type == MOUSEMOVE) {
-		if (BLI_rcti_isect_pt_v(rect, &event->prevx)) {
-			return 1;
-		}
-		return 0;
-	}
 	return 0;
 }
 
@@ -2432,7 +2426,6 @@ void wm_event_do_handlers(bContext *C)
 			if ((action & WM_HANDLER_BREAK) == 0) {
 				ScrArea *sa;
 				ARegion *ar;
-				int doit = 0;
 	
 				/* Note: setting subwin active should be done here, after modal handlers have been done */
 				if (event->type == MOUSEMOVE) {
@@ -2484,8 +2477,6 @@ void wm_event_do_handlers(bContext *C)
 									if (CTX_wm_window(C) == NULL)
 										return;
 
-									doit |= (BLI_rcti_isect_pt_v(&ar->winrct, &event->x));
-									
 									if (action & WM_HANDLER_BREAK)
 										break;
 								}
@@ -2518,18 +2509,12 @@ void wm_event_do_handlers(bContext *C)
 						return;
 				}
 
-				/* XXX hrmf, this gives reliable previous mouse coord for area change, feels bad? 
-				 * doing it on ghost queue gives errors when mousemoves go over area borders */
-				if (doit && win->screen->subwinactive != win->screen->mainwin) {
-					win->eventstate->prevx = event->x;
-					win->eventstate->prevy = event->y;
-					//printf("win->eventstate->prev = %d %d\n", event->x, event->y);
-				}
-				else {
-					//printf("not setting prev to %d %d\n", event->x, event->y);
-				}
 			}
-			
+
+			/* update previous mouse position for following events to use */
+			win->eventstate->prevx = event->x;
+			win->eventstate->prevy = event->y;
+
 			/* unlink and free here, blender-quit then frees all */
 			BLI_remlink(&win->queue, event);
 			wm_event_free(event);

@@ -299,7 +299,7 @@ void ntlRay::intersectBackAABB(ntlVec3Gfx mStart, ntlVec3Gfx mEnd, gfxReal &t, n
 //! intersect ray with AABB
 void ntlRay::intersectCompleteAABB(ntlVec3Gfx mStart, ntlVec3Gfx mEnd, gfxReal &tmin, gfxReal &tmax) const
 {
-  char   inside = true;   /* inside box? */
+  // char   inside = true;   /* inside box? */  /* UNUSED */
   char   hit    = false;  /* ray hits box? */
   int    whichPlane;      /* intersection plane */
   gfxReal candPlane[NUMDIM]; /* candidate plane */
@@ -315,11 +315,11 @@ void ntlRay::intersectCompleteAABB(ntlVec3Gfx mStart, ntlVec3Gfx mEnd, gfxReal &
     if(origin[i] < mStart[i]) {
       quadrant[i] = LEFT;
       candPlane [i] = mStart[i];
-      inside = false;
+      // inside = false;
     } else if(origin[i] > mEnd[i]) {
       quadrant[i] = RIGHT;
       candPlane[i] = mEnd[i];
-      inside = false;
+      // inside = false;
     } else {
       /* intersect with backside */
       if(dir[i] > 0) {

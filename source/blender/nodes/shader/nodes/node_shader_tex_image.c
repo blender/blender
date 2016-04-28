@@ -60,7 +60,6 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, bNodeExecDat
 	ImageUser *iuser = NULL;
 	NodeTexImage *tex = node->storage;
 	int isdata = tex->color_space == SHD_COLORSPACE_NONE;
-	int ret;
 
 	if (!ima)
 		return GPU_stack_link(mat, "node_tex_image_empty", in, out);
@@ -70,19 +69,18 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, bNodeExecDat
 
 	node_shader_gpu_tex_mapping(mat, node, in, out);
 
-	ret = GPU_stack_link(mat, "node_tex_image", in, out, GPU_image(ima, iuser, isdata));
+	GPU_stack_link(mat, "node_tex_image", in, out, GPU_image(ima, iuser, isdata));
 
-	if (ret) {
-		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
-		if (ibuf && (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) == 0 &&
-		    GPU_material_do_color_management(mat))
-		{
-			GPU_link(mat, "srgb_to_linearrgb", out[0].link, &out[0].link);
-		}
-		BKE_image_release_ibuf(ima, ibuf, NULL);
+	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
+	if ((tex->color_space == SHD_COLORSPACE_COLOR) &&
+	    ibuf && (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) == 0 &&
+	    GPU_material_do_color_management(mat))
+	{
+		GPU_link(mat, "srgb_to_linearrgb", out[0].link, &out[0].link);
 	}
+	BKE_image_release_ibuf(ima, ibuf, NULL);
 
-	return ret;
+	return true;
 }
 
 /* node type definition */

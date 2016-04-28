@@ -2632,7 +2632,7 @@ static void rna_def_curve_paint_settings(BlenderRNA  *brna)
 
 	prop = RNA_def_property(srna, "error_threshold", PROP_INT, PROP_PIXEL);
 	RNA_def_property_range(prop, 1, 100);
-	RNA_def_property_ui_text(prop, "Tolerance", "Allow deviation for a smoother, less preceise line");
+	RNA_def_property_ui_text(prop, "Tolerance", "Allow deviation for a smoother, less precise line");
 
 	prop = RNA_def_property(srna, "corner_angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_range(prop, 0, M_PI);

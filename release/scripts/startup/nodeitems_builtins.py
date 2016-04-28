@@ -24,27 +24,35 @@ from nodeitems_utils import NodeCategory, NodeItem, NodeItemCustom
 
 # Subclasses for standard node types
 
-class CompositorNodeCategory(NodeCategory):
+class SortedNodeCategory(NodeCategory):
+    def __init__(self, identifier, name, description="", items=None):
+        # for builtin nodes the convention is to sort by name
+        if isinstance(items, list):
+            items = sorted(items, key=lambda item: item.label.lower())
+
+        super().__init__(identifier, name, description, items)
+
+class CompositorNodeCategory(SortedNodeCategory):
     @classmethod
     def poll(cls, context):
         return (context.space_data.tree_type == 'CompositorNodeTree')
 
 
-class ShaderNewNodeCategory(NodeCategory):
+class ShaderNewNodeCategory(SortedNodeCategory):
     @classmethod
     def poll(cls, context):
         return (context.space_data.tree_type == 'ShaderNodeTree' and
                 context.scene.render.use_shading_nodes)
 
 
-class ShaderOldNodeCategory(NodeCategory):
+class ShaderOldNodeCategory(SortedNodeCategory):
     @classmethod
     def poll(cls, context):
         return (context.space_data.tree_type == 'ShaderNodeTree' and
                 not context.scene.render.use_shading_nodes)
 
 
-class TextureNodeCategory(NodeCategory):
+class TextureNodeCategory(SortedNodeCategory):
     @classmethod
     def poll(cls, context):
         return context.space_data.tree_type == 'TextureNodeTree'
@@ -160,6 +168,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeMapping"),
         NodeItem("ShaderNodeVectorCurve"),
         NodeItem("ShaderNodeVectorTransform"),
+        NodeItem("ShaderNodeNormalMap"),
         ]),
     ShaderOldNodeCategory("SH_CONVERTOR", "Converter", items=[
         NodeItem("ShaderNodeValToRGB"),

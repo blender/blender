@@ -35,7 +35,7 @@
 #include "BLI_path_util.h"
 
 #include "BKE_library.h"
-#include "BKE_blender.h"
+#include "BKE_blendfile.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -66,13 +66,15 @@ PyDoc_STRVAR(bpy_lib_write_doc,
 "   :type relative_remap: bool\n"
 "   :arg fake_user: When True, data-blocks will be written with fake-user flag enabled.\n"
 "   :type fake_user: bool\n"
+"   :arg compress: When True, write a compressed blend file.\n"
+"   :type compress: bool\n"
 );
 static PyObject *bpy_lib_write(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {
 		"filepath", "datablocks",
 		/* optional */
-		"relative_remap", "fake_user",
+		"relative_remap", "fake_user", "compress",
 		NULL,
 	};
 
@@ -80,15 +82,16 @@ static PyObject *bpy_lib_write(PyObject *UNUSED(self), PyObject *args, PyObject 
 	const char *filepath;
 	char filepath_abs[FILE_MAX];
 	PyObject *datablocks = NULL;
-	bool use_relative_remap = false, use_fake_user = false;
+	bool use_relative_remap = false, use_fake_user = false, use_compress = false;
 
 	if (!PyArg_ParseTupleAndKeywords(
 	        args, kwds,
-	        "sO!|$O&O&:write", (char **)kwlist,
+	        "sO!|$O&O&O&:write", (char **)kwlist,
 	        &filepath,
 	        &PySet_Type, &datablocks,
 	        PyC_ParseBool, &use_relative_remap,
-	        PyC_ParseBool, &use_fake_user))
+	        PyC_ParseBool, &use_fake_user,
+	        PyC_ParseBool, &use_compress))
 	{
 		return NULL;
 	}
@@ -98,6 +101,10 @@ static PyObject *bpy_lib_write(PyObject *UNUSED(self), PyObject *args, PyObject 
 
 	if (use_relative_remap) {
 		write_flags |= G_FILE_RELATIVE_REMAP;
+	}
+
+	if (use_compress) {
+		write_flags |= G_FILE_COMPRESS;
 	}
 
 	BLI_strncpy(filepath_abs, filepath, FILE_MAX);

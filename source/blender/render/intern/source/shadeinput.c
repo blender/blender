@@ -883,7 +883,10 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 	float u = shi->u, v = shi->v;
 	float l = 1.0f + u + v, dl;
 	int mode = shi->mode;        /* or-ed result for all nodes */
+	int mode2 = shi->mode2;
 	short texco = shi->mat->texco;
+	const bool need_mikk_tangent = (mode & MA_NORMAP_TANG || R.flag & R_NEED_TANGENT);
+	const bool need_mikk_tangent_concrete = (mode2 & MA_TANGENT_CONCRETE) != 0;
 
 	/* calculate dxno */
 	if (shi->vlr->flag & R_SMOOTH) {
@@ -904,8 +907,8 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 	}
 
 	/* calc tangents */
-	if (mode & (MA_TANGENT_V | MA_NORMAP_TANG) || R.flag & R_NEED_TANGENT) {
-		const float *tangent, *s1, *s2, *s3;
+	if (mode & (MA_TANGENT_V | MA_NORMAP_TANG) || mode2 & MA_TANGENT_CONCRETE || R.flag & R_NEED_TANGENT) {
+		const float *s1, *s2, *s3;
 		float tl, tu, tv;
 
 		if (shi->vlr->flag & R_SMOOTH) {
@@ -942,14 +945,18 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			}
 		}
 
-		if (mode & MA_NORMAP_TANG || R.flag & R_NEED_TANGENT) {
-			tangent = RE_vlakren_get_nmap_tangent(obr, shi->vlr, 0);
+		if (need_mikk_tangent || need_mikk_tangent_concrete) {
+			int j1 = shi->i1, j2 = shi->i2, j3 = shi->i3;
+			float c0[3], c1[3], c2[3];
+			int acttang = obr->actmtface;
 
-			if (tangent) {
-				int j1 = shi->i1, j2 = shi->i2, j3 = shi->i3;
-				float c0[3], c1[3], c2[3];
+			vlr_set_uv_indices(shi->vlr, &j1, &j2, &j3);
 
-				vlr_set_uv_indices(shi->vlr, &j1, &j2, &j3);
+			/* cycle through all tangent in vlakren */
+			for (int i = 0; i < MAX_MTFACE; i++) {
+				const float *tangent = RE_vlakren_get_nmap_tangent(obr, shi->vlr, i, false);
+				if (!tangent)
+					continue;
 
 				copy_v3_v3(c0, &tangent[j1 * 4]);
 				copy_v3_v3(c1, &tangent[j2 * 4]);
@@ -965,13 +972,19 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 
 				/* we don't normalize the interpolated TBN tangent
 				 * corresponds better to how it's done in game engines */
-				shi->nmaptang[0] = (tl * c2[0] - tu * c0[0] - tv * c1[0]);
-				shi->nmaptang[1] = (tl * c2[1] - tu * c0[1] - tv * c1[1]);
-				shi->nmaptang[2] = (tl * c2[2] - tu * c0[2] - tv * c1[2]);
+				shi->tangents[i][0] = (tl * c2[0] - tu * c0[0] - tv * c1[0]);
+				shi->tangents[i][1] = (tl * c2[1] - tu * c0[1] - tv * c1[1]);
+				shi->tangents[i][2] = (tl * c2[2] - tu * c0[2] - tv * c1[2]);
 
 				/* the sign is the same for all 3 vertices of any
 				 * non degenerate triangle. */
-				shi->nmaptang[3] = tangent[j1 * 4 + 3];
+				shi->tangents[i][3] = tangent[j1 * 4 + 3];
+
+				if (acttang == i && need_mikk_tangent) {
+					for (int m = 0; m < 4; m++) {
+						shi->nmaptang[m] = shi->tangents[i][m];
+					}
+				}
 			}
 		}
 	}
