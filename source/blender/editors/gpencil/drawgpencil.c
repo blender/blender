@@ -408,12 +408,15 @@ static void gp_triangulate_stroke_fill(bGPDstroke *gps)
 			gps->triangles = MEM_recallocN(gps->triangles, sizeof(bGPDtriangle) * gps->tot_triangles);
 		}
 		
-		for (int i = 0; i < gps->tot_triangles; i++) {
+		int triangle_index = 0;
+		int i;
+		
+		for (i = 0; (i < gps->totpoints) && (triangle_index < gps->tot_triangles); i++) {
 			if ((tmp_triangles[i][0] >= 0) && (tmp_triangles[i][0] < gps->totpoints) &&
 			    (tmp_triangles[i][1] >= 0) && (tmp_triangles[i][1] < gps->totpoints) &&
 			    (tmp_triangles[i][2] >= 0) && (tmp_triangles[i][2] < gps->totpoints))
 			{
-				bGPDtriangle *stroke_triangle = &gps->triangles[i];
+				bGPDtriangle *stroke_triangle = &gps->triangles[triangle_index++];
 				
 				stroke_triangle->v1 = tmp_triangles[i][0];
 				stroke_triangle->v2 = tmp_triangles[i][1];
