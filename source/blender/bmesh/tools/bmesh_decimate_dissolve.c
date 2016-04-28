@@ -226,6 +226,12 @@ static bool  bm_vert_collapse_is_degenerate(BMVert *v)
 	BMVert *v_pair[2];
 
 	if (BM_vert_edge_pair(v, &e_pair[0], &e_pair[1])) {
+
+		/* allow wire edges */
+		if (BM_edge_is_wire(e_pair[0]) || BM_edge_is_wire(e_pair[1])) {
+			return false;
+		}
+
 		v_pair[0] = BM_edge_other_vert(e_pair[0], v);
 		v_pair[1] = BM_edge_other_vert(e_pair[1], v);
 
