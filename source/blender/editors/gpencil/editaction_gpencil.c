@@ -460,7 +460,8 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
 					/* make a copy of stroke, then of its points array */
 					gpsn = MEM_dupallocN(gps);
 					gpsn->points = MEM_dupallocN(gps->points);
-					
+					/* duplicate triangle information */
+					gpsn->triangles = MEM_dupallocN(gps->triangles);
 					/* append stroke to frame */
 					BLI_addtail(&gpf->strokes, gpsn);				
 				}

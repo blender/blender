@@ -7813,7 +7813,9 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 								copy_m3_m3(td->mtx, mtx);
 								unit_m3(td->axismtx); // XXX?
 							}
-							
+							/* Triangulation must be calculated again, so save the stroke for recalc function */
+							td->extra = gps;
+
 							td++;
 							tail++;
 						}

@@ -766,6 +766,8 @@ static void gp_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
 			new_stroke = MEM_dupallocN(gps);
 			
 			new_stroke->points = MEM_dupallocN(gps->points);
+			/* duplicate triangle information */
+			new_stroke->triangles = MEM_dupallocN(gps->triangles);
 			new_stroke->next = new_stroke->prev = NULL;
 			
 			BLI_addtail(&gpf->strokes, new_stroke);
@@ -1283,6 +1285,11 @@ static bool gpsculpt_brush_apply_standard(bContext *C, tGP_BrushEditData *gso)
 			default:
 				printf("ERROR: Unknown type of GPencil Sculpt brush - %u\n", gso->brush_type);
 				break;
+		}
+		/* Triangulation must be calculated if changed */
+		if (changed) {
+			gps->flag |= GP_STROKE_RECALC_CACHES;
+			gps->tot_triangles = 0;
 		}
 	}
 	CTX_DATA_END;

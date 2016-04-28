@@ -57,6 +57,14 @@ typedef enum eGPDspoint_Flag {
 	GP_SPOINT_TAG       = (1 << 1),
 } eGPSPoint_Flag;
 
+/* Grease-Pencil Annotations - 'Triangle'
+ * 	-> A triangle contains the index of three vertices for filling the stroke
+ *	   this is only used if high quality fill is enabled
+ */
+typedef struct bGPDtriangle {
+	int v1, v2, v3;         /* indices for tesselated triangle used for GP Fill */
+} bGPDtriangle;
+
 /* Grease-Pencil Annotations - 'Stroke'
  * 	-> A stroke represents a (simplified version) of the curve
  *	   drawn by the user in one 'mousedown'->'mouseup' operation
@@ -69,6 +77,9 @@ typedef struct bGPDstroke {
 	
 	short thickness;		/* thickness of stroke (currently not used) */
 	short flag;				/* various settings about this stroke */
+	bGPDtriangle *triangles;/* tesselated triangles for GP Fill */
+	int tot_triangles;      /* number of triangles in array */
+	short  pad2[2];         /* avoid compiler align error */
 
 	double inittime;		/* Init time of stroke */
 } bGPDstroke;
@@ -83,6 +94,8 @@ typedef enum eGPDstroke_Flag {
 	GP_STROKE_2DIMAGE		= (1 << 2),
 	/* stroke is selected */
 	GP_STROKE_SELECT		= (1 << 3),
+	/* Recalculate triangulation for high quality fill (true force a new recalc) */
+	GP_STROKE_RECALC_CACHES = (1 << 4),
 	/* only for use with stroke-buffer (while drawing eraser) */
 	GP_STROKE_ERASER		= (1 << 15)
 } eGPDstroke_Flag;
@@ -160,6 +173,8 @@ typedef enum eGPDlayer_Flag {
 	GP_LAYER_GHOST_NEXTCOL	= (1 << 9),
 	/* "volumetric" strokes (i.e. GLU Quadric discs in 3D) */
 	GP_LAYER_VOLUMETRIC		= (1 << 10),
+	/* Use High quality fill using stencil */
+	GP_LAYER_HQ_FILL        = (1 << 11)
 } eGPDlayer_Flag;
 
 /* Grease-Pencil Annotations - 'DataBlock' */

@@ -572,6 +572,9 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	gps->flag = gpd->sbuffer_sflag;
 	gps->inittime = p->inittime;
 	
+	/* enable recalculation flag by default (only used if hq fill) */
+	gps->flag |= GP_STROKE_RECALC_CACHES;
+
 	/* allocate enough memory for a continuous array for storage points */
 	int sublevel = gpl->sublevel;
 	int new_totpoints = gps->totpoints;
@@ -580,7 +583,10 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		new_totpoints += new_totpoints - 1;
 	}
 	gps->points = MEM_callocN(sizeof(bGPDspoint) * new_totpoints, "gp_stroke_points");
-	
+	/* initialize triangle memory to dummy data */
+	gps->triangles = MEM_callocN(sizeof(bGPDtriangle), "GP Stroke triangulation");
+	gps->flag |= GP_STROKE_RECALC_CACHES;
+	gps->tot_triangles = 0;
 	/* set pointer to first non-initialized point */
 	pt = gps->points + (gps->totpoints - totelem);
 	
@@ -795,6 +801,8 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 		/* just free stroke */
 		if (gps->points)
 			MEM_freeN(gps->points);
+		if (gps->triangles)
+			MEM_freeN(gps->triangles);
 		BLI_freelinkN(&gpf->strokes, gps);
 	}
 	else if (gps->totpoints == 1) {
@@ -807,6 +815,8 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 				/* free stroke */
 				// XXX: pressure sensitive eraser should apply here too?
 				MEM_freeN(gps->points);
+				if (gps->triangles)
+					 MEM_freeN(gps->triangles);
 				BLI_freelinkN(&gpf->strokes, gps);
 			}
 		}

@@ -35,10 +35,13 @@
 #include <math.h>
 #include <float.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_sys_types.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_polyfill2d.h"
 
 #include "BLF_api.h"
 #include "BLT_translation.h"
@@ -82,6 +85,7 @@ typedef enum eDrawStrokeFlags {
 	GP_DRAWDATA_NO_ONIONS   = (1 << 6),	  /* no onionskins should be drawn (for animation playback) */
 	GP_DRAWDATA_VOLUMETRIC	= (1 << 7),   /* draw strokes as "volumetric" circular billboards */
 	GP_DRAWDATA_FILL        = (1 << 8),   /* fill insides/bounded-regions of strokes */
+	GP_DRAWDATA_HQ_FILL     = (1 << 9)    /* Use high quality fill */
 } eDrawStrokeFlags;
 
 
@@ -324,37 +328,184 @@ static void gp_draw_stroke_volumetric_3d(bGPDspoint *points, int totpoints, shor
 
 
 /* --------------- Stroke Fills ----------------- */
-
-/* draw fills for shapes */
-static void gp_draw_stroke_fill(bGPDspoint *points, int totpoints, short UNUSED(thickness),
-                                short UNUSED(dflag), short sflag,
-                                int offsx, int offsy, int winx, int winy)
+/* get points of stroke always flat to view not affected by camera view or view position
+ */
+static void gp_stroke_2d_flat(bGPDspoint *points, int totpoints, float(*points2d)[2], int *r_direction)
 {
+	bGPDspoint *pt0 = &points[0];
+	bGPDspoint *pt1 = &points[1];
+	bGPDspoint *pt3 = &points[(int) (totpoints * 0.75)];
 	bGPDspoint *pt;
+	float locx[3];
+	float locy[3];
+	float loc3[3];
+	float normal[3];
+
+	/* local X axis (p0-p1) */
+	sub_v3_v3v3(locx, &pt1->x, &pt0->x);
+
+	/* point vector at 3/4 */
+	sub_v3_v3v3(loc3, &pt3->x, &pt0->x);
+
+	/* vector orthogonal to polygon plane */
+	cross_v3_v3v3(normal, locx, loc3);
+
+	/* local Y axis (cross to normal/x axis) */
+	cross_v3_v3v3(locy, normal, locx);
+
+	/* Normalize vectors */
+	normalize_v3(locx);
+	normalize_v3(locy);
+
+	/* Get all points in local space */
+	for (int i = 0; i < totpoints; i++)	{
+
+		float loc[3];
+		/* Get local space using first point as origin */
+		pt = &points[i];
+		sub_v3_v3v3(loc, &pt->x, &pt0->x);
+
+		float co[2];
+		co[0] = dot_v3v3(loc, locx);
+		co[1] = dot_v3v3(loc, locy);
+		points2d[i][0] = co[0];
+		points2d[i][1] = co[1];
+	}
+
+	*r_direction = (int)locy[2];
+}
+
+
+/* triangulate stroke for high quality fill (this is done only if cache is null or stroke was modified) */
+static void gp_triangulate_stroke_fill(bGPDstroke *gps)
+{
+	BLI_assert(gps->totpoints >= 3);
+
+	bGPDtriangle *stroke_triangle;
 	int i;
-	
-	BLI_assert(totpoints >= 3);
-	
-	/* As an initial implementation, we use the OpenGL filled polygon drawing
-	 * here since it's the easiest option to implement for this case. It does
-	 * come with limitations (notably for concave shapes), though it shouldn't
-	 * be much of an issue in most cases.
-	 */
-	glBegin(GL_POLYGON);
-	
-	for (i = 0, pt = points; i < totpoints; i++, pt++) {
-		if (sflag & GP_STROKE_3DSPACE) {
-			glVertex3fv(&pt->x);
-		}
-		else {
-			float co[2];
-			
-			gp_calc_2d_stroke_xy(pt, sflag, offsx, offsy, winx, winy, co);
-			glVertex2fv(co);
+
+	/* allocate memory for temporary areas */
+	unsigned int(*tmp_triangles)[3] = MEM_mallocN(sizeof(*tmp_triangles) * gps->totpoints, "GP Stroke temp triangulation");
+	float(*points2d)[2] = MEM_mallocN(sizeof(*points2d) * gps->totpoints, "GP Stroke temp 2d points");
+
+	int direction;
+
+	/* convert to 2d and triangulate */
+	gp_stroke_2d_flat(gps->points, gps->totpoints, points2d, &direction);
+	BLI_polyfill_calc((const float(*)[2])points2d, (unsigned int)gps->totpoints, direction, (unsigned int(*)[3])tmp_triangles);
+
+	/* count number of valid triangles */
+	gps->tot_triangles = 0;
+	for (i = 0; i < gps->totpoints; i++) {
+		if ((tmp_triangles[i][0] >= 0) && (tmp_triangles[i][0] < gps->totpoints) &&
+			(tmp_triangles[i][1] >= 0) && (tmp_triangles[i][1] < gps->totpoints) &&
+			(tmp_triangles[i][2] >= 0) && (tmp_triangles[i][2] < gps->totpoints))
+		{
+			gps->tot_triangles += 1;
 		}
 	}
-	
-	glEnd();
+
+	/* save triangulation data in stroke cache */
+	if (gps->triangles == NULL) {
+		gps->triangles = MEM_callocN(sizeof(bGPDtriangle) * gps->tot_triangles, "GP Stroke triangulation");
+	}
+	else {
+		gps->triangles = MEM_recallocN(gps->triangles, sizeof(*gps->triangles) * gps->tot_triangles);
+	}
+
+	for (i = 0; i < gps->tot_triangles; i++) {
+		if ((tmp_triangles[i][0] >= 0) && (tmp_triangles[i][0] < gps->totpoints) &&
+			(tmp_triangles[i][1] >= 0) && (tmp_triangles[i][1] < gps->totpoints) &&
+			(tmp_triangles[i][2] >= 0) && (tmp_triangles[i][2] < gps->totpoints))
+		{
+			stroke_triangle = &gps->triangles[i];
+			stroke_triangle->v1 = tmp_triangles[i][0];
+			stroke_triangle->v2 = tmp_triangles[i][1];
+			stroke_triangle->v3 = tmp_triangles[i][2];
+		}
+	}
+	/* disable recalculation flag (False)*/
+	if (gps->flag & GP_STROKE_RECALC_CACHES) {
+		gps->flag ^= GP_STROKE_RECALC_CACHES;
+	}
+	/* clear memory */
+	if (tmp_triangles) MEM_freeN(tmp_triangles);
+	if (points2d) MEM_freeN(points2d);
+
+}
+
+
+/* draw fills for shapes */
+static void gp_draw_stroke_fill(bGPDstroke *gps, short UNUSED(thickness), short dflag, int offsx, int offsy, int winx, int winy)
+{
+	int i;
+
+	BLI_assert(gps->totpoints >= 3);
+	/* Triangulation fill if high quality flag is enabled */
+	if (dflag & GP_DRAWDATA_HQ_FILL) {
+		bGPDtriangle *stroke_triangle;
+		bGPDspoint *pt;
+
+		/* Calculate triangles cache for filling area (must be done only after changes) */
+		if ((gps->flag & GP_STROKE_RECALC_CACHES) || (gps->tot_triangles == 0) || (gps->triangles == NULL)) {
+			gp_triangulate_stroke_fill(gps);
+		}
+		/* Draw all triangles for filling the polygon (cache must be calculated before) */
+		BLI_assert(gps->tot_triangles >= 1);
+		glBegin(GL_TRIANGLES);
+		for (i = 0, stroke_triangle = gps->triangles; i < gps->tot_triangles; i++, stroke_triangle++) {
+			if (gps->flag & GP_STROKE_3DSPACE) {
+				/* vertex 1 */
+				pt = &gps->points[stroke_triangle->v1];
+				glVertex3fv(&pt->x);
+				/* vertex 2 */
+				pt = &gps->points[stroke_triangle->v2];
+				glVertex3fv(&pt->x);
+				/* vertex 3 */
+				pt = &gps->points[stroke_triangle->v3];
+				glVertex3fv(&pt->x);
+			}
+			else {
+				float co[2];
+				/* vertex 1 */
+				pt = &gps->points[stroke_triangle->v1];
+				gp_calc_2d_stroke_xy(pt, gps->flag, offsx, offsy, winx, winy, co);
+				glVertex2fv(co);
+				/* vertex 2 */
+				pt = &gps->points[stroke_triangle->v2];
+				gp_calc_2d_stroke_xy(pt, gps->flag, offsx, offsy, winx, winy, co);
+				glVertex2fv(co);
+				/* vertex 3 */
+				pt = &gps->points[stroke_triangle->v3];
+				gp_calc_2d_stroke_xy(pt, gps->flag, offsx, offsy, winx, winy, co);
+				glVertex2fv(co);
+			}
+		}
+		glEnd();
+	}
+	else {
+		/* As an initial implementation, we use the OpenGL filled polygon drawing
+		 * here since it's the easiest option to implement for this case. It does
+		 * come with limitations (notably for concave shapes), though it shouldn't
+		 * be much of an issue in most cases.
+		 */
+		bGPDspoint *pt;
+
+		glBegin(GL_POLYGON);
+		for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+			if (gps->flag & GP_STROKE_3DSPACE) {
+				glVertex3fv(&pt->x);
+			}
+			else {
+				float co[2];
+
+				gp_calc_2d_stroke_xy(pt, gps->flag, offsx, offsy, winx, winy, co);
+				glVertex2fv(co);
+			}
+		}
+
+		glEnd();
+	}
 }
 
 /* ----- Existing Strokes Drawing (3D and Point) ------ */
@@ -695,7 +846,7 @@ static void gp_draw_strokes(bGPDframe *gpf, int offsx, int offsy, int winx, int 
 			/* 3D Fill */
 			if ((dflag & GP_DRAWDATA_FILL) && (gps->totpoints >= 3)) {
 				glColor4fv(fill_color);
-				gp_draw_stroke_fill(gps->points, gps->totpoints, lthick, dflag, gps->flag, offsx, offsy, winx, winy);
+				gp_draw_stroke_fill(gps, lthick, dflag, offsx, offsy, winx, winy);
 			}
 			
 			/* 3D Stroke */
@@ -730,7 +881,7 @@ static void gp_draw_strokes(bGPDframe *gpf, int offsx, int offsy, int winx, int 
 			/* 2D - Fill */
 			if ((dflag & GP_DRAWDATA_FILL) && (gps->totpoints >= 3)) {
 				glColor4fv(fill_color);
-				gp_draw_stroke_fill(gps->points, gps->totpoints, lthick, dflag, gps->flag, offsx, offsy, winx, winy);
+				gp_draw_stroke_fill(gps, lthick, dflag, offsx, offsy, winx, winy);
 			}
 			
 			/* 2D Strokes... */
@@ -990,7 +1141,10 @@ static void gp_draw_data_layers(bGPdata *gpd, int offsx, int offsy, int winx, in
 		
 		/* volumetric strokes... */
 		GP_DRAWFLAG_APPLY((gpl->flag & GP_LAYER_VOLUMETRIC), GP_DRAWDATA_VOLUMETRIC);
-		
+
+		/* HQ fills... */
+		GP_DRAWFLAG_APPLY((gpl->flag & GP_LAYER_HQ_FILL), GP_DRAWDATA_HQ_FILL);
+
 		/* fill strokes... */
 		// XXX: this is not a very good limit
 		GP_DRAWFLAG_APPLY((gpl->fill[3] > GPENCIL_ALPHA_OPACITY_THRESH), GP_DRAWDATA_FILL);
