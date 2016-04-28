@@ -193,57 +193,57 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.aa_samples = IntProperty(
                 name="AA Samples",
                 description="Number of antialiasing samples to render for each pixel",
-                min=1, max=10000,
+                min=1, max=2097151,
                 default=4,
                 )
         cls.preview_aa_samples = IntProperty(
                 name="AA Samples",
                 description="Number of antialiasing samples to render in the viewport, unlimited if 0",
-                min=0, max=10000,
+                min=0, max=2097151,
                 default=4,
                 )
         cls.diffuse_samples = IntProperty(
                 name="Diffuse Samples",
                 description="Number of diffuse bounce samples to render for each AA sample",
-                min=1, max=10000,
+                min=1, max=1024,
                 default=1,
                 )
         cls.glossy_samples = IntProperty(
                 name="Glossy Samples",
                 description="Number of glossy bounce samples to render for each AA sample",
-                min=1, max=10000,
+                min=1, max=1024,
                 default=1,
                 )
         cls.transmission_samples = IntProperty(
                 name="Transmission Samples",
                 description="Number of transmission bounce samples to render for each AA sample",
-                min=1, max=10000,
+                min=1, max=1024,
                 default=1,
                 )
         cls.ao_samples = IntProperty(
                 name="Ambient Occlusion Samples",
                 description="Number of ambient occlusion samples to render for each AA sample",
-                min=1, max=10000,
+                min=1, max=1024,
                 default=1,
                 )
         cls.mesh_light_samples = IntProperty(
                 name="Mesh Light Samples",
                 description="Number of mesh emission light samples to render for each AA sample",
-                min=1, max=10000,
+                min=1, max=1024,
                 default=1,
                 )
 
         cls.subsurface_samples = IntProperty(
                 name="Subsurface Samples",
                 description="Number of subsurface scattering samples to render for each AA sample",
-                min=1, max=10000,
+                min=1, max=1024,
                 default=1,
                 )
 
         cls.volume_samples = IntProperty(
                 name="Volume Samples",
                 description="Number of volume scattering samples to render for each AA sample",
-                min=1, max=10000,
+                min=1, max=1024,
                 default=1,
                 )
 

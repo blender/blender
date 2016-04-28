@@ -175,7 +175,7 @@ ccl_device void cmj_sample_2D(int s, int N, int p, float *fx, float *fy)
 #else
 	int m = float_to_int(sqrtf(N));
 #endif
-	int n = (N + m - 1)/m;
+	int n = (N - 1)/m + 1;
 	float invN = 1.0f/N;
 	float invm = 1.0f/m;
 	float invn = 1.0f/n;
