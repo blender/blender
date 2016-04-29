@@ -59,6 +59,7 @@
 #include "DNA_nla_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_fluidsim.h" // NT
+#include "DNA_object_force.h"
 #include "DNA_object_types.h"
 #include "DNA_property_types.h"
 #include "DNA_view3d_types.h"
@@ -88,7 +89,6 @@
 #include "BKE_main.h" // for Main
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_modifier.h"
-#include "BKE_pointcache.h"
 #include "BKE_property.h" // for BKE_bproperty_object_get
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
@@ -2669,7 +2669,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		Mesh *me;
 		bNodeTree *ntree;
 		Tex *tex;
-		ModifierData *md;
 
 		/* unless the file was created 2.44.3 but not 2.45, update the constraints */
 		if (!(main->versionfile == 244 && main->subversionfile == 3) &&
@@ -2747,22 +2746,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			/* repair preview from 242 - 244*/
 			for (ima = main->image.first; ima; ima = ima->id.next) {
 				ima->preview = NULL;
-			}
-		}
-
-		/* add point caches */
-		for (ob = main->object.first; ob; ob = ob->id.next) {
-			if (ob->soft && !ob->soft->pointcache)
-				ob->soft->pointcache = BKE_ptcache_add(&ob->soft->ptcaches);
-
-			for (md = ob->modifiers.first; md; md = md->next) {
-				if (md->type == eModifierType_Cloth) {
-					ClothModifierData *clmd = (ClothModifierData*) md;
-					if (!clmd->point_cache) {
-						clmd->point_cache = BKE_ptcache_add(&clmd->ptcaches);
-						clmd->point_cache->step = 1;
-					}
-				}
 			}
 		}
 

@@ -158,7 +158,6 @@
 #include "BKE_subsurf.h"
 #include "BKE_modifier.h"
 #include "BKE_fcurve.h"
-#include "BKE_pointcache.h"
 #include "BKE_mesh.h"
 
 #ifdef USE_NODE_COMPAT_CUSTOMNODES
@@ -1424,24 +1423,9 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			SmokeModifierData *smd = (SmokeModifierData*) md;
 			
 			if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
-				if (smd->domain) {
-					write_pointcaches(wd, &(smd->domain->ptcaches[0]));
-
-					/* create fake pointcache so that old blender versions can read it */
-					smd->domain->point_cache[1] = BKE_ptcache_add(&smd->domain->ptcaches[1]);
-					smd->domain->point_cache[1]->flag |= PTCACHE_DISK_CACHE|PTCACHE_FAKE_SMOKE;
-					smd->domain->point_cache[1]->step = 1;
-
-					write_pointcaches(wd, &(smd->domain->ptcaches[1]));
-				}
-				
 				writestruct(wd, DATA, "SmokeDomainSettings", 1, smd->domain);
 
 				if (smd->domain) {
-					/* cleanup the fake pointcache */
-					BKE_ptcache_free_list(&smd->domain->ptcaches[1]);
-					smd->domain->point_cache[1] = NULL;
-					
 					writestruct(wd, DATA, "EffectorWeights", 1, smd->domain->effector_weights);
 				}
 			}

@@ -149,7 +149,6 @@ set(SRC
 	intern/paint.c
 	intern/pbvh.c
 	intern/pbvh_bmesh.c
-	intern/pointcache.c
 	intern/property.c
 	intern/report.c
 	intern/rigidbody.c
@@ -260,7 +259,6 @@ set(SRC
 	BKE_packedFile.h
 	BKE_paint.h
 	BKE_pbvh.h
-	BKE_pointcache.h
 	BKE_property.h
 	BKE_report.h
 	BKE_rigidbody.h

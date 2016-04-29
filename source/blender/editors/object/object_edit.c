@@ -75,7 +75,6 @@
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
-#include "BKE_pointcache.h"
 #include "BKE_property.h"
 #include "BKE_sca.h"
 #include "BKE_softbody.h"
@@ -409,20 +408,8 @@ void ED_object_editmode_exit(bContext *C, int flag)
 
 	/* freedata only 0 now on file saves and render */
 	if (freedata) {
-		ListBase pidlist;
-		PTCacheID *pid;
-
 		/* for example; displist make is different in editmode */
 		scene->obedit = NULL; // XXX for context
-
-		/* flag object caches as outdated */
-		BKE_ptcache_ids_from_object(&pidlist, obedit, scene, 0);
-		for (pid = pidlist.first; pid; pid = pid->next) {
-			pid->cache->flag |= PTCACHE_OUTDATED;
-		}
-		BLI_freelistN(&pidlist);
-		
-		BKE_ptcache_object_reset(scene, obedit, PTCACHE_RESET_OUTDATED);
 
 		/* also flush ob recalc, doesn't take much overhead, but used for particles */
 		DAG_id_tag_update(&obedit->id, OB_RECALC_OB | OB_RECALC_DATA);

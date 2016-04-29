@@ -90,13 +90,13 @@ static EnumPropertyItem empty_vortex_shape_items[] = {
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_dynamicpaint_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_texture_types.h"
 
 #include "BKE_context.h"
 #include "BKE_modifier.h"
 #include "BKE_depsgraph.h"
-#include "BKE_pointcache.h"
 
 #include "ED_object.h"
 
@@ -340,18 +340,8 @@ static void rna_EffectorWeight_update(Main *UNUSED(bmain), Scene *UNUSED(scene),
 {
 	ID *id = ptr->id.data;
 
-	if (id && GS(id->name) == ID_SCE) {
-		Scene *scene = (Scene *)id;
-		Base *base;
-
-		for (base = scene->base.first; base; base = base->next) {
-			BKE_ptcache_object_reset(scene, base->object, PTCACHE_RESET_DEPSGRAPH);
-		}
-	}
-	else {
-		DAG_id_tag_update(id, OB_RECALC_DATA);
-		WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
-	}
+	DAG_id_tag_update(id, OB_RECALC_DATA);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 }
 
 static void rna_EffectorWeight_dependency_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)

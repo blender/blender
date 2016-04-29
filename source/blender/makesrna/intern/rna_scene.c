@@ -422,7 +422,6 @@ EnumPropertyItem rna_enum_bake_pass_filter_type_items[] = {
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_depsgraph.h"
 #include "BKE_mesh.h"
@@ -1509,15 +1508,6 @@ static void rna_Scene_use_nodes_update(bContext *C, PointerRNA *ptr)
 
 	if (scene->use_nodes && scene->nodetree == NULL)
 		ED_node_composit_default(C, scene);
-}
-
-static void rna_Physics_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
-{
-	Scene *scene = (Scene *)ptr->id.data;
-	Base *base;
-
-	for (base = scene->base.first; base; base = base->next)
-		BKE_ptcache_object_reset(scene, base->object, PTCACHE_RESET_DEPSGRAPH);
 }
 
 static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value)
@@ -6668,12 +6658,10 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_range(prop, -200.0f, 200.0f, 1, 2);
 	RNA_def_property_ui_text(prop, "Gravity", "Constant acceleration in a given direction");
-	RNA_def_property_update(prop, 0, "rna_Physics_update");
 
 	prop = RNA_def_property(srna, "use_gravity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "physics_settings.flag", PHYS_GLOBAL_GRAVITY);
 	RNA_def_property_ui_text(prop, "Global Gravity", "Use global gravity for all dynamics");
-	RNA_def_property_update(prop, 0, "rna_Physics_update");
 	
 	/* Render Data */
 	prop = RNA_def_property(srna, "render", PROP_POINTER, PROP_NONE);

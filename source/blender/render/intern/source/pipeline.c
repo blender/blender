@@ -69,7 +69,6 @@
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
-#include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
@@ -3070,21 +3069,6 @@ static void validate_render_settings(Render *re)
 	}
 }
 
-static void update_physics_cache(Render *re, Scene *scene, int UNUSED(anim_init))
-{
-	PTCacheBaker baker;
-
-	memset(&baker, 0, sizeof(baker));
-	baker.main = re->main;
-	baker.scene = scene;
-	baker.bake = 0;
-	baker.render = 1;
-	baker.anim_init = 1;
-	baker.quick_step = 1;
-
-	BKE_ptcache_bake(&baker);
-}
-
 void RE_SetActiveRenderView(Render *re, const char *viewname)
 {
 	BLI_strncpy(re->viewname, viewname, sizeof(re->viewname));
@@ -3097,7 +3081,7 @@ const char *RE_GetActiveRenderView(Render *re)
 
 /* evaluating scene options for general Blender render */
 static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, Scene *scene, SceneRenderLayer *srl,
-                                       Object *camera_override, unsigned int lay_override, int anim, int anim_init)
+                                       Object *camera_override, unsigned int lay_override, int anim, int UNUSED(anim_init))
 {
 	int winx, winy;
 	rcti disprect;
@@ -3141,16 +3125,6 @@ static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, 
 	
 	/* check all scenes involved */
 	tag_scenes_for_render(re);
-
-	/*
-	 * Disabled completely for now,
-	 * can be later set as render profile option
-	 * and default for background render.
-	 */
-	if (0) {
-		/* make sure dynamics are up to date */
-		update_physics_cache(re, scene, anim_init);
-	}
 	
 	if (srl || scene->r.scemode & R_SINGLE_LAYER) {
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);

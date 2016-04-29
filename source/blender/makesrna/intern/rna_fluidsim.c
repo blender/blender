@@ -51,7 +51,6 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
-#include "BKE_pointcache.h"
 
 static StructRNA *rna_FluidSettings_refine(struct PointerRNA *ptr)
 {
