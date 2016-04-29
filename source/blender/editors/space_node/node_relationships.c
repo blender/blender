@@ -107,7 +107,7 @@ static bool node_group_has_output_dfs(bNode *node)
 	     current_node = current_node->next)
 	{
 		if (current_node->type == NODE_GROUP) {
-			if (node_group_has_output_dfs(current_node)) {
+			if (current_node->id && node_group_has_output_dfs(current_node)) {
 				return true;
 			}
 		}
