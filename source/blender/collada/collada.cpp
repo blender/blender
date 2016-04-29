@@ -118,12 +118,11 @@ int collada_export(Scene *sce,
 	export_settings.export_set = BKE_object_relational_superset(sce, objectSet, (eObRelationTypes)includeFilter);
 	int export_count = BLI_linklist_count(export_settings.export_set);
 
-	if (export_count==0)
-	{
+	if (export_count == 0) {
 		if (export_settings.selected) {
 			fprintf(stderr, "Collada: Found no objects to export.\nPlease ensure that all objects which shall be exported are also visible in the 3D Viewport.\n");
 		}
-		else{
+		else {
 			fprintf(stderr, "Collada: Your scene seems to be empty. No Objects will be exported.\n");
 		}
 	}

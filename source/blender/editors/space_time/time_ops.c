@@ -141,18 +141,18 @@ static int time_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
-	View2D *v2d = (ar) ? &ar->v2d : NULL;
-	float extra;
-	
+
 	if (ELEM(NULL, scene, ar))
 		return OPERATOR_CANCELLED;
-		
+
+	View2D *v2d = &ar->v2d;
+
 	/* set extents of view to start/end frames (Preview Range too) */
 	v2d->cur.xmin = (float)PSFRA;
 	v2d->cur.xmax = (float)PEFRA;
 	
 	/* we need an extra "buffer" factor on either side so that the endpoints are visible */
-	extra = 0.01f * BLI_rctf_size_x(&v2d->cur);
+	const float extra = 0.01f * BLI_rctf_size_x(&v2d->cur);
 	v2d->cur.xmin -= extra;
 	v2d->cur.xmax += extra;
 	

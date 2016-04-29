@@ -102,7 +102,7 @@ void update_world_cos(Object *ob, PTCacheEdit *edit);
 #define LOOP_SELECTED_KEYS		for (k=0, key=point->keys; k<point->totkey; k++, key++) if ((key->flag & PEK_SELECT) && !(key->flag & PEK_HIDE))
 #define LOOP_TAGGED_KEYS		for (k=0, key=point->keys; k<point->totkey; k++, key++) if (key->flag & PEK_TAG)
 
-#define KEY_WCO					(key->flag & PEK_USE_WCO ? key->world_co : key->co)
+#define KEY_WCO					((key->flag & PEK_USE_WCO) ? key->world_co : key->co)
 
 /**************************** utilities *******************************/
 

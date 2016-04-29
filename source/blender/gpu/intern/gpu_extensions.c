@@ -259,8 +259,8 @@ bool GPU_legacy_support(void)
 
 			if (G.debug & G_DEBUG_GPU) {
 				printf("GL_CONTEXT_PROFILE_MASK = %#x (%s profile)\n", (unsigned int)profile,
-				       profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT ? "compatibility" :
-				       profile & GL_CONTEXT_CORE_PROFILE_BIT ? "core" : "unknown");
+				       (profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) ? "compatibility" :
+				       (profile & GL_CONTEXT_CORE_PROFILE_BIT) ? "core" : "unknown");
 			}
 
 			if (profile == 0) {

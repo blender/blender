@@ -333,7 +333,7 @@ static void rna_Actuator_constraint_detect_material_set(struct PointerRNA *ptr, 
 	bActuator *act = (bActuator *)ptr->data;
 	bConstraintActuator *ca = act->data;
 
-	short old_value = (ca->flag & ACT_CONST_MATERIAL ? 1 : 0);
+	short old_value = (ca->flag & ACT_CONST_MATERIAL) ? 1 : 0;
 
 	if (old_value != value) {
 		ca->flag ^= ACT_CONST_MATERIAL;

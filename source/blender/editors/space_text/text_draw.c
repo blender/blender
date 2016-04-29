@@ -1009,7 +1009,7 @@ static void draw_documentation(const SpaceText *st, ARegion *ar)
 		if (lines >= DOC_HEIGHT) break;
 	}
 
-	if (0 /* XXX doc_scroll*/ > 0 && lines < DOC_HEIGHT) {
+	if (0 /* XXX doc_scroll*/ /* > 0 && lines < DOC_HEIGHT */) {
 		// XXX doc_scroll--;
 		draw_documentation(st, ar);
 	}

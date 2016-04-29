@@ -301,7 +301,7 @@ static void rna_Object_select_update(Main *UNUSED(bmain), Scene *scene, PointerR
 {
 	if (scene) {
 		Object *ob = (Object *)ptr->id.data;
-		short mode = ob->flag & SELECT ? BA_SELECT : BA_DESELECT;
+		short mode = (ob->flag & SELECT) ? BA_SELECT : BA_DESELECT;
 		ED_base_object_select(BKE_scene_base_find(scene, ob), mode);
 	}
 }
@@ -309,7 +309,7 @@ static void rna_Object_select_update(Main *UNUSED(bmain), Scene *scene, PointerR
 static void rna_Base_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Base *base = (Base *)ptr->data;
-	short mode = base->flag & BA_SELECT ? BA_SELECT : BA_DESELECT;
+	short mode = (base->flag & BA_SELECT) ? BA_SELECT : BA_DESELECT;
 	ED_base_object_select(base, mode);
 }
 
@@ -1134,7 +1134,7 @@ static void rna_GameObjectSettings_state_get(PointerRNA *ptr, int *values)
 {
 	Object *ob = (Object *)ptr->data;
 	int i;
-	int all_states = (ob->scaflag & OB_ALLSTATE ? 1 : 0);
+	int all_states = (ob->scaflag & OB_ALLSTATE) ? 1 : 0;
 
 	memset(values, 0, sizeof(int) * OB_MAX_STATES);
 	for (i = 0; i < OB_MAX_STATES; i++) {

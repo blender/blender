@@ -54,7 +54,7 @@ set(WITH_PLAYER              ON  CACHE BOOL "" FORCE)
 set(WITH_MEM_JEMALLOC        ON  CACHE BOOL "" FORCE)
 
 
-# platform dependant options
+# platform dependent options
 if(UNIX AND NOT APPLE)
 	set(WITH_JACK                ON  CACHE BOOL "" FORCE)
 	set(WITH_DOC_MANPAGE         ON  CACHE BOOL "" FORCE)
