@@ -237,11 +237,6 @@ void BM_mesh_bm_from_me(
 	float (*keyco)[3] = NULL;
 	int totuv, totloops, i, j;
 
-	int cd_vert_bweight_offset;
-	int cd_edge_bweight_offset;
-	int cd_edge_crease_offset;
-	int cd_shape_keyindex_offset;
-
 	/* free custom data */
 	/* this isnt needed in most cases but do just incase */
 	CustomData_free(&bm->vdata, bm->totvert);
@@ -285,7 +280,10 @@ void BM_mesh_bm_from_me(
 		actkey = NULL;
 	}
 
-	if (me->key) {
+	const int tot_shape_keys = me->key ? BLI_listbase_count(&me->key->block) : 0;
+	const float (**shape_key_table)[3] = tot_shape_keys ? BLI_array_alloca(shape_key_table, tot_shape_keys) : NULL;
+
+	if (tot_shape_keys) {
 		CustomData_add_layer(&bm->vdata, CD_SHAPE_KEYINDEX, CD_ASSIGN, NULL, 0);
 
 		/* check if we need to generate unique ids for the shapekeys.
@@ -314,6 +312,8 @@ void BM_mesh_bm_from_me(
 
 			j = CustomData_get_layer_index_n(&bm->vdata, CD_SHAPEKEY, i);
 			bm->vdata.layers[j].uid = block->uid;
+
+			shape_key_table[i] = (const float (*)[3])block->data;
 		}
 	}
 
@@ -324,10 +324,11 @@ void BM_mesh_bm_from_me(
 
 	BM_mesh_cd_flag_apply(bm, me->cd_flag);
 
-	cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
-	cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
-	cd_edge_crease_offset  = CustomData_get_offset(&bm->edata, CD_CREASE);
-	cd_shape_keyindex_offset = me->key ? CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX) : -1;
+	const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
+	const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
+	const int cd_edge_crease_offset  = CustomData_get_offset(&bm->edata, CD_CREASE);
+	const int cd_shape_key_offset = me->key ? CustomData_get_offset(&bm->vdata, CD_SHAPEKEY) : -1;
+	const int cd_shape_keyindex_offset = me->key ? CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX) : -1;
 
 	for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++) {
 		v = vtable[i] = BM_vert_create(bm, keyco && set_key ? keyco[i] : mvert->co, NULL, BM_CREATE_SKIP_CD);
@@ -349,16 +350,13 @@ void BM_mesh_bm_from_me(
 		if (cd_vert_bweight_offset != -1) BM_ELEM_CD_SET_FLOAT(v, cd_vert_bweight_offset, (float)mvert->bweight / 255.0f);
 
 		/* set shapekey data */
-		if (me->key) {
+		if (tot_shape_keys) {
 			/* set shape key original index */
 			if (cd_shape_keyindex_offset != -1) BM_ELEM_CD_SET_INT(v, cd_shape_keyindex_offset, i);
 
-			for (block = me->key->block.first, j = 0; block; block = block->next, j++) {
-				float *co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, CD_SHAPEKEY, j);
-
-				if (co) {
-					copy_v3_v3(co, ((float *)block->data) + 3 * i);
-				}
+			float (*co_dst)[3] = BM_ELEM_CD_GET_VOID_P(v, cd_shape_key_offset);
+			for (j = 0; j < tot_shape_keys; j++, co_dst++) {
+				copy_v3_v3(*co_dst, shape_key_table[j][i]);
 			}
 		}
 	}
