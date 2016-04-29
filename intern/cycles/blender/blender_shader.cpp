@@ -732,10 +732,10 @@ static ShaderNode *add_node(Scene *scene,
 				env->filename = image_user_file_path(b_image_user,
 				                                     b_image,
 				                                     b_scene.frame_current());
-				env->animated = b_env_node.image_user().use_auto_refresh();
 				env->builtin_data = NULL;
 			}
 
+			env->animated = b_env_node.image_user().use_auto_refresh();
 			env->use_alpha = b_image.use_alpha();
 
 			/* TODO(sergey): Does not work properly when we change builtin type. */
