@@ -501,8 +501,6 @@ void ED_object_editmode_enter(bContext *C, int flag)
 			/* order doesn't matter */
 			EDBM_mesh_normals_update(em);
 			BKE_editmesh_tessface_calc(em);
-
-			BM_mesh_select_mode_flush(em->bm);
 		}
 
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_MESH, scene);
