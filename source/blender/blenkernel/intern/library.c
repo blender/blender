@@ -931,7 +931,7 @@ void BKE_libblock_init_empty(ID *id)
 			BKE_texture_default((Tex *)id);
 			break;
 		case ID_IM:
-			/* Image is a bit complicated, for now assume NULLified im is OK. */
+			BKE_image_init((Image *)id);
 			break;
 		case ID_LT:
 			BKE_lattice_init((Lattice *)id);
