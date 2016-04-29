@@ -392,12 +392,6 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 		{ 0, NULL, 0, NULL, NULL }
 	};
 
-	static EnumPropertyItem smoke_cache_comp_items[] = {
-		{SM_CACHE_LIGHT, "CACHELIGHT", 0, "Light", "Fast but not so effective compression"},
-		{SM_CACHE_HEAVY, "CACHEHEAVY", 0, "Heavy", "Effective but slow compression"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	static EnumPropertyItem smoke_highres_sampling_items[] = {
 		{SM_HRES_FULLSAMPLE, "FULLSAMPLE", 0, "Full Sample", ""},
 		{SM_HRES_LINEAR, "LINEAR", 0, "Linear", ""},
@@ -526,16 +520,6 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_DISSOLVE_LOG);
 	RNA_def_property_ui_text(prop, "Logarithmic dissolve", "Using 1/x ");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
-
-	prop = RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "point_cache[0]");
-	RNA_def_property_ui_text(prop, "Point Cache", "");
-
-	prop = RNA_def_property(srna, "point_cache_compress_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "cache_comp");
-	RNA_def_property_enum_items(prop, smoke_cache_comp_items);
-	RNA_def_property_ui_text(prop, "Cache Compression", "Compression method to be used");
 
 	prop = RNA_def_property(srna, "openvdb_cache_compress_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "openvdb_comp");

@@ -183,20 +183,20 @@ static void rna_DynamicPaint_surfaces_begin(CollectionPropertyIterator *iter, Po
 	rna_iterator_listbase_begin(iter, &canvas->surfaces, NULL);
 }
 
-static int rna_Surface_active_point_index_get(PointerRNA *ptr)
+static int rna_Surface_active_index_get(PointerRNA *ptr)
 {
 	DynamicPaintCanvasSettings *canvas = (DynamicPaintCanvasSettings *)ptr->data;
 	return canvas->active_sur;
 }
 
-static void rna_Surface_active_point_index_set(struct PointerRNA *ptr, int value)
+static void rna_Surface_active_index_set(struct PointerRNA *ptr, int value)
 {
 	DynamicPaintCanvasSettings *canvas = (DynamicPaintCanvasSettings *)ptr->data;
 	canvas->active_sur = value;
 	return;
 }
 
-static void rna_Surface_active_point_range(PointerRNA *ptr, int *min, int *max,
+static void rna_Surface_active_range(PointerRNA *ptr, int *min, int *max,
                                            int *UNUSED(softmin), int *UNUSED(softmax))
 {
 	DynamicPaintCanvasSettings *canvas = (DynamicPaintCanvasSettings *)ptr->data;
@@ -221,7 +221,7 @@ static void rna_DynamicPaint_uvlayer_set(PointerRNA *ptr, const char *value)
 	}
 }
 
-/* is point cache used */
+/* is cache used */
 static int rna_DynamicPaint_is_cache_user_get(PointerRNA *ptr)
 {
 	DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
@@ -310,9 +310,9 @@ static void rna_def_canvas_surfaces(BlenderRNA *brna, PropertyRNA *cprop)
 
 	prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_int_funcs(prop, "rna_Surface_active_point_index_get", "rna_Surface_active_point_index_set",
-	                           "rna_Surface_active_point_range");
-	RNA_def_property_ui_text(prop, "Active Point Cache Index", "");
+	RNA_def_property_int_funcs(prop, "rna_Surface_active_index_get", "rna_Surface_active_index_set",
+	                           "rna_Surface_active_range");
+	RNA_def_property_ui_text(prop, "Active Surface Index", "");
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "DynamicPaintSurface");
@@ -720,13 +720,6 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_wave_open_border", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_WAVE_OPEN_BORDERS);
 	RNA_def_property_ui_text(prop, "Open Borders", "Pass waves through mesh edges");
-
-	
-	/* cache */
-	prop = RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "pointcache");
-	RNA_def_property_ui_text(prop, "Point Cache", "");
 
 	/* is cache used */
 	prop = RNA_def_property(srna, "is_cache_user", PROP_BOOLEAN, PROP_NONE);

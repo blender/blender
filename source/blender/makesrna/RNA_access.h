@@ -445,7 +445,6 @@ extern StructRNA RNA_Palette;
 extern StructRNA RNA_PaletteColor;
 extern StructRNA RNA_Panel;
 extern StructRNA RNA_PivotConstraint;
-extern StructRNA RNA_PointCache;
 extern StructRNA RNA_PointDensity;
 extern StructRNA RNA_PointDensityTexture;
 extern StructRNA RNA_PointLamp;
