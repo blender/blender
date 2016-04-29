@@ -372,6 +372,9 @@ MP3LAME_DEV=""
 OPENJPEG_USE=false
 OPENJPEG_DEV=""
 
+# Whether to use system GLEW or not (OpenSubDiv needs recent glew to work).
+NO_SYSTEM_GLEW=false
+
 # Switch to english language, else some things (like check_package_DEB()) won't work!
 LANG_BACK=$LANG
 LANG=""
@@ -2451,6 +2454,27 @@ install_DEB() {
     fi
   fi
 
+  PRINT ""
+  _glew=`get_package_version_DEB libglew-dev`
+  if [ -z $_glew ]; then
+    # Stupid virtual package in Ubuntu 12.04 doesn't show version number...
+    _glew=`apt-cache showpkg libglew-dev|tail -n1|awk '{print $2}'|sed 's/-.*//'`
+  fi
+  version_ge $_glew "1.9.0"
+  if [ $? -eq 1 ]; then
+    version_ge $_glew "1.7.0"
+    if [ $? -eq 1 ]; then
+      WARNING "OpenSubdiv disabled because GLEW-$_glew is not enough"
+      WARNING "Blender will not use system GLEW library"
+      OSD_SKIP=true
+      NO_SYSTEM_GLEW=true
+    else
+      WARNING "OpenSubdiv will compile with GLEW-$_glew but with limited capability"
+      WARNING "Blender will not use system GLEW library"
+      NO_SYSTEM_GLEW=true
+    fi
+  fi
+
 
   PRINT ""
   _do_compile_python=false
@@ -3949,6 +3973,12 @@ print_info() {
 
   if [ "$WITH_OPENCOLLADA" = true ]; then
     _1="-D WITH_OPENCOLLADA=ON"
+    PRINT "  $_1"
+    _buildargs="$_buildargs $_1"
+  fi
+
+  if [ "$NO_SYSTEM_GLEW" = true ]; then
+    _1="-D WITH_SYSTEM_GLEW=OFF"
     PRINT "  $_1"
     _buildargs="$_buildargs $_1"
   fi
