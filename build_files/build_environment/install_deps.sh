@@ -1111,6 +1111,8 @@ compile_Boost() {
     OIIO_FORCE_REBUILD=true
     OSL_FORCE_BUILD=true
     OSL_FORCE_REBUILD=true
+    OPENVDB_FORCE_BUILD=true
+    OPENVDB_FORCE_REBUILD=true
 
     prepare_opt
 
@@ -1988,7 +1990,7 @@ compile_OPENVDB() {
   PRINT ""
 
   # To be changed each time we make edits that would modify the compiled result!
-  openvdb_magic=0
+  openvdb_magic=1
   _init_openvdb
 
   # Clean install if needed!
@@ -2007,8 +2009,6 @@ compile_OPENVDB() {
       download OPENVDB_SOURCE[@] "$_src.tar.gz"
 
       INFO "Unpacking OpenVDB-$OPENVDB_VERSION"
-      #~ tar -C $SRC --transform "s,(.*/?)OpenShadingLanguage-[^/]*(.*),\1OpenShadingLanguage-$OPENVDB_VERSION\2,x" \
-          #~ -xf $_src.tar.gz
       tar -C $SRC -xf $_src.tar.gz
     fi
 
@@ -2023,48 +2023,40 @@ compile_OPENVDB() {
       #~ git reset --hard
     #~ fi
 
-    cd openvdb  # Grrrrrr...
-
-    # Always refresh the whole build!
-    if [ -d build ]; then
-      rm -rf build
-    fi
-    mkdir build
-    cd build
+    # Source builds here
+    cd openvdb
 
     make_d="DESTDIR=$_inst"
+    make_d="$make_d HDSO=/usr"
 
     if [ -d $INST/boost ]; then
-      make_d="$make_d -D BOOST_ROOT=$INST/boost -D Boost_NO_SYSTEM_PATHS=ON"
+      make_d="$make_d BOOST_INCL_DIR=$INST/boost/include BOOST_LIB_DIR=$INST/boost/lib"
     fi
 
-    #~ if [ "$_with_built_openexr" = true ]; then
-      #~ cmake_d="$cmake_d -D ILMBASE_HOME=$INST/openexr"
-      #~ cmake_d="$cmake_d -D OPENEXR_HOME=$INST/openexr"
-      #~ INFO "ILMBASE_HOME=$INST/openexr"
-    #~ fi
+    if [ "$_with_built_openexr" = true ]; then
+      make_d="$make_d ILMBASE_INCL_DIR=$INST/openexr/include ILMBASE_LIB_DIR=$INST/openexr/lib"
+      make_d="$make_d EXR_INCL_DIR=$INST/openexr/include EXR_LIB_DIR=$INST/openexr/lib"
+      INFO "ILMBASE_HOME=$INST/openexr"
+    fi
 
-    #~ cmake_d="-D CMAKE_BUILD_TYPE=Release"
-    #~ cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
-    #~ # ptex is only needed when nicholas bishop is ready
-    #~ cmake_d="$cmake_d -D NO_PTEX=1"
-    #~ cmake_d="$cmake_d -D NO_CLEW=1"
-    #~ # maya plugin, docs, tutorials, regression tests and examples are not needed
-    #~ cmake_d="$cmake_d -D NO_MAYA=1 -D NO_DOC=1 -D NO_TUTORIALS=1 -D NO_REGRESSION=1 -DNO_EXAMPLES=1"
+    if [ -d $INST/blosc ]; then
+      make_d="$make_d BLOSC_INCL_DIR=$INST/blosc/include BLOSC_LIB_DIR=$INST/blosc/lib"
+    fi
 
-    #~ cmake $cmake_d ..
+    # Build without log4cplus, glfw, python module & docs
+    make_d="$make_d LOG4CPLUS_INCL_DIR= GLFW_INCL_DIR= PYTHON_VERSION= DOXYGEN="
 
-    #~ make -j$THREADS && make install
-    #~ make clean
+    make -j$THREADS lib $make_d install
+    make clean
 
-    #~ if [ -d $_inst ]; then
-      #~ _create_inst_shortcut
-    #~ else
-      #~ ERROR "OpenSubdiv-$OSD_VERSION failed to compile, exiting"
-      #~ exit 1
-    #~ fi
+    if [ -d $_inst ]; then
+      _create_inst_shortcut
+    else
+      ERROR "OpenVDB-$OPENVDB_VERSION failed to compile, exiting"
+      exit 1
+    fi
 
-    #~ magic_compile_set osd-$OSD_VERSION $osd_magic
+    magic_compile_set openvdb-$OPENVDB_VERSION $openvdb_magic
 
     cd $CWD
     INFO "Done compiling OpenVDB-$OPENVDB_VERSION!"
@@ -2658,6 +2650,22 @@ install_DEB() {
     compile_OSD
   fi
 
+  PRINT ""
+  if [ "$OPENVDB_SKIP" = true ]; then
+    WARNING "Skipping OpenVDB installation, as requested..."
+  elif [ "$OPENVDB_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenVDB building, as requested..."
+    compile_OPENVDB
+  else
+    check_package_version_ge_DEB libopenvdb-dev $OPENVDB_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_DEB libopenvdb-dev libblosc-dev
+      clean_OPENVDB
+    else
+      compile_OPENVDB
+    fi
+  fi
+
 
   if [ "$WITH_OPENCOLLADA" = true ]; then
     _do_compile_collada=false
@@ -3183,13 +3191,16 @@ install_RPM() {
     compile_OSD
   fi
 
-  if [ "$_do_compile_osd" = true ]; then
-    install_packages_RPM flex bison
-    if [ "$RPM" = "FEDORA" -o "$RPM" = "RHEL" ]; then
-      install_packages_RPM tbb-devel
-    fi
-    PRINT ""
-    compile_OSD
+
+  PRINT ""
+  if [ "$OPENVDB_SKIP" = true ]; then
+    WARNING "Skipping OpenVDB installation, as requested..."
+  elif [ "$OPENVDB_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenVDB building, as requested..."
+    compile_OPENVDB
+  else
+    # No package currently!
+    compile_OPENVDB
   fi
 
 
@@ -3578,6 +3589,23 @@ install_ARCH() {
   fi
 
 
+  PRINT ""
+  if [ "$OPENVDB_SKIP" = true ]; then
+    WARNING "Skipping OpenVDB installation, as requested..."
+  elif [ "$OPENVDB_FORCE_BUILD" = true ]; then
+    INFO "Forced OpenVDB building, as requested..."
+    compile_OPENVDB
+  else
+    check_package_version_ge_ARCH openvdb $OPENVDB_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_ARCH openvdb
+      clean_OPENVDB
+    else
+      compile_OPENVDB
+    fi
+  fi
+
+
   if [ "$WITH_OPENCOLLADA" = true ]; then
     PRINT ""
     _do_compile_collada=false
@@ -3884,7 +3912,7 @@ print_info() {
 
   _buildargs="-U *SNDFILE* -U *PYTHON* -U *BOOST* -U *Boost*"
   _buildargs="$_buildargs -U *OPENCOLORIO* -U *OPENEXR* -U *OPENIMAGEIO* -U *LLVM* -U *CYCLES*"
-  _buildargs="$_buildargs -U *OPENSUBDIV* -U *COLLADA* -U *FFMPEG*"
+  _buildargs="$_buildargs -U *OPENSUBDIV* -U *OPENVDB* -U *COLLADA* -U *FFMPEG*"
 
   _1="-D WITH_CODEC_SNDFILE=ON"
   PRINT "  $_1"
@@ -3966,6 +3994,19 @@ print_info() {
     _buildargs="$_buildargs $_1"
     if [ -d $INST/osd ]; then
       _1="-D OPENSUBDIV_ROOT_DIR=$INST/osd"
+      PRINT "  $_1"
+      _buildargs="$_buildargs $_1"
+    fi
+  fi
+
+  if [ "$OPENVDB_SKIP" = false ]; then
+    _1="-D WITH_OPENVDB=ON"
+    _2="-D WITH_OPENVDB_BLOSC=ON"
+    PRINT "  $_1"
+    PRINT "  $_2"
+    _buildargs="$_buildargs $_1 $_2"
+    if [ -d $INST/openvdb ]; then
+      _1="-D OPENVDB_ROOT_DIR=$INST/openvdb"
       PRINT "  $_1"
       _buildargs="$_buildargs $_1"
     fi
