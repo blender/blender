@@ -1115,7 +1115,7 @@ compile_Boost() {
       INFO "Downloading Boost-$BOOST_VERSION"
       mkdir -p $SRC
       download BOOST_SOURCE[@] $_src.tar.bz2
-      tar -C $SRC --transform "s,(.*/?)boost_1_[^/]+(.*),\1boost-$BOOST_VERSION\2,x" -xf $_src.tar.bz2
+      tar -C $SRC --transform "s,\w*,boost-$BOOST_VERSION,x" -xf $_src.tar.bz2
     fi
 
     cd $_src
@@ -1339,7 +1339,7 @@ clean_OPENEXR() {
 
 compile_OPENEXR() {
   # To be changed each time we make edits that would modify the compiled result!
-  openexr_magic=13
+  openexr_magic=14
 
   # Clean install if needed!
   magic_compile_check openexr-$OPENEXR_VERSION $openexr_magic
@@ -1418,7 +1418,7 @@ compile_OPENEXR() {
     if [ -d $_inst ]; then
       _create_inst_shortcut
       # Copy ilmbase files here (blender expects same dir for ilmbase and openexr :/).
-      cp -Lrn $_ilmbase_inst/* $_inst_shortcut
+      cp -an $_ilmbase_inst/* $_inst_shortcut
     else
       ERROR "OpenEXR-$OPENEXR_VERSION failed to compile, exiting"
       exit 1
@@ -1959,7 +1959,7 @@ compile_BLOSC() {
     INFO "Done compiling Blosc-$OPENVDB_BLOSC_VERSION!"
   else
     INFO "Own Blosc-$OPENVDB_BLOSC_VERSION is up to date, nothing to do!"
-    INFO "If you want to force rebuild of this lib (and openexr), use the --force-openvdb option."
+    INFO "If you want to force rebuild of this lib (and openvdb), use the --force-openvdb option."
   fi
 
   magic_compile_set blosc-$OPENVDB_BLOSC_VERSION $blosc_magic
@@ -2167,7 +2167,7 @@ clean_FFmpeg() {
 
 compile_FFmpeg() {
   # To be changed each time we make edits that would modify the compiled result!
-  ffmpeg_magic=4
+  ffmpeg_magic=5
   _init_ffmpeg
 
   # Clean install if needed!
@@ -2234,7 +2234,7 @@ compile_FFmpeg() {
         --disable-postproc --disable-librtmp --disable-libopencore-amrnb \
         --disable-libopencore-amrwb --disable-libdc1394 --disable-version3 --disable-outdev=sdl \
         --disable-libxcb \
-        --disable-outdev=xv \
+        --disable-outdev=xv --disable-indev=sndio --disable-outdev=sndio \
         --disable-outdev=alsa --disable-indev=sdl --disable-indev=alsa --disable-indev=jack \
         --disable-indev=lavfi $extra
 
@@ -2261,7 +2261,7 @@ compile_FFmpeg() {
 
 #### Install on DEB-like ####
 get_package_version_DEB() {
-    dpkg-query -W -f '${Version}' $1 | sed -r 's/.*:\s*([0-9]+:)(([0-9]+\.?)+).*/\2/'
+    dpkg-query -W -f '${Version}' $1 | sed -r 's/([0-9]+:)?(([0-9]+\.?)+([0-9]+)).*/\2/'
 }
 
 check_package_DEB() {
@@ -2321,7 +2321,7 @@ install_packages_DEB() {
   if [ ! $SUDO ]; then
     WARNING "--no-sudo enabled, impossible to run apt-get install for $@, you'll have to do it yourself..."
   else
-    $SUDO apt-get install -y --force-yes $@
+    $SUDO apt-get install -y $@
     if [ $? -ge 1 ]; then
       ERROR "apt-get failed to install requested packages, exiting."
       exit 1
@@ -2341,30 +2341,6 @@ install_DEB() {
     [ "$(echo ${REPLY:=Y} | tr [:upper:] [:lower:])" != "y" ] && exit
   fi
 
-  if [ ! -z "`cat /etc/debian_version | grep ^6`"  ]; then
-    if [ -z "`cat /etc/apt/sources.list | grep backports.debian.org`"  ]; then
-      WARNING "Looks like you're using Debian Squeeze which does have broken CMake"
-      PRINT "It is highly recommended to install cmake from backports, otherwise"
-      PRINT "compilation of some libraries could fail"
-      PRINT ""
-      PRINT "You could install newer CMake from debian-backports repository"
-      PRINT "Add this this line to your /etc/apt/sources.lixt:"
-      PRINT ""
-      PRINT "deb http://backports.debian.org/debian-backports squeeze-backports main"
-      PRINT ""
-      PRINT "and then run:"
-      PRINT ""
-      PRINT "sudo apt-get update && sudo apt-get install cmake=2.8.7-4~bpo60+1 sudo apt-get install cmake=2.8.7-4~bpo60+1"
-      PRINT ""
-      PRINT "(you could also add this reporisotry using GUI like synaptic)"
-      PRINT ""
-      PRINT "Hit Enter to continue running the script, or hit Ctrl-C to abort the script"
-
-      read
-      PRINT ""
-    fi
-  fi
-
   if [ ! $SUDO ]; then
     WARNING "--no-sudo enabled, impossible to run apt-get update, you'll have to do it yourself..."
   else
@@ -2377,71 +2353,28 @@ install_DEB() {
   OGG_DEV="libogg-dev"
   THEORA_DEV="libtheora-dev"
 
-  _packages="gawk cmake cmake-curses-gui build-essential libjpeg-dev libpng-dev \
-             libfreetype6-dev libx11-dev \
+  _packages="gawk cmake cmake-curses-gui build-essential libjpeg-dev libpng-dev libtiff-dev \
+             git libfreetype6-dev libx11-dev flex bison libtbb-dev libxxf86vm-dev \
              libxcursor-dev libxi-dev wget libsqlite3-dev libxrandr-dev libxinerama-dev \
              libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV \
              libopenal-dev libglew-dev libglewmx-dev yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV \
-             libsdl1.2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev"
+             libsdl1.2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libjemalloc-dev"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
   OGG_USE=true
   THEORA_USE=true
 
-  PRINT "$LIBYAML_CPP_VER"
+  PRINT ""
   # Some not-so-old distro (ubuntu 12.4) do not have it, do not fail in this case, just warn.
   YAMLCPP_DEV="libyaml-cpp-dev"
   check_package_DEB $YAMLCPP_DEV
   if [ $? -eq 0 ]; then
-    # Another Ubuntu hack - in 14.4, ocio uses (old) 0.3, while default is now 0.5... grrrrr.
-    if $LIBYAML_CPP_VER_DEFINED; then
-      YAMLCPP_VER_DEV="libyaml-cpp$LIBYAML_CPP_VER-dev"
-      check_package_DEB $YAMLCPP_VER_DEV
-      if [ $? -eq 0 ]; then
-        YAMLCPP_DEV=$YAMLCPP_VER_DEV
-      else
-        PRINT ""
-        WARNING "libyaml-cpp$LIBYAML_CPP_VER-dev not found!"
-        PRINT ""
-      fi
-    fi
     _packages="$_packages $YAMLCPP_DEV"
   else
     PRINT ""
     WARNING "libyaml-cpp-dev not found, you may have to install it by hand to get Blender compiling..."
     PRINT ""
-  fi
-
-  # Install newest libtiff-dev in debian/ubuntu.
-  TIFF="libtiff"
-  check_package_DEB $TIFF
-  if [ $? -eq 0 ]; then
-    _packages="$_packages $TIFF-dev"
-  else
-    TIFF="libtiff5"
-    check_package_DEB $TIFF
-    if [ $? -eq 0 ]; then
-      _packages="$_packages $TIFF-dev"
-    else
-      TIFF="libtiff4"  # Some old distro, like e.g. ubuntu 10.04 :/
-      check_package_DEB $TIFF
-      if [ $? -eq 0 ]; then
-        _packages="$_packages $TIFF-dev"
-      fi
-    fi
-  fi
-
-  GIT="git"
-  check_package_DEB $GIT
-  if [ $? -eq 0 ]; then
-    _packages="$_packages $GIT"
-  else
-    GIT="git-core"  # Some old distro, like e.g. ubuntu 10.04 :/
-    check_package_DEB $GIT
-    if [ $? -eq 0 ]; then
-      _packages="$_packages $GIT"
-    fi
   fi
 
   if [ "$WITH_ALL" = true ]; then
@@ -2477,20 +2410,11 @@ install_DEB() {
 
   if [ "$WITH_ALL" = true ]; then
     PRINT ""
-    # Grmpf, debian is libxvidcore-dev and ubuntu libxvidcore4-dev!
-    # Note: not since ubuntu 10.04
     XVID_DEV="libxvidcore-dev"
     check_package_DEB $XVID_DEV
     if [ $? -eq 0 ]; then
       install_packages_DEB $XVID_DEV
       XVID_USE=true
-    else
-      XVID_DEV="libxvidcore4-dev"
-      check_package_DEB $XVID_DEV
-      if [ $? -eq 0 ]; then
-        install_packages_DEB $XVID_DEV
-        XVID_USE=true
-      fi
     fi
 
     PRINT ""
@@ -2507,6 +2431,23 @@ install_DEB() {
     if [ $? -eq 0 ]; then
       install_packages_DEB $VPX_DEV
       VPX_USE=true
+    fi
+  fi
+
+  # Check cmake/glew versions and disable features for older distros.
+  # This is so Blender can at least compile.
+  PRINT ""
+  _cmake=`get_package_version_DEB cmake`
+  version_ge $_cmake "2.8.10"
+  if [ $? -eq 1 ]; then
+    version_ge $_cmake "2.8.8"
+    if [ $? -eq 1 ]; then
+      WARNING "OpenVDB and OpenCOLLADA disabled because cmake-$_cmake is not enough"
+      OPENVDB_SKIP=true
+      OPENCOLLADA_SKIP=true
+    else
+      WARNING "OpenVDB disabled because cmake-$_cmake is not enough"
+      OPENVDB_SKIP=true
     fi
   fi
 
@@ -2564,15 +2505,8 @@ install_DEB() {
 
       boost_version=$(echo `get_package_version_DEB libboost-dev` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
 
-      check_package_DEB libboost-locale$boost_version-dev
-      if [ $? -eq 0 ]; then
-        install_packages_DEB libboost-locale$boost_version-dev libboost-filesystem$boost_version-dev \
-                             libboost-regex$boost_version-dev libboost-system$boost_version-dev \
-                             libboost-thread$boost_version-dev libboost-wave$boost_version-dev
-        clean_Boost
-      else
-        compile_Boost
-      fi
+      install_packages_DEB libboost-{filesystem,iostreams,locale,regex,system,thread,wave}$boost_version-dev
+      clean_Boost
     else
       compile_Boost
     fi
@@ -2623,13 +2557,14 @@ install_DEB() {
     INFO "Forced OpenImageIO building, as requested..."
     compile_OIIO
   else
-    check_package_version_ge_lt_DEB libopenimageio-dev $OIIO_VERSION_MIN $OIIO_VERSION_MAX
-    if [ $? -eq 0 -a "$_with_built_openexr" = false ]; then
-      install_packages_DEB libopenimageio-dev
-      clean_OIIO
-    else
+    # XXX Debian Testing / Ubuntu 16.04 pulls in WAY too many deps (gtk2/opencv ?!) incl. OCIO build against libyaml-cpp0.3 so build for now...
+    #check_package_version_ge_lt_DEB libopenimageio-dev $OIIO_VERSION_MIN $OIIO_VERSION_MAX
+    #if [ $? -eq 0 -a "$_with_built_openexr" = false ]; then
+    #  install_packages_DEB libopenimageio-dev
+    #  clean_OIIO
+    #else
       compile_OIIO
-    fi
+    #fi
   fi
 
 
@@ -2638,6 +2573,7 @@ install_DEB() {
   _do_compile_llvm=false
   if [ "$LLVM_SKIP" = true ]; then
     WARNING "Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+    OSL_SKIP=true
   elif [ "$LLVM_FORCE_BUILD" = true ]; then
     INFO "Forced LLVM building, as requested..."
     _do_compile_llvm=true
@@ -2649,15 +2585,7 @@ install_DEB() {
       LLVM_VERSION_FOUND=$LLVM_VERSION
       clean_LLVM
     else
-      #~ check_package_version_ge_DEB llvm-dev $LLVM_VERSION_MIN
-      #~ if [ $? -eq 0 ]; then
-        #~ install_packages_DEB llvm-dev clang
-        #~ have_llvm=true
-        #~ LLVM_VERSION_FOUND=""  # Using default one, no need to specify it!
-        #~ clean_LLVM
-      #~ else
       _do_compile_llvm=true
-      #~ fi
     fi
   fi
 
@@ -2680,13 +2608,12 @@ install_DEB() {
     INFO "Forced OpenShadingLanguage building, as requested..."
     _do_compile_osl=true
   else
-      # No package currently!
+    # No package currently!
     _do_compile_osl=true
   fi
 
   if [ "$_do_compile_osl" = true ]; then
     if [ "$have_llvm" = true ]; then
-      install_packages_DEB flex bison libtbb-dev
       PRINT ""
       compile_OSL
     else
@@ -2696,19 +2623,13 @@ install_DEB() {
 
 
   PRINT ""
-  _do_compile_osd=false
   if [ "$OSD_SKIP" = true ]; then
     WARNING "Skipping OpenSubdiv installation, as requested..."
   elif [ "$OSD_FORCE_BUILD" = true ]; then
     INFO "Forced OpenSubdiv building, as requested..."
-    _do_compile_osd=true
+    compile_OSD
   else
-      # No package currently!
-    _do_compile_osd=true
-  fi
-
-  if [ "$_do_compile_osd" = true ]; then
-    install_packages_DEB flex bison libtbb-dev
+    # No package currently!
     PRINT ""
     compile_OSD
   fi
@@ -2723,7 +2644,7 @@ install_DEB() {
       INFO "Forced OpenCollada building, as requested..."
       _do_compile_collada=true
     else
-        # No package currently!
+      # No package currently!
       _do_compile_collada=true
     fi
 
@@ -2745,23 +2666,19 @@ install_DEB() {
     INFO "Forced FFMpeg building, as requested..."
     compile_FFmpeg
   else
-#    XXX Debian features libav packages as ffmpeg, those are not really compatible with blender code currently :/
-#        So for now, always build our own ffmpeg.
-#    check_package_DEB ffmpeg
-#    if [ $? -eq 0 ]; then
-#      install_packages_DEB ffmpeg
-#      ffmpeg_version=`get_package_version_DEB ffmpeg`
-#      PRINT "ffmpeg version: $ffmpeg_version"
-#      if [ ! -z "$ffmpeg_version" ]; then
-#        if  dpkg --compare-versions $ffmpeg_version gt 0.7.2; then
-#          install_packages_DEB libavfilter-dev libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev libswscale-dev
-#          clean_FFmpeg
-#        else
-#          compile_FFmpeg
-#        fi
-#      fi
-#    fi
-    compile_FFmpeg
+    # XXX Debian Testing / Ubuntu 16.04 finally includes FFmpeg, so check as usual
+    check_package_DEB ffmpeg
+    if [ $? -eq 0 ]; then
+      check_package_version_ge_DEB ffmpeg $FFMPEG_VERSION_MIN
+      if [ $? -eq 0 ]; then
+        install_packages_DEB libavdevice-dev
+        clean_FFmpeg
+      else
+        compile_FFmpeg
+      fi
+    else
+      compile_FFmpeg
+    fi
   fi
 }
 
@@ -2769,7 +2686,7 @@ install_DEB() {
 #### Install on RPM-like ####
 rpm_flavour() {
   if [ -f /etc/redhat-release ]; then
-    if [ "`grep '6\.' /etc/redhat-release`" ]; then
+    if [ "`grep '[6-7]\.' /etc/redhat-release`" ]; then
       RPM="RHEL"
     else
       RPM="FEDORA"
@@ -2781,8 +2698,10 @@ rpm_flavour() {
 
 get_package_version_RPM() {
   rpm_flavour
-  if [ "$RPM" = "FEDORA" -o "$RPM" = "RHEL" ]; then
+  if [ "$RPM" = "RHEL" ]; then
     yum info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'
+  elif [ "$RPM" = "FEDORA" ]; then
+    dnf info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'
   elif [ "$RPM" = "SUSE" ]; then
     zypper info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'
   fi
@@ -2790,8 +2709,10 @@ get_package_version_RPM() {
 
 check_package_RPM() {
   rpm_flavour
-  if [ "$RPM" = "FEDORA" -o "$RPM" = "RHEL" ]; then
+  if [ "$RPM" = "RHEL" ]; then
     r=`yum info $1 | grep -c 'Summary'`
+  elif [ "$RPM" = "FEDORA" ]; then
+    r=`dnf info $1 | grep -c 'Summary'`
   elif [ "$RPM" = "SUSE" ]; then
     r=`zypper info $1 | grep -c 'Summary'`
   fi
@@ -2838,26 +2759,28 @@ check_package_version_ge_lt_RPM() {
 
 install_packages_RPM() {
   rpm_flavour
-  if [ "$RPM" = "FEDORA" -o "$RPM" = "RHEL" ]; then
-    if [ ! $SUDO ]; then
-      WARNING "--no-sudo enabled, impossible to run yum install for $@, you'll have to do it yourself..."
-    else
-      $SUDO yum install -y $@
-      if [ $? -ge 1 ]; then
-        ERROR "yum failed to install requested packages, exiting."
-        exit 1
-      fi
+  if [ ! $SUDO ]; then
+    WARNING "--no-sudo enabled, impossible to install $@, you'll have to do it yourself..."
+  fi
+  if [ "$RPM" = "RHEL" ]; then
+    $SUDO yum install -y $@
+    if [ $? -ge 1 ]; then
+      ERROR "yum failed to install requested packages, exiting."
+      exit 1
+    fi
+
+  elif [ "$RPM" = "FEDORA" ]; then
+    $SUDO dnf install -y $@
+    if [ $? -ge 1 ]; then
+      ERROR "dnf failed to install requested packages, exiting."
+      exit 1
     fi
 
   elif [ "$RPM" = "SUSE" ]; then
-    if [ ! $SUDO ]; then
-      WARNING "--no-sudo enabled, impossible to run zypper install for $@, you'll have to do it yourself..."
-    else
-      $SUDO zypper --non-interactive install --auto-agree-with-licenses $@
-      if [ $? -ge 1 ]; then
-        ERROR "zypper failed to install requested packages, exiting."
-        exit 1
-      fi
+    $SUDO zypper --non-interactive install --auto-agree-with-licenses $@
+    if [ $? -ge 1 ]; then
+      ERROR "zypper failed to install requested packages, exiting."
+      exit 1
     fi
   fi
 }
@@ -2881,41 +2804,31 @@ install_RPM() {
     rpm_flavour
     if [ "$RPM" = "FEDORA" ]; then
       _fedora_rel="`egrep "[0-9]{1,}" /etc/fedora-release -o`"
-      $SUDO yum -y localinstall --nogpgcheck \
+      $SUDO dnf -y install --nogpgcheck \
       http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$_fedora_rel.noarch.rpm \
       http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$_fedora_rel.noarch.rpm
 
-      $SUDO yum -y update
-
-      # Install cmake now because of difference with RHEL
-      $SUDO yum -y install cmake
+      $SUDO dnf -y update
 
     elif [ "$RPM" = "RHEL" ]; then
-      $SUDO yum -y localinstall --nogpgcheck \
-      http://download.fedoraproject.org/pub/epel/6/$(uname -i)/epel-release-6-8.noarch.rpm \
-      http://download1.rpmfusion.org/free/el/updates/6/$(uname -i)/rpmfusion-free-release-6-1.noarch.rpm \
-      http://download1.rpmfusion.org/nonfree/el/updates/6/$(uname -i)/rpmfusion-nonfree-release-6-1.noarch.rpm
-
-      $SUDO yum -y update
-
-      # Install cmake 2.8 from other repo
-      mkdir -p $SRC
-      if [ -f $SRC/cmake-2.8.8-4.el6.$(uname -m).rpm ]; then
-        PRINT ""
-        INFO "Special cmake already installed"
+      if [ "`grep '6\.' /etc/redhat-release`" ]; then
+        ERROR "Building with GCC 4.4 is not supported!"
+        exit 1
       else
-        curl -O ftp://ftp.pbone.net/mirror/atrpms.net/el6-$(uname -i)/atrpms/testing/cmake-2.8.8-4.el6.$(uname -m).rpm
-        mv cmake-2.8.8-4.el6.$(uname -m).rpm $SRC/
-        $SUDO rpm -ihv $SRC/cmake-2.8.8-4.el6.$(uname -m).rpm
+        $SUDO yum -y install --nogpgcheck \
+        http://download.fedoraproject.org/pub/epel/7/$(uname -i)/e/epel-release-7-6.noarch.rpm \
+        http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-5.el7.nux.noarch.rpm
+
+        $SUDO yum -y update
       fi
 
     elif [ "$RPM" = "SUSE" ]; then
-      # Install this now to avoid using the version from packman repository...
-      if [ "$WITH_ALL" = true ]; then
-        install_packages_RPM libjack-devel
+      # Packman repo now includes name in link...
+      _suse_rel="`grep -w VERSION /etc/os-release | sed 's/[^0-9.]*//g'`"
+      _suse_name="`grep -w NAME /etc/os-release | gawk '{print $2}' | sed 's/\"//'`"
+      if [ $_suse_name ]; then
+        _suse_rel="${_suse_name}_${_suse_rel}"
       fi
-
-      _suse_rel="`grep VERSION /etc/SuSE-release | gawk '{print $3}'`"
 
       PRINT ""
       INFO "About to add 'packman' repository from http://packman.inode.at/suse/openSUSE_$_suse_rel/"
@@ -2923,7 +2836,7 @@ install_RPM() {
       read -p "Do you want to add this repo (Y/n)?"
       if [ "$(echo ${REPLY:=Y} | tr [:upper:] [:lower:])" == "y" ]; then
         INFO "    Installing packman..."
-        $SUDO zypper ar --refresh --name 'Packman Repository' http://ftp.gwdg.de/pub/linux/packman/suse/openSUSE_$_suse_rel/ ftp.gwdg.de-suse
+        $SUDO zypper ar -f -n packman http://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_$_suse_rel/ packman
         INFO "    Done."
       else
         INFO "    Skipping packman installation."
@@ -2938,11 +2851,12 @@ install_RPM() {
   OGG_DEV="libogg-devel"
   THEORA_DEV="libtheora-devel"
 
-  _packages="gcc gcc-c++ git make cmake libtiff-devel libjpeg-devel\
-             libpng-devel libX11-devel libXi-devel libXcursor-devel libXrandr-devel libXinerama-devel \
+  _packages="gcc gcc-c++ git make cmake tar bzip2 xz findutils flex bison \
+             libtiff-devel libjpeg-devel libpng-devel sqlite-devel fftw-devel SDL-devel \
+             libX11-devel libXi-devel libXcursor-devel libXrandr-devel libXinerama-devel \
              wget ncurses-devel readline-devel $OPENJPEG_DEV openal-soft-devel \
              glew-devel yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV patch \
-             libxml2-devel yaml-cpp-devel tinyxml-devel"
+             libxml2-devel yaml-cpp-devel tinyxml-devel jemalloc-devel"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
@@ -2950,9 +2864,7 @@ install_RPM() {
   THEORA_USE=true
 
   if [ "$RPM" = "FEDORA" -o "$RPM" = "RHEL" ]; then
-    OPENEXR_DEV="openexr-devel"
-
-    _packages="$_packages freetype-devel libsqlite3x-devel fftw-devel SDL-devel"
+    _packages="$_packages freetype-devel tbb-devel"
 
     if [ "$WITH_ALL" = true ]; then
       _packages="$_packages jack-audio-connection-kit-devel"
@@ -2988,12 +2900,21 @@ install_RPM() {
     fi
 
   elif [ "$RPM" = "SUSE" ]; then
-    OPENEXR_DEV="libopenexr-devel"
-
-    _packages="$_packages cmake freetype2-devel sqlite3-devel fftw3-devel libSDL-devel"
+    _packages="$_packages freetype2-devel"
 
     PRINT ""
     install_packages_RPM $_packages
+
+    PRINT ""
+    # Install TBB on openSUSE, from temporary repo
+    check_package_RPM tbb-devel
+    if [ $? -eq 0 ]; then
+      install_packages_RPM tbb-devel
+    else
+      $SUDO zypper ar -f http://download.opensuse.org/repositories/devel:/libraries:/c_c++/openSUSE_$_suse_rel/devel:libraries:c_c++.repo
+      $SUDO zypper -n --gpg-auto-import-keys install tbb-devel
+      $SUDO zypper rr devel_libraries_c_c++
+    fi
 
     PRINT ""
     X264_DEV="libx264-devel"
@@ -3083,19 +3004,30 @@ install_RPM() {
 
 
   PRINT ""
+  _do_compile_boost=false
   if [ "$BOOST_SKIP" = true ]; then
     WARNING "Skipping Boost installation, as requested..."
   elif [ "$BOOST_FORCE_BUILD" = true ]; then
     INFO "Forced Boost building, as requested..."
-    compile_Boost
+    _do_compile_boost=true
   else
     check_package_version_ge_RPM boost-devel $BOOST_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_RPM boost-devel
       clean_Boost
     else
-      compile_Boost
+      _do_compile_boost=true
     fi
+  fi
+
+  if [ "$_do_compile_boost" = true ]; then
+    if [ "$RPM" = "SUSE" ]; then
+      install_packages_RPM gcc-fortran
+    else
+      install_packages_RPM libquadmath-devel bzip2-devel
+    fi
+    PRINT ""
+    compile_Boost
   fi
 
 
@@ -3106,14 +3038,18 @@ install_RPM() {
     INFO "Forced OpenColorIO building, as requested..."
     compile_OCIO
   else
-    # XXX Always force build of own OCIO, until linux distro guys update their package to default libyaml-cpp ver (0.5)!
-    #check_package_version_ge_RPM OpenColorIO-devel $OCIO_VERSION_MIN
-    #if [ $? -eq 0 ]; then
-      #install_packages_RPM OpenColorIO-devel
-      #clean_OCIO
-    #else
+    if [ "$RPM" = "SUSE" ]; then
+      check_package_version_ge_RPM OpenColorIO-devel $OCIO_VERSION_MIN
+      if [ $? -eq 0 ]; then
+        install_packages_RPM OpenColorIO-devel
+        clean_OCIO
+      else
+        compile_OCIO
+      fi
+    # XXX Fedora/RHEL OCIO still depends on libyaml-cpp v0.3 even when system default is v0.5!
+    else
       compile_OCIO
-    #fi
+    fi
   fi
 
   PRINT ""
@@ -3123,10 +3059,10 @@ install_RPM() {
     INFO "Forced ILMBase/OpenEXR building, as requested..."
     compile_OPENEXR
   else
-    check_package_version_ge_RPM $OPENEXR_DEV $OPENEXR_VERSION_MIN
+    check_package_version_ge_RPM openexr-devel $OPENEXR_VERSION_MIN
     if [ $? -eq 0 ]; then
-      install_packages_RPM $OPENEXR_DEV
-      OPENEXR_VERSION=`get_package_version_RPM $OPENEXR_DEV`
+      install_packages_RPM openexr-devel
+      OPENEXR_VERSION=`get_package_version_RPM openexr-devel`
       ILMBASE_VERSION=$OPENEXR_VERSION
       clean_OPENEXR
     else
@@ -3141,13 +3077,14 @@ install_RPM() {
     INFO "Forced OpenImageIO building, as requested..."
     compile_OIIO
   else
-    check_package_version_ge_lt_RPM OpenImageIO-devel $OIIO_VERSION_MIN $OIIO_VERSION_MAX
-    if [ $? -eq 0 -a $_with_built_openexr == false ]; then
-      install_packages_RPM OpenImageIO-devel
-      clean_OIIO
-    else
+    # XXX RPM distros pulls in too much and depends on old libs, so better to build for now...
+    #check_package_version_ge_lt_RPM OpenImageIO-devel $OIIO_VERSION_MIN $OIIO_VERSION_MAX
+    #if [ $? -eq 0 -a $_with_built_openexr == false ]; then
+    #  install_packages_RPM OpenImageIO-devel
+    #  clean_OIIO
+    #else
       compile_OIIO
-    fi
+    #fi
   fi
 
 
@@ -3156,34 +3093,26 @@ install_RPM() {
   _do_compile_llvm=false
   if [ "$LLVM_SKIP" = true ]; then
     WARNING "Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+    OSL_SKIP=true
   elif [ "$LLVM_FORCE_BUILD" = true ]; then
     INFO "Forced LLVM building, as requested..."
     _do_compile_llvm=true
   else
-    # Problem compiling with LLVM 3.2 so match version 3.1 ...
     if [ "$RPM" = "SUSE" ]; then
-      check_package_version_match_RPM llvm-clang-devel $LLVM_VERSION
-      if [ $? -eq 0 ]; then
-        install_packages_RPM llvm-devel llvm-clang-devel
-        have_llvm=true
-        LLVM_VERSION_FOUND=$LLVM_VERSION
-        clean_LLVM
-      else
-        # Better to compile it than use minimum version from repo...
-        _do_compile_llvm=true
-      fi
+      CLANG_DEV="llvm-clang-devel"
     else
-      check_package_version_match_RPM clang-devel $LLVM_VERSION
-      if [ $? -eq 0 ]; then
-        install_packages_RPM llvm-devel clang-devel
-        have_llvm=true
-        LLVM_VERSION_FOUND=$LLVM_VERSION
-        clean_LLVM
-      else
-        # Better to compile it than use minimum version from repo...
-        _do_compile_llvm=true
-      fi
+      CLANG_DEV="clang-devel"
     fi
+    # XXX RHEL has 3.4 in repo but OSL complains about not finding MCJIT_LIBRARY, so compile for now...
+    #check_package_version_match_RPM $CLANG_DEV $LLVM_VERSION
+    #if [ $? -eq 0 ]; then
+    #  install_packages_RPM llvm-devel $CLANG_DEV
+    #  have_llvm=true
+    #  LLVM_VERSION_FOUND=$LLVM_VERSION
+    #  clean_LLVM
+    #else
+      _do_compile_llvm=true
+    #fi
   fi
 
   if [ "$_do_compile_llvm" = true ]; then
@@ -3211,10 +3140,6 @@ install_RPM() {
 
   if [ "$_do_compile_osl" = true ]; then
     if [ "$have_llvm" = true ]; then
-      install_packages_RPM flex bison
-      if [ "$RPM" = "FEDORA" -o "$RPM" = "RHEL" ]; then
-        install_packages_RPM tbb-devel
-      fi
       PRINT ""
       compile_OSL
     else
@@ -3224,15 +3149,14 @@ install_RPM() {
 
 
   PRINT ""
-  _do_compile_osd=false
   if [ "$OSD_SKIP" = true ]; then
     WARNING "Skipping OpenSubdiv installation, as requested..."
   elif [ "$OSD_FORCE_BUILD" = true ]; then
     INFO "Forced OpenSubdiv building, as requested..."
-    _do_compile_osd=true
+    compile_OSD
   else
     # No package currently!
-    _do_compile_osd=true
+    compile_OSD
   fi
 
   if [ "$_do_compile_osd" = true ]; then
@@ -3275,7 +3199,7 @@ install_RPM() {
     INFO "Forced FFMpeg building, as requested..."
     compile_FFmpeg
   else
-    check_package_version_ge_RPM ffmpeg $FFMPEG_VERSION_MIN
+    check_package_version_ge_RPM ffmpeg-devel $FFMPEG_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_RPM ffmpeg ffmpeg-devel
       clean_FFmpeg
@@ -3557,6 +3481,7 @@ install_ARCH() {
   _do_compile_llvm=false
   if [ "$LLVM_SKIP" = true ]; then
     WARNING "Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+    OSL_SKIP=true
   elif [ "$LLVM_FORCE_BUILD" = true ]; then
     INFO "Forced LLVM building, as requested..."
     _do_compile_llvm=true
@@ -3565,7 +3490,7 @@ install_ARCH() {
     if [ $? -eq 0 ]; then
       install_packages_ARCH llvm35 clang35
       have_llvm=true
-      LLVM_VERSION=`get_package_version_ARCH llvm`
+      LLVM_VERSION=`get_package_version_ARCH llvm35`
       LLVM_VERSION_FOUND=$LLVM_VERSION
       clean_LLVM
     else
