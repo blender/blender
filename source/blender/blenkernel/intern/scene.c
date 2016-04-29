@@ -1774,7 +1774,7 @@ static void prepare_mesh_for_viewport_render(Main *bmain, Scene *scene)
 		{
 			if (check_rendered_viewport_visible(bmain)) {
 				BMesh *bm = mesh->edit_btmesh->bm;
-				BM_mesh_bm_to_me(bm, mesh, false);
+				BM_mesh_bm_to_me(bm, mesh, (&(struct BMeshToMeshParams){0}));
 				DAG_id_tag_update(&mesh->id, 0);
 			}
 		}

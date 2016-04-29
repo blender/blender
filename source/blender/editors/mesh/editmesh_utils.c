@@ -347,7 +347,7 @@ void EDBM_selectmode_to_scene(bContext *C)
 	WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, scene);
 }
 
-void EDBM_mesh_make(ToolSettings *ts, Object *ob)
+void EDBM_mesh_make(ToolSettings *ts, Object *ob, const bool add_key_index)
 {
 	Mesh *me = ob->data;
 	BMesh *bm;
@@ -356,7 +356,7 @@ void EDBM_mesh_make(ToolSettings *ts, Object *ob)
 		BKE_mesh_convert_mfaces_to_mpolys(me);
 	}
 
-	bm = BKE_mesh_to_bmesh(me, ob);
+	bm = BKE_mesh_to_bmesh(me, ob, add_key_index);
 
 	if (me->edit_btmesh) {
 		/* this happens when switching shape keys */
@@ -395,7 +395,7 @@ void EDBM_mesh_load(Object *ob)
 		bm->shapenr = 1;
 	}
 
-	BM_mesh_bm_to_me(bm, me, false);
+	BM_mesh_bm_to_me(bm, me, (&(struct BMeshToMeshParams){0}));
 
 #ifdef USE_TESSFACE_DEFAULT
 	BKE_mesh_tessface_calc(me);
@@ -533,7 +533,10 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 
 	/* BM_mesh_validate(em->bm); */ /* for troubleshooting */
 
-	BM_mesh_bm_to_me(em->bm, &um->me, false);
+	BM_mesh_bm_to_me(
+	        em->bm, &um->me, (&(struct BMeshToMeshParams){
+	            .cd_mask_extra = CD_MASK_SHAPE_KEYINDEX,
+	        }));
 
 	um->selectmode = em->selectmode;
 	um->shapenr = em->bm->shapenr;
@@ -557,7 +560,10 @@ static void undoMesh_to_editbtMesh(void *umv, void *em_v, void *obdata)
 
 	bm = BM_mesh_create(&allocsize);
 
-	BM_mesh_bm_from_me(bm, &um->me, true, false, um->shapenr);
+	BM_mesh_bm_from_me(
+	        bm, &um->me, (&(struct BMeshFromMeshParams){
+	            .calc_face_normal = true, .active_shapekey = um->shapenr,
+	        }));
 
 	em_tmp = BKE_editmesh_create(bm, true);
 	*em = *em_tmp;

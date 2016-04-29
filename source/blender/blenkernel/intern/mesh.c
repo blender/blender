@@ -595,14 +595,17 @@ Mesh *BKE_mesh_copy(Mesh *me)
 	return BKE_mesh_copy_ex(G.main, me);
 }
 
-BMesh *BKE_mesh_to_bmesh(Mesh *me, Object *ob)
+BMesh *BKE_mesh_to_bmesh(Mesh *me, Object *ob, const bool add_key_index)
 {
 	BMesh *bm;
 	const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(me);
 
 	bm = BM_mesh_create(&allocsize);
 
-	BM_mesh_bm_from_me(bm, me, false, true, ob->shapenr);
+	BM_mesh_bm_from_me(
+	        bm, me, (&(struct BMeshFromMeshParams){
+	            .add_key_index = add_key_index, .use_shapekey = true, .active_shapekey = ob->shapenr,
+	        }));
 
 	return bm;
 }

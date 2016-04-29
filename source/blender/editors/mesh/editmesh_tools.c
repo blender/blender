@@ -3011,7 +3011,7 @@ static Base *mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMe
 
 	BM_mesh_normals_update(bm_new);
 
-	BM_mesh_bm_to_me(bm_new, base_new->object->data, false);
+	BM_mesh_bm_to_me(bm_new, base_new->object->data, (&(struct BMeshToMeshParams){0}));
 
 	BM_mesh_free(bm_new);
 	((Mesh *)base_new->object->data)->edit_btmesh = NULL;
@@ -3294,7 +3294,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 
 					bm_old = BM_mesh_create(&bm_mesh_allocsize_default);
 
-					BM_mesh_bm_from_me(bm_old, me, false, false, 0);
+					BM_mesh_bm_from_me(bm_old, me, (&(struct BMeshFromMeshParams){0}));
 
 					switch (type) {
 						case MESH_SEPARATE_MATERIAL:
@@ -3309,7 +3309,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 					}
 
 					if (retval_iter) {
-						BM_mesh_bm_to_me(bm_old, me, false);
+						BM_mesh_bm_to_me(bm_old, me, (&(struct BMeshToMeshParams){0}));
 
 						DAG_id_tag_update(&me->id, OB_RECALC_DATA);
 						WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);

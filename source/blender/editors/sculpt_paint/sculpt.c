@@ -5003,7 +5003,10 @@ void sculpt_dynamic_topology_enable(bContext *C)
 	/* Create triangles-only BMesh */
 	ss->bm = BM_mesh_create(&allocsize);
 
-	BM_mesh_bm_from_me(ss->bm, me, true, true, ob->shapenr);
+	BM_mesh_bm_from_me(
+	        ss->bm, me, (&(struct BMeshFromMeshParams){
+	            .calc_face_normal = true, .use_shapekey = true, .active_shapekey = ob->shapenr,
+	        }));
 	sculpt_dynamic_topology_triangulate(ss->bm);
 	BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
 	sculpt_dyntopo_node_layers_add(ss);

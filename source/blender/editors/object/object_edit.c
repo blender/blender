@@ -316,6 +316,27 @@ void OBJECT_OT_hide_render_set(wmOperatorType *ot)
 
 /* ******************* toggle editmode operator  ***************** */
 
+static bool mesh_needs_keyindex(const Mesh *me)
+{
+	if (me->key) {
+		return false;  /* will be added */
+	}
+
+	for (const Object *ob = G.main->object.first; ob; ob = ob->id.next) {
+		if ((ob->parent) && (ob->parent->data == me) && ELEM(ob->partype, PARVERT1, PARVERT3)) {
+			return true;
+		}
+		if (ob->data == me) {
+			for (const ModifierData *md = ob->modifiers.first; md; md = md->next) {
+				if (md->type == eModifierType_Hook) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 /**
  * Load EditMode data back into the object,
  * optionally freeing the editmode data.
@@ -494,7 +515,9 @@ void ED_object_editmode_enter(bContext *C, int flag)
 		ok = 1;
 		scene->obedit = ob;  /* context sees this */
 
-		EDBM_mesh_make(scene->toolsettings, ob);
+		const bool use_key_index = mesh_needs_keyindex(ob->data);
+
+		EDBM_mesh_make(scene->toolsettings, ob, use_key_index);
 
 		em = BKE_editmesh_from_object(ob);
 		if (LIKELY(em)) {

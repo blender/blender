@@ -267,7 +267,7 @@ static void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA
 		switch (ob->type) {
 			case OB_MESH:
 				EDBM_mesh_load(ob);
-				EDBM_mesh_make(scene->toolsettings, ob);
+				EDBM_mesh_make(scene->toolsettings, ob, true);
 
 				DAG_id_tag_update(ob->data, 0);
 

@@ -582,7 +582,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	obedit = base->object;
 	me = obedit->data;
 	if (me->edit_btmesh == NULL) {
-		EDBM_mesh_make(scene->toolsettings, obedit);
+		EDBM_mesh_make(scene->toolsettings, obedit, false);
 		exitmode = 1;
 	}
 	if (me->edit_btmesh == NULL)

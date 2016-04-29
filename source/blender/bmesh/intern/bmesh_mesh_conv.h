@@ -39,9 +39,28 @@ void BM_mesh_cd_flag_ensure(BMesh *bm, struct Mesh *mesh, const char cd_flag);
 void BM_mesh_cd_flag_apply(BMesh *bm, const char cd_flag);
 char BM_mesh_cd_flag_from_bmesh(BMesh *bm);
 
+
+struct BMeshFromMeshParams {
+	unsigned int calc_face_normal : 1;
+	/* add a vertex CD_SHAPE_KEYINDEX layer */
+	unsigned int add_key_index : 1;
+	/* set vertex coordinates from the shapekey */
+	unsigned int use_shapekey : 1;
+	/* define the active shape key (index + 1) */
+	int active_shapekey;
+};
 void BM_mesh_bm_from_me(
         BMesh *bm, struct Mesh *me,
-        const bool calc_face_normal, const bool set_key, int act_key_nr);
-void BM_mesh_bm_to_me(BMesh *bm, struct Mesh *me, bool do_tessface);
+        const struct BMeshFromMeshParams *params)
+ATTR_NONNULL(1, 2, 3);
+
+struct BMeshToMeshParams {
+	unsigned int calc_tessface : 1;
+	int64_t cd_mask_extra;
+};
+void BM_mesh_bm_to_me(
+        BMesh *bm, struct Mesh *me,
+        const struct BMeshToMeshParams *params)
+ATTR_NONNULL(1, 2, 3);
 
 #endif /* __BMESH_MESH_CONV_H__ */

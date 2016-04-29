@@ -80,7 +80,7 @@ void EDBM_mesh_normals_update(struct BMEditMesh *em);
 void EDBM_mesh_clear(struct BMEditMesh *em);
 
 void EDBM_selectmode_to_scene(struct bContext *C);
-void EDBM_mesh_make(struct ToolSettings *ts, struct Object *ob);
+void EDBM_mesh_make(struct ToolSettings *ts, struct Object *ob, const bool add_key_index);
 void EDBM_mesh_free(struct BMEditMesh *em);
 void EDBM_mesh_load(struct Object *ob);
 struct DerivedMesh *EDBM_mesh_deform_dm_get(struct BMEditMesh *em);

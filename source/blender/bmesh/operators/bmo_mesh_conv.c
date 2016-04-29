@@ -45,7 +45,10 @@ void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 	Mesh *me     = BMO_slot_ptr_get(op->slots_in,  "mesh");
 	bool set_key = BMO_slot_bool_get(op->slots_in, "use_shapekey");
 
-	BM_mesh_bm_from_me(bm, me, false, set_key, ob->shapenr);
+	BM_mesh_bm_from_me(
+	        bm, me, (&(struct BMeshFromMeshParams){
+	             .use_shapekey = set_key, .active_shapekey = ob->shapenr,
+	        }));
 
 	if (me->key && ob->shapenr > me->key->totkey) {
 		ob->shapenr = me->key->totkey - 1;
@@ -69,5 +72,5 @@ void bmo_bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 	/* Object *ob = BMO_slot_ptr_get(op, "object"); */
 	const bool dotess = !BMO_slot_bool_get(op->slots_in, "skip_tessface");
 
-	BM_mesh_bm_to_me(bm, me, dotess);
+	BM_mesh_bm_to_me(bm, me, (&(struct BMeshToMeshParams){ .calc_tessface = dotess, }));
 }
