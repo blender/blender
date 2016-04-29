@@ -509,7 +509,12 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
 	if (cd_shape_keyindex_offset != -1) {
 		BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
 			const int keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
-			if ((keyi != ORIGINDEX_NONE) && (keyi < ototvert)) {
+			if ((keyi != ORIGINDEX_NONE) &&
+			    (keyi < ototvert) &&
+			    /* not fool-proof, but chances are if we have many verts with the same index,
+			     * we will want to use the first one, since the second is more likely to be a duplicate. */
+			    (vertMap[keyi] == NULL))
+			{
 				vertMap[keyi] = eve;
 			}
 		}
