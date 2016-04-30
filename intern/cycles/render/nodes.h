@@ -977,11 +977,6 @@ public:
 	string filepath;
 	string bytecode_hash;
 
-	/* ShaderInput/ShaderOutput only stores a shallow string copy (const char *)!
-	 * The actual socket names have to be stored externally to avoid memory errors. */
-	vector<ustring> input_names;
-	vector<ustring> output_names;
-
 	virtual bool equals(const ShaderNode * /*other*/) { return false; }
 };
 

@@ -602,12 +602,14 @@ static ShaderNode *add_node(Scene *scene,
 			 * input/output type info needed for proper node construction.
 			 */
 			OSL::OSLQuery query;
+			string absolute_filepath;
 
 			if(!bytecode_hash.empty()) {
 				query.open_bytecode(b_script_node.bytecode());
 			}
 			else {
-				OSLShaderManager::osl_query(query, b_script_node.filepath());
+				absolute_filepath = blender_absolute_path(b_data, b_ntree, b_script_node.filepath());
+				OSLShaderManager::osl_query(query, absolute_filepath);
 			}
 			/* TODO(sergey): Add proper query info error parsing. */
 
@@ -617,12 +619,11 @@ static ShaderNode *add_node(Scene *scene,
 			 * so the names match those of the corresponding parameters exactly.
 			 *
 			 * Note 2: ShaderInput/ShaderOutput store shallow string copies only!
-			 * Socket names must be stored in the extra lists instead. */
+			 * So we register them as ustring to ensure the pointer stays valid. */
 			BL::Node::inputs_iterator b_input;
 
 			for(b_script_node.inputs.begin(b_input); b_input != b_script_node.inputs.end(); ++b_input) {
-				script_node->input_names.push_back(ustring(b_input->name()));
-				ShaderInput *input = script_node->add_input(script_node->input_names.back().c_str(),
+				ShaderInput *input = script_node->add_input(ustring(b_input->name()).c_str(),
 				                                            convert_osl_socket_type(query, *b_input));
 				set_default_value(input, *b_input, b_data, b_ntree);
 			}
@@ -630,8 +631,7 @@ static ShaderNode *add_node(Scene *scene,
 			BL::Node::outputs_iterator b_output;
 
 			for(b_script_node.outputs.begin(b_output); b_output != b_script_node.outputs.end(); ++b_output) {
-				script_node->output_names.push_back(ustring(b_output->name()));
-				script_node->add_output(script_node->output_names.back().c_str(),
+				script_node->add_output(ustring(b_output->name()).c_str(),
 				                        convert_osl_socket_type(query, *b_output));
 			}
 
@@ -645,7 +645,7 @@ static ShaderNode *add_node(Scene *scene,
 			}
 			else {
 				/* set filepath */
-				script_node->filepath = blender_absolute_path(b_data, b_ntree, b_script_node.filepath());
+				script_node->filepath = absolute_filepath;
 			}
 
 			node = script_node;
