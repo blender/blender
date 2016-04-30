@@ -876,6 +876,12 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 				if (coords_indices.radius != -1) {
 					co[coords_indices.radius] = selem->pressure;
 				}
+
+				/* remove doubles */
+				if ((co != coords) && UNLIKELY(memcmp(co, co - dims, sizeof(float) * dims) == 0)) {
+					co -= dims;
+					stroke_len--;
+				}
 			}
 		}
 
@@ -1173,7 +1179,7 @@ static int curve_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	else if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
 		if (cdd->state == CURVE_DRAW_PAINTING) {
 			const float mval_fl[2] = {UNPACK2(event->mval)};
-			if (len_squared_v2v2(mval_fl, cdd->prev.location_world) > SQUARE(STROKE_SAMPLE_DIST_MIN_PX)) {
+			if (len_squared_v2v2(mval_fl, cdd->prev.mouse) > SQUARE(STROKE_SAMPLE_DIST_MIN_PX)) {
 				curve_draw_event_add(op, event);
 			}
 		}
