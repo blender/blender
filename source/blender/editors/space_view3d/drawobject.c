@@ -6694,6 +6694,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		/* only draw domains */
 		if (smd->domain) {
 			SmokeDomainSettings *sds = smd->domain;
+			const bool show_smoke = true; /* XXX was checking cached frame range before */
 			float viewnormal[3];
 
 			glLoadMatrixf(rv3d->viewmat);
@@ -6734,7 +6735,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			}
 
 			/* don't show smoke before simulation starts, this could be made an option in the future */
-			if (sds->fluid && CFRA >= sds->point_cache[0]->startframe) {
+			if (sds->fluid && show_smoke) {
 				float p0[3], p1[3];
 
 				/* get view vector */

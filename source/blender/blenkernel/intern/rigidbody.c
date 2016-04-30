@@ -963,10 +963,9 @@ void BKE_rigidbody_world_id_loop(RigidBodyWorld *rbw, RigidbodyWorldIDFunc func,
 }
 
 /* Add rigid body settings to the specified object */
-RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
+RigidBodyOb *BKE_rigidbody_create_object(Scene *UNUSED(scene), Object *ob, short type)
 {
 	RigidBodyOb *rbo;
-	RigidBodyWorld *rbw = scene->rigidbody_world;
 
 	/* sanity checks
 	 *	- rigidbody world must exist
@@ -1010,18 +1009,14 @@ RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
 	/* set initial transform */
 	mat4_to_loc_quat(rbo->pos, rbo->orn, ob->obmat);
 
-	/* flag cache as outdated */
-	BKE_rigidbody_cache_reset(rbw);
-
 	/* return this object */
 	return rbo;
 }
 
 /* Add rigid body constraint to the specified object */
-RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short type)
+RigidBodyCon *BKE_rigidbody_create_constraint(Scene *UNUSED(scene), Object *ob, short type)
 {
 	RigidBodyCon *rbc;
-	RigidBodyWorld *rbw = scene->rigidbody_world;
 
 	/* sanity checks
 	 *	- rigidbody world must exist
@@ -1070,9 +1065,6 @@ RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short ty
 	rbc->motor_lin_target_velocity = 1.0f;
 	rbc->motor_ang_max_impulse = 1.0f;
 	rbc->motor_ang_target_velocity = 1.0f;
-
-	/* flag cache as outdated */
-	BKE_rigidbody_cache_reset(rbw);
 
 	/* return this object */
 	return rbc;
@@ -1133,9 +1125,6 @@ void BKE_rigidbody_remove_object(Scene *scene, Object *ob)
 
 	/* remove object's settings */
 	BKE_rigidbody_free_object(ob);
-
-	/* flag cache as outdated */
-	BKE_rigidbody_cache_reset(rbw);
 }
 
 void BKE_rigidbody_remove_constraint(Scene *scene, Object *ob)
@@ -1149,9 +1138,6 @@ void BKE_rigidbody_remove_constraint(Scene *scene, Object *ob)
 	}
 	/* remove object's settings */
 	BKE_rigidbody_free_constraint(ob);
-
-	/* flag cache as outdated */
-	BKE_rigidbody_cache_reset(rbw);
 }
 
 
@@ -1418,9 +1404,9 @@ static void rigidbody_update_simulation_post_step(RigidBodyWorld *rbw)
 	}
 }
 
-bool BKE_rigidbody_check_sim_running(RigidBodyWorld *rbw, float ctime)
+bool BKE_rigidbody_check_sim_running(RigidBodyWorld *rbw, float UNUSED(ctime))
 {
-	return (rbw && (rbw->flag & RBW_FLAG_MUTED) == 0 && ctime > rbw->pointcache->startframe);
+	return (rbw && (rbw->flag & RBW_FLAG_MUTED) == 0);
 }
 
 /* Sync rigid body and object transformations */
@@ -1481,12 +1467,6 @@ void BKE_rigidbody_aftertrans_update(Object *ob, float loc[3], float rot[3], flo
 		RB_body_set_loc_rot(rbo->physics_object, rbo->pos, rbo->orn);
 	}
 	// RB_TODO update rigid body physics object's loc/rot for dynamic objects here as well (needs to be done outside bullet's update loop)
-}
-
-void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw)
-{
-	if (rbw)
-		rbw->pointcache->flag |= PTCACHE_OUTDATED;
 }
 
 /* ------------------ */
@@ -1571,7 +1551,6 @@ void BKE_rigidbody_remove_constraint(Scene *scene, Object *ob) {}
 void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime) {}
 void BKE_rigidbody_aftertrans_update(Object *ob, float loc[3], float rot[3], float quat[4], float rotAxis[3], float rotAngle) {}
 bool BKE_rigidbody_check_sim_running(RigidBodyWorld *rbw, float ctime) { return false; }
-void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw) {}
 void BKE_rigidbody_rebuild_world(Scene *scene, float ctime) {}
 void BKE_rigidbody_do_simulation(Scene *scene, float ctime) {}
 

@@ -109,8 +109,7 @@ static EnumPropertyItem rigidbody_mesh_source_items[] = {
 static void rna_RigidBodyWorld_reset(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	RigidBodyWorld *rbw = (RigidBodyWorld *)ptr->data;
-	
-	BKE_rigidbody_cache_reset(rbw);
+	UNUSED_VARS(rbw);
 }
 
 static char *rna_RigidBodyWorld_path(PointerRNA *UNUSED(ptr))
@@ -149,9 +148,9 @@ static void rna_RigidBodyWorld_split_impulse_set(PointerRNA *ptr, int value)
 static void rna_RigidBodyOb_reset(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	RigidBodyWorld *rbw = scene->rigidbody_world;
-	
-	BKE_rigidbody_cache_reset(rbw);
+	UNUSED_VARS(rbw);
 }
+
 
 static void rna_RigidBodyOb_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -162,12 +161,10 @@ static void rna_RigidBodyOb_shape_update(Main *bmain, Scene *scene, PointerRNA *
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
-static void rna_RigidBodyOb_shape_reset(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+static void rna_RigidBodyOb_shape_reset(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	RigidBodyWorld *rbw = scene->rigidbody_world;
 	RigidBodyOb *rbo = (RigidBodyOb *)ptr->data;
 	
-	BKE_rigidbody_cache_reset(rbw);
 	if (rbo->physics_shape)
 		rbo->flag |= RBO_FLAG_NEEDS_RESHAPE;
 }
