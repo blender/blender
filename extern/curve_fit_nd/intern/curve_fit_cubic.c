@@ -814,8 +814,22 @@ static void fit_cubic_to_points(
 		pt_a += dims;
 	}
 
-	/* tan_center = (pt_a - pt_b).normalized() */
-	normalize_vn_vnvn(tan_center, pt_a, pt_b, dims);
+	{
+#ifdef USE_VLA
+		double tan_center_a[dims];
+		double tan_center_b[dims];
+#else
+		double *tan_center_a = alloca(sizeof(double) * dims);
+		double *tan_center_b = alloca(sizeof(double) * dims);
+#endif
+		const double *pt   = &points_offset[split_index * dims];
+
+		/* tan_center = ((pt_a - pt).normalized() + (pt - pt_b).normalized()).normalized() */
+		normalize_vn_vnvn(tan_center_a, pt_a, pt, dims);
+		normalize_vn_vnvn(tan_center_b, pt, pt_b, dims);
+		add_vn_vnvn(tan_center, tan_center_a, tan_center_b, dims);
+		normalize_vn(tan_center, dims);
+	}
 
 	fit_cubic_to_points(
 	        points_offset, split_index + 1,

@@ -209,6 +209,7 @@ static double len_vn(
 {
 	return sqrt(len_squared_vn(v0, dims));
 }
+#endif
 
 MINLINE double normalize_vn(
         double v0[], const uint dims)
@@ -219,7 +220,6 @@ MINLINE double normalize_vn(
 	}
 	return d;
 }
-#endif
 
 /* v_out = (v0 - v1).normalized() */
 MINLINE double normalize_vn_vnvn(
