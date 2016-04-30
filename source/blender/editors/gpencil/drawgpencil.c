@@ -341,7 +341,7 @@ static void gp_stroke_2d_flat(bGPDspoint *points, int totpoints, float(*points2d
 	float loc3[3];
 	float normal[3];
 	
-	/* local X axis (p0-p1) */
+	/* local X axis (p0 -> p1) */
 	sub_v3_v3v3(locx, &pt1->x, &pt0->x);
 	
 	/* point vector at 3/4 */
@@ -369,6 +369,7 @@ static void gp_stroke_2d_flat(bGPDspoint *points, int totpoints, float(*points2d
 		points2d[i][1] = dot_v3v3(loc, locy);
 	}
 	
+	/* Concave (-1), Convex (1), or Autodetect (0)? */
 	*r_direction = (int)locy[2];
 }
 
@@ -382,7 +383,7 @@ static void gp_triangulate_stroke_fill(bGPDstroke *gps)
 	unsigned int (*tmp_triangles)[3] = MEM_mallocN(sizeof(*tmp_triangles) * gps->totpoints, "GP Stroke temp triangulation");
 	float (*points2d)[2] = MEM_mallocN(sizeof(*points2d) * gps->totpoints, "GP Stroke temp 2d points");
 	
-	int direction;
+	int direction = 0;
 	
 	/* convert to 2d and triangulate */
 	gp_stroke_2d_flat(gps->points, gps->totpoints, points2d, &direction);
@@ -392,20 +393,21 @@ static void gp_triangulate_stroke_fill(bGPDstroke *gps)
 	gps->tot_triangles = 0;
 	for (int i = 0; i < gps->totpoints; i++) {
 		if ((tmp_triangles[i][0] >= 0) && (tmp_triangles[i][0] < gps->totpoints) &&
-			(tmp_triangles[i][1] >= 0) && (tmp_triangles[i][1] < gps->totpoints) &&
-			(tmp_triangles[i][2] >= 0) && (tmp_triangles[i][2] < gps->totpoints))
+		    (tmp_triangles[i][1] >= 0) && (tmp_triangles[i][1] < gps->totpoints) &&
+		    (tmp_triangles[i][2] >= 0) && (tmp_triangles[i][2] < gps->totpoints))
 		{
 			gps->tot_triangles++;
 		}
 	}
+	//printf("tot triangles: %d / %d  -  direction = %d\n", gps->tot_triangles, gps->totpoints, direction);
 	
 	/* save triangulation data in stroke cache */
 	if (gps->tot_triangles > 0) {
 		if (gps->triangles == NULL) {
-			gps->triangles = MEM_callocN(sizeof(bGPDtriangle) * gps->tot_triangles, "GP Stroke triangulation");
+			gps->triangles = MEM_callocN(sizeof(*gps->triangles) * gps->tot_triangles, "GP Stroke triangulation");
 		}
 		else {
-			gps->triangles = MEM_recallocN(gps->triangles, sizeof(bGPDtriangle) * gps->tot_triangles);
+			gps->triangles = MEM_recallocN(gps->triangles, sizeof(*gps->triangles) * gps->tot_triangles);
 		}
 		
 		int triangle_index = 0;
