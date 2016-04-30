@@ -390,23 +390,26 @@ static void psys_uv_to_w(float u, float v, int quad, float *w)
 /* Find the index in "sum" array before "value" is crossed. */
 static int distribute_binary_search(float *sum, int n, float value)
 {
-	int mid, low=0, high=n;
+	int mid, low = 0, high = n - 1;
 
-	if (value == 0.f)
-		return 0;
+	if (sum[low] >= value)
+		return low;
 
-	while (low <= high) {
-		mid= (low + high)/2;
+	if (sum[high] < value)
+		return high;
+
+	while (low < high) {
+		mid = (low + high) / 2;
 		
-		if (sum[mid] < value && value <= sum[mid+1])
+		if ((sum[mid] < value) && (sum[mid + 1] >= value))
 			return mid;
 		
-		if (sum[mid] >= value)
-			high= mid - 1;
-		else if (sum[mid] < value)
-			low= mid + 1;
-		else
-			return mid;
+		if (sum[mid] >= value) {
+			high = mid - 1;
+		}
+		else if (sum[mid] < value) {
+			low = mid + 1;
+		}
 	}
 
 	return low;
@@ -778,7 +781,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	int cfrom=0;
 	int totelem=0, totpart, *particle_element=0, children=0, totseam=0;
 	int jitlevel= 1, distr;
-	float *element_weight=NULL,*element_sum=NULL,*jitter_offset=NULL, *vweight=NULL;
+	float *element_weight=NULL,*jitter_offset=NULL, *vweight=NULL;
 	float cur, maxweight=0.0, tweight, totweight, inv_totweight, co[3], nor[3], orco[3];
 	
 	if (ELEM(NULL, ob, psys, psys->part))
@@ -915,7 +918,6 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 
 	element_weight	= MEM_callocN(sizeof(float)*totelem, "particle_distribution_weights");
 	particle_element= MEM_callocN(sizeof(int)*totpart, "particle_distribution_indexes");
-	element_sum		= MEM_mallocN(sizeof(*element_sum) * totelem, "particle_distribution_sum");
 	jitter_offset	= MEM_callocN(sizeof(float)*totelem, "particle_distribution_jitoff");
 
 	/* Calculate weights from face areas */
@@ -1003,27 +1005,55 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	}
 
 	/* Calculate total weight of all elements */
-	totweight= 0.0f;
-	for (i=0;i<totelem; i++)
+	int totmapped = 0;
+	totweight = 0.0f;
+	for (i = 0; i < totelem; i++) {
+		if (element_weight[i] != 0.0f) {
+			totmapped++;
+		}
 		totweight += element_weight[i];
+	}
+
+	if (totweight == 0.0f) {
+		/* We are not allowed to distribute particles anywhere... */
+		return 0;
+	}
 
 	inv_totweight = (totweight > 0.f ? 1.f/totweight : 0.f);
 
-	/* Calculate cumulative weights */
-	element_sum[0] = element_weight[0] * inv_totweight;
-	for (i = 1; i < totelem; i++) {
-		element_sum[i] = element_sum[i - 1] + element_weight[i] * inv_totweight;
+	/* Calculate cumulative weights.
+	 * We remove all null-weighted elements from element_sum, and create a new mapping
+	 * 'activ'_elem_index -> orig_elem_index.
+	 * This simplifies greatly the filtering of zero-weighted items - and can be much mor efficient
+	 * especially in random case (reducing a lot the size of binary-searched array)...
+	 */
+	float *element_sum = MEM_mallocN(sizeof(*element_sum) * totmapped, __func__);
+	int *element_map = MEM_mallocN(sizeof(*element_map) * totmapped, __func__);
+	int i_mapped = 0;
+
+	for (i = 0; i < totelem && element_weight[i] == 0.0f; i++);
+	element_sum[i_mapped] = element_weight[i] * inv_totweight;
+	element_map[i_mapped] = i;
+	i_mapped++;
+	for (i++; i < totelem; i++) {
+		if (element_weight[i] != 0.0f) {
+			element_sum[i_mapped] = element_sum[i_mapped - 1] + element_weight[i] * inv_totweight;
+			element_map[i_mapped] = i;
+			i_mapped++;
+		}
 	}
+
+	BLI_assert(i_mapped == totmapped);
 	
 	/* Finally assign elements to particles */
-	if ((part->flag&PART_TRAND) || (part->simplify_flag&PART_SIMPLIFY_ENABLE)) {
+	if ((part->flag & PART_TRAND) || (part->simplify_flag & PART_SIMPLIFY_ENABLE)) {
 		float pos;
 
-		for (p=0; p<totpart; p++) {
-			/* In theory element_sum[totelem] should be 1.0, but due to float errors this is not necessarily always true, so scale pos accordingly. */
-			pos= BLI_frand() * element_sum[totelem - 1];
-			particle_element[p] = distribute_binary_search(element_sum, totelem, pos);
-			particle_element[p] = MIN2(totelem-1, particle_element[p]);
+		for (p = 0; p < totpart; p++) {
+			/* In theory element_sum[totelem - 1] should be 1.0,
+			 * but due to float errors this is not necessarily always true, so scale pos accordingly. */
+			pos = BLI_frand() * element_sum[totmapped - 1];
+			particle_element[p] = element_map[distribute_binary_search(element_sum, totmapped, pos)];
 			jitter_offset[particle_element[p]] = pos;
 		}
 	}
@@ -1036,31 +1066,23 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		 * 'midpoint between v and v+1' (or 'p and p+1', depending whether we have more vertices than particles or not),
 		 * and avoid stumbling over float imprecisions in element_sum. */
 		if (from == PART_FROM_VERT) {
-			pos = (totpart < totelem) ? 0.5 / (double)totelem : step * 0.5;  /* We choose the smaller step. */
+			pos = (totpart < totmapped) ? 0.5 / (double)totmapped : step * 0.5;  /* We choose the smaller step. */
 		}
 		else {
 			pos = 0.0;
 		}
 
-		/* Avoid initial zero-weight items. */
-		for (i = 0; (element_sum[i] == 0.0f) && (i < totelem - 1); i++);
+		for (i = 0, p = 0; p < totpart; p++, pos += step) {
+			for ( ; (i < totmapped - 1) && (pos > (double)element_sum[i]); i++);
 
-		for (p = 0; p < totpart; p++, pos += step) {
-			for ( ; (pos > (double)element_sum[i]) && (i < totelem - 1); i++);
-
-			particle_element[p] = i;
+			particle_element[p] = element_map[i];
 
 			jitter_offset[particle_element[p]] = pos;
-		}
-
-		/* Avoid final zero weight items. */
-		BLI_assert(p == totpart);
-		if (element_weight[particle_element[--p]] == 0.0f) {
-			particle_element[p] = particle_element[p - 1];
 		}
 	}
 
 	MEM_freeN(element_sum);
+	MEM_freeN(element_map);
 
 	/* For hair, sort by origindex (allows optimization's in rendering), */
 	/* however with virtual parents the children need to be in random order. */
