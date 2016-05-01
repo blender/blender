@@ -507,7 +507,6 @@ public:
 	SHADER_NODE_CLASS(EmissionNode)
 
 	bool has_surface_emission() { return true; }
-	bool has_spatial_varying() { return true; }
 };
 
 class BackgroundNode : public ShaderNode {
