@@ -576,11 +576,12 @@ class GreasePencilDataPanel:
         col = split.column(align=True)
         col.prop(gpl, "line_width", slider=True)
         col.prop(gpl, "use_volumetric_strokes")
-        col.prop(gpl, "use_hq_fill")
+        col.prop(gpl, "show_points", text="Points")
+        
 
         col = split.column(align=True)
+        col.prop(gpl, "use_hq_fill")
         col.prop(gpl, "show_x_ray")
-        col.prop(gpl, "show_points", text="Points")
 
         layout.separator()
 
