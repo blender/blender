@@ -459,9 +459,18 @@ static void data_transfer_layersmapping_add_item_cd(
         ListBase *r_map, const int cddata_type, const int mix_mode, const float mix_factor, const float *mix_weights,
         void *data_src, void *data_dst, cd_datatransfer_interp interp, void *interp_data)
 {
+	uint64_t data_flag = 0;
+
+	if (cddata_type == CD_FREESTYLE_EDGE) {
+		data_flag = FREESTYLE_EDGE_MARK;
+	}
+	else if (cddata_type == CD_FREESTYLE_FACE) {
+		data_flag = FREESTYLE_FACE_MARK;
+	}
+
 	data_transfer_layersmapping_add_item(
 	        r_map, cddata_type, mix_mode, mix_factor, mix_weights, data_src, data_dst,
-	        0, 0, 0, 0, 0, 0, interp, interp_data);
+	        0, 0, 0, 0, 0, data_flag, interp, interp_data);
 }
 
 /* Note: All those layer mapping handlers return false *only* if they were given invalid parameters.
