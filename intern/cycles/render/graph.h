@@ -76,15 +76,11 @@ enum ShaderBump {
 enum ShaderNodeSpecialType {
 	SHADER_SPECIAL_TYPE_NONE,
 	SHADER_SPECIAL_TYPE_PROXY,
-	SHADER_SPECIAL_TYPE_MIX_CLOSURE,
-	SHADER_SPECIAL_TYPE_MIX_RGB, /* Only Mix subtype */
 	SHADER_SPECIAL_TYPE_AUTOCONVERT,
 	SHADER_SPECIAL_TYPE_GEOMETRY,
 	SHADER_SPECIAL_TYPE_SCRIPT,
-	SHADER_SPECIAL_TYPE_BACKGROUND,
 	SHADER_SPECIAL_TYPE_IMAGE_SLOT,
 	SHADER_SPECIAL_TYPE_CLOSURE,
-	SHADER_SPECIAL_TYPE_EMISSION,
 	SHADER_SPECIAL_TYPE_BUMP,
 };
 
@@ -197,7 +193,7 @@ public:
 
 	/* ** Node optimization ** */
 	/* Check whether the node can be replaced with single constant. */
-	virtual bool constant_fold(ShaderOutput * /*socket*/, float3 * /*optimized_value*/) { return false; }
+	virtual bool constant_fold(ShaderGraph * /*graph*/, ShaderOutput * /*socket*/, float3 * /*optimized_value*/) { return false; }
 
 	/* Simplify settings used by artists to the ones which are simpler to
 	 * evaluate in the kernel but keep the final result unchanged.
@@ -307,9 +303,9 @@ public:
 
 	void connect(ShaderOutput *from, ShaderInput *to);
 	void disconnect(ShaderInput *to);
-	void relink(vector<ShaderInput*> inputs, vector<ShaderInput*> outputs, ShaderOutput *output);
+	void relink(ShaderNode *node, ShaderOutput *from, ShaderOutput *to);
 
-	void remove_unneeded_nodes();
+	void remove_proxy_nodes();
 	void finalize(Scene *scene,
 	              bool do_bump = false,
 	              bool do_osl = false,

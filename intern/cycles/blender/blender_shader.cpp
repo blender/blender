@@ -32,7 +32,7 @@ CCL_NAMESPACE_BEGIN
 
 typedef map<void*, ShaderInput*> PtrInputMap;
 typedef map<void*, ShaderOutput*> PtrOutputMap;
-typedef map<std::string, ProxyNode*> ProxyMap;
+typedef map<std::string, ConvertNode*> ProxyMap;
 
 /* Find */
 
@@ -321,10 +321,6 @@ static ShaderNode *add_node(Scene *scene,
 		BL::ShaderNodeMixRGB b_mix_node(b_node);
 		MixNode *mix = new MixNode();
 		mix->type = MixNode::type_enum[b_mix_node.blend_type()];
-		/* Tag if it's Mix */
-		if(b_mix_node.blend_type() == 0) 
-			mix->special_type = SHADER_SPECIAL_TYPE_MIX_RGB;
-
 		mix->use_clamp = b_mix_node.use_clamp();
 		node = mix;
 	}
@@ -1029,7 +1025,8 @@ static void add_nodes(Scene *scene,
 			BL::Node::internal_links_iterator b_link;
 			for(b_node->internal_links.begin(b_link); b_link != b_node->internal_links.end(); ++b_link) {
 				BL::NodeSocket to_socket(b_link->to_socket());
-				ProxyNode *proxy = new ProxyNode(convert_socket_type(to_socket));
+				ShaderSocketType to_socket_type = convert_socket_type(to_socket);
+				ConvertNode *proxy = new ConvertNode(to_socket_type, to_socket_type, true);
 
 				input_map[b_link->from_socket().ptr.data] = proxy->inputs[0];
 				output_map[b_link->to_socket().ptr.data] = proxy->outputs[0];
@@ -1051,7 +1048,8 @@ static void add_nodes(Scene *scene,
 			 * so that links have something to connect to and assert won't fail.
 			 */
 			for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
-				ProxyNode *proxy = new ProxyNode(convert_socket_type(*b_input));
+				ShaderSocketType input_type = convert_socket_type(*b_input);
+				ConvertNode *proxy = new ConvertNode(input_type, input_type, true);
 				graph->add(proxy);
 
 				/* register the proxy node for internal binding */
@@ -1062,7 +1060,8 @@ static void add_nodes(Scene *scene,
 				set_default_value(proxy->inputs[0], *b_input, b_data, b_ntree);
 			}
 			for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
-				ProxyNode *proxy = new ProxyNode(convert_socket_type(*b_output));
+				ShaderSocketType output_type = convert_socket_type(*b_output);
+				ConvertNode *proxy = new ConvertNode(output_type, output_type, true);
 				graph->add(proxy);
 
 				/* register the proxy node for internal binding */
@@ -1088,7 +1087,7 @@ static void add_nodes(Scene *scene,
 			for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
 				ProxyMap::const_iterator proxy_it = proxy_input_map.find(b_output->identifier());
 				if(proxy_it != proxy_input_map.end()) {
-					ProxyNode *proxy = proxy_it->second;
+					ConvertNode *proxy = proxy_it->second;
 
 					output_map[b_output->ptr.data] = proxy->outputs[0];
 				}
@@ -1102,7 +1101,7 @@ static void add_nodes(Scene *scene,
 				for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
 					ProxyMap::const_iterator proxy_it = proxy_output_map.find(b_input->identifier());
 					if(proxy_it != proxy_output_map.end()) {
-						ProxyNode *proxy = proxy_it->second;
+						ConvertNode *proxy = proxy_it->second;
 
 						input_map[b_input->ptr.data] = proxy->inputs[0];
 

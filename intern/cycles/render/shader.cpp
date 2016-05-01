@@ -175,7 +175,7 @@ void Shader::set_graph(ShaderGraph *graph_)
 	 * are needed, since the node attribute callbacks check if their sockets
 	 * are connected but proxy nodes should not count */
 	if(graph_)
-		graph_->remove_unneeded_nodes();
+		graph_->remove_proxy_nodes();
 
 	/* assign graph */
 	delete graph;

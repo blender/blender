@@ -483,11 +483,11 @@ bool OSLCompiler::node_skip_input(ShaderNode *node, ShaderInput *input)
 		if(strcmp(input->name, "Normal") == 0)
 			return true;
 	}
-	else if(node->name == ustring("bump")) {
+	else if(node->special_type == SHADER_SPECIAL_TYPE_BUMP) {
 		if(strcmp(input->name, "Height") == 0)
 			return true;
 	}
-	else if(current_type == SHADER_TYPE_DISPLACEMENT && input->link && input->link->parent->name == ustring("bump"))
+	else if(current_type == SHADER_TYPE_DISPLACEMENT && input->link && input->link->parent->special_type == SHADER_SPECIAL_TYPE_BUMP)
 		return true;
 
 	return false;

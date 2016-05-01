@@ -1210,7 +1210,7 @@ void MeshManager::device_update_displacement_images(Device *device,
 						                             progress);
 						return;
 					}
-					ImageSlotNode *image_node = static_cast<ImageSlotNode*>(node);
+					ImageSlotTextureNode *image_node = static_cast<ImageSlotTextureNode*>(node);
 					int slot = image_node->slot;
 					if(slot != -1) {
 						bump_images.insert(slot);
