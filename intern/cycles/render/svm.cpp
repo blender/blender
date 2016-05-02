@@ -185,7 +185,7 @@ void SVMCompiler::stack_clear_offset(ShaderSocketType type, int offset)
 		active_stack.users[offset + i]--;
 }
 
-void SVMCompiler::stack_assign(ShaderInput *input)
+int SVMCompiler::stack_assign(ShaderInput *input)
 {
 	/* stack offset assign? */
 	if(input->stack_offset == SVM_STACK_INVALID) {
@@ -216,13 +216,33 @@ void SVMCompiler::stack_assign(ShaderInput *input)
 				assert(0);
 		}
 	}
+
+	return input->stack_offset;
 }
 
-void SVMCompiler::stack_assign(ShaderOutput *output)
+int SVMCompiler::stack_assign(ShaderOutput *output)
 {
 	/* if no stack offset assigned yet, find one */
 	if(output->stack_offset == SVM_STACK_INVALID)
 		output->stack_offset = stack_find_offset(output->type);
+
+	return output->stack_offset;
+}
+
+int SVMCompiler::stack_assign_if_linked(ShaderInput *input)
+{
+	if(input->link)
+		return stack_assign(input);
+
+	return SVM_STACK_INVALID;
+}
+
+int SVMCompiler::stack_assign_if_linked(ShaderOutput *output)
+{
+	if(!output->links.empty())
+		return stack_assign(output);
+
+	return SVM_STACK_INVALID;
 }
 
 void SVMCompiler::stack_link(ShaderInput *input, ShaderOutput *output)
@@ -434,10 +454,8 @@ void SVMCompiler::generate_closure_node(ShaderNode *node,
 	const char *weight_name = (current_type == SHADER_TYPE_VOLUME)? "VolumeMixWeight": "SurfaceMixWeight";
 	ShaderInput *weight_in = node->input(weight_name);
 
-	if(weight_in && (weight_in->link || weight_in->value.x != 1.0f)) {
-		stack_assign(weight_in);
-		mix_weight_offset = weight_in->stack_offset;
-	}
+	if(weight_in && (weight_in->link || weight_in->value.x != 1.0f))
+		mix_weight_offset = stack_assign(weight_in);
 	else
 		mix_weight_offset = SVM_STACK_INVALID;
 
@@ -504,8 +522,6 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 			find_dependencies(dependencies, state->nodes_done, facin);
 			generate_svm_nodes(dependencies, state);
 
-			stack_assign(facin);
-
 			/* execute shared dependencies. this is needed to allow skipping
 			 * of zero weight closures and their dependencies later, so we
 			 * ensure that they only skip dependencies that are unique to them */
@@ -559,7 +575,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 			/* generate instructions for input closure 1 */
 			if(cl1in->link) {
 				/* add instruction to skip closure and its dependencies if mix weight is zero */
-				svm_nodes.push_back(make_int4(NODE_JUMP_IF_ONE, 0, facin->stack_offset, 0));
+				svm_nodes.push_back(make_int4(NODE_JUMP_IF_ONE, 0, stack_assign(facin), 0));
 				int node_jump_skip_index = svm_nodes.size() - 1;
 
 				generate_multi_closure(root_node, cl1in->link->parent, state);
@@ -571,7 +587,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 			/* generate instructions for input closure 2 */
 			if(cl2in->link) {
 				/* add instruction to skip closure and its dependencies if mix weight is zero */
-				svm_nodes.push_back(make_int4(NODE_JUMP_IF_ZERO, 0, facin->stack_offset, 0));
+				svm_nodes.push_back(make_int4(NODE_JUMP_IF_ZERO, 0, stack_assign(facin), 0));
 				int node_jump_skip_index = svm_nodes.size() - 1;
 
 				generate_multi_closure(root_node, cl2in->link->parent, state);

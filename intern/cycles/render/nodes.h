@@ -37,6 +37,9 @@ public:
 	void compile(SVMCompiler& compiler, int offset_in, int offset_out);
 	void compile(OSLCompiler &compiler);
 
+	int compile_begin(SVMCompiler& compiler, ShaderInput *vector_in);
+	void compile_end(SVMCompiler& compiler, ShaderInput *vector_in, int vector_offset);
+
 	float3 translation;
 	float3 rotation;
 	float3 scale;

@@ -95,8 +95,10 @@ public:
 	             int index,
 	             Summary *summary = NULL);
 
-	void stack_assign(ShaderOutput *output);
-	void stack_assign(ShaderInput *input);
+	int stack_assign(ShaderOutput *output);
+	int stack_assign(ShaderInput *input);
+	int stack_assign_if_linked(ShaderInput *input);
+	int stack_assign_if_linked(ShaderOutput *output);
 	int stack_find_offset(ShaderSocketType type);
 	void stack_clear_offset(ShaderSocketType type, int offset);
 	void stack_link(ShaderInput *input, ShaderOutput *output);
