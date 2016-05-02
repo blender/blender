@@ -5846,6 +5846,13 @@ static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
 					        bezt_prev->vec[2], bezt_next->vec[0],
 					        &error_sq_dummy);
 
+					if (!ELEM(bezt_prev->h2, HD_FREE, HD_ALIGN)) {
+						bezt_prev->h2 = (bezt_prev->h2 == HD_VECT) ? HD_FREE : HD_ALIGN;
+					}
+					if (!ELEM(bezt_next->h1, HD_FREE, HD_ALIGN)) {
+						bezt_next->h1 = (bezt_next->h1 == HD_VECT) ? HD_FREE : HD_ALIGN;
+					}
+
 					MEM_freeN(points);
 				}
 			}
